@@ -293,7 +293,6 @@ class PairBOP : public Pair {
   double *sigma_f, *sigma_k, *small3;
   double *pro_delta, *pro;
 
-  int me;
   int bop_types;      // number of elments in potential
   int npairs;         // number of element pairs
   int ntriples;       // number of all triples

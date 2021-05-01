@@ -33,19 +33,19 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_bop.h"
-#include <cmath>
-#include <cctype>
-#include <mpi.h>
+
 #include "atom.h"
-#include "neighbor.h"
-#include "neigh_request.h"
-#include "force.h"
 #include "comm.h"
-#include "neigh_list.h"
-#include "memory.h"
-#include "error.h"
-#include "utils.h"
 #include "domain.h"
+#include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "utils.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -334,8 +334,7 @@ void PairBOP::settings(int narg, char **arg)
 void PairBOP::coeff(int narg, char **arg)
 {
   int i,j;
-  int n = atom->ntypes;
-  MPI_Comm_rank(world,&me);
+  const int n = atom->ntypes;
 
   delete [] map;
   map = new int[n+1];
@@ -343,18 +342,18 @@ void PairBOP::coeff(int narg, char **arg)
   if (narg != 3 + atom->ntypes)
     error->all(FLERR,"Incorrect args for pair coefficients");
 
-//ensure I,J args are * *
+  // ensure I,J args are * *
 
   if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
     error->all(FLERR,"Incorrect args for pair coefficients");
 
-//read the potential file
+  // read the potential file
 
   read_table(arg[2]);
 
-//match element names to BOP word types
+  // match element names to BOP word types
 
-  if (me == 0) {
+  if (comm->me == 0) {
     for (i = 3; i < narg; i++) {
       map[i-2] = -1;
       if (strcmp(arg[i],"NULL") == 0) continue;
@@ -369,18 +368,17 @@ void PairBOP::coeff(int narg, char **arg)
 
   MPI_Bcast(&map[1],atom->ntypes,MPI_INT,0,world);
 
-//clear setflag since coeff() called once with I,J = * *
+  //clear setflag since coeff() called once with I,J = * *
 
-  n = atom->ntypes;
-  for (int i = 1; i <= n; i++) {
-    for (int j = i; j <= n; j++) setflag[i][j] = 0;
+  for (i = 1; i <= n; i++) {
+    for (j = i; j <= n; j++) setflag[i][j] = 0;
   }
 
 //set setflag i,j for type pairs where both are mapped to elements
 
   int count = 0;
-  for (int i = 1; i <= n; i++) {
-    for (int j = i; j <= n; j++) {
+  for (i = 1; i <= n; i++) {
+    for (j = i; j <= n; j++) {
       if (map[i] >= 0 && map[j] >= 0) {
         setflag[i][j] = 1;
         count++;
@@ -1866,7 +1864,7 @@ void PairBOP::read_table(char *filename)
   ntheta=2000;
   npower = 2;
  
-  if (me == 0) {
+  if (comm->me == 0) {
     fp = utils::open_potential(filename,lmp,nullptr);
     if (fp == nullptr) {
       char str[128];
@@ -1896,7 +1894,7 @@ void PairBOP::read_table(char *filename)
   for(i = 0; i < bop_types; i++) elements[i] = nullptr;
 
   for(i = 0; i< bop_types; i++) {
-    if (me == 0) {
+    if (comm->me == 0) {
       utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
       nwords = sscanf(s,"%d %lf %s",&nbuf,&dbuf,cbuf);
       if (nwords != 3) {
@@ -1907,11 +1905,11 @@ void PairBOP::read_table(char *filename)
       strcpy(elements[i], cbuf);
     }
     MPI_Bcast(&n,1,MPI_INT,0,world);
-    if (me != 0) elements[i] = new char[n];
+    if (comm->me != 0) elements[i] = new char[n];
     MPI_Bcast(elements[i],n,MPI_CHAR,0,world);
   }
 
-  if (me == 0) {
+  if (comm->me == 0) {
     utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
     nwords = 0;
     ptr = strtok(s," \t\n\r\f"); //the first token
@@ -1957,11 +1955,11 @@ void PairBOP::read_table(char *filename)
   MPI_Bcast(&npower,1,MPI_INT,0,world);
 
   memory->create(rcut,npairs,"BOP:rcut");
-  if (me == 0) {
+  if (comm->me == 0) {
     memory->create(gpara,bop_types,bop_types,bop_types,npower+1,"BOP:gpara");
   }
 
-  if (me == 0) {
+  if (comm->me == 0) {
     utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
     sscanf(s,"%lf %lf %lf %lf %lf %lf %lf",&small1,&small2,&small3g,
       &small4,&small5,&small6,&small7);
@@ -2008,7 +2006,7 @@ void PairBOP::read_table(char *filename)
   for(j = 0; j < bop_types; j++)
   for(k = j; k < bop_types; k++) {
     TripletParameters & p = tripletParameters[nbuf];
-    if (me == 0) {
+    if (comm->me == 0) {
       if(nwords == 3 && npower <= 2) {
         grab(fp, ntheta, singletable);
       } else {
@@ -2035,7 +2033,7 @@ void PairBOP::read_table(char *filename)
 
   for(i = 0; i < npairs; i++) {
     PairParameters & p = pairParameters[i];
-    if (me == 0) {
+    if (comm->me == 0) {
       grab(fp, nr, singletable);
     }
     MPI_Bcast(singletable,nr,MPI_DOUBLE,0,world);
@@ -2047,7 +2045,7 @@ void PairBOP::read_table(char *filename)
 
   for(i = 0; i < npairs; i++) {
     PairParameters & p = pairParameters[i];
-    if (me == 0) {
+    if (comm->me == 0) {
       grab(fp, nr, singletable);
     }
     MPI_Bcast(singletable,nr,MPI_DOUBLE,0,world);
@@ -2057,7 +2055,7 @@ void PairBOP::read_table(char *filename)
 
   for(i = 0; i < npairs; i++) {
     PairParameters & p = pairParameters[i];
-    if (me == 0) {
+    if (comm->me == 0) {
       grab(fp, nr, singletable);
     }
     MPI_Bcast(singletable,nr,MPI_DOUBLE,0,world);
@@ -2070,7 +2068,7 @@ void PairBOP::read_table(char *filename)
   singletable = new double[nBOt];
   for(i = 0; i < npairs; i++) {
     PairParameters & p = pairParameters[i];
-    if (me == 0) {
+    if (comm->me == 0) {
       grab(fp, nBOt, singletable);
     }
     MPI_Bcast(singletable,nBOt,MPI_DOUBLE,0,world);
@@ -2092,7 +2090,7 @@ void PairBOP::read_table(char *filename)
     nbuf++;
   }
 
-  if (me == 0) {
+  if (comm->me == 0) {
     for(i = 0; i < bop_types; i++) {
       utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
       pro_delta[i] = atof(s);
@@ -2125,7 +2123,7 @@ void PairBOP::read_table(char *filename)
     singletable = new double[nr];
     for(i = 0; i < npairs; i++) {
       PairParameters & p = pairParameters[i];
-      if (me == 0) {
+      if (comm->me == 0) {
         grab(fp, nr, singletable);
       }
       MPI_Bcast(singletable,nr,MPI_DOUBLE,0,world);
@@ -2147,16 +2145,16 @@ void PairBOP::read_table(char *filename)
   }
 
   memory->destroy(rcut);
-  if (me == 0) memory->destroy(gpara);
+  if (comm->me == 0) memory->destroy(gpara);
 
-  if (me == 0) {
+  if (comm->me == 0) {
     fclose(fp);
   }
 
   MPI_Bcast(&cutmax,1,MPI_DOUBLE,0,world);
 
 //for debugging, call write_tables() to check the tabular functions
-//  if (me == 1) {
+//  if (comm->me == 1) {
 //    write_tables(51);
 //  }
 }
@@ -2251,7 +2249,7 @@ void PairBOP::write_tables(int npts)
   FILE* fp =  nullptr;
   double  xmin,xmax,x,uf,vf,wf,ufp,vfp,wfp;
  
-  sprintf(tag,"%d",me);
+  sprintf(tag,"%d",comm->me);
  
   for (int i = 0; i < bop_types; i++)
   for (int j = 0; j < bop_types; j++) {

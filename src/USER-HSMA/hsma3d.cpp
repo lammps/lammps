@@ -924,7 +924,6 @@ void HSMA3D::SetImageCharge(double ImageCharge[][4], int* ImageNumber, int Total
 					CZ = Source[m][2] + k * Lz;
 					if (CX * CX + CY * CY + CZ * CZ <= Rs * Rs)
 					{
-						//#pragma omp atomic						   
 						ImageCharge[number][0] = CX;
 						ImageCharge[number][1] = CY;
 						ImageCharge[number][2] = CZ;

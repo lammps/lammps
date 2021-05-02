@@ -1421,7 +1421,7 @@ double HSMA3D::FinalCalculateEnergyAndForce(double Force[][3], double* Pot, doub
 			source[3*i+2]=ImageCharge[i][2];
 			charge[i]=ImageCharge[i][3];	
 		}
-
+		
 		for (int i = 0; i < nt; i++)
 		{
 			target[3 * i] = Source[i][0];

@@ -567,7 +567,7 @@ void HSMA3D::CalculateMultipoleExpansion(double* Q, int p, double x, double y, d
 	}
 
 
-	t = 0;//normlization     Please do not normlize after every step!! That's wrong!      
+	t = 0;//normlization Please do not normlize after every step!! That's wrong!
 	for (int i = 0; i < p; i++)
 	{
 		while (t < (i + 1) * (i + 1))
@@ -1127,9 +1127,7 @@ void HSMA3D::SolveLeastSquareProblem(double* C, double** A, double* Near, int p,
 	for (int i = 0; i < (rowAT * columnATA); i++) {
 		MatrixATA[i] = 0.0;
 	}
-
 	cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasTrans, rowAT, columnATA, columnAT, alpha, MatrixAT, columnAT, MatrixAT, columnAT, beta, MatrixATA, columnATA);
-	
 	int InfoHelp;
 	int VectorHelp[columnATA];
 	for (int i = 0; i < columnATA; i++)
@@ -1488,7 +1486,6 @@ double HSMA3D::FinalCalculateEnergyAndForce(double Force[][3], double* Pot, doub
 		target = NULL;
 		free(sourceF); free(chargeF); free(pottargF); free(gradtargF);
 		sourceF = NULL; chargeF = NULL; pottargF = NULL; gradtargF = NULL;
-		 
 		return Energy;
 	}
 }

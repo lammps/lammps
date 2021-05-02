@@ -1,0 +1,44 @@
+# SPC/E water box bulk
+#package intel 1 mode single
+package omp 40
+processors * * * grid numa
+units		real	
+atom_style	full
+read_data ./lmp_5.8k.dat
+
+group O type 1
+group H type 2
+group water type 1:2:1
+
+bond_style	harmonic
+angle_style	harmonic 
+bond_coeff	1 1000.00 1.000
+angle_coeff	1 100.0 109.47
+special_bonds   lj 0 0 0.5
+special_bonds   coul 1 1 1 
+
+#===================================================
+thermo_style     custom step etotal ke pe evdwl ecoul temp   
+thermo_modify    line one 
+thermo	10
+
+#=================================================== 
+pair_style	lj/cut/omp 10.0 
+pair_coeff	1 1 0.1556 3.166 
+pair_coeff	* 2 0.0000 0.0000  	
+
+kspace_style HSMA3D 1.0e-4 1.2 8 128 55.0 89.0 0 0 
+ 
+neighbor        2.0 bin
+neigh_modify	delay 5 every 5 check no one 5000
+ 
+timer every 200 
+
+fix	1 water shake 0.00001 5000 0 b 1 a 1
+fix	2 water nvt temp 298 298 2.5
+
+thermo_style custom step etotal
+
+timestep    0.5 
+		
+run 1000000

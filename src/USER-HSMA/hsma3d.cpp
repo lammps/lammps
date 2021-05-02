@@ -20,7 +20,7 @@
 #include <cstdlib>
 #include "atom.h"
 #include "comm.h"
-#include "domain.h" 
+#include "domain.h"
 #include "force.h"
 #include "memory.h"
 #include "error.h"
@@ -33,14 +33,14 @@
 #include"mkl.h"
 #include<omp.h>
 #include<iomanip>
-#include <immintrin.h> 
+#include <immintrin.h>
 #include "complex.h"
 
 extern "C" {void lfmm3d_t_c_g_(double *eps, int *nsource,double *source, double *charge, int *nt, double *targ, double *pottarg, double *gradtarg, int *ier);}
 extern int fab(int n);
 extern int isfab(int m);
 
-using namespace LAMMPS_NS; 
+using namespace LAMMPS_NS;
 using namespace std;
 
 /* ---------------------------------------------------------------------- */
@@ -108,7 +108,6 @@ void HSMA3D::settings(int narg, char **arg)
 void HSMA3D::init()
 {
   printf("Setting up HSMA implemented by Jiuyang Liang (Release 1.0.0)\n");
-  
   PointSum = new double * [Nw];
   QuizSum = new double * [Nw];
   for (int i = 0; i < Nw; i++)
@@ -179,7 +178,6 @@ void HSMA3D::init()
   }
   double Fibonacci_New[Np][4];
   SetFibonacci(Fibonacci_New, F, Fp, Np, Rs, pi);
-  
   for (int i = 0; i < Np; i++)
 	  for (int j = 0; j < 4; j++)
 		  Fibonacci[i][j] = Fibonacci_New[i][j];
@@ -356,7 +354,7 @@ void HSMA3D::compute(int eflag, int vflag)
 	  //Compute final force, potential and energy
 	  double Energy_HSMA;
 	  double Force[nlocal][3], Pot[nlocal];
-	  TotalNumber = ceil(maxatom * (2 * lx + 1) * (2 * ly + 1) * (2 * lz + 1) / 2);//¼õÉÙ´æ´¢Á¿ÏûºÄ
+	  TotalNumber = ceil(maxatom * (2 * lx + 1) * (2 * ly + 1) * (2 * lz + 1) / 2);//Â¼ÃµÃ‰Ã™Â´Ã¦Â´Â¢ÃÂ¿ÃÃ»ÂºÃ„
 	  double ImageCharge_All[TotalNumber][4];
 	  SetImageCharge(ImageCharge_All, &ImageNumber, (2 * lx + 1) * (2 * ly + 1) * (2 * lz + 1), AllSource, AllQ, maxatom, Rs, Lx, Ly, Lz, lx, ly, lz);
 
@@ -976,8 +974,7 @@ void HSMA3D::CalculateNearFieldAndZD(double* Near, double ImageCharge[][4], int 
 		double* gradtarg = (double*)malloc(3 * nt * sizeof(double));
 
 		int ier = 0;
-		lfmm3d_t_c_g_(&eps, &ns, source, charge, &nt, target, pottarg, gradtarg, &ier);		
-
+		lfmm3d_t_c_g_(&eps, &ns, source, charge, &nt, target, pottarg, gradtarg, &ier);
 		for (int i = 0; i < Nw; i++)
 		{
 			Near[i] = pottarg[Nw + i] - pottarg[i];
@@ -1122,7 +1119,6 @@ void HSMA3D::SolveLeastSquareProblem(double* C, double** A, double* Near, int p,
 	rowAT = p * p - 1; columnAT = Nw; columnATA = p * p - 1;
 	double MatrixAT[rowAT * columnAT], MatrixATA[rowAT * columnATA], BB[Nw], ATB[p * p - 1], INV_ATA_ATB[p * p - 1];
 	alpha = 1.0; beta = 0.00;
-	
 	for (int i = 0; i < rowAT; i++)
 		for (int j = 0; j < columnAT; j++)
 		{
@@ -1137,7 +1133,6 @@ void HSMA3D::SolveLeastSquareProblem(double* C, double** A, double* Near, int p,
 	
 	int InfoHelp;
 	int VectorHelp[columnATA];
-
 	for (int i = 0; i < columnATA; i++)
 		VectorHelp[i] = 0;
 	InfoHelp = LAPACKE_dgetrf(CblasRowMajor, columnATA, columnATA, MatrixATA, columnATA, VectorHelp);
@@ -1542,8 +1537,7 @@ void HSMA3D::CalculateNearFieldAndZD_Single(double* Near, double ImageCharge[][4
 		double* gradtarg = (double*)malloc(3 * nt * sizeof(double));
 
 		int ier;
-		lfmm3d_t_c_g_(&eps, &ns, source, charge, &nt, target, pottarg, gradtarg,&ier);	
-
+		lfmm3d_t_c_g_(&eps, &ns, source, charge, &nt, target, pottarg, gradtarg,&ier);
 		for (int i = 0; i < Nw; i++)
 		{
 			Near[i] = pottarg[Nw + i] - pottarg[i];
@@ -1925,7 +1919,6 @@ double HSMA3D::FinalCalculateEnergyAndForce_Single(double Force[][3], double* Po
 
 		return Energy;
 	}
-
 }
 
 int fab(int n)

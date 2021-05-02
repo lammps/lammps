@@ -47,7 +47,7 @@ public:
   void settings(int, char **);
   void setup() {}
   void compute(int, int);
-  double memory_usage(); 
+  double memory_usage();
   void init();
 
   void CalculateRDMultipoleExpansion(double* Q, int p, double x, double y, double z);//Q is a p*p vector.  Set multi-pole expansion coefficient
@@ -68,7 +68,7 @@ public:
   double FinalCalculateEnergyAndForce_Single(double Force[][3], double* Pot, double Source[][3], double* Q, int NSource, double ImageCharge[][4], int ImageNumber, double **Fibonacci, double** QRD, double** QLocalRD, double* C, int p, double Fp, double F, double Rs, double PI, int IF_FMM_FinalPotential, double tolerance);
 
  private:
-  int me,RankID;//当前MPI标号和总的MPI数量
+  int me,RankID;//碌卤脟掳MPI卤锚潞脜潞脥脳脺碌脛MPI脢媒脕驴
   double Lx, Ly, Lz;
   double Lambda;
   double Fp, F;

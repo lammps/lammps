@@ -69,7 +69,7 @@ namespace LAMMPS_NS {
 		double fac(double t);
 
 	private:
-		int me, RankID;//µ±Ç°MPI±êºÅºÍ×ÜµÄMPIÊıÁ¿
+		int me, RankID;//å½“å‰MPIæ ‡å·å’Œæ€»çš„MPIæ•°é‡
 		double Lx, Ly, Lz;
 		double Lambda;
 		double Gamma;
@@ -92,7 +92,7 @@ namespace LAMMPS_NS {
 		int Np;
 		double** Fibonacci;
 		double** QRD, ** QLocalRD;
-		int maxatom;//×ÜµÄÁ£×ÓÊı
+		int maxatom;//æ€»çš„ç²’å­æ•°
 		
 		double ** TopNear, ** TopZDNear;
 		double ** DownNear, ** DownZDNear;

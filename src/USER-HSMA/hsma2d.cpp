@@ -33,7 +33,7 @@
 #include"mkl.h"
 #include<omp.h>
 #include<iomanip>
-#include <immintrin.h> 
+#include <immintrin.h>
 #include "complex.h"
 
 extern "C" {void lfmm3d_t_c_g_(double* eps, int* nsource, double* source, double* charge, int* nt, double* targ, double* pottarg, double* gradtarg, int* ier); }
@@ -158,14 +158,14 @@ void HSMA2D::init()
 					IntegralDown[m * Nw + i][n * Nw + j][2] = -Lz / 2;
 					IntegralDown[m * Nw + i][n * Nw + j][3] = Weight[i] * Weight[j] * Lx * Ly / (4.0 * S * S);
 				}
-	 
+	
 	Rs = Lambda * sqrt((Lx / 2) * (Lx / 2) + (Ly / 2) * (Ly / 2) + (Lz / 2) * (Lz / 2));
 	PI = 3.141592653589793;
 	mu = 2.0 * PI / Lx;
 	EU = (1 - Gamma) / (1 + Gamma);
 
 	IndexReal = floor((p * p - 1) / 2.0);
-	IndexImag = ceil((p * p - 1) / 2.0); 
+	IndexImag = ceil((p * p - 1) / 2.0);
 	NJKBound = floor(2.0 * p / 3.0);
 	NJK = (2 * NJKBound + 1) * (2 * NJKBound + 1);
 	LeftTermReal = new double* [2 * NJK];
@@ -366,7 +366,7 @@ void HSMA2D::compute(int eflag, int vflag)
 		AdjustParticle_Double(X, nlocal, Lx, Ly, Lz);
 		MPI_Iallgatherv((double*)X, nlocal * 3, MPI_DOUBLE, (double*)AllSource, nlocal_All, Size_All, MPI_DOUBLE, world, &request);
 		MPI_Iallgatherv((double*)Q, nlocal, MPI_DOUBLE, (double*)AllQ, nlocal_All_Q, Size_All_Q, MPI_DOUBLE, world, &request_Q);
-        
+		
 		int lx = ceil((Rs - Lx / 2.0) / Lx), ly = ceil((Rs - Ly / 2.0) / Ly), lz = ceil((Rs - Lz / 2.0) / Lz);
 		int TotalNumber = nlocal * (2 * lx + 1) * (2 * ly + 1) * (2 * lz + 1);
 		double ImageCharge[TotalNumber][5];
@@ -394,13 +394,13 @@ void HSMA2D::compute(int eflag, int vflag)
 
 		double Energy_HSMA;
 		double Force[nlocal][3], Pot[nlocal];
-		TotalNumber = ceil(maxatom * (2 * lx + 1) * (2 * ly + 1) * (2 * lz + 1) / 2);//ºı…Ÿ¥Ê¥¢¡øœ˚∫ƒ
+		TotalNumber = ceil(maxatom * (2 * lx + 1) * (2 * ly + 1) * (2 * lz + 1) / 2);//¬º√µ√â√ô¬¥√¶¬¥¬¢√Å¬ø√è√ª¬∫√Ñ
 		double ImageCharge_All[TotalNumber][5];
 		SetImageCharge(ImageCharge_All, &ImageNumber, (2 * lx + 1)* (2 * ly + 1)* (2 * lz + 1), AllSource, AllQ, maxatom, Rs, Lx, Ly, Lz, lx, ly, lz);
-        
+		
 		/*Calculate the potential, energyand force of the source charges*/
 		Energy_HSMA = FinalCalculateEnergyAndForce(Force, Pot, X, Q, nlocal, ImageCharge_All, ImageNumber, Fibonacci, (double**)QRD, (double**)QLocalRD, Gamma,C, p, Fp, F, Rs, PI, IF_FMM_FinalPotential, tolerance);
-        
+		
 		scale = 1.0;
 		const double qscale = qqrd2e * scale;
 
@@ -662,7 +662,7 @@ void HSMA2D::ConstructLeftTerm(double** LeftTermReal, double** LeftTermImag, dou
 	double DownQ[S * Nw][S * Nw][p * p], DownQZD[S * Nw][S * Nw][p * p];
 
 
-#pragma omp parallel 
+#pragma omp parallel
 	{
 		double QM[p * p], QZDM[p * p];
 		int index_r, index_dr;
@@ -907,7 +907,7 @@ void HSMA2D::CalculateMultipoleExpansion(double* Q, int p, double x, double y, d
 	}
 
 
-	t = 0;//normlization     Please do not normlize after every step!! That's wrong!      
+	t = 0;//normlization     Please do not normlize after every step!! That's wrong!
 	for (int i = 0; i < p; i++)
 	{
 		while (t < (i + 1) * (i + 1))
@@ -1217,7 +1217,7 @@ double HSMA2D::SetImageCharge(double ImageCharge[][5], int* ImageNumber, int Tot
 					CY = Source[m][1] + j * Ly;
 					CZ = pow(-1, k) * Source[m][2] + k * Lz;
 					if (CX * CX + CY * CY + CZ * CZ <= Rs * Rs)
-					{					   
+					{				   
 						ImageCharge[number][0] = CX;
 						ImageCharge[number][1] = CY;
 						ImageCharge[number][2] = CZ;
@@ -1280,7 +1280,7 @@ void HSMA2D::CalculateNearFieldAndZD(double** Top, double** TopZD, double** Down
 				Down[i][j] = pottarg[(S * Nw) * (S * Nw) + i * (S * Nw) + j];
 				DownZD[i][j] = gradtarg[3 * ((S * Nw) * (S * Nw) + i * (S * Nw) + j) + 2];
 			}
-		 
+		
 		free(source); free(target); free(charge); free(pottarg); free(gradtarg);
 	}
 	else
@@ -1291,7 +1291,7 @@ void HSMA2D::CalculateNearFieldAndZD(double** Top, double** TopZD, double** Down
 			Paramet1[i] = ImageCharge[i][3] * pow(Gamma, fabs(ImageCharge[i][4]) + 0.00);
 		}
 		
-        #pragma omp parallel
+		#pragma omp parallel
 		{
 			int id = omp_get_thread_num();
 			int size = omp_get_num_threads();
@@ -1300,8 +1300,8 @@ void HSMA2D::CalculateNearFieldAndZD(double** Top, double** TopZD, double** Down
 			if (id == 0)min_atom = 0;
 
 			int float_double;
-			if (tolerance > 0.000001) { 
-				float_double = 1; 
+			if (tolerance > 0.000001) {
+				float_double = 1;
 				float IntegralTop_X[int(ceil( (max_atom - min_atom + 1)/16.0 ))*16], IntegralTop_Y[int(ceil((max_atom - min_atom + 1) / 16.0)) * 16], IntegralTop_Z[int(ceil((max_atom - min_atom + 1) / 16.0)) * 16];
 				for (int i = min_atom; i <= max_atom; i++)
 				{
@@ -1363,8 +1363,8 @@ void HSMA2D::CalculateNearFieldAndZD(double** Top, double** TopZD, double** Down
 					}
 				}
 			}
-			else { 
-				float_double = 2; 
+			else {
+				float_double = 2;
 				double IntegralTop_X[int(ceil((max_atom - min_atom + 1) / 8.0)) * 8], IntegralTop_Y[int(ceil((max_atom - min_atom + 1) / 8.0)) * 8], IntegralTop_Z[int(ceil((max_atom - min_atom + 1) / 8.0)) * 8];
 				for (int i = min_atom; i <= max_atom; i++)
 				{
@@ -1679,7 +1679,7 @@ void HSMA2D::SolveLeastSquareProblem(double* C, double** LeftTermReal, double** 
 
 	alpha = 1.0; beta = 0.00;
 	
-
+	
 	for (int i = 0; i < rowAT; i++)
 		for (int j = 0; j < columnAT; j++)
 		{
@@ -1719,7 +1719,7 @@ void HSMA2D::SolveLeastSquareProblem(double* C, double** LeftTermReal, double** 
 	for (int i = 0; i < Down; i++)
 	{
 		C[2 * i + 1] = INV_ATA_ATB_New[i];
-	}	
+	}
 }
 
 double HSMA2D::FinalCalculateEnergyAndForce(double Force[][3], double* Pot, double Source[][3], double* Q, int NSource, double ImageCharge[][5], int ImageNumber, double **Fibonacci, double** QRD, double** QLocalRD, double Gamma, double* C, int p, double Fp, double F, double Rs, double PI, int IF_FMM_FinalPotential, double tolerance)
@@ -1880,7 +1880,7 @@ double HSMA2D::FinalCalculateEnergyAndForce(double Force[][3], double* Pot, doub
 
 			double Image_X[int(ceil(ImageNumber / 8.0)) * 8], Image_Y[int(ceil(ImageNumber / 8.0)) * 8], Image_Z[int(ceil(ImageNumber / 8.0)) * 8];
 			for (int i = 0; i < int(ceil(ImageNumber / 8.0)) * 8; i++)
-			{	
+			{
 				if (i < ImageNumber) {
 					Image_X[i] = ImageCharge[i][0];
 					Image_Y[i] = ImageCharge[i][1];

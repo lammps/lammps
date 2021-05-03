@@ -39,6 +39,7 @@
 #include "pair.h"
 #include "pair_hybrid.h"
 #include "region.h"
+#include "text_file_reader.h"
 #include "update.h"
 #include "variable.h"
 
@@ -1261,7 +1262,25 @@ std::string Info::get_os_info()
 #else
   struct utsname ut;
   uname(&ut);
-  buf = fmt::format("{} {} on {}", ut.sysname, ut.release, ut.machine);
+
+  // try to get OS distribution name, if available
+  std::string distro = ut.sysname;
+  if (utils::file_is_readable("/etc/os-release")) {
+    try {
+        TextFileReader reader("/etc/os-release","");
+        while (1) {
+          auto words = reader.next_values(0,"=");
+          if ((words.count() > 1) && (words.next_string() == "PRETTY_NAME")) {
+            distro += " " + utils::trim(words.next_string());
+            break;
+          }
+        }
+    } catch (std::exception &e) {
+      ; // EOF but keyword not found
+    }
+  }
+
+  buf = fmt::format("{} {} on {}", distro, ut.release, ut.machine);
 #endif
   return buf;
 }

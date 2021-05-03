@@ -11,12 +11,13 @@ Syntax
    thermo_modify keyword value ...
 
 * one or more keyword/value pairs may be listed
-* keyword = *lost* or *lost/bond* or *norm* or *flush* or *line* or *format* or *temp* or *press*
+* keyword = *lost* or *lost/bond* or *warn* or *norm* or *flush* or *line* or *format* or *temp* or *press*
 
   .. parsed-literal::
 
        *lost* value = *error* or *warn* or *ignore*
        *lost/bond* value = *error* or *warn* or *ignore*
+       *warn* value = *ignore* or *reset* or *default* or a number
        *norm* value = *yes* or *no*
        *flush* value = *yes* or *no*
        *line* value = *one* or *multi*
@@ -74,6 +75,23 @@ bond, angle, etc.  An example would be when gas molecules in a vapor
 are drifting out of the box through a fixed boundary condition (see
 the :doc:`boundary <boundary>` command).  In this case one atom may be
 deleted before the rest of the molecule is, on a later timestep.
+
+The *warn* keyword determines whether LAMMPS will print warning
+messages and how many of them.  Certain warning messages can be
+quite verbose and thus quickly blow up the size of the log file
+and screen output.  Thus a limit of 100 warnings messages is applied
+by default.  If there are more warnings, LAMMPS will print one final
+warning that it will not print any additional warning messages.
+Any number after the keyword *warn* will change the warning limit
+accordingly.  With the value *ignore* all warnings will be suppressed,
+with the value *always* no limit will be applied and warnings will
+always be printed, with the value *reset* the internal warning
+counter will be reset to zero,  and with the value *default*, all
+settings will be reset to their defaults and the counter reset.
+An example usage of this keyword would be that during equilibration
+warnings would be ignored while the system is still adjusting, but
+then one would reset everything to the defaults for the production
+run.
 
 The *norm* keyword determines whether various thermodynamic output
 values are normalized by the number of atoms or not, depending on

@@ -92,7 +92,7 @@ Thermo::Thermo(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   normuserflag = 0;
   lineflag = ONELINE;
   lostflag = lostbond = Thermo::ERROR;
-  lostbefore = 0;
+  lostbefore = warnbefore = 0;
   flushflag = 0;
 
   // set style and corresponding lineflag
@@ -400,42 +400,56 @@ void Thermo::call_vfunc(int ifield_in)
 
 /* ----------------------------------------------------------------------
    check for lost atoms, return current number of atoms
+   also could number of warnings across MPI ranks and update total
 ------------------------------------------------------------------------- */
 
 bigint Thermo::lost_check()
 {
-  // ntotal = current # of atoms
+  // ntotal = current # of atoms, and Error class warnings
 
-  bigint ntotal;
-  bigint nblocal = atom->nlocal;
-  MPI_Allreduce(&nblocal,&ntotal,1,MPI_LMP_BIGINT,MPI_SUM,world);
-  if (ntotal < 0)
+  bigint nlocal[2], ntotal[2] = {0,0};
+  nlocal[0] = atom->nlocal;
+  nlocal[1] = error->get_numwarn();
+  MPI_Allreduce(nlocal,ntotal,2,MPI_LMP_BIGINT,MPI_SUM,world);
+  if (ntotal[0] < 0)
     error->all(FLERR,"Too many total atoms");
-  if (ntotal == atom->natoms) return ntotal;
+
+  // print notification, if future warnings will be ignored
+  error->set_allwarn(ntotal[1]);
+  int maxwarn = error->get_maxwarn();
+  if ((maxwarn > 0) && (warnbefore == 0) && (ntotal[1] > maxwarn)) {
+    warnbefore = 1;
+    error->warning(FLERR,fmt::format("Too many warnings: {} vs {}. All "
+                                     "future warnings will be suppressed.\n",
+                                     ntotal[1],maxwarn),0);
+  }
+
+  // no lost atoms, nothing else to do.
+  if (ntotal[0] == atom->natoms) return ntotal[0];
 
   // if not checking or already warned, just return
-  if (lostflag == Thermo::IGNORE) return ntotal;
+  if (lostflag == Thermo::IGNORE) return ntotal[0];
   if (lostflag == Thermo::WARN && lostbefore == 1) {
-    return ntotal;
+    return ntotal[0];
   }
 
   // error message
 
   if (lostflag == Thermo::ERROR)
     error->all(FLERR,"Lost atoms: original {} current {}",
-                                 atom->natoms,ntotal);
+                                 atom->natoms,ntotal[0]);
 
   // warning message
 
   if (me == 0)
     error->warning(FLERR,fmt::format("Lost atoms: original {} current {}",
-                                     atom->natoms,ntotal),0);
+                                     atom->natoms,ntotal[0]),0);
 
   // reset total atom count
 
-  atom->natoms = ntotal;
+  atom->natoms = ntotal[0];
   lostbefore = 1;
-  return ntotal;
+  return ntotal[0];
 }
 
 /* ----------------------------------------------------------------------
@@ -523,6 +537,20 @@ void Thermo::modify_params(int narg, char **arg)
       else if (strcmp(arg[iarg+1],"warn") == 0) lostbond = Thermo::WARN;
       else if (strcmp(arg[iarg+1],"error") == 0) lostbond = Thermo::ERROR;
       else error->all(FLERR,"Illegal thermo_modify command");
+      iarg += 2;
+
+    } else if (strcmp(arg[iarg],"warn") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal thermo_modify command");
+      if (strcmp(arg[iarg+1],"ignore") == 0) error->set_maxwarn(-1);
+      if (strcmp(arg[iarg+1],"always") == 0) error->set_maxwarn(0);
+      else if (strcmp(arg[iarg+1],"reset") == 0) {
+        error->set_numwarn(0);
+        warnbefore = 0;
+      } else if (strcmp(arg[iarg+1],"default") == 0) {
+        warnbefore = 0;
+        error->set_numwarn(0);
+        error->set_maxwarn(100);
+      } else error->set_maxwarn(utils::inumeric(FLERR,arg[iarg+1],false,lmp));
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"norm") == 0) {

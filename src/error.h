@@ -47,6 +47,12 @@ class Error : protected Pointers {
   void message(const std::string &, int, const std::string &, int = 1);
   [[ noreturn ]] void done(int = 0); // 1 would be fully backwards compatible
 
+  int get_numwarn() const { return numwarn; }
+  int get_maxwarn() const { return maxwarn; }
+  void set_numwarn(int val) { numwarn = val; }
+  void set_maxwarn(int val) { maxwarn = val; }
+  void set_allwarn(int val) { allwarn = val; }
+
 #ifdef LAMMPS_EXCEPTIONS
   std::string get_last_error() const;
   ErrorType get_last_error_type() const;
@@ -56,6 +62,7 @@ class Error : protected Pointers {
   std::string last_error_message;
   ErrorType last_error_type;
 
+  int numwarn, maxwarn, allwarn;
 #endif
  private:
   // internal versions that accept explicit fmtlib arguments

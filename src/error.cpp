@@ -36,7 +36,9 @@ static std::string truncpath(const std::string &path)
 
 /* ---------------------------------------------------------------------- */
 
-Error::Error(LAMMPS *lmp) : Pointers(lmp) {
+Error::Error(LAMMPS *lmp)
+  : Pointers(lmp), numwarn(0), maxwarn(100), allwarn(0)
+{
 #ifdef LAMMPS_EXCEPTIONS
   last_error_message.clear();
   last_error_type = ERROR_NONE;
@@ -116,6 +118,7 @@ void Error::universe_one(const std::string &file, int line, const std::string &s
 
 void Error::universe_warn(const std::string &file, int line, const std::string &str)
 {
+  ++numwarn;
   if (universe->uscreen)
     fmt::print(universe->uscreen,"WARNING on proc {}: {} ({}:{})\n",
                universe->me,str,truncpath(file),line);
@@ -246,6 +249,7 @@ void Error::_one(const std::string &file, int line, fmt::string_view format,
 
 void Error::warning(const std::string &file, int line, const std::string &str, int logflag)
 {
+  ++numwarn;
   std::string mesg = fmt::format("WARNING: {} ({}:{})\n",
                                  str,truncpath(file),line);
   if (screen) fputs(mesg.c_str(),screen);

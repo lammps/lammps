@@ -325,6 +325,7 @@ TEST_F(LAMMPS_kokkos, InitMembers)
 TEST(LAMMPS_init, OpenMP)
 {
     if (!LAMMPS::is_installed_pkg("USER-OMP")) GTEST_SKIP();
+    if (Info::get_openmp_info() == "OpenMP not enabled") GTEST_SKIP();
 
     FILE *fp = fopen("in.lammps_empty", "w");
     fputs("\n", fp);

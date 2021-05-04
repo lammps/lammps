@@ -26,18 +26,6 @@ KSpaceStyle(HSMA2D, HSMA2D)
 
 #include "kspace.h"
 
-#include "atom.h"
-#include "comm.h"
-#include "domain.h"
-#include "error.h"
-#include "force.h"
-#include "math.h"
-#include "memory.h"
-
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-
 namespace LAMMPS_NS {
 
 	class HSMA2D : public KSpace {

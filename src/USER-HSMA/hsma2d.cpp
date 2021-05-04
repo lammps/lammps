@@ -1269,7 +1269,7 @@ void HSMA2D::CalculateNearFieldAndZD(double** Top, double** TopZD, double** Down
 			Paramet1[i] = ImageCharge[i][3] * pow(Gamma, fabs(ImageCharge[i][4]) + 0.00);
 		}
 		
-		#if defined(_OPENMP)
+		#if defined(_OPENMP) && defined(__AVX512F__)
 		#pragma omp parallel
 		{
 			int id = omp_get_thread_num();
@@ -1406,142 +1406,87 @@ void HSMA2D::CalculateNearFieldAndZD(double** Top, double** TopZD, double** Down
 				}
 			}
 		}
+        #elif defined(_OPENMP)
+			#pragma omp parallel shared(Top,TopZD,Down,DownZD)
+			{
+				double Paramet[ImageNumber];
+				memcpy(Paramet, Paramet1, sizeof(double)* ImageNumber);
+				double pottarg, fldtarg, pottarg2, fldtarg2;
+				double deltax, deltay, deltaz, delta;
+				float inv_delta;
+				double Image[ImageNumber][5];
+				double lz = Lz / 2.0;
+				memcpy((double*)Image, (double*)ImageCharge, sizeof(double) * 5 * ImageNumber);
+				double IntegralTopCopy[S * Nw * S * Nw][4];
+				memcpy((double*)IntegralTopCopy, (double*)IntegralTop, sizeof(double)* S* Nw* S* Nw * 4);
+				#pragma omp for
+					for (int i = 0; i < (S * Nw) * (S * Nw); i++)
+						{
+							pottarg = 0.00;
+							fldtarg = 0.00;
+							pottarg2 = 0.00;
+							fldtarg2 = 0.00;
+							for (int j = 0; j < ImageNumber; j++)
+							{
+								deltax = IntegralTopCopy[i][0] - Image[j][0];
+								deltay = IntegralTopCopy[i][1] - Image[j][1];
+								deltaz = lz - Image[j][2];
+								double Para = Paramet[j];
+								delta = sqrt(deltax * deltax + deltay * deltay + deltaz * deltaz);
+								fldtarg = fldtarg + (-deltaz) * Para / (delta * delta * delta);
+								pottarg = pottarg + Para / delta;
+								deltaz = -lz - Image[j][2];
+								delta = sqrt(deltax * deltax + deltay * deltay + deltaz * deltaz);
+								fldtarg2 = fldtarg2 + (-deltaz) * Para / (delta * delta * delta);
+								pottarg2 = pottarg2 + Para / delta;
+							}
+							int ix = floor(i / (S * Nw));
+							int iy = i - ix * (S * Nw);
+							Top[ix][iy] = pottarg;
+							TopZD[ix][iy] = fldtarg;
+							Down[ix][iy] = pottarg2;
+							DownZD[ix][iy] = fldtarg2;
+						}
+			}
 		#else
-			int id = 0;
-			int size = 1;
-			int min_atom = id * floor(S * Nw * S * Nw / size) + 1, max_atom = (id + 1) * floor(S * Nw * S * Nw / size);
-			if (id == size - 1)max_atom = S * Nw * S * Nw - 1;
-			if (id == 0)min_atom = 0;
-
-			int float_double;
-			if (tolerance > 0.000001) {
-			float_double = 1;
-			float IntegralTop_X[int(ceil((max_atom - min_atom + 1) / 16.0)) * 16], IntegralTop_Y[int(ceil((max_atom - min_atom + 1) / 16.0)) * 16], IntegralTop_Z[int(ceil((max_atom - min_atom + 1) / 16.0)) * 16];
-			for (int i = min_atom; i <= max_atom; i++)
-			{
-				int ix = floor(i / (S * Nw));
-				int iy = i - ix * (S * Nw);
-				IntegralTop_X[i - min_atom] = IntegralTop[ix][iy][0];
-				IntegralTop_Y[i - min_atom] = IntegralTop[ix][iy][1];
-				IntegralTop_Z[i - min_atom] = IntegralTop[ix][iy][2];
-			}
-
-			for (int i = max_atom - min_atom + 1; i<int(ceil((max_atom - min_atom + 1) / 16.0)) * 16; i++)
-			{
-				IntegralTop_X[i] = 0.00;
-				IntegralTop_Y[i] = 0.00;
-				IntegralTop_Z[i] = 0.00;
-			}
-
-			for (int i = min_atom; i <= max_atom; i = i + 16)
-			{
-				__m512 pottarg, fldtarg, pottarg2, fldtarg2, X0, Y0, X1, Y1, dx, dy, dz, dz1, delta, delta1, Para, midterm, midterm1;
-				float F1[16], F2[16], F3[16], F4[16];
-				pottarg = fldtarg = pottarg2 = fldtarg2 = _mm512_setzero_ps();
-				X0 = _mm512_load_ps(&IntegralTop_X[i - min_atom]);
-				Y0 = _mm512_load_ps(&IntegralTop_Y[i - min_atom]);
-
-				for (int j = 0; j < ImageNumber; j++)
+				double Paramet[ImageNumber];
+				memcpy(Paramet, Paramet1, sizeof(double) * ImageNumber);
+				double pottarg, fldtarg, pottarg2, fldtarg2;
+				double deltax, deltay, deltaz, delta;
+				float inv_delta;
+				double Image[ImageNumber][5];
+				double lz = Lz / 2.0;
+				memcpy((double*)Image, (double*)ImageCharge, sizeof(double) * 5 * ImageNumber);
+				double IntegralTopCopy[S * Nw * S * Nw][4];
+				memcpy((double*)IntegralTopCopy, (double*)IntegralTop, sizeof(double) * S * Nw * S * Nw * 4);
+				for (int i = 0; i < (S * Nw) * (S * Nw); i++)
 				{
-					Para = _mm512_set1_ps(Paramet1[j]);
-					X1 = _mm512_set1_ps(ImageCharge[j][0]);
-					Y1 = _mm512_set1_ps(ImageCharge[j][1]);
-					dz = _mm512_set1_ps(Lz / 2.0 - ImageCharge[j][2]);
-					dx = X0 - X1;
-					dy = Y0 - Y1;
-					delta = _mm512_invsqrt_ps(dx * dx + dy * dy + dz * dz);
-					midterm = Para * delta;
-					fldtarg -= dz * midterm * delta * delta;
-					pottarg += midterm;
-					dz1 = _mm512_set1_ps(-Lz / 2.0 - ImageCharge[j][2]);
-					delta1 = _mm512_invsqrt_ps(dx * dx + dy * dy + dz1 * dz1);
-					midterm1 = Para * delta1;
-					pottarg2 += midterm1;
-					fldtarg2 -= dz1 * midterm1 * delta1 * delta1;
+					pottarg = 0.00;
+					fldtarg = 0.00;
+					pottarg2 = 0.00;
+					fldtarg2 = 0.00;
+					for (int j = 0; j < ImageNumber; j++)
+					{
+						deltax = IntegralTopCopy[i][0] - Image[j][0];
+						deltay = IntegralTopCopy[i][1] - Image[j][1];
+						deltaz = lz - Image[j][2];
+						double Para = Paramet[j];
+						delta = sqrt(deltax * deltax + deltay * deltay + deltaz * deltaz);
+						fldtarg = fldtarg + (-deltaz) * Para / (delta * delta * delta);
+						pottarg = pottarg + Para / delta;
+						deltaz = -lz - Image[j][2];
+						delta = sqrt(deltax * deltax + deltay * deltay + deltaz * deltaz);
+						fldtarg2 = fldtarg2 + (-deltaz) * Para / (delta * delta * delta);
+						pottarg2 = pottarg2 + Para / delta;
+					}
+					int ix = floor(i / (S * Nw));
+					int iy = i - ix * (S * Nw);
+					Top[ix][iy] = pottarg;
+					TopZD[ix][iy] = fldtarg;
+					Down[ix][iy] = pottarg2;
+					DownZD[ix][iy] = fldtarg2;
 				}
-
-				_mm512_store_ps(&F1[0], pottarg);
-				_mm512_store_ps(&F2[0], pottarg2);
-				_mm512_store_ps(&F4[0], fldtarg2);
-				_mm512_store_ps(&F3[0], fldtarg);
-
-				for (int j = i; (j < i + 16) && (j <= max_atom); j++)
-				{
-					int ix = floor(j / (S * Nw));
-					int iy = j - ix * (S * Nw);
-
-					Top[ix][iy] = F1[j - i];
-					TopZD[ix][iy] = F3[j - i];
-					Down[ix][iy] = F2[j - i];
-					DownZD[ix][iy] = F4[j - i];
-				}
-			}
-		}
-		else {
-			float_double = 2;
-			double IntegralTop_X[int(ceil((max_atom - min_atom + 1) / 8.0)) * 8], IntegralTop_Y[int(ceil((max_atom - min_atom + 1) / 8.0)) * 8], IntegralTop_Z[int(ceil((max_atom - min_atom + 1) / 8.0)) * 8];
-			for (int i = min_atom; i <= max_atom; i++)
-			{
-				int ix = floor(i / (S * Nw));
-				int iy = i - ix * (S * Nw);
-				IntegralTop_X[i - min_atom] = IntegralTop[ix][iy][0];
-				IntegralTop_Y[i - min_atom] = IntegralTop[ix][iy][1];
-				IntegralTop_Z[i - min_atom] = IntegralTop[ix][iy][2];
-			}
-
-			for (int i = max_atom - min_atom + 1; i<int(ceil((max_atom - min_atom + 1) / 8.0)) * 8; i++)
-			{
-				IntegralTop_X[i] = 0.00;
-				IntegralTop_Y[i] = 0.00;
-				IntegralTop_Z[i] = 0.00;
-			}
-
-			for (int i = min_atom; i <= max_atom; i = i + 8)
-			{
-				__m512d pottarg, fldtarg, pottarg2, fldtarg2, X0, Y0, X1, Y1, dx, dy, dz, dz1, delta, delta1, Para, midterm, midterm1;
-				double F1[8], F2[8], F3[8], F4[8];
-				pottarg = fldtarg = pottarg2 = fldtarg2 = _mm512_setzero_pd();
-				X0 = _mm512_load_pd(&IntegralTop_X[i - min_atom]);
-				Y0 = _mm512_load_pd(&IntegralTop_Y[i - min_atom]);
-
-				for (int j = 0; j < ImageNumber; j++)
-				{
-					Para = _mm512_set1_pd(Paramet1[j]);
-					X1 = _mm512_set1_pd(ImageCharge[j][0]);
-					Y1 = _mm512_set1_pd(ImageCharge[j][1]);
-					dz = _mm512_set1_pd(Lz / 2.0 - ImageCharge[j][2]);
-					dx = X0 - X1;
-					dy = Y0 - Y1;
-					delta = _mm512_invsqrt_pd(dx * dx + dy * dy + dz * dz);
-					midterm = Para * delta;
-					pottarg += midterm;
-					fldtarg -= dz * midterm * delta * delta;
-					dz1 = _mm512_set1_pd(-Lz / 2.0 - ImageCharge[j][2]);
-					delta1 = _mm512_invsqrt_pd(dx * dx + dy * dy + dz1 * dz1);
-					midterm1 = Para * delta1;
-					pottarg2 += midterm1;
-					fldtarg2 -= dz1 * midterm1 * delta1 * delta1;
-				}
-
-				_mm512_store_pd(&F1[0], pottarg);
-				_mm512_store_pd(&F2[0], pottarg2);
-				_mm512_store_pd(&F4[0], fldtarg2);
-				_mm512_store_pd(&F3[0], fldtarg);
-
-				for (int j = i; (j < i + 8) && (j < max_atom); j++)
-				{
-					int ix = floor(j / (S * Nw));
-					int iy = j - ix * (S * Nw);
-
-					Top[ix][iy] = F1[j - i];
-					TopZD[ix][iy] = F3[j - i];
-					Down[ix][iy] = F2[j - i];
-					DownZD[ix][iy] = F4[j - i];
-				}
-			}
-		}
 	#endif
-		
 	}
 }
 
@@ -1554,6 +1499,7 @@ void HSMA2D::ConstructRightTerm(double* RightTermReal, double* RightTermImag, do
 		RightTermImag[i] = 0.00;
 	}
 
+    #if defined(_OPENMP) && defined(__AVX512F__)
      #pragma omp parallel
 	{
 		int id = omp_get_thread_num();
@@ -1735,6 +1681,61 @@ void HSMA2D::ConstructRightTerm(double* RightTermReal, double* RightTermImag, do
 			}
 		}
 	}
+    #elif defined(_OPENMP)
+		#pragma omp parallel
+		{
+			double E1, E2, E3, E4, I1, I2, I3, I4;
+			double EQ1, EQ2, EQ3, EQ4;
+			int index_r;
+			#pragma omp for schedule(static)
+			for (int j = -NJKBound; j <= NJKBound; j++)
+				for (int k = -NJKBound; k <= NJKBound; k++)
+				{
+					index_r = (j + NJKBound) * (2 * NJKBound + 1) + k + NJKBound;
+					for (int m = 0; m < S * Nw; m++)
+						for (int n = 0; n < S * Nw; n++)
+						{
+							E1 = ((1.0 / EU) * TopZDNear[m][n] + mu * sqrt(j * j + k * k) * TopNear[m][n]);
+							I1 = -mu * (j * IntegralTop[m][n][0] + k * IntegralTop[m][n][1]);
+							EQ1 = E1 * cos(I1);
+							RightTermReal[index_r] = RightTermReal[index_r] + (EQ1)*IntegralTop[m][n][3];
+							EQ1 = E1 * sin(I1);
+							RightTermImag[index_r] = RightTermImag[index_r] + EQ1 * IntegralTop[m][n][3];
+							E1 = ((1.0 / EU) * DownZDNear[m][n] - mu * sqrt(j * j + k * k) * DownNear[m][n]);
+							I1 = -mu * (j * IntegralDown[m][n][0] + k * IntegralDown[m][n][1]);
+							EQ1 = E1 * cos(I1);
+							RightTermReal[(2 * NJKBound + 1) * (2 * NJKBound + 1) + index_r] += (EQ1)*IntegralDown[m][n][3];
+							EQ1 = E1 * sin(I1);
+							RightTermImag[(2 * NJKBound + 1) * (2 * NJKBound + 1) + index_r] += (EQ1)*IntegralDown[m][n][3];
+						}
+				}
+		}
+	#else
+			double E1, E2, E3, E4, I1, I2, I3, I4;
+			double EQ1, EQ2, EQ3, EQ4;
+			int index_r;
+			for (int j = -NJKBound; j <= NJKBound; j++)
+				for (int k = -NJKBound; k <= NJKBound; k++)
+				{
+					index_r = (j + NJKBound) * (2 * NJKBound + 1) + k + NJKBound;
+					for (int m = 0; m < S * Nw; m++)
+						for (int n = 0; n < S * Nw; n++)
+						{
+							E1 = ((1.0 / EU) * TopZDNear[m][n] + mu * sqrt(j * j + k * k) * TopNear[m][n]);
+							I1 = -mu * (j * IntegralTop[m][n][0] + k * IntegralTop[m][n][1]);
+							EQ1 = E1 * cos(I1);
+							RightTermReal[index_r] = RightTermReal[index_r] + (EQ1)*IntegralTop[m][n][3];
+							EQ1 = E1 * sin(I1);
+							RightTermImag[index_r] = RightTermImag[index_r] + EQ1 * IntegralTop[m][n][3];
+							E1 = ((1.0 / EU) * DownZDNear[m][n] - mu * sqrt(j * j + k * k) * DownNear[m][n]);
+							I1 = -mu * (j * IntegralDown[m][n][0] + k * IntegralDown[m][n][1]);
+							EQ1 = E1 * cos(I1);
+							RightTermReal[(2 * NJKBound + 1) * (2 * NJKBound + 1) + index_r] += (EQ1)*IntegralDown[m][n][3];
+							EQ1 = E1 * sin(I1);
+							RightTermImag[(2 * NJKBound + 1) * (2 * NJKBound + 1) + index_r] += (EQ1)*IntegralDown[m][n][3];
+						}
+				}
+    #endif
 }
 
 void HSMA2D::SolveLeastSquareProblem(double* C, double** LeftTermReal, double** LeftTermImag, double* RightTermReal, double* RightTermImag, int p, int row)
@@ -1840,7 +1841,7 @@ double HSMA2D::FinalCalculateEnergyAndForce(double Force[][3], double* Pot, doub
 {
 	if (!IF_FMM_FinalPotential)
 	{
-
+        #if defined(_OPENMP) && defined(__AVX512F__)
 		if (tolerance > 0.000001)
 		{
 			float EF[NSource], EFX[NSource], EFY[NSource], EFZ[NSource];
@@ -2086,10 +2087,148 @@ double HSMA2D::FinalCalculateEnergyAndForce(double Force[][3], double* Pot, doub
 
 			return Energy;
 		}
+        #elif defined(_OPENMP)
+		double EF[NSource], EFX[NSource], EFY[NSource], EFZ[NSource];
+		#pragma omp parallel
+		{
+			double QF[p * p], QFX[p * p], QFY[p * p], QFZ[p * p];
+			#pragma omp for
+			for (int i = 0; i < NSource; i++)
+			{
+				CalculateMultipoleExpansion(QF, p, Source[i][0], Source[i][1], Source[i][2]);
+				CalculateZDerivativeMultipoleExpansion(QFZ, p, Source[i][0], Source[i][1], Source[i][2]);
+				CalculateXDMultipoleExpansion(QFX, p, Source[i][0], Source[i][1], Source[i][2]);
+				CalculateYDMultipoleExpansion(QFY, p, Source[i][0], Source[i][1], Source[i][2]);
+				EF[i] = 0.00; EFX[i] = 0.00; EFY[i] = 0.00; EFZ[i] = 0.00;
+				for (int j = 0; j < p * p; j++)
+				{
+					EF[i] = EF[i] + QF[j] * C[j];
+					EFX[i] = EFX[i] + QFX[j] * C[j];
+					EFY[i] = EFY[i] + QFY[j] * C[j];
+					EFZ[i] = EFZ[i] + QFZ[j] * C[j];
+				}
+			}
+		}
+		double EN[NSource], ENX[NSource], ENY[NSource], ENZ[NSource];
+		for (int i = 0; i < NSource; i++)
+		{
+			EN[i] = 0.00; ENX[i] = 0.00; ENY[i] = 0.00; ENZ[i] = 0.00;
+		}
+		double Q_Image[ImageNumber];
+		for (int j = 0; j < ImageNumber; j++)
+		{
+			Q_Image[j] = ImageCharge[j][3] * pow(Gamma, abs(ImageCharge[j][4]));
+		}
+		#pragma omp parallel
+		{
+			double Image[ImageNumber][5];
+			double QImage[ImageNumber];
+			double deltax, deltay, deltaz, delta;
+			memcpy((double*)Image, (double*)ImageCharge, sizeof(double) * 5 * ImageNumber);
+			memcpy((double*)QImage, (double*)Q_Image, sizeof(double) * ImageNumber);
+			#pragma omp for
+				for (int i = 0; i < NSource; i++)
+				{
+					double a = 0.00, b = 0.00, c = 0.00, d = 0.00;
+					for (int j = 0; j < ImageNumber; j++)
+					{
+						deltax = (Image[j][0] - Source[i][0]);
+						deltay = (Image[j][1] - Source[i][1]);
+						deltaz = (Image[j][2] - Source[i][2]);
+						delta = sqrt(deltax * deltax + deltay * deltay + deltaz * deltaz);
+						if (!((fabs(deltax) < 1.0e-13) && (fabs(deltay) < 1.0e-13) && (fabs(deltaz) < 1.0e-13)))
+						{
+							a = a + QImage[j] / delta;
+							b = b + QImage[j] * (deltax) / (delta * delta * delta);
+							c = c + QImage[j] * (deltay) / (delta * delta * delta);
+							d = d + QImage[j] * (deltaz) / (delta * delta * delta);
+						}
+					}
+					EN[i] = a;
+					ENX[i] = b;
+					ENY[i] = c;
+					ENZ[i] = d;
+				}
+			}
+			double Energy = 0.00;
+			for (int i = 0; i < NSource; i++)
+			{
+				Pot[i] = EN[i] + EF[i];
+				Energy = Energy + Q[i] * Pot[i];
+				Force[i][0] = -(EFX[i] + ENX[i]) * Q[i];
+				Force[i][1] = -(EFY[i] + ENY[i]) * Q[i];
+				Force[i][2] = -(EFZ[i] + ENZ[i]) * Q[i];
+			}
+			return Energy;
+        #else
+			double EF[NSource], EFX[NSource], EFY[NSource], EFZ[NSource];
+			double QF[p * p], QFX[p * p], QFY[p * p], QFZ[p * p];
+			for (int i = 0; i < NSource; i++)
+			{
+				CalculateMultipoleExpansion(QF, p, Source[i][0], Source[i][1], Source[i][2]);
+				CalculateZDerivativeMultipoleExpansion(QFZ, p, Source[i][0], Source[i][1], Source[i][2]);
+				CalculateXDMultipoleExpansion(QFX, p, Source[i][0], Source[i][1], Source[i][2]);
+				CalculateYDMultipoleExpansion(QFY, p, Source[i][0], Source[i][1], Source[i][2]);
+				EF[i] = 0.00; EFX[i] = 0.00; EFY[i] = 0.00; EFZ[i] = 0.00;
+				for (int j = 0; j < p * p; j++)
+				{
+					EF[i] = EF[i] + QF[j] * C[j];
+					EFX[i] = EFX[i] + QFX[j] * C[j];
+					EFY[i] = EFY[i] + QFY[j] * C[j];
+					EFZ[i] = EFZ[i] + QFZ[j] * C[j];
+				}
+			}
+			double EN[NSource], ENX[NSource], ENY[NSource], ENZ[NSource];
+			for (int i = 0; i < NSource; i++)
+			{
+				EN[i] = 0.00; ENX[i] = 0.00; ENY[i] = 0.00; ENZ[i] = 0.00;
+			}
+			double Q_Image[ImageNumber];
+			for (int j = 0; j < ImageNumber; j++)
+			{
+				Q_Image[j] = ImageCharge[j][3] * pow(Gamma, abs(ImageCharge[j][4]));
+			}
+				double Image[ImageNumber][5];
+				double QImage[ImageNumber];
+				double deltax, deltay, deltaz, delta;
+				memcpy((double*)Image, (double*)ImageCharge, sizeof(double) * 5 * ImageNumber);
+				memcpy((double*)QImage, (double*)Q_Image, sizeof(double) * ImageNumber);
+				for (int i = 0; i < NSource; i++)
+				{
+					double a = 0.00, b = 0.00, c = 0.00, d = 0.00;
+					for (int j = 0; j < ImageNumber; j++)
+					{
+						deltax = (Image[j][0] - Source[i][0]);
+						deltay = (Image[j][1] - Source[i][1]);
+						deltaz = (Image[j][2] - Source[i][2]);
+						delta = sqrt(deltax * deltax + deltay * deltay + deltaz * deltaz);
+						if (!((fabs(deltax) < 1.0e-13) && (fabs(deltay) < 1.0e-13) && (fabs(deltaz) < 1.0e-13)))
+						{
+							a = a + QImage[j] / delta;
+							b = b + QImage[j] * (deltax) / (delta * delta * delta);
+							c = c + QImage[j] * (deltay) / (delta * delta * delta);
+							d = d + QImage[j] * (deltaz) / (delta * delta * delta);
+						}
+					}
+					EN[i] = a;
+					ENX[i] = b;
+					ENY[i] = c;
+					ENZ[i] = d;
+				}
+			double Energy = 0.00;
+			for (int i = 0; i < NSource; i++)
+			{
+				Pot[i] = EN[i] + EF[i];
+				Energy = Energy + Q[i] * Pot[i];
+				Force[i][0] = -(EFX[i] + ENX[i]) * Q[i];
+				Force[i][1] = -(EFY[i] + ENY[i]) * Q[i];
+				Force[i][2] = -(EFZ[i] + ENZ[i]) * Q[i];
+			}
+			return Energy;
+		#endif
 	}
 	else
 	{
-
 		double eps = tolerance;
 		int ns = ImageNumber;
 		int nt = NSource;

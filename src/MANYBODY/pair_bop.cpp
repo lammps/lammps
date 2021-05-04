@@ -79,15 +79,6 @@ PairBOP::PairParameters::~PairParameters()
   delete bo;
 }
 
-PairBOP::TripletParameters::TripletParameters()
-{
-  G = nullptr;
-}
-PairBOP::TripletParameters::~TripletParameters()
-{
-  delete G;
-}
-
 /* ---------------------------------------------------------------------- */
 
 PairBOP::PairBOP(LAMMPS *lmp) : Pair(lmp)
@@ -316,11 +307,11 @@ void PairBOP::allocate()
   memory->destroy(small3);
 
   pairParameters = new PairParameters[npairs];
-  tripletParameters = new TripletParameters[ntriples];
+  tripletParameters = new TabularFunction[ntriples];
   memory->create(elem2param,bop_types,bop_types,"BOP:elem2param");
   memory->create(elem3param,bop_types,bop_types,bop_types,"BOP:elem3param");
   bytes += npairs*sizeof(PairParameters) +
-    ntriples*sizeof(TripletParameters) + bop_types*bop_types*sizeof(int) +
+    ntriples*sizeof(TabularFunction) + bop_types*bop_types*sizeof(int) +
     bop_types*bop_types*bop_types*sizeof(int);
 
   memory->create(pi_a,npairs,"BOP:pi_a");
@@ -597,7 +588,6 @@ void PairBOP::gneigh()
           k = ilist[neigh_index[temp_ik]];
           ktype = map[type[k]];
           int param_jik = elem3param[jtype][itype][ktype];
-          TripletParameters & t_jik = tripletParameters[param_jik];
           PairList1 & pl_ik = pairlist1[temp_ik];
           temp_jik = cos_index[i] + max_check;
           if (triplelist) {
@@ -613,8 +603,8 @@ void PairBOP::gneigh()
           }
           TripleList & tl_jik = triplelist[temp_jik];
           angle(pl_ij.r, pl_ij.dis, pl_ik.r, pl_ik.dis, tl_jik.cosAng,
-            tl_jik.dCosAngj, tl_jik.dCosAngk);
-          (t_jik.G)->value(tl_jik.cosAng, tl_jik.G, 1, tl_jik.dG, 1);
+                tl_jik.dCosAngj, tl_jik.dCosAngk);
+          tripletParameters[param_jik].value(tl_jik.cosAng, tl_jik.G, 1, tl_jik.dG, 1);
           max_check++;
         }
       }
@@ -856,8 +846,7 @@ double PairBOP::SigmaBo(int itmp, int jtmp)
       angle(r_ij, dis_ij, r_ik, dis_ik, cosAng_jik,
         dCosAngj, dCosAngk);
       int param_jik = elem3param[jtype][itype][ktype];
-      TripletParameters & t_jik = tripletParameters[param_jik];
-      (t_jik.G)->value(cosAng_jik, gfactor1, 1, gprime1, 1);
+      tripletParameters[param_jik].value(cosAng_jik, gfactor1, 1, gprime1, 1);
       dcA_jik[0][0] = dCosAngj[0];
       dcA_jik[1][0] = dCosAngj[1];
       dcA_jik[2][0] = dCosAngj[2];
@@ -952,8 +941,7 @@ double PairBOP::SigmaBo(int itmp, int jtmp)
       angle(r_ji, dis_ji, r_jk, dis_jk, cosAng_ijk,
         dCosAngj, dCosAngk);
       int param_ijk = elem3param[itype][jtype][ktype];
-      TripletParameters & t_ijk = tripletParameters[param_ijk];
-      (t_ijk.G)->value(cosAng_ijk, gfactor2, 1, gprime2, 1);
+      tripletParameters[param_ijk].value(cosAng_ijk, gfactor2, 1, gprime2, 1);
       dcA_ijk[0][0] = dCosAngj[0];
       dcA_ijk[1][0] = dCosAngj[1];
       dcA_ijk[2][0] = dCosAngj[2];
@@ -963,8 +951,7 @@ double PairBOP::SigmaBo(int itmp, int jtmp)
       angle(r_ki, dis_ki, r_kj, dis_kj, cosAng_ikj,
         dCosAngj, dCosAngk);
       int param_ikj = elem3param[itype][ktype][jtype];
-      TripletParameters & t_ikj = tripletParameters[param_ikj];
-      (t_ikj.G)->value(cosAng_ikj, gfactor3, 1, gprime3, 1);
+      tripletParameters[param_ikj].value(cosAng_ikj, gfactor3, 1, gprime3, 1);
       dcA_ikj[0][0] = dCosAngj[0];
       dcA_ikj[1][0] = dCosAngj[1];
       dcA_ikj[2][0] = dCosAngj[2];
@@ -1057,8 +1044,7 @@ double PairBOP::SigmaBo(int itmp, int jtmp)
       angle(r_ji, dis_ji, r_jk, dis_jk, cosAng_ijk,
         dCosAngj, dCosAngk);
       int param_ijk = elem3param[itype][jtype][ktype];
-      TripletParameters & t_ijk = tripletParameters[param_ijk];
-      (t_ijk.G)->value(cosAng_ijk, gfactor1, 1, gprime1, 1);
+      tripletParameters[param_ijk].value(cosAng_ijk, gfactor1, 1, gprime1, 1);
       dcA_ijk[0][0] = dCosAngj[0];
       dcA_ijk[1][0] = dCosAngj[1];
       dcA_ijk[2][0] = dCosAngj[2];
@@ -2001,7 +1987,6 @@ void PairBOP::read_table(char *filename)
   for(int i = 0; i < bop_types; i++) {
     for(int j = 0; j < bop_types; j++) {
       for(int k = j; k < bop_types; k++) {
-        TripletParameters &p = tripletParameters[nbuf];
         if (comm->me == 0) {
           if (format == 3 && npower <= 2) {
             reader->next_dvector(singletable, ntheta);
@@ -2017,8 +2002,7 @@ void PairBOP::read_table(char *filename)
           }
         }
         MPI_Bcast(singletable,ntheta,MPI_DOUBLE,0,world);
-        p.G = new TabularFunction();
-        (p.G)->set_values(ntheta, -1.0, 1.0, singletable);
+        tripletParameters[nbuf].set_values(ntheta, -1.0, 1.0, singletable);
         elem3param[j][i][k] = nbuf;
         if (k != j) elem3param[k][i][j] = nbuf;
         nbuf++;
@@ -2274,12 +2258,12 @@ void PairBOP::write_tables(int npts)
     strcat(line,tag);
     fp = fopen(line, "w");
     int param = elem3param[i][j][k];
-    TripletParameters & triple = tripletParameters[param];
-    xmin = (triple.G)->get_xmin();
-    xmax = (triple.G)->get_xmax();
+    auto &G = tripletParameters[param];
+    xmin = G.get_xmin();
+    xmax = G.get_xmax();
     for (int n = 0; n < npts; n++) {
       x = xmin + (xmax-xmin) * n / (npts-1);
-      (triple.G)->value(x, uf, 1, ufp, 1);
+      G.value(x, uf, 1, ufp, 1);
       fprintf(fp,"%12.4f %12.4f %12.4f \n",x,uf,ufp);
     }
     fclose(fp);

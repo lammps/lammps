@@ -55,12 +55,6 @@ class PairBOP : public Pair {
     ~PairParameters();
   };
 
-  struct TripletParameters {
-    TabularFunction *G;
-    TripletParameters();
-    ~TripletParameters();
-  };
-
   struct PairList1 {
     double r, dis[3];
     double betaS, dBetaS, betaP, dBetaP, rep, dRep;
@@ -103,7 +97,7 @@ class PairBOP : public Pair {
   };
 
   PairParameters *pairParameters;
-  TripletParameters *tripletParameters;
+  TabularFunction *tripletParameters;
 
   // Parameters variables
 

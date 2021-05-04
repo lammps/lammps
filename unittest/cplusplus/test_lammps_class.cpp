@@ -99,7 +99,6 @@ TEST_F(LAMMPS_plain, InitMembers)
         EXPECT_STREQ(LAMMPS::git_branch, "(unknown)");
         EXPECT_STREQ(LAMMPS::git_descriptor, "(unknown)");
     }
-    EXPECT_EQ(lmp->comm->nthreads, 1);
 }
 
 TEST_F(LAMMPS_plain, TestStyles)
@@ -234,9 +233,6 @@ TEST_F(LAMMPS_omp, InitMembers)
         EXPECT_STREQ(LAMMPS::git_branch, "(unknown)");
         EXPECT_STREQ(LAMMPS::git_descriptor, "(unknown)");
     }
-#if 0  // temporarily disabled. MacOS behaves different from Linux here.
-    EXPECT_EQ(lmp->comm->nthreads, 2);
-#endif
 }
 
 // test fixture for Kokkos tests
@@ -326,10 +322,10 @@ TEST_F(LAMMPS_kokkos, InitMembers)
     }
 }
 
-// check if Comm::nthreads is initialized to either 1 or 2 (from the previous tests)
 TEST(LAMMPS_init, OpenMP)
 {
     if (!LAMMPS::is_installed_pkg("USER-OMP")) GTEST_SKIP();
+    if (Info::get_openmp_info() == "OpenMP not enabled") GTEST_SKIP();
 
     FILE *fp = fopen("in.lammps_empty", "w");
     fputs("\n", fp);

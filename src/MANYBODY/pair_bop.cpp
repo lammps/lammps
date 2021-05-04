@@ -43,16 +43,58 @@
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "neighbor.h"
+#include "tabular_function.h"
+#include "text_file_reader.h"
 #include "utils.h"
 
-#include "tabular_function.h"
-
 #include <cmath>
+#include <cstring>
+#include <string>
+#include <exception>
 
 using namespace LAMMPS_NS;
 
 #define MAXLINE 1024
 #define EPSILON 0.000001
+
+class parser_error : public std::exception {
+  std::string message;
+public:
+  parser_error(const std::string &mesg) { message = mesg; }
+  const char *what() const noexcept { return message.c_str(); }
+};
+
+/* ---------------------------------------------------------------------- */
+
+PairBOP::PairParameters::PairParameters()
+{
+  cutB = 0.0;
+  cutBsq = 0.0;
+  cutL = 0.0;
+  cutLsq = 0.0;
+  betaS = nullptr;
+  betaP = nullptr;
+  rep = nullptr;
+  cphi = nullptr;
+  bo = nullptr;
+}
+PairBOP::PairParameters::~PairParameters()
+{
+  delete betaS;
+  delete betaP;
+  delete rep;
+  delete cphi;
+  delete bo;
+}
+
+PairBOP::TripletParameters::TripletParameters()
+{
+  G = nullptr;
+}
+PairBOP::TripletParameters::~TripletParameters()
+{
+  delete G;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -117,8 +159,8 @@ PairBOP::PairBOP(LAMMPS *lmp) : Pair(lmp)
 PairBOP::~PairBOP()
 {
   if(allocated) {
-    memory->destroy(pairParameters);
-    memory->destroy(tripletParameters);
+    delete[] pairParameters;
+    delete[] tripletParameters;
     memory->destroy(elem2param);
     memory->destroy(elem3param);
     memory->destroy(pi_a);
@@ -165,12 +207,9 @@ void PairBOP::compute(int eflag, int vflag)
   double xlen = domain->boxhi[0] - domain->boxlo[0];
   double ylen = domain->boxhi[1] - domain->boxlo[1];
   double zlen = domain->boxhi[2] - domain->boxlo[2];
-  if (xlen < 6.0*cutmax || ylen < 6.0*cutmax || zlen < 6.0*cutmax) {
-    char str[128];
-    sprintf(str,"Pair style bop requires system dimension "
-      "of at least %g",6.0*cutmax);
-    error->all(FLERR,str);
-  }
+  if (xlen < 6.0*cutmax || ylen < 6.0*cutmax || zlen < 6.0*cutmax)
+    error->all(FLERR,"Pair style bop requires system dimension "
+               "of at least {:.4}",6.0*cutmax);
 
   int i, ii, j, jj;
   int nlisti, *ilist;
@@ -266,8 +305,8 @@ void PairBOP::allocate()
 {
   allocated = 1;
 
-  memory->destroy(pairParameters);
-  memory->destroy(tripletParameters);
+  delete[] pairParameters;
+  delete[] tripletParameters;
   memory->destroy(elem2param);
   memory->destroy(elem3param);
 
@@ -283,14 +322,14 @@ void PairBOP::allocate()
   memory->destroy(sigma_f);
   memory->destroy(sigma_k);
   memory->destroy(small3);
- 
-  memory->create(pairParameters,npairs,"BOP:pairParameters");
-  memory->create(tripletParameters,ntriples,"BOP:tripletParameters");
+
+  pairParameters = new PairParameters[npairs];
+  tripletParameters = new TripletParameters[ntriples];
   memory->create(elem2param,bop_types,bop_types,"BOP:elem2param");
   memory->create(elem3param,bop_types,bop_types,bop_types,"BOP:elem3param");
   bytes += npairs*sizeof(PairParameters) +
     ntriples*sizeof(TripletParameters) + bop_types*bop_types*sizeof(int) +
-    bop_types*bop_types*bop_types*sizeof(int); 
+    bop_types*bop_types*bop_types*sizeof(int);
 
   memory->create(pi_a,npairs,"BOP:pi_a");
   memory->create(pro_delta,bop_types,"BOP:pro_delta");
@@ -340,7 +379,7 @@ void PairBOP::coeff(int narg, char **arg)
   memory->create(setflag,n+1,n+1,"BOP:setflag");
   memory->create(cutsq,n+1,n+1,"BOP:cutsq");
   memory->create(cutghost,n+1,n+1,"BOP:cutghost");
-  bytes = (n+1)*(n+1) * (sizeof (int) + 2.0*sizeof (double));  
+  bytes = (n+1)*(n+1) * (sizeof (int) + 2.0*sizeof (double));
 
   map_element2type(narg-3, arg+3);
 
@@ -364,7 +403,7 @@ void PairBOP::coeff(int narg, char **arg)
         if (j == bop_types)
           error->one(FLERR,"Element {} not found in bop potential file {}",
                      elements[map[i]],arg[2]);
-      } 
+      }
     }
   }
   MPI_Bcast(map,atom->ntypes+1,MPI_INT,0,world);
@@ -383,12 +422,9 @@ void PairBOP::init_style()
 
 //check that user sets comm->cutghostuser to 3x the max BOP cutoff
 
-  if (comm->cutghostuser < 3.0*cutmax - EPSILON) {
-    char str[128];
-    sprintf(str,"Pair style bop requires a comm ghost cutoff "
-            "of at least %lf",3.0*cutmax);
-    error->all(FLERR,str);
-  }
+  if (comm->cutghostuser < 3.0*cutmax)
+    error->all(FLERR,"Pair style bop requires a comm ghost cutoff "
+               "of at least {:.4}",3.0*cutmax);
 
 //need a full neighbor list and neighbors of ghosts
 
@@ -597,7 +633,7 @@ void PairBOP::gneigh()
 
 /* ---------------------------------------------------------------------- */
 
-void PairBOP::angle(double r1, double *dis1, double r2, double *dis2, 
+void PairBOP::angle(double r1, double *dis1, double r2, double *dis2,
            double &ang, double *dAngj, double *dAngk)
 {
   double rj1k1, rj2k1, rj1k2;
@@ -1348,7 +1384,7 @@ double PairBOP::PiBo(int itmp, int jtmp)
       betaS_ikp = pl_ikp.betaS;
       dBetaS_ikp = pl_ikp.dBetaS;
       betaP_ikp = pl_ikp.betaP;
-      dBetaP_ikp = pl_ikp.dBetaP; 
+      dBetaP_ikp = pl_ikp.dBetaP;
 
       nb_ikp = nb_t;
       bt_pi[nb_ikp].i = i;
@@ -1831,103 +1867,117 @@ double PairBOP::PiBo(int itmp, int jtmp)
 
 void PairBOP::read_table(char *filename)
 {
-  FILE *fp;
-  int i, j, k, n, m, nbuf;
-  int nwords;
-  double dbuf;
-  char s[MAXLINE], *ptr, cbuf[10];
+  int nbuf;
   double *singletable;
-  int nr, nBOt, ntheta, npower;
+  int nr, nBOt, ntheta, npower, format;
   double *rcut = nullptr;
   double ****gpara = nullptr;
+  TextFileReader *reader = nullptr;
 
-  nr=2000;
-  nBOt=2000;
-  ntheta=2000;
-  npower = 2;
- 
   if (comm->me == 0) {
-    fp = utils::open_potential(filename,lmp,nullptr);
-    if (fp == nullptr) {
-      char str[128];
-      snprintf(str,128,"Cannot open BOP potential file %s",filename);
-      error->one(FLERR,str);
+    if (bop_elements) {
+      for (int i = 0; i < bop_types; i++) delete [] bop_elements[i];
+      delete [] bop_elements;
     }
 
-    //move past comments to first data line
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    while (s == strchr(s,'#')) utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
+    // read potential file header
+    try {
+      auto fullpath = utils::get_potential_file_path(filename);
+      if (fullpath.empty()) fullpath = std::string(filename);
+      reader = new TextFileReader(fullpath, "BOP");
 
-    bop_types = atoi(s);
-    npairs = bop_types * (bop_types + 1) / 2;
-    ntriples = bop_types * bop_types * bop_types;
+      bop_types = reader->next_values(1).next_int();
+      if (bop_types <= 0)
+        throw parser_error(fmt::format("BOP potential file with {} "
+                                       "elements",bop_types));
+
+      bop_elements = new char*[bop_types];
+      for (int i=0; i < bop_types; ++i) {
+        ValueTokenizer values = reader->next_values(3);
+        values.next_int();      // element number in PTE (ignored)
+        values.next_double();   // element mass (ignored)
+        bop_elements[i] = utils::strdup(values.next_string());
+      }
+    } catch (std::exception &e) {
+      error->one(FLERR,"Error reading BOP potential file: {}",e.what());
+    }
   }
-
   MPI_Bcast(&bop_types,1,MPI_INT,0,world);
-  MPI_Bcast(&npairs,1,MPI_INT,0,world);
-  MPI_Bcast(&ntriples,1,MPI_INT,0,world);
+  npairs = bop_types * (bop_types + 1) / 2;
+  ntriples = bop_types * bop_types * bop_types;
   allocate();
-
-  if (bop_elements) {
-    for (i = 0; i < bop_types; i++) delete [] bop_elements[i];
-    delete [] bop_elements;
-  }
-  bop_elements = new char*[bop_types];
-  for(i = 0; i < bop_types; i++) bop_elements[i] = nullptr;
-
-  for(i = 0; i< bop_types; i++) {
-    if (comm->me == 0) {
-      utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-      nwords = sscanf(s,"%d %lf %s",&nbuf,&dbuf,cbuf);
-      if (nwords != 3) {
-        error->one(FLERR,"Incorrect table format check for element types");
-      }
-      n = strlen(cbuf)+1;
-      bop_elements[i] = new char[n];
-      strcpy(bop_elements[i], cbuf);
-    }
-    MPI_Bcast(&n,1,MPI_INT,0,world);
-    if (comm->me != 0) bop_elements[i] = new char[n];
-    MPI_Bcast(bop_elements[i],n,MPI_CHAR,0,world);
-  }
+  memory->create(rcut,npairs,"BOP:rcut");
 
   if (comm->me == 0) {
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    nwords = 0;
-    ptr = strtok(s," \t\n\r\f"); //the first token
-    if (ptr != nullptr) {
-       nr = atoi(ptr);
-       nwords++;
-    }
-    ptr = strtok(nullptr," \t\n\r\f"); //the second token
-    if (ptr != nullptr) {
-       nbuf = atoi(ptr);
-       nwords++;
-    }
-    ptr = strtok(nullptr," \t\n\r\f"); //the third token
-    if (ptr != nullptr) {
-       nBOt = atoi(ptr);
-       nwords++;
-    }
+    try {
+      // continue reading from already opened potential file
 
-//nwords = 3 means table (set npower = 2) if nbuf > 10 or power function
-//with power set to nbuf (2 < nbuf < = 10. nwords = 2 always means
-//parabolic function.
+      // 2 or 3 values in next line
+      // 3 values means either table with npower = 2 if second value > 10
+      //   or power function with power set to 2 < value < = 10.
+      // 2 values always means parabolic function.
+      ValueTokenizer values = reader->next_values(2);
+      format = values.count();
 
-    if (nwords == 3) {
-      if(nbuf > 10) {
-        ntheta = nbuf;
-        npower = 2;
-      } else {
-        npower = nbuf;
+      switch (format) {
+      case 3:
+        nr = values.next_int();
+        ntheta = values.next_int();
+        nBOt = values.next_int();
+        if (ntheta > 10) {
+          npower = 2;
+        } else {
+          npower = ntheta;
+          ntheta = 2000;
+        }
+        break;
+
+      case 2:
+        nr = values.next_int();
         ntheta = 2000;
+        nBOt = values.next_int();
+        npower = 2;
+        break;
+
+      default:
+        error->one(FLERR,"Unsupported BOP potential file format");
       }
-    } else if (nwords == 2) {
-      nBOt = nbuf;
-      ntheta = 2000;
-      npower = 2;
-    } else {
-      error->one(FLERR,"Unsupported BOP potential file format");
+
+      // read seven "small" values in single line
+      values = reader->next_values(7);
+      small1  = values.next_double();
+      small2  = values.next_double();
+      small3g = values.next_double();
+      small4  = values.next_double();
+      small5  = values.next_double();
+      small6  = values.next_double();
+      small7  = values.next_double();
+
+      for (int i = 0; i < bop_types; ++i)
+        pi_p[i] = reader->next_values(1).next_double();
+
+      cutmax = 0.0;
+      for (int i = 0; i < npairs; ++i) {
+        rcut[i] = reader->next_values(1).next_double();
+        cutmax = MAX(rcut[i],cutmax);
+
+        values = reader->next_values(4);
+        sigma_c[i] = values.next_double();
+        sigma_a[i] = values.next_double();
+        pi_c[i]    = values.next_double();
+        pi_a[i]    = values.next_double();
+
+        values = reader->next_values(2);
+        sigma_delta[i] = values.next_double();
+        pi_delta[i]    = values.next_double();
+
+        values = reader->next_values(3);
+        sigma_f[i] = values.next_double();
+        sigma_k[i] = values.next_double();
+        small3[i]  = values.next_double();
+      }
+    } catch (std::exception &e) {
+      error->one(FLERR,"Error reading BOP potential file: {}",e.what());
     }
   }
 
@@ -1935,34 +1985,6 @@ void PairBOP::read_table(char *filename)
   MPI_Bcast(&ntheta,1,MPI_INT,0,world);
   MPI_Bcast(&nBOt,1,MPI_INT,0,world);
   MPI_Bcast(&npower,1,MPI_INT,0,world);
-
-  memory->create(rcut,npairs,"BOP:rcut");
-  if (comm->me == 0) {
-    memory->create(gpara,bop_types,bop_types,bop_types,npower+1,"BOP:gpara");
-  }
-
-  if (comm->me == 0) {
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    sscanf(s,"%lf %lf %lf %lf %lf %lf %lf",&small1,&small2,&small3g,
-      &small4,&small5,&small6,&small7);
-    for(i = 0; i < bop_types; i++) {
-      utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-      pi_p[i] = atof(s);
-    }
-    cutmax=0;
-    for(i = 0; i < npairs; i++) {
-      utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-      rcut[i] = atof(s);
-      if(rcut[i] > cutmax) cutmax=rcut[i];
-      utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-      sscanf(s,"%lf %lf %lf %lf",&sigma_c[i],&sigma_a[i],&pi_c[i],&pi_a[i]);
-      utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-      sscanf(s,"%lf %lf",&sigma_delta[i],&pi_delta[i]);
-      utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-      sscanf(s,"%lf %lf %lf",&sigma_f[i],&sigma_k[i],&small3[i]);
-    }
-  }
-
   MPI_Bcast(&small1,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&small2,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&small3g,1,MPI_DOUBLE,0,world);
@@ -1970,6 +1992,8 @@ void PairBOP::read_table(char *filename)
   MPI_Bcast(&small5,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&small6,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&small7,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&cutmax,1,MPI_DOUBLE,0,world);
+
   MPI_Bcast(&pi_p[0],bop_types,MPI_DOUBLE,0,world);
   MPI_Bcast(&rcut[0],npairs,MPI_DOUBLE,0,world);
   MPI_Bcast(&sigma_c[0],npairs,MPI_DOUBLE,0,world);
@@ -1982,41 +2006,52 @@ void PairBOP::read_table(char *filename)
   MPI_Bcast(&sigma_k[0],npairs,MPI_DOUBLE,0,world);
   MPI_Bcast(&small3[0],npairs,MPI_DOUBLE,0,world);
 
+  memory->create(gpara,bop_types,bop_types,bop_types,npower+1,"BOP:gpara");
   singletable = new double[ntheta];
+
   nbuf = 0;
-  for(i = 0; i < bop_types; i++)
-  for(j = 0; j < bop_types; j++)
-  for(k = j; k < bop_types; k++) {
-    TripletParameters & p = tripletParameters[nbuf];
-    if (comm->me == 0) {
-      if(nwords == 3 && npower <= 2) {
-        grab(fp, ntheta, singletable);
-      } else {
-        grab(fp, npower + 1, gpara[j][i][k]);
-        for (n = 0; n < ntheta; n++) {
-          double arg = -1.0 + 2.0 * n / (ntheta - 1.0);
-          singletable[n] = gpara[j][i][k][npower];
-          for(m = npower; m > 0; m--) {
-             singletable[n] = arg * singletable[n] + gpara[j][i][k][m-1];
+  for(int i = 0; i < bop_types; i++) {
+    for(int j = 0; j < bop_types; j++) {
+      for(int k = j; k < bop_types; k++) {
+        TripletParameters &p = tripletParameters[nbuf];
+        if (comm->me == 0) {
+          try {
+            if (format == 3 && npower <= 2) {
+              reader->next_dvector(singletable, ntheta);
+            } else {
+              reader->next_dvector(gpara[j][i][k], npower+1);
+            }
+            for (int n = 0; n < ntheta; n++) {
+              double arg = -1.0 + 2.0 * n / (ntheta - 1.0);
+              singletable[n] = gpara[j][i][k][npower];
+              for(int m = npower; m > 0; m--) {
+                singletable[n] = arg * singletable[n] + gpara[j][i][k][m-1];
+              }
+            }
+          } catch (std::exception &e) {
+            error->one(FLERR,"Error reading BOP potential file: {}",e.what());
           }
         }
+        MPI_Bcast(singletable,ntheta,MPI_DOUBLE,0,world);
+        p.G = new TabularFunction();
+        (p.G)->set_values(ntheta, -1.0, 1.0, singletable);
+        elem3param[j][i][k] = nbuf;
+        if (k != j) elem3param[k][i][j] = nbuf;
+        nbuf++;
       }
     }
-    MPI_Bcast(singletable,ntheta,MPI_DOUBLE,0,world);
-    p.G = new TabularFunction();
-    (p.G)->set_values(ntheta, -1.0, 1.0, singletable);
-    elem3param[j][i][k] = nbuf;
-    if (k != j) elem3param[k][i][j] = nbuf;
-    nbuf++;
   }
   delete [] singletable;
 
   singletable = new double[nr];
-
-  for(i = 0; i < npairs; i++) {
-    PairParameters & p = pairParameters[i];
+  for(int i = 0; i < npairs; i++) {
+    PairParameters &p = pairParameters[i];
     if (comm->me == 0) {
-      grab(fp, nr, singletable);
+      try {
+        reader->next_dvector(singletable, nr);
+      } catch (std::exception &e) {
+        error->one(FLERR,"Error reading BOP potential file: {}",e.what());
+      }
     }
     MPI_Bcast(singletable,nr,MPI_DOUBLE,0,world);
     p.rep = new TabularFunction();
@@ -2025,33 +2060,44 @@ void PairBOP::read_table(char *filename)
     p.cutBsq = rcut[i]*rcut[i];
   }
 
-  for(i = 0; i < npairs; i++) {
-    PairParameters & p = pairParameters[i];
+  for(int i = 0; i < npairs; i++) {
+    PairParameters &p = pairParameters[i];
     if (comm->me == 0) {
-      grab(fp, nr, singletable);
+      try {
+        reader->next_dvector(singletable, nr);
+      } catch (std::exception &e) {
+        error->one(FLERR,"Error reading BOP potential file: {}",e.what());
+      }
     }
     MPI_Bcast(singletable,nr,MPI_DOUBLE,0,world);
     p.betaS = new TabularFunction();
     (p.betaS)->set_values(nr, 0.0, rcut[i], singletable);
   }
 
-  for(i = 0; i < npairs; i++) {
-    PairParameters & p = pairParameters[i];
+  for(int i = 0; i < npairs; i++) {
+    PairParameters &p = pairParameters[i];
     if (comm->me == 0) {
-      grab(fp, nr, singletable);
+      try {
+        reader->next_dvector(singletable, nr);
+      } catch (std::exception &e) {
+        error->one(FLERR,"Error reading BOP potential file: {}",e.what());
+      }
     }
     MPI_Bcast(singletable,nr,MPI_DOUBLE,0,world);
     p.betaP = new TabularFunction();
     (p.betaP)->set_values(nr, 0.0, rcut[i], singletable);
   }
-
   delete [] singletable;
- 
+
   singletable = new double[nBOt];
-  for(i = 0; i < npairs; i++) {
-    PairParameters & p = pairParameters[i];
+  for(int i = 0; i < npairs; i++) {
+    PairParameters &p = pairParameters[i];
     if (comm->me == 0) {
-      grab(fp, nBOt, singletable);
+      try {
+        reader->next_dvector(singletable, nBOt);
+      } catch (std::exception &e) {
+        error->one(FLERR,"Error reading BOP potential file: {}",e.what());
+      }
     }
     MPI_Bcast(singletable,nBOt,MPI_DOUBLE,0,world);
     p.bo = new TabularFunction();
@@ -2060,57 +2106,55 @@ void PairBOP::read_table(char *filename)
   delete [] singletable;
 
   nbuf = 0;
-  for (i = 0; i < bop_types; i++)
-  for (j = i; j <= i; j++) {
-    elem2param[i][j] = nbuf;
-    nbuf++;
+  for (int i = 0; i < bop_types; i++) {
+    for (int j = i; j <= i; j++) {
+      elem2param[i][j] = nbuf;
+      nbuf++;
+    }
   }
-  for (i = 0; i < bop_types - 1; i++)
-  for (j = i + 1; j < bop_types; j++) {
-    elem2param[i][j] = nbuf;
-    elem2param[j][i] = nbuf;
-    nbuf++;
+  for (int i = 0; i < bop_types - 1; i++) {
+    for (int j = i + 1; j < bop_types; j++) {
+      elem2param[i][j] = nbuf;
+      elem2param[j][i] = nbuf;
+      nbuf++;
+    }
   }
 
   if (comm->me == 0) {
-    for(i = 0; i < bop_types; i++) {
-      utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-      pro_delta[i] = atof(s);
-    }
-
-    for(i = 0; i < bop_types; i++) {
-      utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-      pro[i] = atof(s);
-    }
-
-    for(i = 0; i < npairs; i++) {
-      utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-      rcut[i] = atof(s);
+    try {
+      reader->next_dvector(pro_delta,bop_types);
+      reader->next_dvector(pro,bop_types);
+      reader->next_dvector(rcut,npairs);
+    } catch (std::exception &e) {
+      error->one(FLERR,"Error reading BOP potential file: {}",e.what());
     }
   }
-
   MPI_Bcast(&pro_delta[0],bop_types,MPI_DOUBLE,0,world);
   MPI_Bcast(&pro[0],bop_types,MPI_DOUBLE,0,world);
   MPI_Bcast(&rcut[0],npairs,MPI_DOUBLE,0,world);
 
   double add_cut = rcut[0];
-  for(i = 0; i < npairs; i++) {
+  for(int i = 0; i < npairs; i++) {
     if (add_cut < rcut[i]) add_cut = rcut[i];
-    PairParameters & p = pairParameters[i];
+    PairParameters &p = pairParameters[i];
     p.cutL = rcut[i];
     p.cutLsq = rcut[i]*rcut[i];
   }
 
   if (add_cut > 0.0) {
     singletable = new double[nr];
-    for(i = 0; i < npairs; i++) {
-      PairParameters & p = pairParameters[i];
+    for(int i = 0; i < npairs; i++) {
+      PairParameters &p = pairParameters[i];
       if (comm->me == 0) {
-        grab(fp, nr, singletable);
+        try {
+          reader->next_dvector(singletable,nr);
+        } catch (std::exception &e) {
+          error->one(FLERR,"Error reading BOP potential file: {}",e.what());
+        }
       }
       MPI_Bcast(singletable,nr,MPI_DOUBLE,0,world);
       nbuf = 0;
-      for (j = 0; j < nr; j++) {
+      for (int j = 0; j < nr; j++) {
         if (singletable[j] != 0) nbuf = 1;
       }
       if (nbuf == 0) {
@@ -2127,13 +2171,11 @@ void PairBOP::read_table(char *filename)
   }
 
   memory->destroy(rcut);
-  if (comm->me == 0) memory->destroy(gpara);
+  memory->destroy(gpara);
 
   if (comm->me == 0) {
-    fclose(fp);
+    delete reader;
   }
-
-  MPI_Bcast(&cutmax,1,MPI_DOUBLE,0,world);
 
   //for debugging, call write_tables() to check the tabular functions
   //  if (comm->me == 1) {
@@ -2185,7 +2227,7 @@ void PairBOP::memory_pi(int n)
 }
 
 /* ---------------------------------------------------------------------- */
- 
+
 void PairBOP::initial_sg(int n)
 {
   B_SG & at = bt_sg[n];
@@ -2194,9 +2236,9 @@ void PairBOP::initial_sg(int n)
   at.j = -1;
   at.temp = -1;
 }
- 
+
 /* ---------------------------------------------------------------------- */
- 
+
 void PairBOP::initial_pi(int n)
 {
   B_PI & at = bt_pi[n];
@@ -2208,31 +2250,15 @@ void PairBOP::initial_pi(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void PairBOP::grab(FILE *fp, int n, double *list)
-{
-  char *ptr;
-  char line[MAXLINE];
- 
-  int i = 0;
-  while (i < n) {
-    utils::sfgets(FLERR,line,MAXLINE,fp,nullptr,error);
-    ptr = strtok(line," \t\n\r\f");
-    list[i++] = atof(ptr);
-    while ((ptr = strtok(nullptr," \t\n\r\f"))) list[i++] = atof(ptr);
-  }
-}
-
-/* ---------------------------------------------------------------------- */
- 
 void PairBOP::write_tables(int npts)
 {
   char line[MAXLINE];
   char tag[6] = "";
   FILE* fp =  nullptr;
   double  xmin,xmax,x,uf,vf,wf,ufp,vfp,wfp;
- 
+
   sprintf(tag,"%d",comm->me);
- 
+
   for (int i = 0; i < bop_types; i++)
   for (int j = 0; j < bop_types; j++) {
     int param = elem2param[i][j];
@@ -2286,7 +2312,7 @@ void PairBOP::write_tables(int npts)
     }
     fclose(fp);
   }
- 
+
   for (int i = 0; i < bop_types; i++)
   for (int j = 0; j < bop_types; j++)
   for (int k = 0; k < bop_types; k++) {

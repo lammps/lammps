@@ -51,23 +51,14 @@ class PairBOP : public Pair {
     TabularFunction *rep;
     TabularFunction *cphi;
     TabularFunction *bo;
-    PairParameters()
-    {
-      cutB = 0.0;
-      cutBsq = 0.0;
-      cutL = 0.0;
-      cutLsq = 0.0;
-      betaS = nullptr;
-      betaP = nullptr;
-      rep = nullptr;
-      cphi = nullptr;
-      bo = nullptr;
-    };
+    PairParameters();
+    ~PairParameters();
   };
 
   struct TripletParameters {
     TabularFunction *G;
-    TripletParameters() { G = nullptr; };
+    TripletParameters();
+    ~TripletParameters();
   };
 
   struct PairList1 {
@@ -151,7 +142,6 @@ class PairBOP : public Pair {
   int *cos_index;       // index for neighbor cosine if not using on the fly
   double cutmax;
 
-  void grab(FILE *, int, double *);
   void write_tables(int);
 
   void gneigh();

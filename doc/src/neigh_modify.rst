@@ -206,10 +206,11 @@ small, the optimal number of atoms is checked, but bin overhead goes
 up.  If you set the binsize to 0.0, LAMMPS will use the default
 binsize of 1/2 the cutoff.
 
-The *collection/type* option allows you to define custom collections of atom 
-types for the *multi* neighbor mode. By grouping atom types with 
-similar cutoffs, one may be able to improve performance by reducing
-overhead. You must first specify the number of custom collections N to be
+The *collection/type* option allows you to define collections of atom 
+types, used by the *multi* neighbor mode. By grouping atom types with 
+similar physical size or interaction cutoff lengths, one may be able 
+to improve performance by reducing
+overhead. You must first specify the number of collections N to be
 defined followed by N lists of types. Each list consists of a series of type
 ranges separated by commas. The range can be specified as a 
 single numeric value, or a wildcard asterisk can be used to specify a range
@@ -218,13 +219,13 @@ example, if M = the number of atom types, then an asterisk with no numeric
 values means all types from 1 to M.  A leading asterisk means all types 
 from 1 to n (inclusive).  A trailing asterisk means all types from n to M 
 (inclusive).  A middle asterisk means all types from m to n (inclusive). 
-Note that all atom types must be included in a custom collection.
+Note that all atom types must be included in exactly one of the N collections.
 
 The *collection/interval* option provides a similar capability. 
-This command allows a user to define custom collections by specifying a 
+This command allows a user to define collections by specifying a 
 series of cutoff intervals. LAMMPS will automatically sort atoms into these intervals
 based on their type-dependent cutoffs or their finite size.
-You must first specify the number of custom collections N to be
+You must first specify the number of collections N to be
 defined followed by N values representing the upper cutoff of each interval.
 This command is particularly useful for granular pairstyles where the interaction distance
 of particles depends on their radius and may not depend on their atom type.

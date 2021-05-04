@@ -57,7 +57,10 @@ void NStencilFullMulti3d::create()
   
   for (icollection = 0; icollection < n; icollection++) {
     for (jcollection = 0; jcollection < n; jcollection++) {
-      if (flag_skip_multi[icollection][jcollection]) continue;
+      if (flag_skip_multi[icollection][jcollection]) {
+        nstencil_multi[icollection][jcollection] = 0;
+        continue;
+      }
       
       ns = 0;
       

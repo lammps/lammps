@@ -35,7 +35,6 @@
 #include "update.h"
 
 #include <cstring>
-#include <vector>
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -58,9 +57,8 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
   bordergroup = 0;
   cutghostuser = 0.0;
   cutusermulti = nullptr;
-  cutusermultiflag = 0;
   cutusermultiold = nullptr;
-  ncollections_prior = 0;
+  ncollections = 0;
   ghost_velocity = 0;
 
   user_procgrid[0] = user_procgrid[1] = user_procgrid[2] = 0;
@@ -149,6 +147,7 @@ void Comm::copy_arrays(Comm *oldcomm)
     memcpy(zsplit,oldcomm->zsplit,(procgrid[2]+1)*sizeof(double));
   }
 
+  ncollections = oldcomm->ncollections;
   if (oldcomm->cutusermulti) {
     memory->create(cutusermulti,ncollections,"comm:cutusermulti");
     memcpy(cutusermulti,oldcomm->cutusermulti,ncollections);
@@ -354,14 +353,23 @@ void Comm::modify_params(int narg, char **arg)
         error->all(FLERR,
                    "Cannot set cutoff/multi before simulation box is defined");
 
-      // save arguments so they can be parsed in comm->setup()
-      // ncollections can be changed by neigh_modify commands
+      // Check if # of collections has changed, if so erase any previously defined cutoffs
+      // Neighbor will reset ncollections if collections are redefined
+      if (ncollections_cutoff != neighbor->ncollections) {
+        ncollections_cutoff = neighbor->ncollections;
+        if (cutusermulti) memory->destroy(cutusermulti);
+        memory->create(cutusermulti,ncollections_cutoff,"comm:cutusermulti");
+        for (i=0; i < ncollections_cutoff; ++i)
+          cutusermulti[i] = -1.0;
+      }      
+      utils::bounds(FLERR,arg[iarg+1],1,ncollections_cutoff+1,nlo,nhi,error);
       cut = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       cutghostuser = MAX(cutghostuser,cut);
-      cutusermultiflag = 1;
       if (cut < 0.0)
         error->all(FLERR,"Invalid cutoff in comm_modify command");
-      usermultiargs.emplace_back(arg[iarg+1], cut);   
+      // collections use 1-based indexing externally and 0-based indexing internally
+      for (i=nlo; i<=nhi; ++i)
+        cutusermulti[i-1] = cut;
       iarg += 3;
     }  else if (strcmp(arg[iarg],"cutoff/multi/old") == 0) {
       int i,nlo,nhi;

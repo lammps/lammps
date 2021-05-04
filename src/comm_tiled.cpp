@@ -104,12 +104,8 @@ void CommTiled::init_buffers()
   cutghostmultiold = nullptr;
   sendbox_multi = nullptr;
   sendbox_multiold = nullptr;
-  
-  // initialize ncollections so grow_swap_send_multi() will not 
-  // construct arrays in init() but will wait for setup()
-  ncollections = 0;
-  ncollections_prior = 0;
 
+  // Note this may skip growing multi arrays, will call again in init()
   maxswap = 6;
   allocate_swap(maxswap);
 }
@@ -125,10 +121,31 @@ void CommTiled::init()
 
   nswap = 2*domain->dimension;
 
+  memory->destroy(cutghostmulti);
+  if (mode == Comm::MULTI) {    
+    // If inconsitent # of collections, destroy any preexisting arrays (may be missized)
+    if (ncollections != neighbor->ncollections) {
+      ncollections = neighbor->ncollections;
+    }
+    
+    // delete any old user cutoffs if # of collections chanaged
+    if (cutusermulti && ncollections != ncollections_cutoff) {
+      if(me == 0) error->warning(FLERR, "cutoff/multi settings discarded, must be defined"
+                                        " after customizing collections in neigh_modify");
+      memory->destroy(cutusermulti);
+      cutusermulti = nullptr;
+    }      
+    
+    // grow sendbox_multi now that ncollections is known
+    for (int i = 0; i < maxswap; i ++)
+      grow_swap_send_multi(i,DELTA_PROCS);     
+    
+    memory->create(cutghostmulti,ncollections,3,"comm:cutghostmulti");
+  }
+
   memory->destroy(cutghostmultiold);
   if (mode == Comm::MULTIOLD)
     memory->create(cutghostmultiold,atom->ntypes+1,3,"comm:cutghostmultiold");
-
 
   int bufextra_old = bufextra;
   init_exchange();
@@ -186,44 +203,14 @@ void CommTiled::setup()
   // check that cutoff < any periodic box length
   
   if (mode == Comm::MULTI) {
-    // build collection from scratch as it is needed for atom exchange
-    neighbor->build_collection(0);    
-    ncollections = neighbor->ncollections;
-
-    // allocate memory for multi-style communication at setup as ncollections can change
-    if (ncollections_prior != ncollections) {
-      memory->destroy(cutghostmulti);
-      if (mode == Comm::MULTI)
-        memory->create(cutghostmulti,ncollections,3,"comm:cutghostmulti");
-        
-      for (i = 0; i < maxswap; i ++)
-        grow_swap_send_multi(i,DELTA_PROCS);
-      if (cutusermultiflag) {
-        memory->grow(cutusermulti,ncollections,"comm:cutusermulti");
-        for (i = ncollections_prior; i < ncollections; i++)
-          cutusermulti[i] = -1.0;    
-      } 
-      
-      ncollections_prior = ncollections;    
-    }      
-
-    // parse any cutoff/multi commands
-    int nhi, nlo;
-    for (auto it = usermultiargs.begin(); it != usermultiargs.end(); it ++) {
-      utils::bounds(FLERR,it->first,0,ncollections,nlo,nhi,error);
-      if (nhi >= ncollections)
-        error->all(FLERR, "Unused collection id in comm_modify cutoff/multi command");
-        
-      for (j = nlo; j <= nhi; ++j)
-        cutusermulti[j] = it->second;
-    }
-    usermultiargs.clear();
-    
     double **cutcollectionsq = neighbor->cutcollectionsq;
+
+    // build collection array for atom exchange
+    neighbor->build_collection(0);    
+    
     // If using multi/reduce, communicate particles a distance equal
     // to the max cutoff with equally sized or smaller collections
     // If not, communicate the maximum cutoff of the entire collection
-    
     for (i = 0; i < ncollections; i++) {
       if (cutusermulti) {
         cutghostmulti[i][0] = cutusermulti[i];

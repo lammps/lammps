@@ -141,19 +141,30 @@ void CommBrick::init()
   // memory for multi style communication
   // allocate in setup
 
-  if (mode == Comm::MULTI && multilo == nullptr) {
-    ncollections = neighbor->ncollections;
-    allocate_multi(maxswap);
-    memory->create(cutghostmulti,ncollections,3,"comm:cutghostmulti");
-    if (cutusermultiflag) {
-      memory->grow(cutusermulti,ncollections,"comm:cutusermulti");
-      for (int i = ncollections_prior; i < ncollections; i++)
-        cutusermulti[i] = -1.0;
-    }    
+  if (mode == Comm::MULTI) {    
+    // If inconsitent # of collections, destroy any preexisting arrays (may be missized)
+    if (ncollections != neighbor->ncollections) {
+      ncollections = neighbor->ncollections;
+      if (multilo != nullptr) {
+        free_multi();
+        memory->destroy(cutghostmulti);
+      }     
+    }
     
-    ncollections_prior = ncollections;
+    // delete any old user cutoffs if # of collections chanaged
+    if (cutusermulti && ncollections != ncollections_cutoff) {
+      if(me == 0) error->warning(FLERR, "cutoff/multi settings discarded, must be defined"
+                                        " after customizing collections in neigh_modify");
+      memory->destroy(cutusermulti);
+      cutusermulti = nullptr;
+    }     
+    
+    if (multilo == nullptr) {
+      allocate_multi(maxswap);
+      memory->create(cutghostmulti,ncollections,3,"comm:cutghostmulti");    
+    }
   }  
-  if ((mode == Comm::SINGLE or mode == Comm::MULTIOLD) && multilo) {
+  if ((mode == Comm::SINGLE || mode == Comm::MULTIOLD) && multilo) {
     free_multi();
     memory->destroy(cutghostmulti);
   }
@@ -164,7 +175,7 @@ void CommBrick::init()
     allocate_multiold(maxswap);
     memory->create(cutghostmultiold,atom->ntypes+1,3,"comm:cutghostmultiold");
   }  
-  if ((mode == Comm::SINGLE or mode == Comm::MULTI) && multioldlo) {
+  if ((mode == Comm::SINGLE || mode == Comm::MULTI) && multioldlo) {
     free_multiold();
     memory->destroy(cutghostmultiold);
   }  
@@ -201,39 +212,11 @@ void CommBrick::setup()
                    "will be generated. Atoms may get lost.");
 
   if (mode == Comm::MULTI) {
-    // build initial collection array
-    neighbor->build_collection(0);  
-    ncollections = neighbor->ncollections;
-
-    // reallocate memory for multi-style communication at setup if ncollections change
-    if (ncollections_prior != ncollections) {
-      if (multilo) free_multi();
-      if (cutghostmulti) memory->destroy(cutghostmulti);
-    
-      allocate_multi(maxswap);
-      memory->create(cutghostmulti,ncollections,3,"comm:cutghostmulti");  
-      if (cutusermultiflag) {
-        memory->grow(cutusermulti,ncollections,"comm:cutusermulti");
-        for (i = ncollections_prior; i < ncollections; i++)
-          cutusermulti[i] = -1.0;
-      }
-      
-      ncollections_prior = ncollections;
-    }
-  
-    // parse any cutoff/multi commands
-    int nhi, nlo;
-    for (auto it = usermultiargs.begin(); it != usermultiargs.end(); it ++) {
-      utils::bounds(FLERR,it->first,0,ncollections,nlo,nhi,error);
-      if (nhi >= ncollections)
-        error->all(FLERR, "Unused collection id in comm_modify cutoff/multi command");
-      for (j = nlo; j<=nhi; ++j)
-        cutusermulti[j] = it->second;
-    }
-    usermultiargs.clear();
-
-    
     double **cutcollectionsq = neighbor->cutcollectionsq;
+    
+    // build collection array for atom exchange  
+    neighbor->build_collection(0);  
+    
     // If using multi/reduce, communicate particles a distance equal
     // to the max cutoff with equally sized or smaller collections
     // If not, communicate the maximum cutoff of the entire collection

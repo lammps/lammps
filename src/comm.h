@@ -33,10 +33,9 @@ class Comm : protected Pointers {
   double cutghost[3];               // cutoffs used for acquiring ghost atoms
   double cutghostuser;              // user-specified ghost cutoff (mode == 0)
   double *cutusermulti;             // per collection user ghost cutoff (mode == 1)
-  int cutusermultiflag;             
-  std::vector<std::pair<std::string, double>> usermultiargs; 
-                                    // collection args for custom ghost cutoffs  
   double *cutusermultiold;          // per type user ghost cutoff (mode == 2)
+  int ncollections;                 // # of collections known by comm, used to test if # has changed
+  int ncollections_cutoff;          // # of collections stored b cutoff/multi
   int recv_from_partition;          // recv proc layout from this partition
   int send_to_partition;            // send my proc layout to this partition
                                     // -1 if no recv or send
@@ -157,8 +156,6 @@ class Comm : protected Pointers {
   int coregrid[3];                  // 3d grid of cores within a node
   int user_coregrid[3];             // user request for cores in each dim
   int multi_reduce;                 // 1 if multi cutoff is intra-collection cutoff
-  int ncollections;                 // number of collection cutoffs defined for multi
-  int ncollections_prior;           // value of ncollections at last setup
 
   void init_exchange();
   int rendezvous_irregular(int, char *, int, int, int *,

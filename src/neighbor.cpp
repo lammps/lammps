@@ -2514,6 +2514,8 @@ void Neighbor::modify_params(int narg, char **arg)
       int ntypes = atom->ntypes;
       int n, nlo, nhi, i, j;
       
+      // Invalidate old user cutoffs
+      comm->ncollections_cutoff = 0;
       interval_collection_flag = 1;
       custom_collection_flag = 1;
       memory->grow(collection2cut,ncollections,"neigh:collection2cut");  
@@ -2546,6 +2548,8 @@ void Neighbor::modify_params(int narg, char **arg)
       int ntypes = atom->ntypes;
       int n, nlo, nhi, i, j, k;
       
+      // Invalidate old user cutoffs
+      comm->ncollections_cutoff = 0;
       interval_collection_flag = 0;
       custom_collection_flag = 1;
       if (not type2collection)

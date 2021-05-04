@@ -1872,6 +1872,7 @@ void PairBOP::read_table(char *filename)
   int nr, nBOt, ntheta, npower, format;
   double *rcut = nullptr;
   double ****gpara = nullptr;
+  FILE *fp = nullptr;
   TextFileReader *reader = nullptr;
 
   if (comm->me == 0) {
@@ -1880,14 +1881,13 @@ void PairBOP::read_table(char *filename)
       delete [] bop_elements;
     }
 
-    // read potential file header
-    try {
-      auto fullpath = utils::get_potential_file_path(filename);
-      if (fullpath.empty()) fullpath = std::string(filename);
-      reader = new TextFileReader(fullpath, "BOP");
-      utils::logmesg(lmp,"Reading potential file {} with DATE: {}\n",
-                     filename, utils::get_potential_date(fullpath, "BOP"));
+    fp = utils::open_potential(filename,lmp,nullptr);
+    if (!fp)
+      error->one(FLERR,"Cannot open BOP potential file {}: {}",
+                 filename, utils::getsyserror());
 
+    try {
+      reader = new TextFileReader(fp, "BOP");
       bop_types = reader->next_values(1).next_int();
       if (bop_types <= 0)
         throw parser_error(fmt::format("BOP potential file with {} "
@@ -2177,6 +2177,7 @@ void PairBOP::read_table(char *filename)
 
   if (comm->me == 0) {
     delete reader;
+    fclose(fp);
   }
 
   //for debugging, call write_tables() to check the tabular functions

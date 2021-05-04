@@ -1885,6 +1885,8 @@ void PairBOP::read_table(char *filename)
       auto fullpath = utils::get_potential_file_path(filename);
       if (fullpath.empty()) fullpath = std::string(filename);
       reader = new TextFileReader(fullpath, "BOP");
+      utils::logmesg(lmp,"Reading potential file {} with DATE: {}\n",
+                     filename, utils::get_potential_date(fullpath, "BOP"));
 
       bop_types = reader->next_values(1).next_int();
       if (bop_types <= 0)

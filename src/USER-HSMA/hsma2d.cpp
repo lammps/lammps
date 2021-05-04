@@ -34,7 +34,10 @@
 #include<iomanip>
 #include <immintrin.h>
 #include<iostream>
-#include<omp.h>
+
+#if defined(_OPENMP)
+	#include<omp.h>
+#endif
 
 extern "C" {void lfmm3d_t_c_g_(double* eps, int* nsource, double* source, double* charge, int* nt, double* targ, double* pottarg, double* gradtarg, int* ier); }
 extern int fab(int n);
@@ -1266,6 +1269,7 @@ void HSMA2D::CalculateNearFieldAndZD(double** Top, double** TopZD, double** Down
 			Paramet1[i] = ImageCharge[i][3] * pow(Gamma, fabs(ImageCharge[i][4]) + 0.00);
 		}
 		
+		#if defined(_OPENMP)
 		#pragma omp parallel
 		{
 			int id = omp_get_thread_num();
@@ -1402,6 +1406,141 @@ void HSMA2D::CalculateNearFieldAndZD(double** Top, double** TopZD, double** Down
 				}
 			}
 		}
+		#else
+			int id = 0;
+			int size = 1;
+			int min_atom = id * floor(S * Nw * S * Nw / size) + 1, max_atom = (id + 1) * floor(S * Nw * S * Nw / size);
+			if (id == size - 1)max_atom = S * Nw * S * Nw - 1;
+			if (id == 0)min_atom = 0;
+
+			int float_double;
+			if (tolerance > 0.000001) {
+			float_double = 1;
+			float IntegralTop_X[int(ceil((max_atom - min_atom + 1) / 16.0)) * 16], IntegralTop_Y[int(ceil((max_atom - min_atom + 1) / 16.0)) * 16], IntegralTop_Z[int(ceil((max_atom - min_atom + 1) / 16.0)) * 16];
+			for (int i = min_atom; i <= max_atom; i++)
+			{
+				int ix = floor(i / (S * Nw));
+				int iy = i - ix * (S * Nw);
+				IntegralTop_X[i - min_atom] = IntegralTop[ix][iy][0];
+				IntegralTop_Y[i - min_atom] = IntegralTop[ix][iy][1];
+				IntegralTop_Z[i - min_atom] = IntegralTop[ix][iy][2];
+			}
+
+			for (int i = max_atom - min_atom + 1; i<int(ceil((max_atom - min_atom + 1) / 16.0)) * 16; i++)
+			{
+				IntegralTop_X[i] = 0.00;
+				IntegralTop_Y[i] = 0.00;
+				IntegralTop_Z[i] = 0.00;
+			}
+
+			for (int i = min_atom; i <= max_atom; i = i + 16)
+			{
+				__m512 pottarg, fldtarg, pottarg2, fldtarg2, X0, Y0, X1, Y1, dx, dy, dz, dz1, delta, delta1, Para, midterm, midterm1;
+				float F1[16], F2[16], F3[16], F4[16];
+				pottarg = fldtarg = pottarg2 = fldtarg2 = _mm512_setzero_ps();
+				X0 = _mm512_load_ps(&IntegralTop_X[i - min_atom]);
+				Y0 = _mm512_load_ps(&IntegralTop_Y[i - min_atom]);
+
+				for (int j = 0; j < ImageNumber; j++)
+				{
+					Para = _mm512_set1_ps(Paramet1[j]);
+					X1 = _mm512_set1_ps(ImageCharge[j][0]);
+					Y1 = _mm512_set1_ps(ImageCharge[j][1]);
+					dz = _mm512_set1_ps(Lz / 2.0 - ImageCharge[j][2]);
+					dx = X0 - X1;
+					dy = Y0 - Y1;
+					delta = _mm512_invsqrt_ps(dx * dx + dy * dy + dz * dz);
+					midterm = Para * delta;
+					fldtarg -= dz * midterm * delta * delta;
+					pottarg += midterm;
+					dz1 = _mm512_set1_ps(-Lz / 2.0 - ImageCharge[j][2]);
+					delta1 = _mm512_invsqrt_ps(dx * dx + dy * dy + dz1 * dz1);
+					midterm1 = Para * delta1;
+					pottarg2 += midterm1;
+					fldtarg2 -= dz1 * midterm1 * delta1 * delta1;
+				}
+
+				_mm512_store_ps(&F1[0], pottarg);
+				_mm512_store_ps(&F2[0], pottarg2);
+				_mm512_store_ps(&F4[0], fldtarg2);
+				_mm512_store_ps(&F3[0], fldtarg);
+
+				for (int j = i; (j < i + 16) && (j <= max_atom); j++)
+				{
+					int ix = floor(j / (S * Nw));
+					int iy = j - ix * (S * Nw);
+
+					Top[ix][iy] = F1[j - i];
+					TopZD[ix][iy] = F3[j - i];
+					Down[ix][iy] = F2[j - i];
+					DownZD[ix][iy] = F4[j - i];
+				}
+			}
+		}
+		else {
+			float_double = 2;
+			double IntegralTop_X[int(ceil((max_atom - min_atom + 1) / 8.0)) * 8], IntegralTop_Y[int(ceil((max_atom - min_atom + 1) / 8.0)) * 8], IntegralTop_Z[int(ceil((max_atom - min_atom + 1) / 8.0)) * 8];
+			for (int i = min_atom; i <= max_atom; i++)
+			{
+				int ix = floor(i / (S * Nw));
+				int iy = i - ix * (S * Nw);
+				IntegralTop_X[i - min_atom] = IntegralTop[ix][iy][0];
+				IntegralTop_Y[i - min_atom] = IntegralTop[ix][iy][1];
+				IntegralTop_Z[i - min_atom] = IntegralTop[ix][iy][2];
+			}
+
+			for (int i = max_atom - min_atom + 1; i<int(ceil((max_atom - min_atom + 1) / 8.0)) * 8; i++)
+			{
+				IntegralTop_X[i] = 0.00;
+				IntegralTop_Y[i] = 0.00;
+				IntegralTop_Z[i] = 0.00;
+			}
+
+			for (int i = min_atom; i <= max_atom; i = i + 8)
+			{
+				__m512d pottarg, fldtarg, pottarg2, fldtarg2, X0, Y0, X1, Y1, dx, dy, dz, dz1, delta, delta1, Para, midterm, midterm1;
+				double F1[8], F2[8], F3[8], F4[8];
+				pottarg = fldtarg = pottarg2 = fldtarg2 = _mm512_setzero_pd();
+				X0 = _mm512_load_pd(&IntegralTop_X[i - min_atom]);
+				Y0 = _mm512_load_pd(&IntegralTop_Y[i - min_atom]);
+
+				for (int j = 0; j < ImageNumber; j++)
+				{
+					Para = _mm512_set1_pd(Paramet1[j]);
+					X1 = _mm512_set1_pd(ImageCharge[j][0]);
+					Y1 = _mm512_set1_pd(ImageCharge[j][1]);
+					dz = _mm512_set1_pd(Lz / 2.0 - ImageCharge[j][2]);
+					dx = X0 - X1;
+					dy = Y0 - Y1;
+					delta = _mm512_invsqrt_pd(dx * dx + dy * dy + dz * dz);
+					midterm = Para * delta;
+					pottarg += midterm;
+					fldtarg -= dz * midterm * delta * delta;
+					dz1 = _mm512_set1_pd(-Lz / 2.0 - ImageCharge[j][2]);
+					delta1 = _mm512_invsqrt_pd(dx * dx + dy * dy + dz1 * dz1);
+					midterm1 = Para * delta1;
+					pottarg2 += midterm1;
+					fldtarg2 -= dz1 * midterm1 * delta1 * delta1;
+				}
+
+				_mm512_store_pd(&F1[0], pottarg);
+				_mm512_store_pd(&F2[0], pottarg2);
+				_mm512_store_pd(&F4[0], fldtarg2);
+				_mm512_store_pd(&F3[0], fldtarg);
+
+				for (int j = i; (j < i + 8) && (j < max_atom); j++)
+				{
+					int ix = floor(j / (S * Nw));
+					int iy = j - ix * (S * Nw);
+
+					Top[ix][iy] = F1[j - i];
+					TopZD[ix][iy] = F3[j - i];
+					Down[ix][iy] = F2[j - i];
+					DownZD[ix][iy] = F4[j - i];
+				}
+			}
+		}
+	#endif
 		
 	}
 }

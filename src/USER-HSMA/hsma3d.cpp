@@ -33,8 +33,11 @@
 #include <cstring>
 #include<iomanip>
 #include<iostream>
-#include<omp.h>
 #include <immintrin.h>
+
+#if defined(_OPENMP)
+	#include<omp.h>
+#endif
 
 extern "C" {void lfmm3d_t_c_g_(double *eps, int *nsource,double *source, double *charge, int *nt, double *targ, double *pottarg, double *gradtarg, int *ier);}
 extern int fab(int n);

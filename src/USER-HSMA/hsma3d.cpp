@@ -15,26 +15,26 @@
    Contributing author: Jiuyang Liang (liangjiuyang@sjtu.edu.cn)
 ------------------------------------------------------------------------- */
 
-#include <cstdio>
-#include <cstring>
-#include <cstdlib>
+#include "hsma3d.h"
+
 #include "atom.h"
 #include "comm.h"
-#include "domain.h"
-#include "force.h"
-#include "memory.h"
-#include "error.h"
-#include "math.h"
-#include "update.h"
-#include "hsma3d.h"
-#include<iostream>
-#include <sstream>
-#include <fstream>
-#include"mkl.h"
-#include<omp.h>
-#include<iomanip>
-#include <immintrin.h>
 #include "complex.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
+#include "math.h"
+#include "math_special.h"
+#include "memory.h"
+#include "update.h"
+
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include<iomanip>
+#include<iostream>
+#include<omp.h>
+#include <immintrin.h>
 
 extern "C" {void lfmm3d_t_c_g_(double *eps, int *nsource,double *source, double *charge, int *nt, double *targ, double *pottarg, double *gradtarg, int *ier);}
 extern int fab(int n);
@@ -47,8 +47,8 @@ using namespace std;
 HSMA3D::HSMA3D(LAMMPS *lmp) : KSpace(lmp)
 {
   maxatom = atom->natoms;
-  MPI_Comm_rank(world, &me);
-  MPI_Comm_size(MPI_COMM_WORLD, &RankID);
+  me = comm->me;
+  RankID = comm->nprocs;
   Lx = domain->xprd;
   Ly = domain->yprd;
   Lz = domain->zprd * slab_volfactor;
@@ -73,7 +73,7 @@ void HSMA3D::settings(int narg, char **arg)
   if(Lambda<0)
 	  error->all(FLERR, "Lambda shoule be >0.");
   if (Lambda > 20 || Lambda < 0.2) {
-	  error->warning(FLERR, fmt::format("The Lambda is too big/small! Please use an approximate range of Lambda. Set Lambda to the default value.",
+	  error->warning(FLERR, fmt::format("The Lambda is too big or too small! Please use an approximate range of Lambda. Set Lambda to the default value.",
 		  update->ntimestep));
 	  Lambda = 1.3;
   }
@@ -226,9 +226,6 @@ void HSMA3D::compute(int eflag, int vflag)
   double **f = atom->f;
   double boxlo[3] = { domain->boxlo[0] ,domain->boxlo[1],domain->boxlo[2]};
   double boxhi[3] = { domain->boxhi[0] ,domain->boxhi[1],domain->boxhi[2]};
-
-  double time;
-  time = MPI_Wtime();
 
   if (RankID == 1)
   {
@@ -402,14 +399,7 @@ double HSMA3D::memory_usage()
 
 double fac(double t)//calculate factorial
 {
-	double s;
-	if (abs(t - 1) < 0.001 || abs(t) < 0.001)
-		s = 1.0;
-	else
-	{
-		s = t * fac(t - 1) + 0.00;
-	}
-	return s;
+	return factorial(int(t));
 }
 
 void HSMA3D::CalculateRDMultipoleExpansion(double* Q, int p, double x, double y, double z)
@@ -1007,7 +997,7 @@ void HSMA3D::CalculateNearFieldAndZD(double* Near, double ImageCharge[][4], int 
             #pragma omp parallel
 			{
 				int id = omp_get_thread_num();
-				int size = omp_get_num_threads();
+				int size = comm->nthreads;
 
 				int min_atom = id * floor( Nw / (size+0.00)) + 1, max_atom = (id + 1) * floor(Nw / (size+0.00));
 				if (id == size - 1)max_atom = Nw - 1;
@@ -1069,7 +1059,7 @@ void HSMA3D::CalculateNearFieldAndZD(double* Near, double ImageCharge[][4], int 
 			#pragma omp parallel
 			{
 				int id = omp_get_thread_num();
-				int size = omp_get_num_threads();
+				int size = comm->nthreads;
 
 				int min_atom = id * floor(Nw / size) + 1, max_atom = (id + 1) * floor(Nw / size);
 				if (id == size - 1)max_atom = Nw - 1;
@@ -1205,7 +1195,7 @@ double HSMA3D::FinalCalculateEnergyAndForce(double Force[][3], double* Pot, doub
             #pragma omp parallel
 			{
 				int id = omp_get_thread_num();
-				int size = omp_get_num_threads();
+				int size = comm->nthreads;
 
 				int min_atom = id * floor(NSource / size) + 1, max_atom = (id + 1) * floor(NSource / size);
 				if (id == size - 1)max_atom = NSource - 1;
@@ -1329,7 +1319,7 @@ double HSMA3D::FinalCalculateEnergyAndForce(double Force[][3], double* Pot, doub
              #pragma omp parallel
 			{
 				int id = omp_get_thread_num();
-				int size = omp_get_num_threads();
+				int size = comm->nthreads;
 
 				int min_atom = id * floor(NSource / size) + 1, max_atom = (id + 1) * floor(NSource / size);
 				if (id == size - 1)max_atom = NSource - 1;
@@ -1575,7 +1565,7 @@ void HSMA3D::CalculateNearFieldAndZD_Single(double* Near, double ImageCharge[][4
             #pragma omp parallel
 			{
 				int id = omp_get_thread_num();
-				int size = omp_get_num_threads();
+				int size = comm->nthreads;
 
 				int min_atom = id * floor(Nw / (size + 0.00)) + 1, max_atom = (id + 1) * floor(Nw / (size + 0.00));
 				if (id == size - 1)max_atom = Nw - 1;
@@ -1617,7 +1607,7 @@ void HSMA3D::CalculateNearFieldAndZD_Single(double* Near, double ImageCharge[][4
             #pragma omp parallel
 			{
 				int id = omp_get_thread_num();
-				int size = omp_get_num_threads();
+				int size = comm->nthreads;
 
 				int min_atom = id * floor(NSource / size) + 1, max_atom = (id + 1) * floor(NSource / size);
 				if (id == size - 1)max_atom = NSource - 1;
@@ -1683,7 +1673,7 @@ void HSMA3D::CalculateNearFieldAndZD_Single(double* Near, double ImageCharge[][4
              #pragma omp parallel
 			{
 				int id = omp_get_thread_num();
-				int size = omp_get_num_threads();
+				int size = comm->nthreads;
 
 				int min_atom = id * floor(Nw / (size + 0.00)) + 1, max_atom = (id + 1) * floor(Nw / (size + 0.00));
 				if (id == size - 1)max_atom = Nw - 1;
@@ -1726,7 +1716,7 @@ void HSMA3D::CalculateNearFieldAndZD_Single(double* Near, double ImageCharge[][4
             #pragma omp parallel
 			{
 				int id = omp_get_thread_num();
-				int size = omp_get_num_threads();
+				int size = comm->nthreads();
 
 				int min_atom = id * floor(NSource / size) + 1, max_atom = (id + 1) * floor(NSource / size);
 				if (id == size - 1)max_atom = NSource - 1;
@@ -1793,7 +1783,7 @@ double HSMA3D::FinalCalculateEnergyAndForce_Single(double Force[][3], double* Po
             #pragma omp parallel
 			{
 				int id = omp_get_thread_num();
-				int size = omp_get_num_threads();
+				int size = comm->nthreads;
 
 				int min_atom = id * floor(NSource / size) + 1, max_atom = (id + 1) * floor(NSource / size);
 				if (id == size - 1)max_atom = NSource - 1;

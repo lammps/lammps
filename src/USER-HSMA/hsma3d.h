@@ -26,18 +26,17 @@ KSpaceStyle(HSMA3D,HSMA3D)
 
 #include "kspace.h"
 
-#include <cstdio>
-#include <cstring>
-#include <cstdlib>
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
-#include "force.h"
-#include "memory.h"
 #include "error.h"
+#include "force.h"
 #include "math.h"
+#include "memory.h"
 
-extern "C" {  void lfmm3d_s_c_g_(double *eps, int *nsource, double *source, double *charge, double *pot, double *grad, int *ier);}
+#include <cstdio>
+#include <cstring>
+#include <cstdlib>
 
 namespace LAMMPS_NS {
 
@@ -68,7 +67,7 @@ public:
   double FinalCalculateEnergyAndForce_Single(double Force[][3], double* Pot, double Source[][3], double* Q, int NSource, double ImageCharge[][4], int ImageNumber, double **Fibonacci, double** QRD, double** QLocalRD, double* C, int p, double Fp, double F, double Rs, double PI, int IF_FMM_FinalPotential, double tolerance);
 
  private:
-  int me,RankID;//µ±Ç°MPI±êºÅºÍ×ÜµÄMPIÊýÁ¿
+  int me,RankID;
   double Lx, Ly, Lz;
   double Lambda;
   double Fp, F;

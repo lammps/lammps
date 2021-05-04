@@ -26,18 +26,17 @@ KSpaceStyle(HSMA2D, HSMA2D)
 
 #include "kspace.h"
 
-#include <cstdio>
-#include <cstring>
-#include <cstdlib>
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
-#include "force.h"
-#include "memory.h"
 #include "error.h"
+#include "force.h"
 #include "math.h"
+#include "memory.h"
 
-extern "C" {  void lfmm3d_s_c_g_(double* eps, int* nsource, double* source, double* charge, double* pot, double* grad, int* ier); }
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 namespace LAMMPS_NS {
 
@@ -69,7 +68,7 @@ namespace LAMMPS_NS {
 		double fac(double t);
 
 	private:
-		int me, RankID;//当前MPI标号和总的MPI数量
+		int me, RankID;
 		double Lx, Ly, Lz;
 		double Lambda;
 		double Gamma;
@@ -92,7 +91,7 @@ namespace LAMMPS_NS {
 		int Np;
 		double** Fibonacci;
 		double** QRD, ** QLocalRD;
-		int maxatom;//总的粒子数
+		int maxatom;
 		
 		double ** TopNear, ** TopZDNear;
 		double ** DownNear, ** DownZDNear;

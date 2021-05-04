@@ -1,7 +1,4 @@
-package omp 40
-
-processors * * * grid numa
-log FMM.out
+processors * * *
 units lj
 atom_style full
 boundary p p p
@@ -33,12 +30,12 @@ variable prefactor equal ramp(0,30)
 fix 1 all adapt 1 pair soft a * * v_prefactor
 fix lgv1 all langevin ${temperature} ${temperature} 100.0 81
 timestep 0.001
-run 200000
+run 2000
 unfix 1
 unfix lgv1  
 
 #turn on electrostatics
-pair_style lj/cut/omp ${coul_cut}  
+pair_style lj/cut ${coul_cut}  
 pair_coeff * * 1.0 1.0 1.122462048 
 pair_modify shift yes
 
@@ -46,7 +43,7 @@ kspace_style HSMA 1.0e-4 1.3- 8 128 55.0 89.0 0 0
 
 dielectric ${epsilon}
 
-neigh_modify delay 5 every 5 check no one 5000 binsize 6 # defaults: page 100000 one 2000
+neigh_modify delay 5 every 5 check no one 5000 binsize 6
 
 thermo_modify line one
 thermo 100
@@ -57,7 +54,7 @@ fix 1 all nvt temp 1.2 1.2 0.005
 
 timestep 0.001
 
-run 200000
+run 2000
 
 compute msd cat msd com yes
 variable twopoint equal c_msd[4]/6.0/(step*dt+1.0e-7)
@@ -66,7 +63,7 @@ variable fitslope equal slope(f_store)/6.0/(100*dt)
 
 thermo_style custom step temp c_msd[4] v_twopoint v_fitslope etotal
 
-run 1200000
+run 1200
 
 compute vacf cat vacf
 fix  5 cat vector 1 c_vacf[4] 
@@ -75,4 +72,4 @@ thermo_style custom step temp v_diff c_vacf[1] c_vacf[2] c_vacf[3] c_vacf[4]
 
 thermo 1
 
-run 10000
+run 1000

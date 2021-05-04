@@ -1,7 +1,4 @@
-package omp 40
-
-processors * * * grid numa
-log FMM.out
+processors * * *
 units lj
 atom_style full
 boundary p p p
@@ -34,12 +31,12 @@ variable prefactor equal ramp(0,30)
 fix 1 all adapt 1 pair soft a * * v_prefactor
 fix lgv1 all langevin ${temperature} ${temperature} 100.0 81
 timestep 0.001
-run 200000
+run 2000
 unfix 1
 unfix lgv1  
 
 #turn on electrostatics
-pair_style lj/cut/omp ${coul_cut}  
+pair_style lj/cut ${coul_cut}  
 pair_coeff * * 1.0 1.0 1.122462048 
 pair_modify shift yes
 
@@ -57,7 +54,6 @@ thermo 100
 fix 1 all nvt temp 1.2 1.2 0.005
 
 timestep 0.001
-run 200000
 
 compute msd cat msd com yes
 variable twopoint equal c_msd[4]/6.0/(step*dt+1.0e-7)
@@ -68,7 +64,7 @@ thermo_style custom step temp c_msd[4] v_twopoint v_fitslope etotal
 
 dump 1 all custom 200 FMM.lammpstrj id type x y z
 
-run 1200000
+run 1200
 
 compute vacf cat vacf
 fix  5 cat vector 1 c_vacf[4] 	
@@ -77,3 +73,4 @@ thermo_style custom step temp c_msd[4] v_twopoint v_fitslope v_diff c_vacf[1] c_
 thermo 1
 
 run 1000
+

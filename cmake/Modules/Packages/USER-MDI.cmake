@@ -37,14 +37,16 @@ if(DOWNLOAD_MDI)
                        -DTargetOpenMP_FIND_COMPONENTS:STRING=C;CXX)
 
   # Link the lammps library against MDI
-  target_include_directories(lammps PRIVATE ${LAMMPS_LIB_MDI_BIN_DIR}/include/mdi)
-  target_link_directories(lammps PRIVATE ${LAMMPS_LIB_MDI_BIN_DIR}/lib/mdi)
+  target_include_directories(lammps PRIVATE ${LAMMPS_LIB_MDI_BIN_DIR}/${CMAKE_INSTALL_INCLUDEDIR}/mdi)
+  target_link_directories(lammps PRIVATE ${LAMMPS_LIB_MDI_BIN_DIR}/${CMAKE_INSTALL_LIBDIR}/mdi)
   target_link_libraries(lammps PRIVATE mdi)
+  add_dependencies(lammps mdi_external)
 
   # Link the lammps executable against MDI
-  target_include_directories(lmp PRIVATE ${LAMMPS_LIB_MDI_BIN_DIR}/include/mdi)
-  target_link_directories(lmp PRIVATE ${LAMMPS_LIB_MDI_BIN_DIR}/lib/mdi)
+  target_include_directories(lmp PRIVATE ${LAMMPS_LIB_MDI_BIN_DIR}/${CMAKE_INSTALL_INCLUDEDIR}/mdi)
+  target_link_directories(lmp PRIVATE ${LAMMPS_LIB_MDI_BIN_DIR}/${CMAKE_INSTALL_LIBDIR}/mdi)
   target_link_libraries(lmp PRIVATE mdi)
+  add_dependencies(lmp mdi_external)
 
 else()
 

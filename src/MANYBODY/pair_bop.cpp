@@ -1852,12 +1852,12 @@ void PairBOP::read_table(char *filename)
   double ****gpara = nullptr;
   PotentialFileReader *reader = nullptr;
 
-  if (comm->me == 0) {
-    if (bop_elements) {
-      for (int i = 0; i < bop_types; i++) delete [] bop_elements[i];
-      delete [] bop_elements;
-    }
+  if (bop_elements) {
+    for (int i = 0; i < bop_types; i++) delete [] bop_elements[i];
+    delete [] bop_elements;
+  }
 
+  if (comm->me == 0) {
     try {
       reader = new PotentialFileReader(lmp, filename, "BOP");
       bop_types = reader->next_int();
@@ -1881,6 +1881,16 @@ void PairBOP::read_table(char *filename)
   ntriples = bop_types * bop_types * bop_types;
   allocate();
   memory->create(rcut,npairs,"BOP:rcut");
+
+  // copy element labels to all MPI ranks for use with write_tables()
+  if (comm->me != 0) bop_elements = new char*[bop_types];
+  for (int i = 0; i < bop_types; ++i) {
+    int n=0;
+    if (comm->me == 0) n = strlen(bop_elements[i])+1;
+    MPI_Bcast(&n,1,MPI_INT,0,world);
+    if (comm->me != 0) bop_elements[i] = new char[n];
+    MPI_Bcast(bop_elements[i],n,MPI_CHAR,0,world);
+  }
 
   if (comm->me == 0) {
     try {
@@ -2184,89 +2194,82 @@ void PairBOP::initial_pi(int n)
 
 /* ---------------------------------------------------------------------- */
 #if defined(LMP_BOP_WRITE_TABLES)
-#define MAXLINE 1024
 void PairBOP::write_tables(int npts)
 {
-  char line[MAXLINE];
-  char tag[6] = "";
   FILE* fp =  nullptr;
   double  xmin,xmax,x,uf,vf,wf,ufp,vfp,wfp;
+  std::string filename;
 
-  sprintf(tag,"%d",comm->me);
+  for (int i = 0; i < bop_types; i++) {
+    for (int j = 0; j < bop_types; j++) {
+      int param = elem2param[i][j];
+      PairParameters & pair = pairParameters[param];
 
-  for (int i = 0; i < bop_types; i++)
-  for (int j = 0; j < bop_types; j++) {
-    int param = elem2param[i][j];
-    PairParameters & pair = pairParameters[param];
+      filename = fmt::format("{}{}_Pair_SPR_{}",bop_elements[i],
+                             bop_elements[j],comm->me);
 
-    strcpy(line,bop_elements[i]);
-    strcat(line,bop_elements[j]);
-    strcat(line,"_Pair_SPR_");
-    strcat(line,tag);
-    fp = fopen(line, "w");
-    xmin = (pair.betaS)->get_xmin();
-    xmax = (pair.betaS)->get_xmax();
-    xmax = xmin + (xmax - xmin) * 1.1;
-    xmin = 1.0;
-    for (int k = 0; k < npts; k++) {
-      x = xmin + (xmax-xmin) * k / (npts-1);
-      (pair.betaS)->value(x, uf, 1, ufp, 1);
-      (pair.betaP)->value(x, vf, 1, vfp, 1);
-      (pair.rep)->value(x, wf, 1, wfp, 1);
-      fprintf(fp,"%12.4f %12.4f %12.4f %12.4f %12.4f %12.4f %12.4f \n",x,uf,vf,wf,ufp,vfp,wfp);
-    }
-    fclose(fp);
-    if (pair.cutL != 0) {
-      strcpy(line,bop_elements[i]);
-      strcat(line,bop_elements[j]);
-      strcat(line,"_Pair_L_");
-      strcat(line,tag);
-      fp = fopen(line, "w");
-      xmin = (pair.cphi)->get_xmin();
-      xmax = (pair.cphi)->get_xmax();
+      fp = fopen(filename.c_str(), "w");
+      xmin = (pair.betaS)->get_xmin();
+      xmax = (pair.betaS)->get_xmax();
       xmax = xmin + (xmax - xmin) * 1.1;
       xmin = 1.0;
       for (int k = 0; k < npts; k++) {
         x = xmin + (xmax-xmin) * k / (npts-1);
-        (pair.cphi)->value(x, uf, 1, ufp, 1);
+        (pair.betaS)->value(x, uf, 1, ufp, 1);
+        (pair.betaP)->value(x, vf, 1, vfp, 1);
+        (pair.rep)->value(x, wf, 1, wfp, 1);
+        fprintf(fp,"%12.4f %12.4f %12.4f %12.4f %12.4f %12.4f %12.4f \n",
+                x,uf,vf,wf,ufp,vfp,wfp);
+      }
+      fclose(fp);
+
+      if (pair.cutL != 0) {
+        filename = fmt::format("{}{}_Pair_L_{}",bop_elements[i],
+                               bop_elements[j],comm->me);
+        fp = fopen(filename.c_str(), "w");
+        xmin = (pair.cphi)->get_xmin();
+        xmax = (pair.cphi)->get_xmax();
+        xmax = xmin + (xmax - xmin) * 1.1;
+        xmin = 1.0;
+        for (int k = 0; k < npts; k++) {
+          x = xmin + (xmax-xmin) * k / (npts-1);
+          (pair.cphi)->value(x, uf, 1, ufp, 1);
+          fprintf(fp,"%12.4f %12.4f %12.4f \n",x,uf,ufp);
+        }
+        fclose(fp);
+      }
+      filename = fmt::format("{}{}_Pair_BO_{}", bop_elements[i],
+                             bop_elements[j], comm->me);
+      fp = fopen(filename.c_str(), "w");
+      xmin = (pair.bo)->get_xmin();
+      xmax = (pair.bo)->get_xmax();
+      for (int k = 0; k < npts; k++) {
+        x = xmin + (xmax-xmin) * k / (npts-1);
+        (pair.bo)->value(x, uf, 1, ufp, 1);
         fprintf(fp,"%12.4f %12.4f %12.4f \n",x,uf,ufp);
       }
       fclose(fp);
     }
-    strcpy(line,bop_elements[i]);
-    strcat(line,bop_elements[j]);
-    strcat(line,"_Pair_BO_");
-    strcat(line,tag);
-    fp = fopen(line, "w");
-    xmin = (pair.bo)->get_xmin();
-    xmax = (pair.bo)->get_xmax();
-    for (int k = 0; k < npts; k++) {
-      x = xmin + (xmax-xmin) * k / (npts-1);
-      (pair.bo)->value(x, uf, 1, ufp, 1);
-      fprintf(fp,"%12.4f %12.4f %12.4f \n",x,uf,ufp);
-    }
-    fclose(fp);
   }
 
-  for (int i = 0; i < bop_types; i++)
-  for (int j = 0; j < bop_types; j++)
-  for (int k = 0; k < bop_types; k++) {
-    strcpy(line,bop_elements[i]);
-    strcat(line,bop_elements[j]);
-    strcat(line,bop_elements[k]);
-    strcat(line,"_Triple_G_");
-    strcat(line,tag);
-    fp = fopen(line, "w");
-    int param = elem3param[i][j][k];
-    auto &G = tripletParameters[param];
-    xmin = G.get_xmin();
-    xmax = G.get_xmax();
-    for (int n = 0; n < npts; n++) {
-      x = xmin + (xmax-xmin) * n / (npts-1);
-      G.value(x, uf, 1, ufp, 1);
-      fprintf(fp,"%12.4f %12.4f %12.4f \n",x,uf,ufp);
+  for (int i = 0; i < bop_types; i++) {
+    for (int j = 0; j < bop_types; j++) {
+      for (int k = 0; k < bop_types; k++) {
+        filename = fmt::format("{}{}{}_Triple_G_{}", bop_elements[i],
+                               bop_elements[j],bop_elements[k],comm->me);
+        fp = fopen(filename.c_str(), "w");
+        int param = elem3param[i][j][k];
+        auto &G = tripletParameters[param];
+        xmin = G.get_xmin();
+        xmax = G.get_xmax();
+        for (int n = 0; n < npts; n++) {
+          x = xmin + (xmax-xmin) * n / (npts-1);
+          G.value(x, uf, 1, ufp, 1);
+          fprintf(fp,"%12.4f %12.4f %12.4f \n",x,uf,ufp);
+        }
+        fclose(fp);
+      }
     }
-    fclose(fp);
   }
 }
 #endif

@@ -32,6 +32,9 @@
    Rules"_http://lammps.sandia.gov/open_source.html
 ------------------------------------------------------------------------- */
 
+// uncomment define to enable writing table files for debugging
+// #define LMP_BOP_WRITE_TABLES 1
+
 #include "pair_bop.h"
 
 #include "atom.h"
@@ -53,9 +56,6 @@
 #include <exception>
 
 using namespace LAMMPS_NS;
-
-#define MAXLINE 1024
-#define EPSILON 0.000001
 
 class parser_error : public std::exception {
   std::string message;
@@ -2171,10 +2171,12 @@ void PairBOP::read_table(char *filename)
 
   if (comm->me == 0) delete reader;
 
+#if defined(LMP_BOP_WRITE_TABLES)
   //for debugging, call write_tables() to check the tabular functions
-  //  if (comm->me == 1) {
-  //    write_tables(51);
-  //  }
+  if (comm->me == 1) {
+    write_tables(51);
+  }
+#endif
 }
 
 /* ----------------------------------------------------------------------
@@ -2243,7 +2245,8 @@ void PairBOP::initial_pi(int n)
 }
 
 /* ---------------------------------------------------------------------- */
-
+#if defined(LMP_BOP_WRITE_TABLES)
+#define MAXLINE 1024
 void PairBOP::write_tables(int npts)
 {
   char line[MAXLINE];
@@ -2328,3 +2331,4 @@ void PairBOP::write_tables(int npts)
     fclose(fp);
   }
 }
+#endif

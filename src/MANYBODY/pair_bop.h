@@ -142,7 +142,9 @@ class PairBOP : public Pair {
   int *cos_index;       // index for neighbor cosine if not using on the fly
   double cutmax;
 
+#if defined(LMP_BOP_WRITE_TABLES)
   void write_tables(int);
+#endif
 
   void gneigh();
   void angle(double, double *, double, double *, double &, double *, double *);

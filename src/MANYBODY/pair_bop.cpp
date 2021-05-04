@@ -67,9 +67,8 @@ PairBOP::PairBOP(LAMMPS *lmp) : Pair(lmp)
 
   pairParameters = nullptr;
   tripletParameters = nullptr;
-  elem2param = nullptr;
-  elem3param = nullptr;
-  elements = nullptr;
+  bop_elements = nullptr;
+  bop_types = 0;
 
   pairlist1 = nullptr;
   pairlist2 = nullptr;
@@ -122,9 +121,6 @@ PairBOP::~PairBOP()
     memory->destroy(tripletParameters);
     memory->destroy(elem2param);
     memory->destroy(elem3param);
-    memory->destroy(setflag);
-    memory->destroy(cutsq);
-    memory->destroy(cutghost);
     memory->destroy(pi_a);
     memory->destroy(pro_delta);
     memory->destroy(pi_delta);
@@ -139,19 +135,27 @@ PairBOP::~PairBOP()
     memory->destroy(small3);
   }
 
-  if (pairlist1) memory->destroy(pairlist1);
-  if (pairlist2) memory->destroy(pairlist2);
-  if (triplelist) memory->destroy(triplelist);
-  if (BOP_index) memory->destroy(BOP_index);
-  if (BOP_total) memory->destroy(BOP_total);
-  if (BOP_index2) memory->destroy(BOP_index2);
-  if (BOP_total2) memory->destroy(BOP_total2);
-  if (neigh_index) memory->destroy(neigh_index);
-  if (neigh_index2) memory->destroy(neigh_index2);
-  if (cos_index) memory->destroy(cos_index);
-  if (bt_sg) memory->destroy(bt_sg);
-  if (bt_pi) memory->destroy(bt_pi);
+  memory->destroy(setflag);
+  memory->destroy(cutsq);
+  memory->destroy(cutghost);
+
+  memory->destroy(pairlist1);
+  memory->destroy(pairlist2);
+  memory->destroy(triplelist);
+  memory->destroy(BOP_index);
+  memory->destroy(BOP_total);
+  memory->destroy(BOP_index2);
+  memory->destroy(BOP_total2);
+  memory->destroy(neigh_index);
+  memory->destroy(neigh_index2);
+  memory->destroy(cos_index);
+  memory->destroy(bt_sg);
+  memory->destroy(bt_pi);
   bytes = 0.0;
+
+  if (bop_elements)
+    for (int i = 0; i < bop_types; i++) delete[] bop_elements[i];
+  delete[] bop_elements;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -261,7 +265,6 @@ void PairBOP::compute(int eflag, int vflag)
 void PairBOP::allocate()
 {
   allocated = 1;
-  int n = atom->ntypes;
 
   memory->destroy(pairParameters);
   memory->destroy(tripletParameters);
@@ -303,13 +306,6 @@ void PairBOP::allocate()
   memory->create(small3,npairs,"BOP:small3");
   bytes += (9*npairs + 3*bop_types) * sizeof(double);
 
-  memory->destroy(setflag);
-  memory->destroy(cutsq);
-  memory->destroy(cutghost);
-  memory->create(setflag,n+1,n+1,"BOP:setflag");
-  memory->create(cutsq,n+1,n+1,"BOP:cutsq");
-  memory->create(cutghost,n+1,n+1,"BOP:cutghost");
-  bytes += (n+1)*(n+1) * (sizeof (int) + 2.0*sizeof (double));
 }
 
 /* ----------------------------------------------------------------------
@@ -335,59 +331,43 @@ void PairBOP::settings(int narg, char **arg)
 
 void PairBOP::coeff(int narg, char **arg)
 {
-  int i,j;
   const int n = atom->ntypes;
-
   delete [] map;
   map = new int[n+1];
+  memory->destroy(setflag);
+  memory->destroy(cutsq);
+  memory->destroy(cutghost);
+  memory->create(setflag,n+1,n+1,"BOP:setflag");
+  memory->create(cutsq,n+1,n+1,"BOP:cutsq");
+  memory->create(cutghost,n+1,n+1,"BOP:cutghost");
+  bytes = (n+1)*(n+1) * (sizeof (int) + 2.0*sizeof (double));  
 
-  if (narg != 3 + atom->ntypes)
-    error->all(FLERR,"Incorrect args for pair coefficients");
-
-  // ensure I,J args are * *
-
-  if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+  map_element2type(narg-3, arg+3);
 
   // read the potential file
 
   read_table(arg[2]);
 
-  // match element names to BOP word types
+  // replace element indices in map with BOP potential indices
+  // and check for missing elements
 
   if (comm->me == 0) {
-    for (i = 3; i < narg; i++) {
-      map[i-2] = -1;
-      if (strcmp(arg[i],"NULL") == 0) continue;
-      for (j = 0; j < bop_types; j++) {
-        if (strcmp(arg[i],elements[j]) == 0) {
-          map[i-2] = j;
-          break;
+    for (int i = 1; i <= n; i++) {
+      int j;
+      if (map[i] >= 0) {
+        for (j = 0; j < bop_types; j++) {
+          if (strcmp(elements[map[i]],bop_elements[j]) == 0) {
+            map[i] = j;
+            break;
+          }
         }
-      }
+        if (j == bop_types)
+          error->one(FLERR,"Element {} not found in bop potential file {}",
+                     elements[map[i]],arg[2]);
+      } 
     }
   }
-
-  MPI_Bcast(&map[1],atom->ntypes,MPI_INT,0,world);
-
-  //clear setflag since coeff() called once with I,J = * *
-
-  for (i = 1; i <= n; i++) {
-    for (j = i; j <= n; j++) setflag[i][j] = 0;
-  }
-
-//set setflag i,j for type pairs where both are mapped to elements
-
-  int count = 0;
-  for (i = 1; i <= n; i++) {
-    for (j = i; j <= n; j++) {
-      if (map[i] >= 0 && map[j] >= 0) {
-        setflag[i][j] = 1;
-        count++;
-      }
-    }
-  }
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+  MPI_Bcast(map,atom->ntypes+1,MPI_INT,0,world);
 }
 
 /* ----------------------------------------------------------------------
@@ -1874,7 +1854,7 @@ void PairBOP::read_table(char *filename)
       error->one(FLERR,str);
     }
 
-//move past comments to first data line
+    //move past comments to first data line
     utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
     while (s == strchr(s,'#')) utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
 
@@ -1888,12 +1868,12 @@ void PairBOP::read_table(char *filename)
   MPI_Bcast(&ntriples,1,MPI_INT,0,world);
   allocate();
 
-  if (elements) {
-    for (i = 0; i < bop_types; i++) delete [] elements[i];
-    delete [] elements;
+  if (bop_elements) {
+    for (i = 0; i < bop_types; i++) delete [] bop_elements[i];
+    delete [] bop_elements;
   }
-  elements = new char*[bop_types];
-  for(i = 0; i < bop_types; i++) elements[i] = nullptr;
+  bop_elements = new char*[bop_types];
+  for(i = 0; i < bop_types; i++) bop_elements[i] = nullptr;
 
   for(i = 0; i< bop_types; i++) {
     if (comm->me == 0) {
@@ -1903,12 +1883,12 @@ void PairBOP::read_table(char *filename)
         error->one(FLERR,"Incorrect table format check for element types");
       }
       n = strlen(cbuf)+1;
-      elements[i] = new char[n];
-      strcpy(elements[i], cbuf);
+      bop_elements[i] = new char[n];
+      strcpy(bop_elements[i], cbuf);
     }
     MPI_Bcast(&n,1,MPI_INT,0,world);
-    if (comm->me != 0) elements[i] = new char[n];
-    MPI_Bcast(elements[i],n,MPI_CHAR,0,world);
+    if (comm->me != 0) bop_elements[i] = new char[n];
+    MPI_Bcast(bop_elements[i],n,MPI_CHAR,0,world);
   }
 
   if (comm->me == 0) {
@@ -2155,10 +2135,10 @@ void PairBOP::read_table(char *filename)
 
   MPI_Bcast(&cutmax,1,MPI_DOUBLE,0,world);
 
-//for debugging, call write_tables() to check the tabular functions
-//  if (comm->me == 1) {
-//    write_tables(51);
-//  }
+  //for debugging, call write_tables() to check the tabular functions
+  //  if (comm->me == 1) {
+  //    write_tables(51);
+  //  }
 }
 
 /* ----------------------------------------------------------------------
@@ -2258,8 +2238,8 @@ void PairBOP::write_tables(int npts)
     int param = elem2param[i][j];
     PairParameters & pair = pairParameters[param];
 
-    strcpy(line,elements[i]);
-    strcat(line,elements[j]);
+    strcpy(line,bop_elements[i]);
+    strcat(line,bop_elements[j]);
     strcat(line,"_Pair_SPR_");
     strcat(line,tag);
     fp = fopen(line, "w");
@@ -2276,8 +2256,8 @@ void PairBOP::write_tables(int npts)
     }
     fclose(fp);
     if (pair.cutL != 0) {
-      strcpy(line,elements[i]);
-      strcat(line,elements[j]);
+      strcpy(line,bop_elements[i]);
+      strcat(line,bop_elements[j]);
       strcat(line,"_Pair_L_");
       strcat(line,tag);
       fp = fopen(line, "w");
@@ -2292,8 +2272,8 @@ void PairBOP::write_tables(int npts)
       }
       fclose(fp);
     }
-    strcpy(line,elements[i]);
-    strcat(line,elements[j]);
+    strcpy(line,bop_elements[i]);
+    strcat(line,bop_elements[j]);
     strcat(line,"_Pair_BO_");
     strcat(line,tag);
     fp = fopen(line, "w");
@@ -2310,9 +2290,9 @@ void PairBOP::write_tables(int npts)
   for (int i = 0; i < bop_types; i++)
   for (int j = 0; j < bop_types; j++)
   for (int k = 0; k < bop_types; k++) {
-    strcpy(line,elements[i]);
-    strcat(line,elements[j]);
-    strcat(line,elements[k]);
+    strcpy(line,bop_elements[i]);
+    strcat(line,bop_elements[j]);
+    strcat(line,bop_elements[k]);
     strcat(line,"_Triple_G_");
     strcat(line,tag);
     fp = fopen(line, "w");

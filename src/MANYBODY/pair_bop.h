@@ -121,13 +121,13 @@ class PairBOP : public Pair {
   double *sigma_f, *sigma_k, *small3;
   double *pro_delta, *pro;
 
-  int bop_types;      // number of elments in potential
-  int npairs;         // number of element pairs
-  int ntriples;       // number of all triples
-  char **elements;    // names of unique elements
+  int bop_types;                // number of elments in potential file
+  int npairs;                   // number of element pairs
+  int ntriples;                 // number of all triples
+  char **bop_elements;          // names of elements in potential file
   double bytes;
 
-  int otfly;    // = 1 faster, more memory, = 0 slower, less memory
+  int otfly;       // = 1 faster, more memory, = 0 slower, less memory
 
   PairList1 *pairlist1;
   PairList2 *pairlist2;

@@ -43,8 +43,8 @@
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "neighbor.h"
+#include "potential_file_reader.h"
 #include "tabular_function.h"
-#include "text_file_reader.h"
 #include "utils.h"
 
 #include <cmath>
@@ -1872,8 +1872,7 @@ void PairBOP::read_table(char *filename)
   int nr, nBOt, ntheta, npower, format;
   double *rcut = nullptr;
   double ****gpara = nullptr;
-  FILE *fp = nullptr;
-  TextFileReader *reader = nullptr;
+  PotentialFileReader *reader = nullptr;
 
   if (comm->me == 0) {
     if (bop_elements) {
@@ -1881,14 +1880,9 @@ void PairBOP::read_table(char *filename)
       delete [] bop_elements;
     }
 
-    fp = utils::open_potential(filename,lmp,nullptr);
-    if (!fp)
-      error->one(FLERR,"Cannot open BOP potential file {}: {}",
-                 filename, utils::getsyserror());
-
     try {
-      reader = new TextFileReader(fp, "BOP");
-      bop_types = reader->next_values(1).next_int();
+      reader = new PotentialFileReader(lmp, filename, "BOP");
+      bop_types = reader->next_int();
       if (bop_types <= 0)
         throw parser_error(fmt::format("BOP potential file with {} "
                                        "elements",bop_types));
@@ -1956,11 +1950,11 @@ void PairBOP::read_table(char *filename)
       small7  = values.next_double();
 
       for (int i = 0; i < bop_types; ++i)
-        pi_p[i] = reader->next_values(1).next_double();
+        pi_p[i] = reader->next_double();
 
       cutmax = 0.0;
       for (int i = 0; i < npairs; ++i) {
-        rcut[i] = reader->next_values(1).next_double();
+        rcut[i] = reader->next_double();
         cutmax = MAX(rcut[i],cutmax);
 
         values = reader->next_values(4);
@@ -2175,10 +2169,7 @@ void PairBOP::read_table(char *filename)
   memory->destroy(rcut);
   memory->destroy(gpara);
 
-  if (comm->me == 0) {
-    delete reader;
-    fclose(fp);
-  }
+  if (comm->me == 0) delete reader;
 
   //for debugging, call write_tables() to check the tabular functions
   //  if (comm->me == 1) {

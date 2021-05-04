@@ -53,16 +53,8 @@
 #include <cmath>
 #include <cstring>
 #include <string>
-#include <exception>
 
 using namespace LAMMPS_NS;
-
-class parser_error : public std::exception {
-  std::string message;
-public:
-  parser_error(const std::string &mesg) { message = mesg; }
-  const char *what() const noexcept { return message.c_str(); }
-};
 
 /* ---------------------------------------------------------------------- */
 
@@ -1884,8 +1876,8 @@ void PairBOP::read_table(char *filename)
       reader = new PotentialFileReader(lmp, filename, "BOP");
       bop_types = reader->next_int();
       if (bop_types <= 0)
-        throw parser_error(fmt::format("BOP potential file with {} "
-                                       "elements",bop_types));
+        error->one(FLERR,fmt::format("BOP potential file with {} "
+                                     "elements",bop_types));
 
       bop_elements = new char*[bop_types];
       for (int i=0; i < bop_types; ++i) {
@@ -1894,7 +1886,7 @@ void PairBOP::read_table(char *filename)
         values.next_double();   // element mass (ignored)
         bop_elements[i] = utils::strdup(values.next_string());
       }
-    } catch (std::exception &e) {
+    } catch (TokenizerException &e) {
       error->one(FLERR,"Error reading BOP potential file: {}",e.what());
     }
   }
@@ -1972,7 +1964,7 @@ void PairBOP::read_table(char *filename)
         sigma_k[i] = values.next_double();
         small3[i]  = values.next_double();
       }
-    } catch (std::exception &e) {
+    } catch (TokenizerException &e) {
       error->one(FLERR,"Error reading BOP potential file: {}",e.what());
     }
   }
@@ -2011,21 +2003,17 @@ void PairBOP::read_table(char *filename)
       for(int k = j; k < bop_types; k++) {
         TripletParameters &p = tripletParameters[nbuf];
         if (comm->me == 0) {
-          try {
-            if (format == 3 && npower <= 2) {
-              reader->next_dvector(singletable, ntheta);
-            } else {
-              reader->next_dvector(gpara[j][i][k], npower+1);
+          if (format == 3 && npower <= 2) {
+            reader->next_dvector(singletable, ntheta);
+          } else {
+            reader->next_dvector(gpara[j][i][k], npower+1);
+          }
+          for (int n = 0; n < ntheta; n++) {
+            double arg = -1.0 + 2.0 * n / (ntheta - 1.0);
+            singletable[n] = gpara[j][i][k][npower];
+            for(int m = npower; m > 0; m--) {
+              singletable[n] = arg * singletable[n] + gpara[j][i][k][m-1];
             }
-            for (int n = 0; n < ntheta; n++) {
-              double arg = -1.0 + 2.0 * n / (ntheta - 1.0);
-              singletable[n] = gpara[j][i][k][npower];
-              for(int m = npower; m > 0; m--) {
-                singletable[n] = arg * singletable[n] + gpara[j][i][k][m-1];
-              }
-            }
-          } catch (std::exception &e) {
-            error->one(FLERR,"Error reading BOP potential file: {}",e.what());
           }
         }
         MPI_Bcast(singletable,ntheta,MPI_DOUBLE,0,world);
@@ -2042,13 +2030,7 @@ void PairBOP::read_table(char *filename)
   singletable = new double[nr];
   for(int i = 0; i < npairs; i++) {
     PairParameters &p = pairParameters[i];
-    if (comm->me == 0) {
-      try {
-        reader->next_dvector(singletable, nr);
-      } catch (std::exception &e) {
-        error->one(FLERR,"Error reading BOP potential file: {}",e.what());
-      }
-    }
+    if (comm->me == 0) reader->next_dvector(singletable, nr);
     MPI_Bcast(singletable,nr,MPI_DOUBLE,0,world);
     p.rep = new TabularFunction();
     (p.rep)->set_values(nr, 0.0, rcut[i], singletable);
@@ -2058,13 +2040,7 @@ void PairBOP::read_table(char *filename)
 
   for(int i = 0; i < npairs; i++) {
     PairParameters &p = pairParameters[i];
-    if (comm->me == 0) {
-      try {
-        reader->next_dvector(singletable, nr);
-      } catch (std::exception &e) {
-        error->one(FLERR,"Error reading BOP potential file: {}",e.what());
-      }
-    }
+    if (comm->me == 0) reader->next_dvector(singletable, nr);
     MPI_Bcast(singletable,nr,MPI_DOUBLE,0,world);
     p.betaS = new TabularFunction();
     (p.betaS)->set_values(nr, 0.0, rcut[i], singletable);
@@ -2072,13 +2048,7 @@ void PairBOP::read_table(char *filename)
 
   for(int i = 0; i < npairs; i++) {
     PairParameters &p = pairParameters[i];
-    if (comm->me == 0) {
-      try {
-        reader->next_dvector(singletable, nr);
-      } catch (std::exception &e) {
-        error->one(FLERR,"Error reading BOP potential file: {}",e.what());
-      }
-    }
+    if (comm->me == 0) reader->next_dvector(singletable, nr);
     MPI_Bcast(singletable,nr,MPI_DOUBLE,0,world);
     p.betaP = new TabularFunction();
     (p.betaP)->set_values(nr, 0.0, rcut[i], singletable);
@@ -2088,13 +2058,7 @@ void PairBOP::read_table(char *filename)
   singletable = new double[nBOt];
   for(int i = 0; i < npairs; i++) {
     PairParameters &p = pairParameters[i];
-    if (comm->me == 0) {
-      try {
-        reader->next_dvector(singletable, nBOt);
-      } catch (std::exception &e) {
-        error->one(FLERR,"Error reading BOP potential file: {}",e.what());
-      }
-    }
+    if (comm->me == 0) reader->next_dvector(singletable, nBOt);
     MPI_Bcast(singletable,nBOt,MPI_DOUBLE,0,world);
     p.bo = new TabularFunction();
     (p.bo)->set_values(nBOt, 0.0, 1.0, singletable);
@@ -2117,13 +2081,9 @@ void PairBOP::read_table(char *filename)
   }
 
   if (comm->me == 0) {
-    try {
-      reader->next_dvector(pro_delta,bop_types);
-      reader->next_dvector(pro,bop_types);
-      reader->next_dvector(rcut,npairs);
-    } catch (std::exception &e) {
-      error->one(FLERR,"Error reading BOP potential file: {}",e.what());
-    }
+    reader->next_dvector(pro_delta,bop_types);
+    reader->next_dvector(pro,bop_types);
+    reader->next_dvector(rcut,npairs);
   }
   MPI_Bcast(&pro_delta[0],bop_types,MPI_DOUBLE,0,world);
   MPI_Bcast(&pro[0],bop_types,MPI_DOUBLE,0,world);
@@ -2141,13 +2101,7 @@ void PairBOP::read_table(char *filename)
     singletable = new double[nr];
     for(int i = 0; i < npairs; i++) {
       PairParameters &p = pairParameters[i];
-      if (comm->me == 0) {
-        try {
-          reader->next_dvector(singletable,nr);
-        } catch (std::exception &e) {
-          error->one(FLERR,"Error reading BOP potential file: {}",e.what());
-        }
-      }
+      if (comm->me == 0) reader->next_dvector(singletable,nr);
       MPI_Bcast(singletable,nr,MPI_DOUBLE,0,world);
       nbuf = 0;
       for (int j = 0; j < nr; j++) {

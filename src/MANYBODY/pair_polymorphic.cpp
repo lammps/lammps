@@ -282,7 +282,7 @@ void PairPolymorphic::compute(int eflag, int vflag)
       }
 
       if (rsq >= (p.U)->get_xmaxsq() || (p.U)->get_vmax() <= epsilon) continue;
-      (p.U)->value2(r0,evdwl,eflag,fpair,1);
+      (p.U)->value(r0,evdwl,eflag,fpair,1);
       fpair = -fpair/r0;
 
       f[i][0] += delx*fpair;
@@ -314,14 +314,14 @@ void PairPolymorphic::compute(int eflag, int vflag)
           iparam_kk = elem2param[ktype][ktype];
           PairParameters &q = pairParameters[iparam_kk];
 
-          (q.W)->value2(drW[kk],wfac,1,fpair,0);
+          (q.W)->value(drW[kk],wfac,1,fpair,0);
 
           zeta_ij += wfac;
         }
 
         // pairwise force due to zeta
 
-        (p.F)->value2(zeta_ij,bij,1,bij_d,1);
+        (p.F)->value(zeta_ij,bij,1,bij_d,1);
 
         prefactor = 0.5* bij_d;
         if (eflag) evdwl = -0.5*bij;
@@ -341,7 +341,7 @@ void PairPolymorphic::compute(int eflag, int vflag)
           iparam_kk = elem2param[ktype][ktype];
           PairParameters &q = pairParameters[iparam_kk];
 
-          (q.W)->value2(drW[kk],wfac,0,fpair,1);
+          (q.W)->value(drW[kk],wfac,0,fpair,1);
           fpair = -prefactor*fpair/drW[kk];
 
           f[i][0] += delr2[0]*fpair;
@@ -396,17 +396,17 @@ void PairPolymorphic::compute(int eflag, int vflag)
           iparam_ik = elem2param[itype][ktype];
           PairParameters &q = pairParameters[iparam_ik];
 
-          (q.W)->value2(r2,wfac,1,fpair,0);
-          (trip.P)->value2(r1-(p.xi)*r2,pfac,1,fpair,0);
-          (trip.G)->value2(costheta,gfac,1,fpair,0);
+          (q.W)->value(r2,wfac,1,fpair,0);
+          (trip.P)->value(r1-(p.xi)*r2,pfac,1,fpair,0);
+          (trip.G)->value(costheta,gfac,1,fpair,0);
 
           zeta_ij += wfac*pfac*gfac;
         }
 
         // pairwise force due to zeta
 
-        (p.V)->value2(r1,fa,1,fa_d,1);
-        (p.F)->value2(zeta_ij,bij,1,bij_d,1);
+        (p.V)->value(r1,fa,1,fa_d,1);
+        (p.F)->value(zeta_ij,bij,1,bij_d,1);
         fpair = -0.5*bij*fa_d / r1;
         prefactor = 0.5* fa * bij_d;
         if (eflag) evdwl = -0.5*bij*fa;
@@ -821,9 +821,9 @@ void PairPolymorphic::ters_zetaterm_d(double prefactor,
 
   cos_theta = dot3(rij_hat,rik_hat);
 
-  (q->W)->value2(rik,fc,1,dfc,1);
-  (trip->P)->value2(rij-(p->xi)*rik,ex_delr,1,ex_delr_d,1);
-  (trip->G)->value2(cos_theta,gijk,1,gijk_d,1);
+  (q->W)->value(rik,fc,1,dfc,1);
+  (trip->P)->value(rij-(p->xi)*rik,ex_delr,1,ex_delr_d,1);
+  (trip->G)->value(cos_theta,gijk,1,gijk_d,1);
 
   costheta_d(rij_hat,rij,rik_hat,rik,dcosdri,dcosdrj,dcosdrk);
 
@@ -888,9 +888,9 @@ void PairPolymorphic::write_tables(int npts)
       xmax = xmax + 0.5*xl;
       for (int k = 0; k < npts; k++) {
         x = xmin + (xmax-xmin) * k / (npts-1);
-        (pair.U)->value2(x, uf, 1, ufp, 1);
-        (pair.V)->value2(x, vf, 1, vfp, 1);
-        (pair.W)->value2(x, wf, 1, wfp, 1);
+        (pair.U)->value(x, uf, 1, ufp, 1);
+        (pair.V)->value(x, vf, 1, vfp, 1);
+        (pair.W)->value(x, wf, 1, wfp, 1);
         fprintf(fp,"%12.4f %12.4f %12.4f %12.4f %12.4f %12.4f %12.4f \n",
                 x,uf,vf,wf,ufp,vfp,wfp);
       }
@@ -912,7 +912,7 @@ void PairPolymorphic::write_tables(int npts)
         xmax = xmax + 0.5*xl;
         for (int n = 0; n < npts; n++) {
           x = xmin + (xmax-xmin) * n / (npts-1);
-          (pair.P)->value2(x, pf, 1, pfp, 1);
+          (pair.P)->value(x, pf, 1, pfp, 1);
           fprintf(fp,"%12.4f %12.4f %12.4f \n",x,pf,pfp);
         }
         fclose(fp);
@@ -931,7 +931,7 @@ void PairPolymorphic::write_tables(int npts)
         xmax = (pair.G)->get_xmax();
         for (int n = 0; n < npts; n++) {
           x = xmin + (xmax-xmin) * n / (npts-1);
-          (pair.G)->value2(x, gf, 1, gfp, 1);
+          (pair.G)->value(x, gf, 1, gfp, 1);
           fprintf(fp,"%12.4f %12.4f %12.4f \n",x,gf,gfp);
         }
         fclose(fp);
@@ -952,7 +952,7 @@ void PairPolymorphic::write_tables(int npts)
       xmax = xmax + 0.5*xl;
       for (int k = 0; k < npts; k++) {
         x = xmin + (xmax-xmin) * k / (npts-1);
-        (pair.F)->value2(x, ff, 1, ffp, 1);
+        (pair.F)->value(x, ff, 1, ffp, 1);
         fprintf(fp,"%12.4f %12.4f %12.4f \n",x,ff,ffp);
       }
       fclose(fp);

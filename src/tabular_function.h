@@ -18,11 +18,9 @@ namespace LAMMPS_NS {
 class TabularFunction {
  public:
   TabularFunction();
-  TabularFunction(int, double, double);
   virtual ~TabularFunction();
 
   void set_values(int, double, double, double *);
-  void set_values(int, double, double, double *, double);
 
  private:
   int size;
@@ -34,6 +32,7 @@ class TabularFunction {
   void initialize();
 
  public:
+  // used by pair style bop
   void value(double x, double &y, int ny, double &y1, int ny1)
   {
     double ps = (x - xmin) * rdx + 1.0;
@@ -46,6 +45,7 @@ class TabularFunction {
           ys[ks - 1];
     if (ny1) y1 = (ys6[ks - 1] * ps + ys5[ks - 1]) * ps + ys4[ks - 1];
   }
+  // used by pair style polymorphic
   void value2(double x, double &y, int ny, double &y1, int ny1)
   {
     double ps = (x - xmin) * rdx;

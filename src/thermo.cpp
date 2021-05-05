@@ -415,7 +415,6 @@ bigint Thermo::lost_check()
     error->all(FLERR,"Too many total atoms");
 
   // print notification, if future warnings will be ignored
-  error->set_allwarn(ntotal[1]);
   int maxwarn = error->get_maxwarn();
   if ((maxwarn > 0) && (warnbefore == 0) && (ntotal[1] > maxwarn)) {
     warnbefore = 1;
@@ -423,6 +422,7 @@ bigint Thermo::lost_check()
                                      "future warnings will be suppressed.\n",
                                      ntotal[1],maxwarn),0);
   }
+  error->set_allwarn(ntotal[1]);
 
   // no lost atoms, nothing else to do.
   if (ntotal[0] == atom->natoms) return ntotal[0];
@@ -542,7 +542,7 @@ void Thermo::modify_params(int narg, char **arg)
     } else if (strcmp(arg[iarg],"warn") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal thermo_modify command");
       if (strcmp(arg[iarg+1],"ignore") == 0) error->set_maxwarn(-1);
-      if (strcmp(arg[iarg+1],"always") == 0) error->set_maxwarn(0);
+      else if (strcmp(arg[iarg+1],"always") == 0) error->set_maxwarn(0);
       else if (strcmp(arg[iarg+1],"reset") == 0) {
         error->set_numwarn(0);
         warnbefore = 0;

@@ -39,7 +39,7 @@ TEST_F(Error_class, message)
     auto output = CAPTURE_OUTPUT([&] {
         error->message(FLERR, "one message");
     });
-    EXPECT_THAT(output, MatchesRegex("one message .*test_error_class.cpp:.*"));
+    ASSERT_THAT(output, MatchesRegex("one message .*test_error_class.cpp:.*"));
 };
 
 TEST_F(Error_class, warning)
@@ -48,8 +48,8 @@ TEST_F(Error_class, warning)
     auto output = CAPTURE_OUTPUT([&] {
         error->warning(FLERR, "one warning");
     });
-    EXPECT_THAT(output, MatchesRegex("WARNING: one warning .*test_error_class.cpp:.*"));
-    EXPECT_THAT(error->get_maxwarn(), 100);
+    ASSERT_THAT(output, MatchesRegex("WARNING: one warning .*test_error_class.cpp:.*"));
+    ASSERT_THAT(error->get_maxwarn(), 100);
 
     // warnings disabled
     HIDE_OUTPUT([&] {
@@ -58,7 +58,7 @@ TEST_F(Error_class, warning)
     output = CAPTURE_OUTPUT([&] {
         error->warning(FLERR, "one warning");
     });
-    EXPECT_THAT(error->get_maxwarn(), -1);
+    ASSERT_THAT(error->get_maxwarn(), -1);
 
     BEGIN_HIDE_OUTPUT();
     command("thermo_modify warn 2");
@@ -66,48 +66,48 @@ TEST_F(Error_class, warning)
     error->warning(FLERR, "one warning");
     error->warning(FLERR, "one warning");
     END_HIDE_OUTPUT();
-    EXPECT_THAT(error->get_maxwarn(), 2);
-    EXPECT_THAT(error->get_numwarn(), 4);
+    ASSERT_THAT(error->get_maxwarn(), 2);
+    ASSERT_THAT(error->get_numwarn(), 5);
 
     output = CAPTURE_OUTPUT([&] {
         thermo->lost_check();
     });
-    EXPECT_THAT(output, MatchesRegex("WARNING: Too many warnings: 4 vs 2. All future.*"));
+    ASSERT_THAT(output, MatchesRegex("WARNING: Too many warnings: 5 vs 2. All future.*"));
 
     output = CAPTURE_OUTPUT([&] {
         error->warning(FLERR, "one warning");
     });
 
-    EXPECT_EQ(output, "");
+    ASSERT_EQ(output, "");
 
     BEGIN_HIDE_OUTPUT();
     command("thermo_modify warn reset");
     thermo->lost_check();
     error->warning(FLERR, "one warning");
     END_HIDE_OUTPUT();
-    EXPECT_THAT(error->get_maxwarn(), 2);
-    EXPECT_THAT(error->get_numwarn(), 1);
+    ASSERT_THAT(error->get_maxwarn(), 2);
+    ASSERT_THAT(error->get_numwarn(), 1);
 
     output = CAPTURE_OUTPUT([&] {
         error->warning(FLERR, "one warning");
     });
-    EXPECT_THAT(output, MatchesRegex("WARNING: one warning.*"));
+    ASSERT_THAT(output, MatchesRegex("WARNING: one warning.*"));
 
     BEGIN_HIDE_OUTPUT();
     command("thermo_modify warn default");
     thermo->lost_check();
     error->warning(FLERR, "one warning");
     END_HIDE_OUTPUT();
-    EXPECT_THAT(error->get_maxwarn(), 100);
-    EXPECT_THAT(error->get_numwarn(), 1);
+    ASSERT_THAT(error->get_maxwarn(), 100);
+    ASSERT_THAT(error->get_numwarn(), 1);
 
     BEGIN_HIDE_OUTPUT();
     command("thermo_modify warn always");
     thermo->lost_check();
     error->warning(FLERR, "one warning");
     END_HIDE_OUTPUT();
-    EXPECT_THAT(error->get_maxwarn(), 0);
-    EXPECT_THAT(error->get_numwarn(), 1);
+    ASSERT_THAT(error->get_maxwarn(), 0);
+    ASSERT_THAT(error->get_numwarn(), 2);
 };
 
 TEST_F(Error_class, one)

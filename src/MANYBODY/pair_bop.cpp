@@ -188,7 +188,7 @@ PairBOP::~PairBOP()
 void PairBOP::compute(int eflag, int vflag)
 {
   double minbox = MIN(MIN(domain->xprd, domain->yprd), domain->zprd);
-  if (minbox < 6.0*cutmax)
+  if (minbox-0.001 < 6.0*cutmax)
     error->all(FLERR,"Pair style bop requires system dimension "
                "of at least {:.4}",6.0*cutmax);
 
@@ -403,8 +403,8 @@ void PairBOP::init_style()
 
   // check that user sets comm->cutghostuser to 3x the max BOP cutoff
 
-  if (comm->cutghostuser < 3.0*cutmax)
-    error->all(FLERR,"Pair style bop requires a comm ghost cutoff "
+  if (comm->cutghostuser-0.001 < 3.0*cutmax)
+    error->all(FLERR,"Pair style bop requires setting a communication cutoff "
                "of at least {:.4}",3.0*cutmax);
 
   // need a full neighbor list and neighbors of ghosts

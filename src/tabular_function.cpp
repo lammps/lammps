@@ -18,28 +18,30 @@
 
 using namespace LAMMPS_NS;
 
-TabularFunction::TabularFunction()
-  : size(0), xmin(0.0), xmax(0.0), xmaxsq(0.0), rdx(0.0), vmax(0.0),
+TabularFunction::TabularFunction() :
+    size(0), xmin(0.0), xmax(0.0), xmaxsq(0.0), rdx(0.0), vmax(0.0),
     xs(nullptr), ys(nullptr), ys1(nullptr), ys2(nullptr), ys3(nullptr),
-    ys4(nullptr), ys5(nullptr), ys6(nullptr) {}
+    ys4(nullptr), ys5(nullptr), ys6(nullptr)
+{
+}
 
 TabularFunction::~TabularFunction()
 {
-  delete [] xs;
-  delete [] ys;
-  delete [] ys1;
-  delete [] ys2;
-  delete [] ys3;
-  delete [] ys4;
-  delete [] ys5;
-  delete [] ys6;
+  delete[] xs;
+  delete[] ys;
+  delete[] ys1;
+  delete[] ys2;
+  delete[] ys3;
+  delete[] ys4;
+  delete[] ys5;
+  delete[] ys6;
 }
 
 void TabularFunction::set_values(int n, double x1, double x2, double *values)
 {
   reset_size(n);
   set_xrange(x1, x2);
-  memcpy(ys, values, n*sizeof(double));
+  memcpy(ys, values, n * sizeof(double));
   initialize();
 }
 
@@ -47,21 +49,21 @@ void TabularFunction::set_xrange(double x1, double x2)
 {
   xmin = x1;
   xmax = x2;
-  xmaxsq = x2*x2;
+  xmaxsq = x2 * x2;
 }
 
 void TabularFunction::reset_size(int n)
 {
   if (n != size) {
     size = n;
-    delete [] xs;
-    delete [] ys;
-    delete [] ys1;
-    delete [] ys2;
-    delete [] ys3;
-    delete [] ys4;
-    delete [] ys5;
-    delete [] ys6;
+    delete[] xs;
+    delete[] ys;
+    delete[] ys1;
+    delete[] ys2;
+    delete[] ys3;
+    delete[] ys4;
+    delete[] ys5;
+    delete[] ys6;
     xs = new double[n];
     ys = new double[n];
     ys1 = new double[n];
@@ -78,9 +80,8 @@ void TabularFunction::initialize()
   int i;
   rdx = (xmax - xmin) / (size - 1.0);
   vmax = 0.0;
-  for (int i = 0; i < size; i++) {
+  for (i = 0; i < size; i++)
     if (fabs(ys[i]) > vmax) vmax = fabs(ys[i]);
-  }
   for (i = 0; i < size; i++) xs[i] = xmin + i * rdx;
   rdx = 1.0 / rdx;
   ys1[0] = ys[1] - ys[0];

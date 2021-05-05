@@ -164,26 +164,8 @@ void ImproperClass2OMP::eval(int nfrom, int nto, ThrData * const thr)
     // angle error check
 
     for (i = 0; i < 3; i++) {
-      if (costheta[i] == -1.0) {
-        int me = comm->me;
-        if (screen) {
-          char str[128];
-          sprintf(str,"Improper problem: %d/%d " BIGINT_FORMAT " "
-                  TAGINT_FORMAT " " TAGINT_FORMAT " "
-                  TAGINT_FORMAT " " TAGINT_FORMAT,
-                  me, thr->get_tid(),update->ntimestep,
-                  atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
-          error->warning(FLERR,str);
-          fprintf(screen,"  1st atom: %d %g %g %g\n",
-                  me,x[i1].x,x[i1].y,x[i1].z);
-          fprintf(screen,"  2nd atom: %d %g %g %g\n",
-                  me,x[i2].x,x[i2].y,x[i2].z);
-          fprintf(screen,"  3rd atom: %d %g %g %g\n",
-                  me,x[i3].x,x[i3].y,x[i3].z);
-          fprintf(screen,"  4th atom: %d %g %g %g\n",
-                  me,x[i4].x,x[i4].y,x[i4].z);
-        }
-      }
+      if (costheta[i] == -1.0)
+        problem(FLERR, i1, i2, i3, i4);
     }
 
     for (i = 0; i < 3; i++) {

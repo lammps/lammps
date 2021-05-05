@@ -287,8 +287,8 @@ void FixDeposit::init()
 
     double separation = MAX(2.0*maxradinsert,maxradall+maxradinsert);
     if (sqrt(nearsq) < separation && comm->me == 0)
-      error->warning(FLERR,fmt::format("Fix deposit near setting < possible "
-                                       "overlap separation {}",separation));
+      error->warning(FLERR,"Fix deposit near setting < possible "
+                     "overlap separation {}",separation);
   }
 }
 

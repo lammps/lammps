@@ -387,10 +387,9 @@ int FixQEq::CG( double *b, double *x )
   }
 
   if ((comm->me == 0) && (loop >= maxiter))
-    error->warning(FLERR,fmt::format("Fix qeq CG convergence failed ({}) "
-                                     "after {} iterations at step {}",
-                                     sqrt(sig_new)/b_norm,loop,
-                                     update->ntimestep));
+    error->warning(FLERR,"Fix qeq CG convergence failed ({}) after {} "
+                   "iterations at step {}",sqrt(sig_new)/b_norm,loop,
+                   update->ntimestep);
   return loop;
 }
 

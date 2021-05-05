@@ -171,9 +171,8 @@ namespace LAMMPS_NS
       auto pair_map = lmp->force->pair_map;
       if (pair_map->find(plugin->name) != pair_map->end()) {
         if (lmp->comm->me == 0)
-          lmp->error->warning(FLERR,fmt::format("Overriding built-in pair "
-                                                "style {} from plugin",
-                                                plugin->name));
+          lmp->error->warning(FLERR,"Overriding built-in pair "
+                              "style {} from plugin",plugin->name);
       }
       (*pair_map)[plugin->name] = (Force::PairCreator)plugin->creator.v1;
 
@@ -181,9 +180,8 @@ namespace LAMMPS_NS
       auto bond_map = lmp->force->bond_map;
       if (bond_map->find(plugin->name) != bond_map->end()) {
         if (lmp->comm->me == 0)
-          lmp->error->warning(FLERR,fmt::format("Overriding built-in bond "
-                                                "style {} from plugin",
-                                                plugin->name));
+          lmp->error->warning(FLERR,"Overriding built-in bond "
+                              "style {} from plugin",plugin->name);
       }
       (*bond_map)[plugin->name] = (Force::BondCreator)plugin->creator.v1;
 
@@ -191,9 +189,8 @@ namespace LAMMPS_NS
       auto angle_map = lmp->force->angle_map;
       if (angle_map->find(plugin->name) != angle_map->end()) {
         if (lmp->comm->me == 0)
-          lmp->error->warning(FLERR,fmt::format("Overriding built-in angle "
-                                                "style {} from plugin",
-                                                plugin->name));
+          lmp->error->warning(FLERR,"Overriding built-in angle "
+                              "style {} from plugin",plugin->name);
       }
       (*angle_map)[plugin->name] = (Force::AngleCreator)plugin->creator.v1;
 
@@ -201,9 +198,8 @@ namespace LAMMPS_NS
       auto dihedral_map = lmp->force->dihedral_map;
       if (dihedral_map->find(plugin->name) != dihedral_map->end()) {
         if (lmp->comm->me == 0)
-          lmp->error->warning(FLERR,fmt::format("Overriding built-in dihedral "
-                                                "style {} from plugin",
-                                                plugin->name));
+          lmp->error->warning(FLERR,"Overriding built-in dihedral "
+                              "style {} from plugin",plugin->name);
       }
       (*dihedral_map)[plugin->name] = (Force::DihedralCreator)plugin->creator.v1;
 
@@ -211,9 +207,8 @@ namespace LAMMPS_NS
       auto improper_map = lmp->force->improper_map;
       if (improper_map->find(plugin->name) != improper_map->end()) {
         if (lmp->comm->me == 0)
-          lmp->error->warning(FLERR,fmt::format("Overriding built-in improper "
-                                                "style {} from plugin",
-                                                plugin->name));
+          lmp->error->warning(FLERR,"Overriding built-in improper "
+                              "style {} from plugin",plugin->name);
       }
       (*improper_map)[plugin->name] = (Force::ImproperCreator)plugin->creator.v1;
 
@@ -221,9 +216,8 @@ namespace LAMMPS_NS
       auto compute_map = lmp->modify->compute_map;
       if (compute_map->find(plugin->name) != compute_map->end()) {
         if (lmp->comm->me == 0)
-          lmp->error->warning(FLERR,fmt::format("Overriding built-in compute "
-                                                "style {} from plugin",
-                                                plugin->name));
+          lmp->error->warning(FLERR,"Overriding built-in compute "
+                              "style {} from plugin",plugin->name);
       }
       (*compute_map)[plugin->name] = (Modify::ComputeCreator)plugin->creator.v2;
 
@@ -231,9 +225,8 @@ namespace LAMMPS_NS
       auto fix_map = lmp->modify->fix_map;
       if (fix_map->find(plugin->name) != fix_map->end()) {
         if (lmp->comm->me == 0)
-          lmp->error->warning(FLERR,fmt::format("Overriding built-in fix "
-                                                "style {} from plugin",
-                                                plugin->name));
+          lmp->error->warning(FLERR,"Overriding built-in fix "
+                              "style {} from plugin",plugin->name);
       }
       (*fix_map)[plugin->name] = (Modify::FixCreator)plugin->creator.v2;
 
@@ -241,9 +234,8 @@ namespace LAMMPS_NS
       auto region_map = lmp->domain->region_map;
       if (region_map->find(plugin->name) != region_map->end()) {
         if (lmp->comm->me == 0)
-          lmp->error->warning(FLERR,fmt::format("Overriding built-in region "
-                                                "style {} from plugin",
-                                                plugin->name));
+          lmp->error->warning(FLERR,"Overriding built-in region "
+                              "style {} from plugin",plugin->name);
       }
       (*region_map)[plugin->name] = (Domain::RegionCreator)plugin->creator.v2;
 
@@ -251,9 +243,8 @@ namespace LAMMPS_NS
       auto command_map = lmp->input->command_map;
       if (command_map->find(plugin->name) != command_map->end()) {
         if (lmp->comm->me == 0)
-          lmp->error->warning(FLERR,fmt::format("Overriding built-in command "
-                                                "style {} from plugin",
-                                                plugin->name));
+          lmp->error->warning(FLERR,"Overriding built-in command "
+                              "style {} from plugin",plugin->name);
       }
       (*command_map)[plugin->name] = (Input::CommandCreator)plugin->creator.v1;
 

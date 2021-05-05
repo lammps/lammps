@@ -85,8 +85,8 @@ void BondFENE::compute(int eflag, int vflag)
     // if r > 2*r0 something serious is wrong, abort
 
     if (rlogarg < 0.1) {
-      error->warning(FLERR,fmt::format("FENE bond too long: {} {} {} {}",
-                     update->ntimestep,atom->tag[i1],atom->tag[i2],sqrt(rsq)));
+      error->warning(FLERR,"FENE bond too long: {} {} {} {}",
+                     update->ntimestep,atom->tag[i1],atom->tag[i2],sqrt(rsq));
       if (rlogarg <= -3.0) error->one(FLERR,"Bad FENE bond");
       rlogarg = 0.1;
     }

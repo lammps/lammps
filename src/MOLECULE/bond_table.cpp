@@ -378,15 +378,15 @@ void BondTable::read_table(Table *tb, char *file, char *keyword)
   }
 
   if (ferror) {
-    error->warning(FLERR, fmt::format("{} of {} force values in table are inconsistent with -dE/dr.\n"
-                                      "  Should only be flagged at inflection points",ferror,tb->ninput));
+    error->warning(FLERR, "{} of {} force values in table are inconsistent with -dE/dr.\n"
+                   "WARNING:  Should only be flagged at inflection points",ferror,tb->ninput);
   }
 
   // warn if data was read incompletely, e.g. columns were missing
 
   if (cerror) {
-    error->warning(FLERR, fmt::format("{} of {} lines in table were incomplete or could not be"
-                                      " parsed completely",cerror,tb->ninput));
+    error->warning(FLERR, "{} of {} lines in table were incomplete or could not be"
+                   " parsed completely",cerror,tb->ninput);
   }
 }
 

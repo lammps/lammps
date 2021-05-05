@@ -211,7 +211,7 @@ void PairPolymorphic::compute(int eflag, int vflag)
 
     if (eta == 1) {
       iparam_ii = elem2param[itype][itype];
-      PairParameters & p = pairParameters[iparam_ii];
+      PairParameters &p = pairParameters[iparam_ii];
       emb = (p.F)->get_vmax();
     }
 
@@ -231,13 +231,13 @@ void PairPolymorphic::compute(int eflag, int vflag)
       r0 = sqrt(rsq);
 
       iparam_ij = elem2param[itype][jtype];
-      PairParameters & p = pairParameters[iparam_ij];
+      PairParameters &p = pairParameters[iparam_ij];
 
 // do not include the neighbor if get_vmax() <= epsilon because the function is near zero
       if (eta == 1) {
         if (emb > epsilon) {
           iparam_jj = elem2param[jtype][jtype];
-          PairParameters & q = pairParameters[iparam_jj];
+          PairParameters &q = pairParameters[iparam_jj];
           if (rsq < (q.W)->get_xmaxsq() && (q.W)->get_vmax() > epsilon) {
             numneighW = numneighW + 1;
             firstneighW[numneighW] = j;
@@ -301,7 +301,7 @@ void PairPolymorphic::compute(int eflag, int vflag)
       if (emb > epsilon) {
 
         iparam_ii = elem2param[itype][itype];
-        PairParameters & p = pairParameters[iparam_ii];
+        PairParameters &p = pairParameters[iparam_ii];
 
         // accumulate bondorder zeta for each i-j interaction via loop over k
 
@@ -312,7 +312,7 @@ void PairPolymorphic::compute(int eflag, int vflag)
           ktype = map[type[k]];
 
           iparam_kk = elem2param[ktype][ktype];
-          PairParameters & q = pairParameters[iparam_kk];
+          PairParameters &q = pairParameters[iparam_kk];
 
           (q.W)->value2(drW[kk],wfac,1,fpair,0);
 
@@ -339,7 +339,7 @@ void PairPolymorphic::compute(int eflag, int vflag)
           delr2[2] = -delzW[kk];
 
           iparam_kk = elem2param[ktype][ktype];
-          PairParameters & q = pairParameters[iparam_kk];
+          PairParameters &q = pairParameters[iparam_kk];
 
           (q.W)->value2(drW[kk],wfac,0,fpair,1);
           fpair = -prefactor*fpair/drW[kk];
@@ -362,7 +362,7 @@ void PairPolymorphic::compute(int eflag, int vflag)
         jtype = map[type[j]];
 
         iparam_ij = elem2param[itype][jtype];
-        PairParameters & p = pairParameters[iparam_ij];
+        PairParameters &p = pairParameters[iparam_ij];
 
         delr1[0] = -delxV[jj];
         delr1[1] = -delyV[jj];
@@ -379,7 +379,7 @@ void PairPolymorphic::compute(int eflag, int vflag)
           if (j == k) continue;
           ktype = map[type[k]];
           iparam_ijk = elem3param[jtype][itype][ktype];
-          TripletParameters & trip = tripletParameters[iparam_ijk];
+          TripletParameters &trip = tripletParameters[iparam_ijk];
           if ((trip.G)->get_vmax() <= epsilon) continue;
 
           numneighW1 = numneighW1 + 1;
@@ -394,7 +394,7 @@ void PairPolymorphic::compute(int eflag, int vflag)
                       delr1[2]*delr2[2]) / (r1*r2);
 
           iparam_ik = elem2param[itype][ktype];
-          PairParameters & q = pairParameters[iparam_ik];
+          PairParameters &q = pairParameters[iparam_ik];
 
           (q.W)->value2(r2,wfac,1,fpair,0);
           (trip.P)->value2(r1-(p.xi)*r2,pfac,1,fpair,0);
@@ -428,7 +428,7 @@ void PairPolymorphic::compute(int eflag, int vflag)
           k = firstneighW[kk];
           ktype = map[type[k]];
           iparam_ijk = elem3param[jtype][itype][ktype];
-          TripletParameters & trip = tripletParameters[iparam_ijk];
+          TripletParameters &trip = tripletParameters[iparam_ijk];
 
           delr2[0] = -delxW[kk];
           delr2[1] = -delyW[kk];
@@ -436,7 +436,7 @@ void PairPolymorphic::compute(int eflag, int vflag)
           r2 = drW[kk];
 
           iparam_ik = elem2param[itype][ktype];
-          PairParameters & q = pairParameters[iparam_ik];
+          PairParameters &q = pairParameters[iparam_ik];
 
           attractive(&p,&q,&trip,prefactor,r1,r2,delr1,delr2,fi,fj,fk);
 
@@ -607,7 +607,7 @@ void PairPolymorphic::read_file(char *file)
       tripletParameters = new TripletParameters[ntriple];
 
       for (int i = 0; i < npair; i++) {
-        PairParameters & p = pairParameters[i];
+        PairParameters &p = pairParameters[i];
         values = reader->next_values(2);
         p.cut = values.next_double();
         p.cutsq = p.cut*p.cut;
@@ -641,28 +641,22 @@ void PairPolymorphic::read_file(char *file)
   // start reading tabular functions
   double * singletable = new double[nr];
   for (int i = 0; i < npair; i++) { // U
-    PairParameters & p = pairParameters[i];
-    if (comm->me == 0) {
-      reader->next_dvector(singletable, nr);
-    }
+    PairParameters &p = pairParameters[i];
+    if (comm->me == 0) reader->next_dvector(singletable, nr);
     MPI_Bcast(singletable,nr,MPI_DOUBLE,0,world);
     p.U = new TabularFunction;
     (p.U)->set_values(nr,0.0,p.cut,singletable);
   }
   for (int i = 0; i < npair; i++) { // V
-    PairParameters & p = pairParameters[i];
-    if (comm->me == 0) {
-      reader->next_dvector(singletable, nr);
-    }
+    PairParameters &p = pairParameters[i];
+    if (comm->me == 0) reader->next_dvector(singletable, nr);
     MPI_Bcast(singletable,nr,MPI_DOUBLE,0,world);
     p.V = new TabularFunction;
     (p.V)->set_values(nr,0.0,p.cut,singletable);
   }
   for (int i = 0; i < npair; i++) { // W
-    PairParameters & p = pairParameters[i];
-    if (comm->me == 0) {
-      reader->next_dvector(singletable, nr);
-    }
+    PairParameters &p = pairParameters[i];
+    if (comm->me == 0) reader->next_dvector(singletable, nr);
     MPI_Bcast(singletable,nr,MPI_DOUBLE,0,world);
     p.W = new TabularFunction;
     (p.W)->set_values(nr,0.0,p.cut,singletable);
@@ -670,34 +664,30 @@ void PairPolymorphic::read_file(char *file)
 
   cutmax = 0.0;
   for (int i = 0; i < npair; i++) {
-    PairParameters & p = pairParameters[i];
+    PairParameters &p = pairParameters[i];
     if (p.cut > cutmax) cutmax = p.cut;
   }
   cutmaxsq = cutmax*cutmax;
 
   if (eta != 3) {
     for (int j = 0; j < nelements; j++) { // P
-      if (comm->me == 0) {
-        reader->next_dvector(singletable, nr);
-      }
+      if (comm->me == 0) reader->next_dvector(singletable, nr);
       MPI_Bcast(singletable,nr,MPI_DOUBLE,0,world);
       for (int i = 0; i < nelements; i++) {
-        TripletParameters & p = tripletParameters[i*nelements*nelements+j*nelements+j];
+        TripletParameters &p = tripletParameters[i*nelements*nelements+j*nelements+j];
         p.P = new TabularFunction;
         (p.P)->set_values(nr,-cutmax,cutmax,singletable);
       }
     }
     for (int j = 0; j < nelements-1; j++) { // P
       for (int k = j+1; k < nelements; k++) {
-        if (comm->me == 0) {
-          reader->next_dvector(singletable, nr);
-        }
+        if (comm->me == 0) reader->next_dvector(singletable, nr);
         MPI_Bcast(singletable,nr,MPI_DOUBLE,0,world);
         for (int i = 0; i < nelements; i++) {
-          TripletParameters & p = tripletParameters[i*nelements*nelements+j*nelements+k];
+          TripletParameters &p = tripletParameters[i*nelements*nelements+j*nelements+k];
           p.P = new TabularFunction;
           (p.P)->set_values(nr,-cutmax,cutmax,singletable);
-          TripletParameters & q = tripletParameters[i*nelements*nelements+k*nelements+j];
+          TripletParameters &q = tripletParameters[i*nelements*nelements+k*nelements+j];
           q.P = new TabularFunction;
           (q.P)->set_values(nr,-cutmax,cutmax,singletable);
         }
@@ -706,10 +696,8 @@ void PairPolymorphic::read_file(char *file)
   }
   if (eta == 3) {
     for (int i = 0; i < ntriple; i++) { // P
-      TripletParameters & p = tripletParameters[i];
-      if (comm->me == 0) {
-        reader->next_dvector(singletable, nr);
-      }
+      TripletParameters &p = tripletParameters[i];
+      if (comm->me == 0) reader->next_dvector(singletable, nr);
       MPI_Bcast(singletable,nr,MPI_DOUBLE,0,world);
       p.P = new TabularFunction;
       (p.P)->set_values(nr,-cutmax,cutmax,singletable);
@@ -718,10 +706,8 @@ void PairPolymorphic::read_file(char *file)
   delete[] singletable;
   singletable = new double[ng];
   for (int i = 0; i < ntriple; i++) { // G
-    TripletParameters & p = tripletParameters[i];
-    if (comm->me == 0) {
-      reader->next_dvector(singletable, ng);
-    }
+    TripletParameters &p = tripletParameters[i];
+    if (comm->me == 0) reader->next_dvector(singletable, ng);
     MPI_Bcast(singletable,ng,MPI_DOUBLE,0,world);
     p.G = new TabularFunction;
     (p.G)->set_values(ng,-1.0,1.0,singletable);
@@ -729,22 +715,18 @@ void PairPolymorphic::read_file(char *file)
   delete[] singletable;
   singletable = new double[nx];
   for (int i = 0; i < npair; i++) { // F
-    PairParameters & p = pairParameters[i];
-    if (comm->me == 0) {
-      reader->next_dvector(singletable, nx);
-    }
+    PairParameters &p = pairParameters[i];
+    if (comm->me == 0) reader->next_dvector(singletable, nx);
     MPI_Bcast(singletable,nx,MPI_DOUBLE,0,world);
     p.F = new TabularFunction;
     (p.F)->set_values(nx,0.0,maxX,singletable);
   }
   delete[] singletable;
-  if (comm->me == 0) {
-    delete reader;
-  }
+  if (comm->me == 0) delete reader;
 
   // recalculate cutoffs of all params
   for (int i = 0; i < npair; i++) {
-    PairParameters & p = pairParameters[i];
+    PairParameters &p = pairParameters[i];
     p.cut = (p.U)->get_xmax();
     if (p.cut < (p.V)->get_xmax()) p.cut = (p.V)->get_xmax();
     if (p.cut < (p.W)->get_xmax()) p.cut = (p.W)->get_xmax();
@@ -754,7 +736,7 @@ void PairPolymorphic::read_file(char *file)
   // set cutmax to max of all params
   cutmax = 0.0;
   for (int i = 0; i < npair; i++) {
-    PairParameters & p = pairParameters[i];
+    PairParameters &p = pairParameters[i];
     if (cutmax < p.cut) cutmax = p.cut;
   }
   cutmaxsq = cutmax*cutmax;
@@ -898,7 +880,7 @@ void PairPolymorphic::write_tables(int npts)
                              elements[j],comm->me);
       fp = fopen(filename.c_str(), "w");
       int iparam_ij = elem2param[i][j];
-      PairParameters & pair = pairParameters[iparam_ij];
+      PairParameters &pair = pairParameters[iparam_ij];
       xmin = (pair.U)->get_xmin();
       xmax = (pair.U)->get_xmax();
       double xl = xmax - xmin;
@@ -909,7 +891,8 @@ void PairPolymorphic::write_tables(int npts)
         (pair.U)->value2(x, uf, 1, ufp, 1);
         (pair.V)->value2(x, vf, 1, vfp, 1);
         (pair.W)->value2(x, wf, 1, wfp, 1);
-        fprintf(fp,"%12.4f %12.4f %12.4f %12.4f %12.4f %12.4f %12.4f \n",x,uf,vf,wf,ufp,vfp,wfp);
+        fprintf(fp,"%12.4f %12.4f %12.4f %12.4f %12.4f %12.4f %12.4f \n",
+                x,uf,vf,wf,ufp,vfp,wfp);
       }
       fclose(fp);
     }
@@ -921,7 +904,7 @@ void PairPolymorphic::write_tables(int npts)
                                elements[k],comm->me);
         fp = fopen(filename.c_str(), "w");
         int iparam_ij = elem3param[i][j][k];
-        TripletParameters & pair = tripletParameters[iparam_ij];
+        TripletParameters &pair = tripletParameters[iparam_ij];
         xmin = (pair.P)->get_xmin();
         xmax = (pair.P)->get_xmax();
         double xl = xmax - xmin;
@@ -943,7 +926,7 @@ void PairPolymorphic::write_tables(int npts)
                                elements[k],comm->me);
         fp = fopen(filename.c_str(), "w");
         int iparam_ij = elem3param[i][j][k];
-        TripletParameters & pair = tripletParameters[iparam_ij];
+        TripletParameters &pair = tripletParameters[iparam_ij];
         xmin = (pair.G)->get_xmin();
         xmax = (pair.G)->get_xmax();
         for (int n = 0; n < npts; n++) {
@@ -961,7 +944,7 @@ void PairPolymorphic::write_tables(int npts)
                              elements[j],comm->me);
       fp = fopen(filename.c_str(), "w");
       int iparam_ij = elem2param[i][j];
-      PairParameters & pair = pairParameters[iparam_ij];
+      PairParameters &pair = pairParameters[iparam_ij];
       xmin = (pair.F)->get_xmin();
       xmax = (pair.F)->get_xmax();
       double xl = xmax - xmin;

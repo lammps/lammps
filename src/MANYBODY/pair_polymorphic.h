@@ -21,7 +21,6 @@ PairStyle(polymorphic,PairPolymorphic)
 #define LMP_PAIR_POLYMORPHIC_H
 
 #include "pair.h"
-#include <cmath>
 
 namespace LAMMPS_NS {
   // forward declaration

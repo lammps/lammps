@@ -700,7 +700,7 @@ void FixPour::pre_exchange()
   int ninserted_mols = ninserted_atoms / natom;
   ninserted += ninserted_mols;
   if (ninserted_mols < nnew && me == 0)
-    error->warning(FLERR,"Less insertions than requested",0);
+    error->warning(FLERR,"Less insertions than requested");
 
   // reset global natoms,nbonds,etc
   // increment maxtag_all and maxmol_all if necessary

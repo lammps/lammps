@@ -420,7 +420,7 @@ bigint Thermo::lost_check()
     warnbefore = 1;
     error->warning(FLERR,fmt::format("Too many warnings: {} vs {}. All "
                                      "future warnings will be suppressed.\n",
-                                     ntotal[1],maxwarn),0);
+                                     ntotal[1],maxwarn));
   }
   error->set_allwarn(ntotal[1]);
 
@@ -443,7 +443,7 @@ bigint Thermo::lost_check()
 
   if (me == 0)
     error->warning(FLERR,fmt::format("Lost atoms: original {} current {}",
-                                     atom->natoms,ntotal[0]),0);
+                                     atom->natoms,ntotal[0]));
 
   // reset total atom count
 

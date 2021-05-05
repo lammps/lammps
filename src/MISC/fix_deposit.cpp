@@ -593,7 +593,7 @@ void FixDeposit::pre_exchange()
   // warn if not successful b/c too many attempts
 
   if (!success && comm->me == 0)
-    error->warning(FLERR,"Particle deposition was unsuccessful",0);
+    error->warning(FLERR,"Particle deposition was unsuccessful");
 
   // reset global natoms,nbonds,etc
   // increment maxtag_all and maxmol_all if necessary

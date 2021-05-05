@@ -43,8 +43,8 @@ class Error : protected Pointers {
     _one(file, line, format, fmt::make_args_checked<Args...>(format, args...));
   }
 
-  void warning(const std::string &, int, const std::string &, int = 1);
-  void message(const std::string &, int, const std::string &, int = 1);
+  void warning(const std::string &, int, const std::string &);
+  void message(const std::string &, int, const std::string &);
   [[ noreturn ]] void done(int = 0); // 1 would be fully backwards compatible
 
   int get_numwarn() const { return numwarn; }

@@ -719,7 +719,7 @@ void FixTTMMod::end_of_step()
     num_inner_timesteps = static_cast<unsigned int>(update->dt/inner_dt) + 1;
     inner_dt = update->dt/double(num_inner_timesteps);
     if (num_inner_timesteps > 1000000)
-      error->warning(FLERR,"Too many inner timesteps in fix ttm/mod",0);
+      error->warning(FLERR,"Too many inner timesteps in fix ttm/mod");
     for (int ith_inner_timestep = 0; ith_inner_timestep < num_inner_timesteps;
          ith_inner_timestep++) {
       for (int ixnode = 0; ixnode < nxnodes; ixnode++)

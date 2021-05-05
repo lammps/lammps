@@ -92,7 +92,7 @@ void BondFENEExpand::compute(int eflag, int vflag)
       sprintf(str,"FENE bond too long: " BIGINT_FORMAT " "
               TAGINT_FORMAT " " TAGINT_FORMAT " %g",
               update->ntimestep,atom->tag[i1],atom->tag[i2],sqrt(rsq));
-      error->warning(FLERR,str,0);
+      error->warning(FLERR,str);
       if (rlogarg <= -3.0) error->one(FLERR,"Bad FENE bond");
       rlogarg = 0.1;
     }
@@ -269,7 +269,7 @@ double BondFENEExpand::single(int type, double rsq, int /*i*/, int /*j*/,
     char str[128];
     sprintf(str,"FENE bond too long: " BIGINT_FORMAT " %g",
             update->ntimestep,sqrt(rsq));
-    error->warning(FLERR,str,0);
+    error->warning(FLERR,str);
     if (rlogarg <= -3.0) error->one(FLERR,"Bad FENE bond");
     rlogarg = 0.1;
   }

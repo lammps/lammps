@@ -187,7 +187,7 @@ void BondFENEIntel::eval(const int vflag,
         sprintf(str,"FENE bond too long: " BIGINT_FORMAT " "
                 TAGINT_FORMAT " " TAGINT_FORMAT " %g",
                 update->ntimestep,atom->tag[i1],atom->tag[i2],sqrt(rsq));
-        error->warning(FLERR,str,0);
+        error->warning(FLERR,str);
         if (rlogarg <= (flt_t)-3.0) error->one(FLERR,"Bad FENE bond");
         rlogarg = (flt_t)0.1;
       }

@@ -159,7 +159,7 @@ void ImproperFourier::addone(const int &i1,const int &i2,const int &i3,const int
               TAGINT_FORMAT " " TAGINT_FORMAT,
               me,update->ntimestep,
               atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
-      error->warning(FLERR,str,0);
+      error->warning(FLERR,str);
       fprintf(screen,"  1st atom: %d %g %g %g\n",
               me,x[i1][0],x[i1][1],x[i1][2]);
       fprintf(screen,"  2nd atom: %d %g %g %g\n",

@@ -128,7 +128,7 @@ void BondFENEKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   k_warning_flag.template modify<DeviceType>();
   k_warning_flag.template sync<LMPHostType>();
   if (h_warning_flag())
-    error->warning(FLERR,"FENE bond too long",0);
+    error->warning(FLERR,"FENE bond too long");
 
   k_error_flag.template modify<DeviceType>();
   k_error_flag.template sync<LMPHostType>();

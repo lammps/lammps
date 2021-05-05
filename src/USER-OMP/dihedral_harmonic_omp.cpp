@@ -163,7 +163,7 @@ void DihedralHarmonicOMP::eval(int nfrom, int nto, ThrData * const thr)
                 TAGINT_FORMAT " " TAGINT_FORMAT,
                 me,thr->get_tid(),update->ntimestep,
                 atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
-        error->warning(FLERR,str,0);
+        error->warning(FLERR,str);
         fprintf(screen,"  1st atom: %d %g %g %g\n",
                 me,x[i1].x,x[i1].y,x[i1].z);
         fprintf(screen,"  2nd atom: %d %g %g %g\n",

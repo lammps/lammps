@@ -254,7 +254,7 @@ double BondFENE::single(int type, double rsq, int /*i*/, int /*j*/,
     char str[128];
     sprintf(str,"FENE bond too long: " BIGINT_FORMAT " %g",
             update->ntimestep,sqrt(rsq));
-    error->warning(FLERR,str,0);
+    error->warning(FLERR,str);
     if (rlogarg <= -3.0) error->one(FLERR,"Bad FENE bond");
     rlogarg = 0.1;
   }

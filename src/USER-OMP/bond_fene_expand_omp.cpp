@@ -119,7 +119,7 @@ void BondFENEExpandOMP::eval(int nfrom, int nto, ThrData * const thr)
       sprintf(str,"FENE bond too long: " BIGINT_FORMAT " "
               TAGINT_FORMAT " " TAGINT_FORMAT " %g",
               update->ntimestep,atom->tag[i1],atom->tag[i2],sqrt(rsq));
-      error->warning(FLERR,str,0);
+      error->warning(FLERR,str);
 
       if (check_error_thr((rlogarg <= -3.0),tid,FLERR,"Bad FENE bond"))
         return;

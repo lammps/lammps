@@ -32,29 +32,15 @@ class TabularFunction {
   void initialize();
 
  public:
-  // used by pair style bop
   void value(double x, double &y, int ny, double &y1, int ny1)
-  {
-    double ps = (x - xmin) * rdx + 1.0;
-    int ks = ps;
-    if (ks > size - 1) ks = size - 1;
-    ps = ps - ks;
-    if (ps > 1.0) ps = 1.0;
-    if (ny)
-      y = ((ys3[ks - 1] * ps + ys2[ks - 1]) * ps + ys1[ks - 1]) * ps +
-          ys[ks - 1];
-    if (ny1) y1 = (ys6[ks - 1] * ps + ys5[ks - 1]) * ps + ys4[ks - 1];
-  }
-  // used by pair style polymorphic
-  void value2(double x, double &y, int ny, double &y1, int ny1)
   {
     double ps = (x - xmin) * rdx;
     int ks = ps + 0.5;
-    if (ks > size-1) ks = size-1;
-    if (ks < 0 ) ks = 0;
+    if (ks > size - 1) ks = size - 1;
+    if (ks < 0) ks = 0;
     ps = ps - ks;
-    if (ny) y = ((ys3[ks]*ps + ys2[ks])*ps + ys1[ks])*ps + ys[ks];
-    if (ny1) y1 = (ys6[ks]*ps + ys5[ks])*ps + ys4[ks];
+    if (ny) y = ((ys3[ks] * ps + ys2[ks]) * ps + ys1[ks]) * ps + ys[ks];
+    if (ny1) y1 = (ys6[ks] * ps + ys5[ks]) * ps + ys4[ks];
   }
 
   double get_xmin() const { return xmin; }

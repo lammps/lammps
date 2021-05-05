@@ -1,0 +1,36 @@
+This directory has two input scripts that illustrates how to use fix
+charge_regulation in LAMMPS to perform coarse-grained molecular dynamics
+(MD) simulations with incorporation of charge regulation effects. The
+charge regulation is implemented via Monte Carlo (MC) sampling following
+the reaction ensemble MC approach, producing a MC/MD hybrid tool for
+modeling charge regulation in solvated systems.
+
+The script `in.chreg-acid` sets up a simple weak acid electrolyte
+(pH=7,pKa=6,pI=3). Four different types of MC moves are implemented:
+acid protonation & de-protonation, and monovalent ion pair insertion and
+deletion. Note here we have grouped all free monovalent ions into a
+single type, a physically natural choice on the level of coarse-grained
+primitive electrolyte models, which increases the calculation
+performance but has no effects on thermodynamic observables. The
+variables such as pH, pKa, pI, and lb at the top of the input script can
+be adjusted to play with various simulation parameters. The cumulative
+MC attempted moves and cumulative number of accepted moves, as well as,
+current number of neutral and charged acid particles, neutral and
+charged base particles (in this example always 0), and the current
+number of free cations and anions in the system are printed in the
+output.
+
+The script `in.chreg-polymer` sets up a weak poly-electrolyte chain of
+N=80 beads. Each bead is a weak acid with pKa=5 and solution has pH=7
+and monovalent salt chemical potential pI=3. In this example, we choose
+to treat salt ions, protons, and hydroxyl ions separately, which results
+in 5 types of MC moves: acid [type 1] protonation & de-protonation (with
+protons [type 4] insertion & deletion), acid [type 1] protonation &
+de-protonation (with salt cation [type 2] insertion & deletion), water
+self-ionization (insertion and deletion of proton [type4] and hydroxyl
+ion [type 5] pair), insertion and deletion of monovalent salt pair [type
+2 and type 3] , insertion and deletion of a proton [type4] and salt
+anion [type 3].  The current number of neutral and charged acid
+particles, the current number of free salt cations and anions, and the
+current number of protons and hydroxyl ions are printed in the output.
+

@@ -55,6 +55,19 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::copy_neighbor_info()
 
   newton_pair = force->newton_pair;
   k_cutneighsq = neighborKK->k_cutneighsq;
+
+  // overwrite per-type Neighbor cutoffs with custom value set by requestor
+  // only works for style = BIN (checked by Neighbor class)
+
+  if (cutoff_custom > 0.0) {
+    int n = atom->ntypes;
+    auto k_mycutneighsq = DAT::tdual_xfloat_2d("neigh:cutneighsq,",n+1,n+1);
+    for (int i = 1; i <= n; i++)
+      for (int j = 1; j <= n; j++)
+        k_mycutneighsq.h_view(i,j) = cutoff_custom * cutoff_custom;
+    k_cutneighsq = k_mycutneighsq;
+  }
+
   k_cutneighsq.modify<LMPHostType>();
 
   // exclusion info

@@ -128,20 +128,10 @@ void FixSRP::init()
   // bond particles do not interact with other types
   // type bptype only interacts with itself
 
-  char* arg1[4];
-  arg1[0] = (char *) "exclude";
-  arg1[1] = (char *) "type";
-  char c0[20];
-  char c1[20];
-
   for (int z = 1; z < atom->ntypes; z++) {
     if (z == bptype)
       continue;
-    sprintf(c0, "%d", z);
-    arg1[2] = c0;
-    sprintf(c1, "%d", bptype);
-    arg1[3] = c1;
-    neighbor->modify_params(4, arg1);
+    neighbor->modify_params(fmt::format("exclude type {} {}",z,bptype));
   }
 }
 

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -32,6 +32,17 @@ class Error : protected Pointers {
 
   [[ noreturn ]] void all(const std::string &, int, const std::string &);
   [[ noreturn ]] void one(const std::string &, int, const std::string &);
+  template <typename S, typename... Args>
+  void all(const std::string &file, int line, const S &format,
+                          Args&&... args) {
+    _all(file, line, format, fmt::make_args_checked<Args...>(format, args...));
+  }
+  template <typename S, typename... Args>
+  void one(const std::string &file, int line, const S &format,
+                          Args&&... args) {
+    _one(file, line, format, fmt::make_args_checked<Args...>(format, args...));
+  }
+
   void warning(const std::string &, int, const std::string &, int = 1);
   void message(const std::string &, int, const std::string &, int = 1);
   [[ noreturn ]] void done(int = 0); // 1 would be fully backwards compatible
@@ -44,7 +55,14 @@ class Error : protected Pointers {
  private:
   std::string last_error_message;
   ErrorType last_error_type;
+
 #endif
+ private:
+  // internal versions that accept explicit fmtlib arguments
+  [[ noreturn ]] void _all(const std::string &, int, fmt::string_view,
+                           fmt::format_args args);
+  [[ noreturn ]] void _one(const std::string &, int, fmt::string_view,
+                           fmt::format_args args);
 };
 
 }

@@ -27,11 +27,9 @@
 
 using namespace LAMMPS_NS;
 
-#define MAXLINE 2048
-
 /* ---------------------------------------------------------------------- */
 
-Run::Run(LAMMPS *lmp) : Pointers(lmp) {}
+Run::Run(LAMMPS *lmp) : Command(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 

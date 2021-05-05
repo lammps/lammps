@@ -99,7 +99,7 @@ FixWallBodyPolyhedron::FixWallBodyPolyhedron(LAMMPS *lmp, int narg, char **arg) 
     if (strcmp(arg[iarg+2],"NULL") == 0) hi = BIG;
     else hi = utils::numeric(FLERR,arg[iarg+2],false,lmp);
     iarg += 3;
-  } else error->all(FLERR,fmt::format("Unknown wall style {}",arg[iarg]));
+  } else error->all(FLERR,"Unknown wall style {}",arg[iarg]);
 
   // check for trailing keyword/values
 

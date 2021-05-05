@@ -105,8 +105,8 @@ protected:
               "# comments only\n	five\n#END\n",
               fp);
         fclose(fp);
-        fp = fopen("test_variable.atomfile", "w");
 
+        fp = fopen("test_variable.atomfile", "w");
         fputs("# test file for atomfile style variable\n\n"
               "4  # four lines\n4 0.5   #with comment\n"
               "2 -0.5         \n3 1.5\n1 -1.5\n\n"
@@ -122,6 +122,8 @@ TEST_F(VariableTest, CreateDelete)
     file_vars();
     ASSERT_EQ(variable->nvar, 1);
     BEGIN_HIDE_OUTPUT();
+    command("shell putenv TEST_VARIABLE=simpletest2");
+    command("shell putenv TEST_VARIABLE2=simpletest OTHER_VARIABLE=2");
     command("variable one    index     1 2 3 4");
     command("variable two    equal     1");
     command("variable two    equal     2");
@@ -133,8 +135,8 @@ TEST_F(VariableTest, CreateDelete)
     command("variable five2  loop      10 200 pad");
     command("variable six    world     one");
     command("variable seven  format    two \"%5.2f\"");
-    command("variable eight  getenv    PWD");
-    command("variable eight  getenv    XXXXX");
+    command("variable eight  getenv    TEST_VARIABLE2");
+    command("variable eight  getenv    XXX");
     command("variable nine   file      test_variable.file");
     command("variable ten    internal  1.0");
     command("variable ten    internal  10.0");
@@ -166,6 +168,14 @@ TEST_F(VariableTest, CreateDelete)
     ASSERT_THAT(variable->retrieve("file"), StrEq("1"));
     unlink("MYFILE");
     ASSERT_THAT(variable->retrieve("file"), StrEq("0"));
+
+    BEGIN_HIDE_OUTPUT();
+    command("variable seven delete");
+    command("variable seven getenv TEST_VARIABLE");
+    command("variable eight getenv OTHER_VARIABLE");
+    END_HIDE_OUTPUT();
+    ASSERT_THAT(variable->retrieve("seven"), StrEq("simpletest2"));
+    ASSERT_THAT(variable->retrieve("eight"), StrEq("2"));
 
     ASSERT_EQ(variable->equalstyle(variable->find("one")), 0);
     ASSERT_EQ(variable->equalstyle(variable->find("two")), 1);

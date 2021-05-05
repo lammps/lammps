@@ -580,14 +580,7 @@ void FixGCMC::init()
     // neighbor list exclusion setup
     // turn off interactions between group all and the exclusion group
 
-    int narg = 4;
-    char **arg = new char*[narg];;
-    arg[0] = (char *) "exclude";
-    arg[1] = (char *) "group";
-    arg[2] = (char *) group_id.c_str();
-    arg[3] = (char *) "all";
-    neighbor->modify_params(narg,arg);
-    delete [] arg;
+    neighbor->modify_params(fmt::format("exclude group {} all",group_id));
   }
 
   // create a new group for temporary use with selected molecules

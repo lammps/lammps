@@ -42,7 +42,7 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-NEB::NEB(LAMMPS *lmp) : Pointers(lmp), all(nullptr), rdist(nullptr) {}
+NEB::NEB(LAMMPS *lmp) : Command(lmp), all(nullptr), rdist(nullptr) {}
 
 /* ----------------------------------------------------------------------
    internal NEB constructor, called from TAD
@@ -50,7 +50,7 @@ NEB::NEB(LAMMPS *lmp) : Pointers(lmp), all(nullptr), rdist(nullptr) {}
 
 NEB::NEB(LAMMPS *lmp, double etol_in, double ftol_in, int n1steps_in,
          int n2steps_in, int nevery_in, double *buf_init, double *buf_final)
-  : Pointers(lmp), all(nullptr), rdist(nullptr)
+  : Command(lmp), all(nullptr), rdist(nullptr)
 {
   double delx,dely,delz;
 
@@ -436,9 +436,10 @@ void NEB::readfile(char *file, int flag)
   while (nread < nlines) {
     nchunk = MIN(nlines-nread,CHUNK);
     if (flag == 0)
-      eofflag = comm->read_lines_from_file_universe(fp,nchunk,MAXLINE,buffer);
+      eofflag = utils::read_lines_from_file(fp,nchunk,MAXLINE,buffer,
+                                            universe->me,universe->uworld);
     else
-      eofflag = comm->read_lines_from_file(fp,nchunk,MAXLINE,buffer);
+      eofflag = utils::read_lines_from_file(fp,nchunk,MAXLINE,buffer,me,world);
     if (eofflag) error->all(FLERR,"Unexpected end of NEB file");
 
     buf = buffer;

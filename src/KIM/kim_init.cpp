@@ -93,10 +93,10 @@ void KimInit::command(int narg, char **arg)
     auto arg_str = std::string(arg[2]);
     if (arg_str == "unit_conversion_mode") unit_conversion_mode = true;
     else {
-      error->all(FLERR, fmt::format("Illegal 'kim init' command.\nThe argument "
+      error->all(FLERR, "Illegal 'kim init' command.\nThe argument "
                                     "followed by unit_style {} is an optional "
                                     "argument and when is used must "
-                                    "be unit_conversion_mode", user_units));
+                                    "be unit_conversion_mode", user_units);
     }
   } else unit_conversion_mode = false;
 
@@ -159,8 +159,8 @@ void get_kim_unit_names(
   } else if ((system_str == "lj") ||
              (system_str == "micro") ||
              (system_str == "nano")) {
-    error->all(FLERR, fmt::format("LAMMPS unit_style {} not supported "
-                                  "by KIM models", system_str));
+    error->all(FLERR, "LAMMPS unit_style {} not supported "
+                                  "by KIM models", system_str);
   } else {
     error->all(FLERR, "Unknown unit_style");
   }
@@ -279,8 +279,8 @@ void KimInit::determine_model_type_and_units(char * model_name,
     const std::string model_units_str(*model_units);
     const std::string user_units_str(user_units);
     if ((!unit_conversion_mode) && (model_units_str != user_units_str)) {
-      error->all(FLERR, fmt::format("Incompatible units for KIM Simulator Model"
-                                    ", required units = {}", model_units_str));
+      error->all(FLERR, "Incompatible units for KIM Simulator Model"
+                                    ", required units = {}", model_units_str);
     }
   }
 }
@@ -475,9 +475,9 @@ void KimInit::do_variables(const std::string &from, const std::string &to)
     ier = lammps_unit_conversion(units[i], from, to,
                                  conversion_factor);
     if (ier != 0)
-      error->all(FLERR, fmt::format("Unable to obtain conversion factor: "
+      error->all(FLERR, "Unable to obtain conversion factor: "
                                     "unit = {}; from = {}; to = {}",
-                                    units[i], from, to));
+                                    units[i], from, to);
 
     variable->internal_set(v_unit, conversion_factor);
     input->write_echo(fmt::format("variable {:<15s} internal {:<15.12e}\n",

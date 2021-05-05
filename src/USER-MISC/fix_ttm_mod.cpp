@@ -399,8 +399,8 @@ void FixTTMMod::read_parameters(const char *filename)
   char line[MAXLINE];
   std::string name = utils::get_potential_file_path(filename);
   if (name.empty())
-    error->one(FLERR,fmt::format("Cannot open input file: {}",
-                                 filename));
+    error->one(FLERR,"Cannot open input file: {}",
+                                 filename);
   FILE *fpr = fopen(name.c_str(),"r");
 
   // C0 (metal)
@@ -550,8 +550,8 @@ void FixTTMMod::read_initial_electron_temperatures(const char *filename)
 
   std::string name = utils::get_potential_file_path(filename);
   if (name.empty())
-    error->one(FLERR,fmt::format("Cannot open input file: {}",
-                                 filename));
+    error->one(FLERR,"Cannot open input file: {}",
+                                 filename);
   FILE *fpr = fopen(name.c_str(),"r");
 
   // read initial electron temperature values from file

@@ -12,12 +12,12 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_store_force.h"
-#include <cstring>
+
 #include "atom.h"
-#include "update.h"
-#include "respa.h"
-#include "memory.h"
 #include "error.h"
+#include "memory.h"
+#include "respa.h"
+#include "update.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

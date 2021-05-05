@@ -105,7 +105,7 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
   if (!lmp->kokkos) omp_set_num_threads(nthreads);
 
   if (me == 0)
-    utils::logmesg(lmp,fmt::format("  using {} OpenMP thread(s) per MPI task\n",nthreads));
+    utils::logmesg(lmp,"  using {} OpenMP thread(s) per MPI task\n",nthreads);
 #endif
 
 }
@@ -1327,72 +1327,4 @@ void Comm::rendezvous_stats(int n, int nout, int nrvous, int nrvous_out,
                         1.0*size_comm_max/mbytes,1.0*size_comm_min/mbytes);
     utils::logmesg(lmp,mesg);
   }
-}
-
-/* ----------------------------------------------------------------------
-   proc 0 reads Nlines from file into buf and bcasts buf to all procs
-   caller allocates buf to max size needed
-   each line is terminated by newline, even if last line in file is not
-   return 0 if successful, 1 if get EOF error before read is complete
-------------------------------------------------------------------------- */
-
-int Comm::read_lines_from_file(FILE *fp, int nlines, int maxline, char *buf)
-{
-  int m;
-
-  if (me == 0) {
-    m = 0;
-    for (int i = 0; i < nlines; i++) {
-      if (!fgets(&buf[m],maxline,fp)) {
-        m = 0;
-        break;
-      }
-      m += strlen(&buf[m]);
-    }
-    if (m) {
-      if (buf[m-1] != '\n') strcpy(&buf[m++],"\n");
-      m++;
-    }
-  }
-
-  MPI_Bcast(&m,1,MPI_INT,0,world);
-  if (m == 0) return 1;
-  MPI_Bcast(buf,m,MPI_CHAR,0,world);
-  return 0;
-}
-
-/* ----------------------------------------------------------------------
-   proc 0 reads Nlines from file into buf and bcasts buf to all procs
-   caller allocates buf to max size needed
-   each line is terminated by newline, even if last line in file is not
-   return 0 if successful, 1 if get EOF error before read is complete
-------------------------------------------------------------------------- */
-
-int Comm::read_lines_from_file_universe(FILE *fp, int nlines, int maxline,
-                                        char *buf)
-{
-  int m;
-
-  int me_universe = universe->me;
-  MPI_Comm uworld = universe->uworld;
-
-  if (me_universe == 0) {
-    m = 0;
-    for (int i = 0; i < nlines; i++) {
-      if (!fgets(&buf[m],maxline,fp)) {
-        m = 0;
-        break;
-      }
-      m += strlen(&buf[m]);
-    }
-    if (m) {
-      if (buf[m-1] != '\n') strcpy(&buf[m++],"\n");
-      m++;
-    }
-  }
-
-  MPI_Bcast(&m,1,MPI_INT,0,uworld);
-  if (m == 0) return 1;
-  MPI_Bcast(buf,m,MPI_CHAR,0,uworld);
-  return 0;
 }

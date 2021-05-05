@@ -14,17 +14,19 @@
 #include "lammps.h"
 
 #include "citeme.h"
+#include "comm.h"
 #include "force.h"
 #include "info.h"
 #include "input.h"
 #include "output.h"
 #include "update.h"
 #include "utils.h"
+#include "variable.h"
 
-#include "fmt/format.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "../testing/core.h"
+#include "../testing/utils.h"
 
 #include <cstdio>
 #include <cstring>
@@ -172,6 +174,38 @@ TEST_F(SimpleCommandsTest, Partition)
     command("partition no 1 print 'test'");
     text = END_CAPTURE_OUTPUT();
     ASSERT_THAT(text, StrEq(""));
+}
+
+TEST_F(SimpleCommandsTest, Processors)
+{
+    // default setting is "*" for all dimensions
+    ASSERT_EQ(lmp->comm->user_procgrid[0], 0);
+    ASSERT_EQ(lmp->comm->user_procgrid[1], 0);
+    ASSERT_EQ(lmp->comm->user_procgrid[2], 0);
+
+    BEGIN_HIDE_OUTPUT();
+    command("processors 1 1 1");
+    END_HIDE_OUTPUT();
+    ASSERT_EQ(lmp->comm->user_procgrid[0], 1);
+    ASSERT_EQ(lmp->comm->user_procgrid[1], 1);
+    ASSERT_EQ(lmp->comm->user_procgrid[2], 1);
+
+    BEGIN_HIDE_OUTPUT();
+    command("processors * 1 *");
+    END_HIDE_OUTPUT();
+    ASSERT_EQ(lmp->comm->user_procgrid[0], 0);
+    ASSERT_EQ(lmp->comm->user_procgrid[1], 1);
+    ASSERT_EQ(lmp->comm->user_procgrid[2], 0);
+
+    BEGIN_HIDE_OUTPUT();
+    command("processors 0 0 0");
+    END_HIDE_OUTPUT();
+    ASSERT_EQ(lmp->comm->user_procgrid[0], 0);
+    ASSERT_EQ(lmp->comm->user_procgrid[1], 0);
+    ASSERT_EQ(lmp->comm->user_procgrid[2], 0);
+
+    TEST_FAILURE(".*ERROR: Illegal processors command .*", command("processors -1 0 0"););
+    TEST_FAILURE(".*ERROR: Specified processors != physical processors.*", command("processors 100 100 100"););
 }
 
 TEST_F(SimpleCommandsTest, Quit)
@@ -400,23 +434,26 @@ TEST_F(SimpleCommandsTest, Shell)
     command("shell putenv TEST_VARIABLE=simpletest");
     END_HIDE_OUTPUT();
 
-    char *test_var = getenv("TEST_VARIABLE");
+    const char *test_var = getenv("TEST_VARIABLE");
     ASSERT_NE(test_var, nullptr);
     ASSERT_THAT(test_var, StrEq("simpletest"));
 
     BEGIN_HIDE_OUTPUT();
-    command("shell putenv TEST_VARIABLE=simpletest");
-    command("shell putenv TEST_VARIABLE2=simpletest2 OTHER_VARIABLE=2");
+    command("shell putenv TEST_VARIABLE");
+    command("shell putenv TEST_VARIABLE2=simpletest OTHER_VARIABLE=2");
     END_HIDE_OUTPUT();
 
-    char *test_var2 = getenv("TEST_VARIABLE2");
-    char *other_var = getenv("OTHER_VARIABLE");
+    test_var = getenv("TEST_VARIABLE2");
+    ASSERT_NE(test_var, nullptr);
+    ASSERT_THAT(test_var, StrEq("simpletest"));
 
-    ASSERT_NE(test_var2, nullptr);
-    ASSERT_THAT(test_var2, StrEq("simpletest2"));
+    test_var = getenv("OTHER_VARIABLE");
+    ASSERT_NE(test_var, nullptr);
+    ASSERT_THAT(test_var, StrEq("2"));
 
-    ASSERT_NE(other_var, nullptr);
-    ASSERT_THAT(other_var, StrEq("2"));
+    test_var = getenv("TEST_VARIABLE");
+    ASSERT_NE(test_var, nullptr);
+    ASSERT_THAT(test_var, StrEq(""));
 }
 
 TEST_F(SimpleCommandsTest, CiteMe)

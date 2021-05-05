@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -20,12 +20,12 @@ CommandStyle(delete_atoms,DeleteAtoms)
 #ifndef LMP_DELETE_ATOMS_H
 #define LMP_DELETE_ATOMS_H
 
-#include "pointers.h"
+#include "command.h"
 #include <map>
 
 namespace LAMMPS_NS {
 
-class DeleteAtoms : protected Pointers {
+class DeleteAtoms : public Command {
  public:
   DeleteAtoms(class LAMMPS *);
   void command(int, char **);

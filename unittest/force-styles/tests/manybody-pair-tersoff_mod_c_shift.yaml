@@ -1,7 +1,7 @@
 ---
 lammps_version: 10 Feb 2021
 date_generated: Fri Feb 26 23:09:20 2021
-epsilon: 1e-12
+epsilon: 2e-11
 skip_tests: intel
 prerequisites: ! |
   pair tersoff/mod/c

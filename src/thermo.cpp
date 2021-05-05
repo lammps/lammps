@@ -422,8 +422,8 @@ bigint Thermo::lost_check()
   // error message
 
   if (lostflag == Thermo::ERROR)
-    error->all(FLERR,fmt::format("Lost atoms: original {} current {}",
-                                 atom->natoms,ntotal));
+    error->all(FLERR,"Lost atoms: original {} current {}",
+                                 atom->natoms,ntotal);
 
   // warning message
 

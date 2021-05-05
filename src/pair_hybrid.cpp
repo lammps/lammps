@@ -14,20 +14,19 @@
 
 #include "pair_hybrid.h"
 
-#include <cstring>
-#include <cctype>
 #include "atom.h"
-#include "force.h"
-#include "pair.h"
-#include "neighbor.h"
-#include "neigh_request.h"
-#include "update.h"
 #include "comm.h"
-#include "memory.h"
 #include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "pair.h"
 #include "respa.h"
-
 #include "suffix.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -266,8 +265,8 @@ void PairHybrid::settings(int narg, char **arg)
 {
   if (narg < 1) error->all(FLERR,"Illegal pair_style command");
   if (lmp->kokkos && !utils::strmatch(force->pair_style,"^hybrid.*/kk$"))
-    error->all(FLERR,fmt::format("Must use pair_style {}/kk with Kokkos",
-                                 force->pair_style));
+    error->all(FLERR,"Must use pair_style {}/kk with Kokkos",
+                                 force->pair_style);
 
   // delete old lists, since cannot just change settings
 
@@ -469,10 +468,7 @@ void PairHybrid::coeff(int narg, char **arg)
       if (multiple[m]) {
         multflag = 1;
         if (narg < 4) error->all(FLERR,"Incorrect args for pair coefficients");
-        if (!isdigit(arg[3][0]))
-          error->all(FLERR,"Incorrect args for pair coefficients");
-        int index = utils::inumeric(FLERR,arg[3],false,lmp);
-        if (index == multiple[m]) break;
+        if (multiple[m] == utils::inumeric(FLERR,arg[3],false,lmp)) break;
         else continue;
       } else break;
     }
@@ -493,7 +489,7 @@ void PairHybrid::coeff(int narg, char **arg)
 
   // invoke sub-style coeff() starting with 1st remaining arg
 
-  if (!none) styles[m]->coeff(narg-1-multflag,&arg[1+multflag]);
+  if (!none) styles[m]->coeff(narg-1-multflag,arg+1+multflag);
 
   // if sub-style only allows one pair coeff call (with * * and type mapping)
   // then unset setflag/map assigned to that style before setting it below
@@ -550,6 +546,15 @@ void PairHybrid::init_style()
         for (m = 0; m < nmap[itype][jtype]; m++)
           if (map[itype][jtype][m] == istyle) used = 1;
     if (used == 0) error->all(FLERR,"Pair hybrid sub-style is not used");
+  }
+
+  // The GPU library uses global data for each pair style, so the
+  // same style must not be used multiple times
+
+  for (istyle = 0; istyle < nstyles; istyle++) {
+    bool is_gpu = (((PairHybrid *)styles[istyle])->suffix_flag & Suffix::GPU);
+    if (multiple[istyle] && is_gpu)
+      error->all(FLERR,"GPU package styles must not be used multiple times");
   }
 
   // check if special_lj/special_coul overrides are compatible

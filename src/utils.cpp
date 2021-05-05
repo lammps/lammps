@@ -123,17 +123,22 @@ std::string utils::strfind(const std::string &text, const std::string &pattern)
     return "";
 }
 
-/** This function simplifies the repetitive task of outputting some
- * message to both the screen and/or the log file. In combination
- * with using fmt::format(), which returns the formatted text
- * in a std::string() instance, this can be used to reduce
- * operations previously requiring several lines of code to
- * a single statement. */
+/* specialization for the case of just a single string argument */
 
 void utils::logmesg(LAMMPS *lmp, const std::string &mesg)
 {
   if (lmp->screen)  fputs(mesg.c_str(), lmp->screen);
   if (lmp->logfile) fputs(mesg.c_str(), lmp->logfile);
+}
+
+void utils::fmtargs_logmesg(LAMMPS *lmp,  fmt::string_view format,
+                        fmt::format_args args)
+{
+  try {
+    logmesg(lmp, fmt::vformat(format, args));
+  } catch (fmt::format_error &e) {
+    logmesg(lmp, std::string(e.what())+"\n");
+  }
 }
 
 /* define this here, so we won't have to include the headers
@@ -162,6 +167,42 @@ const char *utils::guesspath(char *buf, int len, FILE *fp)
 #else
   strncpy(buf,"(unknown)",len-1);
 #endif
+  return buf;
+}
+
+// read line into buffer. if line is too long keep reading until EOL or EOF
+// but return only the first part with a newline at the end.
+
+char *utils::fgets_trunc(char *buf, int size, FILE *fp)
+{
+  constexpr int MAXDUMMY = 256;
+  char dummy[MAXDUMMY];
+  char *ptr = fgets(buf,size,fp);
+
+  // EOF
+  if (!ptr) return nullptr;
+
+  int n = strlen(buf);
+
+  // line is shorter than buffer, append newline if needed,
+  if (n < size-2) {
+    if (buf[n-1] != '\n') {
+      buf[n] = '\n';
+      buf[n+1] = '\0';
+    }
+    return buf;
+
+    // line fits exactly. overwrite last but one character.
+  } else buf[size-2] = '\n';
+
+  // continue reading into dummy buffer until end of line or file
+  do {
+    ptr = fgets(dummy,MAXDUMMY,fp);
+    if (ptr) n = strlen(ptr);
+    else n = 0;
+  } while (n == MAXDUMMY-1 && ptr[MAXDUMMY-1] != '\n');
+
+  // return first chunk
   return buf;
 }
 
@@ -221,6 +262,35 @@ void utils::sfread(const char *srcname, int srcline, void *s, size_t size,
     if (error) error->one(srcname,srcline,errmsg);
   }
   return;
+}
+
+/* ------------------------------------------------------------------ */
+
+/* read N lines and broadcast */
+int utils::read_lines_from_file(FILE *fp, int nlines, int nmax,
+                                char *buffer, int me, MPI_Comm comm)
+{
+  char *ptr = buffer;
+  *ptr = '\0';
+
+  if (me == 0) {
+    if (fp) {
+      for (int i = 0; i < nlines; i++) {
+        ptr = fgets_trunc(ptr,nmax,fp);
+        if (!ptr) break; // EOF?
+        // advance ptr to end of string
+        ptr += strlen(ptr);
+        // ensure buffer is null terminated. null char is start of next line.
+        *ptr = '\0';
+      }
+    }
+  }
+
+  int n = strlen(buffer);
+  MPI_Bcast(&n,1,MPI_INT,0,comm);
+  if (n == 0) return 1;
+  MPI_Bcast(buffer,n+1,MPI_CHAR,0,comm);
+  return 0;
 }
 
 /* ------------------------------------------------------------------ */
@@ -673,6 +743,18 @@ std::string utils::utf8_subst(const std::string &line)
         // ZERO WIDTH SPACE (U+200B)
         if ((in[i] == 0xe2U) && (in[i+1] == 0x80U) && (in[i+2] == 0x8bU))
           out += ' ', i += 2;
+        // LEFT SINGLE QUOTATION MARK (U+2018)
+        if ((in[i] == 0xe2U) && (in[i+1] == 0x80U) && (in[i+2] == 0x98U))
+          out += '\'', i += 2;
+        // RIGHT SINGLE QUOTATION MARK (U+2019)
+        if ((in[i] == 0xe2U) && (in[i+1] == 0x80U) && (in[i+2] == 0x99U))
+          out += '\'', i += 2;
+        // LEFT DOUBLE QUOTATION MARK (U+201C)
+        if ((in[i] == 0xe2U) && (in[i+1] == 0x80U) && (in[i+2] == 0x9cU))
+          out += '"', i += 2;
+        // RIGHT DOUBLE QUOTATION MARK (U+201D)
+        if ((in[i] == 0xe2U) && (in[i+1] == 0x80U) && (in[i+2] == 0x9dU))
+          out += '"', i += 2;
         // NARROW NO-BREAK SPACE (U+202F)
         if ((in[i] == 0xe2U) && (in[i+1] == 0x80U) && (in[i+2] == 0xafU))
           out += ' ', i += 2;
@@ -996,8 +1078,8 @@ std::string utils::get_potential_file_path(const std::string &path) {
 
       while (dirs.has_next()) {
         auto pot = utils::path_basename(filepath);
-        auto path = dirs.next();
-        filepath = utils::path_join(path, pot);
+        auto dir = dirs.next();
+        filepath = utils::path_join(dir, pot);
 
         if (utils::file_is_readable(filepath)) {
           return filepath;
@@ -1097,16 +1179,14 @@ FILE *utils::open_potential(const std::string &name, LAMMPS *lmp,
     std::string date       = get_potential_date(filepath, "potential");
     std::string units      = get_potential_units(filepath, "potential");
 
-    if (!date.empty() && (me == 0)) {
-      logmesg(lmp, fmt::format("Reading potential file {} "
-                               "with DATE: {}\n", name, date));
-    }
+    if (!date.empty() && (me == 0))
+      logmesg(lmp,"Reading potential file {} with DATE: {}\n", name, date);
 
     if (auto_convert == nullptr) {
       if (!units.empty() && (units != unit_style) && (me == 0)) {
-        error->one(FLERR, fmt::format("Potential file {} requires {} units "
+        error->one(FLERR, "Potential file {} requires {} units "
                                       "but {} units are in use", name, units,
-                                      unit_style));
+                                      unit_style);
         return nullptr;
       }
     } else {
@@ -1120,9 +1200,9 @@ FILE *utils::open_potential(const std::string &name, LAMMPS *lmp,
             && (*auto_convert & REAL2METAL)) {
           *auto_convert = REAL2METAL;
         } else {
-          error->one(FLERR, fmt::format("Potential file {} requires {} units "
+          error->one(FLERR, "Potential file {} requires {} units "
                                         "but {} units are in use", name,
-                                        units, unit_style));
+                                        units, unit_style);
           return nullptr;
         }
       }

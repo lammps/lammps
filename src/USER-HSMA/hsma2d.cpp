@@ -32,11 +32,13 @@
 #include <cstring>
 #include <cstdlib>
 #include<iomanip>
-#include <immintrin.h>
-#include<iostream>
 
 #if defined(_OPENMP)
 	#include<omp.h>
+#endif
+
+#if defined(__AVX512F__)
+	#include <immintrin.h>
 #endif
 
 extern "C" {void lfmm3d_t_c_g_(double* eps, int* nsource, double* source, double* charge, int* nt, double* targ, double* pottarg, double* gradtarg, int* ier); }
@@ -44,7 +46,6 @@ extern int fab(int n);
 extern int isfab(int m);
 
 using namespace LAMMPS_NS;
-using namespace std;
 
 HSMA2D::HSMA2D(LAMMPS* lmp) : KSpace(lmp)
 {
@@ -54,7 +55,7 @@ HSMA2D::HSMA2D(LAMMPS* lmp) : KSpace(lmp)
 	Lx = domain->xprd;
 	Ly = domain->yprd;
 	Lz = domain->zprd * slab_volfactor;
-	PI = 3.141592653589793;
+	PI = MY_PI;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -75,32 +76,28 @@ void HSMA2D::settings(int narg, char** arg)
 
 	if (Lambda < 0)
 		error->all(FLERR, "Lambda shoule be >0.");
-	if (Lambda > 20 || Lambda < 0.2) {
-		error->warning(FLERR, fmt::format("The Lambda is too big or too small! Please use an approximate range of Lambda. Set Lambda to the default value.",
-			update->ntimestep));
+	if ((Lambda > 20 || Lambda < 0.2)&& comm->me==0) {
+		error->warning(FLERR, "The Lambda is too big or too small! Please use an approximate range of Lambda. Set Lambda to the default value.");
 		Lambda = 1.5;
 	}
 	if (p < 1)
-		error->all(FLERR, "p shoule be >=1.");
-	if (p > 50) {
-		error->warning(FLERR, fmt::format("The p is too big! Please use a smaller p. Set p to the default value.",
-			update->ntimestep));
+		error->all(FLERR, "p should be >=1.");
+	if (p > 50 && comm->me == 0) {
+		error->warning(FLERR, "The p is too big! Please use a smaller p. Set p to the default value.");
 		p = 6;
 	}
 	if ((IF_FMM_RightTerm) != 0 && (IF_FMM_RightTerm != 1))
 		error->all(FLERR, "Using wrong value of IF_FMM_RightTerm.");
 	if ((IF_FMM_FinalPotential) != 0 && (IF_FMM_FinalPotential != 1))
 		error->all(FLERR, "Using wrong value of IF_FMM_FinalPotential.");
-	if (Fp > F || Fp < 0 || F < 0 || isfab(int(Fp)) != 1 || isfab(int(F)) != 1) {
-		error->warning(FLERR, fmt::format("Using wrong value of Fp and F. Set Fp and F to the default value.",
-			update->ntimestep));
+	if ((Fp > F || Fp < 0 || F < 0 || isfab(int(Fp)) != 1 || isfab(int(F)) != 1) && comm->me == 0) {
+		error->warning(FLERR, "Using wrong value of Fp and F. Set Fp and F to the default value.");
 		Fp = 89.0;
 		F = 144.0;
 	}
-	if (Nw <= 5||Nw>=150)
+	if ((Nw <= 5||Nw>=150) && comm->me == 0)
 	{
-		error->warning(FLERR, fmt::format("Nw is too small or too big! Set Nw to the default value.",
-			update->ntimestep));
+		error->warning(FLERR, "Nw is too small or too big! Set Nw to the default value.");
 		Nw = 40.0;
 	}
 	if (w <= 0)
@@ -114,8 +111,7 @@ void HSMA2D::settings(int narg, char** arg)
 /* ---------------------------------------------------------------------- */
 void HSMA2D::init()
 {
-	printf("Setting up HSMA2D implemented by Jiuyang Liang (Release 1.0.0)\n");
-
+	utils::logmesg(lmp, "Setting up HSMA2D implemented by Jiuyang Liang (Release 1.0.0)\n");
 	Step = 0;
 	Time = new float[2000];
 
@@ -205,10 +201,25 @@ void HSMA2D::init()
 		QLocalRD[i]= new double[p * p];
 	}
 	SetFibonacci(Fibonacci, F, Fp, Np, Rs, PI);
-    #pragma omp parallel
-	{
+
+    #if defined(_OPENMP)
+			#pragma omp parallel
+			{
+				double MulQ[p * p], MulLocalQ[p * p];
+				#pragma omp for schedule(static) private(MulQ,MulLocalQ)
+				for (int i = 0; i < Np; i++)
+				{
+					CalculateRDMultipoleExpansion(MulQ, p, Fibonacci[i][0], Fibonacci[i][1], Fibonacci[i][2]);
+					CalculateLocalRDMultipoleExpansion(MulLocalQ, p, Fibonacci[i][0], Fibonacci[i][1], Fibonacci[i][2], Rs);
+					for (int j = 0; j < p * p; j++)
+					{
+						QRD[i][j] = MulQ[j];
+						QLocalRD[i][j] = MulLocalQ[j];
+					}
+				}
+			}
+	#else
 		double MulQ[p * p], MulLocalQ[p * p];
-        #pragma omp for schedule(static) private(MulQ,MulLocalQ)
 		for (int i = 0; i < Np; i++)
 		{
 			CalculateRDMultipoleExpansion(MulQ, p, Fibonacci[i][0], Fibonacci[i][1], Fibonacci[i][2]);
@@ -219,7 +230,7 @@ void HSMA2D::init()
 				QLocalRD[i][j] = MulLocalQ[j];
 			}
 		}
-	}
+	#endif
 
 	TopNear = new double* [S * Nw];
 	TopZDNear = new double* [S * Nw];
@@ -241,8 +252,6 @@ void HSMA2D::init()
 			AR[i * Nw + j] = ar[i][j];
 		}
 	}
-
-	cout << Lx << "=Lx   " << Ly << "=Ly    " << Lz << "=Lz   " << Lambda << "=Lambda    " <<Gamma<<"=Gamma    "<<w<<"=w    "<< p << "=p   " << Nw << "=Nw    " << Fp << "=Fp   " << F << "=F   " << IF_FMM_RightTerm << "=IF_FMM_RightTerm   " << IF_FMM_FinalPotential << "=IF_FMM_FinalPotential   " << endl;
 }
 
 void HSMA2D::compute(int eflag, int vflag)
@@ -646,83 +655,150 @@ void HSMA2D::ConstructLeftTerm(double** LeftTermReal, double** LeftTermImag, dou
 	double Q[S * Nw][S * Nw][p * p], QZD[S * Nw][S * Nw][p * p];
 	double DownQ[S * Nw][S * Nw][p * p], DownQZD[S * Nw][S * Nw][p * p];
 
-
-#pragma omp parallel
-	{
-		double QM[p * p], QZDM[p * p];
-		int index_r, index_dr;
-#pragma omp for schedule(static) private(QM,QZDM)
-		for (int m = 0; m < S * Nw; m++)
-			for (int n = 0; n < S * Nw; n++)
+     #if defined(_OPENMP)
+		#pragma omp parallel
 			{
-				CalculateMultipoleExpansion(QM, p, IntegralTop[m][n][0], IntegralTop[m][n][1], IntegralTop[m][n][2]);
-				CalculateZDerivativeMultipoleExpansion(QZDM, p, IntegralTop[m][n][0], IntegralTop[m][n][1], IntegralTop[m][n][2]);
-				for (int i = 0; i < p * p; i++)
-				{
-					Q[m][n][i] = QM[i];
-					QZD[m][n][i] = QZDM[i];
-				}
-
-				CalculateMultipoleExpansion(QM, p, IntegralDown[m][n][0], IntegralDown[m][n][1], IntegralDown[m][n][2]);
-				CalculateZDerivativeMultipoleExpansion(QZDM, p, IntegralDown[m][n][0], IntegralDown[m][n][1], IntegralDown[m][n][2]);
-				for (int i = 0; i < p * p; i++)
-				{
-					DownQ[m][n][i] = QM[i];
-					DownQZD[m][n][i] = QZDM[i];
-				}
-			}
-
-		double Vec1, Vec2, Vec3, Vec4, I1, I2, I3, I4, EQ1, EQ2, EQ3, EQ4;
-		int Up, Down;
-
-#pragma omp for schedule(static)
-		for (int j = -NJKBound; j <= NJKBound; j++)
-			for (int k = -NJKBound; k <= NJKBound; k++)
-			{
-				index_r = (j + NJKBound) * (2 * NJKBound + 1) + k + NJKBound;
-				index_dr = (2 * NJKBound + 1) * (2 * NJKBound + 1) + (j + NJKBound) * (2 * NJKBound + 1) + k + NJKBound;
+				double QM[p * p], QZDM[p * p];
+				int index_r, index_dr;
+				#pragma omp for schedule(static) private(QM,QZDM)
 				for (int m = 0; m < S * Nw; m++)
 					for (int n = 0; n < S * Nw; n++)
 					{
-						I1 = -mu * (j * IntegralTop[m][n][0] + k * IntegralTop[m][n][1]);
-						for (int i = 1; i < p * p; i++)
+						CalculateMultipoleExpansion(QM, p, IntegralTop[m][n][0], IntegralTop[m][n][1], IntegralTop[m][n][2]);
+						CalculateZDerivativeMultipoleExpansion(QZDM, p, IntegralTop[m][n][0], IntegralTop[m][n][1], IntegralTop[m][n][2]);
+						for (int i = 0; i < p * p; i++)
 						{
-							Up = floor((p * p - 1) / 2);
-							Down = ceil((p * p - 1) / 2.0);
+							Q[m][n][i] = QM[i];
+							QZD[m][n][i] = QZDM[i];
+						}
 
-							Vec1 = (1.0 / EU) * QZD[m][n][i] + mu * sqrt(j * j + k * k) * Q[m][n][i];
-
-							if (i % 2 == 0)
-							{
-								EQ1 = Vec1 * cos(I1);
-								LeftTermReal[index_r][i / 2 - 1] -= EQ1 * IntegralTop[m][n][3];
-							}
-
-							if (i % 2 == 1)
-							{
-								EQ1 = Vec1 * sin(I1);
-								LeftTermImag[index_r][(i - 1) / 2] -= EQ1 * IntegralTop[m][n][3];
-							}
-
-							Vec1 = (1.0 / EU) * DownQZD[m][n][i] - mu * sqrt(j * j + k * k) * DownQ[m][n][i];
-
-							if (i % 2 == 0)
-							{
-								EQ1 = Vec1 * cos(I1);
-								LeftTermReal[index_dr][i / 2 - 1] -= EQ1 * IntegralTop[m][n][3];
-							}
-
-							if (i % 2 == 1)
-							{
-								EQ1 = Vec1 * sin(I1);
-								LeftTermImag[index_dr][(i - 1) / 2] -= EQ1 * IntegralTop[m][n][3];
-							}
+						CalculateMultipoleExpansion(QM, p, IntegralDown[m][n][0], IntegralDown[m][n][1], IntegralDown[m][n][2]);
+						CalculateZDerivativeMultipoleExpansion(QZDM, p, IntegralDown[m][n][0], IntegralDown[m][n][1], IntegralDown[m][n][2]);
+						for (int i = 0; i < p * p; i++)
+						{
+							DownQ[m][n][i] = QM[i];
+							DownQZD[m][n][i] = QZDM[i];
 						}
 					}
+
+				double Vec1, Vec2, Vec3, Vec4, I1, I2, I3, I4, EQ1, EQ2, EQ3, EQ4;
+				int Up, Down;
+
+				#pragma omp for schedule(static)
+				for (int j = -NJKBound; j <= NJKBound; j++)
+					for (int k = -NJKBound; k <= NJKBound; k++)
+					{
+						index_r = (j + NJKBound) * (2 * NJKBound + 1) + k + NJKBound;
+						index_dr = (2 * NJKBound + 1) * (2 * NJKBound + 1) + (j + NJKBound) * (2 * NJKBound + 1) + k + NJKBound;
+						for (int m = 0; m < S * Nw; m++)
+							for (int n = 0; n < S * Nw; n++)
+							{
+								I1 = -mu * (j * IntegralTop[m][n][0] + k * IntegralTop[m][n][1]);
+								for (int i = 1; i < p * p; i++)
+								{
+									Up = floor((p * p - 1) / 2);
+									Down = ceil((p * p - 1) / 2.0);
+
+									Vec1 = (1.0 / EU) * QZD[m][n][i] + mu * sqrt(j * j + k * k) * Q[m][n][i];
+
+									if (i % 2 == 0)
+									{
+										EQ1 = Vec1 * cos(I1);
+										LeftTermReal[index_r][i / 2 - 1] -= EQ1 * IntegralTop[m][n][3];
+									}
+
+									if (i % 2 == 1)
+									{
+										EQ1 = Vec1 * sin(I1);
+										LeftTermImag[index_r][(i - 1) / 2] -= EQ1 * IntegralTop[m][n][3];
+									}
+
+									Vec1 = (1.0 / EU) * DownQZD[m][n][i] - mu * sqrt(j * j + k * k) * DownQ[m][n][i];
+
+									if (i % 2 == 0)
+									{
+										EQ1 = Vec1 * cos(I1);
+										LeftTermReal[index_dr][i / 2 - 1] -= EQ1 * IntegralTop[m][n][3];
+									}
+
+									if (i % 2 == 1)
+									{
+										EQ1 = Vec1 * sin(I1);
+										LeftTermImag[index_dr][(i - 1) / 2] -= EQ1 * IntegralTop[m][n][3];
+									}
+								}
+							}
+					}
 			}
+     #else
+				double QM[p * p], QZDM[p * p];
+				int index_r, index_dr;
+				for (int m = 0; m < S * Nw; m++)
+					for (int n = 0; n < S * Nw; n++)
+					{
+						CalculateMultipoleExpansion(QM, p, IntegralTop[m][n][0], IntegralTop[m][n][1], IntegralTop[m][n][2]);
+						CalculateZDerivativeMultipoleExpansion(QZDM, p, IntegralTop[m][n][0], IntegralTop[m][n][1], IntegralTop[m][n][2]);
+						for (int i = 0; i < p * p; i++)
+						{
+							Q[m][n][i] = QM[i];
+							QZD[m][n][i] = QZDM[i];
+						}
 
-	}
+						CalculateMultipoleExpansion(QM, p, IntegralDown[m][n][0], IntegralDown[m][n][1], IntegralDown[m][n][2]);
+						CalculateZDerivativeMultipoleExpansion(QZDM, p, IntegralDown[m][n][0], IntegralDown[m][n][1], IntegralDown[m][n][2]);
+						for (int i = 0; i < p * p; i++)
+						{
+							DownQ[m][n][i] = QM[i];
+							DownQZD[m][n][i] = QZDM[i];
+						}
+					}
+				double Vec1, Vec2, Vec3, Vec4, I1, I2, I3, I4, EQ1, EQ2, EQ3, EQ4;
+				int Up, Down;
+				for (int j = -NJKBound; j <= NJKBound; j++)
+					for (int k = -NJKBound; k <= NJKBound; k++)
+					{
+						index_r = (j + NJKBound) * (2 * NJKBound + 1) + k + NJKBound;
+						index_dr = (2 * NJKBound + 1) * (2 * NJKBound + 1) + (j + NJKBound) * (2 * NJKBound + 1) + k + NJKBound;
+						for (int m = 0; m < S * Nw; m++)
+							for (int n = 0; n < S * Nw; n++)
+							{
+								I1 = -mu * (j * IntegralTop[m][n][0] + k * IntegralTop[m][n][1]);
+								for (int i = 1; i < p * p; i++)
+								{
+									Up = floor((p * p - 1) / 2);
+									Down = ceil((p * p - 1) / 2.0);
 
+									Vec1 = (1.0 / EU) * QZD[m][n][i] + mu * sqrt(j * j + k * k) * Q[m][n][i];
+
+									if (i % 2 == 0)
+									{
+										EQ1 = Vec1 * cos(I1);
+										LeftTermReal[index_r][i / 2 - 1] -= EQ1 * IntegralTop[m][n][3];
+									}
+
+									if (i % 2 == 1)
+									{
+										EQ1 = Vec1 * sin(I1);
+										LeftTermImag[index_r][(i - 1) / 2] -= EQ1 * IntegralTop[m][n][3];
+									}
+
+									Vec1 = (1.0 / EU) * DownQZD[m][n][i] - mu * sqrt(j * j + k * k) * DownQ[m][n][i];
+
+									if (i % 2 == 0)
+									{
+										EQ1 = Vec1 * cos(I1);
+										LeftTermReal[index_dr][i / 2 - 1] -= EQ1 * IntegralTop[m][n][3];
+									}
+
+									if (i % 2 == 1)
+									{
+										EQ1 = Vec1 * sin(I1);
+										LeftTermImag[index_dr][(i - 1) / 2] -= EQ1 * IntegralTop[m][n][3];
+									}
+								}
+							}
+					}
+     #endif
 }
 
 double HSMA2D::fac(double t)//calculate factorial
@@ -2302,8 +2378,6 @@ double HSMA2D::FinalCalculateEnergyAndForce(double Force[][3], double* Pot, doub
 			Force[i][1] = -(gradtarg[3 * i + 1] + gradtargF[3 * i + 1]) * Q[i];
 			Force[i][2] = -(gradtarg[3 * i + 2] + gradtargF[3 * i + 2]) * Q[i];
 		}
-
-		cout << pottarg[0] << "   " << pottargF[0] << endl;
 		return Energy;
 	}
 }

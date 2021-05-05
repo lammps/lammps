@@ -24,6 +24,7 @@
 #include "error.h"
 #include "force.h"
 #include "math.h"
+#include "math_const.h"
 #include "math_special.h"
 #include "memory.h"
 #include "update.h"
@@ -41,11 +42,17 @@
 	#include <immintrin.h>
 #endif
 
+#if defined(LMP_USE_MKL_RNG)
+	#include"mkl.h"
+#endif
+
 extern "C" {void lfmm3d_t_c_g_(double* eps, int* nsource, double* source, double* charge, int* nt, double* targ, double* pottarg, double* gradtarg, int* ier); }
 extern int fab(int n);
 extern int isfab(int m);
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
+using namespace MathSpecial;
 
 HSMA2D::HSMA2D(LAMMPS* lmp) : KSpace(lmp)
 {
@@ -80,6 +87,8 @@ void HSMA2D::settings(int narg, char** arg)
 		error->warning(FLERR, "The Lambda is too big or too small! Please use an approximate range of Lambda. Set Lambda to the default value.");
 		Lambda = 1.5;
 	}
+	if (atom->natoms > 214783648)
+		error->all(FLERR, "The current version of HSMA is not available for such big system.");
 	if (p < 1)
 		error->all(FLERR, "p should be >=1.");
 	if (p > 50 && comm->me == 0) {
@@ -803,7 +812,7 @@ void HSMA2D::ConstructLeftTerm(double** LeftTermReal, double** LeftTermImag, dou
 
 double HSMA2D::fac(double t)//calculate factorial
 {
-	return factorial(int t);
+	return factorial(int(t));
 }
 
 void HSMA2D::CalculateRDMultipoleExpansion(double* Q, int p, double x, double y, double z)
@@ -1349,7 +1358,7 @@ void HSMA2D::CalculateNearFieldAndZD(double** Top, double** TopZD, double** Down
 		#pragma omp parallel
 		{
 			int id = omp_get_thread_num();
-			int size = comm->nthreads;
+			const int size = comm->nthreads;
 			int min_atom=id*floor(S*Nw*S*Nw/size)+1, max_atom=(id+1)*floor(S*Nw*S*Nw/size);
 			if (id == size - 1)max_atom = S * Nw * S * Nw - 1;
 			if (id == 0)min_atom = 0;
@@ -1579,7 +1588,7 @@ void HSMA2D::ConstructRightTerm(double* RightTermReal, double* RightTermImag, do
      #pragma omp parallel
 	{
 		int id = omp_get_thread_num();
-		int size = comm->nthreads;
+		const int size = comm->nthreads;
 		int min_index = id * floor((2 * NJKBound + 1) * (2 * NJKBound + 1) / (size+0.00)) + 1, max_index = (id + 1) * floor((2 * NJKBound + 1) * (2 * NJKBound + 1) / (size+0.00));
 		if (id == size - 1)max_index = (2 * NJKBound + 1) * (2 * NJKBound + 1) - 1;
 		if (id == 0)min_index = 0;
@@ -1963,7 +1972,7 @@ double HSMA2D::FinalCalculateEnergyAndForce(double Force[][3], double* Pot, doub
 			#pragma omp parallel
 			{
 				int id = omp_get_thread_num();
-				int size = comm->nthreads;
+				const int size = comm->nthreads;
 
 				int min_atom = id * floor(NSource / size) + 1, max_atom = (id + 1) * floor(NSource / size);
 				if (id == size - 1)max_atom = NSource - 1;
@@ -2087,7 +2096,7 @@ double HSMA2D::FinalCalculateEnergyAndForce(double Force[][3], double* Pot, doub
 		#pragma omp parallel
 			{
 				int id = omp_get_thread_num();
-				int size = comm->nthreads;
+				const int size = comm->nthreads;
 
 				int min_atom = id * floor(NSource / size) + 1, max_atom = (id + 1) * floor(NSource / size);
 				if (id == size - 1)max_atom = NSource - 1;

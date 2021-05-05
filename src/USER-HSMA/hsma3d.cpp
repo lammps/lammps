@@ -24,6 +24,7 @@
 #include "error.h"
 #include "force.h"
 #include "math.h"
+#include "math_const.h"
 #include "math_special.h"
 #include "memory.h"
 #include "update.h"
@@ -31,7 +32,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include<iomanip>
+#include <iomanip>
 
 #if defined(_OPENMP)
 	#include<omp.h>
@@ -41,11 +42,17 @@
 	#include <immintrin.h>
 #endif
 
+#if defined(LMP_USE_MKL_RNG)
+	#include"mkl.h"
+#endif
+
 extern "C" {void lfmm3d_t_c_g_(double *eps, int *nsource,double *source, double *charge, int *nt, double *targ, double *pottarg, double *gradtarg, int *ier);}
 extern int fab(int n);
 extern int isfab(int m);
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
+using namespace MathSpecial;
 
 /* ---------------------------------------------------------------------- */
 HSMA3D::HSMA3D(LAMMPS *lmp) : KSpace(lmp)
@@ -80,6 +87,8 @@ void HSMA3D::settings(int narg, char **arg)
 	  error->warning(FLERR, "The Lambda is too big or too small! Please use an approximate range of Lambda. Set Lambda to the default value.");
 	  Lambda = 1.3;
   }
+  if(atom->natoms>214783648)
+	  error->all(FLERR, "The current version of HSMA is not available for such big system.");
   if (p<1)
 	  error->all(FLERR, "p should be >=1.");
   if (p > 50 && comm->me == 0){
@@ -1011,7 +1020,7 @@ void HSMA3D::CalculateNearFieldAndZD(double* Near, double ImageCharge[][4], int 
             #pragma omp parallel
 			{
 				int id = omp_get_thread_num();
-				int size = comm->nthreads;
+				const int size = comm->nthreads;
 
 				int min_atom = id * floor( Nw / (size+0.00)) + 1, max_atom = (id + 1) * floor(Nw / (size+0.00));
 				if (id == size - 1)max_atom = Nw - 1;
@@ -1073,7 +1082,7 @@ void HSMA3D::CalculateNearFieldAndZD(double* Near, double ImageCharge[][4], int 
 			#pragma omp parallel
 			{
 				int id = omp_get_thread_num();
-				int size = comm->nthreads;
+				const int size = comm->nthreads;
 
 				int min_atom = id * floor(Nw / size) + 1, max_atom = (id + 1) * floor(Nw / size);
 				if (id == size - 1)max_atom = Nw - 1;
@@ -1297,7 +1306,7 @@ double HSMA3D::FinalCalculateEnergyAndForce(double Force[][3], double* Pot, doub
             #pragma omp parallel
 			{
 				int id = omp_get_thread_num();
-				int size = comm->nthreads;
+				const int size = comm->nthreads;
 
 				int min_atom = id * floor(NSource / size) + 1, max_atom = (id + 1) * floor(NSource / size);
 				if (id == size - 1)max_atom = NSource - 1;
@@ -1421,7 +1430,7 @@ double HSMA3D::FinalCalculateEnergyAndForce(double Force[][3], double* Pot, doub
              #pragma omp parallel
 			{
 				int id = omp_get_thread_num();
-				int size = comm->nthreads;
+				const int size = comm->nthreads;
 
 				int min_atom = id * floor(NSource / size) + 1, max_atom = (id + 1) * floor(NSource / size);
 				if (id == size - 1)max_atom = NSource - 1;
@@ -1825,7 +1834,7 @@ void HSMA3D::CalculateNearFieldAndZD_Single(double* Near, double ImageCharge[][4
             #pragma omp parallel
 			{
 				int id = omp_get_thread_num();
-				int size = comm->nthreads;
+				const int size = comm->nthreads;
 
 				int min_atom = id * floor(Nw / (size + 0.00)) + 1, max_atom = (id + 1) * floor(Nw / (size + 0.00));
 				if (id == size - 1)max_atom = Nw - 1;
@@ -1867,7 +1876,7 @@ void HSMA3D::CalculateNearFieldAndZD_Single(double* Near, double ImageCharge[][4
             #pragma omp parallel
 			{
 				int id = omp_get_thread_num();
-				int size = comm->nthreads;
+				const int size = comm->nthreads;
 
 				int min_atom = id * floor(NSource / size) + 1, max_atom = (id + 1) * floor(NSource / size);
 				if (id == size - 1)max_atom = NSource - 1;
@@ -1933,7 +1942,7 @@ void HSMA3D::CalculateNearFieldAndZD_Single(double* Near, double ImageCharge[][4
              #pragma omp parallel
 			{
 				int id = omp_get_thread_num();
-				int size = comm->nthreads;
+				const int size = comm->nthreads;
 
 				int min_atom = id * floor(Nw / (size + 0.00)) + 1, max_atom = (id + 1) * floor(Nw / (size + 0.00));
 				if (id == size - 1)max_atom = Nw - 1;
@@ -1976,7 +1985,7 @@ void HSMA3D::CalculateNearFieldAndZD_Single(double* Near, double ImageCharge[][4
             #pragma omp parallel
 			{
 				int id = omp_get_thread_num();
-				int size = comm->nthreads();
+				const int size = comm->nthreads;
 
 				int min_atom = id * floor(NSource / size) + 1, max_atom = (id + 1) * floor(NSource / size);
 				if (id == size - 1)max_atom = NSource - 1;
@@ -2185,7 +2194,7 @@ double HSMA3D::FinalCalculateEnergyAndForce_Single(double Force[][3], double* Po
             #pragma omp parallel
 			{
 				int id = omp_get_thread_num();
-				int size = comm->nthreads;
+				const int size = comm->nthreads;
 
 				int min_atom = id * floor(NSource / size) + 1, max_atom = (id + 1) * floor(NSource / size);
 				if (id == size - 1)max_atom = NSource - 1;

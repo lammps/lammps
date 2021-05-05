@@ -249,6 +249,7 @@ void Error::_one(const std::string &file, int line, fmt::string_view format,
 
 void Error::warning(const std::string &file, int line, const std::string &str, int logflag)
 {
+  if ((allwarn > maxwarn) || (maxwarn < 0)) return;
   ++numwarn;
   std::string mesg = fmt::format("WARNING: {} ({}:{})\n",
                                  str,truncpath(file),line);

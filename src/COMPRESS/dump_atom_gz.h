@@ -21,7 +21,7 @@ DumpStyle(atom/gz,DumpAtomGZ)
 #define LMP_DUMP_ATOM_GZ_H
 
 #include "dump_atom.h"
-#include <zlib.h>
+#include "gz_file_writer.h"
 
 namespace LAMMPS_NS {
 
@@ -31,8 +31,7 @@ class DumpAtomGZ : public DumpAtom {
   virtual ~DumpAtomGZ();
 
  protected:
-  int compression_level;
-  gzFile gzFp;  // file pointer for the compressed output stream
+  GzFileWriter writer;
 
   virtual void openfile();
   virtual void write_header(bigint);

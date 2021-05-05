@@ -68,10 +68,8 @@ FixTempRescale::FixTempRescale(LAMMPS *lmp, int narg, char **arg) :
   // create a new compute temp
   // id = fix-ID + temp, compute group = fix group
 
-  std::string cmd = id + std::string("_temp");
-  id_temp = utils::strdup(cmd);
-  cmd += fmt::format(" {} temp",group->names[igroup]);
-  modify->add_compute(cmd);
+  id_temp = utils::strdup(std::string(id) + "_temp");
+  modify->add_compute(fmt::format("{} {} temp",id_temp,group->names[igroup]));
   tflag = 1;
 
   energy = 0.0;

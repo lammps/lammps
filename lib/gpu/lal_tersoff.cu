@@ -226,16 +226,12 @@ _texture_2d( pos_tex,int4);
 #endif
 
 __kernel void k_tersoff_short_nbor(const __global numtyp4 *restrict x_,
-                                   const __global numtyp *restrict cutsq_pair,
-                                   const int ntypes, __global int * dev_nbor,
+                                   const numtyp cutsq, const int ntypes,
+                                   __global int * dev_nbor,
                                    const __global int * dev_packed,
                                    const int inum, const int nbor_pitch,
                                    const int t_per_atom_in) {
   const int ii=GLOBAL_ID_X;
-
-  #ifdef ONETYPE
-  const numtyp cutsq=cutsq_pair[ONETYPE];
-  #endif
 
   if (ii<inum) {
     const int i=dev_packed[ii];
@@ -245,9 +241,6 @@ __kernel void k_tersoff_short_nbor(const __global numtyp4 *restrict x_,
     const int nbor_end=nbor+fast_mul(numj,nbor_pitch);
 
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
-    #ifndef ONETYPE
-    const int itype=ix.w*ntypes;
-    #endif
     int newj=0;
 
     __global int *out_list=dev_nbor+2*nbor_pitch+ii*t_per_atom;
@@ -257,11 +250,6 @@ __kernel void k_tersoff_short_nbor(const __global numtyp4 *restrict x_,
       int sj=dev_packed[nbor];
       int j = sj & NEIGHMASK;
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
-
-      #ifndef ONETYPE
-      const int mtype=jx.w+itype;
-      const numtyp cutsq=cutsq_pair[mtype];
-      #endif
 
       // Compute r12
       numtyp delx = ix.x-jx.x;

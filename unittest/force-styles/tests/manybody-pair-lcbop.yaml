@@ -1,12 +1,12 @@
 ---
-lammps_version: 24 Aug 2020
-date_generated: Tue Sep 15 09:44:30 202
+lammps_version: 10 Feb 2021
+date_generated: Fri Feb 26 23:09:15 2021
 epsilon: 7.5e-12
 prerequisites: ! |
   pair lcbop
 pre_commands: ! |
   variable newton_pair delete
-  variable newton_pair index on
+  if "$(is_active(package,gpu)) > 0.0" then "variable newton_pair index off" else "variable newton_pair index on"
 post_commands: ! ""
 input_file: in.manybody
 pair_style: lcbop

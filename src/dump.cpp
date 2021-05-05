@@ -14,16 +14,16 @@
 #include "dump.h"
 
 #include "atom.h"
-#include "irregular.h"
-#include "update.h"
-#include "domain.h"
-#include "group.h"
-#include "output.h"
-#include "modify.h"
-#include "fix.h"
 #include "compute.h"
-#include "memory.h"
+#include "domain.h"
 #include "error.h"
+#include "fix.h"
+#include "group.h"
+#include "irregular.h"
+#include "memory.h"
+#include "modify.h"
+#include "output.h"
+#include "update.h"
 
 #include <cstring>
 
@@ -141,12 +141,9 @@ Dump::Dump(LAMMPS *lmp, int /*narg*/, char **arg) : Pointers(lmp)
 
   if (strchr(filename,'*')) multifile = 1;
 
-  char *suffix = filename + strlen(filename) - strlen(".bin");
-  if (suffix > filename && strcmp(suffix,".bin") == 0) binary = 1;
-  suffix = filename + strlen(filename) - strlen(".gz");
-  if (suffix > filename && strcmp(suffix,".gz") == 0) compressed = 1;
-  suffix = filename + strlen(filename) - strlen(".zst");
-  if (suffix > filename && strcmp(suffix,".zst") == 0) compressed = 1;
+  if (utils::strmatch(filename, "\\.bin$")) binary = 1;
+  if (utils::strmatch(filename, "\\.gz$")
+      || utils::strmatch(filename, "\\.zst$")) compressed = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -582,12 +579,11 @@ void Dump::openfile()
   if (filewriter) {
     if (compressed) {
 #ifdef LAMMPS_GZIP
-      char gzip[128];
-      sprintf(gzip,"gzip -6 > %s",filecurrent);
+      auto gzip = fmt::format("gzip -6 > {}",filecurrent);
 #ifdef _WIN32
-      fp = _popen(gzip,"wb");
+      fp = _popen(gzip.c_str(),"wb");
 #else
-      fp = popen(gzip,"w");
+      fp = popen(gzip.c_str(),"w");
 #endif
 #else
       error->one(FLERR,"Cannot open gzipped file");

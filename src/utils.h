@@ -321,6 +321,12 @@ namespace LAMMPS_NS {
 
     std::vector<std::string> split_words(const std::string &text);
 
+    /** Take multi-line text and split into lines
+     *
+     * \param text string that should be split
+     * \return STL vector with the lines */
+    std::vector<std::string> split_lines(const std::string &text);
+
     /** Check if string can be converted to valid integer
      *
      * \param str string that should be checked

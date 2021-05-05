@@ -12,7 +12,6 @@
 ------------------------------------------------------------------------- */
 
 #include "body.h"
-#include <cstring>
 
 using namespace LAMMPS_NS;
 

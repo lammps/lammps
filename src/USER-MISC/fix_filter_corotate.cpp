@@ -277,7 +277,7 @@ void FixFilterCorotate::init()
   // could have changed locations in fix list since created
   // set ptrs to rRESPA variables
 
-  if (strstr(update->integrate_style,"respa")) {
+  if (utils::strmatch(update->integrate_style,"^respa")) {
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
   }
   else error->all(FLERR,"Fix filter/corotate requires rRESPA!");

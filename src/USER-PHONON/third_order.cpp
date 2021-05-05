@@ -32,7 +32,7 @@ enum{REGULAR,BALLISTICO};
 
 /* ---------------------------------------------------------------------- */
 
-ThirdOrder::ThirdOrder(LAMMPS *lmp) : Pointers(lmp), fp(nullptr)
+ThirdOrder::ThirdOrder(LAMMPS *lmp) : Command(lmp), fp(nullptr)
 {
   external_force_clear = 1;
 }

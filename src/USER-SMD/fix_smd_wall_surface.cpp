@@ -185,32 +185,6 @@ void FixSMDWallSurface::setup(int /*vflag*/) {
 }
 
 /* ----------------------------------------------------------------------
- function to determine number of values in a text line
- ------------------------------------------------------------------------- */
-
-int FixSMDWallSurface::count_words(const char *line) {
-        int n = strlen(line) + 1;
-        char *copy;
-        memory->create(copy, n, "atom:copy");
-        strcpy(copy, line);
-
-        char *ptr;
-        if ((ptr = strchr(copy, '#')))
-                *ptr = '\0';
-
-        if (strtok(copy, " \t\n\r\f") == nullptr) {
-                memory->destroy(copy);
-                return 0;
-        }
-        n = 1;
-        while (strtok(nullptr, " \t\n\r\f"))
-                n++;
-
-        memory->destroy(copy);
-        return n;
-}
-
-/* ----------------------------------------------------------------------
  size of atom nlocal's restart data
  ------------------------------------------------------------------------- */
 
@@ -265,7 +239,7 @@ void FixSMDWallSurface::read_triangles(int pass) {
     error->one(FLERR,"error reading number of triangle pairs");
   }
 
-  nwords = count_words(line);
+  nwords = utils::count_words(line);
   if (nwords < 1) {
     error->one(FLERR,"first line of file is incorrect");
   }
@@ -290,7 +264,7 @@ void FixSMDWallSurface::read_triangles(int pass) {
   while (fgets(line, sizeof(line), fp)) { // read a line, should be the facet line
 
     // evaluate facet line
-    nwords = count_words(line);
+    nwords = utils::count_words(line);
     if (nwords != 5) {
       //sprintf(str, "found end solid line");
       //error->message(FLERR, str);
@@ -322,7 +296,7 @@ void FixSMDWallSurface::read_triangles(int pass) {
       error->one(FLERR, "error reading outer loop");
     }
 
-    nwords = count_words(line);
+    nwords = utils::count_words(line);
     if (nwords != 2) {
       error->one(FLERR,"error reading outer loop");
     }
@@ -335,7 +309,7 @@ void FixSMDWallSurface::read_triangles(int pass) {
         error->one(FLERR,"error reading vertex line");
       }
 
-      nwords = count_words(line);
+      nwords = utils::count_words(line);
       if (nwords != 4) {
         error->one(FLERR,"error reading vertex line");
       }
@@ -366,7 +340,7 @@ void FixSMDWallSurface::read_triangles(int pass) {
       error->one(FLERR, "error reading endloop");
     }
 
-    nwords = count_words(line);
+    nwords = utils::count_words(line);
     if (nwords != 1) {
       error->one(FLERR,"error reading endloop");
     }
@@ -377,7 +351,7 @@ void FixSMDWallSurface::read_triangles(int pass) {
       error->one(FLERR,"error reading endfacet");
     }
 
-    nwords = count_words(line);
+    nwords = utils::count_words(line);
     if (nwords != 1) {
       error->one(FLERR,"error reading endfacet");
     }

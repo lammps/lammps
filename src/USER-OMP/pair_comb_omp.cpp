@@ -139,7 +139,7 @@ void PairCombOMP::eval(int iifrom, int iito, ThrData * const thr)
     iq = q[i];
     NCo[i] = 0;
     nj = 0;
-    iparam_i = elem2param[itype][itype][itype];
+    iparam_i = elem3param[itype][itype][itype];
 
     // self energy, only on i atom
 
@@ -180,7 +180,7 @@ void PairCombOMP::eval(int iifrom, int iito, ThrData * const thr)
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
 
-      iparam_ij = elem2param[itype][jtype][jtype];
+      iparam_ij = elem3param[itype][jtype][jtype];
 
       // long range q-dependent
 
@@ -242,7 +242,7 @@ void PairCombOMP::eval(int iifrom, int iito, ThrData * const thr)
       for (jj = 0; jj < sht_jnum; jj++) {
         j = sht_jlist[jj];
         jtype = map[type[j]];
-        iparam_ij = elem2param[itype][jtype][jtype];
+        iparam_ij = elem3param[itype][jtype][jtype];
 
         if (params[iparam_ij].hfocor > 0.0) {
           delr1[0] = x[j][0] - xtmp;
@@ -264,7 +264,7 @@ void PairCombOMP::eval(int iifrom, int iito, ThrData * const thr)
       j = sht_jlist[jj];
 
       jtype = map[type[j]];
-      iparam_ij = elem2param[itype][jtype][jtype];
+      iparam_ij = elem3param[itype][jtype][jtype];
 
       // this Qj for q-dependent BSi
 
@@ -288,7 +288,7 @@ void PairCombOMP::eval(int iifrom, int iito, ThrData * const thr)
         k = sht_jlist[kk];
         if (j == k) continue;
         ktype = map[type[k]];
-        iparam_ijk = elem2param[itype][jtype][ktype];
+        iparam_ijk = elem3param[itype][jtype][ktype];
 
         delr2[0] = x[k][0] - xtmp;
         delr2[1] = x[k][1] - ytmp;
@@ -332,7 +332,7 @@ void PairCombOMP::eval(int iifrom, int iito, ThrData * const thr)
         k = sht_jlist[kk];
         if (j == k) continue;
         ktype = map[type[k]];
-        iparam_ijk = elem2param[itype][jtype][ktype];
+        iparam_ijk = elem3param[itype][jtype][ktype];
 
         delr2[0] = x[k][0] - xtmp;
         delr2[1] = x[k][1] - ytmp;
@@ -434,7 +434,7 @@ double PairCombOMP::yasu_char(double *qf_fix, int &igroup)
       const double ytmp = x[i][1];
       const double ztmp = x[i][2];
       const double iq = q[i];
-      const int iparam_i = elem2param[itype][itype][itype];
+      const int iparam_i = elem3param[itype][itype][itype];
 
       // charge force from self energy
 
@@ -467,7 +467,7 @@ double PairCombOMP::yasu_char(double *qf_fix, int &igroup)
         delr1[2] = x[j][2] - ztmp;
         double rsq1 = dot3(delr1,delr1);
 
-        const int iparam_ij = elem2param[itype][jtype][jtype];
+        const int iparam_ij = elem3param[itype][jtype][jtype];
 
         // long range q-dependent
 
@@ -505,7 +505,7 @@ double PairCombOMP::yasu_char(double *qf_fix, int &igroup)
         delr1[2] = x[j][2] - ztmp;
         double rsq1 = dot3(delr1,delr1);
 
-        const int iparam_ij = elem2param[itype][jtype][jtype];
+        const int iparam_ij = elem3param[itype][jtype][jtype];
 
         if (rsq1 > params[iparam_ij].cutsq) continue;
         nj ++;

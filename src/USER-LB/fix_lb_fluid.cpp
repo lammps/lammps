@@ -17,22 +17,22 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_lb_fluid.h"
+
+#include "atom.h"
+#include "comm.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
+#include "group.h"
+#include "memory.h"
+#include "modify.h"
+#include "random_mars.h"
+#include "update.h"
+
 #include <cmath>
-
-
 #include <cstring>
 #include <algorithm>
 #include <utility>
-#include "comm.h"
-#include "memory.h"
-#include "error.h"
-#include "domain.h"
-#include "atom.h"
-#include "group.h"
-#include "random_mars.h"
-#include "update.h"
-#include "force.h"
-#include "modify.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

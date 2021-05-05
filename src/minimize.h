@@ -20,11 +20,11 @@ CommandStyle(minimize,Minimize)
 #ifndef LMP_MINIMIZE_H
 #define LMP_MINIMIZE_H
 
-#include "pointers.h"
+#include "command.h"
 
 namespace LAMMPS_NS {
 
-class Minimize : protected Pointers {
+class Minimize : public Command {
  public:
   Minimize(class LAMMPS *);
   void command(int, char **);

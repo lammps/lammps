@@ -12,11 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_nve_noforce.h"
-#include <cstring>
+
 #include "atom.h"
-#include "update.h"
-#include "respa.h"
 #include "error.h"
+#include "respa.h"
+#include "update.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -47,7 +47,7 @@ void FixNVENoforce::init()
 {
   dtv = update->dt;
 
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     step_respa = ((Respa *) update->integrate)->step;
 }
 

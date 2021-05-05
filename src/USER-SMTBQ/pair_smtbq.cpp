@@ -91,10 +91,6 @@ PairSMTBQ::PairSMTBQ(LAMMPS *lmp) : Pair(lmp)
   ds = 0.0;
   kmax = 0;
 
-  nelements = 0;
-  elements = nullptr;
-  nparams = 0;
-  maxparam = 0;
   params = nullptr;
   intparams = nullptr;
 
@@ -153,8 +149,6 @@ PairSMTBQ::~PairSMTBQ()
 {
   int i;
   if (elements) {
-    for ( i = 0; i < nelements; i++) delete [] elements[i];
-
     for (i = 0; i < atom->ntypes ; i++ ) free( params[i].nom);
     for (i = 1; i <= maxintparam ; i++ ) free( intparams[i].typepot);
     for (i = 1; i <= maxintparam ; i++ ) free( intparams[i].mode);
@@ -166,7 +160,6 @@ PairSMTBQ::~PairSMTBQ()
   free(writeenerg);
   free(Bavard);
 
-  delete [] elements;
   memory->sfree(params);
   memory->sfree(intparams);
 
@@ -216,7 +209,6 @@ PairSMTBQ::~PairSMTBQ()
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
-    delete [] map;
     delete [] esm;
   }
 
@@ -252,92 +244,30 @@ void PairSMTBQ::settings(int narg, char ** /* arg */)
 
 void PairSMTBQ::coeff(int narg, char **arg)
 {
-  int i,j,n;
-
   if (!allocated) allocate();
 
-  if (strstr(force->pair_style,"hybrid"))
+  if (utils::strmatch(force->pair_style,"^hybrid"))
     error->all(FLERR,"Pair style SMTBQ is not compatible with hybrid styles");
 
-  if (narg != 3 + atom->ntypes)
-    error->all(FLERR,"Incorrect args for pair coefficients");
-
-  // insure I,J args are * *
-
-  if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
-    error->all(FLERR,"Incorrect args for pair coefficients");
-
-  // read args that map atom types to elements in potential file
-  // map[i] = which element the Ith atom type is, -1 if "NULL"
-  // nelements = # of unique elements
-  // elements = list of element names
-
-  if (elements) {
-    for (i = 0; i < nelements; i++) delete [] elements[i];
-    delete [] elements;
-  }
-  elements = new char*[atom->ntypes];
-  for (i = 0; i < atom->ntypes; i++) elements[i] = nullptr;
-
-  nelements = 0;
-  for (i = 3; i < narg; i++) {
-    if (strcmp(arg[i],"NULL") == 0) {
-      map[i-2] = -1;
-      continue;
-    }
-    for (j = 0; j < nelements; j++)
-      if (strcmp(arg[i],elements[j]) == 0) break;
-    map[i-2] = j;
-    if (j == nelements) {
-      n = strlen(arg[i]) + 1;
-      elements[j] = new char[n];
-      strcpy(elements[j],arg[i]);
-      nelements++;
-    }
-  }
+  map_element2type(narg-3,arg+3);
 
   // read potential file and initialize potential parameters
 
   read_file(arg[2]);
 
-  n = atom->ntypes;
-
   // generate Coulomb 1/r energy look-up table
 
-  if (comm->me == 0 && screen) fprintf(screen,"Pair SMTBQ:\n");
   if (comm->me == 0 && screen)
-    fprintf(screen,"  generating Coulomb integral lookup table ...\n");
+    fputs("Pair SMTBQ: generating Coulomb integral lookup table ...\n",screen);
 
   tabqeq();
 
   // ------------
 
-
   if (comm->me == 0 && screen)
-    fprintf(screen,"  generating Second Moment integral lookup table ...\n");
+    fputs("  generating Second Moment integral lookup table ...\n",screen);
 
   tabsm();
-
-  // ------------
-
-  // clear setflag since coeff() called once with I,J = * *
-
-  for (int i = 1; i <= n; i++)
-    for (int j = i; j <= n; j++)
-      setflag[i][j] = 0;
-
-
-  // set setflag i,j for type pairs where both are mapped to elements
-
-  int count = 0;
-  for (int i = 1; i <= n; i++)
-    for (int j = i; j <= n; j++)
-      if (map[i] >= 0 && map[j] >= 0) {
-        setflag[i][j] = 1;
-        count++;
-      }
-
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------

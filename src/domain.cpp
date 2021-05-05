@@ -1816,8 +1816,18 @@ void Domain::delete_region(int narg, char **arg)
   int iregion = find_region(arg[0]);
   if (iregion == -1) error->all(FLERR,"Delete region ID does not exist");
 
+  delete_region(iregion);
+}
+
+void Domain::delete_region(int iregion)
+{
+  if ((iregion < 0) || (iregion >= nregion)) return;
+
+  // delete and move other Regions down in list one slot
+
   delete regions[iregion];
-  regions[iregion] = regions[nregion-1];
+  for (int i = iregion+1; i < nregion; ++i)
+    regions[i-1] = regions[i];
   nregion--;
 }
 
@@ -1830,6 +1840,18 @@ int Domain::find_region(const std::string &name)
 {
   for (int iregion = 0; iregion < nregion; iregion++)
     if (name == regions[iregion]->id) return iregion;
+  return -1;
+}
+
+/* ----------------------------------------------------------------------
+   return region index if name matches existing region style
+   return -1 if no such region
+------------------------------------------------------------------------- */
+
+int Domain::find_region_by_style(const std::string &name)
+{
+  for (int iregion = 0; iregion < nregion; iregion++)
+    if (name == regions[iregion]->style) return iregion;
   return -1;
 }
 

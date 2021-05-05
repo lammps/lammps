@@ -17,17 +17,17 @@
 
 #include "angle_cosine_periodic.h"
 
-#include <cmath>
 #include "atom.h"
-#include "neighbor.h"
-#include "domain.h"
 #include "comm.h"
+#include "domain.h"
+#include "error.h"
 #include "force.h"
 #include "math_const.h"
 #include "math_special.h"
 #include "memory.h"
-#include "error.h"
+#include "neighbor.h"
 
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -222,9 +222,9 @@ void AngleCosinePeriodic::coeff(int narg, char **arg)
 
 /* ---------------------------------------------------------------------- */
 
-double AngleCosinePeriodic::equilibrium_angle(int /*i*/)
+double AngleCosinePeriodic::equilibrium_angle(int i)
 {
-  return MY_PI;
+  return MY_PI*(1.0 - ((b[i]>0) ? 0.0 : (1.0/static_cast<double>(multiplicity[i]))));
 }
 
 /* ----------------------------------------------------------------------

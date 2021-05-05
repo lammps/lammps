@@ -61,16 +61,10 @@ class PairComb3 : public Pair {
   };
 
   // general setups
-  int nelements;                        // # of unique elements
-  int ***elem2param;                    // mapping from element triplets to parameters
-  int *map;                             // mapping from atom types to elements
-  int nparams;                          // # of stored parameter sets
-  int maxparam;                         // max # of parameter sets
   double PI,PI2,PI4,PIsq;               // PIs
   double cutmin;                        // min cutoff for all elements
   double cutmax;                        // max cutoff for all elements
   double precision;                     // tolerance for QEq convergence
-  char **elements;                      // names of unique elements
   Param *params;                        // parameter set for an I-J-K interaction
   int debug_eng1, debug_eng2, debug_fq; // logic controlling debugging outputs
   int pack_flag;

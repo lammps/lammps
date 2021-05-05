@@ -36,14 +36,18 @@
 #define HEADER_LINE_LEN 62
 #define STR_LINE  "%-37s%-24s\n"
 #define INT_LINE  "%-37s%-24d\n"
-#define BIGINT_LINE  "%-37s%-24ld\n"
+#if defined(LAMMPS_SMALLSMALL)
+#define BIGINT_LINE  "%-37s%-24d\n"
+#else
+#define BIGINT_LINE  "%-37s%-24lld\n"
+#endif
 #define INT2_LINE  "%-36s%-12d,%-12d\n"
 #define REAL_LINE "%-37s%-24.3f\n"
 #define SCI_LINE  "%-37s%-24g\n"
 #define REAL3_LINE "%-32s%9.3f,%9.3f,%9.3f\n"
 
 #if defined(LAMMPS_BIGBIG)
-#define INIT_DESC "%9ld%3d%9s%10.3f\n" //AtomID - AtomType, AtomName, AtomMass
+#define INIT_DESC "%9lld%3d%9s%10.3f\n" //AtomID - AtomType, AtomName, AtomMass
 #else
 #define INIT_DESC "%9d%3d%9s%10.3f\n" //AtomID - AtomType, AtomName, AtomMass
 #endif
@@ -56,7 +60,7 @@
 #define SIZE_INFO_LEN3 31
 
 #if defined(LAMMPS_BIGBIG)
-#define ATOM_BASIC "%9ld%10.3f%10.3f%10.3f%10.3f\n" //AtomID AtomType (X Y Z) Charge
+#define ATOM_BASIC "%9lld%10.3f%10.3f%10.3f%10.3f\n" //AtomID AtomType (X Y Z) Charge
 #define ATOM_wV    "%9ld%10.3f%10.3f%10.3f%10.3f%10.3f%10.3f%10.3f\n" //AtomID (X Y Z) (Vx Vy Vz) Charge
 #define ATOM_wF    "%9ld%10.3f%10.3f%10.3f%10.3f%10.3f%10.3f%10.3f\n" //AtomID (X Y Z) (Fx Fy Fz) Charge
 #define ATOM_FULL  "%9ld%10.3f%10.3f%10.3f%10.3f%10.3f%10.3f%10.3f%10.3f%10.3f%10.3f\n" //AtomID (X Y Z) (Vx Vy Vz) (Fx Fy Fz) Charge
@@ -72,9 +76,9 @@
 #define ATOM_FULL_LEN 110
 
 #if defined(LAMMPS_BIGBIG)
-#define BOND_BASIC "%9ld%9ld%10.3f%10.3f\n" // Atom1 Atom2 Dist Total_BO
-#define BOND_FULL  "%9ld%9ld%10.3f%10.3f%10.3f%10.3f%10.3f\n" // Atom1 Atom2 Dist Total_BO BOs BOpi BOpi2
-#define ANGLE_BASIC "%9ld%9ld%9ld%10.3f\n" // Atom1 Atom2 Atom3 Theta
+#define BOND_BASIC "%9lld%9lld%10.3f%10.3f\n" // Atom1 Atom2 Dist Total_BO
+#define BOND_FULL  "%9lld%9lld%10.3f%10.3f%10.3f%10.3f%10.3f\n" // Atom1 Atom2 Dist Total_BO BOs BOpi BOpi2
+#define ANGLE_BASIC "%9lld%9lld%9lld%10.3f\n" // Atom1 Atom2 Atom3 Theta
 #else
 #define BOND_BASIC "%9d%9d%10.3f%10.3f\n" // Atom1 Atom2 Dist Total_BO
 #define BOND_FULL  "%9d%9d%10.3f%10.3f%10.3f%10.3f%10.3f\n" // Atom1 Atom2 Dist Total_BO BOs BOpi BOpi2

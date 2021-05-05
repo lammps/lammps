@@ -8,7 +8,7 @@ add_executable(test_python_package test_python_package.cpp)
 target_link_libraries(test_python_package PRIVATE lammps GTest::GMock GTest::GTest)
 target_compile_definitions(test_python_package PRIVATE -DTEST_INPUT_FOLDER=${TEST_INPUT_FOLDER})
 add_test(NAME PythonPackage COMMAND test_python_package WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-set_tests_properties(PythonPackage PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}:${LAMMPS_PYTHON_DIR}:$ENV{PYTHONPATH}")
+set_tests_properties(PythonPackage PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}:${LAMMPS_PYTHON_DIR}:$ENV{PYTHONPATH};PYTHONUNBUFFERED=1")
 
 # we must have shared libraries enabled for testing the python module
 if(NOT BUILD_SHARED_LIBS)
@@ -28,6 +28,7 @@ endif()
 if(Python_EXECUTABLE)
   # prepare to augment the environment so that the LAMMPS python module and the shared library is found.
   set(PYTHON_TEST_ENVIRONMENT PYTHONPATH=${LAMMPS_PYTHON_DIR}:$ENV{PYTHONPATH})
+  list(APPEND PYTHON_TEST_ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
   if(APPLE)
     list(APPEND PYTHON_TEST_ENVIRONMENT "DYLD_LIBRARY_PATH=${CMAKE_BINARY_DIR}:$ENV{DYLD_LIBRARY_PATH};LAMMPS_CMAKE_CACHE=${CMAKE_BINARY_DIR}/CMakeCache.txt")
   else()

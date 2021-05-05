@@ -46,5 +46,3 @@ Thumbs.db
 /Makefile
 /cmake_install.cmake
 /lmp
-/
-.vscode/ipch

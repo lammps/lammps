@@ -226,7 +226,7 @@ __kernel void k_energy(const __global numtyp4 *restrict x_,
                        const numtyp rdr, const numtyp rdrho,
                        const numtyp rhomax, const int nrho,
                        const int nr, const int t_per_atom) {
-  int tid, ii, offset, i, itype;
+  int tid, ii, offset, i, itype, tfrho;
   atom_info(t_per_atom,ii,tid,offset);
 
   int n_stride;
@@ -243,6 +243,7 @@ __kernel void k_energy(const __global numtyp4 *restrict x_,
 
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     itype=ix.w;
+    tfrho=type2frho[itype];
 
     for ( ; nbor<nbor_end; nbor+=n_stride) {
       int j=dev_packed[nbor];
@@ -272,7 +273,6 @@ __kernel void k_energy(const __global numtyp4 *restrict x_,
       }
     } // for nbor
   } // if ii
-  const numtyp tfrho=type2frho[itype];
   store_energy_fp(rho,energy,ii,inum,tid,t_per_atom,offset,
                   eflag,vflag,engv,rdrho,nrho,i,rhomax,tfrho);
 }
@@ -294,7 +294,7 @@ __kernel void k_energy_fast(const __global numtyp4 *restrict x_,
                             const numtyp rdrho, const numtyp rhomax,
                             const int nrho, const int nr,
                             const int t_per_atom) {
-  int tid, ii, offset, i, itype;
+  int tid, ii, offset, i, itype, tfrho;
   atom_info(t_per_atom,ii,tid,offset);
 
   #ifndef ONETYPE
@@ -308,9 +308,9 @@ __kernel void k_energy_fast(const __global numtyp4 *restrict x_,
   }
   __syncthreads();
   #else
-  const numtyp type2rhor_z2rx=
+  const int type2rhor_z2rx=
     type2rhor_z2r_in[ONETYPE*MAX_SHARED_TYPES+ONETYPE].x;
-  const numtyp tfrho=type2frho_in[ONETYPE];
+  tfrho=type2frho_in[ONETYPE];
   #endif
 
   int n_stride;
@@ -328,6 +328,7 @@ __kernel void k_energy_fast(const __global numtyp4 *restrict x_,
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     #ifndef ONETYPE
     itype=ix.w;
+    tfrho=type2frho[itype];
     #endif
 
     for ( ; nbor<nbor_end; nbor+=n_stride) {
@@ -350,7 +351,7 @@ __kernel void k_energy_fast(const __global numtyp4 *restrict x_,
         p = MIN(p,(numtyp)1.0);
 
         #ifndef ONETYPE
-        int jtype=fast_mul((int)MAX_SHARED_TYPES,jx.w);
+        int jtype = fast_mul((int)MAX_SHARED_TYPES,jx.w);
         int mtype = jtype+itype;
         int index = type2rhor_z2r[mtype].x*(nr+1)+m;
         #else
@@ -361,9 +362,6 @@ __kernel void k_energy_fast(const __global numtyp4 *restrict x_,
       }
     } // for nbor
   } // if ii
-  #ifndef ONETYPE
-  const numtyp tfrho=type2frho[itype];
-  #endif
   store_energy_fp(rho,energy,ii,inum,tid,t_per_atom,offset,
                   eflag,vflag,engv,rdrho,nrho,i,rhomax,tfrho);
 }
@@ -504,8 +502,8 @@ __kernel void k_eam_fast(const __global numtyp4 *x_,
   __syncthreads();
   #else
   const int oi=ONETYPE*MAX_SHARED_TYPES+ONETYPE;
-  const numtyp type2rhor_z2rx=type2rhor_z2r_in[oi].x;
-  const numtyp type2rhor_z2ry=type2rhor_z2r_in[oi].y;
+  const int type2rhor_z2rx=type2rhor_z2r_in[oi].x;
+  const int type2rhor_z2ry=type2rhor_z2r_in[oi].y;
   #endif
 
   int n_stride;

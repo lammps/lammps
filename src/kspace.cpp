@@ -191,7 +191,7 @@ void KSpace::pair_check()
 {
   if (force->pair == nullptr)
     if (!force->kspace->tildflag)
-    error->all(FLERR,"KSpace solver requires a pair style");
+      error->all(FLERR,"KSpace solver requires a pair style");
   }
 
   if (ewaldflag && !force->pair->ewaldflag)

@@ -43,10 +43,8 @@ class TabularFunction {
     if (ny1) y1 = (ys6[ks] * ps + ys5[ks]) * ps + ys4[ks];
   }
 
-  double get_xmin() const { return xmin; }
   double get_xmax() const { return xmax; }
   double get_xmaxsq() const { return xmaxsq; }
-  double get_rdx() const { return rdx; }
   double get_vmax() { return vmax; }
 };
 }    // namespace LAMMPS_NS

@@ -99,7 +99,6 @@ class KSpace : protected Pointers {
 
   double splittol;                // tolerance for when to truncate splitting
 
-
   KSpace(class LAMMPS *);
   virtual ~KSpace();
   void two_charge();

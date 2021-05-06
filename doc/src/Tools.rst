@@ -802,7 +802,7 @@ Examples
 ^^^^^^^^
 
 For all of the examples below, you first need to create the cache, which
-requires an internect connection.
+requires an internet connection.
 
 .. code-block:: bash
 

@@ -32,7 +32,7 @@ To undo the environment changes and shutdown the local HTTP server, run the
 
 ## Examples
 
-For all of the examples below, you first need to create the cache, which requires an internect connection.
+For all of the examples below, you first need to create the cache, which requires an internet connection.
 
 ```bash
 ./tools/offline/init_caches.sh

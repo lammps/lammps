@@ -621,6 +621,7 @@ void PairPolymorphic::read_file(char *file)
   MPI_Bcast(&nr, 1, MPI_INT, 0, world);
   MPI_Bcast(&ng, 1, MPI_INT, 0, world);
   MPI_Bcast(&nx, 1, MPI_INT, 0, world);
+  MPI_Bcast(&eta, 1, MPI_INT, 0, world);
   MPI_Bcast(&maxX, 1, MPI_DOUBLE, 0, world);
 
   MPI_Bcast(&npair, 1, MPI_INT, 0, world);

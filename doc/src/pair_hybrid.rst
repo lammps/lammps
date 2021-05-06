@@ -257,7 +257,7 @@ then overrides them with 0.0 only for CHARMM:
 .. code-block:: LAMMPS
 
    special_bonds amber
-   pair_hybrid lj/charmm/coul/long 8.0 10.0 lj/cut/coul/long 10.0
+   pair_style hybrid lj/charmm/coul/long 8.0 10.0 lj/cut/coul/long 10.0
    pair_modify pair lj/charmm/coul/long special lj/coul 0.0 0.0 0.0
 
 The this input achieves the same effect:
@@ -265,7 +265,7 @@ The this input achieves the same effect:
 .. code-block:: LAMMPS
 
    special_bonds 0.0 0.0 0.1
-   pair_hybrid lj/charmm/coul/long 8.0 10.0 lj/cut/coul/long 10.0
+   pair_style hybrid lj/charmm/coul/long 8.0 10.0 lj/cut/coul/long 10.0
    pair_modify pair lj/cut/coul/long special lj 0.0 0.0 0.5
    pair_modify pair lj/cut/coul/long special coul 0.0 0.0 0.83333333
    pair_modify pair lj/charmm/coul/long special lj/coul 0.0 0.0 0.0
@@ -279,7 +279,7 @@ effectively *lj/coul 0.0 0.0 0.5* as required for OPLS/AA:
 .. code-block:: LAMMPS
 
    special_bonds lj/coul 1e-20 1e-20 0.5
-   pair_hybrid tersoff lj/cut/coul/long 12.0
+   pair_style hybrid tersoff lj/cut/coul/long 12.0
    pair_modify pair tersoff special lj/coul 1.0 1.0 1.0
 
 For use with the various :doc:`compute \*/tally <compute_tally>`

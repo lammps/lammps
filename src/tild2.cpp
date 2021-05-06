@@ -58,17 +58,13 @@ enum{FORWARD_NONE};
 /* ------------------------------------------------------------ */
 
 TILD::TILD(LAMMPS *lmp) : KSpace(lmp),
-  factors(NULL), fkx(NULL), fky(NULL), fkz(NULL), vg(NULL),
-  work1(NULL), work2(NULL), rho1d(NULL), rho_coeff(NULL), drho_coeff(NULL), 
-  gradWtypex(NULL), gradWtypey(NULL), gradWtypez(NULL), density_brick_types(NULL),
-  fft1(NULL), fft2(NULL), remap(NULL), cg(NULL), cg_peratom(NULL),  
-  part2grid(NULL), boxlo(NULL)
-  //gradWtype(NULL)
+  factors(nullptr), fkx(nullptr), fky(nullptr), fkz(nullptr), vg(nullptr),
+  work1(nullptr), work2(nullptr), rho1d(nullptr), rho_coeff(nullptr), drho_coeff(nullptr), 
+  gradWtypex(nullptr), gradWtypey(nullptr), gradWtypez(nullptr), density_brick_types(nullptr),
+  fft1(nullptr), fft2(nullptr), remap(nullptr), cg(nullptr), cg_peratom(nullptr),  
+  part2grid(nullptr), boxlo(nullptr)
+  //gradWtype(nullptr)
  {
-  if (comm->me == 0) {
-    if (screen) fprintf(screen, "TILD construction...\n");
-    if (logfile) fprintf(logfile, "TILD construction...\n");
-  }
   peratom_allocate_flag = 0;
 
   group_allocate_flag = 0;
@@ -95,45 +91,45 @@ TILD::TILD(LAMMPS *lmp) : KSpace(lmp),
   factors[1] = 3;
   factors[2] = 5;
 
-  fkx = fky = fkz = NULL;
-  fkx2 = fky2 = fkz2 = NULL;
+  fkx = fky = fkz = nullptr;
+  fkx2 = fky2 = fkz2 = nullptr;
 
-  vg = NULL;
-  vg_hat = NULL;
+  vg = nullptr;
+  vg_hat = nullptr;
 
-  work1 = work2 = NULL;
-  rho1d = rho_coeff = drho_coeff = NULL;
+  work1 = work2 = nullptr;
+  rho1d = rho_coeff = drho_coeff = nullptr;
 
-  fft1 = fft2 = NULL;
-  remap = NULL;
-  cg = NULL;
-  cg_peratom = NULL;
-  part2grid = NULL;
+  fft1 = fft2 = nullptr;
+  remap = nullptr;
+  cg = nullptr;
+  cg_peratom = nullptr;
+  part2grid = nullptr;
   specified_all_group = 0;
 
-  density_brick_types = NULL;
-  avg_density_brick_types = NULL;
-  density_fft_types = NULL;
-  density_hat_fft_types = NULL;
-  //gradWtype = NULL;
-  gradWtypex = NULL;
-  gradWtypey = NULL;
-  gradWtypez = NULL;
-  potent = NULL;
-  potent_hat = NULL;
-  grad_potent = NULL;
-  grad_potent_hat = NULL;
-  setflag = NULL;
-  potent_type_map = NULL;
-  chi = NULL;
-  a2 = NULL;
-  rp = NULL;
-  xi = NULL;
-  ktmp = NULL;
-  ktmp2 = NULL;
-  ktmpi = ktmpj = NULL;
-  ktmp2i = ktmp2j = NULL;
-  tmp = NULL;
+  density_brick_types = nullptr;
+  avg_density_brick_types = nullptr;
+  density_fft_types = nullptr;
+  density_hat_fft_types = nullptr;
+  //gradWtype = nullptr;
+  gradWtypex = nullptr;
+  gradWtypey = nullptr;
+  gradWtypez = nullptr;
+  potent = nullptr;
+  potent_hat = nullptr;
+  grad_potent = nullptr;
+  grad_potent_hat = nullptr;
+  setflag = nullptr;
+  potent_type_map = nullptr;
+  chi = nullptr;
+  a2 = nullptr;
+  rp = nullptr;
+  xi = nullptr;
+  ktmp = nullptr;
+  ktmp2 = nullptr;
+  ktmpi = ktmpj = nullptr;
+  ktmp2i = ktmp2j = nullptr;
+  tmp = nullptr;
 
   rho0 = 0.0;
   nmax = 0;
@@ -185,7 +181,7 @@ TILD::~TILD(){
   deallocate();
   deallocate_peratom();
   memory->destroy(part2grid);
-  part2grid = NULL;
+  part2grid = nullptr;
 
   // check whether cutoff and pair style are set
 
@@ -753,7 +749,7 @@ void TILD::allocate()
 void TILD::deallocate()
 {
   memory->destroy(setflag);
-  setflag = NULL;
+  setflag = nullptr;
 
   //memory->destroy(potent_type_map);
 
@@ -761,9 +757,9 @@ void TILD::deallocate()
   memory->destroy4d_offset(avg_density_brick_types,nzlo_out,nylo_out,nxlo_out);
   memory->destroy(density_fft_types);
   memory->destroy(density_hat_fft_types);
-  density_brick_types = NULL;
-  avg_density_brick_types = NULL;
-  density_fft_types = density_hat_fft_types = NULL;
+  density_brick_types = nullptr;
+  avg_density_brick_types = nullptr;
+  density_fft_types = density_hat_fft_types = nullptr;
   memory->destroy(ktmp);
   memory->destroy(ktmpi);
   memory->destroy(ktmpj);
@@ -771,7 +767,7 @@ void TILD::deallocate()
   memory->destroy(ktmp2i);
   memory->destroy(ktmp2j);
   memory->destroy(tmp);
-  tmp = ktmp = ktmpi = ktmpj = ktmp2 = ktmp2i = ktmp2j = tmp = NULL;
+  tmp = ktmp = ktmpi = ktmpj = ktmp2 = ktmp2i = ktmp2j = tmp = nullptr;
 
   memory->destroy(vg);
   memory->destroy(vg_hat);
@@ -779,22 +775,22 @@ void TILD::deallocate()
   memory->destroy(potent_hat);
   memory->destroy(grad_potent);
   memory->destroy(grad_potent_hat);
-  vg_hat = vg = NULL;
-  potent_hat = potent = NULL;
-  grad_potent_hat = grad_potent = NULL;
+  vg_hat = vg = nullptr;
+  potent_hat = potent = nullptr;
+  grad_potent_hat = grad_potent = nullptr;
 
   //memory->destroy5d_offset(gradWtype, 0, nzlo_out,nylo_out, nxlo_out);
   memory->destroy4d_offset(gradWtypex, nzlo_out,nylo_out, nxlo_out);
   memory->destroy4d_offset(gradWtypey, nzlo_out,nylo_out, nxlo_out);
   memory->destroy4d_offset(gradWtypez, nzlo_out,nylo_out, nxlo_out);
 
-  //gradWtype = NULL;
-  gradWtypex = NULL;
-  gradWtypey = NULL;
-  gradWtypez = NULL;
+  //gradWtype = nullptr;
+  gradWtypex = nullptr;
+  gradWtypey = nullptr;
+  gradWtypez = nullptr;
   memory->destroy(work1);
   memory->destroy(work2);
-  work1 = work2 = NULL;
+  work1 = work2 = nullptr;
 
   if (triclinic == 0) {
     memory->destroy1d_offset(fkx,nxlo_fft);
@@ -816,15 +812,15 @@ void TILD::deallocate()
   memory->destroy2d_offset(rho1d,-order_allocated/2);
   memory->destroy2d_offset(rho_coeff,(1-order_allocated)/2);
   memory->destroy2d_offset(drho_coeff,(1-order_allocated)/2);
-  rho1d = rho_coeff = drho_coeff = NULL;
+  rho1d = rho_coeff = drho_coeff = nullptr;
 
   delete fft1;
   delete fft2;
   delete remap;
   delete cg;
-  fft1 = fft2 = NULL;
-  remap = NULL;
-  cg = NULL;
+  fft1 = fft2 = nullptr;
+  remap = nullptr;
+  cg = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -956,7 +952,7 @@ void TILD::deallocate_peratom()
   peratom_allocate_flag = 0;
 
   delete cg_peratom;
-  cg_peratom = NULL;
+  cg_peratom = nullptr;
 }
 
 void TILD::init_cross_potentials(){
@@ -2111,7 +2107,7 @@ void TILD::compute_rho_coeff(FFT_SCALAR **coeff , FFT_SCALAR **dcoeff,
   int j,k,l,m;
   FFT_SCALAR s;
 
-  FFT_SCALAR **a; // = NULL;
+  FFT_SCALAR **a; // = nullptr;
   memory->create2d_offset(a,ord,-ord,ord,"pppm:a");
 
   for (k = -ord; k <= ord; k++)

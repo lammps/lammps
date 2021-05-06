@@ -17,18 +17,20 @@
 
 #include "omp_compat.h"
 #include "bond_fene_omp.h"
+
 #include "atom.h"
 #include "comm.h"
-#include "force.h"
-#include "neighbor.h"
-
 #include "error.h"
+#include "force.h"
+#include "math_const.h"
+#include "neighbor.h"
 #include "update.h"
 
 #include <cmath>
 
 #include "suffix.h"
 using namespace LAMMPS_NS;
+using MathConst::MY_CBRT2;
 
 /* ---------------------------------------------------------------------- */
 
@@ -110,13 +112,8 @@ void BondFENEOMP::eval(int nfrom, int nto, ThrData * const thr)
     // if r > 2*r0 something serious is wrong, abort
 
     if (rlogarg < 0.1) {
-      char str[128];
-
-      sprintf(str,"FENE bond too long: " BIGINT_FORMAT " "
-              TAGINT_FORMAT " " TAGINT_FORMAT " %g",
-              update->ntimestep,atom->tag[i1],atom->tag[i2],sqrt(rsq));
-      error->warning(FLERR,str);
-
+      error->warning(FLERR,"FENE bond too long: {} {} {} {:.8}",
+                     update->ntimestep,atom->tag[i1],atom->tag[i2],sqrt(rsq));
       if (check_error_thr((rlogarg <= -3.0),tid,FLERR,"Bad FENE bond"))
         return;
 
@@ -127,7 +124,7 @@ void BondFENEOMP::eval(int nfrom, int nto, ThrData * const thr)
 
     // force from LJ term
 
-    if (rsq < TWO_1_3*sigma[type]*sigma[type]) {
+    if (rsq < MY_CBRT2*sigma[type]*sigma[type]) {
       sr2 = sigma[type]*sigma[type]/rsq;
       sr6 = sr2*sr2*sr2;
       fbond += 48.0*epsilon[type]*sr6*(sr6-0.5)/rsq;
@@ -137,7 +134,7 @@ void BondFENEOMP::eval(int nfrom, int nto, ThrData * const thr)
 
     if (EFLAG) {
       ebond = -0.5 * k[type]*r0sq*log(rlogarg);
-      if (rsq < TWO_1_3*sigma[type]*sigma[type])
+      if (rsq < MY_CBRT2*sigma[type]*sigma[type])
         ebond += 4.0*epsilon[type]*sr6*(sr6-1.0) + epsilon[type];
     }
 

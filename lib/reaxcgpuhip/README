@@ -1,0 +1,51 @@
+## REAXC-HIP
+
+This library contains the code for the HIP version of PG-PuReMD which is 
+a implementation of the ReaxFF force field.ReaxFF uses distance-dependent bond-order functions to
+represent the contributions of chemical bonding to the potential
+energy.  It was originally developed by Adri van Duin and the Goddard
+group at CalTech.
+
+PG-PuReMD is the GPU CUDA version of the PuReMD package originally written by Hasan Metin Aktulga(hma@cse.msu.edu)
+
+The code here contains the HIP version of PG-PuReMD which  was ported from CUDA to HIP by
+Trinayan Baruah(baruah.t@northeastern.edu). Note that the HIP version code is not updated to 
+the latest PG-PuReMD code which has undergone significant changes since 2020.
+
+## Documentation
+Documentation and details for PuReMD are available here(https://gitlab.msu.edu/SParTA/PuReMD)
+
+
+#Important notes
+1. The code currently supports only full lists. Half lists are not supported
+2. The code requires the number of GPUs equal to the number of MPI processes. 
+
+## Requirements
+
+Building the library requires the following components currently:
+
+1. A ROCm enabled AMD GPU with ROCm installed. Currently version 4.2 is supported
+2. g/g++ compiler that is C++11 compliant
+3. The ROCm rocPRIM library
+4. The ROCm hipCUB library
+
+
+
+## How to build (traditional make)
+
+Before building LAMMPS, one must build the reaxcgpuhip library in lib/reaxcgpuhip.
+
+This is best carried out from the LAMMPS src directory using the command
+"make lib-reaxcgpu args="-m hip" v=1" which will invoke the lib/reaxcgpuhip/Install.py
+script. This will build the library according using the  Makefile.hip inside lib/reaxcgpuhip
+
+Note that the Makefile.hip expects ROCm to be installed inside /opt/rocm. If it is installed at a 
+different location or directory please update the variable ROCM_PATH before building.
+
+The MPI_PATH environment variable must also be set before building. This is the location of the MPI library
+installed on the system which can be found with the "mpicc --showme" command. 
+
+
+The build should produce two files: the library lib/reaxcgpuhip/reaxcgpuhip.a and the specification file
+lib/reaxcgpuhip/Makefile.lammps. The latter is auto-generated, and normally does
+not need to be edited.

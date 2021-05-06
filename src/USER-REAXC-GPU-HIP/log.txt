@@ -1,0 +1,313 @@
+LAMMPS (24 Aug 2020)
+Reading data file ...
+  orthogonal box = (35.000000 35.000000 35.000000) to (48.000000 48.000000 48.000000)
+  1 by 1 by 2 MPI processor grid
+  reading atoms ...
+  21 atoms
+  read_data CPU = 0.001 seconds
+Hbonds 0 
+Control file 
+Hbonds 0 
+Control file 
+Reading control 
+Reading control 
+GPU ID 0
+Reading potential file ffield.reax with DATE: 2010-02-19
+GPU ID 0
+Neighbor list info ...
+  update every 10 steps, delay 0 steps, check no
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 12.5
+  ghost atom cutoff = 12.5
+  binsize = 6.25, bins = 3 3 3
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair reax/c/gpu, perpetual
+      attributes: full, newton off, ghost
+      pair build: full/bin/ghost
+      stencil: full/ghost/bin/3d
+      bin: standard
+  (2) fix qeq/reax, perpetual, copy from (1)
+      attributes: full, newton off, ghost
+      pair build: copy
+      stencil: none
+      bin: none
+Setting up Verlet run ...
+  Unit style    : real
+  Current step  : 0
+  Time step     : 0.25
+Cuda block_size 3,1 
+blocks 1, 1,3 
+Cuda block_size 405,2 
+Num nbrs 11426 
+Size 48 
+Cuda block_size 18,1 
+blocks 1, 1,18 
+Cuda block_size 513,3 
+Num nbrs 13975 
+Size 48 
+Scratch size 524288000 
+Scratch size 524288000 
+Num  H 3, 50 
+3,405,486
+Num  H 15, 50 
+18,513,615
+Size 48 
+total bonds 7938, 12150 
+Size 48 
+Num bonds 1,11,22
+Num bonds 1,11,22
+Size 48 
+total bonds 9954, 15375 
+Size 48 
+Cuda block_size 18,1 
+blocks 1, 1,18 
+Cuda block_size 513,3 
+Initial setup done. far numbers gpu 13975 
+Initial setup done. far numbers gpu 13975 
+Num  H 15, 50 
+Computing forces 
+Calling 
+Cuda block_size 3,1 
+blocks 1, 1,3 
+Cuda block_size 405,2 
+Initial setup done. far numbers gpu 11426 
+Initial setup done. far numbers gpu 11426 
+System small n 18, N 513 
+Num  H 3, 50 
+ is 10 start 259, end 284
+Computing forces 
+Calling 
+ 0,0,0
+1
+
+
+
+Init forces
+BO init 
+System small n 3, N 405 
+ is 10 start 193, end 206
+ 0,0,0
+1
+
+
+
+Init forces
+BO init 
+data step 0,0
+data step 0,0
+Size 48 
+ret 1 
+Valence angels 
+start0,end11
+Size 48 
+ret 1 
+Valence angels 
+start0,end4
+Post process 
+Torsion angles post process 
+Launching hydrogen bonds kernel 
+Completed hydrogen bonds kernel 
+Post process 
+Torsion angles post process 
+Launching hydrogen bonds kernel 
+Completed hydrogen bonds kernel 
+virital 0 
+Completed forces
+Computing forces finished 
+List allocated
+virital 0 
+Completed forces
+Computing forces finished 
+List allocated
+Copy finish
+List allocated
+Copy finish
+Per MPI rank memory allocation (min/avg/max) = 5.82 | 5.844 | 5.868 Mbytes
+Step Temp E_pair TotEng Press v_eb v_ea v_elp v_emol v_ev v_epen v_ecoa v_ehb v_et v_eco v_ew v_ep v_efi v_eqeq 
+       0            0            0            0   -81127.001   -2958.4712   -1.9206632   0.31082031            0    98.589783    25.846176  -0.18034154            0    16.709078   -9.1620736    938.54292   -10478.235            0    29150.569 
+Copy finish
+List allocated
+Copy finish
+LAMMPS (24 Aug 2020)
+Reading data file ...
+  orthogonal box = (35.000000 35.000000 35.000000) to (48.000000 48.000000 48.000000)
+  1 by 1 by 2 MPI processor grid
+  reading atoms ...
+  21 atoms
+  read_data CPU = 0.001 seconds
+Hbonds 0 
+Hbonds 0 
+Control file 
+Control file 
+Reading control 
+Reading control 
+GPU ID 0
+GPU ID 0
+Reading potential file ffield.reax with DATE: 2010-02-19
+Neighbor list info ...
+  update every 10 steps, delay 0 steps, check no
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 12.5
+  ghost atom cutoff = 12.5
+  binsize = 6.25, bins = 3 3 3
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair reax/c/gpu, perpetual
+      attributes: full, newton off, ghost
+      pair build: full/bin/ghost
+      stencil: full/ghost/bin/3d
+      bin: standard
+  (2) fix qeq/reax, perpetual, copy from (1)
+      attributes: full, newton off, ghost
+      pair build: copy
+      stencil: none
+      bin: none
+Setting up Verlet run ...
+  Unit style    : real
+  Current step  : 0
+  Time step     : 0.25
+Cuda block_size 3,1 
+blocks 1, 1,3 
+Cuda block_size 405,2 
+Cuda block_size 18,1 
+blocks 1, 1,18 
+Cuda block_size 513,3 
+Num nbrs 11426 
+Size 48 
+Num nbrs 13975 
+Size 48 
+Scratch size 524288000 
+Scratch size 524288000 
+Num  H 3, 50 
+Num  H 15, 50 
+3,405,486
+18,513,615
+Size 48 
+total bonds 7938, 12150 
+Size 48 
+Num bonds 1,11,22
+Num bonds 1,11,22
+Size 48 
+total bonds 9954, 15375 
+Size 48 
+LAMMPS (24 Aug 2020)
+Reading data file ...
+  orthogonal box = (35.000000 35.000000 35.000000) to (48.000000 48.000000 48.000000)
+  1 by 1 by 2 MPI processor grid
+  reading atoms ...
+  21 atoms
+  read_data CPU = 0.001 seconds
+Hbonds 0 
+Control file 
+Hbonds 0 
+Control file 
+Reading control 
+Reading control 
+GPU ID 0
+GPU ID 0
+Reading potential file ffield.reax with DATE: 2010-02-19
+Neighbor list info ...
+  update every 10 steps, delay 0 steps, check no
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 12.5
+  ghost atom cutoff = 12.5
+  binsize = 6.25, bins = 3 3 3
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair reax/c/gpu, perpetual
+      attributes: full, newton off, ghost
+      pair build: full/bin/ghost
+      stencil: full/ghost/bin/3d
+      bin: standard
+  (2) fix qeq/reax, perpetual, copy from (1)
+      attributes: full, newton off, ghost
+      pair build: copy
+      stencil: none
+      bin: none
+Setting up Verlet run ...
+  Unit style    : real
+  Current step  : 0
+  Time step     : 0.25
+Cuda block_size 3,1 
+blocks 1, 1,3 
+Cuda block_size 405,2 
+Cuda block_size 18,1 
+blocks 1, 1,18 
+Cuda block_size 513,3 
+Num nbrs 11426 
+Size 48 
+Num nbrs 13975 
+Size 48 
+Scratch size 524288000 
+Scratch size 524288000 
+Num  H 3, 50 
+Num  H 15, 50 
+18,513,615
+3,405,486
+Num bonds 1,11,22
+Num bonds 1,11,22
+Size 48 
+Size 48 
+total bonds 7938, 12150 
+Size 48 
+total bonds 9954, 15375 
+Size 48 
+LAMMPS (24 Aug 2020)
+Reading data file ...
+  orthogonal box = (35.000000 35.000000 35.000000) to (48.000000 48.000000 48.000000)
+  1 by 1 by 2 MPI processor grid
+  reading atoms ...
+  21 atoms
+  read_data CPU = 0.001 seconds
+Hbonds 0 
+Control file 
+Hbonds 0 
+Control file 
+Reading control 
+Reading control 
+GPU ID 0
+GPU ID 0
+Reading potential file ffield.reax with DATE: 2010-02-19
+Neighbor list info ...
+  update every 10 steps, delay 0 steps, check no
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 12.5
+  ghost atom cutoff = 12.5
+  binsize = 6.25, bins = 3 3 3
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair reax/c/gpu, perpetual
+      attributes: full, newton off, ghost
+      pair build: full/bin/ghost
+      stencil: full/ghost/bin/3d
+      bin: standard
+  (2) fix qeq/reax, perpetual, copy from (1)
+      attributes: full, newton off, ghost
+      pair build: copy
+      stencil: none
+      bin: none
+Setting up Verlet run ...
+  Unit style    : real
+  Current step  : 0
+  Time step     : 0.25
+Cuda block_size 3,1 
+blocks 1, 1,3 
+Cuda block_size 405,2 
+Cuda block_size 18,1 
+blocks 1, 1,18 
+Cuda block_size 513,3 
+Num nbrs 11426 
+Size 48 
+Num nbrs 13975 
+Size 48 
+Scratch size 524288000 
+Scratch size 524288000 
+Num  H 3, 50 
+Num  H 15, 50 
+18,513,615
+3,405,486
+Num bonds 1,11,22
+Num bonds 1,11,22
+Size 48 
+Size 48 
+total bonds 7938, 12150 
+Size 48 
+total bonds 9954, 15375 
+Size 48 

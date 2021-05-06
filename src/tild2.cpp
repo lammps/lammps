@@ -33,7 +33,6 @@
 #include "neighbor.h"
 #include "output.h"
 #include "thermo.h"
-#include <fstream>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

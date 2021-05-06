@@ -94,6 +94,7 @@ Miscellaneous tools
    * :ref:`kate <kate>`
    * :ref:`LAMMPS shell <lammps_shell>`
    * :ref:`LAMMPS magic patterns for file(1) <magic>`
+   * :ref:`Offline build tool <offline>`
    * :ref:`singularity <singularity_tool>`
    * :ref:`SWIG interface <swig>`
    * :ref:`vim <vim>`
@@ -753,6 +754,103 @@ This tool has several known limitations and is no longer under active
 development, so there are no changes except for the occasional bug fix.
 
 See the README file in the tools/msi2lmp folder for more information.
+
+----------
+
+.. _offline:
+
+Scripts for building LAMMPS when offline
+----------------------------------------
+
+In some situations it might be necessary to build LAMMPS on a system
+without direct internet access. The scripts in ``tools/offline`` folder
+allow you to pre-load external dependencies for both the documentation
+build and for building LAMMPS with CMake.
+
+It does so by
+
+ #. downloading necessary ``pip`` packages,
+ #. cloning ``git`` repositories
+ #. downloading tarballs
+
+to a designated cache folder.
+
+As of April 2021, all of these downloads make up around 600MB. By
+default, the offline scripts will download everything into the
+``$HOME/.cache/lammps`` folder, but this can be changed by setting the
+``LAMMPS_CACHING_DIR`` environment variable.
+
+Once the caches have been initialized, they can be used for building the
+LAMMPS documentation or compiling LAMMPS using CMake on an offline
+system.
+
+The ``use_caches.sh`` script must be sourced into the current shell
+to initialize the offline build environment. Note that it must use
+the same ``LAMMPS_CACHING_DIR``. This script does the following:
+
+ #. Set up environment variables that modify the behavior of both,
+    ``pip`` and ``git``
+ #. Start a simple local HTTP server using Python to host files for CMake
+
+Afterwards, it will print out instruction on how to modify the CMake
+command line to make sure it uses the local HTTP server.
+
+To undo the environment changes and shutdown the local HTTP server,
+run the ``deactivate_caches`` command.
+
+Examples
+^^^^^^^^
+
+For all of the examples below, you first need to create the cache, which
+requires an internect connection.
+
+.. code-block:: bash
+
+   ./tools/offline/init_caches.sh
+
+Afterwards, you can disconnect or copy the contents of the
+``LAMMPS_CACHING_DIR`` folder to an offline system.
+
+Documentation Build
+^^^^^^^^^^^^^^^^^^^
+
+The documentation build will create a new virtual environment that
+typically first installs dependencies from ``pip``. With the offline
+environment loaded, these installations will instead grab the necessary
+packages from your local cache.
+
+.. code-block:: bash
+
+   # if LAMMPS_CACHING_DIR is different from default, make sure to set it first
+   # export LAMMPS_CACHING_DIR=path/to/folder
+   source tools/offline/use_caches.sh
+   cd doc/
+   make html
+
+   deactivate_caches
+
+CMake Build
+^^^^^^^^^^^
+
+When compiling certain packages with external dependencies, the CMake
+build system will download necessary files or sources from the web. For
+more flexibility the CMake configuration allows users to specify the URL
+of each of these dependencies.  What the ``init_caches.sh`` script does
+is create a CMake "preset" file, which sets the URLs for all of the known
+dependencies and redirects the download to the local cache.
+
+.. code-block:: bash
+
+   # if LAMMPS_CACHING_DIR is different from default, make sure to set it first
+   # export LAMMPS_CACHING_DIR=path/to/folder
+   source tools/offline/use_caches.sh
+
+   mkdir build
+   cd build
+   cmake -D LAMMPS_DOWNLOADS_URL=${HTTP_CACHE_URL} -C "${LAMMPS_HTTP_CACHE_CONFIG}" -C ../cmake/presets/most.cmake ../cmake
+   make -j 8
+
+   deactivate_caches
 
 ----------
 

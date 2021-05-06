@@ -12,23 +12,22 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_nve2.h"
-#include <cstring>
 #include "atom.h"
-#include "force.h"
-#include "update.h"
-#include "respa.h"
 #include "error.h"
+#include "force.h"
+#include "respa.h"
+#include "update.h"
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixNVE2::FixNVE2(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+FixNVE2::FixNVE2(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 {
-  if (strcmp(style,"nve/sphere") != 0 && narg < 3)
-    error->all(FLERR,"Illegal fix nve command");
+  if (strcmp(style, "nve/sphere") != 0 && narg < 3)
+    error->all(FLERR, "Illegal fix nve command");
 
   dynamic_group_allow = 1;
   time_integrate = 1;
@@ -53,7 +52,7 @@ void FixNVE2::init()
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
 
-  if (strstr(update->integrate_style,"respa"))
+  if (strstr(update->integrate_style, "respa"))
     step_respa = ((Respa *) update->integrate)->step;
 }
 
@@ -150,8 +149,10 @@ void FixNVE2::initial_integrate_respa(int vflag, int ilevel, int /*iloop*/)
   // innermost level - NVE update of v and x
   // all other levels - NVE update of v
 
-  if (ilevel == 0) initial_integrate(vflag);
-  else final_integrate();
+  if (ilevel == 0)
+    initial_integrate(vflag);
+  else
+    final_integrate();
 }
 
 /* ---------------------------------------------------------------------- */

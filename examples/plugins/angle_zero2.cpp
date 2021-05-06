@@ -19,9 +19,9 @@
 
 #include "atom.h"
 #include "comm.h"
+#include "error.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
 
 #include <cstring>
 
@@ -46,7 +46,7 @@ AngleZero2::~AngleZero2()
 
 void AngleZero2::compute(int eflag, int vflag)
 {
-  ev_init(eflag,vflag);
+  ev_init(eflag, vflag);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -54,11 +54,13 @@ void AngleZero2::compute(int eflag, int vflag)
 void AngleZero2::settings(int narg, char **arg)
 {
   if ((narg != 0) && (narg != 1))
-    error->all(FLERR,"Illegal angle_style command");
+    error->all(FLERR, "Illegal angle_style command");
 
   if (narg == 1) {
-    if (strcmp("nocoeff",arg[0]) == 0) coeffflag=0;
-    else error->all(FLERR,"Illegal angle_style command");
+    if (strcmp("nocoeff", arg[0]) == 0)
+      coeffflag = 0;
+    else
+      error->all(FLERR, "Illegal angle_style command");
   }
 }
 
@@ -69,8 +71,8 @@ void AngleZero2::allocate()
   allocated = 1;
   int n = atom->nangletypes;
 
-  memory->create(theta0,n+1,"angle:theta0");
-  memory->create(setflag,n+1,"angle:setflag");
+  memory->create(theta0, n + 1, "angle:theta0");
+  memory->create(setflag, n + 1, "angle:setflag");
   for (int i = 1; i <= n; i++) setflag[i] = 0;
 }
 
@@ -81,27 +83,27 @@ void AngleZero2::allocate()
 void AngleZero2::coeff(int narg, char **arg)
 {
   if ((narg < 1) || (coeffflag && narg > 2))
-    error->all(FLERR,"Incorrect args for angle coefficients");
+    error->all(FLERR, "Incorrect args for angle coefficients");
 
   if (!allocated) allocate();
 
-  int ilo,ihi;
-  utils::bounds(FLERR,arg[0],1,atom->nangletypes,ilo,ihi,error);
+  int ilo, ihi;
+  utils::bounds(FLERR, arg[0], 1, atom->nangletypes, ilo, ihi, error);
 
   double theta0_one = 0.0;
   if (coeffflag && (narg == 2))
-    theta0_one = utils::numeric(FLERR,arg[1],false,lmp);
+    theta0_one = utils::numeric(FLERR, arg[1], false, lmp);
 
   // convert theta0 from degrees to radians
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
     setflag[i] = 1;
-    theta0[i] = theta0_one/180.0 * MY_PI;
+    theta0[i] = theta0_one / 180.0 * MY_PI;
     count++;
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for angle coefficients");
+  if (count == 0) error->all(FLERR, "Incorrect args for angle coefficients");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -115,8 +117,9 @@ double AngleZero2::equilibrium_angle(int i)
    proc 0 writes out coeffs to restart file
 ------------------------------------------------------------------------- */
 
-void AngleZero2::write_restart(FILE *fp) {
-  fwrite(&theta0[1],sizeof(double),atom->nangletypes,fp);
+void AngleZero2::write_restart(FILE *fp)
+{
+  fwrite(&theta0[1], sizeof(double), atom->nangletypes, fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -128,9 +131,10 @@ void AngleZero2::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    utils::sfread(FLERR,&theta0[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+    utils::sfread(FLERR, &theta0[1], sizeof(double), atom->nangletypes, fp,
+                  nullptr, error);
   }
-  MPI_Bcast(&theta0[1],atom->nangletypes,MPI_DOUBLE,0,world);
+  MPI_Bcast(&theta0[1], atom->nangletypes, MPI_DOUBLE, 0, world);
 
   for (int i = 1; i <= atom->nangletypes; i++) setflag[i] = 1;
 }
@@ -141,7 +145,7 @@ void AngleZero2::read_restart(FILE *fp)
 void AngleZero2::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->nangletypes; i++)
-    fprintf(fp,"%d %g\n",i,theta0[i]/MY_PI*180.0);
+    fprintf(fp, "%d %g\n", i, theta0[i] / MY_PI * 180.0);
 }
 
 /* ---------------------------------------------------------------------- */

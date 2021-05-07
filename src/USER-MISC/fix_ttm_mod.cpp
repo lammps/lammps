@@ -260,7 +260,7 @@ void FixTTMMod::post_force(int /*vflag*/)
 
   double dx = domain->xprd/nxnodes;
   double dy = domain->yprd/nynodes;
-  double dz = domain->zprd/nynodes;
+  double dz = domain->zprd/nznodes;
   double gamma1,gamma2;
 
   // apply damping and thermostat to all atoms in fix group

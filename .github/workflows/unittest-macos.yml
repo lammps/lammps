@@ -49,6 +49,6 @@ jobs:
         ccache -s
 
     - name: Run Tests
-      working-directory: ${{github.workspace}}/build
+      working-directory: build
       shell: bash
       run: ctest -V

@@ -84,13 +84,22 @@ certain whether they are an indication of an error.
 
 Some warning messages are printed during a run (or immediately before)
 each time a specific MPI rank encounters the issue, e.g. bonds that are
-stretched too far or dihedrals in extreme configurations. These can
-become verbose for and thus quickly blow up the size of the log file
-and screen output.  Thus a limit of 100 warning messages is applied
-by default.  The warning count is applied to the entire input unless
-reset with a ``thermo_modify warn reset`` command.  If there are more
-warnings than the limit, LAMMPS will print one final warning that it
-will not print any additional warning messages.
+stretched too far or dihedrals in extreme configurations. These number
+of these can quickly blow up the size of the log file and screen output.
+Thus a limit of 100 warning messages is applied by default.  The warning
+count is applied to the entire input unless reset with a ``thermo_modify
+warn reset`` command.  If there are more warnings than the limit, LAMMPS
+will print one final warning that it will not print any additional
+warning messages.
+
+.. note::
+
+   The warning limit is enforced on either the per-processor count or
+   the total count across all processors. For efficiency reasons,
+   however, the total count is only updated at steps with thermodynamic
+   output. Thus when running on a large number of processors in
+   parallel, the total number of warnings printed can be significantly
+   larger than the given limit.
 
 Any number after the keyword *warn* will change the warning limit
 accordingly.  With the value *ignore* all warnings will be suppressed,
@@ -100,8 +109,8 @@ will be reset to zero, and with the value *default*, the counter is
 reset and the limit set to 100.  An example usage of either *reset* or
 *default* would be to re-enable warnings that were disabled or have
 reached the limit during equilibration, where the warnings would be
-acceptable while the system is still adjusting, but then one would want
-to all warnings again for the production run, where they would indicate
+acceptable while the system is still adjusting, but then change
+to all warnings for the production run, where they would indicate
 problems that would require a closer look at what is causing them.
 
 The *norm* keyword determines whether various thermodynamic output

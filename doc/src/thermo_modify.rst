@@ -201,9 +201,9 @@ Related commands
 Default
 """""""
 
-The option defaults are lost = error, norm = yes for unit style of
-*lj*\ , norm = no for unit style of *real* and *metal*\ , flush = no,
-and temp/press = compute IDs defined by thermo_style.
+The option defaults are lost = error, warn = 100, norm = yes for unit
+style of *lj*\ , norm = no for unit style of *real* and *metal*\ ,
+flush = no, and temp/press = compute IDs defined by thermo_style.
 
 The defaults for the line and format options depend on the thermo
 style.  For styles "one" and "custom", the line and format defaults

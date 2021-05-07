@@ -32,7 +32,7 @@ of the MDI Library's documentation.
 ----------
 
 This command should typically be used in an input script after LAMMPS
-has setup the system is is going to model in collaboration with the
+has setup the system it is going to model in collaboration with the
 driver code.  Depending on how the driver code tells the LAMMPS engine
 to exit, other commands can be executed after this command, but
 typically it should be used at the end of the LAMMPS input script.
@@ -40,7 +40,7 @@ typically it should be used at the end of the LAMMPS input script.
 To act as a MD-based MDI engine, this is the list of MDI commands from
 a driver code which LAMMPS currently recognizes.  See more details
 about these commands in the `MDI library documentation
-<https://molssi-mdi.github.io/MDI_Library/html/mdi_8c.html#a7bebce6d5fa91ee99a34fdcc5dcaedea>`_
+<https://molssi-mdi.github.io/MDI_Library/html/mdi_standard.html>`_
 
 NOTE: Taylor - is this the best link for this info?  Can we flesh this
 out with the full list of supported commands?  Maybe the distiniction

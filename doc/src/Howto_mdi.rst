@@ -47,8 +47,8 @@ other processors in the driver.  The driver code can also destroy
 engine instances and re-instantiate them.
 
 The way that a driver communicates with an engine is by making
-MDI_Send() and MDI_Receive() calls, which are conceptually similar to
-MPI_Send() and MPI_Receive() calls.  Each send or receive has a string
+MDI_Send() and MDI_Recv() calls, which are conceptually similar to
+MPI_Send() and MPI_Recv() calls.  Each send or receive has a string
 which identifies the command name, and optinally some data, which can
 be a single value or vector of values of any data type.  Inside the
 MDI library, data is exchanged bewteen the driver and engine via MPI
@@ -65,7 +65,7 @@ to communicate by MPI:
 
 .. code-block:: bash
 
-% mpirun -np 2 lmp_mpi -mdi "-role DRIVER -name d -method MPI" < in.aimd: -np 16 qe -mdi "-role ENGINE -name e -method MPI"
+% mpirun -np 2 lmp_mpi -mdi "-role DRIVER -name d -method MPI" < in.aimd : -np 16 qe -mdi "-role ENGINE -name e -method MPI"
 
 In this case LAMMPS runs on 2 processors (MPI tasks), QE runs on 16
 processors.
@@ -113,10 +113,10 @@ When the driver sends an "EXIT" command, LAMMPS will exit engine mode
 and the input script will continue.
 
 If LAMMPS is used as a plugin engine it operates the same way, except
-that the driver will pass LAMMPS an input script to initialize itself,
-and after the "EXIT" command, the driver will typically destroy the
-instance of LAMMPS, so the mdi_engine command should be the final
-command in the LAMMPS script.
+that the driver will pass LAMMPS an input script to initialize itself.
+Upon receiving the "EXIT" command, LAMMPS will exit engine mode and the
+input script will continue.  After finishing execution of the input
+script, the instance of LAMMPS will be destroyed.
 
 LAMMPS supports the full set of MD-appropriate engine commands
 defined by the MDI library.  See the :doc:`mdi_engine <mdi_engine>`

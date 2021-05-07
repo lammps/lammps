@@ -98,9 +98,9 @@ with the value *always* no limit will be applied and warnings will
 always be printed, with the value *reset* the internal warning counter
 will be reset to zero, and with the value *default*, the counter is
 reset and the limit set to 100.  An example usage of either *reset* or
-*default* would be to reenable warnings that were disabled or have
+*default* would be to re-enable warnings that were disabled or have
 reached the limit during equilibration, where the warnings would be
-accepteable while the system is still adjusting, but then one would want
+acceptable while the system is still adjusting, but then one would want
 to all warnings again for the production run, where they would indicate
 problems that would require a closer look at what is causing them.
 

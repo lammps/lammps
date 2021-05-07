@@ -10,6 +10,8 @@ jobs:
     name: MacOS Unit Test
     if: ${{ github.repository == 'lammps/lammps' }}
     runs-on: macos-latest
+    env:
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
 
     steps:
     - name: Checkout repository
@@ -17,18 +19,34 @@ jobs:
       with:
         fetch-depth: 2
 
+    - name: Install ccache
+      run: brew install ccache
+
     - name: Create Build Environment
-      run: cmake -E make_directory ${{github.workspace}}/build
+      run: mkdir build
+
+    - name: Set up ccache
+      uses: actions/cache@v2
+      with:
+        path: ${{ env.CCACHE_DIR }}
+        key: macos-ccache-${{ github.sha }}
+        restore-keys: macos-ccache-
 
     - name: Building LAMMPS via CMake
       shell: bash
-      working-directory: ${{github.workspace}}/build
+      working-directory: build
       run: |
-        cmake -C $GITHUB_WORKSPACE/cmake/presets/clang.cmake \
-              -C $GITHUB_WORKSPACE/cmake/presets/most.cmake \
-                 $GITHUB_WORKSPACE/cmake \
-              -DENABLE_TESTING=ON -DBUILD_SHARED_LIBS=ON -DLAMMPS_EXCEPTIONS=ON
+        ccache -z
+        cmake -C ../cmake/presets/clang.cmake \
+              -C ../cmake/presets/most.cmake \
+              -D CMAKE_CXX_COMPILER_LAUNCHER=ccache \
+              -D CMAKE_C_COMPILER_LAUNCHER=ccache \
+              -D ENABLE_TESTING=on \
+              -D BUILD_SHARED_LIBS=on \
+              -D LAMMPS_EXCEPTIONS=on \
+              ../cmake
         cmake --build . --parallel 2
+        ccache -s
 
     - name: Run Tests
       working-directory: ${{github.workspace}}/build

@@ -727,7 +727,7 @@ void FixPour::pre_exchange()
   // rebuild atom map
 
   if (atom->map_style != Atom::MAP_NONE) {
-    atom->map_init();
+    if (success) atom->map_init();
     atom->map_set();
   }
 

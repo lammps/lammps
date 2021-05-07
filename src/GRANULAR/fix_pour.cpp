@@ -13,26 +13,26 @@
 
 #include "fix_pour.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
 #include "atom_vec.h"
-#include "force.h"
-#include "update.h"
 #include "comm.h"
-#include "molecule.h"
-#include "modify.h"
-#include "fix_gravity.h"
 #include "domain.h"
+#include "error.h"
+#include "fix_gravity.h"
+#include "force.h"
+#include "math_const.h"
+#include "math_extra.h"
+#include "memory.h"
+#include "modify.h"
+#include "molecule.h"
+#include "random_park.h"
 #include "region.h"
 #include "region_block.h"
 #include "region_cylinder.h"
-#include "random_park.h"
-#include "math_extra.h"
-#include "math_const.h"
-#include "memory.h"
-#include "error.h"
+#include "update.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -393,10 +393,12 @@ void FixPour::pre_exchange()
 
   if (next_reneighbor != update->ntimestep) return;
 
-  // clear ghost count and any ghost bonus data internal to AtomVec
+  // clear ghost count (and atom map) and any ghost bonus data
+  //   internal to AtomVec
   // same logic as beginning of Comm::exchange()
   // do it now b/c inserting atoms will overwrite ghost atoms
 
+  if (atom->map_style != Atom::MAP_NONE) atom->map_clear();
   atom->nghost = 0;
   atom->avec->clear_bonus();
 
@@ -720,10 +722,13 @@ void FixPour::pre_exchange()
     }
     if (maxtag_all >= MAXTAGINT)
       error->all(FLERR,"New atom IDs exceed maximum allowed ID");
-    if (atom->map_style != Atom::MAP_NONE) {
-      atom->map_init();
-      atom->map_set();
-    }
+  }
+
+  // rebuild atom map
+
+  if (atom->map_style != Atom::MAP_NONE) {
+    atom->map_init();
+    atom->map_set();
   }
 
   // free local memory

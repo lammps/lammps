@@ -196,33 +196,27 @@ TILD::~TILD(){
 
 void TILD::init()
 {
-  if (comm->me == 0) {
-    if (screen) fprintf(screen,"TILD initialization ...\n");
-    if (logfile) fprintf(logfile,"TILD initialization ...\n");
-  }
+  if (me == 0) utils::logmesg(lmp,"TILD initialization...\n");
 
   triclinic_check();
   if (domain->dimension == 2)
     error->all(FLERR,"Cannot use TILD with 2d simulation");
   if (differentiation_flag != 0)
-    error->all(FLERR, "Cannot use analytic differentiation with TILD.");
+    error->all(FLERR, "Cannot use analytic differentiation with TILD");
   if (comm->style != 0)
     error->universe_all(FLERR,"TILD can only currently be used with "
                         "comm_style brick");
 
   if (slabflag == 0 && domain->nonperiodic > 0)
-    error->all(FLERR,"Cannot use non-periodic boundaries with TILD ");
+    error->all(FLERR,"Cannot use non-periodic boundaries with TILD");
   if (slabflag == 1) {
     if (domain->xperiodic != 1 || domain->yperiodic != 1 ||
         domain->boundary[2][0] != 1 || domain->boundary[2][1] != 1)
       error->all(FLERR,"Incorrect boundaries with slab TILD");
   }
 
-  if (order > MAXORDER) {
-    char str[128];
-    sprintf(str,"TILD coulomb order cannot be greater than %d",MAXORDER);
-    error->all(FLERR,str);
-  }
+  if (order < 2 || order > MAXORDER)
+    error->all(FLERR,"PPPM order cannot be < 2 or > {}",MAXORDER);
 
   // free all arrays previously allocated
   deallocate();
@@ -894,17 +888,12 @@ void TILD::set_grid()
   while (!factorable(ny_pppm)) ny_pppm++;
   while (!factorable(nz_pppm)) nz_pppm++;
 
-  if (comm->me == 0) {
-    if (screen){
-      fprintf(screen,"  grid points x dim: %d\n",nx_pppm);
-      fprintf(screen,"  grid points y dim: %d\n",ny_pppm);
-      fprintf(screen,"  grid points z dim: %d\n",nz_pppm);
-}
-    if (logfile){
-      fprintf(logfile,"  grid points x dim: %d\n",nx_pppm);
-      fprintf(logfile,"  grid points y dim: %d\n",ny_pppm);
-      fprintf(logfile,"  grid points z dim: %d\n",nz_pppm);
-    }
+  if (me == 0) {
+    std::string mesg = fmt::format("  grid = {} {} {}\n",nx_pppm,ny_pppm,nz_pppm);
+    mesg += fmt::format("  stencil order = {}\n",order);
+    mesg += fmt::format("  using " LMP_FFT_PREC " precision " LMP_FFT_LIB "\n");
+    mesg += fmt::format("  3d grid and FFT values/proc = {} {}\n", ngrid_max, nfft_both_max);
+    utils::logmesg(lmp,mesg);
   }
 }
 
@@ -2259,17 +2248,21 @@ double TILD::calculate_rho0(){
   double vole = domain->xprd * domain->yprd * domain->zprd;
 
   rho0 = lmass_all / vole;
-  if (comm->me == 0) {
-    if (logfile) {
-      fprintf(logfile, "User set rho0 = %f; actual rho0 = %f for TILD potential.\n", set_rho0, rho0);
+
+  if (me == 0) {
+    std::string mesg = 
+      fmt::format("  Found {} particles without a TILD potential\n", particles_not_tild);
+    mesg += fmt::format("  User set rho0 = {:.6f}; actual rho0 = {:.6f} for TILD potential.\n",
+      set_rho0, rho0);
+    utils::logmesg(lmp,mesg);
     }
-  }
+
   return rho0;
 }
 
 void TILD::write_grid_data( char *filename, const int avg ) {
   int ntypes = atom->ntypes;
-  if (comm->me == 0) {
+  if (me == 0) {
     otp = fopen( filename, "w" ) ;
 
     // header

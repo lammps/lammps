@@ -26,7 +26,7 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
-using MathConst::MY_CBRT2;
+using MathConst::MY_CUBEROOT2;
 
 /* ---------------------------------------------------------------------- */
 
@@ -89,7 +89,7 @@ void BondFENE::compute(int eflag, int vflag)
 
     // force from LJ term
 
-    if (rsq < MY_CBRT2*sigma[type]*sigma[type]) {
+    if (rsq < MY_CUBEROOT2*sigma[type]*sigma[type]) {
       sr2 = sigma[type]*sigma[type]/rsq;
       sr6 = sr2*sr2*sr2;
       fbond += 48.0*epsilon[type]*sr6*(sr6-0.5)/rsq;
@@ -99,7 +99,7 @@ void BondFENE::compute(int eflag, int vflag)
 
     if (eflag) {
       ebond = -0.5 * k[type]*r0sq*log(rlogarg);
-      if (rsq < MY_CBRT2*sigma[type]*sigma[type])
+      if (rsq < MY_CUBEROOT2*sigma[type]*sigma[type])
         ebond += 4.0*epsilon[type]*sr6*(sr6-1.0) + epsilon[type];
     }
 
@@ -253,7 +253,7 @@ double BondFENE::single(int type, double rsq, int /*i*/, int /*j*/,
 
   double eng = -0.5 * k[type]*r0sq*log(rlogarg);
   fforce = -k[type]/rlogarg;
-  if (rsq < MY_CBRT2*sigma[type]*sigma[type]) {
+  if (rsq < MY_CUBEROOT2*sigma[type]*sigma[type]) {
     double sr2,sr6;
     sr2 = sigma[type]*sigma[type]/rsq;
     sr6 = sr2*sr2*sr2;

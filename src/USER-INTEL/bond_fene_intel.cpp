@@ -33,7 +33,7 @@
 #include "omp_compat.h"
 
 using namespace LAMMPS_NS;
-using MathConst::MY_CBRT2;
+using MathConst::MY_CUBEROOT2;
 
 typedef struct { int a,b,t;  } int3_t;
 
@@ -196,7 +196,7 @@ void BondFENEIntel::eval(const int vflag,
       // force from LJ term
 
       flt_t sr2,sr6;
-      if (rsq < (flt_t)MY_CBRT2*sigmasq) {
+      if (rsq < (flt_t)MY_CUBEROOT2*sigmasq) {
         sr2 = sigmasq * irsq;
         sr6 = sr2 * sr2 * sr2;
         fbond += (flt_t)48.0 * epsilon * sr6 * (sr6 - (flt_t)0.5) * irsq;
@@ -207,7 +207,7 @@ void BondFENEIntel::eval(const int vflag,
       flt_t ebond;
       if (EFLAG) {
         ebond = (flt_t)-0.5 * k / ir0sq * log(rlogarg);
-        if (rsq < (flt_t)MY_CBRT2 * sigmasq)
+        if (rsq < (flt_t)MY_CUBEROOT2 * sigmasq)
           ebond += (flt_t)4.0 * epsilon * sr6 * (sr6 - (flt_t)1.0) + epsilon;
       }
 

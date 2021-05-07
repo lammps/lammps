@@ -30,7 +30,7 @@
 
 #include "suffix.h"
 using namespace LAMMPS_NS;
-using MathConst::MY_CBRT2;
+using MathConst::MY_CUBEROOT2;
 
 /* ---------------------------------------------------------------------- */
 
@@ -129,7 +129,7 @@ void BondFENEExpandOMP::eval(int nfrom, int nto, ThrData * const thr)
 
     // force from LJ term
 
-    if (rshiftsq < MY_CBRT2*sigma[type]*sigma[type]) {
+    if (rshiftsq < MY_CUBEROOT2*sigma[type]*sigma[type]) {
       sr2 = sigma[type]*sigma[type]/rshiftsq;
       sr6 = sr2*sr2*sr2;
       fbond += 48.0*epsilon[type]*sr6*(sr6-0.5)/rshift/r;
@@ -139,7 +139,7 @@ void BondFENEExpandOMP::eval(int nfrom, int nto, ThrData * const thr)
 
     if (EFLAG) {
       ebond = -0.5 * k[type]*r0sq*log(rlogarg);
-      if (rshiftsq < MY_CBRT2*sigma[type]*sigma[type])
+      if (rshiftsq < MY_CUBEROOT2*sigma[type]*sigma[type])
         ebond += 4.0*epsilon[type]*sr6*(sr6-1.0) + epsilon[type];
     }
 

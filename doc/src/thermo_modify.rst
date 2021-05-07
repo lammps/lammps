@@ -76,22 +76,33 @@ are drifting out of the box through a fixed boundary condition (see
 the :doc:`boundary <boundary>` command).  In this case one atom may be
 deleted before the rest of the molecule is, on a later timestep.
 
-The *warn* keyword determines whether LAMMPS will print warning
-messages and how many of them.  Certain warning messages can be
-quite verbose and thus quickly blow up the size of the log file
-and screen output.  Thus a limit of 100 warnings messages is applied
-by default.  If there are more warnings, LAMMPS will print one final
-warning that it will not print any additional warning messages.
+The *warn* keyword allows you to control whether LAMMPS will print
+warning messages and how many of them.  Most warning messages are only
+printed by MPI rank 0.  They are usually pointing out important issues
+that should be investigated, but LAMMPS cannot determine for
+certain whether they are an indication of an error.
+
+Some warning messages are printed during a run (or immediately before)
+each time a specific MPI rank encounters the issue, e.g. bonds that are
+stretched too far or dihedrals in extreme configurations. These can
+become verbose for and thus quickly blow up the size of the log file
+and screen output.  Thus a limit of 100 warning messages is applied
+by default.  The warning count is applied to the entire input unless
+reset with a ``thermo_modify warn reset`` command.  If there are more
+warnings than the limit, LAMMPS will print one final warning that it
+will not print any additional warning messages.
+
 Any number after the keyword *warn* will change the warning limit
 accordingly.  With the value *ignore* all warnings will be suppressed,
 with the value *always* no limit will be applied and warnings will
-always be printed, with the value *reset* the internal warning
-counter will be reset to zero,  and with the value *default*, all
-settings will be reset to their defaults and the counter reset.
-An example usage of this keyword would be that during equilibration
-warnings would be ignored while the system is still adjusting, but
-then one would reset everything to the defaults for the production
-run.
+always be printed, with the value *reset* the internal warning counter
+will be reset to zero, and with the value *default*, the counter is
+reset and the limit set to 100.  An example usage of either *reset* or
+*default* would be to reenable warnings that were disabled or have
+reached the limit during equilibration, where the warnings would be
+accepteable while the system is still adjusting, but then one would want
+to all warnings again for the production run, where they would indicate
+problems that would require a closer look at what is causing them.
 
 The *norm* keyword determines whether various thermodynamic output
 values are normalized by the number of atoms or not, depending on

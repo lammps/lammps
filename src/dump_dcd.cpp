@@ -350,7 +350,7 @@ void DumpDCD::write_dcd_header(const char *remarks)
   current_time = fmt::localtime(t);
   std::string s = fmt::format("REMARKS Created {:%d %B,%Y at %H:%M}", current_time);
   memset(title_string,' ',81);
-  strncpy(title_string, s.c_str(), 80);
+  memcpy(title_string, s.c_str(), s.size());
   fwrite(title_string,80,1,fp);
   fwrite_int32(fp,164);
   fwrite_int32(fp,4);

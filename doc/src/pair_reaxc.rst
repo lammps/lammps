@@ -1,11 +1,13 @@
 .. index:: pair_style reax/c
 .. index:: pair_style reax/c/kk
 .. index:: pair_style reax/c/omp
+.. index:: pair_style reax/c/hip
+
 
 pair_style reax/c command
 =========================
 
-Accelerator Variants: *reax/c/kk*, *reax/c/omp*
+Accelerator Variants: *reax/c/kk*, *reax/c/omp*,*reax/c/hip*
 
 Syntax
 """"""

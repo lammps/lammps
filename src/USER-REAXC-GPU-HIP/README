@@ -50,6 +50,13 @@ Currently only full neighbor lists are supported. The latest version of PG-PuReM
 neighbor lists on the GPU. But the code in lib/reaxcgpuhip is not the latest version of PG-PuReMD. Half list
 support may be added in the future.
 
+
+Currently the application expects the number of MPI processes to be equal to the number of GPUs. The number of
+GPUs is set in the control file passed as an input to LAMMPS using the parameter "gpus_per_node". This can be
+seen under examples/reaxgpuhip/RDX/control.reax_c.rdx where this value is set to 1. If the user wants to use 
+multiple MPI processes say "mpirun -np 2", then this parameter should be set to 2 accordingly 
+
+
 The people involved in creating this HIP version of REAXC are Trinayan Baruah(baruah.t@northeastern.edu),
 David Kaeli(kaeli@ece.neu.edu) and Nicholas Curtis(nicholas.curtis@amd.com). Contact them if you have any 
 questions.

@@ -42,6 +42,7 @@
 #include "domain.h"
 #include "error.h"
 #include "force.h"
+#include "math_special.h"
 #include "memory.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
@@ -55,6 +56,9 @@
 #include <string>
 
 using namespace LAMMPS_NS;
+using MathSpecial::square;
+using MathSpecial::cube;
+
 
 /* ---------------------------------------------------------------------- */
 
@@ -308,9 +312,9 @@ void PairBOP::allocate()
   tripletParameters = new TabularFunction[ntriples];
   memory->create(elem2param,bop_types,bop_types,"BOP:elem2param");
   memory->create(elem3param,bop_types,bop_types,bop_types,"BOP:elem3param");
-  bytes += npairs*sizeof(PairParameters) +
-    ntriples*sizeof(TabularFunction) + bop_types*bop_types*sizeof(int) +
-    bop_types*bop_types*bop_types*sizeof(int);
+  bytes += (double)npairs*sizeof(PairParameters) +
+    (double)ntriples*sizeof(TabularFunction) + square(bop_types)*sizeof(int) +
+    cube(bop_types)*sizeof(int);
 
   memory->create(pi_a,npairs,"BOP:pi_a");
   memory->create(pro_delta,bop_types,"BOP:pro_delta");

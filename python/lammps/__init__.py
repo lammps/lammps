@@ -28,12 +28,15 @@ def get_version_number():
         from importlib.metadata import version
         try:
             vstring = version('lammps')
-        except: pass
+        except:
+            vstring = None
+
     else:
         from pkg_resources import get_distribution
         try:
             vstring = get_distribution('lammps').version
-        except: pass
+        except:
+            vstring = None
 
     if not vstring:
         return 0

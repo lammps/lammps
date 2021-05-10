@@ -29,14 +29,16 @@ def get_version_number():
         try:
             vstring = version('lammps')
         except:
-            vstring = None
+            # nothing to do, ignore
+            pass
 
     else:
         from pkg_resources import get_distribution
         try:
             vstring = get_distribution('lammps').version
         except:
-            vstring = None
+            # nothing to do, ignore
+            pass
 
     if not vstring:
         return 0

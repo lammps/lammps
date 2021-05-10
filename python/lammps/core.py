@@ -778,6 +778,8 @@ class lammps(object):
     elif dtype == LAMMPS_STRING:
       self.lib.lammps_extract_global.restype = c_char_p
       target_type = str
+    else:
+      target_type = None
 
     ptr = self.lib.lammps_extract_global(self.lmp, name)
     if ptr:

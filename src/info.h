@@ -48,6 +48,7 @@ class Info : public Command {
                                       const std::string &,
                                       const std::string &);
   static bool has_gpu_device();
+  static std::string get_gpu_device_info();
 
   static std::string get_os_info();
   static std::string get_compiler_info();

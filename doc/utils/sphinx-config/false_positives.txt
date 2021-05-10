@@ -1024,6 +1024,7 @@ fmag
 fmass
 fmm
 fmt
+fmtlib
 fmx
 fmy
 fmz

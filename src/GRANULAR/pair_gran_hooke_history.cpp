@@ -17,22 +17,22 @@
 
 #include "pair_gran_hooke_history.h"
 
-#include <cmath>
-#include <cstring>
-
 #include "atom.h"
-#include "force.h"
-#include "update.h"
-#include "modify.h"
+#include "comm.h"
+#include "error.h"
 #include "fix.h"
 #include "fix_dummy.h"
 #include "fix_neigh_history.h"
-#include "comm.h"
-#include "neighbor.h"
+#include "force.h"
+#include "memory.h"
+#include "modify.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "memory.h"
-#include "error.h"
+#include "neighbor.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -433,16 +433,10 @@ void PairGranHookeHistory::init_style()
   // it replaces FixDummy, created in the constructor
   // this is so its order in the fix list is preserved
 
-  if (history && fix_history == nullptr) {
-    char dnumstr[16];
-    sprintf(dnumstr,"%d",size_history);
-    char **fixarg = new char*[4];
-    fixarg[0] = (char *) "NEIGH_HISTORY_HH";
-    fixarg[1] = (char *) "all";
-    fixarg[2] = (char *) "NEIGH_HISTORY";
-    fixarg[3] = dnumstr;
-    modify->replace_fix("NEIGH_HISTORY_HH_DUMMY",4,fixarg,1);
-    delete [] fixarg;
+  if (history && (fix_history == nullptr)) {
+    auto cmd = fmt::format("NEIGH_HISTORY_HH all NEIGH_HISTORY {}",
+                           size_history);
+    modify->replace_fix("NEIGH_HISTORY_HH_DUMMY",cmd,1);
     int ifix = modify->find_fix("NEIGH_HISTORY_HH");
     fix_history = (FixNeighHistory *) modify->fix[ifix];
     fix_history->pair = this;

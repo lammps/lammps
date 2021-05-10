@@ -88,6 +88,5 @@ void NTopoAngleAll::build()
   int all;
   MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
   if (all && (me == 0))
-    error->warning(FLERR,fmt::format("Angle atoms missing at step {}",
-                                     update->ntimestep));
+    error->warning(FLERR,"Angle atoms missing at step {}",update->ntimestep);
 }

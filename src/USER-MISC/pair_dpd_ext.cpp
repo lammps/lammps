@@ -476,8 +476,8 @@ void PairDPDExt::write_data_all(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double PairDPDExt::single(int i, int j, int itype, int jtype, double rsq,
-                       double factor_coul, double factor_dpd, double &fforce)
+double PairDPDExt::single(int /*i*/, int /*j*/, int itype, int jtype, double rsq,
+                       double /*factor_coul*/, double factor_dpd, double &fforce)
 {
   double r,rinv,wd,phi;
 

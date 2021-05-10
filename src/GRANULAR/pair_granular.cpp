@@ -1213,13 +1213,10 @@ double PairGranular::init_one(int i, int j)
         (tangential_model[i][i] != tangential_model[j][j]) ||
         (roll_model[i][i] != roll_model[j][j]) ||
         (twist_model[i][i] != twist_model[j][j])) {
-
-      char str[512];
-      sprintf(str,"Granular pair style functional forms are different, "
-              "cannot mix coefficients for types %d and %d. \n"
-              "This combination must be set explicitly "
-              "via pair_coeff command",i,j);
-      error->one(FLERR,str);
+      error->all(FLERR,"Granular pair style functional forms are different, "
+                 "cannot mix coefficients for types {} and {}. \n"
+                 "This combination must be set explicitly via a "
+                 "pair_coeff command",i,j);
     }
 
     if (normal_model[i][j] == HERTZ || normal_model[i][j] == HOOKE)

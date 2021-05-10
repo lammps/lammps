@@ -287,8 +287,8 @@ void FixDeposit::init()
 
     double separation = MAX(2.0*maxradinsert,maxradall+maxradinsert);
     if (sqrt(nearsq) < separation && comm->me == 0)
-      error->warning(FLERR,fmt::format("Fix deposit near setting < possible "
-                                       "overlap separation {}",separation));
+      error->warning(FLERR,"Fix deposit near setting < possible "
+                     "overlap separation {}",separation);
   }
 }
 
@@ -587,7 +587,7 @@ void FixDeposit::pre_exchange()
   // warn if not successful b/c too many attempts
 
   if (!success && comm->me == 0)
-    error->warning(FLERR,"Particle deposition was unsuccessful",0);
+    error->warning(FLERR,"Particle deposition was unsuccessful");
 
   // reset global natoms,nbonds,etc
   // increment maxtag_all and maxmol_all if necessary

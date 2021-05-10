@@ -307,7 +307,8 @@ class lammps(object):
         # tested to work with mpi4py versions 2 and 3
         self.has_mpi4py = mpi4py_version.split('.')[0] in ['2','3']
       except:
-        self.has_mpi4py = None
+        # ignore failing import
+        pass
 
     # if no ptr provided, create an instance of LAMMPS
     #   don't know how to pass an MPI communicator from PyPar

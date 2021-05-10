@@ -409,6 +409,12 @@ class PyLammps(object):
     self._enable_cmd_history = False
     self.runs = []
 
+  def __enter__(self):
+    return self
+
+  def __exit__(self, ex_type, ex_value, ex_traceback):
+    self.close()
+
   def __del__(self):
     if self.lmp: self.lmp.close()
     self.lmp = None

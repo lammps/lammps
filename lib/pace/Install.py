@@ -6,7 +6,7 @@ used to automate the steps described in the README file in this dir
 """
 
 from __future__ import print_function
-import sys, os, subprocess, shutil
+import sys, subprocess
 from argparse import ArgumentParser
 
 sys.path.append('..')

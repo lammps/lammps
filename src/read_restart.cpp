@@ -694,9 +694,8 @@ void ReadRestart::header()
     } else if (flag == NPROCS) {
       nprocs_file = read_int();
       if (nprocs_file != comm->nprocs && me == 0)
-        error->warning(FLERR,fmt::format("Restart file used different # of "
-                                         "processors: {} vs. {}",nprocs_file,
-                                         comm->nprocs));
+        error->warning(FLERR,"Restart file used different # of processors: "
+                       "{} vs. {}",nprocs_file,comm->nprocs);
 
     // don't set procgrid, warn if different
 

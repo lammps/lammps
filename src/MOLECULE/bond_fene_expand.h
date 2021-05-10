@@ -13,7 +13,7 @@
 
 #ifdef BOND_CLASS
 
-BondStyle(fene/expand,BondFENEExpand)
+BondStyle(fene / expand, BondFENEExpand)
 
 #else
 
@@ -26,7 +26,7 @@ namespace LAMMPS_NS {
 
 class BondFENEExpand : public Bond {
  public:
-  BondFENEExpand(class LAMMPS *);
+  BondFENEExpand(class LAMMPS *lmp) : Bond(lmp) {}
   virtual ~BondFENEExpand();
   virtual void compute(int, int);
   void coeff(int, char **);
@@ -38,18 +38,17 @@ class BondFENEExpand : public Bond {
   double single(int, double, int, int, double &);
 
  protected:
-  double TWO_1_3;
-  double *k,*r0,*epsilon,*sigma,*shift;
+  double *k, *r0, *epsilon, *sigma, *shift;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
 
-/* ERROR/WARNING messages:
+    /* ERROR/WARNING messages:
 
 W: FENE bond too long: %ld %d %d %g
 

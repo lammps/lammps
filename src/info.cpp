@@ -42,11 +42,11 @@
 #include "text_file_reader.h"
 #include "update.h"
 #include "variable.h"
+#include "fmt/chrono.h"
 
 #include <cctype>
 #include <cmath>
 #include <cstring>
-#include <ctime>
 #include <map>
 
 #ifdef _WIN32
@@ -265,8 +265,8 @@ void Info::command(int narg, char **arg)
   if (out == nullptr) return;
 
   fputs("\nInfo-Info-Info-Info-Info-Info-Info-Info-Info-Info-Info\n",out);
-  time_t now = time(nullptr);
-  fmt::print(out,"Printed on {}\n",ctime(&now));
+  std::time_t now = std::time(nullptr);
+  fmt::print(out,"Printed on {:%a %b %d %H:%M:%S %Y}\n", fmt::localtime(now));
 
   if (flags & CONFIG) {
     fmt::print(out,"\nLAMMPS version: {} / {}\n",

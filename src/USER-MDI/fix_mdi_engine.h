@@ -37,6 +37,7 @@ class FixMDIEngine : public Fix {
   char *engine_mode(const char *node);
 
   // receive and update forces
+
   void setup(int);
   void min_setup(int);
   void post_integrate();
@@ -50,12 +51,14 @@ class FixMDIEngine : public Fix {
   double kinetic_energy; // stores kinetic energy
 
   // current command
+
   char *command;
 
  protected:
   void exchange_forces();
 
  private:
+  int lmpunits;         // REAL or METAL
   int master, ierr;
   int driver_socket;
   int most_recent_init; // which MDI init command was most recently received?
@@ -74,6 +77,7 @@ class FixMDIEngine : public Fix {
                           // -2 - after MD_INIT command followed by @PRE-FORCES (actually @INIT_OPTG?)
 
   // command to be executed at the target node
+
   char *target_command;
 
   char *id_pe;
@@ -82,6 +86,7 @@ class FixMDIEngine : public Fix {
   class Minimize *minimizer;
   class Compute *pe;
   class Compute *ke;
+
   void send_types(Error *);
   void send_labels(Error *);
   void send_masses(Error *);
@@ -95,7 +100,6 @@ class FixMDIEngine : public Fix {
   void add_forces(Error *);
   void receive_forces(Error *);
   void send_cell(Error *);
-
 };
 
 }

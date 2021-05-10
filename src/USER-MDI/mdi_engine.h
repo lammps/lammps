@@ -13,27 +13,28 @@
 
 #ifdef COMMAND_CLASS
 
-CommandStyle(mdi_engine,CommandMDIEngine)
+CommandStyle(mdi_engine,MDIEngine)
 
 #else
 
-#ifndef LMP_COMMAND_MDI_ENGINE_H
-#define LMP_COMMAND_MDI_ENGINE_H
+#ifndef LMP_MDI_ENGINE_H
+#define LMP_MDI_ENGINE_H
 
 #include "command.h"
 
 namespace LAMMPS_NS {
 
-  class CommandMDIEngine : public Command {
+class MDIEngine : public Command {
  public:
-  CommandMDIEngine(class LAMMPS *);
-  virtual ~CommandMDIEngine();
+  MDIEngine(LAMMPS *lmp) : Command(lmp) {}
+  virtual ~MDIEngine() {}
   void command(int, char **);
-  int mdi_md();
-  int mdi_optg();
 
 private:
   class FixMDIEngine *mdi_fix;
+
+  char *mdi_md();
+  char *mdi_optg();
 };
 
 }

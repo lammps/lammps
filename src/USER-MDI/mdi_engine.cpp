@@ -36,22 +36,19 @@
 
 using namespace LAMMPS_NS;
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   trigger LAMMPS to start acting as an MDI engine
+   endlessly loop over receiving commands from driver and responding
+   much of the logic for this is in FixMDIEngine
+   when EXIT command is received, mdi_engine command exits
+---------------------------------------------------------------------- */
 
-CommandMDIEngine::CommandMDIEngine(LAMMPS *lmp) : Command(lmp) {
-  return;
-}
-
-CommandMDIEngine::~CommandMDIEngine() {
-  return;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void CommandMDIEngine::command(int narg, char **arg)
+void MDIEngine::command(int narg, char **arg)
 {
+  // list of nodes and commands that a MDI-compliant MD code should support
 
-  // register the default node
+  // default node and its commands
+
   MDI_Register_Node("@DEFAULT");
   MDI_Register_Command("@DEFAULT", "<@");
   MDI_Register_Command("@DEFAULT", "<CELL");
@@ -65,7 +62,8 @@ void CommandMDIEngine::command(int narg, char **arg)
   MDI_Register_Command("@DEFAULT", "@INIT_OPTG");
   MDI_Register_Command("@DEFAULT", "EXIT");
 
-  // register the MD initialization node
+  // node for setting up and running a dynamics simulation
+
   MDI_Register_Node("@INIT_MD");
   MDI_Register_Command("@INIT_MD", "<@");
   MDI_Register_Command("@INIT_MD", "<CELL");
@@ -87,7 +85,8 @@ void CommandMDIEngine::command(int narg, char **arg)
   MDI_Register_Command("@INIT_MD", "@PRE-FORCES");
   MDI_Register_Command("@INIT_MD", "EXIT");
 
-  // register the OPTG initialization node
+  // node for setting up and running a minimization
+
   MDI_Register_Node("@INIT_OPTG");
   MDI_Register_Command("@INIT_OPTG", "<@");
   MDI_Register_Command("@INIT_OPTG", "<CELL");
@@ -108,7 +107,9 @@ void CommandMDIEngine::command(int narg, char **arg)
   MDI_Register_Command("@INIT_OPTG", "@FORCES");
   MDI_Register_Command("@INIT_OPTG", "EXIT");
 
-  // register the pre-forces node
+  // node at PRE_FORCE location in timestep
+  // NOTE: remove this?
+
   MDI_Register_Node("@PRE-FORCES");
   MDI_Register_Command("@PRE-FORCES", "<@");
   MDI_Register_Command("@PRE-FORCES", "<CELL");
@@ -130,7 +131,8 @@ void CommandMDIEngine::command(int narg, char **arg)
   MDI_Register_Command("@PRE-FORCES", "@PRE-FORCES");
   MDI_Register_Command("@PRE-FORCES", "EXIT");
 
-  // register the forces node
+  // node at POST_FORCE location in timestep
+
   MDI_Register_Node("@FORCES");
   MDI_Register_Callback("@FORCES", ">FORCES");
   MDI_Register_Command("@FORCES", "<@");
@@ -153,7 +155,8 @@ void CommandMDIEngine::command(int narg, char **arg)
   MDI_Register_Command("@FORCES", "@PRE-FORCES");
   MDI_Register_Command("@FORCES", "EXIT");
 
-  // register the coordinates node
+  // node at POST_INTEGRATE location in timestep
+
   MDI_Register_Node("@COORDS");
   MDI_Register_Command("@COORDS", "<@");
   MDI_Register_Command("@COORDS", "<CELL");
@@ -176,71 +179,73 @@ void CommandMDIEngine::command(int narg, char **arg)
   MDI_Register_Command("@COORDS", "EXIT");
 
   // if the mdi_engine fix is not already present, add it now
+
   int ifix = modify->find_fix_by_style("mdi/engine");
   bool added_mdi_engine_fix = false;
   if (ifix < 0) {
-    modify->add_fix("_mdiengine_ all mdi/engine");
+    modify->add_fix("MDI_ENGINE_INTERNAL all mdi/engine");
     added_mdi_engine_fix = true;
   }
 
   // identify the mdi_engine fix
+
   ifix = modify->find_fix_by_style("mdi/engine");
-  if (ifix < 0) error->all(FLERR,"The mdi_engine command requires the mdi/engine fix");
   mdi_fix = static_cast<FixMDIEngine*>(modify->fix[ifix]);
 
-  /* format for MDI Engine command:
-   * mdi_engine
-   */
-  if (narg > 0) error->all(FLERR,"Illegal MDI command");
+  // check that LAMMPS is setup as a compatible MDI engine
+
+  if (narg > 0) error->all(FLERR,"Illegal mdi_engine command");
 
   if (atom->tag_enable == 0)
-    error->all(FLERR,"Cannot use MDI command without atom IDs");
+    error->all(FLERR,"Cannot use mdi_engine without atom IDs");
 
   if (atom->tag_consecutive() == 0)
-    error->all(FLERR,"MDI command requires consecutive atom IDs");
+    error->all(FLERR,"mdi_engine requires consecutive atom IDs");
 
-  // begin engine_mode
-  char *command = NULL;
-  while ( true ) {
-    // listen for MDI commands at the default command
-    // the response to most MDI commands is handled here
+  // endless engine loop, responding to driver commands
+
+  char *command;
+
+  while (1) {
+
+    // mdi_engine command only recognizes three nodes
+    // DEFAULT, INIT_MD, INIT_OPTG
+
     command = mdi_fix->engine_mode("@DEFAULT");
+    
+    // MDI commands for dynamics or minimization
 
-    // MDI commands that involve large-scale program flow are handled here
     if (strcmp(command,"@INIT_MD") == 0 ) {
-      // enter MD control loop
-      int received_exit = mdi_md();
-      if ( received_exit == 1 ) {
-	return;
-      }
-    }
-    if (strcmp(command,"@INIT_OPTG") == 0 ) {
-      // enter minimizer control loop
-      int received_exit = mdi_optg();
-      if ( received_exit == 1 ) {
-	return;
-      }
-    }
-    else if (strcmp(command,"EXIT") == 0 ) {
-      return;
-    }
-    else {
-      error->all(FLERR,fmt::format("MDI node exited with invalid command: {}",command));
-    }
+      command = mdi_md();
+      if (strcmp(command,"EXIT")) break;
+      
+    } else if (strcmp(command,"@INIT_OPTG") == 0 ) {
+      command = mdi_optg();
+      if (strcmp(command,"EXIT")) break;
+
+    } else if (strcmp(command,"EXIT") == 0) {
+      break;
+  
+    } else
+      error->all(FLERR,
+                 fmt::format("MDI node exited with "
+                             "invalid command: {}",command));
   }
 
-  // remove the mdi/engine fix
-  if (added_mdi_engine_fix) modify->delete_fix("_mdiengine_");
+  // remove mdi/engine fix that mdi_engine instantiated
 
-  return;
+  if (added_mdi_engine_fix) modify->delete_fix("MDI_ENGINE_INTERNAL");
 }
 
+/* ----------------------------------------------------------------------
+   run an MD simulation under control of driver
+---------------------------------------------------------------------- */
 
-
-int CommandMDIEngine::mdi_md()
+char *MDIEngine::mdi_md()
 {
   // initialize an MD simulation
-  update->whichflag = 1; // 1 for dynamics
+
+  update->whichflag = 1;
   timer->init_timeout();
   update->nsteps = 1;
   update->ntimestep = 0;
@@ -248,119 +253,109 @@ int CommandMDIEngine::mdi_md()
   update->laststep = update->ntimestep + update->nsteps;
   update->beginstep = update->firststep;
   update->endstep = update->laststep;
+
   lmp->init();
 
-  // the MD simulation is now at the @INIT_MD node
+  // engine is now at @INIT_MD node
+
   char *command = NULL;
   command = mdi_fix->engine_mode("@INIT_MD");
 
-  if (strcmp(command,"@DEFAULT") == 0 ) {
-    // return, and flag for @DEFAULT node
-    return 0;
-  }
-  else if (strcmp(command,"EXIT") == 0 ) {
-    // return, and flag for global exit
-    return 1;
-  }
+  if (strcmp(command,"@DEFAULT") == 0 || strcmp(command,"EXIT") == 0)
+    return command;
 
-  // continue the MD simulation
+  // setup the MD simulation
+
   update->integrate->setup(1);
 
-  // the MD simulation is now at the @FORCES node
   command = mdi_fix->engine_mode("@FORCES");
 
-  if (strcmp(command,"@DEFAULT") == 0 ) {
-    // return, and flag for @DEFAULT node
-    return 0;
-  }
-  else if (strcmp(command,"EXIT") == 0 ) {
-    // return, and flag for global exit
-    return 1;
-  }
+  if (strcmp(command,"@DEFAULT") == 0 || strcmp(command,"EXIT") == 0)
+    return command;
 
-  // do MD iterations until told to exit
-  while ( true ) {
+  // run MD one step at a time
 
-    // run an MD timestep
-    update->whichflag = 1; // 1 for dynamics
+  while (1) {
+    update->whichflag = 1;
     timer->init_timeout();
     update->nsteps += 1;
     update->laststep += 1;
     update->endstep = update->laststep;
     output->next = update->ntimestep + 1;
+
+    // single MD timestep
+
     update->integrate->run(1);
 
-    // get the most recent command the MDI engine received
+    // done with MD if driver sends @DEFAULT or EXIT
+
     command = mdi_fix->command;
 
-    if (strcmp(command,"@DEFAULT") == 0 ) {
-      // return, and flag for @DEFAULT node
-      return 0;
-    }
-    else if (strcmp(command,"EXIT") == 0 ) {
-      // return, and flag for global exit
-      return 1;
-    }
-
+    if (strcmp(command,"@DEFAULT") == 0 || strcmp(command,"EXIT") == 0)
+      return command;
   }
 
+  return NULL;
 }
 
+/* ----------------------------------------------------------------------
+   perform minimization under control of driver
+---------------------------------------------------------------------- */
 
-
-int CommandMDIEngine::mdi_optg()
+char *MDIEngine::mdi_optg()
 {
-  char *command = NULL;
+  // initialize an energy minization
 
-  // create instance of the Minimizer class
   Minimize *minimizer = new Minimize(lmp);
 
-  // initialize the minimizer in a way that ensures optimization will continue until MDI exits
+  // setup the minimizer in a way that ensures optimization 
+  // will continue until MDI driver exits
+
   update->etol = std::numeric_limits<double>::min();
   update->ftol = std::numeric_limits<double>::min();
   update->nsteps = std::numeric_limits<int>::max();
   update->max_eval = std::numeric_limits<int>::max();
 
-  update->whichflag = 2; // 2 for minimization
+  update->whichflag = 2;
   update->beginstep = update->firststep = update->ntimestep;
   update->endstep = update->laststep = update->firststep + update->nsteps;
+
   lmp->init();
 
+  // engine is now at @INIT_OPTG node
+
+  char *command = NULL;
   command = mdi_fix->engine_mode("@INIT_OPTG");
 
-  if (strcmp(command,"@DEFAULT") == 0 ) {
-    // return, and flag for @DEFAULT node
-    return 0;
-  }
-  else if (strcmp(command,"EXIT") == 0 ) {
-    // return, and flag for global exit
-    return 1;
-  }
+  if (strcmp(command,"@DEFAULT") == 0 || strcmp(command,"EXIT") == 0)
+    return command;
+
+  // setup the minimization
 
   update->minimize->setup();
+
+  // get new command
+
   command = mdi_fix->command;
 
-  if (strcmp(command,"@DEFAULT") == 0 ) {
-    // return, and flag for @DEFAULT node
-    return 0;
-  }
-  else if (strcmp(command,"EXIT") == 0 ) {
-    // return, and flag for global exit
-    return 1;
-  }
+  if (strcmp(command,"@DEFAULT") == 0 || strcmp(command,"EXIT") == 0)
+    return command;
+
+  // NOTE: perform minimization forever, for huge # of steps ??
+  //       if you are expecting driver to terminate the minimization,
+  //       not sure how control will return to this function ??
 
   update->minimize->iterate(update->nsteps);
+
+  // return if driver sends @DEFAULT or EXIT
+
   command = mdi_fix->command;
 
-  if (strcmp(command,"@DEFAULT") == 0 ) {
-    // return, and flag for @DEFAULT node
-    return 0;
-  }
-  else if (strcmp(command,"EXIT") == 0 ) {
-    // return, and flag for global exit
-    return 1;
-  }
+  if (strcmp(command,"@DEFAULT") == 0 || strcmp(command,"EXIT") == 0)
+    return command;
 
-  error->all(FLERR,fmt::format("MDI reached end of OPTG simulation with invalid command: {}",command));
-  return 0;
+  error->all(FLERR,
+             fmt::format("MDI reached end of OPTG simulation "
+                         "with invalid command: {}",command));
+  return NULL;
 }

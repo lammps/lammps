@@ -320,6 +320,7 @@ void Info::command(int narg, char **arg)
   if (flags & ACCELERATOR) {
     fmt::print(out,"\nAccelerator configuration:\n\n{}",
                get_accelerator_info());
+    fmt::print(out,"\nGPU present: {}\n",has_gpu_device() ? "yes" : "no");
   }
 
   if (flags & MEMORY) {
@@ -1139,6 +1140,17 @@ bool Info::has_package(const std::string &package_name) {
 
 #if defined(LMP_GPU)
 extern bool lmp_gpu_config(const std::string &, const std::string &);
+extern bool lmp_has_device();
+
+bool Info::has_gpu_device()
+{
+  return lmp_has_device();
+}
+#else
+bool Info::has_gpu_device()
+{
+  return false;
+}
 #endif
 
 #if defined(LMP_KOKKOS)

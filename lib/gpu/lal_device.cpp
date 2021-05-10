@@ -1026,6 +1026,15 @@ Device<PRECISION,ACC_PRECISION> global_device;
 }
 
 using namespace LAMMPS_AL;
+
+bool lmp_has_device()
+{
+  auto tmpgpu = new UCL_Device();
+  int num = tmpgpu->num_platforms();
+  delete tmpgpu;
+  return num > 0;
+}
+
 int lmp_init_device(MPI_Comm world, MPI_Comm replica, const int ngpu,
                     const int first_gpu_id, const int gpu_mode,
                     const double particle_split, const int t_per_atom,

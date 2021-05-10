@@ -416,9 +416,16 @@ class lammps(object):
   # shut-down LAMMPS instance
 
   def __del__(self):
-    if self.lmp and self.opened:
-      self.lib.lammps_close(self.lmp)
-      self.opened = 0
+    self.close()
+
+  # -------------------------------------------------------------------------
+  # context manager implementation
+
+  def __enter__(self):
+    return self
+
+  def __exit__(self, ex_type, ex_value, ex_traceback):
+    self.close()
 
   # -------------------------------------------------------------------------
 
@@ -445,7 +452,8 @@ class lammps(object):
 
     This is a wrapper around the :cpp:func:`lammps_close` function of the C-library interface.
     """
-    if self.opened: self.lib.lammps_close(self.lmp)
+    if self.lmp and self.opened:
+      self.lib.lammps_close(self.lmp)
     self.lmp = None
     self.opened = 0
 
@@ -454,9 +462,7 @@ class lammps(object):
   def finalize(self):
     """Shut down the MPI communication through the library interface by calling :cpp:func:`lammps_finalize`.
     """
-    if self.opened: self.lib.lammps_close(self.lmp)
-    self.lmp = None
-    self.opened = 0
+    self.close()
     self.lib.lammps_finalize()
 
   # -------------------------------------------------------------------------

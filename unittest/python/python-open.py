@@ -50,6 +50,16 @@ class PythonOpen(unittest.TestCase):
         self.assertIsNot(lmp.lmp,None)
         self.assertEqual(lmp.opened,1)
 
+    def testContextManager(self):
+        """Automatically clean up LAMMPS instance"""
+        with lammps(name=self.machine) as lmp:
+            self.assertIsNot(lmp.lmp,None)
+            self.assertEqual(lmp.opened,1)
+            self.assertEqual(has_mpi and has_mpi4py,lmp.has_mpi4py)
+            self.assertEqual(has_mpi,lmp.has_mpi_support)
+        self.assertIsNone(lmp.lmp,None)
+        self.assertEqual(lmp.opened,0)
+
     @unittest.skipIf(not (has_mpi and has_mpi4py),"Skipping MPI test since LAMMPS is not parallel or mpi4py is not found")
     def testWithMPI(self):
         from mpi4py import MPI

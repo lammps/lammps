@@ -78,7 +78,7 @@ class PythonOpen(unittest.TestCase):
         lmp.close()
 
     @unittest.skipIf(not has_exceptions,"Skipping death test since LAMMPS isn't compiled with exception support")
-    def testUnknownCommandInList(self):
+    def testUnknownCommandInString(self):
         lmp = lammps(name=self.machine)
 
         with self.assertRaisesRegex(Exception, "ERROR: Unknown command: write_paper"):

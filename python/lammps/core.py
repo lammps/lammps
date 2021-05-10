@@ -777,6 +777,7 @@ class lammps(object):
       target_type = float
     elif dtype == LAMMPS_STRING:
       self.lib.lammps_extract_global.restype = c_char_p
+      target_type = str
 
     ptr = self.lib.lammps_extract_global(self.lmp, name)
     if ptr:
@@ -1112,20 +1113,20 @@ class lammps(object):
   # return vector of atom properties gathered across procs
   # 3 variants to match src/library.cpp
   # name = atom property recognized by LAMMPS in atom->extract()
-  # type = 0 for integer values, 1 for double values
+  # dtype = 0 for integer values, 1 for double values
   # count = number of per-atom valus, 1 for type or charge, 3 for x or f
   # returned data is a 1d vector - doc how it is ordered?
   # NOTE: need to insure are converting to/from correct Python type
   #   e.g. for Python list or NumPy or ctypes
 
-  def gather_atoms(self,name,type,count):
+  def gather_atoms(self,name,dtype,count):
     if name: name = name.encode()
     natoms = self.get_natoms()
     with ExceptionCheck(self):
-      if type == 0:
+      if dtype == 0:
         data = ((count*natoms)*c_int)()
         self.lib.lammps_gather_atoms(self.lmp,name,type,count,data)
-      elif type == 1:
+      elif dtype == 1:
         data = ((count*natoms)*c_double)()
         self.lib.lammps_gather_atoms(self.lmp,name,type,count,data)
       else:
@@ -1134,29 +1135,29 @@ class lammps(object):
 
   # -------------------------------------------------------------------------
 
-  def gather_atoms_concat(self,name,type,count):
+  def gather_atoms_concat(self,name,dtype,count):
     if name: name = name.encode()
     natoms = self.get_natoms()
     with ExceptionCheck(self):
-      if type == 0:
+      if dtype == 0:
         data = ((count*natoms)*c_int)()
         self.lib.lammps_gather_atoms_concat(self.lmp,name,type,count,data)
-      elif type == 1:
+      elif dtype == 1:
         data = ((count*natoms)*c_double)()
         self.lib.lammps_gather_atoms_concat(self.lmp,name,type,count,data)
       else:
           return None
     return data
 
-  def gather_atoms_subset(self,name,type,count,ndata,ids):
+  def gather_atoms_subset(self,name,dtype,count,ndata,ids):
     if name: name = name.encode()
     with ExceptionCheck(self):
-      if type == 0:
+      if dtype == 0:
         data = ((count*ndata)*c_int)()
-        self.lib.lammps_gather_atoms_subset(self.lmp,name,type,count,ndata,ids,data)
-      elif type == 1:
+        self.lib.lammps_gather_atoms_subset(self.lmp,name,dtype,count,ndata,ids,data)
+      elif dtype == 1:
         data = ((count*ndata)*c_double)()
-        self.lib.lammps_gather_atoms_subset(self.lmp,name,type,count,ndata,ids,data)
+        self.lib.lammps_gather_atoms_subset(self.lmp,name,dtype,count,ndata,ids,data)
       else:
         return None
     return data
@@ -1172,17 +1173,17 @@ class lammps(object):
   # NOTE: need to insure are converting to/from correct Python type
   #   e.g. for Python list or NumPy or ctypes
 
-  def scatter_atoms(self,name,type,count,data):
+  def scatter_atoms(self,name,dtype,count,data):
     if name: name = name.encode()
     with ExceptionCheck(self):
-      self.lib.lammps_scatter_atoms(self.lmp,name,type,count,data)
+      self.lib.lammps_scatter_atoms(self.lmp,name,dtype,count,data)
 
   # -------------------------------------------------------------------------
 
-  def scatter_atoms_subset(self,name,type,count,ndata,ids,data):
+  def scatter_atoms_subset(self,name,dtype,count,ndata,ids,data):
     if name: name = name.encode()
     with ExceptionCheck(self):
-      self.lib.lammps_scatter_atoms_subset(self.lmp,name,type,count,ndata,ids,data)
+      self.lib.lammps_scatter_atoms_subset(self.lmp,name,dtype,count,ndata,ids,data)
 
   # return vector of atom/compute/fix properties gathered across procs
   # 3 variants to match src/library.cpp
@@ -1192,43 +1193,43 @@ class lammps(object):
   # returned data is a 1d vector - doc how it is ordered?
   # NOTE: need to insure are converting to/from correct Python type
   #   e.g. for Python list or NumPy or ctypes
-  def gather(self,name,type,count):
+  def gather(self,name,dtype,count):
     if name: name = name.encode()
     natoms = self.get_natoms()
     with ExceptionCheck(self):
-      if type == 0:
+      if dtype == 0:
         data = ((count*natoms)*c_int)()
-        self.lib.lammps_gather(self.lmp,name,type,count,data)
-      elif type == 1:
+        self.lib.lammps_gather(self.lmp,name,dtype,count,data)
+      elif dtype == 1:
         data = ((count*natoms)*c_double)()
-        self.lib.lammps_gather(self.lmp,name,type,count,data)
+        self.lib.lammps_gather(self.lmp,name,dtype,count,data)
       else:
         return None
     return data
 
-  def gather_concat(self,name,type,count):
+  def gather_concat(self,name,dtype,count):
     if name: name = name.encode()
     natoms = self.get_natoms()
     with ExceptionCheck(self):
-      if type == 0:
+      if dtype == 0:
         data = ((count*natoms)*c_int)()
-        self.lib.lammps_gather_concat(self.lmp,name,type,count,data)
-      elif type == 1:
+        self.lib.lammps_gather_concat(self.lmp,name,dtype,count,data)
+      elif dtype == 1:
         data = ((count*natoms)*c_double)()
-        self.lib.lammps_gather_concat(self.lmp,name,type,count,data)
+        self.lib.lammps_gather_concat(self.lmp,name,dtype,count,data)
       else:
         return None
     return data
 
-  def gather_subset(self,name,type,count,ndata,ids):
+  def gather_subset(self,name,dtype,count,ndata,ids):
     if name: name = name.encode()
     with ExceptionCheck(self):
-      if type == 0:
+      if dtype == 0:
         data = ((count*ndata)*c_int)()
-        self.lib.lammps_gather_subset(self.lmp,name,type,count,ndata,ids,data)
-      elif type == 1:
+        self.lib.lammps_gather_subset(self.lmp,name,dtype,count,ndata,ids,data)
+      elif dtype == 1:
         data = ((count*ndata)*c_double)()
-        self.lib.lammps_gather_subset(self.lmp,name,type,count,ndata,ids,data)
+        self.lib.lammps_gather_subset(self.lmp,name,dtype,count,ndata,ids,data)
       else:
         return None
     return data
@@ -1242,15 +1243,15 @@ class lammps(object):
   # NOTE: need to insure are converting to/from correct Python type
   #   e.g. for Python list or NumPy or ctypes
 
-  def scatter(self,name,type,count,data):
+  def scatter(self,name,dtype,count,data):
     if name: name = name.encode()
     with ExceptionCheck(self):
-      self.lib.lammps_scatter(self.lmp,name,type,count,data)
+      self.lib.lammps_scatter(self.lmp,name,dtype,count,data)
 
-  def scatter_subset(self,name,type,count,ndata,ids,data):
+  def scatter_subset(self,name,dtype,count,ndata,ids,data):
     if name: name = name.encode()
     with ExceptionCheck(self):
-      self.lib.lammps_scatter_subset(self.lmp,name,type,count,ndata,ids,data)
+      self.lib.lammps_scatter_subset(self.lmp,name,dtype,count,ndata,ids,data)
 
    # -------------------------------------------------------------------------
 

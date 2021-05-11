@@ -18,6 +18,7 @@
 #include <map>
 #include <cmath>
 #include <cstdlib>
+#include <iostream>
 #if (LAL_USE_OMP == 1)
 #include <omp.h>
 #endif
@@ -1026,6 +1027,22 @@ Device<PRECISION,ACC_PRECISION> global_device;
 }
 
 using namespace LAMMPS_AL;
+
+bool lmp_has_gpu_device()
+{
+  UCL_Device gpu;
+  return (gpu.num_platforms() > 0);
+}
+
+std::string lmp_gpu_device_info()
+{
+  std::ostringstream out;
+  UCL_Device gpu;
+  if (gpu.num_platforms() > 0)
+    gpu.print_all(out);
+  return out.str();
+}
+
 int lmp_init_device(MPI_Comm world, MPI_Comm replica, const int ngpu,
                     const int first_gpu_id, const int gpu_mode,
                     const double particle_split, const int t_per_atom,

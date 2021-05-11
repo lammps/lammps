@@ -12,12 +12,10 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Kurt Smith (U Pittsburgh)
+  Contributing authors: Martin Svoboda (ICPF, UJEP), Martin Lísal (ICPF, UJEP)
+  based on pair style dpd by: Kurt Smith (U Pittsburgh)
 ------------------------------------------------------------------------- */
 
-/* ----------------------------------------------------------------------
-  Contributing authors: Martin Svoboda (ICPF, UJEP), Martin Lísal (ICPF, UJEP)
-------------------------------------------------------------------------- */
 #include "pair_dpd_ext.h"
 
 #include "atom.h"

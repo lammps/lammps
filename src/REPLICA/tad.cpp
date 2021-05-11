@@ -43,7 +43,10 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-TAD::TAD(LAMMPS *lmp) : Command(lmp) {}
+TAD::TAD(LAMMPS *lmp) : Command(lmp)
+{
+  deltconf = deltstop = deltfirst = 0.0;
+}
 
 /* ---------------------------------------------------------------------- */
 

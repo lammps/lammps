@@ -59,6 +59,7 @@ NEB::NEB(LAMMPS *lmp, double etol_in, double ftol_in, int n1steps_in,
   n1steps = n1steps_in;
   n2steps = n2steps_in;
   nevery = nevery_in;
+  verbose = false;
 
   // replica info
 

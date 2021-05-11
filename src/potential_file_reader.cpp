@@ -62,7 +62,8 @@ PotentialFileReader::PotentialFileReader(LAMMPS *lmp,
   try {
     reader = open_potential(filename);
     if (!reader) {
-      error->one(FLERR, fmt::format("cannot open {} potential file {}", potential_name, filename));
+      error->one(FLERR, "cannot open {} potential file {}: {}",
+                                    potential_name, filename, utils::getsyserror());
     }
   } catch (FileReaderException &e) {
     error->one(FLERR, e.what());
@@ -253,8 +254,8 @@ TextFileReader *PotentialFileReader::open_potential(const std::string &path) {
     std::string units      = utils::get_potential_units(filepath, filetype);
 
     if (!date.empty())
-      utils::logmesg(lmp, fmt::format("Reading {} file {} with DATE: {}\n",
-                                      filetype, filename, date));
+      utils::logmesg(lmp,"Reading {} file {} with DATE: {}\n",
+                     filetype, filename, date);
 
     if (units.empty()) {
       unit_convert = utils::NOCONVERT;
@@ -267,15 +268,15 @@ TextFileReader *PotentialFileReader::open_potential(const std::string &path) {
         } else if ((units == "real") && (unit_style == "metal") && (unit_convert & utils::REAL2METAL)) {
           unit_convert = utils::REAL2METAL;
         } else {
-          lmp->error->one(FLERR, fmt::format("{} file {} requires {} units "
+          lmp->error->one(FLERR, "{} file {} requires {} units "
                                              "but {} units are in use", filetype,
-                                             filename, units, unit_style));
+                                             filename, units, unit_style);
         }
       }
     }
     if (unit_convert != utils::NOCONVERT)
-      lmp->error->warning(FLERR, fmt::format("Converting {} in {} units to {} "
-                                             "units", filetype, units, unit_style));
+      lmp->error->warning(FLERR, "Converting {} in {} units to {} units",
+                          filetype, units, unit_style);
     return new TextFileReader(filepath, filetype);
   }
   return nullptr;

@@ -16,12 +16,12 @@
 
 #include "atom.h"
 #include "comm.h"
-#include "force.h"
 #include "math_extra.h"
 #include "memory.h"
 #include "neigh_list.h"
-#include "neighbor.h"
 #include "suffix.h"
+
+#include <cmath>
 
 #include "omp_compat.h"
 using namespace LAMMPS_NS;

@@ -832,8 +832,8 @@ void PairExp6rx::read_file2(char *file)
   if (comm->me == 0) {
     fp = fopen(file,"r");
     if (fp == nullptr)
-      error->one(FLERR,fmt::format("Cannot open polynomial file {}: {}",
-                                   file,utils::getsyserror()));
+      error->one(FLERR,"Cannot open polynomial file {}: {}",
+                                   file,utils::getsyserror());
   }
 
   // one set of params can span multiple lines

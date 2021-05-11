@@ -15,10 +15,6 @@
    Contributing author: Timothy Sirk (ARL)
 ------------------------------------------------------------------------- */
 
-// lmptype.h must be first b/c this file uses MAXBIGINT and includes mpi.h
-// due to OpenMPI bug which sets INT64_MAX via its mpi.h
-//   before lmptype.h can set flags to insure it is done correctly
-
 #include "read_dump.h"
 
 #include "atom.h"
@@ -46,7 +42,7 @@ enum{NOADD,YESADD,KEEPADD};
 
 /* ---------------------------------------------------------------------- */
 
-ReadDump::ReadDump(LAMMPS *lmp) : Pointers(lmp)
+ReadDump::ReadDump(LAMMPS *lmp) : Command(lmp)
 {
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
@@ -161,13 +157,14 @@ void ReadDump::command(int narg, char **arg)
   domain->print_box("  ");
 
   if (me == 0)
-    utils::logmesg(lmp, fmt::format("  {} atoms before read\n",natoms_prev)
-                   + fmt::format("  {} atoms in snapshot\n",nsnap_all)
-                   + fmt::format("  {} atoms purged\n",npurge_all)
-                   + fmt::format("  {} atoms replaced\n",nreplace_all)
-                   + fmt::format("  {} atoms trimmed\n",ntrim_all)
-                   + fmt::format("  {} atoms added\n",nadd_all)
-                   + fmt::format("  {} atoms after read\n",atom->natoms));
+    utils::logmesg(lmp,"  {} atoms before read\n"
+                   "  {} atoms in snapshot\n"
+                   "  {} atoms purged\n"
+                   "  {} atoms replaced\n"
+                   "  {} atoms trimmed\n"
+                   "  {} atoms added\n"
+                   "  {} atoms after read\n",natoms_prev,nsnap_all,
+                   npurge_all,nreplace_all,ntrim_all,nadd_all,atom->natoms);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -822,9 +819,9 @@ void ReadDump::process_atoms()
 
   int nlocal = atom->nlocal;
   memory->create(updateflag,nlocal,"read_dump:updateflag");
-  for (int i = 0; i < nlocal; i++) updateflag[i] = 0;
+  for (i = 0; i < nlocal; i++) updateflag[i] = 0;
   memory->create(newflag,nnew,"read_dump:newflag");
-  for (int i = 0; i < nnew; i++) newflag[i] = 1;
+  for (i = 0; i < nnew; i++) newflag[i] = 1;
 
   // loop over new atoms
 
@@ -922,7 +919,7 @@ void ReadDump::process_atoms()
   if (trimflag) {
     AtomVec *avec = atom->avec;
 
-    int i = 0;
+    i = 0;
     while (i < nlocal) {
       if (!updateflag[i]) {
         avec->copy(nlocal-1,i,1);

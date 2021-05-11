@@ -16,22 +16,23 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_qeq_slater.h"
-#include <cmath>
 
-#include <cstring>
 #include "atom.h"
 #include "comm.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "update.h"
+#include "error.h"
 #include "force.h"
 #include "group.h"
-#include "pair.h"
 #include "kspace.h"
-#include "respa.h"
 #include "math_const.h"
-#include "error.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "pair.h"
+#include "respa.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -207,14 +208,9 @@ void FixQEqSlater::compute_H()
     chizj[i] = zjtmp;
   }
 
-  if (m_fill >= H.m) {
-    char str[128];
-    sprintf(str,"H matrix size has been exceeded: m_fill=%d H.m=%d\n",
-             m_fill, H.m );
-    error->warning(FLERR,str);
-    error->all(FLERR,"Fix qeq/slater has insufficient QEq matrix size");
-  }
-
+  if (m_fill >= H.m)
+    error->all(FLERR,FLERR,"Fix qeq/slater has insufficient H "
+                                 "matrix size:m_fill={} H.m={}\n",m_fill,H.m);
 }
 
 /* ---------------------------------------------------------------------- */

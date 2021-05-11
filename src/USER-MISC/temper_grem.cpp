@@ -40,7 +40,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-TemperGrem::TemperGrem(LAMMPS *lmp) : Pointers(lmp) {}
+TemperGrem::TemperGrem(LAMMPS *lmp) : Command(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 

@@ -184,20 +184,8 @@ void DihedralClass2OMP::eval(int nfrom, int nto, ThrData * const thr)
 
     // error check
 
-    if (c > 1.0 + TOLERANCE || c < (-1.0 - TOLERANCE)) {
-      int me = comm->me;
-
-      if (screen) {
-        error->warning(FLERR,fmt::format("Dihedral problem: {} {} {} {} {} {}",
-                                         me,update->ntimestep,
-                                         atom->tag[i1],atom->tag[i2],
-                                         atom->tag[i3],atom->tag[i4]));
-        fmt::print(screen,"  1st atom: {} {} {} {}\n",me,x[i1].x,x[i1].y,x[i1].z);
-        fmt::print(screen,"  2nd atom: {} {} {} {}\n",me,x[i2].x,x[i2].y,x[i2].z);
-        fmt::print(screen,"  3rd atom: {} {} {} {}\n",me,x[i3].x,x[i3].y,x[i3].z);
-        fmt::print(screen,"  4th atom: {} {} {} {}\n",me,x[i4].x,x[i4].y,x[i4].z);
-      }
-    }
+    if (c > 1.0 + TOLERANCE || c < (-1.0 - TOLERANCE))
+      problem(FLERR, i1, i2, i3, i4);
 
     if (c > 1.0) c = 1.0;
     if (c < -1.0) c = -1.0;

@@ -22,7 +22,6 @@
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "memory.h"
 
 #include <cstring>
 #include <Eigen/Eigen>

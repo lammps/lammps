@@ -117,6 +117,21 @@ FixAtomSwap::FixAtomSwap(LAMMPS *lmp, int narg, char **arg) :
 
 }
 
+/* ---------------------------------------------------------------------- */
+
+FixAtomSwap::~FixAtomSwap()
+{
+  memory->destroy(type_list);
+  memory->destroy(mu);
+  memory->destroy(qtype);
+  memory->destroy(sqrt_mass_ratio);
+  memory->destroy(local_swap_iatom_list);
+  memory->destroy(local_swap_jatom_list);
+  if (regionflag) delete [] idregion;
+  delete random_equal;
+  delete random_unequal;
+}
+
 /* ----------------------------------------------------------------------
    parse optional parameters at end of input line
 ------------------------------------------------------------------------- */
@@ -176,19 +191,6 @@ void FixAtomSwap::options(int narg, char **arg)
       }
     } else error->all(FLERR,"Illegal fix atom/swap command");
   }
-}
-
-/* ---------------------------------------------------------------------- */
-
-FixAtomSwap::~FixAtomSwap()
-{
-  memory->destroy(type_list);
-  memory->destroy(mu);
-  memory->destroy(qtype);
-  memory->destroy(sqrt_mass_ratio);
-  if (regionflag) delete [] idregion;
-  delete random_equal;
-  delete random_unequal;
 }
 
 /* ---------------------------------------------------------------------- */

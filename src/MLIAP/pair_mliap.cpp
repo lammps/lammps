@@ -35,7 +35,6 @@
 
 #include <cmath>
 #include <cstring>
-#include "error.h"
 
 using namespace LAMMPS_NS;
 

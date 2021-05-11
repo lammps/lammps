@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -21,9 +21,9 @@
 #define LMP_ZSTD_FILE_WRITER_H
 
 #include "file_writer.h"
+
 #include <string>
 #include <zstd.h>
-#include <exception>
 
 namespace LAMMPS_NS {
 
@@ -47,8 +47,6 @@ public:
     void setCompressionLevel(int level);
     void setChecksum(bool enabled);
 };
-
-
 }
 
 #endif

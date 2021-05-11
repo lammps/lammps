@@ -32,7 +32,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ResetMolIDs::ResetMolIDs(LAMMPS *lmp) : Pointers(lmp) {
+ResetMolIDs::ResetMolIDs(LAMMPS *lmp) : Command(lmp) {
   cfa = nullptr;
   cca = nullptr;
 
@@ -131,11 +131,11 @@ void ResetMolIDs::command(int narg, char **arg)
 
   if (comm->me == 0) {
     if (nchunk < 0)
-      utils::logmesg(lmp,fmt::format("  number of new molecule IDs = unknown\n"));
+      utils::logmesg(lmp,"  number of new molecule IDs = unknown\n");
     else
-      utils::logmesg(lmp,fmt::format("  number of new molecule IDs = {}\n",nchunk));
-    utils::logmesg(lmp,fmt::format("  reset_mol_ids CPU = {:.3f} seconds\n",
-                                   MPI_Wtime()-time1));
+      utils::logmesg(lmp,"  number of new molecule IDs = {}\n",nchunk);
+    utils::logmesg(lmp,"  reset_mol_ids CPU = {:.3f} seconds\n",
+                   MPI_Wtime()-time1);
   }
 }
 

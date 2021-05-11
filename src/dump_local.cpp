@@ -197,16 +197,14 @@ void DumpLocal::init_style()
   // find current ptr for each compute,fix,variable
   // check that fix frequency is acceptable
 
-  int icompute;
-  for (int i = 0; i < ncompute; i++) {
-    icompute = modify->find_compute(id_compute[i]);
+  for (i = 0; i < ncompute; i++) {
+    int icompute = modify->find_compute(id_compute[i]);
     if (icompute < 0) error->all(FLERR,"Could not find dump local compute ID");
     compute[i] = modify->compute[icompute];
   }
 
-  int ifix;
-  for (int i = 0; i < nfix; i++) {
-    ifix = modify->find_fix(id_fix[i]);
+  for (i = 0; i < nfix; i++) {
+    int ifix = modify->find_fix(id_fix[i]);
     if (ifix < 0) error->all(FLERR,"Could not find dump local fix ID");
     fix[i] = modify->fix[ifix];
     if (nevery % modify->fix[ifix]->local_freq)
@@ -332,14 +330,14 @@ int DumpLocal::count()
 
   nmine = -1;
 
-  for (int i = 0; i < ncompute; i++) {
+  for (i = 0; i < ncompute; i++) {
     if (nmine < 0) nmine = compute[i]->size_local_rows;
     else if (nmine != compute[i]->size_local_rows)
       error->one(FLERR,
                  "Dump local count is not consistent across input fields");
   }
 
-  for (int i = 0; i < nfix; i++) {
+  for (i = 0; i < nfix; i++) {
     if (nmine < 0) nmine = fix[i]->size_local_rows;
     else if (nmine != fix[i]->size_local_rows)
       error->one(FLERR,

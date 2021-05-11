@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,6 +15,7 @@
 #define LMP_ATOM_VEC_H
 
 #include "pointers.h"  // IWYU pragma: export
+#include <vector>
 
 namespace LAMMPS_NS {
 
@@ -191,13 +192,15 @@ class AtomVec : protected Pointers {
   const char *default_create,*default_data_atom,*default_data_vel;
 
   struct Method {
-    void **pdata;
-    int *datatype;
-    int *cols;
-    int **maxcols;
-    int *collength;
-    void **plength;
-    int *index;
+    std::vector<void *> pdata;
+    std::vector<int> datatype;
+    std::vector<int> cols;
+    std::vector<int*> maxcols;
+    std::vector<int> collength;
+    std::vector<void *> plength;
+    std::vector<int> index;
+
+    void resize(int nfield);
   };
 
   Method mgrow,mcopy;
@@ -219,9 +222,7 @@ class AtomVec : protected Pointers {
   int grow_nmax_bonus(int);
   void setup_fields();
   int process_fields(char *, const char *, Method *);
-  void create_method(int, Method *);
-  void init_method(Method *);
-  void destroy_method(Method *);
+  void init_method(int, Method *);
 };
 
 }

@@ -12,11 +12,11 @@ CommandStyle(third_order,ThirdOrder)
 #ifndef LMP_THIRD_ORDER_H
 #define LMP_THIRD_ORDER_H
 
-#include "pointers.h"
+#include "command.h"
 
 namespace LAMMPS_NS {
 
-  class ThirdOrder : protected Pointers {
+  class ThirdOrder : public Command {
    public:
     ThirdOrder(class LAMMPS *);
     virtual ~ThirdOrder();

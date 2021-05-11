@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -20,11 +20,11 @@ CommandStyle(tad,TAD)
 #ifndef LMP_TAD_H
 #define LMP_TAD_H
 
-#include "pointers.h"
+#include "command.h"
 
 namespace LAMMPS_NS {
 
-class TAD : protected Pointers {
+class TAD : public Command {
  public:
   TAD(class LAMMPS *);
   ~TAD();

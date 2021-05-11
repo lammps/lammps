@@ -32,7 +32,6 @@
 #include "output.h"
 #include "pair.h"
 #include "thermo.h"
-#include "universe.h"
 #include "update.h"
 
 #include <cstring>
@@ -43,7 +42,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-WriteRestart::WriteRestart(LAMMPS *lmp) : Pointers(lmp)
+WriteRestart::WriteRestart(LAMMPS *lmp) : Command(lmp)
 {
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
@@ -232,8 +231,8 @@ void WriteRestart::write(std::string file)
 
     fp = fopen(base.c_str(),"wb");
     if (fp == nullptr)
-      error->one(FLERR, fmt::format("Cannot open restart file {}: {}",
-                                    base, utils::getsyserror()));
+      error->one(FLERR, "Cannot open restart file {}: {}",
+                                    base, utils::getsyserror());
   }
 
   // proc 0 writes magic string, endian flag, numeric version
@@ -295,8 +294,8 @@ void WriteRestart::write(std::string file)
     if (filewriter) {
       fp = fopen(multiname.c_str(),"wb");
       if (fp == nullptr)
-        error->one(FLERR, fmt::format("Cannot open restart file {}: {}",
-                                      multiname, utils::getsyserror()));
+        error->one(FLERR, "Cannot open restart file {}: {}",
+                                      multiname, utils::getsyserror());
       write_int(PROCSPERFILE,nclusterprocs);
     }
   }

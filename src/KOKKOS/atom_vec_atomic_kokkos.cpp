@@ -1,5 +1,5 @@
 /* ----------------------------------------------------------------------
-   LAMMPS - Large-scale AtomicKokkos/Molecular Massively Parallel Simulator
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 

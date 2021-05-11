@@ -34,6 +34,7 @@
 #include "library.h"
 
 #include <algorithm>
+#include <cmath>
 #include <cstring>
 
 #ifdef LMP_USER_INTEL

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -118,6 +118,7 @@ class Neighbor : protected Pointers {
   void set(int, char **);           // set neighbor style and skin distance
   void reset_timestep(bigint);      // reset of timestep counter
   void modify_params(int, char**);  // modify params that control builds
+  void modify_params(const std::string &); // convenience overload
 
   void exclusion_group_group_delete(int, int);  // rm a group-group exclusion
   int exclude_setting();            // return exclude value to accelerator pkg

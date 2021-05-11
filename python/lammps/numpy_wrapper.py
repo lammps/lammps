@@ -293,7 +293,11 @@ class numpy_wrapper:
       ptr = cast(raw_ptr[0], POINTER(c_int_type * nelem * dim))
 
     a = np.frombuffer(ptr.contents, dtype=np_int_type)
-    a.shape = (nelem, dim)
+
+    if dim > 1:
+      a.shape = (nelem, dim)
+    else:
+      a.shape = (nelem)
     return a
 
   # -------------------------------------------------------------------------
@@ -306,7 +310,11 @@ class numpy_wrapper:
       ptr = cast(raw_ptr[0], POINTER(c_double * nelem * dim))
 
     a = np.frombuffer(ptr.contents)
-    a.shape = (nelem, dim)
+
+    if dim > 1:
+      a.shape = (nelem, dim)
+    else:
+      a.shape = (nelem)
     return a
 
 # -------------------------------------------------------------------------

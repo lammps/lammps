@@ -17,18 +17,18 @@
 
 #include "fix_qeq_comb_omp.h"
 
-#include <cmath>
-#include <cstring>
-#include "pair_comb.h"
 #include "atom.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "group.h"
 #include "memory.h"
-#include "error.h"
 #include "neigh_list.h"
+#include "pair_comb.h"
 #include "respa.h"
 #include "update.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

@@ -13,16 +13,15 @@
 
 #include "fix_nve_limit.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
-#include "force.h"
-#include "update.h"
-#include "respa.h"
-#include "modify.h"
 #include "comm.h"
 #include "error.h"
+#include "force.h"
+#include "modify.h"
+#include "respa.h"
+#include "update.h"
 
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

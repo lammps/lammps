@@ -12,11 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #include "npair_full_bin_atomonly.h"
-#include "neigh_list.h"
+
 #include "atom.h"
-#include "atom_vec.h"
-#include "my_page.h"
 #include "error.h"
+#include "my_page.h"
+#include "neigh_list.h"
 
 using namespace LAMMPS_NS;
 

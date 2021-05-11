@@ -557,8 +557,8 @@ void PairBodyRoundedPolyhedron::body2space(int i)
   }
 
   if ((body_num_edges > 0) && (edge_ends == nullptr))
-    error->one(FLERR,fmt::format("Inconsistent edge data for body of atom {}",
-                                 atom->tag[i]));
+    error->one(FLERR,"Inconsistent edge data for body of atom {}",
+                                 atom->tag[i]);
 
   for (int m = 0; m < body_num_edges; m++) {
     edge[nedge][0] = static_cast<int>(edge_ends[2*m+0]);
@@ -584,8 +584,8 @@ void PairBodyRoundedPolyhedron::body2space(int i)
   }
 
   if ((body_num_faces > 0) && (face_pts == nullptr))
-    error->one(FLERR,fmt::format("Inconsistent face data for body of atom {}",
-                                 atom->tag[i]));
+    error->one(FLERR,"Inconsistent face data for body of atom {}",
+                                 atom->tag[i]);
 
   for (int m = 0; m < body_num_faces; m++) {
     for (int k = 0; k < MAX_FACE_SIZE; k++)

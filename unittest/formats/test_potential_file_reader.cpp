@@ -43,18 +43,20 @@ using utils::split_words;
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
 bool verbose = false;
 
-const int LAMMPS_NS::PairSW::NPARAMS_PER_LINE;
-const int LAMMPS_NS::PairComb::NPARAMS_PER_LINE;
-const int LAMMPS_NS::PairComb3::NPARAMS_PER_LINE;
-const int LAMMPS_NS::PairTersoff::NPARAMS_PER_LINE;
-const int LAMMPS_NS::PairTersoffMOD::NPARAMS_PER_LINE;
-const int LAMMPS_NS::PairTersoffMODC::NPARAMS_PER_LINE;
-const int LAMMPS_NS::PairTersoffZBL::NPARAMS_PER_LINE;
-const int LAMMPS_NS::PairGW::NPARAMS_PER_LINE;
-const int LAMMPS_NS::PairGWZBL::NPARAMS_PER_LINE;
-const int LAMMPS_NS::PairNb3bHarmonic::NPARAMS_PER_LINE;
-const int LAMMPS_NS::PairVashishta::NPARAMS_PER_LINE;
-const int LAMMPS_NS::PairTersoffTable::NPARAMS_PER_LINE;
+#if __cplusplus < 201703L
+constexpr int LAMMPS_NS::PairSW::NPARAMS_PER_LINE;
+constexpr int LAMMPS_NS::PairComb::NPARAMS_PER_LINE;
+constexpr int LAMMPS_NS::PairComb3::NPARAMS_PER_LINE;
+constexpr int LAMMPS_NS::PairTersoff::NPARAMS_PER_LINE;
+constexpr int LAMMPS_NS::PairTersoffMOD::NPARAMS_PER_LINE;
+constexpr int LAMMPS_NS::PairTersoffMODC::NPARAMS_PER_LINE;
+constexpr int LAMMPS_NS::PairTersoffZBL::NPARAMS_PER_LINE;
+constexpr int LAMMPS_NS::PairGW::NPARAMS_PER_LINE;
+constexpr int LAMMPS_NS::PairGWZBL::NPARAMS_PER_LINE;
+constexpr int LAMMPS_NS::PairNb3bHarmonic::NPARAMS_PER_LINE;
+constexpr int LAMMPS_NS::PairVashishta::NPARAMS_PER_LINE;
+constexpr int LAMMPS_NS::PairTersoffTable::NPARAMS_PER_LINE;
+#endif
 
 class PotentialFileReaderTest : public LAMMPSTest {
 };

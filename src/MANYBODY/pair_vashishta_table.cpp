@@ -16,11 +16,10 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_vashishta_table.h"
-#include <cstdio>
+
 #include "atom.h"
 #include "error.h"
 #include "force.h"
-#include "comm.h"
 #include "memory.h"
 #include "neigh_list.h"
 

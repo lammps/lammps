@@ -253,8 +253,8 @@ void PairQUIP::coeff(int narg, char **arg)
 
   int n = atom->ntypes;
   if (narg != (4+n))
-    error->all(FLERR,fmt::format("Number of arguments {} is not correct, "
-                                 "it should be {}", narg, 4+n));
+    error->all(FLERR,"Number of arguments {} is not correct, "
+                                 "it should be {}", narg, 4+n);
 
   // ensure I,J args are * *
 
@@ -318,7 +318,6 @@ void PairQUIP::init_style()
 
   // Initialise neighbor list
   int irequest_full = neighbor->request(this);
-  neighbor->requests[irequest_full]->id = 1;
   neighbor->requests[irequest_full]->half = 0;
   neighbor->requests[irequest_full]->full = 1;
 }

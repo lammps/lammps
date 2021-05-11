@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -20,7 +20,6 @@ extern "C" {
 
   typedef void *(lammpsplugin_factory1)(void *);
   typedef void *(lammpsplugin_factory2)(void *, int, char **);
-  typedef void (lammpsplugin_factory3)(void *, int, char **);
 
   typedef struct {
     const char *version;
@@ -31,7 +30,6 @@ extern "C" {
     union {
       lammpsplugin_factory1 *v1;
       lammpsplugin_factory2 *v2;
-      lammpsplugin_factory3 *v3;
     } creator;
     void *handle;
   } lammpsplugin_t;

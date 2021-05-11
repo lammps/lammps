@@ -586,9 +586,9 @@ double PairMM3Switch3CoulGaussLong::single(int i, int j, int itype, int jtype,
   int itable;
 
   r2inv = 1.0/rsq;
+  r = sqrt(rsq);
   if (rsq < cut_coulsq) {
     if (!ncoultablebits || rsq <= tabinnersq) {
-      r = sqrt(rsq);
       grij = g_ewald * r;
       expm2 = exp(-grij*grij);
       t = 1.0 / (1.0 + EWALD_P*grij);
@@ -613,7 +613,6 @@ double PairMM3Switch3CoulGaussLong::single(int i, int j, int itype, int jtype,
   } else forcecoul = 0.0;
 
   if (rsq < cut_ljsq[itype][jtype]) {
-    r = sqrt(rsq);
     expb = lj3[itype][jtype]*exp(-lj1[itype][jtype]*r);
     forcelj = expb*lj1[itype][jtype]*r;
     r6inv = r2inv*r2inv*r2inv;

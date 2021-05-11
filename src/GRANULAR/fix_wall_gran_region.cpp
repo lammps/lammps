@@ -98,21 +98,17 @@ void FixWallGranRegion::init()
   // check if region properties changed between runs
   // reset if restart info was inconsistent
 
-  if (strcmp(idregion,region->id) != 0 ||
-      strcmp(region_style,region->style) != 0 ||
-      nregion != region->nregion) {
-    char str[256];
-    snprintf(str,256,"Region properties for region %s changed between runs, "
-             "resetting its motion",idregion);
-    error->warning(FLERR,str);
+  if ((strcmp(idregion,region->id) != 0)
+      || (strcmp(region_style,region->style) != 0)
+      || (nregion != region->nregion)) {
+    error->warning(FLERR,"Region properties for region {} changed between "
+                   "runs, resetting its motion",idregion);
     region->reset_vel();
   }
 
   if (motion_resetflag) {
-    char str[256];
-    snprintf(str,256,"Region properties for region %s are inconsistent "
-             "with restart file, resetting its motion",idregion);
-    error->warning(FLERR,str);
+    error->warning(FLERR,"Region properties for region {} are inconsistent "
+                   "with restart file, resetting its motion",idregion);
     region->reset_vel();
   }
 }

@@ -1,13 +1,13 @@
 ---
-lammps_version: 24 Aug 2020
-date_generated: Tue Sep 15 09:44:16 202
+lammps_version: 10 Feb 2021
+date_generated: Fri Feb 26 23:08:49 2021
 epsilon: 1e-13
 prerequisites: ! |
   atom full
   pair lj/cut/tip4p/cut
 pre_commands: ! |
   variable newton_pair delete
-  variable newton_pair index on
+  if "$(is_active(package,gpu)) > 0.0" then "variable newton_pair index off" else "variable newton_pair index on"
 post_commands: ! |
   pair_modify mix arithmetic
 input_file: in.fourmol

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -73,6 +73,7 @@ class FixWallGran : public Fix {
   // for granular model choices
   int normal_model, damping_model;
   int tangential_model, roll_model, twist_model;
+  int limit_damping;
 
   // history flags
   int normal_history, tangential_history, roll_history, twist_history;

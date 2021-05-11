@@ -19,7 +19,6 @@
 
 #include "error.h"
 #include "math_eigen.h"
-#include "math_extra.h"
 #include "math_special.h"
 #include "memory.h"
 #include "modify.h"

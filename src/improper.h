@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -71,6 +71,7 @@ class Improper : protected Pointers {
   void ev_tally(int, int, int, int, int, int, double,
                 double *, double *, double *, double, double, double,
                 double, double, double, double, double, double);
+  void problem(const char *, int, int, int, int, int);
 };
 
 }

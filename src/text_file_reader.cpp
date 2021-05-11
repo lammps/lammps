@@ -41,19 +41,43 @@ using namespace LAMMPS_NS;
  * \param  filetype  Description of file type for error messages */
 
 TextFileReader::TextFileReader(const std::string &filename, const std::string &filetype)
-  : filename(filename), filetype(filetype), ignore_comments(true)
+  : filetype(filetype), closefp(true), ignore_comments(true)
 {
   fp = fopen(filename.c_str(), "r");
 
   if (fp == nullptr) {
-    throw FileReaderException(fmt::format("cannot open {} file {}", filetype, filename));
+    throw FileReaderException(fmt::format("cannot open {} file {}: {}",
+                              filetype, filename, utils::getsyserror()));
   }
+}
+
+/**
+ * \overload
+ *
+\verbatim embed:rst
+
+This function is useful in combination with :cpp:func:`utils::open_potential`.
+
+.. note::
+
+   The FILE pointer is not closed in the destructor, but will be advanced
+   when reading from it.
+
+\endverbatim
+ *
+ * \param  fp        File descriptor of the already opened file
+ * \param  filetype  Description of file type for error messages */
+
+TextFileReader::TextFileReader(FILE *fp, const std::string &filetype)
+  : filetype(filetype), closefp(false), fp(fp), ignore_comments(true)
+{
+  if (fp == nullptr) throw FileReaderException("Invalid file descriptor");
 }
 
 /** Closes the file */
 
 TextFileReader::~TextFileReader() {
-  fclose(fp);
+  if (closefp) fclose(fp);
 }
 
 /** Read the next line and ignore it */
@@ -99,7 +123,7 @@ char *TextFileReader::next_line(int nparams) {
   if (nwords > 0) n = strlen(line);
 
   while (nwords == 0 || nwords < nparams) {
-    char *ptr = fgets(&line[n], MAXLINE - n, fp);
+    ptr = fgets(&line[n], MAXLINE - n, fp);
 
     if (ptr == nullptr) {
       // EOF
@@ -162,5 +186,8 @@ void TextFileReader::next_dvector(double * list, int n) {
  * \return              ValueTokenizer object for read in text */
 
 ValueTokenizer TextFileReader::next_values(int nparams, const std::string &separators) {
-  return ValueTokenizer(next_line(nparams), separators);
+  char *ptr = next_line(nparams);
+  if (ptr == nullptr)
+    throw EOFException(fmt::format("Missing line in {} file!", filetype));
+  return ValueTokenizer(line, separators);
 }

@@ -554,7 +554,7 @@ void BaseEllipsoidT::compile_kernels(UCL_Device &dev,
   _compiled=true;
 
   #if defined(USE_OPENCL) && (defined(CL_VERSION_2_1) || defined(CL_VERSION_3_0))
-  if (dev.cl_device_version() >= 210) {
+  if (dev.has_subgroup_support()) {
     size_t mx_subgroup_sz = k_lj_fast.max_subgroup_size(_block_size);
     mx_subgroup_sz = std::min(mx_subgroup_sz, k_ellipsoid.max_subgroup_size(_block_size));
     mx_subgroup_sz = std::min(mx_subgroup_sz, k_sphere_ellipsoid.max_subgroup_size(_block_size));

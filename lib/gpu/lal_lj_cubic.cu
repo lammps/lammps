@@ -26,10 +26,10 @@ _texture_2d( pos_tex,int4);
 
 // LJ quantities scaled by epsilon and rmin = sigma*2^1/6 (see src/pair_lj_cubic.h)
 
-#define _RT6TWO (numtyp)1.1224621
-#define _PHIS (numtyp)-0.7869823  /* energy at s */
-#define _DPHIDS (numtyp)2.6899009 /* gradient at s */
-#define _A3 (numtyp)27.93357 /* cubic coefficient */
+#define _RT6TWO (numtyp)1.1224620483093730  /* 2^1/6 */
+#define _PHIS (numtyp)-0.7869822485207097   /* energy at s */
+#define _DPHIDS (numtyp)2.6899008972047196  /* gradient at s */
+#define _A3 (numtyp)27.9335700460986445     /* cubic coefficient */
 
 __kernel void k_lj_cubic(const __global numtyp4 *restrict x_,
                          const __global numtyp4 *restrict lj1,

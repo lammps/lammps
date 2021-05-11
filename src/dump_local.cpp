@@ -112,7 +112,7 @@ DumpLocal::DumpLocal(LAMMPS *lmp, int narg, char **arg) :
 
   label = utils::strdup("ENTRIES");
 
-  // if wildcard expansion occurred, free earg memory from exapnd_args()
+  // if wildcard expansion occurred, free earg memory from expand_args()
 
   if (expand) {
     for (int i = 0; i < nfield; i++) delete [] earg[i];
@@ -179,6 +179,8 @@ void DumpLocal::init_style()
       vformat[i] = utils::strdup(std::string(format_int_user) + " ");
     else if (vtype[i] == Dump::DOUBLE && format_float_user)
       vformat[i] = utils::strdup(std::string(format_float_user) + " ");
+    else if (vtype[i] == Dump::BIGINT && format_bigint_user)
+      vformat[i] = utils::strdup(std::string(format_bigint_user) + " ");
     else vformat[i] = utils::strdup(word + " ");
     ++i;
   }
@@ -195,16 +197,14 @@ void DumpLocal::init_style()
   // find current ptr for each compute,fix,variable
   // check that fix frequency is acceptable
 
-  int icompute;
-  for (int i = 0; i < ncompute; i++) {
-    icompute = modify->find_compute(id_compute[i]);
+  for (i = 0; i < ncompute; i++) {
+    int icompute = modify->find_compute(id_compute[i]);
     if (icompute < 0) error->all(FLERR,"Could not find dump local compute ID");
     compute[i] = modify->compute[icompute];
   }
 
-  int ifix;
-  for (int i = 0; i < nfix; i++) {
-    ifix = modify->find_fix(id_fix[i]);
+  for (i = 0; i < nfix; i++) {
+    int ifix = modify->find_fix(id_fix[i]);
     if (ifix < 0) error->all(FLERR,"Could not find dump local fix ID");
     fix[i] = modify->fix[ifix];
     if (nevery % modify->fix[ifix]->local_freq)
@@ -225,6 +225,46 @@ int DumpLocal::modify_param(int narg, char **arg)
     delete [] label;
     label = utils::strdup(arg[1]);
     return 2;
+  } else if (strcmp(arg[0],"format") == 0) {
+    if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
+
+    if (strcmp(arg[1],"none") == 0) {
+      // just clear format_column_user allocated by this dump child class
+      for (int i = 0; i < nfield; i++) {
+        delete [] format_column_user[i];
+        format_column_user[i] = nullptr;
+      }
+      return 2;
+    } else if (strcmp(arg[1],"int") == 0) {
+      delete [] format_int_user;
+      format_int_user = utils::strdup(arg[2]);
+      delete [] format_bigint_user;
+      int n = strlen(format_int_user) + 8;
+      format_bigint_user = new char[n];
+      // replace "d" in format_int_user with bigint format specifier
+      // use of &str[1] removes leading '%' from BIGINT_FORMAT string
+      char *ptr = strchr(format_int_user,'d');
+      if (ptr == nullptr)
+        error->all(FLERR,
+                   "Dump_modify int format does not contain d character");
+      char str[8];
+      sprintf(str,"%s",BIGINT_FORMAT);
+      *ptr = '\0';
+      sprintf(format_bigint_user,"%s%s%s",format_int_user,&str[1],ptr+1);
+      *ptr = 'd';
+
+    } else if (strcmp(arg[1],"float") == 0) {
+      delete [] format_float_user;
+      format_float_user = utils::strdup(arg[2]);
+
+    } else {
+      int i = utils::inumeric(FLERR,arg[1],false,lmp) - 1;
+      if (i < 0 || i >= nfield)
+        error->all(FLERR,"Illegal dump_modify command");
+      if (format_column_user[i]) delete [] format_column_user[i];
+      format_column_user[i] = utils::strdup(arg[2]);
+    }
+    return 3;
   }
   return 0;
 }
@@ -290,14 +330,14 @@ int DumpLocal::count()
 
   nmine = -1;
 
-  for (int i = 0; i < ncompute; i++) {
+  for (i = 0; i < ncompute; i++) {
     if (nmine < 0) nmine = compute[i]->size_local_rows;
     else if (nmine != compute[i]->size_local_rows)
       error->one(FLERR,
                  "Dump local count is not consistent across input fields");
   }
 
-  for (int i = 0; i < nfix; i++) {
+  for (i = 0; i < nfix; i++) {
     if (nmine < 0) nmine = fix[i]->size_local_rows;
     else if (nmine != fix[i]->size_local_rows)
       error->one(FLERR,
@@ -335,6 +375,10 @@ int DumpLocal::convert_string(int n, double *mybuf)
     for (j = 0; j < size_one; j++) {
       if (vtype[j] == Dump::INT)
         offset += sprintf(&sbuf[offset],vformat[j],static_cast<int> (mybuf[m]));
+      else if (vtype[j] == Dump::DOUBLE)
+        offset += sprintf(&sbuf[offset],vformat[j],mybuf[m]);
+      else if (vtype[j] == Dump::BIGINT)
+        offset += sprintf(&sbuf[offset],vformat[j],static_cast<bigint> (mybuf[m]));
       else
         offset += sprintf(&sbuf[offset],vformat[j],mybuf[m]);
       m++;
@@ -369,6 +413,8 @@ void DumpLocal::write_lines(int n, double *mybuf)
   for (i = 0; i < n; i++) {
     for (j = 0; j < size_one; j++) {
       if (vtype[j] == Dump::INT) fprintf(fp,vformat[j],static_cast<int> (mybuf[m]));
+      else if (vtype[j] == Dump::DOUBLE) fprintf(fp,vformat[j],mybuf[m]);
+      else if (vtype[j] == Dump::BIGINT) fprintf(fp,vformat[j],static_cast<bigint>(mybuf[m]));
       else fprintf(fp,vformat[j],mybuf[m]);
       m++;
     }

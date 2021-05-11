@@ -38,7 +38,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <ctime>
 #include <mpi.h>
 
 #include <map>
@@ -244,41 +243,8 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
 
     YamlWriter writer(outfile);
 
-    // lammps_version
-    writer.emit("lammps_version", lmp->version);
-
-    // date_generated
-    std::time_t now = time(NULL);
-    block           = ctime(&now);
-    block           = block.substr(0, block.find("\n") - 1);
-    writer.emit("date_generated", block);
-
-    // epsilon
-    writer.emit("epsilon", config.epsilon);
-
-    // prerequisites
-    block.clear();
-    for (auto &prerequisite : config.prerequisites) {
-        block += prerequisite.first + " " + prerequisite.second + "\n";
-    }
-    writer.emit_block("prerequisites", block);
-
-    // pre_commands
-    block.clear();
-    for (auto &command : config.pre_commands) {
-        block += command + "\n";
-    }
-    writer.emit_block("pre_commands", block);
-
-    // post_commands
-    block.clear();
-    for (auto &command : config.post_commands) {
-        block += command + "\n";
-    }
-    writer.emit_block("post_commands", block);
-
-    // input_file
-    writer.emit("input_file", config.input_file);
+    // write yaml header
+    write_yaml_header(&writer, &test_config, lmp->version);
 
     // dihedral_style
     writer.emit("dihedral_style", config.dihedral_style);
@@ -343,6 +309,8 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
 
 TEST(DihedralStyle, plain)
 {
+    if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
+
     const char *args[] = {"DihedralStyle", "-log", "none", "-echo", "screen", "-nocite"};
 
     char **argv = (char **)args;
@@ -569,6 +537,8 @@ TEST(DihedralStyle, plain)
 TEST(DihedralStyle, omp)
 {
     if (!LAMMPS::is_installed_pkg("USER-OMP")) GTEST_SKIP();
+    if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
+
     const char *args[] = {"DihedralStyle", "-log", "none", "-echo", "screen", "-nocite",
                           "-pk",           "omp",  "4",    "-sf",   "omp"};
 

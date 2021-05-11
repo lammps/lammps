@@ -204,7 +204,7 @@ static int get_neighbours(void* vdata, size_t central_index, size_t atom_index, 
 
   int *jlist = nullptr;
   int jnum = 0;
-  if (atom_index < data->nlocal) {
+  if ((int)atom_index < data->nlocal) {
     jlist = data->firstneigh[atom_index];
     jnum = data->numneigh[atom_index];
   }
@@ -221,7 +221,7 @@ static int get_neighbours(void* vdata, size_t central_index, size_t atom_index, 
       continue;
 
     j &= NEIGHMASK;
-    if (j == atom_index)
+    if (j == (int)atom_index)
       continue;
 
     double dx = pos[0] - x[j][0];

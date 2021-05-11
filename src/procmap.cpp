@@ -308,8 +308,8 @@ void ProcMap::custom_grid(char *cfile, int nprocs,
     procgrid[1] = procs.next_int();
     procgrid[2] = procs.next_int();
   } catch (TokenizerException &e) {
-    error->all(FLERR,fmt::format("Processors custom grid file "
-                                 "is inconsistent: {}", e.what()));
+    error->all(FLERR,"Processors custom grid file "
+                                 "is inconsistent: {}", e.what());
   }
 
   int flag = 0;
@@ -337,8 +337,8 @@ void ProcMap::custom_grid(char *cfile, int nprocs,
         cmap[i][2] = pmap.next_int();
         cmap[i][3] = pmap.next_int();
       } catch (TokenizerException &e) {
-        error->one(FLERR,fmt::format("Processors custom grid file is "
-                                     "inconsistent: {}", e.what()));
+        error->one(FLERR,"Processors custom grid file is "
+                                     "inconsistent: {}", e.what());
       }
     }
     fclose(fp);

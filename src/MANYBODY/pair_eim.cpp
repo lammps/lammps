@@ -1013,7 +1013,7 @@ EIMPotentialFileReader::EIMPotentialFileReader(LAMMPS *lmp,
   conversion_factor = utils::get_conversion_factor(utils::ENERGY,unit_convert);
 
   if (fp == nullptr) {
-    error->one(FLERR, fmt::format("cannot open eim potential file {}", filename));
+    error->one(FLERR,"cannot open eim potential file {}", filename);
   }
 
   parse(fp);
@@ -1028,7 +1028,7 @@ std::pair<std::string, std::string> EIMPotentialFileReader::get_pair(const std::
   return std::make_pair(b, a);
 }
 
-char * EIMPotentialFileReader::next_line(FILE * fp) {
+char *EIMPotentialFileReader::next_line(FILE * fp) {
   // concatenate lines if they end with '&'
   // strip comments after '#'
   int n = 0;
@@ -1058,7 +1058,7 @@ char * EIMPotentialFileReader::next_line(FILE * fp) {
   }
 
   while (n == 0 || concat) {
-    char *ptr = fgets(&line[n], MAXLINE - n, fp);
+    ptr = fgets(&line[n], MAXLINE - n, fp);
 
     if (ptr == nullptr) {
       // EOF
@@ -1089,7 +1089,7 @@ char * EIMPotentialFileReader::next_line(FILE * fp) {
 
 void EIMPotentialFileReader::parse(FILE * fp)
 {
-  char * line = nullptr;
+  char *line = nullptr;
   bool found_global = false;
 
   while ((line = next_line(fp))) {

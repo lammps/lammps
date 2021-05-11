@@ -36,8 +36,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MAXLINE 1024
-
 /* ---------------------------------------------------------------------- */
 
 Force::Force(LAMMPS *lmp) : Pointers(lmp)
@@ -175,8 +173,8 @@ void Force::init()
   // check if pair style must be specified after restart
   if (pair_restart) {
     if (!pair)
-      error->all(FLERR,fmt::format("Must re-specify non-restarted pair style "
-                                   "({}) after read_restart", pair_restart));
+      error->all(FLERR,"Must re-specify non-restarted pair style "
+                                   "({}) after read_restart", pair_restart);
   }
 
   if (kspace) kspace->init();         // kspace must come before pair

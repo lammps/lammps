@@ -71,21 +71,6 @@ AtomVec::AtomVec(LAMMPS *lmp) : Pointers(lmp)
   default_create = "id type mask image x v";
   default_data_atom = "";
   default_data_vel = "";
-
-  // initializations
-
-  init_method(&mgrow);
-  init_method(&mcopy);
-  init_method(&mcomm);
-  init_method(&mcomm_vel);
-  init_method(&mreverse);
-  init_method(&mborder);
-  init_method(&mborder_vel);
-  init_method(&mexchange);
-  init_method(&mrestart);
-  init_method(&mcreate);
-  init_method(&mdata_atom);
-  init_method(&mdata_vel);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -128,19 +113,6 @@ AtomVec::~AtomVec()
       }
     }
   }
-
-  destroy_method(&mgrow);
-  destroy_method(&mcopy);
-  destroy_method(&mcomm);
-  destroy_method(&mcomm_vel);
-  destroy_method(&mreverse);
-  destroy_method(&mborder);
-  destroy_method(&mborder_vel);
-  destroy_method(&mexchange);
-  destroy_method(&mrestart);
-  destroy_method(&mcreate);
-  destroy_method(&mdata_atom);
-  destroy_method(&mdata_vel);
 
   delete [] threads;
 }
@@ -2395,18 +2367,18 @@ void AtomVec::setup_fields()
 
   // populate field-based data struct for each method to use
 
-  create_method(ngrow,&mgrow);
-  create_method(ncopy,&mcopy);
-  create_method(ncomm,&mcomm);
-  create_method(ncomm_vel,&mcomm_vel);
-  create_method(nreverse,&mreverse);
-  create_method(nborder,&mborder);
-  create_method(nborder_vel,&mborder_vel);
-  create_method(nexchange,&mexchange);
-  create_method(nrestart,&mrestart);
-  create_method(ncreate,&mcreate);
-  create_method(ndata_atom,&mdata_atom);
-  create_method(ndata_vel,&mdata_vel);
+  init_method(ngrow,&mgrow);
+  init_method(ncopy,&mcopy);
+  init_method(ncomm,&mcomm);
+  init_method(ncomm_vel,&mcomm_vel);
+  init_method(nreverse,&mreverse);
+  init_method(nborder,&mborder);
+  init_method(nborder_vel,&mborder_vel);
+  init_method(nexchange,&mexchange);
+  init_method(nrestart,&mrestart);
+  init_method(ncreate,&mcreate);
+  init_method(ndata_atom,&mdata_atom);
+  init_method(ndata_vel,&mdata_vel);
 
   // create threads data struct for grow and memory_usage to use
 
@@ -2480,7 +2452,6 @@ void AtomVec::setup_fields()
 int AtomVec::process_fields(char *str, const char *default_str, Method *method)
 {
   if (str == nullptr) {
-    method->index = nullptr;
     return 0;
   }
 
@@ -2496,62 +2467,45 @@ int AtomVec::process_fields(char *str, const char *default_str, Method *method)
   Atom::PerAtom *peratom = atom->peratom;
   int nperatom = atom->nperatom;
 
-  int *index;
+  // allocate memory in method
+  method->resize(nfield);
+
+  std::vector<int> & index = method->index;
   int match;
 
-  if (nfield) index = new int[nfield];
   for (int i = 0; i < nfield; i++) {
-    const char * field = words[i].c_str();
+    const std::string & field = words[i];
 
     // find field in master Atom::peratom list
 
     for (match = 0; match < nperatom; match++)
-      if (strcmp(field, peratom[match].name) == 0) break;
+      if (field == peratom[match].name) break;
     if (match == nperatom)
-      error->all(FLERR,fmt::format("Peratom field {} not recognized", field));
+      error->all(FLERR,"Peratom field {} not recognized", field);
     index[i] = match;
 
     // error if field appears multiple times
 
     for (match = 0; match < i; match++)
       if (index[i] == index[match])
-        error->all(FLERR,fmt::format("Peratom field {} is repeated", field));
+        error->all(FLERR,"Peratom field {} is repeated", field);
 
     // error if field is in default str
 
     for (match = 0; match < ndef; match++)
-      if (strcmp(field, def_words[match].c_str()) == 0)
-        error->all(FLERR,fmt::format("Peratom field {} is a default", field));
+      if (field == def_words[match])
+        error->all(FLERR,"Peratom field {} is a default", field);
   }
 
-  if (nfield) method->index = index;
-  else method->index = nullptr;
   return nfield;
 }
 
 /* ----------------------------------------------------------------------
-   create a method data structs for processing fields
+   init method data structs for processing fields
 ------------------------------------------------------------------------- */
 
-void AtomVec::create_method(int nfield, Method *method)
+void AtomVec::init_method(int nfield, Method *method)
 {
-  if (nfield > 0) {
-    method->pdata = new void*[nfield];
-    method->datatype = new int[nfield];
-    method->cols = new int[nfield];
-    method->maxcols = new int*[nfield];
-    method->collength = new int[nfield];
-    method->plength = new void*[nfield];
-  } else {
-    method->pdata = nullptr;
-    method->datatype = nullptr;
-    method->cols = nullptr;
-    method->maxcols = nullptr;
-    method->collength = nullptr;
-    method->plength = nullptr;
-    return;
-  }
-
   for (int i = 0; i < nfield; i++) {
     Atom::PerAtom *field = &atom->peratom[method->index[i]];
     method->pdata[i] = (void *) field->address;
@@ -2566,31 +2520,15 @@ void AtomVec::create_method(int nfield, Method *method)
 }
 
 /* ----------------------------------------------------------------------
-   free memory in a method data structs
+   Method class members
 ------------------------------------------------------------------------- */
 
-void AtomVec::init_method(Method *method)
-{
-  method->pdata = nullptr;
-  method->datatype = nullptr;
-  method->cols = nullptr;
-  method->maxcols = nullptr;
-  method->collength = nullptr;
-  method->plength = nullptr;
-  method->index = nullptr;
-}
-
-/* ----------------------------------------------------------------------
-   free memory in a method data structs
-------------------------------------------------------------------------- */
-
-void AtomVec::destroy_method(Method *method)
-{
-  delete [] method->pdata;
-  delete [] method->datatype;
-  delete [] method->cols;
-  delete [] method->maxcols;
-  delete [] method->collength;
-  delete [] method->plength;
-  delete [] method->index;
+void AtomVec::Method::resize(int nfield) {
+  pdata.resize(nfield);
+  datatype.resize(nfield);
+  cols.resize(nfield);
+  maxcols.resize(nfield);
+  collength.resize(nfield);
+  plength.resize(nfield);
+  index.resize(nfield);
 }

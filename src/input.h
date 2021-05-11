@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -19,6 +19,7 @@
 #include <map>
 
 namespace LAMMPS_NS {
+  class Command;
 
 class Input : protected Pointers {
   friend class Info;
@@ -59,12 +60,12 @@ class Input : protected Pointers {
   FILE **infiles;              // list of open input files
 
  public:
-  typedef void (*CommandCreator)(LAMMPS *, int, char **);
+  typedef Command * (*CommandCreator)(LAMMPS *);
   typedef std::map<std::string,CommandCreator> CommandCreatorMap;
   CommandCreatorMap *command_map;
 
  protected:
-  template <typename T> static void command_creator(LAMMPS *, int, char **);
+  template <typename T> static Command *command_creator(LAMMPS *);
 
  private:
   void parse();                          // parse an input text line

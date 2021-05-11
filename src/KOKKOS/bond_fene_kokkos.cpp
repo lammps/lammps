@@ -22,13 +22,14 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "math_const.h"
 #include "memory_kokkos.h"
 #include "neighbor_kokkos.h"
 
 #include <cmath>
 
 using namespace LAMMPS_NS;
-
+using MathConst::MY_CUBEROOT2;
 
 /* ---------------------------------------------------------------------- */
 
@@ -128,7 +129,7 @@ void BondFENEKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   k_warning_flag.template modify<DeviceType>();
   k_warning_flag.template sync<LMPHostType>();
   if (h_warning_flag())
-    error->warning(FLERR,"FENE bond too long",0);
+    error->warning(FLERR,"FENE bond too long");
 
   k_error_flag.template modify<DeviceType>();
   k_error_flag.template sync<LMPHostType>();
@@ -199,7 +200,7 @@ void BondFENEKokkos<DeviceType>::operator()(TagBondFENECompute<NEWTON_BOND,EVFLA
   // force from LJ term
 
   F_FLOAT sr6 = 0.0;
-  if (rsq < TWO_1_3*d_sigma[type]*d_sigma[type]) {
+  if (rsq < MY_CUBEROOT2*d_sigma[type]*d_sigma[type]) {
     const F_FLOAT sr2 = d_sigma[type]*d_sigma[type]/rsq;
     sr6 = sr2*sr2*sr2;
     fbond += 48.0*d_epsilon[type]*sr6*(sr6-0.5)/rsq;
@@ -210,7 +211,7 @@ void BondFENEKokkos<DeviceType>::operator()(TagBondFENECompute<NEWTON_BOND,EVFLA
   F_FLOAT ebond = 0.0;
   if (eflag) {
     ebond = -0.5 * d_k[type]*r0sq*log(rlogarg);
-    if (rsq < TWO_1_3*d_sigma[type]*d_sigma[type])
+    if (rsq < MY_CUBEROOT2*d_sigma[type]*d_sigma[type])
       ebond += 4.0*d_epsilon[type]*sr6*(sr6-1.0) + d_epsilon[type];
   }
 

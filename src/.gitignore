@@ -32,6 +32,9 @@
 /pair_kim.cpp
 /pair_kim.h
 
+/pair_pace.cpp
+/pair_pace.h
+
 /superpose3d.h
 
 /kokkos.cpp
@@ -920,8 +923,6 @@
 /pair_dipole_cut.h
 /pair_dipole_sf.cpp
 /pair_dipole_sf.h
-/pair_dpd_mt.cpp
-/pair_dpd_mt.h
 /pair_dsmc.cpp
 /pair_dsmc.h
 /pair_e3b.cpp
@@ -1397,8 +1398,10 @@
 /pair_thole.h
 /pair_buck_mdf.cpp
 /pair_buck_mdf.h
-/pair_dpd_conservative.cpp
-/pair_dpd_conservative.h
+/pair_dpd_ext.cpp
+/pair_dpd_ext.h
+/pair_dpd_ext_tstat.cpp
+/pair_dpd_ext_tstat.h
 /pair_dpd_fdt.cpp
 /pair_dpd_fdt.h
 /pair_dpd_fdt_energy.cpp

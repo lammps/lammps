@@ -17,22 +17,22 @@
 
 #include "fix_qeq_fire.h"
 
-#include <cmath>
-
-#include <cstring>
 #include "atom.h"
 #include "comm.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "update.h"
+#include "error.h"
 #include "force.h"
 #include "group.h"
+#include "kspace.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
 #include "pair_comb.h"
 #include "pair_comb3.h"
-#include "kspace.h"
 #include "respa.h"
-#include "error.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -47,7 +47,7 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixQEqFire::FixQEqFire(LAMMPS *lmp, int narg, char **arg) :
-  FixQEq(lmp, narg, arg)
+  FixQEq(lmp, narg, arg), comb(nullptr), comb3(nullptr)
 {
   qdamp = 0.20;
   qstep = 0.20;
@@ -65,9 +65,6 @@ FixQEqFire::FixQEqFire(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else error->all(FLERR,"Illegal fix qeq/fire command");
   }
-
-  comb = nullptr;
-  comb3 = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -94,9 +91,8 @@ void FixQEqFire::init()
   if (utils::strmatch(update->integrate_style,"^respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 
-  comb = (PairComb *) force->pair_match("comb",1);
-  comb3 = (PairComb3 *) force->pair_match("comb3",1);
-
+  comb3 = (PairComb3 *) force->pair_match("^comb3",0);
+  if (!comb3) comb = (PairComb *) force->pair_match("^comb",0);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -218,14 +214,9 @@ void FixQEqFire::pre_force(int /*vflag*/)
     if (enegchk < tolerance) break;
   }
 
-  if (comm->me == 0) {
-    if (iloop == maxiter) {
-      char str[128];
-      sprintf(str,"Charges did not converge at step " BIGINT_FORMAT
-                  ": %lg",update->ntimestep,enegchk);
-      error->warning(FLERR,str);
-    }
-  }
+  if ((comm->me == 0) && (iloop >= maxiter))
+    error->warning(FLERR,"Charges did not converge at step {}: {}",
+                   update->ntimestep,enegchk);
 
   if (force->kspace) force->kspace->qsum_qsq();
 }

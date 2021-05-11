@@ -67,7 +67,7 @@ static const char cite_neb_spin[] =
 
 /* ---------------------------------------------------------------------- */
 
-NEBSpin::NEBSpin(LAMMPS *lmp) : Pointers(lmp) {
+NEBSpin::NEBSpin(LAMMPS *lmp) : Command(lmp) {
   if (lmp->citeme) lmp->citeme->add(cite_neb_spin);
 }
 
@@ -430,9 +430,10 @@ void NEBSpin::readfile(char *file, int flag)
   while (nread < nlines) {
     nchunk = MIN(nlines-nread,CHUNK);
     if (flag == 0)
-      eofflag = comm->read_lines_from_file_universe(fp,nchunk,MAXLINE,buffer);
+      eofflag = utils::read_lines_from_file(fp,nchunk,MAXLINE,buffer,
+                                            universe->me,universe->uworld);
     else
-      eofflag = comm->read_lines_from_file(fp,nchunk,MAXLINE,buffer);
+      eofflag = utils::read_lines_from_file(fp,nchunk,MAXLINE,buffer,me,world);
     if (eofflag) error->all(FLERR,"Unexpected end of neb/spin file");
 
     buf = buffer;
@@ -691,13 +692,11 @@ void NEBSpin::open(char *file)
   if (!compressed) fp = fopen(file,"r");
   else {
 #ifdef LAMMPS_GZIP
-    char gunzip[128];
-    snprintf(gunzip,128,"gzip -c -d %s",file);
-
+    auto gunzip = std::string("gzip -c -d ") + file;
 #ifdef _WIN32
-    fp = _popen(gunzip,"rb");
+    fp = _popen(gunzip.c_str(),"rb");
 #else
-    fp = popen(gunzip,"r");
+    fp = popen(gunzip.c_str(),"r");
 #endif
 
 #else
@@ -705,11 +704,8 @@ void NEBSpin::open(char *file)
 #endif
   }
 
-  if (fp == nullptr) {
-    char str[128];
-    snprintf(str,128,"Cannot open file %s",file);
-    error->one(FLERR,str);
-  }
+  if (fp == nullptr)
+    error->one(FLERR,"Cannot open file {}: {}",file,utils::getsyserror());
 }
 
 /* ----------------------------------------------------------------------

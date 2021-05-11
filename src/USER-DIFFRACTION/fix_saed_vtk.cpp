@@ -390,8 +390,8 @@ void FixSAEDVTK::invoke_vector(bigint ntimestep)
       fp = fopen(nName.c_str(),"w");
 
       if (fp == nullptr)
-        error->one(FLERR,fmt::format("Cannot open fix saed/vtk file {}: {}",
-                                     nName,utils::getsyserror()));
+        error->one(FLERR,"Cannot open fix saed/vtk file {}: {}",
+                                     nName,utils::getsyserror());
     }
 
     fprintf(fp,"# vtk DataFile Version 3.0 c_%s\n",ids);
@@ -512,8 +512,8 @@ void FixSAEDVTK::options(int narg, char **arg)
         fp = fopen(nName.c_str(),"w");
 
         if (fp == nullptr)
-          error->one(FLERR,fmt::format("Cannot open fix saed/vtk file {}: {}",
-                                       nName,utils::getsyserror()));
+          error->one(FLERR,"Cannot open fix saed/vtk file {}: {}",
+                                       nName,utils::getsyserror());
       }
       iarg += 2;
     } else if (strcmp(arg[iarg],"ave") == 0) {

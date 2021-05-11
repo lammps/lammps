@@ -30,6 +30,7 @@
 #include "neighbor.h"
 #include "suffix.h"
 #include "update.h"
+#include "fmt/chrono.h"
 
 #include <cfloat>    // IWYU pragma: keep
 #include <climits>   // IWYU pragma: keep
@@ -204,7 +205,6 @@ void Pair::modify_params(int narg, char **arg)
       else error->all(FLERR,"Illegal pair_modify command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"nofdotr") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
       no_virial_fdotr_compute = 1;
       ++iarg;
     } else error->all(FLERR,"Illegal pair_modify command");
@@ -1730,27 +1730,26 @@ void Pair::write_file(int narg, char **arg)
     if (utils::file_is_readable(table_file)) {
       std::string units = utils::get_potential_units(table_file,"table");
       if (!units.empty() && (units != update->unit_style)) {
-        error->one(FLERR,fmt::format("Trying to append to a table file "
+        error->one(FLERR,"Trying to append to a table file "
                                      "with UNITS: {} while units are {}",
-                                     units, update->unit_style));
+                                     units, update->unit_style);
       }
       std::string date = utils::get_potential_date(table_file,"table");
-      utils::logmesg(lmp,fmt::format("Appending to table file {} with "
-                                     "DATE: {}\n", table_file, date));
+      utils::logmesg(lmp,"Appending to table file {} with DATE: {}\n",
+                     table_file, date);
       fp = fopen(table_file.c_str(),"a");
     } else {
-      char datebuf[16];
       time_t tv = time(nullptr);
-      strftime(datebuf,15,"%Y-%m-%d",localtime(&tv));
-      utils::logmesg(lmp,fmt::format("Creating table file {} with "
-                                     "DATE: {}\n", table_file, datebuf));
+      std::tm current_date = fmt::localtime(tv);
+      utils::logmesg(lmp,"Creating table file {} with DATE: {:%Y-%m-%d}\n",
+                     table_file, current_date);
       fp = fopen(table_file.c_str(),"w");
-      if (fp) fmt::print(fp,"# DATE: {} UNITS: {} Created by pair_write\n",
-                         datebuf, update->unit_style);
+      if (fp) fmt::print(fp,"# DATE: {:%Y-%m-%d} UNITS: {} Created by pair_write\n",
+                         current_date, update->unit_style);
     }
     if (fp == nullptr)
-      error->one(FLERR,fmt::format("Cannot open pair_write file {}: {}",
-                                   table_file, utils::getsyserror()));
+      error->one(FLERR,"Cannot open pair_write file {}: {}",
+                                   table_file, utils::getsyserror());
     fprintf(fp,"# Pair potential %s for atom types %d %d: i,r,energy,force\n",
             force->pair_style,itype,jtype);
     if (style == RLINEAR)

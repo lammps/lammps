@@ -56,9 +56,9 @@ void Group2Ndx::command(int narg, char **arg)
   if (comm->me == 0) {
     fp = fopen(arg[0], "w");
     if (fp == nullptr)
-      error->one(FLERR,fmt::format("Cannot open index file for writing: {}",
-                                   utils::getsyserror()));
-    utils::logmesg(lmp,fmt::format("Writing groups to index file {}:\n",arg[0]));
+      error->one(FLERR,"Cannot open index file for writing: {}",
+                                   utils::getsyserror());
+    utils::logmesg(lmp,"Writing groups to index file {}:\n",arg[0]);
   }
 
   if (narg == 1) { // write out all groups
@@ -86,7 +86,7 @@ void Group2Ndx::write_group(FILE *fp, int gid)
   int lnum, width, cols;
 
   if (comm->me == 0) {
-    utils::logmesg(lmp,fmt::format(" writing group {}...",group->names[gid]));
+    utils::logmesg(lmp," writing group {}...",group->names[gid]);
 
     // the "all" group in LAMMPS is called "System" in Gromacs
     if (gid == 0) {

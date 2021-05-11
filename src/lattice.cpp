@@ -300,9 +300,8 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   // print lattice spacings
 
   if (comm->me == 0)
-    utils::logmesg(lmp,fmt::format("Lattice spacing in x,y,z = "
-                                   "{:.8} {:.8} {:.8}\n",
-                                   xlattice,ylattice,zlattice));
+    utils::logmesg(lmp,"Lattice spacing in x,y,z = {:.8} {:.8} {:.8}\n",
+                   xlattice,ylattice,zlattice);
 }
 
 /* ---------------------------------------------------------------------- */

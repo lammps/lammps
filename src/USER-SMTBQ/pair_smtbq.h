@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -60,8 +60,6 @@ protected:
   int loopmax;                  // max of iteration
 
   double cutmax;                // max cutoff for all elements
-  int nelements;                // # of unique elements
-  char **elements;              // names of unique elements
   char *QEqMode;                // name of QEqMode
   char *Bavard;                 // Verbose parameter
   char *writepot;               // write or not the electronegativity component
@@ -70,11 +68,8 @@ protected:
   double zlim1QEq;              // z limit for QEq equilibration
   double zlim2QEq;              // z limit for QEq equilibration
   double QOxInit;               // Initial charge for oxygen atoms (if the charge is not specified)
-  int *map;                     // mapping from atom types to elements
-  int nparams;                  // # of stored parameter sets
-  int maxparam;                 // max # of parameter sets
-  int maxintparam;          // max # of interaction sets
-  int maxintsm;             // max # of interaction SM
+  int maxintparam;              // max # of interaction sets
+  int maxintsm;                 // max # of interaction SM
   double r1Coord,r2Coord;
   Param *params;                // parameter set for an I atom
   Intparam *intparams;          // parameter set for an I interaction
@@ -155,10 +150,6 @@ protected:
    void forward_int (int*); void reverse_int (int*);
 
    int Tokenize( char* , char***  );
-
-   inline double vec3_dot(const double x[3], const double y[3]) const {
-    return x[0]*y[0] + x[1]*y[1] + x[2]*y[2];
-   }
 
    template <class T> const T& min ( const T& a, const T& b ) {
    return !(b<a)?a:b;     // or: return !comp(b,a)?a:b; for the comp version

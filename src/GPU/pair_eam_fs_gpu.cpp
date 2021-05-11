@@ -16,23 +16,23 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_eam_fs_gpu.h"
-#include <cstdio>
 
-#include <cstring>
 #include "atom.h"
-#include "force.h"
 #include "comm.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "memory.h"
-#include "error.h"
-#include "neigh_request.h"
-#include "gpu_extra.h"
 #include "domain.h"
-#include "suffix.h"
-
-#include "tokenizer.h"
+#include "error.h"
+#include "force.h"
+#include "gpu_extra.h"
+#include "memory.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
 #include "potential_file_reader.h"
+#include "suffix.h"
+#include "tokenizer.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -50,19 +50,19 @@ int eam_fs_gpu_init(const int ntypes, double host_cutforcesq,
 void eam_fs_gpu_clear();
 int** eam_fs_gpu_compute_n(const int ago, const int inum_full, const int nall,
                         double **host_x, int *host_type, double *sublo,
-                        double *subhi, tagint *tag, int **nspecial, tagint **special,
-                        const bool eflag, const bool vflag, const bool eatom,
-                        const bool vatom, int &host_start, int **ilist,
-                        int **jnum,  const double cpu_time, bool &success,
-                        int &inum, void **fp_ptr);
+                        double *subhi, tagint *tag, int **nspecial,
+                        tagint **special, const bool eflag, const bool vflag,
+                        const bool eatom, const bool vatom, int &host_start,
+                        int **ilist, int **jnum,  const double cpu_time,
+                        bool &success, int &inum, void **fp_ptr);
 void eam_fs_gpu_compute(const int ago, const int inum_full, const int nlocal,
-                     const int nall,double **host_x, int *host_type,
-                     int *ilist, int *numj, int **firstneigh,
-                     const bool eflag, const bool vflag,
-                     const bool eatom, const bool vatom, int &host_start,
-                     const double cpu_time, bool &success, void **fp_ptr);
+                        const int nall,double **host_x, int *host_type,
+                        int *ilist, int *numj, int **firstneigh,
+                        const bool eflag, const bool vflag,
+                        const bool eatom, const bool vatom, int &host_start,
+                        const double cpu_time, bool &success, void **fp_ptr);
 void eam_fs_gpu_compute_force(int *ilist, const bool eflag, const bool vflag,
-                           const bool eatom, const bool vatom);
+                              const bool eatom, const bool vatom);
 double eam_fs_gpu_bytes();
 
 /* ---------------------------------------------------------------------- */
@@ -180,13 +180,14 @@ void PairEAMFSGPU::init_style()
   double cell_size = sqrt(maxcut) + neighbor->skin;
 
   int maxspecial=0;
-  if (atom->molecular)
+  if (atom->molecular != Atom::ATOMIC)
     maxspecial=atom->maxspecial;
   int fp_size;
+  int mnf = 5e-2 * neighbor->oneatom;
   int success = eam_fs_gpu_init(atom->ntypes+1, cutforcesq, type2rhor, type2z2r,
                              type2frho, rhor_spline, z2r_spline, frho_spline,
                              rdr, rdrho, rhomax, nrhor, nrho, nz2r, nfrho, nr,
-                             atom->nlocal, atom->nlocal+atom->nghost, 300,
+                             atom->nlocal, atom->nlocal+atom->nghost, mnf,
                              maxspecial, cell_size, gpu_mode, screen, fp_size);
   GPU_EXTRA::check_flag(success,error,world);
 
@@ -195,7 +196,6 @@ void PairEAMFSGPU::init_style()
     neighbor->requests[irequest]->half = 0;
     neighbor->requests[irequest]->full = 1;
   }
-
   if (fp_size == sizeof(double))
     fp_single = false;
   else
@@ -370,7 +370,7 @@ void PairEAMFSGPU::read_file(char *filename)
   Fs *file = fs;
 
   // read potential file
-  if(comm->me == 0) {
+  if (comm->me == 0) {
     PotentialFileReader reader(PairEAM::lmp, filename, "eam/fs",
                                unit_convert_flag);
 
@@ -388,7 +388,7 @@ void PairEAMFSGPU::read_file(char *filename)
       ValueTokenizer values = reader.next_values(1);
       file->nelements = values.next_int();
 
-      if (values.count() != file->nelements + 1)
+      if ((int)values.count() != file->nelements + 1)
         error->one(FLERR,"Incorrect element names in EAM potential file");
 
       file->elements = new char*[file->nelements];

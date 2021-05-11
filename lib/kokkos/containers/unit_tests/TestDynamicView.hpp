@@ -243,6 +243,8 @@ struct TestDynamicView {
   }
 };
 
+// FIXME_SYCL needs resize_serial
+#ifndef KOKKOS_ENABLE_SYCL
 TEST(TEST_CATEGORY, dynamic_view) {
   using TestDynView = TestDynamicView<double, TEST_EXECSPACE>;
 
@@ -250,6 +252,7 @@ TEST(TEST_CATEGORY, dynamic_view) {
     TestDynView::run(100000 + 100 * i);
   }
 }
+#endif
 
 }  // namespace Test
 

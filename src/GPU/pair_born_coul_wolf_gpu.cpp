@@ -16,26 +16,19 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_born_coul_wolf_gpu.h"
-#include <cmath>
-#include <cstdio>
 
-#include <cstring>
 #include "atom.h"
-#include "atom_vec.h"
-#include "comm.h"
-#include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "integrate.h"
-#include "math_const.h"
-#include "memory.h"
-#include "error.h"
-#include "neigh_request.h"
-#include "universe.h"
-#include "update.h"
 #include "domain.h"
+#include "error.h"
+#include "force.h"
 #include "gpu_extra.h"
+#include "math_const.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
 #include "suffix.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -51,13 +44,15 @@ int borncw_gpu_init(const int ntypes, double **cutsq, double **host_rhoinv,
                     const double cell_size, int &gpu_mode, FILE *screen,
                     double **host_cut_ljsq, double host_cut_coulsq,
                     double *host_special_coul, const double qqrd2e,
-                    const double alf, const double e_shift, const double f_shift);
+                    const double alf, const double e_shift,
+                    const double f_shift);
 void borncw_gpu_clear();
 int ** borncw_gpu_compute_n(const int ago, const int inum_full, const int nall,
                             double **host_x, int *host_type, double *sublo,
                             double *subhi, tagint *tag, int **nspecial,
-                            tagint **special, const bool eflag, const bool vflag,
-                            const bool eatom, const bool vatom, int &host_start,
+                            tagint **special, const bool eflag,
+                            const bool vflag, const bool eatom,
+                            const bool vatom, int &host_start,
                             int **ilist, int **jnum, const double cpu_time,
                             bool &success, double *host_q, double *boxlo,
                             double *prd);
@@ -175,12 +170,13 @@ void PairBornCoulWolfGPU::init_style()
     cut_coul;
 
   int maxspecial=0;
-  if (atom->molecular)
+  if (atom->molecular != Atom::ATOMIC)
     maxspecial=atom->maxspecial;
+  int mnf = 5e-2 * neighbor->oneatom;
   int success = borncw_gpu_init(atom->ntypes+1, cutsq, rhoinv,
                                 born1, born2, born3, a, c, d, sigma, offset,
                                 force->special_lj, atom->nlocal,
-                                atom->nlocal+atom->nghost, 300, maxspecial,
+                                atom->nlocal+atom->nghost, mnf, maxspecial,
                                 cell_size, gpu_mode, screen, cut_ljsq,
                                 cut_coulsq, force->special_coul, force->qqrd2e,
                                 alf, e_shift, f_shift);

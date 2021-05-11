@@ -16,21 +16,21 @@
                          Aidan Thompson (Sandia, athomps@sandia.gov)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-
-#include <cstring>
 #include "pair_quip.h"
+
 #include "atom.h"
-#include "update.h"
-#include "force.h"
 #include "comm.h"
-#include "neighbor.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
+#include "memory.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "memory.h"
-#include "error.h"
-#include "domain.h"
+#include "neighbor.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -162,17 +162,17 @@ void PairQUIP::compute(int eflag, int vflag)
 
   iquip = 0;
   for (ii = 0; ii < ntotal; ii++) {
-     for( jj = 0; jj < 3; jj++ ) {
+     for (jj = 0; jj < 3; jj++) {
         f[ii][jj] += quip_force[iquip];
         iquip++;
      }
   }
 
-  if(eflag_global) {
+  if (eflag_global) {
     eng_vdwl = quip_energy;
   }
 
-  if(eflag_atom) {
+  if (eflag_atom) {
     for (ii = 0; ii < ntotal; ii++) {
       eatom[ii] = quip_local_e[ii];
     }
@@ -187,9 +187,9 @@ void PairQUIP::compute(int eflag, int vflag)
       virial[5] = (quip_virial[5] + quip_virial[7])*0.5;
   }
 
-  if(vflag_atom) {
+  if (vflag_atom) {
     int iatom = 0;
-     for(ii = 0; ii < ntotal; ii++) {
+     for (ii = 0; ii < ntotal; ii++) {
        vatom[ii][0] += quip_local_virial[iatom+0];
        vatom[ii][1] += quip_local_virial[iatom+4];
        vatom[ii][2] += quip_local_virial[iatom+8];
@@ -252,24 +252,17 @@ void PairQUIP::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int n = atom->ntypes;
-  if (narg != (4+n)) {
-    char str[1024];
-    sprintf(str,"Number of arguments %d is not correct, it should be %d", narg, 4+n);
-    error->all(FLERR,str);
-  }
+  if (narg != (4+n))
+    error->all(FLERR,"Number of arguments {} is not correct, "
+                                 "it should be {}", narg, 4+n);
 
   // ensure I,J args are * *
 
   if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
     error->all(FLERR,"Incorrect args for pair coefficients");
 
-  n_quip_file = strlen(arg[2]);
-  quip_file = new char[n_quip_file+1];
-  strcpy(quip_file,arg[2]);
-
-  n_quip_string = strlen(arg[3]);
-  quip_string = new char[n_quip_string+1];
-  strcpy(quip_string,arg[3]);
+  quip_file = utils::strdup(arg[2]);
+  quip_string = utils::strdup(arg[3]);
 
   for (int i = 4; i < narg; i++) {
     if (strcmp(arg[i],"NULL") == 0)
@@ -325,7 +318,6 @@ void PairQUIP::init_style()
 
   // Initialise neighbor list
   int irequest_full = neighbor->request(this);
-  neighbor->requests[irequest_full]->id = 1;
   neighbor->requests[irequest_full]->half = 0;
   neighbor->requests[irequest_full]->full = 1;
 }

@@ -50,6 +50,7 @@ page gives those details.
    * :ref:`MSCG <PKG-MSCG>`
    * :ref:`OPT <PKG-OPT>`
    * :ref:`PERI <PKG-PERI>`
+   * :ref:`PLUGIN <PKG-PLUGIN>`
    * :ref:`POEMS <PKG-POEMS>`
    * :ref:`PYTHON <PKG-PYTHON>`
    * :ref:`QEQ <PKG-QEQ>`
@@ -89,6 +90,7 @@ page gives those details.
    * :ref:`USER-MOLFILE <PKG-USER-MOLFILE>`
    * :ref:`USER-NETCDF <PKG-USER-NETCDF>`
    * :ref:`USER-OMP <PKG-USER-OMP>`
+   * :ref:`USER-PACE <PKG-USER-PACE>`
    * :ref:`USER-PHONON <PKG-USER-PHONON>`
    * :ref:`USER-PLUMED <PKG-USER-PLUMED>`
    * :ref:`USER-PTM <PKG-USER-PTM>`
@@ -367,17 +369,19 @@ KIM package
 
 **Contents:**
 
-This package contains a set of commands that serve as a wrapper on the
+This package contains a command with a set of sub-commands that serve as a
+wrapper on the
 `Open Knowledgebase of Interatomic Models (OpenKIM) <https://openkim.org>`_
 repository of interatomic models (IMs) enabling compatible ones to be used in
 LAMMPS simulations.
 
-This includes :doc:`kim_init <kim_commands>`, and
-:doc:`kim_interactions <kim_commands>` commands to select, initialize and
-instantiate the IM, a :doc:`kim_query <kim_commands>` command to perform web
+
+This includes :doc:`kim init <kim_commands>`, and
+:doc:`kim interactions <kim_commands>` commands to select, initialize and
+instantiate the IM, a :doc:`kim query <kim_commands>` command to perform web
 queries for material property predictions of OpenKIM IMs, a
-:doc:`kim_param <kim_commands>` command to access KIM Model Parameters from
-LAMMPS, and a :doc:`kim_property <kim_commands>` command to write material
+:doc:`kim param <kim_commands>` command to access KIM Model Parameters from
+LAMMPS, and a :doc:`kim property <kim_commands>` command to write material
 properties computed in LAMMPS to standard KIM property instance format.
 
 Support for KIM IMs that conform to the
@@ -386,8 +390,8 @@ is provided by the :doc:`pair_style kim <pair_kim>` command.
 
 .. note::
 
-   The command *pair_style kim* is called by *kim_interactions* and
-   is not recommended to be directly used in input scripts.
+   The command *pair_style kim* is called by *kim interactions* and is not
+   recommended to be directly used in input scripts.
 
 To use this package you must have the KIM API library available on your
 system. The KIM API is available for download on the
@@ -404,7 +408,7 @@ and is funded by the `National Science Foundation <https://www.nsf.gov/>`_.
 API and the *pair_style kim* command. Yaser Afshar (U Minnesota),
 Axel Kohlmeyer (Temple U), Ellad Tadmor (U Minnesota), and
 Daniel Karls (U Minnesota) contributed to the
-:doc:`kim_commands <kim_commands>` interface in close collaboration with
+:doc:`kim command <kim_commands>` interface in close collaboration with
 Ryan Elliott.
 
 **Install:**
@@ -414,7 +418,7 @@ This package has :ref:`specific installation instructions <kim>` on the
 
 **Supporting info:**
 
-* :doc:`kim_commands <kim_commands>`
+* :doc:`kim command <kim_commands>`
 * :doc:`pair_style kim <pair_kim>`
 * src/KIM: filenames -> commands
 * src/KIM/README
@@ -582,7 +586,7 @@ MC package
 Several fixes and a pair style that have Monte Carlo (MC) or MC-like
 attributes.  These include fixes for creating, breaking, and swapping
 bonds, for performing atomic swaps, and performing grand-canonical MC
-(GCMC) in conjunction with dynamics.
+(GCMC) or similar processes in conjunction with dynamics.
 
 **Supporting info:**
 
@@ -590,8 +594,12 @@ bonds, for performing atomic swaps, and performing grand-canonical MC
 * :doc:`fix atom/swap <fix_atom_swap>`
 * :doc:`fix bond/break <fix_bond_break>`
 * :doc:`fix bond/create <fix_bond_create>`
+* :doc:`fix bond/create/angle <fix_bond_create>`
 * :doc:`fix bond/swap <fix_bond_swap>`
+* :doc:`fix charge/regulation <fix_charge_regulation>`
 * :doc:`fix gcmc <fix_gcmc>`
+* :doc:`fix tfmc <fix_tfmc>`
+* :doc:`fix widom <fix_widom>`
 * :doc:`pair_style dsmc <pair_dsmc>`
 * https://lammps.sandia.gov/movies.html#gcmc
 
@@ -662,19 +670,31 @@ MLIAP package
 
 **Contents:**
 
-A general interface for machine-learning interatomic potentials.
+A general interface for machine-learning interatomic potentials, including PyTorch.
 
 **Install:**
 
-To use this package, also the :ref:`SNAP package <PKG-SNAP>` needs to be installed.
+To use this package, also the :ref:`SNAP package <PKG-SNAP>` package needs
+to be installed.  To make the *mliappy* model available, also the
+:ref:`PYTHON package <PKG-PYTHON>` package needs to be installed, the version
+of Python must be 3.6 or later, and the `cython <https://cython.org/>`_ software
+must be installed.
 
-**Author:** Aidan Thompson (Sandia).
+**Author:** Aidan Thompson (Sandia), Nicholas Lubbers (LANL).
 
 **Supporting info:**
 
 * src/MLIAP: filenames -> commands
+* src/MLIAP/README
 * :doc:`pair_style mliap <pair_mliap>`
-* examples/mliap
+* :doc:`compute_style mliap <compute_mliap>`
+* examples/mliap (see README)
+
+When built with the *mliappy* model this package includes an extension for
+coupling with Python models, including PyTorch. In this case, the Python
+interpreter linked to LAMMPS will need the ``cython`` and ``numpy`` modules
+installed.  The provided examples build models with PyTorch, which would
+therefore also needs to be installed to run those examples.
 
 ----------
 
@@ -826,6 +846,28 @@ Foster (UTSA).
 * :doc:`compute plasticity/atom <compute_plasticity_atom>`
 * examples/peri
 * https://lammps.sandia.gov/movies.html#peri
+
+----------
+
+.. _PKG-PLUGIN:
+
+PLUGIN package
+--------------
+
+**Contents:**
+
+A :doc:`plugin <plugin>` command that can load and unload several
+kind of styles in LAMMPS from shared object files at runtime without
+having to recompile and relink LAMMPS.
+
+**Authors:** Axel Kohlmeyer (Temple U)
+
+**Supporting info:**
+
+* src/PLUGIN: filenames -> commands
+* :doc:`plugin command <plugin>`
+* :doc:`Information on writing plugins <Developer_plugins>`
+* examples/plugin
 
 ----------
 
@@ -1312,6 +1354,46 @@ This package has :ref:`specific installation instructions <user-colvars>` on the
 
 ----------
 
+.. _PKG-USER-PACE:
+
+USER-PACE package
+-------------------
+
+**Contents:**
+
+A pair style for the Atomic Cluster Expansion potential (ACE).
+ACE is a methodology for deriving a highly accurate classical potential
+fit to a large archive of quantum mechanical (DFT) data. The USER-PACE
+package provides an efficient implementation for running simulations
+with ACE potentials.
+
+**Authors:**
+
+This package was written by Yury Lysogorskiy^1,
+Cas van der Oord^2, Anton Bochkarev^1,
+Sarath Menon^1, Matteo Rinaldi^1, Thomas Hammerschmidt^1, Matous Mrovec^1,
+Aidan Thompson^3, Gabor Csanyi^2, Christoph Ortner^4, Ralf Drautz^1.
+
+ ^1: Ruhr-University Bochum, Bochum, Germany
+
+ ^2: University of Cambridge, Cambridge, United Kingdom
+
+ ^3: Sandia National Laboratories, Albuquerque, New Mexico, USA
+
+ ^4: University of British Columbia, Vancouver, BC, Canada
+
+**Install:**
+
+This package has :ref:`specific installation instructions <user-pace>` on the :doc:`Build extras <Build_extras>` page.
+
+**Supporting info:**
+
+* src/USER-PACE: filenames -> commands
+* :doc:`pair_style pace <pair_pace>`
+* examples/USER/pace
+
+----------
+
 .. _PKG-USER-PLUMED:
 
 USER-PLUMED package
@@ -1418,8 +1500,8 @@ oscillators as a model of polarization.  See the :doc:`Howto drude <Howto_drude>
 for an overview of how to use the package.  There are auxiliary tools
 for using this package in tools/drude.
 
-**Authors:** Alain Dequidt (U Blaise Pascal Clermont-Ferrand), Julien
-Devemy (CNRS), and Agilio Padua (U Blaise Pascal).
+**Authors:** Alain Dequidt (U Clermont Auvergne), Julien
+Devemy (CNRS), and Agilio Padua (ENS de Lyon).
 
 **Supporting info:**
 
@@ -1486,7 +1568,7 @@ methods for performing FEP simulations by using a :doc:`fix adapt/fep <fix_adapt
 which have a "soft" in their style name.  There are auxiliary tools
 for using this package in tools/fep; see its README file.
 
-**Author:** Agilio Padua (Universite Blaise Pascal Clermont-Ferrand)
+**Author:** Agilio Padua (ENS de Lyon)
 
 **Supporting info:**
 
@@ -2442,6 +2524,6 @@ which discuss the `QuickFF <quickff_>`_ methodology.
 * :doc:`bond_style mm3 <bond_mm3>`
 * :doc:`improper_style distharm <improper_distharm>`
 * :doc:`improper_style sqdistharm <improper_sqdistharm>`
-* :doc:`pair_style mm3/switch3/coulgauss/long <pair_mm3_switch3_coulgauss_long>`
+* :doc:`pair_style mm3/switch3/coulgauss/long <pair_lj_switch3_coulgauss_long>`
 * :doc:`pair_style lj/switch3/coulgauss/long <pair_lj_switch3_coulgauss_long>`
 * examples/USER/yaff

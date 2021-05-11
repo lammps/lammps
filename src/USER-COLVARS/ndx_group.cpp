@@ -22,64 +22,49 @@
 #include "comm.h"
 #include "error.h"
 #include "group.h"
-
-#include <cstring>
+#include "tokenizer.h"
 
 using namespace LAMMPS_NS;
 #define BUFLEN 4096
 #define DELTA 16384
 
-static char *find_section(FILE *fp, const char *name)
+// read file until next section "name" or any next section if name == ""
+
+static std::string find_section(FILE *fp, const std::string &name)
 {
   char linebuf[BUFLEN];
-  char *n,*p,*t,*r;
 
-  while ((p = fgets(linebuf,BUFLEN,fp))) {
-    t = strtok(p," \t\n\r\f");
-    if ((t != nullptr) && *t == '[') {
-      t = strtok(nullptr," \t\n\r\f");
-      if (t != nullptr) {
-        n = t;
-        t = strtok(nullptr," \t\n\r\f");
-        if ((t != nullptr) && *t == ']') {
-          if ((name == nullptr) || strcmp(name,n) == 0) {
-            int l = strlen(n);
-            r = new char[l+1];
-            strncpy(r,n,l+1);
-            return r;
-          }
-        }
-      }
-    }
+  std::string pattern = "^\\s*\\[\\s+\\S+\\s+\\]\\s*$";
+  if (!name.empty())
+    pattern = fmt::format("^\\s*\\[\\s+{}\\s+\\]\\s*$",name);
+
+  fgets(linebuf,BUFLEN,fp);
+  while (!feof(fp)) {
+    if (utils::strmatch(linebuf,pattern))
+      return Tokenizer(linebuf).as_vector()[1];
+    fgets(linebuf,BUFLEN,fp);
   }
-  return nullptr;
+  return "";
 }
 
-static tagint *read_section(FILE *fp, bigint &num)
+static std::vector<tagint> read_section(FILE *fp, std::string &name)
 {
   char linebuf[BUFLEN];
-  char *p,*t;
-  tagint *tagbuf;
-  bigint nmax;
+  std::vector<tagint> tagbuf;
+  std::string pattern = "^\\s*\\[\\s+\\S+\\s+\\]\\s*$";
 
-  num = 0;
-  nmax = DELTA;
-  tagbuf = (tagint *)malloc(sizeof(tagint)*nmax);
-
-  while ((p = fgets(linebuf,BUFLEN,fp))) {
-    t = strtok(p," \t\n\r\f");
-    while (t != nullptr) {
-      // start of a new section. we are done here.
-      if (*t == '[') return tagbuf;
-
-      tagbuf[num++] = ATOTAGINT(t);
-      if (num == nmax) {
-        nmax += DELTA;
-        tagbuf = (tagint *)realloc(tagbuf,sizeof(tagint)*nmax);
-      }
-      t = strtok(nullptr," \t\n\r\f");
+  while (fgets(linebuf,BUFLEN,fp)) {
+    // start of new section. we are done, update "name"
+    if (utils::strmatch(linebuf,pattern)) {
+      name = Tokenizer(linebuf).as_vector()[1];
+      return tagbuf;
     }
+    ValueTokenizer values(linebuf);
+    while (values.has_next())
+      tagbuf.push_back(values.next_tagint());
   }
+  // set empty name to indicate end of file
+  name = "";
   return tagbuf;
 }
 
@@ -90,153 +75,122 @@ void Ndx2Group::command(int narg, char **arg)
   int len;
   bigint num;
   FILE *fp;
-  char *name = nullptr;
-  tagint *tags;
+  std::string name = "", next;
 
   if (narg < 1) error->all(FLERR,"Illegal ndx2group command");
-
   if (atom->tag_enable == 0)
-      error->all(FLERR,"Must have atom IDs for ndx2group command");
-
+    error->all(FLERR,"Must have atom IDs for ndx2group command");
   if (comm->me == 0) {
     fp = fopen(arg[0], "r");
     if (fp == nullptr)
-      error->one(FLERR,"Cannot open index file for reading");
-
-    if (screen)
-      fprintf(screen, "Reading groups from index file %s:\n",arg[0]);
-    if (logfile)
-      fprintf(logfile,"Reading groups from index file %s:\n",arg[0]);
+      error->one(FLERR,"Cannot open index file for reading: {}",
+                                   utils::getsyserror());
+    utils::logmesg(lmp,"Reading groups from index file {}:\n",arg[0]);
   }
 
-  if (narg == 1) {    // restore all groups
+  if (narg == 1) {              // restore all groups
 
-    do {
-      if (comm->me == 0) {
-        len = 0;
+    if (comm->me == 0) {
+      name = find_section(fp,"");
+      while (!name.empty()) {
 
-        // find the next section.
-        // if we had processed a section, before we need to step back
-        if (name != nullptr) {
-          rewind(fp);
-          char *tmp = find_section(fp,name);
-          delete[] tmp;
-          delete[] name;
-          name = nullptr;
+        // skip over group "all", which is called "System" in gromacs
+        if (name == "System") {
+          name = find_section(fp,"");
+          continue;
         }
-        name = find_section(fp,nullptr);
-        if (name != nullptr) {
-          len=strlen(name)+1;
 
-          // skip over group "all", which is called "System" in gromacs
-          if (strcmp(name,"System") == 0) continue;
-
-          if (screen)
-            fprintf(screen," Processing group '%s'\n",name);
-          if (logfile)
-            fprintf(logfile," Processing group '%s'\n",name);
-        }
+        utils::logmesg(lmp," Processing group '{}'\n",name);
+        len = name.size()+1;
         MPI_Bcast(&len,1,MPI_INT,0,world);
-        if (len > 0) {
-          MPI_Bcast(name,len,MPI_CHAR,0,world);
+        if (len > 1) {
+          MPI_Bcast((void *)name.c_str(),len,MPI_CHAR,0,world);
 
           // read tags for atoms in group and broadcast
-          num = 0;
-          tags = read_section(fp,num);
+          std::vector<tagint> tags = read_section(fp,next);
+          num = tags.size();
           MPI_Bcast(&num,1,MPI_LMP_BIGINT,0,world);
-          MPI_Bcast(tags,num,MPI_LMP_TAGINT,0,world);
-          create(name,num,tags);
-          free(tags);
-        }
-      } else {
-        MPI_Bcast(&len,1,MPI_INT,0,world);
-        if (len > 0) {
-          delete[] name;
-          name = new char[len];
-          MPI_Bcast(name,len,MPI_CHAR,0,world);
-
-          MPI_Bcast(&num,1,MPI_LMP_BIGINT,0,world);
-          tags = (tagint *)malloc(sizeof(tagint)*(num ? num : 1));
-          MPI_Bcast(tags,num,MPI_LMP_TAGINT,0,world);
-          create(name,num,tags);
-          free(tags);
+          MPI_Bcast((void *)tags.data(),num,MPI_LMP_TAGINT,0,world);
+          create(name,tags);
+          name = next;
         }
       }
-    } while (len);
+      len = -1;
+      MPI_Bcast(&len,1,MPI_INT,0,world);
+
+    } else {
+
+      while (1) {
+        MPI_Bcast(&len,1,MPI_INT,0,world);
+        if (len < 0) break;
+        if (len > 1) {
+          char *buf = new char[len];
+          MPI_Bcast(buf,len,MPI_CHAR,0,world);
+          MPI_Bcast(&num,1,MPI_LMP_BIGINT,0,world);
+          tagint *tbuf = new tagint[num];
+          MPI_Bcast(tbuf,num,MPI_LMP_TAGINT,0,world);
+          create(buf,std::vector<tagint>(tbuf,tbuf+num));
+          delete[] buf;
+          delete[] tbuf;
+        }
+      }
+    }
 
   } else {            // restore selected groups
-    for (int idx=1; idx < narg; ++idx) {
 
+    for (int idx=1; idx < narg; ++idx) {
       if (comm->me == 0) {
-        len = 0;
 
         // find named section, search from beginning of file
-        if (name != nullptr) delete[] name;
         rewind(fp);
         name = find_section(fp,arg[idx]);
-        if (name != nullptr) len=strlen(name)+1;
-
-        if (screen)
-          fprintf(screen," %s group '%s'\n",
-                  len ? "Processing" : "Skipping",arg[idx]);
-        if (logfile)
-          fprintf(logfile,"%s group '%s'\n",
-                  len ? "Processing" : "Skipping",arg[idx]);
-
+        utils::logmesg(lmp," {} group '{}'\n", name.size()
+                       ? "Processing" : "Skipping",arg[idx]);
+        len = name.size()+1;
         MPI_Bcast(&len,1,MPI_INT,0,world);
-        if (len > 0) {
-          MPI_Bcast(name,len,MPI_CHAR,0,world);
+        if (len > 1) {
+          MPI_Bcast((void *)name.c_str(),len,MPI_CHAR,0,world);
+
           // read tags for atoms in group and broadcast
-          num = 0;
-          tags = read_section(fp,num);
+          std::vector<tagint> tags = read_section(fp,name);
+          num = tags.size();
           MPI_Bcast(&num,1,MPI_LMP_BIGINT,0,world);
-          MPI_Bcast(tags,num,MPI_LMP_TAGINT,0,world);
-          create(name,num,tags);
-          free(tags);
+          MPI_Bcast((void *)tags.data(),num,MPI_LMP_TAGINT,0,world);
+          create(name,tags);
         }
       } else {
-
         MPI_Bcast(&len,1,MPI_INT,0,world);
-        if (len > 0) {
-          delete[] name;
-          name = new char[len];
-          MPI_Bcast(name,len,MPI_CHAR,0,world);
-
+        if (len > 1) {
+          char *buf = new char[len];
+          MPI_Bcast(buf,len,MPI_CHAR,0,world);
           MPI_Bcast(&num,1,MPI_LMP_BIGINT,0,world);
-          tags = (tagint *)malloc(sizeof(tagint)*(num ? num : 1));
-          MPI_Bcast(tags,num,MPI_LMP_TAGINT,0,world);
-          create(name,num,tags);
-          free(tags);
+          tagint *tbuf = new tagint[num];
+          MPI_Bcast(tbuf,num,MPI_LMP_TAGINT,0,world);
+          create(buf,std::vector<tagint>(tbuf,tbuf+num));
+          delete[] buf;
+          delete[] tbuf;
         }
       }
     }
   }
-
-  delete[] name;
-  if (comm->me == 0) {
-    if (screen) fputs("\n",screen);
-    if (logfile) fputs("\n",logfile);
-    fclose(fp);
-  }
+  if (comm->me == 0) fclose(fp);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void Ndx2Group::create(char *name, bigint num, tagint *tags)
+void Ndx2Group::create(const std::string &name, const std::vector<tagint> &tags)
 {
   // wipe out all members if the group exists. gid==0 is group "all"
   int gid = group->find(name);
-  if (gid > 0) group->assign(std::string(name) + " clear");
+  if (gid > 0) group->assign(name + " clear");
 
   // map from global to local
   const int nlocal = atom->nlocal;
   int *flags = (int *)calloc(nlocal,sizeof(int));
-  for (bigint i=0; i < num; ++i) {
+  for (bigint i=0; i < (int)tags.size(); ++i) {
     const int id = atom->map(tags[i]);
-    if (id < nlocal && id >= 0)
-      flags[id] = 1;
+    if (id < nlocal && id >= 0) flags[id] = 1;
   }
   group->create(name,flags);
   free(flags);
 }
-

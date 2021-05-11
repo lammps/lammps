@@ -9,14 +9,29 @@ reading or writing to files with error checking or translation of
 strings into specific types of numbers with checking for validity.  This
 reduces redundant implementations and encourages consistent behavior.
 
-I/O with status check
-^^^^^^^^^^^^^^^^^^^^^
+I/O with status check and similar functions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-These are wrappers around the corresponding C library calls like
-``fgets()`` or ``fread()``.  They will check if there were errors
-on reading or an unexpected end-of-file state was reached.  In that
-case, the functions will stop the calculation with an error message,
-indicating the name of the problematic file, if possible.
+The the first two functions are wrappers around the corresponding C
+library calls ``fgets()`` or ``fread()``.  They will check if there
+were errors on reading or an unexpected end-of-file state was reached.
+In that case, the functions will stop with an error message, indicating
+the name of the problematic file, if possible unless the *error* argument
+is a NULL pointer.
+
+The :cpp:func:`fgets_trunc` function will work similar for ``fgets()``
+but it will read in a whole line (i.e. until the end of line or end
+of file), but store only as many characters as will fit into the buffer
+including a final newline character and the terminating NULL byte.
+If the line in the file is longer it will thus be truncated in the buffer.
+This function is used by :cpp:func:`read_lines_from_file` to read individual
+lines but make certain they follow the size constraints.
+
+The :cpp:func:`read_lines_from_file` function will read the requested
+number of lines of a maximum length into a buffer and will return 0
+if successful or 1 if not. It also guarantees that all lines are
+terminated with a newline character and the entire buffer with a
+NULL character.
 
 ----------
 
@@ -24,6 +39,12 @@ indicating the name of the problematic file, if possible.
    :project: progguide
 
 .. doxygenfunction:: sfread
+   :project: progguide
+
+.. doxygenfunction:: fgets_trunc
+   :project: progguide
+
+.. doxygenfunction:: read_lines_from_file
    :project: progguide
 
 ----------
@@ -71,10 +92,19 @@ and parsing files or arguments.
 
 ----------
 
+.. doxygenfunction:: strdup
+   :project: progguide
+
 .. doxygenfunction:: trim
    :project: progguide
 
 .. doxygenfunction:: trim_comment
+   :project: progguide
+
+.. doxygenfunction:: has_utf8
+   :project: progguide
+
+.. doxygenfunction:: utf8_subst
    :project: progguide
 
 .. doxygenfunction:: count_words(const char *text)
@@ -92,7 +122,13 @@ and parsing files or arguments.
 .. doxygenfunction:: split_words
    :project: progguide
 
+.. doxygenfunction:: split_lines
+   :project: progguide
+
 .. doxygenfunction:: strmatch
+   :project: progguide
+
+.. doxygenfunction:: strfind
    :project: progguide
 
 .. doxygenfunction:: is_integer
@@ -149,7 +185,10 @@ Argument processing
 Convenience functions
 ^^^^^^^^^^^^^^^^^^^^^
 
-.. doxygenfunction:: logmesg
+.. doxygenfunction:: logmesg(LAMMPS *lmp, const S &format, Args&&... args)
+   :project: progguide
+
+.. doxygenfunction:: logmesg(LAMMPS *lmp, const std::string &mesg)
    :project: progguide
 
 .. doxygenfunction:: getsyserror
@@ -283,6 +322,50 @@ This code example should produce the following output:
 .. doxygenclass:: LAMMPS_NS::InvalidFloatException
    :project: progguide
    :members: what
+
+----------
+
+
+Argument parsing classes
+---------------------------
+
+The purpose of argument parsing classes it to simplify and unify how
+arguments of commands in LAMMPS are parsed and to make abstractions of
+repetitive tasks.
+
+The :cpp:class:`LAMMPS_NS::ArgInfo` class provides an abstraction
+for parsing references to compute or fix styles or variables. These
+would start with a "c\_", "f\_", "v\_" followed by the ID or name of
+than instance and may be postfixed with one or two array indices
+"[<number>]" with numbers > 0.
+
+A typical code segment would look like this:
+
+.. code-block:: C++
+   :caption: Usage example for ArgInfo class
+
+   int nvalues = 0;
+   for (iarg = 0; iarg < nargnew; iarg++) {
+     ArgInfo argi(arg[iarg]);
+
+     which[nvalues] = argi.get_type();
+     argindex[nvalues] = argi.get_index1();
+     ids[nvalues] = argi.copy_name();
+
+     if ((which[nvalues] == ArgInfo::UNKNOWN)
+          || (which[nvalues] == ArgInfo::NONE)
+          || (argi.get_dim() > 1))
+       error->all(FLERR,"Illegal compute XXX command");
+
+     nvalues++;
+   }
+
+----------
+
+.. doxygenclass:: LAMMPS_NS::ArgInfo
+   :project: progguide
+   :members:
+
 
 ----------
 

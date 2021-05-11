@@ -192,6 +192,7 @@ accelerated styles exist.
 * :doc:`bond/react <fix_bond_react>` - apply topology changes to model reactions
 * :doc:`bond/swap <fix_bond_swap>` - Monte Carlo bond swapping
 * :doc:`box/relax <fix_box_relax>` - relax box size during energy minimization
+* :doc:`charge/regulation <fix_charge_regulation>` - Monte Carlo sampling of charge regulation
 * :doc:`client/md <fix_client_md>` - MD client for client/server simulations
 * :doc:`cmap <fix_cmap>` - enables CMAP cross-terms of the CHARMM force field
 * :doc:`colvars <fix_colvars>` - interface to the collective variables "Colvars" library
@@ -367,6 +368,8 @@ accelerated styles exist.
 * :doc:`temp/rescale <fix_temp_rescale>` - temperature control by velocity rescaling
 * :doc:`temp/rescale/eff <fix_temp_rescale_eff>` - temperature control by velocity rescaling in the electron force field model
 * :doc:`tfmc <fix_tfmc>` - perform force-bias Monte Carlo with time-stamped method
+* :doc:`tgnvt/drude <fix_tgnh_drude>` - NVT time integration for Drude polarizable model via temperature-grouped Nose-Hoover
+* :doc:`tgnpt/drude <fix_tgnh_drude>` - NPT time integration for Drude polarizable model via temperature-grouped Nose-Hoover
 * :doc:`thermal/conductivity <fix_thermal_conductivity>` - Muller-Plathe kinetic energy exchange for thermal conductivity calculation
 * :doc:`ti/spring <fix_ti_spring>` -
 * :doc:`tmd <fix_tmd>` - guide a group of atoms to a new configuration

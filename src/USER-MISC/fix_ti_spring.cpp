@@ -64,6 +64,7 @@ FixTISpring::FixTISpring(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   extscalar = 1;
   extvector = 1;
+  energy_global_flag = 1;
 
   // disallow resetting the time step, while this fix is defined
   time_depend = 1;
@@ -133,7 +134,6 @@ int FixTISpring::setmask()
   mask |= POST_FORCE;
   mask |= POST_FORCE_RESPA;
   mask |= MIN_POST_FORCE;
-  mask |= THERMO_ENERGY;
   return mask;
 }
 
@@ -141,7 +141,7 @@ int FixTISpring::setmask()
 
 void FixTISpring::init()
 {
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 }
 
@@ -149,7 +149,7 @@ void FixTISpring::init()
 
 void FixTISpring::setup(int vflag)
 {
-  if (strstr(update->integrate_style,"verlet"))
+  if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
     ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);
@@ -222,12 +222,12 @@ void FixTISpring::initial_integrate(int /*vflag*/)
   const bigint t = update->ntimestep - (t0+t_equil);
   const double r_switch = 1.0/t_switch;
 
-  if ( (t >= 0) && (t <= t_switch) ) {
+  if ((t >= 0) && (t <= t_switch)) {
     lambda  =  switch_func(t*r_switch);
     dlambda = dswitch_func(t*r_switch);
   }
 
-  if ( (t >= t_equil+t_switch) && (t <= (t_equil+2*t_switch)) ) {
+  if ((t >= t_equil+t_switch) && (t <= (t_equil+2*t_switch))) {
     lambda  =    switch_func(1.0 - (t - t_switch - t_equil)*r_switch);
     dlambda = - dswitch_func(1.0 - (t - t_switch - t_equil)*r_switch);
   }
@@ -261,7 +261,7 @@ double FixTISpring::compute_vector(int n)
 
 double FixTISpring::memory_usage()
 {
-  double bytes = atom->nmax*3 * sizeof(double);
+  double bytes = (double)atom->nmax*3 * sizeof(double);
   return bytes;
 }
 
@@ -380,7 +380,7 @@ double FixTISpring::switch_func(double t)
 
 double FixTISpring::dswitch_func(double t)
 {
-  if(sf == 1) return 1.0/t_switch;
+  if (sf == 1) return 1.0/t_switch;
 
   double t2 = t*t;
   double t4 = t2*t2;

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -102,7 +102,7 @@ class PairSWKokkos : public PairSW {
   typedef typename tdual_int_3d::t_dev_const_randomread t_int_3d_randomread;
   typedef typename tdual_int_3d::t_host t_host_int_3d;
 
-  t_int_3d_randomread d_elem2param;
+  t_int_3d_randomread d_elem3param;
   typename AT::t_int_1d_randomread d_map;
 
   typedef Kokkos::DualView<Param*,DeviceType> tdual_param_1d;

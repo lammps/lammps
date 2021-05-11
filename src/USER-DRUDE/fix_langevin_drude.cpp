@@ -12,21 +12,22 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_langevin_drude.h"
+#include "fix_drude.h"
+
+#include "atom.h"
+#include "comm.h"
+#include "compute.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
+#include "input.h"
+#include "modify.h"
+#include "random_mars.h"
+#include "update.h"
+#include "variable.h"
 
 #include <cstring>
 #include <cmath>
-#include "fix_drude.h"
-#include "atom.h"
-#include "force.h"
-#include "comm.h"
-#include "input.h"
-#include "variable.h"
-#include "random_mars.h"
-#include "update.h"
-#include "modify.h"
-#include "compute.h"
-#include "error.h"
-#include "domain.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -49,10 +50,8 @@ FixLangevinDrude::FixLangevinDrude(LAMMPS *lmp, int narg, char **arg) :
 
   // core temperature
   tstr_core = nullptr;
-  if (strstr(arg[3],"v_") == arg[3]) {
-    int n = strlen(&arg[3][2]) + 1;
-    tstr_core = new char[n];
-    strcpy(tstr_core,&arg[3][2]);
+  if (utils::strmatch(arg[3],"^v_")) {
+    tstr_core = utils::strdup(arg[3]+2);
     tstyle_core = EQUAL;
   } else {
     t_start_core = utils::numeric(FLERR,arg[3],false,lmp);
@@ -65,9 +64,7 @@ FixLangevinDrude::FixLangevinDrude(LAMMPS *lmp, int narg, char **arg) :
   // drude temperature
   tstr_drude = nullptr;
   if (strstr(arg[7],"v_") == arg[6]) {
-    int n = strlen(&arg[6][2]) + 1;
-    tstr_drude = new char[n];
-    strcpy(tstr_drude,&arg[6][2]);
+    tstr_drude = utils::strdup(arg[6]+2);
     tstyle_drude = EQUAL;
   } else {
     t_start_drude = utils::numeric(FLERR,arg[6],false,lmp);
@@ -159,7 +156,7 @@ void FixLangevinDrude::init()
 
 void FixLangevinDrude::setup(int /*vflag*/)
 {
-  if (!strstr(update->integrate_style,"verlet"))
+  if (!utils::strmatch(update->integrate_style,"^verlet"))
     error->all(FLERR,"RESPA style not compatible with fix langevin/drude");
   if (!comm->ghost_velocity)
     error->all(FLERR,"fix langevin/drude requires ghost velocities. Use comm_modify vel yes");
@@ -184,9 +181,7 @@ int FixLangevinDrude::modify_param(int narg, char **arg)
   if (strcmp(arg[0],"temp") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
     delete [] id_temp;
-    int n = strlen(arg[1]) + 1;
-    id_temp = new char[n];
-    strcpy(id_temp,arg[1]);
+    id_temp = utils::strdup(arg[1]);
 
     int icompute = modify->find_compute(id_temp);
     if (icompute < 0)
@@ -271,7 +266,7 @@ void FixLangevinDrude::post_force(int /*vflag*/)
         Gcore  = mi / t_period_core  / ftm2v;
         Ccore  = sqrt(2.0 * Gcore  * kb * t_target_core  / dt / ftm2v / mvv2e);
         if (temperature) temperature->remove_bias(i, v[i]);
-        for(int k = 0; k < dim; k++){
+        for (int k = 0; k < dim; k++) {
             fcore[k] = Ccore  * random_core->gaussian()  - Gcore  * v[i][k];
             if (zero) fcoreloc[k] += fcore[k];
             f[i][k] += fcore[k];
@@ -326,7 +321,7 @@ void FixLangevinDrude::post_force(int /*vflag*/)
     }
   }
 
-  if(zero) { // Remove the drift
+  if (zero) { // Remove the drift
     MPI_Allreduce(fcoreloc, fcoresum, dim, MPI_DOUBLE, MPI_SUM, world);
     for (int k=0; k<dim; k++) fcoresum[k] /= ncore;
     for (int i=0; i<nlocal; i++) {

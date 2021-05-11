@@ -22,18 +22,30 @@ set(LAMMPS_TOOLS_DIR      ${LAMMPS_DIR}/tools)
 set(LAMMPS_PYTHON_DIR     ${LAMMPS_DIR}/python)
 set(LAMMPS_POTENTIALS_DIR ${LAMMPS_DIR}/potentials)
 
+set(LAMMPS_DOWNLOADS_URL "https://download.lammps.org" CACHE STRING "Base URL for LAMMPS downloads")
+set(LAMMPS_POTENTIALS_URL "${LAMMPS_DOWNLOADS_URL}/potentials")
+set(LAMMPS_THIRDPARTY_URL "${LAMMPS_DOWNLOADS_URL}/thirdparty")
+mark_as_advanced(LAMMPS_DOWNLOADS_URL)
+
 find_package(Git)
 
 # by default, install into $HOME/.local (not /usr/local), so that no root access (and sudo!!) is needed
-if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-  set(CMAKE_INSTALL_PREFIX "$ENV{HOME}/.local" CACHE PATH "default install path" FORCE )
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+  set(CMAKE_INSTALL_PREFIX "$ENV{HOME}/.local" CACHE PATH "Default install path" FORCE)
+endif()
+
+# If enabled, no need to use LD_LIBRARY_PATH / DYLD_LIBRARY_PATH when installed
+option(LAMMPS_INSTALL_RPATH "Set runtime path for shared libraries linked to LAMMPS binaries" OFF)
+if(LAMMPS_INSTALL_RPATH)
+  set(CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR})
+  set(CMAKE_INSTALL_RPATH_USE_LINK_PATH ON)
 endif()
 
 # Cmake modules/macros are in a subdirectory to keep this file cleaner
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/Modules)
 
 # make sure LIBRARY_PATH is set if environment variable is set
-if (DEFINED ENV{LIBRARY_PATH})
+if(DEFINED ENV{LIBRARY_PATH})
   list(APPEND CMAKE_LIBRARY_PATH "$ENV{LIBRARY_PATH}")
   message(STATUS "Appending $ENV{LIBRARY_PATH} to CMAKE_LIBRARY_PATH: ${CMAKE_LIBRARY_PATH}")
 endif()
@@ -106,14 +118,16 @@ option(CMAKE_VERBOSE_MAKEFILE "Generate verbose Makefiles" OFF)
 
 set(STANDARD_PACKAGES ASPHERE BODY CLASS2 COLLOID COMPRESS DIPOLE
   GRANULAR KSPACE LATTE MANYBODY MC MESSAGE MISC MLIAP MOLECULE PERI POEMS
-  QEQ REPLICA RIGID SHOCK SPIN SNAP SRD KIM PYTHON MSCG MPIIO VORONOI
-  USER-ATC USER-AWPMD USER-BOCS USER-CGDNA USER-MESODPD USER-CGSDK USER-COLVARS
-  USER-DIFFRACTION USER-DPD USER-DRUDE USER-EFF USER-FEP USER-H5MD USER-LB
-  USER-MANIFOLD USER-MEAMC USER-MESONT USER-MGPT USER-MISC USER-MOFFF USER-MOLFILE
-  USER-NETCDF USER-PHONON USER-PLUMED USER-PTM USER-QTB USER-REACTION
-  USER-REAXC USER-SCAFACOS USER-SDPD USER-SMD USER-SMTBQ USER-SPH USER-TALLY
-  USER-UEF USER-VTK USER-QUIP USER-QMMM USER-YAFF USER-ADIOS USER-BROWNIAN)
-set(SUFFIX_PACKAGES CORESHELL USER-OMP KOKKOS OPT USER-INTEL GPU)
+  PLUGIN QEQ REPLICA RIGID SHOCK SPIN SNAP SRD KIM PYTHON MSCG MPIIO VORONOI
+  USER-ADIOS USER-ATC USER-AWPMD USER-BOCS USER-CGDNA USER-MESODPD USER-CGSDK
+  USER-COLVARS USER-DIFFRACTION USER-DPD USER-DRUDE USER-EFF USER-FEP USER-H5MD
+  USER-LB USER-MANIFOLD USER-MEAMC USER-MESONT USER-MGPT USER-MISC USER-MOFFF
+  USER-MOLFILE USER-NETCDF USER-PHONON USER-PLUMED USER-PTM USER-QTB
+  USER-REACTION USER-REAXC USER-SCAFACOS USER-SDPD USER-SMD USER-SMTBQ USER-SPH
+  USER-TALLY USER-UEF USER-VTK USER-QUIP USER-QMMM USER-YAFF USER-PACE USER-BROWNIAN)
+
+set(SUFFIX_PACKAGES CORESHELL GPU KOKKOS OPT USER-INTEL USER-OMP)
+
 foreach(PKG ${STANDARD_PACKAGES} ${SUFFIX_PACKAGES})
   option(PKG_${PKG} "Build ${PKG} Package" OFF)
 endforeach()
@@ -154,8 +168,7 @@ if(BUILD_MPI)
     endif()
   endif()
 else()
-  enable_language(C)
-  file(GLOB MPI_SOURCES ${LAMMPS_SOURCE_DIR}/STUBS/mpi.c)
+  file(GLOB MPI_SOURCES ${LAMMPS_SOURCE_DIR}/STUBS/mpi.cpp)
   add_library(mpi_stubs STATIC ${MPI_SOURCES})
   set_target_properties(mpi_stubs PROPERTIES OUTPUT_NAME lammps_mpi_stubs${LAMMPS_MACHINE})
   target_include_directories(mpi_stubs PUBLIC $<BUILD_INTERFACE:${LAMMPS_SOURCE_DIR}/STUBS>)
@@ -220,6 +233,7 @@ if(BUILD_OMP)
   endif()
 
   if (((CMAKE_CXX_COMPILER_ID STREQUAL "GNU") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 9.0)) OR
+      (CMAKE_CXX_COMPILER_ID STREQUAL "PGI") OR
       ((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 10.0)) OR
       ((CMAKE_CXX_COMPILER_ID STREQUAL "Intel") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 19.0)))
     # GCC 9.x and later plus Clang 10.x and later implement strict OpenMP 4.0 semantics for consts.
@@ -229,68 +243,6 @@ if(BUILD_OMP)
     target_compile_definitions(lammps PRIVATE -DLAMMPS_OMP_COMPAT=3)
   endif()
   target_link_libraries(lammps PRIVATE OpenMP::OpenMP_CXX)
-endif()
-
-# Compiler specific features for testing
-if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
-  option(ENABLE_COVERAGE "Enable collecting code coverage data" OFF)
-  mark_as_advanced(ENABLE_COVERAGE)
-  if(ENABLE_COVERAGE)
-    if(CMAKE_VERSION VERSION_LESS 3.13)
-      if(CMAKE_CXX_FLAGS)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage")
-      else()
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_${CMAKE_BUILD_TYPE}_FLAGS} --coverage")
-      endif()
-    else()
-      target_compile_options(lammps PUBLIC --coverage)
-      target_link_options(lammps PUBLIC --coverage)
-    endif()
-  endif()
-endif()
-
-#######################################
-# add custom target for IWYU analysis
-#######################################
-set(ENABLE_IWYU OFF CACHE BOOL "Add 'iwyu' build target to call the include-what-you-use tool")
-mark_as_advanced(ENABLE_IWYU)
-if(ENABLE_IWYU)
-  find_program(IWYU_EXE NAMES include-what-you-use iwyu)
-  find_program(IWYU_TOOL NAMES iwyu_tool iwyu-tool iwyu_tool.py)
-  if (IWYU_EXE AND IWYU_TOOL)
-    add_custom_target(
-      iwyu
-      ${IWYU_TOOL} -o clang -p ${CMAKE_CURRENT_BINARY_DIR} -- -Xiwyu --mapping_file=${CMAKE_CURRENT_SOURCE_DIR}/iwyu/iwyu-extra-map.imp
-      COMMENT "Running IWYU")
-    add_dependencies(iwyu lammps)
-  else()
-    message(FATAL_ERROR "To use IWYU you need the include-what-you-use/iwyu executable"
-      "and the iwyu-tool/iwyu_tool script installed in your PATH")
-  endif()
-endif()
-
-set(ENABLE_SANITIZER "none" CACHE STRING "Select a code sanitizer option (none (default), address, leak, thread, undefined)")
-mark_as_advanced(ENABLE_SANITIZER)
-set(ENABLE_SANITIZER_VALUES none address leak thread undefined)
-set_property(CACHE ENABLE_SANITIZER PROPERTY STRINGS ${ENABLE_SANITIZER_VALUES})
-validate_option(ENABLE_SANITIZER ENABLE_SANITIZER_VALUES)
-string(TOLOWER ${ENABLE_SANITIZER} ENABLE_SANITIZER)
-if(NOT ENABLE_SANITIZER STREQUAL "none")
-  if((${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU") OR (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang"))
-    if(CMAKE_VERSION VERSION_LESS 3.13)
-      if(CMAKE_CXX_FLAGS)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=${ENABLE_SANITIZER}")
-      else()
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_${CMAKE_BUILD_TYPE}_FLAGS} -fsanitize=${ENABLE_SANITIZER}")
-      endif()
-    else()
-      target_compile_options(lammps PUBLIC -fsanitize=${ENABLE_SANITIZER})
-      target_link_options(lammps PUBLIC -fsanitize=${ENABLE_SANITIZER})
-    endif()
-  else()
-    message(WARNING "ENABLE_SANITIZER option not supported by ${CMAKE_CXX_COMPILER_ID} compilers. Ignoring.")
-    set(ENABLE_SANITIZER "none")
-  endif()
 endif()
 
 if(PKG_MSCG OR PKG_USER-ATC OR PKG_USER-AWPMD OR PKG_USER-QUIP OR PKG_LATTE)
@@ -372,10 +324,10 @@ else()
   set(CUDA_REQUEST_PIC)
 endif()
 
-foreach(PKG_WITH_INCL KSPACE PYTHON VORONOI USER-COLVARS USER-MOLFILE USER-NETCDF USER-PLUMED USER-QMMM
-        USER-QUIP USER-SCAFACOS USER-SMD USER-VTK KIM LATTE MESSAGE MSCG COMPRESS)
+foreach(PKG_WITH_INCL KSPACE PYTHON MLIAP VORONOI USER-COLVARS USER-MOLFILE USER-NETCDF USER-PLUMED USER-QMMM
+        USER-QUIP USER-SCAFACOS USER-SMD USER-VTK KIM LATTE MESSAGE MSCG COMPRESS USER-PACE)
   if(PKG_${PKG_WITH_INCL})
-    include(Packages/${PKG_WITH_INCL})
+    include(Packages/${PKG_WITH_INCL}) 
   endif()
 endforeach()
 
@@ -524,6 +476,18 @@ foreach(PKG_WITH_INCL CORESHELL QEQ USER-OMP USER-SDPD KOKKOS OPT USER-INTEL GPU
   endif()
 endforeach()
 
+if(PKG_PLUGIN)
+  if(BUILD_SHARED_LIBS)
+    target_compile_definitions(lammps PRIVATE -DLMP_PLUGIN)
+  else()
+    message(WARNING "Plugin loading will not work unless BUILD_SHARED_LIBS is enabled")
+  endif()
+  # link with -ldl or equivalent for plugin loading; except on Windows
+  if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+    target_link_libraries(lammps PRIVATE ${CMAKE_DL_LIBS})
+  endif()
+endif()
+
 ######################################################################
 # the windows version of LAMMPS requires a couple extra libraries
 # and the MPI library - if use - has to be linked right before those
@@ -579,7 +543,7 @@ add_dependencies(lammps gitversion)
 ############################################
 get_property(LANGUAGES GLOBAL PROPERTY ENABLED_LANGUAGES)
 list (FIND LANGUAGES "Fortran" _index)
-if (${_index} GREATER -1)
+if(${_index} GREATER -1)
   target_link_libraries(lammps PRIVATE ${CMAKE_Fortran_IMPLICIT_LINK_LIBRARIES})
 endif()
 set(LAMMPS_CXX_HEADERS angle.h atom.h bond.h citeme.h comm.h compute.h dihedral.h domain.h error.h fix.h force.h group.h improper.h
@@ -649,7 +613,7 @@ install(
 if(BUILD_SHARED_LIBS)
   if(CMAKE_VERSION VERSION_LESS 3.12)
     # adjust so we find Python 3 versions before Python 2 on old systems with old CMake
-    set(Python_ADDITIONAL_VERSIONS 3.8 3.7 3.6 3.5)
+    set(Python_ADDITIONAL_VERSIONS 3.9 3.8 3.7 3.6 3.5)
     find_package(PythonInterp) # Deprecated since version 3.12
     if(PYTHONINTERP_FOUND)
         set(Python_EXECUTABLE ${PYTHON_EXECUTABLE})
@@ -659,10 +623,10 @@ if(BUILD_SHARED_LIBS)
   endif()
   if (Python_EXECUTABLE)
     add_custom_target(
-      install-python
-      ${Python_EXECUTABLE} install.py -v ${LAMMPS_SOURCE_DIR}/version.h
-      -m ${LAMMPS_PYTHON_DIR}/lammps.py
-      -l ${CMAKE_BINARY_DIR}/liblammps${CMAKE_SHARED_LIBRARY_SUFFIX}
+      install-python ${CMAKE_COMMAND} -E remove_directory build
+      COMMAND ${Python_EXECUTABLE} install.py -v ${LAMMPS_SOURCE_DIR}/version.h
+      -p ${LAMMPS_PYTHON_DIR}/lammps
+      -l ${CMAKE_BINARY_DIR}/liblammps${LAMMPS_MACHINE}${CMAKE_SHARED_LIBRARY_SUFFIX}
       WORKING_DIRECTORY  ${LAMMPS_PYTHON_DIR}
       COMMENT "Installing LAMMPS Python module")
   else()
@@ -691,11 +655,8 @@ if(BUILD_SHARED_LIBS OR PKG_PYTHON)
     find_package(Python COMPONENTS Interpreter)
   endif()
   if (Python_EXECUTABLE)
-    execute_process(COMMAND ${Python_EXECUTABLE}
-      -c "import distutils.sysconfig as cg; print(cg.get_python_lib(1,0,prefix='${CMAKE_INSTALL_PREFIX}'))"
-      OUTPUT_VARIABLE PYTHON_DEFAULT_INSTDIR OUTPUT_STRIP_TRAILING_WHITESPACE)
-    set(PYTHON_INSTDIR ${PYTHON_DEFAULT_INSTDIR} CACHE PATH "Installation folder for LAMMPS Python module")
-    install(FILES ${LAMMPS_PYTHON_DIR}/lammps.py DESTINATION ${PYTHON_INSTDIR})
+    file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/python)
+    install(CODE "execute_process(COMMAND ${Python_EXECUTABLE} setup.py build -b ${CMAKE_BINARY_DIR}/python install --prefix=${CMAKE_INSTALL_PREFIX} --root=\$ENV{DESTDIR}/ WORKING_DIRECTORY ${LAMMPS_PYTHON_DIR})")
   endif()
 endif()
 
@@ -707,7 +668,7 @@ get_target_property(DEFINES lammps COMPILE_DEFINITIONS)
 include(FeatureSummary)
 feature_summary(DESCRIPTION "The following tools and libraries have been found and configured:" WHAT PACKAGES_FOUND)
 message(STATUS "<<< Build configuration >>>
-   Operating System: ${CMAKE_SYSTEM_NAME}
+   Operating System: ${CMAKE_SYSTEM_NAME} ${CMAKE_LINUX_DISTRO} ${CMAKE_DISTRO_VERSION}
    Build type:       ${CMAKE_BUILD_TYPE}
    Install path:     ${CMAKE_INSTALL_PREFIX}
    Generator:        ${CMAKE_GENERATOR} using ${CMAKE_MAKE_PROGRAM}")
@@ -739,14 +700,14 @@ if(OPTIONS)
 endif()
 get_property(LANGUAGES GLOBAL PROPERTY ENABLED_LANGUAGES)
 list (FIND LANGUAGES "Fortran" _index)
-if (${_index} GREATER -1)
+if(${_index} GREATER -1)
   message(STATUS "Fortran Compiler: ${CMAKE_Fortran_COMPILER}
       Type:          ${CMAKE_Fortran_COMPILER_ID}
       Version:       ${CMAKE_Fortran_COMPILER_VERSION}
       Fortran Flags:${CMAKE_Fortran_FLAGS} ${CMAKE_Fortran_FLAGS_${BTYPE}}")
 endif()
 list (FIND LANGUAGES "C" _index)
-if (${_index} GREATER -1)
+if(${_index} GREATER -1)
   message(STATUS "C compiler:       ${CMAKE_C_COMPILER}
       Type:          ${CMAKE_C_COMPILER_ID}
       Version:       ${CMAKE_C_COMPILER_VERSION}
@@ -776,11 +737,12 @@ if(BUILD_MPI)
 endif()
 if(PKG_GPU)
   message(STATUS "<<< GPU package settings >>>
--- GPU API:          ${GPU_API}")
+-- GPU API:                  ${GPU_API}")
   if(GPU_API STREQUAL "CUDA")
-    message(STATUS "GPU architecture: ${GPU_ARCH}")
-  elseif(GPU_API STREQUAL "OPENCL")
-    message(STATUS "OpenCL tuning:    ${OCL_TUNE}")
+    message(STATUS "CUDA Compiler:            ${CUDA_NVCC_EXECUTABLE}")
+    message(STATUS "GPU default architecture: ${GPU_ARCH}")
+    message(STATUS "GPU binning with CUDPP:   ${CUDPP_OPT}")
+    message(STATUS "CUDA MPS support:         ${CUDA_MPS_SUPPORT}")
   elseif(GPU_API STREQUAL "HIP")
     message(STATUS "HIP platform:     ${HIP_PLATFORM}")
     message(STATUS "HIP architecture: ${HIP_ARCH}")
@@ -790,7 +752,7 @@ if(PKG_GPU)
       message(STATUS "HIP GPU sorting: off")
     endif()
   endif()
-  message(STATUS "GPU precision:    ${GPU_PREC}")
+  message(STATUS "GPU precision:            ${GPU_PREC}")
 endif()
 if(PKG_KOKKOS)
   message(STATUS "Kokkos Arch: ${KOKKOS_ARCH}")

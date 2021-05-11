@@ -37,7 +37,11 @@
 #include "neigh_list.h"
 #include "neighbor.h"
 #include "region.h"
+#include "respa.h"
 #include "output.h"
+#if defined(LMP_PLUGIN)
+#include "plugin.h"
+#endif
 #include "thermo.h"
 #include "timer.h"
 #include "universe.h"
@@ -444,27 +448,14 @@ is passed to :cpp:func:`lammps_commands_string` for processing.
 
 void lammps_commands_list(void *handle, int ncmd, const char **cmds)
 {
-  LAMMPS *lmp = (LAMMPS *) handle;
-
-  int n = ncmd+1;
-  for (int i = 0; i < ncmd; i++) n += strlen(cmds[i]);
-
-  char *str = (char *) lmp->memory->smalloc(n,"lib/commands/list:str");
-  str[0] = '\0';
-  n = 0;
+  std::string allcmds;
 
   for (int i = 0; i < ncmd; i++) {
-    strcpy(&str[n],cmds[i]);
-    n += strlen(cmds[i]);
-    if (str[n-1] != '\n') {
-      str[n] = '\n';
-      str[n+1] = '\0';
-      n++;
-    }
+    allcmds.append(cmds[i]);
+    if (allcmds.empty() || (allcmds.back() != '\n')) allcmds.append(1,'\n');
   }
 
-  lammps_commands_string(handle,str);
-  lmp->memory->sfree(str);
+  lammps_commands_string(handle,allcmds.c_str());
 }
 
 /* ---------------------------------------------------------------------- */
@@ -495,11 +486,15 @@ void lammps_commands_string(void *handle, const char *str)
 {
   LAMMPS *lmp = (LAMMPS *) handle;
 
-  // make copy of str so can strtok() it
+  // copy str and convert from CR-LF (DOS-style) to LF (Unix style) line
+  int n = strlen(str);
+  char *ptr, *copy = new char[n+1];
 
-  int n = strlen(str) + 1;
-  char *copy = new char[n];
-  strcpy(copy,str);
+  for (ptr = copy; *str != '\0'; ++str) {
+    if ((str[0] == '\r') && (str[1] == '\n')) continue;
+    *ptr++ = *str;
+  }
+  *ptr = '\0';
 
   BEGIN_CAPTURE
   {
@@ -507,8 +502,9 @@ void lammps_commands_string(void *handle, const char *str)
       lmp->error->all(FLERR,"Library error: issuing LAMMPS command during run");
     }
 
-    char *ptr = copy;
-    for (int i=0; i < n-1; ++i) {
+    n = strlen(copy);
+    ptr = copy;
+    for (int i=0; i < n; ++i) {
 
       // handle continuation character as last character in line or string
       if ((copy[i] == '&') && (copy[i+1] == '\n'))
@@ -987,17 +983,19 @@ to then decide how to cast the (void*) pointer and access the data.
 
 \endverbatim
  *
- * \param  handle   pointer to a previously created LAMMPS instance
+ * \param  handle   pointer to a previously created LAMMPS instance (unused)
  * \param  name     string with the name of the extracted property
  * \return          integer constant encoding the data type of the property
  *                  or -1 if not found. */
 
-int lammps_extract_global_datatype(void *handle, const char *name)
+int lammps_extract_global_datatype(void * /*handle*/, const char *name)
 {
   if (strcmp(name,"dt") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"ntimestep") == 0) return LAMMPS_BIGINT;
   if (strcmp(name,"atime") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"atimestep") == 0) return LAMMPS_BIGINT;
+  if (strcmp(name,"respa_levels") == 0) return LAMMPS_INT;
+  if (strcmp(name,"respa_dt") == 0) return LAMMPS_DOUBLE;
 
   if (strcmp(name,"boxlo") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"boxhi") == 0) return LAMMPS_DOUBLE;
@@ -1124,6 +1122,14 @@ report the "native" data type.  The following tables are provided:
      - bigint
      - 1
      - the number of the timestep when "atime" was last updated.
+   * - respa_levels
+     - int
+     - 1
+     - number of r-RESPA levels. See :doc:`run_style`.
+   * - respa_dt
+     - double
+     - number of r-RESPA levels
+     - length of the time steps with r-RESPA. See :doc:`run_style`.
 
 .. _extract_box_settings:
 
@@ -1374,12 +1380,22 @@ void *lammps_extract_global(void *handle, const char *name)
   if (strcmp(name,"atime") == 0) return (void *) &lmp->update->atime;
   if (strcmp(name,"atimestep") == 0) return (void *) &lmp->update->atimestep;
 
+  if (utils::strmatch(lmp->update->integrate_style,"^respa")) {
+    Respa *respa = (Respa *)lmp->update->integrate;
+    if (strcmp(name,"respa_levels") == 0) return (void *) &respa->nlevels;
+    if (strcmp(name,"respa_dt") == 0) return (void *) respa->step;
+  }
   if (strcmp(name,"boxlo") == 0) return (void *) lmp->domain->boxlo;
   if (strcmp(name,"boxhi") == 0) return (void *) lmp->domain->boxhi;
   if (strcmp(name,"sublo") == 0) return (void *) lmp->domain->sublo;
   if (strcmp(name,"subhi") == 0) return (void *) lmp->domain->subhi;
-  if (strcmp(name,"sublo_lambda") == 0) return (void *) lmp->domain->sublo_lamda;
-  if (strcmp(name,"subhi_lambda") == 0) return (void *) lmp->domain->subhi_lamda;
+  // these are only valid for a triclinic cell
+  if (lmp->domain->triclinic) {
+    if (strcmp(name,"sublo_lambda") == 0)
+      return (void *) lmp->domain->sublo_lamda;
+    if (strcmp(name,"subhi_lambda") == 0)
+      return (void *) lmp->domain->subhi_lamda;
+  }
   if (strcmp(name,"boxxlo") == 0) return (void *) &lmp->domain->boxlo[0];
   if (strcmp(name,"boxxhi") == 0) return (void *) &lmp->domain->boxhi[0];
   if (strcmp(name,"boxylo") == 0) return (void *) &lmp->domain->boxlo[1];
@@ -1598,7 +1614,7 @@ lists the available options.
  * \return         pointer (cast to ``void *``) to the location of the
  *                 requested data or ``NULL`` if not found. */
 
-void *lammps_extract_compute(void *handle, char *id, int style, int type)
+void *lammps_extract_compute(void *handle, const char *id, int style, int type)
 {
   LAMMPS *lmp = (LAMMPS *) handle;
 
@@ -1784,7 +1800,7 @@ The following table lists the available options.
  * \return         pointer (cast to ``void *``) to the location of the
  *                 requested data or ``NULL`` if not found. */
 
-void *lammps_extract_fix(void *handle, char *id, int style, int type,
+void *lammps_extract_fix(void *handle, const char *id, int style, int type,
                          int nrow, int ncol)
 {
   LAMMPS *lmp = (LAMMPS *) handle;
@@ -1936,8 +1952,9 @@ void *lammps_extract_variable(void *handle, const char *name, const char *group)
     }
   }
   END_CAPTURE
-
+#if defined(LAMMPS_EXCEPTIONS)
   return nullptr;
+#endif
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2191,7 +2208,6 @@ void lammps_gather_atoms_concat(void *handle, char *name, int type, int count, v
                        MPI_INT,lmp->world);
 
       } else if (imgunpack) {
-        int *copy;
         lmp->memory->create(copy,count*nlocal,"lib/gather:copy");
         offset = 0;
         for (i = 0; i < nlocal; i++) {
@@ -2444,7 +2460,7 @@ void lammps_scatter_atoms(void *handle, char *name, int type, int count, void *d
     int natoms = static_cast<int> (lmp->atom->natoms);
 
     void *vptr = lmp->atom->extract(name);
-    if(vptr == nullptr) {
+    if (vptr == nullptr) {
       if (lmp->comm->me == 0)
         lmp->error->warning(FLERR,
                             "lammps_scatter_atoms: unknown property name");
@@ -2561,7 +2577,7 @@ void lammps_scatter_atoms_subset(void *handle, char *name, int type, int count,
     }
 
     void *vptr = lmp->atom->extract(name);
-    if(vptr == nullptr) {
+    if (vptr == nullptr) {
       if (lmp->comm->me == 0)
         lmp->error->warning(FLERR,
                             "lammps_scatter_atoms_subset: unknown property name");
@@ -2693,7 +2709,7 @@ void lammps_gather(void *handle, char *name, int type, int count, void *data)
 
     void *vptr = lmp->atom->extract(name);
 
-    if (vptr==nullptr && strstr(name,"f_") == name) { // fix
+    if (vptr==nullptr && utils::strmatch(name,"^f_")) { // fix
 
       fcid = lmp->modify->find_fix(&name[2]);
       if (fcid < 0) {
@@ -2722,11 +2738,11 @@ void lammps_gather(void *handle, char *name, int type, int count, void *data)
         return;
       }
 
-      if(count==1) vptr = (void *) lmp->modify->fix[fcid]->vector_atom;
+      if (count==1) vptr = (void *) lmp->modify->fix[fcid]->vector_atom;
       else vptr = (void *) lmp->modify->fix[fcid]->array_atom;
     }
 
-    if (vptr==nullptr && strstr(name,"c_") == name) { // compute
+    if (vptr==nullptr && utils::strmatch(name,"^c_")) { // compute
 
       fcid = lmp->modify->find_compute(&name[2]);
       if (fcid < 0) {
@@ -2751,14 +2767,15 @@ void lammps_gather(void *handle, char *name, int type, int count, void *data)
       if (lmp->modify->compute[fcid]->invoked_peratom != lmp->update->ntimestep)
         lmp->modify->compute[fcid]->compute_peratom();
 
-      if(count==1) vptr = (void *) lmp->modify->compute[fcid]->vector_atom;
+      if (count==1) vptr = (void *) lmp->modify->compute[fcid]->vector_atom;
       else vptr = (void *) lmp->modify->compute[fcid]->array_atom;
 
 
     }
+
     // property / atom
-    if ( (vptr == nullptr) && ((strstr(name,"d_") == name)
-                               || (strstr(name,"i_") == name)) ) {
+
+    if ((vptr == nullptr) && (utils::strmatch(name,"^[di]_"))) {
       fcid = lmp->atom->find_custom(&name[2], ltype);
       if (fcid < 0) {
         if (lmp->comm->me == 0)
@@ -2775,7 +2792,7 @@ void lammps_gather(void *handle, char *name, int type, int count, void *data)
           lmp->error->warning(FLERR,"lammps_gather: property/atom has count=1");
         return;
       }
-      if(ltype==0) vptr = (void *) lmp->atom->ivector[fcid];
+      if (ltype==0) vptr = (void *) lmp->atom->ivector[fcid];
       else vptr = (void *) lmp->atom->dvector[fcid];
     }
 
@@ -2912,7 +2929,7 @@ void lammps_gather_concat(void *handle, char *name, int type, int count, void *d
 
     void *vptr = lmp->atom->extract(name);
 
-    if (vptr==nullptr && strstr(name,"f_") == name) { // fix
+    if (vptr==nullptr && utils::strmatch(name,"^f_")) { // fix
 
       fcid = lmp->modify->find_fix(&name[2]);
       if (fcid < 0) {
@@ -2942,11 +2959,11 @@ void lammps_gather_concat(void *handle, char *name, int type, int count, void *d
         return;
       }
 
-      if(count==1) vptr = (void *) lmp->modify->fix[fcid]->vector_atom;
+      if (count==1) vptr = (void *) lmp->modify->fix[fcid]->vector_atom;
       else vptr = (void *) lmp->modify->fix[fcid]->array_atom;
     }
 
-    if (vptr==nullptr && strstr(name,"c_") == name) { // compute
+    if (vptr==nullptr && utils::strmatch(name,"^c_")) { // compute
 
       fcid = lmp->modify->find_compute(&name[2]);
       if (fcid < 0) {
@@ -2971,13 +2988,13 @@ void lammps_gather_concat(void *handle, char *name, int type, int count, void *d
       if (lmp->modify->compute[fcid]->invoked_peratom != lmp->update->ntimestep)
         lmp->modify->compute[fcid]->compute_peratom();
 
-      if(count==1) vptr = (void *) lmp->modify->compute[fcid]->vector_atom;
+      if (count==1) vptr = (void *) lmp->modify->compute[fcid]->vector_atom;
       else vptr = (void *) lmp->modify->compute[fcid]->array_atom;
 
 
     }
 
-    if (vptr==nullptr && strstr(name,"d_") == name) { // property / atom
+    if (vptr==nullptr && utils::strmatch(name,"^[di]_")) { // property / atom
 
       fcid = lmp->atom->find_custom(&name[2], ltype);
       if (fcid < 0) {
@@ -2998,7 +3015,7 @@ void lammps_gather_concat(void *handle, char *name, int type, int count, void *d
                               "property/atom has count=1");
         return;
       }
-      if(ltype==0) vptr = (void *) lmp->atom->ivector[fcid];
+      if (ltype==0) vptr = (void *) lmp->atom->ivector[fcid];
       else vptr = (void *) lmp->atom->dvector[fcid];
 
     }
@@ -3040,7 +3057,6 @@ void lammps_gather_concat(void *handle, char *name, int type, int count, void *d
                        MPI_INT,lmp->world);
 
       } else if (imgunpack) {
-        int *copy;
         lmp->memory->create(copy,count*nlocal,"lib/gather:copy");
         offset = 0;
         for (i = 0; i < nlocal; i++) {
@@ -3154,7 +3170,7 @@ void lammps_gather_subset(void *handle, char *name,
 
     void *vptr = lmp->atom->extract(name);
 
-    if (vptr==nullptr && strstr(name,"f_") == name) { // fix
+    if (vptr==nullptr && utils::strmatch(name,"^f_")) { // fix
 
       fcid = lmp->modify->find_fix(&name[2]);
       if (fcid < 0) {
@@ -3183,11 +3199,11 @@ void lammps_gather_subset(void *handle, char *name,
         return;
       }
 
-      if(count==1) vptr = (void *) lmp->modify->fix[fcid]->vector_atom;
+      if (count==1) vptr = (void *) lmp->modify->fix[fcid]->vector_atom;
       else vptr = (void *) lmp->modify->fix[fcid]->array_atom;
     }
 
-    if (vptr==nullptr && strstr(name,"c_") == name) { // compute
+    if (vptr==nullptr && utils::strmatch(name,"^c_")) { // compute
 
       fcid = lmp->modify->find_compute(&name[2]);
       if (fcid < 0) {
@@ -3212,13 +3228,13 @@ void lammps_gather_subset(void *handle, char *name,
       if (lmp->modify->compute[fcid]->invoked_peratom != lmp->update->ntimestep)
         lmp->modify->compute[fcid]->compute_peratom();
 
-      if(count==1) vptr = (void *) lmp->modify->compute[fcid]->vector_atom;
+      if (count==1) vptr = (void *) lmp->modify->compute[fcid]->vector_atom;
       else vptr = (void *) lmp->modify->compute[fcid]->array_atom;
 
 
     }
 
-    if (vptr==nullptr && strstr(name,"d_") == name) { // property / atom
+    if (vptr==nullptr && utils::strmatch(name,"^[di]_")) { // property / atom
 
       fcid = lmp->atom->find_custom(&name[2], ltype);
       if (fcid < 0) {
@@ -3239,7 +3255,7 @@ void lammps_gather_subset(void *handle, char *name,
                               "property/atom has count=1");
         return;
       }
-      if(ltype==0) vptr = (void *) lmp->atom->ivector[fcid];
+      if (ltype==0) vptr = (void *) lmp->atom->ivector[fcid];
       else vptr = (void *) lmp->atom->dvector[fcid];
     }
 
@@ -3392,7 +3408,7 @@ void lammps_scatter(void *handle, char *name, int type, int count, void *data)
 
     void *vptr = lmp->atom->extract(name);
 
-    if (vptr==nullptr && strstr(name,"f_") == name) { // fix
+    if (vptr==nullptr && utils::strmatch(name,"^f_")) { // fix
 
       fcid = lmp->modify->find_fix(&name[2]);
       if (fcid < 0) {
@@ -3414,11 +3430,11 @@ void lammps_scatter(void *handle, char *name, int type, int count, void *data)
         return;
       }
 
-      if(count==1) vptr = (void *) lmp->modify->fix[fcid]->vector_atom;
+      if (count==1) vptr = (void *) lmp->modify->fix[fcid]->vector_atom;
       else vptr = (void *) lmp->modify->fix[fcid]->array_atom;
     }
 
-    if (vptr==nullptr && strstr(name,"c_") == name) { // compute
+    if (vptr==nullptr && utils::strmatch(name,"^c_")) { // compute
 
       fcid = lmp->modify->find_compute(&name[2]);
       if (fcid < 0) {
@@ -3443,13 +3459,13 @@ void lammps_scatter(void *handle, char *name, int type, int count, void *data)
       if (lmp->modify->compute[fcid]->invoked_peratom != lmp->update->ntimestep)
         lmp->modify->compute[fcid]->compute_peratom();
 
-      if(count==1) vptr = (void *) lmp->modify->compute[fcid]->vector_atom;
+      if (count==1) vptr = (void *) lmp->modify->compute[fcid]->vector_atom;
       else vptr = (void *) lmp->modify->compute[fcid]->array_atom;
 
 
     }
 
-    if (vptr==nullptr && strstr(name,"d_") == name) { // property / atom
+    if (vptr==nullptr && utils::strmatch(name,"^[di]_")) { // property / atom
 
       fcid = lmp->atom->find_custom(&name[2], ltype);
       if (fcid < 0) {
@@ -3467,12 +3483,12 @@ void lammps_scatter(void *handle, char *name, int type, int count, void *data)
           lmp->error->warning(FLERR,"lammps_scatter: property/atom has count=1");
         return;
       }
-      if(ltype==0) vptr = (void *) lmp->atom->ivector[fcid];
+      if (ltype==0) vptr = (void *) lmp->atom->ivector[fcid];
       else vptr = (void *) lmp->atom->dvector[fcid];
 
     }
 
-    if(vptr == nullptr) {
+    if (vptr == nullptr) {
       if (lmp->comm->me == 0)
         lmp->error->warning(FLERR,"lammps_scatter: unknown property name");
       return;
@@ -3590,7 +3606,7 @@ void lammps_scatter_subset(void *handle, char *name,int type, int count,
 
     void *vptr = lmp->atom->extract(name);
 
-    if (vptr==nullptr && strstr(name,"f_") == name) { // fix
+    if (vptr==nullptr && utils::strmatch(name,"^f_")) { // fix
 
       fcid = lmp->modify->find_fix(&name[2]);
       if (fcid < 0) {
@@ -3612,11 +3628,11 @@ void lammps_scatter_subset(void *handle, char *name,int type, int count,
         return;
       }
 
-      if(count==1) vptr = (void *) lmp->modify->fix[fcid]->vector_atom;
+      if (count==1) vptr = (void *) lmp->modify->fix[fcid]->vector_atom;
       else vptr = (void *) lmp->modify->fix[fcid]->array_atom;
     }
 
-    if (vptr==nullptr && strstr(name,"c_") == name) { // compute
+    if (vptr==nullptr && utils::strmatch(name,"^c_")) { // compute
 
       fcid = lmp->modify->find_compute(&name[2]);
       if (fcid < 0) {
@@ -3641,11 +3657,11 @@ void lammps_scatter_subset(void *handle, char *name,int type, int count,
       if (lmp->modify->compute[fcid]->invoked_peratom != lmp->update->ntimestep)
         lmp->modify->compute[fcid]->compute_peratom();
 
-      if(count==1) vptr = (void *) lmp->modify->compute[fcid]->vector_atom;
+      if (count==1) vptr = (void *) lmp->modify->compute[fcid]->vector_atom;
       else vptr = (void *) lmp->modify->compute[fcid]->array_atom;
     }
 
-    if (vptr==nullptr && strstr(name,"d_") == name) { // property / atom
+    if (vptr==nullptr && utils::strmatch(name,"^[di]_")) { // property / atom
 
       fcid = lmp->atom->find_custom(&name[2], ltype);
       if (fcid < 0) {
@@ -3666,11 +3682,11 @@ void lammps_scatter_subset(void *handle, char *name,int type, int count,
                               "property/atom has count=1");
         return;
       }
-      if(ltype==0) vptr = (void *) lmp->atom->ivector[fcid];
+      if (ltype==0) vptr = (void *) lmp->atom->ivector[fcid];
       else vptr = (void *) lmp->atom->dvector[fcid];
     }
 
-    if(vptr == nullptr) {
+    if (vptr == nullptr) {
       if (lmp->comm->me == 0)
         lmp->error->warning(FLERR,"lammps_scatter_atoms_subset: "
                                   "unknown property name");
@@ -3804,8 +3820,8 @@ X(1),Y(1),Z(1),X(2),Y(2),Z(2),...,X(N),Y(N),Z(N).
  * \return          number of atoms created on success;
                     -1 on failure (no box, no atom IDs, etc.) */
 
-int lammps_create_atoms(void *handle, int n, tagint *id, int *type,
-                        double *x, double *v, imageint *image,
+int lammps_create_atoms(void *handle, int n, const tagint *id, const int *type,
+                        const double *x, const double *v, const imageint *image,
                         int bexpand)
 {
   LAMMPS *lmp = (LAMMPS *) handle;
@@ -3841,13 +3857,17 @@ int lammps_create_atoms(void *handle, int n, tagint *id, int *type,
 
     int nlocal_prev = nlocal;
     double xdata[3];
+    imageint idata, *img;
 
     for (int i = 0; i < n; i++) {
       xdata[0] = x[3*i];
       xdata[1] = x[3*i+1];
       xdata[2] = x[3*i+2];
-      imageint * img = image ? image + i : nullptr;
-      tagint     tag = id    ? id[i]     : 0;
+      if (image) {
+        idata = image[i];
+        img = &idata;
+      } else img = nullptr;
+      const tagint tag = id ? id[i] : 0;
 
       // create atom only on MPI rank that would own it
 
@@ -3899,40 +3919,43 @@ int lammps_create_atoms(void *handle, int n, tagint *id, int *type,
 // Library functions for accessing neighbor lists
 // ----------------------------------------------------------------------
 
-/** Find neighbor list index of pair style neighbor list
+/** Find index of a neighbor list requested by a pair style
  *
- * Try finding pair instance that matches style. If exact is set, the pair must
- * match style exactly. If exact is 0, style must only be contained. If pair is
- * of style pair/hybrid, style is instead matched the nsub-th hybrid sub-style.
+ * This function determines which of the available neighbor lists for
+ * pair styles matches the given conditions.  It first matches the style
+ * name. If exact is 1 the name must match exactly, if exact is 0, a
+ * regular expression or sub-string match is done.  If the pair style is
+ * hybrid or hybrid/overlay the style is matched against the sub styles
+ * instead.
+ * If a the same pair style is used multiple times as a sub-style, the
+ * nsub argument must be > 0 and represents the nth instance of the sub-style
+ * (same as for the pair_coeff command, for example).  In that case
+ * nsub=0 will not produce a match and this function will return -1.
  *
- * Once the pair instance has been identified, multiple neighbor list requests
- * may be found. Every neighbor list is uniquely identified by its request
- * index. Thus, providing this request index ensures that the correct neighbor
- * list index is returned.
+ * The final condition to be checked is the request ID (reqid).  This
+ * will normally be 0, but some pair styles request multiple neighbor
+ * lists and set the request ID to a value > 0.
  *
  * \param  handle   pointer to a previously created LAMMPS instance cast to ``void *``.
  * \param  style    String used to search for pair style instance
  * \param  exact    Flag to control whether style should match exactly or only
- *                  must be contained in pair style name
- * \param  nsub     match nsub-th hybrid sub-style
- * \param  request  request index that specifies which neighbor list should be
- *                  returned, in case there are multiple neighbor lists requests
- *                  for the found pair style
+ *                  a regular expression / sub-string match is applied.
+ * \param  nsub     match nsub-th hybrid sub-style instance of the same style
+ * \param  reqid    request id to identify neighbor list in case there are
+ *                  multiple requests from the same pair style instance
  * \return          return neighbor list index if found, otherwise -1 */
 
-int lammps_find_pair_neighlist(void* handle, char * style, int exact, int nsub, int request) {
-  LAMMPS *  lmp = (LAMMPS *) handle;
-  Pair* pair = lmp->force->pair_match(style, exact, nsub);
+int lammps_find_pair_neighlist(void *handle, const char *style, int exact, int nsub, int reqid) {
+  LAMMPS *lmp = (LAMMPS *) handle;
+  Pair *pair = lmp->force->pair_match(style, exact, nsub);
 
   if (pair != nullptr) {
     // find neigh list
     for (int i = 0; i < lmp->neighbor->nlist; i++) {
-      NeighList * list = lmp->neighbor->lists[i];
-      if (list->requestor_type != NeighList::PAIR || pair != list->requestor) continue;
-
-      if (list->index == request) {
-          return i;
-      }
+      NeighList *list = lmp->neighbor->lists[i];
+      if ( (list->requestor_type == NeighList::PAIR)
+           && (pair == list->requestor)
+           && (list->id == reqid) ) return i;
     }
   }
   return -1;
@@ -3940,74 +3963,60 @@ int lammps_find_pair_neighlist(void* handle, char * style, int exact, int nsub, 
 
 /* ---------------------------------------------------------------------- */
 
-/** Find neighbor list index of fix neighbor list
+/** Find index of a neighbor list requested by a fix
+ *
+ * The neighbor list request from a fix is identified by the fix ID and
+ * the request ID.  The request ID is typically 0, but will be > 0 in
+ * case a fix has multiple neighbor list requests.
  *
  * \param handle   pointer to a previously created LAMMPS instance cast to ``void *``.
  * \param id       Identifier of fix instance
- * \param request  request index that specifies which request should be returned,
- *                 in case there are multiple neighbor lists for this fix
+ * \param reqid    request id to identify neighbor list in case there are
+ *                 multiple requests from the same fix
  * \return         return neighbor list index if found, otherwise -1  */
 
-int lammps_find_fix_neighlist(void* handle, char *id, int request) {
-  LAMMPS *  lmp = (LAMMPS *) handle;
-  Fix* fix = nullptr;
-  const int nfix = lmp->modify->nfix;
+int lammps_find_fix_neighlist(void *handle, const char *id, int reqid) {
+  LAMMPS *lmp = (LAMMPS *) handle;
+  const int ifix = lmp->modify->find_fix(id);
+  if (ifix < 0) return -1;
 
-  // find fix with name
-  for (int ifix = 0; ifix < nfix; ifix++) {
-    if (strcmp(lmp->modify->fix[ifix]->id, id) == 0) {
-        fix = lmp->modify->fix[ifix];
-        break;
-    }
-  }
-
-  if (fix != nullptr) {
-    // find neigh list
-    for (int i = 0; i < lmp->neighbor->nlist; i++) {
-      NeighList * list = lmp->neighbor->lists[i];
-      if (list->requestor_type != NeighList::FIX || fix != list->requestor) continue;
-
-      if (list->index == request) {
-          return i;
-      }
-    }
+  Fix *fix = lmp->modify->fix[ifix];
+  // find neigh list
+  for (int i = 0; i < lmp->neighbor->nlist; i++) {
+    NeighList *list = lmp->neighbor->lists[i];
+    if ( (list->requestor_type == NeighList::FIX)
+         && (fix == list->requestor)
+         && (list->id == reqid) ) return i;
   }
   return -1;
 }
 
 /* ---------------------------------------------------------------------- */
 
-/** Find neighbor list index of compute neighbor list
+/** Find index of a neighbor list requested by a compute
+ *
+ * The neighbor list request from a compute is identified by the compute
+ * ID and the request ID.  The request ID is typically 0, but will be
+ * > 0 in case a compute has multiple neighbor list requests.
  *
  * \param handle   pointer to a previously created LAMMPS instance cast to ``void *``.
- * \param id       Identifier of fix instance
- * \param request  request index that specifies which request should be returned,
- *                 in case there are multiple neighbor lists for this fix
+ * \param id       Identifier of compute instance
+ * \param reqid    request id to identify neighbor list in case there are
+ *                 multiple requests from the same compute
  * \return         return neighbor list index if found, otherwise -1 */
 
-int lammps_find_compute_neighlist(void* handle, char *id, int request) {
-  LAMMPS *  lmp = (LAMMPS *) handle;
-  Compute* compute = nullptr;
-  const int ncompute = lmp->modify->ncompute;
+int lammps_find_compute_neighlist(void* handle, const char *id, int reqid) {
+  LAMMPS *lmp = (LAMMPS *) handle;
+  const int icompute = lmp->modify->find_compute(id);
+  if (icompute < 0) return -1;
 
-  // find compute with name
-  for (int icompute = 0; icompute < ncompute; icompute++) {
-    if (strcmp(lmp->modify->compute[icompute]->id, id) == 0) {
-        compute = lmp->modify->compute[icompute];
-        break;
-    }
-  }
-
-  if (compute != nullptr) {
-    // find neigh list
-    for (int i = 0; i < lmp->neighbor->nlist; i++) {
-      NeighList * list = lmp->neighbor->lists[i];
-      if (list->requestor_type != NeighList::COMPUTE || compute != list->requestor) continue;
-
-      if (list->index == request) {
-          return i;
-      }
-    }
+  Compute *compute = lmp->modify->compute[icompute];
+  // find neigh list
+  for (int i = 0; i < lmp->neighbor->nlist; i++) {
+    NeighList * list = lmp->neighbor->lists[i];
+    if ( (list->requestor_type == NeighList::COMPUTE)
+         && (compute == list->requestor)
+         && (list->id == reqid) ) return i;
   }
   return -1;
 }
@@ -4025,7 +4034,7 @@ int lammps_neighlist_num_elements(void *handle, int idx) {
   LAMMPS *  lmp = (LAMMPS *) handle;
   Neighbor * neighbor = lmp->neighbor;
 
-  if(idx < 0 || idx >= neighbor->nlist) {
+  if (idx < 0 || idx >= neighbor->nlist) {
     return -1;
   }
 
@@ -4053,13 +4062,13 @@ void lammps_neighlist_element_neighbors(void *handle, int idx, int element, int 
   *numneigh = 0;
   *neighbors = nullptr;
 
-  if(idx < 0 || idx >= neighbor->nlist) {
+  if (idx < 0 || idx >= neighbor->nlist) {
     return;
   }
 
   NeighList * list = neighbor->lists[idx];
 
-  if(element < 0 || element >= list->inum) {
+  if (element < 0 || element >= list->inum) {
     return;
   }
 
@@ -4127,16 +4136,18 @@ void lammps_get_os_info(char *buffer, int buf_size)
 /* ---------------------------------------------------------------------- */
 
 /** This function is used to query whether LAMMPS was compiled with
- *  a real MPI library or in serial.
+ *  a real MPI library or in serial. For the real MPI library it
+ *  reports the size of the MPI communicator in bytes (4 or 8),
+ *  which allows to check for compatibility with a hosting code.
  *
- * \return 0 when compiled with MPI STUBS, otherwise 1 */
+ * \return 0 when compiled with MPI STUBS, otherwise the MPI_Comm size in bytes */
 
 int lammps_config_has_mpi_support()
 {
 #ifdef MPI_STUBS
   return 0;
 #else
-  return 1;
+  return sizeof(MPI_Comm);
 #endif
 }
 
@@ -4269,7 +4280,7 @@ included in the LAMMPS library in use.
  */
 int lammps_config_package_count() {
   int i = 0;
-  while(LAMMPS::installed_packages[i] != nullptr) {
+  while (LAMMPS::installed_packages[i] != nullptr) {
     ++i;
   }
   return i;
@@ -4301,6 +4312,31 @@ int lammps_config_package_name(int idx, char *buffer, int buf_size) {
 
   strncpy(buffer, LAMMPS::installed_packages[idx], buf_size);
   return 1;
+}
+
+/** Check for compile time settings in accelerator packages included in LAMMPS.
+ *
+\verbatim embed:rst
+This function checks availability of compile time settings of included
+:doc:`accelerator packages <Speed_packages>` in LAMMPS.
+Supported packages names are "GPU", "KOKKOS", "USER-INTEL", and "USER-OMP".
+Supported categories are "api" with possible settings "cuda", "hip", "phi",
+"pthreads", "opencl", "openmp", and "serial", and "precision" with
+possible settings "double", "mixed", and "single".  If the combination
+of package, category, and setting is available, the function returns 1,
+otherwise 0.
+\endverbatim
+ *
+ * \param  package   string with the name of the accelerator package
+ * \param  category  string with the category name of the setting
+ * \param  setting   string with the name of the specific setting
+ * \return 1 if available, 0 if not.
+ */
+int lammps_config_accelerator(const char *package,
+                              const char *category,
+                              const char *setting)
+{
+  return Info::has_accelerator_feature(package,category,setting) ? 1 : 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -4553,6 +4589,65 @@ int lammps_id_name(void *handle, const char *category, int idx,
   return 0;
 }
 
+/* ---------------------------------------------------------------------- */
+
+/** Count the number of loaded plugins
+ *
+\verbatim embed:rst
+This function counts how many plugins are currently loaded.
+
+.. versionadded:: 10Mar2021
+
+\endverbatim
+ *
+ * \return number of loaded plugins
+ */
+int lammps_plugin_count()
+{
+#if defined(LMP_PLUGIN)
+  return plugin_get_num_plugins();
+#else
+  return 0;
+#endif
+}
+
+/* ---------------------------------------------------------------------- */
+
+/** Look up the info of a loaded plugin by its index in the list of plugins
+ *
+\verbatim embed:rst
+This function copies the name of the *style* plugin with the index
+*idx* into the provided C-style string buffer.  The length of the buffer
+must be provided as *buf_size* argument.  If the name of the style
+exceeds the length of the buffer, it will be truncated accordingly.
+If the index is out of range, the function returns 0 and *buffer* is
+set to an empty string, otherwise 1.
+
+.. versionadded:: 10Mar2021
+
+\endverbatim
+ *
+ * \param  idx       index of the plugin in the list all or *style* plugins
+ * \param  stylebuf  string buffer to copy the style of the plugin to
+ * \param  namebuf   string buffer to copy the name of the plugin to
+ * \param  buf_size  size of the provided string buffers
+ * \return 1 if successful, otherwise 0
+ */
+int lammps_plugin_name(int idx, char *stylebuf, char *namebuf, int buf_size)
+{
+#if defined(LMP_PLUGIN)
+  stylebuf[0] = namebuf[0] = '\0';
+
+  const lammpsplugin_t *plugin = plugin_get_info(idx);
+  if (plugin) {
+    strncpy(stylebuf,plugin->style,buf_size);
+    strncpy(namebuf,plugin->name,buf_size);
+    return 1;
+  }
+#endif
+  return 0;
+}
+
 // ----------------------------------------------------------------------
 // utility functions
 // ----------------------------------------------------------------------
@@ -4637,19 +4732,14 @@ void lammps_set_fix_external_callback(void *handle, char *id, FixExternalFnPtr c
   BEGIN_CAPTURE
   {
     int ifix = lmp->modify->find_fix(id);
-    if (ifix < 0) {
-      char str[128];
-      snprintf(str, 128, "Can not find fix with ID '%s'!", id);
-      lmp->error->all(FLERR,str);
-    }
+    if (ifix < 0)
+      lmp->error->all(FLERR,"Cannot find fix with ID '{}'!", id);
 
     Fix *fix = lmp->modify->fix[ifix];
 
-    if (strcmp("external",fix->style) != 0){
-      char str[128];
-      snprintf(str, 128, "Fix '%s' is not of style external!", id);
-      lmp->error->all(FLERR,str);
-    }
+    if (strcmp("external",fix->style) != 0)
+      lmp->error->all(FLERR,"Fix '{}' is not of style "
+                                        "external!", id);
 
     FixExternal * fext = (FixExternal*) fix;
     fext->set_callback(callback, caller);
@@ -4667,12 +4757,12 @@ void lammps_fix_external_set_energy_global(void *handle, char *id,
   {
     int ifix = lmp->modify->find_fix(id);
     if (ifix < 0)
-      lmp->error->all(FLERR,fmt::format("Can not find fix with ID '{}'!", id));
+      lmp->error->all(FLERR,"Can not find fix with ID '{}'!", id);
 
     Fix *fix = lmp->modify->fix[ifix];
 
     if (strcmp("external",fix->style) != 0)
-      lmp->error->all(FLERR,fmt::format("Fix '{}' is not of style external!", id));
+      lmp->error->all(FLERR,"Fix '{}' is not of style external!", id);
 
     FixExternal * fext = (FixExternal*) fix;
     fext->set_energy_global(energy);
@@ -4690,12 +4780,12 @@ void lammps_fix_external_set_virial_global(void *handle, char *id,
   {
     int ifix = lmp->modify->find_fix(id);
     if (ifix < 0)
-      lmp->error->all(FLERR,fmt::format("Can not find fix with ID '{}'!", id));
+      lmp->error->all(FLERR,"Can not find fix with ID '{}'!", id);
 
     Fix *fix = lmp->modify->fix[ifix];
 
     if (strcmp("external",fix->style) != 0)
-      lmp->error->all(FLERR,fmt::format("Fix '{}' is not of style external!", id));
+      lmp->error->all(FLERR,"Fix '{}' is not of style external!", id);
 
     FixExternal * fext = (FixExternal*) fix;
     fext->set_virial_global(virial);
@@ -4819,7 +4909,7 @@ int lammps_get_last_error_message(void *handle, char *buffer, int buf_size) {
   Error *error = lmp->error;
   buffer[0] = buffer[buf_size-1] = '\0';
 
-  if(!error->get_last_error().empty()) {
+  if (!error->get_last_error().empty()) {
     int error_type = error->get_last_error_type();
     strncpy(buffer, error->get_last_error().c_str(), buf_size-1);
     error->set_last_error("", ERROR_NONE);

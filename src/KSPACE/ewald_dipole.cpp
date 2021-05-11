@@ -806,7 +806,6 @@ void EwaldDipole::slabcorr()
 
   if (atom->torque) {
     double ffact = qscale * (-4.0*MY_PI/volume);
-    double **mu = atom->mu;
     double **torque = atom->torque;
     for (int i = 0; i < nlocal; i++) {
       torque[i][0] += ffact * dipole_all * mu[i][1];

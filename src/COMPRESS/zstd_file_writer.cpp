@@ -46,11 +46,15 @@ ZstdFileWriter::~ZstdFileWriter()
 
 /* ---------------------------------------------------------------------- */
 
-void ZstdFileWriter::open(const std::string &path)
+void ZstdFileWriter::open(const std::string &path, bool append)
 {
-    if(isopen()) return;
+    if (isopen()) return;
 
-    fp = fopen(path.c_str(), "wb");
+    if (append) {
+      fp = fopen(path.c_str(), "ab");
+    } else {
+      fp = fopen(path.c_str(), "wb");
+    }
 
     if (!fp) {
         throw FileWriterException(fmt::format("Could not open file '{}'", path));
@@ -72,16 +76,16 @@ void ZstdFileWriter::open(const std::string &path)
 
 size_t ZstdFileWriter::write(const void * buffer, size_t length)
 {
-  if(!isopen()) return 0;
+  if (!isopen()) return 0;
 
   ZSTD_inBuffer input = { buffer, length, 0 };
   ZSTD_EndDirective mode = ZSTD_e_continue;
 
   do {
     ZSTD_outBuffer output = { out_buffer, out_buffer_size, 0 };
-    size_t const remaining = ZSTD_compressStream2(cctx, &output, &input, mode);
+    ZSTD_compressStream2(cctx, &output, &input, mode);
     fwrite(out_buffer, sizeof(char), output.pos, fp);
-  } while(input.pos < input.size);
+  } while (input.pos < input.size);
 
   return length;
 }
@@ -90,7 +94,7 @@ size_t ZstdFileWriter::write(const void * buffer, size_t length)
 
 void ZstdFileWriter::flush()
 {
-  if(!isopen()) return;
+  if (!isopen()) return;
 
   size_t remaining;
   ZSTD_inBuffer input = { nullptr, 0, 0 };
@@ -100,7 +104,7 @@ void ZstdFileWriter::flush()
     ZSTD_outBuffer output = { out_buffer, out_buffer_size, 0 };
     remaining = ZSTD_compressStream2(cctx, &output, &input, mode);
     fwrite(out_buffer, sizeof(char), output.pos, fp);
-  } while(remaining);
+  } while (remaining);
 
   fflush(fp);
 }
@@ -109,7 +113,7 @@ void ZstdFileWriter::flush()
 
 void ZstdFileWriter::close()
 {
-  if(!isopen()) return;
+  if (!isopen()) return;
 
   size_t remaining;
   ZSTD_inBuffer input = { nullptr, 0, 0 };
@@ -119,7 +123,7 @@ void ZstdFileWriter::close()
     ZSTD_outBuffer output = { out_buffer, out_buffer_size, 0 };
     remaining = ZSTD_compressStream2(cctx, &output, &input, mode);
     fwrite(out_buffer, sizeof(char), output.pos, fp);
-  } while(remaining);
+  } while (remaining);
 
   ZSTD_freeCCtx(cctx);
   cctx = nullptr;
@@ -144,7 +148,7 @@ void ZstdFileWriter::setCompressionLevel(int level)
   const int min_level = ZSTD_minCLevel();
   const int max_level = ZSTD_maxCLevel();
 
-  if(level < min_level || level > max_level)
+  if (level < min_level || level > max_level)
     throw FileWriterException(fmt::format("Compression level must in the range of [{}, {}]", min_level, max_level));
 
   compression_level = level;

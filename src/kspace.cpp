@@ -336,7 +336,7 @@ double KSpace::estimate_table_accuracy(double q2_over_sqrt, double spr)
   int nctb = force->pair->ncoultablebits;
   if (comm->me == 0) {
     if (nctb)
-      error->message(FLERR,fmt::format("  using {}-bit tables for long-range coulomb",nctb));
+      error->message(FLERR,"  using {}-bit tables for long-range coulomb",nctb);
     else
       error->message(FLERR,"  using polynomial approximation for long-range coulomb");
   }
@@ -564,9 +564,9 @@ void KSpace::modify_params(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"kmax/ewald") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal kspace_modify command");
-      kx_ewald = atoi(arg[iarg+1]);
-      ky_ewald = atoi(arg[iarg+2]);
-      kz_ewald = atoi(arg[iarg+3]);
+      kx_ewald = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      ky_ewald = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
+      kz_ewald = utils::inumeric(FLERR,arg[iarg+3],false,lmp);
       if (kx_ewald < 0 || ky_ewald < 0 || kz_ewald < 0)
         error->all(FLERR,"Bad kspace_modify kmax/ewald parameter");
       if (kx_ewald > 0 && ky_ewald > 0 && kz_ewald > 0)
@@ -583,15 +583,15 @@ void KSpace::modify_params(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"force/disp/real") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
-      accuracy_real_6 = atof(arg[iarg+1]);
+      accuracy_real_6 = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"force/disp/kspace") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
-      accuracy_kspace_6 = atof(arg[iarg+1]);
+      accuracy_kspace_6 = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"eigtol") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
-      splittol = atof(arg[iarg+1]);
+      splittol = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (splittol >= 1.0)
         error->all(FLERR,"Kspace_modify eigtol must be smaller than one");
       iarg += 2;

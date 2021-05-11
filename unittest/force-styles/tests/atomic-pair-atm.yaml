@@ -1,12 +1,12 @@
 ---
-lammps_version: 24 Aug 2020
-date_generated: Tue Sep 15 09:44:21 202
+lammps_version: 10 Feb 2021
+date_generated: Fri Feb 26 23:08:58 2021
 epsilon: 5e-12
 prerequisites: ! |
   pair atm
 pre_commands: ! |
   variable newton_pair delete
-  variable newton_pair index on
+  if "$(is_active(package,gpu)) > 0.0" then "variable newton_pair index off" else "variable newton_pair index on"
 post_commands: ! ""
 input_file: in.metal
 pair_style: atm 12.0 5.0

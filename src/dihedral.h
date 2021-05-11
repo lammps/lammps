@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -26,7 +26,7 @@ class Dihedral : protected Pointers {
   int *setflag;
   int writedata;                     // 1 if writes coeffs to data file
   double energy;                     // accumulated energy
-  double virial[6];                  // accumulated virial
+  double virial[6];                  // accumulated virial: xx,yy,zz,xy,xz,yz
   double *eatom,**vatom;             // accumulated per-atom energy/virial
   double **cvatom;                   // accumulated per-atom centroid virial
 
@@ -65,12 +65,14 @@ class Dihedral : protected Pointers {
 
   void ev_init(int eflag, int vflag, int alloc = 1) {
     if (eflag||vflag) ev_setup(eflag, vflag, alloc);
-    else evflag = eflag_either = eflag_global = eflag_atom = vflag_either = vflag_global = vflag_atom = cvflag_atom = 0;
+    else evflag = eflag_either = eflag_global = eflag_atom
+           = vflag_either = vflag_global = vflag_atom = cvflag_atom = 0;
   }
   void ev_setup(int, int, int alloc = 1);
   void ev_tally(int, int, int, int, int, int, double,
                 double *, double *, double *, double, double, double,
                 double, double, double, double, double, double);
+  void problem(const char *, int, int, int, int, int);
 };
 
 }

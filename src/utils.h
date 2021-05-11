@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,9 +17,13 @@
 /*! \file utils.h */
 
 #include "lmptype.h"
+#include "fmt/format.h"
+
+#include <mpi.h>
+
+#include <cstdio>
 #include <string>
 #include <vector>
-#include <cstdio>
 
 namespace LAMMPS_NS {
 
@@ -37,14 +41,44 @@ namespace LAMMPS_NS {
 
     bool strmatch(const std::string &text, const std::string &pattern);
 
-    /** Send message to screen and logfile, if available
+    /** Find sub-string that matches a simplified regex pattern
      *
-     *  \param lmp   pointer to LAMMPS class instance
-     *  \param mesg  message to be printed */
+     *  \param text the text to be matched against the pattern
+     *  \param pattern the search pattern, which may contain regexp markers
+     *  \return the string that matches the patters or an empty one */
+
+    std::string strfind(const std::string &text, const std::string &pattern);
+
+    /* Internal function handling the argument list for logmesg(). */
+
+    void fmtargs_logmesg(LAMMPS *lmp, fmt::string_view format,
+                         fmt::format_args args);
+
+    /** Send formatted message to screen and logfile, if available
+     *
+     * This function simplifies the repetitive task of outputting some
+     * message to both the screen and/or the log file. The template
+     * wrapper with fmtlib format and argument processing allows
+     * this function to work similar to ``fmt::print()``.
+     *
+     *  \param lmp    pointer to LAMMPS class instance
+     *  \param format format string of message to be printed
+     *  \param args   arguments to format string */
+
+    template <typename S, typename... Args>
+    void logmesg(LAMMPS *lmp, const S &format, Args&&... args) {
+      fmtargs_logmesg(lmp, format,
+                      fmt::make_args_checked<Args...>(format, args...));
+    }
+
+    /** \overload
+     *
+     *  \param lmp    pointer to LAMMPS class instance
+     *  \param mesg   string with message to be printed */
 
     void logmesg(LAMMPS *lmp, const std::string &mesg);
 
-    /** return a string representing the current system error status
+    /** Return a string representing the current system error status
      *
      *  This is a wrapper around calling strerror(errno).
      *
@@ -52,8 +86,24 @@ namespace LAMMPS_NS {
 
     std::string getsyserror();
 
-    /** safe wrapper around fgets() which aborts on errors
-     *  or EOF and prints a suitable error message to help debugging
+    /** Wrapper around fgets() which reads whole lines but truncates the
+     *  data to the buffer size and ensures a newline char at the end.
+     *
+     *  This function is useful for reading line based text files with
+     *  possible comments that should be parsed later. This applies to
+     *  data files, potential files, atomfile variable files and so on.
+     *  It is used instead of fgets() by utils::read_lines_from_file().
+     *
+     *  \param s        buffer for storing the result of fgets()
+     *  \param size     size of buffer s (max number of bytes returned)
+     *  \param fp       file pointer used by fgets() */
+
+    char *fgets_trunc(char *s, int size, FILE *fp);
+
+    /** Safe wrapper around fgets() which aborts on errors
+     *  or EOF and prints a suitable error message to help debugging.
+     *
+     *  Use nullptr as the error parameter to avoid the abort on EOF or error.
      *
      *  \param srcname  name of the calling source file (from FLERR macro)
      *  \param srcline  line in the calling source file (from FLERR macro)
@@ -61,13 +111,15 @@ namespace LAMMPS_NS {
      *  \param size     size of buffer s (max number of bytes read by fgets())
      *  \param fp       file pointer used by fgets()
      *  \param filename file name associated with fp (may be a null pointer; then LAMMPS will try to detect)
-     *  \param error    pointer to Error class instance (for abort) */
+     *  \param error    pointer to Error class instance (for abort) or nullptr */
 
     void sfgets(const char *srcname, int srcline, char *s, int size,
                 FILE *fp, const char *filename, Error *error);
 
-    /** safe wrapper around fread() which aborts on errors
-     *  or EOF and prints a suitable error message to help debugging
+    /** Safe wrapper around fread() which aborts on errors
+     *  or EOF and prints a suitable error message to help debugging.
+     *
+     *  Use nullptr as the error parameter to avoid the abort on EOF or error.
      *
      *  \param srcname  name of the calling source file (from FLERR macro)
      *  \param srcline  line in the calling source file (from FLERR macro)
@@ -76,10 +128,30 @@ namespace LAMMPS_NS {
      *  \param num      number of data elements read by fread()
      *  \param fp       file pointer used by fread()
      *  \param filename file name associated with fp (may be a null pointer; then LAMMPS will try to detect)
-     *  \param error    pointer to Error class instance (for abort) */
+     *  \param error    pointer to Error class instance (for abort) or nullptr */
 
     void sfread(const char *srcname, int srcline, void *s, size_t size,
                 size_t num, FILE *fp, const char *filename, Error *error);
+
+    /** Read N lines of text from file into buffer and broadcast them
+     *
+     * This function uses repeated calls to fread() to fill a buffer with
+     * newline terminated text.  If a line does not end in a newline (e.g.
+     * at the end of a file), it is added.  The caller has to allocate an
+     * nlines by nmax sized buffer for storing the text data.
+     * Reading is done by MPI rank 0 of the given communicator only, and
+     * thus only MPI rank 0 needs to provide a valid file pointer.
+     *
+     *  \param fp       file pointer used by fread
+     *  \param nlines   number of lines to be read
+     *  \param nmax     maximum length of a single line
+     *  \param buffer   buffer for storing the data.
+     *  \param me       MPI rank of calling process in MPI communicator
+     *  \param comm     MPI communicator for broadcast
+     *  \return         1 if the read was short, 0 if read was successful */
+
+    int read_lines_from_file(FILE *fp, int nlines, int nmax,
+                             char *buffer, int me, MPI_Comm comm);
 
     /** Report if a requested style is in a package or may have a typo
      *
@@ -195,19 +267,73 @@ namespace LAMMPS_NS {
     int expand_args(const char *file, int line, int narg, char **arg,
                     int mode, char **&earg, LAMMPS *lmp);
 
+    /** Make C-style copy of string in new storage
+     *
+     * This allocates a storage buffer and copies the C-style or
+     * C++ style string into it.  The buffer is allocated with "new"
+     * and thus needs to be deallocated with "delete[]".
+     *
+     * \param text  string that should be copied
+     * \return new buffer with copy of string */
+
+    char *strdup(const std::string &text);
+
     /** Trim leading and trailing whitespace. Like TRIM() in Fortran.
      *
-     * \param line string that should be trimmed
+     * \param line  string that should be trimmed
      * \return new string without whitespace (string) */
 
     std::string trim(const std::string &line);
 
     /** Return string with anything from '#' onward removed
      *
-     * \param line string that should be trimmed
+     * \param line  string that should be trimmed
      * \return new string without comment (string) */
 
     std::string trim_comment(const std::string &line);
+
+    /** Check if a string will likely have UTF-8 encoded characters
+     *
+     * UTF-8 uses the 7-bit standard ASCII table for the first 127 characters and
+     * all other characters are encoded as multiple bytes.  For the multi-byte
+     * characters the first byte has either the highest two, three, or four bits
+     * set followed by a zero bit and followed by one, two, or three more bytes,
+     * respectively, where the highest bit is set and the second highest bit set
+     * to 0.  The remaining bits combined are the character code, which is thus
+     * limited to 21-bits.
+     *
+     * For the sake of efficiency this test only checks if a character in the string
+     * has the highest bit set and thus is very likely an UTF-8 character.  It will
+     * not be able to tell this this is a valid UTF-8 character or whether it is a
+     * 2-byte, 3-byte, or 4-byte character.
+     *
+\verbatim embed:rst
+
+*See also*
+   :cpp:func:`utils::utf8_subst`
+
+\endverbatim
+     * \param line  string that should be checked
+     * \return true if string contains UTF-8 encoded characters (bool) */
+
+    inline bool has_utf8(const std::string &line)
+    {
+      for (auto c : line) if (c & 0x80U) return true;
+      return false;
+    }
+
+    /** Replace known UTF-8 characters with ASCII equivalents
+     *
+\verbatim embed:rst
+
+*See also*
+   :cpp:func:`utils::has_utf8`
+
+\endverbatim
+     * \param line  string that should be converted
+     * \return new string with ascii replacements (string) */
+
+    std::string utf8_subst(const std::string &line);
 
     /** Count words in string with custom choice of separating characters
      *
@@ -243,9 +369,9 @@ namespace LAMMPS_NS {
      *
      * This can handle strings with single and double quotes, escaped quotes,
      * and escaped codes within quotes, but due to using an STL container and
-     * STL strings is rather slow because of making copies. Designed for parsing
-     * command lines and similar text and not for time critical processing.
-     * Use a tokenizer class for that.
+     * STL strings is rather slow because of making copies. Designed for
+     * parsing command lines and similar text and not for time critical
+     * processing.  Use a tokenizer class if performance matters.
      *
 \verbatim embed:rst
 
@@ -258,6 +384,12 @@ namespace LAMMPS_NS {
      * \return STL vector with the words */
 
     std::vector<std::string> split_words(const std::string &text);
+
+    /** Take multi-line text and split into lines
+     *
+     * \param text string that should be split
+     * \return STL vector with the lines */
+    std::vector<std::string> split_lines(const std::string &text);
 
     /** Check if string can be converted to valid integer
      *
@@ -272,6 +404,14 @@ namespace LAMMPS_NS {
      * \return true, if string contains valid number, false otherwise */
 
     bool is_double(const std::string &str);
+
+    /** Check if string is a valid ID
+     * ID strings may contain only letters, numbers, and underscores.
+     *
+     * \param str string that should be checked
+     * \return true, if string contains valid id, false otherwise */
+
+    bool is_id(const std::string &str);
 
     /** Try to detect pathname from FILE pointer.
      *

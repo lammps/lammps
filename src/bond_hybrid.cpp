@@ -113,7 +113,7 @@ void BondHybrid::compute(int eflag, int vflag)
 
   const int nthreads = comm->nthreads;
   if (nthreads > 1) {
-    const int nall = atom->nlocal + atom->nghost;
+    const bigint nall = atom->nlocal + atom->nghost;
     if (eflag_atom)
       memset(&eatom[0],0,nall*nthreads*sizeof(double));
     if (vflag_atom)
@@ -182,9 +182,9 @@ void BondHybrid::settings(int narg, char **arg)
   // delete old lists, since cannot just change settings
 
   if (nstyles) {
-    for (int i = 0; i < nstyles; i++) delete styles[i];
+    for (i = 0; i < nstyles; i++) delete styles[i];
     delete [] styles;
-    for (int i = 0; i < nstyles; i++) delete [] keywords[i];
+    for (i = 0; i < nstyles; i++) delete [] keywords[i];
     delete [] keywords;
     has_quartic = -1;
   }
@@ -194,7 +194,7 @@ void BondHybrid::settings(int narg, char **arg)
     memory->destroy(map);
     delete [] nbondlist;
     delete [] maxbond;
-    for (int i = 0; i < nstyles; i++)
+    for (i = 0; i < nstyles; i++)
       memory->destroy(bondlist[i]);
     delete [] bondlist;
   }
@@ -386,9 +386,9 @@ double BondHybrid::single(int type, double rsq, int i, int j,
 
 double BondHybrid::memory_usage()
 {
-  double bytes = maxeatom * sizeof(double);
-  bytes += maxvatom*6 * sizeof(double);
-  for (int m = 0; m < nstyles; m++) bytes += maxbond[m]*3 * sizeof(int);
+  double bytes = (double)maxeatom * sizeof(double);
+  bytes += (double)maxvatom*6 * sizeof(double);
+  for (int m = 0; m < nstyles; m++) bytes += (double)maxbond[m]*3 * sizeof(int);
   for (int m = 0; m < nstyles; m++)
     if (styles[m]) bytes += styles[m]->memory_usage();
   return bytes;

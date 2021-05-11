@@ -245,10 +245,13 @@ KOKKOS_INLINE_FUNCTION bool dyn_rank_view_verify_operator_bounds(
     return (size_t(i) < map.extent(R)) &&
            dyn_rank_view_verify_operator_bounds<R + 1>(rank, map, args...);
   } else if (i != 0) {
+    // FIXME_SYCL SYCL doesn't allow printf in kernels
+#ifndef KOKKOS_ENABLE_SYCL
     printf(
         "DynRankView Debug Bounds Checking Error: at rank %u\n  Extra "
         "arguments beyond the rank must be zero \n",
         R);
+#endif
     return (false) &&
            dyn_rank_view_verify_operator_bounds<R + 1>(rank, map, args...);
   } else {
@@ -1264,33 +1267,6 @@ class DynRankView : public ViewTraits<DataType, Properties...> {
             typename traits::array_layout(arg_N0, arg_N1, arg_N2, arg_N3,
                                           arg_N4, arg_N5, arg_N6, arg_N7)) {}
 
-  // For backward compatibility
-  // NDE This ctor does not take ViewCtorProp argument - should not use
-  // alternative createLayout call
-  explicit inline DynRankView(const ViewAllocateWithoutInitializing& arg_prop,
-                              const typename traits::array_layout& arg_layout)
-      : DynRankView(
-            Kokkos::Impl::ViewCtorProp<std::string,
-                                       Kokkos::Impl::WithoutInitializing_t>(
-                arg_prop.label, Kokkos::WithoutInitializing),
-            arg_layout) {}
-
-  explicit inline DynRankView(const ViewAllocateWithoutInitializing& arg_prop,
-                              const size_t arg_N0 = KOKKOS_INVALID_INDEX,
-                              const size_t arg_N1 = KOKKOS_INVALID_INDEX,
-                              const size_t arg_N2 = KOKKOS_INVALID_INDEX,
-                              const size_t arg_N3 = KOKKOS_INVALID_INDEX,
-                              const size_t arg_N4 = KOKKOS_INVALID_INDEX,
-                              const size_t arg_N5 = KOKKOS_INVALID_INDEX,
-                              const size_t arg_N6 = KOKKOS_INVALID_INDEX,
-                              const size_t arg_N7 = KOKKOS_INVALID_INDEX)
-      : DynRankView(
-            Kokkos::Impl::ViewCtorProp<std::string,
-                                       Kokkos::Impl::WithoutInitializing_t>(
-                arg_prop.label, Kokkos::WithoutInitializing),
-            typename traits::array_layout(arg_N0, arg_N1, arg_N2, arg_N3,
-                                          arg_N4, arg_N5, arg_N6, arg_N7)) {}
-
   //----------------------------------------
   // Memory span required to wrap these dimensions.
   static constexpr size_t required_allocation_size(
@@ -1401,7 +1377,7 @@ struct DynRankSubviewTag {};
 namespace Impl {
 
 template <class SrcTraits, class... Args>
-struct ViewMapping<
+class ViewMapping<
     typename std::enable_if<
         (std::is_same<typename SrcTraits::specialize, void>::value &&
          (std::is_same<typename SrcTraits::array_layout,
@@ -2052,7 +2028,7 @@ create_mirror_view_and_copy(
         nullptr) {
   using Mirror = typename Impl::MirrorDRViewType<Space, T, P...>::view_type;
   std::string label = name.empty() ? src.label() : name;
-  auto mirror       = Mirror(Kokkos::ViewAllocateWithoutInitializing(label),
+  auto mirror       = Mirror(view_alloc(WithoutInitializing, label),
                        Impl::reconstructLayout(src.layout(), src.rank()));
   deep_copy(mirror, src);
   return mirror;

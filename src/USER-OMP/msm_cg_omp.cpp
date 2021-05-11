@@ -564,6 +564,6 @@ void MSMCGOMP::fieldforce_peratom()
 double MSMCGOMP::memory_usage()
 {
   double bytes = MSM::memory_usage();
-  bytes += nmax * sizeof(int);
+  bytes += (double)nmax * sizeof(int);
   return bytes;
 }

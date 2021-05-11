@@ -13,15 +13,16 @@
 
 #include "compute_temp_drude.h"
 
-#include <cstring>
 #include "atom.h"
-#include "update.h"
-#include "force.h"
-#include "modify.h"
-#include "fix_drude.h"
+#include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "comm.h"
+#include "fix_drude.h"
+#include "force.h"
+#include "modify.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -116,9 +117,7 @@ int ComputeTempDrude::modify_param(int narg, char **arg)
   if (strcmp(arg[0],"temp") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
     delete [] id_temp;
-    int n = strlen(arg[1]) + 1;
-    id_temp = new char[n];
-    strcpy(id_temp,arg[1]);
+    id_temp = utils::strdup(arg[1]);
 
     int icompute = modify->find_compute(id_temp);
     if (icompute < 0)
@@ -155,8 +154,8 @@ void ComputeTempDrude::compute_vector()
     double ecore, edrude;
     double *vcore, *vdrude;
     double kineng_core_loc = 0., kineng_drude_loc = 0.;
-    for (int i=0; i<nlocal; i++){
-        if (groupbit & mask[i] && drudetype[type[i]] != DRUDE_TYPE){
+    for (int i=0; i<nlocal; i++) {
+        if (groupbit & mask[i] && drudetype[type[i]] != DRUDE_TYPE) {
             if (drudetype[type[i]] == NOPOL_TYPE) {
                 ecore = 0.;
                 vcore = v[i];
@@ -213,7 +212,7 @@ void ComputeTempDrude::compute_vector()
     vector[5] = kineng_drude;
 }
 
-double ComputeTempDrude::compute_scalar(){
+double ComputeTempDrude::compute_scalar() {
     compute_vector();
     scalar = vector[0];
     return scalar;

@@ -133,6 +133,7 @@ void PairOxdna2Coaxstk::compute(int eflag, int vflag)
 
   AtomVecEllipsoid *avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
   AtomVecEllipsoid::Bonus *bonus = avec->bonus;
+  int *ellipsoid = atom->ellipsoid;
 
   int a,b,ia,ib,anum,bnum,atype,btype;
 
@@ -154,7 +155,7 @@ void PairOxdna2Coaxstk::compute(int eflag, int vflag)
     a = alist[ia];
     atype = type[a];
 
-    qa=bonus[a].quat;
+    qa=bonus[ellipsoid[a]].quat;
     MathExtra::q_to_exyz(qa,ax,ay,az);
 
     // vector COM a - stacking site a
@@ -178,7 +179,7 @@ void PairOxdna2Coaxstk::compute(int eflag, int vflag)
 
       btype = type[b];
 
-      qb=bonus[b].quat;
+      qb=bonus[ellipsoid[b]].quat;
       MathExtra::q_to_exyz(qb,bx,by,bz);
 
       // vector COM b - stacking site b
@@ -550,7 +551,7 @@ void PairOxdna2Coaxstk::coeff(int narg, char **arg)
 {
   int count;
 
-  if (narg != 21) error->all(FLERR,"Incorrect args for pair coefficients in oxdna/coaxstk");
+  if (narg != 21) error->all(FLERR,"Incorrect args for pair coefficients in oxdna2/coaxstk");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -672,7 +673,7 @@ void PairOxdna2Coaxstk::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients in oxdna/coaxstk");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients in oxdna2/coaxstk");
 
 }
 

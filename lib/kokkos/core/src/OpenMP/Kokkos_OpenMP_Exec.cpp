@@ -448,6 +448,52 @@ OpenMP OpenMP::create_instance(...) { return OpenMP(); }
 int OpenMP::concurrency() { return Impl::g_openmp_hardware_max_threads; }
 
 void OpenMP::fence() const {}
+
+namespace Impl {
+
+int g_openmp_space_factory_initialized =
+    initialize_space_factory<OpenMPSpaceInitializer>("050_OpenMP");
+
+void OpenMPSpaceInitializer::initialize(const InitArguments &args) {
+  // Prevent "unused variable" warning for 'args' input struct.  If
+  // Serial::initialize() ever needs to take arguments from the input
+  // struct, you may remove this line of code.
+  const int num_threads = args.num_threads;
+
+  if (std::is_same<Kokkos::OpenMP, Kokkos::DefaultExecutionSpace>::value ||
+      std::is_same<Kokkos::OpenMP, Kokkos::HostSpace::execution_space>::value) {
+    Kokkos::OpenMP::impl_initialize(num_threads);
+  } else {
+    // std::cout << "Kokkos::initialize() fyi: OpenMP enabled but not
+    // initialized" << std::endl ;
+  }
+}
+
+void OpenMPSpaceInitializer::finalize(const bool) {
+  if (Kokkos::OpenMP::impl_is_initialized()) Kokkos::OpenMP::impl_finalize();
+}
+
+void OpenMPSpaceInitializer::fence() { Kokkos::OpenMP::impl_static_fence(); }
+
+void OpenMPSpaceInitializer::print_configuration(std::ostream &msg,
+                                                 const bool detail) {
+  msg << "Host Parallel Execution Space:" << std::endl;
+  msg << "  KOKKOS_ENABLE_OPENMP: ";
+  msg << "yes" << std::endl;
+
+  msg << "OpenMP Atomics:" << std::endl;
+  msg << "  KOKKOS_ENABLE_OPENMP_ATOMICS: ";
+#ifdef KOKKOS_ENABLE_OPENMP_ATOMICS
+  msg << "yes" << std::endl;
+#else
+  msg << "no" << std::endl;
+#endif
+
+  msg << "\nOpenMP Runtime Configuration:" << std::endl;
+  OpenMP::print_configuration(msg, detail);
+}
+
+}  // namespace Impl
 }  // namespace Kokkos
 
 #else

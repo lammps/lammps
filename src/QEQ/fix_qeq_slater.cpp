@@ -16,22 +16,23 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_qeq_slater.h"
-#include <cmath>
 
-#include <cstring>
 #include "atom.h"
 #include "comm.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "update.h"
+#include "error.h"
 #include "force.h"
 #include "group.h"
-#include "pair.h"
 #include "kspace.h"
-#include "respa.h"
 #include "math_const.h"
-#include "error.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "pair.h"
+#include "respa.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -79,7 +80,7 @@ void FixQEqSlater::init()
       error->all(FLERR,"Invalid param file for fix qeq/slater");
   }
 
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 }
 
@@ -136,7 +137,7 @@ void FixQEqSlater::init_matvec()
   inum = list->inum;
   ilist = list->ilist;
 
-  for( ii = 0; ii < inum; ++ii ) {
+  for (ii = 0; ii < inum; ++ii) {
     i = ilist[ii];
     if (atom->mask[i] & groupbit) {
       Hdia_inv[i] = 1. / eta[ atom->type[i] ];
@@ -207,14 +208,9 @@ void FixQEqSlater::compute_H()
     chizj[i] = zjtmp;
   }
 
-  if (m_fill >= H.m) {
-    char str[128];
-    sprintf(str,"H matrix size has been exceeded: m_fill=%d H.m=%d\n",
-             m_fill, H.m );
-    error->warning(FLERR,str);
-    error->all(FLERR,"Fix qeq/slater has insufficient QEq matrix size");
-  }
-
+  if (m_fill >= H.m)
+    error->all(FLERR,FLERR,"Fix qeq/slater has insufficient H "
+                                 "matrix size:m_fill={} H.m={}\n",m_fill,H.m);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -353,17 +349,17 @@ void FixQEqSlater::sparse_matvec( sparse_matrix *A, double *x, double *b )
   double r = cutoff;
   double woself = 0.50*erfc(alpha*r)/r + alpha/MY_PIS;
 
-  for( i = 0; i < nlocal; ++i ) {
+  for (i = 0; i < nlocal; ++i) {
     if (atom->mask[i] & groupbit)
       b[i] = (eta[atom->type[i]] - 2.0*force->qqr2e*woself) * x[i];
   }
 
-  for( i = nlocal; i < nall; ++i ) {
+  for (i = nlocal; i < nall; ++i) {
     if (atom->mask[i] & groupbit)
       b[i] = 0;
   }
 
-  for( i = 0; i < nlocal; ++i ) {
+  for (i = 0; i < nlocal; ++i) {
     if (atom->mask[i] & groupbit) {
       for( itr_j=A->firstnbr[i]; itr_j<A->firstnbr[i]+A->numnbrs[i]; itr_j++) {
         j = A->jlist[itr_j];

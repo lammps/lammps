@@ -84,13 +84,15 @@ information is available, then also a heuristic based on that bond length
 is computed. It is used as communication cutoff, if there is no pair
 style present and no *comm_modify cutoff* command used. Otherwise a
 warning is printed, if this bond based estimate is larger than the
-communication cutoff used. A
+communication cutoff used.
 
 The *cutoff/multi* option is equivalent to *cutoff*\ , but applies to
 communication mode *multi* instead. Since in this case the communication
 cutoffs are determined per atom type, a type specifier is needed and
 cutoff for one or multiple types can be extended. Also ranges of types
-using the usual asterisk notation can be given.
+using the usual asterisk notation can be given. For granular pair styles,
+the default cutoff is set to the sum of the current maximum atomic radii
+for each type.
 
 These are simulation scenarios in which it may be useful or even
 necessary to set a ghost cutoff > neighbor cutoff:

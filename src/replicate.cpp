@@ -31,7 +31,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-Replicate::Replicate(LAMMPS *lmp) : Pointers(lmp) {}
+Replicate::Replicate(LAMMPS *lmp) : Command(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
@@ -166,7 +166,7 @@ void Replicate::command(int narg, char **arg)
     atom->molecules = (Molecule **) memory->smalloc((old->nmolecule)*sizeof(Molecule *),
                                                     "atom::molecules");
     atom->nmolecule = old->nmolecule;
-    for (int i = 0; i < old->nmolecule; ++i)
+    for (i = 0; i < old->nmolecule; ++i)
       atom->molecules[i] = old->molecules[i];
     memory->sfree(old->molecules);
     old->molecules = nullptr;
@@ -510,12 +510,12 @@ void Replicate::command(int narg, char **arg)
             if (!xoverlap) {
               if (xboxlo < 0) {
                 _xoverlap1 = 1;
-                if ( _lo[0] > (subhi[0] - EPSILON) ) _xoverlap1 = 0;
+                if (_lo[0] > (subhi[0] - EPSILON)) _xoverlap1 = 0;
               }
 
               if (xboxhi > 0) {
                 _xoverlap2 = 1;
-                if ( _hi[0] < (sublo[0] + EPSILON) ) _xoverlap2 = 0;
+                if (_hi[0] < (sublo[0] + EPSILON)) _xoverlap2 = 0;
               }
 
               if (_xoverlap1 || _xoverlap2) xoverlap = 1;
@@ -526,12 +526,12 @@ void Replicate::command(int narg, char **arg)
             if (!yoverlap) {
               if (yboxlo < 0) {
                 _yoverlap1 = 1;
-                if ( _lo[1] > (subhi[1] - EPSILON) ) _yoverlap1 = 0;
+                if (_lo[1] > (subhi[1] - EPSILON)) _yoverlap1 = 0;
               }
 
               if (yboxhi > 0) {
                 _yoverlap2 = 1;
-                if ( _hi[1] < (sublo[1] + EPSILON) ) _yoverlap2 = 0;
+                if (_hi[1] < (sublo[1] + EPSILON)) _yoverlap2 = 0;
               }
 
               if (_yoverlap1 || _yoverlap2) yoverlap = 1;
@@ -543,12 +543,12 @@ void Replicate::command(int narg, char **arg)
             if (!zoverlap) {
               if (zboxlo < 0) {
                 _zoverlap1 = 1;
-                if ( _lo[2] > (subhi[2] - EPSILON) ) _zoverlap1 = 0;
+                if (_lo[2] > (subhi[2] - EPSILON)) _zoverlap1 = 0;
               }
 
               if (zboxhi > 0) {
                 _zoverlap2 = 1;
-                if ( _hi[2] < (sublo[2] + EPSILON) ) _zoverlap2 = 0;
+                if (_hi[2] < (sublo[2] + EPSILON)) _zoverlap2 = 0;
               }
 
               if (_zoverlap1 || _zoverlap2) zoverlap = 1;
@@ -602,7 +602,7 @@ void Replicate::command(int narg, char **arg)
                 atom->tag[i] += atom_offset;
                 atom->image[i] = image;
 
-                if (atom->molecular) {
+                if (atom->molecular != Atom::ATOMIC) {
                   if (atom->molecule[i] > 0)
                     atom->molecule[i] += mol_offset;
                   if (atom->molecular == Atom::MOLECULAR) {
@@ -647,9 +647,8 @@ void Replicate::command(int narg, char **arg)
     MPI_Reduce(&num_replicas_added, &sum, 1, MPI_INT, MPI_SUM, 0, world);
     double avg = (double) sum / nprocs;
     if (me == 0)
-      utils::logmesg(lmp,fmt::format("  average # of replicas added to proc ="
-                                     " {:.2f} out of {} ({:.2f}%)\n",
-                                     avg,nx*ny*nz,avg/(nx*ny*nz)*100.0));
+      utils::logmesg(lmp,"  average # of replicas added to proc = {:.2f} out "
+                     "of {} ({:.2f}%)\n",avg,nx*ny*nz,avg/(nx*ny*nz)*100.0);
   } else {
 
     for (int iproc = 0; iproc < nprocs; iproc++) {
@@ -704,7 +703,7 @@ void Replicate::command(int narg, char **arg)
                 atom->tag[i] += atom_offset;
                 atom->image[i] = image;
 
-                if (atom->molecular) {
+                if (atom->molecular != Atom::ATOMIC) {
                   if (atom->molecule[i] > 0)
                     atom->molecule[i] += mol_offset;
                   if (atom->molecular == Atom::MOLECULAR) {
@@ -753,7 +752,7 @@ void Replicate::command(int narg, char **arg)
   MPI_Allreduce(&nblocal,&natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
 
   if (me == 0) {
-    utils::logmesg(lmp,fmt::format("  {} atoms\n",natoms));
+    utils::logmesg(lmp,"  {} atoms\n",natoms);
   }
 
   if (natoms != atom->natoms)
@@ -763,16 +762,16 @@ void Replicate::command(int narg, char **arg)
     const char *molstyle = "";
     if (atom->molecular == Atom::TEMPLATE) molstyle = "template ";
     if (atom->nbonds) {
-      utils::logmesg(lmp,fmt::format("  {} {}bonds\n",atom->nbonds,molstyle));
+      utils::logmesg(lmp,"  {} {}bonds\n",atom->nbonds,molstyle);
     }
     if (atom->nangles) {
-      utils::logmesg(lmp,fmt::format("  {} {}angles\n",atom->nangles,molstyle));
+      utils::logmesg(lmp,"  {} {}angles\n",atom->nangles,molstyle);
     }
     if (atom->ndihedrals) {
-      utils::logmesg(lmp,fmt::format("  {} {}dihedrals\n",atom->ndihedrals,molstyle));
+      utils::logmesg(lmp,"  {} {}dihedrals\n",atom->ndihedrals,molstyle);
     }
     if (atom->nimpropers) {
-      utils::logmesg(lmp,fmt::format("  {} {}impropers\n",atom->nimpropers,molstyle));
+      utils::logmesg(lmp,"  {} {}impropers\n",atom->nimpropers,molstyle);
     }
   }
 
@@ -799,6 +798,5 @@ void Replicate::command(int narg, char **arg)
   MPI_Barrier(world);
 
   if (me == 0)
-    utils::logmesg(lmp,fmt::format("  replicate CPU = {:.3f} seconds\n",
-                                   MPI_Wtime()-time1));
+    utils::logmesg(lmp,"  replicate CPU = {:.3f} seconds\n",MPI_Wtime()-time1);
 }

@@ -17,18 +17,17 @@
 
 #include "dihedral_class2.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
-#include "neighbor.h"
-#include "update.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
+#include "neighbor.h"
+#include "update.h"
 
-
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -207,19 +206,8 @@ void DihedralClass2::compute(int eflag, int vflag)
 
     // error check
 
-    if (c > 1.0 + TOLERANCE || c < (-1.0 - TOLERANCE)) {
-      int me = comm->me;
-      if (screen) {
-        error->warning(FLERR,fmt::format("Dihedral problem: {} {} {} {} {} {}",
-                                         me,update->ntimestep,
-                                         atom->tag[i1],atom->tag[i2],
-                                         atom->tag[i3],atom->tag[i4]));
-        fmt::print(screen,"  1st atom: {} {} {} {}\n",me,x[i1][0],x[i1][1],x[i1][2]);
-        fmt::print(screen,"  2nd atom: {} {} {} {}\n",me,x[i2][0],x[i2][1],x[i2][2]);
-        fmt::print(screen,"  3rd atom: {} {} {} {}\n",me,x[i3][0],x[i3][1],x[i3][2]);
-        fmt::print(screen,"  4th atom: {} {} {} {}\n",me,x[i4][0],x[i4][1],x[i4][2]);
-      }
-    }
+    if (c > 1.0 + TOLERANCE || c < (-1.0 - TOLERANCE))
+      problem(FLERR, i1, i2, i3, i4);
 
     if (c > 1.0) c = 1.0;
     if (c < -1.0) c = -1.0;

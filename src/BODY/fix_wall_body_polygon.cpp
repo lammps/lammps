@@ -16,18 +16,20 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_wall_body_polygon.h"
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
 #include "atom_vec_body.h"
 #include "body_rounded_polygon.h"
 #include "domain.h"
-#include "update.h"
+#include "error.h"
 #include "force.h"
 #include "math_const.h"
 #include "math_extra.h"
 #include "memory.h"
-#include "error.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -59,6 +61,7 @@ FixWallBodyPolygon::FixWallBodyPolygon(LAMMPS *lmp, int narg, char **arg) :
 
   restart_peratom = 1;
   create_attribute = 1;
+  wallstyle = -1;
 
   // wall/particle coefficients
 
@@ -96,7 +99,7 @@ FixWallBodyPolygon::FixWallBodyPolygon(LAMMPS *lmp, int narg, char **arg) :
     lo = hi = 0.0;
     cylradius = utils::numeric(FLERR,arg[iarg+1],false,lmp);
     iarg += 2;
-  }
+  } else error->all(FLERR,"Unknown wall style {}",arg[iarg]);
 
   // check for trailing keyword/values
 
@@ -194,7 +197,7 @@ void FixWallBodyPolygon::init()
 
 void FixWallBodyPolygon::setup(int vflag)
 {
-  if (strstr(update->integrate_style,"verlet"))
+  if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
 }
 

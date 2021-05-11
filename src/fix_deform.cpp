@@ -126,12 +126,8 @@ rfix(nullptr), irregular(nullptr), set(nullptr)
           error->all(FLERR,"Illegal fix deform command");
         delete [] set[index].hstr;
         delete [] set[index].hratestr;
-        int n = strlen(&arg[iarg+2][2]) + 1;
-        set[index].hstr = new char[n];
-        strcpy(set[index].hstr,&arg[iarg+2][2]);
-        n = strlen(&arg[iarg+3][2]) + 1;
-        set[index].hratestr = new char[n];
-        strcpy(set[index].hratestr,&arg[iarg+3][2]);
+        set[index].hstr = utils::strdup(&arg[iarg+2][2]);
+        set[index].hratestr = utils::strdup(&arg[iarg+3][2]);
         iarg += 4;
       } else error->all(FLERR,"Illegal fix deform command");
 
@@ -188,12 +184,8 @@ rfix(nullptr), irregular(nullptr), set(nullptr)
           error->all(FLERR,"Illegal fix deform command");
         delete [] set[index].hstr;
         delete [] set[index].hratestr;
-        int n = strlen(&arg[iarg+2][2]) + 1;
-        set[index].hstr = new char[n];
-        strcpy(set[index].hstr,&arg[iarg+2][2]);
-        n = strlen(&arg[iarg+3][2]) + 1;
-        set[index].hratestr = new char[n];
-        strcpy(set[index].hratestr,&arg[iarg+3][2]);
+        set[index].hstr = utils::strdup(&arg[iarg+2][2]);
+        set[index].hratestr = utils::strdup(&arg[iarg+3][2]);
         iarg += 4;
       } else error->all(FLERR,"Illegal fix deform command");
 
@@ -362,7 +354,7 @@ rfix(nullptr), irregular(nullptr), set(nullptr)
 
 FixDeform::~FixDeform()
 {
-  if(set) {
+  if (set) {
     for (int i = 0; i < 6; i++) {
       delete [] set[i].hstr;
       delete [] set[i].hratestr;
@@ -722,7 +714,7 @@ void FixDeform::end_of_step()
   // set new box size for VOLUME dims that are linked to other dims
   // NOTE: still need to set h_rate for these dims
 
-  for (int i = 0; i < 3; i++) {
+  for (i = 0; i < 3; i++) {
     if (set[i].style != VOLUME) continue;
 
     if (set[i].substyle == ONE_FROM_ONE) {

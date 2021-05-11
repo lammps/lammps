@@ -30,17 +30,17 @@ steps, as explained on the :doc:`Build extras <Build_extras>` page.
 These links take you to the extra instructions for those select
 packages:
 
-+----------------------------------+----------------------------------+------------------------------------+------------------------------+--------------------------------+--------------------------------------+
-| :ref:`COMPRESS <compress>`       | :ref:`GPU <gpu>`                 | :ref:`KIM <kim>`                   | :ref:`KOKKOS <kokkos>`       | :ref:`LATTE <latte>`           | :ref:`MESSAGE <message>`             |
-+----------------------------------+----------------------------------+------------------------------------+------------------------------+--------------------------------+--------------------------------------+
-| :ref:`MSCG <mscg>`               | :ref:`OPT <opt>`                 | :ref:`POEMS <poems>`               | :ref:`PYTHON <python>`       | :ref:`VORONOI <voronoi>`       | :ref:`USER-ADIOS <user-adios>`       |
-+----------------------------------+----------------------------------+------------------------------------+------------------------------+--------------------------------+--------------------------------------+
-| :ref:`USER-ATC <user-atc>`       | :ref:`USER-AWPMD <user-awpmd>`   | :ref:`USER-COLVARS <user-colvars>` | :ref:`USER-H5MD <user-h5md>` | :ref:`USER-INTEL <user-intel>` | :ref:`USER-MOLFILE <user-molfile>`   |
-+----------------------------------+----------------------------------+------------------------------------+------------------------------+--------------------------------+--------------------------------------+
-| :ref:`USER-NETCDF <user-netcdf>` | :ref:`USER-PLUMED <user-plumed>` | :ref:`USER-OMP <user-omp>`         | :ref:`USER-QMMM <user-qmmm>` | :ref:`USER-QUIP <user-quip>`   | :ref:`USER-SCAFACOS <user-scafacos>` |
-+----------------------------------+----------------------------------+------------------------------------+------------------------------+--------------------------------+--------------------------------------+
-| :ref:`USER-SMD <user-smd>`       | :ref:`USER-VTK <user-vtk>`       |                                    |                              |                                |                                      |
-+----------------------------------+----------------------------------+------------------------------------+------------------------------+--------------------------------+--------------------------------------+
++--------------------------------------+--------------------------------+------------------------------------+------------------------------+--------------------------------+--------------------------------------+
+| :ref:`COMPRESS <compress>`           | :ref:`GPU <gpu>`               | :ref:`KIM <kim>`                   | :ref:`KOKKOS <kokkos>`       | :ref:`LATTE <latte>`           | :ref:`MESSAGE <message>`             |
++--------------------------------------+--------------------------------+------------------------------------+------------------------------+--------------------------------+--------------------------------------+
+| :ref:`MSCG <mscg>`                   | :ref:`OPT <opt>`               | :ref:`POEMS <poems>`               | :ref:`PYTHON <python>`       | :ref:`VORONOI <voronoi>`       | :ref:`USER-ADIOS <user-adios>`       |
++--------------------------------------+--------------------------------+------------------------------------+------------------------------+--------------------------------+--------------------------------------+
+| :ref:`USER-ATC <user-atc>`           | :ref:`USER-AWPMD <user-awpmd>` | :ref:`USER-COLVARS <user-colvars>` | :ref:`USER-H5MD <user-h5md>` | :ref:`USER-INTEL <user-intel>` | :ref:`USER-MOLFILE <user-molfile>`   |
++--------------------------------------+--------------------------------+------------------------------------+------------------------------+--------------------------------+--------------------------------------+
+| :ref:`USER-NETCDF <user-netcdf>`     | :ref:`USER-PACE <user-pace>`   | :ref:`USER-PLUMED <user-plumed>`   | :ref:`USER-OMP <user-omp>`   | :ref:`USER-QMMM <user-qmmm>`   | :ref:`USER-QUIP <user-quip>`         |
++--------------------------------------+--------------------------------+------------------------------------+------------------------------+--------------------------------+--------------------------------------+
+| :ref:`USER-SCAFACOS <user-scafacos>` | :ref:`USER-SMD <user-smd>`     | :ref:`USER-VTK <user-vtk>`         |                              |                                |                                      |
++--------------------------------------+--------------------------------+------------------------------------+------------------------------+--------------------------------+--------------------------------------+
 
 The mechanism for including packages is simple but different for CMake
 versus make.
@@ -160,6 +160,7 @@ one of them as a starting point and customize it to your needs.
     cmake -C ../cmake/presets/clang.cmake    [OPTIONS] ../cmake  # change settings to use the Clang compilers by default
     cmake -C ../cmake/presets/gcc.cmake      [OPTIONS] ../cmake  # change settings to use the GNU compilers by default
     cmake -C ../cmake/presets/intel.cmake    [OPTIONS] ../cmake  # change settings to use the Intel compilers by default
+    cmake -C ../cmake/presets/pgi.cmake      [OPTIONS] ../cmake  # change settings to use the PGI compilers by default
     cmake -C ../cmake/presets/all_on.cmake   [OPTIONS] ../cmake  # enable all packages
     cmake -C ../cmake/presets/all_off.cmake  [OPTIONS] ../cmake  # disable all packages
     mingw64-cmake -C ../cmake/presets/mingw-cross.cmake [OPTIONS] ../cmake  #  compile with MinGW cross compilers

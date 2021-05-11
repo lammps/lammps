@@ -58,7 +58,8 @@ void FixDPDenergyKokkos<DeviceType>::take_half_step()
 
   auto dt = update->dt;
 
-  Kokkos::parallel_for(nlocal, LAMMPS_LAMBDA(int i) {
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,nlocal),
+   LAMMPS_LAMBDA(int i) {
     uCond(i) += 0.5*dt*duCond(i);
     uMech(i) += 0.5*dt*duMech(i);
   });

@@ -546,7 +546,7 @@ void PairMesoCNT::bond_neigh()
     if (i2 > nlocal-1 && false) numneigh2 = 0;
     else numneigh2 = numneigh[i2];
 
-    int numneigh_max_local = numneigh1 + numneigh1;
+    int numneigh_max_local = numneigh1 + numneigh2;
     if (numneigh_max_local > numneigh_max) numneigh_max = numneigh_max_local;
   }
   if (numneigh_max > reduced_neigh_size) {
@@ -758,7 +758,7 @@ void PairMesoCNT::read_file()
 
     fp = utils::open_potential(file,lmp,nullptr);
     if (fp == nullptr)
-      error->one(FLERR,fmt::format("Cannot open mesocnt file: {}",file));
+      error->one(FLERR,"Cannot open mesocnt file: {}",file);
 
     utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
 
@@ -768,14 +768,14 @@ void PairMesoCNT::read_file()
     num = sscanf(line,"%d %d %d %d",
                  &uinf_points,&gamma_points,&phi_points,&usemi_points);
     if (num != 4)
-      error->one(FLERR,fmt::format("Could not correctly parse line 2 in "
-                                   "mesocnt file: {}",file));
+      error->one(FLERR,"Could not correctly parse line 2 in "
+                                   "mesocnt file: {}",file);
 
     utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
     num = sscanf(line,"%lg %lg %lg %lg",&r_ang,&sig_ang,&delta1,&delta2);
     if (num != 4)
-      error->one(FLERR,fmt::format("Could not correctly parse line 3 in "
-                                   "mesocnt file: {}",file));
+      error->one(FLERR,"Could not correctly parse line 3 in "
+                                   "mesocnt file: {}",file);
   }
 
   MPI_Bcast(&uinf_points,1,MPI_INT,0,world);
@@ -844,7 +844,7 @@ void PairMesoCNT::read_data(FILE *fp, double *data,
 
   for (int i = 0; i < ninput; i++) {
     if (nullptr == fgets(line,MAXLINE,fp))
-      error->one(FLERR,fmt::format("Premature end of file in pair table: {}",file));
+      error->one(FLERR,"Premature end of file in pair table: {}",file);
 
     if (i > 0) xtemp = x;
     if (2 != sscanf(line,"%lg %lg",&x,&data[i])) cerror++;
@@ -897,7 +897,7 @@ void PairMesoCNT::read_data(FILE *fp, double **data,
     if (i > 0) xtemp = x;
     for (int j = 0; j < ninput; j++) {
       if (nullptr == fgets(line,MAXLINE,fp))
-        error->one(FLERR,fmt::format("Premature end of file in pair table: {}",file));
+        error->one(FLERR,"Premature end of file in pair table: {}",file);
 
       if (j > 0) ytemp = y;
       if (3 != sscanf(line,"%lg %lg %lg",&x,&y,&data[i][j])) cerror++;
@@ -920,20 +920,17 @@ void PairMesoCNT::read_data(FILE *fp, double **data,
   // warn if data was read incompletely, e.g. columns were missing
 
   if (cerror)
-    error->warning(FLERR,fmt::format("{} of {} lines were incomplete or could "
-                                     "not be parsed completely in pair table: {}",
-                                     cerror,ninput*ninput,file));
+    error->warning(FLERR,"{} of {} lines were incomplete or could not be parsed "
+                   "completely in pair table: {}",cerror,ninput*ninput,file);
 
   // warn if spacing between data points is not constant
 
   if (sxerror)
-    error->warning(FLERR,fmt::format("{} spacings in first column were different "
-                                     " from first spacing in pair table: {}",
-                                     sxerror,file));
+    error->warning(FLERR,"{} spacings in first column were different from "
+                   "first spacing in pair table: {}",sxerror,file);
   if (syerror)
-    error->warning(FLERR,fmt::format("{} spacings in second column were different "
-                                     " from first spacing in pair table: {}",
-                                     syerror,file));
+    error->warning(FLERR,"{} spacings in second column were different from "
+                   "first spacing in pair table: {}",syerror,file);
 }
 
 /* ----------------------------------------------------------------------

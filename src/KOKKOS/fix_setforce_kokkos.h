@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -34,7 +34,7 @@ struct s_double_3 {
     d0 = d1 = d2 = 0.0;
   }
   KOKKOS_INLINE_FUNCTION
-  s_double_3& operator+=(const s_double_3 &rhs){
+  s_double_3& operator+=(const s_double_3 &rhs) {
     d0 += rhs.d0;
     d1 += rhs.d1;
     d2 += rhs.d2;

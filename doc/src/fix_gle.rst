@@ -103,28 +103,31 @@ Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 The instantaneous values of the extended variables are written to
-:doc:`binary restart files <restart>`.  Because the state of the random
-number generator is not saved in restart files, this means you cannot
-do "exact" restarts with this fix, where the simulation continues on
-the same as if no restart had taken place. However, in a statistical
-sense, a restarted simulation should produce the same behavior.
-Note however that you should use a different seed each time you
-restart, otherwise the same sequence of random numbers will be used
-each time, which might lead to stochastic synchronization and
+:doc:`binary restart files <restart>`.  Because the state of the
+random number generator is not saved in restart files, this means you
+cannot do "exact" restarts with this fix, where the simulation
+continues on the same as if no restart had taken place. However, in a
+statistical sense, a restarted simulation should produce the same
+behavior.  Note however that you should use a different seed each time
+you restart, otherwise the same sequence of random numbers will be
+used each time, which might lead to stochastic synchronization and
 subtle artifacts in the sampling.
+
+The cumulative energy change in the system imposed by this fix is
+included in the :doc:`thermodynamic output <thermo_style>` keywords
+*ecouple* and *econserve*.  See the :doc:`thermo_style <thermo_style>`
+doc page for details.
+
+This fix computes a global scalar which can be accessed by various
+:doc:`output commands <Howto_output>`.  The scalar is the same
+cumulative energy change due to this fix described in the previous
+paragraph.  The scalar value calculated by this fix is "extensive".
 
 This fix can ramp its target temperature over multiple runs, using the
 *start* and *stop* keywords of the :doc:`run <run>` command.  See the
 :doc:`run <run>` command for details of how to do this.
 
-The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
-fix to add the energy change induced by Langevin thermostatting to the
-system's potential energy as part of :doc:`thermodynamic output <thermo_style>`.
-
-This fix computes a global scalar which can be accessed by various
-:doc:`output commands <Howto_output>`.  The scalar is the cumulative
-energy change due to this fix.  The scalar value calculated by this
-fix is "extensive".
+This fix is not invoked during :doc:`energy minimization <minimize>`.
 
 Restrictions
 """"""""""""

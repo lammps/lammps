@@ -16,26 +16,18 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_lj_gromacs_gpu.h"
-#include <cmath>
-#include <cstdio>
 
-#include <cstring>
 #include "atom.h"
-#include "atom_vec.h"
-#include "comm.h"
-#include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "integrate.h"
-#include "memory.h"
-#include "error.h"
-#include "neigh_request.h"
-#include "universe.h"
-#include "update.h"
 #include "domain.h"
-#include "kspace.h"
+#include "error.h"
+#include "force.h"
 #include "gpu_extra.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
 #include "suffix.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -43,16 +35,17 @@ using namespace LAMMPS_NS;
 
 int ljgrm_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
                    double **host_lj2, double **host_lj3, double **host_lj4,
-                   double *special_lj, const int inum,
-                   const int nall, const int max_nbors, const int maxspecial,
+                   double *special_lj, const int inum, const int nall,
+                   const int max_nbors, const int maxspecial,
                    const double cell_size, int &gpu_mode, FILE *screen,
-                   double **host_ljsw1, double **host_ljsw2, double **host_ljsw3,
-                   double **host_ljsw4, double **host_ljsw5,
-                   double **cut_inner, double **cut_innersq);
+                   double **host_ljsw1, double **host_ljsw2,
+                   double **host_ljsw3, double **host_ljsw4,
+                   double **host_ljsw5, double **cut_inner,
+                   double **cut_innersq);
 void ljgrm_gpu_clear();
-int ** ljgrm_gpu_compute_n(const int ago, const int inum_full,
-                           const int nall, double **host_x, int *host_type,
-                           double *sublo, double *subhi, tagint *tag, int **nspecial,
+int ** ljgrm_gpu_compute_n(const int ago, const int inum_full, const int nall,
+                           double **host_x, int *host_type, double *sublo,
+                           double *subhi, tagint *tag, int **nspecial,
                            tagint **special, const bool eflag, const bool vflag,
                            const bool eatom, const bool vatom, int &host_start,
                            int **ilist, int **jnum, const double cpu_time,
@@ -161,12 +154,13 @@ void PairLJGromacsGPU::init_style()
   double cell_size = sqrt(maxcut) + neighbor->skin;
 
   int maxspecial=0;
-  if (atom->molecular)
+  if (atom->molecular != Atom::ATOMIC)
     maxspecial=atom->maxspecial;
 
+  int mnf = 5e-2 * neighbor->oneatom;
   int success = ljgrm_gpu_init(atom->ntypes+1, cutsq, lj1, lj2, lj3, lj4,
                                                  force->special_lj, atom->nlocal,
-                               atom->nlocal+atom->nghost, 300, maxspecial,
+                               atom->nlocal+atom->nghost, mnf, maxspecial,
                                cell_size, gpu_mode, screen, ljsw1, ljsw2,
                                ljsw3, ljsw4, ljsw5, cut_inner, cut_inner_sq);
   GPU_EXTRA::check_flag(success,error,world);

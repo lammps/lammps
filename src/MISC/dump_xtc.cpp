@@ -809,7 +809,7 @@ int xdr3dfcoord(XDR *xdrs, float *fp, int *size, float *precision)
     /* when the number of coordinates is small, don't try to compress; just
      * write them as floats using xdr_vector
      */
-    if (*size <= 9 ) {
+    if (*size <= 9) {
       return (xdr_vector(xdrs, (char *) fp, size3, sizeof(*fp),
                          (xdrproc_t)xdr_float));
     }
@@ -851,7 +851,7 @@ int xdr3dfcoord(XDR *xdrs, float *fp, int *size, float *precision)
     lip = ip;
     mindiff = INT_MAX;
     oldlint1 = oldlint2 = oldlint3 = 0;
-    while(lfp < fp + size3 ) {
+    while (lfp < fp + size3) {
       /* find nearest integer */
       if (*lfp >= 0.0)
         lf = *lfp * *precision + 0.5;
@@ -1131,7 +1131,7 @@ int xdr3dfcoord(XDR *xdrs, float *fp, int *size, float *precision)
     run = 0;
     i = 0;
     lip = ip;
-    while ( i < lsize ) {
+    while (i < lsize) {
       thiscoord = (int *)(lip) + i * 3;
 
       if (bitsize == 0) {

@@ -155,19 +155,6 @@ class HostThreadTeamData {
   }
 
   inline int pool_rendezvous() const noexcept {
-// not sure if the follow hack is still needed with the new barrier
-#if 0
-    static constexpr bool active_wait =
-#if defined(KOKKOS_COMPILER_IBM)
-      // If running on IBM POWER architecture the global
-      // level rendzvous should immediately yield when
-      // waiting for other threads in the pool to arrive.
-      false;
-#else
-      true;
-#endif
-#endif
-
     int* ptr = (int*)(m_pool_scratch + m_pool_rendezvous);
     HostBarrier::split_arrive(ptr, m_pool_size, m_pool_rendezvous_step);
     if (m_pool_rank != 0) {

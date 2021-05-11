@@ -58,22 +58,16 @@ FixManifoldForce::FixManifoldForce(LAMMPS *lmp, int narg, char **arg) :
   ptr_m = create_manifold(m_name,lmp,narg,arg);
 
   // Construct manifold from factory:
-  if (!ptr_m) {
-    char msg[2048];
-    snprintf(msg,2048,"Manifold pointer for manifold '%s' was NULL for some reason", arg[3]);
-    error->all(FLERR,msg);
-  }
-
+  if (!ptr_m)
+    error->all(FLERR,"Manifold pointer for manifold '{}' "
+                                 "was NULL for some reason", arg[3]);
 
   // After constructing the manifold, you can safely make
   // room for the parameters
   nvars = ptr_m->nparams();
-  if (narg < nvars+4) {
-    char msg[2048];
-    sprintf(msg,"Manifold %s needs at least %d argument(s)!",
-            m_name, nvars);
-    error->all(FLERR,msg);
-  }
+  if (narg < nvars+4)
+    error->all(FLERR,"Manifold {} needs at least {} "
+                                 "argument(s)!", m_name, nvars);
 
   ptr_m->params = new double[nvars];
   if (ptr_m->params == nullptr) {
@@ -86,7 +80,7 @@ FixManifoldForce::FixManifoldForce(LAMMPS *lmp, int narg, char **arg) :
   // equal style vars (so that they are not overwritten each time step).
 
   double *params = ptr_m->params;
-  for( int i = 0; i < nvars; ++i ){
+  for (int i = 0; i < nvars; ++i) {
     if (was_var( arg[i+4] ))
       error->all(FLERR,"Equal-style variables not allowed with fix manifoldforce");
 
@@ -126,7 +120,7 @@ void FixManifoldForce::init()
 
 void FixManifoldForce::setup(int vflag)
 {
-  if (strstr(update->integrate_style,"verlet"))
+  if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
     int nlevels_respa = ((Respa *) update->integrate)->nlevels;
@@ -157,7 +151,7 @@ void FixManifoldForce::post_force(int /*vflag*/)
   double n[3];
   double invn2;
   double dot;
-  for (int i = 0; i < nlocal; i++){
+  for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       // Determine normal of particle:
       ptr_m->n(x[i],n);

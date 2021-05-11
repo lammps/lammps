@@ -16,20 +16,21 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_qeq_point.h"
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
 #include "comm.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "update.h"
+#include "error.h"
 #include "force.h"
 #include "group.h"
 #include "kspace.h"
-#include "respa.h"
 #include "memory.h"
-#include "error.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "respa.h"
+#include "update.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -57,7 +58,7 @@ void FixQEqPoint::init()
   int ntypes = atom->ntypes;
   memory->create(shld,ntypes+1,ntypes+1,"qeq:shielding");
 
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 
 }
@@ -95,7 +96,7 @@ void FixQEqPoint::init_matvec()
   inum = list->inum;
   ilist = list->ilist;
 
-  for( ii = 0; ii < inum; ++ii ) {
+  for (ii = 0; ii < inum; ++ii) {
     i = ilist[ii];
     if (atom->mask[i] & groupbit) {
       Hdia_inv[i] = 1. / eta[ atom->type[i] ];
@@ -131,14 +132,14 @@ void FixQEqPoint::compute_H()
 
   // fill in the H matrix
   m_fill = 0;
-  for( ii = 0; ii < inum; ii++ ) {
+  for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     if (mask[i] & groupbit) {
       jlist = firstneigh[i];
       jnum = numneigh[i];
       H.firstnbr[i] = m_fill;
 
-      for( jj = 0; jj < jnum; jj++ ) {
+      for (jj = 0; jj < jnum; jj++) {
         j = jlist[jj];
         j &= NEIGHMASK;
 
@@ -158,13 +159,9 @@ void FixQEqPoint::compute_H()
     }
   }
 
-  if (m_fill >= H.m) {
-    char str[128];
-    sprintf(str,"H matrix size has been exceeded: m_fill=%d H.m=%d\n",
-             m_fill, H.m );
-    error->warning(FLERR,str);
-    error->all(FLERR,"Fix qeq/point has insufficient QEq matrix size");
-  }
+  if (m_fill >= H.m)
+    error->all(FLERR,"Fix qeq/point has insufficient H matrix "
+                                 "size: m_fill={} H.m={}\n",m_fill, H.m);
 }
 
 /* ---------------------------------------------------------------------- */

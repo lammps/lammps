@@ -51,7 +51,7 @@ enum{X,Y,Z};
 
 /* ---------------------------------------------------------------------- */
 
-Balance::Balance(LAMMPS *lmp) : Pointers(lmp)
+Balance::Balance(LAMMPS *lmp) : Command(lmp)
 {
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
@@ -371,9 +371,8 @@ void Balance::command(int narg, char **arg)
   bigint nblocal = atom->nlocal;
   MPI_Allreduce(&nblocal,&natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
   if (natoms != atom->natoms)
-    error->all(FLERR,fmt::format("Lost atoms via balance: "
-                                 "original {}  current {}",
-                                 atom->natoms,natoms).c_str());
+    error->all(FLERR,"Lost atoms via balance: original {}  current {}",
+               atom->natoms,natoms);
 
   // imbfinal = final imbalance
   // set disable = 1, so weights no longer migrate with atoms
@@ -478,8 +477,8 @@ void Balance::options(int iarg, int narg, char **arg)
   if (outflag && comm->me == 0) {
     fp = fopen(arg[outarg],"w");
     if (fp == nullptr)
-      error->one(FLERR,fmt::format("Cannot open (fix) balance output file {}: {}",
-                                   arg[outarg], utils::getsyserror()));
+      error->one(FLERR,"Cannot open (fix) balance output file {}: {}",
+                                   arg[outarg], utils::getsyserror());
   }
 }
 
@@ -919,71 +918,71 @@ int Balance::shift()
     // do this with minimal adjustment to splits
 
     double close = (1.0+EPSNEIGH) * neighbor->skin / boxsize;
-    double delta,midpt,start,stop,lbound,ubound,spacing;
+    double midpt,start,stop,lbound,ubound,spacing;
 
     i = 0;
     while (i < np) {
       if (split[i+1] - split[i] < close) {
-	j = i+1;
+        j = i+1;
 
-	// I,J = set of consecutive splits that are collectively too close
-	// if can expand set and not become too close to splits I-1 or J+1, do it
-	// else add split I-1 or J+1 to set and try again
-	// delta = size of expanded split set that will satisy criterion
+        // I,J = set of consecutive splits that are collectively too close
+        // if can expand set and not become too close to splits I-1 or J+1, do it
+        // else add split I-1 or J+1 to set and try again
+        // delta = size of expanded split set that will satisy criterion
 
-	while (1) {
-	  delta = (j-i) * close;
-	  midpt = 0.5 * (split[i]+split[j]);
-	  start = midpt - 0.5*delta;
-	  stop = midpt + 0.5*delta;
+        while (1) {
+          delta = (j-i) * close;
+          midpt = 0.5 * (split[i]+split[j]);
+          start = midpt - 0.5*delta;
+          stop = midpt + 0.5*delta;
 
-	  if (i > 0) lbound = split[i-1] + close;
-	  else lbound = 0.0;
-	  if (j < np) ubound = split[j+1] - close;
-	  else ubound = 1.0;
+          if (i > 0) lbound = split[i-1] + close;
+          else lbound = 0.0;
+          if (j < np) ubound = split[j+1] - close;
+          else ubound = 1.0;
 
-	  // start/stop are within bounds, reset the splits
+          // start/stop are within bounds, reset the splits
 
-	  if (start >= lbound && stop <= ubound) break;
+          if (start >= lbound && stop <= ubound) break;
 
-	  // try a shift to either bound, reset the splits if delta fits
-	  // these tests change start/stop
+          // try a shift to either bound, reset the splits if delta fits
+          // these tests change start/stop
 
-	  if (start < lbound) {
-	    start = lbound;
-	    stop = start + delta;
-	    if (stop <= ubound) break;
-	  } else if (stop > ubound) {
-	    stop = ubound;
-	    start = stop - delta;
-	    if (start >= lbound) break;
-	  }
+          if (start < lbound) {
+            start = lbound;
+            stop = start + delta;
+            if (stop <= ubound) break;
+          } else if (stop > ubound) {
+            stop = ubound;
+            start = stop - delta;
+            if (start >= lbound) break;
+          }
 
-	  // delta does not fit between lbound and ubound
-	  // exit if can't expand set, else expand set
-	  // if can expand in either direction,
-	  //   pick new split closest to current midpt of set
+          // delta does not fit between lbound and ubound
+          // exit if can't expand set, else expand set
+          // if can expand in either direction,
+          //   pick new split closest to current midpt of set
 
-	  if (i == 0 && j == np) {
-	    start = 0.0; stop = 1.0;
-	    break;
-	  }
-	  if (i == 0) j++;
-	  else if (j == np) i--;
-	  else if (midpt-lbound < ubound-midpt) i--;
-	  else j++;
-	}
+          if (i == 0 && j == np) {
+            start = 0.0; stop = 1.0;
+            break;
+          }
+          if (i == 0) j++;
+          else if (j == np) i--;
+          else if (midpt-lbound < ubound-midpt) i--;
+          else j++;
+        }
 
-	// reset all splits between I,J inclusive to be equi-spaced
+        // reset all splits between I,J inclusive to be equi-spaced
 
-	spacing = (stop-start) / (j-i);
-	for (m = i; m <= j; m++)
-	  split[m] = start + (m-i)*spacing;
+        spacing = (stop-start) / (j-i);
+        for (m = i; m <= j; m++)
+          split[m] = start + (m-i)*spacing;
         if (j == np) split[np] = 1.0;
 
-	// continue testing beyond the J split
+        // continue testing beyond the J split
 
-	i = j+1;
+        i = j+1;
       } else i++;
     }
 
@@ -1094,7 +1093,7 @@ int Balance::adjust(int n, double *split)
     }
 
   int change = 0;
-  for (int i = 1; i < n; i++)
+  for (i = 1; i < n; i++)
     if (sum[i] != target[i]) {
       change = 1;
       if (rho == 0) split[i] = 0.5 * (lo[i]+hi[i]);

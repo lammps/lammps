@@ -73,7 +73,7 @@ FixMSCG::FixMSCG(LAMMPS *lmp, int narg, char **arg) :
   // parse remaining arguments
 
   int iarg = 4;
-  while(iarg < narg) {
+  while (iarg < narg) {
     if (strcmp(arg[iarg],"range") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix mscg command");
       if (strcmp(arg[iarg+1],"on") == 0)

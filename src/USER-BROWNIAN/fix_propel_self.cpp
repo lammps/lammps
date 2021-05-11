@@ -16,22 +16,22 @@
 
    Thanks to Liesbeth Janssen @ Eindhoven University for useful discussions!
 
-   Current maintainer: Sam Cameron @ University of Bristol 
+   Current maintainer: Sam Cameron @ University of Bristol
 ----------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <string.h>
 #include "fix_propel_self.h"
-#include "math_extra.h"
+
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
-#include "force.h"
-#include "update.h"
 #include "comm.h"
 #include "domain.h"
-#include "memory.h"
 #include "error.h"
+#include "force.h"
+#include "math_extra.h"
+#include "memory.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -47,11 +47,11 @@ FixPropelSelf::FixPropelSelf(LAMMPS *lmp, int narg, char **arg) :
 {
 
   virial_flag = 1;
-  
+
   if (narg != 5 && narg != 9)
     error->all(FLERR,"Illegal fix propel/self command");
 
-  
+
   if (strcmp(arg[3],"velocity") == 0) {
     mode = VELOCITY;
     thermo_virial = 0;
@@ -89,7 +89,7 @@ FixPropelSelf::FixPropelSelf(LAMMPS *lmp, int narg, char **arg) :
     sy = 0.0;
     sz = 0.0;
   }
-  
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -115,26 +115,26 @@ void FixPropelSelf::init()
 {
   if (mode == DIPOLE && !atom->mu_flag)
     error->all(FLERR,"Fix propel/self requires atom attribute mu "
-	       "with option dipole.");
+               "with option dipole.");
 
   if (mode == QUAT) {
     avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
     if (!avec)
       error->all(FLERR,"Fix propel/self requires "
-		 "atom style ellipsoid with option quat.");
-  
+                 "atom style ellipsoid with option quat.");
+
     // check that all particles are finite-size ellipsoids
     // no point particles allowed, spherical is OK
-    
+
     int *ellipsoid = atom->ellipsoid;
     int *mask = atom->mask;
     int nlocal = atom->nlocal;
-    
+
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit)
-	if (ellipsoid[i] < 0)
-	  error->one(FLERR,"Fix propel/self requires extended particles "
-		     "with option quat.");
+        if (ellipsoid[i] < 0)
+          error->one(FLERR,"Fix propel/self requires extended particles "
+                     "with option quat.");
   }
 
 }
@@ -152,7 +152,7 @@ void FixPropelSelf::post_force(int vflag)
     post_force_velocity(vflag);
   else if (mode == QUAT)
     post_force_quaternion(vflag);
-  
+
 }
 
 
@@ -165,16 +165,16 @@ void FixPropelSelf::post_force_dipole(int vflag)
   double **mu = atom->mu;
   double fx,fy,fz;
 
-  
+
   // energy and virial setup
   double vi[6];
   if (vflag) v_setup(vflag);
   else evflag = 0;
-  
+
   // if domain has PBC, need to unwrap for virial
   double unwrap[3];
   imageint *image = atom->image;
-  
+
   // Add the active force to the atom force:
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
@@ -185,16 +185,16 @@ void FixPropelSelf::post_force_dipole(int vflag)
       f[i][0] += fx;
       f[i][1] += fy;
       f[i][2] += fz;
-      
+
       if (evflag) {
-	domain->unmap(x[i],image[i],unwrap);
-	vi[0] = fx*unwrap[0];
-	vi[1] = fy*unwrap[1];
-	vi[2] = fz*unwrap[2];
-	vi[3] = fx*unwrap[1];
-	vi[4] = fx*unwrap[2];
-	vi[5] = fy*unwrap[2];
-	v_tally(i, vi);
+        domain->unmap(x[i],image[i],unwrap);
+        vi[0] = fx*unwrap[0];
+        vi[1] = fy*unwrap[1];
+        vi[2] = fz*unwrap[2];
+        vi[3] = fx*unwrap[1];
+        vi[4] = fx*unwrap[2];
+        vi[5] = fy*unwrap[2];
+        v_tally(i, vi);
       }
     }
 }
@@ -215,14 +215,14 @@ void FixPropelSelf::post_force_velocity(int vflag)
   double vi[6];
   if (vflag) v_setup(vflag);
   else evflag = 0;
-  
+
   // if domain has PBC, need to unwrap for virial
   double unwrap[3];
-  imageint *image = atom->image;  
+  imageint *image = atom->image;
 
   // Add the active force to the atom force:
   for(int i = 0; i < nlocal; ++i) {
-    if( mask[i] & groupbit ){
+    if(mask[i] & groupbit) {
 
       nv2 = v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2];
       fnorm = 0.0;
@@ -243,14 +243,14 @@ void FixPropelSelf::post_force_velocity(int vflag)
       f[i][2] += fz;
 
       if (evflag) {
-	domain->unmap(x[i],image[i],unwrap);
-	vi[0] = fx*unwrap[0];
-	vi[1] = fy*unwrap[1];
-	vi[2] = fz*unwrap[2];
-	vi[3] = fx*unwrap[1];
-	vi[4] = fx*unwrap[2];
-	vi[5] = fy*unwrap[2];
-	v_tally(i, vi);
+        domain->unmap(x[i],image[i],unwrap);
+        vi[0] = fx*unwrap[0];
+        vi[1] = fy*unwrap[1];
+        vi[2] = fz*unwrap[2];
+        vi[3] = fx*unwrap[1];
+        vi[4] = fx*unwrap[2];
+        vi[5] = fy*unwrap[2];
+        v_tally(i, vi);
       }
     }
   }
@@ -269,7 +269,7 @@ void FixPropelSelf::post_force_quaternion(int vflag)
   AtomVecEllipsoid::Bonus *bonus = avec->bonus;
   double f_act[3] = { sx, sy, sz };
   double f_rot[3];
-  double *quat; 
+  double *quat;
   double Q[3][3];
   double fx,fy,fz;
 
@@ -278,36 +278,36 @@ void FixPropelSelf::post_force_quaternion(int vflag)
   double vi[6];
   if (vflag) v_setup(vflag);
   else evflag = 0;
-  
+
   // if domain has PBC, need to unwrap for virial
   double unwrap[3];
   imageint *image = atom->image;
 
   // Add the active force to the atom force:
-  for( int i = 0; i < nlocal; ++i ){
-    if( mask[i] & groupbit ){
+  for(int i = 0; i < nlocal; ++i) {
+    if(mask[i] & groupbit) {
 
-      quat  = bonus[ellipsoid[i]].quat;
-      MathExtra::quat_to_mat( quat, Q );
-      MathExtra::matvec( Q, f_act, f_rot );
+      quat = bonus[ellipsoid[i]].quat;
+      MathExtra::quat_to_mat(quat, Q);
+      MathExtra::matvec(Q, f_act, f_rot);
 
       fx = magnitude*f_rot[0];
       fy = magnitude*f_rot[1];
       fz = magnitude*f_rot[2];
-      
+
       f[i][0] += fx;
       f[i][1] += fy;
       f[i][2] += fz;
-            
+
       if (evflag) {
-	domain->unmap(x[i],image[i],unwrap);
-	vi[0] = fx*unwrap[0];
-	vi[1] = fy*unwrap[1];
-	vi[2] = fz*unwrap[2];
-	vi[3] = fx*unwrap[1];
-	vi[4] = fx*unwrap[2];
-	vi[5] = fy*unwrap[2];
-	v_tally(i, vi);
+        domain->unmap(x[i],image[i],unwrap);
+        vi[0] = fx*unwrap[0];
+        vi[1] = fy*unwrap[1];
+        vi[2] = fz*unwrap[2];
+        vi[3] = fx*unwrap[1];
+        vi[4] = fx*unwrap[2];
+        vi[5] = fy*unwrap[2];
+        v_tally(i, vi);
       }
     }
   }

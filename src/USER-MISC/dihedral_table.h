@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -25,7 +25,6 @@ DihedralStyle(table,DihedralTable)
 #define LMP_DIHEDRAL_TABLE_H
 #include "dihedral.h"
 
-
 namespace LAMMPS_NS {
 
 class DihedralTable : public Dihedral {
@@ -34,7 +33,7 @@ class DihedralTable : public Dihedral {
   virtual ~DihedralTable();
   virtual void compute(int, int);
   void settings(int, char **);
-  void coeff(int, char **);
+  virtual void coeff(int, char **);
   void write_restart(FILE *);
   void read_restart(FILE *);
   void write_restart_settings(FILE *);
@@ -43,13 +42,11 @@ class DihedralTable : public Dihedral {
 
  protected:
   int tabstyle,tablength;
-  // double *phi0;       <- equilibrium angles not supported
   std::string checkU_fname;
   std::string checkF_fname;
 
   struct Table {
     int ninput;
-    //double phi0;      <-equilibrium angles not supported
     int f_unspecified; // boolean (but MPI does not like type "bool")
     int use_degrees;   // boolean (but MPI does not like type "bool")
     double *phifile,*efile,*ffile;
@@ -62,7 +59,7 @@ class DihedralTable : public Dihedral {
   Table *tables;
   int *tabindex;
 
-  void allocate();
+  virtual void allocate();
   void null_table(Table *);
   void free_table(Table *);
   void read_table(Table *, char *, char *);
@@ -151,7 +148,6 @@ class DihedralTable : public Dihedral {
 }; //class DihedralTable
 
 } // namespace LAMMPS_NS
-
 
 #endif //#ifndef LMP_DIHEDRAL_TABLE_H
 #endif //#ifdef DIHEDRAL_CLASS ... #else

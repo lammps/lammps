@@ -49,9 +49,7 @@ ComputeDipoleChunk::ComputeDipoleChunk(LAMMPS *lmp, int narg, char **arg) :
 
   // ID of compute chunk/atom
 
-  int n = strlen(arg[3]) + 1;
-  idchunk = new char[n];
-  strcpy(idchunk,arg[3]);
+  idchunk = utils::strdup(arg[3]);
 
   usecenter = MASSCENTER;
 
@@ -121,7 +119,7 @@ void ComputeDipoleChunk::compute_array()
 
   // zero local per-chunk values
 
-  for (int i = 0; i < nchunk; i++) {
+  for (i = 0; i < nchunk; i++) {
     massproc[i] = chrgproc[i] = 0.0;
     com[i][0] = com[i][1] = com[i][2] = 0.0;
     dipole[i][0] = dipole[i][1] = dipole[i][2] = dipole[i][3] = 0.0;
@@ -140,7 +138,7 @@ void ComputeDipoleChunk::compute_array()
 
   int nlocal = atom->nlocal;
 
-  for (int i = 0; i < nlocal; i++)
+  for (i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       index = ichunk[i]-1;
       if (index < 0) continue;
@@ -161,7 +159,7 @@ void ComputeDipoleChunk::compute_array()
   MPI_Allreduce(chrgproc,chrgtotal,nchunk,MPI_DOUBLE,MPI_SUM,world);
   MPI_Allreduce(&com[0][0],&comall[0][0],3*nchunk,MPI_DOUBLE,MPI_SUM,world);
 
-  for (int i = 0; i < nchunk; i++) {
+  for (i = 0; i < nchunk; i++) {
     if (masstotal[i] > 0.0) {
       comall[i][0] /= masstotal[i];
       comall[i][1] /= masstotal[i];
@@ -293,7 +291,7 @@ void ComputeDipoleChunk::allocate()
 double ComputeDipoleChunk::memory_usage()
 {
   double bytes = (bigint) maxchunk * 2 * sizeof(double);
-  bytes += (bigint) maxchunk * 2*3 * sizeof(double);
-  bytes += (bigint) maxchunk * 2*4 * sizeof(double);
+  bytes += (double)maxchunk * 2*3 * sizeof(double);
+  bytes += (double)maxchunk * 2*4 * sizeof(double);
   return bytes;
 }

@@ -25,7 +25,6 @@
 #include "comm.h"
 #include "domain.h"
 
-
 #if defined(_OPENMP)
 #include <omp.h>
 #endif
@@ -85,8 +84,7 @@ void FixRigidSmallOMP::initial_integrate(int vflag)
 
   // virial setup before call to set_xv
 
-  if (vflag) v_setup(vflag);
-  else evflag = 0;
+  v_init(vflag);
 
   // forward communicate updated info of all bodies
 

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -156,7 +156,7 @@ void FixShakeKokkos<DeviceType>::init()
 {
   FixShake::init();
 
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     error->all(FLERR,"Cannot yet use respa with Kokkos");
 
   if (rattle)
@@ -242,7 +242,8 @@ void FixShakeKokkos<DeviceType>::pre_neighbor()
     auto d_nlist = this->d_nlist;
     auto map_array = this->map_array;
 
-    Kokkos::parallel_for(nlocal, LAMMPS_LAMBDA(const int& i) {
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,nlocal),
+     LAMMPS_LAMBDA(const int& i) {
       if (d_shake_flag[i]) {
         if (d_shake_flag[i] == 2) {
           const int atom1 = map_array(d_shake_atom(i,0));
@@ -284,8 +285,8 @@ void FixShakeKokkos<DeviceType>::pre_neighbor()
   nlist = h_nlist();
 
   if (h_error_flag() == 1) {
-    error->one(FLERR,fmt::format("Shake atoms missing on proc "
-                                 "{} at step {}",me,update->ntimestep));
+    error->one(FLERR,"Shake atoms missing on proc "
+                                 "{} at step {}",me,update->ntimestep);
   }
 }
 
@@ -306,9 +307,9 @@ void FixShakeKokkos<DeviceType>::post_force(int vflag)
   nlocal = atomKK->nlocal;
 
   if (d_rmass.data())
-    atomKK->sync(Device,X_MASK|F_MASK|RMASS_MASK);
+    atomKK->sync(execution_space,X_MASK|F_MASK|RMASS_MASK);
   else
-    atomKK->sync(Device,X_MASK|F_MASK|TYPE_MASK);
+    atomKK->sync(execution_space,X_MASK|F_MASK|TYPE_MASK);
 
   k_shake_flag.sync<DeviceType>();
   k_shake_atom.sync<DeviceType>();
@@ -331,8 +332,7 @@ void FixShakeKokkos<DeviceType>::post_force(int vflag)
 
   // virial setup
 
-  if (vflag) v_setup(vflag);
-  else evflag = 0;
+  v_init(vflag);
 
   // reallocate per-atom arrays if necessary
 
@@ -393,7 +393,7 @@ void FixShakeKokkos<DeviceType>::post_force(int vflag)
   Kokkos::deep_copy(h_error_flag,d_error_flag);
 
   if (h_error_flag() == 2)
-    error->warning(FLERR,"Shake determinant < 0.0",0);
+    error->warning(FLERR,"Shake determinant < 0.0");
   else if (h_error_flag() == 3)
     error->one(FLERR,"Shake determinant = 0.0");
 
@@ -406,7 +406,7 @@ void FixShakeKokkos<DeviceType>::post_force(int vflag)
   if (need_dup)
     Kokkos::Experimental::contribute(d_f,dup_f);
 
-  atomKK->modified(Device,F_MASK);
+  atomKK->modified(execution_space,F_MASK);
 
   if (vflag_global) {
     virial[0] += ev.v[0];
@@ -463,7 +463,7 @@ int FixShakeKokkos<DeviceType>::dof(int igroup)
   d_tag = atomKK->k_tag.view<DeviceType>();
   nlocal = atom->nlocal;
 
-  atomKK->sync(Device,MASK_MASK|TAG_MASK);
+  atomKK->sync(execution_space,MASK_MASK|TAG_MASK);
   k_shake_flag.sync<DeviceType>();
   k_shake_atom.sync<DeviceType>();
 
@@ -480,7 +480,8 @@ int FixShakeKokkos<DeviceType>::dof(int igroup)
     auto mask = this->d_mask;
     auto groupbit = group->bitmask[igroup];
 
-    Kokkos::parallel_reduce(nlocal, LAMMPS_LAMBDA(const int& i, int& n) {
+    Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType>(0,nlocal),
+     LAMMPS_LAMBDA(const int& i, int& n) {
       if (!(mask[i] & groupbit)) return;
       if (d_shake_flag[i] == 0) return;
       if (d_shake_atom(i,0) != tag[i]) return;
@@ -513,9 +514,9 @@ void FixShakeKokkos<DeviceType>::unconstrained_update()
   nlocal = atom->nlocal;
 
   if (d_rmass.data())
-    atomKK->sync(Device,X_MASK|V_MASK|F_MASK|RMASS_MASK);
+    atomKK->sync(execution_space,X_MASK|V_MASK|F_MASK|RMASS_MASK);
   else
-    atomKK->sync(Device,X_MASK|V_MASK|F_MASK|TYPE_MASK);
+    atomKK->sync(execution_space,X_MASK|V_MASK|F_MASK|TYPE_MASK);
 
 
   k_shake_flag.sync<DeviceType>();
@@ -536,7 +537,8 @@ void FixShakeKokkos<DeviceType>::unconstrained_update()
 
       auto rmass = this->d_rmass;
 
-      Kokkos::parallel_for(nlocal, LAMMPS_LAMBDA(const int& i) {
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,nlocal),
+       LAMMPS_LAMBDA(const int& i) {
         if (d_shake_flag[i]) {
           const double dtfmsq = dtfsq / rmass[i];
           d_xshake(i,0) = x(i,0) + dtv*v(i,0) + dtfmsq*f(i,0);
@@ -549,7 +551,8 @@ void FixShakeKokkos<DeviceType>::unconstrained_update()
       auto mass = this->d_mass;
       auto type = this->d_type;
 
-      Kokkos::parallel_for(nlocal, LAMMPS_LAMBDA(const int& i) {
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,nlocal),
+       LAMMPS_LAMBDA(const int& i) {
         if (d_shake_flag[i]) {
           const double dtfmsq = dtfsq / mass[type[i]];
           d_xshake(i,0) = x(i,0) + dtv*v(i,0) + dtfmsq*f(i,0);

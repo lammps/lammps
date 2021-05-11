@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -25,9 +25,9 @@
 namespace LAMMPS_NS
 {
   class TextFileReader {
-    std::string filename;
     std::string filetype;
-    static const int MAXLINE = 1024;
+    bool closefp;
+    static constexpr int MAXLINE = 1024;
     char line[MAXLINE];
     FILE *fp;
 
@@ -35,6 +35,8 @@ namespace LAMMPS_NS
     bool ignore_comments; //!< Controls whether comments are ignored
 
     TextFileReader(const std::string &filename, const std::string &filetype);
+    TextFileReader(FILE *fp, const std::string &filetype);
+
     ~TextFileReader();
 
     void skip_line();

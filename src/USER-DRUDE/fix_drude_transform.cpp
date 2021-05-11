@@ -83,7 +83,7 @@ void FixDrudeTransform<inverse>::setup(int) {
         int j = atom->map(drudeid[i]);
         // i is drude, j is core
         if (mcoeff_loc[type[i]] < 1.5) { // already done
-          if (mcoeff_loc[type[j]] > 1.5){ // not yet done ??
+          if (mcoeff_loc[type[j]] > 1.5) { // not yet done ??
             error->all(FLERR,"There must be one Drude type per core type");}
           continue;
         }
@@ -103,28 +103,28 @@ void FixDrudeTransform<inverse>::setup(int) {
 /* ---------------------------------------------------------------------- */
 namespace LAMMPS_NS { // required for specialization
 template <>
-void FixDrudeTransform<false>::initial_integrate(int){
+void FixDrudeTransform<false>::initial_integrate(int) {
   comm->forward_comm_fix(this);
   real_to_reduced();
   //comm->forward_comm_fix(this); // Normally not needed
 }
 
 template <>
-void FixDrudeTransform<false>::final_integrate(){
+void FixDrudeTransform<false>::final_integrate() {
   comm->forward_comm_fix(this);
   real_to_reduced();
   //comm->forward_comm_fix(this); // Normally not needed
 }
 
 template <>
-void FixDrudeTransform<true>::initial_integrate(int){
+void FixDrudeTransform<true>::initial_integrate(int) {
   comm->forward_comm_fix(this);
   reduced_to_real();
   //comm->forward_comm_fix(this); // Normally not needed
 }
 
 template <>
-void FixDrudeTransform<true>::final_integrate(){
+void FixDrudeTransform<true>::final_integrate() {
   comm->forward_comm_fix(this);
   reduced_to_real();
   //comm->forward_comm_fix(this); // Normally not needed

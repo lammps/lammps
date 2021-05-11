@@ -30,7 +30,6 @@
 #include "memory.h"
 #include "error.h"
 
-
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
@@ -57,6 +56,7 @@ FixRestrain::FixRestrain(LAMMPS *lmp, int narg, char **arg) :
   vector_flag = 1;
   size_vector = 3;
   extvector = 1;
+  energy_global_flag = 1;
   respa_level_support = 1;
   ilevel_respa = 0;
 
@@ -176,7 +176,6 @@ int FixRestrain::setmask()
 {
   int mask = 0;
   mask |= POST_FORCE;
-  mask |= THERMO_ENERGY;
   mask |= POST_FORCE_RESPA;
   mask |= MIN_POST_FORCE;
   return mask;
@@ -186,7 +185,7 @@ int FixRestrain::setmask()
 
 void FixRestrain::init()
 {
-  if (strstr(update->integrate_style,"respa")) {
+  if (utils::strmatch(update->integrate_style,"^respa")) {
     ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
   }
@@ -196,7 +195,7 @@ void FixRestrain::init()
 
 void FixRestrain::setup(int vflag)
 {
-  if (strcmp(update->integrate_style,"verlet") == 0)
+  if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
     ((Respa *) update->integrate)->copy_flevel_f(ilevel_respa);
@@ -273,15 +272,15 @@ void FixRestrain::restrain_bond(int m)
   if (newton_bond) {
     if (i2 == -1 || i2 >= nlocal) return;
     if (i1 == -1)
-      error->one(FLERR,fmt::format("Restrain atoms {} {} missing on "
+      error->one(FLERR,"Restrain atoms {} {} missing on "
                                    "proc {} at step {}", ids[m][0],ids[m][1],
-                                   comm->me,update->ntimestep));
+                                   comm->me,update->ntimestep);
   } else {
     if ((i1 == -1 || i1 >= nlocal) && (i2 == -1 || i2 >= nlocal)) return;
     if (i1 == -1 || i2 == -1)
-      error->one(FLERR,fmt::format("Restrain atoms {} {} missing on "
+      error->one(FLERR,"Restrain atoms {} {} missing on "
                                    "proc {} at step {}", ids[m][0],ids[m][1],
-                                   comm->me,update->ntimestep));
+                                   comm->me,update->ntimestep);
   }
 
   delx = x[i1][0] - x[i2][0];
@@ -346,15 +345,15 @@ void FixRestrain::restrain_lbound(int m)
   if (newton_bond) {
     if (i2 == -1 || i2 >= nlocal) return;
     if (i1 == -1)
-      error->one(FLERR,fmt::format("Restrain atoms {} {} missing on "
+      error->one(FLERR,"Restrain atoms {} {} missing on "
                                    "proc {} at step {}",ids[m][0],ids[m][1],
-                                   comm->me,update->ntimestep));
+                                   comm->me,update->ntimestep);
   } else {
     if ((i1 == -1 || i1 >= nlocal) && (i2 == -1 || i2 >= nlocal)) return;
     if (i1 == -1 || i2 == -1)
-      error->one(FLERR,fmt::format("Restrain atoms {} {} missing on "
+      error->one(FLERR,"Restrain atoms {} {} missing on "
                                    "proc {} at step {}",ids[m][0],ids[m][1],
-                                   comm->me,update->ntimestep));
+                                   comm->me,update->ntimestep);
   }
 
   delx = x[i1][0] - x[i2][0];
@@ -428,16 +427,16 @@ void FixRestrain::restrain_angle(int m)
   if (newton_bond) {
     if (i2 == -1 || i2 >= nlocal) return;
     if (i1 == -1 || i3 == -1)
-      error->one(FLERR,fmt::format("Restrain atoms {} {} {} missing on "
+      error->one(FLERR,"Restrain atoms {} {} {} missing on "
                                    "proc {} at step {}",ids[m][0],ids[m][1],
-                                   ids[m][2],comm->me,update->ntimestep));
+                                   ids[m][2],comm->me,update->ntimestep);
   } else {
     if ((i1 == -1 || i1 >= nlocal) && (i2 == -1 || i2 >= nlocal) &&
         (i3 == -1 || i3 >= nlocal)) return;
     if (i1 == -1 || i2 == -1 || i3 == -1)
-      error->one(FLERR,fmt::format("Restrain atoms {} {} {} missing on "
+      error->one(FLERR,"Restrain atoms {} {} {} missing on "
                                    "proc {} at step {}",ids[m][0],ids[m][1],
-                                   ids[m][2],comm->me,update->ntimestep));
+                                   ids[m][2],comm->me,update->ntimestep);
   }
 
   // 1st bond
@@ -548,18 +547,18 @@ void FixRestrain::restrain_dihedral(int m)
   if (newton_bond) {
     if (i2 == -1 || i2 >= nlocal) return;
     if (i1 == -1 || i3 == -1 || i4 == -1)
-      error->one(FLERR,fmt::format("Restrain atoms {} {} {} {} missing on "
+      error->one(FLERR,"Restrain atoms {} {} {} {} missing on "
                                    "proc {} at step {}",ids[m][0],ids[m][1],
                                    ids[m][2],ids[m][3],comm->me,
-                                   update->ntimestep));
+                                   update->ntimestep);
   } else {
     if ((i1 == -1 || i1 >= nlocal) && (i2 == -1 || i2 >= nlocal) &&
         (i3 == -1 || i3 >= nlocal) && (i4 == -1 || i3 >= nlocal)) return;
     if (i1 == -1 || i2 == -1 || i3 == -1 || i4 == -1)
-      error->one(FLERR,fmt::format("Restrain atoms {} {} {} {} missing on "
+      error->one(FLERR,"Restrain atoms {} {} {} {} missing on "
                                    "proc {} at step {}",ids[m][0],ids[m][1],
                                    ids[m][2],ids[m][3],comm->me,
-                                   update->ntimestep));
+                                   update->ntimestep);
   }
 
   // 1st bond

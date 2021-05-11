@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -64,7 +64,7 @@ class Thermo : protected Pointers {
   int normuser;
 
   int firststep;
-  int lostbefore;
+  int lostbefore, warnbefore;
   int flushflag,lineflag;
 
   double last_tpcpu,last_spcpu;
@@ -143,7 +143,6 @@ class Thermo : protected Pointers {
   void compute_pe();
   void compute_ke();
   void compute_etotal();
-  void compute_enthalpy();
 
   void compute_evdwl();
   void compute_ecoul();
@@ -155,6 +154,10 @@ class Thermo : protected Pointers {
   void compute_emol();
   void compute_elong();
   void compute_etail();
+
+  void compute_enthalpy();
+  void compute_ecouple();
+  void compute_econserve();
 
   void compute_vol();
   void compute_density();

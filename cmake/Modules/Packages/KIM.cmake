@@ -19,6 +19,8 @@ if(CURL_FOUND)
     target_compile_definitions(lammps PRIVATE -DLMP_NO_SSL_CHECK)
   endif()
 endif()
+set(KIM_EXTRA_UNITTESTS OFF CACHE STRING "Set extra unit tests verbose mode on/off. If on, extra tests are included.")
+mark_as_advanced(KIM_EXTRA_UNITTESTS)
 find_package(PkgConfig QUIET)
 set(DOWNLOAD_KIM_DEFAULT ON)
 if(PKG_CONFIG_FOUND)
@@ -33,9 +35,13 @@ if(DOWNLOAD_KIM)
   include(ExternalProject)
   enable_language(C)
   enable_language(Fortran)
+  set(KIM_URL "https://s3.openkim.org/kim-api/kim-api-2.2.1.txz" CACHE STRING "URL for KIM tarball")
+  set(KIM_MD5 "ae1ddda2ef7017ea07934e519d023dca" CACHE STRING "MD5 checksum of KIM tarball")
+  mark_as_advanced(KIM_URL)
+  mark_as_advanced(KIM_MD5)
   ExternalProject_Add(kim_build
-    URL https://s3.openkim.org/kim-api/kim-api-2.2.0.txz
-    URL_MD5 e7f944e1593cffd7444679a660607f6c
+    URL     ${KIM_URL}
+    URL_MD5 ${KIM_MD5}
     BINARY_DIR build
     CMAKE_ARGS ${CMAKE_REQUEST_PIC}
                -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
@@ -67,14 +73,14 @@ if(DOWNLOAD_KIM)
     BUILD_RPATH "${_rpath_prefix}/kim_build-prefix/lib"
     )
 else()
-  if(KIM-API_FOUND AND KIM_API_VERSION VERSION_GREATER_EQUAL 2.2.0)
+  if(KIM-API_FOUND AND KIM-API_VERSION VERSION_GREATER_EQUAL 2.2.0)
     # For kim-api >= 2.2.0
-    find_package(KIM-API ${KIM-API_MIN_VERSION} CONFIG REQUIRED)
+    find_package(KIM-API 2.2.0 CONFIG REQUIRED)
     target_link_libraries(lammps PRIVATE KIM-API::kim-api)
   else()
     # For kim-api 2.1.3 (consistent with previous version of this file)
     find_package(PkgConfig REQUIRED)
-    pkg_check_modules(KIM-API REQUIRED IMPORTED_TARGET libkim-api>=KIM-API_MIN_VERSION)
+    pkg_check_modules(KIM-API REQUIRED IMPORTED_TARGET libkim-api>=${KIM-API_MIN_VERSION})
     target_link_libraries(lammps PRIVATE PkgConfig::KIM-API)
   endif()
 endif()

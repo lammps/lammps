@@ -16,7 +16,7 @@ These are the accelerator packages currently in LAMMPS, either as
 standard or user packages:
 
 +-----------------------------------------+-------------------------------------------------------+
-| :doc:`GPU Package <Speed_gpu>`          | for NVIDIA GPUs as well as OpenCL support             |
+| :doc:`GPU Package <Speed_gpu>`          | for GPUs via CUDA, OpenCL, or ROCm HIP                |
 +-----------------------------------------+-------------------------------------------------------+
 | :doc:`USER-INTEL Package <Speed_intel>` | for Intel CPUs and Intel Xeon Phi                     |
 +-----------------------------------------+-------------------------------------------------------+
@@ -43,7 +43,7 @@ three kinds of hardware, via the listed packages:
 +-----------------+-----------------------------------------------------------------------------------------------------------------------------+
 | Many-core CPUs  | :doc:`USER-INTEL <Speed_intel>`, :doc:`KOKKOS <Speed_kokkos>`, :doc:`USER-OMP <Speed_omp>`, :doc:`OPT <Speed_opt>` packages |
 +-----------------+-----------------------------------------------------------------------------------------------------------------------------+
-| NVIDIA/AMD GPUs | :doc:`GPU <Speed_gpu>`, :doc:`KOKKOS <Speed_kokkos>` packages                                                               |
+| GPUs            | :doc:`GPU <Speed_gpu>`, :doc:`KOKKOS <Speed_kokkos>` packages                                                               |
 +-----------------+-----------------------------------------------------------------------------------------------------------------------------+
 | Intel Phi/AVX   | :doc:`USER-INTEL <Speed_intel>`, :doc:`KOKKOS <Speed_kokkos>` packages                                                      |
 +-----------------+-----------------------------------------------------------------------------------------------------------------------------+
@@ -154,8 +154,8 @@ Here is a brief summary of what the various packages provide.  Details
 are in the individual accelerator sections.
 
 * Styles with a "gpu" suffix are part of the GPU package and can be run
-  on NVIDIA or AMD GPUs.  The speed-up on a GPU depends on a variety of
-  factors, discussed in the accelerator sections.
+  on Intel, NVIDIA, or AMD GPUs.  The speed-up on a GPU depends on a
+  variety of factors, discussed in the accelerator sections.
 * Styles with an "intel" suffix are part of the USER-INTEL
   package. These styles support vectorized single and mixed precision
   calculations, in addition to full double precision.  In extreme cases,

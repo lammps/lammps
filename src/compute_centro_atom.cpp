@@ -269,7 +269,7 @@ void ComputeCentroAtom::compute_peratom()
             delx = x[jj][0] + x[kk][0] - 2.0*xtmp;
             dely = x[jj][1] + x[kk][1] - 2.0*ytmp;
             delz = x[jj][2] + x[kk][2] - 2.0*ztmp;
-            double rsq = delx*delx + dely*dely + delz*delz;
+            rsq = delx*delx + dely*dely + delz*delz;
             pairs[n++] = rsq;
 
             if (rsq < rsq2) {
@@ -436,7 +436,7 @@ void ComputeCentroAtom::select2(int k, int n, double *arr, int *iarr)
 
 double ComputeCentroAtom::memory_usage()
 {
-  double bytes = nmax * sizeof(double);
-  if (axes_flag) bytes += size_peratom_cols*nmax * sizeof(double);
+  double bytes = (double)nmax * sizeof(double);
+  if (axes_flag) bytes += (double)size_peratom_cols*nmax * sizeof(double);
   return bytes;
 }

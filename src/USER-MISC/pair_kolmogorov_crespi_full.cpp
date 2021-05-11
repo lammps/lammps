@@ -21,26 +21,36 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_kolmogorov_crespi_full.h"
-#include <cmath>
-
-#include <cstring>
 
 #include "atom.h"
+#include "citeme.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
-#include "neighbor.h"
+#include "memory.h"
+#include "my_page.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "my_page.h"
-#include "memory.h"
-#include "error.h"
+#include "neighbor.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
 #define MAXLINE 1024
 #define DELTA 4
 #define PGDELTA 1
+
+static const char cite_kc[] =
+  "@Article{Ouyang2018\n"
+  " author = {W. Ouyang, D. Mandelli, M. Urbakh, and O. Hod},\n"
+  " title = {Nanoserpents: Graphene Nanoribbon Motion on Two-Dimensional Hexagonal Materials},\n"
+  " journal = {Nano Letters},\n"
+  " volume =  18,\n"
+  " pages =   {6009}\n"
+  " year =    2018,\n"
+  "}\n\n";
 
 /* ---------------------------------------------------------------------- */
 
@@ -49,17 +59,14 @@ PairKolmogorovCrespiFull::PairKolmogorovCrespiFull(LAMMPS *lmp) : Pair(lmp)
   restartinfo = 0;
   one_coeff = 1;
 
+  if (lmp->citeme) lmp->citeme->add(cite_kc);
+
   nextra = 2;
   pvector = new double[nextra];
 
   // initialize element to parameter maps
-  nelements = 0;
-  elements = nullptr;
-  nparams = maxparam = 0;
   params = nullptr;
-  elem2param = nullptr;
   cutKCsq = nullptr;
-  map = nullptr;
 
   nmax = 0;
   maxlocal = 0;
@@ -98,13 +105,9 @@ PairKolmogorovCrespiFull::~PairKolmogorovCrespiFull()
     memory->destroy(offset);
   }
 
-  if (elements)
-    for (int i = 0; i < nelements; i++) delete [] elements[i];
-  delete [] elements;
   memory->destroy(params);
   memory->destroy(elem2param);
   memory->destroy(cutKCsq);
-  if (allocated) delete [] map;
 }
 
 /* ----------------------------------------------------------------------
@@ -156,68 +159,9 @@ void PairKolmogorovCrespiFull::settings(int narg, char **arg)
 
 void PairKolmogorovCrespiFull::coeff(int narg, char **arg)
 {
-  int i,j,n;
-
-  if (narg != 3 + atom->ntypes)
-    error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
-
-  // insure I,J args are * *
-
-  if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
-    error->all(FLERR,"Incorrect args for pair coefficients");
-
-  // read args that map atom types to elements in potential file
-  // map[i] = which element the Ith atom type is, -1 if "NULL"
-  // nelements = # of unique elements
-  // elements = list of element names
-
-  if (elements) {
-    for (i = 0; i < nelements; i++) delete [] elements[i];
-    delete [] elements;
-  }
-  elements = new char*[atom->ntypes];
-  for (i = 0; i < atom->ntypes; i++) elements[i] = nullptr;
-
-  nelements = 0;
-  for (i = 3; i < narg; i++) {
-    if (strcmp(arg[i],"NULL") == 0) {
-      map[i-2] = -1;
-      continue;
-    }
-    for (j = 0; j < nelements; j++)
-      if (strcmp(arg[i],elements[j]) == 0) break;
-    map[i-2] = j;
-    if (j == nelements) {
-      n = strlen(arg[i]) + 1;
-      elements[j] = new char[n];
-      strcpy(elements[j],arg[i]);
-      nelements++;
-    }
-  }
-
-
+  map_element2type(narg-3,arg+3);
   read_file(arg[2]);
-
-  // clear setflag since coeff() called once with I,J = * *
-
-  n = atom->ntypes;
-  for (int i = 1; i <= n; i++)
-    for (int j = i; j <= n; j++)
-      setflag[i][j] = 0;
-
-  // set setflag i,j for type pairs where both are mapped to elements
-
-  int count = 0;
-  for (int i = 1; i <= n; i++)
-    for (int j = i; j <= n; j++)
-      if (map[i] >= 0 && map[j] >= 0) {
-        setflag[i][j] = 1;
-        cut[i][j] = cut_global;
-        count++;
-      }
-
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 
@@ -787,19 +731,19 @@ void PairKolmogorovCrespiFull::calc_normal()
     i = ilist[ii];
 
     //   Initialize the arrays
-    for (id = 0; id < 3; id++){
+    for (id = 0; id < 3; id++) {
       pv12[id] = 0.0;
       pv31[id] = 0.0;
       pv23[id] = 0.0;
       n1[id] = 0.0;
       dni[id] = 0.0;
       normal[i][id] = 0.0;
-      for (ip = 0; ip < 3; ip++){
+      for (ip = 0; ip < 3; ip++) {
         vet[ip][id] = 0.0;
         dnn[ip][id] = 0.0;
         dpvdri[ip][id] = 0.0;
         dnormdri[ip][id][i] = 0.0;
-        for (m = 0; m < 3; m++){
+        for (m = 0; m < 3; m++) {
           dpv12[ip][id][m] = 0.0;
           dpv31[ip][id][m] = 0.0;
           dpv23[ip][id][m] = 0.0;
@@ -834,10 +778,10 @@ void PairKolmogorovCrespiFull::calc_normal()
       normal[i][1] = 0.0;
       normal[i][2] = 1.0;
       // derivatives of normal vector is zero
-      for (id = 0; id < 3; id++){
-        for (ip = 0; ip < 3; ip++){
+      for (id = 0; id < 3; id++) {
+        for (ip = 0; ip < 3; ip++) {
           dnormdri[id][ip][i] = 0.0;
-          for (m = 0; m < 3; m++){
+          for (m = 0; m < 3; m++) {
             dnormal[id][ip][m][i] = 0.0;
           }
         }
@@ -881,8 +825,8 @@ void PairKolmogorovCrespiFull::calc_normal()
       dpv12[2][2][1] =  0.0;
 
       // derivatives respect to the third neighbor, atom n
-      for (id = 0; id < 3; id++){
-        for (ip = 0; ip < 3; ip++){
+      for (id = 0; id < 3; id++) {
+        for (ip = 0; ip < 3; ip++) {
           dpv12[id][ip][2] = 0.0;
         }
       }
@@ -903,16 +847,16 @@ void PairKolmogorovCrespiFull::calc_normal()
       dni[1] = (n1[0]*dpvdri[0][1] + n1[1]*dpvdri[1][1] + n1[2]*dpvdri[2][1])/nn;
       dni[2] = (n1[0]*dpvdri[0][2] + n1[1]*dpvdri[1][2] + n1[2]*dpvdri[2][2])/nn;
       // derivatives of unit vector ni respect to ri, the result is 3x3 matrix
-      for (id = 0; id < 3; id++){
-        for (ip = 0; ip < 3; ip++){
+      for (id = 0; id < 3; id++) {
+        for (ip = 0; ip < 3; ip++) {
           dnormdri[id][ip][i] = dpvdri[id][ip]/nn - n1[id]*dni[ip]/nn2;
         }
       }
 
       // derivatives of non-normalized normal vector, dn1:3x3x3 array
-      for (id = 0; id < 3; id++){
-        for (ip = 0; ip < 3; ip++){
-          for (m = 0; m < 3; m++){
+      for (id = 0; id < 3; id++) {
+        for (ip = 0; ip < 3; ip++) {
+          for (m = 0; m < 3; m++) {
             dn1[id][ip][m] = dpv12[id][ip][m];
           }
         }
@@ -920,16 +864,16 @@ void PairKolmogorovCrespiFull::calc_normal()
       // derivatives of nn, dnn:3x3 vector
       // dnn[id][m]: the derivative of nn respect to r[id][m], id,m=0,1,2
       // r[id][m]: the id's component of atom m
-      for (m = 0; m < 3; m++){
-        for (id = 0; id < 3; id++){
+      for (m = 0; m < 3; m++) {
+        for (id = 0; id < 3; id++) {
           dnn[id][m] = (n1[0]*dn1[0][id][m] + n1[1]*dn1[1][id][m] + n1[2]*dn1[2][id][m])/nn;
         }
       }
       // dnormal[id][ip][m][i]: the derivative of normal[id] respect to r[ip][m], id,ip=0,1,2
       // for atom m, which is a neighbor atom of atom i, m=0,jnum-1
-      for (m = 0; m < 3; m++){
-        for (id = 0; id < 3; id++){
-          for (ip = 0; ip < 3; ip++){
+      for (m = 0; m < 3; m++) {
+        for (id = 0; id < 3; id++) {
+          for (ip = 0; ip < 3; ip++) {
             dnormal[id][ip][m][i] = dn1[id][ip][m]/nn - n1[id]*dnn[ip][m]/nn2;
           }
         }
@@ -937,7 +881,7 @@ void PairKolmogorovCrespiFull::calc_normal()
     }
 //##############################################################################################
 
-    else if(cont == 3) {
+    else if (cont == 3) {
       // for the atoms at the edge who has only two neighbor atoms
       pv12[0] = vet[0][1]*vet[1][2] - vet[1][1]*vet[0][2];
       pv12[1] = vet[0][2]*vet[1][0] - vet[1][2]*vet[0][0];
@@ -964,8 +908,8 @@ void PairKolmogorovCrespiFull::calc_normal()
       dpv12[2][2][1] =  0.0;
 
       // derivatives respect to the third neighbor, atom n
-      for (id = 0; id < 3; id++){
-        for (ip = 0; ip < 3; ip++){
+      for (id = 0; id < 3; id++) {
+        for (ip = 0; ip < 3; ip++) {
           dpv12[id][ip][2] = 0.0;
         }
       }
@@ -997,8 +941,8 @@ void PairKolmogorovCrespiFull::calc_normal()
       dpv31[2][2][2] =  0.0;
 
       // derivatives respect to the second neighbor, atom l
-      for (id = 0; id < 3; id++){
-        for (ip = 0; ip < 3; ip++){
+      for (id = 0; id < 3; id++) {
+        for (ip = 0; ip < 3; ip++) {
           dpv31[id][ip][1] = 0.0;
         }
       }
@@ -1007,8 +951,8 @@ void PairKolmogorovCrespiFull::calc_normal()
       pv23[1] = vet[1][2]*vet[2][0] - vet[2][2]*vet[1][0];
       pv23[2] = vet[1][0]*vet[2][1] - vet[2][0]*vet[1][1];
       // derivatives respect to the second neighbor, atom k
-      for (id = 0; id < 3; id++){
-        for (ip = 0; ip < 3; ip++){
+      for (id = 0; id < 3; id++) {
+        for (ip = 0; ip < 3; ip++) {
           dpv23[id][ip][0] = 0.0;
         }
       }
@@ -1048,16 +992,16 @@ void PairKolmogorovCrespiFull::calc_normal()
       normal[i][2] = n1[2]/nn;
 
       // for the central atoms, dnormdri is always zero
-      for (id = 0; id < 3; id++){
-        for (ip = 0; ip < 3; ip++){
+      for (id = 0; id < 3; id++) {
+        for (ip = 0; ip < 3; ip++) {
           dnormdri[id][ip][i] = 0.0;
         }
       } // end of derivatives of normals respect to atom i
 
       // derivatives of non-normalized normal vector, dn1:3x3x3 array
-      for (id = 0; id < 3; id++){
-        for (ip = 0; ip < 3; ip++){
-          for (m = 0; m < 3; m++){
+      for (id = 0; id < 3; id++) {
+        for (ip = 0; ip < 3; ip++) {
+          for (m = 0; m < 3; m++) {
             dn1[id][ip][m] = (dpv12[id][ip][m] + dpv23[id][ip][m] + dpv31[id][ip][m])/cont;
           }
         }
@@ -1065,16 +1009,16 @@ void PairKolmogorovCrespiFull::calc_normal()
       // derivatives of nn, dnn:3x3 vector
       // dnn[id][m]: the derivative of nn respect to r[id][m], id,m=0,1,2
       // r[id][m]: the id's component of atom m
-      for (m = 0; m < 3; m++){
-        for (id = 0; id < 3; id++){
+      for (m = 0; m < 3; m++) {
+        for (id = 0; id < 3; id++) {
           dnn[id][m] = (n1[0]*dn1[0][id][m] + n1[1]*dn1[1][id][m] + n1[2]*dn1[2][id][m])/nn;
         }
       }
       // dnormal[id][ip][m][i]: the derivative of normal[id] respect to r[ip][m], id,ip=0,1,2
       // for atom m, which is a neighbor atom of atom i, m=0,jnum-1
-      for (m = 0; m < 3; m++){
-        for (id = 0; id < 3; id++){
-          for (ip = 0; ip < 3; ip++){
+      for (m = 0; m < 3; m++) {
+        for (id = 0; id < 3; id++) {
+          for (ip = 0; ip < 3; ip++) {
             dnormal[id][ip][m][i] = dn1[id][ip][m]/nn - n1[id]*dnn[ip][m]/nn2;
           }
         }

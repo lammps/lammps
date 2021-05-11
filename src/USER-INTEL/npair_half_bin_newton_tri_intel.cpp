@@ -73,7 +73,7 @@ hbnti(NeighList *list, IntelBuffers<flt_t,acc_t> *buffers) {
   buffers->grow_list(list, atom->nlocal, comm->nthreads, 0, off_end);
 
   int need_ic = 0;
-  if (atom->molecular)
+  if (atom->molecular != Atom::ATOMIC)
     dminimum_image_check(need_ic, neighbor->cutneighmax, neighbor->cutneighmax,
                          neighbor->cutneighmax);
 

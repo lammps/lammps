@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -46,9 +46,9 @@ class PairCoulDebyeKokkos : public PairCoulDebye {
 
   struct params_coul{
     KOKKOS_INLINE_FUNCTION
-    params_coul(){cutsq=0,scale=0;};
+    params_coul() {cutsq=0,scale=0;};
     KOKKOS_INLINE_FUNCTION
-    params_coul(int /*i*/){cutsq=0,scale=0;};
+    params_coul(int /*i*/) {cutsq=0,scale=0;};
     F_FLOAT cutsq, scale;
   };
 

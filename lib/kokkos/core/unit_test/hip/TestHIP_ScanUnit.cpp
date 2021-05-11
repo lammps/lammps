@@ -75,7 +75,7 @@ template <int N>
 void test_intra_block_scan() {
   dim3 grid(1, 1, 1);
   dim3 block(1, N, 1);
-  start_intra_block_scan<N><<<grid, block, 0, 0>>>();
+  start_intra_block_scan<N><<<grid, block, 0, nullptr>>>();
 }
 
 TEST(TEST_CATEGORY, scan_unit) {

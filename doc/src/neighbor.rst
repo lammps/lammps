@@ -49,7 +49,9 @@ sometimes be faster.  Either style should give the same answers.
 
 The *multi* style is a modified binning algorithm that is useful for
 systems with a wide range of cutoff distances, e.g. due to different
-size particles.  For the *bin* style, the bin size is set to 1/2 of
+size particles. For granular pair styles, cutoffs are set to the
+sum of the maximum atomic radii for each atom type.
+For the *bin* style, the bin size is set to 1/2 of
 the largest cutoff distance between any pair of atom types and a
 single set of bins is defined to search over for all atom types.  This
 can be inefficient if one pair of types has a very long cutoff, but
@@ -57,8 +59,10 @@ other type pairs have a much shorter cutoff.  For style *multi* the
 bin size is set to 1/2 of the shortest cutoff distance and multiple
 sets of bins are defined to search over for different atom types.
 This imposes some extra setup overhead, but the searches themselves
-may be much faster for the short-cutoff cases.  See the :doc:`comm_modify mode multi <comm_modify>` command for a communication option
-that may also be beneficial for simulations of this kind.
+may be much faster for the short-cutoff cases.
+See the :doc:`comm_modify mode multi <comm_modify>` command for a
+communication option that may also be beneficial for simulations of
+this kind.
 
 The :doc:`neigh_modify <neigh_modify>` command has additional options
 that control how often neighbor lists are built and which pairs are

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -56,12 +56,6 @@
    Designed for use with the kim-api-2.1.0 (and newer) package
 ------------------------------------------------------------------------- */
 
-#ifdef COMMAND_CLASS
-
-CommandStyle(kim_init,KimInit)
-
-#else
-
 #ifndef LMP_KIM_INIT_H
 #define LMP_KIM_INIT_H
 
@@ -76,20 +70,19 @@ class KimInit : protected Pointers {
  public:
   KimInit(class LAMMPS *lmp) : Pointers(lmp) {};
   void command(int, char **);
- private:
   enum model_type_enum {MO, SM};
+  static void write_log_cite(class LAMMPS *, model_type_enum, char *);
+ private:
   model_type_enum model_type;
   bool unit_conversion_mode;
 
   void determine_model_type_and_units(char *, char *, char **, KIM_Model *&);
-  void write_log_cite(char *);
   void do_init(char *, char *, char *, KIM_Model *&);
   void do_variables(const std::string &, const std::string &);
 };
 
 }
 
-#endif
 #endif
 
 /* ERROR/WARNING messages:

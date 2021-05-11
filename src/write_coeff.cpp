@@ -22,7 +22,6 @@
 #include "force.h"
 #include "improper.h"
 #include "pair.h"
-#include "universe.h"
 
 #include <cctype>
 #include <cstring>
@@ -43,11 +42,7 @@ void WriteCoeff::command(int narg, char **arg)
 
   if (narg != 1) error->all(FLERR,"Illegal write_coeff command");
 
-  int n = strlen(arg[0]) + 5;
-  char *file = new char[n];
-
-  strcpy(file,"tmp.");
-  strcat(file,arg[0]);
+  char *file = utils::strdup(fmt::format("tmp.{}",arg[0]));
 
   // initialize relevant styles
   lmp->init();
@@ -57,8 +52,8 @@ void WriteCoeff::command(int narg, char **arg)
     FILE *one = fopen(file,"wb+");
 
     if (one == nullptr)
-      error->one(FLERR,fmt::format("Cannot open coeff file {}: {}",
-                                   file, utils::getsyserror()));
+      error->one(FLERR,"Cannot open coeff file {}: {}",
+                                   file, utils::getsyserror());
 
     if (force->pair && force->pair->writedata) {
       fprintf(one,"# pair_style %s\npair_coeff\n",force->pair_style);
@@ -91,13 +86,13 @@ void WriteCoeff::command(int narg, char **arg)
 
     FILE *two = fopen(file+4,"w");
     if (two == nullptr)
-      error->one(FLERR,fmt::format("Cannot open coeff file {}: {}",
-                                   file+4, utils::getsyserror()));
+      error->one(FLERR,"Cannot open coeff file {}: {}",
+                                   file+4, utils::getsyserror());
 
     fprintf(two,"# LAMMPS coeff file via write_coeff, version %s\n",
             lmp->version);
 
-    while(1) {
+    while (1) {
       int coeff_mode = REGULAR_MODE;
       if (fgets(str,256,one) == nullptr) break;
 
@@ -114,7 +109,7 @@ void WriteCoeff::command(int narg, char **arg)
       const char *section = (const char *)"";
       fputs(str,two);      // style
       utils::sfgets(FLERR,str,256,one,file,error);  // coeff
-      n = strlen(str);
+      int n = strlen(str);
       strcpy(coeff,str);
       coeff[n-1] = '\0';
       utils::sfgets(FLERR,str,256,one,file,error);

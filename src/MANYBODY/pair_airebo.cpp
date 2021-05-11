@@ -3379,7 +3379,7 @@ void PairAIREBO::read_file(char *filename)
       break;
 
     default:
-      error->one(FLERR, fmt::format("Unknown REBO style variant {}",variant));
+      error->one(FLERR,"Unknown REBO style variant {}",variant);
     }
 
     PotentialFileReader reader(lmp, filename, potential_name);
@@ -3391,7 +3391,7 @@ void PairAIREBO::read_file(char *filename)
     char * line = reader.next_line();
 
     if (std::string(line).find(header) == std::string::npos) {
-      error->one(FLERR, fmt::format("Potential file does not match AIREBO/REBO style variant: {}: {}", header, line));
+      error->one(FLERR,"Potential file does not match AIREBO/REBO style variant: {}: {}", header, line);
     }
 
     // skip remaining comments
@@ -3489,7 +3489,7 @@ void PairAIREBO::read_file(char *filename)
       // global parameters
       current_section = "global parameters";
 
-      for(int i = 0; i < (int)params.size(); i++) {
+      for (int i = 0; i < (int)params.size(); i++) {
         *params[i] = reader.next_double();
       }
 
@@ -4381,22 +4381,22 @@ void PairAIREBO::spline_init()
 
   //  make top end of piCC flat instead of zero
   i = 4;
-  for (j = 0; j < 4; j++){
-      for (k = 1; k < 11; k++){
+  for (j = 0; j < 4; j++) {
+      for (k = 1; k < 11; k++) {
           piCCf[i][j][k] = piCCf[i-1][j][k];
       }
   }
-  for (i = 0; i < 4; i++){ // also enforces some symmetry
-      for (j = i+1; j < 5; j++){
-          for (k = 1; k < 11; k++){
+  for (i = 0; i < 4; i++) { // also enforces some symmetry
+      for (j = i+1; j < 5; j++) {
+          for (k = 1; k < 11; k++) {
               piCCf[i][j][k] = piCCf[j][i][k];
           }
       }
   }
   for (k = 1; k < 11; k++) piCCf[4][4][k] = piCCf[3][4][k];
   k = 10;
-  for (i = 0; i < 5; i++){
-      for (j = 0; j < 5; j++){
+  for (i = 0; i < 5; i++) {
+      for (j = 0; j < 5; j++) {
       piCCf[i][j][k] = piCCf[i][j][k-1];
       }
   }
@@ -4424,22 +4424,22 @@ void PairAIREBO::spline_init()
  // also enforces some symmetry
 
   i = 4;
-  for (j = 0; j < 4; j++){
-      for (k = 1; k < 11; k++){
+  for (j = 0; j < 4; j++) {
+      for (k = 1; k < 11; k++) {
           piCHf[i][j][k] = piCHf[i-1][j][k];
       }
   }
-  for (i = 0; i < 4; i++){
-      for (j = i+1; j < 5; j++){
-          for (k = 1; k < 11; k++){
+  for (i = 0; i < 4; i++) {
+      for (j = i+1; j < 5; j++) {
+          for (k = 1; k < 11; k++) {
               piCHf[i][j][k] = piCHf[j][i][k];
           }
       }
   }
   for (k = 1; k < 11; k++) piCHf[4][4][k] = piCHf[3][4][k];
   k = 10;
-  for (i = 0; i < 5; i++){
-      for (j = 0; j < 5; j++){
+  for (i = 0; i < 5; i++) {
+      for (j = 0; j < 5; j++) {
       piCHf[i][j][k] = piCHf[i][j][k-1];
       }
   }
@@ -4497,12 +4497,12 @@ void PairAIREBO::spline_init()
 double PairAIREBO::memory_usage()
 {
   double bytes = 0.0;
-  bytes += maxlocal * sizeof(int);
-  bytes += maxlocal * sizeof(int *);
+  bytes += (double)maxlocal * sizeof(int);
+  bytes += (double)maxlocal * sizeof(int *);
 
   for (int i = 0; i < comm->nthreads; i++)
     bytes += ipage[i].size();
 
-  bytes += 2*maxlocal * sizeof(double);
+  bytes += (double)2*maxlocal * sizeof(double);
   return bytes;
 }

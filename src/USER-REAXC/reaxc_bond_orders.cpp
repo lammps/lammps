@@ -67,7 +67,7 @@ void Add_dBond_to_Forces_NPT( int i, int pj, simulation_data *data,
   coef.C2dDelta = bo_ij->C2dbo * (workspace->CdDelta[i]+workspace->CdDelta[j]);
   coef.C3dDelta = bo_ij->C3dbo * (workspace->CdDelta[i]+workspace->CdDelta[j]);
 
-  for( pk = Start_Index(i, bonds); pk < End_Index(i, bonds); ++pk ) {
+  for (pk = Start_Index(i, bonds); pk < End_Index(i, bonds); ++pk) {
     nbr_k = &(bonds->select.bond_list[pk]);
     k = nbr_k->nbr;
 
@@ -100,7 +100,7 @@ void Add_dBond_to_Forces_NPT( int i, int pj, simulation_data *data,
   /* force */
   rvec_Add( workspace->f[i], temp );
 
-  for( pk = Start_Index(j, bonds); pk < End_Index(j, bonds); ++pk ) {
+  for (pk = Start_Index(j, bonds); pk < End_Index(j, bonds); ++pk) {
     nbr_k = &(bonds->select.bond_list[pk]);
     k = nbr_k->nbr;
 
@@ -217,7 +217,7 @@ void Add_dBond_to_Forces( reax_system *system, int i, int pj,
   }
 
   // forces on k: i neighbor
-  for( pk = Start_Index(i, bonds); pk < End_Index(i, bonds); ++pk ) {
+  for (pk = Start_Index(i, bonds); pk < End_Index(i, bonds); ++pk) {
     nbr_k = &(bonds->select.bond_list[pk]);
     k = nbr_k->nbr;
 
@@ -237,7 +237,7 @@ void Add_dBond_to_Forces( reax_system *system, int i, int pj,
   }
 
   // forces on k: j neighbor
-  for( pk = Start_Index(j, bonds); pk < End_Index(j, bonds); ++pk ) {
+  for (pk = Start_Index(j, bonds); pk < End_Index(j, bonds); ++pk) {
     nbr_k = &(bonds->select.bond_list[pk]);
     k = nbr_k->nbr;
 
@@ -262,7 +262,7 @@ void Add_dBond_to_Forces( reax_system *system, int i, int pj,
 int BOp( storage *workspace, reax_list *bonds, double bo_cut,
          int i, int btop_i, far_neighbor_data *nbr_pj,
          single_body_parameters *sbp_i, single_body_parameters *sbp_j,
-         two_body_parameters *twbp ) {
+         two_body_parameters *twbp) {
   int j, btop_j;
   double r2, C12, C34, C56;
   double Cln_BOp_s, Cln_BOp_pi, Cln_BOp_pi2;
@@ -383,7 +383,7 @@ void BO( reax_system *system, control_params * /*control*/, simulation_data * /*
   p_boc2 = system->reax_param.gp.l[1];
 
  /* Calculate Deltaprime, Deltaprime_boc values */
-  for( i = 0; i < system->N; ++i ) {
+  for (i = 0; i < system->N; ++i) {
     type_i = system->my_atoms[i].type;
     if (type_i < 0) continue;
     sbp_i = &(system->reax_param.sbp[type_i]);
@@ -395,7 +395,7 @@ void BO( reax_system *system, control_params * /*control*/, simulation_data * /*
   }
 
   /* Corrected Bond Order calculations */
-  for( i = 0; i < system->N; ++i ) {
+  for (i = 0; i < system->N; ++i) {
     type_i = system->my_atoms[i].type;
     if (type_i < 0) continue;
     sbp_i = &(system->reax_param.sbp[type_i]);
@@ -405,7 +405,7 @@ void BO( reax_system *system, control_params * /*control*/, simulation_data * /*
     start_i = Start_Index(i, bonds);
     end_i = End_Index(i, bonds);
 
-    for( pj = start_i; pj < end_i; ++pj ) {
+    for (pj = start_i; pj < end_i; ++pj) {
       j = bonds->select.bond_list[pj].nbr;
       type_j = system->my_atoms[j].type;
       if (type_j < 0) continue;
@@ -558,7 +558,7 @@ void BO( reax_system *system, control_params * /*control*/, simulation_data * /*
   }
 
   p_lp1 = system->reax_param.gp.l[15];
-  for( j = 0; j < system->N; ++j ){
+  for (j = 0; j < system->N; ++j) {
     type_j = system->my_atoms[j].type;
     if (type_j < 0) continue;
     sbp_j = &(system->reax_param.sbp[ type_j ]);

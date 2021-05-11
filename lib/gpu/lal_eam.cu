@@ -36,6 +36,16 @@ _texture( z2r_sp1_tex,int4);
 _texture( z2r_sp2_tex,int4);
 #endif
 
+#if (__CUDACC_VER_MAJOR__ >= 11)
+#define fp_tex fp_
+#define rhor_sp1_tex rhor_spline1
+#define rhor_sp2_tex rhor_spline2
+#define frho_sp1_tex frho_spline1
+#define frho_sp2_tex frho_spline2
+#define z2r_sp1_tex z2r_spline1
+#define z2r_sp2_tex z2r_spline2
+#endif
+
 #else
 
 #define pos_tex x_
@@ -52,30 +62,33 @@ _texture( z2r_sp2_tex,int4);
 #define MIN(A,B) ((A) < (B) ? (A) : (B))
 #define MAX(A,B) ((A) > (B) ? (A) : (B))
 
-#if (ARCH < 300)
+#if (SHUFFLE_AVAIL == 0)
+
+#define local_allocate_store_energy_fp()                                    \
+    __local acctyp red_acc[BLOCK_PAIR];
 
 #define store_energy_fp(rho,energy,ii,inum,tid,t_per_atom,offset,           \
-                        eflag,vflag,engv,rdrho,nrho,i,rhomax)               \
+                        eflag,vflag,engv,rdrho,nrho,i,rhomax,tfrho)         \
   if (t_per_atom>1) {                                                       \
-    __local acctyp red_acc[BLOCK_PAIR];                                     \
     red_acc[tid]=rho;                                                       \
     for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                         \
+      simdsync();                                                           \
       if (offset < s)                                                       \
          red_acc[tid] += red_acc[tid+s];                                    \
       }                                                                     \
       rho=red_acc[tid];                                                     \
   }                                                                         \
-  if (offset==0) {                                                          \
+  if (offset==0 && ii<inum) {                                               \
     numtyp p = rho*rdrho + (numtyp)1.0;                                     \
     int m=p;                                                                \
     m = MAX(1,MIN(m,nrho-1));                                               \
     p -= m;                                                                 \
     p = MIN(p,(numtyp)1.0);                                                 \
-    int index = type2frho[itype]*(nrho+1)+m;                                \
+    int index = tfrho*(nrho+1)+m;                                           \
     numtyp4 coeff; fetch4(coeff,index,frho_sp1_tex);                        \
     numtyp fp = (coeff.x*p + coeff.y)*p + coeff.z;                          \
     fp_[i]=fp;                                                              \
-    if (eflag>0) {                                                          \
+    if (EVFLAG && eflag) {                                                  \
       fetch4(coeff,index,frho_sp2_tex);                                     \
       energy = ((coeff.x*p + coeff.y)*p + coeff.z)*p + coeff.w;             \
       if (rho > rhomax) energy += fp*(rho-rhomax);                          \
@@ -83,15 +96,18 @@ _texture( z2r_sp2_tex,int4);
     }                                                                       \
   }
 
+#define local_allocate_store_answers_eam()                                  \
+    __local acctyp red_acc[6][BLOCK_PAIR];
+
 #define store_answers_eam(f, energy, virial, ii, inum, tid, t_per_atom,     \
                       offset, elag, vflag, ans, engv)                       \
   if (t_per_atom>1) {                                                       \
-    __local acctyp red_acc[6][BLOCK_PAIR];                                  \
     red_acc[0][tid]=f.x;                                                    \
     red_acc[1][tid]=f.y;                                                    \
     red_acc[2][tid]=f.z;                                                    \
     red_acc[3][tid]=energy;                                                 \
     for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                         \
+      simdsync();                                                           \
       if (offset < s) {                                                     \
         for (int r=0; r<4; r++)                                             \
           red_acc[r][tid] += red_acc[r][tid+s];                             \
@@ -101,10 +117,12 @@ _texture( z2r_sp2_tex,int4);
     f.y=red_acc[1][tid];                                                    \
     f.z=red_acc[2][tid];                                                    \
     energy=red_acc[3][tid];                                                 \
-    if (vflag>0) {                                                          \
+    if (EVFLAG && vflag) {                                                  \
+      simdsync();                                                           \
       for (int r=0; r<6; r++)                                               \
         red_acc[r][tid]=virial[r];                                          \
       for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                       \
+        simdsync();                                                         \
         if (offset < s) {                                                   \
           for (int r=0; r<6; r++)                                           \
             red_acc[r][tid] += red_acc[r][tid+s];                           \
@@ -114,13 +132,13 @@ _texture( z2r_sp2_tex,int4);
         virial[r]=red_acc[r][tid];                                          \
     }                                                                       \
   }                                                                         \
-  if (offset==0) {                                                          \
+  if (offset==0 && ii<inum) {                                               \
     int ei=ii;                                                              \
-    if (eflag>0) {                                                          \
+    if (EVFLAG && eflag) {                                                  \
       engv[ei]+=energy*(acctyp)0.5;                                         \
       ei+=inum;                                                             \
     }                                                                       \
-    if (vflag>0) {                                                          \
+    if (EVFLAG && vflag) {                                                  \
       for (int i=0; i<6; i++) {                                             \
         engv[ei]=virial[i]*(acctyp)0.5;                                     \
         ei+=inum;                                                           \
@@ -131,53 +149,57 @@ _texture( z2r_sp2_tex,int4);
 
 #else
 
+#define local_allocate_store_energy_fp()
+
 #define store_energy_fp(rho,energy,ii,inum,tid,t_per_atom,offset,           \
-                        eflag,vflag,engv,rdrho,nrho,i,rhomax)               \
+                        eflag,vflag,engv,rdrho,nrho,i,rhomax,tfrho)         \
   if (t_per_atom>1) {                                                       \
     for (unsigned int s=t_per_atom/2; s>0; s>>=1)                           \
-        rho += shfl_xor(rho, s, t_per_atom);                                \
+      rho += shfl_down(rho, s, t_per_atom);                                 \
   }                                                                         \
-  if (offset==0) {                                                          \
+  if (offset==0 && ii<inum) {                                               \
     numtyp p = rho*rdrho + (numtyp)1.0;                                     \
     int m=p;                                                                \
     m = MAX(1,MIN(m,nrho-1));                                               \
     p -= m;                                                                 \
     p = MIN(p,(numtyp)1.0);                                                 \
-    int index = type2frho[itype]*(nrho+1)+m;                                \
+    int index = tfrho*(nrho+1)+m;                                           \
     numtyp4 coeff; fetch4(coeff,index,frho_sp1_tex);                        \
     numtyp fp = (coeff.x*p + coeff.y)*p + coeff.z;                          \
     fp_[i]=fp;                                                              \
-    if (eflag>0) {                                                          \
+    if (EVFLAG && eflag) {                                                  \
       fetch4(coeff,index,frho_sp2_tex);                                     \
       energy = ((coeff.x*p + coeff.y)*p + coeff.z)*p + coeff.w;             \
       if (rho > rhomax) energy += fp*(rho-rhomax);                          \
-      engv[ii]=energy;                                          \
+      engv[ii]=energy;                                                      \
     }                                                                       \
   }
+
+#define local_allocate_store_answers_eam()
 
 #define store_answers_eam(f, energy, virial, ii, inum, tid, t_per_atom,     \
                           offset, eflag, vflag, ans, engv)                  \
   if (t_per_atom>1) {                                                       \
     for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                         \
-        f.x += shfl_xor(f.x, s, t_per_atom);                                \
-        f.y += shfl_xor(f.y, s, t_per_atom);                                \
-        f.z += shfl_xor(f.z, s, t_per_atom);                                \
-        energy += shfl_xor(energy, s, t_per_atom);                          \
+      f.x += shfl_down(f.x, s, t_per_atom);                                 \
+      f.y += shfl_down(f.y, s, t_per_atom);                                 \
+      f.z += shfl_down(f.z, s, t_per_atom);                                 \
+      if (EVFLAG) energy += shfl_down(energy, s, t_per_atom);               \
     }                                                                       \
-    if (vflag>0) {                                                          \
+    if (EVFLAG && vflag) {                                                  \
       for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                       \
-          for (int r=0; r<6; r++)                                           \
-            virial[r] += shfl_xor(virial[r], s, t_per_atom);                \
+        for (int r=0; r<6; r++)                                             \
+          virial[r] += shfl_down(virial[r], s, t_per_atom);                 \
       }                                                                     \
     }                                                                       \
   }                                                                         \
-  if (offset==0) {                                                          \
+  if (offset==0 && ii<inum) {                                               \
     int ei=ii;                                                              \
-    if (eflag>0) {                                                          \
+    if (EVFLAG && eflag) {                                                  \
       engv[ei]+=energy*(acctyp)0.5;                                         \
       ei+=inum;                                                             \
     }                                                                       \
-    if (vflag>0) {                                                          \
+    if (EVFLAG && vflag) {                                                  \
       for (int i=0; i<6; i++) {                                             \
         engv[ei]=virial[i]*(acctyp)0.5;                                     \
         ei+=inum;                                                           \
@@ -203,21 +225,24 @@ __kernel void k_energy(const __global numtyp4 *restrict x_,
                        const numtyp rdr, const numtyp rdrho,
                        const numtyp rhomax, const int nrho,
                        const int nr, const int t_per_atom) {
-  int tid, ii, offset;
+  int tid, ii, offset, i, itype, tfrho;
   atom_info(t_per_atom,ii,tid,offset);
 
+  int n_stride;
+  local_allocate_store_energy_fp();
+
   acctyp rho = (acctyp)0;
-  acctyp energy = (acctyp)0;
+  acctyp energy;
+  if (EVFLAG && eflag) energy=(acctyp)0;
 
   if (ii<inum) {
-    int nbor, nbor_end;
-    int i, numj;
-    __local int n_stride;
+    int nbor, nbor_end, numj;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);
 
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
-    int itype=ix.w;
+    itype=ix.w;
+    tfrho=type2frho[itype];
 
     for ( ; nbor<nbor_end; nbor+=n_stride) {
       int j=dev_packed[nbor];
@@ -245,10 +270,9 @@ __kernel void k_energy(const __global numtyp4 *restrict x_,
         rho += ((coeff.x*p + coeff.y)*p + coeff.z)*p + coeff.w;
       }
     } // for nbor
-
-    store_energy_fp(rho,energy,ii,inum,tid,t_per_atom,offset,
-        eflag,vflag,engv,rdrho,nrho,i,rhomax);
   } // if ii
+  store_energy_fp(rho,energy,ii,inum,tid,t_per_atom,offset,
+                  eflag,vflag,engv,rdrho,nrho,i,rhomax,tfrho);
 }
 
 __kernel void k_energy_fast(const __global numtyp4 *restrict x_,
@@ -267,34 +291,42 @@ __kernel void k_energy_fast(const __global numtyp4 *restrict x_,
                             const numtyp rdrho, const numtyp rhomax,
                             const int nrho, const int nr,
                             const int t_per_atom) {
-  int tid, ii, offset;
+  int tid, ii, offset, i, itype, tfrho;
   atom_info(t_per_atom,ii,tid,offset);
 
+  #ifndef ONETYPE
   __local int2 type2rhor_z2r[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
   __local int type2frho[MAX_SHARED_TYPES];
-
   if (tid<MAX_SHARED_TYPES*MAX_SHARED_TYPES) {
     type2rhor_z2r[tid]=type2rhor_z2r_in[tid];
   }
-
   if (tid<MAX_SHARED_TYPES) {
     type2frho[tid]=type2frho_in[tid];
   }
+  __syncthreads();
+  #else
+  const int type2rhor_z2rx=
+    type2rhor_z2r_in[ONETYPE*MAX_SHARED_TYPES+ONETYPE].x;
+  tfrho=type2frho_in[ONETYPE];
+  #endif
+
+  int n_stride;
+  local_allocate_store_energy_fp();
 
   acctyp rho = (acctyp)0;
-  acctyp energy = (acctyp)0;
-
-  __syncthreads();
+  acctyp energy;
+  if (EVFLAG && eflag) energy=(acctyp)0;
 
   if (ii<inum) {
-    int nbor, nbor_end;
-    int i, numj;
-    __local int n_stride;
+    int nbor, nbor_end, numj;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);
 
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
-    int itype=ix.w;
+    #ifndef ONETYPE
+    itype=ix.w;
+    tfrho=type2frho[itype];
+    #endif
 
     for ( ; nbor<nbor_end; nbor+=n_stride) {
       int j=dev_packed[nbor];
@@ -315,17 +347,20 @@ __kernel void k_energy_fast(const __global numtyp4 *restrict x_,
         p -= m;
         p = MIN(p,(numtyp)1.0);
 
-        int jtype=fast_mul((int)MAX_SHARED_TYPES,jx.w);
+        #ifndef ONETYPE
+        int jtype = fast_mul((int)MAX_SHARED_TYPES,jx.w);
         int mtype = jtype+itype;
         int index = type2rhor_z2r[mtype].x*(nr+1)+m;
+        #else
+        int index = type2rhor_z2rx*(nr+1)+m;
+        #endif
         numtyp4 coeff; fetch4(coeff,index,rhor_sp2_tex);
         rho += ((coeff.x*p + coeff.y)*p + coeff.z)*p + coeff.w;
       }
     } // for nbor
-
-    store_energy_fp(rho,energy,ii,inum,tid,t_per_atom,offset,
-                    eflag,vflag,engv,rdrho,nrho,i,rhomax);
   } // if ii
+  store_energy_fp(rho,energy,ii,inum,tid,t_per_atom,offset,
+                  eflag,vflag,engv,rdrho,nrho,i,rhomax,tfrho);
 }
 
 __kernel void k_eam(const __global numtyp4 *restrict x_,
@@ -345,19 +380,20 @@ __kernel void k_eam(const __global numtyp4 *restrict x_,
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
 
-  acctyp energy=(acctyp)0;
+  int n_stride;
+  local_allocate_store_answers_eam();
+
   acctyp4 f;
-  f.x=(acctyp)0;
-  f.y=(acctyp)0;
-  f.z=(acctyp)0;
-  acctyp virial[6];
-  for (int i=0; i<6; i++)
-    virial[i]=(acctyp)0;
+  f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
+  acctyp energy, virial[6];
+  if (EVFLAG) {
+    energy=(acctyp)0;
+    for (int i=0; i<6; i++) virial[i]=(acctyp)0;
+  }
 
   if (ii<inum) {
     int nbor, nbor_end;
     int i, numj;
-    __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);
 
@@ -418,10 +454,10 @@ __kernel void k_eam(const __global numtyp4 *restrict x_,
         f.y+=dely*force;
         f.z+=delz*force;
 
-        if (eflag>0) {
+        if (EVFLAG && eflag) {
           energy += phi;
         }
-        if (vflag>0) {
+        if (EVFLAG && vflag) {
           virial[0] += delx*delx*force;
           virial[1] += dely*dely*force;
           virial[2] += delz*delz*force;
@@ -431,10 +467,9 @@ __kernel void k_eam(const __global numtyp4 *restrict x_,
         }
       }
     } // for nbor
-    store_answers_eam(f,energy,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
-                  ans,engv);
   } // if ii
-
+  store_answers_eam(f,energy,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
+                    ans,engv);
 }
 
 __kernel void k_eam_fast(const __global numtyp4 *x_,
@@ -453,40 +488,51 @@ __kernel void k_eam_fast(const __global numtyp4 *x_,
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
 
+  #ifndef ONETYPE
   __local int2 type2rhor_z2r[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
-
   if (tid<MAX_SHARED_TYPES*MAX_SHARED_TYPES) {
     type2rhor_z2r[tid]=type2rhor_z2r_in[tid];
   }
+  __syncthreads();
+  #else
+  const int oi=ONETYPE*MAX_SHARED_TYPES+ONETYPE;
+  const int type2rhor_z2rx=type2rhor_z2r_in[oi].x;
+  const int type2rhor_z2ry=type2rhor_z2r_in[oi].y;
+  #endif
 
-  acctyp energy=(acctyp)0;
+  int n_stride;
+  local_allocate_store_answers_eam();
+
   acctyp4 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
-  acctyp virial[6];
-  for (int i=0; i<6; i++)
-    virial[i]=(acctyp)0;
-
-  __syncthreads();
+  acctyp energy, virial[6];
+  if (EVFLAG) {
+    energy=(acctyp)0;
+    for (int i=0; i<6; i++) virial[i]=(acctyp)0;
+  }
 
   if (ii<inum) {
     int nbor, nbor_end;
     int i, numj;
-    __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);
 
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     numtyp ifp; fetch(ifp,i,fp_tex); //fp_[i];
+    #ifndef ONETYPE
     int iw=ix.w;
     int itype=fast_mul((int)MAX_SHARED_TYPES,iw);
+    #endif
 
     for ( ; nbor<nbor_end; nbor+=n_stride) {
       int j=dev_packed[nbor];
       j &= NEIGHMASK;
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
+      #ifndef ONETYPE
       int jw=jx.w;
       int jtype=fast_mul((int)MAX_SHARED_TYPES,jw);
+      #endif
 
       // Compute r12
       numtyp delx = ix.x-jx.x;
@@ -503,20 +549,35 @@ __kernel void k_eam_fast(const __global numtyp4 *x_,
         p = MIN(p,(numtyp)1.0);
 
         numtyp4 coeff;
-        int mtype,index;
+        #ifndef ONETYPE
+        int mtype;
+        #endif
+        int index;
 
+        #ifndef ONETYPE
         mtype = itype+jw;
         index = type2rhor_z2r[mtype].x*(nr+1)+m;
+        #else
+        index = type2rhor_z2rx*(nr+1)+m;
+        #endif
         fetch4(coeff,index,rhor_sp1_tex);
         numtyp rhoip = (coeff.x*p + coeff.y)*p + coeff.z;
 
+        #ifndef ONETYPE
         mtype = jtype+iw;
         index = type2rhor_z2r[mtype].x*(nr+1)+m;
+        #else
+        index = type2rhor_z2rx*(nr+1)+m;
+        #endif
         fetch4(coeff,index,rhor_sp1_tex);
         numtyp rhojp = (coeff.x*p + coeff.y)*p + coeff.z;
 
+        #ifndef ONETYPE
         mtype = itype+jw;
         index = type2rhor_z2r[mtype].y*(nr+1)+m;
+        #else
+        index = type2rhor_z2ry*(nr+1)+m;
+        #endif
         fetch4(coeff,index,z2r_sp1_tex);
         numtyp z2p = (coeff.x*p + coeff.y)*p + coeff.z;
         fetch4(coeff,index,z2r_sp2_tex);
@@ -534,10 +595,10 @@ __kernel void k_eam_fast(const __global numtyp4 *x_,
         f.y+=dely*force;
         f.z+=delz*force;
 
-        if (eflag>0) {
+        if (EVFLAG && eflag) {
           energy += phi;
         }
-        if (vflag>0) {
+        if (EVFLAG && vflag) {
           virial[0] += delx*delx*force;
           virial[1] += dely*dely*force;
           virial[2] += delz*delz*force;
@@ -547,8 +608,8 @@ __kernel void k_eam_fast(const __global numtyp4 *x_,
         }
       }
     } // for nbor
-    store_answers_eam(f,energy,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
-                  ans,engv);
   } // if ii
+  store_answers_eam(f,energy,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
+                    ans,engv);
 }
 

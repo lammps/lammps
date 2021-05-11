@@ -41,7 +41,7 @@ Syntax
 * template-ID(post-reacted) = ID of a molecule template containing post-reaction topology
 * map_file = name of file specifying corresponding atom-IDs in the pre- and post-reacted templates
 * zero or more individual keyword/value pairs may be appended to each react argument
-* individual_keyword = *prob* or *max_rxn* or *stabilize_steps* or *custom_charges*
+* individual_keyword = *prob* or *max_rxn* or *stabilize_steps* or *custom_charges* or *molecule* or *modify_create*
 
   .. parsed-literal::
 
@@ -59,6 +59,12 @@ Syntax
            off = allow both inter- and intramolecular reactions (default)
            inter = search for reactions between molecules with different IDs
            intra = search for reactions within the same molecule
+         *modify_create* keyword values
+           *fit* value = *all* or *fragmentID*
+             all = use all eligible atoms for create-atoms fit (default)
+             fragmentID = ID of molecule fragment used for create-atoms fit
+           *overlap* value = R
+             R = only insert atom/molecule if further than R from existing particles (distance units)
 
 Examples
 """"""""
@@ -89,7 +95,9 @@ documentation. Topology changes are defined in pre- and post-reaction
 molecule templates and can include creation and deletion of bonds,
 angles, dihedrals, impropers, bond types, angle types, dihedral types,
 atom types, or atomic charges. In addition, reaction by-products or
-other molecules can be identified and deleted.
+other molecules can be identified and deleted. Finally, atoms can be
+created and inserted at specific positions relative to the reaction
+site.
 
 Fix bond/react does not use quantum mechanical (eg. fix qmmm) or
 pairwise bond-order potential (eg. Tersoff or AIREBO) methods to
@@ -262,14 +270,14 @@ command page.
 
 The post-reacted molecule template contains a sample of the reaction
 site and its surrounding topology after the reaction has occurred. It
-must contain the same number of atoms as the pre-reacted template. A
-one-to-one correspondence between the atom IDs in the pre- and
-post-reacted templates is specified in the map file as described
-below. Note that during a reaction, an atom, bond, etc. type may
-change to one that was previously not present in the simulation. These
-new types must also be defined during the setup of a given simulation.
-A discussion of correctly handling this is also provided on the
-:doc:`molecule <molecule>` command page.
+must contain the same number of atoms as the pre-reacted template
+(unless there are created atoms). A one-to-one correspondence between
+the atom IDs in the pre- and post-reacted templates is specified in
+the map file as described below. Note that during a reaction, an atom,
+bond, etc. type may change to one that was previously not present in
+the simulation. These new types must also be defined during the setup
+of a given simulation. A discussion of correctly handling this is also
+provided on the :doc:`molecule <molecule>` command page.
 
 .. note::
 
@@ -283,7 +291,7 @@ A discussion of correctly handling this is also provided on the
 The map file is a text document with the following format:
 
 A map file has a header and a body. The header of map file the
-contains one mandatory keyword and four optional keywords. The
+contains one mandatory keyword and five optional keywords. The
 mandatory keyword is 'equivalences':
 
 .. parsed-literal::
@@ -296,11 +304,12 @@ The optional keywords are 'edgeIDs', 'deleteIDs', 'chiralIDs' and
 .. parsed-literal::
 
    N *edgeIDs* = # of edge atoms N in the pre-reacted molecule template
-   N *deleteIDs* = # of atoms N that are specified for deletion
-   N *chiralIDs* = # of specified chiral centers N
-   N *constraints* = # of specified reaction constraints N
+   N *deleteIDs* = # of atoms N that are deleted
+   N *createIDs* = # of atoms N that are created
+   N *chiralIDs* = # of chiral centers N
+   N *constraints* = # of reaction constraints N
 
-The body of the map file contains two mandatory sections and four
+The body of the map file contains two mandatory sections and five
 optional sections. The first mandatory section begins with the keyword
 'InitiatorIDs' and lists the two atom IDs of the initiator atom pair
 in the pre-reacted molecule template. The second mandatory section
@@ -313,8 +322,10 @@ the keyword 'EdgeIDs' and lists the atom IDs of edge atoms in the
 pre-reacted molecule template. The second optional section begins with
 the keyword 'DeleteIDs' and lists the atom IDs of pre-reaction
 template atoms to delete. The third optional section begins with the
+keyword 'CreateIDs' and lists the atom IDs of the post-reaction
+template atoms to create. The fourth optional section begins with the
 keyword 'ChiralIDs' lists the atom IDs of chiral atoms whose
-handedness should be enforced. The fourth optional section begins with
+handedness should be enforced. The fifth optional section begins with
 the keyword 'Constraints' and lists additional criteria that must be
 satisfied in order for the reaction to occur. Currently, there are
 five types of constraints available, as discussed below: 'distance',
@@ -352,6 +363,38 @@ A sample map file is given below:
    7   7
 
 ----------
+
+A user-specified set of atoms can be deleted by listing their
+pre-reaction template IDs in the DeleteIDs section. A deleted atom
+must still be included in the post-reaction molecule template, in
+which it cannot be bonded to an atom that is not deleted. In addition
+to deleting unwanted reaction by-products, this feature can be used to
+remove specific topologies, such as small rings, that may be otherwise
+indistinguishable.
+
+Atoms can be created by listing their post-reaction template IDs in
+the CreateIDs section. A created atom should not be included in the
+pre-reaction template. The inserted positions of created atoms are
+determined by the coordinates of the post-reaction template, after
+optimal translation and rotation of the post-reaction template to the
+reaction site (using a fit with atoms that are neither created nor
+deleted). The *modify_create* keyword can be used to modify the
+default behavior when creating atoms. The *modify_create* keyword has
+two sub-keywords, *fit* and *overlap*. One or more of the sub-keywords
+may be used after the *modify_create* keyword. The *fit* sub-keyword
+can be used to specify which post-reaction atoms are used for the
+optimal translation and rotation of the post-reaction template. The
+*fragmentID* value of the *fit* sub-keyword must be the name of a
+molecule fragment defined in the post-reaction :doc:`molecule
+<molecule>` template, and only atoms in this fragment are used for the
+fit. Atoms are created only if no current atom in the simulation is
+within a distance R of any created atom, including the effect of
+periodic boundary conditions if applicable. R is defined by the
+*overlap* sub-keyword. Note that the default value for R is 0.0, which
+will allow atoms to strongly overlap if you are inserting where other
+atoms are present. The velocity of each created atom is initialized in
+a random direction with a magnitude calculated from the instantaneous
+temperature of the reaction site.
 
 The handedness of atoms that are chiral centers can be enforced by
 listing their IDs in the ChiralIDs section. A chiral atom must be
@@ -457,6 +500,23 @@ example, the molecule fragment could consist of only the backbone
 atoms of a polymer chain. This constraint can be used to enforce a
 specific relative position and orientation between reacting molecules.
 
+By default, all constraints must be satisfied for the reaction to
+occur. In other words, constraints are evaluated as a series of
+logical values using the logical AND operator "&&". More complex logic
+can be achieved by explicitly adding the logical AND operator "&&" or
+the logical OR operator "||" after a given constraint command. If a
+logical operator is specified after a constraint, it must be placed
+after all constraint parameters, on the same line as the constraint
+(one per line). Similarly, parentheses can be used to group
+constraints. The expression that results from concatenating all
+constraints should be a valid logical expression that can be read by
+the :doc:`variable <variable>` command after converting each
+constraint to a logical value. Because exactly one constraint is
+allowed per line, having a valid logical expression implies that left
+parentheses "(" should only appear before a constraint, and right
+parentheses ")" should only appear after a constraint and before any
+logical operator.
+
 Once a reaction site has been successfully identified, data structures
 within LAMMPS that store bond topology are updated to reflect the
 post-reacted molecule template. All force fields with fixed bonds,
@@ -510,15 +570,6 @@ reaction. When the value is set to 'intra', only initiator atoms with
 the same molecule ID are considered for the reaction.
 
 A few other considerations:
-
-Many reactions result in one or more atoms that are considered
-unwanted by-products. Therefore, bond/react provides the option to
-delete a user-specified set of atoms. These pre-reaction atoms are
-identified in the map file. A deleted atom must still be included in
-the post-reaction molecule template, in which it cannot be bonded to
-an atom that is not deleted. In addition to deleting unwanted reaction
-by-products, this feature can be used to remove specific topologies,
-such as small rings, that may be otherwise indistinguishable.
 
 Optionally, you can enforce additional behaviors on reacting atoms.
 For example, it may be beneficial to force reacting atoms to remain at
@@ -593,14 +644,14 @@ Default
 """""""
 
 The option defaults are stabilization = no, prob = 1.0, stabilize_steps = 60,
-reset_mol_ids = yes, custom_charges = no, molecule = off
+reset_mol_ids = yes, custom_charges = no, molecule = off, modify_create = no
 
 ----------
 
 .. _Gissinger:
 
-**(Gissinger)** Gissinger, Jensen and Wise, Polymer, 128, 211 (2017).
+**(Gissinger2017)** Gissinger, Jensen and Wise, Polymer, 128, 211-217 (2017).
 
 .. _Gissinger2020:
 
-**(Gissinger)** Gissinger, Jensen and Wise, Macromolecules (2020, in press).
+**(Gissinger2020)** Gissinger, Jensen and Wise, Macromolecules, 53, 22, 9953-9961 (2020).

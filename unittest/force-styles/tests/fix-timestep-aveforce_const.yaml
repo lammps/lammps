@@ -1,7 +1,7 @@
 ---
-lammps_version: 24 Aug 2020
-date_generated: Tue Sep 15 09:44:40 202
-epsilon: 5e-12
+lammps_version: 10 Feb 2021
+date_generated: Fri Feb 26 23:09:53 2021
+epsilon: 2e-11
 prerequisites: ! |
   atom full
   fix aveforce

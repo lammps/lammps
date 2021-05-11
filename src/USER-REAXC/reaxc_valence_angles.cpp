@@ -37,7 +37,7 @@ static double Dot( double* v1, double* v2, int k )
 {
   double ret = 0.0;
 
-  for( int i=0; i < k; ++i )
+  for (int i=0; i < k; ++i)
     ret +=  v1[i] * v2[i];
 
   return ret;
@@ -66,7 +66,7 @@ void Calculate_dCos_Theta( rvec dvec_ji, double d_ji, rvec dvec_jk, double d_jk,
   double dot_dvecs = Dot( dvec_ji, dvec_jk, 3 );
   double Cdot_inv3 = dot_dvecs * inv_dists3;
 
-  for( t = 0; t < 3; ++t ) {
+  for (t = 0; t < 3; ++t) {
     (*dcos_theta_di)[t] = dvec_jk[t] * inv_dists -
       Cdot_inv3 * sqr_d_jk * dvec_ji[t];
     (*dcos_theta_dj)[t] = -(dvec_jk[t] + dvec_ji[t]) * inv_dists +
@@ -124,7 +124,7 @@ void Valence_Angles( reax_system *system, control_params *control,
   num_thb_intrs = 0;
 
 
-  for( j = 0; j < system->N; ++j ) {         // Ray: the first one with system->N
+  for (j = 0; j < system->N; ++j) {         // Ray: the first one with system->N
     type_j = system->my_atoms[j].type;
     if (type_j < 0) continue;
     start_j = Start_Index(j, bonds);
@@ -134,7 +134,7 @@ void Valence_Angles( reax_system *system, control_params *control,
     p_val5 = system->reax_param.sbp[ type_j ].p_val5;
 
     SBOp = 0, prod_SBO = 1;
-    for( t = start_j; t < end_j; ++t ) {
+    for (t = start_j; t < end_j; ++t) {
       bo_jt = &(bonds->select.bond_list[t].bo_data);
       SBOp += (bo_jt->BO_pi + bo_jt->BO_pi2);
       temp = SQR( bo_jt->BO );
@@ -169,23 +169,23 @@ void Valence_Angles( reax_system *system, control_params *control,
 
     expval6 = exp( p_val6 * workspace->Delta_boc[j] );
 
-    for( pi = start_j; pi < end_j; ++pi ) {
+    for (pi = start_j; pi < end_j; ++pi) {
       Set_Start_Index( pi, num_thb_intrs, thb_intrs );
       pbond_ij = &(bonds->select.bond_list[pi]);
       bo_ij = &(pbond_ij->bo_data);
       BOA_ij = bo_ij->BO - control->thb_cut;
 
 
-      if( BOA_ij/*bo_ij->BO*/ > 0.0 &&
-          ( j < system->n || pbond_ij->nbr < system->n ) ) {
+      if ( BOA_ij/*bo_ij->BO*/ > 0.0 &&
+          ( j < system->n || pbond_ij->nbr < system->n )) {
         i = pbond_ij->nbr;
         type_i = system->my_atoms[i].type;
 
-        for( pk = start_j; pk < pi; ++pk ) {
+        for (pk = start_j; pk < pi; ++pk) {
           start_pk = Start_Index( pk, thb_intrs );
           end_pk = End_Index( pk, thb_intrs );
 
-          for( t = start_pk; t < end_pk; ++t )
+          for (t = start_pk; t < end_pk; ++t)
             if (thb_intrs->select.three_body_list[t].thb == i) {
               p_ijk = &(thb_intrs->select.three_body_list[num_thb_intrs] );
               p_kji = &(thb_intrs->select.three_body_list[t]);
@@ -202,7 +202,7 @@ void Valence_Angles( reax_system *system, control_params *control,
             }
         }
 
-        for( pk = pi+1; pk < end_j; ++pk ) {
+        for (pk = pi+1; pk < end_j; ++pk) {
           pbond_jk = &(bonds->select.bond_list[pk]);
           bo_jk    = &(pbond_jk->bo_data);
           BOA_jk   = bo_jk->BO - control->thb_cut;
@@ -232,10 +232,10 @@ void Valence_Angles( reax_system *system, control_params *control,
           if ((j < system->n) && (BOA_jk > 0.0) &&
               (bo_ij->BO > control->thb_cut) &&
               (bo_jk->BO > control->thb_cut) &&
-              (bo_ij->BO * bo_jk->BO > control->thb_cutsq) ) {
+              (bo_ij->BO * bo_jk->BO > control->thb_cutsq)) {
             thbh = &( system->reax_param.thbp[ type_i ][ type_j ][ type_k ] );
 
-            for( cnt = 0; cnt < thbh->cnt; ++cnt ) {
+            for (cnt = 0; cnt < thbh->cnt; ++cnt) {
               if (fabs(thbh->prm[cnt].p_val1) > 0.001) {
                 thbp = &( thbh->prm[cnt] );
 
@@ -345,7 +345,7 @@ void Valence_Angles( reax_system *system, control_params *control,
                 workspace->CdDelta[i] += CEcoa4;
                 workspace->CdDelta[k] += CEcoa5;
 
-                for( t = start_j; t < end_j; ++t ) {
+                for (t = start_j; t < end_j; ++t) {
                     pbond_jt = &( bonds->select.bond_list[t] );
                     bo_jt = &(pbond_jt->bo_data);
                     temp_bo_jt = bo_jt->BO;

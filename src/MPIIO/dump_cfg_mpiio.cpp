@@ -416,7 +416,7 @@ int DumpCFGMPIIO::convert_string_omp(int n, double *mybuf)
             unwrap_coord = (mybuf[bufOffset[tid]+m] - 0.5)/UNWRAPEXPAND + 0.5;
           //offset += sprintf(&sbuf[offset],vformat[j],unwrap_coord);
             mpifhStringCountPerThread[tid] += sprintf(&(mpifh_buffer_line_per_thread[tid][mpifhStringCountPerThread[tid]]),vformat[j],unwrap_coord);
-          } else if (j >= 5 ) {
+          } else if (j >= 5) {
             if (vtype[j] == Dump::INT)
             //offset +=
             //  sprintf(&sbuf[offset],vformat[j],static_cast<int> (mybuf[m]));

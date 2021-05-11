@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -13,16 +13,17 @@
 
 #include "angle_gaussian.h"
 
-#include <cmath>
 #include "atom.h"
-#include "neighbor.h"
-#include "domain.h"
 #include "comm.h"
+#include "domain.h"
+#include "error.h"
 #include "force.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
+#include "neighbor.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -32,7 +33,9 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-AngleGaussian::AngleGaussian(LAMMPS *lmp) : Angle(lmp)
+AngleGaussian::AngleGaussian(LAMMPS *lmp)
+  : Angle(lmp), nterms(nullptr), angle_temperature(nullptr),
+    alpha(nullptr), width(nullptr), theta0(nullptr)
 {
 }
 
@@ -45,9 +48,9 @@ AngleGaussian::~AngleGaussian()
     memory->destroy(nterms);
     memory->destroy(angle_temperature);
     for (int i = 1; i <= atom->nangletypes; i++) {
-      if (alpha[i]) delete [] alpha[i];
-      if (width[i]) delete [] width[i];
-      if (theta0[i]) delete [] theta0[i];
+      delete [] alpha[i];
+      delete [] width[i];
+      delete [] theta0[i];
     }
     delete [] alpha;
     delete [] width;
@@ -62,7 +65,7 @@ void AngleGaussian::compute(int eflag, int vflag)
   int i1,i2,i3,n,type;
   double delx1,dely1,delz1,delx2,dely2,delz2;
   double eangle,f1[3],f3[3];
-  double dtheta,tk;
+  double dtheta;
   double rsq1,rsq2,r1,r2,c,s,a,a11,a12,a22;
   double prefactor, exponent, g_i, sum_g_i, sum_numerator;
 
@@ -180,11 +183,9 @@ void AngleGaussian::allocate()
   alpha = new double *[n+1];
   width = new double *[n+1];
   theta0 = new double *[n+1];
-  for (int i = 1; i <= n; i++) {
-    alpha[i] = 0;
-    width[i] = 0;
-    theta0[i] = 0;
-  }
+  memset(alpha,0,sizeof(double)*(n+1));
+  memset(width,0,sizeof(double)*(n+1));
+  memset(theta0,0,sizeof(double)*(n+1));
 
   memory->create(setflag,n+1,"angle:setflag");
   for (int i = 1; i <= n; i++) setflag[i] = 0;
@@ -214,10 +215,13 @@ void AngleGaussian::coeff(int narg, char **arg)
   for (int i = ilo; i <= ihi; i++) {
     angle_temperature[i] = angle_temperature_one;
     nterms[i] = n;
+    delete[] alpha[i];
     alpha[i] = new double [n];
+    delete[] width[i];
     width[i] = new double [n];
+    delete[] theta0[i];
     theta0[i] = new double [n];
-    for (int j = 0; j < n; j++ ) {
+    for (int j = 0; j < n; j++) {
       alpha[i][j] = utils::numeric(FLERR,arg[3+3*j],false,lmp);
       width[i][j] = utils::numeric(FLERR,arg[4+3*j],false,lmp);
       theta0[i][j] = utils::numeric(FLERR,arg[5+3*j],false,lmp)* MY_PI / 180.0;
@@ -244,7 +248,7 @@ void AngleGaussian::write_restart(FILE *fp)
 {
   fwrite(&angle_temperature[1],sizeof(double),atom->nangletypes,fp);
   fwrite(&nterms[1],sizeof(int),atom->nangletypes,fp);
-  for(int i = 1; i <= atom->nangletypes; i++) {
+  for (int i = 1; i <= atom->nangletypes; i++) {
     fwrite(alpha[i],sizeof(double),nterms[i],fp);
     fwrite(width[i],sizeof(double),nterms[i],fp);
     fwrite(theta0[i],sizeof(double),nterms[i],fp);
@@ -267,21 +271,21 @@ void AngleGaussian::read_restart(FILE *fp)
   MPI_Bcast(&nterms[1],atom->nangletypes,MPI_INT,0,world);
 
   // allocate
-  for(int i = 1; i <= atom->nangletypes; i++) {
+  for (int i = 1; i <= atom->nangletypes; i++) {
     alpha[i] = new double [nterms[i]];
     width[i] = new double [nterms[i]];
     theta0[i] = new double [nterms[i]];
   }
 
   if (comm->me == 0) {
-    for(int i = 1; i <= atom->nangletypes; i++) {
+    for (int i = 1; i <= atom->nangletypes; i++) {
       utils::sfread(FLERR,alpha[i],sizeof(double),nterms[i],fp,nullptr,error);
       utils::sfread(FLERR,width[i],sizeof(double),nterms[i],fp,nullptr,error);
       utils::sfread(FLERR,theta0[i],sizeof(double),nterms[i],fp,nullptr,error);
     }
   }
 
-  for(int i = 1; i <= atom->nangletypes; i++) {
+  for (int i = 1; i <= atom->nangletypes; i++) {
     MPI_Bcast(alpha[i],nterms[i],MPI_DOUBLE,0,world);
     MPI_Bcast(width[i],nterms[i],MPI_DOUBLE,0,world);
     MPI_Bcast(theta0[i],nterms[i],MPI_DOUBLE,0,world);
@@ -331,7 +335,6 @@ double AngleGaussian::single(int type, int i1, int i2, int i3)
   double theta = acos(c) ;
 
   double sum_g_i = 0.0;
-  double sum_numerator = 0.0;
   for (int i = 0; i < nterms[type]; i++) {
     double dtheta = theta - theta0[type][i];
     double prefactor = (alpha[type][i]/(width[type][i]*sqrt(MY_PI2)));

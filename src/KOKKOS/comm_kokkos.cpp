@@ -107,6 +107,8 @@ void CommKokkos::init()
   atomKK = (AtomKokkos *) atom;
   exchange_comm_classic = lmp->kokkos->exchange_comm_classic;
   forward_comm_classic = lmp->kokkos->forward_comm_classic;
+  forward_pair_comm_classic = lmp->kokkos->forward_pair_comm_classic;
+  forward_fix_comm_classic = lmp->kokkos->forward_fix_comm_classic;
   reverse_comm_classic = lmp->kokkos->reverse_comm_classic;
   exchange_comm_on_host = lmp->kokkos->exchange_comm_on_host;
   forward_comm_on_host = lmp->kokkos->forward_comm_on_host;
@@ -361,12 +363,12 @@ void CommKokkos::reverse_comm_device()
 
 void CommKokkos::forward_comm_fix(Fix *fix, int size)
 {
-  if (fix->execution_space == Device && fix->forward_comm_device) {
-    k_sendlist.sync<LMPDeviceType>();
-    forward_comm_fix_device<LMPDeviceType>(fix,size);
-  } else {
+  if (fix->execution_space == Host || !fix->forward_comm_device || forward_fix_comm_classic) {
     k_sendlist.sync<LMPHostType>();
     CommBrick::forward_comm_fix(fix,size);
+  } else {
+    k_sendlist.sync<LMPDeviceType>();
+    forward_comm_fix_device<LMPDeviceType>(fix);
   }
 }
 
@@ -456,10 +458,10 @@ void CommKokkos::reverse_comm_compute(Compute *compute)
 
 void CommKokkos::forward_comm_pair(Pair *pair)
 {
-  if (pair->execution_space == Host) {
+  if (pair->execution_space == Host || forward_pair_comm_classic) {
     k_sendlist.sync<LMPHostType>();
     CommBrick::forward_comm_pair(pair);
-  } else if (pair->execution_space == Device) {
+  } else {
     k_sendlist.sync<LMPDeviceType>();
     forward_comm_pair_device<LMPDeviceType>(pair);
   }
@@ -571,10 +573,10 @@ void CommKokkos::reverse_comm_dump(Dump *dump)
 
 void CommKokkos::exchange()
 {
-  if(atom->nextra_grow + atom->nextra_border) {
-    if(!exchange_comm_classic) {
+  if (atom->nextra_grow + atom->nextra_border) {
+    if (!exchange_comm_classic) {
       static int print = 1;
-      if(print && comm->me==0) {
+      if (print && comm->me==0) {
         error->warning(FLERR,"Fixes cannot yet send exchange data in Kokkos communication, "
                       "switching to classic exchange/border communication");
       }
@@ -625,7 +627,7 @@ struct BuildExchangeListFunctor {
   void operator() (int i) const {
     if (_x(i,_dim) < _lo || _x(i,_dim) >= _hi) {
       const int mysend=Kokkos::atomic_fetch_add(&_nsend(),1);
-      if(mysend < (int)_sendlist.extent(0)) {
+      if (mysend < (int)_sendlist.extent(0)) {
         _sendlist(mysend) = i;
         _sendflag(i) = 1;
       }
@@ -713,7 +715,7 @@ void CommKokkos::exchange_device()
 
         int sendpos = nlocal-1;
         nlocal -= k_count.h_view();
-        for(int i = 0; i < k_count.h_view(); i++) {
+        for (int i = 0; i < k_count.h_view(); i++) {
           if (k_exchange_sendlist.h_view(i)<nlocal) {
             while (k_sendflag.h_view(sendpos)) sendpos--;
             k_exchange_copylist.h_view(i) = sendpos;
@@ -887,7 +889,7 @@ struct BuildBorderListFunctor {
 
     if (my_store_pos+mysend < maxsendlist) {
     mysend = my_store_pos;
-      for(int i=teamstart + dev.team_rank(); i<teamend; i+=dev.team_size()){
+      for (int i=teamstart + dev.team_rank(); i<teamend; i+=dev.team_size()) {
         if (x(i,dim) >= lo && x(i,dim) <= hi) {
           sendlist(iswap,mysend++) = i;
         }
@@ -979,7 +981,7 @@ void CommKokkos::borders_device() {
 
             k_sendlist.modify<DeviceType>();
 
-            if(k_total_send.h_view() >= maxsendlist[iswap]) {
+            if (k_total_send.h_view() >= maxsendlist[iswap]) {
               grow_list(iswap,k_total_send.h_view());
 
               k_total_send.h_view() = 0;
@@ -1227,7 +1229,7 @@ void CommKokkos::grow_send_kokkos(int n, int flag, ExecutionSpace space)
   maxsend = static_cast<int> (BUFFACTOR * n);
   int maxsend_border = (maxsend+BUFEXTRA+5)/atom->avec->size_border + 2;
   if (flag) {
-    if(space == Device)
+    if (space == Device)
       k_buf_send.modify<LMPDeviceType>();
     else
       k_buf_send.modify<LMPHostType>();
@@ -1280,7 +1282,7 @@ void CommKokkos::grow_list(int /*iswap*/, int n)
 
   memoryKK->grow_kokkos(k_sendlist,sendlist,maxswap,size,"comm:sendlist");
 
-  for(int i=0;i<maxswap;i++) {
+  for (int i=0;i<maxswap;i++) {
     maxsendlist[i]=size; sendlist[i]=&k_sendlist.view<LMPHostType>()(i,0);
   }
 }

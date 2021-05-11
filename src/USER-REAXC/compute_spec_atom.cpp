@@ -172,7 +172,7 @@ void ComputeSpecAtom::compute_peratom()
 
 double ComputeSpecAtom::memory_usage()
 {
-  double bytes = nmax*nvalues * sizeof(double);
+  double bytes = (double)nmax*nvalues * sizeof(double);
   return bytes;
 }
 

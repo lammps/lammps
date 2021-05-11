@@ -48,9 +48,9 @@ int beck_gpu_init(const int ntypes, double **cutsq, double **host_aa,
                   const int nall, const int max_nbors, const int maxspecial,
                   const double cell_size, int &gpu_mode, FILE *screen);
 void beck_gpu_clear();
-int ** beck_gpu_compute_n(const int ago, const int inum,
-                          const int nall, double **host_x, int *host_type,
-                          double *sublo, double *subhi, tagint *tag, int **nspecial,
+int ** beck_gpu_compute_n(const int ago, const int inum, const int nall,
+                          double **host_x, int *host_type, double *sublo,
+                          double *subhi, tagint *tag, int **nspecial,
                           tagint **special, const bool eflag, const bool vflag,
                           const bool eatom, const bool vatom, int &host_start,
                           int **ilist, int **jnum,
@@ -158,11 +158,12 @@ void PairBeckGPU::init_style()
   double cell_size = sqrt(maxcut) + neighbor->skin;
 
   int maxspecial=0;
-  if (atom->molecular)
+  if (atom->molecular != Atom::ATOMIC)
     maxspecial=atom->maxspecial;
+  int mnf = 5e-2 * neighbor->oneatom;
   int success = beck_gpu_init(atom->ntypes+1, cutsq, aa, alpha, beta,
                               AA, BB, force->special_lj, atom->nlocal,
-                              atom->nlocal+atom->nghost, 300, maxspecial,
+                              atom->nlocal+atom->nghost, mnf, maxspecial,
                               cell_size, gpu_mode, screen);
   GPU_EXTRA::check_flag(success,error,world);
 

@@ -96,9 +96,9 @@ void DeAllocate_System( reax_system *system )
 
   sfree(system->error_ptr,  ff_params->gp.l, "ff:globals" );
 
-  for( i = 0; i < ntypes; ++i ) {
-    for( j = 0; j < ntypes; ++j ) {
-      for( k = 0; k < ntypes; ++k ) {
+  for (i = 0; i < ntypes; ++i) {
+    for (j = 0; j < ntypes; ++j) {
+      for (k = 0; k < ntypes; ++k) {
         sfree(system->error_ptr,  ff_params->fbp[i][j][k], "ff:fbp[i,j,k]" );
       }
       sfree(system->error_ptr,  ff_params->fbp[i][j], "ff:fbp[i,j]" );
@@ -129,7 +129,7 @@ void DeAllocate_Workspace( control_params * control, storage *workspace )
   workspace->allocated = 0;
 
   /* communication storage */
-  for( i = 0; i < MAX_NBRS; ++i ) {
+  for (i = 0; i < MAX_NBRS; ++i) {
     sfree(control->error_ptr,  workspace->tmp_dbl[i], "tmp_dbl[i]" );
     sfree(control->error_ptr,  workspace->tmp_rvec[i], "tmp_rvec[i]" );
     sfree(control->error_ptr,  workspace->tmp_rvec2[i], "tmp_rvec2[i]" );
@@ -169,7 +169,7 @@ void DeAllocate_Workspace( control_params * control, storage *workspace )
   sfree(control->error_ptr,  workspace->x, "x" );
 
   /* GMRES storage */
-  for( i = 0; i < RESTART+1; ++i ) {
+  for (i = 0; i < RESTART+1; ++i) {
     sfree(control->error_ptr,  workspace->h[i], "h[i]" );
     sfree(control->error_ptr,  workspace->v[i], "v[i]" );
   }
@@ -219,7 +219,7 @@ int Allocate_Workspace( reax_system * /*system*/, control_params * control,
   local_rvec = local_cap * sizeof(rvec);
 
   /* communication storage */
-  for( i = 0; i < MAX_NBRS; ++i ) {
+  for (i = 0; i < MAX_NBRS; ++i) {
     workspace->tmp_dbl[i] = (double*)
       scalloc(control->error_ptr,  total_cap, sizeof(double), "tmp_dbl");
     workspace->tmp_rvec[i] = (rvec*)
@@ -277,7 +277,7 @@ int Allocate_Workspace( reax_system * /*system*/, control_params * control,
   workspace->hc = (double*) scalloc(control->error_ptr,  RESTART+1, sizeof(double), "hc");
   workspace->v = (double**) scalloc(control->error_ptr,  RESTART+1, sizeof(double*), "v");
 
-  for( i = 0; i < RESTART+1; ++i ) {
+  for (i = 0; i < RESTART+1; ++i) {
     workspace->h[i] = (double*) scalloc(control->error_ptr,  RESTART+1, sizeof(double), "h[i]");
     workspace->v[i] = (double*) scalloc(control->error_ptr,  total_cap, sizeof(double), "v[i]");
   }
@@ -302,10 +302,10 @@ int Allocate_Workspace( reax_system * /*system*/, control_params * control,
 
   // storage for reductions with multiple threads
 #ifdef LMP_USER_OMP
-  workspace->CdDeltaReduction = (double *) scalloc(control->error_ptr, sizeof(double), total_cap*control->nthreads,
+  workspace->CdDeltaReduction = (double *) scalloc(control->error_ptr, sizeof(double), (rc_bigint)total_cap*control->nthreads,
                                                  "cddelta_reduce");
 
-  workspace->forceReduction = (rvec *) scalloc(control->error_ptr, sizeof(rvec), total_cap*control->nthreads,
+  workspace->forceReduction = (rvec *) scalloc(control->error_ptr, sizeof(rvec), (rc_bigint)total_cap*control->nthreads,
                                                "forceReduction");
 
   workspace->valence_angle_atom_myoffset = (int *) scalloc(control->error_ptr, sizeof(int), total_cap, "valence_angle_atom_myoffset");
@@ -322,7 +322,7 @@ static void Reallocate_Neighbor_List( reax_list *far_nbrs, int n,
                                       int num_intrs )
 {
   Delete_List( far_nbrs);
-  if(!Make_List( n, num_intrs, TYP_FAR_NEIGHBOR, far_nbrs )){
+  if (!Make_List( n, num_intrs, TYP_FAR_NEIGHBOR, far_nbrs )) {
     far_nbrs->error_ptr->one(FLERR,"Problem in initializing far neighbors list");
   }
 }
@@ -336,7 +336,7 @@ static int Reallocate_HBonds_List( reax_system *system, reax_list *hbonds )
   double saferzone = system->saferzone;
 
   total_hbonds = 0;
-  for( i = 0; i < system->n; ++i )
+  for (i = 0; i < system->n; ++i)
     if ((system->my_atoms[i].Hindex) >= 0) {
       total_hbonds += system->my_atoms[i].num_hbonds;
     }
@@ -361,7 +361,7 @@ static int Reallocate_Bonds_List( reax_system *system, reax_list *bonds,
 
   *total_bonds = 0;
   *est_3body = 0;
-  for( i = 0; i < system->N; ++i ){
+  for (i = 0; i < system->N; ++i) {
     *est_3body += SQR(system->my_atoms[i].num_bonds);
     *total_bonds += system->my_atoms[i].num_bonds;
   }
@@ -374,7 +374,7 @@ static int Reallocate_Bonds_List( reax_system *system, reax_list *bonds,
 #endif
 
   Delete_List( bonds);
-  if(!Make_List(system->total_cap, *total_bonds, TYP_BOND, bonds)) {
+  if (!Make_List(system->total_cap, *total_bonds, TYP_BOND, bonds)) {
     bonds->error_ptr->one(FLERR, "Not enough space for bonds list");
   }
 
@@ -410,14 +410,14 @@ void ReAllocate( reax_system *system, control_params *control,
 
   realloc = &(workspace->realloc);
 
-  if( system->n >= DANGER_ZONE * system->local_cap ||
-      (0 && system->n <= LOOSE_ZONE * system->local_cap) ) {
+  if ( system->n >= DANGER_ZONE * system->local_cap ||
+      (0 && system->n <= LOOSE_ZONE * system->local_cap)) {
     system->local_cap = MAX( (int)(system->n * safezone), mincap );
   }
 
   int Nflag = 0;
-  if( system->N >= DANGER_ZONE * system->total_cap ||
-      (0 && system->N <= LOOSE_ZONE * system->total_cap) ) {
+  if ( system->N >= DANGER_ZONE * system->total_cap ||
+      (0 && system->N <= LOOSE_ZONE * system->total_cap)) {
     Nflag = 1;
     system->total_cap = MAX( (int)(system->N * safezone), mincap );
   }
@@ -466,8 +466,8 @@ void ReAllocate( reax_system *system, control_params *control,
   /* hydrogen bonds list */
   if (control->hbond_cut > 0) {
     Hflag = 0;
-    if( system->numH >= DANGER_ZONE * system->Hcap ||
-        (0 && system->numH <= LOOSE_ZONE * system->Hcap) ) {
+    if ( system->numH >= DANGER_ZONE * system->Hcap ||
+        (0 && system->numH <= LOOSE_ZONE * system->Hcap)) {
       Hflag = 1;
       system->Hcap = int(MAX( system->numH * saferzone, mincap ));
     }
@@ -496,8 +496,8 @@ void ReAllocate( reax_system *system, control_params *control,
 
     realloc->num_3body = (int)(MAX(realloc->num_3body*safezone, MIN_3BODIES));
 
-    if( !Make_List( num_bonds, realloc->num_3body, TYP_THREE_BODY,
-                    (*lists)+THREE_BODIES ) ) {
+    if ( !Make_List( num_bonds, realloc->num_3body, TYP_THREE_BODY,
+                    (*lists)+THREE_BODIES )) {
       system->error_ptr->one(FLERR, "Problem in initializing angles list");
     }
     realloc->num_3body = -1;

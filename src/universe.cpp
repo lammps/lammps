@@ -15,9 +15,7 @@
 
 #include "error.h"
 #include "memory.h"
-#include "version.h"
 
-#include <cctype>
 #include <cstring>
 
 using namespace LAMMPS_NS;
@@ -113,8 +111,8 @@ void Universe::reorder(char *style, char *arg)
       rv = sscanf(line,"%d %d",&me_orig,&me_new);
       if (me_orig < 0 || me_orig >= nprocs ||
           me_new < 0 || me_new >= nprocs || rv != 2)
-        error->one(FLERR,fmt::format("Invalid entry '{} {}' in -reorder "
-                                     "file", me_orig, me_new));
+        error->one(FLERR,"Invalid entry '{} {}' in -reorder "
+                                     "file", me_orig, me_new);
       uni2orig[me_new] = me_orig;
 
       for (int i = 1; i < nprocs; i++) {
@@ -123,8 +121,8 @@ void Universe::reorder(char *style, char *arg)
         rv = sscanf(line,"%d %d",&me_orig,&me_new);
         if (me_orig < 0 || me_orig >= nprocs ||
             me_new < 0 || me_new >= nprocs || rv != 2)
-          error->one(FLERR,fmt::format("Invalid entry '{} {}' in -reorder "
-                                       "file", me_orig, me_new));
+          error->one(FLERR,"Invalid entry '{} {}' in -reorder "
+                                       "file", me_orig, me_new);
         uni2orig[me_new] = me_orig;
       }
       fclose(fp);
@@ -185,7 +183,7 @@ void Universe::add_world(char *str)
         nper = atoi(part.c_str());
       } else {
         n = atoi(part.substr(0,found).c_str());
-        nper = atoi(part.substr(found-1).c_str());\
+        nper = atoi(part.substr(found+1).c_str());
       }
     }
 

@@ -319,7 +319,7 @@ This pair style is part of the MANYBODY package. It is only enabled if
 LAMMPS was built with that package. See the :doc:`Build package
 <Build_package>` doc page for more info.
 
-This pair potential requires the :doc:`newtion <newton>` setting to be
+This pair potential requires the :doc:`newton <newton>` setting to be
 "on" for pair interactions.
 
 The potential files provided with LAMMPS (see the potentials directory)

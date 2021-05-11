@@ -40,16 +40,20 @@ __kernel void k_lj_smooth(const __global numtyp4 *restrict x_,
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
 
-  acctyp energy=(acctyp)0;
+  int n_stride;
+  local_allocate_store_pair();
+
   acctyp4 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
   acctyp virial[6];
-  for (int i=0; i<6; i++)
-    virial[i]=(acctyp)0;
+  acctyp energy, virial[6];
+  if (EVFLAG) {
+    energy=(acctyp)0;
+    for (int i=0; i<6; i++) virial[i]=(acctyp)0;
+  }
 
   if (ii<inum) {
     int i, numj, nbor, nbor_end;
-    __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);
 
@@ -96,7 +100,7 @@ __kernel void k_lj_smooth(const __global numtyp4 *restrict x_,
         f.y+=dely*force;
         f.z+=delz*force;
 
-        if (eflag>0) {
+        if (EVFLAG && eflag) {
           numtyp e;
           if (rsq < lj1[mtype].w)
             e = r6inv * (lj3[mtype].x*r6inv - lj3[mtype].y) - lj3[mtype].z;
@@ -108,7 +112,7 @@ __kernel void k_lj_smooth(const __global numtyp4 *restrict x_,
           //numtyp e=r6inv*(lj3[mtype].x*r6inv-lj3[mtype].y);
           energy+=factor_lj*e;
         }
-        if (vflag>0) {
+        if (EVFLAG && vflag) {
           virial[0] += delx*delx*force;
           virial[1] += dely*dely*force;
           virial[2] += delz*delz*force;
@@ -119,9 +123,9 @@ __kernel void k_lj_smooth(const __global numtyp4 *restrict x_,
       }
 
     } // for nbor
-    store_answers(f,energy,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
-                  ans,engv);
   } // if ii
+  store_answers(f,energy,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
+                ans,engv);
 }
 
 __kernel void k_lj_smooth_fast(const __global numtyp4 *restrict x_,
@@ -139,6 +143,7 @@ __kernel void k_lj_smooth_fast(const __global numtyp4 *restrict x_,
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
 
+  #ifndef ONETYPE
   __local numtyp4 lj1[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
   __local numtyp4 lj3[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
   __local numtyp sp_lj[4];
@@ -146,40 +151,60 @@ __kernel void k_lj_smooth_fast(const __global numtyp4 *restrict x_,
     sp_lj[tid]=sp_lj_in[tid];
   if (tid<MAX_SHARED_TYPES*MAX_SHARED_TYPES) {
     lj1[tid]=lj1_in[tid];
-    if (eflag>0)
+    if (EVFLAG && eflag)
       lj3[tid]=lj3_in[tid];
   }
+  __syncthreads();
+  #else
+  const numtyp lj1x=lj1_in[ONETYPE].x;
+  const numtyp lj1y=lj1_in[ONETYPE].y;
+  const numtyp cutsq=lj1_in[ONETYPE].z;
+  numtyp lj3x, lj3y, lj3z;
+  if (EVFLAG && eflag) {
+    lj3x=lj3_in[ONETYPE].x;
+    lj3y=lj3_in[ONETYPE].y;
+    lj3z=lj3_in[ONETYPE].z;
+  }
+  #endif
 
-  acctyp energy=(acctyp)0;
+  int n_stride;
+  local_allocate_store_pair();
+
   acctyp4 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
-  acctyp virial[6];
-  for (int i=0; i<6; i++)
-    virial[i]=(acctyp)0;
-
-  __syncthreads();
+  acctyp energy, virial[6];
+  if (EVFLAG) {
+    energy=(acctyp)0;
+    for (int i=0; i<6; i++) virial[i]=(acctyp)0;
+  }
 
   if (ii<inum) {
     int i, numj, nbor, nbor_end;
-    __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);
 
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
+    #ifndef ONETYPE
     int iw=ix.w;
     int itype=fast_mul((int)MAX_SHARED_TYPES,iw);
 
     numtyp force, r6inv, factor_lj, forcelj;
     numtyp r, t, tsq, fskin;
 
-    for ( ; nbor<nbor_end; nbor+=n_stride) {
+    #endif
 
+    NOUNROLL
+    for ( ; nbor<nbor_end; nbor+=n_stride) {
       int j=dev_packed[nbor];
+      #ifndef ONETYPE
       factor_lj = sp_lj[sbmask(j)];
       j &= NEIGHMASK;
+      #endif
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
+      #ifndef ONETYPE
       int mtype=itype+jx.w;
+      #endif
 
       // Compute r12
       numtyp delx = ix.x-jx.x;
@@ -207,7 +232,7 @@ __kernel void k_lj_smooth_fast(const __global numtyp4 *restrict x_,
         f.y+=dely*force;
         f.z+=delz*force;
 
-        if (eflag>0) {
+        if (EVFLAG && eflag) {
           numtyp e;
           if (rsq < lj1[mtype].w)
             e = r6inv * (lj3[mtype].x*r6inv - lj3[mtype].y) - lj3[mtype].z;
@@ -218,7 +243,7 @@ __kernel void k_lj_smooth_fast(const __global numtyp4 *restrict x_,
 
           energy+=factor_lj*e;
         }
-        if (vflag>0) {
+        if (EVFLAG && vflag) {
           virial[0] += delx*delx*force;
           virial[1] += dely*dely*force;
           virial[2] += delz*delz*force;
@@ -229,7 +254,7 @@ __kernel void k_lj_smooth_fast(const __global numtyp4 *restrict x_,
       }
 
     } // for nbor
-    store_answers(f,energy,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
-                  ans,engv);
   } // if ii
+  store_answers(f,energy,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
+                ans,engv);
 }

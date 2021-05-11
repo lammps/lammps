@@ -57,7 +57,7 @@ int ljsmt_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
   int init_ok=0;
   if (world_me==0)
     init_ok=LJSMTMF.init(ntypes, cutsq, host_lj1, host_lj2, host_lj3,
-                       host_lj4, offset, special_lj, inum, nall, 300,
+                       host_lj4, offset, special_lj, inum, nall, max_nbors,
                        maxspecial, cell_size, gpu_split, screen,
                        host_ljsw0, host_ljsw1, host_ljsw2, host_ljsw3, host_ljsw4, cut_inner, cut_inner_sq);
 
@@ -76,7 +76,7 @@ int ljsmt_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
     }
     if (gpu_rank==i && world_me!=0)
       init_ok=LJSMTMF.init(ntypes, cutsq, host_lj1, host_lj2, host_lj3, host_lj4,
-                         offset, special_lj, inum, nall, 300, maxspecial,
+                         offset, special_lj, inum, nall, max_nbors, maxspecial,
                          cell_size, gpu_split, screen, host_ljsw0, host_ljsw1, host_ljsw2, host_ljsw3,
                          host_ljsw4, cut_inner, cut_inner_sq);
 

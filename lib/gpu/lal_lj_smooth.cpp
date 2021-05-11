@@ -51,16 +51,31 @@ int LJSMOOTHT::init(const int ntypes,
                           double **host_ljsw0, double **host_ljsw1, double **host_ljsw2, double **host_ljsw3,
                           double **host_ljsw4,
                           double **cut_inner, double **cut_inner_sq) {
+  const int max_shared_types=this->device->max_shared_types();
+
+  int onetype=0;
+  #ifdef USE_OPENCL
+  if (maxspecial==0)
+    for (int i=1; i<ntypes; i++)
+      for (int j=i; j<ntypes; j++)
+        if (host_cutsq[i][j]>0) {
+          if (onetype>0)
+            onetype=-1;
+          else if (onetype==0)
+            onetype=i*max_shared_types+j;
+        }
+  if (onetype<0) onetype=0;
+  #endif
+
   int success;
   success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,gpu_split,
-                            _screen,lj_smooth,"k_lj_smooth");
+                            _screen,lj_smooth,"k_lj_smooth",onetype);
   if (success!=0)
     return success;
 
   // If atom type constants fit in shared memory use fast kernel
   int lj_types=ntypes;
   shared_types=false;
-  int max_shared_types=this->device->max_shared_types();
   if (lj_types<=max_shared_types && this->_block_size>=max_shared_types) {
     lj_types=max_shared_types;
     shared_types=true;
@@ -145,19 +160,9 @@ double LJSMOOTHT::host_memory_usage() const {
 // Calculate energies, forces, and torques
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-int LJSMOOTHT::loop(const int _eflag, const int _vflag) {
+int LJSMOOTHT::loop(const int eflag, const int vflag) {
   // Compute the block size and grid size to keep all cores busy
   const int BX=this->block_size();
-  int eflag, vflag;
-  if (_eflag)
-    eflag=1;
-  else
-    eflag=0;
-
-  if (_vflag)
-    vflag=1;
-  else
-    vflag=0;
 
   int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
                                (BX/this->_threads_per_atom)));
@@ -166,8 +171,8 @@ int LJSMOOTHT::loop(const int _eflag, const int _vflag) {
   int nbor_pitch=this->nbor->nbor_pitch();
   this->time_pair.start();
   if (shared_types) {
-    this->k_pair_fast.set_size(GX,BX);
-    this->k_pair_fast.run(&this->atom->x, &lj1, &lj3,  &ljsw, &ljsw0, &sp_lj,
+    this->k_pair_sel->set_size(GX,BX);
+    this->k_pair_sel->run(&this->atom->x, &lj1, &lj3,  &ljsw, &ljsw0, &sp_lj,
                           &this->nbor->dev_nbor, &this->_nbor_data->begin(),
                           &this->ans->force, &this->ans->engv, &eflag,
                           &vflag, &ainum, &nbor_pitch,
@@ -180,6 +185,7 @@ int LJSMOOTHT::loop(const int _eflag, const int _vflag) {
                      &ainum, &nbor_pitch, &this->_threads_per_atom);
   }
   this->time_pair.stop();
+  return GX;
 }
 
 template class LJSMOOTH<PRECISION,ACC_PRECISION>;

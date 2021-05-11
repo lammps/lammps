@@ -59,6 +59,7 @@ void MDIEngine::command(int narg, char **arg)
   MDI_Register_Command("@DEFAULT", "<MASSES");
   MDI_Register_Command("@DEFAULT", "<NATOMS");
   MDI_Register_Command("@DEFAULT", "<TYPES");
+  MDI_Register_Command("@DEFAULT", ">CELL");
   MDI_Register_Command("@DEFAULT", ">CELL_DISPL");
   MDI_Register_Command("@DEFAULT", ">COORDS");
   MDI_Register_Command("@DEFAULT", "@INIT_MD");
@@ -81,6 +82,7 @@ void MDIEngine::command(int narg, char **arg)
   MDI_Register_Command("@INIT_MD", "<NATOMS");
   MDI_Register_Command("@INIT_MD", "<PE");
   MDI_Register_Command("@INIT_MD", "<TYPES");
+  MDI_Register_Command("@INIT_MD", ">CELL");
   MDI_Register_Command("@INIT_MD", ">CELL_DISPL");
   MDI_Register_Command("@INIT_MD", ">COORDS");
   MDI_Register_Command("@INIT_MD", ">FORCES");
@@ -107,6 +109,7 @@ void MDIEngine::command(int narg, char **arg)
   MDI_Register_Command("@INIT_OPTG", "<NATOMS");
   MDI_Register_Command("@INIT_OPTG", "<PE");
   MDI_Register_Command("@INIT_OPTG", "<TYPES");
+  MDI_Register_Command("@INIT_OPTG", ">CELL");
   MDI_Register_Command("@INIT_OPTG", ">CELL_DISPL");
   MDI_Register_Command("@INIT_OPTG", ">COORDS");
   MDI_Register_Command("@INIT_OPTG", ">FORCES");
@@ -135,6 +138,7 @@ void MDIEngine::command(int narg, char **arg)
   MDI_Register_Command("@FORCES", "<NATOMS");
   MDI_Register_Command("@FORCES", "<PE");
   MDI_Register_Command("@FORCES", "<TYPES");
+  MDI_Register_Command("@FORCES", ">CELL");
   MDI_Register_Command("@FORCES", ">CELL_DISPL");
   MDI_Register_Command("@FORCES", ">COORDS");
   MDI_Register_Command("@FORCES", ">FORCES");
@@ -161,6 +165,7 @@ void MDIEngine::command(int narg, char **arg)
   MDI_Register_Command("@COORDS", "<NATOMS");
   MDI_Register_Command("@COORDS", "<PE");
   MDI_Register_Command("@COORDS", "<TYPES");
+  MDI_Register_Command("@COORDS", ">CELL");
   MDI_Register_Command("@COORDS", ">CELL_DISPL");
   MDI_Register_Command("@COORDS", ">COORDS");
   MDI_Register_Command("@COORDS", ">FORCES");

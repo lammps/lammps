@@ -98,6 +98,7 @@ class FixMDIEngine : public Fix {
   void send_ke(Error *);
   void receive_forces(Error *, int);
   void send_cell(Error *);
+  void receive_cell(Error *);
   void send_celldispl(Error *);
   void receive_celldispl(Error *);
 };

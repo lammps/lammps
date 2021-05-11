@@ -273,10 +273,11 @@ int FixMDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
   } else if (strcmp(command,"<MASSES") == 0 ) {
     send_masses(error);
 
-  // NOTE: ParSplice is going to definitely also need a >CELL command
-
   } else if (strcmp(command,"<CELL") == 0 ) {
     send_cell(error);
+
+  } else if (strcmp(command,">CELL") == 0 ) {
+    receive_cell(error);
 
   } else if (strcmp(command,"<CELL_DISPL") == 0 ) {
     send_celldispl(error);
@@ -939,6 +940,51 @@ void FixMDIEngine::send_cell(Error* error)
     if (ierr != 0)
       error->all(FLERR,"MDI: Unable to send cell dimensions to driver");
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixMDIEngine::receive_cell(Error* error)
+{
+  double celldata[9];
+
+  // receive the new cell vector from the driver
+  if (master) { 
+    ierr = MDI_Recv((char*) celldata, 9, MDI_DOUBLE, driver_socket);
+    if (ierr != 0)
+      error->all(FLERR,"MDI: Unable to send cell dimensions to driver");
+  }
+  MPI_Bcast(&celldata[0],9,MPI_DOUBLE,0,world);
+
+
+  double angstrom_to_bohr;
+  MDI_Conversion_Factor("angstrom", "bohr", &angstrom_to_bohr);
+  double unit_conv = force->angstrom * angstrom_to_bohr;
+  for (int icell=0; icell < 9; icell++) {
+    celldata[icell] /= unit_conv;
+  }
+
+  // ensure that the new cell vector is orthogonal
+  double small = std::numeric_limits<double>::min();
+  if ( abs( celldata[1] ) > small or
+       abs( celldata[2] ) > small or
+       abs( celldata[3] ) > small or
+       abs( celldata[5] ) > small or
+       abs( celldata[6] ) > small or
+       abs( celldata[7] ) > small) {
+    error->all(FLERR,"MDI: LAMMPS currently only supports the >CELL command for orthogonal cell vectors");
+  }
+
+  // set the new LAMMPS cell dimensions
+  //    This only works for orthogonal cell vectors.
+  //    Supporting the more general case would be possible,
+  //    but considerably more complex.
+  domain->boxhi[0] = celldata[0] + domain->boxlo[0];
+  domain->boxhi[1] = celldata[4] + domain->boxlo[1];
+  domain->boxhi[2] = celldata[8] + domain->boxlo[2];
+  domain->xy = 0.0;
+  domain->xz = 0.0;
+  domain->yz = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */

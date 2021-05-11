@@ -134,7 +134,6 @@ class TILD : public KSpace{
   int nlower,nupper;
   int ngrid,nfft,nfft_both;
   int subtract_rho0, normalize_by_rho0, mix_flag, sub_flag, norm_flag;
-  int *total_counter, specified_all_group, start_group_ind, total_groups; 
 
   int write_grid_flag, grid_data_output_freq;
   int ave_grid_flag, nvalid_last, nvalid, nevery, irepeat, nrepeat, peratom_freq;
@@ -145,32 +144,28 @@ class TILD : public KSpace{
 
   // group-group interactions
 
-  //FFT_SCALAR ***density_A_brick,***density_B_brick;
-  //FFT_SCALAR *density_A_fft,*density_B_fft;
-
   class FFT3d *fft1,*fft2;
   class Remap *remap;
-  class GridComm *cg;
-  class GridComm *cg_peratom;
+  class GridComm *gc;
+
+  FFT_SCALAR *gc_buf1, gc_buf2;
+  int ngc_buf1, ngc_buf2, npergrid;
 
   int **part2grid;             // storage for particle -> grid mapping
 
   double *boxlo;
 
-  void set_grid();
+
+  virtual void set_grid_global();
+  void set_grid_local();
 
   virtual void allocate_peratom();
   virtual void deallocate_peratom();
 
-  virtual void particle_map(double, double, double,
-                             double, int **, int, int,
-                             int, int, int,
-                             int, int, int);
-  // virtual void make_rho();
+  virtual void particle_map();
   virtual void make_rho();
   void brick2fft();
-  void ev_calculation(int, int, int);
-  //void ev_calculation();
+  void ev_calculation(int, int, int);;
 
   virtual void fieldforce_param();
 

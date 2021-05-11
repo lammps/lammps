@@ -546,15 +546,15 @@ can be achieved by explicitly adding the logical AND operator "&&" or
 the logical OR operator "||" after a given constraint command. If a
 logical operator is specified after a constraint, it must be placed
 after all constraint parameters, on the same line as the constraint
-(one per line). Similarly, curly brackets can be used to group
+(one per line). Similarly, parentheses can be used to group
 constraints. The expression that results from concatenating all
 constraints should be a valid logical expression that can be read by
 the :doc:`variable <variable>` command after converting each
 constraint to a logical value. Because exactly one constraint is
 allowed per line, having a valid logical expression implies that left
-curly brackets "{" should only appear before a constraint, and right
-curly brackets "}" should only appear after a constraint and before
-any logical operator.
+parentheses "(" should only appear before a constraint, and right
+parentheses ")" should only appear after a constraint and before any
+logical operator.
 
 Once a reaction site has been successfully identified, data structures
 within LAMMPS that store bond topology are updated to reflect the

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(propel/self,FixPropelSelf)
-
+// clang-format off
+FixStyle(propel/self,FixPropelSelf);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_PROPEL_SELF_H
@@ -26,7 +26,7 @@ namespace LAMMPS_NS {
 class FixPropelSelf : public Fix {
  public:
   FixPropelSelf(class LAMMPS *, int, char **);
-  virtual ~FixPropelSelf();
+  virtual ~FixPropelSelf() {};
   void init();
   void post_force(int);
   void setup(int);
@@ -34,7 +34,7 @@ class FixPropelSelf : public Fix {
 
  private:
   double magnitude;
-  double sx,sy,sz;
+  double sx, sy, sz;
   int mode;
 
   void post_force_dipole(int);
@@ -42,10 +42,8 @@ class FixPropelSelf : public Fix {
   void post_force_quaternion(int);
 
   class AtomVecEllipsoid *avec;
-
 };
-
-}
+}    // namespace LAMMPS_NS
 #endif
 #endif
 

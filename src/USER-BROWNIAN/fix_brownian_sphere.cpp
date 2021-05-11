@@ -12,108 +12,81 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Originally modified from USER-CGDNA/fix_nve_dotc_langevin.cpp. 
+   Originally modified from USER-CGDNA/fix_nve_dotc_langevin.cpp.
 
    Contributing author: Sam Cameron (University of Bristol)
 ------------------------------------------------------------------------- */
 
 #include "fix_brownian_sphere.h"
 
-#include <cmath>
-#include <cstring>
-#include "math_extra.h"
 #include "atom.h"
-#include "force.h"
-#include "update.h"
 #include "comm.h"
 #include "domain.h"
-#include "random_mars.h"
-#include "memory.h"
 #include "error.h"
+#include "force.h"
+#include "math_extra.h"
+#include "memory.h"
+#include "random_mars.h"
+#include "update.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-
-
 /* ---------------------------------------------------------------------- */
 
 FixBrownianSphere::FixBrownianSphere(LAMMPS *lmp, int narg, char **arg) :
-  FixBrownianBase(lmp, narg, arg)
+    FixBrownianBase(lmp, narg, arg)
 {
-
   if (gamma_t_eigen_flag || gamma_r_eigen_flag) {
-    error->all(FLERR,"Illegal fix brownian command.");
+    error->all(FLERR, "Illegal fix brownian command.");
   }
 
-  if (!gamma_t_flag || !gamma_r_flag) {
-    error->all(FLERR,"Illegal fix brownian command.");
-  }
-
-  
-  if (!atom->mu_flag)
-    error->all(FLERR,"Fix brownian/sphere requires atom attribute mu");
-
-    
+  if (!gamma_t_flag || !gamma_r_flag) { error->all(FLERR, "Illegal fix brownian command."); }
+  if (!atom->mu_flag) error->all(FLERR, "Fix brownian/sphere requires atom attribute mu");
 }
-
-
-/* ---------------------------------------------------------------------- */
-
-FixBrownianSphere::~FixBrownianSphere()
-{
-}
-
-
 
 /* ---------------------------------------------------------------------- */
 
 void FixBrownianSphere::init()
 {
-
   FixBrownianBase::init();
-  
-  g3 = g1/gamma_r;
-  g4 = g2/sqrt(gamma_r);
-  
+
+  g3 = g1 / gamma_r;
+  g4 = g2 / sqrt(gamma_r);
   g1 /= gamma_t;
   g2 /= sqrt(gamma_t);
-
-
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixBrownianSphere::initial_integrate(int /*vflag */)
 {
-
   if (domain->dimension == 2) {
-  
     if (!noise_flag) {
-      initial_integrate_templated<0,0,1>();
+      initial_integrate_templated<0, 0, 1>();
     } else if (gaussian_noise_flag) {
-      initial_integrate_templated<0,1,1>();
+      initial_integrate_templated<0, 1, 1>();
     } else {
-      initial_integrate_templated<1,0,1>();
+      initial_integrate_templated<1, 0, 1>();
     }
   } else {
     if (!noise_flag) {
-      initial_integrate_templated<0,0,0>();
+      initial_integrate_templated<0, 0, 0>();
     } else if (gaussian_noise_flag) {
-      initial_integrate_templated<0,1,0>();
+      initial_integrate_templated<0, 1, 0>();
     } else {
-      initial_integrate_templated<1,0,0>();
+      initial_integrate_templated<1, 0, 0>();
     }
   }
-  
   return;
 }
 
-
 /* ---------------------------------------------------------------------- */
 
-template < int Tp_UNIFORM, int Tp_GAUSS, int Tp_2D >
+template <int Tp_UNIFORM, int Tp_GAUSS, int Tp_2D>
 void FixBrownianSphere::initial_integrate_templated()
 {
   double **x = atom->x;
@@ -121,112 +94,92 @@ void FixBrownianSphere::initial_integrate_templated()
   double **f = atom->f;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-  double wx,wy,wz;
+  double wx, wy, wz;
   double **torque = atom->torque;
   double **mu = atom->mu;
-  double mux,muy,muz,mulen;
-  
+  double mux, muy, muz, mulen;
+
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
-  
-  
-  double dx,dy,dz;
-  
+
+  double dx, dy, dz;
+
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
-
       if (Tp_2D) {
-	dz = 0;
-	wx = wy = 0;
-	if (Tp_UNIFORM) {
-	  dx = dt * (g1 * f[i][0] + g2 * (random->uniform()-0.5));
-	  dy = dt * (g1 * f[i][1] + g2 * (random->uniform()-0.5));
-	  wz = (random->uniform()-0.5)*g4;
-	  
-	} else if (Tp_GAUSS) {
-	  dx = dt * (g1 * f[i][0] + g2 * random->gaussian());
-	  dy = dt * (g1 * f[i][1] + g2 * random->gaussian());
-	  wz = random->gaussian()*g4;
-	  
-	  
-	} else {
-	  dx = dt * g1 * f[i][0];
-	  dy = dt * g1 * f[i][1];
-	  wz = 0;
-	  
-	}
+        dz = 0;
+        wx = wy = 0;
+        if (Tp_UNIFORM) {
+          dx = dt * (g1 * f[i][0] + g2 * (rng->uniform() - 0.5));
+          dy = dt * (g1 * f[i][1] + g2 * (rng->uniform() - 0.5));
+          wz = (rng->uniform() - 0.5) * g4;
+        } else if (Tp_GAUSS) {
+          dx = dt * (g1 * f[i][0] + g2 * rng->gaussian());
+          dy = dt * (g1 * f[i][1] + g2 * rng->gaussian());
+          wz = rng->gaussian() * g4;
+        } else {
+          dx = dt * g1 * f[i][0];
+          dy = dt * g1 * f[i][1];
+          wz = 0;
+        }
       } else {
-	if (Tp_UNIFORM) {
-	  dx = dt * (g1 * f[i][0] + g2 * (random->uniform()-0.5));
-	  dy = dt * (g1 * f[i][1] + g2 * (random->uniform()-0.5));
-	  dz = dt * (g1 * f[i][2] + g2 * (random->uniform()-0.5));
-	  wx = (random->uniform()-0.5)*g4;
-	  wy = (random->uniform()-0.5)*g4;
-	  wz = (random->uniform()-0.5)*g4;
-	  
-	} else if (Tp_GAUSS) {
-	  dx = dt * (g1 * f[i][0] + g2 * random->gaussian());
-	  dy = dt * (g1 * f[i][1] + g2 * random->gaussian());
-	  dz = dt * (g1 * f[i][2] + g2 * random->gaussian());
-	  wx = random->gaussian()*g4;
-	  wy = random->gaussian()*g4;
-	  wz = random->gaussian()*g4;
-	  
-	  
-	} else {
-	  dx = dt * g1 * f[i][0];
-	  dy = dt * g1 * f[i][1];
-	  dz = dt * g1 * f[i][2];
-	  wx = wy = wz = 0;
-	  
-	}
+        if (Tp_UNIFORM) {
+          dx = dt * (g1 * f[i][0] + g2 * (rng->uniform() - 0.5));
+          dy = dt * (g1 * f[i][1] + g2 * (rng->uniform() - 0.5));
+          dz = dt * (g1 * f[i][2] + g2 * (rng->uniform() - 0.5));
+          wx = (rng->uniform() - 0.5) * g4;
+          wy = (rng->uniform() - 0.5) * g4;
+          wz = (rng->uniform() - 0.5) * g4;
+        } else if (Tp_GAUSS) {
+          dx = dt * (g1 * f[i][0] + g2 * rng->gaussian());
+          dy = dt * (g1 * f[i][1] + g2 * rng->gaussian());
+          dz = dt * (g1 * f[i][2] + g2 * rng->gaussian());
+          wx = rng->gaussian() * g4;
+          wy = rng->gaussian() * g4;
+          wz = rng->gaussian() * g4;
+        } else {
+          dx = dt * g1 * f[i][0];
+          dy = dt * g1 * f[i][1];
+          dz = dt * g1 * f[i][2];
+          wx = wy = wz = 0;
+        }
       }
-      
-      x[i][0] +=  dx;
-      v[i][0]  =  dx/dt;
-      
-      
-      x[i][1] +=  dy;
-      v[i][1]  =  dy/dt;
-      
-      
-      x[i][2] +=  dz;
-      v[i][2]  =  dz/dt;
 
+      x[i][0] += dx;
+      v[i][0] = dx / dt;
 
-	
-      wx += g3*torque[i][0];
-      wy += g3*torque[i][1];
-      wz += g3*torque[i][2];
-      
-      
+      x[i][1] += dy;
+      v[i][1] = dy / dt;
+
+      x[i][2] += dz;
+      v[i][2] = dz / dt;
+
+      wx += g3 * torque[i][0];
+      wy += g3 * torque[i][1];
+      wz += g3 * torque[i][2];
+
       // store length of dipole as we need to convert it to a unit vector and
       // then back again
-      
-      mulen = sqrt(mu[i][0]*mu[i][0] + mu[i][1]*mu[i][1] + mu[i][2]*mu[i][2]);
+
+      mulen = sqrt(mu[i][0] * mu[i][0] + mu[i][1] * mu[i][1] + mu[i][2] * mu[i][2]);
 
       // unit vector at time t
-      mux = mu[i][0]/mulen;
-      muy = mu[i][1]/mulen;
-      muz = mu[i][2]/mulen;
-
-
+      mux = mu[i][0] / mulen;
+      muy = mu[i][1] / mulen;
+      muz = mu[i][2] / mulen;
 
       // un-normalised unit vector at time t + dt
-      mu[i][0] = mux + (wy*muz - wz*muy)*dt;
-      mu[i][1] = muy + (wz*mux - wx*muz)*dt;
-      mu[i][2] = muz + (wx*muy - wy*mux)*dt;
-      
+      mu[i][0] = mux + (wy * muz - wz * muy) * dt;
+      mu[i][1] = muy + (wz * mux - wx * muz) * dt;
+      mu[i][2] = muz + (wx * muy - wy * mux) * dt;
+
       // normalisation introduces the stochastic drift term due to changing from
       // Stratonovich to Ito interpretation
       MathExtra::norm3(mu[i]);
 
       // multiply by original magnitude to obtain dipole of same length
-      mu[i][0] = mu[i][0]*mulen;
-      mu[i][1] = mu[i][1]*mulen;
-      mu[i][2] = mu[i][2]*mulen;
-      
+      mu[i][0] = mu[i][0] * mulen;
+      mu[i][1] = mu[i][1] * mulen;
+      mu[i][2] = mu[i][2] * mulen;
     }
   }
-
-  return;
 }

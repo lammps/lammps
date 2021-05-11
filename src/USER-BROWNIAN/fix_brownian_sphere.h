@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(brownian/sphere,FixBrownianSphere)
-
+// clang-format off
+FixStyle(brownian/sphere,FixBrownianSphere);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_BROWNIAN_SPHERE_H
@@ -27,18 +27,16 @@ namespace LAMMPS_NS {
 class FixBrownianSphere : public FixBrownianBase {
  public:
   FixBrownianSphere(class LAMMPS *, int, char **);
-  virtual ~FixBrownianSphere();
+  virtual ~FixBrownianSphere() {};
   void init();
-  void initial_integrate(int /*vflag */);
-
+  void initial_integrate(int);
 
  private:
-  template < int Tp_UNIFORM, int Tp_GAUSS, int Tp_2D >
+  template <int Tp_UNIFORM, int Tp_GAUSS, int Tp_2D>
   void initial_integrate_templated();
-  double g3,g4;
+  double g3, g4;
 };
-
-}
+}    // namespace LAMMPS_NS
 #endif
 #endif
 

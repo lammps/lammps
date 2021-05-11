@@ -17,16 +17,16 @@ parser = ArgumentParser(prog='Install.py',
 
 # settings
 
-version = "2.1.3"
+version = "2.1.4"
 
 # help message
 
 HELP = """
 Syntax from src dir: make lib-hdnnp args="-b"
-                 or: make lib-hdnnp args="-b -v 2.1.3"
+                 or: make lib-hdnnp args="-b -v 2.1.4"
                  or: make lib-hdnnp args="-p /usr/local/n2p2"
 
-Syntax from lib dir: python Install.py -b -v 2.1.3
+Syntax from lib dir: python Install.py -b -v 2.1.4
                  or: python Install.py -b
                  or: python Install.py -p /usr/local/n2p2
 
@@ -38,7 +38,7 @@ make lib-hdnnp args="-p $HOME/n2p2" # use existing n2p2 installation in $HOME/n2
 
 # known checksums for different n2p2 versions. used to validate the download.
 checksums = { \
-        '2.1.3' : '5cd30194701db198e4a72ee94fa6e0db', \
+        '2.1.4' : '9595b066636cd6b90b0fef93398297a5', \
         }
 
 # parse and process arguments
@@ -61,7 +61,6 @@ if not args.build and not args.path:
 buildflag = args.build
 pathflag = args.path is not None
 n2p2path = args.path
-mode = args.mode
 
 homepath = fullpath('.')
 homedir = "%s/n2p2" % (homepath)
@@ -98,13 +97,16 @@ if buildflag:
   # build n2p2
   print("Building n2p2 ...")
   n_cpus = get_cpus()
-  cmd = 'cd %s/n2p2-%s/src; make -j%d libnnpif' % (homepath, version, n_cpus)
+  cmd = 'unset MAKEFLAGS MAKELEVEL MAKEOVERRIDES MFLAGS && cd %s/n2p2-%s/src && make -j%d libnnpif' % (homepath, version, n_cpus)
   try:
     txt = subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
     print(txt.decode('UTF-8'))
   except subprocess.CalledProcessError as e:
     print("Make failed with:\n %s" % e.output.decode('UTF-8'))
     sys.exit(1)
+
+  # set correct homedir for linking step
+  homedir = "%s/n2p2-%s" % (homepath, version)
 
 # create 2 links in lib/hdnnp to n2p2 installation dir
 
@@ -113,5 +115,8 @@ if os.path.isfile("includelink") or os.path.islink("includelink"):
   os.remove("includelink")
 if os.path.isfile("liblink") or os.path.islink("liblink"):
   os.remove("liblink")
-os.symlink(os.path.join(homedir, 'src'), 'includelink')
-os.symlink(os.path.join(homedir, 'src'), 'liblink')
+if os.path.isfile("Makefile.lammps") or os.path.islink("Makefile.lammps"):
+  os.remove("Makefile.lammps")
+os.symlink(os.path.join(homedir, 'include'), 'includelink')
+os.symlink(os.path.join(homedir, 'lib'), 'liblink')
+os.symlink(os.path.join(homedir, 'lib', 'Makefile.lammps-extra'), 'Makefile.lammps')

@@ -158,5 +158,14 @@ class PythonCapabilities(unittest.TestCase):
             if self.cmake_cache['GPU_PREC'].lower() == 'single':
                  self.assertIn('single',settings['GPU']['precision'])
 
+    def test_gpu_device(self):
+
+        info = self.lmp.get_gpu_device_info()
+        if self.lmp.has_gpu_device:
+            self.assertTrue(info)
+            self.assertGreaterEqual(info.find("Device"),0)
+        else:
+            self.assertFalse(info)
+
 if __name__ == "__main__":
     unittest.main()

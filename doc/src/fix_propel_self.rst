@@ -57,7 +57,7 @@ are not unit vectors, the :math:`e_i` will not be unit vectors.
    change accordingly (since :math:`|e_i|` will change, which is physically
    equivalent to re-scaling :math:`f_P` while keeping :math:`|e_i|` constant),
    and no warning will be provided by LAMMPS. This is almost never what you
-   want, so ensure you aren't changing dipole magnitudes with another LAMMPS
+   want, so ensure you are not changing dipole magnitudes with another LAMMPS
    fix or pair style. Furthermore, self-propulsion forces (almost) always
    set :math:`e_i`  to be a unit vector for all times, so it's best to set
    all the dipole magnitudes to 1.0 unless you have a good reason not to
@@ -69,7 +69,7 @@ velocity-dependent friction, as proposed by e.g. :ref:`(Erdmann) <Erdmann1>`.
 
 For mode *quat*, :math:`e_i` points in the direction of a unit
 vector, oriented in the coordinate frame of the ellipsoidal particles,
-which defaults to point along the x-direction. This default behaviour
+which defaults to point along the x-direction. This default behavior
 can be changed by via the *quatvec* keyword.
 
 The optional *quatvec* keyword specifies the direction of self-propulsion
@@ -83,7 +83,7 @@ to zero. This keyword may only be specified for mode *quat*.
 .. note::
    
    In using keyword *quatvec*, the three arguments *sx*,
-   *sy*, and *sz* will be automatically normalised to components
+   *sy*, and *sz* will be automatically normalized to components
    of a unit vector internally to avoid users having to explicitly
    do so themselves. Therefore, in mode *quat*, the vectors :math:`e_i`
    will always be of unit length. 

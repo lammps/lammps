@@ -4,7 +4,7 @@
 
 fix brownian command
 ===========================
-	   
+
 fix brownian/sphere command
 ===========================
 
@@ -43,7 +43,6 @@ Syntax
         *gamma_t* values = *gt* for *brownian* and *brownian/sphere*
          *gt* = magnitude of the (isotropic) translational friction tensor
 
-	
 
 Examples
 """"""""
@@ -61,42 +60,45 @@ Examples
 Description
 """""""""""
 
-Perform Brownian Dynamics integration to update position, velocity, 
-dipole orientation (for spheres) and quaternion orientation (for ellipsoids,
-with optional dipole update as well) in the group each timestep.
-Brownian Dynamics uses Newton's laws of
+Perform Brownian Dynamics time integration to update position, velocity,
+dipole orientation (for spheres) and quaternion orientation (for
+ellipsoids, with optional dipole update as well) of all particles in the
+fix group in each timestep.  Brownian Dynamics uses Newton's laws of
 motion in the limit that inertial forces are negligible compared to
-viscous forces. The stochastic equation of motion for the centre of mass
-positions are
+viscous forces. The stochastic equation of motion for the center of mass
+positions is
 
 .. math::
 
    d\mathbf{r} = \mathbf{\gamma}_t^{-1}\mathbf{F}dt+\sqrt{2k_BT}\mathbf{\gamma}_t^{-1/2}d\mathbf{W}_t,
 
-in the lab-frame (i.e. :math:`\mathbf{\gamma}_t` is not diagonal, but only depends on
-orientation and so the noise is still additive).
+in the lab-frame (i.e. :math:`\mathbf{\gamma}_t` is not diagonal, but
+only depends on orientation and so the noise is still additive).
 
-The rotational motion for the spherical and ellipsoidal particles is not as simple an
-expression, but is chosen to replicate the Boltzmann distribution for the case of
-conservative torques (see :ref:`(Ilie) <Ilie1>` or :ref:`(Delong) <Delong1>`).
+The rotational motion for the spherical and ellipsoidal particles is not
+as simple an expression, but is chosen to replicate the Boltzmann
+distribution for the case of conservative torques (see :ref:`(Ilie)
+<Ilie1>` or :ref:`(Delong) <Delong1>`).
 
-For the style *brownian*, only the positions of the particles are updated. This is
-therefore suitable for point particle simulations.
+For the style *brownian*, only the positions of the particles are
+updated. This is therefore suitable for point particle simulations.
 
-For the style *brownian/sphere*, the positions of the particles are updated, and a dipole
-slaved to the spherical orientation is also updated. This style therefore requires the
-hybrid atom style :doc:`atom_style dipole <atom_style>` and
-:doc:`atom_style sphere <atom_style>`. 
+For the style *brownian/sphere*, the positions of the particles are
+updated, and a dipole slaved to the spherical orientation is also
+updated. This style therefore requires the hybrid atom style
+:doc:`atom_style dipole <atom_style>` and :doc:`atom_style sphere
+<atom_style>`.
 
-For the style *brownian/asphere*, the centre of mass positions and the quaternions of
-ellipsoidal particles are updated. This fix style is suitable for equations of motion
-where the rotational and translational friction tensors are diagonalisable in a certain
-(body) reference frame.
+For the style *brownian/asphere*, the center of mass positions and the
+quaternions of ellipsoidal particles are updated. This fix style is
+suitable for equations of motion where the rotational and translational
+friction tensors can be diagonalized in a certain (body) reference frame.
 
 
 ---------
 
 .. note::
+
    This integrator does not by default assume a relationship between the
    rotational and translational friction tensors, though such a relationship
    should exist in the case of no-slip boundary conditions between the particles and
@@ -109,11 +111,12 @@ where the rotational and translational friction tensors are diagonalisable in a 
 ---------
 
 .. note::
+
    Temperature computation using the :doc:`compute temp <compute_temp>`
    will not correctly compute temperature of these overdamped dynamics
    since we are explicitly neglecting inertial effects.
    Furthermore, this time integrator does not add the stochastic terms or
-   viscous terms to the force and/or torques. Rather, they are just added
+   viscous terms to the force and/or torques.  Rather, they are just added
    in to the equations of motion to update the degrees of freedom.
 
 ---------
@@ -131,7 +134,6 @@ value for reasons argued in :ref:`(Dunweg) <Dunweg7>`.
 
 If the *rng* keyword is used with the *none* value, then the noise
 terms are set to zero.
-
 
 The *gamma_t* keyword sets the (isotropic) translational viscous damping.
 Required for (and only compatible with) *brownian* and *brownian/sphere*.
@@ -202,11 +204,9 @@ tensors are the identity tensor.
 
 ----------
 
-
 .. _Ilie1:
 
 **(Ilie)** Ilie, Briels, den Otter, Journal of Chemical Physics, 142, 114103 (2015).
-
 
 .. _Delong1:
 
@@ -215,5 +215,3 @@ tensors are the identity tensor.
 .. _Dunweg7:
 
 **(Dunweg)** Dunweg and Paul, Int J of Modern Physics C, 2, 817-27 (1991).
-
-

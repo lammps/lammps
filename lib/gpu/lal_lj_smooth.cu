@@ -1,7 +1,7 @@
 // **************************************************************************
 //                                   lj_smooth.cu
 //                             -------------------
-//                           W. Michael Brown (ORNL)
+//                           Gurgen Melikyan (HSE University)
 //
 //  Device code for acceleration of the lj/smooth pair style
 //
@@ -10,7 +10,7 @@
 // __________________________________________________________________________
 //
 //    begin                :
-//    email                : brownw@ornl.gov
+//    email                : gkmeliyan@edu.hse.ru
 // ***************************************************************************
 
 #if defined(NV_KERNEL) || defined(USE_HIP)

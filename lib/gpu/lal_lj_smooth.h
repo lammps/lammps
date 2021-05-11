@@ -1,7 +1,7 @@
 /***************************************************************************
                                     lj_smooth.h
                              -------------------
-                            G. Melikyan 
+                            Gurgen Melikyan (HSE University)
   Class for acceleration of the lj/smooth pair style.
  __________________________________________________________________________
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)

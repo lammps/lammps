@@ -1,7 +1,7 @@
 /***************************************************************************
                                  lj_smooth_ext.cpp
                              -------------------
-                            W. Michael Brown (ORNL)
+                            Gurgen Melikyan (HSE University)
 
   Functions for LAMMPS access to lj/smooth acceleration routines.
 
@@ -10,7 +10,7 @@
  __________________________________________________________________________
 
     begin                :
-    email                : brownw@ornl.gov
+    email                : gkmeliyan@edu.hse.ru
  ***************************************************************************/
 
 #include <iostream>

@@ -3828,31 +3828,45 @@ void FixBondReact::ChiralCenters(char *line, int myrxn)
 void FixBondReact::ReadConstraints(char *line, int myrxn)
 {
   double tmp[MAXCONARGS];
-  char **strargs,*ptr;
+  char **strargs,*ptr,*lptr;
   memory->create(strargs,MAXCONARGS,MAXLINE,"bond/react:strargs");
   char *constraint_type = new char[MAXLINE];
   strcpy(constraintstr[myrxn],"("); // string for boolean constraint logic
   for (int i = 0; i < nconstraints[myrxn]; i++) {
     readline(line);
-    if ((ptr = strrchr(line,'{'))) { // reverse char search
-      strncat(constraintstr[myrxn],line,ptr-line+1);
-      line = ptr + 1;
+    // find left parentheses, add to constraintstr, and update line
+    for (int j = 0; j < strlen(line); j++) {
+      if (line[j] == '(') strcat(constraintstr[myrxn],"(");
+      if (isalpha(line[j])) {
+        line = line + j;
+        break;
+      }
     }
     // 'C' indicates where to sub in next constraint
     strcat(constraintstr[myrxn],"C");
-    if ((ptr = strchr(line,'}'))) {
-      strncat(constraintstr[myrxn],ptr,strrchr(line,')')-ptr+1);
+    // special consideration for 'custom' constraint
+    // find final double quote, or skip two words
+    lptr = line;
+    if ((ptr = strrchr(lptr,'\"'))) lptr = ptr+1;
+    else {
+      while (lptr[0] != ' ') lptr++; // skip first 'word'
+      while (lptr[0] == ' ' || lptr[0] == '\t') lptr++; // skip blanks
+      while (lptr[0] != ' ') lptr++; // skip second 'word'
     }
-    if ((ptr = strstr(line,"&&"))) {
+    // find right parentheses
+    for (int j = 0; j < strlen(lptr); j++)
+      if (lptr[j] == ')') strcat(constraintstr[myrxn],")");
+    // find logic symbols, and trim line via ptr
+    if ((ptr = strstr(lptr,"&&"))) {
       strcat(constraintstr[myrxn],"&&");
       *ptr = '\0';
-    } else if ((ptr = strstr(line,"||"))) {
+    } else if ((ptr = strstr(lptr,"||"))) {
       strcat(constraintstr[myrxn],"||");
       *ptr = '\0';
     } else if (i+1 < nconstraints[myrxn]) {
       strcat(constraintstr[myrxn],"&&");
     }
-    if ((ptr = strchr(line,'}')))
+    if ((ptr = strchr(lptr,')')))
       *ptr = '\0';
     sscanf(line,"%s",constraint_type);
     if (strcmp(constraint_type,"distance") == 0) {

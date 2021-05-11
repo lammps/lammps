@@ -5,6 +5,7 @@ pair_style lj/smooth command
 ============================
 
 Accelerator Variants: *lj/smooth/omp*
+Accelerator Variants: *lj/smooth/gpu*
 
 Syntax
 """"""

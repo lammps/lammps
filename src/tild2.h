@@ -181,10 +181,10 @@ class TILD : public KSpace{
 
   // grid communication
 
-  virtual void pack_forward(int, FFT_SCALAR *, int, int *);
-  virtual void unpack_forward(int, FFT_SCALAR *, int, int *);
-  virtual void pack_reverse(int, FFT_SCALAR *, int, int *);
-  virtual void unpack_reverse(int, FFT_SCALAR *, int, int *);
+  virtual void pack_forward_grid(int, void *, int, int *);
+  virtual void unpack_forward_grid(int, void *, int, int *);
+  virtual void pack_reverse_grid(int, void *, int, int *);
+  virtual void unpack_reverse_grid(int, void *, int, int *);
 
   // triclinic
 
@@ -192,21 +192,6 @@ class TILD : public KSpace{
 
   // group-group interactions
 
-  // virtual void allocate_groups();
-  // virtual void deallocate_groups();
-  // virtual void make_rho_groups(int, int, int);
-  // virtual void poisson_groups(int);
-  // virtual void slabcorr_groups(int,int,int);
-  // virtual void make_rho_none();
-
-  // group-group interactions
-
-  void set_fft_parameters(int&, int&, int&, int&, int&,int&,
-                          int&, int&,int&, int&, int&,int&,
-                          int&, int&,int&, int&, int&,int&,
-                          int&, int&,int&, int&, int&,
-                          int&, int&, int&,
-                          double&, double&, int&);
   void accumulate_gradient();
   void vir_func_init();
   void write_grid_data(char *, const int);

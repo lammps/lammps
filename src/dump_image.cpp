@@ -1042,7 +1042,7 @@ void DumpImage::create_image()
   // render outline of my sub-box, orthogonal or triclinic
 
   if (subboxflag) {
-    double diameter = MIN(boxxhi-boxxlo,boxyhi-boxylo);
+    diameter = MIN(boxxhi-boxxlo,boxyhi-boxylo);
     if (domain->dimension == 3) diameter = MIN(diameter,boxzhi-boxzlo);
     diameter *= subboxdiam;
 
@@ -1072,7 +1072,7 @@ void DumpImage::create_image()
   // render outline of simulation box, orthogonal or triclinic
 
   if (boxflag) {
-    double diameter = MIN(boxxhi-boxxlo,boxyhi-boxylo);
+    diameter = MIN(boxxhi-boxxlo,boxyhi-boxylo);
     if (domain->dimension == 3) diameter = MIN(diameter,boxzhi-boxzlo);
     diameter *= boxdiam;
 
@@ -1100,7 +1100,7 @@ void DumpImage::create_image()
   // offset by 10% of box size and scale by axeslen
 
   if (axesflag) {
-    double diameter = MIN(boxxhi-boxxlo,boxyhi-boxylo);
+    diameter = MIN(boxxhi-boxxlo,boxyhi-boxylo);
     if (domain->dimension == 3) diameter = MIN(diameter,boxzhi-boxzlo);
     diameter *= axesdiam;
 
@@ -1244,7 +1244,7 @@ int DumpImage::modify_param(int narg, char **arg)
     else error->all(FLERR,"Illegal dump_modify command");
     int nentry = utils::inumeric(FLERR,arg[5],false,lmp);
     if (nentry < 1) error->all(FLERR,"Illegal dump_modify command");
-    int n = 6 + factor*nentry;
+    n = 6 + factor*nentry;
     if (narg < n) error->all(FLERR,"Illegal dump_modify command");
     int flag = image->map_reset(0,n-1,&arg[1]);
     if (flag) error->all(FLERR,"Illegal dump_modify command");

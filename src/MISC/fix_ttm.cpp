@@ -75,8 +75,8 @@ FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
     if (comm->me == 0) {
       fp = fopen(arg[15],"w");
       if (fp == nullptr)
-        error->one(FLERR,fmt::format("Cannot open output file {}: {}",
-                                     arg[15], utils::getsyserror()));
+        error->one(FLERR,"Cannot open output file {}: {}",
+                                     arg[15], utils::getsyserror());
     }
   }
 
@@ -331,8 +331,8 @@ void FixTTM::read_initial_electron_temperatures(const char *filename)
 
   std::string name = utils::get_potential_file_path(filename);
   if (name.empty())
-    error->one(FLERR,fmt::format("Cannot open input file: {}",
-                                 filename));
+    error->one(FLERR,"Cannot open input file: {}",
+                                 filename);
   FILE *fpr = fopen(name.c_str(),"r");
 
   // read initial electron temperature values from file
@@ -434,7 +434,7 @@ void FixTTM::end_of_step()
     num_inner_timesteps = static_cast<int>(update->dt/inner_dt) + 1;
     inner_dt = update->dt/double(num_inner_timesteps);
     if (num_inner_timesteps > 1000000)
-      error->warning(FLERR,"Too many inner timesteps in fix ttm",0);
+      error->warning(FLERR,"Too many inner timesteps in fix ttm");
   }
 
   for (int ith_inner_timestep = 0; ith_inner_timestep < num_inner_timesteps;

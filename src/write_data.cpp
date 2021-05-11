@@ -29,7 +29,6 @@
 #include "output.h"
 #include "pair.h"
 #include "thermo.h"
-#include "universe.h"
 #include "update.h"
 
 #include <cstring>
@@ -41,7 +40,7 @@ enum{ELLIPSOID,LINE,TRIANGLE,BODY};   // also in AtomVecHybrid
 
 /* ---------------------------------------------------------------------- */
 
-WriteData::WriteData(LAMMPS *lmp) : Pointers(lmp)
+WriteData::WriteData(LAMMPS *lmp) : Command(lmp)
 {
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
@@ -176,8 +175,8 @@ void WriteData::write(const std::string &file)
   if (me == 0) {
     fp = fopen(file.c_str(),"w");
     if (fp == nullptr)
-      error->one(FLERR,fmt::format("Cannot open data file {}: {}",
-                                   file, utils::getsyserror()));
+      error->one(FLERR,"Cannot open data file {}: {}",
+                                   file, utils::getsyserror());
   }
 
   // proc 0 writes header, ntype-length arrays, force fields

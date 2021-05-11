@@ -76,6 +76,12 @@ AtomKokkos::~AtomKokkos()
   memoryKK->destroy_kokkos(k_improper_atom3, improper_atom3);
   memoryKK->destroy_kokkos(k_improper_atom4, improper_atom4);
 
+  // SPIN package
+
+  memoryKK->destroy_kokkos(k_sp, sp);
+  memoryKK->destroy_kokkos(k_fm, fm);
+  memoryKK->destroy_kokkos(k_fm_long, fm_long);
+
   // USER-DPD package
   memoryKK->destroy_kokkos(k_uCond,uCond);
   memoryKK->destroy_kokkos(k_uMech,uMech);

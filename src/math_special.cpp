@@ -4,8 +4,6 @@
 #include <cstdint> // IWYU pragma: keep
 #include <limits>
 
-#include "error.h"
-
 using namespace LAMMPS_NS;
 
 static constexpr int nmaxfactorial = 167;

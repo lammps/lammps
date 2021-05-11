@@ -22,7 +22,6 @@
 #include "force.h"
 #include "improper.h"
 #include "pair.h"
-#include "universe.h"
 
 #include <cctype>
 #include <cstring>
@@ -53,8 +52,8 @@ void WriteCoeff::command(int narg, char **arg)
     FILE *one = fopen(file,"wb+");
 
     if (one == nullptr)
-      error->one(FLERR,fmt::format("Cannot open coeff file {}: {}",
-                                   file, utils::getsyserror()));
+      error->one(FLERR,"Cannot open coeff file {}: {}",
+                                   file, utils::getsyserror());
 
     if (force->pair && force->pair->writedata) {
       fprintf(one,"# pair_style %s\npair_coeff\n",force->pair_style);
@@ -87,8 +86,8 @@ void WriteCoeff::command(int narg, char **arg)
 
     FILE *two = fopen(file+4,"w");
     if (two == nullptr)
-      error->one(FLERR,fmt::format("Cannot open coeff file {}: {}",
-                                   file+4, utils::getsyserror()));
+      error->one(FLERR,"Cannot open coeff file {}: {}",
+                                   file+4, utils::getsyserror());
 
     fprintf(two,"# LAMMPS coeff file via write_coeff, version %s\n",
             lmp->version);

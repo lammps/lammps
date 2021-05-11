@@ -265,8 +265,8 @@ void PairHybrid::settings(int narg, char **arg)
 {
   if (narg < 1) error->all(FLERR,"Illegal pair_style command");
   if (lmp->kokkos && !utils::strmatch(force->pair_style,"^hybrid.*/kk$"))
-    error->all(FLERR,fmt::format("Must use pair_style {}/kk with Kokkos",
-                                 force->pair_style));
+    error->all(FLERR,"Must use pair_style {}/kk with Kokkos",
+                                 force->pair_style);
 
   // delete old lists, since cannot just change settings
 
@@ -545,6 +545,15 @@ void PairHybrid::init_style()
         for (m = 0; m < nmap[itype][jtype]; m++)
           if (map[itype][jtype][m] == istyle) used = 1;
     if (used == 0) error->all(FLERR,"Pair hybrid sub-style is not used");
+  }
+
+  // The GPU library uses global data for each pair style, so the
+  // same style must not be used multiple times
+
+  for (istyle = 0; istyle < nstyles; istyle++) {
+    bool is_gpu = (((PairHybrid *)styles[istyle])->suffix_flag & Suffix::GPU);
+    if (multiple[istyle] && is_gpu)
+      error->all(FLERR,"GPU package styles must not be used multiple times");
   }
 
   // check if special_lj/special_coul overrides are compatible

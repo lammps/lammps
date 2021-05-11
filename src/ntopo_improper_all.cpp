@@ -62,11 +62,11 @@ void NTopoImproperAll::build()
       if (atom1 == -1 || atom2 == -1 || atom3 == -1 || atom4 == -1) {
         nmissing++;
         if (lostbond == Thermo::ERROR)
-          error->one(FLERR,fmt::format("Improper atoms {} {} {} {} missing on "
+          error->one(FLERR,"Improper atoms {} {} {} {} missing on "
                                        "proc {} at step {}",
                                        improper_atom1[i][m],improper_atom2[i][m],
                                        improper_atom3[i][m],improper_atom4[i][m],
-                                       me,update->ntimestep));
+                                       me,update->ntimestep);
         continue;
       }
       atom1 = domain->closest_image(i,atom1);
@@ -94,6 +94,5 @@ void NTopoImproperAll::build()
   int all;
   MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
   if (all && (me == 0))
-    error->warning(FLERR,fmt::format("Improper atoms missing at step {}",
-                                     update->ntimestep));
+    error->warning(FLERR,"Improper atoms missing at step {}",update->ntimestep);
 }

@@ -269,7 +269,7 @@ void ComputeCentroAtom::compute_peratom()
             delx = x[jj][0] + x[kk][0] - 2.0*xtmp;
             dely = x[jj][1] + x[kk][1] - 2.0*ytmp;
             delz = x[jj][2] + x[kk][2] - 2.0*ztmp;
-            double rsq = delx*delx + dely*dely + delz*delz;
+            rsq = delx*delx + dely*dely + delz*delz;
             pairs[n++] = rsq;
 
             if (rsq < rsq2) {

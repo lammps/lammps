@@ -12,11 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_nve_noforce.h"
-#include <cstring>
+
 #include "atom.h"
-#include "update.h"
-#include "respa.h"
 #include "error.h"
+#include "respa.h"
+#include "update.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

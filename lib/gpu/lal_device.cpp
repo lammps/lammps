@@ -777,6 +777,7 @@ void DeviceT::output_times(UCL_Timer &time_pair, Answer<numtyp,acctyp> &ans,
   #ifdef USE_OPENCL
   // Workaround for timing issue on Intel OpenCL
   if (times[3] > 80e6) times[3]=0.0;
+  if (times[5] > 80e6) times[5]=0.0;
   #endif
 
   if (replica_me()==0)

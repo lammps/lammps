@@ -29,7 +29,6 @@
 #include "update.h"
 
 #include <cmath>
-#include <cstring>
 #include <fstream>  // IWYU pragma: keep
 #include <sstream>  // IWYU pragma: keep
 
@@ -255,27 +254,8 @@ void DihedralTableCut::compute(int eflag, int vflag)
 
     // error check
 
-    if (c > 1.0 + TOLERANCE || c < (-1.0 - TOLERANCE)) {
-      int me;
-      MPI_Comm_rank(world,&me);
-      if (screen) {
-        char str[128];
-        sprintf(str,"Dihedral problem: %d " BIGINT_FORMAT " "
-                TAGINT_FORMAT " " TAGINT_FORMAT " "
-                TAGINT_FORMAT " " TAGINT_FORMAT,
-                me,update->ntimestep,
-                atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
-        error->warning(FLERR,str,0);
-        fprintf(screen,"  1st atom: %d %g %g %g\n",
-                me,x[i1][0],x[i1][1],x[i1][2]);
-        fprintf(screen,"  2nd atom: %d %g %g %g\n",
-                me,x[i2][0],x[i2][1],x[i2][2]);
-        fprintf(screen,"  3rd atom: %d %g %g %g\n",
-                me,x[i3][0],x[i3][1],x[i3][2]);
-        fprintf(screen,"  4th atom: %d %g %g %g\n",
-                me,x[i4][0],x[i4][1],x[i4][2]);
-      }
-    }
+    if (c > 1.0 + TOLERANCE || c < (-1.0 - TOLERANCE))
+      problem(FLERR, i1, i2, i3, i4);
 
     if (c > 1.0) c = 1.0;
     if (c < -1.0) c = -1.0;
@@ -508,10 +488,10 @@ void DihedralTableCut::coeff(int narg, char **arg)
   // ---  and resolve issues with periodicity  ---
 
   if (tb->ninput < 2)
-    error->all(FLERR,fmt::format("Invalid dihedral table length: {}",arg[5]));
+    error->all(FLERR,"Invalid dihedral table length: {}",arg[5]);
   else if ((tb->ninput == 2) && (tabstyle == SPLINE))
-    error->all(FLERR,fmt::format("Invalid dihedral spline table length: {} "
-                                 "(Try linear)",arg[5]));
+    error->all(FLERR,"Invalid dihedral spline table length: {} "
+                                 "(Try linear)",arg[5]);
 
   // check for monotonicity
   for (int i=0; i < tb->ninput-1; i++) {
@@ -529,12 +509,12 @@ void DihedralTableCut::coeff(int narg, char **arg)
   double phihi = tb->phifile[tb->ninput-1];
   if (tb->use_degrees) {
     if ((phihi - philo) >= 360)
-      error->all(FLERR,fmt::format("Dihedral table angle range must be < 360 "
-                                   "degrees ({})",arg[5]));
+      error->all(FLERR,"Dihedral table angle range must be < 360 "
+                                   "degrees ({})",arg[5]);
   } else {
     if ((phihi - philo) >= MY_2PI)
-      error->all(FLERR,fmt::format("Dihedral table angle range must be < 2*PI "
-                                   "radians ({})",arg[5]));
+      error->all(FLERR,"Dihedral table angle range must be < 2*PI "
+                                   "radians ({})",arg[5]);
   }
 
   // convert phi from degrees to radians

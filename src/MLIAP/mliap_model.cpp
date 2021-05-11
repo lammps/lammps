@@ -98,8 +98,8 @@ void MLIAPModelSimple::read_coeffs(char *coefffilename)
   if (comm->me == 0) {
     fpcoeff = utils::open_potential(coefffilename,lmp,nullptr);
     if (fpcoeff == nullptr)
-      error->one(FLERR,fmt::format("Cannot open MLIAPModel coeff file {}: {}",
-                                   coefffilename,utils::getsyserror()));
+      error->one(FLERR,"Cannot open MLIAPModel coeff file {}: {}",
+                                   coefffilename,utils::getsyserror());
   }
 
   char line[MAXLINE],*ptr;
@@ -136,8 +136,8 @@ void MLIAPModelSimple::read_coeffs(char *coefffilename)
     nelements = coeffs.next_int();
     nparams = coeffs.next_int();
   } catch (TokenizerException &e) {
-    error->all(FLERR,fmt::format("Incorrect format in MLIAPModel coefficient "
-                                 "file: {}",e.what()));
+    error->all(FLERR,"Incorrect format in MLIAPModel coefficient "
+                                 "file: {}",e.what());
   }
 
   // set up coeff lists
@@ -168,8 +168,8 @@ void MLIAPModelSimple::read_coeffs(char *coefffilename)
           throw TokenizerException("Wrong number of items","");
         coeffelem[ielem][icoeff] = coeffs.next_double();
       } catch (TokenizerException &e) {
-        error->all(FLERR,fmt::format("Incorrect format in MLIAPModel "
-                                     "coefficient file: {}",e.what()));
+        error->all(FLERR,"Incorrect format in MLIAPModel "
+                                     "coefficient file: {}",e.what());
       }
     }
   }

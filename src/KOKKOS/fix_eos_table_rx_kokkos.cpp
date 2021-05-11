@@ -531,11 +531,11 @@ void FixEOStableRXKokkos<DeviceType>::create_kokkos_tables()
     h_table->hi[i] = tb->hi;
     h_table->invdelta[i] = tb->invdelta;
 
-    for (int j = 0; j<h_table->r.extent(1); j++)
+    for (int j = 0; j < (int)h_table->r.extent(1); j++)
       h_table->r(i,j) = tb->r[j];
-    for (int j = 0; j<h_table->e.extent(1); j++)
+    for (int j = 0; j < (int)h_table->e.extent(1); j++)
       h_table->e(i,j) = tb->e[j];
-    for (int j = 0; j<h_table->de.extent(1); j++)
+    for (int j = 0; j < (int)h_table->de.extent(1); j++)
       h_table->de(i,j) = tb->de[j];
   }
 

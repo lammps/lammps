@@ -15,8 +15,6 @@
 
 #include "error.h"
 
-#include <cstring>
-
 using namespace LAMMPS_NS;
 
 // only proc 0 calls methods of this class, except for constructor/destructor
@@ -58,8 +56,8 @@ void Reader::open_file(const char *file)
   }
 
   if (fp == nullptr)
-    error->one(FLERR,fmt::format("Cannot open file {}: {}",
-                                 file, utils::getsyserror()));
+    error->one(FLERR,"Cannot open file {}: {}",
+                                 file, utils::getsyserror());
 }
 
 /* ----------------------------------------------------------------------

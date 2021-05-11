@@ -17,7 +17,7 @@ if(GIT_FOUND AND EXISTS ${LAMMPS_DIR}/.git)
     ERROR_QUIET
     WORKING_DIRECTORY ${LAMMPS_DIR}
     OUTPUT_STRIP_TRAILING_WHITESPACE)
-  execute_process(COMMAND ${GIT_EXECUTABLE} describe --dirty=-modified
+  execute_process(COMMAND ${GIT_EXECUTABLE} describe --dirty=-modified --always
     OUTPUT_VARIABLE temp_git_describe
     ERROR_QUIET
     WORKING_DIRECTORY ${LAMMPS_DIR}

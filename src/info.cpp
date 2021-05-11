@@ -39,7 +39,7 @@
 #include "pair.h"
 #include "pair_hybrid.h"
 #include "region.h"
-#include "universe.h"
+#include "text_file_reader.h"
 #include "update.h"
 #include "variable.h"
 
@@ -318,57 +318,8 @@ void Info::command(int narg, char **arg)
   }
 
   if (flags & ACCELERATOR) {
-    fputs("\nAccelerator configuration:\n\n",out);
-    std::string mesg;
-    if (has_package("GPU")) {
-      mesg = "GPU package API:";
-      if (has_accelerator_feature("GPU","api","cuda"))   mesg += " CUDA";
-      if (has_accelerator_feature("GPU","api","hip"))    mesg += " HIP";
-      if (has_accelerator_feature("GPU","api","opencl")) mesg += " OpenCL";
-      mesg +=  "\nGPU package precision:";
-      if (has_accelerator_feature("GPU","precision","single")) mesg += " single";
-      if (has_accelerator_feature("GPU","precision","mixed"))  mesg += " mixed";
-      if (has_accelerator_feature("GPU","precision","double")) mesg += " double";
-      mesg += "\n";
-      fputs(mesg.c_str(),out);
-    }
-    if (has_package("KOKKOS")) {
-      mesg = "KOKKOS package API:";
-      if (has_accelerator_feature("KOKKOS","api","cuda"))     mesg += " CUDA";
-      if (has_accelerator_feature("KOKKOS","api","hip"))      mesg += " HIP";
-      if (has_accelerator_feature("KOKKOS","api","sycl"))     mesg += " SYCL";
-      if (has_accelerator_feature("KOKKOS","api","openmp"))   mesg += " OpenMP";
-      if (has_accelerator_feature("KOKKOS","api","serial"))   mesg += " Serial";
-      if (has_accelerator_feature("KOKKOS","api","pthreads")) mesg += " Pthreads";
-      mesg +=  "\nKOKKOS package precision:";
-      if (has_accelerator_feature("KOKKOS","precision","single")) mesg += " single";
-      if (has_accelerator_feature("KOKKOS","precision","mixed"))  mesg += " mixed";
-      if (has_accelerator_feature("KOKKOS","precision","double")) mesg += " double";
-      mesg += "\n";
-      fputs(mesg.c_str(),out);
-    }
-    if (has_package("USER-OMP")) {
-      mesg = "USER-OMP package API:";
-      if (has_accelerator_feature("USER-OMP","api","openmp"))   mesg += " OpenMP";
-      if (has_accelerator_feature("USER-OMP","api","serial"))   mesg += " Serial";
-      mesg +=  "\nUSER-OMP package precision:";
-      if (has_accelerator_feature("USER-OMP","precision","single")) mesg += " single";
-      if (has_accelerator_feature("USER-OMP","precision","mixed"))  mesg += " mixed";
-      if (has_accelerator_feature("USER-OMP","precision","double")) mesg += " double";
-      mesg += "\n";
-      fputs(mesg.c_str(),out);
-    }
-    if (has_package("USER-INTEL")) {
-      mesg = "USER-INTEL package API:";
-      if (has_accelerator_feature("USER-INTEL","api","phi"))      mesg += " Phi";
-      if (has_accelerator_feature("USER-INTEL","api","openmp"))   mesg += " OpenMP";
-      mesg +=  "\nUSER-INTEL package precision:";
-      if (has_accelerator_feature("USER-INTEL","precision","single")) mesg += " single";
-      if (has_accelerator_feature("USER-INTEL","precision","mixed"))  mesg += " mixed";
-      if (has_accelerator_feature("USER-INTEL","precision","double")) mesg += " double";
-      mesg += "\n";
-      fputs(mesg.c_str(),out);
-    }
+    fmt::print(out,"\nAccelerator configuration:\n\n{}",
+               get_accelerator_info());
   }
 
   if (flags & MEMORY) {
@@ -1311,7 +1262,25 @@ std::string Info::get_os_info()
 #else
   struct utsname ut;
   uname(&ut);
-  buf = fmt::format("{} {} on {}", ut.sysname, ut.release, ut.machine);
+
+  // try to get OS distribution name, if available
+  std::string distro = ut.sysname;
+  if (utils::file_is_readable("/etc/os-release")) {
+    try {
+        TextFileReader reader("/etc/os-release","");
+        while (1) {
+          auto words = reader.next_values(0,"=");
+          if ((words.count() > 1) && (words.next_string() == "PRETTY_NAME")) {
+            distro += " " + utils::trim(words.next_string());
+            break;
+          }
+        }
+    } catch (std::exception &e) {
+      ; // EOF but keyword not found
+    }
+  }
+
+  buf = fmt::format("{} {} on {}", distro, ut.release, ut.machine);
 #endif
   return buf;
 }
@@ -1319,18 +1288,18 @@ std::string Info::get_os_info()
 std::string Info::get_compiler_info()
 {
   std::string buf;
-#if __INTEL_LLVM_COMPILER
+#if defined(__INTEL_LLVM_COMPILER)
   double version = static_cast<double>(__INTEL_LLVM_COMPILER)*0.01;
   buf = fmt::format("Intel LLVM C++ {:.1f} / {}", version, __VERSION__);
-#elif __clang__
+#elif defined(__clang__)
   buf = fmt::format("Clang C++ {}", __VERSION__);
-#elif __PGI
+#elif defined(__PGI)
   buf = fmt::format("PGI C++ {}.{}",__PGIC__,__PGIC_MINOR__);
-#elif __INTEL_COMPILER
+#elif defined(__INTEL_COMPILER)
   double version = static_cast<double>(__INTEL_COMPILER)*0.01;
   buf = fmt::format("Intel Classic C++ {:.2f}.{} / {}", version,
                     __INTEL_COMPILER_UPDATE, __VERSION__);
-#elif __GNUC__
+#elif defined(__GNUC__)
   buf = fmt::format("GNU C++ {}",   __VERSION__);
 #else
   buf = "(Unknown)";
@@ -1428,6 +1397,57 @@ std::string Info::get_cxx_info()
 #else
   return "unknown";
 #endif
+}
+
+std::string Info::get_accelerator_info(const std::string &package)
+{
+  std::string mesg("");
+  if ((package.empty() || (package == "GPU")) && has_package("GPU")) {
+    mesg += "GPU package API:";
+    if (has_accelerator_feature("GPU","api","cuda"))   mesg += " CUDA";
+    if (has_accelerator_feature("GPU","api","hip"))    mesg += " HIP";
+    if (has_accelerator_feature("GPU","api","opencl")) mesg += " OpenCL";
+    mesg +=  "\nGPU package precision:";
+    if (has_accelerator_feature("GPU","precision","single")) mesg += " single";
+    if (has_accelerator_feature("GPU","precision","mixed"))  mesg += " mixed";
+    if (has_accelerator_feature("GPU","precision","double")) mesg += " double";
+    mesg += "\n";
+  }
+  if ((package.empty() || (package == "KOKKOS")) && has_package("KOKKOS")) {
+    mesg += "KOKKOS package API:";
+    if (has_accelerator_feature("KOKKOS","api","cuda"))     mesg += " CUDA";
+    if (has_accelerator_feature("KOKKOS","api","hip"))      mesg += " HIP";
+    if (has_accelerator_feature("KOKKOS","api","sycl"))     mesg += " SYCL";
+    if (has_accelerator_feature("KOKKOS","api","openmp"))   mesg += " OpenMP";
+    if (has_accelerator_feature("KOKKOS","api","serial"))   mesg += " Serial";
+    if (has_accelerator_feature("KOKKOS","api","pthreads")) mesg += " Pthreads";
+    mesg +=  "\nKOKKOS package precision:";
+    if (has_accelerator_feature("KOKKOS","precision","single")) mesg += " single";
+    if (has_accelerator_feature("KOKKOS","precision","mixed"))  mesg += " mixed";
+    if (has_accelerator_feature("KOKKOS","precision","double")) mesg += " double";
+    mesg += "\n";
+  }
+  if ((package.empty() || (package == "USER-OMP")) && has_package("USER-OMP")) {
+    mesg += "USER-OMP package API:";
+    if (has_accelerator_feature("USER-OMP","api","openmp"))   mesg += " OpenMP";
+    if (has_accelerator_feature("USER-OMP","api","serial"))   mesg += " Serial";
+    mesg +=  "\nUSER-OMP package precision:";
+    if (has_accelerator_feature("USER-OMP","precision","single")) mesg += " single";
+    if (has_accelerator_feature("USER-OMP","precision","mixed"))  mesg += " mixed";
+    if (has_accelerator_feature("USER-OMP","precision","double")) mesg += " double";
+    mesg += "\n";
+  }
+  if ((package.empty() || (package == "USER-INTEL")) && has_package("USER-INTEL")) {
+    mesg += "USER-INTEL package API:";
+    if (has_accelerator_feature("USER-INTEL","api","phi"))      mesg += " Phi";
+    if (has_accelerator_feature("USER-INTEL","api","openmp"))   mesg += " OpenMP";
+    mesg +=  "\nUSER-INTEL package precision:";
+    if (has_accelerator_feature("USER-INTEL","precision","single")) mesg += " single";
+    if (has_accelerator_feature("USER-INTEL","precision","mixed"))  mesg += " mixed";
+    if (has_accelerator_feature("USER-INTEL","precision","double")) mesg += " double";
+    mesg += "\n";
+  }
+  return mesg;
 }
 
 /* ---------------------------------------------------------------------- */

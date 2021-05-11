@@ -73,7 +73,7 @@ class Tersoff : public BaseThree<numtyp, acctyp> {
   /// ts5.x = beta, ts5.y = powern, ts5.z = lam2, ts5.w = bigb
   UCL_D_Vec<numtyp4> ts5;
 
-  UCL_D_Vec<numtyp> cutsq_pair;
+  numtyp _cutsq_max;
 
   UCL_D_Vec<int> elem2param;
   UCL_D_Vec<int> map;

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -25,13 +25,15 @@ PairStyle(hybrid,PairHybrid)
 namespace LAMMPS_NS {
 
 class PairHybrid : public Pair {
+  friend class ComputeSpin;
   friend class FixGPU;
   friend class FixIntel;
   friend class FixOMP;
+  friend class FixNVESpin;
   friend class Force;
+  friend class Info;
   friend class Neighbor;
   friend class Respa;
-  friend class Info;
   friend class PairDeprecated;
  public:
   PairHybrid(class LAMMPS *);

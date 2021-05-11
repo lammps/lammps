@@ -629,7 +629,7 @@ int FixBocs::read_F_table( char *filename, int p_basis_type )
     // NB: LAMMPS coding guidelines prefer cstdio so we are intentionally
     // foregoing  reading with getline
     if (comm->me == 0) {
-        error->message(FLERR, fmt::format("INFO: About to read data file: {}", filename));
+        error->message(FLERR, "INFO: About to read data file: {}", filename);
     }
 
     // Data file lines hold two floating point numbers.
@@ -645,7 +645,7 @@ int FixBocs::read_F_table( char *filename, int p_basis_type )
 
     numEntries = inputLines.size();
     if (comm->me == 0) {
-      error->message(FLERR, fmt::format("INFO: Read {} lines from file", numEntries));
+      error->message(FLERR, "INFO: Read {} lines from file", numEntries);
     }
 
 
@@ -670,34 +670,23 @@ int FixBocs::read_F_table( char *filename, int p_basis_type )
       test_sscanf = sscanf(inputLines.at(i).c_str()," %f , %f ",&f1, &f2);
       if (test_sscanf == 2)
       {
-        //if (comm->me == 0) {
-        //    error->message(FLERR, fmt::format("INFO: f1 = {}, f2 = {}", f1, f2));
-        //}
         data[VOLUME][i] = (double)f1;
         data[PRESSURE_CORRECTION][i] = (double)f2;
         if (i == 1)
         {
           // second entry is used to compute the validation interval used below
           stdVolumeInterval = data[VOLUME][i] - data[VOLUME][i-1];
-          //if (comm->me == 0) {
-          //    error->message(FLERR, fmt::format("INFO: standard volume interval computed: {}", stdVolumeInterval));
-          //}
         }
         else if (i > 1)
         {
           // after second entry, all intervals are validated
           currVolumeInterval = data[VOLUME][i] - data[VOLUME][i-1];
-          //if (comm->me == 0) {
-          //    error->message(FLERR, fmt::format("INFO: current volume interval: {}", currVolumeInterval));
-          //}
           if (fabs(currVolumeInterval - stdVolumeInterval) > volumeIntervalTolerance) {
-            if (comm->me == 0) {
-                message = fmt::format("Bad volume interval. Spline analysis requires uniform"
-                                      " volume distribution, found inconsistent volume"
-                                      " differential, line {} of file {}\n\tline: {}",
-                                      lineNum, filename, inputLines.at(i));
-                error->warning(FLERR, message);
-            }
+            if (comm->me == 0)
+              error->warning(FLERR,"Bad volume interval. Spline analysis requires uniform"
+                             " volume distribution, found inconsistent volume"
+                             " differential, line {} of file {}\nWARNING:\tline: {}",
+                             lineNum, filename, inputLines.at(i));
             badInput = true;
             numBadVolumeIntervals++;
           }
@@ -706,12 +695,10 @@ int FixBocs::read_F_table( char *filename, int p_basis_type )
       }
       else
       {
-        if (comm->me == 0) {
-          message = fmt::format("Bad input format: did not find 2 comma separated numeric"
-                                " values in line {} of file {}\n\tline: {}",
-                                lineNum, filename, inputLines.at(i));
-          error->warning(FLERR, message);
-        }
+        if (comm->me == 0)
+          error->warning(FLERR,"Bad input format: did not find 2 comma separated numeric"
+                         " values in line {} of file {}\nWARNING:\tline: {}",
+                         lineNum, filename, inputLines.at(i));
         badInput = true;
       }
       if (badInput)
@@ -721,15 +708,15 @@ int FixBocs::read_F_table( char *filename, int p_basis_type )
     }
 
     if (numBadVolumeIntervals > 0 && comm->me == 0) {
-      error->message(FLERR, fmt::format("INFO: total number bad volume intervals = {}", numBadVolumeIntervals));
+      error->message(FLERR, "INFO: total number bad volume intervals = {}", numBadVolumeIntervals);
     }
   }
   else {
-    error->all(FLERR,fmt::format("ERROR: Unable to open file: {}", filename));
+    error->all(FLERR,"ERROR: Unable to open file: {}", filename);
   }
 
   if (badInput && comm->me == 0) {
-    error->warning(FLERR,fmt::format("Bad volume / pressure-correction data: {}\nSee details above", filename));
+    error->warning(FLERR,"Bad volume / pressure-correction data: {}\nSee details above", filename);
   }
 
   if (p_basis_type == BASIS_LINEAR_SPLINE)
@@ -744,7 +731,7 @@ int FixBocs::read_F_table( char *filename, int p_basis_type )
   }
   else
   {
-    error->all(FLERR,fmt::format("ERROR: invalid p_basis_type value of {} in read_F_table", p_basis_type));
+    error->all(FLERR,"ERROR: invalid p_basis_type value of {} in read_F_table", p_basis_type);
   }
 
   memory->destroy(data);
@@ -752,9 +739,6 @@ int FixBocs::read_F_table( char *filename, int p_basis_type )
 }
 
 int FixBocs::build_linear_splines(double **data) {
-  //if (comm->me == 0) {
-    //error->message(FLERR, fmt::format("INFO: entering build_linear_splines, spline_length = {}", spline_length));
-  //}
   splines = (double **) calloc(NUM_LINEAR_SPLINE_COLUMNS,sizeof(double *));
   splines[VOLUME] = (double *) calloc(spline_length,sizeof(double));
   splines[PRESSURE_CORRECTION] = (double *) calloc(spline_length,sizeof(double));
@@ -766,7 +750,7 @@ int FixBocs::build_linear_splines(double **data) {
   }
 
   if (comm->me == 0) {
-    error->message(FLERR, fmt::format("INFO: leaving build_linear_splines, spline_length = {}", spline_length));
+    error->message(FLERR, "INFO: leaving build_linear_splines, spline_length = {}", spline_length);
   }
 
   return spline_length;
@@ -774,9 +758,6 @@ int FixBocs::build_linear_splines(double **data) {
 
 int FixBocs::build_cubic_splines(double **data)
 {
-  //if (comm->me == 0) {
-    //error->message(FLERR, fmt::format("INFO: entering build_cubic_splines, spline_length = {}", spline_length));
-  //}
   int n = spline_length;
   double *a, *b, *d, *h, *alpha, *c, *l, *mu, *z;
   // 2020-07-17 ag:
@@ -867,7 +848,7 @@ int FixBocs::build_cubic_splines(double **data)
   memory->destroy(z);
 
   if (comm->me == 0) {
-    error->message(FLERR, fmt::format("INFO: leaving build_cubic_splines, numSplines = {}", numSplines));
+    error->message(FLERR, "INFO: leaving build_cubic_splines, numSplines = {}", numSplines);
   }
 
   // Tell the caller how many splines we created

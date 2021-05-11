@@ -87,6 +87,8 @@ OPT.
    * :doc:`coul/wolf/cs <pair_cs>`
    * :doc:`dpd (gio) <pair_dpd>`
    * :doc:`dpd/fdt <pair_dpd_fdt>`
+   * :doc:`dpd/ext <pair_dpd_ext>`
+   * :doc:`dpd/ext/tstat <pair_dpd_ext>`
    * :doc:`dpd/fdt/energy (k) <pair_dpd_fdt>`
    * :doc:`dpd/tstat (go) <pair_dpd>`
    * :doc:`dsmc <pair_dsmc>`

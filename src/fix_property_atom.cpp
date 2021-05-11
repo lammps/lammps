@@ -228,13 +228,13 @@ void FixPropertyAtom::read_data_section(char *keyword, int n, char *buf,
     try {
       ValueTokenizer values(buf);
       if ((int)values.count() != nvalue+1)
-        error->all(FLERR,fmt::format("Incorrect format in {} section "
-                                     "of data file: {}",keyword,buf));
+        error->all(FLERR,"Incorrect format in {} section "
+                                     "of data file: {}",keyword,buf);
 
       itag = values.next_tagint() + id_offset;
       if (itag <= 0 || itag > map_tag_max)
-        error->all(FLERR,fmt::format("Invalid atom ID {} in {} section of "
-                                     "data file",itag, keyword));
+        error->all(FLERR,"Invalid atom ID {} in {} section of "
+                                     "data file",itag, keyword);
 
       // assign words in line to per-atom vectors
 
@@ -254,8 +254,8 @@ void FixPropertyAtom::read_data_section(char *keyword, int n, char *buf,
         }
       }
     } catch (TokenizerException &e) {
-      error->all(FLERR,fmt::format("Invalid format in {} section of data "
-                                   "file '{}': {}",keyword, buf,e.what()));
+      error->all(FLERR,"Invalid format in {} section of data "
+                                   "file '{}': {}",keyword, buf,e.what());
     }
     buf = next + 1;
   }

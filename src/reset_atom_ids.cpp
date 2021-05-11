@@ -43,7 +43,7 @@ static int compare_coords(const int, const int, void *);
 
 /* ---------------------------------------------------------------------- */
 
-ResetIDs::ResetIDs(LAMMPS *lmp) : Pointers(lmp) {}
+ResetIDs::ResetIDs(LAMMPS *lmp) : Command(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
@@ -253,8 +253,8 @@ void ResetIDs::command(int narg, char **arg)
   int all;
   MPI_Allreduce(&badcount,&all,1,MPI_INT,MPI_SUM,world);
   if (all)
-    error->all(FLERR,fmt::format("Reset_ids missing {} bond topology atom IDs - "
-                                 "use comm_modify cutoff",all));
+    error->all(FLERR,"Reset_ids missing {} bond topology atom IDs - "
+                                 "use comm_modify cutoff",all);
 
   // reset IDs and atom map for owned atoms
 

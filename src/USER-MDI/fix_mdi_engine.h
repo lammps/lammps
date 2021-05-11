@@ -38,11 +38,10 @@ class FixMDIEngine : public Fix {
 
   // receive and update forces
 
-  void setup(int);
+  //void setup(int);
   void min_setup(int);
   void post_integrate();
   void post_force(int);
-  void pre_reverse(int, int);
   void min_pre_force(int); //@COORDS
   void min_post_force(int); //@FORCES
 
@@ -97,8 +96,7 @@ class FixMDIEngine : public Fix {
   void send_forces(Error *);
   void send_pe(Error *);
   void send_ke(Error *);
-  void add_forces(Error *);
-  void receive_forces(Error *);
+  void receive_forces(Error *, int);
   void send_cell(Error *);
 };
 

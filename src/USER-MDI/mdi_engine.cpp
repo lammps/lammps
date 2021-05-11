@@ -107,30 +107,6 @@ void MDIEngine::command(int narg, char **arg)
   MDI_Register_Command("@INIT_OPTG", "@FORCES");
   MDI_Register_Command("@INIT_OPTG", "EXIT");
 
-  // node at PRE_FORCE location in timestep
-  // NOTE: remove this?
-
-  MDI_Register_Node("@PRE-FORCES");
-  MDI_Register_Command("@PRE-FORCES", "<@");
-  MDI_Register_Command("@PRE-FORCES", "<CELL");
-  MDI_Register_Command("@PRE-FORCES", "<CHARGES");
-  MDI_Register_Command("@PRE-FORCES", "<COORDS");
-  MDI_Register_Command("@PRE-FORCES", "<ENERGY");
-  MDI_Register_Command("@PRE-FORCES", "<FORCES");
-  MDI_Register_Command("@PRE-FORCES", "<KE");
-  MDI_Register_Command("@PRE-FORCES", "<LABELS");
-  MDI_Register_Command("@PRE-FORCES", "<MASSES");
-  MDI_Register_Command("@PRE-FORCES", "<NATOMS");
-  MDI_Register_Command("@PRE-FORCES", "<PE");
-  MDI_Register_Command("@PRE-FORCES", ">COORDS");
-  MDI_Register_Command("@PRE-FORCES", ">FORCES");
-  MDI_Register_Command("@PRE-FORCES", "@");
-  MDI_Register_Command("@PRE-FORCES", "@COORDS");
-  MDI_Register_Command("@PRE-FORCES", "@DEFAULT");
-  MDI_Register_Command("@PRE-FORCES", "@FORCES");
-  MDI_Register_Command("@PRE-FORCES", "@PRE-FORCES");
-  MDI_Register_Command("@PRE-FORCES", "EXIT");
-
   // node at POST_FORCE location in timestep
 
   MDI_Register_Node("@FORCES");
@@ -341,9 +317,10 @@ char *MDIEngine::mdi_optg()
   if (strcmp(command,"@DEFAULT") == 0 || strcmp(command,"EXIT") == 0)
     return command;
 
-  // NOTE: perform minimization forever, for huge # of steps ??
-  //       if you are expecting driver to terminate the minimization,
-  //       not sure how control will return to this function ??
+  // Start a minimization, which is configured to run (essentially)
+  //       infinite steps.  When the driver sends the EXIT command,
+  //       the minimizer's energy and force tolerances are set to
+  //       extremely large values, causing the minimization to end.
 
   update->minimize->iterate(update->nsteps);
 

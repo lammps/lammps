@@ -48,10 +48,9 @@ FixMDIEngine::FixMDIEngine(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg != 3) error->all(FLERR,"Illegal fix mdi command");
 
-  // NOTE: real & metal the 2 atomic-scale units LAMMPS has
-  //       I suggest LAMMPS for MDI support both
-  // real: coords = Ang, eng = Kcal/mole, force = Kcal/mole/Ang
-  // metal: coords = Ang, eng = eV, force = eV/Ang
+  // The 2 atomic-scale units LAMMPS has are:
+  //    real: coords = Ang, eng = Kcal/mole, force = Kcal/mole/Ang
+  //    metal: coords = Ang, eng = eV, force = eV/Ang
 
   lmpunits = NONE;
   if (strcmp(update->unit_style,"real") == 0) lmpunits = REAL;
@@ -69,6 +68,10 @@ FixMDIEngine::FixMDIEngine(LAMMPS *lmp, int narg, char **arg) :
   target_node = new char[MDI_COMMAND_LENGTH];
   strncpy(target_node, "\0", MDI_COMMAND_LENGTH);
   strncpy(current_node, "@DEFAULT", MDI_COMMAND_LENGTH);
+
+  // register the execute_command function with MDI
+
+  MDI_Set_execute_command_func(lammps_execute_mdi_command, this);
 
   // accept a communicator to the driver
   // master = 1 for proc 0, otherwise 0
@@ -116,9 +119,8 @@ int FixMDIEngine::setmask()
   int mask = 0;
 
   mask |= POST_INTEGRATE;
-  mask |= PRE_REVERSE;
   mask |= POST_FORCE;
-  mask |= MIN_PRE_FORCE;   // NOTE: whack this?
+  mask |= MIN_PRE_FORCE;
   mask |= MIN_POST_FORCE;
 
   return mask;
@@ -160,48 +162,19 @@ void FixMDIEngine::init()
   ke = modify->compute[icompute_ke];
 
   // one-time allocation of add_force array
-  // NOTE: moved this here b/c natoms may not be defined when Fix is constructed
-  // NOTE: check that 3*natoms does not overflow a 32-bit int
 
   if (!add_force) {
-    memory->create(add_force,3*atom->natoms,"mdi/engine:add_force");
-    for (int i = 0; i < 3*atom->natoms; i++) add_force[i] = 0.0;
+    int64_t ncoords = 3*atom->natoms;
+    memory->create(add_force,ncoords,"mdi/engine:add_force");
+    for (int64_t i = 0; i < ncoords; i++) add_force[i] = 0.0;
   }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixMDIEngine::setup(int vflag)
-{
-  // NOTE: this seems an odd place to compute these
-  //       I think it would be better to compute these on-demand
-  //         in response to a driver request?
-
-  potential_energy = pe->compute_scalar();
-  kinetic_energy = ke->compute_scalar();
-
-  // trigger potential energy computation on next timestep
-  // NOTE: there is no triggering needed for KE
-
-  pe->addstep(update->ntimestep+1);
-
-  if (most_recent_init == 1) engine_mode("@PRE-FORCES");
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixMDIEngine::min_setup(int vflag)
 {
-  // NOTE: this seems an odd place to compute these
-
-  potential_energy = pe->compute_scalar();
-  kinetic_energy = ke->compute_scalar();
-
   engine_mode("@FORCES");
-
-  // trigger potential energy computation on next timestep
-
-  pe->addstep(update->ntimestep+1);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -209,22 +182,6 @@ void FixMDIEngine::min_setup(int vflag)
 void FixMDIEngine::post_integrate()
 {
   engine_mode("@COORDS");
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixMDIEngine::pre_reverse(int eflag, int vflag)
-{
-  // NOTE: this seems an odd place to compute these
-
-  potential_energy = pe->compute_scalar();
-  kinetic_energy = ke->compute_scalar();
-
-  engine_mode("@PRE-FORCES");
-
-  // trigger potential energy computation on next timestep
-
-  pe->addstep(update->ntimestep+1);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -238,16 +195,7 @@ void FixMDIEngine::min_pre_force(int vflag)
 
 void FixMDIEngine::min_post_force(int vflag)
 {
-  // NOTE: this seems an odd place to compute these
-
-  potential_energy = pe->compute_scalar();
-  kinetic_energy = ke->compute_scalar();
-
   engine_mode("@FORCES");
-
-  // trigger potential energy computation on next timestep
-
-  pe->addstep(update->ntimestep+1);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -256,15 +204,6 @@ void FixMDIEngine::post_force(int vflag)
 {
   if (most_recent_init == 1) engine_mode("@FORCES");
   else if (most_recent_init == 2) engine_mode("@FORCES");
-
-  // NOTE: should this also be done in this method?
-  // trigger potential energy computation on next timestep
-  // NOTE: in general, forcing the pair styles to compute PE every step
-  //       is inefficient, would be better to think of another way to do this,
-  //       e.g. at very end of a step, 
-  //       possibly by mdi_engine when knows it is needed
-
-  pe->addstep(update->ntimestep+1);
 }
 
 // ----------------------------------------------------------------------
@@ -279,13 +218,6 @@ void FixMDIEngine::post_force(int vflag)
 
 int FixMDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
 {
-  /*
-  if (screen)
-    fprintf(screen,"MDI command: %s\n",command);
-  if (logfile)
-    fprintf(logfile,"MDI command: %s:\n",command);
-  */
-
   // confirm this command is supported at this node
 
   int command_exists = 0;
@@ -294,14 +226,15 @@ int FixMDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
   if (ierr != 0)
     error->all(FLERR,"MDI: Unable to check whether current command is supported");
   if (command_exists != 1)
-    error->all(FLERR,"MDI: Received an unsupported at current node");
+    error->all(FLERR,"MDI: Received a command that is unsupported at current node");
 
   // respond to any driver command
 
-  // send calculation status to the driver
-  // NOTE: why does STATUS have extra spaces?
+  // send calculation status to the driver;
+  //    STATUS is not part of the MDI Standard,
+  //    and is included here for i-PI compatibility
 
-  if (strcmp(command,"STATUS      ") == 0 ) {
+  if (strcmp(command,"STATUS") == 0 ) {
     if (master) {
       ierr = MDI_Send_Command("READY", mdicomm);
       if (ierr != 0)
@@ -360,15 +293,15 @@ int FixMDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
   } else if (strcmp(command,"<FORCES") == 0 ) {
     send_forces(error);
 
+  // replace current forces with forces received from the driver
+
   } else if (strcmp(command,">FORCES") == 0 ) {
-    receive_forces(error);
+    receive_forces(error, 0);
 
-  // receive additional forces from the driver
-  // these can be added prior to SHAKE or other post-processing
-  // NOTE: maybe this is now not necessary?
+  // add forces received from the driver to current forces
 
-  } else if (strcmp(command,"+FORCES") == 0 ) {
-    add_forces(error);
+  } else if (strcmp(command,">+FORCES") == 0 ) {
+    receive_forces(error, 1);
 
   // initialize new MD simulation or minimization
   // return control to return to mdi_engine
@@ -404,23 +337,10 @@ int FixMDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
   } else if (strcmp(command,"<PE") == 0 ) {
     send_pe(error);
 
-  // NOTE: should there be a test here for @DEFAULT ??
-
-  } else if (strcmp(command,"@COORDS") == 0 ) {
-    strncpy(target_node, "@COORDS", MDI_COMMAND_LENGTH);
-    local_exit_flag = true;
-
-  } else if (strcmp(command,"@PRE-FORCES") == 0 ) {
-    strncpy(target_node, "@PRE-FORCES", MDI_COMMAND_LENGTH);
-    local_exit_flag = true;
-
-  } else if (strcmp(command,"@FORCES") == 0 ) {
-    strncpy(target_node, "@FORCES", MDI_COMMAND_LENGTH);
-    local_exit_flag = true;
-
-  } else if (strcmp(command,"EXIT_SIM") == 0 ) {
+  } else if (strcmp(command,"@DEFAULT") == 0 ) {
     most_recent_init = 0;
 
+    strncpy(target_node, "@DEFAULT", MDI_COMMAND_LENGTH);
     local_exit_flag = true;
 
     // are we in the middle of a geometry optimization?
@@ -432,6 +352,14 @@ int FixMDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
       // set the maximum number of force evaluations to 0
       update->max_eval = 0;
     }
+ 
+  } else if (strcmp(command,"@COORDS") == 0 ) {
+    strncpy(target_node, "@COORDS", MDI_COMMAND_LENGTH);
+    local_exit_flag = true;
+
+  } else if (strcmp(command,"@FORCES") == 0 ) {
+    strncpy(target_node, "@FORCES", MDI_COMMAND_LENGTH);
+    local_exit_flag = true;
 
   } else if (strcmp(command,"EXIT") == 0 ) {
     // exit the driver code
@@ -473,17 +401,12 @@ char *FixMDIEngine::engine_mode(const char *node)
   if (strcmp(target_node,"\0") != 0 && strcmp(target_node,current_node) != 0)
     local_exit_flag = true;
 
-  // register the execute_command function with MDI
-  // NOTE: does this need to be done multiple times ??
-
-  MDI_Set_execute_command_func(lammps_execute_mdi_command, this);
-
   // respond to commands from the driver
 
   while (not exit_flag and not local_exit_flag) {
 
     // read the next command from the driver
-    // NOTE: all procs call this, but only proc 0 receives command?
+    // all procs call this, but only proc 0 receives the command
 
     ierr = MDI_Recv_Command(command, driver_socket);
     if (ierr != 0)
@@ -514,16 +437,20 @@ char *FixMDIEngine::engine_mode(const char *node)
 
 void FixMDIEngine::receive_coordinates(Error* error)
 {
+  // get conversion factor to atomic units
   double posconv;
 
-  // NOTE: logic like this everywhere else
+  // real: coords = Ang, eng = Kcal/mole, force = Kcal/mole/Ang
+  // metal: coords = Ang, eng = eV, force = eV/Ang
 
   if (lmpunits == REAL) {
     double angstrom_to_bohr;
     MDI_Conversion_Factor("angstrom", "bohr", &angstrom_to_bohr);
     posconv=force->angstrom/angstrom_to_bohr;
   } else if (lmpunits == METAL) {
-    // ??
+    double angstrom_to_bohr;
+    MDI_Conversion_Factor("angstrom", "bohr", &angstrom_to_bohr);
+    posconv=force->angstrom/angstrom_to_bohr;
   }
 
   // create buffer to hold all coords
@@ -572,24 +499,27 @@ void FixMDIEngine::receive_coordinates(Error* error)
 
 void FixMDIEngine::send_coordinates(Error* error)
 {
+  // get conversion factor to atomic units
   double posconv;
-  double angstrom_to_bohr;
-  MDI_Conversion_Factor("angstrom", "bohr", &angstrom_to_bohr);
-  posconv=force->angstrom/angstrom_to_bohr;
+  if (lmpunits == REAL) {
+    double angstrom_to_bohr;
+    MDI_Conversion_Factor("angstrom", "bohr", &angstrom_to_bohr);
+    posconv=force->angstrom/angstrom_to_bohr;
+  } else if (lmpunits == METAL) {
+    double angstrom_to_bohr;
+    MDI_Conversion_Factor("angstrom", "bohr", &angstrom_to_bohr);
+    posconv=force->angstrom/angstrom_to_bohr;
+  }
 
+  int64_t ncoords = 3*atom->natoms;
   double *coords;
   double *coords_reduced;
-
-  // NOTE: I suggest
-  // double *coords;
-  // memory->create(coords,3*atom->natoms,"mdi:coords");
-
-  coords = new double[3*atom->natoms];
-  coords_reduced = new double[3*atom->natoms];
+  memory->create(coords,ncoords,"mdi/engine:coords");
+  memory->create(coords_reduced,ncoords,"mdi/engine:coords_reduced");
 
   // zero coords
 
-  for (int icoord = 0; icoord < 3*atom->natoms; icoord++) coords[icoord] = 0.0;
+  for (int64_t icoord = 0; icoord < ncoords; icoord++) coords[icoord] = 0.0;
 
   // copy local atoms into buffer at correct locations
 
@@ -611,8 +541,8 @@ void FixMDIEngine::send_coordinates(Error* error)
       error->all(FLERR,"MDI: Unable to send coordinates to driver");
   }
 
-  delete [] coords;
-  delete [] coords_reduced;
+  memory->destroy(coords);
+  memory->destroy(coords_reduced);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -622,8 +552,8 @@ void FixMDIEngine::send_charges(Error* error)
   double *charges;
   double *charges_reduced;
 
-  charges = new double[atom->natoms];
-  charges_reduced = new double[atom->natoms];
+  memory->create(charges,atom->natoms,"mdi/engine:charges");
+  memory->create(charges_reduced,atom->natoms,"mdi/engine:charges_reduced");
 
   // zero the charges array
 
@@ -646,8 +576,8 @@ void FixMDIEngine::send_charges(Error* error)
       error->all(FLERR,"MDI: Unable to send charges to driver");
   }
 
-  delete [] charges;
-  delete [] charges_reduced;
+  memory->destroy(charges);
+  memory->destroy(charges_reduced);
 }
 
 
@@ -655,20 +585,31 @@ void FixMDIEngine::send_charges(Error* error)
 
 void FixMDIEngine::send_energy(Error* error)
 {
+  // get conversion factor to atomic units
+  double energy_conv;
+  if (lmpunits == REAL) {
+    double kelvin_to_hartree;
+    MDI_Conversion_Factor("kelvin_energy", "hartree", &kelvin_to_hartree);
+    energy_conv = kelvin_to_hartree/force->boltz;
+  } else if (lmpunits == METAL) {
+    double ev_to_hartree;
+    MDI_Conversion_Factor("electron_volt", "hartree", &ev_to_hartree);
+    energy_conv = ev_to_hartree;
+  }
+
+
   double kelvin_to_hartree;
   MDI_Conversion_Factor("kelvin_energy", "hartree", &kelvin_to_hartree);
 
-  // NOTE: I suggest you invoke the 2 computes here
-
-  double pe = potential_energy;
-  double ke = kinetic_energy;
+  double potential_energy = pe->compute_scalar();
+  double kinetic_energy = ke->compute_scalar();
   double total_energy;
   double *send_energy = &total_energy;
 
   // convert the energy to atomic units
-  pe *= kelvin_to_hartree/force->boltz;
-  ke *= kelvin_to_hartree/force->boltz;
-  total_energy = pe + ke;
+  potential_energy *= energy_conv;
+  kinetic_energy *= energy_conv;
+  total_energy = potential_energy + kinetic_energy;
 
   if (master) {
     ierr = MDI_Send((char*) send_energy, 1, MDI_DOUBLE, driver_socket);
@@ -681,16 +622,23 @@ void FixMDIEngine::send_energy(Error* error)
 
 void FixMDIEngine::send_pe(Error* error)
 {
-  double kelvin_to_hartree;
-  MDI_Conversion_Factor("kelvin_energy", "hartree", &kelvin_to_hartree);
+  // get conversion factor to atomic units
+  double energy_conv;
+  if (lmpunits == REAL) {
+    double kelvin_to_hartree;
+    MDI_Conversion_Factor("kelvin_energy", "hartree", &kelvin_to_hartree);
+    energy_conv = kelvin_to_hartree/force->boltz;
+  } else if (lmpunits == METAL) {
+    double ev_to_hartree;
+    MDI_Conversion_Factor("electron_volt", "hartree", &ev_to_hartree);
+    energy_conv = ev_to_hartree;
+  }
 
-  // NOTE: I suggest you invoke the PE compute here
-
-  double pe = potential_energy;
-  double *send_energy = &pe;
+  double potential_energy = pe->compute_scalar();
+  double *send_energy = &potential_energy;
 
   // convert the energy to atomic units
-  pe *= kelvin_to_hartree/force->boltz;
+  potential_energy *= energy_conv;
 
   if (master) {
     ierr = MDI_Send((char*) send_energy, 1, MDI_DOUBLE, driver_socket);
@@ -703,16 +651,23 @@ void FixMDIEngine::send_pe(Error* error)
 
 void FixMDIEngine::send_ke(Error* error)
 {
-  double kelvin_to_hartree;
-  MDI_Conversion_Factor("kelvin_energy", "hartree", &kelvin_to_hartree);
+  // get conversion factor to atomic units
+  double energy_conv;
+  if (lmpunits == REAL) {
+    double kelvin_to_hartree;
+    MDI_Conversion_Factor("kelvin_energy", "hartree", &kelvin_to_hartree);
+    energy_conv = kelvin_to_hartree/force->boltz;
+  } else if (lmpunits == METAL) {
+    double ev_to_hartree;
+    MDI_Conversion_Factor("electron_volt", "hartree", &ev_to_hartree);
+    energy_conv = ev_to_hartree;
+  }
 
-  // NOTE: I suggest you invoke the KE compute here
-
-  double ke = kinetic_energy;
-  double *send_energy = &ke;
+  double kinetic_energy = ke->compute_scalar();
+  double *send_energy = &kinetic_energy;
 
   // convert the energy to atomic units
-  ke *= kelvin_to_hartree/force->boltz;
+  kinetic_energy *= energy_conv;
 
   if (master) {
     ierr = MDI_Send((char*) send_energy, 1, MDI_DOUBLE, driver_socket);
@@ -768,8 +723,10 @@ void FixMDIEngine::send_masses(Error* error)
   int * const type = atom->type;
   int nlocal = atom->nlocal;
 
-  double *mass_by_atom = new double[atom->natoms];
-  double *mass_by_atom_reduced = new double[atom->natoms];
+  double *mass_by_atom;
+  double *mass_by_atom_reduced;
+  memory->create(mass_by_atom,atom->natoms,"mdi/engine:mass_by_atom");
+  memory->create(mass_by_atom_reduced,atom->natoms,"mdi/engine:mass_by_atom_reduced");
   for (int iatom=0; iatom < atom->natoms; iatom++) {
     mass_by_atom[iatom] = 0.0;
   }
@@ -796,24 +753,30 @@ void FixMDIEngine::send_masses(Error* error)
     if (ierr != 0)
       error->all(FLERR,"MDI: Unable to send atom masses to driver");
   }
-  
-  delete [] mass_by_atom;
-  delete [] mass_by_atom_reduced;
+
+  memory->destroy(mass_by_atom);
+  memory->destroy(mass_by_atom_reduced);
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixMDIEngine::send_forces(Error* error)
 {
-  double angstrom_to_bohr;
-  MDI_Conversion_Factor("angstrom", "bohr", &angstrom_to_bohr);
-  double kelvin_to_hartree;
-  MDI_Conversion_Factor("kelvin_energy", "hartree", &kelvin_to_hartree);
-
-  double potconv, posconv, forceconv;
-  potconv=kelvin_to_hartree/force->boltz;
-  posconv=force->angstrom/angstrom_to_bohr;
-  forceconv=potconv*posconv;
+  // get conversion factor to atomic units
+  double force_conv;
+  if (lmpunits == REAL) {
+    double kelvin_to_hartree;
+    double angstrom_to_bohr;
+    MDI_Conversion_Factor("kelvin_energy", "hartree", &kelvin_to_hartree);
+    MDI_Conversion_Factor("angstrom", "bohr", &angstrom_to_bohr);
+    force_conv=(kelvin_to_hartree/force->boltz)*(force->angstrom/angstrom_to_bohr);
+  } else if (lmpunits == METAL) {
+    double ev_to_hartree;
+    double angstrom_to_bohr;
+    MDI_Conversion_Factor("electron_volt", "hartree", &ev_to_hartree);
+    MDI_Conversion_Factor("angstrom", "bohr", &angstrom_to_bohr);
+    force_conv = ev_to_hartree / angstrom_to_bohr;
+  }
 
   double *forces;
   double *forces_reduced;
@@ -821,9 +784,10 @@ void FixMDIEngine::send_forces(Error* error)
 
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
+  int64_t ncoords = 3*atom->natoms;
 
-  forces = new double[3*atom->natoms];
-  forces_reduced = new double[3*atom->natoms];
+  memory->create(forces,ncoords,"mdi/engine:forces");
+  memory->create(forces_reduced,ncoords,"mdi/engine:forces_reduced");
   x_buf = new double[3*nlocal];
 
   // zero the forces array
@@ -864,9 +828,9 @@ void FixMDIEngine::send_forces(Error* error)
   // pick local atoms from the buffer
   double **f = atom->f;
   for (int i = 0; i < nlocal; i++) {
-    forces[3*(atom->tag[i]-1)+0] = f[i][0]*forceconv;
-    forces[3*(atom->tag[i]-1)+1] = f[i][1]*forceconv;
-    forces[3*(atom->tag[i]-1)+2] = f[i][2]*forceconv;
+    forces[3*(atom->tag[i]-1)+0] = f[i][0]*force_conv;
+    forces[3*(atom->tag[i]-1)+1] = f[i][1]*force_conv;
+    forces[3*(atom->tag[i]-1)+2] = f[i][2]*force_conv;
   }
 
   // reduce the forces onto rank 0
@@ -879,28 +843,39 @@ void FixMDIEngine::send_forces(Error* error)
       error->all(FLERR,"MDI: Unable to send atom forces to driver");
   }
 
-  delete [] forces;
-  delete [] forces_reduced;
+  memory->destroy(forces);
+  memory->destroy(forces_reduced);
   delete [] x_buf;
 
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixMDIEngine::receive_forces(Error* error)
+// Receive forces from the driver
+//    mode = 0: replace current forces with forces from driver
+//    mode = 1: add forces from driver to current forces
+
+void FixMDIEngine::receive_forces(Error* error, int mode)
 {
-  double angstrom_to_bohr;
-  MDI_Conversion_Factor("angstrom", "bohr", &angstrom_to_bohr);
-  double kelvin_to_hartree;
-  MDI_Conversion_Factor("kelvin_energy", "hartree", &kelvin_to_hartree);
+  // get conversion factor to atomic units
+  double force_conv;
+  if (lmpunits == REAL) {
+    double kelvin_to_hartree;
+    double angstrom_to_bohr;
+    MDI_Conversion_Factor("kelvin_energy", "hartree", &kelvin_to_hartree);
+    MDI_Conversion_Factor("angstrom", "bohr", &angstrom_to_bohr);
+    force_conv=(kelvin_to_hartree/force->boltz)*(force->angstrom/angstrom_to_bohr);
+  } else if (lmpunits == METAL) {
+    double ev_to_hartree;
+    double angstrom_to_bohr;
+    MDI_Conversion_Factor("electron_volt", "hartree", &ev_to_hartree);
+    MDI_Conversion_Factor("angstrom", "bohr", &angstrom_to_bohr);
+    force_conv = ev_to_hartree / angstrom_to_bohr;
+  }
 
-  double potconv, posconv, forceconv;
-  potconv=kelvin_to_hartree/force->boltz;
-  posconv=force->angstrom/angstrom_to_bohr;
-  forceconv=potconv*posconv;
-
+  int64_t ncoords = 3*atom->natoms;
   double *forces;
-  forces = new double[3*atom->natoms];
+  memory->create(forces,ncoords,"mdi/engine:forces");
 
   if (master) {
     ierr = MDI_Recv((char*) forces, 3*atom->natoms, MDI_DOUBLE, driver_socket);
@@ -914,56 +889,22 @@ void FixMDIEngine::receive_forces(Error* error)
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  for (int i = 0; i < nlocal; i++) {
-    f[i][0] = forces[3*(atom->tag[i]-1)+0]/forceconv;
-    f[i][1] = forces[3*(atom->tag[i]-1)+1]/forceconv;
-    f[i][2] = forces[3*(atom->tag[i]-1)+2]/forceconv;
+  if ( mode == 0 ) { // Replace
+    for (int i = 0; i < nlocal; i++) {
+      f[i][0] = forces[3*(atom->tag[i]-1)+0]/force_conv;
+      f[i][1] = forces[3*(atom->tag[i]-1)+1]/force_conv;
+      f[i][2] = forces[3*(atom->tag[i]-1)+2]/force_conv;
+    }
+  }
+  else {
+    for (int i = 0; i < nlocal; i++) {
+      f[i][0] += forces[3*(atom->tag[i]-1)+0]/force_conv;
+      f[i][1] += forces[3*(atom->tag[i]-1)+1]/force_conv;
+      f[i][2] += forces[3*(atom->tag[i]-1)+2]/force_conv;
+    }
   }
 
-  delete [] forces;
-}
-
-/* ---------------------------------------------------------------------- */
-
-// NOTE: if keeping add_forces (see NOTE above)
-// then could make one replace_add_forces method with an extra "mode" arg
-//   for replace or add
-// since these 2 methods are nearly identical
-
-void FixMDIEngine::add_forces(Error* error)
-{
-  double angstrom_to_bohr;
-  MDI_Conversion_Factor("angstrom", "bohr", &angstrom_to_bohr);
-  double kelvin_to_hartree;
-  MDI_Conversion_Factor("kelvin_energy", "hartree", &kelvin_to_hartree);
-
-  double potconv, posconv, forceconv;
-  potconv=kelvin_to_hartree/force->boltz;
-  posconv=force->angstrom * angstrom_to_bohr;
-  forceconv=potconv*posconv;
-
-  double *forces;
-  forces = new double[3*atom->natoms];
-
-  if (master) {
-    ierr = MDI_Recv((char*) forces, 3*atom->natoms, MDI_DOUBLE, driver_socket);
-    if (ierr != 0)
-      error->all(FLERR,"MDI: Unable to receive atom forces to driver");
-  }
-  MPI_Bcast(forces,3*atom->natoms,MPI_DOUBLE,0,world);
-
-  // pick local atoms from the buffer
-  double **f = atom->f;
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
-
-  for (int i = 0; i < nlocal; i++) {
-    f[i][0] += forces[3*(atom->tag[i]-1)+0]/forceconv;
-    f[i][1] += forces[3*(atom->tag[i]-1)+1]/forceconv;
-    f[i][2] += forces[3*(atom->tag[i]-1)+2]/forceconv;
-  }
-
-  delete [] forces;
+  memory->destroy(forces);
 }
 
 /* ---------------------------------------------------------------------- */

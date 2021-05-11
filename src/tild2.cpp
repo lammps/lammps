@@ -168,11 +168,17 @@ TILD::TILD(LAMMPS *lmp) : KSpace(lmp),
   }
 };
 
+/* ---------------------------------------------------------------------- */
+
 void TILD::settings(int narg, char **arg)
 {
     if (narg < 1) error->all(FLERR,"Illegal kspace_style tild command");
     grid_res = fabs(force->numeric(FLERR, arg[0]));
 }
+
+/* ----------------------------------------------------------------------
+   free all memory
+------------------------------------------------------------------------- */
 
 TILD::~TILD(){
 
@@ -193,6 +199,10 @@ TILD::~TILD(){
   memory->destroy(xi);
 
 }
+
+/* ----------------------------------------------------------------------
+   called once before run
+------------------------------------------------------------------------- */
 
 void TILD::init()
 {
@@ -231,6 +241,10 @@ void TILD::init()
   setup_grid();
 
   // change number density to tild density 
+/* ----------------------------------------------------------------------
+   adjust TILD coeffs, called initially and whenever volume has changed
+------------------------------------------------------------------------- */
+
   double volume = domain->xprd * domain->yprd * domain->zprd;
   force->nktv2p *= rho0 * volume / atom->natoms;
 }
@@ -344,6 +358,10 @@ void TILD::setup(){
   return;
 }
 
+/* ----------------------------------------------------------------------
+   Initialization of the cross-potential/virial functions
+------------------------------------------------------------------------- */
+
 void TILD::vir_func_init() {
   int z, y, x, n;
   int Dim = domain->dimension;
@@ -426,6 +444,11 @@ void TILD::vir_func_init() {
   }
 }
 
+/* ----------------------------------------------------------------------
+   reset local grid arrays and communication stencils
+   called by fix balance b/c it changed sizes of processor sub-domains
+------------------------------------------------------------------------- */
+
 void TILD::setup_grid()
 {
   // free all arrays previously allocated
@@ -435,17 +458,7 @@ void TILD::setup_grid()
 
   // reset portion of global grid that each proc owns
 
-  set_fft_parameters(nx_pppm, ny_pppm, nz_pppm,
-                    nxlo_fft, nylo_fft, nzlo_fft,
-                    nxhi_fft, nyhi_fft, nzhi_fft,
-                    nxlo_in, nylo_in, nzlo_in,
-                    nxhi_in, nyhi_in, nzhi_in,
-                    nxlo_out, nylo_out, nzlo_out,
-                    nxhi_out, nyhi_out, nzhi_out,
-                    nlower, nupper,
-                    ngrid, nfft, nfft_both,
-                    shift, shiftone, order);
-
+  set_grid_local();
 
   int ngrid_max,nfft_both_max;
   MPI_Allreduce(&ngrid,&ngrid_max,1,MPI_INT,MPI_MAX,world);
@@ -1351,10 +1364,13 @@ void TILD::get_k_alias(FFT_SCALAR* wk1, FFT_SCALAR **out){
 
 }
 
-void TILD::particle_map(double delx, double dely, double delz,
-                             double sft, int** p2g, int nup, int nlow,
-                             int nxlo, int nylo, int nzlo,
-                             int nxhi, int nyhi, int nzhi)
+/* ----------------------------------------------------------------------
+   find center grid pt for each of my particles
+   check that full stencil for the particle will fit in my 3d brick
+   store central grid pt indices in part2grid array
+------------------------------------------------------------------------- */
+
+void PPPM::particle_map()
 {
   int nx,ny,nz;
 
@@ -1392,6 +1408,9 @@ void TILD::particle_map(double delx, double dely, double delz,
  if (flag) error->one(FLERR,"Out of range atoms - cannot compute TILD");
 }
 
+/* ----------------------------------------------------------------------
+   function for parsing TILD specific settings 
+------------------------------------------------------------------------- */
 
 int TILD::modify_param(int narg, char** arg)
 {
@@ -1499,7 +1518,11 @@ int TILD::modify_param(int narg, char** arg)
   return narg;
 }
 
-void TILD::pack_forward(int flag, FFT_SCALAR *buf, int nlist, int *list)
+/* ----------------------------------------------------------------------
+   pack own values to buf to send to another proc
+------------------------------------------------------------------------- */
+
+void TILD::pack_forward_grid(int flag, FFT_SCALAR *buf, int nlist, int *list)
 {
   int n = 0;
   //int Dim = domain->dimension;
@@ -1521,7 +1544,11 @@ void TILD::pack_forward(int flag, FFT_SCALAR *buf, int nlist, int *list)
   }
 }
 
-void TILD::unpack_forward(int flag, FFT_SCALAR *buf, int nlist, int *list)
+/* ----------------------------------------------------------------------
+   unpack another proc's own values from buf and set own ghost values
+------------------------------------------------------------------------- */
+
+void TILD::unpack_forward_grid(int flag, FFT_SCALAR *buf, int nlist, int *list)
 {
   int n = 0;
   //int Dim = domain->dimension;
@@ -1543,7 +1570,12 @@ void TILD::unpack_forward(int flag, FFT_SCALAR *buf, int nlist, int *list)
   }
 }
 
-void TILD::pack_reverse(int flag, FFT_SCALAR *buf, int nlist, int *list) {
+/* ----------------------------------------------------------------------
+   pack ghost values into buf to send to another proc
+------------------------------------------------------------------------- */
+
+
+void TILD::pack_reverse_grid(int flag, FFT_SCALAR *buf, int nlist, int *list) {
   int n = 0;
   if (flag == REVERSE_RHO_NONE) {
     for (int ktype = 0; ktype <= atom->ntypes; ktype++) {
@@ -1554,7 +1586,11 @@ void TILD::pack_reverse(int flag, FFT_SCALAR *buf, int nlist, int *list) {
   }
 }
 
-void TILD::unpack_reverse(int flag, FFT_SCALAR *buf, int nlist, int *list)
+/* ----------------------------------------------------------------------
+   unpack another proc's ghost values from buf and add to own values
+------------------------------------------------------------------------- */
+
+void TILD::unpack_reverse_grid(int flag, FFT_SCALAR *buf, int nlist, int *list)
 {
   int n = 0;
   if (flag == REVERSE_RHO_NONE) {
@@ -1569,6 +1605,7 @@ void TILD::unpack_reverse(int flag, FFT_SCALAR *buf, int nlist, int *list)
 /* ----------------------------------------------------------------------
    map nprocs to NX by NY grid as PX by PY procs - return optimal px,py
 ------------------------------------------------------------------------- */
+
 void TILD::procs2grid2d(int nprocs, int nx, int ny, int *px, int *py)
 {
   // loop thru all possible factorizations of nprocs
@@ -1604,18 +1641,13 @@ void TILD::procs2grid2d(int nprocs, int nx, int ny, int *px, int *py)
 }
 
 /* ----------------------------------------------------------------------
-   set the FFT parameters
+   set local subset of PPPM/FFT grid that I own
+   n xyz lo/hi in = 3d brick that I own (inclusive)
+   n xyz lo/hi out = 3d brick + ghost cells in 6 directions (inclusive)
+   n xyz lo/hi fft = FFT columns that I own (all of x dim, 2d decomp in yz)
 ------------------------------------------------------------------------- */
-void TILD::set_fft_parameters(int& nx_p,int& ny_p,int& nz_p,
-                                   int& nxlo_f,int& nylo_f,int& nzlo_f,
-                                   int& nxhi_f,int& nyhi_f,int& nzhi_f,
-                                   int& nxlo_i,int& nylo_i,int& nzlo_i,
-                                   int& nxhi_i,int& nyhi_i,int& nzhi_i,
-                                   int& nxlo_o,int& nylo_o,int& nzlo_o,
-                                   int& nxhi_o,int& nyhi_o,int& nzhi_o,
-                                   int& nlow, int& nupp,
-                                   int& ng, int& nf, int& nfb,
-                                   double& sft,double& sftone, int& ord)
+
+void PPPM::set_grid_local()
 {
   // global indices of PPPM grid range from 0 to N-1
   // nlo_in,nhi_in = lower/upper limits of the 3d sub-brick of
@@ -1764,6 +1796,14 @@ void TILD::set_fft_parameters(int& nx_p,int& ny_p,int& nz_p,
 
 }
 
+
+/* ----------------------------------------------------------------------
+   create discretized density on section of global grid due to my particles
+   density(x,y,z) = density at grid points of my 3d brick
+   (nxlo:nxhi,nylo:nyhi,nzlo:nzhi) is extent of my brick (including ghosts)
+   in global grid
+------------------------------------------------------------------------- */
+
 void TILD::make_rho()
 {
   int nx,ny,nz,mx,my,mz;
@@ -1819,6 +1859,10 @@ void TILD::make_rho()
     }
   }
 }
+
+/* ----------------------------------------------------------------------
+   remap density from 3d brick decomposition to FFT decomposition
+------------------------------------------------------------------------- */
 
 void TILD::brick2fft()
 {
@@ -1879,6 +1923,11 @@ void TILD::compute_rho1d(const FFT_SCALAR &dx, const FFT_SCALAR &dy,
     r1d[2][k] = r3;
   }
 }
+
+/* ----------------------------------------------------------------------
+   calculates the gradient of the density fields and convolves it with 
+   the interaction potential
+------------------------------------------------------------------------- */
 
 void TILD::accumulate_gradient() {
   int Dim = domain->dimension;
@@ -1984,13 +2033,17 @@ void TILD::accumulate_gradient() {
 */
 }
 
+/* ----------------------------------------------------------------------
+   Applies the from the grid onto each particle
+------------------------------------------------------------------------- */
+
 void TILD::fieldforce_param(){
   int nx,ny,nz,mx,my,mz;
   FFT_SCALAR dx,dy,dz,x0,y0,z0;
   FFT_SCALAR ekx,eky,ekz;
 
-  // loop over my charges, interpolate electric field from nearby grid points
-  // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
+  // loop over my charges, interpolate second desnity field from nearby grid points
+  // (nx,ny,nz) = global coords of grid pt to "lower left" of density
   // (dx,dy,dz) = distance to "lower left" grid pt
   // (mx,my,mz) = global coords of moving stencil pt
   // ek = 3 components of E-field on particle
@@ -2089,6 +2142,7 @@ void TILD::fieldforce_param(){
   a coeffients are packed into the array rho_coeff to eliminate zeros
   rho_coeff(l,((k+mod(n+1,2))/2) = a(l,k)
 ------------------------------------------------------------------------- */
+
 void TILD::compute_rho_coeff(FFT_SCALAR **coeff , FFT_SCALAR **dcoeff,
                                  const int ord)
 {
@@ -2132,10 +2186,18 @@ void TILD::compute_rho_coeff(FFT_SCALAR **coeff , FFT_SCALAR **dcoeff,
   memory->destroy2d_offset(a,-ord);
 }
 
+/* ----------------------------------------------------------------------
+   Abstraction to hide the annoying multiplication.
+------------------------------------------------------------------------- */
+
 void TILD::complex_multiply(FFT_SCALAR *in1, FFT_SCALAR  *in2, FFT_SCALAR  *out, int n){
   out[n] = ((in1[n] * in2[n]) - (in1[n + 1] * in2[n + 1]));
   out[n + 1] = ((in1[n + 1] * in2[n]) + (in1[n] * in2[n + 1]));
 }
+
+/* ----------------------------------------------------------------------
+   Calculation of the energy and the virials
+------------------------------------------------------------------------- */
 
 void TILD::ev_calculation(const int loc, const int itype, const int jtype) {
   int n = 0;
@@ -2206,7 +2268,10 @@ void TILD::ev_calculation(const int loc, const int itype, const int jtype) {
 /* ----------------------------------------------------------------------
   Calculates the rho0 needed for this system instead of the rho0 that 
   comes from the particle densities. 
+  Each Gaussian particle particle contributes a 1/V and erfc particles 
+    contributes 4*pi*r^3/V.
 ------------------------------------------------------------------------- */
+
 double TILD::calculate_rho0(){
   int nlocal = atom->nlocal;
   int *type = atom->type;
@@ -2259,6 +2324,10 @@ double TILD::calculate_rho0(){
 
   return rho0;
 }
+
+/* ----------------------------------------------------------------------
+   Write out the gridded densities out to the system
+------------------------------------------------------------------------- */
 
 void TILD::write_grid_data( char *filename, const int avg ) {
   int ntypes = atom->ntypes;
@@ -2325,6 +2394,10 @@ void TILD::write_grid_data( char *filename, const int avg ) {
   if (me == 0) fclose( otp ) ;
 }
 
+/* ----------------------------------------------------------------------
+   pack own values to buf to send to another proc
+------------------------------------------------------------------------- */
+
 void TILD::pack_grid_data(double **buf)
 {
   int ntypes = atom->ntypes;
@@ -2347,6 +2420,10 @@ void TILD::pack_grid_data(double **buf)
     }
   }  
 }
+
+/* ----------------------------------------------------------------------
+   unpack another proc's own values from buf and set own ghost values
+------------------------------------------------------------------------- */
 
 void TILD::pack_avg_grid_data(double **buf)
 {
@@ -2371,6 +2448,10 @@ void TILD::pack_avg_grid_data(double **buf)
   }  
 }
 
+/* ----------------------------------------------------------------------
+   Sums up density types to later normalize
+------------------------------------------------------------------------- */
+
 void TILD::sum_grid_data()
 {
   int ntypes = atom->ntypes;
@@ -2384,6 +2465,10 @@ void TILD::sum_grid_data()
     }
   }  
 }
+
+/* ----------------------------------------------------------------------
+   Used to normalize the gridded density by the amount of time steps
+------------------------------------------------------------------------- */
 
 void TILD::multiply_ave_grid_data(const double factor)
 {

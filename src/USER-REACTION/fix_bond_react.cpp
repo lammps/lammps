@@ -54,7 +54,7 @@ using namespace FixConst;
 using namespace MathConst;
 
 static const char cite_fix_bond_react[] =
-  "fix bond/react:\n\n"
+  "fix bond/react: reacter.org\n\n"
   "@Article{Gissinger17,\n"
   " author = {J. R. Gissinger, B. D. Jensen, K. E. Wise},\n"
   " title = {Modeling chemical reactions in classical molecular dynamics simulations},\n"
@@ -62,6 +62,14 @@ static const char cite_fix_bond_react[] =
   " year =    2017,\n"
   " volume =  128,\n"
   " pages =   {211--217}\n"
+  "}\n\n"
+  "@Article{Gissinger20,\n"
+  " author = {J. R. Gissinger, B. D. Jensen, K. E. Wise},\n"
+  " title = {REACTER: A Heuristic Method for Reactive Molecular Dynamics},\n"
+  " journal = {Macromolecules},\n"
+  " year =    2020,\n"
+  " volume =  53,\n"
+  " pages =   {9953--9961}\n"
   "}\n\n";
 
 #define BIG 1.0e20

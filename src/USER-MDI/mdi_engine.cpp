@@ -52,11 +52,14 @@ void MDIEngine::command(int narg, char **arg)
   MDI_Register_Node("@DEFAULT");
   MDI_Register_Command("@DEFAULT", "<@");
   MDI_Register_Command("@DEFAULT", "<CELL");
+  MDI_Register_Command("@DEFAULT", "<CELL_DISPL");
   MDI_Register_Command("@DEFAULT", "<CHARGES");
   MDI_Register_Command("@DEFAULT", "<COORDS");
   MDI_Register_Command("@DEFAULT", "<LABELS");
-  MDI_Register_Command("@DEFAULT", "<NATOMS");
   MDI_Register_Command("@DEFAULT", "<MASSES");
+  MDI_Register_Command("@DEFAULT", "<NATOMS");
+  MDI_Register_Command("@DEFAULT", "<TYPES");
+  MDI_Register_Command("@DEFAULT", ">CELL_DISPL");
   MDI_Register_Command("@DEFAULT", ">COORDS");
   MDI_Register_Command("@DEFAULT", "@INIT_MD");
   MDI_Register_Command("@DEFAULT", "@INIT_OPTG");
@@ -67,6 +70,7 @@ void MDIEngine::command(int narg, char **arg)
   MDI_Register_Node("@INIT_MD");
   MDI_Register_Command("@INIT_MD", "<@");
   MDI_Register_Command("@INIT_MD", "<CELL");
+  MDI_Register_Command("@INIT_MD", "<CELL_DISPL");
   MDI_Register_Command("@INIT_MD", "<CHARGES");
   MDI_Register_Command("@INIT_MD", "<COORDS");
   MDI_Register_Command("@INIT_MD", "<ENERGY");
@@ -76,13 +80,15 @@ void MDIEngine::command(int narg, char **arg)
   MDI_Register_Command("@INIT_MD", "<MASSES");
   MDI_Register_Command("@INIT_MD", "<NATOMS");
   MDI_Register_Command("@INIT_MD", "<PE");
+  MDI_Register_Command("@INIT_MD", "<TYPES");
+  MDI_Register_Command("@INIT_MD", ">CELL_DISPL");
   MDI_Register_Command("@INIT_MD", ">COORDS");
   MDI_Register_Command("@INIT_MD", ">FORCES");
+  MDI_Register_Command("@INIT_MD", ">+FORCES");
   MDI_Register_Command("@INIT_MD", "@");
   MDI_Register_Command("@INIT_MD", "@COORDS");
   MDI_Register_Command("@INIT_MD", "@DEFAULT");
   MDI_Register_Command("@INIT_MD", "@FORCES");
-  MDI_Register_Command("@INIT_MD", "@PRE-FORCES");
   MDI_Register_Command("@INIT_MD", "EXIT");
 
   // node for setting up and running a minimization
@@ -90,6 +96,7 @@ void MDIEngine::command(int narg, char **arg)
   MDI_Register_Node("@INIT_OPTG");
   MDI_Register_Command("@INIT_OPTG", "<@");
   MDI_Register_Command("@INIT_OPTG", "<CELL");
+  MDI_Register_Command("@INIT_OPTG", "<CELL_DISPL");
   MDI_Register_Command("@INIT_OPTG", "<CHARGES");
   MDI_Register_Command("@INIT_OPTG", "<COORDS");
   MDI_Register_Command("@INIT_OPTG", "<ENERGY");
@@ -99,8 +106,11 @@ void MDIEngine::command(int narg, char **arg)
   MDI_Register_Command("@INIT_OPTG", "<MASSES");
   MDI_Register_Command("@INIT_OPTG", "<NATOMS");
   MDI_Register_Command("@INIT_OPTG", "<PE");
+  MDI_Register_Command("@INIT_OPTG", "<TYPES");
+  MDI_Register_Command("@INIT_OPTG", ">CELL_DISPL");
   MDI_Register_Command("@INIT_OPTG", ">COORDS");
   MDI_Register_Command("@INIT_OPTG", ">FORCES");
+  MDI_Register_Command("@INIT_OPTG", ">+FORCES");
   MDI_Register_Command("@INIT_OPTG", "@");
   MDI_Register_Command("@INIT_OPTG", "@COORDS");
   MDI_Register_Command("@INIT_OPTG", "@DEFAULT");
@@ -111,8 +121,10 @@ void MDIEngine::command(int narg, char **arg)
 
   MDI_Register_Node("@FORCES");
   MDI_Register_Callback("@FORCES", ">FORCES");
+  MDI_Register_Callback("@FORCES", ">+FORCES");
   MDI_Register_Command("@FORCES", "<@");
   MDI_Register_Command("@FORCES", "<CELL");
+  MDI_Register_Command("@FORCES", "<CELL_DISPL");
   MDI_Register_Command("@FORCES", "<CHARGES");
   MDI_Register_Command("@FORCES", "<COORDS");
   MDI_Register_Command("@FORCES", "<ENERGY");
@@ -122,13 +134,15 @@ void MDIEngine::command(int narg, char **arg)
   MDI_Register_Command("@FORCES", "<MASSES");
   MDI_Register_Command("@FORCES", "<NATOMS");
   MDI_Register_Command("@FORCES", "<PE");
+  MDI_Register_Command("@FORCES", "<TYPES");
+  MDI_Register_Command("@FORCES", ">CELL_DISPL");
   MDI_Register_Command("@FORCES", ">COORDS");
   MDI_Register_Command("@FORCES", ">FORCES");
+  MDI_Register_Command("@FORCES", ">+FORCES");
   MDI_Register_Command("@FORCES", "@");
   MDI_Register_Command("@FORCES", "@COORDS");
   MDI_Register_Command("@FORCES", "@DEFAULT");
   MDI_Register_Command("@FORCES", "@FORCES");
-  MDI_Register_Command("@FORCES", "@PRE-FORCES");
   MDI_Register_Command("@FORCES", "EXIT");
 
   // node at POST_INTEGRATE location in timestep
@@ -136,6 +150,7 @@ void MDIEngine::command(int narg, char **arg)
   MDI_Register_Node("@COORDS");
   MDI_Register_Command("@COORDS", "<@");
   MDI_Register_Command("@COORDS", "<CELL");
+  MDI_Register_Command("@COORDS", "<CELL_DISPL");
   MDI_Register_Command("@COORDS", "<CHARGES");
   MDI_Register_Command("@COORDS", "<COORDS");
   MDI_Register_Command("@COORDS", "<ENERGY");
@@ -145,13 +160,15 @@ void MDIEngine::command(int narg, char **arg)
   MDI_Register_Command("@COORDS", "<MASSES");
   MDI_Register_Command("@COORDS", "<NATOMS");
   MDI_Register_Command("@COORDS", "<PE");
+  MDI_Register_Command("@COORDS", "<TYPES");
+  MDI_Register_Command("@COORDS", ">CELL_DISPL");
   MDI_Register_Command("@COORDS", ">COORDS");
   MDI_Register_Command("@COORDS", ">FORCES");
+  MDI_Register_Command("@COORDS", ">+FORCES");
   MDI_Register_Command("@COORDS", "@");
   MDI_Register_Command("@COORDS", "@COORDS");
   MDI_Register_Command("@COORDS", "@DEFAULT");
   MDI_Register_Command("@COORDS", "@FORCES");
-  MDI_Register_Command("@COORDS", "@PRE-FORCES");
   MDI_Register_Command("@COORDS", "EXIT");
 
   // if the mdi_engine fix is not already present, add it now

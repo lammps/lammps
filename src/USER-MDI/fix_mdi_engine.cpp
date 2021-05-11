@@ -278,6 +278,12 @@ int FixMDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
   } else if (strcmp(command,"<CELL") == 0 ) {
     send_cell(error);
 
+  } else if (strcmp(command,"<CELL_DISPL") == 0 ) {
+    send_celldispl(error);
+
+  } else if (strcmp(command,">CELL_DISPL") == 0 ) {
+    receive_celldispl(error);
+
   } else if (strcmp(command,">COORDS") == 0 ) {
     receive_coordinates(error);
 
@@ -682,9 +688,6 @@ void FixMDIEngine::send_types(Error* error)
 {
   int * const type = atom->type;
 
-  // NOTE: why is this not supported?
-  //       maybe MDI labels = LAMMPS types?
-
   if (master) { 
     ierr = MDI_Send((char*) type, atom->natoms, MDI_INT, driver_socket);
     if (ierr != 0)
@@ -812,8 +815,6 @@ void FixMDIEngine::send_forces(Error* error)
     lmp->init();
     update->integrate->setup_minimal(1);
 
-    // NOTE: can this be done here instead of below?
-
     if ( strcmp(current_node, "@DEFAULT") == 0 ) {
       // restore the original set of coordinates
       double **x_new = atom->x;
@@ -925,11 +926,6 @@ void FixMDIEngine::send_cell(Error* error)
   celldata[6] = domain->xz;
   celldata[7] = domain->yz;
   celldata[8] = domain->boxhi[2] - domain->boxlo[2];
-  /*
-  celldata[9 ] = domain->boxlo[0];
-  celldata[10] = domain->boxlo[1];
-  celldata[11] = domain->boxlo[2];
-  */
 
   // convert the units to bohr
 
@@ -943,4 +939,62 @@ void FixMDIEngine::send_cell(Error* error)
     if (ierr != 0)
       error->all(FLERR,"MDI: Unable to send cell dimensions to driver");
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixMDIEngine::send_celldispl(Error* error)
+{
+  double angstrom_to_bohr;
+  MDI_Conversion_Factor("angstrom", "bohr", &angstrom_to_bohr);
+
+  double celldata[3];
+
+  celldata[0] = domain->boxlo[0];
+  celldata[1] = domain->boxlo[1];
+  celldata[2] = domain->boxlo[2];
+
+  // convert the units to bohr
+
+  double unit_conv = force->angstrom * angstrom_to_bohr;
+  for (int icell=0; icell < 3; icell++) {
+    celldata[icell] *= unit_conv;
+  }
+
+  if (master) { 
+    ierr = MDI_Send((char*) celldata, 3, MDI_DOUBLE, driver_socket);
+    if (ierr != 0)
+      error->all(FLERR,"MDI: Unable to send cell displacement to driver");
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixMDIEngine::receive_celldispl(Error* error)
+{
+  // receive the cell displacement from the driver
+  double celldata[3];
+  if (master) { 
+    ierr = MDI_Recv((char*) celldata, 3, MDI_DOUBLE, driver_socket);
+    if (ierr != 0)
+      error->all(FLERR,"MDI: Unable to receive cell displacement from driver");
+  }
+  MPI_Bcast(&celldata[0],3,MPI_DOUBLE,0,world);
+
+  double angstrom_to_bohr;
+  MDI_Conversion_Factor("angstrom", "bohr", &angstrom_to_bohr);
+  double unit_conv = force->angstrom * angstrom_to_bohr;
+
+  double old_boxlo[3];
+  old_boxlo[0] = domain->boxlo[0];
+  old_boxlo[1] = domain->boxlo[1];
+  old_boxlo[2] = domain->boxlo[2];
+
+  // adjust the values of boxlo and boxhi for the new cell displacement vector
+  domain->boxlo[0] = celldata[0] / unit_conv;
+  domain->boxlo[1] = celldata[1] / unit_conv;
+  domain->boxlo[2] = celldata[2] / unit_conv;
+  domain->boxhi[0] += domain->boxlo[0] - old_boxlo[0];
+  domain->boxhi[1] += domain->boxlo[1] - old_boxlo[1];
+  domain->boxhi[2] += domain->boxlo[2] - old_boxlo[2];
 }

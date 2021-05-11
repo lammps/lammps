@@ -46,7 +46,7 @@ FixPropelSelf::FixPropelSelf(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
 
-  virial_flag = 1;
+  virial_global_flag = virial_peratom_flag = 1;
 
   if (narg != 5 && narg != 9)
     error->all(FLERR,"Illegal fix propel/self command");
@@ -207,7 +207,6 @@ void FixPropelSelf::post_force_velocity(int vflag)
   double **x = atom->x;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-  int *type = atom->type;
   double nv2,fnorm,fx,fy,fz;
 
 
@@ -262,7 +261,6 @@ void FixPropelSelf::post_force_quaternion(int vflag)
   double **x = atom->x;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-  int *type = atom->type;
   int* ellipsoid = atom->ellipsoid;
 
   // ellipsoidal properties

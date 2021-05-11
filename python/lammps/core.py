@@ -281,6 +281,7 @@ class lammps(object):
     self.lib.lammps_version.argtypes = [c_void_p]
 
     self.lib.lammps_get_os_info.argtypes = [c_char_p, c_int]
+    self.lib.lammps_get_gpu_device_info.argtypes = [c_char_p, c_int]
 
     self.lib.lammps_get_mpi_comm.argtypes = [c_void_p]
 
@@ -490,7 +491,7 @@ class lammps(object):
 
     sb = create_string_buffer(512)
     self.lib.lammps_get_os_info(sb,512)
-    return sb
+    return sb.value.decode()
 
   # -------------------------------------------------------------------------
 
@@ -1549,6 +1550,37 @@ class lammps(object):
         if self.lib.lammps_config_accelerator(p.encode(),c.encode(),s.encode()):
           result[p][c].append(s)
     return result
+
+  # -------------------------------------------------------------------------
+
+  @property
+  def has_gpu_device(self):
+    """ Availability of GPU package compatible device
+
+    This is a wrapper around the :cpp:func:`lammps_has_gpu_device`
+    function of the C library interface.
+
+    :return: True if a GPU package compatible device is present, otherwise False
+    :rtype: bool
+    """
+    return self.lib.lammps_has_gpu_device() != 0
+
+  # -------------------------------------------------------------------------
+
+  def get_gpu_device_info(self):
+    """Return a string with detailed information about any devices that are
+    usable by the GPU package.
+
+    This is a wrapper around the :cpp:func:`lammps_get_gpu_device_info` 
+    function of the C-library interface. 
+
+    :return: GPU device info string
+    :rtype:  string
+    """
+
+    sb = create_string_buffer(8192)
+    self.lib.lammps_get_gpu_device_info(sb,8192)
+    return sb.value.decode()
 
   # -------------------------------------------------------------------------
 

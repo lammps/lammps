@@ -45,7 +45,6 @@ __kernel void k_lj_smooth(const __global numtyp4 *restrict x_,
 
   acctyp4 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
-  acctyp virial[6];
   acctyp energy, virial[6];
   if (EVFLAG) {
     energy=(acctyp)0;

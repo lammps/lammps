@@ -60,7 +60,8 @@ TILD::TILD(LAMMPS *lmp) : KSpace(lmp),
   factors(nullptr), fkx(nullptr), fky(nullptr), fkz(nullptr), vg(nullptr),
   work1(nullptr), work2(nullptr), rho1d(nullptr), rho_coeff(nullptr), drho_coeff(nullptr), 
   gradWtypex(nullptr), gradWtypey(nullptr), gradWtypez(nullptr), density_brick_types(nullptr),
-  fft1(nullptr), fft2(nullptr), remap(nullptr), cg(nullptr), cg_peratom(nullptr),  
+  fft1(nullptr), fft2(nullptr), remap(nullptr), gc(nullptr), 
+  gc_buf1(nullptr), gc_buf2(nullptr),
   part2grid(nullptr), boxlo(nullptr)
   //gradWtype(nullptr)
  {
@@ -101,10 +102,10 @@ TILD::TILD(LAMMPS *lmp) : KSpace(lmp),
 
   fft1 = fft2 = nullptr;
   remap = nullptr;
-  cg = nullptr;
-  cg_peratom = nullptr;
+  gc = nullptr;
+  gc_buf1 = gc_buf2 = nullptr;
+
   part2grid = nullptr;
-  specified_all_group = 0;
 
   density_brick_types = nullptr;
   avg_density_brick_types = nullptr;
@@ -198,6 +199,11 @@ TILD::~TILD(){
   memory->destroy(rp);
   memory->destroy(xi);
 
+  potent_type_map = nullptr;
+  chi = nullptr;
+  a2 = nullptr;
+  rp = nullptr;
+  xi = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -245,22 +251,7 @@ void TILD::init()
    adjust TILD coeffs, called initially and whenever volume has changed
 ------------------------------------------------------------------------- */
 
-  double volume = domain->xprd * domain->yprd * domain->zprd;
-  force->nktv2p *= rho0 * volume / atom->natoms;
-}
-
 void TILD::setup(){
-
-  // ADD A SECTION TO CALCULATE RHO0
-
-  if (specified_all_group == 0){
-    if (comm->me == 0)
-      error->warning(
-          FLERR,
-          "No groups specified for the total density. Using the all group.");
-    start_group_ind = 0;
-  }
-  else start_group_ind = 1;
 
   if (slabflag == 0 && domain->nonperiodic > 0)
     error->all(FLERR,"Cannot use non-periodic boundaries with TILD");
@@ -352,6 +343,8 @@ void TILD::setup(){
       }
     }
   }
+
+  rho0 = calculate_rho0();
   init_cross_potentials();
   vir_func_init();
 
@@ -463,23 +456,23 @@ void TILD::setup_grid()
   int ngrid_max,nfft_both_max;
   MPI_Allreduce(&ngrid,&ngrid_max,1,MPI_INT,MPI_MAX,world);
   MPI_Allreduce(&nfft_both,&nfft_both_max,1,MPI_INT,MPI_MAX,world);
+
   // reallocate K-space dependent memory
   // check if grid communication is now overlapping if not allowed
   // don't invoke allocate_peratom(), compute() will allocate when needed
 
   allocate();
 
-  cg->ghost_notify();
-  if (overlap_allowed == 0 && cg->ghost_overlap())
-    error->all(FLERR,"PPPM grid stencil extends "
+  if (!overlap_allowed && gc->ghost_adjacent())
+    error->all(FLERR,"TILD grid stencil extends "
                "beyond nearest neighbor processor");
-  cg->setup();
 
-  // pre-compute volume-dependent coeffs
+  // pre-compute 1d density distribution coefficients
   compute_rho_coeff(rho_coeff, drho_coeff, order);
 
   rho0 = calculate_rho0();
 
+  // pre-compute volume-dependent coeffs for portion of grid I now own
   setup();
 }
 
@@ -518,10 +511,6 @@ void TILD::precompute_density_hat_fft() {
 
 void TILD::compute(int eflag, int vflag){
 
-  if (domain->box_change) {
-    rho0 = calculate_rho0();
-  }
-  
   if (triclinic == 0) boxlo = domain->boxlo;
   else {
     boxlo = domain->boxlo_lamda;
@@ -553,8 +542,10 @@ void TILD::compute(int eflag, int vflag){
     memory->create(part2grid,nmax,3,"pppm/disp:part2grid");
   }
 
-  particle_map(delxinv, delyinv, delzinv, shift, part2grid, nupper, nlower,
-                nxlo_out, nylo_out, nzlo_out, nxhi_out, nyhi_out, nzhi_out);
+  // find grid points for all my particles
+  // map my particle charge onto my local 3d density grid
+
+  particle_map();
 
   make_rho();
 
@@ -582,6 +573,7 @@ void TILD::compute(int eflag, int vflag){
     energy = energy_all; // * volume;
 
   }
+
   if (vflag_global) {
     double virial_all[6];
     MPI_Allreduce(virial,virial_all,6,MPI_DOUBLE,MPI_SUM,world);
@@ -593,8 +585,10 @@ void TILD::compute(int eflag, int vflag){
         //virial[i] = virial_all[i] * volume; 
     }
   }
+
+  // convert atoms back from lamda to box coords
+
   if (triclinic) domain->lamda2x(atom->nlocal);
-  return;
 }
 
 
@@ -732,20 +726,19 @@ void TILD::allocate()
                     1,0,0,FFT_PRECISION,collective_flag);
 
   // create ghost grid object for rho and electric field communication
+  // also create 2 bufs for ghost grid cell comm, passed to GridComm methods
 
+  gc = new GridComm(lmp,world,
+                      nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
+                      nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
 
-  if (differentiation_flag == 1)
-    cg = new GridComm(lmp,world,ntypes+1,ntypes+1,
-                      nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
-                      nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out,
-                      procneigh[0][0],procneigh[0][1],procneigh[1][0],
-                      procneigh[1][1],procneigh[2][0],procneigh[2][1]);
-  else
-    cg = new GridComm(lmp,world,3*(ntypes+1),ntypes+1,
-                      nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
-                      nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out,
-                      procneigh[0][0],procneigh[0][1],procneigh[1][0],
-                      procneigh[1][1],procneigh[2][0],procneigh[2][1]);
+  gc->setup(ngc_buf1,ngc_buf2);
+
+  if (differentiation_flag) npergrid = 1;
+  else npergrid = 3;
+
+  memory->create(gc_buf1,npergrid*ngc_buf1,"tild:gc_buf1");
+  memory->create(gc_buf2,npergrid*ngc_buf2,"tild:gc_buf2");
 }
 
 /* ----------------------------------------------------------------------
@@ -823,10 +816,11 @@ void TILD::deallocate()
   delete fft1;
   delete fft2;
   delete remap;
-  delete cg;
+  delete gc;
+  memory->destroy(gc_buf1);
+  memory->destroy(gc_buf2);
   fft1 = fft2 = nullptr;
   remap = nullptr;
-  cg = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -834,7 +828,7 @@ void TILD::deallocate()
    for Coulomb interactions
 ------------------------------------------------------------------------- */
 
-void TILD::set_grid()
+void TILD::set_grid_global()
 {
   // use xprd,yprd,zprd even if triclinic so grid size is the same
   // adjust z dimension for 2d slab PPPM
@@ -908,6 +902,9 @@ void TILD::set_grid()
     mesg += fmt::format("  3d grid and FFT values/proc = {} {}\n", ngrid_max, nfft_both_max);
     utils::logmesg(lmp,mesg);
   }
+
+  if (nx_pppm >= OFFSET || ny_pppm >= OFFSET || nz_pppm >= OFFSET)
+    error->all(FLERR, "TILD grid is too large");
 }
 
 /* ----------------------------------------------------------------------
@@ -955,6 +952,10 @@ void TILD::deallocate_peratom()
   delete cg_peratom;
   cg_peratom = nullptr;
 }
+
+/* ----------------------------------------------------------------------
+   Initialize in real space the cross-potentials
+------------------------------------------------------------------------- */
 
 void TILD::init_cross_potentials(){
   
@@ -1119,12 +1120,20 @@ void TILD::init_cross_potentials(){
 
 }
 
+/* ----------------------------------------------------------------------
+   Determine which cross-potential should be used
+------------------------------------------------------------------------- */
+
 int TILD::get_style( const int i, const int j) {
   for (int istyle = 1; istyle <= nstyles; istyle++) { 
     if ( potent_type_map[istyle][i][j] == 1 ) return istyle;
   }
   return 0;
 }
+
+/* ----------------------------------------------------------------------
+   Larger cross potential startup functoin 
+------------------------------------------------------------------------- */
 
 void TILD::calc_work(FFT_SCALAR *wk, const int itype, const int jtype){
   double scale_inv = 1.0/ nx_pppm/ ny_pppm/ nz_pppm;
@@ -1157,7 +1166,10 @@ void TILD::calc_work(FFT_SCALAR *wk, const int itype, const int jtype){
   }
 }
 
-// analytical fourier transform of potential
+
+/* ----------------------------------------------------------------------
+   Initialize potentials in fourier space when possible
+------------------------------------------------------------------------- */kkk
 void TILD::init_potential_ft(FFT_SCALAR *wk1, const int type, const double* parameters){
 
   int n = 0;
@@ -1199,6 +1211,10 @@ void TILD::init_potential_ft(FFT_SCALAR *wk1, const int type, const double* para
     }
   }
 }
+
+/* ----------------------------------------------------------------------
+   Initialize potentials in real-space when fourier space is not possible
+------------------------------------------------------------------------- */
 
 void TILD::init_potential(FFT_SCALAR *wk1, const int type, const double* parameters){
 
@@ -1377,35 +1393,37 @@ void PPPM::particle_map()
   double **x = atom->x;
   int nlocal = atom->nlocal;
 
+  int flag = 0;
+
   if (!std::isfinite(boxlo[0]) || !std::isfinite(boxlo[1]) || !std::isfinite(boxlo[2]))
     error->one(FLERR,"Non-numeric box dimensions - simulation unstable");
 
-  int flag = 0;
   for (int i = 0; i < nlocal; i++) {
 
-    // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
+    // order = even:
+    //   (nx,ny,nz) = global index of grid pt to "lower left" of charge
+    // order = odd:
+    //   (nx,ny,nz) = global index of grid pt closest to charge due to shift
     // current particle coord can be outside global and local box
     // add/subtract OFFSET to avoid int(-0.75) = 0 when want it to be -1
 
-    nx = static_cast<int> ((x[i][0]-boxlo[0])*delx+sft) - OFFSET;
-    ny = static_cast<int> ((x[i][1]-boxlo[1])*dely+sft) - OFFSET;
-    nz = static_cast<int> ((x[i][2]-boxlo[2])*delz+sft) - OFFSET;
+    nx = static_cast<int> ((x[i][0]-boxlo[0])*delxinv+shift) - OFFSET;
+    ny = static_cast<int> ((x[i][1]-boxlo[1])*delyinv+shift) - OFFSET;
+    nz = static_cast<int> ((x[i][2]-boxlo[2])*delzinv+shift) - OFFSET;
 
-    p2g[i][0] = nx;
-    p2g[i][1] = ny;
-    p2g[i][2] = nz;
+    part2grid[i][0] = nx;
+    part2grid[i][1] = ny;
+    part2grid[i][2] = nz;
 
     // check that entire stencil around nx,ny,nz will fit in my 3d brick
 
-    if (nx+nlow < nxlo || nx+nup > nxhi ||
-        ny+nlow < nylo || ny+nup > nyhi ||
-        nz+nlow < nzlo || nz+nup > nzhi){
+    if (nx+nlower < nxlo_out || nx+nupper > nxhi_out ||
+        ny+nlower < nylo_out || ny+nupper > nyhi_out ||
+        nz+nlower < nzlo_out || nz+nupper > nzhi_out)
       flag = 1;
-      
-      }
   }
 
- if (flag) error->one(FLERR,"Out of range atoms - cannot compute TILD");
+  if (flag) error->one(FLERR,"Out of range atoms - cannot compute PPPM");
 }
 
 /* ----------------------------------------------------------------------
@@ -1653,35 +1671,48 @@ void PPPM::set_grid_local()
   // nlo_in,nhi_in = lower/upper limits of the 3d sub-brick of
   //   global PPPM grid that I own without ghost cells
   // for slab PPPM, assign z grid as if it were not extended
+  // both non-tiled and tiled proc layouts use 0-1 fractional sumdomain info
 
-  nxlo_i = static_cast<int> (comm->xsplit[comm->myloc[0]] * nx_p);
-  nxhi_i = static_cast<int> (comm->xsplit[comm->myloc[0]+1] * nx_p) - 1;
+  if (comm->layout != Comm::LAYOUT_TILED) {
+    nxlo_in = static_cast<int> (comm->xsplit[comm->myloc[0]] * nx_pppm);
+    nxhi_in = static_cast<int> (comm->xsplit[comm->myloc[0]+1] * nx_pppm) - 1;
 
-  nylo_i = static_cast<int> (comm->ysplit[comm->myloc[1]] * ny_p);
-  nyhi_i = static_cast<int> (comm->ysplit[comm->myloc[1]+1] * ny_p) - 1;
+    nylo_in = static_cast<int> (comm->ysplit[comm->myloc[1]] * ny_pppm);
+    nyhi_in = static_cast<int> (comm->ysplit[comm->myloc[1]+1] * ny_pppm) - 1;
 
-  nzlo_i = static_cast<int>
-      (comm->zsplit[comm->myloc[2]] * nz_p/slab_volfactor);
-  nzhi_i = static_cast<int>
-      (comm->zsplit[comm->myloc[2]+1] * nz_p/slab_volfactor) - 1;
+    nzlo_in = static_cast<int>
+      (comm->zsplit[comm->myloc[2]] * nz_pppm/slab_volfactor);
+    nzhi_in = static_cast<int>
+      (comm->zsplit[comm->myloc[2]+1] * nz_pppm/slab_volfactor) - 1;
 
-  // nlow,nupp = stencil size for mapping particles to PPPM grid
+  } else {
+    nxlo_in = static_cast<int> (comm->mysplit[0][0] * nx_pppm);
+    nxhi_in = static_cast<int> (comm->mysplit[0][1] * nx_pppm) - 1;
 
-  nlow = -(ord-1)/2;
-  nupp = ord/2;
+    nylo_in = static_cast<int> (comm->mysplit[1][0] * ny_pppm);
+    nyhi_in = static_cast<int> (comm->mysplit[1][1] * ny_pppm) - 1;
 
-  // sft values for particle <-> grid mapping
+    nzlo_in = static_cast<int> (comm->mysplit[2][0] * nz_pppm/slab_volfactor);
+    nzhi_in = static_cast<int> (comm->mysplit[2][1] * nz_pppm/slab_volfactor) - 1;
+  }
+
+  // nlower,nupper = stencil size for mapping particles to PPPM grid
+
+  nlower = -(order-1)/2;
+  nupper = order/2;
+
+  // shift values for particle <-> grid mapping
   // add/subtract OFFSET to avoid int(-0.75) = 0 when want it to be -1
 
-  if (ord % 2) sft = OFFSET + 0.5;
-  else sft = OFFSET;
-  if (ord % 2) sftone = 0.0;
-  else sftone = 0.5;
+  if (order % 2) shift = OFFSET + 0.5;
+  else shift = OFFSET;
+  if (order % 2) shiftone = 0.0;
+  else shiftone = 0.5;
 
   // nlo_out,nhi_out = lower/upper limits of the 3d sub-brick of
   //   global PPPM grid that my particles can contribute charge to
   // effectively nlo_in,nhi_in + ghost cells
-  // nlo,nhi = global coords of grid pt to "lower left" of smallest/largest
+  // nlo,nhi = index of global grid pt to "lower left" of smallest/largest
   //           position a particle in my box can be at
   // dist[3] = particle position bound = subbox + skin/2.0 + qdist
   //   qdist = offset due to TIP4P fictitious charge
@@ -1708,92 +1739,100 @@ void PPPM::set_grid_local()
   double zprd = prd[2];
   double zprd_slab = zprd*slab_volfactor;
 
-  double dist[3];
-  double cuthalf = 0.5*neighbor->skin; // removed qdist no offset needed
+  double dist[3] = {0.0,0.0,0.0};
+  double cuthalf = 0.5*neighbor->skin + qdist;
   if (triclinic == 0) dist[0] = dist[1] = dist[2] = cuthalf;
-  else {
-    dist[0] = cuthalf/domain->prd[0];
-    dist[1] = cuthalf/domain->prd[1];
-    dist[2] = cuthalf/domain->prd[2];
-  }
+  else kspacebbox(cuthalf,&dist[0]);
 
   int nlo,nhi;
+  nlo = nhi = 0;
 
   nlo = static_cast<int> ((sublo[0]-dist[0]-boxlo[0]) *
-                            nx_p/xprd + sft) - OFFSET;
+                            nx_pppm/xprd + shift) - OFFSET;
   nhi = static_cast<int> ((subhi[0]+dist[0]-boxlo[0]) *
-                            nx_p/xprd + sft) - OFFSET;
-  nxlo_o = nlo + nlow;
-  nxhi_o = nhi + nupp;
+                            nx_pppm/xprd + shift) - OFFSET;
+  nxlo_out = nlo + nlower;
+  nxhi_out = nhi + nupper;
 
   nlo = static_cast<int> ((sublo[1]-dist[1]-boxlo[1]) *
-                            ny_p/yprd + sft) - OFFSET;
+                            ny_pppm/yprd + shift) - OFFSET;
   nhi = static_cast<int> ((subhi[1]+dist[1]-boxlo[1]) *
-                            ny_p/yprd + sft) - OFFSET;
-  nylo_o = nlo + nlow;
-  nyhi_o = nhi + nupp;
+                            ny_pppm/yprd + shift) - OFFSET;
+  nylo_out = nlo + nlower;
+  nyhi_out = nhi + nupper;
 
   nlo = static_cast<int> ((sublo[2]-dist[2]-boxlo[2]) *
-                            nz_p/zprd_slab + sft) - OFFSET;
+                            nz_pppm/zprd_slab + shift) - OFFSET;
   nhi = static_cast<int> ((subhi[2]+dist[2]-boxlo[2]) *
-                            nz_p/zprd_slab + sft) - OFFSET;
-  nzlo_o = nlo + nlow;
-  nzhi_o = nhi + nupp;
+                            nz_pppm/zprd_slab + shift) - OFFSET;
+  nzlo_out = nlo + nlower;
+  nzhi_out = nhi + nupper;
+
+  if (stagger_flag) {
+    nxhi_out++;
+    nyhi_out++;
+    nzhi_out++;
+  }
 
   // for slab PPPM, change the grid boundary for processors at +z end
   //   to include the empty volume between periodically repeating slabs
   // for slab PPPM, want charge data communicated from -z proc to +z proc,
   //   but not vice versa, also want field data communicated from +z proc to
   //   -z proc, but not vice versa
-  // this is accomplished by nzhi_i = nzhi_o on +z end (no ghost cells)
+  // this is accomplished by nzhi_in = nzhi_out on +z end (no ghost cells)
+  // also insure no other procs use ghost cells beyond +z limit
+  // differnet logic for non-tiled vs tiled decomposition
 
-  if (slabflag && (comm->myloc[2] == comm->procgrid[2]-1)) {
-    nzhi_i = nz_p - 1;
-    nzhi_o = nz_p - 1;
+  if (slabflag == 1) {
+    if (comm->layout != Comm::LAYOUT_TILED) {
+      if (comm->myloc[2] == comm->procgrid[2]-1) nzhi_in = nzhi_out = nz_pppm - 1;
+    } else {
+      if (comm->mysplit[2][1] == 1.0) nzhi_in = nzhi_out = nz_pppm - 1;
+    }
+    nzhi_out = MIN(nzhi_out,nz_pppm-1);
   }
 
-  // decomposition of FFT mesh
+  // x-pencil decomposition of FFT mesh
   // global indices range from 0 to N-1
-  // proc owns entire x-dimension, clump of columns in y,z dimensions
+  // each proc owns entire x-dimension, clumps of columns in y,z dimensions
   // npey_fft,npez_fft = # of procs in y,z dims
   // if nprocs is small enough, proc can own 1 or more entire xy planes,
   //   else proc owns 2d sub-blocks of yz plane
   // me_y,me_z = which proc (0-npe_fft-1) I am in y,z dimensions
   // nlo_fft,nhi_fft = lower/upper limit of the section
-  //   of the global FFT mesh that I own
+  //   of the global FFT mesh that I own in x-pencil decomposition
 
   int npey_fft,npez_fft;
-  if (nz_p >= nprocs) {
+  if (nz_pppm >= nprocs) {
     npey_fft = 1;
     npez_fft = nprocs;
-  } else procs2grid2d(nprocs,ny_p,nz_p,&npey_fft,&npez_fft);
+  } else procs2grid2d(nprocs,ny_pppm,nz_pppm,&npey_fft,&npez_fft);
 
   int me_y = me % npey_fft;
   int me_z = me / npey_fft;
 
-  nxlo_f = 0;
-  nxhi_f = nx_p - 1;
-  nylo_f = me_y*ny_p/npey_fft;
-  nyhi_f = (me_y+1)*ny_p/npey_fft - 1;
-  nzlo_f = me_z*nz_p/npez_fft;
-  nzhi_f = (me_z+1)*nz_p/npez_fft - 1;
+  nxlo_fft = 0;
+  nxhi_fft = nx_pppm - 1;
+  nylo_fft = me_y*ny_pppm/npey_fft;
+  nyhi_fft = (me_y+1)*ny_pppm/npey_fft - 1;
+  nzlo_fft = me_z*nz_pppm/npez_fft;
+  nzhi_fft = (me_z+1)*nz_pppm/npez_fft - 1;
 
-  // PPPM grid for this proc, including ghosts
+  // ngrid = count of PPPM grid pts owned by this proc, including ghosts
 
-  ng = (nxhi_o-nxlo_o+1) * (nyhi_o-nylo_o+1) *
-    (nzhi_o-nzlo_o+1);
+  ngrid = (nxhi_out-nxlo_out+1) * (nyhi_out-nylo_out+1) *
+    (nzhi_out-nzlo_out+1);
 
-  // FFT arrays on this proc, without ghosts
-  // nfft = FFT points in FFT decomposition on this proc
+  // count of FFT grids pts owned by this proc, without ghosts
+  // nfft = FFT points in x-pencil FFT decomposition on this proc
   // nfft_brick = FFT points in 3d brick-decomposition on this proc
   // nfft_both = greater of 2 values
 
-  nf = (nxhi_f-nxlo_f+1) * (nyhi_f-nylo_f+1) *
-    (nzhi_f-nzlo_f+1);
-  int nfft_brick = (nxhi_i-nxlo_i+1) * (nyhi_i-nylo_i+1) *
-    (nzhi_i-nzlo_i+1);
-  nfb = MAX(nf,nfft_brick);
-
+  nfft = (nxhi_fft-nxlo_fft+1) * (nyhi_fft-nylo_fft+1) *
+    (nzhi_fft-nzlo_fft+1);
+  int nfft_brick = (nxhi_in-nxlo_in+1) * (nyhi_in-nylo_in+1) *
+    (nzhi_in-nzlo_in+1);
+  nfft_both = MAX(nfft,nfft_brick);
 }
 
 
@@ -1815,11 +1854,11 @@ void TILD::make_rho()
            ngrid*sizeof(FFT_SCALAR));
   }
 
-
   // loop over my particles, add their contribution to nearby grid points
   // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
   // (dx,dy,dz) = distance to "lower left" grid pt
   // (mx,my,mz) = global coords of moving stencil pt
+
   double **x = atom->x;
   int nlocal = atom->nlocal;
   int *type = atom->type;
@@ -1829,7 +1868,7 @@ void TILD::make_rho()
     // Skip if the particle type has no TILD interaction
     if (potent_type_map[0][type[i]][type[i]] == 1) continue;
 
-    // do the following for all 4 grids
+    // do the following for all grids
     nx = part2grid[i][0];
     ny = part2grid[i][1];
     nz = part2grid[i][2];
@@ -1894,15 +1933,16 @@ void TILD::brick2fft()
 */
 
   for (int k = 0; k <= ntypes; k++) {
-    remap->perform(density_fft_types[k],density_fft_types[k],work1); // is this right?
+    remap->perform(density_fft_types[k],density_fft_types[k],work1); 
   }
 }
 
 
 /* ----------------------------------------------------------------------
-   charge assignment into rho1d
+   density assignment into rho1d
    dx,dy,dz = distance of particle from "lower left" grid point
 ------------------------------------------------------------------------- */
+
 void TILD::compute_rho1d(const FFT_SCALAR &dx, const FFT_SCALAR &dy,
                               const FFT_SCALAR &dz, int ord,
                              FFT_SCALAR **rho_c, FFT_SCALAR **r1d)
@@ -1934,9 +1974,8 @@ void TILD::accumulate_gradient() {
   int n = 0;
   int ntypes = atom->ntypes;
   
-  precompute_density_hat_fft(); // calculate rho_hat for each type APS?
+  precompute_density_hat_fft(); 
 
-//this may be it
   for ( int ktype = 1; ktype <= ntypes; ktype++) {
     //for (int i = 0; i < Dim; i++)
       //memset(&(gradWtype[ktype][i][nzlo_out][nylo_out][nxlo_out]), 0,
@@ -1948,8 +1987,6 @@ void TILD::accumulate_gradient() {
       memset(&(gradWtypez[ktype][nzlo_out][nylo_out][nxlo_out]), 0,
              ngrid * sizeof(FFT_SCALAR));
   }
-
-  //typedef std::tuple<int, int, double, int, int> tup_iidii;
 
   // This part is for the specified chi interactions.
   // Kappa (incompressibility) is later
@@ -2288,15 +2325,6 @@ double TILD::calculate_rho0(){
     }
   }
 
-
-  if (comm->me == 0) {
-    if (screen) {
-      fprintf(screen, "Found %d particles without a TILD potential.\n", particles_not_tild);
-    }
-    if (logfile) {
-      fprintf(logfile, "Found %d particles without a TILD potential.\n", particles_not_tild);
-    }
-  }
 
   for ( int itype = 1; itype <= ntypes; itype++) {
 

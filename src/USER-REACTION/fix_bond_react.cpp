@@ -3926,8 +3926,8 @@ void FixBondReact::ReadConstraints(char *line, int myrxn)
       }
     } else if (strcmp(constraint_type,"custom") == 0) {
       constraints[i][myrxn].type = CUSTOM;
-      strtok(line," \t\n\r\f");
-      constraints[i][myrxn].str = strtok(nullptr,"\"\t\n\r\f");
+      std::vector<std::string> args = utils::split_words(line);
+      constraints[i][myrxn].str = args[1];
     } else error->one(FLERR,"Bond/react: Illegal constraint type in 'Constraints' section of map file");
   }
   strcat(constraintstr[myrxn],")"); // close boolean constraint logic string

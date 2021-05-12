@@ -13,6 +13,7 @@
 
 /* ----------------------------------------------------------------------
    Contributing author (triclinic and multi-neigh) : Pieter in 't Veld (SNL)
+   Contributing author (improved multi-neigh) : Joel Clemmer (SNL)
 ------------------------------------------------------------------------- */
 
 #include "neighbor.h"
@@ -61,7 +62,7 @@ using namespace NeighConst;
 enum{NONE,ALL,PARTIAL,TEMPLATE};
 
 static const char cite_neigh_multi_old[] =
-  "neighbor multi/old command:\n\n"
+  "neighbor multi/old command: doi:10.1016/j.cpc.2008.03.005\n\n"
   "@Article{Intveld08,\n"
   " author =  {P.{\\,}J.~in{\\,}'t~Veld and S.{\\,}J.~Plimpton"
   " and G.{\\,}S.~Grest},\n"
@@ -74,7 +75,7 @@ static const char cite_neigh_multi_old[] =
   "}\n\n";
 
 static const char cite_neigh_multi[] =
-  "neighbor multi command:\n\n"
+  "neighbor multi command: doi:10.1016/j.cpc.2008.03.005, doi:10.1007/s40571-020-00361-2\n\n"
   "@Article{Intveld08,\n"
   " author =  {P.{\\,}J.~in{\\,}'t~Veld and S.{\\,}J.~Plimpton"
   " and G.{\\,}S.~Grest},\n"

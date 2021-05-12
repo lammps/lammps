@@ -49,7 +49,7 @@ void NStencilFullMulti2d::set_stencil_properties()
 
 void NStencilFullMulti2d::create()
 {
-  int icollection, jcollection, bin_collection, i, j, k, ns;
+  int icollection, jcollection, bin_collection, i, j, ns;
   int n = ncollections;
   double cutsq;
   

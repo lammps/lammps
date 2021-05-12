@@ -48,7 +48,7 @@ void NPairHalfSizeMultiOldNewtoffOmp::build(NeighList *list)
 #endif
   NPAIR_OMP_SETUP(nlocal);
 
-  int i,j,k,m,n,itype,jtype,ibin,ns;
+  int i,j,k,n,itype,jtype,ibin,ns;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   double radi,radsum,cutdistsq;
   int *neighptr,*s;

@@ -2511,8 +2511,7 @@ void Neighbor::modify_params(int narg, char **arg)
       if (iarg+1+ncollections > narg)
         error->all(FLERR,"Invalid collection/interval command");
 
-      int ntypes = atom->ntypes;
-      int n, nlo, nhi, i, j;
+      int i;
       
       // Invalidate old user cutoffs
       comm->ncollections_cutoff = 0;
@@ -2521,7 +2520,7 @@ void Neighbor::modify_params(int narg, char **arg)
       memory->grow(collection2cut,ncollections,"neigh:collection2cut");  
 
       // Set upper cutoff for each collection
-      char *id;
+
       double cut_interval;
       for (i = 0; i < ncollections; i++){
         cut_interval = utils::numeric(FLERR,arg[iarg+2+i],false,lmp);

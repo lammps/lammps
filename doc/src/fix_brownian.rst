@@ -21,7 +21,7 @@ Syntax
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * style_name = *brownian* or *brownian/sphere* or *brownian/asphere*
-* temp = temperature 
+* temp = temperature
 * seed = random number generator seed
 * one or more keyword/value pairs may be appended
 * keyword = *rng* or *dipole* or *gamma_r_eigen* or *gamma_t_eigen* or *gamma_r* or *gamma_t*
@@ -51,7 +51,7 @@ Examples
 
    fix 1 all brownian 1.0 12908410 gamma_t 1.0
    fix 1 all brownian 1.0 12908410 gamma_t 3.0 rng gaussian
-   fix 1 all brownian/sphere 1.0 1294019 gamma_t 3.0 gamma_r 1.0 
+   fix 1 all brownian/sphere 1.0 1294019 gamma_t 3.0 gamma_r 1.0
    fix 1 all brownian/sphere 1.0 19581092 gamma_t 1.0 gamma_r 0.3  rng none
    fix 1 all brownian/asphere 1.0 1294019 gamma_t_eigen 1.0 2.0 3.0 gamma_r_eigen 4.0 7.0 8.0 rng gaussian
    fix 1 all brownian/asphere 1.0 1294019 gamma_t_eigen 1.0 2.0 3.0 gamma_r_eigen 4.0 7.0 8.0 dipole 1.0 0.0 0.0
@@ -107,7 +107,7 @@ friction tensors can be diagonalized in a certain (body) reference frame.
    accounted for by setting *gamma_t* to 3x and *gamma_r* to x (where
    :math:`\sigma` is the spherical diameter). A similar (though more complex)
    relationship holds for ellipsoids and rod-like particles.
-   
+
 ---------
 
 .. note::
@@ -141,7 +141,7 @@ The units of *gamma_t* are mass/time.
 
 The *gamma_r* keyword sets the (isotropic) rotational viscous damping.
 Required for (and only compatible with) *brownian/sphere*.
-The units of *gamma_r* are mass*length**2/time. 
+The units of *gamma_r* are mass*length**2/time.
 
 The *gamma_r_eigen*, and *gamma_t_eigen* keywords are the eigenvalues of
 the rotational and viscous damping tensors (having the same units as
@@ -159,7 +159,7 @@ are updated as described above. Only compatible with *brownian/asphere*
 .. note::
    For style *brownian/asphere*, the components *gamma_t_eigen* =(x,x,x) and
    *gamma_r_eigen* = (y,y,y), the dynamics will replicate those of the
-   *brownian/sphere* style with *gamma_t* = x and *gamma_r* = y. 
+   *brownian/sphere* style with *gamma_t* = x and *gamma_r* = y.
 
 ----------
 
@@ -188,7 +188,6 @@ as defined by the :doc:`atom_style dipole <atom_style>` command.
 This fix is part of the USER-BROWNIAN package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>`
 doc page for more info.
-
 
 Related commands
 """"""""""""""""

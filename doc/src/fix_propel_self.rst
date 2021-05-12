@@ -28,8 +28,8 @@ Examples
 
 .. code-block:: LAMMPS
 
-   fix active all propel/self dipole 40.0 
-   fix active all propel/self velocity 10.0 
+   fix active all propel/self dipole 40.0
+   fix active all propel/self velocity 10.0
    fix active all propel/self quat 15.7 qvector 1.0 0.0 0.0
 
 Description
@@ -81,12 +81,12 @@ be along this axis, set *sx* equal to 1 and *sy*, *sz* both equal
 to zero. This keyword may only be specified for mode *quat*.
 
 .. note::
-   
+
    In using keyword *quatvec*, the three arguments *sx*,
    *sy*, and *sz* will be automatically normalized to components
    of a unit vector internally to avoid users having to explicitly
    do so themselves. Therefore, in mode *quat*, the vectors :math:`e_i`
-   will always be of unit length. 
+   will always be of unit length.
 
 
 Along with adding a force contribution, this fix can also
@@ -117,14 +117,13 @@ in pressure computations.
    to turn off the virial contribution of this fix). Again,
    see :ref:`(Winkler) <Winkler1>` for discussion of why this
    is the case.
-   
+
    Furthermore, when dealing with active systems, the temperature
    is no longer well defined. Therefore, one should ensure that
    the *virial* flag is used in the
    :doc:`compute pressure <compute_pressure>` command (turning
    off temperature contributions).
 
-   
 ----------
 
 Restart, fix_modify, output, run start/stop, minimize info

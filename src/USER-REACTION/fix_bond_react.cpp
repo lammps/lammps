@@ -2150,16 +2150,14 @@ double FixBondReact::custom_constraint(std::string varstr)
   for (int i = 0; i < evlstr.size(); i++)
     evlcat += evlstr[i];
 
-  char *cstr = new char[evlcat.length() + 1];
-  strcpy(cstr, evlcat.c_str());
-
+  char *cstr = utils::strdup(evlcat);
   val = input->variable->compute_equal(cstr);
   delete [] cstr;
   return val;
 }
 
 /* ----------------------------------------------------------------------
-current two 'rxn' functions: rxnsum and rxnave
+currently two 'rxn' functions: rxnsum and rxnave
 ------------------------------------------------------------------------- */
 
 double FixBondReact::rxnfunction(std::string rxnfunc, std::string varid,

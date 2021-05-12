@@ -16,21 +16,22 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 namespace ptm {
 
-typedef struct
-{
-        double rmsd;
-        double scale;
-        double q[4];                //rotation in quaternion form (rigid body transformation)
-        int8_t mapping[PTM_MAX_POINTS];
-        const refdata_t* ref_struct;
+typedef struct {
+  double rmsd;
+  double scale;
+  double q[4];    //rotation in quaternion form (rigid body transformation)
+  int8_t mapping[PTM_MAX_POINTS];
+  const refdata_t *ref_struct;
 } result_t;
 
-int match_general(const refdata_t* s, double (*ch_points)[3], double (*points)[3], convexhull_t* ch, result_t* res);
-int match_fcc_hcp_ico(double (*ch_points)[3], double (*points)[3], int32_t flags, convexhull_t* ch, result_t* res);
-int match_dcub_dhex(double (*ch_points)[3], double (*points)[3], int32_t flags, convexhull_t* ch, result_t* res);
-int match_graphene(double (*points)[3], result_t* res);
+int match_general(const refdata_t *s, double (*ch_points)[3], double (*points)[3], convexhull_t *ch,
+                  result_t *res);
+int match_fcc_hcp_ico(double (*ch_points)[3], double (*points)[3], int32_t flags, convexhull_t *ch,
+                      result_t *res);
+int match_dcub_dhex(double (*ch_points)[3], double (*points)[3], int32_t flags, convexhull_t *ch,
+                    result_t *res);
+int match_graphene(double (*points)[3], result_t *res);
 
-}
+}    // namespace ptm
 
 #endif
-

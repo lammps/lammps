@@ -42,8 +42,7 @@ class ComputePTMAtom : public Compute {
   int group2bit;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-

@@ -2351,7 +2351,7 @@ void Neighbor::set(int narg, char **arg)
   else if (strcmp(arg[1],"bin") == 0) style = Neighbor::BIN;
   else if (strcmp(arg[1],"multi") == 0) {
     style = Neighbor::MULTI;
-    ncollections = atom->ntypes; 
+    ncollections = atom->ntypes;
   } else if (strcmp(arg[1],"multi/old") == 0) style = Neighbor::MULTI_OLD;
   else error->all(FLERR,"Illegal neighbor command");
 

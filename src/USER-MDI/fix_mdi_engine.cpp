@@ -78,7 +78,7 @@ FixMDIEngine::FixMDIEngine(LAMMPS *lmp, int narg, char **arg) :
 
   master = (comm->me==0) ? 1 : 0;
 
-  MDI_Accept_Communicator(&driver_socket);
+  MDI_Accept_communicator(&driver_socket);
   if (driver_socket <= 0) error->all(FLERR,"Unable to connect to driver");
 
   // create computes for KE and PE
@@ -220,7 +220,7 @@ int FixMDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
 
   int command_exists = 1;
   if (master) {
-    ierr = MDI_Check_Command_Exists(current_node, command,
+    ierr = MDI_Check_command_exists(current_node, command,
 				    MDI_COMM_NULL, &command_exists);
   }
   if (ierr != 0)
@@ -236,7 +236,7 @@ int FixMDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
 
   if (strcmp(command,"STATUS") == 0 ) {
     if (master) {
-      ierr = MDI_Send_Command("READY", mdicomm);
+      ierr = MDI_Send_command("READY", mdicomm);
       if (ierr != 0)
 	error->all(FLERR,"MDI: Unable to return status to driver");
     }
@@ -415,7 +415,7 @@ char *FixMDIEngine::engine_mode(const char *node)
     // read the next command from the driver
     // all procs call this, but only proc 0 receives the command
 
-    ierr = MDI_Recv_Command(command, driver_socket);
+    ierr = MDI_Recv_command(command, driver_socket);
     if (ierr != 0)
       error->all(FLERR,"MDI: Unable to receive command from driver");
 
@@ -452,11 +452,11 @@ void FixMDIEngine::receive_coordinates(Error* error)
 
   if (lmpunits == REAL) {
     double angstrom_to_bohr;
-    MDI_Conversion_Factor("angstrom", "bohr", &angstrom_to_bohr);
+    MDI_Conversion_factor("angstrom", "bohr", &angstrom_to_bohr);
     posconv=force->angstrom/angstrom_to_bohr;
   } else if (lmpunits == METAL) {
     double angstrom_to_bohr;
-    MDI_Conversion_Factor("angstrom", "bohr", &angstrom_to_bohr);
+    MDI_Conversion_factor("angstrom", "bohr", &angstrom_to_bohr);
     posconv=force->angstrom/angstrom_to_bohr;
   }
 
@@ -510,11 +510,11 @@ void FixMDIEngine::send_coordinates(Error* error)
   double posconv;
   if (lmpunits == REAL) {
     double angstrom_to_bohr;
-    MDI_Conversion_Factor("angstrom", "bohr", &angstrom_to_bohr);
+    MDI_Conversion_factor("angstrom", "bohr", &angstrom_to_bohr);
     posconv=force->angstrom/angstrom_to_bohr;
   } else if (lmpunits == METAL) {
     double angstrom_to_bohr;
-    MDI_Conversion_Factor("angstrom", "bohr", &angstrom_to_bohr);
+    MDI_Conversion_factor("angstrom", "bohr", &angstrom_to_bohr);
     posconv=force->angstrom/angstrom_to_bohr;
   }
 
@@ -596,17 +596,17 @@ void FixMDIEngine::send_energy(Error* error)
   double energy_conv;
   if (lmpunits == REAL) {
     double kelvin_to_hartree;
-    MDI_Conversion_Factor("kelvin_energy", "hartree", &kelvin_to_hartree);
+    MDI_Conversion_factor("kelvin_energy", "hartree", &kelvin_to_hartree);
     energy_conv = kelvin_to_hartree/force->boltz;
   } else if (lmpunits == METAL) {
     double ev_to_hartree;
-    MDI_Conversion_Factor("electron_volt", "hartree", &ev_to_hartree);
+    MDI_Conversion_factor("electron_volt", "hartree", &ev_to_hartree);
     energy_conv = ev_to_hartree;
   }
 
 
   double kelvin_to_hartree;
-  MDI_Conversion_Factor("kelvin_energy", "hartree", &kelvin_to_hartree);
+  MDI_Conversion_factor("kelvin_energy", "hartree", &kelvin_to_hartree);
 
   double potential_energy = pe->compute_scalar();
   double kinetic_energy = ke->compute_scalar();
@@ -633,11 +633,11 @@ void FixMDIEngine::send_pe(Error* error)
   double energy_conv;
   if (lmpunits == REAL) {
     double kelvin_to_hartree;
-    MDI_Conversion_Factor("kelvin_energy", "hartree", &kelvin_to_hartree);
+    MDI_Conversion_factor("kelvin_energy", "hartree", &kelvin_to_hartree);
     energy_conv = kelvin_to_hartree/force->boltz;
   } else if (lmpunits == METAL) {
     double ev_to_hartree;
-    MDI_Conversion_Factor("electron_volt", "hartree", &ev_to_hartree);
+    MDI_Conversion_factor("electron_volt", "hartree", &ev_to_hartree);
     energy_conv = ev_to_hartree;
   }
 
@@ -662,11 +662,11 @@ void FixMDIEngine::send_ke(Error* error)
   double energy_conv;
   if (lmpunits == REAL) {
     double kelvin_to_hartree;
-    MDI_Conversion_Factor("kelvin_energy", "hartree", &kelvin_to_hartree);
+    MDI_Conversion_factor("kelvin_energy", "hartree", &kelvin_to_hartree);
     energy_conv = kelvin_to_hartree/force->boltz;
   } else if (lmpunits == METAL) {
     double ev_to_hartree;
-    MDI_Conversion_Factor("electron_volt", "hartree", &ev_to_hartree);
+    MDI_Conversion_factor("electron_volt", "hartree", &ev_to_hartree);
     energy_conv = ev_to_hartree;
   }
 
@@ -771,14 +771,14 @@ void FixMDIEngine::send_forces(Error* error)
   if (lmpunits == REAL) {
     double kelvin_to_hartree;
     double angstrom_to_bohr;
-    MDI_Conversion_Factor("kelvin_energy", "hartree", &kelvin_to_hartree);
-    MDI_Conversion_Factor("angstrom", "bohr", &angstrom_to_bohr);
+    MDI_Conversion_factor("kelvin_energy", "hartree", &kelvin_to_hartree);
+    MDI_Conversion_factor("angstrom", "bohr", &angstrom_to_bohr);
     force_conv=(kelvin_to_hartree/force->boltz)*(force->angstrom/angstrom_to_bohr);
   } else if (lmpunits == METAL) {
     double ev_to_hartree;
     double angstrom_to_bohr;
-    MDI_Conversion_Factor("electron_volt", "hartree", &ev_to_hartree);
-    MDI_Conversion_Factor("angstrom", "bohr", &angstrom_to_bohr);
+    MDI_Conversion_factor("electron_volt", "hartree", &ev_to_hartree);
+    MDI_Conversion_factor("angstrom", "bohr", &angstrom_to_bohr);
     force_conv = ev_to_hartree / angstrom_to_bohr;
   }
 
@@ -864,14 +864,14 @@ void FixMDIEngine::receive_forces(Error* error, int mode)
   if (lmpunits == REAL) {
     double kelvin_to_hartree;
     double angstrom_to_bohr;
-    MDI_Conversion_Factor("kelvin_energy", "hartree", &kelvin_to_hartree);
-    MDI_Conversion_Factor("angstrom", "bohr", &angstrom_to_bohr);
+    MDI_Conversion_factor("kelvin_energy", "hartree", &kelvin_to_hartree);
+    MDI_Conversion_factor("angstrom", "bohr", &angstrom_to_bohr);
     force_conv=(kelvin_to_hartree/force->boltz)*(force->angstrom/angstrom_to_bohr);
   } else if (lmpunits == METAL) {
     double ev_to_hartree;
     double angstrom_to_bohr;
-    MDI_Conversion_Factor("electron_volt", "hartree", &ev_to_hartree);
-    MDI_Conversion_Factor("angstrom", "bohr", &angstrom_to_bohr);
+    MDI_Conversion_factor("electron_volt", "hartree", &ev_to_hartree);
+    MDI_Conversion_factor("angstrom", "bohr", &angstrom_to_bohr);
     force_conv = ev_to_hartree / angstrom_to_bohr;
   }
 
@@ -914,7 +914,7 @@ void FixMDIEngine::receive_forces(Error* error, int mode)
 void FixMDIEngine::send_cell(Error* error)
 {
   double angstrom_to_bohr;
-  MDI_Conversion_Factor("angstrom", "bohr", &angstrom_to_bohr);
+  MDI_Conversion_factor("angstrom", "bohr", &angstrom_to_bohr);
 
   double celldata[9];
 
@@ -958,7 +958,7 @@ void FixMDIEngine::receive_cell(Error* error)
 
 
   double angstrom_to_bohr;
-  MDI_Conversion_Factor("angstrom", "bohr", &angstrom_to_bohr);
+  MDI_Conversion_factor("angstrom", "bohr", &angstrom_to_bohr);
   double unit_conv = force->angstrom * angstrom_to_bohr;
   for (int icell=0; icell < 9; icell++) {
     celldata[icell] /= unit_conv;
@@ -992,7 +992,7 @@ void FixMDIEngine::receive_cell(Error* error)
 void FixMDIEngine::send_celldispl(Error* error)
 {
   double angstrom_to_bohr;
-  MDI_Conversion_Factor("angstrom", "bohr", &angstrom_to_bohr);
+  MDI_Conversion_factor("angstrom", "bohr", &angstrom_to_bohr);
 
   double celldata[3];
 
@@ -1028,7 +1028,7 @@ void FixMDIEngine::receive_celldispl(Error* error)
   MPI_Bcast(&celldata[0],3,MPI_DOUBLE,0,world);
 
   double angstrom_to_bohr;
-  MDI_Conversion_Factor("angstrom", "bohr", &angstrom_to_bohr);
+  MDI_Conversion_factor("angstrom", "bohr", &angstrom_to_bohr);
   double unit_conv = force->angstrom * angstrom_to_bohr;
 
   double old_boxlo[3];

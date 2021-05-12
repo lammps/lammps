@@ -78,10 +78,8 @@ FixMDIEngine::FixMDIEngine(LAMMPS *lmp, int narg, char **arg) :
 
   master = (comm->me==0) ? 1 : 0;
 
-  if (master) {
-    MDI_Accept_Communicator(&driver_socket);
-    if (driver_socket <= 0) error->all(FLERR,"Unable to connect to driver");
-  } else driver_socket = 0;
+  MDI_Accept_Communicator(&driver_socket);
+  if (driver_socket <= 0) error->all(FLERR,"Unable to connect to driver");
 
   // create computes for KE and PE
 
@@ -220,9 +218,11 @@ int FixMDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
 {
   // confirm this command is supported at this node
 
-  int command_exists = 0;
-  ierr = MDI_Check_Command_Exists(current_node, command, 
-                                  MDI_COMM_NULL, &command_exists);
+  int command_exists = 1;
+  if (master) {
+    ierr = MDI_Check_Command_Exists(current_node, command,
+				    MDI_COMM_NULL, &command_exists);
+  }
   if (ierr != 0)
     error->all(FLERR,"MDI: Unable to check whether current command is supported");
   if (command_exists != 1)

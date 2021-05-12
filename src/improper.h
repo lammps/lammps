@@ -71,6 +71,7 @@ class Improper : protected Pointers {
   void ev_tally(int, int, int, int, int, int, double,
                 double *, double *, double *, double, double, double,
                 double, double, double, double, double, double);
+  void problem(const char *, int, int, int, int, int);
 };
 
 }

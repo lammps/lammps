@@ -350,8 +350,7 @@ void PairAGNI::read_file(char *filename)
               params[curparam].gwidth = 0.0;
             wantdata = curparam;
             curparam = -1;
-          } else error->warning(FLERR,fmt::format("Ignoring unknown tag '{}' "
-                                                  "in AGNI potential file.",tag));
+          } else error->warning(FLERR,"Ignoring unknown tag '{}' in AGNI potential file.",tag);
         } else {
           if (params && wantdata >=0) {
             if ((int)values.count() == params[wantdata].numeta + 2) {

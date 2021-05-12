@@ -13,12 +13,10 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Kurt Smith (U Pittsburgh)
+  Contributing authors: Martin Svoboda (ICPF, UJEP), Martin Lísal (ICPF, UJEP)
+  based on pair style dpd by: Kurt Smith (U Pittsburgh)
 ------------------------------------------------------------------------- */
 
-/* ----------------------------------------------------------------------
-  Contributing authors: Martin Svoboda (ICPF, UJEP), Martin Lísal (ICPF, UJEP)
-------------------------------------------------------------------------- */
 #include "pair_dpd_ext.h"
 
 #include "atom.h"
@@ -477,8 +475,8 @@ void PairDPDExt::write_data_all(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double PairDPDExt::single(int i, int j, int itype, int jtype, double rsq,
-                       double factor_coul, double factor_dpd, double &fforce)
+double PairDPDExt::single(int /*i*/, int /*j*/, int itype, int jtype, double rsq,
+                       double /*factor_coul*/, double factor_dpd, double &fforce)
 {
   double r,rinv,wd,phi;
 

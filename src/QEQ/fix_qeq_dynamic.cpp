@@ -156,8 +156,8 @@ void FixQEqDynamic::pre_force(int /*vflag*/)
   }
 
   if ((comm->me == 0) && (iloop >= maxiter))
-      error->warning(FLERR,fmt::format("Charges did not converge at step "
-                                       "{}: {}",update->ntimestep,enegchk));
+      error->warning(FLERR,"Charges did not converge at step {}: {}",
+                     update->ntimestep,enegchk);
 
   if (force->kspace) force->kspace->qsum_qsq();
 }

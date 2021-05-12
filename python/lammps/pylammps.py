@@ -23,7 +23,6 @@ from __future__ import print_function
 import os
 import re
 import select
-import sys
 from collections import namedtuple
 
 from .core import lammps
@@ -41,7 +40,7 @@ class OutputCapture(object):
     os.dup2(self.stdout_pipe_write, self.stdout_fd)
     return self
 
-  def __exit__(self, type, value, tracebac):
+  def __exit__(self, exc_type, exc_value, traceback):
     os.dup2(self.stdout, self.stdout_fd)
     os.close(self.stdout)
     os.close(self.stdout_pipe_read)
@@ -351,6 +350,7 @@ def get_thermo_data(output):
                     for i, col in enumerate(columns):
                         current_run[col].append(values[i])
                 except ValueError:
+                  # cannot convert. must be a non-thermo output. ignore.
                   pass
 
     return runs
@@ -408,6 +408,12 @@ class PyLammps(object):
     self._cmd_history = []
     self._enable_cmd_history = False
     self.runs = []
+
+  def __enter__(self):
+    return self
+
+  def __exit__(self, ex_type, ex_value, ex_traceback):
+    self.close()
 
   def __del__(self):
     if self.lmp: self.lmp.close()

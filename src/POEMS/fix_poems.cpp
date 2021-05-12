@@ -942,11 +942,9 @@ void FixPOEMS::readfile(char *file)
 
   if (me == 0) {
     fp = fopen(file,"r");
-    if (fp == nullptr) {
-      char str[128];
-      snprintf(str,128,"Cannot open fix poems file %s",file);
-      error->one(FLERR,str);
-    }
+    if (fp == nullptr)
+      error->one(FLERR,"Cannot open fix poems file {}: {}",
+                 file, utils::getsyserror());
   }
 
   nbody = 0;

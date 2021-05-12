@@ -207,7 +207,7 @@ void ComputeCNPAtom::compute_peratom()
   if (nerrorall && comm->me == 0) {
     char str[128];
     sprintf(str,"Too many neighbors in CNP for %d atoms",nerrorall);
-    error->warning(FLERR,str,0);
+    error->warning(FLERR,str);
   }
 
   // compute CNP value for each atom in group

@@ -698,8 +698,8 @@ void FixRigid::init()
       if (modify->fix[i]->rigid_flag) rflag = 1;
       if (rflag && (modify->fmask[i] & POST_FORCE) &&
           !modify->fix[i]->rigid_flag)
-        error->warning(FLERR,fmt::format("Fix {} alters forces after fix "
-                                         "rigid",modify->fix[i]->id));
+        error->warning(FLERR,"Fix {} alters forces after fix rigid",
+                       modify->fix[i]->id);
     }
   }
 

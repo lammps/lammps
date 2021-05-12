@@ -19,8 +19,6 @@
 
 #include "pair_lcbop.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
 #include "force.h"
 #include "comm.h"
@@ -31,6 +29,8 @@
 #include "memory.h"
 #include "error.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

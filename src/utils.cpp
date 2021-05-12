@@ -1201,16 +1201,14 @@ FILE *utils::open_potential(const std::string &name, LAMMPS *lmp,
             && (*auto_convert & REAL2METAL)) {
           *auto_convert = REAL2METAL;
         } else {
-          error->one(FLERR, "Potential file {} requires {} units "
-                                        "but {} units are in use", name,
-                                        units, unit_style);
+          error->one(FLERR, "Potential file {} requires {} units but {} units "
+                     "are in use", name, units, unit_style);
           return nullptr;
         }
       }
       if ((*auto_convert != NOCONVERT) && (me == 0))
-        error->warning(FLERR, fmt::format("Converting potential file in "
-                                          "{} units to {} units",
-                                          units, unit_style));
+        error->warning(FLERR, "Converting potential file in {} units to {} "
+                       "units", units, unit_style);
     }
     return fopen(filepath.c_str(), "r");
   }

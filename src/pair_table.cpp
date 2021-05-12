@@ -459,25 +459,23 @@ void PairTable::read_table(Table *tb, char *file, char *keyword)
   }
 
   if (ferror)
-    error->warning(FLERR,fmt::format("{} of {} force values in table {} are "
-                                     "inconsistent with -dE/dr.\n  Should "
-                                     "only be flagged at inflection points",
-                                     ferror,tb->ninput,keyword));
+    error->warning(FLERR,"{} of {} force values in table {} are inconsistent "
+                   "with -dE/dr.\nWARNING:  Should only be flagged at "
+                   "inflection points",ferror,tb->ninput,keyword);
 
   // warn if re-computed distance values differ from file values
 
   if (rerror)
-    error->warning(FLERR,fmt::format("{} of {} distance values in table {} "
-                                     "with relative error\n  over {} to "
-                                     "re-computed values",
-                                     rerror,tb->ninput,EPSILONR,keyword));
+    error->warning(FLERR,"{} of {} distance values in table {} with relative "
+                   "error\nWARNING:  over {} to re-computed values",
+                   rerror,tb->ninput,EPSILONR,keyword);
 
   // warn if data was read incompletely, e.g. columns were missing
 
   if (cerror)
-    error->warning(FLERR,fmt::format("{} of {} lines in table {} were "
-                                     "incomplete\n  or could not be parsed "
-                                     "completely",cerror,tb->ninput,keyword));
+    error->warning(FLERR,"{} of {} lines in table {} were incomplete\n"
+                   "WARNING:  or could not be parsed completely",
+                   cerror,tb->ninput,keyword);
 }
 
 /* ----------------------------------------------------------------------

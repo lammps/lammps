@@ -505,7 +505,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
 
   // initialize checklist for all required nelements
 
-  int elementflags[nelements];
+  int *elementflags = new int[nelements];
   for (int jelem = 0; jelem < nelements; jelem++)
       elementflags[jelem] = 0;
 
@@ -602,6 +602,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
       error->all(FLERR,"Element {} not found in SNAP coefficient "
                                    "file", elements[jelem]);
   }
+  delete[] elementflags;
 
   // set flags for required keywords
 

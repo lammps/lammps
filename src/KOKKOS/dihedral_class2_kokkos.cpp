@@ -166,7 +166,7 @@ void DihedralClass2Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   k_warning_flag.template modify<DeviceType>();
   k_warning_flag.template sync<LMPHostType>();
   if (h_warning_flag())
-    error->warning(FLERR,"Dihedral problem",0);
+    error->warning(FLERR,"Dihedral problem");
 
   if (eflag_global) energy += ev.evdwl;
   if (vflag_global) {

@@ -16,6 +16,7 @@
 
 #include "comm.h"
 #include "error.h"
+#include "fmt/chrono.h"
 
 #include <cstring>
 
@@ -26,8 +27,6 @@
 #include <sys/time.h>
 #include <sys/resource.h>
 #endif
-
-#include <ctime>
 
 using namespace LAMMPS_NS;
 
@@ -287,15 +286,13 @@ void Timer::modify_params(int narg, char **arg)
   if (comm->me == 0) {
 
     // format timeout setting
-    char timebuf[32];
-    if (_timeout < 0) strcpy(timebuf,"off");
-    else {
-      time_t tv = _timeout;
-      struct tm *tm = gmtime(&tv);
-      strftime(timebuf,32,"%H:%M:%S",tm);
+    std::string timeout = "off";
+    if (_timeout >= 0) {
+      std::time_t tv = _timeout;
+      timeout = fmt::format("{:%H:%M:%S}", fmt::gmtime(tv));
     }
 
     utils::logmesg(lmp,"New timer settings: style={}  mode={}  timeout={}\n",
-                   timer_style[_level],timer_mode[_sync],timebuf);
+                   timer_style[_level],timer_mode[_sync],timeout);
   }
 }

@@ -116,6 +116,5 @@ void NTopoDihedralTemplate::build()
   int all;
   MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
   if (all && (me == 0))
-    error->warning(FLERR,fmt::format("Dihedral atoms missing at step {}",
-                                     update->ntimestep));
+    error->warning(FLERR,"Dihedral atoms missing at step {}",update->ntimestep);
 }

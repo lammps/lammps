@@ -4112,8 +4112,10 @@ int lammps_version(void *handle)
 The :cpp:func:`lammps_get_os_info` function can be used to retrieve
 detailed information about the hosting operating system and
 compiler/runtime.
+
 A suitable buffer for a C-style string has to be provided and its length.
-If the assembled text will be truncated to not overflow this buffer.
+The assembled text will be truncated to not overflow this buffer. The
+string is typically a few hundred bytes long.
 
 .. versionadded:: 9Oct2020
 
@@ -4338,6 +4340,60 @@ int lammps_config_accelerator(const char *package,
                               const char *setting)
 {
   return Info::has_accelerator_feature(package,category,setting) ? 1 : 0;
+}
+
+/** Check for presence of a viable GPU package device
+ *
+\verbatim embed:rst
+
+The :cpp:func:`lammps_has_gpu_device` function checks at runtime if
+an accelerator device is present that can be used with the
+:doc:`GPU package <Speed_gpu>`. If at least one suitable device is
+present the function will return 1, otherwise 0.
+
+More detailed information about the available device or devices can
+be obtained by calling the
+:cpp:func:`lammps_get_gpu_device_info` function.
+
+.. versionadded:: 14May2021
+
+\endverbatim
+ *
+ * \return  1 if viable device is available, 0 if not.  */
+
+int lammps_has_gpu_device()
+{
+  return Info::has_gpu_device() ? 1: 0;
+}
+
+/** Get GPU package device information
+ *
+\verbatim embed:rst
+
+The :cpp:func:`lammps_get_gpu_device_info` function can be used to retrieve
+detailed information about any accelerator devices that are viable for use
+with the :doc:`GPU package <Speed_gpu>`.  It will produce a string that is
+equivalent to the output of the ``nvc_get_device`` or ``ocl_get_device`` or
+``hip_get_device`` tools that are compiled alongside LAMMPS if the GPU
+package is enabled.
+
+A suitable buffer for a C-style string has to be provided and its length.
+The assembled text will be truncated to not overflow this buffer.  This
+string can be several kilobytes long, if multiple devices are present.
+
+.. versionadded:: 14May2021
+
+\endverbatim
+ *
+ * \param  buffer    string buffer to copy the information to
+ * \param  buf_size  size of the provided string buffer */
+
+void lammps_get_gpu_device_info(char *buffer, int buf_size)
+{
+  if (buf_size <= 0) return;
+  buffer[0] = buffer[buf_size-1] = '\0';
+  std::string devinfo = Info::get_gpu_device_info();
+  strncpy(buffer, devinfo.c_str(), buf_size-1);
 }
 
 /* ---------------------------------------------------------------------- */

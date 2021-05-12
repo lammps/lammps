@@ -276,8 +276,8 @@ TextFileReader *PotentialFileReader::open_potential(const std::string &path) {
       }
     }
     if (unit_convert != utils::NOCONVERT)
-      lmp->error->warning(FLERR, fmt::format("Converting {} in {} units to {} "
-                                             "units", filetype, units, unit_style));
+      lmp->error->warning(FLERR, "Converting {} in {} units to {} units",
+                          filetype, units, unit_style);
     return new TextFileReader(filepath, filetype);
   }
   return nullptr;

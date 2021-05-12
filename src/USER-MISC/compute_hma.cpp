@@ -78,7 +78,8 @@ ComputeHMA::ComputeHMA(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 4) error->all(FLERR,"Illegal compute hma command");
   if (igroup) error->all(FLERR,"Compute hma must use group all");
-  if (strcmp(arg[3],"NULL") == 0) {error->all(FLERR,"fix ID specifying the set temperature of canonical simulation is required");}
+  if (strcmp(arg[3],"NULL") == 0)
+    error->all(FLERR,"fix ID specifying the set temperature of canonical simulation is required");
   else id_temp = utils::strdup(arg[3]);
 
   create_attribute = 1;
@@ -122,8 +123,7 @@ ComputeHMA::ComputeHMA(LAMMPS *lmp, int narg, char **arg) :
       computeU = size_vector;
       extlist[size_vector] = 1;
       size_vector++;
-    }
-    else if (!strcmp(arg[iarg], "p")) {
+    } else if (!strcmp(arg[iarg], "p")) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal compute hma command");
       if (computeP>-1) continue;
       computeP = size_vector;
@@ -131,19 +131,16 @@ ComputeHMA::ComputeHMA(LAMMPS *lmp, int narg, char **arg) :
       extlist[size_vector] = 0;
       size_vector++;
       iarg++;
-    }
-    else if (!strcmp(arg[iarg], "cv")) {
+    } else if (!strcmp(arg[iarg], "cv")) {
       if (computeCv>-1) continue;
       computeCv = size_vector;
       comm_forward = 3;
       extlist[size_vector] = 1;
       size_vector++;
-    }
-    else if (!strcmp(arg[iarg], "anharmonic")) {
+    } else if (!strcmp(arg[iarg], "anharmonic")) {
       // the first time we're called, we'll grab lattice pressure and energy
       returnAnharmonic = -1;
-    }
-    else {
+    } else {
       error->all(FLERR,"Illegal compute hma command");
     }
   }
@@ -279,8 +276,7 @@ void ComputeHMA::compute_vector()
       }
       fdr += dx*f[i][0] + dy*f[i][1] + dz*f[i][2];
     }
-  }
-  else {
+  } else {
     for (int i = 0; i < nlocal; i++) {
       int xbox = (image[i] & IMGMASK) - IMGMAX;
       int ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
@@ -370,8 +366,7 @@ void ComputeHMA::compute_vector()
     if (computeU>-1) {
       if (returnAnharmonic) {
         vector[computeU] = uTotal - uLat + 0.5*fdrTotal;
-      }
-      else {
+      } else {
         vector[computeU] = uTotal + 0.5*fdrTotal + 0.5*dimension*(atom->natoms - 1)*force->boltz*finaltemp;
       }
     }
@@ -381,8 +376,7 @@ void ComputeHMA::compute_vector()
     double fv = ((deltaPcap)-(force->boltz*finaltemp*force->nktv2p*atom->natoms/vol))/(force->boltz*finaltemp*dimension*(atom->natoms - 1));
     if (returnAnharmonic) {
       vector[computeP] = p - pLat + (fv*fdrTotal);
-    }
-    else {
+    } else {
       vector[computeP] = p + (fv*fdrTotal) + deltaPcap;
     }
   }
@@ -392,8 +386,7 @@ void ComputeHMA::compute_vector()
     double buTot;
     if (returnAnharmonic) {
       buTot = (uTotal - uLat + 0.5*fdrTotal)/finaltemp;
-    }
-    else {
+    } else {
       buTot = (uTotal + 0.5*fdrTotal)/finaltemp + 0.5*dimension*(atom->natoms - 1)*force->boltz;
     }
     double one = -0.25*(fdr + phiSum)/finaltemp;

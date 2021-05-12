@@ -1362,8 +1362,8 @@ void PPPMDisp::init_coeffs()
 
       err =  bmax/amax;
       if (err > 1.0e-4 && comm->me == 0)
-        error->warning(FLERR,fmt::format("Estimated error in splitting of "
-                                         "dispersion coeffs is {}",err));
+        error->warning(FLERR,"Estimated error in splitting of "
+                       "dispersion coeffs is {}",err);
       // set B
 
       B = new double[nsplit*n+nsplit];

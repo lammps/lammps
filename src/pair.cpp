@@ -30,6 +30,7 @@
 #include "neighbor.h"
 #include "suffix.h"
 #include "update.h"
+#include "fmt/chrono.h"
 
 #include <cfloat>    // IWYU pragma: keep
 #include <climits>   // IWYU pragma: keep
@@ -1739,14 +1740,13 @@ void Pair::write_file(int narg, char **arg)
                      table_file, date);
       fp = fopen(table_file.c_str(),"a");
     } else {
-      char datebuf[16];
       time_t tv = time(nullptr);
-      strftime(datebuf,15,"%Y-%m-%d",localtime(&tv));
-      utils::logmesg(lmp,"Creating table file {} with DATE: {}\n",
-                     table_file, datebuf);
+      std::tm current_date = fmt::localtime(tv);
+      utils::logmesg(lmp,"Creating table file {} with DATE: {:%Y-%m-%d}\n",
+                     table_file, current_date);
       fp = fopen(table_file.c_str(),"w");
-      if (fp) fmt::print(fp,"# DATE: {} UNITS: {} Created by pair_write\n",
-                         datebuf, update->unit_style);
+      if (fp) fmt::print(fp,"# DATE: {:%Y-%m-%d} UNITS: {} Created by pair_write\n",
+                         current_date, update->unit_style);
     }
     if (fp == nullptr)
       error->one(FLERR,"Cannot open pair_write file {}: {}",

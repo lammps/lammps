@@ -31,16 +31,18 @@ jobs:
       uses: github/codeql-action/init@v1
       with:
         languages: ${{ matrix.language }}
+        config-file: ./.github/codeql/${{ matrix.language }}.yml
 
     - name: Create Build Environment
-      run: cmake -E make_directory ${{github.workspace}}/build
+      if: ${{ matrix.language == 'cpp' }}
+      run: mkdir build
 
     - name: Building LAMMPS via CMake
       if: ${{ matrix.language == 'cpp' }}
       shell: bash
-      working-directory: ${{github.workspace}}/build
+      working-directory: build
       run: |
-        cmake -C $GITHUB_WORKSPACE/cmake/presets/most.cmake $GITHUB_WORKSPACE/cmake
+        cmake -C ../cmake/presets/most.cmake ../cmake
         cmake --build . --parallel 2
 
     - name: Perform CodeQL Analysis

@@ -1846,7 +1846,7 @@ void PairGranular::transfer_history(double* source, double* target)
 double PairGranular::atom2cut(int i)
 {
   double cut;
-  
+
   cut = atom->radius[i]*2;
   if(beyond_contact) {
     int itype = atom->type[i];
@@ -1854,7 +1854,7 @@ double PairGranular::atom2cut(int i)
       cut += pulloff_distance(cut, cut, itype, itype);
     }
   }
-  
+
   return cut;
 }
 
@@ -1865,11 +1865,11 @@ double PairGranular::atom2cut(int i)
 double PairGranular::radii2cut(double r1, double r2)
 {
   double cut = 0.0;
-  
+
   if(beyond_contact) {
     int n = atom->ntypes;
     double temp;
-    
+
     // Check all combinations of i and j to find theoretical maximum pull off distance
     for(int i = 0; i < n; i++){
       for(int j = 0; j < n; j++){
@@ -1877,11 +1877,11 @@ double PairGranular::radii2cut(double r1, double r2)
           temp = pulloff_distance(r1, r2, i, j);
           if(temp > cut) cut = temp;
         }
-      }          
+      }
     }
-  }  
-  
+  }
+
   cut += r1 + r2;
-  
+
   return cut;
 }

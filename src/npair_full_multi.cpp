@@ -30,7 +30,7 @@ NPairFullMulti::NPairFullMulti(LAMMPS *lmp) : NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
    binned neighbor list construction for all neighbors
-   multi stencil is icollection-jcollection dependent   
+   multi stencil is icollection-jcollection dependent
    every neighbor pair appears in list of both atoms i and j
 ------------------------------------------------------------------------- */
 
@@ -82,7 +82,7 @@ void NPairFullMulti::build(NeighList *list)
     }
 
     ibin = atom2bin[i];
-    
+
     // loop through stencils for all collections
     for (jcollection = 0; jcollection < ncollections; jcollection++) {
 
@@ -96,20 +96,20 @@ void NPairFullMulti::build(NeighList *list)
 
       s = stencil_multi[icollection][jcollection];
       ns = nstencil_multi[icollection][jcollection];
-      
+
       for (k = 0; k < ns; k++) {
 	    js = binhead_multi[jcollection][jbin + s[k]];
 	    for (j = js; j >= 0; j = bins[j]) {
 	      if (i == j) continue;
-	  
+
           jtype = type[j];
           if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
-          
+
 	      delx = xtmp - x[j][0];
 	      dely = ytmp - x[j][1];
 	      delz = ztmp - x[j][2];
 	      rsq = delx*delx + dely*dely + delz*delz;
-          
+
 	      if (rsq <= cutneighsq[itype][jtype]) {
 	        if (molecular != Atom::ATOMIC) {
 	          if (!moltemplate)

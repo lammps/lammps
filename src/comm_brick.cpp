@@ -43,13 +43,11 @@ using namespace LAMMPS_NS;
 CommBrick::CommBrick(LAMMPS *lmp) :
   Comm(lmp),
   sendnum(nullptr), recvnum(nullptr), sendproc(nullptr), recvproc(nullptr),
-  size_forward_recv(nullptr),
-  size_reverse_send(nullptr), size_reverse_recv(nullptr),
+  size_forward_recv(nullptr), size_reverse_send(nullptr), size_reverse_recv(nullptr),
   slablo(nullptr), slabhi(nullptr), multilo(nullptr), multihi(nullptr),
-  cutghostmulti(nullptr), pbc_flag(nullptr), pbc(nullptr), firstrecv(nullptr),
-  multioldlo(nullptr), multioldhi(nullptr), cutghostmultiold(nullptr),
-  sendlist(nullptr),  localsendlist(nullptr), maxsendlist(nullptr),
-  buf_send(nullptr), buf_recv(nullptr)
+  multioldlo(nullptr), multioldhi(nullptr), cutghostmulti(nullptr), cutghostmultiold(nullptr),
+  pbc_flag(nullptr), pbc(nullptr), firstrecv(nullptr), sendlist(nullptr),
+  localsendlist(nullptr), maxsendlist(nullptr), buf_send(nullptr), buf_recv(nullptr)
 {
   style = 0;
   layout = Comm::LAYOUT_UNIFORM;
@@ -141,44 +139,44 @@ void CommBrick::init()
   // memory for multi style communication
   // allocate in setup
 
-  if (mode == Comm::MULTI) {    
+  if (mode == Comm::MULTI) {
     // If inconsitent # of collections, destroy any preexisting arrays (may be missized)
     if (ncollections != neighbor->ncollections) {
       ncollections = neighbor->ncollections;
       if (multilo != nullptr) {
         free_multi();
         memory->destroy(cutghostmulti);
-      }     
+      }
     }
-    
+
     // delete any old user cutoffs if # of collections chanaged
     if (cutusermulti && ncollections != ncollections_cutoff) {
       if(me == 0) error->warning(FLERR, "cutoff/multi settings discarded, must be defined"
                                         " after customizing collections in neigh_modify");
       memory->destroy(cutusermulti);
       cutusermulti = nullptr;
-    }     
-    
+    }
+
     if (multilo == nullptr) {
       allocate_multi(maxswap);
-      memory->create(cutghostmulti,ncollections,3,"comm:cutghostmulti");    
+      memory->create(cutghostmulti,ncollections,3,"comm:cutghostmulti");
     }
-  }  
+  }
   if ((mode == Comm::SINGLE || mode == Comm::MULTIOLD) && multilo) {
     free_multi();
     memory->destroy(cutghostmulti);
   }
-  
+
   // memory for multi/old-style communication
 
   if (mode == Comm::MULTIOLD && multioldlo == nullptr) {
     allocate_multiold(maxswap);
     memory->create(cutghostmultiold,atom->ntypes+1,3,"comm:cutghostmultiold");
-  }  
+  }
   if ((mode == Comm::SINGLE || mode == Comm::MULTI) && multioldlo) {
     free_multiold();
     memory->destroy(cutghostmultiold);
-  }  
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -201,7 +199,7 @@ void CommBrick::setup()
   //   cutghostmulti = same as cutghost, only for each atom collection
   // for multi/old:
   //   cutghostmultiold = same as cutghost, only for each atom type
-  
+
   int i,j;
   int ntypes = atom->ntypes;
   double *prd,*sublo,*subhi;
@@ -213,10 +211,10 @@ void CommBrick::setup()
 
   if (mode == Comm::MULTI) {
     double **cutcollectionsq = neighbor->cutcollectionsq;
-    
-    // build collection array for atom exchange  
-    neighbor->build_collection(0);  
-    
+
+    // build collection array for atom exchange
+    neighbor->build_collection(0);
+
     // If using multi/reduce, communicate particles a distance equal
     // to the max cutoff with equally sized or smaller collections
     // If not, communicate the maximum cutoff of the entire collection
@@ -230,7 +228,7 @@ void CommBrick::setup()
         cutghostmulti[i][1] = 0.0;
         cutghostmulti[i][2] = 0.0;
       }
-      
+
       for (j = 0; j < ncollections; j++){
         if (multi_reduce && (cutcollectionsq[j][j] > cutcollectionsq[i][i])) continue;
         cutghostmulti[i][0] = MAX(cutghostmulti[i][0],sqrt(cutcollectionsq[i][j]));
@@ -239,7 +237,7 @@ void CommBrick::setup()
       }
     }
   }
-  
+
   if (mode == Comm::MULTIOLD) {
     double *cuttype = neighbor->cuttype;
     for (i = 1; i <= ntypes; i++) {
@@ -275,7 +273,7 @@ void CommBrick::setup()
         cutghostmulti[i][2] *= length2;
       }
     }
-    
+
     if (mode == Comm::MULTIOLD) {
       for (i = 1; i <= ntypes; i++) {
         cutghostmultiold[i][0] *= length0;
@@ -902,7 +900,7 @@ void CommBrick::borders()
                 if (nsend == maxsendlist[iswap]) grow_list(iswap,nsend);
                 sendlist[iswap][nsend++] = i;
               }
-            }              
+            }
           } else {
             ngroup = atom->nfirst;
             for (i = 0; i < ngroup; i++) {
@@ -973,7 +971,7 @@ void CommBrick::borders()
       nprior = atom->nlocal + atom->nghost;
       atom->nghost += nrecv;
       if (neighbor->style == Neighbor::MULTI) neighbor->build_collection(nprior);
-      
+
       iswap++;
     }
   }

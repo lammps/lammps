@@ -22,7 +22,7 @@ class NBin : protected Pointers {
  public:
   int istyle;                      // 1-N index into binnames
   bigint last_bin;                 // last timestep atoms were binned
-  double cutoff_custom;        // cutoff set by requestor  
+  double cutoff_custom;        // cutoff set by requestor
 
   // Variables for NBinStandard
 
@@ -39,7 +39,7 @@ class NBin : protected Pointers {
   int *atom2bin;               // bin assignment for each atom (local+ghost)
 
   // Analogues for NBinMultimulti
-  
+
   int *nbinx_multi, *nbiny_multi, *nbinz_multi;
   int *mbins_multi;
   int *mbinx_multi, *mbiny_multi, *mbinz_multi;
@@ -48,7 +48,7 @@ class NBin : protected Pointers {
   double *bininvx_multi, *bininvy_multi, *bininvz_multi;
 
   int **binhead_multi;
-  
+
   NBin(class LAMMPS *);
   ~NBin();
   void post_constructor(class NeighRequest *);
@@ -82,7 +82,7 @@ class NBin : protected Pointers {
   int triclinic;
 
   // data for standard NBin
-  
+
   int maxatom;                      // size of bins array
   int maxbin;                       // size of binhead array
 
@@ -94,7 +94,7 @@ class NBin : protected Pointers {
   // methods
 
   int coord2bin(double *);
-  int coord2bin_multi(double *, int);  
+  int coord2bin_multi(double *, int);
 };
 
 }

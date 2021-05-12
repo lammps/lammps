@@ -122,24 +122,24 @@ void CommTiled::init()
   nswap = 2*domain->dimension;
 
   memory->destroy(cutghostmulti);
-  if (mode == Comm::MULTI) {    
+  if (mode == Comm::MULTI) {
     // If inconsitent # of collections, destroy any preexisting arrays (may be missized)
     if (ncollections != neighbor->ncollections) {
       ncollections = neighbor->ncollections;
     }
-    
+
     // delete any old user cutoffs if # of collections chanaged
     if (cutusermulti && ncollections != ncollections_cutoff) {
       if(me == 0) error->warning(FLERR, "cutoff/multi settings discarded, must be defined"
                                         " after customizing collections in neigh_modify");
       memory->destroy(cutusermulti);
       cutusermulti = nullptr;
-    }      
-    
+    }
+
     // grow sendbox_multi now that ncollections is known
     for (int i = 0; i < maxswap; i ++)
-      grow_swap_send_multi(i,DELTA_PROCS);     
-    
+      grow_swap_send_multi(i,DELTA_PROCS);
+
     memory->create(cutghostmulti,ncollections,3,"comm:cutghostmulti");
   }
 
@@ -201,13 +201,13 @@ void CommTiled::setup()
 
   // set cutoff for comm forward and comm reverse
   // check that cutoff < any periodic box length
-  
+
   if (mode == Comm::MULTI) {
     double **cutcollectionsq = neighbor->cutcollectionsq;
 
     // build collection array for atom exchange
-    neighbor->build_collection(0);    
-    
+    neighbor->build_collection(0);
+
     // If using multi/reduce, communicate particles a distance equal
     // to the max cutoff with equally sized or smaller collections
     // If not, communicate the maximum cutoff of the entire collection
@@ -221,7 +221,7 @@ void CommTiled::setup()
         cutghostmulti[i][1] = 0.0;
         cutghostmulti[i][2] = 0.0;
       }
-      
+
       for (j = 0; j < ncollections; j++){
         if (multi_reduce && (cutcollectionsq[j][j] > cutcollectionsq[i][i])) continue;
         cutghostmulti[i][0] = MAX(cutghostmulti[i][0],sqrt(cutcollectionsq[i][j]));
@@ -230,7 +230,7 @@ void CommTiled::setup()
       }
     }
   }
-  
+
   if (mode == Comm::MULTIOLD) {
     double *cuttype = neighbor->cuttype;
     for (i = 1; i <= ntypes; i++) {
@@ -264,7 +264,7 @@ void CommTiled::setup()
         cutghostmulti[i][2] *= length2;
       }
     }
-    
+
     if (mode == Comm::MULTIOLD) {
       for (i = 1; i <= ntypes; i++) {
         cutghostmultiold[i][0] *= length0;
@@ -1051,9 +1051,9 @@ void CommTiled::borders()
   double *bbox;
   double **x;
   AtomVec *avec = atom->avec;
-  
+
   // After exchanging, need to reconstruct collection array for border communication
-  if (mode == Comm::MULTI) neighbor->build_collection(0);  
+  if (mode == Comm::MULTI) neighbor->build_collection(0);
 
   // send/recv max one = max # of atoms in single send/recv for any swap
   // send/recv max all = max # of atoms in all sends/recvs within any swap
@@ -2391,7 +2391,7 @@ void CommTiled::grow_swap_recv(int i, int n)
 void CommTiled::grow_swap_send_multi(int i, int n)
 {
   memory->destroy(sendbox_multi[i]);
-  
+
   if (ncollections > 0)
     memory->create(sendbox_multi[i],n,ncollections,6,"comm:sendbox_multi");
 }

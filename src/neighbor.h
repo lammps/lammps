@@ -103,7 +103,7 @@ class Neighbor : protected Pointers {
   int **improperlist;
 
   // optional type grouping for multi
-  
+
   int custom_collection_flag;      // 1 if custom collections are defined for multi
   int interval_collection_flag;    // 1 if custom collections use intervals
   int finite_cut_flag;             // 1 if multi considers finite atom size
@@ -113,7 +113,7 @@ class Neighbor : protected Pointers {
   double *collection2cut;          // ncollection array with upper bounds on cutoff intervals
   double **cutcollectionsq;        // cutoffs for each combination of collections
   int *collection;                 // local per-atom array to store collection id
-  
+
   // public methods
 
   Neighbor(class LAMMPS *);

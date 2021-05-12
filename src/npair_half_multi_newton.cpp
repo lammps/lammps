@@ -83,31 +83,31 @@ void NPairHalfMultiNewton::build(NeighList *list)
     }
 
     ibin = atom2bin[i];
-    
+
     // loop through stencils for all collections
     for (jcollection = 0; jcollection < ncollections; jcollection++) {
-        
+
       // if same collection use own bin
       if(icollection == jcollection) jbin = ibin;
 	  else jbin = coord2bin(x[i], jcollection);
 
       // if same size: uses half stencil so check central bin
       if(cutcollectionsq[icollection][icollection] == cutcollectionsq[jcollection][jcollection]){
-      
+
         if (icollection == jcollection) js = bins[i];
         else js = binhead_multi[jcollection][jbin];
-        
-        // if same collection, 
+
+        // if same collection,
         //   if j is owned atom, store it, since j is beyond i in linked list
-        //   if j is ghost, only store if j coords are "above and to the right" of i          
-        
+        //   if j is ghost, only store if j coords are "above and to the right" of i
+
         // if different collections,
         //   if j is owned atom, store it if j > i
-        //   if j is ghost, only store if j coords are "above and to the right" of i          
-          
+        //   if j is ghost, only store if j coords are "above and to the right" of i
+
 	    for (j = js; j >= 0; j = bins[j]) {
-          if((icollection != jcollection) && (j < i)) continue;	        
-            
+          if((icollection != jcollection) && (j < i)) continue;
+
 	      if (j >= nlocal) {
 	        if (x[j][2] < ztmp) continue;
 	        if (x[j][2] == ztmp) {
@@ -115,15 +115,15 @@ void NPairHalfMultiNewton::build(NeighList *list)
 	          if (x[j][1] == ytmp && x[j][0] < xtmp) continue;
 	        }
 	      }
-          
+
           jtype = type[j];
           if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
-        
+
 	      delx = xtmp - x[j][0];
 	      dely = ytmp - x[j][1];
 	      delz = ztmp - x[j][2];
 	      rsq = delx*delx + dely*dely + delz*delz;
-          
+
 	      if (rsq <= cutneighsq[itype][jtype]) {
 	        if (molecular) {
 	          if (!moltemplate)
@@ -139,29 +139,29 @@ void NPairHalfMultiNewton::build(NeighList *list)
 	          else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
 	        } else neighptr[n++] = j;
 	      }
-	    }  
+	    }
       }
-       
-      // for all collections, loop over all atoms in other bins in stencil, store every pair 
+
+      // for all collections, loop over all atoms in other bins in stencil, store every pair
       // stencil is empty if i larger than j
       // stencil is half if i same size as j
       // stencil is full if i smaller than j
-       
+
 	  s = stencil_multi[icollection][jcollection];
 	  ns = nstencil_multi[icollection][jcollection];
-      
+
 	  for (k = 0; k < ns; k++) {
 	    js = binhead_multi[jcollection][jbin + s[k]];
 	    for (j = js; j >= 0; j = bins[j]) {
-      
+
           jtype = type[j];
           if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
-          
+
 	      delx = xtmp - x[j][0];
 	      dely = ytmp - x[j][1];
 	      delz = ztmp - x[j][2];
 	      rsq = delx*delx + dely*dely + delz*delz;
-      
+
 	      if (rsq <= cutneighsq[itype][jtype]) {
 	        if (molecular != Atom::ATOMIC) {
 	  	    if (!moltemplate)
@@ -180,7 +180,7 @@ void NPairHalfMultiNewton::build(NeighList *list)
 	    }
 	  }
     }
-    
+
     ilist[inum++] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;

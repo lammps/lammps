@@ -50,7 +50,7 @@ class NPair : protected Pointers {
   double *bboxlo,*bboxhi;
   int ncollections;
   double **cutcollectionsq;
-  
+
   // exclusion data from Neighbor class
 
   int nex_type;                    // # of entries in type exclusion list
@@ -99,7 +99,7 @@ class NPair : protected Pointers {
 
   int ** nstencil_multi;
   int *** stencil_multi;
-  
+
   // data common to all NPair variants
 
   int molecular;

@@ -32,14 +32,14 @@ NPairHalfSizeMultiNewtonTriOmp::NPairHalfSizeMultiNewtonTriOmp(LAMMPS *lmp) :
 /* ----------------------------------------------------------------------
    size particles
    binned neighbor list construction with Newton's 3rd law for triclinic
-   multi stencil is icollection-jcollection dependent   
+   multi stencil is icollection-jcollection dependent
    each owned atom i checks its own bin and other bins in triclinic stencil
    every pair stored exactly once by some processor
 ------------------------------------------------------------------------- */
 
 void NPairHalfSizeMultiNewtonTriOmp::build(NeighList *list)
 {
-  const int nlocal = (includegroup) ? atom->nfirst : atom->nlocal;  
+  const int nlocal = (includegroup) ? atom->nfirst : atom->nlocal;
   const int history = list->history;
   const int mask_history = 3 << SBBITS;
 
@@ -59,7 +59,7 @@ void NPairHalfSizeMultiNewtonTriOmp::build(NeighList *list)
 
   int *collection = neighbor->collection;
   double **x = atom->x;
-  double *radius = atom->radius;  
+  double *radius = atom->radius;
   int *type = atom->type;
   int *mask = atom->mask;
   tagint *molecule = atom->molecule;
@@ -105,12 +105,12 @@ void NPairHalfSizeMultiNewtonTriOmp::build(NeighList *list)
 
 	  s = stencil_multi[icollection][jcollection];
 	  ns = nstencil_multi[icollection][jcollection];
-      
+
 	  for (k = 0; k < ns; k++) {
 	    js = binhead_multi[jcollection][jbin + s[k]];
 	    for (j = js; j >= 0; j = bins[j]) {
-                  
-          // if same size (same collection), use half stencil            
+
+          // if same size (same collection), use half stencil
           if(cutcollectionsq[icollection][icollection] == cutcollectionsq[jcollection][jcollection]){
             if (x[j][2] < ztmp) continue;
             if (x[j][2] == ztmp) {
@@ -119,21 +119,21 @@ void NPairHalfSizeMultiNewtonTriOmp::build(NeighList *list)
                 if (x[j][0] < xtmp) continue;
                 if (x[j][0] == xtmp && j <= i) continue;
               }
-            }                
-          }  
-          
+            }
+          }
+
           jtype = type[j];
           if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
-        
+
 	      delx = xtmp - x[j][0];
 	      dely = ytmp - x[j][1];
 	      delz = ztmp - x[j][2];
 	      rsq = delx*delx + dely*dely + delz*delz;
 	      radsum = radi + radius[j];
 	      cutdistsq = (radsum+skin) * (radsum+skin);
-      
+
 	      if (rsq <= cutdistsq) {
-	        if (history && rsq < radsum*radsum) 
+	        if (history && rsq < radsum*radsum)
 	  	    neighptr[n++] = j ^ mask_history;
 	        else
 	  	    neighptr[n++] = j;

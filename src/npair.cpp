@@ -96,7 +96,7 @@ void NPair::copy_neighbor_info()
   special_flag = neighbor->special_flag;
 
   // multi info
-  
+
   ncollections = neighbor->ncollections;
   cutcollectionsq = neighbor->cutcollectionsq;
 
@@ -183,7 +183,7 @@ void NPair::build_setup()
 {
   if (nb) copy_bin_info();
   if (ns) copy_stencil_info();
-  
+
   // set here, since build_setup() always called before build()
   last_build = update->ntimestep;
 }

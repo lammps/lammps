@@ -34,10 +34,10 @@ NBinMulti::NBinMulti(LAMMPS *lmp) : NBin(lmp) {}
    setup for bin_atoms()
 ------------------------------------------------------------------------- */
 
-void NBinMulti::bin_atoms_setup(int nall) 
+void NBinMulti::bin_atoms_setup(int nall)
 {
   // binhead_multi[n] = per-bin vector mbins in length mbins_multi[n]
-  
+
   for (int n = 0; n < maxcollections; n++) {
     if (mbins_multi[n] > maxbins_multi[n]) {
       maxbins_multi[n] = mbins_multi[n];
@@ -90,7 +90,7 @@ void NBinMulti::setup_bins(int /*style*/)
     // Clear any/all memory for existing groupings
     for (n = 0; n < maxcollections; n++)
       memory->destroy(binhead_multi[n]);
-    
+
     delete [] binhead_multi;
 
     maxcollections = ncollections;
@@ -136,7 +136,7 @@ void NBinMulti::setup_bins(int /*style*/)
 
     memory->destroy(maxbins_multi);
     memory->create(maxbins_multi, maxcollections, "neigh:maxbins_multi");
-    
+
     // ensure reallocation occurs in bin_atoms_setup()
     for (n = 0; n < maxcollections; n++) {
       maxbins_multi[n] = 0;
@@ -147,7 +147,7 @@ void NBinMulti::setup_bins(int /*style*/)
   // Identify smallest collection
   int icollectionmin = 0;
   for (n = 0; n < ncollections; n++)
-    if (cutcollectionsq[n][n] < cutcollectionsq[icollectionmin][icollectionmin]) 
+    if (cutcollectionsq[n][n] < cutcollectionsq[icollectionmin][icollectionmin])
       icollectionmin = n;
 
   // bbox = size of bbox of entire domain
@@ -279,7 +279,7 @@ void NBinMulti::setup_bins(int /*style*/)
     } else mbinzlo_multi[n] = mbinzhi = 0;
     mbinz_multi[n] = mbinzhi - mbinzlo_multi[n] + 1;
 
-    bigint bbin = ((bigint) mbinx_multi[n]) 
+    bigint bbin = ((bigint) mbinx_multi[n])
       * ((bigint) mbiny_multi[n]) * ((bigint) mbinz_multi[n]) + 1;
     if (bbin > MAXSMALLINT) error->one(FLERR,"Too many neighbor bins");
     mbins_multi[n] = bbin;
@@ -327,7 +327,7 @@ void NBinMulti::bin_atoms()
       binhead_multi[n][ibin] = i;
     }
   } else {
-    for (i = nall-1; i >= 0; i--) {       
+    for (i = nall-1; i >= 0; i--) {
       n = collection[i];
       ibin = coord2bin_multi(x[i], n);
       atom2bin[i] = ibin;
@@ -344,6 +344,6 @@ double NBinMulti::memory_usage()
   double bytes = 0;
   for (int m = 0; m < maxcollections; m++)
     bytes += (double)maxbins_multi[m]*sizeof(int);
-  bytes += (double)2*maxatom*sizeof(int);  
+  bytes += (double)2*maxatom*sizeof(int);
   return bytes;
 }

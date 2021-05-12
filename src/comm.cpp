@@ -361,7 +361,7 @@ void Comm::modify_params(int narg, char **arg)
         memory->create(cutusermulti,ncollections_cutoff,"comm:cutusermulti");
         for (i=0; i < ncollections_cutoff; ++i)
           cutusermulti[i] = -1.0;
-      }      
+      }
       utils::bounds(FLERR,arg[iarg+1],1,ncollections_cutoff+1,nlo,nhi,error);
       cut = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       cutghostuser = MAX(cutghostuser,cut);
@@ -752,7 +752,7 @@ double Comm::get_comm_cutoff()
   if (neighbor->interval_collection_flag) {
     for (int i = 0; i < neighbor->ncollections; i++){
       maxcommcutoff = MAX(maxcommcutoff, neighbor->collection2cut[i]);
-    }        
+    }
   }
 
   return maxcommcutoff;

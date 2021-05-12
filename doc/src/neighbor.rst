@@ -56,28 +56,28 @@ the largest cutoff distance between any pair of atom types and a
 single set of bins is defined to search over for all atom types.  This
 can be inefficient if one pair of types has a very long cutoff, but
 other type pairs have a much shorter cutoff. The *multi* style uses
-different sized bins for collections of different sized particles, where 
-"size" may mean the physical size of the particle or its cutoff 
+different sized bins for collections of different sized particles, where
+"size" may mean the physical size of the particle or its cutoff
 distance for interacting with other particles. Different
-sets of bins are then used to construct the neighbor lists as as further 
-described by Shire, Hanley, and Stratford :ref:`(Shire) <bytype-Shire>`. 
+sets of bins are then used to construct the neighbor lists as as further
+described by Shire, Hanley, and Stratford :ref:`(Shire) <bytype-Shire>`.
 This imposes some extra setup overhead, but the searches themselves
-may be much faster. By default, each atom type defines a separate 
-collection of particles. For systems where two or more atom types 
-have the same size (either physical size or cutoff distance), the 
-definition of collections can be customized, which can result in less 
-overhead and faster performance. See the :doc:`neigh_modify <neigh_modify>` 
-command for how to define custom collections. Whether the collection 
-definition is customized or not, also see the 
-:doc:`comm_modify mode multi <comm_modify>` command for communication 
-options that further improve performance in a manner consistent with 
-neighbor style multi. 
+may be much faster. By default, each atom type defines a separate
+collection of particles. For systems where two or more atom types
+have the same size (either physical size or cutoff distance), the
+definition of collections can be customized, which can result in less
+overhead and faster performance. See the :doc:`neigh_modify <neigh_modify>`
+command for how to define custom collections. Whether the collection
+definition is customized or not, also see the
+:doc:`comm_modify mode multi <comm_modify>` command for communication
+options that further improve performance in a manner consistent with
+neighbor style multi.
 
-An alternate style, *multi/old*, sets the bin size to 1/2 of the shortest 
-cutoff distance and multiple sets of bins are defined to search over for 
-different atom types. This algorithm used to be the default *multi* 
+An alternate style, *multi/old*, sets the bin size to 1/2 of the shortest
+cutoff distance and multiple sets of bins are defined to search over for
+different atom types. This algorithm used to be the default *multi*
 algorithm in LAMMPS but was found to be significantly slower than the new
-approach. For now we are keeping the old option in case there are use cases 
+approach. For now we are keeping the old option in case there are use cases
 where multi/old outperforms the new multi style.
 
 

@@ -31,7 +31,7 @@ NPairHalfMultiNewtoffOmp::NPairHalfMultiNewtoffOmp(LAMMPS *lmp) : NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
    binned neighbor list construction with partial Newton's 3rd law
-   multi stencil is icollection-jcollection dependent      
+   multi stencil is icollection-jcollection dependent
    each owned atom i checks own bin and other bins in stencil
    pair stored once if i,j are both owned and i < j
    pair stored by me if j is ghost (also stored by proc owning j)
@@ -95,36 +95,36 @@ void NPairHalfMultiNewtoffOmp::build(NeighList *list)
     }
 
     ibin = atom2bin[i];
-    
-    // loop through stencils for all collections    
+
+    // loop through stencils for all collections
     for (jcollection = 0; jcollection < ncollections; jcollection++) {
-        
+
       // if same collection use own bin
       if (icollection == jcollection) jbin = ibin;
 	  else jbin = coord2bin(x[i], jcollection);
-      
+
       // loop over all atoms in other bins in stencil including self
       // only store pair if i < j
       // stores own/own pairs only once
-      // stores own/ghost pairs on both procs      
+      // stores own/ghost pairs on both procs
       // use full stencil for all collection combinations
 
       s = stencil_multi[icollection][jcollection];
       ns = nstencil_multi[icollection][jcollection];
-      
+
       for (k = 0; k < ns; k++) {
 	    js = binhead_multi[jcollection][jbin + s[k]];
 	    for (j = js; j >= 0; j = bins[j]) {
 	      if (j <= i) continue;
-           
+
           jtype = type[j];
 	      if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
-          
+
 	      delx = xtmp - x[j][0];
 	      dely = ytmp - x[j][1];
 	      delz = ztmp - x[j][2];
           rsq = delx*delx + dely*dely + delz*delz;
-          
+
           if (rsq <= cutneighsq[itype][jtype]) {
             if (molecular != Atom::ATOMIC) {
               if (!moltemplate)

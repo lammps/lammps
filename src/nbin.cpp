@@ -61,9 +61,9 @@ NBin::~NBin()
   memory->destroy(binhead);
   memory->destroy(bins);
   memory->destroy(atom2bin);
-  
+
   if (!binhead_multi) return;
-  
+
   memory->destroy(nbinx_multi);
   memory->destroy(nbiny_multi);
   memory->destroy(nbinz_multi);
@@ -87,7 +87,7 @@ NBin::~NBin()
   }
   delete [] binhead_multi;
 
-  memory->destroy(maxbins_multi);  
+  memory->destroy(maxbins_multi);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -111,7 +111,7 @@ void NBin::copy_neighbor_info()
   binsize_user = neighbor->binsize_user;
   bboxlo = neighbor->bboxlo;
   bboxhi = neighbor->bboxhi;
-  
+
   ncollections = neighbor->ncollections;
   cutcollectionsq = neighbor->cutcollectionsq;
 
@@ -206,7 +206,7 @@ int NBin::coord2bin_multi(double *x, int ic)
   } else
     iz = static_cast<int> ((x[2]-bboxlo[2])*bininvz_multi[ic]) - 1;
 
-  
+
   ibin = (iz-mbinzlo_multi[ic])*mbiny_multi[ic]*mbinx_multi[ic]
        + (iy-mbinylo_multi[ic])*mbinx_multi[ic]
        + (ix-mbinxlo_multi[ic]);

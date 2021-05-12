@@ -30,7 +30,7 @@ NPairHalfMultiNewtonTri::NPairHalfMultiNewtonTri(LAMMPS *lmp) : NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
    binned neighbor list construction with Newton's 3rd law for triclinic
-   multi stencil is icollection-jcollection dependent   
+   multi stencil is icollection-jcollection dependent
    each owned atom i checks its own bin and other bins in triclinic stencil
    every pair stored exactly once by some processor
 ------------------------------------------------------------------------- */
@@ -42,7 +42,7 @@ void NPairHalfMultiNewtonTri::build(NeighList *list)
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr,*s;
   int js;
-  
+
   int *collection = neighbor->collection;
   double **x = atom->x;
   int *type = atom->type;
@@ -83,14 +83,14 @@ void NPairHalfMultiNewtonTri::build(NeighList *list)
     }
 
     ibin = atom2bin[i];
-    
+
     // loop through stencils for all collections
     for (jcollection = 0; jcollection < ncollections; jcollection++) {
 
       // if same collection use own bin
       if (icollection == jcollection) jbin = ibin;
 	  else jbin = coord2bin(x[i], jcollection);
-      
+
       // loop over all atoms in bins in stencil
       // stencil is empty if i larger than j
       // stencil is half if i same size as j
@@ -102,12 +102,12 @@ void NPairHalfMultiNewtonTri::build(NeighList *list)
 
 	  s = stencil_multi[icollection][jcollection];
 	  ns = nstencil_multi[icollection][jcollection];
-      
+
 	  for (k = 0; k < ns; k++) {
 	    js = binhead_multi[jcollection][jbin + s[k]];
 	    for (j = js; j >= 0; j = bins[j]) {
-                  
-          // if same size (same collection), use half stencil            
+
+          // if same size (same collection), use half stencil
           if(cutcollectionsq[icollection][icollection] == cutcollectionsq[jcollection][jcollection]){
             if (x[j][2] < ztmp) continue;
             if (x[j][2] == ztmp) {
@@ -116,17 +116,17 @@ void NPairHalfMultiNewtonTri::build(NeighList *list)
                 if (x[j][0] < xtmp) continue;
                 if (x[j][0] == xtmp && j <= i) continue;
               }
-            }                
-          }            
-          
+            }
+          }
+
           jtype = type[j];
           if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
-          
+
 	      delx = xtmp - x[j][0];
 	      dely = ytmp - x[j][1];
 	      delz = ztmp - x[j][2];
 	      rsq = delx*delx + dely*dely + delz*delz;
-      
+
 	      if (rsq <= cutneighsq[itype][jtype]) {
 	        if (molecular != Atom::ATOMIC) {
 	  	    if (!moltemplate)
@@ -145,7 +145,7 @@ void NPairHalfMultiNewtonTri::build(NeighList *list)
 	    }
 	  }
     }
-    
+
     ilist[inum++] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;

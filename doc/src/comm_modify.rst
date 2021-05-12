@@ -67,7 +67,7 @@ cutoff across all atom type pairs.
 
 For many systems this is an efficient algorithm, but for systems with
 widely varying cutoffs for different type pairs, the *multi* or *multi/old* mode can
-be faster.  In *multi*, each atom is assigned to a collection which should 
+be faster.  In *multi*, each atom is assigned to a collection which should
 correspond to a set of atoms with similar interaction cutoffs.
 In this case, each atom collection is assigned its own distance
 cutoff for communication purposes, and fewer atoms will be
@@ -100,22 +100,22 @@ The *cutoff/multi* option is equivalent to *cutoff*\ , but applies to
 communication mode *multi* instead. Since the communication
 cutoffs are determined per atom collections, a collection specifier is needed and
 cutoff for one or multiple collections can be extended. Also ranges of collections
-using the usual asterisk notation can be given. 
+using the usual asterisk notation can be given.
 Collections are indexed from 1 to N where N is the total number of collections.
 Note that the arguments for *cutoff/multi* are parsed right before each
 simulation to account for potential changes in the number of collections.
-Custom cutoffs are preserved between runs but if collections are redefined, 
+Custom cutoffs are preserved between runs but if collections are redefined,
 one may want to respecify communication cutoffs.
-For granular pair styles,the default cutoff is set to the sum of the 
-current maximum atomic radii for each collection. 
+For granular pair styles,the default cutoff is set to the sum of the
+current maximum atomic radii for each collection.
 The *cutoff/multi/old* option is similar to *cutoff/multi* except it
 operates on atom types as opposed to collections.
 
-The *reduce/multi* option applies to *multi* and sets the communication 
-cutoff for a particle equal to the maximum interaction distance between particles 
+The *reduce/multi* option applies to *multi* and sets the communication
+cutoff for a particle equal to the maximum interaction distance between particles
 in the same collection. This reduces the number of
-ghost atoms that need to be communicated. This method is only compatible with the 
-*multi* neighbor style and requires a half neighbor list and Newton on. 
+ghost atoms that need to be communicated. This method is only compatible with the
+*multi* neighbor style and requires a half neighbor list and Newton on.
 See the :doc:`neighbor multi <neighbor>` command for more information.
 
 These are simulation scenarios in which it may be useful or even

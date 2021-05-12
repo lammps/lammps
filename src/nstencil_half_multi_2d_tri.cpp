@@ -43,7 +43,7 @@ void NStencilHalfMulti2dTri::set_stencil_properties()
       if(cutcollectionsq[i][i] > cutcollectionsq[j][j]) continue;
 
       flag_skip_multi[i][j] = 0;
-      
+
       if(cutcollectionsq[i][i] == cutcollectionsq[j][j]){
         flag_half_multi[i][j] = 1;
         bin_collection_multi[i][j] = i;
@@ -64,27 +64,27 @@ void NStencilHalfMulti2dTri::create()
   int icollection, jcollection, bin_collection, i, j, ns;
   int n = ncollections;
   double cutsq;
-  
-  
+
+
   for (icollection = 0; icollection < n; icollection++) {
     for (jcollection = 0; jcollection < n; jcollection++) {
       if (flag_skip_multi[icollection][jcollection]) {
         nstencil_multi[icollection][jcollection] = 0;
         continue;
       }
-      
+
       ns = 0;
-      
+
       sx = stencil_sx_multi[icollection][jcollection];
       sy = stencil_sy_multi[icollection][jcollection];
-      
+
       mbinx = stencil_mbinx_multi[icollection][jcollection];
       mbiny = stencil_mbiny_multi[icollection][jcollection];
-      
+
       bin_collection = bin_collection_multi[icollection][jcollection];
-      
+
       cutsq = cutcollectionsq[icollection][jcollection];
-      
+
       if (flag_half_multi[icollection][jcollection]) {
         for (j = 0; j <= sy; j++)
           for (i = -sx; i <= sx; i++)
@@ -96,7 +96,7 @@ void NStencilHalfMulti2dTri::create()
 	        if (bin_distance_multi(i,j,0,bin_collection) < cutsq)
 	          stencil_multi[icollection][jcollection][ns++] = j*mbinx + i;
       }
-      
+
       nstencil_multi[icollection][jcollection] = ns;
     }
   }

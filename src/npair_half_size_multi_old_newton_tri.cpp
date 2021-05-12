@@ -106,7 +106,7 @@ void NPairHalfSizeMultiOldNewtonTri::build(NeighList *list)
         cutdistsq = (radsum+skin) * (radsum+skin);
 
         if (rsq <= cutdistsq) {
-          if (history && rsq < radsum*radsum) 
+          if (history && rsq < radsum*radsum)
             neighptr[n++] = j ^ mask_history;
           else
             neighptr[n++] = j;

@@ -1090,7 +1090,7 @@ double PairHybrid::atom2cut(int i)
   for (int m = 0; m < nstyles; m++) {
     if (styles[m]->finitecutflag) {
       temp = styles[m]->atom2cut(i);
-      if (temp > cut) cut = temp;      
+      if (temp > cut) cut = temp;
     }
   }
   return cut;
@@ -1108,7 +1108,7 @@ double PairHybrid::radii2cut(double r1, double r2)
   for (int m = 0; m < nstyles; m++) {
     if (styles[m]->finitecutflag) {
       temp = styles[m]->radii2cut(r1,r2);
-      if (temp > cut) cut = temp;      
+      if (temp > cut) cut = temp;
     }
   }
   return cut;

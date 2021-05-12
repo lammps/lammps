@@ -34,17 +34,17 @@ class NStencil : protected Pointers {
   int *** stencil_multi;           // list of bin offsets in each multi stencil
   int ** maxstencil_multi;         // max stencil size for each multi stencil
   int maxcollections;              // size of multi arrays
-  
+
   int sx,sy,sz;                    // extent of stencil in each dim
   int **stencil_sx_multi;         // analogs for each multi stencil
   int **stencil_sy_multi;
   int **stencil_sz_multi;
 
-  double cutoff_custom;            // cutoff set by requestor  
-  
+  double cutoff_custom;            // cutoff set by requestor
+
   // Arrays to store options for multi itype-jtype stencils
   bool **flag_half_multi;          // flag creation of a half stencil for icollection-jcollection
-  bool **flag_skip_multi;          // skip creation of icollection-jcollection stencils (for newton on)  
+  bool **flag_skip_multi;          // skip creation of icollection-jcollection stencils (for newton on)
   int **bin_collection_multi;      // what collection to use for bin information
 
   NStencil(class LAMMPS *);
@@ -70,15 +70,15 @@ class NStencil : protected Pointers {
   double **cutcollectionsq;
   int ncollections;
   int *collection;
-  
+
   // data from NBin class
 
   int mbinx,mbiny,mbinz;
   double binsizex,binsizey,binsizez;
   double bininvx,bininvy,bininvz;
-  
+
   // data from NBin class for multi
-  
+
   int *mbinx_multi;
   int *mbiny_multi;
   int *mbinz_multi;
@@ -88,16 +88,16 @@ class NStencil : protected Pointers {
   double *bininvx_multi;
   double *bininvy_multi;
   double *bininvz_multi;
-  
+
   // Stored bin information for each stencil
-  
+
   int **stencil_mbinx_multi;
   int **stencil_mbiny_multi;
   int **stencil_mbinz_multi;
   double **stencil_binsizex_multi;
   double **stencil_binsizey_multi;
-  double **stencil_binsizez_multi;  
-  
+  double **stencil_binsizez_multi;
+
   // data common to all NStencil variants
 
   int xyzflag;                     // 1 if stencilxyz is allocated
@@ -113,9 +113,9 @@ class NStencil : protected Pointers {
 
   // methods for multi NStencil
 
-  double bin_distance_multi(int, int, int, int);   // distance between bin corners for different collections 
+  double bin_distance_multi(int, int, int, int);   // distance between bin corners for different collections
   void copy_bin_info_multi();                      // copy multi info from NBin class
-  virtual void set_stencil_properties(){}          // determine which stencils to build and how 
+  virtual void set_stencil_properties(){}          // determine which stencils to build and how
 };
 
 }

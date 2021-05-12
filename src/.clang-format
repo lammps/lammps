@@ -16,7 +16,7 @@ BraceWrapping:
 BreakBeforeBraces:                    Custom
 BreakConstructorInitializers:         AfterColon
 BreakInheritanceList:                 AfterColon
-ColumnLimit:                          80
+ColumnLimit:                          100
 IndentCaseLabels:                     true
 IndentWidth:                          2
 NamespaceIndentation:                 Inner

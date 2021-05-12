@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -13,17 +12,15 @@
 ------------------------------------------------------------------------- */
 
 #include "lammps.h"
+
 #include "input.h"
-
-#include <mpi.h>
-#include <cstdlib>
-
-#if defined(LAMMPS_TRAP_FPE) && defined(_GNU_SOURCE)
-#include <fenv.h>
-#endif
-
 #if defined(LAMMPS_EXCEPTIONS)
 #include "exceptions.h"
+#endif
+
+#include <cstdlib>
+#if defined(LAMMPS_TRAP_FPE) && defined(_GNU_SOURCE)
+#include <fenv.h>
 #endif
 
 using namespace LAMMPS_NS;
@@ -34,11 +31,11 @@ using namespace LAMMPS_NS;
 
 int main(int argc, char **argv)
 {
-  MPI_Init(&argc,&argv);
+  MPI_Init(&argc, &argv);
 
-// enable trapping selected floating point exceptions.
-// this uses GNU extensions and is only tested on Linux
-// therefore we make it depend on -D_GNU_SOURCE, too.
+  // enable trapping selected floating point exceptions.
+  // this uses GNU extensions and is only tested on Linux
+  // therefore we make it depend on -D_GNU_SOURCE, too.
 
 #if defined(LAMMPS_TRAP_FPE) && defined(_GNU_SOURCE)
   fesetenv(FE_NOMASK_ENV);
@@ -50,27 +47,27 @@ int main(int argc, char **argv)
 
 #ifdef LAMMPS_EXCEPTIONS
   try {
-    LAMMPS *lammps = new LAMMPS(argc,argv,MPI_COMM_WORLD);
+    LAMMPS *lammps = new LAMMPS(argc, argv, MPI_COMM_WORLD);
     lammps->input->file();
     delete lammps;
-  } catch(LAMMPSAbortException &ae) {
+  } catch (LAMMPSAbortException &ae) {
     MPI_Abort(ae.universe, 1);
-  } catch(LAMMPSException &e) {
+  } catch (LAMMPSException &e) {
     MPI_Barrier(MPI_COMM_WORLD);
     MPI_Finalize();
     exit(1);
-  } catch(fmt::format_error &fe) {
-    fprintf(stderr,"fmt::format_error: %s\n", fe.what());
+  } catch (fmt::format_error &fe) {
+    fprintf(stderr, "fmt::format_error: %s\n", fe.what());
     MPI_Abort(MPI_COMM_WORLD, 1);
     exit(1);
   }
 #else
   try {
-    LAMMPS *lammps = new LAMMPS(argc,argv,MPI_COMM_WORLD);
+    LAMMPS *lammps = new LAMMPS(argc, argv, MPI_COMM_WORLD);
     lammps->input->file();
     delete lammps;
-  } catch(fmt::format_error &fe) {
-    fprintf(stderr,"fmt::format_error: %s\n", fe.what());
+  } catch (fmt::format_error &fe) {
+    fprintf(stderr, "fmt::format_error: %s\n", fe.what());
     MPI_Abort(MPI_COMM_WORLD, 1);
     exit(1);
   }

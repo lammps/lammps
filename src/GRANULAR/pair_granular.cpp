@@ -67,6 +67,7 @@ PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp)
   single_enable = 1;
   no_virial_fdotr_compute = 1;
   centroidstressflag = CENTROID_NOTAVAIL;
+  finitecutflag = 1;
 
   single_extra = 12;
   svector = new double[single_extra];
@@ -1836,4 +1837,51 @@ void PairGranular::transfer_history(double* source, double* target)
 {
   for (int i = 0; i < size_history; i++)
     target[i] = history_transfer_factors[i]*source[i];
+}
+
+/* ----------------------------------------------------------------------
+   self-interaction range of particle
+------------------------------------------------------------------------- */
+
+double PairGranular::atom2cut(int i)
+{
+  double cut;
+
+  cut = atom->radius[i]*2;
+  if(beyond_contact) {
+    int itype = atom->type[i];
+    if(normal_model[itype][itype] == JKR) {
+      cut += pulloff_distance(cut, cut, itype, itype);
+    }
+  }
+
+  return cut;
+}
+
+/* ----------------------------------------------------------------------
+   maximum interaction range for two finite particles
+------------------------------------------------------------------------- */
+
+double PairGranular::radii2cut(double r1, double r2)
+{
+  double cut = 0.0;
+
+  if(beyond_contact) {
+    int n = atom->ntypes;
+    double temp;
+
+    // Check all combinations of i and j to find theoretical maximum pull off distance
+    for(int i = 0; i < n; i++){
+      for(int j = 0; j < n; j++){
+        if(normal_model[i][j] == JKR) {
+          temp = pulloff_distance(r1, r2, i, j);
+          if(temp > cut) cut = temp;
+        }
+      }
+    }
+  }
+
+  cut += r1 + r2;
+
+  return cut;
 }

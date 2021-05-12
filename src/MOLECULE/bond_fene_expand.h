@@ -13,7 +13,7 @@
 
 #ifdef BOND_CLASS
 
-BondStyle(fene / expand, BondFENEExpand)
+BondStyle(fene/expand, BondFENEExpand)
 
 #else
 

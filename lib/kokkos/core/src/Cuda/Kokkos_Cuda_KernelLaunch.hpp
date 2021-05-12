@@ -158,6 +158,9 @@ inline void check_shmem_request(CudaInternal const* cuda_instance, int shmem) {
   }
 }
 
+// This function needs to be template on DriverType and LaunchBounds
+// so that the static bool is unique for each type combo
+// KernelFuncPtr does not necessarily contain that type information.
 template <class DriverType, class LaunchBounds, class KernelFuncPtr>
 inline void configure_shmem_preference(KernelFuncPtr const& func,
                                        bool prefer_shmem) {
@@ -355,8 +358,7 @@ struct CudaParallelLaunchKernelInvoker<
 
     if (!Impl::is_empty_launch(grid, block)) {
       Impl::check_shmem_request(cuda_instance, shmem);
-      Impl::configure_shmem_preference<DriverType, LaunchBounds,
-                                       decltype(base_t::get_kernel_func())>(
+      Impl::configure_shmem_preference<DriverType, LaunchBounds>(
           base_t::get_kernel_func(), prefer_shmem);
 
       void const* args[] = {&driver};
@@ -449,8 +451,7 @@ struct CudaParallelLaunchKernelInvoker<
 
     if (!Impl::is_empty_launch(grid, block)) {
       Impl::check_shmem_request(cuda_instance, shmem);
-      Impl::configure_shmem_preference<DriverType, LaunchBounds,
-                                       decltype(base_t::get_kernel_func())>(
+      Impl::configure_shmem_preference<DriverType, LaunchBounds>(
           base_t::get_kernel_func(), prefer_shmem);
 
       auto* driver_ptr = Impl::allocate_driver_storage_for_kernel(driver);
@@ -627,9 +628,8 @@ struct CudaParallelLaunchImpl<
           get_cuda_func_attributes(), block, shmem, prefer_shmem);
 
       Impl::configure_shmem_preference<
-          DriverType, Kokkos::LaunchBounds<MaxThreadsPerBlock, MinBlocksPerSM>,
-          decltype(base_t::get_kernel_func())>(base_t::get_kernel_func(),
-                                               prefer_shmem);
+          DriverType, Kokkos::LaunchBounds<MaxThreadsPerBlock, MinBlocksPerSM>>(
+          base_t::get_kernel_func(), prefer_shmem);
 
       KOKKOS_ENSURE_CUDA_LOCK_ARRAYS_ON_DEVICE();
 

@@ -69,6 +69,7 @@ page gives those details.
    * :ref:`USER-ATC <PKG-USER-ATC>`
    * :ref:`USER-AWPMD <PKG-USER-AWPMD>`
    * :ref:`USER-BOCS <PKG-USER-BOCS>`
+   * :ref:`USER-BROWNIAN <PKG-USER-BROWNIAN>`
    * :ref:`USER-CGDNA <PKG-USER-CGDNA>`
    * :ref:`USER-CGSDK <PKG-USER-CGSDK>`
    * :ref:`USER-COLVARS <PKG-USER-COLVARS>`
@@ -1263,6 +1264,26 @@ Dunn, NJH; Lebold, KM; DeLyser, MR; Rudzinski, JF; Noid, WG.
 J. Phys. Chem. B. 122, 13, 3363-3377 (2018).
 
 Example inputs are in the examples/USER/bocs folder.
+
+----------
+
+.. _PKG-USER-BROWNIAN:
+
+USER-BROWNIAN package
+---------------------
+
+**Contents:**
+
+This package provides :doc:`fix brownian, fix brownian/sphere, and
+fix brownian/asphere <fix_brownian>` as well as
+:doc:`fix propel/self <fix_propel_self>` which allow to do Brownian
+Dynamics time integration of point, spherical and aspherical particles
+and also support self-propelled particles.
+
+**Authors:** Sam Cameron (University of Bristol),
+Stefan Paquay (while at Brandeis University) (initial version of fix propel/self)
+
+Example inputs are in the examples/USER/brownian folder.
 
 ----------
 

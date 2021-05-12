@@ -668,6 +668,25 @@ struct Random_UniqueIndex<Kokkos::Experimental::HIP> {
 };
 #endif
 
+#ifdef KOKKOS_ENABLE_SYCL
+template <>
+struct Random_UniqueIndex<Kokkos::Experimental::SYCL> {
+  using locks_view_type = View<int*, Kokkos::Experimental::SYCL>;
+  KOKKOS_FUNCTION
+  static int get_state_idx(const locks_view_type& locks_) {
+#ifdef KOKKOS_ARCH_INTEL_GEN
+    int i = Kokkos::Impl::clock_tic() % locks_.extent(0);
+#else
+    int i = 0;
+#endif
+    while (Kokkos::atomic_compare_exchange(&locks_(i), 0, 1)) {
+      i = (i + 1) % static_cast<int>(locks_.extent(0));
+    }
+    return i;
+  }
+};
+#endif
+
 }  // namespace Impl
 
 template <class DeviceType>
@@ -1028,7 +1047,7 @@ class Random_XorShift1024 {
 
   KOKKOS_INLINE_FUNCTION
   double drand(const double& start, const double& end) {
-    return frand(end - start) + start;
+    return drand(end - start) + start;
   }
 
   // Marsaglia polar method for drawing a standard normal distributed random

@@ -1582,7 +1582,7 @@ struct HostIterateTile<
     point_type m_offset;
     point_type m_tiledims;
 
-    if (RP::outer_direction == RP::Left) {
+    if (RP::outer_direction == Iterate::Left) {
       for (int i = 0; i < RP::rank; ++i) {
         m_offset[i] =
             (tile_idx % m_rp.m_tile_end[i]) * m_rp.m_tile[i] + m_rp.m_lower[i];
@@ -1600,7 +1600,7 @@ struct HostIterateTile<
     // partial tile dims
     const bool full_tile = check_iteration_bounds(m_tiledims, m_offset);
 
-    Tile_Loop_Type<RP::rank, (RP::inner_direction == RP::Left), index_type,
+    Tile_Loop_Type<RP::rank, (RP::inner_direction == Iterate::Left), index_type,
                    Tag>::apply(m_func, full_tile, m_offset, m_rp.m_tile,
                                m_tiledims);
   }
@@ -1618,7 +1618,7 @@ struct HostIterateTile<
     point_type m_offset;
     point_type m_tiledims;
 
-    if (RP::outer_direction == RP::Left) {
+    if (RP::outer_direction == Iterate::Left) {
       for (int i = 0; i < RP::rank; ++i) {
         m_offset[i] =
             (tile_idx % m_rp.m_tile_end[i]) * m_rp.m_tile[i] + m_rp.m_lower[i];
@@ -1636,7 +1636,7 @@ struct HostIterateTile<
     // partial tile dims
     const bool full_tile = check_iteration_bounds(m_tiledims, m_offset);
 
-    if (RP::inner_direction == RP::Left) {
+    if (RP::inner_direction == Iterate::Left) {
       if (full_tile) {
         //      #pragma simd
         LOOP_2L(index_type, m_tiledims) { apply(LOOP_ARGS_2); }
@@ -1644,7 +1644,7 @@ struct HostIterateTile<
         //      #pragma simd
         LOOP_2L(index_type, m_tiledims) { apply(LOOP_ARGS_2); }
       }
-    }  // end RP::Left
+    }  // end Iterate::Left
     else {
       if (full_tile) {
         //      #pragma simd
@@ -1653,7 +1653,7 @@ struct HostIterateTile<
         //      #pragma simd
         LOOP_2R(index_type, m_tiledims) { apply(LOOP_ARGS_2); }
       }
-    }  // end RP::Right
+    }  // end Iterate::Right
 
   }  // end op() rank == 2
 
@@ -1662,7 +1662,7 @@ struct HostIterateTile<
     point_type m_offset;
     point_type m_tiledims;
 
-    if (RP::outer_direction == RP::Left) {
+    if (RP::outer_direction == Iterate::Left) {
       for (int i = 0; i < RP::rank; ++i) {
         m_offset[i] =
             (tile_idx % m_rp.m_tile_end[i]) * m_rp.m_tile[i] + m_rp.m_lower[i];
@@ -1680,7 +1680,7 @@ struct HostIterateTile<
     // partial tile dims
     const bool full_tile = check_iteration_bounds(m_tiledims, m_offset);
 
-    if (RP::inner_direction == RP::Left) {
+    if (RP::inner_direction == Iterate::Left) {
       if (full_tile) {
         //      #pragma simd
         LOOP_3L(index_type, m_tiledims) { apply(LOOP_ARGS_3); }
@@ -1688,7 +1688,7 @@ struct HostIterateTile<
         //      #pragma simd
         LOOP_3L(index_type, m_tiledims) { apply(LOOP_ARGS_3); }
       }
-    }  // end RP::Left
+    }  // end Iterate::Left
     else {
       if (full_tile) {
         //      #pragma simd
@@ -1697,7 +1697,7 @@ struct HostIterateTile<
         //      #pragma simd
         LOOP_3R(index_type, m_tiledims) { apply(LOOP_ARGS_3); }
       }
-    }  // end RP::Right
+    }  // end Iterate::Right
 
   }  // end op() rank == 3
 
@@ -1706,7 +1706,7 @@ struct HostIterateTile<
     point_type m_offset;
     point_type m_tiledims;
 
-    if (RP::outer_direction == RP::Left) {
+    if (RP::outer_direction == Iterate::Left) {
       for (int i = 0; i < RP::rank; ++i) {
         m_offset[i] =
             (tile_idx % m_rp.m_tile_end[i]) * m_rp.m_tile[i] + m_rp.m_lower[i];
@@ -1724,7 +1724,7 @@ struct HostIterateTile<
     // partial tile dims
     const bool full_tile = check_iteration_bounds(m_tiledims, m_offset);
 
-    if (RP::inner_direction == RP::Left) {
+    if (RP::inner_direction == Iterate::Left) {
       if (full_tile) {
         //      #pragma simd
         LOOP_4L(index_type, m_tiledims) { apply(LOOP_ARGS_4); }
@@ -1732,7 +1732,7 @@ struct HostIterateTile<
         //      #pragma simd
         LOOP_4L(index_type, m_tiledims) { apply(LOOP_ARGS_4); }
       }
-    }  // end RP::Left
+    }  // end Iterate::Left
     else {
       if (full_tile) {
         //      #pragma simd
@@ -1741,7 +1741,7 @@ struct HostIterateTile<
         //      #pragma simd
         LOOP_4R(index_type, m_tiledims) { apply(LOOP_ARGS_4); }
       }
-    }  // end RP::Right
+    }  // end Iterate::Right
 
   }  // end op() rank == 4
 
@@ -1750,7 +1750,7 @@ struct HostIterateTile<
     point_type m_offset;
     point_type m_tiledims;
 
-    if (RP::outer_direction == RP::Left) {
+    if (RP::outer_direction == Iterate::Left) {
       for (int i = 0; i < RP::rank; ++i) {
         m_offset[i] =
             (tile_idx % m_rp.m_tile_end[i]) * m_rp.m_tile[i] + m_rp.m_lower[i];
@@ -1768,7 +1768,7 @@ struct HostIterateTile<
     // partial tile dims
     const bool full_tile = check_iteration_bounds(m_tiledims, m_offset);
 
-    if (RP::inner_direction == RP::Left) {
+    if (RP::inner_direction == Iterate::Left) {
       if (full_tile) {
         //      #pragma simd
         LOOP_5L(index_type, m_tiledims) { apply(LOOP_ARGS_5); }
@@ -1776,7 +1776,7 @@ struct HostIterateTile<
         //      #pragma simd
         LOOP_5L(index_type, m_tiledims) { apply(LOOP_ARGS_5); }
       }
-    }  // end RP::Left
+    }  // end Iterate::Left
     else {
       if (full_tile) {
         //      #pragma simd
@@ -1785,7 +1785,7 @@ struct HostIterateTile<
         //      #pragma simd
         LOOP_5R(index_type, m_tiledims) { apply(LOOP_ARGS_5); }
       }
-    }  // end RP::Right
+    }  // end Iterate::Right
 
   }  // end op() rank == 5
 
@@ -1794,7 +1794,7 @@ struct HostIterateTile<
     point_type m_offset;
     point_type m_tiledims;
 
-    if (RP::outer_direction == RP::Left) {
+    if (RP::outer_direction == Iterate::Left) {
       for (int i = 0; i < RP::rank; ++i) {
         m_offset[i] =
             (tile_idx % m_rp.m_tile_end[i]) * m_rp.m_tile[i] + m_rp.m_lower[i];
@@ -1812,7 +1812,7 @@ struct HostIterateTile<
     // partial tile dims
     const bool full_tile = check_iteration_bounds(m_tiledims, m_offset);
 
-    if (RP::inner_direction == RP::Left) {
+    if (RP::inner_direction == Iterate::Left) {
       if (full_tile) {
         //      #pragma simd
         LOOP_6L(index_type, m_tiledims) { apply(LOOP_ARGS_6); }
@@ -1820,7 +1820,7 @@ struct HostIterateTile<
         //      #pragma simd
         LOOP_6L(index_type, m_tiledims) { apply(LOOP_ARGS_6); }
       }
-    }  // end RP::Left
+    }  // end Iterate::Left
     else {
       if (full_tile) {
         //      #pragma simd
@@ -1829,7 +1829,7 @@ struct HostIterateTile<
         //      #pragma simd
         LOOP_6R(index_type, m_tiledims) { apply(LOOP_ARGS_6); }
       }
-    }  // end RP::Right
+    }  // end Iterate::Right
 
   }  // end op() rank == 6
 
@@ -1838,7 +1838,7 @@ struct HostIterateTile<
     point_type m_offset;
     point_type m_tiledims;
 
-    if (RP::outer_direction == RP::Left) {
+    if (RP::outer_direction == Iterate::Left) {
       for (int i = 0; i < RP::rank; ++i) {
         m_offset[i] =
             (tile_idx % m_rp.m_tile_end[i]) * m_rp.m_tile[i] + m_rp.m_lower[i];
@@ -1856,7 +1856,7 @@ struct HostIterateTile<
     // partial tile dims
     const bool full_tile = check_iteration_bounds(m_tiledims, m_offset);
 
-    if (RP::inner_direction == RP::Left) {
+    if (RP::inner_direction == Iterate::Left) {
       if (full_tile) {
         //      #pragma simd
         LOOP_7L(index_type, m_tiledims) { apply(LOOP_ARGS_7); }
@@ -1864,7 +1864,7 @@ struct HostIterateTile<
         //      #pragma simd
         LOOP_7L(index_type, m_tiledims) { apply(LOOP_ARGS_7); }
       }
-    }  // end RP::Left
+    }  // end Iterate::Left
     else {
       if (full_tile) {
         //      #pragma simd
@@ -1873,7 +1873,7 @@ struct HostIterateTile<
         //      #pragma simd
         LOOP_7R(index_type, m_tiledims) { apply(LOOP_ARGS_7); }
       }
-    }  // end RP::Right
+    }  // end Iterate::Right
 
   }  // end op() rank == 7
 
@@ -1882,7 +1882,7 @@ struct HostIterateTile<
     point_type m_offset;
     point_type m_tiledims;
 
-    if (RP::outer_direction == RP::Left) {
+    if (RP::outer_direction == Iterate::Left) {
       for (int i = 0; i < RP::rank; ++i) {
         m_offset[i] =
             (tile_idx % m_rp.m_tile_end[i]) * m_rp.m_tile[i] + m_rp.m_lower[i];
@@ -1900,7 +1900,7 @@ struct HostIterateTile<
     // partial tile dims
     const bool full_tile = check_iteration_bounds(m_tiledims, m_offset);
 
-    if (RP::inner_direction == RP::Left) {
+    if (RP::inner_direction == Iterate::Left) {
       if (full_tile) {
         //      #pragma simd
         LOOP_8L(index_type, m_tiledims) { apply(LOOP_ARGS_8); }
@@ -1908,7 +1908,7 @@ struct HostIterateTile<
         //      #pragma simd
         LOOP_8L(index_type, m_tiledims) { apply(LOOP_ARGS_8); }
       }
-    }  // end RP::Left
+    }  // end Iterate::Left
     else {
       if (full_tile) {
         //      #pragma simd
@@ -1917,7 +1917,7 @@ struct HostIterateTile<
         //      #pragma simd
         LOOP_8R(index_type, m_tiledims) { apply(LOOP_ARGS_8); }
       }
-    }  // end RP::Right
+    }  // end Iterate::Right
 
   }  // end op() rank == 8
 #endif
@@ -2003,7 +2003,7 @@ struct HostIterateTile<
     point_type m_offset;
     point_type m_tiledims;
 
-    if (RP::outer_direction == RP::Left) {
+    if (RP::outer_direction == Iterate::Left) {
       for (int i = 0; i < RP::rank; ++i) {
         m_offset[i] =
             (tile_idx % m_rp.m_tile_end[i]) * m_rp.m_tile[i] + m_rp.m_lower[i];
@@ -2021,7 +2021,7 @@ struct HostIterateTile<
     // partial tile dims
     const bool full_tile = check_iteration_bounds(m_tiledims, m_offset);
 
-    Tile_Loop_Type<RP::rank, (RP::inner_direction == RP::Left), index_type,
+    Tile_Loop_Type<RP::rank, (RP::inner_direction == Iterate::Left), index_type,
                    Tag>::apply(m_v, m_func, full_tile, m_offset, m_rp.m_tile,
                                m_tiledims);
   }
@@ -2039,7 +2039,7 @@ struct HostIterateTile<
     point_type m_offset;
     point_type m_tiledims;
 
-    if (RP::outer_direction == RP::Left) {
+    if (RP::outer_direction == Iterate::Left) {
       for (int i = 0; i < RP::rank; ++i) {
         m_offset[i] =
             (tile_idx % m_rp.m_tile_end[i]) * m_rp.m_tile[i] + m_rp.m_lower[i];
@@ -2057,7 +2057,7 @@ struct HostIterateTile<
     // partial tile dims
     const bool full_tile = check_iteration_bounds(m_tiledims, m_offset);
 
-    if (RP::inner_direction == RP::Left) {
+    if (RP::inner_direction == Iterate::Left) {
       if (full_tile) {
         //      #pragma simd
         LOOP_2L(index_type, m_tiledims) { apply(LOOP_ARGS_2); }
@@ -2065,7 +2065,7 @@ struct HostIterateTile<
         //      #pragma simd
         LOOP_2L(index_type, m_tiledims) { apply(LOOP_ARGS_2); }
       }
-    }  // end RP::Left
+    }  // end Iterate::Left
     else {
       if (full_tile) {
         //      #pragma simd
@@ -2074,7 +2074,7 @@ struct HostIterateTile<
         //      #pragma simd
         LOOP_2R(index_type, m_tiledims) { apply(LOOP_ARGS_2); }
       }
-    }  // end RP::Right
+    }  // end Iterate::Right
 
   }  // end op() rank == 2
 
@@ -2083,7 +2083,7 @@ struct HostIterateTile<
     point_type m_offset;
     point_type m_tiledims;
 
-    if (RP::outer_direction == RP::Left) {
+    if (RP::outer_direction == Iterate::Left) {
       for (int i = 0; i < RP::rank; ++i) {
         m_offset[i] =
             (tile_idx % m_rp.m_tile_end[i]) * m_rp.m_tile[i] + m_rp.m_lower[i];
@@ -2101,7 +2101,7 @@ struct HostIterateTile<
     // partial tile dims
     const bool full_tile = check_iteration_bounds(m_tiledims, m_offset);
 
-    if (RP::inner_direction == RP::Left) {
+    if (RP::inner_direction == Iterate::Left) {
       if (full_tile) {
         //      #pragma simd
         LOOP_3L(index_type, m_tiledims) { apply(LOOP_ARGS_3); }
@@ -2109,7 +2109,7 @@ struct HostIterateTile<
         //      #pragma simd
         LOOP_3L(index_type, m_tiledims) { apply(LOOP_ARGS_3); }
       }
-    }  // end RP::Left
+    }  // end Iterate::Left
     else {
       if (full_tile) {
         //      #pragma simd
@@ -2118,7 +2118,7 @@ struct HostIterateTile<
         //      #pragma simd
         LOOP_3R(index_type, m_tiledims) { apply(LOOP_ARGS_3); }
       }
-    }  // end RP::Right
+    }  // end Iterate::Right
 
   }  // end op() rank == 3
 
@@ -2127,7 +2127,7 @@ struct HostIterateTile<
     point_type m_offset;
     point_type m_tiledims;
 
-    if (RP::outer_direction == RP::Left) {
+    if (RP::outer_direction == Iterate::Left) {
       for (int i = 0; i < RP::rank; ++i) {
         m_offset[i] =
             (tile_idx % m_rp.m_tile_end[i]) * m_rp.m_tile[i] + m_rp.m_lower[i];
@@ -2145,7 +2145,7 @@ struct HostIterateTile<
     // partial tile dims
     const bool full_tile = check_iteration_bounds(m_tiledims, m_offset);
 
-    if (RP::inner_direction == RP::Left) {
+    if (RP::inner_direction == Iterate::Left) {
       if (full_tile) {
         //      #pragma simd
         LOOP_4L(index_type, m_tiledims) { apply(LOOP_ARGS_4); }
@@ -2153,7 +2153,7 @@ struct HostIterateTile<
         //      #pragma simd
         LOOP_4L(index_type, m_tiledims) { apply(LOOP_ARGS_4); }
       }
-    }  // end RP::Left
+    }  // end Iterate::Left
     else {
       if (full_tile) {
         //      #pragma simd
@@ -2162,7 +2162,7 @@ struct HostIterateTile<
         //      #pragma simd
         LOOP_4R(index_type, m_tiledims) { apply(LOOP_ARGS_4); }
       }
-    }  // end RP::Right
+    }  // end Iterate::Right
 
   }  // end op() rank == 4
 
@@ -2171,7 +2171,7 @@ struct HostIterateTile<
     point_type m_offset;
     point_type m_tiledims;
 
-    if (RP::outer_direction == RP::Left) {
+    if (RP::outer_direction == Iterate::Left) {
       for (int i = 0; i < RP::rank; ++i) {
         m_offset[i] =
             (tile_idx % m_rp.m_tile_end[i]) * m_rp.m_tile[i] + m_rp.m_lower[i];
@@ -2189,7 +2189,7 @@ struct HostIterateTile<
     // partial tile dims
     const bool full_tile = check_iteration_bounds(m_tiledims, m_offset);
 
-    if (RP::inner_direction == RP::Left) {
+    if (RP::inner_direction == Iterate::Left) {
       if (full_tile) {
         //      #pragma simd
         LOOP_5L(index_type, m_tiledims) { apply(LOOP_ARGS_5); }
@@ -2197,7 +2197,7 @@ struct HostIterateTile<
         //      #pragma simd
         LOOP_5L(index_type, m_tiledims) { apply(LOOP_ARGS_5); }
       }
-    }  // end RP::Left
+    }  // end Iterate::Left
     else {
       if (full_tile) {
         //      #pragma simd
@@ -2206,7 +2206,7 @@ struct HostIterateTile<
         //      #pragma simd
         LOOP_5R(index_type, m_tiledims) { apply(LOOP_ARGS_5); }
       }
-    }  // end RP::Right
+    }  // end Iterate::Right
 
   }  // end op() rank == 5
 
@@ -2215,7 +2215,7 @@ struct HostIterateTile<
     point_type m_offset;
     point_type m_tiledims;
 
-    if (RP::outer_direction == RP::Left) {
+    if (RP::outer_direction == Iterate::Left) {
       for (int i = 0; i < RP::rank; ++i) {
         m_offset[i] =
             (tile_idx % m_rp.m_tile_end[i]) * m_rp.m_tile[i] + m_rp.m_lower[i];
@@ -2233,7 +2233,7 @@ struct HostIterateTile<
     // partial tile dims
     const bool full_tile = check_iteration_bounds(m_tiledims, m_offset);
 
-    if (RP::inner_direction == RP::Left) {
+    if (RP::inner_direction == Iterate::Left) {
       if (full_tile) {
         //      #pragma simd
         LOOP_6L(index_type, m_tiledims) { apply(LOOP_ARGS_6); }
@@ -2241,7 +2241,7 @@ struct HostIterateTile<
         //      #pragma simd
         LOOP_6L(index_type, m_tiledims) { apply(LOOP_ARGS_6); }
       }
-    }  // end RP::Left
+    }  // end Iterate::Left
     else {
       if (full_tile) {
         //      #pragma simd
@@ -2250,7 +2250,7 @@ struct HostIterateTile<
         //      #pragma simd
         LOOP_6R(index_type, m_tiledims) { apply(LOOP_ARGS_6); }
       }
-    }  // end RP::Right
+    }  // end Iterate::Right
 
   }  // end op() rank == 6
 
@@ -2259,7 +2259,7 @@ struct HostIterateTile<
     point_type m_offset;
     point_type m_tiledims;
 
-    if (RP::outer_direction == RP::Left) {
+    if (RP::outer_direction == Iterate::Left) {
       for (int i = 0; i < RP::rank; ++i) {
         m_offset[i] =
             (tile_idx % m_rp.m_tile_end[i]) * m_rp.m_tile[i] + m_rp.m_lower[i];
@@ -2277,7 +2277,7 @@ struct HostIterateTile<
     // partial tile dims
     const bool full_tile = check_iteration_bounds(m_tiledims, m_offset);
 
-    if (RP::inner_direction == RP::Left) {
+    if (RP::inner_direction == Iterate::Left) {
       if (full_tile) {
         //      #pragma simd
         LOOP_7L(index_type, m_tiledims) { apply(LOOP_ARGS_7); }
@@ -2285,7 +2285,7 @@ struct HostIterateTile<
         //      #pragma simd
         LOOP_7L(index_type, m_tiledims) { apply(LOOP_ARGS_7); }
       }
-    }  // end RP::Left
+    }  // end Iterate::Left
     else {
       if (full_tile) {
         //      #pragma simd
@@ -2294,7 +2294,7 @@ struct HostIterateTile<
         //      #pragma simd
         LOOP_7R(index_type, m_tiledims) { apply(LOOP_ARGS_7); }
       }
-    }  // end RP::Right
+    }  // end Iterate::Right
 
   }  // end op() rank == 7
 
@@ -2303,7 +2303,7 @@ struct HostIterateTile<
     point_type m_offset;
     point_type m_tiledims;
 
-    if (RP::outer_direction == RP::Left) {
+    if (RP::outer_direction == Iterate::Left) {
       for (int i = 0; i < RP::rank; ++i) {
         m_offset[i] =
             (tile_idx % m_rp.m_tile_end[i]) * m_rp.m_tile[i] + m_rp.m_lower[i];
@@ -2321,7 +2321,7 @@ struct HostIterateTile<
     // partial tile dims
     const bool full_tile = check_iteration_bounds(m_tiledims, m_offset);
 
-    if (RP::inner_direction == RP::Left) {
+    if (RP::inner_direction == Iterate::Left) {
       if (full_tile) {
         //      #pragma simd
         LOOP_8L(index_type, m_tiledims) { apply(LOOP_ARGS_8); }
@@ -2329,7 +2329,7 @@ struct HostIterateTile<
         //      #pragma simd
         LOOP_8L(index_type, m_tiledims) { apply(LOOP_ARGS_8); }
       }
-    }  // end RP::Left
+    }  // end Iterate::Left
     else {
       if (full_tile) {
         //      #pragma simd
@@ -2338,7 +2338,7 @@ struct HostIterateTile<
         //      #pragma simd
         LOOP_8R(index_type, m_tiledims) { apply(LOOP_ARGS_8); }
       }
-    }  // end RP::Right
+    }  // end Iterate::Right
 
   }  // end op() rank == 8
 #endif
@@ -2426,7 +2426,7 @@ struct HostIterateTile<
     point_type m_offset;
     point_type m_tiledims;
 
-    if (RP::outer_direction == RP::Left) {
+    if (RP::outer_direction == Iterate::Left) {
       for (int i = 0; i < RP::rank; ++i) {
         m_offset[i] =
             (tile_idx % m_rp.m_tile_end[i]) * m_rp.m_tile[i] + m_rp.m_lower[i];
@@ -2444,7 +2444,7 @@ struct HostIterateTile<
     // partial tile dims
     const bool full_tile = check_iteration_bounds(m_tiledims, m_offset);
 
-    Tile_Loop_Type<RP::rank, (RP::inner_direction == RP::Left), index_type,
+    Tile_Loop_Type<RP::rank, (RP::inner_direction == Iterate::Left), index_type,
                    Tag>::apply(m_v, m_func, full_tile, m_offset, m_rp.m_tile,
                                m_tiledims);
   }
@@ -2462,7 +2462,7 @@ struct HostIterateTile<
     point_type m_offset;
     point_type m_tiledims;
 
-    if (RP::outer_direction == RP::Left) {
+    if (RP::outer_direction == Iterate::Left) {
       for (int i = 0; i < RP::rank; ++i) {
         m_offset[i] =
             (tile_idx % m_rp.m_tile_end[i]) * m_rp.m_tile[i] + m_rp.m_lower[i];
@@ -2480,7 +2480,7 @@ struct HostIterateTile<
     // partial tile dims
     const bool full_tile = check_iteration_bounds(m_tiledims, m_offset);
 
-    if (RP::inner_direction == RP::Left) {
+    if (RP::inner_direction == Iterate::Left) {
       if (full_tile) {
         //      #pragma simd
         LOOP_2L(index_type, m_tiledims) { apply(LOOP_ARGS_2); }
@@ -2488,7 +2488,7 @@ struct HostIterateTile<
         //      #pragma simd
         LOOP_2L(index_type, m_tiledims) { apply(LOOP_ARGS_2); }
       }
-    }  // end RP::Left
+    }  // end Iterate::Left
     else {
       if (full_tile) {
         //      #pragma simd
@@ -2497,7 +2497,7 @@ struct HostIterateTile<
         //      #pragma simd
         LOOP_2R(index_type, m_tiledims) { apply(LOOP_ARGS_2); }
       }
-    }  // end RP::Right
+    }  // end Iterate::Right
 
   }  // end op() rank == 2
 
@@ -2506,7 +2506,7 @@ struct HostIterateTile<
     point_type m_offset;
     point_type m_tiledims;
 
-    if (RP::outer_direction == RP::Left) {
+    if (RP::outer_direction == Iterate::Left) {
       for (int i = 0; i < RP::rank; ++i) {
         m_offset[i] =
             (tile_idx % m_rp.m_tile_end[i]) * m_rp.m_tile[i] + m_rp.m_lower[i];
@@ -2524,7 +2524,7 @@ struct HostIterateTile<
     // partial tile dims
     const bool full_tile = check_iteration_bounds(m_tiledims, m_offset);
 
-    if (RP::inner_direction == RP::Left) {
+    if (RP::inner_direction == Iterate::Left) {
       if (full_tile) {
         //      #pragma simd
         LOOP_3L(index_type, m_tiledims) { apply(LOOP_ARGS_3); }
@@ -2532,7 +2532,7 @@ struct HostIterateTile<
         //      #pragma simd
         LOOP_3L(index_type, m_tiledims) { apply(LOOP_ARGS_3); }
       }
-    }  // end RP::Left
+    }  // end Iterate::Left
     else {
       if (full_tile) {
         //      #pragma simd
@@ -2541,7 +2541,7 @@ struct HostIterateTile<
         //      #pragma simd
         LOOP_3R(index_type, m_tiledims) { apply(LOOP_ARGS_3); }
       }
-    }  // end RP::Right
+    }  // end Iterate::Right
 
   }  // end op() rank == 3
 
@@ -2550,7 +2550,7 @@ struct HostIterateTile<
     point_type m_offset;
     point_type m_tiledims;
 
-    if (RP::outer_direction == RP::Left) {
+    if (RP::outer_direction == Iterate::Left) {
       for (int i = 0; i < RP::rank; ++i) {
         m_offset[i] =
             (tile_idx % m_rp.m_tile_end[i]) * m_rp.m_tile[i] + m_rp.m_lower[i];
@@ -2568,7 +2568,7 @@ struct HostIterateTile<
     // partial tile dims
     const bool full_tile = check_iteration_bounds(m_tiledims, m_offset);
 
-    if (RP::inner_direction == RP::Left) {
+    if (RP::inner_direction == Iterate::Left) {
       if (full_tile) {
         //      #pragma simd
         LOOP_4L(index_type, m_tiledims) { apply(LOOP_ARGS_4); }
@@ -2576,7 +2576,7 @@ struct HostIterateTile<
         //      #pragma simd
         LOOP_4L(index_type, m_tiledims) { apply(LOOP_ARGS_4); }
       }
-    }  // end RP::Left
+    }  // end Iterate::Left
     else {
       if (full_tile) {
         //      #pragma simd
@@ -2585,7 +2585,7 @@ struct HostIterateTile<
         //      #pragma simd
         LOOP_4R(index_type, m_tiledims) { apply(LOOP_ARGS_4); }
       }
-    }  // end RP::Right
+    }  // end Iterate::Right
 
   }  // end op() rank == 4
 
@@ -2594,7 +2594,7 @@ struct HostIterateTile<
     point_type m_offset;
     point_type m_tiledims;
 
-    if (RP::outer_direction == RP::Left) {
+    if (RP::outer_direction == Iterate::Left) {
       for (int i = 0; i < RP::rank; ++i) {
         m_offset[i] =
             (tile_idx % m_rp.m_tile_end[i]) * m_rp.m_tile[i] + m_rp.m_lower[i];
@@ -2612,7 +2612,7 @@ struct HostIterateTile<
     // partial tile dims
     const bool full_tile = check_iteration_bounds(m_tiledims, m_offset);
 
-    if (RP::inner_direction == RP::Left) {
+    if (RP::inner_direction == Iterate::Left) {
       if (full_tile) {
         //      #pragma simd
         LOOP_5L(index_type, m_tiledims) { apply(LOOP_ARGS_5); }
@@ -2620,7 +2620,7 @@ struct HostIterateTile<
         //      #pragma simd
         LOOP_5L(index_type, m_tiledims) { apply(LOOP_ARGS_5); }
       }
-    }  // end RP::Left
+    }  // end Iterate::Left
     else {
       if (full_tile) {
         //      #pragma simd
@@ -2629,7 +2629,7 @@ struct HostIterateTile<
         //      #pragma simd
         LOOP_5R(index_type, m_tiledims) { apply(LOOP_ARGS_5); }
       }
-    }  // end RP::Right
+    }  // end Iterate::Right
 
   }  // end op() rank == 5
 
@@ -2638,7 +2638,7 @@ struct HostIterateTile<
     point_type m_offset;
     point_type m_tiledims;
 
-    if (RP::outer_direction == RP::Left) {
+    if (RP::outer_direction == Iterate::Left) {
       for (int i = 0; i < RP::rank; ++i) {
         m_offset[i] =
             (tile_idx % m_rp.m_tile_end[i]) * m_rp.m_tile[i] + m_rp.m_lower[i];
@@ -2656,7 +2656,7 @@ struct HostIterateTile<
     // partial tile dims
     const bool full_tile = check_iteration_bounds(m_tiledims, m_offset);
 
-    if (RP::inner_direction == RP::Left) {
+    if (RP::inner_direction == Iterate::Left) {
       if (full_tile) {
         //      #pragma simd
         LOOP_6L(index_type, m_tiledims) { apply(LOOP_ARGS_6); }
@@ -2664,7 +2664,7 @@ struct HostIterateTile<
         //      #pragma simd
         LOOP_6L(index_type, m_tiledims) { apply(LOOP_ARGS_6); }
       }
-    }  // end RP::Left
+    }  // end Iterate::Left
     else {
       if (full_tile) {
         //      #pragma simd
@@ -2673,7 +2673,7 @@ struct HostIterateTile<
         //      #pragma simd
         LOOP_6R(index_type, m_tiledims) { apply(LOOP_ARGS_6); }
       }
-    }  // end RP::Right
+    }  // end Iterate::Right
 
   }  // end op() rank == 6
 
@@ -2682,7 +2682,7 @@ struct HostIterateTile<
     point_type m_offset;
     point_type m_tiledims;
 
-    if (RP::outer_direction == RP::Left) {
+    if (RP::outer_direction == Iterate::Left) {
       for (int i = 0; i < RP::rank; ++i) {
         m_offset[i] =
             (tile_idx % m_rp.m_tile_end[i]) * m_rp.m_tile[i] + m_rp.m_lower[i];
@@ -2700,7 +2700,7 @@ struct HostIterateTile<
     // partial tile dims
     const bool full_tile = check_iteration_bounds(m_tiledims, m_offset);
 
-    if (RP::inner_direction == RP::Left) {
+    if (RP::inner_direction == Iterate::Left) {
       if (full_tile) {
         //      #pragma simd
         LOOP_7L(index_type, m_tiledims) { apply(LOOP_ARGS_7); }
@@ -2708,7 +2708,7 @@ struct HostIterateTile<
         //      #pragma simd
         LOOP_7L(index_type, m_tiledims) { apply(LOOP_ARGS_7); }
       }
-    }  // end RP::Left
+    }  // end Iterate::Left
     else {
       if (full_tile) {
         //      #pragma simd
@@ -2717,7 +2717,7 @@ struct HostIterateTile<
         //      #pragma simd
         LOOP_7R(index_type, m_tiledims) { apply(LOOP_ARGS_7); }
       }
-    }  // end RP::Right
+    }  // end Iterate::Right
 
   }  // end op() rank == 7
 
@@ -2726,7 +2726,7 @@ struct HostIterateTile<
     point_type m_offset;
     point_type m_tiledims;
 
-    if (RP::outer_direction == RP::Left) {
+    if (RP::outer_direction == Iterate::Left) {
       for (int i = 0; i < RP::rank; ++i) {
         m_offset[i] =
             (tile_idx % m_rp.m_tile_end[i]) * m_rp.m_tile[i] + m_rp.m_lower[i];
@@ -2744,7 +2744,7 @@ struct HostIterateTile<
     // partial tile dims
     const bool full_tile = check_iteration_bounds(m_tiledims, m_offset);
 
-    if (RP::inner_direction == RP::Left) {
+    if (RP::inner_direction == Iterate::Left) {
       if (full_tile) {
         //      #pragma simd
         LOOP_8L(index_type, m_tiledims) { apply(LOOP_ARGS_8); }
@@ -2752,7 +2752,7 @@ struct HostIterateTile<
         //      #pragma simd
         LOOP_8L(index_type, m_tiledims) { apply(LOOP_ARGS_8); }
       }
-    }  // end RP::Left
+    }  // end Iterate::Left
     else {
       if (full_tile) {
         //      #pragma simd
@@ -2761,7 +2761,7 @@ struct HostIterateTile<
         //      #pragma simd
         LOOP_8R(index_type, m_tiledims) { apply(LOOP_ARGS_8); }
       }
-    }  // end RP::Right
+    }  // end Iterate::Right
 
   }  // end op() rank == 8
 #endif

@@ -48,6 +48,7 @@
 #include <Kokkos_Macros.hpp>
 #include <Kokkos_Core_fwd.hpp>
 #include <Kokkos_ExecPolicy.hpp>
+#include <KokkosExp_MDRangePolicy.hpp>
 #include <impl/Kokkos_Profiling_Interface.hpp>
 
 #include <array>
@@ -182,14 +183,28 @@ struct get_space_dimensionality;
 // The dimensionality of a vector is 1
 template <class T>
 struct get_space_dimensionality<std::vector<T>> {
-  static constexpr const int value = 1;
+  static constexpr int value = 1;
 };
 
 // The dimensionality of a map is 1 (the map) plus the dimensionality
 // of the map's value type
 template <class K, class V>
 struct get_space_dimensionality<std::map<K, V>> {
-  static constexpr const int value = 1 + get_space_dimensionality<V>::value;
+  static constexpr int value = 1 + get_space_dimensionality<V>::value;
+};
+
+template <class T, int N>
+struct n_dimensional_sparse_structure;
+
+template <class T>
+struct n_dimensional_sparse_structure<T, 1> {
+  using type = std::vector<T>;
+};
+
+template <class T, int N>
+struct n_dimensional_sparse_structure {
+  using type =
+      std::map<T, typename n_dimensional_sparse_structure<T, N - 1>::type>;
 };
 
 /**
@@ -286,13 +301,12 @@ template <template <class...> class Container, size_t MaxDimensionSize = 100,
 class MultidimensionalSparseTuningProblem {
  public:
   using ProblemSpaceInput = Container<TemplateArguments...>;
-  static constexpr const int space_dimensionality =
+  static constexpr int space_dimensionality =
       Impl::get_space_dimensionality<ProblemSpaceInput>::value;
-  static constexpr const size_t max_space_dimension_size = MaxDimensionSize;
-  static constexpr const double tuning_min               = 0.0;
-  static constexpr const double tuning_max               = 0.999;
-  static constexpr const double tuning_step =
-      tuning_max / max_space_dimension_size;
+  static constexpr size_t max_space_dimension_size = MaxDimensionSize;
+  static constexpr double tuning_min               = 0.0;
+  static constexpr double tuning_max               = 0.999;
+  static constexpr double tuning_step = tuning_max / max_space_dimension_size;
 
   using StoredProblemSpace =
       typename Impl::MapTypeConverter<ProblemSpaceInput>::type;
@@ -468,6 +482,72 @@ class TeamSizeTuner {
   }
 
  private:
+};
+
+namespace Impl {
+
+template <typename T>
+void fill_tile(std::vector<T>& cont, int tile_size) {
+  for (int x = 1; x < tile_size; x *= 2) {
+    cont.push_back(x);
+  }
+}
+template <typename T, typename Mapped>
+void fill_tile(std::map<T, Mapped>& cont, int tile_size) {
+  for (int x = 1; x < tile_size; x *= 2) {
+    fill_tile(cont[x], tile_size / x);
+  }
+}
+}  // namespace Impl
+
+template <int MDRangeRank>
+struct MDRangeTuner {
+ private:
+  static constexpr int rank       = MDRangeRank;
+  static constexpr int max_slices = 15;
+  using SpaceDescription =
+      typename Impl::n_dimensional_sparse_structure<int, rank>::type;
+  using TunerType =
+      decltype(make_multidimensional_sparse_tuning_problem<max_slices>(
+          std::declval<SpaceDescription>(),
+          std::declval<std::vector<std::string>>()));
+  TunerType tuner;
+
+ public:
+  MDRangeTuner() = default;
+  template <typename Functor, typename TagType, typename Calculator,
+            typename... Properties>
+  MDRangeTuner(const std::string& name,
+               const Kokkos::MDRangePolicy<Properties...>& policy,
+               const Functor& functor, const TagType& tag, Calculator calc) {
+    SpaceDescription desc;
+    int max_tile_size =
+        calc.get_mdrange_max_tile_size_product(policy, functor, tag);
+    Impl::fill_tile(desc, max_tile_size);
+    std::vector<std::string> feature_names;
+    for (int x = 0; x < rank; ++x) {
+      feature_names.push_back(name + "_tile_size_" + std::to_string(x));
+    }
+    tuner = make_multidimensional_sparse_tuning_problem<max_slices>(
+        desc, feature_names);
+  }
+  template <typename Policy, typename Tuple, size_t... Indices>
+  void set_policy_tile(Policy& policy, const Tuple& tuple,
+                       const std::index_sequence<Indices...>&) {
+    policy.impl_change_tile_size({std::get<Indices>(tuple)...});
+  }
+  template <typename... Properties>
+  void tune(Kokkos::MDRangePolicy<Properties...>& policy) {
+    if (Kokkos::Tools::Experimental::have_tuning_tool()) {
+      auto configuration = tuner.begin();
+      set_policy_tile(policy, configuration, std::make_index_sequence<rank>{});
+    }
+  }
+  void end() {
+    if (Kokkos::Tools::Experimental::have_tuning_tool()) {
+      tuner.end();
+    }
+  }
 };
 
 }  // namespace Experimental

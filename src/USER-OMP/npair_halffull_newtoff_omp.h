@@ -15,12 +15,12 @@
 
 NPairStyle(halffull/newtoff/omp,
            NPairHalffullNewtoffOmp,
-           NP_HALF_FULL | NP_NEWTOFF | NP_NSQ | NP_BIN | NP_MULTI | NP_HALF |
+           NP_HALF_FULL | NP_NEWTOFF | NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD | NP_HALF |
            NP_ORTHO | NP_TRI |NP_OMP)
 
 NPairStyle(halffull/newtoff/skip/omp,
            NPairHalffullNewtoffOmp,
-           NP_HALF_FULL | NP_NEWTOFF | NP_NSQ | NP_BIN | NP_MULTI | NP_HALF |
+           NP_HALF_FULL | NP_NEWTOFF | NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD | NP_HALF |
            NP_ORTHO | NP_TRI | NP_SKIP | NP_OMP)
 #else
 

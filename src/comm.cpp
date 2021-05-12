@@ -59,6 +59,7 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
   cutusermulti = nullptr;
   cutusermultiold = nullptr;
   ncollections = 0;
+  ncollections_cutoff = 0;
   ghost_velocity = 0;
 
   user_procgrid[0] = user_procgrid[1] = user_procgrid[2] = 0;
@@ -148,9 +149,10 @@ void Comm::copy_arrays(Comm *oldcomm)
   }
 
   ncollections = oldcomm->ncollections;
+  ncollections_cutoff = oldcomm->ncollections_cutoff;
   if (oldcomm->cutusermulti) {
-    memory->create(cutusermulti,ncollections,"comm:cutusermulti");
-    memcpy(cutusermulti,oldcomm->cutusermulti,ncollections);
+    memory->create(cutusermulti,ncollections_cutoff,"comm:cutusermulti");
+    memcpy(cutusermulti,oldcomm->cutusermulti,ncollections_cutoff);
   }
 
   if (oldcomm->cutusermultiold) {
@@ -303,7 +305,6 @@ void Comm::modify_params(int narg, char **arg)
         if (mode == Comm::MULTIOLD) cutghostuser = 0.0;
         memory->destroy(cutusermultiold);
         mode = Comm::MULTI;
-        ncollections_cutoff = 0;
       } else if (strcmp(arg[iarg+1],"multi/old") == 0) {
         if (neighbor->style == Neighbor::MULTI)
           error->all(FLERR,"Cannot use comm mode 'multi/old' with 'multi' style neighbor lists");
@@ -345,14 +346,14 @@ void Comm::modify_params(int narg, char **arg)
 
       // Check if # of collections has changed, if so erase any previously defined cutoffs
       // Neighbor will reset ncollections if collections are redefined
-      if (ncollections_cutoff != neighbor->ncollections) {
+      if (! cutusermulti || ncollections_cutoff != neighbor->ncollections) {
         ncollections_cutoff = neighbor->ncollections;
         memory->destroy(cutusermulti);
         memory->create(cutusermulti,ncollections_cutoff,"comm:cutusermulti");
         for (i=0; i < ncollections_cutoff; ++i)
           cutusermulti[i] = -1.0;
       }
-      utils::bounds(FLERR,arg[iarg+1],1,ncollections_cutoff+1,nlo,nhi,error);
+      utils::bounds(FLERR,arg[iarg+1],1,ncollections_cutoff,nlo,nhi,error);
       cut = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       cutghostuser = MAX(cutghostuser,cut);
       if (cut < 0.0)

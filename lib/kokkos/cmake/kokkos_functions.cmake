@@ -169,9 +169,7 @@ MACRO(kokkos_export_imported_tpl NAME)
       ENDIF()
 
       SET(TPL_LINK_OPTIONS)
-      IF(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.13.0")
-        GET_TARGET_PROPERTY(TPL_LINK_OPTIONS ${NAME} INTERFACE_LINK_OPTIONS)
-      ENDIF()
+      GET_TARGET_PROPERTY(TPL_LINK_OPTIONS ${NAME} INTERFACE_LINK_OPTIONS)
       IF(TPL_LINK_OPTIONS)
         KOKKOS_APPEND_CONFIG_LINE("INTERFACE_LINK_OPTIONS ${TPL_LINK_OPTIONS}")
       ENDIF()
@@ -230,9 +228,7 @@ MACRO(kokkos_import_tpl NAME)
   # I have still been getting errors about ROOT variables being ignored
   # I'm not sure if this is a scope issue - but make sure
   # the policy is set before we do any find_package calls
-  IF(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.12.0")
-    CMAKE_POLICY(SET CMP0074 NEW)
-  ENDIF()
+  CMAKE_POLICY(SET CMP0074 NEW)
 
   IF (KOKKOS_ENABLE_${NAME})
     #Tack on a TPL here to make sure we avoid using anyone else's find
@@ -314,7 +310,7 @@ MACRO(kokkos_create_imported_tpl NAME)
   CMAKE_PARSE_ARGUMENTS(TPL
    "INTERFACE"
    "LIBRARY"
-   "LINK_LIBRARIES;INCLUDES;COMPILE_OPTIONS;LINK_OPTIONS"
+   "LINK_LIBRARIES;INCLUDES;COMPILE_DEFINITIONS;COMPILE_OPTIONS;LINK_OPTIONS"
    ${ARGN})
 
 
@@ -333,6 +329,9 @@ MACRO(kokkos_create_imported_tpl NAME)
     ENDIF()
     IF(TPL_INCLUDES)
       TARGET_INCLUDE_DIRECTORIES(${NAME} INTERFACE ${TPL_INCLUDES})
+    ENDIF()
+    IF(TPL_COMPILE_DEFINITIONS)
+      TARGET_COMPILE_DEFINITIONS(${NAME} INTERFACE ${TPL_COMPILE_DEFINITIONS})
     ENDIF()
     IF(TPL_COMPILE_OPTIONS)
       TARGET_COMPILE_OPTIONS(${NAME} INTERFACE ${TPL_COMPILE_OPTIONS})
@@ -354,6 +353,10 @@ MACRO(kokkos_create_imported_tpl NAME)
     IF(TPL_INCLUDES)
       SET_TARGET_PROPERTIES(${NAME} PROPERTIES
         INTERFACE_INCLUDE_DIRECTORIES "${TPL_INCLUDES}")
+    ENDIF()
+    IF(TPL_COMPILE_DEFINITIONS)
+      SET_TARGET_PROPERTIES(${NAME} PROPERTIES
+        INTERFACE_COMPILE_DEFINITIONS "${TPL_COMPILE_DEFINITIONS}")
     ENDIF()
     IF(TPL_COMPILE_OPTIONS)
       SET_TARGET_PROPERTIES(${NAME} PROPERTIES
@@ -770,7 +773,7 @@ FUNCTION(kokkos_link_tpl TARGET)
 ENDFUNCTION()
 
 FUNCTION(COMPILER_SPECIFIC_OPTIONS_HELPER)
-  SET(COMPILERS NVIDIA PGI XL DEFAULT Cray Intel Clang AppleClang IntelClang GNU HIP Fujitsu)
+  SET(COMPILERS NVIDIA PGI XL DEFAULT Cray Intel Clang AppleClang IntelClang GNU HIPCC Fujitsu)
   CMAKE_PARSE_ARGUMENTS(
     PARSE
     "LINK_OPTIONS;COMPILE_OPTIONS;COMPILE_DEFINITIONS;LINK_LIBRARIES"
@@ -926,6 +929,9 @@ ENDFUNCTION()
 #       DIRECTORY   --> all files in directory
 #       PROJECT     --> all files/targets in a project/subproject
 #
+# NOTE: this is VERY DIFFERENT than the version in KokkosConfigCommon.cmake.in.
+# This version explicitly uses nvcc_wrapper.
+#
 FUNCTION(kokkos_compilation)
     # check whether the compiler already supports building CUDA
     KOKKOS_CXX_COMPILER_CUDA_TEST(Kokkos_CXX_COMPILER_COMPILES_CUDA)
@@ -947,10 +953,21 @@ FUNCTION(kokkos_compilation)
         MESSAGE(FATAL_ERROR "Kokkos could not find 'kokkos_launch_compiler'. Please set '-DKokkos_COMPILE_LAUNCHER=/path/to/launcher'")
     ENDIF()
 
+    # find nvcc_wrapper
+    FIND_PROGRAM(Kokkos_NVCC_WRAPPER
+        NAMES           nvcc_wrapper
+        HINTS           ${PROJECT_SOURCE_DIR}
+        PATHS           ${PROJECT_SOURCE_DIR}
+        PATH_SUFFIXES   bin)
+
+    IF(NOT Kokkos_COMPILE_LAUNCHER)
+        MESSAGE(FATAL_ERROR "Kokkos could not find 'nvcc_wrapper'. Please set '-DKokkos_COMPILE_LAUNCHER=/path/to/nvcc_wrapper'")
+    ENDIF()
+
     IF(COMP_GLOBAL)
         # if global, don't bother setting others
-        SET_PROPERTY(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${Kokkos_COMPILE_LAUNCHER} ${CMAKE_CXX_COMPILER}")
-        SET_PROPERTY(GLOBAL PROPERTY RULE_LAUNCH_LINK "${Kokkos_COMPILE_LAUNCHER} ${CMAKE_CXX_COMPILER}")
+        SET_PROPERTY(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${Kokkos_COMPILE_LAUNCHER} ${Kokkos_NVCC_WRAPPER} ${CMAKE_CXX_COMPILER}")
+        SET_PROPERTY(GLOBAL PROPERTY RULE_LAUNCH_LINK "${Kokkos_COMPILE_LAUNCHER} ${Kokkos_NVCC_WRAPPER} ${CMAKE_CXX_COMPILER}")
     ELSE()
         FOREACH(_TYPE PROJECT DIRECTORY TARGET SOURCE)
             # make project/subproject scoping easy, e.g. KokkosCompilation(PROJECT) after project(...)
@@ -961,8 +978,8 @@ FUNCTION(kokkos_compilation)
             # set the properties if defined
             IF(COMP_${_TYPE})
                 # MESSAGE(STATUS "Using nvcc_wrapper :: ${_TYPE} :: ${COMP_${_TYPE}}")
-                SET_PROPERTY(${_TYPE} ${COMP_${_TYPE}} PROPERTY RULE_LAUNCH_COMPILE "${Kokkos_COMPILE_LAUNCHER} ${CMAKE_CXX_COMPILER}")
-                SET_PROPERTY(${_TYPE} ${COMP_${_TYPE}} PROPERTY RULE_LAUNCH_LINK "${Kokkos_COMPILE_LAUNCHER} ${CMAKE_CXX_COMPILER}")
+                SET_PROPERTY(${_TYPE} ${COMP_${_TYPE}} PROPERTY RULE_LAUNCH_COMPILE "${Kokkos_COMPILE_LAUNCHER} ${Kokkos_NVCC_WRAPPER} ${CMAKE_CXX_COMPILER}")
+                SET_PROPERTY(${_TYPE} ${COMP_${_TYPE}} PROPERTY RULE_LAUNCH_LINK "${Kokkos_COMPILE_LAUNCHER} ${Kokkos_NVCC_WRAPPER} ${CMAKE_CXX_COMPILER}")
             ENDIF()
         ENDFOREACH()
     ENDIF()

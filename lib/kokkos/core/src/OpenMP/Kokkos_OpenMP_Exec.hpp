@@ -49,7 +49,7 @@
 #if defined(KOKKOS_ENABLE_OPENMP)
 
 #if !defined(_OPENMP) && !defined(__CUDA_ARCH__) && \
-    !defined(__HIP_DEVICE_COMPILE__)
+    !defined(__HIP_DEVICE_COMPILE__) && !defined(__SYCL_DEVICE_ONLY__)
 #error \
     "You enabled Kokkos OpenMP support without enabling OpenMP in the compiler!"
 #endif

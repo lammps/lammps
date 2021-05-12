@@ -101,12 +101,29 @@ namespace Tools {
 
 namespace Experimental {
 using EventSet = Kokkos_Profiling_EventSet;
-static_assert(sizeof(EventSet) / sizeof(function_pointer) == 275,
+static_assert(sizeof(EventSet) / sizeof(Kokkos_Tools_functionPointer) == 275,
               "sizeof EventSet has changed, this is an error on the part of a "
               "Kokkos developer");
+static_assert(sizeof(Kokkos_Tools_ToolSettings) / sizeof(bool) == 256,
+              "sizeof EventSet has changed, this is an error on the part of a "
+              "Kokkos developer");
+static_assert(sizeof(Kokkos_Tools_ToolProgrammingInterface) /
+                      sizeof(Kokkos_Tools_functionPointer) ==
+                  32,
+              "sizeof EventSet has changed, this is an error on the part of a "
+              "Kokkos developer");
+
+using toolInvokedFenceFunction = Kokkos_Tools_toolInvokedFenceFunction;
+using provideToolProgrammingInterfaceFunction =
+    Kokkos_Tools_provideToolProgrammingInterfaceFunction;
+using requestToolSettingsFunction = Kokkos_Tools_requestToolSettingsFunction;
+using ToolSettings                = Kokkos_Tools_ToolSettings;
+using ToolProgrammingInterface    = Kokkos_Tools_ToolProgrammingInterface;
 }  // namespace Experimental
 using initFunction           = Kokkos_Profiling_initFunction;
 using finalizeFunction       = Kokkos_Profiling_finalizeFunction;
+using parseArgsFunction      = Kokkos_Profiling_parseArgsFunction;
+using printHelpFunction      = Kokkos_Profiling_printHelpFunction;
 using beginFunction          = Kokkos_Profiling_beginFunction;
 using endFunction            = Kokkos_Profiling_endFunction;
 using pushFunction           = Kokkos_Profiling_pushFunction;
@@ -120,13 +137,14 @@ using startProfileSectionFunction =
 using stopProfileSectionFunction = Kokkos_Profiling_stopProfileSectionFunction;
 using destroyProfileSectionFunction =
     Kokkos_Profiling_destroyProfileSectionFunction;
-using profileEventFunction   = Kokkos_Profiling_profileEventFunction;
-using beginDeepCopyFunction  = Kokkos_Profiling_beginDeepCopyFunction;
-using endDeepCopyFunction    = Kokkos_Profiling_endDeepCopyFunction;
-using beginFenceFunction     = Kokkos_Profiling_beginFenceFunction;
-using endFenceFunction       = Kokkos_Profiling_endFenceFunction;
-using dualViewSyncFunction   = Kokkos_Profiling_dualViewSyncFunction;
-using dualViewModifyFunction = Kokkos_Profiling_dualViewModifyFunction;
+using profileEventFunction    = Kokkos_Profiling_profileEventFunction;
+using beginDeepCopyFunction   = Kokkos_Profiling_beginDeepCopyFunction;
+using endDeepCopyFunction     = Kokkos_Profiling_endDeepCopyFunction;
+using beginFenceFunction      = Kokkos_Profiling_beginFenceFunction;
+using endFenceFunction        = Kokkos_Profiling_endFenceFunction;
+using dualViewSyncFunction    = Kokkos_Profiling_dualViewSyncFunction;
+using dualViewModifyFunction  = Kokkos_Profiling_dualViewModifyFunction;
+using declareMetadataFunction = Kokkos_Profiling_declareMetadataFunction;
 
 }  // namespace Tools
 
@@ -161,7 +179,9 @@ using Kokkos::Tools::endDeepCopyFunction;
 using Kokkos::Tools::endFunction;
 using Kokkos::Tools::finalizeFunction;
 using Kokkos::Tools::initFunction;
+using Kokkos::Tools::parseArgsFunction;
 using Kokkos::Tools::popFunction;
+using Kokkos::Tools::printHelpFunction;
 using Kokkos::Tools::profileEventFunction;
 using Kokkos::Tools::pushFunction;
 using Kokkos::Tools::SpaceHandle;

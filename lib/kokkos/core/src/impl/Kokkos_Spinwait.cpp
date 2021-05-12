@@ -49,12 +49,8 @@
 #include <impl/Kokkos_Spinwait.hpp>
 #include <impl/Kokkos_BitOps.hpp>
 
-#if defined(KOKKOS_ENABLE_STDTHREAD) || defined(_WIN32)
 #include <thread>
-#elif !defined(_WIN32)
-#include <sched.h>
-#include <time.h>
-#else
+#if defined(_WIN32)
 #include <process.h>
 #include <winsock2.h>
 #include <windows.h>
@@ -73,28 +69,14 @@ void host_thread_yield(const uint32_t i, const WaitMode mode) {
 
   if (WaitMode::ROOT != mode) {
     if (sleep_limit < i) {
-      // Attempt to put the thread to sleep for 'c' milliseconds
-
-#if defined(KOKKOS_ENABLE_STDTHREAD) || defined(_WIN32)
-      auto start = std::chrono::high_resolution_clock::now();
+      // Attempt to put the thread to sleep for 'c' microseconds
       std::this_thread::yield();
-      std::this_thread::sleep_until(start + std::chrono::nanoseconds(c * 1000));
-#else
-      timespec req;
-      req.tv_sec  = 0;
-      req.tv_nsec = 1000 * c;
-      nanosleep(&req, nullptr);
-#endif
+      std::this_thread::sleep_for(std::chrono::microseconds(c));
     }
 
     else if (mode == WaitMode::PASSIVE || yield_limit < i) {
       // Attempt to yield thread resources to runtime
-
-#if defined(KOKKOS_ENABLE_STDTHREAD) || defined(_WIN32)
       std::this_thread::yield();
-#else
-      sched_yield();
-#endif
     }
 #if defined(KOKKOS_ENABLE_ASM)
 

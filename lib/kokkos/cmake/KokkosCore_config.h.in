@@ -78,6 +78,7 @@
 #cmakedefine KOKKOS_ARCH_POWER7
 #cmakedefine KOKKOS_ARCH_POWER8
 #cmakedefine KOKKOS_ARCH_POWER9
+#cmakedefine KOKKOS_ARCH_INTEL_GEN
 #cmakedefine KOKKOS_ARCH_KEPLER
 #cmakedefine KOKKOS_ARCH_KEPLER30
 #cmakedefine KOKKOS_ARCH_KEPLER32
@@ -95,5 +96,8 @@
 #cmakedefine KOKKOS_ARCH_VOLTA72
 #cmakedefine KOKKOS_ARCH_TURING75
 #cmakedefine KOKKOS_ARCH_AMPERE80
+#cmakedefine KOKKOS_ARCH_AMPERE86
 #cmakedefine KOKKOS_ARCH_AMD_ZEN
 #cmakedefine KOKKOS_ARCH_AMD_ZEN2
+
+#cmakedefine KOKKOS_IMPL_DISABLE_SYCL_DEVICE_PRINTF

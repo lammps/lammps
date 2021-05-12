@@ -42,7 +42,7 @@
 //@HEADER
 */
 
-#include <hip/TestHIP_Category.hpp>
+#include <TestHIP_Category.hpp>
 #include <Kokkos_Core.hpp>
 
 namespace Test {

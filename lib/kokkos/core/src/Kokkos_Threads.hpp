@@ -211,14 +211,6 @@ struct MemorySpaceAccess<Kokkos::Threads::memory_space,
   enum : bool { deepcopy = false };
 };
 
-template <>
-struct VerifyExecutionCanAccessMemorySpace<
-    Kokkos::Threads::memory_space, Kokkos::Threads::scratch_memory_space> {
-  enum : bool { value = true };
-  inline static void verify(void) {}
-  inline static void verify(const void*) {}
-};
-
 }  // namespace Impl
 }  // namespace Kokkos
 

@@ -26,6 +26,7 @@
 // dummy interface to MDI
 // needed for compiling when MDI is not installed
 
+  typedef int MDI_Comm;
   int MDI_Init(int* argc, char ***argv) {return 0;};
   int MDI_Initialized(int* flag) {return 0;};
   int MDI_MPI_get_world_comm(void* world_comm) {return 0;};

@@ -4019,27 +4019,6 @@ void FixBondReact::parse_keyword(int flag, char *line, char *keyword)
   strcpy(keyword,&line[start]);
 }
 
-
-void FixBondReact::skip_lines(int n, char *line)
-{
-  for (int i = 0; i < n; i++) readline(line);
-}
-
-int FixBondReact::parse(char *line, char **words, int max)
-{
-  char *ptr;
-
-  int nwords = 0;
-  words[nwords++] = strtok(line," \t\n\r\f");
-
-  while ((ptr = strtok(nullptr," \t\n\r\f"))) {
-    if (nwords < max) words[nwords] = ptr;
-    nwords++;
-  }
-
-  return nwords;
-}
-
 /* ---------------------------------------------------------------------- */
 
 double FixBondReact::compute_vector(int n)

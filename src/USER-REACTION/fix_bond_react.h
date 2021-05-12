@@ -186,8 +186,6 @@ class FixBondReact : public Fix {
   void open(char *);
   void readline(char *);
   void parse_keyword(int, char *, char *);
-  void skip_lines(int, char *);
-  int parse(char *, char **, int);
 
   void far_partner();
   void close_partner();

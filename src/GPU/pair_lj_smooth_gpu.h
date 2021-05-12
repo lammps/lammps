@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(lj/smooth/gpu,PairLJSmoothGPU)
-
+// clang-format off
+PairStyle(lj/smooth/gpu, PairLJSmoothGPU);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_LJ_SMOOTH_GPU_H
@@ -34,14 +34,14 @@ class PairLJSmoothGPU : public PairLJSmooth {
   void reinit();
   double memory_usage();
 
- enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
+  enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
 
  private:
   int gpu_mode;
   double cpu_time;
 };
 
-}
+}    // namespace LAMMPS_NS
 #endif
 #endif
 
@@ -57,4 +57,3 @@ E: Cannot use newton pair with lj/smooth/gpu pair style
 Self-explanatory.
 
 */
-

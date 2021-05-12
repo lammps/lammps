@@ -196,6 +196,8 @@ int lammps_config_package_count();
 int lammps_config_package_name(int, char *, int);
 
 int lammps_config_accelerator(const char *, const char *, const char *);
+int lammps_has_gpu_device();
+void lammps_get_gpu_device_info(char *buffer, int buf_size);
 
 int lammps_has_style(void *, const char *, const char *);
 int lammps_style_count(void *, const char *);

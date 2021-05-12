@@ -176,7 +176,7 @@ class AvgChunkFile:
               current[data_column] = [value]
 
           chunks_read += 1
-          assert (chunk == chunks_read)
+          assert chunk == chunks_read
         else:
           # do not support changing number of chunks
           if not (num_chunks == int(parts[1])):

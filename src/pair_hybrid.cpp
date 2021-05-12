@@ -265,8 +265,8 @@ void PairHybrid::settings(int narg, char **arg)
 {
   if (narg < 1) error->all(FLERR,"Illegal pair_style command");
   if (lmp->kokkos && !utils::strmatch(force->pair_style,"^hybrid.*/kk$"))
-    error->all(FLERR,fmt::format("Must use pair_style {}/kk with Kokkos",
-                                 force->pair_style));
+    error->all(FLERR,"Must use pair_style {}/kk with Kokkos",
+                                 force->pair_style);
 
   // delete old lists, since cannot just change settings
 

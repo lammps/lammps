@@ -31,10 +31,37 @@ class Error : protected Pointers {
   void universe_warn(const std::string &, int, const std::string &);
 
   [[ noreturn ]] void all(const std::string &, int, const std::string &);
+  template <typename S, typename... Args>
+  void all(const std::string &file, int line, const S &format,
+                          Args&&... args) {
+    _all(file, line, format, fmt::make_args_checked<Args...>(format, args...));
+  }
+
   [[ noreturn ]] void one(const std::string &, int, const std::string &);
-  void warning(const std::string &, int, const std::string &, int = 1);
-  void message(const std::string &, int, const std::string &, int = 1);
+  template <typename S, typename... Args>
+  void one(const std::string &file, int line, const S &format,
+                          Args&&... args) {
+    _one(file, line, format, fmt::make_args_checked<Args...>(format, args...));
+  }
+
+  void warning(const std::string &, int, const std::string &);
+  template <typename S, typename... Args>
+  void warning(const std::string &file, int line, const S &format, Args&&... args) {
+    _warning(file, line, format, fmt::make_args_checked<Args...>(format, args...));
+  }
+
+  void message(const std::string &, int, const std::string &);
+  template <typename S, typename... Args>
+  void message(const std::string &file, int line, const S &format, Args&&... args) {
+    _message(file, line, format, fmt::make_args_checked<Args...>(format, args...));
+  }
   [[ noreturn ]] void done(int = 0); // 1 would be fully backwards compatible
+
+  int get_numwarn() const { return numwarn; }
+  int get_maxwarn() const { return maxwarn; }
+  void set_numwarn(int val) { numwarn = val; }
+  void set_maxwarn(int val) { maxwarn = val; }
+  void set_allwarn(int val) { allwarn = val; }
 
 #ifdef LAMMPS_EXCEPTIONS
   std::string get_last_error() const;
@@ -45,6 +72,16 @@ class Error : protected Pointers {
   std::string last_error_message;
   ErrorType last_error_type;
 #endif
+
+ private:
+  int numwarn, maxwarn, allwarn;
+  // internal versions that accept explicit fmtlib arguments
+  [[ noreturn ]] void _all(const std::string &, int, fmt::string_view,
+                           fmt::format_args args);
+  [[ noreturn ]] void _one(const std::string &, int, fmt::string_view,
+                           fmt::format_args args);
+  void _warning(const std::string &, int, fmt::string_view, fmt::format_args args);
+  void _message(const std::string &, int, fmt::string_view, fmt::format_args args);
 };
 
 }

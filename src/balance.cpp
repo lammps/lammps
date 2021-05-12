@@ -371,9 +371,8 @@ void Balance::command(int narg, char **arg)
   bigint nblocal = atom->nlocal;
   MPI_Allreduce(&nblocal,&natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
   if (natoms != atom->natoms)
-    error->all(FLERR,fmt::format("Lost atoms via balance: "
-                                 "original {}  current {}",
-                                 atom->natoms,natoms).c_str());
+    error->all(FLERR,"Lost atoms via balance: original {}  current {}",
+               atom->natoms,natoms);
 
   // imbfinal = final imbalance
   // set disable = 1, so weights no longer migrate with atoms
@@ -478,8 +477,8 @@ void Balance::options(int iarg, int narg, char **arg)
   if (outflag && comm->me == 0) {
     fp = fopen(arg[outarg],"w");
     if (fp == nullptr)
-      error->one(FLERR,fmt::format("Cannot open (fix) balance output file {}: {}",
-                                   arg[outarg], utils::getsyserror()));
+      error->one(FLERR,"Cannot open (fix) balance output file {}: {}",
+                                   arg[outarg], utils::getsyserror());
   }
 }
 

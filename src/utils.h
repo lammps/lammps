@@ -17,6 +17,7 @@
 /*! \file utils.h */
 
 #include "lmptype.h"
+#include "fmt/format.h"
 
 #include <mpi.h>
 
@@ -48,10 +49,32 @@ namespace LAMMPS_NS {
 
     std::string strfind(const std::string &text, const std::string &pattern);
 
-    /** Send message to screen and logfile, if available
+    /* Internal function handling the argument list for logmesg(). */
+
+    void fmtargs_logmesg(LAMMPS *lmp, fmt::string_view format,
+                         fmt::format_args args);
+
+    /** Send formatted message to screen and logfile, if available
      *
-     *  \param lmp   pointer to LAMMPS class instance
-     *  \param mesg  message to be printed */
+     * This function simplifies the repetitive task of outputting some
+     * message to both the screen and/or the log file. The template
+     * wrapper with fmtlib format and argument processing allows
+     * this function to work similar to ``fmt::print()``.
+     *
+     *  \param lmp    pointer to LAMMPS class instance
+     *  \param format format string of message to be printed
+     *  \param args   arguments to format string */
+
+    template <typename S, typename... Args>
+    void logmesg(LAMMPS *lmp, const S &format, Args&&... args) {
+      fmtargs_logmesg(lmp, format,
+                      fmt::make_args_checked<Args...>(format, args...));
+    }
+
+    /** \overload
+     *
+     *  \param lmp    pointer to LAMMPS class instance
+     *  \param mesg   string with message to be printed */
 
     void logmesg(LAMMPS *lmp, const std::string &mesg);
 
@@ -62,6 +85,20 @@ namespace LAMMPS_NS {
      *  \return  error string */
 
     std::string getsyserror();
+
+    /** Wrapper around fgets() which reads whole lines but truncates the
+     *  data to the buffer size and ensures a newline char at the end.
+     *
+     *  This function is useful for reading line based text files with
+     *  possible comments that should be parsed later. This applies to
+     *  data files, potential files, atomfile variable files and so on.
+     *  It is used instead of fgets() by utils::read_lines_from_file().
+     *
+     *  \param s        buffer for storing the result of fgets()
+     *  \param size     size of buffer s (max number of bytes returned)
+     *  \param fp       file pointer used by fgets() */
+
+    char *fgets_trunc(char *s, int size, FILE *fp);
 
     /** Safe wrapper around fgets() which aborts on errors
      *  or EOF and prints a suitable error message to help debugging.

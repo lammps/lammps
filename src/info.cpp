@@ -39,13 +39,14 @@
 #include "pair.h"
 #include "pair_hybrid.h"
 #include "region.h"
+#include "text_file_reader.h"
 #include "update.h"
 #include "variable.h"
+#include "fmt/chrono.h"
 
 #include <cctype>
 #include <cmath>
 #include <cstring>
-#include <ctime>
 #include <map>
 
 #ifdef _WIN32
@@ -264,8 +265,8 @@ void Info::command(int narg, char **arg)
   if (out == nullptr) return;
 
   fputs("\nInfo-Info-Info-Info-Info-Info-Info-Info-Info-Info-Info\n",out);
-  time_t now = time(nullptr);
-  fmt::print(out,"Printed on {}\n",ctime(&now));
+  std::time_t now = std::time(nullptr);
+  fmt::print(out,"Printed on {:%a %b %d %H:%M:%S %Y}\n", fmt::localtime(now));
 
   if (flags & CONFIG) {
     fmt::print(out,"\nLAMMPS version: {} / {}\n",
@@ -319,6 +320,8 @@ void Info::command(int narg, char **arg)
   if (flags & ACCELERATOR) {
     fmt::print(out,"\nAccelerator configuration:\n\n{}",
                get_accelerator_info());
+    if (Info::has_gpu_device())
+      fmt::print(out,"\nAvailable GPU devices:\n{}\n",get_gpu_device_info());
   }
 
   if (flags & MEMORY) {
@@ -1138,6 +1141,27 @@ bool Info::has_package(const std::string &package_name) {
 
 #if defined(LMP_GPU)
 extern bool lmp_gpu_config(const std::string &, const std::string &);
+extern bool lmp_has_gpu_device();
+extern std::string lmp_gpu_device_info();
+
+bool Info::has_gpu_device()
+{
+  return lmp_has_gpu_device();
+}
+
+std::string Info::get_gpu_device_info()
+{
+  return lmp_gpu_device_info();
+}
+#else
+bool Info::has_gpu_device()
+{
+  return false;
+}
+std::string Info::get_gpu_device_info()
+{
+  return "";
+}
 #endif
 
 #if defined(LMP_KOKKOS)
@@ -1261,7 +1285,25 @@ std::string Info::get_os_info()
 #else
   struct utsname ut;
   uname(&ut);
-  buf = fmt::format("{} {} on {}", ut.sysname, ut.release, ut.machine);
+
+  // try to get OS distribution name, if available
+  std::string distro = ut.sysname;
+  if (utils::file_is_readable("/etc/os-release")) {
+    try {
+        TextFileReader reader("/etc/os-release","");
+        while (1) {
+          auto words = reader.next_values(0,"=");
+          if ((words.count() > 1) && (words.next_string() == "PRETTY_NAME")) {
+            distro += " " + utils::trim(words.next_string());
+            break;
+          }
+        }
+    } catch (std::exception &e) {
+      ; // EOF but keyword not found
+    }
+  }
+
+  buf = fmt::format("{} {} on {}", distro, ut.release, ut.machine);
 #endif
   return buf;
 }

@@ -27,6 +27,7 @@
 #include "group.h"
 #include "memory.h"
 #include "error.h"
+#include "fmt/chrono.h"
 
 using namespace LAMMPS_NS;
 
@@ -309,8 +310,8 @@ void DumpDCD::write_dcd_header(const char *remarks)
   uint32_t out_integer;
   float out_float;
   char title_string[200];
-  time_t cur_time;
-  struct tm *tmbuf;
+  time_t t;
+  std::tm current_time;
 
   int ntimestep = update->ntimestep;
 
@@ -345,10 +346,11 @@ void DumpDCD::write_dcd_header(const char *remarks)
   strncpy(title_string,remarks,80);
   title_string[79] = '\0';
   fwrite(title_string,80,1,fp);
-  cur_time=time(nullptr);
-  tmbuf=localtime(&cur_time);
+  t = time(nullptr);
+  current_time = fmt::localtime(t);
+  std::string s = fmt::format("REMARKS Created {:%d %B,%Y at %H:%M}", current_time);
   memset(title_string,' ',81);
-  strftime(title_string,80,"REMARKS Created %d %B,%Y at %H:%M",tmbuf);
+  memcpy(title_string, s.c_str(), s.size());
   fwrite(title_string,80,1,fp);
   fwrite_int32(fp,164);
   fwrite_int32(fp,4);

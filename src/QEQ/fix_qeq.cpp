@@ -387,10 +387,9 @@ int FixQEq::CG( double *b, double *x )
   }
 
   if ((comm->me == 0) && (loop >= maxiter))
-    error->warning(FLERR,fmt::format("Fix qeq CG convergence failed ({}) "
-                                     "after {} iterations at step {}",
-                                     sqrt(sig_new)/b_norm,loop,
-                                     update->ntimestep));
+    error->warning(FLERR,"Fix qeq CG convergence failed ({}) after {} "
+                   "iterations at step {}",sqrt(sig_new)/b_norm,loop,
+                   update->ntimestep);
   return loop;
 }
 
@@ -707,8 +706,8 @@ void FixQEq::read_file(char *file)
   if (comm->me == 0) {
     fp = utils::open_potential(file,lmp,nullptr);
     if (fp == nullptr)
-      error->one(FLERR,fmt::format("Cannot open fix qeq parameter file {}: {}",
-                                   file,utils::getsyserror()));
+      error->one(FLERR,"Cannot open fix qeq parameter file {}: {}",
+                                   file,utils::getsyserror());
   }
 
   // read each line out of file, skipping blank lines or leading '#'

@@ -28,7 +28,7 @@ namespace MathConst {
   static constexpr double MY_PIS = 1.77245385090551602729; // sqrt(pi)
   static constexpr double MY_ISPI4 = 1.12837916709551257389; // 1/sqrt(pi/4)
   static constexpr double MY_SQRT2 = 1.41421356237309504880; // sqrt(2)
-  static constexpr double MY_CBRT2 = 1.25992104989487316476; // 2*(1/3)
+  static constexpr double MY_CUBEROOT2 = 1.25992104989487316476; // 2*(1/3)
 }
 
 }

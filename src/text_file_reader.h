@@ -25,8 +25,8 @@
 namespace LAMMPS_NS
 {
   class TextFileReader {
-    std::string filename;
     std::string filetype;
+    bool closefp;
     static constexpr int MAXLINE = 1024;
     char line[MAXLINE];
     FILE *fp;
@@ -35,6 +35,8 @@ namespace LAMMPS_NS
     bool ignore_comments; //!< Controls whether comments are ignored
 
     TextFileReader(const std::string &filename, const std::string &filetype);
+    TextFileReader(FILE *fp, const std::string &filetype);
+
     ~TextFileReader();
 
     void skip_line();

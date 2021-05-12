@@ -415,7 +415,7 @@ void FixQBMSST::setup(int /*vflag*/)
     v0 = compute_vol();
     v0_set = 1;
     if (comm->me == 0)
-      utils::logmesg(lmp,fmt::format("Fix QBMSST v0 = {:12.5e}\n", v0));
+      utils::logmesg(lmp,"Fix QBMSST v0 = {:12.5e}\n", v0);
   }
 
   if (p0_set == 0) {
@@ -423,7 +423,7 @@ void FixQBMSST::setup(int /*vflag*/)
     p0_set = 1;
 
     if (comm->me == 0)
-      utils::logmesg(lmp,fmt::format("Fix QBMSST p0 = {:12.5e}\n", p0));
+      utils::logmesg(lmp,"Fix QBMSST p0 = {:12.5e}\n", p0);
   }
 
   if (e0_set == 0) {
@@ -432,7 +432,7 @@ void FixQBMSST::setup(int /*vflag*/)
     old_eavg = e0;
 
     if (comm->me == 0)
-      utils::logmesg(lmp,fmt::format("Fix QBMSST e0 = to be {:12.5e}\n",e0));
+      utils::logmesg(lmp,"Fix QBMSST e0 = to be {:12.5e}\n",e0);
   }
 
   temperature->compute_vector();
@@ -452,9 +452,9 @@ void FixQBMSST::setup(int /*vflag*/)
     double fac2 = omega[direction]/v0;
 
     if ( comm->me == 0 && tscale != 1.0)
-      utils::logmesg(lmp,fmt::format("Fix QBMSST initial strain rate of {:12.5e} "
-                                 "established by reducing temperature by "
-                                 "factor of {:12.5e}\n",fac2,tscale));
+      utils::logmesg(lmp,"Fix QBMSST initial strain rate of {:12.5e} "
+                     "established by reducing temperature by "
+                     "factor of {:12.5e}\n",fac2,tscale);
     for (int i = 0; i < atom->nlocal; i++) {
       if (mask[i] & groupbit) {
         for (int k = 0; k < 3; k++) {

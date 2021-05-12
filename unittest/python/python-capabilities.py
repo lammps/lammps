@@ -33,6 +33,13 @@ class PythonCapabilities(unittest.TestCase):
     def test_version(self):
         self.assertGreaterEqual(self.lmp.version(), 20200824)
 
+    def test_os_info(self):
+        import platform
+
+        system = platform.system()
+        osinfo = self.lmp.get_os_info()
+        self.assertEqual(osinfo.find(system),0)
+
     def test_has_gzip_support(self):
         self.assertEqual(self.lmp.has_gzip_support, self.cmake_cache['WITH_GZIP'])
 
@@ -157,6 +164,15 @@ class PythonCapabilities(unittest.TestCase):
                  self.assertIn('mixed',settings['GPU']['precision'])
             if self.cmake_cache['GPU_PREC'].lower() == 'single':
                  self.assertIn('single',settings['GPU']['precision'])
+
+    def test_gpu_device(self):
+
+        info = self.lmp.get_gpu_device_info()
+        if self.lmp.has_gpu_device:
+            self.assertTrue(info)
+            self.assertGreaterEqual(info.find("Device"),0)
+        else:
+            self.assertFalse(info)
 
 if __name__ == "__main__":
     unittest.main()

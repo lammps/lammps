@@ -133,13 +133,12 @@ void PairLJCharmmCoulCharmmGPU::init_style()
     error->all(FLERR,
       "Cannot use newton pair with lj/charmm/coul/long/gpu pair style");
 
-  // Repeat cutsq calculation because done after call to init_style
+  // Repeated cutsq calculation in init_one() is required for GPU package
 
-  double cut;
   for (int i = 1; i <= atom->ntypes; i++) {
     for (int j = i; j <= atom->ntypes; j++) {
       if (setflag[i][j] != 0 || (setflag[i][i] != 0 && setflag[j][j] != 0))
-        cut = init_one(i,j);
+        init_one(i,j);
     }
   }
 

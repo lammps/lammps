@@ -141,7 +141,7 @@ void ImproperClass2Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   k_warning_flag.template modify<DeviceType>();
   k_warning_flag.template sync<LMPHostType>();
   if (h_warning_flag())
-    error->warning(FLERR,"Improper problem",0);
+    error->warning(FLERR,"Improper problem");
 
   // Angle-Angle energy/force
 

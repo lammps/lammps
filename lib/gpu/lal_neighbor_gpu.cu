@@ -115,7 +115,7 @@ __kernel void kernel_calc_cell_counts(const unsigned *restrict cell_id,
 #define tagint int
 #endif
 #ifdef LAMMPS_BIGBIG
-#define tagint long long int
+#define tagint long
 #endif
 #ifdef LAMMPS_SMALLSMALL
 #define tagint int

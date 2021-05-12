@@ -59,6 +59,7 @@ NEB::NEB(LAMMPS *lmp, double etol_in, double ftol_in, int n1steps_in,
   n1steps = n1steps_in;
   n2steps = n2steps_in;
   nevery = nevery_in;
+  verbose = false;
 
   // replica info
 
@@ -547,13 +548,11 @@ void NEB::open(char *file)
   if (!compressed) fp = fopen(file,"r");
   else {
 #ifdef LAMMPS_GZIP
-    char gunzip[128];
-    snprintf(gunzip,128,"gzip -c -d %s",file);
-
+    auto gunzip = std::string("gzip -c -d ") + file;
 #ifdef _WIN32
-    fp = _popen(gunzip,"rb");
+    fp = _popen(gunzip.c_str(),"rb");
 #else
-    fp = popen(gunzip,"r");
+    fp = popen(gunzip.c_str(),"r");
 #endif
 
 #else
@@ -561,11 +560,8 @@ void NEB::open(char *file)
 #endif
   }
 
-  if (fp == nullptr) {
-    char str[128];
-    snprintf(str,128,"Cannot open file %s",file);
-    error->one(FLERR,str);
-  }
+  if (fp == nullptr)
+    error->one(FLERR,"Cannot open file {}: {}",file,utils::getsyserror());
 }
 
 /* ----------------------------------------------------------------------

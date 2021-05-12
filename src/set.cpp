@@ -600,11 +600,11 @@ void Set::command(int narg, char **arg)
 
     if (comm->me == 0) {
       if (strcmp(arg[origarg],"cc") == 0)
-        utils::logmesg(lmp,fmt::format("  {} settings made for {} index {}\n",
-                       allcount,arg[origarg],arg[origarg+1]));
+        utils::logmesg(lmp,"  {} settings made for {} index {}\n",
+                       allcount,arg[origarg],arg[origarg+1]);
       else
-        utils::logmesg(lmp,fmt::format("  {} settings made for {}\n",
-                       allcount,arg[origarg]));
+        utils::logmesg(lmp,"  {} settings made for {}\n",
+                       allcount,arg[origarg]);
     }
   }
 

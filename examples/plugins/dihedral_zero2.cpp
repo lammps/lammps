@@ -50,8 +50,7 @@ void DihedralZero2::compute(int eflag, int vflag)
 
 void DihedralZero2::settings(int narg, char **arg)
 {
-  if ((narg != 0) && (narg != 1))
-    error->all(FLERR, "Illegal dihedral_style command");
+  if ((narg != 0) && (narg != 1)) error->all(FLERR, "Illegal dihedral_style command");
 
   if (narg == 1) {
     if (strcmp("nocoeff", arg[0]) == 0)

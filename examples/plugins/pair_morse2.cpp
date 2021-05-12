@@ -110,14 +110,11 @@ void PairMorse2::compute(int eflag, int vflag)
         }
 
         if (eflag) {
-          evdwl = d0[itype][jtype] * (dexp * dexp - 2.0 * dexp) -
-              offset[itype][jtype];
+          evdwl = d0[itype][jtype] * (dexp * dexp - 2.0 * dexp) - offset[itype][jtype];
           evdwl *= factor_lj;
         }
 
-        if (evflag)
-          ev_tally(i, j, nlocal, newton_pair, evdwl, 0.0, fpair, delx, dely,
-                   delz);
+        if (evflag) ev_tally(i, j, nlocal, newton_pair, evdwl, 0.0, fpair, delx, dely, delz);
       }
     }
   }
@@ -174,8 +171,7 @@ void PairMorse2::settings(int narg, char **arg)
 
 void PairMorse2::coeff(int narg, char **arg)
 {
-  if (narg < 5 || narg > 6)
-    error->all(FLERR, "Incorrect args for pair coefficients");
+  if (narg < 5 || narg > 6) error->all(FLERR, "Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo, ihi, jlo, jhi;
@@ -264,20 +260,14 @@ void PairMorse2::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0)
-        utils::sfread(FLERR, &setflag[i][j], sizeof(int), 1, fp, nullptr,
-                      error);
+      if (me == 0) utils::sfread(FLERR, &setflag[i][j], sizeof(int), 1, fp, nullptr, error);
       MPI_Bcast(&setflag[i][j], 1, MPI_INT, 0, world);
       if (setflag[i][j]) {
         if (me == 0) {
-          utils::sfread(FLERR, &d0[i][j], sizeof(double), 1, fp, nullptr,
-                        error);
-          utils::sfread(FLERR, &alpha[i][j], sizeof(double), 1, fp, nullptr,
-                        error);
-          utils::sfread(FLERR, &r0[i][j], sizeof(double), 1, fp, nullptr,
-                        error);
-          utils::sfread(FLERR, &cut[i][j], sizeof(double), 1, fp, nullptr,
-                        error);
+          utils::sfread(FLERR, &d0[i][j], sizeof(double), 1, fp, nullptr, error);
+          utils::sfread(FLERR, &alpha[i][j], sizeof(double), 1, fp, nullptr, error);
+          utils::sfread(FLERR, &r0[i][j], sizeof(double), 1, fp, nullptr, error);
+          utils::sfread(FLERR, &cut[i][j], sizeof(double), 1, fp, nullptr, error);
         }
         MPI_Bcast(&d0[i][j], 1, MPI_DOUBLE, 0, world);
         MPI_Bcast(&alpha[i][j], 1, MPI_DOUBLE, 0, world);
@@ -332,15 +322,13 @@ void PairMorse2::write_data_all(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
     for (int j = i; j <= atom->ntypes; j++)
-      fprintf(fp, "%d %d %g %g %g %g\n", i, j, d0[i][j], alpha[i][j], r0[i][j],
-              cut[i][j]);
+      fprintf(fp, "%d %d %g %g %g %g\n", i, j, d0[i][j], alpha[i][j], r0[i][j], cut[i][j]);
 }
 
 /* ---------------------------------------------------------------------- */
 
-double PairMorse2::single(int /*i*/, int /*j*/, int itype, int jtype,
-                          double rsq, double /*factor_coul*/, double factor_lj,
-                          double &fforce)
+double PairMorse2::single(int /*i*/, int /*j*/, int itype, int jtype, double rsq,
+                          double /*factor_coul*/, double factor_lj, double &fforce)
 {
   double r, dr, dexp, phi;
 

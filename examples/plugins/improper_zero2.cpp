@@ -50,8 +50,7 @@ void ImproperZero2::compute(int eflag, int vflag)
 
 void ImproperZero2::settings(int narg, char **arg)
 {
-  if ((narg != 0) && (narg != 1))
-    error->all(FLERR, "Illegal improper_style command");
+  if ((narg != 0) && (narg != 1)) error->all(FLERR, "Illegal improper_style command");
 
   if (narg == 1) {
     if (strcmp("nocoeff", arg[0]) == 0)

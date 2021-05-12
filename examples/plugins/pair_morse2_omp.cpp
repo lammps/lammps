@@ -27,8 +27,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairMorse2OMP::PairMorse2OMP(LAMMPS *lmp) :
-    PairMorse2(lmp), ThrOMP(lmp, THR_PAIR)
+PairMorse2OMP::PairMorse2OMP(LAMMPS *lmp) : PairMorse2(lmp), ThrOMP(lmp, THR_PAIR)
 {
   suffix_flag |= Suffix::OMP;
   respa_enable = 0;
@@ -140,14 +139,12 @@ void PairMorse2OMP::eval(int iifrom, int iito, ThrData *const thr)
         }
 
         if (EFLAG) {
-          evdwl = d0[itype][jtype] * (dexp * dexp - 2.0 * dexp) -
-              offset[itype][jtype];
+          evdwl = d0[itype][jtype] * (dexp * dexp - 2.0 * dexp) - offset[itype][jtype];
           evdwl *= factor_lj;
         }
 
         if (EVFLAG)
-          ev_tally_thr(this, i, j, nlocal, NEWTON_PAIR, evdwl, 0.0, fpair, delx,
-                       dely, delz, thr);
+          ev_tally_thr(this, i, j, nlocal, NEWTON_PAIR, evdwl, 0.0, fpair, delx, dely, delz, thr);
       }
     }
     f[i].x += fxtmp;

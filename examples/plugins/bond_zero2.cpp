@@ -51,8 +51,7 @@ void BondZero2::compute(int eflag, int vflag)
 
 void BondZero2::settings(int narg, char **arg)
 {
-  if ((narg != 0) && (narg != 1))
-    error->all(FLERR, "Illegal bond_style command");
+  if ((narg != 0) && (narg != 1)) error->all(FLERR, "Illegal bond_style command");
 
   if (narg == 1) {
     if (strcmp("nocoeff", arg[0]) == 0)
@@ -89,8 +88,7 @@ void BondZero2::coeff(int narg, char **arg)
   utils::bounds(FLERR, arg[0], 1, atom->nbondtypes, ilo, ihi, error);
 
   double r0_one = 0.0;
-  if (coeffflag && (narg == 2))
-    r0_one = utils::numeric(FLERR, arg[1], false, lmp);
+  if (coeffflag && (narg == 2)) r0_one = utils::numeric(FLERR, arg[1], false, lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -129,8 +127,7 @@ void BondZero2::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    utils::sfread(FLERR, &r0[1], sizeof(double), atom->nbondtypes, fp, nullptr,
-                  error);
+    utils::sfread(FLERR, &r0[1], sizeof(double), atom->nbondtypes, fp, nullptr, error);
   }
   MPI_Bcast(&r0[1], atom->nbondtypes, MPI_DOUBLE, 0, world);
 
@@ -148,8 +145,7 @@ void BondZero2::write_data(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double BondZero2::single(int /*type*/, double /*rsq*/, int /*i*/, int /*j*/,
-                         double & /*fforce*/)
+double BondZero2::single(int /*type*/, double /*rsq*/, int /*i*/, int /*j*/, double & /*fforce*/)
 {
   return 0.0;
 }

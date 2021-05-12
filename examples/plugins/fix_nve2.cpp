@@ -26,8 +26,7 @@ using namespace FixConst;
 
 FixNVE2::FixNVE2(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 {
-  if (strcmp(style, "nve/sphere") != 0 && narg < 3)
-    error->all(FLERR, "Illegal fix nve command");
+  if (strcmp(style, "nve/sphere") != 0 && narg < 3) error->all(FLERR, "Illegal fix nve command");
 
   dynamic_group_allow = 1;
   time_integrate = 1;
@@ -52,8 +51,7 @@ void FixNVE2::init()
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
 
-  if (strstr(update->integrate_style, "respa"))
-    step_respa = ((Respa *) update->integrate)->step;
+  if (strstr(update->integrate_style, "respa")) step_respa = ((Respa *) update->integrate)->step;
 }
 
 /* ----------------------------------------------------------------------

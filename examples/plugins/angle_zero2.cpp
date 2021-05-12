@@ -53,8 +53,7 @@ void AngleZero2::compute(int eflag, int vflag)
 
 void AngleZero2::settings(int narg, char **arg)
 {
-  if ((narg != 0) && (narg != 1))
-    error->all(FLERR, "Illegal angle_style command");
+  if ((narg != 0) && (narg != 1)) error->all(FLERR, "Illegal angle_style command");
 
   if (narg == 1) {
     if (strcmp("nocoeff", arg[0]) == 0)
@@ -91,8 +90,7 @@ void AngleZero2::coeff(int narg, char **arg)
   utils::bounds(FLERR, arg[0], 1, atom->nangletypes, ilo, ihi, error);
 
   double theta0_one = 0.0;
-  if (coeffflag && (narg == 2))
-    theta0_one = utils::numeric(FLERR, arg[1], false, lmp);
+  if (coeffflag && (narg == 2)) theta0_one = utils::numeric(FLERR, arg[1], false, lmp);
 
   // convert theta0 from degrees to radians
 
@@ -131,8 +129,7 @@ void AngleZero2::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    utils::sfread(FLERR, &theta0[1], sizeof(double), atom->nangletypes, fp,
-                  nullptr, error);
+    utils::sfread(FLERR, &theta0[1], sizeof(double), atom->nangletypes, fp, nullptr, error);
   }
   MPI_Bcast(&theta0[1], atom->nangletypes, MPI_DOUBLE, 0, world);
 
@@ -144,8 +141,7 @@ void AngleZero2::read_restart(FILE *fp)
 
 void AngleZero2::write_data(FILE *fp)
 {
-  for (int i = 1; i <= atom->nangletypes; i++)
-    fprintf(fp, "%d %g\n", i, theta0[i] / MY_PI * 180.0);
+  for (int i = 1; i <= atom->nangletypes; i++) fprintf(fp, "%d %g\n", i, theta0[i] / MY_PI * 180.0);
 }
 
 /* ---------------------------------------------------------------------- */

@@ -85,8 +85,7 @@ void PairZero2::allocate()
 
 void PairZero2::settings(int narg, char **arg)
 {
-  if ((narg != 1) && (narg != 2))
-    error->all(FLERR, "Illegal pair_style command");
+  if ((narg != 1) && (narg != 2)) error->all(FLERR, "Illegal pair_style command");
 
   cut_global = utils::numeric(FLERR, arg[0], false, lmp);
   if (narg == 2) {
@@ -121,8 +120,7 @@ void PairZero2::coeff(int narg, char **arg)
   utils::bounds(FLERR, arg[1], 1, atom->ntypes, jlo, jhi, error);
 
   double cut_one = cut_global;
-  if (coeffflag && (narg == 3))
-    cut_one = utils::numeric(FLERR, arg[2], false, lmp);
+  if (coeffflag && (narg == 3)) cut_one = utils::numeric(FLERR, arg[2], false, lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -176,15 +174,10 @@ void PairZero2::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0)
-        utils::sfread(FLERR, &setflag[i][j], sizeof(int), 1, fp, nullptr,
-                      error);
+      if (me == 0) utils::sfread(FLERR, &setflag[i][j], sizeof(int), 1, fp, nullptr, error);
       MPI_Bcast(&setflag[i][j], 1, MPI_INT, 0, world);
       if (setflag[i][j]) {
-        if (me == 0) {
-          utils::sfread(FLERR, &cut[i][j], sizeof(double), 1, fp, nullptr,
-                        error);
-        }
+        if (me == 0) { utils::sfread(FLERR, &cut[i][j], sizeof(double), 1, fp, nullptr, error); }
         MPI_Bcast(&cut[i][j], 1, MPI_DOUBLE, 0, world);
       }
     }
@@ -231,15 +224,13 @@ void PairZero2::write_data(FILE *fp)
 void PairZero2::write_data_all(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
-    for (int j = i; j <= atom->ntypes; j++)
-      fprintf(fp, "%d %d %g\n", i, j, cut[i][j]);
+    for (int j = i; j <= atom->ntypes; j++) fprintf(fp, "%d %d %g\n", i, j, cut[i][j]);
 }
 
 /* ---------------------------------------------------------------------- */
 
-double PairZero2::single(int /*i*/, int /*j*/, int /* itype */, int /* jtype */,
-                         double /* rsq */, double /*factor_coul*/,
-                         double /* factor_lj */, double &fforce)
+double PairZero2::single(int /*i*/, int /*j*/, int /* itype */, int /* jtype */, double /* rsq */,
+                         double /*factor_coul*/, double /* factor_lj */, double &fforce)
 {
   fforce = 0.0;
   return 0.0;

@@ -15,7 +15,7 @@
 
 NBinStyle(intel,
           NBinIntel,
-          NB_INTEL)
+          NB_STANDARD | NB_INTEL)
 
 #else
 

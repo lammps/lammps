@@ -14,9 +14,7 @@
 #ifdef NSTENCIL_CLASS
 
 NStencilStyle(full/multi/3d,
-              NStencilFullMulti3d,
-              NS_FULL | NS_MULTI | NS_3D |
-              NS_NEWTON | NS_NEWTOFF | NS_ORTHO | NS_TRI)
+              NStencilFullMulti3d, NS_FULL | NS_MULTI | NS_3D | NS_ORTHO | NS_TRI)
 
 #else
 
@@ -30,8 +28,12 @@ namespace LAMMPS_NS {
 class NStencilFullMulti3d : public NStencil {
  public:
   NStencilFullMulti3d(class LAMMPS *);
-  ~NStencilFullMulti3d() {}
+  ~NStencilFullMulti3d(){}
   void create();
+
+ protected:
+  void set_stencil_properties();
+
 };
 
 }

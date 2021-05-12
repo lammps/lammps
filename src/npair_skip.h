@@ -16,13 +16,13 @@
 NPairStyle(skip,
            NPairSkip,
            NP_SKIP | NP_HALF | NP_FULL |
-           NP_NSQ | NP_BIN | NP_MULTI |
+           NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD |
            NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI)
 
 NPairStyle(skip/ghost,
            NPairSkip,
            NP_SKIP | NP_HALF | NP_FULL |
-           NP_NSQ | NP_BIN | NP_MULTI |
+           NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD |
            NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI | NP_GHOST)
 
 #else

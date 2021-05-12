@@ -20,8 +20,8 @@ namespace LAMMPS_NS {
 
 class Neighbor : protected Pointers {
  public:
-  enum{NSQ,BIN,MULTI};
-  int style;                       // 0,1,2 = nsq, bin, multi
+  enum{NSQ,BIN,MULTI_OLD,MULTI};
+  int style;                       // 0,1,2,3 = nsq, bin, multi/old, multi
   int every;                       // build every this many steps
   int delay;                       // delay build for this many steps
   int dist_check;                  // 0 = always build, 1 = only if 1/2 dist
@@ -102,6 +102,18 @@ class Neighbor : protected Pointers {
   int nimproperlist;               // list of impropers to compute
   int **improperlist;
 
+  // optional type grouping for multi
+
+  int custom_collection_flag;      // 1 if custom collections are defined for multi
+  int interval_collection_flag;    // 1 if custom collections use intervals
+  int finite_cut_flag;             // 1 if multi considers finite atom size
+  int ncollections;                // # of custom collections
+  int nmax_collection;             // maximum atoms stored in collection array
+  int *type2collection;            // ntype array mapping types to custom collections
+  double *collection2cut;          // ncollection array with upper bounds on cutoff intervals
+  double **cutcollectionsq;        // cutoffs for each combination of collections
+  int *collection;                 // local per-atom array to store collection id
+
   // public methods
 
   Neighbor(class LAMMPS *);
@@ -123,6 +135,8 @@ class Neighbor : protected Pointers {
   void exclusion_group_group_delete(int, int);  // rm a group-group exclusion
   int exclude_setting();            // return exclude value to accelerator pkg
   class NeighRequest *find_request(void *);  // find a neighbor request
+  int any_full();                   // Check if any old requests had full neighbor lists
+  void build_collection(int);       // build peratom collection array starting at the given index
 
   double memory_usage();
 
@@ -240,7 +254,9 @@ namespace NeighConst {
     NB_INTEL         = 1<<0,
     NB_KOKKOS_DEVICE = 1<<1,
     NB_KOKKOS_HOST   = 1<<2,
-    NB_SSA           = 1<<3
+    NB_SSA           = 1<<3,
+    NB_STANDARD      = 1<<4,
+    NB_MULTI         = 1<<5
   };
 
   enum {
@@ -250,12 +266,11 @@ namespace NeighConst {
     NS_FULL          = 1<<3,
     NS_2D            = 1<<4,
     NS_3D            = 1<<5,
-    NS_NEWTON        = 1<<6,
-    NS_NEWTOFF       = 1<<7,
-    NS_ORTHO         = 1<<8,
-    NS_TRI           = 1<<9,
-    NS_GHOST         = 1<<10,
-    NS_SSA           = 1<<11
+    NS_ORTHO         = 1<<6,
+    NS_TRI           = 1<<7,
+    NS_GHOST         = 1<<8,
+    NS_SSA           = 1<<9,
+    NS_MULTI_OLD     = 1<<10
   };
 
   enum {
@@ -283,7 +298,8 @@ namespace NeighConst {
     NP_COPY          = 1<<21,
     NP_SKIP          = 1<<22,
     NP_HALF_FULL     = 1<<23,
-    NP_OFF2ON        = 1<<24
+    NP_OFF2ON        = 1<<24,
+    NP_MULTI_OLD     = 1<<25
   };
 }
 

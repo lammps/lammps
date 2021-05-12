@@ -911,14 +911,14 @@ class lammps(object):
     else: return None
 
     if ctype == LMP_TYPE_SCALAR:
-      if style == LMP_STYLE_GLOBAL:
+      if cstyle == LMP_STYLE_GLOBAL:
         self.lib.lammps_extract_compute.restype = POINTER(c_double)
         with ExceptionCheck(self):
           ptr = self.lib.lammps_extract_compute(self.lmp,cid,cstyle,ctype)
         return ptr[0]
-      elif style == LMP_STYLE_ATOM:
+      elif cstyle == LMP_STYLE_ATOM:
         return None
-      elif style == LMP_STYLE_LOCAL:
+      elif cstyle == LMP_STYLE_LOCAL:
         self.lib.lammps_extract_compute.restype = POINTER(c_int)
         with ExceptionCheck(self):
           ptr = self.lib.lammps_extract_compute(self.lmp,cid,cstyle,ctype)

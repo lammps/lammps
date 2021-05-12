@@ -303,6 +303,7 @@ void Comm::modify_params(int narg, char **arg)
         if (mode == Comm::MULTIOLD) cutghostuser = 0.0;
         memory->destroy(cutusermultiold);
         mode = Comm::MULTI;
+        ncollections_cutoff = 0;
       } else if (strcmp(arg[iarg+1],"multi/old") == 0) {
         if (neighbor->style == Neighbor::MULTI)
           error->all(FLERR,"Cannot use comm mode 'multi/old' with 'multi' style neighbor lists");

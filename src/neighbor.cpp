@@ -2349,8 +2349,10 @@ void Neighbor::set(int narg, char **arg)
 
   if (strcmp(arg[1],"nsq") == 0) style = Neighbor::NSQ;
   else if (strcmp(arg[1],"bin") == 0) style = Neighbor::BIN;
-  else if (strcmp(arg[1],"multi") == 0) style = Neighbor::MULTI;
-  else if (strcmp(arg[1],"multi/old") == 0) style = Neighbor::MULTI_OLD;
+  else if (strcmp(arg[1],"multi") == 0) {
+    style = Neighbor::MULTI;
+    ncollections = atom->ntypes; 
+  } else if (strcmp(arg[1],"multi/old") == 0) style = Neighbor::MULTI_OLD;
   else error->all(FLERR,"Illegal neighbor command");
 
   if (style == Neighbor::MULTI_OLD && lmp->citeme) lmp->citeme->add(cite_neigh_multi_old);

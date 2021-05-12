@@ -10,8 +10,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #ifndef PTM_FUNCTIONS_H
 #define PTM_FUNCTIONS_H
 
-#include <stdint.h>
-#include <stdbool.h>
+#include <cstdbool>
+#include <cstddef>
+#include <cstdint>
+
 #include "ptm_initialize_data.h"
 #include "ptm_constants.h"
 

@@ -12,60 +12,57 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(propel/self,FixPropelSelf)
-
+// clang-format off
+FixStyle(propel/self,FixPropelSelf);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_PROPEL_SELF_H
 #define LMP_FIX_PROPEL_SELF_H
 
 #include "fix.h"
-
 namespace LAMMPS_NS {
 
 class FixPropelSelf : public Fix {
  public:
-
   FixPropelSelf(class LAMMPS *, int, char **);
-  virtual ~FixPropelSelf();
-  virtual int setmask();
-  virtual void post_force(int);
+  virtual ~FixPropelSelf() {};
+  void init();
+  void post_force(int);
+  void setup(int);
+  int setmask();
 
-  double memory_usage();
-
- protected:
-  enum operation_modes {
-    VELOCITY = 0,
-    QUATERNION = 1
-  };
-
-private:
+ private:
   double magnitude;
+  double sx, sy, sz;
   int mode;
 
-  // If 0, apply fix to everything in group. If > 0, apply only to those
-  // types i for which i <= n_types_filter _and_ apply_to_type[i] == 1:
-  int n_types_filter;
-  int *apply_to_type; //< Specifies, per type, if the fix applies to it or not.
+  void post_force_dipole(int);
+  void post_force_velocity(int);
+  void post_force_quaternion(int);
 
-
-  int atoms_have_quaternion();
-
-  template <int filter_by_type> void post_force_velocity(int);
-  template <int filter_by_type> void post_force_quaternion(int);
+  class AtomVecEllipsoid *avec;
 };
-}
-
+}    // namespace LAMMPS_NS
 #endif
 #endif
 
 /* ERROR/WARNING messages:
 
-E: Illegal ... command
+E: Illegal fix propel/self command.
 
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
+Wrong number/type of input arguments.
+
+E: Fix propel/self requires atom attribute mu with option dipole.
+
+Self-explanatory.
+
+E: Fix propel/self requires atom style ellipsoid with option quat.
+
+Self-explanatory.
+
+Fix propel/self requires extended particles with option quat.
+
+Self-explanatory.
 
 */

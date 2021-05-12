@@ -312,6 +312,7 @@ br
 Branduardi
 Branicio
 brennan
+Briels
 Brien
 Brilliantov
 Broadwell
@@ -626,6 +627,7 @@ delflag
 Dellago
 delocalization
 delocalized
+Delong
 delr
 deltaHf
 Dendrimer
@@ -709,6 +711,7 @@ dodgerblue
 dof
 doi
 Donadio
+Donev
 dotc
 Doty
 doxygen
@@ -1143,6 +1146,7 @@ GMock
 gneb
 GNEB
 Goldfarb
+Gompper
 Gonzalez-Melchor
 googlemail
 googletest
@@ -1321,6 +1325,7 @@ ijk
 ijkl
 ik
 Ikeshoji
+Ilie
 ilmenau
 Ilmenau
 ilp
@@ -3109,6 +3114,7 @@ Swinburne
 Swol
 Swope
 Sx
+sx
 sy
 Sy
 symplectic
@@ -3118,6 +3124,7 @@ sysdim
 Syst
 systemd
 Sz
+sz
 Tabbernor
 tabinner
 Tadmor
@@ -3358,6 +3365,7 @@ upenn
 upto
 Urbakh
 Urbana
+Usabiaga
 usec
 uSemiParallel
 userguide
@@ -3502,6 +3510,7 @@ Wikipedia
 Wildcard
 wildcard
 wildcards
+Winkler
 Wirnsberger
 wirtes
 witin
@@ -3513,6 +3522,7 @@ Worley
 Wriggers
 Wuppertal
 Wurtzite
+Wysocki
 www
 wx
 Wx

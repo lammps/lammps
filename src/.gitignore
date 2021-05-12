@@ -27,6 +27,11 @@
 /*_ssa.h
 /*_ssa.cpp
 
+/fix_brownian*.cpp
+/fix_brownian*.h
+/fix_propel_self.cpp
+/fix_propel_self.h
+
 /kim_*.cpp
 /kim_*.h
 /pair_kim.cpp
@@ -700,8 +705,6 @@
 /fix_poems.h
 /fix_pour.cpp
 /fix_pour.h
-/fix_propel_self.cpp
-/fix_propel_self.h
 /fix_qeq_comb.cpp
 /fix_qeq_comb.h
 /fix_qeq_reax.cpp

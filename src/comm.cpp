@@ -292,32 +292,24 @@ void Comm::modify_params(int narg, char **arg)
         // need to reset cutghostuser when switching comm mode
         if (mode == Comm::MULTI) cutghostuser = 0.0;
         if (mode == Comm::MULTIOLD) cutghostuser = 0.0;
-        if (cutusermulti) {
-          memory->destroy(cutusermulti);
-          cutusermulti = nullptr;
-        }
-        if (cutusermultiold) {
-          memory->destroy(cutusermultiold);
-          cutusermultiold = nullptr;
-        }
+        memory->destroy(cutusermulti);
+        memory->destroy(cutusermultiold);
         mode = Comm::SINGLE;
       } else if (strcmp(arg[iarg+1],"multi") == 0) {
+        if (neighbor->style != Neighbor::MULTI)
+          error->all(FLERR,"Cannot use comm mode 'multi' without 'multi' style neighbor lists");
         // need to reset cutghostuser when switching comm mode
         if (mode == Comm::SINGLE) cutghostuser = 0.0;
         if (mode == Comm::MULTIOLD) cutghostuser = 0.0;
-        if (cutusermultiold) {
-          memory->destroy(cutusermultiold);
-          cutusermultiold = nullptr;
-        }
+        memory->destroy(cutusermultiold);
         mode = Comm::MULTI;
       } else if (strcmp(arg[iarg+1],"multi/old") == 0) {
+        if (neighbor->style == Neighbor::MULTI)
+          error->all(FLERR,"Cannot use comm mode 'multi/old' with 'multi' style neighbor lists");
         // need to reset cutghostuser when switching comm mode
         if (mode == Comm::SINGLE) cutghostuser = 0.0;
         if (mode == Comm::MULTI) cutghostuser = 0.0;
-        if (cutusermulti) {
-          memory->destroy(cutusermulti);
-          cutusermulti = nullptr;
-        }
+        memory->destroy(cutusermulti);
         mode = Comm::MULTIOLD;
       } else error->all(FLERR,"Illegal comm_modify command");
       iarg += 2;
@@ -333,11 +325,9 @@ void Comm::modify_params(int narg, char **arg)
     } else if (strcmp(arg[iarg],"cutoff") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal comm_modify command");
       if (mode == Comm::MULTI)
-        error->all(FLERR,
-                   "Use cutoff/multi keyword to set cutoff in multi mode");
+        error->all(FLERR, "Use cutoff/multi keyword to set cutoff in multi mode");
       if (mode == Comm::MULTIOLD)
-        error->all(FLERR,
-                   "Use cutoff/multi/old keyword to set cutoff in multi mode");
+        error->all(FLERR, "Use cutoff/multi/old keyword to set cutoff in multi mode");
       cutghostuser = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (cutghostuser < 0.0)
         error->all(FLERR,"Invalid cutoff in comm_modify command");
@@ -350,14 +340,13 @@ void Comm::modify_params(int narg, char **arg)
       if (mode == Comm::MULTIOLD)
         error->all(FLERR,"Use cutoff/multi/old keyword to set cutoff in multi/old mode");
       if (domain->box_exist == 0)
-        error->all(FLERR,
-                   "Cannot set cutoff/multi before simulation box is defined");
+        error->all(FLERR, "Cannot set cutoff/multi before simulation box is defined");
 
       // Check if # of collections has changed, if so erase any previously defined cutoffs
       // Neighbor will reset ncollections if collections are redefined
       if (ncollections_cutoff != neighbor->ncollections) {
         ncollections_cutoff = neighbor->ncollections;
-        if (cutusermulti) memory->destroy(cutusermulti);
+        memory->destroy(cutusermulti);
         memory->create(cutusermulti,ncollections_cutoff,"comm:cutusermulti");
         for (i=0; i < ncollections_cutoff; ++i)
           cutusermulti[i] = -1.0;
@@ -379,8 +368,7 @@ void Comm::modify_params(int narg, char **arg)
       if (mode == Comm::MULTI)
         error->all(FLERR,"Use cutoff/multi keyword to set cutoff in multi mode");
       if (domain->box_exist == 0)
-        error->all(FLERR,
-                   "Cannot set cutoff/multi before simulation box is defined");
+        error->all(FLERR, "Cannot set cutoff/multi before simulation box is defined");
       const int ntypes = atom->ntypes;
       if (iarg+3 > narg)
         error->all(FLERR,"Illegal comm_modify command");

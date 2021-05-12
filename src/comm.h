@@ -31,9 +31,9 @@ class Comm : protected Pointers {
   int me,nprocs;                    // proc info
   int ghost_velocity;               // 1 if ghost atoms have velocity, 0 if not
   double cutghost[3];               // cutoffs used for acquiring ghost atoms
-  double cutghostuser;              // user-specified ghost cutoff (mode == 0)
-  double *cutusermulti;             // per collection user ghost cutoff (mode == 1)
-  double *cutusermultiold;          // per type user ghost cutoff (mode == 2)
+  double cutghostuser;              // user-specified ghost cutoff (mode == SINGLE)
+  double *cutusermulti;             // per collection user ghost cutoff (mode == MULTI)
+  double *cutusermultiold;          // per type user ghost cutoff (mode == MULTIOLD)
   int ncollections;                 // # of collections known by comm, used to test if # has changed
   int ncollections_cutoff;          // # of collections stored b cutoff/multi
   int recv_from_partition;          // recv proc layout from this partition

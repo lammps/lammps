@@ -210,7 +210,7 @@ void NStencil::copy_bin_info_multi()
 void NStencil::create_setup()
 {
 
-  if (neighstyle != Neighbor::MULTI){
+  if (neighstyle != Neighbor::MULTI) {
     if (nb) copy_bin_info();
     last_stencil = update->ntimestep;
 
@@ -218,11 +218,11 @@ void NStencil::create_setup()
     // smax = max possible size of entire 3d stencil
     // stencil will be empty if cutneighmax = 0.0
 
-    sx = static_cast<int> (cutneighmax*bininvx);
+    sx = static_cast<int>(cutneighmax*bininvx);
     if (sx*binsizex < cutneighmax) sx++;
-    sy = static_cast<int> (cutneighmax*bininvy);
+    sy = static_cast<int>(cutneighmax*bininvy);
     if (sy*binsizey < cutneighmax) sy++;
-    sz = static_cast<int> (cutneighmax*bininvz);
+    sz = static_cast<int>(cutneighmax*bininvz);
     if (sz*binsizez < cutneighmax) sz++;
     if (dimension == 2) sz = 0;
 

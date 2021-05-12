@@ -5,21 +5,20 @@ sends one or more commands to LAMMPS.
 
 --------------
 
-NOTE: the Script.sh file has comands to perform all the
-runs listed below.
+The Script.sh file has comands to perform some very simple example
+runs.
 
 --------------
 
-File or ZMQ or mpi/two modes of messaging:
+More complex calculations using LAMMPS as an MDI engine will
+typically require the use of an MDI driver.  Several MDI drivers
+support calculations with LAMMPS, and include:
 
-% mpirun -np 1 lmp_mpi -v mode file -log log.client -in in.message.client & 
-% mpirun -np 2 lmp_mpi -v mode file -log log.server -in in.message.server
+Ab Initio Molecular Dynamics (AIMD) Driver:
+https://github.com/MolSSI-MDI/MDI_AIMD_Driver
 
-% mpirun -np 4 lmp_mpi -v mode zmq -log log.client -in in.message.client & 
-% mpirun -np 1 lmp_mpi -v mode zmq -log log.server -in in.message.server
+Nudged Elastic Band (NEB) Driver:
+https://github.com/MolSSI-MDI/MDI_NEB_Driver
 
-% mpirun -np 2 lmp_mpi -v mode mpitwo -log log.client -in in.message.client & 
-% mpirun -np 4 lmp_mpi -v mode mpitwo -log log.server -in in.message.server
-
-Or run with in.message.tilt.client/server.
-Don't run the tilt files with the "file" mode; they run too slow.
+Metadynamics Driver:
+https://github.com/MolSSI-MDI/MDI_Metadynamics

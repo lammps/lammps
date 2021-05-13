@@ -3,7 +3,7 @@ Using LAMMPS with the MDI library for code coupling
 
 ..note::
 
-  This Howto doc page will eventually replace the 
+  This Howto doc page will eventually replace the
   :doc:`Howto client/server <Howto_client_server>` doc page.
 
 Client/server coupling of two codes is where one code is the "client"

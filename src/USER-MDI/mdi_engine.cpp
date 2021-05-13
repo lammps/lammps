@@ -210,20 +210,20 @@ void MDIEngine::command(int narg, char **arg)
     // DEFAULT, INIT_MD, INIT_OPTG
 
     command = mdi_fix->engine_mode("@DEFAULT");
-    
+
     // MDI commands for dynamics or minimization
 
     if (strcmp(command,"@INIT_MD") == 0 ) {
       command = mdi_md();
       if (strcmp(command,"EXIT")) break;
-      
+
     } else if (strcmp(command,"@INIT_OPTG") == 0 ) {
       command = mdi_optg();
       if (strcmp(command,"EXIT")) break;
 
     } else if (strcmp(command,"EXIT") == 0) {
       break;
-  
+
     } else
       error->all(FLERR,
                  fmt::format("MDI node exited with "
@@ -306,7 +306,7 @@ char *MDIEngine::mdi_optg()
 
   Minimize *minimizer = new Minimize(lmp);
 
-  // setup the minimizer in a way that ensures optimization 
+  // setup the minimizer in a way that ensures optimization
   // will continue until MDI driver exits
 
   update->etol = std::numeric_limits<double>::min();

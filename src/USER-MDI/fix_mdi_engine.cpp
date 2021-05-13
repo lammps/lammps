@@ -263,7 +263,7 @@ int FixMDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
       if (ierr != 0)
 	error->all(FLERR,"MDI: Unable to send number of atom types to driver");
     }
-  
+
   } else if (strcmp(command,"<TYPES") == 0 ) {
     send_types(error);
 
@@ -359,7 +359,7 @@ int FixMDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
       // set the maximum number of force evaluations to 0
       update->max_eval = 0;
     }
- 
+
   } else if (strcmp(command,"@COORDS") == 0 ) {
     strncpy(target_node, "@COORDS", MDI_COMMAND_LENGTH);
     local_exit_flag = true;
@@ -484,7 +484,7 @@ void FixMDIEngine::receive_coordinates(Error* error)
   }
 
   // ensure atoms are in current box & update box via shrink-wrap
-  // has to be be done before invoking Irregular::migrate_atoms() 
+  // has to be be done before invoking Irregular::migrate_atoms()
   //   since it requires atoms be inside simulation box
 
   if (domain->triclinic) domain->x2lamda(atom->nlocal);
@@ -577,7 +577,7 @@ void FixMDIEngine::send_charges(Error* error)
 
   MPI_Reduce(charges, charges_reduced, atom->natoms, MPI_DOUBLE, MPI_SUM, 0, world);
 
-  if (master) { 
+  if (master) {
     ierr = MDI_Send((char*) charges_reduced, atom->natoms, MDI_DOUBLE, driver_socket);
     if (ierr != 0)
       error->all(FLERR,"MDI: Unable to send charges to driver");
@@ -689,7 +689,7 @@ void FixMDIEngine::send_types(Error* error)
 {
   int * const type = atom->type;
 
-  if (master) { 
+  if (master) {
     ierr = MDI_Send((char*) type, atom->natoms, MDI_INT, driver_socket);
     if (ierr != 0)
       error->all(FLERR,"MDI: Unable to send atom types to driver");
@@ -709,7 +709,7 @@ void FixMDIEngine::send_labels(Error* error)
     strncpy(&labels[iatom * MDI_LABEL_LENGTH], label.c_str(), label_len);
   }
 
-  if (master) { 
+  if (master) {
     ierr = MDI_Send( labels, atom->natoms * MDI_LABEL_LENGTH, MDI_CHAR, driver_socket);
     if (ierr != 0)
       error->all(FLERR,"MDI: Unable to send atom types to driver");
@@ -935,7 +935,7 @@ void FixMDIEngine::send_cell(Error* error)
     celldata[icell] *= unit_conv;
   }
 
-  if (master) { 
+  if (master) {
     ierr = MDI_Send((char*) celldata, 9, MDI_DOUBLE, driver_socket);
     if (ierr != 0)
       error->all(FLERR,"MDI: Unable to send cell dimensions to driver");
@@ -949,7 +949,7 @@ void FixMDIEngine::receive_cell(Error* error)
   double celldata[9];
 
   // receive the new cell vector from the driver
-  if (master) { 
+  if (master) {
     ierr = MDI_Recv((char*) celldata, 9, MDI_DOUBLE, driver_socket);
     if (ierr != 0)
       error->all(FLERR,"MDI: Unable to send cell dimensions to driver");
@@ -1007,7 +1007,7 @@ void FixMDIEngine::send_celldispl(Error* error)
     celldata[icell] *= unit_conv;
   }
 
-  if (master) { 
+  if (master) {
     ierr = MDI_Send((char*) celldata, 3, MDI_DOUBLE, driver_socket);
     if (ierr != 0)
       error->all(FLERR,"MDI: Unable to send cell displacement to driver");
@@ -1020,7 +1020,7 @@ void FixMDIEngine::receive_celldispl(Error* error)
 {
   // receive the cell displacement from the driver
   double celldata[3];
-  if (master) { 
+  if (master) {
     ierr = MDI_Recv((char*) celldata, 3, MDI_DOUBLE, driver_socket);
     if (ierr != 0)
       error->all(FLERR,"MDI: Unable to receive cell displacement from driver");

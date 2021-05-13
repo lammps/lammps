@@ -27,9 +27,6 @@
 #include "error.h"
 #include "fix.h"
 #include "fix_external.h"
-#if defined(LMP_USER_MDI)
-#include "fix_mdi_engine.h"
-#endif
 #include "force.h"
 #include "group.h"
 #include "info.h"

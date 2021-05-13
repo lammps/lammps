@@ -58,8 +58,8 @@ else()
   target_link_libraries(lammps PRIVATE ${mdi_LIBRARY})
 
   # Link the lammps executable against MDI
-  #target_include_directories(lmp PRIVATE ${mdi_INCLUDE_DIR})
-  #target_link_libraries(lmp PRIVATE ${mdi_LIBRARY}
+  target_include_directories(lmp PRIVATE ${mdi_INCLUDE_DIR})
+  target_link_libraries(lmp PRIVATE ${mdi_LIBRARY})
 endif()
 
 target_compile_definitions(lammps PRIVATE -DLMP_USER_MDI)

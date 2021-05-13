@@ -14,7 +14,6 @@
 #include "lammps.h"
 
 #include "input.h"
-#include "mdi_interface.h"
 
 #include <cstdlib>
 #include <mpi.h>
@@ -25,6 +24,41 @@
 
 #if defined(LAMMPS_EXCEPTIONS)
 #include "exceptions.h"
+#endif
+
+// import real or dummy calls to MolSSI Driver Interface library
+#if defined(LMP_USER_MDI)
+
+// true interface to MDI
+#include <mdi.h>
+
+#else
+
+// dummy interface to MDI
+// needed for compiling when MDI is not installed
+
+typedef int MDI_Comm;
+static int MDI_Init(int *argc, char ***argv)
+{
+  return 0;
+}
+static int MDI_Initialized(int *flag)
+{
+  return 0;
+}
+static int MDI_MPI_get_world_comm(void *world_comm)
+{
+  return 0;
+}
+static int MDI_Plugin_get_argc(int *argc)
+{
+  return 0;
+}
+static int MDI_Plugin_get_argv(char ***argv)
+{
+  return 0;
+}
+
 #endif
 
 using namespace LAMMPS_NS;
@@ -50,9 +84,9 @@ int main(int argc, char **argv)
   if (mdi_flag)
     if (MDI_MPI_get_world_comm(&lammps_comm)) MPI_Abort(MPI_COMM_WORLD, 1);
 
-  // enable trapping selected floating point exceptions.
-  // this uses GNU extensions and is only tested on Linux
-  // therefore we make it depend on -D_GNU_SOURCE, too.
+      // enable trapping selected floating point exceptions.
+      // this uses GNU extensions and is only tested on Linux
+      // therefore we make it depend on -D_GNU_SOURCE, too.
 
 #if defined(LAMMPS_TRAP_FPE) && defined(_GNU_SOURCE)
   fesetenv(FE_NOMASK_ENV);

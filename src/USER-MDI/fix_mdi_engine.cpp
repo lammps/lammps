@@ -227,35 +227,19 @@ int FixMDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
 
   // respond to any driver command
 
-  // send calculation status to the driver;
-  //    STATUS is not part of the MDI Standard,
-  //    and is included here for i-PI compatibility
-
-  if (strcmp(command, "STATUS") == 0) {
-    if (master) {
-      ierr = MDI_Send_command("READY", mdicomm);
-      if (ierr != 0) error->all(FLERR, "MDI: Unable to return status to driver");
-    }
-
-  } else if (strcmp(command, ">NATOMS") == 0) {
-    if (master) {
-      ierr = MDI_Recv((char *) &atom->natoms, 1, MDI_INT, mdicomm);
-      if (ierr != 0) error->all(FLERR, "MDI: Unable to receive number of atoms from driver");
-    }
+  if (strcmp(command, ">NATOMS") == 0) {
+    ierr = MDI_Recv((char *) &atom->natoms, 1, MDI_INT, mdicomm);
+    if (ierr != 0) error->all(FLERR, "MDI: Unable to receive number of atoms from driver");
     MPI_Bcast(&atom->natoms, 1, MPI_INT, 0, world);
 
   } else if (strcmp(command, "<NATOMS") == 0) {
-    if (master) {
-      int64_t mdi_natoms = atom->natoms;
-      ierr = MDI_Send((char *) &mdi_natoms, 1, MDI_INT64_T, mdicomm);
-      if (ierr != 0) error->all(FLERR, "MDI: Unable to send number of atoms to driver");
-    }
+    int64_t mdi_natoms = atom->natoms;
+    ierr = MDI_Send((char *) &mdi_natoms, 1, MDI_INT64_T, mdicomm);
+    if (ierr != 0) error->all(FLERR, "MDI: Unable to send number of atoms to driver");
 
   } else if (strcmp(command, "<NTYPES") == 0) {
-    if (master) {
-      ierr = MDI_Send((char *) &atom->ntypes, 1, MDI_INT, mdicomm);
-      if (ierr != 0) error->all(FLERR, "MDI: Unable to send number of atom types to driver");
-    }
+    ierr = MDI_Send((char *) &atom->ntypes, 1, MDI_INT, mdicomm);
+    if (ierr != 0) error->all(FLERR, "MDI: Unable to send number of atom types to driver");
 
   } else if (strcmp(command, "<TYPES") == 0) {
     send_types(error);
@@ -324,10 +308,8 @@ int FixMDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
     local_exit_flag = true;
 
   } else if (strcmp(command, "<@") == 0) {
-    if (master) {
-      ierr = MDI_Send(current_node, MDI_NAME_LENGTH, MDI_CHAR, mdicomm);
-      if (ierr != 0) error->all(FLERR, "MDI: Unable to send node to driver");
-    }
+    ierr = MDI_Send(current_node, MDI_NAME_LENGTH, MDI_CHAR, mdicomm);
+    if (ierr != 0) error->all(FLERR, "MDI: Unable to send node to driver");
 
   } else if (strcmp(command, "<KE") == 0) {
     send_ke(error);
@@ -455,10 +437,8 @@ void FixMDIEngine::receive_coordinates(Error *error)
   double *buffer;
   buffer = new double[3 * atom->natoms];
 
-  if (master) {
-    ierr = MDI_Recv((char *) buffer, 3 * atom->natoms, MDI_DOUBLE, driver_socket);
-    if (ierr != 0) error->all(FLERR, "MDI: Unable to receive coordinates from driver");
-  }
+  ierr = MDI_Recv((char *) buffer, 3 * atom->natoms, MDI_DOUBLE, driver_socket);
+  if (ierr != 0) error->all(FLERR, "MDI: Unable to receive coordinates from driver");
   MPI_Bcast(buffer, 3 * atom->natoms, MPI_DOUBLE, 0, world);
 
   // pick local atoms from the buffer
@@ -530,10 +510,8 @@ void FixMDIEngine::send_coordinates(Error *error)
 
   MPI_Reduce(coords, coords_reduced, 3 * atom->natoms, MPI_DOUBLE, MPI_SUM, 0, world);
 
-  if (master) {
-    ierr = MDI_Send((char *) coords_reduced, 3 * atom->natoms, MDI_DOUBLE, driver_socket);
-    if (ierr != 0) error->all(FLERR, "MDI: Unable to send coordinates to driver");
-  }
+  ierr = MDI_Send((char *) coords_reduced, 3 * atom->natoms, MDI_DOUBLE, driver_socket);
+  if (ierr != 0) error->all(FLERR, "MDI: Unable to send coordinates to driver");
 
   memory->destroy(coords);
   memory->destroy(coords_reduced);
@@ -562,10 +540,8 @@ void FixMDIEngine::send_charges(Error *error)
 
   MPI_Reduce(charges, charges_reduced, atom->natoms, MPI_DOUBLE, MPI_SUM, 0, world);
 
-  if (master) {
-    ierr = MDI_Send((char *) charges_reduced, atom->natoms, MDI_DOUBLE, driver_socket);
-    if (ierr != 0) error->all(FLERR, "MDI: Unable to send charges to driver");
-  }
+  ierr = MDI_Send((char *) charges_reduced, atom->natoms, MDI_DOUBLE, driver_socket);
+  if (ierr != 0) error->all(FLERR, "MDI: Unable to send charges to driver");
 
   memory->destroy(charges);
   memory->destroy(charges_reduced);
@@ -600,10 +576,8 @@ void FixMDIEngine::send_energy(Error *error)
   kinetic_energy *= energy_conv;
   total_energy = potential_energy + kinetic_energy;
 
-  if (master) {
-    ierr = MDI_Send((char *) send_energy, 1, MDI_DOUBLE, driver_socket);
-    if (ierr != 0) error->all(FLERR, "MDI: Unable to send potential energy to driver");
-  }
+  ierr = MDI_Send((char *) send_energy, 1, MDI_DOUBLE, driver_socket);
+  if (ierr != 0) error->all(FLERR, "MDI: Unable to send potential energy to driver");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -628,10 +602,8 @@ void FixMDIEngine::send_pe(Error *error)
   // convert the energy to atomic units
   potential_energy *= energy_conv;
 
-  if (master) {
-    ierr = MDI_Send((char *) send_energy, 1, MDI_DOUBLE, driver_socket);
-    if (ierr != 0) error->all(FLERR, "MDI: Unable to send potential energy to driver");
-  }
+  ierr = MDI_Send((char *) send_energy, 1, MDI_DOUBLE, driver_socket);
+  if (ierr != 0) error->all(FLERR, "MDI: Unable to send potential energy to driver");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -656,10 +628,8 @@ void FixMDIEngine::send_ke(Error *error)
   // convert the energy to atomic units
   kinetic_energy *= energy_conv;
 
-  if (master) {
-    ierr = MDI_Send((char *) send_energy, 1, MDI_DOUBLE, driver_socket);
-    if (ierr != 0) error->all(FLERR, "MDI: Unable to send potential energy to driver");
-  }
+  ierr = MDI_Send((char *) send_energy, 1, MDI_DOUBLE, driver_socket);
+  if (ierr != 0) error->all(FLERR, "MDI: Unable to send potential energy to driver");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -668,10 +638,8 @@ void FixMDIEngine::send_types(Error *error)
 {
   int *const type = atom->type;
 
-  if (master) {
-    ierr = MDI_Send((char *) type, atom->natoms, MDI_INT, driver_socket);
-    if (ierr != 0) error->all(FLERR, "MDI: Unable to send atom types to driver");
-  }
+  ierr = MDI_Send((char *) type, atom->natoms, MDI_INT, driver_socket);
+  if (ierr != 0) error->all(FLERR, "MDI: Unable to send atom types to driver");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -687,10 +655,8 @@ void FixMDIEngine::send_labels(Error *error)
     strncpy(&labels[iatom * MDI_LABEL_LENGTH], label.c_str(), label_len);
   }
 
-  if (master) {
-    ierr = MDI_Send(labels, atom->natoms * MDI_LABEL_LENGTH, MDI_CHAR, driver_socket);
-    if (ierr != 0) error->all(FLERR, "MDI: Unable to send atom types to driver");
-  }
+  ierr = MDI_Send(labels, atom->natoms * MDI_LABEL_LENGTH, MDI_CHAR, driver_socket);
+  if (ierr != 0) error->all(FLERR, "MDI: Unable to send atom types to driver");
 
   delete[] labels;
 }
@@ -726,10 +692,8 @@ void FixMDIEngine::send_masses(Error *error)
 
   // send the atomic masses to the driver
 
-  if (master) {
-    ierr = MDI_Send((char *) mass_by_atom_reduced, atom->natoms, MDI_DOUBLE, driver_socket);
-    if (ierr != 0) error->all(FLERR, "MDI: Unable to send atom masses to driver");
-  }
+  ierr = MDI_Send((char *) mass_by_atom_reduced, atom->natoms, MDI_DOUBLE, driver_socket);
+  if (ierr != 0) error->all(FLERR, "MDI: Unable to send atom masses to driver");
 
   memory->destroy(mass_by_atom);
   memory->destroy(mass_by_atom_reduced);
@@ -812,10 +776,8 @@ void FixMDIEngine::send_forces(Error *error)
   MPI_Reduce(forces, forces_reduced, 3 * atom->natoms, MPI_DOUBLE, MPI_SUM, 0, world);
 
   // send the forces through MDI
-  if (master) {
-    ierr = MDI_Send((char *) forces_reduced, 3 * atom->natoms, MDI_DOUBLE, driver_socket);
-    if (ierr != 0) error->all(FLERR, "MDI: Unable to send atom forces to driver");
-  }
+  ierr = MDI_Send((char *) forces_reduced, 3 * atom->natoms, MDI_DOUBLE, driver_socket);
+  if (ierr != 0) error->all(FLERR, "MDI: Unable to send atom forces to driver");
 
   memory->destroy(forces);
   memory->destroy(forces_reduced);
@@ -850,10 +812,8 @@ void FixMDIEngine::receive_forces(Error *error, int mode)
   double *forces;
   memory->create(forces, ncoords, "mdi/engine:forces");
 
-  if (master) {
-    ierr = MDI_Recv((char *) forces, 3 * atom->natoms, MDI_DOUBLE, driver_socket);
-    if (ierr != 0) error->all(FLERR, "MDI: Unable to receive atom forces to driver");
-  }
+  ierr = MDI_Recv((char *) forces, 3 * atom->natoms, MDI_DOUBLE, driver_socket);
+  if (ierr != 0) error->all(FLERR, "MDI: Unable to receive atom forces to driver");
   MPI_Bcast(forces, 3 * atom->natoms, MPI_DOUBLE, 0, world);
 
   // pick local atoms from the buffer
@@ -902,10 +862,8 @@ void FixMDIEngine::send_cell(Error *error)
   double unit_conv = force->angstrom * angstrom_to_bohr;
   for (int icell = 0; icell < 9; icell++) { celldata[icell] *= unit_conv; }
 
-  if (master) {
-    ierr = MDI_Send((char *) celldata, 9, MDI_DOUBLE, driver_socket);
-    if (ierr != 0) error->all(FLERR, "MDI: Unable to send cell dimensions to driver");
-  }
+  ierr = MDI_Send((char *) celldata, 9, MDI_DOUBLE, driver_socket);
+  if (ierr != 0) error->all(FLERR, "MDI: Unable to send cell dimensions to driver");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -915,10 +873,8 @@ void FixMDIEngine::receive_cell(Error *error)
   double celldata[9];
 
   // receive the new cell vector from the driver
-  if (master) {
-    ierr = MDI_Recv((char *) celldata, 9, MDI_DOUBLE, driver_socket);
-    if (ierr != 0) error->all(FLERR, "MDI: Unable to send cell dimensions to driver");
-  }
+  ierr = MDI_Recv((char *) celldata, 9, MDI_DOUBLE, driver_socket);
+  if (ierr != 0) error->all(FLERR, "MDI: Unable to send cell dimensions to driver");
   MPI_Bcast(&celldata[0], 9, MPI_DOUBLE, 0, world);
 
   double angstrom_to_bohr;
@@ -964,10 +920,8 @@ void FixMDIEngine::send_celldispl(Error *error)
   double unit_conv = force->angstrom * angstrom_to_bohr;
   for (int icell = 0; icell < 3; icell++) { celldata[icell] *= unit_conv; }
 
-  if (master) {
-    ierr = MDI_Send((char *) celldata, 3, MDI_DOUBLE, driver_socket);
-    if (ierr != 0) error->all(FLERR, "MDI: Unable to send cell displacement to driver");
-  }
+  ierr = MDI_Send((char *) celldata, 3, MDI_DOUBLE, driver_socket);
+  if (ierr != 0) error->all(FLERR, "MDI: Unable to send cell displacement to driver");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -976,10 +930,8 @@ void FixMDIEngine::receive_celldispl(Error *error)
 {
   // receive the cell displacement from the driver
   double celldata[3];
-  if (master) {
-    ierr = MDI_Recv((char *) celldata, 3, MDI_DOUBLE, driver_socket);
-    if (ierr != 0) error->all(FLERR, "MDI: Unable to receive cell displacement from driver");
-  }
+  ierr = MDI_Recv((char *) celldata, 3, MDI_DOUBLE, driver_socket);
+  if (ierr != 0) error->all(FLERR, "MDI: Unable to receive cell displacement from driver");
   MPI_Bcast(&celldata[0], 3, MPI_DOUBLE, 0, world);
 
   double angstrom_to_bohr;

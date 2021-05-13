@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMMAND_CLASS
-
-CommandStyle(mdi/engine,MDIEngine)
-
+// clang-format off
+CommandStyle(mdi/engine, MDIEngine);
+// clang-format on
 #else
 
 #ifndef LMP_MDI_ENGINE_H
@@ -30,14 +30,14 @@ class MDIEngine : public Command {
   virtual ~MDIEngine() {}
   void command(int, char **);
 
-private:
+ private:
   class FixMDIEngine *mdi_fix;
 
   char *mdi_md();
   char *mdi_optg();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

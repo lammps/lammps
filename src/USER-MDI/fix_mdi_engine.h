@@ -11,11 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-
 #ifdef FIX_CLASS
-
-FixStyle(mdi/engine,FixMDIEngine)
-
+// clang-format off
+FixStyle(mdi/engine, FixMDIEngine);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_MDI_ENGINE_H
@@ -42,12 +41,12 @@ class FixMDIEngine : public Fix {
   void min_setup(int);
   void post_integrate();
   void post_force(int);
-  void min_pre_force(int); //@COORDS
-  void min_post_force(int); //@FORCES
+  void min_pre_force(int);     //@COORDS
+  void min_post_force(int);    //@FORCES
 
-  double *add_force; // stores forces added using +FORCE command
-  double potential_energy; // stores potential energy
-  double kinetic_energy; // stores kinetic energy
+  double *add_force;          // stores forces added using +FORCE command
+  double potential_energy;    // stores potential energy
+  double kinetic_energy;      // stores kinetic energy
 
   // current command
 
@@ -57,23 +56,23 @@ class FixMDIEngine : public Fix {
   void exchange_forces();
 
  private:
-  int lmpunits;         // REAL or METAL
+  int lmpunits;    // REAL or METAL
   int master, ierr;
   int driver_socket;
-  int most_recent_init; // which MDI init command was most recently received?
-                        // 0 - none
-                        // 1 - MD
-                        // 2 - OPTG
+  int most_recent_init;    // which MDI init command was most recently received?
+                           // 0 - none
+                           // 1 - MD
+                           // 2 - OPTG
   bool exit_flag;
   bool local_exit_flag;
   char *current_node;
-  char *target_node;      // is the code supposed to advance to a particular node?
-                          // 0 - none
-                          // 1 - @COORDS (before pre-force calculation)
-                          // 2 - @PRE-FORCES (before final force calculation)
-                          // 3 - @FORCES (before time integration)
-                          // -1 - after MD_INIT command
-                          // -2 - after MD_INIT command followed by @PRE-FORCES (actually @INIT_OPTG?)
+  char *target_node;    // is the code supposed to advance to a particular node?
+                        // 0 - none
+                        // 1 - @COORDS (before pre-force calculation)
+                        // 2 - @PRE-FORCES (before final force calculation)
+                        // 3 - @FORCES (before time integration)
+                        // -1 - after MD_INIT command
+                        // -2 - after MD_INIT command followed by @PRE-FORCES (actually @INIT_OPTG?)
 
   // command to be executed at the target node
 
@@ -103,7 +102,7 @@ class FixMDIEngine : public Fix {
   void receive_celldispl(Error *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

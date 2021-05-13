@@ -31,8 +31,8 @@
 #include "update.h"
 #include "verlet.h"
 
-#include <string.h>
 #include <limits>
+#include <string.h>
 
 using namespace LAMMPS_NS;
 
@@ -188,17 +188,15 @@ void MDIEngine::command(int narg, char **arg)
   // identify the mdi_engine fix
 
   ifix = modify->find_fix_by_style("mdi/engine");
-  mdi_fix = static_cast<FixMDIEngine*>(modify->fix[ifix]);
+  mdi_fix = static_cast<FixMDIEngine *>(modify->fix[ifix]);
 
   // check that LAMMPS is setup as a compatible MDI engine
 
-  if (narg > 0) error->all(FLERR,"Illegal mdi/engine command");
+  if (narg > 0) error->all(FLERR, "Illegal mdi/engine command");
 
-  if (atom->tag_enable == 0)
-    error->all(FLERR,"Cannot use mdi/engine without atom IDs");
+  if (atom->tag_enable == 0) error->all(FLERR, "Cannot use mdi/engine without atom IDs");
 
-  if (atom->tag_consecutive() == 0)
-    error->all(FLERR,"mdi/engine requires consecutive atom IDs");
+  if (atom->tag_consecutive() == 0) error->all(FLERR, "mdi/engine requires consecutive atom IDs");
 
   // endless engine loop, responding to driver commands
 
@@ -213,21 +211,22 @@ void MDIEngine::command(int narg, char **arg)
 
     // MDI commands for dynamics or minimization
 
-    if (strcmp(command,"@INIT_MD") == 0 ) {
+    if (strcmp(command, "@INIT_MD") == 0) {
       command = mdi_md();
-      if (strcmp(command,"EXIT")) break;
+      if (strcmp(command, "EXIT")) break;
 
-    } else if (strcmp(command,"@INIT_OPTG") == 0 ) {
+    } else if (strcmp(command, "@INIT_OPTG") == 0) {
       command = mdi_optg();
-      if (strcmp(command,"EXIT")) break;
+      if (strcmp(command, "EXIT")) break;
 
-    } else if (strcmp(command,"EXIT") == 0) {
+    } else if (strcmp(command, "EXIT") == 0) {
       break;
 
     } else
       error->all(FLERR,
                  fmt::format("MDI node exited with "
-                             "invalid command: {}",command));
+                             "invalid command: {}",
+                             command));
   }
 
   // remove mdi/engine fix that mdi/engine instantiated
@@ -256,11 +255,10 @@ char *MDIEngine::mdi_md()
 
   // engine is now at @INIT_MD node
 
-  char *command = NULL;
+  char *command = nullptr;
   command = mdi_fix->engine_mode("@INIT_MD");
 
-  if (strcmp(command,"@DEFAULT") == 0 || strcmp(command,"EXIT") == 0)
-    return command;
+  if (strcmp(command, "@DEFAULT") == 0 || strcmp(command, "EXIT") == 0) return command;
 
   // setup the MD simulation
 
@@ -268,8 +266,7 @@ char *MDIEngine::mdi_md()
 
   command = mdi_fix->engine_mode("@FORCES");
 
-  if (strcmp(command,"@DEFAULT") == 0 || strcmp(command,"EXIT") == 0)
-    return command;
+  if (strcmp(command, "@DEFAULT") == 0 || strcmp(command, "EXIT") == 0) return command;
 
   // run MD one step at a time
 
@@ -289,11 +286,10 @@ char *MDIEngine::mdi_md()
 
     command = mdi_fix->command;
 
-    if (strcmp(command,"@DEFAULT") == 0 || strcmp(command,"EXIT") == 0)
-      return command;
+    if (strcmp(command, "@DEFAULT") == 0 || strcmp(command, "EXIT") == 0) return command;
   }
 
-  return NULL;
+  return nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -322,11 +318,10 @@ char *MDIEngine::mdi_optg()
 
   // engine is now at @INIT_OPTG node
 
-  char *command = NULL;
+  char *command = nullptr;
   command = mdi_fix->engine_mode("@INIT_OPTG");
 
-  if (strcmp(command,"@DEFAULT") == 0 || strcmp(command,"EXIT") == 0)
-    return command;
+  if (strcmp(command, "@DEFAULT") == 0 || strcmp(command, "EXIT") == 0) return command;
 
   // setup the minimization
 
@@ -336,8 +331,7 @@ char *MDIEngine::mdi_optg()
 
   command = mdi_fix->command;
 
-  if (strcmp(command,"@DEFAULT") == 0 || strcmp(command,"EXIT") == 0)
-    return command;
+  if (strcmp(command, "@DEFAULT") == 0 || strcmp(command, "EXIT") == 0) return command;
 
   // Start a minimization, which is configured to run (essentially)
   //       infinite steps.  When the driver sends the EXIT command,
@@ -350,11 +344,11 @@ char *MDIEngine::mdi_optg()
 
   command = mdi_fix->command;
 
-  if (strcmp(command,"@DEFAULT") == 0 || strcmp(command,"EXIT") == 0)
-    return command;
+  if (strcmp(command, "@DEFAULT") == 0 || strcmp(command, "EXIT") == 0) return command;
 
   error->all(FLERR,
              fmt::format("MDI reached end of OPTG simulation "
-                         "with invalid command: {}",command));
-  return NULL;
+                         "with invalid command: {}",
+                         command));
+  return nullptr;
 }

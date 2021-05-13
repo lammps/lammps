@@ -35,7 +35,7 @@
 #include <limits>
 #include <string.h>
 
-enum{NONE,REAL,METAL};    // LAMMPS units which MDI supports
+enum { NONE, REAL, METAL };    // LAMMPS units which MDI supports
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -43,28 +43,26 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixMDIEngine::FixMDIEngine(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg),
-  id_pe(NULL), pe(NULL),
-  id_ke(NULL), ke(NULL)
+    Fix(lmp, narg, arg), id_pe(nullptr), pe(nullptr), id_ke(nullptr), ke(nullptr)
 {
-  if (narg != 3) error->all(FLERR,"Illegal fix mdi command");
+  if (narg != 3) error->all(FLERR, "Illegal fix mdi command");
 
   // The 2 atomic-scale units LAMMPS has are:
   //    real: coords = Ang, eng = Kcal/mole, force = Kcal/mole/Ang
   //    metal: coords = Ang, eng = eV, force = eV/Ang
 
   lmpunits = NONE;
-  if (strcmp(update->unit_style,"real") == 0) lmpunits = REAL;
-  if (strcmp(update->unit_style,"metal") == 0) lmpunits = METAL;
-  if (lmpunits == NONE) error->all(FLERR,"MDI requires real or metal units");
+  if (strcmp(update->unit_style, "real") == 0) lmpunits = REAL;
+  if (strcmp(update->unit_style, "metal") == 0) lmpunits = METAL;
+  if (lmpunits == NONE) error->all(FLERR, "MDI requires real or metal units");
 
   // MDI setup
 
   most_recent_init = 0;
   exit_flag = false;
   local_exit_flag = false;
-  target_command = new char[MDI_COMMAND_LENGTH+1];
-  command = new char[MDI_COMMAND_LENGTH+1];
+  target_command = new char[MDI_COMMAND_LENGTH + 1];
+  command = new char[MDI_COMMAND_LENGTH + 1];
   current_node = new char[MDI_COMMAND_LENGTH];
   target_node = new char[MDI_COMMAND_LENGTH];
   strncpy(target_node, "\0", MDI_COMMAND_LENGTH);
@@ -77,33 +75,33 @@ FixMDIEngine::FixMDIEngine(LAMMPS *lmp, int narg, char **arg) :
   // accept a communicator to the driver
   // master = 1 for proc 0, otherwise 0
 
-  master = (comm->me==0) ? 1 : 0;
+  master = (comm->me == 0) ? 1 : 0;
 
   MDI_Accept_communicator(&driver_socket);
-  if (driver_socket <= 0) error->all(FLERR,"Unable to connect to driver");
+  if (driver_socket <= 0) error->all(FLERR, "Unable to connect to driver");
 
   // create computes for KE and PE
 
   id_pe = utils::strdup(std::string(id) + "_pe");
-  modify->add_compute(fmt::format("{} all pe",id_pe));
+  modify->add_compute(fmt::format("{} all pe", id_pe));
 
   id_ke = utils::strdup(std::string(id) + "_ke");
-  modify->add_compute(fmt::format("{} all ke",id_ke));
+  modify->add_compute(fmt::format("{} all ke", id_ke));
 
   // irregular class and data structs used by MDI
 
   irregular = new Irregular(lmp);
-  add_force = NULL;
+  add_force = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
 
 FixMDIEngine::~FixMDIEngine()
 {
-  delete [] target_command;
-  delete [] command;
-  delete [] current_node;
-  delete [] target_node;
+  delete[] target_command;
+  delete[] command;
+  delete[] current_node;
+  delete[] target_node;
 
   modify->delete_compute(id_pe);
   modify->delete_compute(id_ke);
@@ -130,16 +128,16 @@ int FixMDIEngine::setmask()
 void FixMDIEngine::exchange_forces()
 {
   double **f = atom->f;
-  const int * const mask  = atom->mask;
+  const int *const mask = atom->mask;
   const int nlocal = atom->nlocal;
 
   // add forces from the driver
 
   for (int i = 0; i < nlocal; ++i) {
     if (mask[i] & groupbit) {
-      f[i][0] += add_force[3*(atom->tag[i]-1)+0];
-      f[i][1] += add_force[3*(atom->tag[i]-1)+1];
-      f[i][2] += add_force[3*(atom->tag[i]-1)+2];
+      f[i][0] += add_force[3 * (atom->tag[i] - 1) + 0];
+      f[i][1] += add_force[3 * (atom->tag[i] - 1) + 1];
+      f[i][2] += add_force[3 * (atom->tag[i] - 1) + 2];
     }
   }
 }
@@ -151,11 +149,9 @@ void FixMDIEngine::init()
   // confirm that two required computes are still available
 
   int icompute_pe = modify->find_compute(id_pe);
-  if (icompute_pe < 0)
-    error->all(FLERR,"Potential energy ID for fix mdi/engine does not exist");
+  if (icompute_pe < 0) error->all(FLERR, "Potential energy ID for fix mdi/engine does not exist");
   int icompute_ke = modify->find_compute(id_ke);
-  if (icompute_pe < 0)
-    error->all(FLERR,"Kinetic energy ID for fix mdi/engine does not exist");
+  if (icompute_pe < 0) error->all(FLERR, "Kinetic energy ID for fix mdi/engine does not exist");
 
   pe = modify->compute[icompute_pe];
   ke = modify->compute[icompute_ke];
@@ -163,8 +159,8 @@ void FixMDIEngine::init()
   // one-time allocation of add_force array
 
   if (!add_force) {
-    int64_t ncoords = 3*atom->natoms;
-    memory->create(add_force,ncoords,"mdi/engine:add_force");
+    int64_t ncoords = 3 * atom->natoms;
+    memory->create(add_force, ncoords, "mdi/engine:add_force");
     for (int64_t i = 0; i < ncoords; i++) add_force[i] = 0.0;
   }
 }
@@ -201,8 +197,10 @@ void FixMDIEngine::min_post_force(int vflag)
 
 void FixMDIEngine::post_force(int vflag)
 {
-  if (most_recent_init == 1) engine_mode("@FORCES");
-  else if (most_recent_init == 2) engine_mode("@FORCES");
+  if (most_recent_init == 1)
+    engine_mode("@FORCES");
+  else if (most_recent_init == 2)
+    engine_mode("@FORCES");
 }
 
 // ----------------------------------------------------------------------
@@ -221,13 +219,11 @@ int FixMDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
 
   int command_exists = 1;
   if (master) {
-    ierr = MDI_Check_command_exists(current_node, command,
-				    MDI_COMM_NULL, &command_exists);
+    ierr = MDI_Check_command_exists(current_node, command, MDI_COMM_NULL, &command_exists);
   }
-  if (ierr != 0)
-    error->all(FLERR,"MDI: Unable to check whether current command is supported");
+  if (ierr != 0) error->all(FLERR, "MDI: Unable to check whether current command is supported");
   if (command_exists != 1)
-    error->all(FLERR,"MDI: Received a command that is unsupported at current node");
+    error->all(FLERR, "MDI: Received a command that is unsupported at current node");
 
   // respond to any driver command
 
@@ -235,124 +231,118 @@ int FixMDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
   //    STATUS is not part of the MDI Standard,
   //    and is included here for i-PI compatibility
 
-  if (strcmp(command,"STATUS") == 0 ) {
+  if (strcmp(command, "STATUS") == 0) {
     if (master) {
       ierr = MDI_Send_command("READY", mdicomm);
-      if (ierr != 0)
-	error->all(FLERR,"MDI: Unable to return status to driver");
+      if (ierr != 0) error->all(FLERR, "MDI: Unable to return status to driver");
     }
 
-  } else if (strcmp(command,">NATOMS") == 0 ) {
+  } else if (strcmp(command, ">NATOMS") == 0) {
     if (master) {
-      ierr = MDI_Recv((char*) &atom->natoms, 1, MDI_INT, mdicomm);
-      if (ierr != 0)
-	error->all(FLERR,"MDI: Unable to receive number of atoms from driver");
-      }
-    MPI_Bcast(&atom->natoms,1,MPI_INT,0,world);
+      ierr = MDI_Recv((char *) &atom->natoms, 1, MDI_INT, mdicomm);
+      if (ierr != 0) error->all(FLERR, "MDI: Unable to receive number of atoms from driver");
+    }
+    MPI_Bcast(&atom->natoms, 1, MPI_INT, 0, world);
 
-  } else if (strcmp(command,"<NATOMS") == 0 ) {
+  } else if (strcmp(command, "<NATOMS") == 0) {
     if (master) {
       int64_t mdi_natoms = atom->natoms;
-      ierr = MDI_Send((char*) &mdi_natoms, 1, MDI_INT64_T, mdicomm);
-      if (ierr != 0)
-	error->all(FLERR,"MDI: Unable to send number of atoms to driver");
+      ierr = MDI_Send((char *) &mdi_natoms, 1, MDI_INT64_T, mdicomm);
+      if (ierr != 0) error->all(FLERR, "MDI: Unable to send number of atoms to driver");
     }
 
-  } else if (strcmp(command,"<NTYPES") == 0 ) {
+  } else if (strcmp(command, "<NTYPES") == 0) {
     if (master) {
-      ierr = MDI_Send((char*) &atom->ntypes, 1, MDI_INT, mdicomm);
-      if (ierr != 0)
-	error->all(FLERR,"MDI: Unable to send number of atom types to driver");
+      ierr = MDI_Send((char *) &atom->ntypes, 1, MDI_INT, mdicomm);
+      if (ierr != 0) error->all(FLERR, "MDI: Unable to send number of atom types to driver");
     }
 
-  } else if (strcmp(command,"<TYPES") == 0 ) {
+  } else if (strcmp(command, "<TYPES") == 0) {
     send_types(error);
 
-  } else if (strcmp(command,"<LABELS") == 0 ) {
+  } else if (strcmp(command, "<LABELS") == 0) {
     send_labels(error);
 
-  } else if (strcmp(command,"<MASSES") == 0 ) {
+  } else if (strcmp(command, "<MASSES") == 0) {
     send_masses(error);
 
-  } else if (strcmp(command,"<CELL") == 0 ) {
+  } else if (strcmp(command, "<CELL") == 0) {
     send_cell(error);
 
-  } else if (strcmp(command,">CELL") == 0 ) {
+  } else if (strcmp(command, ">CELL") == 0) {
     receive_cell(error);
 
-  } else if (strcmp(command,"<CELL_DISPL") == 0 ) {
+  } else if (strcmp(command, "<CELL_DISPL") == 0) {
     send_celldispl(error);
 
-  } else if (strcmp(command,">CELL_DISPL") == 0 ) {
+  } else if (strcmp(command, ">CELL_DISPL") == 0) {
     receive_celldispl(error);
 
-  } else if (strcmp(command,">COORDS") == 0 ) {
+  } else if (strcmp(command, ">COORDS") == 0) {
     receive_coordinates(error);
 
-  } else if (strcmp(command,"<COORDS") == 0 ) {
+  } else if (strcmp(command, "<COORDS") == 0) {
     send_coordinates(error);
 
-  } else if (strcmp(command,"<CHARGES") == 0 ) {
+  } else if (strcmp(command, "<CHARGES") == 0) {
     send_charges(error);
 
-  } else if (strcmp(command,"<ENERGY") == 0 ) {
+  } else if (strcmp(command, "<ENERGY") == 0) {
     send_energy(error);
 
-  } else if (strcmp(command,"<FORCES") == 0 ) {
+  } else if (strcmp(command, "<FORCES") == 0) {
     send_forces(error);
 
-  // replace current forces with forces received from the driver
+    // replace current forces with forces received from the driver
 
-  } else if (strcmp(command,">FORCES") == 0 ) {
+  } else if (strcmp(command, ">FORCES") == 0) {
     receive_forces(error, 0);
 
-  // add forces received from the driver to current forces
+    // add forces received from the driver to current forces
 
-  } else if (strcmp(command,">+FORCES") == 0 ) {
+  } else if (strcmp(command, ">+FORCES") == 0) {
     receive_forces(error, 1);
 
-  // initialize new MD simulation or minimization
-  // return control to return to mdi/engine
+    // initialize new MD simulation or minimization
+    // return control to return to mdi/engine
 
-  } else if (strcmp(command,"@INIT_MD") == 0 ) {
-    if (most_recent_init != 0)
-      error->all(FLERR,"MDI: MDI is already performing a simulation");
+  } else if (strcmp(command, "@INIT_MD") == 0) {
+    if (most_recent_init != 0) error->all(FLERR, "MDI: MDI is already performing a simulation");
     most_recent_init = 1;
     local_exit_flag = true;
 
-  // initialize new energy minimization
-  // return control to return to mdi/engine
+    // initialize new energy minimization
+    // return control to return to mdi/engine
 
-  } else if (strcmp(command,"@INIT_OPTG") == 0 ) {
-    if ( most_recent_init != 0 )
-      error->all(FLERR,"MDI: MDI is already performing a simulation");
+  } else if (strcmp(command, "@INIT_OPTG") == 0) {
+    if (most_recent_init != 0) error->all(FLERR, "MDI: MDI is already performing a simulation");
     most_recent_init = 2;
     local_exit_flag = true;
 
-  } else if (strcmp(command,"@") == 0 ) {
+  } else if (strcmp(command, "@") == 0) {
     strncpy(target_node, "\0", MDI_COMMAND_LENGTH);
     local_exit_flag = true;
 
-  } else if (strcmp(command,"<@") == 0 ) {
+  } else if (strcmp(command, "<@") == 0) {
     if (master) {
       ierr = MDI_Send(current_node, MDI_NAME_LENGTH, MDI_CHAR, mdicomm);
-      if (ierr != 0) error->all(FLERR,"MDI: Unable to send node to driver");
+      if (ierr != 0) error->all(FLERR, "MDI: Unable to send node to driver");
     }
 
-  } else if (strcmp(command,"<KE") == 0 ) {
+  } else if (strcmp(command, "<KE") == 0) {
     send_ke(error);
 
-  } else if (strcmp(command,"<PE") == 0 ) {
+  } else if (strcmp(command, "<PE") == 0) {
     send_pe(error);
 
-  } else if (strcmp(command,"@DEFAULT") == 0 ) {
+  } else if (strcmp(command, "@DEFAULT") == 0) {
     most_recent_init = 0;
 
     strncpy(target_node, "@DEFAULT", MDI_COMMAND_LENGTH);
     local_exit_flag = true;
 
     // are we in the middle of a geometry optimization?
-    if ( most_recent_init == 2 ) {
+    if (most_recent_init == 2) {
       // ensure that the energy and force tolerances are met
       update->etol = std::numeric_limits<double>::max();
       update->ftol = std::numeric_limits<double>::max();
@@ -361,20 +351,20 @@ int FixMDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
       update->max_eval = 0;
     }
 
-  } else if (strcmp(command,"@COORDS") == 0 ) {
+  } else if (strcmp(command, "@COORDS") == 0) {
     strncpy(target_node, "@COORDS", MDI_COMMAND_LENGTH);
     local_exit_flag = true;
 
-  } else if (strcmp(command,"@FORCES") == 0 ) {
+  } else if (strcmp(command, "@FORCES") == 0) {
     strncpy(target_node, "@FORCES", MDI_COMMAND_LENGTH);
     local_exit_flag = true;
 
-  } else if (strcmp(command,"EXIT") == 0 ) {
+  } else if (strcmp(command, "EXIT") == 0) {
     // exit the driver code
     exit_flag = true;
 
     // are we in the middle of a geometry optimization?
-    if ( most_recent_init == 2 ) {
+    if (most_recent_init == 2) {
       // ensure that the energy and force tolerances are met
       update->etol = std::numeric_limits<double>::max();
       update->ftol = std::numeric_limits<double>::max();
@@ -384,7 +374,7 @@ int FixMDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
     }
 
   } else {
-    error->all(FLERR,"MDI: Unknown command from driver");
+    error->all(FLERR, "MDI: Unknown command from driver");
   }
 
   return 0;
@@ -405,8 +395,8 @@ char *FixMDIEngine::engine_mode(const char *node)
   // target_node = node that driver has set via a @ command
   // current_node = node that engine (LAMMPS) has set
 
-  strncpy(current_node,node,MDI_COMMAND_LENGTH);
-  if (strcmp(target_node,"\0") != 0 && strcmp(target_node,current_node) != 0)
+  strncpy(current_node, node, MDI_COMMAND_LENGTH);
+  if (strcmp(target_node, "\0") != 0 && strcmp(target_node, current_node) != 0)
     local_exit_flag = true;
 
   // respond to commands from the driver
@@ -417,12 +407,11 @@ char *FixMDIEngine::engine_mode(const char *node)
     // all procs call this, but only proc 0 receives the command
 
     ierr = MDI_Recv_command(command, driver_socket);
-    if (ierr != 0)
-      error->all(FLERR,"MDI: Unable to receive command from driver");
+    if (ierr != 0) error->all(FLERR, "MDI: Unable to receive command from driver");
 
     // broadcast command to the other MPI tasks
 
-    MPI_Bcast(command,MDI_COMMAND_LENGTH,MPI_CHAR,0,world);
+    MPI_Bcast(command, MDI_COMMAND_LENGTH, MPI_CHAR, 0, world);
 
     // execute the command
 
@@ -430,7 +419,7 @@ char *FixMDIEngine::engine_mode(const char *node)
 
     // check if the target node is something other than the current node
 
-    if (strcmp(target_node,"\0") != 0 && strcmp(target_node,current_node) != 0 )
+    if (strcmp(target_node, "\0") != 0 && strcmp(target_node, current_node) != 0)
       local_exit_flag = true;
   }
 
@@ -443,7 +432,7 @@ char *FixMDIEngine::engine_mode(const char *node)
 
 /* ---------------------------------------------------------------------- */
 
-void FixMDIEngine::receive_coordinates(Error* error)
+void FixMDIEngine::receive_coordinates(Error *error)
 {
   // get conversion factor to atomic units
   double posconv;
@@ -454,24 +443,23 @@ void FixMDIEngine::receive_coordinates(Error* error)
   if (lmpunits == REAL) {
     double angstrom_to_bohr;
     MDI_Conversion_factor("angstrom", "bohr", &angstrom_to_bohr);
-    posconv=force->angstrom/angstrom_to_bohr;
+    posconv = force->angstrom / angstrom_to_bohr;
   } else if (lmpunits == METAL) {
     double angstrom_to_bohr;
     MDI_Conversion_factor("angstrom", "bohr", &angstrom_to_bohr);
-    posconv=force->angstrom/angstrom_to_bohr;
+    posconv = force->angstrom / angstrom_to_bohr;
   }
 
   // create buffer to hold all coords
 
   double *buffer;
-  buffer = new double[3*atom->natoms];
+  buffer = new double[3 * atom->natoms];
 
   if (master) {
-    ierr = MDI_Recv((char*) buffer, 3*atom->natoms, MDI_DOUBLE, driver_socket);
-    if (ierr != 0)
-      error->all(FLERR,"MDI: Unable to receive coordinates from driver");
+    ierr = MDI_Recv((char *) buffer, 3 * atom->natoms, MDI_DOUBLE, driver_socket);
+    if (ierr != 0) error->all(FLERR, "MDI: Unable to receive coordinates from driver");
   }
-  MPI_Bcast(buffer,3*atom->natoms,MPI_DOUBLE,0,world);
+  MPI_Bcast(buffer, 3 * atom->natoms, MPI_DOUBLE, 0, world);
 
   // pick local atoms from the buffer
 
@@ -479,9 +467,9 @@ void FixMDIEngine::receive_coordinates(Error* error)
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   for (int i = 0; i < nlocal; i++) {
-    x[i][0]=buffer[3*(atom->tag[i]-1)+0]*posconv;
-    x[i][1]=buffer[3*(atom->tag[i]-1)+1]*posconv;
-    x[i][2]=buffer[3*(atom->tag[i]-1)+2]*posconv;
+    x[i][0] = buffer[3 * (atom->tag[i] - 1) + 0] * posconv;
+    x[i][1] = buffer[3 * (atom->tag[i] - 1) + 1] * posconv;
+    x[i][2] = buffer[3 * (atom->tag[i] - 1) + 2] * posconv;
   }
 
   // ensure atoms are in current box & update box via shrink-wrap
@@ -500,30 +488,30 @@ void FixMDIEngine::receive_coordinates(Error* error)
   if (irregular->migrate_check()) irregular->migrate_atoms();
   if (domain->triclinic) domain->lamda2x(atom->nlocal);
 
-  delete [] buffer;
+  delete[] buffer;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixMDIEngine::send_coordinates(Error* error)
+void FixMDIEngine::send_coordinates(Error *error)
 {
   // get conversion factor to atomic units
   double posconv;
   if (lmpunits == REAL) {
     double angstrom_to_bohr;
     MDI_Conversion_factor("angstrom", "bohr", &angstrom_to_bohr);
-    posconv=force->angstrom/angstrom_to_bohr;
+    posconv = force->angstrom / angstrom_to_bohr;
   } else if (lmpunits == METAL) {
     double angstrom_to_bohr;
     MDI_Conversion_factor("angstrom", "bohr", &angstrom_to_bohr);
-    posconv=force->angstrom/angstrom_to_bohr;
+    posconv = force->angstrom / angstrom_to_bohr;
   }
 
-  int64_t ncoords = 3*atom->natoms;
+  int64_t ncoords = 3 * atom->natoms;
   double *coords;
   double *coords_reduced;
-  memory->create(coords,ncoords,"mdi/engine:coords");
-  memory->create(coords_reduced,ncoords,"mdi/engine:coords_reduced");
+  memory->create(coords, ncoords, "mdi/engine:coords");
+  memory->create(coords_reduced, ncoords, "mdi/engine:coords_reduced");
 
   // zero coords
 
@@ -535,18 +523,16 @@ void FixMDIEngine::send_coordinates(Error* error)
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   for (int i = 0; i < nlocal; i++) {
-    coords[3*(atom->tag[i]-1)+0] = x[i][0]/posconv;
-    coords[3*(atom->tag[i]-1)+1] = x[i][1]/posconv;
-    coords[3*(atom->tag[i]-1)+2] = x[i][2]/posconv;
+    coords[3 * (atom->tag[i] - 1) + 0] = x[i][0] / posconv;
+    coords[3 * (atom->tag[i] - 1) + 1] = x[i][1] / posconv;
+    coords[3 * (atom->tag[i] - 1) + 2] = x[i][2] / posconv;
   }
 
-  MPI_Reduce(coords,coords_reduced,3*atom->natoms,MPI_DOUBLE,MPI_SUM,0,world);
+  MPI_Reduce(coords, coords_reduced, 3 * atom->natoms, MPI_DOUBLE, MPI_SUM, 0, world);
 
   if (master) {
-    ierr = MDI_Send((char*) coords_reduced,3*atom->natoms,MDI_DOUBLE,
-                    driver_socket);
-    if (ierr != 0)
-      error->all(FLERR,"MDI: Unable to send coordinates to driver");
+    ierr = MDI_Send((char *) coords_reduced, 3 * atom->natoms, MDI_DOUBLE, driver_socket);
+    if (ierr != 0) error->all(FLERR, "MDI: Unable to send coordinates to driver");
   }
 
   memory->destroy(coords);
@@ -555,13 +541,13 @@ void FixMDIEngine::send_coordinates(Error* error)
 
 /* ---------------------------------------------------------------------- */
 
-void FixMDIEngine::send_charges(Error* error)
+void FixMDIEngine::send_charges(Error *error)
 {
   double *charges;
   double *charges_reduced;
 
-  memory->create(charges,atom->natoms,"mdi/engine:charges");
-  memory->create(charges_reduced,atom->natoms,"mdi/engine:charges_reduced");
+  memory->create(charges, atom->natoms, "mdi/engine:charges");
+  memory->create(charges_reduced, atom->natoms, "mdi/engine:charges_reduced");
 
   // zero the charges array
 
@@ -572,39 +558,34 @@ void FixMDIEngine::send_charges(Error* error)
   double *charge = atom->q;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-  for (int i = 0; i < nlocal; i++) {
-    charges[atom->tag[i]-1] = charge[i];
-  }
+  for (int i = 0; i < nlocal; i++) { charges[atom->tag[i] - 1] = charge[i]; }
 
   MPI_Reduce(charges, charges_reduced, atom->natoms, MPI_DOUBLE, MPI_SUM, 0, world);
 
   if (master) {
-    ierr = MDI_Send((char*) charges_reduced, atom->natoms, MDI_DOUBLE, driver_socket);
-    if (ierr != 0)
-      error->all(FLERR,"MDI: Unable to send charges to driver");
+    ierr = MDI_Send((char *) charges_reduced, atom->natoms, MDI_DOUBLE, driver_socket);
+    if (ierr != 0) error->all(FLERR, "MDI: Unable to send charges to driver");
   }
 
   memory->destroy(charges);
   memory->destroy(charges_reduced);
 }
 
-
 /* ---------------------------------------------------------------------- */
 
-void FixMDIEngine::send_energy(Error* error)
+void FixMDIEngine::send_energy(Error *error)
 {
   // get conversion factor to atomic units
   double energy_conv;
   if (lmpunits == REAL) {
     double kelvin_to_hartree;
     MDI_Conversion_factor("kelvin_energy", "hartree", &kelvin_to_hartree);
-    energy_conv = kelvin_to_hartree/force->boltz;
+    energy_conv = kelvin_to_hartree / force->boltz;
   } else if (lmpunits == METAL) {
     double ev_to_hartree;
     MDI_Conversion_factor("electron_volt", "hartree", &ev_to_hartree);
     energy_conv = ev_to_hartree;
   }
-
 
   double kelvin_to_hartree;
   MDI_Conversion_factor("kelvin_energy", "hartree", &kelvin_to_hartree);
@@ -620,22 +601,21 @@ void FixMDIEngine::send_energy(Error* error)
   total_energy = potential_energy + kinetic_energy;
 
   if (master) {
-    ierr = MDI_Send((char*) send_energy, 1, MDI_DOUBLE, driver_socket);
-    if (ierr != 0)
-      error->all(FLERR,"MDI: Unable to send potential energy to driver");
+    ierr = MDI_Send((char *) send_energy, 1, MDI_DOUBLE, driver_socket);
+    if (ierr != 0) error->all(FLERR, "MDI: Unable to send potential energy to driver");
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixMDIEngine::send_pe(Error* error)
+void FixMDIEngine::send_pe(Error *error)
 {
   // get conversion factor to atomic units
   double energy_conv;
   if (lmpunits == REAL) {
     double kelvin_to_hartree;
     MDI_Conversion_factor("kelvin_energy", "hartree", &kelvin_to_hartree);
-    energy_conv = kelvin_to_hartree/force->boltz;
+    energy_conv = kelvin_to_hartree / force->boltz;
   } else if (lmpunits == METAL) {
     double ev_to_hartree;
     MDI_Conversion_factor("electron_volt", "hartree", &ev_to_hartree);
@@ -649,22 +629,21 @@ void FixMDIEngine::send_pe(Error* error)
   potential_energy *= energy_conv;
 
   if (master) {
-    ierr = MDI_Send((char*) send_energy, 1, MDI_DOUBLE, driver_socket);
-    if (ierr != 0)
-      error->all(FLERR,"MDI: Unable to send potential energy to driver");
+    ierr = MDI_Send((char *) send_energy, 1, MDI_DOUBLE, driver_socket);
+    if (ierr != 0) error->all(FLERR, "MDI: Unable to send potential energy to driver");
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixMDIEngine::send_ke(Error* error)
+void FixMDIEngine::send_ke(Error *error)
 {
   // get conversion factor to atomic units
   double energy_conv;
   if (lmpunits == REAL) {
     double kelvin_to_hartree;
     MDI_Conversion_factor("kelvin_energy", "hartree", &kelvin_to_hartree);
-    energy_conv = kelvin_to_hartree/force->boltz;
+    energy_conv = kelvin_to_hartree / force->boltz;
   } else if (lmpunits == METAL) {
     double ev_to_hartree;
     MDI_Conversion_factor("electron_volt", "hartree", &ev_to_hartree);
@@ -678,74 +657,68 @@ void FixMDIEngine::send_ke(Error* error)
   kinetic_energy *= energy_conv;
 
   if (master) {
-    ierr = MDI_Send((char*) send_energy, 1, MDI_DOUBLE, driver_socket);
-    if (ierr != 0)
-      error->all(FLERR,"MDI: Unable to send potential energy to driver");
+    ierr = MDI_Send((char *) send_energy, 1, MDI_DOUBLE, driver_socket);
+    if (ierr != 0) error->all(FLERR, "MDI: Unable to send potential energy to driver");
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixMDIEngine::send_types(Error* error)
+void FixMDIEngine::send_types(Error *error)
 {
-  int * const type = atom->type;
+  int *const type = atom->type;
 
   if (master) {
-    ierr = MDI_Send((char*) type, atom->natoms, MDI_INT, driver_socket);
-    if (ierr != 0)
-      error->all(FLERR,"MDI: Unable to send atom types to driver");
+    ierr = MDI_Send((char *) type, atom->natoms, MDI_INT, driver_socket);
+    if (ierr != 0) error->all(FLERR, "MDI: Unable to send atom types to driver");
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixMDIEngine::send_labels(Error* error)
+void FixMDIEngine::send_labels(Error *error)
 {
   char *labels = new char[atom->natoms * MDI_LABEL_LENGTH];
   memset(labels, ' ', atom->natoms * MDI_LABEL_LENGTH);
 
-  for (int iatom=0; iatom < atom->natoms; iatom++) {
-    std::string label = std::to_string( atom->type[iatom] );
-    int label_len = std::min( int(label.length()), MDI_LABEL_LENGTH );
+  for (int iatom = 0; iatom < atom->natoms; iatom++) {
+    std::string label = std::to_string(atom->type[iatom]);
+    int label_len = std::min(int(label.length()), MDI_LABEL_LENGTH);
     strncpy(&labels[iatom * MDI_LABEL_LENGTH], label.c_str(), label_len);
   }
 
   if (master) {
-    ierr = MDI_Send( labels, atom->natoms * MDI_LABEL_LENGTH, MDI_CHAR, driver_socket);
-    if (ierr != 0)
-      error->all(FLERR,"MDI: Unable to send atom types to driver");
+    ierr = MDI_Send(labels, atom->natoms * MDI_LABEL_LENGTH, MDI_CHAR, driver_socket);
+    if (ierr != 0) error->all(FLERR, "MDI: Unable to send atom types to driver");
   }
 
-  delete [] labels;
+  delete[] labels;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixMDIEngine::send_masses(Error* error)
+void FixMDIEngine::send_masses(Error *error)
 {
-  double * const rmass = atom->rmass;
-  double * const mass = atom->mass;
-  int * const type = atom->type;
+  double *const rmass = atom->rmass;
+  double *const mass = atom->mass;
+  int *const type = atom->type;
   int nlocal = atom->nlocal;
 
   double *mass_by_atom;
   double *mass_by_atom_reduced;
-  memory->create(mass_by_atom,atom->natoms,"mdi/engine:mass_by_atom");
-  memory->create(mass_by_atom_reduced,atom->natoms,"mdi/engine:mass_by_atom_reduced");
-  for (int iatom=0; iatom < atom->natoms; iatom++) {
-    mass_by_atom[iatom] = 0.0;
-  }
+  memory->create(mass_by_atom, atom->natoms, "mdi/engine:mass_by_atom");
+  memory->create(mass_by_atom_reduced, atom->natoms, "mdi/engine:mass_by_atom_reduced");
+  for (int iatom = 0; iatom < atom->natoms; iatom++) { mass_by_atom[iatom] = 0.0; }
 
   // determine the atomic masses
 
   if (rmass) {
-    for (int iatom=0; iatom < nlocal; iatom++) {
-      mass_by_atom[ atom->tag[iatom] - 1 ] = rmass[iatom];
+    for (int iatom = 0; iatom < nlocal; iatom++) {
+      mass_by_atom[atom->tag[iatom] - 1] = rmass[iatom];
     }
-  }
-  else {
-    for (int iatom=0; iatom < nlocal; iatom++) {
-      mass_by_atom[ atom->tag[iatom] - 1 ] = mass[ type[iatom] ];
+  } else {
+    for (int iatom = 0; iatom < nlocal; iatom++) {
+      mass_by_atom[atom->tag[iatom] - 1] = mass[type[iatom]];
     }
   }
 
@@ -754,9 +727,8 @@ void FixMDIEngine::send_masses(Error* error)
   // send the atomic masses to the driver
 
   if (master) {
-    ierr = MDI_Send((char*) mass_by_atom_reduced, atom->natoms, MDI_DOUBLE, driver_socket);
-    if (ierr != 0)
-      error->all(FLERR,"MDI: Unable to send atom masses to driver");
+    ierr = MDI_Send((char *) mass_by_atom_reduced, atom->natoms, MDI_DOUBLE, driver_socket);
+    if (ierr != 0) error->all(FLERR, "MDI: Unable to send atom masses to driver");
   }
 
   memory->destroy(mass_by_atom);
@@ -765,7 +737,7 @@ void FixMDIEngine::send_masses(Error* error)
 
 /* ---------------------------------------------------------------------- */
 
-void FixMDIEngine::send_forces(Error* error)
+void FixMDIEngine::send_forces(Error *error)
 {
   // get conversion factor to atomic units
   double force_conv;
@@ -774,7 +746,7 @@ void FixMDIEngine::send_forces(Error* error)
     double angstrom_to_bohr;
     MDI_Conversion_factor("kelvin_energy", "hartree", &kelvin_to_hartree);
     MDI_Conversion_factor("angstrom", "bohr", &angstrom_to_bohr);
-    force_conv=(kelvin_to_hartree/force->boltz)*(force->angstrom/angstrom_to_bohr);
+    force_conv = (kelvin_to_hartree / force->boltz) * (force->angstrom / angstrom_to_bohr);
   } else if (lmpunits == METAL) {
     double ev_to_hartree;
     double angstrom_to_bohr;
@@ -789,41 +761,41 @@ void FixMDIEngine::send_forces(Error* error)
 
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-  int64_t ncoords = 3*atom->natoms;
+  int64_t ncoords = 3 * atom->natoms;
 
-  memory->create(forces,ncoords,"mdi/engine:forces");
-  memory->create(forces_reduced,ncoords,"mdi/engine:forces_reduced");
-  x_buf = new double[3*nlocal];
+  memory->create(forces, ncoords, "mdi/engine:forces");
+  memory->create(forces_reduced, ncoords, "mdi/engine:forces_reduced");
+  x_buf = new double[3 * nlocal];
 
   // zero the forces array
 
-  for (int iforce = 0; iforce < 3*atom->natoms; iforce++) forces[iforce] = 0.0;
+  for (int iforce = 0; iforce < 3 * atom->natoms; iforce++) forces[iforce] = 0.0;
 
   // if not at a node, calculate the forces
 
-  if ( strcmp(current_node, "@DEFAULT") == 0 ) {
+  if (strcmp(current_node, "@DEFAULT") == 0) {
     // certain fixes, such as shake, move the coordinates
     // to ensure that the coordinates do not change, store a copy
     double **x = atom->x;
     for (int i = 0; i < nlocal; i++) {
-      x_buf[3*i+0] = x[i][0];
-      x_buf[3*i+1] = x[i][1];
-      x_buf[3*i+2] = x[i][2];
+      x_buf[3 * i + 0] = x[i][0];
+      x_buf[3 * i + 1] = x[i][1];
+      x_buf[3 * i + 2] = x[i][2];
     }
 
     // calculate the forces
-    update->whichflag = 1; // 1 for dynamics
+    update->whichflag = 1;    // 1 for dynamics
     update->nsteps = 1;
     lmp->init();
     update->integrate->setup_minimal(1);
 
-    if ( strcmp(current_node, "@DEFAULT") == 0 ) {
+    if (strcmp(current_node, "@DEFAULT") == 0) {
       // restore the original set of coordinates
       double **x_new = atom->x;
       for (int i = 0; i < nlocal; i++) {
-        x_new[i][0] = x_buf[3*i+0];
-        x_new[i][1] = x_buf[3*i+1];
-        x_new[i][2] = x_buf[3*i+2];
+        x_new[i][0] = x_buf[3 * i + 0];
+        x_new[i][1] = x_buf[3 * i + 1];
+        x_new[i][2] = x_buf[3 * i + 2];
       }
     }
   }
@@ -831,25 +803,23 @@ void FixMDIEngine::send_forces(Error* error)
   // pick local atoms from the buffer
   double **f = atom->f;
   for (int i = 0; i < nlocal; i++) {
-    forces[3*(atom->tag[i]-1)+0] = f[i][0]*force_conv;
-    forces[3*(atom->tag[i]-1)+1] = f[i][1]*force_conv;
-    forces[3*(atom->tag[i]-1)+2] = f[i][2]*force_conv;
+    forces[3 * (atom->tag[i] - 1) + 0] = f[i][0] * force_conv;
+    forces[3 * (atom->tag[i] - 1) + 1] = f[i][1] * force_conv;
+    forces[3 * (atom->tag[i] - 1) + 2] = f[i][2] * force_conv;
   }
 
   // reduce the forces onto rank 0
-  MPI_Reduce(forces, forces_reduced, 3*atom->natoms, MPI_DOUBLE, MPI_SUM, 0, world);
+  MPI_Reduce(forces, forces_reduced, 3 * atom->natoms, MPI_DOUBLE, MPI_SUM, 0, world);
 
   // send the forces through MDI
   if (master) {
-    ierr = MDI_Send((char*) forces_reduced, 3*atom->natoms, MDI_DOUBLE, driver_socket);
-    if (ierr != 0)
-      error->all(FLERR,"MDI: Unable to send atom forces to driver");
+    ierr = MDI_Send((char *) forces_reduced, 3 * atom->natoms, MDI_DOUBLE, driver_socket);
+    if (ierr != 0) error->all(FLERR, "MDI: Unable to send atom forces to driver");
   }
 
   memory->destroy(forces);
   memory->destroy(forces_reduced);
-  delete [] x_buf;
-
+  delete[] x_buf;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -858,7 +828,7 @@ void FixMDIEngine::send_forces(Error* error)
 //    mode = 0: replace current forces with forces from driver
 //    mode = 1: add forces from driver to current forces
 
-void FixMDIEngine::receive_forces(Error* error, int mode)
+void FixMDIEngine::receive_forces(Error *error, int mode)
 {
   // get conversion factor to atomic units
   double force_conv;
@@ -867,7 +837,7 @@ void FixMDIEngine::receive_forces(Error* error, int mode)
     double angstrom_to_bohr;
     MDI_Conversion_factor("kelvin_energy", "hartree", &kelvin_to_hartree);
     MDI_Conversion_factor("angstrom", "bohr", &angstrom_to_bohr);
-    force_conv=(kelvin_to_hartree/force->boltz)*(force->angstrom/angstrom_to_bohr);
+    force_conv = (kelvin_to_hartree / force->boltz) * (force->angstrom / angstrom_to_bohr);
   } else if (lmpunits == METAL) {
     double ev_to_hartree;
     double angstrom_to_bohr;
@@ -876,34 +846,32 @@ void FixMDIEngine::receive_forces(Error* error, int mode)
     force_conv = ev_to_hartree / angstrom_to_bohr;
   }
 
-  int64_t ncoords = 3*atom->natoms;
+  int64_t ncoords = 3 * atom->natoms;
   double *forces;
-  memory->create(forces,ncoords,"mdi/engine:forces");
+  memory->create(forces, ncoords, "mdi/engine:forces");
 
   if (master) {
-    ierr = MDI_Recv((char*) forces, 3*atom->natoms, MDI_DOUBLE, driver_socket);
-    if (ierr != 0)
-      error->all(FLERR,"MDI: Unable to receive atom forces to driver");
+    ierr = MDI_Recv((char *) forces, 3 * atom->natoms, MDI_DOUBLE, driver_socket);
+    if (ierr != 0) error->all(FLERR, "MDI: Unable to receive atom forces to driver");
   }
-  MPI_Bcast(forces,3*atom->natoms,MPI_DOUBLE,0,world);
+  MPI_Bcast(forces, 3 * atom->natoms, MPI_DOUBLE, 0, world);
 
   // pick local atoms from the buffer
   double **f = atom->f;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  if ( mode == 0 ) { // Replace
+  if (mode == 0) {    // Replace
     for (int i = 0; i < nlocal; i++) {
-      f[i][0] = forces[3*(atom->tag[i]-1)+0]/force_conv;
-      f[i][1] = forces[3*(atom->tag[i]-1)+1]/force_conv;
-      f[i][2] = forces[3*(atom->tag[i]-1)+2]/force_conv;
+      f[i][0] = forces[3 * (atom->tag[i] - 1) + 0] / force_conv;
+      f[i][1] = forces[3 * (atom->tag[i] - 1) + 1] / force_conv;
+      f[i][2] = forces[3 * (atom->tag[i] - 1) + 2] / force_conv;
     }
-  }
-  else {
+  } else {
     for (int i = 0; i < nlocal; i++) {
-      f[i][0] += forces[3*(atom->tag[i]-1)+0]/force_conv;
-      f[i][1] += forces[3*(atom->tag[i]-1)+1]/force_conv;
-      f[i][2] += forces[3*(atom->tag[i]-1)+2]/force_conv;
+      f[i][0] += forces[3 * (atom->tag[i] - 1) + 0] / force_conv;
+      f[i][1] += forces[3 * (atom->tag[i] - 1) + 1] / force_conv;
+      f[i][2] += forces[3 * (atom->tag[i] - 1) + 2] / force_conv;
     }
   }
 
@@ -912,7 +880,7 @@ void FixMDIEngine::receive_forces(Error* error, int mode)
 
 /* ---------------------------------------------------------------------- */
 
-void FixMDIEngine::send_cell(Error* error)
+void FixMDIEngine::send_cell(Error *error)
 {
   double angstrom_to_bohr;
   MDI_Conversion_factor("angstrom", "bohr", &angstrom_to_bohr);
@@ -932,48 +900,38 @@ void FixMDIEngine::send_cell(Error* error)
   // convert the units to bohr
 
   double unit_conv = force->angstrom * angstrom_to_bohr;
-  for (int icell=0; icell < 9; icell++) {
-    celldata[icell] *= unit_conv;
-  }
+  for (int icell = 0; icell < 9; icell++) { celldata[icell] *= unit_conv; }
 
   if (master) {
-    ierr = MDI_Send((char*) celldata, 9, MDI_DOUBLE, driver_socket);
-    if (ierr != 0)
-      error->all(FLERR,"MDI: Unable to send cell dimensions to driver");
+    ierr = MDI_Send((char *) celldata, 9, MDI_DOUBLE, driver_socket);
+    if (ierr != 0) error->all(FLERR, "MDI: Unable to send cell dimensions to driver");
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixMDIEngine::receive_cell(Error* error)
+void FixMDIEngine::receive_cell(Error *error)
 {
   double celldata[9];
 
   // receive the new cell vector from the driver
   if (master) {
-    ierr = MDI_Recv((char*) celldata, 9, MDI_DOUBLE, driver_socket);
-    if (ierr != 0)
-      error->all(FLERR,"MDI: Unable to send cell dimensions to driver");
+    ierr = MDI_Recv((char *) celldata, 9, MDI_DOUBLE, driver_socket);
+    if (ierr != 0) error->all(FLERR, "MDI: Unable to send cell dimensions to driver");
   }
-  MPI_Bcast(&celldata[0],9,MPI_DOUBLE,0,world);
-
+  MPI_Bcast(&celldata[0], 9, MPI_DOUBLE, 0, world);
 
   double angstrom_to_bohr;
   MDI_Conversion_factor("angstrom", "bohr", &angstrom_to_bohr);
   double unit_conv = force->angstrom * angstrom_to_bohr;
-  for (int icell=0; icell < 9; icell++) {
-    celldata[icell] /= unit_conv;
-  }
+  for (int icell = 0; icell < 9; icell++) { celldata[icell] /= unit_conv; }
 
   // ensure that the new cell vector is orthogonal
   double small = std::numeric_limits<double>::min();
-  if ( abs( celldata[1] ) > small or
-       abs( celldata[2] ) > small or
-       abs( celldata[3] ) > small or
-       abs( celldata[5] ) > small or
-       abs( celldata[6] ) > small or
-       abs( celldata[7] ) > small) {
-    error->all(FLERR,"MDI: LAMMPS currently only supports the >CELL command for orthogonal cell vectors");
+  if (abs(celldata[1]) > small or abs(celldata[2]) > small or abs(celldata[3]) > small or
+      abs(celldata[5]) > small or abs(celldata[6]) > small or abs(celldata[7]) > small) {
+    error->all(FLERR,
+               "MDI: LAMMPS currently only supports the >CELL command for orthogonal cell vectors");
   }
 
   // set the new LAMMPS cell dimensions
@@ -990,7 +948,7 @@ void FixMDIEngine::receive_cell(Error* error)
 
 /* ---------------------------------------------------------------------- */
 
-void FixMDIEngine::send_celldispl(Error* error)
+void FixMDIEngine::send_celldispl(Error *error)
 {
   double angstrom_to_bohr;
   MDI_Conversion_factor("angstrom", "bohr", &angstrom_to_bohr);
@@ -1004,29 +962,25 @@ void FixMDIEngine::send_celldispl(Error* error)
   // convert the units to bohr
 
   double unit_conv = force->angstrom * angstrom_to_bohr;
-  for (int icell=0; icell < 3; icell++) {
-    celldata[icell] *= unit_conv;
-  }
+  for (int icell = 0; icell < 3; icell++) { celldata[icell] *= unit_conv; }
 
   if (master) {
-    ierr = MDI_Send((char*) celldata, 3, MDI_DOUBLE, driver_socket);
-    if (ierr != 0)
-      error->all(FLERR,"MDI: Unable to send cell displacement to driver");
+    ierr = MDI_Send((char *) celldata, 3, MDI_DOUBLE, driver_socket);
+    if (ierr != 0) error->all(FLERR, "MDI: Unable to send cell displacement to driver");
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixMDIEngine::receive_celldispl(Error* error)
+void FixMDIEngine::receive_celldispl(Error *error)
 {
   // receive the cell displacement from the driver
   double celldata[3];
   if (master) {
-    ierr = MDI_Recv((char*) celldata, 3, MDI_DOUBLE, driver_socket);
-    if (ierr != 0)
-      error->all(FLERR,"MDI: Unable to receive cell displacement from driver");
+    ierr = MDI_Recv((char *) celldata, 3, MDI_DOUBLE, driver_socket);
+    if (ierr != 0) error->all(FLERR, "MDI: Unable to receive cell displacement from driver");
   }
-  MPI_Bcast(&celldata[0],3,MPI_DOUBLE,0,world);
+  MPI_Bcast(&celldata[0], 3, MPI_DOUBLE, 0, world);
 
   double angstrom_to_bohr;
   MDI_Conversion_factor("angstrom", "bohr", &angstrom_to_bohr);

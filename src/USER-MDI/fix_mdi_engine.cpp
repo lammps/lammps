@@ -17,6 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_mdi_engine.h"
+#include "library_mdi.h"
 
 #include "atom.h"
 #include "comm.h"

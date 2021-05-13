@@ -4,8 +4,8 @@ commands from an external MDI driver.
 
 It uses the MDI Library, which is available at
 https://github.com/MolSSI-MDI/MDI_Library.  The MDI Library is
-developed and maintained by Taylor Barnes at the Molecular Sciences
-Software Institute (MolSSI).
+developed and maintained by Taylor Barnes (tbarnes1@vt.edu) at the
+Molecular Sciences Software Institute (MolSSI).
 
 For more information about using MDI with LAMMPS, see the LAMMPS
 documentation for the mdi_engine command and the mdi/engine fix.

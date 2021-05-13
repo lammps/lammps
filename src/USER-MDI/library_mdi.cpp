@@ -82,7 +82,11 @@ int MDI_Plugin_init_lammps()
   if (!found_filename) MPI_Abort(MPI_COMM_WORLD, 1);
 
   // create and run a LAMMPS instance
-  auto lmp = lammps_open(mdi_argc, mdi_argv, mpi_world_comm, NULL);
+  void *lmp = nullptr;
+  if (lammps_config_has_mpi_support() > 0)
+    lmp = lammps_open(mdi_argc, mdi_argv, mpi_world_comm, nullptr);
+  else
+    lmp = lammps_open_no_mpi(mdi_argc, mdi_argv, nullptr);
   lammps_file(lmp, filename);
   lammps_close(lmp);
 

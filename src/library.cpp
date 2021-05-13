@@ -673,7 +673,8 @@ void lammps_extract_box(void *handle, double *boxlo, double *boxhi,
 
 This function sets the simulation box dimensions (upper and lower bounds
 and tilt factors) from the provided data and then re-initializes the box
-information and all derived settings.
+information and all derived settings. It may only be called before atoms
+are created.
 
 \endverbatim
  *
@@ -692,12 +693,16 @@ void lammps_reset_box(void *handle, double *boxlo, double *boxhi,
 
   BEGIN_CAPTURE
   {
-    // error if box does not exist
-    if ((lmp->domain->box_exist == 0)
-        && (lmp->comm->me == 0)) {
-      lmp->error->warning(FLERR,"Calling lammps_reset_box without a box");
+    if (lmp->atom->natoms > 0)
+      lmp->error->all(FLERR,"Calling lammps_reset_box not supported when atoms exist");
+
+    // warn and do nothing if no box exists
+    if (lmp->domain->box_exist == 0) {
+      if (lmp->comm->me == 0)
+        lmp->error->warning(FLERR,"Ignoring call to lammps_reset_box without a box");
       return;
     }
+
     domain->boxlo[0] = boxlo[0];
     domain->boxlo[1] = boxlo[1];
     domain->boxlo[2] = boxlo[2];

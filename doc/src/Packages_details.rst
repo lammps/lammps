@@ -82,6 +82,7 @@ page gives those details.
    * :ref:`USER-INTEL <PKG-USER-INTEL>`
    * :ref:`USER-LB <PKG-USER-LB>`
    * :ref:`USER-MANIFOLD <PKG-USER-MANIFOLD>`
+   * :ref:`USER-MDI <PKG-USER-MDI>`
    * :ref:`USER-MEAMC <PKG-USER-MEAMC>`
    * :ref:`USER-MESODPD <PKG-USER-MESODPD>`
    * :ref:`USER-MESONT <PKG-USER-MESONT>`
@@ -1788,6 +1789,28 @@ Waltham, MA, USA)
 * :doc:`fix nvt/manifold/rattle <fix_nvt_manifold_rattle>`
 * examples/USER/manifold
 * https://lammps.sandia.gov/movies.html#manifold
+
+----------
+
+.. _PKG-USER-MDI:
+
+USER-MDI package
+----------------
+
+**Contents:**
+
+A LAMMPS command and fix to allow client-server coupling of LAMMPS to
+other atomic or molecular simulation codes via the `MolSSI Driver Interface
+(MDI) library <https://molssi-mdi.github.io/MDI_Library/html/index.html>`_. 
+
+**Author:** Taylor Barnes - MolSSI, taylor.a.barnes at gmail.com
+
+**Supporting info:**
+
+* src/USER-MDI/README
+* :doc:`mdi/engine <mdi_engine>`
+* :doc:`fix mdi/engine <fix_mdi_engine>`
+* examples/USER/mdi
 
 ----------
 

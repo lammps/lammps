@@ -221,14 +221,15 @@ from 1 to n (inclusive).  A trailing asterisk means all types from n to M
 (inclusive).  A middle asterisk means all types from m to n (inclusive).
 Note that all atom types must be included in exactly one of the N collections.
 
-The *collection/interval* option provides a similar capability.
-This command allows a user to define collections by specifying a
-series of cutoff intervals. LAMMPS will automatically sort atoms into these intervals
-based on their type-dependent cutoffs or their finite size.
-You must first specify the number of collections N to be
-defined followed by N values representing the upper cutoff of each interval.
-This command is particularly useful for granular pairstyles where the interaction distance
-of particles depends on their radius and may not depend on their atom type.
+The *collection/interval* option provides a similar capability.  This
+command allows a user to define collections by specifying a series of
+cutoff intervals. LAMMPS will automatically sort atoms into these
+intervals based on their type-dependent cutoffs or their finite size.
+You must first specify the number of collections N to be defined
+followed by N values representing the upper cutoff of each interval.
+This command is particularly useful for granular pair styles where the
+interaction distance of particles depends on their radius and may not
+depend on their atom type.
 
 Restrictions
 """"""""""""

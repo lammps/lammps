@@ -1,7 +1,7 @@
 .. index:: mdi_engine
 
 mdi_engine command
-===============
+==================
 
 Syntax
 """"""
@@ -41,10 +41,9 @@ To act as a MD-based MDI engine, this is the list of MDI commands from
 a driver code which LAMMPS currently recognizes.  See more details
 about these commands in the `MDI library documentation
 <https://molssi-mdi.github.io/MDI_Library/html/mdi_standard.html>`_
-
-NOTE: Taylor - is this the best link for this info?  Can we flesh this
-out with the full list of supported commands?  Maybe the distiniction
-of what "node" the commands refer to is not needed in this table?
+.. NOTE: Taylor - is this the best link for this info?  Can we flesh this
+.. out with the full list of supported commands?  Maybe the distinction
+.. of what "node" the commands refer to is not needed in this table?
 
 .. list-table::
    :widths: 20 80
@@ -53,7 +52,7 @@ of what "node" the commands refer to is not needed in this table?
    * - Command name
      - Action
    * - >NATOMS
-     - Driver sends the number of atoms in the ststem
+     - Driver sends the number of atoms in the system
    * - <NATOMS
      - Driver requests the number of atoms in the system
    * - <COORDS

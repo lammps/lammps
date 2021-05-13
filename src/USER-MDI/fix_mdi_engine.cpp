@@ -311,7 +311,7 @@ int FixMDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
     receive_forces(error, 1);
 
   // initialize new MD simulation or minimization
-  // return control to return to mdi_engine
+  // return control to return to mdi/engine
 
   } else if (strcmp(command,"@INIT_MD") == 0 ) {
     if (most_recent_init != 0)
@@ -320,7 +320,7 @@ int FixMDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
     local_exit_flag = true;
 
   // initialize new energy minimization
-  // return control to return to mdi_engine
+  // return control to return to mdi/engine
 
   } else if (strcmp(command,"@INIT_OPTG") == 0 ) {
     if ( most_recent_init != 0 )

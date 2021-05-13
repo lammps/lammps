@@ -4991,7 +4991,7 @@ when LAMMPS is run as a plugin, and should not otherwise be used.
 The function initializes MDI, then creates and initializes an instance
 of LAMMPS.  The command-line arguments ``argc`` and ``argv`` used to
 initialize LAMMPS are recieved from MDI.  The LAMMPS instance runs an
-input file, which must include the ``mdi_engine`` command; when LAMMPS
+input file, which must include the ``mdi/engine`` command; when LAMMPS
 executes this command, it will begin listening for commands from the
 driver.  The name of the input file is obtained from the ``-in``
 command-line argument, which must be provided by the MDI driver.

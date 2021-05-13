@@ -34,7 +34,7 @@ Examples
 
    comm_modify mode multi reduce/multi
    comm_modify mode multi group solvent
-   comm_modift mode multi cutoff/multi 1 10.0 cutoff/multi 2*4 15.0
+   comm_modify mode multi cutoff/multi 1 10.0 cutoff/multi 2*4 15.0
    comm_modify vel yes
    comm_modify mode single cutoff 5.0 vel yes
    comm_modify cutoff/multi * 0.0
@@ -75,8 +75,8 @@ communicated. in *multi/old*, a similar technique is used but atoms
 are grouped by atom type. See the :doc:`neighbor multi <neighbor>`  and
 :doc:`neighbor multi/old <neighbor>` commands for
 neighbor list construction options that may also be beneficial for
-simulations of this kind. The *multi* communiction mode is only compatable
-with the *multi* neighbor style. The *multi/old* communication mode is compatble
+simulations of this kind. The *multi* communication mode is only compatible
+with the *multi* neighbor style. The *multi/old* communication mode is comparable
 with both the *multi* and *multi/old* neighbor styles.
 
 The *cutoff* keyword allows you to extend the ghost cutoff distance
@@ -97,18 +97,18 @@ warning is printed, if this bond based estimate is larger than the
 communication cutoff used.
 
 The *cutoff/multi* option is equivalent to *cutoff*\ , but applies to
-communication mode *multi* instead. Since the communication
-cutoffs are determined per atom collections, a collection specifier is needed and
-cutoff for one or multiple collections can be extended. Also ranges of collections
-using the usual asterisk notation can be given.
-Collections are indexed from 1 to N where N is the total number of collections.
+communication mode *multi* instead. Since the communication cutoffs are
+determined per atom collections, a collection specifier is needed and
+cutoff for one or multiple collections can be extended. Also ranges of
+collections using the usual asterisk notation can be given.  Collections
+are indexed from 1 to N where N is the total number of collections.
 Note that the arguments for *cutoff/multi* are parsed right before each
-simulation to account for potential changes in the number of collections.
-Custom cutoffs are preserved between runs but if collections are redefined,
-one may want to respecify communication cutoffs.
-For granular pair styles,the default cutoff is set to the sum of the
-current maximum atomic radii for each collection.
-The *cutoff/multi/old* option is similar to *cutoff/multi* except it
+simulation to account for potential changes in the number of
+collections.  Custom cutoffs are preserved between runs but if
+collections are redefined, one may want to re-specify the communication
+cutoffs.  For granular pair styles,the default cutoff is set to the sum
+of the current maximum atomic radii for each collection.  The
+*cutoff/multi/old* option is similar to *cutoff/multi* except it
 operates on atom types as opposed to collections.
 
 The *reduce/multi* option applies to *multi* and sets the communication
@@ -147,7 +147,7 @@ ghost cutoff should be set.
 In the last scenario, a :doc:`fix <fix>` or :doc:`compute <compute>` or
 :doc:`pairwise potential <pair_style>` needs to calculate with ghost
 atoms beyond the normal pairwise cutoff for some computation it
-performs (e.g. locate neighbors of ghost atoms in a multibody pair
+performs (e.g. locate neighbors of ghost atoms in a manybody pair
 potential).  Setting the ghost cutoff appropriately can insure it will
 find the needed atoms.
 

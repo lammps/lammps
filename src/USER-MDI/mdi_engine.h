@@ -13,7 +13,7 @@
 
 #ifdef COMMAND_CLASS
 
-CommandStyle(mdi_engine,MDIEngine)
+CommandStyle(mdi/engine,MDIEngine)
 
 #else
 

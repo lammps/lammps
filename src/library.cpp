@@ -27,9 +27,6 @@
 #include "error.h"
 #include "fix.h"
 #include "fix_external.h"
-#if defined(LMP_USER_MDI)
-#include "fix_mdi_engine.h"
-#endif
 #include "force.h"
 #include "group.h"
 #include "info.h"
@@ -676,7 +673,8 @@ void lammps_extract_box(void *handle, double *boxlo, double *boxhi,
 
 This function sets the simulation box dimensions (upper and lower bounds
 and tilt factors) from the provided data and then re-initializes the box
-information and all derived settings.
+information and all derived settings. It may only be called before atoms
+are created.
 
 \endverbatim
  *
@@ -695,12 +693,16 @@ void lammps_reset_box(void *handle, double *boxlo, double *boxhi,
 
   BEGIN_CAPTURE
   {
-    // error if box does not exist
-    if ((lmp->domain->box_exist == 0)
-        && (lmp->comm->me == 0)) {
-      lmp->error->warning(FLERR,"Calling lammps_reset_box without a box");
+    if (lmp->atom->natoms > 0)
+      lmp->error->all(FLERR,"Calling lammps_reset_box not supported when atoms exist");
+
+    // warn and do nothing if no box exists
+    if (lmp->domain->box_exist == 0) {
+      if (lmp->comm->me == 0)
+        lmp->error->warning(FLERR,"Ignoring call to lammps_reset_box without a box");
       return;
     }
+
     domain->boxlo[0] = boxlo[0];
     domain->boxlo[1] = boxlo[1];
     domain->boxlo[2] = boxlo[2];
@@ -4977,100 +4979,6 @@ int lammps_get_last_error_message(void *handle, char *buffer, int buf_size) {
 #endif
   return 0;
 }
-
-// ----------------------------------------------------------------------
-// MDI functions
-// ----------------------------------------------------------------------
-/** Initialize an instance of LAMMPS as an MDI plugin
-
-\verbatim embed:rst
-This function is called by the MDI Library when LAMMPS is run as a
-plugin, and should not otherwise be used.  The function initializes
-MDI, then initializes an instance of LAMMPS.  The command-line
-arguments ``argc`` and ``argv`` used to initialize LAMMPS are recieved
-from MDI.  The LAMMPS instance runs an input file, which must include the
-``mdi_engine`` command; when LAMMPS executes this command, it will begin
-listening for commands from the driver.  The name of the input file is
-obtained from the ``-in`` command-line argument, which must be provided
-by the driver.
-\endverbatim
- *
- * \param  command   string buffer corresponding to the command to be executed
- * \param  comm      MDI communicator that can be used to communicated with the driver.
- * \param  class_obj pointer to an instance of an mdi/engine fix cast to ``void *``.
- * \return 0 on no error. */
-int MDI_Plugin_init_lammps()
-{
-  // initialize MDI
-  int mdi_argc;
-  char** mdi_argv;
-  if ( MDI_Plugin_get_argc(&mdi_argc) )
-    MPI_Abort(MPI_COMM_WORLD, 1);
-  if ( MDI_Plugin_get_argv(&mdi_argv) )
-    MPI_Abort(MPI_COMM_WORLD, 1);
-  if ( MDI_Init(&mdi_argc, &mdi_argv) )
-    MPI_Abort(MPI_COMM_WORLD, 1);
-
-  // get the MPI intra-communicator for this code
-  MPI_Comm mpi_world_comm = MPI_COMM_WORLD;
-  if ( MDI_MPI_get_world_comm(&mpi_world_comm) )
-    MPI_Abort(MPI_COMM_WORLD, 1);
-
-  // find the -in argument
-  int iarg = 0;
-  char *filename;
-  bool found_filename = false;
-  while( iarg < mdi_argc && !found_filename ) {
-    if (strcmp(mdi_argv[iarg],"-in") == 0 ||
-	strcmp(mdi_argv[iarg],"-i") == 0) {
-      if (iarg+2 > mdi_argc)
-	MPI_Abort(MPI_COMM_WORLD, 1);
-      filename = mdi_argv[iarg+1];
-      found_filename = true;
-
-      // remove -in argument from the command list
-      mdi_argc -= 2;
-      for (int jarg=iarg; jarg < mdi_argc; jarg++) {
-	mdi_argv[jarg] = mdi_argv[jarg+2];
-      }
-    }
-    iarg++;
-  }
-  if (!found_filename)
-    MPI_Abort(MPI_COMM_WORLD, 1);
-
-  // create and run a LAMMPS instance
-  LAMMPS *lmp = (LAMMPS*) lammps_open(mdi_argc, mdi_argv, mpi_world_comm, NULL);
-  lammps_file(lmp, filename);
-  lammps_close(lmp);
-
-  return 0;
-}
-
-/** Execute an MDI command
-
-\verbatim embed:rst
-This function is called by the MDI Library when LAMMPS is run as a
-plugin, and should not otherwise be used.  The function executes a
-single command from an external MDI driver.  If the LAMMPS library
-was compiled without ``-DLMP_USER_MDI``, the function will fail and
-return a "1".
-\endverbatim
- *
- * \param  command   string buffer corresponding to the command to be executed
- * \param  comm      MDI communicator that can be used to communicated with the driver.
- * \param  class_obj pointer to an instance of an mdi/engine fix cast to ``void *``.
- * \return 0 on no error, 1 on error. */
-int lammps_execute_mdi_command(const char* command, MDI_Comm comm, void* class_obj)
-{
-#if defined(LMP_USER_MDI)
-  FixMDIEngine *mdi_fix = (FixMDIEngine*) class_obj;
-  return mdi_fix->execute_command(command, comm);
-#else
-  return 1;
-#endif
-}
-
 
 // Local Variables:
 // fill-column: 72

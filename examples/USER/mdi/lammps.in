@@ -8,7 +8,7 @@ pair_modify     mix arithmetic
 kspace_style    pppm 1e-4
 special_bonds   amber
 
-atom_modify	sort 0 0
+atom_modify     sort 0 0
 
 read_data       lammps.data
 
@@ -25,4 +25,4 @@ thermo          1
 
 fix             1 all nvt temp 300.0 300.0 70.0
 
-mdi_engine
+mdi/engine

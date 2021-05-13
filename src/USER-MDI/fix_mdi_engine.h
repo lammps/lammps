@@ -136,9 +136,9 @@ Self-explanatory.
 
 E: Unknown command from driver
 
-The driver sent a command that is not supported by the LAMMPS 
-interface.  In some cases this might be because a nonsensical 
-command was sent (i.e. "SCF").  In other cases, the LAMMPS 
+The driver sent a command that is not supported by the LAMMPS
+interface.  In some cases this might be because a nonsensical
+command was sent (i.e. "SCF").  In other cases, the LAMMPS
 interface might benefit from being expanded.
 
 */

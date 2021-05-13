@@ -27,6 +27,13 @@
 /*_ssa.h
 /*_ssa.cpp
 
+/fix_mdi_engine.cpp
+/fix_mdi_engine.h
+/library_mdi.cpp
+/library_mdi.h
+/mdi_engine.cpp
+/mdi_engine.h
+
 /fix_brownian*.cpp
 /fix_brownian*.h
 /fix_propel_self.cpp
@@ -627,8 +634,6 @@
 /fix_lb_viscous.h
 /fix_load_report.cpp
 /fix_load_report.h
-/fix_mdi_engine.cpp
-/fix_mdi_engine.h
 /fix_meso.cpp
 /fix_meso.h
 /fix_meso_move.cpp
@@ -841,8 +846,6 @@
 /lj_sdk_common.h
 /math_complex.h
 /math_vector.h
-/mdi_engine.cpp
-/mdi_engine.h
 /message.cpp
 /message.h
 /mgpt_*.cpp

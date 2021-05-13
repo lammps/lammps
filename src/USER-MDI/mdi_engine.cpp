@@ -40,7 +40,7 @@ using namespace LAMMPS_NS;
    trigger LAMMPS to start acting as an MDI engine
    endlessly loop over receiving commands from driver and responding
    much of the logic for this is in FixMDIEngine
-   when EXIT command is received, mdi_engine command exits
+   when EXIT command is received, mdi/engine command exits
 ---------------------------------------------------------------------- */
 
 void MDIEngine::command(int narg, char **arg)
@@ -176,7 +176,7 @@ void MDIEngine::command(int narg, char **arg)
   MDI_Register_command("@COORDS", "@FORCES");
   MDI_Register_command("@COORDS", "EXIT");
 
-  // if the mdi_engine fix is not already present, add it now
+  // if the mdi/engine fix is not already present, add it now
 
   int ifix = modify->find_fix_by_style("mdi/engine");
   bool added_mdi_engine_fix = false;
@@ -192,13 +192,13 @@ void MDIEngine::command(int narg, char **arg)
 
   // check that LAMMPS is setup as a compatible MDI engine
 
-  if (narg > 0) error->all(FLERR,"Illegal mdi_engine command");
+  if (narg > 0) error->all(FLERR,"Illegal mdi/engine command");
 
   if (atom->tag_enable == 0)
-    error->all(FLERR,"Cannot use mdi_engine without atom IDs");
+    error->all(FLERR,"Cannot use mdi/engine without atom IDs");
 
   if (atom->tag_consecutive() == 0)
-    error->all(FLERR,"mdi_engine requires consecutive atom IDs");
+    error->all(FLERR,"mdi/engine requires consecutive atom IDs");
 
   // endless engine loop, responding to driver commands
 
@@ -206,31 +206,31 @@ void MDIEngine::command(int narg, char **arg)
 
   while (1) {
 
-    // mdi_engine command only recognizes three nodes
+    // mdi/engine command only recognizes three nodes
     // DEFAULT, INIT_MD, INIT_OPTG
 
     command = mdi_fix->engine_mode("@DEFAULT");
-    
+
     // MDI commands for dynamics or minimization
 
     if (strcmp(command,"@INIT_MD") == 0 ) {
       command = mdi_md();
       if (strcmp(command,"EXIT")) break;
-      
+
     } else if (strcmp(command,"@INIT_OPTG") == 0 ) {
       command = mdi_optg();
       if (strcmp(command,"EXIT")) break;
 
     } else if (strcmp(command,"EXIT") == 0) {
       break;
-  
+
     } else
       error->all(FLERR,
                  fmt::format("MDI node exited with "
                              "invalid command: {}",command));
   }
 
-  // remove mdi/engine fix that mdi_engine instantiated
+  // remove mdi/engine fix that mdi/engine instantiated
 
   if (added_mdi_engine_fix) modify->delete_fix("MDI_ENGINE_INTERNAL");
 }
@@ -306,7 +306,7 @@ char *MDIEngine::mdi_optg()
 
   Minimize *minimizer = new Minimize(lmp);
 
-  // setup the minimizer in a way that ensures optimization 
+  // setup the minimizer in a way that ensures optimization
   // will continue until MDI driver exits
 
   update->etol = std::numeric_limits<double>::min();

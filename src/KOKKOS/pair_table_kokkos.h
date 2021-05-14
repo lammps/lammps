@@ -120,7 +120,6 @@ class PairTableKokkos : public PairTable {
 
   int update_table;
   void create_kokkos_tables();
-  void cleanup_copy();
 
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION

@@ -50,11 +50,11 @@ template<class DeviceType>
 PairTableKokkos<DeviceType>::~PairTableKokkos()
 {
   if (copymode) return;
+
   delete h_table;
   h_table = nullptr;
   delete d_table;
   d_table = nullptr;
-  copymode = true; //prevents base class destructor from running
 }
 
 /* ---------------------------------------------------------------------- */
@@ -517,16 +517,6 @@ void PairTableKokkos<DeviceType>::init_style()
   } else {
     error->all(FLERR,"Cannot use chosen neighbor list style with lj/cut/kk");
   }
-}
-
-template<class DeviceType>
-void PairTableKokkos<DeviceType>::cleanup_copy() {
-  // WHY needed: this prevents parent copy from deallocating any arrays
-  allocated = 0;
-  cutsq = nullptr;
-  eatom = nullptr;
-  vatom = nullptr;
-  h_table=nullptr; d_table=nullptr;
 }
 
 namespace LAMMPS_NS {

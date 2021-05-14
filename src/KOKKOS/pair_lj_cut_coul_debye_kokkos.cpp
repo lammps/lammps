@@ -47,10 +47,6 @@ PairLJCutCoulDebyeKokkos<DeviceType>::PairLJCutCoulDebyeKokkos(LAMMPS *lmp):Pair
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | F_MASK | TYPE_MASK | Q_MASK | ENERGY_MASK | VIRIAL_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
-  cutsq = nullptr;
-  cut_ljsq = nullptr;
-  cut_coulsq = nullptr;
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -58,27 +54,15 @@ PairLJCutCoulDebyeKokkos<DeviceType>::PairLJCutCoulDebyeKokkos(LAMMPS *lmp):Pair
 template<class DeviceType>
 PairLJCutCoulDebyeKokkos<DeviceType>::~PairLJCutCoulDebyeKokkos()
 {
-  if (!copymode) {
-    memoryKK->destroy_kokkos(k_cutsq, cutsq);
-    memoryKK->destroy_kokkos(k_cut_ljsq, cut_ljsq);
-    memoryKK->destroy_kokkos(k_cut_coulsq, cut_coulsq);
-  }
+  if (copymode) return;
+
   if (allocated) {
-    cleanup_copy();
+    memoryKK->destroy_kokkos(k_eatom,eatom);
+    memoryKK->destroy_kokkos(k_vatom,vatom);
+    memoryKK->destroy_kokkos(k_cutsq,cutsq);
+    memoryKK->destroy_kokkos(k_cut_ljsq,cut_ljsq);
+    memoryKK->destroy_kokkos(k_cut_coulsq,cut_coulsq);
   }
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-void PairLJCutCoulDebyeKokkos<DeviceType>::cleanup_copy() {
-  // WHY needed: this prevents parent copy from deallocating any arrays
-  allocated = 0;
-  cutsq = nullptr;
-  cut_ljsq = nullptr;
-  cut_coulsq = nullptr;
-  eatom = nullptr;
-  vatom = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

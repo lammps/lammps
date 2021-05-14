@@ -46,7 +46,6 @@ PairYukawaKokkos<DeviceType>::PairYukawaKokkos(LAMMPS *lmp) : PairYukawa(lmp)
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | F_MASK | TYPE_MASK | ENERGY_MASK | VIRIAL_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
-  cutsq = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -54,26 +53,13 @@ PairYukawaKokkos<DeviceType>::PairYukawaKokkos(LAMMPS *lmp) : PairYukawa(lmp)
 template<class DeviceType>
 PairYukawaKokkos<DeviceType>::~PairYukawaKokkos()
 {
+  if (copymode) return;
+
   if (allocated) {
     memoryKK->destroy_kokkos(k_eatom,eatom);
     memoryKK->destroy_kokkos(k_vatom,vatom);
-    k_cutsq = DAT::tdual_ffloat_2d();
-    memory->sfree(cutsq);
-    eatom = nullptr;
-    vatom = nullptr;
-    cutsq = nullptr;
+    memoryKK->destroy_kokkos(k_cutsq,cutsq);
   }
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-void PairYukawaKokkos<DeviceType>::cleanup_copy() {
-  // WHY needed: this prevents parent copy from deallocating any arrays
-  allocated = 0;
-  cutsq = nullptr;
-  eatom = nullptr;
-  vatom = nullptr;
 }
 
 /* ----------------------------------------------------------------------

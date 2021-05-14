@@ -44,8 +44,6 @@ class PairLJCutCoulDSFKokkos : public PairLJCutCoulDSF {
   double init_one(int, int);
 
  protected:
-  void cleanup_copy();
-
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
   F_FLOAT compute_fpair(const F_FLOAT& rsq, const int& i, const int&j,
@@ -92,9 +90,7 @@ class PairLJCutCoulDSFKokkos : public PairLJCutCoulDSF {
   typename AT::t_ffloat_2d d_cutsq;
   typename AT::tdual_ffloat_2d k_cut_ljsq;
   typename AT::t_ffloat_2d d_cut_ljsq;
-  typename AT::tdual_ffloat_2d k_cut_coulsq;
   typename AT::t_ffloat_2d d_cut_coulsq;
-
 
   int neighflag;
   int nlocal,nall,eflag,vflag;

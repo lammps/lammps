@@ -1280,16 +1280,6 @@ void PairTableRXKokkos<DeviceType>::init_style()
   }
 }
 
-template<class DeviceType>
-void PairTableRXKokkos<DeviceType>::cleanup_copy() {
-  // WHY needed: this prevents parent copy from deallocating any arrays
-  allocated = 0;
-  cutsq = nullptr;
-  eatom = nullptr;
-  vatom = nullptr;
-  h_table=nullptr; d_table=nullptr;
-}
-
 namespace LAMMPS_NS {
 template class PairTableRXKokkos<LMPDeviceType>;
 #ifdef LMP_KOKKOS_GPU

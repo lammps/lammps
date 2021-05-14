@@ -49,10 +49,6 @@ PairBuckCoulCutKokkos<DeviceType>::PairBuckCoulCutKokkos(LAMMPS *lmp):PairBuckCo
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | F_MASK | TYPE_MASK | Q_MASK | ENERGY_MASK | VIRIAL_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
-  cutsq = nullptr;
-  cut_ljsq = nullptr;
-  cut_coulsq = nullptr;
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -60,23 +56,15 @@ PairBuckCoulCutKokkos<DeviceType>::PairBuckCoulCutKokkos(LAMMPS *lmp):PairBuckCo
 template<class DeviceType>
 PairBuckCoulCutKokkos<DeviceType>::~PairBuckCoulCutKokkos()
 {
+  if (copymode) return;
 
-  if (!copymode) {
+  if (allocated) {
     memoryKK->destroy_kokkos(k_eatom,eatom);
     memoryKK->destroy_kokkos(k_vatom,vatom);
-    k_cutsq = DAT::tdual_ffloat_2d();
-    k_cut_ljsq = DAT::tdual_ffloat_2d();
-    k_cut_coulsq = DAT::tdual_ffloat_2d();
-    memory->sfree(cutsq);
-    memory->sfree(cut_ljsq);
-    memory->sfree(cut_coulsq);
-    eatom = nullptr;
-    vatom = nullptr;
-    cutsq = nullptr;
-    cut_ljsq = nullptr;
-    cut_coulsq = nullptr;
+    memoryKK->destroy_kokkos(k_cutsq,cutsq);
+    memoryKK->destroy_kokkos(k_cut_ljsq,cut_ljsq);
+    memoryKK->destroy_kokkos(k_cut_coulsq,cut_coulsq);
   }
-
 }
 
 /* ---------------------------------------------------------------------- */

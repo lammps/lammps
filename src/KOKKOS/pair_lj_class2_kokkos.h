@@ -53,8 +53,6 @@ class PairLJClass2Kokkos : public PairLJClass2 {
   };
 
  protected:
-  void cleanup_copy();
-
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
   F_FLOAT compute_fpair(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const;

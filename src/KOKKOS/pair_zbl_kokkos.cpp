@@ -62,10 +62,6 @@ PairZBLKokkos<DeviceType>::~PairZBLKokkos()
   if (allocated) {
     memoryKK->destroy_kokkos(k_eatom,eatom);
     memoryKK->destroy_kokkos(k_vatom,vatom);
-    memory->sfree(cutsq);
-    eatom = nullptr;
-    vatom = nullptr;
-    cutsq = nullptr;
   }
 }
 
@@ -410,18 +406,6 @@ F_FLOAT PairZBLKokkos<DeviceType>::d2zbldr2(F_FLOAT r, int i, int j) const {
                          2.0*sum*rinv*rinv)*rinv;
 
   return result;
-}
-
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-void PairZBLKokkos<DeviceType>::cleanup_copy() {
-  // WHY needed: this prevents parent copy from deallocating any arrays
-  allocated = 0;
-  cutsq = nullptr;
-  eatom = nullptr;
-  vatom = nullptr;
 }
 
 namespace LAMMPS_NS {

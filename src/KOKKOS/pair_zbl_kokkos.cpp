@@ -75,6 +75,8 @@ void PairZBLKokkos<DeviceType>::init_style()
 {
   PairZBL::init_style();
 
+  Kokkos::deep_copy(d_cutsq,cut_globalsq);
+
   // error if rRESPA with inner levels
 
   if (update->whichflag == 1 && utils::strmatch(update->integrate_style,"^respa")) {
@@ -105,8 +107,6 @@ void PairZBLKokkos<DeviceType>::init_style()
   } else {
     error->all(FLERR,"Cannot use chosen neighbor list style with lj/cut/kk");
   }
-
-  Kokkos::deep_copy(d_cutsq,cut_globalsq);
 }
 
 /* ---------------------------------------------------------------------- */

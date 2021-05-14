@@ -298,7 +298,6 @@ void PairLJClass2CoulLongKokkos<DeviceType>::allocate()
   d_cut_ljsq = k_cut_ljsq.template view<DeviceType>();
 
   d_cut_coulsq = typename AT::t_ffloat_2d("pair:cut_coulsq",n+1,n+1);
-  Kokkos::deep_copy(d_cut_coulsq,cut_coulsq);
 
   k_params = Kokkos::DualView<params_lj_coul**,Kokkos::LayoutRight,DeviceType>("PairLJClass2CoulLong::params",n+1,n+1);
   params = k_params.template view<DeviceType>();
@@ -428,6 +427,8 @@ template<class DeviceType>
 void PairLJClass2CoulLongKokkos<DeviceType>::init_style()
 {
   PairLJClass2CoulLong::init_style();
+
+  Kokkos::deep_copy(d_cut_coulsq,cut_coulsq);
 
   // error if rRESPA with inner levels
 

@@ -27,6 +27,7 @@
 #include "fix.h"
 #include "fix_dummy.h"
 #include "fix_neigh_history.h"
+#include "fix_pair_tracker.h"
 #include "comm.h"
 #include "neighbor.h"
 #include "neigh_list.h"
@@ -35,6 +36,9 @@
 #include "error.h"
 
 using namespace LAMMPS_NS;
+
+#define RLARGE 100
+
 
 /* ---------------------------------------------------------------------- */
 
@@ -50,7 +54,7 @@ PairTracker::PairTracker(LAMMPS *lmp) : Pair(lmp)
   
   finitecutflag = 0;
 
-  // create dummy fix as placeholder for FixNeigTRACKistory
+  // create dummy fix as placeholder for FixNeighHistory
   // this is so final order of Modify:fix will conform to input script
 
   fix_history = nullptr;
@@ -81,7 +85,7 @@ PairTracker::~PairTracker()
 
 void PairTracker::compute(int eflag, int vflag)
 {
-  int i,j,ii,jj,inum,jnum;
+  int i,j,ii,jj,inum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz;
   double radi,radj,radsum,rsq,r;
   int *ilist,*jlist,*numneigh,**firstneigh;
@@ -90,10 +94,11 @@ void PairTracker::compute(int eflag, int vflag)
 
   int updateflag = 1;
   if (update->setupflag) updateflag = 0;
-
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double *radius = atom->radius;
+  int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
@@ -106,13 +111,13 @@ void PairTracker::compute(int eflag, int vflag)
   firstdata = fix_history->firstvalue;
 
   // loop over neighbors of my atoms
-
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
     if (finitecutflag) radi = radius[i];
+    itype = type[i];
     touch = firsttouch[i];
     alldata = firstdata[i];
     jlist = firstneigh[i];
@@ -126,17 +131,18 @@ void PairTracker::compute(int eflag, int vflag)
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
+      
       if (finitecutflag) {
         radj = radius[j];
         radsum = radi + radj;
         
         if (rsq >= radsum*radsum) {
-          // unset non-touching neighbors
+
+          data = &alldata[size_history*jj];
           if(touch[jj] == 1) {
             fix_pair_tracker->lost_contact(i, j, data[0], data[1], data[2]);
           }
           touch[jj] = 0;
-          data = &alldata[size_history*jj];
           data[0] = 0.0; // initial time
           data[1] = 0.0; // sum of r
           data[2] = 0.0; // min of r
@@ -147,7 +153,7 @@ void PairTracker::compute(int eflag, int vflag)
           if (touch[jj] == 0) {
             data[0] = update->ntimestep;
             data[1] = 0.0;
-            data[2] = 0.0;
+            data[2] = RLARGE;
           }
           touch[jj] = 1;
 
@@ -157,30 +163,41 @@ void PairTracker::compute(int eflag, int vflag)
             if(data[2] > r) data[2] = r;
           }
         }
-      } else {
+      } else {      
+        jtype = type[j];      
+        if (rsq >= cutsq[itype][jtype]) {
           
-      }
+          data = &alldata[size_history*jj];            
+          if(touch[jj] == 1) {              
+            fix_pair_tracker->lost_contact(i, j, data[0], data[1], data[2]);
+          }
+          touch[jj] = 0;
+          data[0] = 0.0; // initial time
+          data[1] = 0.0; // sum of r
+          data[2] = 0.0; // min of r
+                
+        } else {        
 
-      if (rsq >= radsum*radsum) {
+          data = &alldata[size_history*jj];
+          if (touch[jj] == 0) {
+            data[0] = update->ntimestep;
+            data[1] = 0.0;
+            data[2] = RLARGE;
+          }
+          touch[jj] = 1;
 
-
-        f[i][0] += fx;
-        f[i][1] += fy;
-        f[i][2] += fz;
-
-
-        if (newton_pair || j < nlocal) {
-          f[j][0] -= fx;
-          f[j][1] -= fy;
-          f[j][2] -= fz;
-          torque[j][0] -= radj*tor1;
-          torque[j][1] -= radj*tor2;
-          torque[j][2] -= radj*tor3;
+          if (updateflag) {
+            r = sqrt(rsq);
+            data[1] += r;
+            if(data[2] > r) data[2] = r;
+          }
         }
-
       }
     }
   }
+  
+  if (vflag_fdotr) virial_fdotr_compute();
+
 }
 
 /* ----------------------------------------------------------------------
@@ -212,10 +229,10 @@ void PairTracker::allocate()
 
 void PairTracker::settings(int narg, char **arg)
 {
-  if (narg != 0 || narg != 1) error->all(FLERR,"Illegal pair_style command");
+  if (narg != 0 && narg != 1) error->all(FLERR,"Illegal pair_style command");
 
   if (narg == 1) {
-    if (strcmp(arg[0], "radius")) finitecutflag = 1;
+    if (strcmp(arg[0], "radius") == 0) finitecutflag = 1;
     else error->all(FLERR,"Illegal pair_style command");
   }
 }
@@ -235,7 +252,7 @@ void PairTracker::coeff(int narg, char **arg)
   utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
   double cut_one = 0.0;
-  if (!finitecutflag) cut_one = utils::numeric(FLERR,arg[3],false,lmp); 
+  if (!finitecutflag) cut_one = utils::numeric(FLERR,arg[2],false,lmp); 
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -283,11 +300,26 @@ void PairTracker::init_style()
     modify->replace_fix("NEIGH_HISTORY_TRACK_DUMMY",4,fixarg,1);
     delete [] fixarg;
     int ifix = modify->find_fix("NEIGH_HISTORY_TRACK");
-    fix_history = (FixNeigTRACKistory *) modify->fix[ifix];
+    fix_history = (FixNeighHistory *) modify->fix[ifix];
     fix_history->pair = this;
   }
 
   if (finitecutflag) {
+        
+    if(force->pair->beyond_contact)
+      error->all(FLERR, "Pair tracker incompatible with granular pairstyles that extend beyond contact");        
+    // check for FixPour and FixDeposit so can extract particle radii
+    
+    int ipour;
+    for (ipour = 0; ipour < modify->nfix; ipour++)
+      if (strcmp(modify->fix[ipour]->style,"pour") == 0) break;
+    if (ipour == modify->nfix) ipour = -1;
+    
+    int idep;
+    for (idep = 0; idep < modify->nfix; idep++)
+      if (strcmp(modify->fix[idep]->style,"deposit") == 0) break;
+    if (idep == modify->nfix) idep = -1;
+    
     // set maxrad_dynamic and maxrad_frozen for each type
     // include future FixPour and FixDeposit particles as dynamic
     
@@ -325,7 +357,7 @@ void PairTracker::init_style()
 
   int ifix = modify->find_fix("NEIGH_HISTORY_TRACK");
   if (ifix < 0) error->all(FLERR,"Could not find pair fix neigh history ID");
-  fix_history = (FixNeigTRACKistory *) modify->fix[ifix];
+  fix_history = (FixNeighHistory *) modify->fix[ifix];
    
   ifix = modify->find_fix_by_style("pair/tracker");
   if(ifix < 0) error->all(FLERR,"Cannot use pair tracker without fix pair/tracker");

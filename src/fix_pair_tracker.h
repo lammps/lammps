@@ -13,7 +13,7 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(pair/tracking,FixPairTracking)
+FixStyle(pair/tracker,FixPairTracker)
 
 #else
 
@@ -24,12 +24,11 @@ FixStyle(pair/tracking,FixPairTracking)
 
 namespace LAMMPS_NS {
 
-class FixPairTracking : public Fix {
+class FixPairTracker : public Fix {
  public: 
-  FixPairTracking(class LAMMPS *, int, char **);
-  ~FixPairTracking();
+  FixPairTracker(class LAMMPS *, int, char **);
+  ~FixPairTracker();
   int setmask();  
-  void post_constructor();
   void init();
   void post_force(int);
   double memory_usage();
@@ -37,9 +36,10 @@ class FixPairTracking : public Fix {
     
  private:
   int nvalues, never;
-  int nmax;
+  int nmax, tmin;
   int store_flag;
   int index_i, index_j;
+  double rmin, rsum, ntimestep;
   
   double *vector;
   double **array;
@@ -66,15 +66,9 @@ class FixPairTracking : public Fix {
   void pack_y(int);  
   void pack_z(int);  
   
-  void pack_xstore(int);  
-  void pack_ystore(int);  
-  void pack_zstore(int);   
-  
   void pack_rmin(int);
   void pack_rave(int);
   
-  char *id_fix;
-  int index_x, index_y, index_z;  
 };
 
 }

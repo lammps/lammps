@@ -37,7 +37,6 @@ class PairTracker : public Pair {
   void read_restart(FILE *);
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
-  void reset_dt();
   virtual double single(int, int, int, int, double, double, double, double &);
   double atom2cut(int);
   double radii2cut(double,double);
@@ -50,6 +49,7 @@ class PairTracker : public Pair {
   double **cut;
   double *onerad_dynamic,*onerad_frozen;
   double *maxrad_dynamic,*maxrad_frozen;
+  int freeze_group_bit;
 
   class FixDummy *fix_dummy;
   class FixNeighHistory *fix_history;

@@ -406,7 +406,7 @@ void PairHybrid::flags()
   respa_enable = (respa_enable == nstyles) ? 1 : 0;
   restartinfo = (restartinfo == nstyles) ? 1 : 0;
   init_svector();
-
+  
   // set centroidstressflag for pair hybrid
   // set to CENTROID_NOTAVAIL if any substyle is NOTAVAIL
   // else set to CENTROID_AVAIL if any substyle is AVAIL
@@ -579,6 +579,10 @@ void PairHybrid::init_style()
       }
     }
   }
+
+  // check beyond contact (set during pair coeff) before init style
+  for (istyle = 0; istyle < nstyles; istyle++) 
+    if (styles[istyle]->beyond_contact) beyond_contact = 1;
 
   // each sub-style makes its neighbor list request(s)
 

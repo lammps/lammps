@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include <string.h>
-#include "fix_pair_tracking.h"
+#include "fix_pair_tracker.h"
 #include "pair_tracker.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -34,16 +34,16 @@ using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixPairTracking::FixPairTracking(LAMMPS *lmp, int narg, char **arg) :
+FixPairTracker::FixPairTracker(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
   nvalues(0),
   array(NULL), vector(NULL), pack_choice(NULL)
 {
   if (narg < 3) error->all(FLERR,"Illegal fix pair/tracker command");
-  store_flag = 0;
   local_flag = 1;
   nvalues = narg - 4; 
-  
+  tmin = -1;
+
   nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   if (nevery <= 0) error->all(FLERR,"Illegal fix pair/tracker command");  
     
@@ -52,45 +52,45 @@ FixPairTracking::FixPairTracking(LAMMPS *lmp, int narg, char **arg) :
 
   pack_choice = new FnPtrPack[nvalues];
   
-  int i;
-  for (int iarg = 4; iarg < narg; iarg++) {
-    i = iarg - 4;
+  int iarg = 4;
+  int i = 0;
+  while (iarg < narg) {
     
     if (strcmp(arg[iarg],"id1") == 0) {
-      pack_choice[i] = &FixPairTracking::pack_id1;
+      pack_choice[i] = &FixPairTracker::pack_id1;
     } else if (strcmp(arg[iarg],"id2") == 0) {
-      pack_choice[i] = &FixPairTracking::pack_id2;
+      pack_choice[i] = &FixPairTracker::pack_id2;
            
     } else if (strcmp(arg[iarg],"time/created") == 0) {
-      pack_choice[i] = &FixPairTracking::pack_time_created;
+      pack_choice[i] = &FixPairTracker::pack_time_created;
     } else if (strcmp(arg[iarg],"time/broken") == 0) {
-      pack_choice[i] = &FixPairTracking::pack_time_broken;
+      pack_choice[i] = &FixPairTracker::pack_time_broken;
     } else if (strcmp(arg[iarg],"time/total") == 0) {
-      pack_choice[i] = &FixPairTracking::pack_time_total;
+      pack_choice[i] = &FixPairTracker::pack_time_total;
       
     } else if (strcmp(arg[iarg],"x") == 0) {
-      pack_choice[i] = &FixPairTracking::pack_x;    
+      pack_choice[i] = &FixPairTracker::pack_x;    
     } else if (strcmp(arg[iarg],"y") == 0) {
-      pack_choice[i] = &FixPairTracking::pack_y;    
+      pack_choice[i] = &FixPairTracker::pack_y;    
     } else if (strcmp(arg[iarg],"z") == 0) {
-      pack_choice[i] = &FixPairTracking::pack_z;    
+      pack_choice[i] = &FixPairTracker::pack_z;    
       
-    } else if (strcmp(arg[iarg],"xstore") == 0) {
-      pack_choice[i] = &FixPairTracking::pack_xstore;    
-      store_flag = 1;
-    } else if (strcmp(arg[iarg],"ystore") == 0) {
-      pack_choice[i] = &FixPairTracking::pack_ystore;    
-      store_flag = 1;
-    } else if (strcmp(arg[iarg],"zstore") == 0) {
-      pack_choice[i] = &FixPairTracking::pack_zstore;      
-      store_flag = 1;      
-   
     } else if (strcmp(arg[iarg],"rmin") == 0) {
-      pack_choice[i] = &FixPairTracking::pack_rmin;    
+      pack_choice[i] = &FixPairTracker::pack_rmin;    
     } else if (strcmp(arg[iarg],"rave") == 0) {
-      pack_choice[i] = &FixPairTracking::pack_rave;     
+      pack_choice[i] = &FixPairTracker::pack_rave;     
+
+    } else if (strcmp(arg[iarg],"tmin") == 0) {
+      if (iarg + 1 >= narg) error->all(FLERR, "Invalid keyword in fix pair/tracker command");
+      tmin = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      i -= 1;
+      nvalues -= 2;
+      iarg ++;
    
     } else error->all(FLERR, "Invalid keyword in fix pair/tracker command");
+    
+    iarg ++;
+    i ++;
   }
 
   nmax = 0;
@@ -101,13 +101,8 @@ FixPairTracking::FixPairTracking(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-FixPairTracking::~FixPairTracking()
-{
-  if (modify->nfix & store_flag == 1) {
-    modify->delete_fix(id_fix);
-    delete [] id_fix;
-  }
-  
+FixPairTracker::~FixPairTracker()
+{  
   delete [] pack_choice;
 
   memory->destroy(vector);  
@@ -116,7 +111,7 @@ FixPairTracking::~FixPairTracking()
 
 /* ---------------------------------------------------------------------- */
 
-int FixPairTracking::setmask()
+int FixPairTracker::setmask()
 {
   int mask = 0;
   mask |= POST_FORCE;
@@ -125,93 +120,7 @@ int FixPairTracking::setmask()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPairTracking::post_constructor()
-{
-  //If use stored x,y,z values, use store property (can transfer to ghost atoms) to store positions
-  
-  if(store_flag == 1){
-      
-    lx = domain->xprd;
-    ly = domain->yprd;
-    lz = domain->zprd;        
-
-    int nn = strlen(id) + strlen("_FIX_PROP_ATOM") + 1;
-    id_property_fix = new char[nn];
-    strcpy(id_property_fix,id);
-    strcat(id_property_fix,"_FIX_PROP_ATOM");
-    
-    int ifix = modify->find_fix(id_property_fix);
-    if (ifix < 0) {
-    
-      int n_x = strlen(id) + 4;
-      
-      char * lab1 = new char[n_x];
-      strcpy(lab1, "d_x");
-      strcat(lab1, id);
-      char * lab2 = new char[n_x];
-      strcpy(lab2, "d_y");
-      strcat(lab2, id);
-      char * lab3 = new char[n_x];
-      strcpy(lab3, "d_z");
-      strcat(lab3, id);
-        
-      char **newarg = new char*[8];
-      newarg[0] = id_property_fix;
-      newarg[1] = group->names[igroup];
-      newarg[2] = (char *) "property/atom"; 
-      newarg[3] = (char *) lab1;         
-      newarg[4] = (char *) lab2;         
-      newarg[5] = (char *) lab3; 
-      newarg[6] = (char *) "ghost";
-      newarg[7] = (char *) "yes";
-
-      modify->add_fix(8,newarg); 
-      //Needs ghost atoms to calculate CoM
-
-      int type_flag;
-      int col_flag;
-
-      strcpy(lab1, "x");
-      strcat(lab1, id);
-      strcpy(lab2, "y");
-      strcat(lab2, id);
-      strcpy(lab3, "z");
-      strcat(lab3, id);
-
-      index_x = atom->find_custom(lab1, type_flag, col_flag);
-      index_y = atom->find_custom(lab2, type_flag, col_flag);
-      index_z = atom->find_custom(lab3, type_flag, col_flag);
-      delete [] newarg;    
-      delete [] lab1;
-      delete [] lab2;
-      delete [] lab3;
-    } 
-    
-    ifix = modify->find_fix(id_fix);
-    if (ifix < 0) error->all(FLERR,"Could not find fix ID for fix broken/bond");
-    if (modify->fix[ifix]->restart_reset) {
-        modify->fix[ifix]->restart_reset = 0;
-    } else {
-
-      double *xi = atom->dvector[index_x];
-      double *yi = atom->dvector[index_y];
-      double *zi = atom->dvector[index_z];
-      
-      double **xs = atom->x;
-      int nlocal = atom->nlocal;
-      
-      for (int i = 0; i < nlocal; i++) {
-        xi[i] = xs[i][0];
-        yi[i] = xs[i][1];
-        zi[i] = xs[i][2];   
-      }
-    }    
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixPairTracking::init()
+void FixPairTracker::init()
 {
   // Set size of array/vector
   ncount = 0;
@@ -223,30 +132,34 @@ void FixPairTracking::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPairTracking::lost_contact(int i, int j, double n, double rs, double rm)
+void FixPairTracker::lost_contact(int i, int j, double n, double rs, double rm)
 {    
-  if (ncount == nmax) reallocate(ncount);
-  
-  index_i = i;
-  index_j = j;
-  rmin = rm;
-  rave = ra;
-  ntimestep = n;
-  
-  // fill vector or array with local values
-  if (nvalues == 1) {
-    (this->*pack_choice[0])(0);
-  } else {
-    for (int n = 0; n < nvalues; n++)
-      (this->*pack_choice[n])(n); 
-  }  
-  
-  ncount += 1;  
+  if (update->ntimestep-n > tmin) {
+    if (ncount == nmax) reallocate(ncount);
+    
+    index_i = i;
+    index_j = j;
+
+    rmin = rm;
+    rsum = rs;
+    ntimestep = n;
+    
+    // fill vector or array with local values
+    if (nvalues == 1) {
+      (this->*pack_choice[0])(0);
+    } else {
+      for (int k = 0; k < nvalues; k++) {
+        (this->*pack_choice[k])(k); 
+      }
+    }  
+
+    ncount += 1;  
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixPairTracking::post_force(int /*vflag*/) 
+void FixPairTracker::post_force(int /*vflag*/) 
 {    
   if (update->ntimestep % nevery == 0) {
     size_local_rows = ncount;
@@ -257,7 +170,7 @@ void FixPairTracking::post_force(int /*vflag*/)
 
 /* ---------------------------------------------------------------------- */
 
-void FixPairTracking::reallocate(int n)
+void FixPairTracker::reallocate(int n)
 {
   // grow vector or array 
   while (nmax <= n) nmax += DELTA;
@@ -275,7 +188,7 @@ void FixPairTracking::reallocate(int n)
    memory usage of local data
 ------------------------------------------------------------------------- */
 
-double FixPairTracking::memory_usage()
+double FixPairTracker::memory_usage()
 {
   double bytes = nmax*nvalues * sizeof(double);
   bytes += nmax*2 * sizeof(int);
@@ -290,7 +203,7 @@ double FixPairTracking::memory_usage()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPairTracking::pack_time_created(int n) 
+void FixPairTracker::pack_time_created(int n) 
 {
   if (nvalues == 1)
     vector[ncount] = ntimestep;
@@ -300,7 +213,7 @@ void FixPairTracking::pack_time_created(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void FixPairTracking::pack_time_broken(int n) 
+void FixPairTracker::pack_time_broken(int n) 
 {
   if (nvalues == 1)
     vector[ncount] = update->ntimestep;
@@ -310,7 +223,7 @@ void FixPairTracking::pack_time_broken(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void FixPairTracking::pack_time_total(int n) 
+void FixPairTracker::pack_time_total(int n) 
 {
   if (nvalues == 1)
     vector[ncount] = update->ntimestep-ntimestep;
@@ -321,7 +234,7 @@ void FixPairTracking::pack_time_total(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void FixPairTracking::pack_id1(int n) 
+void FixPairTracker::pack_id1(int n) 
 {
   tagint *tag = atom->tag;
   
@@ -333,7 +246,7 @@ void FixPairTracking::pack_id1(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void FixPairTracking::pack_id2(int n)
+void FixPairTracker::pack_id2(int n)
 {
   tagint *tag = atom->tag;
 
@@ -345,7 +258,7 @@ void FixPairTracking::pack_id2(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void FixPairTracking::pack_x(int n)
+void FixPairTracker::pack_x(int n)
 {
   double lx_new = domain->xprd;
   double **x = atom->x; 
@@ -359,7 +272,7 @@ void FixPairTracking::pack_x(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void FixPairTracking::pack_y(int n)
+void FixPairTracker::pack_y(int n)
 {
   double lx_new = domain->yprd;
   double **x = atom->x; 
@@ -373,7 +286,7 @@ void FixPairTracking::pack_y(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void FixPairTracking::pack_z(int n)
+void FixPairTracker::pack_z(int n)
 {
   double lx_new = domain->zprd;
   double **x = atom->x; 
@@ -384,48 +297,9 @@ void FixPairTracking::pack_z(int n)
     array[ncount][n] = (x[index_i][2] + x[index_j][2])/2;
 }
 
-
 /* ---------------------------------------------------------------------- */
 
-void FixPairTracking::pack_xstore(int n)
-{
-  double *x = atom->dvector[index_x];
-        
-  if (nvalues == 1)
-    vector[ncount] = (x[index_i] + x[index_j])/2;
-  else
-    array[ncount][n] = (x[index_i] + x[index_j])/2;
-}
-
-
-/* ---------------------------------------------------------------------- */
-
-void FixPairTracking::pack_ystore(int n)
-{
-  double *y = atom->dvector[index_y];
-        
-  if (nvalues == 1)
-    vector[ncount] = (y[index_i] + y[index_j])/2;
-  else
-    array[ncount][n] = (y[index_i] + y[index_j])/2;
-}
-
-
-/* ---------------------------------------------------------------------- */
-
-void FixPairTracking::pack_zstore(int n)
-{
-  double *z = atom->dvector[index_z];
-        
-  if (nvalues == 1)
-    vector[ncount] = (z[index_i] + z[index_j])/2;
-  else
-    array[ncount][n] = (z[index_i] + z[index_j])/2;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixPairTracking::pack_rmin(int n)
+void FixPairTracker::pack_rmin(int n)
 {
   if (nvalues == 1)
     vector[ncount] = rmin;
@@ -435,7 +309,7 @@ void FixPairTracking::pack_rmin(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void FixPairTracking::pack_rave(int n)
+void FixPairTracker::pack_rave(int n)
 {
   if (nvalues == 1)
     vector[ncount] = rsum/(update->ntimestep-ntimestep);

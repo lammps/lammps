@@ -12,9 +12,8 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-// list all deprecated and removed compute styles here
 // clang-format off
+// list all deprecated and removed compute styles here
 ComputeStyle(DEPRECATED,ComputeDeprecated);
 // clang-format on
 #else

@@ -12,9 +12,8 @@
 ------------------------------------------------------------------------- */
 
 #ifdef DUMP_CLASS
-
-// list all deprecated and removed dump styles here
 // clang-format off
+// list all deprecated and removed dump styles here
 DumpStyle(DEPRECATED,DumpDeprecated);
 // clang-format on
 #else

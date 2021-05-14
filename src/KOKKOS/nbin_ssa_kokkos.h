@@ -12,15 +12,15 @@
 ------------------------------------------------------------------------- */
 
 #ifdef NBIN_CLASS
-
+// clang-format off
 NBinStyle(ssa/kk/host,
           NBinSSAKokkos<LMPHostType>,
-          NB_STANDARD | NB_SSA | NB_KOKKOS_HOST)
+          NB_STANDARD | NB_SSA | NB_KOKKOS_HOST);
 
 NBinStyle(ssa/kk/device,
           NBinSSAKokkos<LMPDeviceType>,
-          NB_STANDARD | NB_SSA | NB_KOKKOS_DEVICE)
-
+          NB_STANDARD | NB_SSA | NB_KOKKOS_DEVICE);
+// clang-format on
 #else
 
 #ifndef LMP_NBIN_SSA_KOKKOS_H

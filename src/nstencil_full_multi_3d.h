@@ -12,10 +12,10 @@
 ------------------------------------------------------------------------- */
 
 #ifdef NSTENCIL_CLASS
-
+// clang-format off
 NStencilStyle(full/multi/3d,
-              NStencilFullMulti3d, NS_FULL | NS_MULTI | NS_3D | NS_ORTHO | NS_TRI)
-
+              NStencilFullMulti3d, NS_FULL | NS_MULTI | NS_3D | NS_ORTHO | NS_TRI);
+// clang-format on
 #else
 
 #ifndef LMP_NSTENCIL_FULL_MULTI_3D_H

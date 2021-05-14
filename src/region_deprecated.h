@@ -12,9 +12,8 @@
 ------------------------------------------------------------------------- */
 
 #ifdef REGION_CLASS
-
-// list all deprecated and removed region styles here
 // clang-format off
+// list all deprecated and removed region styles here
 RegionStyle(DEPRECATED,RegionDeprecated);
 // clang-format on
 #else

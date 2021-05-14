@@ -12,11 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef NPAIR_CLASS
-
+// clang-format off
 NPairStyle(half/multi/old/newtoff/omp,
            NPairHalfMultiOldNewtoffOmp,
-           NP_HALF | NP_MULTI_OLD | NP_NEWTOFF | NP_OMP | NP_ORTHO | NP_TRI)
-
+           NP_HALF | NP_MULTI_OLD | NP_NEWTOFF | NP_OMP | NP_ORTHO | NP_TRI);
+// clang-format on
 #else
 
 #ifndef LMP_NPAIR_HALF_MULTI_OLD_NEWTOFF_OMP_H

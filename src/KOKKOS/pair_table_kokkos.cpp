@@ -117,6 +117,8 @@ void PairTableKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
   d_cutsq = d_table->cutsq;
   // loop over neighbors of my atoms
 
+  copymode = 1;
+
   EV_FLOAT ev;
   if (atom->ntypes > MAX_TYPES_STACKPARAMS) {
     if (neighflag == FULL) {
@@ -182,6 +184,7 @@ void PairTableKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
 
   if (vflag_fdotr) pair_virial_fdotr_compute(this);
 
+  copymode = 0;
 }
 
 template<class DeviceType>

@@ -654,6 +654,8 @@ void PairTableRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
   d_cutsq = d_table->cutsq;
   // loop over neighbors of my atoms
 
+  copymode = 1;
+
   const int ntotal = atom->nlocal + atom->nghost;
   if (ntotal > (int)mixWtSite1.extent(0)) {
     mixWtSite1old = Kokkos::View<double*, DeviceType>("PairTableRXKokkos::mixWtSite1old", ntotal);
@@ -793,6 +795,8 @@ void PairTableRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
     k_vatom.template modify<DeviceType>();
     k_vatom.template sync<LMPHostType>();
   }
+
+  copymode = 0;
 }
 
 template<class DeviceType>

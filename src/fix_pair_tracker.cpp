@@ -135,25 +135,28 @@ void FixPairTracker::init()
 void FixPairTracker::lost_contact(int i, int j, double n, double rs, double rm)
 {    
   if (update->ntimestep-n > tmin) {
-    if (ncount == nmax) reallocate(ncount);
-    
-    index_i = i;
-    index_j = j;
-
-    rmin = rm;
-    rsum = rs;
-    ntimestep = n;
-    
-    // fill vector or array with local values
-    if (nvalues == 1) {
-      (this->*pack_choice[0])(0);
-    } else {
-      for (int k = 0; k < nvalues; k++) {
-        (this->*pack_choice[k])(k); 
-      }
-    }  
-
-    ncount += 1;  
+    int *mask = atom->mask;
+    if ((mask[i] & groupbit) && (mask[j] & groupbit)) {
+      if (ncount == nmax) reallocate(ncount);
+      
+      index_i = i;
+      index_j = j;
+      
+      rmin = rm;
+      rsum = rs;
+      ntimestep = n;
+      
+      // fill vector or array with local values
+      if (nvalues == 1) {
+        (this->*pack_choice[0])(0);
+      } else {
+        for (int k = 0; k < nvalues; k++) {
+          (this->*pack_choice[k])(k); 
+        }
+      }  
+      
+      ncount += 1;  
+    }
   }
 }
 

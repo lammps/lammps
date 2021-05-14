@@ -47,6 +47,8 @@ PairLJSDK::PairLJSDK(LAMMPS *lmp) : Pair(lmp)
 
 PairLJSDK::~PairLJSDK()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(lj_type);

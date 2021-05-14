@@ -237,15 +237,19 @@ void PairBuckCoulCutKokkos<DeviceType>::allocate()
   PairBuckCoulCut::allocate();
 
   int n = atom->ntypes;
+
   memory->destroy(cutsq);
   memoryKK->create_kokkos(k_cutsq,cutsq,n+1,n+1,"pair:cutsq");
   d_cutsq = k_cutsq.template view<DeviceType>();
+
   memory->destroy(cut_ljsq);
   memoryKK->create_kokkos(k_cut_ljsq,cut_ljsq,n+1,n+1,"pair:cut_ljsq");
   d_cut_ljsq = k_cut_ljsq.template view<DeviceType>();
+
   memory->destroy(cut_coulsq);
   memoryKK->create_kokkos(k_cut_coulsq,cut_coulsq,n+1,n+1,"pair:cut_coulsq");
   d_cut_coulsq = k_cut_coulsq.template view<DeviceType>();
+
   k_params = Kokkos::DualView<params_buck_coul**,Kokkos::LayoutRight,DeviceType>("PairBuckCoulCut::params",n+1,n+1);
   params = k_params.template view<DeviceType>();
 }

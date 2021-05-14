@@ -94,7 +94,7 @@ struct PairComputeFunctor  {
     dup_vatom = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, typename NeedDup<NEIGHFLAG,device_type>::value >(c.d_vatom);
   };
 
-  // Set copymode = 1 so parent allocations aren't destructed by copies of the sstyle
+  // Set copymode = 1 so parent allocations aren't destructed by copies of the style
   ~PairComputeFunctor() {c.copymode = 1; list.copymode = 1;};
 
   KOKKOS_INLINE_FUNCTION int sbmask(const int& j) const {

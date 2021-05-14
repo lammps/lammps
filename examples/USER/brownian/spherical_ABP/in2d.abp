@@ -1,0 +1,60 @@
+# 2D overdamped active brownian particle dynamics (ABP)
+# with WCA potential
+
+variable        gamma_t string 1.0
+variable        gamma_r string 1.0
+variable        temp string 1.0
+variable        seed equal 1974019
+variable        fp string 4.0
+variable        params string ${temp}_${gamma_t}_${gamma_r}_${fp}
+
+units           lj
+atom_style      hybrid dipole sphere
+dimension       2
+newton off
+
+lattice         sq 0.4
+region          box block -16 16 -16 16 -0.2 0.2
+create_box      1 box
+create_atoms    1 box
+mass            * 1.0
+set             type  * dipole/random ${seed} 1.0
+velocity        all create 1.0 1 loop geom
+
+# more careful with neighbors since higher diffusion in abps
+neighbor        1.0 bin
+neigh_modify    every 1 delay 1 check yes
+
+# WCA potential (purely repulsive)
+pair_style lj/cut 2.5
+pair_coeff * * 1.0 1.0 1.1224
+pair_modify shift yes
+
+# overdamped brownian dynamics time-step
+fix         step all brownian/sphere ${temp} ${seed} gamma_t ${gamma_t} gamma_r ${gamma_r}
+# self-propulsion force along the dipole direction
+fix         activity all propel/self dipole ${fp}
+fix         2 all enforce2d
+
+compute press all pressure NULL virial
+
+thermo_style    custom step pe ke c_press
+
+#equilibration
+timestep        0.0000000001
+thermo          100
+run             5000
+reset_timestep  0
+
+
+# MSD
+compute         msd  all msd
+
+thermo_style    custom step temp epair c_msd[*] c_press
+
+
+timestep        0.00001
+thermo          1000
+
+# main run
+run             20000

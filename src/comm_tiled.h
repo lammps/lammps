@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -77,9 +77,12 @@ class CommTiled : public Comm {
 
   double ***sendbox;            // bounding box of atoms to send per swap/proc
 
-  double **cutghostmulti;       // cutghost on a per-type basis
+  double **cutghostmulti;       // cutghost on a per-collection basis
+  double **cutghostmultiold;    // cutghost on a per-type basis
   double ****sendbox_multi;     // bounding box of atoms to send
                                 //   per swap/proc for multi comm
+  double ****sendbox_multiold;  // bounding box of atoms to send
+                                //   per swap/proc for multi/old comm
 
   // exchange comm info, proc lists do not include self
 
@@ -148,6 +151,7 @@ class CommTiled : public Comm {
   void grow_list(int, int, int);       // reallocate sendlist for one swap/proc
   void allocate_swap(int);             // allocate swap arrays
   void grow_swap_send(int, int, int);  // grow swap arrays for send and recv
+  void grow_swap_send_multi(int, int); // grow multi swap arrays for send and recv
   void grow_swap_recv(int, int);
   void deallocate_swap(int);           // deallocate swap arrays
 
@@ -160,10 +164,6 @@ class CommTiled : public Comm {
 /* ERROR/WARNING messages:
 
 E: Cannot yet use comm_style tiled with triclinic box
-
-Self-explanatory.
-
-E: Cannot yet use comm_style tiled with multi-mode comm
 
 Self-explanatory.
 

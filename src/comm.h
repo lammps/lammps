@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -25,14 +25,17 @@ class Comm : protected Pointers {
                  // LAYOUT_NONUNIFORM = logical bricks, but diff sizes via LB
                  // LAYOUT_TILED = general tiling, due to RCB LB
   enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};
-  int mode;      // 0 = single cutoff, 1 = multi-type cutoff
-  enum{SINGLE,MULTI};
+  int mode;      // 0 = single cutoff, 1 = multi-collection cutoff, 2 = multiold-type cutoff
+  enum{SINGLE,MULTI,MULTIOLD};
 
   int me,nprocs;                    // proc info
   int ghost_velocity;               // 1 if ghost atoms have velocity, 0 if not
   double cutghost[3];               // cutoffs used for acquiring ghost atoms
-  double cutghostuser;              // user-specified ghost cutoff (mode == 0)
-  double *cutusermulti;            // per type user ghost cutoff (mode == 1)
+  double cutghostuser;              // user-specified ghost cutoff (mode == SINGLE)
+  double *cutusermulti;             // per collection user ghost cutoff (mode == MULTI)
+  double *cutusermultiold;          // per type user ghost cutoff (mode == MULTIOLD)
+  int ncollections;                 // # of collections known by comm, used to test if # has changed
+  int ncollections_cutoff;          // # of collections stored b cutoff/multi
   int recv_from_partition;          // recv proc layout from this partition
   int send_to_partition;            // send my proc layout to this partition
                                     // -1 if no recv or send
@@ -114,9 +117,6 @@ class Comm : protected Pointers {
                  int (*)(int, char *, int &, int *&, char *&, void *),
                  int, char *&, int, void *, int statflag=0);
 
-  int read_lines_from_file(FILE *, int, int, char *);
-  int read_lines_from_file_universe(FILE *, int, int, char *);
-
   // extract data useful to other classes
   virtual void *extract(const char *, int &) {return nullptr;}
 
@@ -152,6 +152,7 @@ class Comm : protected Pointers {
   int ncores;                       // # of cores per node
   int coregrid[3];                  // 3d grid of cores within a node
   int user_coregrid[3];             // user request for cores in each dim
+  int multi_reduce;                 // 1 if multi cutoff is intra-collection cutoff
 
   void init_exchange();
   int rendezvous_irregular(int, char *, int, int, int *,
@@ -198,6 +199,10 @@ E: Use cutoff keyword to set cutoff in single mode
 
 Mode is single so cutoff/multi keyword cannot be used.
 
+E: Use cutoff/bytype in mode multi only
+
+Mode is single so cutoff/bytype keyword cannot be used.
+
 E: Cannot set cutoff/multi before simulation box is defined
 
 Self-explanatory.
@@ -239,6 +244,10 @@ The 3d grid of processors defined by the processors command does not
 match the number of processors LAMMPS is being run on.
 
 E: Processor count in z must be 1 for 2d simulation
+
+Self-explanatory.
+
+E: Cannot use multi/tiered communication with Newton off
 
 Self-explanatory.
 

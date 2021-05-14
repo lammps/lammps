@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,11 +15,11 @@
 
 NBinStyle(kk/host,
           NBinKokkos<LMPHostType>,
-          NB_KOKKOS_HOST)
+          NB_STANDARD | NB_KOKKOS_HOST)
 
 NBinStyle(kk/device,
           NBinKokkos<LMPDeviceType>,
-          NB_KOKKOS_DEVICE)
+          NB_STANDARD | NB_KOKKOS_DEVICE)
 
 #else
 

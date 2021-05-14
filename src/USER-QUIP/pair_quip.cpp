@@ -253,8 +253,8 @@ void PairQUIP::coeff(int narg, char **arg)
 
   int n = atom->ntypes;
   if (narg != (4+n))
-    error->all(FLERR,fmt::format("Number of arguments {} is not correct, "
-                                 "it should be {}", narg, 4+n));
+    error->all(FLERR,"Number of arguments {} is not correct, "
+                                 "it should be {}", narg, 4+n);
 
   // ensure I,J args are * *
 

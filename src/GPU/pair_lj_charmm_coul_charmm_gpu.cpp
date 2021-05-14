@@ -15,23 +15,18 @@
    Contributing author: Mike Brown (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_lj_charmm_coul_charmm_gpu.h"
+
 #include "atom.h"
-#include "atom_vec.h"
-#include "comm.h"
-#include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "memory.h"
-#include "error.h"
-#include "neigh_request.h"
-#include "universe.h"
 #include "domain.h"
+#include "error.h"
+#include "force.h"
 #include "gpu_extra.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -138,13 +133,12 @@ void PairLJCharmmCoulCharmmGPU::init_style()
     error->all(FLERR,
       "Cannot use newton pair with lj/charmm/coul/long/gpu pair style");
 
-  // Repeat cutsq calculation because done after call to init_style
+  // Repeated cutsq calculation in init_one() is required for GPU package
 
-  double cut;
   for (int i = 1; i <= atom->ntypes; i++) {
     for (int j = i; j <= atom->ntypes; j++) {
       if (setflag[i][j] != 0 || (setflag[i][i] != 0 && setflag[j][j] != 0))
-        cut = init_one(i,j);
+        init_one(i,j);
     }
   }
 
@@ -205,8 +199,8 @@ double PairLJCharmmCoulCharmmGPU::memory_usage()
 /* ---------------------------------------------------------------------- */
 
 void PairLJCharmmCoulCharmmGPU::cpu_compute(int start, int inum, int eflag,
-                                          int vflag, int *ilist,
-                                          int *numneigh, int **firstneigh)
+                                            int /* vflag */, int *ilist,
+                                            int *numneigh, int **firstneigh)
 {
   int i,j,ii,jj,jnum,itype,jtype;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;

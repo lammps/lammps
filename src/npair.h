@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -48,6 +48,8 @@ class NPair : protected Pointers {
   double cut_middle_sq;
   double cut_middle_inside_sq;
   double *bboxlo,*bboxhi;
+  int ncollections;
+  double **cutcollectionsq;
 
   // exclusion data from Neighbor class
 
@@ -79,14 +81,24 @@ class NPair : protected Pointers {
   int *atom2bin,*bins;
   int *binhead;
 
+  int *nbinx_multi, *nbiny_multi, *nbinz_multi;
+  int *mbins_multi;
+  int *mbinx_multi, *mbiny_multi, *mbinz_multi;
+  int *mbinxlo_multi, *mbinylo_multi, *mbinzlo_multi;
+  double *bininvx_multi, *bininvy_multi, *bininvz_multi;
+  int **binhead_multi;
+
   // data from NStencil class
 
   int nstencil;
   int *stencil;
   int **stencilxyz;
-  int *nstencil_multi;
-  int **stencil_multi;
-  double **distsq_multi;
+  int *nstencil_multi_old;
+  int **stencil_multi_old;
+  double **distsq_multi_old;
+
+  int ** nstencil_multi;
+  int *** stencil_multi;
 
   // data common to all NPair variants
 
@@ -101,6 +113,9 @@ class NPair : protected Pointers {
                 int, int *, tagint *) const;   // test for pair exclusion
   int coord2bin(double *);                     // mapping atom coord to a bin
   int coord2bin(double *, int &, int &, int&); // ditto
+
+  int coord2bin(double *, int);                // mapping atom coord to group bin
+
 
   // find_special: determine if atom j is in special list of atom i
   // if it is not, return 0

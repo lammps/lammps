@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -63,7 +63,7 @@ class FixPrecessionSpin : public Fix {
   double compute_cubic_energy(double *);
 
   // hexagonal aniso calculations
-  
+
   void compute_hexaniso(double *, double *);
   double compute_hexaniso_energy(double *);
 

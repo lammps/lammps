@@ -141,39 +141,54 @@ FUNCTION(KOKKOS_ADD_EXECUTABLE ROOT_NAME)
 ENDFUNCTION()
 
 FUNCTION(KOKKOS_ADD_EXECUTABLE_AND_TEST ROOT_NAME)
-CMAKE_PARSE_ARGUMENTS(PARSE
-  ""
-  ""
-  "SOURCES;CATEGORIES;ARGS"
-  ${ARGN})
-VERIFY_EMPTY(KOKKOS_ADD_EXECUTABLE_AND_TEST ${PARSE_UNPARSED_ARGUMENTS})
+    CMAKE_PARSE_ARGUMENTS(PARSE
+    ""
+    ""
+    "SOURCES;CATEGORIES;ARGS"
+    ${ARGN})
+    VERIFY_EMPTY(KOKKOS_ADD_EXECUTABLE_AND_TEST ${PARSE_UNPARSED_ARGUMENTS})
 
-IF (KOKKOS_HAS_TRILINOS)
-  IF(DEFINED PARSE_ARGS)
-    STRING(REPLACE ";" " " PARSE_ARGS "${PARSE_ARGS}")
-  ENDIF()
-  TRIBITS_ADD_EXECUTABLE_AND_TEST(
-    ${ROOT_NAME}
-    SOURCES ${PARSE_SOURCES}
-    TESTONLYLIBS kokkos_gtest
-    NUM_MPI_PROCS 1
-    COMM serial mpi
-    ARGS ${PARSE_ARGS}
-    CATEGORIES ${PARSE_CATEGORIES}
-    SOURCES ${PARSE_SOURCES}
-    FAIL_REGULAR_EXPRESSION "  FAILED  "
-    ARGS ${PARSE_ARGS}
-  )
-ELSE()
-  KOKKOS_ADD_TEST_EXECUTABLE(${ROOT_NAME}
-    SOURCES ${PARSE_SOURCES}
-  )
-  KOKKOS_ADD_TEST(NAME ${ROOT_NAME}
-    EXE ${ROOT_NAME}
-    FAIL_REGULAR_EXPRESSION "  FAILED  "
-    ARGS ${PARSE_ARGS}
-  )
-ENDIF()
+    IF (KOKKOS_HAS_TRILINOS)
+        IF(DEFINED PARSE_ARGS)
+            STRING(REPLACE ";" " " PARSE_ARGS "${PARSE_ARGS}")
+        ENDIF()
+        TRIBITS_ADD_EXECUTABLE_AND_TEST(
+            ${ROOT_NAME}
+            SOURCES ${PARSE_SOURCES}
+            TESTONLYLIBS kokkos_gtest
+            NUM_MPI_PROCS 1
+            COMM serial mpi
+            ARGS ${PARSE_ARGS}
+            CATEGORIES ${PARSE_CATEGORIES}
+            SOURCES ${PARSE_SOURCES}
+            FAIL_REGULAR_EXPRESSION "  FAILED  "
+            ARGS ${PARSE_ARGS}
+        )
+    ELSE()
+        KOKKOS_ADD_TEST_EXECUTABLE(${ROOT_NAME}
+            SOURCES ${PARSE_SOURCES}
+        )
+        IF (PARSE_ARGS)
+            SET(TEST_NUMBER 0)
+            FOREACH (ARG_STR ${PARSE_ARGS})
+                # This is passed as a single string blob to match TriBITS behavior
+                # We need this to be turned into a list
+                STRING(REPLACE " " ";" ARG_STR_LIST ${ARG_STR})
+                LIST(APPEND TEST_NAME "${ROOT_NAME}${TEST_NUMBER}")
+                MATH(EXPR TEST_NUMBER "${TEST_NUMBER} + 1")
+                KOKKOS_ADD_TEST(NAME ${TEST_NAME}
+                    EXE ${ROOT_NAME}
+                    FAIL_REGULAR_EXPRESSION "  FAILED  "
+                    ARGS ${ARG_STR_LIST}
+                )
+            ENDFOREACH()
+        ELSE()
+            KOKKOS_ADD_TEST(NAME ${ROOT_NAME}
+                EXE ${ROOT_NAME}
+                FAIL_REGULAR_EXPRESSION "  FAILED  "
+            )
+        ENDIF()
+    ENDIF()
 ENDFUNCTION()
 
 FUNCTION(KOKKOS_SET_EXE_PROPERTY ROOT_NAME)
@@ -301,11 +316,26 @@ ENDMACRO()
 ##                        Includes generated header files, scripts such as nvcc_wrapper and hpcbind,
 ##                        as well as other files provided through plugins.
 MACRO(KOKKOS_INSTALL_ADDITIONAL_FILES)
-  # kokkos_launch_compiler is used by Kokkos to prefix compiler commands so that they forward to nvcc_wrapper
+
+  # kokkos_launch_compiler is used by Kokkos to prefix compiler commands so that they forward to original kokkos compiler
+  # if nvcc_wrapper was not used as CMAKE_CXX_COMPILER, configure the original compiler into kokkos_launch_compiler
+  IF(NOT "${CMAKE_CXX_COMPILER}" MATCHES "nvcc_wrapper")
+    SET(NVCC_WRAPPER_DEFAULT_COMPILER "${CMAKE_CXX_COMPILER}")
+  ELSE()
+    IF(NOT "$ENV{NVCC_WRAPPER_DEFAULT_COMPILER}" STREQUAL "")
+        SET(NVCC_WRAPPER_DEFAULT_COMPILER "$ENV{NVCC_WRAPPER_DEFAULT_COMPILER}")
+    ENDIF()
+  ENDIF()
+
+  CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/bin/kokkos_launch_compiler
+    ${PROJECT_BINARY_DIR}/temp/kokkos_launch_compiler
+    @ONLY)
+
   INSTALL(PROGRAMS
           "${CMAKE_CURRENT_SOURCE_DIR}/bin/nvcc_wrapper"
           "${CMAKE_CURRENT_SOURCE_DIR}/bin/hpcbind"
           "${CMAKE_CURRENT_SOURCE_DIR}/bin/kokkos_launch_compiler"
+          "${PROJECT_BINARY_DIR}/temp/kokkos_launch_compiler"
           DESTINATION ${CMAKE_INSTALL_BINDIR})
   INSTALL(FILES
           "${CMAKE_CURRENT_BINARY_DIR}/KokkosCore_config.h"
@@ -313,7 +343,7 @@ MACRO(KOKKOS_INSTALL_ADDITIONAL_FILES)
           "${CMAKE_CURRENT_BINARY_DIR}/KokkosCore_Config_SetupBackend.hpp"
           "${CMAKE_CURRENT_BINARY_DIR}/KokkosCore_Config_DeclareBackend.hpp"
           "${CMAKE_CURRENT_BINARY_DIR}/KokkosCore_Config_PostInclude.hpp"
-          DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+          DESTINATION ${KOKKOS_HEADER_DIR})
 ENDMACRO()
 
 FUNCTION(KOKKOS_SET_LIBRARY_PROPERTIES LIBRARY_NAME)
@@ -330,24 +360,12 @@ FUNCTION(KOKKOS_SET_LIBRARY_PROPERTIES LIBRARY_NAME)
       ${LIBRARY_NAME} PUBLIC
       $<$<LINK_LANGUAGE:CXX>:${KOKKOS_LINK_OPTIONS}>
     )
-  ELSEIF(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.13")
+  ELSE()
     #I can use link options
     #just assume CXX linkage
     TARGET_LINK_OPTIONS(
       ${LIBRARY_NAME} PUBLIC ${KOKKOS_LINK_OPTIONS}
     )
-  ELSE()
-    #assume CXX linkage, we have no good way to check otherwise
-    IF (PARSE_PLAIN_STYLE)
-      TARGET_LINK_LIBRARIES(
-        ${LIBRARY_NAME} ${KOKKOS_LINK_OPTIONS}
-      )
-    ELSE()
-      #well, have to do it the wrong way for now
-      TARGET_LINK_LIBRARIES(
-        ${LIBRARY_NAME} PUBLIC ${KOKKOS_LINK_OPTIONS}
-      )
-    ENDIF()
   ENDIF()
 
   TARGET_COMPILE_OPTIONS(
@@ -447,6 +465,13 @@ FUNCTION(KOKKOS_INTERNAL_ADD_LIBRARY LIBRARY_NAME)
     ${PARSE_HEADERS}
     ${PARSE_SOURCES}
   )
+
+  IF(PARSE_SHARED OR BUILD_SHARED_LIBS)
+    SET_TARGET_PROPERTIES(${LIBRARY_NAME} PROPERTIES
+      VERSION   ${Kokkos_VERSION}
+      SOVERSION ${Kokkos_VERSION_MAJOR}.${Kokkos_VERSION_MINOR}
+    )
+  ENDIF()
 
   KOKKOS_INTERNAL_ADD_LIBRARY_INSTALL(${LIBRARY_NAME})
 

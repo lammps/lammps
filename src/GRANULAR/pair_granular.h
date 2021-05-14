@@ -1,6 +1,6 @@
-/* ----------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -40,6 +40,8 @@ class PairGranular : public Pair {
   int pack_forward_comm(int, int *, double *, int, int *);
   void unpack_forward_comm(int, int, double *);
   double memory_usage();
+  double atom2cut(int);
+  double radii2cut(double,double);
 
  protected:
   double dt;

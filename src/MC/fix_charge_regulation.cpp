@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -32,19 +32,17 @@
 #include "improper.h"
 #include "kspace.h"
 #include "math_const.h"
-#include "math_extra.h"
 #include "math_special.h"
 #include "memory.h"
 #include "modify.h"
-#include "molecule.h"
 #include "neighbor.h"
 #include "pair.h"
 #include "random_park.h"
-#include "region.h"
 #include "update.h"
 
 #include <cmath>
 #include <cstring>
+#include <memory>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -727,7 +725,9 @@ void FixChargeRegulation::forward_ions_multival() {
   double energy_before = energy_stored;
   double factor = 1;
   double dummyp[3];
-  int mm[salt_charge_ratio + 1];// particle ID array for all ions to be inserted
+
+  // particle ID array for all ions to be inserted
+  auto mm = std::unique_ptr<int[]>(new int[salt_charge_ratio + 1]);
 
   if (salt_charge[0] <= -salt_charge[1]) {
     // insert one anion and (salt_charge_ratio) cations
@@ -781,9 +781,12 @@ void FixChargeRegulation::backward_ions_multival() {
   double energy_before = energy_stored;
   double factor = 1;
   double dummyp[3];  // dummy particle
-  int mm[salt_charge_ratio + 1];  // particle ID array for all deleted ions
-  double qq[salt_charge_ratio + 1];  // charge array for all deleted ions
-  int mask_tmp[salt_charge_ratio + 1];  // temporary mask array
+  // particle ID array for all deleted ions
+  auto mm = std::unique_ptr<int[]>(new int[salt_charge_ratio + 1]);
+  // charge array for all deleted ions
+  auto qq = std::unique_ptr<double[]>(new double[salt_charge_ratio + 1]);
+  // temporary mask array
+  auto mask_tmp = std::unique_ptr<int[]>(new int[salt_charge_ratio + 1]);
 
   if (salt_charge[0] <= -salt_charge[1]) {
     // delete one anion and (salt_charge_ratio) cations

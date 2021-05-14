@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -14,9 +14,7 @@
 #ifdef NSTENCIL_CLASS
 
 NStencilStyle(full/multi/2d,
-              NStencilFullMulti2d,
-              NS_FULL | NS_MULTI | NS_2D |
-              NS_NEWTON | NS_NEWTOFF | NS_ORTHO | NS_TRI)
+              NStencilFullMulti2d, NS_FULL | NS_MULTI | NS_2D | NS_ORTHO | NS_TRI)
 
 #else
 
@@ -32,6 +30,10 @@ class NStencilFullMulti2d : public NStencil {
   NStencilFullMulti2d(class LAMMPS *);
   ~NStencilFullMulti2d() {}
   void create();
+
+ protected:
+  void set_stencil_properties();
+
 };
 
 }

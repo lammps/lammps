@@ -490,8 +490,8 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
       else if (strcmp(arg[inflag], "none") == 0) infile = stdin;
       else infile = fopen(arg[inflag],"r");
       if (infile == nullptr)
-        error->one(FLERR,fmt::format("Cannot open input script {}: {}",
-                                     arg[inflag], utils::getsyserror()));
+        error->one(FLERR,"Cannot open input script {}: {}",
+                                     arg[inflag], utils::getsyserror());
     }
 
     if ((universe->me == 0) && !helpflag)
@@ -515,16 +515,16 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
           str = fmt::format("screen.{}",universe->iworld);
           screen = fopen(str.c_str(),"w");
           if (screen == nullptr)
-            error->one(FLERR,fmt::format("Cannot open screen file {}: {}",
-                                         str,utils::getsyserror()));
+            error->one(FLERR,"Cannot open screen file {}: {}",
+                                         str,utils::getsyserror());
         } else if (strcmp(arg[screenflag],"none") == 0) {
           screen = nullptr;
         } else {
           str = fmt::format("{}.{}",arg[screenflag],universe->iworld);
           screen = fopen(str.c_str(),"w");
           if (screen == nullptr)
-            error->one(FLERR,fmt::format("Cannot open screen file {}: {}",
-                                         arg[screenflag],utils::getsyserror()));
+            error->one(FLERR,"Cannot open screen file {}: {}",
+                                         arg[screenflag],utils::getsyserror());
         }
       } else if (strcmp(arg[partscreenflag],"none") == 0) {
         screen = nullptr;
@@ -532,8 +532,8 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
         str = fmt::format("{}.{}",arg[partscreenflag],universe->iworld);
         screen = fopen(str.c_str(),"w");
         if (screen == nullptr)
-          error->one(FLERR,fmt::format("Cannot open screen file {}: {}",
-                                       str,utils::getsyserror()));
+          error->one(FLERR,"Cannot open screen file {}: {}",
+                                       str,utils::getsyserror());
       }
 
       if (partlogflag == 0) {
@@ -541,16 +541,16 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
           str = fmt::format("log.lammps.{}",universe->iworld);
           logfile = fopen(str.c_str(),"w");
           if (logfile == nullptr)
-            error->one(FLERR,fmt::format("Cannot open logfile {}: {}",
-                                         str, utils::getsyserror()));
+            error->one(FLERR,"Cannot open logfile {}: {}",
+                                         str, utils::getsyserror());
         } else if (strcmp(arg[logflag],"none") == 0) {
           logfile = nullptr;
         } else {
           str = fmt::format("{}.{}",arg[logflag],universe->iworld);
           logfile = fopen(str.c_str(),"w");
           if (logfile == nullptr)
-            error->one(FLERR,fmt::format("Cannot open logfile {}: {}",
-                                         str, utils::getsyserror()));
+            error->one(FLERR,"Cannot open logfile {}: {}",
+                                         str, utils::getsyserror());
         }
       } else if (strcmp(arg[partlogflag],"none") == 0) {
         logfile = nullptr;
@@ -558,15 +558,15 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
         str = fmt::format("{}.{}",arg[partlogflag],universe->iworld);
         logfile = fopen(str.c_str(),"w");
         if (logfile == nullptr)
-          error->one(FLERR,fmt::format("Cannot open logfile {}: {}",
-                                       str, utils::getsyserror()));
+          error->one(FLERR,"Cannot open logfile {}: {}",
+                                       str, utils::getsyserror());
       }
 
       if (strcmp(arg[inflag], "none") != 0) {
         infile = fopen(arg[inflag],"r");
         if (infile == nullptr)
-          error->one(FLERR,fmt::format("Cannot open input script {}: {}",
-                                       arg[inflag], utils::getsyserror()));
+          error->one(FLERR,"Cannot open input script {}: {}",
+                                       arg[inflag], utils::getsyserror());
       }
     }
 
@@ -1325,6 +1325,10 @@ void LAMMPS::print_config(FILE *fp)
   int major,minor;
   std::string infobuf = Info::get_mpi_info(major,minor);
   fmt::print(fp,"MPI v{}.{}: {}\n\n",major,minor,infobuf);
+
+  fmt::print(fp,"Accelerator configuration:\n\n{}\n",
+             Info::get_accelerator_info());
+  fmt::print(fp,"GPU present: {}\n\n",Info::has_gpu_device() ? "yes" : "no");
 
   fputs("Active compile time flags:\n\n",fp);
   if (Info::has_gzip_support()) fputs("-DLAMMPS_GZIP\n",fp);

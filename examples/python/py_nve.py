@@ -1,7 +1,5 @@
 from __future__ import print_function
-from lammps import lammps, LAMMPS_INT, LAMMPS_DOUBLE
-import ctypes
-import traceback
+from lammps import lammps
 import numpy as np
 
 class LAMMPSFix(object):
@@ -80,36 +78,30 @@ class NVE_Opt(LAMMPSFixMove):
         self.ntypes = self.lmp.extract_global("ntypes")
         self.dtv = dt
         self.dtf = 0.5 * dt * ftm2v
-        self.mass = self.lmp.numpy.extract_atom("mass")
 
     def initial_integrate(self, vflag):        
-        nlocal = self.lmp.extract_global("nlocal")
+        mass = self.lmp.numpy.extract_atom("mass")
         atype = self.lmp.numpy.extract_atom("type")
         x = self.lmp.numpy.extract_atom("x")
         v = self.lmp.numpy.extract_atom("v")
         f = self.lmp.numpy.extract_atom("f")
         dtf = self.dtf
         dtv = self.dtv
-        mass = self.mass
 
         dtfm = dtf / np.take(mass, atype)
-        dtfm.reshape((nlocal, 1))
 
         for d in range(x.shape[1]):
-            v[:,d] += dtfm[:,0] * f[:,d]
+            v[:,d] += dtfm * f[:,d]
             x[:,d] += dtv * v[:,d]
 
     def final_integrate(self):
-        nlocal = self.lmp.extract_global("nlocal")
         mass = self.lmp.numpy.extract_atom("mass")
         atype = self.lmp.numpy.extract_atom("type")
         v = self.lmp.numpy.extract_atom("v")
         f = self.lmp.numpy.extract_atom("f")
         dtf = self.dtf
-        mass = self.mass
 
         dtfm = dtf / np.take(mass, atype)
-        dtfm.reshape((nlocal, 1))
 
         for d in range(v.shape[1]):
-            v[:,d] += dtfm[:,0] * f[:,d]
+            v[:,d] += dtfm * f[:,d]

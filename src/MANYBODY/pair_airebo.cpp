@@ -3379,7 +3379,7 @@ void PairAIREBO::read_file(char *filename)
       break;
 
     default:
-      error->one(FLERR, fmt::format("Unknown REBO style variant {}",variant));
+      error->one(FLERR,"Unknown REBO style variant {}",variant);
     }
 
     PotentialFileReader reader(lmp, filename, potential_name);
@@ -3391,7 +3391,7 @@ void PairAIREBO::read_file(char *filename)
     char * line = reader.next_line();
 
     if (std::string(line).find(header) == std::string::npos) {
-      error->one(FLERR, fmt::format("Potential file does not match AIREBO/REBO style variant: {}: {}", header, line));
+      error->one(FLERR,"Potential file does not match AIREBO/REBO style variant: {}: {}", header, line);
     }
 
     // skip remaining comments

@@ -136,8 +136,8 @@ void PPPMDipole::init()
   }
 
   if (order < 2 || order > MAXORDER)
-    error->all(FLERR,fmt::format("PPPMDipole order cannot be < 2 or > {}",
-                                 MAXORDER));
+    error->all(FLERR,"PPPMDipole order cannot be < 2 or > {}",
+                                 MAXORDER);
 
   // compute two charge force
 

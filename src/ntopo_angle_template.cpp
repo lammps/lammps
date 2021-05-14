@@ -78,12 +78,12 @@ void NTopoAngleTemplate::build()
       if (atom1 == -1 || atom2 == -1 || atom3 == -1) {
         nmissing++;
         if (lostbond == Thermo::ERROR)
-          error->one(FLERR,fmt::format("Angle atoms {} {} {} missing on "
+          error->one(FLERR,"Angle atoms {} {} {} missing on "
                                        "proc {} at step {}",
                                        angle_atom1[iatom][m]+tagprev,
                                        angle_atom2[iatom][m]+tagprev,
                                        angle_atom3[iatom][m]+tagprev,
-                                       me,update->ntimestep));
+                                       me,update->ntimestep);
         continue;
       }
       atom1 = domain->closest_image(i,atom1);
@@ -109,6 +109,5 @@ void NTopoAngleTemplate::build()
   int all;
   MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
   if (all && (me == 0))
-    error->warning(FLERR,fmt::format("Angle atoms missing at step {}",
-                                     update->ntimestep));
+    error->warning(FLERR,"Angle atoms missing at step {}",update->ntimestep);
 }

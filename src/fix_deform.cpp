@@ -16,21 +16,23 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_deform.h"
-#include <cstring>
-#include <cmath>
+
 #include "atom.h"
-#include "update.h"
 #include "comm.h"
-#include "irregular.h"
 #include "domain.h"
-#include "lattice.h"
-#include "force.h"
-#include "modify.h"
-#include "math_const.h"
-#include "kspace.h"
-#include "input.h"
-#include "variable.h"
 #include "error.h"
+#include "force.h"
+#include "input.h"
+#include "irregular.h"
+#include "kspace.h"
+#include "lattice.h"
+#include "math_const.h"
+#include "modify.h"
+#include "update.h"
+#include "variable.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -714,7 +716,7 @@ void FixDeform::end_of_step()
   // set new box size for VOLUME dims that are linked to other dims
   // NOTE: still need to set h_rate for these dims
 
-  for (int i = 0; i < 3; i++) {
+  for (i = 0; i < 3; i++) {
     if (set[i].style != VOLUME) continue;
 
     if (set[i].substyle == ONE_FROM_ONE) {

@@ -101,6 +101,7 @@ anisotropic
 anisotropies
 anisotropy
 ansi
+antiferromagnetic
 antiquewhite
 Antisymmetrized
 antisymmetry
@@ -311,6 +312,7 @@ br
 Branduardi
 Branicio
 brennan
+Briels
 Brien
 Brilliantov
 Broadwell
@@ -625,6 +627,7 @@ delflag
 Dellago
 delocalization
 delocalized
+Delong
 delr
 deltaHf
 Dendrimer
@@ -708,6 +711,7 @@ dodgerblue
 dof
 doi
 Donadio
+Donev
 dotc
 Doty
 doxygen
@@ -1023,6 +1027,7 @@ fmag
 fmass
 fmm
 fmt
+fmtlib
 fmx
 fmy
 fmz
@@ -1141,6 +1146,7 @@ GMock
 gneb
 GNEB
 Goldfarb
+Gompper
 Gonzalez-Melchor
 googlemail
 googletest
@@ -1319,6 +1325,7 @@ ijk
 ijkl
 ik
 Ikeshoji
+Ilie
 ilmenau
 Ilmenau
 ilp
@@ -2177,6 +2184,7 @@ nimpropers
 nimpropertypes
 Nimpropertype
 Ninteger
+NiO
 Nissila
 nist
 nitride
@@ -2188,6 +2196,7 @@ nl
 nlayers
 nlen
 Nlines
+nlines
 nlo
 nlocal
 Nlocal
@@ -2279,6 +2288,7 @@ Ntype
 ntypes
 Ntypes
 nucleotides
+nullptr
 num
 numa
 numactl
@@ -2538,6 +2548,7 @@ ppn
 pppm
 prd
 Prakash
+Praprotnik
 pre
 Pre
 prec
@@ -3103,6 +3114,7 @@ Swinburne
 Swol
 Swope
 Sx
+sx
 sy
 Sy
 symplectic
@@ -3112,6 +3124,7 @@ sysdim
 Syst
 systemd
 Sz
+sz
 Tabbernor
 tabinner
 Tadmor
@@ -3163,6 +3176,7 @@ th
 thb
 thei
 Theodorou
+Theophile
 Theor
 thermalization
 thermalize
@@ -3315,6 +3329,7 @@ Uleft
 uloop
 Ulomek
 ulsph
+Ultrafast
 uMech
 umin
 Umin
@@ -3350,6 +3365,7 @@ upenn
 upto
 Urbakh
 Urbana
+Usabiaga
 usec
 uSemiParallel
 userguide
@@ -3494,6 +3510,7 @@ Wikipedia
 Wildcard
 wildcard
 wildcards
+Winkler
 Wirnsberger
 wirtes
 witin
@@ -3505,6 +3522,7 @@ Worley
 Wriggers
 Wuppertal
 Wurtzite
+Wysocki
 www
 wx
 Wx
@@ -3595,6 +3613,7 @@ ZBL
 Zc
 zcm
 Zeeman
+zeeman
 Zemer
 Zepeda
 zflag

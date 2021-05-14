@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,8 +15,7 @@
 
 NPairStyle(half/size/multi/newtoff/omp,
            NPairHalfSizeMultiNewtoffOmp,
-           NP_HALF | NP_SIZE | NP_MULTI | NP_NEWTOFF | NP_OMP |
-           NP_ORTHO | NP_TRI)
+           NP_HALF | NP_SIZE | NP_MULTI | NP_NEWTOFF | NP_OMP | NP_ORTHO | NP_TRI)
 
 #else
 

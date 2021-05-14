@@ -29,6 +29,7 @@ Examples
    pair_coeff 1 2  coul/tt 4.0 1.0 4 12.0
    pair_coeff 1 3* coul/tt 4.5 1.0 4
 
+Example input scripts available: examples/USER/drude
 
 Description
 """""""""""

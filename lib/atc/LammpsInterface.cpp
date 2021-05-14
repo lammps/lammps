@@ -26,6 +26,7 @@
 #include "bond.h" // bond potentials
 #include "comm.h" //
 #include "fix.h"
+#include "utils.h"
 
 // ATC includes
 #include "ATC_Error.h"
@@ -47,6 +48,7 @@ using std::pair;
 using std::string;
 using std::set;
 using LAMMPS_NS::bigint;
+using LAMMPS_NS::utils::read_lines_from_file;
 
 namespace ATC {
 
@@ -236,7 +238,7 @@ std::string LammpsInterface::read_file(std::string filename) const
   std::stringstream s;
   bool eof = false;
   while ( ! eof) {
-    eof = lammps_->comm->read_lines_from_file(fp,1,MAXLINE,buffer);
+    eof = read_lines_from_file(fp,1,MAXLINE,buffer,comm_rank(),lammps_->world);
     s << buffer;
   }
   fclose(fp);

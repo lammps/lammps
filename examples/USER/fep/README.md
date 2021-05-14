@@ -9,6 +9,9 @@ to the final states.
 * `CH4hyd` -- free energy of hydration of methane (simple). FEP
   and FDTI methods.
 
+* `SPCEhyd` -- free energy of hydration of SPCE water (simple). FEP
+  in separate steps for the LJ sites and the atomic charges.
+
 * `CH4-CF4` -- free energy difference of transforming methane into
   perfluoromethane, in water (quite simple). FEP and BAR methods.
 

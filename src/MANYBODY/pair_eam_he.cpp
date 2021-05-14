@@ -19,12 +19,12 @@
 
 #include "atom.h"
 #include "comm.h"
-#include "error.h"
 #include "force.h"
 #include "memory.h"
-#include "neighbor.h"
 #include "neigh_list.h"
 #include "update.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 

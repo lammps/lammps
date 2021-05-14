@@ -44,7 +44,7 @@ class MSMCG : public MSM {
   virtual void fieldforce_peratom();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -41,11 +41,11 @@ class ComputeMesoNT : public Compute {
   int nmax;
   double *energy;
 
-  enum ComputeType {ES, EB, ET};
+  enum ComputeType { ES, EB, ET };
   ComputeType compute_type;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

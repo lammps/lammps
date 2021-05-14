@@ -41,7 +41,7 @@ class DumpCFGGZ : public DumpCFG {
   virtual int modify_param(int, char **);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

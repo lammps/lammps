@@ -42,20 +42,20 @@ class FixTMD : public Fix {
 
  private:
   int me;
-  int nfileevery,compressed;
+  int nfileevery, compressed;
   bigint previous_stat;
   FILE *fp;
-  double rho_start,rho_stop,rho_old,masstotal;
-  double dtv,dtf;
+  double rho_start, rho_stop, rho_old, masstotal;
+  double dtv, dtf;
   double *step_respa;
-  double work_lambda,work_analytical;
-  double **xf,**xold;
+  double work_lambda, work_analytical;
+  double **xf, **xold;
 
   void readfile(char *);
   void open(char *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

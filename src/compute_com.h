@@ -35,7 +35,7 @@ class ComputeCOM : public Compute {
   double masstotal;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

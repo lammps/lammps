@@ -36,13 +36,13 @@ class ComputeClusterAtom : public Compute {
   double memory_usage();
 
  private:
-  int nmax,commflag;
+  int nmax, commflag;
   double cutsq;
   class NeighList *list;
   double *clusterID;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

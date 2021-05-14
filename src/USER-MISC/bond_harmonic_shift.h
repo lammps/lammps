@@ -37,12 +37,12 @@ class BondHarmonicShift : public Bond {
   double single(int, double, int, int, double &);
 
  protected:
-  double *k,*r0,*r1;
+  double *k, *r0, *r1;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

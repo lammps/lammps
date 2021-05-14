@@ -22,7 +22,6 @@ ComputeStyle(mliap,ComputeMLIAP);
 
 #include "compute.h"
 
-
 namespace LAMMPS_NS {
 
 class ComputeMLIAP : public Compute {
@@ -39,11 +38,11 @@ class ComputeMLIAP : public Compute {
  private:
   double **mliaparray, **mliaparrayall;
   class NeighList *list;
-  int *map;  // map types to [0,nelements)
-  int ndescriptors;            // number of descriptors
-  int nparams;                 // number of model parameters per element
+  int *map;            // map types to [0,nelements)
+  int ndescriptors;    // number of descriptors
+  int nparams;         // number of model parameters per element
   int nelements;
-  int gradgradflag;           // 1 for graddesc, 0 for gamma
+  int gradgradflag;    // 1 for graddesc, 0 for gamma
   class MLIAPModel *model;
   class MLIAPDescriptor *descriptor;
   class MLIAPData *data;
@@ -57,7 +56,7 @@ class ComputeMLIAP : public Compute {
   void dbdotr_compute();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

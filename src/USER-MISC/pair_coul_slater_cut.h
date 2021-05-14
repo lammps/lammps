@@ -37,7 +37,7 @@ class PairCoulSlaterCut : public PairCoulCut {
   double lamda;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

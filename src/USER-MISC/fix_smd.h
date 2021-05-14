@@ -38,23 +38,23 @@ class FixSMD : public Fix {
   void restart(char *);
 
  private:
-  double xc,yc,zc,xn,yn,zn,r0;
-  double k_smd,f_smd,v_smd;
-  int xflag,yflag,zflag;
+  double xc, yc, zc, xn, yn, zn, r0;
+  double k_smd, f_smd, v_smd;
+  int xflag, yflag, zflag;
   int styleflag;
-  double r_old,r_now,pmf;
+  double r_old, r_now, pmf;
 
-  int igroup2,group2bit;
-  double masstotal,masstotal2;
+  int igroup2, group2bit;
+  double masstotal, masstotal2;
   int ilevel_respa;
-  double ftotal[3],ftotal_all[7];
+  double ftotal[3], ftotal_all[7];
   int force_flag;
 
   void smd_tether();
   void smd_couple();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -41,13 +41,12 @@ class ComputeTempCOM : public Compute {
   void restore_bias_thr(int, double *, double *);
 
  private:
-  double tfactor,masstotal;
+  double tfactor, masstotal;
 
   void dof_compute();
-
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

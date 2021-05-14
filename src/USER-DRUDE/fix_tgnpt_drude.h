@@ -30,7 +30,7 @@ class FixTGNPTDrude : public FixTGNHDrude {
   ~FixTGNPTDrude() {}
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

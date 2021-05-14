@@ -37,38 +37,38 @@ class FixAveCorrelateLong : public Fix {
   void restart(char *);
   double memory_usage();
 
-  double *t; // Time steps for result arrays
-  double **f; // Result arrays
+  double *t;     // Time steps for result arrays
+  double **f;    // Result arrays
   unsigned int npcorr;
 
  private:
   // NOT OPTIMAL: shift2 and accumulator2 only needed in cross-correlations
-  double ***shift, *** shift2;
+  double ***shift, ***shift2;
   double ***correlation;
   double **accumulator, **accumulator2;
   unsigned long int **ncorrelation;
   unsigned int *naccumulator;
   unsigned int *insertindex;
 
-  int numcorrelators; // Recommended 20
-  unsigned int p; // Points per correlator (recommended 16)
-  unsigned int m; // Num points for average (recommended 2; p mod m = 0)
-  unsigned int dmin; // Min distance between ponts for correlators k>0; dmin=p/m
+  int numcorrelators;    // Recommended 20
+  unsigned int p;        // Points per correlator (recommended 16)
+  unsigned int m;        // Num points for average (recommended 2; p mod m = 0)
+  unsigned int dmin;     // Min distance between ponts for correlators k>0; dmin=p/m
 
-  int length; // Length of result arrays
-  int kmax; // Maximum correlator attained during simulation
+  int length;    // Length of result arrays
+  int kmax;      // Maximum correlator attained during simulation
 
-  int me,nvalues;
+  int me, nvalues;
   int nfreq;
-  bigint nvalid,nvalid_last,last_accumulated_step;
-  int *which,*argindex,*value2index;
+  bigint nvalid, nvalid_last, last_accumulated_step;
+  int *which, *argindex, *value2index;
   char **ids;
   FILE *fp;
 
-  int type,startstep,overwrite;
+  int type, startstep, overwrite;
   long filepos;
 
-  int npair;           // number of correlation pairs to calculate
+  int npair;    // number of correlation pairs to calculate
   double *values;
 
   void accumulate();
@@ -77,10 +77,9 @@ class FixAveCorrelateLong : public Fix {
 
   void add(const int i, const double w, const int k = 0);
   void add(const int i, const double wA, const double wB, const int k = 0);
-
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

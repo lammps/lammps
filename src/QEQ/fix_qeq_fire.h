@@ -43,7 +43,7 @@ class FixQEqFire : public FixQEq {
   class PairComb3 *comb3;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

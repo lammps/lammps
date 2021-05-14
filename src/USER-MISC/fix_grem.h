@@ -35,18 +35,18 @@ class FixGrem : public Fix {
   void post_force(int);
   void *extract(const char *, int &);
   double compute_scalar();
-  double scale_grem,lambda,eta,h0;
+  double scale_grem, lambda, eta, h0;
   int pressflag;
 
  private:
-  double tbath,pressref;
+  double tbath, pressref;
 
  protected:
-  char *id_temp,*id_press,*id_ke,*id_pe,*id_nh;
-  class Compute *temperature,*pressure,*ke,*pe;
+  char *id_temp, *id_press, *id_ke, *id_pe, *id_nh;
+  class Compute *temperature, *pressure, *ke, *pe;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

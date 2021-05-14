@@ -37,7 +37,7 @@ class FixEOScv : public Fix {
   double cvEOS;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

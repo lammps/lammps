@@ -28,8 +28,7 @@ class PairOxdna2Dh : public Pair {
  public:
   PairOxdna2Dh(class LAMMPS *);
   virtual ~PairOxdna2Dh();
-  virtual void compute_interaction_sites(double *, double *, double *,
-    double *);
+  virtual void compute_interaction_sites(double *, double *, double *, double *);
   virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
@@ -44,15 +43,13 @@ class PairOxdna2Dh : public Pair {
   void *extract(const char *, int &);
 
  protected:
-
-  double **qeff_dh_pf,**kappa_dh;
-  double **b_dh,**cut_dh_ast,**cutsq_dh_ast,**cut_dh_c,**cutsq_dh_c;
+  double **qeff_dh_pf, **kappa_dh;
+  double **b_dh, **cut_dh_ast, **cutsq_dh_ast, **cut_dh_c, **cutsq_dh_c;
 
   virtual void allocate();
-
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

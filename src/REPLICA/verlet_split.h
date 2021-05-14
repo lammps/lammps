@@ -35,14 +35,14 @@ class VerletSplit : public Verlet {
   double memory_usage();
 
  private:
-  int master;                        // 1 if an Rspace proc, 0 if Kspace
-  int me_block;                      // proc ID within Rspace/Kspace block
-  int ratio;                         // ratio of Rspace procs to Kspace procs
-  int *qsize,*qdisp,*xsize,*xdisp;   // MPI gather/scatter params for block comm
-  MPI_Comm block;                    // communicator within one block
-  int tip4p_flag;                    // 1 if PPPM/tip4p so do extra comm
+  int master;                            // 1 if an Rspace proc, 0 if Kspace
+  int me_block;                          // proc ID within Rspace/Kspace block
+  int ratio;                             // ratio of Rspace procs to Kspace procs
+  int *qsize, *qdisp, *xsize, *xdisp;    // MPI gather/scatter params for block comm
+  MPI_Comm block;                        // communicator within one block
+  int tip4p_flag;                        // 1 if PPPM/tip4p so do extra comm
 
-  double **f_kspace;                 // copy of Kspace forces on Rspace procs
+  double **f_kspace;    // copy of Kspace forces on Rspace procs
   int maxatom;
 
   void rk_setup();
@@ -50,7 +50,7 @@ class VerletSplit : public Verlet {
   void k2r_comm();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

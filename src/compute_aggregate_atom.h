@@ -38,13 +38,13 @@ class ComputeAggregateAtom : public Compute {
   double memory_usage();
 
  private:
-  int nmax,commflag;
+  int nmax, commflag;
   double cutsq;
   class NeighList *list;
   double *aggregateID;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

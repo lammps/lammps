@@ -35,12 +35,12 @@ class DihedralHelix : public Dihedral {
   void write_data(FILE *);
 
  protected:
-  double *aphi,*bphi,*cphi;
+  double *aphi, *bphi, *cphi;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

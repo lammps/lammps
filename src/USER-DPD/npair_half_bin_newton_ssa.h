@@ -43,11 +43,12 @@ class NPairHalfBinNewtonSSA : public NPair {
   NPairHalfBinNewtonSSA(class LAMMPS *);
   ~NPairHalfBinNewtonSSA();
   void build(class NeighList *);
+
  private:
   int ssa_maxPhaseCt;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -37,12 +37,12 @@ class AngleCharmm : public Angle {
   double single(int, int, int, int);
 
  protected:
-  double *k,*theta0,*k_ub,*r_ub;
+  double *k, *theta0, *k_ub, *r_ub;
 
   virtual void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -39,10 +39,10 @@ class FixTempCSVR : public Fix {
   virtual void *extract(const char *, int &);
 
  private:
-  double t_start,t_stop,t_period,t_target;
+  double t_start, t_stop, t_period, t_target;
   double energy;
-  int nmax,which;
-  int tstyle,tvar;
+  int nmax, which;
+  int tstyle, tvar;
   char *tstr;
 
   char *id_temp;
@@ -57,7 +57,7 @@ class FixTempCSVR : public Fix {
   double gamdev(int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

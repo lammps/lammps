@@ -36,7 +36,7 @@ class NBinStandard : public NBin {
   double memory_usage();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

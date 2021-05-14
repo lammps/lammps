@@ -48,7 +48,7 @@ class ComputeRigidLocal : public Compute {
   void reallocate(int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

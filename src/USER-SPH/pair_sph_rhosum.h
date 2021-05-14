@@ -44,7 +44,7 @@ class PairSPHRhoSum : public Pair {
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

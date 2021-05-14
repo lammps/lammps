@@ -28,11 +28,10 @@ class BondOxdna2Fene : public BondOxdnaFene {
  public:
   BondOxdna2Fene(class LAMMPS *);
   virtual ~BondOxdna2Fene();
-  virtual void compute_interaction_sites(double *, double *, double *,
-    double *);
+  virtual void compute_interaction_sites(double *, double *, double *, double *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

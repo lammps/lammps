@@ -66,7 +66,7 @@ class PairOxrna2Stk : public Pair {
   void ev_tally_xyz(int, int, int, int, double, double, double, double, double, double, double);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

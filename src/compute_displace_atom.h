@@ -40,12 +40,12 @@ class ComputeDisplaceAtom : public Compute {
   char *id_fix;
   class FixStore *fix;
 
-  int refreshflag,ivar,nvmax;    // refresh option is enabled
-  char *rvar;                    // for incremental dumps
+  int refreshflag, ivar, nvmax;    // refresh option is enabled
+  char *rvar;                      // for incremental dumps
   double *varatom;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

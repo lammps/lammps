@@ -9,7 +9,6 @@
  *
  * ----------------------------------------------------------------------- */
 
-
 /* ----------------------------------------------------------------------
  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
  https://lammps.sandia.gov/, Sandia National Laboratories
@@ -36,28 +35,28 @@ FixStyle(smd/integrate_tlsph,FixSMDIntegrateTlsph);
 
 namespace LAMMPS_NS {
 
-class FixSMDIntegrateTlsph: public Fix {
-        friend class Neighbor;
-        friend class PairTlsph;
-public:
-    FixSMDIntegrateTlsph(class LAMMPS *, int, char **);
-    virtual ~FixSMDIntegrateTlsph() {
-    }
-    int setmask();
-    virtual void init();
-    virtual void initial_integrate(int);
-    virtual void final_integrate();
-    virtual void reset_dt();
+class FixSMDIntegrateTlsph : public Fix {
+  friend class Neighbor;
+  friend class PairTlsph;
 
-protected:
-    double dtv, dtf, vlimit, vlimitsq;
-    int mass_require;
-    bool xsphFlag;
+ public:
+  FixSMDIntegrateTlsph(class LAMMPS *, int, char **);
+  virtual ~FixSMDIntegrateTlsph() {}
+  int setmask();
+  virtual void init();
+  virtual void initial_integrate(int);
+  virtual void final_integrate();
+  virtual void reset_dt();
 
-    class Pair *pair;
+ protected:
+  double dtv, dtf, vlimit, vlimitsq;
+  int mass_require;
+  bool xsphFlag;
+
+  class Pair *pair;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

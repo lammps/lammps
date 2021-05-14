@@ -41,7 +41,7 @@ class PairCoulLong : public Pair {
   virtual void *extract(const char *, int &);
 
  protected:
-  double cut_coul,cut_coulsq,qdist;
+  double cut_coul, cut_coulsq, qdist;
   double *cut_respa;
   double g_ewald;
   double **scale;
@@ -49,7 +49,7 @@ class PairCoulLong : public Pair {
   virtual void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

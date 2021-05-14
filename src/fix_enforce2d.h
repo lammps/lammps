@@ -41,7 +41,7 @@ class FixEnforce2D : public Fix {
   class Fix **flist;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

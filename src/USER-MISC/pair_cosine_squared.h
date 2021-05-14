@@ -46,7 +46,7 @@ class PairCosineSquared : public Pair {
   double single(int, int, int, int, double, double, double, double &);
   // void *extract(const char *, int &);
 
-/* RESPA stuff not implemented...
+  /* RESPA stuff not implemented...
   void compute_inner();
   void compute_middle();
   void compute_outer(int, int);
@@ -61,7 +61,7 @@ class PairCosineSquared : public Pair {
   virtual void allocate();
 };
 
-}  // namespace LAMMPS_NS
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
@@ -97,4 +97,3 @@ If cutoff is equal to sigma (minimum) then this pair style basically
 degenerates/reverts to only WCA. This is for convenience.
 
 */
-

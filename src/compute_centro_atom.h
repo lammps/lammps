@@ -34,7 +34,7 @@ class ComputeCentroAtom : public Compute {
   double memory_usage();
 
  private:
-  int nmax,maxneigh,nnn;
+  int nmax, maxneigh, nnn;
   double *distsq;
   int *nearest;
   class NeighList *list;
@@ -45,7 +45,7 @@ class ComputeCentroAtom : public Compute {
   void select2(int, int, double *, int *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

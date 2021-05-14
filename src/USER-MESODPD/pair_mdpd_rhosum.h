@@ -44,7 +44,7 @@ class PairMDPDRhoSum : public Pair {
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

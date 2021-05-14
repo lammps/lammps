@@ -44,14 +44,14 @@ class ComputeSNADAtom : public Compute {
   double rcutfac;
   double *radelem;
   double *wjelem;
-  int *map;  // map types to [0,nelements)
+  int *map;    // map types to [0,nelements)
   int nelements, chemflag;
-  class SNA* snaptr;
+  class SNA *snaptr;
   double cutmax;
   int quadraticflag;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

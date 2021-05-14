@@ -40,10 +40,10 @@ class PairLubricateOMP : public PairLubricate, public ThrOMP {
 
  private:
   template <int LOGFLAG, int EVFLAG, int NEWTON_PAIR>
-  void eval(int ifrom, int ito, ThrData * const thr);
+  void eval(int ifrom, int ito, ThrData *const thr);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

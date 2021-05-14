@@ -43,16 +43,16 @@ class FixSpringChunk : public Fix {
   int ilevel_respa;
   double k_spring;
   double esprings;
-  char *idchunk,*idcom;
+  char *idchunk, *idcom;
 
   int nchunk;
-  double **com0,**fcom;
+  double **com0, **fcom;
 
   class ComputeChunkAtom *cchunk;
   class ComputeCOMChunk *ccom;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -24,6 +24,6 @@ class ServerMC : protected Pointers {
   void loop();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif

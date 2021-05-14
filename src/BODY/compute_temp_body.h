@@ -40,13 +40,13 @@ class ComputeTempBody : public Compute {
   int mode;
   double tfactor;
   char *id_bias;
-  class Compute *tbias;              // ptr to additional bias compute
+  class Compute *tbias;    // ptr to additional bias compute
   class AtomVecBody *avec;
 
   void dof_compute();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

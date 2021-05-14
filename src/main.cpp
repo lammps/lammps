@@ -56,7 +56,6 @@ int main(int argc, char **argv)
   // get the MPI communicator that spans all ranks running LAMMPS
   // when using MDI, this may be a subset of MPI_COMM_WORLD
 
-
   if (mdi_flag)
     if (MDI_MPI_get_world_comm(&lammps_comm)) MPI_Abort(MPI_COMM_WORLD, 1);
 #endif

@@ -37,12 +37,12 @@ class BondMM3 : public Bond {
   double single(int, double, int, int, double &);
 
  protected:
-  double *r0,*k2;
+  double *r0, *k2;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

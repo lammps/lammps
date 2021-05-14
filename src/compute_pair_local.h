@@ -34,10 +34,10 @@ class ComputePairLocal : public Compute {
   double memory_usage();
 
  private:
-  int nvalues,ncount,cutstyle;
+  int nvalues, ncount, cutstyle;
 
-  int *pstyle;              // style of each requested output
-  int *pindex;              // for pI, index of the output (0 to M-1)
+  int *pstyle;    // style of each requested output
+  int *pindex;    // for pI, index of the output (0 to M-1)
   int singleflag;
 
   int nmax;
@@ -50,7 +50,7 @@ class ComputePairLocal : public Compute {
   void reallocate(int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -35,15 +35,16 @@ class FixSPHStationary : public Fix {
 
  private:
   class NeighList *list;
+
  protected:
-  double dtv,dtf;
+  double dtv, dtf;
   double *step_respa;
   int mass_require;
 
   class Pair *pair;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

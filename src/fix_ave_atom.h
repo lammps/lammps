@@ -41,16 +41,16 @@ class FixAveAtom : public Fix {
 
  private:
   int nvalues;
-  int nrepeat,irepeat;
-  bigint nvalid,nvalid_last;
-  int *which,*argindex,*value2index;
+  int nrepeat, irepeat;
+  bigint nvalid, nvalid_last;
+  int *which, *argindex, *value2index;
   char **ids;
   double **array;
 
   bigint nextvalid();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

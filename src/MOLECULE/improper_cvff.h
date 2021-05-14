@@ -36,12 +36,12 @@ class ImproperCvff : public Improper {
 
  protected:
   double *k;
-  int *sign,*multiplicity;
+  int *sign, *multiplicity;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -46,7 +46,7 @@ class PairCoulStreitz : public Pair {
 
   int nmax;
   double precision;
-  Param *params;                // parameter sets for elements
+  Param *params;    // parameter sets for elements
 
   // Kspace parameters
   int kspacetype;
@@ -66,18 +66,14 @@ class PairCoulStreitz : public Pair {
   virtual void read_file(char *);
   void setup_params();
   double self(Param *, double);
-  void coulomb_integral_wolf(double, double, double, double &, double &,
-        double &, double &);
-  void wolf_sum(double, double, double, double, double, double, double,
-                  double, double &, double &);
-  void coulomb_integral_ewald(double, double, double, double &, double &,
-        double &, double &);
-  void ewald_sum(double, double, double, double, double, double, double,
-                  double, double &, double &, double);
-
+  void coulomb_integral_wolf(double, double, double, double &, double &, double &, double &);
+  void wolf_sum(double, double, double, double, double, double, double, double, double &, double &);
+  void coulomb_integral_ewald(double, double, double, double &, double &, double &, double &);
+  void ewald_sum(double, double, double, double, double, double, double, double, double &, double &,
+                 double);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

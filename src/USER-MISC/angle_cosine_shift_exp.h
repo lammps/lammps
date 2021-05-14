@@ -38,7 +38,7 @@ class AngleCosineShiftExp : public Angle {
 
  protected:
   bool *doExpansion;
-  double *umin,*a,*opt1;
+  double *umin, *a, *opt1;
   double *theta0;
   double *sint;
   double *cost;
@@ -46,7 +46,7 @@ class AngleCosineShiftExp : public Angle {
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

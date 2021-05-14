@@ -33,16 +33,16 @@ class ComputeMSD : public Compute {
   void set_arrays(int);
 
  protected:
-  int comflag;   // comflag = 1 if reference moves with center of mass
-  int avflag;    // avflag = 1 if using average position as reference
-  int naverage;  // number of samples for average position
+  int comflag;     // comflag = 1 if reference moves with center of mass
+  int avflag;      // avflag = 1 if using average position as reference
+  int naverage;    // number of samples for average position
   bigint nmsd;
   double masstotal;
   char *id_fix;
   class FixStore *fix;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -35,7 +35,7 @@ class ComputeERotateSphere : public Compute {
   double pfactor;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

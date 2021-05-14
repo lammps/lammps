@@ -28,11 +28,10 @@ class PairOxrna2Excv : public PairOxdnaExcv {
  public:
   PairOxrna2Excv(class LAMMPS *);
   virtual ~PairOxrna2Excv();
-  virtual void compute_interaction_sites(double *, double *,
-    double *, double *, double *);
+  virtual void compute_interaction_sites(double *, double *, double *, double *, double *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

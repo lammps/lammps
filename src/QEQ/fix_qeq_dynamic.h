@@ -40,7 +40,7 @@ class FixQEqDynamic : public FixQEq {
   double compute_eneg();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

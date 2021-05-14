@@ -30,12 +30,12 @@ class KSpaceDeprecated : public KSpace {
   virtual ~KSpaceDeprecated() {}
 
   virtual void init() {}
-  virtual void settings(int, char**);
+  virtual void settings(int, char **);
   virtual void setup() {}
   virtual void compute(int, int) {}
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

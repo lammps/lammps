@@ -48,12 +48,12 @@ class FixMinimize : public Fix {
   int nvector;
   int *peratom;
   double **vectors;
-  double boxlo[3],boxhi[3];
+  double boxlo[3], boxhi[3];
 
   void box_swap();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

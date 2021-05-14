@@ -47,21 +47,21 @@ class FixAtomSwap : public Fix {
   void restart(char *);
 
  private:
-  int nevery,seed;
-  int conserve_ke_flag;                   // yes = conserve ke, no = do not conserve ke
-  int semi_grand_flag;                    // yes = semi-grand canonical, no = constant composition
+  int nevery, seed;
+  int conserve_ke_flag;    // yes = conserve ke, no = do not conserve ke
+  int semi_grand_flag;     // yes = semi-grand canonical, no = constant composition
   int ncycles;
-  int niswap,njswap;                      // # of i,j swap atoms on all procs
-  int niswap_local,njswap_local;          // # of swap atoms on this proc
-  int niswap_before,njswap_before;        // # of swap atoms on procs < this proc
-  int nswap;                              // # of swap atoms on all procs
-  int nswap_local;                        // # of swap atoms on this proc
-  int nswap_before;                       // # of swap atoms on procs < this proc
-  int regionflag;                         // 0 = anywhere in box, 1 = specific region
-  int iregion;                            // swap region
-  char *idregion;                         // swap region id
+  int niswap, njswap;                  // # of i,j swap atoms on all procs
+  int niswap_local, njswap_local;      // # of swap atoms on this proc
+  int niswap_before, njswap_before;    // # of swap atoms on procs < this proc
+  int nswap;                           // # of swap atoms on all procs
+  int nswap_local;                     // # of swap atoms on this proc
+  int nswap_before;                    // # of swap atoms on procs < this proc
+  int regionflag;                      // 0 = anywhere in box, 1 = specific region
+  int iregion;                         // swap region
+  char *idregion;                      // swap region id
 
-  int nswaptypes,nmutypes;
+  int nswaptypes, nmutypes;
   int *type_list;
   double *mu;
 
@@ -87,7 +87,7 @@ class FixAtomSwap : public Fix {
   void options(int, char **);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -35,12 +35,12 @@ class DihedralMultiHarmonic : public Dihedral {
   void write_data(FILE *);
 
  protected:
-  double *a1,*a2,*a3,*a4,*a5;
+  double *a1, *a2, *a3, *a4, *a5;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

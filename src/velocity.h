@@ -33,11 +33,11 @@ class Velocity : public Command {
   void create(double, int);
 
  private:
-  int igroup,groupbit;
+  int igroup, groupbit;
   int style;
-  int dist_flag,sum_flag,momentum_flag,rotation_flag;
-  int bias_flag,loop_flag,scale_flag,rfix;
-  double xscale,yscale,zscale;
+  int dist_flag, sum_flag, momentum_flag, rotation_flag;
+  int bias_flag, loop_flag, scale_flag, rfix;
+  double xscale, yscale, zscale;
   class Compute *temperature;
 
   void set(int, char **);
@@ -50,7 +50,7 @@ class Velocity : public Command {
   void zero_rotation();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

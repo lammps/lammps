@@ -35,13 +35,13 @@ class PairSPHTaitwaterMorris : public Pair {
 
  protected:
   double *rho0, *soundspeed, *B;
-  double **cut,**viscosity;
+  double **cut, **viscosity;
   int first;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -34,16 +34,16 @@ class FixPrint : public Fix {
   void end_of_step();
 
  private:
-  int me,screenflag;
+  int me, screenflag;
   FILE *fp;
-  char *text,*copy,*work;
-  int maxcopy,maxwork;
+  char *text, *copy, *work;
+  int maxcopy, maxwork;
   char *var_print;
   int ivar_print;
   bigint next_print;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

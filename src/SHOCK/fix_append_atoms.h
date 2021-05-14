@@ -44,14 +44,14 @@ class FixAppendAtoms : public Fix {
   int scaleflag, freq;
   int nbasis;
   int *basistype;
-  int advance,advance_sum;
-  double size,spatlead;
+  int advance, advance_sum;
+  double size, spatlead;
   char *spatialid;
   double tfactor;
-  double *gfactor1,*gfactor2;
+  double *gfactor1, *gfactor2;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

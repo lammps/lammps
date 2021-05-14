@@ -31,12 +31,12 @@ class ImbalanceGroup : public Imbalance {
   virtual std::string info() override;
 
  private:
-  int num;                     // number of groups with weights
-  int *id;                     // numerical IDs of groups
-  double *factor;              // group weight factors
+  int num;           // number of groups with weights
+  int *id;           // numerical IDs of groups
+  double *factor;    // group weight factors
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 

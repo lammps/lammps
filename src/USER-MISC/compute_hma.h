@@ -47,21 +47,20 @@ class ComputeHMA : public Compute {
   double boltz, nktv2p, inv_volume;
   double deltaPcap;
   double virial_compute(int);
-  static double sumVirial(int n, double* v) {
+  static double sumVirial(int n, double *v)
+  {
     double x = 0;
-    for (int i=0; i<n; i++) x += v[i];
+    for (int i = 0; i < n; i++) x += v[i];
     return x;
   }
   int computeU, computeP, computeCv;
-  class NeighList *list; // half neighbor list
+  class NeighList *list;    // half neighbor list
   double **deltaR;
   int returnAnharmonic;
   double uLat, pLat;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-

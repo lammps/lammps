@@ -35,7 +35,7 @@ class FixNVEAsphereNoforce : public FixNVENoforce {
   class AtomVecEllipsoid *avec;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

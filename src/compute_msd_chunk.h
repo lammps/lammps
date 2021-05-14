@@ -48,14 +48,14 @@ class ComputeMSDChunk : public Compute {
   class FixStore *fix;
   int firstflag;
 
-  double *massproc,*masstotal;
-  double **com,**comall;
+  double *massproc, *masstotal;
+  double **com, **comall;
   double **msd;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

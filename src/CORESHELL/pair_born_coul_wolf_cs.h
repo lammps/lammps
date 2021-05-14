@@ -30,7 +30,7 @@ class PairBornCoulWolfCS : public PairBornCoulWolf {
   virtual void compute(int, int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

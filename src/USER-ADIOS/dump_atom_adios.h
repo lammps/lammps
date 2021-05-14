@@ -22,32 +22,30 @@ DumpStyle(atom/adios, DumpAtomADIOS);
 
 #include "dump_atom.h"
 
-namespace LAMMPS_NS
-{
+namespace LAMMPS_NS {
 
 class DumpAtomADIOSInternal;
 
-class DumpAtomADIOS : public DumpAtom
-{
+class DumpAtomADIOS : public DumpAtom {
 
-public:
-    DumpAtomADIOS(class LAMMPS *, int, char **);
-    virtual ~DumpAtomADIOS();
+ public:
+  DumpAtomADIOS(class LAMMPS *, int, char **);
+  virtual ~DumpAtomADIOS();
 
-protected:
-    virtual void openfile();
-    virtual void write();
-    virtual void init_style();
+ protected:
+  virtual void openfile();
+  virtual void write();
+  virtual void init_style();
 
-private:
-    DumpAtomADIOSInternal *internal;
+ private:
+  DumpAtomADIOSInternal *internal;
 };
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
 
-    /* ERROR/WARNING messages:
+/* ERROR/WARNING messages:
 
     E: Cannot open dump file %s
 

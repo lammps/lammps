@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class PPPMTIP4P : public PPPM {
  public:
   PPPMTIP4P(class LAMMPS *);
-  virtual ~PPPMTIP4P () {};
+  virtual ~PPPMTIP4P(){};
   void init();
 
  protected:
@@ -41,7 +41,7 @@ class PPPMTIP4P : public PPPM {
   void find_M(int, int &, int &, double *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

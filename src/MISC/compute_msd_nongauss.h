@@ -31,7 +31,7 @@ class ComputeMSDNonGauss : public ComputeMSD {
   void compute_vector();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

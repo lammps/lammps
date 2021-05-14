@@ -33,10 +33,9 @@ class NStencilHalfMulti3d : public NStencil {
 
  protected:
   void set_stencil_properties();
-
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

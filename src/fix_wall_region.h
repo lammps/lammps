@@ -39,17 +39,17 @@ class FixWallRegion : public Fix {
   double compute_vector(int);
 
  private:
-  int style,iregion;
-  double epsilon,sigma,cutoff;
+  int style, iregion;
+  double epsilon, sigma, cutoff;
   double alpha;
   int eflag;
-  double ewall[4],ewall_all[4];
+  double ewall[4], ewall_all[4];
   int ilevel_respa;
   char *idregion;
 
-  double coeff1,coeff2,coeff3,coeff4,offset;
-  double coeff5,coeff6,coeff7;
-  double eng,fwall;
+  double coeff1, coeff2, coeff3, coeff4, offset;
+  double coeff5, coeff6, coeff7;
+  double eng, fwall;
 
   void lj93(double);
   void lj126(double);
@@ -59,7 +59,7 @@ class FixWallRegion : public Fix {
   void harmonic(double);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

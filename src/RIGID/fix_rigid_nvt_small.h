@@ -30,7 +30,7 @@ class FixRigidNVTSmall : public FixRigidNHSmall {
   ~FixRigidNVTSmall() {}
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

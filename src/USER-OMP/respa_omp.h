@@ -37,7 +37,7 @@ class RespaOMP : public Respa, public ThrOMP {
   virtual void recurse(int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

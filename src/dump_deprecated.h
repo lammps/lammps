@@ -33,9 +33,9 @@ class DumpDeprecated : public Dump {
   virtual void write_header(bigint) {}
   virtual void pack(tagint *) {}
   virtual void write_data(int, double *) {}
- };
+};
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

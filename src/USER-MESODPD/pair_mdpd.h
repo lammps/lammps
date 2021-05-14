@@ -41,17 +41,17 @@ class PairMDPD : public Pair {
   virtual void write_data_all(FILE *);
 
  protected:
-  double cut_global,temperature;
+  double cut_global, temperature;
   int seed;
   double **cut, **cut_r;
-  double **A_att,**B_rep;
-  double **gamma,**sigma;
+  double **A_att, **B_rep;
+  double **gamma, **sigma;
   class RanMars *random;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

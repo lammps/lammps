@@ -24,22 +24,20 @@ PairStyle(lj/cut/tip4p/long/opt,PairLJCutTIP4PLongOpt);
 
 namespace LAMMPS_NS {
 
-  class PairLJCutTIP4PLongOpt : public PairLJCutTIP4PLong {
+class PairLJCutTIP4PLongOpt : public PairLJCutTIP4PLong {
  public:
-    PairLJCutTIP4PLongOpt(class LAMMPS *);
-    virtual ~PairLJCutTIP4PLongOpt() {};
+  PairLJCutTIP4PLongOpt(class LAMMPS *);
+  virtual ~PairLJCutTIP4PLongOpt(){};
 
   virtual void compute(int, int);
   virtual double memory_usage();
 
  protected:
-  template < const int, const int, const int, const int >
-  void eval();
-  void compute_newsite_opt(const double *, const double *,
-                           const double *, double *) const;
+  template <const int, const int, const int, const int> void eval();
+  void compute_newsite_opt(const double *, const double *, const double *, double *) const;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

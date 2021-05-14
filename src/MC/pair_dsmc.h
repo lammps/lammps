@@ -92,18 +92,20 @@ class PairDSMC : public Pair {
   void scatter_random(int, int, int);
   int convert_double_to_equivalent_int(double);
 
-  inline void subtract3d(const double *v1, const double *v2, double *v3) {
+  inline void subtract3d(const double *v1, const double *v2, double *v3)
+  {
     v3[0] = v2[0] - v1[0];
     v3[1] = v2[1] - v1[1];
     v3[2] = v2[2] - v1[2];
   }
 
-  inline double dot3d(const double *v1, const double *v2) {
-    return( v1[0]*v2[0] + v1[1]*v2[1] + v1[2]*v2[2] );
+  inline double dot3d(const double *v1, const double *v2)
+  {
+    return (v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2]);
   }
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

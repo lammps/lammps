@@ -46,7 +46,7 @@ class PPPMCG : public PPPM {
   virtual void make_rho_groups(int, int, int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -35,12 +35,12 @@ class ImproperHarmonic : public Improper {
   void write_data(FILE *);
 
  protected:
-  double *k,*chi;
+  double *k, *chi;
 
   virtual void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

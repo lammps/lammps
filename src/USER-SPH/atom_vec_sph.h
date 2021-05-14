@@ -36,11 +36,11 @@ class AtomVecSPH : public AtomVec {
   void pack_property_atom(int, double *, int, int);
 
  private:
-  double *rho,*drho,*esph,*desph,*cv;
+  double *rho, *drho, *esph, *desph, *cv;
   double **vest;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

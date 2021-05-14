@@ -30,10 +30,10 @@ class CreateBonds : public Command {
   void command(int, char **);
 
  private:
-  int igroup,group1bit,group2bit;
-  int btype,atype,dtype;
-  tagint batom1,batom2,aatom1,aatom2,aatom3,datom1,datom2,datom3,datom4;
-  double rmin,rmax;
+  int igroup, group1bit, group2bit;
+  int btype, atype, dtype;
+  tagint batom1, batom2, aatom1, aatom2, aatom3, datom1, datom2, datom3, datom4;
+  double rmin, rmax;
 
   void many();
   void single_bond();
@@ -42,7 +42,7 @@ class CreateBonds : public Command {
   void single_improper();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

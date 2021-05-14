@@ -19,11 +19,9 @@ Copyright 2021 Yury Lysogorskiy^1, Cas van der Oord^2, Anton Bochkarev^1,
 ^4: University of British Columbia, Vancouver, BC, Canada
 */
 
-
 //
 // Created by Lysogorskiy Yury on 27.02.20.
 //
-
 
 #ifdef PAIR_CLASS
 // clang-format off
@@ -57,9 +55,9 @@ class PairPACE : public Pair {
   virtual void allocate();
 
   double **scale;
-  bool recursive;             // "recursive" option for ACERecursiveEvaluator
+  bool recursive;    // "recursive" option for ACERecursiveEvaluator
 };
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

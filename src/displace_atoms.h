@@ -31,7 +31,7 @@ class DisplaceAtoms : public Command {
   void command(int, char **);
 
  private:
-  int igroup,groupbit;
+  int igroup, groupbit;
   int scaleflag;
   double *mvec;
 
@@ -39,7 +39,7 @@ class DisplaceAtoms : public Command {
   void options(int, char **);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

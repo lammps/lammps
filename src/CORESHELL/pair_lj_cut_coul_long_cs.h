@@ -34,7 +34,7 @@ class PairLJCutCoulLongCS : public PairLJCutCoulLong {
   virtual void compute_outer(int, int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -41,16 +41,16 @@ class ComputeReduceChunk : public Compute {
   double memory_usage();
 
  private:
-  int mode,nvalues;
-  int *which,*argindex,*value2index;
+  int mode, nvalues;
+  int *which, *argindex, *value2index;
   char *idchunk;
   char **ids;
 
   int nchunk;
-  int maxchunk,maxatom;
+  int maxchunk, maxatom;
   double initvalue;
-  double *vlocal,*vglobal;
-  double **alocal,**aglobal;
+  double *vlocal, *vglobal;
+  double **alocal, **aglobal;
   double *varatom;
 
   class ComputeChunkAtom *cchunk;
@@ -61,7 +61,7 @@ class ComputeReduceChunk : public Compute {
   void combine(double &, double);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

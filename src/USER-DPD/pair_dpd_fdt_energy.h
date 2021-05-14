@@ -43,8 +43,8 @@ class PairDPDfdtEnergy : public Pair {
 
   double **cut;
   double **a0;
-  double **sigma,**kappa,**alpha;
-  double *duCond,*duMech;
+  double **sigma, **kappa, **alpha;
+  double *duCond, *duMech;
 
   int seed;
   class RanMars *random;
@@ -55,10 +55,9 @@ class PairDPDfdtEnergy : public Pair {
   bool a0_is_zero;
 
   virtual void allocate();
-
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

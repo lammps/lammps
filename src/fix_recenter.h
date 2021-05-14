@@ -35,14 +35,14 @@ class FixRecenter : public Fix {
   double compute_vector(int);
 
  private:
-  int group2bit,scaleflag;
-  int xflag,yflag,zflag;
-  int xinitflag,yinitflag,zinitflag;
+  int group2bit, scaleflag;
+  int xflag, yflag, zflag;
+  int xinitflag, yinitflag, zinitflag;
   int nlevels_respa;
-  double xcom,ycom,zcom,xinit,yinit,zinit,masstotal,distance,shift[3];
+  double xcom, ycom, zcom, xinit, yinit, zinit, masstotal, distance, shift[3];
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

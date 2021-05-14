@@ -30,7 +30,7 @@ class Run : public Command {
   void command(int, char **);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -34,7 +34,7 @@ class FixNeighHistoryOMP : public FixNeighHistory {
   void post_neighbor();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -30,7 +30,7 @@ class PairBuckCoulLongCS : public PairBuckCoulLong {
   virtual void compute(int, int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

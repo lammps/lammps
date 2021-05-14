@@ -40,10 +40,10 @@ class FixReadRestart : public Fix {
   int unpack_exchange(int, double *);
 
  private:
-  int nextra;          // max number of extra values for any atom
+  int nextra;    // max number of extra values for any atom
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -34,15 +34,15 @@ class RegCone : public Region {
 
  private:
   char axis;
-  double c1,c2;
-  double radiuslo,radiushi;
-  double lo,hi;
+  double c1, c2;
+  double radiuslo, radiushi;
+  double lo, hi;
   double maxradius;
 
   double closest(double *, double *, double *, double);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

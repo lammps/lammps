@@ -53,10 +53,9 @@ class PairDPDfdt : public Pair {
   bool a0_is_zero;
 
   void allocate();
-
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

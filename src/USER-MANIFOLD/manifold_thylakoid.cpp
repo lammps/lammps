@@ -13,14 +13,13 @@
    ----------------------------------------------------------------------- */
 
 #include "manifold_thylakoid.h"
-#include <cmath>
 #include "manifold_thylakoid_shared.h"
+
 #include "comm.h"
 #include "domain.h" // For some checks regarding the simulation box.
 #include "error.h"
 
-
-#define MANIFOLD_THYLAKOID_DEBUG
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace user_manifold;
@@ -165,26 +164,12 @@ void manifold_thylakoid::init_domains()
   x0 = -( 0.5*LB + lB + lT + LT + lT + pad);
   y0 = -( 0.5*LT + lT + pad );
   z0 = -15;
-#ifdef  MANIFOLD_THYLAKOID_DEBUG
-  if (comm->me == 0) {
-    fprintf(screen,"x0, y0, z0 = %f, %f, %f\n",x0,y0,z0);
-  }
-#endif // MANIFOLD_THYLAKOID_DEBUG
 
-#ifndef USE_PHONY_LAMMPS
-  if (x0 < domain->boxlo[0]) {
-    char msg[2048];
-    sprintf(msg,"Thylakoid expects xlo of at most %f, but found %f",
-            x0, domain->boxlo[0]);
-    error->one(FLERR,msg);
-  }
-  if (y0 < domain->boxlo[1]) {
-    char msg[2048];
-    sprintf(msg,"Thylakoid expects ylo of at most %f, but found %f",
-            y0, domain->boxlo[1]);
-    error->one(FLERR,msg);
-  }
-#endif
+  if (x0 < domain->boxlo[0])
+    error->one(FLERR,"Thylakoid expects xlo of at most {:.8f}, but found {:.8f}", x0, domain->boxlo[0]);
+
+  if (y0 < domain->boxlo[1])
+    error->one(FLERR,"Thylakoid expects ylo of at most {:.8f}, but found {:.8f}",y0, domain->boxlo[1]);
 
   // Add some padding to prevent improper lookups.
   z0 -= pad;
@@ -197,24 +182,11 @@ void manifold_thylakoid::init_domains()
   Ly = y1 - y0;
   Lz = z1 - z0;
 
-#ifndef USE_PHONY_LAMMPS
-  char msg[2048];
-  if (x1 > domain->boxhi[0]) {
-    sprintf(msg,"Expected xhi larger than current box has: %f > %f",
-            x1, domain->boxhi[0]);
-    error->one(FLERR,msg);
-  }
-  if (y1 > domain->boxhi[1]) {
-    sprintf(msg,"Expected yhi larger than current box has: %f > %f",
-            y1, domain->boxhi[1]);
-    error->one(FLERR,msg);
-  }
-  // if (z1 > domain->boxhi[2]) {
-  //   sprintf(msg,"Expected zhi larger than current box has: %f > %f",
-  //           z1, domain->boxhi[2]);
-  //   error->one(FLERR,msg);
-  // }
-#endif
+  if (x1 > domain->boxhi[0])
+    error->one(FLERR,"Expected xhi larger than current box has: {:.8f} > {:.8f}", x1, domain->boxhi[0]);
+
+  if (y1 > domain->boxhi[1])
+    error->one(FLERR,"Expected yhi larger than current box has: {:.8f} > {:.8f}", y1, domain->boxhi[1]);
 
   // Create and add the manifold parts to the array.
   thyla_part *p;
@@ -256,11 +228,6 @@ void manifold_thylakoid::init_domains()
   bl.hi[2] = (1.0 + safety_fac) * Reff;
 
   // double X0, double R0, double R, double s,
-#ifdef MANIFOLD_THYLAKOID_DEBUG
-  if (comm->me == 0) {
-    fprintf(screen,"x0, r0, R = %f, %f, %f\n", bl.pt[0], rB, lB);
-  }
-#endif // MANIFOLD_THYLAKOID_DEBUG
   p = make_cyl_to_plane_part(bl.pt[0], rB, lB, -1, bl.pt);
   set_domain(p, bl.lo, bl.hi);
   parts.push_back(p);
@@ -279,11 +246,6 @@ void manifold_thylakoid::init_domains()
   br.hi[2] = (1.0 + safety_fac) * Reff;
 
   // double X0, double R0, double R, double s,
-#ifdef MANIFOLD_THYLAKOID_DEBUG
-  if (comm->me == 0) {
-    fprintf(screen,"x0, r0, R = %f, %f, %f\n", br.pt[0], rB, lB);
-  }
-#endif // MANIFOLD_THYLAKOID_DEBUG
   p = make_cyl_to_plane_part(br.pt[0], rB, lB,  1, br.pt);
   set_domain(p, br.lo, br.hi);
   parts.push_back(p);
@@ -306,12 +268,6 @@ void manifold_thylakoid::init_domains()
 
   p = make_cyl_part( 0, 1, 1, bc.pt, rB );
   set_domain( p, bc.lo, bc.hi );
-#ifdef MANIFOLD_THYLAKOID_DEBUG
-  if (comm->me == 0) {
-    fprintf(screen,"Cylinder lives on [ %f x %f ] x [ %f x %f ] x [ %f x %f]\n",
-            bc.lo[0], bc.hi[0], bc.lo[1], bc.hi[1], bc.lo[2], bc.hi[2]);
-  }
-#endif // MANIFOLD_THYLAKOID_DEBUG
 
   parts.push_back(p);
 
@@ -478,41 +434,18 @@ void manifold_thylakoid::init_domains()
             prr.pt[0], br.pt[0] + lB);
     error->one(FLERR,msg);
   }
-
-  // For debugging, print the domains and coms:
-#ifdef MANIFOLD_THYLAKOID_DEBUG
-  if (comm->me == 0) {
-    FILE *fp_doms = fopen("test_doms.dat","w");
-    FILE *fp_coms = fopen("test_coms.dat","w");
-    print_part_data(fp_doms, fp_coms);
-    fclose(fp_doms);
-    fclose(fp_coms);
-  }
-#endif // MANIFOLD_THYLAKOID_DEBUG
 }
 
 
 void manifold_thylakoid::set_domain( thyla_part *p, const std::vector<double> &lo,
                                      const std::vector<double> &hi )
 {
-#ifdef MANIFOLD_THYLAKOID_DEBUG
-  if (comm->me == 0) {
-    fprintf(screen,"Adding part with domain [%f, %f] x [%f, %f] x [%f, %f]\n",
-            lo[0],hi[0],lo[1],hi[1],lo[2],hi[2] );
-  }
-#endif // MANIFOLD_THYLAKOID_DEBUG
   if (lo[0] >= hi[0]) {
-    char msg[2048];
-    sprintf(msg,"xlo >= xhi (%f >= %f)",lo[0],hi[0]);
-    error->one(FLERR,msg);
+    error->one(FLERR,"xlo >= xhi ({:.8f} >= {:.8f})",lo[0],hi[0]);
   } else if (lo[1] >= hi[1]) {
-    char msg[2048];
-    sprintf(msg,"ylo >= yhi (%f >= %f)",lo[1],hi[1]);
-    error->one(FLERR,msg);
+    error->one(FLERR,"ylo >= yhi ({:.8f} >= {:.8f})",lo[1],hi[1]);
   } else if (lo[2] >= hi[2]) {
-    char msg[2048];
-    sprintf(msg,"zlo >= zhi (%f >= %f)",lo[2],hi[2]);
-    error->one(FLERR,msg);
+    error->one(FLERR,"zlo >= zhi ({:.8f} >= {:.8f})",lo[2],hi[2]);
   }
   p->xlo = lo[0];
   p->ylo = lo[1];
@@ -612,21 +545,3 @@ thyla_part *manifold_thylakoid::make_cyl_to_plane_part(double X0, double R0, dou
   thyla_part *p = new thyla_part(thyla_part::THYLA_TYPE_CYL_TO_PLANE,args,0,0,0,0,0,0);
   return p;
 }
-
-
-
-
-void manifold_thylakoid::print_part_data( FILE *fp_doms, FILE *fp_coms )
-{
-  for (std::size_t i = 0; i < parts.size(); ++i) {
-    thyla_part *p = parts[i];
-    fprintf(fp_doms, "%f   %f\n",  p->xlo, p->ylo);
-    fprintf(fp_doms, "%f   %f\n",  p->xlo, p->yhi);
-    fprintf(fp_doms, "%f   %f\n",  p->xhi, p->yhi);
-    fprintf(fp_doms, "%f   %f\n",  p->xhi, p->ylo);
-    fprintf(fp_doms, "%f   %f\n\n",p->xlo, p->ylo);
-    fprintf(fp_coms, "%f   %f\n",  p->x0, p->y0 );
-  }
-}
-
-

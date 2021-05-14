@@ -49,15 +49,15 @@ class PairLJCutSoft : public Pair {
  protected:
   double cut_global;
   double **cut;
-  double **epsilon,**sigma, **lambda;
+  double **epsilon, **sigma, **lambda;
   double nlambda, alphalj;
-  double **lj1,**lj2,**lj3,**offset;
+  double **lj1, **lj2, **lj3, **offset;
   double *cut_respa;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

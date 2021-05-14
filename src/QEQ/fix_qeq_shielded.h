@@ -36,10 +36,9 @@ class FixQEqShielded : public FixQEq {
   void init_shielding();
   void init_matvec();
   void compute_H();
-  double calculate_H(double,double);
-
+  double calculate_H(double, double);
 };
-}
+}    // namespace LAMMPS_NS
 #endif
 #endif
 

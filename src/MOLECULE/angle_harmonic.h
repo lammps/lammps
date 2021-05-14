@@ -37,12 +37,12 @@ class AngleHarmonic : public Angle {
   double single(int, int, int, int);
 
  protected:
-  double *k,*theta0;
+  double *k, *theta0;
 
   virtual void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

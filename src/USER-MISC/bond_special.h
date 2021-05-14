@@ -26,7 +26,7 @@ BondStyle(special,BondSpecial);
 
 namespace LAMMPS_NS {
 
-class BondSpecial: public Bond {
+class BondSpecial : public Bond {
  public:
   BondSpecial(class LAMMPS *);
   virtual ~BondSpecial();
@@ -40,12 +40,12 @@ class BondSpecial: public Bond {
   double single(int, double, int, int, double &);
 
  protected:
-  double *factor_lj,*factor_coul;
+  double *factor_lj, *factor_coul;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

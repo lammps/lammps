@@ -35,12 +35,12 @@ class ImproperRing : public Improper {
   void write_data(FILE *);
 
  protected:
-  double *k,*chi;
+  double *k, *chi;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

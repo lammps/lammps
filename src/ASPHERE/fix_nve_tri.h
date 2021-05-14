@@ -38,7 +38,7 @@ class FixNVETri : public FixNVE {
   class AtomVecTri *avec;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

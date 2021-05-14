@@ -39,16 +39,16 @@ class FixAddTorque : public Fix {
   double compute_vector(int);
 
  private:
-  double xvalue,yvalue,zvalue;
+  double xvalue, yvalue, zvalue;
   int varflag;
-  char *xstr,*ystr,*zstr;
-  int xvar,yvar,zvar,xstyle,ystyle,zstyle;
-  double foriginal[4],foriginal_all[4];
+  char *xstr, *ystr, *zstr;
+  int xvar, yvar, zvar, xstyle, ystyle, zstyle;
+  double foriginal[4], foriginal_all[4];
   int force_flag;
   int ilevel_respa;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

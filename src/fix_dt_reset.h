@@ -36,14 +36,14 @@ class FixDtReset : public Fix {
 
  private:
   bigint laststep;
-  int minbound,maxbound;
-  double tmin,tmax,xmax,emax;
-  double ftm2v,mvv2e;
-  double dt,t_laststep;
+  int minbound, maxbound;
+  double tmin, tmax, xmax, emax;
+  double ftm2v, mvv2e;
+  double dt, t_laststep;
   int respaflag;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

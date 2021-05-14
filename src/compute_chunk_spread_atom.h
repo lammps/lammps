@@ -33,10 +33,10 @@ class ComputeChunkSpreadAtom : public Compute {
   double memory_usage();
 
  protected:
-  int mode,nvalues;
+  int mode, nvalues;
   char *idchunk;
   char **ids;
-  int *which,*argindex,*value2index;
+  int *which, *argindex, *value2index;
 
   int nmax;
   class ComputeChunkAtom *cchunk;
@@ -44,7 +44,7 @@ class ComputeChunkSpreadAtom : public Compute {
   void init_chunk();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

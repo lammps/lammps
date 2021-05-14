@@ -36,7 +36,7 @@ class ComputeKERigid : public Compute {
   char *rfix;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

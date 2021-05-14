@@ -25,29 +25,28 @@ PairStyle(mliap,PairMLIAP);
 namespace LAMMPS_NS {
 
 class PairMLIAP : public Pair {
-public:
+ public:
   PairMLIAP(class LAMMPS *);
   ~PairMLIAP();
   virtual void compute(int, int);
   void settings(int, char **);
   virtual void coeff(int, char **);
-  void e_tally(class MLIAPData*);
-  void v_tally(int, int, double*, double*);
+  void e_tally(class MLIAPData *);
+  void v_tally(int, int, double *, double *);
   virtual void init_style();
   virtual double init_one(int, int);
   virtual double memory_usage();
-  int *map;                     // mapping from atom types to elements
+  int *map;    // mapping from atom types to elements
 
-protected:
+ protected:
   virtual void allocate();
 
-  class MLIAPModel* model;
-  class MLIAPDescriptor* descriptor;
+  class MLIAPModel *model;
+  class MLIAPDescriptor *descriptor;
   class MLIAPData *data;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-

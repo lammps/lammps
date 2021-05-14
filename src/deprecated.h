@@ -32,11 +32,11 @@ namespace LAMMPS_NS {
 
 class Deprecated : public Command {
  public:
-  Deprecated(class LAMMPS *lmp) : Command(lmp) {};
+  Deprecated(class LAMMPS *lmp) : Command(lmp){};
   void command(int, char **);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

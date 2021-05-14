@@ -38,26 +38,26 @@ class PairSpinExchange : public PairSpin {
 
   void compute_exchange(int, int, double, double *, double *);
   void compute_exchange_mech(int, int, double, double *, double *, double *, double *);
-  double compute_energy(int , int , double , double *, double *);
+  double compute_energy(int, int, double, double *, double *);
 
   void write_restart(FILE *);
   void read_restart(FILE *);
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
 
-  double cut_spin_exchange_global;      // global exchange cutoff distance
+  double cut_spin_exchange_global;    // global exchange cutoff distance
 
  protected:
-  int e_offset;                         // apply energy offset
-  double **J1_mag;                      // exchange coeffs in eV
-  double **J1_mech;                     // mech exchange coeffs in
-  double **J2, **J3;                    // J1 in eV, J2 adim, J3 in Ang
-  double **cut_spin_exchange;           // cutoff distance exchange
+  int e_offset;                  // apply energy offset
+  double **J1_mag;               // exchange coeffs in eV
+  double **J1_mech;              // mech exchange coeffs in
+  double **J2, **J3;             // J1 in eV, J2 adim, J3 in Ang
+  double **cut_spin_exchange;    // cutoff distance exchange
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

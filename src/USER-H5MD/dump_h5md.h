@@ -21,19 +21,19 @@ DumpStyle(h5md,DumpH5MD);
 #ifndef LMP_DUMP_H5MD_H
 #define LMP_DUMP_H5MD_H
 
-#include "dump.h"
 #include "ch5md.h"
+#include "dump.h"
 
 namespace LAMMPS_NS {
 
 class DumpH5MD : public Dump {
  public:
-  DumpH5MD(class LAMMPS *, int, char**);
+  DumpH5MD(class LAMMPS *, int, char **);
   virtual ~DumpH5MD();
 
  private:
-  int natoms,ntotal;
-  int unwrap_flag;            // 1 if atom coords are unwrapped, 0 if no
+  int natoms, ntotal;
+  int unwrap_flag;    // 1 if atom coords are unwrapped, 0 if no
   h5md_file datafile;
   int datafile_from_dump;
   h5md_particles_group particles_data;
@@ -68,7 +68,7 @@ class DumpH5MD : public Dump {
   void write_fixed_frame();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

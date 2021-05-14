@@ -41,7 +41,7 @@ class ComputeContactAtom : public Compute {
   double *contact;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

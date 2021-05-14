@@ -37,13 +37,13 @@ class FixNVELimit : public Fix {
   double compute_scalar();
 
  private:
-  double dtv,dtf;
+  double dtv, dtf;
   double *step_respa;
   int ncount;
-  double xlimit,vlimitsq;
+  double xlimit, vlimitsq;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

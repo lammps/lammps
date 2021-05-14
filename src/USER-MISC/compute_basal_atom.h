@@ -34,7 +34,7 @@ class ComputeBasalAtom : public Compute {
   double memory_usage();
 
  private:
-  int nmax,maxneigh;
+  int nmax, maxneigh;
   double *distsq;
   int *nearest, *nearest_n0, *nearest_n1;
   double **BPV;
@@ -44,7 +44,7 @@ class ComputeBasalAtom : public Compute {
   void select2(int, int, double *, int *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

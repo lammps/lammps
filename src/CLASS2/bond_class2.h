@@ -38,12 +38,12 @@ class BondClass2 : public Bond {
   virtual void *extract(const char *, int &);
 
  protected:
-  double *r0,*k2,*k3,*k4;
+  double *r0, *k2, *k3, *k4;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

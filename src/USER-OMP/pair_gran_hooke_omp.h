@@ -38,11 +38,10 @@ class PairGranHookeOMP : public PairGranHooke, public ThrOMP {
   virtual double memory_usage();
 
  private:
-  template <int EVFLAG, int NEWTON_PAIR>
-  void eval(int ifrom, int ito, ThrData * const thr);
+  template <int EVFLAG, int NEWTON_PAIR> void eval(int ifrom, int ito, ThrData *const thr);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

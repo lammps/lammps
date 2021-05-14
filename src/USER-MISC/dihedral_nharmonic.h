@@ -41,7 +41,7 @@ class DihedralNHarmonic : public Dihedral {
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

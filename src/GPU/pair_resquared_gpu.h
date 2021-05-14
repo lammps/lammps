@@ -42,7 +42,7 @@ class PairRESquaredGPU : public PairRESquared {
   double **quat;
 };
 
-}
+}    // namespace LAMMPS_NS
 #endif
 #endif
 

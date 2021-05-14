@@ -44,7 +44,7 @@ class MSMCGOMP : public MSMOMP {
   virtual void fieldforce_peratom();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

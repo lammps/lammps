@@ -38,11 +38,10 @@ class PairVashishtaTableOMP : public PairVashishtaTable, public ThrOMP {
   virtual double memory_usage();
 
  private:
-  template <int EVFLAG, int EFLAG>
-  void eval(int ifrom, int ito, ThrData * const thr);
+  template <int EVFLAG, int EFLAG> void eval(int ifrom, int ito, ThrData *const thr);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

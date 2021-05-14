@@ -47,20 +47,20 @@ class ComputeTempChunk : public Compute {
   double memory_usage();
 
  private:
-  int nchunk,maxchunk,comflag,biasflag;
+  int nchunk, maxchunk, comflag, biasflag;
   int nvalues;
   int *which;
   char *idchunk;
   class ComputeChunkAtom *cchunk;
-  double adof,cdof;
+  double adof, cdof;
   char *id_bias;
-  class Compute *tbias;     // ptr to additional bias compute
+  class Compute *tbias;    // ptr to additional bias compute
   bigint comstep;
 
-  double *sum,*sumall;
-  int *count,*countall;
-  double *massproc,*masstotal;
-  double **vcm,**vcmall;
+  double *sum, *sumall;
+  int *count, *countall;
+  double *massproc, *masstotal;
+  double **vcm, **vcmall;
 
   void vcm_compute();
   void temperature(int);
@@ -69,7 +69,7 @@ class ComputeTempChunk : public Compute {
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

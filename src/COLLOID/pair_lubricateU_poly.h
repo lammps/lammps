@@ -43,7 +43,7 @@ class PairLubricateUPoly : public PairLubricateU {
   void compute_Fh(double **);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

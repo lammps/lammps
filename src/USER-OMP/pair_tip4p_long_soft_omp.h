@@ -42,12 +42,11 @@ class PairTIP4PLongSoftOMP : public PairTIP4PLongSoft, public ThrOMP {
   dbl3_t *newsite_thr;
   int3_t *hneigh_thr;
 
-  template < int, int, int > void eval(int, int, ThrData *const);
-  void compute_newsite_thr(const dbl3_t &, const dbl3_t &,
-                           const dbl3_t &, dbl3_t &) const;
+  template <int, int, int> void eval(int, int, ThrData *const);
+  void compute_newsite_thr(const dbl3_t &, const dbl3_t &, const dbl3_t &, dbl3_t &) const;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

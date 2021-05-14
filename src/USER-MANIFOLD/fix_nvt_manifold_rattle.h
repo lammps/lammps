@@ -31,7 +31,6 @@
 
 ------------------------------------------------------------------------- */
 
-
 #ifdef FIX_CLASS
 // clang-format off
 FixStyle(nvt/manifold/rattle,FixNVTManifoldRattle);
@@ -43,8 +42,6 @@ FixStyle(nvt/manifold/rattle,FixNVTManifoldRattle);
 
 #include "fix_nve_manifold_rattle.h"
 
-
-
 /*
   FixNVTManifoldRattle works by wrapping some Nose-Hoover thermostat routines
   around the time integration functions of FixNVEManifoldRattle.
@@ -53,50 +50,44 @@ namespace LAMMPS_NS {
 
 // namespace user_manifold {
 
-  class FixNVTManifoldRattle : public FixNVEManifoldRattle {
-   public:
-    FixNVTManifoldRattle(LAMMPS *, int, char **, int = 1);
-    virtual ~FixNVTManifoldRattle();
+class FixNVTManifoldRattle : public FixNVEManifoldRattle {
+ public:
+  FixNVTManifoldRattle(LAMMPS *, int, char **, int = 1);
+  virtual ~FixNVTManifoldRattle();
 
-    virtual void initial_integrate(int);
-    virtual void final_integrate();
-    virtual void init();
-    virtual void reset_dt();
-    virtual int setmask();
-    virtual void setup(int); // Not needed for fixNVE but is for fixNVT
-    virtual double memory_usage();
+  virtual void initial_integrate(int);
+  virtual void final_integrate();
+  virtual void init();
+  virtual void reset_dt();
+  virtual int setmask();
+  virtual void setup(int);    // Not needed for fixNVE but is for fixNVT
+  virtual double memory_usage();
 
+ protected:
+  void compute_temp_target();
+  void nhc_temp_integrate();
+  void nh_v_temp();
 
+  double dthalf, dt4, dt8;
 
-   protected:
+  char *id_temp;
+  class Compute *temperature;
+  double t_start, t_stop, t_period;
+  double t_current, t_target, ke_target;
+  double t_freq, drag, tdrag_factor;
+  double boltz, nktv2p, tdof;
+  double *eta, *eta_dot;
+  double *eta_dotdot;
+  double *eta_mass;
+  int mtchain;
+  double factor_eta;
+  int which, got_temp;
 
-    void compute_temp_target();
-    void nhc_temp_integrate();
-    void nh_v_temp();
+  const char *fix_id;
+};
+}    // namespace LAMMPS_NS
 
-    double dthalf, dt4, dt8;
-
-    char *id_temp;
-    class Compute* temperature;
-    double t_start,t_stop, t_period;
-    double t_current,t_target,ke_target;
-    double t_freq, drag, tdrag_factor;
-    double boltz,nktv2p,tdof;
-    double *eta,*eta_dot;
-    double *eta_dotdot;
-    double *eta_mass;
-    int mtchain;
-    double factor_eta;
-    int which, got_temp;
-
-    const char *fix_id;
-  };
-}
-
-
-
-
-#endif // LMP_FIX_NVE_MANIFOLD_RATTLE_H
+#endif    // LMP_FIX_NVE_MANIFOLD_RATTLE_H
 #endif
 
 /* ERROR/WARNING messages:

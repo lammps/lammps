@@ -41,7 +41,7 @@ class FixViscous : public Fix {
   int ilevel_respa;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

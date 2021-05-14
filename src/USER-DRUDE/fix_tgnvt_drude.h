@@ -24,13 +24,13 @@ FixStyle(tgnvt/drude,FixTGNVTDrude);
 
 namespace LAMMPS_NS {
 
-class FixTGNVTDrude: public FixTGNHDrude {
+class FixTGNVTDrude : public FixTGNHDrude {
  public:
   FixTGNVTDrude(class LAMMPS *, int, char **);
   ~FixTGNVTDrude() {}
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

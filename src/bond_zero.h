@@ -47,7 +47,7 @@ class BondZero : public Bond {
   virtual void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

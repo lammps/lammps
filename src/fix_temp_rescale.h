@@ -40,9 +40,9 @@ class FixTempRescale : public Fix {
 
  protected:
   int which;
-  double t_start,t_stop,t_window,t_target;
-  double fraction,energy,efactor;
-  int tstyle,tvar;
+  double t_start, t_stop, t_window, t_target;
+  double fraction, energy, efactor;
+  int tstyle, tvar;
   char *tstr;
 
   char *id_temp;
@@ -50,7 +50,7 @@ class FixTempRescale : public Fix {
   int tflag;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

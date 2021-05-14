@@ -32,7 +32,7 @@ class PairHybridScaled : public PairHybrid {
   PairHybridScaled(class LAMMPS *);
   virtual ~PairHybridScaled();
   virtual void compute(int, int);
-  virtual void settings(int, char**);
+  virtual void settings(int, char **);
   virtual void coeff(int, char **);
 
   virtual void write_restart(FILE *);
@@ -40,7 +40,7 @@ class PairHybridScaled : public PairHybrid {
   virtual double single(int, int, int, int, double, double, double, double &);
 
   void init_svector();
-  void copy_svector(int,int);
+  void copy_svector(int, int);
 
  protected:
   double **fsum, **tsum;
@@ -50,7 +50,7 @@ class PairHybridScaled : public PairHybrid {
   int nmaxfsum;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

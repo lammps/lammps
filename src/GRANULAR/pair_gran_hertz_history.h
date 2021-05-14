@@ -32,7 +32,7 @@ class PairGranHertzHistory : public PairGranHookeHistory {
   double single(int, int, int, int, double, double, double, double &);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -28,12 +28,10 @@ class PairOxrna2Dh : public PairOxdna2Dh {
  public:
   PairOxrna2Dh(class LAMMPS *);
   virtual ~PairOxrna2Dh();
-  virtual void compute_interaction_sites(double *, double *, double *,
-    double *);
-
+  virtual void compute_interaction_sites(double *, double *, double *, double *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

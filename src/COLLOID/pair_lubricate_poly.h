@@ -32,7 +32,7 @@ class PairLubricatePoly : public PairLubricate {
   void init_style();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

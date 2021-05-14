@@ -29,7 +29,7 @@ class AtomVecCharge : public AtomVec {
   AtomVecCharge(class LAMMPS *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

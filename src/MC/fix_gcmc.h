@@ -59,34 +59,34 @@ class FixGCMC : public Fix {
   void grow_molecule_arrays(int);
 
  private:
-  int molecule_group,molecule_group_bit;
+  int molecule_group, molecule_group_bit;
   int molecule_group_inversebit;
-  int exclusion_group,exclusion_group_bit;
-  int ngcmc_type,nevery,seed;
-  int ncycles,nexchanges,nmcmoves;
+  int exclusion_group, exclusion_group_bit;
+  int ngcmc_type, nevery, seed;
+  int ncycles, nexchanges, nmcmoves;
   double patomtrans, pmoltrans, pmolrotate, pmctot;
-  int ngas;                 // # of gas atoms on all procs
-  int ngas_local;           // # of gas atoms on this proc
-  int ngas_before;          // # of gas atoms on procs < this proc
-  int exchmode;             // exchange ATOM or MOLECULE
-  int movemode;             // move ATOM or MOLECULE
-  int regionflag;           // 0 = anywhere in box, 1 = specific region
-  int iregion;              // gcmc region
-  char *idregion;           // gcmc region id
-  bool pressure_flag;       // true if user specified reservoir pressure
-  bool charge_flag;         // true if user specified atomic charge
-  bool full_flag;           // true if doing full system energy calculations
+  int ngas;              // # of gas atoms on all procs
+  int ngas_local;        // # of gas atoms on this proc
+  int ngas_before;       // # of gas atoms on procs < this proc
+  int exchmode;          // exchange ATOM or MOLECULE
+  int movemode;          // move ATOM or MOLECULE
+  int regionflag;        // 0 = anywhere in box, 1 = specific region
+  int iregion;           // gcmc region
+  char *idregion;        // gcmc region id
+  bool pressure_flag;    // true if user specified reservoir pressure
+  bool charge_flag;      // true if user specified atomic charge
+  bool full_flag;        // true if doing full system energy calculations
 
-  int natoms_per_molecule;  // number of atoms in each inserted molecule
-  int nmaxmolatoms;         // number of atoms allocated for molecule arrays
+  int natoms_per_molecule;    // number of atoms in each inserted molecule
+  int nmaxmolatoms;           // number of atoms allocated for molecule arrays
 
-  int groupbitall;          // group bitmask for inserted atoms
-  int ngroups;              // number of group-ids for inserted atoms
-  char** groupstrings;      // list of group-ids for inserted atoms
-  int ngrouptypes;          // number of type-based group-ids for inserted atoms
-  char** grouptypestrings;  // list of type-based group-ids for inserted atoms
-  int* grouptypebits;       // list of type-based group bitmasks
-  int* grouptypes;          // list of type-based group types
+  int groupbitall;            // group bitmask for inserted atoms
+  int ngroups;                // number of group-ids for inserted atoms
+  char **groupstrings;        // list of group-ids for inserted atoms
+  int ngrouptypes;            // number of type-based group-ids for inserted atoms
+  char **grouptypestrings;    // list of type-based group-ids for inserted atoms
+  int *grouptypebits;         // list of type-based group bitmasks
+  int *grouptypes;            // list of type-based group types
   double ntranslation_attempts;
   double ntranslation_successes;
   double nrotation_attempts;
@@ -104,20 +104,20 @@ class FixGCMC : public Fix {
   double chemical_potential;
   double displace;
   double max_rotation_angle;
-  double beta,zz,sigma,volume;
-  double pressure,fugacity_coeff,charge;
-  double xlo,xhi,ylo,yhi,zlo,zhi;
-  double region_xlo,region_xhi,region_ylo,region_yhi,region_zlo,region_zhi;
+  double beta, zz, sigma, volume;
+  double pressure, fugacity_coeff, charge;
+  double xlo, xhi, ylo, yhi, zlo, zhi;
+  double region_xlo, region_xhi, region_ylo, region_yhi, region_zlo, region_zhi;
   double region_volume;
-  double energy_stored;  // full energy of old/current configuration
-  double *sublo,*subhi;
+  double energy_stored;    // full energy of old/current configuration
+  double *sublo, *subhi;
   int *local_gas_list;
   double **cutsq;
   double **molcoords;
   double *molq;
   imageint *molimage;
   imageint imagezero;
-  double overlap_cutoffsq; // square distance cutoff for overlap
+  double overlap_cutoffsq;    // square distance cutoff for overlap
   int overlap_flag;
   int max_ngas;
   int min_ngas;
@@ -132,18 +132,18 @@ class FixGCMC : public Fix {
   class Atom *model_atom;
 
   class Molecule **onemols;
-  int imol,nmol;
+  int imol, nmol;
   class Fix *fixrigid, *fixshake;
   int rigidflag, shakeflag;
   char *idrigid, *idshake;
-  int triclinic;                         // 0 = orthog box, 1 = triclinic
+  int triclinic;    // 0 = orthog box, 1 = triclinic
 
   class Compute *c_pe;
 
   void options(int, char **);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

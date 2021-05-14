@@ -37,12 +37,12 @@ class AngleFourierSimple : public Angle {
   virtual double single(int, int, int, int);
 
  protected:
-  double *k,*C,*N;
+  double *k, *C, *N;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

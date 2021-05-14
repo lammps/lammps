@@ -47,7 +47,7 @@ class PairMorseSmoothLinear : public Pair {
  protected:
   double cut_global;
   double **cut;
-  double **d0,**alpha,**r0;
+  double **d0, **alpha, **r0;
   double **morse1;
   double **der_at_cutoff;
   double **offset;
@@ -55,7 +55,7 @@ class PairMorseSmoothLinear : public Pair {
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

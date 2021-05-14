@@ -33,11 +33,11 @@ class RegPlane : public Region {
   int surface_exterior(double *, double);
 
  private:
-  double xp,yp,zp;
+  double xp, yp, zp;
   double normal[3];
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

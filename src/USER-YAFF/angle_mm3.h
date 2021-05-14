@@ -37,12 +37,12 @@ class AngleMM3 : public Angle {
   double single(int, int, int, int);
 
  protected:
-  double *theta0,*k2;
+  double *theta0, *k2;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

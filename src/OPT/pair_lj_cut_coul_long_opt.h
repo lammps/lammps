@@ -30,12 +30,10 @@ class PairLJCutCoulLongOpt : public PairLJCutCoulLong {
   virtual void compute(int, int);
 
  protected:
-  template <const int EVFLAG, const int EFLAG,
-            const int NEWTON_PAIR, const int CTABLE >
-  void eval();
+  template <const int EVFLAG, const int EFLAG, const int NEWTON_PAIR, const int CTABLE> void eval();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -41,7 +41,7 @@ class DumpAtomGZ : public DumpAtom {
   virtual int modify_param(int, char **);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

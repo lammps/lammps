@@ -36,10 +36,10 @@ class AtomVecTemplate : public AtomVec {
   void data_atom_post(int);
 
  private:
-  int *molindex,*molatom;
+  int *molindex, *molatom;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

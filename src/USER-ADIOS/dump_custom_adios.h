@@ -22,31 +22,29 @@ DumpStyle(custom/adios, DumpCustomADIOS);
 
 #include "dump_custom.h"
 
-namespace LAMMPS_NS
-{
+namespace LAMMPS_NS {
 
 class DumpCustomADIOSInternal;
 
-class DumpCustomADIOS : public DumpCustom
-{
-public:
-    DumpCustomADIOS(class LAMMPS *, int, char **);
-    virtual ~DumpCustomADIOS();
+class DumpCustomADIOS : public DumpCustom {
+ public:
+  DumpCustomADIOS(class LAMMPS *, int, char **);
+  virtual ~DumpCustomADIOS();
 
-protected:
-    virtual void openfile();
-    virtual void write();
-    virtual void init_style();
+ protected:
+  virtual void openfile();
+  virtual void write();
+  virtual void init_style();
 
-private:
-    DumpCustomADIOSInternal *internal;
+ private:
+  DumpCustomADIOSInternal *internal;
 };
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
 
-    /* ERROR/WARNING messages:
+/* ERROR/WARNING messages:
 
     E: Cannot open dump file %s
 

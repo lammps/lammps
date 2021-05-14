@@ -33,13 +33,13 @@ class ComputePair : public Compute {
   void compute_vector();
 
  private:
-  int evalue,npair,nsub;
+  int evalue, npair, nsub;
   char *pstyle;
   class Pair *pair;
   double *one;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

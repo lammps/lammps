@@ -43,10 +43,10 @@ class PairLJCutDipoleLong : public Pair {
 
  protected:
   double cut_lj_global;
-  double **cut_lj,**cut_ljsq;
+  double **cut_lj, **cut_ljsq;
   double cut_coulsq;
   double **epsilon;
-  double **lj1,**lj2,**lj3,**lj4,**offset;
+  double **lj1, **lj2, **lj3, **lj4, **offset;
   double g_ewald;
   int ewald_order;
   virtual void *extract(const char *, int &);
@@ -54,7 +54,7 @@ class PairLJCutDipoleLong : public Pair {
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -31,7 +31,7 @@ class PairREBO : public PairAIREBO {
   void spline_init();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

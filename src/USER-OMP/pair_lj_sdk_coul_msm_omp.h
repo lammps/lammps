@@ -39,10 +39,10 @@ class PairLJSDKCoulMSMOMP : public PairLJSDKCoulMSM, public ThrOMP {
 
  private:
   template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
-  void eval_msm_thr(int ifrom, int ito, ThrData * const thr);
+  void eval_msm_thr(int ifrom, int ito, ThrData *const thr);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

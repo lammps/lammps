@@ -42,16 +42,16 @@ class PairBornCoulWolf : public Pair {
   double single(int, int, int, int, double, double, double, double &);
 
  protected:
-  double cut_lj_global,alf;
-  double **cut_lj,**cut_ljsq;
-  double cut_coul,cut_coulsq;
-  double **a,**rho,**sigma,**c,**d;
-  double **rhoinv,**born1,**born2,**born3,**offset;
+  double cut_lj_global, alf;
+  double **cut_lj, **cut_ljsq;
+  double cut_coul, cut_coulsq;
+  double **a, **rho, **sigma, **c, **d;
+  double **rhoinv, **born1, **born2, **born3, **offset;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

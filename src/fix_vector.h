@@ -33,22 +33,22 @@ class FixVector : public Fix {
   void setup(int);
   void end_of_step();
   double compute_vector(int);
-  double compute_array(int,int);
+  double compute_array(int, int);
 
  private:
   int nvalues;
-  int *which,*argindex,*value2index;
+  int *which, *argindex, *value2index;
   char **ids;
 
-  bigint nextstep,initialstep;
+  bigint nextstep, initialstep;
 
-  int ncount;        // # of values currently in growing vector or array
-  int ncountmax;     // max # of values vector/array can hold
+  int ncount;       // # of values currently in growing vector or array
+  int ncountmax;    // max # of values vector/array can hold
   double *vector;
   double **array;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

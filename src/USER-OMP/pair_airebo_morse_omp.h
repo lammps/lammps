@@ -30,7 +30,7 @@ class PairAIREBOMorseOMP : public PairAIREBOOMP {
   virtual void settings(int, char **);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

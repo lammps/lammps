@@ -38,7 +38,7 @@ class AngleDeprecated : public Angle {
   virtual double single(int, int, int, int) { return 0.0; }
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -37,7 +37,7 @@ class ComputeKEAtom : public Compute {
   double *ke;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

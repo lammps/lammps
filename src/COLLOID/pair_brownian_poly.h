@@ -33,7 +33,7 @@ class PairBrownianPoly : public PairBrownian {
   void init_style();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

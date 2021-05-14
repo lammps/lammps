@@ -32,19 +32,19 @@ class ResetMolIDs : public Command {
   void create_computes(char *, char *);
   void reset();
 
-private:
+ private:
   std::string idfrag, idchunk;
   int nchunk;
   int groupbit;
-  int compressflag; // 1 = contiguous values for new IDs
-  int singleflag; // 0 = mol IDs of single atoms set to 0
-  tagint offset; // offset for contiguous mol ID values
+  int compressflag;    // 1 = contiguous values for new IDs
+  int singleflag;      // 0 = mol IDs of single atoms set to 0
+  tagint offset;       // offset for contiguous mol ID values
 
   class ComputeFragmentAtom *cfa;
   class ComputeChunkAtom *cca;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

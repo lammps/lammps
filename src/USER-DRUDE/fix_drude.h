@@ -24,15 +24,15 @@ FixStyle(drude,FixDrude);
 #include <set>
 
 #define NOPOL_TYPE 0
-#define CORE_TYPE  1
+#define CORE_TYPE 1
 #define DRUDE_TYPE 2
 
 namespace LAMMPS_NS {
 
 class FixDrude : public Fix {
  public:
-  int * drudetype;
-  tagint * drudeid;
+  int *drudetype;
+  tagint *drudeid;
   bool is_reduced;
 
   FixDrude(class LAMMPS *, int, char **);
@@ -48,9 +48,9 @@ class FixDrude : public Fix {
   int pack_border(int n, int *list, double *buf);
   int unpack_border(int n, int first, double *buf);
 
-private:
+ private:
   int rebuildflag;
-  std::set<tagint> * partner_set;
+  std::set<tagint> *partner_set;
 
   void build_drudeid();
   static void ring_search_drudeid(int size, char *cbuf, void *ptr);
@@ -61,8 +61,7 @@ private:
   static void ring_copy_drude(int size, char *cbuf, void *ptr);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-

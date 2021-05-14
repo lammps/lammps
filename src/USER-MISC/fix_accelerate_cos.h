@@ -28,12 +28,12 @@ FixStyle(accelerate/cos,FixAccelerateCos);
 
 namespace LAMMPS_NS {
 
-class FixAccelerateCos: public Fix {
+class FixAccelerateCos : public Fix {
  public:
   FixAccelerateCos(class LAMMPS *, int, char **);
-  virtual ~FixAccelerateCos() {};
+  virtual ~FixAccelerateCos(){};
   int setmask();
-  virtual void init() {};
+  virtual void init(){};
   void setup(int);
   virtual void post_force(int);
 
@@ -41,7 +41,7 @@ class FixAccelerateCos: public Fix {
   double acceleration;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

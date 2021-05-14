@@ -43,16 +43,16 @@ class PairWFCut : public Pair {
   void *extract(const char *, int &);
 
  protected:
-  int    **nu,**mu;
+  int **nu, **mu;
   double cut_global;
   double **cut;
-  double **epsilon,**sigma;
-  double **nm,**e0nm,**rcmu,**sigma_mu,**offset;
+  double **epsilon, **sigma;
+  double **nm, **e0nm, **rcmu, **sigma_mu, **offset;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

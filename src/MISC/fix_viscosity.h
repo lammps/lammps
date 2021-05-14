@@ -35,19 +35,19 @@ class FixViscosity : public Fix {
 
  private:
   int me;
-  int vdim,pdim,nbin,periodicity;
+  int vdim, pdim, nbin, periodicity;
   int nswap;
   double vtarget;
-  double prd,boxlo,boxhi;
-  double slablo_lo,slablo_hi,slabhi_lo,slabhi_hi;
+  double prd, boxlo, boxhi;
+  double slablo_lo, slablo_hi, slabhi_lo, slabhi_hi;
   double p_exchange;
 
-  int npositive,nnegative;
-  int *pos_index,*neg_index;
-  double *pos_delta,*neg_delta;
+  int npositive, nnegative;
+  int *pos_index, *neg_index;
+  double *pos_delta, *neg_delta;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

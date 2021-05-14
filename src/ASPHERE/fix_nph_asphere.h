@@ -30,7 +30,7 @@ class FixNPHAsphere : public FixNHAsphere {
   ~FixNPHAsphere() {}
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

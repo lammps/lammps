@@ -20,8 +20,8 @@ BodyStyle(rounded/polygon,BodyRoundedPolygon);
 #ifndef LMP_BODY_ROUNDED_POLYGON_H
 #define LMP_BODY_ROUNDED_POLYGON_H
 
-#include "body.h"
 #include "atom_vec_body.h"
+#include "body.h"
 
 namespace LAMMPS_NS {
 
@@ -53,7 +53,7 @@ class BodyRoundedPolygon : public Body {
   double **imdata;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

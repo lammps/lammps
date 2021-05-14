@@ -38,7 +38,7 @@ class FixEDPDSource : public Fix {
   double value;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

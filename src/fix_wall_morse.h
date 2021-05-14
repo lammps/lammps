@@ -31,10 +31,10 @@ class FixWallMorse : public FixWall {
   void wall_particle(int, int, double);
 
  private:
-  double coeff1[6],offset[6];
+  double coeff1[6], offset[6];
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

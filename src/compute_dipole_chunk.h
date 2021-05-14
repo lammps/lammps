@@ -40,20 +40,20 @@ class ComputeDipoleChunk : public Compute {
   double memory_usage();
 
  private:
-  int nchunk,maxchunk;
+  int nchunk, maxchunk;
   char *idchunk;
   class ComputeChunkAtom *cchunk;
 
-  double *massproc,*masstotal;
-  double *chrgproc,*chrgtotal;
-  double **com,**comall;
-  double **dipole,**dipoleall;
+  double *massproc, *masstotal;
+  double *chrgproc, *chrgtotal;
+  double **com, **comall;
+  double **dipole, **dipoleall;
   int usecenter;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

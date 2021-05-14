@@ -32,7 +32,7 @@ class FixNVEOMP : public FixNVE {
   virtual void final_integrate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

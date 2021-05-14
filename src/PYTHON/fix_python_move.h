@@ -48,10 +48,10 @@ class FixPythonMove : public Fix {
   virtual void reset_dt();
 
  protected:
-  void * py_move;
+  void *py_move;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

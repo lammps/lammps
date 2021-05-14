@@ -69,11 +69,11 @@ class FixPrecessionSpin : public Fix {
 
   // storing magnetic energies
 
-  int nlocal_max;               // max nlocal (for list size)
-  double *emag;                 // energy list
+  int nlocal_max;    // max nlocal (for list size)
+  double *emag;      // energy list
 
  protected:
-  int style;                    // style of the magnetic precession
+  int style;    // style of the magnetic precession
 
   double degree2rad;
   double hbar;
@@ -91,7 +91,7 @@ class FixPrecessionSpin : public Fix {
 
   double H_field;
   double nhx, nhy, nhz;
-  double hx, hy, hz;            // temp. force variables
+  double hx, hy, hz;    // temp. force variables
 
   // STT intensity and direction
 
@@ -101,31 +101,30 @@ class FixPrecessionSpin : public Fix {
 
   // magnetic anisotropy intensity and direction
 
-  double Ka;                    // aniso const. in eV
-  double Kah;                   // aniso const. in rad.THz
+  double Ka;     // aniso const. in eV
+  double Kah;    // aniso const. in rad.THz
   double nax, nay, naz;
-  double Kax, Kay, Kaz;         // temp. force variables
+  double Kax, Kay, Kaz;    // temp. force variables
 
   // cubic anisotropy intensity
 
-  double k1c,k2c;               // cubic const. in eV
-  double k1ch,k2ch;             // cubic const. in rad.THz
-  double nc1x,nc1y,nc1z;
-  double nc2x,nc2y,nc2z;
-  double nc3x,nc3y,nc3z;
+  double k1c, k2c;      // cubic const. in eV
+  double k1ch, k2ch;    // cubic const. in rad.THz
+  double nc1x, nc1y, nc1z;
+  double nc2x, nc2y, nc2z;
+  double nc3x, nc3y, nc3z;
 
   // hexagonal anisotropy
   double K6;               // hexagonal aniso const. in eV
-  double K6h;               // hexagonal aniso const. in rad.THz
-  double n6x,n6y,n6z;       // main axis
-  double m6x,m6y,m6z;       // secondary (perpendicular) axis
-  double l6x,l6y,l6z;       // =(m x n)
+  double K6h;              // hexagonal aniso const. in rad.THz
+  double n6x, n6y, n6z;    // main axis
+  double m6x, m6y, m6z;    // secondary (perpendicular) axis
+  double l6x, l6y, l6z;    // =(m x n)
 
   void set_magneticprecession();
-
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

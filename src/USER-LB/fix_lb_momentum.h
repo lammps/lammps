@@ -33,13 +33,13 @@ class FixLbMomentum : public Fix {
 
  private:
   int linear;
-  int xflag,yflag,zflag;
+  int xflag, yflag, zflag;
   double masstotal;
 
   class FixLbFluid *fix_lb_fluid;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -20,14 +20,14 @@ ComputeStyle(reduce,ComputeReduce);
 #ifndef LMP_COMPUTE_REDUCE_H
 #define LMP_COMPUTE_REDUCE_H
 
-#include "compute.h"  // IWYU pragma: export
+#include "compute.h"    // IWYU pragma: export
 
 namespace LAMMPS_NS {
 
 class ComputeReduce : public Compute {
  public:
-  enum {SUM,SUMSQ,MINN,MAXX,AVE,AVESQ};
-  enum {PERATOM,LOCAL};
+  enum { SUM, SUMSQ, MINN, MAXX, AVE, AVESQ };
+  enum { PERATOM, LOCAL };
 
   ComputeReduce(class LAMMPS *, int, char **);
   virtual ~ComputeReduce();
@@ -38,11 +38,11 @@ class ComputeReduce : public Compute {
 
  protected:
   int me;
-  int mode,nvalues,iregion;
-  int *which,*argindex,*flavor,*value2index;
+  int mode, nvalues, iregion;
+  int *which, *argindex, *flavor, *value2index;
   char **ids;
   double *onevec;
-  int *replace,*indices,*owner;
+  int *replace, *indices, *owner;
   int index;
   char *idregion;
 
@@ -53,14 +53,14 @@ class ComputeReduce : public Compute {
     double value;
     int proc;
   };
-  Pair pairme,pairall;
+  Pair pairme, pairall;
 
   virtual double compute_one(int, int);
   virtual bigint count(int);
   void combine(double &, double, int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

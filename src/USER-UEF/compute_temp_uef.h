@@ -35,15 +35,13 @@ class ComputeTempUef : public ComputeTemp {
   void yes_rot();
   void no_rot();
 
-
  protected:
   bool rot_flag;
-  void virial_rot(double*,const double[3][3]);
+  void virial_rot(double *, const double[3][3]);
   int ifix_uef;
 };
 
-
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

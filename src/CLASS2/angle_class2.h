@@ -37,15 +37,15 @@ class AngleClass2 : public Angle {
   double single(int, int, int, int);
 
  protected:
-  double *theta0,*k2,*k3,*k4;
-  double *bb_k,*bb_r1,*bb_r2;
-  double *ba_k1,*ba_k2,*ba_r1,*ba_r2;
-  int *setflag_a,*setflag_bb,*setflag_ba;
+  double *theta0, *k2, *k3, *k4;
+  double *bb_k, *bb_r1, *bb_r2;
+  double *ba_k1, *ba_k2, *ba_r1, *ba_r2;
+  int *setflag_a, *setflag_bb, *setflag_ba;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

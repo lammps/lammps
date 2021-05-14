@@ -39,12 +39,12 @@ class BondGaussian : public Bond {
  protected:
   int *nterms;
   double *bond_temperature;
-  double **alpha,**width,**r0;
+  double **alpha, **width, **r0;
 
   virtual void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

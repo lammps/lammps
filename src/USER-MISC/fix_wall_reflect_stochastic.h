@@ -31,15 +31,15 @@ class FixWallReflectStochastic : public FixWallReflect {
 
  private:
   int seedfix;
-  double walltemp[6],wallvel[6][3],wallaccom[6][3];
+  double walltemp[6], wallvel[6][3], wallaccom[6][3];
   int rstyle;
 
   class RanMars *random;
 
-  void wall_particle(int m,int which, double coord);
+  void wall_particle(int m, int which, double coord);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

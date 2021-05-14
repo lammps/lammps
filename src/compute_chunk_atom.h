@@ -27,12 +27,12 @@ namespace LAMMPS_NS {
 
 class ComputeChunkAtom : public Compute {
  public:
-  int nchunk,ncoord,compress,idsflag,lockcount;
+  int nchunk, ncoord, compress, idsflag, lockcount;
   int computeflag;    // 1 if this compute invokes other computes
   double chunk_volume_scalar;
   double *chunk_volume_vec;
   double **coord;
-  int *ichunk,*chunkID;
+  int *ichunk, *chunkID;
 
   ComputeChunkAtom(class LAMMPS *, int, char **);
   ~ComputeChunkAtom();
@@ -49,39 +49,39 @@ class ComputeChunkAtom : public Compute {
   void compute_ichunk();
 
  private:
-  int which,binflag;
-  int regionflag,nchunksetflag,nchunkflag,discard;
-  int limit,limitstyle,limitfirst;
-  int scaleflag,pbcflag;
-  double xscale,yscale,zscale;
+  int which, binflag;
+  int regionflag, nchunksetflag, nchunkflag, discard;
+  int limit, limitstyle, limitfirst;
+  int scaleflag, pbcflag;
+  double xscale, yscale, zscale;
   int argindex;
   char *cfvid;
 
   // xyz spatial bins
 
   int ndim;
-  int dim[3],originflag[3],nlayers[3];
-  int minflag[3],maxflag[3];
-  double origin[3],delta[3];
-  double offset[3],invdelta[3];
-  double minvalue[3],maxvalue[3];
+  int dim[3], originflag[3], nlayers[3];
+  int minflag[3], maxflag[3];
+  double origin[3], delta[3];
+  double offset[3], invdelta[3];
+  double minvalue[3], maxvalue[3];
 
   // spherical spatial bins
 
   double sorigin_user[3];
   double sorigin[3];
-  double sradmin_user,sradmax_user;
-  double sradmin,sradmax,sinvrad;
+  double sradmin_user, sradmax_user;
+  double sradmin, sradmax, sinvrad;
   int nsbin;
 
   // cylindrical spatial bins
 
   double corigin_user[3];
   double corigin[3];
-  double cradmin_user,cradmax_user;
-  double cradmin,cradmax,cinvrad;
-  int cdim1,cdim2;
-  int ncbin,ncplane;
+  double cradmin_user, cradmax_user;
+  double cradmin, cradmax, cinvrad;
+  int cdim1, cdim2;
+  int ncbin, ncplane;
 
   char *idregion;
   class Region *region;
@@ -95,18 +95,18 @@ class ComputeChunkAtom : public Compute {
   char *id_fix;
   class FixStore *fixstore;
 
-  class Fix *lockfix;         // ptr to FixAveChunk that is locking out setups
-                              // null pointer if no lock currently in place
-  bigint lockstart,lockstop;  // timesteps for start and stop of locking
+  class Fix *lockfix;            // ptr to FixAveChunk that is locking out setups
+                                 // null pointer if no lock currently in place
+  bigint lockstart, lockstop;    // timesteps for start and stop of locking
 
-  bigint invoked_setup;    // last timestep setup_chunks and nchunk calculated
-  bigint invoked_ichunk;   // last timestep ichunk values calculated
-  int nmax,nmaxint;
+  bigint invoked_setup;     // last timestep setup_chunks and nchunk calculated
+  bigint invoked_ichunk;    // last timestep ichunk values calculated
+  int nmax, nmaxint;
   double *chunk;
 
-  int molcheck;              // one-time check if all molecule atoms in chunk
-  int *exclude;              // 1 if atom is not assigned to any chunk
-  std::map<tagint,int> *hash;   // store original chunks IDs before compression
+  int molcheck;                   // one-time check if all molecule atoms in chunk
+  int *exclude;                   // 1 if atom is not assigned to any chunk
+  std::map<tagint, int> *hash;    // store original chunks IDs before compression
 
   // callback function for ring communication
 
@@ -127,7 +127,7 @@ class ComputeChunkAtom : public Compute {
   void readdim(int, char **, int, int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

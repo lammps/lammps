@@ -35,12 +35,12 @@ class AtomVecEDPD : public AtomVec {
   void data_atom_post(int);
 
  private:
-  double *edpd_cv,*edpd_temp,*edpd_flux;
+  double *edpd_cv, *edpd_temp, *edpd_flux;
   double **vest;
   double *vest_temp;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

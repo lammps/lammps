@@ -44,10 +44,10 @@ class PairBuckCoulLong : public Pair {
 
  protected:
   double cut_lj_global;
-  double **cut_lj,**cut_ljsq;
-  double cut_coul,cut_coulsq;
-  double **a,**rho,**c;
-  double **rhoinv,**buck1,**buck2,**offset;
+  double **cut_lj, **cut_ljsq;
+  double cut_coul, cut_coulsq;
+  double **a, **rho, **c;
+  double **rhoinv, **buck1, **buck2, **offset;
 
   double *cut_respa;
   double g_ewald;
@@ -55,7 +55,7 @@ class PairBuckCoulLong : public Pair {
   virtual void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -40,18 +40,18 @@ class ComputeInertiaChunk : public Compute {
   double memory_usage();
 
  private:
-  int nchunk,maxchunk;
+  int nchunk, maxchunk;
   char *idchunk;
   class ComputeChunkAtom *cchunk;
 
-  double *massproc,*masstotal;
-  double **com,**comall;
-  double **inertia,**inertiaall;
+  double *massproc, *masstotal;
+  double **com, **comall;
+  double **inertia, **inertiaall;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

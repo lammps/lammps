@@ -30,7 +30,7 @@ class PairAIREBOMorse : public PairAIREBO {
   void settings(int, char **);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

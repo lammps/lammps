@@ -37,7 +37,7 @@ class PairEAMAlloyOMP : virtual public PairEAMOMP {
   void file2array();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

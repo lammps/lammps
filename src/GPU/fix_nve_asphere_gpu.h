@@ -46,7 +46,7 @@ class FixNVEAsphereGPU : public FixNVE {
   class AtomVecEllipsoid *avec;
 };
 
-}
+}    // namespace LAMMPS_NS
 #endif
 #endif
 

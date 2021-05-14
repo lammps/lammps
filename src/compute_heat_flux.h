@@ -32,11 +32,11 @@ class ComputeHeatFlux : public Compute {
   void compute_vector();
 
  private:
-  char *id_ke,*id_pe,*id_stress;
-  class Compute *c_ke,*c_pe,*c_stress;
+  char *id_ke, *id_pe, *id_stress;
+  class Compute *c_ke, *c_pe, *c_stress;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

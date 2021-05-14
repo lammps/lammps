@@ -43,16 +43,16 @@ class ComputeTempRamp : public Compute {
 
  private:
   int coord_dim;
-  double coord_lo,coord_hi;
+  double coord_lo, coord_hi;
   int v_dim;
-  double v_lo,v_hi;
+  double v_lo, v_hi;
   int scaleflag;
-  double tfactor,xscale,yscale,zscale;
+  double tfactor, xscale, yscale, zscale;
 
   void dof_compute();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

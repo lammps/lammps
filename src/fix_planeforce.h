@@ -35,10 +35,10 @@ class FixPlaneForce : public Fix {
   void min_post_force(int);
 
  private:
-  double xdir,ydir,zdir;
+  double xdir, ydir, zdir;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

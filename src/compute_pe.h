@@ -32,10 +32,10 @@ class ComputePE : public Compute {
   double compute_scalar();
 
  private:
-  int pairflag,bondflag,angleflag,dihedralflag,improperflag,kspaceflag,fixflag;
+  int pairflag, bondflag, angleflag, dihedralflag, improperflag, kspaceflag, fixflag;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

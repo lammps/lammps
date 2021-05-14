@@ -42,7 +42,7 @@ class AngleQuartic : public Angle {
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

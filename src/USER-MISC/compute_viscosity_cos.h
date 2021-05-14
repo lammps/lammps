@@ -52,7 +52,7 @@ class ComputeViscosityCos : public Compute {
   void calc_V();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

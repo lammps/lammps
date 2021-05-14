@@ -44,12 +44,12 @@ class PairLJClass2Soft : public Pair {
   double **cut;
   double **epsilon, **sigma, **lambda;
   double nlambda, alphalj;
-  double **lj1,**lj2,**lj3,**offset;
+  double **lj1, **lj2, **lj3, **offset;
 
   virtual void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

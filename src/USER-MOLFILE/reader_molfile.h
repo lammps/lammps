@@ -35,31 +35,31 @@ class ReaderMolfile : public Reader {
 
   virtual int read_time(bigint &);
   virtual void skip();
-  virtual bigint read_header(double [3][3], int &, int &, int, int, int *, char **,
-                             int, int, int &, int &, int &, int &);
+  virtual bigint read_header(double[3][3], int &, int &, int, int, int *, char **, int, int, int &,
+                             int &, int &, int &);
   virtual void read_atoms(int, int, double **);
 
   virtual void open_file(const char *);
   virtual void close_file();
 
-private:
-  int *fieldindex;         // mapping of input fields to dump
+ private:
+  int *fieldindex;    // mapping of input fields to dump
 
   class MolfileInterface *mf;
-  float *coords;           // pointer to temporary coordinate storage
-  float *vels;             // pointer to temporary velocity storage
-  int *types;              // pointer to temporary type info storage
-  float cell[6];           // box info (stored as, a, b, c, alpha, beta, gamma)
-  int natoms;              // current number of atoms
-  int needvels;            // 1 if velocities are required, otherwise 0
+  float *coords;    // pointer to temporary coordinate storage
+  float *vels;      // pointer to temporary velocity storage
+  int *types;       // pointer to temporary type info storage
+  float cell[6];    // box info (stored as, a, b, c, alpha, beta, gamma)
+  int natoms;       // current number of atoms
+  int needvels;     // 1 if velocities are required, otherwise 0
 
-  bigint nstep;            // current (time) step number
-  bigint nid;              // current atom id.
+  bigint nstep;    // current (time) step number
+  bigint nid;      // current atom id.
 
   int me;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

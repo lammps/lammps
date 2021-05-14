@@ -40,10 +40,10 @@ class FixStoreForce : public Fix {
  private:
   int nlevels_respa;
   int nmax;
-  double **foriginal;         // stored force on atoms
+  double **foriginal;    // stored force on atoms
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -38,7 +38,7 @@ class BondDeprecated : public Bond {
   virtual double single(int, double, int, int, double &) { return 0.0; }
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

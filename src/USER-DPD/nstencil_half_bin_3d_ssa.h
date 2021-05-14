@@ -33,7 +33,7 @@ class NStencilHalfBin3dSSA : public NStencilSSA {
   void create();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -37,12 +37,12 @@ class AngleCross : public Angle {
   double single(int, int, int, int);
 
  protected:
-  double *kss,*kbs0,*kbs1,*r00,*r01,*theta0;
+  double *kss, *kbs0, *kbs1, *r00, *r01, *theta0;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

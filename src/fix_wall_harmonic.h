@@ -31,7 +31,7 @@ class FixWallHarmonic : public FixWall {
   void wall_particle(int, int, double);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

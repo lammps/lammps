@@ -36,23 +36,22 @@ class PairAGNI : public Pair {
   virtual void init_style();
 
   struct Param {
-    double cut,cutsq;
-    double *eta,**xU,*alpha;
-    double sigma,lambda,b,gwidth;
-    int numeta,numtrain,ielement;
-
+    double cut, cutsq;
+    double *eta, **xU, *alpha;
+    double sigma, lambda, b, gwidth;
+    int numeta, numtrain, ielement;
   };
 
  protected:
-  double cutmax;                // max cutoff for all elements
-  int atomic_feature_version;   // version of fingerprint
-  Param *params;                // parameter set for an I-J interaction
+  double cutmax;                 // max cutoff for all elements
+  int atomic_feature_version;    // version of fingerprint
+  Param *params;                 // parameter set for an I-J interaction
   virtual void allocate();
   void read_file(char *);
   virtual void setup_params();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

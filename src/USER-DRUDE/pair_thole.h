@@ -43,14 +43,14 @@ class PairThole : public Pair {
  protected:
   double thole_global;
   double cut_global;
-  double **cut,**scale;
-  double **polar,**thole,**ascreen;
-  class FixDrude * fix_drude;
+  double **cut, **scale;
+  double **polar, **thole, **ascreen;
+  class FixDrude *fix_drude;
 
   virtual void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

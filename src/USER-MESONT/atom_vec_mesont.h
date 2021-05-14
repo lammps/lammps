@@ -31,7 +31,7 @@ class AtomVecMesoNT : public AtomVec {
   AtomVecMesoNT(class LAMMPS *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

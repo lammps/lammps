@@ -38,12 +38,12 @@ class BondMorse : public Bond {
   virtual void *extract(const char *, int &);
 
  protected:
-  double *d0,*alpha,*r0;
+  double *d0, *alpha, *r0;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

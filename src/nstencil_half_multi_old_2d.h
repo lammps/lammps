@@ -32,7 +32,7 @@ class NStencilHalfMultiOld2d : public NStencil {
   void create();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

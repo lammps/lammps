@@ -35,13 +35,13 @@ class Verlet : public Integrate {
   void cleanup();
 
  protected:
-  int triclinic;                    // 0 if domain is orthog, 1 if triclinic
-  int torqueflag,extraflag;
+  int triclinic;    // 0 if domain is orthog, 1 if triclinic
+  int torqueflag, extraflag;
 
   virtual void force_clear();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -37,15 +37,14 @@ class ImproperFourier : public Improper {
  protected:
   double *k, *C0, *C1, *C2;
   int *all;
-  void addone(const int &i1,const int &i2,const int &i3,const int &i4,
-              const int &type,const int &evflag,const int &eflag,
-              const double &vb1x, const double &vb1y, const double &vb1z,
-              const double &vb2x, const double &vb2y, const double &vb2z,
+  void addone(const int &i1, const int &i2, const int &i3, const int &i4, const int &type,
+              const int &evflag, const int &eflag, const double &vb1x, const double &vb1y,
+              const double &vb1z, const double &vb2x, const double &vb2y, const double &vb2z,
               const double &vb3x, const double &vb3y, const double &vb3z);
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

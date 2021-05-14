@@ -33,10 +33,10 @@ class AtomVecSpin : public AtomVec {
   void data_atom_post(int);
 
  private:
-  double **sp,**fm,**fm_long;
+  double **sp, **fm, **fm_long;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

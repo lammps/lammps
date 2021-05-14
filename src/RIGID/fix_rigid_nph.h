@@ -30,8 +30,7 @@ class FixRigidNPH : public FixRigidNH {
   ~FixRigidNPH() {}
 };
 
-
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -36,7 +36,7 @@ class FixNVTSllodEff : public FixNHEff {
   void nh_v_temp();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

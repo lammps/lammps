@@ -9,7 +9,6 @@
  *
  * ----------------------------------------------------------------------- */
 
-
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -47,18 +46,19 @@ class FixSMDIntegrateUlsph : public Fix {
 
  private:
   class NeighList *list;
+
  protected:
-  double dtv,dtf, vlimit, vlimitsq;
+  double dtv, dtf, vlimit, vlimitsq;
   int mass_require;
   bool xsphFlag;
   bool adjust_radius_flag;
   double adjust_radius_factor;
-  int min_nn, max_nn; // number of SPH neighbors should lie within this interval
+  int min_nn, max_nn;    // number of SPH neighbors should lie within this interval
 
   class Pair *pair;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

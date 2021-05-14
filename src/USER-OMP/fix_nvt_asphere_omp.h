@@ -30,7 +30,7 @@ class FixNVTAsphereOMP : public FixNHAsphereOMP {
   virtual ~FixNVTAsphereOMP() {}
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

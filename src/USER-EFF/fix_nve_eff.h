@@ -36,12 +36,12 @@ class FixNVEEff : public Fix {
   void reset_dt();
 
  protected:
-  double dtv,dtf;
+  double dtv, dtf;
   double *step_respa;
   int mass_require;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -40,17 +40,17 @@ class FixRestrain : public Fix {
 
  private:
   int ilevel_respa;
-  int nrestrain,maxrestrain;
+  int nrestrain, maxrestrain;
   int *rstyle;
   int *mult;
   tagint **ids;
-  double *kstart,*kstop,*deqstart,*deqstop,*target;
-  double *cos_target,*sin_target;
-  double energy,energy_all;
-  double ebond,ebond_all;
-  double elbound,elbound_all;
-  double eangle,eangle_all;
-  double edihed,edihed_all;
+  double *kstart, *kstop, *deqstart, *deqstop, *target;
+  double *cos_target, *sin_target;
+  double energy, energy_all;
+  double ebond, ebond_all;
+  double elbound, elbound_all;
+  double eangle, eangle_all;
+  double edihed, edihed_all;
 
   void restrain_bond(int);
   void restrain_lbound(int);
@@ -58,7 +58,7 @@ class FixRestrain : public Fix {
   void restrain_dihedral(int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

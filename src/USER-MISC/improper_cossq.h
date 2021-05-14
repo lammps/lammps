@@ -39,7 +39,7 @@ class ImproperCossq : public Improper {
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

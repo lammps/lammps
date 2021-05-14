@@ -30,10 +30,10 @@ class PairLJCutOpt : public PairLJCut {
   void compute(int, int);
 
  private:
-  template < int EVFLAG, int EFLAG, int NEWTON_PAIR > void eval();
+  template <int EVFLAG, int EFLAG, int NEWTON_PAIR> void eval();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -36,7 +36,7 @@ class FixDPDenergy : public Fix {
   class PairDPDfdtEnergy *pairDPDE;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

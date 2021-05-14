@@ -26,14 +26,13 @@ namespace LAMMPS_NS {
 
 class FixNVESphereOMP : public FixNVESphere {
  public:
-  FixNVESphereOMP(class LAMMPS *lmp, int narg, char **arg) :
-    FixNVESphere(lmp, narg, arg) {};
+  FixNVESphereOMP(class LAMMPS *lmp, int narg, char **arg) : FixNVESphere(lmp, narg, arg){};
 
   virtual void initial_integrate(int);
   virtual void final_integrate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

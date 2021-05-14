@@ -37,15 +37,15 @@ class FixTempRescaleEff : public Fix {
 
  protected:
   int which;
-  double t_start,t_stop,t_window;
-  double fraction,energy,efactor;
+  double t_start, t_stop, t_window;
+  double fraction, energy, efactor;
 
   char *id_temp;
   class Compute *temperature;
   int tflag;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

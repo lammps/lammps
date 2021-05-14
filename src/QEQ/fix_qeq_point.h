@@ -34,9 +34,8 @@ class FixQEqPoint : public FixQEq {
  private:
   void init_matvec();
   void compute_H();
-
 };
-}
+}    // namespace LAMMPS_NS
 #endif
 #endif
 

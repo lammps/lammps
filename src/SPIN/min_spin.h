@@ -37,22 +37,21 @@ class MinSpin : public Min {
   void advance_spins(double);
 
  private:
-
   // global and spin timesteps
 
   double dt;
   double dts;
 
-  double alpha_damp;            // damping for spin minimization
-  double discrete_factor;       // factor for spin timestep evaluation
+  double alpha_damp;         // damping for spin minimization
+  double discrete_factor;    // factor for spin timestep evaluation
 
-  double *spvec;               // variables for atomic dof, as 1d vector
-  double *fmvec;               // variables for atomic dof, as 1d vector
+  double *spvec;    // variables for atomic dof, as 1d vector
+  double *fmvec;    // variables for atomic dof, as 1d vector
 
   bigint last_negative;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

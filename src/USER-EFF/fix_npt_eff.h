@@ -30,7 +30,7 @@ class FixNPTEff : public FixNHEff {
   ~FixNPTEff() {}
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

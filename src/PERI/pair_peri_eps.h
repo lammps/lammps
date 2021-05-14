@@ -53,7 +53,7 @@ class PairPeriEPS : public Pair {
   double **bulkmodulus;
   double **shearmodulus;
   double **s00, **alpha;
-  double **cut, **m_yieldstress;   //NEW: **m_yieldstress
+  double **cut, **m_yieldstress;    //NEW: **m_yieldstress
 
   double *s0_new;
   int nmax;
@@ -61,7 +61,7 @@ class PairPeriEPS : public Pair {
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

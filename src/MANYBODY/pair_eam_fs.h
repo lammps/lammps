@@ -38,7 +38,7 @@ class PairEAMFS : virtual public PairEAM {
   int he_flag;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

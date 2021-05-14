@@ -34,10 +34,10 @@ class PairTersoffMODCOMP : public PairTersoffMODC, public ThrOMP {
 
  private:
   template <int SHIFT_FLAG, int EVFLAG, int EFLAG, int VFLAG_ATOM>
-  void eval(int ifrom, int ito, ThrData * const thr);
+  void eval(int ifrom, int ito, ThrData *const thr);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

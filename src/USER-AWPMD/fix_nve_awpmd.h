@@ -40,14 +40,14 @@ class FixNVEAwpmd : public Fix {
   void reset_dt();
 
  protected:
-  double dtv,dtf;
+  double dtv, dtf;
   double *step_respa;
   int mass_require;
 
   class PairAWPMDCut *awpmd_pair;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -38,20 +38,20 @@ class PairLebedevaZ : public Pair {
   int me;
 
   struct Param {
-    double z0,A,B,C,alpha,D1,D2,lambda1,lambda2,S;
-    double z02,z06;
-    int ielement,jelement;
+    double z0, A, B, C, alpha, D1, D2, lambda1, lambda2, S;
+    double z02, z06;
+    int ielement, jelement;
   };
-  Param *params;       // parameter set for I-J interactions
+  Param *params;    // parameter set for I-J interactions
 
   double cut_global;
   double **cut;
   double **offset;
-  void read_file( char * );
+  void read_file(char *);
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
@@ -74,4 +74,3 @@ All pair coefficients must be set in the data file or by the
 pair_coeff command before running a simulation.
 
 */
-

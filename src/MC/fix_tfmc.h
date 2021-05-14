@@ -44,7 +44,7 @@ class FixTFMC : public Fix {
   class RanMars *random_num;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

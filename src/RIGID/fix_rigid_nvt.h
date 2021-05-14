@@ -30,7 +30,7 @@ class FixRigidNVT : public FixRigidNH {
   ~FixRigidNVT() {}
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

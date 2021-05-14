@@ -36,15 +36,15 @@ class PairVashishtaTable : public PairVashishta {
   int ntable;
   double deltaR2;
   double oneOverDeltaR2;
-  double ***forceTable;         // table of forces per element pair
-  double ***potentialTable;     // table of potential energies
+  double ***forceTable;        // table of forces per element pair
+  double ***potentialTable;    // table of potential energies
 
   void twobody_table(const Param &, double, double &, int, double &);
   void setup_params();
   void create_tables();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -40,18 +40,16 @@ class ComputeStressTally : public Compute {
   double memory_usage();
 
   void pair_setup_callback(int, int);
-  void pair_tally_callback(int, int, int, int,
-                           double, double, double,
-                           double, double, double);
+  void pair_tally_callback(int, int, int, int, double, double, double, double, double, double);
 
  private:
   bigint did_setup;
-  int nmax,igroup2,groupbit2;
+  int nmax, igroup2, groupbit2;
   double **stress;
   double *virial;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

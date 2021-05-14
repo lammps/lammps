@@ -33,7 +33,7 @@ class ComputeImproperLocal : public Compute {
   double memory_usage();
 
  private:
-  int nvalues,cflag;
+  int nvalues, cflag;
   int ncount;
 
   int nmax;
@@ -44,7 +44,7 @@ class ComputeImproperLocal : public Compute {
   void reallocate(int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

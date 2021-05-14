@@ -33,10 +33,9 @@ class PairDeprecated : public Pair {
   virtual void compute(int, int) {}
   virtual void settings(int, char **);
   virtual void coeff(int, char **) {}
-
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

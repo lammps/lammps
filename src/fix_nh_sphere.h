@@ -32,7 +32,7 @@ class FixNHSphere : public FixNH {
   void nh_v_temp();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 

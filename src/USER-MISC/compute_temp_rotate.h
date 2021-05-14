@@ -44,15 +44,14 @@ class ComputeTempRotate : public Compute {
 
  private:
   int fix_dof;
-  double tfactor,masstotal;
-  double **vbiasall;  // stored velocity bias for all atoms
-  int maxbias;        // size of vbiasall array
+  double tfactor, masstotal;
+  double **vbiasall;    // stored velocity bias for all atoms
+  int maxbias;          // size of vbiasall array
 
-  void dof_compute(); //without virtual
-
+  void dof_compute();    //without virtual
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

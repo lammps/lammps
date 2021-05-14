@@ -30,7 +30,7 @@ class MinCG : public MinLineSearch {
   int iterate(int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

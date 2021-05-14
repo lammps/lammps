@@ -26,7 +26,7 @@ namespace LAMMPS_NS {
 
 class ComputeGyrationShape : public Compute {
  public:
-  char *id_gyration;              // fields accessed by other classes
+  char *id_gyration;    // fields accessed by other classes
 
   ComputeGyrationShape(class LAMMPS *, int, char **);
   ~ComputeGyrationShape();
@@ -37,7 +37,7 @@ class ComputeGyrationShape : public Compute {
   class Compute *c_gyration;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

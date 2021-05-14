@@ -39,7 +39,7 @@ class FixMvvDPD : public Fix {
   double verlet;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -20,8 +20,8 @@ BodyStyle(nparticle,BodyNparticle);
 #ifndef LMP_BODY_NPARTICLE_H
 #define LMP_BODY_NPARTICLE_H
 
-#include "body.h"
 #include "atom_vec_body.h"
+#include "body.h"
 
 namespace LAMMPS_NS {
 
@@ -49,7 +49,7 @@ class BodyNparticle : public Body {
   double **imdata;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

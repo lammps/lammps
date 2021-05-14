@@ -43,7 +43,7 @@ class FixLbViscous : public Fix {
   class FixLbFluid *fix_lb_fluid;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

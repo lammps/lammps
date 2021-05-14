@@ -40,15 +40,15 @@ class PairBuckMDF : public Pair {
   void *extract(const char *, int &);
 
  protected:
-  double cut_global,cut_inner_global;
-  double **cut,**cut_inner,**cut_inner_sq;
-  double **a,**rho,**c;
-  double **rhoinv,**buck1,**buck2,**offset;
+  double cut_global, cut_inner_global;
+  double **cut, **cut_inner, **cut_inner_sq;
+  double **a, **rho, **c;
+  double **rhoinv, **buck1, **buck2, **offset;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

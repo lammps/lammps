@@ -32,7 +32,7 @@ class PairVashishtaGPU : public PairVashishta {
   double init_one(int, int);
   void init_style();
 
- enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
+  enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
 
  protected:
   void allocate();
@@ -41,7 +41,7 @@ class PairVashishtaGPU : public PairVashishta {
   double cpu_time;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

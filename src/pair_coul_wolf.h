@@ -40,12 +40,12 @@ class PairCoulWolf : public Pair {
   double single(int, int, int, int, double, double, double, double &);
 
  protected:
-  double cut_coul,cut_coulsq,alf;
+  double cut_coul, cut_coulsq, alf;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

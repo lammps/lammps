@@ -33,9 +33,9 @@ class RegionDeprecated : public Region {
   virtual int inside(double, double, double) { return 0; }
   virtual int surface_interior(double *, double) { return 0; }
   virtual int surface_exterior(double *, double) { return 0; }
- };
+};
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

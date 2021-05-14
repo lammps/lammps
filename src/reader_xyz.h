@@ -33,22 +33,22 @@ class ReaderXYZ : public Reader {
 
   int read_time(bigint &);
   void skip();
-  bigint read_header(double [3][3], int &, int &, int, int, int *, char **,
-                     int, int, int &, int &, int &, int &);
+  bigint read_header(double[3][3], int &, int &, int, int, int *, char **, int, int, int &, int &,
+                     int &, int &);
   void read_atoms(int, int, double **);
 
-private:
-  char *line;              // line read from dump file
-  bigint nstep;            // current (time) step number
-  bigint natoms;           // current number of atoms
-  bigint nid;              // current atom id.
+ private:
+  char *line;       // line read from dump file
+  bigint nstep;     // current (time) step number
+  bigint natoms;    // current number of atoms
+  bigint nid;       // current atom id.
 
-  int *fieldindex;         // mapping of input fields to dump
+  int *fieldindex;    // mapping of input fields to dump
 
   void read_lines(int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

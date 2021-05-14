@@ -33,28 +33,28 @@ class ComputeRDF : public Compute {
   void compute_array();
 
  private:
-  int nbin;              // # of rdf bins
-  int cutflag;           // user cutoff flag
-  int npairs;            // # of rdf pairs
-  double delr,delrinv;   // bin width and its inverse
-  double cutoff_user;    // user-specified cutoff
-  double mycutneigh;     // user-specified cutoff + neighbor skin
-  int ***rdfpair;        // map 2 type pair to rdf pair for each histo
-  int **nrdfpair;        // # of histograms for each type pair
-  int *ilo,*ihi,*jlo,*jhi;
-  double **hist;         // histogram bins
-  double **histall;      // summed histogram bins across all procs
+  int nbin;                // # of rdf bins
+  int cutflag;             // user cutoff flag
+  int npairs;              // # of rdf pairs
+  double delr, delrinv;    // bin width and its inverse
+  double cutoff_user;      // user-specified cutoff
+  double mycutneigh;       // user-specified cutoff + neighbor skin
+  int ***rdfpair;          // map 2 type pair to rdf pair for each histo
+  int **nrdfpair;          // # of histograms for each type pair
+  int *ilo, *ihi, *jlo, *jhi;
+  double **hist;       // histogram bins
+  double **histall;    // summed histogram bins across all procs
 
   int *typecount;
-  int *icount,*jcount;
+  int *icount, *jcount;
   int *duplicates;
 
-  class NeighList *list; // half neighbor list
+  class NeighList *list;    // half neighbor list
   void init_norm();
   bigint natoms_old;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

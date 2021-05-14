@@ -44,7 +44,7 @@ class FixNVEGPU : public FixNVE {
   int _nlocal_max, _respa_on;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -32,7 +32,7 @@ class PairTersoffMODGPU : public PairTersoffMOD {
   double init_one(int, int);
   void init_style();
 
- enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
+  enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
 
  protected:
   void allocate();
@@ -42,7 +42,7 @@ class PairTersoffMODGPU : public PairTersoffMOD {
   int *gpulist;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

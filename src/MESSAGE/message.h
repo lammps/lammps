@@ -26,14 +26,14 @@ namespace LAMMPS_NS {
 
 class Message : public Command {
  public:
-  Message(class LAMMPS *lmp) : Command(lmp) {};
+  Message(class LAMMPS *lmp) : Command(lmp){};
   void command(int, char **);
 
  private:
   void quit();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

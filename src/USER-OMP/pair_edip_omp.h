@@ -34,10 +34,10 @@ class PairEDIPOMP : public PairEDIP, public ThrOMP {
 
  private:
   template <int EVFLAG, int EFLAG, int VFLAG_ATOM>
-  void eval(int ifrom, int ito, ThrData * const thr);
+  void eval(int ifrom, int ito, ThrData *const thr);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

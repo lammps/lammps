@@ -18,10 +18,10 @@
 
 namespace LAMMPS_NS {
 
-class RestartMPIIO  : protected Pointers {
+class RestartMPIIO : protected Pointers {
  private:
-   MPI_File mpifh;
-   int nprocs, myrank;
+  MPI_File mpifh;
+  int nprocs, myrank;
 
  public:
   int mpiio_exists;
@@ -35,7 +35,7 @@ class RestartMPIIO  : protected Pointers {
   void close();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 

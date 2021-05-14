@@ -45,7 +45,7 @@ class AtomVecBond : public AtomVec {
   int *bond_negative;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

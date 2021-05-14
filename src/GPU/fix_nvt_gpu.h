@@ -34,7 +34,7 @@ class FixNVTGPU : public FixNHGPU {
   ~FixNVTGPU() {}
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

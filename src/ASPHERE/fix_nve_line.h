@@ -34,11 +34,11 @@ class FixNVELine : public FixNVE {
   void final_integrate();
 
  private:
-  double MINUSPI,TWOPI;
+  double MINUSPI, TWOPI;
   class AtomVecLine *avec;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

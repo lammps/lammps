@@ -25,10 +25,10 @@ KSpaceStyle(pppm/disp/tip4p/omp,PPPMDispTIP4POMP);
 
 namespace LAMMPS_NS {
 
-  class PPPMDispTIP4POMP : public PPPMDispTIP4P, public ThrOMP {
+class PPPMDispTIP4POMP : public PPPMDispTIP4P, public ThrOMP {
  public:
   PPPMDispTIP4POMP(class LAMMPS *);
-  virtual ~PPPMDispTIP4POMP ();
+  virtual ~PPPMDispTIP4POMP();
 
  protected:
   virtual void allocate();
@@ -36,15 +36,13 @@ namespace LAMMPS_NS {
   virtual void compute_gf();
   virtual void compute_gf_6();
 
-  virtual void compute(int,int);
+  virtual void compute(int, int);
 
-  virtual void particle_map(double, double, double,
-                            double, int **, int, int,
-                            int, int, int, int, int, int);
-  virtual void particle_map_c(double, double, double,
-                              double, int **, int, int,
-                              int, int, int, int, int, int);
-  virtual void make_rho_c();  // XXX: not (yet) multi-threaded
+  virtual void particle_map(double, double, double, double, int **, int, int, int, int, int, int,
+                            int, int);
+  virtual void particle_map_c(double, double, double, double, int **, int, int, int, int, int, int,
+                              int, int);
+  virtual void make_rho_c();    // XXX: not (yet) multi-threaded
   virtual void make_rho_g();
   virtual void make_rho_a();
 
@@ -58,18 +56,15 @@ namespace LAMMPS_NS {
   virtual void fieldforce_a_ad();
   virtual void fieldforce_a_peratom();
 
-  private:
-  void compute_rho1d_thr(FFT_SCALAR * const * const, const FFT_SCALAR &,
-                         const FFT_SCALAR &, const FFT_SCALAR &,
-                         const int, FFT_SCALAR * const * const);
-  void compute_drho1d_thr(FFT_SCALAR * const * const, const FFT_SCALAR &,
-                          const FFT_SCALAR &, const FFT_SCALAR &,
-                          const int, FFT_SCALAR * const * const);
+ private:
+  void compute_rho1d_thr(FFT_SCALAR *const *const, const FFT_SCALAR &, const FFT_SCALAR &,
+                         const FFT_SCALAR &, const int, FFT_SCALAR *const *const);
+  void compute_drho1d_thr(FFT_SCALAR *const *const, const FFT_SCALAR &, const FFT_SCALAR &,
+                          const FFT_SCALAR &, const int, FFT_SCALAR *const *const);
   virtual void find_M_thr(int, int &, int &, dbl3_t &);
-
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -28,34 +28,34 @@ namespace LAMMPS_NS {
 
 class DumpMolfile : public Dump {
  public:
-  DumpMolfile(LAMMPS *, int, char**);
+  DumpMolfile(LAMMPS *, int, char **);
   virtual ~DumpMolfile();
   virtual void write();
 
  protected:
-  class MolfileInterface *mf; //< handles low-level I/O
+  class MolfileInterface *mf;    //< handles low-level I/O
   // per-atom data
   float *coords, *vels, *masses, *charges, *radiuses;
-  int   *types, *molids;
+  int *types, *molids;
   char **typenames;
 
-  int natoms,me,ntotal,ntypes;
+  int natoms, me, ntotal, ntypes;
   int need_structure;
-  int unwrap_flag;   // 1 if writing unwrapped atom coords, 0 if not
-  int velocity_flag; // 1 if writing velocities, 0 if not
-  int topology_flag; // 1 if writing topology data, 0 if not
-  float cell[6];     // cell parameters: A, B, C, alpha, beta, gamma
+  int unwrap_flag;      // 1 if writing unwrapped atom coords, 0 if not
+  int velocity_flag;    // 1 if writing velocities, 0 if not
+  int topology_flag;    // 1 if writing topology data, 0 if not
+  float cell[6];        // cell parameters: A, B, C, alpha, beta, gamma
 
   virtual void init_style();
   virtual int modify_param(int, char **);
-  virtual void write_header(bigint) {};
+  virtual void write_header(bigint){};
   virtual void pack(tagint *);
   virtual void write_data(int, double *);
   virtual double memory_usage();
   virtual void openfile();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

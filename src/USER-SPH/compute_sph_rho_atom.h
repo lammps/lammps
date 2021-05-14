@@ -37,7 +37,7 @@ class ComputeSPHRhoAtom : public Compute {
   double *rhoVector;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

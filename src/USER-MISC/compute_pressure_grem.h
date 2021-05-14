@@ -34,11 +34,11 @@ class ComputePressureGrem : public ComputePressure {
 
  protected:
   // Access to gREM fix scale factor
-  char   *fix_grem;
+  char *fix_grem;
   double *scale_grem;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -36,7 +36,7 @@ class FixAveHistoWeight : public FixAveHisto {
   void bin_atoms_weights(double *, int, double *, int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

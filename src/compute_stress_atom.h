@@ -35,8 +35,8 @@ class ComputeStressAtom : public Compute {
   double memory_usage();
 
  private:
-  int keflag,pairflag,bondflag,angleflag,dihedralflag,improperflag;
-  int kspaceflag,fixflag,biasflag;
+  int keflag, pairflag, bondflag, angleflag, dihedralflag, improperflag;
+  int kspaceflag, fixflag, biasflag;
   Compute *temperature;
   char *id_temp;
 
@@ -44,7 +44,7 @@ class ComputeStressAtom : public Compute {
   double **stress;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

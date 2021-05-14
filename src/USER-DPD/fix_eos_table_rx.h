@@ -37,16 +37,16 @@ class FixEOStableRX : public Fix {
   void temperature_lookup(int, double, double &);
 
  protected:
-  enum{LINEAR};
+  enum { LINEAR };
 
-  int tabstyle,tablength;
+  int tabstyle, tablength;
   struct Table {
     int ninput;
-    double lo,hi;
-    double *rfile,*efile;
+    double lo, hi;
+    double *rfile, *efile;
     double *e2file;
-    double delta,invdelta,deltasq6;
-    double *r,*e,*de,*e2;
+    double delta, invdelta, deltasq6;
+    double *r, *e, *de, *e2;
   };
   int ntables;
   Table *tables, *tables2;
@@ -67,18 +67,18 @@ class FixEOStableRX : public Fix {
 
   void read_file(char *);
 
-  double *dHf,*energyCorr,*tempCorrCoeff,*moleculeCorrCoeff;
+  double *dHf, *energyCorr, *tempCorrCoeff, *moleculeCorrCoeff;
 
   int pack_reverse_comm(int, int, double *);
   void unpack_reverse_comm(int, int *, double *);
-  int pack_forward_comm(int , int *, double *, int, int *);
-  void unpack_forward_comm(int , int , double *);
+  int pack_forward_comm(int, int *, double *, int, int *);
+  void unpack_forward_comm(int, int, double *);
 
   int *eosSpecies;
   int ncolumn;
   bool rx_flag;
-  };
-}
+};
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

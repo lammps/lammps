@@ -56,7 +56,7 @@ class PairLJLongDipoleLong : public Pair {
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

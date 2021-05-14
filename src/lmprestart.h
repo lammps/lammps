@@ -10,7 +10,7 @@
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
-
+// clang-format off
 #ifndef LMP_RESTART_H
 #define LMP_RESTART_H
 

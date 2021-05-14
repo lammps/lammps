@@ -44,12 +44,12 @@ class PairYukawa : public Pair {
   double cut_global;
   double kappa;
   double *rad;
-  double **cut,**a,**offset;
+  double **cut, **a, **offset;
 
   virtual void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

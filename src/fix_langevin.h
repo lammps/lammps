@@ -47,24 +47,24 @@ class FixLangevin : public Fix {
   int unpack_exchange(int, double *);
 
  protected:
-  int gjfflag,nvalues,osflag,oflag,tallyflag,zeroflag,tbiasflag;
+  int gjfflag, nvalues, osflag, oflag, tallyflag, zeroflag, tbiasflag;
   int flangevin_allocated;
   double ascale;
-  double t_start,t_stop,t_period,t_target;
-  double *gfactor1,*gfactor2,*ratio;
-  double energy,energy_onestep;
+  double t_start, t_stop, t_period, t_target;
+  double *gfactor1, *gfactor2, *ratio;
+  double energy, energy_onestep;
   double tsqrt;
-  int tstyle,tvar;
-  double gjfa, gjfsib; //gjf a and gjf sqrt inverse b
+  int tstyle, tvar;
+  double gjfa, gjfsib;    //gjf a and gjf sqrt inverse b
   char *tstr;
 
   class AtomVecEllipsoid *avec;
 
-  int maxatom1,maxatom2;
+  int maxatom1, maxatom2;
   double **flangevin;
   double *tforce;
   double **franprev;
-  double **lv; //half step velocity
+  double **lv;    //half step velocity
 
   char *id_temp;
   class Compute *temperature;
@@ -73,8 +73,7 @@ class FixLangevin : public Fix {
   class RanMars *random;
   int seed;
 
-  template < int Tp_TSTYLEATOM, int Tp_GJF, int Tp_TALLY,
-             int Tp_BIAS, int Tp_RMASS, int Tp_ZERO >
+  template <int Tp_TSTYLEATOM, int Tp_GJF, int Tp_TALLY, int Tp_BIAS, int Tp_RMASS, int Tp_ZERO>
   void post_force_templated();
 
   void omega_thermostat();
@@ -82,7 +81,7 @@ class FixLangevin : public Fix {
   void compute_target();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

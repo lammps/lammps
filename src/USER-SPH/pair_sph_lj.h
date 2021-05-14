@@ -37,12 +37,12 @@ class PairSPHLJ : public Pair {
   void LJEOS2(double, double, double, double *, double *);
 
  protected:
-  double **cut,**viscosity;
+  double **cut, **viscosity;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

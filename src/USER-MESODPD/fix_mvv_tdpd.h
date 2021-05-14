@@ -40,7 +40,7 @@ class FixMvvTDPD : public Fix {
   int cc_species;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

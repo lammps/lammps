@@ -73,51 +73,51 @@ class FixIMD : public Fix {
   double memory_usage();
 
  protected:
-  int    imd_port;
-  void  *localsock;
-  void  *clientsock;
+  int imd_port;
+  void *localsock;
+  void *clientsock;
 
-  int    num_coords;            // total number of atoms controlled by this fix
-  int    size_one;              // bytes per atom in communication buffer.
-  int    maxbuf;                // size of atom communication buffer.
-  void  *comm_buf;              // communication buffer
-  void  *idmap;                 // hash for mapping atom indices to consistent order.
-  tagint *rev_idmap;            // list of the hash keys for reverse mapping.
+  int num_coords;       // total number of atoms controlled by this fix
+  int size_one;         // bytes per atom in communication buffer.
+  int maxbuf;           // size of atom communication buffer.
+  void *comm_buf;       // communication buffer
+  void *idmap;          // hash for mapping atom indices to consistent order.
+  tagint *rev_idmap;    // list of the hash keys for reverse mapping.
 
-  int    imd_forces;            // number of forces communicated via IMD.
-  void  *force_buf;             // force data buffer
-  double imd_fscale;            // scale factor for forces. in case VMD's units are off.
+  int imd_forces;       // number of forces communicated via IMD.
+  void *force_buf;      // force data buffer
+  double imd_fscale;    // scale factor for forces. in case VMD's units are off.
 
-  int    imd_inactive;          // true if IMD connection stopped.
-  int    imd_terminate;         // true if IMD requests termination of run.
-  int    imd_trate;             // IMD transmission rate.
+  int imd_inactive;     // true if IMD connection stopped.
+  int imd_terminate;    // true if IMD requests termination of run.
+  int imd_trate;        // IMD transmission rate.
 
-  int    unwrap_flag;           // true if coordinates need to be unwrapped before sending
-  int    nowait_flag;           // true if LAMMPS should not wait with the execution for VMD.
-  int    connect_msg;           // flag to indicate whether a "listen for connection message" is needed.
+  int unwrap_flag;    // true if coordinates need to be unwrapped before sending
+  int nowait_flag;    // true if LAMMPS should not wait with the execution for VMD.
+  int connect_msg;    // flag to indicate whether a "listen for connection message" is needed.
 
-  int    me;                    // my MPI rank in this "world".
-  int    nlevels_respa;         // flag to determine respa levels.
+  int me;               // my MPI rank in this "world".
+  int nlevels_respa;    // flag to determine respa levels.
 
-  int    msglen;
-  char  *msgdata;
+  int msglen;
+  char *msgdata;
 
 #if defined(LAMMPS_ASYNC_IMD)
-  int    buf_has_data;          // flag to indicate to the i/o thread what to do.
-  pthread_mutex_t write_mutex;  // mutex for sending coordinates to i/o thread
-  pthread_cond_t  write_cond;   // conditional variable for coordinate i/o
-  pthread_mutex_t read_mutex;   // mutex for accessing data receieved by i/o thread
-  pthread_t       iothread;     // thread id for i/o thread.
-  pthread_attr_t  iot_attr;     // i/o thread attributes.
-public:
-  void  ioworker(void);
+  int buf_has_data;               // flag to indicate to the i/o thread what to do.
+  pthread_mutex_t write_mutex;    // mutex for sending coordinates to i/o thread
+  pthread_cond_t write_cond;      // conditional variable for coordinate i/o
+  pthread_mutex_t read_mutex;     // mutex for accessing data receieved by i/o thread
+  pthread_t iothread;             // thread id for i/o thread.
+  pthread_attr_t iot_attr;        // i/o thread attributes.
+ public:
+  void ioworker(void);
 #endif
 
-protected:
+ protected:
   int reconnect();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -31,11 +31,11 @@ class FixDeprecated : public Fix {
  public:
   FixDeprecated(class LAMMPS *, int, char **);
   ~FixDeprecated() {}
-  int setmask() {return 0;}
+  int setmask() { return 0; }
   void init() {}
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -38,7 +38,7 @@ class ComputeErotateSphereAtom : public Compute {
   double *erot;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

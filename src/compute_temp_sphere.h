@@ -42,12 +42,12 @@ class ComputeTempSphere : public Compute {
   int mode;
   double tfactor;
   char *id_bias;
-  Compute *tbias;     // ptr to additional bias compute
+  Compute *tbias;    // ptr to additional bias compute
 
   void dof_compute();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

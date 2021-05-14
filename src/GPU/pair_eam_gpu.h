@@ -26,7 +26,6 @@ namespace LAMMPS_NS {
 
 class PairEAMGPU : public PairEAM {
  public:
-
   PairEAMGPU(class LAMMPS *);
   virtual ~PairEAMGPU();
   void compute(int, int);
@@ -38,7 +37,7 @@ class PairEAMGPU : public PairEAM {
   int pack_forward_comm(int, int *, double *, int, int *);
   void unpack_forward_comm(int, int, double *);
 
- enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
+  enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
 
  protected:
   int gpu_mode;
@@ -47,7 +46,7 @@ class PairEAMGPU : public PairEAM {
   bool fp_single;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

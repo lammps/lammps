@@ -49,19 +49,19 @@ class FixSMDSetVel : public Fix {
   double memory_usage();
 
  private:
-  double xvalue,yvalue,zvalue;
-  int varflag,iregion;
-  char *xstr,*ystr,*zstr;
+  double xvalue, yvalue, zvalue;
+  int varflag, iregion;
+  char *xstr, *ystr, *zstr;
   char *idregion;
-  int xvar,yvar,zvar,xstyle,ystyle,zstyle;
-  double foriginal[3],foriginal_all[3];
+  int xvar, yvar, zvar, xstyle, ystyle, zstyle;
+  double foriginal[3], foriginal_all[3];
   int force_flag;
 
   int maxatom;
   double **sforce;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

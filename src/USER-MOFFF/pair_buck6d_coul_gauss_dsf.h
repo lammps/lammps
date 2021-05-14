@@ -44,18 +44,18 @@ class PairBuck6dCoulGaussDSF : public Pair {
 
  protected:
   double cut_lj_global;
-  double **cut_lj,**cut_ljsq;
+  double **cut_lj, **cut_ljsq;
   double **alpha_ij;
-  double **buck6d1,**buck6d2,**buck6d3,**buck6d4,**offset;
-  double **f_shift_ij,**e_shift_ij;
-  double cut_coul,cut_coulsq;
+  double **buck6d1, **buck6d2, **buck6d3, **buck6d4, **offset;
+  double **f_shift_ij, **e_shift_ij;
+  double cut_coul, cut_coulsq;
   double vdwl_smooth;
-  double **c0,**c1,**c2,**c3,**c4,**c5,**rsmooth_sq;
+  double **c0, **c1, **c2, **c3, **c4, **c5, **rsmooth_sq;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

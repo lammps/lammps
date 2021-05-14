@@ -39,10 +39,10 @@ class PairEAMOMP : public PairEAM, public ThrOMP {
 
  private:
   template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
-  void eval(int iifrom, int iito, ThrData * const thr);
+  void eval(int iifrom, int iito, ThrData *const thr);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

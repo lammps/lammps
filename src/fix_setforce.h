@@ -40,20 +40,20 @@ class FixSetForce : public Fix {
   double memory_usage();
 
  protected:
-  double xvalue,yvalue,zvalue;
-  int varflag,iregion;
-  char *xstr,*ystr,*zstr;
+  double xvalue, yvalue, zvalue;
+  int varflag, iregion;
+  char *xstr, *ystr, *zstr;
   char *idregion;
-  int xvar,yvar,zvar,xstyle,ystyle,zstyle;
-  double foriginal[3],foriginal_all[3],foriginal_saved[3];
+  int xvar, yvar, zvar, xstyle, ystyle, zstyle;
+  double foriginal[3], foriginal_all[3], foriginal_saved[3];
   int force_flag;
-  int nlevels_respa,ilevel_respa;
+  int nlevels_respa, ilevel_respa;
 
   int maxatom;
   double **sforce;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

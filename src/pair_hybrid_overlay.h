@@ -31,10 +31,10 @@ class PairHybridOverlay : public PairHybrid {
   void coeff(int, char **);
 
   void init_svector();
-  void copy_svector(int,int);
+  void copy_svector(int, int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

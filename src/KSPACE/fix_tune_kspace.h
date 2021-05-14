@@ -22,7 +22,6 @@ FixStyle(tune/kspace,FixTuneKspace);
 
 #include "fix.h"
 
-
 namespace LAMMPS_NS {
 
 class FixTuneKspace : public Fix {
@@ -45,12 +44,12 @@ class FixTuneKspace : public Fix {
  private:
   int nevery;
 
-  int last_step;      // previous timestep when timing info was collected
-  double last_spcpu;  // old elapsed CPU time value
-  int firststep;      // 0 if this is the first time timing info is collected
-  int niter;          // number of kspace switches
+  int last_step;        // previous timestep when timing info was collected
+  double last_spcpu;    // old elapsed CPU time value
+  int firststep;        // 0 if this is the first time timing info is collected
+  int niter;            // number of kspace switches
 
-  double ewald_time,pppm_time,msm_time;
+  double ewald_time, pppm_time, msm_time;
   double pair_cut_coul;
   std::string acc_str;
   std::string kspace_style;
@@ -62,25 +61,25 @@ class FixTuneKspace : public Fix {
   double old_slab_volfactor;
 
   int niter_adjust_rcut;
-  double ax_brent,bx_brent,cx_brent,dx_brent;
-  double fa_brent,fb_brent,fc_brent,fd_brent;
-  double v_brent,w_brent,x_brent;
-  double fv_brent,fw_brent,fx_brent;
-  double a_brent,b_brent;
+  double ax_brent, bx_brent, cx_brent, dx_brent;
+  double fa_brent, fb_brent, fc_brent, fd_brent;
+  double v_brent, w_brent, x_brent;
+  double fv_brent, fw_brent, fx_brent;
+  double a_brent, b_brent;
   double fd2_brent;
   double dxlim;
-  bool keep_bracketing,first_brent_pass;
-  bool converged,need_fd2_brent;
+  bool keep_bracketing, first_brent_pass;
+  bool converged, need_fd2_brent;
 
   inline void shft3(double &a, double &b, double &c, const double d)
   {
-    a=b;
-    b=c;
-    c=d;
+    a = b;
+    b = c;
+    c = d;
   }
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

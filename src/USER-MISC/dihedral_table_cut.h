@@ -32,12 +32,12 @@ class DihedralTableCut : public DihedralTable {
   virtual void coeff(int, char **);
 
  protected:
-  double *aat_k,*aat_theta0_1,*aat_theta0_2;
+  double *aat_k, *aat_theta0_1, *aat_theta0_2;
 
   virtual void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

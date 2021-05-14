@@ -47,7 +47,7 @@ class ComputeTempDeform : public Compute {
   virtual void dof_compute();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

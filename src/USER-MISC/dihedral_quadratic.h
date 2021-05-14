@@ -35,13 +35,13 @@ class DihedralQuadratic : public Dihedral {
   void write_data(FILE *);
 
  protected:
-  double *k,*phi0;
-  int *sign,*multiplicity;
+  double *k, *phi0;
+  int *sign, *multiplicity;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

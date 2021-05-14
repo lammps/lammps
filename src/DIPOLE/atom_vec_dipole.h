@@ -35,7 +35,7 @@ class AtomVecDipole : public AtomVec {
   double **mu;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

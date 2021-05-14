@@ -39,7 +39,7 @@ class ComputeTempEff : public Compute {
   void dof_compute();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

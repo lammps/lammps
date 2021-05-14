@@ -34,7 +34,7 @@ class PairLJClass2CoulLongCS : public PairLJClass2CoulLong {
   void compute_outer(int, int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

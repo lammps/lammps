@@ -42,7 +42,7 @@ class AngleCosine : public Angle {
   virtual void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

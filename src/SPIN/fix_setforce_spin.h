@@ -32,7 +32,7 @@ class FixSetForceSpin : public FixSetForce {
   void single_setforce_spin(int, double *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -34,13 +34,12 @@ class ImproperDistHarm : public Improper {
   void read_restart(FILE *);
 
  private:
-  double *k,*chi;
+  double *k, *chi;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-

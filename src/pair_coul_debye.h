@@ -37,7 +37,7 @@ class PairCoulDebye : public PairCoulCut {
   double kappa;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

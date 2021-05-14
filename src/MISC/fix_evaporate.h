@@ -35,18 +35,18 @@ class FixEvaporate : public Fix {
   double memory_usage();
 
  private:
-  int nevery,nflux,iregion;
+  int nevery, nflux, iregion;
   int molflag;
   int ndeleted;
   char *idregion;
 
   int nmax;
-  int *list,*mark;
+  int *list, *mark;
 
   class RanPark *random;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

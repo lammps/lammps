@@ -40,13 +40,13 @@ class PairLJCubic : public Pair {
   double single(int, int, int, int, double, double, double, double &);
 
  protected:
-  double **cut,**cut_inner,**cut_inner_sq;
-  double **epsilon,**sigma;
-  double **lj1,**lj2,**lj3,**lj4;
+  double **cut, **cut_inner, **cut_inner_sq;
+  double **epsilon, **sigma;
+  double **lj1, **lj2, **lj3, **lj4;
 
   void allocate();
 };
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

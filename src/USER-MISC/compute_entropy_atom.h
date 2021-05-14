@@ -34,7 +34,7 @@ class ComputeEntropyAtom : public Compute {
   double memory_usage();
 
  private:
-  int nmax,maxneigh, nbin;
+  int nmax, maxneigh, nbin;
   class NeighList *list;
   double *pair_entropy, *pair_entropy_avg;
   double sigma, cutoff, cutoff2;
@@ -45,7 +45,7 @@ class ComputeEntropyAtom : public Compute {
   int local_flag;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -40,7 +40,7 @@ class ImproperUmbrella : public Improper {
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

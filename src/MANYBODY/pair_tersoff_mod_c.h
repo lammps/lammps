@@ -26,7 +26,7 @@ namespace LAMMPS_NS {
 
 class PairTersoffMODC : public PairTersoffMOD {
  public:
-  PairTersoffMODC(class LAMMPS *lmp) : PairTersoffMOD(lmp) {};
+  PairTersoffMODC(class LAMMPS *lmp) : PairTersoffMOD(lmp){};
   ~PairTersoffMODC() {}
 
   static constexpr int NPARAMS_PER_LINE = 21;
@@ -36,7 +36,7 @@ class PairTersoffMODC : public PairTersoffMOD {
   void repulsive(Param *, double, double &, int, double &);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

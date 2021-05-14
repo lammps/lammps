@@ -28,11 +28,12 @@ class PairREBOOMP : public PairAIREBOOMP {
  public:
   PairREBOOMP(class LAMMPS *);
   virtual void settings(int, char **);
+
  protected:
   void spline_init();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

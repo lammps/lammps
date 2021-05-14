@@ -40,27 +40,27 @@ class FixQEqReaxOMP : public FixQEqReax {
   int do_aspc;
   int aspc_order, aspc_order_max;
   double aspc_omega;
-  double * aspc_b;
+  double *aspc_b;
 
   virtual void allocate_storage();
   virtual void deallocate_storage();
   virtual void init_matvec();
   virtual void compute_H();
 
-  virtual int CG(double*,double*);
-  virtual void sparse_matvec(sparse_matrix*,double*,double*);
+  virtual int CG(double *, double *);
+  virtual void sparse_matvec(sparse_matrix *, double *, double *);
   virtual void calculate_Q();
 
-  virtual void vector_sum(double*,double,double*,double,double*,int);
-  virtual void vector_add(double*, double, double*,int);
+  virtual void vector_sum(double *, double, double *, double, double *, int);
+  virtual void vector_add(double *, double, double *, int);
 
   // dual CG support
-  virtual int dual_CG(double*,double*,double*,double*);
-  virtual void dual_sparse_matvec(sparse_matrix*,double*,double*,double*);
-  virtual void dual_sparse_matvec(sparse_matrix*,double*,double*);
+  virtual int dual_CG(double *, double *, double *, double *);
+  virtual void dual_sparse_matvec(sparse_matrix *, double *, double *, double *);
+  virtual void dual_sparse_matvec(sparse_matrix *, double *, double *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

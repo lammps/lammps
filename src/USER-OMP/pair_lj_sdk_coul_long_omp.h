@@ -39,10 +39,10 @@ class PairLJSDKCoulLongOMP : public PairLJSDKCoulLong, public ThrOMP {
 
  private:
   template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
-  void eval_thr(int ifrom, int ito, ThrData * const thr);
+  void eval_thr(int ifrom, int ito, ThrData *const thr);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -31,7 +31,7 @@ class PairEAMAlloyOpt : public PairEAMAlloy, public PairEAMOpt {
   virtual ~PairEAMAlloyOpt() {}
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

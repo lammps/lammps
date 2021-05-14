@@ -46,7 +46,7 @@ class FixExternal : public Fix {
   void set_energy_peratom(double *);
   void set_virial_peratom(double **);
   void set_vector_length(int);
-  void set_vector(int,double);
+  void set_vector(int, double);
 
   double memory_usage();
   void grow_arrays(int);
@@ -58,14 +58,14 @@ class FixExternal : public Fix {
   void set_callback(FnPtr, void *);
 
  private:
-  int mode,ncall,napply,eflag_caller;
+  int mode, ncall, napply, eflag_caller;
   FnPtr callback;
   void *ptr_caller;
   double user_energy;
   double *caller_vector;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

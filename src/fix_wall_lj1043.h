@@ -31,12 +31,10 @@ class FixWallLJ1043 : public FixWall {
   void wall_particle(int, int, double);
 
  private:
-  double coeff1[6],coeff2[6],coeff3[6],coeff4[6],coeff5[6],coeff6[6],
-    coeff7[6],offset[6];
+  double coeff1[6], coeff2[6], coeff3[6], coeff4[6], coeff5[6], coeff6[6], coeff7[6], offset[6];
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-

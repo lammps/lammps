@@ -38,12 +38,12 @@ class BondHarmonic : public Bond {
   virtual void *extract(const char *, int &);
 
  protected:
-  double *k,*r0;
+  double *k, *r0;
 
   virtual void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

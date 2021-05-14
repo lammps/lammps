@@ -37,7 +37,7 @@ class ComputeSPHTAtom : public Compute {
   double *tvector;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

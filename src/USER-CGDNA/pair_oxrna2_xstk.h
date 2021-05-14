@@ -65,7 +65,7 @@ class PairOxrna2Xstk : public Pair {
   virtual void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

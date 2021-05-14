@@ -48,26 +48,26 @@ class FixPAFI : public Fix {
   double memory_usage();
 
  protected:
-  int varflag,icompute;
+  int varflag, icompute;
   char *computename;
   class Compute *PathCompute;
-  double proj[6], proj_all[6]; // f,v,h, psi
-  double results[5], results_all[5]; // f.n, (f.n)**2, psi, dx.n
-  double c_v[10],c_v_all[10];
-  double temperature,gamma,sqrtD,t_period,local_norm,mass_f;
-  int force_flag,od_flag,com_flag;
-  int nlevels_respa,ilevel_respa;
+  double proj[6], proj_all[6];          // f,v,h, psi
+  double results[5], results_all[5];    // f.n, (f.n)**2, psi, dx.n
+  double c_v[10], c_v_all[10];
+  double temperature, gamma, sqrtD, t_period, local_norm, mass_f;
+  int force_flag, od_flag, com_flag;
+  int nlevels_respa, ilevel_respa;
   int maxatom;
   class RanMars *random;
   int seed;
   double **h;
   // nve
-  double dtv,dtf;
+  double dtv, dtf;
   double *step_respa;
   int mass_require;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

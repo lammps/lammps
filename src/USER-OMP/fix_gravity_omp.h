@@ -32,7 +32,7 @@ class FixGravityOMP : public FixGravity {
   virtual void post_force_respa(int, int, int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

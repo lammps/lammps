@@ -37,7 +37,7 @@ class ComputeBond : public Compute {
   double *emine;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

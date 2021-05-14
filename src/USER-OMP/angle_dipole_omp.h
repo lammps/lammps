@@ -36,11 +36,10 @@ class AngleDipoleOMP : public AngleDipole, public ThrOMP {
   virtual void compute(int, int);
 
  private:
-  template <int EFLAG>
-  void eval(int ifrom, int ito, ThrData * const thr);
+  template <int EFLAG> void eval(int ifrom, int ito, ThrData *const thr);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

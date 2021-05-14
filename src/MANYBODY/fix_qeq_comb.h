@@ -32,15 +32,15 @@ class FixQEQComb : public Fix {
   virtual void init();
   void setup(int);
   virtual void post_force(int);
-  void post_force_respa(int,int,int);
+  void post_force_respa(int, int, int);
   double memory_usage();
-  int pack_forward_comm(int , int *, double *, int, int *);
-  void unpack_forward_comm(int , int , double *);
+  int pack_forward_comm(int, int *, double *, int, int *);
+  void unpack_forward_comm(int, int, double *);
 
   void min_post_force(int);
 
  protected:
-  int me,firstflag;
+  int me, firstflag;
   double precision;
   int ilevel_respa;
   bigint ngroup;
@@ -49,10 +49,10 @@ class FixQEQComb : public Fix {
   class PairComb *comb;
   class PairComb3 *comb3;
   int nmax;
-  double *qf,*q1,*q2;
+  double *qf, *q1, *q2;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

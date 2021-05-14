@@ -42,7 +42,7 @@ class PairGayBerneGPU : public PairGayBerne {
   double **quat;
 };
 
-}
+}    // namespace LAMMPS_NS
 #endif
 #endif
 

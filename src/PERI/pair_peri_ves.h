@@ -47,7 +47,6 @@ class PairPeriVES : public Pair {
   double influence_function(double, double, double);
   void compute_dilatation();
 
-
  protected:
   int ifix_peri;
   double **bulkmodulus;
@@ -63,7 +62,7 @@ class PairPeriVES : public Pair {
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

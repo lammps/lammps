@@ -44,12 +44,12 @@ class PairCoulCut : public Pair {
 
  protected:
   double cut_global;
-  double **cut,**scale;
+  double **cut, **scale;
 
   virtual void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

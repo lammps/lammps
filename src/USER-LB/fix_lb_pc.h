@@ -24,7 +24,7 @@ FixStyle(lb/pc,FixLbPC);
 
 namespace LAMMPS_NS {
 
-  class FixLbPC : public Fix {
+class FixLbPC : public Fix {
  public:
   FixLbPC(class LAMMPS *, int, char **);
   ~FixLbPC();
@@ -39,9 +39,8 @@ namespace LAMMPS_NS {
   int pack_exchange(int, double *);
   int unpack_exchange(int, double *);
 
-
  private:
-  double dtv,dtf;
+  double dtv, dtf;
   int me;
   double *Gamma_MD;
   double expminusdttimesgamma;
@@ -55,7 +54,7 @@ namespace LAMMPS_NS {
   class FixLbFluid *fix_lb_fluid;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

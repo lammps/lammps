@@ -33,10 +33,10 @@ class ComputeDihedralLocal : public Compute {
   double memory_usage();
 
  private:
-  int nvalues,nvar,ncount,setflag;
+  int nvalues, nvar, ncount, setflag;
 
   int pvar;
-  int *bstyle,*vvar;
+  int *bstyle, *vvar;
   char *pstr;
   char **vstr;
 
@@ -48,7 +48,7 @@ class ComputeDihedralLocal : public Compute {
   void reallocate(int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

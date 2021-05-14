@@ -34,7 +34,7 @@ class ComputeReduceRegion : public ComputeReduce {
   bigint count(int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

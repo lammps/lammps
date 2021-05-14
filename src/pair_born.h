@@ -45,13 +45,13 @@ class PairBorn : public Pair {
  protected:
   double cut_global;
   double **cut;
-  double **a,**rho,**sigma,**c, **d;
-  double **rhoinv,**born1,**born2,**born3,**offset;
+  double **a, **rho, **sigma, **c, **d;
+  double **rhoinv, **born1, **born2, **born3, **offset;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

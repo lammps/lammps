@@ -26,11 +26,11 @@ namespace LAMMPS_NS {
 
 class FixNeighHistory : public Fix {
  public:
-  int nlocal_neigh;             // nlocal at last time neigh list was built
-  int nall_neigh;               // ditto for nlocal+nghost
-  int **firstflag;              // ptr to each atom's neighbor flsg
-  double **firstvalue;          // ptr to each atom's values
-  class Pair *pair;             // ptr to pair style that uses neighbor history
+  int nlocal_neigh;       // nlocal at last time neigh list was built
+  int nall_neigh;         // ditto for nlocal+nghost
+  int **firstflag;        // ptr to each atom's neighbor flsg
+  double **firstvalue;    // ptr to each atom's values
+  class Pair *pair;       // ptr to pair style that uses neighbor history
 
   FixNeighHistory(class LAMMPS *, int, char **);
   ~FixNeighHistory();
@@ -60,44 +60,42 @@ class FixNeighHistory : public Fix {
   int maxsize_restart();
 
  protected:
-  int newton_pair;              // same as force setting
-  int dnum,dnumbytes;           // dnum = # of values per neighbor
-  int onesided;                 // 1 for line/tri history, else 0
+  int newton_pair;        // same as force setting
+  int dnum, dnumbytes;    // dnum = # of values per neighbor
+  int onesided;           // 1 for line/tri history, else 0
 
-  int maxatom;                  // max size of firstflag and firstvalue
-  int commflag;                 // mode of reverse comm to get ghost info
+  int maxatom;     // max size of firstflag and firstvalue
+  int commflag;    // mode of reverse comm to get ghost info
   double *zeroes;
 
   // per-atom data structures
   // partners = flagged neighbors of an atom
 
-  int *npartner;                // # of partners of each atom
-  tagint **partner;             // global atom IDs for the partners
-  double **valuepartner;        // values for the partners
-  int maxpartner;               // max # of partners for any of my atoms
+  int *npartner;            // # of partners of each atom
+  tagint **partner;         // global atom IDs for the partners
+  double **valuepartner;    // values for the partners
+  int maxpartner;           // max # of partners for any of my atoms
 
   // per-atom data structs pointed to by partner & valuepartner
 
-  int pgsize,oneatom;           // copy of settings in Neighbor
-  MyPage<tagint> *ipage_atom;   // pages of partner atom IDs
-  MyPage<double> *dpage_atom;   // pages of partner values
+  int pgsize, oneatom;           // copy of settings in Neighbor
+  MyPage<tagint> *ipage_atom;    // pages of partner atom IDs
+  MyPage<double> *dpage_atom;    // pages of partner values
 
   // per-neighbor data structs pointed to by firstflag & firstvalue
 
-  MyPage<int> *ipage_neigh;     // pages of local atom indices
-  MyPage<double> *dpage_neigh;  // pages of partner values
+  MyPage<int> *ipage_neigh;       // pages of local atom indices
+  MyPage<double> *dpage_neigh;    // pages of partner values
 
   virtual void pre_exchange_onesided();
   virtual void pre_exchange_newton();
   virtual void pre_exchange_no_newton();
   void allocate_pages();
 
-  inline int sbmask(int j) const {
-    return j >> SBBITS & 3;
-  }
+  inline int sbmask(int j) const { return j >> SBBITS & 3; }
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

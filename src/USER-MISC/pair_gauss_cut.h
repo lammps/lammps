@@ -50,13 +50,13 @@ class PairGaussCut : public Pair {
  protected:
   double cut_global;
   double **cut;
-  double **hgauss,**sigmah,**rmh;
-  double **pgauss,**offset;
+  double **hgauss, **sigmah, **rmh;
+  double **pgauss, **offset;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

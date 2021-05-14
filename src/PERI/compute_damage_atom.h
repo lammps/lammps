@@ -38,7 +38,7 @@ class ComputeDamageAtom : public Compute {
   int ifix_peri;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

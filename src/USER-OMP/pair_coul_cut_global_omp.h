@@ -31,7 +31,7 @@ class PairCoulCutGlobalOMP : public PairCoulCutOMP {
   void *extract(const char *, int &);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -44,20 +44,19 @@ class PairMultiLucy : public Pair {
   void computeLocalDensity();
   double rho_0;
 
-
  protected:
-  enum{LOOKUP,LINEAR};
+  enum { LOOKUP, LINEAR };
 
   int nmax;
 
-  int tabstyle,tablength;
+  int tabstyle, tablength;
   struct Table {
-    int ninput,rflag,fpflag,match;
-    double rlo,rhi,fplo,fphi,cut;
-    double *rfile,*efile,*ffile;
-    double *e2file,*f2file;
-    double innersq,delta,invdelta,deltasq6;
-    double *rsq,*drsq,*e,*de,*f,*df,*e2,*f2;
+    int ninput, rflag, fpflag, match;
+    double rlo, rhi, fplo, fphi, cut;
+    double *rfile, *efile, *ffile;
+    double *e2file, *f2file;
+    double innersq, delta, invdelta, deltasq6;
+    double *rsq, *drsq, *e, *de, *f, *df, *e2, *f2;
   };
   int ntables;
   Table *tables;
@@ -76,7 +75,7 @@ class PairMultiLucy : public Pair {
   double splint(double *, double *, double *, int, double);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

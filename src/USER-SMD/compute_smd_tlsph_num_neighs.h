@@ -9,7 +9,6 @@
  *
  * ----------------------------------------------------------------------- */
 
-
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -49,7 +48,7 @@ class ComputeSMDTLSPHNumNeighs : public Compute {
   double *numNeighsRefConfigOutput;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -33,7 +33,7 @@ class NPairHalfSizeMultiOldNewton : public NPair {
   void build(class NeighList *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

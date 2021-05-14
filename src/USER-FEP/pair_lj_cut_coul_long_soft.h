@@ -48,19 +48,19 @@ class PairLJCutCoulLongSoft : public Pair {
 
  protected:
   double cut_lj_global;
-  double **cut_lj,**cut_ljsq;
-  double cut_coul,cut_coulsq;
-  double **epsilon,**sigma, **lambda;
+  double **cut_lj, **cut_ljsq;
+  double cut_coul, cut_coulsq;
+  double **epsilon, **sigma, **lambda;
   double nlambda, alphalj, alphac;
-  double **lj1,**lj2,**lj3,**lj4,**offset;
+  double **lj1, **lj2, **lj3, **lj4, **offset;
   double *cut_respa;
-  double qdist; // TIP4P distance O to negative charge (compatibility of cutoffs)
+  double qdist;    // TIP4P distance O to negative charge (compatibility of cutoffs)
   double g_ewald;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

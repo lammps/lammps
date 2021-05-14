@@ -44,13 +44,13 @@ class ComputeTempPartial : public Compute {
   double memory_usage();
 
  protected:
-  int xflag,yflag,zflag;
+  int xflag, yflag, zflag;
   double tfactor;
 
   void dof_compute();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

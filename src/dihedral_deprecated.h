@@ -36,7 +36,7 @@ class DihedralDeprecated : public Dihedral {
   virtual void read_restart(FILE *) {}
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

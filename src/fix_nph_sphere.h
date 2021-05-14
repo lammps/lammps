@@ -30,7 +30,7 @@ class FixNPHSphere : public FixNHSphere {
   ~FixNPHSphere() {}
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

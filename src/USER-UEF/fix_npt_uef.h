@@ -32,7 +32,7 @@ class FixNPTUef : public FixNHUef {
   ~FixNPTUef() {}
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

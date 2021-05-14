@@ -36,7 +36,7 @@ class ComputeTempDrude : public Compute {
 
  private:
   int fix_dof;
-  class FixDrude * fix_drude;
+  class FixDrude *fix_drude;
   char *id_temp;
   class Compute *temperature;
   bigint dof_core, dof_drude;
@@ -44,10 +44,9 @@ class ComputeTempDrude : public Compute {
   double temp_core, temp_drude;
 
   void dof_compute();
-
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -20,22 +20,21 @@ ComputeStyle(PRESSURE/BOCS,ComputePressureBocs);
 // clang-format on
 #else
 
-
 #ifndef LMP_COMPUTE_PRESSURE_BOCS_H
 #define LMP_COMPUTE_PRESSURE_BOCS_H
 
 #include "compute.h"
 
 namespace LAMMPS_NS {
-  // Enumerate the p_basis_type magic values to improve readability:
-  enum{BASIS_ANALYTIC, BASIS_LINEAR_SPLINE, BASIS_CUBIC_SPLINE};
-  // Enumerate the data file column names to improve readability
-  enum{VOLUME, PRESSURE_CORRECTION};
-  // Declare names for the number of columns in the splines data structure to improve readability
-  const int NUM_LINEAR_SPLINE_COLUMNS = 2;  // linear spline columns passed to compute
-  const int NUM_CUBIC_SPLINE_COLUMNS = 5;   // cubic spline columns passed to compute
+// Enumerate the p_basis_type magic values to improve readability:
+enum { BASIS_ANALYTIC, BASIS_LINEAR_SPLINE, BASIS_CUBIC_SPLINE };
+// Enumerate the data file column names to improve readability
+enum { VOLUME, PRESSURE_CORRECTION };
+// Declare names for the number of columns in the splines data structure to improve readability
+const int NUM_LINEAR_SPLINE_COLUMNS = 2;    // linear spline columns passed to compute
+const int NUM_CUBIC_SPLINE_COLUMNS = 5;     // cubic spline columns passed to compute
 
-  // ComputePressure -> ComputePressureBocs MRD NJD
+// ComputePressure -> ComputePressureBocs MRD NJD
 class ComputePressureBocs : public Compute {
  public:
   ComputePressureBocs(class LAMMPS *, int, char **);
@@ -48,36 +47,36 @@ class ComputePressureBocs : public Compute {
   double compute_cg_scalar();
   double get_cg_p_corr(int, double *, int, double, double);
   double get_cg_fluct(double, double);
-  void send_cg_info(int, int, double*, int, double);
+  void send_cg_info(int, int, double *, int, double);
   void send_cg_info(int, double **, int);
   double get_cg_p_corr(double **, int, double);
-  double find_index(double*  , double);
+  double find_index(double *, double);
 
  protected:
-  double boltz,nktv2p,inv_volume;
-  int nvirial,dimension;
+  double boltz, nktv2p, inv_volume;
+  int nvirial, dimension;
   double **vptr;
   double *kspace_virial;
   Compute *temperature;
   char *id_temp;
   double virial[6];
-  int keflag,pairflag,bondflag,angleflag,dihedralflag,improperflag;
-  int fixflag,kspaceflag;
+  int keflag, pairflag, bondflag, angleflag, dihedralflag, improperflag;
+  int fixflag, kspaceflag;
 
-// NJD MRD
+  // NJD MRD
   int p_basis_type;
   int p_match_flag;
   double vavg;
   int N_mol;
   int N_basis;
   double *phi_coeff;
-  double ** splines;
+  double **splines;
   int spline_length;
 
   void virial_compute(int, int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

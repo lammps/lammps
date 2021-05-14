@@ -60,17 +60,15 @@
 
 #include "pointers.h"
 
-namespace LAMMPS_NS
-{
+namespace LAMMPS_NS {
 
-class KimParam : protected Pointers
-{
-public:
+class KimParam : protected Pointers {
+ public:
   KimParam(class LAMMPS *lmp);
   void command(int, char **);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 

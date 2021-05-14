@@ -38,7 +38,7 @@ class FixNVESphere : public FixNVE {
   int dlm;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

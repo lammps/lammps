@@ -38,7 +38,7 @@ class ComputeTDPDCCAtom : public Compute {
   double *cc_vector;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

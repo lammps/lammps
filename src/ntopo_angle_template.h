@@ -31,7 +31,7 @@ class NTopoAngleTemplate : public NTopo {
   void build();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -31,79 +31,32 @@
 
 ------------------------------------------------------------------------- */
 
-
 #ifndef LMP_MANIFOLD_FACTORY_H
 #define LMP_MANIFOLD_FACTORY_H
 
 #include <cstddef>
 #include <cstring>
 
-/*
- * Defining USE_PHONY_LAMMPS makes sure that none of the LAMMPS classes are
- * included/compiled. This is done in order to allow other programs to use
- * the manifold_factory without compiling all of LAMMPS itself. The relevant
- * classes/functions are replaced with dummy ones defined in this #ifdef-block:
- */
-#ifdef USE_PHONY_LAMMPS
-#  ifdef __GNUG__
-#  warning Not compiling actual LAMMPS classes!
-#  endif
-
-
-struct Error {
-  void all(const char *fname, int line, const char* msg)
-  {
-    fprintf(stderr,"ERROR: %s (%s:%d)",msg,fname,line);
-    std::terminate();
-  }
-
-  void one(const char *fname, int line, const char* msg)
-  {
-    fprintf(stderr,"ERROR: %s (%s:%d)",msg,fname,line);
-    std::terminate();
-  }
-};
-
-struct LAMMPS { };
-
-struct Pointers
-{
-  Pointers(LAMMPS *) : error( &e ) {}
-  Error e;
-  Error *error;
-};
-
-static FILE *screen = fopen("/dev/stdout","w");
-
-#define FLERR __FILE__,__LINE__    // Equivalent to definition in pointers.h
-#endif // USE_PHONY_LAMMPS
-
-/* Here the actual implementation of LAMMPS-related functions begins. */
-
 namespace LAMMPS_NS {
 class LAMMPS;
 
 namespace user_manifold {
 
-// forward declaration
-class manifold;
+  // forward declaration
+  class manifold;
 
   // Templated, so needs to be in header.
   template <typename m_type>
-  void make_manifold_if( manifold **man_ptr, const char *name,
-                         LAMMPS *lmp, int narg, char **arg )
+  void make_manifold_if(manifold **man_ptr, const char *name, LAMMPS *lmp, int narg, char **arg)
   {
-    if ( strcmp( m_type::type(), name ) == 0 ) {
-      if ( *man_ptr == nullptr ) {
-        *man_ptr = new m_type(lmp, narg, arg);
-      }
+    if (strcmp(m_type::type(), name) == 0) {
+      if (*man_ptr == nullptr) { *man_ptr = new m_type(lmp, narg, arg); }
     }
   }
 
-  manifold* create_manifold(const char *, LAMMPS *,
-                            int , char ** );
+  manifold *create_manifold(const char *, LAMMPS *, int, char **);
 
-} // namespace user_manifold
-} // namespace LAMMPS_NS
+}    // namespace user_manifold
+}    // namespace LAMMPS_NS
 
-#endif // LMP_MANIFOLD_FACTORY_H
+#endif    // LMP_MANIFOLD_FACTORY_H

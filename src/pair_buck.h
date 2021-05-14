@@ -44,13 +44,13 @@ class PairBuck : public Pair {
  protected:
   double cut_global;
   double **cut;
-  double **a,**rho,**c;
-  double **rhoinv,**buck1,**buck2,**offset;
+  double **a, **rho, **c;
+  double **rhoinv, **buck1, **buck2, **offset;
 
   virtual void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

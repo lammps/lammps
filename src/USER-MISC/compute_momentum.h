@@ -33,7 +33,7 @@ class ComputeMomentum : public Compute {
   virtual void compute_vector();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

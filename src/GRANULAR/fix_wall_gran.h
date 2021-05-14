@@ -26,9 +26,8 @@ namespace LAMMPS_NS {
 
 class FixWallGran : public Fix {
  public:
-
-  enum {HOOKE,HOOKE_HISTORY,HERTZ_HISTORY,GRANULAR};
-  enum {NORMAL_NONE, NORMAL_HOOKE, NORMAL_HERTZ, HERTZ_MATERIAL, DMT, JKR};
+  enum { HOOKE, HOOKE_HISTORY, HERTZ_HISTORY, GRANULAR };
+  enum { NORMAL_NONE, NORMAL_HOOKE, NORMAL_HERTZ, HERTZ_MATERIAL, DMT, JKR };
 
   FixWallGran(class LAMMPS *, int, char **);
   virtual ~FixWallGran();
@@ -50,25 +49,22 @@ class FixWallGran : public Fix {
   virtual int maxsize_restart();
   void reset_dt();
 
-  void hooke(double, double, double, double, double *, double *,
-             double *, double *, double *, double, double, double*);
-  void hooke_history(double, double, double, double, double *,
-                     double *, double *, double *, double *, double,
-                     double, double *, double *);
-  void hertz_history(double, double, double, double, double *,
-                     double, double *, double *, double *, double *,
-                     double, double, double *, double *);
-  void granular(double, double, double, double, double *, double,
-                double *, double *, double *, double *, double,
-                double, double *, double *);
+  void hooke(double, double, double, double, double *, double *, double *, double *, double *,
+             double, double, double *);
+  void hooke_history(double, double, double, double, double *, double *, double *, double *,
+                     double *, double, double, double *, double *);
+  void hertz_history(double, double, double, double, double *, double, double *, double *, double *,
+                     double *, double, double, double *, double *);
+  void granular(double, double, double, double, double *, double, double *, double *, double *,
+                double *, double, double, double *, double *);
 
   double pulloff_distance(double);
 
  protected:
-  int wallstyle,wiggle,wshear,axis;
-  int pairstyle,nlevels_respa;
+  int wallstyle, wiggle, wshear, axis;
+  int pairstyle, nlevels_respa;
   bigint time_origin;
-  double kn,kt,gamman,gammat,xmu;
+  double kn, kt, gamman, gammat, xmu;
 
   // for granular model choices
   int normal_model, damping_model;
@@ -93,8 +89,8 @@ class FixWallGran : public Fix {
   double roll_coeffs[3];
   double twist_coeffs[3];
 
-  double lo,hi,cylradius;
-  double amplitude,period,omega,vshear;
+  double lo, hi, cylradius;
+  double amplitude, period, omega, vshear;
   double dt;
   char *idregion;
 
@@ -119,7 +115,7 @@ class FixWallGran : public Fix {
   void clear_stored_contacts();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

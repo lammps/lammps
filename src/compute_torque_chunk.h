@@ -40,18 +40,18 @@ class ComputeTorqueChunk : public Compute {
   double memory_usage();
 
  private:
-  int nchunk,maxchunk;
+  int nchunk, maxchunk;
   char *idchunk;
   class ComputeChunkAtom *cchunk;
 
-  double *massproc,*masstotal;
-  double **com,**comall;
-  double **torque,**torqueall;
+  double *massproc, *masstotal;
+  double **com, **comall;
+  double **torque, **torqueall;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

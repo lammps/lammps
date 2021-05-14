@@ -35,16 +35,16 @@ class FixDrag : public Fix {
   double compute_vector(int);
 
  private:
-  double xc,yc,zc;
+  double xc, yc, zc;
   double f_mag;
-  int xflag,yflag,zflag;
+  int xflag, yflag, zflag;
   double delta;
   int ilevel_respa;
-  double ftotal[3],ftotal_all[3];
+  double ftotal[3], ftotal_all[3];
   int force_flag;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

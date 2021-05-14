@@ -37,7 +37,7 @@ class ComputeEDPDTempAtom : public Compute {
   double *temp_vector;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

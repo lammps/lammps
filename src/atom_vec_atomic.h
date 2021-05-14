@@ -30,7 +30,7 @@ class AtomVecAtomic : public AtomVec {
   ~AtomVecAtomic() {}
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

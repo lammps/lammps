@@ -36,17 +36,16 @@ class AtomVecMolecular : public AtomVec {
   void data_atom_post(int);
 
  private:
-  int *num_bond,*num_angle,*num_dihedral,*num_improper;
-  int **bond_type,**angle_type,**dihedral_type,**improper_type;
+  int *num_bond, *num_angle, *num_dihedral, *num_improper;
+  int **bond_type, **angle_type, **dihedral_type, **improper_type;
   int **nspecial;
 
-  int any_bond_negative,any_angle_negative,
-    any_dihedral_negative,any_improper_negative;
-  int bond_per_atom,angle_per_atom,dihedral_per_atom,improper_per_atom;
-  int *bond_negative,*angle_negative,*dihedral_negative,*improper_negative;
+  int any_bond_negative, any_angle_negative, any_dihedral_negative, any_improper_negative;
+  int bond_per_atom, angle_per_atom, dihedral_per_atom, improper_per_atom;
+  int *bond_negative, *angle_negative, *dihedral_negative, *improper_negative;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

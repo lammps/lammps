@@ -38,7 +38,7 @@ class MinQuickMin : public Min {
   bigint last_negative;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

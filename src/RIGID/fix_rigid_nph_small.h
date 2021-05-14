@@ -30,8 +30,7 @@ class FixRigidNPHSmall : public FixRigidNHSmall {
   ~FixRigidNPHSmall() {}
 };
 
-
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

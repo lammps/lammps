@@ -27,7 +27,6 @@ FixStyle(electron/stopping,FixElectronStopping);
 
 #include "fix.h"
 
-
 namespace LAMMPS_NS {
 
 class FixElectronStopping : public Fix {
@@ -44,22 +43,22 @@ class FixElectronStopping : public Fix {
   void read_table(const char *);
   void grow_table();
 
-  double Ecut;               // cutoff energy
-  double SeLoss, SeLoss_all; // electronic energy loss
-  int SeLoss_sync_flag;      // sync done since last change?
+  double Ecut;                  // cutoff energy
+  double SeLoss, SeLoss_all;    // electronic energy loss
+  int SeLoss_sync_flag;         // sync done since last change?
 
-  int maxlines;           // max number of lines in table
-  int table_entries;      // number of table entries actually read
-  double **elstop_ranges; // [ 0][i]: energies
-                          // [>0][i]: stopping powers per type
+  int maxlines;              // max number of lines in table
+  int table_entries;         // number of table entries actually read
+  double **elstop_ranges;    // [ 0][i]: energies
+                             // [>0][i]: stopping powers per type
 
-  int iregion; // region index if used, else -1
-  int minneigh; // minimum number of neighbors
+  int iregion;     // region index if used, else -1
+  int minneigh;    // minimum number of neighbors
 
   class NeighList *list;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

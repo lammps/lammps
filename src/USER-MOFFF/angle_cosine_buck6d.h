@@ -38,16 +38,16 @@ class AngleCosineBuck6d : public Angle {
   double single(int, int, int, int);
 
  protected:
-  double *k,*th0;
-  double *eps,*d0;
-  double **buck6d1,**buck6d2,**buck6d3,**buck6d4,**cut_ljsq;
-  double **c0,**c1,**c2,**c3,**c4,**c5,**rsmooth_sq,**offset;
+  double *k, *th0;
+  double *eps, *d0;
+  double **buck6d1, **buck6d2, **buck6d3, **buck6d4, **cut_ljsq;
+  double **c0, **c1, **c2, **c3, **c4, **c5, **rsmooth_sq, **offset;
   int *multiplicity;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

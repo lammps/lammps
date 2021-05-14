@@ -82,7 +82,7 @@ class AtomVecHybrid : public AtomVec {
   int known_style(char *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -38,12 +38,12 @@ class AngleCosinePeriodic : public Angle {
 
  protected:
   double *k;
-  int *multiplicity,*b;
+  int *multiplicity, *b;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -38,7 +38,7 @@ class FixNVENoforce : public Fix {
   double *step_respa;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

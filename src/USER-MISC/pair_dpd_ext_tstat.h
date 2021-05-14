@@ -39,10 +39,10 @@ class PairDPDExtTstat : public PairDPDExt {
   void write_data_all(FILE *);
 
  protected:
-  double t_start,t_stop;
+  double t_start, t_stop;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

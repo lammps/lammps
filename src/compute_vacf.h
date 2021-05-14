@@ -38,7 +38,7 @@ class ComputeVACF : public Compute {
   class FixStore *fix;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -34,12 +34,12 @@ class MinFireOld : public Min {
   int iterate(int);
 
  private:
-  double dt,dtmax;
+  double dt, dtmax;
   double alpha;
   bigint last_negative;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

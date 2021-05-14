@@ -43,15 +43,15 @@ class PairLJMDF : public Pair {
   void *extract(const char *, int &);
 
  protected:
-  double cut_global,cut_inner_global;
-  double **cut,**cut_inner,**cut_inner_sq;
-  double **epsilon,**sigma;
-  double **lj1,**lj2,**lj3,**lj4;
+  double cut_global, cut_inner_global;
+  double **cut, **cut_inner, **cut_inner_sq;
+  double **epsilon, **sigma;
+  double **lj1, **lj2, **lj3, **lj4;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -37,7 +37,7 @@ class ComputeDpdAtom : public Compute {
   double **dpdAtom;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -26,9 +26,8 @@ namespace LAMMPS_NS {
 
 class FixRigidSmallOMP : public FixRigidSmall {
  public:
-  FixRigidSmallOMP(class LAMMPS *lmp, int narg, char **args)
-    : FixRigidSmall(lmp,narg,args) {};
-  virtual ~FixRigidSmallOMP() {};
+  FixRigidSmallOMP(class LAMMPS *lmp, int narg, char **args) : FixRigidSmall(lmp, narg, args){};
+  virtual ~FixRigidSmallOMP(){};
 
   virtual void initial_integrate(int);
   virtual void final_integrate();
@@ -41,7 +40,7 @@ class FixRigidSmallOMP : public FixRigidSmall {
   template <int, int> void set_v_thr();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

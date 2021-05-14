@@ -37,14 +37,14 @@ class AtomVecSphere : public AtomVec {
   void pack_data_post(int);
 
  private:
-  double *radius,*rmass;
+  double *radius, *rmass;
   double **omega;
 
   int radvary;
-  double radius_one,rmass_one;
+  double radius_one, rmass_one;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

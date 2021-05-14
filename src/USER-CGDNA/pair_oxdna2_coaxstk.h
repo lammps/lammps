@@ -64,7 +64,7 @@ class PairOxdna2Coaxstk : public Pair {
   virtual void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

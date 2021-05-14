@@ -65,10 +65,10 @@ class FixCMAP : public Fix {
   double memory_usage();
 
  private:
-  int nprocs,me;
-  int newton_bond,eflag_caller;
-  int ctype,ilevel_respa;
-  int ncrosstermtypes,crossterm_per_atom,maxcrossterm;
+  int nprocs, me;
+  int newton_bond, eflag_caller;
+  int ctype, ilevel_respa;
+  int ncrosstermtypes, crossterm_per_atom, maxcrossterm;
   int ncrosstermlist;
   bigint ncmap;
 
@@ -77,12 +77,12 @@ class FixCMAP : public Fix {
   int nmax_previous;
   int *num_crossterm;
   int **crossterm_type;
-  tagint **crossterm_atom1,**crossterm_atom2,**crossterm_atom3;
-  tagint **crossterm_atom4,**crossterm_atom5;
+  tagint **crossterm_atom1, **crossterm_atom2, **crossterm_atom3;
+  tagint **crossterm_atom4, **crossterm_atom5;
 
-  double E,dEdPhi,dEdPsi;
+  double E, dEdPhi, dEdPsi;
   double ecmap;
-  double fcmap[4],cij[4][4];
+  double fcmap[4], cij[4][4];
   double *g_axis;
 
   // CMAP grid points obtained from external file
@@ -91,7 +91,7 @@ class FixCMAP : public Fix {
 
   // partial derivatives and cross-derivatives of the grid data
 
-  double ***d1cmapgrid,***d2cmapgrid,***d12cmapgrid;
+  double ***d1cmapgrid, ***d2cmapgrid, ***d12cmapgrid;
 
   // read map grid data
 
@@ -112,8 +112,8 @@ class FixCMAP : public Fix {
 
   // calculate dihedral angles
 
-  double dihedral_angle_atan2(double, double, double, double, double, double,
-                              double, double, double, double);
+  double dihedral_angle_atan2(double, double, double, double, double, double, double, double,
+                              double, double);
 
   // calculate bicubic interpolation coefficient matrix c_ij
 
@@ -121,10 +121,9 @@ class FixCMAP : public Fix {
 
   // perform bicubic interpolation at point of interest
 
-  void bc_interpol(double, double, int, int, double *, double *, double *,
-                   double *);
+  void bc_interpol(double, double, int, int, double *, double *, double *, double *);
 };
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

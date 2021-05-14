@@ -39,10 +39,10 @@ class PairAGNIOMP : public PairAGNI, public ThrOMP {
 
  private:
   template <int ATOMIC_FEATURE_VERSION, int EVFLAG>
-  void eval(int ifrom, int ito, ThrData * const thr);
+  void eval(int ifrom, int ito, ThrData *const thr);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

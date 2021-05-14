@@ -41,19 +41,19 @@ class ComputePropertyChunk : public Compute {
   double memory_usage();
 
  private:
-  int nchunk,maxchunk;
+  int nchunk, maxchunk;
   char *idchunk;
   class ComputeChunkAtom *cchunk;
   int *ichunk;
 
-  int nvalues,countflag;
+  int nvalues, countflag;
   double *buf;
-  int *count_one,*count_all;
+  int *count_one, *count_all;
 
   void allocate();
 
   typedef void (ComputePropertyChunk::*FnPtrPack)(int);
-  FnPtrPack *pack_choice;              // ptrs to pack functions
+  FnPtrPack *pack_choice;    // ptrs to pack functions
 
   void pack_count(int);
   void pack_id(int);
@@ -62,7 +62,7 @@ class ComputePropertyChunk : public Compute {
   void pack_coord3(int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

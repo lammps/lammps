@@ -28,7 +28,7 @@ class AtomVecTri : public AtomVec {
  public:
   struct Bonus {
     double quat[4];
-    double c1[3],c2[3],c3[3];
+    double c1[3], c2[3], c3[3];
     double inertia[3];
     int ilocal;
   };
@@ -69,10 +69,10 @@ class AtomVecTri : public AtomVec {
 
  private:
   int *tri;
-  double *radius,*rmass;
-  double **omega,**angmom;
+  double *radius, *rmass;
+  double **omega, **angmom;
 
-  int nghost_bonus,nmax_bonus;
+  int nghost_bonus, nmax_bonus;
   int tri_flag;
   double rmass_one;
 
@@ -80,7 +80,7 @@ class AtomVecTri : public AtomVec {
   void copy_bonus_all(int, int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

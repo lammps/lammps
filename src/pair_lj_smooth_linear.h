@@ -38,19 +38,19 @@ class PairLJSmoothLinear : public Pair {
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
   double single(int, int, int, int, double, double, double, double &);
-  double single_hessian(int, int, int, int, double, double[3], double, double, double&, double[6]);
+  double single_hessian(int, int, int, int, double, double[3], double, double, double &, double[6]);
 
  protected:
   double cut_global;
   double **cut;
-  double **epsilon,**sigma;
-  double **ljcut,**dljcut;
-  double **lj1,**lj2,**lj3,**lj4;
+  double **epsilon, **sigma;
+  double **ljcut, **dljcut;
+  double **lj1, **lj2, **lj3, **lj4;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

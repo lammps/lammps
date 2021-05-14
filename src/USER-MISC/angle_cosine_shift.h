@@ -46,7 +46,7 @@ class AngleCosineShift : public Angle {
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

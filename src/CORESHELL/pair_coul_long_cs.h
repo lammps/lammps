@@ -30,7 +30,7 @@ class PairCoulLongCS : public PairCoulLong {
   virtual void compute(int, int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

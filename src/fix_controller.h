@@ -35,20 +35,20 @@ class FixController : public Fix {
   double compute_vector(int);
 
  private:
-  double kp,ki,kd,alpha,tau;
+  double kp, ki, kd, alpha, tau;
   double setpoint;
-  int pvwhich,pvindex;
-  char *pvID,*cvID;
+  int pvwhich, pvindex;
+  char *pvID, *cvID;
   int firsttime;
 
-  double control,err,olderr,deltaerr,sumerr;
+  double control, err, olderr, deltaerr, sumerr;
 
   class Compute *pcompute;
   class Fix *pfix;
-  int pvar,cvar;
+  int pvar, cvar;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

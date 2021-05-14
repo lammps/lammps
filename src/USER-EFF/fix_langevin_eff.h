@@ -39,7 +39,7 @@ class FixLangevinEff : public FixLangevin {
   void post_force_tally();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -34,25 +34,25 @@ class ChangeBox : public Command {
   double scale[3];
 
   struct Operation {
-    int style,flavor;
-    int dim,boundindex;
-    int vdim1,vdim2;
-    double flo,fhi,ftilt;
-    double dlo,dhi,dtilt;
+    int style, flavor;
+    int dim, boundindex;
+    int vdim1, vdim2;
+    double flo, fhi, ftilt;
+    double dlo, dhi, dtilt;
     double scale;
   };
 
   Operation *ops;
   int nops;
 
-  double boxlo[3],h_inv[6];
+  double boxlo[3], h_inv[6];
 
   void options(int, char **);
   void save_box_state();
   void volume_preserve(int, int, double);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

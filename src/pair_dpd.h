@@ -42,17 +42,17 @@ class PairDPD : public Pair {
   double single(int, int, int, int, double, double, double, double &);
 
  protected:
-  double cut_global,temperature;
+  double cut_global, temperature;
   int seed;
   double **cut;
-  double **a0,**gamma;
+  double **a0, **gamma;
   double **sigma;
   class RanMars *random;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

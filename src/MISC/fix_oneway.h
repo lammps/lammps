@@ -38,7 +38,7 @@ class FixOneWay : public Fix {
   char *regionstr;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

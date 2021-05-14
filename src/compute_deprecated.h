@@ -32,7 +32,7 @@ class ComputeDeprecated : public Compute {
   void init() {}
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

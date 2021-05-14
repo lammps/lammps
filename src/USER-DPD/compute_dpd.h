@@ -33,10 +33,9 @@ class ComputeDpd : public Compute {
 
  private:
   double *dpdU;
-
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

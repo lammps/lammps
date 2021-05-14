@@ -30,7 +30,7 @@ class FixNVTOMP : public FixNHOMP {
   ~FixNVTOMP() {}
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

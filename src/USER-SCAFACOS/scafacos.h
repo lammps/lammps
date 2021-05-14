@@ -41,30 +41,30 @@ class Scafacos : public KSpace {
 
   char *method;
   double tolerance;
-  double *xpbc,*epot,**efield;
+  double *xpbc, *epot, **efield;
   int tolerance_type;
-  int initialized,maxatom;
+  int initialized, maxatom;
 
   int fmm_tuning_flag;
 
-  void* fcs;                // ScaFaCoS handle
+  void *fcs;    // ScaFaCoS handle
 
   // simulation state: box, natoms
   // so ScaFaCoS can detect if changes, e.g. for NPT
 
-  double old_box_x[3],old_box_y[3],old_box_z[3];
+  double old_box_x[3], old_box_y[3], old_box_z[3];
   double old_origin[3];
   int old_periodicity[3];
   int old_natoms;
 
   double virial_int[9];
 
-  void check_result(void*);
+  void check_result(void *);
   void setup_handle();
   bool box_has_changed();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

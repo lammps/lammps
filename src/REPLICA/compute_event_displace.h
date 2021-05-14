@@ -34,7 +34,6 @@ class ComputeEventDisplace : public Compute {
   int all_events();
   void reset_extra_compute_fix(const char *);
 
-
  private:
   int triclinic;
   double displace_distsq;
@@ -42,7 +41,7 @@ class ComputeEventDisplace : public Compute {
   class FixEvent *fix_event;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

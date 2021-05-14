@@ -41,14 +41,14 @@ class PairCoulDSF : public Pair {
   void *extract(const char *, int &);
 
  protected:
-  double cut_coul,cut_coulsq;
+  double cut_coul, cut_coulsq;
   double alpha;
-  double f_shift,e_shift;
+  double f_shift, e_shift;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

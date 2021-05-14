@@ -42,7 +42,7 @@ class ComputeCNAAtom : public Compute {
   double *pattern;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

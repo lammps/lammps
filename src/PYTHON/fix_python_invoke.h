@@ -21,7 +21,6 @@ FixStyle(python,FixPythonInvoke);
 #ifndef LMP_FIX_PYTHON_INVOKE_H
 #define LMP_FIX_PYTHON_INVOKE_H
 
-
 #include "fix.h"
 
 namespace LAMMPS_NS {
@@ -35,12 +34,12 @@ class FixPythonInvoke : public Fix {
   virtual void post_force(int);
 
  private:
-  void * lmpPtr;
-  void * pFunc;
+  void *lmpPtr;
+  void *pFunc;
   int selected_callback;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

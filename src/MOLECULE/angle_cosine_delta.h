@@ -31,7 +31,7 @@ class AngleCosineDelta : public AngleCosineSquared {
   double single(int, int, int, int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

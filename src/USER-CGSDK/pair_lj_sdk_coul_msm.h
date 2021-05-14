@@ -31,17 +31,16 @@ namespace LAMMPS_NS {
 class PairLJSDKCoulMSM : public PairLJSDKCoulLong {
  public:
   PairLJSDKCoulMSM(class LAMMPS *);
-  virtual ~PairLJSDKCoulMSM() {};
+  virtual ~PairLJSDKCoulMSM(){};
   virtual void compute(int, int);
   virtual double single(int, int, int, int, double, double, double, double &);
   virtual void *extract(const char *, int &);
 
-private:
+ private:
   template <int EVFLAG, int EFLAG, int NEWTON_PAIR> void eval_msm();
-
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

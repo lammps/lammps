@@ -35,12 +35,12 @@ class AtomVecElectron : public AtomVec {
   int property_atom(char *);
   void pack_property_atom(int, double *, int, int);
 
-private:
+ private:
   int *spin;
-  double *eradius,*ervel,*erforce;
+  double *eradius, *ervel, *erforce;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

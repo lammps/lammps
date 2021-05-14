@@ -9,7 +9,6 @@
  *
  * ----------------------------------------------------------------------- */
 
-
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -49,7 +48,7 @@ class ComputeSMDPlasticStrainRate : public Compute {
   double *plastic_strain_rate_vector;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -37,12 +37,12 @@ class AngleDipole : public Angle {
   double single(int, int, int, int);
 
  protected:
-  double *k,*gamma0;
+  double *k, *gamma0;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -46,14 +46,14 @@ class PairPython : public Pair {
 
  protected:
   double cut_global;
-  void * py_potential;
-  int  * skip_types;
+  void *py_potential;
+  int *skip_types;
 
   virtual void allocate();
-  void * get_member_function(const char *);
+  void *get_member_function(const char *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

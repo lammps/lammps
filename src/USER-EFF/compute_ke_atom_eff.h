@@ -11,7 +11,6 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-
 #ifdef COMPUTE_CLASS
 // clang-format off
 ComputeStyle(ke/atom/eff,ComputeKEAtomEff);
@@ -38,7 +37,7 @@ class ComputeKEAtomEff : public Compute {
   double *ke;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

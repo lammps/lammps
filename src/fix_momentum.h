@@ -32,12 +32,12 @@ class FixMomentum : public Fix {
   void end_of_step();
 
  protected:
-  int linear,angular,rescale;
-  int xflag,yflag,zflag;
+  int linear, angular, rescale;
+  int xflag, yflag, zflag;
   double masstotal;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -32,11 +32,11 @@ class PPPMDipoleSpin : public PPPMDipole {
   void compute(int, int);
 
  protected:
-  double hbar;                  // reduced Planck's constant
-  double mub;                   // Bohr's magneton
-  double mu_0;                  // vacuum permeability
-  double mub2mu0;               // prefactor for mech force
-  double mub2mu0hbinv;          // prefactor for mag force
+  double hbar;            // reduced Planck's constant
+  double mub;             // Bohr's magneton
+  double mu_0;            // vacuum permeability
+  double mub2mu0;         // prefactor for mech force
+  double mub2mu0hbinv;    // prefactor for mag force
 
   void slabcorr();
 
@@ -48,7 +48,7 @@ class PPPMDipoleSpin : public PPPMDipole {
   void spsum_spsq();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -26,7 +26,7 @@ namespace LAMMPS_NS {
 
 class ComputeCOMChunk : public Compute {
  public:
-  char *idchunk;              // fields accessed by other classes
+  char *idchunk;    // fields accessed by other classes
   double *masstotal;
 
   ComputeCOMChunk(class LAMMPS *, int, char **);
@@ -44,17 +44,17 @@ class ComputeCOMChunk : public Compute {
   double memory_usage();
 
  private:
-  int nchunk,maxchunk;
-  int firstflag,massneed;
+  int nchunk, maxchunk;
+  int firstflag, massneed;
   class ComputeChunkAtom *cchunk;
 
   double *massproc;
-  double **com,**comall;
+  double **com, **comall;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

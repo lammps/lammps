@@ -46,7 +46,7 @@ class DihedralZero : public Dihedral {
   virtual void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

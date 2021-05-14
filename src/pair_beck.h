@@ -41,13 +41,13 @@ class PairBeck : public Pair {
  protected:
   double cut_global;
   double **cut;
-  double **AA,**BB;
-  double **aa,**alpha,**beta;
+  double **AA, **BB;
+  double **aa, **alpha, **beta;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

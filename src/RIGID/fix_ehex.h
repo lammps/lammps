@@ -11,7 +11,6 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-
 #ifdef FIX_CLASS
 // clang-format off
 FixStyle(ehex,FixEHEX);
@@ -31,14 +30,14 @@ class FixEHEX : public Fix {
  public:
   FixEHEX(class LAMMPS *, int, char **);
   ~FixEHEX();
-  int  setmask();
+  int setmask();
   void init();
   void end_of_step();
-  void   rescale();
+  void rescale();
   double compute_scalar();
   double memory_usage();
   void update_scalingmask();
-  void com_properties(double *, double *, double *, double*, double *, double*);
+  void com_properties(double *, double *, double *, double *, double *, double *);
   bool rescale_atom(int i, class Region *region);
   virtual void grow_arrays(int nmax);
   bool check_cluster(tagint *shake_atom, int n, class Region *region);
@@ -51,22 +50,22 @@ class FixEHEX : public Fix {
   char *idregion;
   int me;
 
-  double **x;               // coordinates
-  double **f;               // forces
-  double **v;               // velocities
-  double *mass;             // masses
-  double *rmass;            // reduced masses
-  int    *type;             // atom types
-  int   nlocal;             // number of local atoms
-  class FixShake * fshake;  // pointer to fix_shake/fix_rattle
-  int constraints;          // constraints (0/1)
-  int cluster;              // rescaling entire clusters (0/1)
-  int hex;                  // HEX mode (0/1)
-  bool *scalingmask;       // scalingmask[i] determines whether
-                            // the velocity of atom i is to be rescaled
+  double **x;                // coordinates
+  double **f;                // forces
+  double **v;                // velocities
+  double *mass;              // masses
+  double *rmass;             // reduced masses
+  int *type;                 // atom types
+  int nlocal;                // number of local atoms
+  class FixShake *fshake;    // pointer to fix_shake/fix_rattle
+  int constraints;           // constraints (0/1)
+  int cluster;               // rescaling entire clusters (0/1)
+  int hex;                   // HEX mode (0/1)
+  bool *scalingmask;         // scalingmask[i] determines whether
+                             // the velocity of atom i is to be rescaled
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

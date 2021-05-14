@@ -34,7 +34,7 @@ class ComputeAcklandAtom : public Compute {
   double memory_usage();
 
  private:
-  int nmax,maxneigh,legacy;
+  int nmax, maxneigh, legacy;
   double *distsq;
   int *nearest, *nearest_n0, *nearest_n1;
   double *structure;
@@ -44,7 +44,7 @@ class ComputeAcklandAtom : public Compute {
   void select2(int, int, double *, int *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -37,7 +37,7 @@ class ComputeSPHEAtom : public Compute {
   double *evector;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

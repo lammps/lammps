@@ -30,7 +30,7 @@ class FixRigidNVEOMP : public FixRigidNHOMP {
   ~FixRigidNVEOMP() {}
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

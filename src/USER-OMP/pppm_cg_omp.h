@@ -28,7 +28,7 @@ namespace LAMMPS_NS {
 class PPPMCGOMP : public PPPMCG, public ThrOMP {
  public:
   PPPMCGOMP(class LAMMPS *);
-  virtual ~PPPMCGOMP ();
+  virtual ~PPPMCGOMP();
   virtual void compute(int, int);
 
  protected:
@@ -43,13 +43,13 @@ class PPPMCGOMP : public PPPMCG, public ThrOMP {
   virtual void fieldforce_peratom();
 
  private:
-  void compute_rho1d_thr(FFT_SCALAR * const * const, const FFT_SCALAR &,
-                         const FFT_SCALAR &, const FFT_SCALAR &);
-  void compute_drho1d_thr(FFT_SCALAR * const * const, const FFT_SCALAR &,
-                          const FFT_SCALAR &, const FFT_SCALAR &);
+  void compute_rho1d_thr(FFT_SCALAR *const *const, const FFT_SCALAR &, const FFT_SCALAR &,
+                         const FFT_SCALAR &);
+  void compute_drho1d_thr(FFT_SCALAR *const *const, const FFT_SCALAR &, const FFT_SCALAR &,
+                          const FFT_SCALAR &);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

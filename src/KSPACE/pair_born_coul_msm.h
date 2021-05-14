@@ -31,13 +31,13 @@ class PairBornCoulMSM : public PairBornCoulLong {
   virtual void compute(int, int);
   virtual double single(int, int, int, int, double, double, double, double &);
   virtual void *extract(const char *, int &);
+
  protected:
   int nmax;
   double **ftmp;
-
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

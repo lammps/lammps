@@ -37,10 +37,10 @@ class FixBondSwap : public Fix {
   double memory_usage();
 
  private:
-  double fraction,cutsq;
-  int nmax,tflag;
+  double fraction, cutsq;
+  int nmax, tflag;
   int *alist;
-  int naccept,foursome;
+  int naccept, foursome;
   int angleflag;
   char *id_temp;
   int *type;
@@ -56,7 +56,7 @@ class FixBondSwap : public Fix {
   double angle_eng(int, int, int, int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

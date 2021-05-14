@@ -37,12 +37,12 @@ class AngleCosineSquared : public Angle {
   virtual double single(int, int, int, int);
 
  protected:
-  double *k,*theta0;
+  double *k, *theta0;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

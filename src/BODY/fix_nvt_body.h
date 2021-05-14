@@ -30,7 +30,7 @@ class FixNVTBody : public FixNHBody {
   ~FixNVTBody() {}
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

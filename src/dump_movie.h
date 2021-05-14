@@ -26,18 +26,18 @@ namespace LAMMPS_NS {
 
 class DumpMovie : public DumpImage {
  public:
-  DumpMovie(LAMMPS *, int, char**);
+  DumpMovie(LAMMPS *, int, char **);
 
   virtual void openfile();
   virtual void init_style();
   virtual int modify_param(int, char **);
 
  protected:
-  double framerate;             // frame rate of animation
-  int bitrate;                  // bitrate of video file in kbps
+  double framerate;    // frame rate of animation
+  int bitrate;         // bitrate of video file in kbps
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

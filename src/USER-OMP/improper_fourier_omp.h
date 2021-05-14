@@ -37,17 +37,15 @@ class ImproperFourierOMP : public ImproperFourier, public ThrOMP {
 
  private:
   template <int EVFLAG, int EFLAG, int NEWTON_BOND>
-  void eval(int ifrom, int ito, ThrData * const thr);
+  void eval(int ifrom, int ito, ThrData *const thr);
 
   template <int EVFLAG, int EFLAG, int NEWTON_BOND>
-  void add1_thr(const int,const int,const int,const int,const int,
-                const double &, const double &, const double &,
-                const double &, const double &, const double &,
-                const double &, const double &, const double &,
-                ThrData * const thr);
+  void add1_thr(const int, const int, const int, const int, const int, const double &,
+                const double &, const double &, const double &, const double &, const double &,
+                const double &, const double &, const double &, ThrData *const thr);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

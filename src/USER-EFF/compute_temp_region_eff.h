@@ -46,7 +46,7 @@ class ComputeTempRegionEff : public Compute {
   char *idregion;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

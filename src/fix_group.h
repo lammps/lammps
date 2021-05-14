@@ -32,14 +32,14 @@ class FixGroup : public Fix {
   void init();
   void setup(int);
   void post_integrate();
-  void post_integrate_respa(int,int);
-  void *extract(const char *,int &);
+  void post_integrate_respa(int, int);
+  void *extract(const char *, int &);
 
  private:
-  int gbit,gbitinverse;
-  int regionflag,varflag,propflag,typeflag;
-  int iregion,ivar,iprop;
-  char *idregion,*idvar,*idprop;
+  int gbit, gbitinverse;
+  int regionflag, varflag, propflag, typeflag;
+  int iregion, ivar, iprop;
+  char *idregion, *idvar, *idprop;
   class Region *region;
 
   int nlevels_respa;
@@ -47,7 +47,7 @@ class FixGroup : public Fix {
   void set_group();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

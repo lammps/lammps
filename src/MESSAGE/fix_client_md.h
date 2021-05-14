@@ -37,10 +37,10 @@ class FixClientMD : public Fix {
   double compute_scalar();
 
  private:
-  int maxatom,units,server_error;
+  int maxatom, units, server_error;
   double eng;
   double inv_nprocs;
-  double fconvert,econvert,pconvert;
+  double fconvert, econvert, pconvert;
   double box[3][3];
   double *xpbc;
 
@@ -49,7 +49,7 @@ class FixClientMD : public Fix {
   void receive_fev(int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

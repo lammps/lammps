@@ -38,24 +38,23 @@ class AngleSDK : public Angle {
   double single(int, int, int, int);
 
  protected:
-  double *k,*theta0;
+  double *k, *theta0;
 
   // scaling factor for repulsive 1-3 interaction
   double *repscale;
   // parameters from SDK pair style
   int **lj_type;
-  double **lj1,**lj2, **lj3, **lj4;
-  double **rminsq,**emin;
+  double **lj1, **lj2, **lj3, **lj4;
+  double **rminsq, **emin;
 
-  int repflag; // 1 if we have to handle 1-3 repulsion
+  int repflag;    // 1 if we have to handle 1-3 repulsion
 
-  void ev_tally13(int, int, int, int, double, double,
-                  double, double, double);
+  void ev_tally13(int, int, int, int, double, double, double, double, double);
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

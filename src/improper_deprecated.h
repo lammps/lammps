@@ -36,7 +36,7 @@ class ImproperDeprecated : public Improper {
   virtual void read_restart(FILE *) {}
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

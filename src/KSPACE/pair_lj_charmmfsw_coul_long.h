@@ -51,23 +51,23 @@ class PairLJCharmmfswCoulLong : public Pair {
   int implicit;
   int dihedflag;
 
-  double cut_lj_inner,cut_lj,cut_ljinv,cut_lj_innerinv;
-  double cut_lj_innersq,cut_ljsq;
-  double cut_lj3inv,cut_lj_inner3inv,cut_lj3,cut_lj_inner3;
-  double cut_lj6inv,cut_lj_inner6inv,cut_lj6,cut_lj_inner6;
-  double cut_coul,cut_coulsq;
+  double cut_lj_inner, cut_lj, cut_ljinv, cut_lj_innerinv;
+  double cut_lj_innersq, cut_ljsq;
+  double cut_lj3inv, cut_lj_inner3inv, cut_lj3, cut_lj_inner3;
+  double cut_lj6inv, cut_lj_inner6inv, cut_lj6, cut_lj_inner6;
+  double cut_coul, cut_coulsq;
   double cut_bothsq;
-  double denom_lj,denom_lj12,denom_lj6;
-  double **epsilon,**sigma,**eps14,**sigma14;
-  double **lj1,**lj2,**lj3,**lj4,**offset;
-  double **lj14_1,**lj14_2,**lj14_3,**lj14_4;
+  double denom_lj, denom_lj12, denom_lj6;
+  double **epsilon, **sigma, **eps14, **sigma14;
+  double **lj1, **lj2, **lj3, **lj4, **offset;
+  double **lj14_1, **lj14_2, **lj14_3, **lj14_4;
   double *cut_respa;
   double g_ewald;
 
   virtual void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

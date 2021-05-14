@@ -72,7 +72,7 @@ class PairOxdnaHbond : public Pair {
   virtual void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

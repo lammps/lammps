@@ -26,7 +26,7 @@ class FixQEQCombOMP : public FixQEQComb {
   virtual void post_force(int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

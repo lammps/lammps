@@ -37,7 +37,7 @@ class ComputeERotateAsphere : public Compute {
   class AtomVecTri *avec_tri;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

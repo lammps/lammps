@@ -51,7 +51,7 @@ class PairPeriLPS : public Pair {
   int ifix_peri;
   double **bulkmodulus;
   double **shearmodulus;
-  double **s00,**alpha;
+  double **s00, **alpha;
   double **cut;
 
   double *s0_new;
@@ -60,7 +60,7 @@ class PairPeriLPS : public Pair {
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

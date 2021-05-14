@@ -37,7 +37,7 @@ class ComputeImproper : public Compute {
   double *emine;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

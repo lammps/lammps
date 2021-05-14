@@ -2213,6 +2213,7 @@ double FixBondReact::rxnfunction(std::string rxnfunc, std::string varid,
 
   if (rxnfunc == "rxnsum") return sumvvec;
   if (rxnfunc == "rxnave") return sumvvec/nsum;
+  return 0.0;
 }
 
 /* ----------------------------------------------------------------------

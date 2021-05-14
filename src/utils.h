@@ -379,7 +379,6 @@ namespace LAMMPS_NS {
    :cpp:class:`Tokenizer`, :cpp:class:`ValueTokenizer`
 
 \endverbatim
-     *
      * \param text string that should be split
      * \return STL vector with the words */
 

@@ -42,7 +42,8 @@ enum { DIPOLE, VELOCITY, QUAT };
 
 /* ---------------------------------------------------------------------- */
 
-FixPropelSelf::FixPropelSelf(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
+FixPropelSelf::FixPropelSelf(LAMMPS *lmp, int narg, char **arg)
+  : Fix(lmp, narg, arg), avec(nullptr)
 {
 
   virial_global_flag = virial_peratom_flag = 1;

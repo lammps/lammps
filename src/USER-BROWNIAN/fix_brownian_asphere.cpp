@@ -38,8 +38,8 @@ using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixBrownianAsphere::FixBrownianAsphere(LAMMPS *lmp, int narg, char **arg) :
-    FixBrownianBase(lmp, narg, arg)
+FixBrownianAsphere::FixBrownianAsphere(LAMMPS *lmp, int narg, char **arg)
+  : FixBrownianBase(lmp, narg, arg), avec(nullptr)
 {
   if (!gamma_t_eigen_flag || !gamma_r_eigen_flag) {
     error->all(FLERR, "Illegal fix brownian command.");

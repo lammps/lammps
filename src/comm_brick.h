@@ -61,8 +61,10 @@ class CommBrick : public Comm {
   int *size_reverse_send;           // # to send in each reverse comm
   int *size_reverse_recv;           // # to recv in each reverse comm
   double *slablo,*slabhi;           // bounds of slab to send at each swap
-  double **multilo,**multihi;       // bounds of slabs for multi-type swap
-  double **cutghostmulti;           // cutghost on a per-type basis
+  double **multilo,**multihi;       // bounds of slabs for multi-collection swap
+  double **multioldlo,**multioldhi; // bounds of slabs for multi-type swap
+  double **cutghostmulti;           // cutghost on a per-collection basis
+  double **cutghostmultiold;        // cutghost on a per-type basis
   int *pbc_flag;                    // general flag for sending atoms thru PBC
   int **pbc;                        // dimension flags for PBC adjustments
 
@@ -84,11 +86,13 @@ class CommBrick : public Comm {
   virtual void grow_send(int, int);         // reallocate send buffer
   virtual void grow_recv(int);              // free/allocate recv buffer
   virtual void grow_list(int, int);         // reallocate one sendlist
-  virtual void grow_swap(int);              // grow swap and multi arrays
+  virtual void grow_swap(int);              // grow swap, multi, and multi/old arrays
   virtual void allocate_swap(int);          // allocate swap arrays
   virtual void allocate_multi(int);         // allocate multi arrays
+  virtual void allocate_multiold(int);      // allocate multi/old arrays
   virtual void free_swap();                 // free swap arrays
   virtual void free_multi();                // free multi arrays
+  virtual void free_multiold();            // free multi/old arrays
 };
 
 }

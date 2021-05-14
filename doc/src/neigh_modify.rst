@@ -14,7 +14,7 @@ Syntax
 
   .. parsed-literal::
 
-     keyword = *delay* or *every* or *check* or *once* or *cluster* or *include* or *exclude* or *page* or *one* or *binsize*
+     keyword = *delay* or *every* or *check* or *once* or *cluster* or *include* or *exclude* or *page* or *one* or *binsize* or *collection/type* or *collection/interval*
        *delay* value = N
          N = delay building until this many steps since last build
        *every* value = M
@@ -47,6 +47,12 @@ Syntax
          N = max number of neighbors of one atom
        *binsize* value = size
          size = bin size for neighbor list construction (distance units)
+       *collection/type* values = N arg1 ... argN
+         N = number of custom collections
+         arg = N separate lists of types (see below)
+       *collection/interval* values = N arg1 ... argN
+         N = number of custom collections
+         arg = N separate cutoffs for intervals (see below)
 
 Examples
 """"""""
@@ -58,6 +64,8 @@ Examples
    neigh_modify exclude group frozen frozen check no
    neigh_modify exclude group residue1 chain3
    neigh_modify exclude molecule/intra rigid
+   neigh_modify collection/type 2 1*2,5 3*4
+   neigh_modify collection/interval 2 1.0 10.0
 
 Description
 """""""""""
@@ -188,14 +196,40 @@ atom can have.
 The *binsize* option allows you to specify what size of bins will be
 used in neighbor list construction to sort and find neighboring atoms.
 By default, for :doc:`neighbor style bin <neighbor>`, LAMMPS uses bins
-that are 1/2 the size of the maximum pair cutoff.  For :doc:`neighbor style multi <neighbor>`, the bins are 1/2 the size of the minimum pair
-cutoff.  Typically these are good values for minimizing the time for
+that are 1/2 the size of the maximum pair cutoff.  For :doc:`neighbor style multi <neighbor>`,
+the bins are 1/2 the size of the collection interaction cutoff.
+Typically these are good values for minimizing the time for
 neighbor list construction.  This setting overrides the default.
 If you make it too big, there is little overhead due to
 looping over bins, but more atoms are checked.  If you make it too
 small, the optimal number of atoms is checked, but bin overhead goes
 up.  If you set the binsize to 0.0, LAMMPS will use the default
 binsize of 1/2 the cutoff.
+
+The *collection/type* option allows you to define collections of atom
+types, used by the *multi* neighbor mode. By grouping atom types with
+similar physical size or interaction cutoff lengths, one may be able
+to improve performance by reducing
+overhead. You must first specify the number of collections N to be
+defined followed by N lists of types. Each list consists of a series of type
+ranges separated by commas. The range can be specified as a
+single numeric value, or a wildcard asterisk can be used to specify a range
+of values.  This takes the form "\*" or "\*n" or "n\*" or "m\*n".  For
+example, if M = the number of atom types, then an asterisk with no numeric
+values means all types from 1 to M.  A leading asterisk means all types
+from 1 to n (inclusive).  A trailing asterisk means all types from n to M
+(inclusive).  A middle asterisk means all types from m to n (inclusive).
+Note that all atom types must be included in exactly one of the N collections.
+
+The *collection/interval* option provides a similar capability.  This
+command allows a user to define collections by specifying a series of
+cutoff intervals. LAMMPS will automatically sort atoms into these
+intervals based on their type-dependent cutoffs or their finite size.
+You must first specify the number of collections N to be defined
+followed by N values representing the upper cutoff of each interval.
+This command is particularly useful for granular pair styles where the
+interaction distance of particles depends on their radius and may not
+depend on their atom type.
 
 Restrictions
 """"""""""""

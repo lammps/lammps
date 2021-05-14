@@ -401,6 +401,7 @@ void PairHybrid::flags()
     if (styles[m]->dispersionflag) dispersionflag = 1;
     if (styles[m]->tip4pflag) tip4pflag = 1;
     if (styles[m]->compute_flag) compute_flag = 1;
+    if (styles[m]->finitecutflag) finitecutflag = 1;
   }
   single_enable = (single_enable == nstyles) ? 1 : 0;
   respa_enable = (respa_enable == nstyles) ? 1 : 0;
@@ -1076,6 +1077,42 @@ int PairHybrid::check_ijtype(int itype, int jtype, char *substyle)
   for (int m = 0; m < nmap[itype][jtype]; m++)
     if (strcmp(keywords[map[itype][jtype][m]],substyle) == 0) return 1;
   return 0;
+}
+
+/* ----------------------------------------------------------------------
+   check if substyles calculate self-interaction range of particle
+------------------------------------------------------------------------- */
+
+double PairHybrid::atom2cut(int i)
+{
+  double temp, cut;
+
+  cut = 0.0;
+  for (int m = 0; m < nstyles; m++) {
+    if (styles[m]->finitecutflag) {
+      temp = styles[m]->atom2cut(i);
+      if (temp > cut) cut = temp;
+    }
+  }
+  return cut;
+}
+
+/* ----------------------------------------------------------------------
+   check if substyles calculate maximum interaction range for two finite particles
+------------------------------------------------------------------------- */
+
+double PairHybrid::radii2cut(double r1, double r2)
+{
+  double temp, cut;
+
+ cut = 0.0;
+  for (int m = 0; m < nstyles; m++) {
+    if (styles[m]->finitecutflag) {
+      temp = styles[m]->radii2cut(r1,r2);
+      if (temp > cut) cut = temp;
+    }
+  }
+  return cut;
 }
 
 /* ----------------------------------------------------------------------

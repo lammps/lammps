@@ -12,11 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef NBIN_CLASS
-// clang-format off
+
 NBinStyle(ssa,
           NBinSSA,
-          NB_SSA);
-// clang-format on
+          NB_STANDARD | NB_SSA)
+
 #else
 
 #ifndef LMP_NBIN_SSA_H

@@ -60,6 +60,8 @@ class PairHybrid : public Pair {
 
   virtual void add_tally_callback(class Compute *);
   virtual void del_tally_callback(class Compute *);
+  double atom2cut(int);
+  double radii2cut(double,double);
 
  protected:
   int nstyles;                  // # of sub-styles

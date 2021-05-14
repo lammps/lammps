@@ -44,6 +44,7 @@ PairGranHookeHistory::PairGranHookeHistory(LAMMPS *lmp) : Pair(lmp)
   single_enable = 1;
   no_virial_fdotr_compute = 1;
   centroidstressflag = CENTROID_NOTAVAIL;
+  finitecutflag = 1;
   history = 1;
   size_history = 3;
 
@@ -798,4 +799,24 @@ double PairGranHookeHistory::memory_usage()
 {
   double bytes = (double)nmax * sizeof(double);
   return bytes;
+}
+
+/* ----------------------------------------------------------------------
+   self-interaction range of particle
+------------------------------------------------------------------------- */
+
+double PairGranHookeHistory::atom2cut(int i)
+{
+  double cut = atom->radius[i]*2;
+  return cut;
+}
+
+/* ----------------------------------------------------------------------
+   maximum interaction range for two finite particles
+------------------------------------------------------------------------- */
+
+double PairGranHookeHistory::radii2cut(double r1, double r2)
+{
+  double cut = r1+r2;
+  return cut;
 }

@@ -96,6 +96,11 @@ void NPair::copy_neighbor_info()
 
   special_flag = neighbor->special_flag;
 
+  // multi info
+
+  ncollections = neighbor->ncollections;
+  cutcollectionsq = neighbor->cutcollectionsq;
+
   // overwrite per-type Neighbor cutoffs with custom value set by requestor
   // only works for style = BIN (checked by Neighbor class)
 
@@ -135,6 +140,23 @@ void NPair::copy_bin_info()
   atom2bin = nb->atom2bin;
   bins = nb->bins;
   binhead = nb->binhead;
+
+  nbinx_multi = nb->nbinx_multi;
+  nbiny_multi = nb->nbiny_multi;
+  nbinz_multi = nb->nbinz_multi;
+  mbins_multi = nb->mbins_multi;
+  mbinx_multi = nb->mbinx_multi;
+  mbiny_multi = nb->mbiny_multi;
+  mbinz_multi = nb->mbinz_multi;
+  mbinxlo_multi = nb->mbinxlo_multi;
+  mbinylo_multi = nb->mbinylo_multi;
+  mbinzlo_multi = nb->mbinzlo_multi;
+
+  bininvx_multi = nb->bininvx_multi;
+  bininvy_multi = nb->bininvy_multi;
+  bininvz_multi = nb->bininvz_multi;
+
+  binhead_multi = nb->binhead_multi;
 }
 
 /* ----------------------------------------------------------------------
@@ -146,9 +168,12 @@ void NPair::copy_stencil_info()
   nstencil = ns->nstencil;
   stencil = ns->stencil;
   stencilxyz = ns->stencilxyz;
+  nstencil_multi_old = ns->nstencil_multi_old;
+  stencil_multi_old = ns->stencil_multi_old;
+  distsq_multi_old = ns->distsq_multi_old;
+
   nstencil_multi = ns->nstencil_multi;
   stencil_multi = ns->stencil_multi;
-  distsq_multi = ns->distsq_multi;
 }
 
 /* ----------------------------------------------------------------------
@@ -161,7 +186,6 @@ void NPair::build_setup()
   if (ns) copy_stencil_info();
 
   // set here, since build_setup() always called before build()
-
   last_build = update->ntimestep;
 }
 
@@ -242,3 +266,46 @@ int NPair::coord2bin(double *x, int &ix, int &iy, int &iz)
   return iz*mbiny*mbinx + iy*mbinx + ix;
 }
 
+
+/* ----------------------------------------------------------------------
+   multi version of coord2bin for a given collection
+------------------------------------------------------------------------- */
+
+int NPair::coord2bin(double *x, int ic)
+{
+  int ix,iy,iz;
+  int ibin;
+
+  if (!std::isfinite(x[0]) || !std::isfinite(x[1]) || !std::isfinite(x[2]))
+    error->one(FLERR,"Non-numeric positions - simulation unstable");
+
+  if (x[0] >= bboxhi[0])
+    ix = static_cast<int> ((x[0]-bboxhi[0])*bininvx_multi[ic]) + nbinx_multi[ic];
+  else if (x[0] >= bboxlo[0]) {
+    ix = static_cast<int> ((x[0]-bboxlo[0])*bininvx_multi[ic]);
+    ix = MIN(ix,nbinx_multi[ic]-1);
+  } else
+    ix = static_cast<int> ((x[0]-bboxlo[0])*bininvx_multi[ic]) - 1;
+
+  if (x[1] >= bboxhi[1])
+    iy = static_cast<int> ((x[1]-bboxhi[1])*bininvy_multi[ic]) + nbiny_multi[ic];
+  else if (x[1] >= bboxlo[1]) {
+    iy = static_cast<int> ((x[1]-bboxlo[1])*bininvy_multi[ic]);
+    iy = MIN(iy,nbiny_multi[ic]-1);
+  } else
+    iy = static_cast<int> ((x[1]-bboxlo[1])*bininvy_multi[ic]) - 1;
+
+  if (x[2] >= bboxhi[2])
+    iz = static_cast<int> ((x[2]-bboxhi[2])*bininvz_multi[ic]) + nbinz_multi[ic];
+  else if (x[2] >= bboxlo[2]) {
+    iz = static_cast<int> ((x[2]-bboxlo[2])*bininvz_multi[ic]);
+    iz = MIN(iz,nbinz_multi[ic]-1);
+  } else
+    iz = static_cast<int> ((x[2]-bboxlo[2])*bininvz_multi[ic]) - 1;
+
+  ix -= mbinxlo_multi[ic];
+  iy -= mbinylo_multi[ic];
+  iz -= mbinzlo_multi[ic];
+  ibin = iz*mbiny_multi[ic]*mbinx_multi[ic] + iy*mbinx_multi[ic] + ix;
+  return ibin;
+}

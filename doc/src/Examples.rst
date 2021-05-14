@@ -108,6 +108,8 @@ Lowercase directories
 +-------------+------------------------------------------------------------------+
 | msst        | MSST shock dynamics                                              |
 +-------------+------------------------------------------------------------------+
+| multi       | multi neighboring for systems with large interaction disparities |
++-------------+------------------------------------------------------------------+
 | nb3b        | use of non-bonded 3-body harmonic pair style                     |
 +-------------+------------------------------------------------------------------+
 | neb         | nudged elastic band (NEB) calculation for barrier finding        |

@@ -12,12 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef NSTENCIL_CLASS
-// clang-format off
+
 NStencilStyle(full/ghost/bin/2d,
               NStencilFullGhostBin2d,
-              NS_FULL | NS_GHOST | NS_BIN | NS_2D |
-              NS_NEWTON | NS_NEWTOFF | NS_ORTHO | NS_TRI);
-// clang-format on
+              NS_FULL | NS_GHOST | NS_BIN | NS_2D | NS_ORTHO | NS_TRI)
+
 #else
 
 #ifndef LMP_NSTENCIL_FULL_GHOST_BIN_2D_H

@@ -744,8 +744,8 @@ struct ParallelReduceReturnValue<
   using value_type_scalar = typename return_type::value_type;
   using value_type_array  = typename return_type::value_type* const;
 
-  using value_type = typename if_c<return_type::rank == 0, value_type_scalar,
-                                   value_type_array>::type;
+  using value_type = std::conditional_t<return_type::rank == 0,
+                                        value_type_scalar, value_type_array>;
 
   static return_type& return_value(ReturnType& return_val, const FunctorType&) {
     return return_val;
@@ -1109,10 +1109,9 @@ inline void parallel_reduce(
         Kokkos::Impl::is_execution_policy<PolicyType>::value>::type* =
         nullptr) {
   using ValueTraits = Kokkos::Impl::FunctorValueTraits<FunctorType, void>;
-  using value_type =
-      typename Kokkos::Impl::if_c<(ValueTraits::StaticValueSize != 0),
-                                  typename ValueTraits::value_type,
-                                  typename ValueTraits::pointer_type>::type;
+  using value_type  = std::conditional_t<(ValueTraits::StaticValueSize != 0),
+                                        typename ValueTraits::value_type,
+                                        typename ValueTraits::pointer_type>;
 
   static_assert(
       Impl::FunctorAnalysis<Impl::FunctorPatternInterface::REDUCE, PolicyType,
@@ -1135,10 +1134,9 @@ inline void parallel_reduce(
         Kokkos::Impl::is_execution_policy<PolicyType>::value>::type* =
         nullptr) {
   using ValueTraits = Kokkos::Impl::FunctorValueTraits<FunctorType, void>;
-  using value_type =
-      typename Kokkos::Impl::if_c<(ValueTraits::StaticValueSize != 0),
-                                  typename ValueTraits::value_type,
-                                  typename ValueTraits::pointer_type>::type;
+  using value_type  = std::conditional_t<(ValueTraits::StaticValueSize != 0),
+                                        typename ValueTraits::value_type,
+                                        typename ValueTraits::pointer_type>;
 
   static_assert(
       Impl::FunctorAnalysis<Impl::FunctorPatternInterface::REDUCE, PolicyType,
@@ -1160,10 +1158,9 @@ inline void parallel_reduce(const size_t& policy, const FunctorType& functor) {
       typename Impl::ParallelReducePolicyType<void, size_t,
                                               FunctorType>::policy_type;
   using ValueTraits = Kokkos::Impl::FunctorValueTraits<FunctorType, void>;
-  using value_type =
-      typename Kokkos::Impl::if_c<(ValueTraits::StaticValueSize != 0),
-                                  typename ValueTraits::value_type,
-                                  typename ValueTraits::pointer_type>::type;
+  using value_type  = std::conditional_t<(ValueTraits::StaticValueSize != 0),
+                                        typename ValueTraits::value_type,
+                                        typename ValueTraits::pointer_type>;
 
   static_assert(
       Impl::FunctorAnalysis<Impl::FunctorPatternInterface::REDUCE,
@@ -1188,10 +1185,9 @@ inline void parallel_reduce(const std::string& label, const size_t& policy,
       typename Impl::ParallelReducePolicyType<void, size_t,
                                               FunctorType>::policy_type;
   using ValueTraits = Kokkos::Impl::FunctorValueTraits<FunctorType, void>;
-  using value_type =
-      typename Kokkos::Impl::if_c<(ValueTraits::StaticValueSize != 0),
-                                  typename ValueTraits::value_type,
-                                  typename ValueTraits::pointer_type>::type;
+  using value_type  = std::conditional_t<(ValueTraits::StaticValueSize != 0),
+                                        typename ValueTraits::value_type,
+                                        typename ValueTraits::pointer_type>;
 
   static_assert(
       Impl::FunctorAnalysis<Impl::FunctorPatternInterface::REDUCE,

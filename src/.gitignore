@@ -27,6 +27,13 @@
 /*_ssa.h
 /*_ssa.cpp
 
+/fix_mdi_engine.cpp
+/fix_mdi_engine.h
+/library_mdi.cpp
+/library_mdi.h
+/mdi_engine.cpp
+/mdi_engine.h
+
 /fix_brownian*.cpp
 /fix_brownian*.h
 /fix_propel_self.cpp

@@ -43,7 +43,7 @@ struct TagFixQEqReaxUnpackForwardComm {};
 
 template<class DeviceType>
 
-class FixQEqReaxKokkos : public FixQEqReax {
+class FixQEqReaxKokkos : public FixQEqReax, public KokkosBase {
  public:
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;

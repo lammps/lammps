@@ -474,8 +474,6 @@ void CommKokkos::forward_comm_pair_device(Pair *pair)
   MPI_Request request;
   DAT::tdual_xfloat_1d k_buf_tmp;
 
-  MPI_Request request;
-
   int nsize = pair->comm_forward;
   KokkosBase* pairKKBase = dynamic_cast<KokkosBase*>(pair);
 

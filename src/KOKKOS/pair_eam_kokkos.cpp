@@ -736,7 +736,7 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelAB<EFLAG>, const int 
 template<class DeviceType>
 template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairEAMKokkos<DeviceType>::operator()(g<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int &ii, EV_FLOAT& ev) const {
+void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelC<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int &ii, EV_FLOAT& ev) const {
 
   // The f array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
 
@@ -819,7 +819,7 @@ void PairEAMKokkos<DeviceType>::operator()(g<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, cons
       const int d_type2z2r_ij = d_type2z2r(itype,jtype);
 
       #if defined(HIP_OPT_EAM_SHARED) && (defined(__HIP_DEVICE_COMPILE__)  || defined(__CUDA_ARCH__))
-      const auto have_cache = (d_z2r_spline_cached == 1) && (0 == d_type2z2r_ij)
+      const auto have_cache = (d_z2r_spline_cached == 1) && (0 == d_type2z2r_ij);
       const auto z2r_spline_3 = (have_cache) ? A[m][3] : d_z2r_spline(d_type2z2r_ij,m,3);
       const auto z2r_spline_4 = (have_cache) ? A[m][4] : d_z2r_spline(d_type2z2r_ij,m,4);
       const auto z2r_spline_5 = (have_cache) ? A[m][5] : d_z2r_spline(d_type2z2r_ij,m,5);

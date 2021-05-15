@@ -38,6 +38,8 @@ class FixGroup : public Fix {
  private:
   int gbit,gbitinverse;
   int regionflag,varflag,propflag,typeflag;
+  int ghostflag; // 1 if also sets masks of ghost atoms
+  int initflag;  // 1 if groups are set on initialization
   int iregion,ivar,iprop;
   char *idregion,*idvar,*idprop;
   class Region *region;

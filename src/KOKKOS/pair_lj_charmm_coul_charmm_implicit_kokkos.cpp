@@ -64,7 +64,7 @@ template<class DeviceType>
 PairLJCharmmCoulCharmmImplicitKokkos<DeviceType>::~PairLJCharmmCoulCharmmImplicitKokkos()
 {
   if (copymode) return;
-  
+
   if (allocated) {
     memoryKK->destroy_kokkos(k_eatom,eatom);
     memoryKK->destroy_kokkos(k_vatom,vatom);

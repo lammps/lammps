@@ -56,7 +56,7 @@ template<class DeviceType>
 PairLJGromacsCoulGromacsKokkos<DeviceType>::~PairLJGromacsCoulGromacsKokkos()
 {
   if (copymode) return;
-  
+
   if (allocated) {
     memoryKK->destroy_kokkos(k_eatom,eatom);
     memoryKK->destroy_kokkos(k_vatom,vatom);

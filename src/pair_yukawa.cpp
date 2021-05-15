@@ -35,6 +35,8 @@ PairYukawa::PairYukawa(LAMMPS *lmp) : Pair(lmp)
 
 PairYukawa::~PairYukawa()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);

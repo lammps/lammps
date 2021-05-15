@@ -181,8 +181,6 @@ class PairTersoffKokkos : public PairTersoff {
   void setup_params();
 
  protected:
-  void cleanup_copy();
-
   typedef Kokkos::DualView<int***,DeviceType> tdual_int_3d;
   Kokkos::DualView<params_ters***,Kokkos::LayoutRight,DeviceType> k_params;
   typename Kokkos::DualView<params_ters***,

@@ -186,8 +186,6 @@ class PairTersoffZBLKokkos : public PairTersoffZBL {
   double fermi_d_k(const int &i, const int &j, const int &k, const F_FLOAT &r) const;
 
  protected:
-  void cleanup_copy();
-
   typedef Kokkos::DualView<int***,DeviceType> tdual_int_3d;
   Kokkos::DualView<params_ters***,Kokkos::LayoutRight,DeviceType> k_params;
   typename Kokkos::DualView<params_ters***,

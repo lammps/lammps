@@ -36,6 +36,8 @@ PairCoulCut::PairCoulCut(LAMMPS *lmp) : Pair(lmp) {
 
 PairCoulCut::~PairCoulCut()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);

@@ -47,7 +47,6 @@ PairBuckKokkos<DeviceType>::PairBuckKokkos(LAMMPS *lmp) : PairBuck(lmp)
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | F_MASK | TYPE_MASK | ENERGY_MASK | VIRIAL_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
-  cutsq = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -55,14 +54,12 @@ PairBuckKokkos<DeviceType>::PairBuckKokkos(LAMMPS *lmp) : PairBuck(lmp)
 template<class DeviceType>
 PairBuckKokkos<DeviceType>::~PairBuckKokkos()
 {
-  if (!copymode) {
+  if (copymode) return;
+
+  if (allocated) {
     memoryKK->destroy_kokkos(k_eatom,eatom);
     memoryKK->destroy_kokkos(k_vatom,vatom);
-    k_cutsq = DAT::tdual_ffloat_2d();
-    memory->sfree(cutsq);
-    eatom = nullptr;
-    vatom = nullptr;
-    cutsq = nullptr;
+    memoryKK->destroy_kokkos(k_cutsq,cutsq);
   }
 }
 

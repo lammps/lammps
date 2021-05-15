@@ -46,6 +46,8 @@ PairLJCut::PairLJCut(LAMMPS *lmp) : Pair(lmp)
 
 PairLJCut::~PairLJCut()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);

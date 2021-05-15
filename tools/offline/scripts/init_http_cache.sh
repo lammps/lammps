@@ -54,6 +54,7 @@ PLUMED_URL="https://github.com/plumed/plumed2/releases/download/v2.7.0/plumed-sr
 PACELIB_URL="https://github.com/ICAMS/lammps-user-pace/archive/refs/tags/v.2021.4.9.tar.gz"
 LATTE_URL="https://github.com/lanl/LATTE/archive/v1.2.2.tar.gz"
 SCAFACOS_URL="https://github.com/scafacos/scafacos/releases/download/v1.0.1/scafacos-1.0.1.tar.gz"
+MDI_URL="https://github.com/MolSSI-MDI/MDI_Library/archive/v1.2.9.tar.gz"
 
 GTEST_FILENAME="gtest-1.10.0.tar.gz"
 MATHJAX_FILENAME="mathjax-3.1.2.tar.gz"
@@ -81,6 +82,7 @@ TARBALLS=(
     PACELIB_URL
     LATTE_URL
     SCAFACOS_URL
+    MDI_URL
 )
 
 ###############################################################################

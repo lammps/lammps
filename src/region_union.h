@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef REGION_CLASS
-
-RegionStyle(union,RegUnion)
-
+// clang-format off
+RegionStyle(union,RegUnion);
+// clang-format on
 #else
 
 #ifndef LMP_REGION_UNION_H
@@ -35,15 +35,16 @@ class RegUnion : public Region {
   void shape_update();
   void pretransform();
   void set_velocity();
-  void length_restart_string(int&);
+  void length_restart_string(int &);
   void write_restart(FILE *);
-  int restart(char *, int&);
+  int restart(char *, int &);
   void reset_vel();
+
  private:
   char **idsub;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

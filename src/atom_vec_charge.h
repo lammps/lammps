@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ATOM_CLASS
-
-AtomStyle(charge,AtomVecCharge)
-
+// clang-format off
+AtomStyle(charge,AtomVecCharge);
+// clang-format on
 #else
 
 #ifndef LMP_ATOM_VEC_CHARGE_H
@@ -29,7 +29,7 @@ class AtomVecCharge : public AtomVec {
   AtomVecCharge(class LAMMPS *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

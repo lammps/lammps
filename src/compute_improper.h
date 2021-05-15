@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(improper,ComputeImproper)
-
+// clang-format off
+ComputeStyle(improper,ComputeImproper);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_IMPROPER_H
@@ -37,7 +37,7 @@ class ComputeImproper : public Compute {
   double *emine;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

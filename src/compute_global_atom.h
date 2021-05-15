@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(global/atom,ComputeGlobalAtom)
-
+// clang-format off
+ComputeStyle(global/atom,ComputeGlobalAtom);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_GLOBAL_ATOM_H
@@ -33,20 +33,20 @@ class ComputeGlobalAtom : public Compute {
   double memory_usage();
 
  protected:
-  int whichref,indexref,ref2index;
+  int whichref, indexref, ref2index;
   char *idref;
 
   int nvalues;
-  int *which,*argindex,*value2index;
+  int *which, *argindex, *value2index;
   char **ids;
 
-  int nmax,maxvector;
+  int nmax, maxvector;
   int *indices;
   double *varatom;
   double *vecglobal;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

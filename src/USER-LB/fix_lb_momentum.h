@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(lb/momentum,FixLbMomentum)
-
+// clang-format off
+FixStyle(lb/momentum,FixLbMomentum);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_LB_MOMENTUM_H
@@ -33,13 +33,13 @@ class FixLbMomentum : public Fix {
 
  private:
   int linear;
-  int xflag,yflag,zflag;
+  int xflag, yflag, zflag;
   double masstotal;
 
   class FixLbFluid *fix_lb_fluid;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -14,9 +14,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(npt/uef,FixNPTUef)
-
+// clang-format off
+FixStyle(npt/uef,FixNPTUef);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_NPT_UEF_H
@@ -32,7 +32,7 @@ class FixNPTUef : public FixNHUef {
   ~FixNPTUef() {}
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

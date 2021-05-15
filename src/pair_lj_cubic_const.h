@@ -19,14 +19,14 @@ namespace PairLJCubicConstants {
 
   // LJ quantities scaled by epsilon and rmin = sigma*2^1/6
 
-  static constexpr double RT6TWO =  1.1224620483093730; // 2^1/6
-  static constexpr double SS     =  1.1086834179687215; // inflection point (13/7)^1/6
-  static constexpr double PHIS   = -0.7869822485207097; // energy at s
-  static constexpr double DPHIDS =  2.6899008972047196; // gradient at s
-  static constexpr double A3     = 27.9335700460986445; // cubic coefficient
-  static constexpr double SM     =  1.5475372709146737; // cubic cutoff = s*67/48}
-}
-}
+  static constexpr double RT6TWO = 1.1224620483093730;    // 2^1/6
+  static constexpr double SS = 1.1086834179687215;        // inflection point (13/7)^1/6
+  static constexpr double PHIS = -0.7869822485207097;     // energy at s
+  static constexpr double DPHIDS = 2.6899008972047196;    // gradient at s
+  static constexpr double A3 = 27.9335700460986445;       // cubic coefficient
+  static constexpr double SM = 1.5475372709146737;        // cubic cutoff = s*67/48}
+}    // namespace PairLJCubicConstants
+}    // namespace LAMMPS_NS
 #endif
 
 // python script to compute the constants

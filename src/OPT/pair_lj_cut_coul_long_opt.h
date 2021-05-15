@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(lj/cut/coul/long/opt,PairLJCutCoulLongOpt)
-
+// clang-format off
+PairStyle(lj/cut/coul/long/opt,PairLJCutCoulLongOpt);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_LJ_CUT_COUL_LONG_OPT_H
@@ -30,12 +30,10 @@ class PairLJCutCoulLongOpt : public PairLJCutCoulLong {
   virtual void compute(int, int);
 
  protected:
-  template <const int EVFLAG, const int EFLAG,
-            const int NEWTON_PAIR, const int CTABLE >
-  void eval();
+  template <const int EVFLAG, const int EFLAG, const int NEWTON_PAIR, const int CTABLE> void eval();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

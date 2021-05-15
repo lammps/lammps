@@ -1,3 +1,4 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -12,11 +13,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(dpd/energy/kk,FixDPDenergyKokkos<LMPDeviceType>)
-FixStyle(dpd/energy/kk/device,FixDPDenergyKokkos<LMPDeviceType>)
-FixStyle(dpd/energy/kk/host,FixDPDenergyKokkos<LMPHostType>)
-
+// clang-format off
+FixStyle(dpd/energy/kk,FixDPDenergyKokkos<LMPDeviceType>);
+FixStyle(dpd/energy/kk/device,FixDPDenergyKokkos<LMPDeviceType>);
+FixStyle(dpd/energy/kk/host,FixDPDenergyKokkos<LMPHostType>);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_DPDE_KOKKOS_H

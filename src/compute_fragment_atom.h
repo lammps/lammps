@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(fragment/atom,ComputeFragmentAtom)
-
+// clang-format off
+ComputeStyle(fragment/atom,ComputeFragmentAtom);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_FRAGMENT_ATOM_H
@@ -35,12 +35,12 @@ class ComputeFragmentAtom : public Compute {
   double memory_usage();
 
  private:
-  int nmax,commflag,singleflag;
-  int *stack,*clist,*markflag;
+  int nmax, commflag, singleflag;
+  int *stack, *clist, *markflag;
   double *fragmentID;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

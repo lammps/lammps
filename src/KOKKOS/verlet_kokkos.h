@@ -1,3 +1,4 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -12,11 +13,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef INTEGRATE_CLASS
-
-IntegrateStyle(verlet/kk,VerletKokkos)
-IntegrateStyle(verlet/kk/device,VerletKokkos)
-IntegrateStyle(verlet/kk/host,VerletKokkos)
-
+// clang-format off
+IntegrateStyle(verlet/kk,VerletKokkos);
+IntegrateStyle(verlet/kk/device,VerletKokkos);
+IntegrateStyle(verlet/kk/host,VerletKokkos);
+// clang-format on
 #else
 
 #ifndef LMP_VERLET_KOKKOS_H

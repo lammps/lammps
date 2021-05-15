@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(gauss/cut,PairGaussCut)
-
+// clang-format off
+PairStyle(gauss/cut,PairGaussCut);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_GAUSS_CUT_H
@@ -50,13 +50,13 @@ class PairGaussCut : public Pair {
  protected:
   double cut_global;
   double **cut;
-  double **hgauss,**sigmah,**rmh;
-  double **pgauss,**offset;
+  double **hgauss, **sigmah, **rmh;
+  double **pgauss, **offset;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

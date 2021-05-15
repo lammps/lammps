@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(lj/charmm/coul/charmm/gpu,PairLJCharmmCoulCharmmGPU)
-
+// clang-format off
+PairStyle(lj/charmm/coul/charmm/gpu,PairLJCharmmCoulCharmmGPU);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_LJ_CHARMM_COUL_CHARMM_GPU_H
@@ -33,14 +33,14 @@ class PairLJCharmmCoulCharmmGPU : public PairLJCharmmCoulCharmm {
   void init_style();
   double memory_usage();
 
- enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
+  enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
 
  private:
   int gpu_mode;
   double cpu_time;
 };
 
-}
+}    // namespace LAMMPS_NS
 #endif
 #endif
 

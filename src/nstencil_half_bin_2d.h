@@ -12,11 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef NSTENCIL_CLASS
-
+// clang-format off
 NStencilStyle(half/bin/2d,
               NStencilHalfBin2d,
-              NS_HALF | NS_BIN | NS_2D | NS_ORTHO)
-
+              NS_HALF | NS_BIN | NS_2D | NS_ORTHO);
+// clang-format on
 #else
 
 #ifndef LMP_NSTENCIL_HALF_BIN_2D_H
@@ -33,7 +33,7 @@ class NStencilHalfBin2d : public NStencil {
   void create();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

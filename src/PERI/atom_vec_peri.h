@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ATOM_CLASS
-
-AtomStyle(peri,AtomVecPeri)
-
+// clang-format off
+AtomStyle(peri,AtomVecPeri);
+// clang-format on
 #else
 
 #ifndef LMP_ATOM_VEC_PERI_H
@@ -35,12 +35,11 @@ class AtomVecPeri : public AtomVec {
   void pack_property_atom(int, double *, int, int);
 
  private:
-  double *rmass,*vfrac,*s0;
+  double *rmass, *vfrac, *s0;
   double **x0;
-
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

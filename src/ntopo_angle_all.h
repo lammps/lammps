@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef NTOPO_CLASS
-
-NTopoStyle(NTOPO_ANGLE_ALL,NTopoAngleAll)
-
+// clang-format off
+NTopoStyle(NTOPO_ANGLE_ALL,NTopoAngleAll);
+// clang-format on
 #else
 
 #ifndef LMP_TOPO_ANGLE_ALL_H
@@ -31,7 +31,7 @@ class NTopoAngleAll : public NTopo {
   void build();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

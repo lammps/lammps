@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ANGLE_CLASS
-
-AngleStyle(table,AngleTable)
-
+// clang-format off
+AngleStyle(table,AngleTable);
+// clang-format on
 #else
 
 #ifndef LMP_ANGLE_TABLE_H
@@ -39,16 +39,16 @@ class AngleTable : public Angle {
   double single(int, int, int, int);
 
  protected:
-  int tabstyle,tablength;
+  int tabstyle, tablength;
   double *theta0;
 
   struct Table {
-    int ninput,fpflag;
-    double fplo,fphi,theta0;
-    double *afile,*efile,*ffile;
-    double *e2file,*f2file;
-    double delta,invdelta,deltasq6;
-    double *ang,*e,*de,*f,*df,*e2,*f2;
+    int ninput, fpflag;
+    double fplo, fphi, theta0;
+    double *afile, *efile, *ffile;
+    double *e2file, *f2file;
+    double delta, invdelta, deltasq6;
+    double *ang, *e, *de, *f, *df, *e2, *f2;
   };
 
   int ntables;
@@ -71,7 +71,7 @@ class AngleTable : public Angle {
   void u_lookup(int, double, double &);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

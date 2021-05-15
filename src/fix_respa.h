@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(RESPA,FixRespa)
-
+// clang-format off
+FixStyle(RESPA,FixRespa);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_RESPA_H
@@ -43,12 +43,12 @@ class FixRespa : public Fix {
 
  private:
   int nlevels;
-  int store_torque;  // 1 if torques should be stored in addition to forces
-  double ***f_level; // force at each rRESPA level
-  double ***t_level; // torque at each rRESPA level
+  int store_torque;     // 1 if torques should be stored in addition to forces
+  double ***f_level;    // force at each rRESPA level
+  double ***t_level;    // torque at each rRESPA level
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

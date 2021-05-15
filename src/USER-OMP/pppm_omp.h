@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef KSPACE_CLASS
-
-KSpaceStyle(pppm/omp,PPPMOMP)
-
+// clang-format off
+KSpaceStyle(pppm/omp,PPPMOMP);
+// clang-format on
 #else
 
 #ifndef LMP_PPPM_OMP_H
@@ -28,7 +28,7 @@ namespace LAMMPS_NS {
 class PPPMOMP : public PPPM, public ThrOMP {
  public:
   PPPMOMP(class LAMMPS *);
-  virtual ~PPPMOMP ();
+  virtual ~PPPMOMP();
   virtual void compute(int, int);
 
  protected:
@@ -43,15 +43,14 @@ class PPPMOMP : public PPPM, public ThrOMP {
   virtual void fieldforce_peratom();
 
  private:
-  void compute_rho1d_thr(FFT_SCALAR * const * const, const FFT_SCALAR &,
-                         const FFT_SCALAR &, const FFT_SCALAR &);
-  void compute_drho1d_thr(FFT_SCALAR * const * const, const FFT_SCALAR &,
-                          const FFT_SCALAR &, const FFT_SCALAR &);
-//  void slabcorr(int);
-
+  void compute_rho1d_thr(FFT_SCALAR *const *const, const FFT_SCALAR &, const FFT_SCALAR &,
+                         const FFT_SCALAR &);
+  void compute_drho1d_thr(FFT_SCALAR *const *const, const FFT_SCALAR &, const FFT_SCALAR &,
+                          const FFT_SCALAR &);
+  //  void slabcorr(int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

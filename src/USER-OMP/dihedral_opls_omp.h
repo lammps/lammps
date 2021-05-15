@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef DIHEDRAL_CLASS
-
-DihedralStyle(opls/omp,DihedralOPLSOMP)
-
+// clang-format off
+DihedralStyle(opls/omp,DihedralOPLSOMP);
+// clang-format on
 #else
 
 #ifndef LMP_DIHEDRAL_OPLS_OMP_H
@@ -37,10 +37,10 @@ class DihedralOPLSOMP : public DihedralOPLS, public ThrOMP {
 
  private:
   template <int EVFLAG, int EFLAG, int NEWTON_BOND>
-  void eval(int ifrom, int ito, ThrData * const thr);
+  void eval(int ifrom, int ito, ThrData *const thr);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

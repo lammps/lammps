@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(oneway,FixOneWay)
-
+// clang-format off
+FixStyle(oneway,FixOneWay);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_ONEWAY_H
@@ -38,7 +38,7 @@ class FixOneWay : public Fix {
   char *regionstr;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

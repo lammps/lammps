@@ -32,11 +32,11 @@ class ImbalanceNeigh : public Imbalance {
   virtual std::string info() override;
 
  private:
-  double factor;               // weight factor for neighbor imbalance
-  int did_warn;                // 1 if warned about no suitable neighbor list
+  double factor;    // weight factor for neighbor imbalance
+  int did_warn;     // 1 if warned about no suitable neighbor list
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 

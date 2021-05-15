@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(bond,ComputeBond)
-
+// clang-format off
+ComputeStyle(bond,ComputeBond);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_BOND_H
@@ -37,7 +37,7 @@ class ComputeBond : public Compute {
   double *emine;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(dpd/ext,PairDPDExt)
-
+// clang-format off
+PairStyle(dpd/ext,PairDPDExt);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_DPD_EXT_H
@@ -42,18 +42,18 @@ class PairDPDExt : public Pair {
   double single(int, int, int, int, double, double, double, double &);
 
  protected:
-  double cut_global,temperature;
+  double cut_global, temperature;
   int seed;
   double **cut;
-  double **a0,**gamma,**gammaII,**gammaT;
-  double **sigma,**sigmaT;
-  double **ws,**wsT;
+  double **a0, **gamma, **gammaII, **gammaT;
+  double **sigma, **sigmaT;
+  double **ws, **wsT;
   class RanMars *random;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

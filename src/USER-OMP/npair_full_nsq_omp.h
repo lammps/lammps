@@ -12,12 +12,12 @@
 ------------------------------------------------------------------------- */
 
 #ifdef NPAIR_CLASS
-
+// clang-format off
 NPairStyle(full/nsq/omp,
            NPairFullNsqOmp,
            NP_FULL | NP_NSQ | NP_OMP | NP_NEWTON | NP_NEWTOFF |
-           NP_ORTHO | NP_TRI)
-
+           NP_ORTHO | NP_TRI);
+// clang-format on
 #else
 
 #ifndef LMP_NPAIR_FULL_NSQ_OMP_H
@@ -34,7 +34,7 @@ class NPairFullNsqOmp : public NPair {
   void build(class NeighList *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

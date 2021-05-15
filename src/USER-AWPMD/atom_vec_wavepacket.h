@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ATOM_CLASS
-
-AtomStyle(wavepacket,AtomVecWavepacket)
-
+// clang-format off
+AtomStyle(wavepacket,AtomVecWavepacket);
+// clang-format on
 #else
 
 #ifndef LMP_ATOM_VEC_WAVEPACKET_H
@@ -25,7 +25,7 @@ AtomStyle(wavepacket,AtomVecWavepacket)
 namespace LAMMPS_NS {
 
 class AtomVecWavepacket : public AtomVec {
-public:
+ public:
   AtomVecWavepacket(class LAMMPS *);
 
   void grow_pointers();
@@ -37,10 +37,10 @@ public:
 
  private:
   int *spin;
-  double *q,*eradius,*ervel,*erforce;
+  double *q, *eradius, *ervel, *erforce;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

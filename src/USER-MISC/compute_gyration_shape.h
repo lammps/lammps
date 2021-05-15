@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(gyration/shape,ComputeGyrationShape)
-
+// clang-format off
+ComputeStyle(gyration/shape,ComputeGyrationShape);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_GYRATION_SHAPE_H
@@ -26,7 +26,7 @@ namespace LAMMPS_NS {
 
 class ComputeGyrationShape : public Compute {
  public:
-  char *id_gyration;              // fields accessed by other classes
+  char *id_gyration;    // fields accessed by other classes
 
   ComputeGyrationShape(class LAMMPS *, int, char **);
   ~ComputeGyrationShape();
@@ -37,7 +37,7 @@ class ComputeGyrationShape : public Compute {
   class Compute *c_gyration;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

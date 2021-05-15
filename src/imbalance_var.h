@@ -34,11 +34,11 @@ class ImbalanceVar : public Imbalance {
   virtual std::string info() override;
 
  private:
-  char *name;                  // variable name
-  int id;                      // variable index
+  char *name;    // variable name
+  int id;        // variable index
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 

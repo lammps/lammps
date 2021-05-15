@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef KSPACE_CLASS
-
-KSpaceStyle(pppm/gpu,PPPMGPU)
-
+// clang-format off
+KSpaceStyle(pppm/gpu,PPPMGPU);
+// clang-format on
 #else
 
 #ifndef LMP_PPPM_GPU_H
@@ -51,12 +51,11 @@ class PPPMGPU : public PPPM {
   void pack_reverse_grid(int, void *, int, int *);
   void unpack_reverse_grid(int, void *, int, int *);
 
-  FFT_SCALAR ***create_3d_offset(int, int, int, int, int, int, const char *,
-                                 FFT_SCALAR *, int);
+  FFT_SCALAR ***create_3d_offset(int, int, int, int, int, int, const char *, FFT_SCALAR *, int);
   void destroy_3d_offset(FFT_SCALAR ***, int, int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

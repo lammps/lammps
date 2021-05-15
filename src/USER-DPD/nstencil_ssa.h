@@ -28,7 +28,7 @@ class NStencilSSA : public NStencil {
   int nstencil_ssa[5];
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 

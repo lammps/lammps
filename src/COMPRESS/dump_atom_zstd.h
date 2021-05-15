@@ -18,9 +18,9 @@
 #ifdef LAMMPS_ZSTD
 
 #ifdef DUMP_CLASS
-
-DumpStyle(atom/zstd,DumpAtomZstd)
-
+// clang-format off
+DumpStyle(atom/zstd,DumpAtomZstd);
+// clang-format on
 #else
 
 #ifndef LMP_DUMP_ATOM_ZSTD_H
@@ -47,7 +47,7 @@ class DumpAtomZstd : public DumpAtom {
   virtual int modify_param(int, char **);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

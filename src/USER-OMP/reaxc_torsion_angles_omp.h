@@ -29,10 +29,10 @@
 #ifndef __TORSION_ANGLES_OMP_H_
 #define __TORSION_ANGLES_OMP_H_
 
-#include "reaxc_types.h"
 #include "reaxc_torsion_angles.h"
+#include "reaxc_types.h"
 
-void Torsion_AnglesOMP( reax_system*, control_params*, simulation_data*,
-                        storage*, reax_list**, output_controls* );
+void Torsion_AnglesOMP(reax_system *, control_params *, simulation_data *, storage *, reax_list **,
+                       output_controls *);
 
 #endif

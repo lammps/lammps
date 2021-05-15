@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(oxrna2/xstk,PairOxrna2Xstk)
-
+// clang-format off
+PairStyle(oxrna2/xstk,PairOxrna2Xstk);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_OXRNA2_XSTK_H
@@ -65,7 +65,7 @@ class PairOxrna2Xstk : public Pair {
   virtual void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

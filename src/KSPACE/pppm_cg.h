@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef KSPACE_CLASS
-
-KSpaceStyle(pppm/cg,PPPMCG)
-
+// clang-format off
+KSpaceStyle(pppm/cg,PPPMCG);
+// clang-format on
 #else
 
 #ifndef LMP_PPPM_CG_H
@@ -46,7 +46,7 @@ class PPPMCG : public PPPM {
   virtual void make_rho_groups(int, int, int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

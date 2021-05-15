@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(numdiff,FixNumDiff)
-
+// clang-format off
+FixStyle(numdiff,FixNumDiff);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_NUMDIFF_H
@@ -37,20 +37,20 @@ class FixNumDiff : public Fix {
   void min_post_force(int);
   double memory_usage();
 
-private:
+ private:
   double delta;
   int maxatom;
   int ilevel_respa;
 
-  int pair_compute_flag;            // 0 if pair->compute is skipped
-  int kspace_compute_flag;          // 0 if kspace->compute is skipped
+  int pair_compute_flag;      // 0 if pair->compute is skipped
+  int kspace_compute_flag;    // 0 if kspace->compute is skipped
 
   char *id_pe;
   class Compute *pe;
 
-  double **numdiff_forces;          // finite diff forces
-  double **temp_x;                  // original coords
-  double **temp_f;                  // original forces
+  double **numdiff_forces;    // finite diff forces
+  double **temp_x;            // original coords
+  double **temp_f;            // original forces
 
   void calculate_forces();
   void displace_atoms(int, int, int);
@@ -60,7 +60,7 @@ private:
   void reallocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

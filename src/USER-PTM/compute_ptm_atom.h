@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(ptm/atom,ComputePTMAtom)
-
+// clang-format off
+ComputeStyle(ptm/atom,ComputePTMAtom);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_PTM_ATOM_H
@@ -42,8 +42,7 @@ class ComputePTMAtom : public Compute {
   int group2bit;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-

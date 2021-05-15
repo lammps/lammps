@@ -35,11 +35,11 @@ class RanMars : protected Pointers {
   int save;
   double second;
   double *u;
-  int i97,j97;
-  double c,cd,cm;
+  int i97, j97;
+  double c, cd, cm;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 

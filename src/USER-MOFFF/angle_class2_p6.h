@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ANGLE_CLASS
-
-AngleStyle(class2/p6,AngleClass2P6)
-
+// clang-format off
+AngleStyle(class2/p6,AngleClass2P6);
+// clang-format on
 #else
 
 #ifndef LMP_ANGLE_CLASS2_P6_H
@@ -37,15 +37,15 @@ class AngleClass2P6 : public Angle {
   double single(int, int, int, int);
 
  protected:
-  double *theta0,*k2,*k3,*k4,*k5,*k6;
-  double *bb_k,*bb_r1,*bb_r2;
-  double *ba_k1,*ba_k2,*ba_r1,*ba_r2;
-  int *setflag_a,*setflag_bb,*setflag_ba;
+  double *theta0, *k2, *k3, *k4, *k5, *k6;
+  double *bb_k, *bb_r1, *bb_r2;
+  double *ba_k1, *ba_k2, *ba_r1, *ba_r2;
+  int *setflag_a, *setflag_bb, *setflag_ba;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

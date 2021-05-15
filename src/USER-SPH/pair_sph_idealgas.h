@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(sph/idealgas,PairSPHIdealGas)
-
+// clang-format off
+PairStyle(sph/idealgas,PairSPHIdealGas);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_IDEALGAS_H
@@ -35,12 +35,12 @@ class PairSPHIdealGas : public Pair {
   virtual double single(int, int, int, int, double, double, double, double &);
 
  protected:
-  double **cut,**viscosity;
+  double **cut, **viscosity;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

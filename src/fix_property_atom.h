@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(property/atom,FixPropertyAtom)
-
+// clang-format off
+FixStyle(property/atom,FixPropertyAtom);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_PROPERTY_ATOM_H
@@ -51,15 +51,15 @@ class FixPropertyAtom : public Fix {
   double memory_usage();
 
  protected:
-  int nvalue,border;
-  int molecule_flag,q_flag,rmass_flag;
-  int *style,*index;
+  int nvalue, border;
+  int molecule_flag, q_flag, rmass_flag;
+  int *style, *index;
   char *astyle;
 
-  int nmax_old;         // length of peratom arrays the last time they grew
+  int nmax_old;    // length of peratom arrays the last time they grew
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

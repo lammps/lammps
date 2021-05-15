@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(buck,PairBuck)
-
+// clang-format off
+PairStyle(buck,PairBuck);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_BUCK_H
@@ -44,13 +44,13 @@ class PairBuck : public Pair {
  protected:
   double cut_global;
   double **cut;
-  double **a,**rho,**c;
-  double **rhoinv,**buck1,**buck2,**offset;
+  double **a, **rho, **c;
+  double **rhoinv, **buck1, **buck2, **offset;
 
   virtual void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

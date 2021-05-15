@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef BOND_CLASS
-
-BondStyle(quartic/omp,BondQuarticOMP)
-
+// clang-format off
+BondStyle(quartic/omp,BondQuarticOMP);
+// clang-format on
 #else
 
 #ifndef LMP_BOND_QUARTIC_OMP_H
@@ -37,10 +37,10 @@ class BondQuarticOMP : public BondQuartic, public ThrOMP {
 
  private:
   template <int EVFLAG, int EFLAG, int NEWTON_BOND>
-  void eval(int ifrom, int ito, ThrData * const thr);
+  void eval(int ifrom, int ito, ThrData *const thr);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

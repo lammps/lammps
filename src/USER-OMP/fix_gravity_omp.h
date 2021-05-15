@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(gravity/omp,FixGravityOMP)
-
+// clang-format off
+FixStyle(gravity/omp,FixGravityOMP);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_GRAVITY_OMP_H
@@ -32,7 +32,7 @@ class FixGravityOMP : public FixGravity {
   virtual void post_force_respa(int, int, int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

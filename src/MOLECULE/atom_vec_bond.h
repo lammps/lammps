@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ATOM_CLASS
-
-AtomStyle(bond,AtomVecBond)
-
+// clang-format off
+AtomStyle(bond,AtomVecBond);
+// clang-format on
 #else
 
 #ifndef LMP_ATOM_VEC_BOND_H
@@ -45,7 +45,7 @@ class AtomVecBond : public AtomVec {
   int *bond_negative;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

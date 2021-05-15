@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(indent,FixIndent)
-
+// clang-format off
+FixStyle(indent,FixIndent);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_INDENT_H
@@ -39,20 +39,20 @@ class FixIndent : public Fix {
   double compute_vector(int);
 
  private:
-  int istyle,scaleflag,side;
-  double k,k3;
-  char *xstr,*ystr,*zstr,*rstr,*pstr;
-  int xvar,yvar,zvar,rvar,pvar;
-  double xvalue,yvalue,zvalue,rvalue,pvalue;
-  int indenter_flag,planeside;
-  double indenter[4],indenter_all[4];
-  int cdim,varflag;
+  int istyle, scaleflag, side;
+  double k, k3;
+  char *xstr, *ystr, *zstr, *rstr, *pstr;
+  int xvar, yvar, zvar, rvar, pvar;
+  double xvalue, yvalue, zvalue, rvalue, pvalue;
+  int indenter_flag, planeside;
+  double indenter[4], indenter_all[4];
+  int cdim, varflag;
   int ilevel_respa;
 
   void options(int, char **);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

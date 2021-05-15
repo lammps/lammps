@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef DIHEDRAL_CLASS
-
-DihedralStyle(nharmonic,DihedralNHarmonic)
-
+// clang-format off
+DihedralStyle(nharmonic,DihedralNHarmonic);
+// clang-format on
 #else
 
 #ifndef DIHEDRAL_NHARMONIC_H
@@ -41,7 +41,7 @@ class DihedralNHarmonic : public Dihedral {
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

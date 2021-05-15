@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(coul/long/omp,PairCoulLongOMP)
-
+// clang-format off
+PairStyle(coul/long/omp,PairCoulLongOMP);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_COUL_LONG_OMP_H
@@ -39,10 +39,10 @@ class PairCoulLongOMP : public PairCoulLong, public ThrOMP {
 
  private:
   template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
-  void eval(int ifrom, int ito, ThrData * const thr);
+  void eval(int ifrom, int ito, ThrData *const thr);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

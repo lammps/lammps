@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(coul/cut/global,PairCoulCutGlobal)
-
+// clang-format off
+PairStyle(coul/cut/global,PairCoulCutGlobal);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_COUL_CUT_GLOBAL_H
@@ -31,7 +31,7 @@ class PairCoulCutGlobal : public PairCoulCut {
   void *extract(const char *, int &);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

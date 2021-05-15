@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(atm,PairATM)
-
+// clang-format off
+PairStyle(atm,PairATM);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_ATM_H
@@ -39,15 +39,15 @@ class PairATM : public Pair {
   void read_restart_settings(FILE *);
 
  protected:
-  double cut_global,cut_triple;
+  double cut_global, cut_triple;
   double ***nu;
 
   void allocate();
-  void interaction_ddd(double, double, double, double, double, double *,
-                       double *, double *, double *, double *, int, double &);
+  void interaction_ddd(double, double, double, double, double, double *, double *, double *,
+                       double *, double *, int, double &);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

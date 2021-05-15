@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(gld,FixGLD)
-
+// clang-format off
+FixStyle(gld,FixGLD);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_GLD_H
@@ -49,7 +49,7 @@ class FixGLD : public Fix {
   void init_s_gld();
 
  protected:
-  double dtv,dtf;
+  double dtv, dtf;
   double *step_respa;
   int mass_require;
   int freezeflag, zeroflag;
@@ -65,7 +65,7 @@ class FixGLD : public Fix {
   class RanMars *random;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

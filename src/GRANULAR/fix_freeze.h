@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(freeze,FixFreeze)
-
+// clang-format off
+FixStyle(freeze,FixFreeze);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_FREEZE_H
@@ -36,10 +36,10 @@ class FixFreeze : public Fix {
 
  protected:
   int force_flag;
-  double foriginal[3],foriginal_all[3];
+  double foriginal[3], foriginal_all[3];
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

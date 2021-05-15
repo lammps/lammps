@@ -1,3 +1,4 @@
+// clang-format off
 // Hash function hashlittle()
 // from lookup3.c, by Bob Jenkins, May 2006, Public Domain
 // bob_jenkins@burtleburtle.net

@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(gauss/omp,PairGaussOMP)
-
+// clang-format off
+PairStyle(gauss/omp,PairGaussOMP);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_GAUSS_OMP_H
@@ -39,10 +39,10 @@ class PairGaussOMP : public PairGauss, public ThrOMP {
 
  private:
   template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
-  double eval(int ifrom, int ito, ThrData * const thr);
+  double eval(int ifrom, int ito, ThrData *const thr);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

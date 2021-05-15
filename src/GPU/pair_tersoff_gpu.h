@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(tersoff/gpu,PairTersoffGPU)
-
+// clang-format off
+PairStyle(tersoff/gpu,PairTersoffGPU);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_TERSOFF_GPU_H
@@ -32,7 +32,7 @@ class PairTersoffGPU : public PairTersoff {
   double init_one(int, int);
   void init_style();
 
- enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
+  enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
 
  protected:
   void allocate();
@@ -42,7 +42,7 @@ class PairTersoffGPU : public PairTersoff {
   int *gpulist;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

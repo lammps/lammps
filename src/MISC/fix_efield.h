@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(efield,FixEfield)
-
+// clang-format off
+FixStyle(efield,FixEfield);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_EFIELD_H
@@ -40,23 +40,23 @@ class FixEfield : public Fix {
   double compute_vector(int);
 
  private:
-  double ex,ey,ez;
-  int varflag,iregion;
-  char *xstr,*ystr,*zstr,*estr;
+  double ex, ey, ez;
+  int varflag, iregion;
+  char *xstr, *ystr, *zstr, *estr;
   char *idregion;
-  int xvar,yvar,zvar,evar,xstyle,ystyle,zstyle,estyle;
+  int xvar, yvar, zvar, evar, xstyle, ystyle, zstyle, estyle;
   int ilevel_respa;
   double qe2f;
-  int qflag,muflag;
+  int qflag, muflag;
 
   int maxatom;
   double **efield;
 
   int force_flag;
-  double fsum[4],fsum_all[4];
+  double fsum[4], fsum_all[4];
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

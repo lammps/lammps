@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(bond/local,ComputeBondLocal)
-
+// clang-format off
+ComputeStyle(bond/local,ComputeBondLocal);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_BOND_LOCAL_H
@@ -35,11 +35,11 @@ class ComputeBondLocal : public Compute {
   double memory_usage();
 
  private:
-  int nvalues,nvar,ncount,setflag;
+  int nvalues, nvar, ncount, setflag;
 
-  int singleflag,velflag,ghostvelflag,initflag;
+  int singleflag, velflag, ghostvelflag, initflag;
   int dvar;
-  int *bstyle,*vvar;
+  int *bstyle, *vvar;
   char *dstr;
   char **vstr;
 
@@ -51,7 +51,7 @@ class ComputeBondLocal : public Compute {
   void reallocate(int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

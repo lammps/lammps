@@ -21,9 +21,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(tersoff/table,PairTersoffTable)
-
+// clang-format off
+PairStyle(tersoff/table,PairTersoffTable);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_TERSOFF_TABLE_H
@@ -47,19 +47,18 @@ class PairTersoffTable : public Pair {
 
  protected:
   struct Param {
-    double lam1,lam2,lam3;
-    double c,d,h;
-    double gamma,powerm;
-    double powern,beta;
-    double biga,bigb,cutoffR, cutoffS;
-    double cut,cutsq;
-    int ielement,jelement,kelement;
+    double lam1, lam2, lam3;
+    double c, d, h;
+    double gamma, powerm;
+    double powern, beta;
+    double biga, bigb, cutoffR, cutoffS;
+    double cut, cutsq;
+    int ielement, jelement, kelement;
     int powermint;
   };
 
-
-  double cutmax;                // max cutoff for all elements
-  Param *params;                // parameter set for an I-J-K interaction
+  double cutmax;    // max cutoff for all elements
+  Param *params;    // parameter set for an I-J-K interaction
 
   void allocate();
 
@@ -84,7 +83,7 @@ class PairTersoffTable : public Pair {
   void deallocateGrids(void);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

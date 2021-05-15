@@ -1,3 +1,4 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -12,11 +13,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef IMPROPER_CLASS
-
-ImproperStyle(harmonic/kk,ImproperHarmonicKokkos<LMPDeviceType>)
-ImproperStyle(harmonic/kk/device,ImproperHarmonicKokkos<LMPDeviceType>)
-ImproperStyle(harmonic/kk/host,ImproperHarmonicKokkos<LMPHostType>)
-
+// clang-format off
+ImproperStyle(harmonic/kk,ImproperHarmonicKokkos<LMPDeviceType>);
+ImproperStyle(harmonic/kk/device,ImproperHarmonicKokkos<LMPDeviceType>);
+ImproperStyle(harmonic/kk/host,ImproperHarmonicKokkos<LMPHostType>);
+// clang-format on
 #else
 
 #ifndef LMP_IMPROPER_HARMONIC_KOKKOS_H

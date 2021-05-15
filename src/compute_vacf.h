@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(vacf,ComputeVACF)
-
+// clang-format off
+ComputeStyle(vacf,ComputeVACF);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_VACF_H
@@ -38,7 +38,7 @@ class ComputeVACF : public Compute {
   class FixStore *fix;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

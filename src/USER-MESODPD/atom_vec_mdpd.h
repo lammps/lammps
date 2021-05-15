@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ATOM_CLASS
-
-AtomStyle(mdpd,AtomVecMDPD)
-
+// clang-format off
+AtomStyle(mdpd,AtomVecMDPD);
+// clang-format on
 #else
 
 #ifndef LMP_ATOM_VEC_MDPD_H
@@ -36,11 +36,11 @@ class AtomVecMDPD : public AtomVec {
   void pack_property_atom(int, double *, int, int);
 
  private:
-  double *rho,*drho;
+  double *rho, *drho;
   double **vest;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

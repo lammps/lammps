@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(resquared/gpu,PairRESquaredGPU)
-
+// clang-format off
+PairStyle(resquared/gpu,PairRESquaredGPU);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_RESQUARED_GPU_H
@@ -42,7 +42,7 @@ class PairRESquaredGPU : public PairRESquared {
   double **quat;
 };
 
-}
+}    // namespace LAMMPS_NS
 #endif
 #endif
 

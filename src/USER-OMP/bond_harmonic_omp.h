@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef BOND_CLASS
-
-BondStyle(harmonic/omp,BondHarmonicOMP)
-
+// clang-format off
+BondStyle(harmonic/omp,BondHarmonicOMP);
+// clang-format on
 #else
 
 #ifndef LMP_BOND_HARMONIC_OMP_H
@@ -37,10 +37,10 @@ class BondHarmonicOMP : public BondHarmonic, public ThrOMP {
 
  private:
   template <int EVFLAG, int EFLAG, int NEWTON_BOND>
-  void eval(int ifrom, int ito, ThrData * const thr);
+  void eval(int ifrom, int ito, ThrData *const thr);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(aveforce,FixAveForce)
-
+// clang-format off
+FixStyle(aveforce,FixAveForce);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_AVEFORCE_H
@@ -38,17 +38,17 @@ class FixAveForce : public Fix {
   double compute_vector(int);
 
  private:
-  double xvalue,yvalue,zvalue;
+  double xvalue, yvalue, zvalue;
   int varflag;
-  char *xstr,*ystr,*zstr;
+  char *xstr, *ystr, *zstr;
   char *idregion;
-  int xvar,yvar,zvar,xstyle,ystyle,zstyle;
+  int xvar, yvar, zvar, xstyle, ystyle, zstyle;
   int iregion;
   double foriginal_all[4];
-  int nlevels_respa,ilevel_respa;
+  int nlevels_respa, ilevel_respa;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

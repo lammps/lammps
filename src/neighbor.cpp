@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -2237,7 +2238,7 @@ void Neighbor::build(int topoflag)
 
   for (i = 0; i < npair_perpetual; i++) {
     m = plist[i];
-    if (!lists[i]->copy || lists[i]->kk2cpu)
+    if (!lists[m]->copy || lists[m]->kk2cpu)
       lists[m]->grow(nlocal,nall);
     neigh_pair[m]->build_setup();
     neigh_pair[m]->build(lists[m]);

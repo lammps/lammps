@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef DUMP_CLASS
-
-DumpStyle(xyz/gz,DumpXYZGZ)
-
+// clang-format off
+DumpStyle(xyz/gz,DumpXYZGZ);
+// clang-format on
 #else
 
 #ifndef LMP_DUMP_XYZ_GZ_H
@@ -41,7 +41,7 @@ class DumpXYZGZ : public DumpXYZ {
   virtual int modify_param(int, char **);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

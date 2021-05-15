@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef DIHEDRAL_CLASS
-
-DihedralStyle(harmonic,DihedralHarmonic)
-
+// clang-format off
+DihedralStyle(harmonic,DihedralHarmonic);
+// clang-format on
 #else
 
 #ifndef LMP_DIHEDRAL_HARMONIC_H
@@ -35,13 +35,13 @@ class DihedralHarmonic : public Dihedral {
   void write_data(FILE *);
 
  protected:
-  double *k,*cos_shift,*sin_shift;
-  int *sign,*multiplicity;
+  double *k, *cos_shift, *sin_shift;
+  int *sign, *multiplicity;
 
   virtual void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

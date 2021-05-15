@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(sph/lj,PairSPHLJ)
-
+// clang-format off
+PairStyle(sph/lj,PairSPHLJ);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_LJ_H
@@ -37,12 +37,12 @@ class PairSPHLJ : public Pair {
   void LJEOS2(double, double, double, double *, double *);
 
  protected:
-  double **cut,**viscosity;
+  double **cut, **viscosity;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

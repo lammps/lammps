@@ -20,8 +20,8 @@ namespace LAMMPS_NS {
 
 class FixNHOMP : public FixNH {
  public:
-  FixNHOMP(class LAMMPS *lmp, int narg, char **args) : FixNH(lmp,narg,args) {};
-  virtual ~FixNHOMP() {};
+  FixNHOMP(class LAMMPS *lmp, int narg, char **args) : FixNH(lmp, narg, args){};
+  virtual ~FixNHOMP(){};
 
  protected:
   virtual void remap();
@@ -31,7 +31,7 @@ class FixNHOMP : public FixNH {
   virtual void nve_x();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 

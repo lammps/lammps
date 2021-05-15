@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(pe,ComputePE)
-
+// clang-format off
+ComputeStyle(pe,ComputePE);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_PE_H
@@ -32,10 +32,10 @@ class ComputePE : public Compute {
   double compute_scalar();
 
  private:
-  int pairflag,bondflag,angleflag,dihedralflag,improperflag,kspaceflag,fixflag;
+  int pairflag, bondflag, angleflag, dihedralflag, improperflag, kspaceflag, fixflag;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

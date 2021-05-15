@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(force/tally,ComputeForceTally)
-
+// clang-format off
+ComputeStyle(force/tally,ComputeForceTally);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_FORCE_TALLY_H
@@ -40,17 +40,16 @@ class ComputeForceTally : public Compute {
   double memory_usage();
 
   void pair_setup_callback(int, int);
-  void pair_tally_callback(int, int, int, int,
-                           double, double, double,
-                           double, double, double);
+  void pair_tally_callback(int, int, int, int, double, double, double, double, double, double);
+
  private:
   bigint did_setup;
-  int nmax,igroup2,groupbit2;
+  int nmax, igroup2, groupbit2;
   double **fatom;
   double ftotal[3];
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

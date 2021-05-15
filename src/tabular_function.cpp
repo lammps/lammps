@@ -19,9 +19,8 @@
 using namespace LAMMPS_NS;
 
 TabularFunction::TabularFunction() :
-    size(0), xmin(0.0), xmax(0.0), xmaxsq(0.0), rdx(0.0), vmax(0.0),
-    xs(nullptr), ys(nullptr), ys1(nullptr), ys2(nullptr), ys3(nullptr),
-    ys4(nullptr), ys5(nullptr), ys6(nullptr)
+    size(0), xmin(0.0), xmax(0.0), xmaxsq(0.0), rdx(0.0), vmax(0.0), xs(nullptr), ys(nullptr),
+    ys1(nullptr), ys2(nullptr), ys3(nullptr), ys4(nullptr), ys5(nullptr), ys6(nullptr)
 {
 }
 

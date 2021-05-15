@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ATOM_CLASS
-
-AtomStyle(dipole,AtomVecDipole)
-
+// clang-format off
+AtomStyle(dipole,AtomVecDipole);
+// clang-format on
 #else
 
 #ifndef LMP_ATOM_VEC_DIPOLE_H
@@ -35,7 +35,7 @@ class AtomVecDipole : public AtomVec {
   double **mu;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

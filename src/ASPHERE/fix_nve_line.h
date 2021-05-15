@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(nve/line,FixNVELine)
-
+// clang-format off
+FixStyle(nve/line,FixNVELine);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_NVE_LINE_H
@@ -34,11 +34,11 @@ class FixNVELine : public FixNVE {
   void final_integrate();
 
  private:
-  double MINUSPI,TWOPI;
+  double MINUSPI, TWOPI;
   class AtomVecLine *avec;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

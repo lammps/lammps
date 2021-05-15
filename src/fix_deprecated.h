@@ -12,13 +12,12 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 // list all deprecated and removed fix styles here
-
-FixStyle(DEPRECATED,FixDeprecated)
-FixStyle(ave/spatial,FixDeprecated)
-FixStyle(ave/spatial/sphere,FixDeprecated)
-
+FixStyle(DEPRECATED,FixDeprecated);
+FixStyle(ave/spatial,FixDeprecated);
+FixStyle(ave/spatial/sphere,FixDeprecated);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_DEPRECATED_H
@@ -32,11 +31,11 @@ class FixDeprecated : public Fix {
  public:
   FixDeprecated(class LAMMPS *, int, char **);
   ~FixDeprecated() {}
-  int setmask() {return 0;}
+  int setmask() { return 0; }
   void init() {}
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef BOND_CLASS
-
-BondStyle(fene/expand, BondFENEExpand)
-
+// clang-format off
+BondStyle(fene/expand, BondFENEExpand);
+// clang-format on
 #else
 
 #ifndef LMP_BOND_FENE_EXPAND_H
@@ -48,7 +48,7 @@ class BondFENEExpand : public Bond {
 #endif
 #endif
 
-    /* ERROR/WARNING messages:
+/* ERROR/WARNING messages:
 
 W: FENE bond too long: %ld %d %d %g
 

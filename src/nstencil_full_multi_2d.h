@@ -12,10 +12,10 @@
 ------------------------------------------------------------------------- */
 
 #ifdef NSTENCIL_CLASS
-
+// clang-format off
 NStencilStyle(full/multi/2d,
-              NStencilFullMulti2d, NS_FULL | NS_MULTI | NS_2D | NS_ORTHO | NS_TRI)
-
+              NStencilFullMulti2d, NS_FULL | NS_MULTI | NS_2D | NS_ORTHO | NS_TRI);
+// clang-format on
 #else
 
 #ifndef LMP_NSTENCIL_FULL_MULTI_2D_H
@@ -33,10 +33,9 @@ class NStencilFullMulti2d : public NStencil {
 
  protected:
   void set_stencil_properties();
-
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

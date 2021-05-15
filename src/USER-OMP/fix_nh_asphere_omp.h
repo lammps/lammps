@@ -33,7 +33,7 @@ class FixNHAsphereOMP : public FixNHOMP {
   virtual void nh_v_temp();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 

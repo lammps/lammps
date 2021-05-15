@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(nph/eff,FixNPHEff)
-
+// clang-format off
+FixStyle(nph/eff,FixNPHEff);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_NPH_EFF_H
@@ -30,7 +30,7 @@ class FixNPHEff : public FixNHEff {
   ~FixNPHEff() {}
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

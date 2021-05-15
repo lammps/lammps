@@ -9,7 +9,6 @@
  *
  * ----------------------------------------------------------------------- */
 
-
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -24,9 +23,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(smd/hourglass/error,ComputeSMDHourglassError)
-
+// clang-format off
+ComputeStyle(smd/hourglass/error,ComputeSMDHourglassError);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_SMD_HOURGLASS_ERROR_H
@@ -49,7 +48,7 @@ class ComputeSMDHourglassError : public Compute {
   double *hourglass_error_vector;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

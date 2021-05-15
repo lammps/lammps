@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(lj96/cut,PairLJ96Cut)
-
+// clang-format off
+PairStyle(lj96/cut,PairLJ96Cut);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_LJ96_CUT_H
@@ -49,14 +49,14 @@ class PairLJ96Cut : public Pair {
  protected:
   double cut_global;
   double **cut;
-  double **epsilon,**sigma;
-  double **lj1,**lj2,**lj3,**lj4,**offset;
+  double **epsilon, **sigma;
+  double **lj1, **lj2, **lj3, **lj4, **offset;
   double *cut_respa;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

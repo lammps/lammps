@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(lj/cut/coul/msm,PairLJCutCoulMSM)
-
+// clang-format off
+PairStyle(lj/cut/coul/msm,PairLJCutCoulMSM);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_LJ_CUT_COUL_MSM_H
@@ -32,12 +32,13 @@ class PairLJCutCoulMSM : public PairLJCutCoulLong {
   virtual double single(int, int, int, int, double, double, double, double &);
   virtual void compute_outer(int, int);
   virtual void *extract(const char *, int &);
+
  protected:
   int nmax;
   double **ftmp;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

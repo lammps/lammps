@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef BOND_CLASS
-
-BondStyle(morse/omp,BondMorseOMP)
-
+// clang-format off
+BondStyle(morse/omp,BondMorseOMP);
+// clang-format on
 #else
 
 #ifndef LMP_BOND_MORSE_OMP_H
@@ -37,10 +37,10 @@ class BondMorseOMP : public BondMorse, public ThrOMP {
 
  private:
   template <int EVFLAG, int EFLAG, int NEWTON_BOND>
-  void eval(int ifrom, int ito, ThrData * const thr);
+  void eval(int ifrom, int ito, ThrData *const thr);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

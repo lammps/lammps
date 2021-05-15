@@ -12,10 +12,10 @@
 ------------------------------------------------------------------------- */
 
 #ifdef NSTENCIL_CLASS
-
+// clang-format off
 NStencilStyle(half/multi/3d/tri,
-              NStencilHalfMulti3dTri, NS_HALF | NS_MULTI | NS_3D | NS_TRI)
-
+              NStencilHalfMulti3dTri, NS_HALF | NS_MULTI | NS_3D | NS_TRI);
+// clang-format on
 #else
 
 #ifndef LMP_NSTENCIL_HALF_MULTI_3D_TRI_H
@@ -35,7 +35,7 @@ class NStencilHalfMulti3dTri : public NStencil {
   void set_stencil_properties();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

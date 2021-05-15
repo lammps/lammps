@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(born/coul/long/omp,PairBornCoulLongOMP)
-
+// clang-format off
+PairStyle(born/coul/long/omp,PairBornCoulLongOMP);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_BORN_COUL_LONG_OMP_H
@@ -39,10 +39,10 @@ class PairBornCoulLongOMP : public PairBornCoulLong, public ThrOMP {
 
  private:
   template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
-  void eval(int ifrom, int ito, ThrData * const thr);
+  void eval(int ifrom, int ito, ThrData *const thr);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

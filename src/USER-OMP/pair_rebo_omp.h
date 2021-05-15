@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(rebo/omp,PairREBOOMP)
-
+// clang-format off
+PairStyle(rebo/omp,PairREBOOMP);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_REBO_OMP_H
@@ -28,11 +28,12 @@ class PairREBOOMP : public PairAIREBOOMP {
  public:
   PairREBOOMP(class LAMMPS *);
   virtual void settings(int, char **);
+
  protected:
   void spline_init();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

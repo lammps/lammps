@@ -1,3 +1,4 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
 
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
@@ -13,11 +14,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(tersoff/kk,PairTersoffKokkos<LMPDeviceType>)
-PairStyle(tersoff/kk/device,PairTersoffKokkos<LMPDeviceType>)
-PairStyle(tersoff/kk/host,PairTersoffKokkos<LMPHostType>)
-
+// clang-format off
+PairStyle(tersoff/kk,PairTersoffKokkos<LMPDeviceType>);
+PairStyle(tersoff/kk/device,PairTersoffKokkos<LMPDeviceType>);
+PairStyle(tersoff/kk/host,PairTersoffKokkos<LMPHostType>);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_TERSOFF_KOKKOS_H

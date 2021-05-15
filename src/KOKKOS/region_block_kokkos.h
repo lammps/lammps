@@ -1,3 +1,4 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -12,11 +13,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef REGION_CLASS
-
-RegionStyle(block/kk,RegBlockKokkos<LMPDeviceType>)
-RegionStyle(block/kk/device,RegBlockKokkos<LMPDeviceType>)
-RegionStyle(block/kk/host,RegBlockKokkos<LMPHostType>)
-
+// clang-format off
+RegionStyle(block/kk,RegBlockKokkos<LMPDeviceType>);
+RegionStyle(block/kk/device,RegBlockKokkos<LMPDeviceType>);
+RegionStyle(block/kk/host,RegBlockKokkos<LMPHostType>);
+// clang-format on
 #else
 
 #ifndef LMP_REGION_BLOCK_KOKKOS_H

@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(gran/hooke/history/omp,PairGranHookeHistoryOMP)
-
+// clang-format off
+PairStyle(gran/hooke/history/omp,PairGranHookeHistoryOMP);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_GRAN_HOOKE_HISTORY_OMP_H
@@ -39,10 +39,10 @@ class PairGranHookeHistoryOMP : public PairGranHookeHistory, public ThrOMP {
 
  private:
   template <int EVFLAG, int SHEARUPDATE, int NEWTON_PAIR>
-  void eval(int ifrom, int ito, ThrData * const thr);
+  void eval(int ifrom, int ito, ThrData *const thr);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

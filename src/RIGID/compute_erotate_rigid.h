@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(erotate/rigid,ComputeERotateRigid)
-
+// clang-format off
+ComputeStyle(erotate/rigid,ComputeERotateRigid);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_EROTATE_RIGID_H
@@ -36,7 +36,7 @@ class ComputeERotateRigid : public Compute {
   char *rfix;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

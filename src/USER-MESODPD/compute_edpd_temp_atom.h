@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(edpd/temp/atom,ComputeEDPDTempAtom)
-
+// clang-format off
+ComputeStyle(edpd/temp/atom,ComputeEDPDTempAtom);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_EDPD_TEMP_ATOM_H
@@ -37,7 +37,7 @@ class ComputeEDPDTempAtom : public Compute {
   double *temp_vector;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

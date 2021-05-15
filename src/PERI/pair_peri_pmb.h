@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(peri/pmb,PairPeriPMB)
-
+// clang-format off
+PairStyle(peri/pmb,PairPeriPMB);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_PERI_PMB_H
@@ -52,7 +52,7 @@ class PairPeriPMB : public Pair {
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

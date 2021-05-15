@@ -11,16 +11,16 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "omp_compat.h"
 #include "npair_full_multi_old_omp.h"
-#include "npair_omp.h"
-#include "neigh_list.h"
 #include "atom.h"
 #include "atom_vec.h"
-#include "molecule.h"
 #include "domain.h"
-#include "my_page.h"
 #include "error.h"
+#include "molecule.h"
+#include "my_page.h"
+#include "neigh_list.h"
+#include "npair_omp.h"
+#include "omp_compat.h"
 
 using namespace LAMMPS_NS;
 
@@ -46,11 +46,11 @@ void NPairFullMultiOldOmp::build(NeighList *list)
 #endif
   NPAIR_OMP_SETUP(nlocal);
 
-  int i,j,k,n,itype,jtype,ibin,which,ns,imol,iatom;
+  int i, j, k, n, itype, jtype, ibin, which, ns, imol, iatom;
   tagint tagprev;
-  double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
-  int *neighptr,*s;
-  double *cutsq,*distsq;
+  double xtmp, ytmp, ztmp, delx, dely, delz, rsq;
+  int *neighptr, *s;
+  double *cutsq, *distsq;
 
   // loop over each atom, storing neighbors
 
@@ -99,32 +99,35 @@ void NPairFullMultiOldOmp::build(NeighList *list)
     cutsq = cutneighsq[itype];
     ns = nstencil_multi_old[itype];
     for (k = 0; k < ns; k++) {
-      for (j = binhead[ibin+s[k]]; j >= 0; j = bins[j]) {
+      for (j = binhead[ibin + s[k]]; j >= 0; j = bins[j]) {
         jtype = type[j];
         if (cutsq[jtype] < distsq[k]) continue;
         if (i == j) continue;
 
-        if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
+        if (exclude && exclusion(i, j, itype, jtype, mask, molecule)) continue;
 
         delx = xtmp - x[j][0];
         dely = ytmp - x[j][1];
         delz = ztmp - x[j][2];
-        rsq = delx*delx + dely*dely + delz*delz;
+        rsq = delx * delx + dely * dely + delz * delz;
 
         if (rsq <= cutneighsq[itype][jtype]) {
           if (molecular != Atom::ATOMIC) {
             if (!moltemplate)
-              which = find_special(special[i],nspecial[i],tag[j]);
-            else if (imol >=0)
-              which = find_special(onemols[imol]->special[iatom],
-                                   onemols[imol]->nspecial[iatom],
-                                   tag[j]-tagprev);
-            else which = 0;
-            if (which == 0) neighptr[n++] = j;
-            else if (domain->minimum_image_check(delx,dely,delz))
+              which = find_special(special[i], nspecial[i], tag[j]);
+            else if (imol >= 0)
+              which = find_special(onemols[imol]->special[iatom], onemols[imol]->nspecial[iatom],
+                                   tag[j] - tagprev);
+            else
+              which = 0;
+            if (which == 0)
               neighptr[n++] = j;
-            else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
-          } else neighptr[n++] = j;
+            else if (domain->minimum_image_check(delx, dely, delz))
+              neighptr[n++] = j;
+            else if (which > 0)
+              neighptr[n++] = j ^ (which << SBBITS);
+          } else
+            neighptr[n++] = j;
         }
       }
     }
@@ -133,8 +136,7 @@ void NPairFullMultiOldOmp::build(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     ipage.vgot(n);
-    if (ipage.status())
-      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
+    if (ipage.status()) error->one(FLERR, "Neighbor list overflow, boost neigh_modify one");
   }
   NPAIR_OMP_CLOSE;
   list->inum = nlocal;

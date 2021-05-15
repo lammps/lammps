@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(sph/rho/atom,ComputeSPHRhoAtom)
-
+// clang-format off
+ComputeStyle(sph/rho/atom,ComputeSPHRhoAtom);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_MESO_SPH_ATOM_H
@@ -37,7 +37,7 @@ class ComputeSPHRhoAtom : public Compute {
   double *rhoVector;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

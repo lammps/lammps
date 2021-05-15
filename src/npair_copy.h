@@ -12,11 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef NPAIR_CLASS
-
+// clang-format off
 NPairStyle(copy,
            NPairCopy,
-           NP_COPY)
-
+           NP_COPY);
+// clang-format on
 #else
 
 #ifndef LMP_NPAIR_COPY_H
@@ -33,7 +33,7 @@ class NPairCopy : public NPair {
   void build(class NeighList *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

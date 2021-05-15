@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(gw/zbl,PairGWZBL)
-
+// clang-format off
+PairStyle(gw/zbl,PairGWZBL);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_GW_ZBL_H
@@ -32,9 +32,9 @@ class PairGWZBL : public PairGW {
   static constexpr int NPARAMS_PER_LINE = 21;
 
  private:
-  double global_a_0;                // Bohr radius for Coulomb repulsion
-  double global_epsilon_0;        // permittivity of vacuum for Coulomb repulsion
-  double global_e;                // proton charge (negative of electron charge)
+  double global_a_0;          // Bohr radius for Coulomb repulsion
+  double global_epsilon_0;    // permittivity of vacuum for Coulomb repulsion
+  double global_e;            // proton charge (negative of electron charge)
 
   void read_file(char *);
   void repulsive(Param *, double, double &, int, double &);
@@ -46,7 +46,7 @@ class PairGWZBL : public PairGW {
   double F_fermi_d(double, Param *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

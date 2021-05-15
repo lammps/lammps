@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(rigid/local,ComputeRigidLocal)
-
+// clang-format off
+ComputeStyle(rigid/local,ComputeRigidLocal);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_RIGID_LOCAL_H
@@ -48,7 +48,7 @@ class ComputeRigidLocal : public Compute {
   void reallocate(int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

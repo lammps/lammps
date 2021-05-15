@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(coul/debye,PairCoulDebye)
-
+// clang-format off
+PairStyle(coul/debye,PairCoulDebye);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_COUL_DEBYE_H
@@ -37,7 +37,7 @@ class PairCoulDebye : public PairCoulCut {
   double kappa;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

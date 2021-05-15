@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(EVENT/TAD,FixEventTAD)
-
+// clang-format off
+FixStyle(EVENT/TAD,FixEventTAD);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_EVENT_TAD_H
@@ -26,10 +26,10 @@ namespace LAMMPS_NS {
 
 class FixEventTAD : public FixEvent {
  public:
-  int event_number;      // event counter
-  bigint event_timestep; // timestep of last event
-  double tlo;            // event time at low temperature
-  double ebarrier;       // energy barrier for this event
+  int event_number;         // event counter
+  bigint event_timestep;    // timestep of last event
+  double tlo;               // event time at low temperature
+  double ebarrier;          // energy barrier for this event
 
   FixEventTAD(class LAMMPS *, int, char **);
   ~FixEventTAD() {}
@@ -42,10 +42,9 @@ class FixEventTAD : public FixEvent {
   void store_event_tad(bigint);
 
  private:
-
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

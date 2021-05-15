@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(lj/long/coul/long/opt,PairLJLongCoulLongOpt)
-
+// clang-format off
+PairStyle(lj/long/coul/long/opt,PairLJLongCoulLongOpt);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_LJ_LONG_COUL_LONG_OPT_H
@@ -28,21 +28,19 @@ class PairLJLongCoulLongOpt : public PairLJLongCoulLong {
  public:
   PairLJLongCoulLongOpt(class LAMMPS *);
   virtual void compute(int, int);
-  virtual void compute_outer(int,int);
+  virtual void compute_outer(int, int);
 
  protected:
-  template <const int EVFLAG, const int EFLAG,
-    const int NEWTON_PAIR, const int CTABLE, const int LJTABLE,
-    const int ORDER1, const int ORDER6 >
+  template <const int EVFLAG, const int EFLAG, const int NEWTON_PAIR, const int CTABLE,
+            const int LJTABLE, const int ORDER1, const int ORDER6>
   void eval();
 
-  template <const int EVFLAG, const int EFLAG,
-    const int NEWTON_PAIR, const int CTABLE, const int LJTABLE,
-    const int ORDER1, const int ORDER6 >
+  template <const int EVFLAG, const int EFLAG, const int NEWTON_PAIR, const int CTABLE,
+            const int LJTABLE, const int ORDER1, const int ORDER6>
   void eval_outer();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

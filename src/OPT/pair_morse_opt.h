@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(morse/opt,PairMorseOpt)
-
+// clang-format off
+PairStyle(morse/opt,PairMorseOpt);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_MORSE_OPT_H
@@ -30,10 +30,10 @@ class PairMorseOpt : public PairMorse {
   void compute(int, int);
 
  private:
-  template < int EVFLAG, int EFLAG, int NEWTON_PAIR > void eval();
+  template <int EVFLAG, int EFLAG, int NEWTON_PAIR> void eval();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

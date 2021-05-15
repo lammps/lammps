@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ATOM_CLASS
-
-AtomStyle(ellipsoid,AtomVecEllipsoid)
-
+// clang-format off
+AtomStyle(ellipsoid,AtomVecEllipsoid);
+// clang-format on
 #else
 
 #ifndef LMP_ATOM_VEC_ELLIPSOID_H
@@ -70,7 +70,7 @@ class AtomVecEllipsoid : public AtomVec {
   double *rmass;
   double **angmom;
 
-  int nghost_bonus,nmax_bonus;
+  int nghost_bonus, nmax_bonus;
   int ellipsoid_flag;
   double rmass_one;
 
@@ -78,7 +78,7 @@ class AtomVecEllipsoid : public AtomVec {
   void copy_bonus_all(int, int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

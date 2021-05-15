@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(qeq/fire,FixQEqFire)
-
+// clang-format off
+FixStyle(qeq/fire,FixQEqFire);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_QEQ_FIRE_H
@@ -43,7 +43,7 @@ class FixQEqFire : public FixQEq {
   class PairComb3 *comb3;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

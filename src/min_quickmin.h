@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef MINIMIZE_CLASS
-
-MinimizeStyle(quickmin,MinQuickMin)
-
+// clang-format off
+MinimizeStyle(quickmin,MinQuickMin);
+// clang-format on
 #else
 
 #ifndef LMP_MIN_QUICKMIN_H
@@ -38,7 +38,7 @@ class MinQuickMin : public Min {
   bigint last_negative;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

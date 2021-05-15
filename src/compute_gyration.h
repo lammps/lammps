@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(gyration,ComputeGyration)
-
+// clang-format off
+ComputeStyle(gyration,ComputeGyration);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_GYRATION_H
@@ -36,7 +36,7 @@ class ComputeGyration : public Compute {
   double masstotal;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

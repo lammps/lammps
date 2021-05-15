@@ -12,11 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef NBIN_CLASS
-
+// clang-format off
 NBinStyle(multi,
           NBinMulti,
-          NB_MULTI)
-
+          NB_MULTI);
+// clang-format on
 #else
 
 #ifndef LMP_NBIN_MULTI_H
@@ -28,7 +28,6 @@ namespace LAMMPS_NS {
 
 class NBinMulti : public NBin {
  public:
-
   NBinMulti(class LAMMPS *);
   ~NBinMulti() {}
   void bin_atoms_setup(int);
@@ -37,7 +36,7 @@ class NBinMulti : public NBin {
   double memory_usage();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

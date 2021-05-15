@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(coul/dsf,PairCoulDSF)
-
+// clang-format off
+PairStyle(coul/dsf,PairCoulDSF);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_COUL_DSF_H
@@ -41,14 +41,14 @@ class PairCoulDSF : public Pair {
   void *extract(const char *, int &);
 
  protected:
-  double cut_coul,cut_coulsq;
+  double cut_coul, cut_coulsq;
   double alpha;
-  double f_shift,e_shift;
+  double f_shift, e_shift;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

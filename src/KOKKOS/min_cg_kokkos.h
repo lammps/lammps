@@ -1,3 +1,4 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -12,11 +13,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef MINIMIZE_CLASS
-
-MinimizeStyle(cg/kk,MinCGKokkos)
-MinimizeStyle(cg/kk/device,MinCGKokkos)
-MinimizeStyle(cg/kk/host,MinCGKokkos)
-
+// clang-format off
+MinimizeStyle(cg/kk,MinCGKokkos);
+MinimizeStyle(cg/kk/device,MinCGKokkos);
+MinimizeStyle(cg/kk/host,MinCGKokkos);
+// clang-format on
 #else
 
 #ifndef LMP_MIN_CG_KOKKOS_H

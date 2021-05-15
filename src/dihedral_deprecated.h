@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef DIHEDRAL_CLASS
-
-DihedralStyle(DEPRECATED,DihedralDeprecated)
-
+// clang-format off
+DihedralStyle(DEPRECATED,DihedralDeprecated);
+// clang-format on
 #else
 
 #ifndef LMP_DIHEDRAL_DEPRECATED_H
@@ -36,7 +36,7 @@ class DihedralDeprecated : public Dihedral {
   virtual void read_restart(FILE *) {}
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

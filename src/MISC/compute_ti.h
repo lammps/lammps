@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(ti,ComputeTI)
-
+// clang-format off
+ComputeStyle(ti,ComputeTI);
+// clang-format on
 #else
 
 #ifndef COMPUTE_TI_H
@@ -34,14 +34,14 @@ class ComputeTI : public Compute {
  private:
   int nterms;
   int *which;
-  int *ivar1,*ivar2;
+  int *ivar1, *ivar2;
   int *ilo, *ihi;
-  char **var1,**var2;
+  char **var1, **var2;
   class Pair **pptr;
   char **pstyle;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

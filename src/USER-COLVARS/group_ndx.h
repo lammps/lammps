@@ -14,9 +14,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMMAND_CLASS
-
-CommandStyle(group2ndx,Group2Ndx)
-
+// clang-format off
+CommandStyle(group2ndx,Group2Ndx);
+// clang-format on
 #else
 
 #ifndef LMP_GROUP_NDX_H
@@ -28,13 +28,14 @@ namespace LAMMPS_NS {
 
 class Group2Ndx : public Command {
  public:
-  Group2Ndx(class LAMMPS *lmp) : Command(lmp) {};
+  Group2Ndx(class LAMMPS *lmp) : Command(lmp){};
   void command(int, char **);
+
  private:
   void write_group(FILE *, int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

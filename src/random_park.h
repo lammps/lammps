@@ -28,11 +28,11 @@ class RanPark : protected Pointers {
   int state();
 
  private:
-  int seed,save;
+  int seed, save;
   double second;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 

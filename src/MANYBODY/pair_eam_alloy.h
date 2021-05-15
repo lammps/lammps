@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(eam/alloy,PairEAMAlloy)
-
+// clang-format off
+PairStyle(eam/alloy,PairEAMAlloy);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_EAM_ALLOY_H
@@ -37,7 +37,7 @@ class PairEAMAlloy : virtual public PairEAM {
   void file2array();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

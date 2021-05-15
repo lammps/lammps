@@ -1,3 +1,4 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -16,12 +17,12 @@
 ------------------------------------------------------------------------- */
 
 #ifdef NPAIR_CLASS
-
+// clang-format off
 NPairStyle(full/bin/ghost/intel,
            NPairFullBinGhostIntel,
            NP_FULL | NP_BIN | NP_GHOST | NP_NEWTON | NP_NEWTOFF |
-           NP_ORTHO | NP_TRI | NP_INTEL)
-
+           NP_ORTHO | NP_TRI | NP_INTEL);
+// clang-format on
 #else
 
 #ifndef LMP_NPAIR_FULL_BIN_GHOST_INTEL_H

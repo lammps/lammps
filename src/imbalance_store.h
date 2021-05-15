@@ -32,10 +32,10 @@ class ImbalanceStore : public Imbalance {
   virtual std::string info() override;
 
  private:
-  char *name;                  // property name
+  char *name;    // property name
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 

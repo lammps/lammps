@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef KSPACE_CLASS
-
-KSpaceStyle(pppm,PPPM)
-
+// clang-format off
+KSpaceStyle(pppm,PPPM);
+// clang-format on
 #else
 
 #ifndef LMP_PPPM_H
@@ -61,64 +61,64 @@ class PPPM : public KSpace {
   virtual void compute_group_group(int, int, int);
 
  protected:
-  int me,nprocs;
+  int me, nprocs;
   int nfactors;
   int *factors;
   double cutoff;
   double volume;
-  double delxinv,delyinv,delzinv,delvolinv;
-  double h_x,h_y,h_z;
-  double shift,shiftone;
+  double delxinv, delyinv, delzinv, delvolinv;
+  double h_x, h_y, h_z;
+  double shift, shiftone;
   int peratom_allocate_flag;
 
-  int nxlo_in,nylo_in,nzlo_in,nxhi_in,nyhi_in,nzhi_in;
-  int nxlo_out,nylo_out,nzlo_out,nxhi_out,nyhi_out,nzhi_out;
-  int nxlo_ghost,nxhi_ghost,nylo_ghost,nyhi_ghost,nzlo_ghost,nzhi_ghost;
-  int nxlo_fft,nylo_fft,nzlo_fft,nxhi_fft,nyhi_fft,nzhi_fft;
-  int nlower,nupper;
-  int ngrid,nfft,nfft_both;
+  int nxlo_in, nylo_in, nzlo_in, nxhi_in, nyhi_in, nzhi_in;
+  int nxlo_out, nylo_out, nzlo_out, nxhi_out, nyhi_out, nzhi_out;
+  int nxlo_ghost, nxhi_ghost, nylo_ghost, nyhi_ghost, nzlo_ghost, nzhi_ghost;
+  int nxlo_fft, nylo_fft, nzlo_fft, nxhi_fft, nyhi_fft, nzhi_fft;
+  int nlower, nupper;
+  int ngrid, nfft, nfft_both;
 
   FFT_SCALAR ***density_brick;
-  FFT_SCALAR ***vdx_brick,***vdy_brick,***vdz_brick;
+  FFT_SCALAR ***vdx_brick, ***vdy_brick, ***vdz_brick;
   FFT_SCALAR ***u_brick;
-  FFT_SCALAR ***v0_brick,***v1_brick,***v2_brick;
-  FFT_SCALAR ***v3_brick,***v4_brick,***v5_brick;
+  FFT_SCALAR ***v0_brick, ***v1_brick, ***v2_brick;
+  FFT_SCALAR ***v3_brick, ***v4_brick, ***v5_brick;
   double *greensfn;
   double **vg;
-  double *fkx,*fky,*fkz;
+  double *fkx, *fky, *fkz;
   FFT_SCALAR *density_fft;
-  FFT_SCALAR *work1,*work2;
+  FFT_SCALAR *work1, *work2;
 
   double *gf_b;
-  FFT_SCALAR **rho1d,**rho_coeff,**drho1d,**drho_coeff;
+  FFT_SCALAR **rho1d, **rho_coeff, **drho1d, **drho_coeff;
   double *sf_precoeff1, *sf_precoeff2, *sf_precoeff3;
   double *sf_precoeff4, *sf_precoeff5, *sf_precoeff6;
-  double sf_coeff[6];          // coefficients for calculating ad self-forces
+  double sf_coeff[6];    // coefficients for calculating ad self-forces
   double **acons;
 
   // FFTs and grid communication
 
-  class FFT3d *fft1,*fft2;
+  class FFT3d *fft1, *fft2;
   class Remap *remap;
   class GridComm *gc;
 
-  FFT_SCALAR *gc_buf1,*gc_buf2;
-  int ngc_buf1,ngc_buf2,npergrid;
+  FFT_SCALAR *gc_buf1, *gc_buf2;
+  int ngc_buf1, ngc_buf2, npergrid;
 
   // group-group interactions
 
   int group_allocate_flag;
-  FFT_SCALAR ***density_A_brick,***density_B_brick;
-  FFT_SCALAR *density_A_fft,*density_B_fft;
+  FFT_SCALAR ***density_A_brick, ***density_B_brick;
+  FFT_SCALAR *density_A_fft, *density_B_fft;
 
-  int **part2grid;             // storage for particle -> grid mapping
+  int **part2grid;    // storage for particle -> grid mapping
   int nmax;
 
   double *boxlo;
-                               // TIP4P settings
-  int typeH,typeO;             // atom types of TIP4P water H and O atoms
-  double qdist;                // distance from O site to negative charge
-  double alpha;                // geometric factor
+  // TIP4P settings
+  int typeH, typeO;    // atom types of TIP4P water H and O atoms
+  double qdist;        // distance from O site to negative charge
+  double alpha;        // geometric factor
 
   virtual void set_grid_global();
   void set_grid_local();
@@ -154,11 +154,9 @@ class PPPM : public KSpace {
 
   virtual void poisson_peratom();
   virtual void fieldforce_peratom();
-  void procs2grid2d(int,int,int,int *, int*);
-  void compute_rho1d(const FFT_SCALAR &, const FFT_SCALAR &,
-                     const FFT_SCALAR &);
-  void compute_drho1d(const FFT_SCALAR &, const FFT_SCALAR &,
-                     const FFT_SCALAR &);
+  void procs2grid2d(int, int, int, int *, int *);
+  void compute_rho1d(const FFT_SCALAR &, const FFT_SCALAR &, const FFT_SCALAR &);
+  void compute_drho1d(const FFT_SCALAR &, const FFT_SCALAR &, const FFT_SCALAR &);
   void compute_rho_coeff();
   virtual void slabcorr();
 
@@ -171,7 +169,7 @@ class PPPM : public KSpace {
 
   // triclinic
 
-  int triclinic;               // domain settings, orthog or triclinic
+  int triclinic;    // domain settings, orthog or triclinic
   void setup_triclinic();
   void compute_gf_ik_triclinic();
   void poisson_ik_triclinic();
@@ -183,9 +181,9 @@ class PPPM : public KSpace {
   virtual void deallocate_groups();
   virtual void make_rho_groups(int, int, int);
   virtual void poisson_groups(int);
-  virtual void slabcorr_groups(int,int,int);
+  virtual void slabcorr_groups(int, int, int);
 
-/* ----------------------------------------------------------------------
+  /* ----------------------------------------------------------------------
    denominator for Hockney-Eastwood Green's function
      of x,y,z = sin(kx*deltax/2), etc
 
@@ -197,21 +195,21 @@ class PPPM : public KSpace {
    gf_b = denominator expansion coeffs
 ------------------------------------------------------------------------- */
 
-  inline double gf_denom(const double &x, const double &y,
-                         const double &z) const {
-    double sx,sy,sz;
+  inline double gf_denom(const double &x, const double &y, const double &z) const
+  {
+    double sx, sy, sz;
     sz = sy = sx = 0.0;
-    for (int l = order-1; l >= 0; l--) {
-      sx = gf_b[l] + sx*x;
-      sy = gf_b[l] + sy*y;
-      sz = gf_b[l] + sz*z;
+    for (int l = order - 1; l >= 0; l--) {
+      sx = gf_b[l] + sx * x;
+      sy = gf_b[l] + sy * y;
+      sz = gf_b[l] + sz * z;
     }
-    double s = sx*sy*sz;
-    return s*s;
+    double s = sx * sy * sz;
+    return s * s;
   };
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

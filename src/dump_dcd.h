@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef DUMP_CLASS
-
-DumpStyle(dcd,DumpDCD)
-
+// clang-format off
+DumpStyle(dcd,DumpDCD);
+// clang-format on
 #else
 
 #ifndef LMP_DUMP_DCD_H
@@ -26,15 +26,15 @@ namespace LAMMPS_NS {
 
 class DumpDCD : public Dump {
  public:
-  DumpDCD(LAMMPS *, int, char**);
+  DumpDCD(LAMMPS *, int, char **);
   virtual ~DumpDCD();
 
  private:
-  int natoms,ntotal;
-  int headerflag,nevery_save,nframes;
+  int natoms, ntotal;
+  int headerflag, nevery_save, nframes;
 
-  float *coords,*xf,*yf,*zf;
-  int unwrap_flag;            // 1 if atom coords are unwrapped, 0 if no
+  float *coords, *xf, *yf, *zf;
+  int unwrap_flag;    // 1 if atom coords are unwrapped, 0 if no
 
   void init_style();
   void openfile();
@@ -48,7 +48,7 @@ class DumpDCD : public Dump {
   void write_dcd_header(const char *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

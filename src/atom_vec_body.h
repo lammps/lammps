@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ATOM_CLASS
-
-AtomStyle(body,AtomVecBody)
-
+// clang-format off
+AtomStyle(body,AtomVecBody);
+// clang-format on
 #else
 
 #ifndef LMP_ATOM_VEC_BODY_H
@@ -31,8 +31,8 @@ class AtomVecBody : public AtomVec {
   struct Bonus {
     double quat[4];
     double inertia[3];
-    int ninteger,ndouble;
-    int iindex,dindex;
+    int ninteger, ndouble;
+    int iindex, dindex;
     int *ivalue;
     double *dvalue;
     int ilocal;
@@ -75,11 +75,11 @@ class AtomVecBody : public AtomVec {
 
  private:
   int *body;
-  double *rmass,*radius;
+  double *rmass, *radius;
   double **angmom;
 
-  int nghost_bonus,nmax_bonus;
-  int intdoubleratio;            // sizeof(double) / sizeof(int)
+  int nghost_bonus, nmax_bonus;
+  int intdoubleratio;    // sizeof(double) / sizeof(int)
   int body_flag;
 
   MyPoolChunk<int> *icp;
@@ -90,7 +90,7 @@ class AtomVecBody : public AtomVec {
   // check(int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

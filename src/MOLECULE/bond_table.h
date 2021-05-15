@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef BOND_CLASS
-
-BondStyle(table,BondTable)
-
+// clang-format off
+BondStyle(table,BondTable);
+// clang-format on
 #else
 
 #ifndef LMP_BOND_TABLE_H
@@ -39,17 +39,17 @@ class BondTable : public Bond {
   double single(int, double, int, int, double &);
 
  protected:
-  int tabstyle,tablength;
+  int tabstyle, tablength;
   double *r0;
 
   struct Table {
-    int ninput,fpflag;
-    double fplo,fphi,r0;
-    double lo,hi;
-    double *rfile,*efile,*ffile;
-    double *e2file,*f2file;
-    double delta,invdelta,deltasq6;
-    double *r,*e,*de,*f,*df,*e2,*f2;
+    int ninput, fpflag;
+    double fplo, fphi, r0;
+    double lo, hi;
+    double *rfile, *efile, *ffile;
+    double *e2file, *f2file;
+    double delta, invdelta, deltasq6;
+    double *r, *e, *de, *f, *df, *e2, *f2;
   };
 
   int ntables;
@@ -72,7 +72,7 @@ class BondTable : public Bond {
   void u_lookup(int, double, double &);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

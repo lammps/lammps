@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(nve/body,FixNVEBody)
-
+// clang-format off
+FixStyle(nve/body,FixNVEBody);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_NVE_BODY_H
@@ -36,7 +36,7 @@ class FixNVEBody : public FixNVE {
   class AtomVecBody *avec;
 };
 
-}
+}    // namespace LAMMPS_NS
 #endif
 #endif
 

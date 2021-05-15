@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(nve/asphere,FixNVEAsphere)
-
+// clang-format off
+FixStyle(nve/asphere,FixNVEAsphere);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_NVE_ASPHERE_H
@@ -36,7 +36,7 @@ class FixNVEAsphere : public FixNVE {
   class AtomVecEllipsoid *avec;
 };
 
-}
+}    // namespace LAMMPS_NS
 #endif
 #endif
 

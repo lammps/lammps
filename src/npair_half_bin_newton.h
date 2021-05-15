@@ -12,11 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef NPAIR_CLASS
-
+// clang-format off
 NPairStyle(half/bin/newton,
            NPairHalfBinNewton,
-           NP_HALF | NP_BIN | NP_MOLONLY | NP_NEWTON | NP_ORTHO)
-
+           NP_HALF | NP_BIN | NP_MOLONLY | NP_NEWTON | NP_ORTHO);
+// clang-format on
 #else
 
 #ifndef LMP_NPAIR_HALF_BIN_NEWTON_H
@@ -33,7 +33,7 @@ class NPairHalfBinNewton : public NPair {
   void build(class NeighList *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

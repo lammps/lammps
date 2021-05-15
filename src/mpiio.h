@@ -23,7 +23,7 @@
 #error "The MPIIO package cannot be compiled in serial with MPI STUBS"
 #endif
 
-#include "restart_mpiio.h"  // IWYU pragma: export
+#include "restart_mpiio.h"    // IWYU pragma: export
 
 #else
 
@@ -36,16 +36,16 @@ class RestartMPIIO {
  public:
   int mpiio_exists;
 
-  RestartMPIIO(class LAMMPS *) {mpiio_exists = 0;}
+  RestartMPIIO(class LAMMPS *) { mpiio_exists = 0; }
   ~RestartMPIIO() {}
   void openForRead(const char *) {}
   void openForWrite(const char *) {}
-  void write(MPI_Offset,int,double *) {}
-  void read(MPI_Offset,long,double *) {}
+  void write(MPI_Offset, int, double *) {}
+  void read(MPI_Offset, long, double *) {}
   void close() {}
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

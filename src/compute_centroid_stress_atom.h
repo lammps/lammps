@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(centroid/stress/atom,ComputeCentroidStressAtom)
-
+// clang-format off
+ComputeStyle(centroid/stress/atom,ComputeCentroidStressAtom);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_CENTROID_STRESS_ATOM_H
@@ -35,8 +35,8 @@ class ComputeCentroidStressAtom : public Compute {
   double memory_usage();
 
  private:
-  int keflag,pairflag,bondflag,angleflag,dihedralflag,improperflag;
-  int kspaceflag,fixflag,biasflag;
+  int keflag, pairflag, bondflag, angleflag, dihedralflag, improperflag;
+  int kspaceflag, fixflag, biasflag;
   Compute *temperature;
   char *id_temp;
 
@@ -44,7 +44,7 @@ class ComputeCentroidStressAtom : public Compute {
   double **stress;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

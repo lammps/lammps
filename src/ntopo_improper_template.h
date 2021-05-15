@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef NTOPO_CLASS
-
-NTopoStyle(NTOPO_IMPROPER_TEMPLATE,NTopoImproperTemplate)
-
+// clang-format off
+NTopoStyle(NTOPO_IMPROPER_TEMPLATE,NTopoImproperTemplate);
+// clang-format on
 #else
 
 #ifndef LMP_TOPO_IMPROPER_TEMPLATE_H
@@ -31,7 +31,7 @@ class NTopoImproperTemplate : public NTopo {
   void build();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

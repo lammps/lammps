@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(rigid/nve,FixRigidNVE)
-
+// clang-format off
+FixStyle(rigid/nve,FixRigidNVE);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_RIGID_NVE_H
@@ -30,7 +30,7 @@ class FixRigidNVE : public FixRigidNH {
   ~FixRigidNVE() {}
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

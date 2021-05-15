@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(property/local,ComputePropertyLocal)
-
+// clang-format off
+ComputeStyle(property/local,ComputePropertyLocal);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_PROPERTY_LOCAL_H
@@ -34,7 +34,7 @@ class ComputePropertyLocal : public Compute {
   double memory_usage();
 
  private:
-  int nvalues,kindflag,cutstyle;
+  int nvalues, kindflag, cutstyle;
 
   int nmax;
   double *vlocal;
@@ -54,7 +54,7 @@ class ComputePropertyLocal : public Compute {
   void reallocate(int);
 
   typedef void (ComputePropertyLocal::*FnPtrPack)(int);
-  FnPtrPack *pack_choice;              // ptrs to pack functions
+  FnPtrPack *pack_choice;    // ptrs to pack functions
 
   void pack_patom1(int);
   void pack_patom2(int);
@@ -83,7 +83,7 @@ class ComputePropertyLocal : public Compute {
   void pack_itype(int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

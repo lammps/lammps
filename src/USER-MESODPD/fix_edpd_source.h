@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(edpd/source,FixEDPDSource)
-
+// clang-format off
+FixStyle(edpd/source,FixEDPDSource);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_EDPDSOURCE_H
@@ -38,7 +38,7 @@ class FixEDPDSource : public Fix {
   double value;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

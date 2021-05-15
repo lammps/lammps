@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(dilatation/atom,ComputeDilatationAtom)
-
+// clang-format off
+ComputeStyle(dilatation/atom,ComputeDilatationAtom);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_DILATATION_ATOM_H
@@ -29,6 +29,7 @@ class ComputeDilatationAtom : public Compute {
   friend class PairPeriLPS;
   friend class PairPeriVES;
   friend class PairPeriEPS;
+
  public:
   ComputeDilatationAtom(class LAMMPS *, int, char **);
   ~ComputeDilatationAtom();
@@ -39,10 +40,10 @@ class ComputeDilatationAtom : public Compute {
  private:
   int nmax;
   double *dilatation;
-  int isPMB,isLPS,isVES,isEPS;
+  int isPMB, isLPS, isVES, isEPS;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

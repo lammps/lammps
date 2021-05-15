@@ -40,7 +40,7 @@ class AngleZero2 : public Angle {
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(polymorphic,PairPolymorphic)
-
+// clang-format off
+PairStyle(polymorphic,PairPolymorphic);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_POLYMORPHIC_H
@@ -23,12 +23,11 @@ PairStyle(polymorphic,PairPolymorphic)
 #include "pair.h"
 
 namespace LAMMPS_NS {
-  // forward declaration
-  class TabularFunction;
+// forward declaration
+class TabularFunction;
 
 class PairPolymorphic : public Pair {
  public:
-
   PairPolymorphic(class LAMMPS *);
   virtual ~PairPolymorphic();
   virtual void compute(int, int);
@@ -38,7 +37,6 @@ class PairPolymorphic : public Pair {
   double init_one(int, int);
 
  protected:
-
   struct PairParameters {
     double cut;
     double cutsq;
@@ -60,21 +58,21 @@ class PairPolymorphic : public Pair {
 
   double epsilon;
   int eta;
-  int nx,nr,ng; // table sizes
+  int nx, nr, ng;    // table sizes
   double maxX;
 
   // parameter sets
-  PairParameters    * pairParameters;    // for I-J interaction
-  TripletParameters * tripletParameters; // for I-J-K interaction
+  PairParameters *pairParameters;          // for I-J interaction
+  TripletParameters *tripletParameters;    // for I-J-K interaction
 
-  int neighsize,numneighV,numneighW,numneighW1;
-  int *firstneighV,*firstneighW,*firstneighW1;
-  double *delxV,*delyV,*delzV,*drV;
-  double *delxW,*delyW,*delzW,*drW;
+  int neighsize, numneighV, numneighW, numneighW1;
+  int *firstneighV, *firstneighW, *firstneighW1;
+  double *delxV, *delyV, *delzV, *drV;
+  double *delxW, *delyW, *delzW, *drW;
 
-  double cutmax;                // max cutoff for all elements
+  double cutmax;    // max cutoff for all elements
   double cutmaxsq;
-  int npair,ntriple;
+  int npair, ntriple;
   int *match;
 
   void allocate();
@@ -84,17 +82,14 @@ class PairPolymorphic : public Pair {
 #if defined(LMP_POLYMORPHIC_WRITE_TABLES)
   void write_tables(int);
 #endif
-  void attractive(PairParameters *, PairParameters *, TripletParameters *,
-                  double, double, double, double *, double *, double *,
-                  double *, double *);
+  void attractive(PairParameters *, PairParameters *, TripletParameters *, double, double, double,
+                  double *, double *, double *, double *, double *);
 
-  void ters_zetaterm_d(double, double *, double, double *, double, double *,
-                       double *, double *, PairParameters *, PairParameters *,
-                       TripletParameters *);
-  void costheta_d(double *, double, double *, double,
-                  double *, double *, double *);
+  void ters_zetaterm_d(double, double *, double, double *, double, double *, double *, double *,
+                       PairParameters *, PairParameters *, TripletParameters *);
+  void costheta_d(double *, double, double *, double, double *, double *, double *);
 };
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

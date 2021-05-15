@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(nm/cut/coul/cut/omp,PairNMCutCoulCutOMP)
-
+// clang-format off
+PairStyle(nm/cut/coul/cut/omp,PairNMCutCoulCutOMP);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_NM_CUT_COUL_CUT_OMP_H
@@ -39,10 +39,10 @@ class PairNMCutCoulCutOMP : public PairNMCutCoulCut, public ThrOMP {
 
  private:
   template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
-  void eval(int ifrom, int ito, ThrData * const thr);
+  void eval(int ifrom, int ito, ThrData *const thr);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -1,3 +1,4 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -12,9 +13,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(reax/c/species,FixReaxCSpecies)
-
+// clang-format off
+FixStyle(reax/c/species,FixReaxCSpecies);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_REAXC_SPECIES_H

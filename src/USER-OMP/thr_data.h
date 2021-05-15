@@ -31,14 +31,21 @@ class ThrData {
 
  public:
   ThrData(int tid, class Timer *t);
-  ~ThrData() { delete _timer; _timer = nullptr; };
+  ~ThrData()
+  {
+    delete _timer;
+    _timer = nullptr;
+  };
 
-  void check_tid(int);    // thread id consistency check
-  int get_tid() const { return _tid; }; // our thread id.
+  void check_tid(int);                     // thread id consistency check
+  int get_tid() const { return _tid; };    // our thread id.
 
   // inline wrapper, to make this more efficient
   // when per-thread timers are off
-  void timer(enum Timer::ttype flag) { if (_timer) _stamp(flag); };
+  void timer(enum Timer::ttype flag)
+  {
+    if (_timer) _stamp(flag);
+  };
   double get_time(enum Timer::ttype flag);
 
   // erase accumulator contents and hook up force arrays
@@ -51,9 +58,9 @@ class ThrData {
   double *get_drho() const { return _drho; };
 
   // setup and erase per atom arrays
-  void init_adp(int, double *, double **, double **); // ADP (+ EAM)
-  void init_eam(int, double *);                       // EAM
-  void init_eim(int, double *, double *);             // EIM (+ EAM)
+  void init_adp(int, double *, double **, double **);    // ADP (+ EAM)
+  void init_eam(int, double *);                          // EAM
+  void init_eim(int, double *, double *);                // EIM (+ EAM)
 
   void init_pppm(int, class Memory *);
   void init_pppm_disp(int, class Memory *);
@@ -71,19 +78,19 @@ class ThrData {
   void *get_drho1d_6() const { return _drho1d_6; };
 
  private:
-  double eng_vdwl;        // non-bonded non-coulomb energy
-  double eng_coul;        // non-bonded coulomb energy
-  double eng_bond;        // bond energy
-  double eng_angle;       // angle energy
-  double eng_dihed;       // dihedral energy
-  double eng_imprp;       // improper energy
-  double eng_kspce;       // kspace energy
-  double virial_pair[6];  // virial contribution from non-bonded
-  double virial_bond[6];  // virial contribution from bonds
-  double virial_angle[6]; // virial contribution from angles
-  double virial_dihed[6]; // virial contribution from dihedrals
-  double virial_imprp[6]; // virial contribution from impropers
-  double virial_kspce[6]; // virial contribution from kspace
+  double eng_vdwl;           // non-bonded non-coulomb energy
+  double eng_coul;           // non-bonded coulomb energy
+  double eng_bond;           // bond energy
+  double eng_angle;          // angle energy
+  double eng_dihed;          // dihedral energy
+  double eng_imprp;          // improper energy
+  double eng_kspce;          // kspace energy
+  double virial_pair[6];     // virial contribution from non-bonded
+  double virial_bond[6];     // virial contribution from bonds
+  double virial_angle[6];    // virial contribution from angles
+  double virial_dihed[6];    // virial contribution from dihedrals
+  double virial_imprp[6];    // virial contribution from impropers
+  double virial_kspce[6];    // virial contribution from kspace
   double *eatom_pair;
   double *eatom_bond;
   double *eatom_angle;
@@ -111,10 +118,10 @@ class ThrData {
   double *_drho;
 
   // these are maintained by individual pair styles
-  double **_mu, **_lambda;   // ADP (+ EAM)
-  double *_rhoB, *_D_values; // CDEAM (+ EAM)
-  double *_rho;              // EAM
-  double *_fp;               // EIM (+ EAM)
+  double **_mu, **_lambda;      // ADP (+ EAM)
+  double *_rhoB, *_D_values;    // CDEAM (+ EAM)
+  double *_rho;                 // EAM
+  double *_fp;                  // EIM (+ EAM)
 
   // this is for pppm/omp
   void *_rho1d;
@@ -137,9 +144,9 @@ class ThrData {
 
   double memory_usage();
 
- // disabled default methods
+  // disabled default methods
  private:
-  ThrData() : _tid(-1), _timer(nullptr) {};
+  ThrData() : _tid(-1), _timer(nullptr){};
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -147,5 +154,5 @@ class ThrData {
 ////////////////////////////////////////////////////////////////////////
 // generic per thread data reduction for continuous arrays of nthreads*nmax size
 void data_reduce_thr(double *, int, int, int, int);
-}
+}    // namespace LAMMPS_NS
 #endif

@@ -12,11 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef NPAIR_CLASS
-
+// clang-format off
 NPairStyle(half/multi/newtoff/omp,
            NPairHalfMultiNewtoffOmp,
-           NP_HALF | NP_MULTI | NP_NEWTOFF | NP_OMP | NP_ORTHO | NP_TRI)
-
+           NP_HALF | NP_MULTI | NP_NEWTOFF | NP_OMP | NP_ORTHO | NP_TRI);
+// clang-format on
 #else
 
 #ifndef LMP_NPAIR_HALF_MULTI_NEWTOFF_OMP_H
@@ -33,7 +33,7 @@ class NPairHalfMultiNewtoffOmp : public NPair {
   void build(class NeighList *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(PERI_NEIGH_OMP,FixPeriNeighOMP)
-
+// clang-format off
+FixStyle(PERI_NEIGH_OMP,FixPeriNeighOMP);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_PERI_NEIGH_OMP_H
@@ -27,12 +27,11 @@ namespace LAMMPS_NS {
 class FixPeriNeighOMP : public FixPeriNeigh {
 
  public:
-  FixPeriNeighOMP(class LAMMPS *lmp, int narg, char **argv) :
-    FixPeriNeigh(lmp,narg,argv) {};
+  FixPeriNeighOMP(class LAMMPS *lmp, int narg, char **argv) : FixPeriNeigh(lmp, narg, argv){};
   virtual void init();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

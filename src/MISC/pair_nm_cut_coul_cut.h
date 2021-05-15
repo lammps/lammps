@@ -12,10 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(nm/cut/coul/cut,PairNMCutCoulCut)
-
-
+// clang-format off
+PairStyle(nm/cut/coul/cut,PairNMCutCoulCut);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_NM_CUT_COUL_CUT_H
@@ -45,16 +44,16 @@ class PairNMCutCoulCut : public Pair {
   void *extract(const char *, int &);
 
  protected:
-  double cut_lj_global,cut_coul_global;
-  double **cut_lj,**cut_ljsq;
-  double **cut_coul,**cut_coulsq;
-  double **e0,**r0,**nn, **mm;
-  double **nm,**e0nm,**r0n,**r0m,**offset;
+  double cut_lj_global, cut_coul_global;
+  double **cut_lj, **cut_ljsq;
+  double **cut_coul, **cut_coulsq;
+  double **e0, **r0, **nn, **mm;
+  double **nm, **e0nm, **r0n, **r0m, **offset;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

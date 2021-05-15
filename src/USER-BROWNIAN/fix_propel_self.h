@@ -26,7 +26,7 @@ namespace LAMMPS_NS {
 class FixPropelSelf : public Fix {
  public:
   FixPropelSelf(class LAMMPS *, int, char **);
-  virtual ~FixPropelSelf() {};
+  virtual ~FixPropelSelf(){};
   void init();
   void post_force(int);
   void setup(int);

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(lj/charmm/coul/charmm,PairLJCharmmCoulCharmm)
-
+// clang-format off
+PairStyle(lj/charmm/coul/charmm,PairLJCharmmCoulCharmm);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_LJ_CHARMM_COUL_CHARMM_H
@@ -44,17 +44,17 @@ class PairLJCharmmCoulCharmm : public Pair {
 
  protected:
   int implicit;
-  double cut_lj_inner,cut_lj,cut_coul_inner,cut_coul;
-  double cut_lj_innersq,cut_ljsq,cut_coul_innersq,cut_coulsq,cut_bothsq;
-  double denom_lj,denom_coul;
-  double **epsilon,**sigma,**eps14,**sigma14;
-  double **lj1,**lj2,**lj3,**lj4;
-  double **lj14_1,**lj14_2,**lj14_3,**lj14_4;
+  double cut_lj_inner, cut_lj, cut_coul_inner, cut_coul;
+  double cut_lj_innersq, cut_ljsq, cut_coul_innersq, cut_coulsq, cut_bothsq;
+  double denom_lj, denom_coul;
+  double **epsilon, **sigma, **eps14, **sigma14;
+  double **lj1, **lj2, **lj3, **lj4;
+  double **lj14_1, **lj14_2, **lj14_3, **lj14_4;
 
   virtual void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

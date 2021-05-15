@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(tfmc,FixTFMC)
-
+// clang-format off
+FixStyle(tfmc,FixTFMC);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_TFMC_H
@@ -44,7 +44,7 @@ class FixTFMC : public Fix {
   class RanMars *random_num;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

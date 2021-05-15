@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(nve/tri,FixNVETri)
-
+// clang-format off
+FixStyle(nve/tri,FixNVETri);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_NVE_TRI_H
@@ -38,7 +38,7 @@ class FixNVETri : public FixNVE {
   class AtomVecTri *avec;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

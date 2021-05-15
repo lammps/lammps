@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef DIHEDRAL_CLASS
-
-DihedralStyle(multi/harmonic/omp,DihedralMultiHarmonicOMP)
-
+// clang-format off
+DihedralStyle(multi/harmonic/omp,DihedralMultiHarmonicOMP);
+// clang-format on
 #else
 
 #ifndef LMP_DIHEDRAL_MULTI_HARMONIC_OMP_H
@@ -37,10 +37,10 @@ class DihedralMultiHarmonicOMP : public DihedralMultiHarmonic, public ThrOMP {
 
  private:
   template <int EVFLAG, int EFLAG, int NEWTON_BOND>
-  void eval(int ifrom, int ito, ThrData * const thr);
+  void eval(int ifrom, int ito, ThrData *const thr);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

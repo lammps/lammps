@@ -17,10 +17,10 @@
 #include "fix.h"
 
 #define EV_TO_KCAL_PER_MOL 14.4
-#define DANGER_ZONE        0.90
-#define MIN_CAP            50
-#define SAFE_ZONE          1.2
-#define MIN_NBRS           100
+#define DANGER_ZONE 0.90
+#define MIN_CAP 50
+#define SAFE_ZONE 1.2
+#define MIN_NBRS 100
 
 namespace LAMMPS_NS {
 
@@ -29,7 +29,7 @@ class FixQEq : public Fix {
   FixQEq(class LAMMPS *, int, char **);
   ~FixQEq();
   int setmask();
-  void init_list(int,class NeighList *);
+  void init_list(int, class NeighList *);
   void setup_pre_force(int);
   void setup_pre_force_respa(int, int);
   void pre_force_respa(int, int, int);
@@ -61,13 +61,13 @@ class FixQEq : public Fix {
   int matvecs;
   double qeq_time;
 
-  double swa, swb;      // lower/upper Taper cutoff radius
-  double Tap[8];        // Taper function
-  double tolerance;     // tolerance for the norm of the rel residual in CG
-  int maxiter;      // maximum number of QEq iterations
-  double cutoff, cutoff_sq;     // neighbor cutoff
+  double swa, swb;             // lower/upper Taper cutoff radius
+  double Tap[8];               // Taper function
+  double tolerance;            // tolerance for the norm of the rel residual in CG
+  int maxiter;                 // maximum number of QEq iterations
+  double cutoff, cutoff_sq;    // neighbor cutoff
 
-  double *chi,*eta,*gamma,*zeta,*zcore;  // qeq parameters
+  double *chi, *eta, *gamma, *zeta, *zcore;    // qeq parameters
   double *chizj;
   double **shld;
   int streitz_flag, reax_flag;
@@ -80,7 +80,7 @@ class FixQEq : public Fix {
   double **s_hist, **t_hist;
   int nprev;
 
-  typedef struct{
+  typedef struct {
     int n, m;
     int *firstnbr;
     int *numnbrs;
@@ -106,15 +106,15 @@ class FixQEq : public Fix {
 
   void calculate_Q();
 
-  double parallel_norm(double*, int);
-  double parallel_dot(double*, double*, int);
-  double parallel_vector_acc(double*, int);
+  double parallel_norm(double *, int);
+  double parallel_dot(double *, double *, int);
+  double parallel_vector_acc(double *, int);
 
-  void vector_sum(double *, double, double *, double, double *,int);
+  void vector_sum(double *, double, double *, double, double *, int);
   void vector_add(double *, double, double *, int);
 
   void init_storage();
-  void read_file(char*);
+  void read_file(char *);
   void allocate_storage();
   void deallocate_storage();
   void reallocate_storage();
@@ -123,10 +123,10 @@ class FixQEq : public Fix {
   void reallocate_matrix();
 
   virtual int CG(double *, double *);
-  virtual void sparse_matvec(sparse_matrix *, double *,double *);
+  virtual void sparse_matvec(sparse_matrix *, double *, double *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 

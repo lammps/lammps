@@ -12,15 +12,15 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMMAND_CLASS
-
-CommandStyle(DEPRECATED,Deprecated)
-CommandStyle(reset_ids,Deprecated)
-CommandStyle(kim_init,Deprecated)
-CommandStyle(kim_interactions,Deprecated)
-CommandStyle(kim_param,Deprecated)
-CommandStyle(kim_property,Deprecated)
-CommandStyle(kim_query,Deprecated)
-
+// clang-format off
+CommandStyle(DEPRECATED,Deprecated);
+CommandStyle(reset_ids,Deprecated);
+CommandStyle(kim_init,Deprecated);
+CommandStyle(kim_interactions,Deprecated);
+CommandStyle(kim_param,Deprecated);
+CommandStyle(kim_property,Deprecated);
+CommandStyle(kim_query,Deprecated);
+// clang-format on
 #else
 
 #ifndef LMP_DEPRECATED_H
@@ -32,11 +32,11 @@ namespace LAMMPS_NS {
 
 class Deprecated : public Command {
  public:
-  Deprecated(class LAMMPS *lmp) : Command(lmp) {};
+  Deprecated(class LAMMPS *lmp) : Command(lmp){};
   void command(int, char **);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

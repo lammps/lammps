@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef BOND_CLASS
-
-BondStyle(harmonic,BondHarmonic)
-
+// clang-format off
+BondStyle(harmonic,BondHarmonic);
+// clang-format on
 #else
 
 #ifndef LMP_BOND_HARMONIC_H
@@ -38,12 +38,12 @@ class BondHarmonic : public Bond {
   virtual void *extract(const char *, int &);
 
  protected:
-  double *k,*r0;
+  double *k, *r0;
 
   virtual void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

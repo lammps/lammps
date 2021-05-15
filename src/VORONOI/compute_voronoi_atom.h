@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(voronoi/atom,ComputeVoronoi)
-
+// clang-format off
+ComputeStyle(voronoi/atom,ComputeVoronoi);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_VORONOI_H
@@ -23,10 +23,10 @@ ComputeStyle(voronoi/atom,ComputeVoronoi)
 #include "compute.h"
 
 namespace voro {
-  class container;
-  class container_poly;
-  class voronoicell_neighbor;
-}
+class container;
+class container_poly;
+class voronoicell_neighbor;
+}    // namespace voro
 
 namespace LAMMPS_NS {
 
@@ -50,7 +50,7 @@ class ComputeVoronoi : public Compute {
   void buildCells();
   void checkOccupation();
   void loopCells();
-  void processCell(voro::voronoicell_neighbor&, int);
+  void processCell(voro::voronoicell_neighbor &, int);
 
   int nmax, rmax, maxedge, sgroupbit;
   char *radstr;
@@ -66,7 +66,7 @@ class ComputeVoronoi : public Compute {
   double **faces;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

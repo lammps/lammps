@@ -57,8 +57,6 @@
 
 #include <string>
 
-int lammps_unit_conversion(const std::string &unit_type_str,
-                           const std::string &from_system_str,
-                           const std::string &to_system_str,
-                           double &conversion_factor);
+int lammps_unit_conversion(const std::string &unit_type_str, const std::string &from_system_str,
+                           const std::string &to_system_str, double &conversion_factor);
 #endif

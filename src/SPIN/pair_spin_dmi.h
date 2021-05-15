@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(spin/dmi,PairSpinDmi)
-
+// clang-format off
+PairStyle(spin/dmi,PairSpinDmi);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_SPIN_DMI_H
@@ -44,18 +44,18 @@ class PairSpinDmi : public PairSpin {
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
 
-  double cut_spin_dmi_global;                   // short range pair cutoff
+  double cut_spin_dmi_global;    // short range pair cutoff
 
  protected:
-  double **DM;                                  // dmi coeff in eV
-  double **v_dmx, **v_dmy, **v_dmz;             // dmi direction
-  double **vmech_dmx, **vmech_dmy, **vmech_dmz; // dmi mech direction
-  double **cut_spin_dmi;                        // cutoff distance dmi
+  double **DM;                                     // dmi coeff in eV
+  double **v_dmx, **v_dmy, **v_dmz;                // dmi direction
+  double **vmech_dmx, **vmech_dmy, **vmech_dmz;    // dmi mech direction
+  double **cut_spin_dmi;                           // cutoff distance dmi
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

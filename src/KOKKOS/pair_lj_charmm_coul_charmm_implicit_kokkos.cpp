@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -63,7 +64,7 @@ template<class DeviceType>
 PairLJCharmmCoulCharmmImplicitKokkos<DeviceType>::~PairLJCharmmCoulCharmmImplicitKokkos()
 {
   if (copymode) return;
-  
+
   if (allocated) {
     memoryKK->destroy_kokkos(k_eatom,eatom);
     memoryKK->destroy_kokkos(k_vatom,vatom);

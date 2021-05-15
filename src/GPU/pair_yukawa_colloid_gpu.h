@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(yukawa/colloid/gpu,PairYukawaColloidGPU)
-
+// clang-format off
+PairStyle(yukawa/colloid/gpu,PairYukawaColloidGPU);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_YUKAWA_COLLOID_GPU_H
@@ -33,14 +33,14 @@ class PairYukawaColloidGPU : public PairYukawaColloid {
   void init_style();
   double memory_usage();
 
- enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
+  enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
 
  private:
   int gpu_mode;
   double cpu_time;
 };
 
-}
+}    // namespace LAMMPS_NS
 #endif
 #endif
 

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(dpd/ext/tstat,PairDPDExtTstat)
-
+// clang-format off
+PairStyle(dpd/ext/tstat,PairDPDExtTstat);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_DPD_EXT_TSTAT_H
@@ -39,10 +39,10 @@ class PairDPDExtTstat : public PairDPDExt {
   void write_data_all(FILE *);
 
  protected:
-  double t_start,t_stop;
+  double t_start, t_stop;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

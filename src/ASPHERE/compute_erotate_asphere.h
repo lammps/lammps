@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(erotate/asphere,ComputeERotateAsphere)
-
+// clang-format off
+ComputeStyle(erotate/asphere,ComputeERotateAsphere);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_EROTATE_ASPHERE_H
@@ -37,7 +37,7 @@ class ComputeERotateAsphere : public Compute {
   class AtomVecTri *avec_tri;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

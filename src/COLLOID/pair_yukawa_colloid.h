@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(yukawa/colloid,PairYukawaColloid)
-
+// clang-format off
+PairStyle(yukawa/colloid,PairYukawaColloid);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_YUKAWA_COLLOID_H
@@ -34,7 +34,7 @@ class PairYukawaColloid : public PairYukawa {
   double single(int, int, int, int, double, double, double, double &);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -1,3 +1,4 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -12,11 +13,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(table/kk,PairTableKokkos<LMPDeviceType>)
-PairStyle(table/kk/device,PairTableKokkos<LMPDeviceType>)
-PairStyle(table/kk/host,PairTableKokkos<LMPHostType>)
-
+// clang-format off
+PairStyle(table/kk,PairTableKokkos<LMPDeviceType>);
+PairStyle(table/kk/device,PairTableKokkos<LMPDeviceType>);
+PairStyle(table/kk/host,PairTableKokkos<LMPHostType>);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_TABLE_KOKKOS_H

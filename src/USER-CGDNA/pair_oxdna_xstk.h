@@ -12,10 +12,10 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(oxdna/xstk,PairOxdnaXstk)
-PairStyle(oxdna2/xstk,PairOxdnaXstk)
-
+// clang-format off
+PairStyle(oxdna/xstk,PairOxdnaXstk);
+PairStyle(oxdna2/xstk,PairOxdnaXstk);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_OXDNA_XSTK_H
@@ -69,7 +69,7 @@ class PairOxdnaXstk : public Pair {
   virtual void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

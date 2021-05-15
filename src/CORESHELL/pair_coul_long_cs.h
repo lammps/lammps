@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(coul/long/cs,PairCoulLongCS)
-
+// clang-format off
+PairStyle(coul/long/cs,PairCoulLongCS);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_COUL_LONG_CS_H
@@ -30,7 +30,7 @@ class PairCoulLongCS : public PairCoulLong {
   virtual void compute(int, int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

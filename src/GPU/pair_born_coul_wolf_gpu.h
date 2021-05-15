@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(born/coul/wolf/gpu,PairBornCoulWolfGPU)
-
+// clang-format off
+PairStyle(born/coul/wolf/gpu,PairBornCoulWolfGPU);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_BORN_COUL_WOLF_GPU_H
@@ -33,14 +33,14 @@ class PairBornCoulWolfGPU : public PairBornCoulWolf {
   void init_style();
   double memory_usage();
 
- enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
+  enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
 
  private:
   int gpu_mode;
   double cpu_time;
 };
 
-}
+}    // namespace LAMMPS_NS
 #endif
 #endif
 

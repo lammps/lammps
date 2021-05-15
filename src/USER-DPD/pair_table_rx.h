@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(table/rx,PairTableRX)
-
+// clang-format off
+PairStyle(table/rx,PairTableRX);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_TABLE_RX_H
@@ -35,16 +35,14 @@ class PairTableRX : public PairTable {
   virtual double single(int, int, int, int, double, double, double, double &);
 
  protected:
-
   int nspecies;
   char *site1, *site2;
   int isite1, isite2;
   void getMixingWeights(int, double &, double &, double &, double &);
   bool fractionalWeighting;
-
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

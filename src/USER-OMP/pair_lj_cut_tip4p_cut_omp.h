@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(lj/cut/tip4p/cut/omp,PairLJCutTIP4PCutOMP)
-
+// clang-format off
+PairStyle(lj/cut/tip4p/cut/omp,PairLJCutTIP4PCutOMP);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_LJ_CUT_TIP4P_CUT_OMP_H
@@ -42,12 +42,11 @@ class PairLJCutTIP4PCutOMP : public PairLJCutTIP4PCut, public ThrOMP {
   dbl3_t *newsite_thr;
   int3_t *hneigh_thr;
 
-  template < int, int, int > void eval(int, int, ThrData *const);
-  void compute_newsite_thr(const dbl3_t &, const dbl3_t &,
-                           const dbl3_t &, dbl3_t &) const;
+  template <int, int, int> void eval(int, int, ThrData *const);
+  void compute_newsite_thr(const dbl3_t &, const dbl3_t &, const dbl3_t &, dbl3_t &) const;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

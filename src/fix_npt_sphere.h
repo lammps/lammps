@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(npt/sphere,FixNPTSphere)
-
+// clang-format off
+FixStyle(npt/sphere,FixNPTSphere);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_NPT_SPHERE_H
@@ -30,7 +30,7 @@ class FixNPTSphere : public FixNHSphere {
   ~FixNPTSphere() {}
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(thermal/conductivity,FixThermalConductivity)
-
+// clang-format off
+FixStyle(thermal/conductivity,FixThermalConductivity);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_THERMAL_CONDUCTIVITY_H
@@ -35,18 +35,18 @@ class FixThermalConductivity : public Fix {
 
  private:
   int me;
-  int edim,nbin,periodicity;
+  int edim, nbin, periodicity;
   int nswap;
-  double prd,boxlo,boxhi;
-  double slablo_lo,slablo_hi,slabhi_lo,slabhi_hi;
+  double prd, boxlo, boxhi;
+  double slablo_lo, slablo_hi, slabhi_lo, slabhi_hi;
   double e_exchange;
 
-  int nlo,nhi;
-  int *index_lo,*index_hi;
-  double *ke_lo,*ke_hi;
+  int nlo, nhi;
+  int *index_lo, *index_hi;
+  double *ke_lo, *ke_hi;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

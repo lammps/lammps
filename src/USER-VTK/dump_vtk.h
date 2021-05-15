@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef DUMP_CLASS
-
-DumpStyle(vtk,DumpVTK)
-
+// clang-format off
+DumpStyle(vtk,DumpVTK);
+// clang-format on
 #else
 
 #ifndef LMP_DUMP_VTK_H
@@ -28,10 +28,9 @@ DumpStyle(vtk,DumpVTK)
 #include <map>
 #include <set>
 
-
-#include <vtkSmartPointer.h>
-#include <vtkPoints.h>
 #include <vtkCellArray.h>
+#include <vtkPoints.h>
+#include <vtkSmartPointer.h>
 
 class vtkAbstractArray;
 class vtkRectilinearGrid;
@@ -61,14 +60,15 @@ class DumpVTK : public DumpCustom {
   virtual ~DumpVTK();
 
   virtual void write();
+
  protected:
-  char *label;               // string for dump file header
+  char *label;    // string for dump file header
 
-  int vtk_file_format;       // which vtk file format to write (vtk, vtp, vtu ...)
+  int vtk_file_format;    // which vtk file format to write (vtk, vtp, vtu ...)
 
-  std::map<int, int> field2index; // which compute,fix,variable calcs this field
-  std::map<int, int> argindex;    // index into compute,fix scalar_atom,vector_atom
-                                  // 0 for scalar_atom, 1-N for vector_atom values
+  std::map<int, int> field2index;    // which compute,fix,variable calcs this field
+  std::map<int, int> argindex;       // index into compute,fix scalar_atom,vector_atom
+                                     // 0 for scalar_atom, 1-N for vector_atom values
 
   // private methods
 
@@ -88,11 +88,11 @@ class DumpVTK : public DumpCustom {
   virtual int modify_param(int, char **);
 
   typedef void (DumpVTK::*FnPtrHeader)(bigint);
-  FnPtrHeader header_choice;           // ptr to write header functions
+  FnPtrHeader header_choice;    // ptr to write header functions
   void header_vtk(bigint);
 
   typedef void (DumpVTK::*FnPtrWrite)(int, double *);
-  FnPtrWrite write_choice;             // ptr to write data functions
+  FnPtrWrite write_choice;    // ptr to write data functions
   void write_vtk(int, double *);
   void write_vtp(int, double *);
   void write_vtu(int, double *);
@@ -105,26 +105,26 @@ class DumpVTK : public DumpCustom {
   void write_domain_vtu_triclinic();
 
   typedef void (DumpVTK::*FnPtrPack)(int);
-  std::map<int, FnPtrPack> pack_choice;  // ptrs to pack functions
-  std::map<int, int> vtype;              // data type
-  std::map<int, std::string> name;       // attribute labels
-  std::set<int> vector_set;              // set of vector attributes
+  std::map<int, FnPtrPack> pack_choice;    // ptrs to pack functions
+  std::map<int, int> vtype;                // data type
+  std::map<int, std::string> name;         // attribute labels
+  std::set<int> vector_set;                // set of vector attributes
   int current_pack_choice_key;
 
   // vtk data containers
   vtkSmartPointer<vtkPoints> points;
   vtkSmartPointer<vtkCellArray> pointsCells;
-  std::map<int, vtkSmartPointer<vtkAbstractArray> > myarrays;
+  std::map<int, vtkSmartPointer<vtkAbstractArray>> myarrays;
 
   int n_calls_;
-  double (*boxcorners)[3]; // corners of triclinic domain box
+  double (*boxcorners)[3];    // corners of triclinic domain box
   char *filecurrent;
   char *domainfilecurrent;
   char *parallelfilecurrent;
   char *multiname_ex;
 
   void setFileCurrent();
-  void buf2arrays(int, double *); // transfer data from buf array to vtk arrays
+  void buf2arrays(int, double *);    // transfer data from buf array to vtk arrays
   void reset_vtk_data_containers();
 
   // customize by adding a method prototype
@@ -134,7 +134,7 @@ class DumpVTK : public DumpCustom {
   void pack_custom(int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

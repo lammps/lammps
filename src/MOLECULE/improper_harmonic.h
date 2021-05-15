@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef IMPROPER_CLASS
-
-ImproperStyle(harmonic,ImproperHarmonic)
-
+// clang-format off
+ImproperStyle(harmonic,ImproperHarmonic);
+// clang-format on
 #else
 
 #ifndef LMP_IMPROPER_HARMONIC_H
@@ -35,12 +35,12 @@ class ImproperHarmonic : public Improper {
   void write_data(FILE *);
 
  protected:
-  double *k,*chi;
+  double *k, *chi;
 
   virtual void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

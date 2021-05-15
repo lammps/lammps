@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
          LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
          https://lammps.sandia.gov/, Sandia National Laboratories
@@ -36,7 +37,9 @@ under
 #include <cstring>
 #include <vector>
 
+#include "ptm_constants.h"
 #include "ptm_functions.h"
+#include "ptm_initialize_data.h"
 
 #define NUM_COLUMNS 7
 #define PTM_LAMMPS_UNKNOWN -1

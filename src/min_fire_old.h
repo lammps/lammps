@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef MINIMIZE_CLASS
-
-MinimizeStyle(fire/old,MinFireOld)
-
+// clang-format off
+MinimizeStyle(fire/old,MinFireOld);
+// clang-format on
 #else
 
 #ifndef LMP_MIN_FIRE_OLD_H
@@ -34,12 +34,12 @@ class MinFireOld : public Min {
   int iterate(int);
 
  private:
-  double dt,dtmax;
+  double dt, dtmax;
   double alpha;
   bigint last_negative;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

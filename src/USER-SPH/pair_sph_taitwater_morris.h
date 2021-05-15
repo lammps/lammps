@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(sph/taitwater/morris,PairSPHTaitwaterMorris)
-
+// clang-format off
+PairStyle(sph/taitwater/morris,PairSPHTaitwaterMorris);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_TAITWATER_MORRIS_H
@@ -35,13 +35,13 @@ class PairSPHTaitwaterMorris : public Pair {
 
  protected:
   double *rho0, *soundspeed, *B;
-  double **cut,**viscosity;
+  double **cut, **viscosity;
   int first;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

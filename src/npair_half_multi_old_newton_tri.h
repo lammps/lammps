@@ -12,11 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef NPAIR_CLASS
-
+// clang-format off
 NPairStyle(half/multi/old/newton/tri,
            NPairHalfMultiOldNewtonTri,
-           NP_HALF | NP_MULTI_OLD | NP_NEWTON | NP_TRI)
-
+           NP_HALF | NP_MULTI_OLD | NP_NEWTON | NP_TRI);
+// clang-format on
 #else
 
 #ifndef LMP_NPAIR_HALF_MULTI_OLD_NEWTON_TRI_H
@@ -33,7 +33,7 @@ class NPairHalfMultiOldNewtonTri : public NPair {
   void build(class NeighList *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

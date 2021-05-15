@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(contact/atom,ComputeContactAtom)
-
+// clang-format off
+ComputeStyle(contact/atom,ComputeContactAtom);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_CONTACT_ATOM_H
@@ -41,7 +41,7 @@ class ComputeContactAtom : public Compute {
   double *contact;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

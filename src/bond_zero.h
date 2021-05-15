@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef BOND_CLASS
-
-BondStyle(zero,BondZero)
-
+// clang-format off
+BondStyle(zero,BondZero);
+// clang-format on
 #else
 
 #ifndef LMP_BOND_ZERO_H
@@ -47,7 +47,7 @@ class BondZero : public Bond {
   virtual void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

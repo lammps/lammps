@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(gayberne/gpu,PairGayBerneGPU)
-
+// clang-format off
+PairStyle(gayberne/gpu,PairGayBerneGPU);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_GAYBERNE_GPU_H
@@ -42,7 +42,7 @@ class PairGayBerneGPU : public PairGayBerne {
   double **quat;
 };
 
-}
+}    // namespace LAMMPS_NS
 #endif
 #endif
 

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(nph/asphere,FixNPHAsphere)
-
+// clang-format off
+FixStyle(nph/asphere,FixNPHAsphere);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_NPH_ASPHERE_H
@@ -30,7 +30,7 @@ class FixNPHAsphere : public FixNHAsphere {
   ~FixNPHAsphere() {}
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

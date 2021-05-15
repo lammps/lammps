@@ -12,16 +12,16 @@
 ------------------------------------------------------------------------- */
 
 #ifdef BODY_CLASS
-
-BodyStyle(rounded/polyhedron,BodyRoundedPolyhedron)
-
+// clang-format off
+BodyStyle(rounded/polyhedron,BodyRoundedPolyhedron);
+// clang-format on
 #else
 
 #ifndef LMP_BODY_ROUNDED_POLYHEDRON_H
 #define LMP_BODY_ROUNDED_POLYHEDRON_H
 
-#include "body.h"
 #include "atom_vec_body.h"
+#include "body.h"
 
 namespace LAMMPS_NS {
 
@@ -55,7 +55,7 @@ class BodyRoundedPolyhedron : public Body {
   double **imdata;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

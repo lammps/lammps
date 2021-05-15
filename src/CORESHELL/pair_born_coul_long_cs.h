@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(born/coul/long/cs,PairBornCoulLongCS)
-
+// clang-format off
+PairStyle(born/coul/long/cs,PairBornCoulLongCS);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_BORN_COUL_LONG_CS_H
@@ -30,7 +30,7 @@ class PairBornCoulLongCS : public PairBornCoulLong {
   virtual void compute(int, int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

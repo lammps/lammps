@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(temp/eff,ComputeTempEff)
-
+// clang-format off
+ComputeStyle(temp/eff,ComputeTempEff);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_TEMP_EFF_H
@@ -39,7 +39,7 @@ class ComputeTempEff : public Compute {
   void dof_compute();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

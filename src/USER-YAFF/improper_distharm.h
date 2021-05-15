@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef IMPROPER_CLASS
-
-ImproperStyle(distharm,ImproperDistHarm)
-
+// clang-format off
+ImproperStyle(distharm,ImproperDistHarm);
+// clang-format on
 #else
 
 #ifndef LMP_IMPROPER_DISTHARM_H
@@ -34,13 +34,12 @@ class ImproperDistHarm : public Improper {
   void read_restart(FILE *);
 
  private:
-  double *k,*chi;
+  double *k, *chi;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-

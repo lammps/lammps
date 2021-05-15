@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ATOM_CLASS
-
-AtomStyle(angle,AtomVecAngle)
-
+// clang-format off
+AtomStyle(angle,AtomVecAngle);
+// clang-format on
 #else
 
 #ifndef LMP_ATOM_VEC_ANGLE_H
@@ -36,16 +36,16 @@ class AtomVecAngle : public AtomVec {
   void data_atom_post(int);
 
  private:
-  int *num_bond,*num_angle;
-  int **bond_type,**angle_type;
+  int *num_bond, *num_angle;
+  int **bond_type, **angle_type;
   int **nspecial;
 
-  int any_bond_negative,any_angle_negative;
-  int bond_per_atom,angle_per_atom;
-  int *bond_negative,*angle_negative;
+  int any_bond_negative, any_angle_negative;
+  int bond_per_atom, angle_per_atom;
+  int *bond_negative, *angle_negative;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

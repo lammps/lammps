@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(coul/diel,PairCoulDiel)
-
+// clang-format off
+PairStyle(coul/diel,PairCoulDiel);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_COUL_DIEL_H
@@ -51,7 +51,7 @@ class PairCoulDiel : public Pair {
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

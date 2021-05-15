@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(table/omp,PairTableOMP)
-
+// clang-format off
+PairStyle(table/omp,PairTableOMP);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_TABLE_OMP_H
@@ -39,10 +39,10 @@ class PairTableOMP : public PairTable, public ThrOMP {
 
  private:
   template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
-  void eval(int ifrom, int ito, ThrData * const thr);
+  void eval(int ifrom, int ito, ThrData *const thr);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

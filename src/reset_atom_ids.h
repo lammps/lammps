@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMMAND_CLASS
-
-CommandStyle(reset_atom_ids,ResetIDs)
-
+// clang-format off
+CommandStyle(reset_atom_ids,ResetIDs);
+// clang-format on
 #else
 
 #ifndef LMP_RESET_IDS_H
@@ -28,7 +28,7 @@ class ResetIDs : public Command {
  public:
   struct AtomRvous {
     bigint ibin;
-    int proc,ilocal;
+    int proc, ilocal;
     double x[3];
   };
 
@@ -46,7 +46,7 @@ class ResetIDs : public Command {
   void command(int, char **);
 
  private:
-  bigint binlo,binhi;
+  bigint binlo, binhi;
 
   // callback functions for rendezvous communication
 
@@ -55,7 +55,7 @@ class ResetIDs : public Command {
   void sort();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

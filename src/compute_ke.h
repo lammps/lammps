@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(ke,ComputeKE)
-
+// clang-format off
+ComputeStyle(ke,ComputeKE);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_KE_H
@@ -34,7 +34,7 @@ class ComputeKE : public Compute {
   double pfactor;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

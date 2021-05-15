@@ -9,7 +9,6 @@
  *
  * ----------------------------------------------------------------------- */
 
-
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -24,9 +23,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(smd/contact/radius,ComputeSMDContactRadius)
-
+// clang-format off
+ComputeStyle(smd/contact/radius,ComputeSMDContactRadius);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_SMD_CONTACT_RADIUS_H
@@ -49,7 +48,7 @@ class ComputeSMDContactRadius : public Compute {
   double *contact_radius_vector;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

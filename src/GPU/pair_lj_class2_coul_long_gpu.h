@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(lj/class2/coul/long/gpu,PairLJClass2CoulLongGPU)
-
+// clang-format off
+PairStyle(lj/class2/coul/long/gpu,PairLJClass2CoulLongGPU);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_LJ_CLASS2_COUL_LONG_GPU_H
@@ -33,14 +33,14 @@ class PairLJClass2CoulLongGPU : public PairLJClass2CoulLong {
   void init_style();
   double memory_usage();
 
- enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
+  enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
 
  private:
   int gpu_mode;
   double cpu_time;
 };
 
-}
+}    // namespace LAMMPS_NS
 #endif
 #endif
 

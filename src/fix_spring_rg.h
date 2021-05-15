@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(spring/rg,FixSpringRG)
-
+// clang-format off
+FixStyle(spring/rg,FixSpringRG);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_SPRING_RG_H
@@ -37,11 +37,11 @@ class FixSpringRG : public Fix {
   double compute_scalar();
 
  private:
-  int ilevel_respa,rg0_flag;
-  double rg0,k,masstotal;
+  int ilevel_respa, rg0_flag;
+  double rg0, k, masstotal;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

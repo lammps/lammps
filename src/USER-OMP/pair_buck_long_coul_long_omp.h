@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(buck/long/coul/long/omp,PairBuckLongCoulLongOMP)
-
+// clang-format off
+PairStyle(buck/long/coul/long/omp,PairBuckLongCoulLongOMP);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_BUCK_LONG_COUL_LONG_OMP_H
@@ -36,22 +36,19 @@ class PairBuckLongCoulLongOMP : public PairBuckLongCoulLong, public ThrOMP {
   virtual void compute_outer(int, int);
 
  private:
-  template <const int EVFLAG, const int EFLAG,
-    const int NEWTON_PAIR, const int CTABLE, const int LJTABLE,
-    const int ORDER1, const int ORDER6 >
-  void eval(int, int, ThrData * const);
+  template <const int EVFLAG, const int EFLAG, const int NEWTON_PAIR, const int CTABLE,
+            const int LJTABLE, const int ORDER1, const int ORDER6>
+  void eval(int, int, ThrData *const);
 
-  template <const int EVFLAG, const int EFLAG,
-    const int NEWTON_PAIR, const int CTABLE, const int LJTABLE,
-    const int ORDER1, const int ORDER6 >
-  void eval_outer(int, int, ThrData * const);
-
+  template <const int EVFLAG, const int EFLAG, const int NEWTON_PAIR, const int CTABLE,
+            const int LJTABLE, const int ORDER1, const int ORDER6>
+  void eval_outer(int, int, ThrData *const);
 
   void eval_inner(int, int, ThrData *const);
   void eval_middle(int, int, ThrData *const);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

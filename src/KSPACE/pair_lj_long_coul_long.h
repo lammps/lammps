@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(lj/long/coul/long,PairLJLongCoulLong)
-
+// clang-format off
+PairStyle(lj/long/coul/long,PairLJLongCoulLong);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_LJ_LONG_COUL_LONG_H
@@ -64,7 +64,7 @@ class PairLJLongCoulLong : public Pair {
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -46,7 +46,7 @@ typedef float _Complex FFT_DATA;
 #elif defined(FFT_FFTW3)
 #include "fftw3.h"
 typedef fftwf_complex FFT_DATA;
-#define FFTW_API(function)  fftwf_ ## function
+#define FFTW_API(function) fftwf_##function
 
 #else
 
@@ -57,12 +57,12 @@ typedef fftwf_complex FFT_DATA;
 #endif
 #define kiss_fft_scalar float
 typedef struct {
-    kiss_fft_scalar re;
-    kiss_fft_scalar im;
+  kiss_fft_scalar re;
+  kiss_fft_scalar im;
 } FFT_DATA;
 
 struct kiss_fft_state;
-typedef struct kiss_fft_state* kiss_fft_cfg;
+typedef struct kiss_fft_state *kiss_fft_cfg;
 #endif
 
 // -------------------------------------------------------------------------
@@ -79,7 +79,7 @@ typedef double _Complex FFT_DATA;
 #elif defined(FFT_FFTW3)
 #include "fftw3.h"
 typedef fftw_complex FFT_DATA;
-#define FFTW_API(function)  fftw_ ## function
+#define FFTW_API(function) fftw_##function
 
 #else
 
@@ -89,12 +89,12 @@ typedef fftw_complex FFT_DATA;
 #endif
 #define kiss_fft_scalar double
 typedef struct {
-    kiss_fft_scalar re;
-    kiss_fft_scalar im;
+  kiss_fft_scalar re;
+  kiss_fft_scalar im;
 } FFT_DATA;
 
 struct kiss_fft_state;
-typedef struct kiss_fft_state* kiss_fft_cfg;
+typedef struct kiss_fft_state *kiss_fft_cfg;
 #endif
 
 #else
@@ -106,21 +106,21 @@ typedef struct kiss_fft_state* kiss_fft_cfg;
 // details of how to do a 3d FFT
 
 struct fft_plan_3d {
-  struct remap_plan_3d *pre_plan;       // remap from input -> 1st FFTs
-  struct remap_plan_3d *mid1_plan;      // remap from 1st -> 2nd FFTs
-  struct remap_plan_3d *mid2_plan;      // remap from 2nd -> 3rd FFTs
-  struct remap_plan_3d *post_plan;      // remap from 3rd FFTs -> output
-  FFT_DATA *copy;                   // memory for remap results (if needed)
-  FFT_DATA *scratch;                // scratch space for remaps
-  int total1,total2,total3;         // # of 1st,2nd,3rd FFTs (times length)
-  int length1,length2,length3;      // length of 1st,2nd,3rd FFTs
-  int pre_target;                   // where to put remap results
-  int mid1_target,mid2_target;
-  int scaled;                       // whether to scale FFT results
-  int normnum;                      // # of values to rescale
-  double norm;                      // normalization factor for rescaling
+  struct remap_plan_3d *pre_plan;     // remap from input -> 1st FFTs
+  struct remap_plan_3d *mid1_plan;    // remap from 1st -> 2nd FFTs
+  struct remap_plan_3d *mid2_plan;    // remap from 2nd -> 3rd FFTs
+  struct remap_plan_3d *post_plan;    // remap from 3rd FFTs -> output
+  FFT_DATA *copy;                     // memory for remap results (if needed)
+  FFT_DATA *scratch;                  // scratch space for remaps
+  int total1, total2, total3;         // # of 1st,2nd,3rd FFTs (times length)
+  int length1, length2, length3;      // length of 1st,2nd,3rd FFTs
+  int pre_target;                     // where to put remap results
+  int mid1_target, mid2_target;
+  int scaled;     // whether to scale FFT results
+  int normnum;    // # of values to rescale
+  double norm;    // normalization factor for rescaling
 
-                                    // system specific 1d FFT info
+  // system specific 1d FFT info
 #if defined(FFT_MKL)
   DFTI_DESCRIPTOR *handle_fast;
   DFTI_DESCRIPTOR *handle_mid;
@@ -145,15 +145,13 @@ struct fft_plan_3d {
 // function prototypes
 
 extern "C" {
-  void fft_3d(FFT_DATA *, FFT_DATA *, int, struct fft_plan_3d *);
-  struct fft_plan_3d *fft_3d_create_plan(MPI_Comm, int, int, int,
-                                         int, int, int, int, int,
-                                         int, int, int, int, int, int, int,
-                                         int, int, int *, int);
-  void fft_3d_destroy_plan(struct fft_plan_3d *);
-  void factor(int, int *, int *);
-  void bifactor(int, int *, int *);
-  void fft_1d_only(FFT_DATA *, int, int, struct fft_plan_3d *);
+void fft_3d(FFT_DATA *, FFT_DATA *, int, struct fft_plan_3d *);
+struct fft_plan_3d *fft_3d_create_plan(MPI_Comm, int, int, int, int, int, int, int, int, int, int,
+                                       int, int, int, int, int, int, int, int *, int);
+void fft_3d_destroy_plan(struct fft_plan_3d *);
+void factor(int, int *, int *);
+void bifactor(int, int *, int *);
+void fft_1d_only(FFT_DATA *, int, int, struct fft_plan_3d *);
 }
 
 /* ERROR/WARNING messages:

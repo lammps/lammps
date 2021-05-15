@@ -64,11 +64,11 @@ namespace LAMMPS_NS {
 
 class KimQuery : protected Pointers {
  public:
-  KimQuery(class LAMMPS *lmp) : Pointers(lmp) {};
+  KimQuery(class LAMMPS *lmp) : Pointers(lmp){};
   void command(int, char **);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 

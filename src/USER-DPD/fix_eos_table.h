@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(eos/table,FixEOStable)
-
+// clang-format off
+FixStyle(eos/table,FixEOStable);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_EOS_TABLE_H
@@ -36,16 +36,16 @@ class FixEOStable : public Fix {
   void temperature_lookup(double, double &);
 
  protected:
-  enum{LINEAR};
+  enum { LINEAR };
 
-  int tabstyle,tablength;
+  int tabstyle, tablength;
   struct Table {
     int ninput;
-    double lo,hi;
-    double *rfile,*efile;
+    double lo, hi;
+    double *rfile, *efile;
     double *e2file;
-    double delta,invdelta,deltasq6;
-    double *r,*e,*de,*e2;
+    double delta, invdelta, deltasq6;
+    double *r, *e, *de, *e2;
   };
   int ntables;
   Table *tables;
@@ -61,9 +61,8 @@ class FixEOStable : public Fix {
   void param_extract(Table *, Table *, char *);
   void spline(double *, double *, int, double, double, double *);
   double splint(double *, double *, double *, int, double);
-
-  };
-}
+};
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

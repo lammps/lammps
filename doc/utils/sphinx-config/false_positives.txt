@@ -2850,6 +2850,8 @@ Runge
 runtime
 Rutuparna
 rx
+rxnave
+rxnsum
 ry
 rz
 Ryckaert

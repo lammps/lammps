@@ -37,6 +37,8 @@ PairMorse::PairMorse(LAMMPS *lmp) : Pair(lmp)
 
 PairMorse::~PairMorse()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);

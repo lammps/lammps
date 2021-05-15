@@ -57,10 +57,6 @@ PairBuckCoulLongKokkos<DeviceType>::PairBuckCoulLongKokkos(LAMMPS *lmp):PairBuck
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | F_MASK | TYPE_MASK | Q_MASK | ENERGY_MASK | VIRIAL_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
-  cutsq = nullptr;
-  cut_ljsq = nullptr;
-  cut_coulsq = 0.0;
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -68,33 +64,14 @@ PairBuckCoulLongKokkos<DeviceType>::PairBuckCoulLongKokkos(LAMMPS *lmp):PairBuck
 template<class DeviceType>
 PairBuckCoulLongKokkos<DeviceType>::~PairBuckCoulLongKokkos()
 {
-  if (!copymode) {
+  if (copymode) return;
+
+  if (allocated) {
     memoryKK->destroy_kokkos(k_eatom,eatom);
     memoryKK->destroy_kokkos(k_vatom,vatom);
-    k_cutsq = DAT::tdual_ffloat_2d();
-    k_cut_ljsq = DAT::tdual_ffloat_2d();
-    k_cut_coulsq = DAT::tdual_ffloat_2d();
-    memory->sfree(cutsq);
-    memory->sfree(cut_ljsq);
-    //memory->sfree(cut_coulsq);
-    eatom = nullptr;
-    vatom = nullptr;
-    cutsq = nullptr;
-    cut_ljsq = nullptr;
-    //cut_coulsq = nullptr;
+    memoryKK->destroy_kokkos(k_cutsq,cutsq);
+    memoryKK->destroy_kokkos(k_cut_ljsq,cut_ljsq);
   }
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-void PairBuckCoulLongKokkos<DeviceType>::cleanup_copy() {
-  allocated = 0;
-  cutsq = nullptr;
-  cut_ljsq = nullptr;
-  eatom = nullptr;
-  vatom = nullptr;
-  ftable = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -125,7 +102,6 @@ void PairBuckCoulLongKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   atomKK->sync(execution_space,datamask_read);
   k_cutsq.template sync<DeviceType>();
   k_cut_ljsq.template sync<DeviceType>();
-  k_cut_coulsq.template sync<DeviceType>();
   k_params.template sync<DeviceType>();
   if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
   else atomKK->modified(execution_space,F_MASK);
@@ -314,8 +290,7 @@ void PairBuckCoulLongKokkos<DeviceType>::allocate()
   memoryKK->create_kokkos(k_cut_ljsq,cut_ljsq,n+1,n+1,"pair:cut_ljsq");
   d_cut_ljsq = k_cut_ljsq.template view<DeviceType>();
 
-  memoryKK->create_kokkos(k_cut_coulsq,n+1,n+1,"pair:cut_coulsq");
-  d_cut_coulsq = k_cut_coulsq.template view<DeviceType>();
+  d_cut_coulsq = typename AT::t_ffloat_2d("pair:cut_coulsq",n+1,n+1);
 
   k_params = Kokkos::DualView<params_buck_coul**,Kokkos::LayoutRight,DeviceType>("PairBuckCoulLong::params",n+1,n+1);
   params = k_params.template view<DeviceType>();
@@ -446,6 +421,8 @@ void PairBuckCoulLongKokkos<DeviceType>::init_style()
 {
   PairBuckCoulLong::init_style();
 
+  Kokkos::deep_copy(d_cut_coulsq,cut_coulsq);
+
   // error if rRESPA with inner levels
 
   if (update->whichflag == 1 && utils::strmatch(update->integrate_style,"^respa")) {
@@ -487,7 +464,6 @@ double PairBuckCoulLongKokkos<DeviceType>::init_one(int i, int j)
 {
   double cutone = PairBuckCoulLong::init_one(i,j);
   double cut_ljsqm = cut_ljsq[i][j];
-  double cut_coulsqm = cut_coulsq;
 
   k_params.h_view(i,j).a = a[i][j];
   k_params.h_view(i,j).c = c[i][j];
@@ -496,28 +472,24 @@ double PairBuckCoulLongKokkos<DeviceType>::init_one(int i, int j)
   k_params.h_view(i,j).buck2 = buck2[i][j];
   k_params.h_view(i,j).offset = offset[i][j];
   k_params.h_view(i,j).cut_ljsq = cut_ljsqm;
-  k_params.h_view(i,j).cut_coulsq = cut_coulsqm;
+  k_params.h_view(i,j).cut_coulsq = cut_coulsq;
 
   k_params.h_view(j,i) = k_params.h_view(i,j);
   if (i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
     m_params[i][j] = m_params[j][i] = k_params.h_view(i,j);
     m_cutsq[j][i] = m_cutsq[i][j] = cutone*cutone;
     m_cut_ljsq[j][i] = m_cut_ljsq[i][j] = cut_ljsqm;
-    m_cut_coulsq[j][i] = m_cut_coulsq[i][j] = cut_coulsqm;
+    m_cut_coulsq[j][i] = m_cut_coulsq[i][j] = cut_coulsq;
   }
 
   k_cutsq.h_view(i,j) = cutone*cutone;
   k_cutsq.template modify<LMPHostType>();
   k_cut_ljsq.h_view(i,j) = cut_ljsqm;
   k_cut_ljsq.template modify<LMPHostType>();
-  k_cut_coulsq.h_view(i,j) = cut_coulsqm;
-  k_cut_coulsq.template modify<LMPHostType>();
   k_params.template modify<LMPHostType>();
 
   return cutone;
-
 }
-
 
 namespace LAMMPS_NS {
 template class PairBuckCoulLongKokkos<LMPDeviceType>;

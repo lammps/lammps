@@ -48,8 +48,6 @@ PairCoulDebyeKokkos<DeviceType>::PairCoulDebyeKokkos(LAMMPS *lmp):PairCoulDebye(
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | F_MASK | TYPE_MASK | Q_MASK | ENERGY_MASK | VIRIAL_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
-  cutsq = nullptr;
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -57,19 +55,13 @@ PairCoulDebyeKokkos<DeviceType>::PairCoulDebyeKokkos(LAMMPS *lmp):PairCoulDebye(
 template<class DeviceType>
 PairCoulDebyeKokkos<DeviceType>::~PairCoulDebyeKokkos()
 {
-  if (allocated)
-    memoryKK->destroy_kokkos(k_cutsq, cutsq);
-}
+  if (copymode) return;
 
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-void PairCoulDebyeKokkos<DeviceType>::cleanup_copy() {
-  // WHY needed: this prevents parent copy from deallocating any arrays
-  allocated = 0;
-  cutsq = nullptr;
-  eatom = nullptr;
-  vatom = nullptr;
+  if (allocated) {
+    memoryKK->destroy_kokkos(k_eatom,eatom);
+    memoryKK->destroy_kokkos(k_vatom,vatom);
+    memoryKK->destroy_kokkos(k_cutsq,cutsq);
+  }
 }
 
 /* ---------------------------------------------------------------------- */

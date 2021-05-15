@@ -117,8 +117,6 @@ class PairEAMAlloyKokkos : public PairEAM, public KokkosBase {
   void unpack_reverse_comm(int, int *, double *);
 
  protected:
-  void cleanup_copy();
-
   typename AT::t_x_array x;
   typename AT::t_f_array f;
   typename AT::t_int_1d type;

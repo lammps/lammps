@@ -87,7 +87,6 @@ class PairZBLKokkos : public PairZBL {
   F_FLOAT compute_ecoul(const F_FLOAT& /*rsq*/, const int& /*i*/, const int& /*j*/,
                         const int& /*itype*/, const int& /*jtype*/) const { return 0; }
 
-  void cleanup_copy();
   void allocate();
 
   friend struct PairComputeFunctor<PairZBLKokkos,FULL,true>;

@@ -55,6 +55,8 @@ PairTableRX::PairTableRX(LAMMPS *lmp) : PairTable(lmp)
 
 PairTableRX::~PairTableRX()
 {
+  if (copymode) return;
+
   delete [] site1;
   delete [] site2;
 }

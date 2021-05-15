@@ -332,7 +332,6 @@ class PairReaxCKokkos : public PairReaxC {
     F_FLOAT *fi, F_FLOAT *fj, F_FLOAT *fk, F_FLOAT *dril, F_FLOAT *drjl, F_FLOAT *drkl) const;
 
  protected:
-  void cleanup_copy();
   void allocate();
   void allocate_array();
   void setup();

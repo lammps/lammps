@@ -1,7 +1,7 @@
 Using LAMMPS with the MDI library for code coupling
 ===================================================
 
-..note::
+.. note::
 
   This Howto doc page will eventually replace the
   :doc:`Howto client/server <Howto_client_server>` doc page.
@@ -65,8 +65,8 @@ how the 2 codes are launched to communicate by MPI:
 
 .. code-block:: bash
 
-% mpirun -np 2 lmp_mpi -mdi "-role DRIVER -name d -method MPI" \
-   -in in.aimd : -np 16 pw.x -in qe.in -mdi "-role ENGINE -name e -method MPI"
+   % mpirun -np 2 lmp_mpi -mdi "-role DRIVER -name d -method MPI" \
+     -in in.aimd : -np 16 pw.x -in qe.in -mdi "-role ENGINE -name e -method MPI"
 
 In this case LAMMPS runs on 2 processors (MPI tasks), ``pw.x`` runs on 16
 processors.
@@ -75,8 +75,8 @@ Here is how the 2 codes are launched to communicate by sockets:
 
 .. code-block:: bash
 
-% mpirun -np 2 lmp_mpi -mdi "-role DRIVER -name d -method TCP -port 8021" -in in.aimd
-% mpirun -np 16 pw.x -in qe.in -mdi "-role ENGINE -name e -method TCP -port 8021 -hostname localhost"
+   % mpirun -np 2 lmp_mpi -mdi "-role DRIVER -name d -method TCP -port 8021" -in in.aimd
+   % mpirun -np 16 pw.x -in qe.in -mdi "-role ENGINE -name e -method TCP -port 8021 -hostname localhost"
 
 These commands could be issued in different windows on a desktop
 machine.  Or in the same window, if the first command is ended with
@@ -99,7 +99,7 @@ Examples scripts for using LAMMPS as an MDI engine are in the
 examples/mdi directory.  See the README file in that directory for
 instructions on how to run the examples.
 
-..note::
+.. note::
 
   Work is underway to add commands that allow LAMMPS to be used as an
   MDI driver, e.g. for the AIMD example discussed above.  Example
@@ -109,7 +109,7 @@ instructions on how to run the examples.
 If LAMMPS is used as a stand-alone engine it should set up the system
 it will be modeling in its input script, then invoke the
 :doc:`mdi/engine <mdi_engine>` command.  This will put LAMMPS into
-engine mode where it waits for messages and data from the driver.
+"engine mode" where it waits for messages and data from the driver.
 When the driver sends an "EXIT" command, LAMMPS will exit engine mode
 and the input script will continue.
 

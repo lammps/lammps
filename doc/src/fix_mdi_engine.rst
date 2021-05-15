@@ -1,4 +1,4 @@
-.. index:: fix move
+.. index:: fix mdi/engine
 
 fix mdi/engine command
 ======================

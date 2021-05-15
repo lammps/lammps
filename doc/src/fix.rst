@@ -244,6 +244,7 @@ accelerated styles exist.
 * :doc:`lb/viscous <fix_lb_viscous>` -
 * :doc:`lineforce <fix_lineforce>` - constrain atoms to move in a line
 * :doc:`manifoldforce <fix_manifoldforce>` - restrain atoms to a manifold during minimization
+* :doc:`mdi/engine <fix_mdi_engine>` - connect LAMMPS to external programs via the MolSSI Driver Interface (MDI)
 * :doc:`meso/move <fix_meso_move>` - move mesoscopic SPH/SDPD particles in a prescribed fashion
 * :doc:`momentum <fix_momentum>` - zero the linear and/or angular momentum of a group of atoms
 * :doc:`momentum/chunk <fix_momentum>` - zero the linear and/or angular momentum of a chunk of atoms

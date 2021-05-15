@@ -89,10 +89,15 @@ Programmer Guide
    Modify
    Developer
 
+*****************
+Command Reference
+*****************
+
+.. _command_reference:
 .. toctree::
-   :caption: Index
-   :name: index
-   :hidden:
+   :name: reference
+   :maxdepth: 1
+   :caption: Command Reference
 
    commands_list
    fixes
@@ -118,7 +123,7 @@ Indices and tables
 .. admonition:: Web Browser Compatibility
 
    The HTML version of the manual makes use of advanced features present
-   int "modern" web browsers.  This can lead to incompatibilities with older
+   in "modern" web browsers.  This can lead to incompatibilities with older
    web browsers (released more than 4 years ago) and specific vendor browsers
    (e.g. Internet Explorer on Windows; Microsoft Edge works well though)
    where parts of the pages are not rendered as expected (e.g. the layout is

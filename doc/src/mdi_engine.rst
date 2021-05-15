@@ -1,4 +1,4 @@
-.. index:: mdi_engine
+.. index:: mdi/engine
 
 mdi_engine command
 ==================

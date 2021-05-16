@@ -17,20 +17,18 @@
 #include "atom.h"
 #include "atom_vec.h"
 #include "update.h"
-#include "force.h"
-#include "pair.h"
-#include "neighbor.h"
-#include "neigh_list.h"
 #include "memory.h"
 #include "modify.h"
 #include "error.h"
 #include "group.h"
-#include "domain.h"
+#include "tokenizer.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-#define DELTA 100
+#define DELTA 1000
 
 /* ---------------------------------------------------------------------- */
 
@@ -41,57 +39,106 @@ FixPairTracker::FixPairTracker(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 3) error->all(FLERR,"Illegal fix pair/tracker command");
   local_flag = 1;
-  nvalues = narg - 4; 
-  tmin = -1;
 
   nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   if (nevery <= 0) error->all(FLERR,"Illegal fix pair/tracker command");  
-    
-  if (nvalues == 1) size_local_cols = 0;
-  else size_local_cols = nvalues;
 
+  // If optional arguments included, this will be oversized
+  nvalues = narg - 4;   
   pack_choice = new FnPtrPack[nvalues];
   
+  tmin = -1;
+  type_filter = nullptr;  
   int iarg = 4;
-  int i = 0;
+  nvalues = 0;
   while (iarg < narg) {
-    
     if (strcmp(arg[iarg],"id1") == 0) {
-      pack_choice[i] = &FixPairTracker::pack_id1;
+      pack_choice[nvalues++] = &FixPairTracker::pack_id1;
     } else if (strcmp(arg[iarg],"id2") == 0) {
-      pack_choice[i] = &FixPairTracker::pack_id2;
+      pack_choice[nvalues++] = &FixPairTracker::pack_id2;
            
     } else if (strcmp(arg[iarg],"time/created") == 0) {
-      pack_choice[i] = &FixPairTracker::pack_time_created;
+      pack_choice[nvalues++] = &FixPairTracker::pack_time_created;
     } else if (strcmp(arg[iarg],"time/broken") == 0) {
-      pack_choice[i] = &FixPairTracker::pack_time_broken;
+      pack_choice[nvalues++] = &FixPairTracker::pack_time_broken;
     } else if (strcmp(arg[iarg],"time/total") == 0) {
-      pack_choice[i] = &FixPairTracker::pack_time_total;
+      pack_choice[nvalues++] = &FixPairTracker::pack_time_total;
       
     } else if (strcmp(arg[iarg],"x") == 0) {
-      pack_choice[i] = &FixPairTracker::pack_x;    
+      pack_choice[nvalues++] = &FixPairTracker::pack_x;    
     } else if (strcmp(arg[iarg],"y") == 0) {
-      pack_choice[i] = &FixPairTracker::pack_y;    
+      pack_choice[nvalues++] = &FixPairTracker::pack_y;    
     } else if (strcmp(arg[iarg],"z") == 0) {
-      pack_choice[i] = &FixPairTracker::pack_z;    
+      pack_choice[nvalues++] = &FixPairTracker::pack_z;    
       
     } else if (strcmp(arg[iarg],"rmin") == 0) {
-      pack_choice[i] = &FixPairTracker::pack_rmin;    
+      pack_choice[nvalues++] = &FixPairTracker::pack_rmin;    
     } else if (strcmp(arg[iarg],"rave") == 0) {
-      pack_choice[i] = &FixPairTracker::pack_rave;     
+      pack_choice[nvalues++] = &FixPairTracker::pack_rave;     
 
     } else if (strcmp(arg[iarg],"tmin") == 0) {
       if (iarg + 1 >= narg) error->all(FLERR, "Invalid keyword in fix pair/tracker command");
       tmin = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-      i -= 1;
-      nvalues -= 2;
       iarg ++;
+   
+    } else if (strcmp(arg[iarg],"filter") == 0) {
+      if (iarg + 1 >= narg) error->all(FLERR, "Invalid keyword in fix pair/tracker command");
+      int ntypes = atom->ntypes;
+
+      int i, j, itype, jtype, in, jn, infield, jnfield;
+      int inlo, inhi, jnlo, jnhi;
+      char *istr, *jstr;
+      if (! type_filter) {
+        memory->create(type_filter,ntypes+1,ntypes+1,"fix/pair/tracker:type_filter");
+
+        for (i = 0; i <= ntypes; i ++) {
+          for (j = 0; j <= ntypes; j ++) {
+            type_filter[i][j] = 0;
+          }
+        }
+      }
+                
+      in = strlen(arg[iarg+1]) + 1;
+      istr = new char[in];
+      strcpy(istr,arg[iarg+1]);
+      std::vector<std::string> iwords = Tokenizer(istr, ",").as_vector();
+      infield = iwords.size();
+
+      jn = strlen(arg[iarg+2]) + 1;
+      jstr = new char[jn];
+      strcpy(jstr,arg[iarg+2]);
+      std::vector<std::string> jwords = Tokenizer(jstr, ",").as_vector();
+      jnfield = jwords.size();
+
+      for (i = 0; i < infield; i++) {
+        const char * ifield = iwords[i].c_str();
+        utils::bounds(FLERR,ifield,1,ntypes,inlo,inhi,error);
+
+        for (j = 0; j < jnfield; j++) {
+          const char * jfield = jwords[j].c_str();
+          utils::bounds(FLERR,jfield,1,ntypes,jnlo,jnhi,error);              
+          
+          for (itype = inlo; itype <= inhi; itype++) {
+            for (jtype = jnlo; jtype <= jnhi; jtype++) {
+              type_filter[itype][jtype] = 1;
+              type_filter[jtype][itype] = 1;
+            }
+          }
+        }
+      }
+
+      delete [] istr;
+      delete [] jstr;
+      
+      iarg += 2;
    
     } else error->all(FLERR, "Invalid keyword in fix pair/tracker command");
     
     iarg ++;
-    i ++;
   }
+
+  if (nvalues == 1) size_local_cols = 0;
+  else size_local_cols = nvalues;
 
   nmax = 0;
   ncount = 0;
@@ -107,6 +154,7 @@ FixPairTracker::~FixPairTracker()
 
   memory->destroy(vector);  
   memory->destroy(array);
+  memory->destroy(type_filter);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -134,30 +182,36 @@ void FixPairTracker::init()
 
 void FixPairTracker::lost_contact(int i, int j, double n, double rs, double rm)
 {    
-  if (update->ntimestep-n > tmin) {
-    int *mask = atom->mask;
-    if ((mask[i] & groupbit) && (mask[j] & groupbit)) {
-      if (ncount == nmax) reallocate(ncount);
+  if ((update->ntimestep-n) < tmin) return;
       
-      index_i = i;
-      index_j = j;
-      
-      rmin = rm;
-      rsum = rs;
-      ntimestep = n;
-      
-      // fill vector or array with local values
-      if (nvalues == 1) {
-        (this->*pack_choice[0])(0);
-      } else {
-        for (int k = 0; k < nvalues; k++) {
-          (this->*pack_choice[k])(k); 
-        }
-      }  
-      
-      ncount += 1;  
-    }
+  if (type_filter) {
+    int *type = atom->type;
+    if (type_filter[type[i]][type[j]] == 0) return;          
   }
+      
+  int *mask = atom->mask;
+  if (!(mask[i] & groupbit)) return;
+  if (!(mask[j] & groupbit)) return;
+  
+  if (ncount == nmax) reallocate(ncount);
+  
+  index_i = i;
+  index_j = j;
+  
+  rmin = rm;
+  rsum = rs;
+  ntimestep = n;
+  
+  // fill vector or array with local values
+  if (nvalues == 1) {
+    (this->*pack_choice[0])(0);
+  } else {
+    for (int k = 0; k < nvalues; k++) {
+      (this->*pack_choice[k])(k); 
+    }
+  }  
+  
+  ncount += 1;  
 }
 
 /* ---------------------------------------------------------------------- */
@@ -263,7 +317,6 @@ void FixPairTracker::pack_id2(int n)
 
 void FixPairTracker::pack_x(int n)
 {
-  double lx_new = domain->xprd;
   double **x = atom->x; 
     
   if (nvalues == 1)
@@ -277,7 +330,6 @@ void FixPairTracker::pack_x(int n)
 
 void FixPairTracker::pack_y(int n)
 {
-  double lx_new = domain->yprd;
   double **x = atom->x; 
   
   if (nvalues == 1)
@@ -291,7 +343,6 @@ void FixPairTracker::pack_y(int n)
 
 void FixPairTracker::pack_z(int n)
 {
-  double lx_new = domain->zprd;
   double **x = atom->x; 
     
   if (nvalues == 1)

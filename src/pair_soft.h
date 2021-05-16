@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(soft,PairSoft)
-
+// clang-format off
+PairStyle(soft,PairSoft);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_SOFT_H
@@ -52,7 +52,7 @@ class PairSoft : public Pair {
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

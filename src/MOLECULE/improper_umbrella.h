@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef IMPROPER_CLASS
-
-ImproperStyle(umbrella,ImproperUmbrella)
-
+// clang-format off
+ImproperStyle(umbrella,ImproperUmbrella);
+// clang-format on
 #else
 
 #ifndef LMP_IMPROPER_UMBRELLA_H
@@ -40,7 +40,7 @@ class ImproperUmbrella : public Improper {
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

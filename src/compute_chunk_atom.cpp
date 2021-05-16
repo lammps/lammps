@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -155,6 +156,7 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
     if ((which == ArgInfo::UNKNOWN) || (which == ArgInfo::NONE)
         || (argi.get_dim() > 1))
       error->all(FLERR,"Illegal compute chunk/atom command");
+    iarg = 4;
   }
 
   // optional args

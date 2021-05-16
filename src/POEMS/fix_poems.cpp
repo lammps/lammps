@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -277,8 +278,8 @@ FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
   nsum -= njoint;
 
   if (me == 0)
-    utils::logmesg(lmp,fmt::format("{} clusters, {} bodies, {} joints, {} atoms\n",
-                                   ncluster,nbody,njoint,nsum));
+    utils::logmesg(lmp,"{} clusters, {} bodies, {} joints, {} atoms\n",
+                   ncluster,nbody,njoint,nsum);
 }
 
 /* ----------------------------------------------------------------------
@@ -941,11 +942,9 @@ void FixPOEMS::readfile(char *file)
 
   if (me == 0) {
     fp = fopen(file,"r");
-    if (fp == nullptr) {
-      char str[128];
-      snprintf(str,128,"Cannot open fix poems file %s",file);
-      error->one(FLERR,str);
-    }
+    if (fp == nullptr)
+      error->one(FLERR,"Cannot open fix poems file {}: {}",
+                 file, utils::getsyserror());
   }
 
   nbody = 0;

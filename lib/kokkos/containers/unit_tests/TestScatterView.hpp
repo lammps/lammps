@@ -437,6 +437,10 @@ struct test_scatter_view_config {
                                           Contribution, Op,
                                           NumberType>::orig_view_type;
 
+  void compile_constructor() {
+    auto sv = scatter_view_def(Kokkos::view_alloc(DeviceType{}, "label"), 10);
+  }
+
   void run_test(int n) {
     // test allocation
     {

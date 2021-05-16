@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(nvt/body,FixNVTBody)
-
+// clang-format off
+FixStyle(nvt/body,FixNVTBody);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_NVT_BODY_H
@@ -30,7 +30,7 @@ class FixNVTBody : public FixNHBody {
   ~FixNVTBody() {}
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

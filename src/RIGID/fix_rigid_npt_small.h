@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(rigid/npt/small,FixRigidNPTSmall)
-
+// clang-format off
+FixStyle(rigid/npt/small,FixRigidNPTSmall);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_RIGID_NPT_SMALL_H
@@ -30,8 +30,7 @@ class FixRigidNPTSmall : public FixRigidNHSmall {
   ~FixRigidNPTSmall() {}
 };
 
-
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ANGLE_CLASS
-
-AngleStyle(harmonic,AngleHarmonic)
-
+// clang-format off
+AngleStyle(harmonic,AngleHarmonic);
+// clang-format on
 #else
 
 #ifndef LMP_ANGLE_HARMONIC_H
@@ -37,12 +37,12 @@ class AngleHarmonic : public Angle {
   double single(int, int, int, int);
 
  protected:
-  double *k,*theta0;
+  double *k, *theta0;
 
   virtual void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

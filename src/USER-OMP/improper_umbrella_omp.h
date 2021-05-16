@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef IMPROPER_CLASS
-
-ImproperStyle(umbrella/omp,ImproperUmbrellaOMP)
-
+// clang-format off
+ImproperStyle(umbrella/omp,ImproperUmbrellaOMP);
+// clang-format on
 #else
 
 #ifndef LMP_IMPROPER_UMBRELLA_OMP_H
@@ -37,10 +37,10 @@ class ImproperUmbrellaOMP : public ImproperUmbrella, public ThrOMP {
 
  private:
   template <int EVFLAG, int EFLAG, int NEWTON_BOND>
-  void eval(int ifrom, int ito, ThrData * const thr);
+  void eval(int ifrom, int ito, ThrData *const thr);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

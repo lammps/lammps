@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ANGLE_CLASS
-
-AngleStyle(cosine/squared,AngleCosineSquared)
-
+// clang-format off
+AngleStyle(cosine/squared,AngleCosineSquared);
+// clang-format on
 #else
 
 #ifndef LMP_ANGLE_COSINE_SQUARED_H
@@ -37,12 +37,12 @@ class AngleCosineSquared : public Angle {
   virtual double single(int, int, int, int);
 
  protected:
-  double *k,*theta0;
+  double *k, *theta0;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

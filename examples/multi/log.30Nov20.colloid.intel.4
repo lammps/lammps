@@ -1,0 +1,183 @@
+LAMMPS (24 Dec 2020)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (../comm.cpp:97)
+  using 1 OpenMP thread(s) per MPI task
+# Big colloid particles and small LJ particles
+
+units		lj
+atom_style	sphere
+dimension	2
+
+lattice		sq 0.1
+Lattice spacing in x,y,z = 3.1622777 3.1622777 3.1622777
+region		box block 0 60 0 60 -0.5 0.5
+create_box	5 box
+Created orthogonal box = (0.0000000 0.0000000 -1.5811388) to (189.73666 189.73666 1.5811388)
+  2 by 2 by 1 MPI processor grid
+create_atoms 1 box
+Created 3600 atoms
+  create_atoms CPU = 0.001 seconds
+
+#Roughly equally partition atoms between types 1-4
+set		group all type/fraction 2 0.500 23984
+Setting atom values ...
+  1768 settings made for type/fraction
+set		group all type/fraction 3 0.333 43684
+Setting atom values ...
+  1255 settings made for type/fraction
+set		group all type/fraction 4 0.250 87811
+Setting atom values ...
+  927 settings made for type/fraction
+
+# remove two spheres of small particles and add large particles in the voids
+region sphere1 sphere 60.0 60.0 0.0 30.0 units box
+region sphere2 sphere 130.0 130.0 0.0 30.0 units box
+delete_atoms  region sphere1
+Deleted 289 atoms, new total = 3311
+delete_atoms  region sphere2
+Deleted 287 atoms, new total = 3024
+create_atoms 5 single 60.0 60.0 0.0 units box
+Created 1 atoms
+  create_atoms CPU = 0.000 seconds
+create_atoms 5 single 130.0 130.0 0.0 units box
+Created 1 atoms
+  create_atoms CPU = 0.000 seconds
+
+set		type 1 mass 400
+Setting atom values ...
+  753 settings made for mass
+set		type 2 mass 1
+Setting atom values ...
+  722 settings made for mass
+
+velocity	all create 1.44 87287 loop geom
+
+# multi neighbor and comm for efficiency
+
+neighbor	1 multi #multi/old
+neigh_modify	delay 0 collection/type 2 1*4 5
+comm_modify     mode multi reduce/multi #multi/old
+
+# colloid potential
+
+pair_style	colloid 20.0
+pair_coeff	* * 144.0 1.0 0.0 0.0 3.0
+pair_coeff	1 5 75.4  1.0 0.0 20.0 14.0
+pair_coeff	2 5 75.4  1.0 0.0 20.0 14.0
+pair_coeff	3 5 75.4  1.0 0.0 20.0 14.0
+pair_coeff	4 5 75.4  1.0 0.0 20.0 14.0
+pair_coeff	5 5 39.5  1.0 20.0 20.0 30.0
+
+
+
+fix		1 all npt temp 2.0 2.0 1.0 iso 0.0 1.0 10.0 drag 1.0 	        mtk no pchain 0 tchain 1
+fix		2 all enforce2d
+
+#dump		1 all atom 1000 dump.colloid
+
+#dump		2 all image 1000 image.*.jpg type type #		zoom 1.5 center d 0.5 0.5 0.5
+#dump_modify	2 pad 5 adiam 1 5.0 adiam 2 1.5
+
+#dump		3 all movie 1000 movie.mpg type type #		zoom 1.5 center d 0.5 0.5 0.5
+#dump_modify	3 pad 5 adiam 1 5.0 adiam 2 1.5
+
+thermo_style	custom step temp epair etotal press vol
+thermo		1000
+
+timestep	0.005
+
+run		50000
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 31
+  ghost atom cutoff = 31
+  binsize = 2, bins = 95 95 2
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair colloid, perpetual
+      attributes: half, newton on
+      pair build: half/multi/newton
+      stencil: half/multi/2d
+      bin: multi
+Per MPI rank memory allocation (min/avg/max) = 4.327 | 4.329 | 4.330 Mbytes
+Step Temp E_pair TotEng Press Volume 
+       0         1.44            0    1.4395241        0.121        36000 
+    1000    1.8856066  -0.15771717    1.7272663   0.13840578    42574.399 
+    2000    1.8590154  -0.11436231    1.7440387  0.097150798    58590.688 
+    3000    1.8956738 -0.090814176    1.8042332  0.075557943    77825.289 
+    4000    1.9570462 -0.072505537    1.8838939  0.072824365    90931.708 
+    5000    2.0376745 -0.083247829    1.9537533  0.068496975    90055.295 
+    6000    2.0744887 -0.085395371    1.9884077    0.0821927    78070.648 
+    7000    2.1002183  -0.11654617    1.9829781   0.10523249    63934.448 
+    8000    2.0818325  -0.13271654     1.948428   0.11909162    52636.484 
+    9000    2.0693987  -0.16404154    1.9046733   0.14702552    44539.609 
+   10000    2.0667772  -0.19779488    1.8682993   0.17245383    38822.542 
+   11000    2.0640582  -0.22114917     1.842227   0.18083079    34788.927 
+   12000    2.0308462  -0.20353105    1.8266441   0.20640739    31706.009 
+   13000    2.0395895  -0.24217765    1.7967378   0.21832952    29152.654 
+   14000     2.030848   -0.2586169      1.77156   0.26577748     27068.89 
+   15000    2.0222966  -0.27554585    1.7460825    0.2777169    25272.786 
+   16000    2.0398867  -0.31547563     1.723737   0.27763622    23666.792 
+   17000      2.03026  -0.32453791    1.7050512   0.28099246    22272.809 
+   18000    2.0345512  -0.35026242    1.6836164   0.36600779    21023.172 
+   19000    2.0242864  -0.35813231    1.6654851   0.33415432    19941.244 
+   20000    2.0132465  -0.36563904    1.6469422     0.403365    18979.884 
+   21000    2.0280384   -0.4075867    1.6197815   0.37205362    18152.487 
+   22000    2.0206494  -0.40600336    1.6139782   0.42704594    17370.812 
+   23000    2.0395761  -0.45083258    1.5880695   0.40276343    16700.427 
+   24000     2.017203  -0.44930293    1.5672335   0.43867313     16161.79 
+   25000    2.0191846   -0.4672218    1.5512955   0.47031215    15622.756 
+   26000    2.0131624  -0.46436088    1.5481363   0.51717944    15141.645 
+   27000    2.0322461  -0.50659994    1.5249745   0.49218933    14627.657 
+   28000    2.0169304  -0.50555565    1.5107082   0.55547935    14186.079 
+   29000     2.024656  -0.52258414    1.5014028   0.59125812     13759.99 
+   30000    2.0153725  -0.53585947     1.478847   0.57235811    13384.355 
+   31000    2.0163261  -0.56383766    1.4518221   0.58232057    13098.196 
+   32000    2.0109673  -0.56784395    1.4424588   0.58282178    12831.934 
+   33000    2.0099169  -0.57625621    1.4329964   0.65139601    12479.442 
+   34000    2.0238152  -0.60189607    1.4212503   0.62659152    12210.628 
+   35000    2.0359989  -0.62654733    1.4087787   0.67574446    11972.725 
+   36000    2.0222689  -0.62880837    1.3927923   0.66602146    11690.049 
+   37000    1.9982569  -0.62746376    1.3701328   0.71326589    11433.825 
+   38000    1.9969836  -0.63975181    1.3565719   0.72799891    11285.497 
+   39000    2.0071087  -0.65781805    1.3486274   0.79121297    11107.469 
+   40000    2.0243046   -0.6881221    1.3355135   0.77519099    10943.846 
+   41000    2.0351657  -0.70309175    1.3314014   0.68815156    10742.515 
+   42000    2.0224788  -0.70975664    1.3120538   0.80484619    10505.657 
+   43000    2.0123135  -0.70818545    1.3034631   0.84204556    10353.024 
+   44000     1.999883  -0.70981202    1.2894101   0.94070546    10212.224 
+   45000    2.0127291  -0.73338075    1.2786832   0.82095205    10109.959 
+   46000    2.0109037  -0.75130029    1.2589389   0.88538358    9953.4822 
+   47000    1.9879175  -0.73152019    1.2557404   0.92089629     9832.892 
+   48000    2.0108204  -0.76655178    1.2436041   0.95379465    9633.6453 
+   49000    1.9868193  -0.76613798    1.2200247   0.88790224    9504.2918 
+   50000    2.0141467  -0.80029827    1.2131829    1.0064263    9346.3268 
+Loop time of 6.98615 on 4 procs for 50000 steps with 3026 atoms
+
+Performance: 3091831.080 tau/day, 7157.016 timesteps/s
+99.8% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 2.2795     | 2.5856     | 2.9414     |  17.4 | 37.01
+Neigh   | 0.62273    | 0.70156    | 0.76736    |   7.4 | 10.04
+Comm    | 1.0765     | 1.4945     | 1.8884     |  28.6 | 21.39
+Output  | 0.00076496 | 0.0008953  | 0.0012832  |   0.0 |  0.01
+Modify  | 1.718      | 1.7755     | 1.827      |   3.7 | 25.41
+Other   |            | 0.4281     |            |       |  6.13
+
+Nlocal:        756.500 ave         839 max         673 min
+Histogram: 1 0 1 0 0 0 0 1 0 1
+Nghost:        292.500 ave         307 max         282 min
+Histogram: 2 0 0 0 0 0 1 0 0 1
+Neighs:        6435.25 ave        7367 max        5493 min
+Histogram: 1 0 0 1 0 0 1 0 0 1
+
+Total # of neighbors = 25741
+Ave neighs/atom = 8.5066094
+Neighbor list builds = 4335
+Dangerous builds = 0
+
+Please see the log.cite file for references relevant to this simulation
+
+Total wall time: 0:00:07

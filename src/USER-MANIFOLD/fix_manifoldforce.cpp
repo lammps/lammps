@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -59,15 +60,15 @@ FixManifoldForce::FixManifoldForce(LAMMPS *lmp, int narg, char **arg) :
 
   // Construct manifold from factory:
   if (!ptr_m)
-    error->all(FLERR,fmt::format("Manifold pointer for manifold '{}' "
-                                 "was NULL for some reason", arg[3]));
+    error->all(FLERR,"Manifold pointer for manifold '{}' "
+                                 "was NULL for some reason", arg[3]);
 
   // After constructing the manifold, you can safely make
   // room for the parameters
   nvars = ptr_m->nparams();
   if (narg < nvars+4)
-    error->all(FLERR,fmt::format("Manifold {} needs at least {} "
-                                 "argument(s)!", m_name, nvars));
+    error->all(FLERR,"Manifold {} needs at least {} "
+                                 "argument(s)!", m_name, nvars);
 
   ptr_m->params = new double[nvars];
   if (ptr_m->params == nullptr) {

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ANGLE_CLASS
-
-AngleStyle(zero,AngleZero)
-
+// clang-format off
+AngleStyle(zero,AngleZero);
+// clang-format on
 #else
 
 #ifndef LMP_ANGLE_ZERO_H
@@ -46,7 +46,7 @@ class AngleZero : public Angle {
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

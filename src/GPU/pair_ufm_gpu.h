@@ -18,9 +18,9 @@
  ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(ufm/gpu,PairUFMGPU)
-
+// clang-format off
+PairStyle(ufm/gpu,PairUFMGPU);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_UFM_GPU_H
@@ -40,14 +40,14 @@ class PairUFMGPU : public PairUFM {
   void reinit();
   double memory_usage();
 
- enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
+  enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
 
  private:
   int gpu_mode;
   double cpu_time;
 };
 
-}
+}    // namespace LAMMPS_NS
 #endif
 #endif
 

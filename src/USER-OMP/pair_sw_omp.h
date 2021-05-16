@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(sw/omp,PairSWOMP)
-
+// clang-format off
+PairStyle(sw/omp,PairSWOMP);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_SW_OMP_H
@@ -38,11 +38,10 @@ class PairSWOMP : public PairSW, public ThrOMP {
   virtual double memory_usage();
 
  private:
-  template <int EVFLAG, int EFLAG>
-  void eval(int ifrom, int ito, ThrData * const thr);
+  template <int EVFLAG, int EFLAG> void eval(int ifrom, int ito, ThrData *const thr);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

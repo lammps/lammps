@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(mvv/edpd,FixMvvEDPD)
-
+// clang-format off
+FixStyle(mvv/edpd,FixMvvEDPD);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_MVV_EDPD_H
@@ -39,7 +39,7 @@ class FixMvvEDPD : public Fix {
   double verlet;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

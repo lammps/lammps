@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(lj/charmm/coul/long/soft/omp,PairLJCharmmCoulLongSoftOMP)
-
+// clang-format off
+PairStyle(lj/charmm/coul/long/soft/omp,PairLJCharmmCoulLongSoftOMP);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_LJ_CHARMM_COUL_LONG_SOFT_OMP_H
@@ -39,10 +39,10 @@ class PairLJCharmmCoulLongSoftOMP : public PairLJCharmmCoulLongSoft, public ThrO
 
  private:
   template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
-  void eval(int ifrom, int ito, ThrData * const thr);
+  void eval(int ifrom, int ito, ThrData *const thr);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

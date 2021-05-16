@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ATOM_CLASS
-
-AtomStyle(tdpd,AtomVecTDPD)
-
+// clang-format off
+AtomStyle(tdpd,AtomVecTDPD);
+// clang-format on
 #else
 
 #ifndef LMP_ATOM_VEC_TDPD_H
@@ -41,7 +41,7 @@ class AtomVecTDPD : public AtomVec {
   int cc_species;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

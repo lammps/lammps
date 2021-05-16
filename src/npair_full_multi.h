@@ -12,11 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef NPAIR_CLASS
-
+// clang-format off
 NPairStyle(full/multi,
            NPairFullMulti,
-           NP_FULL | NP_MULTI | NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI)
-
+           NP_FULL | NP_MULTI | NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI);
+// clang-format on
 #else
 
 #ifndef LMP_NPAIR_FULL_MULTI_H
@@ -33,7 +33,7 @@ class NPairFullMulti : public NPair {
   void build(class NeighList *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

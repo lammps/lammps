@@ -11,9 +11,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(tersoff/table/omp,PairTersoffTableOMP)
-
+// clang-format off
+PairStyle(tersoff/table/omp,PairTersoffTableOMP);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_TERSOFF_TABLE_OMP_H
@@ -34,7 +34,6 @@ class PairTersoffTableOMP : public PairTersoffTable, public ThrOMP {
   virtual double memory_usage();
 
  protected:
-
   double ***thrGtetaFunction, ***thrGtetaFunctionDerived;
   double **thrCutoffFunction, **thrCutoffFunctionDerived;
 
@@ -42,11 +41,10 @@ class PairTersoffTableOMP : public PairTersoffTable, public ThrOMP {
   void deallocatePreLoops(void);
 
  private:
-  template <int EVFLAG, int VFLAG_ATOM>
-  void eval(int ifrom, int ito, ThrData * const thr);
+  template <int EVFLAG, int VFLAG_ATOM> void eval(int ifrom, int ito, ThrData *const thr);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

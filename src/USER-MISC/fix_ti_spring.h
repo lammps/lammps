@@ -19,9 +19,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(ti/spring,FixTISpring)
-
+// clang-format off
+FixStyle(ti/spring,FixTISpring);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_TI_SPRING_H
@@ -35,45 +35,45 @@ class FixTISpring : public Fix {
  public:
   FixTISpring(class LAMMPS *, int, char **);
   ~FixTISpring();
-  int    setmask();
-  void   init();
-  void   setup(int);
-  void   min_setup(int);
-  void   post_force(int);
-  void   post_force_respa(int, int, int);
-  void   min_post_force(int);
-  void   initial_integrate(int);
+  int setmask();
+  void init();
+  void setup(int);
+  void min_setup(int);
+  void post_force(int);
+  void post_force_respa(int, int, int);
+  void min_post_force(int);
+  void initial_integrate(int);
   double compute_scalar();
   double compute_vector(int);
 
   double memory_usage();
-  void   grow_arrays(int);
-  void   copy_arrays(int, int, int);
-  int    pack_exchange(int, double *);
-  int    unpack_exchange(int, double *);
-  int    pack_restart(int, double *);
-  void   unpack_restart(int, int);
-  int    size_restart(int);
-  int    maxsize_restart();
+  void grow_arrays(int);
+  void copy_arrays(int, int, int);
+  int pack_exchange(int, double *);
+  int unpack_exchange(int, double *);
+  int pack_restart(int, double *);
+  void unpack_restart(int, int);
+  int size_restart(int);
+  int maxsize_restart();
 
  private:
-  double switch_func(double);  // Switching function.
-  double dswitch_func(double); // Switching function derivative.
+  double switch_func(double);     // Switching function.
+  double dswitch_func(double);    // Switching function derivative.
 
-  double k;           // Spring constant.
-  double espring;     // Springs energies.
-  double **xoriginal; // Original coords of atoms.
-  double lambda;      // Coupling parameter.
-  double dlambda;     // Lambda variation with t.
-  double linfo[2];    // Current lambda status.
-  bigint t_switch;    // Total switching steps.
-  bigint t_equil;     // Equilibration time.
-  bigint t0;          // Initial time.
-  int    sf;          // Switching function option.
-  int    nlevels_respa;
+  double k;              // Spring constant.
+  double espring;        // Springs energies.
+  double **xoriginal;    // Original coords of atoms.
+  double lambda;         // Coupling parameter.
+  double dlambda;        // Lambda variation with t.
+  double linfo[2];       // Current lambda status.
+  bigint t_switch;       // Total switching steps.
+  bigint t_equil;        // Equilibration time.
+  bigint t0;             // Initial time.
+  int sf;                // Switching function option.
+  int nlevels_respa;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

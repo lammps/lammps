@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(mvv/tdpd,FixMvvTDPD)
-
+// clang-format off
+FixStyle(mvv/tdpd,FixMvvTDPD);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_MVV_TDPD_H
@@ -40,7 +40,7 @@ class FixMvvTDPD : public Fix {
   int cc_species;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -1085,8 +1086,8 @@ void MSM::set_grid_global()
     *p_cutoff = cutoff;
 
     if (me == 0)
-      error->warning(FLERR,fmt::format("Adjusting Coulombic cutoff for "
-                                       "MSM, new cutoff = {:.8}", cutoff));
+      error->warning(FLERR,"Adjusting Coulombic cutoff for "
+                     "MSM, new cutoff = {:.8}", cutoff);
   }
 
   if (triclinic == 0) {

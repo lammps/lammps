@@ -12,37 +12,36 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMMAND_CLASS
-
-CommandStyle(plugin,Plugin)
-
+// clang-format off
+CommandStyle(plugin,Plugin);
+// clang-format on
 #else
 
 #ifndef LMP_PLUGIN_H
 #define LMP_PLUGIN_H
 
-#include "lammpsplugin.h"
 #include "command.h"
+#include "lammpsplugin.h"
 
-namespace LAMMPS_NS
-{
+namespace LAMMPS_NS {
 
-  class Plugin : public Command {
-  public:
-    Plugin(class LAMMPS *);
-    void command(int, char **);
-  };
+class Plugin : public Command {
+ public:
+  Plugin(class LAMMPS *);
+  void command(int, char **);
+};
 
-  void plugin_load(const char *, LAMMPS *);
-  void plugin_register(lammpsplugin_t *, void *);
+void plugin_load(const char *, LAMMPS *);
+void plugin_register(lammpsplugin_t *, void *);
 
-  void plugin_unload(const char *, const char *, LAMMPS *);
-  void plugin_erase(const char *, const char *);
-  void plugin_clear(LAMMPS *);
+void plugin_unload(const char *, const char *, LAMMPS *);
+void plugin_erase(const char *, const char *);
+void plugin_clear(LAMMPS *);
 
-  int plugin_get_num_plugins();
-  int plugin_find(const char *, const char *);
-  const lammpsplugin_t *plugin_get_info(int);
-}
+int plugin_get_num_plugins();
+int plugin_find(const char *, const char *);
+const lammpsplugin_t *plugin_get_info(int);
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(dpd,ComputeDpd)
-
+// clang-format off
+ComputeStyle(dpd,ComputeDpd);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_DPD_H
@@ -33,10 +33,9 @@ class ComputeDpd : public Compute {
 
  private:
   double *dpdU;
-
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -29,18 +29,18 @@ namespace LAMMPS_NS {
 class GzFileWriter : public FileWriter {
   int compression_level;
 
-  gzFile gzFp;  // file pointer for the compressed output stream
-public:
-    GzFileWriter();
-    virtual ~GzFileWriter();
-    virtual void open(const std::string &path, bool append = false) override;
-    virtual void close() override;
-    virtual void flush() override;
-    virtual size_t write(const void * buffer, size_t length) override;
-    virtual bool isopen() const override;
+  gzFile gzFp;    // file pointer for the compressed output stream
+ public:
+  GzFileWriter();
+  virtual ~GzFileWriter();
+  virtual void open(const std::string &path, bool append = false) override;
+  virtual void close() override;
+  virtual void flush() override;
+  virtual size_t write(const void *buffer, size_t length) override;
+  virtual bool isopen() const override;
 
-    void setCompressionLevel(int level);
+  void setCompressionLevel(int level);
 };
-}
+}    // namespace LAMMPS_NS
 
 #endif

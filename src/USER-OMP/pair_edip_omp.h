@@ -11,9 +11,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(edip/omp,PairEDIPOMP)
-
+// clang-format off
+PairStyle(edip/omp,PairEDIPOMP);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_EDIP_OMP_H
@@ -34,10 +34,10 @@ class PairEDIPOMP : public PairEDIP, public ThrOMP {
 
  private:
   template <int EVFLAG, int EFLAG, int VFLAG_ATOM>
-  void eval(int ifrom, int ito, ThrData * const thr);
+  void eval(int ifrom, int ito, ThrData *const thr);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

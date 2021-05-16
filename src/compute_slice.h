@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(slice,ComputeSlice)
-
+// clang-format off
+ComputeStyle(slice,ComputeSlice);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_SLICE_H
@@ -34,14 +34,14 @@ class ComputeSlice : public Compute {
 
  private:
   int me;
-  int nstart,nstop,nskip,nvalues;
-  int *which,*argindex,*value2index;
+  int nstart, nstop, nskip, nvalues;
+  int *which, *argindex, *value2index;
   char **ids;
 
   void extract_one(int, double *, int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -12,16 +12,15 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(wall/region/ees,FixWallRegionEES)
-
+// clang-format off
+FixStyle(wall/region/ees,FixWallRegionEES);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_WALL_REGION_EES_H
 #define LMP_FIX_WALL_REGION_EES_H
 
 #include "fix.h"
-
 
 namespace LAMMPS_NS {
 
@@ -43,21 +42,21 @@ class FixWallRegionEES : public Fix {
   class AtomVecEllipsoid *avec;
 
   int iregion;
-  double epsilon,sigma,cutoff;
+  double epsilon, sigma, cutoff;
   int eflag;
-  double ewall[4],ewall_all[4];
+  double ewall[4], ewall_all[4];
   int nlevels_respa;
   char *idregion;
 
-  double coeff1,coeff2,coeff3,coeff4,offset;
+  double coeff1, coeff2, coeff3, coeff4, offset;
   double coeff5, coeff6;
-  double eng,fwall;
+  double eng, fwall;
   double torque[3];
 
   void ees(int, int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

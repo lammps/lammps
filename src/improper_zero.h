@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef IMPROPER_CLASS
-
-ImproperStyle(zero,ImproperZero)
-
+// clang-format off
+ImproperStyle(zero,ImproperZero);
+// clang-format on
 #else
 
 #ifndef LMP_IMPROPER_ZERO_H
@@ -42,7 +42,7 @@ class ImproperZero : public Improper {
   virtual void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

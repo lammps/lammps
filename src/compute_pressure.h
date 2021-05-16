@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(pressure,ComputePressure)
-
+// clang-format off
+ComputeStyle(pressure,ComputePressure);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_PRESSURE_H
@@ -34,17 +34,17 @@ class ComputePressure : public Compute {
   void reset_extra_compute_fix(const char *);
 
  protected:
-  double boltz,nktv2p,inv_volume;
-  int nvirial,dimension;
+  double boltz, nktv2p, inv_volume;
+  int nvirial, dimension;
   double **vptr;
   double *kspace_virial;
   Compute *temperature;
   char *id_temp;
-  double virial[6];                // ordering: xx,yy,zz,xy,xz,yz
+  double virial[6];    // ordering: xx,yy,zz,xy,xz,yz
   int pairhybridflag;
   class Pair *pairhybrid;
-  int keflag,pairflag,bondflag,angleflag,dihedralflag,improperflag;
-  int fixflag,kspaceflag;
+  int keflag, pairflag, bondflag, angleflag, dihedralflag, improperflag;
+  int fixflag, kspaceflag;
 
   void virial_compute(int, int);
 
@@ -53,7 +53,7 @@ class ComputePressure : public Compute {
   int nsub;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

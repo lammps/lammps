@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -389,9 +390,8 @@ void ChangeBox::command(int narg, char **arg)
   bigint nblocal = atom->nlocal;
   MPI_Allreduce(&nblocal,&natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
   if (natoms != atom->natoms && comm->me == 0)
-    error->warning(FLERR,fmt::format("Lost atoms via change_box: "
-                                     "original {} current {}",
-                                     atom->natoms,natoms));
+    error->warning(FLERR,"Lost atoms via change_box: original {} "
+                   "current {}", atom->natoms,natoms);
 }
 
 /* ----------------------------------------------------------------------

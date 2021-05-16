@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(e3b,PairE3B)
-
+// clang-format off
+PairStyle(e3b,PairE3B);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_E3B_H
@@ -34,35 +34,35 @@ class PairE3B : public Pair {
   virtual double init_one(int, int);
   virtual void init_style();
 
-protected:
+ protected:
   //potential parameters
   int typeO;
-  double ea,eb,ec;      //three body energies
-  double k3;            //three body exponential decay (units inverse length)
-  double rs,rc3,rc2;    //rs: switching cutuff, rc3: cutoff for 3-body
-  double e2,k2;         //2-body energy and exp decay
-  double cutmax;   //max cutoff of all interactions
-  double rc2sq,rc3sq,rc3deltaSq;
-  double sc_denom,sc_num;
+  double ea, eb, ec;      //three body energies
+  double k3;              //three body exponential decay (units inverse length)
+  double rs, rc3, rc2;    //rs: switching cutuff, rc3: cutoff for 3-body
+  double e2, k2;          //2-body energy and exp decay
+  double cutmax;          //max cutoff of all interactions
+  double rc2sq, rc3sq, rc3deltaSq;
+  double sc_denom, sc_num;
 
   //list of indexes of Os and Hs in each pair
-  int pairmax,pairPerAtom;      // size of pair list
-  int **pairO,***pairH;         // pair lists
-  double ***exps,****del3,***fpair3,*sumExp;
-  int maxID;  //size of global sumExp array
-  size_t nbytes;     //size of sumExp array in bytes
-  int natoms;        //to make sure number of atoms is constant
+  int pairmax, pairPerAtom;    // size of pair list
+  int **pairO, ***pairH;       // pair lists
+  double ***exps, ****del3, ***fpair3, *sumExp;
+  int maxID;        //size of global sumExp array
+  size_t nbytes;    //size of sumExp array in bytes
+  int natoms;       //to make sure number of atoms is constant
 
   virtual void allocate();
   void allocateE3B();
   bool allocatedE3B;
   //for reading settings from pair_style input
-  bool checkKeyword(const char *,const char *,const int, const int);
+  bool checkKeyword(const char *, const char *, const int, const int);
   void checkInputs(const double &bondL);
-  void presetParam(const int flag,bool &repeatFlag,double &bondL);
+  void presetParam(const int flag, bool &repeatFlag, double &bondL);
   tagint find_maxID();
 };
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef DIHEDRAL_CLASS
-
-DihedralStyle(zero,DihedralZero)
-
+// clang-format off
+DihedralStyle(zero,DihedralZero);
+// clang-format on
 #else
 
 #ifndef LMP_DIHEDRAL_ZERO_H
@@ -46,7 +46,7 @@ class DihedralZero : public Dihedral {
   virtual void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

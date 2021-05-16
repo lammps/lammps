@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -109,8 +110,8 @@ void ReadRestart::command(int narg, char **arg)
     }
     fp = fopen(hfile.c_str(),"rb");
     if (fp == nullptr)
-      error->one(FLERR,fmt::format("Cannot open restart file {}: {}",
-                                   hfile, utils::getsyserror()));
+      error->one(FLERR,"Cannot open restart file {}: {}",
+                                   hfile, utils::getsyserror());
   }
 
   // read magic string, endian flag, format revision
@@ -271,8 +272,8 @@ void ReadRestart::command(int narg, char **arg)
       procfile.replace(procfile.find("%"),1,fmt::format("{}",iproc));
       fp = fopen(procfile.c_str(),"rb");
       if (fp == nullptr)
-        error->one(FLERR,fmt::format("Cannot open restart file {}: {}",
-                                     procfile, utils::getsyserror()));
+        error->one(FLERR,"Cannot open restart file {}: {}",
+                                     procfile, utils::getsyserror());
       utils::sfread(FLERR,&flag,sizeof(int),1,fp,nullptr,error);
       if (flag != PROCSPERFILE)
         error->one(FLERR,"Invalid flag in peratom section of restart file");
@@ -335,8 +336,8 @@ void ReadRestart::command(int narg, char **arg)
       procfile.replace(procfile.find("%"),1,fmt::format("{}",icluster));
       fp = fopen(procfile.c_str(),"rb");
       if (fp == nullptr)
-        error->one(FLERR,fmt::format("Cannot open restart file {}: {}",
-                                     procfile, utils::getsyserror()));
+        error->one(FLERR,"Cannot open restart file {}: {}",
+                                     procfile, utils::getsyserror());
     }
 
     int procsperfile;
@@ -467,7 +468,7 @@ void ReadRestart::command(int narg, char **arg)
   MPI_Allreduce(&nblocal,&natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
 
   if (me == 0)
-    utils::logmesg(lmp,fmt::format("  {} atoms\n",natoms));
+    utils::logmesg(lmp,"  {} atoms\n",natoms);
 
   if (natoms != atom->natoms)
     error->all(FLERR,"Did not assign all restart atoms correctly");
@@ -524,8 +525,8 @@ void ReadRestart::command(int narg, char **arg)
   MPI_Barrier(world);
 
   if (comm->me == 0)
-    utils::logmesg(lmp,fmt::format("  read_restart CPU = {:.3f} seconds\n",
-                                   MPI_Wtime()-time1));
+    utils::logmesg(lmp,"  read_restart CPU = {:.3f} seconds\n",
+                   MPI_Wtime()-time1);
 }
 
 /* ----------------------------------------------------------------------
@@ -634,8 +635,8 @@ void ReadRestart::header()
     if (flag == VERSION) {
       char *version = read_string();
       if (me == 0)
-        utils::logmesg(lmp,fmt::format("  restart file = {}, LAMMPS = {}\n",
-                                       version,lmp->version));
+        utils::logmesg(lmp,"  restart file = {}, LAMMPS = {}\n",
+                       version,lmp->version);
       delete [] version;
 
       // we have no forward compatibility, thus exit with error
@@ -694,9 +695,8 @@ void ReadRestart::header()
     } else if (flag == NPROCS) {
       nprocs_file = read_int();
       if (nprocs_file != comm->nprocs && me == 0)
-        error->warning(FLERR,fmt::format("Restart file used different # of "
-                                         "processors: {} vs. {}",nprocs_file,
-                                         comm->nprocs));
+        error->warning(FLERR,"Restart file used different # of processors: "
+                       "{} vs. {}",nprocs_file,comm->nprocs);
 
     // don't set procgrid, warn if different
 
@@ -809,7 +809,7 @@ void ReadRestart::header()
         argcopy[i] = read_string();
       atom->create_avec(style,nargcopy,argcopy,1);
       if (comm->me ==0)
-        utils::logmesg(lmp,fmt::format("  restoring atom style {} from restart\n",style));
+        utils::logmesg(lmp,"  restoring atom style {} from restart\n",style);
       for (int i = 0; i < nargcopy; i++) delete [] argcopy[i];
       delete [] argcopy;
       delete [] style;
@@ -950,15 +950,14 @@ void ReadRestart::force_fields()
       force->create_pair(style,1);
       delete [] style;
       if (comm->me ==0)
-        utils::logmesg(lmp,fmt::format("  restoring pair style {} from "
-                                       "restart\n", force->pair_style));
+        utils::logmesg(lmp,"  restoring pair style {} from restart\n",
+                       force->pair_style);
       force->pair->read_restart(fp);
 
     } else if (flag == NO_PAIR) {
       style = read_string();
       if (comm->me ==0)
-        utils::logmesg(lmp,fmt::format("  pair style {} stores no "
-                                       "restart info\n", style));
+        utils::logmesg(lmp,"  pair style {} stores no restart info\n", style);
       force->create_pair("none",0);
       force->pair_restart = style;
 
@@ -967,8 +966,8 @@ void ReadRestart::force_fields()
       force->create_bond(style,1);
       delete [] style;
       if (comm->me ==0)
-        utils::logmesg(lmp,fmt::format("  restoring bond style {} from "
-                                       "restart\n", force->bond_style));
+        utils::logmesg(lmp,"  restoring bond style {} from restart\n",
+                       force->bond_style);
       force->bond->read_restart(fp);
 
     } else if (flag == ANGLE) {
@@ -976,8 +975,8 @@ void ReadRestart::force_fields()
       force->create_angle(style,1);
       delete [] style;
       if (comm->me ==0)
-        utils::logmesg(lmp,fmt::format("  restoring angle style {} from "
-                                       "restart\n", force->angle_style));
+        utils::logmesg(lmp,"  restoring angle style {} from restart\n",
+                       force->angle_style);
       force->angle->read_restart(fp);
 
     } else if (flag == DIHEDRAL) {
@@ -985,8 +984,8 @@ void ReadRestart::force_fields()
       force->create_dihedral(style,1);
       delete [] style;
       if (comm->me ==0)
-        utils::logmesg(lmp,fmt::format("  restoring dihedral style {} from "
-                                       "restart\n", force->dihedral_style));
+        utils::logmesg(lmp,"  restoring dihedral style {} from restart\n",
+                       force->dihedral_style);
       force->dihedral->read_restart(fp);
 
     } else if (flag == IMPROPER) {
@@ -994,8 +993,8 @@ void ReadRestart::force_fields()
       force->create_improper(style,1);
       delete [] style;
       if (comm->me ==0)
-        utils::logmesg(lmp,fmt::format("  restoring improper style {} from "
-                                       "restart\n", force->improper_style));
+        utils::logmesg(lmp,"  restoring improper style {} from restart\n",
+                       force->improper_style);
       force->improper->read_restart(fp);
 
     } else error->all(FLERR,

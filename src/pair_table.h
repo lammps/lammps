@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(table,PairTable)
-
+// clang-format off
+PairStyle(table,PairTable);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_TABLE_H
@@ -40,18 +40,18 @@ class PairTable : public Pair {
   virtual double single(int, int, int, int, double, double, double, double &);
   void *extract(const char *, int &);
 
-  enum{LOOKUP,LINEAR,SPLINE,BITMAP};
+  enum { LOOKUP, LINEAR, SPLINE, BITMAP };
 
  protected:
-  int tabstyle,tablength;
+  int tabstyle, tablength;
   struct Table {
-    int ninput,rflag,fpflag,match,ntablebits;
-    int nshiftbits,nmask;
-    double rlo,rhi,fplo,fphi,cut;
-    double *rfile,*efile,*ffile;
-    double *e2file,*f2file;
-    double innersq,delta,invdelta,deltasq6;
-    double *rsq,*drsq,*e,*de,*f,*df,*e2,*f2;
+    int ninput, rflag, fpflag, match, ntablebits;
+    int nshiftbits, nmask;
+    double rlo, rhi, fplo, fphi, cut;
+    double *rfile, *efile, *ffile;
+    double *e2file, *f2file;
+    double innersq, delta, invdelta, deltasq6;
+    double *rsq, *drsq, *e, *de, *f, *df, *e2, *f2;
   };
   int ntables;
   Table *tables;
@@ -70,7 +70,7 @@ class PairTable : public Pair {
   static double splint(double *, double *, double *, int, double);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(nve/eff,FixNVEEff)
-
+// clang-format off
+FixStyle(nve/eff,FixNVEEff);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_NVE_EFF_H
@@ -36,12 +36,12 @@ class FixNVEEff : public Fix {
   void reset_dt();
 
  protected:
-  double dtv,dtf;
+  double dtv, dtf;
   double *step_respa;
   int mass_require;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

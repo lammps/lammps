@@ -1,3 +1,4 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
 
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
@@ -13,11 +14,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(tersoff/mod/kk,PairTersoffMODKokkos<LMPDeviceType>)
-PairStyle(tersoff/mod/kk/device,PairTersoffMODKokkos<LMPDeviceType>)
-PairStyle(tersoff/mod/kk/host,PairTersoffMODKokkos<LMPHostType>)
-
+// clang-format off
+PairStyle(tersoff/mod/kk,PairTersoffMODKokkos<LMPDeviceType>);
+PairStyle(tersoff/mod/kk/device,PairTersoffMODKokkos<LMPDeviceType>);
+PairStyle(tersoff/mod/kk/host,PairTersoffMODKokkos<LMPHostType>);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_TERSOFF_MOD_KOKKOS_H
@@ -181,8 +182,6 @@ class PairTersoffMODKokkos : public PairTersoffMOD {
   void setup_params();
 
  protected:
-  void cleanup_copy();
-
   typedef Kokkos::DualView<int***,DeviceType> tdual_int_3d;
   Kokkos::DualView<params_ters***,Kokkos::LayoutRight,DeviceType> k_params;
   typename Kokkos::DualView<params_ters***,

@@ -1,3 +1,4 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -16,9 +17,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ANGLE_CLASS
-
-AngleStyle(harmonic/intel,AngleHarmonicIntel)
-
+// clang-format off
+AngleStyle(harmonic/intel,AngleHarmonicIntel);
+// clang-format on
 #else
 
 #ifndef LMP_ANGLE_HARMONIC_INTEL_H

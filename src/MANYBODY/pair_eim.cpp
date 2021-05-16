@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -1013,7 +1014,7 @@ EIMPotentialFileReader::EIMPotentialFileReader(LAMMPS *lmp,
   conversion_factor = utils::get_conversion_factor(utils::ENERGY,unit_convert);
 
   if (fp == nullptr) {
-    error->one(FLERR, fmt::format("cannot open eim potential file {}", filename));
+    error->one(FLERR,"cannot open eim potential file {}", filename);
   }
 
   parse(fp);

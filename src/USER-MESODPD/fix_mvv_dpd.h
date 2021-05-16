@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(mvv/dpd,FixMvvDPD)
-
+// clang-format off
+FixStyle(mvv/dpd,FixMvvDPD);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_MVV_DPD_H
@@ -39,7 +39,7 @@ class FixMvvDPD : public Fix {
   double verlet;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

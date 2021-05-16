@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef DIHEDRAL_CLASS
-
-DihedralStyle(table,DihedralTable)
-
+// clang-format off
+DihedralStyle(table,DihedralTable);
+// clang-format on
 #else
 
 #ifndef LMP_DIHEDRAL_TABLE_H
@@ -41,18 +41,18 @@ class DihedralTable : public Dihedral {
   double single(int type, int i1, int i2, int i3, int i4);
 
  protected:
-  int tabstyle,tablength;
+  int tabstyle, tablength;
   std::string checkU_fname;
   std::string checkF_fname;
 
   struct Table {
     int ninput;
-    int f_unspecified; // boolean (but MPI does not like type "bool")
-    int use_degrees;   // boolean (but MPI does not like type "bool")
-    double *phifile,*efile,*ffile;
-    double *e2file,*f2file;
-    double delta,invdelta,deltasq6;
-    double *phi,*e,*de,*f,*df,*e2,*f2;
+    int f_unspecified;    // boolean (but MPI does not like type "bool")
+    int use_degrees;      // boolean (but MPI does not like type "bool")
+    double *phifile, *efile, *ffile;
+    double *e2file, *f2file;
+    double delta, invdelta, deltasq6;
+    double *phi, *e, *de, *f, *df, *e2, *f2;
   };
 
   int ntables;
@@ -78,42 +78,41 @@ class DihedralTable : public Dihedral {
   //   quickly calculate the potential u and force f at angle x,
   //   using the internal tables tb->e and tb->f (evenly spaced)
   // -----------------------------------------------------------
-  enum{LINEAR,SPLINE};
+  enum { LINEAR, SPLINE };
 
   inline void uf_lookup(int type, double x, double &u, double &f)
   {
     Table *tb = &tables[tabindex[type]];
-    double x_over_delta = x*tb->invdelta;
-    int i = static_cast<int> (x_over_delta);
+    double x_over_delta = x * tb->invdelta;
+    int i = static_cast<int>(x_over_delta);
     double a;
     double b = x_over_delta - i;
     // Apply periodic boundary conditions to indices i and i+1
     if (i >= tablength) i -= tablength;
-    int ip1 = i+1; if (ip1 >= tablength) ip1 -= tablength;
+    int ip1 = i + 1;
+    if (ip1 >= tablength) ip1 -= tablength;
 
-    switch(tabstyle) {
+    switch (tabstyle) {
       case LINEAR:
         u = tb->e[i] + b * tb->de[i];
-        f = tb->f[i] + b * tb->df[i]; //<--works even if tb->f_unspecified==true
+        f = tb->f[i] + b * tb->df[i];    //<--works even if tb->f_unspecified==true
         break;
       case SPLINE:
         a = 1.0 - b;
         u = a * tb->e[i] + b * tb->e[ip1] +
-          ((a*a*a-a)*tb->e2[i] + (b*b*b-b)*tb->e2[ip1]) *
-          tb->deltasq6;
+            ((a * a * a - a) * tb->e2[i] + (b * b * b - b) * tb->e2[ip1]) * tb->deltasq6;
         if (tb->f_unspecified)
           //Formula below taken from equation3.3.5 of "numerical recipes in c"
           //"f"=-derivative of e with respect to x (or "phi" in this case)
-          f = (tb->e[i]-tb->e[ip1])*tb->invdelta +
-            ((3.0*a*a-1.0)*tb->e2[i]+(1.0-3.0*b*b)*tb->e2[ip1])*tb->delta/6.0;
+          f = (tb->e[i] - tb->e[ip1]) * tb->invdelta +
+              ((3.0 * a * a - 1.0) * tb->e2[i] + (1.0 - 3.0 * b * b) * tb->e2[ip1]) * tb->delta /
+                  6.0;
         else
           f = a * tb->f[i] + b * tb->f[ip1] +
-            ((a*a*a-a)*tb->f2[i] + (b*b*b-b)*tb->f2[ip1]) *
-            tb->deltasq6;
+              ((a * a * a - a) * tb->f2[i] + (b * b * b - b) * tb->f2[ip1]) * tb->deltasq6;
         break;
-    } // switch(tabstyle)
-  } // uf_lookup()
-
+    }    // switch(tabstyle)
+  }      // uf_lookup()
 
   // ----------------------------------------------------------
   //    u_lookup()
@@ -126,28 +125,27 @@ class DihedralTable : public Dihedral {
     int N = tablength;
 
     //  i = static_cast<int> ((x - tb->lo) * tb->invdelta); <-general version
-    double x_over_delta = x*tb->invdelta;
-    int    i = static_cast<int> (x_over_delta);
+    double x_over_delta = x * tb->invdelta;
+    int i = static_cast<int>(x_over_delta);
     double b = x_over_delta - i;
 
     // Apply periodic boundary conditions to indices i and i+1
     if (i >= N) i -= N;
-    int ip1 = i+1; if (ip1 >= N) ip1 -= N;
+    int ip1 = i + 1;
+    if (ip1 >= N) ip1 -= N;
 
     if (tabstyle == LINEAR) {
       u = tb->e[i] + b * tb->de[i];
-    }
-    else if (tabstyle == SPLINE) {
+    } else if (tabstyle == SPLINE) {
       double a = 1.0 - b;
       u = a * tb->e[i] + b * tb->e[ip1] +
-        ((a*a*a-a)*tb->e2[i] + (b*b*b-b)*tb->e2[ip1]) *
-        tb->deltasq6;
+          ((a * a * a - a) * tb->e2[i] + (b * b * b - b) * tb->e2[ip1]) * tb->deltasq6;
     }
-  } // u_lookup()
+  }    // u_lookup()
 
-}; //class DihedralTable
+};    //class DihedralTable
 
-} // namespace LAMMPS_NS
+}    // namespace LAMMPS_NS
 
-#endif //#ifndef LMP_DIHEDRAL_TABLE_H
-#endif //#ifdef DIHEDRAL_CLASS ... #else
+#endif    //#ifndef LMP_DIHEDRAL_TABLE_H
+#endif    //#ifdef DIHEDRAL_CLASS ... #else

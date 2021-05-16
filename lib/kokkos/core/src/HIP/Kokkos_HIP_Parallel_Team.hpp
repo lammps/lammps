@@ -433,6 +433,9 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
   int m_shmem_size;
   void* m_scratch_ptr[2];
   int m_scratch_size[2];
+  // Only let one ParallelFor/Reduce modify the team scratch memory. The
+  // constructor acquires the mutex which is released in the destructor.
+  std::unique_lock<std::mutex> m_scratch_lock;
 
   template <typename TagType>
   __device__ inline
@@ -449,7 +452,7 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
   }
 
  public:
-  __device__ inline void operator()(void) const {
+  __device__ inline void operator()() const {
     // Iterate this block through the league
     int64_t threadid = 0;
     if (m_scratch_size[1] > 0) {
@@ -513,7 +516,10 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
         m_policy(arg_policy),
         m_league_size(arg_policy.league_size()),
         m_team_size(arg_policy.team_size()),
-        m_vector_size(arg_policy.impl_vector_length()) {
+        m_vector_size(arg_policy.impl_vector_length()),
+        m_scratch_lock(m_policy.space()
+                           .impl_internal_space_instance()
+                           ->m_team_scratch_mutex) {
     hipFuncAttributes attr = ::Kokkos::Experimental::Impl::HIPParallelLaunch<
         ParallelFor, launch_bounds>::get_hip_func_attributes();
     m_team_size =
@@ -640,6 +646,9 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
   const size_type m_league_size;
   int m_team_size;
   const size_type m_vector_size;
+  // Only let one ParallelFor/Reduce modify the team scratch memory. The
+  // constructor acquires the mutex which is released in the destructor.
+  std::unique_lock<std::mutex> m_scratch_lock;
 
   template <class TagType>
   __device__ inline
@@ -877,7 +886,10 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
         m_scratch_ptr{nullptr, nullptr},
         m_league_size(arg_policy.league_size()),
         m_team_size(arg_policy.team_size()),
-        m_vector_size(arg_policy.impl_vector_length()) {
+        m_vector_size(arg_policy.impl_vector_length()),
+        m_scratch_lock(m_policy.space()
+                           .impl_internal_space_instance()
+                           ->m_team_scratch_mutex) {
     hipFuncAttributes attr = Kokkos::Experimental::Impl::HIPParallelLaunch<
         ParallelReduce, launch_bounds>::get_hip_func_attributes();
     m_team_size =
@@ -976,7 +988,10 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
         m_scratch_ptr{nullptr, nullptr},
         m_league_size(arg_policy.league_size()),
         m_team_size(arg_policy.team_size()),
-        m_vector_size(arg_policy.impl_vector_length()) {
+        m_vector_size(arg_policy.impl_vector_length()),
+        m_scratch_lock(m_policy.space()
+                           .impl_internal_space_instance()
+                           ->m_team_scratch_mutex) {
     hipFuncAttributes attr = Kokkos::Experimental::Impl::HIPParallelLaunch<
         ParallelReduce, launch_bounds>::get_hip_func_attributes();
     m_team_size =

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ANGLE_CLASS
-
-AngleStyle(fourier/simple,AngleFourierSimple)
-
+// clang-format off
+AngleStyle(fourier/simple,AngleFourierSimple);
+// clang-format on
 #else
 
 #ifndef ANGLE_FOURIER_SIMPLE_H
@@ -37,12 +37,12 @@ class AngleFourierSimple : public Angle {
   virtual double single(int, int, int, int);
 
  protected:
-  double *k,*C,*N;
+  double *k, *C, *N;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

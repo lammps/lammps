@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(rigid/nvt/omp,FixRigidNVTOMP)
-
+// clang-format off
+FixStyle(rigid/nvt/omp,FixRigidNVTOMP);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_RIGID_NVT_OMP_H
@@ -30,7 +30,7 @@ class FixRigidNVTOMP : public FixRigidNHOMP {
   ~FixRigidNVTOMP() {}
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

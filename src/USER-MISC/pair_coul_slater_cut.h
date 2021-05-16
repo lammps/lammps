@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(coul/slater/cut,PairCoulSlaterCut)
-
+// clang-format off
+PairStyle(coul/slater/cut,PairCoulSlaterCut);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_COUL_SLATER_CUT_H
@@ -37,7 +37,7 @@ class PairCoulSlaterCut : public PairCoulCut {
   double lamda;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

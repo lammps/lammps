@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(ke/atom,ComputeKEAtom)
-
+// clang-format off
+ComputeStyle(ke/atom,ComputeKEAtom);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_KE_ATOM_H
@@ -37,7 +37,7 @@ class ComputeKEAtom : public Compute {
   double *ke;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

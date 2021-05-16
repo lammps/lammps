@@ -12,11 +12,10 @@
 ------------------------------------------------------------------------- */
 
 #ifdef DUMP_CLASS
-
+// clang-format off
 // list all deprecated and removed dump styles here
-
-DumpStyle(DEPRECATED,DumpDeprecated)
-
+DumpStyle(DEPRECATED,DumpDeprecated);
+// clang-format on
 #else
 
 #ifndef LMP_DUMP_DEPRECATED_H
@@ -34,9 +33,9 @@ class DumpDeprecated : public Dump {
   virtual void write_header(bigint) {}
   virtual void pack(tagint *) {}
   virtual void write_data(int, double *) {}
- };
+};
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

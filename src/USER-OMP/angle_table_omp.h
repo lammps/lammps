@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ANGLE_CLASS
-
-AngleStyle(table/omp,AngleTableOMP)
-
+// clang-format off
+AngleStyle(table/omp,AngleTableOMP);
+// clang-format on
 #else
 
 #ifndef LMP_ANGLE_TABLE_OMP_H
@@ -37,10 +37,10 @@ class AngleTableOMP : public AngleTable, public ThrOMP {
 
  private:
   template <int EVFLAG, int EFLAG, int NEWTON_BOND>
-  void eval(int ifrom, int ito, ThrData * const thr);
+  void eval(int ifrom, int ito, ThrData *const thr);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

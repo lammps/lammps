@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(qeq/shielded,FixQEqShielded)
-
+// clang-format off
+FixStyle(qeq/shielded,FixQEqShielded);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_QEQ_SHIELDED_H
@@ -36,10 +36,9 @@ class FixQEqShielded : public FixQEq {
   void init_shielding();
   void init_matvec();
   void compute_H();
-  double calculate_H(double,double);
-
+  double calculate_H(double, double);
 };
-}
+}    // namespace LAMMPS_NS
 #endif
 #endif
 

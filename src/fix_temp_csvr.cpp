@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -39,6 +40,7 @@ using namespace FixConst;
 enum{NOBIAS,BIAS};
 enum{CONSTANT,EQUAL};
 
+static constexpr int PRNGSIZE = 98+2+3;
 /* ---------------------------------------------------------------------- */
 
 FixTempCSVR::FixTempCSVR(LAMMPS *lmp, int narg, char **arg) :
@@ -330,7 +332,6 @@ double FixTempCSVR::compute_scalar()
 
 void FixTempCSVR::write_restart(FILE *fp)
 {
-  const int PRNGSIZE = 98+2+3;
   int nsize = PRNGSIZE*comm->nprocs+2; // pRNG state per proc + nprocs + energy
   double *list = nullptr;
   if (comm->me == 0) {
@@ -363,7 +364,7 @@ void FixTempCSVR::restart(char *buf)
   if (nprocs != comm->nprocs) {
     if (comm->me == 0)
       error->warning(FLERR,"Different number of procs. Cannot restore RNG state.");
-  } else random->set_state(list+2+comm->me*103);
+  } else random->set_state(list+2+comm->me*PRNGSIZE);
 }
 
 /* ----------------------------------------------------------------------

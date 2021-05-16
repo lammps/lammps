@@ -46,11 +46,9 @@
 
 #include <Kokkos_Core.hpp>
 
-// FIXME_SYCL requires TeamPolicy
-#ifndef KOKKOS_ENABLE_SYCL
 #if !defined(KOKKOS_ENABLE_CUDA) || defined(__CUDACC__)
 
-#include <default/TestDefaultDeviceType_Category.hpp>
+#include <TestDefaultDeviceType_Category.hpp>
 #include <TestReduceCombinatorical.hpp>
 
 namespace Test {
@@ -61,5 +59,4 @@ TEST(defaultdevicetype, reduce_instantiation_a3) {
 
 }  // namespace Test
 
-#endif
 #endif

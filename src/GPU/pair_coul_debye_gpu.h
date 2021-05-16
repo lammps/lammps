@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(coul/debye/gpu,PairCoulDebyeGPU)
-
+// clang-format off
+PairStyle(coul/debye/gpu,PairCoulDebyeGPU);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_COUL_DEBYE_GPU_H
@@ -34,14 +34,14 @@ class PairCoulDebyeGPU : public PairCoulDebye {
   void reinit();
   double memory_usage();
 
- enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
+  enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
 
  private:
   int gpu_mode;
   double cpu_time;
 };
 
-}
+}    // namespace LAMMPS_NS
 #endif
 #endif
 

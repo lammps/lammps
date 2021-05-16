@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef DUMP_CLASS
-
-DumpStyle(atom/gz,DumpAtomGZ)
-
+// clang-format off
+DumpStyle(atom/gz,DumpAtomGZ);
+// clang-format on
 #else
 
 #ifndef LMP_DUMP_ATOM_GZ_H
@@ -41,7 +41,7 @@ class DumpAtomGZ : public DumpAtom {
   virtual int modify_param(int, char **);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

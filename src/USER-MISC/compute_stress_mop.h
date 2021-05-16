@@ -16,9 +16,9 @@
   --------------------------------------------------------------------------*/
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(stress/mop,ComputeStressMop)
-
+// clang-format off
+ComputeStyle(stress/mop,ComputeStressMop);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_STRESS_MOP_H
@@ -28,29 +28,27 @@ ComputeStyle(stress/mop,ComputeStressMop)
 
 namespace LAMMPS_NS {
 
-  class ComputeStressMop : public Compute {
-  public:
-    ComputeStressMop(class LAMMPS *, int, char **);
-    virtual ~ComputeStressMop();
-    void init();
-    void init_list(int, class NeighList *);
-    void compute_vector();
+class ComputeStressMop : public Compute {
+ public:
+  ComputeStressMop(class LAMMPS *, int, char **);
+  virtual ~ComputeStressMop();
+  void init();
+  void init_list(int, class NeighList *);
+  void compute_vector();
 
-  private:
+ private:
+  void compute_pairs();
 
-    void compute_pairs();
+  int me, nvalues, dir;
+  int *which;
 
-    int me,nvalues,dir;
-    int *which;
+  double *values_local, *values_global;
+  double pos, pos1, dt, nktv2p, ftm2v;
+  double area;
+  class NeighList *list;
+};
 
-    double *values_local,*values_global;
-    double pos,pos1,dt,nktv2p,ftm2v;
-    double area;
-    class NeighList *list;
-
-  };
-
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
@@ -99,4 +97,3 @@ namespace LAMMPS_NS {
  the computation of local stress tensor components.
 
  */
-

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMMAND_CLASS
-
-CommandStyle(write_dump,WriteDump)
-
+// clang-format off
+CommandStyle(write_dump,WriteDump);
+// clang-format on
 #else
 
 #ifndef LMP_WRITE_DUMP_H
@@ -26,11 +26,11 @@ namespace LAMMPS_NS {
 
 class WriteDump : public Command {
  public:
-  WriteDump(class LAMMPS *lmp) : Command(lmp) {};
+  WriteDump(class LAMMPS *lmp) : Command(lmp){};
   void command(int, char **);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

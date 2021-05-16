@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(coul/cut/soft,PairCoulCutSoft)
-
+// clang-format off
+PairStyle(coul/cut/soft,PairCoulCutSoft);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_COUL_CUT_SOFT_H
@@ -52,7 +52,7 @@ class PairCoulCutSoft : public Pair {
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

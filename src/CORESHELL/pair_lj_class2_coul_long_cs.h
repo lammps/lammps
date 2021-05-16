@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(lj/class2/coul/long/cs,PairLJClass2CoulLongCS)
-
+// clang-format off
+PairStyle(lj/class2/coul/long/cs,PairLJClass2CoulLongCS);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_LJ_CLASS2_COUL_LONG_CS_H
@@ -34,7 +34,7 @@ class PairLJClass2CoulLongCS : public PairLJClass2CoulLong {
   void compute_outer(int, int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -152,9 +153,9 @@ void PairDSMC::compute(int /*eflag*/, int /*vflag*/)
           convert_double_to_equivalent_int(num_of_collisions_double);
 
         if (num_of_collisions > number_of_A)
-          error->warning(FLERR,"Pair dsmc: num_of_collisions > number_of_A",0);
+          error->warning(FLERR,"Pair dsmc: num_of_collisions > number_of_A");
         if (num_of_collisions > number_of_B)
-          error->warning(FLERR,"Pair dsmc: num_of_collisions > number_of_B",0);
+          error->warning(FLERR,"Pair dsmc: num_of_collisions > number_of_B");
 
         // perform collisions on pairs of particles in icell
 
@@ -283,8 +284,7 @@ void PairDSMC::init_style()
   cellz = (domain->boxhi[2] - domain->boxlo[2])/ncellsz;
 
   if (comm->me == 0)
-    utils::logmesg(lmp,fmt::format("DSMC cell size = {} x {} x {}\n",
-                                   cellx,celly,cellz));
+    utils::logmesg(lmp,"DSMC cell size = {} x {} x {}\n",cellx,celly,cellz);
 
   total_ncells = ncellsx*ncellsy*ncellsz;
   vol = cellx*celly*cellz;

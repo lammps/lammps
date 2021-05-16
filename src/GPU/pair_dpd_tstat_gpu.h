@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(dpd/tstat/gpu,PairDPDTstatGPU)
-
+// clang-format off
+PairStyle(dpd/tstat/gpu,PairDPDTstatGPU);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_DPD_TSTAT_GPU_H
@@ -33,14 +33,14 @@ class PairDPDTstatGPU : public PairDPDTstat {
   void init_style();
   double memory_usage();
 
- enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
+  enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
 
  private:
   int gpu_mode;
   double cpu_time;
 };
 
-}
+}    // namespace LAMMPS_NS
 #endif
 #endif
 

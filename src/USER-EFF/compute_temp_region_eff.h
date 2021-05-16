@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(temp/region/eff,ComputeTempRegionEff)
-
+// clang-format off
+ComputeStyle(temp/region/eff,ComputeTempRegionEff);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_TEMP_REGION_EFF_H
@@ -46,7 +46,7 @@ class ComputeTempRegionEff : public Compute {
   char *idregion;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

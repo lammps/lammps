@@ -1,3 +1,4 @@
+// clang-format off
 /* *- c++ -*- -----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -19,9 +20,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef KSPACE_CLASS
-
-KSpaceStyle(pppm/intel,PPPMIntel)
-
+// clang-format off
+KSpaceStyle(pppm/intel,PPPMIntel);
+// clang-format on
 #else
 
 #ifndef LMP_PPPMINTEL_H

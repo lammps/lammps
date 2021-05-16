@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(lj/cut/coul/wolf,PairLJCutCoulWolf)
-
+// clang-format off
+PairStyle(lj/cut/coul/wolf,PairLJCutCoulWolf);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_LJ_CUT_COUL_WOLF_H
@@ -42,15 +42,15 @@ class PairLJCutCoulWolf : public Pair {
 
  protected:
   double cut_lj_global;
-  double **cut_lj,**cut_ljsq;
-  double **epsilon,**sigma;
-  double **lj1,**lj2,**lj3,**lj4,**offset;
-  double cut_coul,cut_coulsq,alf;
+  double **cut_lj, **cut_ljsq;
+  double **epsilon, **sigma;
+  double **lj1, **lj2, **lj3, **lj4, **offset;
+  double cut_coul, cut_coulsq, alf;
 
   virtual void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef BOND_CLASS
-
-BondStyle(nonlinear,BondNonlinear)
-
+// clang-format off
+BondStyle(nonlinear,BondNonlinear);
+// clang-format on
 #else
 
 #ifndef LMP_BOND_NONLINEAR_H
@@ -38,12 +38,12 @@ class BondNonlinear : public Bond {
   virtual void *extract(const char *, int &);
 
  protected:
-  double *epsilon,*r0,*lamda;
+  double *epsilon, *r0, *lamda;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

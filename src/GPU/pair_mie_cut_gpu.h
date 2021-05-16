@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(mie/cut/gpu,PairMIECutGPU)
-
+// clang-format off
+PairStyle(mie/cut/gpu,PairMIECutGPU);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_MIE_CUT_GPU_H
@@ -33,14 +33,14 @@ class PairMIECutGPU : public PairMIECut {
   void init_style();
   double memory_usage();
 
- enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
+  enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
 
  private:
   int gpu_mode;
   double cpu_time;
 };
 
-}
+}    // namespace LAMMPS_NS
 #endif
 #endif
 

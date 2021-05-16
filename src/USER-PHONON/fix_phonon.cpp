@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -180,8 +181,8 @@ FixPhonon::FixPhonon(LAMMPS *lmp,  int narg, char **arg) : Fix(lmp, narg, arg)
   if (me == 0) {
     flog = fopen(logfile, "w");
     if (flog == nullptr)
-      error->one(FLERR,fmt::format("Can not open output file {}: {}",
-                                   logfile,utils::getsyserror()));
+      error->one(FLERR,"Can not open output file {}: {}",
+                                   logfile,utils::getsyserror());
     fprintf(flog,"############################################################\n");
     fprintf(flog,"# group name of the atoms under study      : %s\n", group->names[igroup]);
     fprintf(flog,"# total number of atoms in the group       : %d\n", ngroup);
@@ -555,8 +556,8 @@ void FixPhonon::readmap()
   char line[MAXLINE];
   FILE *fp = fopen(mapfile, "r");
   if (fp == nullptr)
-    error->all(FLERR,fmt::format("Cannot open input map file {}: {}",
-                                 mapfile, utils::getsyserror()));
+    error->all(FLERR,"Cannot open input map file {}: {}",
+                                 mapfile, utils::getsyserror());
 
   if (fgets(line,MAXLINE,fp) == nullptr)
     error->all(FLERR,"Error while reading header of mapping file!");

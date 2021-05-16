@@ -316,29 +316,5 @@ struct DeepCopy<Kokkos::Experimental::HBWSpace, HostSpace, ExecutionSpace> {
 
 }  // namespace Kokkos
 
-namespace Kokkos {
-
-namespace Impl {
-
-template <>
-struct VerifyExecutionCanAccessMemorySpace<Kokkos::HostSpace,
-                                           Kokkos::Experimental::HBWSpace> {
-  enum : bool { value = true };
-  inline static void verify(void) {}
-  inline static void verify(const void*) {}
-};
-
-template <>
-struct VerifyExecutionCanAccessMemorySpace<Kokkos::Experimental::HBWSpace,
-                                           Kokkos::HostSpace> {
-  enum : bool { value = true };
-  inline static void verify(void) {}
-  inline static void verify(const void*) {}
-};
-
-}  // namespace Impl
-
-}  // namespace Kokkos
-
 #endif
 #endif  // #define KOKKOS_HBWSPACE_HPP

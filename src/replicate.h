@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMMAND_CLASS
-
-CommandStyle(replicate,Replicate)
-
+// clang-format off
+CommandStyle(replicate,Replicate);
+// clang-format on
 #else
 
 #ifndef LMP_REPLICATE_H
@@ -30,7 +30,7 @@ class Replicate : public Command {
   void command(int, char **);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(eam/omp,PairEAMOMP)
-
+// clang-format off
+PairStyle(eam/omp,PairEAMOMP);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_EAM_OMP_H
@@ -39,10 +39,10 @@ class PairEAMOMP : public PairEAM, public ThrOMP {
 
  private:
   template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
-  void eval(int iifrom, int iito, ThrData * const thr);
+  void eval(int iifrom, int iito, ThrData *const thr);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

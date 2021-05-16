@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(lubricateU/poly,PairLubricateUPoly)
-
+// clang-format off
+PairStyle(lubricateU/poly,PairLubricateUPoly);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_LUBRICATEU_POLY_H
@@ -43,7 +43,7 @@ class PairLubricateUPoly : public PairLubricateU {
   void compute_Fh(double **);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -12,10 +12,10 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(DEPRECATED,PairDeprecated)
-PairStyle(reax,PairDeprecated)
-
+// clang-format off
+PairStyle(DEPRECATED,PairDeprecated);
+PairStyle(reax,PairDeprecated);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_DEPRECATED_H
@@ -33,10 +33,9 @@ class PairDeprecated : public Pair {
   virtual void compute(int, int) {}
   virtual void settings(int, char **);
   virtual void coeff(int, char **) {}
-
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

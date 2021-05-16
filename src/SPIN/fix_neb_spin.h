@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(neb/spin,FixNEBSpin)
-
+// clang-format off
+FixStyle(neb/spin,FixNEBSpin);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_NEB_SPIN_H
@@ -26,7 +26,7 @@ namespace LAMMPS_NS {
 
 class FixNEBSpin : public Fix {
  public:
-  double veng,plen,nlen,dotpath,dottangrad,gradlen,dotgrad;
+  double veng, plen, nlen, dotpath, dottangrad, gradlen, dotgrad;
   int rclimber;
 
   FixNEBSpin(class LAMMPS *, int, char **);
@@ -37,50 +37,49 @@ class FixNEBSpin : public Fix {
   void min_post_force(int);
 
  private:
-  int me,nprocs,nprocs_universe;
-  double kspring,kspringIni,kspringFinal,kspringPerp,EIniIni,EFinalIni;
-  bool StandardNEB,NEBLongRange,PerpSpring,FreeEndIni,FreeEndFinal;
-  bool FreeEndFinalWithRespToEIni,FinalAndInterWithRespToEIni;
+  int me, nprocs, nprocs_universe;
+  double kspring, kspringIni, kspringFinal, kspringPerp, EIniIni, EFinalIni;
+  bool StandardNEB, NEBLongRange, PerpSpring, FreeEndIni, FreeEndFinal;
+  bool FreeEndFinalWithRespToEIni, FinalAndInterWithRespToEIni;
   bool SpinLattice;
-  int ireplica,nreplica;
-  int procnext,procprev;
+  int ireplica, nreplica;
+  int procnext, procprev;
   int cmode;
   MPI_Comm uworld;
   MPI_Comm rootworld;
-
 
   char *id_pe;
   class Compute *pe;
 
   int nebatoms;
-  int ntotal;                  // total # of atoms, NEB or not
-  int maxlocal;                // size of xprev,xnext,tangent arrays
+  int ntotal;      // total # of atoms, NEB or not
+  int maxlocal;    // size of xprev,xnext,tangent arrays
   double *nlenall;
-  double **xprev,**xnext,**fnext;
-  double **spprev,**spnext,**fmnext;
+  double **xprev, **xnext, **fnext;
+  double **spprev, **spnext, **fmnext;
   double **springF;
   double **tangent;
-  double **xsend,**xrecv;       // coords to send/recv to/from other replica
-  double **fsend,**frecv;       // coords to send/recv to/from other replica
-  double **spsend,**sprecv;     // sp to send/recv to/from other replica
-  double **fmsend,**fmrecv;     // fm to send/recv to/from other replica
-  tagint *tagsend,*tagrecv;     // ditto for atom IDs
+  double **xsend, **xrecv;      // coords to send/recv to/from other replica
+  double **fsend, **frecv;      // coords to send/recv to/from other replica
+  double **spsend, **sprecv;    // sp to send/recv to/from other replica
+  double **fmsend, **fmrecv;    // fm to send/recv to/from other replica
+  tagint *tagsend, *tagrecv;    // ditto for atom IDs
 
-                                // info gathered from all procs in my replica
-  double **xsendall,**xrecvall;         // coords to send/recv to/from other replica
-  double **fsendall,**frecvall;         // force to send/recv to/from other replica
-  double **spsendall,**sprecvall;       // sp to send/recv to/from other replica
-  double **fmsendall,**fmrecvall;       // fm to send/recv to/from other replica
-  tagint *tagsendall,*tagrecvall;       // ditto for atom IDs
+  // info gathered from all procs in my replica
+  double **xsendall, **xrecvall;      // coords to send/recv to/from other replica
+  double **fsendall, **frecvall;      // force to send/recv to/from other replica
+  double **spsendall, **sprecvall;    // sp to send/recv to/from other replica
+  double **fmsendall, **fmrecvall;    // fm to send/recv to/from other replica
+  tagint *tagsendall, *tagrecvall;    // ditto for atom IDs
 
-  int *counts,*displacements;           // used for MPI_Gather
+  int *counts, *displacements;    // used for MPI_Gather
 
   double geodesic_distance(double *, double *);
   void inter_replica_comm();
   void reallocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

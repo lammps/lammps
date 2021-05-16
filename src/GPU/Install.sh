@@ -113,6 +113,8 @@ action pair_lj_cut_coul_msm_gpu.cpp pair_lj_cut_coul_msm.cpp
 action pair_lj_cut_coul_msm_gpu.h pair_lj_cut_coul_msm.h
 action pair_lj_cut_gpu.cpp
 action pair_lj_cut_gpu.h
+action pair_lj_smooth_gpu.cpp
+action pair_lj_smooth_gpu.h
 action pair_lj_expand_gpu.cpp
 action pair_lj_expand_gpu.h
 action pair_lj_expand_coul_long_gpu.cpp pair_lj_expand_coul_long.cpp

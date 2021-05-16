@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(nvk,FixNVK)
-
+// clang-format off
+FixStyle(nvk,FixNVK);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_NVK_H
@@ -37,13 +37,13 @@ class FixNVK : public Fix {
   virtual void reset_dt();
 
  protected:
-  double dtv,dtf;
+  double dtv, dtf;
   double *step_respa;
   int mass_require;
   double K_target;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

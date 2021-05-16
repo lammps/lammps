@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(mdpd/rhosum,PairMDPDRhoSum)
-
+// clang-format off
+PairStyle(mdpd/rhosum,PairMDPDRhoSum);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_MDPD_RHOSUM_H
@@ -44,7 +44,7 @@ class PairMDPDRhoSum : public Pair {
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

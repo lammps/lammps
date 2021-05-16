@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -124,8 +125,8 @@ void get_kim_unit_names(
   } else if ((system_str == "lj") ||
              (system_str == "micro") ||
              (system_str == "nano")) {
-    error->all(FLERR, fmt::format("LAMMPS unit_style {} not supported "
-                                  "by KIM models", system_str));
+    error->all(FLERR, "LAMMPS unit_style {} not supported "
+                                  "by KIM models", system_str);
   } else {
     error->all(FLERR, "Unknown unit_style");
   }

@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(tip4p/long/omp,PairTIP4PLongOMP)
-
+// clang-format off
+PairStyle(tip4p/long/omp,PairTIP4PLongOMP);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_TIP4P_LONG_OMP_H
@@ -42,12 +42,11 @@ class PairTIP4PLongOMP : public PairTIP4PLong, public ThrOMP {
   dbl3_t *newsite_thr;
   int3_t *hneigh_thr;
 
-  template < int, int, int, int > void eval(int, int, ThrData *const);
-  void compute_newsite_thr(const dbl3_t &, const dbl3_t &,
-                           const dbl3_t &, dbl3_t &) const;
+  template <int, int, int, int> void eval(int, int, ThrData *const);
+  void compute_newsite_thr(const dbl3_t &, const dbl3_t &, const dbl3_t &, dbl3_t &) const;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

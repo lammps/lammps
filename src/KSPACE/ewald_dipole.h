@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef KSPACE_CLASS
-
-KSpaceStyle(ewald/dipole,EwaldDipole)
-
+// clang-format off
+KSpaceStyle(ewald/dipole,EwaldDipole);
+// clang-format on
 #else
 
 #ifndef LMP_EWALD_DIPOLE_H
@@ -33,9 +33,9 @@ class EwaldDipole : public Ewald {
   virtual void compute(int, int);
 
  protected:
-  double musum,musqsum,mu2;
-  double **tk;                  // field for torque
-  double **vc;                  // virial per k
+  double musum, musqsum, mu2;
+  double **tk;    // field for torque
+  double **vc;    // virial per k
 
   void musum_musq();
   double rms_dipole(int, double, bigint);
@@ -44,10 +44,9 @@ class EwaldDipole : public Ewald {
   double NewtonSolve(double, double, bigint, double, double);
   double f(double, double, bigint, double, double);
   double derivf(double, double, bigint, double, double);
-
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

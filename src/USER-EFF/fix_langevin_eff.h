@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(langevin/eff,FixLangevinEff)
-
+// clang-format off
+FixStyle(langevin/eff,FixLangevinEff);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_LANGEVIN_EFF_H
@@ -39,7 +39,7 @@ class FixLangevinEff : public FixLangevin {
   void post_force_tally();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

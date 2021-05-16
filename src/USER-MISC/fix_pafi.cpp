@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -86,7 +87,7 @@ FixPAFI::FixPAFI(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Compute for fix pafi must have 9 fields per atom");
 
   if (comm->me==0)
-    utils::logmesg(lmp,fmt::format("fix pafi compute name,style: {},{}\n",computename,PathCompute->style));
+    utils::logmesg(lmp,"fix pafi compute name,style: {},{}\n",computename,PathCompute->style);
 
   respa_level_support = 1;
   ilevel_respa = nlevels_respa = 0;

@@ -18,29 +18,29 @@
 
 extern "C" {
 
-  typedef void *(lammpsplugin_factory1)(void *);
-  typedef void *(lammpsplugin_factory2)(void *, int, char **);
+typedef void *(lammpsplugin_factory1) (void *);
+typedef void *(lammpsplugin_factory2) (void *, int, char **);
 
-  typedef struct {
-    const char *version;
-    const char *style;
-    const char *name;
-    const char *info;
-    const char *author;
-    union {
-      lammpsplugin_factory1 *v1;
-      lammpsplugin_factory2 *v2;
-    } creator;
-    void *handle;
-  } lammpsplugin_t;
+typedef struct {
+  const char *version;
+  const char *style;
+  const char *name;
+  const char *info;
+  const char *author;
+  union {
+    lammpsplugin_factory1 *v1;
+    lammpsplugin_factory2 *v2;
+  } creator;
+  void *handle;
+} lammpsplugin_t;
 
-  typedef void (*lammpsplugin_regfunc)(lammpsplugin_t *, void *);
-  typedef void (*lammpsplugin_initfunc)(void *, void *, void *);
+typedef void (*lammpsplugin_regfunc)(lammpsplugin_t *, void *);
+typedef void (*lammpsplugin_initfunc)(void *, void *, void *);
 
-  // prototype for initializer function required
-  // to load a plugin; uses C bindings
+// prototype for initializer function required
+// to load a plugin; uses C bindings
 
-  void lammpsplugin_init(void *, void *, void *);
+void lammpsplugin_init(void *, void *, void *);
 }
 
 #endif

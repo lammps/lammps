@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(body/local,ComputeBodyLocal)
-
+// clang-format off
+ComputeStyle(body/local,ComputeBodyLocal);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_BODY_LOCAL_H
@@ -34,7 +34,7 @@ class ComputeBodyLocal : public Compute {
 
  private:
   int nvalues;
-  int *which,*index;
+  int *which, *index;
 
   int nmax;
 
@@ -45,7 +45,7 @@ class ComputeBodyLocal : public Compute {
   void reallocate(int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -36,7 +36,7 @@ class FixHyper : public Fix {
   int hyperflag;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 

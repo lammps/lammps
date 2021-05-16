@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ATOM_CLASS
-
-AtomStyle(hybrid,AtomVecHybrid)
-
+// clang-format off
+AtomStyle(hybrid,AtomVecHybrid);
+// clang-format on
 #else
 
 #ifndef LMP_ATOM_VEC_HYBRID_H
@@ -82,7 +82,7 @@ class AtomVecHybrid : public AtomVec {
   int known_style(char *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

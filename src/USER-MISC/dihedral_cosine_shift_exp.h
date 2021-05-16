@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef DIHEDRAL_CLASS
-
-DihedralStyle(cosine/shift/exp,DihedralCosineShiftExp)
-
+// clang-format off
+DihedralStyle(cosine/shift/exp,DihedralCosineShiftExp);
+// clang-format on
 #else
 
 #ifndef LMP_DIHEDRAL_COSINE_SHIFT_EXP_H
@@ -36,7 +36,7 @@ class DihedralCosineShiftExp : public Dihedral {
 
  protected:
   bool *doExpansion;
-  double *umin,*a,*opt1;
+  double *umin, *a, *opt1;
   double *sint;
   double *cost;
   double *theta;
@@ -44,7 +44,7 @@ class DihedralCosineShiftExp : public Dihedral {
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

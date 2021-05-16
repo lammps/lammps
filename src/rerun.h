@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMMAND_CLASS
-
-CommandStyle(rerun,Rerun)
-
+// clang-format off
+CommandStyle(rerun,Rerun);
+// clang-format on
 #else
 
 #ifndef LMP_RERUN_H
@@ -30,7 +30,7 @@ class Rerun : public Command {
   void command(int, char **);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(mie/cut,PairMIECut)
-
+// clang-format off
+PairStyle(mie/cut,PairMIECut);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_MIE_CUT_H
@@ -47,15 +47,15 @@ class PairMIECut : public Pair {
  protected:
   double cut_global;
   double **cut;
-  double **epsilon,**sigma;
-  double **gamR,**gamA,**Cmie;
-  double **mie1,**mie2,**mie3,**mie4,**offset;
+  double **epsilon, **sigma;
+  double **gamR, **gamA, **Cmie;
+  double **mie1, **mie2, **mie3, **mie4, **offset;
   double *cut_respa;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

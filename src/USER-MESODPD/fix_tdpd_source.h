@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(tdpd/source,FixTDPDSource)
-
+// clang-format off
+FixStyle(tdpd/source,FixTDPDSource);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_TDPDSOURCE_H
@@ -39,7 +39,7 @@ class FixTDPDSource : public Fix {
   double value;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

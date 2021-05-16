@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef KSPACE_CLASS
-
-KSpaceStyle(msm/cg/omp,MSMCGOMP)
-
+// clang-format off
+KSpaceStyle(msm/cg/omp,MSMCGOMP);
+// clang-format on
 #else
 
 #ifndef LMP_MSM_CG_OMP_H
@@ -44,7 +44,7 @@ class MSMCGOMP : public MSMOMP {
   virtual void fieldforce_peratom();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

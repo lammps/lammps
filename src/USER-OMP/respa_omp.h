@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef INTEGRATE_CLASS
-
-IntegrateStyle(respa/omp,RespaOMP)
-
+// clang-format off
+IntegrateStyle(respa/omp,RespaOMP);
+// clang-format on
 #else
 
 #ifndef LMP_RESPA_OMP_H
@@ -37,7 +37,7 @@ class RespaOMP : public Respa, public ThrOMP {
   virtual void recurse(int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(widom,FixWidom)
-
+// clang-format off
+FixStyle(widom,FixWidom);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_WIDOM_H
@@ -48,23 +48,23 @@ class FixWidom : public Fix {
   void grow_molecule_arrays(int);
 
  private:
-  int molecule_group,molecule_group_bit;
+  int molecule_group, molecule_group_bit;
   int molecule_group_inversebit;
-  int exclusion_group,exclusion_group_bit;
-  int nwidom_type,nevery,seed;
+  int exclusion_group, exclusion_group_bit;
+  int nwidom_type, nevery, seed;
   int ninsertions;
-  int ngas;                 // # of gas atoms on all procs
-  int ngas_local;           // # of gas atoms on this proc
-  int exchmode;             // exchange ATOM or MOLECULE
-  int movemode;             // move ATOM or MOLECULE
-  int regionflag;           // 0 = anywhere in box, 1 = specific region
-  int iregion;              // widom region
-  char *idregion;           // widom region id
-  bool charge_flag;         // true if user specified atomic charge
-  bool full_flag;           // true if doing full system energy calculations
+  int ngas;            // # of gas atoms on all procs
+  int ngas_local;      // # of gas atoms on this proc
+  int exchmode;        // exchange ATOM or MOLECULE
+  int movemode;        // move ATOM or MOLECULE
+  int regionflag;      // 0 = anywhere in box, 1 = specific region
+  int iregion;         // widom region
+  char *idregion;      // widom region id
+  bool charge_flag;    // true if user specified atomic charge
+  bool full_flag;      // true if doing full system energy calculations
 
-  int natoms_per_molecule;  // number of atoms in each inserted molecule
-  int nmaxmolatoms;         // number of atoms allocated for molecule arrays
+  int natoms_per_molecule;    // number of atoms in each inserted molecule
+  int nmaxmolatoms;           // number of atoms allocated for molecule arrays
 
   double ave_widom_chemical_potential;
 
@@ -72,13 +72,13 @@ class FixWidom : public Fix {
   int max_region_attempts;
   double gas_mass;
   double insertion_temperature;
-  double beta,sigma,volume;
+  double beta, sigma, volume;
   double charge;
-  double xlo,xhi,ylo,yhi,zlo,zhi;
-  double region_xlo,region_xhi,region_ylo,region_yhi,region_zlo,region_zhi;
+  double xlo, xhi, ylo, yhi, zlo, zhi;
+  double region_xlo, region_xhi, region_ylo, region_yhi, region_zlo, region_zhi;
   double region_volume;
-  double energy_stored;  // full energy of old/current configuration
-  double *sublo,*subhi;
+  double energy_stored;    // full energy of old/current configuration
+  double *sublo, *subhi;
   int *local_gas_list;
   double **cutsq;
   double **molcoords;
@@ -95,15 +95,15 @@ class FixWidom : public Fix {
   class Atom *model_atom;
 
   class Molecule **onemols;
-  int imol,nmol;
-  int triclinic;                         // 0 = orthog box, 1 = triclinic
+  int imol, nmol;
+  int triclinic;    // 0 = orthog box, 1 = triclinic
 
   class Compute *c_pe;
 
   void options(int, char **);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ANGLE_CLASS
-
-AngleStyle(cosine/shift,AngleCosineShift)
-
+// clang-format off
+AngleStyle(cosine/shift,AngleCosineShift);
+// clang-format on
 #else
 
 #ifndef LMP_ANGLE_COSINE_SHIFT_H
@@ -46,7 +46,7 @@ class AngleCosineShift : public Angle {
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

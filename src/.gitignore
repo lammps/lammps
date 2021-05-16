@@ -27,6 +27,18 @@
 /*_ssa.h
 /*_ssa.cpp
 
+/fix_mdi_engine.cpp
+/fix_mdi_engine.h
+/library_mdi.cpp
+/library_mdi.h
+/mdi_engine.cpp
+/mdi_engine.h
+
+/fix_brownian*.cpp
+/fix_brownian*.h
+/fix_propel_self.cpp
+/fix_propel_self.h
+
 /kim_*.cpp
 /kim_*.h
 /pair_kim.cpp
@@ -544,6 +556,8 @@
 /fix_bond_react.h
 /fix_bond_swap.cpp
 /fix_bond_swap.h
+/fix_charge_regulation.cpp
+/fix_charge_regulation.h
 /fix_client_md.cpp
 /fix_client_md.h
 /fix_cmap.cpp
@@ -700,8 +714,6 @@
 /fix_poems.h
 /fix_pour.cpp
 /fix_pour.h
-/fix_propel_self.cpp
-/fix_propel_self.h
 /fix_qeq_comb.cpp
 /fix_qeq_comb.h
 /fix_qeq_reax.cpp
@@ -804,6 +816,8 @@
 /gridcomm.h
 /group_ndx.cpp
 /group_ndx.h
+/gz_file_writer.cpp
+/gz_file_writer.h
 /ndx_group.cpp
 /ndx_group.h
 /hyper.cpp
@@ -923,8 +937,6 @@
 /pair_dipole_cut.h
 /pair_dipole_sf.cpp
 /pair_dipole_sf.h
-/pair_dpd_mt.cpp
-/pair_dpd_mt.h
 /pair_dsmc.cpp
 /pair_dsmc.h
 /pair_e3b.cpp
@@ -1180,6 +1192,7 @@
 /python_impl.cpp
 /python_impl.h
 /python_compat.h
+/python_utils.h
 /fix_python_move.cpp
 /fix_python_move.h
 /fix_python_invoke.cpp
@@ -1271,6 +1284,8 @@
 /write_dump.h
 /xdr_compat.cpp
 /xdr_compat.h
+/zstd_file_writer.cpp
+/zstd_file_writer.h
 
 /atom_vec_smd.cpp
 /atom_vec_smd.h
@@ -1402,8 +1417,10 @@
 /pair_thole.h
 /pair_buck_mdf.cpp
 /pair_buck_mdf.h
-/pair_dpd_conservative.cpp
-/pair_dpd_conservative.h
+/pair_dpd_ext.cpp
+/pair_dpd_ext.h
+/pair_dpd_ext_tstat.cpp
+/pair_dpd_ext_tstat.h
 /pair_dpd_fdt.cpp
 /pair_dpd_fdt.h
 /pair_dpd_fdt_energy.cpp
@@ -1424,5 +1441,3 @@
 /pair_smtbq.h
 /pair_vashishta*.cpp
 /pair_vashishta*.h
-/zstd_file_writer.cpp
-/zstd_file_writer.h

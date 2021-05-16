@@ -50,6 +50,7 @@ This is the list of packages that may require additional steps.
    * :ref:`USER-H5MD <user-h5md>`
    * :ref:`USER-HDNNP <user-hdnnp>`
    * :ref:`USER-INTEL <user-intel>`
+   * :ref:`USER-MDI <user-mdi>`
    * :ref:`USER-MESONT <user-mesont>`
    * :ref:`USER-MOLFILE <user-molfile>`
    * :ref:`USER-NETCDF <user-netcdf>`
@@ -468,6 +469,9 @@ They must be specified in uppercase.
    *  - ARMV8_THUNDERX2
       - HOST
       - ARMv8 Cavium ThunderX2 CPU
+   *  - A64FX
+      - HOST
+      - ARMv8.2 with SVE Support
    *  - WSM
       - HOST
       - Intel Westmere CPU (SSE 4.2)
@@ -540,6 +544,9 @@ They must be specified in uppercase.
    *  - AMPERE80
       - GPU
       - NVIDIA Ampere generation CC 8.0 GPU
+   *  - AMPERE86
+      - GPU
+      - NVIDIA Ampere generation CC 8.6 GPU
    *  - VEGA900
       - GPU
       - AMD GPU MI25 GFX900
@@ -548,12 +555,12 @@ They must be specified in uppercase.
       - AMD GPU MI50/MI60 GFX906
    *  - VEGA908
       - GPU
-      - AMD GPU GFX908
+      - AMD GPU MI100 GFX908
    *  - INTEL_GEN
       - GPU
       - Intel GPUs Gen9+
 
-This list was last updated for version 3.3 of the Kokkos library.
+This list was last updated for version 3.4 of the Kokkos library.
 
 .. tabs::
 
@@ -1572,6 +1579,35 @@ Best performance is achieved with Intel hardware, Intel compilers, as
 well as the Intel TBB and MKL libraries. However, the code also
 compiles, links, and runs with other compilers / hardware and without
 TBB and MKL.
+
+----------
+
+.. _user-mdi:
+
+USER-MDI package
+-----------------------------
+
+.. tabs::
+
+   .. tab:: CMake build
+
+      .. code-block:: bash
+
+         -D DOWNLOAD_MDI=value    # download MDI Library for build, value = no (default) or yes
+
+   .. tab:: Traditional make
+
+      Before building LAMMPS, you must build the MDI Library in
+      ``lib/mdi``\ .  You can do this by executing a command like one
+      of the following from the ``lib/mdi`` directory:
+
+      .. code-block:: bash
+
+         $ python Install.py -m gcc       # build using gcc compiler
+         $ python Install.py -m icc       # build using icc compiler
+
+      The build should produce two files: ``lib/mdi/includelink/mdi.h``
+      and ``lib/mdi/liblink/libmdi.so``\ .
 
 ----------
 

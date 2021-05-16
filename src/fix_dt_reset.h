@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(dt/reset,FixDtReset)
-
+// clang-format off
+FixStyle(dt/reset,FixDtReset);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_DT_RESET_H
@@ -36,14 +36,14 @@ class FixDtReset : public Fix {
 
  private:
   bigint laststep;
-  int minbound,maxbound;
-  double tmin,tmax,xmax,emax;
-  double ftm2v,mvv2e;
-  double dt,t_laststep;
+  int minbound, maxbound;
+  double tmin, tmax, xmax, emax;
+  double ftm2v, mvv2e;
+  double dt, t_laststep;
   int respaflag;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

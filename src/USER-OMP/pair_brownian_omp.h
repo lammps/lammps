@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(brownian/omp,PairBrownianOMP)
-
+// clang-format off
+PairStyle(brownian/omp,PairBrownianOMP);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_BROWNIAN_OMP_H
@@ -44,10 +44,10 @@ class PairBrownianOMP : public PairBrownian, public ThrOMP {
 
  private:
   template <int LOGFLAG, int EVFLAG, int NEWTON_PAIR>
-  void eval(int ifrom, int ito, ThrData * const thr);
+  void eval(int ifrom, int ito, ThrData *const thr);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

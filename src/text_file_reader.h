@@ -22,48 +22,46 @@
 
 #include <cstdio>
 
-namespace LAMMPS_NS
-{
-  class TextFileReader {
-    std::string filename;
-    std::string filetype;
-    static constexpr int MAXLINE = 1024;
-    char line[MAXLINE];
-    FILE *fp;
+namespace LAMMPS_NS {
+class TextFileReader {
+  std::string filetype;
+  bool closefp;
+  static constexpr int MAXLINE = 1024;
+  char line[MAXLINE];
+  FILE *fp;
 
-  public:
-    bool ignore_comments; //!< Controls whether comments are ignored
+ public:
+  bool ignore_comments;    //!< Controls whether comments are ignored
 
-    TextFileReader(const std::string &filename, const std::string &filetype);
-    ~TextFileReader();
+  TextFileReader(const std::string &filename, const std::string &filetype);
+  TextFileReader(FILE *fp, const std::string &filetype);
 
-    void skip_line();
-    char * next_line(int nparams = 0);
+  ~TextFileReader();
 
-    void next_dvector(double * list, int n);
-    ValueTokenizer next_values(int nparams, const std::string &separators = TOKENIZER_DEFAULT_SEPARATORS);
-  };
+  void skip_line();
+  char *next_line(int nparams = 0);
 
-  class FileReaderException : public std::exception {
-    std::string message;
-  public:
-    FileReaderException(const std::string &msg) : message(msg) {
-    }
+  void next_dvector(double *list, int n);
+  ValueTokenizer next_values(int nparams,
+                             const std::string &separators = TOKENIZER_DEFAULT_SEPARATORS);
+};
 
-    ~FileReaderException() throw() {
-    }
+class FileReaderException : public std::exception {
+  std::string message;
 
-    virtual const char * what() const throw() {
-      return message.c_str();
-    }
-  };
+ public:
+  FileReaderException(const std::string &msg) : message(msg) {}
 
-  class EOFException : public FileReaderException {
-  public:
-    EOFException(const std::string &msg) : FileReaderException(msg) {
-    }
-  };
+  ~FileReaderException() throw() {}
 
-} // namespace LAMMPS_NS
+  virtual const char *what() const throw() { return message.c_str(); }
+};
+
+class EOFException : public FileReaderException {
+ public:
+  EOFException(const std::string &msg) : FileReaderException(msg) {}
+};
+
+}    // namespace LAMMPS_NS
 
 #endif

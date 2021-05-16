@@ -25,9 +25,9 @@ class Special : protected Pointers {
   void build();
 
  private:
-  int me,nprocs;
+  int me, nprocs;
   int maxall;
-  tagint **onetwo,**onethree,**onefour;
+  tagint **onetwo, **onethree, **onefour;
 
   // data used by rendezvous callback methods
 
@@ -41,7 +41,7 @@ class Special : protected Pointers {
   };
 
   struct PairRvous {
-    tagint atomID,partnerID;
+    tagint atomID, partnerID;
   };
 
   // private methods
@@ -65,7 +65,7 @@ class Special : protected Pointers {
   static int rendezvous_pairs(int, char *, int &, int *&, char *&, void *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 

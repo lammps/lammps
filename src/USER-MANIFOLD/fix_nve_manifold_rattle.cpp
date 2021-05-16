@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -105,8 +106,8 @@ FixNVEManifoldRattle::FixNVEManifoldRattle( LAMMPS *lmp, int &narg, char **arg,
 
   // Check if you have enough args:
   if (6 + nvars > narg)
-    error->all(FLERR,fmt::format("Not enough args for manifold {}, {} expected "
-                                 "but got {}\n",ptr_m->id(),nvars, narg - 6));
+    error->all(FLERR,"Not enough args for manifold {}, {} expected "
+                                 "but got {}\n",ptr_m->id(),nvars, narg - 6);
   // Loop over manifold args:
   for (int i = 0; i < nvars; ++i) {
     int len = 0, offset = 0;
@@ -145,7 +146,7 @@ FixNVEManifoldRattle::FixNVEManifoldRattle( LAMMPS *lmp, int &narg, char **arg,
       }
       argi += 2;
     } else if (error_on_unknown_keyword) {
-      error->all(FLERR,fmt::format("Error parsing arg \"{}\".\n",arg[argi]));
+      error->all(FLERR,"Error parsing arg \"{}\".\n",arg[argi]);
     } else {
       argi += 1;
     }

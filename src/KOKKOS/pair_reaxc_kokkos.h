@@ -1,3 +1,4 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
 
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
@@ -13,11 +14,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(reax/c/kk,PairReaxCKokkos<LMPDeviceType>)
-PairStyle(reax/c/kk/device,PairReaxCKokkos<LMPDeviceType>)
-PairStyle(reax/c/kk/host,PairReaxCKokkos<LMPHostType>)
-
+// clang-format off
+PairStyle(reax/c/kk,PairReaxCKokkos<LMPDeviceType>);
+PairStyle(reax/c/kk/device,PairReaxCKokkos<LMPDeviceType>);
+PairStyle(reax/c/kk/host,PairReaxCKokkos<LMPHostType>);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_REAXC_KOKKOS_H
@@ -331,7 +332,6 @@ class PairReaxCKokkos : public PairReaxC {
     F_FLOAT *fi, F_FLOAT *fj, F_FLOAT *fk, F_FLOAT *dril, F_FLOAT *drjl, F_FLOAT *drkl) const;
 
  protected:
-  void cleanup_copy();
   void allocate();
   void allocate_array();
   void setup();

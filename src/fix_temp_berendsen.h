@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(temp/berendsen,FixTempBerendsen)
-
+// clang-format off
+FixStyle(temp/berendsen,FixTempBerendsen);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_TEMP_BERENDSEN_H
@@ -40,9 +40,9 @@ class FixTempBerendsen : public Fix {
 
  private:
   int which;
-  double t_start,t_stop,t_period,t_target;
+  double t_start, t_stop, t_period, t_target;
   double energy;
-  int tstyle,tvar;
+  int tstyle, tvar;
   char *tstr;
 
   char *id_temp;
@@ -50,7 +50,7 @@ class FixTempBerendsen : public Fix {
   int tflag;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

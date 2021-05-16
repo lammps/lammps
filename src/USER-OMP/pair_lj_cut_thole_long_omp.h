@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(lj/cut/thole/long/omp,PairLJCutTholeLongOMP)
-
+// clang-format off
+PairStyle(lj/cut/thole/long/omp,PairLJCutTholeLongOMP);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_LJ_CUT_THOLE_LONG_OMP_H
@@ -33,10 +33,10 @@ class PairLJCutTholeLongOMP : public PairLJCutTholeLong, public ThrOMP {
 
  private:
   template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
-      void eval(int ifrom, int ito, ThrData * const thr);
+  void eval(int ifrom, int ito, ThrData *const thr);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

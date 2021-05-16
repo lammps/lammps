@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ANGLE_CLASS
-
-AngleStyle(quartic,AngleQuartic)
-
+// clang-format off
+AngleStyle(quartic,AngleQuartic);
+// clang-format on
 #else
 
 #ifndef LMP_ANGLE_QUARTIC_H
@@ -42,7 +42,7 @@ class AngleQuartic : public Angle {
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

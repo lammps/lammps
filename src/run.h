@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMMAND_CLASS
-
-CommandStyle(run,Run)
-
+// clang-format off
+CommandStyle(run,Run);
+// clang-format on
 #else
 
 #ifndef LMP_RUN_H
@@ -30,7 +30,7 @@ class Run : public Command {
   void command(int, char **);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

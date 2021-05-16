@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ANGLE_CLASS
-
-AngleStyle(dipole,AngleDipole)
-
+// clang-format off
+AngleStyle(dipole,AngleDipole);
+// clang-format on
 #else
 
 #ifndef LMP_ANGLE_DIPOLE_H
@@ -37,12 +37,12 @@ class AngleDipole : public Angle {
   double single(int, int, int, int);
 
  protected:
-  double *k,*gamma0;
+  double *k, *gamma0;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

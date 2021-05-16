@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(vcm/chunk,ComputeVCMChunk)
-
+// clang-format off
+ComputeStyle(vcm/chunk,ComputeVCMChunk);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_VCM_CHUNK_H
@@ -41,18 +41,18 @@ class ComputeVCMChunk : public Compute {
   double memory_usage();
 
  private:
-  int nchunk,maxchunk;
-  int firstflag,massneed;
+  int nchunk, maxchunk;
+  int firstflag, massneed;
   char *idchunk;
   class ComputeChunkAtom *cchunk;
 
-  double *massproc,*masstotal;
-  double **vcm,**vcmall;
+  double *massproc, *masstotal;
+  double **vcm, **vcmall;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

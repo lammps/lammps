@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(rebo,PairREBO)
-
+// clang-format off
+PairStyle(rebo,PairREBO);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_REBO_H
@@ -31,7 +31,7 @@ class PairREBO : public PairAIREBO {
   void spline_init();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

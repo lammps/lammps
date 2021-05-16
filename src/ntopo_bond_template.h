@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef NTOPO_CLASS
-
-NTopoStyle(NTOPO_BOND_TEMPLATE,NTopoBondTemplate)
-
+// clang-format off
+NTopoStyle(NTOPO_BOND_TEMPLATE,NTopoBondTemplate);
+// clang-format on
 #else
 
 #ifndef LMP_TOPO_BOND_TEMPLATE_H
@@ -31,7 +31,7 @@ class NTopoBondTemplate : public NTopo {
   void build();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

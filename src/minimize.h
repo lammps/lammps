@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMMAND_CLASS
-
-CommandStyle(minimize,Minimize)
-
+// clang-format off
+CommandStyle(minimize,Minimize);
+// clang-format on
 #else
 
 #ifndef LMP_MINIMIZE_H
@@ -30,7 +30,7 @@ class Minimize : public Command {
   void command(int, char **);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

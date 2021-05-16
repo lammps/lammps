@@ -61,35 +61,36 @@ if(DOWNLOAD_MDI)
 
   # where is the compiled library?
   ExternalProject_get_property(mdi_build BINARY_DIR)
+  set(MDI_BINARY_DIR "${BINARY_DIR}/MDI_Library")
   # workaround for older CMake versions
-  file(MAKE_DIRECTORY "${BINARY_DIR}/MDI_Library")
+  file(MAKE_DIRECTORY ${MDI_BINARY_DIR})
 
   # create imported target for the MDI library
   add_library(LAMMPS::MDI UNKNOWN IMPORTED)
   add_dependencies(LAMMPS::MDI mdi_build)
   set_target_properties(LAMMPS::MDI PROPERTIES
-    IMPORTED_LOCATION "${BINARY_DIR}/MDI_Library/libmdi.a"
-    INTERFACE_INCLUDE_DIRECTORIES "${BINARY_DIR}/MDI_Library"
+    IMPORTED_LOCATION "${MDI_BINARY_DIR}/libmdi.a"
+    INTERFACE_INCLUDE_DIRECTORIES ${MDI_BINARY_DIR}
     )
 
-  # need to add support for dlopen/dlsym, except when compiling for Windows.
-  set(MDI_DL_LIBS "")
-  if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-    set(MDI_DL_LIBS "${CMAKE_DL_LIBS}")
-  endif()
-
-  # if compiling with python plugins we need to add python libraries as dependency.
+  set(MDI_DEP_LIBS "")
+  # if compiling with python plugins we need
+  # to add python libraries as dependency.
   if(MDI_USE_PYTHON_PLUGINS)
     if(CMAKE_VERSION VERSION_LESS 3.12)
-      set_target_properties(LAMMPS::MDI PROPERTIES
-        IMPORTED_LINK_INTERFACE_LIBRARIES "${PYTHON_LIBRARIES};${MDI_DL_LIBS}")
+      list(APPEND MDI_DEP_LIBS ${PYTHON_LIBRARIES})
     else()
-      set_target_properties(LAMMPS::MDI PROPERTIES
-        IMPORTED_LINK_INTERFACE_LIBRARIES "Python::Python;${MDI_DL_LIBS}")
+      list(APPEND MDI_DEP_LIBS Python::Python)
     endif()
-  else()
+
+  endif()
+  # need to add support for dlopen/dlsym, except when compiling for Windows.
+  if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+    list(APPEND MDI_DEP_LIBS "${CMAKE_DL_LIBS}")
+  endif()
+  if(MDI_DEP_LIBS)
     set_target_properties(LAMMPS::MDI PROPERTIES
-      IMPORTED_LINK_INTERFACE_LIBRARIES ${MDI_DL_LIBS})
+      IMPORTED_LINK_INTERFACE_LIBRARIES "${MDI_DEP_LIBS}")
   endif()
 
   target_link_libraries(lammps PRIVATE LAMMPS::MDI)

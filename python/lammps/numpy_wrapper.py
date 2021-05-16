@@ -20,7 +20,7 @@ import warnings
 from ctypes import POINTER, c_double, c_int, c_int32, c_int64, cast
 
 
-from .constants import *
+from .constants import *                # lgtm [py/polluting-import]
 from .data import NeighList
 
 

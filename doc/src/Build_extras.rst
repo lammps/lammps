@@ -1493,22 +1493,35 @@ install *n2p2* somewhere else on your system you must specify the path via the
 
    .. tab:: CMake build
 
-      There is one additional setting besides ``-D PKG_USER-HDNNP=yes`` in case
-      *n2p2* is not installed in the ``lib/hdnnp/n2p2`` directory:
-
       .. code-block:: bash
 
-         -D N2P2_DIR=path      # path ... n2p2 installation path
+         -D DOWNLOAD_N2P2=value    # download n2p2 for build, value = no (default) or yes
+         -D N2P2_DIR=path          # n2p2 base directory (only needed if a custom location)
+
+      If ``DOWNLOAD_N2P2`` is set, the n2p2 library will be downloaded
+      and built inside the CMake build directory.  If the N2P2 library
+      is already on your system (in a location CMake cannot find it),
+      set the ``N2P2_DIR`` to path where n2p2 is located.
 
    .. tab:: Traditional make
 
-      There is one additional variable that needs to be set besides ``make
-      yes-user-hdnnp`` in case *n2p2* is not installed in the ``lib/hdnnp/n2p2``
-      directory:
+      You can download and build the *n2p2* library manually if you
+      prefer; follow the instructions in ``lib/hdnnp/README``\ .  You can
+      also do it in one step from the ``lammps/src`` dir, using a
+      command like these, which simply invoke the
+      ``lib/hdnnp/Install.py`` script with the specified args:
 
       .. code-block:: bash
 
-         make N2P2_DIR=path ...
+         $ make lib-hdnnp             # print help message
+         $ make lib-hdnnp args="-b"   # download and build in lib/hdnnp/n2p2-...
+         $ make lib-hdnnp args="-b -v 2.1.4" # download and build specific version
+         $ make lib-hdnnp args="-p /usr/local/n2p2" # use the existing n2p2 installation in /usr/local/n2p2
+
+      Note that 3 symbolic (soft) links, ``includelink``, ``liblink`` and
+      ``Makefile.lammps``, will be created in ``lib/hdnnp`` to point to
+      ``n2p2/include``, ``n2p2/lib`` and ``n2p2/lib/Makefile.lammps-extra``,
+      respectively. When LAMMPS is built in src it will use these links.
 
 ----------
 

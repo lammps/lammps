@@ -3542,20 +3542,6 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeTorsion<NEIGHFLAG,EV
   }
   a_CdDelta[i] += CdDelta_i;
   for (int d = 0; d < 3; d++) a_f(i,d) += fitmp[d];
-
-
-  //LG the funny and useless code below seems to help getting correct answers
-#ifdef HIP_PRINTF_WORKAROUND
-   if (ii < 2){
-    if (j_start == -1) printf("ii = %d\n",ii);
-    if (-1 == counters_jj_min[ii]) printf("ii=%d, j_start = %d, counters_jj_min[%d]=%d\n",ii,j_start,ii,counters_jj_min[ii]);
-    if (-1 == counters_jj_max[ii]) printf("ii=%d, j_end = %d, counters_jj_max[%d]=%d\n",ii,j_end,ii,counters_jj_max[ii]);
-
-    if (-1  == counters_kk_min[ii]) printf("ii=%d, j_start = %d, counters_kk_min[%d]=%d\n",ii,j_start,ii,counters_kk_min[ii]);
-    if (-1 == counters_kk_max[ii]) printf("ii=%d, j_end = %d, counters_kk_max[%d]=%d\n",ii,j_end,ii,counters_kk_max[ii]);
-   }
-#endif
-
 }
 
 

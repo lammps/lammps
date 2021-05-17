@@ -647,9 +647,6 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelAB<EFLAG>, const int 
      for (int i = threadIdx.y; i < m_max*7; i+=blockDim.y){
         int j = i%7;
         int m = i/7;
-#ifdef HIP_PRINTF_WORKAROUND
-	if ( d_rhor_spline(0,m,j) < -55.65 ) printf("A: m=%d, j=%d, i = %d\n",m,j,i);
-#endif
         A[m][j] = d_rhor_spline(0,m,j);
      }
     __syncthreads();
@@ -754,9 +751,6 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelC<NEIGHFLAG,NEWTON_PA
    for (int i = threadIdx.y; i < m_max*7; i+=blockDim.y){
       int j = i%7;
       int m = i/7;
-#ifdef HIP_PRINTF_WORKAROUND
-      if ( d_z2r_spline(0,m,j) < -99955.65 ) printf("C: m=%d, j=%d, i = %d\n",m,j,i);
-#endif
       A[m][j] = d_z2r_spline(0,m,j);
    }
     __syncthreads();

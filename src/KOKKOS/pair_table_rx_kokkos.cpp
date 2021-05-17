@@ -166,12 +166,12 @@ PairTableRXKokkos<DeviceType>::~PairTableRXKokkos()
   delete [] site1;
   delete [] site2;
 
-  memoryKK->destroy_kokkos(k_eatom,eatom);
-  memoryKK->destroy_kokkos(k_vatom,vatom);
-
   if (allocated) {
-    memoryKK->destroy_kokkos(d_table->cutsq, cutsq);
-    memoryKK->destroy_kokkos(d_table->tabindex, tabindex);
+    memoryKK->destroy_kokkos(k_eatom,eatom);
+    memoryKK->destroy_kokkos(k_vatom,vatom);
+    memory->destroy(setflag);
+    cutsq = nullptr;
+    tabindex = nullptr;
   }
 
   delete h_table;

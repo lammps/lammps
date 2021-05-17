@@ -256,11 +256,11 @@ void FixQEqReaxKokkos<DeviceType>::pre_force(int /*vflag*/)
 
 #ifdef KOKKOS_ENABLE_CUDA
     int atoms_per_team = 4;
-    int vector_length = 32;//LG changed 32 to 64
+    int vector_length = 32;
 #endif
 #ifdef KOKKOS_ENABLE_HIP
-    int atoms_per_team = 4;
-    int vector_length = 64;
+    int atoms_per_team = 64;
+    int vector_length = 8;
 #endif
 
 

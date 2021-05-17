@@ -56,8 +56,8 @@ PairTableKokkos<DeviceType>::~PairTableKokkos()
     memoryKK->destroy_kokkos(k_eatom,eatom);
     memoryKK->destroy_kokkos(k_vatom,vatom);
     memory->destroy(setflag);
-    cutsq = nullptr;
-    tabindex = nullptr;
+    memoryKK->destroy_kokkos(d_table->cutsq,cutsq);
+    memoryKK->destroy_kokkos(d_table->tabindex,tabindex);
   }
 
   delete h_table;

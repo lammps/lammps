@@ -24,7 +24,7 @@ pair_coeff	1 2 0.0 0.0
 variable        prefactor equal ramp(0,60)
 fix             soft all adapt 1 pair soft a * * v_prefactor
 
-neighbor	0.3 bin
+neighbor	0.3 multi
 neigh_modify	delay 0 every 1 check yes
 
 fix		1 big rigid molecule
@@ -67,7 +67,7 @@ delete_atoms	overlap 1.0 small big
 
 reset_timestep	0
 
-neighbor	0.3 bin
+neighbor	0.3 multi
 neigh_modify	delay 0 every 1 check yes
 
 comm_modify	mode multi group big vel yes

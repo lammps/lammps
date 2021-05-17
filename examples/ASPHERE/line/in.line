@@ -8,7 +8,7 @@ read_data	data.line
 
 velocity	all create 1.44 320984 loop geom
 
-neighbor	0.3 bin
+neighbor	0.3 multi
 neigh_modify	delay 0 every 1 check yes
 neigh_modify	exclude molecule/intra all
 

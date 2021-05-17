@@ -24,7 +24,7 @@ pair_coeff	1 2 0.0 0.0
 variable        prefactor equal ramp(0,60)
 fix             soft all adapt 1 pair soft a * * v_prefactor
 
-neighbor	0.3 multi
+neighbor	0.3 bin
 neigh_modify	delay 0 every 1 check yes
 
 fix		1 big rigid molecule

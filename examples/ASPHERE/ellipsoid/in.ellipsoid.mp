@@ -26,7 +26,7 @@ pair_coeff      1 1 1.0 1.0 1 1 1 1 1 1
 pair_coeff      1 2 1.0 1.0 1 1 1 1 1 1 0.0
 pair_coeff      2 2 1.0 1.0 1 1 1 1 1 1 0.0
 
-neighbor	0.3 multi
+neighbor	0.3 bin
 neigh_modify	delay 0 every 1 check yes
 
 fix		1 big nve/asphere

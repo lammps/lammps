@@ -97,7 +97,9 @@ class FixPIMD4 : public Fix {
   void compute_xc();
   void compute_fc();
   void compute_vir();
+  void compute_vir_();
   double xf, vir, xcfc, centroid_vir, t_vir, t_cv, p_vir, p_cv;
+  double vir_, xcf;
   
   void compute_t_vir();  // centroid-virial kinetic energy estimator
   void compute_p_cv();  // centroid-virial pressure estimator
@@ -149,7 +151,8 @@ class FixPIMD4 : public Fix {
   /* Bussi-Zykova-Parrinello barostat */
 
   void press_v_step();
-  void press_x_step();
+  //void press_x_step();
+  void qc_step();
   void press_o_step();
   int pextflag;
   double W, tau_p, vw, Pext, totenthalpy, Vcoeff;
@@ -161,6 +164,7 @@ class FixPIMD4 : public Fix {
 
   /* potential energy and total energy of the extended system */
   double pote, tote, totke;
+  double centroid_ke;
   
   void compute_totke();
   void compute_pote();

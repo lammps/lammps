@@ -42,6 +42,7 @@ FixPairTracker::FixPairTracker(LAMMPS *lmp, int narg, char **arg) :
 
   nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   if (nevery <= 0) error->all(FLERR,"Illegal fix pair/tracker command");  
+  local_freq = nevery;
 
   // If optional arguments included, this will be oversized
   nvalues = narg - 4;   
@@ -71,17 +72,17 @@ FixPairTracker::FixPairTracker(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"z") == 0) {
       pack_choice[nvalues++] = &FixPairTracker::pack_z;    
       
-    } else if (strcmp(arg[iarg],"rmin") == 0) {
+    } else if (strcmp(arg[iarg],"r/min") == 0) {
       pack_choice[nvalues++] = &FixPairTracker::pack_rmin;    
-    } else if (strcmp(arg[iarg],"rave") == 0) {
+    } else if (strcmp(arg[iarg],"r/ave") == 0) {
       pack_choice[nvalues++] = &FixPairTracker::pack_rave;     
 
-    } else if (strcmp(arg[iarg],"tmin") == 0) {
+    } else if (strcmp(arg[iarg],"time/min") == 0) {
       if (iarg + 1 >= narg) error->all(FLERR, "Invalid keyword in fix pair/tracker command");
       tmin = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg ++;
    
-    } else if (strcmp(arg[iarg],"filter") == 0) {
+    } else if (strcmp(arg[iarg],"type/include") == 0) {
       if (iarg + 1 >= narg) error->all(FLERR, "Invalid keyword in fix pair/tracker command");
       int ntypes = atom->ntypes;
 
@@ -173,16 +174,19 @@ void FixPairTracker::init()
   // Set size of array/vector
   ncount = 0;
   
-  if (ncount > nmax) {
-      reallocate(ncount);}
+  if (ncount > nmax)
+      reallocate(ncount);
+  
   size_local_rows = ncount;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixPairTracker::lost_contact(int i, int j, double n, double rs, double rm)
+void FixPairTracker::lost_contact(int i, int j, double nstep_tmp, double rsum_tmp, double time_tmp)
 {    
-  if ((update->ntimestep-n) < tmin) return;
+
+  double time = update->atime + (update->ntimestep-update->atimestep)*update->dt;
+  if ((time-time_tmp) < tmin) return;
       
   if (type_filter) {
     int *type = atom->type;
@@ -198,9 +202,9 @@ void FixPairTracker::lost_contact(int i, int j, double n, double rs, double rm)
   index_i = i;
   index_j = j;
   
-  rmin = rm;
-  rsum = rs;
-  ntimestep = n;
+  rmin = rmin_tmp;
+  rsum = rsum_tmp;
+  time_initial = time_tmp;
   
   // fill vector or array with local values
   if (nvalues == 1) {
@@ -233,10 +237,10 @@ void FixPairTracker::reallocate(int n)
   while (nmax <= n) nmax += DELTA;
   
   if (nvalues == 1) {
-    memory->grow(vector,nmax,"fix_broken_bonds:vector");
+    memory->grow(vector,nmax,"fix_pair_tracker:vector");
     vector_local = vector;
   } else {
-    memory->grow(array,nmax,nvalues,"fix_broken_bonds:array");
+    memory->grow(array,nmax,nvalues,"fix_pair_tracker:array");
     array_local = array;
   }
 }
@@ -263,29 +267,31 @@ double FixPairTracker::memory_usage()
 void FixPairTracker::pack_time_created(int n) 
 {
   if (nvalues == 1)
-    vector[ncount] = ntimestep;
+    vector[ncount] = time_initial;
   else
-    array[ncount][n] = ntimestep;
+    array[ncount][n] = time_initial;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixPairTracker::pack_time_broken(int n) 
 {
+  double time = update->atime + (update->ntimestep-update->atimestep)*update->dt;
   if (nvalues == 1)
-    vector[ncount] = update->ntimestep;
+    vector[ncount] = time;
   else
-    array[ncount][n] = update->ntimestep;
+    array[ncount][n] = time;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixPairTracker::pack_time_total(int n) 
 {
+  double time = update->atime + (update->ntimestep-update->atimestep)*update->dt;
   if (nvalues == 1)
-    vector[ncount] = update->ntimestep-ntimestep;
+    vector[ncount] = time-time_initial;
   else
-    array[ncount][n] = update->ntimestep-ntimestep;
+    array[ncount][n] = time-time_initial;
 }
 
 
@@ -366,7 +372,7 @@ void FixPairTracker::pack_rmin(int n)
 void FixPairTracker::pack_rave(int n)
 {
   if (nvalues == 1)
-    vector[ncount] = rsum/(update->ntimestep-ntimestep);
+    vector[ncount] = rsum/(update->ntimestep-nstep_initial);
   else
-    array[ncount][n] = rsum/(update->ntimestep-ntimestep);
+    array[ncount][n] = rsum/(update->ntimestep-nstep_initial);
 }

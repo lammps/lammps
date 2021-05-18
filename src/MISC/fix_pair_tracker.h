@@ -39,7 +39,7 @@ class FixPairTracker : public Fix {
   int nmax, tmin;
   int store_flag;
   int index_i, index_j;
-  double rmin, rsum, ntimestep;
+  double rmin, rsum, time_initial;
   
   double *vector;
   double **array;

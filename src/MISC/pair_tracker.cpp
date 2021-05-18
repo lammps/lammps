@@ -11,14 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-/* ----------------------------------------------------------------------
-   Contributing authors: Leo Silbert (SNL), Gary Grest (SNL)
-------------------------------------------------------------------------- */
-
 #include "pair_tracker.h"
-
-#include <cmath>
-#include <cstring>
 
 #include "atom.h"
 #include "force.h"
@@ -28,7 +21,6 @@
 #include "fix_dummy.h"
 #include "fix_neigh_history.h"
 #include "fix_pair_tracker.h"
-#include "comm.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
@@ -39,17 +31,16 @@ using namespace LAMMPS_NS;
 
 #define RLARGE 100
 
-
 /* ---------------------------------------------------------------------- */
 
 PairTracker::PairTracker(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 1;
   no_virial_fdotr_compute = 1;
-  history = 1;
-  size_history = 3;
 
   neighprev = 0;
+  history = 1;
+  size_history = 3;  
   nondefault_history_transfer = 1;
   
   finitecutflag = 0;
@@ -58,7 +49,7 @@ PairTracker::PairTracker(LAMMPS *lmp) : Pair(lmp)
   // this is so final order of Modify:fix will conform to input script
 
   fix_history = nullptr;
-  modify->add_fix("NEIGH_HISTORY_TRACK_DUMMY all DUMMY");
+  modify->add_fix("NEIGH_HISTORY_TRACK_DUMMY");
   fix_dummy = (FixDummy *) modify->fix[modify->nfix-1];
 }
 
@@ -86,7 +77,7 @@ PairTracker::~PairTracker()
 void PairTracker::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
-  double xtmp,ytmp,ztmp,delx,dely,delz;
+  double xtmp,ytmp,ztmp,delx,dely,delz,time;
   double radi,radj,radsum,rsq,r;
   int *ilist,*jlist,*numneigh,**firstneigh;
   int *touch,**firsttouch;
@@ -144,14 +135,15 @@ void PairTracker::compute(int eflag, int vflag)
           }
           touch[jj] = 0;
           data[0] = 0.0; // initial time
-          data[1] = 0.0; // sum of r
+          data[1] = 0.0; // sum of r, may overflow
           data[2] = 0.0; // min of r
                 
         } else {        
 
           data = &alldata[size_history*jj];
           if (touch[jj] == 0) {
-            data[0] = update->ntimestep;
+            time = update->atime + (update->ntimestep-update->atimestep)*update->dt;
+            data[0] = time;
             data[1] = 0.0;
             data[2] = RLARGE;
           }
@@ -173,14 +165,15 @@ void PairTracker::compute(int eflag, int vflag)
           }
           touch[jj] = 0;
           data[0] = 0.0; // initial time
-          data[1] = 0.0; // sum of r
+          data[1] = 0.0; // sum of r, may overflow
           data[2] = 0.0; // min of r
                 
         } else {        
 
           data = &alldata[size_history*jj];
           if (touch[jj] == 0) {
-            data[0] = update->ntimestep;
+            time = update->atime + (update->ntimestep-update->atimestep)*update->dt;
+            data[0] = time;
             data[1] = 0.0;
             data[2] = RLARGE;
           }
@@ -195,9 +188,6 @@ void PairTracker::compute(int eflag, int vflag)
       }
     }
   }
-  
-  if (vflag_fdotr) virial_fdotr_compute();
-
 }
 
 /* ----------------------------------------------------------------------
@@ -232,7 +222,7 @@ void PairTracker::settings(int narg, char **arg)
   if (narg != 0 && narg != 1) error->all(FLERR,"Illegal pair_style command");
 
   if (narg == 1) {
-    if (strcmp(arg[0], "radius") == 0) finitecutflag = 1;
+    if (strcmp(arg[0], "finite") == 0) finitecutflag = 1;
     else error->all(FLERR,"Illegal pair_style command");
   }
 }
@@ -379,11 +369,10 @@ double PairTracker::init_one(int i, int j)
   }
 
   cut[j][i] = cut[i][j];
-
-  double cutoff; 
   
   // if finite, cutoff = sum of max I,J radii for
   // dynamic/dynamic & dynamic/frozen interactions, but not frozen/frozen
+  double cutoff; 
   if (finitecutflag) {
     cutoff = maxrad_dynamic[i]+maxrad_dynamic[j];
     cutoff = MAX(cutoff,maxrad_frozen[i]+maxrad_dynamic[j]);

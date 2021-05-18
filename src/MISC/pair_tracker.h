@@ -76,26 +76,16 @@ E: Incorrect args for pair coefficients
 
 Self-explanatory.  Check the input script or data file.
 
-E: Pair granular requires atom attributes radius, rmass
+E: Pair tracker requires atom attribute radius for finite cutoffs
 
 The atom style defined does not have these attributes.
 
-E: Pair granular requires ghost atoms store velocity
-
-Use the comm_modify vel yes command to enable this.
-
 E: Could not find pair fix neigh history ID
 
-UNDOCUMENTED
+The associated fix neigh/history is missing
 
-U: Pair granular with shear history requires newton pair off
+E: Cannot use pair tracker without fix pair/tracker
 
-This is a current restriction of the implementation of pair
-granular styles with history.
-
-U: Could not find pair fix ID
-
-A fix is created internally by the pair style to store shear
-history information.  You cannot delete it.
+This pairstyle requires one to define a pair/tracker fix 
 
 */

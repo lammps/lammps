@@ -31,9 +31,9 @@
 
 #include "reaxc_types.h"
 
-void Valence_AnglesOMP( reax_system*, control_params*, simulation_data*,
-                     storage*, reax_list**, output_controls* );
+void Valence_AnglesOMP(reax_system *, control_params *, simulation_data *, storage *, reax_list **,
+                       output_controls *);
 
-void Calculate_dCos_ThetaOMP( rvec, double, rvec, double, rvec*, rvec*, rvec* );
+void Calculate_dCos_ThetaOMP(rvec, double, rvec, double, rvec *, rvec *, rvec *);
 
 #endif

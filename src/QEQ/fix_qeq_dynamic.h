@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(qeq/dynamic,FixQEqDynamic)
-
+// clang-format off
+FixStyle(qeq/dynamic,FixQEqDynamic);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_QEQ_DYNAMIC_H
@@ -40,7 +40,7 @@ class FixQEqDynamic : public FixQEq {
   double compute_eneg();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

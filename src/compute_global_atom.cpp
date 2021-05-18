@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -74,14 +75,14 @@ ComputeGlobalAtom::ComputeGlobalAtom(LAMMPS *lmp, int narg, char **arg) :
   nvalues = 0;
 
   for (iarg = 0; iarg < nargnew; iarg++) {
-    ArgInfo argi(arg[iarg]);
+    ArgInfo argi2(arg[iarg]);
 
-    which[nvalues] = argi.get_type();
-    argindex[nvalues] = argi.get_index1();
-    ids[nvalues] = argi.copy_name();
+    which[nvalues] = argi2.get_type();
+    argindex[nvalues] = argi2.get_index1();
+    ids[nvalues] = argi2.copy_name();
 
     if ((which[nvalues] == ArgInfo::UNKNOWN) || (which[nvalues] == ArgInfo::NONE)
-        || (argi.get_dim() > 1))
+        || (argi2.get_dim() > 1))
       error->all(FLERR,"Illegal compute slice command");
 
     nvalues++;

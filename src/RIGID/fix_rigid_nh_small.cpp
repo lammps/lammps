@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -31,7 +32,6 @@
 #include "math_extra.h"
 #include "memory.h"
 #include "modify.h"
-#include "molecule.h"
 #include "rigid_const.h"
 #include "update.h"
 
@@ -706,7 +706,7 @@ void FixRigidNHSmall::final_integrate()
   if (pstat_flag) {
 
     akin_t = akin_r = 0.0;
-    for (int ibody = 0; ibody < nlocal_body; ibody++) {
+    for (ibody = 0; ibody < nlocal_body; ibody++) {
       Body *b = &body[ibody];
       akin_t += b->mass*(b->vcm[0]*b->vcm[0] + b->vcm[1]*b->vcm[1] +
         b->vcm[2]*b->vcm[2]);
@@ -857,7 +857,7 @@ void FixRigidNHSmall::nhc_press_integrate()
 
   double tb_mass = kt / (p_freq_max * p_freq_max);
   q_b[0] = dimension * dimension * tb_mass;
-  for (int i = 1; i < p_chain; i++) {
+  for (i = 1; i < p_chain; i++) {
     q_b[i] = tb_mass;
     f_eta_b[i] = q_b[i-1] * eta_dot_b[i-1] * eta_dot_b[i-1] - kt;
     f_eta_b[i] /= q_b[i];
@@ -942,7 +942,7 @@ double FixRigidNHSmall::compute_scalar()
   ke_t = 0.0;
   ke_q = 0.0;
 
-  for (int i = 0; i < nlocal_body; i++) {
+  for (i = 0; i < nlocal_body; i++) {
     vcm = body[i].vcm;
     quat = body[i].quat;
     ke_t += body[i].mass * (vcm[0]*vcm[0] + vcm[1]*vcm[1] +

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    See the README file in the top-level LAMMPS directory.
@@ -11,9 +11,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(airebo/omp,PairAIREBOOMP)
-
+// clang-format off
+PairStyle(airebo/omp,PairAIREBOOMP);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_AIREBO_OMP_H
@@ -33,22 +33,20 @@ class PairAIREBOOMP : public PairAIREBO, public ThrOMP {
   virtual double memory_usage();
 
  protected:
-  double bondorder_thr(int i, int j, double rij[3], double rijmag,
-                       double VA, int vflag_atom, ThrData * const thr);
-  double bondorderLJ_thr(int i, int j, double rij[3], double rijmag,
-                         double VA, double rij0[3], double rijmag0,
-                         int vflag_atom, ThrData * const thr);
+  double bondorder_thr(int i, int j, double rij[3], double rijmag, double VA, int vflag_atom,
+                       ThrData *const thr);
+  double bondorderLJ_thr(int i, int j, double rij[3], double rijmag, double VA, double rij0[3],
+                         double rijmag0, int vflag_atom, ThrData *const thr);
 
-  void FREBO_thr(int ifrom, int ito, int evflag, int eflag,
-                 int vflag_atom, double *pv0, ThrData * const thr);
-  void FLJ_thr(int ifrom, int ito, int evflag, int eflag,
-               int vflag_atom, double *pv1, ThrData * const thr);
-  void TORSION_thr(int ifrom, int ito, int evflag, int eflag,
-                   double *pv2, ThrData * const thr);
+  void FREBO_thr(int ifrom, int ito, int evflag, int eflag, int vflag_atom, double *pv0,
+                 ThrData *const thr);
+  void FLJ_thr(int ifrom, int ito, int evflag, int eflag, int vflag_atom, double *pv1,
+               ThrData *const thr);
+  void TORSION_thr(int ifrom, int ito, int evflag, int eflag, double *pv2, ThrData *const thr);
   void REBO_neigh_thr();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -1,6 +1,6 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,9 +17,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(electron/stopping/fit,FixElectronStoppingFit)
-
+// clang-format off
+FixStyle(electron/stopping/fit,FixElectronStoppingFit);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_ELECTRON_STOPPING_FIT_H
@@ -41,14 +41,15 @@ class FixElectronStoppingFit : public Fix {
   double compute_scalar();
 
  private:
-  double *energy_coh_in,*v_min_sq,*v_max_sq,*drag_fac_in_1,*drag_fac_in_2,*drag_fac_1,*drag_fac_2;
-  double electronic_loss,electronic_loss_this_node;
-  double f_dot_v_prior,f_dot_v_current;
-  int last_step,this_step;
+  double *energy_coh_in, *v_min_sq, *v_max_sq, *drag_fac_in_1, *drag_fac_in_2, *drag_fac_1,
+      *drag_fac_2;
+  double electronic_loss, electronic_loss_this_node;
+  double f_dot_v_prior, f_dot_v_current;
+  int last_step, this_step;
   int nlevels_respa;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

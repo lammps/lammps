@@ -11,7 +11,7 @@
 
 /* ----------------------------------------------------------------------
  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
- http://lammps.sandia.gov, Sandia National Laboratories
+ https://lammps.sandia.gov/, Sandia National Laboratories
  Steve Plimpton, sjplimp@sandia.gov
 
  Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -23,9 +23,9 @@
  ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(smd/adjust_dt,FixSMDTlsphDtReset)
-
+// clang-format off
+FixStyle(smd/adjust_dt,FixSMDTlsphDtReset);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_TLSPH_DT_RESET_H
@@ -35,26 +35,25 @@ FixStyle(smd/adjust_dt,FixSMDTlsphDtReset)
 
 namespace LAMMPS_NS {
 
-class FixSMDTlsphDtReset: public Fix {
-public:
-        FixSMDTlsphDtReset(class LAMMPS *, int, char **);
-        ~FixSMDTlsphDtReset() {
-        }
-        int setmask();
-        void init();
-        void setup(int);
-        void initial_integrate(int);
-        void end_of_step();
-        double compute_scalar();
-        void write_restart(FILE *);
-        void restart(char *);
+class FixSMDTlsphDtReset : public Fix {
+ public:
+  FixSMDTlsphDtReset(class LAMMPS *, int, char **);
+  ~FixSMDTlsphDtReset() {}
+  int setmask();
+  void init();
+  void setup(int);
+  void initial_integrate(int);
+  void end_of_step();
+  double compute_scalar();
+  void write_restart(FILE *);
+  void restart(char *);
 
-private:
-        double safety_factor;
-        double dt, t_elapsed;
+ private:
+  double safety_factor;
+  double dt, t_elapsed;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

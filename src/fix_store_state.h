@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(store/state,FixStoreState)
-
+// clang-format off
+FixStyle(store/state,FixStoreState);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_STORE_STATE_H
@@ -45,19 +45,19 @@ class FixStoreState : public Fix {
 
  private:
   int nvalues;
-  int *which,*argindex,*value2index;
+  int *which, *argindex, *value2index;
   char **ids;
-  double **values;         // archived atom properties
-  double *vbuf;            // 1d ptr to values
+  double **values;    // archived atom properties
+  double *vbuf;       // 1d ptr to values
 
   int comflag;
-  double cm[3];            // center of mass
+  double cm[3];    // center of mass
 
-  int kflag,cfv_flag,firstflag;
-  int cfv_any;             // 1 if any compute/fix/variable specified
+  int kflag, cfv_flag, firstflag;
+  int cfv_any;    // 1 if any compute/fix/variable specified
 
   typedef void (FixStoreState::*FnPtrPack)(int);
-  FnPtrPack *pack_choice;              // ptrs to pack functions
+  FnPtrPack *pack_choice;    // ptrs to pack functions
 
   void pack_id(int);
   void pack_molecule(int);
@@ -114,7 +114,7 @@ class FixStoreState : public Fix {
   void pack_tqz(int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

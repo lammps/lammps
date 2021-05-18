@@ -51,6 +51,8 @@
 
 namespace Test {
 
+struct ReducerTag {};
+
 template <typename ScalarType, class DeviceType>
 class ReduceFunctor {
  public:
@@ -110,6 +112,45 @@ class ReduceFunctorFinal : public ReduceFunctor<int64_t, DeviceType> {
   }
 };
 
+template <class DeviceType>
+class ReduceFunctorFinalTag {
+ public:
+  using execution_space = DeviceType;
+  using size_type       = typename execution_space::size_type;
+  using ScalarType      = int64_t;
+
+  struct value_type {
+    ScalarType value[3];
+  };
+
+  const size_type nwork;
+
+  KOKKOS_INLINE_FUNCTION
+  ReduceFunctorFinalTag(const size_type arg_nwork) : nwork(arg_nwork) {}
+
+  KOKKOS_INLINE_FUNCTION
+  void join(const ReducerTag, volatile value_type& dst,
+            const volatile value_type& src) const {
+    dst.value[0] += src.value[0];
+    dst.value[1] += src.value[1];
+    dst.value[2] += src.value[2];
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(const ReducerTag, size_type iwork, value_type& dst) const {
+    dst.value[0] -= 1;
+    dst.value[1] -= iwork + 1;
+    dst.value[2] -= nwork - iwork;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void final(const ReducerTag, value_type& dst) const {
+    ++dst.value[0];
+    ++dst.value[1];
+    ++dst.value[2];
+  }
+};
+
 template <typename ScalarType, class DeviceType>
 class RuntimeReduceFunctor {
  public:
@@ -141,7 +182,7 @@ class RuntimeReduceFunctor {
   void operator()(size_type iwork, ScalarType dst[]) const {
     const size_type tmp[3] = {1, iwork + 1, nwork - iwork};
 
-    for (size_type i = 0; i < value_count; ++i) {
+    for (size_type i = 0; i < static_cast<size_type>(value_count); ++i) {
       dst[i] += tmp[i % 3];
     }
   }
@@ -189,7 +230,7 @@ class RuntimeReduceMinMax {
     const ScalarType tmp[2] = {ScalarType(iwork + 1),
                                ScalarType(nwork - iwork)};
 
-    for (size_type i = 0; i < value_count; ++i) {
+    for (size_type i = 0; i < static_cast<size_type>(value_count); ++i) {
       dst[i] = i % 2 ? (dst[i] < tmp[i % 2] ? dst[i] : tmp[i % 2])
                      : (dst[i] > tmp[i % 2] ? dst[i] : tmp[i % 2]);
     }
@@ -260,6 +301,7 @@ class TestReduce {
   TestReduce(const size_type& nwork) {
     run_test(nwork);
     run_test_final(nwork);
+    run_test_final_tag(nwork);
   }
 
   void run_test(const size_type& nwork) {
@@ -311,6 +353,39 @@ class TestReduce {
       for (unsigned j = 0; j < Count; ++j) {
         const uint64_t correct = 0 == j % 3 ? nw : nsum;
         ASSERT_EQ((ScalarType)correct, -result[i].value[j]);
+      }
+    }
+  }
+
+  void run_test_final_tag(const size_type& nwork) {
+    using functor_type = Test::ReduceFunctorFinalTag<execution_space>;
+    using value_type   = typename functor_type::value_type;
+
+    enum { Count = 3 };
+    enum { Repeat = 100 };
+
+    value_type result[Repeat];
+
+    const uint64_t nw   = nwork;
+    const uint64_t nsum = nw % 2 ? nw * ((nw + 1) / 2) : (nw / 2) * (nw + 1);
+
+    for (unsigned i = 0; i < Repeat; ++i) {
+      if (i % 2 == 0) {
+        Kokkos::parallel_reduce(
+            Kokkos::RangePolicy<execution_space, ReducerTag>(0, nwork),
+            functor_type(nwork), result[i]);
+      } else {
+        Kokkos::parallel_reduce(
+            "Reduce",
+            Kokkos::RangePolicy<execution_space, ReducerTag>(0, nwork),
+            functor_type(nwork), result[i]);
+      }
+    }
+
+    for (unsigned i = 0; i < Repeat; ++i) {
+      for (unsigned j = 0; j < Count; ++j) {
+        const uint64_t correct = 0 == j % 3 ? nw : nsum;
+        ASSERT_EQ((ScalarType)correct, 1 - result[i].value[j]);
       }
     }
   }

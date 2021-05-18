@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,16 +12,16 @@
 ------------------------------------------------------------------------- */
 
 #ifdef BODY_CLASS
-
-BodyStyle(rounded/polygon,BodyRoundedPolygon)
-
+// clang-format off
+BodyStyle(rounded/polygon,BodyRoundedPolygon);
+// clang-format on
 #else
 
 #ifndef LMP_BODY_ROUNDED_POLYGON_H
 #define LMP_BODY_ROUNDED_POLYGON_H
 
-#include "body.h"
 #include "atom_vec_body.h"
+#include "body.h"
 
 namespace LAMMPS_NS {
 
@@ -53,7 +53,7 @@ class BodyRoundedPolygon : public Body {
   double **imdata;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

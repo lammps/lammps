@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -93,6 +94,7 @@ double RanMars::uniform()
   if (uni < 0.0) uni += 1.0;
   return uni;
 }
+
 
 /* ----------------------------------------------------------------------
    gaussian RN

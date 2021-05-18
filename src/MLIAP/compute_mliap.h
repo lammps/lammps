@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,16 +12,15 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(mliap,ComputeMLIAP)
-
+// clang-format off
+ComputeStyle(mliap,ComputeMLIAP);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_MLIAP_H
 #define LMP_COMPUTE_MLIAP_H
 
 #include "compute.h"
-
 
 namespace LAMMPS_NS {
 
@@ -39,11 +38,11 @@ class ComputeMLIAP : public Compute {
  private:
   double **mliaparray, **mliaparrayall;
   class NeighList *list;
-  int *map;  // map types to [0,nelements)
-  int ndescriptors;            // number of descriptors
-  int nparams;                 // number of model parameters per element
+  int *map;            // map types to [0,nelements)
+  int ndescriptors;    // number of descriptors
+  int nparams;         // number of model parameters per element
   int nelements;
-  int gradgradflag;           // 1 for graddesc, 0 for gamma
+  int gradgradflag;    // 1 for graddesc, 0 for gamma
   class MLIAPModel *model;
   class MLIAPDescriptor *descriptor;
   class MLIAPData *data;
@@ -57,7 +56,7 @@ class ComputeMLIAP : public Compute {
   void dbdotr_compute();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

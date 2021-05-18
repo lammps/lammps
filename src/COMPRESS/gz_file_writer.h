@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -19,29 +19,28 @@
 #define LMP_GZ_FILE_WRITER_H
 
 #include "file_writer.h"
+
+#include <exception>
 #include <string>
 #include <zlib.h>
-#include <exception>
 
 namespace LAMMPS_NS {
 
 class GzFileWriter : public FileWriter {
   int compression_level;
 
-  gzFile gzFp;  // file pointer for the compressed output stream
-public:
-    GzFileWriter();
-    virtual ~GzFileWriter();
-    virtual void open(const std::string &path, bool append = false) override;
-    virtual void close() override;
-    virtual void flush() override;
-    virtual size_t write(const void * buffer, size_t length) override;
-    virtual bool isopen() const override;
+  gzFile gzFp;    // file pointer for the compressed output stream
+ public:
+  GzFileWriter();
+  virtual ~GzFileWriter();
+  virtual void open(const std::string &path, bool append = false) override;
+  virtual void close() override;
+  virtual void flush() override;
+  virtual size_t write(const void *buffer, size_t length) override;
+  virtual bool isopen() const override;
 
-    void setCompressionLevel(int level);
+  void setCompressionLevel(int level);
 };
-
-
-}
+}    // namespace LAMMPS_NS
 
 #endif

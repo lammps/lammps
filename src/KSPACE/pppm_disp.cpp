@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -278,8 +279,8 @@ void PPPMDisp::init()
   }
 
   if (order > MAXORDER || order_6 > MAXORDER)
-    error->all(FLERR,fmt::format("PPPMDisp coulomb or dispersion order cannot"
-                                 " be greater than {}",MAXORDER));
+    error->all(FLERR,"PPPMDisp coulomb or dispersion order cannot"
+                                 " be greater than {}",MAXORDER);
 
   // compute two charge force
 
@@ -1362,8 +1363,8 @@ void PPPMDisp::init_coeffs()
 
       err =  bmax/amax;
       if (err > 1.0e-4 && comm->me == 0)
-        error->warning(FLERR,fmt::format("Estimated error in splitting of "
-                                         "dispersion coeffs is {}",err));
+        error->warning(FLERR,"Estimated error in splitting of "
+                       "dispersion coeffs is {}",err);
       // set B
 
       B = new double[nsplit*n+nsplit];
@@ -1392,8 +1393,7 @@ void PPPMDisp::init_coeffs()
 
     if (function[2] && nsplit <= 6) {
       if (me == 0)
-        utils::logmesg(lmp,fmt::format("  Using {} instead of 7 structure "
-                                       "factors\n",nsplit));
+        utils::logmesg(lmp,"  Using {} instead of 7 structure factors\n",nsplit);
       //function[3] = 1;
       //function[2] = 0;
       if (B) delete [] B;   // remove this when un-comment previous 2 lines
@@ -1406,8 +1406,7 @@ void PPPMDisp::init_coeffs()
 
     if (function[3]) {
       if (me == 0)
-        utils::logmesg(lmp,fmt::format("  Using {} structure factors\n",
-                                       nsplit));
+        utils::logmesg(lmp,"  Using {} structure factors\n",nsplit);
       if (nsplit > 9)
         error->warning(FLERR,"Simulations might be very slow "
                        "because of large number of structure factors");

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef BOND_CLASS
-
-BondStyle(quartic,BondQuartic)
-
+// clang-format off
+BondStyle(quartic,BondQuartic);
+// clang-format on
 #else
 
 #ifndef LMP_BOND_QUARTIC_H
@@ -39,12 +39,12 @@ class BondQuartic : public Bond {
 
  protected:
   double TWO_1_3;
-  double *k,*b1,*b2,*rc,*u0;
+  double *k, *b1, *b2, *rc, *u0;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

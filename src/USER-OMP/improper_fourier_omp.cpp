@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -183,28 +184,8 @@ void ImproperFourierOMP::add1_thr(const int i1,const int i2,
 
   // error check
 
-  if (c > 1.0 + TOLERANCE || c < (-1.0 - TOLERANCE)) {
-    int me = comm->me;
-
-    if (screen) {
-      char str[128];
-      sprintf(str,
-              "Improper problem: %d/%d " BIGINT_FORMAT " "
-                TAGINT_FORMAT " " TAGINT_FORMAT " "
-                TAGINT_FORMAT " " TAGINT_FORMAT,
-              me,thr->get_tid(),update->ntimestep,
-              atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
-      error->warning(FLERR,str,0);
-      fprintf(screen,"  1st atom: %d %g %g %g\n",
-              me,atom->x[i1][0],atom->x[i1][1],atom->x[i1][2]);
-      fprintf(screen,"  2nd atom: %d %g %g %g\n",
-              me,atom->x[i2][0],atom->x[i2][1],atom->x[i2][2]);
-      fprintf(screen,"  3rd atom: %d %g %g %g\n",
-              me,atom->x[i3][0],atom->x[i3][1],atom->x[i3][2]);
-      fprintf(screen,"  4th atom: %d %g %g %g\n",
-              me,atom->x[i4][0],atom->x[i4][1],atom->x[i4][2]);
-    }
-  }
+  if (c > 1.0 + TOLERANCE || c < (-1.0 - TOLERANCE))
+    problem(FLERR, i1, i2, i3, i4);
 
   if (c > 1.0) c = 1.0;
   if (c < -1.0) c = -1.0;

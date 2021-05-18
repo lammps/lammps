@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(vashishta/table/omp,PairVashishtaTableOMP)
-
+// clang-format off
+PairStyle(vashishta/table/omp,PairVashishtaTableOMP);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_VASHISHTA_TABLE_OMP_H
@@ -38,11 +38,10 @@ class PairVashishtaTableOMP : public PairVashishtaTable, public ThrOMP {
   virtual double memory_usage();
 
  private:
-  template <int EVFLAG, int EFLAG>
-  void eval(int ifrom, int ito, ThrData * const thr);
+  template <int EVFLAG, int EFLAG> void eval(int ifrom, int ito, ThrData *const thr);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

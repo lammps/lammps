@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(rigid/meso,FixRigidMeso)
-
+// clang-format off
+FixStyle(rigid/meso,FixRigidMeso);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_RIGID_MESO_H
@@ -26,22 +26,22 @@ namespace LAMMPS_NS {
 
 class FixRigidMeso : public FixRigid {
  public:
-  FixRigidMeso (class LAMMPS *, int, char **);
-  ~FixRigidMeso ();
-  int setmask ();
-  void setup (int);
-  void initial_integrate (int);
-  void final_integrate ();
-  double compute_scalar () { return 0.0; }
-  double compute_array (int, int);
+  FixRigidMeso(class LAMMPS *, int, char **);
+  ~FixRigidMeso();
+  int setmask();
+  void setup(int);
+  void initial_integrate(int);
+  void final_integrate();
+  double compute_scalar() { return 0.0; }
+  double compute_array(int, int);
 
  protected:
-  void set_xv ();
-  void set_v ();
-  double **conjqm;                    // conjugate quaternion momentum
+  void set_xv();
+  void set_v();
+  double **conjqm;    // conjugate quaternion momentum
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

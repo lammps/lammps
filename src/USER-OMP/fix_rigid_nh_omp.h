@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -20,8 +20,7 @@ namespace LAMMPS_NS {
 
 class FixRigidNHOMP : public FixRigidNH {
  public:
-  FixRigidNHOMP(class LAMMPS *lmp, int narg, char **args)
-    : FixRigidNH(lmp,narg,args) {}
+  FixRigidNHOMP(class LAMMPS *lmp, int narg, char **args) : FixRigidNH(lmp, narg, args) {}
   virtual ~FixRigidNHOMP() {}
 
   virtual void initial_integrate(int);
@@ -31,11 +30,11 @@ class FixRigidNHOMP : public FixRigidNH {
  protected:
   virtual void compute_forces_and_torques();
 
- private: // copied from FixRigidOMP
+ private:    // copied from FixRigidOMP
   template <int, int> void set_xv_thr();
   template <int, int> void set_v_thr();
 };
-}
+}    // namespace LAMMPS_NS
 
 #endif
 

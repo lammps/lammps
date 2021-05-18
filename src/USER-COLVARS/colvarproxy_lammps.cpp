@@ -1,3 +1,4 @@
+// clang-format off
 // -*- c++ -*-
 
 // This file is part of the Collective Variables module (Colvars).

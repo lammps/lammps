@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(brownian,PairBrownian)
-
+// clang-format off
+PairStyle(brownian,PairBrownian);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_BROWNIAN_H
@@ -39,9 +39,9 @@ class PairBrownian : public Pair {
   void read_restart_settings(FILE *);
 
  protected:
-  double cut_inner_global,cut_global;
-  double t_target,mu;
-  int flaglog,flagfld;
+  double cut_inner_global, cut_global;
+  double t_target, mu;
+  int flaglog, flagfld;
   int flagHI, flagVF;
   int flagdeform, flagwall;
   double vol_P;
@@ -49,16 +49,16 @@ class PairBrownian : public Pair {
   class FixWall *wallfix;
 
   int seed;
-  double **cut_inner,**cut;
-  double R0,RT0;
+  double **cut_inner, **cut;
+  double R0, RT0;
 
   class RanMars *random;
 
-  void set_3_orthogonal_vectors(double*,double*,double*);
+  void set_3_orthogonal_vectors(double *, double *, double *);
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

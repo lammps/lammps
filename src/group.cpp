@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -321,8 +322,8 @@ void Group::assign(int narg, char **arg)
               delta = values.next_tagint();
             } else throw TokenizerException("Syntax error","");
           } catch (TokenizerException &e) {
-            error->all(FLERR,fmt::format("Incorrect range string "
-                                         "'{}': {}",arg[iarg],e.what()));
+            error->all(FLERR,"Incorrect range string "
+                                         "'{}': {}",arg[iarg],e.what());
           }
           if (delta < 1)
             error->all(FLERR,"Illegal range increment value");
@@ -494,7 +495,7 @@ void Group::assign(int narg, char **arg)
 
       std::string fixcmd = "GROUP_";
       fixcmd += fmt::format("{} {} GROUP",names[igroup],arg[2]);
-      for (int i = 3; i < narg; i++) fixcmd += std::string(" ") + arg[i];
+      for (i = 3; i < narg; i++) fixcmd += std::string(" ") + arg[i];
       modify->add_fix(fixcmd);
 
     // style = static
@@ -535,9 +536,9 @@ void Group::assign(int narg, char **arg)
 
   if (me == 0) {
     if (dynamic[igroup])
-      utils::logmesg(lmp,fmt::format("dynamic group {} defined\n",names[igroup]));
+      utils::logmesg(lmp,"dynamic group {} defined\n",names[igroup]);
     else
-      utils::logmesg(lmp,fmt::format("{:.15g} atoms in group {}\n",all,names[igroup]));
+      utils::logmesg(lmp,"{:.15g} atoms in group {}\n",all,names[igroup]);
   }
 }
 

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -46,55 +46,47 @@ namespace user_manifold {
   // Abstract base class.
   class manifold : protected Pointers {
    public:
-    manifold(class LAMMPS* lmp) : Pointers(lmp), params(nullptr) { }
+    manifold(class LAMMPS *lmp) : Pointers(lmp), params(nullptr) {}
     virtual ~manifold() { delete[] params; }
-    virtual double g( const double * ) = 0;
-    virtual void   n( const double *, double * ) = 0;
-
+    virtual double g(const double *) = 0;
+    virtual void n(const double *, double *) = 0;
 
     // Variant of g that computes n at the same time.
-    virtual double g_and_n( const double *x, double *nn )
+    virtual double g_and_n(const double *x, double *nn)
     {
-      this->n(x,nn);
+      this->n(x, nn);
       return g(x);
     }
 
     virtual const char *id() = 0;
 
-    virtual void set_atom_id( tagint /*a_id*/ ) {}
+    virtual void set_atom_id(tagint /*a_id*/) {}
     virtual int nparams() = 0;
     // double *get_params() { return params; };
 
     // Overload if any initialization depends on params:
     virtual void post_param_init() {}
-    virtual void checkup() {} // Some diagnostics...
+    virtual void checkup() {}    // Some diagnostics...
 
     double *params;
   };
 
-
-
   // Some utility functions that are templated, so I implement them
   // here in the header.
-  template< unsigned int size > inline
-  double infnorm(double *vect)
+  template <unsigned int size> inline double infnorm(double *vect)
   {
-    double largest = fabs( vect[0] );
+    double largest = fabs(vect[0]);
     for (unsigned int i = 1; i < size; ++i) {
-      double c = fabs( vect[i] );
-      largest = ( c > largest ) ? c : largest;
+      double c = fabs(vect[i]);
+      largest = (c > largest) ? c : largest;
     }
     return largest;
   }
 
-  inline double dot(double *a, double *b) {
-    return a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
-  }
+  inline double dot(double *a, double *b) { return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]; }
 
+}    // namespace user_manifold
 
-} // namespace LAMMPS_NS
+}    // namespace LAMMPS_NS
 
-}
-
-
-#endif // LMP_MANIFOLD_H
+#endif    // LMP_MANIFOLD_H

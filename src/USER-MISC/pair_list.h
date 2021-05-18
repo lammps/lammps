@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(list,PairList)
-
+// clang-format off
+PairStyle(list,PairList);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_LIST_H
@@ -39,12 +39,18 @@ class PairList : public Pair {
  protected:
   void allocate();
 
-  enum { NONE=0, HARM, MORSE, LJ126 };
+  enum { NONE = 0, HARM, MORSE, LJ126 };
 
   // potential specific parameters
-  struct harm_p  { double k, r0;          };
-  struct morse_p { double d0, alpha, r0;  };
-  struct lj126_p { double epsilon, sigma; };
+  struct harm_p {
+    double k, r0;
+  };
+  struct morse_p {
+    double d0, alpha, r0;
+  };
+  struct lj126_p {
+    double epsilon, sigma;
+  };
 
   union parm_u {
     struct harm_p harm;
@@ -53,21 +59,21 @@ class PairList : public Pair {
   };
 
   typedef struct {
-    tagint id1,id2;        // global atom ids
-    double cutsq;       // cutoff**2 for this pair
-    double offset;      // energy offset
-    union parm_u parm;  // parameters for style
+    tagint id1, id2;      // global atom ids
+    double cutsq;         // cutoff**2 for this pair
+    double offset;        // energy offset
+    union parm_u parm;    // parameters for style
   } list_parm_t;
 
  protected:
-  double cut_global;    // global cutoff distance
-  int *style;           // list of styles for pair interactions
-  list_parm_t *params;  // lisf of pair interaction parameters
-  int npairs;           // # of atom pairs in global list
-  int check_flag;       // 1 if checking for missing pairs
+  double cut_global;      // global cutoff distance
+  int *style;             // list of styles for pair interactions
+  list_parm_t *params;    // lisf of pair interaction parameters
+  int npairs;             // # of atom pairs in global list
+  int check_flag;         // 1 if checking for missing pairs
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

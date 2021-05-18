@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -131,5 +132,5 @@ void KimCommand::command(int narg, char **arg)
     KimQuery *cmd = new KimQuery(lmp);
     cmd->command(narg, arg);
     delete cmd;
-  } else error->all(FLERR, fmt::format("Unknown kim subcommand {}", subcmd));
+  } else error->all(FLERR,"Unknown kim subcommand {}", subcmd);
 }

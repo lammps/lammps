@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef BOND_CLASS
-
-BondStyle(gaussian,BondGaussian)
-
+// clang-format off
+BondStyle(gaussian,BondGaussian);
+// clang-format on
 #else
 
 #ifndef LMP_BOND_GAUSSIAN_H
@@ -39,12 +39,12 @@ class BondGaussian : public Bond {
  protected:
   int *nterms;
   double *bond_temperature;
-  double **alpha,**width,**r0;
+  double **alpha, **width, **r0;
 
   virtual void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

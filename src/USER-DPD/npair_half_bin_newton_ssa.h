@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,11 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef NPAIR_CLASS
-
+// clang-format off
 NPairStyle(half/bin/newton/ssa,
            NPairHalfBinNewtonSSA,
-           NP_HALF | NP_BIN | NP_NEWTON | NP_ORTHO | NP_SSA | NP_GHOST)
-
+           NP_HALF | NP_BIN | NP_NEWTON | NP_ORTHO | NP_SSA | NP_GHOST);
+// clang-format on
 #else
 
 #ifndef LMP_NPAIR_HALF_BIN_NEWTON_SSA_H
@@ -43,11 +43,12 @@ class NPairHalfBinNewtonSSA : public NPair {
   NPairHalfBinNewtonSSA(class LAMMPS *);
   ~NPairHalfBinNewtonSSA();
   void build(class NeighList *);
+
  private:
   int ssa_maxPhaseCt;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

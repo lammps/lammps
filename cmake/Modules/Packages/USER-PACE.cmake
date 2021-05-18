@@ -20,7 +20,7 @@ file(GLOB PACE_EVALUATOR_SOURCES ${CMAKE_BINARY_DIR}/lammps-user-pace-*/USER-PAC
 list(FILTER PACE_EVALUATOR_SOURCES EXCLUDE REGEX pair_pace.cpp)
 
 add_library(pace STATIC ${PACE_EVALUATOR_SOURCES})
-set_target_properties(pace PROPERTIES OUTPUT_NAME pace${LAMMPS_MACHINE})
+set_target_properties(pace PROPERTIES OUTPUT_NAME lammps_pace${LAMMPS_MACHINE})
 target_include_directories(pace PUBLIC ${PACE_EVALUATOR_INCLUDE_DIR})
 target_link_libraries(lammps PRIVATE pace)
 

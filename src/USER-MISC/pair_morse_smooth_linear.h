@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -14,9 +14,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(morse/smooth/linear,PairMorseSmoothLinear)
-
+// clang-format off
+PairStyle(morse/smooth/linear,PairMorseSmoothLinear);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_MORSE_SMOOTH_LINEAR_H
@@ -47,7 +47,7 @@ class PairMorseSmoothLinear : public Pair {
  protected:
   double cut_global;
   double **cut;
-  double **d0,**alpha,**r0;
+  double **d0, **alpha, **r0;
   double **morse1;
   double **der_at_cutoff;
   double **offset;
@@ -55,7 +55,7 @@ class PairMorseSmoothLinear : public Pair {
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

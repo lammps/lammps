@@ -140,7 +140,7 @@ inline int cuda_deduce_block_size(bool early_termination,
       }
     }
 
-    if (early_termination && blocks_per_sm != 0) break;
+    if (early_termination && opt_block_size != 0) break;
   }
 
   return opt_block_size;
@@ -222,7 +222,8 @@ inline size_t get_shmem_per_sm_prefer_l1(cudaDeviceProp const& properties) {
       case 52:
       case 61: return 96;
       case 70:
-      case 80: return 8;
+      case 80:
+      case 86: return 8;
       case 75: return 32;
       default:
         Kokkos::Impl::throw_runtime_exception(

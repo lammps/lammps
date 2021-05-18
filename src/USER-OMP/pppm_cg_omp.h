@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef KSPACE_CLASS
-
-KSpaceStyle(pppm/cg/omp,PPPMCGOMP)
-
+// clang-format off
+KSpaceStyle(pppm/cg/omp,PPPMCGOMP);
+// clang-format on
 #else
 
 #ifndef LMP_PPPM_CG_OMP_H
@@ -28,7 +28,7 @@ namespace LAMMPS_NS {
 class PPPMCGOMP : public PPPMCG, public ThrOMP {
  public:
   PPPMCGOMP(class LAMMPS *);
-  virtual ~PPPMCGOMP ();
+  virtual ~PPPMCGOMP();
   virtual void compute(int, int);
 
  protected:
@@ -43,13 +43,13 @@ class PPPMCGOMP : public PPPMCG, public ThrOMP {
   virtual void fieldforce_peratom();
 
  private:
-  void compute_rho1d_thr(FFT_SCALAR * const * const, const FFT_SCALAR &,
-                         const FFT_SCALAR &, const FFT_SCALAR &);
-  void compute_drho1d_thr(FFT_SCALAR * const * const, const FFT_SCALAR &,
-                          const FFT_SCALAR &, const FFT_SCALAR &);
+  void compute_rho1d_thr(FFT_SCALAR *const *const, const FFT_SCALAR &, const FFT_SCALAR &,
+                         const FFT_SCALAR &);
+  void compute_drho1d_thr(FFT_SCALAR *const *const, const FFT_SCALAR &, const FFT_SCALAR &,
+                          const FFT_SCALAR &);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

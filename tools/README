@@ -38,6 +38,7 @@ mesont                 Tools for use with the USER-MESONT package
 micelle2d              create a data file of small lipid chains in solvent
 moltemplate            Instructions for installing the Moltemplate builder program
 msi2lmp                use Accelrys Insight code to setup LAMMPS input
+offline                Scripts for building LAMMPS when offline
 phonon                 post-process output of the fix phonon command
 polybond               Python tool for programmable polymer bonding
 pymol_asphere          convert LAMMPS output of ellipsoids to PyMol format

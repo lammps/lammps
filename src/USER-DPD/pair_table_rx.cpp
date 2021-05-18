@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -54,6 +55,8 @@ PairTableRX::PairTableRX(LAMMPS *lmp) : PairTable(lmp)
 
 PairTableRX::~PairTableRX()
 {
+  if (copymode) return;
+
   delete [] site1;
   delete [] site2;
 }

@@ -1,6 +1,7 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,11 +13,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(lj/class2/coul/cut/kk,PairLJClass2CoulCutKokkos<LMPDeviceType>)
-PairStyle(lj/class2/coul/cut/kk/device,PairLJClass2CoulCutKokkos<LMPDeviceType>)
-PairStyle(lj/class2/coul/cut/kk/host,PairLJClass2CoulCutKokkos<LMPHostType>)
-
+// clang-format off
+PairStyle(lj/class2/coul/cut/kk,PairLJClass2CoulCutKokkos<LMPDeviceType>);
+PairStyle(lj/class2/coul/cut/kk/device,PairLJClass2CoulCutKokkos<LMPDeviceType>);
+PairStyle(lj/class2/coul/cut/kk/host,PairLJClass2CoulCutKokkos<LMPHostType>);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_LJ_CLASS2_COUL_CUT_KOKKOS_H
@@ -46,8 +47,6 @@ class PairLJClass2CoulCutKokkos : public PairLJClass2CoulCut {
 
 
  protected:
-  void cleanup_copy();
-
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
   F_FLOAT compute_fpair(const F_FLOAT& rsq, const int& i, const int&j,

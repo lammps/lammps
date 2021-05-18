@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -14,9 +14,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(mesont/tpm,PairMESONTTPM)
-
+// clang-format off
+PairStyle(mesont/tpm,PairMESONTTPM);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_MESONT_TPM_H
@@ -42,14 +42,14 @@ class PairMESONTTPM : public Pair {
   void write_data_all(FILE *);
   virtual void init_style();
 
-  double energy_s;  // accumulated energies for stretching
-  double energy_b;  // accumulated energies for bending
-  double energy_t;  // accumulated energies for tube-tube interaction
-  double *eatom_s, *eatom_b, *eatom_t; // accumulated per-atom values
+  double energy_s;                        // accumulated energies for stretching
+  double energy_b;                        // accumulated energies for bending
+  double energy_t;                        // accumulated energies for tube-tube interaction
+  double *eatom_s, *eatom_b, *eatom_t;    // accumulated per-atom values
 
  protected:
   int BendingMode, TPMType;
-  char* tab_path;
+  char *tab_path;
   int tab_path_length;
   double cut_global;
   double **cut;
@@ -60,7 +60,7 @@ class PairMESONTTPM : public Pair {
   virtual void *extract(const char *, int &);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

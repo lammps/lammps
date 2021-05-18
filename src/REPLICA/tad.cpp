@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -43,7 +44,10 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-TAD::TAD(LAMMPS *lmp) : Command(lmp) {}
+TAD::TAD(LAMMPS *lmp) : Command(lmp)
+{
+  deltconf = deltstop = deltfirst = 0.0;
+}
 
 /* ---------------------------------------------------------------------- */
 

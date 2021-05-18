@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -57,8 +57,6 @@
 
 #include <string>
 
-int lammps_unit_conversion(const std::string &unit_type_str,
-                           const std::string &from_system_str,
-                           const std::string &to_system_str,
-                           double &conversion_factor);
+int lammps_unit_conversion(const std::string &unit_type_str, const std::string &from_system_str,
+                           const std::string &to_system_str, double &conversion_factor);
 #endif

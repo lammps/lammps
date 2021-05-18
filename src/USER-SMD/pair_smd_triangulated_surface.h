@@ -9,10 +9,9 @@
  *
  * ----------------------------------------------------------------------- */
 
-
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -24,9 +23,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(smd/tri_surface,PairTriSurf)
-
+// clang-format off
+PairStyle(smd/tri_surface,PairTriSurf);
+// clang-format on
 #else
 
 #ifndef LMP_SMD_TRI_SURFACE_H
@@ -34,7 +33,6 @@ PairStyle(smd/tri_surface,PairTriSurf)
 
 #include "pair.h"
 #include <Eigen/Eigen>
-
 
 namespace LAMMPS_NS {
 
@@ -49,8 +47,9 @@ class PairTriSurf : public Pair {
   void init_style();
   void init_list(int, class NeighList *);
   virtual double memory_usage();
-  void PointTriangleDistance(const Eigen::Vector3d P, const Eigen::Vector3d TRI1, const Eigen::Vector3d TRI2, const Eigen::Vector3d TRI3,
-        Eigen::Vector3d &CP, double &dist);
+  void PointTriangleDistance(const Eigen::Vector3d P, const Eigen::Vector3d TRI1,
+                             const Eigen::Vector3d TRI2, const Eigen::Vector3d TRI3,
+                             Eigen::Vector3d &CP, double &dist);
   double clamp(const double a, const double min, const double max);
   void *extract(const char *, int &);
 
@@ -58,16 +57,16 @@ class PairTriSurf : public Pair {
   double **bulkmodulus;
   double **kn;
 
-  double *onerad_dynamic,*onerad_frozen;
-  double *maxrad_dynamic,*maxrad_frozen;
+  double *onerad_dynamic, *onerad_frozen;
+  double *maxrad_dynamic, *maxrad_frozen;
 
   double scale;
-  double stable_time_increment; // stable time step size
+  double stable_time_increment;    // stable time step size
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

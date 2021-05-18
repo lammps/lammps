@@ -121,10 +121,10 @@ set(STANDARD_PACKAGES ASPHERE BODY CLASS2 COLLOID COMPRESS DIPOLE
   PLUGIN QEQ REPLICA RIGID SHOCK SPIN SNAP SRD KIM PYTHON MSCG MPIIO VORONOI
   USER-ADIOS USER-ATC USER-AWPMD USER-BOCS USER-CGDNA USER-MESODPD USER-CGSDK
   USER-COLVARS USER-DIFFRACTION USER-DPD USER-DRUDE USER-EFF USER-FEP USER-H5MD
-  USER-LB USER-MANIFOLD USER-MEAMC USER-MESONT USER-MGPT USER-MISC USER-MOFFF
+  USER-LB USER-MANIFOLD USER-MDI USER-MEAMC USER-MESONT USER-MGPT USER-MISC USER-MOFFF
   USER-MOLFILE USER-NETCDF USER-PHONON USER-PLUMED USER-PTM USER-QTB
   USER-REACTION USER-REAXC USER-SCAFACOS USER-SDPD USER-SMD USER-SMTBQ USER-SPH
-  USER-TALLY USER-UEF USER-VTK USER-QUIP USER-QMMM USER-YAFF USER-PACE)
+  USER-TALLY USER-UEF USER-VTK USER-QUIP USER-QMMM USER-YAFF USER-PACE USER-BROWNIAN)
 
 set(SUFFIX_PACKAGES CORESHELL GPU KOKKOS OPT USER-INTEL USER-OMP)
 
@@ -245,69 +245,6 @@ if(BUILD_OMP)
   target_link_libraries(lammps PRIVATE OpenMP::OpenMP_CXX)
 endif()
 
-# Compiler specific features for testing
-if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
-  option(ENABLE_COVERAGE "Enable collecting code coverage data" OFF)
-  mark_as_advanced(ENABLE_COVERAGE)
-  if(ENABLE_COVERAGE)
-    if(CMAKE_VERSION VERSION_LESS 3.13)
-      if(CMAKE_CXX_FLAGS)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage")
-      else()
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_${CMAKE_BUILD_TYPE}_FLAGS} --coverage")
-      endif()
-    else()
-      target_compile_options(lammps PUBLIC --coverage)
-      target_link_options(lammps PUBLIC --coverage)
-    endif()
-  endif()
-endif()
-
-#######################################
-# add custom target for IWYU analysis
-#######################################
-set(ENABLE_IWYU OFF CACHE BOOL "Add 'iwyu' build target to call the include-what-you-use tool")
-mark_as_advanced(ENABLE_IWYU)
-if(ENABLE_IWYU)
-  set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-  find_program(IWYU_EXE NAMES include-what-you-use iwyu)
-  find_program(IWYU_TOOL NAMES iwyu_tool iwyu-tool iwyu_tool.py)
-  if (IWYU_EXE AND IWYU_TOOL)
-    add_custom_target(
-      iwyu
-      ${IWYU_TOOL} -o clang -p ${CMAKE_CURRENT_BINARY_DIR} -- -Xiwyu --mapping_file=${CMAKE_CURRENT_SOURCE_DIR}/iwyu/iwyu-extra-map.imp
-      COMMENT "Running IWYU")
-    add_dependencies(iwyu lammps)
-  else()
-    message(FATAL_ERROR "To use IWYU you need the include-what-you-use/iwyu executable"
-      "and the iwyu-tool/iwyu_tool script installed in your PATH")
-  endif()
-endif()
-
-set(ENABLE_SANITIZER "none" CACHE STRING "Select a code sanitizer option (none (default), address, leak, thread, undefined)")
-mark_as_advanced(ENABLE_SANITIZER)
-set(ENABLE_SANITIZER_VALUES none address leak thread undefined)
-set_property(CACHE ENABLE_SANITIZER PROPERTY STRINGS ${ENABLE_SANITIZER_VALUES})
-validate_option(ENABLE_SANITIZER ENABLE_SANITIZER_VALUES)
-string(TOLOWER ${ENABLE_SANITIZER} ENABLE_SANITIZER)
-if(NOT ENABLE_SANITIZER STREQUAL "none")
-  if((${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU") OR (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang"))
-    if(CMAKE_VERSION VERSION_LESS 3.13)
-      if(CMAKE_CXX_FLAGS)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=${ENABLE_SANITIZER}")
-      else()
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_${CMAKE_BUILD_TYPE}_FLAGS} -fsanitize=${ENABLE_SANITIZER}")
-      endif()
-    else()
-      target_compile_options(lammps PUBLIC -fsanitize=${ENABLE_SANITIZER})
-      target_link_options(lammps PUBLIC -fsanitize=${ENABLE_SANITIZER})
-    endif()
-  else()
-    message(WARNING "ENABLE_SANITIZER option not supported by ${CMAKE_CXX_COMPILER_ID} compilers. Ignoring.")
-    set(ENABLE_SANITIZER "none")
-  endif()
-endif()
-
 if(PKG_MSCG OR PKG_USER-ATC OR PKG_USER-AWPMD OR PKG_USER-QUIP OR PKG_LATTE)
   enable_language(C)
   find_package(LAPACK)
@@ -387,8 +324,8 @@ else()
   set(CUDA_REQUEST_PIC)
 endif()
 
-foreach(PKG_WITH_INCL KSPACE PYTHON MLIAP VORONOI USER-COLVARS USER-MOLFILE USER-NETCDF USER-PLUMED USER-QMMM
-        USER-QUIP USER-SCAFACOS USER-SMD USER-VTK KIM LATTE MESSAGE MSCG COMPRESS USER-PACE)
+foreach(PKG_WITH_INCL KSPACE PYTHON MLIAP VORONOI USER-COLVARS USER-MDI USER-MOLFILE USER-NETCDF USER-PLUMED
+        USER-QMMM USER-QUIP USER-SCAFACOS USER-SMD USER-VTK KIM LATTE MESSAGE MSCG COMPRESS USER-PACE)
   if(PKG_${PKG_WITH_INCL})
     include(Packages/${PKG_WITH_INCL}) 
   endif()

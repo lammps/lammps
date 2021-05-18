@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -20,8 +20,8 @@
 
 namespace LAMMPS_NS {
 
-  class Compute;
-  class Fix;
+class Compute;
+class Fix;
 
 class Modify : protected Pointers {
   friend class Info;
@@ -30,26 +30,26 @@ class Modify : protected Pointers {
   friend class RespaOMP;
 
  public:
-  int n_initial_integrate,n_post_integrate,n_pre_exchange;
-  int n_pre_neighbor,n_post_neighbor;
-  int n_pre_force,n_pre_reverse,n_post_force;
-  int n_final_integrate,n_end_of_step;
-  int n_energy_couple,n_energy_global,n_energy_atom;
-  int n_initial_integrate_respa,n_post_integrate_respa;
-  int n_pre_force_respa,n_post_force_respa,n_final_integrate_respa;
-  int n_min_pre_exchange,n_min_pre_neighbor,n_min_post_neighbor;
-  int n_min_pre_force,n_min_pre_reverse,n_min_post_force,n_min_energy;
+  int n_initial_integrate, n_post_integrate, n_pre_exchange;
+  int n_pre_neighbor, n_post_neighbor;
+  int n_pre_force, n_pre_reverse, n_post_force;
+  int n_final_integrate, n_end_of_step;
+  int n_energy_couple, n_energy_global, n_energy_atom;
+  int n_initial_integrate_respa, n_post_integrate_respa;
+  int n_pre_force_respa, n_post_force_respa, n_final_integrate_respa;
+  int n_min_pre_exchange, n_min_pre_neighbor, n_min_post_neighbor;
+  int n_min_pre_force, n_min_pre_reverse, n_min_post_force, n_min_energy;
 
-  int restart_pbc_any;       // 1 if any fix sets restart_pbc
-  int nfix_restart_global;   // stored fix global info from restart file
-  int nfix_restart_peratom;  // stored fix peratom info from restart file
+  int restart_pbc_any;         // 1 if any fix sets restart_pbc
+  int nfix_restart_global;     // stored fix global info from restart file
+  int nfix_restart_peratom;    // stored fix peratom info from restart file
 
-  int nfix,maxfix;
-  Fix **fix;                 // list of fixes
-  int *fmask;                // bit mask for when each fix is applied
+  int nfix, maxfix;
+  Fix **fix;     // list of fixes
+  int *fmask;    // bit mask for when each fix is applied
 
-  int ncompute,maxcompute;
-  Compute **compute;         // list of computes
+  int ncompute, maxcompute;
+  Compute **compute;    // list of computes
 
   Modify(class LAMMPS *);
   virtual ~Modify();
@@ -66,7 +66,7 @@ class Modify : protected Pointers {
   virtual void pre_neighbor();
   virtual void post_neighbor();
   virtual void pre_force(int);
-  virtual void pre_reverse(int,int);
+  virtual void pre_reverse(int, int);
   virtual void post_force(int);
   virtual void final_integrate();
   virtual void end_of_step();
@@ -87,7 +87,7 @@ class Modify : protected Pointers {
   virtual void min_pre_neighbor();
   virtual void min_post_neighbor();
   virtual void min_pre_force(int);
-  virtual void min_pre_reverse(int,int);
+  virtual void min_pre_reverse(int, int);
   virtual void min_post_force(int);
 
   virtual double min_energy(double *);
@@ -100,18 +100,18 @@ class Modify : protected Pointers {
   virtual int min_dof();
   virtual int min_reset_ref();
 
-  void add_fix(int, char **, int trysuffix=1);
-  void add_fix(const std::string &, int trysuffix=1);
-  void replace_fix(const char *, int, char **, int trysuffix=1);
-  void replace_fix(const std::string &, const std::string &, int trysuffix=1);
+  void add_fix(int, char **, int trysuffix = 1);
+  void add_fix(const std::string &, int trysuffix = 1);
+  void replace_fix(const char *, int, char **, int trysuffix = 1);
+  void replace_fix(const std::string &, const std::string &, int trysuffix = 1);
   void modify_fix(int, char **);
   void delete_fix(const std::string &);
   void delete_fix(int);
   int find_fix(const std::string &);
   int find_fix_by_style(const char *);
 
-  void add_compute(int, char **, int trysuffix=1);
-  void add_compute(const std::string &, int trysuffix=1);
+  void add_compute(int, char **, int trysuffix = 1);
+  void add_compute(const std::string &, int trysuffix = 1);
   void modify_compute(int, char **);
   void delete_compute(const std::string &);
   void delete_compute(int);
@@ -134,37 +134,36 @@ class Modify : protected Pointers {
   double memory_usage();
 
  protected:
-
   // lists of fixes to apply at different stages of timestep
 
-  int *list_initial_integrate,*list_post_integrate;
-  int *list_pre_exchange,*list_pre_neighbor,*list_post_neighbor;
-  int *list_pre_force,*list_pre_reverse,*list_post_force;
-  int *list_final_integrate,*list_end_of_step;
-  int *list_energy_couple,*list_energy_global,*list_energy_atom;
-  int *list_initial_integrate_respa,*list_post_integrate_respa;
-  int *list_pre_force_respa,*list_post_force_respa;
+  int *list_initial_integrate, *list_post_integrate;
+  int *list_pre_exchange, *list_pre_neighbor, *list_post_neighbor;
+  int *list_pre_force, *list_pre_reverse, *list_post_force;
+  int *list_final_integrate, *list_end_of_step;
+  int *list_energy_couple, *list_energy_global, *list_energy_atom;
+  int *list_initial_integrate_respa, *list_post_integrate_respa;
+  int *list_pre_force_respa, *list_post_force_respa;
   int *list_final_integrate_respa;
-  int *list_min_pre_exchange,*list_min_pre_neighbor,*list_min_post_neighbor;
-  int *list_min_pre_force,*list_min_pre_reverse,*list_min_post_force;
+  int *list_min_pre_exchange, *list_min_pre_neighbor, *list_min_post_neighbor;
+  int *list_min_pre_force, *list_min_pre_reverse, *list_min_post_force;
   int *list_min_energy;
 
   int *end_of_step_every;
 
-  int n_timeflag;            // list of computes that store time invocation
+  int n_timeflag;    // list of computes that store time invocation
   int *list_timeflag;
 
-  char **id_restart_global;           // stored fix global info
-  char **style_restart_global;        // from read-in restart file
+  char **id_restart_global;       // stored fix global info
+  char **style_restart_global;    // from read-in restart file
   char **state_restart_global;
   int *used_restart_global;
 
-  char **id_restart_peratom;          // stored fix peratom info
-  char **style_restart_peratom;       // from read-in restart file
+  char **id_restart_peratom;       // stored fix peratom info
+  char **style_restart_peratom;    // from read-in restart file
   int *index_restart_peratom;
   int *used_restart_peratom;
 
-  int index_permanent;        // fix/compute index returned to library call
+  int index_permanent;    // fix/compute index returned to library call
 
   void list_init(int, int &, int *&);
   void list_init_end_of_step(int, int &, int *&);
@@ -176,11 +175,11 @@ class Modify : protected Pointers {
 
  public:
   typedef Compute *(*ComputeCreator)(LAMMPS *, int, char **);
-  typedef std::map<std::string,ComputeCreator> ComputeCreatorMap;
+  typedef std::map<std::string, ComputeCreator> ComputeCreatorMap;
   ComputeCreatorMap *compute_map;
 
   typedef Fix *(*FixCreator)(LAMMPS *, int, char **);
-  typedef std::map<std::string,FixCreator> FixCreatorMap;
+  typedef std::map<std::string, FixCreator> FixCreatorMap;
   FixCreatorMap *fix_map;
 
  protected:
@@ -189,7 +188,7 @@ class Modify : protected Pointers {
   template <typename T> static Fix *fix_creator(LAMMPS *, int, char **);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 

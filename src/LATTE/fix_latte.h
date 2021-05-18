@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(latte,FixLatte)
-
+// clang-format off
+FixStyle(latte,FixLatte);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_LATTE_H
@@ -45,10 +45,10 @@ class FixLatte : public Fix {
 
  protected:
   char *id_pe;
-  int coulomb,pbcflag,pe_peratom,virial_global,virial_peratom,neighflag;
+  int coulomb, pbcflag, pe_peratom, virial_global, virial_peratom, neighflag;
   int eflag_caller;
 
-  int nmax,newsystem;
+  int nmax, newsystem;
   double *qpotential;
   double **flatte;
   double latte_energy;
@@ -57,7 +57,7 @@ class FixLatte : public Fix {
   class Compute *c_pe;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

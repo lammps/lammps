@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(temp/ramp,ComputeTempRamp)
-
+// clang-format off
+ComputeStyle(temp/ramp,ComputeTempRamp);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_TEMP_RAMP_H
@@ -43,16 +43,16 @@ class ComputeTempRamp : public Compute {
 
  private:
   int coord_dim;
-  double coord_lo,coord_hi;
+  double coord_lo, coord_hi;
   int v_dim;
-  double v_lo,v_hi;
+  double v_lo, v_hi;
   int scaleflag;
-  double tfactor,xscale,yscale,zscale;
+  double tfactor, xscale, yscale, zscale;
 
   void dof_compute();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

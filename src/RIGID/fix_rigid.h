@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(rigid,FixRigid)
-
+// clang-format off
+FixStyle(rigid,FixRigid);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_RIGID_H
@@ -55,85 +55,85 @@ class FixRigid : public Fix {
   void zero_momentum();
   void zero_rotation();
   virtual int modify_param(int, char **);
-  virtual void *extract(const char*, int &);
+  virtual void *extract(const char *, int &);
   double extract_ke();
   double extract_erotational();
   double compute_array(int, int);
 
  protected:
-  int me,nprocs;
-  double dtv,dtf,dtq;
+  int me, nprocs;
+  double dtv, dtf, dtq;
   double *step_respa;
   int triclinic;
 
-  char *inpfile;            // file to read rigid body attributes from
+  char *inpfile;    // file to read rigid body attributes from
 
-  int rstyle;               // SINGLE,MOLECULE,GROUP
-  int setupflag;            // 1 if body properties are setup, else 0
-  int earlyflag;            // 1 if forces/torques computed at post_force()
+  int rstyle;       // SINGLE,MOLECULE,GROUP
+  int setupflag;    // 1 if body properties are setup, else 0
+  int earlyflag;    // 1 if forces/torques computed at post_force()
 
-  int dimension;            // # of dimensions
-  int nbody;                // # of rigid bodies
-  int nlinear;              // # of linear rigid bodies
-  int *nrigid;              // # of atoms in each rigid body
-  int *mol2body;            // convert mol-ID to rigid body index
-  int *body2mol;            // convert rigid body index to mol-ID
-  int maxmol;               // size of mol2body = max mol-ID
+  int dimension;    // # of dimensions
+  int nbody;        // # of rigid bodies
+  int nlinear;      // # of linear rigid bodies
+  int *nrigid;      // # of atoms in each rigid body
+  int *mol2body;    // convert mol-ID to rigid body index
+  int *body2mol;    // convert rigid body index to mol-ID
+  int maxmol;       // size of mol2body = max mol-ID
 
-  int *body;                // which body each atom is part of (-1 if none)
-  double **displace;        // displacement of each atom in body coords
+  int *body;            // which body each atom is part of (-1 if none)
+  double **displace;    // displacement of each atom in body coords
 
-  double *masstotal;        // total mass of each rigid body
-  double **xcm;             // coords of center-of-mass of each rigid body
-  double **vcm;             // velocity of center-of-mass of each
-  double **fcm;             // force on center-of-mass of each
-  double **inertia;         // 3 principal components of inertia of each
-  double **ex_space,**ey_space,**ez_space;
-                            // principal axes of each in space coords
-  double **angmom;          // angular momentum of each in space coords
-  double **omega;           // angular velocity of each in space coords
-  double **torque;          // torque on each rigid body in space coords
-  double **quat;            // quaternion of each rigid body
-  imageint *imagebody;        // image flags of xcm of each rigid body
-  double **fflag;           // flag for on/off of center-of-mass force
-  double **tflag;           // flag for on/off of center-of-mass torque
-  double **langextra;       // Langevin thermostat forces and torques
+  double *masstotal;    // total mass of each rigid body
+  double **xcm;         // coords of center-of-mass of each rigid body
+  double **vcm;         // velocity of center-of-mass of each
+  double **fcm;         // force on center-of-mass of each
+  double **inertia;     // 3 principal components of inertia of each
+  double **ex_space, **ey_space, **ez_space;
+  // principal axes of each in space coords
+  double **angmom;        // angular momentum of each in space coords
+  double **omega;         // angular velocity of each in space coords
+  double **torque;        // torque on each rigid body in space coords
+  double **quat;          // quaternion of each rigid body
+  imageint *imagebody;    // image flags of xcm of each rigid body
+  double **fflag;         // flag for on/off of center-of-mass force
+  double **tflag;         // flag for on/off of center-of-mass torque
+  double **langextra;     // Langevin thermostat forces and torques
 
-  double **sum,**all;       // work vectors for each rigid body
-  int **remapflag;          // PBC remap flags for each rigid body
+  double **sum, **all;    // work vectors for each rigid body
+  int **remapflag;        // PBC remap flags for each rigid body
 
-  int extended;             // 1 if any particles have extended attributes
-  int orientflag;           // 1 if particles store spatial orientation
-  int dorientflag;          // 1 if particles store dipole orientation
-  int reinitflag;           // 1 if re-initialize rigid bodies between runs
+  int extended;       // 1 if any particles have extended attributes
+  int orientflag;     // 1 if particles store spatial orientation
+  int dorientflag;    // 1 if particles store dipole orientation
+  int reinitflag;     // 1 if re-initialize rigid bodies between runs
 
-  imageint *xcmimage;       // internal image flags for atoms in rigid bodies
-                            // set relative to in-box xcm of each body
-  int *eflags;              // flags for extended particles
-  double **orient;          // orientation vector of particle wrt rigid body
-  double **dorient;         // orientation of dipole mu wrt rigid body
+  imageint *xcmimage;    // internal image flags for atoms in rigid bodies
+                         // set relative to in-box xcm of each body
+  int *eflags;           // flags for extended particles
+  double **orient;       // orientation vector of particle wrt rigid body
+  double **dorient;      // orientation of dipole mu wrt rigid body
 
-  double tfactor;           // scale factor on temperature of rigid bodies
-  int langflag;             // 0/1 = no/yes Langevin thermostat
+  double tfactor;    // scale factor on temperature of rigid bodies
+  int langflag;      // 0/1 = no/yes Langevin thermostat
 
-  int tstat_flag;           // NVT settings
-  double t_start,t_stop,t_target;
-  double t_period,t_freq;
-  int t_chain,t_iter,t_order;
+  int tstat_flag;    // NVT settings
+  double t_start, t_stop, t_target;
+  double t_period, t_freq;
+  int t_chain, t_iter, t_order;
 
-  int pstat_flag;           // NPT settings
-  double p_start[3],p_stop[3];
-  double p_period[3],p_freq[3];
+  int pstat_flag;    // NPT settings
+  double p_start[3], p_stop[3];
+  double p_period[3], p_freq[3];
   int p_flag[3];
-  int pcouple,pstyle;
+  int pcouple, pstyle;
   int p_chain;
 
-  int allremap;              // remap all atoms
-  int dilate_group_bit;      // mask for dilation group
-  char *id_dilate;           // group name to dilate
+  int allremap;            // remap all atoms
+  int dilate_group_bit;    // mask for dilation group
+  char *id_dilate;         // group name to dilate
 
-  char *id_gravity;         // ID of fix gravity command to add gravity forces
-  double *gvec;             // ptr to gravity vector inside the fix
+  char *id_gravity;    // ID of fix gravity command to add gravity forces
+  double *gvec;        // ptr to gravity vector inside the fix
 
   class RanMars *random;
   class AtomVecEllipsoid *avec_ellipsoid;
@@ -147,11 +147,10 @@ class FixRigid : public Fix {
   void setup_bodies_dynamic();
   void apply_langevin_thermostat();
   void compute_forces_and_torques();
-  void readfile(int, double *, double **, double **, double **,
-                imageint *, int *);
+  void readfile(int, double *, double **, double **, double **, imageint *, int *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -206,8 +207,8 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
       if (comm->me == 0) {
         fp = fopen(arg[iarg+1],"w");
         if (fp == nullptr)
-          error->one(FLERR,fmt::format("Cannot open fix ave/chunk file {}: {}",
-                                       arg[iarg+1], utils::getsyserror()));
+          error->one(FLERR,"Cannot open fix ave/chunk file {}: {}",
+                                       arg[iarg+1], utils::getsyserror());
       }
       iarg += 2;
     } else if (strcmp(arg[iarg],"overwrite") == 0) {
@@ -488,7 +489,7 @@ void FixAveChunk::init()
 
   for (int m = 0; m < nvalues; m++) {
     if (which[m] == ArgInfo::COMPUTE) {
-      int icompute = modify->find_compute(ids[m]);
+      icompute = modify->find_compute(ids[m]);
       if (icompute < 0)
         error->all(FLERR,"Compute ID for fix ave/chunk does not exist");
       value2index[m] = icompute;
@@ -984,7 +985,6 @@ void FixAveChunk::end_of_step()
         }
       }
     } else {
-      int j;
       if (ncoord == 0) {
         for (m = 0; m < nchunk; m++) {
           fprintf(fp,"  %d %d %g",m+1,chunkID[m],count_total[m]/normcount);

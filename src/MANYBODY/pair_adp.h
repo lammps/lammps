@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(adp,PairADP)
-
+// clang-format off
+PairStyle(adp,PairADP);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_ADP_H
@@ -41,38 +41,38 @@ class PairADP : public Pair {
   double memory_usage();
 
  protected:
-  int nmax;                   // allocated size of per-atom arrays
-  double cutforcesq,cutmax;
+  int nmax;    // allocated size of per-atom arrays
+  double cutforcesq, cutmax;
 
   // per-atom arrays
 
-  double *rho,*fp;
+  double *rho, *fp;
   double **mu, **lambda;
 
   // potentials as array data
 
-  int nrho,nr;
-  int nfrho,nrhor,nz2r;
+  int nrho, nr;
+  int nfrho, nrhor, nz2r;
   int nu2r, nw2r;
-  double **frho,**rhor,**z2r;
+  double **frho, **rhor, **z2r;
   double **u2r, **w2r;
-  int *type2frho,**type2rhor,**type2z2r;
-  int **type2u2r,**type2w2r;
+  int *type2frho, **type2rhor, **type2z2r;
+  int **type2u2r, **type2w2r;
 
   // potentials in spline form used for force computation
 
-  double dr,rdr,drho,rdrho;
-  double ***rhor_spline,***frho_spline,***z2r_spline;
+  double dr, rdr, drho, rdrho;
+  double ***rhor_spline, ***frho_spline, ***z2r_spline;
   double ***u2r_spline, ***w2r_spline;
 
   // potentials as file data
 
   struct Setfl {
     char **elements;
-    int nelements,nrho,nr;
-    double drho,dr,cut;
+    int nelements, nrho, nr;
+    double drho, dr, cut;
     double *mass;
-    double **frho,**rhor,***z2r;
+    double **frho, **rhor, ***z2r;
     double ***u2r, ***w2r;
   };
   Setfl *setfl;
@@ -85,7 +85,7 @@ class PairADP : public Pair {
   void file2array();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

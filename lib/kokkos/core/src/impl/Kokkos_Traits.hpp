@@ -148,13 +148,6 @@ namespace Kokkos {
 namespace Impl {
 
 //----------------------------------------------------------------------------
-
-template <class, class T = void>
-struct enable_if_type {
-  using type = T;
-};
-
-//----------------------------------------------------------------------------
 // if_
 
 template <bool Cond, typename TrueType, typename FalseType>

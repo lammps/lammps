@@ -253,7 +253,7 @@ TYPE grow_kokkos(TYPE &data, typename TYPE::value_type **&array,
   data.resize(n1);
 
   bigint nbytes = ((bigint) sizeof(typename TYPE::value_type *)) * n1;
-  array = (typename TYPE::value_type **) smalloc(nbytes,name);
+  array = (typename TYPE::value_type **) srealloc(array,nbytes,name);
 
   for (int i = 0; i < n1; i++)
     if (data.h_view.extent(1)==0)

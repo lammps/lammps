@@ -67,7 +67,7 @@ delete_atoms	overlap 1.0 small big
 
 reset_timestep	0
 
-neighbor	0.3 bin
+neighbor	0.3 multi
 neigh_modify	delay 0 every 1 check yes
 
 comm_modify	mode multi group big vel yes

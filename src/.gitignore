@@ -704,6 +704,8 @@
 /fix_orient_eco.h
 /fix_orient_fcc.cpp
 /fix_orient_fcc.h
+/fix_pair_tracker.cpp
+/fix_pair_tracker.h
 /fix_peri_neigh.cpp
 /fix_peri_neigh.h
 /fix_phonon.cpp
@@ -1149,6 +1151,8 @@
 /pair_tip4p_long.h
 /pair_tip4p_long_soft.cpp
 /pair_tip4p_long_soft.h
+/pair_tracker.h
+/pair_tracker.cpp
 /pair_tri_lj.cpp
 /pair_tri_lj.h
 /pair_yukawa_colloid.cpp

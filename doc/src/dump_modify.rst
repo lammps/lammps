@@ -66,7 +66,7 @@ Syntax
        *unwrap* arg = *yes* or *no*
 
 * these keywords apply only to the *image* and *movie* :doc:`styles <dump_image>`
-* keyword = *acolor* or *adiam* or *amap* or *backcolor* or *bcolor* or *bdiam* or *boxcolor* or *color* or *bitrate* or *framerate*
+* keyword = *acolor* or *adiam* or *amap* or *backcolor* or *bcolor* or *bdiam* or *boxcolor* or *color* or *bitrate* or *framerate* or *header*
 
   .. parsed-literal::
 
@@ -113,6 +113,9 @@ Syntax
          rate = target bitrate for movie in kbps
        *framerate* arg = fps
          fps = frames per second for movie
+       *header* arg = *yes* or *no*
+         *yes* to write the header
+         *no* to not write the header
 
 * these keywords apply only to the */gz* and */zstd* dump styles
 * keyword = *compression_level*
@@ -974,6 +977,13 @@ frame rate.  To speed a movie up, you can do the inverse.  Using a
 frame rate higher than 24 is not recommended, as it will result in
 simply dropping the rendered images. It is more efficient to dump
 images less frequently.
+
+----------
+
+The *header* keyword toggles whether the dump file will include a header.
+Excluding a header will reduce the size of the dump file for fixes such as 
+:doc:`fix pair/tracker <fix_pair_tracker>` which do not require the information
+typically written to the header.
 
 ----------
 

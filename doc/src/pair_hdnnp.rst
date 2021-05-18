@@ -8,16 +8,15 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   pair_style hdnnp keyword value ...
+   pair_style hdnnp cutoff keyword value ...
 
+* cutoff = short-range cutoff of HDNNP (maximum symmetry function cutoff radius)
 * zero or more keyword/value pairs may be appended
 * keyword = *dir* or *showew* or *showewsum* or *maxew* or *resetew* or *cflength* or *cfenergy*
 * value depends on the preceding keyword:
 
 .. parsed-literal::
    
-   *emap* value = mapping
-        mapping = Element mapping from LAMMPS atom types to n2p2 elements
    *dir* value = directory
        directory = Path to HDNNP configuration files
    *showew* value = *yes* or *no*
@@ -36,11 +35,11 @@ Examples
 
 .. code-block:: LAMMPS
 
-   pair_style hdnnp showew yes showewsum 100 maxew 1000 resetew yes cflength 1.8897261328 cfenergy 0.0367493254 emap "1:H,2:O"
-   pair_coeff * * 6.35
+   pair_style hdnnp 6.35 showew yes showewsum 100 maxew 1000 resetew yes cflength 1.8897261328 cfenergy 0.0367493254
+   pair_coeff * * H O
 
-   pair_style hdnnp dir "./" showewsum 10000
-   pair_coeff * * 6.01
+   pair_style hdnnp 6.01 dir "./" showewsum 10000
+   pair_coeff * * S Cu NULL Cu
 
 Description
 """""""""""
@@ -57,13 +56,34 @@ Dellago 2019) <Singraber_Behler_Dellago_2019>` which is available on Github
 trained with its own tools :ref:`(Singraber et al 2019) <Singraber_et_al_2019>`
 and with `RuNNer <https://www.uni-goettingen.de/de/560580.html>`__.
 
-The maximum cutoff radius of all symmetry functions (the atomic environment
-descriptors of HDNNPs) is the only argument of the *pair_coeff* command which
-should be invoked with asterisk wild-cards only:
+Only a single *pair_coeff* command with two asterisk wild-cards is used with this
+pair style. Its additional arguments define the mapping of LAMMPS atom types to
+n2p2 elements.
 
 .. code-block:: LAMMPS
 
-   pair_coeff * * cutoff
+   pair_coeff * * H O
+
+In the above example LAMMPS types 1 and 2 are mapped to the elements "H" and "O"
+in n2p2, respectively. Multiple types may map to the same element, or some types
+may not be mapped at all. For example, if the LAMMPS simulation has four atom
+types, the command
+
+.. code-block:: LAMMPS
+
+   pair_coeff * * H H O NULL
+
+maps types 1 and 2 to the element "H", type 3 to "O" and type 4 is not mapped
+(indicated by NULL). Atoms of an unmapped type are ignored by the HDNNP, i.e.
+they do not contribute in the evaluation of HDNNP energies and forces. This may
+be useful in a setup with multiple pair styles (see :doc:`pair_hybrid
+<pair_hybrid>`).
+
+----
+
+The mandatory pair style argument *cutoff* must match the short-range cutoff radius
+of the HDNNP. This corresponds to the maximum cutoff radius of all symmetry
+functions (the atomic environment descriptors of HDNNPs) used.
 
 .. note::
 
@@ -74,35 +94,6 @@ should be invoked with asterisk wild-cards only:
 The numeric value may be slightly larger than the actual maximum symmetry
 function cutoff radius (to account for rounding errors when converting units),
 but must not be smaller.
-
-----
-
-If provided, the keyword *emap* determines the mapping from LAMMPS atom types to
-n2p2 elements. The format is a comma-separated list of ``atom type:element``
-pairs, e.g. ``"1:Cu,2:Zn"`` will map atom types 1 and 2 to elements Cu and Zn,
-respectively. Atom types not present in the list will be completely ignored by
-the HDNNP. The keyword *emap* is mandatory in a "hybrid" setup (see
-:doc:`pair_hybrid <pair_hybrid>`) with "extra" atom types in the simulation
-which are not handled by the HDNNP.
-
-.. warning::
-
-   Without an explicit mapping it is by default assumed that the atom type
-   specifications in LAMMPS configuration files are consistent with the ordering
-   of elements in the *n2p2* library. Thus, without the *emap* keyword present
-   atom types must be sorted in order of ascending atomic number, e.g. the only
-   correct mapping for a configuration containing hydrogen, oxygen and zinc
-   atoms would be:
-   
-   +---------+---------------+-------------+
-   | Element | Atomic number | LAMMPS type |
-   +=========+===============+=============+
-   |       H |             1 |           1 |
-   +---------+---------------+-------------+
-   |       O |             8 |           2 |
-   +---------+---------------+-------------+
-   |      Zn |            30 |           3 |
-   +---------+---------------+-------------+
 
 Use the *dir* keyword to specify the directory containing the HDNNP configuration
 files. The directory must contain ``input.nn`` with neural network and symmetry
@@ -215,9 +206,7 @@ Default
 ^^^^^^^
 
 The default options are *dir* = "hdnnp/", *showew* = yes, *showewsum* = 0, *maxew*
-= 0, *resetew* = no, *cflength* = 1.0, *cfenergy* = 1.0. The default atom type
-mapping is determined automatically according to ascending atomic number of
-present elements (see above).
+= 0, *resetew* = no, *cflength* = 1.0, *cfenergy* = 1.0.
 
 ----
 

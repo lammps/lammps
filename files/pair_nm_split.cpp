@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing Author: Julien Devemy (ICCF), Robert Hoy (USF)
+   Contributing Author: Julien Devemy (ICCF), Robert Hoy (USF), Joseph Dietz (USF)
 ------------------------------------------------------------------------- */
 
 #include "pair_nm_split.h"

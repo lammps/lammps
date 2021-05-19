@@ -107,7 +107,7 @@ option(BUILD_LAMMPS_SHELL "Build and install the LAMMPS shell" OFF)
 # allow enabling clang-tidy for C++ files
 set(ENABLE_CLANG_TIDY OFF CACHE BOOL "Include clang-tidy processing when compiling")
 if(ENABLE_CLANG_TIDY)
-  set(CMAKE_CXX_CLANG_TIDY "clang-tidy;-checks=*-header-filter=.*" CACHE LIST "")
+  set(CMAKE_CXX_CLANG_TIDY "clang-tidy;-checks=*-header-filter=.*" CACHE STRING "")
 endif()
 
 include(GNUInstallDirs)

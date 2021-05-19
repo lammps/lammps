@@ -18,7 +18,7 @@ Corresponding Files: pair_nm_split.cpp  pair_nm_split.h
 
 Description:
 Style nm-split computes monomer-monomer interactions based on the generalized Lennard-Jones (LJ) potential by (Clarke). Here n is the parameter that controls the strength of the repulsive component of the interaction, m controls the strength of the attractive component. Note, nm/split is a modification to the already existing pair style nm/cut.
-Unlike nm/cut, style nm/split employs the standard LJ (n=12, m=6) potential above the user-specified cutoff r_c. Applications and references to style nm-split can be found in (Hoy) where nm-split was used in conjunction with the fix bond/swap command to equilibrate long-chain Kremer-Grest bead-spring polymer melts. 
+Unlike nm/cut, style nm/split employs the standard LJ (n=12, m=6) potential above the 2^1/6σ (i.e. when forces are attractive). Applications and references to style nm-split can be found in (Hoy) where nm-split was used in conjunction with the fix bond/swap command to equilibrate long-chain Kremer-Grest bead-spring polymer melts. 
 
 For all of the nm pair styles, the following coefficients must be defined for each pair of atoms types via the pair_coeff command as in the examples above, or in the data file or restart files read by the read_data or read_restart commands.
 -Depth of energy minimum  E_0
@@ -38,3 +38,4 @@ All of the nm pair styles can only be used via the pair keyword of the run_style
 References:
 (Clarke) Clarke and Smith, J Chem Phys, 84, 2290 (1986).
 (Hoy) Hoy and Kröger, Phys. Rev. Lett. 124, 147801 (2020). 
+

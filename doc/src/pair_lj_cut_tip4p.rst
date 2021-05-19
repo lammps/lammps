@@ -145,6 +145,22 @@ specified since a Coulombic cutoff cannot be specified for an individual I,J
 type pair. All type pairs use the same global Coulombic cutoff specified in
 the pair_style command.
 
+.. warning::
+
+   Because of how these pair styles implement the coulomb interactions
+   by implicitly defining a fourth coordinate for the negative charge
+   of the TIP4P and similar water models, special care must be taken
+   when using these pair styles with other computations that also use
+   charges.  Unless they are specially set up to also handle the implicit
+   definition of the 4th site, results are likely incorrect.  Example:
+   :doc:`compute dipole/chunk <compute_dipole_chunk>`.  For the same
+   reason, when using one of these pair styles with
+   :doc:`pair_style  hybrid <pair_hybrid>`, **all** coulomb interactions
+   should be handled by a single sub-style with TIP4P support. All other
+   instances and styles will "see" the M point charges at the position
+   of the Oxygen atom and thus compute incorrect forces and energies.
+   LAMMPS will print a warning when it detects one of these issues.
+
 ----------
 
 A version of these styles with a soft core, *lj/cut/tip4p/long/soft*\ , suitable

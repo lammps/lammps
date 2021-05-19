@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef BOND_CLASS
-
-BondStyle(oxdna2/fene,BondOxdna2Fene)
-
+// clang-format off
+BondStyle(oxdna2/fene,BondOxdna2Fene);
+// clang-format on
 #else
 
 #ifndef LMP_BOND_OXDNA2_FENE_H
@@ -28,11 +28,10 @@ class BondOxdna2Fene : public BondOxdnaFene {
  public:
   BondOxdna2Fene(class LAMMPS *);
   virtual ~BondOxdna2Fene();
-  virtual void compute_interaction_sites(double *, double *, double *,
-    double *);
+  virtual void compute_interaction_sites(double *, double *, double *, double *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

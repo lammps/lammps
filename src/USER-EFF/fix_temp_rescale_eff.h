@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(temp/rescale/eff,FixTempRescaleEff)
-
+// clang-format off
+FixStyle(temp/rescale/eff,FixTempRescaleEff);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_TEMP_RESCALE_EFF_H
@@ -37,15 +37,15 @@ class FixTempRescaleEff : public Fix {
 
  protected:
   int which;
-  double t_start,t_stop,t_window;
-  double fraction,energy,efactor;
+  double t_start, t_stop, t_window;
+  double fraction, energy, efactor;
 
   char *id_temp;
   class Compute *temperature;
   int tflag;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

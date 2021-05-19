@@ -1,6 +1,7 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,11 +13,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(buck/coul/long/kk,PairBuckCoulLongKokkos<LMPDeviceType>)
-PairStyle(buck/coul/long/kk/device,PairBuckCoulLongKokkos<LMPDeviceType>)
-PairStyle(buck/coul/long/kk/host,PairBuckCoulLongKokkos<LMPHostType>)
-
+// clang-format off
+PairStyle(buck/coul/long/kk,PairBuckCoulLongKokkos<LMPDeviceType>);
+PairStyle(buck/coul/long/kk/device,PairBuckCoulLongKokkos<LMPDeviceType>);
+PairStyle(buck/coul/long/kk/host,PairBuckCoulLongKokkos<LMPHostType>);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_BUCK_COUL_LONG_KOKKOS_H
@@ -54,8 +55,6 @@ class PairBuckCoulLongKokkos : public PairBuckCoulLong {
   };
 
  protected:
-  void cleanup_copy();
-
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
   F_FLOAT compute_fpair(const F_FLOAT& rsq, const int& i, const int&j,
@@ -102,7 +101,6 @@ class PairBuckCoulLongKokkos : public PairBuckCoulLong {
   typename AT::t_ffloat_2d d_cutsq;
   typename AT::tdual_ffloat_2d k_cut_ljsq;
   typename AT::t_ffloat_2d d_cut_ljsq;
-  typename AT::tdual_ffloat_2d k_cut_coulsq;
   typename AT::t_ffloat_2d d_cut_coulsq;
 
   typename AT::t_ffloat_1d_randomread

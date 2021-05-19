@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -302,7 +303,7 @@ void FixAdapt::init()
   // allow a dynamic group only if ATOM attribute not used
 
   if (group->dynamic[igroup])
-    for (int i = 0; i < nadapt; i++)
+    for (i = 0; i < nadapt; i++)
       if (adapt[i].which == ATOM)
         error->all(FLERR,"Cannot use dynamic group with fix adapt atom");
 

@@ -51,27 +51,28 @@ PACKAGE = asphere body class2 colloid compress coreshell dipole gpu \
 	  mliap molecule mpiio mscg opt peri plugin poems \
 	  python qeq replica rigid shock snap spin srd voronoi
 
-PACKUSER = user-adios user-atc user-awpmd user-bocs user-cgdna user-cgsdk user-colvars \
-	   user-diffraction user-dpd user-drude user-eff user-fep user-h5md \
-	   user-intel user-lb user-manifold user-meamc user-mesodpd user-mesont \
-	   user-mgpt user-misc user-mofff user-molfile \
-	   user-netcdf user-omp user-phonon user-pace user-plumed user-ptm user-qmmm \
-	   user-qtb user-quip user-reaction user-reaxc user-scafacos user-smd user-smtbq \
+PACKUSER = user-adios user-atc user-awpmd user-brownian user-bocs user-cgdna \
+	   user-cgsdk user-colvars user-diffraction user-dpd user-drude \
+	   user-eff user-fep user-h5md user-intel user-lb user-manifold \
+	   user-mdi user-meamc user-mesodpd user-mesont user-mgpt user-misc \
+	   user-mofff \user-molfile user-netcdf user-omp user-phonon \
+	   user-pace user-plumed user-ptm user-qmmm user-qtb user-quip \
+	   user-reaction user-reaxc user-scafacos user-smd user-smtbq \
 	   user-sdpd user-sph user-tally user-uef user-vtk user-yaff
 
-PACKLIB = compress gpu kim kokkos latte message mpiio mscg poems \
-	  python voronoi \
-	  user-adios user-atc user-awpmd user-colvars user-h5md user-lb user-molfile \
-	  user-netcdf user-plumed user-qmmm user-quip user-scafacos \
-	  user-smd user-vtk user-mesont user-pace
+PACKLIB = compress gpu kim kokkos latte message mpiio mscg poems python voronoi \
+	  user-adios user-atc user-awpmd user-colvars user-h5md user-lb user-mdi \
+	  user-mesont user-molfile user-netcdf user-pace user-plumed user-qmmm user-quip \
+	  user-scafacos user-smd user-vtk
 
 PACKSYS = compress mpiio python user-lb
 
-PACKINT = gpu kokkos message poems user-atc user-awpmd user-colvars user-mesont
+PACKINT = gpu kokkos message poems user-atc user-awpmd user-colvars user-mesont \
+	  user-mdi
 
 PACKEXT = kim latte mscg voronoi \
 	  user-adios user-h5md user-molfile user-netcdf user-pace user-plumed \
-	  user-qmmm user-quip user-smd user-vtk
+	  user-qmmm user-quip user-scafacos user-smd user-vtk
 
 PACKALL = $(PACKAGE) $(PACKUSER)
 

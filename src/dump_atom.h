@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef DUMP_CLASS
-
-DumpStyle(atom,DumpAtom)
-
+// clang-format off
+DumpStyle(atom,DumpAtom);
+// clang-format on
 #else
 
 #ifndef LMP_DUMP_ATOM_H
@@ -26,17 +26,17 @@ namespace LAMMPS_NS {
 
 class DumpAtom : public Dump {
  public:
-  DumpAtom(LAMMPS *, int, char**);
+  DumpAtom(LAMMPS *, int, char **);
 
-  const char * MAGIC_STRING = "DUMPATOM";
-  const int    FORMAT_REVISION = 0x0002;
-  const int    ENDIAN = 0x0001;
+  const char *MAGIC_STRING = "DUMPATOM";
+  const int FORMAT_REVISION = 0x0002;
+  const int ENDIAN = 0x0001;
 
  protected:
-  int scale_flag;            // 1 if atom coords are scaled, 0 if no
-  int image_flag;            // 1 if append box count to atom coords, 0 if no
+  int scale_flag;    // 1 if atom coords are scaled, 0 if no
+  int image_flag;    // 1 if append box count to atom coords, 0 if no
 
-  char *columns;             // column labels
+  char *columns;    // column labels
 
   void init_style();
   int modify_param(int, char **);
@@ -54,14 +54,14 @@ class DumpAtom : public Dump {
   void format_revision_binary();
 
   typedef void (DumpAtom::*FnPtrHeader)(bigint);
-  FnPtrHeader header_choice;           // ptr to write header functions
+  FnPtrHeader header_choice;    // ptr to write header functions
   void header_binary(bigint);
   void header_binary_triclinic(bigint);
   void header_item(bigint);
   void header_item_triclinic(bigint);
 
   typedef void (DumpAtom::*FnPtrPack)(tagint *);
-  FnPtrPack pack_choice;               // ptr to pack functions
+  FnPtrPack pack_choice;    // ptr to pack functions
   void pack_scale_image(tagint *);
   void pack_scale_noimage(tagint *);
   void pack_noscale_image(tagint *);
@@ -70,19 +70,19 @@ class DumpAtom : public Dump {
   void pack_scale_noimage_triclinic(tagint *);
 
   typedef int (DumpAtom::*FnPtrConvert)(int, double *);
-  FnPtrConvert convert_choice;          // ptr to convert data functions
+  FnPtrConvert convert_choice;    // ptr to convert data functions
   int convert_image(int, double *);
   int convert_noimage(int, double *);
 
   typedef void (DumpAtom::*FnPtrWrite)(int, double *);
-  FnPtrWrite write_choice;              // ptr to write data functions
+  FnPtrWrite write_choice;    // ptr to write data functions
   void write_binary(int, double *);
   void write_string(int, double *);
   void write_lines_image(int, double *);
   void write_lines_noimage(int, double *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

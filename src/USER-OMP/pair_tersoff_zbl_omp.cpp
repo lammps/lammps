@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -17,14 +18,15 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_tersoff_zbl_omp.h"
-#include "update.h"
+
 #include "comm.h"
-#include "memory.h"
 #include "error.h"
-#include "tokenizer.h"
-#include "potential_file_reader.h"
 #include "math_const.h"
 #include "math_special.h"
+#include "memory.h"
+#include "potential_file_reader.h"
+#include "tokenizer.h"
+#include "update.h"
 
 #include <cmath>
 #include <cstring>

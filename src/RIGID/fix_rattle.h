@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(rattle,FixRattle)
-
+// clang-format off
+FixStyle(rattle,FixRattle);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_RATTLE_H
@@ -26,10 +26,10 @@ namespace LAMMPS_NS {
 
 class FixRattle : public FixShake {
  public:
-  double **vp;                // array for unconstrained velocities
-  int comm_mode;              // mode for communication pack/unpack
-  double derr_max;            // distance error
-  double verr_max;            // velocity error
+  double **vp;        // array for unconstrained velocities
+  int comm_mode;      // mode for communication pack/unpack
+  double derr_max;    // distance error
+  double verr_max;    // velocity error
 
   FixRattle(class LAMMPS *, int, char **);
   ~FixRattle();
@@ -38,7 +38,7 @@ class FixRattle : public FixShake {
   virtual void post_force(int);
   virtual void post_force_respa(int, int, int);
   virtual void final_integrate();
-  virtual void final_integrate_respa(int,int);
+  virtual void final_integrate_respa(int, int);
 
   virtual void correct_coordinates(int vflag);
   virtual void correct_velocities();
@@ -63,7 +63,7 @@ class FixRattle : public FixShake {
 
   // debugging methods
 
-  bool check3angle(double ** v, int m, bool checkr, bool checkv);
+  bool check3angle(double **v, int m, bool checkr, bool checkv);
   bool check2(double **v, int m, bool checkr, bool checkv);
   bool check3(double **v, int m, bool checkr, bool checkv);
   bool check4(double **v, int m, bool checkr, bool checkv);
@@ -71,7 +71,7 @@ class FixRattle : public FixShake {
   void end_of_step();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

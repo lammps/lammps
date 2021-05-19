@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
-   Lammps - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -31,11 +31,10 @@
 
 ------------------------------------------------------------------------- */
 
-
 #ifdef FIX_CLASS
-
-FixStyle(nve/manifold/rattle,FixNVEManifoldRattle)
-
+// clang-format off
+FixStyle(nve/manifold/rattle,FixNVEManifoldRattle);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_NVE_MANIFOLD_RATTLE_H
@@ -45,71 +44,72 @@ FixStyle(nve/manifold/rattle,FixNVEManifoldRattle)
 
 namespace LAMMPS_NS {
 
-namespace user_manifold { class manifold; }
-
-  class FixNVEManifoldRattle : public Fix {
-   public:
-
-    struct statistics {
-
-      statistics() : x_iters(0), v_iters(0), x_iters_per_atom(0),
-                     v_iters_per_atom(0), natoms(0), dofs_removed(0),
-                     last_out(0) {}
-      double x_iters, v_iters;
-      double x_iters_per_atom;
-      double v_iters_per_atom;
-      int natoms;
-      int dofs_removed;
-      bigint last_out;
-    };
-
-    FixNVEManifoldRattle(LAMMPS *, int &, char **, int = 1);
-    virtual ~FixNVEManifoldRattle();
-    // All this stuff is interface, so you DO need to implement them.
-    // Just delegate them to the workhorse classes.
-    virtual int setmask();
-    virtual void initial_integrate(int);
-    virtual void final_integrate();
-    virtual void init();
-    virtual void reset_dt();
-    virtual void end_of_step();
-    virtual int dof(int);
-    virtual void setup(int) {}  // Not needed for fixNVE but is for fixNVT
-    virtual double memory_usage();
-
-   protected:
-
-    int nevery, next_output;
-
-    double dtv, dtf;
-    double tolerance;
-    int max_iter;
-
-    char **tstrs;
-    int *tvars;
-    int *tstyle;
-    int *is_var;
-
-    statistics stats;
-    int update_style;
-    int nvars;
-
-    user_manifold::manifold *ptr_m;
-
-    void print_stats( const char * );
-    int was_var( const char * );
-
-    virtual void update_var_params();
-    virtual void rattle_manifold_x( double *, double *, double *, double, double, tagint );
-    virtual void rattle_manifold_v( double *, double *, double *, double, tagint );
-
-    virtual void nve_x_rattle(int, int);
-    virtual void nve_v_rattle(int, int);
-  };
+namespace user_manifold {
+  class manifold;
 }
 
+class FixNVEManifoldRattle : public Fix {
+ public:
+  struct statistics {
 
-#endif // LMP_FIX_NVE_MANIFOLD_RATTLE_H
+    statistics() :
+        x_iters(0), v_iters(0), x_iters_per_atom(0), v_iters_per_atom(0), natoms(0),
+        dofs_removed(0), last_out(0)
+    {
+    }
+    double x_iters, v_iters;
+    double x_iters_per_atom;
+    double v_iters_per_atom;
+    int natoms;
+    int dofs_removed;
+    bigint last_out;
+  };
+
+  FixNVEManifoldRattle(LAMMPS *, int &, char **, int = 1);
+  virtual ~FixNVEManifoldRattle();
+  // All this stuff is interface, so you DO need to implement them.
+  // Just delegate them to the workhorse classes.
+  virtual int setmask();
+  virtual void initial_integrate(int);
+  virtual void final_integrate();
+  virtual void init();
+  virtual void reset_dt();
+  virtual void end_of_step();
+  virtual int dof(int);
+  virtual void setup(int) {}    // Not needed for fixNVE but is for fixNVT
+  virtual double memory_usage();
+
+ protected:
+  int nevery, next_output;
+
+  double dtv, dtf;
+  double tolerance;
+  int max_iter;
+
+  char **tstrs;
+  int *tvars;
+  int *tstyle;
+  int *is_var;
+
+  statistics stats;
+  int update_style;
+  int nvars;
+
+  user_manifold::manifold *ptr_m;
+
+  void print_stats(const char *);
+  int was_var(const char *);
+
+  virtual void update_var_params();
+  virtual void rattle_manifold_x(double *, double *, double *, double, double, tagint);
+  virtual void rattle_manifold_v(double *, double *, double *, double, tagint);
+
+  virtual void nve_x_rattle(int, int);
+  virtual void nve_v_rattle(int, int);
+};
+}    // namespace LAMMPS_NS
+
+#endif    // LMP_FIX_NVE_MANIFOLD_RATTLE_H
 #endif
 
 /* ERROR/WARNING messages:

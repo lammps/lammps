@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -209,8 +210,8 @@ void FixQEqSlater::compute_H()
   }
 
   if (m_fill >= H.m)
-    error->all(FLERR,fmt::format(FLERR,"Fix qeq/slater has insufficient H "
-                                 "matrix size:m_fill={} H.m={}\n",m_fill,H.m));
+    error->all(FLERR,FLERR,"Fix qeq/slater has insufficient H "
+                                 "matrix size:m_fill={} H.m={}\n",m_fill,H.m);
 }
 
 /* ---------------------------------------------------------------------- */

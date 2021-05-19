@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -723,7 +724,6 @@ void FixAveTime::invoke_vector(bigint ntimestep)
         allocate_arrays();
       }
 
-      bigint ntimestep = update->ntimestep;
       int lockforever_flag = 0;
       for (i = 0; i < nvalues; i++) {
         if (!varlen[i] || which[i] != ArgInfo::COMPUTE) continue;
@@ -1029,8 +1029,8 @@ void FixAveTime::options(int iarg, int narg, char **arg)
       if (me == 0) {
         fp = fopen(arg[iarg+1],"w");
         if (fp == nullptr)
-          error->one(FLERR,fmt::format("Cannot open fix ave/time file {}: {}",
-                                       arg[iarg+1], utils::getsyserror()));
+          error->one(FLERR,"Cannot open fix ave/time file {}: {}",
+                                       arg[iarg+1], utils::getsyserror());
       }
       iarg += 2;
     } else if (strcmp(arg[iarg],"ave") == 0) {

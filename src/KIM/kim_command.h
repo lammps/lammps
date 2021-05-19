@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -54,9 +54,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMMAND_CLASS
-
-CommandStyle(kim,KimCommand)
-
+// clang-format off
+CommandStyle(kim,KimCommand);
+// clang-format on
 #else
 
 #ifndef LMP_KIM_COMMAND_H
@@ -68,11 +68,11 @@ namespace LAMMPS_NS {
 
 class KimCommand : public Command {
  public:
-  KimCommand(class LAMMPS *lmp) : Command(lmp) {};
+  KimCommand(class LAMMPS *lmp) : Command(lmp){};
   void command(int, char **);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

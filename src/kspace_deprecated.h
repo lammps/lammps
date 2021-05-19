@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef KSPACE_CLASS
-
-KSpaceStyle(DEPRECATED,KSpaceDeprecated)
-
+// clang-format off
+KSpaceStyle(DEPRECATED,KSpaceDeprecated);
+// clang-format on
 #else
 
 #ifndef LMP_KSPACE_DEPRECATED_H
@@ -30,12 +30,12 @@ class KSpaceDeprecated : public KSpace {
   virtual ~KSpaceDeprecated() {}
 
   virtual void init() {}
-  virtual void settings(int, char**);
+  virtual void settings(int, char **);
   virtual void setup() {}
   virtual void compute(int, int) {}
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

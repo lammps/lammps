@@ -299,14 +299,18 @@ class AtomicDataElement {
   }
 
   KOKKOS_INLINE_FUNCTION
-  bool operator==(const_value_type& val) const { return *ptr == val; }
+  bool operator==(const AtomicDataElement& val) const { return *ptr == val; }
   KOKKOS_INLINE_FUNCTION
-  bool operator==(volatile const_value_type& val) const { return *ptr == val; }
+  bool operator==(volatile const AtomicDataElement& val) const {
+    return *ptr == val;
+  }
 
   KOKKOS_INLINE_FUNCTION
-  bool operator!=(const_value_type& val) const { return *ptr != val; }
+  bool operator!=(const AtomicDataElement& val) const { return *ptr != val; }
   KOKKOS_INLINE_FUNCTION
-  bool operator!=(volatile const_value_type& val) const { return *ptr != val; }
+  bool operator!=(volatile const AtomicDataElement& val) const {
+    return *ptr != val;
+  }
 
   KOKKOS_INLINE_FUNCTION
   bool operator>=(const_value_type& val) const { return *ptr >= val; }

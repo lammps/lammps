@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef KSPACE_CLASS
-
-KSpaceStyle(pppm/stagger,PPPMStagger)
-
+// clang-format off
+KSpaceStyle(pppm/stagger,PPPMStagger);
+// clang-format on
 #else
 
 #ifndef LMP_PPPM_STAGGER_H
@@ -50,31 +50,30 @@ class PPPMStagger : public PPPM {
   virtual void fieldforce_ad();
   virtual void fieldforce_peratom();
 
-  inline double gf_denom2(const double &x, const double &y,
-                         const double &z) const
+  inline double gf_denom2(const double &x, const double &y, const double &z) const
   {
-    double sx,sy,sz;
-    double x2 = x*x;
-    double y2 = y*y;
-    double z2 = z*z;
+    double sx, sy, sz;
+    double x2 = x * x;
+    double y2 = y * y;
+    double z2 = z * z;
     double xl = x;
     double yl = y;
     double zl = z;
     sx = sy = sz = 0.0;
     for (int l = 0; l < order; l++) {
-      sx += gf_b2[order][l]*xl;
-      sy += gf_b2[order][l]*yl;
-      sz += gf_b2[order][l]*zl;
+      sx += gf_b2[order][l] * xl;
+      sy += gf_b2[order][l] * yl;
+      sz += gf_b2[order][l] * zl;
       xl *= x2;
       yl *= y2;
       zl *= z2;
     }
-    double s = sx*sy*sz;
-    return s*s;
+    double s = sx * sy * sz;
+    return s * s;
   };
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

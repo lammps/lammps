@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -313,7 +314,7 @@ void ComputeTempProfile::compute_array()
 
   for (i = 0; i < nbins; i++) tbin[i] = 0.0;
 
-  for (int i = 0; i < nlocal; i++)
+  for (i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       ibin = bin[i];
       if (xflag) vthermal[0] = v[i][0] - binave[ibin][ivx];

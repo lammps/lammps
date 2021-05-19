@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(multi/lucy/rx,PairMultiLucyRX)
-
+// clang-format off
+PairStyle(multi/lucy/rx,PairMultiLucyRX);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_MULTI_LUCY_RX_H
@@ -44,20 +44,19 @@ class PairMultiLucyRX : public Pair {
   void computeLocalDensity();
   double rho_0;
 
-
  protected:
-  enum{LOOKUP,LINEAR};
+  enum { LOOKUP, LINEAR };
 
   int nmax;
 
-  int tabstyle,tablength;
+  int tabstyle, tablength;
   struct Table {
-    int ninput,rflag,fpflag,match;
-    double rlo,rhi,fplo,fphi,cut;
-    double *rfile,*efile,*ffile;
-    double *e2file,*f2file;
-    double innersq,delta,invdelta,deltasq6;
-    double *rsq,*drsq,*e,*de,*f,*df,*e2,*f2;
+    int ninput, rflag, fpflag, match;
+    double rlo, rhi, fplo, fphi, cut;
+    double *rfile, *efile, *ffile;
+    double *e2file, *f2file;
+    double innersq, delta, invdelta, deltasq6;
+    double *rsq, *drsq, *e, *de, *f, *df, *e2, *f2;
   };
   int ntables;
   Table *tables;
@@ -80,10 +79,9 @@ class PairMultiLucyRX : public Pair {
   int isite1, isite2;
   void getMixingWeights(int, double &, double &, double &, double &);
   bool fractionalWeighting;
-
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

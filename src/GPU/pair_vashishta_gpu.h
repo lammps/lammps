@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(vashishta/gpu,PairVashishtaGPU)
-
+// clang-format off
+PairStyle(vashishta/gpu,PairVashishtaGPU);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_VASHISHTA_GPU_H
@@ -32,7 +32,7 @@ class PairVashishtaGPU : public PairVashishta {
   double init_one(int, int);
   void init_style();
 
- enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
+  enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
 
  protected:
   void allocate();
@@ -41,7 +41,7 @@ class PairVashishtaGPU : public PairVashishta {
   double cpu_time;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

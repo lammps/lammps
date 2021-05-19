@@ -36,7 +36,7 @@ class ImproperZero2 : public Improper {
   virtual void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 

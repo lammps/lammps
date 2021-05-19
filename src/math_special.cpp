@@ -1,3 +1,4 @@
+// clang-format off
 #include "math_special.h"
 
 #include <cmath>

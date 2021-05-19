@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(pimd,FixPIMD)
-
+// clang-format off
+FixStyle(pimd,FixPIMD);
+// clang-format on
 #else
 
 #ifndef FIX_PIMD_H
@@ -38,16 +38,16 @@ class FixPIMD : public Fix {
 
   double memory_usage();
   void grow_arrays(int);
-  void copy_arrays(int,int,int);
-  int pack_exchange(int,double*);
-  int unpack_exchange(int,double*);
-  int pack_restart(int,double*);
-  void unpack_restart(int,int);
+  void copy_arrays(int, int, int);
+  int pack_exchange(int, double *);
+  int unpack_exchange(int, double *);
+  int pack_restart(int, double *);
+  void unpack_restart(int, int);
   int maxsize_restart();
   int size_restart(int);
   double compute_vector(int);
 
-  int pack_forward_comm(int, int*, double *, int, int*);
+  int pack_forward_comm(int, int *, double *, int, int *);
   void unpack_forward_comm(int, int, double *);
 
   int method;
@@ -68,7 +68,7 @@ class FixPIMD : public Fix {
   /* inter-partition communication */
 
   int max_nsend;
-  tagint* tag_send;
+  tagint *tag_send;
   double *buf_send;
 
   int max_nlocal;
@@ -87,8 +87,8 @@ class FixPIMD : public Fix {
   int *mode_index;
 
   void nmpimd_init();
-  void nmpimd_fill(double**);
-  void nmpimd_transform(double**, double**, double*);
+  void nmpimd_fill(double **);
+  void nmpimd_transform(double **, double **, double *);
 
   /* Nose-hoover chain integration */
 
@@ -108,8 +108,7 @@ class FixPIMD : public Fix {
   void nhc_update_x();
 };
 
-
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

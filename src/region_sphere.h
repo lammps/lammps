@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef REGION_CLASS
-
-RegionStyle(sphere,RegSphere)
-
+// clang-format off
+RegionStyle(sphere,RegSphere);
+// clang-format on
 #else
 
 #ifndef LMP_REGION_SPHERE_H
@@ -36,20 +36,19 @@ class RegSphere : public Region {
   void set_velocity_shape();
   void velocity_contact_shape(double *, double *);
 
-
  private:
-  double xc,yc,zc;
+  double xc, yc, zc;
   double radius;
-  int xstyle,xvar;
-  int ystyle,yvar;
-  int zstyle,zvar;
-  int rstyle,rvar;
-  char *xstr,*ystr,*zstr,*rstr;
+  int xstyle, xvar;
+  int ystyle, yvar;
+  int zstyle, zvar;
+  int rstyle, rvar;
+  char *xstr, *ystr, *zstr, *rstr;
 
   void variable_check();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

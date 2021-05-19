@@ -18,9 +18,6 @@ from __future__ import print_function
 
 import os
 import sys
-import traceback
-import types
-import warnings
 from ctypes import *
 from os.path import dirname,abspath,join
 from inspect import getsourcefile
@@ -47,7 +44,7 @@ class ExceptionCheck:
   def __enter__(self):
     pass
 
-  def __exit__(self, type, value, traceback):
+  def __exit__(self, exc_type, exc_value, traceback):
     if self.lmp.has_exceptions and self.lmp.lib.lammps_has_error(self.lmp.lmp):
       raise self.lmp._lammps_exception
 
@@ -284,6 +281,7 @@ class lammps(object):
     self.lib.lammps_version.argtypes = [c_void_p]
 
     self.lib.lammps_get_os_info.argtypes = [c_char_p, c_int]
+    self.lib.lammps_get_gpu_device_info.argtypes = [c_char_p, c_int]
 
     self.lib.lammps_get_mpi_comm.argtypes = [c_void_p]
 
@@ -310,6 +308,7 @@ class lammps(object):
         # tested to work with mpi4py versions 2 and 3
         self.has_mpi4py = mpi4py_version.split('.')[0] in ['2','3']
       except:
+        # ignore failing import
         pass
 
     # if no ptr provided, create an instance of LAMMPS
@@ -418,9 +417,16 @@ class lammps(object):
   # shut-down LAMMPS instance
 
   def __del__(self):
-    if self.lmp and self.opened:
-      self.lib.lammps_close(self.lmp)
-      self.opened = 0
+    self.close()
+
+  # -------------------------------------------------------------------------
+  # context manager implementation
+
+  def __enter__(self):
+    return self
+
+  def __exit__(self, ex_type, ex_value, ex_traceback):
+    self.close()
 
   # -------------------------------------------------------------------------
 
@@ -447,7 +453,8 @@ class lammps(object):
 
     This is a wrapper around the :cpp:func:`lammps_close` function of the C-library interface.
     """
-    if self.opened: self.lib.lammps_close(self.lmp)
+    if self.lmp and self.opened:
+      self.lib.lammps_close(self.lmp)
     self.lmp = None
     self.opened = 0
 
@@ -456,9 +463,7 @@ class lammps(object):
   def finalize(self):
     """Shut down the MPI communication through the library interface by calling :cpp:func:`lammps_finalize`.
     """
-    if self.opened: self.lib.lammps_close(self.lmp)
-    self.lmp = None
-    self.opened = 0
+    self.close()
     self.lib.lammps_finalize()
 
   # -------------------------------------------------------------------------
@@ -486,7 +491,7 @@ class lammps(object):
 
     sb = create_string_buffer(512)
     self.lib.lammps_get_os_info(sb,512)
-    return sb
+    return sb.value.decode()
 
   # -------------------------------------------------------------------------
 
@@ -779,6 +784,9 @@ class lammps(object):
       target_type = float
     elif dtype == LAMMPS_STRING:
       self.lib.lammps_extract_global.restype = c_char_p
+      target_type = str
+    else:
+      target_type = None
 
     ptr = self.lib.lammps_extract_global(self.lmp, name)
     if ptr:
@@ -878,71 +886,71 @@ class lammps(object):
 
   # -------------------------------------------------------------------------
 
-  def extract_compute(self,id,style,type):
+  def extract_compute(self,cid,cstyle,ctype):
     """Retrieve data from a LAMMPS compute
 
     This is a wrapper around the :cpp:func:`lammps_extract_compute`
     function of the C-library interface.
     This function returns ``None`` if either the compute id is not
-    recognized, or an invalid combination of :ref:`style <py_style_constants>`
-    and :ref:`type <py_type_constants>` constants is used. The
+    recognized, or an invalid combination of :ref:`cstyle <py_style_constants>`
+    and :ref:`ctype <py_type_constants>` constants is used. The
     names and functionality of the constants are the same as for
     the corresponding C-library function.  For requests to return
     a scalar or a size, the value is returned, otherwise a pointer.
 
-    :param id: compute ID
-    :type id:  string
-    :param style: style of the data retrieve (global, atom, or local), see :ref:`py_style_constants`
-    :type style:  int
-    :param type: type or size of the returned data (scalar, vector, or array), see :ref:`py_type_constants`
-    :type type:  int
+    :param cid: compute ID
+    :type cid:  string
+    :param cstyle: style of the data retrieve (global, atom, or local), see :ref:`py_style_constants`
+    :type cstyle:  int
+    :param ctype: type or size of the returned data (scalar, vector, or array), see :ref:`py_type_constants`
+    :type ctype:  int
     :return: requested data as scalar, pointer to 1d or 2d double array, or None
     :rtype: c_double, ctypes.POINTER(c_double), ctypes.POINTER(ctypes.POINTER(c_double)), or NoneType
     """
-    if id: id = id.encode()
+    if cid: cid = cid.encode()
     else: return None
 
-    if type == LMP_TYPE_SCALAR:
-      if style == LMP_STYLE_GLOBAL:
+    if ctype == LMP_TYPE_SCALAR:
+      if cstyle == LMP_STYLE_GLOBAL:
         self.lib.lammps_extract_compute.restype = POINTER(c_double)
         with ExceptionCheck(self):
-          ptr = self.lib.lammps_extract_compute(self.lmp,id,style,type)
+          ptr = self.lib.lammps_extract_compute(self.lmp,cid,cstyle,ctype)
         return ptr[0]
-      elif style == LMP_STYLE_ATOM:
+      elif cstyle == LMP_STYLE_ATOM:
         return None
-      elif style == LMP_STYLE_LOCAL:
+      elif cstyle == LMP_STYLE_LOCAL:
         self.lib.lammps_extract_compute.restype = POINTER(c_int)
         with ExceptionCheck(self):
-          ptr = self.lib.lammps_extract_compute(self.lmp,id,style,type)
+          ptr = self.lib.lammps_extract_compute(self.lmp,cid,cstyle,ctype)
         return ptr[0]
 
-    elif type == LMP_TYPE_VECTOR:
+    elif ctype == LMP_TYPE_VECTOR:
       self.lib.lammps_extract_compute.restype = POINTER(c_double)
       with ExceptionCheck(self):
-        ptr = self.lib.lammps_extract_compute(self.lmp,id,style,type)
+        ptr = self.lib.lammps_extract_compute(self.lmp,cid,cstyle,ctype)
       return ptr
 
-    elif type == LMP_TYPE_ARRAY:
+    elif ctype == LMP_TYPE_ARRAY:
       self.lib.lammps_extract_compute.restype = POINTER(POINTER(c_double))
       with ExceptionCheck(self):
-        ptr = self.lib.lammps_extract_compute(self.lmp,id,style,type)
+        ptr = self.lib.lammps_extract_compute(self.lmp,cid,cstyle,ctype)
       return ptr
 
-    elif type == LMP_SIZE_COLS:
-      if style == LMP_STYLE_GLOBAL  \
-         or style == LMP_STYLE_ATOM \
-         or style == LMP_STYLE_LOCAL:
+    elif ctype == LMP_SIZE_COLS:
+      if cstyle == LMP_STYLE_GLOBAL  \
+         or cstyle == LMP_STYLE_ATOM \
+         or cstyle == LMP_STYLE_LOCAL:
         self.lib.lammps_extract_compute.restype = POINTER(c_int)
         with ExceptionCheck(self):
-          ptr = self.lib.lammps_extract_compute(self.lmp,id,style,type)
+          ptr = self.lib.lammps_extract_compute(self.lmp,cid,cstyle,ctype)
         return ptr[0]
 
-    elif type == LMP_SIZE_VECTOR or type == LMP_SIZE_ROWS:
-      if style == LMP_STYLE_GLOBAL  \
-         or style == LMP_STYLE_LOCAL:
+    elif ctype == LMP_SIZE_VECTOR or ctype == LMP_SIZE_ROWS:
+      if cstyle == LMP_STYLE_GLOBAL  \
+         or cstyle == LMP_STYLE_LOCAL:
         self.lib.lammps_extract_compute.restype = POINTER(c_int)
         with ExceptionCheck(self):
-          ptr = self.lib.lammps_extract_compute(self.lmp,id,style,type)
+          ptr = self.lib.lammps_extract_compute(self.lmp,cid,cstyle,ctype)
         return ptr[0]
 
     return None
@@ -952,25 +960,25 @@ class lammps(object):
   # in case of global data, free memory for 1 double via lammps_free()
   # double was allocated by library interface function
 
-  def extract_fix(self,id,style,type,nrow=0,ncol=0):
+  def extract_fix(self,fid,fstyle,ftype,nrow=0,ncol=0):
     """Retrieve data from a LAMMPS fix
 
     This is a wrapper around the :cpp:func:`lammps_extract_fix`
     function of the C-library interface.
     This function returns ``None`` if either the fix id is not
-    recognized, or an invalid combination of :ref:`style <py_style_constants>`
-    and :ref:`type <py_type_constants>` constants is used. The
+    recognized, or an invalid combination of :ref:`fstyle <py_style_constants>`
+    and :ref:`ftype <py_type_constants>` constants is used. The
     names and functionality of the constants are the same as for
     the corresponding C-library function.  For requests to return
     a scalar or a size, the value is returned, also when accessing
     global vectors or arrays, otherwise a pointer.
 
-    :param id: fix ID
-    :type id:  string
-    :param style: style of the data retrieve (global, atom, or local), see :ref:`py_style_constants`
-    :type style:  int
-    :param type: type or size of the returned data (scalar, vector, or array), see :ref:`py_type_constants`
-    :type type:  int
+    :param fid: fix ID
+    :type fid:  string
+    :param fstyle: style of the data retrieve (global, atom, or local), see :ref:`py_style_constants`
+    :type fstyle:  int
+    :param ftype: type or size of the returned data (scalar, vector, or array), see :ref:`py_type_constants`
+    :type ftype:  int
     :param nrow: index of global vector element or row index of global array element
     :type nrow:  int
     :param ncol: column index of global array element
@@ -979,53 +987,53 @@ class lammps(object):
     :rtype: c_double, ctypes.POINTER(c_double), ctypes.POINTER(ctypes.POINTER(c_double)), or NoneType
 
     """
-    if id: id = id.encode()
+    if fid: fid = fid.encode()
     else: return None
 
-    if style == LMP_STYLE_GLOBAL:
-      if type in (LMP_TYPE_SCALAR, LMP_TYPE_VECTOR, LMP_TYPE_ARRAY):
+    if fstyle == LMP_STYLE_GLOBAL:
+      if ftype in (LMP_TYPE_SCALAR, LMP_TYPE_VECTOR, LMP_TYPE_ARRAY):
         self.lib.lammps_extract_fix.restype = POINTER(c_double)
         with ExceptionCheck(self):
-          ptr = self.lib.lammps_extract_fix(self.lmp,id,style,type,nrow,ncol)
+          ptr = self.lib.lammps_extract_fix(self.lmp,fid,fstyle,ftype,nrow,ncol)
         result = ptr[0]
         self.lib.lammps_free(ptr)
         return result
-      elif type in (LMP_SIZE_VECTOR, LMP_SIZE_ROWS, LMP_SIZE_COLS):
+      elif ftype in (LMP_SIZE_VECTOR, LMP_SIZE_ROWS, LMP_SIZE_COLS):
         self.lib.lammps_extract_fix.restype = POINTER(c_int)
         with ExceptionCheck(self):
-          ptr = self.lib.lammps_extract_fix(self.lmp,id,style,type,nrow,ncol)
+          ptr = self.lib.lammps_extract_fix(self.lmp,fid,fstyle,ftype,nrow,ncol)
         return ptr[0]
       else:
         return None
 
-    elif style == LMP_STYLE_ATOM:
-      if type == LMP_TYPE_VECTOR:
+    elif fstyle == LMP_STYLE_ATOM:
+      if ftype == LMP_TYPE_VECTOR:
         self.lib.lammps_extract_fix.restype = POINTER(c_double)
-      elif type == LMP_TYPE_ARRAY:
+      elif ftype == LMP_TYPE_ARRAY:
         self.lib.lammps_extract_fix.restype = POINTER(POINTER(c_double))
-      elif type == LMP_SIZE_COLS:
+      elif ftype == LMP_SIZE_COLS:
         self.lib.lammps_extract_fix.restype = POINTER(c_int)
       else:
         return None
       with ExceptionCheck(self):
-        ptr = self.lib.lammps_extract_fix(self.lmp,id,style,type,nrow,ncol)
-      if type == LMP_SIZE_COLS:
+        ptr = self.lib.lammps_extract_fix(self.lmp,fid,fstyle,ftype,nrow,ncol)
+      if ftype == LMP_SIZE_COLS:
         return ptr[0]
       else:
         return ptr
 
-    elif style == LMP_STYLE_LOCAL:
-      if type == LMP_TYPE_VECTOR:
+    elif fstyle == LMP_STYLE_LOCAL:
+      if ftype == LMP_TYPE_VECTOR:
         self.lib.lammps_extract_fix.restype = POINTER(c_double)
-      elif type == LMP_TYPE_ARRAY:
+      elif ftype == LMP_TYPE_ARRAY:
         self.lib.lammps_extract_fix.restype = POINTER(POINTER(c_double))
-      elif type in (LMP_TYPE_SCALAR, LMP_SIZE_VECTOR, LMP_SIZE_ROWS, LMP_SIZE_COLS):
+      elif ftype in (LMP_TYPE_SCALAR, LMP_SIZE_VECTOR, LMP_SIZE_ROWS, LMP_SIZE_COLS):
         self.lib.lammps_extract_fix.restype = POINTER(c_int)
       else:
         return None
       with ExceptionCheck(self):
-        ptr = self.lib.lammps_extract_fix(self.lmp,id,style,type,nrow,ncol)
-      if type in (LMP_TYPE_VECTOR, LMP_TYPE_ARRAY):
+        ptr = self.lib.lammps_extract_fix(self.lmp,fid,fstyle,ftype,nrow,ncol)
+      if ftype in (LMP_TYPE_VECTOR, LMP_TYPE_ARRAY):
         return ptr
       else:
         return ptr[0]
@@ -1114,20 +1122,20 @@ class lammps(object):
   # return vector of atom properties gathered across procs
   # 3 variants to match src/library.cpp
   # name = atom property recognized by LAMMPS in atom->extract()
-  # type = 0 for integer values, 1 for double values
+  # dtype = 0 for integer values, 1 for double values
   # count = number of per-atom valus, 1 for type or charge, 3 for x or f
   # returned data is a 1d vector - doc how it is ordered?
   # NOTE: need to insure are converting to/from correct Python type
   #   e.g. for Python list or NumPy or ctypes
 
-  def gather_atoms(self,name,type,count):
+  def gather_atoms(self,name,dtype,count):
     if name: name = name.encode()
     natoms = self.get_natoms()
     with ExceptionCheck(self):
-      if type == 0:
+      if dtype == 0:
         data = ((count*natoms)*c_int)()
         self.lib.lammps_gather_atoms(self.lmp,name,type,count,data)
-      elif type == 1:
+      elif dtype == 1:
         data = ((count*natoms)*c_double)()
         self.lib.lammps_gather_atoms(self.lmp,name,type,count,data)
       else:
@@ -1136,29 +1144,29 @@ class lammps(object):
 
   # -------------------------------------------------------------------------
 
-  def gather_atoms_concat(self,name,type,count):
+  def gather_atoms_concat(self,name,dtype,count):
     if name: name = name.encode()
     natoms = self.get_natoms()
     with ExceptionCheck(self):
-      if type == 0:
+      if dtype == 0:
         data = ((count*natoms)*c_int)()
         self.lib.lammps_gather_atoms_concat(self.lmp,name,type,count,data)
-      elif type == 1:
+      elif dtype == 1:
         data = ((count*natoms)*c_double)()
         self.lib.lammps_gather_atoms_concat(self.lmp,name,type,count,data)
       else:
           return None
     return data
 
-  def gather_atoms_subset(self,name,type,count,ndata,ids):
+  def gather_atoms_subset(self,name,dtype,count,ndata,ids):
     if name: name = name.encode()
     with ExceptionCheck(self):
-      if type == 0:
+      if dtype == 0:
         data = ((count*ndata)*c_int)()
-        self.lib.lammps_gather_atoms_subset(self.lmp,name,type,count,ndata,ids,data)
-      elif type == 1:
+        self.lib.lammps_gather_atoms_subset(self.lmp,name,dtype,count,ndata,ids,data)
+      elif dtype == 1:
         data = ((count*ndata)*c_double)()
-        self.lib.lammps_gather_atoms_subset(self.lmp,name,type,count,ndata,ids,data)
+        self.lib.lammps_gather_atoms_subset(self.lmp,name,dtype,count,ndata,ids,data)
       else:
         return None
     return data
@@ -1174,17 +1182,17 @@ class lammps(object):
   # NOTE: need to insure are converting to/from correct Python type
   #   e.g. for Python list or NumPy or ctypes
 
-  def scatter_atoms(self,name,type,count,data):
+  def scatter_atoms(self,name,dtype,count,data):
     if name: name = name.encode()
     with ExceptionCheck(self):
-      self.lib.lammps_scatter_atoms(self.lmp,name,type,count,data)
+      self.lib.lammps_scatter_atoms(self.lmp,name,dtype,count,data)
 
   # -------------------------------------------------------------------------
 
-  def scatter_atoms_subset(self,name,type,count,ndata,ids,data):
+  def scatter_atoms_subset(self,name,dtype,count,ndata,ids,data):
     if name: name = name.encode()
     with ExceptionCheck(self):
-      self.lib.lammps_scatter_atoms_subset(self.lmp,name,type,count,ndata,ids,data)
+      self.lib.lammps_scatter_atoms_subset(self.lmp,name,dtype,count,ndata,ids,data)
 
   # return vector of atom/compute/fix properties gathered across procs
   # 3 variants to match src/library.cpp
@@ -1194,43 +1202,43 @@ class lammps(object):
   # returned data is a 1d vector - doc how it is ordered?
   # NOTE: need to insure are converting to/from correct Python type
   #   e.g. for Python list or NumPy or ctypes
-  def gather(self,name,type,count):
+  def gather(self,name,dtype,count):
     if name: name = name.encode()
     natoms = self.get_natoms()
     with ExceptionCheck(self):
-      if type == 0:
+      if dtype == 0:
         data = ((count*natoms)*c_int)()
-        self.lib.lammps_gather(self.lmp,name,type,count,data)
-      elif type == 1:
+        self.lib.lammps_gather(self.lmp,name,dtype,count,data)
+      elif dtype == 1:
         data = ((count*natoms)*c_double)()
-        self.lib.lammps_gather(self.lmp,name,type,count,data)
+        self.lib.lammps_gather(self.lmp,name,dtype,count,data)
       else:
         return None
     return data
 
-  def gather_concat(self,name,type,count):
+  def gather_concat(self,name,dtype,count):
     if name: name = name.encode()
     natoms = self.get_natoms()
     with ExceptionCheck(self):
-      if type == 0:
+      if dtype == 0:
         data = ((count*natoms)*c_int)()
-        self.lib.lammps_gather_concat(self.lmp,name,type,count,data)
-      elif type == 1:
+        self.lib.lammps_gather_concat(self.lmp,name,dtype,count,data)
+      elif dtype == 1:
         data = ((count*natoms)*c_double)()
-        self.lib.lammps_gather_concat(self.lmp,name,type,count,data)
+        self.lib.lammps_gather_concat(self.lmp,name,dtype,count,data)
       else:
         return None
     return data
 
-  def gather_subset(self,name,type,count,ndata,ids):
+  def gather_subset(self,name,dtype,count,ndata,ids):
     if name: name = name.encode()
     with ExceptionCheck(self):
-      if type == 0:
+      if dtype == 0:
         data = ((count*ndata)*c_int)()
-        self.lib.lammps_gather_subset(self.lmp,name,type,count,ndata,ids,data)
-      elif type == 1:
+        self.lib.lammps_gather_subset(self.lmp,name,dtype,count,ndata,ids,data)
+      elif dtype == 1:
         data = ((count*ndata)*c_double)()
-        self.lib.lammps_gather_subset(self.lmp,name,type,count,ndata,ids,data)
+        self.lib.lammps_gather_subset(self.lmp,name,dtype,count,ndata,ids,data)
       else:
         return None
     return data
@@ -1244,15 +1252,15 @@ class lammps(object):
   # NOTE: need to insure are converting to/from correct Python type
   #   e.g. for Python list or NumPy or ctypes
 
-  def scatter(self,name,type,count,data):
+  def scatter(self,name,dtype,count,data):
     if name: name = name.encode()
     with ExceptionCheck(self):
-      self.lib.lammps_scatter(self.lmp,name,type,count,data)
+      self.lib.lammps_scatter(self.lmp,name,dtype,count,data)
 
-  def scatter_subset(self,name,type,count,ndata,ids,data):
+  def scatter_subset(self,name,dtype,count,ndata,ids,data):
     if name: name = name.encode()
     with ExceptionCheck(self):
-      self.lib.lammps_scatter_subset(self.lmp,name,type,count,ndata,ids,data)
+      self.lib.lammps_scatter_subset(self.lmp,name,dtype,count,ndata,ids,data)
 
    # -------------------------------------------------------------------------
 
@@ -1542,6 +1550,37 @@ class lammps(object):
         if self.lib.lammps_config_accelerator(p.encode(),c.encode(),s.encode()):
           result[p][c].append(s)
     return result
+
+  # -------------------------------------------------------------------------
+
+  @property
+  def has_gpu_device(self):
+    """ Availability of GPU package compatible device
+
+    This is a wrapper around the :cpp:func:`lammps_has_gpu_device`
+    function of the C library interface.
+
+    :return: True if a GPU package compatible device is present, otherwise False
+    :rtype: bool
+    """
+    return self.lib.lammps_has_gpu_device() != 0
+
+  # -------------------------------------------------------------------------
+
+  def get_gpu_device_info(self):
+    """Return a string with detailed information about any devices that are
+    usable by the GPU package.
+
+    This is a wrapper around the :cpp:func:`lammps_get_gpu_device_info` 
+    function of the C-library interface. 
+
+    :return: GPU device info string
+    :rtype:  string
+    """
+
+    sb = create_string_buffer(8192)
+    self.lib.lammps_get_gpu_device_info(sb,8192)
+    return sb.value.decode()
 
   # -------------------------------------------------------------------------
 

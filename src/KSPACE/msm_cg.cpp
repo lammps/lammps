@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -16,9 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include "msm_cg.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
 #include "gridcomm.h"
 #include "domain.h"
@@ -26,7 +25,9 @@
 #include "force.h"
 #include "neighbor.h"
 #include "memory.h"
-#include "fmt/format.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -132,11 +133,10 @@ void MSMCG::compute(int eflag, int vflag)
                    / static_cast<double>(atom->natoms);
 
     if (me == 0)
-      utils::logmesg(lmp,fmt::format("  MSM/cg optimization cutoff: {:.8}\n"
-                                     "  Total charged atoms: {:.1f}%\n"
-                                     "  Min/max charged atoms/proc: {:.1f}%"
-                                     " {:.1f}%\n",smallq,
-                                     charged_frac,charged_fmin,charged_fmax));
+      utils::logmesg(lmp,"  MSM/cg optimization cutoff: {:.8}\n"
+                     "  Total charged atoms: {:.1f}%\n"
+                     "  Min/max charged atoms/proc: {:.1f}% {:.1f}%\n",
+                     smallq,charged_frac,charged_fmin,charged_fmax);
   }
 
   // only need to rebuild this list after a neighbor list update
@@ -166,7 +166,7 @@ void MSMCG::compute(int eflag, int vflag)
   // forward communicate charge density values to fill ghost grid points
   // compute direct sum interaction and then restrict to coarser grid
 
-  for (int n=0; n<=levels-2; n++) {
+  for (n=0; n<=levels-2; n++) {
     if (!active_flag[n]) continue;
     current_level = n;
     gc[n]->forward_comm_kspace(this,1,sizeof(double),FORWARD_RHO,
@@ -209,7 +209,7 @@ void MSMCG::compute(int eflag, int vflag)
   // prolongate energy/virial from coarser grid to finer grid
   // reverse communicate from ghost grid points to get full sum
 
-  for (int n=levels-2; n>=0; n--) {
+  for (n=levels-2; n>=0; n--) {
     if (!active_flag[n]) continue;
     prolongation(n);
 

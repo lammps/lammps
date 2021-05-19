@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef IMPROPER_CLASS
-
-ImproperStyle(cvff,ImproperCvff)
-
+// clang-format off
+ImproperStyle(cvff,ImproperCvff);
+// clang-format on
 #else
 
 #ifndef LMP_IMPROPER_CVFF_H
@@ -36,12 +36,12 @@ class ImproperCvff : public Improper {
 
  protected:
   double *k;
-  int *sign,*multiplicity;
+  int *sign, *multiplicity;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

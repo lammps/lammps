@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -14,7 +14,7 @@
 #ifndef LMP_MEAM_H
 #define LMP_MEAM_H
 
-#include "math_const.h"         // IWYU pragma: export
+#include "math_const.h"    // IWYU pragma: export
 
 #include <cmath>
 #include <string>
@@ -26,14 +26,13 @@ class Memory;
 
 typedef enum { FCC, BCC, HCP, DIM, DIA, DIA3, B1, C11, L12, B2, CH4, LIN, ZIG, TRI } lattice_t;
 
-class MEAM
-{
-public:
-  MEAM(Memory* mem);
+class MEAM {
+ public:
+  MEAM(Memory *mem);
   ~MEAM();
 
-private:
-  Memory* memory;
+ private:
+  Memory *memory;
 
   // cutforce = force cutoff
   // cutforcesq = force cutoff squared
@@ -97,7 +96,7 @@ private:
   int eltind[maxelt][maxelt];
   int neltypes;
 
-  double** phir;
+  double **phir;
 
   double **phirar, **phirar1, **phirar2, **phirar3, **phirar4, **phirar5, **phirar6;
 
@@ -110,13 +109,13 @@ private:
   int emb_lin_neg, bkgd_dyn;
   double gsmooth_factor;
 
-  int vind2D[3][3], vind3D[3][3][3];                  // x-y-z to Voigt-like index
-  int v2D[6], v3D[10];                                // multiplicity of Voigt index (i.e. [1] -> xy+yx = 2
+  int vind2D[3][3], vind3D[3][3][3];    // x-y-z to Voigt-like index
+  int v2D[6], v3D[10];                  // multiplicity of Voigt index (i.e. [1] -> xy+yx = 2
 
   int nr, nrar;
   double dr, rdrar;
 
-public:
+ public:
   int nmax;
   double *rho, *rho0, *rho1, *rho2, *rho3, *frhop;
   double *gamma, *dgamma1, *dgamma2, *dgamma3, *arho2b;
@@ -129,13 +128,14 @@ public:
   double stheta_meam[maxelt][maxelt];
   double ctheta_meam[maxelt][maxelt];
 
-protected:
+ protected:
   // meam_funcs.cpp
 
   //-----------------------------------------------------------------------------
   // Cutoff function
   //
-  static double fcut(const double xi) {
+  static double fcut(const double xi)
+  {
     double a;
     if (xi >= 1.0)
       return 1.0;
@@ -144,7 +144,8 @@ protected:
     else {
       // ( 1.d0 - (1.d0 - xi)**4 )**2, but with better codegen
       a = 1.0 - xi;
-      a *= a; a *= a;
+      a *= a;
+      a *= a;
       a = 1.0 - a;
       return a * a;
     }
@@ -153,7 +154,8 @@ protected:
   //-----------------------------------------------------------------------------
   // Cutoff function and derivative
   //
-  static double dfcut(const double xi, double& dfc) {
+  static double dfcut(const double xi, double &dfc)
+  {
     double a, a3, a4, a1m4;
     if (xi >= 1.0) {
       dfc = 0.0;
@@ -165,10 +167,10 @@ protected:
       a = 1.0 - xi;
       a3 = a * a * a;
       a4 = a * a3;
-      a1m4 = 1.0-a4;
+      a1m4 = 1.0 - a4;
 
       dfc = 8 * a1m4 * a3;
-      return a1m4*a1m4;
+      return a1m4 * a1m4;
     }
   }
 
@@ -176,13 +178,14 @@ protected:
   // Derivative of Cikj w.r.t. rij
   //     Inputs: rij,rij2,rik2,rjk2
   //
-  static double dCfunc(const double rij2, const double rik2, const double rjk2) {
-    double rij4, a, asq, b,denom;
+  static double dCfunc(const double rij2, const double rik2, const double rjk2)
+  {
+    double rij4, a, asq, b, denom;
 
     rij4 = rij2 * rij2;
     a = rik2 - rjk2;
     b = rik2 + rjk2;
-    asq = a*a;
+    asq = a * a;
     denom = rij4 - asq;
     denom = denom * denom;
     return -4 * (-2 * rij2 * asq + rij4 * b + asq * b) / denom;
@@ -192,8 +195,9 @@ protected:
   // Derivative of Cikj w.r.t. rik and rjk
   //     Inputs: rij,rij2,rik2,rjk2
   //
-  static void dCfunc2(const double rij2, const double rik2, const double rjk2,
-               double& dCikj1, double& dCikj2) {
+  static void dCfunc2(const double rij2, const double rik2, const double rjk2, double &dCikj1,
+                      double &dCikj2)
+  {
     double rij4, rik4, rjk4, a, denom;
 
     rij4 = rij2 * rij2;
@@ -209,34 +213,40 @@ protected:
   double G_gam(const double gamma, const int ibar, int &errorflag) const;
   double dG_gam(const double gamma, const int ibar, double &dG) const;
   static double zbl(const double r, const int z1, const int z2);
-  double embedding(const double A, const double Ec, const double rhobar, double& dF) const;
-  static double erose(const double r, const double re, const double alpha, const double Ec, const double repuls, const double attrac, const int form);
+  double embedding(const double A, const double Ec, const double rhobar, double &dF) const;
+  static double erose(const double r, const double re, const double alpha, const double Ec,
+                      const double repuls, const double attrac, const int form);
 
-  static void get_shpfcn(const lattice_t latt, const double sthe, const double cthe, double (&s)[3]);
+  static void get_shpfcn(const lattice_t latt, const double sthe, const double cthe,
+                         double (&s)[3]);
 
-  static int get_Zij2(const lattice_t latt, const double cmin, const double cmax,
-                      const double sthe, double &a, double &S);
+  static int get_Zij2(const lattice_t latt, const double cmin, const double cmax, const double sthe,
+                      double &a, double &S);
   static int get_Zij2_b2nn(const lattice_t latt, const double cmin, const double cmax, double &S);
 
-protected:
-  void meam_checkindex(int, int, int, int*, int*);
-  void getscreen(int i, double* scrfcn, double* dscrfcn, double* fcpair, double** x, int numneigh,
-                 int* firstneigh, int numneigh_full, int* firstneigh_full, int ntype, int* type, int* fmap);
-  void calc_rho1(int i, int ntype, int* type, int* fmap, double** x, int numneigh, int* firstneigh,
-                 double* scrfcn, double* fcpair);
+ protected:
+  void meam_checkindex(int, int, int, int *, int *);
+  void getscreen(int i, double *scrfcn, double *dscrfcn, double *fcpair, double **x, int numneigh,
+                 int *firstneigh, int numneigh_full, int *firstneigh_full, int ntype, int *type,
+                 int *fmap);
+  void calc_rho1(int i, int ntype, int *type, int *fmap, double **x, int numneigh, int *firstneigh,
+                 double *scrfcn, double *fcpair);
 
   void alloyparams();
   void compute_pair_meam();
   double phi_meam(double, int, int);
-  double phi_meam_series(const double scrn, const int Z1, const int Z2, const int a, const int b, const double r, const double arat);
+  double phi_meam_series(const double scrn, const int Z1, const int Z2, const int a, const int b,
+                         const double r, const double arat);
   void compute_reference_density();
-  void get_tavref(double*, double*, double*, double*, double*, double*, double, double, double, double,
-                  double, double, double, int, int, lattice_t);
-  void get_sijk(double, int, int, int, double*);
-  void get_densref(double, int, int, double*, double*, double*, double*, double*, double*, double*, double*);
+  void get_tavref(double *, double *, double *, double *, double *, double *, double, double,
+                  double, double, double, double, double, int, int, lattice_t);
+  void get_sijk(double, int, int, int, double *);
+  void get_densref(double, int, int, double *, double *, double *, double *, double *, double *,
+                   double *, double *);
   void interpolate_meam(int);
 
-public:
+ public:
+  // clang-format off
   //-----------------------------------------------------------------------------
   // convert lattice spec to lattice_t
   // only use single-element lattices if single=true
@@ -269,41 +279,46 @@ public:
     }
     return true;
   }
-
+  // clang-format on
   static int get_Zij(const lattice_t latt);
-  void meam_setup_global(int nelt, lattice_t* lat, int* ielement, double* atwt, double* alpha,
-                         double* b0, double* b1, double* b2, double* b3, double* alat, double* esub,
-                         double* asub, double* t0, double* t1, double* t2, double* t3, double* rozero,
-                         int* ibar);
-  void meam_setup_param(int which, double value, int nindex, int* index /*index(3)*/, int* errorflag);
-  void meam_setup_done(double* cutmax);
+  void meam_setup_global(int nelt, lattice_t *lat, int *ielement, double *atwt, double *alpha,
+                         double *b0, double *b1, double *b2, double *b3, double *alat, double *esub,
+                         double *asub, double *t0, double *t1, double *t2, double *t3,
+                         double *rozero, int *ibar);
+  void meam_setup_param(int which, double value, int nindex, int *index /*index(3)*/,
+                        int *errorflag);
+  void meam_setup_done(double *cutmax);
   void meam_dens_setup(int atom_nmax, int nall, int n_neigh);
-  void meam_dens_init(int i, int ntype, int* type, int* fmap, double** x, int numneigh, int* firstneigh,
-                      int numneigh_full, int* firstneigh_full, int fnoffset);
-  void meam_dens_final(int nlocal, int eflag_either, int eflag_global, int eflag_atom, double* eng_vdwl,
-                       double* eatom, int ntype, int* type, int* fmap, double** scale, int& errorflag);
-  void meam_force(int i, int eflag_either, int eflag_global, int eflag_atom, int vflag_atom, double* eng_vdwl,
-                  double* eatom, int ntype, int* type, int* fmap, double** scale, double** x, int numneigh, int* firstneigh,
-                  int numneigh_full, int* firstneigh_full, int fnoffset, double** f, double** vatom);
+  void meam_dens_init(int i, int ntype, int *type, int *fmap, double **x, int numneigh,
+                      int *firstneigh, int numneigh_full, int *firstneigh_full, int fnoffset);
+  void meam_dens_final(int nlocal, int eflag_either, int eflag_global, int eflag_atom,
+                       double *eng_vdwl, double *eatom, int ntype, int *type, int *fmap,
+                       double **scale, int &errorflag);
+  void meam_force(int i, int eflag_either, int eflag_global, int eflag_atom, int vflag_atom,
+                  double *eng_vdwl, double *eatom, int ntype, int *type, int *fmap, double **scale,
+                  double **x, int numneigh, int *firstneigh, int numneigh_full,
+                  int *firstneigh_full, int fnoffset, double **f, double **vatom);
 };
 
 // Functions we need for compat
 
-static inline bool iszero(const double f) {
+static inline bool iszero(const double f)
+{
   return fabs(f) < 1e-20;
 }
 
-static inline bool isone(const double f) {
-  return fabs(f-1.0) < 1e-20;
+static inline bool isone(const double f)
+{
+  return fabs(f - 1.0) < 1e-20;
 }
 
 // Helper functions
 
-static inline double fdiv_zero(const double n, const double d) {
-  if (iszero(d))
-    return 0.0;
+static inline double fdiv_zero(const double n, const double d)
+{
+  if (iszero(d)) return 0.0;
   return n / d;
 }
 
-}
+}    // namespace LAMMPS_NS
 #endif

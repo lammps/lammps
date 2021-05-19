@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(orient/fcc,FixOrientFCC)
-
+// clang-format off
+FixStyle(orient/fcc,FixOrientFCC);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_ORIENT_FCC_H
@@ -36,11 +36,11 @@ class FixOrientFCC : public Fix {
     double duxi;            // d Energy / d order-parameter for atom
   };
 
-  struct Sort {             // data structure for sorting to find 12 closest
-    int id;                 // local ID of neighbor atom
-    double rsq;             // distance between center and neighbor atom
-    double delta[3];        // displacement between center and neighbor atom
-    double xismooth;        // distance weighting factor
+  struct Sort {         // data structure for sorting to find 12 closest
+    int id;             // local ID of neighbor atom
+    double rsq;         // distance between center and neighbor atom
+    double delta[3];    // displacement between center and neighbor atom
+    double xismooth;    // distance weighting factor
   };
 
   FixOrientFCC(class LAMMPS *, int, char **);
@@ -60,21 +60,21 @@ class FixOrientFCC : public Fix {
   int me;
   int ilevel_respa;
 
-  int direction_of_motion;         // 1 = center shrinks, 0 = center grows
-  int nstats;                      // stats output every this many steps
-  double a;                        // lattice parameter
-  double Vxi;                      // potential value
-  double uxif_low;                 // cut-off fraction, low order parameter
-  double uxif_high;                // cut-off fraction, high order parameter
-  char *xifilename, *chifilename;  // file names for 2 crystal orientations
+  int direction_of_motion;           // 1 = center shrinks, 0 = center grows
+  int nstats;                        // stats output every this many steps
+  double a;                          // lattice parameter
+  double Vxi;                        // potential value
+  double uxif_low;                   // cut-off fraction, low order parameter
+  double uxif_high;                  // cut-off fraction, high order parameter
+  char *xifilename, *chifilename;    // file names for 2 crystal orientations
 
   bool use_xismooth;
-  double Rxi[12][3],Rchi[12][3],half_xi_chi_vec[2][6][3];
-  double xiid,xi0,xi1,xicutoffsq,cutsq,added_energy;
+  double Rxi[12][3], Rchi[12][3], half_xi_chi_vec[2][6][3];
+  double xiid, xi0, xi1, xicutoffsq, cutsq, added_energy;
   int half_fcc_nn;
 
-  int nmax;                        // expose 2 per-atom quantities
-  double **order;                  // order param and normalized order param
+  int nmax;          // expose 2 per-atom quantities
+  double **order;    // order param and normalized order param
 
   Nbr *nbr;
   Sort *sort;
@@ -84,7 +84,7 @@ class FixOrientFCC : public Fix {
   static int compare(const void *, const void *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
@@ -110,6 +110,6 @@ E: Fix orient/fcc found self twice
 
 The neighbor lists used by fix orient/fcc are messed up.  If this
 error occurs, it is likely a bug, so send an email to the
-"developers"_http://lammps.sandia.gov/authors.html.
+"developers"_https://lammps.sandia.gov/authors.html.
 
 */

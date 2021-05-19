@@ -9,10 +9,9 @@
  *
  * ----------------------------------------------------------------------- */
 
-
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -24,9 +23,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(smd/hertz,PairHertz)
-
+// clang-format off
+PairStyle(smd/hertz,PairHertz);
+// clang-format on
 #else
 
 #ifndef LMP_SMD_HERTZ_H
@@ -53,17 +52,16 @@ class PairHertz : public Pair {
   double **bulkmodulus;
   double **kn;
 
-  double *onerad_dynamic,*onerad_frozen;
-  double *maxrad_dynamic,*maxrad_frozen;
+  double *onerad_dynamic, *onerad_frozen;
+  double *maxrad_dynamic, *maxrad_frozen;
 
   double scale;
-  double stable_time_increment; // stable time step size
+  double stable_time_increment;    // stable time step size
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-

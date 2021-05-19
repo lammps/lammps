@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
  https://lammps.sandia.gov/, Sandia National Laboratdir_veces
@@ -32,7 +33,6 @@
 #include "update.h"
 
 #include <cmath>
-#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -95,8 +95,8 @@ FixOrientECO::FixOrientECO(LAMMPS *lmp, int narg, char **arg) :
 
     FILE *infile = utils::open_potential(dir_filename,lmp,nullptr);
     if (infile == nullptr)
-      error->one(FLERR,fmt::format("Cannot open fix orient/eco file {}: {}",
-                                   dir_filename, utils::getsyserror()));
+      error->one(FLERR,"Cannot open fix orient/eco file {}: {}",
+                                   dir_filename, utils::getsyserror());
     for (int i = 0; i < 6; ++i) {
       result = fgets(line, IMGMAX, infile);
       if (!result) error->one(FLERR, "Fix orient/eco file read failed");
@@ -162,8 +162,8 @@ void FixOrientECO::init() {
   // compute normalization factor
   int neigh = get_norm();
   if (me == 0) {
-    utils::logmesg(lmp,fmt::format("  fix orient/eco: cutoff={} norm_fac={} "
-                                   "neighbors={}\n", r_cut, norm_fac, neigh));
+    utils::logmesg(lmp,"  fix orient/eco: cutoff={} norm_fac={} "
+                   "neighbors={}\n", r_cut, norm_fac, neigh);
   }
 
   inv_norm_fac = 1.0 / norm_fac;

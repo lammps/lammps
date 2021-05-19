@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(bond/break,FixBondBreak)
-
+// clang-format off
+FixStyle(bond/break,FixBondBreak);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_BOND_BREAK_H
@@ -31,7 +31,7 @@ class FixBondBreak : public Fix {
   int setmask();
   void init();
   void post_integrate();
-  void post_integrate_respa(int,int);
+  void post_integrate_respa(int, int);
 
   int pack_forward_comm(int, int *, double *, int, int *);
   void unpack_forward_comm(int, int, double *);
@@ -41,18 +41,18 @@ class FixBondBreak : public Fix {
   double memory_usage();
 
  private:
-  int me,nprocs;
-  int btype,seed;
-  double cutoff,cutsq,fraction;
-  int angleflag,dihedralflag,improperflag;
+  int me, nprocs;
+  int btype, seed;
+  double cutoff, cutsq, fraction;
+  int angleflag, dihedralflag, improperflag;
   bigint lastcheck;
 
-  int breakcount,breakcounttotal;
+  int breakcount, breakcounttotal;
   int nmax;
-  tagint *partner,*finalpartner;
-  double *distsq,*probability;
+  tagint *partner, *finalpartner;
+  double *distsq, *probability;
 
-  int nbreak,maxbreak;
+  int nbreak, maxbreak;
   tagint **broken;
 
   tagint *copy;
@@ -62,7 +62,7 @@ class FixBondBreak : public Fix {
 
   int commflag;
   int nbroken;
-  int nangles,ndihedrals,nimpropers;
+  int nangles, ndihedrals, nimpropers;
 
   void check_ghosts();
   void update_topology();
@@ -78,7 +78,7 @@ class FixBondBreak : public Fix {
   void print_copy(const char *, tagint, int, int, int, int *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

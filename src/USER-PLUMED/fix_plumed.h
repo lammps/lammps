@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(plumed,FixPlumed)
-
+// clang-format off
+FixStyle(plumed,FixPlumed);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_PLUMED_H
@@ -24,7 +24,7 @@ FixStyle(plumed,FixPlumed)
 
 // forward declaration
 namespace PLMD {
-  class Plumed;
+class Plumed;
 }
 
 namespace LAMMPS_NS {
@@ -46,23 +46,22 @@ class FixPlumed : public Fix {
   double memory_usage();
 
  private:
-
-  PLMD::Plumed *p;         // pointer to plumed object
-  int nlocal;              // number of atoms local to this process
-  int natoms;              // total number of atoms
-  int *gatindex;           // array of atom indexes local to this process
-  double *masses;          // array of masses for local atoms
-  double *charges;         // array of charges for local atoms
-  int nlevels_respa;       // this is something to enable respa
-  double bias;             // output bias potential
-  class Compute *c_pe;     // Compute for the energy
-  class Compute *c_press;  // Compute for the pressure
-  int plumedNeedsEnergy;   // Flag to trigger calculation of the
-                           // energy and virial
-  char  *id_pe, *id_press; // ID for potential energy and pressure compute
+  PLMD::Plumed *p;           // pointer to plumed object
+  int nlocal;                // number of atoms local to this process
+  int natoms;                // total number of atoms
+  int *gatindex;             // array of atom indexes local to this process
+  double *masses;            // array of masses for local atoms
+  double *charges;           // array of charges for local atoms
+  int nlevels_respa;         // this is something to enable respa
+  double bias;               // output bias potential
+  class Compute *c_pe;       // Compute for the energy
+  class Compute *c_press;    // Compute for the pressure
+  int plumedNeedsEnergy;     // Flag to trigger calculation of the
+                             // energy and virial
+  char *id_pe, *id_press;    // ID for potential energy and pressure compute
 };
 
-};
+};    // namespace LAMMPS_NS
 
 #endif
 #endif

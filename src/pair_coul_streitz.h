@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(coul/streitz,PairCoulStreitz)
-
+// clang-format off
+PairStyle(coul/streitz,PairCoulStreitz);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_COUL_Streitz_H
@@ -46,7 +46,7 @@ class PairCoulStreitz : public Pair {
 
   int nmax;
   double precision;
-  Param *params;                // parameter sets for elements
+  Param *params;    // parameter sets for elements
 
   // Kspace parameters
   int kspacetype;
@@ -66,18 +66,14 @@ class PairCoulStreitz : public Pair {
   virtual void read_file(char *);
   void setup_params();
   double self(Param *, double);
-  void coulomb_integral_wolf(double, double, double, double &, double &,
-        double &, double &);
-  void wolf_sum(double, double, double, double, double, double, double,
-                  double, double &, double &);
-  void coulomb_integral_ewald(double, double, double, double &, double &,
-        double &, double &);
-  void ewald_sum(double, double, double, double, double, double, double,
-                  double, double &, double &, double);
-
+  void coulomb_integral_wolf(double, double, double, double &, double &, double &, double &);
+  void wolf_sum(double, double, double, double, double, double, double, double, double &, double &);
+  void coulomb_integral_ewald(double, double, double, double &, double &, double &, double &);
+  void ewald_sum(double, double, double, double, double, double, double, double, double &, double &,
+                 double);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

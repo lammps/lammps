@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -287,24 +288,16 @@ void NeighBondKokkos<DeviceType>::bond_all()
     }
   } while (h_fail_flag());
 
-  if (nmissing && lostbond == Thermo::ERROR) {
-    char str[128];
-    sprintf(str,"Bond atoms missing on proc %d at step " BIGINT_FORMAT,
-            me,update->ntimestep);
-    error->one(FLERR,str);
-  }
+  if (nmissing && lostbond == Thermo::ERROR)
+    error->one(FLERR,"Bond atoms missing at step {}", update->ntimestep);
 
   if (neighbor->cluster_check) bond_check();
   if (lostbond == Thermo::IGNORE) return;
 
   int all;
   MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
-  if (all) {
-    char str[128];
-    sprintf(str,
-            "Bond atoms missing at step " BIGINT_FORMAT,update->ntimestep);
-    if (me == 0) error->warning(FLERR,str);
-  }
+  if (all && me ==0)
+    error->warning(FLERR,"Bond atoms missing at step {}", update->ntimestep);
 
   k_bondlist.modify<DeviceType>();
 }
@@ -382,24 +375,16 @@ void NeighBondKokkos<DeviceType>::bond_partial()
     }
   } while (h_fail_flag());
 
-  if (nmissing && lostbond == Thermo::ERROR) {
-    char str[128];
-    sprintf(str,"Bond atoms missing on proc %d at step " BIGINT_FORMAT,
-            me,update->ntimestep);
-    error->one(FLERR,str);
-  }
+  if (nmissing && lostbond == Thermo::ERROR)
+    error->one(FLERR,"Bond atoms missing at step {}", update->ntimestep);
 
   if (neighbor->cluster_check) bond_check();
   if (lostbond == Thermo::IGNORE) return;
 
   int all;
   MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
-  if (all) {
-    char str[128];
-    sprintf(str,
-            "Bond atoms missing at step " BIGINT_FORMAT,update->ntimestep);
-    if (me == 0) error->warning(FLERR,str);
-  }
+  if (all && me ==0)
+    error->warning(FLERR,"Bond atoms missing at step {}", update->ntimestep);
 
   k_bondlist.modify<DeviceType>();
 }
@@ -504,24 +489,16 @@ void NeighBondKokkos<DeviceType>::angle_all()
     }
   } while (h_fail_flag());
 
-  if (nmissing && lostbond == Thermo::ERROR) {
-    char str[128];
-    sprintf(str,"Angle atoms missing on proc %d at step " BIGINT_FORMAT,
-            me,update->ntimestep);
-    error->one(FLERR,str);
-  }
+  if (nmissing && lostbond == Thermo::ERROR)
+    error->one(FLERR,"Angle atoms missing at step {}", update->ntimestep);
 
   if (neighbor->cluster_check) angle_check();
   if (lostbond == Thermo::IGNORE) return;
 
   int all;
   MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
-  if (all) {
-    char str[128];
-    sprintf(str,
-            "Angle atoms missing at step " BIGINT_FORMAT,update->ntimestep);
-    if (me == 0) error->warning(FLERR,str);
-  }
+  if (all && (me == 0))
+    error->warning(FLERR,"Angle atoms missing at step {}", update->ntimestep);
 
   k_anglelist.modify<DeviceType>();
 }
@@ -606,24 +583,16 @@ void NeighBondKokkos<DeviceType>::angle_partial()
     }
   } while (h_fail_flag());
 
-  if (nmissing && lostbond == Thermo::ERROR) {
-    char str[128];
-    sprintf(str,"Angle atoms missing on proc %d at step " BIGINT_FORMAT,
-            me,update->ntimestep);
-    error->one(FLERR,str);
-  }
+  if (nmissing && lostbond == Thermo::ERROR)
+    error->one(FLERR,"Angle atoms missing at step {}", update->ntimestep);
 
   if (neighbor->cluster_check) angle_check();
   if (lostbond == Thermo::IGNORE) return;
 
   int all;
   MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
-  if (all) {
-    char str[128];
-    sprintf(str,
-            "Angle atoms missing at step " BIGINT_FORMAT,update->ntimestep);
-    if (me == 0) error->warning(FLERR,str);
-  }
+  if (all && (me == 0))
+    error->warning(FLERR,"Angle atoms missing at step {}", update->ntimestep);
 
   k_anglelist.modify<DeviceType>();
 }
@@ -748,24 +717,16 @@ void NeighBondKokkos<DeviceType>::dihedral_all()
     }
   } while (h_fail_flag());
 
-  if (nmissing && lostbond == Thermo::ERROR) {
-    char str[128];
-    sprintf(str,"Dihedral atoms missing on proc %d at step " BIGINT_FORMAT,
-            me,update->ntimestep);
-    error->one(FLERR,str);
-  }
+  if (nmissing && lostbond == Thermo::ERROR)
+    error->one(FLERR,"Dihedral atoms missing at step {}", update->ntimestep);
 
   if (neighbor->cluster_check) dihedral_check(neighbor->ndihedrallist,v_dihedrallist);
   if (lostbond == Thermo::IGNORE) return;
 
   int all;
   MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
-  if (all) {
-    char str[128];
-    sprintf(str,
-            "Dihedral atoms missing at step " BIGINT_FORMAT,update->ntimestep);
-    if (me == 0) error->warning(FLERR,str);
-  }
+  if (all && (me == 0))
+    error->warning(FLERR,"Dihedral atoms missing at step {}", update->ntimestep);
 
   k_dihedrallist.modify<DeviceType>();
 }
@@ -855,24 +816,16 @@ void NeighBondKokkos<DeviceType>::dihedral_partial()
     }
   } while (h_fail_flag());
 
-  if (nmissing && lostbond == Thermo::ERROR) {
-    char str[128];
-    sprintf(str,"Dihedral atoms missing on proc %d at step " BIGINT_FORMAT,
-            me,update->ntimestep);
-    error->one(FLERR,str);
-  }
+  if (nmissing && lostbond == Thermo::ERROR)
+    error->one(FLERR,"Dihedral atoms missing at step {}", update->ntimestep);
 
   if (neighbor->cluster_check) dihedral_check(neighbor->ndihedrallist,v_dihedrallist);
   if (lostbond == Thermo::IGNORE) return;
 
   int all;
   MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
-  if (all) {
-    char str[128];
-    sprintf(str,
-            "Dihedral atoms missing at step " BIGINT_FORMAT,update->ntimestep);
-    if (me == 0) error->warning(FLERR,str);
-  }
+  if (all && (me == 0))
+    error->warning(FLERR,"Dihedral atoms missing at step {}", update->ntimestep);
 
   k_dihedrallist.modify<DeviceType>();
 }
@@ -1019,24 +972,16 @@ void NeighBondKokkos<DeviceType>::improper_all()
     }
   } while (h_fail_flag());
 
-  if (nmissing && lostbond == Thermo::ERROR) {
-    char str[128];
-    sprintf(str,"Improper atoms missing on proc %d at step " BIGINT_FORMAT,
-            me,update->ntimestep);
-    error->one(FLERR,str);
-  }
+  if (nmissing && lostbond == Thermo::ERROR)
+    error->one(FLERR,"Improper atoms missing at step {}", update->ntimestep);
 
   if (neighbor->cluster_check) dihedral_check(neighbor->nimproperlist,v_improperlist);
   if (lostbond == Thermo::IGNORE) return;
 
   int all;
   MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
-  if (all) {
-    char str[128];
-    sprintf(str,
-            "Improper atoms missing at step " BIGINT_FORMAT,update->ntimestep);
-    if (me == 0) error->warning(FLERR,str);
-  }
+  if (all && (me == 0))
+    error->warning(FLERR,"Improper atoms missing at step {}", update->ntimestep);
 
   k_improperlist.modify<DeviceType>();
 }
@@ -1126,24 +1071,16 @@ void NeighBondKokkos<DeviceType>::improper_partial()
     }
   } while (h_fail_flag());
 
-  if (nmissing && lostbond == Thermo::ERROR) {
-    char str[128];
-    sprintf(str,"Improper atoms missing on proc %d at step " BIGINT_FORMAT,
-            me,update->ntimestep);
-    error->one(FLERR,str);
-  }
+  if (nmissing && lostbond == Thermo::ERROR)
+    error->one(FLERR,"Improper atoms missing at step {}", update->ntimestep);
 
   if (neighbor->cluster_check) dihedral_check(neighbor->nimproperlist,v_improperlist);
   if (lostbond == Thermo::IGNORE) return;
 
   int all;
   MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
-  if (all) {
-    char str[128];
-    sprintf(str,
-            "Improper atoms missing at step " BIGINT_FORMAT,update->ntimestep);
-    if (me == 0) error->warning(FLERR,str);
-  }
+  if (all && (me == 0))
+    error->warning(FLERR,"Improper atoms missing at step {}", update->ntimestep);
 
   k_improperlist.modify<DeviceType>();
 }

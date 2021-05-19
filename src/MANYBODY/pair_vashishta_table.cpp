@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -16,11 +17,10 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_vashishta_table.h"
-#include <cstdio>
+
 #include "atom.h"
 #include "error.h"
 #include "force.h"
-#include "comm.h"
 #include "memory.h"
 #include "neigh_list.h"
 

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(drag,FixDrag)
-
+// clang-format off
+FixStyle(drag,FixDrag);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_DRAG_H
@@ -35,16 +35,16 @@ class FixDrag : public Fix {
   double compute_vector(int);
 
  private:
-  double xc,yc,zc;
+  double xc, yc, zc;
   double f_mag;
-  int xflag,yflag,zflag;
+  int xflag, yflag, zflag;
   double delta;
   int ilevel_respa;
-  double ftotal[3],ftotal_all[3];
+  double ftotal[3], ftotal_all[3];
   int force_flag;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

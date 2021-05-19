@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(zbl,PairZBL)
-
+// clang-format off
+PairStyle(zbl,PairZBL);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_ZBL_H
@@ -45,8 +45,8 @@ class PairZBL : public Pair {
   double cut_global, cut_inner;
   double cut_globalsq, cut_innersq;
   double *z;
-  double **d1a,**d2a,**d3a,**d4a,**zze;
-  double **sw1,**sw2,**sw3,**sw4,**sw5;
+  double **d1a, **d2a, **d3a, **d4a, **zze;
+  double **sw1, **sw2, **sw3, **sw4, **sw5;
 
   virtual void allocate();
   double e_zbl(double, int, int);
@@ -54,7 +54,7 @@ class PairZBL : public Pair {
   double d2zbldr2(double, int, int);
   void set_coeff(int, int, double, double);
 };
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

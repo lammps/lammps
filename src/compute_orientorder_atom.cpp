@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -308,7 +309,7 @@ void ComputeOrientOrderAtom::compute_peratom()
       // if not nnn neighbors, order parameter = 0;
 
       if ((ncount == 0) || (ncount < nnn)) {
-        for (int jj = 0; jj < ncol; jj++)
+        for (jj = 0; jj < ncol; jj++)
           qn[jj] = 0.0;
         continue;
       }

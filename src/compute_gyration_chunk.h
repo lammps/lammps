@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(gyration/chunk,ComputeGyrationChunk)
-
+// clang-format off
+ComputeStyle(gyration/chunk,ComputeGyrationChunk);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_GYRATION_CHUNK_H
@@ -41,22 +41,22 @@ class ComputeGyrationChunk : public Compute {
   double memory_usage();
 
  private:
-  int nchunk,maxchunk;
+  int nchunk, maxchunk;
   char *idchunk;
   class ComputeChunkAtom *cchunk;
 
   int tensor;
 
-  double *massproc,*masstotal;
-  double **com,**comall;
-  double *rg,*rgall;
-  double **rgt,**rgtall;
+  double *massproc, *masstotal;
+  double **com, **comall;
+  double *rg, *rgall;
+  double **rgt, **rgtall;
 
   void com_chunk();
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

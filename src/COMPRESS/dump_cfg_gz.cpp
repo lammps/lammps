@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -74,7 +75,7 @@ void DumpCFGGZ::openfile()
         ++numfiles;
       } else {
         if (remove(nameslist[fileidx]) != 0) {
-          error->warning(FLERR, fmt::format("Could not delete {}", nameslist[fileidx]));
+          error->warning(FLERR, "Could not delete {}", nameslist[fileidx]);
         }
         delete[] nameslist[fileidx];
         nameslist[fileidx] = utils::strdup(filecurrent);
@@ -234,7 +235,7 @@ int DumpCFGGZ::modify_param(int narg, char **arg)
         return 2;
       }
     } catch (FileWriterException &e) {
-      error->one(FLERR, fmt::format("Illegal dump_modify command: {}", e.what()));
+      error->one(FLERR,"Illegal dump_modify command: {}", e.what());
     }
   }
   return consumed;

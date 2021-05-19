@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -18,27 +18,25 @@
 
 namespace LAMMPS_NS {
 
-class MLIAPDescriptor : protected Pointers  {
-public:
-  MLIAPDescriptor(LAMMPS*);
+class MLIAPDescriptor : protected Pointers {
+ public:
+  MLIAPDescriptor(LAMMPS *);
   ~MLIAPDescriptor();
-  virtual void compute_descriptors(class MLIAPData*)=0;
-  virtual void compute_forces(class MLIAPData*)=0;
-  virtual void compute_force_gradients(class MLIAPData*)=0;
-  virtual void compute_descriptor_gradients(class MLIAPData*)=0;
-  virtual void init()=0;
-  virtual double memory_usage()=0;
+  virtual void compute_descriptors(class MLIAPData *) = 0;
+  virtual void compute_forces(class MLIAPData *) = 0;
+  virtual void compute_force_gradients(class MLIAPData *) = 0;
+  virtual void compute_descriptor_gradients(class MLIAPData *) = 0;
+  virtual void init() = 0;
+  virtual double memory_usage() = 0;
 
-  int ndescriptors;              // number of descriptors
-  int nelements;                 // # of unique elements
-  char **elements;               // names of unique elements
-  double **cutsq;                // nelem x nelem rcutsq values
-  double cutmax;                 // maximum cutoff needed
-protected:
-
+  int ndescriptors;    // number of descriptors
+  int nelements;       // # of unique elements
+  char **elements;     // names of unique elements
+  double **cutsq;      // nelem x nelem rcutsq values
+  double cutmax;       // maximum cutoff needed
+ protected:
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
-

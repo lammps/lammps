@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -382,11 +383,11 @@ void * PairPython::get_member_function(const char * name)
   PyObject * py_mfunc = PyObject_GetAttrString(py_pair_instance, name);
   if (!py_mfunc) {
     PyUtils::Print_Errors();
-    error->all(FLERR, fmt::format("Could not find '{}' method'", name));
+    error->all(FLERR,"Could not find '{}' method'", name);
   }
   if (!PyCallable_Check(py_mfunc)) {
     PyUtils::Print_Errors();
-    error->all(FLERR, fmt::format("Python '{}' is not callable", name));
+    error->all(FLERR,"Python '{}' is not callable", name);
   }
   return py_mfunc;
 }

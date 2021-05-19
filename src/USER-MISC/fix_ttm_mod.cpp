@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -260,7 +261,7 @@ void FixTTMMod::post_force(int /*vflag*/)
 
   double dx = domain->xprd/nxnodes;
   double dy = domain->yprd/nynodes;
-  double dz = domain->zprd/nynodes;
+  double dz = domain->zprd/nznodes;
   double gamma1,gamma2;
 
   // apply damping and thermostat to all atoms in fix group
@@ -399,8 +400,8 @@ void FixTTMMod::read_parameters(const char *filename)
   char line[MAXLINE];
   std::string name = utils::get_potential_file_path(filename);
   if (name.empty())
-    error->one(FLERR,fmt::format("Cannot open input file: {}",
-                                 filename));
+    error->one(FLERR,"Cannot open input file: {}",
+                                 filename);
   FILE *fpr = fopen(name.c_str(),"r");
 
   // C0 (metal)
@@ -550,8 +551,8 @@ void FixTTMMod::read_initial_electron_temperatures(const char *filename)
 
   std::string name = utils::get_potential_file_path(filename);
   if (name.empty())
-    error->one(FLERR,fmt::format("Cannot open input file: {}",
-                                 filename));
+    error->one(FLERR,"Cannot open input file: {}",
+                                 filename);
   FILE *fpr = fopen(name.c_str(),"r");
 
   // read initial electron temperature values from file
@@ -719,7 +720,7 @@ void FixTTMMod::end_of_step()
     num_inner_timesteps = static_cast<unsigned int>(update->dt/inner_dt) + 1;
     inner_dt = update->dt/double(num_inner_timesteps);
     if (num_inner_timesteps > 1000000)
-      error->warning(FLERR,"Too many inner timesteps in fix ttm/mod",0);
+      error->warning(FLERR,"Too many inner timesteps in fix ttm/mod");
     for (int ith_inner_timestep = 0; ith_inner_timestep < num_inner_timesteps;
          ith_inner_timestep++) {
       for (int ixnode = 0; ixnode < nxnodes; ixnode++)

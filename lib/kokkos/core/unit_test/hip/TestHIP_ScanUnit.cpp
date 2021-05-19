@@ -44,7 +44,7 @@
 */
 
 #include <Kokkos_Core.hpp>
-#include <hip/TestHIP_Category.hpp>
+#include <TestHIP_Category.hpp>
 
 struct DummyFunctor {
   using value_type = int;

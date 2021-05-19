@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -221,7 +222,7 @@ void BondOxdnaFene::compute(int eflag, int vflag)
       sprintf(str,"FENE bond too long: " BIGINT_FORMAT " "
               TAGINT_FORMAT " " TAGINT_FORMAT " %g",
               update->ntimestep,atom->tag[a],atom->tag[b],r);
-      error->warning(FLERR,str,0);
+      error->warning(FLERR,str);
       rlogarg = 0.1;
     }
 
@@ -400,7 +401,7 @@ double BondOxdnaFene::single(int type, double rsq, int /*i*/, int /*j*/,
     char str[128];
     sprintf(str,"FENE bond too long: " BIGINT_FORMAT " %g",
             update->ntimestep,sqrt(rsq));
-    error->warning(FLERR,str,0);
+    error->warning(FLERR,str);
     rlogarg = 0.1;
   }
 

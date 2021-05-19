@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,9 +15,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(morse/soft,PairMorseSoft)
-
+// clang-format off
+PairStyle(morse/soft,PairMorseSoft);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_MORSE_SOFT_H
@@ -29,7 +29,7 @@ namespace LAMMPS_NS {
 
 class PairMorseSoft : public PairMorse {
  public:
-  PairMorseSoft(class LAMMPS *lmp) : PairMorse(lmp), lambda(nullptr) {};
+  PairMorseSoft(class LAMMPS *lmp) : PairMorse(lmp), lambda(nullptr){};
   virtual ~PairMorseSoft();
   virtual void compute(int, int);
 
@@ -55,7 +55,7 @@ class PairMorseSoft : public PairMorse {
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

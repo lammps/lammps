@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(gravity,FixGravity)
-
+// clang-format off
+FixStyle(gravity,FixGravity);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_GRAVITY_H
@@ -39,28 +39,28 @@ class FixGravity : public Fix {
   void *extract(const char *, int &);
 
  protected:
-  int style,disable;
+  int style, disable;
   double magnitude;
-  double vert,phi,theta;
-  double xdir,ydir,zdir;
-  double xgrav,ygrav,zgrav,xacc,yacc,zacc;
+  double vert, phi, theta;
+  double xdir, ydir, zdir;
+  double xgrav, ygrav, zgrav, xacc, yacc, zacc;
   double degree2rad;
   int ilevel_respa;
   int time_origin;
   double gvec[3];
 
   int eflag;
-  double egrav,egrav_all;
+  double egrav, egrav_all;
 
   int varflag;
-  int mstyle,vstyle,pstyle,tstyle,xstyle,ystyle,zstyle;
-  int mvar,vvar,pvar,tvar,xvar,yvar,zvar;
-  char *mstr,*vstr,*pstr,*tstr,*xstr,*ystr,*zstr;
+  int mstyle, vstyle, pstyle, tstyle, xstyle, ystyle, zstyle;
+  int mvar, vvar, pvar, tvar, xvar, yvar, zvar;
+  char *mstr, *vstr, *pstr, *tstr, *xstr, *ystr, *zstr;
 
   void set_acceleration();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -183,16 +184,16 @@ void AngleHybrid::allocate()
 
 void AngleHybrid::settings(int narg, char **arg)
 {
-  int i,m,istyle;
+  int i, m,istyle;
 
   if (narg < 1) error->all(FLERR,"Illegal angle_style command");
 
   // delete old lists, since cannot just change settings
 
   if (nstyles) {
-    for (int i = 0; i < nstyles; i++) delete styles[i];
+    for (i = 0; i < nstyles; i++) delete styles[i];
     delete [] styles;
-    for (int i = 0; i < nstyles; i++) delete [] keywords[i];
+    for (i = 0; i < nstyles; i++) delete [] keywords[i];
     delete [] keywords;
   }
 
@@ -201,7 +202,7 @@ void AngleHybrid::settings(int narg, char **arg)
     memory->destroy(map);
     delete [] nanglelist;
     delete [] maxangle;
-    for (int i = 0; i < nstyles; i++)
+    for (i = 0; i < nstyles; i++)
       memory->destroy(anglelist[i]);
     delete [] anglelist;
   }

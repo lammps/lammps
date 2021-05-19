@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -68,10 +68,11 @@ namespace LAMMPS_NS {
 
 class KimInit : protected Pointers {
  public:
-  KimInit(class LAMMPS *lmp) : Pointers(lmp) {};
+  KimInit(class LAMMPS *lmp) : Pointers(lmp){};
   void command(int, char **);
-  enum model_type_enum {MO, SM};
+  enum model_type_enum { MO, SM };
   static void write_log_cite(class LAMMPS *, model_type_enum, char *);
+
  private:
   model_type_enum model_type;
   bool unit_conversion_mode;
@@ -81,7 +82,7 @@ class KimInit : protected Pointers {
   void do_variables(const std::string &, const std::string &);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -22,9 +22,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(python/move,FixPythonMove)
-
+// clang-format off
+FixStyle(python/move,FixPythonMove);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_PYTHON_MOVE_H
@@ -48,10 +48,10 @@ class FixPythonMove : public Fix {
   virtual void reset_dt();
 
  protected:
-  void * py_move;
+  void *py_move;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

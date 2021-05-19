@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
- http://lammps.sandia.gov, Sandia National Laboratories
+ https://lammps.sandia.gov/, Sandia National Laboratories
  Steve Plimpton, sjplimp@sandia.gov
 
  Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,9 +17,9 @@
   ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(filter/corotate,FixFilterCorotate)
-
+// clang-format off
+FixStyle(filter/corotate,FixFilterCorotate);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_FILTER_COROTATE_H
@@ -27,111 +27,105 @@ FixStyle(filter/corotate,FixFilterCorotate)
 
 #include "fix.h"
 
-namespace LAMMPS_NS
-{
+namespace LAMMPS_NS {
 
-  class FixFilterCorotate : public Fix
-  {
-  public:
+class FixFilterCorotate : public Fix {
+ public:
+  FixFilterCorotate(class LAMMPS *, int, char **);
+  ~FixFilterCorotate();
+  void setup(int);
+  void setup_pre_neighbor();
+  void pre_neighbor();
+  void setup_pre_force_respa(int, int);
+  //    void setup_post_force_respa(int,int);
+  void pre_force_respa(int, int, int);
+  void post_force_respa(int, int, int);
 
-    FixFilterCorotate(class LAMMPS *, int, char **);
-    ~FixFilterCorotate();
-                void setup(int);
-    void setup_pre_neighbor();
-    void pre_neighbor();
-    void setup_pre_force_respa(int,int);
-//    void setup_post_force_respa(int,int);
-    void pre_force_respa(int, int, int);
-    void post_force_respa(int, int, int);
+  void init();
+  int setmask();
 
-    void init();
-    int setmask();
+  double compute_array(int, int);
 
-    double compute_array(int,int);
+  int pack_forward_comm(int, int *, double *, int, int *);
+  void unpack_forward_comm(int, int, double *);
+  void grow_arrays(int);
+  double memory_usage();
 
-    int pack_forward_comm(int, int *, double *, int, int *);
-    void unpack_forward_comm(int, int, double *);
-    void grow_arrays(int );
-    double memory_usage();
+  void copy_arrays(int, int, int);
+  void set_arrays(int);
+  void update_arrays(int, int);
 
-    void copy_arrays(int, int, int);
-    void set_arrays(int);
-    void update_arrays(int, int);
+  int pack_exchange(int, double *);
+  int unpack_exchange(int, double *);
 
-    int pack_exchange(int, double *);
-    int unpack_exchange(int, double *);
+ protected:
+  int me, nprocs;
 
-  protected:
+  int flevel;    //filtered respa level
 
-    int me,nprocs;
+  double **help2;      //temp derivative
+  double **x_store;    //temp for atom->x
+  double *g;           //temp for derivative
 
-    int flevel;          //filtered respa level
+  double *n1, *n2, *n3, *del1, *del2, *del3;
 
-    double **help2;      //temp derivative
-    double **x_store;    //temp for atom->x
-    double *g;             //temp for derivative
+  double **dn1dx, **dn2dx, **dn3dx;
 
-    double*n1,*n2,*n3, *del1, *del2,*del3;
+  int *bond_flag, *angle_flag;    // bond/angle types to constrain
+  int *type_flag;                 // constrain bonds to these types
+  double *mass_list;              // constrain bonds to these masses
+  int nmass;                      // # of masses in mass_list
 
-    double**dn1dx,**dn2dx,**dn3dx;
+  int molecular;                             // copy of atom->molecular
+  double *bond_distance, *angle_distance;    // constraint distances
 
-    int *bond_flag,*angle_flag;            // bond/angle types to constrain
-    int *type_flag;                        // constrain bonds to these types
-    double *mass_list;                     // constrain bonds to these masses
-    int nmass;                             // # of masses in mass_list
+  int nlevels_respa;    // copies of needed rRESPA variables
 
-    int molecular;                         // copy of atom->molecular
-    double *bond_distance,*angle_distance; // constraint distances
+  double **x, **v, **f;    // local ptrs to atom class quantities
+  double *mass, *rmass;
+  int *type;
+  int nlocal;
+  // atom-based arrays
+  int *shake_flag;    // 0 if atom not in SHAKE cluster
+  // 1 = size 3 angle cluster
+  // 2,3,4 = size of bond-only cluster
+  tagint **shake_atom;    // global IDs of atoms in cluster
+  // central atom is 1st
+  // lowest global ID is 1st for size 2
+  int **shake_type;    // bondtype of each bond in cluster
+  // for angle cluster, 3rd value
+  //   is angletype
+  int *nshake;    // count
 
-    int nlevels_respa;                     // copies of needed rRESPA variables
+  int *list;                               // list of clusters to SHAKE
+  int nlist, maxlist;                      // size and max-size of list
+  double ***clist_derv;                    //stores derivative
+  double **clist_q0;                       //stores reference config
+  int *clist_nselect1, *clist_nselect2;    //stores length of each selec. list
+  int **clist_select1, **clist_select2;    //stores selection lists
 
-    double **x,**v,**f;                    // local ptrs to atom class quantities
-    double *mass,*rmass;
-    int *type;
-    int nlocal;
-    // atom-based arrays
-    int *shake_flag;                       // 0 if atom not in SHAKE cluster
-    // 1 = size 3 angle cluster
-    // 2,3,4 = size of bond-only cluster
-    tagint **shake_atom;                   // global IDs of atoms in cluster
-    // central atom is 1st
-    // lowest global ID is 1st for size 2
-    int **shake_type;                      // bondtype of each bond in cluster
-    // for angle cluster, 3rd value
-    //   is angletype
-    int *nshake;                           // count
+  void find_clusters();
+  int masscheck(double);
 
-    int *list;                            // list of clusters to SHAKE
-    int nlist,maxlist;                    // size and max-size of list
-    double ***clist_derv;      //stores derivative
-    double **clist_q0;        //stores reference config
-    int *clist_nselect1, *clist_nselect2; //stores length of each selec. list
-    int **clist_select1, **clist_select2; //stores selection lists
+  void filter_inner();
+  void filter_outer();
 
-    void find_clusters();
-    int masscheck(double);
+  void general_cluster(int, int);
 
-    void filter_inner();
-    void filter_outer();
+  void stats();
+  int bondtype_findset(int, tagint, tagint, int);
+  int angletype_findset(int, tagint, tagint, int);
 
-    void general_cluster(int,int);
+  // callback functions for ring communication
 
-    void stats();
-    int bondtype_findset(int, tagint, tagint, int);
-    int angletype_findset(int, tagint, tagint, int);
+  static void ring_bonds(int, char *, void *);
+  static void ring_nshake(int, char *, void *);
+  static void ring_shake(int, char *, void *);
 
-    // callback functions for ring communication
+  int sgn(double val) { return (0 < val) - (val < 0); };
+};
 
-    static void ring_bonds(int, char *, void *);
-    static void ring_nshake(int, char *, void *);
-    static void ring_shake(int, char *, void *);
-
-    int sgn(double val) {
-      return (0 < val) - (val < 0);
-    };
-  };
-
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

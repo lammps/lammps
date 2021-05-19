@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -213,7 +214,7 @@ void FixHeat::end_of_step()
           v[i][2] = scale*v[i][2] - vsub[2];
         }
     } else {
-      for (int i = 0; i < nlocal; i++)
+      for (i = 0; i < nlocal; i++)
         if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
           v[i][0] = scale*v[i][0] - vsub[0];
           v[i][1] = scale*v[i][1] - vsub[1];

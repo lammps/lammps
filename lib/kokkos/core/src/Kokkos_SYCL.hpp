@@ -54,6 +54,7 @@
 #include <Kokkos_ScratchSpace.hpp>
 #include <impl/Kokkos_ExecSpaceInitializer.hpp>
 #include <impl/Kokkos_Profiling_Interface.hpp>
+#include <impl/Kokkos_HostSharedPtr.hpp>
 
 namespace Kokkos {
 namespace Experimental {
@@ -79,15 +80,14 @@ class SYCL {
 
   using scratch_memory_space = ScratchMemorySpace<SYCL>;
 
-  ~SYCL() = default;
   SYCL();
-
-  SYCL(SYCL&&)      = default;
-  SYCL(const SYCL&) = default;
-  SYCL& operator=(SYCL&&) = default;
-  SYCL& operator=(const SYCL&) = default;
+  explicit SYCL(const sycl::queue&);
 
   uint32_t impl_instance_id() const noexcept { return 0; }
+
+  sycl::context sycl_context() const noexcept {
+    return m_space_instance->m_queue->get_context();
+  };
 
   //@}
   //------------------------------------
@@ -95,7 +95,7 @@ class SYCL {
   //@{
 
   KOKKOS_INLINE_FUNCTION static int in_parallel() {
-#if defined(__SYCL_ARCH__)
+#if defined(__SYCL_DEVICE_ONLY__)
     return true;
 #else
     return false;
@@ -123,25 +123,21 @@ class SYCL {
    */
 
   struct SYCLDevice {
-    SYCLDevice();
-    explicit SYCLDevice(cl::sycl::device d);
-    explicit SYCLDevice(const cl::sycl::device_selector& selector);
+    SYCLDevice() : SYCLDevice(sycl::default_selector()) {}
+    explicit SYCLDevice(sycl::device d);
+    explicit SYCLDevice(const sycl::device_selector& selector);
     explicit SYCLDevice(size_t id);
-    explicit SYCLDevice(const std::function<bool(const sycl::device&)>& pred);
 
-    cl::sycl::device get_device() const;
+    sycl::device get_device() const;
 
     friend std::ostream& operator<<(std::ostream& os, const SYCLDevice& that) {
       return that.info(os);
     }
 
-    static std::ostream& list_devices(std::ostream& os);
-    static void list_devices();
-
    private:
     std::ostream& info(std::ostream& os) const;
 
-    cl::sycl::device m_device;
+    sycl::device m_device;
   };
 
   static void impl_initialize(SYCLDevice = SYCLDevice());
@@ -154,11 +150,11 @@ class SYCL {
   static const char* name();
 
   inline Impl::SYCLInternal* impl_internal_space_instance() const {
-    return m_space_instance;
+    return m_space_instance.get();
   }
 
  private:
-  Impl::SYCLInternal* m_space_instance;
+  Kokkos::Impl::HostSharedPtr<Impl::SYCLInternal> m_space_instance;
 };
 
 namespace Impl {

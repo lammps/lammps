@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -20,11 +21,12 @@
 ------------------------------------------------------------------------- */
 
 #include "fft3d.h"
-#include <mpi.h>
-#include <cstdio>
+
+#include "remap.h"
+
 #include <cstdlib>
 #include <cmath>
-#include "remap.h"
+
 #if defined(_OPENMP)
 #include <omp.h>
 #endif

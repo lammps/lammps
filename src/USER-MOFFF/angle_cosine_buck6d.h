@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ANGLE_CLASS
-
-AngleStyle(cosine/buck6d, AngleCosineBuck6d)
-
+// clang-format off
+AngleStyle(cosine/buck6d, AngleCosineBuck6d);
+// clang-format on
 #else
 
 #ifndef LMP_ANGLE_COSINE_BUCK6D_H
@@ -38,16 +38,16 @@ class AngleCosineBuck6d : public Angle {
   double single(int, int, int, int);
 
  protected:
-  double *k,*th0;
-  double *eps,*d0;
-  double **buck6d1,**buck6d2,**buck6d3,**buck6d4,**cut_ljsq;
-  double **c0,**c1,**c2,**c3,**c4,**c5,**rsmooth_sq,**offset;
+  double *k, *th0;
+  double *eps, *d0;
+  double **buck6d1, **buck6d2, **buck6d3, **buck6d4, **cut_ljsq;
+  double **c0, **c1, **c2, **c3, **c4, **c5, **rsmooth_sq, **offset;
   int *multiplicity;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

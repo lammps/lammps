@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -182,9 +183,9 @@ void BondHybrid::settings(int narg, char **arg)
   // delete old lists, since cannot just change settings
 
   if (nstyles) {
-    for (int i = 0; i < nstyles; i++) delete styles[i];
+    for (i = 0; i < nstyles; i++) delete styles[i];
     delete [] styles;
-    for (int i = 0; i < nstyles; i++) delete [] keywords[i];
+    for (i = 0; i < nstyles; i++) delete [] keywords[i];
     delete [] keywords;
     has_quartic = -1;
   }
@@ -194,7 +195,7 @@ void BondHybrid::settings(int narg, char **arg)
     memory->destroy(map);
     delete [] nbondlist;
     delete [] maxbond;
-    for (int i = 0; i < nstyles; i++)
+    for (i = 0; i < nstyles; i++)
       memory->destroy(bondlist[i]);
     delete [] bondlist;
   }

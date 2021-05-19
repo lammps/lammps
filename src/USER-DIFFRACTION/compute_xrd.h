@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(xrd,ComputeXRD)
-
+// clang-format off
+ComputeStyle(xrd,ComputeXRD);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_XRD_H
@@ -33,28 +33,27 @@ class ComputeXRD : public Compute {
   double memory_usage();
 
  private:
-  int     me;
-  int     *ztype;            // Atomic number of the different atom types
-  double  Min2Theta;         // Minimum 2theta value (input in 2theta rad)
-  double  Max2Theta;         // Maximum 2theta value (input in 2theta rad)
-  double  Kmax;              // Maximum reciprocal distance to explore
-  double  c[3];              // Resolution parameters for reciprocal space explored
-  int     Knmax[3];          // maximum integer value for K points in each dimension
-  double  dK[3];             // Parameters controlling resolution of reciprocal space explored
-  double  prd_inv[3];        // Inverse spacing of unit cell
-  int     LP;                // Switch to turn on Lorentz-Polarization factor 1=on
-  bool    echo;              // echo compute_array progress
-  bool    manual;            // Turn on manual recpiprocal map
+  int me;
+  int *ztype;           // Atomic number of the different atom types
+  double Min2Theta;     // Minimum 2theta value (input in 2theta rad)
+  double Max2Theta;     // Maximum 2theta value (input in 2theta rad)
+  double Kmax;          // Maximum reciprocal distance to explore
+  double c[3];          // Resolution parameters for reciprocal space explored
+  int Knmax[3];         // maximum integer value for K points in each dimension
+  double dK[3];         // Parameters controlling resolution of reciprocal space explored
+  double prd_inv[3];    // Inverse spacing of unit cell
+  int LP;               // Switch to turn on Lorentz-Polarization factor 1=on
+  bool echo;            // echo compute_array progress
+  bool manual;          // Turn on manual recpiprocal map
 
   int ntypes;
   int nlocalgroup;
-  double lambda;             // Radiation wavelenght (distance units)
+  double lambda;    // Radiation wavelenght (distance units)
   int radflag;
   int *store_tmp;
-
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

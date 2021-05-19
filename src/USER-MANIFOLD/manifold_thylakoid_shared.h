@@ -1,6 +1,18 @@
+/* -*- c++ -*- ----------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   https://lammps.sandia.gov/, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
+
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under
+   the GNU General Public License.
+
+   See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
+
 #ifndef MANIFOLD_THYLAKOID_SHARED_H
 #define MANIFOLD_THYLAKOID_SHARED_H
-
 
 #include "lmptype.h"
 #include <vector>
@@ -8,7 +20,6 @@
 namespace LAMMPS_NS {
 
 namespace user_manifold {
-
 
   // The thylakoid is composed of many parts
   struct thyla_part {
@@ -19,13 +30,13 @@ namespace user_manifold {
       THYLA_TYPE_CYL_TO_PLANE
     };
 
-    thyla_part( int type, double *args, double xlo, double ylo, double zlo,
-                double xhi, double yhi, double zhi );
+    thyla_part(int type, double *args, double xlo, double ylo, double zlo, double xhi, double yhi,
+               double zhi);
     thyla_part() : type(-1), x0(-1337), y0(-1337), z0(-1337) {}
     ~thyla_part();
 
-    double g( const double *x );
-    void   n( const double *x, double *n );
+    double g(const double *x);
+    void n(const double *x, double *n);
 
     int type;
     double params[7];
@@ -38,9 +49,7 @@ namespace user_manifold {
     double xlo, xhi, ylo, yhi, zlo, zhi;
     double x0, y0, z0;
 
-  }; // struct thyla_part
-
-
+  };    // struct thyla_part
 
   struct thyla_part_geom {
     thyla_part_geom() : pt(3), lo(3), hi(3) {}
@@ -48,16 +57,12 @@ namespace user_manifold {
 
     // Function for mirroring thyla_geoms:
     enum DIRS { DIR_X, DIR_Y, DIR_Z };
-    static void mirror( unsigned int axis, thyla_part_geom *m,
-                        const thyla_part_geom *o );
+    static void mirror(unsigned int axis, thyla_part_geom *m, const thyla_part_geom *o);
 
-  }; // struct thyla_part_geom
+  };    // struct thyla_part_geom
 
+}    // namespace user_manifold
 
-} // namespace user_manifold
+}    // namespace LAMMPS_NS
 
-
-} // namespace LAMMPS_NS
-
-
-#endif // MANIFOLD_THYLAKOID_SHARED_H
+#endif    // MANIFOLD_THYLAKOID_SHARED_H

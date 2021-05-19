@@ -26,7 +26,7 @@ override LDFLAGS += -lpthread
 
 include $(KOKKOS_PATH)/Makefile.kokkos
 
-KOKKOS_CXXFLAGS += -I$(GTEST_PATH) -I${KOKKOS_PATH}/containers/unit_tests
+KOKKOS_CXXFLAGS += -I$(GTEST_PATH) -I${KOKKOS_PATH}/containers/unit_tests -I${KOKKOS_PATH}/core/unit_test/category_files
 
 TEST_TARGETS =
 TARGETS =

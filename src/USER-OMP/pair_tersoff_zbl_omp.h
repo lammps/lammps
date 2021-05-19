@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    See the README file in the top-level LAMMPS directory.
@@ -11,9 +11,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(tersoff/zbl/omp,PairTersoffZBLOMP)
-
+// clang-format off
+PairStyle(tersoff/zbl/omp,PairTersoffZBLOMP);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_TERSOFF_ZBL_OMP_H
@@ -29,17 +29,16 @@ class PairTersoffZBLOMP : public PairTersoffOMP {
   virtual ~PairTersoffZBLOMP() {}
 
  protected:
-  double global_a_0;                // Bohr radius for Coulomb repulsion
-  double global_epsilon_0;        // permittivity of vacuum for Coulomb repulsion
-  double global_e;                // proton charge (negative of electron charge)
+  double global_a_0;          // Bohr radius for Coulomb repulsion
+  double global_epsilon_0;    // permittivity of vacuum for Coulomb repulsion
+  double global_e;            // proton charge (negative of electron charge)
 
   virtual void read_file(char *);
   virtual void repulsive(Param *, double, double &, int, double &);
   virtual void force_zeta(Param *, double, double, double &, double &, int, double &);
-
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

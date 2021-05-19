@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,11 +16,10 @@
 
 namespace LAMMPS_NS {
 
-template<class T>
-class MyPoolChunk {
+template <class T> class MyPoolChunk {
  public:
-  int ndatum;      // total # of stored datums
-  int nchunk;      // total # of stored chunks
+  int ndatum;    // total # of stored datums
+  int nchunk;    // total # of stored chunks
 
   MyPoolChunk(int user_minchunk = 1, int user_maxchunk = 1, int user_nbin = 1,
               int user_chunkperpage = 1024, int user_pagedelta = 1);
@@ -53,25 +52,25 @@ class MyPoolChunk {
   int status() const { return errorflag; }
 
  private:
-  int minchunk;       // min # of datums per chunk
-  int maxchunk;       // max # of datums per chunk
-  int nbin;           // # of bins to split min-to-max into
-  int chunkperpage;   // # of chunks on every page, regardless of which bin
-  int pagedelta;      // # of pages to allocate at once, default = 1
-  int binsize;        // delta in chunk sizes between adjacent bins
-  int errorflag;      // flag > 0 if error has occurred
-                      // 1 = invalid inputs
-                      // 2 = memory allocation error
-                      // 3 = chunk size exceeded maxchunk
+  int minchunk;        // min # of datums per chunk
+  int maxchunk;        // max # of datums per chunk
+  int nbin;            // # of bins to split min-to-max into
+  int chunkperpage;    // # of chunks on every page, regardless of which bin
+  int pagedelta;       // # of pages to allocate at once, default = 1
+  int binsize;         // delta in chunk sizes between adjacent bins
+  int errorflag;       // flag > 0 if error has occurred
+                       // 1 = invalid inputs
+                       // 2 = memory allocation error
+                       // 3 = chunk size exceeded maxchunk
 
-  T **pages;          // list of allocated pages
-  int *whichbin;      // which bin each page belongs to
-  int npage;          // # of allocated pages
-  int *freelist;      // each chunk points to next unused chunk in same bin
-  int *freehead;      // index of first unused chunk in each bin
-  int *chunksize;     // size of chunks in each bin
+  T **pages;         // list of allocated pages
+  int *whichbin;     // which bin each page belongs to
+  int npage;         // # of allocated pages
+  int *freelist;     // each chunk points to next unused chunk in same bin
+  int *freehead;     // index of first unused chunk in each bin
+  int *chunksize;    // size of chunks in each bin
 
   void allocate(int ibin);
 };
-}
+}    // namespace LAMMPS_NS
 #endif

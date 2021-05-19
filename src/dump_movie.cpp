@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -60,8 +61,8 @@ void DumpMovie::openfile()
 #endif
 
     if (fp == nullptr)
-      error->one(FLERR,fmt::format("Failed to open FFmpeg pipeline to "
-                                   "file {}",filename));
+      error->one(FLERR,"Failed to open FFmpeg pipeline to "
+                                   "file {}",filename);
   }
 }
 /* ---------------------------------------------------------------------- */

@@ -1,6 +1,7 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,11 +13,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef NPAIR_CLASS
-
+// clang-format off
 NPairStyle(half/bin/newton/intel,
            NPairHalfBinNewtonIntel,
-           NP_HALF | NP_BIN | NP_NEWTON | NP_ORTHO | NP_INTEL)
-
+           NP_HALF | NP_BIN | NP_NEWTON | NP_ORTHO | NP_INTEL);
+// clang-format on
 #else
 
 #ifndef LMP_NPAIR_HALF_BIN_NEWTON_INTEL_H

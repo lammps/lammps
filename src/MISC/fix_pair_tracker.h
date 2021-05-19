@@ -32,14 +32,14 @@ class FixPairTracker : public Fix {
   void init();
   void post_force(int);
   double memory_usage();
-  void lost_contact(int, int, double, double, double);
+  void lost_contact(int, int, double, double, double, double);
     
  private:
   int nvalues, never;
-  int nmax, tmin;
+  int nmax;
   int store_flag;
   int index_i, index_j;
-  double rmin, rsum, time_initial;
+  double tmin, rmin, rsum, time_initial, nstep_initial;
   
   double *vector;
   double **array;

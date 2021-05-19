@@ -623,13 +623,15 @@ void FixNeighHistory::post_neighbor()
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-      rflag = sbmask(j) | pair->beyond_contact;
+      rflag = sbmask(j) | pair->beyond_contact | (!pair->finitecutflag);
       j &= NEIGHMASK;
       jlist[jj] = j;
 
       // rflag = 1 if r < radsum in npair_size() method
       // preserve neigh history info if tag[j] is in old-neigh partner list
       // this test could be more geometrically precise for two sphere/line/tri
+      // for pair styles with interactions not set by finite sizes, always record data since
+      // npair classes do not apply a mask for history (those bits are used for special bonds)
 
       if (rflag) {
         jtag = tag[j];

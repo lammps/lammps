@@ -150,6 +150,8 @@ Lowercase directories
 +-------------+------------------------------------------------------------------+
 | threebody   | regression test input for a variety of manybody potentials       |
 +-------------+------------------------------------------------------------------+
+| tracker     | track interactions in LJ melt                                    |
++-------------+------------------------------------------------------------------+
 | vashishta   | use of the Vashishta potential                                   |
 +-------------+------------------------------------------------------------------+
 | voronoi     | Voronoi tesselation via compute voronoi/atom command             |

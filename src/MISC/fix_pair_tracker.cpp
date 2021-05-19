@@ -11,19 +11,17 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <string.h>
 #include "fix_pair_tracker.h"
-#include "pair_tracker.h"
 #include "atom.h"
 #include "atom_vec.h"
-#include "update.h"
-#include "memory.h"
-#include "modify.h"
 #include "error.h"
 #include "group.h"
+#include "memory.h"
+#include "modify.h"
 #include "tokenizer.h"
+#include "update.h"
 
-#include <cstring>
+#include <string.h>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -182,9 +180,9 @@ void FixPairTracker::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPairTracker::lost_contact(int i, int j, double nstep_tmp, double rsum_tmp, double time_tmp)
+void FixPairTracker::lost_contact(int i, int j, double time_tmp, double nstep_tmp, double rsum_tmp, double rmin_tmp)
 {    
-
+  
   double time = update->atime + (update->ntimestep-update->atimestep)*update->dt;
   if ((time-time_tmp) < tmin) return;
       
@@ -205,6 +203,7 @@ void FixPairTracker::lost_contact(int i, int j, double nstep_tmp, double rsum_tm
   rmin = rmin_tmp;
   rsum = rsum_tmp;
   time_initial = time_tmp;
+  nstep_initial = nstep_tmp;
   
   // fill vector or array with local values
   if (nvalues == 1) {

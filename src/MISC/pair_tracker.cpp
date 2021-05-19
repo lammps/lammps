@@ -12,24 +12,22 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_tracker.h"
-
 #include "atom.h"
-#include "force.h"
-#include "update.h"
-#include "modify.h"
+#include "comm.h"
+#include "error.h"
 #include "fix.h"
 #include "fix_dummy.h"
 #include "fix_neigh_history.h"
 #include "fix_pair_tracker.h"
+#include "force.h"
+#include "memory.h"
+#include "modify.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "memory.h"
-#include "error.h"
+#include "update.h"
 
 using namespace LAMMPS_NS;
-
-#define RLARGE 100
 
 /* ---------------------------------------------------------------------- */
 
@@ -40,7 +38,7 @@ PairTracker::PairTracker(LAMMPS *lmp) : Pair(lmp)
 
   neighprev = 0;
   history = 1;
-  size_history = 3;  
+  size_history = 4;  
   nondefault_history_transfer = 1;
   
   finitecutflag = 0;
@@ -49,7 +47,7 @@ PairTracker::PairTracker(LAMMPS *lmp) : Pair(lmp)
   // this is so final order of Modify:fix will conform to input script
 
   fix_history = nullptr;
-  modify->add_fix("NEIGH_HISTORY_TRACK_DUMMY");
+  modify->add_fix("NEIGH_HISTORY_TRACK_DUMMY all DUMMY");
   fix_dummy = (FixDummy *) modify->fix[modify->nfix-1];
 }
 
@@ -122,7 +120,8 @@ void PairTracker::compute(int eflag, int vflag)
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
-      
+      r = sqrt(rsq);
+
       if (finitecutflag) {
         radj = radius[j];
         radsum = radi + radj;
@@ -131,12 +130,13 @@ void PairTracker::compute(int eflag, int vflag)
 
           data = &alldata[size_history*jj];
           if(touch[jj] == 1) {
-            fix_pair_tracker->lost_contact(i, j, data[0], data[1], data[2]);
+            fix_pair_tracker->lost_contact(i, j, data[0], data[1], data[2], data[3]);
           }
           touch[jj] = 0;
           data[0] = 0.0; // initial time
-          data[1] = 0.0; // sum of r, may overflow
-          data[2] = 0.0; // min of r
+          data[1] = 0.0; // initial timestep
+          data[2] = 0.0; // sum of r, may overflow
+          data[3] = 0.0; // min of r
                 
         } else {        
 
@@ -144,16 +144,14 @@ void PairTracker::compute(int eflag, int vflag)
           if (touch[jj] == 0) {
             time = update->atime + (update->ntimestep-update->atimestep)*update->dt;
             data[0] = time;
-            data[1] = 0.0;
-            data[2] = RLARGE;
+            data[1] = (double) update->ntimestep;
+            data[2] = r;
+            data[3] = r;
+          } else if (updateflag) {
+            data[2] += r;
+            if(data[3] > r) data[3] = r;
           }
           touch[jj] = 1;
-
-          if (updateflag) {
-            r = sqrt(rsq);
-            data[1] += r;
-            if(data[2] > r) data[2] = r;
-          }
         }
       } else {      
         jtype = type[j];      
@@ -161,12 +159,14 @@ void PairTracker::compute(int eflag, int vflag)
           
           data = &alldata[size_history*jj];            
           if(touch[jj] == 1) {              
-            fix_pair_tracker->lost_contact(i, j, data[0], data[1], data[2]);
+            fix_pair_tracker->lost_contact(i, j, data[0], data[1], data[2], data[3]);
           }
+          
           touch[jj] = 0;
           data[0] = 0.0; // initial time
-          data[1] = 0.0; // sum of r, may overflow
-          data[2] = 0.0; // min of r
+          data[1] = 0.0; // initial timestep
+          data[2] = 0.0; // sum of r, may overflow
+          data[3] = 0.0; // min of r
                 
         } else {        
 
@@ -174,16 +174,14 @@ void PairTracker::compute(int eflag, int vflag)
           if (touch[jj] == 0) {
             time = update->atime + (update->ntimestep-update->atimestep)*update->dt;
             data[0] = time;
-            data[1] = 0.0;
-            data[2] = RLARGE;
+            data[1] = (double) update->ntimestep;
+            data[2] = r;
+            data[3] = r;
+          } else if (updateflag) {
+            data[2] += r;
+            if(data[3] > r) data[3] = r;
           }
           touch[jj] = 1;
-
-          if (updateflag) {
-            r = sqrt(rsq);
-            data[1] += r;
-            if(data[2] > r) data[2] = r;
-          }
         }
       }
     }

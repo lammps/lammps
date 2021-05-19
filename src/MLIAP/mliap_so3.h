@@ -60,6 +60,10 @@ class MLIAP_SO3: protected Pointers {
 
  private:
 
+  double Cosine(double Rij, double Rc);
+  double CosinePrime(double Rij, double Rc);
+  double compute_sfac(double r, double rcut);
+  double compute_dsfac(double r, double rcut);
   void get_sbes_array(int natoms, int *numneighs, int *jelems,
                       double *wjelem, double **rij, int nmax, int lmax,
                       double rcut, double alpha,int ncoefs);

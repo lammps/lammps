@@ -16,6 +16,8 @@
 
 #include "mliap_descriptor.h"
 
+//using namespace std;
+
 namespace LAMMPS_NS {
 
 class MLIAPDescriptorSO3 : public MLIAPDescriptor {
@@ -33,6 +35,8 @@ class MLIAPDescriptorSO3 : public MLIAPDescriptor {
   virtual double memory_usage();
 
   double rcutfac;
+//  void print_2d(string cstr,double *arr,int n, int n2);
+//  void print_3d(string cstr,double* arr,int m,int n,int d,int cut);
 
  protected:
 

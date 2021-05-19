@@ -206,6 +206,8 @@ void MLIAPDescriptorSO3::compute_descriptors(class MLIAPData* data)
     data->jelems,wjelem,data->rij,nmax, lmax, rcutfac,alpha,
       data->ndescriptors);
 
+//  print_2d("x",so3ptr->m_plist_r,data->nlistatoms,data->ndescriptors);
+
   for (int ii = 0; ii < data->nlistatoms; ii++) {
     for (int icoeff = 0; icoeff < data->ndescriptors; icoeff++)
       data->descriptors[ii][icoeff] =
@@ -225,6 +227,9 @@ void MLIAPDescriptorSO3::compute_forces(class MLIAPData* data)
   so3ptr->spectrum_dxdr(data->nlistatoms,data->numneighs,
     data->jelems,wjelem,data->rij,nmax, lmax, rcutfac,alpha,npairs,
       data->ndescriptors);
+
+//  cout <<"npairs, ndescript "<< npairs << " " << data->ndescriptors <<endl;
+//  print_3d("dxdr",so3ptr->m_dplist_r,npairs,data->ndescriptors,3,0);
 
   double fij[3];
   double **f = atom->f;
@@ -296,4 +301,48 @@ double MLIAPDescriptorSO3::memory_usage()
 
   return bytes;
 }
+/*
+void MLIAPDescriptorSO3::print_3d(string cstr,double* arr,int m,int n,int d,int cut){
 
+ int i,j,k;
+
+ cout.precision(5);
+ cout <<std::scientific;
+    cout << endl;
+    cout << cstr << endl;
+
+ for(i=0;i<m;i++){
+  if(cut !=0 && i> cut) break;
+  if(i==0) cout << "[[";
+  else cout << " [";
+  for(j=0;j<n;j++){
+     if(j==0) cout << "[";
+     else cout << "  [";
+     for(k=0;k<d;k++){
+        cout << arr[(i*n+j)*d+k] << " ";
+     }
+     if(j==n-1) cout << "]";
+     else cout << "]" << endl;
+  }
+  if(i==m-1) cout << "]]" << endl;
+  else cout << "]" << endl;
+  cout << endl;
+ }
+}
+
+
+void MLIAPDescriptorSO3::print_2d(string cstr,double *arr,int n, int n2){
+	int i,j;
+	cout.precision(5);
+	cout <<std::scientific;
+    cout << endl;
+    cout << cstr << endl;
+    for ( i=0;i<n;i++){
+    	for ( j=0;j<n2;j++){
+          cout << arr[n2*i+j] << " , " ;
+          if(j%4==3) cout << endl;
+    	}
+    	cout << endl;
+    }
+}
+*/

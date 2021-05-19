@@ -102,6 +102,7 @@ MLIAP_SO3::MLIAP_SO3(LAMMPS *lmp, double vrcut, int vlmax, int vnmax,
 
 MLIAP_SO3::~MLIAP_SO3()
 {
+
   memory->destroy(m_ellpl1);
   memory->destroy(m_ellm1);
   memory->destroy(m_pfac);
@@ -587,6 +588,33 @@ double MLIAP_SO3::g(double r, int n, int nmax, double rcut,
 
 }
 
+double MLIAP_SO3::Cosine(double Rij, double Rc)
+{
+
+  return 0.5 * (cos(M_PI * Rij / Rc) + 1.0);
+
+}
+double MLIAP_SO3::CosinePrime(double Rij, double Rc)
+{
+
+  return -0.5 * M_PI / Rc * sin(M_PI * Rij / Rc);
+
+}
+double MLIAP_SO3::compute_sfac(double r, double rcut)
+{
+
+  if(r>rcut) return 0.0;
+  else return Cosine(r,rcut);
+
+}
+double MLIAP_SO3::compute_dsfac(double r, double rcut)
+{
+
+  if(r>rcut) return 0.0;
+  else return CosinePrime(r,rcut);
+
+}
+
 void MLIAP_SO3::compute_dpidrj(int nmax, int lmax, double *clisttot_r,
                                double *clisttot_i, int lctot1,
                                int lctot2, double *dclist_r,
@@ -926,6 +954,7 @@ void MLIAP_SO3::spectrum(int natoms, int *numneighs, int *jelems,
   double pfac2;
   int findex, gindex;
   int ipair = 0;
+  double sfac;
 
   findex = m_nmax * (m_lmax + 1);
 
@@ -998,6 +1027,8 @@ void MLIAP_SO3::spectrum(int natoms, int *numneighs, int *jelems,
       compute_uarray_recursive(x, y, z, r, twolmax, m_ulist_r,
         m_ulist_i,m_idxu_block, m_rootpq, m_ldim, m_ldim);
 
+      sfac=compute_sfac(r,rcut);
+
       gindex = (ipair - 1) * findex;
       for (int n = 1; n < nmax + 1; n++) {
         int i = 0;
@@ -1008,10 +1039,12 @@ void MLIAP_SO3::spectrum(int natoms, int *numneighs, int *jelems,
 
             Ylm_r = (m_ulist_r[m_idxylm[i]])
               * m_pfac[l * m_pfac_l2 + m];
-            m_clist_r[(n - 1) * m_numYlms + i] += r_int * Ylm_r;
+            m_clist_r[(n - 1) * m_numYlms + i]
+              += r_int * Ylm_r * sfac;
             Ylm_i = (m_ulist_i[m_idxylm[i]])
               * m_pfac[l * m_pfac_l2 + m];
-            m_clist_i[(n - 1) * m_numYlms + i] += r_int * Ylm_i;
+            m_clist_i[(n - 1) * m_numYlms + i]
+              += r_int * Ylm_i*sfac;
             i += 1;
           }
         }
@@ -1074,6 +1107,7 @@ void MLIAP_SO3::spectrum_dxdr(int natoms, int *numneighs,
 
   int ipair = 0;
   int idpair = 0;
+  double sfac,dsfac,dsfac_arr[3];
 
   findex = m_nmax * (m_lmax + 1);
 
@@ -1152,6 +1186,8 @@ void MLIAP_SO3::spectrum_dxdr(int natoms, int *numneighs,
       compute_uarray_recursive(x, y, z, r, twolmax, m_ulist_r,
         m_ulist_i, m_idxu_block, m_rootpq, m_ldim, m_ldim);
 
+      sfac=compute_sfac(r,rcut);
+
       gindex = (ipair - 1) * findex;
       for (int n = 1; n < nmax + 1; n++) {
         int i = 0;
@@ -1162,10 +1198,12 @@ void MLIAP_SO3::spectrum_dxdr(int natoms, int *numneighs,
 
             Ylm_r = (m_ulist_r[m_idxylm[i]])
               * m_pfac[l * m_pfac_l2 + m];
-            m_clist_r[(n - 1) * m_numYlms + i] += r_int * Ylm_r;
+            m_clist_r[(n - 1) * m_numYlms + i]
+              += r_int * Ylm_r * sfac;
             Ylm_i = (m_ulist_i[m_idxylm[i]])
               * m_pfac[l * m_pfac_l2 + m];
-            m_clist_i[(n - 1) * m_numYlms + i] += r_int * Ylm_i;
+            m_clist_i[(n - 1) * m_numYlms + i]
+              += r_int * Ylm_i * sfac;
             i += 1;
           }
         }
@@ -1296,6 +1334,12 @@ void MLIAP_SO3::spectrum_dxdr(int natoms, int *numneighs,
         for (int ii = 0; ii < 3; ii++)
           dexpfac[ii] = -2.0 * alpha * rvec[ii];
 
+        sfac=compute_sfac(r,rcut);
+        dsfac=compute_dsfac(r,rcut);
+        for(int ii=0;ii<3;ii++){
+          dsfac_arr[ii]=dsfac*rvec[ii]/r;
+        }
+
         for (int n = 1; n < nmax + 1; n++) {
           int i = 0;
           for (int l = 0; l < lmax + 1; l++) {
@@ -1309,31 +1353,40 @@ void MLIAP_SO3::spectrum_dxdr(int natoms, int *numneighs,
 
             for (int m = -l; m < l + 1; m++) {
 
-              m_dclist_r[((n - 1) * m_numYlms + i) * 3 + 0] +=
-                r_int * m_Ylms_r[i] * dexpfac[0]
-                  + dr_int[0] * m_Ylms_r[i]
-                    + r_int * m_dYlm_r[i * 3 + 0];
-              m_dclist_r[((n - 1) * m_numYlms + i) * 3 + 1] +=
-                r_int * m_Ylms_r[i] * dexpfac[1]
-                  + dr_int[1] * m_Ylms_r[i]
-                    + r_int * m_dYlm_r[i * 3 + 1];
-              m_dclist_r[((n - 1) * m_numYlms + i) * 3 + 2] +=
-                r_int * m_Ylms_r[i] * dexpfac[2]
-                  + dr_int[2] * m_Ylms_r[i]
-                    + r_int * m_dYlm_r[i * 3 + 2];
+              m_dclist_r[((n-1)*m_numYlms+i)*3+0] +=
+                (r_int*m_Ylms_r[i]*dexpfac[0] + dr_int[0]*m_Ylms_r[i]
+                  + r_int*m_dYlm_r[i*3+0])*sfac;
+              m_dclist_r[((n-1)*m_numYlms+i)*3+1] +=
+                (r_int*m_Ylms_r[i]*dexpfac[1] + dr_int[1]*m_Ylms_r[i]
+                  + r_int*m_dYlm_r[i*3+1])*sfac;
+              m_dclist_r[((n-1)*m_numYlms+i)*3+2] +=
+                (r_int*m_Ylms_r[i]*dexpfac[2] + dr_int[2]*m_Ylms_r[i]
+                  + r_int*m_dYlm_r[i*3+2])*sfac;
 
-              m_dclist_i[((n - 1) * m_numYlms + i) * 3 + 0] +=
-                r_int * m_Ylms_i[i] * dexpfac[0]
-                  + dr_int[0] * m_Ylms_i[i]
-                    + r_int * m_dYlm_i[i * 3 + 0];
-              m_dclist_i[((n - 1) * m_numYlms + i) * 3 + 1] +=
-                r_int * m_Ylms_i[i] * dexpfac[1]
-                  + dr_int[1] * m_Ylms_i[i]
-                    + r_int * m_dYlm_i[i * 3 + 1];
-              m_dclist_i[((n - 1) * m_numYlms + i) * 3 + 2] +=
-                r_int * m_Ylms_i[i] * dexpfac[2]
-                  + dr_int[2] * m_Ylms_i[i]
-                    + r_int * m_dYlm_i[i * 3 + 2];
+              m_dclist_i[((n-1)*m_numYlms+i)*3+0] +=
+                (r_int*m_Ylms_i[i]*dexpfac[0] + dr_int[0]*m_Ylms_i[i]
+                  + r_int*m_dYlm_i[i*3+0])*sfac;
+              m_dclist_i[((n-1)*m_numYlms+i)*3+1] +=
+                (r_int*m_Ylms_i[i]*dexpfac[1] + dr_int[1]*m_Ylms_i[i]
+                  + r_int*m_dYlm_i[i*3+1])*sfac;
+              m_dclist_i[((n-1)*m_numYlms+i)*3+2] +=
+                (r_int*m_Ylms_i[i]*dexpfac[2] + dr_int[2]*m_Ylms_i[i]
+                  + r_int*m_dYlm_i[i*3+2])*sfac;
+
+
+              m_dclist_r[((n-1)*m_numYlms+i)*3+0] +=
+                (r_int*m_Ylms_r[i])*dsfac_arr[0];
+              m_dclist_r[((n-1)*m_numYlms+i)*3+1] +=
+                (r_int*m_Ylms_r[i])*dsfac_arr[1];
+              m_dclist_r[((n-1)*m_numYlms+i)*3+2] +=
+                (r_int*m_Ylms_r[i])*dsfac_arr[2];
+
+              m_dclist_i[((n-1)*m_numYlms+i)*3+0] +=
+                (r_int*m_Ylms_i[i])*dsfac_arr[0];
+              m_dclist_i[((n-1)*m_numYlms+i)*3+1] +=
+                (r_int*m_Ylms_i[i])*dsfac_arr[1];
+              m_dclist_i[((n-1)*m_numYlms+i)*3+2] +=
+                (r_int*m_Ylms_i[i])*dsfac_arr[2];
 
               i += 1;
             }

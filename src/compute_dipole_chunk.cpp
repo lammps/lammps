@@ -60,7 +60,7 @@ ComputeDipoleChunk::ComputeDipoleChunk(LAMMPS *lmp, int narg, char **arg) :
     else error->all(FLERR,"Illegal compute dipole/chunk command");
   }
 
-  init();
+  ComputeDipoleChunk::init();
 
   // chunk-based data
 

@@ -39,7 +39,7 @@ ComputeGyrationChunk::ComputeGyrationChunk(LAMMPS *lmp, int narg, char **arg) :
 
   idchunk = utils::strdup(arg[3]);
 
-  init();
+  ComputeGyrationChunk::init();
 
   // optional args
 

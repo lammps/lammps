@@ -58,7 +58,7 @@ ComputeSpin::ComputeSpin(LAMMPS *lmp, int narg, char **arg) :
   long_spin_flag = 0;
   precession_spin_flag = 0;
 
-  init();
+  ComputeSpin::init();
 
   allocate();
 

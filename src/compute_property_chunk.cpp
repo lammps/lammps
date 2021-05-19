@@ -36,7 +36,7 @@ ComputePropertyChunk::ComputePropertyChunk(LAMMPS *lmp, int narg, char **arg) :
 
   idchunk = utils::strdup(arg[3]);
 
-  init();
+  ComputePropertyChunk::init();
 
   // parse values
 

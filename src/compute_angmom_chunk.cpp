@@ -44,7 +44,7 @@ ComputeAngmomChunk::ComputeAngmomChunk(LAMMPS *lmp, int narg, char **arg) :
 
   idchunk = utils::strdup(arg[3]);
 
-  init();
+  ComputeAngmomChunk::init();
 
   // chunk-based data
 

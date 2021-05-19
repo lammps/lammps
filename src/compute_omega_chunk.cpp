@@ -48,7 +48,7 @@ ComputeOmegaChunk::ComputeOmegaChunk(LAMMPS *lmp, int narg, char **arg) :
 
   idchunk = utils::strdup(arg[3]);
 
-  init();
+  ComputeOmegaChunk::init();
 
   // chunk-based data
 

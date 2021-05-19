@@ -148,7 +148,7 @@ the pair_style command.
 .. warning::
 
    Because of how these pair styles implement the coulomb interactions
-   by implicitly defining a fourth coordinate for the negative charge
+   by implicitly defining a fourth site for the negative charge
    of the TIP4P and similar water models, special care must be taken
    when using these pair styles with other computations that also use
    charges.  Unless they are specially set up to also handle the implicit

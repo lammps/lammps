@@ -343,7 +343,8 @@ __kernel void k_energy_fast(const __global numtyp4 *restrict x_,
       numtyp delz = ix.z-jx.z;
       numtyp rsq = delx*delx+dely*dely+delz*delz;
 
-      if (rsq<cutforcesq) {
+      int ijtype=fast_mul((int)MAX_SHARED_TYPES,ix.w)+jx.w;
+      if (rsq<cutforcesq && cutsq[ijtype]>(numtyp)0) {
         numtyp p = ucl_sqrt(rsq)*rdr + (numtyp)1.0;
         int m=p;
         m = MIN(m,nr-1);

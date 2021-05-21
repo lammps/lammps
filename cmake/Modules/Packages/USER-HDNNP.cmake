@@ -11,16 +11,37 @@ if(DOWNLOAD_N2P2)
   mark_as_advanced(N2P2_URL)
   mark_as_advanced(N2P2_MD5)
 
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    set(N2P2_COMP llvm)
+  elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
+    set(N2P2_COMP intel)
+  elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    set(N2P2_COMP gnu)
+  else() # default
+    set(N2P2_COMP gnu)
+  endif()
+
+  if(NOT BUILD_MPI)
+    set(N2P2_PROJECT_OPTIONS "-DN2P2_NO_MPI")
+  endif()
+
+  string(TOUPPER "${CMAKE_BUILD_TYPE}" BTYPE)
+  set(N2P2_BUILD_FLAGS "${CMAKE_SHARED_LIBRARY_CXX_FLAGS} ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${BTYPE}}")
+  set(N2P2_BUILD_OPTIONS INTERFACES=LAMMPS COMP=${N2P2_COMP} "PROJECT_OPTIONS=${N2P2_PROJECT_OPTIONS}"
+    "PROJECT_CC=${CMAKE_CXX_COMPILER}" "PROJECT_MPICC=${MPI_CXX_COMPILER}" "PROJECT_CFLAGS=${N2P2_BUILD_FLAGS}")
+  message(STATUS "N2P2 BUILD OPTIONS: ${N2P2_BUILD_OPTIONS}")
+
   include(ExternalProject)
   ExternalProject_Add(n2p2_build
     URL     ${N2P2_URL}
     URL_MD5 ${N2P2_MD5}
     UPDATE_COMMAND ""
-    SOURCE_SUBDIR src/
-    BUILD_IN_SOURCE 1
     CONFIGURE_COMMAND ""
-    BUILD_COMMAND make libnnpif
+    BUILD_COMMAND make -f makefile libnnpif ${N2P2_BUILD_OPTIONS}
     INSTALL_COMMAND ""
+    BUILD_IN_SOURCE 1
+    LOG_BUILD ON
+    SOURCE_SUBDIR src/
     #BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libnnp.a <INSTALL_DIR>/lib/libnnpif.a
     )
   ExternalProject_get_property(n2p2_build SOURCE_DIR)

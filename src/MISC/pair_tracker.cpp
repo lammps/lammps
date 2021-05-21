@@ -270,8 +270,12 @@ void PairTracker::init_style()
   // need a history neigh list
 
   int irequest = neighbor->request(this,instance_me);
-  if (finitecutflag) neighbor->requests[irequest]->size = 1;
-  neighbor->requests[irequest]->history = 1;
+  if (finitecutflag) {
+    neighbor->requests[irequest]->size = 1;
+    neighbor->requests[irequest]->history = 1;
+    // history flag won't affect results, but match granular pairstyles 
+    // so neighborlist can be copied to reduce overhead
+  }
 
   // if history is stored and first init, create Fix to store history
   // it replaces FixDummy, created in the constructor

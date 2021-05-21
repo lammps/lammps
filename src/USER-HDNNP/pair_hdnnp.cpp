@@ -69,6 +69,8 @@ PairHDNNP::PairHDNNP(LAMMPS *lmp) : Pair(lmp)
 PairHDNNP::~PairHDNNP()
 {
   delete interface;
+  memory->destroy(setflag);
+  memory->destroy(cutsq);
 }
 
 /* ---------------------------------------------------------------------- */

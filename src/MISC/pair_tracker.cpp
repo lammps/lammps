@@ -290,6 +290,7 @@ void PairTracker::init_style()
     int ifix = modify->find_fix("NEIGH_HISTORY_TRACK");
     fix_history = (FixNeighHistory *) modify->fix[ifix];
     fix_history->pair = this;
+    fix_history->use_bit_flag = 0;
   }
 
   if (finitecutflag) {

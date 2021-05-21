@@ -383,22 +383,9 @@ void PairHDNNP::handleExtrapolationWarnings()
     MPI_Reduce(&numExtrapolationWarningsSummary,
                &globalEW, 1, MPI_LONG, MPI_SUM, 0, world);
     // Write to screen or logfile.
-    if(comm->me == 0) {
-      if(screen) {
-        fprintf(screen,
-                "### NNP EW SUMMARY ### TS: %10ld EW %10ld EWPERSTEP %10.3E\n",
-                update->ntimestep,
-                globalEW,
-                double(globalEW) / showewsum);
-      }
-      if(logfile) {
-        fprintf(logfile,
-                "### NNP EW SUMMARY ### TS: %10ld EW %10ld EWPERSTEP %10.3E\n",
-                update->ntimestep,
-                globalEW,
-                double(globalEW) / showewsum);
-      }
-    }
+    if(comm->me == 0)
+      utils::logmesg(lmp,"### NNP EW SUMMARY ### TS: {:10d} EW {:10d} EWPERSTEP {:10.3e}\n",
+                     update->ntimestep, globalEW, double(globalEW) / showewsum);
     // Reset summary counter.
     numExtrapolationWarningsSummary = 0;
   }

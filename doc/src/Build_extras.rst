@@ -1477,17 +1477,17 @@ USER-HDNNP package
 ---------------------------------
 
 To build with the USER-HDNNP package it is required to download and build the
-external `n2p2 <https://github.com/CompPhysVienna/n2p2>`__ library ``v2.2.0``
-(or higher) before starting the LAMMPS build process. More specifically, only
-the *n2p2* core library ``libnnp`` and interface library ``libnnpif`` are
-actually needed: when using GCC it should suffice to execute ``make libnnpif``
-in the *n2p2* ``src`` directory. For more details please see
-``lib/hdnnp/README`` and the `n2p2 build documentation
-<https://compphysvienna.github.io/n2p2/topics/build.html>`__. If *n2p2* is
-downloaded and compiled in the LAMMPS directory ``lib/hdnnp/n2p2`` no special
-flags need to be set besides the usual package activation. If you prefer to
-install *n2p2* somewhere else on your system you must specify the path via the
-``N2P2_DIR`` variable.
+external `n2p2 <https://github.com/CompPhysVienna/n2p2>`__ library ``v2.1.4``
+(or higher). The LAMMPS build process offers an automatic download and
+compilation of *n2p2* or allows you to choose the installation directory of
+*n2p2* manually. Please see the boxes below for the CMake and traditional build
+system for detailed information.
+
+In case of a manual installation of *n2p2* you only need to build the *n2p2* core
+library ``libnnp`` and interface library ``libnnpif``. When using GCC it should
+suffice to execute ``make libnnpif`` in the *n2p2* ``src`` directory. For more
+details please see ``lib/hdnnp/README`` and the `n2p2 build documentation
+<https://compphysvienna.github.io/n2p2/topics/build.html>`__.
 
 .. tabs::
 
@@ -1498,18 +1498,18 @@ install *n2p2* somewhere else on your system you must specify the path via the
          -D DOWNLOAD_N2P2=value    # download n2p2 for build, value = no (default) or yes
          -D N2P2_DIR=path          # n2p2 base directory (only needed if a custom location)
 
-      If ``DOWNLOAD_N2P2`` is set, the n2p2 library will be downloaded
-      and built inside the CMake build directory.  If the N2P2 library
-      is already on your system (in a location CMake cannot find it),
-      set the ``N2P2_DIR`` to path where n2p2 is located.
+      If ``DOWNLOAD_N2P2`` is set, the *n2p2* library will be downloaded and
+      built inside the CMake build directory.  If the *n2p2* library is already
+      on your system (in a location CMake cannot find it), set the ``N2P2_DIR``
+      to path where *n2p2* is located. If *n2p2* is located directly in
+      ``lib/hdnnp/n2p2`` it will be automatically found by CMake.
 
    .. tab:: Traditional make
 
-      You can download and build the *n2p2* library manually if you
-      prefer; follow the instructions in ``lib/hdnnp/README``\ .  You can
-      also do it in one step from the ``lammps/src`` dir, using a
-      command like these, which simply invoke the
-      ``lib/hdnnp/Install.py`` script with the specified args:
+      You can download and build the *n2p2* library manually if you prefer;
+      follow the instructions in ``lib/hdnnp/README``\ . You can also do it in
+      one step from the ``lammps/src`` dir, using a command like these, which
+      simply invoke the ``lib/hdnnp/Install.py`` script with the specified args:
 
       .. code-block:: bash
 
@@ -1521,7 +1521,7 @@ install *n2p2* somewhere else on your system you must specify the path via the
       Note that 3 symbolic (soft) links, ``includelink``, ``liblink`` and
       ``Makefile.lammps``, will be created in ``lib/hdnnp`` to point to
       ``n2p2/include``, ``n2p2/lib`` and ``n2p2/lib/Makefile.lammps-extra``,
-      respectively. When LAMMPS is built in src it will use these links.
+      respectively. When LAMMPS is built in ``src`` it will use these links.
 
 ----------
 

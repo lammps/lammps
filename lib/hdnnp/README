@@ -4,7 +4,12 @@ library ("libnnp"), the interface library ("libnnpif"), some headers and extra
 build helper files are needed. These files will be created automatically during
 the n2p2 build process.
 
-IMPORTANT: The n2p2 version must be "v2.2.0" or higher.
+This file gives some basic instructions on how to compile n2p2 manually. How to
+integrate it then in the LAMMPS build process or how to use the automatic
+download and build option is described in detail on the USER-HDNNP build
+instructions page of the LAMMPS documentation.
+
+IMPORTANT: The n2p2 version must be "v2.1.4" or higher.
 
 Basic build instructions for n2p2
 =================================
@@ -58,41 +63,6 @@ version with "-D BUILD_MPI=off" (CMake) or "make serial" (traditional).
 For more information about the n2p2 build process please visit
 https://compphysvienna.github.io/n2p2/topics/build.html or ask questions on the
 Github issue page (https://github.com/CompPhysVienna/n2p2/issues).
-
-Installation directory of n2p2
-==============================
-
-You can install n2p2 either in this folder (1) or somewhere else on your system (2):
-
-(1) If n2p2 is installed here, please make sure that the directory is also named
-    "n2p2", i.e. within "lib/hdnnp/n2p2" you can see the n2p2 folder structure, in
-    particular "lib" and "include":
-
-                       lib
-                        |
-                      hdnnp
-                        |
-                       n2p2
-	                |
-               ------------------ ...
-               |      |      |
-            include  lib    src   ...
-
-    In this case LAMMPS will automatically find n2p2 during the build process
-    and you only need to enable the USER-HDNNP package via CMake (-D
-    PKG_USER-HDNNP=yes) or the traditional makefile approach (make yes-user-hdnnp).
-    It is also valid to create a link here named "n2p2" which points to the n2p2
-    installation directory.
-
-(2) If n2p2 is installed somewhere else the path must be given as an additional
-    setting (variable N2P2_DIR) to the build tool. For example, with CMake use
-
-        cmake -D PKG_USER-HDNNP=yes -D N2P2_DIR=<path-to-n2p2> ../cmake/
-
-    and for the traditional makefiles use
-
-	make yes-user-hdnnp
-        make N2P2_DIR=<path-to-n2p2> mpi
 
 Testing a successful build of LAMMPS with USER-HDNNP
 ====================================================

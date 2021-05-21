@@ -397,7 +397,7 @@ void FixWallRegion::morse(double r)
 {
   double dr = r - sigma;
   double dexp = exp(-alpha * dr);
-  fwall = coeff1 * (dexp*dexp - dexp) / r;
+  fwall = coeff1 * (dexp*dexp - dexp);
   eng = epsilon * (dexp*dexp - 2.0*dexp) - offset;
 }
 

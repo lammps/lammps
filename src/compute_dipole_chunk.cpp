@@ -15,9 +15,11 @@
 #include "compute_dipole_chunk.h"
 
 #include "atom.h"
+#include "comm.h"
 #include "compute_chunk_atom.h"
 #include "domain.h"
 #include "error.h"
+#include "force.h"
 #include "math_special.h"
 #include "memory.h"
 #include "modify.h"
@@ -95,6 +97,10 @@ void ComputeDipoleChunk::init()
   cchunk = (ComputeChunkAtom *) modify->compute[icompute];
   if (strcmp(cchunk->style,"chunk/atom") != 0)
     error->all(FLERR,"Compute dipole/chunk does not use chunk/atom compute");
+
+  if ((force->pair_match("/tip4p/",0) != nullptr) && (comm->me == 0))
+    error->warning(FLERR,"Computed dipole moments may be incorrect when "
+                   "using a tip4p pair style");
 }
 
 /* ---------------------------------------------------------------------- */

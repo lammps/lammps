@@ -48,6 +48,8 @@ Examples
    compute 1 all fep 298 pair lj/cut epsilon 1 * v_delta pair lj/cut sigma 1 * v_delta volume yes
    compute 1 all fep 300 atom charge 2 v_delta
 
+Example input scripts available: examples/USER/fep
+
 Description
 """""""""""
 
@@ -160,63 +162,63 @@ pair styles and parameters that can be used with this compute.  See
 the doc pages for individual pair styles and their energy formulas for
 the meaning of these parameters:
 
-+---------------------------------------------------------------------+-------------------------+------------+
-| :doc:`born <pair_born>`                                             | a,b,c                   | type pairs |
-+---------------------------------------------------------------------+-------------------------+------------+
-| :doc:`buck <pair_buck>`                                             | a,c                     | type pairs |
-+---------------------------------------------------------------------+-------------------------+------------+
-| :doc:`buck/mdf <pair_mdf>`                                          | a,c                     | type pairs |
-+---------------------------------------------------------------------+-------------------------+------------+
-| :doc:`coul/cut <pair_coul>`                                         | scale                   | type pairs |
-+---------------------------------------------------------------------+-------------------------+------------+
-| :doc:`coul/cut/soft <pair_fep_soft>`                                | lambda                  | type pairs |
-+---------------------------------------------------------------------+-------------------------+------------+
-| :doc:`coul/long, coul/msm <pair_coul>`                              | scale                   | type pairs |
-+---------------------------------------------------------------------+-------------------------+------------+
-| :doc:`coul/long/soft <pair_fep_soft>`                               | scale, lambda           | type pairs |
-+---------------------------------------------------------------------+-------------------------+------------+
-| :doc:`eam <pair_eam>`                                               | scale                   | type pairs |
-+---------------------------------------------------------------------+-------------------------+------------+
-| :doc:`gauss <pair_gauss>`                                           | a                       | type pairs |
-+---------------------------------------------------------------------+-------------------------+------------+
-| :doc:`lennard/mdf <pair_mdf>`                                       | a,b                     | type pairs |
-+---------------------------------------------------------------------+-------------------------+------------+
-| :doc:`lj/class2 <pair_class2>`                                      | epsilon,sigma           | type pairs |
-+---------------------------------------------------------------------+-------------------------+------------+
-| :doc:`lj/class2/coul/cut, lj/class2/coul/long <pair_class2>`        | epsilon,sigma           | type pairs |
-+---------------------------------------------------------------------+-------------------------+------------+
-| :doc:`lj/cut <pair_lj>`                                             | epsilon,sigma           | type pairs |
-+---------------------------------------------------------------------+-------------------------+------------+
-| :doc:`lj/cut/soft <pair_fep_soft>`                                  | epsilon,sigma,lambda    | type pairs |
-+---------------------------------------------------------------------+-------------------------+------------+
-| :doc:`lj/cut/coul/cut, lj/cut/coul/long, lj/cut/coul/msm <pair_lj>` | epsilon,sigma           | type pairs |
-+---------------------------------------------------------------------+-------------------------+------------+
-| :doc:`lj/cut/coul/cut/soft, lj/cut/coul/long/soft <pair_fep_soft>`  | epsilon,sigma,lambda    | type pairs |
-+---------------------------------------------------------------------+-------------------------+------------+
-| :doc:`lj/cut/tip4p/cut, lj/cut/tip4p/long <pair_lj>`                | epsilon,sigma           | type pairs |
-+---------------------------------------------------------------------+-------------------------+------------+
-| :doc:`lj/cut/tip4p/long/soft <pair_fep_soft>`                       | epsilon,sigma,lambda    | type pairs |
-+---------------------------------------------------------------------+-------------------------+------------+
-| :doc:`lj/expand <pair_lj_expand>`                                   | epsilon,sigma,delta     | type pairs |
-+---------------------------------------------------------------------+-------------------------+------------+
-| :doc:`lj/mdf <pair_mdf>`                                            | epsilon,sigma           | type pairs |
-+---------------------------------------------------------------------+-------------------------+------------+
-| :doc:`lj/sf/dipole/sf <pair_dipole>`                                | epsilon,sigma,scale     | type pairs |
-+---------------------------------------------------------------------+-------------------------+------------+
-| :doc:`mie/cut <pair_mie>`                                           | epsilon,sigma,gamR,gamA | type pairs |
-+---------------------------------------------------------------------+-------------------------+------------+
-| :doc:`morse, morse/smooth/linear <pair_morse>`                      | d0,r0,alpha             | type pairs |
-+---------------------------------------------------------------------+-------------------------+------------+
-| :doc:`morse/soft <pair_morse>`                                      | d0,r0,alpha,lambda      | type pairs |
-+---------------------------------------------------------------------+-------------------------+------------+
-| :doc:`nm/cut <pair_nm>`                                             | e0,r0,nn,mm             | type pairs |
-+---------------------------------------------------------------------+-------------------------+------------+
-| :doc:`nm/cut/coul/cut, nm/cut/coul/long <pair_nm>`                  | e0,r0,nn,mm             | type pairs |
-+---------------------------------------------------------------------+-------------------------+------------+
-| :doc:`ufm <pair_ufm>`                                               | epsilon,sigma,scale     | type pairs |
-+---------------------------------------------------------------------+-------------------------+------------+
-| :doc:`soft <pair_soft>`                                             | a                       | type pairs |
-+---------------------------------------------------------------------+-------------------------+------------+
++------------------------------------------------------------------------------+-------------------------+------------+
+| :doc:`born <pair_born>`                                                      | a,b,c                   | type pairs |
++------------------------------------------------------------------------------+-------------------------+------------+
+| :doc:`buck, buck/coul/cut, buck/coul/long, buck/coul/msm  <pair_buck>`       | a,c                     | type pairs |
++------------------------------------------------------------------------------+-------------------------+------------+
+| :doc:`buck/mdf <pair_mdf>`                                                   | a,c                     | type pairs |
++------------------------------------------------------------------------------+-------------------------+------------+
+| :doc:`coul/cut <pair_coul>`                                                  | scale                   | type pairs |
++------------------------------------------------------------------------------+-------------------------+------------+
+| :doc:`coul/cut/soft <pair_fep_soft>`                                         | lambda                  | type pairs |
++------------------------------------------------------------------------------+-------------------------+------------+
+| :doc:`coul/long, coul/msm <pair_coul>`                                       | scale                   | type pairs |
++------------------------------------------------------------------------------+-------------------------+------------+
+| :doc:`coul/long/soft <pair_fep_soft>`                                        | scale, lambda           | type pairs |
++------------------------------------------------------------------------------+-------------------------+------------+
+| :doc:`eam <pair_eam>`                                                        | scale                   | type pairs |
++------------------------------------------------------------------------------+-------------------------+------------+
+| :doc:`gauss <pair_gauss>`                                                    | a                       | type pairs |
++------------------------------------------------------------------------------+-------------------------+------------+
+| :doc:`lennard/mdf <pair_mdf>`                                                | a,b                     | type pairs |
++------------------------------------------------------------------------------+-------------------------+------------+
+| :doc:`lj/class2 <pair_class2>`                                               | epsilon,sigma           | type pairs |
++------------------------------------------------------------------------------+-------------------------+------------+
+| :doc:`lj/class2/coul/cut, lj/class2/coul/long <pair_class2>`                 | epsilon,sigma           | type pairs |
++------------------------------------------------------------------------------+-------------------------+------------+
+| :doc:`lj/cut <pair_lj>`                                                      | epsilon,sigma           | type pairs |
++------------------------------------------------------------------------------+-------------------------+------------+
+| :doc:`lj/cut/soft <pair_fep_soft>`                                           | epsilon,sigma,lambda    | type pairs |
++------------------------------------------------------------------------------+-------------------------+------------+
+| :doc:`lj/cut/coul/cut, lj/cut/coul/long, lj/cut/coul/msm <pair_lj_cut_coul>` | epsilon,sigma           | type pairs |
++------------------------------------------------------------------------------+-------------------------+------------+
+| :doc:`lj/cut/coul/cut/soft, lj/cut/coul/long/soft <pair_fep_soft>`           | epsilon,sigma,lambda    | type pairs |
++------------------------------------------------------------------------------+-------------------------+------------+
+| :doc:`lj/cut/tip4p/cut, lj/cut/tip4p/long <pair_lj_cut_tip4p>`               | epsilon,sigma           | type pairs |
++------------------------------------------------------------------------------+-------------------------+------------+
+| :doc:`lj/cut/tip4p/long/soft <pair_fep_soft>`                                | epsilon,sigma,lambda    | type pairs |
++------------------------------------------------------------------------------+-------------------------+------------+
+| :doc:`lj/expand <pair_lj_expand>`                                            | epsilon,sigma,delta     | type pairs |
++------------------------------------------------------------------------------+-------------------------+------------+
+| :doc:`lj/mdf <pair_mdf>`                                                     | epsilon,sigma           | type pairs |
++------------------------------------------------------------------------------+-------------------------+------------+
+| :doc:`lj/sf/dipole/sf <pair_dipole>`                                         | epsilon,sigma,scale     | type pairs |
++------------------------------------------------------------------------------+-------------------------+------------+
+| :doc:`mie/cut <pair_mie>`                                                    | epsilon,sigma,gamR,gamA | type pairs |
++------------------------------------------------------------------------------+-------------------------+------------+
+| :doc:`morse, morse/smooth/linear <pair_morse>`                               | d0,r0,alpha             | type pairs |
++------------------------------------------------------------------------------+-------------------------+------------+
+| :doc:`morse/soft <pair_morse>`                                               | d0,r0,alpha,lambda      | type pairs |
++------------------------------------------------------------------------------+-------------------------+------------+
+| :doc:`nm/cut <pair_nm>`                                                      | e0,r0,nn,mm             | type pairs |
++------------------------------------------------------------------------------+-------------------------+------------+
+| :doc:`nm/cut/coul/cut, nm/cut/coul/long <pair_nm>`                           | e0,r0,nn,mm             | type pairs |
++------------------------------------------------------------------------------+-------------------------+------------+
+| :doc:`ufm <pair_ufm>`                                                        | epsilon,sigma,scale     | type pairs |
++------------------------------------------------------------------------------+-------------------------+------------+
+| :doc:`soft <pair_soft>`                                                      | a                       | type pairs |
++------------------------------------------------------------------------------+-------------------------+------------+
 
 Note that it is easy to add new potentials and their parameters to
 this list.  All it typically takes is adding an extract() method to
@@ -224,7 +226,7 @@ the pair\_\*.cpp file associated with the potential.
 
 Similar to the :doc:`pair_coeff <pair_coeff>` command, I and J can be
 specified in one of two ways.  Explicit numeric values can be used for
-each, as in the 1st example above.  I <= J is required.  LAMMPS sets
+each, as in the first example above.  I <= J is required.  LAMMPS sets
 the coefficients for the symmetric J,I interaction to the same
 values. A wild-card asterisk can be used in place of or in conjunction
 with the I,J arguments to set the coefficients for multiple pairs of
@@ -279,7 +281,8 @@ trajectories during which the volume fluctuates or changes :ref:`(Allen and Tild
 
 ----------
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global vector of length 3 which contains the
 energy difference ( :math:`U_1-U_0` ) as c_ID[1], the

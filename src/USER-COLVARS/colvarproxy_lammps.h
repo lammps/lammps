@@ -41,11 +41,9 @@ class colvarproxy_lammps : public colvarproxy {
   // state of LAMMPS properties
   double t_target, my_timestep, my_boltzmann, my_angstrom;
   double bias_energy;
-  int  restart_every;
   int  previous_step;
 
   bool first_timestep;
-  bool total_force_requested;
   bool do_exit;
 
   std::vector<int>          atoms_types;
@@ -59,7 +57,7 @@ class colvarproxy_lammps : public colvarproxy {
                      const char *, const int, const double, MPI_Comm);
   virtual ~colvarproxy_lammps();
   void init(const char*);
-  int setup();
+  virtual int setup();
 
  // disable default and copy constructor
  private:
@@ -82,9 +80,6 @@ class colvarproxy_lammps : public colvarproxy {
   // set status from string
   bool deserialize_status(std::string &);
 
-  // Write files expected from Colvars (called by post_run())
-  void write_output_files();
-
   // read additional config from file
   int add_config_file(char const *config_filename);
 
@@ -103,14 +98,11 @@ class colvarproxy_lammps : public colvarproxy {
   inline cvm::real temperature() { return t_target; };
   inline cvm::real dt() { return my_timestep; }; // return _lmp->update->dt * _lmp->force->femtosecond; };
 
-  inline size_t restart_frequency() { return restart_every; };
-
   void add_energy(cvm::real energy) { bias_energy += energy; };
   void request_total_force(bool yesno) { total_force_requested = yesno; };
 
   void log(std::string const &message);
   void error(std::string const &message);
-  void fatal_error(std::string const &message);
 
   cvm::rvector position_distance(cvm::atom_pos const &pos1,
                                  cvm::atom_pos const &pos2) const;

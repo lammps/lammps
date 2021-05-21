@@ -12,7 +12,7 @@
 
 /* ----------------------------------------------------------------------
  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
- http://lammps.sandia.gov, Sandia National Laboratories
+ https://lammps.sandia.gov/, Sandia National Laboratories
  Steve Plimpton, sjplimp@sandia.gov
 
  Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -49,7 +49,7 @@ ComputeSMDHourglassError::ComputeSMDHourglassError(LAMMPS *lmp, int narg, char *
         size_peratom_cols = 0;
 
         nmax = 0;
-        hourglass_error_vector = NULL;
+        hourglass_error_vector = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -86,7 +86,7 @@ void ComputeSMDHourglassError::compute_peratom() {
 
         int itmp = 0;
         double *hourglass_error = (double *) force->pair->extract("smd/tlsph/hourglass_error_ptr", itmp);
-        if (hourglass_error == NULL) {
+        if (hourglass_error == nullptr) {
                 error->all(FLERR, "compute smd/hourglass_error failed to access hourglass_error array");
         }
 
@@ -107,6 +107,6 @@ void ComputeSMDHourglassError::compute_peratom() {
  ------------------------------------------------------------------------- */
 
 double ComputeSMDHourglassError::memory_usage() {
-        double bytes = nmax * sizeof(double);
+        double bytes = (double)nmax * sizeof(double);
         return bytes;
 }

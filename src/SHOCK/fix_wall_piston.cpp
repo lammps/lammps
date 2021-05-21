@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -31,18 +31,19 @@ using namespace MathConst;
 /* ---------------------------------------------------------------------- */
 
 FixWallPiston::FixWallPiston(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), randomt(NULL), gfactor1(NULL), gfactor2(NULL)
+  Fix(lmp, narg, arg), randomt(nullptr), gfactor1(nullptr), gfactor2(nullptr)
 {
   force_reneighbor = 1;
   next_reneighbor = -1;
 
   if (narg < 4) error->all(FLERR,"Illegal fix wall/piston command");
 
-  randomt = NULL;
-  gfactor1 = gfactor2 = NULL;
+  randomt = nullptr;
+  gfactor1 = gfactor2 = nullptr;
   tempflag = 0;
   scaleflag = 1;
   roughflag = 0;
+  roughdist = 0.0;
   rampflag = 0;
   rampNL1flag = 0;
   rampNL2flag = 0;
@@ -71,19 +72,19 @@ FixWallPiston::FixWallPiston(LAMMPS *lmp, int narg, char **arg) :
       error->all(FLERR,"Fix wall/piston command only available at zlo");
     else if (strcmp(arg[iarg],"vel") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix wall/piston command");
-      vz = force->numeric(FLERR,arg[iarg+1]);
+      vz = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"pos") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix wall/piston command");
-      z0 = force->numeric(FLERR,arg[iarg+1]);
+      z0 = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"temp") == 0) {
       if (iarg+5 > narg) error->all(FLERR,"Illegal fix wall/piston command");
       tempflag = 1;
-      t_target = force->numeric(FLERR,arg[iarg+1]);
-      t_period = force->numeric(FLERR,arg[iarg+2]);
-      tseed    = force->inumeric(FLERR,arg[iarg+3]);
-      t_extent = force->numeric(FLERR,arg[iarg+4]);
+      t_target = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      t_period = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      tseed    = utils::inumeric(FLERR,arg[iarg+3],false,lmp);
+      t_extent = utils::numeric(FLERR,arg[iarg+4],false,lmp);
       if (t_target <= 0) error->all(FLERR,"Illegal fix wall/piston command");
       if (t_period <= 0) error->all(FLERR,"Illegal fix wall/piston command");
       if (t_extent <= 0) error->all(FLERR,"Illegal fix wall/piston command");
@@ -94,7 +95,7 @@ FixWallPiston::FixWallPiston(LAMMPS *lmp, int narg, char **arg) :
       iarg += 5;
     } else if (strcmp(arg[iarg],"rough") == 0) {
       roughflag = 1;
-      roughdist = force->numeric(FLERR,arg[iarg+1]);
+      roughdist = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"ramp") == 0) {
       rampflag = 1;
@@ -307,7 +308,7 @@ void FixWallPiston::post_integrate()
     }
     for (int i = 0; i < nlocal; i++) {
       // SET TEMP AHEAD OF PISTON
-      if (tempflag && x[i][2] <= domain->boxlo[2] + t_extent ) {
+      if (tempflag && x[i][2] <= domain->boxlo[2] + t_extent) {
         gamma1 = gfactor1[type[i]];
         gamma2 = gfactor2[type[i]] * tsqrt;
         f[i][0] += gamma1*v[i][0] + gamma2*(randomt->uniform()-0.5);
@@ -324,7 +325,7 @@ void FixWallPiston::post_integrate()
 
     for (int i = 0; i < nlocal; i++) {
       // SET TEMP AHEAD OF PISTON
-      if (tempflag && x[i][2] <= domain->boxlo[2] + t_extent ) {
+      if (tempflag && x[i][2] <= domain->boxlo[2] + t_extent) {
         gamma1 = -rmass[i] / t_period / ftm2v;
         gamma2 = sqrt(rmass[i]) * sqrt(24.0*boltz/t_period/dt/mvv2e) / ftm2v;
         gamma2 *= tsqrt;

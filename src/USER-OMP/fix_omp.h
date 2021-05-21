@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -70,6 +70,8 @@ class FixOMP : public Fix {
   bool _neighbor;   // en/disable threads for neighbor list construction
   bool _mixed;      // whether to prefer mixed precision compute kernels
   bool _reduced;    // whether forces have been reduced for this step
+  bool _pair_compute_flag;    // whether pair_compute is called
+  bool _kspace_compute_flag;  // whether kspace_compute is called
 
   void set_neighbor_omp();
 };

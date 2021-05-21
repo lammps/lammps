@@ -70,12 +70,12 @@ template <class ExecSpace>
 void test_functor_analysis() {
   //------------------------------
   auto c01 = KOKKOS_LAMBDA(int){};
-  typedef Kokkos::Impl::FunctorAnalysis<
-      Kokkos::Impl::FunctorPatternInterface::FOR,
-      Kokkos::RangePolicy<ExecSpace>, decltype(c01)>
-      A01;
+  using A01 =
+      Kokkos::Impl::FunctorAnalysis<Kokkos::Impl::FunctorPatternInterface::FOR,
+                                    Kokkos::RangePolicy<ExecSpace>,
+                                    decltype(c01)>;
 
-  typedef typename A01::template Reducer<typename ExecSpace::memory_space> R01;
+  using R01 = typename A01::template Reducer<typename ExecSpace::memory_space>;
 
   static_assert(std::is_same<typename A01::value_type, void>::value, "");
   static_assert(std::is_same<typename A01::pointer_type, void>::value, "");
@@ -90,12 +90,11 @@ void test_functor_analysis() {
   ASSERT_EQ(R01(&c01).length(), 0);
 
   //------------------------------
-  auto c02 = KOKKOS_LAMBDA(int, double&){};
-  typedef Kokkos::Impl::FunctorAnalysis<
+  auto c02  = KOKKOS_LAMBDA(int, double&){};
+  using A02 = Kokkos::Impl::FunctorAnalysis<
       Kokkos::Impl::FunctorPatternInterface::REDUCE,
-      Kokkos::RangePolicy<ExecSpace>, decltype(c02)>
-      A02;
-  typedef typename A02::template Reducer<typename ExecSpace::memory_space> R02;
+      Kokkos::RangePolicy<ExecSpace>, decltype(c02)>;
+  using R02 = typename A02::template Reducer<typename ExecSpace::memory_space>;
 
   static_assert(std::is_same<typename A02::value_type, double>::value, "");
   static_assert(std::is_same<typename A02::pointer_type, double*>::value, "");
@@ -112,11 +111,10 @@ void test_functor_analysis() {
   //------------------------------
 
   TestFunctorAnalysis_03 c03;
-  typedef Kokkos::Impl::FunctorAnalysis<
+  using A03 = Kokkos::Impl::FunctorAnalysis<
       Kokkos::Impl::FunctorPatternInterface::REDUCE,
-      Kokkos::RangePolicy<ExecSpace>, TestFunctorAnalysis_03>
-      A03;
-  typedef typename A03::template Reducer<typename ExecSpace::memory_space> R03;
+      Kokkos::RangePolicy<ExecSpace>, TestFunctorAnalysis_03>;
+  using R03 = typename A03::template Reducer<typename ExecSpace::memory_space>;
 
   static_assert(std::is_same<typename A03::value_type,
                              TestFunctorAnalysis_03::value_type>::value,

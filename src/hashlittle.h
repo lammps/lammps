@@ -6,7 +6,7 @@
 #define LMP_HASHLITTLE_H
 
 #include <cstddef>
-#include <stdint.h>
+#include <cstdint>
 
 namespace LAMMPS_NS {
   uint32_t hashlittle(const void *key, size_t length, uint32_t);

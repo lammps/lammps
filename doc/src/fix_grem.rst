@@ -83,7 +83,8 @@ to large temperature changes. Replicas are easily added where needed.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
@@ -102,7 +103,10 @@ Related commands
 
 :doc:`temper/grem <temper_grem>`, :doc:`fix nvt <fix_nh>`, :doc:`fix npt <fix_nh>`, :doc:`thermo_modify <thermo_modify>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,11 +12,12 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_edpd_source.h"
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
 #include "error.h"
-#include "force.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -36,23 +37,23 @@ FixEDPDSource::FixEDPDSource(LAMMPS *lmp, int narg, char **arg) :
   else error->all(FLERR,"Illegal fix edpd/source command");
   iarg++;
 
-  if(option == 0){
+  if (option == 0) {
     if (narg != 9 ) error->all(FLERR,"Illegal fix edpd/source command (5 args for sphere)");
-    center[0] = force->numeric(FLERR,arg[iarg++]);
-    center[1] = force->numeric(FLERR,arg[iarg++]);
-    center[2] = force->numeric(FLERR,arg[iarg++]);
-    radius  = force->numeric(FLERR,arg[iarg++]);
-    value   = force->numeric(FLERR,arg[iarg++]);
+    center[0] = utils::numeric(FLERR,arg[iarg++],false,lmp);
+    center[1] = utils::numeric(FLERR,arg[iarg++],false,lmp);
+    center[2] = utils::numeric(FLERR,arg[iarg++],false,lmp);
+    radius  = utils::numeric(FLERR,arg[iarg++],false,lmp);
+    value   = utils::numeric(FLERR,arg[iarg++],false,lmp);
   }
-  else if(option == 1){
+  else if (option == 1) {
     if (narg != 11 ) error->all(FLERR,"Illegal fix edpd/edpd command (7 args for cuboid)");
-    center[0] = force->numeric(FLERR,arg[iarg++]);
-    center[1] = force->numeric(FLERR,arg[iarg++]);
-    center[2] = force->numeric(FLERR,arg[iarg++]);
-    dLx = force->numeric(FLERR,arg[iarg++]);
-    dLy = force->numeric(FLERR,arg[iarg++]);
-    dLz = force->numeric(FLERR,arg[iarg++]);
-    value = force->numeric(FLERR,arg[iarg++]);
+    center[0] = utils::numeric(FLERR,arg[iarg++],false,lmp);
+    center[1] = utils::numeric(FLERR,arg[iarg++],false,lmp);
+    center[2] = utils::numeric(FLERR,arg[iarg++],false,lmp);
+    dLx = utils::numeric(FLERR,arg[iarg++],false,lmp);
+    dLy = utils::numeric(FLERR,arg[iarg++],false,lmp);
+    dLz = utils::numeric(FLERR,arg[iarg++],false,lmp);
+    value = utils::numeric(FLERR,arg[iarg++],false,lmp);
   }
   else error->all(FLERR,"Illegal fix edpd/source command");
 }
@@ -93,19 +94,19 @@ void FixEDPDSource::post_force(int /*vflag*/)
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
-      if(option == 0){
+      if (option == 0) {
         drx = x[i][0] - center[0];
         dry = x[i][1] - center[1];
         drz = x[i][2] - center[2];
         rsq = drx*drx + dry*dry + drz*drz;
-        if(rsq < radius_sq)
+        if (rsq < radius_sq)
           edpd_flux[i] += value*edpd_cv[i];
       }
-      else if(option == 1){
+      else if (option == 1) {
         drx = x[i][0] - center[0];
         dry = x[i][1] - center[1];
         drz = x[i][2] - center[2];
-        if(fabs(drx) <= 0.5*dLx && fabs(dry) <= 0.5*dLy && fabs(drz) <= 0.5*dLz)
+        if (fabs(drx) <= 0.5*dLx && fabs(dry) <= 0.5*dLy && fabs(drz) <= 0.5*dLz)
           edpd_flux[i] += value*edpd_cv[i];
       }
     }

@@ -50,7 +50,8 @@ directory.
 See `this PDF guide <PDF/SMD_LAMMPS_userguide.pdf>`_ to use Smooth Mach
 Dynamics in LAMMPS.
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 Currently, no part of USER-SMD supports restarting nor
 minimization. This fix has no outputs.
@@ -75,4 +76,7 @@ Related commands
 :doc:`smd/move_tri_surf <fix_smd_move_triangulated_surface>`,
 :doc:`smd/tri_surface <pair_smd_triangulated_surface>`
 
-**Default:** none
+Default
+"""""""
+
+none

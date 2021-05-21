@@ -11,10 +11,10 @@ Syntax
    thermo_modify keyword value ...
 
 * one or more keyword/value pairs may be listed
+* keyword = *lost* or *lost/bond* or *norm* or *flush* or *line* or *format* or *temp* or *press*
 
   .. parsed-literal::
 
-     keyword = *lost* or *lost/bond* or *norm* or *flush* or *line* or *format* or *temp* or *press*\ :l
        *lost* value = *error* or *warn* or *ignore*
        *lost/bond* value = *error* or *warn* or *ignore*
        *norm* value = *yes* or *no*
@@ -96,9 +96,11 @@ always include a divide by the number of atoms in the variable formula
 if this is not the case.
 
 The *flush* keyword invokes a flush operation after thermodynamic info
-is written to the log file.  This insures the output in that file is
-current (no buffering by the OS), even if LAMMPS halts before the
-simulation completes.
+is written to the screen and log file.  This insures the output is
+updated and not buffered (by the application) even if LAMMPS halts
+before the simulation completes.  Please note that this does not
+affect buffering by the OS or devices, so you may still lose data
+in case the simulation stops due to a hardware failure.
 
 The *line* keyword determines whether thermodynamics will be output as
 a series of numeric values on one line or in a multi-line format with
@@ -116,7 +118,7 @@ is more than one field.  The *int* and *float* keywords take a single
 format argument and are applied to all integer or floating-point
 quantities output.  The setting for *M string* also takes a single
 format argument which is used for the Mth value output in each line,
-e.g. the 5th column is output in high precision for "format 5
+e.g. the fifth column is output in high precision for "format 5
 %20.15g".
 
 The *format* keyword can be used multiple times.  The precedence is

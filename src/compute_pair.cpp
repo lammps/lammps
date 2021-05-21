@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_pair.h"
-#include <mpi.h>
+
 #include <cstring>
 #include <cctype>
 #include "update.h"
@@ -28,7 +28,7 @@ enum{EPAIR,EVDWL,ECOUL};
 
 ComputePair::ComputePair(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  pstyle(NULL), pair(NULL), one(NULL)
+  pstyle(nullptr), pair(nullptr), one(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute pair command");
 
@@ -37,10 +37,10 @@ ComputePair::ComputePair(LAMMPS *lmp, int narg, char **arg) :
   peflag = 1;
   timeflag = 1;
 
-  int n = strlen(arg[3]) + 1;
-  if (lmp->suffix) n += strlen(lmp->suffix) + 1;
-  pstyle = new char[n];
-  strcpy(pstyle,arg[3]);
+  // copy with suffix so we can later chop it off, if needed
+  if (lmp->suffix)
+    pstyle = utils::strdup(fmt::format("{}/{}",arg[3],lmp->suffix));
+  else pstyle = utils::strdup(arg[3]);
 
   int iarg = 4;
   nsub = 0;
@@ -48,7 +48,7 @@ ComputePair::ComputePair(LAMMPS *lmp, int narg, char **arg) :
 
   if (narg > iarg) {
     if (isdigit(arg[iarg][0])) {
-      nsub = force->inumeric(FLERR,arg[iarg]);
+      nsub = utils::inumeric(FLERR,arg[iarg],false,lmp);
       ++iarg;
       if (nsub <= 0)
         error->all(FLERR,"Illegal compute pair command");
@@ -67,8 +67,7 @@ ComputePair::ComputePair(LAMMPS *lmp, int narg, char **arg) :
 
   pair = force->pair_match(pstyle,1,nsub);
   if (!pair && lmp->suffix) {
-    strcat(pstyle,"/");
-    strcat(pstyle,lmp->suffix);
+    pstyle[strlen(pstyle) - strlen(lmp->suffix) - 1] = '\0';
     pair = force->pair_match(pstyle,1,nsub);
   }
 
@@ -82,7 +81,7 @@ ComputePair::ComputePair(LAMMPS *lmp, int narg, char **arg) :
     extvector = 1;
     one = new double[npair];
     vector = new double[npair];
-  } else one = vector = NULL;
+  } else one = vector = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

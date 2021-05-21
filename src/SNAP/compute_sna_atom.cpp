@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -13,7 +13,7 @@
 
 #include "compute_sna_atom.h"
 #include <cstring>
-#include <cstdlib>
+
 #include "sna.h"
 #include "atom.h"
 #include "update.h"
@@ -30,13 +30,13 @@
 using namespace LAMMPS_NS;
 
 ComputeSNAAtom::ComputeSNAAtom(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), cutsq(NULL), list(NULL), sna(NULL),
-  radelem(NULL), wjelem(NULL)
+  Compute(lmp, narg, arg), cutsq(nullptr), list(nullptr), sna(nullptr),
+  radelem(nullptr), wjelem(nullptr)
 {
   double rmin0, rfac0;
-  int twojmax, switchflag, bzeroflag;
-  radelem = NULL;
-  wjelem = NULL;
+  int twojmax, switchflag, bzeroflag, bnormflag, wselfallflag;
+  radelem = nullptr;
+  wjelem = nullptr;
 
   int ntypes = atom->ntypes;
   int nargmin = 6+2*ntypes;
@@ -48,7 +48,12 @@ ComputeSNAAtom::ComputeSNAAtom(LAMMPS *lmp, int narg, char **arg) :
   rmin0 = 0.0;
   switchflag = 1;
   bzeroflag = 1;
+  bnormflag = 0;
   quadraticflag = 0;
+  chemflag = 0;
+  bnormflag = 0;
+  wselfallflag = 0;
+  nelements = 1;
 
   // offset by 1 to match up with types
 
@@ -59,9 +64,9 @@ ComputeSNAAtom::ComputeSNAAtom(LAMMPS *lmp, int narg, char **arg) :
   rfac0 = atof(arg[4]);
   twojmax = atoi(arg[5]);
 
-  for(int i = 0; i < ntypes; i++)
+  for (int i = 0; i < ntypes; i++)
     radelem[i+1] = atof(arg[6+i]);
-  for(int i = 0; i < ntypes; i++)
+  for (int i = 0; i < ntypes; i++)
     wjelem[i+1] = atof(arg[6+ntypes+i]);
 
   // construct cutsq
@@ -69,11 +74,11 @@ ComputeSNAAtom::ComputeSNAAtom(LAMMPS *lmp, int narg, char **arg) :
   double cut;
   cutmax = 0.0;
   memory->create(cutsq,ntypes+1,ntypes+1,"sna/atom:cutsq");
-  for(int i = 1; i <= ntypes; i++) {
+  for (int i = 1; i <= ntypes; i++) {
     cut = 2.0*radelem[i]*rcutfac;
     if (cut > cutmax) cutmax = cut;
     cutsq[i][i] = cut*cut;
-    for(int j = i+1; j <= ntypes; j++) {
+    for (int j = i+1; j <= ntypes; j++) {
       cut = (radelem[i]+radelem[j])*rcutfac;
       cutsq[i][j] = cutsq[j][i] = cut*cut;
     }
@@ -104,11 +109,35 @@ ComputeSNAAtom::ComputeSNAAtom(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Illegal compute sna/atom command");
       quadraticflag = atoi(arg[iarg+1]);
       iarg += 2;
+    } else if (strcmp(arg[iarg],"chem") == 0) {
+      if (iarg+2+ntypes > narg)
+        error->all(FLERR,"Illegal compute sna/atom command");
+      chemflag = 1;
+      memory->create(map,ntypes+1,"compute_sna_atom:map");
+      nelements = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      for (int i = 0; i < ntypes; i++) {
+        int jelem = utils::inumeric(FLERR,arg[iarg+2+i],false,lmp);
+        if (jelem < 0 || jelem >= nelements)
+          error->all(FLERR,"Illegal compute sna/atom command");
+        map[i+1] = jelem;
+      }
+      iarg += 2+ntypes;
+    } else if (strcmp(arg[iarg],"bnormflag") == 0) {
+      if (iarg+2 > narg)
+        error->all(FLERR,"Illegal compute sna/atom command");
+      bnormflag = atoi(arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"wselfallflag") == 0) {
+      if (iarg+2 > narg)
+        error->all(FLERR,"Illegal compute sna/atom command");
+      wselfallflag = atoi(arg[iarg+1]);
+      iarg += 2;
     } else error->all(FLERR,"Illegal compute sna/atom command");
   }
 
-  snaptr = new SNA(lmp,rfac0,twojmax,
-                   rmin0,switchflag,bzeroflag);
+  snaptr = new SNA(lmp, rfac0, twojmax,
+                   rmin0, switchflag, bzeroflag,
+                   chemflag, bnormflag, wselfallflag, nelements);
 
   ncoeff = snaptr->ncoeff;
   size_peratom_cols = ncoeff;
@@ -116,7 +145,7 @@ ComputeSNAAtom::ComputeSNAAtom(LAMMPS *lmp, int narg, char **arg) :
   peratom_flag = 1;
 
   nmax = 0;
-  sna = NULL;
+  sna = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -134,7 +163,7 @@ ComputeSNAAtom::~ComputeSNAAtom()
 
 void ComputeSNAAtom::init()
 {
-  if (force->pair == NULL)
+  if (force->pair == nullptr)
     error->all(FLERR,"Compute sna/atom requires a pair style be defined");
 
   if (cutmax > force->pair->cutforce)
@@ -203,6 +232,9 @@ void ComputeSNAAtom::compute_peratom()
       const double ytmp = x[i][1];
       const double ztmp = x[i][2];
       const int itype = type[i];
+      int ielem = 0;
+      if (chemflag)
+        ielem = map[itype];
       const double radi = radelem[itype];
       const int* const jlist = firstneigh[i];
       const int jnum = numneigh[i];
@@ -225,6 +257,9 @@ void ComputeSNAAtom::compute_peratom()
         const double delz = ztmp - x[j][2];
         const double rsq = delx*delx + dely*dely + delz*delz;
         int jtype = type[j];
+        int jelem = 0;
+        if (chemflag)
+          jelem = map[jtype];
         if (rsq < cutsq[itype][jtype] && rsq>1e-20) {
           snaptr->rij[ninside][0] = delx;
           snaptr->rij[ninside][1] = dely;
@@ -232,13 +267,14 @@ void ComputeSNAAtom::compute_peratom()
           snaptr->inside[ninside] = j;
           snaptr->wj[ninside] = wjelem[jtype];
           snaptr->rcutij[ninside] = (radi+radelem[jtype])*rcutfac;
+          snaptr->element[ninside] = jelem; // element index for multi-element snap
           ninside++;
         }
       }
 
-      snaptr->compute_ui(ninside);
+      snaptr->compute_ui(ninside, ielem);
       snaptr->compute_zi();
-      snaptr->compute_bi();
+      snaptr->compute_bi(ielem);
       for (int icoeff = 0; icoeff < ncoeff; icoeff++)
         sna[i][icoeff] = snaptr->blist[icoeff];
       if (quadraticflag) {
@@ -261,6 +297,7 @@ void ComputeSNAAtom::compute_peratom()
         sna[i][icoeff] = 0.0;
     }
   }
+
 }
 
 /* ----------------------------------------------------------------------
@@ -269,7 +306,7 @@ void ComputeSNAAtom::compute_peratom()
 
 double ComputeSNAAtom::memory_usage()
 {
-  double bytes = nmax*size_peratom_cols * sizeof(double); // sna
+  double bytes = (double)nmax*size_peratom_cols * sizeof(double); // sna
   bytes += snaptr->memory_usage();                        // SNA object
 
   return bytes;

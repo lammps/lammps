@@ -55,30 +55,8 @@
 
 namespace Test {
 
-#define OPENMP_RANDOM_XORSHIFT64(num_draws)                             \
-  TEST(openmp, Random_XorShift64) {                                     \
-    Impl::test_random<Kokkos::Random_XorShift64_Pool<Kokkos::OpenMP> >( \
-        num_draws);                                                     \
-  }
+TEST(openmp, SortIssue1160) { Impl::test_issue_1160_sort<Kokkos::OpenMP>(); }
 
-#define OPENMP_RANDOM_XORSHIFT1024(num_draws)                             \
-  TEST(openmp, Random_XorShift1024) {                                     \
-    Impl::test_random<Kokkos::Random_XorShift1024_Pool<Kokkos::OpenMP> >( \
-        num_draws);                                                       \
-  }
-
-#define OPENMP_SORT_UNSIGNED(size)                   \
-  TEST(openmp, SortUnsigned) {                       \
-    Impl::test_sort<Kokkos::OpenMP, unsigned>(size); \
-  }
-
-OPENMP_RANDOM_XORSHIFT64(10240000)
-OPENMP_RANDOM_XORSHIFT1024(10130144)
-OPENMP_SORT_UNSIGNED(171)
-
-#undef OPENMP_RANDOM_XORSHIFT64
-#undef OPENMP_RANDOM_XORSHIFT1024
-#undef OPENMP_SORT_UNSIGNED
 }  // namespace Test
 #else
 void KOKKOS_ALGORITHMS_UNITTESTS_TESTOPENMP_PREVENT_LINK_ERROR() {}

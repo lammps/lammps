@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -24,6 +24,8 @@ ReaderStyle(native,ReaderNative)
 
 #include "reader.h"
 
+#include <map>
+
 namespace LAMMPS_NS {
 
 class ReaderNative : public Reader {
@@ -41,10 +43,9 @@ private:
   char *line;              // line read from dump file
 
   int nwords;              // # of per-atom columns in dump file
-  char **words;            // ptrs to values in parsed per-atom line
   int *fieldindex;         //
 
-  int find_label(const char *, int, char **);
+  int find_label(const std::string &label, const std::map<std::string, int> & labels);
   void read_lines(int);
 };
 

@@ -81,79 +81,7 @@ struct DefaultDestroy {
   void destroy_shared_allocation() { managed_object->~T(); }
 };
 
-template <class ExecutionSpace>
-class ExecutionSpaceInstanceStorage
-    : private NoUniqueAddressMemberEmulation<ExecutionSpace,
-                                             DefaultCtorNotOnDevice> {
- private:
-  using base_t =
-      NoUniqueAddressMemberEmulation<ExecutionSpace, DefaultCtorNotOnDevice>;
-
- protected:
-  constexpr explicit ExecutionSpaceInstanceStorage() : base_t() {}
-
-  KOKKOS_INLINE_FUNCTION
-  constexpr explicit ExecutionSpaceInstanceStorage(
-      ExecutionSpace const& arg_execution_space)
-      : base_t(arg_execution_space) {}
-
-  KOKKOS_INLINE_FUNCTION
-  constexpr explicit ExecutionSpaceInstanceStorage(
-      ExecutionSpace&& arg_execution_space)
-      : base_t(std::move(arg_execution_space)) {}
-
-  KOKKOS_INLINE_FUNCTION
-  ExecutionSpace& execution_space_instance() & {
-    return this->no_unique_address_data_member();
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  ExecutionSpace const& execution_space_instance() const& {
-    return this->no_unique_address_data_member();
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  ExecutionSpace&& execution_space_instance() && {
-    return std::move(*this).no_unique_address_data_member();
-  }
-};
-
-template <class MemorySpace>
-class MemorySpaceInstanceStorage
-    : private NoUniqueAddressMemberEmulation<MemorySpace,
-                                             DefaultCtorNotOnDevice> {
- private:
-  using base_t =
-      NoUniqueAddressMemberEmulation<MemorySpace, DefaultCtorNotOnDevice>;
-
- protected:
-  MemorySpaceInstanceStorage() : base_t() {}
-
-  KOKKOS_INLINE_FUNCTION
-  MemorySpaceInstanceStorage(MemorySpace const& arg_memory_space)
-      : base_t(arg_memory_space) {}
-
-  KOKKOS_INLINE_FUNCTION
-  constexpr explicit MemorySpaceInstanceStorage(MemorySpace&& arg_memory_space)
-      : base_t(arg_memory_space) {}
-
-  KOKKOS_INLINE_FUNCTION
-  MemorySpace& memory_space_instance() & {
-    return this->no_unique_address_data_member();
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  MemorySpace const& memory_space_instance() const& {
-    return this->no_unique_address_data_member();
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  MemorySpace&& memory_space_instance() && {
-    return std::move(*this).no_unique_address_data_member();
-  }
-};
-
-}  // end namespace Impl
+}  // namespace Impl
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
@@ -226,13 +154,13 @@ class SimpleTaskScheduler
   }
 
   template <int TaskEnum, class DepTaskType, class FunctorType>
-  KOKKOS_FUNCTION
-      future_type_for_functor<typename std::decay<FunctorType>::type>
-      _spawn_impl(
-          DepTaskType arg_predecessor_task, TaskPriority arg_priority,
-          typename runnable_task_base_type::function_type apply_function_ptr,
-          typename runnable_task_base_type::destroy_type destroy_function_ptr,
-          FunctorType&& functor) {
+  KOKKOS_FUNCTION future_type_for_functor<
+      typename std::decay<FunctorType>::type>
+  _spawn_impl(
+      DepTaskType arg_predecessor_task, TaskPriority arg_priority,
+      typename runnable_task_base_type::function_type apply_function_ptr,
+      typename runnable_task_base_type::destroy_type /*destroy_function_ptr*/,
+      FunctorType&& functor) {
     KOKKOS_EXPECTS(m_queue != nullptr);
 
     using functor_future_type =
@@ -366,20 +294,6 @@ class SimpleTaskScheduler
 
   //----------------------------------------------------------------------------
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-  // For backwards compatibility purposes only
-  KOKKOS_DEPRECATED
-  KOKKOS_INLINE_FUNCTION
-  memory_pool* memory() const noexcept KOKKOS_DEPRECATED_TRAILING_ATTRIBUTE {
-    if (m_queue != nullptr)
-      return &(m_queue->get_memory_pool());
-    else
-      return nullptr;
-  }
-#endif
-
-  //----------------------------------------------------------------------------
-
   template <int TaskEnum, typename DepFutureType, typename FunctorType>
   KOKKOS_FUNCTION static Kokkos::BasicFuture<typename FunctorType::value_type,
                                              scheduler_type>
@@ -445,7 +359,7 @@ class SimpleTaskScheduler
     KOKKOS_EXPECTS(!task.get_respawn_flag());
 
     task.set_priority(priority);
-    KOKKOS_ASSERT(not task.has_predecessor());
+    KOKKOS_ASSERT(!task.has_predecessor());
     task.set_respawn_flag(true);
   }
 

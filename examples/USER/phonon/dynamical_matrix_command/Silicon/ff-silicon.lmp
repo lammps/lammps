@@ -16,4 +16,4 @@ mass ${Si}     28.08550
 ###########################
 
 pair_style      tersoff
-pair_coeff      * *  Si.opt.tersoff Si(D)
+pair_coeff      * * SiCGe.tersoff Si(D)

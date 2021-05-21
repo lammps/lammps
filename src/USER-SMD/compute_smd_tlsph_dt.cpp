@@ -11,7 +11,7 @@
 
 /* ----------------------------------------------------------------------
  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
- http://lammps.sandia.gov, Sandia National Laboratories
+ https://lammps.sandia.gov/, Sandia National Laboratories
  Steve Plimpton, sjplimp@sandia.gov
 
  Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -49,7 +49,7 @@ ComputeSMDTlsphDt::ComputeSMDTlsphDt(LAMMPS *lmp, int narg, char **arg) :
         size_peratom_cols = 0;
 
         nmax = 0;
-        dt_vector = NULL;
+        dt_vector = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -88,7 +88,7 @@ void ComputeSMDTlsphDt::compute_peratom() {
         int itmp = 0;
         double *particle_dt = (double *) force->pair->extract("smd/tlsph/particle_dt_ptr",
                         itmp);
-        if (particle_dt == NULL) {
+        if (particle_dt == nullptr) {
                 error->all(FLERR,
                                 "compute smd/tlsph_dt failed to access particle_dt array");
         }
@@ -110,6 +110,6 @@ void ComputeSMDTlsphDt::compute_peratom() {
  ------------------------------------------------------------------------- */
 
 double ComputeSMDTlsphDt::memory_usage() {
-        double bytes = nmax * sizeof(double);
+        double bytes = (double)nmax * sizeof(double);
         return bytes;
 }

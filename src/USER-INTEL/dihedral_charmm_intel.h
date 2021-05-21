@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -66,7 +66,7 @@ class DihedralCharmmIntel : public DihedralCharmm {
     flt_t *weight;
 
     ForceConst() : _npairtypes(0), _nbondtypes(0)  {}
-    ~ForceConst() { set_ntypes(0, 0, NULL); }
+    ~ForceConst() { set_ntypes(0, 0, nullptr); }
 
     void set_ntypes(const int npairtypes, const int nbondtypes, Memory *memory);
 

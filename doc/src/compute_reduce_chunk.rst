@@ -30,7 +30,7 @@ Examples
 
 .. code-block:: LAMMPS
 
-   compute 1 all reduce/chunk/atom mychunk min c_cluster
+   compute 1 all reduce/chunk mychunk min c_cluster
 
 Description
 """""""""""
@@ -38,7 +38,7 @@ Description
 Define a calculation that reduces one or more per-atom vectors into
 per-chunk values.  This can be useful for diagnostic output.  Or when
 used in conjunction with the :doc:`compute chunk/spread/atom <compute_chunk_spread_atom>` command it can be
-used ot create per-atom values that induce a new set of chunks with a
+used to create per-atom values that induce a new set of chunks with a
 second :doc:`compute chunk/atom <compute_chunk_atom>` command.  An
 example is given below.
 
@@ -160,7 +160,8 @@ handful of large micelles.
 
 ----------
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global vector if a single input value is
 specified, otherwise a global array is output.  The number of columns
@@ -184,4 +185,7 @@ Related commands
 
 :doc:`compute chunk/atom <compute_chunk_atom>`, :doc:`compute reduce <compute_reduce>`, :doc:`compute chunk/spread/atom <compute_chunk_spread_atom>`
 
-**Default:** none
+Default
+"""""""
+
+none

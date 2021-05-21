@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -32,6 +32,7 @@ using namespace LAMMPS_NS;
 template<class DeviceType>
 PairGranHookeHistoryKokkos<DeviceType>::PairGranHookeHistoryKokkos(LAMMPS *lmp) : PairGranHookeHistory(lmp)
 {
+  kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | V_MASK | OMEGA_MASK | F_MASK | TORQUE_MASK | TYPE_MASK | MASK_MASK | ENERGY_MASK | VIRIAL_MASK | RMASS_MASK | RADIUS_MASK;
@@ -48,8 +49,8 @@ PairGranHookeHistoryKokkos<DeviceType>::~PairGranHookeHistoryKokkos()
   if (allocated) {
     memoryKK->destroy_kokkos(k_eatom,eatom);
     memoryKK->destroy_kokkos(k_vatom,vatom);
-    eatom = NULL;
-    vatom = NULL;
+    eatom = nullptr;
+    vatom = nullptr;
   }
 }
 
@@ -60,20 +61,25 @@ PairGranHookeHistoryKokkos<DeviceType>::~PairGranHookeHistoryKokkos()
 template<class DeviceType>
 void PairGranHookeHistoryKokkos<DeviceType>::init_style()
 {
-  if (history && fix_history == NULL) {
+  // if history is stored and first init, create Fix to store history
+  // it replaces FixDummy, created in the constructor
+  // this is so its order in the fix list is preserved
+
+  if (history && fix_history == nullptr) {
     char dnumstr[16];
     sprintf(dnumstr,"%d",3);
     char **fixarg = new char*[4];
-    fixarg[0] = (char *) "NEIGH_HISTORY";
+    fixarg[0] = (char *) "NEIGH_HISTORY_HH";
     fixarg[1] = (char *) "all";
     if (execution_space == Device)
       fixarg[2] = (char *) "NEIGH_HISTORY/KK/DEVICE";
     else
       fixarg[2] = (char *) "NEIGH_HISTORY/KK/HOST";
     fixarg[3] = dnumstr;
-    modify->add_fix(4,fixarg,1);
+    modify->replace_fix("NEIGH_HISTORY_HH_DUMMY",4,fixarg,1);
     delete [] fixarg;
-    fix_history = (FixNeighHistory *) modify->fix[modify->nfix-1];
+    int ifix = modify->find_fix("NEIGH_HISTORY_HH");
+    fix_history = (FixNeighHistory *) modify->fix[ifix];
     fix_history->pair = this;
     fix_historyKK = (FixNeighHistoryKokkos<DeviceType> *)fix_history;
   }
@@ -95,7 +101,7 @@ void PairGranHookeHistoryKokkos<DeviceType>::init_style()
     neighbor->requests[irequest]->full = 0;
     neighbor->requests[irequest]->half = 1;
   } else {
-    error->all(FLERR,"Cannot use chosen neighbor list style with gran/hooke/history/kk");
+    error->all(FLERR,"Must use half neighbor list with gran/hooke/history/kk");
   }
 }
 
@@ -283,7 +289,6 @@ void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryR
   const X_FLOAT xtmp = x(i,0);
   const X_FLOAT ytmp = x(i,1);
   const X_FLOAT ztmp = x(i,2);
-  const LMP_FLOAT imass = rmass[i];
   const LMP_FLOAT irad = radius[i];
   const int jnum = d_numneigh[i];
   int count = 0;
@@ -295,7 +300,6 @@ void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryR
     const X_FLOAT dely = ytmp - x(j,1);
     const X_FLOAT delz = ztmp - x(j,2);
     const X_FLOAT rsq = delx*delx + dely*dely + delz*delz;
-    const LMP_FLOAT jmass = rmass[j];
     const LMP_FLOAT jrad = radius[j];
     const LMP_FLOAT radsum = irad + jrad;
 
@@ -388,6 +392,7 @@ void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryC
 
     F_FLOAT damp = meff*gamman*vnnr*rsqinv;
     F_FLOAT ccel = kn*(radsum-r)*rinv - damp;
+    if(limit_damping && (ccel < 0.0)) ccel = 0.0;
 
     // relative velocities
 
@@ -545,7 +550,7 @@ void PairGranHookeHistoryKokkos<DeviceType>::ev_tally_xyz(EV_FLOAT &ev, int i, i
 template<class DeviceType>
 template<int NEIGHFLAG, int NEWTON_PAIR>
 KOKKOS_INLINE_FUNCTION
-void PairGranHookeHistoryKokkos<DeviceType>::ev_tally_xyz_atom(EV_FLOAT &ev, int i, int j,
+void PairGranHookeHistoryKokkos<DeviceType>::ev_tally_xyz_atom(EV_FLOAT & /*ev*/, int i, int j,
                                                                F_FLOAT fx, F_FLOAT fy, F_FLOAT fz,
                                                                X_FLOAT delx, X_FLOAT dely, X_FLOAT delz) const
 {
@@ -580,7 +585,7 @@ void PairGranHookeHistoryKokkos<DeviceType>::ev_tally_xyz_atom(EV_FLOAT &ev, int
 
 namespace LAMMPS_NS {
 template class PairGranHookeHistoryKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class PairGranHookeHistoryKokkos<LMPHostType>;
 #endif
 }

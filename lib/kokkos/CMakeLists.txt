@@ -1,8 +1,13 @@
 
+# Disable in-source builds to prevent source tree corruption.
+if( "${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}" )
+  message( FATAL_ERROR "FATAL: In-source builds are not allowed. You should create a separate directory for build files." )
+endif()
+
 # We want to determine if options are given with the wrong case
 # In order to detect which arguments are given to compare against
 # the list of valid arguments, at the beginning here we need to
-# form a list of all the given variables. If it begins with any 
+# form a list of all the given variables. If it begins with any
 # case of KoKkOS, we add it to the list.
 
 
@@ -25,6 +30,8 @@ SET(KOKKOS_TOP_BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR})
 
 # Needed to simplify syntax of if statements
 CMAKE_POLICY(SET CMP0054 NEW)
+# Needed to make IN_LIST a valid operator
+CMAKE_POLICY(SET CMP0057 NEW)
 
 # Is this a build as part of Trilinos?
 IF(COMMAND TRIBITS_PACKAGE_DECL)
@@ -32,6 +39,9 @@ IF(COMMAND TRIBITS_PACKAGE_DECL)
 ELSE()
   SET(KOKKOS_HAS_TRILINOS OFF)
 ENDIF()
+# Is this build a subdirectory of another project
+GET_DIRECTORY_PROPERTY(HAS_PARENT PARENT_DIRECTORY)
+
 
 INCLUDE(${KOKKOS_SRC_PATH}/cmake/kokkos_functions.cmake)
 INCLUDE(${KOKKOS_SRC_PATH}/cmake/kokkos_pick_cxx_std.cmake)
@@ -65,7 +75,7 @@ IF(NOT KOKKOS_HAS_TRILINOS)
   cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
   set(CMAKE_DISABLE_SOURCE_CHANGES ON)
   set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
-  IF (Spack_WORKAROUND) 
+  IF (Spack_WORKAROUND)
     #if we are explicitly using Spack for development,
     #nuke the Spack compiler
     SET(SPACK_CXX $ENV{SPACK_CXX})
@@ -73,9 +83,18 @@ IF(NOT KOKKOS_HAS_TRILINOS)
       SET(CMAKE_CXX_COMPILER ${SPACK_CXX} CACHE STRING "the C++ compiler" FORCE)
       SET(ENV{CXX} ${SPACK_CXX})
     ENDIF()
-  ENDif()
-  IF(NOT DEFINED ${PROJECT_NAME})
-    PROJECT(Kokkos CXX)
+  ENDIF()
+  # Always call the project command to define Kokkos_ variables
+  # and to make sure that C++ is an enabled language
+  PROJECT(Kokkos CXX)
+  IF(NOT HAS_PARENT)
+    IF (NOT CMAKE_BUILD_TYPE)
+      SET(DEFAULT_BUILD_TYPE "RelWithDebInfo")
+      MESSAGE(STATUS "Setting build type to '${DEFAULT_BUILD_TYPE}' as none was specified.")
+      SET(CMAKE_BUILD_TYPE "${DEFAULT_BUILD_TYPE}" CACHE STRING
+          "Choose the type of build, options are: Debug, Release, RelWithDebInfo and MinSizeRel."
+          FORCE)
+    ENDIF()
   ENDIF()
 ENDIF()
 
@@ -92,16 +111,17 @@ ENDIF()
 
 
 set(Kokkos_VERSION_MAJOR 3)
-set(Kokkos_VERSION_MINOR 0)
-set(Kokkos_VERSION_PATCH 0)
+set(Kokkos_VERSION_MINOR 3)
+set(Kokkos_VERSION_PATCH 1)
 set(Kokkos_VERSION "${Kokkos_VERSION_MAJOR}.${Kokkos_VERSION_MINOR}.${Kokkos_VERSION_PATCH}")
+math(EXPR KOKKOS_VERSION "${Kokkos_VERSION_MAJOR} * 10000 + ${Kokkos_VERSION_MINOR} * 100 + ${Kokkos_VERSION_PATCH}")
 
-IF(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.12.0") 
+IF(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.12.0")
   MESSAGE(STATUS "Setting policy CMP0074 to use <Package>_ROOT variables")
   CMAKE_POLICY(SET CMP0074 NEW)
 ENDIF()
 
-# Load either the real TriBITS or a TriBITS wrapper 
+# Load either the real TriBITS or a TriBITS wrapper
 # for certain utility functions that are universal (like GLOBAL_SET)
 INCLUDE(${KOKKOS_SRC_PATH}/cmake/fake_tribits.cmake)
 
@@ -118,24 +138,26 @@ ENDIF()
 # These are the variables we will append to as we go
 # I really wish these were regular variables
 # but scoping issues can make it difficult
-GLOBAL_RESET(KOKKOS_COMPILE_OPTIONS)
-GLOBAL_RESET(KOKKOS_LINK_OPTIONS)
-GLOBAL_RESET(KOKKOS_CUDA_OPTIONS)
-GLOBAL_RESET(KOKKOS_CUDAFE_OPTIONS)
-GLOBAL_RESET(KOKKOS_XCOMPILER_OPTIONS)
+GLOBAL_SET(KOKKOS_COMPILE_OPTIONS)
+GLOBAL_SET(KOKKOS_LINK_OPTIONS -DKOKKOS_DEPENDENCE)
+GLOBAL_SET(KOKKOS_CUDA_OPTIONS)
+GLOBAL_SET(KOKKOS_CUDAFE_OPTIONS)
+GLOBAL_SET(KOKKOS_XCOMPILER_OPTIONS)
 # We need to append text here for making sure TPLs
 # we import are available for an installed Kokkos
-GLOBAL_RESET(KOKKOS_TPL_EXPORTS)
-# We need these for controlling the exact -std flag
-GLOBAL_RESET(KOKKOS_DONT_ALLOW_EXTENSIONS)
-GLOBAL_RESET(KOKKOS_USE_CXX_EXTENSIONS)
-GLOBAL_RESET(KOKKOS_CXX_STANDARD_FEATURE)
+GLOBAL_SET(KOKKOS_TPL_EXPORTS)
+# this could probably be scoped to project
+GLOBAL_SET(KOKKOS_COMPILE_DEFINITIONS KOKKOS_DEPENDENCE)
 
 # Include a set of Kokkos-specific wrapper functions that
 # will either call raw CMake or TriBITS
 # These are functions like KOKKOS_INCLUDE_DIRECTORIES
 INCLUDE(${KOKKOS_SRC_PATH}/cmake/kokkos_tribits.cmake)
 
+
+# Check the environment and set certain variables
+# to allow platform-specific checks
+INCLUDE(${KOKKOS_SRC_PATH}/cmake/kokkos_check_env.cmake)
 
 # The build environment setup goes in the following steps
 # 1) Check all the enable options. This includes checking Kokkos_DEVICES
@@ -159,7 +181,6 @@ SET(KOKKOS_EXT_LIBRARIES Kokkos::kokkos Kokkos::kokkoscore Kokkos::kokkoscontain
 SET(KOKKOS_INT_LIBRARIES kokkos kokkoscore kokkoscontainers kokkosalgorithms)
 SET_PROPERTY(GLOBAL PROPERTY KOKKOS_INT_LIBRARIES ${KOKKOS_INT_LIBRARIES})
 
-GET_DIRECTORY_PROPERTY(HAS_PARENT PARENT_DIRECTORY)
 IF (KOKKOS_HAS_TRILINOS)
   SET(TRILINOS_INCDIR ${CMAKE_INSTALL_PREFIX}/${${PROJECT_NAME}_INSTALL_INCLUDE_DIR})
   SET(KOKKOS_HEADER_DIR ${TRILINOS_INCDIR})
@@ -171,8 +192,6 @@ ELSE()
   SET(KOKKOS_HEADER_DIR "${CMAKE_INSTALL_INCLUDEDIR}")
   SET(KOKKOS_IS_SUBDIRECTORY FALSE)
 ENDIF()
-
-
 
 #------------------------------------------------------------------------------
 #
@@ -187,14 +206,23 @@ IF (KOKKOS_HAS_TRILINOS)
   # Because Tribits doesn't use lists, it uses spaces for the list of CXX flags
   # we have to match the annoying behavior
   STRING(REPLACE ";" " " KOKKOSCORE_COMPILE_OPTIONS "${KOKKOS_COMPILE_OPTIONS}")
-  STRING(REPLACE ";" " " KOKKOSCORE_CUDA_OPTIONS    "${KOKKOS_CUDA_OPTIONS}")
-  FOREACH(CUDAFE_FLAG ${KOKKOS_CUDAFE_OPTIONS})
-    SET(KOKKOSCORE_CUDAFE_OPTIONS "${KOKKOSCORE_CUDAFE_OPTIONS} -Xcudafe ${CUDAFE_FLAG}")
-  ENDFOREACH()
+  LIST(APPEND KOKKOS_ALL_COMPILE_OPTIONS ${KOKKOS_COMPILE_OPTIONS})
+  IF (KOKKOS_ENABLE_CUDA)
+    LIST(APPEND KOKKOS_ALL_COMPILE_OPTIONS ${KOKKOS_CUDA_OPTIONS})
+  ENDIF()
   FOREACH(XCOMP_FLAG ${KOKKOS_XCOMPILER_OPTIONS})
     SET(KOKKOSCORE_XCOMPILER_OPTIONS "${KOKKOSCORE_XCOMPILER_OPTIONS} -Xcompiler ${XCOMP_FLAG}")
+    LIST(APPEND KOKKOS_ALL_COMPILE_OPTIONS -Xcompiler ${XCOMP_FLAG})
   ENDFOREACH()
-  SET(KOKKOSCORE_CXX_FLAGS "${KOKKOSCORE_COMPILE_OPTIONS} ${CMAKE_CXX${KOKKOS_CXX_STANDARD}_STANDARD_COMPILE_OPTION} ${KOKKOSCORE_CUDA_OPTIONS} ${KOKKOSCORE_CUDAFE_OPTIONS} ${KOKKOSCORE_XCOMPILER_OPTIONS}")
+  SET(KOKKOSCORE_CXX_FLAGS "${KOKKOSCORE_COMPILE_OPTIONS} ${KOKKOSCORE_XCOMPILER_OPTIONS}")
+  IF (KOKKOS_ENABLE_CUDA)
+    STRING(REPLACE ";" " " KOKKOSCORE_CUDA_OPTIONS    "${KOKKOS_CUDA_OPTIONS}")
+    FOREACH(CUDAFE_FLAG ${KOKKOS_CUDAFE_OPTIONS})
+      SET(KOKKOSCORE_CUDAFE_OPTIONS "${KOKKOSCORE_CUDAFE_OPTIONS} -Xcudafe ${CUDAFE_FLAG}")
+      LIST(APPEND KOKKOS_ALL_COMPILE_OPTIONS -Xcudafe ${CUDAFE_FLAG})
+    ENDFOREACH()
+    SET(KOKKOSCORE_CXX_FLAGS "${KOKKOSCORE_CXX_FLAGS} ${KOKKOSCORE_CUDA_OPTIONS} ${KOKKOSCORE_CUDAFE_OPTIONS}")
+  ENDIF()
   # Both parent scope and this package
   # In ProjectCompilerPostConfig.cmake, we capture the "global" flags Trilinos wants in
   # TRILINOS_TOPLEVEL_CXX_FLAGS
@@ -203,6 +231,8 @@ IF (KOKKOS_HAS_TRILINOS)
   #CMAKE_CXX_FLAGS will get added to Kokkos and Kokkos dependencies automatically here
   #These flags get set up in KOKKOS_PACKAGE_DECL, which means they
   #must be configured before KOKKOS_PACKAGE_DECL
+  SET(KOKKOS_ALL_COMPILE_OPTIONS
+    $<$<COMPILE_LANGUAGE:CXX>:${KOKKOS_ALL_COMPILE_OPTIONS}>)
 ENDIF()
 
 KOKKOS_PACKAGE_DECL()
@@ -223,11 +253,9 @@ KOKKOS_PROCESS_SUBPACKAGES()
 KOKKOS_PACKAGE_DEF()
 KOKKOS_EXCLUDE_AUTOTOOLS_FILES()
 KOKKOS_PACKAGE_POSTPROCESS()
+KOKKOS_CONFIGURE_CORE()
 
-#We are ready to configure the header
-CONFIGURE_FILE(cmake/KokkosCore_config.h.in KokkosCore_config.h @ONLY)
-
-IF (NOT KOKKOS_HAS_TRILINOS)
+IF (NOT KOKKOS_HAS_TRILINOS AND NOT Kokkos_INSTALL_TESTING)
   ADD_LIBRARY(kokkos INTERFACE)
   #Make sure in-tree projects can reference this as Kokkos::
   #to match the installed target names
@@ -242,15 +270,16 @@ INCLUDE(${KOKKOS_SRC_PATH}/cmake/kokkos_install.cmake)
 # executables also need nvcc_wrapper.  Thus, we need to install it.
 # If the argument of DESTINATION is a relative path, CMake computes it
 # as relative to ${CMAKE_INSTALL_PATH}.
-INSTALL(PROGRAMS ${CMAKE_CURRENT_SOURCE_DIR}/bin/nvcc_wrapper DESTINATION ${CMAKE_INSTALL_BINDIR})
-INSTALL(FILES "${CMAKE_CURRENT_BINARY_DIR}/KokkosCore_config.h" DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+# KOKKOS_INSTALL_ADDITIONAL_FILES will install nvcc wrapper and other generated
+# files
+KOKKOS_INSTALL_ADDITIONAL_FILES()
 
 
 #  Finally - if we are a subproject - make sure the enabled devices are visible
 IF (HAS_PARENT)
   FOREACH(DEV Kokkos_ENABLED_DEVICES)
     #I would much rather not make these cache variables or global properties, but I can't
-    #make any guarantees on whether PARENT_SCOPE is good enough to make 
+    #make any guarantees on whether PARENT_SCOPE is good enough to make
     #these variables visible where I need them
     SET(Kokkos_ENABLE_${DEV} ON PARENT_SCOPE)
     SET_PROPERTY(GLOBAL PROPERTY Kokkos_ENABLE_${DEV} ON)

@@ -1,40 +1,49 @@
 .. index:: fix rigid
+.. index:: fix rigid/omp
+.. index:: fix rigid/nve
+.. index:: fix rigid/nve/omp
+.. index:: fix rigid/nvt
+.. index:: fix rigid/nvt/omp
+.. index:: fix rigid/npt
+.. index:: fix rigid/npt/omp
+.. index:: fix rigid/nph
+.. index:: fix rigid/nph/omp
+.. index:: fix rigid/small
+.. index:: fix rigid/small/omp
+.. index:: fix rigid/nve/small
+.. index:: fix rigid/nvt/small
+.. index:: fix rigid/npt/small
+.. index:: fix rigid/nph/small
 
 fix rigid command
 =================
 
-fix rigid/omp command
-=====================
+Accelerator Variants: *rigid/omp*
 
 fix rigid/nve command
 =====================
 
-fix rigid/nve/omp command
-=========================
+Accelerator Variants: *rigid/nve/omp*
 
 fix rigid/nvt command
 =====================
 
-fix rigid/nvt/omp command
-=========================
+Accelerator Variants: *rigid/nvt/omp*
 
 fix rigid/npt command
 =====================
 
-fix rigid/npt/omp command
-=========================
+Accelerator Variants: *rigid/npt/omp*
 
 fix rigid/nph command
 =====================
 
-fix rigid/nph/omp command
-=========================
+Accelerator Variants: *rigid/nph/omp*
 
 fix rigid/small command
 =======================
 
-fix rigid/small/omp command
-===========================
+Accelerator Variants: *rigid/small/omp*
 
 fix rigid/nve/small command
 ===========================
@@ -248,7 +257,7 @@ differences may accumulate to produce divergent trajectories.
    will be built only at the very first *run* command and maintained for
    as long as the rigid fix is defined. For example, you might think you
    could displace the atoms in a body or add a large velocity to each atom
-   in a body to make it move in a desired direction before a 2nd run is
+   in a body to make it move in a desired direction before a second run is
    performed, using the :doc:`set <set>` or
    :doc:`displace_atoms <displace_atoms>` or :doc:`velocity <velocity>`
    commands.  But these commands will not affect the internal attributes
@@ -429,8 +438,8 @@ that dimension via the :doc:`fix deform <fix_deform>` command.
 For all barostat keywords, the *Pdamp* parameter operates like the
 *Tdamp* parameter, determining the time scale on which pressure is
 relaxed.  For example, a value of 10.0 means to relax the pressure in
-a timespan of (roughly) 10 time units (e.g. tau or fmsec or psec - see
-the :doc:`units <units>` command).
+a timespan of (roughly) 10 time units (e.g. :math:`\tau` or fs or ps
+- see the :doc:`units <units>` command).
 
 Regardless of what atoms are in the fix group (the only atoms which
 are time integrated), a global pressure or stress tensor is computed
@@ -514,7 +523,7 @@ desired temperature at each timestep is a ramped value during the run
 from *Tstart* to *Tstop*\ .  The *Tdamp* parameter is specified in time
 units and determines how rapidly the temperature is relaxed.  For
 example, a value of 100.0 means to relax the temperature in a timespan
-of (roughly) 100 time units (tau or fmsec or psec - see the
+of (roughly) 100 time units (:math:`\tau` or fs or ps - see the
 :doc:`units <units>` command).  The random # *seed* must be a positive
 integer.
 
@@ -539,7 +548,7 @@ timestep is a ramped value during the run from *Tstart* to *Tstop*\ .
 The *Tdamp* parameter is specified in time units and determines how
 rapidly the temperature is relaxed.  For example, a value of 100.0
 means to relax the temperature in a timespan of (roughly) 100 time
-units (tau or fmsec or psec - see the :doc:`units <units>` command).
+units (tau or fs or ps - see the :doc:`units <units>` command).
 
 Nose/Hoover chains are used in conjunction with this thermostat.  The
 *tparam* keyword can optionally be used to change the chain settings
@@ -727,7 +736,7 @@ In all case, the rigid bodies and non-rigid particles both contribute
 to the global pressure and the box is scaled the same by any of the
 barostatting fixes.
 
-You could even use the 2nd and 3rd options for a non-hybrid simulation
+You could even use the second and third options for a non-hybrid simulation
 consisting of only rigid bodies, assuming you give :doc:`fix npt <fix_nh>` an empty group, though it's an odd thing to do.  The
 barostatting fixes (:doc:`fix npt <fix_nh>` and :doc:`fix press/berensen <fix_press_berendsen>`) will monitor the pressure
 and change the box dimensions, but not time integrate any particles.
@@ -736,47 +745,24 @@ rigid/nvt.
 
 ----------
 
-Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
-functionally the same as the corresponding style without the suffix.
-They have been optimized to run faster, depending on your available
-hardware, as discussed on the :doc:`Speed packages <Speed_packages>` doc
-page.  The accelerated styles take the same arguments and should
-produce the same results, except for round-off and precision issues.
-
-These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
-USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` doc page for more info.
-
-You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
-:doc:`suffix <suffix>` command in your input script.
-
-See the :doc:`Speed packages <Speed_packages>` doc page for more
-instructions on how to use the accelerated styles effectively.
+.. include:: accel_styles.rst
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-No information about the 4 NVE rigid styles is written to :doc:`binary restart files <restart>`.  The exception is if the *infile* or
-*mol* keyword is used, in which case an auxiliary file is written out
-with rigid body information each time a restart file is written, as
+No information about the 4 NVE rigid styles is written to :doc:`binary
+restart files <restart>`.  The exception is if the *infile* or *mol*
+keyword is used, in which case an auxiliary file is written out with
+rigid body information each time a restart file is written, as
 explained above for the *infile* keyword.  For the 2 NVT rigid styles,
-the state of the Nose/Hoover thermostat is written to :doc:`binary restart files <restart>`.  Ditto for the 4 NPT and NPH rigid styles, and
-the state of the Nose/Hoover barostat.  See the
-:doc:`read_restart <read_restart>` command for info on how to re-specify
-a fix in an input script that reads a restart file, so that the
-operation of the fix continues in an uninterrupted fashion.
-
-The :doc:`fix_modify <fix_modify>` *energy* option is supported by the 6
-NVT, NPT, NPH rigid styles to add the energy change induced by the
-thermostatting to the system's potential energy as part of
-:doc:`thermodynamic output <thermo_style>`.
-
-The :doc:`fix_modify <fix_modify>` *virial* option is supported by this
-fix to add the contribution due to keeping the objects rigid to the
-system's virial as part of :doc:`thermodynamic output <thermo_style>`.
-The default is *virial yes*
+the state of the Nose/Hoover thermostat is written to :doc:`binary
+restart files <restart>`.  Ditto for the 4 NPT and NPH rigid styles,
+and the state of the Nose/Hoover barostat.  See the :doc:`read_restart
+<read_restart>` command for info on how to re-specify a fix in an
+input script that reads a restart file, so that the operation of the
+fix continues in an uninterrupted fashion.
 
 The :doc:`fix_modify <fix_modify>` *temp* and *press* options are
 supported by the 4 NPT and NPH rigid styles to change the computes
@@ -788,6 +774,12 @@ The :doc:`fix_modify <fix_modify>` *bodyforces* option is supported by
 all rigid styles to set whether per-body forces and torques are
 computed early or late in a timestep, i.e. at the post-force stage or
 at the final-integrate stage or the timestep, respectively.
+
+The cumulative energy change in the system imposed by the 6 NVT, NPT,
+NPH rigid fixes, via either thermostatting and/or barostatting, is
+included in the :doc:`thermodynamic output <thermo_style>` keywords
+*ecouple* and *econserve*.  See the :doc:`thermo_style <thermo_style>`
+doc page for details.
 
 The 2 NVE rigid fixes compute a global scalar which can be accessed by
 various :doc:`output commands <Howto_output>`.  The scalar value
@@ -804,13 +796,22 @@ are removed from this calculation, but only for the *rigid* and
 
 The 6 NVT, NPT, NPH rigid fixes compute a global scalar which can be
 accessed by various :doc:`output commands <Howto_output>`.  The scalar
-value calculated by these fixes is "extensive".  The scalar is the
-cumulative energy change due to the thermostatting and barostatting
-the fix performs.
+is the same cumulative energy change due to these fixes described
+above.  The scalar value calculated by this fix is "extensive".
+
+The :doc:`fix_modify <fix_modify>` *virial* option is supported by
+these fixes to add the contribution due to the added forces on atoms
+to both the global pressure and per-atom stress of the system via the
+:doc:`compute pressure <compute_pressure>` and :doc:`compute
+stress/atom <compute_stress_atom>` commands.  The former can be
+accessed by :doc:`thermodynamic output <thermo_style>`.  The default
+setting for this fix is :doc:`fix_modify virial yes <fix_modify>`.
 
 All of the *rigid* styles (not the *rigid/small* styles) compute a
-global array of values which can be accessed by various :doc:`output commands <Howto_output>`.  Similar information about the bodies
-defined by the *rigid/small* styles can be accessed via the :doc:`compute rigid/local <compute_rigid_local>` command.
+global array of values which can be accessed by various :doc:`output
+commands <Howto_output>`.  Similar information about the bodies
+defined by the *rigid/small* styles can be accessed via the
+:doc:`compute rigid/local <compute_rigid_local>` command.
 
 The number of rows in the array is equal to the number of rigid
 bodies.  The number of columns is 15.  Thus for each rigid body, 15

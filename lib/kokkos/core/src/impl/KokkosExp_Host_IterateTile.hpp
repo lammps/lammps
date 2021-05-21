@@ -57,9 +57,7 @@
 #define KOKKOS_ENABLE_IVDEP_MDRANGE
 #endif
 
-#include <iostream>
 #include <algorithm>
-#include <cstdio>
 
 namespace Kokkos {
 namespace Impl {
@@ -1574,7 +1572,7 @@ struct HostIterateTile<
 
   template <int Rank>
   struct RankTag {
-    typedef RankTag type;
+    using type = RankTag<Rank>;
     enum { value = (int)Rank };
   };
 
@@ -1995,7 +1993,7 @@ struct HostIterateTile<
 
   template <int Rank>
   struct RankTag {
-    typedef RankTag type;
+    using type = RankTag<Rank>;
     enum { value = (int)Rank };
   };
 
@@ -2418,7 +2416,7 @@ struct HostIterateTile<
 
   template <int Rank>
   struct RankTag {
-    typedef RankTag type;
+    using type = RankTag<Rank>;
     enum { value = (int)Rank };
   };
 
@@ -2793,111 +2791,6 @@ struct HostIterateTile<
 
 // ------------------------------------------------------------------ //
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-// MDFunctor - wraps the range_policy and functor to pass to IterateTile
-// Used for md_parallel_{for,reduce} with Serial, Threads, OpenMP
-// Cuda uses DeviceIterateTile directly within md_parallel_for
-// TODO Once md_parallel_{for,reduce} removed, this can be removed
-
-namespace Experimental {
-
-// ParallelReduce - scalar reductions
-template <typename MDRange, typename Functor, typename ValueType = void>
-struct MDFunctor {
-  using range_policy = MDRange;
-  using functor_type = Functor;
-  using value_type   = ValueType;
-  using work_tag     = typename range_policy::work_tag;
-  using index_type   = typename range_policy::index_type;
-  using iterate_type =
-      typename Kokkos::Impl::HostIterateTile<MDRange, Functor, work_tag,
-                                             value_type>;
-
-  inline MDFunctor(MDRange const& range, Functor const& f)
-      : m_range(range), m_func(f) {}
-
-  inline MDFunctor(MDFunctor const&) = default;
-
-  inline MDFunctor& operator=(MDFunctor const&) = default;
-
-  inline MDFunctor(MDFunctor&&) = default;
-
-  inline MDFunctor& operator=(MDFunctor&&) = default;
-
-  inline void operator()(index_type t, value_type& v) const {
-    iterate_type(m_range, m_func, v)(t);
-  }
-
-  MDRange m_range;
-  Functor m_func;
-};
-
-// ParallelReduce - array reductions
-template <typename MDRange, typename Functor, typename ValueType>
-struct MDFunctor<MDRange, Functor, ValueType[]> {
-  using range_policy = MDRange;
-  using functor_type = Functor;
-  using value_type   = ValueType[];
-  using work_tag     = typename range_policy::work_tag;
-  using index_type   = typename range_policy::index_type;
-  using iterate_type =
-      typename Kokkos::Impl::HostIterateTile<MDRange, Functor, work_tag,
-                                             value_type>;
-
-  inline MDFunctor(MDRange const& range, Functor const& f)
-      : m_range(range), m_func(f), value_count(f.value_count) {}
-
-  inline MDFunctor(MDFunctor const&) = default;
-
-  inline MDFunctor& operator=(MDFunctor const&) = default;
-
-  inline MDFunctor(MDFunctor&&) = default;
-
-  inline MDFunctor& operator=(MDFunctor&&) = default;
-
-  // FIXME Init and Join, as defined in m_func, are not working through the
-  // MDFunctor Best path forward is to eliminate need for MDFunctor, directly
-  // use MDRangePolicy within Parallel{For,Reduce} ??
-  inline void operator()(index_type t, value_type v) const {
-    iterate_type(m_range, m_func, v)(t);
-  }
-
-  MDRange m_range;
-  Functor m_func;
-  size_t value_count;
-};
-
-// ParallelFor
-template <typename MDRange, typename Functor>
-struct MDFunctor<MDRange, Functor, void> {
-  using range_policy = MDRange;
-  using functor_type = Functor;
-  using work_tag     = typename range_policy::work_tag;
-  using index_type   = typename range_policy::index_type;
-  using iterate_type =
-      typename Kokkos::Impl::HostIterateTile<MDRange, Functor, work_tag, void>;
-
-  inline MDFunctor(MDRange const& range, Functor const& f)
-      : m_range(range), m_func(f) {}
-
-  inline MDFunctor(MDFunctor const&) = default;
-
-  inline MDFunctor& operator=(MDFunctor const&) = default;
-
-  inline MDFunctor(MDFunctor&&) = default;
-
-  inline MDFunctor& operator=(MDFunctor&&) = default;
-
-  inline void operator()(index_type t) const {
-    iterate_type(m_range, m_func)(t);
-  }
-
-  MDRange m_range;
-  Functor m_func;
-};
-
-}  // end namespace Experimental
-#endif
 #undef KOKKOS_ENABLE_NEW_LOOP_MACROS
 
 }  // namespace Impl

@@ -64,9 +64,9 @@ namespace Kokkos {
 template <class T1, class T2>
 struct pair {
   //! The first template parameter of this class.
-  typedef T1 first_type;
+  using first_type = T1;
   //! The second template parameter of this class.
-  typedef T2 second_type;
+  using second_type = T2;
 
   //! The first element of the pair.
   first_type first;
@@ -78,14 +78,7 @@ struct pair {
   /// This calls the default constructors of T1 and T2.  It won't
   /// compile if those default constructors are not defined and
   /// public.
-  KOKKOS_FORCEINLINE_FUNCTION constexpr
-#ifdef KOKKOS_CUDA_9_DEFAULTED_BUG_WORKAROUND
-      pair()
-      : first(), second() {
-  }
-#else
-      pair() = default;
-#endif
+  KOKKOS_DEFAULTED_FUNCTION constexpr pair() = default;
 
   /// \brief Constructor that takes both elements of the pair.
   ///
@@ -163,9 +156,9 @@ struct pair {
 template <class T1, class T2>
 struct pair<T1&, T2&> {
   //! The first template parameter of this class.
-  typedef T1& first_type;
+  using first_type = T1&;
   //! The second template parameter of this class.
-  typedef T2& second_type;
+  using second_type = T2&;
 
   //! The first element of the pair.
   first_type first;
@@ -220,9 +213,9 @@ struct pair<T1&, T2&> {
 template <class T1, class T2>
 struct pair<T1, T2&> {
   //! The first template parameter of this class.
-  typedef T1 first_type;
+  using first_type = T1;
   //! The second template parameter of this class.
-  typedef T2& second_type;
+  using second_type = T2&;
 
   //! The first element of the pair.
   first_type first;
@@ -277,9 +270,9 @@ struct pair<T1, T2&> {
 template <class T1, class T2>
 struct pair<T1&, T2> {
   //! The first template parameter of this class.
-  typedef T1& first_type;
+  using first_type = T1&;
   //! The second template parameter of this class.
-  typedef T2 second_type;
+  using second_type = T2;
 
   //! The first element of the pair.
   first_type first;
@@ -433,20 +426,13 @@ KOKKOS_FORCEINLINE_FUNCTION pair<T1&, T2&> tie(T1& x, T2& y) {
 //
 template <class T1>
 struct pair<T1, void> {
-  typedef T1 first_type;
-  typedef void second_type;
+  using first_type  = T1;
+  using second_type = void;
 
   first_type first;
   enum { second = 0 };
 
-  KOKKOS_FORCEINLINE_FUNCTION constexpr
-#ifdef KOKKOS_CUDA_9_DEFAULTED_BUG_WORKAROUND
-      pair()
-      : first() {
-  }
-#else
-      pair() = default;
-#endif
+  KOKKOS_DEFAULTED_FUNCTION constexpr pair() = default;
 
   KOKKOS_FORCEINLINE_FUNCTION constexpr pair(const first_type& f) : first(f) {}
 

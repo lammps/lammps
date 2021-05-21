@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -40,9 +40,9 @@ class PairAIREBO : public Pair {
   enum { AIREBO, REBO_2, AIREBO_M }; // for telling class variants apart in shared code
 
 protected:
-  int *map;                        // 0 (C), 1 (H), or -1 (NULL) for each type
+  int *map;                        // 0 (C), 1 (H), or -1 ("NULL") for each type
 
-  int me,variant;
+  int variant;
   int ljflag,torflag;              // 0/1 if LJ/Morse,torsion terms included
   int morseflag;                   // 1 if Morse instead of LJ for non-bonded
 

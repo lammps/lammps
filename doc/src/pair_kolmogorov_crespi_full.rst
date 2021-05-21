@@ -105,7 +105,8 @@ headings) the following commands could be included in an input script:
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This pair style does not support the pair_modify mix, shift, table,
 and tail options.
@@ -141,7 +142,11 @@ Related commands
 :doc:`pair_style kolmogorov/crespi/z <pair_kolmogorov_crespi_z>`,
 :doc:`pair_style ilp/graphene/hbn <pair_ilp_graphene_hbn>`.
 
-**Default:** tap_flag = 0
+Default
+"""""""
+
+tap_flag = 0
+
 
 ----------
 

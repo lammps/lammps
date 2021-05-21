@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,7 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_heat_flux.h"
-#include <mpi.h>
+
 #include <cstring>
 #include "atom.h"
 #include "update.h"
@@ -27,13 +27,12 @@
 
 using namespace LAMMPS_NS;
 
-#define INVOKED_PERATOM 8
 
 /* ---------------------------------------------------------------------- */
 
 ComputeHeatFlux::ComputeHeatFlux(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  id_ke(NULL), id_pe(NULL), id_stress(NULL)
+  id_ke(nullptr), id_pe(nullptr), id_stress(nullptr)
 {
   if (narg != 6) error->all(FLERR,"Illegal compute heat/flux command");
 
@@ -44,17 +43,9 @@ ComputeHeatFlux::ComputeHeatFlux(LAMMPS *lmp, int narg, char **arg) :
   // store ke/atom, pe/atom, stress/atom IDs used by heat flux computation
   // insure they are valid for these computations
 
-  int n = strlen(arg[3]) + 1;
-  id_ke = new char[n];
-  strcpy(id_ke,arg[3]);
-
-  n = strlen(arg[4]) + 1;
-  id_pe = new char[n];
-  strcpy(id_pe,arg[4]);
-
-  n = strlen(arg[5]) + 1;
-  id_stress = new char[n];
-  strcpy(id_stress,arg[5]);
+  id_ke = utils::strdup(arg[3]);
+  id_pe = utils::strdup(arg[4]);
+  id_stress = utils::strdup(arg[5]);
 
   int ike = modify->find_compute(id_ke);
   int ipe = modify->find_compute(id_pe);
@@ -108,17 +99,17 @@ void ComputeHeatFlux::compute_vector()
 
   // invoke 3 computes if they haven't been already
 
-  if (!(c_ke->invoked_flag & INVOKED_PERATOM)) {
+  if (!(c_ke->invoked_flag & Compute::INVOKED_PERATOM)) {
     c_ke->compute_peratom();
-    c_ke->invoked_flag |= INVOKED_PERATOM;
+    c_ke->invoked_flag |= Compute::INVOKED_PERATOM;
   }
-  if (!(c_pe->invoked_flag & INVOKED_PERATOM)) {
+  if (!(c_pe->invoked_flag & Compute::INVOKED_PERATOM)) {
     c_pe->compute_peratom();
-    c_pe->invoked_flag |= INVOKED_PERATOM;
+    c_pe->invoked_flag |= Compute::INVOKED_PERATOM;
   }
-  if (!(c_stress->invoked_flag & INVOKED_PERATOM)) {
+  if (!(c_stress->invoked_flag & Compute::INVOKED_PERATOM)) {
     c_stress->compute_peratom();
-    c_stress->invoked_flag |= INVOKED_PERATOM;
+    c_stress->invoked_flag |= Compute::INVOKED_PERATOM;
   }
 
   // heat flux vector = jc[3] + jv[3]

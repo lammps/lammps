@@ -1,5 +1,5 @@
 # Input File for DPD fluid under isothermal conditions using the VV-SSA integration scheme
-log             log.dpd-shardlow
+
 boundary        p p p
 
 units           metal  

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -30,10 +30,13 @@ namespace MathExtra {
   inline void normalize3(const double *v, double *ans);
   inline void snormalize3(const double, const double *v, double *ans);
   inline void negate3(double *v);
-  inline void scale3(double s, double *v);
+  inline void scale3(const double s, double *v);
+  inline void scale3(const double s, const double *v, double *ans);
   inline void add3(const double *v1, const double *v2, double *ans);
-  inline void scaleadd3(double s, const double *v1, const double *v2,
+  inline void scaleadd3(const double s, const double *v1, const double *v2,
                         double *ans);
+  inline void scaleadd3(const double s1, const double *v1,
+                        const double s2, const double *v2, double *ans);
   inline void sub3(const double *v1, const double *v2, double *ans);
   inline double len3(const double *v);
   inline double lensq3(const double *v);
@@ -85,7 +88,6 @@ namespace MathExtra {
 
   void write3(const double mat[3][3]);
   int mldivide3(const double mat[3][3], const double *vec, double *ans);
-  int jacobi(double matrix[3][3], double *evalues, double evectors[3][3]);
   void rotate(double matrix[3][3], int i, int j, int k, int l,
               double s, double tau);
   void richardson(double *q, double *m, double *w, double *moments, double dtq);
@@ -93,7 +95,7 @@ namespace MathExtra {
                         double dt);
 
   // shape matrix operations
-  // upper-triangular 3x3 matrix stored in Voigt notation as 6-vector
+  // upper-triangular 3x3 matrix stored in Voigt ordering as 6-vector
 
   inline void multiply_shape_shape(const double *one, const double *two,
                                    double *ans);
@@ -169,10 +171,13 @@ inline void MathExtra::zero3(double *v)
 
 inline void MathExtra::norm3(double *v)
 {
-  double scale = 1.0/sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]);
-  v[0] *= scale;
-  v[1] *= scale;
-  v[2] *= scale;
+  const double val = v[0]*v[0]+v[1]*v[1]+v[2]*v[2];
+  if (val > 0.0) {
+    const double scale = 1.0/sqrt(val);
+    v[0] *= scale;
+    v[1] *= scale;
+    v[2] *= scale;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -181,10 +186,13 @@ inline void MathExtra::norm3(double *v)
 
 inline void MathExtra::normalize3(const double *v, double *ans)
 {
-  double scale = 1.0/sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]);
-  ans[0] = v[0]*scale;
-  ans[1] = v[1]*scale;
-  ans[2] = v[2]*scale;
+  const double val = v[0]*v[0]+v[1]*v[1]+v[2]*v[2];
+  if (val > 0.0) {
+    double scale = 1.0/sqrt(val);
+    ans[0] = v[0]*scale;
+    ans[1] = v[1]*scale;
+    ans[2] = v[2]*scale;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -194,10 +202,13 @@ inline void MathExtra::normalize3(const double *v, double *ans)
 inline void MathExtra::snormalize3(const double length, const double *v,
                                    double *ans)
 {
-  double scale = length/sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]);
-  ans[0] = v[0]*scale;
-  ans[1] = v[1]*scale;
-  ans[2] = v[2]*scale;
+  const double val = v[0]*v[0]+v[1]*v[1]+v[2]*v[2];
+  if (val > 0.0) {
+    double scale = length/sqrt(val);
+    ans[0] = v[0]*scale;
+    ans[1] = v[1]*scale;
+    ans[2] = v[2]*scale;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -215,11 +226,22 @@ inline void MathExtra::negate3(double *v)
    scale vector v by s
 ------------------------------------------------------------------------- */
 
-inline void MathExtra::scale3(double s, double *v)
+inline void MathExtra::scale3(const double s, double *v)
 {
   v[0] *= s;
   v[1] *= s;
   v[2] *= s;
+}
+
+/* ----------------------------------------------------------------------
+   scale vector v by s and store in ans
+------------------------------------------------------------------------- */
+
+inline void MathExtra::scale3(const double s, const double *v, double *ans)
+{
+  ans[0] = s*v[0];
+  ans[1] = s*v[1];
+  ans[2] = s*v[2];
 }
 
 /* ----------------------------------------------------------------------
@@ -237,12 +259,25 @@ inline void MathExtra::add3(const double *v1, const double *v2, double *ans)
    ans = s*v1 + v2
 ------------------------------------------------------------------------- */
 
-inline void MathExtra::scaleadd3(double s, const double *v1,
+inline void MathExtra::scaleadd3(const double s, const double *v1,
                                  const double *v2, double *ans)
 {
   ans[0] = s*v1[0] + v2[0];
   ans[1] = s*v1[1] + v2[1];
   ans[2] = s*v1[2] + v2[2];
+}
+
+/* ----------------------------------------------------------------------
+   ans = s1*v1 + s2*v2
+------------------------------------------------------------------------- */
+
+inline void MathExtra::scaleadd3(const double s1, const double *v1,
+                                 const double s2, const double *v2,
+                                 double *ans)
+{
+  ans[0] = s1*v1[0] + s2*v2[0];
+  ans[1] = s1*v1[1] + s2*v2[1];
+  ans[2] = s1*v1[2] + s2*v2[2];
 }
 
 /* ----------------------------------------------------------------------
@@ -558,7 +593,7 @@ inline void MathExtra::scalar_times3(const double f, double m[3][3])
 
 /* ----------------------------------------------------------------------
    multiply 2 shape matrices
-   upper-triangular 3x3, stored as 6-vector in Voigt notation
+   upper-triangular 3x3, stored as 6-vector in Voigt ordering
 ------------------------------------------------------------------------- */
 
 inline void MathExtra::multiply_shape_shape(const double *one,

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,26 +16,19 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_born_coul_wolf_cs_gpu.h"
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
+
 #include "atom.h"
-#include "atom_vec.h"
-#include "comm.h"
-#include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "integrate.h"
-#include "math_const.h"
-#include "memory.h"
-#include "error.h"
-#include "neigh_request.h"
-#include "universe.h"
-#include "update.h"
 #include "domain.h"
+#include "error.h"
+#include "force.h"
 #include "gpu_extra.h"
+#include "math_const.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
 #include "suffix.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -45,24 +38,26 @@ using namespace MathConst;
 // External functions from cuda library for atom decomposition
 
 int borncwcs_gpu_init(const int ntypes, double **cutsq, double **host_rhoinv,
-                    double **host_born1, double **host_born2,
-                    double **host_born3, double **host_a, double **host_c,
-                    double **host_d, double **sigma, double **offset,
-                    double *special_lj, const int inum,
-                    const int nall, const int max_nbors, const int maxspecial,
-                    const double cell_size, int &gpu_mode, FILE *screen,
-                    double **host_cut_ljsq, double host_cut_coulsq,
-                    double *host_special_coul, const double qqrd2e,
-                    const double alf, const double e_shift, const double f_shift);
+                      double **host_born1, double **host_born2,
+                      double **host_born3, double **host_a, double **host_c,
+                      double **host_d, double **sigma, double **offset,
+                      double *special_lj, const int inum, const int nall,
+                      const int max_nbors, const int maxspecial,
+                      const double cell_size, int &gpu_mode, FILE *screen,
+                      double **host_cut_ljsq, double host_cut_coulsq,
+                      double *host_special_coul, const double qqrd2e,
+                      const double alf, const double e_shift,
+                      const double f_shift);
 void borncwcs_gpu_clear();
-int ** borncwcs_gpu_compute_n(const int ago, const int inum_full, const int nall,
-                            double **host_x, int *host_type, double *sublo,
-                            double *subhi, tagint *tag, int **nspecial,
-                            tagint **special, const bool eflag, const bool vflag,
-                            const bool eatom, const bool vatom, int &host_start,
-                            int **ilist, int **jnum, const double cpu_time,
-                            bool &success, double *host_q, double *boxlo,
-                            double *prd);
+int ** borncwcs_gpu_compute_n(const int ago, const int inum_full,
+                              const int nall, double **host_x, int *host_type,
+                              double *sublo, double *subhi, tagint *tag,
+                              int **nspecial, tagint **special,
+                              const bool eflag, const bool vflag,
+                              const bool eatom, const bool vatom,
+                              int &host_start, int **ilist, int **jnum,
+                              const double cpu_time, bool &success,
+                              double *host_q, double *boxlo, double *prd);
 void borncwcs_gpu_compute(const int ago, const int inum_full, const int nall,
                         double **host_x, int *host_type, int *ilist, int *numj,
                         int **firstneigh, const bool eflag, const bool vflag,
@@ -104,10 +99,21 @@ void PairBornCoulWolfCSGPU::compute(int eflag, int vflag)
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
   if (gpu_mode != GPU_FORCE) {
+    double sublo[3],subhi[3];
+    if (domain->triclinic == 0) {
+      sublo[0] = domain->sublo[0];
+      sublo[1] = domain->sublo[1];
+      sublo[2] = domain->sublo[2];
+      subhi[0] = domain->subhi[0];
+      subhi[1] = domain->subhi[1];
+      subhi[2] = domain->subhi[2];
+    } else {
+      domain->bbox(domain->sublo_lamda,domain->subhi_lamda,sublo,subhi);
+    }
     inum = atom->nlocal;
     firstneigh = borncwcs_gpu_compute_n(neighbor->ago, inum, nall,
-                                      atom->x, atom->type, domain->sublo,
-                                      domain->subhi, atom->tag, atom->nspecial,
+                                      atom->x, atom->type, sublo,
+                                      subhi, atom->tag, atom->nspecial,
                                       atom->special, eflag, vflag, eflag_atom,
                                       vflag_atom, host_start,
                                       &ilist, &numneigh, cpu_time, success,
@@ -166,12 +172,13 @@ void PairBornCoulWolfCSGPU::init_style()
     cut_coul;
 
   int maxspecial=0;
-  if (atom->molecular)
+  if (atom->molecular != Atom::ATOMIC)
     maxspecial=atom->maxspecial;
+  int mnf = 5e-2 * neighbor->oneatom;
   int success = borncwcs_gpu_init(atom->ntypes+1, cutsq, rhoinv,
                                 born1, born2, born3, a, c, d, sigma, offset,
                                 force->special_lj, atom->nlocal,
-                                atom->nlocal+atom->nghost, 300, maxspecial,
+                                atom->nlocal+atom->nghost, mnf, maxspecial,
                                 cell_size, gpu_mode, screen, cut_ljsq,
                                 cut_coulsq, force->special_coul, force->qqrd2e,
                                 alf, e_shift, f_shift);

@@ -7,18 +7,18 @@ SHELL = /bin/sh
 # specify flags and libraries needed for your compiler
 
 CC =		mpicxx
-CCFLAGS =	-g -O3 
+CCFLAGS =	-g -O3
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
 LINK =		mpicxx
 LINKFLAGS =	-g -O3
-LIB = 
+LIB =
 SIZE =		size
 
 ARCHIVE =	ar
 ARFLAGS =	-rc
-SHLIBFLAGS =	-shared
+SHLIBFLAGS =	-shared -rdynamic
 
 # ---------------------------------------------------------------------
 # LAMMPS-specific settings, all OPTIONAL
@@ -92,6 +92,7 @@ $(EXE): main.o $(LMPLIB) $(EXTRA_LINK_DEPENDS)
 # Library targets
 
 $(ARLIB): $(OBJ) $(EXTRA_LINK_DEPENDS)
+	@rm -f ../$(ARLIB)
 	$(ARCHIVE) $(ARFLAGS) ../$(ARLIB) $(OBJ)
 	@rm -f $(ARLIB)
 	@ln -s ../$(ARLIB) $(ARLIB)

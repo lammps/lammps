@@ -60,7 +60,7 @@ void hostspace_parallel_deepcopy(void* dst, const void* src, ptrdiff_t n) {
     return;
   }
 
-  typedef Kokkos::RangePolicy<Kokkos::DefaultHostExecutionSpace> policy_t;
+  using policy_t = Kokkos::RangePolicy<Kokkos::DefaultHostExecutionSpace>;
 
   // Both src and dst are aligned the same way with respect to 8 byte words
   if (reinterpret_cast<ptrdiff_t>(src) % 8 ==

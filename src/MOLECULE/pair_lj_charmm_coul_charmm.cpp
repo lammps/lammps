@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_lj_charmm_coul_charmm.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"
@@ -26,7 +26,7 @@
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -224,14 +224,14 @@ void PairLJCharmmCoulCharmm::settings(int narg, char **arg)
   if (narg != 2 && narg != 4)
     error->all(FLERR,"Illegal pair_style command");
 
-  cut_lj_inner = force->numeric(FLERR,arg[0]);
-  cut_lj = force->numeric(FLERR,arg[1]);
+  cut_lj_inner = utils::numeric(FLERR,arg[0],false,lmp);
+  cut_lj = utils::numeric(FLERR,arg[1],false,lmp);
   if (narg == 2) {
     cut_coul_inner = cut_lj_inner;
     cut_coul = cut_lj;
   } else {
-    cut_coul_inner = force->numeric(FLERR,arg[2]);
-    cut_coul = force->numeric(FLERR,arg[3]);
+    cut_coul_inner = utils::numeric(FLERR,arg[2],false,lmp);
+    cut_coul = utils::numeric(FLERR,arg[3],false,lmp);
   }
 }
 
@@ -246,16 +246,16 @@ void PairLJCharmmCoulCharmm::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  double epsilon_one = force->numeric(FLERR,arg[2]);
-  double sigma_one = force->numeric(FLERR,arg[3]);
+  double epsilon_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double sigma_one = utils::numeric(FLERR,arg[3],false,lmp);
   double eps14_one = epsilon_one;
   double sigma14_one = sigma_one;
   if (narg == 6) {
-    eps14_one = force->numeric(FLERR,arg[4]);
-    sigma14_one = force->numeric(FLERR,arg[5]);
+    eps14_one = utils::numeric(FLERR,arg[4],false,lmp);
+    sigma14_one = utils::numeric(FLERR,arg[5],false,lmp);
   }
 
   int count = 0;
@@ -375,14 +375,14 @@ void PairLJCharmmCoulCharmm::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          utils::sfread(FLERR,&epsilon[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&sigma[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&eps14[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&sigma14[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&epsilon[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&sigma[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&eps14[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&sigma14[i][j],sizeof(double),1,fp,nullptr,error);
         }
         MPI_Bcast(&epsilon[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&sigma[i][j],1,MPI_DOUBLE,0,world);
@@ -436,12 +436,12 @@ void PairLJCharmmCoulCharmm::write_restart_settings(FILE *fp)
 void PairLJCharmmCoulCharmm::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    utils::sfread(FLERR,&cut_lj_inner,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&cut_lj,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&cut_coul_inner,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&cut_coul,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&cut_lj_inner,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&cut_lj,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&cut_coul_inner,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&cut_coul,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
   }
   MPI_Bcast(&cut_lj_inner,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&cut_lj,1,MPI_DOUBLE,0,world);
@@ -523,5 +523,5 @@ void *PairLJCharmmCoulCharmm::extract(const char *str, int &dim)
   dim = 0;
   if (strcmp(str,"implicit") == 0) return (void *) &implicit;
 
-  return NULL;
+  return nullptr;
 }

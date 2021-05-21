@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -33,6 +33,12 @@ class PairZBL : public Pair {
   void coeff(int, char **);
   virtual void init_style();
   virtual double init_one(int, int);
+  void write_restart(FILE *);
+  void read_restart(FILE *);
+  void write_restart_settings(FILE *);
+  void read_restart_settings(FILE *);
+  void write_data(FILE *);
+  void write_data_all(FILE *);
   double single(int, int, int, int, double, double, double, double &);
 
  protected:
@@ -48,23 +54,6 @@ class PairZBL : public Pair {
   double d2zbldr2(double, int, int);
   void set_coeff(int, int, double, double);
 };
-
-namespace PairZBLConstants {
-
-  // ZBL constants
-
-  static const double pzbl = 0.23;
-  static const double a0 = 0.46850;
-  static const double c1 = 0.02817;
-  static const double c2 = 0.28022;
-  static const double c3 = 0.50986;
-  static const double c4 = 0.18175;
-  static const double d1 = 0.20162;
-  static const double d2 = 0.40290;
-  static const double d3 = 0.94229;
-  static const double d4 = 3.19980;
-}
-
 }
 
 #endif

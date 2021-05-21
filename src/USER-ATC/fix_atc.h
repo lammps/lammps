@@ -1,3 +1,16 @@
+/* -*- c++ -*- ----------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   https://lammps.sandia.gov/, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
+
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under
+   the GNU General Public License.
+
+   See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
+
 #ifdef FIX_CLASS
 
 FixStyle(atc,FixATC)
@@ -8,7 +21,6 @@ FixStyle(atc,FixATC)
 #define FIX_ATC_H
 
 #include "fix.h"
-#include "pointers.h" // access to lammps pointers
 
 namespace ATC {
   class ATC_Method;
@@ -18,7 +30,7 @@ namespace LAMMPS_NS {
 
   /**
    *  @class FixATC
-   *  @brief Class for an atom-to-continuum (ATC) Lammps fix.
+   *  @brief Class for an atom-to-continuum (ATC) LAMMPS fix.
    */
 
   class FixATC : public Fix {

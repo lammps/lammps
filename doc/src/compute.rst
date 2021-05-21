@@ -225,9 +225,7 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` doc
 * :doc:`ke/atom/eff <compute_ke_atom_eff>` - per-atom translational and radial kinetic energy in the electron force field model
 * :doc:`ke/eff <compute_ke_eff>` - kinetic energy of a group of nuclei and electrons in the electron force field model
 * :doc:`ke/rigid <compute_ke_rigid>` - translational kinetic energy of rigid bodies
-* :doc:`meso/e/atom <compute_meso_e_atom>` - per-atom internal energy of Smooth-Particle Hydrodynamics atoms
-* :doc:`meso/rho/atom <compute_meso_rho_atom>` - per-atom mesoscopic density of Smooth-Particle Hydrodynamics atoms
-* :doc:`meso/t/atom <compute_meso_t_atom>` - per-atom internal temperature of Smooth-Particle Hydrodynamics atoms
+* :doc:`mliap <compute_mliap>` - gradients of energy and forces w.r.t. model parameters and related quantities for training machine learning interatomic potentials
 * :doc:`momentum <compute_momentum>` - translational momentum
 * :doc:`msd <compute_msd>` - mean-squared displacement of group of atoms
 * :doc:`msd/chunk <compute_msd_chunk>` - mean-squared displacement for each chunk
@@ -238,6 +236,7 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` doc
 * :doc:`pair/local <compute_pair_local>` - distance/energy/force of each pairwise interaction
 * :doc:`pe <compute_pe>` - potential energy
 * :doc:`pe/atom <compute_pe_atom>` - potential energy for each atom
+* :doc:`mesont <compute_mesont>` - Nanotube bending,stretching, and intertube energies
 * :doc:`pe/mol/tally <compute_tally>` -
 * :doc:`pe/tally <compute_tally>` -
 * :doc:`plasticity/atom <compute_plasticity_atom>` - Peridynamic plasticity for each atom
@@ -270,15 +269,19 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` doc
 * :doc:`smd/tlsph/strain/rate <compute_smd_tlsph_strain_rate>` -
 * :doc:`smd/tlsph/stress <compute_smd_tlsph_stress>` - per-particle Cauchy stress tensor for SPH particles
 * :doc:`smd/triangle/vertices <compute_smd_triangle_vertices>` -
+* :doc:`smd/ulsph/effm <compute_smd_ulsph_effm>` - per-particle effective shear modulus
 * :doc:`smd/ulsph/num/neighs <compute_smd_ulsph_num_neighs>` -
 * :doc:`smd/ulsph/strain <compute_smd_ulsph_strain>` -
 * :doc:`smd/ulsph/strain/rate <compute_smd_ulsph_strain_rate>` -
 * :doc:`smd/ulsph/stress <compute_smd_ulsph_stress>` - per-particle Cauchy stress tensor and von Mises equivalent stress in Smooth Mach Dynamics
 * :doc:`smd/vol <compute_smd_vol>` - per-particle volumes and their sum in Smooth Mach Dynamics
-* :doc:`snap <compute_sna_atom>` - bispectrum components and related quantities for a group of atoms
+* :doc:`snap <compute_sna_atom>` - gradients of SNAP energy and forces w.r.t. linear coefficients and related quantities for fitting SNAP potentials
 * :doc:`sna/atom <compute_sna_atom>` - bispectrum components for each atom
 * :doc:`snad/atom <compute_sna_atom>` - derivative of bispectrum components for each atom
 * :doc:`snav/atom <compute_sna_atom>` - virial contribution from bispectrum components for each atom
+* :doc:`sph/e/atom <compute_sph_e_atom>` - per-atom internal energy of Smooth-Particle Hydrodynamics atoms
+* :doc:`sph/rho/atom <compute_sph_rho_atom>` - per-atom density of Smooth-Particle Hydrodynamics atoms
+* :doc:`sph/t/atom <compute_sph_t_atom>` - per-atom internal temperature of Smooth-Particle Hydrodynamics atoms
 * :doc:`spin <compute_spin>` - magnetic quantities for a system of atoms having spins
 * :doc:`stress/atom <compute_stress_atom>` - stress tensor for each atom
 * :doc:`stress/mop <compute_stress_mop>` - normal components of the local stress tensor using the method of planes
@@ -307,6 +310,7 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` doc
 * :doc:`torque/chunk <compute_torque_chunk>` - torque applied on each chunk
 * :doc:`vacf <compute_vacf>` - velocity auto-correlation function of group of atoms
 * :doc:`vcm/chunk <compute_vcm_chunk>` - velocity of center-of-mass for each chunk
+* :doc:`viscosity/cos <compute_viscosity_cos>` - velocity profile under cosine-shaped acceleration
 * :doc:`voronoi/atom <compute_voronoi_atom>` - Voronoi volume and neighbors for each atom
 * :doc:`xrd <compute_xrd>` - x-ray diffraction intensity on a mesh of reciprocal lattice nodes
 
@@ -319,4 +323,7 @@ Related commands
 
 :doc:`uncompute <uncompute>`, :doc:`compute_modify <compute_modify>`, :doc:`fix ave/atom <fix_ave_atom>`, :doc:`fix ave/time <fix_ave_time>`, :doc:`fix ave/histo <fix_ave_histo>`
 
-**Default:** none
+Default
+"""""""
+
+none

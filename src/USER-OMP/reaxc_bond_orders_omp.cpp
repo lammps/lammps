@@ -23,18 +23,21 @@
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the GNU General Public License for more details:
-  <http://www.gnu.org/licenses/>.
+  <https://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
 #include "reaxc_bond_orders_omp.h"
-#include <mpi.h>
-#include <cmath>
+#include "reaxc_bond_orders.h"
+
 #include "fix_omp.h"
 #include "reaxc_defs.h"
 #include "pair_reaxc_omp.h"
 #include "reaxc_types.h"
 #include "reaxc_list.h"
 #include "reaxc_vector.h"
+
+#include <mpi.h>
+#include <cmath>
 
 #if defined(_OPENMP)
 #include  <omp.h>
@@ -43,7 +46,7 @@
 using namespace LAMMPS_NS;
 
 void Add_dBond_to_ForcesOMP( reax_system *system, int i, int pj,
-                             storage *workspace, reax_list **lists ) {
+                             storage *workspace, reax_list **lists) {
   reax_list *bonds = (*lists) + BONDS;
   bond_data *nbr_j, *nbr_k;
   bond_order_data *bo_ij, *bo_ji;
@@ -161,7 +164,7 @@ void Add_dBond_to_ForcesOMP( reax_system *system, int i, int pj,
   }
 
   // forces on k: i neighbor
-  for( pk = Start_Index(i, bonds); pk < End_Index(i, bonds); ++pk ) {
+  for (pk = Start_Index(i, bonds); pk < End_Index(i, bonds); ++pk) {
     nbr_k = &(bonds->select.bond_list[pk]);
     k = nbr_k->nbr;
 
@@ -191,7 +194,7 @@ void Add_dBond_to_ForcesOMP( reax_system *system, int i, int pj,
   }
 
   // forces on k: j neighbor
-  for( pk = Start_Index(j, bonds); pk < End_Index(j, bonds); ++pk ) {
+  for (pk = Start_Index(j, bonds); pk < End_Index(j, bonds); ++pk) {
     nbr_k = &(bonds->select.bond_list[pk]);
     k = nbr_k->nbr;
 
@@ -226,7 +229,7 @@ void Add_dBond_to_ForcesOMP( reax_system *system, int i, int pj,
 
 void Add_dBond_to_Forces_NPTOMP( reax_system *system, int i, int pj,
                                  simulation_data * /* data */,
-                                 storage *workspace, reax_list **lists ) {
+                                 storage *workspace, reax_list **lists) {
   reax_list *bonds = (*lists) + BONDS;
   bond_data *nbr_j, *nbr_k;
   bond_order_data *bo_ij, *bo_ji;
@@ -271,7 +274,7 @@ void Add_dBond_to_Forces_NPTOMP( reax_system *system, int i, int pj,
    * forces related to atom i          *
    * first neighbors of atom i         *
    ************************************/
-  for( pk = Start_Index(i, bonds); pk < End_Index(i, bonds); ++pk ) {
+  for (pk = Start_Index(i, bonds); pk < End_Index(i, bonds); ++pk) {
     nbr_k = &(bonds->select.bond_list[pk]);
     k = nbr_k->nbr;
 
@@ -304,7 +307,7 @@ void Add_dBond_to_Forces_NPTOMP( reax_system *system, int i, int pj,
   /* force */
   rvec_Add(workspace->forceReduction[reductionOffset+i],temp );
 
-  for( pk = Start_Index(j, bonds); pk < End_Index(j, bonds); ++pk ) {
+  for (pk = Start_Index(j, bonds); pk < End_Index(j, bonds); ++pk) {
     nbr_k = &(bonds->select.bond_list[pk]);
     k = nbr_k->nbr;
 
@@ -460,7 +463,7 @@ void BOOMP( reax_system *system, control_params * /* control */, simulation_data
 #endif
     for (i = 0; i < system->N; ++i) {
       type_i = system->my_atoms[i].type;
-      if(type_i < 0) continue;
+      if (type_i < 0) continue;
       sbp_i = &(system->reax_param.sbp[type_i]);
       workspace->Deltap[i] = workspace->total_bond_order[i] - sbp_i->valency;
       workspace->Deltap_boc[i] =
@@ -480,7 +483,7 @@ void BOOMP( reax_system *system, control_params * /* control */, simulation_data
 #endif
     for (i = 0; i < system->N; ++i) {
       type_i = system->my_atoms[i].type;
-      if(type_i < 0) continue;
+      if (type_i < 0) continue;
       sbp_i = &(system->reax_param.sbp[type_i]);
       val_i = sbp_i->valency;
       Deltap_i = workspace->Deltap[i];
@@ -491,7 +494,7 @@ void BOOMP( reax_system *system, control_params * /* control */, simulation_data
       for (pj = start_i; pj < end_i; ++pj) {
         j = bonds->select.bond_list[pj].nbr;
         type_j = system->my_atoms[j].type;
-        if(type_j < 0) continue;
+        if (type_j < 0) continue;
         bo_ij = &( bonds->select.bond_list[pj].bo_data );
 
         if (i < j || workspace->bond_mark[j] > 3) {
@@ -649,14 +652,14 @@ void BOOMP( reax_system *system, control_params * /* control */, simulation_data
 #endif
     for (i = 0; i < system->N; ++i) {
       type_i = system->my_atoms[i].type;
-      if(type_i < 0) continue;
+      if (type_i < 0) continue;
       start_i = Start_Index(i, bonds);
       end_i = End_Index(i, bonds);
 
       for (pj = start_i; pj < end_i; ++pj) {
         j = bonds->select.bond_list[pj].nbr;
         type_j = system->my_atoms[j].type;
-        if(type_j < 0) continue;
+        if (type_j < 0) continue;
 
         if (i < j || workspace->bond_mark[j] > 3) {
           // Computed in previous for-loop
@@ -689,9 +692,9 @@ void BOOMP( reax_system *system, control_params * /* control */, simulation_data
 #if defined(_OPENMP)
 #pragma omp for schedule(guided)
 #endif
-    for(j = 0; j < system->N; ++j ) {
+    for (j = 0; j < system->N; ++j) {
       type_j = system->my_atoms[j].type;
-      if(type_j < 0) continue;
+      if (type_j < 0) continue;
       sbp_j = &(system->reax_param.sbp[ type_j ]);
 
       workspace->Delta[j] = workspace->total_bond_order[j] - sbp_j->valency;

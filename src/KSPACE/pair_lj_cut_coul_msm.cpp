@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -34,7 +34,7 @@ PairLJCutCoulMSM::PairLJCutCoulMSM(LAMMPS *lmp) : PairLJCutCoulLong(lmp)
   ewaldflag = pppmflag = 0;
   msmflag = 1;
   nmax = 0;
-  ftmp = NULL;
+  ftmp = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -478,5 +478,5 @@ void *PairLJCutCoulMSM::extract(const char *str, int &dim)
   dim = 2;
   if (strcmp(str,"epsilon") == 0) return (void *) epsilon;
   if (strcmp(str,"sigma") == 0) return (void *) sigma;
-  return NULL;
+  return nullptr;
 }

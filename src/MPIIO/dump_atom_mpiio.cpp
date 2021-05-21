@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -18,7 +18,7 @@
 #include "omp_compat.h"
 #include "dump_atom_mpiio.h"
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include "domain.h"
 #include "update.h"
@@ -186,7 +186,7 @@ void DumpAtomMPIIO::write()
   }
 
   if (sort_flag && sortcol == 0) pack(ids);
-  else pack(NULL);
+  else pack(nullptr);
   if (sort_flag) sort();
 
   // determine how much data needs to be written for setting the file size and prepocess it prior to writing
@@ -618,7 +618,7 @@ int DumpAtomMPIIO::convert_image_omp(int n, double *mybuf)
     if (mpifhStringCount > 0) {
       if (mpifhStringCount > maxsbuf) {
         if (mpifhStringCount > MAXSMALLINT) return -1;
-        maxsbuf = mpifhStringCount;
+        maxsbuf = mpifhStringCount+1;
         memory->grow(sbuf,maxsbuf,"dump:sbuf");
       }
       sbuf[0] = '\0';
@@ -708,7 +708,7 @@ int DumpAtomMPIIO::convert_noimage_omp(int n, double *mybuf)
     if (mpifhStringCount > 0) {
       if (mpifhStringCount > maxsbuf) {
         if (mpifhStringCount > MAXSMALLINT) return -1;
-        maxsbuf = mpifhStringCount;
+        maxsbuf = mpifhStringCount+1;
         memory->grow(sbuf,maxsbuf,"dump:sbuf");
       }
       sbuf[0] = '\0';

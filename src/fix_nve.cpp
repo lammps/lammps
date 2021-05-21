@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,12 +12,12 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_nve.h"
-#include <cstring>
+
 #include "atom.h"
-#include "force.h"
-#include "update.h"
-#include "respa.h"
 #include "error.h"
+#include "force.h"
+#include "respa.h"
+#include "update.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -27,7 +27,7 @@ using namespace FixConst;
 FixNVE::FixNVE(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (strcmp(style,"nve/sphere") != 0 && narg < 3)
+  if (!utils::strmatch(style,"^nve/sphere") && narg < 3)
     error->all(FLERR,"Illegal fix nve command");
 
   dynamic_group_allow = 1;
@@ -53,7 +53,7 @@ void FixNVE::init()
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
 
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     step_respa = ((Respa *) update->integrate)->step;
 }
 

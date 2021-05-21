@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,13 +16,14 @@
 ------------------------------------------------------------------------- */
 
 #include "molfile_interface.h"
+#include "molfile_plugin.h"
 
 #include <sys/types.h>
 #include <cstdio>
-#include <dirent.h>
 #include <cstring>
 #include <cstdlib>
 #include <cctype>
+#include <strings.h>    // for strcasecmp()
 
 #if defined(_WIN32)
 #include <windows.h>
@@ -30,8 +31,6 @@
 #include <dirent.h>
 #include <dlfcn.h>
 #endif
-
-#include "molfile_plugin.h"
 
 #if vmdplugin_ABIVERSION < 16
 #error "unsupported VMD molfile plugin ABI version"
@@ -56,7 +55,7 @@ extern "C" {
     // make sure we have the proper plugin type (native reader)
     // for the desired file type (called "name" at this level)
     if ((strcmp(MOLFILE_PLUGIN_TYPE,p->type) == 0)
-        && (strcmp(r->name, p->name) == 0) ) {
+        && (strcmp(r->name, p->name) == 0)) {
       r->p = static_cast<void *>(p);
     }
     return 0;
@@ -177,7 +176,7 @@ extern "C" {
     int i, ind;
     char atom[3];
 
-    if (label != NULL) {
+    if (label != nullptr) {
       /* zap string */
       atom[0] = atom[1] = atom[2] = '\0';
 
@@ -219,8 +218,8 @@ extern "C" {
     dirhandle_t *d;
     int len;
 
-    if (dirname == NULL)
-      return NULL;
+    if (dirname == nullptr)
+      return nullptr;
     d = new dirhandle_t;
 
     len = 2 + strlen(dirname);
@@ -239,7 +238,7 @@ extern "C" {
       delete[] d->searchname;
       delete[] d->name;
       delete d;
-      return NULL;
+      return nullptr;
     }
     return d;
   }
@@ -250,13 +249,13 @@ extern "C" {
     if (FindNextFile(d->h, &(d->fd))) {
       return d->fd.cFileName;
     }
-    return NULL;
+    return nullptr;
   }
 
   // close directory handle
   static void my_closedir(dirhandle_t *d)
   {
-    if (d->h != NULL) {
+    if (d->h != nullptr) {
       FindClose(d->h);
     }
     delete[] d->searchname;
@@ -295,7 +294,7 @@ extern "C" {
     dirhandle_t *d;
     int len;
 
-    if (dirname == NULL) return NULL;
+    if (dirname == nullptr) return nullptr;
 
     d = new dirhandle_t;
     len = 2 + strlen(dirname);
@@ -305,10 +304,10 @@ extern "C" {
     d->dlen = len;
 
     d->d = opendir(d->name);
-    if (d->d == NULL) {
+    if (d->d == nullptr) {
       delete[] d->name;
       delete d;
-      return NULL;
+      return nullptr;
     }
     return d;
   }
@@ -318,17 +317,17 @@ extern "C" {
   {
     struct dirent *p;
 
-    if ((p = readdir(d->d)) != NULL) {
+    if ((p = readdir(d->d)) != nullptr) {
       return p->d_name;
     }
 
-    return NULL;
+    return nullptr;
   }
 
   // close directory handle
   static void my_closedir(dirhandle_t *d)
   {
-    if (d->d != NULL) {
+    if (d->d != nullptr) {
       closedir(d->d);
     }
     delete[] d->name;
@@ -376,7 +375,7 @@ MolfileInterface::~MolfileInterface()
   if (_info) {
     molfile_atom_t *a = static_cast<molfile_atom_t *>(_info);
     delete[] a;
-    _info = NULL;
+    _info = nullptr;
   }
   delete[] _name;
   delete[] _type;
@@ -394,7 +393,7 @@ int MolfileInterface::find_plugin(const char *pluginpath)
 #else
 #define MY_PATHSEP ':'
 #endif
-  if (pluginpath == NULL) return E_DIR;
+  if (pluginpath == nullptr) return E_DIR;
   plugindir = path = strdup(pluginpath);
 
   while (plugindir) {
@@ -410,16 +409,16 @@ int MolfileInterface::find_plugin(const char *pluginpath)
       retval = (retval > E_DIR) ? retval : E_DIR;
 
     // search for suitable file names and try to inspect them
-    while(dir) {
+    while (dir) {
       char *fullname;
       int len;
 
       filename = my_readdir(dir);
-      if (filename == NULL) break;
+      if (filename == nullptr) break;
 
       // only look at .so files
       ext = strrchr(filename, '.');
-      if (ext == NULL) continue;
+      if (ext == nullptr) continue;
       if (strcasecmp(ext,".so") != 0) continue;
 
       // construct full pathname of potential DSO
@@ -452,14 +451,14 @@ int MolfileInterface::load_plugin(const char *filename)
 
   // access shared object
   dso = my_dlopen(filename);
-  if (dso == NULL)
+  if (dso == nullptr)
     return E_FILE;
 
   // check for required plugin symbols
   void *ifunc = my_dlsym(dso,"vmdplugin_init");
   void *rfunc = my_dlsym(dso,"vmdplugin_register");
   void *ffunc = my_dlsym(dso,"vmdplugin_fini");
-  if (ifunc == NULL || rfunc == NULL || ffunc == NULL) {
+  if (ifunc == nullptr || rfunc == nullptr || ffunc == nullptr) {
     my_dlclose(dso);
     return E_SYMBOL;
   }
@@ -474,7 +473,7 @@ int MolfileInterface::load_plugin(const char *filename)
   // the callback will be called for each plugin in the DSO and
   // check the file type. plugin->name will change if successful.
   plugin_reginfo_t reginfo;
-  reginfo.p = NULL;
+  reginfo.p = nullptr;
   reginfo.name=_type;
   ((regfunc)rfunc)(&reginfo, plugin_register_cb);
 
@@ -483,7 +482,7 @@ int MolfileInterface::load_plugin(const char *filename)
 
   // if the callback found a matching plugin and copied the struct,
   // its name element will point to a different location now.
-  if (plugin == NULL) {
+  if (plugin == nullptr) {
     retval = E_TYPE;
 
     // check if the ABI matches the one used to compile this code
@@ -492,16 +491,16 @@ int MolfileInterface::load_plugin(const char *filename)
 
     // check if (basic) reading is supported
   } else if ((_mode & M_READ) &&
-             ( (plugin->open_file_read == NULL) ||
-               (plugin->read_next_timestep  == NULL) ||
-               (plugin->close_file_read == NULL) )) {
+             ( (plugin->open_file_read == nullptr) ||
+               (plugin->read_next_timestep  == nullptr) ||
+               (plugin->close_file_read == nullptr) )) {
     retval = E_MODE;
 
     // check if (basic) writing is supported
   } else if ( (_mode & M_WRITE) &&
-              ( (plugin->open_file_write == NULL) ||
-                (plugin->write_timestep  == NULL) ||
-                (plugin->close_file_write == NULL) )) {
+              ( (plugin->open_file_write == nullptr) ||
+                (plugin->write_timestep  == nullptr) ||
+                (plugin->close_file_write == nullptr) )) {
     retval = E_MODE;
 
     // make some additional check, if we
@@ -517,7 +516,7 @@ int MolfileInterface::load_plugin(const char *filename)
 
     // check if the new plugin is of a newer minor version
     } else if ( (p->majorv == plugin->majorv) &&
-                (p->minorv >= plugin->minorv) ) {
+                (p->minorv >= plugin->minorv)) {
       retval = E_VERSION;
     }
   }
@@ -581,7 +580,7 @@ void MolfileInterface::forget_plugin()
     close();
 
   if (_plugin)
-    _plugin = NULL;
+    _plugin = nullptr;
 
   if (_dso) {
     void *ffunc = my_dlsym(_dso,"vmdplugin_fini");
@@ -589,7 +588,7 @@ void MolfileInterface::forget_plugin()
       ((finifunc)ffunc)();
     my_dlclose(_dso);
   }
-  _dso = NULL;
+  _dso = nullptr;
 
   delete[] _name;
     _name = new char[5];
@@ -610,7 +609,7 @@ int MolfileInterface::open(const char *name, int *natoms)
   else if (_mode & M_READ)
     _ptr = p->open_file_read(name,_type,natoms);
 
-  if (_ptr == NULL)
+  if (_ptr == nullptr)
     return E_FILE;
 
   _natoms = *natoms;
@@ -683,9 +682,9 @@ int MolfileInterface::close()
   if (_info) {
     molfile_atom_t *a = static_cast<molfile_atom_t *>(_info);
     delete[] a;
-    _info = NULL;
+    _info = nullptr;
   }
-  _ptr = NULL;
+  _ptr = nullptr;
   _natoms = 0;
 
   return E_NONE;
@@ -706,7 +705,7 @@ int MolfileInterface::timestep(float *coords, float *vels,
   if (_mode & M_WRITE) {
     t->coords = coords;
     t->velocities = vels;
-    if (cell != NULL) {
+    if (cell != nullptr) {
       t->A = cell[0];
       t->B = cell[1];
       t->C = cell[2];
@@ -731,8 +730,8 @@ int MolfileInterface::timestep(float *coords, float *vels,
 
   } else {
     // no coordinate storage => skip step
-    if (coords == NULL) {
-      rv = p->read_next_timestep(_ptr, _natoms, NULL);
+    if (coords == nullptr) {
+      rv = p->read_next_timestep(_ptr, _natoms, nullptr);
     } else {
       t->coords = coords;
       t->velocities = vels;
@@ -744,7 +743,7 @@ int MolfileInterface::timestep(float *coords, float *vels,
       t->gamma = 90.0f;
       t->physical_time = 0.0;
       rv = p->read_next_timestep(_ptr, _natoms, t);
-      if (cell != NULL) {
+      if (cell != nullptr) {
         cell[0] = t->A;
         cell[1] = t->B;
         cell[2] = t->C;
@@ -825,7 +824,7 @@ static int read_int_property(molfile_atom_t &a, const int propid)
 static const char *read_string_property(molfile_atom_t &a,
                                         const int propid)
 {
-  const char *prop = NULL;
+  const char *prop = nullptr;
   int iprop = 0;
   PROPUPDATE(MolfileInterface::P_NAME,name,prop);
   PROPUPDATE(MolfileInterface::P_TYPE,type,prop);
@@ -912,7 +911,7 @@ static int write_atom_property(molfile_atom_t &a,
 // set/get atom floating point property
 int MolfileInterface::property(int propid, int idx, float *prop)
 {
-  if ((_info == NULL) || (prop == NULL) || (idx < 0) || (idx >= _natoms))
+  if ((_info == nullptr) || (prop == nullptr) || (idx < 0) || (idx >= _natoms))
     return P_NONE;
 
   molfile_atom_t *a = static_cast<molfile_atom_t *>(_info);
@@ -929,7 +928,7 @@ int MolfileInterface::property(int propid, int idx, float *prop)
 // set/get per type floating point property
 int MolfileInterface::property(int propid, int *types, float *prop)
 {
-  if ((_info == NULL) || (types == NULL) || (prop == NULL))
+  if ((_info == nullptr) || (types == nullptr) || (prop == nullptr))
     return P_NONE;
 
   molfile_atom_t *a = static_cast<molfile_atom_t *>(_info);
@@ -949,7 +948,7 @@ int MolfileInterface::property(int propid, int *types, float *prop)
 // set/get per atom floating point property
 int MolfileInterface::property(int propid, float *prop)
 {
-  if ((_info == NULL) || (prop == NULL))
+  if ((_info == nullptr) || (prop == nullptr))
     return P_NONE;
 
   molfile_atom_t *a = static_cast<molfile_atom_t *>(_info);
@@ -970,7 +969,7 @@ int MolfileInterface::property(int propid, float *prop)
 // set/get atom floating point property
 int MolfileInterface::property(int propid, int idx, double *prop)
 {
-  if ((_info == NULL) || (prop == NULL) || (idx < 0) || (idx >= _natoms))
+  if ((_info == nullptr) || (prop == nullptr) || (idx < 0) || (idx >= _natoms))
     return P_NONE;
 
   molfile_atom_t *a = static_cast<molfile_atom_t *>(_info);
@@ -987,7 +986,7 @@ int MolfileInterface::property(int propid, int idx, double *prop)
 // set/get per type floating point property
 int MolfileInterface::property(int propid, int *types, double *prop)
 {
-  if ((_info == NULL) || (types == NULL) || (prop == NULL))
+  if ((_info == nullptr) || (types == nullptr) || (prop == nullptr))
     return P_NONE;
 
   molfile_atom_t *a = static_cast<molfile_atom_t *>(_info);
@@ -1007,7 +1006,7 @@ int MolfileInterface::property(int propid, int *types, double *prop)
 // set/get per atom floating point property
 int MolfileInterface::property(int propid, double *prop)
 {
-  if ((_info == NULL) || (prop == NULL))
+  if ((_info == nullptr) || (prop == nullptr))
     return P_NONE;
 
   molfile_atom_t *a = static_cast<molfile_atom_t *>(_info);
@@ -1042,7 +1041,7 @@ int MolfileInterface::property(int propid, double *prop)
 // set/get atom integer property
 int MolfileInterface::property(int propid, int idx, int *prop)
 {
-  if ((_info == NULL) || (prop == NULL) || (idx < 0) || (idx >= _natoms))
+  if ((_info == nullptr) || (prop == nullptr) || (idx < 0) || (idx >= _natoms))
     return P_NONE;
 
   molfile_atom_t *a = static_cast<molfile_atom_t *>(_info);
@@ -1067,7 +1066,7 @@ int MolfileInterface::property(int propid, int idx, int *prop)
 // set/get per type integer property
 int MolfileInterface::property(int propid, int *types, int *prop)
 {
-  if ((_info == NULL) || (types == NULL) || (prop == NULL))
+  if ((_info == nullptr) || (types == nullptr) || (prop == nullptr))
     return P_NONE;
 
   molfile_atom_t *a = static_cast<molfile_atom_t *>(_info);
@@ -1096,7 +1095,7 @@ int MolfileInterface::property(int propid, int *types, int *prop)
 // set/get per atom integer property
 int MolfileInterface::property(int propid, int *prop)
 {
-  if ((_info == NULL) || (prop == NULL))
+  if ((_info == nullptr) || (prop == nullptr))
     return P_NONE;
 
   molfile_atom_t *a = static_cast<molfile_atom_t *>(_info);
@@ -1127,7 +1126,7 @@ int MolfileInterface::property(int propid, int *prop)
 // set/get atom string property
 int MolfileInterface::property(int propid, int idx, char *prop)
 {
-  if ((_info == NULL) || (prop == NULL) || (idx < 0) || (idx >= _natoms))
+  if ((_info == nullptr) || (prop == nullptr) || (idx < 0) || (idx >= _natoms))
     return P_NONE;
 
   molfile_atom_t *a = static_cast<molfile_atom_t *>(_info);
@@ -1145,7 +1144,7 @@ int MolfileInterface::property(int propid, int idx, char *prop)
 // set/get per type string property
 int MolfileInterface::property(int propid, int *types, char **prop)
 {
-  if ((_info == NULL) || (types == NULL) || (prop == NULL))
+  if ((_info == nullptr) || (types == nullptr) || (prop == nullptr))
     return P_NONE;
 
   molfile_atom_t *a = static_cast<molfile_atom_t *>(_info);
@@ -1166,7 +1165,7 @@ int MolfileInterface::property(int propid, int *types, char **prop)
 // set/get per atom string property
 int MolfileInterface::property(int propid, char **prop)
 {
-  if ((_info == NULL) || (prop == NULL))
+  if ((_info == nullptr) || (prop == nullptr))
     return P_NONE;
 
   molfile_atom_t *a = static_cast<molfile_atom_t *>(_info);

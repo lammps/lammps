@@ -88,10 +88,10 @@ class BaseEllipsoid {
     ans->resize(nlocal, success);
     if (_multiple_forms) ans->force.zero();
 
-    if (olist_size>static_cast<int>(host_olist.numel())) {
-      host_olist.clear();
-      int new_size=static_cast<int>(static_cast<double>(olist_size)*1.10);
-      success=success && (host_olist.alloc(new_size,*ucl_device)==UCL_SUCCESS);
+    if (olist_size>host_olist_size) {
+      if (host_olist_size) delete []host_olist;
+      host_olist_size=static_cast<int>(static_cast<double>(olist_size)*1.10);
+      host_olist = new int[host_olist_size];
     }
 
     nbor->resize(nlocal,host_inum,max_nbors,success);
@@ -116,7 +116,7 @@ class BaseEllipsoid {
   /// Accumulate timers
   inline void acc_timers() {
     if (device->time_device()) {
-      nbor->acc_timers();
+      nbor->acc_timers(screen);
       time_nbor1.add_to_total();
       time_ellipsoid.add_to_total();
       if (_multiple_forms) {
@@ -223,14 +223,40 @@ class BaseEllipsoid {
   /// Neighbor data
   Neighbor *nbor;
   /// ilist with particles sorted by type
-  UCL_H_Vec<int> host_olist;
+  int *host_olist;
+  int host_olist_size;
 
   // ------------------------- DEVICE KERNELS -------------------------
   UCL_Program *nbor_program, *ellipsoid_program, *lj_program;
+  UCL_Program *ellipsoid_program_noev, *lj_program_noev;
   UCL_Kernel k_nbor_fast, k_nbor;
   UCL_Kernel k_ellipsoid, k_ellipsoid_sphere, k_sphere_ellipsoid;
   UCL_Kernel k_lj_fast, k_lj;
+  UCL_Kernel k_ellipsoid_noev, k_ellipsoid_sphere_noev;
+  UCL_Kernel k_sphere_ellipsoid_noev, k_lj_fast_noev;
+  UCL_Kernel *k_elps_sel, *k_elps_sphere_sel, *k_sphere_elps_sel, *k_lj_sel;
   inline int block_size() { return _block_size; }
+  inline void set_kernel(const int eflag, const int vflag) {
+    #if defined(LAL_OCL_EV_JIT)
+    if (_multiple_forms == false) {
+      if (eflag || vflag) k_elps_sel = &k_ellipsoid;
+      else k_elps_sel = &k_ellipsoid_noev;
+    } else {
+      if (eflag || vflag) {
+        k_elps_sel = &k_ellipsoid;
+        k_elps_sphere_sel = &k_ellipsoid_sphere;
+        k_sphere_elps_sel = &k_sphere_ellipsoid;
+        k_lj_sel = &k_lj_fast;
+      } else {
+        k_elps_sel = &k_ellipsoid_noev;
+        k_elps_sphere_sel = &k_ellipsoid_sphere_noev;
+        k_sphere_elps_sel = &k_sphere_ellipsoid_noev;
+        k_lj_sel = &k_lj_fast_noev;
+      }
+    }
+    #endif
+  }
+
 
   // --------------------------- TEXTURES -----------------------------
   UCL_Texture pos_tex, quat_tex, lj_pos_tex, lj_quat_tex, neigh_tex;
@@ -240,7 +266,6 @@ class BaseEllipsoid {
   int _block_size, _threads_per_atom;
   double  _max_bytes, _max_an_bytes;
   double _gpu_overhead, _driver_overhead;
-  UCL_D_Vec<int> *_nbor_data;
 
   // True if we want to use fast GB-sphere or sphere-sphere calculations
   bool _multiple_forms;
@@ -250,7 +275,7 @@ class BaseEllipsoid {
   void compile_kernels(UCL_Device &dev, const void *ellipsoid_string,
                        const void *lj_string, const char *kname,const bool e_s);
 
-  virtual void loop(const bool _eflag, const bool _vflag) = 0;
+  virtual int loop(const int eflag, const int vflag) = 0;
 };
 
 }

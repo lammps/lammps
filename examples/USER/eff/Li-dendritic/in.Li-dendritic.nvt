@@ -1,5 +1,4 @@
 variable        sname index Li-dendritic
-log		${sname}.min.log
 
 units 		electron
 newton		on
@@ -29,7 +28,7 @@ compute         1 all property/atom spin eradius
 #dump            1 all custom 100 ${sname}.min.lammpstrj id type x y z q c_1[1] c_1[2]
 #dump            2 all xyz 100 ${sname}.min.xyz
 min_modify      line quadratic dmax 0.05
-minimize        0 1.0e-7 1000 2000
+minimize        0 1.0e-7 100 100
 
 write_restart	${sname}.min.restart
 
@@ -46,7 +45,7 @@ dump            1 all custom 100 ${sname}.nvt.lammpstrj id type x y z c_1[1] c_1
 dump            2 all xyz 100 ${sname}.nvt.xyz
 restart		100 ${sname}.nvt.restart1 ${sname}.nvt.restart2
 
-run		10000
+run		100
 
 undump		1
 undump		2

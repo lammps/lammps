@@ -117,21 +117,21 @@ struct EBOBaseImpl<T, true, CtorNotOnDevice> {
       : EBOBaseImpl(_constexpr_14_workaround_no_device_tag{},
                     T(std::forward<Args>(args)...)) {}
 
-  KOKKOS_FORCEINLINE_FUNCTION
+  KOKKOS_DEFAULTED_FUNCTION
   constexpr EBOBaseImpl(EBOBaseImpl const&) = default;
 
-  KOKKOS_FORCEINLINE_FUNCTION
+  KOKKOS_DEFAULTED_FUNCTION
   constexpr EBOBaseImpl(EBOBaseImpl&&) = default;
 
-  KOKKOS_FORCEINLINE_FUNCTION
+  KOKKOS_DEFAULTED_FUNCTION
   KOKKOS_CONSTEXPR_14
   EBOBaseImpl& operator=(EBOBaseImpl const&) = default;
 
-  KOKKOS_FORCEINLINE_FUNCTION
+  KOKKOS_DEFAULTED_FUNCTION
   KOKKOS_CONSTEXPR_14
   EBOBaseImpl& operator=(EBOBaseImpl&&) = default;
 
-  KOKKOS_FORCEINLINE_FUNCTION
+  KOKKOS_DEFAULTED_FUNCTION
   ~EBOBaseImpl() = default;
 
   KOKKOS_INLINE_FUNCTION
@@ -184,21 +184,21 @@ struct EBOBaseImpl<T, false, CTorsNotOnDevice> {
 
   // TODO @tasking @minor DSH noexcept in the right places?
 
-  KOKKOS_FORCEINLINE_FUNCTION
+  KOKKOS_DEFAULTED_FUNCTION
   constexpr EBOBaseImpl(EBOBaseImpl const&) = default;
 
-  KOKKOS_FORCEINLINE_FUNCTION
+  KOKKOS_DEFAULTED_FUNCTION
   constexpr EBOBaseImpl(EBOBaseImpl&&) noexcept = default;
 
-  KOKKOS_FORCEINLINE_FUNCTION
+  KOKKOS_DEFAULTED_FUNCTION
   KOKKOS_CONSTEXPR_14
   EBOBaseImpl& operator=(EBOBaseImpl const&) = default;
 
-  KOKKOS_FORCEINLINE_FUNCTION
+  KOKKOS_DEFAULTED_FUNCTION
   KOKKOS_CONSTEXPR_14
   EBOBaseImpl& operator=(EBOBaseImpl&&) = default;
 
-  KOKKOS_FORCEINLINE_FUNCTION
+  KOKKOS_DEFAULTED_FUNCTION
   ~EBOBaseImpl() = default;
 
   KOKKOS_INLINE_FUNCTION
@@ -275,6 +275,78 @@ class NoUniqueAddressMemberEmulation
  public:
   using base_t::base_t;
   using base_t::no_unique_address_data_member;
+};
+
+template <class ExecutionSpace>
+class ExecutionSpaceInstanceStorage
+    : private NoUniqueAddressMemberEmulation<ExecutionSpace,
+                                             DefaultCtorNotOnDevice> {
+ private:
+  using base_t =
+      NoUniqueAddressMemberEmulation<ExecutionSpace, DefaultCtorNotOnDevice>;
+
+ protected:
+  constexpr explicit ExecutionSpaceInstanceStorage() : base_t() {}
+
+  KOKKOS_INLINE_FUNCTION
+  constexpr explicit ExecutionSpaceInstanceStorage(
+      ExecutionSpace const& arg_execution_space)
+      : base_t(arg_execution_space) {}
+
+  KOKKOS_INLINE_FUNCTION
+  constexpr explicit ExecutionSpaceInstanceStorage(
+      ExecutionSpace&& arg_execution_space)
+      : base_t(std::move(arg_execution_space)) {}
+
+  KOKKOS_INLINE_FUNCTION
+  ExecutionSpace& execution_space_instance() & {
+    return this->no_unique_address_data_member();
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  ExecutionSpace const& execution_space_instance() const& {
+    return this->no_unique_address_data_member();
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  ExecutionSpace&& execution_space_instance() && {
+    return std::move(*this).no_unique_address_data_member();
+  }
+};
+
+template <class MemorySpace>
+class MemorySpaceInstanceStorage
+    : private NoUniqueAddressMemberEmulation<MemorySpace,
+                                             DefaultCtorNotOnDevice> {
+ private:
+  using base_t =
+      NoUniqueAddressMemberEmulation<MemorySpace, DefaultCtorNotOnDevice>;
+
+ protected:
+  MemorySpaceInstanceStorage() : base_t() {}
+
+  KOKKOS_INLINE_FUNCTION
+  MemorySpaceInstanceStorage(MemorySpace const& arg_memory_space)
+      : base_t(arg_memory_space) {}
+
+  KOKKOS_INLINE_FUNCTION
+  constexpr explicit MemorySpaceInstanceStorage(MemorySpace&& arg_memory_space)
+      : base_t(arg_memory_space) {}
+
+  KOKKOS_INLINE_FUNCTION
+  MemorySpace& memory_space_instance() & {
+    return this->no_unique_address_data_member();
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  MemorySpace const& memory_space_instance() const& {
+    return this->no_unique_address_data_member();
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  MemorySpace&& memory_space_instance() && {
+    return std::move(*this).no_unique_address_data_member();
+  }
 };
 
 }  // end namespace Impl

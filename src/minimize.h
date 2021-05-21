@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -20,11 +20,11 @@ CommandStyle(minimize,Minimize)
 #ifndef LMP_MINIMIZE_H
 #define LMP_MINIMIZE_H
 
-#include "pointers.h"
+#include "command.h"
 
 namespace LAMMPS_NS {
 
-class Minimize : protected Pointers {
+class Minimize : public Command {
  public:
   Minimize(class LAMMPS *);
   void command(int, char **);

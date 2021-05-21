@@ -84,8 +84,8 @@ struct TestComplexConstruction {
     ASSERT_FLOAT_EQ(h_results(8).real(), double(8));
     ASSERT_FLOAT_EQ(h_results(8).imag(), 0.0);
 
-#ifndef KOKKOS_ENABLE_ROCM  // Copy construction conversion between
-                            // Kokkos::complex and std::complex doesn't compile
+    // Copy construction conversion between
+    // Kokkos::complex and std::complex doesn't compile
     Kokkos::complex<double> a(1.5, 2.5), b(3.25, 5.25), r_kk;
     std::complex<double> sa(a), sb(3.25, 5.25), r;
     r    = a;
@@ -100,11 +100,10 @@ struct TestComplexConstruction {
     r_kk = a;
     ASSERT_FLOAT_EQ(r.real(), r_kk.real());
     ASSERT_FLOAT_EQ(r.imag(), r_kk.imag());
-#endif
   }
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(const int &i) const {
+  void operator()(const int & /*i*/) const {
     Kokkos::complex<double> a(1.5, 2.5);
     d_results(0) = a;
     Kokkos::complex<double> b(a);
@@ -164,8 +163,10 @@ struct TestComplexBasicMath {
     ASSERT_FLOAT_EQ(h_results(2).real(), r.real());
     ASSERT_FLOAT_EQ(h_results(2).imag(), r.imag());
     r = a / b;
+#ifndef KOKKOS_WORKAROUND_OPENMPTARGET_CLANG
     ASSERT_FLOAT_EQ(h_results(3).real(), r.real());
     ASSERT_FLOAT_EQ(h_results(3).imag(), r.imag());
+#endif
     r = d + a;
     ASSERT_FLOAT_EQ(h_results(4).real(), r.real());
     ASSERT_FLOAT_EQ(h_results(4).imag(), r.imag());
@@ -212,8 +213,10 @@ struct TestComplexBasicMath {
     ASSERT_FLOAT_EQ(h_results(18).real(), r.real());
     ASSERT_FLOAT_EQ(h_results(18).imag(), r.imag());
     r = c / a;
+#ifndef KOKKOS_WORKAROUND_OPENMPTARGET_CLANG
     ASSERT_FLOAT_EQ(h_results(19).real(), r.real());
     ASSERT_FLOAT_EQ(h_results(19).imag(), r.imag());
+#endif
 
     r = a;
     /* r = a+e; */ ASSERT_FLOAT_EQ(h_results(20).real(), r.real() + e);
@@ -227,7 +230,7 @@ struct TestComplexBasicMath {
   }
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(const int &i) const {
+  void operator()(const int & /*i*/) const {
     Kokkos::complex<double> a(1.5, 2.5);
     Kokkos::complex<double> b(3.25, 5.75);
     // Basic math complex / complex
@@ -317,19 +320,73 @@ struct TestComplexSpecialFunctions {
     r = Kokkos::exp(a);
     ASSERT_FLOAT_EQ(h_results(4).real(), r.real());
     ASSERT_FLOAT_EQ(h_results(4).imag(), r.imag());
+#ifndef KOKKOS_WORKAROUND_OPENMPTARGET_CLANG
+    r = std::log(a);
+    ASSERT_FLOAT_EQ(h_results(5).real(), r.real());
+    ASSERT_FLOAT_EQ(h_results(5).imag(), r.imag());
+    r = std::sin(a);
+    ASSERT_FLOAT_EQ(h_results(6).real(), r.real());
+    ASSERT_FLOAT_EQ(h_results(6).imag(), r.imag());
+    r = std::cos(a);
+    ASSERT_FLOAT_EQ(h_results(7).real(), r.real());
+    ASSERT_FLOAT_EQ(h_results(7).imag(), r.imag());
+    r = std::tan(a);
+    ASSERT_FLOAT_EQ(h_results(8).real(), r.real());
+    ASSERT_FLOAT_EQ(h_results(8).imag(), r.imag());
+    r = std::sinh(a);
+    ASSERT_FLOAT_EQ(h_results(9).real(), r.real());
+    ASSERT_FLOAT_EQ(h_results(9).imag(), r.imag());
+    r = std::cosh(a);
+    ASSERT_FLOAT_EQ(h_results(10).real(), r.real());
+    ASSERT_FLOAT_EQ(h_results(10).imag(), r.imag());
+    r = std::tanh(a);
+    ASSERT_FLOAT_EQ(h_results(11).real(), r.real());
+    ASSERT_FLOAT_EQ(h_results(11).imag(), r.imag());
+    r = std::asinh(a);
+    ASSERT_FLOAT_EQ(h_results(12).real(), r.real());
+    ASSERT_FLOAT_EQ(h_results(12).imag(), r.imag());
+    r = std::acosh(a);
+    ASSERT_FLOAT_EQ(h_results(13).real(), r.real());
+    ASSERT_FLOAT_EQ(h_results(13).imag(), r.imag());
+    r = std::atanh(a);
+    ASSERT_FLOAT_EQ(h_results(14).real(), r.real());
+    ASSERT_FLOAT_EQ(h_results(14).imag(), r.imag());
+    r = std::asin(a);
+    ASSERT_FLOAT_EQ(h_results(15).real(), r.real());
+    ASSERT_FLOAT_EQ(h_results(15).imag(), r.imag());
+    r = std::acos(a);
+    ASSERT_FLOAT_EQ(h_results(16).real(), r.real());
+    ASSERT_FLOAT_EQ(h_results(16).imag(), r.imag());
+    r = std::atan(a);
+    ASSERT_FLOAT_EQ(h_results(17).real(), r.real());
+    ASSERT_FLOAT_EQ(h_results(17).imag(), r.imag());
+#endif
   }
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(const int &i) const {
+  void operator()(const int & /*i*/) const {
     Kokkos::complex<double> a(1.5, 2.5);
     Kokkos::complex<double> b(3.25, 5.75);
     double c = 9.3;
 
-    d_results(0) = Kokkos::complex<double>(Kokkos::real(a), Kokkos::imag(a));
-    d_results(1) = Kokkos::sqrt(a);
-    d_results(2) = Kokkos::pow(a, c);
-    d_results(3) = Kokkos::abs(a);
-    d_results(4) = Kokkos::exp(a);
+    d_results(0)  = Kokkos::complex<double>(Kokkos::real(a), Kokkos::imag(a));
+    d_results(1)  = Kokkos::sqrt(a);
+    d_results(2)  = Kokkos::pow(a, c);
+    d_results(3)  = Kokkos::abs(a);
+    d_results(4)  = Kokkos::exp(a);
+    d_results(5)  = Kokkos::log(a);
+    d_results(6)  = Kokkos::sin(a);
+    d_results(7)  = Kokkos::cos(a);
+    d_results(8)  = Kokkos::tan(a);
+    d_results(9)  = Kokkos::sinh(a);
+    d_results(10) = Kokkos::cosh(a);
+    d_results(11) = Kokkos::tanh(a);
+    d_results(12) = Kokkos::asinh(a);
+    d_results(13) = Kokkos::acosh(a);
+    d_results(14) = Kokkos::atanh(a);
+    d_results(15) = Kokkos::asin(a);
+    d_results(16) = Kokkos::acos(a);
+    d_results(17) = Kokkos::atan(a);
   }
 };
 
@@ -355,5 +412,20 @@ TEST(TEST_CATEGORY, complex_special_funtions) {
 }
 
 TEST(TEST_CATEGORY, complex_io) { testComplexIO(); }
+
+TEST(TEST_CATEGORY, complex_trivially_copyable) {
+  using RealType = double;
+
+  // Kokkos::complex<RealType> is trivially copyable when RealType is
+  // trivially copyable
+  // Simply disable the check for IBM's XL compiler since we can't reliably
+  // check for a version that defines relevant functions.
+#if !defined(__ibmxl__)
+  // clang claims compatibility with gcc 4.2.1 but all versions tested know
+  // about std::is_trivially_copyable.
+  ASSERT_TRUE(std::is_trivially_copyable<Kokkos::complex<RealType>>::value ||
+              !std::is_trivially_copyable<RealType>::value);
+#endif
+}
 
 }  // namespace Test

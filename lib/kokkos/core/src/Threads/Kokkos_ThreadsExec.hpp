@@ -57,6 +57,8 @@
 #include <Kokkos_Atomic.hpp>
 
 #include <Kokkos_UniqueToken.hpp>
+#include <impl/Kokkos_ConcurrentBitset.hpp>
+
 //----------------------------------------------------------------------------
 
 namespace Kokkos {
@@ -258,8 +260,8 @@ class ThreadsExec {
 
   template <class FunctorType, class ArgTag>
   inline void fan_in_reduce(const FunctorType &f) const {
-    typedef Kokkos::Impl::FunctorValueJoin<FunctorType, ArgTag> Join;
-    typedef Kokkos::Impl::FunctorFinal<FunctorType, ArgTag> Final;
+    using Join  = Kokkos::Impl::FunctorValueJoin<FunctorType, ArgTag>;
+    using Final = Kokkos::Impl::FunctorFinal<FunctorType, ArgTag>;
 
     const int rev_rank = m_pool_size - (m_pool_rank + 1);
 
@@ -305,11 +307,11 @@ class ThreadsExec {
     //  3) Rendezvous         : All threads inclusive scan value are available
     //  4) ScanCompleted      : exclusive scan value copied
 
-    typedef Kokkos::Impl::FunctorValueTraits<FunctorType, ArgTag> Traits;
-    typedef Kokkos::Impl::FunctorValueJoin<FunctorType, ArgTag> Join;
-    typedef Kokkos::Impl::FunctorValueInit<FunctorType, ArgTag> Init;
+    using Traits = Kokkos::Impl::FunctorValueTraits<FunctorType, ArgTag>;
+    using Join   = Kokkos::Impl::FunctorValueJoin<FunctorType, ArgTag>;
+    using Init   = Kokkos::Impl::FunctorValueInit<FunctorType, ArgTag>;
 
-    typedef typename Traits::value_type scalar_type;
+    using scalar_type = typename Traits::value_type;
 
     const int rev_rank   = m_pool_size - (m_pool_rank + 1);
     const unsigned count = Traits::value_count(f);
@@ -411,11 +413,11 @@ class ThreadsExec {
 
   template <class FunctorType, class ArgTag>
   inline void scan_small(const FunctorType &f) {
-    typedef Kokkos::Impl::FunctorValueTraits<FunctorType, ArgTag> Traits;
-    typedef Kokkos::Impl::FunctorValueJoin<FunctorType, ArgTag> Join;
-    typedef Kokkos::Impl::FunctorValueInit<FunctorType, ArgTag> Init;
+    using Traits = Kokkos::Impl::FunctorValueTraits<FunctorType, ArgTag>;
+    using Join   = Kokkos::Impl::FunctorValueJoin<FunctorType, ArgTag>;
+    using Init   = Kokkos::Impl::FunctorValueInit<FunctorType, ArgTag>;
 
-    typedef typename Traits::value_type scalar_type;
+    using scalar_type = typename Traits::value_type;
 
     const int rev_rank   = m_pool_size - (m_pool_rank + 1);
     const unsigned count = Traits::value_count(f);
@@ -441,7 +443,7 @@ class ThreadsExec {
     } else {
       // Root thread does the thread-scan before releasing threads
 
-      scalar_type *ptr_prev = 0;
+      scalar_type *ptr_prev = nullptr;
 
       for (int rank = 0; rank < m_pool_size; ++rank) {
         scalar_type *const ptr =
@@ -614,52 +616,26 @@ namespace Kokkos {
 
 inline int Threads::in_parallel() { return Impl::ThreadsExec::in_parallel(); }
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-inline int Threads::is_initialized() {
-  return Impl::ThreadsExec::is_initialized();
-}
-#else
 inline int Threads::impl_is_initialized() {
   return Impl::ThreadsExec::is_initialized();
 }
-#endif
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-inline void Threads::initialize(
-#else
-inline void Threads::impl_initialize(
-#endif
-    unsigned threads_count, unsigned use_numa_count,
-    unsigned use_cores_per_numa, bool allow_asynchronous_threadpool) {
+inline void Threads::impl_initialize(unsigned threads_count,
+                                     unsigned use_numa_count,
+                                     unsigned use_cores_per_numa,
+                                     bool allow_asynchronous_threadpool) {
   Impl::ThreadsExec::initialize(threads_count, use_numa_count,
                                 use_cores_per_numa,
                                 allow_asynchronous_threadpool);
 }
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-inline void Threads::finalize()
-#else
-inline void Threads::impl_finalize()
-#endif
-{
-  Impl::ThreadsExec::finalize();
-}
+inline void Threads::impl_finalize() { Impl::ThreadsExec::finalize(); }
 
 inline void Threads::print_configuration(std::ostream &s, const bool detail) {
   Impl::ThreadsExec::print_configuration(s, detail);
 }
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-inline bool Threads::sleep() { return Impl::ThreadsExec::sleep(); }
-
-inline bool Threads::wake() { return Impl::ThreadsExec::wake(); }
-#endif
-
 inline void Threads::impl_static_fence() { Impl::ThreadsExec::fence(); }
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-inline void Threads::fence() { Impl::ThreadsExec::fence(); }
-#endif
-
 } /* namespace Kokkos */
 
 //----------------------------------------------------------------------------
@@ -670,6 +646,12 @@ namespace Experimental {
 
 template <>
 class UniqueToken<Threads, UniqueTokenScope::Instance> {
+ private:
+  using buffer_type = Kokkos::View<uint32_t *, Kokkos::HostSpace>;
+  int m_count;
+  buffer_type m_buffer_view;
+  uint32_t volatile *m_buffer;
+
  public:
   using execution_space = Threads;
   using size_type       = int;
@@ -677,38 +659,61 @@ class UniqueToken<Threads, UniqueTokenScope::Instance> {
   /// \brief create object size for concurrency on the given instance
   ///
   /// This object should not be shared between instances
-  UniqueToken(execution_space const & = execution_space()) noexcept {}
+  UniqueToken(execution_space const & = execution_space()) noexcept
+      : m_count(::Kokkos::Threads::impl_thread_pool_size()),
+        m_buffer_view(buffer_type()),
+        m_buffer(nullptr) {}
+
+  UniqueToken(size_type max_size, execution_space const & = execution_space())
+      : m_count(max_size > ::Kokkos::Threads::impl_thread_pool_size()
+                    ? ::Kokkos::Threads::impl_thread_pool_size()
+                    : max_size),
+        m_buffer_view(
+            max_size > ::Kokkos::Threads::impl_thread_pool_size()
+                ? buffer_type()
+                : buffer_type("UniqueToken::m_buffer_view",
+                              ::Kokkos::Impl::concurrent_bitset::buffer_bound(
+                                  m_count))),
+        m_buffer(m_buffer_view.data()) {}
 
   /// \brief upper bound for acquired values, i.e. 0 <= value < size()
-  inline
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-      int
-      size() const noexcept {
-    return Threads::thread_pool_size();
-  }
-#else
-      int
-      size() const noexcept {
-    return Threads::impl_thread_pool_size();
-  }
-#endif
+  KOKKOS_INLINE_FUNCTION
+  int size() const noexcept { return m_count; }
 
   /// \brief acquire value such that 0 <= value < size()
-  inline
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-      int
-      acquire() const noexcept {
-    return Threads::thread_pool_rank();
-  }
+  KOKKOS_INLINE_FUNCTION
+  int acquire() const noexcept {
+#if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
+    if (m_buffer == nullptr) {
+      return Threads::impl_thread_pool_rank();
+    } else {
+      const ::Kokkos::pair<int, int> result =
+          ::Kokkos::Impl::concurrent_bitset::acquire_bounded(
+              m_buffer, m_count, ::Kokkos::Impl::clock_tic() % m_count);
+
+      if (result.first < 0) {
+        ::Kokkos::abort(
+            "UniqueToken<Threads> failure to acquire tokens, no tokens "
+            "available");
+      }
+      return result.first;
+    }
 #else
-      int
-      acquire() const noexcept {
-    return Threads::impl_thread_pool_rank();
-  }
+    return 0;
 #endif
+  }
 
   /// \brief release a value acquired by generate
-  inline void release(int) const noexcept {}
+  KOKKOS_INLINE_FUNCTION
+  void release(int i) const noexcept {
+#if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
+    if (m_buffer != nullptr) {
+      ::Kokkos::Impl::concurrent_bitset::release(m_buffer, i);
+    }
+#else
+    (void)i;
+#endif
+  }
 };
 
 template <>
@@ -723,34 +728,28 @@ class UniqueToken<Threads, UniqueTokenScope::Global> {
   UniqueToken(execution_space const & = execution_space()) noexcept {}
 
   /// \brief upper bound for acquired values, i.e. 0 <= value < size()
-  inline
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-      int
-      size() const noexcept {
-    return Threads::thread_pool_size();
-  }
-#else
-      int
-      size() const noexcept {
+  KOKKOS_INLINE_FUNCTION
+  int size() const noexcept {
+#if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
     return Threads::impl_thread_pool_size();
-  }
+#else
+    return 0;
 #endif
+  }
 
   /// \brief acquire value such that 0 <= value < size()
-  inline
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-      int
-      acquire() const noexcept {
-    return Threads::thread_pool_rank();
-  }
-#else
-      int
-      acquire() const noexcept {
+  KOKKOS_INLINE_FUNCTION
+  int acquire() const noexcept {
+#if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
     return Threads::impl_thread_pool_rank();
-  }
+#else
+    return 0;
 #endif
+  }
+
   /// \brief release a value acquired by generate
-  inline void release(int) const noexcept {}
+  KOKKOS_INLINE_FUNCTION
+  void release(int) const noexcept {}
 };
 
 }  // namespace Experimental

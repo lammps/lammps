@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -22,7 +22,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_ffl.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"
@@ -46,39 +46,37 @@ enum {NO_FLIP, FLIP_RESCALE, FLIP_HARD, FLIP_SOFT};
 
 /* syntax for fix_ffl:
  * fix nfix id-group ffl tau Tstart Tstop seed [flip_type]
- *
  *                                                                        */
 
 /* ---------------------------------------------------------------------- */
 
-
-FixFFL::FixFFL(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg) {
-
-
+FixFFL::FixFFL(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
+{
   if (narg < 7)
     error->all(FLERR,"Illegal fix ffl command. Expecting: fix <fix-ID>"
                " <group-ID> ffl <tau> <Tstart> <Tstop> <seed>  ");
 
+  ecouple_flag = 1;
   restart_peratom = 1;
   time_integrate = 1;
   scalar_flag = 1;
 
-  //gamma = 1/ time constant(tau)
-  if (force->numeric(FLERR,arg[3]) <= 0)
+  //gamma = 1 / time constant(tau)
+  gamma = utils::numeric(FLERR,arg[3],false,lmp);
+  if (gamma <= 0.0)
     error->all(FLERR,"Illegal fix ffl tau value, should be greater than 0");
-  gamma = 1.0/force->numeric(FLERR,arg[3]);
+  gamma = 1.0/gamma;
   ffl_every=1;
   ffl_step=0;
 
   // start temperature (t ramp)
-  t_start = force->numeric(FLERR,arg[4]);
+  t_start = utils::numeric(FLERR,arg[4],false,lmp);
 
   // final temperature (t ramp)
-  t_stop = force->numeric(FLERR,arg[5]);
+  t_stop = utils::numeric(FLERR,arg[5],false,lmp);
 
   // PRNG seed
-  int seed = force->inumeric(FLERR,arg[6]);
+  int seed = utils::inumeric(FLERR,arg[6],false,lmp);
 
   // Flip type used, uses rescale if no flip is given
   if (narg == 8) {
@@ -105,29 +103,28 @@ FixFFL::FixFFL(LAMMPS *lmp, int narg, char **arg) :
   random = new RanMars(lmp,seed + comm->me);
 
   // allocate per-type arrays for mass-scaling
-  sqrt_m=NULL;
+  sqrt_m=nullptr;
   memory->grow(sqrt_m, atom->ntypes+1,"ffl:sqrt_m");
 
   // allocates space for temporaries
-  ffl_tmp1=ffl_tmp2=NULL;
+  ffl_tmp1=ffl_tmp2=nullptr;
 
   grow_arrays(atom->nmax);
 
   // add callbacks to enable restarts
-  atom->add_callback(0);
-  atom->add_callback(1);
+  atom->add_callback(Atom::GROW);
+  atom->add_callback(Atom::RESTART);
 
   energy = 0.0;
 }
-
 
 /* --- Frees up memory used by temporaries and buffers ------------------ */
 
 FixFFL::~FixFFL() {
   delete random;
 
-  atom->delete_callback(id,0);
-  atom->delete_callback(id,1);
+  atom->delete_callback(id,Atom::GROW);
+  atom->delete_callback(id,Atom::RESTART);
 
   memory->destroy(sqrt_m);
   memory->destroy(ffl_tmp1);
@@ -138,14 +135,10 @@ FixFFL::~FixFFL() {
 
 int FixFFL::setmask() {
   int mask = 0;
-
   mask |= INITIAL_INTEGRATE;
   mask |= FINAL_INTEGRATE;
   mask |= INITIAL_INTEGRATE_RESPA;
   mask |= FINAL_INTEGRATE_RESPA;
-  mask |= THERMO_ENERGY;
-
-
   return mask;
 }
 
@@ -163,7 +156,7 @@ void FixFFL::init() {
     }
   }
 
-  if (strstr(update->integrate_style,"respa")) {
+  if (utils::strmatch(update->integrate_style,"^respa")) {
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
     step_respa = ((Respa *) update->integrate)->step;
   }
@@ -180,16 +173,12 @@ void FixFFL::init_ffl() {
 
   c1 = exp ( - gamma * 0.5 * dtv );
   c2 = sqrt( (1.0 - c1*c1)* kT ); //without the mass term
-
-
 }
-
-
 
 /* ---------------------------------------------------------------------- */
 
 void FixFFL::setup(int vflag) {
-  if (strstr(update->integrate_style,"verlet"))
+  if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
     ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);
@@ -197,6 +186,8 @@ void FixFFL::setup(int vflag) {
     ((Respa *) update->integrate)->copy_f_flevel(nlevels_respa-1);
   }
 }
+
+/* ---------------------------------------------------------------------- */
 
 void FixFFL::ffl_integrate() {
   double **v = atom->v;
@@ -286,8 +277,9 @@ void FixFFL::ffl_integrate() {
   }
 
   energy += deltae*0.5*force->mvv2e;
-
 }
+
+/* ---------------------------------------------------------------------- */
 
 void FixFFL::initial_integrate(int /* vflag */) {
   double dtfm;
@@ -331,6 +323,8 @@ void FixFFL::initial_integrate(int /* vflag */) {
       }
   }
 }
+
+/* ---------------------------------------------------------------------- */
 
 void FixFFL::final_integrate() {
   double dtfm;
@@ -380,6 +374,7 @@ void FixFFL::final_integrate() {
   }
 
 }
+
 /* ---------------------------------------------------------------------- */
 
 void FixFFL::initial_integrate_respa(int vflag, int ilevel, int /* iloop */) {
@@ -397,6 +392,8 @@ void FixFFL::initial_integrate_respa(int vflag, int ilevel, int /* iloop */) {
   }
 }
 
+/* ---------------------------------------------------------------------- */
+
 void FixFFL::final_integrate_respa(int ilevel, int /* iloop */) {
 
   dtv = step_respa[ilevel];
@@ -406,6 +403,7 @@ void FixFFL::final_integrate_respa(int ilevel, int /* iloop */) {
   if (ilevel==nlevels_respa-1) ffl_integrate();
 }
 
+/* ---------------------------------------------------------------------- */
 
 double FixFFL::compute_scalar() {
 
@@ -425,9 +423,8 @@ void *FixFFL::extract(const char *str, int &dim) {
   if (strcmp(str,"t_target") == 0) {
     return &t_target;
   }
-  return NULL;
+  return nullptr;
 }
-
 
 /* ----------------------------------------------------------------------
    Called when a change to the target temperature is requested mid-run
@@ -454,10 +451,9 @@ void FixFFL::reset_dt() {
 ------------------------------------------------------------------------- */
 
 double FixFFL::memory_usage() {
-  double bytes = atom->nmax*(3*2)*sizeof(double);
+  double bytes = (double)atom->nmax*(3*2)*sizeof(double);
   return bytes;
 }
-
 
 /* ----------------------------------------------------------------------
    allocate local atom-based arrays

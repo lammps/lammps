@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -38,6 +38,7 @@ class BondZero : public Bond {
   void write_data(FILE *);
 
   double single(int, double, int, int, double &);
+  virtual void *extract(const char *, int &);
 
  protected:
   double *r0;

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -49,7 +49,7 @@ public:
   /// Reports the memory usage of this pair style to LAMMPS.
   double memory_usage();
 
-  void *extract(const char *, int &) { return NULL; }
+  void *extract(const char *, int &) { return nullptr; }
 
   /// Parses the coefficients of the h polynomial from the end of the EAM file.
   void read_h_coeff(char* filename);
@@ -60,7 +60,7 @@ public:
   // Evaluates the h(x) polynomial for a given local concentration x.
   inline double evalH(double x) const {
     double v = 0.0;
-    for(int i = nhcoeff-1; i >= 1; i--) {
+    for (int i = nhcoeff-1; i >= 1; i--) {
       v = (v + hcoeff[i]) * x;
     }
     return v + hcoeff[0];
@@ -69,7 +69,7 @@ public:
   // Calculates the derivative of the h(x) polynomial.
   inline double evalHprime(double x) const {
     double v = 0.0;
-    for(int i = nhcoeff-1; i >= 2; i--) {
+    for (int i = nhcoeff-1; i >= 2; i--) {
       v = (v + (double)i * hcoeff[i]) * x;
     }
     return v + hcoeff[1];

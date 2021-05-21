@@ -56,7 +56,7 @@ adds energy to the atoms based on conservation of energy. *hoover* and
 atoms.
 
 *correction_max_iterations* sets the maximum number of iterations to
-compute the 2nd order in time correction term for lambda with the
+compute the second order in time correction term for lambda with the
 fractional step method. The method uses the same tolerance as the
 controller's matrix solver.
 

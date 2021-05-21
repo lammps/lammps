@@ -62,6 +62,7 @@
 #include <Kokkos_ScratchSpace.hpp>
 #include <Kokkos_MemoryTraits.hpp>
 #include <impl/Kokkos_Tags.hpp>
+#include <impl/Kokkos_ExecSpaceInitializer.hpp>
 
 /*--------------------------------------------------------------------------*/
 
@@ -118,27 +119,27 @@ class Cuda {
   //@{
 
   //! Tag this class as a kokkos execution space
-  typedef Cuda execution_space;
+  using execution_space = Cuda;
 
 #if defined(KOKKOS_ENABLE_CUDA_UVM)
   //! This execution space's preferred memory space.
-  typedef CudaUVMSpace memory_space;
+  using memory_space = CudaUVMSpace;
 #else
   //! This execution space's preferred memory space.
-  typedef CudaSpace memory_space;
+  using memory_space = CudaSpace;
 #endif
 
   //! This execution space preferred device_type
-  typedef Kokkos::Device<execution_space, memory_space> device_type;
+  using device_type = Kokkos::Device<execution_space, memory_space>;
 
   //! The size_type best suited for this execution space.
-  typedef memory_space::size_type size_type;
+  using size_type = memory_space::size_type;
 
   //! This execution space's preferred array layout.
-  typedef LayoutLeft array_layout;
+  using array_layout = LayoutLeft;
 
   //!
-  typedef ScratchMemorySpace<Cuda> scratch_memory_space;
+  using scratch_memory_space = ScratchMemorySpace<Cuda>;
 
   //@}
   //--------------------------------------------------
@@ -183,11 +184,7 @@ class Cuda {
   /// device have completed.
   static void impl_static_fence();
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-  static void fence();
-#else
   void fence() const;
-#endif
 
   /** \brief  Return the maximum amount of concurrency.  */
   static int concurrency();
@@ -199,15 +196,17 @@ class Cuda {
   //--------------------------------------------------
   //! \name  Cuda space instances
 
-  KOKKOS_INLINE_FUNCTION
-  ~Cuda() {}
-
   Cuda();
 
-  Cuda(Cuda&&)      = default;
-  Cuda(const Cuda&) = default;
-  Cuda& operator=(Cuda&&) = default;
-  Cuda& operator=(const Cuda&) = default;
+  KOKKOS_FUNCTION Cuda(Cuda&& other) noexcept;
+
+  KOKKOS_FUNCTION Cuda(const Cuda& other);
+
+  KOKKOS_FUNCTION Cuda& operator=(Cuda&& other) noexcept;
+
+  KOKKOS_FUNCTION Cuda& operator=(const Cuda& other);
+
+  KOKKOS_FUNCTION ~Cuda() noexcept;
 
   Cuda(cudaStream_t stream);
 
@@ -221,17 +220,6 @@ class Cuda {
     explicit SelectDevice(int id) : cuda_device_id(id) {}
   };
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-  //! Free any resources being consumed by the device.
-  static void finalize();
-
-  //! Has been initialized
-  static int is_initialized();
-
-  //! Initialize, telling the CUDA run-time library which device to use.
-  static void initialize(const SelectDevice         = SelectDevice(),
-                         const size_t num_instances = 1);
-#else
   //! Free any resources being consumed by the device.
   static void impl_finalize();
 
@@ -241,7 +229,6 @@ class Cuda {
   //! Initialize, telling the CUDA run-time library which device to use.
   static void impl_initialize(const SelectDevice         = SelectDevice(),
                               const size_t num_instances = 1);
-#endif
 
   /// \brief Cuda device architecture of the selected device.
   ///
@@ -258,6 +245,7 @@ class Cuda {
 
   cudaStream_t cuda_stream() const;
   int cuda_device() const;
+  const cudaDeviceProp& cuda_device_prop() const;
 
   //@}
   //--------------------------------------------------------------------------
@@ -267,11 +255,36 @@ class Cuda {
   inline Impl::CudaInternal* impl_internal_space_instance() const {
     return m_space_instance;
   }
+  uint32_t impl_instance_id() const noexcept { return 0; }
 
  private:
   Impl::CudaInternal* m_space_instance;
+  int* m_counter;
 };
 
+namespace Tools {
+namespace Experimental {
+template <>
+struct DeviceTypeTraits<Cuda> {
+  /// \brief An ID to differentiate (for example) Serial from OpenMP in Tooling
+  static constexpr DeviceType id = DeviceType::Cuda;
+};
+}  // namespace Experimental
+}  // namespace Tools
+
+namespace Impl {
+
+class CudaSpaceInitializer : public ExecSpaceInitializerBase {
+ public:
+  CudaSpaceInitializer()  = default;
+  ~CudaSpaceInitializer() = default;
+  void initialize(const InitArguments& args) final;
+  void finalize(const bool all_spaces) final;
+  void fence() final;
+  void print_configuration(std::ostream& msg, const bool detail) final;
+};
+
+}  // namespace Impl
 }  // namespace Kokkos
 
 /*--------------------------------------------------------------------------*/
@@ -283,9 +296,9 @@ namespace Impl {
 template <>
 struct MemorySpaceAccess<Kokkos::CudaSpace,
                          Kokkos::Cuda::scratch_memory_space> {
-  enum { assignable = false };
-  enum { accessible = true };
-  enum { deepcopy = false };
+  enum : bool { assignable = false };
+  enum : bool { accessible = true };
+  enum : bool { deepcopy = false };
 };
 
 #if defined(KOKKOS_ENABLE_CUDA_UVM)
@@ -299,9 +312,9 @@ struct MemorySpaceAccess<Kokkos::CudaSpace,
 template <>
 struct MemorySpaceAccess<Kokkos::CudaUVMSpace,
                          Kokkos::Cuda::scratch_memory_space> {
-  enum { assignable = false };
-  enum { accessible = true };
-  enum { deepcopy = false };
+  enum : bool { assignable = false };
+  enum : bool { accessible = true };
+  enum : bool { deepcopy = false };
 };
 
 #endif
@@ -309,7 +322,7 @@ struct MemorySpaceAccess<Kokkos::CudaUVMSpace,
 template <>
 struct VerifyExecutionCanAccessMemorySpace<Kokkos::CudaSpace,
                                            Kokkos::Cuda::scratch_memory_space> {
-  enum { value = true };
+  enum : bool { value = true };
   KOKKOS_INLINE_FUNCTION static void verify(void) {}
   KOKKOS_INLINE_FUNCTION static void verify(const void*) {}
 };
@@ -317,7 +330,7 @@ struct VerifyExecutionCanAccessMemorySpace<Kokkos::CudaSpace,
 template <>
 struct VerifyExecutionCanAccessMemorySpace<Kokkos::HostSpace,
                                            Kokkos::Cuda::scratch_memory_space> {
-  enum { value = false };
+  enum : bool { value = false };
   inline static void verify(void) { CudaSpace::access_error(); }
   inline static void verify(const void* p) { CudaSpace::access_error(p); }
 };

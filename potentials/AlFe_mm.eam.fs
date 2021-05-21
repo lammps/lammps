@@ -1,4 +1,4 @@
-DATE: 2007-06-11 CONTRIBUTOR: MI Mendelev, mendelev@ameslab.gov CITATION: Mendelev, Srolovitz, Ackland and Han, J Mater Res 20, 208-218 (2005) 
+DATE: 2007-06-11 UNITS: metal CONTRIBUTOR: MI Mendelev, mendelev@ameslab.gov CITATION: Mendelev, Srolovitz, Ackland and Han, J Mater Res 20, 208-218 (2005) 
 Sunday, Jun 10, 2007  The potential was taken from Al3Fe_D03 (in C:\SIMULATION.MD\Al-Fe\T=0)
 ################################################
 2  Al  Fe  

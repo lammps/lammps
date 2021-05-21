@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -28,6 +28,10 @@ class DumpAtom : public Dump {
  public:
   DumpAtom(LAMMPS *, int, char**);
 
+  const char * MAGIC_STRING = "DUMPATOM";
+  const int    FORMAT_REVISION = 0x0002;
+  const int    ENDIAN = 0x0001;
+
  protected:
   int scale_flag;            // 1 if atom coords are scaled, 0 if no
   int image_flag;            // 1 if append box count to atom coords, 0 if no
@@ -40,6 +44,14 @@ class DumpAtom : public Dump {
   void pack(tagint *);
   int convert_string(int, double *);
   void write_data(int, double *);
+
+  void header_format_binary();
+  void header_unit_style_binary();
+  void header_time_binary();
+  void header_columns_binary();
+  void format_magic_string_binary();
+  void format_endian_binary();
+  void format_revision_binary();
 
   typedef void (DumpAtom::*FnPtrHeader)(bigint);
   FnPtrHeader header_choice;           // ptr to write header functions

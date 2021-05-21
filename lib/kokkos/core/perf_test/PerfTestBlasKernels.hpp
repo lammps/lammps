@@ -49,69 +49,14 @@
 
 namespace Kokkos {
 
-template <class ConstVectorType,
-          class Device = typename ConstVectorType::execution_space>
-struct Dot;
-
-template <class ConstVectorType,
-          class Device = typename ConstVectorType::execution_space>
-struct DotSingle;
-
-template <class ConstScalarType, class VectorType,
-          class Device = typename VectorType::execution_space>
-struct Scale;
-
-template <class ConstScalarType, class ConstVectorType, class VectorType,
-          class Device = typename VectorType::execution_space>
-struct AXPBY;
-
-/** \brief  Y = alpha * X + beta * Y */
-template <class ConstScalarType, class ConstVectorType, class VectorType>
-void axpby(const ConstScalarType& alpha, const ConstVectorType& X,
-           const ConstScalarType& beta, const VectorType& Y) {
-  typedef AXPBY<ConstScalarType, ConstVectorType, VectorType> functor;
-
-  parallel_for(Y.extent(0), functor(alpha, X, beta, Y));
-}
-
-/** \brief  Y *= alpha */
-template <class ConstScalarType, class VectorType>
-void scale(const ConstScalarType& alpha, const VectorType& Y) {
-  typedef Scale<ConstScalarType, VectorType> functor;
-
-  parallel_for(Y.extent(0), functor(alpha, Y));
-}
-
-template <class ConstVectorType, class Finalize>
-void dot(const ConstVectorType& X, const ConstVectorType& Y,
-         const Finalize& finalize) {
-  typedef Dot<ConstVectorType> functor;
-
-  parallel_reduce(X.extent(0), functor(X, Y), finalize);
-}
-
-template <class ConstVectorType, class Finalize>
-void dot(const ConstVectorType& X, const Finalize& finalize) {
-  typedef DotSingle<ConstVectorType> functor;
-
-  parallel_reduce(X.extent(0), functor(X), finalize);
-}
-
-} /* namespace Kokkos */
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-
-namespace Kokkos {
-
-template <class Type, class Device>
+template <class Type>
 struct Dot {
-  typedef typename Device::execution_space execution_space;
+  using execution_space = typename Type::execution_space;
 
   static_assert(static_cast<unsigned>(Type::Rank) == static_cast<unsigned>(1),
                 "Dot static_assert Fail: Rank != 1");
 
-  typedef double value_type;
+  using value_type = double;
 
 #if 1
   typename Type::const_type X;
@@ -136,14 +81,14 @@ struct Dot {
   static void init(value_type& update) { update = 0; }
 };
 
-template <class Type, class Device>
+template <class Type>
 struct DotSingle {
-  typedef typename Device::execution_space execution_space;
+  using execution_space = typename Type::execution_space;
 
   static_assert(static_cast<unsigned>(Type::Rank) == static_cast<unsigned>(1),
                 "DotSingle static_assert Fail: Rank != 1");
 
-  typedef double value_type;
+  using value_type = double;
 
 #if 1
   typename Type::const_type X;
@@ -169,9 +114,9 @@ struct DotSingle {
   static void init(value_type& update) { update = 0; }
 };
 
-template <class ScalarType, class VectorType, class Device>
+template <class ScalarType, class VectorType>
 struct Scale {
-  typedef typename Device::execution_space execution_space;
+  using execution_space = typename VectorType::execution_space;
 
   static_assert(static_cast<unsigned>(ScalarType::Rank) ==
                     static_cast<unsigned>(0),
@@ -196,10 +141,9 @@ struct Scale {
   void operator()(int i) const { Y[i] *= alpha(); }
 };
 
-template <class ScalarType, class ConstVectorType, class VectorType,
-          class Device>
+template <class ScalarType, class ConstVectorType, class VectorType>
 struct AXPBY {
-  typedef typename Device::execution_space execution_space;
+  using execution_space = typename VectorType::execution_space;
 
   static_assert(static_cast<unsigned>(ScalarType::Rank) ==
                     static_cast<unsigned>(0),
@@ -230,6 +174,44 @@ struct AXPBY {
   KOKKOS_INLINE_FUNCTION
   void operator()(int i) const { Y[i] = alpha() * X[i] + beta() * Y[i]; }
 };
+
+} /* namespace Kokkos */
+
+//----------------------------------------------------------------------------
+//----------------------------------------------------------------------------
+
+namespace Kokkos {
+/** \brief  Y = alpha * X + beta * Y */
+template <class ConstScalarType, class ConstVectorType, class VectorType>
+void axpby(const ConstScalarType& alpha, const ConstVectorType& X,
+           const ConstScalarType& beta, const VectorType& Y) {
+  using functor = AXPBY<ConstScalarType, ConstVectorType, VectorType>;
+
+  parallel_for(Y.extent(0), functor(alpha, X, beta, Y));
+}
+
+/** \brief  Y *= alpha */
+template <class ConstScalarType, class VectorType>
+void scale(const ConstScalarType& alpha, const VectorType& Y) {
+  using functor = Scale<ConstScalarType, VectorType>;
+
+  parallel_for(Y.extent(0), functor(alpha, Y));
+}
+
+template <class ConstVectorType, class Finalize>
+void dot(const ConstVectorType& X, const ConstVectorType& Y,
+         const Finalize& finalize) {
+  using functor = Dot<ConstVectorType>;
+
+  parallel_reduce(X.extent(0), functor(X, Y), finalize);
+}
+
+template <class ConstVectorType, class Finalize>
+void dot(const ConstVectorType& X, const Finalize& finalize) {
+  using functor = DotSingle<ConstVectorType>;
+
+  parallel_reduce(X.extent(0), functor(X), finalize);
+}
 
 } /* namespace Kokkos */
 

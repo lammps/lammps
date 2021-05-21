@@ -154,7 +154,7 @@ class SingleTaskQueue
 
   KOKKOS_FUNCTION
   OptionalRef<task_base_type> pop_ready_task(
-      team_scheduler_info_type const& info) {
+      team_scheduler_info_type const& /*info*/) {
     OptionalRef<task_base_type> return_value;
     // always loop in order of priority first, then prefer team tasks over
     // single tasks

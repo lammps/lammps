@@ -11,11 +11,11 @@ angle style of *harmonic* or *charmm* should also be used.
 A TIP4P model is run with LAMMPS using either this command
 for a cutoff model:
 
-* :doc:`pair_style lj/cut/tip4p/cut <pair_lj>`
+* :doc:`pair_style lj/cut/tip4p/cut <pair_lj_cut_tip4p>`
 
 or these two commands for a long-range model:
 
-* :doc:`pair_style lj/cut/tip4p/long <pair_lj>`
+* :doc:`pair_style lj/cut/tip4p/long <pair_lj_cut_tip4p>`
 * :doc:`kspace_style pppm/tip4p <kspace_style>`
 
 For both models, the bond lengths and bond angles should be held fixed
@@ -95,7 +95,7 @@ typically best in an efficiency sense to use a LJ cutoff >= Coulomb
 cutoff + 2\*(OM distance), to shrink the size of the neighbor list.
 This leads to slightly larger cost for the long-range calculation, so
 you can test the trade-off for your model.  The OM distance and the LJ
-and Coulombic cutoffs are set in the :doc:`pair_style lj/cut/tip4p/long <pair_lj>` command.
+and Coulombic cutoffs are set in the :doc:`pair_style lj/cut/tip4p/long <pair_lj_cut_tip4p>` command.
 
 Wikipedia also has a nice article on `water models <http://en.wikipedia.org/wiki/Water_model>`_.
 

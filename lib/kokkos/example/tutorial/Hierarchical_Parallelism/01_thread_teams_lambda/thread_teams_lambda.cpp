@@ -56,8 +56,8 @@
 
 int main(int narg, char* args[]) {
   using Kokkos::parallel_reduce;
-  typedef Kokkos::TeamPolicy<> team_policy;
-  typedef typename team_policy::member_type team_member;
+  using team_policy = Kokkos::TeamPolicy<>;
+  using team_member = typename team_policy::member_type;
 
   Kokkos::initialize(narg, args);
 

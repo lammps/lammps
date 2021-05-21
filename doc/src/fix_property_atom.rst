@@ -1,10 +1,10 @@
 .. index:: fix property/atom
+.. index:: fix property/atom/kk
 
 fix property/atom command
 =========================
 
-fix property/atom/kk command
-============================
+Accelerator Variants: *property/atom/kk*
 
 Syntax
 """"""
@@ -105,7 +105,8 @@ keyword with a value of *yes*\ .  This will invoke extra communication
 when ghost atoms are created (at every re-neighboring) to insure the
 new properties are also defined for the ghost atoms.
 
-.. note::
+.. admonition:: Properties on ghost atoms
+   :class: note
 
    If you use this command with the *mol*\ , *q* or *rmass* vectors,
    then you most likely want to set *ghost* yes, since these properties
@@ -115,7 +116,8 @@ new properties are also defined for the ghost atoms.
    atoms to have these values.  LAMMPS will issue a warning it you define
    those vectors but do not set *ghost* yes.
 
-.. note::
+.. admonition:: Limitations on ghost atom properties
+   :class: note
 
    The properties for ghost atoms are not updated every timestep,
    but only once every few steps when neighbor lists are re-built.  Thus
@@ -126,18 +128,18 @@ new properties are also defined for the ghost atoms.
    that can be invoked from within a :doc:`pair style <pair_style>` or
    :doc:`fix <fix>` or :doc:`compute <compute>` that you write.
 
-.. note::
-
-   If this fix is defined **after** the simulation box is created,
-   a 'run 0' command should be issued to properly initialize the storage
-   created by this fix.
-
 ----------
 
 This fix is one of a small number that can be defined in an input
 script before the simulation box is created or atoms are defined.
 This is so it can be used with the :doc:`read_data <read_data>` command
 as described below.
+
+.. note::
+
+   If this fix is defined **after** the simulation box is created,
+   a 'run 0' command may be needed to properly initialize the storage
+   created by this fix.
 
 Per-atom properties that are defined by the :doc:`atom style <atom_style>` are initialized when atoms are created, e.g. by
 the :doc:`read_data <read_data>` or :doc:`create_atoms <create_atoms>`
@@ -264,33 +266,28 @@ example to heavy water:
 
 ----------
 
-Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
-functionally the same as the corresponding style without the suffix.
-They have been optimized to run faster, depending on your available
-hardware, as discussed on the :doc:`Speed packages <Speed_packages>` doc
-page.  The accelerated styles take the same arguments and should
-produce the same results, except for round-off and precision issues.
-
-These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
-USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` doc page for more info.
-
-You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
-:doc:`suffix <suffix>` command in your input script.
-
-See the :doc:`Speed packages <Speed_packages>` doc page for more
-instructions on how to use the accelerated styles effectively.
+.. include:: accel_styles.rst
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-This fix writes the per-atom values it stores to :doc:`binary restart files <restart>`, so that the values can be restored when a
-simulation is restarted.  See the :doc:`read_restart <read_restart>`
-command for info on how to re-specify a fix in an input script that
-reads a restart file, so that the operation of the fix continues in an
-uninterrupted fashion.
+This fix writes the per-atom values it stores to :doc:`binary restart
+files <restart>`, so that the values can be restored when a simulation
+is restarted.  See the :doc:`read_restart <read_restart>` command for
+info on how to re-specify a fix in an input script that reads a restart
+file, so that the operation of the fix continues in an uninterrupted
+fashion.
+
+.. warning::
+
+   When reading data from a restart, the fix command has to be specified
+   **exactly** the same way as before. LAMMPS will only check whether a
+   fix is of the same style and has the same fix ID and in case of a match
+   will then try to initialize the fix with the data stored in the binary
+   restart file.  If the fix property/atom command does not match exactly,
+   data can be corrupted or LAMMPS may crash.
 
 None of the :doc:`fix_modify <fix_modify>` options are relevant to this
 fix.  No global or per-atom quantities are stored by this fix for

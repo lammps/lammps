@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -36,6 +36,9 @@ class NPairCopyKokkos : public NPair {
   NPairCopyKokkos(class LAMMPS *);
   ~NPairCopyKokkos() {}
   void build(class NeighList *);
+ private:
+  void copy_to_kokkos(class NeighList *);
+  void copy_to_cpu(class NeighList *);
 };
 
 }

@@ -93,8 +93,7 @@ __inline__ __device__ unsigned int atomic_fetch_sub(volatile double* const dest,
 template <typename T>
 __inline__ __device__ T atomic_fetch_sub(
     volatile T* const dest,
-    typename Kokkos::Impl::enable_if<sizeof(T) == sizeof(int), const T>::type
-        val) {
+    typename std::enable_if<sizeof(T) == sizeof(int), const T>::type val) {
   union U {
     int i;
     T t;
@@ -115,9 +114,9 @@ __inline__ __device__ T atomic_fetch_sub(
 template <typename T>
 __inline__ __device__ T atomic_fetch_sub(
     volatile T* const dest,
-    typename Kokkos::Impl::enable_if<
-        sizeof(T) != sizeof(int) && sizeof(T) == sizeof(unsigned long long int),
-        const T>::type val) {
+    typename std::enable_if<sizeof(T) != sizeof(int) &&
+                                sizeof(T) == sizeof(unsigned long long int),
+                            const T>::type val) {
   union U {
     unsigned long long int i;
     T t;
@@ -138,10 +137,10 @@ __inline__ __device__ T atomic_fetch_sub(
 //----------------------------------------------------------------------------
 
 template <typename T>
-__inline__ __device__ T atomic_fetch_sub(
-    volatile T* const dest,
-    typename Kokkos::Impl::enable_if<(sizeof(T) != 4) && (sizeof(T) != 8),
-                                     const T>::type& val) {
+__inline__ __device__ T
+atomic_fetch_sub(volatile T* const dest,
+                 typename std::enable_if<(sizeof(T) != 4) && (sizeof(T) != 8),
+                                         const T>::type& val) {
   T return_val;
   // This is a way to (hopefully) avoid dead lock in a warp
   int done = 0;
@@ -155,8 +154,10 @@ __inline__ __device__ T atomic_fetch_sub(
   while (active != done_active) {
     if (!done) {
       if (Impl::lock_address_cuda_space((void*)dest)) {
+        Kokkos::memory_fence();
         return_val = *dest;
         *dest      = return_val - val;
+        Kokkos::memory_fence();
         Impl::unlock_address_cuda_space((void*)dest);
         done = 1;
       }
@@ -172,7 +173,6 @@ __inline__ __device__ T atomic_fetch_sub(
 #endif
 #endif
 //----------------------------------------------------------------------------
-#if !defined(KOKKOS_ENABLE_ROCM_ATOMICS)
 #if !defined(__CUDA_ARCH__) || defined(KOKKOS_IMPL_CUDA_CLANG_WORKAROUND)
 #if defined(KOKKOS_ENABLE_GNU_ATOMICS) || defined(KOKKOS_ENABLE_INTEL_ATOMICS)
 
@@ -209,13 +209,21 @@ inline unsigned long int atomic_fetch_sub(
   return __sync_fetch_and_sub(dest, val);
 }
 
+inline unsigned long long int atomic_fetch_sub(
+    volatile unsigned long long int* const dest,
+    const unsigned long long int val) {
+#if defined(KOKKOS_ENABLE_RFO_PREFETCH)
+  _mm_prefetch((const char*)dest, _MM_HINT_ET0);
+#endif
+  return __sync_fetch_and_sub(dest, val);
+}
+
 #endif
 
 template <typename T>
 inline T atomic_fetch_sub(
     volatile T* const dest,
-    typename Kokkos::Impl::enable_if<sizeof(T) == sizeof(int), const T>::type
-        val) {
+    typename std::enable_if<sizeof(T) == sizeof(int), const T>::type val) {
   union U {
     int i;
     T t;
@@ -238,11 +246,10 @@ inline T atomic_fetch_sub(
 }
 
 template <typename T>
-inline T atomic_fetch_sub(
-    volatile T* const dest,
-    typename Kokkos::Impl::enable_if<sizeof(T) != sizeof(int) &&
-                                         sizeof(T) == sizeof(long),
-                                     const T>::type val) {
+inline T atomic_fetch_sub(volatile T* const dest,
+                          typename std::enable_if<sizeof(T) != sizeof(int) &&
+                                                      sizeof(T) == sizeof(long),
+                                                  const T>::type val) {
 #if defined(KOKKOS_ENABLE_RFO_PREFETCH)
   _mm_prefetch((const char*)dest, _MM_HINT_ET0);
 #endif
@@ -269,16 +276,18 @@ inline T atomic_fetch_sub(
 template <typename T>
 inline T atomic_fetch_sub(
     volatile T* const dest,
-    typename Kokkos::Impl::enable_if<(sizeof(T) != 4) && (sizeof(T) != 8),
-                                     const T>::type& val) {
+    typename std::enable_if<(sizeof(T) != 4) && (sizeof(T) != 8),
+                            const T>::type& val) {
 #if defined(KOKKOS_ENABLE_RFO_PREFETCH)
   _mm_prefetch((const char*)dest, _MM_HINT_ET0);
 #endif
 
   while (!Impl::lock_address_host_space((void*)dest))
     ;
+  Kokkos::memory_fence();
   T return_val = *dest;
   *dest        = return_val - val;
+  Kokkos::memory_fence();
   Impl::unlock_address_host_space((void*)dest);
   return return_val;
 }
@@ -310,7 +319,6 @@ T atomic_fetch_sub(volatile T* const dest_v, const T val) {
 
 #endif
 #endif
-#endif  // !defined ROCM_ATOMICS
 
 // dummy for non-CUDA Kokkos headers being processed by NVCC
 #if defined(__CUDA_ARCH__) && !defined(KOKKOS_ENABLE_CUDA)
@@ -320,12 +328,6 @@ __inline__ __device__ T atomic_fetch_sub(volatile T* const,
   return T();
 }
 #endif
-
-// Simpler version of atomic_fetch_sub without the fetch
-template <typename T>
-KOKKOS_INLINE_FUNCTION void atomic_sub(volatile T* const dest, const T src) {
-  atomic_fetch_sub(dest, src);
-}
 
 }  // namespace Kokkos
 

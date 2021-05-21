@@ -101,6 +101,13 @@ To work around this restriction, restart files may be converted into
 data files and fixes may be undefined via the :doc:`unfix <unfix>`
 command before and redefined after the replicate command.
 
-**Related commands:** none
+Related commands
+""""""""""""""""
 
-**Default:** none
+none
+
+
+Default
+"""""""
+
+none

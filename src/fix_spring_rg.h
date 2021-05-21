@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -32,6 +32,9 @@ class FixSpringRG : public Fix {
   void setup(int);
   void post_force(int);
   void post_force_respa(int, int, int);
+  void write_restart(FILE *);
+  void restart(char *);
+  double compute_scalar();
 
  private:
   int ilevel_respa,rg0_flag;

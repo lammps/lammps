@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,7 +15,7 @@
 #define LMP_BODY_H
 
 #include "pointers.h"
-#include "atom_vec_body.h"
+#include "atom_vec_body.h"   // IWYU pragma: keep
 
 namespace LAMMPS_NS {
 
@@ -43,6 +43,9 @@ class Body : protected Pointers {
                                  double *) {return 0;}
 
   virtual void data_body(int, int, int, int*, double *) = 0;
+  virtual int pack_data_body(tagint, int, double *) = 0;
+  virtual int write_data_body(FILE *, double *) = 0;
+
   virtual int noutrow(int) = 0;
   virtual int noutcol() = 0;
   virtual void output(int, int, double *) = 0;

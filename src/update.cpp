@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,18 +12,22 @@
 ------------------------------------------------------------------------- */
 
 #include "update.h"
-#include <cstring>
-#include "integrate.h"
-#include "min.h"
-#include "style_integrate.h"
-#include "style_minimize.h"
-#include "neighbor.h"
-#include "force.h"
-#include "modify.h"
-#include "fix.h"
+
+#include "style_integrate.h"  // IWYU pragma: keep
+#include "style_minimize.h"   // IWYU pragma: keep
+
+#include "comm.h"
 #include "compute.h"
-#include "output.h"
+#include "integrate.h"
 #include "error.h"
+#include "fix.h"
+#include "force.h"
+#include "min.h"
+#include "modify.h"
+#include "neighbor.h"
+#include "output.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -47,21 +51,24 @@ Update::Update(LAMMPS *lmp) : Pointers(lmp)
   multireplica = 0;
 
   eflag_global = vflag_global = -1;
+  eflag_atom = vflag_atom = 0;
 
-  unit_style = NULL;
+  dt_default = 1;
+  dt = 0.0;
+  unit_style = nullptr;
   set_units("lj");
 
-  integrate_style = NULL;
-  integrate = NULL;
-  minimize_style = NULL;
-  minimize = NULL;
+  integrate_style = nullptr;
+  integrate = nullptr;
+  minimize_style = nullptr;
+  minimize = nullptr;
 
   integrate_map = new IntegrateCreatorMap();
 
 #define INTEGRATE_CLASS
 #define IntegrateStyle(key,Class) \
   (*integrate_map)[#key] = &integrate_creator<Class>;
-#include "style_integrate.h"
+#include "style_integrate.h"   // IWYU pragma: keep
 #undef IntegrateStyle
 #undef INTEGRATE_CLASS
 
@@ -70,7 +77,7 @@ Update::Update(LAMMPS *lmp) : Pointers(lmp)
 #define MINIMIZE_CLASS
 #define MinimizeStyle(key,Class) \
   (*minimize_map)[#key] = &minimize_creator<Class>;
-#include "style_minimize.h"
+#include "style_minimize.h"    // IWYU pragma: keep
 #undef MinimizeStyle
 #undef MINIMIZE_CLASS
 
@@ -118,8 +125,10 @@ void Update::init()
 void Update::set_units(const char *style)
 {
   // physical constants from:
-  // http://physics.nist.gov/cuu/Constants/Table/allascii.txt
+  // https://physics.nist.gov/cuu/Constants/Table/allascii.txt
   // using thermochemical calorie = 4.184 J
+
+  double dt_old = dt;
 
   if (strcmp(style,"lj") == 0) {
     force->boltz = 1.0;
@@ -292,9 +301,15 @@ void Update::set_units(const char *style)
   } else error->all(FLERR,"Illegal units command");
 
   delete [] unit_style;
-  int n = strlen(style) + 1;
-  unit_style = new char[n];
-  strcpy(unit_style,style);
+  unit_style = utils::strdup(style);
+
+  // check if timestep was changed from default value
+  if (!dt_default && (comm->me == 0)) {
+    error->warning(FLERR,fmt::format("Changing timestep from {:.6} to {:.6} "
+                                     "due to changing units to {}",
+                                     dt_old, dt, unit_style));
+  }
+  dt_default = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -307,20 +322,21 @@ void Update::create_integrate(int narg, char **arg, int trysuffix)
   delete integrate;
 
   int sflag;
-  new_integrate(arg[0],narg-1,&arg[1],trysuffix,sflag);
 
-  if (sflag) {
-    char estyle[256];
-    if (sflag == 1) snprintf(estyle,256,"%s/%s",arg[0],lmp->suffix);
-    else snprintf(estyle,256,"%s/%s",arg[0],lmp->suffix2);
-    int n = strlen(estyle) + 1;
-    integrate_style = new char[n];
-    strcpy(integrate_style,estyle);
+  if (narg-1 > 0) {
+    new_integrate(arg[0],narg-1,&arg[1],trysuffix,sflag);
   } else {
-    int n = strlen(arg[0]) + 1;
-    integrate_style = new char[n];
-    strcpy(integrate_style,arg[0]);
+    new_integrate(arg[0],0,nullptr,trysuffix,sflag);
   }
+
+  std::string estyle = arg[0];
+  if (sflag) {
+    estyle += "/";
+    if (sflag == 1) estyle += lmp->suffix;
+    else  estyle += lmp->suffix2;
+  }
+  integrate_style = new char[estyle.size()+1];
+  strcpy(integrate_style,estyle.c_str());
 }
 
 /* ----------------------------------------------------------------------
@@ -333,10 +349,9 @@ void Update::new_integrate(char *style, int narg, char **arg,
   if (trysuffix && lmp->suffix_enable) {
     if (lmp->suffix) {
       sflag = 1;
-      char estyle[256];
-      snprintf(estyle,256,"%s/%s",style,lmp->suffix);
+      std::string estyle = style + std::string("/") + lmp->suffix;
       if (integrate_map->find(estyle) != integrate_map->end()) {
-        IntegrateCreator integrate_creator = (*integrate_map)[estyle];
+        IntegrateCreator &integrate_creator = (*integrate_map)[estyle];
         integrate = integrate_creator(lmp, narg, arg);
         return;
       }
@@ -344,10 +359,9 @@ void Update::new_integrate(char *style, int narg, char **arg,
 
     if (lmp->suffix2) {
       sflag = 2;
-      char estyle[256];
-      snprintf(estyle,256,"%s/%s",style,lmp->suffix2);
+      std::string estyle = style + std::string("/") + lmp->suffix2;
       if (integrate_map->find(estyle) != integrate_map->end()) {
-        IntegrateCreator integrate_creator = (*integrate_map)[estyle];
+        IntegrateCreator &integrate_creator = (*integrate_map)[estyle];
         integrate = integrate_creator(lmp, narg, arg);
         return;
       }
@@ -356,7 +370,7 @@ void Update::new_integrate(char *style, int narg, char **arg,
 
   sflag = 0;
   if (integrate_map->find(style) != integrate_map->end()) {
-    IntegrateCreator integrate_creator = (*integrate_map)[style];
+    IntegrateCreator &integrate_creator = (*integrate_map)[style];
     integrate = integrate_creator(lmp, narg, arg);
     return;
   }
@@ -386,18 +400,14 @@ void Update::create_minimize(int narg, char **arg, int trysuffix)
   int sflag;
   new_minimize(arg[0],narg-1,&arg[1],trysuffix,sflag);
 
+  std::string estyle = arg[0];
   if (sflag) {
-    char estyle[256];
-    if (sflag == 1) snprintf(estyle,256,"%s/%s",arg[0],lmp->suffix);
-    else snprintf(estyle,256,"%s/%s",arg[0],lmp->suffix2);
-    int n = strlen(estyle) + 1;
-    minimize_style = new char[n];
-    strcpy(minimize_style,estyle);
-  } else {
-    int n = strlen(arg[0]) + 1;
-    minimize_style = new char[n];
-    strcpy(minimize_style,arg[0]);
+    estyle += "/";
+    if (sflag == 1) estyle += lmp->suffix;
+    else estyle += lmp->suffix2;
   }
+  minimize_style = new char[estyle.size()+1];
+  strcpy(minimize_style,estyle.c_str());
 }
 
 /* ----------------------------------------------------------------------
@@ -410,10 +420,9 @@ void Update::new_minimize(char *style, int /* narg */, char ** /* arg */,
   if (trysuffix && lmp->suffix_enable) {
     if (lmp->suffix) {
       sflag = 1;
-      char estyle[256];
-      snprintf(estyle,256,"%s/%s",style,lmp->suffix);
+      std::string estyle = style + std::string("/") + lmp->suffix;
       if (minimize_map->find(estyle) != minimize_map->end()) {
-        MinimizeCreator minimize_creator = (*minimize_map)[estyle];
+        MinimizeCreator &minimize_creator = (*minimize_map)[estyle];
         minimize = minimize_creator(lmp);
         return;
       }
@@ -421,10 +430,9 @@ void Update::new_minimize(char *style, int /* narg */, char ** /* arg */,
 
     if (lmp->suffix2) {
       sflag = 2;
-      char estyle[256];
-      snprintf(estyle,256,"%s/%s",style,lmp->suffix2);
+      std::string estyle = style + std::string("/") + lmp->suffix2;
       if (minimize_map->find(estyle) != minimize_map->end()) {
-        MinimizeCreator minimize_creator = (*minimize_map)[estyle];
+        MinimizeCreator &minimize_creator = (*minimize_map)[estyle];
         minimize = minimize_creator(lmp);
         return;
       }
@@ -433,7 +441,7 @@ void Update::new_minimize(char *style, int /* narg */, char ** /* arg */,
 
   sflag = 0;
   if (minimize_map->find(style) != minimize_map->end()) {
-    MinimizeCreator minimize_creator = (*minimize_map)[style];
+    MinimizeCreator &minimize_creator = (*minimize_map)[style];
     minimize = minimize_creator(lmp);
     return;
   }
@@ -458,7 +466,7 @@ Min *Update::minimize_creator(LAMMPS *lmp)
 void Update::reset_timestep(int narg, char **arg)
 {
   if (narg != 1) error->all(FLERR,"Illegal reset_timestep command");
-  bigint newstep = force->bnumeric(FLERR,arg[0]);
+  bigint newstep = utils::bnumeric(FLERR,arg[0],false,lmp);
   reset_timestep(newstep);
 }
 
@@ -534,9 +542,9 @@ void Update::update_time()
    memory usage of update and integrate/minimize
 ------------------------------------------------------------------------- */
 
-bigint Update::memory_usage()
+double Update::memory_usage()
 {
-  bigint bytes = 0;
+  double bytes = 0;
   if (whichflag == 1) bytes += integrate->memory_usage();
   else if (whichflag == 2) bytes += minimize->memory_usage();
   return bytes;

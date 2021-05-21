@@ -45,7 +45,7 @@ Solver * Solver::GetSolver(SolverType solverToMake) //returning a pointer to a n
 	switch((int)solverToMake)
 	{
 		case ONSOLVER: return new OnSolver();
-		default: return NULL;
+		default: return nullptr;
 	}
 }
 

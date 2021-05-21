@@ -77,17 +77,17 @@ processors.  See the :doc:`-partition command-line switch <Run_options>`
 for info on how to run LAMMPS with multiple partitions.
 
 Specifically, this style performs all computation except the
-:doc:`kspace_style <kspace_style>` portion of the force field on the 1st
+:doc:`kspace_style <kspace_style>` portion of the force field on the first
 partition.  This include the :doc:`pair style <pair_style>`, :doc:`bond style <bond_style>`, :doc:`neighbor list building <neighbor>`,
 :doc:`fixes <fix>` including time integration, and output.  The
 :doc:`kspace_style <kspace_style>` portion of the calculation is
-performed on the 2nd partition.
+performed on the second partition.
 
 This is most useful for the PPPM kspace_style when its performance on
 a large number of processors degrades due to the cost of communication
 in its 3d FFTs.  In this scenario, splitting your P total processors
-into 2 subsets of processors, P1 in the 1st partition and P2 in the
-2nd partition, can enable your simulation to run faster.  This is
+into 2 subsets of processors, P1 in the first partition and P2 in the
+second partition, can enable your simulation to run faster.  This is
 because the long-range forces in PPPM can be calculated at the same
 time as pair-wise and bonded forces are being calculated, and the FFTs
 can actually speed up when running on fewer processors.
@@ -99,8 +99,8 @@ following sense.  If P1 is a Px1 by Py1 by Pz1 grid, and P2 = Px2 by
 Py2 by Pz2, then Px1 must be an integer multiple of Px2, and similarly
 for Py1 a multiple of Py2, and Pz1 a multiple of Pz2.
 
-Typically the best way to do this is to let the 1st partition choose
-its onn optimal layout, then require the 2nd partition's layout to
+Typically the best way to do this is to let the first partition choose
+its onn optimal layout, then require the second partition's layout to
 match the integer multiple constraint.  See the
 :doc:`processors <processors>` command with its *part* keyword for a way
 to control this, e.g.
@@ -120,10 +120,10 @@ of 60 and 15 processors each:
 
 When you run in 2-partition mode with the *verlet/split* style, the
 thermodynamic data for the entire simulation will be output to the log
-and screen file of the 1st partition, which are log.lammps.0 and
+and screen file of the first partition, which are log.lammps.0 and
 screen.0 by default; see the :doc:`-plog and -pscreen command-line switches <Run_options>` to change this.  The log and screen file
-for the 2nd partition will not contain thermodynamic output beyond the
-1st timestep of the run.
+for the second partition will not contain thermodynamic output beyond the
+first timestep of the run.
 
 See the :doc:`Speed packages <Speed_packages>` doc page for performance
 details of the speed-up offered by the *verlet/split* style.  One
@@ -150,8 +150,8 @@ timestep, angle interactions computed 4x, pair interactions computed
 
 The :doc:`timestep <timestep>` command sets the large timestep for the
 outermost rRESPA level.  Thus if the 3 loop factors are "2 2 2" for
-4-level rRESPA, and the outer timestep is set to 4.0 fmsec, then the
-inner timestep would be 8x smaller or 0.5 fmsec.  All other LAMMPS
+4-level rRESPA, and the outer timestep is set to 4.0 fs, then the
+inner timestep would be 8x smaller or 0.5 fs.  All other LAMMPS
 commands that specify number of timesteps (e.g. :doc:`thermo <thermo>`
 for thermo output every N steps, :doc:`neigh_modify delay/every <neigh_modify>` parameters, :doc:`dump <dump>` every N
 steps, etc) refer to the outermost timesteps.
@@ -213,10 +213,10 @@ With that caveat, a few rules-of-thumb may be useful in selecting
 simulations using the CHARMM or a similar all-atom force field, but
 the concepts are adaptable to other problems.  Without SHAKE, bonds
 involving hydrogen atoms exhibit high-frequency vibrations and require
-a timestep on the order of 0.5 fmsec in order to conserve energy.  The
+a timestep on the order of 0.5 fs in order to conserve energy.  The
 relatively inexpensive force computations for the bonds, angles,
-impropers, and dihedrals can be computed on this innermost 0.5 fmsec
-step.  The outermost timestep cannot be greater than 4.0 fmsec without
+impropers, and dihedrals can be computed on this innermost 0.5 fs
+step.  The outermost timestep cannot be greater than 4.0 fs without
 risking energy drift.  Smooth switching of forces between the levels
 of the rRESPA hierarchy is also necessary to avoid drift, and a 1-2
 angstrom "healing distance" (the distance between the outer and inner
@@ -230,14 +230,14 @@ simulations:
    run_style respa 4 2 2 2 inner 2 4.5 6.0 middle 3 8.0 10.0 outer 4
 
 With these settings, users can expect good energy conservation and
-roughly a 2.5 fold speedup over the *verlet* style with a 0.5 fmsec
+roughly a 2.5 fold speedup over the *verlet* style with a 0.5 fs
 timestep.
 
 If SHAKE is used with the *respa* style, time reversibility is lost,
 but substantially longer time steps can be achieved.  For biomolecular
 simulations using the CHARMM or similar all-atom force field, bonds
 involving hydrogen atoms exhibit high frequency vibrations and require
-a time step on the order of 0.5 fmsec in order to conserve energy.
+a time step on the order of 0.5 fs in order to conserve energy.
 These high frequency modes also limit the outer time step sizes since
 the modes are coupled.  It is therefore desirable to use SHAKE with
 respa in order to freeze out these high frequency motions and increase
@@ -253,7 +253,7 @@ rRESPA:
 
 With these settings, users can expect good energy conservation and
 roughly a 1.5 fold speedup over the *verlet* style with SHAKE and a
-2.0 fmsec timestep.
+2.0 fs timestep.
 
 For non-biomolecular simulations, the *respa* style can be
 advantageous if there is a clear separation of time scales - fast and

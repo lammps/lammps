@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -49,7 +49,7 @@ class Dump : protected Pointers {
   virtual void unpack_reverse_comm(int, int *, double *) {}
 
   void modify_params(int, char **);
-  virtual bigint memory_usage();
+  virtual double memory_usage();
 
   bool is_writing();
   int is_consuming_computes(bigint);

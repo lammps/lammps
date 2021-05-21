@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
+   https://lammps.sandia.gov/
    Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -14,24 +14,26 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_nh_uef.h"
-#include <cstring>
-#include <cmath>
+
 #include "atom.h"
-#include "force.h"
-#include "comm.h"
 #include "citeme.h"
-#include "irregular.h"
-#include "modify.h"
+#include "comm.h"
 #include "compute.h"
-#include "update.h"
-#include "domain.h"
-#include "error.h"
-#include "output.h"
-#include "timer.h"
-#include "neighbor.h"
 #include "compute_pressure_uef.h"
 #include "compute_temp_uef.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
+#include "irregular.h"
+#include "modify.h"
+#include "neighbor.h"
+#include "output.h"
+#include "timer.h"
 #include "uef_utils.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -57,7 +59,7 @@ static const char cite_user_uef_package[] =
  * temp/pressure fixes
  ---------------------------------------------------------------------- */
 FixNHUef::FixNHUef(LAMMPS *lmp, int narg, char **arg) :
-  FixNH(lmp, narg, arg), uefbox(NULL)
+  FixNH(lmp, narg, arg), uefbox(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_user_uef_package);
 
@@ -82,14 +84,14 @@ FixNHUef::FixNHUef(LAMMPS *lmp, int narg, char **arg) :
   while (iarg <narg) {
     if (strcmp(arg[iarg],"erate")==0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix nvt/npt/uef command");
-      erate[0] = force->numeric(FLERR,arg[iarg+1]);
-      erate[1] = force->numeric(FLERR,arg[iarg+2]);
+      erate[0] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      erate[1] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       erate_flag = true;
       iarg += 3;
     } else if (strcmp(arg[iarg],"strain")==0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix nvt/npt/uef command");
-      strain[0] = force->numeric(FLERR,arg[iarg+1]);
-      strain[1] = force->numeric(FLERR,arg[iarg+2]);
+      strain[0] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      strain[1] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       iarg += 3;
     } else if (strcmp(arg[iarg],"ext")==0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix nvt/npt/uef command");
@@ -179,29 +181,12 @@ FixNHUef::FixNHUef(LAMMPS *lmp, int narg, char **arg) :
 
   // Create temp and pressure computes for nh/uef
 
-  int n = strlen(id) + 6;
-  id_temp = new char[n];
-  strcpy(id_temp,id);
-  strcat(id_temp,"_temp");
-  char **newarg = new char*[3];
-  newarg[0] = id_temp;
-  newarg[1] = (char *) "all";
-  newarg[2] = (char *) "temp/uef";
-  modify->add_compute(3,newarg);
-  delete [] newarg;
+  id_temp = utils::strdup(std::string(id) + "_temp");
+  modify->add_compute(fmt::format("{} all temp/uef",id_temp));
   tcomputeflag = 1;
 
-  n = strlen(id) + 7;
-  id_press = new char[n];
-  strcpy(id_press,id);
-  strcat(id_press,"_press");
-  newarg = new char*[4];
-  newarg[0] = id_press;
-  newarg[1] = (char *) "all";
-  newarg[2] = (char *) "pressure/uef";
-  newarg[3] = id_temp;
-  modify->add_compute(4,newarg);
-  delete [] newarg;
+  id_press = utils::strdup(std::string(id) + "_press");
+  modify->add_compute(fmt::format("{} all pressure/uef {}",id_press, id_temp));
   pcomputeflag = 1;
 
   nevery = 1;
@@ -214,8 +199,7 @@ FixNHUef::FixNHUef(LAMMPS *lmp, int narg, char **arg) :
 FixNHUef::~FixNHUef()
 {
   delete uefbox;
-  if (pcomputeflag && !pstat_flag)
-  {
+  if (pcomputeflag && !pstat_flag)  {
     modify->delete_compute(id_press);
     delete [] id_press;
   }

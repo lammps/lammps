@@ -65,12 +65,12 @@ size_t allocation_count(const Kokkos::View<T, P...> &view) {
 
 template <typename T, class DeviceType>
 struct TestViewOperator {
-  typedef typename DeviceType::execution_space execution_space;
+  using execution_space = typename DeviceType::execution_space;
 
   enum { N = 1000 };
   enum { D = 3 };
 
-  typedef Kokkos::View<T * [D], execution_space> view_type;
+  using view_type = Kokkos::View<T * [D], execution_space>;
 
   const view_type v1;
   const view_type v2;
@@ -97,11 +97,11 @@ struct TestViewOperator_LeftAndRight;
 
 template <class DataType, class DeviceType>
 struct TestViewOperator_LeftAndRight<DataType, DeviceType, 8> {
-  typedef typename DeviceType::execution_space execution_space;
-  typedef typename DeviceType::memory_space memory_space;
-  typedef typename execution_space::size_type size_type;
+  using execution_space = typename DeviceType::execution_space;
+  using memory_space    = typename DeviceType::memory_space;
+  using size_type       = typename execution_space::size_type;
 
-  typedef int value_type;
+  using value_type = int;
 
   KOKKOS_INLINE_FUNCTION
   static void join(volatile value_type &update,
@@ -112,11 +112,11 @@ struct TestViewOperator_LeftAndRight<DataType, DeviceType, 8> {
   KOKKOS_INLINE_FUNCTION
   static void init(value_type &update) { update = 0; }
 
-  typedef Kokkos::View<DataType, Kokkos::LayoutLeft, execution_space> left_view;
-  typedef Kokkos::View<DataType, Kokkos::LayoutRight, execution_space>
-      right_view;
-  typedef Kokkos::View<DataType, Kokkos::LayoutStride, execution_space>
-      stride_view;
+  using left_view = Kokkos::View<DataType, Kokkos::LayoutLeft, execution_space>;
+  using right_view =
+      Kokkos::View<DataType, Kokkos::LayoutRight, execution_space>;
+  using stride_view =
+      Kokkos::View<DataType, Kokkos::LayoutStride, execution_space>;
 
   left_view left;
   right_view right;
@@ -193,11 +193,11 @@ struct TestViewOperator_LeftAndRight<DataType, DeviceType, 8> {
 
 template <class DataType, class DeviceType>
 struct TestViewOperator_LeftAndRight<DataType, DeviceType, 7> {
-  typedef typename DeviceType::execution_space execution_space;
-  typedef typename DeviceType::memory_space memory_space;
-  typedef typename execution_space::size_type size_type;
+  using execution_space = typename DeviceType::execution_space;
+  using memory_space    = typename DeviceType::memory_space;
+  using size_type       = typename execution_space::size_type;
 
-  typedef int value_type;
+  using value_type = int;
 
   KOKKOS_INLINE_FUNCTION
   static void join(volatile value_type &update,
@@ -208,9 +208,9 @@ struct TestViewOperator_LeftAndRight<DataType, DeviceType, 7> {
   KOKKOS_INLINE_FUNCTION
   static void init(value_type &update) { update = 0; }
 
-  typedef Kokkos::View<DataType, Kokkos::LayoutLeft, execution_space> left_view;
-  typedef Kokkos::View<DataType, Kokkos::LayoutRight, execution_space>
-      right_view;
+  using left_view = Kokkos::View<DataType, Kokkos::LayoutLeft, execution_space>;
+  using right_view =
+      Kokkos::View<DataType, Kokkos::LayoutRight, execution_space>;
 
   left_view left;
   right_view right;
@@ -271,11 +271,11 @@ struct TestViewOperator_LeftAndRight<DataType, DeviceType, 7> {
 
 template <class DataType, class DeviceType>
 struct TestViewOperator_LeftAndRight<DataType, DeviceType, 6> {
-  typedef typename DeviceType::execution_space execution_space;
-  typedef typename DeviceType::memory_space memory_space;
-  typedef typename execution_space::size_type size_type;
+  using execution_space = typename DeviceType::execution_space;
+  using memory_space    = typename DeviceType::memory_space;
+  using size_type       = typename execution_space::size_type;
 
-  typedef int value_type;
+  using value_type = int;
 
   KOKKOS_INLINE_FUNCTION
   static void join(volatile value_type &update,
@@ -286,9 +286,9 @@ struct TestViewOperator_LeftAndRight<DataType, DeviceType, 6> {
   KOKKOS_INLINE_FUNCTION
   static void init(value_type &update) { update = 0; }
 
-  typedef Kokkos::View<DataType, Kokkos::LayoutLeft, execution_space> left_view;
-  typedef Kokkos::View<DataType, Kokkos::LayoutRight, execution_space>
-      right_view;
+  using left_view = Kokkos::View<DataType, Kokkos::LayoutLeft, execution_space>;
+  using right_view =
+      Kokkos::View<DataType, Kokkos::LayoutRight, execution_space>;
 
   left_view left;
   right_view right;
@@ -347,11 +347,11 @@ struct TestViewOperator_LeftAndRight<DataType, DeviceType, 6> {
 
 template <class DataType, class DeviceType>
 struct TestViewOperator_LeftAndRight<DataType, DeviceType, 5> {
-  typedef typename DeviceType::execution_space execution_space;
-  typedef typename DeviceType::memory_space memory_space;
-  typedef typename execution_space::size_type size_type;
+  using execution_space = typename DeviceType::execution_space;
+  using memory_space    = typename DeviceType::memory_space;
+  using size_type       = typename execution_space::size_type;
 
-  typedef int value_type;
+  using value_type = int;
 
   KOKKOS_INLINE_FUNCTION
   static void join(volatile value_type &update,
@@ -362,11 +362,11 @@ struct TestViewOperator_LeftAndRight<DataType, DeviceType, 5> {
   KOKKOS_INLINE_FUNCTION
   static void init(value_type &update) { update = 0; }
 
-  typedef Kokkos::View<DataType, Kokkos::LayoutLeft, execution_space> left_view;
-  typedef Kokkos::View<DataType, Kokkos::LayoutRight, execution_space>
-      right_view;
-  typedef Kokkos::View<DataType, Kokkos::LayoutStride, execution_space>
-      stride_view;
+  using left_view = Kokkos::View<DataType, Kokkos::LayoutLeft, execution_space>;
+  using right_view =
+      Kokkos::View<DataType, Kokkos::LayoutRight, execution_space>;
+  using stride_view =
+      Kokkos::View<DataType, Kokkos::LayoutStride, execution_space>;
 
   left_view left;
   right_view right;
@@ -435,11 +435,11 @@ struct TestViewOperator_LeftAndRight<DataType, DeviceType, 5> {
 
 template <class DataType, class DeviceType>
 struct TestViewOperator_LeftAndRight<DataType, DeviceType, 4> {
-  typedef typename DeviceType::execution_space execution_space;
-  typedef typename DeviceType::memory_space memory_space;
-  typedef typename execution_space::size_type size_type;
+  using execution_space = typename DeviceType::execution_space;
+  using memory_space    = typename DeviceType::memory_space;
+  using size_type       = typename execution_space::size_type;
 
-  typedef int value_type;
+  using value_type = int;
 
   KOKKOS_INLINE_FUNCTION
   static void join(volatile value_type &update,
@@ -450,9 +450,9 @@ struct TestViewOperator_LeftAndRight<DataType, DeviceType, 4> {
   KOKKOS_INLINE_FUNCTION
   static void init(value_type &update) { update = 0; }
 
-  typedef Kokkos::View<DataType, Kokkos::LayoutLeft, execution_space> left_view;
-  typedef Kokkos::View<DataType, Kokkos::LayoutRight, execution_space>
-      right_view;
+  using left_view = Kokkos::View<DataType, Kokkos::LayoutLeft, execution_space>;
+  using right_view =
+      Kokkos::View<DataType, Kokkos::LayoutRight, execution_space>;
 
   left_view left;
   right_view right;
@@ -505,11 +505,11 @@ struct TestViewOperator_LeftAndRight<DataType, DeviceType, 4> {
 
 template <class DataType, class DeviceType>
 struct TestViewOperator_LeftAndRight<DataType, DeviceType, 3> {
-  typedef typename DeviceType::execution_space execution_space;
-  typedef typename DeviceType::memory_space memory_space;
-  typedef typename execution_space::size_type size_type;
+  using execution_space = typename DeviceType::execution_space;
+  using memory_space    = typename DeviceType::memory_space;
+  using size_type       = typename execution_space::size_type;
 
-  typedef int value_type;
+  using value_type = int;
 
   KOKKOS_INLINE_FUNCTION
   static void join(volatile value_type &update,
@@ -520,11 +520,11 @@ struct TestViewOperator_LeftAndRight<DataType, DeviceType, 3> {
   KOKKOS_INLINE_FUNCTION
   static void init(value_type &update) { update = 0; }
 
-  typedef Kokkos::View<DataType, Kokkos::LayoutLeft, execution_space> left_view;
-  typedef Kokkos::View<DataType, Kokkos::LayoutRight, execution_space>
-      right_view;
-  typedef Kokkos::View<DataType, Kokkos::LayoutStride, execution_space>
-      stride_view;
+  using left_view = Kokkos::View<DataType, Kokkos::LayoutLeft, execution_space>;
+  using right_view =
+      Kokkos::View<DataType, Kokkos::LayoutRight, execution_space>;
+  using stride_view =
+      Kokkos::View<DataType, Kokkos::LayoutStride, execution_space>;
 
   left_view left;
   right_view right;
@@ -586,32 +586,23 @@ struct TestViewOperator_LeftAndRight<DataType, DeviceType, 3> {
     for (unsigned i0 = 0; i0 < unsigned(left.extent(0)); ++i0)
       for (unsigned i1 = 0; i1 < unsigned(left.extent(1)); ++i1)
         for (unsigned i2 = 0; i2 < unsigned(left.extent(2)); ++i2) {
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-          if (&left(i0, i1, i2) != &left(i0, i1, i2, 0, 0, 0, 0, 0)) {
-            update |= 3;
-          }
-          if (&right(i0, i1, i2) != &right(i0, i1, i2, 0, 0, 0, 0, 0)) {
-            update |= 3;
-          }
-#else
           if (&left(i0, i1, i2) != &left.access(i0, i1, i2, 0, 0, 0, 0, 0)) {
             update |= 3;
           }
           if (&right(i0, i1, i2) != &right.access(i0, i1, i2, 0, 0, 0, 0, 0)) {
             update |= 3;
           }
-#endif
         }
   }
 };
 
 template <class DataType, class DeviceType>
 struct TestViewOperator_LeftAndRight<DataType, DeviceType, 2> {
-  typedef typename DeviceType::execution_space execution_space;
-  typedef typename DeviceType::memory_space memory_space;
-  typedef typename execution_space::size_type size_type;
+  using execution_space = typename DeviceType::execution_space;
+  using memory_space    = typename DeviceType::memory_space;
+  using size_type       = typename execution_space::size_type;
 
-  typedef int value_type;
+  using value_type = int;
 
   KOKKOS_INLINE_FUNCTION
   static void join(volatile value_type &update,
@@ -622,9 +613,9 @@ struct TestViewOperator_LeftAndRight<DataType, DeviceType, 2> {
   KOKKOS_INLINE_FUNCTION
   static void init(value_type &update) { update = 0; }
 
-  typedef Kokkos::View<DataType, Kokkos::LayoutLeft, execution_space> left_view;
-  typedef Kokkos::View<DataType, Kokkos::LayoutRight, execution_space>
-      right_view;
+  using left_view = Kokkos::View<DataType, Kokkos::LayoutLeft, execution_space>;
+  using right_view =
+      Kokkos::View<DataType, Kokkos::LayoutRight, execution_space>;
 
   left_view left;
   right_view right;
@@ -671,32 +662,23 @@ struct TestViewOperator_LeftAndRight<DataType, DeviceType, 2> {
 
     for (unsigned i0 = 0; i0 < unsigned(left.extent(0)); ++i0)
       for (unsigned i1 = 0; i1 < unsigned(left.extent(1)); ++i1) {
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-        if (&left(i0, i1) != &left(i0, i1, 0, 0, 0, 0, 0, 0)) {
-          update |= 3;
-        }
-        if (&right(i0, i1) != &right(i0, i1, 0, 0, 0, 0, 0, 0)) {
-          update |= 3;
-        }
-#else
         if (&left(i0, i1) != &left.access(i0, i1, 0, 0, 0, 0, 0, 0)) {
           update |= 3;
         }
         if (&right(i0, i1) != &right.access(i0, i1, 0, 0, 0, 0, 0, 0)) {
           update |= 3;
         }
-#endif
       }
   }
 };
 
 template <class DataType, class DeviceType>
 struct TestViewOperator_LeftAndRight<DataType, DeviceType, 1> {
-  typedef typename DeviceType::execution_space execution_space;
-  typedef typename DeviceType::memory_space memory_space;
-  typedef typename execution_space::size_type size_type;
+  using execution_space = typename DeviceType::execution_space;
+  using memory_space    = typename DeviceType::memory_space;
+  using size_type       = typename execution_space::size_type;
 
-  typedef int value_type;
+  using value_type = int;
 
   KOKKOS_INLINE_FUNCTION
   static void join(volatile value_type &update,
@@ -707,11 +689,11 @@ struct TestViewOperator_LeftAndRight<DataType, DeviceType, 1> {
   KOKKOS_INLINE_FUNCTION
   static void init(value_type &update) { update = 0; }
 
-  typedef Kokkos::View<DataType, Kokkos::LayoutLeft, execution_space> left_view;
-  typedef Kokkos::View<DataType, Kokkos::LayoutRight, execution_space>
-      right_view;
-  typedef Kokkos::View<DataType, Kokkos::LayoutStride, execution_space>
-      stride_view;
+  using left_view = Kokkos::View<DataType, Kokkos::LayoutLeft, execution_space>;
+  using right_view =
+      Kokkos::View<DataType, Kokkos::LayoutRight, execution_space>;
+  using stride_view =
+      Kokkos::View<DataType, Kokkos::LayoutStride, execution_space>;
 
   left_view left;
   right_view right;
@@ -741,21 +723,12 @@ struct TestViewOperator_LeftAndRight<DataType, DeviceType, 1> {
   KOKKOS_INLINE_FUNCTION
   void operator()(const size_type, value_type &update) const {
     for (unsigned i0 = 0; i0 < unsigned(left.extent(0)); ++i0) {
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-      if (&left(i0) != &left(i0, 0, 0, 0, 0, 0, 0, 0)) {
-        update |= 3;
-      }
-      if (&right(i0) != &right(i0, 0, 0, 0, 0, 0, 0, 0)) {
-        update |= 3;
-      }
-#else
       if (&left(i0) != &left.access(i0, 0, 0, 0, 0, 0, 0, 0)) {
         update |= 3;
       }
       if (&right(i0) != &right.access(i0, 0, 0, 0, 0, 0, 0, 0)) {
         update |= 3;
       }
-#endif
       if (&left(i0) != &left_stride(i0)) {
         update |= 4;
       }
@@ -841,11 +814,64 @@ struct TestViewMirror {
     ASSERT_EQ(a_org(5), a_h3(5));
   }
 
+  template <typename View>
+  static typename View::const_type view_const_cast(View const &v) {
+    return v;
+  }
+
+  static void test_allocated() {
+    using ExecutionSpace = typename DeviceType::execution_space;
+    using dynamic_view   = Kokkos::View<int *, ExecutionSpace>;
+    using static_view    = Kokkos::View<int[5], ExecutionSpace>;
+    using unmanaged_view =
+        Kokkos::View<int *, ExecutionSpace,
+                     Kokkos::MemoryTraits<Kokkos::Unmanaged> >;
+    int const N = 100;
+
+    dynamic_view d1;
+    static_view s1;
+    unmanaged_view u1;
+    ASSERT_FALSE(d1.is_allocated());
+    ASSERT_FALSE(s1.is_allocated());
+    ASSERT_FALSE(u1.is_allocated());
+
+    d1 = dynamic_view("d1", N);
+    dynamic_view d2(d1);
+    dynamic_view d3("d3", N);
+    ASSERT_TRUE(d1.is_allocated());
+    ASSERT_TRUE(d2.is_allocated());
+    ASSERT_TRUE(d3.is_allocated());
+
+    s1 = static_view("s1");
+    static_view s2(s1);
+    static_view s3("s3");
+    ASSERT_TRUE(s1.is_allocated());
+    ASSERT_TRUE(s2.is_allocated());
+    ASSERT_TRUE(s3.is_allocated());
+
+    u1 = unmanaged_view(d1.data(), N);
+    unmanaged_view u2(u1);
+    unmanaged_view u3(d1.data(), N);
+    ASSERT_TRUE(u1.is_allocated());
+    ASSERT_TRUE(u2.is_allocated());
+    ASSERT_TRUE(u3.is_allocated());
+  }
+
+  static void test_mirror_copy_const_data_type() {
+    using ExecutionSpace = typename DeviceType::execution_space;
+    int const N          = 100;
+    Kokkos::View<int *, ExecutionSpace> v("v", N);
+    Kokkos::deep_copy(v, 255);
+    auto v_m1 = Kokkos::create_mirror_view_and_copy(
+        Kokkos::DefaultHostExecutionSpace(), view_const_cast(v));
+    auto v_m2 = Kokkos::create_mirror_view_and_copy(ExecutionSpace(),
+                                                    view_const_cast(v));
+  }
+
   template <class MemoryTraits, class Space>
   struct CopyUnInit {
-    typedef typename Kokkos::Impl::MirrorViewType<
-        Space, double *, Layout, Kokkos::HostSpace, MemoryTraits>::view_type
-        mirror_view_type;
+    using mirror_view_type = typename Kokkos::Impl::MirrorViewType<
+        Space, double *, Layout, Kokkos::HostSpace, MemoryTraits>::view_type;
 
     mirror_view_type a_d;
 
@@ -896,6 +922,8 @@ struct TestViewMirror {
     test_mirror_view<Kokkos::MemoryTraits<Kokkos::Unmanaged> >();
     test_mirror_copy<Kokkos::MemoryTraits<0> >();
     test_mirror_copy<Kokkos::MemoryTraits<Kokkos::Unmanaged> >();
+    test_mirror_copy_const_data_type();
+    test_allocated();
     test_mirror_no_initialize<Kokkos::MemoryTraits<0> >();
     test_mirror_no_initialize<Kokkos::MemoryTraits<Kokkos::Unmanaged> >();
   }
@@ -906,21 +934,19 @@ struct TestViewMirror {
 template <typename T, class DeviceType>
 class TestViewAPI {
  public:
-  typedef DeviceType device;
+  using device = DeviceType;
 
   enum { N0 = 1000, N1 = 3, N2 = 5, N3 = 7 };
 
-  typedef Kokkos::View<T, device> dView0;
-  typedef Kokkos::View<T *, device> dView1;
-  typedef Kokkos::View<T * [N1], device> dView2;
-  typedef Kokkos::View<T * [N1][N2], device> dView3;
-  typedef Kokkos::View<T * [N1][N2][N3], device> dView4;
-  typedef Kokkos::View<const T * [N1][N2][N3], device> const_dView4;
-  typedef Kokkos::View<T ****, device, Kokkos::MemoryUnmanaged>
-      dView4_unmanaged;
-  typedef typename dView0::host_mirror_space host;
-
-  TestViewAPI() {}
+  using dView0       = Kokkos::View<T, device>;
+  using dView1       = Kokkos::View<T *, device>;
+  using dView2       = Kokkos::View<T * [N1], device>;
+  using dView3       = Kokkos::View<T * [N1][N2], device>;
+  using dView4       = Kokkos::View<T * [N1][N2][N3], device>;
+  using const_dView4 = Kokkos::View<const T * [N1][N2][N3], device>;
+  using dView4_unmanaged =
+      Kokkos::View<T ****, device, Kokkos::MemoryUnmanaged>;
+  using host = typename dView0::host_mirror_space;
 
   static void run_test_view_operator_a() {
     {
@@ -959,8 +985,8 @@ class TestViewAPI {
   }
 
   static void run_test_mirror() {
-    typedef Kokkos::View<int, host> view_type;
-    typedef typename view_type::HostMirror mirror_type;
+    using view_type   = Kokkos::View<int, host>;
+    using mirror_type = typename view_type::HostMirror;
 
     static_assert(std::is_same<typename view_type::memory_space,
                                typename mirror_type::memory_space>::value,
@@ -976,7 +1002,7 @@ class TestViewAPI {
   }
 
   static void run_test_scalar() {
-    typedef typename dView0::HostMirror hView0;
+    using hView0 = typename dView0::HostMirror;
 
     dView0 dx, dy;
     hView0 hx, hy;
@@ -999,16 +1025,16 @@ class TestViewAPI {
 
   static void run_test() {
     // mfh 14 Feb 2014: This test doesn't actually create instances of
-    // these types.  In order to avoid "declared but unused typedef"
+    // these types.  In order to avoid "unused type alias"
     // warnings, we declare empty instances of these types, with the
     // usual "(void)" marker to avoid compiler warnings for unused
     // variables.
 
-    typedef typename dView0::HostMirror hView0;
-    typedef typename dView1::HostMirror hView1;
-    typedef typename dView2::HostMirror hView2;
-    typedef typename dView3::HostMirror hView3;
-    typedef typename dView4::HostMirror hView4;
+    using hView0 = typename dView0::HostMirror;
+    using hView1 = typename dView1::HostMirror;
+    using hView2 = typename dView2::HostMirror;
+    using hView3 = typename dView3::HostMirror;
+    using hView4 = typename dView4::HostMirror;
 
     {
       hView0 thing;
@@ -1034,12 +1060,12 @@ class TestViewAPI {
     dView4 dx, dy, dz;
     hView4 hx, hy, hz;
 
-    ASSERT_TRUE(dx.data() == 0);
-    ASSERT_TRUE(dy.data() == 0);
-    ASSERT_TRUE(dz.data() == 0);
-    ASSERT_TRUE(hx.data() == 0);
-    ASSERT_TRUE(hy.data() == 0);
-    ASSERT_TRUE(hz.data() == 0);
+    ASSERT_TRUE(dx.data() == nullptr);
+    ASSERT_TRUE(dy.data() == nullptr);
+    ASSERT_TRUE(dz.data() == nullptr);
+    ASSERT_TRUE(hx.data() == nullptr);
+    ASSERT_TRUE(hy.data() == nullptr);
+    ASSERT_TRUE(hz.data() == nullptr);
     ASSERT_EQ(dx.extent(0), 0u);
     ASSERT_EQ(dy.extent(0), 0u);
     ASSERT_EQ(dz.extent(0), 0u);
@@ -1067,13 +1093,7 @@ class TestViewAPI {
     {
       // Destruction of this view should be harmless.
 
-      const_dView4 unmanaged_from_ptr_const_dx(dx.data(), dx.extent(0)
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-                                                              ,
-                                               dx.extent(1), dx.extent(2),
-                                               dx.extent(3)
-#endif
-      );
+      const_dView4 unmanaged_from_ptr_const_dx(dx.data(), dx.extent(0));
     }
 
     const_dView4 const_dx = dx;
@@ -1096,11 +1116,11 @@ class TestViewAPI {
 
     ASSERT_EQ(dx.use_count(), size_t(2));
 
-    ASSERT_FALSE(dx.data() == 0);
-    ASSERT_FALSE(const_dx.data() == 0);
-    ASSERT_FALSE(unmanaged_dx.data() == 0);
-    ASSERT_FALSE(unmanaged_from_ptr_dx.data() == 0);
-    ASSERT_FALSE(dy.data() == 0);
+    ASSERT_FALSE(dx.data() == nullptr);
+    ASSERT_FALSE(const_dx.data() == nullptr);
+    ASSERT_FALSE(unmanaged_dx.data() == nullptr);
+    ASSERT_FALSE(unmanaged_from_ptr_dx.data() == nullptr);
+    ASSERT_FALSE(dy.data() == nullptr);
     ASSERT_NE(dx, dy);
 
     ASSERT_EQ(dx.extent(0), unsigned(N0));
@@ -1125,6 +1145,8 @@ class TestViewAPI {
     // T v2 = hx( 0, 0 ); // Generates compile error as intended.
     // hx( 0, 0 ) = v2;   // Generates compile error as intended.
 
+    // FIXME_SYCL requires MDRange policy
+#ifndef KOKKOS_ENABLE_SYCL
     // Testing with asynchronous deep copy with respect to device
     {
       size_t count = 0;
@@ -1139,6 +1161,7 @@ class TestViewAPI {
       Kokkos::deep_copy(typename hView4::execution_space(), dx, hx);
       Kokkos::deep_copy(typename hView4::execution_space(), dy, dx);
       Kokkos::deep_copy(typename hView4::execution_space(), hy, dy);
+      typename dView4::execution_space().fence();
 
       for (size_t ip = 0; ip < N0; ++ip)
         for (size_t i1 = 0; i1 < N1; ++i1)
@@ -1149,6 +1172,7 @@ class TestViewAPI {
 
       Kokkos::deep_copy(typename hView4::execution_space(), dx, T(0));
       Kokkos::deep_copy(typename hView4::execution_space(), hx, dx);
+      typename dView4::execution_space().fence();
 
       for (size_t ip = 0; ip < N0; ++ip)
         for (size_t i1 = 0; i1 < N1; ++i1)
@@ -1172,6 +1196,7 @@ class TestViewAPI {
       Kokkos::deep_copy(typename dView4::execution_space(), dx, hx);
       Kokkos::deep_copy(typename dView4::execution_space(), dy, dx);
       Kokkos::deep_copy(typename dView4::execution_space(), hy, dy);
+      typename dView4::execution_space().fence();
 
       for (size_t ip = 0; ip < N0; ++ip)
         for (size_t i1 = 0; i1 < N1; ++i1)
@@ -1182,6 +1207,7 @@ class TestViewAPI {
 
       Kokkos::deep_copy(typename dView4::execution_space(), dx, T(0));
       Kokkos::deep_copy(typename dView4::execution_space(), hx, dx);
+      typename dView4::execution_space().fence();
 
       for (size_t ip = 0; ip < N0; ++ip)
         for (size_t i1 = 0; i1 < N1; ++i1)
@@ -1223,6 +1249,7 @@ class TestViewAPI {
               ASSERT_EQ(hx(ip, i1, i2, i3), T(0));
             }
     }
+#endif
 
     dz = dx;
     ASSERT_EQ(dx, dz);
@@ -1233,19 +1260,19 @@ class TestViewAPI {
     ASSERT_NE(dx, dz);
 
     dx = dView4();
-    ASSERT_TRUE(dx.data() == 0);
-    ASSERT_FALSE(dy.data() == 0);
-    ASSERT_FALSE(dz.data() == 0);
+    ASSERT_TRUE(dx.data() == nullptr);
+    ASSERT_FALSE(dy.data() == nullptr);
+    ASSERT_FALSE(dz.data() == nullptr);
 
     dy = dView4();
-    ASSERT_TRUE(dx.data() == 0);
-    ASSERT_TRUE(dy.data() == 0);
-    ASSERT_FALSE(dz.data() == 0);
+    ASSERT_TRUE(dx.data() == nullptr);
+    ASSERT_TRUE(dy.data() == nullptr);
+    ASSERT_FALSE(dz.data() == nullptr);
 
     dz = dView4();
-    ASSERT_TRUE(dx.data() == 0);
-    ASSERT_TRUE(dy.data() == 0);
-    ASSERT_TRUE(dz.data() == 0);
+    ASSERT_TRUE(dx.data() == nullptr);
+    ASSERT_TRUE(dy.data() == nullptr);
+    ASSERT_TRUE(dz.data() == nullptr);
   }
 
   static void run_test_deep_copy_empty() {
@@ -1275,7 +1302,7 @@ class TestViewAPI {
     }
   }
 
-  typedef T DataType[2];
+  using DataType = T[2];
 
   static void check_auto_conversion_to_const(
       const Kokkos::View<const DataType, device> &arg_const,
@@ -1284,10 +1311,10 @@ class TestViewAPI {
   }
 
   static void run_test_const() {
-    typedef Kokkos::View<DataType, device> typeX;
-    typedef Kokkos::View<const DataType, device> const_typeX;
-    typedef Kokkos::View<const DataType, device, Kokkos::MemoryRandomAccess>
-        const_typeR;
+    using typeX       = Kokkos::View<DataType, device>;
+    using const_typeX = Kokkos::View<const DataType, device>;
+    using const_typeR =
+        Kokkos::View<const DataType, device, Kokkos::MemoryRandomAccess>;
 
     typeX x("X");
     const_typeX xc = x;
@@ -1312,7 +1339,7 @@ class TestViewAPI {
   }
 
   static void run_test_subview() {
-    typedef Kokkos::View<const T, device> sView;
+    using sView = Kokkos::View<const T, device>;
 
     dView0 d0("d0");
     dView1 d1("d1", N0);
@@ -1328,13 +1355,13 @@ class TestViewAPI {
   }
 
   static void run_test_subview_strided() {
-    typedef Kokkos::View<int ****, Kokkos::LayoutLeft, host> view_left_4;
-    typedef Kokkos::View<int ****, Kokkos::LayoutRight, host> view_right_4;
-    typedef Kokkos::View<int **, Kokkos::LayoutLeft, host> view_left_2;
-    typedef Kokkos::View<int **, Kokkos::LayoutRight, host> view_right_2;
+    using view_left_4  = Kokkos::View<int ****, Kokkos::LayoutLeft, host>;
+    using view_right_4 = Kokkos::View<int ****, Kokkos::LayoutRight, host>;
+    using view_left_2  = Kokkos::View<int **, Kokkos::LayoutLeft, host>;
+    using view_right_2 = Kokkos::View<int **, Kokkos::LayoutRight, host>;
 
-    typedef Kokkos::View<int *, Kokkos::LayoutStride, host> view_stride_1;
-    typedef Kokkos::View<int **, Kokkos::LayoutStride, host> view_stride_2;
+    using view_stride_1 = Kokkos::View<int *, Kokkos::LayoutStride, host>;
+    using view_stride_2 = Kokkos::View<int **, Kokkos::LayoutStride, host>;
 
     view_left_2 xl2("xl2", 100, 200);
     view_right_2 xr2("xr2", 100, 200);
@@ -1373,18 +1400,18 @@ class TestViewAPI {
   static void run_test_vector() {
     static const unsigned Length = 1000, Count = 8;
 
-    typedef Kokkos::View<T *, Kokkos::LayoutLeft, host> vector_type;
-    typedef Kokkos::View<T **, Kokkos::LayoutLeft, host> multivector_type;
+    using vector_type      = Kokkos::View<T *, Kokkos::LayoutLeft, host>;
+    using multivector_type = Kokkos::View<T **, Kokkos::LayoutLeft, host>;
 
-    typedef Kokkos::View<T *, Kokkos::LayoutRight, host> vector_right_type;
-    typedef Kokkos::View<T **, Kokkos::LayoutRight, host>
-        multivector_right_type;
+    using vector_right_type = Kokkos::View<T *, Kokkos::LayoutRight, host>;
+    using multivector_right_type =
+        Kokkos::View<T **, Kokkos::LayoutRight, host>;
 
-    typedef Kokkos::View<const T *, Kokkos::LayoutRight, host>
-        const_vector_right_type;
-    typedef Kokkos::View<const T *, Kokkos::LayoutLeft, host> const_vector_type;
-    typedef Kokkos::View<const T **, Kokkos::LayoutLeft, host>
-        const_multivector_type;
+    using const_vector_right_type =
+        Kokkos::View<const T *, Kokkos::LayoutRight, host>;
+    using const_vector_type = Kokkos::View<const T *, Kokkos::LayoutLeft, host>;
+    using const_multivector_type =
+        Kokkos::View<const T **, Kokkos::LayoutLeft, host>;
 
     multivector_type mv = multivector_type("mv", Length, Count);
     multivector_right_type mv_right =
@@ -1450,6 +1477,17 @@ class TestViewAPI {
   }
 
   static void run_test_error() {
+#ifdef KOKKOS_ENABLE_OPENMPTARGET
+    if (std::is_same<typename dView1::memory_space,
+                     Kokkos::Experimental::OpenMPTargetSpace>::value)
+      return;
+#endif
+// FIXME_SYCL
+#ifdef KOKKOS_ENABLE_SYCL
+    if (std::is_same<typename dView1::memory_space,
+                     Kokkos::Experimental::SYCLDeviceUSMSpace>::value)
+      return;
+#endif
     auto alloc_size = std::numeric_limits<size_t>::max() - 42;
     try {
       auto should_always_fail = dView1("hello_world_failure", alloc_size);

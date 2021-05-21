@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -28,8 +28,8 @@ class RestartMPIIO  : protected Pointers {
 
   RestartMPIIO(class LAMMPS *);
   ~RestartMPIIO() {}
-  void openForRead(char *);
-  void openForWrite(char *);
+  void openForRead(const char *);
+  void openForWrite(const char *);
   void write(MPI_Offset, int, double *);
   void read(MPI_Offset, bigint, double *);
   void close();

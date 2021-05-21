@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -158,6 +158,7 @@ void PairGranHooke::compute(int eflag, int vflag)
 
         damp = meff*gamman*vnnr*rsqinv;
         ccel = kn*(radsum-r)*rinv - damp;
+        if (limit_damping && (ccel < 0.0)) ccel = 0.0;
 
         // relative velocities
 
@@ -299,6 +300,7 @@ double PairGranHooke::single(int i, int j, int /*itype*/, int /*jtype*/, double 
 
   damp = meff*gamman*vnnr*rsqinv;
   ccel = kn*(radsum-r)*rinv - damp;
+  if (limit_damping && (ccel < 0.0)) ccel = 0.0;
 
   // relative velocities
 

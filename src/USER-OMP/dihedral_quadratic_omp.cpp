@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -23,11 +23,13 @@
 #include "neighbor.h"
 #include "force.h"
 #include "update.h"
+#include "math_const.h"
 #include "error.h"
-#include "timer.h"
+
 
 #include "suffix.h"
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define TOLERANCE 0.05
 #define SMALL     0.001
@@ -218,6 +220,8 @@ void DihedralQuadraticOMP::eval(int nfrom, int nto, ThrData * const thr)
     siinv = 1.0/si;
 
     double dphi = phi-phi0[type];
+    if (dphi > MY_PI) dphi -= 2*MY_PI;
+    else if (dphi < -MY_PI) dphi += 2*MY_PI;
     p = k[type]*dphi;
     pd = - 2.0 * p * siinv;
     p = p * dphi;

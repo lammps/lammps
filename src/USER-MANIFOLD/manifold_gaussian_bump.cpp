@@ -1,7 +1,22 @@
+/* ----------------------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   https://lammps.sandia.gov/, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
+
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under
+   the GNU General Public License.
+
+   See the README file in the top-level LAMMPS directory.
+   ----------------------------------------------------------------------- */
+
 #include "manifold_gaussian_bump.h"
 
 #include "comm.h"
 #include "error.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace user_manifold;
@@ -67,7 +82,7 @@ public:
     double ff  = x(t) - xx;
     double ffp = xp(t);
     // double l   = 1.0 / ( 1 + res*res );
-    for( int i = 0; i < maxit; ++i ){
+    for (int i = 0; i < maxit; ++i) {
       t -= ff / ffp;
       ff  = x(t) - xx;
       ffp = xp(t);
@@ -134,7 +149,7 @@ public:
 // Manifold itself:
 manifold_gaussian_bump::manifold_gaussian_bump(class LAMMPS* lmp,
                                                int /*narg*/, char **/*arg*/)
-        : manifold(lmp), lut_z(NULL), lut_zp(NULL) {}
+        : manifold(lmp), lut_z(nullptr), lut_zp(nullptr) {}
 
 
 manifold_gaussian_bump::~manifold_gaussian_bump()
@@ -292,7 +307,7 @@ void manifold_gaussian_bump::make_lut()
   cubic_hermite pchip( lut_x0, lut_x1, f_at_rc, 0.0, fp_at_rc, 0.0, error );
 
   double xx = lut_x0;
-  for( int i = 0; i <= lut_Nbins; ++i ){
+  for (int i = 0; i <= lut_Nbins; ++i) {
     lut_z[i]  = pchip.y_from_x( xx );
     lut_zp[i] = pchip.yp_from_x( xx );
     xx += lut_dx;
@@ -353,7 +368,7 @@ void manifold_gaussian_bump::test_lut()
 
   FILE *fp = fopen( "test_lut_gaussian.dat", "w" );
   double dx = 0.1;
-  for( double xx = 0; xx < 20; xx += dx ){
+  for (double xx = 0; xx < 20; xx += dx) {
     x[0] = xx;
     x[1] = 0.0;
     x[2] = 0.0;

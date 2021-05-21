@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -105,12 +105,12 @@ class PairLJClass2CoulCutKokkos : public PairLJClass2CoulCut {
   double qqrd2e;
 
   void allocate();
-  friend class PairComputeFunctor<PairLJClass2CoulCutKokkos,FULL,true>;
-  friend class PairComputeFunctor<PairLJClass2CoulCutKokkos,HALF,true>;
-  friend class PairComputeFunctor<PairLJClass2CoulCutKokkos,HALFTHREAD,true>;
-  friend class PairComputeFunctor<PairLJClass2CoulCutKokkos,FULL,false>;
-  friend class PairComputeFunctor<PairLJClass2CoulCutKokkos,HALF,false>;
-  friend class PairComputeFunctor<PairLJClass2CoulCutKokkos,HALFTHREAD,false>;
+  friend struct PairComputeFunctor<PairLJClass2CoulCutKokkos,FULL,true>;
+  friend struct PairComputeFunctor<PairLJClass2CoulCutKokkos,HALF,true>;
+  friend struct PairComputeFunctor<PairLJClass2CoulCutKokkos,HALFTHREAD,true>;
+  friend struct PairComputeFunctor<PairLJClass2CoulCutKokkos,FULL,false>;
+  friend struct PairComputeFunctor<PairLJClass2CoulCutKokkos,HALF,false>;
+  friend struct PairComputeFunctor<PairLJClass2CoulCutKokkos,HALFTHREAD,false>;
   friend EV_FLOAT pair_compute_neighlist<PairLJClass2CoulCutKokkos,FULL,void>(PairLJClass2CoulCutKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairLJClass2CoulCutKokkos,HALF,void>(PairLJClass2CoulCutKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairLJClass2CoulCutKokkos,HALFTHREAD,void>(PairLJClass2CoulCutKokkos*,NeighListKokkos<DeviceType>*);

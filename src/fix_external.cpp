@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,12 +12,13 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_external.h"
-#include <cstring>
+
 #include "atom.h"
-#include "update.h"
-#include "memory.h"
 #include "error.h"
-#include "force.h"
+#include "memory.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -28,44 +29,45 @@ enum{PF_CALLBACK,PF_ARRAY};
 
 FixExternal::FixExternal(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  fexternal(NULL), caller_vector(NULL)
+  fexternal(nullptr), caller_vector(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix external command");
 
   scalar_flag = 1;
   global_freq = 1;
-  virial_flag = 1;
-  thermo_virial = 1;
   extscalar = 1;
+  energy_global_flag = energy_peratom_flag = 1;
+  virial_global_flag = virial_peratom_flag = 1;
+  thermo_energy = thermo_virial = 1;
 
   if (strcmp(arg[3],"pf/callback") == 0) {
     if (narg != 6) error->all(FLERR,"Illegal fix external command");
     mode = PF_CALLBACK;
-    ncall = force->inumeric(FLERR,arg[4]);
-    napply = force->inumeric(FLERR,arg[5]);
+    ncall = utils::inumeric(FLERR,arg[4],false,lmp);
+    napply = utils::inumeric(FLERR,arg[5],false,lmp);
     if (ncall <= 0 || napply <= 0)
       error->all(FLERR,"Illegal fix external command");
   } else if (strcmp(arg[3],"pf/array") == 0) {
     if (narg != 5) error->all(FLERR,"Illegal fix external command");
     mode = PF_ARRAY;
-    napply = force->inumeric(FLERR,arg[4]);
+    napply = utils::inumeric(FLERR,arg[4],false,lmp);
     if (napply <= 0) error->all(FLERR,"Illegal fix external command");
   } else error->all(FLERR,"Illegal fix external command");
 
-  callback = NULL;
+  callback = nullptr;
 
   // perform initial allocation of atom-based array
   // register with Atom class
 
   grow_arrays(atom->nmax);
-  atom->add_callback(0);
+  atom->add_callback(Atom::GROW);
 
   user_energy = 0.0;
 
   // optional vector of values provided by caller
   // vector_flag and size_vector are setup via set_vector_length()
 
-  caller_vector = NULL;
+  caller_vector = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -74,7 +76,7 @@ FixExternal::~FixExternal()
 {
   // unregister callbacks to this fix from Atom class
 
-  atom->delete_callback(id,0);
+  atom->delete_callback(id,Atom::GROW);
 
   memory->destroy(fexternal);
   delete [] caller_vector;
@@ -88,7 +90,6 @@ int FixExternal::setmask()
   if (mode == PF_CALLBACK || mode == PF_ARRAY) {
     mask |= PRE_REVERSE;
     mask |= POST_FORCE;
-    mask |= THERMO_ENERGY;
     mask |= MIN_POST_FORCE;
   }
   return mask;
@@ -98,7 +99,7 @@ int FixExternal::setmask()
 
 void FixExternal::init()
 {
-  if (mode == PF_CALLBACK && callback == NULL)
+  if (mode == PF_CALLBACK && callback == nullptr)
     error->all(FLERR,"Fix external callback function not set");
 }
 
@@ -194,7 +195,6 @@ void FixExternal::set_energy_global(double caller_energy)
 
 void FixExternal::set_virial_global(double *caller_virial)
 {
-  if (!evflag) return;
   if (!vflag_global) return;
 
   for (int i = 0; i < 6; i++)
@@ -222,7 +222,6 @@ void FixExternal::set_virial_peratom(double **caller_virial)
 {
   int i,j;
 
-  if (!evflag) return;
   if (!vflag_atom) return;
 
   int nlocal = atom->nlocal;

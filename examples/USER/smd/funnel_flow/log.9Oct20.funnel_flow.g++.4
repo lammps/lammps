@@ -1,0 +1,339 @@
+LAMMPS (9 Oct 2020)
+  using 1 OpenMP thread(s) per MPI task
+####################################################################################################
+#
+# ULSPH example: water flow through a complex geometry read from a .STL file
+#
+# The boundary dump file (see below) can be converted into VTK format using the conversion
+# tool dump2vtk_tris from the tools/smd directory.
+#
+# unit system: GPa / mm / ms
+#
+####################################################################################################
+
+####################################################################################################
+# MATERIAL PARAMETERS
+####################################################################################################
+variable        c0 equal 10.0 # speed of sound for fluid
+variable        rho equal 1.0e-6 # initial mass density
+variable        q1 equal 0.06 # standard artificial viscosity linear coefficient
+variable        q2 equal 0.0  # standard artificial viscosity quadratic coefficient
+variable        hg equal 0.0 # hourglass control coefficient
+variable        cp equal 1.0 # heat capacity of material -- not used here
+variable        K equal ${c0}*${rho}^2
+variable        K equal 10*${rho}^2
+variable        K equal 10*1e-06^2
+variable        contact_stiffness equal 0.1*${K}
+variable        contact_stiffness equal 0.1*1e-11
+
+####################################################################################################
+# INITIALIZE LAMMPS
+####################################################################################################
+dimension       3
+units           si
+boundary        f f f # simulation box boundaries
+atom_style      smd
+atom_modify	map array
+comm_modify     vel yes
+comm_style      tiled
+neigh_modify    every 10 delay 0 check yes exclude type 2 2 one 10000
+newton          off
+
+####################################################################################################
+# CREATE INITIAL GEOMETRY
+####################################################################################################
+variable        l0 equal 5.0 # lattice spacing for creating particles
+lattice         sc ${l0}
+lattice         sc 5
+Lattice spacing in x,y,z = 5.0000000 5.0000000 5.0000000
+region          box block -110 60 -30 220 -90 130 units box
+create_box      2 box
+Created orthogonal box = (-110.00000 -30.000000 -90.000000) to (60.000000 220.00000 130.00000)
+  1 by 2 by 2 MPI processor grid
+region          particles cylinder y 0 -30 47 135 200 units box
+create_atoms    1 region particles
+Created 3878 atoms
+  create_atoms CPU = 0.001 seconds
+group           water type 1
+3878 atoms in group water
+
+####################################################################################################
+# DISCRETIZATION PARAMETERS
+####################################################################################################
+variable        h equal 2.01*${l0} # SPH smoothing kernel radius
+variable        h equal 2.01*5 
+variable        vol_one equal ${l0}^3 # volume of one particle -- assuming unit thickness
+variable        vol_one equal 5^3 
+variable        skin equal 0.1*${h} # Verlet list range
+variable        skin equal 0.1*10.05 
+neighbor        ${skin} bin
+neighbor        1.005 bin
+variable        cr equal ${l0}/2
+variable        cr equal 5/2
+set             group all smd/contact/radius ${cr}
+set             group all smd/contact/radius 2.5
+Setting atom values ...
+  3878 settings made for smd/contact/radius
+set             group all volume ${vol_one}
+set             group all volume 125
+Setting atom values ...
+  3878 settings made for volume
+set             group all smd/mass/density ${rho}
+set             group all smd/mass/density 1e-06
+Setting atom values ...
+  3878 settings made for smd/mass/density
+set             group all diameter ${h} # set SPH kernel radius
+set             group all diameter 10.05 
+Setting atom values ...
+  3878 settings made for diameter
+
+####################################################################################################
+# DEFINE GRAVITY BOUNDARY CONDITION
+####################################################################################################
+fix             gfix all gravity 0.01 vector 0.0 -1. 0.0
+
+####################################################################################################
+# INTERACTION PHYSICS / MATERIAL MODEL
+# We use polynomial EOS for the pressure and the Johnson Cook strength model
+# An integration point fails (cannot support tension anymore) if the plastic strain exceeds 0.5.
+####################################################################################################
+pair_style      hybrid/overlay smd/tri_surface 1.0                 smd/ulsph *DENSITY_CONTINUITY *VELOCITY_GRADIENT *NO_GRADIENT_CORRECTION
+pair_coeff      1 1 smd/ulsph *COMMON ${rho} ${c0} ${q1} ${cp} ${hg}                 *EOS_TAIT 2                 *END
+pair_coeff      1 1 smd/ulsph *COMMON 1e-06 ${c0} ${q1} ${cp} ${hg}                 *EOS_TAIT 2                 *END
+pair_coeff      1 1 smd/ulsph *COMMON 1e-06 10 ${q1} ${cp} ${hg}                 *EOS_TAIT 2                 *END
+pair_coeff      1 1 smd/ulsph *COMMON 1e-06 10 0.06 ${cp} ${hg}                 *EOS_TAIT 2                 *END
+pair_coeff      1 1 smd/ulsph *COMMON 1e-06 10 0.06 1 ${hg}                 *EOS_TAIT 2                 *END
+pair_coeff      1 1 smd/ulsph *COMMON 1e-06 10 0.06 1 0                 *EOS_TAIT 2                 *END
+pair_coeff      2 2 none
+pair_coeff      1 2 smd/tri_surface ${contact_stiffness}
+pair_coeff      1 2 smd/tri_surface 1e-12
+
+####################################################################################################
+# LOAD STL SURFACE
+####################################################################################################
+fix             stl_surface_fix all smd/wall_surface boundary.stl 2 65535
+run             0 # This is important! Always run for 0 timesteps directly after loading STL file!
+Neighbor list info ...
+  update every 10 steps, delay 0 steps, check yes
+  max neighbors/atom: 10000, page size: 100000
+  master list distance cutoff = 11.055
+  ghost atom cutoff = 11.055
+  binsize = 5.5275, bins = 31 46 40
+  3 neighbor lists, perpetual/occasional/extra = 3 0 0
+  (1) pair smd/tri_surface, perpetual, skip from (3)
+      attributes: half, newton off, size
+      pair build: skip/half/size
+      stencil: none
+      bin: none
+  (2) pair smd/ulsph, perpetual, skip from (3)
+      attributes: half, newton off, size
+      pair build: skip/half/size
+      stencil: none
+      bin: none
+  (3) neighbor class addition, perpetual
+      attributes: half, newton off, size
+      pair build: half/size/bin/newtoff
+      stencil: half/bin/3d/newtoff
+      bin: standard
+  scanning triangle pairs ...
+... fix smd/wall_surface finished reading triangulated surface
+fix smd/wall_surface created 9472 atoms
+>>========>>========>>========>>========>>========>>========>>========>>========
+Per MPI rank memory allocation (min/avg/max) = 9.998 | 10.04 | 10.17 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0            0            0            0            0            0 
+Loop time of 1.97887e-05 on 4 procs for 0 steps with 13350 atoms
+
+103.6% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0          | 0          | 0          |   0.0 |  0.00
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0          | 0          | 0          |   0.0 |  0.00
+Output  | 0          | 0          | 0          |   0.0 |  0.00
+Modify  | 0          | 0          | 0          |   0.0 |  0.00
+Other   |            | 1.979e-05  |            |       |100.00
+
+Nlocal:        3337.50 ave        6452 max         836 min
+Histogram: 1 0 0 1 1 0 0 0 0 1
+Nghost:        0.00000 ave           0 max           0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:        0.00000 ave           0 max           0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 0
+Ave neighs/atom = 0.0000000
+Neighbor list builds = 0
+Dangerous builds = 0
+group           surface type 2
+9472 atoms in group surface
+
+####################################################################################################
+# TIME INTEGRATION
+####################################################################################################
+fix             force_fix surface setforce 0 0 0
+fix             dtfix all smd/adjust_dt 0.1 # dynamically adjust time increment every step
+fix             integration_fix all smd/integrate_ulsph adjust_radius 1.01 10 15
+
+####################################################################################################
+# SPECIFY TRAJECTORY OUTPUT
+####################################################################################################
+variable        dumpFreq equal 100
+compute         rho all smd/rho
+compute         nn all smd/ulsph/num/neighs # number of neighbors for each particle
+compute         contact_radius all smd/contact/radius
+compute         surface_coords surface smd/triangle/vertices
+
+
+dump            dump_id water custom ${dumpFreq} dump.LAMMPS id type x y z vx vy vz                 c_rho c_nn c_contact_radius proc
+dump            dump_id water custom 100 dump.LAMMPS id type x y z vx vy vz                 c_rho c_nn c_contact_radius proc
+dump_modify     dump_id first yes
+
+dump            surf_dump surface custom 999999999 surface.LAMMPS id type mol x y z                    c_surface_coords[1] c_surface_coords[2] c_surface_coords[3]                            c_surface_coords[4] c_surface_coords[5] c_surface_coords[6]                            c_surface_coords[7] c_surface_coords[8] c_surface_coords[9]
+dump_modify 	surf_dump first yes
+
+####################################################################################################
+# STATUS OUTPUT
+####################################################################################################
+compute         eint all smd/internal/energy
+compute         alleint all reduce sum c_eint
+variable        etot equal pe+ke+c_alleint+f_gfix # total energy of the system
+thermo          100
+thermo_style    custom step dt f_dtfix pe ke v_etot
+
+####################################################################################################
+# RUN SIMULATION
+####################################################################################################
+balance          1.1 rcb
+Balancing ...
+Neighbor list info ...
+  update every 10 steps, delay 0 steps, check yes
+  max neighbors/atom: 10000, page size: 100000
+  master list distance cutoff = 11.055
+  ghost atom cutoff = 11.055
+  binsize = 5.5275, bins = 31 46 40
+  3 neighbor lists, perpetual/occasional/extra = 3 0 0
+  (1) pair smd/tri_surface, perpetual, skip from (3)
+      attributes: half, newton off, size
+      pair build: skip/half/size
+      stencil: none
+      bin: none
+  (2) pair smd/ulsph, perpetual, skip from (3)
+      attributes: half, newton off, size
+      pair build: skip/half/size
+      stencil: none
+      bin: none
+  (3) neighbor class addition, perpetual
+      attributes: half, newton off, size
+      pair build: half/size/bin/newtoff
+      stencil: half/bin/3d/newtoff
+      bin: standard
+ rebalancing time: 0.004 seconds
+  iteration count = 0
+  initial/final maximal load/proc = 6452.0000 3338.0000
+  initial/final imbalance factor  = 1.9331835 1.0001498
+fix              balance_fix all balance 200 1.1 rcb
+run              5000
+Neighbor list info ...
+  update every 10 steps, delay 0 steps, check yes
+  max neighbors/atom: 10000, page size: 100000
+  master list distance cutoff = 11.055
+  ghost atom cutoff = 11.055
+  binsize = 5.5275, bins = 31 46 40
+  3 neighbor lists, perpetual/occasional/extra = 3 0 0
+  (1) pair smd/tri_surface, perpetual, skip from (3)
+      attributes: half, newton off, size
+      pair build: skip/half/size
+      stencil: none
+      bin: none
+  (2) pair smd/ulsph, perpetual, skip from (3)
+      attributes: half, newton off, size
+      pair build: skip/half/size
+      stencil: none
+      bin: none
+  (3) neighbor class addition, perpetual
+      attributes: half, newton off, size
+      pair build: half/size/bin/newtoff
+      stencil: half/bin/3d/newtoff
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 13.83 | 14.29 | 14.77 Mbytes
+Step Dt f_dtfix PotEng KinEng v_etot 
+       0        1e-16            0            0            0    7373.6969 
+     100  0.070241957    7.4813056            0 0.0013565713    7373.6969 
+     200  0.070241957    14.505501            0 0.0050998019    7373.6969 
+     300  0.070241957    21.529697            0  0.011234756    7373.6969 
+     400  0.070241957    28.553893            0  0.019761435    7373.6969 
+     500  0.068651003    35.521974 3.3398251e-17  0.030501227    7373.6969 
+     600  0.063584088    42.017746 5.0216152e-21  0.042318622    7373.6969 
+     700  0.063273268    48.360764 2.869923e-17  0.054475156     7373.697 
+     800  0.062596325    54.675638 1.914049e-16  0.061317608    7373.6964 
+     900  0.060956889    60.838664 1.364032e-16  0.059099685     7373.694 
+    1000  0.060500918    66.902834 7.7879913e-16  0.052025026    7373.6908 
+    1100  0.061006314    72.967816 8.8948385e-16  0.043977414    7373.6885 
+    1200  0.061106341     79.06191 1.2108608e-16  0.039591388    7373.6873 
+    1300  0.061575846    85.205075 4.3893276e-17  0.035450911    7373.6871 
+    1400  0.061574282    91.365864 1.1854613e-17  0.033362633     7373.687 
+    1500  0.061497834    97.533763 4.6436735e-17   0.03269109    7373.6869 
+    1600  0.061595974    103.70193 1.6602311e-17  0.033272424    7373.6869 
+    1700  0.061563704     109.8721 2.2645323e-16  0.034038708    7373.6867 
+    1800   0.06059329    116.01016 6.1435625e-17  0.034550695    7373.6864 
+    1900  0.061467912    122.16549 4.8739314e-16   0.03488115     7373.686 
+    2000  0.061562246    128.31107 3.5375613e-17  0.035132319    7373.6855 
+    2100  0.061653756    134.48162 1.0915664e-16  0.035417433    7373.6852 
+    2200  0.061651709    140.64731 8.9201563e-17  0.035984037    7373.6849 
+    2300  0.061689901    146.82024 9.6641953e-18  0.036737453    7373.6847 
+    2400  0.061831964    152.95634 5.2029274e-17  0.037566234    7373.6844 
+    2500  0.061545083    159.11879 1.0704726e-16  0.038487643    7373.6842 
+    2600  0.061718412    165.27525 2.209067e-17  0.039629082     7373.684 
+    2700  0.061888857    171.43147 1.4203448e-16  0.040587002    7373.6837 
+    2800  0.060734321    177.58356 1.6497386e-17  0.041695514    7373.6835 
+    2900  0.061593696     183.7246 2.6908238e-16   0.04260728    7373.6832 
+    3000  0.061359875    189.87309 7.6944155e-17  0.043473709    7373.6829 
+    3100  0.061757906    196.04331 1.3564873e-17  0.044354763    7373.6827 
+    3200  0.061673522    202.20766 8.5854387e-17  0.045594109    7373.6824 
+    3300  0.061806603    208.37498 4.9782287e-17  0.046679326    7373.6822 
+    3400  0.061456829    214.56062 1.6007817e-16  0.047908363    7373.6819 
+    3500  0.061670152    220.72476 1.2073319e-16  0.049083832    7373.6817 
+    3600  0.061694334    226.89174 5.9467418e-17  0.050344595    7373.6815 
+    3700  0.061950743    233.06903 2.7093066e-16   0.05171424    7373.6812 
+    3800  0.061870535    239.21714 3.0291981e-17  0.053188154     7373.681 
+    3900  0.061445215    245.37229 1.3950612e-16  0.054616384    7373.6808 
+    4000  0.061577186    251.51495 1.5979833e-16  0.055992071    7373.6806 
+    4100  0.061641242    257.67172 7.9579236e-18  0.057167166    7373.6804 
+    4200  0.061600879    263.82304 1.6463047e-17  0.058701188    7373.6802 
+    4300  0.061689229    269.98083 1.2308103e-16   0.05994652      7373.68 
+    4400  0.061755315    276.14174 7.6188916e-17   0.06118267    7373.6798 
+    4500  0.061268331    282.29296 5.5093198e-16  0.062460243    7373.6796 
+    4600  0.061568693    288.44732 4.6189329e-17  0.063787422    7373.6794 
+    4700  0.061343927    294.60421 6.4688633e-17  0.065177329    7373.6793 
+    4800  0.061421519    300.75275 1.2254993e-16  0.066908319    7373.6792 
+    4900  0.061604108    306.88136 4.0399992e-17  0.068693568     7373.679 
+    5000  0.061805479    313.02216 1.3760324e-16   0.07042394    7373.6789 
+Loop time of 32.2245 on 4 procs for 5000 steps with 13350 atoms
+
+60.8% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 18.107     | 19.756     | 21.776     |  37.4 | 61.31
+Neigh   | 1.5053     | 2.2024     | 2.872      |  36.3 |  6.83
+Comm    | 1.874      | 2.5067     | 3.064      |  26.8 |  7.78
+Output  | 0.59172    | 0.61037    | 0.65691    |   3.5 |  1.89
+Modify  | 3.5805     | 6.8465     | 9.8575     |  96.2 | 21.25
+Other   |            | 0.3025     |            |       |  0.94
+
+Nlocal:        3337.50 ave        3580 max        3072 min
+Histogram: 1 1 0 0 0 0 0 0 0 2
+Nghost:        853.250 ave        1111 max         624 min
+Histogram: 1 0 0 1 0 1 0 0 0 1
+Neighs:        51525.8 ave       67469 max       37698 min
+Histogram: 1 0 1 0 0 1 0 0 0 1
+
+Total # of neighbors = 206103
+Ave neighs/atom = 15.438427
+Neighbor list builds = 455
+Dangerous builds = 414
+Total wall time: 0:00:32

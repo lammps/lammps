@@ -25,8 +25,11 @@ BaseDipoleT::BaseDipole() : _compiled(false), _max_bytes(0) {
   device=&global_device;
   ans=new Answer<numtyp,acctyp>();
   nbor=new Neighbor();
-  pair_program=NULL;
-  ucl_device=NULL;
+  pair_program=nullptr;
+  ucl_device=nullptr;
+  #if defined(LAL_OCL_EV_JIT)
+  pair_program_noev=nullptr;
+  #endif
 }
 
 template <class numtyp, class acctyp>
@@ -36,6 +39,10 @@ BaseDipoleT::~BaseDipole() {
   k_pair_fast.clear();
   k_pair.clear();
   if (pair_program) delete pair_program;
+  #if defined(LAL_OCL_EV_JIT)
+  k_pair_noev.clear();
+  if (pair_program_noev) delete pair_program_noev;
+  #endif
 }
 
 template <class numtyp, class acctyp>
@@ -65,18 +72,8 @@ int BaseDipoleT::init_atomic(const int nlocal, const int nall,
     _gpu_host=1;
 
   _threads_per_atom=device->threads_per_charge();
-  if (_threads_per_atom>1 && gpu_nbor==0) {
-    nbor->packing(true);
-    _nbor_data=&(nbor->dev_packed);
-  } else
-    _nbor_data=&(nbor->dev_nbor);
 
   int success=device->init(*ans,true,true,nlocal,nall,maxspecial);
-  if (success!=0)
-    return success;
-
-  success = device->init_nbor(nbor,nlocal,host_nlocal,nall,maxspecial,_gpu_host,
-                  max_nbors,cell_size,false,_threads_per_atom);
   if (success!=0)
     return success;
 
@@ -86,8 +83,18 @@ int BaseDipoleT::init_atomic(const int nlocal, const int nall,
   atom=&device->atom;
 
   _block_size=device->pair_block_size();
-  _block_bio_size=device->block_bio_pair();
   compile_kernels(*ucl_device,pair_program,k_name);
+
+  if (_threads_per_atom>1 && gpu_nbor==0) {
+    nbor->packing(true);
+    _nbor_data=&(nbor->dev_packed);
+  } else
+    _nbor_data=&(nbor->dev_nbor);
+
+  success = device->init_nbor(nbor,nlocal,host_nlocal,nall,maxspecial,_gpu_host,
+                  max_nbors,cell_size,false,_threads_per_atom);
+  if (success!=0)
+    return success;
 
   // Initialize host-device load balancer
   hd_balancer.init(device,gpu_nbor,gpu_split);
@@ -139,7 +146,7 @@ int * BaseDipoleT::reset_nbors(const int nall, const int inum, int *ilist,
   resize_atom(inum,nall,success);
   resize_local(inum,mn,success);
   if (!success)
-    return NULL;
+    return nullptr;
 
   nbor->get_host(inum,ilist,numj,firstneigh,block_size());
 
@@ -168,8 +175,8 @@ inline void BaseDipoleT::build_nbor_list(const int inum, const int host_inum,
   atom->cast_copy_x(host_x,host_type);
 
   int mn;
-  nbor->build_nbor_list(host_x, inum, host_inum, nall, *atom, sublo, subhi, tag,
-                        nspecial, special, success, mn);
+  nbor->build_nbor_list(host_x, inum, host_inum, nall, *atom, sublo, subhi,
+                        tag, nspecial, special, success, mn, ans->error_flag);
 
   double bytes=ans->gpu_bytes()+nbor->gpu_bytes();
   if (bytes>_max_an_bytes)
@@ -183,12 +190,26 @@ template <class numtyp, class acctyp>
 void BaseDipoleT::compute(const int f_ago, const int inum_full,
                           const int nall, double **host_x, int *host_type,
                           int *ilist, int *numj, int **firstneigh,
-                          const bool eflag, const bool vflag,
+                          const bool eflag_in, const bool vflag_in,
                           const bool eatom, const bool vatom,
                           int &host_start, const double cpu_time,
                           bool &success, double *host_q, double **host_mu,
                           const int nlocal, double *boxlo, double *prd) {
   acc_timers();
+  int eflag, vflag;
+  if (eatom) eflag=2;
+  else if (eflag_in) eflag=1;
+  else eflag=0;
+  if (vatom) vflag=2;
+  else if (vflag_in) vflag=1;
+  else vflag=0;
+
+  #ifdef LAL_NO_BLOCK_REDUCE
+  if (eflag) eflag=2;
+  if (vflag) vflag=2;
+  #endif
+
+  set_kernel(eflag,vflag);
   if (inum_full==0) {
     host_start=0;
     // Make sure textures are correct if realloc by a different hybrid style
@@ -219,8 +240,8 @@ void BaseDipoleT::compute(const int f_ago, const int inum_full,
   device->precompute(f_ago,nlocal,nall,host_x,host_type,success,host_q,
                      boxlo, prd);
 
-  loop(eflag,vflag);
-  ans->copy_answers(eflag,vflag,eatom,vatom,ilist);
+  const int red_blocks=loop(eflag,vflag);
+  ans->copy_answers(eflag_in,vflag_in,eatom,vatom,ilist,red_blocks);
   device->add_ans_object(ans);
   hd_balancer.stop_timer();
 }
@@ -232,20 +253,34 @@ template <class numtyp, class acctyp>
 int** BaseDipoleT::compute(const int ago, const int inum_full,
                            const int nall, double **host_x, int *host_type,
                            double *sublo, double *subhi, tagint *tag,
-                           int **nspecial, tagint **special, const bool eflag,
-                           const bool vflag, const bool eatom,
-                           const bool vatom, int &host_start,
-                           int **ilist, int **jnum,
+                           int **nspecial, tagint **special,
+                           const bool eflag_in, const bool vflag_in,
+                           const bool eatom, const bool vatom,
+                           int &host_start, int **ilist, int **jnum,
                            const double cpu_time, bool &success,
                            double *host_q, double **host_mu,
                            double *boxlo, double *prd) {
   acc_timers();
+  int eflag, vflag;
+  if (eatom) eflag=2;
+  else if (eflag_in) eflag=1;
+  else eflag=0;
+  if (vatom) vflag=2;
+  else if (vflag_in) vflag=1;
+  else vflag=0;
+
+  #ifdef LAL_NO_BLOCK_REDUCE
+  if (eflag) eflag=2;
+  if (vflag) vflag=2;
+  #endif
+
+  set_kernel(eflag,vflag);
   if (inum_full==0) {
     host_start=0;
     // Make sure textures are correct if realloc by a different hybrid style
     resize_atom(0,nall,success);
     zero_timers();
-    return NULL;
+    return nullptr;
   }
 
   hd_balancer.balance(cpu_time);
@@ -258,7 +293,7 @@ int** BaseDipoleT::compute(const int ago, const int inum_full,
     build_nbor_list(inum, inum_full-inum, nall, host_x, host_type,
                     sublo, subhi, tag, nspecial, special, success);
     if (!success)
-      return NULL;
+      return nullptr;
     atom->cast_q_data(host_q);
     atom->cast_quat_data(host_mu[0]);
     hd_balancer.start_timer();
@@ -277,8 +312,8 @@ int** BaseDipoleT::compute(const int ago, const int inum_full,
   device->precompute(ago,inum_full,nall,host_x,host_type,success,host_q,
                      boxlo, prd);
 
-  loop(eflag,vflag);
-  ans->copy_answers(eflag,vflag,eatom,vatom);
+  const int red_blocks=loop(eflag,vflag);
+  ans->copy_answers(eflag_in,vflag_in,eatom,vatom,red_blocks);
   device->add_ans_object(ans);
   hd_balancer.stop_timer();
 
@@ -300,14 +335,38 @@ void BaseDipoleT::compile_kernels(UCL_Device &dev, const void *pair_str,
   std::string s_fast=std::string(kname)+"_fast";
   if (pair_program) delete pair_program;
   pair_program=new UCL_Program(dev);
-  pair_program->load_string(pair_str,device->compile_string().c_str());
+  std::string oclstring = device->compile_string()+" -DEVFLAG=1";
+  pair_program->load_string(pair_str,oclstring.c_str(),nullptr,screen);
   k_pair_fast.set_function(*pair_program,s_fast.c_str());
   k_pair.set_function(*pair_program,kname);
   pos_tex.get_texture(*pair_program,"pos_tex");
   q_tex.get_texture(*pair_program,"q_tex");
   mu_tex.get_texture(*pair_program,"mu_tex");
 
+  #if defined(LAL_OCL_EV_JIT)
+  oclstring = device->compile_string()+" -DEVFLAG=0";
+  if (pair_program_noev) delete pair_program_noev;
+  pair_program_noev=new UCL_Program(dev);
+  pair_program_noev->load_string(pair_str,oclstring.c_str(),nullptr,screen);
+  k_pair_noev.set_function(*pair_program_noev,s_fast.c_str());
+  #else
+  k_pair_sel = &k_pair_fast;
+  #endif
+
   _compiled=true;
+
+  #if defined(USE_OPENCL) && (defined(CL_VERSION_2_1) || defined(CL_VERSION_3_0))
+  if (dev.has_subgroup_support()) {
+    size_t mx_subgroup_sz = k_pair_fast.max_subgroup_size(_block_size);
+    #if defined(LAL_OCL_EV_JIT)
+    mx_subgroup_sz = std::min(mx_subgroup_sz, k_pair_noev.max_subgroup_size(_block_size));
+    #endif
+    if (_threads_per_atom > mx_subgroup_sz)
+      _threads_per_atom = mx_subgroup_sz;
+    device->set_simd_size(mx_subgroup_sz);
+  }
+  #endif
+
 }
 
 template class BaseDipole<PRECISION,ACC_PRECISION>;

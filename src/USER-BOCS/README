@@ -1,7 +1,7 @@
-This user package implements the pressure correction to the barostat as 
+This user package implements the pressure correction to the barostat as
 outlined in:
 
-N. J. H. Dunn and W. G. Noid, "Bottom-up coarse-grained models that 
+N. J. H. Dunn and W. G. Noid, "Bottom-up coarse-grained models that
 accurately describe the structure, pressure, and compressibility of
 molecular liquids," J. Chem. Phys. 143, 243148 (2015).
 

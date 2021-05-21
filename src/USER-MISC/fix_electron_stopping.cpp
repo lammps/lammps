@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,21 +17,22 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_electron_stopping.h"
-#include <cmath>
-#include <cstring>
-#include "mpi.h"
+
 #include "atom.h"
-#include "update.h"
-#include "domain.h"
-#include "region.h"
-#include "force.h"
-#include "fix.h"
-#include "memory.h"
 #include "comm.h"
+#include "domain.h"
 #include "error.h"
-#include "neighbor.h"
+#include "fix.h"
+#include "force.h"
+#include "memory.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
+#include "neighbor.h"
+#include "region.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -57,7 +58,7 @@ FixElectronStopping::FixElectronStopping(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 5) error->all(FLERR,
       "Illegal fix electron/stopping command: too few arguments");
 
-  Ecut = force->numeric(FLERR, arg[3]);
+  Ecut = utils::numeric(FLERR, arg[3],false,lmp);
   if (Ecut <= 0.0) error->all(FLERR,
       "Illegal fix electron/stopping command: Ecut <= 0");
 
@@ -83,7 +84,7 @@ FixElectronStopping::FixElectronStopping(LAMMPS *lmp, int narg, char **arg) :
       minneighflag = true;
       if (iarg+2 > narg) error->all(FLERR,
           "Illegal fix electron/stopping command: minneigh number missing");
-      minneigh = force->inumeric(FLERR, arg[iarg+1]);
+      minneigh = utils::inumeric(FLERR, arg[iarg+1],false,lmp);
       if (minneigh < 0) error->all(FLERR,
           "Illegal fix electron/stopping command: minneigh < 0");
       iarg += 2;
@@ -240,8 +241,8 @@ void FixElectronStopping::read_table(const char *file)
 {
   char line[MAXLINE];
 
-  FILE *fp = force->open_potential(file);
-  if (fp == NULL) {
+  FILE *fp = utils::open_potential(file,lmp,nullptr);
+  if (fp == nullptr) {
     char str[128];
     snprintf(str, 128, "Cannot open stopping range table %s", file);
     error->one(FLERR, str);
@@ -251,21 +252,21 @@ void FixElectronStopping::read_table(const char *file)
 
   int l = 0;
   while (true) {
-    if (fgets(line, MAXLINE, fp) == NULL) break; // end of file
+    if (fgets(line, MAXLINE, fp) == nullptr) break; // end of file
     if (line[0] == '#') continue; // comment
 
     char *pch = strtok(line, " \t\n\r");
-    if (pch == NULL) continue; // blank line
+    if (pch == nullptr) continue; // blank line
 
     if (l >= maxlines) grow_table();
 
     int i = 0;
-    for ( ; i < ncol && pch != NULL; i++) {
-      elstop_ranges[i][l] = force->numeric(FLERR, pch);
-      pch = strtok(NULL, " \t\n\r");
+    for ( ; i < ncol && pch != nullptr; i++) {
+      elstop_ranges[i][l] = utils::numeric(FLERR, pch,false,lmp);
+      pch = strtok(nullptr, " \t\n\r");
     }
 
-    if (i != ncol || pch != NULL) // too short or too long
+    if (i != ncol || pch != nullptr) // too short or too long
       error->one(FLERR, "fix electron/stopping: Invalid table line");
 
     if (l >= 1 && elstop_ranges[0][l] <= elstop_ranges[0][l-1])

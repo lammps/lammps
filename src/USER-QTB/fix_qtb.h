@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -47,22 +47,23 @@ class FixQTB : public Fix {
 
  private:
   // qtb parameters
-  int counter_mu;                       // counter l and mu
-  double t_period, fric_coef;                   // friction coefficient
-  int seed;                                     // seed for the random number generator
-  double f_max;                                 // frequency cutoff
-  int N_f;                                      // number of frequency grid
-  double t_target;                      // target qtb temperature
+  int counter_mu;               // counter l and mu
+  double t_period, fric_coef;   // friction coefficient
+  int seed;                     // seed for the random number generator
+  double f_max;                 // frequency cutoff
+  int N_f;                      // number of frequency grid
+  double t_target;              // target qtb temperature
   char *id_temp;
   class Compute *temperature;
-  double h_timestep;                        // time step to update the random forces
-  int alpha;                            // number of time steps to update the random forces
-  class RanMars *random;                    // random number generator
-  double *gfactor1,*gfactor3;                   // factors of frictions and random forces
-  double *omega_H,*time_H;                  // H gives the desired power spectrum
-  double **random_array_0, **random_array_1, **random_array_2;  // random number arrays give independence between atoms and directions
+  double h_timestep;            // time step to update the random forces
+  int alpha;                    // number of time steps to update the random forces
+  class RanMars *random;        // random number generator
+  double *gfactor1,*gfactor3;   // factors of frictions and random forces
+  double *omega_H,*time_H;      // H gives the desired power spectrum
+  // random number arrays give independence between atoms and directions
+  double **random_array_0, **random_array_1, **random_array_2;
   int nlevels_respa;
-  double **fran, fsum[3], fsumall[3];               // random forces and their sums
+  double **fran, fsum[3], fsumall[3]; // random forces and their sums
 };
 
 }

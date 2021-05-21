@@ -1,14 +1,17 @@
 Applying patches
-================
+----------------
 
 It is easy to stay current with the most recent LAMMPS patch releases
 if you use git to track the LAMMPS development.  Instructions for
 how to stay current are on the
 :doc:`Download the LAMMPS source with git <Install_git>` page.
 
-If you prefer to download a tarball, as described on the :doc:`Install git <Install_tarball>` doc page, you can stay current by
+If you prefer to download a tarball, as described on the
+:doc:`tarball download <Install_tarball>` page, you can stay current by
 downloading "patch files" when new patch releases are made.  A link to
-a patch file is posted on the `bug and feature page <https://lammps.sandia.gov/bug.html>`_ of the LAMMPS website, along
+a patch file is posted on the
+`bug fixes and new feature page <https://lammps.sandia.gov/bug.html>`_
+of the LAMMPS website, along
 with a list of changed files and details about what is in the new patch
 release.  This page explains how to apply the patch file to your local
 LAMMPS directory.
@@ -40,24 +43,54 @@ up to date.
 * A list of updated files print out to the screen.  The -b switch
   creates backup files of your originals (e.g. src/force.cpp.orig), so
   you can manually undo the patch if something goes wrong.
-* Type the following from the src directory, to enforce consistency
-  between the src and package directories.  This is OK to do even if you
-  don't use one or more packages.  If you are applying several patches
-  successively, you only need to type this once at the end. The purge
-  command removes deprecated src files if any were removed by the patch
-  from package sub-directories.
 
-  .. code-block:: bash
+* Once you have updated your local files you need to re-build LAMMPS.
+  If you are applying several patches successively, you only need to
+  do the rebuild once at the end. How to do it depends on the build
+  system you are using.
 
-     $ make purge
-     $ make package-update
+  .. tabs::
 
-* Re-build LAMMPS via the "make" command.
+     .. tab:: CMake build
 
-.. warning::
+        Change to your build folder and type:
 
-   If you wish to edit/change a source file that is part of a package,
-   you should edit the version of the file inside the package folder in
-   src, and then re-install or update the package.  The version in the
-   src directory is merely a copy and will be wiped out when you type
-   "make package-update".
+        .. code-block:: bash
+
+           cmake . --build
+
+        CMake should auto-detect whether it needs to re-run the CMake
+        configuration step and otherwise redo the build for all files
+        that have been changed or files that depend on changed files.
+        In case some build options have been changed or renamed, you
+        may have to update those by running:
+
+        .. code-block:: bash
+
+           cmake .
+
+        and then rebuild.
+
+     .. tab:: Traditional make
+
+        Switch to the src directory and type:
+
+        .. code-block:: bash
+
+           $ make purge             # remove any deprecated src files
+           $ make package-update    # sync package files with src files
+           $ make foo               # re-build for your machine (mpi, serial, etc)
+
+        to enforce consistency of the source between the src folder
+        and package directories.  This is OK to do even if you don't
+        use any packages. The "make purge" command removes any deprecated
+        src files if they were removed by the patch from a package
+        sub-directory.
+
+        .. warning::
+
+           If you wish to edit/change a src file that is from a package,
+           you should edit the version of the file inside the package
+           sub-directory with src, then re-install the package.  The
+           version in the source directory is merely a copy and will be
+           wiped out if you type "make package-update".

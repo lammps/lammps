@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -38,7 +38,7 @@ enum{PHI,VARIABLE};
 
 ComputeDihedralLocal::ComputeDihedralLocal(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  bstyle(NULL), vvar(NULL), pstr(NULL), vstr(NULL), vlocal(NULL), alocal(NULL)
+  bstyle(nullptr), vvar(nullptr), pstr(nullptr), vstr(nullptr), vlocal(nullptr), alocal(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute dihedral/local command");
 
@@ -64,9 +64,7 @@ ComputeDihedralLocal::ComputeDihedralLocal(LAMMPS *lmp, int narg, char **arg) :
       bstyle[nvalues++] = PHI;
     } else if (strncmp(arg[iarg],"v_",2) == 0) {
       bstyle[nvalues++] = VARIABLE;
-      int n = strlen(arg[iarg]);
-      vstr[nvar] = new char[n];
-      strcpy(vstr[nvar],&arg[iarg][2]);
+      vstr[nvar] = utils::strdup(&arg[iarg][2]);
       nvar++;
     } else break;
   }
@@ -74,7 +72,7 @@ ComputeDihedralLocal::ComputeDihedralLocal(LAMMPS *lmp, int narg, char **arg) :
   // optional args
 
   setflag = 0;
-  pstr = NULL;
+  pstr = nullptr;
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"set") == 0) {
@@ -83,9 +81,7 @@ ComputeDihedralLocal::ComputeDihedralLocal(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Illegal compute dihedral/local command");
       if (strcmp(arg[iarg+1],"phi") == 0) {
         delete [] pstr;
-        int n = strlen(arg[iarg+2]) + 1;
-        pstr = new char[n];
-        strcpy(pstr,arg[iarg+2]);
+        pstr = utils::strdup(arg[iarg+2]);
       } else error->all(FLERR,"Illegal compute dihedral/local command");
       iarg += 3;
     } else error->all(FLERR,"Illegal compute dihedral/local command");
@@ -122,8 +118,8 @@ ComputeDihedralLocal::ComputeDihedralLocal(LAMMPS *lmp, int narg, char **arg) :
   else size_local_cols = nvalues;
 
   nmax = 0;
-  vlocal = NULL;
-  alocal = NULL;
+  vlocal = nullptr;
+  alocal = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -145,7 +141,7 @@ ComputeDihedralLocal::~ComputeDihedralLocal()
 
 void ComputeDihedralLocal::init()
 {
-  if (force->dihedral == NULL)
+  if (force->dihedral == nullptr)
     error->all(FLERR,"No dihedral style is defined for compute dihedral/local");
 
   if (nvar) {
@@ -224,7 +220,7 @@ int ComputeDihedralLocal::compute_dihedrals(int flag)
   for (atom2 = 0; atom2 < nlocal; atom2++) {
     if (!(mask[atom2] & groupbit)) continue;
 
-    if (molecular == 1) nd = num_dihedral[atom2];
+    if (molecular == Atom::MOLECULAR) nd = num_dihedral[atom2];
     else {
       if (molindex[atom2] < 0) continue;
       imol = molindex[atom2];
@@ -233,7 +229,7 @@ int ComputeDihedralLocal::compute_dihedrals(int flag)
     }
 
     for (i = 0; i < nd; i++) {
-      if (molecular == 1) {
+      if (molecular == Atom::MOLECULAR) {
         if (tag[atom2] != dihedral_atom2[atom2][i]) continue;
         atom1 = atom->map(dihedral_atom1[atom2][i]);
         atom3 = atom->map(dihedral_atom3[atom2][i]);
@@ -353,6 +349,6 @@ void ComputeDihedralLocal::reallocate(int n)
 
 double ComputeDihedralLocal::memory_usage()
 {
-  double bytes = nmax*nvalues * sizeof(double);
+  double bytes = (double)nmax*nvalues * sizeof(double);
   return bytes;
 }

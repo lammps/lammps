@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -18,22 +18,23 @@
 ------------------------------------------------------------------------- */
 
 #include "temper_npt.h"
-#include <cmath>
-#include <cstring>
-#include "universe.h"
-#include "domain.h"
+
 #include "atom.h"
-#include "update.h"
+#include "compute.h"
+#include "domain.h"
+#include "error.h"
+#include "finish.h"
+#include "fix.h"
+#include "force.h"
 #include "integrate.h"
 #include "modify.h"
-#include "compute.h"
-#include "force.h"
-#include "fix.h"
 #include "random_park.h"
-#include "finish.h"
 #include "timer.h"
-#include "error.h"
-#include "utils.h"
+#include "universe.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -41,7 +42,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-TemperNPT::TemperNPT(LAMMPS *lmp) : Pointers(lmp) {}
+TemperNPT::TemperNPT(LAMMPS *lmp) : Command(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
@@ -69,10 +70,10 @@ void TemperNPT::command(int narg, char **arg)
   if (narg != 7 && narg != 8)
     error->universe_all(FLERR,"Illegal temper/npt command");
 
-  int nsteps = force->inumeric(FLERR,arg[0]);
-  nevery = force->inumeric(FLERR,arg[1]);
-  double temp = force->numeric(FLERR,arg[2]);
-  double press_set = force->numeric(FLERR,arg[6]);
+  int nsteps = utils::inumeric(FLERR,arg[0],false,lmp);
+  nevery = utils::inumeric(FLERR,arg[1],false,lmp);
+  double temp = utils::numeric(FLERR,arg[2],false,lmp);
+  double press_set = utils::numeric(FLERR,arg[6],false,lmp);
 
   // ignore temper command, if walltime limit was already reached
 
@@ -83,11 +84,11 @@ void TemperNPT::command(int narg, char **arg)
   if (whichfix == modify->nfix)
     error->universe_all(FLERR,"Tempering fix ID is not defined");
 
-  seed_swap = force->inumeric(FLERR,arg[4]);
-  seed_boltz = force->inumeric(FLERR,arg[5]);
+  seed_swap = utils::inumeric(FLERR,arg[4],false,lmp);
+  seed_boltz = utils::inumeric(FLERR,arg[5],false,lmp);
 
   my_set_temp = universe->iworld;
-  if (narg == 8) my_set_temp = force->inumeric(FLERR,arg[6]);
+  if (narg == 8) my_set_temp = utils::inumeric(FLERR,arg[6],false,lmp);
 
   // swap frequency must evenly divide total # of timesteps
 
@@ -147,7 +148,7 @@ void TemperNPT::command(int narg, char **arg)
   // warm up Boltzmann RNG
 
   if (seed_swap) ranswap = new RanPark(lmp,seed_swap);
-  else ranswap = NULL;
+  else ranswap = nullptr;
   ranboltz = new RanPark(lmp,seed_boltz + me_universe);
   for (int i = 0; i < 100; i++) ranboltz->uniform();
 

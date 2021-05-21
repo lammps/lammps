@@ -3,7 +3,7 @@
  *      POEMS: PARALLELIZABLE OPEN SOURCE EFFICIENT MULTIBODY SOFTWARE     *
  *      DESCRIPTION: SEE READ-ME                                           *
  *      FILE NAME: onbody.h                                              *
- *      AUTHORS: See Author List                                           * 
+ *      AUTHORS: See Author List                                           *
  *      GRANTS: See Grants List                                            *
  *      COPYRIGHT: (C) 2005 by Authors as listed in Author's List          *
  *      LICENSE: Please see License Agreement                              *
@@ -11,7 +11,7 @@
  *      ADMINISTRATOR: Prof. Kurt Anderson                                 *
  *                     Computational Dynamics Lab                          *
  *                     Rensselaer Polytechnic Institute                    *
- *                     110 8th St. Troy NY 12180                           * 
+ *                     110 8th St. Troy NY 12180                           *
  *      CONTACT:        anderk5@rpi.edu                                    *
  *_________________________________________________________________________*/
 
@@ -46,7 +46,7 @@ class OnBody {
        Vect3* gamma;                     // pointer to gamma vector
        Mat3x3* pk_C_k;                   // pointer to transformation
 
-  
+
        Mat6x6 sI;      // spatial inertias
        Mat6x6 sIhat;   // recursive spatial inertias
        Mat6x6 sSC;     // spatial shift
@@ -68,16 +68,16 @@ class OnBody {
        ColMatrix* qdot;
        ColMatrix* udot;
        ColMatrix* qdotdot;
-	  
-       ColMatrix* r;       
+
+       ColMatrix* r;
        ColMatrix* acc;
        ColMatrix* ang;
 
   // friend classes
   friend class OnSolver;
-  
 
-public: 
+
+public:
        OnBody();
        ~OnBody();
        int RecursiveSetup(InertialFrame* basebody);
@@ -88,11 +88,11 @@ public:
        Mat3x3 GetN_C_K();
        Vect3 LocalCart();
        int GetBodyID();
-       void CalculateAcceleration();       
+       void CalculateAcceleration();
        void Setup();
        void SetupInertialFrame();
-       void LocalKinematics();       
-		 void LocalTriangularization(Vect3& Torque, Vect3& Force);
+       void LocalKinematics();
+                 void LocalTriangularization(Vect3& Torque, Vect3& Force);
        void LocalForwardSubstitution();
 };
 

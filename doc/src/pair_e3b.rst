@@ -80,7 +80,7 @@ The two-body interactions are cut off sharply at Rc2, because K3 is typically si
 See :ref:`(Kumar 2008) <Kumar>` for more details.
 
 Only a single *pair_coeff* command is used with the *e3b* style.
-The 1st two arguments must be \* \*.
+The first two arguments must be \* \*.
 The oxygen atom type for the pair style is passed as the only argument to the *pair_style* command, not in the *pair_coeff* command.
 The hydrogen atom type is inferred by the ordering of the atoms.
 
@@ -115,7 +115,8 @@ See the examples/USER/misc/e3b directory for a complete example script.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,7 +12,6 @@
 ------------------------------------------------------------------------- */
 
 #include "body.h"
-#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -20,11 +19,9 @@ using namespace LAMMPS_NS;
 
 Body::Body(LAMMPS *lmp, int /*narg*/, char **arg) : Pointers(lmp)
 {
-  int n = strlen(arg[0]) + 1;
-  style = new char[n];
-  strcpy(style,arg[0]);
-  icp = NULL;
-  dcp = NULL;
+  style = utils::strdup(arg[0]);
+  icp = nullptr;
+  dcp = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

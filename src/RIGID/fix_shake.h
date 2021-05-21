@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -34,16 +34,16 @@ class FixShake : public Fix {
   virtual int setmask();
   virtual void init();
   void setup(int);
-  void pre_neighbor();
+  virtual void pre_neighbor();
   virtual void post_force(int);
   virtual void post_force_respa(int, int, int);
 
   virtual double memory_usage();
   virtual void grow_arrays(int);
   virtual void copy_arrays(int, int, int);
-  void set_arrays(int);
+  virtual void set_arrays(int);
   virtual void update_arrays(int, int);
-  void set_molecule(int, tagint, int, double *, double *, double *);
+  virtual void set_molecule(int, tagint, int, double *, double *, double *);
 
   virtual int pack_exchange(int, double *);
   virtual int unpack_exchange(int, double *);
@@ -54,7 +54,7 @@ class FixShake : public Fix {
   virtual void correct_coordinates(int vflag);
   virtual void correct_velocities();
 
-  int dof(int);
+  virtual int dof(int);
   virtual void reset_dt();
   void *extract(const char *, int &);
 
@@ -126,7 +126,7 @@ class FixShake : public Fix {
   void shake_info(int *, tagint **, int **);
 
   int masscheck(double);
-  void unconstrained_update();
+  virtual void unconstrained_update();
   void unconstrained_update_respa(int);
   void shake(int);
   void shake3(int);

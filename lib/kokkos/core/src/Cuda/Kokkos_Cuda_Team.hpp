@@ -45,14 +45,12 @@
 #ifndef KOKKOS_CUDA_TEAM_HPP
 #define KOKKOS_CUDA_TEAM_HPP
 
-#include <iostream>
 #include <algorithm>
-#include <stdio.h>
 
 #include <Kokkos_Macros.hpp>
 
 /* only compile this file if CUDA is enabled for Kokkos */
-#if defined(__CUDACC__) && defined(KOKKOS_ENABLE_CUDA)
+#if defined(KOKKOS_ENABLE_CUDA)
 
 #include <utility>
 #include <Kokkos_Parallel.hpp>
@@ -62,10 +60,8 @@
 #include <Cuda/Kokkos_Cuda_BlockSize_Deduction.hpp>
 #include <Kokkos_Vectorization.hpp>
 
-#if defined(KOKKOS_ENABLE_PROFILING)
-#include <impl/Kokkos_Profiling_Interface.hpp>
+#include <impl/Kokkos_Tools.hpp>
 #include <typeinfo>
-#endif
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
@@ -75,7 +71,7 @@ namespace Impl {
 
 template <typename Type>
 struct CudaJoinFunctor {
-  typedef Type value_type;
+  using value_type = Type;
 
   KOKKOS_INLINE_FUNCTION
   static void join(volatile value_type& update,
@@ -104,8 +100,8 @@ struct CudaJoinFunctor {
  */
 class CudaTeamMember {
  public:
-  typedef Kokkos::Cuda execution_space;
-  typedef execution_space::scratch_memory_space scratch_memory_space;
+  using execution_space      = Kokkos::Cuda;
+  using scratch_memory_space = execution_space::scratch_memory_space;
 
  private:
   mutable void* m_team_reduce;
@@ -164,6 +160,8 @@ class CudaTeamMember {
   template <class ValueType>
   KOKKOS_INLINE_FUNCTION void team_broadcast(ValueType& val,
                                              const int& thread_id) const {
+    (void)val;
+    (void)thread_id;
 #ifdef __CUDA_ARCH__
     if (1 == blockDim.z) {  // team == block
       __syncthreads();
@@ -184,6 +182,9 @@ class CudaTeamMember {
   template <class Closure, class ValueType>
   KOKKOS_INLINE_FUNCTION void team_broadcast(Closure const& f, ValueType& val,
                                              const int& thread_id) const {
+    (void)f;
+    (void)val;
+    (void)thread_id;
 #ifdef __CUDA_ARCH__
     f(val);
 
@@ -230,6 +231,8 @@ class CudaTeamMember {
       typename std::enable_if<is_reducer<ReducerType>::value>::type
       team_reduce(ReducerType const& reducer,
                   typename ReducerType::value_type& value) const noexcept {
+    (void)reducer;
+    (void)value;
 #ifdef __CUDA_ARCH__
     cuda_intra_block_reduction(reducer, value, blockDim.y);
 #endif /* #ifdef __CUDA_ARCH__ */
@@ -274,6 +277,8 @@ class CudaTeamMember {
 
     return base_data[threadIdx.y];
 #else
+    (void)value;
+    (void)global_accum;
     return Type();
 #endif
   }
@@ -285,7 +290,7 @@ class CudaTeamMember {
    */
   template <typename Type>
   KOKKOS_INLINE_FUNCTION Type team_scan(const Type& value) const {
-    return this->template team_scan<Type>(value, 0);
+    return this->template team_scan<Type>(value, nullptr);
   }
 
   //----------------------------------------
@@ -302,6 +307,8 @@ class CudaTeamMember {
       typename std::enable_if<is_reducer<ReducerType>::value>::type
       vector_reduce(ReducerType const& reducer,
                     typename ReducerType::value_type& value) {
+    (void)reducer;
+    (void)value;
 #ifdef __CUDA_ARCH__
     if (blockDim.x == 1) return;
 
@@ -346,8 +353,8 @@ class CudaTeamMember {
                     int const shmem_size) {
 #ifdef __CUDA_ARCH__
 
-    typedef typename ReducerType::value_type value_type;
-    typedef value_type volatile* pointer_type;
+    using value_type   = typename ReducerType::value_type;
+    using pointer_type = value_type volatile*;
 
     // Number of shared memory entries for the reduction:
     const int nsh = shmem_size / sizeof(value_type);
@@ -509,6 +516,11 @@ class CudaTeamMember {
     return 0;
 
 #else
+    (void)reducer;
+    (void)global_scratch_flags;
+    (void)global_scratch_space;
+    (void)shmem;
+    (void)shmem_size;
     return 0;
 #endif
   }
@@ -547,7 +559,7 @@ namespace Impl {
 
 template <typename iType>
 struct TeamThreadRangeBoundariesStruct<iType, CudaTeamMember> {
-  typedef iType index_type;
+  using index_type = iType;
   const CudaTeamMember& member;
   const iType start;
   const iType end;
@@ -564,7 +576,7 @@ struct TeamThreadRangeBoundariesStruct<iType, CudaTeamMember> {
 
 template <typename iType>
 struct TeamVectorRangeBoundariesStruct<iType, CudaTeamMember> {
-  typedef iType index_type;
+  using index_type = iType;
   const CudaTeamMember& member;
   const iType start;
   const iType end;
@@ -582,7 +594,7 @@ struct TeamVectorRangeBoundariesStruct<iType, CudaTeamMember> {
 
 template <typename iType>
 struct ThreadVectorRangeBoundariesStruct<iType, CudaTeamMember> {
-  typedef iType index_type;
+  using index_type = iType;
   const index_type start;
   const index_type end;
 
@@ -618,7 +630,7 @@ template <typename iType1, typename iType2>
 KOKKOS_INLINE_FUNCTION Impl::TeamThreadRangeBoundariesStruct<
     typename std::common_type<iType1, iType2>::type, Impl::CudaTeamMember>
 TeamThreadRange(const Impl::CudaTeamMember& thread, iType1 begin, iType2 end) {
-  typedef typename std::common_type<iType1, iType2>::type iType;
+  using iType = typename std::common_type<iType1, iType2>::type;
   return Impl::TeamThreadRangeBoundariesStruct<iType, Impl::CudaTeamMember>(
       thread, iType(begin), iType(end));
 }
@@ -636,7 +648,7 @@ KOKKOS_INLINE_FUNCTION Impl::TeamVectorRangeBoundariesStruct<
     typename std::common_type<iType1, iType2>::type, Impl::CudaTeamMember>
 TeamVectorRange(const Impl::CudaTeamMember& thread, const iType1& begin,
                 const iType2& end) {
-  typedef typename std::common_type<iType1, iType2>::type iType;
+  using iType = typename std::common_type<iType1, iType2>::type;
   return Impl::TeamVectorRangeBoundariesStruct<iType, Impl::CudaTeamMember>(
       thread, iType(begin), iType(end));
 }
@@ -683,6 +695,8 @@ KOKKOS_INLINE_FUNCTION void parallel_for(
     const Impl::TeamThreadRangeBoundariesStruct<iType, Impl::CudaTeamMember>&
         loop_boundaries,
     const Closure& closure) {
+  (void)loop_boundaries;
+  (void)closure;
 #ifdef __CUDA_ARCH__
   for (iType i = loop_boundaries.start + threadIdx.y; i < loop_boundaries.end;
        i += blockDim.y)
@@ -706,6 +720,9 @@ KOKKOS_INLINE_FUNCTION
     parallel_reduce(const Impl::TeamThreadRangeBoundariesStruct<
                         iType, Impl::CudaTeamMember>& loop_boundaries,
                     const Closure& closure, const ReducerType& reducer) {
+  (void)loop_boundaries;
+  (void)closure;
+  (void)reducer;
 #ifdef __CUDA_ARCH__
   typename ReducerType::value_type value;
   reducer.init(value);
@@ -734,6 +751,9 @@ KOKKOS_INLINE_FUNCTION
     parallel_reduce(const Impl::TeamThreadRangeBoundariesStruct<
                         iType, Impl::CudaTeamMember>& loop_boundaries,
                     const Closure& closure, ValueType& result) {
+  (void)loop_boundaries;
+  (void)closure;
+  (void)result;
 #ifdef __CUDA_ARCH__
   ValueType val;
   Kokkos::Sum<ValueType> reducer(val);
@@ -755,6 +775,8 @@ KOKKOS_INLINE_FUNCTION void parallel_for(
     const Impl::TeamVectorRangeBoundariesStruct<iType, Impl::CudaTeamMember>&
         loop_boundaries,
     const Closure& closure) {
+  (void)loop_boundaries;
+  (void)closure;
 #ifdef __CUDA_ARCH__
   for (iType i = loop_boundaries.start + threadIdx.y * blockDim.x + threadIdx.x;
        i < loop_boundaries.end; i += blockDim.y * blockDim.x)
@@ -768,6 +790,9 @@ KOKKOS_INLINE_FUNCTION
     parallel_reduce(const Impl::TeamVectorRangeBoundariesStruct<
                         iType, Impl::CudaTeamMember>& loop_boundaries,
                     const Closure& closure, const ReducerType& reducer) {
+  (void)loop_boundaries;
+  (void)closure;
+  (void)reducer;
 #ifdef __CUDA_ARCH__
   typename ReducerType::value_type value;
   reducer.init(value);
@@ -788,6 +813,9 @@ KOKKOS_INLINE_FUNCTION
     parallel_reduce(const Impl::TeamVectorRangeBoundariesStruct<
                         iType, Impl::CudaTeamMember>& loop_boundaries,
                     const Closure& closure, ValueType& result) {
+  (void)loop_boundaries;
+  (void)closure;
+  (void)result;
 #ifdef __CUDA_ARCH__
   ValueType val;
   Kokkos::Sum<ValueType> reducer(val);
@@ -818,6 +846,8 @@ KOKKOS_INLINE_FUNCTION void parallel_for(
     const Impl::ThreadVectorRangeBoundariesStruct<iType, Impl::CudaTeamMember>&
         loop_boundaries,
     const Closure& closure) {
+  (void)loop_boundaries;
+  (void)closure;
 #ifdef __CUDA_ARCH__
   for (iType i = loop_boundaries.start + threadIdx.x; i < loop_boundaries.end;
        i += blockDim.x) {
@@ -853,6 +883,9 @@ KOKKOS_INLINE_FUNCTION
     parallel_reduce(Impl::ThreadVectorRangeBoundariesStruct<
                         iType, Impl::CudaTeamMember> const& loop_boundaries,
                     Closure const& closure, ReducerType const& reducer) {
+  (void)loop_boundaries;
+  (void)closure;
+  (void)reducer;
 #ifdef __CUDA_ARCH__
 
   reducer.init(reducer.reference());
@@ -884,6 +917,9 @@ KOKKOS_INLINE_FUNCTION
     parallel_reduce(Impl::ThreadVectorRangeBoundariesStruct<
                         iType, Impl::CudaTeamMember> const& loop_boundaries,
                     Closure const& closure, ValueType& result) {
+  (void)loop_boundaries;
+  (void)closure;
+  (void)result;
 #ifdef __CUDA_ARCH__
   result = ValueType();
 
@@ -895,6 +931,54 @@ KOKKOS_INLINE_FUNCTION
   Impl::CudaTeamMember::vector_reduce(Kokkos::Sum<ValueType>(result));
 
 #endif
+}
+
+//----------------------------------------------------------------------------
+
+/** \brief  Inter-thread parallel exclusive prefix sum.
+ *
+ *  Executes closure(iType i, ValueType & val, bool final) for each i=[0..N)
+ *
+ *  The range [0..N) is mapped to each rank in the team (whose global rank is
+ *  less than N) and a scan operation is performed. The last call to closure has
+ *  final == true.
+ */
+// This is the same code as in HIP and largely the same as in OpenMPTarget
+template <typename iType, typename FunctorType>
+KOKKOS_INLINE_FUNCTION void parallel_scan(
+    const Impl::TeamThreadRangeBoundariesStruct<iType, Impl::CudaTeamMember>&
+        loop_bounds,
+    const FunctorType& lambda) {
+  // Extract value_type from lambda
+  using value_type = typename Kokkos::Impl::FunctorAnalysis<
+      Kokkos::Impl::FunctorPatternInterface::SCAN, void,
+      FunctorType>::value_type;
+
+  const auto start     = loop_bounds.start;
+  const auto end       = loop_bounds.end;
+  auto& member         = loop_bounds.member;
+  const auto team_size = member.team_size();
+  const auto team_rank = member.team_rank();
+  const auto nchunk    = (end - start + team_size - 1) / team_size;
+  value_type accum     = 0;
+  // each team has to process one or more chunks of the prefix scan
+  for (iType i = 0; i < nchunk; ++i) {
+    auto ii = start + i * team_size + team_rank;
+    // local accumulation for this chunk
+    value_type local_accum = 0;
+    // user updates value with prefix value
+    if (ii < loop_bounds.end) lambda(ii, local_accum, false);
+    // perform team scan
+    local_accum = member.team_scan(local_accum);
+    // add this blocks accum to total accumulation
+    auto val = accum + local_accum;
+    // user updates their data with total accumulation
+    if (ii < loop_bounds.end) lambda(ii, val, true);
+    // the last value needs to be propogated to next chunk
+    if (team_rank == team_size - 1) accum = val;
+    // broadcast last value to rest of the team
+    member.team_broadcast(accum, team_size - 1);
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -912,6 +996,8 @@ KOKKOS_INLINE_FUNCTION void parallel_scan(
     const Impl::ThreadVectorRangeBoundariesStruct<iType, Impl::CudaTeamMember>&
         loop_boundaries,
     const Closure& closure) {
+  (void)loop_boundaries;
+  (void)closure;
 #ifdef __CUDA_ARCH__
 
   // Extract value_type from closure
@@ -986,6 +1072,7 @@ template <class FunctorType>
 KOKKOS_INLINE_FUNCTION void single(
     const Impl::VectorSingleStruct<Impl::CudaTeamMember>&,
     const FunctorType& lambda) {
+  (void)lambda;
 #ifdef __CUDA_ARCH__
   if (threadIdx.x == 0) lambda();
 #ifdef KOKKOS_IMPL_CUDA_SYNCWARP_NEEDS_MASK
@@ -1003,6 +1090,7 @@ template <class FunctorType>
 KOKKOS_INLINE_FUNCTION void single(
     const Impl::ThreadSingleStruct<Impl::CudaTeamMember>&,
     const FunctorType& lambda) {
+  (void)lambda;
 #ifdef __CUDA_ARCH__
   if (threadIdx.x == 0 && threadIdx.y == 0) lambda();
 #ifdef KOKKOS_IMPL_CUDA_SYNCWARP_NEEDS_MASK
@@ -1020,6 +1108,8 @@ template <class FunctorType, class ValueType>
 KOKKOS_INLINE_FUNCTION void single(
     const Impl::VectorSingleStruct<Impl::CudaTeamMember>&,
     const FunctorType& lambda, ValueType& val) {
+  (void)lambda;
+  (void)val;
 #ifdef __CUDA_ARCH__
   if (threadIdx.x == 0) lambda(val);
   unsigned mask = blockDim.x == 32
@@ -1034,6 +1124,9 @@ template <class FunctorType, class ValueType>
 KOKKOS_INLINE_FUNCTION void single(
     const Impl::ThreadSingleStruct<Impl::CudaTeamMember>& single_struct,
     const FunctorType& lambda, ValueType& val) {
+  (void)single_struct;
+  (void)lambda;
+  (void)val;
 #ifdef __CUDA_ARCH__
   if (threadIdx.x == 0 && threadIdx.y == 0) {
     lambda(val);
@@ -1044,6 +1137,6 @@ KOKKOS_INLINE_FUNCTION void single(
 
 }  // namespace Kokkos
 
-#endif /* defined( __CUDACC__ ) */
+#endif /* defined(KOKKOS_ENABLE_CUDA) */
 
 #endif /* #ifndef KOKKOS_CUDA_TEAM_HPP */

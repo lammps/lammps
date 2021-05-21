@@ -1,5 +1,19 @@
+/* ----------------------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   https://lammps.sandia.gov/, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
+
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under
+   the GNU General Public License.
+
+   See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
 #include "meam.h"
+
 #include <cmath>
+
 using namespace LAMMPS_NS;
 
 template <typename TYPE, int maxi, int maxj>
@@ -67,8 +81,15 @@ MEAM::meam_setup_global(int nelt, lattice_t* lat, int* ielement, double* /*atwt*
       case DIA3:
         this->re_meam[i][i] = tmplat[i] * sqrt(3.0) / 4.0;
         break;
-      //default:
-      //           error
+      case B1:
+      case B2:
+      case C11:
+      case L12:
+        // do nothing
+        break;
+      default:
+        ;
+      //  error
     }
   }
 

@@ -1,7 +1,7 @@
 
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,7 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_lj_cubic.h"
-#include <mpi.h>
+
 #include <cmath>
 #include "atom.h"
 #include "comm.h"
@@ -25,16 +25,15 @@
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
+#include "pair_lj_cubic_const.h"
 
 using namespace LAMMPS_NS;
 using namespace PairLJCubicConstants;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCubic::PairLJCubic(LAMMPS *lmp) : Pair(lmp) {
-  centroidstressflag = 1;
-}
+PairLJCubic::PairLJCubic(LAMMPS *lmp) : Pair(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
@@ -129,8 +128,7 @@ void PairLJCubic::compute(int eflag, int vflag)
           if (rsq <= cut_inner_sq[itype][jtype])
             evdwl = r6inv * (lj3[itype][jtype]*r6inv - lj4[itype][jtype]);
           else
-            evdwl = epsilon[itype][jtype]*
-              (PHIS + DPHIDS*t - A3*t*t*t/6.0);
+            evdwl = epsilon[itype][jtype]*(PHIS + DPHIDS*t - A3*t*t*t/6.0);
           evdwl *= factor_lj;
 
           if (evflag) ev_tally(i,j,nlocal,newton_pair,
@@ -193,11 +191,11 @@ void PairLJCubic::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  double epsilon_one = force->numeric(FLERR,arg[2]);
-  double sigma_one = force->numeric(FLERR,arg[3]);
+  double epsilon_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double sigma_one = utils::numeric(FLERR,arg[3],false,lmp);
   double rmin = sigma_one*RT6TWO;
 
   int count = 0;
@@ -222,10 +220,11 @@ void PairLJCubic::coeff(int narg, char **arg)
 double PairLJCubic::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) {
-    epsilon[i][j] = mix_energy(epsilon[i][i],epsilon[j][j],
-                               sigma[i][i],sigma[j][j]);
-    sigma[i][j] = mix_distance(sigma[i][i],sigma[j][j]);
-    cut_inner[i][j] = mix_distance(cut_inner[i][i],cut_inner[j][j]);
+    epsilon[i][j] = epsilon[j][i] = mix_energy(epsilon[i][i],epsilon[j][j],
+                                               sigma[i][i],sigma[j][j]);
+    sigma[i][j] = sigma[j][i] = mix_distance(sigma[i][i],sigma[j][j]);
+    cut_inner[i][j] = cut_inner[j][i] = mix_distance(cut_inner[i][i],
+                                                     cut_inner[j][j]);
     cut[i][j] = mix_distance(cut[i][i],cut[j][j]);
   }
 
@@ -279,14 +278,14 @@ void PairLJCubic::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          utils::sfread(FLERR,&epsilon[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&sigma[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&cut_inner[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&epsilon[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&sigma[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut_inner[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,nullptr,error);
         }
         MPI_Bcast(&epsilon[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&sigma[i][j],1,MPI_DOUBLE,0,world);
@@ -313,7 +312,7 @@ void PairLJCubic::read_restart_settings(FILE *fp)
 {
   int me = comm->me;
   if (me == 0) {
-    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
   }
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
 }
@@ -321,13 +320,20 @@ void PairLJCubic::read_restart_settings(FILE *fp)
 /* ---------------------------------------------------------------------- */
 
 double PairLJCubic::single(int /*i*/, int /*j*/, int itype, int jtype,
-                             double rsq,
-                             double /*factor_coul*/, double factor_lj,
-                             double &fforce)
+                           double rsq,
+                           double /*factor_coul*/, double factor_lj,
+                           double &fforce)
 {
   double r2inv,r6inv,forcelj,philj;
   double r,t;
   double rmin;
+
+  // this is a truncated potential with an implicit cutoff
+
+  if (rsq >= cutsq[itype][jtype]) {
+    fforce=0.0;
+    return 0.0;
+  }
 
   r2inv = 1.0/rsq;
   if (rsq <= cut_inner_sq[itype][jtype]) {
@@ -344,8 +350,7 @@ double PairLJCubic::single(int /*i*/, int /*j*/, int itype, int jtype,
   if (rsq <= cut_inner_sq[itype][jtype])
     philj = r6inv * (lj3[itype][jtype]*r6inv - lj4[itype][jtype]);
   else
-    philj = epsilon[itype][jtype]*
-      (PHIS + DPHIDS*t - A3*t*t*t/6.0);
+    philj = epsilon[itype][jtype]*(PHIS + DPHIDS*t - A3*t*t*t/6.0);
 
   return factor_lj*philj;
 }

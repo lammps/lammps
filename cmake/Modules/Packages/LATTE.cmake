@@ -1,5 +1,12 @@
 enable_language(Fortran)
-find_package(LATTE)
+
+# using lammps in a super-build setting
+if(TARGET LATTE::latte)
+  target_link_libraries(lammps PRIVATE LATTE::latte)
+  return()
+endif()
+
+find_package(LATTE 1.2.2 CONFIG)
 if(LATTE_FOUND)
   set(DOWNLOAD_LATTE_DEFAULT OFF)
 else()
@@ -8,10 +15,14 @@ endif()
 option(DOWNLOAD_LATTE "Download the LATTE library instead of using an already installed one" ${DOWNLOAD_LATTE_DEFAULT})
 if(DOWNLOAD_LATTE)
   message(STATUS "LATTE download requested - we will build our own")
+  set(LATTE_URL "https://github.com/lanl/LATTE/archive/v1.2.2.tar.gz" CACHE STRING "URL for LATTE tarball")
+  set(LATTE_MD5 "820e73a457ced178c08c71389a385de7" CACHE STRING "MD5 checksum of LATTE tarball")
+  mark_as_advanced(LATTE_URL)
+  mark_as_advanced(LATTE_MD5)
   include(ExternalProject)
   ExternalProject_Add(latte_build
-    URL https://github.com/lanl/LATTE/archive/v1.2.1.tar.gz
-    URL_MD5 85ac414fdada2d04619c8f936344df14
+    URL     ${LATTE_URL}
+    URL_MD5 ${LATTE_MD5}
     SOURCE_SUBDIR cmake
     CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR> ${CMAKE_REQUEST_PIC} -DCMAKE_INSTALL_LIBDIR=lib
     -DBLAS_LIBRARIES=${BLAS_LIBRARIES} -DLAPACK_LIBRARIES=${LAPACK_LIBRARIES}
@@ -27,13 +38,7 @@ if(DOWNLOAD_LATTE)
     INTERFACE_LINK_LIBRARIES "${LAPACK_LIBRARIES}")
   target_link_libraries(lammps PRIVATE LAMMPS::LATTE)
   add_dependencies(LAMMPS::LATTE latte_build)
-  if(NOT BUILD_SHARED_LIBS)
-    install(CODE "MESSAGE(FATAL_ERROR \"Installing liblammps with downloaded libraries is currently not supported.\")")
-  endif()
 else()
-  find_package(LATTE)
-  if(NOT LATTE_FOUND)
-    message(FATAL_ERROR "LATTE library not found, help CMake to find it by setting LATTE_LIBRARY, or set DOWNLOAD_LATTE=ON to download it")
-  endif()
+  find_package(LATTE 1.2.2 REQUIRED CONFIG)
   target_link_libraries(lammps PRIVATE LATTE::latte)
 endif()

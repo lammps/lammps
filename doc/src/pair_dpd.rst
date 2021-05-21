@@ -1,25 +1,20 @@
 .. index:: pair_style dpd
+.. index:: pair_style dpd/gpu
+.. index:: pair_style dpd/intel
+.. index:: pair_style dpd/omp
+.. index:: pair_style dpd/tstat
+.. index:: pair_style dpd/tstat/gpu
+.. index:: pair_style dpd/tstat/omp
 
 pair_style dpd command
 ======================
 
-pair_style dpd/gpu command
-==========================
-
-pair_style dpd/intel command
-============================
-
-pair_style dpd/omp command
-==========================
+Accelerator Variants: *dpd/gpu*, *dpd/intel*, *dpd/omp*
 
 pair_style dpd/tstat command
 ============================
 
-pair_style dpd/tstat/gpu command
-================================
-
-pair_style dpd/tstat/omp command
-================================
+Accelerator Variants: *dpd/tstat/gpu*, *dpd/tstat/omp*
 
 Syntax
 """"""
@@ -75,9 +70,9 @@ of 3 terms
 
 where :math:`F^C` is a conservative force, :math:`F^D` is a dissipative
 force, and :math:`F^R` is a random force.  :math:`r_{ij}` is a unit
-vector in the direction :math:`r_i - r_j`, :math:`V_{ij} is the vector
+vector in the direction :math:`r_i - r_j`, :math:`v_{ij}` is the vector
 difference in velocities of the two atoms :math:`= \vec{v}_i -
-\vec{v}_j, :math:`\alpha` is a Gaussian random number with zero mean and
+\vec{v}_j`, :math:`\alpha` is a Gaussian random number with zero mean and
 unit variance, dt is the timestep size, and w(r) is a weighting factor
 that varies between 0 and 1.  :math:`r_c` is the cutoff.  :math:`\sigma`
 is set equal to :math:`\sqrt{2 k_B T \gamma}`, where :math:`k_B` is the
@@ -137,27 +132,12 @@ the work of :ref:`(Afshar) <Afshar>` and :ref:`(Phillips) <Phillips>`.
 
 ----------
 
-Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
-functionally the same as the corresponding style without the suffix.
-They have been optimized to run faster, depending on your available
-hardware, as discussed on the :doc:`Speed packages <Speed_packages>` doc
-page.  The accelerated styles take the same arguments and should
-produce the same results, except for round-off and precision issues.
-
-These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
-USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` doc page for more info.
-
-You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
-:doc:`suffix <suffix>` command in your input script.
-
-See the :doc:`Speed packages <Speed_packages>` doc page for more
-instructions on how to use the accelerated styles effectively.
+.. include:: accel_styles.rst
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 These pair styles do not support mixing.  Thus, coefficients for all
 I,J pairs must be specified explicitly.
@@ -170,7 +150,7 @@ shifted to be 0.0 at the cutoff distance Rc.
 The :doc:`pair_modify <pair_modify>` table option is not relevant
 for these pair styles.
 
-These pair style do not support the :doc:`pair_modify <pair_modify>`
+These pair styles do not support the :doc:`pair_modify <pair_modify>`
 tail option for adding long-range tail corrections to energy and
 pressure.
 
@@ -219,7 +199,10 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`, :doc:`fix nvt <fix_nh>`, :doc:`fix langevin <fix_langevin>`, :doc:`pair_style srp <pair_srp>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

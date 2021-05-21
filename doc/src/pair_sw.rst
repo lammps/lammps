@@ -1,19 +1,13 @@
 .. index:: pair_style sw
+.. index:: pair_style sw/gpu
+.. index:: pair_style sw/intel
+.. index:: pair_style sw/kk
+.. index:: pair_style sw/omp
 
 pair_style sw command
 =====================
 
-pair_style sw/gpu command
-=========================
-
-pair_style sw/intel command
-===========================
-
-pair_style sw/kk command
-========================
-
-pair_style sw/omp command
-=========================
+Accelerator Variants: *sw/gpu*, *sw/intel*, *sw/kk*, *sw/omp*
 
 Syntax
 """"""
@@ -68,14 +62,14 @@ to specify the path for the potential file.
 
 As an example, imagine a file SiC.sw has Stillinger-Weber values for
 Si and C.  If your LAMMPS simulation has 4 atoms types and you want
-the 1st 3 to be Si, and the 4th to be C, you would use the following
+the first 3 to be Si, and the fourth to be C, you would use the following
 pair_coeff command:
 
 .. code-block:: LAMMPS
 
    pair_coeff * * SiC.sw Si Si Si C
 
-The 1st 2 arguments must be \* \* so as to span all LAMMPS atom types.
+The first 2 arguments must be \* \* so as to span all LAMMPS atom types.
 The first three Si arguments map LAMMPS atom types 1,2,3 to the Si
 element in the SW file.  The final C argument maps LAMMPS atom type 4
 to the C element in the SW file.  If a mapping value is specified as
@@ -140,7 +134,7 @@ entries would be required, etc.
 As annotated above, the first element in the entry is the center atom
 in a three-body interaction.  Thus an entry for SiCC means a Si atom
 with 2 C atoms as neighbors.  The parameter values used for the
-two-body interaction come from the entry where the 2nd and 3rd
+two-body interaction come from the entry where the second and third
 elements are the same.  Thus the two-body parameters for Si
 interacting with C, comes from the SiCC entry.  The three-body
 parameters can in principle be specific to the three elements of the
@@ -158,7 +152,7 @@ order of the two neighbors is arbitrary, the three-body parameters for
 entries CSiC and CCSi should be the same.  Similarly, the two-body
 parameters for entries SiCC and CSiSi should also be the same.  The
 parameters used only for two-body interactions (A, B, p, and q) in
-entries whose 2nd and 3rd element are different (e.g. SiCSi) are not
+entries whose second and third element are different (e.g. SiCSi) are not
 used for anything and can be set to 0.0 if desired.
 This is also true for the parameters in :math:`\phi_3` that are
 taken from the ij and ik pairs (:math:`\sigma`, *a*\ , :math:`\gamma`)
@@ -190,7 +184,8 @@ instructions on how to use the accelerated styles effectively.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 For atom type pairs I,J and I != J, where types I and J correspond to
 two different element types, mixing is performed by LAMMPS as
@@ -229,7 +224,10 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

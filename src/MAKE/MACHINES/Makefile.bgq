@@ -33,6 +33,7 @@ $(EXE): main.o $(LMPLIB) $(EXTRA_LINK_DEPENDS)
 # Library targets
 
 $(ARLIB): $(OBJ) $(EXTRA_LINK_DEPENDS)
+	@rm -f ../$(ARLIB)
 	$(ARCHIVE) $(ARFLAGS) ../$(ARLIB) $(OBJ)
 	@rm -f $(ARLIB)
 	@ln -s ../$(ARLIB) $(ARLIB)

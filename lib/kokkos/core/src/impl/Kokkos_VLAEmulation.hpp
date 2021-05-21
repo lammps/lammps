@@ -185,7 +185,7 @@ struct ObjectWithVLAEmulation {
 
     // Note: We can't do this at class scope because it unnecessarily requires
     // vla_value_type to be a complete type
-    static_assert(not std::is_abstract<vla_value_type>::value,
+    static_assert(!std::is_abstract<vla_value_type>::value,
                   "Can't use abstract type with VLA emulation");
 
     KOKKOS_EXPECTS(num_entries >= 0);
@@ -195,8 +195,7 @@ struct ObjectWithVLAEmulation {
   }
 
   KOKKOS_INLINE_FUNCTION
-  ~ObjectWithVLAEmulation() noexcept(
-      noexcept(std::declval<vla_value_type>().~vla_value_type())) {
+  ~ObjectWithVLAEmulation() {
     for (auto&& value : *this) {
       value.~vla_value_type();
     }

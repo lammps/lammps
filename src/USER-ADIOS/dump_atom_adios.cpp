@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -39,7 +39,7 @@ class DumpAtomADIOSInternal
 {
 
 public:
-    DumpAtomADIOSInternal(){};
+    DumpAtomADIOSInternal() {};
     ~DumpAtomADIOSInternal() = default;
 
     // name of adios group, referrable in adios2_config.xml
@@ -190,7 +190,7 @@ void DumpAtomADIOS::write()
     if (sort_flag && sortcol == 0)
         pack(ids);
     else
-        pack(NULL);
+        pack(nullptr);
     if (sort_flag)
         sort();
 
@@ -337,9 +337,9 @@ void DumpAtomADIOS::init_style()
     internal->io.DefineAttribute<std::string>("boundarystr", boundstr);
     internal->io.DefineAttribute<std::string>("LAMMPS/dump_style", "atom");
     internal->io.DefineAttribute<std::string>("LAMMPS/version",
-                                              universe->version);
+                                              lmp->version);
     internal->io.DefineAttribute<std::string>("LAMMPS/num_ver",
-                                              universe->num_ver);
+                                              std::to_string(lmp->num_ver));
 
     internal->io.DefineVariable<uint64_t>(
         "nme", {adios2::LocalValueDim}); // local dimension variable

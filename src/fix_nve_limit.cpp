@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,17 +12,16 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_nve_limit.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
-#include "force.h"
-#include "update.h"
-#include "respa.h"
-#include "modify.h"
 #include "comm.h"
 #include "error.h"
-#include "utils.h"
+#include "force.h"
+#include "modify.h"
+#include "respa.h"
+#include "update.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -40,7 +39,7 @@ FixNVELimit::FixNVELimit(LAMMPS *lmp, int narg, char **arg) :
   extscalar = 1;
   dynamic_group_allow = 1;
 
-  xlimit = force->numeric(FLERR,arg[3]);
+  xlimit = utils::numeric(FLERR,arg[3],false,lmp);
 
   ncount = 0;
 }
@@ -66,7 +65,7 @@ void FixNVELimit::init()
   vlimitsq = (xlimit/dtv) * (xlimit/dtv);
   ncount = 0;
 
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     step_respa = ((Respa *) update->integrate)->step;
 
   // warn if using fix shake, which will lead to invalid constraint forces

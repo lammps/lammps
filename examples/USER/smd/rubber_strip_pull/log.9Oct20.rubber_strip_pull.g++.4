@@ -1,0 +1,206 @@
+LAMMPS (9 Oct 2020)
+  using 1 OpenMP thread(s) per MPI task
+####################################################################################################
+#
+# TLSPH example:  elongate a 2d strip of a linear elastic material py pulling its ends apart
+#
+# unit system: GPa / mm / ms
+#
+####################################################################################################
+
+####################################################################################################
+# MATERIAL PARAMETERS
+####################################################################################################
+variable        E equal 1.0 # Young's modulus
+variable        nu equal 0.3 # Poisson ratio
+variable        rho equal 1 # initial mass density
+variable        q1 equal 0.06 # standard artificial viscosity linear coefficient
+variable        q2 equal 0.0  # standard artificial viscosity quadratic coefficient
+variable        hg equal 10.0 # hourglass control coefficient
+variable        cp equal 1.0 # heat capacity of material -- not used here
+
+####################################################################################################
+# INITIALIZE LAMMPS
+####################################################################################################
+dimension       2
+units           si
+boundary        sm sm p # simulation box boundaries
+atom_style      smd
+atom_modify     map array
+comm_modify     vel yes
+neigh_modify    every 10 delay 0 check yes # re-build neighbor list every 10 steps
+newton          off
+
+####################################################################################################
+# CREATE INITIAL GEOMETRY
+####################################################################################################
+variable        l0 equal 1.0 # lattice spacing for creating particles
+lattice         sq ${l0}
+lattice         sq 1
+Lattice spacing in x,y,z = 1.0000000 1.0000000 1.0000000
+region          box block -10 10 -10 10 -0.1 0.1 units box
+create_box      1 box
+Created orthogonal box = (-10.000000 -10.000000 -0.1) to (10.000000 10.000000 0.1)
+  2 by 2 by 1 MPI processor grid
+create_atoms    1 box
+Created 400 atoms
+  create_atoms CPU = 0.001 seconds
+group           tlsph type 1
+400 atoms in group tlsph
+
+
+####################################################################################################
+# DISCRETIZATION PARAMETERS
+####################################################################################################
+variable        h equal 2.01*${l0} # SPH smoothing kernel radius
+variable        h equal 2.01*1 
+variable        vol_one equal ${l0}^2 # volume of one particle -- assuming unit thickness
+variable        vol_one equal 1^2 
+variable        skin equal ${h} # Verlet list range
+variable        skin equal 2.01 
+neighbor        ${skin} bin
+neighbor        2.01 bin
+set             group all volume ${vol_one}
+set             group all volume 1
+Setting atom values ...
+  400 settings made for volume
+set             group all smd/mass/density ${rho}
+set             group all smd/mass/density 1
+Setting atom values ...
+  400 settings made for smd/mass/density
+set             group all diameter ${h} # set SPH kernel radius
+set             group all diameter 2.01 
+Setting atom values ...
+  400 settings made for diameter
+
+####################################################################################################
+# DEFINE VELOCITY BOUNDARY CONDITIONS
+####################################################################################################
+variable        vel0 equal 0.005 # pull velocity
+region          top block EDGE EDGE 9.0 EDGE EDGE EDGE units box
+region          bot block EDGE EDGE EDGE -9.1 EDGE EDGE units box
+group           top region top
+20 atoms in group top
+group           bot region bot
+20 atoms in group bot
+variable        vel_up equal ${vel0}*(1.0-exp(-0.01*time))
+variable        vel_up equal 0.005*(1.0-exp(-0.01*time))
+variable        vel_down equal -v_vel_up
+fix             veltop_fix top smd/setvel 0 v_vel_up 0
+fix             velbot_fix bot smd/setvel 0 v_vel_down 0
+
+####################################################################################################
+# INTERACTION PHYSICS / MATERIAL MODEL
+####################################################################################################
+pair_style      smd/tlsph
+pair_coeff      1 1 *COMMON ${rho} ${E} ${nu} ${q1} ${q2} ${hg} ${cp}                 *STRENGTH_LINEAR                 *EOS_LINEAR                 *END
+pair_coeff      1 1 *COMMON 1 ${E} ${nu} ${q1} ${q2} ${hg} ${cp}                 *STRENGTH_LINEAR                 *EOS_LINEAR                 *END
+pair_coeff      1 1 *COMMON 1 1 ${nu} ${q1} ${q2} ${hg} ${cp}                 *STRENGTH_LINEAR                 *EOS_LINEAR                 *END
+pair_coeff      1 1 *COMMON 1 1 0.3 ${q1} ${q2} ${hg} ${cp}                 *STRENGTH_LINEAR                 *EOS_LINEAR                 *END
+pair_coeff      1 1 *COMMON 1 1 0.3 0.06 ${q2} ${hg} ${cp}                 *STRENGTH_LINEAR                 *EOS_LINEAR                 *END
+pair_coeff      1 1 *COMMON 1 1 0.3 0.06 0 ${hg} ${cp}                 *STRENGTH_LINEAR                 *EOS_LINEAR                 *END
+pair_coeff      1 1 *COMMON 1 1 0.3 0.06 0 10 ${cp}                 *STRENGTH_LINEAR                 *EOS_LINEAR                 *END
+pair_coeff      1 1 *COMMON 1 1 0.3 0.06 0 10 1                 *STRENGTH_LINEAR                 *EOS_LINEAR                 *END
+
+####################################################################################################
+# TIME INTEGRATION
+####################################################################################################
+fix             dtfix tlsph smd/adjust_dt 0.1 # dynamically adjust time increment every step
+fix             integration_fix tlsph smd/integrate_tlsph
+
+####################################################################################################
+# SPECIFY TRAJECTORY OUTPUT
+####################################################################################################
+compute         S all smd/tlsph/stress # Cauchy stress tensor
+compute         E all smd/tlsph/strain # Green-Lagrange strain tensor
+compute         nn all smd/tlsph/num/neighs # number of neighbors for each particle
+dump            dump_id all custom 10 dump.LAMMPS id type x y z vx vy vz                 c_S[1] c_S[2] c_S[4] c_nn                 c_E[1] c_E[2] c_E[4]                 vx vy vz
+dump_modify     dump_id first yes
+
+####################################################################################################
+# STATUS OUTPUT
+####################################################################################################
+variable        stress equal 0.5*(f_velbot_fix[2]-f_veltop_fix[2])/20 # stress = force / initial width
+variable        length equal xcm(top,y)-xcm(bot,y)
+variable        strain equal (v_length-${length})/${length} # engineering strain
+variable        strain equal (v_length-19)/${length} 
+variable        strain equal (v_length-19)/19 
+fix             stress_curve all print 10 "${strain} ${stress}" file stress_strain.dat screen no
+
+thermo          100
+thermo_style    custom step dt f_dtfix v_strain
+
+####################################################################################################
+# RUN SIMULATION
+####################################################################################################
+run             2500
+Neighbor list info ...
+  update every 10 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 4.02
+  ghost atom cutoff = 4.02
+  binsize = 2.01, bins = 10 10 1
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair smd/tlsph, perpetual
+      attributes: half, newton off, size
+      pair build: half/size/bin/newtoff
+      stencil: half/bin/2d/newtoff
+      bin: standard
+
+TLSPH neighbors:
+  max # of neighbors for a single particle = 12
+  average # of neighbors/particle in group tlsph = 11.01
+Per MPI rank memory allocation (min/avg/max) = 28.28 | 28.29 | 28.30 Mbytes
+Step Dt f_dtfix v_strain 
+       0        1e-16            0            0 
+     100   0.17317865    17.148126 0.00073838703 
+     200   0.17302794    34.459008 0.0028069616 
+     300    0.1728021    51.751078 0.0059887051 
+     400   0.17250637    69.016914  0.010099618 
+     500   0.17216933    86.251256  0.014984838 
+     600   0.17178723    103.44937  0.020514034 
+     700   0.17138012    120.60826   0.02657841 
+     800   0.17094835    137.72494  0.033086624 
+     900   0.17048766    154.79684  0.039962191 
+    1000   0.17001247     171.8224  0.047141498 
+    1100   0.16952868    188.79946  0.054570846 
+    1200    0.1690323    205.72795  0.062206334 
+    1300   0.16853845    222.60654  0.070010475 
+    1400   0.16803316    239.43548  0.077952714 
+    1500   0.16753793    256.21417  0.086006923 
+    1600   0.16703225    272.94295  0.094151722 
+    1700   0.16654035     289.6218   0.10236896 
+    1800   0.16604036    306.25101   0.11064355 
+    1900   0.16555457    322.83105   0.11896297 
+    2000    0.1650644    339.36209   0.12731648 
+    2100   0.16458608    355.84498   0.13569549 
+    2200   0.16410847    372.27975   0.14409231 
+    2300   0.16363867    388.66748   0.15250107 
+    2400   0.16317499     405.0082   0.16091628 
+    2500   0.16271459    421.30301   0.16933392 
+Loop time of 0.630632 on 4 procs for 2500 steps with 400 atoms
+
+97.0% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.43174    | 0.44288    | 0.45437    |   1.3 | 70.23
+Neigh   | 4.0531e-05 | 4.2737e-05 | 4.6015e-05 |   0.0 |  0.01
+Comm    | 0.015033   | 0.02121    | 0.025645   |   2.6 |  3.36
+Output  | 0.11669    | 0.12027    | 0.12409    |   0.8 | 19.07
+Modify  | 0.035852   | 0.045031   | 0.056387   |   3.6 |  7.14
+Other   |            | 0.001202   |            |       |  0.19
+
+Nlocal:        100.000 ave         109 max          91 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Nghost:        103.000 ave         105 max         101 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:        2384.00 ave        2610 max        2158 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+
+Total # of neighbors = 9536
+Ave neighs/atom = 23.840000
+Neighbor list builds = 1
+Dangerous builds = 0
+Total wall time: 0:00:00

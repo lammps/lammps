@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -42,7 +42,7 @@ class NBin : protected Pointers {
   void post_constructor(class NeighRequest *);
   virtual void copy_neighbor_info();
   virtual void bin_atoms_setup(int);
-  bigint memory_usage();
+  double memory_usage();
 
   virtual void setup_bins(int) = 0;
   virtual void bin_atoms() = 0;

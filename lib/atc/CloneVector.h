@@ -52,7 +52,7 @@ private:
 //-----------------------------------------------------------------------------
 template<typename T>
 CloneVector<T>::CloneVector(const Vector<T> &c)
- : Vector<T>(), _baseV(const_cast<Vector<T>*>(&c)), _baseM(NULL) 
+ : Vector<T>(), _baseV(const_cast<Vector<T>*>(&c)), _baseM(nullptr) 
 {}
 //-----------------------------------------------------------------------------
 // Construct from a matrix, the const_cast isn't pretty
@@ -65,7 +65,7 @@ CloneVector<T>::CloneVector(const Vector<T> &c)
 //-----------------------------------------------------------------------------
 template<typename T>
 CloneVector<T>::CloneVector(const Matrix<T> &c, int dim, INDEX idx) 
- : Vector<T>(), _baseV(NULL), _baseM(const_cast<Matrix<T>*>(&c))
+ : Vector<T>(), _baseV(nullptr), _baseM(const_cast<Matrix<T>*>(&c))
  , _clone_type(dim), _idx(idx)
 {}
 //-----------------------------------------------------------------------------
@@ -73,7 +73,7 @@ CloneVector<T>::CloneVector(const Matrix<T> &c, int dim, INDEX idx)
 //-----------------------------------------------------------------------------
 template<typename T>
 CloneVector<T>::CloneVector(const DiagonalMatrix<T> &c, INDEX /* idx */) 
- : Vector<T>(), _baseV(NULL), _baseM(const_cast<DiagonalMatrix<T>*>(&c))
+ : Vector<T>(), _baseV(nullptr), _baseM(const_cast<DiagonalMatrix<T>*>(&c))
  , _clone_type(CLONE_DIAG), _idx(0)
 {}
 //-----------------------------------------------------------------------------

@@ -65,7 +65,8 @@ See the "thermo_style" command for more details.
 
 ----------
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global scalar (the potential energy).  This
 value can be used by any command that uses a global scalar value from
@@ -84,4 +85,7 @@ Related commands
 
 :doc:`compute pe/atom <compute_pe_atom>`
 
-**Default:** none
+Default
+"""""""
+
+none

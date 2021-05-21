@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -41,6 +41,12 @@
 #define MAP_MASK       0x00008000
 #define ENERGY_MASK    0x00010000
 #define VIRIAL_MASK    0x00020000
+
+// SPIN
+
+#define SP_MASK         0x00000001
+#define FM_MASK         0x00000002
+#define FML_MASK        0x00000004
 
 // DPD
 

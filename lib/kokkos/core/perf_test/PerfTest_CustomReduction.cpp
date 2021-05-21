@@ -76,8 +76,8 @@ void custom_reduction_test(int N, int R, int num_trials) {
                     Kokkos::ThreadVectorRange(team, 32),
                     [&](const int& k, Scalar& max_) {
                       const Scalar val = a((i * 32 + j) * 32 + k);
-                      if (val > lmax) lmax = val;
-                      if ((k == 11) && (j == 17) && (i == 2)) lmax = 11.5;
+                      if (val > max_) max_ = val;
+                      if ((k == 11) && (j == 17) && (i == 2)) max_ = 11.5;
                     },
                     Kokkos::Max<Scalar>(t_max));
                 if (t_max > thread_max) thread_max = t_max;
@@ -106,8 +106,8 @@ void custom_reduction_test(int N, int R, int num_trials) {
                       Kokkos::ThreadVectorRange(team, 32),
                       [&](const int& k, Scalar& max_) {
                         const Scalar val = a((i * 32 + j) * 32 + k);
-                        if (val > lmax) lmax = val;
-                        if ((k == 11) && (j == 17) && (i == 2)) lmax = 11.5;
+                        if (val > max_) max_ = val;
+                        if ((k == 11) && (j == 17) && (i == 2)) max_ = 11.5;
                       },
                       Kokkos::Max<Scalar>(t_max));
                   if (t_max > thread_max) thread_max = t_max;
@@ -129,9 +129,9 @@ TEST(default_exec, custom_reduction) {
   int R          = 1000;
   int num_trials = 1;
 
-  if (command_line_num_args() > 1) N = atoi(command_line_arg(1));
-  if (command_line_num_args() > 2) R = atoi(command_line_arg(2));
-  if (command_line_num_args() > 3) num_trials = atoi(command_line_arg(3));
+  if (command_line_num_args() > 1) N = std::stoi(command_line_arg(1));
+  if (command_line_num_args() > 2) R = std::stoi(command_line_arg(2));
+  if (command_line_num_args() > 3) num_trials = std::stoi(command_line_arg(3));
   custom_reduction_test<double>(N, R, num_trials);
 }
 }  // namespace Test

@@ -30,7 +30,6 @@
 #define __BOND_ORDERS_OMP_H_
 
 #include "reaxc_types.h"
-#include "reaxc_bond_orders.h"
 
 void Add_dBond_to_ForcesOMP( reax_system*, int, int, storage*, reax_list** );
 void Add_dBond_to_Forces_NPTOMP( reax_system *system, int, int,

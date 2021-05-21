@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -28,12 +28,12 @@ FixDPDenergy::FixDPDenergy(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg != 3 ) error->all(FLERR,"Illegal fix dpd/energy command");
 
-  pairDPDE = NULL;
+  pairDPDE = nullptr;
   pairDPDE = (PairDPDfdtEnergy *) force->pair_match("dpd/fdt/energy",1);
-  if (pairDPDE == NULL)
+  if (pairDPDE == nullptr)
     pairDPDE = (PairDPDfdtEnergy *) force->pair_match("dpd/fdt/energy/kk",1);
 
-  if (pairDPDE == NULL)
+  if (pairDPDE == nullptr)
     error->all(FLERR,"Must use pair_style dpd/fdt/energy with fix dpd/energy");
   if (!(atom->dpd_flag))
     error->all(FLERR,"Must use atom_style dpd/fdt/energy with fix dpd/energy");
@@ -63,7 +63,7 @@ void FixDPDenergy::initial_integrate(int /*vflag*/)
   double *duCond = pairDPDE->duCond;
   double *duMech = pairDPDE->duMech;
 
-  for (int i = 0; i < nlocal; i++){
+  for (int i = 0; i < nlocal; i++) {
     uCond[i] += 0.5*update->dt*duCond[i];
     uMech[i] += 0.5*update->dt*duMech[i];
   }
@@ -81,7 +81,7 @@ void FixDPDenergy::final_integrate()
   double *duCond = pairDPDE->duCond;
   double *duMech = pairDPDE->duMech;
 
-  for (int i = 0; i < nlocal; i++){
+  for (int i = 0; i < nlocal; i++) {
     uCond[i] += 0.5*update->dt*duCond[i];
     uMech[i] += 0.5*update->dt*duMech[i];
   }

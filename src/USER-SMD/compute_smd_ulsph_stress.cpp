@@ -11,7 +11,7 @@
 
 /* ----------------------------------------------------------------------
  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
- http://lammps.sandia.gov, Sandia National Laboratories
+ https://lammps.sandia.gov/, Sandia National Laboratories
  Steve Plimpton, sjplimp@sandia.gov
 
  Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -59,7 +59,7 @@ ComputeSMDULSPHStress::ComputeSMDULSPHStress(LAMMPS *lmp, int narg, char **arg) 
         size_peratom_cols = 7;
 
         nmax = 0;
-        stress_array = NULL;
+        stress_array = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -99,7 +99,7 @@ void ComputeSMDULSPHStress::compute_peratom() {
 
         int itmp = 0;
         Matrix3d *T = (Matrix3d *) force->pair->extract("smd/ulsph/stressTensor_ptr", itmp);
-        if (T == NULL) {
+        if (T == nullptr) {
                 error->all(FLERR, "compute smd/ulsph_stress could not access stress tensors. Are the matching pair styles present?");
         }
         int nlocal = atom->nlocal;
@@ -130,7 +130,7 @@ void ComputeSMDULSPHStress::compute_peratom() {
  ------------------------------------------------------------------------- */
 
 double ComputeSMDULSPHStress::memory_usage() {
-        double bytes = size_peratom_cols * nmax * sizeof(double);
+        double bytes = (double)size_peratom_cols * nmax * sizeof(double);
         return bytes;
 }
 

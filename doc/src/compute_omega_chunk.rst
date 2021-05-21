@@ -68,7 +68,8 @@ command, for example:
    compute myChunk all omega/chunk cc1
    fix 1 all ave/time 100 1 100 c_myChunk[*] file tmp.out mode vector
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global array where the number of rows = the
 number of chunks *Nchunk* as calculated by the specified :doc:`compute chunk/atom <compute_chunk_atom>` command.  The number of columns =
@@ -89,4 +90,7 @@ Related commands
 
 :doc:`variable omega() function <variable>`
 
-**Default:** none
+Default
+"""""""
+
+none

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,7 +16,7 @@
   --------------------------------------------------------------------------*/
 
 #include "compute_stress_mop.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 
@@ -65,9 +65,9 @@ ComputeStressMop::ComputeStressMop(LAMMPS *lmp, int narg, char **arg) :
     pos = domain->boxhi[dir];
   } else if (strcmp(arg[4],"center")==0) {
     pos = 0.5*(domain->boxlo[dir]+domain->boxhi[dir]);
-  } else pos = force->numeric(FLERR,arg[4]);
+  } else pos = utils::numeric(FLERR,arg[4],false,lmp);
 
-  if ( pos < (domain->boxlo[dir]+domain->prd_half[dir]) ) {
+  if (pos < (domain->boxlo[dir]+domain->prd_half[dir])) {
     pos1 = pos + domain->prd[dir];
   } else {
     pos1 = pos - domain->prd[dir];
@@ -117,7 +117,7 @@ ComputeStressMop::ComputeStressMop(LAMMPS *lmp, int narg, char **arg) :
 
   // Initialize some variables
 
-  values_local = values_global = vector = NULL;
+  values_local = values_global = vector = nullptr;
 
   // this fix produces a global vector
 
@@ -157,7 +157,7 @@ void ComputeStressMop::init()
 
   area = 1;
   int i;
-  for (i=0; i<3; i++){
+  for (i=0; i<3; i++) {
     if (i!=dir) area = area*domain->prd[i];
   }
 
@@ -173,27 +173,27 @@ void ComputeStressMop::init()
 
   // This compute requires a pair style with pair_single method implemented
 
-  if (force->pair == NULL)
+  if (force->pair == nullptr)
     error->all(FLERR,"No pair style is defined for compute stress/mop");
   if (force->pair->single_enable == 0)
     error->all(FLERR,"Pair style does not support compute stress/mop");
 
   // Warnings
 
-  if (me==0){
+  if (me==0) {
 
     //Compute stress/mop only accounts for pair interactions.
     // issue a warning if any intramolecular potential or Kspace is defined.
 
-    if (force->bond!=NULL)
+    if (force->bond!=nullptr)
       error->warning(FLERR,"compute stress/mop does not account for bond potentials");
-    if (force->angle!=NULL)
+    if (force->angle!=nullptr)
       error->warning(FLERR,"compute stress/mop does not account for angle potentials");
-    if (force->dihedral!=NULL)
+    if (force->dihedral!=nullptr)
       error->warning(FLERR,"compute stress/mop does not account for dihedral potentials");
-    if (force->improper!=NULL)
+    if (force->improper!=nullptr)
       error->warning(FLERR,"compute stress/mop does not account for improper potentials");
-    if (force->kspace!=NULL)
+    if (force->kspace!=nullptr)
       error->warning(FLERR,"compute stress/mop does not account for kspace contributions");
   }
 
@@ -319,7 +319,7 @@ void ComputeStressMop::compute_pairs()
           if (newton_pair || j < nlocal) {
 
             //check if ij pair is across plane, add contribution to pressure
-            if ( ((xi[dir]>pos) && (xj[dir]<pos)) || ((xi[dir]>pos1) && (xj[dir]<pos1)) ) {
+            if (((xi[dir]>pos) && (xj[dir]<pos)) || ((xi[dir]>pos1) && (xj[dir]<pos1))) {
 
               pair->single(i,j,itype,jtype,rsq,factor_coul,factor_lj,fpair);
 
@@ -327,7 +327,7 @@ void ComputeStressMop::compute_pairs()
               values_local[m+1] += fpair*(xi[1]-xj[1])/area*nktv2p;
               values_local[m+2] += fpair*(xi[2]-xj[2])/area*nktv2p;
             }
-            else if ( ((xi[dir]<pos) && (xj[dir]>pos)) || ((xi[dir]<pos1) && (xj[dir]>pos1)) ){
+            else if (((xi[dir]<pos) && (xj[dir]>pos)) || ((xi[dir]<pos1) && (xj[dir]>pos1))) {
 
               pair->single(i,j,itype,jtype,rsq,factor_coul,factor_lj,fpair);
 
@@ -338,7 +338,7 @@ void ComputeStressMop::compute_pairs()
 
           } else {
 
-            if ( ((xi[dir]>pos) && (xj[dir]<pos)) || ((xi[dir]>pos1) && (xj[dir]<pos1)) ) {
+            if (((xi[dir]>pos) && (xj[dir]<pos)) || ((xi[dir]>pos1) && (xj[dir]<pos1))) {
 
               pair->single(i,j,itype,jtype,rsq,factor_coul,factor_lj,fpair);
 
@@ -359,13 +359,13 @@ void ComputeStressMop::compute_pairs()
     // Compute kinetic contribution to pressure
     // counts local particles transfers across the plane
 
-    if (which[m] == KIN || which[m] == TOTAL){
+    if (which[m] == KIN || which[m] == TOTAL) {
       double sgn;
 
-      for (int i = 0; i < nlocal; i++){
+      for (int i = 0; i < nlocal; i++) {
 
         // skip if I is not in group
-        if (mask[i] & groupbit){
+        if (mask[i] & groupbit) {
 
           itype = type[i];
 
@@ -402,7 +402,7 @@ void ComputeStressMop::compute_pairs()
           double pos_temp = pos+copysign(1.0,domain->prd_half[dir]-pos)*domain->prd[dir];
           if (fabs(xi[dir]-pos)<fabs(xi[dir]-pos_temp)) pos_temp = pos;
 
-          if (((xi[dir]-pos_temp)*(xj[dir]-pos_temp)<0)){
+          if (((xi[dir]-pos_temp)*(xj[dir]-pos_temp)<0)) {
 
             //sgn = copysign(1.0,vi[dir]-vcm[dir]);
             sgn = copysign(1.0,vi[dir]);

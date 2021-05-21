@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,16 +12,16 @@
 ------------------------------------------------------------------------- */
 
 #include "special.h"
-#include <mpi.h>
-#include "atom.h"
-#include "atom_vec.h"
-#include "force.h"
-#include "comm.h"
-#include "modify.h"
-#include "fix.h"
+
 #include "accelerator_kokkos.h"  // IWYU pragma: export
+#include "atom.h"
 #include "atom_masks.h"
+#include "atom_vec.h"
+#include "comm.h"
+#include "fix.h"
+#include "force.h"
 #include "memory.h"
+#include "modify.h"
 
 using namespace LAMMPS_NS;
 
@@ -34,7 +34,7 @@ Special::Special(LAMMPS *lmp) : Pointers(lmp)
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
 
-  onetwo = onethree = onefour = NULL;
+  onetwo = onethree = onefour = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -57,14 +57,15 @@ void Special::build()
   MPI_Barrier(world);
   double time1 = MPI_Wtime();
 
-  if (me == 0 && screen) {
+  if (me == 0) {
     const double * const special_lj   = force->special_lj;
     const double * const special_coul = force->special_coul;
-    fprintf(screen,"Finding 1-2 1-3 1-4 neighbors ...\n"
-                   "  special bond factors lj:   %-10g %-10g %-10g\n"
-                   "  special bond factors coul: %-10g %-10g %-10g\n",
-                   special_lj[1],special_lj[2],special_lj[3],
-                   special_coul[1],special_coul[2],special_coul[3]);
+    auto mesg = fmt::format("Finding 1-2 1-3 1-4 neighbors ...\n"
+                            "  special bond factors lj:    {:<8} {:<8} {:<8}\n"
+                            "  special bond factors coul:  {:<8} {:<8} {:<8}\n",
+                            special_lj[1],special_lj[2],special_lj[3],
+                            special_coul[1],special_coul[2],special_coul[3]);
+    utils::logmesg(lmp,mesg);
   }
 
   // initialize nspecial counters to 0
@@ -90,10 +91,8 @@ void Special::build()
 
   // print max # of 1-2 neighbors
 
-  if (me == 0) {
-    if (screen) fprintf(screen,"  %d = max # of 1-2 neighbors\n",maxall);
-    if (logfile) fprintf(logfile,"  %d = max # of 1-2 neighbors\n",maxall);
-  }
+  if (me == 0)
+    utils::logmesg(lmp,"{:>6} = max # of 1-2 neighbors\n",maxall);
 
   // done if special_bond weights for 1-3, 1-4 are set to 1.0
 
@@ -115,10 +114,8 @@ void Special::build()
 
   // print max # of 1-3 neighbors
 
-  if (me == 0) {
-    if (screen) fprintf(screen,"  %d = max # of 1-3 neighbors\n",maxall);
-    if (logfile) fprintf(logfile,"  %d = max # of 1-3 neighbors\n",maxall);
-  }
+  if (me == 0)
+    utils::logmesg(lmp,"{:>6} = max # of 1-3 neighbors\n",maxall);
 
   // done if special_bond weights for 1-4 are set to 1.0
 
@@ -140,10 +137,8 @@ void Special::build()
 
   // print max # of 1-4 neighbors
 
-  if (me == 0) {
-    if (screen) fprintf(screen,"  %d = max # of 1-4 neighbors\n",maxall);
-    if (logfile) fprintf(logfile,"  %d = max # of 1-4 neighbors\n",maxall);
-  }
+  if (me == 0)
+    utils::logmesg(lmp,"{:>6} = max # of 1-4 neighbors\n",maxall);
 
   // finish processing the onetwo, onethree, onefour lists
 
@@ -694,12 +689,8 @@ void Special::combine()
 
   force->special_extra = 0;
 
-  if (me == 0) {
-    if (screen)
-      fprintf(screen,"  %d = max # of special neighbors\n",atom->maxspecial);
-    if (logfile)
-      fprintf(logfile,"  %d = max # of special neighbors\n",atom->maxspecial);
-  }
+  if (me == 0)
+    utils::logmesg(lmp,"{:>6} = max # of special neighbors\n",atom->maxspecial);
 
   if (lmp->kokkos) {
     AtomKokkos* atomKK = (AtomKokkos*) atom;
@@ -710,12 +701,12 @@ void Special::combine()
                         atom->nmax,atom->maxspecial,"atom:special");
     atomKK->modified(Device,SPECIAL_MASK);
     atomKK->sync(Host,SPECIAL_MASK);
+    atom->avec->grow_pointers();
   } else {
     memory->destroy(atom->special);
     memory->create(atom->special,atom->nmax,atom->maxspecial,"atom:special");
   }
 
-  atom->avec->grow_reset();
   tagint **special = atom->special;
 
   // ----------------------------------------------------
@@ -800,14 +791,9 @@ void Special::angle_trim()
   double allcount;
   MPI_Allreduce(&onethreecount,&allcount,1,MPI_DOUBLE,MPI_SUM,world);
 
-  if (me == 0) {
-    if (screen)
-      fprintf(screen,
-              "  %g = # of 1-3 neighbors before angle trim\n",allcount);
-    if (logfile)
-      fprintf(logfile,
-              "  %g = # of 1-3 neighbors before angle trim\n",allcount);
-  }
+  if (me == 0)
+    utils::logmesg(lmp,"  {} = # of 1-3 neighbors before angle trim\n",
+                   allcount);
 
   // if angles or dihedrals are defined
   // rendezvous angle 1-3 and dihedral 1-3,2-4 pairs
@@ -1035,14 +1021,9 @@ void Special::angle_trim()
   for (i = 0; i < nlocal; i++) onethreecount += nspecial[i][1];
   MPI_Allreduce(&onethreecount,&allcount,1,MPI_DOUBLE,MPI_SUM,world);
 
-  if (me == 0) {
-    if (screen)
-      fprintf(screen,
-              "  %g = # of 1-3 neighbors after angle trim\n",allcount);
-    if (logfile)
-      fprintf(logfile,
-              "  %g = # of 1-3 neighbors after angle trim\n",allcount);
-  }
+  if (me == 0)
+    utils::logmesg(lmp,"  {} = # of 1-3 neighbors after angle trim\n",
+                   allcount);
 }
 
 /* ----------------------------------------------------------------------
@@ -1070,14 +1051,9 @@ void Special::dihedral_trim()
   double allcount;
   MPI_Allreduce(&onefourcount,&allcount,1,MPI_DOUBLE,MPI_SUM,world);
 
-  if (me == 0) {
-    if (screen)
-      fprintf(screen,
-              "  %g = # of 1-4 neighbors before dihedral trim\n",allcount);
-    if (logfile)
-      fprintf(logfile,
-              "  %g = # of 1-4 neighbors before dihedral trim\n",allcount);
-  }
+  if (me == 0)
+    utils::logmesg(lmp,"  {} = # of 1-4 neighbors before dihedral trim\n",
+                   allcount);
 
   // if dihedrals are defined, rendezvous the dihedral 1-4 pairs
 
@@ -1219,14 +1195,9 @@ void Special::dihedral_trim()
   for (i = 0; i < nlocal; i++) onefourcount += nspecial[i][2];
   MPI_Allreduce(&onefourcount,&allcount,1,MPI_DOUBLE,MPI_SUM,world);
 
-  if (me == 0) {
-    if (screen)
-      fprintf(screen,
-              "  %g = # of 1-4 neighbors after dihedral trim\n",allcount);
-    if (logfile)
-      fprintf(logfile,
-              "  %g = # of 1-4 neighbors after dihedral trim\n",allcount);
-  }
+  if (me == 0)
+    utils::logmesg(lmp,"  {} = # of 1-4 neighbors after dihedral trim\n",
+                   allcount);
 }
 
 /* ----------------------------------------------------------------------
@@ -1340,9 +1311,7 @@ void Special::fix_alteration()
 
 void Special::timer_output(double time1)
 {
-  double time2 = MPI_Wtime();
-  if (comm->me == 0) {
-    if (screen) fprintf(screen,"  special bonds CPU = %g secs\n",time2-time1);
-    if (logfile) fprintf(logfile,"  special bonds CPU = %g secs\n",time2-time1);
-  }
+  if (comm->me == 0)
+    utils::logmesg(lmp,"  special bonds CPU = {:.3f} seconds\n",
+                   MPI_Wtime()-time1);
 }

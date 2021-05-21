@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -40,7 +40,7 @@ class NBinIntel : public NBinStandard {
   FixIntel *_fix;
   int *_atombin, *_binpacked;
   int _precision_mode;
-  bigint memory_usage();
+  double memory_usage();
 
   template <class flt_t, class acc_t>
   void bin_atoms(IntelBuffers<flt_t,acc_t> *);

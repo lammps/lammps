@@ -48,6 +48,9 @@
 #include <Kokkos_Macros.hpp>
 #include <stdint.h>
 #include <chrono>
+#ifdef KOKKOS_ENABLE_OPENMPTARGET
+#include <omp.h>
+#endif
 
 namespace Kokkos {
 namespace Impl {
@@ -64,18 +67,17 @@ namespace Impl {
  *  concurrent threads will have high likelihood of
  *  having different index-seed values.
  */
+
 KOKKOS_FORCEINLINE_FUNCTION
 uint64_t clock_tic(void) noexcept {
-#if defined(__CUDA_ARCH__)
+#if defined(__CUDA_ARCH__) || defined(__HIP_DEVICE_COMPILE__)
 
   // Return value of 64-bit hi-res clock register.
 
   return clock64();
 
-#elif defined(__HCC_ACCELERATOR__)
-  // Get clock register
-  return hc::__clock_u64();
-
+#elif defined(KOKKOS_ENABLE_OPENMPTARGET)
+  return uint64_t(omp_get_wtime() * 1.e9);
 #elif defined(__i386__) || defined(__x86_64)
 
   // Return value of 64-bit hi-res clock register.

@@ -20,6 +20,8 @@ Examples
 
    compute TDRUDE all temp/drude
 
+Example input scripts available: examples/USER/drude
+
 Description
 """""""""""
 
@@ -43,7 +45,8 @@ velocities of the Drude particles with respect to their cores.
 Non-polarizable atoms are considered as cores.  Their velocities
 contribute to the temperature of the cores.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global scalar (the temperature) and a global
 vector of length 6, which can be accessed by indices 1-6, whose components
@@ -76,4 +79,7 @@ Related commands
 
 :doc:`fix drude <fix_drude>`, :doc:`fix langevin/drude <fix_langevin_drude>`, :doc:`fix drude/transform <fix_drude_transform>`, :doc:`pair_style thole <pair_thole>`, :doc:`compute temp <compute_temp>`
 
-**Default:** none
+Default
+"""""""
+
+none

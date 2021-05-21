@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    See the README file in the top-level LAMMPS directory.
@@ -420,14 +420,14 @@ static void kf_factor(int n, int *facbuf)
  */
 static kiss_fft_cfg kiss_fft_alloc(int nfft, int inverse_fft, void *mem, size_t *lenmem)
 {
-    kiss_fft_cfg st=NULL;
+    kiss_fft_cfg st=nullptr;
     size_t memneeded = sizeof(struct kiss_fft_state)
         + sizeof(FFT_DATA)*(nfft-1); /* twiddle factors */
 
-    if (lenmem==NULL) {
+    if (lenmem==nullptr) {
         st=(kiss_fft_cfg)KISS_FFT_MALLOC( memneeded );
     } else {
-        if (mem != NULL && *lenmem >= memneeded)
+        if (mem != nullptr && *lenmem >= memneeded)
             st = (kiss_fft_cfg)mem;
         *lenmem = memneeded;
     }

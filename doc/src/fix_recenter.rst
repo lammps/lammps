@@ -93,7 +93,8 @@ velocities with zero aggregate linear and/or angular momentum.
    simulation scenario is to use the :doc:`fix spring <fix_spring>` command
    to tether the molecule in place.
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.
@@ -116,7 +117,7 @@ Restrictions
 """"""""""""
 
 This fix should not be used with an x,y,z setting that causes a large
-shift in the system on the 1st timestep, due to the requested COM
+shift in the system on the first timestep, due to the requested COM
 being very different from the initial COM.  This could cause atoms to
 be lost, especially in parallel.  Instead, use the
 :doc:`displace_atoms <displace_atoms>` command, which can be used to

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,19 +17,19 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_tmd.h"
-#include <mpi.h>
+
+#include "atom.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
+#include "group.h"
+#include "memory.h"
+#include "modify.h"
+#include "respa.h"
+#include "update.h"
+
 #include <cmath>
 #include <cstring>
-#include "atom.h"
-#include "update.h"
-#include "modify.h"
-#include "domain.h"
-#include "group.h"
-#include "respa.h"
-#include "force.h"
-#include "memory.h"
-#include "error.h"
-#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -40,12 +40,12 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixTMD::FixTMD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
-nfileevery(0), fp(NULL), xf(NULL), xold(NULL)
+nfileevery(0), fp(nullptr), xf(nullptr), xold(nullptr)
 {
   if (narg < 6) error->all(FLERR,"Illegal fix tmd command");
 
-  rho_stop = force->numeric(FLERR,arg[3]);
-  nfileevery = force->inumeric(FLERR,arg[5]);
+  rho_stop = utils::numeric(FLERR,arg[3],false,lmp);
+  nfileevery = utils::inumeric(FLERR,arg[5],false,lmp);
   if (rho_stop < 0 || nfileevery < 0)
     error->all(FLERR,"Illegal fix tmd command");
   if (nfileevery && narg != 7) error->all(FLERR,"Illegal fix tmd command");
@@ -56,11 +56,11 @@ nfileevery(0), fp(NULL), xf(NULL), xold(NULL)
   // register with Atom class
 
   grow_arrays(atom->nmax);
-  atom->add_callback(0);
+  atom->add_callback(Atom::GROW);
 
   // make sure an atom map exists before reading in target coordinates
 
-  if (atom->map_style == 0)
+  if (atom->map_style == Atom::MAP_NONE)
     error->all(FLERR,"Cannot use fix TMD unless atom map exists");
 
   // read from arg[4] and store coordinates of final target in xf
@@ -73,11 +73,9 @@ nfileevery(0), fp(NULL), xf(NULL), xold(NULL)
     if (narg != 7) error->all(FLERR,"Illegal fix tmd command");
     if (me == 0) {
       fp = fopen(arg[6],"w");
-      if (fp == NULL) {
-        char str[128];
-        snprintf(str,128,"Cannot open fix tmd file %s",arg[6]);
-        error->one(FLERR,str);
-      }
+      if (fp == nullptr)
+        error->one(FLERR,"Cannot open fix tmd file {}: {}",
+                                     arg[6], utils::getsyserror());
       fprintf(fp,"%s %s\n","# Step rho_target rho_old gamma_back",
               "gamma_forward lambda work_lambda work_analytical");
     }
@@ -129,7 +127,7 @@ FixTMD::~FixTMD()
 
   // unregister callbacks to this fix from Atom class
 
-  atom->delete_callback(id,0);
+  atom->delete_callback(id,Atom::GROW);
 
   // delete locally stored arrays
 
@@ -397,7 +395,7 @@ void FixTMD::readfile(char *file)
 
   int firstline = 1;
   int ncount = 0;
-  char *eof = NULL;
+  char *eof = nullptr;
   xprd = yprd = zprd = -1.0;
 
   do {
@@ -405,7 +403,7 @@ void FixTMD::readfile(char *file)
       m = 0;
       for (nlines = 0; nlines < CHUNK; nlines++) {
         eof = fgets(&buffer[m],MAXLINE,fp);
-        if (eof == NULL) break;
+        if (eof == nullptr) break;
         m += strlen(&buffer[m]);
       }
       if (buffer[m-1] != '\n') strcpy(&buffer[m++],"\n");
@@ -447,12 +445,12 @@ void FixTMD::readfile(char *file)
           zprd = hi - lo;
           bufptr = next + 1;
           continue;
-        } else if (atom->count_words(bufptr) == 4) {
+        } else if (utils::trim_and_count_words(bufptr) == 4) {
           if (xprd >= 0.0 || yprd >= 0.0 || zprd >= 0.0)
             error->all(FLERR,"Incorrect format in TMD target file");
           imageflag = 0;
           firstline = 0;
-        } else if (atom->count_words(bufptr) == 7) {
+        } else if (utils::trim_and_count_words(bufptr) == 7) {
           if (xprd < 0.0 || yprd < 0.0 || zprd < 0.0)
             error->all(FLERR,"Incorrect format in TMD target file");
           imageflag = 1;
@@ -487,7 +485,7 @@ void FixTMD::readfile(char *file)
       }
       bufptr = next + 1;
     }
-  } while (eof != NULL);
+  } while (eof != nullptr);
 
   // clean up
 
@@ -521,31 +519,29 @@ void FixTMD::readfile(char *file)
 
 void FixTMD::open(char *file)
 {
-  compressed = 0;
-  char *suffix = file + strlen(file) - 3;
-  if (suffix > file && strcmp(suffix,".gz") == 0) compressed = 1;
-  if (!compressed) fp = fopen(file,"r");
-  else {
+  if (utils::strmatch(file,"\\.gz$")) {
+    compressed = 1;
+
 #ifdef LAMMPS_GZIP
-    char gunzip[128];
-    snprintf(gunzip,128,"gzip -c -d %s",file);
+    auto gunzip = fmt::format("gzip -c -d {}",file);
 
 #ifdef _WIN32
-    fp = _popen(gunzip,"rb");
+    fp = _popen(gunzip.c_str(),"rb");
 #else
-    fp = popen(gunzip,"r");
+    fp = popen(gunzip.c_str(),"r");
 #endif
 
 #else
-    error->one(FLERR,"Cannot open gzipped file");
+    error->one(FLERR,"Cannot open gzipped file without gzip support");
 #endif
+  } else {
+    compressed = 0;
+    fp = fopen(file,"r");
   }
 
-  if (fp == NULL) {
-    char str[128];
-    snprintf(str,128,"Cannot open file %s",file);
-    error->one(FLERR,str);
-  }
+  if (fp == nullptr)
+    error->one(FLERR,"Cannot open file {}: {}",
+                                 file, utils::getsyserror());
 }
 
 /* ---------------------------------------------------------------------- */

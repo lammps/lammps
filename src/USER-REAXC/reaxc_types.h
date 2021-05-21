@@ -409,7 +409,7 @@ struct _reax_system
   class LAMMPS_NS::Error *error_ptr;
   class LAMMPS_NS::Pair *pair_ptr;
   int my_bonds;
-  int mincap;
+  int mincap,minhbonds;
   double safezone, saferzone;
 
   _LR_lookup_table **LR;
@@ -862,14 +862,23 @@ struct cubic_spline_coef
   cubic_spline_coef() {}
 
   LAMMPS_INLINE
-  void operator = (const cubic_spline_coef& rhs) {
+  cubic_spline_coef(const cubic_spline_coef &_c) {
+    a = _c.a;
+    b = _c.b;
+    c = _c.c;
+    d = _c.d;
+  }
+
+  LAMMPS_INLINE
+  void operator=(const cubic_spline_coef &rhs) {
     a = rhs.a;
     b = rhs.b;
     c = rhs.c;
     d = rhs.d;
   }
+
   LAMMPS_INLINE
-  void operator = (const cubic_spline_coef& rhs) volatile {
+  void operator=(const cubic_spline_coef &rhs) volatile {
     a = rhs.a;
     b = rhs.b;
     c = rhs.c;

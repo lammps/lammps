@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,7 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_gld.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"
@@ -41,7 +41,7 @@ using namespace FixConst;
 
 FixGLD::FixGLD(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  step_respa(NULL), prony_c(NULL), prony_tau(NULL), s_gld(NULL), random(NULL)
+  step_respa(nullptr), prony_c(nullptr), prony_tau(nullptr), s_gld(nullptr), random(nullptr)
 {
   int narg_min = 8;
   // Check to make sure we have the minimal number of inputs
@@ -55,19 +55,19 @@ FixGLD::FixGLD(LAMMPS *lmp, int narg, char **arg) :
   // 1 = Group ID         (e.g., all)
   // 2 = gld              (name of this fix)
   // 3 = t_start          (Starting target temperature)
-  t_start = force->numeric(FLERR,arg[3]);
+  t_start = utils::numeric(FLERR,arg[3],false,lmp);
 
   // 4 = t_stop           (Stopping target temperature)
-  t_stop = force->numeric(FLERR,arg[4]);
+  t_stop = utils::numeric(FLERR,arg[4],false,lmp);
 
   // 5 = prony_terms      (number of terms in Prony series)
-  prony_terms = force->inumeric(FLERR,arg[5]);
+  prony_terms = utils::inumeric(FLERR,arg[5],false,lmp);
 
   // 6 = seed             (random seed)
-  int seed    = force->inumeric(FLERR,arg[6]);
+  int seed    = utils::inumeric(FLERR,arg[6],false,lmp);
 
   // 7 = series type
-  if(strcmp(arg[7],"pprony") == 0) {
+  if (strcmp(arg[7],"pprony") == 0) {
      series_type = 1;   // series type 1 is 'positive Prony series'
   } else {
      error->all(FLERR,"Fix gld series type must be pprony for now");
@@ -89,18 +89,18 @@ FixGLD::FixGLD(LAMMPS *lmp, int narg, char **arg) :
   // allocate memory for Prony series timescale coefficients
   memory->create(prony_tau, prony_terms, "gld:prony_tau");
   // allocate memory for Prony series extended variables
-  s_gld = NULL;
+  s_gld = nullptr;
   grow_arrays(atom->nmax);
   // add callbacks to enable restarts
-  atom->add_callback(0);
-  atom->add_callback(1);
+  atom->add_callback(Atom::GROW);
+  atom->add_callback(Atom::RESTART);
 
   // read in the Prony series coefficients
   int iarg = narg_min;
   int icoeff = 0;
   while (iarg < narg && icoeff < prony_terms) {
-    double pc = force->numeric(FLERR,arg[iarg]);
-    double ptau = force->numeric(FLERR,arg[iarg+1]);
+    double pc = utils::numeric(FLERR,arg[iarg],false,lmp);
+    double ptau = utils::numeric(FLERR,arg[iarg+1],false,lmp);
 
     if (pc < 0)
       error->all(FLERR,"Fix gld c coefficients must be >= 0");
@@ -179,8 +179,8 @@ FixGLD::~FixGLD()
   memory->destroy(s_gld);
 
   // remove callbacks to fix, so atom class stops calling it
-  atom->delete_callback(id,0);
-  atom->delete_callback(id,1);
+  atom->delete_callback(id,Atom::GROW);
+  atom->delete_callback(id,Atom::RESTART);
 }
 
 /* ----------------------------------------------------------------------
@@ -206,7 +206,7 @@ void FixGLD::init()
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
 
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     step_respa = ((Respa *) update->integrate)->step;
 }
 
@@ -487,7 +487,7 @@ void FixGLD::reset_dt()
 
 double FixGLD::memory_usage()
 {
-  double bytes = atom->nmax*3*prony_terms*sizeof(double);
+  double bytes = (double)atom->nmax*3*prony_terms*sizeof(double);
   return bytes;
 }
 
@@ -547,6 +547,7 @@ int FixGLD::unpack_exchange(int nlocal, double *buf)
 int FixGLD::pack_restart(int i, double *buf)
 {
   int m = 0;
+  // pack buf[0] this way because other fixes unpack it
   buf[m++] = 3*prony_terms + 1;
   for (int k = 0; k < 3*prony_terms; k=k+3)
   {
@@ -566,6 +567,7 @@ void FixGLD::unpack_restart(int nlocal, int nth)
   double **extra = atom->extra;
 
   // skip to the nth set of extended variables
+  // unpack the Nth first values this way because other fixes pack them
 
   int m = 0;
   for (int i = 0; i< nth; i++) m += static_cast<int> (extra[nlocal][m]);

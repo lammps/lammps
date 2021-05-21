@@ -98,8 +98,8 @@ namespace Experimental {
 class OpenMPTargetSpace {
  public:
   //! Tag this class as a kokkos memory space
-  typedef OpenMPTargetSpace memory_space;
-  typedef size_t size_type;
+  using memory_space = OpenMPTargetSpace;
+  using size_type    = size_t;
 
   /// \typedef execution_space
   /// \brief Default execution space for this memory space.
@@ -107,10 +107,10 @@ class OpenMPTargetSpace {
   /// Every memory space has a default execution space.  This is
   /// useful for things like initializing a View (which happens in
   /// parallel using the View's default execution space).
-  typedef Kokkos::Experimental::OpenMPTarget execution_space;
+  using execution_space = Kokkos::Experimental::OpenMPTarget;
 
   //! This memory space preferred device_type
-  typedef Kokkos::Device<execution_space, memory_space> device_type;
+  using device_type = Kokkos::Device<execution_space, memory_space>;
 
   /*--------------------------------*/
 
@@ -127,6 +127,8 @@ class OpenMPTargetSpace {
 
   /**\brief  Deallocate untracked memory in the space */
   void deallocate(void* const arg_alloc_ptr, const size_t arg_alloc_size) const;
+
+  static constexpr const char* name() { return "OpenMPTargetSpace"; }
 
  private:
   friend class Kokkos::Impl::SharedAllocationRecord<
@@ -147,7 +149,7 @@ class SharedAllocationRecord<Kokkos::Experimental::OpenMPTargetSpace, void>
  private:
   friend Kokkos::Experimental::OpenMPTargetSpace;
 
-  typedef SharedAllocationRecord<void, void> RecordBase;
+  using RecordBase = SharedAllocationRecord<void, void>;
 
   SharedAllocationRecord(const SharedAllocationRecord&) = delete;
   SharedAllocationRecord& operator=(const SharedAllocationRecord&) = delete;
@@ -174,7 +176,13 @@ class SharedAllocationRecord<Kokkos::Experimental::OpenMPTargetSpace, void>
 
   KOKKOS_INLINE_FUNCTION static SharedAllocationRecord* allocate(
       const Kokkos::Experimental::OpenMPTargetSpace& arg_space,
-      const std::string& arg_label, const size_t arg_alloc_size);
+      const std::string& arg_label, const size_t arg_alloc_size) {
+#if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
+    return new SharedAllocationRecord(arg_space, arg_label, arg_alloc_size);
+#else
+    return nullptr;
+#endif
+  }
 
   /**\brief  Allocate tracked memory in the space */
   static void* allocate_tracked(
@@ -250,7 +258,7 @@ struct DeepCopy<HostSpace, Kokkos::Experimental::OpenMPTargetSpace,
 template <>
 struct VerifyExecutionCanAccessMemorySpace<
     Kokkos::HostSpace, Kokkos::Experimental::OpenMPTargetSpace> {
-  enum { value = false };
+  enum : bool { value = false };
   inline static void verify(void) {}
   inline static void verify(const void*) {}
 };

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,6 +15,7 @@
 #define LMP_IMBALANCE_H
 
 #include "pointers.h"  // IWYU pragma: export
+#include <string>
 
 namespace LAMMPS_NS {
 
@@ -30,7 +31,7 @@ class Imbalance : protected Pointers {
   // compute and apply weight factors to local atom array (required)
   virtual void compute(double *) = 0;
   // print information about the state of this imbalance compute (required)
-  virtual void info(FILE *) = 0;
+  virtual std::string info() = 0;
 
   // disallow default and copy constructor, assignment operator
   // private:

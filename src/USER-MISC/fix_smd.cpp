@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,17 +17,17 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_smd.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
 #include "comm.h"
-#include "update.h"
-#include "respa.h"
 #include "domain.h"
 #include "error.h"
-#include "force.h"
 #include "group.h"
+#include "respa.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -58,19 +58,19 @@ FixSMD::FixSMD(LAMMPS *lmp, int narg, char **arg) :
   extvector = 1;
   respa_level_support = 1;
   ilevel_respa = 0;
-  virial_flag = 1;
+  virial_global_flag = virial_peratom_flag = 1;
 
   int argoffs=3;
   if (strcmp(arg[argoffs],"cvel") == 0) {
     if (narg < argoffs+3) error->all(FLERR,"Illegal fix smd command");
     styleflag |= SMD_CVEL;
-    k_smd = force->numeric(FLERR,arg[argoffs+1]);
-    v_smd = force->numeric(FLERR,arg[argoffs+2]); // to be multiplied by update->dt when used.
+    k_smd = utils::numeric(FLERR,arg[argoffs+1],false,lmp);
+    v_smd = utils::numeric(FLERR,arg[argoffs+2],false,lmp); // to be multiplied by update->dt when used.
     argoffs += 3;
   } else if (strcmp(arg[argoffs],"cfor") == 0) {
     if (narg < argoffs+2) error->all(FLERR,"Illegal fix smd command");
     styleflag |= SMD_CFOR;
-    f_smd = force->numeric(FLERR,arg[argoffs+1]);
+    f_smd = utils::numeric(FLERR,arg[argoffs+1],false,lmp);
     argoffs += 2;
   } else error->all(FLERR,"Illegal fix smd command");
 
@@ -78,12 +78,12 @@ FixSMD::FixSMD(LAMMPS *lmp, int narg, char **arg) :
     if (narg < argoffs+5) error->all(FLERR,"Illegal fix smd command");
     styleflag |= SMD_TETHER;
     if (strcmp(arg[argoffs+1],"NULL") == 0) xflag = 0;
-    else xc = force->numeric(FLERR,arg[argoffs+1]);
+    else xc = utils::numeric(FLERR,arg[argoffs+1],false,lmp);
     if (strcmp(arg[argoffs+2],"NULL") == 0) yflag = 0;
-    else yc = force->numeric(FLERR,arg[argoffs+2]);
+    else yc = utils::numeric(FLERR,arg[argoffs+2],false,lmp);
     if (strcmp(arg[argoffs+3],"NULL") == 0) zflag = 0;
-    else zc = force->numeric(FLERR,arg[argoffs+3]);
-    r0 = force->numeric(FLERR,arg[argoffs+4]);
+    else zc = utils::numeric(FLERR,arg[argoffs+3],false,lmp);
+    r0 = utils::numeric(FLERR,arg[argoffs+4],false,lmp);
     if (r0 < 0) error->all(FLERR,"R0 < 0 for fix smd command");
     argoffs += 5;
   } else if (strcmp(arg[argoffs],"couple") == 0) {
@@ -98,15 +98,15 @@ FixSMD::FixSMD(LAMMPS *lmp, int narg, char **arg) :
 
     if (strcmp(arg[argoffs+2],"NULL") == 0) xflag = 0;
     else if (strcmp(arg[argoffs+2],"auto") == 0) styleflag |= SMD_AUTOX;
-    else xc = force->numeric(FLERR,arg[argoffs+2]);
+    else xc = utils::numeric(FLERR,arg[argoffs+2],false,lmp);
     if (strcmp(arg[argoffs+3],"NULL") == 0) yflag = 0;
     else if (strcmp(arg[argoffs+3],"auto") == 0) styleflag |= SMD_AUTOY;
-    else yc = force->numeric(FLERR,arg[argoffs+3]);
+    else yc = utils::numeric(FLERR,arg[argoffs+3],false,lmp);
     if (strcmp(arg[argoffs+4],"NULL") == 0) zflag = 0;
     else if (strcmp(arg[argoffs+4],"auto") == 0) styleflag |= SMD_AUTOZ;
-    else zc = force->numeric(FLERR,arg[argoffs+4]);
+    else zc = utils::numeric(FLERR,arg[argoffs+4],false,lmp);
 
-    r0 = force->numeric(FLERR,arg[argoffs+5]);
+    r0 = utils::numeric(FLERR,arg[argoffs+5],false,lmp);
     if (r0 < 0) error->all(FLERR,"R0 < 0 for fix smd command");
     argoffs +=6;
   } else error->all(FLERR,"Illegal fix smd command");
@@ -159,7 +159,7 @@ void FixSMD::init()
     zn = dz/r_old;
   }
 
-  if (strstr(update->integrate_style,"respa")) {
+  if (utils::strmatch(update->integrate_style,"^respa")) {
     ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
   }
@@ -169,7 +169,7 @@ void FixSMD::init()
 
 void FixSMD::setup(int vflag)
 {
-  if (strstr(update->integrate_style,"verlet"))
+  if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
     ((Respa *) update->integrate)->copy_flevel_f(ilevel_respa);
@@ -182,16 +182,15 @@ void FixSMD::setup(int vflag)
 
 void FixSMD::post_force(int vflag)
 {
-  // energy and virial setup
+  // virial setup
 
-  if (vflag) v_setup(vflag);
-  else evflag = 0;
+  v_init(vflag);
 
   if (styleflag & SMD_TETHER) smd_tether();
   else smd_couple();
 
   if (styleflag & SMD_CVEL) {
-    if (strstr(update->integrate_style,"verlet"))
+    if (utils::strmatch(update->integrate_style,"^verlet"))
       r_old += v_smd * update->dt;
     else
       r_old += v_smd * ((Respa *) update->integrate)->step[ilevel_respa];
@@ -206,7 +205,7 @@ void FixSMD::smd_tether()
   group->xcm(igroup,masstotal,xcm);
 
   double dt = update->dt;
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     dt = ((Respa *) update->integrate)->step[ilevel_respa];
 
   // fx,fy,fz = components of k * (r-r0)
@@ -223,7 +222,7 @@ void FixSMD::smd_tether()
   if (!zflag) dz = 0.0;
   r = sqrt(dx*dx + dy*dy + dz*dz);
   if (styleflag & SMD_CVEL) {
-    if(r > SMALL) {
+    if (r > SMALL) {
       dr = r - r0 - r_old;
       fx = k_smd*dx*dr/r;
       fy = k_smd*dy*dr/r;
@@ -276,7 +275,7 @@ void FixSMD::smd_tether()
           v[3] = -fx*massfrac*unwrap[1];
           v[4] = -fx*massfrac*unwrap[2];
           v[5] = -fy*massfrac*unwrap[2];
-          v_tally(i, v);
+          v_tally(i,v);
         }
       }
   } else {
@@ -297,7 +296,7 @@ void FixSMD::smd_tether()
           v[3] = -fx*massfrac*unwrap[1];
           v[4] = -fx*massfrac*unwrap[2];
           v[5] = -fy*massfrac*unwrap[2];
-          v_tally(i, v);
+          v_tally(i,v);
         }
       }
   }
@@ -312,7 +311,7 @@ void FixSMD::smd_couple()
   group->xcm(igroup2,masstotal2,xcm2);
 
   double dt = update->dt;
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     dt = ((Respa *) update->integrate)->step[ilevel_respa];
 
   // renormalize direction of spring

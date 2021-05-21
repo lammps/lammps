@@ -46,6 +46,7 @@
 #define KOKKOS_SCRATCHSPACE_HPP
 
 #include <cstdio>
+#include <cstddef>
 #include <Kokkos_Core_fwd.hpp>
 #include <Kokkos_Concepts.hpp>
 
@@ -68,29 +69,28 @@ class ScratchMemorySpace {
   enum { ALIGN = 8 };
 
  private:
-  mutable char* m_iter_L0;
-  char* m_end_L0;
-  mutable char* m_iter_L1;
-  char* m_end_L1;
+  mutable char* m_iter_L0 = nullptr;
+  char* m_end_L0          = nullptr;
+  mutable char* m_iter_L1 = nullptr;
+  char* m_end_L1          = nullptr;
 
-  mutable int m_multiplier;
-  mutable int m_offset;
-  mutable int m_default_level;
-
-  ScratchMemorySpace();
-  ScratchMemorySpace& operator=(const ScratchMemorySpace&);
+  mutable int m_multiplier    = 0;
+  mutable int m_offset        = 0;
+  mutable int m_default_level = 0;
 
   enum { MASK = ALIGN - 1 };  // Alignment used by View::shmem_size
 
  public:
   //! Tag this class as a memory space
-  typedef ScratchMemorySpace memory_space;
-  typedef ExecSpace execution_space;
+  using memory_space    = ScratchMemorySpace<ExecSpace>;
+  using execution_space = ExecSpace;
   //! This execution space preferred device_type
-  typedef Kokkos::Device<execution_space, memory_space> device_type;
+  using device_type = Kokkos::Device<execution_space, memory_space>;
 
-  typedef typename ExecSpace::array_layout array_layout;
-  typedef typename ExecSpace::size_type size_type;
+  using array_layout = typename ExecSpace::array_layout;
+  using size_type    = typename ExecSpace::size_type;
+
+  static constexpr const char* name() { return "ScratchMemorySpace"; }
 
   template <typename IntType>
   KOKKOS_INLINE_FUNCTION static IntType align(const IntType& size) {
@@ -105,32 +105,32 @@ class ScratchMemorySpace {
       void* tmp = m_iter_L0 + m_offset * align(size);
       if (m_end_L0 < (m_iter_L0 += align(size) * m_multiplier)) {
         m_iter_L0 -= align(size) * m_multiplier;  // put it back like it was
-#ifdef KOKKOS_DEBUG
+#ifdef KOKKOS_ENABLE_DEBUG
         // mfh 23 Jun 2015: printf call consumes 25 registers
         // in a CUDA build, so only print in debug mode.  The
-        // function still returns NULL if not enough memory.
+        // function still returns nullptr if not enough memory.
         printf(
             "ScratchMemorySpace<...>::get_shmem: Failed to allocate "
             "%ld byte(s); remaining capacity is %ld byte(s)\n",
             long(size), long(m_end_L0 - m_iter_L0));
-#endif  // KOKKOS_DEBUG
-        tmp = 0;
+#endif  // KOKKOS_ENABLE_DEBUG
+        tmp = nullptr;
       }
       return tmp;
     } else {
       void* tmp = m_iter_L1 + m_offset * align(size);
       if (m_end_L1 < (m_iter_L1 += align(size) * m_multiplier)) {
         m_iter_L1 -= align(size) * m_multiplier;  // put it back like it was
-#ifdef KOKKOS_DEBUG
+#ifdef KOKKOS_ENABLE_DEBUG
         // mfh 23 Jun 2015: printf call consumes 25 registers
         // in a CUDA build, so only print in debug mode.  The
-        // function still returns NULL if not enough memory.
+        // function still returns nullptr if not enough memory.
         printf(
             "ScratchMemorySpace<...>::get_shmem: Failed to allocate "
             "%ld byte(s); remaining capacity is %ld byte(s)\n",
             long(size), long(m_end_L1 - m_iter_L1));
-#endif  // KOKKOS_DEBUG
-        tmp = 0;
+#endif  // KOKKOS_ENABLE_DEBUG
+        tmp = nullptr;
       }
       return tmp;
     }
@@ -148,16 +148,16 @@ class ScratchMemorySpace {
       void* tmp = m_iter_L0 + m_offset * size;
       if (m_end_L0 < (m_iter_L0 += size * m_multiplier)) {
         m_iter_L0 = previous;  // put it back like it was
-#ifdef KOKKOS_DEBUG
+#ifdef KOKKOS_ENABLE_DEBUG
         // mfh 23 Jun 2015: printf call consumes 25 registers
         // in a CUDA build, so only print in debug mode.  The
-        // function still returns NULL if not enough memory.
+        // function still returns nullptr if not enough memory.
         printf(
             "ScratchMemorySpace<...>::get_shmem: Failed to allocate "
             "%ld byte(s); remaining capacity is %ld byte(s)\n",
             long(size), long(m_end_L0 - m_iter_L0));
-#endif  // KOKKOS_DEBUG
-        tmp = 0;
+#endif  // KOKKOS_ENABLE_DEBUG
+        tmp = nullptr;
       }
       return tmp;
     } else {
@@ -168,25 +168,28 @@ class ScratchMemorySpace {
       void* tmp = m_iter_L1 + m_offset * size;
       if (m_end_L1 < (m_iter_L1 += size * m_multiplier)) {
         m_iter_L1 = previous;  // put it back like it was
-#ifdef KOKKOS_DEBUG
+#ifdef KOKKOS_ENABLE_DEBUG
         // mfh 23 Jun 2015: printf call consumes 25 registers
         // in a CUDA build, so only print in debug mode.  The
-        // function still returns NULL if not enough memory.
+        // function still returns nullptr if not enough memory.
         printf(
             "ScratchMemorySpace<...>::get_shmem: Failed to allocate "
             "%ld byte(s); remaining capacity is %ld byte(s)\n",
             long(size), long(m_end_L1 - m_iter_L1));
-#endif  // KOKKOS_DEBUG
-        tmp = 0;
+#endif  // KOKKOS_ENABLE_DEBUG
+        tmp = nullptr;
       }
       return tmp;
     }
   }
 
+  KOKKOS_DEFAULTED_FUNCTION
+  ScratchMemorySpace() = default;
+
   template <typename IntType>
   KOKKOS_INLINE_FUNCTION ScratchMemorySpace(void* ptr_L0,
                                             const IntType& size_L0,
-                                            void* ptr_L1           = NULL,
+                                            void* ptr_L1           = nullptr,
                                             const IntType& size_L1 = 0)
       : m_iter_L0((char*)ptr_L0),
         m_end_L0(m_iter_L0 + size_L0),

@@ -1,37 +1,31 @@
 .. index:: fix nvt
+.. index:: fix nvt/gpu
+.. index:: fix nvt/intel
+.. index:: fix nvt/kk
+.. index:: fix nvt/omp
+.. index:: fix npt
+.. index:: fix npt/gpu
+.. index:: fix npt/intel
+.. index:: fix npt/kk
+.. index:: fix npt/omp
+.. index:: fix nph
+.. index:: fix nph/kk
+.. index:: fix nph/omp
 
 fix nvt command
 ===============
 
-fix nvt/intel command
-=====================
-
-fix nvt/kk command
-==================
-
-fix nvt/omp command
-===================
+Accelerator Variants: *nvt/gpu*, *nvt/intel*, *nvt/kk*, *nvt/omp*
 
 fix npt command
 ===============
 
-fix npt/intel command
-=====================
-
-fix npt/kk command
-==================
-
-fix npt/omp command
-===================
+Accelerator Variants: *npt/gpu*, *npt/intel*, *npt/kk*, *npt/omp*
 
 fix nph command
 ===============
 
-fix nph/kk command
-==================
-
-fix nph/omp command
-===================
+Accelerator Variants: *nph/kk*, *nph/omp*
 
 Syntax
 """"""
@@ -46,7 +40,7 @@ Syntax
 
   .. parsed-literal::
 
-     keyword = *temp* or *iso* or *aniso* or *tri* or *x* or *y* or *z* or *xy* or *yz* or *xz* or *couple* or *tchain* or *pchain* or *mtk* or *tloop* or *ploop* or *nreset* or *drag* or *dilate* or *scalexy* or *scaleyz* or *scalexz* or *flip* or *fixedpoint* or *update*
+     keyword = *temp* or *iso* or *aniso* or *tri* or *x* or *y* or *z* or *xy* or *yz* or *xz* or *couple* or *tchain* or *pchain* or *mtk* or *tloop* or *ploop* or *nreset* or *drag* or *ptemp* or *dilate* or *scalexy* or *scaleyz* or *scalexz* or *flip* or *fixedpoint* or *update*
        *temp* values = Tstart Tstop Tdamp
          Tstart,Tstop = external temperature at start/end of run
          Tdamp = temperature damping parameter (time units)
@@ -59,7 +53,7 @@ Syntax
        *couple* = *none* or *xyz* or *xy* or *yz* or *xz*
        *tchain* value = N
          N = length of thermostat chain (1 = single thermostat)
-       *pchain* values = N
+       *pchain* value = N
          N length of thermostat chain on barostat (0 = no thermostat)
        *mtk* value = *yes* or *no* = add in MTK adjustment term or not
        *tloop* value = M
@@ -69,6 +63,8 @@ Syntax
        *nreset* value = reset reference cell every this many timesteps
        *drag* value = Df
          Df = drag factor added to barostat/thermostat (0.0 = no drag)
+       *ptemp* value = Ttarget
+         Ttarget = target temperature for barostat
        *dilate* value = dilate-group-ID
          dilate-group-ID = only dilate atoms in this group due to barostat volume changes
        *scalexy* value = *yes* or *no* = scale xy with ly
@@ -137,8 +133,8 @@ description below.  The desired temperature at each timestep is a
 ramped value during the run from *Tstart* to *Tstop*\ .  The *Tdamp*
 parameter is specified in time units and determines how rapidly the
 temperature is relaxed.  For example, a value of 10.0 means to relax
-the temperature in a timespan of (roughly) 10 time units (e.g. tau or
-fmsec or psec - see the :doc:`units <units>` command).  The atoms in the
+the temperature in a timespan of (roughly) 10 time units (e.g. :math:`\tau`
+or fs or ps - see the :doc:`units <units>` command).  The atoms in the
 fix group are the only ones whose velocities and positions are updated
 by the velocity/position update portion of the integration.
 
@@ -195,8 +191,8 @@ simulation box must be triclinic, even if its initial tilt factors are
 For all barostat keywords, the *Pdamp* parameter operates like the
 *Tdamp* parameter, determining the time scale on which pressure is
 relaxed.  For example, a value of 10.0 means to relax the pressure in
-a timespan of (roughly) 10 time units (e.g. tau or fmsec or psec - see
-the :doc:`units <units>` command).
+a timespan of (roughly) 10 time units (e.g. :math:`\tau` or fs or ps
+- see the :doc:`units <units>` command).
 
 .. note::
 
@@ -207,6 +203,28 @@ the :doc:`units <units>` command).
    of around 1000 timesteps.  However, note that *Pdamp* is specified in
    time units, and that timesteps are NOT the same as time units for most
    :doc:`units <units>` settings.
+
+The relaxation rate of the barostat is set by its inertia :math:`W`:
+
+.. math::
+
+   W = (N + 1) k T_{\rm target} P_{\rm damp}^2
+
+where :math:`N` is the number of atoms, :math:`k` is the Boltzmann constant,
+and :math:`T_{\rm target}` is the target temperature of the barostat :ref:`(Martyna) <nh-Martyna>`.
+If a thermostat is defined, :math:`T_{\rm target}` is the target temperature
+of the thermostat. If a thermostat is not defined, :math:`T_{\rm target}`
+is set to the current temperature of the system when the barostat is initialized.
+If this temperature is too low the simulation will quit with an error.
+Note: in previous versions of LAMMPS, :math:`T_{\rm target}` would default to
+a value of 1.0 for *lj* units and 300.0 otherwise if the system had a temperature
+of exactly zero.
+
+If a thermostat is not specified by this fix, :math:`T_{\rm target}` can be
+manually specified using the *Ptemp* parameter. This may be useful if the
+barostat is initialized when the current temperature does not reflect the
+steady state temperature of the system. This keyword may also be useful in
+athermal simulations where the temperature is not well defined.
 
 Regardless of what atoms are in the fix group (the only atoms which
 are time integrated), a global pressure or stress tensor is computed
@@ -408,7 +426,7 @@ equilibrium liquids can not support a shear stress and that
 equilibrium solids can not support shear stresses that exceed the
 yield stress.
 
-One exception to this rule is if the 1st dimension in the tilt factor
+One exception to this rule is if the first dimension in the tilt factor
 (x for xy) is non-periodic.  In that case, the limits on the tilt
 factor are not enforced, since flipping the box in that dimension does
 not change the atom positions due to non-periodicity.  In this mode,
@@ -544,27 +562,12 @@ the various ways to do this.
 
 ----------
 
-Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
-functionally the same as the corresponding style without the suffix.
-They have been optimized to run faster, depending on your available
-hardware, as discussed on the :doc:`Speed packages <Speed_packages>` doc
-page.  The accelerated styles take the same arguments and should
-produce the same results, except for round-off and precision issues.
-
-These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
-USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` doc page for more info.
-
-You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
-:doc:`suffix <suffix>` command in your input script.
-
-See the :doc:`Speed packages <Speed_packages>` doc page for more
-instructions on how to use the accelerated styles effectively.
+.. include:: accel_styles.rst
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 These fixes writes the state of all the thermostat and barostat
 variables to :doc:`binary restart files <restart>`.  See the
@@ -593,17 +596,20 @@ compute temperature on a subset of atoms.
    specified by the *press* keyword will be unaffected by the *temp*
    setting.
 
-The :doc:`fix_modify <fix_modify>` *energy* option is supported by these
-fixes to add the energy change induced by Nose/Hoover thermostatting
-and barostatting to the system's potential energy as part of
-:doc:`thermodynamic output <thermo_style>`.
+The cumulative energy change in the system imposed by these fixes, via
+either thermostatting and/or barostatting, is included in the
+:doc:`thermodynamic output <thermo_style>` keywords *ecouple* and
+*econserve*.  See the :doc:`thermo_style <thermo_style>` doc page for
+details.
 
-These fixes compute a global scalar and a global vector of quantities,
-which can be accessed by various :doc:`output commands <Howto_output>`.
-The scalar value calculated by these fixes is "extensive"; the vector
-values are "intensive".
+These fixes compute a global scalar which can be accessed by various
+:doc:`output commands <Howto_output>`.  The scalar is the same
+cumulative energy change due to this fix described in the previous
+paragraph.  The scalar value calculated by this fix is "extensive".
 
-The scalar is the cumulative energy change due to the fix.
+These fixes compute also compute a global vector of quantities, which
+can be accessed by various :doc:`output commands <Howto_output>`.  The
+vector values are "intensive".
 
 The vector stores internal Nose/Hoover thermostat and barostat
 variables.  The number and meaning of the vector values depends on
@@ -649,7 +655,7 @@ Restrictions
 
 *X*\ , *y*\ , *z* cannot be barostatted if the associated dimension is not
 periodic.  *Xy*\ , *xz*\ , and *yz* can only be barostatted if the
-simulation domain is triclinic and the 2nd dimension in the keyword
+simulation domain is triclinic and the second dimension in the keyword
 (\ *y* dimension in *xy*\ ) is periodic.  *Z*\ , *xz*\ , and *yz*\ , cannot be
 barostatted for 2D simulations.  The :doc:`create_box <create_box>`,
 :doc:`read data <read_data>`, and :doc:`read_restart <read_restart>`
@@ -663,7 +669,7 @@ is not allowed in the Nose/Hoover formulation.
 
 The *scaleyz yes* and *scalexz yes* keyword/value pairs can not be used
 for 2D simulations. *scaleyz yes*\ , *scalexz yes*\ , and *scalexy yes* options
-can only be used if the 2nd dimension in the keyword is periodic,
+can only be used if the second dimension in the keyword is periodic,
 and if the tilt factor is not coupled to the barostat via keywords
 *tri*\ , *yz*\ , *xz*\ , and *xy*\ .
 
@@ -686,7 +692,7 @@ Default
 
 The keyword defaults are tchain = 3, pchain = 3, mtk = yes, tloop = 1,
 ploop = 1, nreset = 0, drag = 0.0, dilate = all, couple = none,
-flip = yes, scaleyz = scalexz = scalexy = yes if periodic in 2nd
+flip = yes, scaleyz = scalexz = scalexy = yes if periodic in second
 dimension and not coupled to barostat, otherwise no.
 
 ----------

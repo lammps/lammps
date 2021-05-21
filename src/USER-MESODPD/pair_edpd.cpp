@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,21 +17,21 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_edpd.h"
-#include <mpi.h>
+
+#include "atom.h"
+#include "citeme.h"
+#include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "neigh_list.h"
+#include "neighbor.h"
+#include "random_mars.h"
+#include "update.h"
+
 #include <cmath>
 #include <ctime>
 #include <cstring>
-#include "atom.h"
-#include "comm.h"
-#include "update.h"
-#include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "random_mars.h"
-#include "citeme.h"
-#include "memory.h"
-#include "error.h"
-#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -65,8 +65,8 @@ PairEDPD::PairEDPD(LAMMPS *lmp) : Pair(lmp)
 {
   if (lmp->citeme) lmp->citeme->add(cite_pair_edpd);
   writedata = 1;
-  random = NULL;
-  randomT = NULL;
+  random = nullptr;
+  randomT = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -162,9 +162,9 @@ void PairEDPD::compute(int eflag, int vflag)
         T_pow[3] = T_pow[0]*T_pow[2];
 
         double power_d = power[itype][jtype];
-        if(power_flag){
+        if (power_flag) {
           double factor = 1.0;
-          for(int k = 0; k < 4; k++)
+          for (int k = 0; k < 4; k++)
             factor += sc[itype][jtype][k]*T_pow[k];
           power_d *= factor;
         }
@@ -197,9 +197,9 @@ void PairEDPD::compute(int eflag, int vflag)
           randnumT = MAX(-5.0,MIN(randnum,5.0));
 
           double kappaT = kappa[itype][jtype];
-          if(kappa_flag) {
+          if (kappa_flag) {
             double factor = 1.0;
-            for(int k = 0; k < 4; k++)
+            for (int k = 0; k < 4; k++)
               factor += kc[itype][jtype][k]*T_pow[k];
             kappaT *= factor;
           }
@@ -270,16 +270,14 @@ void PairEDPD::settings(int narg, char **arg)
 {
   if (narg != 2) error->all(FLERR,"Illegal pair_style command");
 
-  cut_global = force->numeric(FLERR,arg[0]);
-  seed = force->inumeric(FLERR,arg[1]);
+  cut_global = utils::numeric(FLERR,arg[0],false,lmp);
+  seed = utils::inumeric(FLERR,arg[1],false,lmp);
 
   // initialize Marsaglia RNG with processor-unique seed
 
-  if (seed <= 0 ) {
-    struct timespec time;
-    clock_gettime( CLOCK_REALTIME, &time );
-    seed = time.tv_nsec;  // if seed is non-positive, get the current time as the seed
-  }
+  if (seed <= 0)
+    error->all(FLERR,"Invalid random number seed");
+
   delete random;
   random = new RanMars(lmp,(seed + comm->me) % 900000000);
   randomT = new RanMars(lmp,(2*seed + comm->me) % 900000000);
@@ -306,16 +304,16 @@ void PairEDPD::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  double a0_one = force->numeric(FLERR,arg[2]);
-  double gamma_one = force->numeric(FLERR,arg[3]);
-  double power_one = force->numeric(FLERR,arg[4]);
-  double cut_one   = force->numeric(FLERR,arg[5]);
-  double kappa_one = force->numeric(FLERR,arg[6]);
-  double powerT_one= force->numeric(FLERR,arg[7]);
-  double cutT_one  = force->numeric(FLERR,arg[8]);
+  double a0_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double gamma_one = utils::numeric(FLERR,arg[3],false,lmp);
+  double power_one = utils::numeric(FLERR,arg[4],false,lmp);
+  double cut_one   = utils::numeric(FLERR,arg[5],false,lmp);
+  double kappa_one = utils::numeric(FLERR,arg[6],false,lmp);
+  double powerT_one= utils::numeric(FLERR,arg[7],false,lmp);
+  double cutT_one  = utils::numeric(FLERR,arg[8],false,lmp);
 
   int iarg = 9;
   power_flag = kappa_flag = 0;
@@ -325,14 +323,14 @@ void PairEDPD::coeff(int narg, char **arg)
     if (strcmp(arg[iarg],"power") == 0) {
       if (iarg+5 > narg) error->all(FLERR,"Illegal pair edpd coefficients");
       for (int i = 0; i < 4; i++)
-        sc_one[i] = force->numeric(FLERR,arg[iarg+i+1]);
+        sc_one[i] = utils::numeric(FLERR,arg[iarg+i+1],false,lmp);
       iarg += 5;
       power_flag = 1;
       memory->create(sc,n+1,n+1,4,"pair:sc");
     } else if (strcmp(arg[iarg],"kappa") == 0) {
       if (iarg+5 > narg) error->all(FLERR,"Illegal pair edpd coefficients");
       for (int i = 0; i < 4; i++)
-        kc_one[i] = force->numeric(FLERR,arg[iarg+i+1]);
+        kc_one[i] = utils::numeric(FLERR,arg[iarg+i+1],false,lmp);
       iarg += 5;
       kappa_flag = 1;
       memory->create(kc,n+1,n+1,4,"pair:kc");
@@ -350,11 +348,11 @@ void PairEDPD::coeff(int narg, char **arg)
     powerT[i][j]= powerT_one;
     cutT[i][j]  = cutT_one;
 
-    if(power_flag)
+    if (power_flag)
     for (int k = 0; k < 4; k++)
       sc[i][j][k] = sc_one[k];
 
-    if(kappa_flag)
+    if (kappa_flag)
     for (int k = 0; k < 4; k++)
       kc[i][j][k] = kc_one[k];
 
@@ -399,11 +397,11 @@ double PairEDPD::init_one(int i, int j)
   kappa[j][i] = kappa[i][j];
   powerT[j][i]= powerT[i][j];
 
-  if(power_flag)
+  if (power_flag)
   for (int k = 0; k < 4; k++)
     sc[j][i][k] = sc[i][j][k];
 
-  if(kappa_flag)
+  if (kappa_flag)
   for (int k = 0; k < 4; k++)
     kc[j][i][k] = kc[i][j][k];
 
@@ -429,11 +427,11 @@ void PairEDPD::write_restart(FILE *fp)
       fwrite(&kappa[i][j],sizeof(double),1,fp);
       fwrite(&powerT[i][j],sizeof(double),1,fp);
       fwrite(&cutT[i][j],sizeof(double),1,fp);
-      if(power_flag)
+      if (power_flag)
       for (int k = 0; k < 4; k++)
         fwrite(&sc[i][j][k],sizeof(double),1,fp);
 
-      if(kappa_flag)
+      if (kappa_flag)
       for (int k = 0; k < 4; k++)
         fwrite(&kc[i][j][k],sizeof(double),1,fp);
     }
@@ -453,24 +451,24 @@ void PairEDPD::read_restart(FILE *fp)
   int me = comm->me;
   for (int i = 1; i <= atom->ntypes; i++)
     for (int j = i; j <= atom->ntypes; j++) {
-      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          utils::sfread(FLERR,&a0[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&gamma[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&power[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&kappa[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&powerT[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&cutT[i][j],sizeof(double),1,fp,NULL,error);
-          if(power_flag)
+          utils::sfread(FLERR,&a0[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&gamma[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&power[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&kappa[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&powerT[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cutT[i][j],sizeof(double),1,fp,nullptr,error);
+          if (power_flag)
           for (int k = 0; k < 4; k++)
-            utils::sfread(FLERR,&sc[i][j][k],sizeof(double),1,fp,NULL,error);
+            utils::sfread(FLERR,&sc[i][j][k],sizeof(double),1,fp,nullptr,error);
 
-          if(kappa_flag)
+          if (kappa_flag)
           for (int k = 0; k < 4; k++)
-            utils::sfread(FLERR,&kc[i][j][k],sizeof(double),1,fp,NULL,error);
+            utils::sfread(FLERR,&kc[i][j][k],sizeof(double),1,fp,nullptr,error);
         }
         MPI_Bcast(&a0[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&gamma[i][j],1,MPI_DOUBLE,0,world);
@@ -479,11 +477,11 @@ void PairEDPD::read_restart(FILE *fp)
         MPI_Bcast(&kappa[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&powerT[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&cutT[i][j],1,MPI_DOUBLE,0,world);
-        if(power_flag)
+        if (power_flag)
         for (int k = 0; k < 4; k++)
           MPI_Bcast(&sc[i][j][k],1,MPI_DOUBLE,0,world);
 
-        if(kappa_flag)
+        if (kappa_flag)
         for (int k = 0; k < 4; k++)
           MPI_Bcast(&kc[i][j][k],1,MPI_DOUBLE,0,world);
       }
@@ -508,9 +506,9 @@ void PairEDPD::write_restart_settings(FILE *fp)
 void PairEDPD::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&seed,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&seed,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
   }
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&seed,1,MPI_INT,0,world);

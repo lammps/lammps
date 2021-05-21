@@ -3,9 +3,9 @@
 #   kokkos_option
 
 # Validate options are given with correct case and define an internal
-# upper-case version for use within 
+# upper-case version for use within
 
-# 
+#
 #
 # @FUNCTION: kokkos_deprecated_list
 #
@@ -47,6 +47,13 @@ FUNCTION(kokkos_option CAMEL_SUFFIX DEFAULT TYPE DOCSTRING)
   SET(CAMEL_NAME Kokkos_${CAMEL_SUFFIX})
   STRING(TOUPPER ${CAMEL_NAME} UC_NAME)
 
+  LIST(APPEND KOKKOS_OPTION_KEYS ${CAMEL_SUFFIX})
+  SET(KOKKOS_OPTION_KEYS ${KOKKOS_OPTION_KEYS} PARENT_SCOPE)
+  LIST(APPEND KOKKOS_OPTION_VALUES "${DOCSTRING}")
+  SET(KOKKOS_OPTION_VALUES ${KOKKOS_OPTION_VALUES} PARENT_SCOPE)
+  LIST(APPEND KOKKOS_OPTION_TYPES ${TYPE})
+  SET(KOKKOS_OPTION_TYPES ${KOKKOS_OPTION_TYPES} PARENT_SCOPE)
+
   # Make sure this appears in the cache with the appropriate DOCSTRING
   SET(${CAMEL_NAME} ${DEFAULT} CACHE ${TYPE} ${DOCSTRING})
 
@@ -62,7 +69,7 @@ FUNCTION(kokkos_option CAMEL_SUFFIX DEFAULT TYPE DOCSTRING)
           UNSET(${opt} CACHE)
         ELSE()
           MESSAGE(FATAL_ERROR "Matching option found for ${CAMEL_NAME} with the wrong case ${opt}. Please delete your CMakeCache.txt and change option to -D${CAMEL_NAME}=${${opt}}. This is now enforced to avoid hard-to-debug CMake cache inconsistencies.")
-	ENDIF()
+        ENDIF()
       ENDIF()
     ENDIF()
   ENDFOREACH()
@@ -73,7 +80,21 @@ FUNCTION(kokkos_option CAMEL_SUFFIX DEFAULT TYPE DOCSTRING)
   ELSE()
     SET(${UC_NAME} ${DEFAULT} PARENT_SCOPE)
   ENDIF()
+ENDFUNCTION()
 
+FUNCTION(kokkos_set_option CAMEL_SUFFIX VALUE)
+  LIST(FIND KOKKOS_OPTION_KEYS ${CAMEL_SUFFIX} OPTION_INDEX)
+  IF(OPTION_INDEX EQUAL -1)
+    MESSAGE(FATAL_ERROR "Couldn't set value for Kokkos_${CAMEL_SUFFIX}")
+  ENDIF()
+  SET(CAMEL_NAME Kokkos_${CAMEL_SUFFIX})
+  STRING(TOUPPER ${CAMEL_NAME} UC_NAME)
+
+  LIST(GET KOKKOS_OPTION_VALUES ${OPTION_INDEX} DOCSTRING)
+  LIST(GET KOKKOS_OPTION_TYPES ${OPTION_INDEX} TYPE)
+  SET(${CAMEL_NAME} ${VALUE} CACHE ${TYPE} ${DOCSTRING} FORCE)
+  MESSAGE(STATUS "Setting ${CAMEL_NAME}=${VALUE}")
+  SET(${UC_NAME} ${VALUE} PARENT_SCOPE)
 ENDFUNCTION()
 
 FUNCTION(kokkos_append_config_line LINE)
@@ -109,8 +130,8 @@ ENDMACRO()
 
 MACRO(kokkos_export_imported_tpl NAME)
   IF (NOT KOKKOS_HAS_TRILINOS)
-    GET_TARGET_PROPERTY(LIB_TYPE ${NAME} TYPE)
-    IF (${LIB_TYPE} STREQUAL "INTERFACE_LIBRARY")
+    GET_TARGET_PROPERTY(LIB_IMPORTED ${NAME} IMPORTED)
+    IF (NOT LIB_IMPORTED)
       # This is not an imported target
       # This an interface library that we created
       INSTALL(
@@ -123,17 +144,23 @@ MACRO(kokkos_export_imported_tpl NAME)
     ELSE()
       #make sure this also gets "exported" in the config file
       KOKKOS_APPEND_CONFIG_LINE("IF(NOT TARGET ${NAME})")
-      KOKKOS_APPEND_CONFIG_LINE("ADD_LIBRARY(${NAME} UNKNOWN IMPORTED)")
-      KOKKOS_APPEND_CONFIG_LINE("SET_TARGET_PROPERTIES(${NAME} PROPERTIES")
-      
-      GET_TARGET_PROPERTY(TPL_LIBRARY ${NAME} IMPORTED_LOCATION)
-      IF(TPL_LIBRARY)
-        KOKKOS_APPEND_CONFIG_LINE("IMPORTED_LOCATION ${TPL_LIBRARY}")
+
+      GET_TARGET_PROPERTY(LIB_TYPE ${NAME} TYPE)
+      IF (${LIB_TYPE} STREQUAL "INTERFACE_LIBRARY")
+        KOKKOS_APPEND_CONFIG_LINE("ADD_LIBRARY(${NAME} INTERFACE IMPORTED)")
+        KOKKOS_APPEND_CONFIG_LINE("SET_TARGET_PROPERTIES(${NAME} PROPERTIES")
+      ELSE()
+        KOKKOS_APPEND_CONFIG_LINE("ADD_LIBRARY(${NAME} UNKNOWN IMPORTED)")
+        KOKKOS_APPEND_CONFIG_LINE("SET_TARGET_PROPERTIES(${NAME} PROPERTIES")
+        GET_TARGET_PROPERTY(TPL_LIBRARY ${NAME} IMPORTED_LOCATION)
+        IF(TPL_LIBRARY)
+          KOKKOS_APPEND_CONFIG_LINE("IMPORTED_LOCATION \"${TPL_LIBRARY}\"")
+        ENDIF()
       ENDIF()
 
       GET_TARGET_PROPERTY(TPL_INCLUDES ${NAME} INTERFACE_INCLUDE_DIRECTORIES)
       IF(TPL_INCLUDES)
-        KOKKOS_APPEND_CONFIG_LINE("INTERFACE_INCLUDE_DIRECTORIES ${TPL_INCLUDES}")
+        KOKKOS_APPEND_CONFIG_LINE("INTERFACE_INCLUDE_DIRECTORIES \"${TPL_INCLUDES}\"")
       ENDIF()
 
       GET_TARGET_PROPERTY(TPL_COMPILE_OPTIONS ${NAME} INTERFACE_COMPILE_OPTIONS)
@@ -151,7 +178,7 @@ MACRO(kokkos_export_imported_tpl NAME)
 
       GET_TARGET_PROPERTY(TPL_LINK_LIBRARIES  ${NAME} INTERFACE_LINK_LIBRARIES)
       IF(TPL_LINK_LIBRARIES)
-        KOKKOS_APPEND_CONFIG_LINE("INTERFACE_LINK_LIBRARIES ${TPL_LINK_LIBRARIES}")
+        KOKKOS_APPEND_CONFIG_LINE("INTERFACE_LINK_LIBRARIES \"${TPL_LINK_LIBRARIES}\"")
       ENDIF()
       KOKKOS_APPEND_CONFIG_LINE(")")
       KOKKOS_APPEND_CONFIG_LINE("ENDIF()")
@@ -182,6 +209,11 @@ ENDMACRO()
 #
 #     If specified, this TPL will build an INTERFACE library rather than an
 #     IMPORTED target
+IF (KOKKOS_HAS_TRILINOS)
+MACRO(kokkos_import_tpl NAME)
+  #do nothing
+ENDMACRO()
+ELSE()
 MACRO(kokkos_import_tpl NAME)
   CMAKE_PARSE_ARGUMENTS(TPL
    "NO_EXPORT;INTERFACE"
@@ -198,7 +230,7 @@ MACRO(kokkos_import_tpl NAME)
   # I have still been getting errors about ROOT variables being ignored
   # I'm not sure if this is a scope issue - but make sure
   # the policy is set before we do any find_package calls
-  IF(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.12.0") 
+  IF(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.12.0")
     CMAKE_POLICY(SET CMP0074 NEW)
   ENDIF()
 
@@ -214,6 +246,7 @@ MACRO(kokkos_import_tpl NAME)
     LIST(APPEND KOKKOS_ENABLED_TPLS ${NAME})
   ENDIF()
 ENDMACRO(kokkos_import_tpl)
+ENDIF()
 
 MACRO(kokkos_import_cmake_tpl MODULE_NAME)
   kokkos_import_tpl(${MODULE_NAME} ${ARGN} NO_EXPORT)
@@ -341,11 +374,12 @@ ENDMACRO()
 # default, custom paths are prioritized over system paths. The searched
 # order is:
 # 1. <NAME>_ROOT variable
-# 2. Kokkos_<NAME>_DIR variable
-# 3. Locations in the PATHS option
-# 4. Default system paths, if allowed.
+# 2. <NAME>_ROOT environment variable
+# 3. Kokkos_<NAME>_DIR variable
+# 4. Locations in the PATHS option
+# 5. Default system paths, if allowed.
 #
-# Default system paths are allowed if none of options (1)-(3) are specified
+# Default system paths are allowed if none of options (1)-(4) are specified
 # or if default paths are specifically allowed via ALLOW_SYSTEM_PATH_FALLBACK
 #
 # Usage::
@@ -387,33 +421,29 @@ MACRO(kokkos_find_header VAR_NAME HEADER TPL_NAME)
    "PATHS"
    ${ARGN})
 
-  SET(${HEADER}_FOUND FALSE)
+  SET(${VAR_NAME} "${VARNAME}-NOTFOUND")
   SET(HAVE_CUSTOM_PATHS FALSE)
-  IF(NOT ${HEADER}_FOUND AND DEFINED ${TPL_NAME}_ROOT)
-    #ONLY look in the root directory
-    FIND_PATH(${VAR_NAME} ${HEADER} PATHS ${${TPL_NAME}_ROOT}/include NO_DEFAULT_PATH)
+
+  IF(DEFINED ${TPL_NAME}_ROOT OR
+     DEFINED ENV{${TPL_NAME}_ROOT} OR
+     DEFINED KOKKOS_${TPL_NAME}_DIR OR
+     TPL_PATHS)
+    FIND_PATH(${VAR_NAME} ${HEADER}
+      PATHS
+        ${${TPL_NAME}_ROOT}
+        $ENV{${TPL_NAME}_ROOT}
+        ${KOKKOS_${TPL_NAME}_DIR}
+        ${TPL_PATHS}
+      PATH_SUFFIXES include
+      NO_DEFAULT_PATH)
     SET(HAVE_CUSTOM_PATHS TRUE)
   ENDIF()
 
-  IF(NOT ${HEADER}_FOUND AND DEFINED KOKKOS_${TPL_NAME}_DIR)
-    #ONLY look in the root directory
-    FIND_PATH(${VAR_NAME} ${HEADER} PATHS ${KOKKOS_${TPL_NAME}_DIR}/include NO_DEFAULT_PATH)
-    SET(HAVE_CUSTOM_PATHS TRUE)
+  IF(NOT HAVE_CUSTOM_PATHS OR TPL_ALLOW_SYSTEM_PATH_FALLBACK)
+    #No-op if ${VAR_NAME} set by previous call
+    FIND_PATH(${VAR_NAME} ${HEADER})
   ENDIF()
 
-  IF (NOT ${HEADER}_FOUND AND TPL_PATHS)
-    #we got custom paths
-    #ONLY look in these paths and nowhere else
-    FIND_PATH(${VAR_NAME} ${HEADER} PATHS ${TPL_PATHS} NO_DEFAULT_PATH)
-    SET(HAVE_CUSTOM_PATHS TRUE)
-  ENDIF()
-
-  IF (NOT HAVE_CUSTOM_PATHS OR TPL_ALLOW_SYSTEM_PATH_FALLBACK)
-    #Now go ahead and look in system paths
-    IF (NOT ${HEADER}_FOUND)
-      FIND_PATH(${VAR_NAME} ${HEADER})
-    ENDIF()
-  ENDIF()
 ENDMACRO()
 
 #
@@ -424,9 +454,10 @@ ENDMACRO()
 # default, custom paths are prioritized over system paths. The search
 # order is:
 # 1. <NAME>_ROOT variable
-# 2. Kokkos_<NAME>_DIR variable
-# 3. Locations in the PATHS option
-# 4. Default system paths, if allowed.
+# 2. <NAME>_ROOT environment variable
+# 3. Kokkos_<NAME>_DIR variable
+# 4. Locations in the PATHS option
+# 5. Default system paths, if allowed.
 #
 # Default system paths are allowed if none of options (1)-(3) are specified
 # or if default paths are specifically allowed via ALLOW_SYSTEM_PATH_FALLBACK
@@ -439,6 +470,7 @@ ENDMACRO()
 #     <TPL_NAME>
 #    [ALLOW_SYSTEM_PATH_FALLBACK]
 #    [PATHS path1 [path2 ...]]
+#    [SUFFIXES suffix1 [suffix2 ...]]
 #   )
 #
 #   ``<VAR_NAME>``
@@ -463,39 +495,46 @@ ENDMACRO()
 #
 #   Custom paths to search for the library
 #
+#   ``SUFFIXES``
+#
+#   Suffixes appended to PATHS when attempting to locate
+#   the library. Defaults to {lib, lib64}.
+#
 MACRO(kokkos_find_library VAR_NAME LIB TPL_NAME)
   CMAKE_PARSE_ARGUMENTS(TPL
    "ALLOW_SYSTEM_PATH_FALLBACK"
    ""
-   "PATHS"
+   "PATHS;SUFFIXES"
    ${ARGN})
 
-  SET(${LIB}_FOUND FALSE)
+  IF(NOT TPL_SUFFIXES)
+    SET(TPL_SUFFIXES lib lib64)
+  ENDIF()
+
+  SET(${VAR_NAME} "${VARNAME}-NOTFOUND")
   SET(HAVE_CUSTOM_PATHS FALSE)
-  IF(NOT ${LIB}_FOUND AND DEFINED ${TPL_NAME}_ROOT)
-    FIND_LIBRARY(${VAR_NAME} ${LIB} PATHS ${${TPL_NAME}_ROOT}/lib ${${TPL_NAME}_ROOT}/lib64 NO_DEFAULT_PATH)
+
+  IF(DEFINED ${TPL_NAME}_ROOT OR
+     DEFINED ENV{${TPL_NAME}_ROOT} OR
+     DEFINED KOKKOS_${TPL_NAME}_DIR OR
+     TPL_PATHS)
+    FIND_LIBRARY(${VAR_NAME} ${LIB}
+      PATHS
+        ${${TPL_NAME}_ROOT}
+        $ENV{${TPL_NAME}_ROOT}
+        ${KOKKOS_${TPL_NAME}_DIR}
+        ${TPL_PATHS}
+      PATH_SUFFIXES
+        ${TPL_SUFFIXES}
+      NO_DEFAULT_PATH)
     SET(HAVE_CUSTOM_PATHS TRUE)
   ENDIF()
 
-  IF(NOT ${LIB}_FOUND AND DEFINED KOKKOS_${TPL_NAME}_DIR)
-    #we got root paths, only look in these paths and nowhere else
-    FIND_LIBRARY(${VAR_NAME} ${LIB} PATHS ${KOKKOS_${TPL_NAME}_DIR}/lib ${KOKKOS_${TPL_NAME}_DIR}/lib64 NO_DEFAULT_PATH)
-    SET(HAVE_CUSTOM_PATHS TRUE)
+  IF(NOT HAVE_CUSTOM_PATHS OR TPL_ALLOW_SYSTEM_PATH_FALLBACK)
+    #No-op if ${VAR_NAME} set by previous call
+    FIND_LIBRARY(${VAR_NAME} ${LIB} PATH_SUFFIXES ${TPL_SUFFIXES})
   ENDIF()
 
-  IF (NOT ${LIB}_FOUND AND TPL_PATHS)
-    #we got custom paths, only look in these paths and nowhere else
-    FIND_LIBRARY(${VAR_NAME} ${LIB} PATHS ${TPL_PATHS} NO_DEFAULT_PATH)
-    SET(HAVE_CUSTOM_PATHS TRUE)
-  ENDIF()
-
-
-  IF (NOT HAVE_CUSTOM_PATHS OR TPL_ALLOW_SYSTEM_PATH_FALLBACK)
-    IF (NOT ${LIB}_FOUND)
-      #Now go ahead and look in system paths
-      FIND_LIBRARY(${VAR_NAME} ${LIB})
-    ENDIF()
-  ENDIF()
 ENDMACRO()
 
 #
@@ -510,25 +549,27 @@ ENDMACRO()
 #     <NAME>
 #     INTERFACE
 #     ALLOW_SYSTEM_PATH_FALLBACK
-#     LIBRARY <path_to_librarY>
-#     LINK_LIBRARIES <lib1> <lib2> ...
-#     COMPILE_OPTIONS <opt1> <opt2> ...
-#     LINK_OPTIONS <opt1> <opt2> ...
+#     MODULE_NAME <name>
+#     IMPORTED_NAME <name>
+#     LIBRARY <name>
+#     LIBRARIES <name1> <name2> ...
+#     LIBRARY_PATHS <path1> <path2> ...
+#     LIBRARY_SUFFIXES <suffix1> <suffix2> ...
+#     HEADER <name>
+#     HEADERS <name1> <name2> ...
+#     HEADER_PATHS <path1> <path2> ...
+#   )
 #
 #   ``INTERFACE``
 #
 #     If specified, this TPL will build an INTERFACE library rather than an
 #     IMPORTED target
 #
-#   ``ALLOW_SYSTEM_PATH_FALLBACK"
+#   ``ALLOW_SYSTEM_PATH_FALLBACK``
 #
 #     If custom paths are given and the library is not found
 #     should we be allowed to search default system paths
 #     or error out if not found in given paths.
-#
-#   ``LIBRARY <name>``
-#
-#     If specified, this gives the name of the library to look for
 #
 #   ``MODULE_NAME <name>``
 #
@@ -541,29 +582,42 @@ ENDMACRO()
 #     If specified, this gives the name of the target to build.
 #     Defaults to Kokkos::<NAME>
 #
+#   ``LIBRARY <name>``
+#
+#     If specified, this gives the name of the library to look for
+#
+#   ``LIBRARIES <name1> <name2> ...``
+#
+#     If specified, this gives a list of libraries to find for the package
+#
 #   ``LIBRARY_PATHS <path1> <path2> ...``
 #
-#     If specified, this gives a list of paths to search for the library
-#     If not given, <NAME>_ROOT/lib and <NAME>_ROOT/lib64 will be searched.
+#     If specified, this gives a list of paths to search for the library.
+#     If not given, <NAME>_ROOT will be searched.
+#
+#   ``LIBRARY_SUFFIXES <suffix1> <suffix2> ...``
+#
+#     Suffixes appended to LIBRARY_PATHS when attempting to locate
+#     libraries. If not given, defaults to {lib, lib64}.
+#
+#   ``HEADER <name>``
+#
+#     If specified, this gives the name of a header to to look for
+#
+#   ``HEADERS <name1> <name2> ...``
+#
+#     If specified, this gives a list of headers to find for the package
 #
 #   ``HEADER_PATHS <path1> <path2> ...``
 #
 #     If specified, this gives a list of paths to search for the headers
 #     If not given, <NAME>_ROOT/include and <NAME>_ROOT/include will be searched.
 #
-#   ``HEADERS <name1> <name2> ...``
-#
-#     If specified, this gives a list of headers to find for the package
-#
-#   ``LIBRARIES <name1> <name2> ...``
-#
-#     If specified, this gives a list of libraries to find for the package
-#
 MACRO(kokkos_find_imported NAME)
   CMAKE_PARSE_ARGUMENTS(TPL
    "INTERFACE;ALLOW_SYSTEM_PATH_FALLBACK"
-   "HEADER;LIBRARY;IMPORTED_NAME;MODULE_NAME"
-   "HEADER_PATHS;LIBRARY_PATHS;HEADERS;LIBRARIES"
+   "IMPORTED_NAME;MODULE_NAME;LIBRARY;HEADER"
+   "LIBRARIES;LIBRARY_PATHS;LIBRARY_SUFFIXES;HEADERS;HEADER_PATHS"
    ${ARGN})
 
   IF(NOT TPL_MODULE_NAME)
@@ -584,6 +638,10 @@ MACRO(kokkos_find_imported NAME)
     ENDIF()
   ENDIF()
 
+  IF (NOT TPL_LIBRARY_SUFFIXES)
+    SET(TPL_LIBRARY_SUFFIXES lib lib64)
+  ENDIF()
+
   SET(${NAME}_INCLUDE_DIRS)
   IF (TPL_HEADER)
     KOKKOS_FIND_HEADER(${NAME}_INCLUDE_DIRS ${TPL_HEADER} ${NAME} ${ALLOW_PATH_FALLBACK_OPT} PATHS ${TPL_HEADER_PATHS})
@@ -598,16 +656,22 @@ MACRO(kokkos_find_imported NAME)
 
   SET(${NAME}_LIBRARY)
   IF(TPL_LIBRARY)
-    KOKKOS_FIND_LIBRARY(${NAME}_LIBRARY ${TPL_LIBRARY} ${NAME} ${ALLOW_PATH_FALLBACK_OPT} PATHS ${TPL_LIBRARY_PATHS})
+    KOKKOS_FIND_LIBRARY(${NAME}_LIBRARY ${TPL_LIBRARY} ${NAME}
+      ${ALLOW_PATH_FALLBACK_OPT}
+      PATHS ${TPL_LIBRARY_PATHS}
+      SUFFIXES ${TPL_LIBRARY_SUFFIXES})
   ENDIF()
 
   SET(${NAME}_FOUND_LIBRARIES)
   FOREACH(LIB ${TPL_LIBRARIES})
-    KOKKOS_FIND_LIBRARY(${LIB}_LOCATION ${LIB} ${NAME} ${ALLOW_PATH_FALLBACK_OPT} PATHS ${TPL_LIBRARY_PATHS})
+    KOKKOS_FIND_LIBRARY(${LIB}_LOCATION ${LIB} ${NAME}
+      ${ALLOW_PATH_FALLBACK_OPT}
+      PATHS ${TPL_LIBRARY_PATHS}
+      SUFFIXES ${TPL_LIBRARY_SUFFIXES})
     IF(${LIB}_LOCATION)
       LIST(APPEND ${NAME}_FOUND_LIBRARIES ${${LIB}_LOCATION})
     ELSE()
-      SET(${NAME}_FOUND_LIBRARIES ${${LIB}_LOCATION}) 
+      SET(${NAME}_FOUND_LIBRARIES ${${LIB}_LOCATION})
       BREAK()
     ENDIF()
   ENDFOREACH()
@@ -628,6 +692,13 @@ MACRO(kokkos_find_imported NAME)
   FIND_PACKAGE_HANDLE_STANDARD_ARGS(${TPL_MODULE_NAME} REQUIRED_VARS ${TPL_VARS_NEEDED})
 
   MARK_AS_ADVANCED(${NAME}_INCLUDE_DIRS ${NAME}_FOUND_LIBRARIES ${NAME}_LIBRARY)
+
+  #this is so much fun on a Cray system
+  #/usr/include should never be added as a -isystem include
+  #this freaks out the compiler include search order
+  IF (KOKKOS_IS_CRAYPE)
+    LIST(REMOVE_ITEM ${NAME}_INCLUDE_DIRS "/usr/include")
+  ENDIF()
 
   IF (${TPL_MODULE_NAME}_FOUND)
     SET(IMPORT_TYPE)
@@ -698,3 +769,221 @@ FUNCTION(kokkos_link_tpl TARGET)
   ENDIF()
 ENDFUNCTION()
 
+FUNCTION(COMPILER_SPECIFIC_OPTIONS_HELPER)
+  SET(COMPILERS NVIDIA PGI XL DEFAULT Cray Intel Clang AppleClang IntelClang GNU HIP Fujitsu)
+  CMAKE_PARSE_ARGUMENTS(
+    PARSE
+    "LINK_OPTIONS;COMPILE_OPTIONS;COMPILE_DEFINITIONS;LINK_LIBRARIES"
+    "COMPILER_ID"
+    "${COMPILERS}"
+    ${ARGN})
+  IF(PARSE_UNPARSED_ARGUMENTS)
+    MESSAGE(SEND_ERROR "'${PARSE_UNPARSED_ARGUMENTS}' argument(s) not recognized when providing compiler specific options")
+  ENDIF()
+
+  IF(PARSE_COMPILER_ID)
+    SET(COMPILER ${${PARSE_COMPILER_ID}})
+  ELSE()
+    SET(COMPILER ${KOKKOS_CXX_COMPILER_ID})
+  ENDIF()
+
+  SET(COMPILER_SPECIFIC_FLAGS_TMP)
+  FOREACH(COMP ${COMPILERS})
+    IF (COMPILER STREQUAL "${COMP}")
+      IF (PARSE_${COMPILER})
+        IF (NOT "${PARSE_${COMPILER}}" STREQUAL "NO-VALUE-SPECIFIED")
+           SET(COMPILER_SPECIFIC_FLAGS_TMP ${PARSE_${COMPILER}})
+        ENDIF()
+      ELSEIF(PARSE_DEFAULT)
+        SET(COMPILER_SPECIFIC_FLAGS_TMP ${PARSE_DEFAULT})
+      ENDIF()
+    ENDIF()
+  ENDFOREACH()
+
+  IF (PARSE_COMPILE_OPTIONS)
+    # The funky logic here is for future handling of argument deduplication
+    # If we naively pass multiple -Xcompiler flags to target_compile_options
+    # -Xcompiler will get deduplicated and break the build
+    IF ("-Xcompiler" IN_LIST COMPILER_SPECIFIC_FLAGS_TMP)
+      LIST(REMOVE_ITEM COMPILER_SPECIFIC_FLAGS_TMP "-Xcompiler")
+      GLOBAL_APPEND(KOKKOS_XCOMPILER_OPTIONS ${COMPILER_SPECIFIC_FLAGS_TMP})
+    ELSE()
+      GLOBAL_APPEND(KOKKOS_COMPILE_OPTIONS ${COMPILER_SPECIFIC_FLAGS_TMP})
+    ENDIF()
+  ENDIF()
+
+  IF (PARSE_LINK_OPTIONS)
+    GLOBAL_APPEND(KOKKOS_LINK_OPTIONS ${COMPILER_SPECIFIC_FLAGS_TMP})
+  ENDIF()
+
+  IF (PARSE_COMPILE_DEFINITIONS)
+    GLOBAL_APPEND(KOKKOS_COMPILE_DEFINITIONS ${COMPILER_SPECIFIC_FLAGS_TMP})
+  ENDIF()
+
+  IF (PARSE_LINK_LIBRARIES)
+    GLOBAL_APPEND(KOKKOS_LINK_LIBRARIES ${COMPILER_SPECIFIC_FLAGS_TMP})
+  ENDIF()
+ENDFUNCTION(COMPILER_SPECIFIC_OPTIONS_HELPER)
+
+FUNCTION(COMPILER_SPECIFIC_FLAGS)
+  COMPILER_SPECIFIC_OPTIONS_HELPER(${ARGN} COMPILE_OPTIONS LINK_OPTIONS)
+ENDFUNCTION(COMPILER_SPECIFIC_FLAGS)
+
+FUNCTION(COMPILER_SPECIFIC_OPTIONS)
+  COMPILER_SPECIFIC_OPTIONS_HELPER(${ARGN} COMPILE_OPTIONS)
+ENDFUNCTION(COMPILER_SPECIFIC_OPTIONS)
+
+FUNCTION(COMPILER_SPECIFIC_LINK_OPTIONS)
+  COMPILER_SPECIFIC_OPTIONS_HELPER(${ARGN} LINK_OPTIONS)
+ENDFUNCTION(COMPILER_SPECIFIC_LINK_OPTIONS)
+
+FUNCTION(COMPILER_SPECIFIC_DEFS)
+  COMPILER_SPECIFIC_OPTIONS_HELPER(${ARGN} COMPILE_DEFINITIONS)
+ENDFUNCTION(COMPILER_SPECIFIC_DEFS)
+
+FUNCTION(COMPILER_SPECIFIC_LIBS)
+  COMPILER_SPECIFIC_OPTIONS_HELPER(${ARGN} LINK_LIBRARIES)
+ENDFUNCTION(COMPILER_SPECIFIC_LIBS)
+# Given a list of the form
+#  key1;value1;key2;value2,...
+# Create a list of all keys in a variable named ${KEY_LIST_NAME}
+# and set the value for each key in a variable ${VAR_PREFIX}key1,...
+# kokkos_key_value_map(ARCH ALL_ARCHES key1;value1;key2;value2)
+# would produce a list variable ALL_ARCHES=key1;key2
+# and individual variables ARCHkey1=value1 and ARCHkey2=value2
+MACRO(KOKKOS_KEY_VALUE_MAP VAR_PREFIX KEY_LIST_NAME)
+  SET(PARSE_KEY ON)
+  SET(${KEY_LIST_NAME})
+  FOREACH(ENTRY ${ARGN})
+    IF(PARSE_KEY)
+      SET(CURRENT_KEY ${ENTRY})
+      SET(PARSE_KEY OFF)
+      LIST(APPEND ${KEY_LIST_NAME} ${CURRENT_KEY})
+    ELSE()
+      SET(${VAR_PREFIX}${CURRENT_KEY} ${ENTRY})
+      SET(PARSE_KEY ON)
+    ENDIF()
+  ENDFOREACH()
+ENDMACRO()
+
+FUNCTION(KOKKOS_CHECK_DEPRECATED_OPTIONS)
+  KOKKOS_KEY_VALUE_MAP(DEPRECATED_MSG_ DEPRECATED_LIST ${ARGN})
+  FOREACH(OPTION_SUFFIX ${DEPRECATED_LIST})
+    SET(OPTION_NAME Kokkos_${OPTION_SUFFIX})
+    SET(OPTION_MESSAGE ${DEPRECATED_MSG_${OPTION_SUFFIX}})
+    IF(DEFINED ${OPTION_NAME}) # This variable has been given by the user as on or off
+      MESSAGE(SEND_ERROR "Removed option ${OPTION_NAME} has been given with value ${${OPTION_NAME}}. ${OPT_MESSAGE}")
+    ENDIF()
+  ENDFOREACH()
+ENDFUNCTION()
+
+# this function checks whether the current CXX compiler supports building CUDA
+FUNCTION(kokkos_cxx_compiler_cuda_test _VAR)
+    # don't run this test every time
+    IF(DEFINED ${_VAR})
+        RETURN()
+    ENDIF()
+
+    FILE(WRITE ${PROJECT_BINARY_DIR}/compile_tests/compiles_cuda.cpp
+"
+#include <cuda.h>
+#include <cstdlib>
+
+__global__
+void kernel(int sz, double* data)
+{
+    auto _beg = blockIdx.x * blockDim.x + threadIdx.x;
+    for(int i = _beg; i < sz; ++i)
+        data[i] += static_cast<double>(i);
+}
+
+int main()
+{
+    double* data = nullptr;
+    int blocks = 64;
+    int grids = 64;
+    auto ret = cudaMalloc(&data, blocks * grids * sizeof(double));
+    if(ret != cudaSuccess)
+        return EXIT_FAILURE;
+    kernel<<<grids, blocks>>>(blocks * grids, data);
+    cudaDeviceSynchronize();
+    return EXIT_SUCCESS;
+}
+")
+
+    TRY_COMPILE(_RET
+        ${PROJECT_BINARY_DIR}/compile_tests
+        SOURCES ${PROJECT_BINARY_DIR}/compile_tests/compiles_cuda.cpp)
+
+    SET(${_VAR} ${_RET} CACHE STRING "CXX compiler supports building CUDA")
+ENDFUNCTION()
+
+# this function is provided to easily select which files use nvcc_wrapper:
+#
+#       GLOBAL      --> all files
+#       TARGET      --> all files in a target
+#       SOURCE      --> specific source files
+#       DIRECTORY   --> all files in directory
+#       PROJECT     --> all files/targets in a project/subproject
+#
+FUNCTION(kokkos_compilation)
+    # check whether the compiler already supports building CUDA
+    KOKKOS_CXX_COMPILER_CUDA_TEST(Kokkos_CXX_COMPILER_COMPILES_CUDA)
+    # if CUDA compile test has already been performed, just return
+    IF(Kokkos_CXX_COMPILER_COMPILES_CUDA)
+        RETURN()
+    ENDIF()
+
+    CMAKE_PARSE_ARGUMENTS(COMP "GLOBAL;PROJECT" "" "DIRECTORY;TARGET;SOURCE" ${ARGN})
+
+    # find kokkos_launch_compiler
+    FIND_PROGRAM(Kokkos_COMPILE_LAUNCHER
+        NAMES           kokkos_launch_compiler
+        HINTS           ${PROJECT_SOURCE_DIR}
+        PATHS           ${PROJECT_SOURCE_DIR}
+        PATH_SUFFIXES   bin)
+
+    IF(NOT Kokkos_COMPILE_LAUNCHER)
+        MESSAGE(FATAL_ERROR "Kokkos could not find 'kokkos_launch_compiler'. Please set '-DKokkos_COMPILE_LAUNCHER=/path/to/launcher'")
+    ENDIF()
+
+    IF(COMP_GLOBAL)
+        # if global, don't bother setting others
+        SET_PROPERTY(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${Kokkos_COMPILE_LAUNCHER} ${CMAKE_CXX_COMPILER}")
+        SET_PROPERTY(GLOBAL PROPERTY RULE_LAUNCH_LINK "${Kokkos_COMPILE_LAUNCHER} ${CMAKE_CXX_COMPILER}")
+    ELSE()
+        FOREACH(_TYPE PROJECT DIRECTORY TARGET SOURCE)
+            # make project/subproject scoping easy, e.g. KokkosCompilation(PROJECT) after project(...)
+            IF("${_TYPE}" STREQUAL "PROJECT" AND COMP_${_TYPE})
+                LIST(APPEND COMP_DIRECTORY ${PROJECT_SOURCE_DIR})
+                UNSET(COMP_${_TYPE})
+            ENDIF()
+            # set the properties if defined
+            IF(COMP_${_TYPE})
+                # MESSAGE(STATUS "Using nvcc_wrapper :: ${_TYPE} :: ${COMP_${_TYPE}}")
+                SET_PROPERTY(${_TYPE} ${COMP_${_TYPE}} PROPERTY RULE_LAUNCH_COMPILE "${Kokkos_COMPILE_LAUNCHER} ${CMAKE_CXX_COMPILER}")
+                SET_PROPERTY(${_TYPE} ${COMP_${_TYPE}} PROPERTY RULE_LAUNCH_LINK "${Kokkos_COMPILE_LAUNCHER} ${CMAKE_CXX_COMPILER}")
+            ENDIF()
+        ENDFOREACH()
+    ENDIF()
+ENDFUNCTION()
+## KOKKOS_CONFIG_HEADER - parse the data list which is a list of backend names
+##                        and create output config header file...used for
+##                        creating dynamic include files based on enabled backends
+##
+##                        SRC_FILE is input file
+##                        TARGET_FILE output file
+##                        HEADER_GUARD TEXT used with include header guard
+##                        HEADER_PREFIX prefix used with include (i.e. fwd, decl, setup)
+##                        DATA_LIST list of backends to include in generated file
+FUNCTION(KOKKOS_CONFIG_HEADER SRC_FILE TARGET_FILE HEADER_GUARD HEADER_PREFIX DATA_LIST)
+   SET(HEADER_GUARD_TAG "${HEADER_GUARD}_HPP_")
+   CONFIGURE_FILE(cmake/${SRC_FILE} ${PROJECT_BINARY_DIR}/temp/${TARGET_FILE}.work COPYONLY)
+   FOREACH( BACKEND_NAME ${DATA_LIST} )
+   SET(INCLUDE_NEXT_FILE "#include <${HEADER_PREFIX}_${BACKEND_NAME}.hpp>
+\@INCLUDE_NEXT_FILE\@")
+   CONFIGURE_FILE(${PROJECT_BINARY_DIR}/temp/${TARGET_FILE}.work ${PROJECT_BINARY_DIR}/temp/${TARGET_FILE}.work @ONLY)
+   ENDFOREACH()
+   SET(INCLUDE_NEXT_FILE "" )
+   CONFIGURE_FILE(${PROJECT_BINARY_DIR}/temp/${TARGET_FILE}.work ${TARGET_FILE} @ONLY)
+ENDFUNCTION()

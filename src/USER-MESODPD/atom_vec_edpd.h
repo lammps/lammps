@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -27,39 +27,17 @@ namespace LAMMPS_NS {
 class AtomVecEDPD : public AtomVec {
  public:
   AtomVecEDPD(class LAMMPS *);
-  virtual ~AtomVecEDPD() {}
-  void grow(int);
-  void grow_reset();
-  void copy(int, int, int);
-  void force_clear(int, size_t);
-  virtual int pack_comm(int, int *, double *, int, int *);
-  virtual int pack_comm_vel(int, int *, double *, int, int *);
-  virtual void unpack_comm(int, int, double *);
-  virtual void unpack_comm_vel(int, int, double *);
-  int pack_reverse(int, int, double *);
-  void unpack_reverse(int, int *, double *);
-  virtual int pack_border(int, int *, double *, int, int *);
-  virtual int pack_border_vel(int, int *, double *, int, int *);
-  virtual void unpack_border(int, int, double *);
-  virtual void unpack_border_vel(int, int, double *);
-  virtual int pack_exchange(int, double *);
-  virtual int unpack_exchange(double *);
-  int size_restart();
-  int pack_restart(int, double *);
-  int unpack_restart(double *);
-  void create_atom(int, double *);
-  void data_atom(double *, imageint, char **);
-  void pack_data(double **);
-  void write_data(FILE *, int, double **);
-  bigint memory_usage();
+  void init();
 
- protected:
-  tagint *tag;
-  int *type,*mask;
-  imageint *image;
-  double **x,**v,**f;
-  double **vest; // store intermediate velocity for using mvv integrator
-  double *edpd_temp,*edpd_flux,*edpd_cv; // temperature, heat flux, and heat capacity
+  void grow_pointers();
+  void force_clear(int, size_t);
+  void create_atom_post(int);
+  void data_atom_post(int);
+
+ private:
+  double *edpd_cv,*edpd_temp,*edpd_flux;
+  double **vest;
+  double *vest_temp;
 };
 
 }

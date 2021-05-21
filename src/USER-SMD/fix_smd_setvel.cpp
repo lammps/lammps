@@ -12,7 +12,7 @@
 /* ----------------------------------------------------------------------
 
  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
- http://lammps.sandia.gov, Sandia National Laboratories
+ https://lammps.sandia.gov/, Sandia National Laboratories
  Steve Plimpton, sjplimp@sandia.gov
 
  Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -24,18 +24,18 @@
  ------------------------------------------------------------------------- */
 
 #include "fix_smd_setvel.h"
-#include <mpi.h>
-#include <cstring>
+
 #include "atom.h"
-#include "update.h"
-#include "modify.h"
 #include "domain.h"
-#include "region.h"
-#include "input.h"
-#include "variable.h"
-#include "memory.h"
 #include "error.h"
-#include "force.h"
+#include "input.h"
+#include "memory.h"
+#include "modify.h"
+#include "region.h"
+#include "update.h"
+#include "variable.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -57,43 +57,37 @@ FixSMDSetVel::FixSMDSetVel(LAMMPS *lmp, int narg, char **arg) :
         global_freq = 1;
         extvector = 1;
 
-        xstr = ystr = zstr = NULL;
+        xstr = ystr = zstr = nullptr;
 
         if (strstr(arg[3], "v_") == arg[3]) {
-                int n = strlen(&arg[3][2]) + 1;
-                xstr = new char[n];
-                strcpy(xstr, &arg[3][2]);
+          xstr = utils::strdup( &arg[3][2]);
         } else if (strcmp(arg[3], "NULL") == 0) {
                 xstyle = NONE;
         } else {
-                xvalue = force->numeric(FLERR, arg[3]);
+                xvalue = utils::numeric(FLERR, arg[3],false,lmp);
                 xstyle = CONSTANT;
         }
         if (strstr(arg[4], "v_") == arg[4]) {
-                int n = strlen(&arg[4][2]) + 1;
-                ystr = new char[n];
-                strcpy(ystr, &arg[4][2]);
+          ystr = utils::strdup( &arg[4][2]);
         } else if (strcmp(arg[4], "NULL") == 0) {
                 ystyle = NONE;
         } else {
-                yvalue = force->numeric(FLERR, arg[4]);
+                yvalue = utils::numeric(FLERR, arg[4],false,lmp);
                 ystyle = CONSTANT;
         }
         if (strstr(arg[5], "v_") == arg[5]) {
-                int n = strlen(&arg[5][2]) + 1;
-                zstr = new char[n];
-                strcpy(zstr, &arg[5][2]);
+          zstr = utils::strdup( &arg[5][2]);
         } else if (strcmp(arg[5], "NULL") == 0) {
                 zstyle = NONE;
         } else {
-                zvalue = force->numeric(FLERR, arg[5]);
+                zvalue = utils::numeric(FLERR, arg[5],false,lmp);
                 zstyle = CONSTANT;
         }
 
         // optional args
 
         iregion = -1;
-        idregion = NULL;
+        idregion = nullptr;
 
         int iarg = 6;
         while (iarg < narg) {
@@ -103,9 +97,7 @@ FixSMDSetVel::FixSMDSetVel(LAMMPS *lmp, int narg, char **arg) :
                         iregion = domain->find_region(arg[iarg + 1]);
                         if (iregion == -1)
                                 error->all(FLERR, "Region ID for fix setvelocity does not exist");
-                        int n = strlen(arg[iarg + 1]) + 1;
-                        idregion = new char[n];
-                        strcpy(idregion, arg[iarg + 1]);
+                        idregion = utils::strdup( arg[iarg + 1]);
                         iarg += 2;
                 } else
                         error->all(FLERR, "Illegal fix setvelocity command");
@@ -216,7 +208,7 @@ void FixSMDSetVel::init() {
 /* ---------------------------------------------------------------------- */
 
 void FixSMDSetVel::setup(int vflag) {
-        if (strstr(update->integrate_style, "verlet"))
+        if (utils::strmatch(update->integrate_style,"^verlet"))
                 post_force(vflag);
         else
       error->all(FLERR,"Fix smd/setvel does not support RESPA");
@@ -241,7 +233,7 @@ void FixSMDSetVel::post_force(int /*vflag*/) {
 
         // update region if necessary
 
-        Region *region = NULL;
+        Region *region = nullptr;
         if (iregion >= 0) {
                 region = domain->regions[iregion];
                 region->prematch();

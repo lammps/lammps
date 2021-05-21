@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -265,24 +265,22 @@ class NeighborKokkosExecute
                         const typename ArrayTypes<LMPHostType>::t_int_scalar _h_resize,
                         const typename AT::t_int_scalar _new_maxneighs,
                         const typename ArrayTypes<LMPHostType>::t_int_scalar _h_new_maxneighs):
-    neigh_list(_neigh_list), cutneighsq(_cutneighsq),mbins(_mbins),
+    neigh_list(_neigh_list), cutneighsq(_cutneighsq),exclude(_exclude),
+    nex_type(_nex_type),ex1_type(_ex1_type),ex2_type(_ex2_type),
+    ex_type(_ex_type),nex_group(_nex_group),ex1_group(_ex1_group),
+    ex2_group(_ex2_group),ex1_bit(_ex1_bit),ex2_bit(_ex2_bit),
+    nex_mol(_nex_mol),ex_mol_group(_ex_mol_group),ex_mol_bit(_ex_mol_bit),
+    ex_mol_intra(_ex_mol_intra),mbins(_mbins),
     bincount(_bincount),c_bincount(_bincount),bins(_bins),c_bins(_bins),
     atom2bin(_atom2bin),c_atom2bin(_atom2bin),
     nstencil(_nstencil),d_stencil(_d_stencil),d_stencilxyz(_d_stencilxyz),
-    nlocal(_nlocal),
     x(_x),radius(_radius),type(_type),mask(_mask),molecule(_molecule),
     tag(_tag),special(_special),nspecial(_nspecial),molecular(_molecular),
     nbinx(_nbinx),nbiny(_nbiny),nbinz(_nbinz),
     mbinx(_mbinx),mbiny(_mbiny),mbinz(_mbinz),
     mbinxlo(_mbinxlo),mbinylo(_mbinylo),mbinzlo(_mbinzlo),
     bininvx(_bininvx),bininvy(_bininvy),bininvz(_bininvz),
-    exclude(_exclude),nex_type(_nex_type),
-    ex1_type(_ex1_type),ex2_type(_ex2_type),ex_type(_ex_type),
-    nex_group(_nex_group),
-    ex1_group(_ex1_group),ex2_group(_ex2_group),
-    ex1_bit(_ex1_bit),ex2_bit(_ex2_bit),nex_mol(_nex_mol),
-    ex_mol_group(_ex_mol_group),ex_mol_bit(_ex_mol_bit),
-    ex_mol_intra(_ex_mol_intra),
+    nlocal(_nlocal),
     xperiodic(_xperiodic),yperiodic(_yperiodic),zperiodic(_zperiodic),
     xprd_half(_xprd_half),yprd_half(_yprd_half),zprd_half(_zprd_half),
     skin(_skin),resize(_resize),h_resize(_h_resize),
@@ -312,14 +310,16 @@ class NeighborKokkosExecute
   KOKKOS_FUNCTION
   void build_ItemSize(const int &i) const;
 
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
   template<int HalfNeigh, int Newton, int Tri>
-  __device__ inline
-  void build_ItemCuda(typename Kokkos::TeamPolicy<DeviceType>::member_type dev) const;
+  LAMMPS_DEVICE_FUNCTION inline
+  void build_ItemGPU(typename Kokkos::TeamPolicy<DeviceType>::member_type dev,
+                     size_t sharedsize) const;
 
   template<int HalfNeigh, int Newton, int Tri>
-  __device__ inline
-  void build_ItemSizeCuda(typename Kokkos::TeamPolicy<DeviceType>::member_type dev) const;
+  LAMMPS_DEVICE_FUNCTION inline
+  void build_ItemSizeGPU(typename Kokkos::TeamPolicy<DeviceType>::member_type dev,
+                         size_t sharedsize) const;
 #endif
 
   KOKKOS_INLINE_FUNCTION
@@ -379,23 +379,22 @@ struct NPairKokkosBuildFunctor {
   typedef DeviceType device_type;
 
   const NeighborKokkosExecute<DeviceType> c;
-  const size_t sharedsize;
+  size_t sharedsize;
 
   NPairKokkosBuildFunctor(const NeighborKokkosExecute<DeviceType> &_c,
-                             const size_t _sharedsize):c(_c),
-                             sharedsize(_sharedsize) {};
+                             size_t _sharedsize):c(_c),
+                             sharedsize(_sharedsize) {}
 
   KOKKOS_INLINE_FUNCTION
   void operator() (const int & i) const {
     c.template build_Item<HALF_NEIGH,GHOST_NEWTON,TRI>(i);
   }
-#ifdef KOKKOS_ENABLE_CUDA
-  __device__ inline
-
+#ifdef LMP_KOKKOS_GPU
+  LAMMPS_DEVICE_FUNCTION inline
   void operator() (typename Kokkos::TeamPolicy<DeviceType>::member_type dev) const {
-    c.template build_ItemCuda<HALF_NEIGH,GHOST_NEWTON,TRI>(dev);
+    c.template build_ItemGPU<HALF_NEIGH,GHOST_NEWTON,TRI>(dev, sharedsize);
   }
-  size_t shmem_size(const int team_size) const { (void) team_size; return sharedsize; }
+  size_t team_shmem_size(const int team_size) const { (void) team_size; return sharedsize; }
 #endif
 };
 
@@ -404,18 +403,18 @@ struct NPairKokkosBuildFunctor<LMPHostType,HALF_NEIGH,GHOST_NEWTON,TRI> {
   typedef LMPHostType device_type;
 
   const NeighborKokkosExecute<LMPHostType> c;
-  const size_t sharedsize;
+  size_t sharedsize;
 
   NPairKokkosBuildFunctor(const NeighborKokkosExecute<LMPHostType> &_c,
-                             const size_t _sharedsize):c(_c),
-                             sharedsize(_sharedsize) {};
+                             size_t _sharedsize):c(_c),
+                             sharedsize(_sharedsize) {}
 
   KOKKOS_INLINE_FUNCTION
   void operator() (const int & i) const {
     c.template build_Item<HALF_NEIGH,GHOST_NEWTON,TRI>(i);
   }
 
-  void operator() (typename Kokkos::TeamPolicy<LMPHostType>::member_type dev) const {} // Should error out
+  void operator() (typename Kokkos::TeamPolicy<LMPHostType>::member_type /*dev*/) const {} // Should error out
 };
 
 template<class DeviceType,int HALF_NEIGH>
@@ -423,11 +422,8 @@ struct NPairKokkosBuildFunctorGhost {
   typedef DeviceType device_type;
 
   const NeighborKokkosExecute<DeviceType> c;
-  const size_t sharedsize;
 
-  NPairKokkosBuildFunctorGhost(const NeighborKokkosExecute<DeviceType> &_c,
-                             const size_t _sharedsize):c(_c),
-                             sharedsize(_sharedsize) {};
+  NPairKokkosBuildFunctorGhost(const NeighborKokkosExecute<DeviceType> &_c):c(_c) {}
 
   KOKKOS_INLINE_FUNCTION
   void operator() (const int & i) const {
@@ -440,22 +436,22 @@ struct NPairKokkosBuildFunctorSize {
   typedef DeviceType device_type;
 
   const NeighborKokkosExecute<DeviceType> c;
-  const size_t sharedsize;
+  size_t sharedsize;
 
   NPairKokkosBuildFunctorSize(const NeighborKokkosExecute<DeviceType> &_c,
-                              const size_t _sharedsize): c(_c), sharedsize(_sharedsize) {};
+                              size_t _sharedsize): c(_c), sharedsize(_sharedsize) {}
 
   KOKKOS_INLINE_FUNCTION
   void operator() (const int & i) const {
     c.template build_ItemSize<HALF_NEIGH,GHOST_NEWTON,TRI>(i);
   }
 
-#ifdef KOKKOS_ENABLE_CUDA
-  __device__ inline
+#ifdef LMP_KOKKOS_GPU
+  LAMMPS_DEVICE_FUNCTION inline
   void operator() (typename Kokkos::TeamPolicy<DeviceType>::member_type dev) const {
-    c.template build_ItemSizeCuda<HALF_NEIGH,GHOST_NEWTON,TRI>(dev);
+    c.template build_ItemSizeGPU<HALF_NEIGH,GHOST_NEWTON,TRI>(dev, sharedsize);
   }
-  size_t shmem_size(const int team_size) const { (void) team_size; return sharedsize; }
+  size_t team_shmem_size(const int team_size) const { (void) team_size; return sharedsize; }
 #endif
 };
 
@@ -464,17 +460,17 @@ struct NPairKokkosBuildFunctorSize<LMPHostType,HALF_NEIGH,GHOST_NEWTON,TRI> {
   typedef LMPHostType device_type;
 
   const NeighborKokkosExecute<LMPHostType> c;
-  const size_t sharedsize;
+  size_t sharedsize;
 
   NPairKokkosBuildFunctorSize(const NeighborKokkosExecute<LMPHostType> &_c,
-                              const size_t _sharedsize): c(_c), sharedsize(_sharedsize) {};
+                              size_t _sharedsize): c(_c), sharedsize(_sharedsize) {}
 
   KOKKOS_INLINE_FUNCTION
   void operator() (const int & i) const {
     c.template build_ItemSize<HALF_NEIGH,GHOST_NEWTON,TRI>(i);
   }
 
-  void operator() (typename Kokkos::TeamPolicy<LMPHostType>::member_type dev) const {} // Should error out
+  void operator() (typename Kokkos::TeamPolicy<LMPHostType>::member_type /*dev*/) const {} // Should error out
 };
 
 }

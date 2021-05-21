@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -67,7 +67,7 @@ class FixCMAP : public Fix {
  private:
   int nprocs,me;
   int newton_bond,eflag_caller;
-  int ctype,nlevels_respa;
+  int ctype,ilevel_respa;
   int ncrosstermtypes,crossterm_per_atom,maxcrossterm;
   int ncrosstermlist;
   bigint ncmap;

@@ -60,7 +60,8 @@ pair coefficient is ignored.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 The cutoff distance for this pair style can be mixed.  The default mix
 value is *geometric*\ .  See the "pair_modify" command for details.
@@ -85,4 +86,7 @@ Related commands
 
 :doc:`pair_style none <pair_none>`
 
-**Default:** none
+Default
+"""""""
+
+none

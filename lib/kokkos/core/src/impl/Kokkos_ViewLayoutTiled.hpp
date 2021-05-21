@@ -45,8 +45,6 @@
 #ifndef KOKKOS_EXPERIMENTAL_VIEWLAYOUTTILE_HPP
 #define KOKKOS_EXPERIMENTAL_VIEWLAYOUTTILE_HPP
 
-#ifndef KOKKOS_ENABLE_DEPRECATED_CODE
-
 #include <Kokkos_Layout.hpp>
 #include <Kokkos_View.hpp>
 
@@ -131,14 +129,14 @@ struct ViewOffset<
 
   enum { VORank = Dimension::rank };
 
-  enum { SHIFT_0 = Kokkos::Impl::integral_power_of_two(Layout::N0) };
-  enum { SHIFT_1 = Kokkos::Impl::integral_power_of_two(Layout::N1) };
-  enum { SHIFT_2 = Kokkos::Impl::integral_power_of_two(Layout::N2) };
-  enum { SHIFT_3 = Kokkos::Impl::integral_power_of_two(Layout::N3) };
-  enum { SHIFT_4 = Kokkos::Impl::integral_power_of_two(Layout::N4) };
-  enum { SHIFT_5 = Kokkos::Impl::integral_power_of_two(Layout::N5) };
-  enum { SHIFT_6 = Kokkos::Impl::integral_power_of_two(Layout::N6) };
-  enum { SHIFT_7 = Kokkos::Impl::integral_power_of_two(Layout::N7) };
+  enum : unsigned { SHIFT_0 = Kokkos::Impl::integral_power_of_two(Layout::N0) };
+  enum : unsigned { SHIFT_1 = Kokkos::Impl::integral_power_of_two(Layout::N1) };
+  enum : unsigned { SHIFT_2 = Kokkos::Impl::integral_power_of_two(Layout::N2) };
+  enum : unsigned { SHIFT_3 = Kokkos::Impl::integral_power_of_two(Layout::N3) };
+  enum : unsigned { SHIFT_4 = Kokkos::Impl::integral_power_of_two(Layout::N4) };
+  enum : unsigned { SHIFT_5 = Kokkos::Impl::integral_power_of_two(Layout::N5) };
+  enum : unsigned { SHIFT_6 = Kokkos::Impl::integral_power_of_two(Layout::N6) };
+  enum : unsigned { SHIFT_7 = Kokkos::Impl::integral_power_of_two(Layout::N7) };
   enum { MASK_0 = Layout::N0 - 1 };
   enum { MASK_1 = Layout::N1 - 1 };
   enum { MASK_2 = Layout::N2 - 1 };
@@ -148,16 +146,20 @@ struct ViewOffset<
   enum { MASK_6 = Layout::N6 - 1 };
   enum { MASK_7 = Layout::N7 - 1 };
 
-  enum { SHIFT_2T = SHIFT_0 + SHIFT_1 };
-  enum { SHIFT_3T = SHIFT_0 + SHIFT_1 + SHIFT_2 };
-  enum { SHIFT_4T = SHIFT_0 + SHIFT_1 + SHIFT_2 + SHIFT_3 };
-  enum { SHIFT_5T = SHIFT_0 + SHIFT_1 + SHIFT_2 + SHIFT_3 + SHIFT_4 };
-  enum { SHIFT_6T = SHIFT_0 + SHIFT_1 + SHIFT_2 + SHIFT_3 + SHIFT_4 + SHIFT_5 };
-  enum {
+  enum : unsigned { SHIFT_2T = SHIFT_0 + SHIFT_1 };
+  enum : unsigned { SHIFT_3T = SHIFT_0 + SHIFT_1 + SHIFT_2 };
+  enum : unsigned { SHIFT_4T = SHIFT_0 + SHIFT_1 + SHIFT_2 + SHIFT_3 };
+  enum : unsigned {
+    SHIFT_5T = SHIFT_0 + SHIFT_1 + SHIFT_2 + SHIFT_3 + SHIFT_4
+  };
+  enum : unsigned {
+    SHIFT_6T = SHIFT_0 + SHIFT_1 + SHIFT_2 + SHIFT_3 + SHIFT_4 + SHIFT_5
+  };
+  enum : unsigned {
     SHIFT_7T =
         SHIFT_0 + SHIFT_1 + SHIFT_2 + SHIFT_3 + SHIFT_4 + SHIFT_5 + SHIFT_6
   };
-  enum {
+  enum : unsigned {
     SHIFT_8T = SHIFT_0 + SHIFT_1 + SHIFT_2 + SHIFT_3 + SHIFT_4 + SHIFT_5 +
                SHIFT_6 + SHIFT_7
   };
@@ -166,9 +168,9 @@ struct ViewOffset<
   using is_mapping_plugin = std::true_type;
   using is_regular        = std::false_type;
 
-  typedef size_t size_type;
-  typedef Dimension dimension_type;
-  typedef Layout array_layout;
+  using size_type      = size_t;
+  using dimension_type = Dimension;
+  using array_layout   = Layout;
 
   dimension_type m_dim;
   size_type m_tile_N0;  // Num tiles dim 0
@@ -600,39 +602,36 @@ struct ViewOffset<
   }
 
   //----------------------------------------
-
-#ifdef KOKKOS_CUDA_9_DEFAULTED_BUG_WORKAROUND
-  KOKKOS_INLINE_FUNCTION ~ViewOffset() {}
-  KOKKOS_INLINE_FUNCTION ViewOffset() {}
-  KOKKOS_INLINE_FUNCTION ViewOffset(const ViewOffset& rhs)
-      : m_dim(rhs.m_dim),
-        m_tile_N0(rhs.m_tile_N0),
-        m_tile_N1(rhs.m_tile_N1),
-        m_tile_N2(rhs.m_tile_N2),
-        m_tile_N3(rhs.m_tile_N3),
-        m_tile_N4(rhs.m_tile_N4),
-        m_tile_N5(rhs.m_tile_N5),
-        m_tile_N6(rhs.m_tile_N6),
-        m_tile_N7(rhs.m_tile_N7) {}
-
-  KOKKOS_INLINE_FUNCTION ViewOffset& operator=(const ViewOffset& rhs) {
-    m_dim     = rhs.m_dim;
-    m_tile_N0 = rhs.m_tile_N0;
-    m_tile_N1 = rhs.m_tile_N1;
-    m_tile_N2 = rhs.m_tile_N2;
-    m_tile_N3 = rhs.m_tile_N3;
-    m_tile_N4 = rhs.m_tile_N4;
-    m_tile_N5 = rhs.m_tile_N5;
-    m_tile_N6 = rhs.m_tile_N6;
-    m_tile_N7 = rhs.m_tile_N7;
+#ifdef KOKKOS_IMPL_WINDOWS_CUDA
+  KOKKOS_FUNCTION ViewOffset() {}
+  KOKKOS_FUNCTION ViewOffset(const ViewOffset& src) {
+    m_dim     = src.m_dim;
+    m_tile_N0 = src.m_tile_N0;
+    m_tile_N1 = src.m_tile_N1;
+    m_tile_N2 = src.m_tile_N2;
+    m_tile_N3 = src.m_tile_N3;
+    m_tile_N4 = src.m_tile_N4;
+    m_tile_N5 = src.m_tile_N5;
+    m_tile_N6 = src.m_tile_N6;
+    m_tile_N7 = src.m_tile_N7;
+  }
+  KOKKOS_FUNCTION ViewOffset& operator=(const ViewOffset& src) {
+    m_dim     = src.m_dim;
+    m_tile_N0 = src.m_tile_N0;
+    m_tile_N1 = src.m_tile_N1;
+    m_tile_N2 = src.m_tile_N2;
+    m_tile_N3 = src.m_tile_N3;
+    m_tile_N4 = src.m_tile_N4;
+    m_tile_N5 = src.m_tile_N5;
+    m_tile_N6 = src.m_tile_N6;
+    m_tile_N7 = src.m_tile_N7;
     return *this;
   }
-
 #else
-  KOKKOS_INLINE_FUNCTION ~ViewOffset()                 = default;
-  KOKKOS_INLINE_FUNCTION ViewOffset()                  = default;
-  KOKKOS_INLINE_FUNCTION ViewOffset(const ViewOffset&) = default;
-  KOKKOS_INLINE_FUNCTION ViewOffset& operator=(const ViewOffset&) = default;
+  KOKKOS_DEFAULTED_FUNCTION ~ViewOffset()                 = default;
+  KOKKOS_DEFAULTED_FUNCTION ViewOffset()                  = default;
+  KOKKOS_DEFAULTED_FUNCTION ViewOffset(const ViewOffset&) = default;
+  KOKKOS_DEFAULTED_FUNCTION ViewOffset& operator=(const ViewOffset&) = default;
 #endif
 
   template <unsigned TrivialScalarSize>
@@ -670,7 +669,7 @@ template <typename T, Kokkos::Iterate OuterP, Kokkos::Iterate InnerP,
           unsigned N0, unsigned N1, unsigned N2, unsigned N3, unsigned N4,
           unsigned N5, unsigned N6, unsigned N7, class... P, typename iType0,
           typename iType1>
-struct ViewMapping<
+class ViewMapping<
     typename std::enable_if<(N2 == 0 && N3 == 0 && N4 == 0 && N5 == 0 &&
                              N6 == 0 && N7 == 0)>::type  // void
     ,
@@ -682,26 +681,28 @@ struct ViewMapping<
     Kokkos::Experimental::LayoutTiled<OuterP, InnerP, N0, N1, N2, N3, N4, N5,
                                       N6, N7, true>,
     iType0, iType1> {
-  typedef Kokkos::Experimental::LayoutTiled<OuterP, InnerP, N0, N1, N2, N3, N4,
-                                            N5, N6, N7, true>
-      src_layout;
-  typedef Kokkos::ViewTraits<T**, src_layout, P...> src_traits;
+ public:
+  using src_layout =
+      Kokkos::Experimental::LayoutTiled<OuterP, InnerP, N0, N1, N2, N3, N4, N5,
+                                        N6, N7, true>;
+  using src_traits = Kokkos::ViewTraits<T**, src_layout, P...>;
 
   enum { is_outer_left = (OuterP == Kokkos::Iterate::Left) };
   enum { is_inner_left = (InnerP == Kokkos::Iterate::Left) };
-  typedef typename std::conditional<is_inner_left, Kokkos::LayoutLeft,
-                                    Kokkos::LayoutRight>::type array_layout;
-  typedef Kokkos::ViewTraits<T[N0][N1], array_layout, P...> traits;
-  typedef Kokkos::View<T[N0][N1], array_layout, P...> type;
+  using array_layout =
+      typename std::conditional<is_inner_left, Kokkos::LayoutLeft,
+                                Kokkos::LayoutRight>::type;
+  using traits = Kokkos::ViewTraits<T[N0][N1], array_layout, P...>;
+  using type   = Kokkos::View<T[N0][N1], array_layout, P...>;
 
   KOKKOS_INLINE_FUNCTION static void assign(
       ViewMapping<traits, void>& dst, const ViewMapping<src_traits, void>& src,
       const src_layout&, const iType0 i_tile0, const iType1 i_tile1) {
-    typedef ViewMapping<traits, void> dst_map_type;
-    typedef ViewMapping<src_traits, void> src_map_type;
-    typedef typename dst_map_type::handle_type dst_handle_type;
-    typedef typename dst_map_type::offset_type dst_offset_type;
-    typedef typename src_map_type::offset_type src_offset_type;
+    using dst_map_type    = ViewMapping<traits, void>;
+    using src_map_type    = ViewMapping<src_traits, void>;
+    using dst_handle_type = typename dst_map_type::handle_type;
+    using dst_offset_type = typename dst_map_type::offset_type;
+    using src_offset_type = typename src_map_type::offset_type;
 
     dst = dst_map_type(
         dst_handle_type(
@@ -721,38 +722,40 @@ template <typename T, Kokkos::Iterate OuterP, Kokkos::Iterate InnerP,
           unsigned N0, unsigned N1, unsigned N2, unsigned N3, unsigned N4,
           unsigned N5, unsigned N6, unsigned N7, class... P, typename iType0,
           typename iType1, typename iType2>
-struct ViewMapping<typename std::enable_if<(N3 == 0 && N4 == 0 && N5 == 0 &&
-                                            N6 == 0 && N7 == 0)>::type  // void
-                   ,
-                   Kokkos::ViewTraits<T***,
-                                      Kokkos::Experimental::LayoutTiled<
-                                          OuterP, InnerP, N0, N1, N2, N3, N4,
-                                          N5, N6, N7, true>,
-                                      P...>,
-                   Kokkos::Experimental::LayoutTiled<OuterP, InnerP, N0, N1, N2,
-                                                     N3, N4, N5, N6, N7, true>,
-                   iType0, iType1, iType2> {
-  typedef Kokkos::Experimental::LayoutTiled<OuterP, InnerP, N0, N1, N2, N3, N4,
-                                            N5, N6, N7, true>
-      src_layout;
-  typedef Kokkos::ViewTraits<T***, src_layout, P...> src_traits;
+class ViewMapping<typename std::enable_if<(N3 == 0 && N4 == 0 && N5 == 0 &&
+                                           N6 == 0 && N7 == 0)>::type  // void
+                  ,
+                  Kokkos::ViewTraits<
+                      T***,
+                      Kokkos::Experimental::LayoutTiled<
+                          OuterP, InnerP, N0, N1, N2, N3, N4, N5, N6, N7, true>,
+                      P...>,
+                  Kokkos::Experimental::LayoutTiled<OuterP, InnerP, N0, N1, N2,
+                                                    N3, N4, N5, N6, N7, true>,
+                  iType0, iType1, iType2> {
+ public:
+  using src_layout =
+      Kokkos::Experimental::LayoutTiled<OuterP, InnerP, N0, N1, N2, N3, N4, N5,
+                                        N6, N7, true>;
+  using src_traits = Kokkos::ViewTraits<T***, src_layout, P...>;
 
   enum { is_outer_left = (OuterP == Kokkos::Iterate::Left) };
   enum { is_inner_left = (InnerP == Kokkos::Iterate::Left) };
-  typedef typename std::conditional<is_inner_left, Kokkos::LayoutLeft,
-                                    Kokkos::LayoutRight>::type array_layout;
-  typedef Kokkos::ViewTraits<T[N0][N1][N2], array_layout, P...> traits;
-  typedef Kokkos::View<T[N0][N1][N2], array_layout, P...> type;
+  using array_layout =
+      typename std::conditional<is_inner_left, Kokkos::LayoutLeft,
+                                Kokkos::LayoutRight>::type;
+  using traits = Kokkos::ViewTraits<T[N0][N1][N2], array_layout, P...>;
+  using type   = Kokkos::View<T[N0][N1][N2], array_layout, P...>;
 
   KOKKOS_INLINE_FUNCTION static void assign(
       ViewMapping<traits, void>& dst, const ViewMapping<src_traits, void>& src,
       const src_layout&, const iType0 i_tile0, const iType1 i_tile1,
       const iType2 i_tile2) {
-    typedef ViewMapping<traits, void> dst_map_type;
-    typedef ViewMapping<src_traits, void> src_map_type;
-    typedef typename dst_map_type::handle_type dst_handle_type;
-    typedef typename dst_map_type::offset_type dst_offset_type;
-    typedef typename src_map_type::offset_type src_offset_type;
+    using dst_map_type    = ViewMapping<traits, void>;
+    using src_map_type    = ViewMapping<src_traits, void>;
+    using dst_handle_type = typename dst_map_type::handle_type;
+    using dst_offset_type = typename dst_map_type::offset_type;
+    using src_offset_type = typename src_map_type::offset_type;
 
     dst = dst_map_type(
         dst_handle_type(
@@ -777,38 +780,40 @@ template <typename T, Kokkos::Iterate OuterP, Kokkos::Iterate InnerP,
           unsigned N0, unsigned N1, unsigned N2, unsigned N3, unsigned N4,
           unsigned N5, unsigned N6, unsigned N7, class... P, typename iType0,
           typename iType1, typename iType2, typename iType3>
-struct ViewMapping<typename std::enable_if<(N4 == 0 && N5 == 0 && N6 == 0 &&
-                                            N7 == 0)>::type  // void
-                   ,
-                   Kokkos::ViewTraits<T****,
-                                      Kokkos::Experimental::LayoutTiled<
-                                          OuterP, InnerP, N0, N1, N2, N3, N4,
-                                          N5, N6, N7, true>,
-                                      P...>,
-                   Kokkos::Experimental::LayoutTiled<OuterP, InnerP, N0, N1, N2,
-                                                     N3, N4, N5, N6, N7, true>,
-                   iType0, iType1, iType2, iType3> {
-  typedef Kokkos::Experimental::LayoutTiled<OuterP, InnerP, N0, N1, N2, N3, N4,
-                                            N5, N6, N7, true>
-      src_layout;
-  typedef Kokkos::ViewTraits<T****, src_layout, P...> src_traits;
+class ViewMapping<typename std::enable_if<(N4 == 0 && N5 == 0 && N6 == 0 &&
+                                           N7 == 0)>::type  // void
+                  ,
+                  Kokkos::ViewTraits<
+                      T****,
+                      Kokkos::Experimental::LayoutTiled<
+                          OuterP, InnerP, N0, N1, N2, N3, N4, N5, N6, N7, true>,
+                      P...>,
+                  Kokkos::Experimental::LayoutTiled<OuterP, InnerP, N0, N1, N2,
+                                                    N3, N4, N5, N6, N7, true>,
+                  iType0, iType1, iType2, iType3> {
+ public:
+  using src_layout =
+      Kokkos::Experimental::LayoutTiled<OuterP, InnerP, N0, N1, N2, N3, N4, N5,
+                                        N6, N7, true>;
+  using src_traits = Kokkos::ViewTraits<T****, src_layout, P...>;
 
   enum { is_outer_left = (OuterP == Kokkos::Iterate::Left) };
   enum { is_inner_left = (InnerP == Kokkos::Iterate::Left) };
-  typedef typename std::conditional<is_inner_left, Kokkos::LayoutLeft,
-                                    Kokkos::LayoutRight>::type array_layout;
-  typedef Kokkos::ViewTraits<T[N0][N1][N2][N3], array_layout, P...> traits;
-  typedef Kokkos::View<T[N0][N1][N2][N3], array_layout, P...> type;
+  using array_layout =
+      typename std::conditional<is_inner_left, Kokkos::LayoutLeft,
+                                Kokkos::LayoutRight>::type;
+  using traits = Kokkos::ViewTraits<T[N0][N1][N2][N3], array_layout, P...>;
+  using type   = Kokkos::View<T[N0][N1][N2][N3], array_layout, P...>;
 
   KOKKOS_INLINE_FUNCTION static void assign(
       ViewMapping<traits, void>& dst, const ViewMapping<src_traits, void>& src,
       const src_layout&, const iType0 i_tile0, const iType1 i_tile1,
       const iType2 i_tile2, const iType3 i_tile3) {
-    typedef ViewMapping<traits, void> dst_map_type;
-    typedef ViewMapping<src_traits, void> src_map_type;
-    typedef typename dst_map_type::handle_type dst_handle_type;
-    typedef typename dst_map_type::offset_type dst_offset_type;
-    typedef typename src_map_type::offset_type src_offset_type;
+    using dst_map_type    = ViewMapping<traits, void>;
+    using src_map_type    = ViewMapping<src_traits, void>;
+    using dst_handle_type = typename dst_map_type::handle_type;
+    using dst_offset_type = typename dst_map_type::offset_type;
+    using src_offset_type = typename src_map_type::offset_type;
 
     dst = dst_map_type(
         dst_handle_type(
@@ -838,7 +843,7 @@ template <typename T, Kokkos::Iterate OuterP, Kokkos::Iterate InnerP,
           unsigned N0, unsigned N1, unsigned N2, unsigned N3, unsigned N4,
           unsigned N5, unsigned N6, unsigned N7, class... P, typename iType0,
           typename iType1, typename iType2, typename iType3, typename iType4>
-struct ViewMapping<
+class ViewMapping<
     typename std::enable_if<(N5 == 0 && N6 == 0 && N7 == 0)>::type  // void
     ,
     Kokkos::ViewTraits<
@@ -849,27 +854,29 @@ struct ViewMapping<
     Kokkos::Experimental::LayoutTiled<OuterP, InnerP, N0, N1, N2, N3, N4, N5,
                                       N6, N7, true>,
     iType0, iType1, iType2, iType3, iType4> {
-  typedef Kokkos::Experimental::LayoutTiled<OuterP, InnerP, N0, N1, N2, N3, N4,
-                                            N5, N6, N7, true>
-      src_layout;
-  typedef Kokkos::ViewTraits<T*****, src_layout, P...> src_traits;
+ public:
+  using src_layout =
+      Kokkos::Experimental::LayoutTiled<OuterP, InnerP, N0, N1, N2, N3, N4, N5,
+                                        N6, N7, true>;
+  using src_traits = Kokkos::ViewTraits<T*****, src_layout, P...>;
 
   enum { is_outer_left = (OuterP == Kokkos::Iterate::Left) };
   enum { is_inner_left = (InnerP == Kokkos::Iterate::Left) };
-  typedef typename std::conditional<is_inner_left, Kokkos::LayoutLeft,
-                                    Kokkos::LayoutRight>::type array_layout;
-  typedef Kokkos::ViewTraits<T[N0][N1][N2][N3][N4], array_layout, P...> traits;
-  typedef Kokkos::View<T[N0][N1][N2][N3][N4], array_layout, P...> type;
+  using array_layout =
+      typename std::conditional<is_inner_left, Kokkos::LayoutLeft,
+                                Kokkos::LayoutRight>::type;
+  using traits = Kokkos::ViewTraits<T[N0][N1][N2][N3][N4], array_layout, P...>;
+  using type   = Kokkos::View<T[N0][N1][N2][N3][N4], array_layout, P...>;
 
   KOKKOS_INLINE_FUNCTION static void assign(
       ViewMapping<traits, void>& dst, const ViewMapping<src_traits, void>& src,
       const src_layout&, const iType0 i_tile0, const iType1 i_tile1,
       const iType2 i_tile2, const iType3 i_tile3, const iType4 i_tile4) {
-    typedef ViewMapping<traits, void> dst_map_type;
-    typedef ViewMapping<src_traits, void> src_map_type;
-    typedef typename dst_map_type::handle_type dst_handle_type;
-    typedef typename dst_map_type::offset_type dst_offset_type;
-    typedef typename src_map_type::offset_type src_offset_type;
+    using dst_map_type    = ViewMapping<traits, void>;
+    using src_map_type    = ViewMapping<src_traits, void>;
+    using dst_handle_type = typename dst_map_type::handle_type;
+    using dst_offset_type = typename dst_map_type::offset_type;
+    using src_offset_type = typename src_map_type::offset_type;
 
     dst = dst_map_type(
         dst_handle_type(
@@ -905,39 +912,41 @@ template <typename T, Kokkos::Iterate OuterP, Kokkos::Iterate InnerP,
           unsigned N5, unsigned N6, unsigned N7, class... P, typename iType0,
           typename iType1, typename iType2, typename iType3, typename iType4,
           typename iType5>
-struct ViewMapping<typename std::enable_if<(N6 == 0 && N7 == 0)>::type  // void
-                   ,
-                   Kokkos::ViewTraits<T******,
-                                      Kokkos::Experimental::LayoutTiled<
-                                          OuterP, InnerP, N0, N1, N2, N3, N4,
-                                          N5, N6, N7, true>,
-                                      P...>,
-                   Kokkos::Experimental::LayoutTiled<OuterP, InnerP, N0, N1, N2,
-                                                     N3, N4, N5, N6, N7, true>,
-                   iType0, iType1, iType2, iType3, iType4, iType5> {
-  typedef Kokkos::Experimental::LayoutTiled<OuterP, InnerP, N0, N1, N2, N3, N4,
-                                            N5, N6, N7, true>
-      src_layout;
-  typedef Kokkos::ViewTraits<T******, src_layout, P...> src_traits;
+class ViewMapping<typename std::enable_if<(N6 == 0 && N7 == 0)>::type  // void
+                  ,
+                  Kokkos::ViewTraits<
+                      T******,
+                      Kokkos::Experimental::LayoutTiled<
+                          OuterP, InnerP, N0, N1, N2, N3, N4, N5, N6, N7, true>,
+                      P...>,
+                  Kokkos::Experimental::LayoutTiled<OuterP, InnerP, N0, N1, N2,
+                                                    N3, N4, N5, N6, N7, true>,
+                  iType0, iType1, iType2, iType3, iType4, iType5> {
+ public:
+  using src_layout =
+      Kokkos::Experimental::LayoutTiled<OuterP, InnerP, N0, N1, N2, N3, N4, N5,
+                                        N6, N7, true>;
+  using src_traits = Kokkos::ViewTraits<T******, src_layout, P...>;
 
   enum { is_outer_left = (OuterP == Kokkos::Iterate::Left) };
   enum { is_inner_left = (InnerP == Kokkos::Iterate::Left) };
-  typedef typename std::conditional<is_inner_left, Kokkos::LayoutLeft,
-                                    Kokkos::LayoutRight>::type array_layout;
-  typedef Kokkos::ViewTraits<T[N0][N1][N2][N3][N4][N5], array_layout, P...>
-      traits;
-  typedef Kokkos::View<T[N0][N1][N2][N3][N4][N5], array_layout, P...> type;
+  using array_layout =
+      typename std::conditional<is_inner_left, Kokkos::LayoutLeft,
+                                Kokkos::LayoutRight>::type;
+  using traits =
+      Kokkos::ViewTraits<T[N0][N1][N2][N3][N4][N5], array_layout, P...>;
+  using type = Kokkos::View<T[N0][N1][N2][N3][N4][N5], array_layout, P...>;
 
   KOKKOS_INLINE_FUNCTION static void assign(
       ViewMapping<traits, void>& dst, const ViewMapping<src_traits, void>& src,
       const src_layout&, const iType0 i_tile0, const iType1 i_tile1,
       const iType2 i_tile2, const iType3 i_tile3, const iType4 i_tile4,
       const iType5 i_tile5) {
-    typedef ViewMapping<traits, void> dst_map_type;
-    typedef ViewMapping<src_traits, void> src_map_type;
-    typedef typename dst_map_type::handle_type dst_handle_type;
-    typedef typename dst_map_type::offset_type dst_offset_type;
-    typedef typename src_map_type::offset_type src_offset_type;
+    using dst_map_type    = ViewMapping<traits, void>;
+    using src_map_type    = ViewMapping<src_traits, void>;
+    using dst_handle_type = typename dst_map_type::handle_type;
+    using dst_offset_type = typename dst_map_type::offset_type;
+    using src_offset_type = typename src_map_type::offset_type;
 
     dst = dst_map_type(
         dst_handle_type(
@@ -977,39 +986,41 @@ template <typename T, Kokkos::Iterate OuterP, Kokkos::Iterate InnerP,
           unsigned N5, unsigned N6, unsigned N7, class... P, typename iType0,
           typename iType1, typename iType2, typename iType3, typename iType4,
           typename iType5, typename iType6>
-struct ViewMapping<typename std::enable_if<(N7 == 0)>::type  // void
-                   ,
-                   Kokkos::ViewTraits<T*******,
-                                      Kokkos::Experimental::LayoutTiled<
-                                          OuterP, InnerP, N0, N1, N2, N3, N4,
-                                          N5, N6, N7, true>,
-                                      P...>,
-                   Kokkos::Experimental::LayoutTiled<OuterP, InnerP, N0, N1, N2,
-                                                     N3, N4, N5, N6, N7, true>,
-                   iType0, iType1, iType2, iType3, iType4, iType5, iType6> {
-  typedef Kokkos::Experimental::LayoutTiled<OuterP, InnerP, N0, N1, N2, N3, N4,
-                                            N5, N6, N7, true>
-      src_layout;
-  typedef Kokkos::ViewTraits<T*******, src_layout, P...> src_traits;
+class ViewMapping<typename std::enable_if<(N7 == 0)>::type  // void
+                  ,
+                  Kokkos::ViewTraits<
+                      T*******,
+                      Kokkos::Experimental::LayoutTiled<
+                          OuterP, InnerP, N0, N1, N2, N3, N4, N5, N6, N7, true>,
+                      P...>,
+                  Kokkos::Experimental::LayoutTiled<OuterP, InnerP, N0, N1, N2,
+                                                    N3, N4, N5, N6, N7, true>,
+                  iType0, iType1, iType2, iType3, iType4, iType5, iType6> {
+ public:
+  using src_layout =
+      Kokkos::Experimental::LayoutTiled<OuterP, InnerP, N0, N1, N2, N3, N4, N5,
+                                        N6, N7, true>;
+  using src_traits = Kokkos::ViewTraits<T*******, src_layout, P...>;
 
   enum { is_outer_left = (OuterP == Kokkos::Iterate::Left) };
   enum { is_inner_left = (InnerP == Kokkos::Iterate::Left) };
-  typedef typename std::conditional<is_inner_left, Kokkos::LayoutLeft,
-                                    Kokkos::LayoutRight>::type array_layout;
-  typedef Kokkos::ViewTraits<T[N0][N1][N2][N3][N4][N5][N6], array_layout, P...>
-      traits;
-  typedef Kokkos::View<T[N0][N1][N2][N3][N4][N5][N6], array_layout, P...> type;
+  using array_layout =
+      typename std::conditional<is_inner_left, Kokkos::LayoutLeft,
+                                Kokkos::LayoutRight>::type;
+  using traits =
+      Kokkos::ViewTraits<T[N0][N1][N2][N3][N4][N5][N6], array_layout, P...>;
+  using type = Kokkos::View<T[N0][N1][N2][N3][N4][N5][N6], array_layout, P...>;
 
   KOKKOS_INLINE_FUNCTION static void assign(
       ViewMapping<traits, void>& dst, const ViewMapping<src_traits, void>& src,
       const src_layout&, const iType0 i_tile0, const iType1 i_tile1,
       const iType2 i_tile2, const iType3 i_tile3, const iType4 i_tile4,
       const iType5 i_tile5, const iType6 i_tile6) {
-    typedef ViewMapping<traits, void> dst_map_type;
-    typedef ViewMapping<src_traits, void> src_map_type;
-    typedef typename dst_map_type::handle_type dst_handle_type;
-    typedef typename dst_map_type::offset_type dst_offset_type;
-    typedef typename src_map_type::offset_type src_offset_type;
+    using dst_map_type    = ViewMapping<traits, void>;
+    using src_map_type    = ViewMapping<src_traits, void>;
+    using dst_handle_type = typename dst_map_type::handle_type;
+    using dst_offset_type = typename dst_map_type::offset_type;
+    using src_offset_type = typename src_map_type::offset_type;
 
     dst = dst_map_type(
         dst_handle_type(
@@ -1055,44 +1066,45 @@ template <typename T, Kokkos::Iterate OuterP, Kokkos::Iterate InnerP,
           unsigned N5, unsigned N6, unsigned N7, class... P, typename iType0,
           typename iType1, typename iType2, typename iType3, typename iType4,
           typename iType5, typename iType6, typename iType7>
-struct ViewMapping<
-    typename std::enable_if<(N0 != 0 && N1 != 0 && N2 != 0 && N3 != 0 &&
-                             N4 != 0 && N5 != 0 && N6 != 0 &&
-                             N7 != 0)>::type  // void
-    ,
-    Kokkos::ViewTraits<
-        T********,
-        Kokkos::Experimental::LayoutTiled<OuterP, InnerP, N0, N1, N2, N3, N4,
-                                          N5, N6, N7, true>,
-        P...>,
-    Kokkos::Experimental::LayoutTiled<OuterP, InnerP, N0, N1, N2, N3, N4, N5,
-                                      N6, N7, true>,
-    iType0, iType1, iType2, iType3, iType4, iType5, iType6, iType7> {
-  typedef Kokkos::Experimental::LayoutTiled<OuterP, InnerP, N0, N1, N2, N3, N4,
-                                            N5, N6, N7, true>
-      src_layout;
-  typedef Kokkos::ViewTraits<T********, src_layout, P...> src_traits;
+class ViewMapping<typename std::enable_if<(N0 != 0 && N1 != 0 && N2 != 0 &&
+                                           N3 != 0 && N4 != 0 && N5 != 0 &&
+                                           N6 != 0 && N7 != 0)>::type  // void
+                  ,
+                  Kokkos::ViewTraits<
+                      T********,
+                      Kokkos::Experimental::LayoutTiled<
+                          OuterP, InnerP, N0, N1, N2, N3, N4, N5, N6, N7, true>,
+                      P...>,
+                  Kokkos::Experimental::LayoutTiled<OuterP, InnerP, N0, N1, N2,
+                                                    N3, N4, N5, N6, N7, true>,
+                  iType0, iType1, iType2, iType3, iType4, iType5, iType6,
+                  iType7> {
+ public:
+  using src_layout =
+      Kokkos::Experimental::LayoutTiled<OuterP, InnerP, N0, N1, N2, N3, N4, N5,
+                                        N6, N7, true>;
+  using src_traits = Kokkos::ViewTraits<T********, src_layout, P...>;
 
   enum { is_outer_left = (OuterP == Kokkos::Iterate::Left) };
   enum { is_inner_left = (InnerP == Kokkos::Iterate::Left) };
-  typedef typename std::conditional<is_inner_left, Kokkos::LayoutLeft,
-                                    Kokkos::LayoutRight>::type array_layout;
-  typedef Kokkos::ViewTraits<T[N0][N1][N2][N3][N4][N5][N6][N7], array_layout,
-                             P...>
-      traits;
-  typedef Kokkos::View<T[N0][N1][N2][N3][N4][N5][N6][N7], array_layout, P...>
-      type;
+  using array_layout =
+      typename std::conditional<is_inner_left, Kokkos::LayoutLeft,
+                                Kokkos::LayoutRight>::type;
+  using traits =
+      Kokkos::ViewTraits<T[N0][N1][N2][N3][N4][N5][N6][N7], array_layout, P...>;
+  using type =
+      Kokkos::View<T[N0][N1][N2][N3][N4][N5][N6][N7], array_layout, P...>;
 
   KOKKOS_INLINE_FUNCTION static void assign(
       ViewMapping<traits, void>& dst, const ViewMapping<src_traits, void>& src,
       const src_layout&, const iType0 i_tile0, const iType1 i_tile1,
       const iType2 i_tile2, const iType3 i_tile3, const iType4 i_tile4,
       const iType5 i_tile5, const iType6 i_tile6, const iType7 i_tile7) {
-    typedef ViewMapping<traits, void> dst_map_type;
-    typedef ViewMapping<src_traits, void> src_map_type;
-    typedef typename dst_map_type::handle_type dst_handle_type;
-    typedef typename dst_map_type::offset_type dst_offset_type;
-    typedef typename src_map_type::offset_type src_offset_type;
+    using dst_map_type    = ViewMapping<traits, void>;
+    using src_map_type    = ViewMapping<src_traits, void>;
+    using dst_handle_type = typename dst_map_type::handle_type;
+    using dst_offset_type = typename dst_map_type::offset_type;
+    using src_offset_type = typename src_map_type::offset_type;
 
     dst = dst_map_type(
         dst_handle_type(
@@ -1160,13 +1172,12 @@ tile_subview(const Kokkos::View<
              const size_t i_tile0, const size_t i_tile1) {
   // Force the specialized ViewMapping for extracting a tile
   // by using the first subview argument as the layout.
-  typedef
+  using array_layout =
       typename std::conditional<(InnerP == Kokkos::Iterate::Left),
-                                Kokkos::LayoutLeft, Kokkos::LayoutRight>::type
-          array_layout;
-  typedef Kokkos::Experimental::LayoutTiled<OuterP, InnerP, N0, N1, N2, N3, N4,
-                                            N5, N6, N7, true>
-      SrcLayout;
+                                Kokkos::LayoutLeft, Kokkos::LayoutRight>::type;
+  using SrcLayout =
+      Kokkos::Experimental::LayoutTiled<OuterP, InnerP, N0, N1, N2, N3, N4, N5,
+                                        N6, N7, true>;
 
   return Kokkos::View<T[N0][N1], array_layout, P...>(src, SrcLayout(), i_tile0,
                                                      i_tile1);
@@ -1189,13 +1200,12 @@ tile_subview(const Kokkos::View<
              const size_t i_tile0, const size_t i_tile1, const size_t i_tile2) {
   // Force the specialized ViewMapping for extracting a tile
   // by using the first subview argument as the layout.
-  typedef
+  using array_layout =
       typename std::conditional<(InnerP == Kokkos::Iterate::Left),
-                                Kokkos::LayoutLeft, Kokkos::LayoutRight>::type
-          array_layout;
-  typedef Kokkos::Experimental::LayoutTiled<OuterP, InnerP, N0, N1, N2, N3, N4,
-                                            N5, N6, N7, true>
-      SrcLayout;
+                                Kokkos::LayoutLeft, Kokkos::LayoutRight>::type;
+  using SrcLayout =
+      Kokkos::Experimental::LayoutTiled<OuterP, InnerP, N0, N1, N2, N3, N4, N5,
+                                        N6, N7, true>;
 
   return Kokkos::View<T[N0][N1][N2], array_layout, P...>(
       src, SrcLayout(), i_tile0, i_tile1, i_tile2);
@@ -1219,13 +1229,12 @@ tile_subview(const Kokkos::View<
              const size_t i_tile3) {
   // Force the specialized ViewMapping for extracting a tile
   // by using the first subview argument as the layout.
-  typedef
+  using array_layout =
       typename std::conditional<(InnerP == Kokkos::Iterate::Left),
-                                Kokkos::LayoutLeft, Kokkos::LayoutRight>::type
-          array_layout;
-  typedef Kokkos::Experimental::LayoutTiled<OuterP, InnerP, N0, N1, N2, N3, N4,
-                                            N5, N6, N7, true>
-      SrcLayout;
+                                Kokkos::LayoutLeft, Kokkos::LayoutRight>::type;
+  using SrcLayout =
+      Kokkos::Experimental::LayoutTiled<OuterP, InnerP, N0, N1, N2, N3, N4, N5,
+                                        N6, N7, true>;
 
   return Kokkos::View<T[N0][N1][N2][N3], array_layout, P...>(
       src, SrcLayout(), i_tile0, i_tile1, i_tile2, i_tile3);
@@ -1249,13 +1258,12 @@ tile_subview(const Kokkos::View<
              const size_t i_tile3, const size_t i_tile4) {
   // Force the specialized ViewMapping for extracting a tile
   // by using the first subview argument as the layout.
-  typedef
+  using array_layout =
       typename std::conditional<(InnerP == Kokkos::Iterate::Left),
-                                Kokkos::LayoutLeft, Kokkos::LayoutRight>::type
-          array_layout;
-  typedef Kokkos::Experimental::LayoutTiled<OuterP, InnerP, N0, N1, N2, N3, N4,
-                                            N5, N6, N7, true>
-      SrcLayout;
+                                Kokkos::LayoutLeft, Kokkos::LayoutRight>::type;
+  using SrcLayout =
+      Kokkos::Experimental::LayoutTiled<OuterP, InnerP, N0, N1, N2, N3, N4, N5,
+                                        N6, N7, true>;
 
   return Kokkos::View<T[N0][N1][N2][N3][N4], array_layout, P...>(
       src, SrcLayout(), i_tile0, i_tile1, i_tile2, i_tile3, i_tile4);
@@ -1279,13 +1287,12 @@ tile_subview(const Kokkos::View<
              const size_t i_tile3, const size_t i_tile4, const size_t i_tile5) {
   // Force the specialized ViewMapping for extracting a tile
   // by using the first subview argument as the layout.
-  typedef
+  using array_layout =
       typename std::conditional<(InnerP == Kokkos::Iterate::Left),
-                                Kokkos::LayoutLeft, Kokkos::LayoutRight>::type
-          array_layout;
-  typedef Kokkos::Experimental::LayoutTiled<OuterP, InnerP, N0, N1, N2, N3, N4,
-                                            N5, N6, N7, true>
-      SrcLayout;
+                                Kokkos::LayoutLeft, Kokkos::LayoutRight>::type;
+  using SrcLayout =
+      Kokkos::Experimental::LayoutTiled<OuterP, InnerP, N0, N1, N2, N3, N4, N5,
+                                        N6, N7, true>;
 
   return Kokkos::View<T[N0][N1][N2][N3][N4][N5], array_layout, P...>(
       src, SrcLayout(), i_tile0, i_tile1, i_tile2, i_tile3, i_tile4, i_tile5);
@@ -1310,13 +1317,12 @@ tile_subview(const Kokkos::View<
              const size_t i_tile6) {
   // Force the specialized ViewMapping for extracting a tile
   // by using the first subview argument as the layout.
-  typedef
+  using array_layout =
       typename std::conditional<(InnerP == Kokkos::Iterate::Left),
-                                Kokkos::LayoutLeft, Kokkos::LayoutRight>::type
-          array_layout;
-  typedef Kokkos::Experimental::LayoutTiled<OuterP, InnerP, N0, N1, N2, N3, N4,
-                                            N5, N6, N7, true>
-      SrcLayout;
+                                Kokkos::LayoutLeft, Kokkos::LayoutRight>::type;
+  using SrcLayout =
+      Kokkos::Experimental::LayoutTiled<OuterP, InnerP, N0, N1, N2, N3, N4, N5,
+                                        N6, N7, true>;
 
   return Kokkos::View<T[N0][N1][N2][N3][N4][N5][N6], array_layout, P...>(
       src, SrcLayout(), i_tile0, i_tile1, i_tile2, i_tile3, i_tile4, i_tile5,
@@ -1342,13 +1348,12 @@ tile_subview(const Kokkos::View<
              const size_t i_tile6, const size_t i_tile7) {
   // Force the specialized ViewMapping for extracting a tile
   // by using the first subview argument as the layout.
-  typedef
+  using array_layout =
       typename std::conditional<(InnerP == Kokkos::Iterate::Left),
-                                Kokkos::LayoutLeft, Kokkos::LayoutRight>::type
-          array_layout;
-  typedef Kokkos::Experimental::LayoutTiled<OuterP, InnerP, N0, N1, N2, N3, N4,
-                                            N5, N6, N7, true>
-      SrcLayout;
+                                Kokkos::LayoutLeft, Kokkos::LayoutRight>::type;
+  using SrcLayout =
+      Kokkos::Experimental::LayoutTiled<OuterP, InnerP, N0, N1, N2, N3, N4, N5,
+                                        N6, N7, true>;
 
   return Kokkos::View<T[N0][N1][N2][N3][N4][N5][N6][N7], array_layout, P...>(
       src, SrcLayout(), i_tile0, i_tile1, i_tile2, i_tile3, i_tile4, i_tile5,
@@ -1356,7 +1361,6 @@ tile_subview(const Kokkos::View<
 }
 
 } /* namespace Kokkos */
-#endif  //! defined(KOKKOS_ENABLE_DEPRECATED_CODE
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 

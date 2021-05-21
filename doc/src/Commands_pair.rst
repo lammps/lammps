@@ -26,9 +26,9 @@ OPT.
    * :doc:`zero <pair_zero>`
    * :doc:`hybrid (k) <pair_hybrid>`
    * :doc:`hybrid/overlay (k) <pair_hybrid>`
+   * :doc:`hybrid/scaled <pair_hybrid>`
    * :doc:`kim <pair_kim>`
    * :doc:`list <pair_list>`
-   *
    *
    *
    *
@@ -69,6 +69,7 @@ OPT.
    * :doc:`comb3 <pair_comb>`
    * :doc:`cosine/squared <pair_cosine_squared>`
    * :doc:`coul/cut (gko) <pair_coul>`
+   * :doc:`coul/cut/global (o) <pair_coul>`
    * :doc:`coul/cut/soft (o) <pair_fep_soft>`
    * :doc:`coul/debye (gko) <pair_coul>`
    * :doc:`coul/diel (o) <pair_coul_diel>`
@@ -78,13 +79,16 @@ OPT.
    * :doc:`coul/long/soft (o) <pair_fep_soft>`
    * :doc:`coul/msm (o) <pair_coul>`
    * :doc:`coul/slater/cut <pair_coul_slater>`
-   * :doc:`coul/slater/long <pair_coul_slater>`   
+   * :doc:`coul/slater/long <pair_coul_slater>`
    * :doc:`coul/shield <pair_coul_shield>`
    * :doc:`coul/streitz <pair_coul>`
+   * :doc:`coul/tt <pair_coul_tt>`
    * :doc:`coul/wolf (ko) <pair_coul>`
    * :doc:`coul/wolf/cs <pair_cs>`
    * :doc:`dpd (gio) <pair_dpd>`
    * :doc:`dpd/fdt <pair_dpd_fdt>`
+   * :doc:`dpd/ext <pair_dpd_ext>`
+   * :doc:`dpd/ext/tstat <pair_dpd_ext>`
    * :doc:`dpd/fdt/energy (k) <pair_dpd_fdt>`
    * :doc:`dpd/tstat (go) <pair_dpd>`
    * :doc:`dsmc <pair_dsmc>`
@@ -92,9 +96,10 @@ OPT.
    * :doc:`drip <pair_drip>`
    * :doc:`eam (gikot) <pair_eam>`
    * :doc:`eam/alloy (gikot) <pair_eam>`
-   * :doc:`eam/cd (o) <pair_eam>`
-   * :doc:`eam/cd/old (o) <pair_eam>`
+   * :doc:`eam/cd <pair_eam>`
+   * :doc:`eam/cd/old <pair_eam>`
    * :doc:`eam/fs (gikot) <pair_eam>`
+   * :doc:`eam/he <pair_eam>`
    * :doc:`edip (o) <pair_edip>`
    * :doc:`edip/multi <pair_edip>`
    * :doc:`edpd <pair_mesodpd>`
@@ -120,7 +125,7 @@ OPT.
    * :doc:`lebedeva/z <pair_lebedeva_z>`
    * :doc:`lennard/mdf <pair_mdf>`
    * :doc:`line/lj <pair_line_lj>`
-   * :doc:`lj/charmm/coul/charmm (iko) <pair_charmm>`
+   * :doc:`lj/charmm/coul/charmm (giko) <pair_charmm>`
    * :doc:`lj/charmm/coul/charmm/implicit (ko) <pair_charmm>`
    * :doc:`lj/charmm/coul/long (gikot) <pair_charmm>`
    * :doc:`lj/charmm/coul/long/soft (o) <pair_fep_soft>`
@@ -136,22 +141,22 @@ OPT.
    * :doc:`lj/class2/soft <pair_fep_soft>`
    * :doc:`lj/cubic (go) <pair_lj_cubic>`
    * :doc:`lj/cut (gikot) <pair_lj>`
-   * :doc:`lj/cut/coul/cut (gko) <pair_lj>`
+   * :doc:`lj/cut/coul/cut (gko) <pair_lj_cut_coul>`
    * :doc:`lj/cut/coul/cut/soft (o) <pair_fep_soft>`
-   * :doc:`lj/cut/coul/debye (gko) <pair_lj>`
-   * :doc:`lj/cut/coul/dsf (gko) <pair_lj>`
-   * :doc:`lj/cut/coul/long (gikot) <pair_lj>`
+   * :doc:`lj/cut/coul/debye (gko) <pair_lj_cut_coul>`
+   * :doc:`lj/cut/coul/dsf (gko) <pair_lj_cut_coul>`
+   * :doc:`lj/cut/coul/long (gikot) <pair_lj_cut_coul>`
    * :doc:`lj/cut/coul/long/cs <pair_cs>`
    * :doc:`lj/cut/coul/long/soft (o) <pair_fep_soft>`
-   * :doc:`lj/cut/coul/msm (go) <pair_lj>`
-   * :doc:`lj/cut/coul/wolf (o) <pair_lj>`
+   * :doc:`lj/cut/coul/msm (go) <pair_lj_cut_coul>`
+   * :doc:`lj/cut/coul/wolf (o) <pair_lj_cut_coul>`
    * :doc:`lj/cut/dipole/cut (go) <pair_dipole>`
    * :doc:`lj/cut/dipole/long (g) <pair_dipole>`
    * :doc:`lj/cut/dipole/sf (go) <pair_dipole>`
    * :doc:`lj/cut/soft (o) <pair_fep_soft>`
    * :doc:`lj/cut/thole/long (o) <pair_thole>`
-   * :doc:`lj/cut/tip4p/cut (o) <pair_lj>`
-   * :doc:`lj/cut/tip4p/long (got) <pair_lj>`
+   * :doc:`lj/cut/tip4p/cut (o) <pair_lj_cut_tip4p>`
+   * :doc:`lj/cut/tip4p/long (got) <pair_lj_cut_tip4p>`
    * :doc:`lj/cut/tip4p/long/soft (o) <pair_fep_soft>`
    * :doc:`lj/expand (gko) <pair_lj_expand>`
    * :doc:`lj/expand/coul/long (g) <pair_lj_expand>`
@@ -161,6 +166,7 @@ OPT.
    * :doc:`lj/long/dipole/long <pair_dipole>`
    * :doc:`lj/long/tip4p/long (o) <pair_lj_long>`
    * :doc:`lj/mdf <pair_mdf>`
+   * :doc:`lj/relres (o) <pair_lj_relres>`
    * :doc:`lj/sdk (gko) <pair_sdk>`
    * :doc:`lj/sdk/coul/long (go) <pair_sdk>`
    * :doc:`lj/sdk/coul/msm (o) <pair_sdk>`
@@ -180,9 +186,11 @@ OPT.
    * :doc:`meam/spline (o) <pair_meam_spline>`
    * :doc:`meam/sw/spline <pair_meam_sw_spline>`
    * :doc:`mesocnt <pair_mesocnt>`
+   * :doc:`mesont/tpm <pair_mesont_tpm>`
    * :doc:`mgpt <pair_mgpt>`
    * :doc:`mie/cut (g) <pair_mie>`
-   * :doc:`mm3/switch3/coulgauss/long <pair_mm3_switch3_coulgauss_long>`
+   * :doc:`mliap <pair_mliap>`
+   * :doc:`mm3/switch3/coulgauss/long <pair_lj_switch3_coulgauss_long>`
    * :doc:`momb <pair_momb>`
    * :doc:`morse (gkot) <pair_morse>`
    * :doc:`morse/smooth/linear (o) <pair_morse>`
@@ -210,6 +218,7 @@ OPT.
    * :doc:`oxrna2/stk <pair_oxrna2>`
    * :doc:`oxrna2/xstk <pair_oxrna2>`
    * :doc:`oxrna2/coaxstk <pair_oxrna2>`
+   * :doc:`pace <pair_pace>`
    * :doc:`peri/eps <pair_peri>`
    * :doc:`peri/lps (o) <pair_peri>`
    * :doc:`peri/pmb (o) <pair_peri>`
@@ -227,7 +236,6 @@ OPT.
    * :doc:`smd/ulsph <pair_smd_ulsph>`
    * :doc:`smtbq <pair_smtbq>`
    * :doc:`snap (k) <pair_snap>`
-   * :doc:`snap (k) <pair_snap>`
    * :doc:`soft (go) <pair_soft>`
    * :doc:`sph/heatconduction <pair_sph_heatconduction>`
    * :doc:`sph/idealgas <pair_sph_idealgas>`
@@ -239,6 +247,7 @@ OPT.
    * :doc:`spin/dipole/long <pair_spin_dipole>`
    * :doc:`spin/dmi <pair_spin_dmi>`
    * :doc:`spin/exchange <pair_spin_exchange>`
+   * :doc:`spin/exchange/biquadratic <pair_spin_exchange>`
    * :doc:`spin/magelec <pair_spin_magelec>`
    * :doc:`spin/neel <pair_spin_neel>`
    * :doc:`srp <pair_srp>`
@@ -259,6 +268,7 @@ OPT.
    * :doc:`ufm (got) <pair_ufm>`
    * :doc:`vashishta (gko) <pair_vashishta>`
    * :doc:`vashishta/table (o) <pair_vashishta>`
+   * :doc:`wf/cut <pair_wf_cut>`
    * :doc:`yukawa (gko) <pair_yukawa>`
    * :doc:`yukawa/colloid (go) <pair_yukawa_colloid>`
    * :doc:`zbl (gko) <pair_zbl>`

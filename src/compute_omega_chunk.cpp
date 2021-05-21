@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_omega_chunk.h"
-#include <mpi.h>
+
 #include <cstring>
 #include "atom.h"
 #include "update.h"
@@ -20,6 +20,7 @@
 #include "compute_chunk_atom.h"
 #include "domain.h"
 #include "math_extra.h"
+#include "math_eigen.h"
 #include "memory.h"
 #include "error.h"
 
@@ -31,8 +32,8 @@ using namespace LAMMPS_NS;
 
 ComputeOmegaChunk::ComputeOmegaChunk(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  idchunk(NULL),massproc(NULL),masstotal(NULL),com(NULL),comall(NULL),
-  inertia(NULL),inertiaall(NULL),angmom(NULL),angmomall(NULL),omega(NULL)
+  idchunk(nullptr),massproc(nullptr),masstotal(nullptr),com(nullptr),comall(nullptr),
+  inertia(nullptr),inertiaall(nullptr),angmom(nullptr),angmomall(nullptr),omega(nullptr)
 {
   if (narg != 4) error->all(FLERR,"Illegal compute omega/chunk command");
 
@@ -44,9 +45,7 @@ ComputeOmegaChunk::ComputeOmegaChunk(LAMMPS *lmp, int narg, char **arg) :
 
   // ID of compute chunk/atom
 
-  int n = strlen(arg[3]) + 1;
-  idchunk = new char[n];
-  strcpy(idchunk,arg[3]);
+  idchunk = utils::strdup(arg[3]);
 
   init();
 
@@ -109,7 +108,7 @@ void ComputeOmegaChunk::compute_array()
 
   // zero local per-chunk values
 
-  for (int i = 0; i < nchunk; i++) {
+  for (i = 0; i < nchunk; i++) {
     massproc[i] = 0.0;
     com[i][0] = com[i][1] = com[i][2] = 0.0;
     for (j = 0; j < 6; j++) inertia[i][j] = 0.0;
@@ -127,7 +126,7 @@ void ComputeOmegaChunk::compute_array()
   double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
 
-  for (int i = 0; i < nlocal; i++)
+  for (i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       index = ichunk[i]-1;
       if (index < 0) continue;
@@ -143,7 +142,7 @@ void ComputeOmegaChunk::compute_array()
   MPI_Allreduce(massproc,masstotal,nchunk,MPI_DOUBLE,MPI_SUM,world);
   MPI_Allreduce(&com[0][0],&comall[0][0],3*nchunk,MPI_DOUBLE,MPI_SUM,world);
 
-  for (int i = 0; i < nchunk; i++) {
+  for (i = 0; i < nchunk; i++) {
     if (masstotal[i] > 0.0) {
       comall[i][0] /= masstotal[i];
       comall[i][1] /= masstotal[i];
@@ -250,10 +249,10 @@ void ComputeOmegaChunk::compute_array()
 
     // handle each (nearly) singular I matrix
     // due to 2-atom chunk or linear molecule
-    // use jacobi() and angmom_to_omega() to calculate valid omega
+    // use jacobi3() and angmom_to_omega() to calculate valid omega
 
     } else {
-      int ierror = MathExtra::jacobi(ione,idiag,evectors);
+      int ierror = MathEigen::jacobi3(ione,idiag,evectors);
       if (ierror) error->all(FLERR,
                              "Insufficient Jacobi rotations for omega/chunk");
 
@@ -381,9 +380,9 @@ void ComputeOmegaChunk::allocate()
 double ComputeOmegaChunk::memory_usage()
 {
   double bytes = (bigint) maxchunk * 2 * sizeof(double);
-  bytes += (bigint) maxchunk * 2*3 * sizeof(double);
-  bytes += (bigint) maxchunk * 2*6 * sizeof(double);
-  bytes += (bigint) maxchunk * 2*3 * sizeof(double);
-  bytes += (bigint) maxchunk * 3 * sizeof(double);
+  bytes += (double) maxchunk * 2*3 * sizeof(double);
+  bytes += (double) maxchunk * 2*6 * sizeof(double);
+  bytes += (double) maxchunk * 2*3 * sizeof(double);
+  bytes += (double) maxchunk * 3 * sizeof(double);
   return bytes;
 }

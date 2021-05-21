@@ -33,11 +33,11 @@ Command to select the thermal or momentum time integration.
 Options for thermal time integration:
 
 *gear*
-  atomic velocity update with 2nd order Verlet, nodal temperature update
-  with 3rd or 4th order Gear, thermostats based on controlling power
+  atomic velocity update with second order Verlet, nodal temperature update
+  with third or fourth order Gear, thermostats based on controlling power
 
 *fractional_step*
-  atomic velocity update with 2nd order Verlet, mixed nodal temperature
+  atomic velocity update with second order Verlet, mixed nodal temperature
   update, 3/4 Gear for continuum and 2 Verlet for atomic contributions,
   thermostats based on controlling discrete energy changes
 
@@ -46,18 +46,18 @@ Options for thermal time integration:
 Options for momentum time integration:
 
 *verlet*
-  atomic velocity update with 2nd order Verlet, nodal temperature update
-  with 2nd order Verlet, kinetostats based on controlling force
+  atomic velocity update with second order Verlet, nodal temperature update
+  with second order Verlet, kinetostats based on controlling force
 
 *fractional_step*
-  atomic velocity update with 2nd order Verlet, mixed nodal momentum
-  update, 2nd order Verlet for continuum and exact 2nd order Verlet for
+  atomic velocity update with second order Verlet, mixed nodal momentum
+  update, second order Verlet for continuum and exact second order Verlet for
   atomic contributions, kinetostats based on controlling discrete
   momentum changes
 
 *gear*
-  atomic velocity update with 2nd order Verlet, nodal temperature update
-  with 3rd or 4th order Gear, kinetostats based on controlling power.
+  atomic velocity update with second order Verlet, nodal temperature update
+  with third or fourth order Gear, kinetostats based on controlling power.
 
 ---------
 

@@ -123,7 +123,8 @@ momentum will not drift over time.
 
 ----------
 
-**Restart, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 The instantaneous values of the extended variables are written to
 :doc:`binary restart files <restart>`.  Because the state of the random

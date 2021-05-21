@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -26,6 +26,10 @@ namespace LAMMPS_NS {
 
 class FixWallGran : public Fix {
  public:
+
+  enum {HOOKE,HOOKE_HISTORY,HERTZ_HISTORY,GRANULAR};
+  enum {NORMAL_NONE, NORMAL_HOOKE, NORMAL_HERTZ, HERTZ_MATERIAL, DMT, JKR};
+
   FixWallGran(class LAMMPS *, int, char **);
   virtual ~FixWallGran();
   int setmask();
@@ -69,6 +73,7 @@ class FixWallGran : public Fix {
   // for granular model choices
   int normal_model, damping_model;
   int tangential_model, roll_model, twist_model;
+  int limit_damping;
 
   // history flags
   int normal_history, tangential_history, roll_history, twist_history;
@@ -103,13 +108,15 @@ class FixWallGran : public Fix {
 
   // rigid body masses for use in granular interactions
 
-  class Fix *fix_rigid;    // ptr to rigid body fix, NULL if none
+  class Fix *fix_rigid;    // ptr to rigid body fix, null pointer if none
   double *mass_rigid;      // rigid mass for owned+ghost atoms
   int nmax;                // allocated size of mass_rigid
 
   // store particle interactions
 
   int store;
+
+  void clear_stored_contacts();
 };
 
 }

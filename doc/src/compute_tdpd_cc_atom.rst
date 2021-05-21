@@ -32,7 +32,8 @@ The chemical concentration of each species is defined as the number of
 molecules carried by a tDPD particle for dilute solution.  For more
 details see :ref:`(Li2015) <Li2015a>`.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a per-atom vector, which can be accessed by
 any command that uses per-atom values from a compute as input. See the
@@ -53,7 +54,10 @@ Related commands
 
 :doc:`pair_style tdpd <pair_mesodpd>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

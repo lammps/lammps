@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -27,7 +27,15 @@ ComputeStyle(PRESSURE/BOCS,ComputePressureBocs)
 #include "compute.h"
 
 namespace LAMMPS_NS {
-// ComputePressure -> ComputePressureBocs MRD NJD
+  // Enumerate the p_basis_type magic values to improve readability:
+  enum{BASIS_ANALYTIC, BASIS_LINEAR_SPLINE, BASIS_CUBIC_SPLINE};
+  // Enumerate the data file column names to improve readability
+  enum{VOLUME, PRESSURE_CORRECTION};
+  // Declare names for the number of columns in the splines data structure to improve readability
+  const int NUM_LINEAR_SPLINE_COLUMNS = 2;  // linear spline columns passed to compute
+  const int NUM_CUBIC_SPLINE_COLUMNS = 5;   // cubic spline columns passed to compute
+
+  // ComputePressure -> ComputePressureBocs MRD NJD
 class ComputePressureBocs : public Compute {
  public:
   ComputePressureBocs(class LAMMPS *, int, char **);

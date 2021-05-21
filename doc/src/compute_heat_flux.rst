@@ -119,7 +119,8 @@ result should be: average conductivity ~0.29 in W/mK.
 
 ----------
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global vector of length 6.
 The first 3 components are the :math:`x`, :math:`y`, :math:`z`
@@ -157,7 +158,10 @@ Related commands
 :doc:`fix ave/correlate <fix_ave_correlate>`,
 :doc:`variable <variable>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

@@ -1,6 +1,6 @@
 /* -*- c++ -*- -------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -32,7 +32,7 @@ class VerletSplit : public Verlet {
   void setup(int);
   void setup_minimal(int);
   void run(int);
-  bigint memory_usage();
+  double memory_usage();
 
  private:
   int master;                        // 1 if an Rspace proc, 0 if Kspace

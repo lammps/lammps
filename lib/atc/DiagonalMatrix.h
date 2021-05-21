@@ -205,7 +205,7 @@ DiagonalMatrix<T> operator-(const DiagonalMatrix<T> &A, const DiagonalMatrix<T> 
 //-----------------------------------------------------------------------------
 template<typename T>
 DiagonalMatrix<T>::DiagonalMatrix(INDEX rows, bool zero)
- : _data(NULL)
+ : _data(nullptr)
 {
   reset(rows, zero);
 }
@@ -214,7 +214,7 @@ DiagonalMatrix<T>::DiagonalMatrix(INDEX rows, bool zero)
 //-----------------------------------------------------------------------------
 template<typename T>
 DiagonalMatrix<T>::DiagonalMatrix(const DiagonalMatrix<T>& c)
- : Matrix<T>(), _data(NULL)
+ : Matrix<T>(), _data(nullptr)
 {
   reset(c);
 }
@@ -223,7 +223,7 @@ DiagonalMatrix<T>::DiagonalMatrix(const DiagonalMatrix<T>& c)
 //-----------------------------------------------------------------------------
 template<typename T>
 DiagonalMatrix<T>::DiagonalMatrix(const Vector<T>& v)
- : Matrix<T>(), _data(NULL)
+ : Matrix<T>(), _data(nullptr)
 {
   reset(v);
 }

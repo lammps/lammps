@@ -11,7 +11,7 @@
  *
  *      $RCSfile: molfile_plugin.h,v $
  *      $Author: johns $       $Locker:  $             $State: Exp $
- *      $Revision: 1.108 $       $Date: 2016/02/26 03:17:01 $
+ *      $Revision: 1.112 $       $Date: 2019/10/17 06:12:24 $
  *
  ***************************************************************************/
 
@@ -111,7 +111,7 @@ typedef struct {
   char resname[8];    /**< required residue name string          */
   int resid;          /**< required integer residue ID           */
   char segid[8];      /**< required segment name string, or ""   */
-#if 0 && vmdplugin_ABIVERSION > 17
+#if 0 && vmdplugin_ABIVERSION > 10000
   /* The new PDB file formats allows for much larger structures, */
   /* which can therefore require longer chain ID strings.  The   */
   /* new PDBx/mmCIF file formats do not have length limits on    */
@@ -187,8 +187,53 @@ typedef struct molfile_timestep_metadata {
   int has_velocities;                  /**< if timesteps have velocities     */
 } molfile_timestep_metadata_t;
 
+
 /*
- * Per-timestep atom coordinates and periodic cell information
+ *
+ * Per-timestep atom coordinates, velocities, forces, energies,
+ * and periodic cell information
+ *
+ */
+
+#if 0
+/**
+ * Periodically stored energies of various kinds
+ */
+typedef struct {
+  int energyflags;         // XXX indicate use and semantics of data fields
+
+  double total_energy;     // XXX these copied from DESRES_READ_TIMESTEP2 case
+  double potential_energy;
+  double kinetic_energy;
+  double extended_energy;
+  double force_energy;
+  double total_pressure;
+
+  // Alchemical free energy methods need to store individual energy samples.
+  // We don't really want pre-averaged quantities, they lead to problems later.
+  double lambda;       // data gen sim parm: + aux scheduling + soft core parm
+  double temperature;  // temp set by thermostat
+  // either we use deltaU, or we store U and Uprime...
+  double deltaU;       // Ulambda - Ulambdaprime
+  double Ulambda;      // U for lambda
+  double Ulambdaprime; // U for lambdaprime
+
+  // IDWS methods
+  // XXX both values of lambdaprime and required de-interleaving information
+
+  // Replica exchange methods
+  // XXX rectangle sample params?
+
+  // REST2 method
+  // XXX
+
+} molfile_energies_t;
+#endif
+
+
+/**
+ * Per-timestep atom coordinates, velocities, time, energies
+ * and periodic cell info
  */
 typedef struct {
   float *coords;        /**< coordinates of all atoms, arranged xyzxyzxyz   */
@@ -662,7 +707,7 @@ typedef struct {
                     int **bondtype, int *nbondtypes, char ***bondtypename);
 
   /**
-   * XXX this function will be augmented and possibly superseded by a
+   * XXX this function will be augmented and possibly superceded by a
    *     new QM-capable version named read_timestep(), when finished.
    *
    * Read the next timestep from the file.  Return MOLFILE_SUCCESS, or
@@ -840,6 +885,29 @@ typedef struct {
 
 
   /**
+   * Query the molfile plugin to determine whether or not memory
+   * allocations used for atomic coordinates and PBC unit cell information
+   * need to be aligned to a particular virtual memory or filesystem
+   * page size boundary to facilitate kernel-bypass unbuffered I/O,
+   * e.g., as used by jsplugin.  This API should be called prior to the
+   * first call to read a timestep.  The required page alignment size
+   * (in bytes) is returned to the caller.  If this API has not been
+   * called, then the molfile plugin should revert to standard
+   * kernel-buffered I/O and suffer the associated performance loss.
+   * The caller can be assured that the plugin will not request any
+   * page alignment size that is greater than the value of
+   * MOLFILE_DIRECTIO_MAX_BLOCK_SIZE, both as a runtime sanity check,
+   * and to ensure that a caller that is unable to perform the max
+   * aligned allocation doesn't call the API in the first place.
+   * If a page-aligned allocation is not required for the file being read,
+   * the plugin will return an alignment size of 1.
+   */
+#if vmdplugin_ABIVERSION > 17
+  int (* read_timestep_pagealign_size)(void *, int *pagealignsize);
+#endif
+
+
+  /**
    * Read the next timestep from the file.  Return MOLFILE_SUCCESS, or
    * MOLFILE_EOF on EOF.  If the molfile_timestep_t or molfile_qm_metadata_t
    * arguments are NULL, then the coordinate or qm data should be skipped.
@@ -861,6 +929,25 @@ typedef struct {
 
   int (* read_timestep_metadata)(void *, molfile_timestep_metadata_t *);
   int (* read_qm_timestep_metadata)(void *, molfile_qm_timestep_metadata_t *);
+
+
+#if defined(EXPERIMENTAL_DIRECTIO_APIS)
+  /**
+    * Calculate file offsets and I/O lengths for performing
+    * kernel-bypass direct I/O or using GPU-Direct Storage APIs,
+    * thereby enabling peak I/O rates to be achieved for analysis
+    * worksloads like clustering of trajectories.
+    */
+  int (* calc_fileoffsets_timestep)(void *,
+                                    molfile_ssize_t frameindex,
+                                    int firstatom,
+                                    int lastatom,
+                                    int *firstatom,
+                                    int *pageoffset,
+                                    molfile_ssize_t *startoffset,
+                                    molfile_ssize_t *readlen);
+#endif
+
 
 #if defined(DESRES_READ_TIMESTEP2)
   /**

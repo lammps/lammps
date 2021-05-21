@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,6 +15,8 @@
 #define LMP_ONE_MOLECULE_H
 
 #include "pointers.h"
+
+#include <vector>
 
 namespace LAMMPS_NS {
 
@@ -94,7 +96,7 @@ class Molecule : protected Pointers {
   // fragment info
 
   int **fragmentmask;       // nfragments by natoms
-  char **fragmentnames;
+  std::vector<std::string> fragmentnames;
 
   double center[3];         // geometric center of molecule
   double masstotal;         // total mass of molecule
@@ -159,11 +161,9 @@ class Molecule : protected Pointers {
   void allocate();
   void deallocate();
 
-  void open(char *);
   void readline(char *);
-  void parse_keyword(int, char *, char *);
-  void skip_lines(int, char *);
-  int parse(char *, char **, int);
+  std::string parse_keyword(int, char *);
+  void skip_lines(int, char *, const std::string &);
 
   // void print();
 };
@@ -240,6 +240,10 @@ E: Molecule file has impropers but no nimpropers setting
 
 Self-explanatory.
 
+E: Molecule file has fragments but no nfragments setting
+
+Self-explanatory.
+
 E: Molecule file shake flags not before shake atoms
 
 The order of the two sections is important.
@@ -273,6 +277,10 @@ E: Molecule file has no Body Integers section
 Self-explanatory.
 
 E: Molecule file has no Body Doubles section
+
+Self-explanatory.
+
+E: Molecule file has no Fragments section
 
 Self-explanatory.
 

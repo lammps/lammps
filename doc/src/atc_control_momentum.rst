@@ -15,7 +15,7 @@ Syntax
    fix_modify AtC control momentum glc_velocity
    fix_modify AtC control momentum hoover
    fix_modify AtC control momentum flux [faceset face_set_id, interpolate]
-   
+
 * AtC fixID = ID of :doc:`fix atc <fix_atc>` instance
 * control = name of the AtC sub-command
 * physics_type = *thermal* or *momentum*
@@ -52,7 +52,7 @@ the finite element temperature.  *flux* is a similar mode, but rather
 adds energy to the atoms based on conservation of energy.
 
 *correction_max_iterations* sets the maximum number of iterations to
-compute the 2nd order in time correction term for lambda with the
+compute the second order in time correction term for lambda with the
 fractional step method. The method uses the same tolerance as the
 controller's matrix solver.
 

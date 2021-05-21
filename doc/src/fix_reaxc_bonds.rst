@@ -1,10 +1,10 @@
 .. index:: fix reax/c/bonds
+.. index:: fix reax/c/bonds/kk
 
 fix reax/c/bonds command
 ========================
 
-fix reax/c/bonds/kk command
-===========================
+Accelerator Variants: *reax/c/bonds/kk*
 
 Syntax
 """"""
@@ -58,7 +58,8 @@ version, but will also take longer to write.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global or per-atom quantities are stored
@@ -68,24 +69,7 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 
 ----------
 
-Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
-functionally the same as the corresponding style without the suffix.
-They have been optimized to run faster, depending on your available
-hardware, as discussed in :doc:`Speed <Speed>`
-of the manual.  The accelerated styles take the same arguments and
-should produce the same results, except for round-off and precision
-issues.
-
-These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
-USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` doc page for more info.
-
-You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
-:doc:`suffix <suffix>` command in your input script.
-
-See :doc:`Speed <Speed>` of the manual for
-more instructions on how to use the accelerated styles effectively.
+.. include:: accel_styles.rst
 
 ----------
 
@@ -105,4 +89,7 @@ Related commands
 
 :doc:`pair_style reax/c <pair_reaxc>`, :doc:`fix reax/c/species <fix_reaxc_species>`
 
-**Default:** none
+Default
+"""""""
+
+none

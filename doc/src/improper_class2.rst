@@ -1,13 +1,11 @@
 .. index:: improper_style class2
+.. index:: improper_style class2/omp
+.. index:: improper_style class2/kk
 
 improper_style class2 command
 =============================
 
-improper_style class2/omp command
-=================================
-
-improper_style class2/kk command
-================================
+Accelerator Variants: *class2/omp*, *class2/kk*
 
 Syntax
 """"""
@@ -48,7 +46,7 @@ the :doc:`read_data <read_data>` command) are ordered I,J,K,L.
 the plane of J,K,L, and the bond JK lies in both planes.  Similarly for
 :math:`\chi_{kjli}` and :math:`\chi_{ljik}`.
 Note that atom J appears in the common bonds (JI, JK, JL) of all 3 X
-terms.  Thus J (the 2nd atom in the quadruplet) is the atom of
+terms.  Thus J (the second atom in the quadruplet) is the atom of
 symmetry in the 3 :math:`\chi` angles.
 
 The subscripts on the various :math:`\theta`\ s refer to different
@@ -56,7 +54,7 @@ combinations of 3 atoms (I,J,K,L) used to form a particular angle.
 E.g. :math:`\theta_{ijl}` is the angle formed by atoms I,J,L with J
 in the middle.  :math:`\theta_1`, :math:`\theta_2`, :math:`\theta_3`
 are the equilibrium positions of those angles.  Again,
-atom J (the 2nd atom in the quadruplet) is the atom of symmetry in the
+atom J (the second atom in the quadruplet) is the atom of symmetry in the
 theta angles, since it is always the center atom.
 
 Since atom J is the atom of symmetry, normally the bonds J-I, J-K, J-L
@@ -74,49 +72,35 @@ commands.
 
 These are the 2 coefficients for the :math:`E_i` formula:
 
-* :math:`K` (energy/radian\^2)
+* :math:`K` (energy)
 * :math:`\chi_0` (degrees)
 
-:math:`\chi_0` is specified in degrees, but LAMMPS converts it to radians
-internally; hence the units of K are in energy/radian\^2.
+:math:`\chi_0` is specified in degrees, but LAMMPS converts it to
+radians internally; hence :math:`K` is effectively energy per
+radian\^2.
 
-For the :math:`E_{aa}` formula, each line in a
-:doc:`improper_coeff <improper_coeff>` command in the input script lists
-7 coefficients, the first of which is *aa* to indicate they are
-AngleAngle coefficients.  In a data file, these coefficients should be
-listed under a *AngleAngle Coeffs* heading and you must leave out the
-*aa*, i.e. only list 6 coefficients after the improper type.
+For the :math:`E_{aa}` formula, each line in a :doc:`improper_coeff
+<improper_coeff>` command in the input script lists 7 coefficients,
+the first of which is *aa* to indicate they are AngleAngle
+coefficients.  In a data file, these coefficients should be listed
+under a *AngleAngle Coeffs* heading and you must leave out the *aa*,
+i.e. only list 6 coefficients after the improper type.
 
 * *aa*
-* :math:`M_1` (energy/distance)
-* :math:`M_2` (energy/distance)
-* :math:`M_3` (energy/distance)
+* :math:`M_1` (energy)
+* :math:`M_2` (energy)
+* :math:`M_3` (energy)
 * :math:`\theta_1` (degrees)
 * :math:`\theta_2` (degrees)
 * :math:`\theta_3` (degrees)
 
-The theta values are specified in degrees, but LAMMPS converts them to
-radians internally; hence the units of M are in energy/radian\^2.
+The :math:`\theta` values are specified in degrees, but LAMMPS
+converts them to radians internally; hence the hence the various
+:math:`M` are effectively energy per radian\^2.
 
 ----------
 
-Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
-functionally the same as the corresponding style without the suffix.
-They have been optimized to run faster, depending on your available
-hardware, as discussed on the :doc:`Speed packages <Speed_packages>` doc
-page.  The accelerated styles take the same arguments and should
-produce the same results, except for round-off and precision issues.
-
-These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
-USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` doc page for more info.
-
-You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
-:doc:`suffix <suffix>` command in your input script.
-
-See the :doc:`Speed packages <Speed_packages>` doc page for more
-instructions on how to use the accelerated styles effectively.
+.. include:: accel_styles.rst
 
 ----------
 
@@ -132,7 +116,10 @@ Related commands
 
 :doc:`improper_coeff <improper_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

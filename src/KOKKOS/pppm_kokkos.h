@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -31,7 +31,7 @@ KSpaceStyle(pppm/kk/host,PPPMKokkos<LMPHostType>)
 
 // fix up FFT defines for KOKKOS with CUDA
 
-#if defined(KOKKOS_ENABLE_CUDA)
+#ifdef KOKKOS_ENABLE_CUDA
 # if defined(FFT_FFTW)
 #  undef FFT_FFTW
 # endif
@@ -311,6 +311,7 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
   int nx,ny,nz;
   typename AT::t_int_1d_um d_list_index;
   typename FFT_AT::t_FFT_SCALAR_1d_um d_buf;
+  int unpack_offset;
 
   DAT::tdual_int_scalar k_flag;
 
@@ -353,10 +354,14 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
   //double **acons;
   typename Kokkos::DualView<F_FLOAT[8][7],Kokkos::LayoutRight,DeviceType>::t_host acons;
 
+  // FFTs and grid communication
+
   FFT3dKokkos<DeviceType> *fft1,*fft2;
   RemapKokkos<DeviceType> *remap;
-  GridCommKokkos<DeviceType> *cg;
-  GridCommKokkos<DeviceType> *cg_peratom;
+  GridCommKokkos<DeviceType> *gc;
+
+  FFT_DAT::tdual_FFT_SCALAR_1d k_gc_buf1,k_gc_buf2;
+  int ngc_buf1,ngc_buf2,npergrid;
 
   //int **part2grid;             // storage for particle -> grid mapping
   typename AT::t_int_1d_3 d_part2grid;
@@ -403,10 +408,10 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
 
   // grid communication
 
-  void pack_forward_kspace_kokkos(int, Kokkos::DualView<FFT_SCALAR*,Kokkos::LayoutRight,LMPDeviceType> &, int, DAT::tdual_int_2d &, int);
-  void unpack_forward_kspace_kokkos(int, Kokkos::DualView<FFT_SCALAR*,Kokkos::LayoutRight,LMPDeviceType> &, int, DAT::tdual_int_2d &, int);
-  void pack_reverse_kspace_kokkos(int, Kokkos::DualView<FFT_SCALAR*,Kokkos::LayoutRight,LMPDeviceType> &, int, DAT::tdual_int_2d &, int);
-  void unpack_reverse_kspace_kokkos(int, Kokkos::DualView<FFT_SCALAR*,Kokkos::LayoutRight,LMPDeviceType> &, int, DAT::tdual_int_2d &, int);
+  void pack_forward_grid_kokkos(int, FFT_DAT::tdual_FFT_SCALAR_1d &, int, DAT::tdual_int_2d &, int);
+  void unpack_forward_grid_kokkos(int, FFT_DAT::tdual_FFT_SCALAR_1d &, int, int, DAT::tdual_int_2d &, int);
+  void pack_reverse_grid_kokkos(int, FFT_DAT::tdual_FFT_SCALAR_1d &, int, DAT::tdual_int_2d &, int);
+  void unpack_reverse_grid_kokkos(int, FFT_DAT::tdual_FFT_SCALAR_1d &, int, int, DAT::tdual_int_2d &, int);
 
   // triclinic
 

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -35,7 +35,7 @@ class Pair : protected Pointers {
   static int instance_total;     // # of Pair classes ever instantiated
 
   double eng_vdwl,eng_coul;      // accumulated energies
-  double virial[6];              // accumulated virial
+  double virial[6];              // accumulated virial: xx,yy,zz,xy,xz,yz
   double *eatom,**vatom;         // accumulated per-atom energy/virial
   double **cvatom;               // accumulated per-atom centroid virial
 
@@ -53,6 +53,7 @@ class Pair : protected Pointers {
   int respa_enable;              // 1 if inner/middle/outer rRESPA routines
   int one_coeff;                 // 1 if allows only one coeff * * call
   int manybody_flag;             // 1 if a manybody potential
+  int unit_convert_flag;         // value != 0 indicates support for unit conversion.
   int no_virial_fdotr_compute;   // 1 if does not invoke virial_fdotr_compute()
   int writedata;                 // 1 if writes coeffs to data file
   int ghostneigh;                // 1 if pair style needs neighbors of ghosts
@@ -67,10 +68,10 @@ class Pair : protected Pointers {
   int spinflag;                  // 1 if compatible with spin solver
   int reinitflag;                // 1 if compatible with fix adapt and alike
 
-  int centroidstressflag;        // compatibility with centroid atomic stress
-                                 // 1 if same as two-body atomic stress
-                                 // 2 if implemented and different from two-body
-                                 // 4 if not compatible/implemented
+  int centroidstressflag;        // centroid stress compared to two-body stress
+                                 // CENTROID_SAME = same as two-body stress
+                                 // CENTROID_AVAIL = different and implemented
+                                 // CENTROID_NOTAVAIL = different, not yet implemented
 
   int tail_flag;                 // pair_modify flag for LJ tail correction
   double etail,ptail;            // energy/pressure tail corrections
@@ -104,6 +105,7 @@ class Pair : protected Pointers {
   int allocated;                 // 0/1 = whether arrays are allocated
                                  //       public so external driver can check
   int compute_flag;              // 0 if skip compute()
+  int mixed_flag;                // 1 if all itype != jtype coeffs are from mixing
 
   enum{GEOMETRIC,ARITHMETIC,SIXTHPOWER};   // mixing options
 
@@ -113,6 +115,7 @@ class Pair : protected Pointers {
 
   ExecutionSpace execution_space;
   unsigned int datamask_read,datamask_modify;
+  int kokkosable; // 1 if Kokkos pair
 
   Pair(class LAMMPS *);
   virtual ~Pair();
@@ -195,7 +198,7 @@ class Pair : protected Pointers {
 
   // specific child-class methods for certain Pair styles
 
-  virtual void *extract(const char *, int &) {return NULL;}
+  virtual void *extract(const char *, int &) {return nullptr;}
   virtual void swap_eam(double *, double **) {}
   virtual void reset_dt() {}
   virtual void min_xf_pointers(int, double **, double **) {}
@@ -213,17 +216,27 @@ class Pair : protected Pointers {
   virtual void del_tally_callback(class Compute *);
 
  protected:
-  int instance_me;        // which Pair class instantiation I am
+  int instance_me;              // which Pair class instantiation I am
+  int special_lj[4];            // copied from force->special_lj for Kokkos
+  int suffix_flag;              // suffix compatibility flag
 
-  int special_lj[4];           // copied from force->special_lj for Kokkos
+                                // pair_modify settings
+  int offset_flag,mix_flag;     // flags for offset and mixing
+  double tabinner;              // inner cutoff for Coulomb table
+  double tabinner_disp;         // inner cutoff for dispersion table
 
-  int suffix_flag;             // suffix compatibility flag
-
-                                       // pair_modify settings
-  int offset_flag,mix_flag;            // flags for offset and mixing
-  double tabinner;                     // inner cutoff for Coulomb table
-  double tabinner_disp;                 // inner cutoff for dispersion table
-
+ protected:
+  // for mapping of elements to atom types and parameters
+  // mostly used for manybody potentials
+  int nelements;                // # of unique elements
+  char **elements;              // names of unique elements
+  int *elem1param;              // mapping from elements to parameters
+  int **elem2param;             // mapping from element pairs to parameters
+  int ***elem3param;            // mapping from element triplets to parameters
+  int *map;                     // mapping from atom types to elements
+  int nparams;                  // # of stored parameter sets
+  int maxparam;                 // max # of parameter sets
+  void map_element2type(int, char**, bool update_setflag=true);
 
  public:
   // custom data type for accessing Coulomb tables
@@ -257,17 +270,6 @@ class Pair : protected Pointers {
   void v_tally_tensor(int, int, int, int,
                       double, double, double, double, double, double);
   void virial_fdotr_compute();
-
-  // union data struct for packing 32-bit and 64-bit ints into double bufs
-  // see atom_vec.h for documentation
-
-  union ubuf {
-    double d;
-    int64_t i;
-    ubuf(double arg) : d(arg) {}
-    ubuf(int64_t arg) : i(arg) {}
-    ubuf(int arg) : i(arg) {}
-  };
 
   inline int sbmask(int j) const {
     return j >> SBBITS & 3;

@@ -57,12 +57,12 @@
 // league_size) is not limited by physical constraints. Its a pure logical
 // number.
 
-typedef Kokkos::TeamPolicy<> team_policy;
-typedef team_policy::member_type team_member;
+using team_policy = Kokkos::TeamPolicy<>;
+using team_member = team_policy::member_type;
 
 // Define a functor which can be launched using the TeamPolicy
 struct hello_world {
-  typedef int value_type;  // Specify value type for reduction target, sum
+  using value_type = int;  // Specify value type for reduction target, sum
 
   // This is a reduction operator which now takes as first argument the
   // TeamPolicy member_type. Every member of the team contributes to the

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
-   Lammps - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -54,7 +54,7 @@ manifold* LAMMPS_NS::user_manifold::create_manifold(const char *mname,
                                                     LAMMPS *lmp,
                                                     int narg, char **arg )
 {
-  manifold *man = NULL;
+  manifold *man = nullptr;
   make_manifold_if<manifold_cylinder>       ( &man, mname, lmp, narg, arg );
   make_manifold_if<manifold_cylinder_dent>  ( &man, mname, lmp, narg, arg );
   make_manifold_if<manifold_dumbbell>       ( &man, mname, lmp, narg, arg );

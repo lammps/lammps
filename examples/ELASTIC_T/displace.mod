@@ -100,22 +100,12 @@ run ${nrun}
 
 # Obtain new stress tensor
  
-variable tmp equal pe
-variable e1 equal ${tmp}
-variable tmp equal press
-variable p1 equal ${tmp}
-variable tmp equal pxx
-variable pxx1 equal ${tmp}
-variable tmp equal pyy
-variable pyy1 equal ${tmp}
-variable tmp equal pzz
-variable pzz1 equal ${tmp}
-variable tmp equal pxy
-variable pxy1 equal ${tmp}
-variable tmp equal pxz
-variable pxz1 equal ${tmp}
-variable tmp equal pyz
-variable pyz1 equal ${tmp}
+variable pxx1 equal f_avp[1]
+variable pyy1 equal f_avp[2]
+variable pzz1 equal f_avp[3]
+variable pxy1 equal f_avp[4]
+variable pxz1 equal f_avp[5]
+variable pyz1 equal f_avp[6]
 
 # Compute elastic constant from pressure tensor
 

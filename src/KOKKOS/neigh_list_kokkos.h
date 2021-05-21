@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,7 +15,8 @@
 #define LMP_NEIGH_LIST_KOKKOS_H
 
 #include "pointers.h"
-#include "neigh_list.h"
+
+#include "neigh_list.h"         // IWYU pragma: export
 #include "kokkos_type.h"
 
 namespace LAMMPS_NS {
@@ -31,7 +32,7 @@ class AtomNeighbors
   num_neighs(_num_neighs), _firstneigh(firstneigh), _stride(stride) {};
   KOKKOS_INLINE_FUNCTION
   int& operator()(const int &i) const {
-    return _firstneigh[i*_stride];
+    return _firstneigh[(bigint) i*_stride];
   }
 
  private:
@@ -51,7 +52,7 @@ class AtomNeighborsConst
   _firstneigh(firstneigh), num_neighs(_num_neighs), _stride(stride) {};
   KOKKOS_INLINE_FUNCTION
   const int& operator()(const int &i) const {
-    return _firstneigh[i*_stride];
+    return _firstneigh[(bigint) i*_stride];
   }
 
  private:
@@ -59,7 +60,7 @@ class AtomNeighborsConst
   const int _stride;
 };
 
-template<class Device>
+template<class DeviceType>
 class NeighListKokkos: public NeighList {
   int _stride;
 
@@ -67,10 +68,10 @@ public:
   int maxneighs;
 
   void grow(int nmax);
-  typename ArrayTypes<Device>::t_neighbors_2d d_neighbors;
-  typename DAT::tdual_int_1d k_ilist;   // local indices of I atoms
-  typename ArrayTypes<Device>::t_int_1d d_ilist;
-  typename ArrayTypes<Device>::t_int_1d d_numneigh; // # of J neighs for each I
+  typename ArrayTypes<DeviceType>::t_neighbors_2d d_neighbors;
+  DAT::tdual_int_1d k_ilist;   // local indices of I atoms
+  typename ArrayTypes<DeviceType>::t_int_1d d_ilist;
+  typename ArrayTypes<DeviceType>::t_int_1d d_numneigh;
 
   NeighListKokkos(class LAMMPS *lmp);
 
@@ -82,8 +83,8 @@ public:
 
   KOKKOS_INLINE_FUNCTION
   static AtomNeighborsConst static_neighbors_const(int i,
-           typename ArrayTypes<Device>::t_neighbors_2d_const const& d_neighbors,
-           typename ArrayTypes<Device>::t_int_1d_const const& d_numneigh) {
+           typename ArrayTypes<DeviceType>::t_neighbors_2d_const const& d_neighbors,
+           typename ArrayTypes<DeviceType>::t_int_1d_const const& d_numneigh) {
     return AtomNeighborsConst(&d_neighbors(i,0),d_numneigh(i),
                               &d_neighbors(i,1)-&d_neighbors(i,0));
   }

@@ -55,7 +55,7 @@ void test_64bit() {
     Kokkos::parallel_reduce(
         Kokkos::RangePolicy<typename Device::execution_space,
                             Kokkos::IndexType<int64_t>>(0, N),
-        KOKKOS_LAMBDA(const int64_t& i, int64_t& lsum) { lsum += 1; }, sum);
+        KOKKOS_LAMBDA(const int64_t& /*i*/, int64_t& lsum) { lsum += 1; }, sum);
     ASSERT_EQ(N, sum);
   }
   {

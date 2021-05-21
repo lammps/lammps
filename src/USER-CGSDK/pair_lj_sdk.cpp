@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,7 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_lj_sdk.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"
@@ -26,7 +26,7 @@
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 #define LMP_NEED_SDK_FIND_LJ_TYPE 1
 #include "lj_sdk_common.h"
@@ -234,7 +234,7 @@ void PairLJSDK::settings(int narg, char **arg)
 {
   if (narg != 1) error->all(FLERR,"Illegal pair_style command");
 
-  cut_global = force->numeric(FLERR,arg[0]);
+  cut_global = utils::numeric(FLERR,arg[0],false,lmp);
 
   // reset cutoffs that have been explicitly set
 
@@ -256,18 +256,18 @@ void PairLJSDK::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
   int lj_type_one = find_lj_type(arg[2],lj_type_list);
   if (lj_type_one == LJ_NOT_SET)
     error->all(FLERR,"Cannot parse LJ type flag.");
 
-  double epsilon_one = force->numeric(FLERR,arg[3]);
-  double sigma_one = force->numeric(FLERR,arg[4]);
+  double epsilon_one = utils::numeric(FLERR,arg[3],false,lmp);
+  double sigma_one = utils::numeric(FLERR,arg[4],false,lmp);
 
   double cut_one = cut_global;
-  if (narg == 6) cut_one = force->numeric(FLERR,arg[5]);
+  if (narg == 6) cut_one = utils::numeric(FLERR,arg[5],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -374,14 +374,14 @@ void PairLJSDK::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          utils::sfread(FLERR,&lj_type[i][j],sizeof(int),1,fp,NULL,error);
-          utils::sfread(FLERR,&epsilon[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&sigma[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&lj_type[i][j],sizeof(int),1,fp,nullptr,error);
+          utils::sfread(FLERR,&epsilon[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&sigma[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,nullptr,error);
         }
         MPI_Bcast(&lj_type[i][j],1,MPI_INT,0,world);
         MPI_Bcast(&epsilon[i][j],1,MPI_DOUBLE,0,world);
@@ -411,10 +411,10 @@ void PairLJSDK::read_restart_settings(FILE *fp)
 {
   int me = comm->me;
   if (me == 0) {
-    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&tail_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&tail_flag,sizeof(int),1,fp,nullptr,error);
   }
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
@@ -484,7 +484,7 @@ void *PairLJSDK::extract(const char *str, int &dim)
   if (strcmp(str,"lj4") == 0) return (void *) lj4;
   if (strcmp(str,"rminsq") == 0) return (void *) rminsq;
   if (strcmp(str,"emin") == 0) return (void *) emin;
-  return NULL;
+  return nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -495,9 +495,9 @@ double PairLJSDK::memory_usage()
   int n = atom->ntypes;
 
   // setflag/lj_type
-  bytes += 2 * (n+1)*(n+1)*sizeof(int);
+  bytes += (double)2 * (n+1)*(n+1)*sizeof(int);
   // cut/cutsq/epsilon/sigma/offset/lj1/lj2/lj3/lj4/rminsq/emin
-  bytes += 11 * (n+1)*(n+1)*sizeof(double);
+  bytes += (double)11 * (n+1)*(n+1)*sizeof(double);
 
   return bytes;
 }

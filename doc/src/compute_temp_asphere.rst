@@ -123,7 +123,8 @@ rotational degrees of freedom.
 
 ----------
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global scalar (the temperature) and a global
 vector of length 6 (KE tensor), which can be accessed by indices 1-6.
@@ -156,4 +157,7 @@ Related commands
 
 :doc:`compute temp <compute_temp>`
 
-**Default:** none
+Default
+"""""""
+
+none

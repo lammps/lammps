@@ -59,13 +59,13 @@ TEST(TEST_CATEGORY, view_remap) {
   std::conditional<std::is_same<TEST_EXECSPACE, Kokkos::Cuda>::value, \
                    Kokkos::CudaHostPinnedSpace, TEST_EXECSPACE>::type
 #else
-#ifdef KOKKOS_ENABLE_ROCM
-#define EXECSPACE                                                      \
-  std::conditional<                                                    \
-      std::is_same<TEST_EXECSPACE, Kokkos::Experimental::ROCm>::value, \
-      Kokkos::Experimental::ROCmHostPinnedSpace, TEST_EXECSPACE>::type
+#ifdef KOKKOS_ENABLE_HIP
+#define EXECSPACE                                                     \
+  std::conditional<                                                   \
+      std::is_same<TEST_EXECSPACE, Kokkos::Experimental::HIP>::value, \
+      Kokkos::Experimental::HIPHostPinnedSpace, TEST_EXECSPACE>::type
 #else
-#if defined(KOKKOS_ENABLE_OPENMPTARGET)
+#if defined(KOKKOS_ENABLE_OPENMPTARGET) || defined(KOKKOS_ENABLE_SYCL)
 #define EXECSPACE Kokkos::HostSpace
 #else
 #define EXECSPACE TEST_EXECSPACE
@@ -73,14 +73,14 @@ TEST(TEST_CATEGORY, view_remap) {
 #endif
 #endif
 
-  typedef Kokkos::View<double * [N1][N2][N3], Kokkos::LayoutRight, EXECSPACE>
-      output_type;
+  using output_type =
+      Kokkos::View<double * [N1][N2][N3], Kokkos::LayoutRight, EXECSPACE>;
 
-  typedef Kokkos::View<int* * [N2][N3], Kokkos::LayoutLeft, EXECSPACE>
-      input_type;
+  using input_type =
+      Kokkos::View<int* * [N2][N3], Kokkos::LayoutLeft, EXECSPACE>;
 
-  typedef Kokkos::View<int * [N0][N2][N3], Kokkos::LayoutLeft, EXECSPACE>
-      diff_type;
+  using diff_type =
+      Kokkos::View<int * [N0][N2][N3], Kokkos::LayoutLeft, EXECSPACE>;
 
   output_type output("output", N0);
   input_type input("input", N0, N1);
@@ -98,6 +98,8 @@ TEST(TEST_CATEGORY, view_remap) {
 
   Kokkos::fence();
   // Kokkos::deep_copy( diff, input ); // Throw with incompatible shape.
+  // FIXME_SYCL requires MDRange policy
+#ifndef KOKKOS_ENABLE_SYCL
   Kokkos::deep_copy(output, input);
   Kokkos::fence();
 
@@ -110,6 +112,7 @@ TEST(TEST_CATEGORY, view_remap) {
           ++value;
           ASSERT_EQ(value, ((int)output(i0, i1, i2, i3)));
         }
+#endif
 }
 
 TEST(TEST_CATEGORY, view_mirror_nonconst) {
@@ -204,13 +207,13 @@ TEST(TEST_CATEGORY, anonymous_space) { test_anonymous_space(); }
 template <class ExecSpace>
 struct TestViewOverloadResolution {
   // Overload based on value_type and rank
-  static int foo(Kokkos::View<const double**, ExecSpace> a) { return 1; }
-  static int foo(Kokkos::View<const int**, ExecSpace> a) { return 2; }
-  static int foo(Kokkos::View<const double***, ExecSpace> a) { return 3; }
+  static int foo(Kokkos::View<const double**, ExecSpace> /*a*/) { return 1; }
+  static int foo(Kokkos::View<const int**, ExecSpace> /*a*/) { return 2; }
+  static int foo(Kokkos::View<const double***, ExecSpace> /*a*/) { return 3; }
 
   // Overload based on compile time dimensions
-  static int bar(Kokkos::View<double * [3], ExecSpace> a) { return 4; }
-  static int bar(Kokkos::View<double * [4], ExecSpace> a) { return 5; }
+  static int bar(Kokkos::View<double * [3], ExecSpace> /*a*/) { return 4; }
+  static int bar(Kokkos::View<double * [4], ExecSpace> /*a*/) { return 5; }
 
   static void test_function_overload() {
     Kokkos::View<double**, typename ExecSpace::execution_space::array_layout,
@@ -240,3 +243,5 @@ TEST(TEST_CATEGORY, view_overload_resolution) {
   TestViewOverloadResolution<TEST_EXECSPACE>::test_function_overload();
 }
 }  // namespace Test
+
+#include <TestViewIsAssignable.hpp>

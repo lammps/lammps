@@ -12,6 +12,11 @@
 
 #include <iostream>
 
+#if (__cplusplus >= 201103L)
+#include <map>
+#include <functional>
+#endif
+
 #include "colvarmodule.h"
 #include "colvarvalue.h"
 #include "colvarparse.h"
@@ -114,6 +119,7 @@ public:
 
   /// List of biases that depend on this colvar
   std::vector<colvarbias *> biases;
+
 protected:
 
 
@@ -602,6 +608,17 @@ public:
   class cartesian;
   class orientation;
 
+  // components that do not handle any atoms directly
+  class map_total;
+
+  /// getter of the global cvc map
+#if (__cplusplus >= 201103L)
+  /// A global mapping of cvc names to the cvc constructors
+  static const std::map<std::string, std::function<colvar::cvc* (const std::string& subcv_conf)>>& get_global_cvc_map() {
+      return global_cvc_map;
+  }
+#endif
+
 protected:
 
   /// \brief Array of \link colvar::cvc \endlink objects
@@ -634,6 +651,11 @@ protected:
 
   /// Unused value that is written to when a variable simplifies out of a Lepton expression
   double dev_null;
+#endif
+
+#if (__cplusplus >= 201103L)
+  /// A global mapping of cvc names to the cvc constructors
+  static std::map<std::string, std::function<colvar::cvc* (const std::string& subcv_conf)>> global_cvc_map;
 #endif
 
 public:

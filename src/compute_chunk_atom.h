@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -39,6 +39,7 @@ class ComputeChunkAtom : public Compute {
   void init();
   void setup();
   void compute_peratom();
+  double compute_scalar();
   void set_arrays(int);
   double memory_usage();
 
@@ -95,7 +96,7 @@ class ComputeChunkAtom : public Compute {
   class FixStore *fixstore;
 
   class Fix *lockfix;         // ptr to FixAveChunk that is locking out setups
-                              // NULL if no lock currently in place
+                              // null pointer if no lock currently in place
   bigint lockstart,lockstop;  // timesteps for start and stop of locking
 
   bigint invoked_setup;    // last timestep setup_chunks and nchunk calculated

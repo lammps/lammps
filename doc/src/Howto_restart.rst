@@ -28,7 +28,7 @@ scripts are based on.  If that script had the line
 added to it, it would produce 2 binary restart files (tmp.restart.50
 and tmp.restart.100) as it ran.
 
-This script could be used to read the 1st restart file and re-run the
+This script could be used to read the first restart file and re-run the
 last 50 timesteps:
 
 .. code-block:: LAMMPS

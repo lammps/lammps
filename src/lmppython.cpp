@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "lmppython.h"
-#if LMP_PYTHON
+#if defined(LMP_PYTHON)
 #include "python_impl.h"
 #else
 #include "error.h"
@@ -26,7 +26,7 @@ Python::Python(LAMMPS *lmp) : Pointers(lmp)
 {
   // implementation of Python interface is only loaded on demand
   // and only if PYTHON package has been installed and compiled into binary
-  impl = NULL;
+  impl = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -46,7 +46,7 @@ PythonInterface::~PythonInterface()
 
 void Python::init()
 {
-#if LMP_PYTHON
+#if defined(LMP_PYTHON)
   if (!impl) impl = new PythonImpl(lmp);
 #else
   error->all(FLERR,"Python support missing! Compile with PYTHON package installed!");
@@ -55,7 +55,7 @@ void Python::init()
 
 /* ---------------------------------------------------------------------- */
 bool Python::is_enabled() const {
-#if LMP_PYTHON
+#if defined(LMP_PYTHON)
   return true;
 #else
   return false;
@@ -80,7 +80,7 @@ void Python::invoke_function(int ifunc, char *result)
 
 /* ------------------------------------------------------------------ */
 
-int Python::find(char *name)
+int Python::find(const char *name)
 {
   init();
   return impl->find(name);
@@ -88,7 +88,7 @@ int Python::find(char *name)
 
 /* ------------------------------------------------------------------ */
 
-int Python::variable_match(char *name, char *varname, int numeric)
+int Python::variable_match(const char *name, const char *varname, int numeric)
 {
   init();
   return impl->variable_match(name, varname, numeric);

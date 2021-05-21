@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -14,7 +14,7 @@
 #ifndef LMP_FIX_NH_H
 #define LMP_FIX_NH_H
 
-#include "fix.h"
+#include "fix.h"                // IWYU pragma: export
 
 namespace LAMMPS_NS {
 
@@ -70,6 +70,9 @@ class FixNH : public Fix {
   int *rfix;                       // indices of rigid fixes
   char *id_dilate;                 // group name to dilate
   class Irregular *irregular;      // for migrating atoms after box flips
+
+  double p_temp;                   // target temperature for barostat
+  int p_temp_flag;
 
   int nlevels_respa;
   double *step_respa;
@@ -226,6 +229,10 @@ E: Fix nvt/npt/nph damping parameters must be > 0.0
 
 Self-explanatory.
 
+E: Thermostat in fix nvt/npt/nph is incompatible with ptemp command
+
+Self-explanatory.
+
 E: Cannot use fix npt and fix deform on same component of stress tensor
 
 This would be changing the same box dimension twice.
@@ -237,6 +244,10 @@ Self-explanatory.
 E: Pressure ID for fix npt/nph does not exist
 
 Self-explanatory.
+
+E: Current temperature too close to zero, consider using ptemp setting
+
+The current temperature is close to zero and may cause numerical instability. The user may want to specify a different target temperature using the ptemp setting.
 
 E: Non-numeric pressure - simulation unstable
 

@@ -1,0 +1,54 @@
+## This script first uses fix qtb to equilibrate alpha quartz structure to an initial state with quantum nuclear correction and then simulate shock induced phase transition through the quantum thermal bath multi-scale shock technique
+variable                x_rep equal 2   #plot is made with x_rep = 8                                            #x-direction replication number
+variable                y_rep equal 1   #plot is made with y_rep = 5                                            #y-direction replication number
+variable                z_rep equal 4   #plot is made with z_rep = 15                                           #z-direction replication number
+variable                cut_off equal 10.0                                                                      #Cut-off distance for the Buckingham term (Angstrom in metal units)
+variable                pressure equal 1.03125                                                                  #Initial state pressure (bar in metal units)
+variable                temperature equal 300.0                                                                 #Initial state quantum temperature (K in metal units)
+variable                delta_t equal 1.0e-3                                                                    #MD timestep length (ps in metal units)
+variable                damp_qtb equal 1                                                                        #1/gamma where gamma is the friction coefficient in quantum thermal bath (ps in metal units)
+variable                v_msst equal 78.0                                                                       #Shock velocity (Angstrom/ps in metal units)
+variable                q_msst equal 40.0                                                                       #Box mass-like parameter in the MSST (mass^2/length^4, where mass=grams/mole and length=Angstrom in metal units)
+variable                tscale_msst equal 0.05                                                                  #Temperature reduction parameter in the MSST (unitless)
+variable                eta_qbmsst equal 1.0                                                                    #Coupling constant between the shock and the quantum thermal bath (unitless constant)
+
+
+## This part uses fix qtb to prepare alpha-quartz with quantum nuclear correction of the initial state
+include                 alpha_quartz_qtb.mod
+
+
+## This part demonstrates how to retart fix qbmsst during any stage of the shock simulation.
+## PPPM may break down when compression ratio becomes extremely large. One can always use this restart technique to resume the shock simulation.
+#Compression restart 1
+reset_timestep          0
+#Beta is the number of time steps between each update of the quantum bath temperature. Setting a larger beta can reduce thermal flactuations.
+fix                     shock all qbmsst z ${v_msst} q ${q_msst} tscale ${tscale_msst} damp ${damp_qtb} f_max 120 N_f 100 seed 35082 eta ${eta_qbmsst} beta 5 T_init ${temperature}
+variable                dhug equal f_shock[1]
+variable                dray equal f_shock[2]
+variable                lgr_vel equal f_shock[3]
+variable                lgr_pos equal f_shock[4]
+variable                T_qm equal f_shock[5]                                                                   #Temperature with quantum nuclear correction
+thermo_style            custom step v_T_qm press econserve vol lx ly lz pzz v_dhug v_dray v_lgr_vel v_lgr_pos
+thermo                  200
+timestep                ${delta_t}
+run                     1000
+write_restart           restart.1000
+
+#Compression restart 2
+#Read restart file and load potential again
+clear
+read_restart            restart.1000
+include                 alpha_quartz_potential.mod
+#Use the same fix id and add no tscale if the system is already compressed
+fix                     shock all qbmsst z ${v_msst} q ${q_msst} tscale 0.0 damp ${damp_qtb} f_max 120 N_f 100 seed 35082 eta ${eta_qbmsst} beta 5 T_init ${temperature}
+variable                dhug equal f_shock[1]
+variable                dray equal f_shock[2]
+variable                lgr_vel equal f_shock[3]
+variable                lgr_pos equal f_shock[4]
+variable                T_qm equal f_shock[5]                                                                   #Temperature with quantum nuclear correction
+thermo_style            custom step v_T_qm press econserve vol lx ly lz pzz v_dhug v_dray v_lgr_vel v_lgr_pos
+thermo                  500
+timestep                ${delta_t}
+#restart                 1000 restart
+run                     10000                                                                                   #10 ps
+shell rm restart.1000

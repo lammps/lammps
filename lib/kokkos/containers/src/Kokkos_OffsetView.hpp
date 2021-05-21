@@ -51,10 +51,10 @@ namespace Impl {
 
 template <class ViewType>
 struct GetOffsetViewTypeFromViewType {
-  typedef OffsetView<
-      typename ViewType::data_type, typename ViewType::array_layout,
-      typename ViewType::device_type, typename ViewType::memory_traits>
-      type;
+  using type =
+      OffsetView<typename ViewType::data_type, typename ViewType::array_layout,
+                 typename ViewType::device_type,
+                 typename ViewType::memory_traits>;
 };
 
 template <unsigned, class MapType, class BeginsType>
@@ -180,7 +180,7 @@ void runtime_check_rank_device(const size_t rank_dynamic, const size_t rank,
 template <class DataType, class... Properties>
 class OffsetView : public ViewTraits<DataType, Properties...> {
  public:
-  typedef ViewTraits<DataType, Properties...> traits;
+  using traits = ViewTraits<DataType, Properties...>;
 
  private:
   template <class, class...>
@@ -190,12 +190,12 @@ class OffsetView : public ViewTraits<DataType, Properties...> {
   template <class, class...>
   friend class Kokkos::Impl::ViewMapping;
 
-  typedef Kokkos::Impl::ViewMapping<traits, void> map_type;
-  typedef Kokkos::Impl::SharedAllocationTracker track_type;
+  using map_type   = Kokkos::Impl::ViewMapping<traits, void>;
+  using track_type = Kokkos::Impl::SharedAllocationTracker;
 
  public:
   enum { Rank = map_type::Rank };
-  typedef Kokkos::Array<int64_t, Rank> begins_type;
+  using begins_type = Kokkos::Array<int64_t, Rank>;
 
   template <
       typename iType,
@@ -223,28 +223,27 @@ class OffsetView : public ViewTraits<DataType, Properties...> {
  public:
   //----------------------------------------
   /** \brief  Compatible view of array of scalar types */
-  typedef OffsetView<
-      typename traits::scalar_array_type, typename traits::array_layout,
-      typename traits::device_type, typename traits::memory_traits>
-      array_type;
+  using array_type =
+      OffsetView<typename traits::scalar_array_type,
+                 typename traits::array_layout, typename traits::device_type,
+                 typename traits::memory_traits>;
 
   /** \brief  Compatible view of const data type */
-  typedef OffsetView<
-      typename traits::const_data_type, typename traits::array_layout,
-      typename traits::device_type, typename traits::memory_traits>
-      const_type;
+  using const_type =
+      OffsetView<typename traits::const_data_type,
+                 typename traits::array_layout, typename traits::device_type,
+                 typename traits::memory_traits>;
 
   /** \brief  Compatible view of non-const data type */
-  typedef OffsetView<
-      typename traits::non_const_data_type, typename traits::array_layout,
-      typename traits::device_type, typename traits::memory_traits>
-      non_const_type;
+  using non_const_type =
+      OffsetView<typename traits::non_const_data_type,
+                 typename traits::array_layout, typename traits::device_type,
+                 typename traits::memory_traits>;
 
   /** \brief  Compatible HostMirror view */
-  typedef OffsetView<typename traits::non_const_data_type,
-                     typename traits::array_layout,
-                     typename traits::host_mirror_space>
-      HostMirror;
+  using HostMirror = OffsetView<typename traits::non_const_data_type,
+                                typename traits::array_layout,
+                                typename traits::host_mirror_space>;
 
   //----------------------------------------
   // Domain rank and extents
@@ -335,8 +334,8 @@ class OffsetView : public ViewTraits<DataType, Properties...> {
   //----------------------------------------
   // Range span is the span which contains all members.
 
-  typedef typename map_type::reference_type reference_type;
-  typedef typename map_type::pointer_type pointer_type;
+  using reference_type = typename map_type::reference_type;
+  using pointer_type   = typename map_type::pointer_type;
 
   enum {
     reference_type_is_lvalue_reference =
@@ -346,6 +345,9 @@ class OffsetView : public ViewTraits<DataType, Properties...> {
   KOKKOS_INLINE_FUNCTION constexpr size_t span() const { return m_map.span(); }
   KOKKOS_INLINE_FUNCTION bool span_is_contiguous() const {
     return m_map.span_is_contiguous();
+  }
+  KOKKOS_INLINE_FUNCTION constexpr bool is_allocated() const {
+    return m_map.data() != nullptr;
   }
   KOKKOS_INLINE_FUNCTION constexpr pointer_type data() const {
     return m_map.data();
@@ -362,19 +364,18 @@ class OffsetView : public ViewTraits<DataType, Properties...> {
   //----------------------------------------
 
  private:
-  enum {
-    is_layout_left =
-        std::is_same<typename traits::array_layout, Kokkos::LayoutLeft>::value,
+  static constexpr bool is_layout_left =
+      std::is_same<typename traits::array_layout, Kokkos::LayoutLeft>::value;
 
-    is_layout_right =
-        std::is_same<typename traits::array_layout, Kokkos::LayoutRight>::value,
+  static constexpr bool is_layout_right =
+      std::is_same<typename traits::array_layout, Kokkos::LayoutRight>::value;
 
-    is_layout_stride = std::is_same<typename traits::array_layout,
-                                    Kokkos::LayoutStride>::value,
+  static constexpr bool is_layout_stride =
+      std::is_same<typename traits::array_layout, Kokkos::LayoutStride>::value;
 
-    is_default_map = std::is_same<typename traits::specialize, void>::value &&
-                     (is_layout_left || is_layout_right || is_layout_stride)
-  };
+  static constexpr bool is_default_map =
+      std::is_same<typename traits::specialize, void>::value &&
+      (is_layout_left || is_layout_right || is_layout_stride);
 
   template <class Space, bool = Kokkos::Impl::MemorySpaceAccess<
                              Space, typename traits::memory_space>::accessible>
@@ -804,8 +805,8 @@ class OffsetView : public ViewTraits<DataType, Properties...> {
   //----------------------------------------
   // Standard destructor, constructors, and assignment operators
 
-  KOKKOS_INLINE_FUNCTION
-  ~OffsetView() {}
+  KOKKOS_DEFAULTED_FUNCTION
+  ~OffsetView() = default;
 
   KOKKOS_INLINE_FUNCTION
   OffsetView() : m_track(), m_map() {
@@ -842,10 +843,9 @@ class OffsetView : public ViewTraits<DataType, Properties...> {
 
   // interoperability with View
  private:
-  typedef View<typename traits::scalar_array_type,
-               typename traits::array_layout, typename traits::device_type,
-               typename traits::memory_traits>
-      view_type;
+  using view_type =
+      View<typename traits::scalar_array_type, typename traits::array_layout,
+           typename traits::device_type, typename traits::memory_traits>;
 
  public:
   KOKKOS_INLINE_FUNCTION
@@ -857,8 +857,8 @@ class OffsetView : public ViewTraits<DataType, Properties...> {
   template <class RT, class... RP>
   KOKKOS_INLINE_FUNCTION OffsetView(const View<RT, RP...>& aview)
       : m_track(aview.impl_track()), m_map() {
-    typedef typename OffsetView<RT, RP...>::traits SrcTraits;
-    typedef Kokkos::Impl::ViewMapping<traits, SrcTraits, void> Mapping;
+    using SrcTraits = typename OffsetView<RT, RP...>::traits;
+    using Mapping   = Kokkos::Impl::ViewMapping<traits, SrcTraits, void>;
     static_assert(Mapping::is_assignable,
                   "Incompatible OffsetView copy construction");
     Mapping::assign(m_map, aview.impl_map(), m_track);
@@ -872,8 +872,8 @@ class OffsetView : public ViewTraits<DataType, Properties...> {
   KOKKOS_INLINE_FUNCTION OffsetView(const View<RT, RP...>& aview,
                                     const index_list_type& minIndices)
       : m_track(aview.impl_track()), m_map() {
-    typedef typename OffsetView<RT, RP...>::traits SrcTraits;
-    typedef Kokkos::Impl::ViewMapping<traits, SrcTraits, void> Mapping;
+    using SrcTraits = typename OffsetView<RT, RP...>::traits;
+    using Mapping   = Kokkos::Impl::ViewMapping<traits, SrcTraits, void>;
     static_assert(Mapping::is_assignable,
                   "Incompatible OffsetView copy construction");
     Mapping::assign(m_map, aview.impl_map(), m_track);
@@ -895,8 +895,8 @@ class OffsetView : public ViewTraits<DataType, Properties...> {
   KOKKOS_INLINE_FUNCTION OffsetView(const View<RT, RP...>& aview,
                                     const begins_type& beg)
       : m_track(aview.impl_track()), m_map(), m_begins(beg) {
-    typedef typename OffsetView<RT, RP...>::traits SrcTraits;
-    typedef Kokkos::Impl::ViewMapping<traits, SrcTraits, void> Mapping;
+    using SrcTraits = typename OffsetView<RT, RP...>::traits;
+    using Mapping   = Kokkos::Impl::ViewMapping<traits, SrcTraits, void>;
     static_assert(Mapping::is_assignable,
                   "Incompatible OffsetView copy construction");
     Mapping::assign(m_map, aview.impl_map(), m_track);
@@ -918,8 +918,8 @@ class OffsetView : public ViewTraits<DataType, Properties...> {
       : m_track(rhs.m_track, traits::is_managed),
         m_map(),
         m_begins(rhs.m_begins) {
-    typedef typename OffsetView<RT, RP...>::traits SrcTraits;
-    typedef Kokkos::Impl::ViewMapping<traits, SrcTraits, void> Mapping;
+    using SrcTraits = typename OffsetView<RT, RP...>::traits;
+    using Mapping   = Kokkos::Impl::ViewMapping<traits, SrcTraits, void>;
     static_assert(Mapping::is_assignable,
                   "Incompatible OffsetView copy construction");
     Mapping::assign(m_map, rhs.m_map, rhs.m_track);  // swb what about assign?
@@ -1216,11 +1216,11 @@ class OffsetView : public ViewTraits<DataType, Properties...> {
     for (size_t i = 0; i < Rank; ++i) m_begins[i] = minIndices.begin()[i];
 
     // Append layout and spaces if not input
-    typedef Kokkos::Impl::ViewCtorProp<P...> alloc_prop_input;
+    using alloc_prop_input = Kokkos::Impl::ViewCtorProp<P...>;
 
     // use 'std::integral_constant<unsigned,I>' for non-types
     // to avoid duplicate class error.
-    typedef Kokkos::Impl::ViewCtorProp<
+    using alloc_prop = Kokkos::Impl::ViewCtorProp<
         P...,
         typename std::conditional<alloc_prop_input::has_label,
                                   std::integral_constant<unsigned, 0>,
@@ -1232,19 +1232,13 @@ class OffsetView : public ViewTraits<DataType, Properties...> {
         typename std::conditional<
             alloc_prop_input::has_execution_space,
             std::integral_constant<unsigned, 2>,
-            typename traits::device_type::execution_space>::type>
-        alloc_prop;
+            typename traits::device_type::execution_space>::type>;
 
     static_assert(traits::is_managed,
                   "OffsetView allocation constructor requires managed memory");
 
     if (alloc_prop::initialize &&
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-        !alloc_prop::execution_space::is_initialized()
-#else
-        !alloc_prop::execution_space::impl_is_initialized()
-#endif
-    ) {
+        !alloc_prop::execution_space::impl_is_initialized()) {
       // If initializing view data then
       // the execution space must be initialized.
       Kokkos::Impl::throw_runtime_exception(
@@ -1317,7 +1311,7 @@ KOKKOS_INLINE_FUNCTION
 
 KOKKOS_INLINE_FUNCTION
 Kokkos::Impl::ALL_t shift_input(const Kokkos::Impl::ALL_t arg,
-                                const int64_t offset) {
+                                const int64_t /*offset*/) {
   return arg;
 }
 
@@ -1347,9 +1341,9 @@ KOKKOS_INLINE_FUNCTION void map_arg_to_new_begin(
 
 template <size_t N, class Arg, class A>
 KOKKOS_INLINE_FUNCTION void map_arg_to_new_begin(
-    const size_t i, Kokkos::Array<int64_t, N>& subviewBegins,
-    typename std::enable_if<N == 0, const Arg>::type shiftedArg, const Arg arg,
-    const A viewBegins, size_t& counter) {}
+    const size_t /*i*/, Kokkos::Array<int64_t, N>& /*subviewBegins*/,
+    typename std::enable_if<N == 0, const Arg>::type /*shiftedArg*/,
+    const Arg /*arg*/, const A /*viewBegins*/, size_t& /*counter*/) {}
 
 template <class D, class... P, class T>
 KOKKOS_INLINE_FUNCTION
@@ -1765,8 +1759,8 @@ template <class LT, class... LP, class RT, class... RP>
 KOKKOS_INLINE_FUNCTION bool operator==(const OffsetView<LT, LP...>& lhs,
                                        const OffsetView<RT, RP...>& rhs) {
   // Same data, layout, dimensions
-  typedef ViewTraits<LT, LP...> lhs_traits;
-  typedef ViewTraits<RT, RP...> rhs_traits;
+  using lhs_traits = ViewTraits<LT, LP...>;
+  using rhs_traits = ViewTraits<RT, RP...>;
 
   return std::is_same<typename lhs_traits::const_value_type,
                       typename rhs_traits::const_value_type>::value &&
@@ -1796,8 +1790,8 @@ template <class LT, class... LP, class RT, class... RP>
 KOKKOS_INLINE_FUNCTION bool operator==(const View<LT, LP...>& lhs,
                                        const OffsetView<RT, RP...>& rhs) {
   // Same data, layout, dimensions
-  typedef ViewTraits<LT, LP...> lhs_traits;
-  typedef ViewTraits<RT, RP...> rhs_traits;
+  using lhs_traits = ViewTraits<LT, LP...>;
+  using rhs_traits = ViewTraits<RT, RP...>;
 
   return std::is_same<typename lhs_traits::const_value_type,
                       typename rhs_traits::const_value_type>::value &&
@@ -1826,13 +1820,14 @@ KOKKOS_INLINE_FUNCTION bool operator==(const OffsetView<LT, LP...>& lhs,
 //----------------------------------------------------------------------------
 
 namespace Kokkos {
-namespace Experimental {
+
 template <class DT, class... DP>
 inline void deep_copy(
-    const OffsetView<DT, DP...>& dst,
+    const Experimental::OffsetView<DT, DP...>& dst,
     typename ViewTraits<DT, DP...>::const_value_type& value,
     typename std::enable_if<std::is_same<
-        typename ViewTraits<DT, DP...>::specialize, void>::value>::type* = 0) {
+        typename ViewTraits<DT, DP...>::specialize, void>::value>::type* =
+        nullptr) {
   static_assert(
       std::is_same<typename ViewTraits<DT, DP...>::non_const_value_type,
                    typename ViewTraits<DT, DP...>::value_type>::value,
@@ -1844,9 +1839,11 @@ inline void deep_copy(
 
 template <class DT, class... DP, class ST, class... SP>
 inline void deep_copy(
-    const OffsetView<DT, DP...>& dst, const OffsetView<ST, SP...>& value,
+    const Experimental::OffsetView<DT, DP...>& dst,
+    const Experimental::OffsetView<ST, SP...>& value,
     typename std::enable_if<std::is_same<
-        typename ViewTraits<DT, DP...>::specialize, void>::value>::type* = 0) {
+        typename ViewTraits<DT, DP...>::specialize, void>::value>::type* =
+        nullptr) {
   static_assert(
       std::is_same<typename ViewTraits<DT, DP...>::value_type,
                    typename ViewTraits<ST, SP...>::non_const_value_type>::value,
@@ -1857,9 +1854,11 @@ inline void deep_copy(
 }
 template <class DT, class... DP, class ST, class... SP>
 inline void deep_copy(
-    const OffsetView<DT, DP...>& dst, const View<ST, SP...>& value,
+    const Experimental::OffsetView<DT, DP...>& dst,
+    const View<ST, SP...>& value,
     typename std::enable_if<std::is_same<
-        typename ViewTraits<DT, DP...>::specialize, void>::value>::type* = 0) {
+        typename ViewTraits<DT, DP...>::specialize, void>::value>::type* =
+        nullptr) {
   static_assert(
       std::is_same<typename ViewTraits<DT, DP...>::value_type,
                    typename ViewTraits<ST, SP...>::non_const_value_type>::value,
@@ -1871,9 +1870,11 @@ inline void deep_copy(
 
 template <class DT, class... DP, class ST, class... SP>
 inline void deep_copy(
-    const View<DT, DP...>& dst, const OffsetView<ST, SP...>& value,
+    const View<DT, DP...>& dst,
+    const Experimental::OffsetView<ST, SP...>& value,
     typename std::enable_if<std::is_same<
-        typename ViewTraits<DT, DP...>::specialize, void>::value>::type* = 0) {
+        typename ViewTraits<DT, DP...>::specialize, void>::value>::type* =
+        nullptr) {
   static_assert(
       std::is_same<typename ViewTraits<DT, DP...>::value_type,
                    typename ViewTraits<ST, SP...>::non_const_value_type>::value,
@@ -1881,53 +1882,54 @@ inline void deep_copy(
 
   Kokkos::deep_copy(dst, value.view());
 }
+
 namespace Impl {
 
 // Deduce Mirror Types
 template <class Space, class T, class... P>
 struct MirrorOffsetViewType {
   // The incoming view_type
-  typedef typename Kokkos::Experimental::OffsetView<T, P...> src_view_type;
+  using src_view_type = typename Kokkos::Experimental::OffsetView<T, P...>;
   // The memory space for the mirror view
-  typedef typename Space::memory_space memory_space;
+  using memory_space = typename Space::memory_space;
   // Check whether it is the same memory space
   enum {
     is_same_memspace =
         std::is_same<memory_space, typename src_view_type::memory_space>::value
   };
   // The array_layout
-  typedef typename src_view_type::array_layout array_layout;
+  using array_layout = typename src_view_type::array_layout;
   // The data type (we probably want it non-const since otherwise we can't even
   // deep_copy to it.
-  typedef typename src_view_type::non_const_data_type data_type;
+  using data_type = typename src_view_type::non_const_data_type;
   // The destination view type if it is not the same memory space
-  typedef Kokkos::Experimental::OffsetView<data_type, array_layout, Space>
-      dest_view_type;
+  using dest_view_type =
+      Kokkos::Experimental::OffsetView<data_type, array_layout, Space>;
   // If it is the same memory_space return the existsing view_type
   // This will also keep the unmanaged trait if necessary
-  typedef typename std::conditional<is_same_memspace, src_view_type,
-                                    dest_view_type>::type view_type;
+  using view_type = typename std::conditional<is_same_memspace, src_view_type,
+                                              dest_view_type>::type;
 };
 
 template <class Space, class T, class... P>
 struct MirrorOffsetType {
   // The incoming view_type
-  typedef typename Kokkos::Experimental::OffsetView<T, P...> src_view_type;
+  using src_view_type = typename Kokkos::Experimental::OffsetView<T, P...>;
   // The memory space for the mirror view
-  typedef typename Space::memory_space memory_space;
+  using memory_space = typename Space::memory_space;
   // Check whether it is the same memory space
   enum {
     is_same_memspace =
         std::is_same<memory_space, typename src_view_type::memory_space>::value
   };
   // The array_layout
-  typedef typename src_view_type::array_layout array_layout;
+  using array_layout = typename src_view_type::array_layout;
   // The data type (we probably want it non-const since otherwise we can't even
   // deep_copy to it.
-  typedef typename src_view_type::non_const_data_type data_type;
+  using data_type = typename src_view_type::non_const_data_type;
   // The destination view type if it is not the same memory space
-  typedef Kokkos::Experimental::OffsetView<data_type, array_layout, Space>
-      view_type;
+  using view_type =
+      Kokkos::Experimental::OffsetView<data_type, array_layout, Space>;
 };
 
 }  // namespace Impl
@@ -1938,9 +1940,9 @@ create_mirror(
     const Kokkos::Experimental::OffsetView<T, P...>& src,
     typename std::enable_if<
         !std::is_same<typename Kokkos::ViewTraits<T, P...>::array_layout,
-                      Kokkos::LayoutStride>::value>::type* = 0) {
-  typedef OffsetView<T, P...> src_type;
-  typedef typename src_type::HostMirror dst_type;
+                      Kokkos::LayoutStride>::value>::type* = nullptr) {
+  using src_type = Experimental::OffsetView<T, P...>;
+  using dst_type = typename src_type::HostMirror;
 
   return dst_type(
       Kokkos::Impl::ViewCtorProp<std::string>(
@@ -1958,9 +1960,9 @@ create_mirror(
     const Kokkos::Experimental::OffsetView<T, P...>& src,
     typename std::enable_if<
         std::is_same<typename Kokkos::ViewTraits<T, P...>::array_layout,
-                     Kokkos::LayoutStride>::value>::type* = 0) {
-  typedef OffsetView<T, P...> src_type;
-  typedef typename src_type::HostMirror dst_type;
+                     Kokkos::LayoutStride>::value>::type* = nullptr) {
+  using src_type = Experimental::OffsetView<T, P...>;
+  using dst_type = typename src_type::HostMirror;
 
   Kokkos::LayoutStride layout;
 
@@ -1989,14 +1991,13 @@ create_mirror(
 
 // Create a mirror in a new space (specialization for different space)
 template <class Space, class T, class... P>
-typename Kokkos::Experimental::Impl::MirrorOffsetType<Space, T, P...>::view_type
+typename Kokkos::Impl::MirrorOffsetType<Space, T, P...>::view_type
 create_mirror(const Space&,
               const Kokkos::Experimental::OffsetView<T, P...>& src) {
-  return typename Kokkos::Experimental::Impl::MirrorOffsetType<
-      Space, T, P...>::view_type(src.label(), src.layout(),
-                                 {src.begin(0), src.begin(1), src.begin(2),
-                                  src.begin(3), src.begin(4), src.begin(5),
-                                  src.begin(6), src.begin(7)});
+  return typename Kokkos::Impl::MirrorOffsetType<Space, T, P...>::view_type(
+      src.label(), src.layout(),
+      {src.begin(0), src.begin(1), src.begin(2), src.begin(3), src.begin(4),
+       src.begin(5), src.begin(6), src.begin(7)});
 }
 
 template <class T, class... P>
@@ -2011,7 +2012,7 @@ create_mirror_view(
          std::is_same<
              typename Kokkos::Experimental::OffsetView<T, P...>::data_type,
              typename Kokkos::Experimental::OffsetView<
-                 T, P...>::HostMirror::data_type>::value)>::type* = 0) {
+                 T, P...>::HostMirror::data_type>::value)>::type* = nullptr) {
   return src;
 }
 
@@ -2027,34 +2028,31 @@ create_mirror_view(
           std::is_same<
               typename Kokkos::Experimental::OffsetView<T, P...>::data_type,
               typename Kokkos::Experimental::OffsetView<
-                  T, P...>::HostMirror::data_type>::value)>::type* = 0) {
-  return Kokkos::Experimental::create_mirror(src);
+                  T, P...>::HostMirror::data_type>::value)>::type* = nullptr) {
+  return Kokkos::create_mirror(src);
 }
 
 // Create a mirror view in a new space (specialization for same space)
 template <class Space, class T, class... P>
-typename Kokkos::Experimental::Impl::MirrorOffsetViewType<Space, T,
-                                                          P...>::view_type
+typename Kokkos::Impl::MirrorOffsetViewType<Space, T, P...>::view_type
 create_mirror_view(const Space&,
                    const Kokkos::Experimental::OffsetView<T, P...>& src,
                    typename std::enable_if<Impl::MirrorOffsetViewType<
-                       Space, T, P...>::is_same_memspace>::type* = 0) {
+                       Space, T, P...>::is_same_memspace>::type* = nullptr) {
   return src;
 }
 
 // Create a mirror view in a new space (specialization for different space)
 template <class Space, class T, class... P>
-typename Kokkos::Experimental::Impl::MirrorOffsetViewType<Space, T,
-                                                          P...>::view_type
+typename Kokkos::Impl::MirrorOffsetViewType<Space, T, P...>::view_type
 create_mirror_view(const Space&,
                    const Kokkos::Experimental::OffsetView<T, P...>& src,
                    typename std::enable_if<!Impl::MirrorOffsetViewType<
-                       Space, T, P...>::is_same_memspace>::type* = 0) {
-  return typename Kokkos::Experimental::Impl::MirrorOffsetViewType<
-      Space, T, P...>::view_type(src.label(), src.layout(),
-                                 {src.begin(0), src.begin(1), src.begin(2),
-                                  src.begin(3), src.begin(4), src.begin(5),
-                                  src.begin(6), src.begin(7)});
+                       Space, T, P...>::is_same_memspace>::type* = nullptr) {
+  return typename Kokkos::Impl::MirrorOffsetViewType<Space, T, P...>::view_type(
+      src.label(), src.layout(),
+      {src.begin(0), src.begin(1), src.begin(2), src.begin(3), src.begin(4),
+       src.begin(5), src.begin(6), src.begin(7)});
 }
 //
 //  // Create a mirror view and deep_copy in a new space (specialization for
@@ -2065,7 +2063,7 @@ create_mirror_view(const Space&,
 //                              , std::string const& name = ""
 //                                  , typename
 //                                  std::enable_if<Impl::MirrorViewType<Space,T,P
-//                                  ...>::is_same_memspace>::type* = 0 ) {
+//                                  ...>::is_same_memspace>::type* = nullptr) {
 //    (void)name;
 //    return src;
 //  }
@@ -2078,11 +2076,11 @@ create_mirror_view(const Space&,
 //                              , std::string const& name = ""
 //                                  , typename
 //                                  std::enable_if<!Impl::MirrorViewType<Space,T,P
-//                                  ...>::is_same_memspace>::type* = 0 ) {
+//                                  ...>::is_same_memspace>::type* = nullptr) {
 //    using Mirror = typename
 //    Kokkos::Experimental::Impl::MirrorViewType<Space,T,P ...>::view_type;
 //    std::string label = name.empty() ? src.label() : name;
-//    auto mirror = Mirror(ViewAllocateWithoutInitializing(label), src.layout(),
+//    auto mirror = Mirror(view_alloc(WithoutInitializing, label), src.layout(),
 //                         { src.begin(0), src.begin(1), src.begin(2),
 //                         src.begin(3), src.begin(4),
 //                             src.begin(5), src.begin(6), src.begin(7) });
@@ -2090,7 +2088,6 @@ create_mirror_view(const Space&,
 //    return mirror;
 //  }
 
-}  // namespace Experimental
 } /* namespace Kokkos */
 
 //----------------------------------------------------------------------------

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -47,7 +47,7 @@ void ServerMC::loop()
   if (domain->box_exist == 0)
     error->all(FLERR,"Server command before simulation box is defined");
 
-  if (!atom->map_style) error->all(FLERR,"Server mc requires atom map");
+  if (atom->map_style == Atom::MAP_NONE) error->all(FLERR,"Server mc requires atom map");
   if (atom->tag_enable == 0) error->all(FLERR,"Server mc requires atom IDs");
   if (sizeof(tagint) != 4) error->all(FLERR,"Server mc requires 32-bit atom IDs");
 
@@ -77,7 +77,7 @@ void ServerMC::loop()
 
       cs->send(msgID,2);
       cs->pack_double(1,dval);
-      double *coords = NULL;
+      double *coords = nullptr;
       if (atom->nlocal) coords = &atom->x[0][0];
       cs->pack_parallel(2,4,atom->nlocal,atom->tag,3,coords);
 
@@ -143,5 +143,5 @@ void ServerMC::loop()
   // clean up
 
   delete cs;
-  lmp->cslib = NULL;
+  lmp->cslib = nullptr;
 }

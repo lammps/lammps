@@ -97,7 +97,7 @@ just a continuation of a previous run (i.e. no settings are changed),
 the initial computation is not necessary; the old neighbor list is
 still valid as are the forces.  So if *pre* is specified as "no" then
 the initial setup is skipped, except for printing thermodynamic info.
-Note that if *pre* is set to "no" for the very 1st run LAMMPS
+Note that if *pre* is set to "no" for the very first run LAMMPS
 performs, then it is overridden, since the initial setup computations
 must be done.
 
@@ -178,7 +178,7 @@ command:
      "print 'Press = $d'"
 
 If the *pre* and *post* options are set to "no" when used with the
-*every* keyword, then the 1st run will do the full setup and the last
+*every* keyword, then the first run will do the full setup and the last
 run will print the full timing summary, but these operations will be
 skipped for intermediate runs.
 

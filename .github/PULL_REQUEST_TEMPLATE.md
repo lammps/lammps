@@ -2,7 +2,7 @@
 
 <!--Briefly describe the new feature(s), enhancement(s), or bugfix(es) included in this pull request.-->
 
-**Related Issues**
+**Related Issue(s)**
 
 <!--If this addresses an open GitHub issue for this project, please mention the issue number here, and describe the relation. Use the phrases `fixes #221` or `closes #135`, when you want an issue to be automatically closed when the pull request is merged-->
 
@@ -34,6 +34,7 @@ By submitting this pull request, I agree, that my contribution will be included 
 - [ ] The added/updated documentation is integrated and tested with the documentation build system
 - [ ] The feature has been verified to work with the conventional build system
 - [ ] The feature has been verified to work with the CMake based build system
+- [ ] Suitable tests have been added to the unittest tree.
 - [ ] A package specific README file has been included or updated
 - [ ] One or more example input decks are included
 

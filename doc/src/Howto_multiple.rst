@@ -91,4 +91,4 @@ With these modifications, the 8 simulations of each script would run
 on the 3 partitions one after the other until all were finished.
 Initially, 3 simulations would be started simultaneously, one on each
 partition.  When one finished, that partition would then start
-the 4th simulation, and so forth, until all 8 were completed.
+the fourth simulation, and so forth, until all 8 were completed.

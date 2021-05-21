@@ -271,7 +271,7 @@ typedef PerAtomQuantity<double> PAQ;
       u = new AtfShapeFunctionMdProjection(atc_,restricted,VELOCITY);
     }
     else {
-      DENS_MAN * q = NULL;
+      DENS_MAN * q = nullptr;
       if (atc_->kernel_on_the_fly()) {
         if (atc_->kernel_based()) {
           q = new OnTheFlyKernelAccumulationNormalized(atc_, atomic,

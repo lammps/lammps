@@ -1,6 +1,6 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -172,7 +172,7 @@ struct potdata2 {
     strcpy(s,nametemplate);
 
     p = strchr(s,'{');
-    if(p != NULL) {
+    if(p != nullptr) {
       if(sscanf(p+1,"%d:%d:%d",i0,stride,i1) != 3) {
 	fprintf(stderr,"Error in template (\'%s\'), can not parse range.\n",nametemplate);
 	exit(1);
@@ -217,12 +217,12 @@ struct potdata2 {
     const char *parmin_suffix = strchr(parmin_template,'}')+1;
     const char * potin_suffix = strchr( potin_template,'}')+1;
 
-    if(parmin_suffix-1 == NULL) {
+    if(parmin_suffix-1 == nullptr) {
       fprintf(stderr,"No closing }. parmin_template=\'%s\'\n",
 	      parmin_template);
       exit(1);
     }
-    if(potin_suffix-1 == NULL) {
+    if(potin_suffix-1 == nullptr) {
       fprintf(stderr,"No closing }. potin_template=\'%s\'\n",
 	      potin_template);
       exit(1);

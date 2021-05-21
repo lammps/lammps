@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -26,25 +26,43 @@ class Error : protected Pointers {
  public:
   Error(class LAMMPS *);
 
-  void universe_all(const char *, int, const char *);
-  void universe_one(const char *, int, const char *);
-  void universe_warn(const char *, int, const char *);
+  [[ noreturn ]] void universe_all(const std::string &, int, const std::string &);
+  [[ noreturn ]] void universe_one(const std::string &, int, const std::string &);
+  void universe_warn(const std::string &, int, const std::string &);
 
-  void all(const char *, int, const char *);
-  void one(const char *, int, const char *);
-  void warning(const char *, int, const char *, int = 1);
-  void message(const char *, int, const char *, int = 1);
-  void done(int = 0); // 1 would be fully backwards compatible
+  [[ noreturn ]] void all(const std::string &, int, const std::string &);
+  [[ noreturn ]] void one(const std::string &, int, const std::string &);
+  template <typename S, typename... Args>
+  void all(const std::string &file, int line, const S &format,
+                          Args&&... args) {
+    _all(file, line, format, fmt::make_args_checked<Args...>(format, args...));
+  }
+  template <typename S, typename... Args>
+  void one(const std::string &file, int line, const S &format,
+                          Args&&... args) {
+    _one(file, line, format, fmt::make_args_checked<Args...>(format, args...));
+  }
+
+  void warning(const std::string &, int, const std::string &, int = 1);
+  void message(const std::string &, int, const std::string &, int = 1);
+  [[ noreturn ]] void done(int = 0); // 1 would be fully backwards compatible
 
 #ifdef LAMMPS_EXCEPTIONS
-  char *    get_last_error() const;
+  std::string get_last_error() const;
   ErrorType get_last_error_type() const;
-  void   set_last_error(const char * msg, ErrorType type = ERROR_NORMAL);
+  void set_last_error(const std::string &msg, ErrorType type = ERROR_NORMAL);
 
  private:
-  char * last_error_message;
+  std::string last_error_message;
   ErrorType last_error_type;
+
 #endif
+ private:
+  // internal versions that accept explicit fmtlib arguments
+  [[ noreturn ]] void _all(const std::string &, int, fmt::string_view,
+                           fmt::format_args args);
+  [[ noreturn ]] void _one(const std::string &, int, fmt::string_view,
+                           fmt::format_args args);
 };
 
 }

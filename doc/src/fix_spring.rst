@@ -97,13 +97,17 @@ last example holds the ion a distance 5 away from the pore axis
    spring connecting two groups or a group and the tether point can cross
    a periodic boundary and its length be calculated correctly.
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-No information about this fix is written to :doc:`binary restart files <restart>`.
+No information about this fix is written to :doc:`binary restart files
+<restart>`.
 
-The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
-fix to add the energy stored in the spring to the system's potential
-energy as part of :doc:`thermodynamic output <thermo_style>`.
+The :doc:`fix_modify <fix_modify>` *energy* option is supported by
+this fix to add the energy stored in the spring to the global
+potential energy of the system as part of :doc:`thermodynamic output
+<thermo_style>`. The default setting for this fix is :doc:`fix_modify
+energy no <fix_modify>`.
 
 The :doc:`fix_modify <fix_modify>` *respa* option is supported by this
 fix. This allows to set at which level of the :doc:`r-RESPA <run_style>`
@@ -118,7 +122,7 @@ various :doc:`output commands <Howto_output>`.  The first 3 quantities
 in the vector are xyz components of the total force added to the group
 of atoms by the spring.  In the case of the *couple* style, it is the
 force on the fix group (group-ID) or the negative of the force on the
-2nd group (group-ID2).  The 4th quantity in the vector is the
+second group (group-ID2).  The fourth quantity in the vector is the
 magnitude of the force added by the spring, as a positive value if
 (r-R0) > 0 and a negative value if (r-R0) < 0.  This sign convention
 can be useful when using the spring force to compute a potential of
@@ -149,4 +153,7 @@ Related commands
 :doc:`fix drag <fix_drag>`, :doc:`fix spring/self <fix_spring_self>`,
 :doc:`fix spring/rg <fix_spring_rg>`, :doc:`fix smd <fix_smd>`
 
-**Default:** none
+Default
+"""""""
+
+none

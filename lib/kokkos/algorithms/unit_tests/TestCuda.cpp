@@ -59,11 +59,15 @@
 namespace Test {
 
 void cuda_test_random_xorshift64(int num_draws) {
-  Impl::test_random<Kokkos::Random_XorShift64_Pool<Kokkos::Cuda> >(num_draws);
+  Impl::test_random<Kokkos::Random_XorShift64_Pool<Kokkos::Cuda>>(num_draws);
+  Impl::test_random<Kokkos::Random_XorShift64_Pool<
+      Kokkos::Device<Kokkos::Cuda, Kokkos::CudaSpace>>>(num_draws);
 }
 
 void cuda_test_random_xorshift1024(int num_draws) {
-  Impl::test_random<Kokkos::Random_XorShift1024_Pool<Kokkos::Cuda> >(num_draws);
+  Impl::test_random<Kokkos::Random_XorShift1024_Pool<Kokkos::Cuda>>(num_draws);
+  Impl::test_random<Kokkos::Random_XorShift1024_Pool<
+      Kokkos::Device<Kokkos::Cuda, Kokkos::CudaSpace>>>(num_draws);
 }
 
 #define CUDA_RANDOM_XORSHIFT64(num_draws) \

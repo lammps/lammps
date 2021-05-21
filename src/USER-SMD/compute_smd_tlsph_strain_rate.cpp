@@ -12,7 +12,7 @@
 
 /* ----------------------------------------------------------------------
  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
- http://lammps.sandia.gov, Sandia National Laboratories
+ https://lammps.sandia.gov/, Sandia National Laboratories
  Steve Plimpton, sjplimp@sandia.gov
 
  Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -23,17 +23,19 @@
  See the README file in the top-level LAMMPS directory.
  ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include <Eigen/Eigen>
 #include "compute_smd_tlsph_strain_rate.h"
+
 #include "atom.h"
-#include "update.h"
-#include "modify.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "memory.h"
-#include "error.h"
+#include "modify.h"
 #include "pair.h"
+#include "update.h"
+
+#include <cstring>
+#include <Eigen/Eigen>          // IWYU pragma: export
 
 using namespace Eigen;
 using namespace LAMMPS_NS;
@@ -50,7 +52,7 @@ ComputeSMDTLSPHStrainRate::ComputeSMDTLSPHStrainRate(LAMMPS *lmp, int narg, char
         size_peratom_cols = 6;
 
         nmax = 0;
-        strain_rate_array = NULL;
+        strain_rate_array = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -87,7 +89,7 @@ void ComputeSMDTLSPHStrainRate::compute_peratom() {
 
         int itmp = 0;
         Matrix3d *D = (Matrix3d *) force->pair->extract("smd/tlsph/strain_rate_ptr", itmp);
-        if (D == NULL) {
+        if (D == nullptr) {
                 error->all(FLERR,
                                 "compute smd/tlsph_strain_rate could not access strain rate. Are the matching pair styles present?");
         }
@@ -110,6 +112,6 @@ void ComputeSMDTLSPHStrainRate::compute_peratom() {
  ------------------------------------------------------------------------- */
 
 double ComputeSMDTLSPHStrainRate::memory_usage() {
-        double bytes = size_peratom_cols * nmax * sizeof(double);
+        double bytes = (double)size_peratom_cols * nmax * sizeof(double);
         return bytes;
 }

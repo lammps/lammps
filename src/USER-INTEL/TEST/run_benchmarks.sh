@@ -6,7 +6,7 @@
 
 # --------------------- MPI Launch Command
 
-export MPI="mpirun"           
+export MPI="mpirun"
 #export MPI="numactl -p 1 mpirun"    # -- Systems w/ MCDRAM in flat mode
 
 # ------------- Name and location of the LAMMPS binary

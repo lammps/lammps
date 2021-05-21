@@ -68,7 +68,8 @@ potential energy into 14 components is tallied by the :doc:`pair_style reax/c <p
 are stored as a global vector by this compute.  See the doc page for
 :doc:`individual pair styles <pair_style>` for info on these values.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global scalar which is *epair* or *evdwl* or
 *ecoul*\ .  If the pair style supports it, it also calculates a global

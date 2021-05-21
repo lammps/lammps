@@ -39,7 +39,8 @@ The value of the rotational kinetic energy will be 0.0 for atoms not
 in the specified compute group or for point particles with a radius =
 0.0.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a per-atom vector, which can be accessed by
 any command that uses per-atom values from a compute as input.  See
@@ -57,4 +58,7 @@ Related commands
 
 :doc:`dump custom <dump>`
 
-**Default:** none
+Default
+"""""""
+
+none

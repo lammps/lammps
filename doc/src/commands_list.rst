@@ -77,6 +77,7 @@ Commands
    pair_style
    pair_write
    partition
+   plugin
    prd
    print
    processors
@@ -88,7 +89,8 @@ Commands
    region
    replicate
    rerun
-   reset_ids
+   reset_atom_ids
+   reset_mol_ids
    reset_timestep
    restart
    run

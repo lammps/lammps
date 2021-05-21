@@ -45,6 +45,7 @@
 #ifndef KOKKOS_TIMER_HPP
 #define KOKKOS_TIMER_HPP
 
+#include <Kokkos_Macros.hpp>
 #include <chrono>
 
 namespace Kokkos {
@@ -60,7 +61,7 @@ class Timer {
  public:
   inline void reset() { m_old = std::chrono::high_resolution_clock::now(); }
 
-  inline ~Timer() {}
+  inline ~Timer() = default;
 
   inline Timer() { reset(); }
 

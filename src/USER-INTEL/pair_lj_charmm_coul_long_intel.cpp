@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    This software is distributed under the GNU General Public License.
@@ -38,7 +38,7 @@ PairLJCharmmCoulLongIntel::PairLJCharmmCoulLongIntel(LAMMPS *lmp) :
 {
   suffix_flag |= Suffix::INTEL;
   respa_enable = 0;
-  cut_respa = NULL;
+  cut_respa = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -87,7 +87,7 @@ void PairLJCharmmCoulLongIntel::compute(int eflag, int vflag,
     if (nthreads > INTEL_HTHREADS) packthreads = nthreads;
     else packthreads = 1;
     #if defined(_OPENMP)
-    #pragma omp parallel if(packthreads > 1)
+    #pragma omp parallel if (packthreads > 1)
     #endif
     {
       int ifrom, ito, tid;
@@ -202,7 +202,7 @@ void PairLJCharmmCoulLongIntel::eval(const int offload, const int vflag,
   #endif
 
   if (offload) fix->start_watch(TIME_OFFLOAD_LATENCY);
-  #pragma offload target(mic:_cop) if(offload) \
+  #pragma offload target(mic:_cop) if (offload) \
     in(special_lj,special_coul:length(0) alloc_if(0) free_if(0)) \
     in(cutsq,lj:length(0) alloc_if(0) free_if(0)) \
     in(firstneigh:length(0) alloc_if(0) free_if(0)) \
@@ -282,7 +282,7 @@ void PairLJCharmmCoulLongIntel::eval(const int offload, const int vflag,
         fxtmp = fytmp = fztmp = (acc_t)0;
         if (EFLAG) fwtmp = sevdwl = secoul = (acc_t)0;
         if (NEWTON_PAIR == 0)
-          if (vflag==1) sv0 = sv1 = sv2 = sv3 = sv4 = sv5 = (acc_t)0;
+          if (vflag == VIRIAL_PAIR) sv0 = sv1 = sv2 = sv3 = sv4 = sv5 = (acc_t)0;
 
         int ej = 0;
         #if defined(LMP_SIMD_COMPILER)
@@ -640,7 +640,7 @@ void PairLJCharmmCoulLongIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
                                                               const int ntable,
                                                               Memory *memory,
                                                               const int cop) {
-  if ( (ntypes != _ntypes || ntable != _ntable) ) {
+  if ((ntypes != _ntypes || ntable != _ntable)) {
     if (_ntypes > 0) {
       #ifdef _LMP_INTEL_OFFLOAD
       flt_t * ospecial_lj = special_lj;
@@ -652,9 +652,9 @@ void PairLJCharmmCoulLongIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
       flt_t * odetable = detable;
       flt_t * octable = ctable;
       flt_t * odctable = dctable;
-      if (ospecial_lj != NULL && ocutsq != NULL && olj != NULL &&
-          otable != NULL && oetable != NULL && odetable != NULL &&
-          octable != NULL && odctable != NULL && ospecial_coul != NULL &&
+      if (ospecial_lj != nullptr && ocutsq != nullptr && olj != nullptr &&
+          otable != nullptr && oetable != nullptr && odetable != nullptr &&
+          octable != nullptr && odctable != nullptr && ospecial_coul != nullptr &&
           cop >= 0) {
         #pragma offload_transfer target(mic:cop) \
           nocopy(ospecial_lj, ospecial_coul: alloc_if(0) free_if(1)) \
@@ -693,9 +693,9 @@ void PairLJCharmmCoulLongIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
       flt_t * octable = ctable;
       flt_t * odctable = dctable;
       int tp1sq = ntypes*ntypes;
-      if (ospecial_lj != NULL && ocutsq != NULL && olj != NULL &&
-          otable !=NULL && oetable != NULL && odetable != NULL &&
-          octable != NULL && odctable != NULL && ospecial_coul != NULL &&
+      if (ospecial_lj != nullptr && ocutsq != nullptr && olj != nullptr &&
+          otable !=nullptr && oetable != nullptr && odetable != nullptr &&
+          octable != nullptr && odctable != nullptr && ospecial_coul != nullptr &&
           cop >= 0) {
         #pragma offload_transfer target(mic:cop) \
           nocopy(ospecial_lj: length(4) alloc_if(1) free_if(0)) \

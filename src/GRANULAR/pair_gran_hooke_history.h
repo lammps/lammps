@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -49,6 +49,7 @@ class PairGranHookeHistory : public Pair {
   double dt;
   int freeze_group_bit;
   int history;
+  int limit_damping;
 
   int neighprev;
   double *onerad_dynamic,*onerad_frozen;
@@ -56,11 +57,12 @@ class PairGranHookeHistory : public Pair {
 
   int size_history;
 
+  class FixDummy *fix_dummy;
   class FixNeighHistory *fix_history;
 
   // storage of rigid body masses for use in granular interactions
 
-  class Fix *fix_rigid;    // ptr to rigid body fix, NULL if none
+  class Fix *fix_rigid;    // ptr to rigid body fix, null pointer if none
   double *mass_rigid;      // rigid mass for owned+ghost atoms
   int nmax;                // allocated size of mass_rigid
 

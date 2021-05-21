@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -31,9 +31,10 @@ template<class DeviceType>
 class FixNVEKokkos;
 
 template <class DeviceType, int RMass>
-class FixNVEKokkosInitialIntegrateFunctor;
+struct FixNVEKokkosInitialIntegrateFunctor;
+
 template <class DeviceType, int RMass>
-class FixNVEKokkosFinalIntegrateFunctor;
+struct FixNVEKokkosFinalIntegrateFunctor;
 
 template<class DeviceType>
 class FixNVEKokkos : public FixNVE {

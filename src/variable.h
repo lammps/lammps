@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -24,11 +24,12 @@ class Variable : protected Pointers {
   Variable(class LAMMPS *);
   ~Variable();
   void set(int, char **);
+  void set(const std::string &);
   void set(char *, int, char **);
-  int set_string(char *, char *);
+  int set_string(const char *, const char *);
   int next(int, char **);
 
-  int find(char *);
+  int find(const char *);
   void set_arrays(int);
   void python_command(int, char **);
 
@@ -38,9 +39,9 @@ class Variable : protected Pointers {
   char *pythonstyle(char *, char *);
   int internalstyle(int);
 
-  char *retrieve(char *);
+  char *retrieve(const char *);
   double compute_equal(int);
-  double compute_equal(char *);
+  double compute_equal(const std::string &);
   void compute_atom(int, int, double *, int, int);
   int compute_vector(int, double **);
   void internal_set(int, double);
@@ -48,11 +49,17 @@ class Variable : protected Pointers {
   tagint int_between_brackets(char *&, int);
   double evaluate_boolean(char *);
 
+ public:
+  int nvar;                // # of defined variables
+  char **names;            // name of each variable
+
+  // must match "varstyles" array in info.cpp
+  enum{INDEX,LOOP,WORLD,UNIVERSE,ULOOP,STRING,GETENV,
+     SCALARFILE,ATOMFILE,FORMAT,EQUAL,ATOM,VECTOR,PYTHON,INTERNAL};
+
  private:
   int me;
-  int nvar;                // # of defined variables
   int maxvar;              // max # of variables following lists can hold
-  char **names;            // name of each variable
   int *style;              // style of each variable
   int *num;                // # of values for each variable
   int *which;              // next available value for each variable
@@ -92,9 +99,9 @@ class Variable : protected Pointers {
     Tree **extra;          // ptrs further down tree for nextra args
 
     Tree() :
-      array(NULL), iarray(NULL), barray(NULL),
+      array(nullptr), iarray(nullptr), barray(nullptr),
       selfalloc(0), ivalue1(0), ivalue2(0), nextra(0),
-      first(NULL), second(NULL), extra(NULL) {}
+      first(nullptr), second(nullptr), extra(nullptr) {}
   };
 
   int compute_python(int);
@@ -119,11 +126,10 @@ class Variable : protected Pointers {
                       Tree **, Tree **, int &, double *, int &);
   int is_atom_vector(char *);
   void atom_vector(char *, Tree **, Tree **, int &);
-  int is_constant(char *);
-  double constant(char *);
   int parse_args(char *, char **);
   char *find_next_comma(char *);
-  void print_var_error(const char *, int, const char *, int, int global=1);
+  void print_var_error(const std::string &, int, const std::string &,
+                       int, int global=1);
   void print_tree(Tree *, int);
 };
 

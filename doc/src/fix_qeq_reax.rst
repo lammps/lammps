@@ -1,13 +1,11 @@
 .. index:: fix qeq/reax
+.. index:: fix qeq/reax/kk
+.. index:: fix qeq/reax/omp
 
 fix qeq/reax command
 ====================
 
-fix qeq/reax/kk command
-=======================
-
-fix qeq/reax/omp command
-========================
+Accelerator Variants: *qeq/reax/kk*, *qeq/reax/omp*
 
 Syntax
 """"""
@@ -22,7 +20,14 @@ Syntax
 * cutlo,cuthi = lo and hi cutoff for Taper radius
 * tolerance = precision to which charges will be equilibrated
 * params = reax/c or a filename
-* args   = *dual* (optional)
+* one or more keywords or keyword/value pairs may be appended
+
+  .. parsed-literal::
+
+     keyword = *dual* or *maxiter*
+       *dual* = process S and T matrix in parallel (only for qeq/reax/omp)
+       *maxiter* N = limit the number of iterations to *N*
+
 
 Examples
 """"""""
@@ -30,7 +35,7 @@ Examples
 .. code-block:: LAMMPS
 
    fix 1 all qeq/reax 1 0.0 10.0 1.0e-6 reax/c
-   fix 1 all qeq/reax 1 0.0 10.0 1.0e-6 param.qeq
+   fix 1 all qeq/reax 1 0.0 10.0 1.0e-6 param.qeq maxiter 500
 
 Description
 """""""""""
@@ -71,7 +76,11 @@ The optional *dual* keyword allows to perform the optimization
 of the S and T matrices in parallel. This is only supported for
 the *qeq/reax/omp* style. Otherwise they are processed separately.
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+The optional *maxiter* keyword allows changing the max number
+of iterations in the linear solver. The default value is 200.
+
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  No global scalar or vector or per-atom
 quantities are stored by this fix for access by various :doc:`output commands <Howto_output>`.  No parameter of this fix can be used
@@ -81,23 +90,7 @@ This fix is invoked during :doc:`energy minimization <minimize>`.
 
 ----------
 
-Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
-functionally the same as the corresponding style without the suffix.
-They have been optimized to run faster, depending on your available
-hardware, as discussed on the :doc:`Speed packages <Speed_packages>` doc
-page.  The accelerated styles take the same arguments and should
-produce the same results, except for round-off and precision issues.
-
-These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
-USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` doc page for more info.
-
-You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
-:doc:`suffix <suffix>` command in your input script.
-
-See the :doc:`Speed packages <Speed_packages>` doc page for more
-instructions on how to use the accelerated styles effectively.
+.. include:: accel_styles.rst
 
 ----------
 
@@ -116,7 +109,10 @@ Related commands
 
 :doc:`pair_style reax/c <pair_reaxc>`
 
-**Default:** none
+Default
+"""""""
+
+maxiter 200
 
 ----------
 

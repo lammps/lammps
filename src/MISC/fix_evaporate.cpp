@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_evaporate.h"
-#include <mpi.h>
+
 #include <cstring>
 #include "atom.h"
 #include "atom_vec.h"
@@ -33,7 +33,7 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixEvaporate::FixEvaporate(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), idregion(NULL), list(NULL), mark(NULL), random(NULL)
+  Fix(lmp, narg, arg), idregion(nullptr), list(nullptr), mark(nullptr), random(nullptr)
 {
   if (narg < 7) error->all(FLERR,"Illegal fix evaporate command");
 
@@ -41,13 +41,11 @@ FixEvaporate::FixEvaporate(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   extscalar = 0;
 
-  nevery = force->inumeric(FLERR,arg[3]);
-  nflux = force->inumeric(FLERR,arg[4]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
+  nflux = utils::inumeric(FLERR,arg[4],false,lmp);
   iregion = domain->find_region(arg[5]);
-  int n = strlen(arg[5]) + 1;
-  idregion = new char[n];
-  strcpy(idregion,arg[5]);
-  int seed = force->inumeric(FLERR,arg[6]);
+  idregion = utils::strdup(arg[5]);
+  int seed = utils::inumeric(FLERR,arg[6],false,lmp);
 
   if (nevery <= 0 || nflux <= 0)
     error->all(FLERR,"Illegal fix evaporate command");
@@ -84,8 +82,8 @@ FixEvaporate::FixEvaporate(LAMMPS *lmp, int narg, char **arg) :
   ndeleted = 0;
 
   nmax = 0;
-  list = NULL;
-  mark = NULL;
+  list = nullptr;
+  mark = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -264,8 +262,8 @@ void FixEvaporate::pre_exchange()
       // if mol ID > 0, delete any atom in molecule and decrement counters
       // if mol ID == 0, delete single iatom
       // logic with ndeltopo is to count # of deleted bonds,angles,etc
-      // for atom->molecular = 1, do this for each deleted atom in molecule
-      // for atom->molecular = 2, use Molecule counts for just 1st atom in mol
+      // for atom->molecular = Atom::MOLECULAR, do this for each deleted atom in molecule
+      // for atom->molecular = Atom::TEMPLATE, use Molecule counts for just 1st atom in mol
 
       MPI_Allreduce(&me,&proc,1,MPI_INT,MPI_MAX,world);
       MPI_Bcast(&imolecule,1,MPI_LMP_TAGINT,proc,world);
@@ -275,7 +273,7 @@ void FixEvaporate::pre_exchange()
           mark[i] = 1;
           ndelone++;
 
-          if (molecular == 1) {
+          if (molecular == Atom::MOLECULAR) {
             if (atom->avec->bonds_allow) {
               if (force->newton_bond) ndeltopo[0] += atom->num_bond[i];
               else {
@@ -312,7 +310,7 @@ void FixEvaporate::pre_exchange()
               }
             }
 
-          } else if (molecular == 2) {
+          } else if (molecular == Atom::TEMPLATE) {
             if (molatom[i] == 0) {
               index = molindex[i];
               ndeltopo[0] += onemols[index]->nbonds;
@@ -376,7 +374,7 @@ void FixEvaporate::pre_exchange()
     atom->nimpropers -= all[3];
   }
 
-  if (ndel && atom->map_style) {
+  if (ndel && (atom->map_style != Atom::MAP_NONE)) {
     atom->nghost = 0;
     atom->map_init();
     atom->map_set();

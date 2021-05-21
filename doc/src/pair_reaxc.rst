@@ -1,13 +1,11 @@
 .. index:: pair_style reax/c
+.. index:: pair_style reax/c/kk
+.. index:: pair_style reax/c/omp
 
 pair_style reax/c command
 =========================
 
-pair_style reax/c/kk command
-============================
-
-pair_style reax/c/omp command
-=============================
+Accelerator Variants: *reax/c/kk*, *reax/c/omp*
 
 Syntax
 """"""
@@ -21,12 +19,13 @@ Syntax
 
   .. parsed-literal::
 
-     keyword = *checkqeq* or *lgvdw* or *safezone* or *mincap*
+     keyword = *checkqeq* or *lgvdw* or *safezone* or *mincap* or *minhbonds*
        *checkqeq* value = *yes* or *no* = whether or not to require qeq/reax fix
        *enobonds* value = *yes* or *no* = whether or not to tally energy of atoms with no bonds
        *lgvdw* value = *yes* or *no* = whether or not to use a low gradient vdW correction
        *safezone* = factor used for array allocation
        *mincap* = minimum size for array allocation
+       *minhbonds* = minimum size use for storing hydrogen bonds
 
 Examples
 """"""""
@@ -93,13 +92,11 @@ tested).
    create a suitable ReaxFF parameterization.
 
 The *cfile* setting can be specified as NULL, in which case default
-settings are used. A control file can be specified which defines
-values of control variables. Some control variables are
-global parameters for the ReaxFF potential. Others define certain
-performance and output settings.
-Each line in the control file specifies the value for
-a control variable.  The format of the control file is described
-below.
+settings are used. A control file can be specified which defines values
+of control variables. Some control variables are global parameters for
+the ReaxFF potential. Others define certain performance and output
+settings.  Each line in the control file specifies the value for a
+control variable.  The format of the control file is described below.
 
 .. note::
 
@@ -146,11 +143,11 @@ zero.  The latter behavior is usual not desired, as it causes
 discontinuities in the potential energy when the bonding of an atom
 drops to zero.
 
-Optional keywords *safezone* and *mincap* are used for allocating
-reax/c arrays.  Increasing these values can avoid memory problems,
-such as segmentation faults and bondchk failed errors, that could
-occur under certain conditions. These keywords are not used by the
-Kokkos version, which instead uses a more robust memory allocation
+Optional keywords *safezone*\ , *mincap*\ , and *minhbonds* are used
+for allocating reax/c arrays.  Increasing these values can avoid memory
+problems, such as segmentation faults and bondchk failed errors, that
+could occur under certain conditions. These keywords are not used by
+the Kokkos version, which instead uses a more robust memory allocation
 scheme that checks if the sizes of the arrays have been exceeded and
 automatically allocates more memory.
 
@@ -225,7 +222,10 @@ H, you would use the following pair_coeff command:
 
    pair_coeff * * ffield.reax C C N H
 
-----------
+-------------
+
+Control file
+""""""""""""
 
 The format of a line in the control file is as follows:
 
@@ -239,64 +239,78 @@ If the value of a control variable is not specified, then default
 values are used.  What follows is the list of variables along with a
 brief description of their use and default values.
 
-simulation_name: Output files produced by *pair_style reax/c* carry
-this name + extensions specific to their contents.  Partial energies
-are reported with a ".pot" extension, while the trajectory file has
-".trj" extension.
 
-tabulate_long_range: To improve performance, long range interactions
-can optionally be tabulated (0 means no tabulation). Value of this
-variable denotes the size of the long range interaction table.  The
-range from 0 to long range cutoff (defined in the *ffield* file) is
-divided into *tabulate_long_range* points.  Then at the start of
-simulation, we fill in the entries of the long range interaction table
-by computing the energies and forces resulting from van der Waals and
-Coulomb interactions between every possible atom type pairs present in
-the input system.  During the simulation we consult to the long range
-interaction table to estimate the energy and forces between a pair of
-atoms. Linear interpolation is used for estimation. (default value =
-0)
+*simulation_name*
+   Output files produced by *pair_style reax/c* carry
+   this name + extensions specific to their contents.  Partial energies
+   are reported with a ".pot" extension, while the trajectory file has
+   ".trj" extension.
 
-energy_update_freq: Denotes the frequency (in number of steps) of
-writes into the partial energies file. (default value = 0)
+*tabulate_long_range*
+   To improve performance, long range interactions can optionally be
+   tabulated (0 means no tabulation). Value of this variable denotes the
+   size of the long range interaction table.  The range from 0 to long
+   range cutoff (defined in the *ffield* file) is divided into
+   *tabulate_long_range* points.  Then at the start of simulation, we
+   fill in the entries of the long range interaction table by computing
+   the energies and forces resulting from van der Waals and Coulomb
+   interactions between every possible atom type pairs present in the
+   input system.  During the simulation we consult to the long range
+   interaction table to estimate the energy and forces between a pair of
+   atoms. Linear interpolation is used for estimation. (default value = 0)
 
-nbrhood_cutoff: Denotes the near neighbors cutoff (in Angstroms)
-regarding the bonded interactions. (default value = 5.0)
+*energy_update_freq*
+   Denotes the frequency (in number of steps) of writes into the partial
+   energies file. (default value = 0)
 
-hbond_cutoff: Denotes the cutoff distance (in Angstroms) for hydrogen
-bond interactions.(default value = 7.5. A value of 0.0 turns off
-hydrogen bonds)
+*nbrhood_cutoff*
+   Denotes the near neighbors cutoff (in Angstroms)
+   regarding the bonded interactions. (default value = 5.0)
 
-bond_graph_cutoff: is the threshold used in determining what is a
-physical bond, what is not. Bonds and angles reported in the
-trajectory file rely on this cutoff. (default value = 0.3)
+*hbond_cutoff*
+   Denotes the cutoff distance (in Angstroms) for hydrogen
+   bond interactions.(default value = 7.5. A value of 0.0 turns off
+   hydrogen bonds)
 
-thb_cutoff: cutoff value for the strength of bonds to be considered in
-three body interactions. (default value = 0.001)
+*bond_graph_cutoff*
+   is the threshold used in determining what is a
+   physical bond, what is not. Bonds and angles reported in the
+   trajectory file rely on this cutoff. (default value = 0.3)
 
-thb_cutoff_sq: cutoff value for the strength of bond order products
-to be considered in three body interactions. (default value = 0.00001)
+*thb_cutoff*
+   cutoff value for the strength of bonds to be considered in
+   three body interactions. (default value = 0.001)
 
-write_freq: Frequency of writes into the trajectory file. (default
-value = 0)
+*thb_cutoff_sq*
+   cutoff value for the strength of bond order products
+   to be considered in three body interactions. (default value = 0.00001)
 
-traj_title: Title of the trajectory - not the name of the trajectory
-file.
+*write_freq*
+   Frequency of writes into the trajectory file. (default
+   value = 0)
 
-atom_info: 1 means print only atomic positions + charge (default = 0)
+*traj_title*
+   Title of the trajectory - not the name of the trajectory file.
 
-atom_forces: 1 adds net forces to atom lines in the trajectory file
-(default = 0)
+*atom_info*
+   1 means print only atomic positions + charge (default = 0)
 
-atom_velocities: 1 adds atomic velocities to atoms line (default = 0)
+*atom_forces*
+   1 adds net forces to atom lines in the trajectory file (default = 0)
 
-bond_info: 1 prints bonds in the trajectory file (default = 0)
+*atom_velocities*
+   1 adds atomic velocities to atoms line (default = 0)
 
-angle_info: 1 prints angles in the trajectory file (default = 0)
+*bond_info*
+   1 prints bonds in the trajectory file (default = 0)
+
+*angle_info*
+   1 prints angles in the trajectory file (default = 0)
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This pair style does not support the :doc:`pair_modify <pair_modify>`
 mix, shift, table, and tail options.
@@ -311,23 +325,7 @@ This pair style can only be used via the *pair* keyword of the
 
 ----------
 
-Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
-functionally the same as the corresponding style without the suffix.
-They have been optimized to run faster, depending on your available
-hardware, as discussed on the :doc:`Speed packages <Speed_packages>` doc
-page.  The accelerated styles take the same arguments and should
-produce the same results, except for round-off and precision issues.
-
-These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
-USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` doc page for more info.
-
-You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
-:doc:`suffix <suffix>` command in your input script.
-
-See the :doc:`Speed packages <Speed_packages>` doc page for more
-instructions on how to use the accelerated styles effectively.
+.. include:: accel_styles.rst
 
 ----------
 
@@ -352,7 +350,7 @@ Default
 """""""
 
 The keyword defaults are checkqeq = yes, enobonds = yes, lgvdw = no,
-safezone = 1.2, mincap = 50.
+safezone = 1.2, mincap = 50, minhbonds = 25.
 
 ----------
 

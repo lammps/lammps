@@ -37,7 +37,7 @@ and the relative shape anisotropy, k:
  b = & l_y - l_x \\
  k = & \frac{3}{2} \frac{l_x^2+l_y^2+l_z^2}{(l_x+l_y+l_z)^2} - \frac{1}{2}
 
-where :math:`l_x` <= :math:`l_y` <= :math`l_z` are the three eigenvalues of the gyration tensor. A general description
+where :math:`l_x` <= :math:`l_y` <= :math:`l_z` are the three eigenvalues of the gyration tensor. A general description
 of these parameters is provided in :ref:`(Mattice) <Mattice2>` while an application to polymer systems
 can be found in :ref:`(Theodorou) <Theodorou2>`. The asphericity  is always non-negative and zero
 only when the three principal moments are equal. This zero condition is met when the distribution
@@ -64,7 +64,8 @@ The tensor keyword must be specified in the compute gyration/chunk command.
    atom.  You can reset the image flags (e.g. to 0) before invoking this
    compute by using the :doc:`set image <set>` command.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global array with six columns,
 which can be accessed by indices 1-6. The first three columns are the
@@ -89,7 +90,10 @@ Related commands
 :doc:`compute gyration/chunk <compute_gyration_chunk>`
 :doc:`compute gyration/shape <compute_gyration_shape>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

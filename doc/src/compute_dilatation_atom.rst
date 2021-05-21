@@ -43,7 +43,8 @@ This command can only be used with a subset of the Peridynamic :doc:`pair styles
 The dilatation value will be 0.0 for atoms not in the specified
 compute group.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a per-atom vector, which can be accessed by
 any command that uses per-atom values from a compute as input.  See
@@ -64,4 +65,7 @@ Related commands
 :doc:`compute damage/atom <compute_damage_atom>`,
 :doc:`compute plasticity/atom <compute_plasticity_atom>`
 
-**Default:** none
+Default
+"""""""
+
+none

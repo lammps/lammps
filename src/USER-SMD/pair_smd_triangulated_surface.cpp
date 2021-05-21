@@ -11,7 +11,7 @@
 
 /* ----------------------------------------------------------------------
  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
- http://lammps.sandia.gov, Sandia National Laboratories
+ https://lammps.sandia.gov/, Sandia National Laboratories
  Steve Plimpton, sjplimp@sandia.gov
 
  Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -27,9 +27,9 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_smd_triangulated_surface.h"
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include <Eigen/Eigen>
 #include "atom.h"
@@ -42,6 +42,7 @@
 #include "memory.h"
 #include "error.h"
 
+
 using namespace std;
 using namespace LAMMPS_NS;
 using namespace Eigen;
@@ -53,9 +54,9 @@ using namespace Eigen;
 PairTriSurf::PairTriSurf(LAMMPS *lmp) :
                 Pair(lmp) {
 
-        onerad_dynamic = onerad_frozen = maxrad_dynamic = maxrad_frozen = NULL;
-        bulkmodulus = NULL;
-        kn = NULL;
+        onerad_dynamic = onerad_frozen = maxrad_dynamic = maxrad_frozen = nullptr;
+        bulkmodulus = nullptr;
+        kn = nullptr;
         scale = 1.0;
 }
 
@@ -321,7 +322,7 @@ void PairTriSurf::settings(int narg, char **arg) {
         if (narg != 1)
                 error->all(FLERR, "Illegal number of args for pair_style smd/tri_surface");
 
-        scale = force->numeric(FLERR, arg[0]);
+        scale = utils::numeric(FLERR, arg[0],false,lmp);
         if (comm->me == 0) {
                 printf("\n>>========>>========>>========>>========>>========>>========>>========>>========\n");
                 printf("SMD/TRI_SURFACE CONTACT SETTINGS:\n");
@@ -342,8 +343,8 @@ void PairTriSurf::coeff(int narg, char **arg) {
                 allocate();
 
         int ilo, ihi, jlo, jhi;
-        force->bounds(FLERR,arg[0], atom->ntypes, ilo, ihi);
-        force->bounds(FLERR,arg[1], atom->ntypes, jlo, jhi);
+        utils::bounds(FLERR,arg[0], 1,atom->ntypes, ilo, ihi, error);
+        utils::bounds(FLERR,arg[1], 1,atom->ntypes, jlo, jhi, error);
 
         double bulkmodulus_one = atof(arg[2]);
 
@@ -516,7 +517,7 @@ double PairTriSurf::memory_usage() {
  % The algorithm is based on
  % "David Eberly, 'Distance Between Point and Triangle in 3D',
  % Geometric Tools, LLC, (1999)"
- % http:\\www.geometrictools.com/Documentation/DistancePoint3Triangle3.pdf
+ % https://www.geometrictools.com/Documentation/DistancePoint3Triangle3.pdf
  %
  %        ^t
  %  \     |
@@ -738,7 +739,7 @@ double PairTriSurf::memory_usage() {
  * % The algorithm is based on
  % "David Eberly, 'Distance Between Point and Triangle in 3D',
  % Geometric Tools, LLC, (1999)"
- % http:\\www.geometrictools.com/Documentation/DistancePoint3Triangle3.pdf
+ % https://www.geometrictools.com/Documentation/DistancePoint3Triangle3.pdf
  */
 
 void PairTriSurf::PointTriangleDistance(const Vector3d sourcePosition, const Vector3d TRI0, const Vector3d TRI1,
@@ -832,6 +833,6 @@ void *PairTriSurf::extract(const char *str, int &/*i*/) {
                 return (void *) &stable_time_increment;
         }
 
-        return NULL;
+        return nullptr;
 
 }

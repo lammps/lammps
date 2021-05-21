@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,13 +16,16 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_python_invoke.h"
-#include <Python.h>   // IWYU pragma: keep
-#include <cstring>
-#include "force.h"
-#include "update.h"
+
+#include "comm.h"
 #include "error.h"
 #include "lmppython.h"
 #include "python_compat.h"
+#include "python_utils.h"
+#include "update.h"
+
+#include <cstring>
+#include <Python.h>   // IWYU pragma: export
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -34,7 +37,7 @@ FixPythonInvoke::FixPythonInvoke(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg != 6) error->all(FLERR,"Illegal fix python/invoke command");
 
-  nevery = force->inumeric(FLERR,arg[3]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   if (nevery <= 0) error->all(FLERR,"Illegal fix python/invoke command");
 
   // ensure Python interpreter is initialized
@@ -49,24 +52,32 @@ FixPythonInvoke::FixPythonInvoke(LAMMPS *lmp, int narg, char **arg) :
   }
 
   // get Python function
-  PyGILState_STATE gstate = PyGILState_Ensure();
+  PyUtils::GIL lock;
 
-  PyObject * pyMain = PyImport_AddModule("__main__");
+  PyObject *pyMain = PyImport_AddModule("__main__");
 
   if (!pyMain) {
-    PyGILState_Release(gstate);
+    PyUtils::Print_Errors();
     error->all(FLERR,"Could not initialize embedded Python");
   }
 
-  char * fname = arg[5];
+  char *fname = arg[5];
   pFunc = PyObject_GetAttrString(pyMain, fname);
 
   if (!pFunc) {
-    PyGILState_Release(gstate);
+    PyUtils::Print_Errors();
     error->all(FLERR,"Could not find Python function");
   }
 
-  PyGILState_Release(gstate);
+  lmpPtr = PY_VOID_POINTER(lmp);
+}
+
+/* ---------------------------------------------------------------------- */
+
+FixPythonInvoke::~FixPythonInvoke()
+{
+  PyUtils::GIL lock;
+  Py_CLEAR(lmpPtr);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -80,15 +91,16 @@ int FixPythonInvoke::setmask()
 
 void FixPythonInvoke::end_of_step()
 {
-  PyGILState_STATE gstate = PyGILState_Ensure();
+  PyUtils::GIL lock;
 
-  PyObject * ptr = PY_VOID_POINTER(lmp);
-  PyObject * arglist = Py_BuildValue("(O)", ptr);
+  PyObject * result = PyObject_CallFunction((PyObject*)pFunc, (char *)"O", (PyObject*)lmpPtr);
 
-  PyObject * result = PyEval_CallObject((PyObject*)pFunc, arglist);
-  Py_DECREF(arglist);
+  if (!result) {
+    PyUtils::Print_Errors();
+    error->all(FLERR,"Fix python/invoke end_of_step() method failed");
+  }
 
-  PyGILState_Release(gstate);
+  Py_CLEAR(result);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -97,13 +109,15 @@ void FixPythonInvoke::post_force(int vflag)
 {
   if (update->ntimestep % nevery != 0) return;
 
-  PyGILState_STATE gstate = PyGILState_Ensure();
+  PyUtils::GIL lock;
+  char fmt[] = "Oi";
 
-  PyObject * ptr = PY_VOID_POINTER(lmp);
-  PyObject * arglist = Py_BuildValue("(Oi)", ptr, vflag);
+  PyObject * result = PyObject_CallFunction((PyObject*)pFunc, fmt, (PyObject*)lmpPtr, vflag);
 
-  PyObject * result = PyEval_CallObject((PyObject*)pFunc, arglist);
-  Py_DECREF(arglist);
+  if (!result) {
+    PyUtils::Print_Errors();
+    error->all(FLERR,"Fix python/invoke post_force() method failed");
+  }
 
-  PyGILState_Release(gstate);
+  Py_CLEAR(result);
 }

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,10 +15,13 @@
 #define LMP_MODIFY_H
 
 #include "pointers.h"
+
 #include <map>
-#include <string>
 
 namespace LAMMPS_NS {
+
+  class Compute;
+  class Fix;
 
 class Modify : protected Pointers {
   friend class Info;
@@ -27,11 +30,11 @@ class Modify : protected Pointers {
   friend class RespaOMP;
 
  public:
-  int nfix,maxfix;
   int n_initial_integrate,n_post_integrate,n_pre_exchange;
   int n_pre_neighbor,n_post_neighbor;
   int n_pre_force,n_pre_reverse,n_post_force;
-  int n_final_integrate,n_end_of_step,n_thermo_energy,n_thermo_energy_atom;
+  int n_final_integrate,n_end_of_step;
+  int n_energy_couple,n_energy_global,n_energy_atom;
   int n_initial_integrate_respa,n_post_integrate_respa;
   int n_pre_force_respa,n_post_force_respa,n_final_integrate_respa;
   int n_min_pre_exchange,n_min_pre_neighbor,n_min_post_neighbor;
@@ -41,11 +44,12 @@ class Modify : protected Pointers {
   int nfix_restart_global;   // stored fix global info from restart file
   int nfix_restart_peratom;  // stored fix peratom info from restart file
 
-  class Fix **fix;           // list of fixes
+  int nfix,maxfix;
+  Fix **fix;                 // list of fixes
   int *fmask;                // bit mask for when each fix is applied
 
-  int ncompute,maxcompute;   // list of computes
-  class Compute **compute;
+  int ncompute,maxcompute;
+  Compute **compute;         // list of computes
 
   Modify(class LAMMPS *);
   virtual ~Modify();
@@ -66,8 +70,9 @@ class Modify : protected Pointers {
   virtual void post_force(int);
   virtual void final_integrate();
   virtual void end_of_step();
-  virtual double thermo_energy();
-  virtual void thermo_energy_atom(int, double *);
+  virtual double energy_couple();
+  virtual double energy_global();
+  virtual void energy_atom(int, double *);
   virtual void post_run();
   virtual void create_attribute(int);
 
@@ -96,30 +101,37 @@ class Modify : protected Pointers {
   virtual int min_reset_ref();
 
   void add_fix(int, char **, int trysuffix=1);
+  void add_fix(const std::string &, int trysuffix=1);
+  void replace_fix(const char *, int, char **, int trysuffix=1);
+  void replace_fix(const std::string &, const std::string &, int trysuffix=1);
   void modify_fix(int, char **);
-  void delete_fix(const char *);
+  void delete_fix(const std::string &);
   void delete_fix(int);
-  int find_fix(const char *);
+  int find_fix(const std::string &);
   int find_fix_by_style(const char *);
-  int check_package(const char *);
-  int check_rigid_group_overlap(int);
-  int check_rigid_region_overlap(int, class Region *);
-  int check_rigid_list_overlap(int *);
 
   void add_compute(int, char **, int trysuffix=1);
+  void add_compute(const std::string &, int trysuffix=1);
   void modify_compute(int, char **);
-  void delete_compute(const char *);
-  int find_compute(const char *);
+  void delete_compute(const std::string &);
+  void delete_compute(int);
+  int find_compute(const std::string &);
+  int find_compute_by_style(const char *);
 
   void clearstep_compute();
   void addstep_compute(bigint);
   void addstep_compute_all(bigint);
 
+  int check_package(const char *);
+  int check_rigid_group_overlap(int);
+  int check_rigid_region_overlap(int, class Region *);
+  int check_rigid_list_overlap(int *);
+
   void write_restart(FILE *);
   int read_restart(FILE *);
   void restart_deallocate(int);
 
-  bigint memory_usage();
+  double memory_usage();
 
  protected:
 
@@ -128,8 +140,8 @@ class Modify : protected Pointers {
   int *list_initial_integrate,*list_post_integrate;
   int *list_pre_exchange,*list_pre_neighbor,*list_post_neighbor;
   int *list_pre_force,*list_pre_reverse,*list_post_force;
-  int *list_final_integrate,*list_end_of_step,*list_thermo_energy;
-  int *list_thermo_energy_atom;
+  int *list_final_integrate,*list_end_of_step;
+  int *list_energy_couple,*list_energy_global,*list_energy_atom;
   int *list_initial_integrate_respa,*list_post_integrate_respa;
   int *list_pre_force_respa,*list_post_force_respa;
   int *list_final_integrate_respa;
@@ -156,8 +168,9 @@ class Modify : protected Pointers {
 
   void list_init(int, int &, int *&);
   void list_init_end_of_step(int, int &, int *&);
-  void list_init_thermo_energy(int, int &, int *&);
-  void list_init_thermo_energy_atom(int &, int *&);
+  void list_init_energy_couple(int &, int *&);
+  void list_init_energy_global(int &, int *&);
+  void list_init_energy_atom(int &, int *&);
   void list_init_dofflag(int &, int *&);
   void list_init_compute();
 

@@ -45,6 +45,8 @@
 #ifndef KOKKOS_OPENMP_WORKGRAPHPOLICY_HPP
 #define KOKKOS_OPENMP_WORKGRAPHPOLICY_HPP
 
+#include <Kokkos_OpenMP.hpp>
+
 namespace Kokkos {
 namespace Impl {
 
@@ -52,7 +54,7 @@ template <class FunctorType, class... Traits>
 class ParallelFor<FunctorType, Kokkos::WorkGraphPolicy<Traits...>,
                   Kokkos::OpenMP> {
  private:
-  typedef Kokkos::WorkGraphPolicy<Traits...> Policy;
+  using Policy = Kokkos::WorkGraphPolicy<Traits...>;
 
   Policy m_policy;
   FunctorType m_functor;
@@ -72,11 +74,7 @@ class ParallelFor<FunctorType, Kokkos::WorkGraphPolicy<Traits...>,
 
  public:
   inline void execute() {
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-#pragma omp parallel num_threads(OpenMP::thread_pool_size())
-#else
 #pragma omp parallel num_threads(OpenMP::impl_thread_pool_size())
-#endif
     {
       // Spin until COMPLETED_TOKEN.
       // END_TOKEN indicates no work is currently available.

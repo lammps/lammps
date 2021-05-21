@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -28,7 +28,7 @@ class Integrate : protected Pointers {
   virtual void run(int) = 0;
   virtual void cleanup() {}
   virtual void reset_dt() {}
-  virtual bigint memory_usage() {return 0;}
+  virtual double memory_usage() {return 0;}
 
  protected:
   int eflag,vflag;                  // flags for energy/virial computation

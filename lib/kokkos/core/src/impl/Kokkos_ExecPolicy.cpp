@@ -43,6 +43,8 @@
 */
 
 #include <Kokkos_Core.hpp>
+#include <sstream>
+
 namespace Kokkos {
 namespace Impl {
 PerTeamValue::PerTeamValue(int arg) : value(arg) {}
@@ -54,6 +56,15 @@ Impl::PerTeamValue PerTeam(const int& arg) { return Impl::PerTeamValue(arg); }
 
 Impl::PerThreadValue PerThread(const int& arg) {
   return Impl::PerThreadValue(arg);
+}
+
+void team_policy_check_valid_storage_level_argument(int level) {
+  if (!(level == 0 || level == 1)) {
+    std::stringstream ss;
+    ss << "TeamPolicy::set_scratch_size(/*level*/ " << level
+       << ", ...) storage level argument must be 0 or 1 to be valid\n";
+    Impl::throw_runtime_exception(ss.str());
+  }
 }
 
 }  // namespace Kokkos

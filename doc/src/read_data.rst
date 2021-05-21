@@ -93,7 +93,8 @@ The use of the *fix* keyword is discussed below.
 
 ----------
 
-**Reading multiple data files**
+Reading multiple data files
+"""""""""""""""""""""""""""
 
 The read_data command can be used multiple times with the same or
 different data files to build up a complex system from components
@@ -107,11 +108,11 @@ command, after the third read_data command is used.
 The *add*\ , *offset*\ , *shift*\ , *extra*\ , and *group* keywords are
 useful in this context.
 
-If a simulation box does not yet exist, the *add* keyword
-cannot be used; the read_data command is being used for the first
-time.  If a simulation box does exist, due to using the
-:doc:`create_box <create_box>` command, or a previous read_data command,
-then the *add* keyword must be used.
+If a simulation box does not yet exist, the *add* keyword cannot be
+used; the read_data command is being used for the first time.  If a
+simulation box does exist, due to using the :doc:`create_box
+<create_box>` command, or a previous read_data command, then the *add*
+keyword must be used.
 
 .. note::
 
@@ -215,11 +216,15 @@ files you read.
 
 ----------
 
-**Format of a data file**
+Format of a data file
+"""""""""""""""""""""
 
 The structure of the data file is important, though many settings and
 sections are optional or can come in any order.  See the examples
 directory for sample data files for different problems.
+
+The file will be read line by line, but there is a limit of 254
+characters per line and characters beyond that limit will be ignored.
 
 A data file has a header and a body.  The header appears first.  The
 first line of the header is always skipped; it typically contains a
@@ -260,7 +265,8 @@ the 2 words in "Bond Coeffs", is not valid.
 
 ----------
 
-**Format of the header of a data file**
+Format of the header of a data file
+"""""""""""""""""""""""""""""""""""
 
 These are the recognized header keywords.  Header lines can come in
 any order.  The value(s) are read from the beginning of the line.
@@ -342,10 +348,11 @@ Similarly, the z dimension should be periodic if xz or yz is non-zero.
 LAMMPS does not require this periodicity, but you may lose atoms if
 this is not the case.
 
-Also note that if your simulation will tilt the box, e.g. via the :doc:`fix deform <fix_deform>` command, the simulation box must be setup to
-be triclinic, even if the tilt factors are initially 0.0.  You can
-also change an orthogonal box to a triclinic box or vice versa by
-using the :doc:`change box <change_box>` command with its *ortho* and
+Also note that if your simulation will tilt the box, e.g. via the
+:doc:`fix deform <fix_deform>` command, the simulation box must be setup
+to be triclinic, even if the tilt factors are initially 0.0.  You can
+also change an orthogonal box to a triclinic box or vice versa by using
+the :doc:`change box <change_box>` command with its *ortho* and
 *triclinic* options.
 
 For 2d simulations, the *zlo zhi* values should be set to bound the z
@@ -361,24 +368,53 @@ periodic remapping will be performed using simulation box bounds that
 are the union of the existing box and the box boundaries in the new
 data file.
 
+If the system is non-periodic (in a dimension), then an image flag for
+that direction has no meaning, since there cannot be periodic images
+without periodicity and the data file is therefore - technically speaking
+- invalid.  This situation would happen when a data file was written
+with periodic boundaries and then read back for non-periodic boundaries.
+Accepting a non-zero image flag can lead to unexpected results for any
+operations and computations in LAMMPS that internally use unwrapped
+coordinates (for example computing the center of mass of a group of
+atoms). Thus all non-zero image flags for non-periodic dimensions will
+be be reset to zero on reading the data file and LAMMPS will print a
+warning message, if that happens.  This is equivalent to wrapping atoms
+individually back into the principal unit cell in that direction.  This
+operation is equivalent to the behavior of the :doc:`change_box command
+<change_box>` when used to change periodicity.
+
+
+If those atoms with non-zero image flags are involved in bonded
+interactions, this reset can lead to undesired changes, when the image
+flag values differ between the atoms, i.e. the bonded interaction
+straddles domain boundaries.  For example a bond can become stretched
+across the unit cell if one of its atoms is wrapped to one side of the
+cell and the second atom to the other. In those cases the data file
+needs to be pre-processed externally to become valid again.  This can be
+done by first unwrapping coordinates and then wrapping entire molecules
+instead of individual atoms back into the principal simulation cell and
+finally expanding the cell dimensions in the non-periodic direction as
+needed, so that the image flag would be zero.
+
 .. note::
 
-   If the system is non-periodic (in a dimension), then all atoms
-   in the data file must have coordinates (in that dimension) that are
-   "greater than or equal to" the lo value and "less than or equal to"
-   the hi value.  If the non-periodic dimension is of style "fixed" (see
-   the :doc:`boundary <boundary>` command), then the atom coords must be
+   If the system is non-periodic (in a dimension), then all atoms in the
+   data file must have coordinates (in that dimension) that are "greater
+   than or equal to" the lo value and "less than or equal to" the hi
+   value.  If the non-periodic dimension is of style "fixed" (see the
+   :doc:`boundary <boundary>` command), then the atom coords must be
    strictly "less than" the hi value, due to the way LAMMPS assign atoms
    to processors.  Note that you should not make the lo/hi values
    radically smaller/larger than the extent of the atoms.  For example,
    if your atoms extend from 0 to 50, you should not specify the box
-   bounds as -10000 and 10000.  This is because LAMMPS uses the specified
-   box size to layout the 3d grid of processors.  A huge (mostly empty)
-   box will be sub-optimal for performance when using "fixed" boundary
+   bounds as -10000 and 10000 unless you also use the :doc:`processors
+   command <processors>`.  This is because LAMMPS uses the specified box
+   size to layout the 3d grid of processors.  A huge (mostly empty) box
+   will be sub-optimal for performance when using "fixed" boundary
    conditions (see the :doc:`boundary <boundary>` command).  When using
    "shrink-wrap" boundary conditions (see the :doc:`boundary <boundary>`
-   command), a huge (mostly empty) box may cause a parallel simulation to
-   lose atoms when LAMMPS shrink-wraps the box around the atoms.  The
+   command), a huge (mostly empty) box may cause a parallel simulation
+   to lose atoms when LAMMPS shrink-wraps the box around the atoms.  The
    read_data command will generate an error in this case.
 
 The "extra bond per atom" setting (angle, dihedral, improper) is only
@@ -432,7 +468,8 @@ are point particles.  See the discussion of ellipsoidflag and the
 
 ----------
 
-**Format of the body of a data file**
+Format of the body of a data file
+"""""""""""""""""""""""""""""""""
 
 These are the section keywords for the body of the file.
 
@@ -530,7 +567,7 @@ input script.
 
        ID = number of angle (1-Nangles)
        type = angle type (1-Nangletype)
-       atom1,atom2,atom3 = IDs of 1st,2nd,3rd atoms in angle
+       atom1,atom2,atom3 = IDs of 1st,2nd,3rd atom in angle
 
 example:
 
@@ -571,68 +608,69 @@ appended to it, which indicate which image of a periodic simulation
 box the atom is in.  These may be important to include for some kinds
 of analysis.
 
-+------------+---------------------------------------------------------------------------+
-| angle      | atom-ID molecule-ID atom-type x y z                                       |
-+------------+---------------------------------------------------------------------------+
-| atomic     | atom-ID atom-type x y z                                                   |
-+------------+---------------------------------------------------------------------------+
-| body       | atom-ID atom-type bodyflag mass x y z                                     |
-+------------+---------------------------------------------------------------------------+
-| bond       | atom-ID molecule-ID atom-type x y z                                       |
-+------------+---------------------------------------------------------------------------+
-| charge     | atom-ID atom-type q x y z                                                 |
-+------------+---------------------------------------------------------------------------+
-| dipole     | atom-ID atom-type q x y z mux muy muz                                     |
-+------------+---------------------------------------------------------------------------+
-| dpd        | atom-ID atom-type theta x y z                                             |
-+------------+---------------------------------------------------------------------------+
-| edpd       | atom-ID atom-type edpd_temp edpd_cv x y z                                 |
-+------------+---------------------------------------------------------------------------+
-| mdpd       | atom-ID atom-type rho x y z                                               |
-+------------+---------------------------------------------------------------------------+
-| tdpd       | atom-ID atom-type x y z cc1 cc2 ... ccNspecies                            |
-+------------+---------------------------------------------------------------------------+
-| electron   | atom-ID atom-type q spin eradius x y z                                    |
-+------------+---------------------------------------------------------------------------+
-| ellipsoid  | atom-ID atom-type ellipsoidflag density x y z                             |
-+------------+---------------------------------------------------------------------------+
-| full       | atom-ID molecule-ID atom-type q x y z                                     |
-+------------+---------------------------------------------------------------------------+
-| line       | atom-ID molecule-ID atom-type lineflag density x y z                      |
-+------------+---------------------------------------------------------------------------+
-| meso       | atom-ID atom-type rho e cv x y z                                          |
-+------------+---------------------------------------------------------------------------+
-| molecular  | atom-ID molecule-ID atom-type x y z                                       |
-+------------+---------------------------------------------------------------------------+
-| peri       | atom-ID atom-type volume density x y z                                    |
-+------------+---------------------------------------------------------------------------+
-| smd        | atom-ID atom-type molecule volume mass kernel-radius contact-radius x y z |
-+------------+---------------------------------------------------------------------------+
-| sphere     | atom-ID atom-type diameter density x y z                                  |
-+------------+---------------------------------------------------------------------------+
-| spin       | atom-ID atom-type sp x y z spx spy spz                                    |
-+------------+---------------------------------------------------------------------------+
-| template   | atom-ID molecule-ID template-index template-atom atom-type x y z          |
-+------------+---------------------------------------------------------------------------+
-| tri        | atom-ID molecule-ID atom-type triangleflag density x y z                  |
-+------------+---------------------------------------------------------------------------+
-| wavepacket | atom-ID atom-type charge spin eradius etag cs_re cs_im x y z              |
-+------------+---------------------------------------------------------------------------+
-| hybrid     | atom-ID atom-type x y z sub-style1 sub-style2 ...                         |
-+------------+---------------------------------------------------------------------------+
+.. list-table::
+
+   * - angle
+     - atom-ID molecule-ID atom-type x y z
+   * - atomic
+     - atom-ID atom-type x y z
+   * - body
+     - atom-ID atom-type bodyflag mass x y z
+   * - bond
+     - atom-ID molecule-ID atom-type x y z
+   * - charge
+     - atom-type q x y z
+   * - dipole
+     - atom-ID atom-type q x y z mux muy muz
+   * - dpd
+     - atom-ID atom-type theta x y z
+   * - edpd
+     - atom-ID atom-type edpd_temp edpd_cv x y z
+   * - electron
+     - atom-ID atom-type q spin eradius x y z
+   * - ellipsoid
+     - atom-ID atom-type ellipsoidflag density x y z
+   * - full
+     - atom-ID molecule-ID atom-type q x y z
+   * - line
+     - atom-ID molecule-ID atom-type lineflag density x y z
+   * - mdpd
+     - atom-ID atom-type rho x y z
+   * - molecular
+     - atom-ID molecule-ID atom-type x y z
+   * - peri
+     - atom-ID atom-type volume density x y z
+   * - smd
+     - atom-ID atom-type molecule volume mass kernel-radius contact-radius x0 y0 z0 x y z
+   * - sph
+     - atom-ID atom-type rho esph cv x y z
+   * - sphere
+     - atom-ID atom-type diameter density x y z
+   * - spin
+     - atom-ID atom-type x y z spx spy spz sp
+   * - tdpd
+     - atom-ID atom-type x y z cc1 cc2 ... ccNspecies
+   * - template
+     - atom-ID atom-type molecule-ID template-index template-atom x y z
+   * - tri
+     - atom-ID molecule-ID atom-type triangleflag density x y z
+   * - wavepacket
+     - atom-ID atom-type charge spin eradius etag cs_re cs_im x y z
+   * - hybrid
+     - atom-ID atom-type x y z sub-style1 sub-style2 ...
 
 The per-atom values have these meanings and units, listed alphabetically:
 
 * atom-ID = integer ID of atom
 * atom-type = type of atom (1-Ntype)
 * bodyflag = 1 for body particles, 0 for point particles
-* cc = chemical concentration for tDPD particles for each species (mole/volume units)
+* ccN = chemical concentration for tDPD particles for each species (mole/volume units)
 * contact-radius = ??? (distance units)
 * cs_re,cs_im = real/imaginary parts of wave packet coefficients
 * cv = heat capacity (need units) for SPH particles
 * density = density of particle (mass/distance\^3 or mass/distance\^2 or mass/distance units, depending on dimensionality of particle)
 * diameter = diameter of spherical atom (distance units)
-* e = energy (need units) for SPH particles
+* esph = energy (need units) for SPH particles
 * edpd_temp = temperature for eDPD particles (temperature units)
 * edpd_cv = volumetric heat capacity for eDPD particles (energy/temperature/volume units)
 * ellipsoidflag = 1 for ellipsoidal particles, 0 for point particles
@@ -646,14 +684,15 @@ The per-atom values have these meanings and units, listed alphabetically:
 * q = charge on atom (charge units)
 * rho = density (need units) for SPH particles
 * spin = electron spin (+1/-1), 0 = nuclei, 2 = fixed-core, 3 = pseudo-cores (i.e. ECP)
-* sp = norm of magnetic spin of atom (in number of Bohr magnetons)
-* spx,spy,spz = components of magnetic spin of atom (adim normalized vector)
+* sp = magnitude of magnetic spin of atom (Bohr magnetons)
+* spx,spy,spz = components of magnetic spin of atom (unit vector)
 * template-atom = which atom within a template molecule the atom is
 * template-index = which molecule within the molecule template the atom is part of
 * theta = internal temperature of a DPD particle
 * triangleflag = 1 for triangular particles, 0 for point or spherical particles
 * volume = volume of Peridynamic particle (distance\^3 units)
 * x,y,z = coordinates of atom (distance units)
+* x0,y0,z0 = original (strain-free) coordinates of atom (distance units)
 
 The units for these quantities depend on the unit style; see the
 :doc:`units <units>` command for details.
@@ -671,7 +710,7 @@ not used (e.g. an atomic system with no bonds), and you don't care if
 unique atom IDs appear in dump files, then the atom-IDs can all be set
 to 0.
 
-The molecule ID is a 2nd identifier attached to an atom.  Normally, it
+The molecule ID is a second identifier attached to an atom.  Normally, it
 is a number from 1 to N, identifying which molecule the atom belongs
 to.  It can be 0 if it is a non-bonded atom or if you don't care to
 keep track of molecule assignments.
@@ -689,9 +728,9 @@ triangle, or body in the corresponding *Ellipsoids*\ , *Lines*\ ,
 The *template-index* and *template-atom* are only defined used by
 :doc:`atom_style template <atom_style>`.  In this case the
 :doc:`molecule <molecule>` command is used to define a molecule template
-which contains one or more molecules.  If an atom belongs to one of
-those molecules, its *template-index* and *template-atom* are both set
-to positive integers; if not the values are both 0.  The
+which contains one or more molecules (as separate files).  If an atom
+belongs to one of those molecules, its *template-index* and *template-atom*
+are both set to positive integers; if not the values are both 0.  The
 *template-index* is which molecule (1 to Nmols) the atom belongs to.
 The *template-atom* is which atom (1 to Natoms) within the molecule
 the atom is.
@@ -715,17 +754,18 @@ as spheres when converting density to mass.  However, they can also be
 modeled as 2d discs (circles) if the :doc:`set density/disc <set>`
 command is used to reset their mass after the read_data command is
 used.  A *disc* keyword can also be used with time integration fixes,
-such as :doc:`fix nve/sphere <fix_nve_sphere>` and :doc:`fix nvt/sphere <fix_nve_sphere>` to time integrate their motion as 2d
+such as :doc:`fix nve/sphere <fix_nve_sphere>` and :doc:`fix
+nvt/sphere <fix_nve_sphere>` to time integrate their motion as 2d
 discs (not 3d spheres), by changing their moment of inertia.
 
-For atom_style hybrid, following the 5 initial values (ID,type,x,y,z),
-specific values for each sub-style must be listed.  The order of the
-sub-styles is the same as they were listed in the
-:doc:`atom_style <atom_style>` command.  The sub-style specific values
-are those that are not the 5 standard ones (ID,type,x,y,z).  For
-example, for the "charge" sub-style, a "q" value would appear.  For
-the "full" sub-style, a "molecule-ID" and "q" would appear.  These are
-listed in the same order they appear as listed above.  Thus if
+For atom\_style hybrid, following the 5 initial values
+(ID,type,x,y,z), specific values for each sub-style must be listed.
+The order of the sub-styles is the same as they were listed in the
+:doc:`atom_style <atom_style>` command.  The specific values for each
+sub-style are those that are not the 5 standard ones (ID,type,x,y,z).
+For example, for the "charge" sub-style, a "q" value would appear.
+For the "full" sub-style, a "molecule-ID" and "q" would appear.  These
+are listed in the same order they appear as listed above.  Thus if
 
 .. parsed-literal::
 
@@ -738,12 +778,14 @@ were used in the input script, each atom line would have these fields:
    atom-ID atom-type x y z q diameter density
 
 Note that if a non-standard value is defined by multiple sub-styles,
-it must appear multiple times in the atom line.  E.g. the atom line
-for atom_style hybrid dipole full would list "q" twice:
+it only appears once in the atom line.  E.g. the atom line for
+atom_style hybrid dipole full would list "q" only once, with the
+dipole sub-style fields; "q" does not appear with the full sub-style
+fields.
 
 .. parsed-literal::
 
-   atom-ID atom-type x y z q mux muy myz molecule-ID q
+   atom-ID atom-type x y z q mux muy myz molecule-ID
 
 Atom lines specify the (x,y,z) coordinates of atoms.  These can be
 inside or outside the simulation box.  When the data file is read,
@@ -923,7 +965,7 @@ script.
 
        ID = bond number (1-Nbonds)
        type = bond type (1-Nbondtype)
-       atom1,atom2 = IDs of 1st,2nd atoms in bond
+       atom1,atom2 = IDs of 1st,2nd atom in bond
 
 * example:
 
@@ -969,7 +1011,7 @@ Coefficients can also be set via the
 
        ID = number of dihedral (1-Ndihedrals)
        type = dihedral type (1-Ndihedraltype)
-       atom1,atom2,atom3,atom4 = IDs of 1st,2nd,3rd,4th atoms in dihedral
+       atom1,atom2,atom3,atom4 = IDs of 1st,2nd,3rd,4th atom in dihedral
 
 * example:
 
@@ -1070,7 +1112,7 @@ Coefficients can also be set via the
 
        ID = number of improper (1-Nimpropers)
        type = improper type (1-Nimpropertype)
-       atom1,atom2,atom3,atom4 = IDs of 1st,2nd,3rd,4th atoms in improper
+       atom1,atom2,atom3,atom4 = IDs of 1st,2nd,3rd,4th atom in improper
 
 * example:
 
@@ -1176,9 +1218,9 @@ pair style.  See the :doc:`pair_style <pair_style>` and
 :doc:`pair_coeff <pair_coeff>` commands for details.  Since pair
 coefficients for types I != J are not specified, these will be
 generated automatically by the pair style's mixing rule.  See the
-individual pair_style doc pages and the :doc:`pair_modify mix <pair_modify>` command for details.  Pair coefficients can also
-be set via the :doc:`pair_coeff <pair_coeff>` command in the input
-script.
+individual pair_style doc pages and the :doc:`pair_modify mix
+<pair_modify>` command for details.  Pair coefficients can also be set
+via the :doc:`pair_coeff <pair_coeff>` command in the input script.
 
 ----------
 
@@ -1200,15 +1242,15 @@ script.
        3 3 0.022 2.35197 0.022 2.35197
        3 5 0.022 2.35197 0.022 2.35197
 
-This section must have N\*(N+1)/2 lines where N = # of atom types.  The
-number and meaning of the coefficients are specific to the defined
+This section must have N\*(N+1)/2 lines where N = # of atom types.
+The number and meaning of the coefficients are specific to the defined
 pair style.  See the :doc:`pair_style <pair_style>` and
 :doc:`pair_coeff <pair_coeff>` commands for details.  Since pair
 coefficients for types I != J are all specified, these values will
 turn off the default mixing rule defined by the pair style.  See the
-individual pair_style doc pages and the :doc:`pair_modify mix <pair_modify>` command for details.  Pair coefficients can also
-be set via the :doc:`pair_coeff <pair_coeff>` command in the input
-script.
+individual pair_style doc pages and the :doc:`pair_modify mix
+<pair_modify>` command for details.  Pair coefficients can also be set
+via the :doc:`pair_coeff <pair_coeff>` command in the input script.
 
 ----------
 

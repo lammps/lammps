@@ -43,17 +43,17 @@ Doc page with :doc:`ERROR messages <Errors_messages>`
    Self-explanatory.
 
 *Bond atom missing in box size check*
-   The 2nd atoms needed to compute a particular bond is missing on this
+   The second atom needed to compute a particular bond is missing on this
    processor.  Typically this is because the pairwise cutoff is set too
    short or the bond has blown apart and an atom is too far away.
 
 *Bond atom missing in image check*
-   The 2nd atom in a particular bond is missing on this processor.
+   The second atom in a particular bond is missing on this processor.
    Typically this is because the pairwise cutoff is set too short or the
    bond has blown apart and an atom is too far away.
 
 *Bond atoms missing at step %ld*
-   The 2nd atom needed to compute a particular bond is missing on this
+   The second atom needed to compute a particular bond is missing on this
    processor.  Typically this is because the pairwise cutoff is set too
    short or the bond has blown apart and an atom is too far away.
 
@@ -117,6 +117,23 @@ Doc page with :doc:`ERROR messages <Errors_messages>`
    to 0.0, no ghost atoms will be generated and LAMMPS may lose atoms or use
    incorrect periodic images of atoms in interaction lists.  To avoid, either use
    :doc:`pair style zero <pair_zero>` with a suitable cutoff or use :doc:`comm_modify cutoff <comm_modify>`.
+
+*Communication cutoff is shorter than a bond length based estimate. This may lead to errors.*
+   Since LAMMPS stores topology data with individual atoms, all atoms
+   comprising a bond, angle, dihedral or improper must be present on any
+   sub-domain that "owns" the atom with the information, either as a
+   local or a ghost atom. The communication cutoff is what determines up
+   to what distance from a sub-domain boundary ghost atoms are created.
+   The communication cutoff is by default the largest non-bonded cutoff
+   plus the neighbor skin distance, but for short or non-bonded cutoffs
+   and/or long bonds, this may not be sufficient. This warning indicates
+   that there is an increased risk of a simulation stopping unexpectedly
+   because of Bond/Angle/Dihedral/Improper atoms missing.  It can be
+   silenced by manually setting the communication cutoff via
+   :doc:`comm_modify cutoff <comm_modify>`.  However, since the
+   heuristic used to determine the estimate is not always accurate, it
+   is not changed automatically and the warning may be ignored depending
+   on the specific system being simulated.
 
 *Communication cutoff is too small for SNAP micro load balancing, increased to %lf*
    Self-explanatory.
@@ -486,7 +503,7 @@ This will most likely cause errors in kinetic fluctuations.
    a new style.
 
 *No Kspace calculation with verlet/split*
-   The 2nd partition performs a kspace calculation so the kspace_style
+   The second partition performs a kspace calculation so the kspace_style
    command must be used.
 
 *No automatic unit conversion to XTC file format conventions possible for units lj*

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,12 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include "remap_kokkos.h"
-#include "pack_kokkos.h"
+
 #include "error.h"
+#include "pack_kokkos.h"
 
 using namespace LAMMPS_NS;
 
@@ -28,7 +26,7 @@ using namespace LAMMPS_NS;
 template<class DeviceType>
 RemapKokkos<DeviceType>::RemapKokkos(LAMMPS *lmp) : Pointers(lmp)
 {
-  plan = NULL;
+  plan = nullptr;
 }
 
 template<class DeviceType>
@@ -38,13 +36,15 @@ RemapKokkos<DeviceType>::RemapKokkos(LAMMPS *lmp, MPI_Comm comm,
              int out_ilo, int out_ihi, int out_jlo, int out_jhi,
              int out_klo, int out_khi,
              int nqty, int permute, int memory,
-             int precision, int usecollective) : Pointers(lmp)
+             int precision, int usecollective,
+             int usecuda_aware) : Pointers(lmp)
 {
   plan = remap_3d_create_plan_kokkos(comm,
                               in_ilo,in_ihi,in_jlo,in_jhi,in_klo,in_khi,
                               out_ilo,out_ihi,out_jlo,out_jhi,out_klo,out_khi,
-                              nqty,permute,memory,precision,usecollective);
-  if (plan == NULL) error->one(FLERR,"Could not create 3d remap plan");
+                              nqty,permute,memory,precision,usecollective,
+                              usecuda_aware);
+  if (plan == nullptr) error->one(FLERR,"Could not create 3d remap plan");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -119,11 +119,23 @@ void RemapKokkos<DeviceType>::remap_3d_kokkos(typename FFT_AT::t_FFT_SCALAR_1d d
 
   // post all recvs into scratch space
 
+  FFT_SCALAR* v_scratch = d_scratch.data();
+  if (!plan->usecuda_aware) {
+    plan->h_scratch = Kokkos::create_mirror_view(d_scratch);
+    v_scratch = plan->h_scratch.data();
+  }
+
   for (irecv = 0; irecv < plan->nrecv; irecv++) {
-    FFT_SCALAR* scratch = d_scratch.data() + plan->recv_bufloc[irecv];
+    FFT_SCALAR* scratch = v_scratch + plan->recv_bufloc[irecv];
     MPI_Irecv(scratch,plan->recv_size[irecv],
               MPI_FFT_SCALAR,plan->recv_proc[irecv],0,
               plan->comm,&plan->request[irecv]);
+  }
+
+  FFT_SCALAR* v_sendbuf = plan->d_sendbuf.data();
+  if (!plan->usecuda_aware) {
+    plan->h_sendbuf = Kokkos::create_mirror_view(plan->d_sendbuf);
+    v_sendbuf = plan->h_sendbuf.data();
   }
 
   // send all messages to other procs
@@ -132,7 +144,11 @@ void RemapKokkos<DeviceType>::remap_3d_kokkos(typename FFT_AT::t_FFT_SCALAR_1d d
     int in_offset = plan->send_offset[isend];
     plan->pack(d_in,in_offset,
                plan->d_sendbuf,0,&plan->packplan[isend]);
-    MPI_Send(plan->d_sendbuf.data(),plan->send_size[isend],MPI_FFT_SCALAR,
+
+    if (!plan->usecuda_aware)
+      Kokkos::deep_copy(plan->h_sendbuf,plan->d_sendbuf);
+
+    MPI_Send(v_sendbuf,plan->send_size[isend],MPI_FFT_SCALAR,
              plan->send_proc[isend],0,plan->comm);
   }
 
@@ -160,6 +176,9 @@ void RemapKokkos<DeviceType>::remap_3d_kokkos(typename FFT_AT::t_FFT_SCALAR_1d d
 
     int scratch_offset = plan->recv_bufloc[irecv];
     int out_offset = plan->recv_offset[irecv];
+
+    if (!plan->usecuda_aware)
+      Kokkos::deep_copy(d_scratch,plan->h_scratch);
 
     plan->unpack(d_scratch,scratch_offset,
                  d_out,out_offset,&plan->unpackplan[irecv]);
@@ -189,6 +208,7 @@ void RemapKokkos<DeviceType>::remap_3d_kokkos(typename FFT_AT::t_FFT_SCALAR_1d d
                           1 = single precision (4 bytes per datum)
                           2 = double precision (8 bytes per datum)
    usecollective        whether to use collective MPI or point-to-point
+   usecuda_aware        whether to use CUDA-Aware MPI or not
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -198,7 +218,8 @@ struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_creat
   int in_klo, int in_khi,
   int out_ilo, int out_ihi, int out_jlo, int out_jhi,
   int out_klo, int out_khi,
-  int nqty, int permute, int memory, int precision, int usecollective)
+  int nqty, int permute, int memory, int /*precision*/,
+  int usecollective, int usecuda_aware)
 {
 
   struct remap_plan_3d_kokkos<DeviceType> *plan;
@@ -214,8 +235,9 @@ struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_creat
   // allocate memory for plan data struct
 
   plan = new struct remap_plan_3d_kokkos<DeviceType>;
-  if (plan == NULL) return NULL;
+  if (plan == nullptr) return nullptr;
   plan->usecollective = usecollective;
+  plan->usecuda_aware = usecuda_aware;
 
   // store parameters in local data structs
 
@@ -246,10 +268,10 @@ struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_creat
   // combine output extents across all procs
 
   inarray = (struct extent_3d *) malloc(nprocs*sizeof(struct extent_3d));
-  if (inarray == NULL) return NULL;
+  if (inarray == nullptr) return nullptr;
 
   outarray = (struct extent_3d *) malloc(nprocs*sizeof(struct extent_3d));
-  if (outarray == NULL) return NULL;
+  if (outarray == nullptr) return nullptr;
 
   MPI_Allgather(&out,sizeof(struct extent_3d),MPI_BYTE,
                 outarray,sizeof(struct extent_3d),MPI_BYTE,comm);
@@ -275,8 +297,8 @@ struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_creat
     plan->packplan = (struct pack_plan_3d *)
       malloc(nsend*sizeof(struct pack_plan_3d));
 
-    if (plan->send_offset == NULL || plan->send_size == NULL ||
-        plan->send_proc == NULL || plan->packplan == NULL) return NULL;
+    if (plan->send_offset == nullptr || plan->send_size == nullptr ||
+        plan->send_proc == nullptr || plan->packplan == nullptr) return nullptr;
   }
 
   // store send info, with self as last entry
@@ -357,9 +379,9 @@ struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_creat
     plan->unpackplan = (struct pack_plan_3d *)
       malloc(nrecv*sizeof(struct pack_plan_3d));
 
-    if (plan->recv_offset == NULL || plan->recv_size == NULL ||
-        plan->recv_proc == NULL || plan->recv_bufloc == NULL ||
-        plan->request == NULL || plan->unpackplan == NULL) return NULL;
+    if (plan->recv_offset == nullptr || plan->recv_size == nullptr ||
+        plan->recv_proc == nullptr || plan->recv_bufloc == nullptr ||
+        plan->request == nullptr || plan->unpackplan == nullptr) return nullptr;
   }
 
   // store recv info, with self as last entry
@@ -443,7 +465,7 @@ struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_creat
 
   if (size) {
     plan->d_sendbuf = typename FFT_AT::t_FFT_SCALAR_1d("remap3d:sendbuf",size);
-    if (!plan->d_sendbuf.data()) return NULL;
+    if (!plan->d_sendbuf.data()) return nullptr;
   }
 
   // if requested, allocate internal scratch space for recvs,
@@ -453,7 +475,7 @@ struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_creat
     if (nrecv > 0) {
       plan->d_scratch =
         typename FFT_AT::t_FFT_SCALAR_1d("remap3d:scratch",nqty*out.isize*out.jsize*out.ksize);
-      if (!plan->d_scratch.data()) return NULL;
+      if (!plan->d_scratch.data()) return nullptr;
     }
   }
 
@@ -473,7 +495,7 @@ struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_creat
 template<class DeviceType>
 void RemapKokkos<DeviceType>::remap_3d_destroy_plan_kokkos(struct remap_plan_3d_kokkos<DeviceType> *plan)
 {
-  if (plan == NULL) return;
+  if (plan == nullptr) return;
 
   // free MPI communicator
 
@@ -505,7 +527,7 @@ void RemapKokkos<DeviceType>::remap_3d_destroy_plan_kokkos(struct remap_plan_3d_
 
 namespace LAMMPS_NS {
 template class RemapKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class RemapKokkos<LMPHostType>;
 #endif
 }

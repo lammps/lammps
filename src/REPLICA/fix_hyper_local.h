@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -23,6 +23,8 @@ FixStyle(hyper/local,FixHyperLocal)
 #include "fix_hyper.h"
 
 namespace LAMMPS_NS {
+  // forward declaration. struct HyperOneCoeff is defined in my_page.h
+  struct HyperOneCoeff;
 
 class FixHyperLocal : public FixHyper {
  public:
@@ -72,9 +74,9 @@ class FixHyperLocal : public FixHyper {
   double cutbondsq,dcutsq;
   double beta,invvmax,invqfactorsq;
 
-  // DEBUG - 2 lines
-  int overcount;
-  double myboost;
+  // two DEBUG quantities
+  // double myboost;
+  // int overcount;
 
   // flags
 
@@ -95,14 +97,14 @@ class FixHyperLocal : public FixHyper {
   double time_bondbuild;     // CPU time for bond builds
 
   bigint allbonds;           // current total # of bonds
-  int nnewbond;              // running tally of # of new bonds created
   int maxbondperatom;        // max # of bonds any atom ever has
   int nevent;                // # of events that trigger bond rebuild
   int nevent_atom;           // # of atoms that experienced an event
 
-  int nbias_running;         // running count of biased bonds
-  int nobias_running;        // ditto for bonds with bias = 0, b/c too long
-  int negstrain_running;     // ditto for bonds with negative strain
+  bigint nnewbond;           // running tally of # of new bonds created
+  bigint nbias_running;      // running count of biased bonds
+  bigint nobias_running;     // ditto for bonds with bias = 0, b/c too long
+  bigint negstrain_running;  // ditto for bonds with negative strain
 
   double mybias;             // sum of bias potentials for biased bonds
   double maxbondlen;         // cummulative max length of any bond
@@ -183,13 +185,8 @@ class FixHyperLocal : public FixHyper {
 
   // data structs for persisting bias coeffs when bond list is reformed
 
-  struct OneCoeff {
-    double biascoeff;
-    tagint tag;
-  };
-
-  MyPage<OneCoeff> *cpage;     // pages of OneCoeff datums for clist
-  OneCoeff **clist;            // ptrs to vectors of bias coeffs for each atom
+  MyPage<HyperOneCoeff> *cpage;// pages of OneCoeff datums for clist
+  HyperOneCoeff **clist;       // ptrs to vectors of bias coeffs for each atom
   int *numcoeff;               // # of bias coeffs per atom (one per bond)
   int maxcoeff;                // allocate sized of clist and numcoeff
 

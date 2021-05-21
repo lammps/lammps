@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
- http://lammps.sandia.gov, Sandia National Laboratories
+ https://lammps.sandia.gov/, Sandia National Laboratories
  Steve Plimpton, sjplimp@sandia.gov
 
  Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -20,15 +20,16 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_mdpd_rhosum.h"
-#include <cmath>
+
 #include "atom.h"
-#include "force.h"
 #include "comm.h"
+#include "error.h"
+#include "memory.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "memory.h"
-#include "error.h"
 #include "neighbor.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -196,10 +197,10 @@ void PairMDPDRhoSum::coeff(int narg, char **arg) {
     allocate();
 
   int ilo, ihi, jlo, jhi;
-  force->bounds(FLERR,arg[0], atom->ntypes, ilo, ihi);
-  force->bounds(FLERR,arg[1], atom->ntypes, jlo, jhi);
+  utils::bounds(FLERR,arg[0], 1, atom->ntypes, ilo, ihi, error);
+  utils::bounds(FLERR,arg[1], 1, atom->ntypes, jlo, jhi, error);
 
-  double cut_one = force->numeric(FLERR,arg[2]);
+  double cut_one = utils::numeric(FLERR,arg[2],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

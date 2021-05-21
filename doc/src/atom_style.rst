@@ -10,7 +10,7 @@ Syntax
 
    atom_style style args
 
-* style = *angle* or *atomic* or *body* or *bond* or *charge* or *dipole* or         *dpd* or *edpd* or *mdpd* or *tdpd* or *electron* or *ellipsoid* or         *full* or *line* or *meso* or *molecular* or *peri* or *smd* or         *sphere* or *spin* or *tri* or *template* or *hybrid*
+* style = *angle* or *atomic* or *body* or *bond* or *charge* or *dipole* or  *dpd* or *edpd* or *electron* or *ellipsoid* or *full* or *line* or *mdpd* or *molecular* or *peri* or *smd* or *sph* or *sphere* or *spin* or *tdpd* or *tri* or *template* or *hybrid*
 
   .. parsed-literal::
 
@@ -18,14 +18,16 @@ Syntax
          *body* args = bstyle bstyle-args
            bstyle = style of body particles
            bstyle-args = additional arguments specific to the bstyle
-                         see the :doc:`Howto body <Howto_body>` doc page for details
+                         see the :doc:`Howto body <Howto_body>` doc
+                         page for details
+         *sphere* arg = 0/1 (optional) for static/dynamic particle radii
          *tdpd* arg = Nspecies
            Nspecies = # of chemical species
          *template* arg = template-ID
            template-ID = ID of molecule template specified in a separate :doc:`molecule <molecule>` command
          *hybrid* args = list of one or more sub-styles, each with their args
 
-* accelerated styles (with same args) = *angle/kk* or *atomic/kk* or *bond/kk* or *charge/kk* or *full/kk* or *molecular/kk*
+* accelerated styles (with same args) = *angle/kk* or *atomic/kk* or *bond/kk* or *charge/kk* or *full/kk* or *molecular/kk* or *spin/kk*
 
 Examples
 """"""""
@@ -40,6 +42,7 @@ Examples
    atom_style hybrid charge body nparticle 2 5
    atom_style spin
    atom_style template myMols
+   atom_style hybrid template twomols charge
    atom_style tdpd 2
 
 Description
@@ -91,10 +94,6 @@ quantities.
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *edpd*       | temperature and heat capacity                       | eDPD particles                       |
 +--------------+-----------------------------------------------------+--------------------------------------+
-| *mdpd*       | density                                             | mDPD particles                       |
-+--------------+-----------------------------------------------------+--------------------------------------+
-| *tdpd*       | chemical concentration                              | tDPD particles                       |
-+--------------+-----------------------------------------------------+--------------------------------------+
 | *electron*   | charge and spin and eradius                         | electronic force field               |
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *ellipsoid*  | shape, quaternion, angular momentum                 | aspherical particles                 |
@@ -103,7 +102,9 @@ quantities.
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *line*       | end points, angular velocity                        | rigid bodies                         |
 +--------------+-----------------------------------------------------+--------------------------------------+
-| *meso*       | rho, e, cv                                          | SPH particles                        |
+| *mdpd*       | density                                             | mDPD particles                       |
++--------------+-----------------------------------------------------+--------------------------------------+
+| *mesont*     | mass, radius, length, buckling, connections, tube id| mesoscopic nanotubes                 |
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *molecular*  | bonds, angles, dihedrals, impropers                 | uncharged molecules                  |
 +--------------+-----------------------------------------------------+--------------------------------------+
@@ -111,9 +112,13 @@ quantities.
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *smd*        | volume, kernel diameter, contact radius, mass       | solid and fluid SPH particles        |
 +--------------+-----------------------------------------------------+--------------------------------------+
+| *sph*        | rho, esph, cv                                       | SPH particles                        |
++--------------+-----------------------------------------------------+--------------------------------------+
 | *sphere*     | diameter, mass, angular velocity                    | granular models                      |
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *spin*       | magnetic moment                                     | system with magnetic particles       |
++--------------+-----------------------------------------------------+--------------------------------------+
+| *tdpd*       | chemical concentration                              | tDPD particles                       |
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *template*   | template index, template atom                       | small molecules with fixed topology  |
 +--------------+-----------------------------------------------------+--------------------------------------+
@@ -144,9 +149,16 @@ basis.
 For the *sphere* style, the particles are spheres and each stores a
 per-particle diameter and mass.  If the diameter > 0.0, the particle
 is a finite-size sphere.  If the diameter = 0.0, it is a point
-particle.  Note that by use of the *disc* keyword with the :doc:`fix nve/sphere <fix_nve_sphere>`, :doc:`fix nvt/sphere <fix_nvt_sphere>`,
-:doc:`fix nph/sphere <fix_nph_sphere>`, :doc:`fix npt/sphere <fix_npt_sphere>` commands, spheres can be effectively
-treated as 2d discs for a 2d simulation if desired.  See also the :doc:`set density/disc <set>` command.
+particle.  Note that by use of the *disc* keyword with the :doc:`fix
+nve/sphere <fix_nve_sphere>`, :doc:`fix nvt/sphere <fix_nvt_sphere>`,
+:doc:`fix nph/sphere <fix_nph_sphere>`, :doc:`fix npt/sphere
+<fix_npt_sphere>` commands, spheres can be effectively treated as 2d
+discs for a 2d simulation if desired.  See also the :doc:`set
+density/disc <set>` command.  The *sphere* style takes an optional 0
+or 1 argument.  A value of 0 means the radius of each sphere is
+constant for the duration of the simulation.  A value of 1 means the
+radii may vary dynamically during the simulation, e.g. due to use of
+the :doc:`fix adapt <fix_adapt>` command.
 
 For the *ellipsoid* style, the particles are ellipsoids and each
 stores a flag which indicates whether it is a finite-size ellipsoid or
@@ -189,8 +201,8 @@ particles which store a set of chemical concentration. An integer
 "cc_species" is required to specify the number of chemical species
 involved in a tDPD system.
 
-The *meso* style is for smoothed particle hydrodynamics (SPH)
-particles which store a density (rho), energy (e), and heat capacity
+The *sph* style is for smoothed particle hydrodynamics (SPH)
+particles which store a density (rho), energy (esph), and heat capacity
 (cv).
 
 The *smd* style is for a general formulation of Smooth Particle
@@ -228,6 +240,8 @@ can save memory for systems comprised of a large number of small
 molecules, all of a single type (or small number of types).  See the
 paper by Grime and Voth, in :ref:`(Grime) <Grime>`, for examples of how this
 can be advantageous for large-scale coarse-grained systems.
+The ``examples/template`` directory has a few demo inputs and examples
+showing the use of the *template* atom style versus *molecular*.
 
 .. note::
 
@@ -335,8 +349,10 @@ for energy-conserving dissipative particle dynamics (eDPD), many-body
 dissipative particle dynamics (mDPD), and transport dissipative particle
 dynamics (tDPD), respectively.
 
-The *meso* style is part of the USER-SPH package for smoothed particle
+The *sph* style is part of the USER-SPH package for smoothed particle
 hydrodynamics (SPH).  See `this PDF guide <USER/sph/SPH_LAMMPS_userguide.pdf>`_ to using SPH in LAMMPS.
+
+The *mesont* style is part of the USER-MESONT package.
 
 The *spin* style is part of the SPIN package.
 
@@ -351,7 +367,8 @@ Related commands
 Default
 """""""
 
-atom_style atomic
+The default atom style is atomic.  If atom_style sphere is used its
+default argument is 0.
 
 ----------
 

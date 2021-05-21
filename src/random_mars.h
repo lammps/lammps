@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -28,6 +28,8 @@ class RanMars : protected Pointers {
   double rayleigh(double sigma);
   double besselexp(double theta, double alpha, double cp);
   void select_subset(bigint, int, int *, int *);
+  void get_state(double *);
+  void set_state(double *);
 
  private:
   int save;

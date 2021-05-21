@@ -126,18 +126,19 @@ class FixedBlockSizeMemoryPool
                            actual_size) { /* forwarding ctor, must be empty */
   }
 
-  KOKKOS_INLINE_FUNCTION FixedBlockSizeMemoryPool() = default;
-  KOKKOS_INLINE_FUNCTION FixedBlockSizeMemoryPool(FixedBlockSizeMemoryPool&&) =
-      default;
-  KOKKOS_INLINE_FUNCTION FixedBlockSizeMemoryPool(
-      FixedBlockSizeMemoryPool const&)                     = default;
-  KOKKOS_INLINE_FUNCTION FixedBlockSizeMemoryPool& operator=(
+  KOKKOS_DEFAULTED_FUNCTION FixedBlockSizeMemoryPool() = default;
+  KOKKOS_DEFAULTED_FUNCTION FixedBlockSizeMemoryPool(
       FixedBlockSizeMemoryPool&&) = default;
-  KOKKOS_INLINE_FUNCTION FixedBlockSizeMemoryPool& operator=(
+  KOKKOS_DEFAULTED_FUNCTION FixedBlockSizeMemoryPool(
+      FixedBlockSizeMemoryPool const&)                        = default;
+  KOKKOS_DEFAULTED_FUNCTION FixedBlockSizeMemoryPool& operator=(
+      FixedBlockSizeMemoryPool&&) = default;
+  KOKKOS_DEFAULTED_FUNCTION FixedBlockSizeMemoryPool& operator=(
       FixedBlockSizeMemoryPool const&) = default;
 
   KOKKOS_INLINE_FUNCTION
   void* allocate(size_type alloc_size) const noexcept {
+    (void)alloc_size;
     KOKKOS_EXPECTS(alloc_size <= Size);
     auto free_idx_counter = Kokkos::atomic_fetch_add(
         (volatile size_type*)&m_first_free_idx, size_type(1));
@@ -161,7 +162,7 @@ class FixedBlockSizeMemoryPool
   }
 
   KOKKOS_INLINE_FUNCTION
-  void deallocate(void* ptr, size_type alloc_size) const noexcept {
+  void deallocate(void* ptr, size_type /*alloc_size*/) const noexcept {
     // figure out which block we are
     auto offset = intptr_t(ptr) - intptr_t(m_first_block);
 
@@ -250,11 +251,11 @@ public:
   ) : FixedBlockSizeMemoryPool(mem_space, mempool_capacity / actual_size)
   { /* forwarding ctor, must be empty */ }
 
-  KOKKOS_INLINE_FUNCTION FixedBlockSizeMemoryPool() = default;
-  KOKKOS_INLINE_FUNCTION FixedBlockSizeMemoryPool(FixedBlockSizeMemoryPool&&) = default;
-  KOKKOS_INLINE_FUNCTION FixedBlockSizeMemoryPool(FixedBlockSizeMemoryPool const&) = default;
-  KOKKOS_INLINE_FUNCTION FixedBlockSizeMemoryPool& operator=(FixedBlockSizeMemoryPool&&) = default;
-  KOKKOS_INLINE_FUNCTION FixedBlockSizeMemoryPool& operator=(FixedBlockSizeMemoryPool const&) = default;
+  KOKKOS_DEFAULTED_FUNCTION FixedBlockSizeMemoryPool() = default;
+  KOKKOS_DEFAULTED_FUNCTION FixedBlockSizeMemoryPool(FixedBlockSizeMemoryPool&&) = default;
+  KOKKOS_DEFAULTED_FUNCTION FixedBlockSizeMemoryPool(FixedBlockSizeMemoryPool const&) = default;
+  KOKKOS_DEFAULTED_FUNCTION FixedBlockSizeMemoryPool& operator=(FixedBlockSizeMemoryPool&&) = default;
+  KOKKOS_DEFAULTED_FUNCTION FixedBlockSizeMemoryPool& operator=(FixedBlockSizeMemoryPool const&) = default;
 
 
   KOKKOS_INLINE_FUNCTION

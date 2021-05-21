@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,38 +16,37 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_event_displace.h"
-#include <mpi.h>
-#include <cstring>
+
 #include "atom.h"
 #include "domain.h"
-#include "modify.h"
-#include "fix_event.h"
 #include "error.h"
-#include "force.h"
+#include "fix_event.h"
+#include "modify.h"
 #include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
-#define INVOKED_SCALAR 1
 
 /* ---------------------------------------------------------------------- */
 
 ComputeEventDisplace::ComputeEventDisplace(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), id_event(NULL), fix_event(NULL)
+  Compute(lmp, narg, arg), id_event(nullptr), fix_event(nullptr)
 {
   if (narg != 4) error->all(FLERR,"Illegal compute event/displace command");
 
   scalar_flag = 1;
   extscalar = 0;
 
-  double displace_dist = force->numeric(FLERR,arg[3]);
+  double displace_dist = utils::numeric(FLERR,arg[3],false,lmp);
   if (displace_dist <= 0.0)
     error->all(FLERR,"Distance must be > 0 for compute event/displace");
   displace_distsq = displace_dist * displace_dist;
 
   // fix event ID will be set later by accelerated dynamics method
 
-  id_event = NULL;
+  id_event = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -65,7 +64,7 @@ void ComputeEventDisplace::init()
   // if set by PRD, then find fix which stores original atom coords
   // check if it is correct style
 
-  if (id_event != NULL) {
+  if (id_event != nullptr) {
     int ifix = modify->find_fix(id_event);
     if (ifix < 0) error->all(FLERR,
                              "Could not find compute event/displace fix ID");
@@ -88,7 +87,7 @@ double ComputeEventDisplace::compute_scalar()
 {
   invoked_scalar = update->ntimestep;
 
-  if (id_event == NULL) return 0.0;
+  if (id_event == nullptr) return 0.0;
 
   double event = 0.0;
   double **xevent = fix_event->array_atom;
@@ -150,7 +149,7 @@ int ComputeEventDisplace::all_events()
 {
   invoked_scalar = update->ntimestep;
 
-  if (id_event == NULL) return 0.0;
+  if (id_event == nullptr) return 0.0;
 
   int event = 0;
   double **xevent = fix_event->array_atom;
@@ -204,10 +203,8 @@ int ComputeEventDisplace::all_events()
 void ComputeEventDisplace::reset_extra_compute_fix(const char *id_new)
 {
   delete [] id_event;
-  id_event = NULL;
-  if (id_new == NULL) return;
+  id_event = nullptr;
+  if (id_new == nullptr) return;
 
-  int n = strlen(id_new) + 1;
-  id_event = new char[n];
-  strcpy(id_event,id_new);
+  id_event = utils::strdup(id_new);
 }

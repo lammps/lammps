@@ -108,7 +108,8 @@ Note that the usual 1/2 factor is included in :math:`K`.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This pair style does not support mixing since all parameters are
 explicit for each pair.
@@ -153,4 +154,7 @@ Related commands
 :doc:`pair_style morse <pair_morse>`,
 :doc:`bond_style harmonic <bond_harmonic>`
 
-**Default:** none
+Default
+"""""""
+
+none

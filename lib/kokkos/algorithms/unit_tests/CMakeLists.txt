@@ -20,16 +20,42 @@ KOKKOS_ADD_TEST_LIBRARY(
   HEADERS ${GTEST_SOURCE_DIR}/gtest/gtest.h
   SOURCES ${GTEST_SOURCE_DIR}/gtest/gtest-all.cc
 )
-KOKKOS_TARGET_COMPILE_DEFINITIONS(kokkosalgorithms_gtest PUBLIC "-DGTEST_HAS_PTHREAD=0")
+
+# avoid deprecation warnings from MSVC
+TARGET_COMPILE_DEFINITIONS(kokkosalgorithms_gtest PUBLIC GTEST_HAS_TR1_TUPLE=0 GTEST_HAS_PTHREAD=0)
+
+IF((NOT (Kokkos_ENABLE_CUDA AND WIN32)) AND (NOT ("${KOKKOS_CXX_COMPILER_ID}" STREQUAL "Fujitsu")))
+TARGET_COMPILE_FEATURES(kokkosalgorithms_gtest PUBLIC cxx_std_11)
+ENDIF()
+
+# Suppress clang-tidy diagnostics on code that we do not have control over
+IF(CMAKE_CXX_CLANG_TIDY)
+  SET_TARGET_PROPERTIES(kokkosalgorithms_gtest PROPERTIES CXX_CLANG_TIDY "")
+ENDIF()
 
 SET(SOURCES
-  UnitTestMain.cpp 
-  TestCuda.cpp
-  )
+  UnitTestMain.cpp
+)
 
 IF(Kokkos_ENABLE_OPENMP)
   LIST( APPEND SOURCES
     TestOpenMP.cpp
+    TestOpenMP_Sort1D.cpp
+    TestOpenMP_Sort3D.cpp
+    TestOpenMP_SortDynamicView.cpp
+    TestOpenMP_Random.cpp
+  )
+ENDIF()
+
+IF(Kokkos_ENABLE_HIP)
+  LIST( APPEND SOURCES
+    TestHIP.cpp
+  )
+ENDIF()
+
+IF(Kokkos_ENABLE_CUDA)
+  LIST( APPEND SOURCES
+    TestCuda.cpp
   )
 ENDIF()
 

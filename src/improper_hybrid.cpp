@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "improper_hybrid.h"
-#include <mpi.h>
+
 #include <cstring>
 #include <cctype>
 #include "atom.h"
@@ -21,7 +21,7 @@
 #include "force.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -160,7 +160,7 @@ void ImproperHybrid::allocate()
   maximproper = new int[nstyles];
   improperlist = new int**[nstyles];
   for (int m = 0; m < nstyles; m++) maximproper[m] = 0;
-  for (int m = 0; m < nstyles; m++) improperlist[m] = NULL;
+  for (int m = 0; m < nstyles; m++) improperlist[m] = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -185,9 +185,9 @@ void ImproperHybrid::settings(int narg, char **arg)
   // delete old lists, since cannot just change settings
 
   if (nstyles) {
-    for (int i = 0; i < nstyles; i++) delete styles[i];
+    for (i = 0; i < nstyles; i++) delete styles[i];
     delete [] styles;
-    for (int i = 0; i < nstyles; i++) delete [] keywords[i];
+    for (i = 0; i < nstyles; i++) delete [] keywords[i];
     delete [] keywords;
   }
 
@@ -196,7 +196,7 @@ void ImproperHybrid::settings(int narg, char **arg)
     memory->destroy(map);
     delete [] nimproperlist;
     delete [] maximproper;
-    for (int i = 0; i < nstyles; i++)
+    for (i = 0; i < nstyles; i++)
       memory->destroy(improperlist[i]);
     delete [] improperlist;
   }
@@ -263,7 +263,7 @@ void ImproperHybrid::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nimpropertypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->nimpropertypes,ilo,ihi,error);
 
   // 2nd arg = improper sub-style name
   // allow for "none" as valid sub-style name
@@ -325,7 +325,7 @@ void ImproperHybrid::write_restart(FILE *fp)
 void ImproperHybrid::read_restart(FILE *fp)
 {
   int me = comm->me;
-  if (me == 0) utils::sfread(FLERR,&nstyles,sizeof(int),1,fp,NULL,error);
+  if (me == 0) utils::sfread(FLERR,&nstyles,sizeof(int),1,fp,nullptr,error);
   MPI_Bcast(&nstyles,1,MPI_INT,0,world);
   styles = new Improper*[nstyles];
   keywords = new char*[nstyles];
@@ -334,10 +334,10 @@ void ImproperHybrid::read_restart(FILE *fp)
 
   int n,dummy;
   for (int m = 0; m < nstyles; m++) {
-    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,NULL,error);
+    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,nullptr,error);
     MPI_Bcast(&n,1,MPI_INT,0,world);
     keywords[m] = new char[n];
-    if (me == 0) utils::sfread(FLERR,keywords[m],sizeof(char),n,fp,NULL,error);
+    if (me == 0) utils::sfread(FLERR,keywords[m],sizeof(char),n,fp,nullptr,error);
     MPI_Bcast(keywords[m],n,MPI_CHAR,0,world);
     styles[m] = force->new_improper(keywords[m],0,dummy);
     styles[m]->read_restart_settings(fp);
@@ -350,10 +350,10 @@ void ImproperHybrid::read_restart(FILE *fp)
 
 double ImproperHybrid::memory_usage()
 {
-  double bytes = maxeatom * sizeof(double);
-  bytes += maxvatom*6 * sizeof(double);
-  bytes += maxcvatom*9 * sizeof(double);
-  for (int m = 0; m < nstyles; m++) bytes += maximproper[m]*5 * sizeof(int);
+  double bytes = (double)maxeatom * sizeof(double);
+  bytes += (double)maxvatom*6 * sizeof(double);
+  bytes += (double)maxcvatom*9 * sizeof(double);
+  for (int m = 0; m < nstyles; m++) bytes += (double)maximproper[m]*5 * sizeof(int);
   for (int m = 0; m < nstyles; m++)
     if (styles[m]) bytes += styles[m]->memory_usage();
   return bytes;

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,25 +16,27 @@
 
    This source file implements the asymmetric version of the enhanced heat
    exchange (eHEX/a) algorithm. The paper is available for download on
-   arXiv: http://arxiv.org/pdf/1507.07081.pdf.
+   arXiv: https://arxiv.org/pdf/1507.07081.pdf.
 
    This file is based on fix_heat.cpp written by Paul Crozier (SNL)
    which implements the heat exchange (HEX) algorithm.
 ------------------------------------------------------------------------- */
 
 #include "fix_ehex.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
 #include "domain.h"
-#include "region.h"
-#include "group.h"
-#include "force.h"
-#include "update.h"
-#include "modify.h"
-#include "memory.h"
 #include "error.h"
+#include "force.h"
+#include "group.h"
+#include "memory.h"
+#include "modify.h"
+#include "region.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
+
 #include "fix_shake.h"
 
 using namespace LAMMPS_NS;
@@ -45,8 +47,8 @@ enum{CONSTANT,EQUAL,ATOM};
 /* ---------------------------------------------------------------------- */
 
 FixEHEX::FixEHEX(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
-  idregion(NULL), x(NULL), f(NULL), v(NULL),
-  mass(NULL), rmass(NULL), type(NULL), scalingmask(NULL)
+  idregion(nullptr), x(nullptr), f(nullptr), v(nullptr),
+  mass(nullptr), rmass(nullptr), type(nullptr), scalingmask(nullptr)
 {
   MPI_Comm_rank(world, &me);
 
@@ -59,13 +61,13 @@ FixEHEX::FixEHEX(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
 
   // apply fix every nevery timesteps
 
-  nevery = force->inumeric(FLERR,arg[3]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
 
   if (nevery <= 0) error->all(FLERR,"Illegal fix ehex command");
 
   // heat flux into the reservoir
 
-  heat_input = force->numeric(FLERR,arg[4]);
+  heat_input = utils::numeric(FLERR,arg[4],false,lmp);
 
   // optional args
 
@@ -91,9 +93,7 @@ FixEHEX::FixEHEX(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
       iregion = domain->find_region(arg[iarg+1]);
       if (iregion == -1)
         error->all(FLERR,"Region ID for fix ehex does not exist");
-      int n = strlen(arg[iarg+1]) + 1;
-      idregion = new char[n];
-      strcpy(idregion,arg[iarg+1]);
+      idregion = utils::strdup(arg[iarg+1]);
       iarg += 2;
     }
 
@@ -127,9 +127,9 @@ FixEHEX::FixEHEX(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
     error->all(FLERR, "You can only use the keyword 'com' together with the keyword 'constrain' ");
 
   scale = 1.0;
-  scalingmask    = NULL;
+  scalingmask    = nullptr;
   grow_arrays(atom->nmax);
-  atom->add_callback(0);
+  atom->add_callback(Atom::GROW);
 
 }
 
@@ -145,7 +145,7 @@ void FixEHEX::grow_arrays(int nmax) {
 
 FixEHEX::~FixEHEX()
 {
-  atom->delete_callback(id,0);
+  atom->delete_callback(id,Atom::GROW);
   delete [] idregion;
   memory->destroy(scalingmask);
 
@@ -177,7 +177,7 @@ void FixEHEX::init()
   if (group->count(igroup) == 0)
     error->all(FLERR,"Fix ehex group has no atoms");
 
-  fshake = NULL;
+  fshake = nullptr;
   if (constraints) {
 
     // check if constraining algorithm is used (FixRattle inherits from FixShake)
@@ -273,7 +273,7 @@ void FixEHEX::rescale() {
   vsub[1] = (scale-1.0) * vcm[1];
   vsub[2] = (scale-1.0) * vcm[2];
 
-  for (int i = 0; i < nlocal; i++){
+  for (int i = 0; i < nlocal; i++) {
 
     if (scalingmask[i]) {
 
@@ -309,7 +309,6 @@ double FixEHEX::compute_scalar()
   return scale;
 }
 
-
 /* ----------------------------------------------------------------------
    memory usage of local atom-based arrays
 ------------------------------------------------------------------------- */
@@ -317,7 +316,7 @@ double FixEHEX::compute_scalar()
 double FixEHEX::memory_usage()
 {
   double bytes = 0.0;
-  bytes += atom->nmax * sizeof(double);
+  bytes += (double)atom->nmax * sizeof(double);
   return bytes;
 }
 
@@ -335,7 +334,7 @@ void FixEHEX::update_scalingmask() {
 
   // prematch region
 
-  Region *region = NULL;
+  Region *region = nullptr;
   if (iregion >= 0) {
     region = domain->regions[iregion];
     region->prematch();
@@ -354,7 +353,7 @@ void FixEHEX::update_scalingmask() {
       m    = fshake->list[i];
 
       // check if the centre of mass of the cluster is inside the region
-      // if region == NULL, just check the group information of all sites
+      // if region == nullptr, just check the group information of all sites
 
       if      (fshake->shake_flag[m] == 1)      nsites = 3;
       else if (fshake->shake_flag[m] == 2)      nsites = 2;

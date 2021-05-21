@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -18,7 +18,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_ttm_mod.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"
@@ -32,7 +32,9 @@
 #include "error.h"
 #include "citeme.h"
 #include "math_const.h"
-#include "utils.h"
+
+
+#include "tokenizer.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -64,7 +66,12 @@ static const char cite_fix_ttm_mod[] =
 /* ---------------------------------------------------------------------- */
 
 FixTTMMod::FixTTMMod(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg),
+  random(nullptr), fp(nullptr), nsum(nullptr), nsum_all(nullptr),
+  gfactor1(nullptr), gfactor2(nullptr), ratio(nullptr), flangevin(nullptr),
+  T_electron(nullptr), T_electron_old(nullptr), sum_vsq(nullptr), sum_mass_vsq(nullptr),
+  sum_vsq_all(nullptr), sum_mass_vsq_all(nullptr), net_energy_transfer(nullptr),
+  net_energy_transfer_all(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_ttm_mod);
 
@@ -77,159 +84,37 @@ FixTTMMod::FixTTMMod(LAMMPS *lmp, int narg, char **arg) :
   restart_peratom = 1;
   restart_global = 1;
 
-  seed = force->inumeric(FLERR,arg[3]);
+  seed = utils::inumeric(FLERR,arg[3],false,lmp);
   if (seed <= 0)
     error->all(FLERR,"Invalid random number seed in fix ttm/mod command");
 
-  FILE *fpr_2 = force->open_potential(arg[4]);
-  if (fpr_2 == NULL) {
-    char str[128];
-    snprintf(str,128,"Cannot open file %s",arg[4]);
-    error->all(FLERR,str);
-  }
-
-  nxnodes = force->inumeric(FLERR,arg[5]);
-  nynodes = force->inumeric(FLERR,arg[6]);
-  nznodes = force->inumeric(FLERR,arg[7]);
+  nxnodes = utils::inumeric(FLERR,arg[5],false,lmp);
+  nynodes = utils::inumeric(FLERR,arg[6],false,lmp);
+  nznodes = utils::inumeric(FLERR,arg[7],false,lmp);
   if (nxnodes <= 0 || nynodes <= 0 || nznodes <= 0)
     error->all(FLERR,"Fix ttm/mod number of nodes must be > 0");
 
-  const char *filename = arg[8];
-  FILE *fpr = force->open_potential(filename);
-  if (fpr == NULL) {
-    char str[128];
-    snprintf(str,128,"Cannot open file %s",filename);
-    error->all(FLERR,str);
-  }
+  total_nnodes = (bigint)nxnodes * (bigint)nynodes * (bigint)nznodes;
+  if (total_nnodes > MAXSMALLINT)
+    error->all(FLERR,"Too many nodes in fix ttm/mod");
 
-  nfileevery = force->inumeric(FLERR,arg[9]);
+  nfileevery = utils::inumeric(FLERR,arg[9],false,lmp);
   if (nfileevery > 0) {
     if (narg != 11) error->all(FLERR,"Illegal fix ttm/mod command");
-    MPI_Comm_rank(world,&me);
-    if (me == 0) {
+    if (comm->me == 0) {
       fp = fopen(arg[10],"w");
-      if (fp == NULL) {
+      if (fp == nullptr) {
         char str[128];
         snprintf(str,128,"Cannot open fix ttm/mod file %s",arg[10]);
         error->one(FLERR,str);
       }
     }
   }
-  char linee[MAXLINE];
-  double tresh_d;
-  int tresh_i;
-  // C0 (metal)
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  sscanf(linee,"%lg",&tresh_d);
-  esheat_0 = tresh_d;
-  // C1 (metal*10^3)
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  sscanf(linee,"%lg",&tresh_d);
-  esheat_1 = tresh_d;
-  // C2 (metal*10^6)
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  sscanf(linee,"%lg",&tresh_d);
-  esheat_2 = tresh_d;
-  // C3 (metal*10^9)
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  sscanf(linee,"%lg",&tresh_d);
-  esheat_3 = tresh_d;
-  // C4 (metal*10^12)
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  sscanf(linee,"%lg",&tresh_d);
-  esheat_4 = tresh_d;
-  // C_limit
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  sscanf(linee,"%lg",&tresh_d);
-  C_limit = tresh_d;
-  //Temperature damping factor
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  sscanf(linee,"%lg",&tresh_d);
-  T_damp = tresh_d;
-  // rho_e
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  sscanf(linee,"%lg",&tresh_d);
-  electronic_density = tresh_d;
-  //thermal_diffusion
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  sscanf(linee,"%lg",&tresh_d);
-  el_th_diff = tresh_d;
-  // gamma_p
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  sscanf(linee,"%lg",&tresh_d);
-  gamma_p = tresh_d;
-  // gamma_s
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  sscanf(linee,"%lg",&tresh_d);
-  gamma_s = tresh_d;
-  // v0
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  sscanf(linee,"%lg",&tresh_d);
-  v_0 = tresh_d;
-  // average intensity of pulse (source of energy) (metal units)
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  sscanf(linee,"%lg",&tresh_d);
-  intensity = tresh_d;
-  // coordinate of 1st surface in x-direction (in box units) - constant
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  sscanf(linee,"%d",&tresh_i);
-  surface_l = tresh_i;
-  // coordinate of 2nd surface in x-direction (in box units) - constant
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  sscanf(linee,"%d",&tresh_i);
-  surface_r = tresh_i;
-  // skin_layer = intensity is reduced (I=I0*exp[-x/skin_layer])
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  sscanf(linee,"%d",&tresh_i);
-  skin_layer = tresh_i;
-  // width of pulse (picoseconds)
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  sscanf(linee,"%lg",&tresh_d);
-  width = tresh_d;
-  // factor of electronic pressure (PF) Pe = PF*Ce*Te
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  sscanf(linee,"%lg",&tresh_d);
-  pres_factor = tresh_d;
-  // effective free path of electrons (angstrom)
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  sscanf(linee,"%lg",&tresh_d);
-  free_path = tresh_d;
-  // ionic density (ions*angstrom^{-3})
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  sscanf(linee,"%lg",&tresh_d);
-  ionic_density = tresh_d;
-  // if movsur = 0: surface is freezed
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  sscanf(linee,"%d",&tresh_i);
-  movsur = tresh_i;
-  // electron_temperature_min
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  utils::sfgets(FLERR,linee,MAXLINE,fpr_2,filename,error);
-  sscanf(linee,"%lg",&tresh_d);
-  electron_temperature_min = tresh_d;
-  fclose(fpr_2);
-  //t_surface is determined by electronic temperature (not constant)
+
+  read_parameters(arg[4]);
+
+  // t_surface is determined by electronic temperature (not constant)
+
   t_surface_l = surface_l;
   mult_factor = intensity;
   duration = 0.0;
@@ -251,10 +136,9 @@ FixTTMMod::FixTTMMod(LAMMPS *lmp, int narg, char **arg) :
   gfactor1 = new double[atom->ntypes+1];
   gfactor2 = new double[atom->ntypes+1];
   // allocate 3d grid variables
-  total_nnodes = nxnodes*nynodes*nznodes;
+  total_nnodes = (bigint)nxnodes*nynodes*nznodes;
   memory->create(nsum,nxnodes,nynodes,nznodes,"ttm/mod:nsum");
   memory->create(nsum_all,nxnodes,nynodes,nznodes,"ttm/mod:nsum_all");
-  memory->create(T_initial_set,nxnodes,nynodes,nznodes,"ttm/mod:T_initial_set");
   memory->create(sum_vsq,nxnodes,nynodes,nznodes,"ttm/mod:sum_vsq");
   memory->create(sum_mass_vsq,nxnodes,nynodes,nznodes,"ttm/mod:sum_mass_vsq");
   memory->create(sum_vsq_all,nxnodes,nynodes,nznodes,"ttm/mod:sum_vsq_all");
@@ -267,33 +151,38 @@ FixTTMMod::FixTTMMod(LAMMPS *lmp, int narg, char **arg) :
                  "ttm/mod:net_energy_transfer");
   memory->create(net_energy_transfer_all,nxnodes,nynodes,nznodes,
                  "ttm/mod:net_energy_transfer_all");
-  flangevin = NULL;
+  flangevin = nullptr;
   grow_arrays(atom->nmax);
+
   // zero out the flangevin array
+
   for (int i = 0; i < atom->nmax; i++) {
     flangevin[i][0] = 0;
     flangevin[i][1] = 0;
     flangevin[i][2] = 0;
   }
-  atom->add_callback(0);
-  atom->add_callback(1);
+
+  atom->add_callback(Atom::GROW);
+  atom->add_callback(Atom::RESTART);
+
   // set initial electron temperatures from user input file
-  if (me == 0) read_initial_electron_temperatures(fpr);
+
+  if (comm->me == 0) read_initial_electron_temperatures(arg[8]);
   MPI_Bcast(&T_electron[0][0][0],total_nnodes,MPI_DOUBLE,0,world);
-  fclose(fpr);
 }
 
 /* ---------------------------------------------------------------------- */
 
 FixTTMMod::~FixTTMMod()
 {
-  if (nfileevery && me == 0) fclose(fp);
+  if (fp) fclose(fp);
   delete random;
+
   delete [] gfactor1;
   delete [] gfactor2;
+
   memory->destroy(nsum);
   memory->destroy(nsum_all);
-  memory->destroy(T_initial_set);
   memory->destroy(sum_vsq);
   memory->destroy(sum_mass_vsq);
   memory->destroy(sum_vsq_all);
@@ -327,17 +216,21 @@ void FixTTMMod::init()
     error->all(FLERR,"Cannot use non-periodic boundares with fix ttm/mod");
   if (domain->triclinic)
     error->all(FLERR,"Cannot use fix ttm/mod with triclinic box");
+
   // set force prefactors
+
   for (int i = 1; i <= atom->ntypes; i++) {
     gfactor1[i] = - gamma_p / force->ftm2v;
     gfactor2[i] =
       sqrt(24.0*force->boltz*gamma_p/update->dt/force->mvv2e) / force->ftm2v;
   }
+
   for (int ixnode = 0; ixnode < nxnodes; ixnode++)
     for (int iynode = 0; iynode < nynodes; iynode++)
       for (int iznode = 0; iznode < nznodes; iznode++)
         net_energy_transfer_all[ixnode][iynode][iznode] = 0;
-  if (strstr(update->integrate_style,"respa"))
+
+  if (utils::strmatch(update->integrate_style,"^respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 }
 
@@ -345,7 +238,7 @@ void FixTTMMod::init()
 
 void FixTTMMod::setup(int vflag)
 {
-  if (strstr(update->integrate_style,"verlet")) {
+  if (utils::strmatch(update->integrate_style,"^verlet")) {
     post_force_setup(vflag);
   } else {
     ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);
@@ -364,13 +257,17 @@ void FixTTMMod::post_force(int /*vflag*/)
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
+
   double dx = domain->xprd/nxnodes;
   double dy = domain->yprd/nynodes;
   double dz = domain->zprd/nynodes;
   double gamma1,gamma2;
+
   // apply damping and thermostat to all atoms in fix group
+
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
+
       double xscale = (x[i][0] - domain->boxlo[0])/domain->xprd;
       double yscale = (x[i][1] - domain->boxlo[1])/domain->yprd;
       double zscale = (x[i][2] - domain->boxlo[2])/domain->zprd;
@@ -383,15 +280,18 @@ void FixTTMMod::post_force(int /*vflag*/)
       while (ixnode < 0) ixnode += nxnodes;
       while (iynode < 0) iynode += nynodes;
       while (iznode < 0) iznode += nznodes;
+
       if (T_electron[ixnode][iynode][iznode] < 0)
         error->all(FLERR,"Electronic temperature dropped below zero");
+
       double tsqrt = sqrt(T_electron[ixnode][iynode][iznode]);
+
       gamma1 = gfactor1[type[i]];
       double vsq = v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2];
       if (vsq > v_0_sq) gamma1 *= (gamma_p + gamma_s)/gamma_p;
       gamma2 = gfactor2[type[i]] * tsqrt;
-      if (ixnode >= surface_l){
-        if (ixnode < surface_r){
+      if (ixnode >= surface_l) {
+        if (ixnode < surface_r) {
           flangevin[i][0] = gamma1*v[i][0] + gamma2*(random->uniform()-0.5);
           flangevin[i][1] = gamma1*v[i][1] + gamma2*(random->uniform()-0.5);
           flangevin[i][2] = gamma1*v[i][2] + gamma2*(random->uniform()-0.5);
@@ -420,8 +320,8 @@ void FixTTMMod::post_force(int /*vflag*/)
           double diff_x = (x_at - x_surf)*(x_at - x_surf);
           diff_x = pow(diff_x,0.5);
           double len_factor = diff_x/(diff_x+free_path);
-          if (movsur == 1){
-            if (x_at >= x_surf){
+          if (movsur == 1) {
+            if (x_at >= x_surf) {
               flangevin[i][0] -= pres_factor/ionic_density*((C_ir*T_ir*free_path/(diff_x+free_path)/(diff_x+free_path)) +
                                                             (len_factor/dx)*(C_ir*T_ir-C_i*T_i));
               flangevin[i][1] -= pres_factor/ionic_density/dy*(C_iu*T_iu-C_i*T_i);
@@ -437,8 +337,8 @@ void FixTTMMod::post_force(int /*vflag*/)
           f[i][2] += flangevin[i][2];
         }
       }
-      if (movsur == 1){
-        if (ixnode < surface_l){
+      if (movsur == 1) {
+        if (ixnode < surface_l) {
           t_surface_l = ixnode;
         }
       }
@@ -454,7 +354,9 @@ void FixTTMMod::post_force_setup(int /*vflag*/)
   double **f = atom->f;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
+
   // apply langevin forces that have been stored from previous run
+
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       f[i][0] += flangevin[i][0];
@@ -488,32 +390,208 @@ void FixTTMMod::reset_dt()
 }
 
 /* ----------------------------------------------------------------------
+   read in ttm/mod parameters from a user-specified file
+   only called by proc 0
+------------------------------------------------------------------------- */
+
+void FixTTMMod::read_parameters(const char *filename)
+{
+  char line[MAXLINE];
+  std::string name = utils::get_potential_file_path(filename);
+  if (name.empty())
+    error->one(FLERR,"Cannot open input file: {}",
+                                 filename);
+  FILE *fpr = fopen(name.c_str(),"r");
+
+  // C0 (metal)
+
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  esheat_0 = utils::numeric(FLERR,utils::trim(line).c_str(),true,lmp);
+
+  // C1 (metal*10^3)
+
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  esheat_1 = utils::numeric(FLERR,utils::trim(line).c_str(),true,lmp);
+
+  // C2 (metal*10^6)
+
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  esheat_2 = utils::numeric(FLERR,utils::trim(line).c_str(),true,lmp);
+
+  // C3 (metal*10^9)
+
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  esheat_3 = utils::numeric(FLERR,utils::trim(line).c_str(),true,lmp);
+
+  // C4 (metal*10^12)
+
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  esheat_4 = utils::numeric(FLERR,utils::trim(line).c_str(),true,lmp);
+
+  // C_limit
+
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  C_limit = utils::numeric(FLERR,utils::trim(line).c_str(),true,lmp);
+
+  // Temperature damping factor
+
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  T_damp = utils::numeric(FLERR,utils::trim(line).c_str(),true,lmp);
+
+  // rho_e
+
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  electronic_density = utils::numeric(FLERR,utils::trim(line).c_str(),true,lmp);
+
+  // thermal_diffusion
+
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  el_th_diff = utils::numeric(FLERR,utils::trim(line).c_str(),true,lmp);
+
+  // gamma_p
+
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  gamma_p = utils::numeric(FLERR,utils::trim(line).c_str(),true,lmp);
+
+  // gamma_s
+
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  gamma_s = utils::numeric(FLERR,utils::trim(line).c_str(),true,lmp);
+
+  // v0
+
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  v_0 = utils::numeric(FLERR,utils::trim(line).c_str(),true,lmp);
+
+  // average intensity of pulse (source of energy) (metal units)
+
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  intensity = utils::numeric(FLERR,utils::trim(line).c_str(),true,lmp);
+
+  // coordinate of 1st surface in x-direction (in box units) - constant
+
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  surface_l = utils::inumeric(FLERR,utils::trim(line).c_str(),true,lmp);
+
+  // coordinate of 2nd surface in x-direction (in box units) - constant
+
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  surface_r = utils::inumeric(FLERR,utils::trim(line).c_str(),true,lmp);
+
+  // skin_layer = intensity is reduced (I=I0*exp[-x/skin_layer])
+
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  skin_layer = utils::inumeric(FLERR,utils::trim(line).c_str(),true,lmp);
+
+  // width of pulse (picoseconds)
+
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  width = utils::numeric(FLERR,utils::trim(line).c_str(),true,lmp);
+
+  // factor of electronic pressure (PF) Pe = PF*Ce*Te
+
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  pres_factor = utils::numeric(FLERR,utils::trim(line).c_str(),true,lmp);
+
+  // effective free path of electrons (angstrom)
+
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  free_path = utils::numeric(FLERR,utils::trim(line).c_str(),true,lmp);
+
+  // ionic density (ions*angstrom^{-3})
+
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  ionic_density = utils::numeric(FLERR,utils::trim(line).c_str(),true,lmp);
+
+  // if movsur = 0: surface is frozen
+
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  movsur = utils::inumeric(FLERR,utils::trim(line).c_str(),true,lmp);
+
+  // electron_temperature_min
+
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  utils::sfgets(FLERR,line,MAXLINE,fpr,filename,error);
+  electron_temperature_min = utils::numeric(FLERR,utils::trim(line).c_str(),true,lmp);
+  fclose(fpr);
+}
+
+/* ----------------------------------------------------------------------
    read in initial electron temperatures from a user-specified file
    only called by proc 0
 ------------------------------------------------------------------------- */
 
-void FixTTMMod::read_initial_electron_temperatures(FILE *fpr)
+void FixTTMMod::read_initial_electron_temperatures(const char *filename)
 {
-  char line[MAXLINE];
-  for (int ixnode = 0; ixnode < nxnodes; ixnode++)
-    for (int iynode = 0; iynode < nynodes; iynode++)
-      for (int iznode = 0; iznode < nznodes; iznode++)
-        T_initial_set[ixnode][iynode][iznode] = 0;
+  int ***T_initial_set;
+  memory->create(T_initial_set,nxnodes,nynodes,nznodes,"ttm/mod:T_initial_set");
+  memset(&T_initial_set[0][0][0],0,total_nnodes*sizeof(int));
+
+  std::string name = utils::get_potential_file_path(filename);
+  if (name.empty())
+    error->one(FLERR,"Cannot open input file: {}",
+                                 filename);
+  FILE *fpr = fopen(name.c_str(),"r");
+
   // read initial electron temperature values from file
+
+  char line[MAXLINE];
   int ixnode,iynode,iznode;
   double T_tmp;
   while (1) {
-    if (fgets(line,MAXLINE,fpr) == NULL) break;
-    sscanf(line,"%d %d %d %lg",&ixnode,&iynode,&iznode,&T_tmp);
-    if (T_tmp < 0.0) error->one(FLERR,"Fix ttm/mod electron temperatures must be >= 0.0");
+    if (fgets(line,MAXLINE,fpr) == nullptr) break;
+    ValueTokenizer values(line);
+    if (values.has_next()) ixnode = values.next_int();
+    if (values.has_next()) iynode = values.next_int();
+    if (values.has_next()) iznode = values.next_int();
+    if (values.has_next()) T_tmp  = values.next_double();
+    else error->one(FLERR,"Incorrect format in fix ttm input file");
+
+    // check correctness of input data
+
+    if ((ixnode < 0) || (ixnode >= nxnodes)
+        || (iynode < 0) || (iynode >= nynodes)
+        || (iznode < 0) || (iznode >= nznodes))
+      error->one(FLERR,"Fix ttm invalide node index in fix ttm input");
+
+    if (T_tmp < 0.0)
+      error->one(FLERR,"Fix ttm electron temperatures must be > 0.0");
+
     T_electron[ixnode][iynode][iznode] = T_tmp;
     T_initial_set[ixnode][iynode][iznode] = 1;
   }
+  fclose(fpr);
+
+  // check completeness of input data
+
   for (int ixnode = 0; ixnode < nxnodes; ixnode++)
     for (int iynode = 0; iynode < nynodes; iynode++)
       for (int iznode = 0; iznode < nznodes; iznode++)
         if (T_initial_set[ixnode][iynode][iznode] == 0)
-          error->one(FLERR,"Initial temperatures not all set in fix ttm/mod");
+          error->one(FLERR,"Initial temperatures not all set in fix ttm");
+
+  memory->destroy(T_initial_set);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -550,12 +628,13 @@ void FixTTMMod::end_of_step()
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-  if (movsur == 1){
+
+  if (movsur == 1) {
     for (int ixnode = 0; ixnode < nxnodes; ixnode++)
       for (int iynode = 0; iynode < nynodes; iynode++)
-        for (int iznode = 0; iznode < nznodes; iznode++){
+        for (int iznode = 0; iznode < nznodes; iznode++) {
           double TTT = T_electron[ixnode][iynode][iznode];
-          if (TTT > 0){
+          if (TTT > 0) {
             if (ixnode < t_surface_l)
               t_surface_l = ixnode;
           }
@@ -565,6 +644,7 @@ void FixTTMMod::end_of_step()
     for (int iynode = 0; iynode < nynodes; iynode++)
       for (int iznode = 0; iznode < nznodes; iznode++)
         net_energy_transfer[ixnode][iynode][iznode] = 0;
+
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       double xscale = (x[i][0] - domain->boxlo[0])/domain->xprd;
@@ -579,16 +659,18 @@ void FixTTMMod::end_of_step()
       while (ixnode < 0) ixnode += nxnodes;
       while (iynode < 0) iynode += nynodes;
       while (iznode < 0) iznode += nznodes;
-      if (ixnode >= t_surface_l){
+      if (ixnode >= t_surface_l) {
         if (ixnode < surface_r)
           net_energy_transfer[ixnode][iynode][iznode] +=
             (flangevin[i][0]*v[i][0] + flangevin[i][1]*v[i][1] +
              flangevin[i][2]*v[i][2]);
       }
     }
+
   MPI_Allreduce(&net_energy_transfer[0][0][0],
                 &net_energy_transfer_all[0][0][0],
                 total_nnodes,MPI_DOUBLE,MPI_SUM,world);
+
   double dx = domain->xprd/nxnodes;
   double dy = domain->yprd/nynodes;
   double dz = domain->zprd/nznodes;
@@ -610,6 +692,7 @@ void FixTTMMod::end_of_step()
         }
   // num_inner_timesteps = # of inner steps (thermal solves)
   // required this MD step to maintain a stable explicit solve
+
   int num_inner_timesteps = 1;
   double inner_dt = update->dt;
   double stability_criterion = 0.0;
@@ -665,7 +748,7 @@ void FixTTMMod::end_of_step()
             double ixnode_d = double(ixnode);
             double surface_d = double(t_surface_l);
             mult_factor = 0.0;
-            if (duration < width){
+            if (duration < width) {
               if (ixnode >= t_surface_l) mult_factor = (intensity/(dx*skin_layer_d))*exp((-1.0)*(ixnode_d - surface_d)/skin_layer_d);
             }
             if (ixnode < t_surface_l) net_energy_transfer_all[ixnode][iynode][iznode] = 0.0;
@@ -719,9 +802,13 @@ void FixTTMMod::end_of_step()
       (el_thermal_conductivity*(1.0/dx/dx + 1.0/dy/dy + 1.0/dz/dz));
 
   } while (stability_criterion < 0.0);
+
   // output nodal temperatures for current timestep
+
   if ((nfileevery) && !(update->ntimestep % nfileevery)) {
+
     // compute atomic Ta for each grid point
+
     for (int ixnode = 0; ixnode < nxnodes; ixnode++)
       for (int iynode = 0; iynode < nynodes; iynode++)
         for (int iznode = 0; iznode < nznodes; iznode++) {
@@ -732,6 +819,7 @@ void FixTTMMod::end_of_step()
           sum_vsq_all[ixnode][iynode][iznode] = 0.0;
           sum_mass_vsq_all[ixnode][iynode][iznode] = 0.0;
         }
+
     double massone;
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
@@ -754,36 +842,39 @@ void FixTTMMod::end_of_step()
         sum_vsq[ixnode][iynode][iznode] += vsq;
         sum_mass_vsq[ixnode][iynode][iznode] += massone*vsq;
       }
+
     MPI_Allreduce(&nsum[0][0][0],&nsum_all[0][0][0],total_nnodes,
                   MPI_INT,MPI_SUM,world);
     MPI_Allreduce(&sum_vsq[0][0][0],&sum_vsq_all[0][0][0],total_nnodes,
                   MPI_DOUBLE,MPI_SUM,world);
     MPI_Allreduce(&sum_mass_vsq[0][0][0],&sum_mass_vsq_all[0][0][0],
                   total_nnodes,MPI_DOUBLE,MPI_SUM,world);
-    MPI_Allreduce(&t_surface_l,&surface_l,
-                  1,MPI_INT,MPI_MIN,world);
-    if (me == 0) {
-      fprintf(fp,BIGINT_FORMAT,update->ntimestep);
+    MPI_Allreduce(&t_surface_l,&surface_l,1,MPI_INT,MPI_MIN,world);
+
+    if (comm->me == 0) {
+      fmt::print(fp,"{}",update->ntimestep);
+
       double T_a;
       for (int ixnode = 0; ixnode < nxnodes; ixnode++)
         for (int iynode = 0; iynode < nynodes; iynode++)
           for (int iznode = 0; iznode < nznodes; iznode++) {
             T_a = 0;
-            if (nsum_all[ixnode][iynode][iznode] > 0){
+            if (nsum_all[ixnode][iynode][iznode] > 0) {
               T_a = sum_mass_vsq_all[ixnode][iynode][iznode]/
                 (3.0*force->boltz*nsum_all[ixnode][iynode][iznode]/force->mvv2e);
-              if (movsur == 1){
+              if (movsur == 1) {
                 if (T_electron[ixnode][iynode][iznode]==0.0) T_electron[ixnode][iynode][iznode] = electron_temperature_min;
               }
             }
-            fprintf(fp," %f",T_a);
+            fmt::print(fp," {}",T_a);
           }
-      fprintf(fp,"\t");
+
+      fputs("\t",fp);
       for (int ixnode = 0; ixnode < nxnodes; ixnode++)
         for (int iynode = 0; iynode < nynodes; iynode++)
           for (int iznode = 0; iznode < nznodes; iznode++)
-            fprintf(fp,"%f ",T_electron[ixnode][iynode][iznode]);
-      fprintf(fp,"\n");
+            fmt::print(fp," {}",T_electron[ixnode][iynode][iznode]);
+      fputs("\n",fp);
     }
   }
 }
@@ -795,8 +886,8 @@ void FixTTMMod::end_of_step()
 double FixTTMMod::memory_usage()
 {
   double bytes = 0.0;
-  bytes += 5*total_nnodes * sizeof(int);
-  bytes += 14*total_nnodes * sizeof(double);
+  bytes += (double)5*total_nnodes * sizeof(int);
+  bytes += (double)14*total_nnodes * sizeof(double);
   return bytes;
 }
 
@@ -816,10 +907,12 @@ double FixTTMMod::compute_vector(int n)
 {
   double e_energy = 0.0;
   double transfer_energy = 0.0;
+
   double dx = domain->xprd/nxnodes;
   double dy = domain->yprd/nynodes;
   double dz = domain->zprd/nznodes;
   double del_vol = dx*dy*dz;
+
   for (int ixnode = 0; ixnode < nxnodes; ixnode++)
     for (int iynode = 0; iynode < nynodes; iynode++)
       for (int iznode = 0; iznode < nznodes; iznode++) {
@@ -827,6 +920,7 @@ double FixTTMMod::compute_vector(int n)
         transfer_energy +=
           net_energy_transfer_all[ixnode][iynode][iznode]*update->dt;
       }
+
   if (n == 0) return e_energy;
   if (n == 1) return transfer_energy;
   return 0.0;
@@ -840,17 +934,21 @@ void FixTTMMod::write_restart(FILE *fp)
 {
   double *rlist;
   memory->create(rlist,nxnodes*nynodes*nznodes+1,"ttm/mod:rlist");
+
   int n = 0;
   rlist[n++] = seed;
+
   for (int ixnode = 0; ixnode < nxnodes; ixnode++)
     for (int iynode = 0; iynode < nynodes; iynode++)
       for (int iznode = 0; iznode < nznodes; iznode++)
-        rlist[n++] = T_electron[ixnode][iynode][iznode];
+        rlist[n++] =  T_electron[ixnode][iynode][iznode];
+
   if (comm->me == 0) {
     int size = n * sizeof(double);
     fwrite(&size,sizeof(int),1,fp);
     fwrite(rlist,sizeof(double),n,fp);
   }
+
   memory->destroy(rlist);
 }
 
@@ -862,12 +960,16 @@ void FixTTMMod::restart(char *buf)
 {
   int n = 0;
   double *rlist = (double *) buf;
+
   // the seed must be changed from the initial seed
+
   seed = static_cast<int> (0.5*rlist[n++]);
+
   for (int ixnode = 0; ixnode < nxnodes; ixnode++)
     for (int iynode = 0; iynode < nynodes; iynode++)
       for (int iznode = 0; iznode < nznodes; iznode++)
         T_electron[ixnode][iynode][iznode] = rlist[n++];
+
   delete random;
   random = new RanMars(lmp,seed+comm->me);
 }
@@ -878,6 +980,7 @@ void FixTTMMod::restart(char *buf)
 
 int FixTTMMod::pack_restart(int i, double *buf)
 {
+  // pack buf[0] this way because other fixes unpack it
   buf[0] = 4;
   buf[1] = flangevin[i][0];
   buf[2] = flangevin[i][1];
@@ -892,10 +995,14 @@ int FixTTMMod::pack_restart(int i, double *buf)
 void FixTTMMod::unpack_restart(int nlocal, int nth)
 {
   double **extra = atom->extra;
+
   // skip to Nth set of extra values
+  // unpack the Nth first values this way because other fixes pack them
+
   int m = 0;
   for (int i = 0; i < nth; i++) m += static_cast<int> (extra[nlocal][m]);
   m++;
+
   flangevin[nlocal][0] = extra[nlocal][m++];
   flangevin[nlocal][1] = extra[nlocal][m++];
   flangevin[nlocal][2] = extra[nlocal][m++];

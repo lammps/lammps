@@ -8,15 +8,17 @@ SHELL = /bin/sh
 
 CC =		mpiicpc -std=c++11
 MIC_OPT =       -qoffload-option,mic,compiler,"-fp-model fast=2 -mGLOB_default_function_attrs=\"gather_scatter_loop_unroll=4\""
-CCFLAGS =	-g -O3 -qopenmp -DLMP_INTEL_OFFLOAD -DLAMMPS_MEMALIGN=64 \
-                -xHost -fno-alias -ansi-alias -restrict -DLMP_INTEL_USELRT \
-                -qoverride-limits $(MIC_OPT) -DLMP_USE_MKL_RNG
+OPTFLAGS =      -xHost -O2 -fp-model fast=2 -no-prec-div -qoverride-limits \
+                -qopt-zmm-usage=high $(MIC_OPT)
+CCFLAGS =	-qopenmp -qoffload -ansi-alias -restrict \
+                -DLMP_INTEL_USELRT -DLMP_USE_MKL_RNG -DLMP_INTEL_OFFLOAD \
+                $(OPTFLAGS) -I$(MKLROOT)/include 
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
 LINK =		mpiicpc -std=c++11
-LINKFLAGS =	-g -O3 -xHost -qopenmp -qoffload
-LIB =           -ltbbmalloc
+LINKFLAGS =	-O2 -xHost -qopenmp -qoffload -L$(MKLROOT)/lib/intel64/
+LIB =           -ltbbmalloc -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core
 SIZE =		size
 
 ARCHIVE =	ar
@@ -31,7 +33,7 @@ SHLIBFLAGS =	-shared
 # LAMMPS ifdef settings
 # see possible settings in Section 3.5 of the manual
 
-LMP_INC =	-DLAMMPS_GZIP -DLAMMPS_JPEG
+LMP_INC =	-DLAMMPS_GZIP
 
 # MPI library
 # see discussion in Section 3.4 of the manual
@@ -55,7 +57,7 @@ MPI_LIB =
 
 FFT_INC =      -DFFT_MKL -DFFT_SINGLE
 FFT_PATH = 
-FFT_LIB =	-L$(MKLROOT)/lib/intel64/ -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core
+FFT_LIB =
 
 # JPEG and/or PNG library
 # see discussion in Section 3.5.4 of manual
@@ -66,7 +68,7 @@ FFT_LIB =	-L$(MKLROOT)/lib/intel64/ -lmkl_intel_ilp64 -lmkl_sequential -lmkl_cor
 
 JPG_INC =       
 JPG_PATH = 	
-JPG_LIB =	-ljpeg
+JPG_LIB =
 
 # ---------------------------------------------------------------------
 # build rules and dependencies
@@ -95,6 +97,7 @@ $(EXE): main.o $(LMPLIB) $(EXTRA_LINK_DEPENDS)
 # Library targets
 
 $(ARLIB): $(OBJ) $(EXTRA_LINK_DEPENDS)
+	@rm -f ../$(ARLIB)
 	$(ARCHIVE) $(ARFLAGS) ../$(ARLIB) $(OBJ)
 	@rm -f $(ARLIB)
 	@ln -s ../$(ARLIB) $(ARLIB)

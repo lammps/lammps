@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -26,9 +26,14 @@ class Dihedral : protected Pointers {
   int *setflag;
   int writedata;                     // 1 if writes coeffs to data file
   double energy;                     // accumulated energy
-  double virial[6];                  // accumulated virial
+  double virial[6];                  // accumulated virial: xx,yy,zz,xy,xz,yz
   double *eatom,**vatom;             // accumulated per-atom energy/virial
   double **cvatom;                   // accumulated per-atom centroid virial
+
+  int centroidstressflag;        // centroid stress compared to two-body stress
+                                 // CENTROID_SAME = same as two-body stress
+                                 // CENTROID_AVAIL = different and implemented
+                                 // CENTROID_NOTAVAIL = different, not yet implemented
 
   // KOKKOS host/device flag and data masks
 

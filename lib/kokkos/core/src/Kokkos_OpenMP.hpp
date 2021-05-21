@@ -63,6 +63,8 @@
 #include <Kokkos_TaskScheduler.hpp>
 #include <Kokkos_Layout.hpp>
 #include <impl/Kokkos_Tags.hpp>
+#include <impl/Kokkos_Profiling_Interface.hpp>
+#include <impl/Kokkos_ExecSpaceInitializer.hpp>
 
 #include <vector>
 
@@ -94,9 +96,6 @@ class OpenMP {
   using size_type            = memory_space::size_type;
   using scratch_memory_space = ScratchMemorySpace<OpenMP>;
 
-  /// \brief Get a handle to the default execution space instance
-  inline OpenMP() noexcept;
-
   /// \brief Print configuration information to the given output stream.
   static void print_configuration(std::ostream&, const bool verbose = false);
 
@@ -108,11 +107,7 @@ class OpenMP {
   ///  This is a no-op on OpenMP
   static void impl_static_fence(OpenMP const& = OpenMP()) noexcept;
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-  static void fence(OpenMP const& = OpenMP()) noexcept;
-#else
   void fence() const;
-#endif
 
   /// \brief Does the given instance return immediately after launching
   /// a parallel algorithm
@@ -145,58 +140,6 @@ class OpenMP {
   // use UniqueToken
   static int concurrency();
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-  /// \brief Initialize the default execution space
-  static void initialize(int thread_count, int use_numa_count,
-                         int use_cores_per_numa = 0);
-
-  /// \brief Initialize the default execution space
-  ///
-  /// if ( thread_count == -1 )
-  ///   then use the number of threads that openmp defaults to
-  /// if ( thread_count == 0 && Kokkos::hwlow_available() )
-  ///   then use hwloc to choose the number of threads and change
-  ///   the default number of threads
-  /// if ( thread_count > 0 )
-  ///   then force openmp to use the given number of threads and change
-  ///   the default number of threads
-  static void initialize(int thread_count = -1);
-
-  /// \brief is the default execution space initialized for current 'master'
-  /// thread
-  static bool is_initialized() noexcept;
-
-  /// \brief Free any resources being consumed by the default execution space
-  static void finalize();
-
-  inline static int thread_pool_size() noexcept;
-
-  /** \brief  The rank of the executing thread in this thread pool */
-  KOKKOS_INLINE_FUNCTION
-  static int thread_pool_rank() noexcept;
-
-  inline static int thread_pool_size(int depth);
-
-  static void sleep(){};
-  static void wake(){};
-
-  // Using omp_get_max_threads(); is problematic
-  // On Intel (essentially an initial call to the OpenMP runtime
-  // without a parallel region before will set a process mask for a single core
-  // The runtime will than bind threads for a parallel region to other cores on
-  // the entering the first parallel region and make the process mask the
-  // aggregate of the thread masks. The intend seems to be to make serial code
-  // run fast, if you compile with OpenMP enabled but don't actually use
-  // parallel regions or so static int omp_max_threads = omp_get_max_threads();
-  static int get_current_max_threads() noexcept;
-
-  // use UniqueToken
-  inline static int max_hardware_threads() noexcept;
-
-  // use UniqueToken
-  KOKKOS_INLINE_FUNCTION
-  static int hardware_thread_id() noexcept;
-#else
   static void impl_initialize(int thread_count = -1);
 
   /// \brief is the default execution space initialized for current 'master'
@@ -222,11 +165,33 @@ class OpenMP {
   static int impl_hardware_thread_id() noexcept;
 
   static int impl_get_current_max_threads() noexcept;
-#endif
 
   static constexpr const char* name() noexcept { return "OpenMP"; }
+  uint32_t impl_instance_id() const noexcept { return 0; }
 };
 
+namespace Tools {
+namespace Experimental {
+template <>
+struct DeviceTypeTraits<OpenMP> {
+  static constexpr DeviceType id = DeviceType::OpenMP;
+};
+}  // namespace Experimental
+}  // namespace Tools
+
+namespace Impl {
+
+class OpenMPSpaceInitializer : public ExecSpaceInitializerBase {
+ public:
+  OpenMPSpaceInitializer()  = default;
+  ~OpenMPSpaceInitializer() = default;
+  void initialize(const InitArguments& args) final;
+  void finalize(const bool) final;
+  void fence() final;
+  void print_configuration(std::ostream& msg, const bool detail) final;
+};
+
+}  // namespace Impl
 }  // namespace Kokkos
 
 /*--------------------------------------------------------------------------*/
@@ -238,15 +203,15 @@ namespace Impl {
 template <>
 struct MemorySpaceAccess<Kokkos::OpenMP::memory_space,
                          Kokkos::OpenMP::scratch_memory_space> {
-  enum { assignable = false };
-  enum { accessible = true };
-  enum { deepcopy = false };
+  enum : bool { assignable = false };
+  enum : bool { accessible = true };
+  enum : bool { deepcopy = false };
 };
 
 template <>
 struct VerifyExecutionCanAccessMemorySpace<
     Kokkos::OpenMP::memory_space, Kokkos::OpenMP::scratch_memory_space> {
-  enum { value = true };
+  enum : bool { value = true };
   inline static void verify(void) {}
   inline static void verify(const void*) {}
 };

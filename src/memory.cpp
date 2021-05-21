@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "memory.h"
-#include <cstdlib>
+
 #include "error.h"
 
 #if defined(LMP_USER_INTEL) && defined(__INTEL_COMPILER)
@@ -21,7 +21,11 @@
 #include "tbb/scalable_allocator.h"
 #else
 #include <cstring>
+#if defined(__APPLE__)
+#include <malloc/malloc.h>
+#else
 #include <malloc.h>
+#endif
 #endif
 #endif
 
@@ -41,7 +45,7 @@ Memory::Memory(LAMMPS *lmp) : Pointers(lmp) {}
 
 void *Memory::smalloc(bigint nbytes, const char *name)
 {
-  if (nbytes == 0) return NULL;
+  if (nbytes == 0) return nullptr;
 
 #if defined(LAMMPS_MEMALIGN)
   void *ptr;
@@ -50,18 +54,15 @@ void *Memory::smalloc(bigint nbytes, const char *name)
   ptr = scalable_aligned_malloc(nbytes, LAMMPS_MEMALIGN);
 #else
   int retval = posix_memalign(&ptr, LAMMPS_MEMALIGN, nbytes);
-  if (retval) ptr = NULL;
+  if (retval) ptr = nullptr;
 #endif
 
 #else
   void *ptr = malloc(nbytes);
 #endif
-  if (ptr == NULL) {
-    char str[128];
-    sprintf(str,"Failed to allocate " BIGINT_FORMAT " bytes for array %s",
-            nbytes,name);
-    error->one(FLERR,str);
-  }
+  if (ptr == nullptr)
+    error->one(FLERR,"Failed to allocate {} bytes for array {}",
+                                 nbytes,name);
   return ptr;
 }
 
@@ -73,7 +74,7 @@ void *Memory::srealloc(void *ptr, bigint nbytes, const char *name)
 {
   if (nbytes == 0) {
     destroy(ptr);
-    return NULL;
+    return nullptr;
   }
 
 #if defined(LMP_USE_TBB_ALLOCATOR)
@@ -86,18 +87,21 @@ void *Memory::srealloc(void *ptr, bigint nbytes, const char *name)
   if (offset) {
     void *optr = ptr;
     ptr = smalloc(nbytes, name);
+#if defined(__APPLE__)
+    memcpy(ptr, optr, MIN(nbytes,malloc_size(optr)));
+#elif defined(_WIN32) || defined(__MINGW32__)
+    memcpy(ptr, optr, MIN(nbytes,_msize(optr)));
+#else
     memcpy(ptr, optr, MIN(nbytes,malloc_usable_size(optr)));
+#endif
     free(optr);
   }
 #else
   ptr = realloc(ptr,nbytes);
 #endif
-  if (ptr == NULL) {
-    char str[128];
-    sprintf(str,"Failed to reallocate " BIGINT_FORMAT " bytes for array %s",
-            nbytes,name);
-    error->one(FLERR,str);
-  }
+  if (ptr == nullptr)
+    error->one(FLERR,"Failed to reallocate {} bytes for array {}",
+                                 nbytes,name);
   return ptr;
 }
 
@@ -107,7 +111,7 @@ void *Memory::srealloc(void *ptr, bigint nbytes, const char *name)
 
 void Memory::sfree(void *ptr)
 {
-  if (ptr == NULL) return;
+  if (ptr == nullptr) return;
   #if defined(LMP_USE_TBB_ALLOCATOR)
   scalable_aligned_free(ptr);
   #else
@@ -121,8 +125,6 @@ void Memory::sfree(void *ptr)
 
 void Memory::fail(const char *name)
 {
-  char str[128];
-  snprintf(str,128,
-           "Cannot create/grow a vector/array of pointers for %s",name);
-  error->one(FLERR,str);
+  error->one(FLERR,"Cannot create/grow a vector/array of "
+                               "pointers for {}",name);
 }

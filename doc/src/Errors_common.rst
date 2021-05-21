@@ -48,8 +48,10 @@ to see it on the screen.  If you get an error like "Invalid ...
 style", with ... being fix, compute, pair, etc, it means that you
 mistyped the style name or that the command is part of an optional
 package which was not compiled into your executable.  The list of
-available styles in your executable can be listed by using :doc:`the -h command-line swith <Run_options>`.  The installation and
-compilation of optional packages is explained on the :doc:`Build packages <Build_package>` doc page.
+available styles in your executable can be listed by using
+:doc:`the -h command-line switch <Run_options>`.  The installation and
+compilation of optional packages is explained on the
+:doc:`Build packages <Build_package>` doc page.
 
 For a given command, LAMMPS expects certain arguments in a specified
 order.  If you mess this up, LAMMPS will often flag the error, but it

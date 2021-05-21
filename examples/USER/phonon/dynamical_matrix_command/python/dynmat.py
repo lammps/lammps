@@ -38,5 +38,5 @@ dynmat = dynmat.reshape((dynlen, dynlen))
 eigvals, eigvecs = np.linalg.eig(dynmat)
 
 # frequencies in THz
-omegas = np.sqrt(np.abs(eigvals))
+omegas = np.sqrt(np.abs(eigvals))/2/np.pi
 print(omegas)

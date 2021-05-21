@@ -116,7 +116,8 @@ Effectively, :math:`k_n` and :math:`k_{na}` are the slopes of the red lines in t
 above for force versus surface separation, for :math:`\delta_n < 0` and
 :math:`0 < \delta_n < r_c` respectively.
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This pair style does not support the :doc:`pair_modify <pair_modify>`
 mix, shift, table, and tail options.
@@ -142,7 +143,10 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 .. _pair-Fraige:
 

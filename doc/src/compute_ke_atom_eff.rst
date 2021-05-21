@@ -60,7 +60,8 @@ of freedom in eFF.
 The value of the kinetic energy will be 0.0 for atoms (nuclei or
 electrons) not in the specified compute group.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a scalar quantity for each atom, which can be
 accessed by any command that uses per-atom computes as input.  See the
@@ -80,4 +81,7 @@ Related commands
 
 :doc:`dump custom <dump>`
 
-**Default:** none
+Default
+"""""""
+
+none

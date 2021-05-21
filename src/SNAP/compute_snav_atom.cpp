@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -13,7 +13,7 @@
 
 #include "compute_snav_atom.h"
 #include <cstring>
-#include <cstdlib>
+
 #include "sna.h"
 #include "atom.h"
 #include "update.h"
@@ -29,13 +29,13 @@
 using namespace LAMMPS_NS;
 
 ComputeSNAVAtom::ComputeSNAVAtom(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), cutsq(NULL), list(NULL), snav(NULL),
-  radelem(NULL), wjelem(NULL)
+  Compute(lmp, narg, arg), cutsq(nullptr), list(nullptr), snav(nullptr),
+  radelem(nullptr), wjelem(nullptr)
 {
   double rfac0, rmin0;
-  int twojmax, switchflag, bzeroflag;
-  radelem = NULL;
-  wjelem = NULL;
+  int twojmax, switchflag, bzeroflag, bnormflag, wselfallflag;
+  radelem = nullptr;
+  wjelem = nullptr;
 
   int ntypes = atom->ntypes;
   int nargmin = 6+2*ntypes;
@@ -47,7 +47,12 @@ ComputeSNAVAtom::ComputeSNAVAtom(LAMMPS *lmp, int narg, char **arg) :
   rmin0 = 0.0;
   switchflag = 1;
   bzeroflag = 1;
+  bnormflag = 0;
   quadraticflag = 0;
+  chemflag = 0;
+  bnormflag = 0;
+  wselfallflag = 0;
+  nelements = 1;
 
   // process required arguments
 
@@ -56,17 +61,17 @@ ComputeSNAVAtom::ComputeSNAVAtom(LAMMPS *lmp, int narg, char **arg) :
   rcutfac = atof(arg[3]);
   rfac0 = atof(arg[4]);
   twojmax = atoi(arg[5]);
-  for(int i = 0; i < ntypes; i++)
+  for (int i = 0; i < ntypes; i++)
     radelem[i+1] = atof(arg[6+i]);
-  for(int i = 0; i < ntypes; i++)
+  for (int i = 0; i < ntypes; i++)
     wjelem[i+1] = atof(arg[6+ntypes+i]);
   // construct cutsq
   double cut;
   memory->create(cutsq,ntypes+1,ntypes+1,"sna/atom:cutsq");
-  for(int i = 1; i <= ntypes; i++) {
+  for (int i = 1; i <= ntypes; i++) {
     cut = 2.0*radelem[i]*rcutfac;
     cutsq[i][i] = cut*cut;
-    for(int j = i+1; j <= ntypes; j++) {
+    for (int j = i+1; j <= ntypes; j++) {
       cut = (radelem[i]+radelem[j])*rcutfac;
       cutsq[i][j] = cutsq[j][i] = cut*cut;
     }
@@ -97,11 +102,35 @@ ComputeSNAVAtom::ComputeSNAVAtom(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Illegal compute snav/atom command");
       quadraticflag = atoi(arg[iarg+1]);
       iarg += 2;
+    } else if (strcmp(arg[iarg],"chem") == 0) {
+      if (iarg+2+ntypes > narg)
+        error->all(FLERR,"Illegal compute sna/atom command");
+      chemflag = 1;
+      memory->create(map,ntypes+1,"compute_sna_atom:map");
+      nelements = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      for (int i = 0; i < ntypes; i++) {
+        int jelem = utils::inumeric(FLERR,arg[iarg+2+i],false,lmp);
+        if (jelem < 0 || jelem >= nelements)
+          error->all(FLERR,"Illegal compute snav/atom command");
+        map[i+1] = jelem;
+      }
+      iarg += 2+ntypes;
+    } else if (strcmp(arg[iarg],"bnormflag") == 0) {
+      if (iarg+2 > narg)
+        error->all(FLERR,"Illegal compute snav/atom command");
+      bnormflag = atoi(arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"wselfallflag") == 0) {
+      if (iarg+2 > narg)
+        error->all(FLERR,"Illegal compute snav/atom command");
+      wselfallflag = atoi(arg[iarg+1]);
+      iarg += 2;
     } else error->all(FLERR,"Illegal compute snav/atom command");
   }
 
-  snaptr = new SNA(lmp,rfac0,twojmax,
-                   rmin0,switchflag,bzeroflag);
+  snaptr = new SNA(lmp, rfac0, twojmax,
+                   rmin0, switchflag, bzeroflag,
+                   chemflag, bnormflag, wselfallflag, nelements);
 
   ncoeff = snaptr->ncoeff;
   nperdim = ncoeff;
@@ -111,7 +140,7 @@ ComputeSNAVAtom::ComputeSNAVAtom(LAMMPS *lmp, int narg, char **arg) :
   peratom_flag = 1;
 
   nmax = 0;
-  snav = NULL;
+  snav = nullptr;
 
 }
 
@@ -131,7 +160,7 @@ ComputeSNAVAtom::~ComputeSNAVAtom()
 
 void ComputeSNAVAtom::init()
 {
-  if (force->pair == NULL)
+  if (force->pair == nullptr)
     error->all(FLERR,"Compute snav/atom requires a pair style be defined");
    // TODO: Not sure what to do with this error check since cutoff radius is not
   // a single number
@@ -210,6 +239,9 @@ void ComputeSNAVAtom::compute_peratom()
       const double ytmp = x[i][1];
       const double ztmp = x[i][2];
       const int itype = type[i];
+      int ielem = 0;
+      if (chemflag)
+        ielem = map[itype];
       const double radi = radelem[itype];
 
       const int* const jlist = firstneigh[i];
@@ -236,6 +268,9 @@ void ComputeSNAVAtom::compute_peratom()
         const double delz = x[j][2] - ztmp;
         const double rsq = delx*delx + dely*dely + delz*delz;
         int jtype = type[j];
+        int jelem = 0;
+        if (chemflag)
+          jelem = map[jtype];
         if (rsq < cutsq[itype][jtype]&&rsq>1e-20) {
           snaptr->rij[ninside][0] = delx;
           snaptr->rij[ninside][1] = dely;
@@ -243,22 +278,22 @@ void ComputeSNAVAtom::compute_peratom()
           snaptr->inside[ninside] = j;
           snaptr->wj[ninside] = wjelem[jtype];
           snaptr->rcutij[ninside] = (radi+radelem[jtype])*rcutfac;
+          snaptr->element[ninside] = jelem; // element index for multi-element snap
           ninside++;
         }
       }
 
-      snaptr->compute_ui(ninside);
+      snaptr->compute_ui(ninside, ielem);
       snaptr->compute_zi();
       if (quadraticflag) {
-        snaptr->compute_bi();
+        snaptr->compute_bi(ielem);
       }
 
       for (int jj = 0; jj < ninside; jj++) {
         const int j = snaptr->inside[jj];
 
-        snaptr->compute_duidrj(snaptr->rij[jj],
-                                    snaptr->wj[jj],
-                                    snaptr->rcutij[jj],jj);
+        snaptr->compute_duidrj(snaptr->rij[jj], snaptr->wj[jj],
+                                    snaptr->rcutij[jj], jj, snaptr->element[jj]);
         snaptr->compute_dbidrj();
 
         // Accumulate -dBi/dRi*Ri, -dBi/dRj*Rj
@@ -380,7 +415,7 @@ void ComputeSNAVAtom::unpack_reverse_comm(int n, int *list, double *buf)
 
 double ComputeSNAVAtom::memory_usage()
 {
-  double bytes = nmax*size_peratom_cols * sizeof(double); // snav
+  double bytes = (double)nmax*size_peratom_cols * sizeof(double); // snav
   bytes += snaptr->memory_usage();                        // SNA object
 
   return bytes;

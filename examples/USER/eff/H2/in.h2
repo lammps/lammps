@@ -1,5 +1,4 @@
 variable	sname index h2
-log		${sname}.spe.log
 
 units 		electron
 newton		on
@@ -47,4 +46,4 @@ unfix		3
 
 #fix		1 all nve/eff
 
-run 		100000
+run 		10000

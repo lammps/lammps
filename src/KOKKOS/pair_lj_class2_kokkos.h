@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -31,7 +31,7 @@ namespace LAMMPS_NS {
 template<class DeviceType>
 class PairLJClass2Kokkos : public PairLJClass2 {
  public:
-  enum {EnabledNeighFlags=FULL|HALFTHREAD|HALF|N2};
+  enum {EnabledNeighFlags=FULL|HALFTHREAD|HALF};
   enum {COUL_FLAG=0};
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
@@ -46,9 +46,9 @@ class PairLJClass2Kokkos : public PairLJClass2 {
 
   struct params_lj{
     KOKKOS_INLINE_FUNCTION
-    params_lj(){cutsq=0,lj1=0;lj2=0;lj3=0;lj4=0;offset=0;};
+    params_lj() {cutsq=0,lj1=0;lj2=0;lj3=0;lj4=0;offset=0;};
     KOKKOS_INLINE_FUNCTION
-    params_lj(int i){cutsq=0,lj1=0;lj2=0;lj3=0;lj4=0;offset=0;};
+    params_lj(int /*i*/) {cutsq=0,lj1=0;lj2=0;lj3=0;lj4=0;offset=0;};
     F_FLOAT cutsq,lj1,lj2,lj3,lj4,offset;
   };
 
@@ -65,16 +65,13 @@ class PairLJClass2Kokkos : public PairLJClass2 {
 
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
-  F_FLOAT compute_ecoul(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const {
-    return 0.0;
-  }
+  F_FLOAT compute_ecoul(const F_FLOAT& /*rsq*/, const int& /*i*/, const int& /*j*/,
+                        const int& /*itype*/, const int& /*jtype*/) const { return 0; }
 
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
-  F_FLOAT compute_fcoul(const F_FLOAT& rsq, const int& i, const int&j, const int& itype,
-                        const int& jtype, const F_FLOAT& factor_coul, const F_FLOAT& qtmp) const {
-    return 0.0;
-  }
+  F_FLOAT compute_fcoul(const F_FLOAT& /*rsq*/, const int& /*i*/, const int& /*j*/, const int& /*itype*/,
+                        const int& /*jtype*/, const F_FLOAT& /*factor_coul*/, const F_FLOAT& /*qtmp*/) const { return 0; }
 
   Kokkos::DualView<params_lj**,Kokkos::LayoutRight,DeviceType> k_params;
   typename Kokkos::DualView<params_lj**,Kokkos::LayoutRight,DeviceType>::t_dev_const_um params;
@@ -101,18 +98,15 @@ class PairLJClass2Kokkos : public PairLJClass2 {
   int nlocal,nall,eflag,vflag;
 
   void allocate();
-  friend class PairComputeFunctor<PairLJClass2Kokkos,FULL,true>;
-  friend class PairComputeFunctor<PairLJClass2Kokkos,HALF,true>;
-  friend class PairComputeFunctor<PairLJClass2Kokkos,HALFTHREAD,true>;
-  friend class PairComputeFunctor<PairLJClass2Kokkos,N2,true>;
-  friend class PairComputeFunctor<PairLJClass2Kokkos,FULL,false>;
-  friend class PairComputeFunctor<PairLJClass2Kokkos,HALF,false>;
-  friend class PairComputeFunctor<PairLJClass2Kokkos,HALFTHREAD,false>;
-  friend class PairComputeFunctor<PairLJClass2Kokkos,N2,false>;
+  friend struct PairComputeFunctor<PairLJClass2Kokkos,FULL,true>;
+  friend struct PairComputeFunctor<PairLJClass2Kokkos,HALF,true>;
+  friend struct PairComputeFunctor<PairLJClass2Kokkos,HALFTHREAD,true>;
+  friend struct PairComputeFunctor<PairLJClass2Kokkos,FULL,false>;
+  friend struct PairComputeFunctor<PairLJClass2Kokkos,HALF,false>;
+  friend struct PairComputeFunctor<PairLJClass2Kokkos,HALFTHREAD,false>;
   friend EV_FLOAT pair_compute_neighlist<PairLJClass2Kokkos,FULL,void>(PairLJClass2Kokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairLJClass2Kokkos,HALF,void>(PairLJClass2Kokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairLJClass2Kokkos,HALFTHREAD,void>(PairLJClass2Kokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute_neighlist<PairLJClass2Kokkos,N2,void>(PairLJClass2Kokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute<PairLJClass2Kokkos,void>(PairLJClass2Kokkos*,NeighListKokkos<DeviceType>*);
   friend void pair_virial_fdotr_compute<PairLJClass2Kokkos>(PairLJClass2Kokkos*);
 };

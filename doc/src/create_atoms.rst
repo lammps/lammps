@@ -28,7 +28,7 @@ Syntax
 * zero or more keyword/value pairs may be appended
 * keyword = *mol* or *basis* or *ratio* or *subset* or *remap* or *var* or *set* or *rotate* or *units*
 
-  .. code-block:: LAMMPS
+  .. parsed-literal::
 
        *mol* value = template-ID seed
          template-ID = ID of molecule template specified in a separate :doc:`molecule <molecule>` command
@@ -257,8 +257,7 @@ individual lattice points being "above" or "below" the mathematical
 expression for the sinusoidal curve.  If a finer lattice were used,
 the sinusoid would appear to be "smoother".  Also note the use of the
 "xlat" and "ylat" :doc:`thermo_style <thermo_style>` keywords which
-converts lattice spacings to distance.  Click on the image for a
-larger version.
+converts lattice spacings to distance.
 
 .. code-block:: LAMMPS
 
@@ -275,9 +274,13 @@ larger version.
    create_atoms    1 box var v set x xx set y yy
    write_dump      all atom sinusoid.lammpstrj
 
-.. image:: JPG/sinusoid_small.jpg
-   :target: JPG/sinusoid.jpg
+.. image:: img/sinusoid.jpg
+   :scale: 50%
    :align: center
+
+.. raw:: html
+
+   Click on the image for a larger version.
 
 The *rotate* keyword allows specification of the orientation
 at which molecules are inserted.  The axis of rotation is

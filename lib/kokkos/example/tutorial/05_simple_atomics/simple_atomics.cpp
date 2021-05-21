@@ -48,8 +48,8 @@
 #include <cmath>
 
 // Type of a one-dimensional length-N array of int.
-typedef Kokkos::View<int*> view_type;
-typedef view_type::HostMirror host_view_type;
+using view_type      = Kokkos::View<int*>;
+using host_view_type = view_type::HostMirror;
 // This is a "zero-dimensional" View, that is, a View of a single
 // value (an int, in this case).  Access the value using operator()
 // with no arguments: e.g., 'count()'.
@@ -57,8 +57,8 @@ typedef view_type::HostMirror host_view_type;
 // Zero-dimensional Views are useful for reduction results that stay
 // resident in device memory, as well as for irregularly updated
 // shared state.  We use it for the latter in this example.
-typedef Kokkos::View<int> count_type;
-typedef count_type::HostMirror host_count_type;
+using count_type      = Kokkos::View<int>;
+using host_count_type = count_type::HostMirror;
 
 // Functor for finding a list of primes in a given set of numbers.  If
 // run in parallel, the order of results is nondeterministic, because
@@ -118,7 +118,7 @@ int main() {
     host_view_type h_result = Kokkos::create_mirror_view(result);
     host_count_type h_count = Kokkos::create_mirror_view(count);
 
-    typedef view_type::size_type size_type;
+    using size_type = view_type::size_type;
     // Fill the 'data' array on the host with random numbers.  We assume
     // that they come from some process which is only implemented on the
     // host, via some library.  (That's true in this case.)

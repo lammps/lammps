@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -34,6 +34,8 @@ class PairVashishta : public Pair {
   double init_one(int, int);
   void init_style();
 
+  static constexpr int NPARAMS_PER_LINE = 17;
+
   struct Param {
     double bigb,gamma,r0,bigc,costheta;
     double bigh,eta,zi,zj;
@@ -46,12 +48,6 @@ class PairVashishta : public Pair {
   };
  protected:
   double cutmax;                // max cutoff for all elements
-  int nelements;                // # of unique elements
-  char **elements;              // names of unique elements
-  int ***elem2param;            // mapping from element triplets to parameters
-  int *map;                     // mapping from atom types to elements
-  int nparams;                  // # of stored parameter sets
-  int maxparam;                 // max # of parameter sets
   Param *params;                // parameter set for an I-J-K interaction
   double r0max;                 // largest value of r0
   int maxshort;                 // size of short neighbor list array

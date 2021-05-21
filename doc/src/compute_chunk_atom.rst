@@ -218,8 +218,8 @@ into ellipses.
 The created bins (and hence the chunk IDs) are numbered consecutively
 from 1 to the number of bins = *Nchunk*\ .  For *bin2d* and *bin3d*\ , the
 numbering varies most rapidly in the first dimension (which could be
-x, y, or z), next rapidly in the 2nd dimension, and most slowly in the
-3rd dimension.  For *bin/sphere*\ , the bin with smallest radii is chunk
+x, y, or z), next rapidly in the second dimension, and most slowly in the
+third dimension.  For *bin/sphere*\ , the bin with smallest radii is chunk
 1 and the bni with largest radii is chunk Nchunk = *ncbin*\ .  For
 *bin/cylinder*\ , the numbering varies most rapidly in the dimension
 along the cylinder axis and most slowly in the radial direction.
@@ -614,22 +614,25 @@ Note that for the *bin/sphere* style, the radii *srmin* and *srmax* are
 scaled by the lattice spacing or reduced value of the *x* dimension.
 
 Note that for the *bin/cylinder* style, the radii *crmin* and *crmax*
-are scaled by the lattice spacing or reduced value of the 1st
+are scaled by the lattice spacing or reduced value of the first
 dimension perpendicular to the cylinder axis.  E.g. y for an x-axis
 cylinder, x for a y-axis cylinder, and x for a z-axis cylinder.
 
 ----------
 
-**Output info:**
+Output info
+"""""""""""
 
-This compute calculates a per-atom vector, which can be accessed by
-any command that uses per-atom values from a compute as input.  See
-the :doc:`Howto output <Howto_output>` doc page for an overview of
+This compute calculates a per-atom vector (the chunk ID), which can
+be accessed by any command that uses per-atom values from a compute
+as input.  It also calculates a global scalar (the number of chunks),
+which can be similarly accessed everywhere outside of a per-atom context.
+See the :doc:`Howto output <Howto_output>` doc page for an overview of
 LAMMPS output options.
 
 The per-atom vector values are unitless chunk IDs, ranging from 1 to
 *Nchunk* (inclusive) for atoms assigned to chunks, and 0 for atoms not
-belonging to a chunk.
+belonging to a chunk.  The scalar contains the value of *Nchunk*.
 
 Restrictions
 """"""""""""

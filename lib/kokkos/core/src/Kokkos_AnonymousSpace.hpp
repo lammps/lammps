@@ -56,12 +56,12 @@ namespace Kokkos {
 class AnonymousSpace {
  public:
   //! Tag this class as a kokkos memory space
-  typedef AnonymousSpace memory_space;
-  typedef Kokkos::DefaultExecutionSpace execution_space;
-  typedef size_t size_type;
+  using memory_space    = AnonymousSpace;
+  using execution_space = Kokkos::DefaultExecutionSpace;
+  using size_type       = size_t;
 
   //! This memory space preferred device_type
-  typedef Kokkos::Device<execution_space, memory_space> device_type;
+  using device_type = Kokkos::Device<execution_space, memory_space>;
 
   /**\brief  Default memory space instance */
   AnonymousSpace()                          = default;
@@ -85,23 +85,23 @@ namespace Impl {
 
 template <typename OtherSpace>
 struct MemorySpaceAccess<Kokkos::AnonymousSpace, OtherSpace> {
-  enum { assignable = true };
-  enum { accessible = true };
-  enum { deepcopy = true };
+  enum : bool { assignable = true };
+  enum : bool { accessible = true };
+  enum : bool { deepcopy = true };
 };
 
 template <typename OtherSpace>
 struct MemorySpaceAccess<OtherSpace, Kokkos::AnonymousSpace> {
-  enum { assignable = true };
-  enum { accessible = true };
-  enum { deepcopy = true };
+  enum : bool { assignable = true };
+  enum : bool { accessible = true };
+  enum : bool { deepcopy = true };
 };
 
 template <>
 struct MemorySpaceAccess<Kokkos::AnonymousSpace, Kokkos::AnonymousSpace> {
-  enum { assignable = true };
-  enum { accessible = true };
-  enum { deepcopy = true };
+  enum : bool { assignable = true };
+  enum : bool { accessible = true };
+  enum : bool { deepcopy = true };
 };
 
 template <typename OtherSpace>

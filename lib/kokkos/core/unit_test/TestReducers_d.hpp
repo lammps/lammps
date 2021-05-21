@@ -42,11 +42,20 @@
 //@HEADER
 */
 
+#include <Kokkos_Core.hpp>
 #include <TestReducers.hpp>
+#include <TestNonTrivialScalarTypes.hpp>
 
 namespace Test {
 TEST(TEST_CATEGORY, reducers_complex_double) {
   TestReducers<Kokkos::complex<double>, TEST_EXECSPACE>::execute_basic();
 }
 
+TEST(TEST_CATEGORY, reducers_struct) {
+  TestReducers<array_reduce<float, 1>, TEST_EXECSPACE>::test_sum(1031);
+  TestReducers<array_reduce<float, 2>, TEST_EXECSPACE>::test_sum(1031);
+  TestReducers<array_reduce<float, 3>, TEST_EXECSPACE>::test_sum(1031);
+  TestReducers<array_reduce<float, 4>, TEST_EXECSPACE>::test_sum(1031);
+  TestReducers<array_reduce<float, 7>, TEST_EXECSPACE>::test_sum(1031);
+}
 }  // namespace Test

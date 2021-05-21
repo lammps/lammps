@@ -47,7 +47,7 @@ namespace ATC {
       case SPECIES_FLUX:          return species_flux(name);
       case INTERNAL_ENERGY:       return internal_energy(name);
       case ENERGY:                return energy(name);
-      default: throw ATC_Error("FieldManager:: unknown field"); return NULL;
+      default: throw ATC_Error("FieldManager:: unknown field"); return nullptr;
       }
     }
     CanonicalName string_to_canonical_name(std::string name){
@@ -83,11 +83,11 @@ namespace ATC {
       case PROLONGED_VELOCITY:
         return prolonged_field(VELOCITY);
       default: 
-        throw ATC_Error("FieldManager:: unknown PAQ"); return NULL;
+        throw ATC_Error("FieldManager:: unknown PAQ"); return nullptr;
       }
     }
     /** this function returns a restriction of atomic data */
-    DENS_MAN * restricted_atom_quantity(FieldName field, std::string name = "default", PAQ * atomi = NULL);
+    DENS_MAN * restricted_atom_quantity(FieldName field, std::string name = "default", PAQ * atomi = nullptr);
   protected:
     ATC_Method * atc_;
     InterscaleManager & interscaleManager_;
@@ -120,10 +120,10 @@ namespace ATC {
     PAQ * atomic_species_vector();
 
     // internal functions
-    DENS_MAN * projected_atom_quantity(FieldName field,std::string name, PAQ * atomic,  DIAG_MAN * normalization = NULL);
-    DENS_MAN * scaled_projected_atom_quantity(FieldName field,std::string name, PAQ * atomic, double scale, DIAG_MAN * normalization = NULL);
-    DENS_MAN * referenced_projected_atom_quantity(FieldName field, std::string name, PAQ * atomic, DENS_MAN * reference, DIAG_MAN * normalization = NULL);
-    DENS_MAN * inferred_atom_quantity(FieldName /* field */, std::string /* name */, PAQ * /* atomic */){return NULL;};
+    DENS_MAN * projected_atom_quantity(FieldName field,std::string name, PAQ * atomic,  DIAG_MAN * normalization = nullptr);
+    DENS_MAN * scaled_projected_atom_quantity(FieldName field,std::string name, PAQ * atomic, double scale, DIAG_MAN * normalization = nullptr);
+    DENS_MAN * referenced_projected_atom_quantity(FieldName field, std::string name, PAQ * atomic, DENS_MAN * reference, DIAG_MAN * normalization = nullptr);
+    DENS_MAN * inferred_atom_quantity(FieldName /* field */, std::string /* name */, PAQ * /* atomic */){return nullptr;};
     PAQ * prolonged_field(FieldName field);
   private:
     FieldManager(void);

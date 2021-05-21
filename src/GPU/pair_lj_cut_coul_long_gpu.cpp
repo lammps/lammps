@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,26 +16,19 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_lj_cut_coul_long_gpu.h"
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
+
 #include "atom.h"
-#include "atom_vec.h"
-#include "comm.h"
-#include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "integrate.h"
-#include "memory.h"
-#include "error.h"
-#include "neigh_request.h"
-#include "universe.h"
-#include "update.h"
 #include "domain.h"
-#include "kspace.h"
+#include "error.h"
+#include "force.h"
 #include "gpu_extra.h"
+#include "kspace.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
 #include "suffix.h"
+
+#include <cmath>
 
 #define EWALD_F   1.12837917
 #define EWALD_P   0.3275911
@@ -58,8 +51,8 @@ int ljcl_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
                   double *host_special_coul, const double qqrd2e,
                   const double g_ewald);
 void ljcl_gpu_reinit(const int ntypes, double **cutsq, double **host_lj1,
-                    double **host_lj2, double **host_lj3, double **host_lj4,
-                    double **offset, double **host_lj_cutsq);
+                     double **host_lj2, double **host_lj3, double **host_lj4,
+                     double **offset, double **host_lj_cutsq);
 void ljcl_gpu_clear();
 int ** ljcl_gpu_compute_n(const int ago, const int inum,
                           const int nall, double **host_x, int *host_type,
@@ -109,9 +102,20 @@ void PairLJCutCoulLongGPU::compute(int eflag, int vflag)
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
   if (gpu_mode != GPU_FORCE) {
+    double sublo[3],subhi[3];
+    if (domain->triclinic == 0) {
+      sublo[0] = domain->sublo[0];
+      sublo[1] = domain->sublo[1];
+      sublo[2] = domain->sublo[2];
+      subhi[0] = domain->subhi[0];
+      subhi[1] = domain->subhi[1];
+      subhi[2] = domain->subhi[2];
+    } else {
+      domain->bbox(domain->sublo_lamda,domain->subhi_lamda,sublo,subhi);
+    }
     inum = atom->nlocal;
     firstneigh = ljcl_gpu_compute_n(neighbor->ago, inum, nall, atom->x,
-                                    atom->type, domain->sublo, domain->subhi,
+                                    atom->type, sublo, subhi,
                                     atom->tag, atom->nspecial, atom->special,
                                     eflag, vflag, eflag_atom, vflag_atom,
                                     host_start, &ilist, &numneigh, cpu_time,
@@ -143,7 +147,7 @@ void PairLJCutCoulLongGPU::compute(int eflag, int vflag)
 
 void PairLJCutCoulLongGPU::init_style()
 {
-  cut_respa = NULL;
+  cut_respa = nullptr;
 
   if (!atom->q_flag)
     error->all(FLERR,"Pair style lj/cut/coul/long/gpu requires atom attribute q");
@@ -171,7 +175,7 @@ void PairLJCutCoulLongGPU::init_style()
 
   // insure use of KSpace long-range solver, set g_ewald
 
-  if (force->kspace == NULL)
+  if (force->kspace == nullptr)
     error->all(FLERR,"Pair style requires a KSpace style");
   g_ewald = force->kspace->g_ewald;
 
@@ -180,11 +184,12 @@ void PairLJCutCoulLongGPU::init_style()
   if (ncoultablebits) init_tables(cut_coul,cut_respa);
 
   int maxspecial=0;
-  if (atom->molecular)
+  if (atom->molecular != Atom::ATOMIC)
     maxspecial=atom->maxspecial;
+  int mnf = 5e-2 * neighbor->oneatom;
   int success = ljcl_gpu_init(atom->ntypes+1, cutsq, lj1, lj2, lj3, lj4,
                               offset, force->special_lj, atom->nlocal,
-                              atom->nlocal+atom->nghost, 300, maxspecial,
+                              atom->nlocal+atom->nghost, mnf, maxspecial,
                               cell_size, gpu_mode, screen, cut_ljsq, cut_coulsq,
                               force->special_coul, force->qqrd2e, g_ewald);
   GPU_EXTRA::check_flag(success,error,world);

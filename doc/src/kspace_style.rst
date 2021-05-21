@@ -1,4 +1,30 @@
-.. index:: kspace_style
+.. index:: kspace_style ewald
+.. index:: kspace_style ewald/dipole
+.. index:: kspace_style ewald/dipole/spin
+.. index:: kspace_style ewald/disp
+.. index:: kspace_style ewald/omp
+.. index:: kspace_style pppm
+.. index:: kspace_style pppm/kk
+.. index:: kspace_style pppm/omp
+.. index:: kspace_style pppm/gpu
+.. index:: kspace_style pppm/intel
+.. index:: kspace_style pppm/cg
+.. index:: kspace_style pppm/dipole
+.. index:: kspace_style pppm/dipole/spin
+.. index:: kspace_style pppm/disp
+.. index:: kspace_style pppm/disp/omp
+.. index:: kspace_style pppm/disp/tip4p
+.. index:: kspace_style pppm/disp/tip4p/omp
+.. index:: kspace_style pppm/disp/intel
+.. index:: kspace_style pppm/cg/omp
+.. index:: kspace_style pppm/stagger
+.. index:: kspace_style pppm/tip4p
+.. index:: kspace_style pppm/tip4p/omp
+.. index:: kspace_style msm
+.. index:: kspace_style msm/omp
+.. index:: kspace_style msm/cg
+.. index:: kspace_style msm/cg/omp
+.. index:: kspace_style scafacos
 
 kspace_style command
 ====================
@@ -163,7 +189,7 @@ The *pppm/dipole/spin* style invokes a particle-particle particle-mesh solver
 for magnetic dipole-dipole interactions between magnetic spins.
 
 The *pppm/tip4p* style is identical to the *pppm* style except that it
-adds a charge at the massless 4th site in each TIP4P water molecule.
+adds a charge at the massless fourth site in each TIP4P water molecule.
 It should be used with :doc:`pair styles <pair_style>` with a
 *tip4p/long* in their style name.
 
@@ -437,7 +463,7 @@ virial, so this contribution is not included.
 Related commands
 """"""""""""""""
 
-:doc:`kspace_modify <kspace_modify>`, :doc:`pair_style lj/cut/coul/long <pair_lj>`, :doc:`pair_style lj/charmm/coul/long <pair_charmm>`, :doc:`pair_style lj/long/coul/long <pair_lj_long>`, :doc:`pair_style buck/coul/long <pair_buck>`
+:doc:`kspace_modify <kspace_modify>`, :doc:`pair_style lj/cut/coul/long <pair_lj_cut_coul>`, :doc:`pair_style lj/charmm/coul/long <pair_charmm>`, :doc:`pair_style lj/long/coul/long <pair_lj_long>`, :doc:`pair_style buck/coul/long <pair_buck>`
 
 Default
 """""""

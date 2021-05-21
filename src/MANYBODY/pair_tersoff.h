@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -34,7 +34,13 @@ class PairTersoff : public Pair {
   virtual void init_style();
   double init_one(int, int);
 
+  template <int SHIFT_FLAG, int EVFLAG, int EFLAG, int VFLAG_ATOM>
+  void eval();
+
+  static constexpr int NPARAMS_PER_LINE = 17;
+
  protected:
+
   struct Param {
     double lam1,lam2,lam3;
     double c,d,h;
@@ -53,15 +59,12 @@ class PairTersoff : public Pair {
   };
 
   Param *params;                // parameter set for an I-J-K interaction
-  char **elements;              // names of unique elements
-  int ***elem2param;            // mapping from element triplets to parameters
-  int *map;                     // mapping from atom types to elements
   double cutmax;                // max cutoff for all elements
-  int nelements;                // # of unique elements
-  int nparams;                  // # of stored parameter sets
-  int maxparam;                 // max # of parameter sets
   int maxshort;                 // size of short neighbor list array
   int *neighshort;              // short neighbor list array
+
+  int shift_flag;               // flag to turn on/off shift
+  double shift;                 // negative change in equilibrium bond length
 
   virtual void allocate();
   virtual void read_file(char *);
@@ -80,7 +83,8 @@ class PairTersoff : public Pair {
   virtual double ters_bij(double, Param *);
   virtual double ters_bij_d(double, Param *);
 
-  virtual void ters_zetaterm_d(double, double *, double, double *, double,
+  virtual void ters_zetaterm_d(double, double *, double, double,
+                               double *, double, double,
                                double *, double *, double *, Param *);
   void costheta_d(double *, double, double *, double,
                   double *, double *, double *);
@@ -104,27 +108,6 @@ class PairTersoff : public Pair {
     const double numerator = -2.0 * ters_c * hcth;
     const double denominator = 1.0/(ters_d + hcth*hcth);
     return param->gamma*numerator*denominator*denominator;
-  }
-
-  inline double vec3_dot(const double x[3], const double y[3]) const {
-    return x[0]*y[0] + x[1]*y[1] + x[2]*y[2];
-  }
-
-  inline void vec3_add(const double x[3], const double y[3],
-                       double * const z) const {
-    z[0] = x[0]+y[0];  z[1] = x[1]+y[1];  z[2] = x[2]+y[2];
-  }
-
-  inline void vec3_scale(const double k, const double x[3],
-                         double y[3]) const {
-    y[0] = k*x[0];  y[1] = k*x[1];  y[2] = k*x[2];
-  }
-
-  inline void vec3_scaleadd(const double k, const double x[3],
-                            const double y[3], double * const z) const {
-    z[0] = k*x[0]+y[0];
-    z[1] = k*x[1]+y[1];
-    z[2] = k*x[2]+y[2];
   }
 };
 

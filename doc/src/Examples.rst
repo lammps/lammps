@@ -27,7 +27,7 @@ be quickly post-processed into a movie using commands described on the
 :doc:`dump image <dump_image>` doc page.
 
 Animations of many of the examples can be viewed on the Movies section
-of the `LAMMPS web site <lws_>`_.
+of the `LAMMPS web site <https://lammps.sandia.gov/movies.html>`_.
 
 There are two kinds of sub-directories in the examples folder.  Lower
 case named directories contain one or a few simple, quick-to-run
@@ -163,7 +163,7 @@ Here is how you can run and visualize one of the sample problems:
 
 Running the simulation produces the files *dump.indent* and
 *log.lammps*\ .  You can visualize the dump file of snapshots with a
-variety of 3rd-party tools highlighted on the
+variety of third-party tools highlighted on the
 `Visualization <https://lammps.sandia.gov/viz.html>`_ page of the LAMMPS
 web site.
 
@@ -223,4 +223,3 @@ instructions.  See the :doc:`Packages_details <Packages_details>` doc
 page for more info on specific USER packages.
 
 .. _openkim: https://openkim.org
-.. _lws: https://lammps.sandia.gov

@@ -84,7 +84,8 @@ more easily be used as a thermostat.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files
 <restart>`.  None of the :doc:`fix_modify <fix_modify>` options are
@@ -112,4 +113,7 @@ Related commands
 
 :doc:`fix langevin <fix_langevin>`
 
-**Default:** none
+Default
+"""""""
+
+none

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    This software is distributed under the GNU General Public License.
@@ -12,18 +12,17 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "omp_compat.h"
-#include <cmath>
 #include "pair_tersoff_table_omp.h"
+
 #include "atom.h"
 #include "comm.h"
-#include "error.h"
-#include "force.h"
 #include "memory.h"
-#include "neighbor.h"
 #include "neigh_list.h"
-
 #include "suffix.h"
+
+#include <cmath>
+
+#include "omp_compat.h"
 using namespace LAMMPS_NS;
 
 #define GRIDSTART 0.1
@@ -44,8 +43,8 @@ PairTersoffTableOMP::PairTersoffTableOMP(LAMMPS *lmp) :
   suffix_flag |= Suffix::OMP;
   respa_enable = 0;
 
-  thrGtetaFunction = thrGtetaFunctionDerived = NULL;
-  thrCutoffFunction = thrCutoffFunctionDerived = NULL;
+  thrGtetaFunction = thrGtetaFunctionDerived = nullptr;
+  thrCutoffFunction = thrCutoffFunctionDerived = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -77,7 +76,7 @@ void PairTersoffTableOMP::compute(int eflag, int vflag)
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
     thr->timer(Timer::START);
-    ev_setup_thr(eflag, vflag, nall, eatom, vatom, NULL, thr);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, nullptr, thr);
 
     if (evflag)
       if (vflag_atom) eval<1,1>(ifrom, ito, thr);
@@ -155,7 +154,7 @@ void PairTersoffTableOMP::eval(int iifrom, int iito, ThrData * const thr)
       r_ij = dr_ij[0]*dr_ij[0] + dr_ij[1]*dr_ij[1] + dr_ij[2]*dr_ij[2];
 
       jtype = map[type[j]];
-      ijparam = elem2param[itype][jtype][jtype];
+      ijparam = elem3param[itype][jtype][jtype];
 
       if (r_ij > params[ijparam].cutsq) continue;
 
@@ -186,8 +185,8 @@ void PairTersoffTableOMP::eval(int iifrom, int iito, ThrData * const thr)
         k = jlist[neighbor_k];
         k &= NEIGHMASK;
         ktype = map[type[k]];
-        ikparam = elem2param[itype][ktype][ktype];
-        ijkparam = elem2param[itype][jtype][ktype];
+        ikparam = elem3param[itype][ktype][ktype];
+        ijkparam = elem3param[itype][jtype][ktype];
 
         dr_ik[0] = xtmp -x[k].x;
         dr_ik[1] = ytmp -x[k].y;
@@ -242,7 +241,7 @@ void PairTersoffTableOMP::eval(int iifrom, int iito, ThrData * const thr)
       r_ij = dr_ij[0]*dr_ij[0] + dr_ij[1]*dr_ij[1] + dr_ij[2]*dr_ij[2];
 
       jtype = map[type[j]];
-      ijparam = elem2param[itype][jtype][jtype];
+      ijparam = elem3param[itype][jtype][jtype];
 
       if (r_ij > params[ijparam].cutsq) continue;
 
@@ -286,8 +285,8 @@ void PairTersoffTableOMP::eval(int iifrom, int iito, ThrData * const thr)
         k = jlist[neighbor_k];
         k &= NEIGHMASK;
         ktype = map[type[k]];
-        ikparam = elem2param[itype][ktype][ktype];
-        ijkparam = elem2param[itype][jtype][ktype];
+        ikparam = elem3param[itype][ktype][ktype];
+        ijkparam = elem3param[itype][jtype][ktype];
 
         dr_ik[0] = xtmp -x[k].x;
         dr_ik[1] = ytmp -x[k].y;
@@ -311,8 +310,8 @@ void PairTersoffTableOMP::eval(int iifrom, int iito, ThrData * const thr)
         k = jlist[neighbor_k];
         k &= NEIGHMASK;
         ktype = map[type[k]];
-        ikparam = elem2param[itype][ktype][ktype];
-        ijkparam = elem2param[itype][jtype][ktype];
+        ikparam = elem3param[itype][ktype][ktype];
+        ijkparam = elem3param[itype][jtype][ktype];
 
         dr_ik[0] = xtmp -x[k].x;
         dr_ik[1] = ytmp -x[k].y;
@@ -371,8 +370,8 @@ void PairTersoffTableOMP::eval(int iifrom, int iito, ThrData * const thr)
         k = jlist[neighbor_k];
         k &= NEIGHMASK;
         ktype = map[type[k]];
-        ikparam = elem2param[itype][ktype][ktype];
-        ijkparam = elem2param[itype][jtype][ktype];
+        ikparam = elem3param[itype][ktype][ktype];
+        ijkparam = elem3param[itype][jtype][ktype];
 
         dr_ik[0] = xtmp -x[k].x;
         dr_ik[1] = ytmp -x[k].y;
@@ -437,8 +436,8 @@ void PairTersoffTableOMP::eval(int iifrom, int iito, ThrData * const thr)
         k = jlist[neighbor_k];
         k &= NEIGHMASK;
         ktype = map[type[k]];
-        ikparam = elem2param[itype][ktype][ktype];
-        ijkparam = elem2param[itype][jtype][ktype];
+        ikparam = elem3param[itype][ktype][ktype];
+        ijkparam = elem3param[itype][jtype][ktype];
 
         dr_ik[0] = xtmp -x[k].x;
         dr_ik[1] = ytmp -x[k].y;

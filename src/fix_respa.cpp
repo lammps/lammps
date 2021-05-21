@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,10 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_respa.h"
-#include <cstring>
+
 #include "atom.h"
-#include "force.h"
 #include "memory.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -24,11 +25,11 @@ using namespace FixConst;
 
 FixRespa::FixRespa(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  store_torque(0), f_level(NULL), t_level(NULL)
+  store_torque(0), f_level(nullptr), t_level(nullptr)
 {
   // nlevels = # of rRESPA levels
 
-  nlevels = force->inumeric(FLERR,arg[3]);
+  nlevels = utils::inumeric(FLERR,arg[3],false,lmp);
 
   // optional arguments
   store_torque = 0;
@@ -40,10 +41,10 @@ FixRespa::FixRespa(LAMMPS *lmp, int narg, char **arg) :
   // perform initial allocation of atom-based arrays
   // register with Atom class
 
-  f_level = NULL;
-  t_level = NULL;
+  f_level = nullptr;
+  t_level = nullptr;
   grow_arrays(atom->nmax);
-  atom->add_callback(0);
+  atom->add_callback(Atom::GROW);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -52,7 +53,7 @@ FixRespa::~FixRespa()
 {
   // unregister callbacks to this fix from Atom class
 
-  atom->delete_callback(id,0);
+  atom->delete_callback(id,Atom::GROW);
 
   // delete locally stored arrays
 
@@ -73,8 +74,8 @@ int FixRespa::setmask()
 
 double FixRespa::memory_usage()
 {
-  double bytes = atom->nmax*nlevels*3 * sizeof(double);
-  if (store_torque) bytes += atom->nmax*nlevels*3 * sizeof(double);
+  double bytes = (double)atom->nmax*nlevels*3 * sizeof(double);
+  if (store_torque) bytes += (double)atom->nmax*nlevels*3 * sizeof(double);
   return bytes;
 }
 

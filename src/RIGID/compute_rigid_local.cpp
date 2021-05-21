@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -33,16 +33,14 @@ enum{ID,MOL,MASS,X,Y,Z,XU,YU,ZU,VX,VY,VZ,FX,FY,FZ,IX,IY,IZ,
 
 ComputeRigidLocal::ComputeRigidLocal(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  rstyle(NULL), idrigid(NULL), fixrigid(NULL), vlocal(NULL), alocal(NULL)
+  rstyle(nullptr), idrigid(nullptr), fixrigid(nullptr), vlocal(nullptr), alocal(nullptr)
 {
   if (narg < 5) error->all(FLERR,"Illegal compute rigid/local command");
 
   local_flag = 1;
   nvalues = narg - 4;
 
-  int n = strlen(arg[3]) + 1;
-  idrigid = new char[n];
-  strcpy(idrigid,arg[3]);
+  idrigid = utils::strdup(arg[3]);
 
   rstyle = new int[nvalues];
 
@@ -89,8 +87,8 @@ ComputeRigidLocal::ComputeRigidLocal(LAMMPS *lmp, int narg, char **arg) :
   else size_local_cols = nvalues;
 
 ncount = nmax = 0;
-  vlocal = NULL;
-  alocal = NULL;
+  vlocal = nullptr;
+  alocal = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -115,8 +113,8 @@ void ComputeRigidLocal::init()
   fixrigid = (FixRigidSmall *) modify->fix[ifix];
 
   int flag = 0;
-  if (strstr(fixrigid->style,"rigid/") == NULL) flag = 1;
-  if (strstr(fixrigid->style,"/small") == NULL) flag = 1;
+  if (strstr(fixrigid->style,"rigid/") == nullptr) flag = 1;
+  if (strstr(fixrigid->style,"/small") == nullptr) flag = 1;
   if (flag)
     error->all(FLERR,"Compute rigid/local does not use fix rigid/small fix");
 
@@ -315,6 +313,6 @@ void ComputeRigidLocal::reallocate(int n)
 
 double ComputeRigidLocal::memory_usage()
 {
-  double bytes = nmax*nvalues * sizeof(double);
+  double bytes = (double)nmax*nvalues * sizeof(double);
   return bytes;
 }

@@ -53,10 +53,17 @@ if(DOWNLOAD_PLUMED)
   elseif(PLUMED_MODE STREQUAL "RUNTIME")
     set(PLUMED_BUILD_BYPRODUCTS "<INSTALL_DIR>/lib/libplumedWrapper.a")
   endif()
+
+  set(PLUMED_URL "https://github.com/plumed/plumed2/releases/download/v2.7.1/plumed-src-2.7.1.tgz" CACHE STRING "URL for PLUMED tarball")
+  set(PLUMED_MD5 "4eac6a462ec84dfe0cec96c82421b8e8" CACHE STRING "MD5 checksum of PLUMED tarball")
+
+  mark_as_advanced(PLUMED_URL)
+  mark_as_advanced(PLUMED_MD5)
+
   include(ExternalProject)
   ExternalProject_Add(plumed_build
-    URL https://github.com/plumed/plumed2/releases/download/v2.6.0/plumed-src-2.6.0.tgz
-    URL_MD5 204d2edae58d9b10ba3ad460cad64191
+    URL     ${PLUMED_URL}
+    URL_MD5 ${PLUMED_MD5}
     BUILD_IN_SOURCE 1
     CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR>
                                              ${CONFIGURE_REQUEST_PIC}
@@ -70,16 +77,12 @@ if(DOWNLOAD_PLUMED)
   ExternalProject_get_property(plumed_build INSTALL_DIR)
   add_library(LAMMPS::PLUMED UNKNOWN IMPORTED)
   add_dependencies(LAMMPS::PLUMED plumed_build)
-  if(NOT BUILD_SHARED_LIBS)
-    install(CODE "MESSAGE(FATAL_ERROR \"Installing liblammps with downloaded libraries is currently not supported.\")")
-  endif()
   if(PLUMED_MODE STREQUAL "STATIC")
-    set_target_properties(LAMMPS::PLUMED PROPERTIES INTERFACE_COMPILE_DEFINITIONS "__PLUMED_WRAPPER_CXX=1")
     set_target_properties(LAMMPS::PLUMED PROPERTIES IMPORTED_LOCATION ${INSTALL_DIR}/lib/libplumed.a INTERFACE_LINK_LIBRARIES "${PLUMED_LINK_LIBS};${CMAKE_DL_LIBS}")
   elseif(PLUMED_MODE STREQUAL "SHARED")
     set_target_properties(LAMMPS::PLUMED PROPERTIES IMPORTED_LOCATION ${INSTALL_DIR}/lib/libplumed${CMAKE_SHARED_LIBRARY_SUFFIX} INTERFACE_LINK_LIBRARIES "${INSTALL_DIR}/lib/libplumedKernel${CMAKE_SHARED_LIBRARY_SUFFIX};${CMAKE_DL_LIBS}")
   elseif(PLUMED_MODE STREQUAL "RUNTIME")
-    set_target_properties(LAMMPS::PLUMED PROPERTIES INTERFACE_COMPILE_DEFINITIONS "__PLUMED_HAS_DLOPEN=1;__PLUMED_DEFAULT_KERNEL=${INSTALL_DIR}/lib/libplumedKernel${CMAKE_SHARED_LIBRARY_SUFFIX}")
+    set_target_properties(LAMMPS::PLUMED PROPERTIES INTERFACE_COMPILE_DEFINITIONS "__PLUMED_DEFAULT_KERNEL=${INSTALL_DIR}/lib/libplumedKernel${CMAKE_SHARED_LIBRARY_SUFFIX}")
     set_target_properties(LAMMPS::PLUMED PROPERTIES IMPORTED_LOCATION ${INSTALL_DIR}/lib/libplumedWrapper.a INTERFACE_LINK_LIBRARIES "${CMAKE_DL_LIBS}")
   endif()
   set_target_properties(LAMMPS::PLUMED PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${INSTALL_DIR}/include)
@@ -89,12 +92,11 @@ else()
   pkg_check_modules(PLUMED REQUIRED plumed)
   add_library(LAMMPS::PLUMED INTERFACE IMPORTED)
   if(PLUMED_MODE STREQUAL "STATIC")
-    set_target_properties(LAMMPS::PLUMED PROPERTIES INTERFACE_COMPILE_DEFINITIONS "__PLUMED_WRAPPER_CXX=1")
     include(${PLUMED_LIBDIR}/plumed/src/lib/Plumed.cmake.static)
   elseif(PLUMED_MODE STREQUAL "SHARED")
     include(${PLUMED_LIBDIR}/plumed/src/lib/Plumed.cmake.shared)
   elseif(PLUMED_MODE STREQUAL "RUNTIME")
-    set_target_properties(LAMMPS::PLUMED PROPERTIES INTERFACE_COMPILE_DEFINITIONS "__PLUMED_HAS_DLOPEN=1;__PLUMED_DEFAULT_KERNEL=${PLUMED_LIBDIR}/libplumedKernel${CMAKE_SHARED_LIBRARY_SUFFIX}")
+    set_target_properties(LAMMPS::PLUMED PROPERTIES INTERFACE_COMPILE_DEFINITIONS "__PLUMED_DEFAULT_KERNEL=${PLUMED_LIBDIR}/libplumedKernel${CMAKE_SHARED_LIBRARY_SUFFIX}")
     include(${PLUMED_LIBDIR}/plumed/src/lib/Plumed.cmake.runtime)
   endif()
   set_target_properties(LAMMPS::PLUMED PROPERTIES INTERFACE_LINK_LIBRARIES "${PLUMED_LOAD}")

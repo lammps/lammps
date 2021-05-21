@@ -90,7 +90,7 @@ although you have the option to change that dimension via the :doc:`fix deform <
 For all barostat keywords, the *Pdamp* parameter determines the time
 scale on which pressure is relaxed.  For example, a value of 10.0
 means to relax the pressure in a timespan of (roughly) 10 time units
-(tau or fmsec or psec - see the :doc:`units <units>` command).
+(tau or fs or ps - see the :doc:`units <units>` command).
 
 .. note::
 
@@ -190,7 +190,8 @@ or pressure during thermodynamic output via the :doc:`thermo_style custom <therm
 It also means that changing attributes of *thermo_temp* or
 *thermo_press* will have no effect on this fix.
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 

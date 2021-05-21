@@ -1,11 +1,17 @@
 # USER-NETCDF can use NetCDF, Parallel NetCDF (PNetCDF), or both. At least one necessary.
 # NetCDF library enables dump style "netcdf", while PNetCDF enables dump style "netcdf/mpiio"
-find_package(NetCDF)
-if(NETCDF_FOUND)
-  find_package(PNetCDF)
-else(NETCDF_FOUND)
-  find_package(PNetCDF REQUIRED)
-endif(NETCDF_FOUND)
+
+# may use NetCDF or PNetCDF with MPI, but must have NetCDF without
+if(NOT BUILD_MPI)
+  find_package(NetCDF REQUIRED)
+else()
+  find_package(NetCDF)
+  if(NETCDF_FOUND)
+    find_package(PNetCDF)
+  else()
+    find_package(PNetCDF REQUIRED)
+  endif()
+endif()
 
 if(NETCDF_FOUND)
   target_link_libraries(lammps PRIVATE NetCDF::NetCDF)

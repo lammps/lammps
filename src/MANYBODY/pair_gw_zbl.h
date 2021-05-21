@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -28,6 +28,8 @@ class PairGWZBL : public PairGW {
  public:
   PairGWZBL(class LAMMPS *);
   ~PairGWZBL() {}
+
+  static constexpr int NPARAMS_PER_LINE = 21;
 
  private:
   double global_a_0;                // Bohr radius for Coulomb repulsion

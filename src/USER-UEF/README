@@ -1,11 +1,11 @@
 USER-UEF is a LAMMPS package for non-equilibrium molecular dynamics
-(NEMD) under diagonal flow fields, including uniaxial and biaxial 
-flow. With this package, simulations under extensional flow may be 
+(NEMD) under diagonal flow fields, including uniaxial and biaxial
+flow. With this package, simulations under extensional flow may be
 carried out for an indefinite amount of time. It is an implementation
 of the boundary conditions developed by Matthew Dobson, and also uses
-numerical lattice reduction as was proposed by Thomas Hunt. The 
-lattice reduction algorithm is from Igor Semaev. The package is 
-intended for simulations of homogeneous flows, and integrates the 
+numerical lattice reduction as was proposed by Thomas Hunt. The
+lattice reduction algorithm is from Igor Semaev. The package is
+intended for simulations of homogeneous flows, and integrates the
 SLLOD equations of motion.
 
 --
@@ -19,7 +19,7 @@ The following commands are contained in this package:
 
 fix npt/uef and fix nvt/uef:
   These commands perform time-integration of the SLLOD equations of
-  motion under constant temperature/pressure with the proper 
+  motion under constant temperature/pressure with the proper
   boundary conditions for extensional flow fields.
 
 compute pressure/uef and compute temp/uef:
@@ -29,8 +29,8 @@ compute pressure/uef and compute temp/uef:
 dump cfg/uef:
   This command dumps coordinates in the reference frame corresponding
   to the applied flow field.
-  
-For more information, visit the documentation page for fix nvt/uef 
+
+For more information, visit the documentation page for fix nvt/uef
 and examine the example scripts in doc/USER/uef/.
 
 --

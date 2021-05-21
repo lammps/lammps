@@ -49,6 +49,15 @@ new units.  And you must correctly convert all output from the new
 units to the old units when comparing to the original results.  That
 is often not simple to do.
 
+Potential or table files may have a ``UNITS:`` tag included in the
+first line indicating the unit style those files were created for.
+If the tag exists, its value will be compared to the chosen unit style
+and LAMMPS will stop with an error message if there is a mismatch.
+In some select cases and for specific combinations of unit styles,
+LAMMPS is capable of automatically converting potential parameters
+from a file. In those cases, a warning message signaling that an
+automatic conversion has happened is printed to the screen.
+
 ----------
 
 For style *lj*\ , all quantities are unitless.  Without loss of
@@ -57,11 +66,15 @@ generality, LAMMPS sets the fundamental quantities mass, :math:`\sigma`,
 masses, distances, energies you specify are multiples of these
 fundamental values.  The formulas relating the reduced or unitless
 quantity (with an asterisk) to the same quantity with units is also
-given.  Thus you can use the mass & :math:`\sigma` & :math:`\epsilon`
+given.  Thus you can use the mass, :math:`\sigma`, and :math:`\epsilon`
 values for a specific material and convert the results from a unitless
-LJ simulation into physical quantities.
+LJ simulation into physical quantities.  Please note that using
+these three properties as base, your unit of time has to conform
+to the relation :math:`\epsilon = \frac{m \sigma^2}{\tau^2}` since
+energy is a derived unit (in SI units you equivalently have the relation
+:math:`1\mathsf{J} = 1\frac{\mathsf{kg}\cdot\mathsf{m}^2}{\mathsf{s}^2}`).
 
-* mass = mass or *m*
+* mass = mass or :math:`m`, where :math:`M^* = \frac{M}{m}`
 * distance = :math:`\sigma`, where :math:`x^* = \frac{x}{\sigma}`
 * time = :math:`\tau`, where :math:`\tau^* = \tau \sqrt{\frac{\epsilon}{m \sigma^2}}`
 * energy = :math:`\epsilon`, where :math:`E^* = \frac{E}{\epsilon}`
@@ -74,7 +87,7 @@ LJ simulation into physical quantities.
 * charge = reduced LJ charge, where :math:`q^* = q \frac{1}{\sqrt{4 \pi \varepsilon_0 \sigma \epsilon}}`
 * dipole = reduced LJ dipole, moment where :math:`\mu^* = \mu \frac{1}{\sqrt{4 \pi \varepsilon_0 \sigma^3 \epsilon}}`
 * electric field = force/charge, where :math:`E^* = E \frac{\sqrt{4 \pi \varepsilon_0 \sigma \epsilon} \sigma}{\epsilon}`
-* density = mass/volume, where :math:`\rho^* = \rho \sigma^{dim}`
+* density = mass/volume, where :math:`\rho^* = \rho \frac{\sigma^{dim}}{m}`
 
 Note that for LJ units, the default mode of thermodynamic output via
 the :doc:`thermo_style <thermo_style>` command is to normalize all
@@ -203,7 +216,7 @@ For style *nano*\ , these are the units:
 The units command also sets the timestep size and neighbor skin
 distance to default values for each style:
 
-* For style *lj* these are dt = 0.005 tau and skin = 0.3 sigma.
+* For style *lj* these are dt = 0.005 :math:`\tau` and skin = 0.3 :math:`\sigma`.
 * For style *real* these are dt = 1.0 femtoseconds and skin = 2.0 Angstroms.
 * For style *metal* these are dt = 0.001 picoseconds and skin = 2.0 Angstroms.
 * For style *si* these are dt = 1.0e-8 seconds and skin = 0.001 meters.
@@ -218,7 +231,11 @@ Restrictions
 This command cannot be used after the simulation box is defined by a
 :doc:`read_data <read_data>` or :doc:`create_box <create_box>` command.
 
-**Related commands:** none
+Related commands
+""""""""""""""""
+
+none
+
 
 Default
 """""""

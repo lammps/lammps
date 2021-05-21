@@ -76,9 +76,9 @@ atoms becomes less than 50.0.  This can be useful if you start a
 simulation with an empty box or if you wish to leave room on one side
 of the box, e.g. for atoms to evaporate from a surface.
 
-For triclinic (non-orthogonal) simulation boxes, if the 2nd dimension
+For triclinic (non-orthogonal) simulation boxes, if the second dimension
 of a tilt factor (e.g. y for xy) is periodic, then the periodicity is
-enforced with the tilt factor offset.  If the 1st dimension is
+enforced with the tilt factor offset.  If the first dimension is
 shrink-wrapped, then the shrink wrapping is applied to the tilted box
 face, to encompass the atoms.  E.g. for a positive xy tilt, the xlo
 and xhi faces of the box are planes tilting in the +y direction as y

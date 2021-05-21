@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -20,7 +20,6 @@ FixStyle(wall/reflect/stochastic,FixWallReflectStochastic)
 #ifndef LMP_FIX_WALL_REFLECT_STOCHASTIC_H
 #define LMP_FIX_WALL_REFLECT_STOCHASTIC_H
 
-#include "random_mars.h"
 #include "fix_wall_reflect.h"
 
 namespace LAMMPS_NS {

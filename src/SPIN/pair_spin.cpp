@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -22,27 +22,28 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_spin.h"
-#include <cstring>
+
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
-#include "fix.h"
+#include "fix_nve_spin.h"
 #include "force.h"
 #include "math_const.h"
 #include "memory.h"
 #include "modify.h"
-#include "neighbor.h"
 #include "neigh_request.h"
+#include "neighbor.h"
 #include "pair.h"
 #include "update.h"
-#include "fix_nve_spin.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairSpin::PairSpin(LAMMPS *lmp) : Pair(lmp), emag(NULL)
+PairSpin::PairSpin(LAMMPS *lmp) : Pair(lmp), emag(nullptr)
 {
   hbar = force->hplanck/MY_2PI;
   single_enable = 0;

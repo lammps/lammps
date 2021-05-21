@@ -59,6 +59,8 @@
 int main(int argc, char** argv) {
   std::ostringstream msg;
 
+  (void)argc;
+  (void)argv;
 #if defined(KOKKOS_ENABLE_MPI)
 
   MPI_Init(&argc, &argv);

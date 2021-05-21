@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_gauss_cut.h"
-#include <mpi.h>
+
 #include <cmath>
 #include "atom.h"
 #include "comm.h"
@@ -24,7 +24,7 @@
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 #include "math_const.h"
 
 using namespace LAMMPS_NS;
@@ -163,7 +163,7 @@ void PairGaussCut::settings(int narg, char **arg)
 {
   if (narg != 1) error->all(FLERR,"Illegal pair_style command");
 
-  cut_global = force->numeric(FLERR,arg[0]);
+  cut_global = utils::numeric(FLERR,arg[0],false,lmp);
 
   // reset cutoffs that have been explicitly set
 
@@ -185,18 +185,18 @@ void PairGaussCut::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  double hgauss_one = force->numeric(FLERR,arg[2]);
-  double rmh_one = force->numeric(FLERR,arg[3]);
-  double sigmah_one = force->numeric(FLERR,arg[4]);
+  double hgauss_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double rmh_one = utils::numeric(FLERR,arg[3],false,lmp);
+  double sigmah_one = utils::numeric(FLERR,arg[4],false,lmp);
   if (sigmah_one <= 0.0)
     error->all(FLERR,"Incorrect args for pair coefficients");
 
 
   double cut_one = cut_global;
-  if (narg == 6) cut_one = force->numeric(FLERR,arg[5]);
+  if (narg == 6) cut_one = utils::numeric(FLERR,arg[5],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -301,14 +301,14 @@ void PairGaussCut::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          utils::sfread(FLERR,&hgauss[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&rmh[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&sigmah[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&hgauss[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&rmh[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&sigmah[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,nullptr,error);
         }
         MPI_Bcast(&hgauss[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&rmh[i][j],1,MPI_DOUBLE,0,world);
@@ -337,9 +337,9 @@ void PairGaussCut::read_restart_settings(FILE *fp)
 {
   int me = comm->me;
   if (me == 0) {
-    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
   }
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
@@ -392,8 +392,8 @@ double PairGaussCut::memory_usage()
 
   double bytes = Pair::memory_usage();
 
-  bytes += 7*((n+1)*(n+1) * sizeof(double) + (n+1)*sizeof(double *));
-  bytes += 1*((n+1)*(n+1) * sizeof(int) + (n+1)*sizeof(int *));
+  bytes += 7.0*((n+1.0)*(n+1.0) * sizeof(double) + (n+1.0)*sizeof(double *));
+  bytes += 1.0*((n+1.0)*(n+1.0) * sizeof(int) + (n+1.0)*sizeof(int *));
 
   return bytes;
 }

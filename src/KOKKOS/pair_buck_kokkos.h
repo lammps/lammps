@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -31,7 +31,7 @@ namespace LAMMPS_NS {
 template<class DeviceType>
 class PairBuckKokkos : public PairBuck {
  public:
-  enum {EnabledNeighFlags=FULL|HALFTHREAD|HALF|N2};
+  enum {EnabledNeighFlags=FULL|HALFTHREAD|HALF};
   enum {COUL_FLAG=0};
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
@@ -45,9 +45,9 @@ class PairBuckKokkos : public PairBuck {
 
   struct params_buck{
     KOKKOS_INLINE_FUNCTION
-    params_buck(){cutsq=0;a=0;c=0;rhoinv=0;buck1=0;buck2=0;offset=0;};
+    params_buck() {cutsq=0;a=0;c=0;rhoinv=0;buck1=0;buck2=0;offset=0;};
     KOKKOS_INLINE_FUNCTION
-    params_buck(int i){cutsq=0;a=0;c=0;rhoinv=0;buck1=0;buck2=0;offset=0;};
+    params_buck(int /*i*/) {cutsq=0;a=0;c=0;rhoinv=0;buck1=0;buck2=0;offset=0;};
     F_FLOAT cutsq,a,c,rhoinv,buck1,buck2,offset;
   };
 
@@ -64,10 +64,8 @@ class PairBuckKokkos : public PairBuck {
 
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
-  F_FLOAT compute_ecoul(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const {
-    return 0;
-  }
-
+  F_FLOAT compute_ecoul(const F_FLOAT& /*rsq*/, const int& /*i*/, const int& /*j*/,
+                        const int& /*itype*/, const int& /*jtype*/) const { return 0; }
 
   Kokkos::DualView<params_buck**,Kokkos::LayoutRight,DeviceType> k_params;
   typename Kokkos::DualView<params_buck**,Kokkos::LayoutRight,DeviceType>::t_dev_const_um params;
@@ -95,18 +93,15 @@ class PairBuckKokkos : public PairBuck {
   int nlocal,nall,eflag,vflag;
 
   void allocate();
-  friend class PairComputeFunctor<PairBuckKokkos,FULL,true>;
-  friend class PairComputeFunctor<PairBuckKokkos,HALF,true>;
-  friend class PairComputeFunctor<PairBuckKokkos,HALFTHREAD,true>;
-  friend class PairComputeFunctor<PairBuckKokkos,N2,true>;
-  friend class PairComputeFunctor<PairBuckKokkos,FULL,false>;
-  friend class PairComputeFunctor<PairBuckKokkos,HALF,false>;
-  friend class PairComputeFunctor<PairBuckKokkos,HALFTHREAD,false>;
-  friend class PairComputeFunctor<PairBuckKokkos,N2,false>;
+  friend struct PairComputeFunctor<PairBuckKokkos,FULL,true>;
+  friend struct PairComputeFunctor<PairBuckKokkos,HALF,true>;
+  friend struct PairComputeFunctor<PairBuckKokkos,HALFTHREAD,true>;
+  friend struct PairComputeFunctor<PairBuckKokkos,FULL,false>;
+  friend struct PairComputeFunctor<PairBuckKokkos,HALF,false>;
+  friend struct PairComputeFunctor<PairBuckKokkos,HALFTHREAD,false>;
   friend EV_FLOAT pair_compute_neighlist<PairBuckKokkos,FULL,void>(PairBuckKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairBuckKokkos,HALF,void>(PairBuckKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairBuckKokkos,HALFTHREAD,void>(PairBuckKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute_neighlist<PairBuckKokkos,N2,void>(PairBuckKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute<PairBuckKokkos,void>(PairBuckKokkos*,NeighListKokkos<DeviceType>*);
   friend void pair_virial_fdotr_compute<PairBuckKokkos>(PairBuckKokkos*);
 };

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -36,7 +36,7 @@ namespace LAMMPS_NS {
       fx = fy = fz = 0.0;
     }
     KOKKOS_INLINE_FUNCTION
-    s_FSUM& operator+=(const s_FSUM &rhs){
+    s_FSUM& operator+=(const s_FSUM &rhs) {
       fx += rhs.fx;
       fy += rhs.fy;
       fz += rhs.fz;
@@ -54,22 +54,22 @@ namespace LAMMPS_NS {
   typedef s_FSUM FSUM;
 
   template<class DeviceType>
-    class FixLangevinKokkos;
+  class FixLangevinKokkos;
 
   template <class DeviceType>
-  class FixLangevinKokkosInitialIntegrateFunctor;
+  struct FixLangevinKokkosInitialIntegrateFunctor;
 
   template<class DeviceType,int Tp_TSTYLEATOM, int Tp_GJF, int Tp_TALLY,
     int Tp_BIAS, int Tp_RMASS, int Tp_ZERO>
-    class FixLangevinKokkosPostForceFunctor;
+  struct FixLangevinKokkosPostForceFunctor;
 
-  template<class DeviceType> class FixLangevinKokkosZeroForceFunctor;
+  template<class DeviceType> struct FixLangevinKokkosZeroForceFunctor;
 
-  template<class DeviceType> class FixLangevinKokkosTallyEnergyFunctor;
+  template<class DeviceType> struct FixLangevinKokkosTallyEnergyFunctor;
 
   template<class DeviceType>
-    class FixLangevinKokkos : public FixLangevin {
-  public:
+  class FixLangevinKokkos : public FixLangevin {
+   public:
     FixLangevinKokkos(class LAMMPS *, int, char **);
     ~FixLangevinKokkos();
 
@@ -169,14 +169,13 @@ namespace LAMMPS_NS {
   template <class DeviceType,int Tp_TSTYLEATOM, int Tp_GJF, int Tp_TALLY,
     int Tp_BIAS, int Tp_RMASS, int Tp_ZERO>
     struct FixLangevinKokkosPostForceFunctor {
-
       typedef DeviceType  device_type;
       typedef FSUM value_type;
       FixLangevinKokkos<DeviceType> c;
 
     FixLangevinKokkosPostForceFunctor(FixLangevinKokkos<DeviceType>* c_ptr):
       c(*c_ptr) {}
-      ~FixLangevinKokkosPostForceFunctor(){c.cleanup_copy();}
+      ~FixLangevinKokkosPostForceFunctor() {c.cleanup_copy();}
 
       KOKKOS_INLINE_FUNCTION
       void operator()(const int i) const {

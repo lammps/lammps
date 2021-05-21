@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -20,6 +20,29 @@
 
 #include "modify.h"
 #include "error.h"
+
+// ---------------------- OPENMP PREPROCESSOR STUFF ------------------
+#if defined(_OPENMP)
+  #if !defined(LAL_USE_OMP)
+  #define LAL_USE_OMP 1
+  #endif
+
+  #if !defined(LAL_USE_OMP_SIMD)
+    #if (_OPENMP >= 201307)
+    #define LAL_USE_OMP_SIMD 1
+    #else
+    #define LAL_USE_OMP_SIMD 0
+    #endif
+  #endif
+#else
+  #if !defined(LAL_USE_OMP)
+  #define LAL_USE_OMP 0
+  #endif
+
+  #if !defined(LAL_USE_OMP_SIMD)
+  #define LAL_USE_OMP_SIMD 0
+  #endif
+#endif
 
 namespace GPU_EXTRA {
 
@@ -61,6 +84,12 @@ namespace GPU_EXTRA {
       else if (all_success == -12)
         error->all(FLERR,
                    "Invalid OpenCL platform ID.");
+      else if (all_success == -13)
+        error->all(FLERR,
+                   "Invalid device configuration.");
+      else if (all_success == -15)
+        error->all(FLERR,
+                   "P3M built for FP64 and GPU device is FP32 only.");
       else
         error->all(FLERR,"Unknown error in GPU library");
     }
@@ -127,11 +156,21 @@ greater than 4 for NVIDIA GPUs.
 E: Invalid custom OpenCL parameter string.
 
 There are not enough or too many parameters in the custom string for package
-GPU.
+GPU or the parameters do not meet required restrictions.
 
 E: Unknown error in GPU library
 
 Self-explanatory.
+
+E: Invalid device configuration.
+
+The specified GPU or accelerator does not support the specified device
+configuration. Check the output of ocl_get_devices or nvd_get_devices to
+verify the correct device IDs for the GPU package.
+
+E: P3M built for FP64 and GPU device is FP32 only
+
+Either turn off GPU acceleration for PPPM or build LAMMPS with -DFFT_SINGLE
 
 W: Increasing communication cutoff for GPU style
 

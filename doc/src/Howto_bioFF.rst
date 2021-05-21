@@ -91,6 +91,7 @@ documentation for the formula it computes.
 * :doc:`bond_style <bond_harmonic>` harmonic
 * :doc:`bond_style <bond_morse>` morse
 
+* :doc:`angle_style <angle_cosine_squared>` cosine/squared
 * :doc:`angle_style <angle_harmonic>` harmonic
 * :doc:`angle_style <angle_cosine>` cosine
 * :doc:`angle_style <angle_cosine_periodic>` cosine/periodic
@@ -102,8 +103,8 @@ documentation for the formula it computes.
 * :doc:`pair_style <pair_buck>` buck/coul/cut
 * :doc:`pair_style <pair_buck>` buck/coul/long
 * :doc:`pair_style <pair_lj>` lj/cut
-* :doc:`pair_style <pair_lj>` lj/cut/coul/cut
-* :doc:`pair_style <pair_lj>` lj/cut/coul/long
+* :doc:`pair_style <pair_lj_cut_coul>` lj/cut/coul/cut
+* :doc:`pair_style <pair_lj_cut_coul>` lj/cut/coul/long
 
 * :doc:`pair_style <pair_hbond_dreiding>` hbond/dreiding/lj
 * :doc:`pair_style <pair_hbond_dreiding>` hbond/dreiding/morse

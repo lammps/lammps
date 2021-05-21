@@ -27,6 +27,7 @@ group all type 1 4
 # oxDNA bond interactions - FENE backbone
 bond_style oxdna/fene
 bond_coeff * 2.0 0.25 0.7525
+special_bonds lj 0 1 1
 
 # oxDNA pair interactions
 pair_style hybrid/overlay oxdna/excv oxdna/stk oxdna/hbond oxdna/xstk oxdna/coaxstk
@@ -48,6 +49,7 @@ timestep 1e-5
 
 #comm_style tiled
 #fix 3 all balance 10000 1.1 rcb
+comm_modify cutoff 2.5
 
 #compute mol all chunk/atom molecule
 #compute mychunk all vcm/chunk mol

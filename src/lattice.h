@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -20,6 +20,8 @@ namespace LAMMPS_NS {
 
 class Lattice : protected Pointers {
  public:
+  enum{NONE,SC,BCC,FCC,HCP,DIAMOND,SQ,SQ2,HEX,CUSTOM};
+
   int style;                           // NONE,SC,FCC,etc
   double xlattice,ylattice,zlattice;   // lattice scale factors in 3 dims
   double a1[3],a2[3],a3[3];            // edge vectors of unit cell

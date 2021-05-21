@@ -1,7 +1,7 @@
 
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -13,38 +13,33 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_hybrid.h"
-#include <mpi.h>
-#include <cstring>
-#include <cctype>
+
 #include "atom.h"
-#include "force.h"
-#include "pair.h"
-#include "neighbor.h"
-#include "neigh_request.h"
-#include "update.h"
 #include "comm.h"
-#include "memory.h"
 #include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "pair.h"
 #include "respa.h"
-#include "utils.h"
 #include "suffix.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
 PairHybrid::PairHybrid(LAMMPS *lmp) : Pair(lmp),
-  styles(NULL), keywords(NULL), multiple(NULL), nmap(NULL),
-  map(NULL), special_lj(NULL), special_coul(NULL), compute_tally(NULL)
+  styles(nullptr), keywords(nullptr), multiple(nullptr), nmap(nullptr),
+  map(nullptr), special_lj(nullptr), special_coul(nullptr), compute_tally(nullptr)
 {
   nstyles = 0;
 
   outerflag = 0;
   respaflag = 0;
-
-  // assume pair hybrid always supports centroid atomic stress,
-  // so that cflag_atom gets set when needed
-  centroidstressflag = 2;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -81,10 +76,10 @@ PairHybrid::~PairHybrid()
 /* ----------------------------------------------------------------------
   call each sub-style's compute() or compute_outer() function
   accumulate sub-style global/peratom energy/virial in hybrid
-  for global vflag = 1:
+  for global vflag = VIRIAL_PAIR:
     each sub-style computes own virial[6]
     sum sub-style virial[6] to hybrid's virial[6]
-  for global vflag = 2:
+  for global vflag = VIRIAL_FDOTR:
     call sub-style with adjusted vflag to prevent it calling
       virial_fdotr_compute()
     hybrid calls virial_fdotr_compute() on final accumulated f
@@ -94,30 +89,31 @@ void PairHybrid::compute(int eflag, int vflag)
 {
   int i,j,m,n;
 
-  // if no_virial_fdotr_compute is set and global component of
-  //   incoming vflag = 2, then
-  // reset vflag as if global component were 1
+  // check if no_virial_fdotr_compute is set and global component of
+  //   incoming vflag = VIRIAL_FDOTR
+  // if so, reset vflag as if global component were VIRIAL_PAIR
   // necessary since one or more sub-styles cannot compute virial as F dot r
 
-  if (no_virial_fdotr_compute && vflag % 4 == 2) vflag = 1 + vflag/4 * 4;
+  if (no_virial_fdotr_compute && (vflag & VIRIAL_FDOTR))
+    vflag = VIRIAL_PAIR | (vflag & ~VIRIAL_FDOTR);
 
   ev_init(eflag,vflag);
 
-  // check if global component of incoming vflag = 2
-  // if so, reset vflag passed to substyle as if it were 0
+  // check if global component of incoming vflag = VIRIAL_FDOTR
+  // if so, reset vflag passed to substyle so VIRIAL_FDOTR is turned off
   // necessary so substyle will not invoke virial_fdotr_compute()
 
   int vflag_substyle;
-  if (vflag % 4 == 2) vflag_substyle = vflag/4 * 4;
+  if (vflag & VIRIAL_FDOTR) vflag_substyle = vflag & ~VIRIAL_FDOTR;
   else vflag_substyle = vflag;
 
   double *saved_special = save_special();
 
   // check if we are running with r-RESPA using the hybrid keyword
 
-  Respa *respa = NULL;
+  Respa *respa = nullptr;
   respaflag = 0;
-  if (strstr(update->integrate_style,"respa")) {
+  if (utils::strmatch(update->integrate_style,"^respa")) {
     respa = (Respa *) update->integrate;
     if (respa->nhybrid_styles > 0) respaflag = 1;
   }
@@ -164,10 +160,13 @@ void PairHybrid::compute(int eflag, int vflag)
         for (j = 0; j < 6; j++)
           vatom[i][j] += vatom_substyle[i][j];
     }
+
+    // substyles may be CENTROID_SAME or CENTROID_AVAIL
+
     if (cvflag_atom) {
       n = atom->nlocal;
       if (force->newton_pair) n += atom->nghost;
-      if (styles[m]->centroidstressflag & 2) {
+      if (styles[m]->centroidstressflag == CENTROID_AVAIL) {
         double **cvatom_substyle = styles[m]->cvatom;
         for (i = 0; i < n; i++)
           for (j = 0; j < 9; j++)
@@ -265,6 +264,9 @@ void PairHybrid::allocate()
 void PairHybrid::settings(int narg, char **arg)
 {
   if (narg < 1) error->all(FLERR,"Illegal pair_style command");
+  if (lmp->kokkos && !utils::strmatch(force->pair_style,"^hybrid.*/kk$"))
+    error->all(FLERR,"Must use pair_style {}/kk with Kokkos",
+                                 force->pair_style);
 
   // delete old lists, since cannot just change settings
 
@@ -313,18 +315,24 @@ void PairHybrid::settings(int narg, char **arg)
   iarg = 0;
   nstyles = 0;
   while (iarg < narg) {
-    if (strncmp(arg[iarg],"hybrid",6) == 0)
+    if (utils::strmatch(arg[iarg],"^hybrid"))
       error->all(FLERR,"Pair style hybrid cannot have hybrid as an argument");
     if (strcmp(arg[iarg],"none") == 0)
       error->all(FLERR,"Pair style hybrid cannot have none as an argument");
 
     styles[nstyles] = force->new_pair(arg[iarg],1,dummy);
     force->store_style(keywords[nstyles],arg[iarg],0);
-    special_lj[nstyles] = special_coul[nstyles] = NULL;
+    special_lj[nstyles] = special_coul[nstyles] = nullptr;
     compute_tally[nstyles] = 1;
 
+    // determine list of arguments for pair style settings
+    // by looking for the next known pair style name.
+
     jarg = iarg + 1;
-    while (jarg < narg && !force->pair_map->count(arg[jarg])) jarg++;
+    while ((jarg < narg)
+           && !force->pair_map->count(arg[jarg])
+           && !lmp->match_style("pair",arg[jarg])) jarg++;
+
     styles[nstyles]->settings(jarg-iarg-1,&arg[iarg+1]);
     iarg = jarg;
     nstyles++;
@@ -363,8 +371,8 @@ void PairHybrid::flags()
                                           styles[m]->comm_reverse_off);
   }
 
-  // single_enable = 1 if any sub-style is set
-  // respa_enable = 1 if any sub-style is set
+  // single_enable = 1 if all sub-styles are set
+  // respa_enable = 1 if all sub-styles are set
   // manybody_flag = 1 if any sub-style is set
   // no_virial_fdotr_compute = 1 if any sub-style is set
   // ghostneigh = 1 if any sub-style is set
@@ -374,9 +382,13 @@ void PairHybrid::flags()
 
   single_enable = 0;
   compute_flag = 0;
+  respa_enable = 0;
+  restartinfo = 0;
+
   for (m = 0; m < nstyles; m++) {
-    if (styles[m]->single_enable) single_enable = 1;
-    if (styles[m]->respa_enable) respa_enable = 1;
+    if (styles[m]->single_enable) ++single_enable;
+    if (styles[m]->respa_enable) ++respa_enable;
+    if (styles[m]->restartinfo) ++restartinfo;
     if (styles[m]->manybody_flag) manybody_flag = 1;
     if (styles[m]->no_virial_fdotr_compute) no_virial_fdotr_compute = 1;
     if (styles[m]->ghostneigh) ghostneigh = 1;
@@ -388,9 +400,26 @@ void PairHybrid::flags()
     if (styles[m]->dispersionflag) dispersionflag = 1;
     if (styles[m]->tip4pflag) tip4pflag = 1;
     if (styles[m]->compute_flag) compute_flag = 1;
-    if (styles[m]->centroidstressflag & 4) centroidstressflag |= 4;
   }
+  single_enable = (single_enable == nstyles) ? 1 : 0;
+  respa_enable = (respa_enable == nstyles) ? 1 : 0;
+  restartinfo = (restartinfo == nstyles) ? 1 : 0;
   init_svector();
+
+  // set centroidstressflag for pair hybrid
+  // set to CENTROID_NOTAVAIL if any substyle is NOTAVAIL
+  // else set to CENTROID_AVAIL if any substyle is AVAIL
+  // else set to CENTROID_SAME if all substyles are SAME
+
+  centroidstressflag = CENTROID_SAME;
+
+  for (m = 0; m < nstyles; m++) {
+    if (styles[m]->centroidstressflag == CENTROID_NOTAVAIL)
+      centroidstressflag = CENTROID_NOTAVAIL;
+    if (centroidstressflag == CENTROID_SAME &&
+        styles[m]->centroidstressflag == CENTROID_AVAIL)
+      centroidstressflag = CENTROID_AVAIL;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -421,12 +450,9 @@ void PairHybrid::coeff(int narg, char **arg)
   if (narg < 3) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
-  if (lmp->kokkos)
-    error->all(FLERR,"Cannot yet use pair hybrid with Kokkos");
-
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
   // 3rd arg = pair sub-style name
   // 4th arg = pair sub-style index if name used multiple times
@@ -441,10 +467,7 @@ void PairHybrid::coeff(int narg, char **arg)
       if (multiple[m]) {
         multflag = 1;
         if (narg < 4) error->all(FLERR,"Incorrect args for pair coefficients");
-        if (!isdigit(arg[3][0]))
-          error->all(FLERR,"Incorrect args for pair coefficients");
-        int index = force->inumeric(FLERR,arg[3]);
-        if (index == multiple[m]) break;
+        if (multiple[m] == utils::inumeric(FLERR,arg[3],false,lmp)) break;
         else continue;
       } else break;
     }
@@ -465,7 +488,7 @@ void PairHybrid::coeff(int narg, char **arg)
 
   // invoke sub-style coeff() starting with 1st remaining arg
 
-  if (!none) styles[m]->coeff(narg-1-multflag,&arg[1+multflag]);
+  if (!none) styles[m]->coeff(narg-1-multflag,arg+1+multflag);
 
   // if sub-style only allows one pair coeff call (with * * and type mapping)
   // then unset setflag/map assigned to that style before setting it below
@@ -522,6 +545,15 @@ void PairHybrid::init_style()
         for (m = 0; m < nmap[itype][jtype]; m++)
           if (map[itype][jtype][m] == istyle) used = 1;
     if (used == 0) error->all(FLERR,"Pair hybrid sub-style is not used");
+  }
+
+  // The GPU library uses global data for each pair style, so the
+  // same style must not be used multiple times
+
+  for (istyle = 0; istyle < nstyles; istyle++) {
+    bool is_gpu = (((PairHybrid *)styles[istyle])->suffix_flag & Suffix::GPU);
+    if (multiple[istyle] && is_gpu)
+      error->all(FLERR,"GPU package styles must not be used multiple times");
   }
 
   // check if special_lj/special_coul overrides are compatible
@@ -693,10 +725,10 @@ void PairHybrid::write_restart(FILE *fp)
     fwrite(keywords[m],sizeof(char),n,fp);
     styles[m]->write_restart_settings(fp);
     // write out per style special settings, if present
-    n = (special_lj[m] == NULL) ? 0 : 1;
+    n = (special_lj[m] == nullptr) ? 0 : 1;
     fwrite(&n,sizeof(int),1,fp);
     if (n) fwrite(special_lj[m],sizeof(double),4,fp);
-    n = (special_coul[m] == NULL) ? 0 : 1;
+    n = (special_coul[m] == nullptr) ? 0 : 1;
     fwrite(&n,sizeof(int),1,fp);
     if (n) fwrite(special_coul[m],sizeof(double),4,fp);
   }
@@ -709,7 +741,7 @@ void PairHybrid::write_restart(FILE *fp)
 void PairHybrid::read_restart(FILE *fp)
 {
   int me = comm->me;
-  if (me == 0) utils::sfread(FLERR,&nstyles,sizeof(int),1,fp,NULL,error);
+  if (me == 0) utils::sfread(FLERR,&nstyles,sizeof(int),1,fp,nullptr,error);
   MPI_Bcast(&nstyles,1,MPI_INT,0,world);
 
   // allocate list of sub-styles
@@ -732,32 +764,32 @@ void PairHybrid::read_restart(FILE *fp)
   // each sub-style is created via new_pair()
   // each reads its settings, but no coeff info
 
-  if (me == 0) utils::sfread(FLERR,compute_tally,sizeof(int),nstyles,fp,NULL,error);
+  if (me == 0) utils::sfread(FLERR,compute_tally,sizeof(int),nstyles,fp,nullptr,error);
   MPI_Bcast(compute_tally,nstyles,MPI_INT,0,world);
 
   int n,dummy;
   for (int m = 0; m < nstyles; m++) {
-    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,NULL,error);
+    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,nullptr,error);
     MPI_Bcast(&n,1,MPI_INT,0,world);
     keywords[m] = new char[n];
-    if (me == 0) utils::sfread(FLERR,keywords[m],sizeof(char),n,fp,NULL,error);
+    if (me == 0) utils::sfread(FLERR,keywords[m],sizeof(char),n,fp,nullptr,error);
     MPI_Bcast(keywords[m],n,MPI_CHAR,0,world);
     styles[m] = force->new_pair(keywords[m],1,dummy);
     styles[m]->read_restart_settings(fp);
     // read back per style special settings, if present
-    special_lj[m] = special_coul[m] = NULL;
-    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,NULL,error);
+    special_lj[m] = special_coul[m] = nullptr;
+    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,nullptr,error);
     MPI_Bcast(&n,1,MPI_INT,0,world);
-    if (n > 0 ) {
+    if (n > 0) {
       special_lj[m] = new double[4];
-      if (me == 0) utils::sfread(FLERR,special_lj[m],sizeof(double),4,fp,NULL,error);
+      if (me == 0) utils::sfread(FLERR,special_lj[m],sizeof(double),4,fp,nullptr,error);
       MPI_Bcast(special_lj[m],4,MPI_DOUBLE,0,world);
     }
-    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,NULL,error);
+    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,nullptr,error);
     MPI_Bcast(&n,1,MPI_INT,0,world);
-    if (n > 0 ) {
+    if (n > 0) {
       special_coul[m] = new double[4];
-      if (me == 0) utils::sfread(FLERR,special_coul[m],sizeof(double),4,fp,NULL,error);
+      if (me == 0) utils::sfread(FLERR,special_coul[m],sizeof(double),4,fp,nullptr,error);
       MPI_Bcast(special_coul[m],4,MPI_DOUBLE,0,world);
     }
   }
@@ -800,8 +832,8 @@ double PairHybrid::single(int i, int j, int itype, int jtype,
       if (styles[map[itype][jtype][m]]->single_enable == 0)
         error->one(FLERR,"Pair hybrid sub-style does not support single call");
 
-      if ((special_lj[map[itype][jtype][m]] != NULL) ||
-          (special_coul[map[itype][jtype][m]] != NULL))
+      if ((special_lj[map[itype][jtype][m]] != nullptr) ||
+          (special_coul[map[itype][jtype][m]] != nullptr))
         error->one(FLERR,"Pair hybrid single calls do not support"
                    " per sub-style special bond values");
 
@@ -851,7 +883,7 @@ void PairHybrid::modify_params(int narg, char **arg)
 
     if (multiple[m]) {
       if (narg < 3) error->all(FLERR,"Illegal pair_modify command");
-      int multiflag = force->inumeric(FLERR,arg[2]);
+      int multiflag = utils::inumeric(FLERR,arg[2],false,lmp);
       for (m = 0; m < nstyles; m++)
         if (strcmp(arg[1],keywords[m]) == 0 && multiflag == multiple[m]) break;
       if (m == nstyles)
@@ -921,9 +953,9 @@ void PairHybrid::modify_special(int m, int /*narg*/, char **arg)
   int i;
 
   special[0] = 1.0;
-  special[1] = force->numeric(FLERR,arg[1]);
-  special[2] = force->numeric(FLERR,arg[2]);
-  special[3] = force->numeric(FLERR,arg[3]);
+  special[1] = utils::numeric(FLERR,arg[1],false,lmp);
+  special[2] = utils::numeric(FLERR,arg[2],false,lmp);
+  special[3] = utils::numeric(FLERR,arg[3],false,lmp);
 
   // have to cast to PairHybrid to work around C++ access restriction
 
@@ -993,13 +1025,13 @@ void PairHybrid::restore_special(double *saved)
 /* ----------------------------------------------------------------------
    extract a ptr to a particular quantity stored by pair
    pass request thru to sub-styles
-   return first non-NULL result except for cut_coul request
-   for cut_coul, insure all non-NULL results are equal since required by Kspace
+   return first non-nullptr result except for cut_coul request
+   for cut_coul, insure all non-nullptr results are equal since required by Kspace
 ------------------------------------------------------------------------- */
 
 void *PairHybrid::extract(const char *str, int &dim)
 {
-  void *cutptr = NULL;
+  void *cutptr = nullptr;
   void *ptr;
   double cutvalue = 0.0;
   int couldim = -1;
@@ -1007,7 +1039,7 @@ void *PairHybrid::extract(const char *str, int &dim)
   for (int m = 0; m < nstyles; m++) {
     ptr = styles[m]->extract(str,dim);
     if (ptr && strcmp(str,"cut_coul") == 0) {
-      if (cutptr && dim != couldim)
+      if (couldim != -1 && dim != couldim)
         error->all(FLERR,
                    "Coulomb styles of pair hybrid sub-styles do not match");
       double *p_newvalue = (double *) ptr;
@@ -1024,7 +1056,7 @@ void *PairHybrid::extract(const char *str, int &dim)
   }
 
   if (strcmp(str,"cut_coul") == 0) return cutptr;
-  return NULL;
+  return nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1051,9 +1083,9 @@ int PairHybrid::check_ijtype(int itype, int jtype, char *substyle)
 
 double PairHybrid::memory_usage()
 {
-  double bytes = maxeatom * sizeof(double);
-  bytes += maxvatom*6 * sizeof(double);
-  bytes += maxcvatom*9 * sizeof(double);
+  double bytes = (double)maxeatom * sizeof(double);
+  bytes += (double)maxvatom*6 * sizeof(double);
+  bytes += (double)maxcvatom*9 * sizeof(double);
   for (int m = 0; m < nstyles; m++) bytes += styles[m]->memory_usage();
   return bytes;
 }

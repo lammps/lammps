@@ -116,6 +116,21 @@ Syntax
        *framerate* arg = fps
          fps = frames per second for movie
 
+* these keywords apply only to the */gz* and */zstd* dump styles
+* keyword = *compression_level*
+
+  .. parsed-literal::
+
+       *compression_level* args = level
+         level = integer specifying the compression level that should be used (see below for supported levels)
+
+* these keywords apply only to the */zstd* dump styles
+* keyword = *compression_level*
+
+  .. parsed-literal::
+
+       *checksum* args = *yes* or *no* (add checksum at end of zst file)
+
 Examples
 """"""""
 
@@ -295,9 +310,9 @@ performed with dump style *xtc*\ .
 
 ----------
 
-The *format* keyword can be used to change the default numeric format
-output by the text-based dump styles: *atom*\ , *custom*\ , *cfg*\ , and
-*xyz* styles, and their MPIIO variants.  Only the *line* or *none*
+The *format* keyword can be used to change the default numeric format output
+by the text-based dump styles: *atom*\ , *local*\ , *custom*\ , *cfg*\ , and
+*xyz* styles, and their MPIIO variants. Only the *line* or *none*
 options can be used with the *atom* and *xyz* styles.
 
 All the specified format strings are C-style formats, e.g. as used by
@@ -308,7 +323,7 @@ must enclose in quotes if it is more than one field.  The *int* and
 *float* keywords take a single format argument and are applied to all
 integer or floating-point quantities output.  The setting for *M
 string* also takes a single format argument which is used for the Mth
-value output in each line, e.g. the 5th column is output in high
+value output in each line, e.g. the fifth column is output in high
 precision for "format 5 %20.15g".
 
 .. note::
@@ -349,7 +364,7 @@ settings, reverting all values to their default format.
 
    compute     1 all property/local batom1 batom2
    dump        1 all local 100 tmp.bonds index c_1[1] c_1[2]
-   dump_modify 1 format "%d %0.0f %0.0f"
+   dump_modify 1 format line "%d %0.0f %0.0f"
 
 will output the two atom IDs for atoms in each bond as integers.  If
 the dump_modify command were omitted, they would appear as
@@ -421,7 +436,7 @@ be written, by processors 0,25,50,75.  Each will collect information
 from itself and the next 24 processors and write it to a dump file.
 
 For the *fileper* keyword, the specified value of Np means write one
-file for every Np processors.  For example, if Np = 4, every 4th
+file for every Np processors.  For example, if Np = 4, every fourth
 processor (0,4,8,12,etc) will collect information from itself and the
 next 3 processors and write it to a dump file.
 
@@ -554,9 +569,9 @@ when writing to XTC files.  By default they are initialized for
 whatever :doc:`units <units>` style is being used, to write out
 coordinates in nanometers and time in picoseconds.  I.e. for *real*
 units, LAMMPS defines *sfactor* = 0.1 and *tfactor* = 0.001, since the
-Angstroms and fmsec used by *real* units are 0.1 nm and 0.001 psec
+Angstroms and fs used by *real* units are 0.1 nm and 0.001 ps
 respectively.  If you are using a units system with distance and time
-units far from nm and psec, you may wish to write XTC files with
+units far from nm and ps, you may wish to write XTC files with
 different units, since the compression algorithm used in XTC files is
 most effective when the typical magnitude of position data is between
 10.0 and 0.1.
@@ -799,7 +814,7 @@ for the sequential style; otherwise the value is ignored.  It
 specifies the bin size to use within the range for assigning
 consecutive colors to.  For example, if the range is from -10.0 to
 10.0 and a *delta* of 1.0 is used, then 20 colors will be assigned to
-the range.  The first will be from -10.0 <= color1 < -9.0, then 2nd
+the range.  The first will be from -10.0 <= color1 < -9.0, then second
 from -9.0 <= color2 < -8.0, etc.
 
 The *N* setting is how many entries follow.  The format of the entries
@@ -971,6 +986,28 @@ images less frequently.
 
 ----------
 
+The COMPRESS package offers both GZ and Zstd compression variants of styles
+atom, custom, local, cfg, and xyz. When using these styles the compression
+level can be controlled by the :code:`compression_level` parameter. File names
+with these styles have to end in either :code:`.gz` or :code:`.zst`.
+
+GZ supports compression levels from -1 (default), 0 (no compression), and 1 to
+9. 9 being the best compression. The COMPRESS :code:`/gz` styles use 9 as
+default compression level.
+
+Zstd offers a wider range of compression levels, including negative
+levels that sacrifice compression for performance. 0 is the
+default, positive levels are 1 to 22, with 22 being the most expensive
+compression. Zstd promises higher compression/decompression speeds for
+similar compression ratios. For more details see
+`http://facebook.github.io/zstd/`.
+
+In addition, Zstd compressed files can have a checksum of the entire
+contents. The Zstd enabled dump styles enable this feature by default and it
+can be disabled with the :code:`checksum` parameter.
+
+----------
+
 Restrictions
 """"""""""""
  none
@@ -1018,6 +1055,10 @@ The option defaults are
 * boxcolor = yellow
 * color = 140 color names are pre-defined as listed below
 * framerate = 24
+
+* compression_level = 9 (gz variants)
+* compression_level = 0 (zstd variants)
+* checksum = yes (zstd variants)
 
 ----------
 

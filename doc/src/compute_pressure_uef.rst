@@ -59,4 +59,7 @@ Related commands
 :doc:`fix nvt/uef <fix_nh_uef>`,
 :doc:`compute temp/uef <compute_temp_uef>`
 
-**Default:** none
+Default
+"""""""
+
+none

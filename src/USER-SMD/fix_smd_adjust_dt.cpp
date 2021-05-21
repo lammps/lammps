@@ -11,7 +11,7 @@
 
 /* ----------------------------------------------------------------------
  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
- http://lammps.sandia.gov, Sandia National Laboratories
+ https://lammps.sandia.gov/, Sandia National Laboratories
  Steve Plimpton, sjplimp@sandia.gov
 
  Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -23,8 +23,8 @@
  ------------------------------------------------------------------------- */
 
 #include "fix_smd_adjust_dt.h"
-#include <mpi.h>
-#include <cstdlib>
+
+
 #include "update.h"
 #include "force.h"
 #include "pair.h"
@@ -108,28 +108,28 @@ void FixSMDTlsphDtReset::end_of_step() {
         double *dt_HERTZ = (double *) force->pair->extract("smd/hertz/stable_time_increment_ptr", itmp);
         double *dt_PERI_IPMB = (double *) force->pair->extract("smd/peri_ipmb/stable_time_increment_ptr", itmp);
 
-        if ((dtCFL_TLSPH == NULL) && (dtCFL_ULSPH == NULL) && (dt_TRI == NULL) && (dt_HERTZ == NULL)
-                        && (dt_PERI_IPMB == NULL)) {
+        if ((dtCFL_TLSPH == nullptr) && (dtCFL_ULSPH == nullptr) && (dt_TRI == nullptr) && (dt_HERTZ == nullptr)
+                        && (dt_PERI_IPMB == nullptr)) {
                 error->all(FLERR, "fix smd/adjust_dt failed to access a valid dtCFL");
         }
 
-        if (dtCFL_TLSPH != NULL) {
+        if (dtCFL_TLSPH != nullptr) {
                 dtmin = MIN(dtmin, *dtCFL_TLSPH);
         }
 
-        if (dtCFL_ULSPH != NULL) {
+        if (dtCFL_ULSPH != nullptr) {
                 dtmin = MIN(dtmin, *dtCFL_ULSPH);
         }
 
-        if (dt_TRI != NULL) {
+        if (dt_TRI != nullptr) {
                 dtmin = MIN(dtmin, *dt_TRI);
         }
 
-        if (dt_HERTZ != NULL) {
+        if (dt_HERTZ != nullptr) {
                 dtmin = MIN(dtmin, *dt_HERTZ);
         }
 
-        if (dt_PERI_IPMB != NULL) {
+        if (dt_PERI_IPMB != nullptr) {
                 dtmin = MIN(dtmin, *dt_PERI_IPMB);
         }
 
@@ -186,6 +186,7 @@ void FixSMDTlsphDtReset::end_of_step() {
 
 
         update->dt = dt;
+        update->dt_default = 0;
         if (force->pair)
                 force->pair->reset_dt();
         for (int i = 0; i < modify->nfix; i++)

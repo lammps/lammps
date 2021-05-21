@@ -1,5 +1,4 @@
 variable        sname index h2bulk.ang
-log		${sname}.nve.log
 
 units 		real
 newton		on
@@ -29,13 +28,13 @@ variable        epauli equal c_energies[2]
 variable        ecoul equal c_energies[3]
 variable        erres equal c_energies[4]
 
-thermo          100
+thermo          10
 thermo_style    custom step etotal pe ke v_eke v_epauli v_ecoul v_erres press v_press temp
 thermo_modify   temp effTemp press effPress flush yes
 
 # structure minimization
 min_style	cg
-minimize 	0 1.0e-4 1000 10000
+minimize 	0 1.0e-4 10 10
 
 timestep	0.001
 
@@ -52,7 +51,7 @@ dump		2 all xyz 1000 ${sname}.nve.xyz
 compute         1 all property/atom spin eradius
 dump		3 all custom 1000 ${sname}.nve.lammpstrj id type x y z c_1[1] c_1[2] c_peatom c_keatom
 
-run		100000
+run		10
 
 unfix		1
 #unfix		2

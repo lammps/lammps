@@ -97,7 +97,7 @@ listed, then a separate histogram is generated for each
 *itype*\ ,\ *jtype* pair.
 
 The *itypeN* and *jtypeN* settings can be specified in one of two
-ways.  An explicit numeric value can be used, as in the 4th example
+ways.  An explicit numeric value can be used, as in the fourth example
 above.  Or a wild-card asterisk can be used to specify a range of atom
 types.  This takes the form "\*" or "\*n" or "n\*" or "m\*n".  If N = the
 number of atom types, then an asterisk with no numeric values means
@@ -106,11 +106,11 @@ all types from 1 to N.  A leading asterisk means all types from 1 to n
 (inclusive).  A middle asterisk means all types from m to n
 (inclusive).
 
-If both *itypeN* and *jtypeN* are single values, as in the 4th example
+If both *itypeN* and *jtypeN* are single values, as in the fourth example
 above, this means that a g(r) is computed where atoms of type *itypeN*
 are the central atom, and atoms of type *jtypeN* are the distribution
 atom.  If either *itypeN* and *jtypeN* represent a range of values via
-the wild-card asterisk, as in the 5th example above, this means that a
+the wild-card asterisk, as in the fifth example above, this means that a
 g(r) is computed where atoms of any of the range of types represented
 by *itypeN* are the central atom, and atoms of any of the range of
 types represented by *jtypeN* are the distribution atom.
@@ -152,7 +152,8 @@ example:
    compute myRDF all rdf 50
    fix 1 all ave/time 100 1 100 c_myRDF[*] file tmp.rdf mode vector
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global array with the number of rows =
 *Nbins*\ , and the number of columns = 1 + 2\*Npairs, where Npairs is the

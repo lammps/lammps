@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -14,7 +14,7 @@
 #ifndef LMP_DOMAIN_KOKKOS_H
 #define LMP_DOMAIN_KOKKOS_H
 
-#include "domain.h"
+#include "domain.h"             // IWYU pragma: export
 #include "kokkos_type.h"
 #include "kokkos_few.h"
 

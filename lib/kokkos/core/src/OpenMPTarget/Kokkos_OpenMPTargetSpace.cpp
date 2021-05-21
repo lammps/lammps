@@ -80,7 +80,7 @@ void *OpenMPTargetSpace::allocate(const size_t arg_alloc_size) const {
 }
 
 void OpenMPTargetSpace::deallocate(void *const arg_alloc_ptr,
-                                   const size_t arg_alloc_size) const {
+                                   const size_t /*arg_alloc_size*/) const {
   if (arg_alloc_ptr) {
     omp_target_free(arg_alloc_ptr, omp_get_default_device());
   }
@@ -94,7 +94,7 @@ void OpenMPTargetSpace::deallocate(void *const arg_alloc_ptr,
 namespace Kokkos {
 namespace Impl {
 
-#ifdef KOKKOS_DEBUG
+#ifdef KOKKOS_ENABLE_DEBUG
 SharedAllocationRecord<void, void> SharedAllocationRecord<
     Kokkos::Experimental::OpenMPTargetSpace, void>::s_root_record;
 #endif
@@ -111,14 +111,6 @@ std::string SharedAllocationRecord<Kokkos::Experimental::OpenMPTargetSpace,
   return std::string("OpenMPTargetAllocation");
 }
 
-SharedAllocationRecord<Kokkos::Experimental::OpenMPTargetSpace, void> *
-SharedAllocationRecord<Kokkos::Experimental::OpenMPTargetSpace, void>::allocate(
-    const Kokkos::Experimental::OpenMPTargetSpace &arg_space,
-    const std::string &arg_label, const size_t arg_alloc_size) {
-  return new SharedAllocationRecord<Kokkos::Experimental::OpenMPTargetSpace,
-                                    void>(arg_space, arg_label, arg_alloc_size);
-}
-
 void SharedAllocationRecord<Kokkos::Experimental::OpenMPTargetSpace,
                             void>::deallocate(SharedAllocationRecord<void, void>
                                                   *arg_rec) {
@@ -133,7 +125,7 @@ SharedAllocationRecord<Kokkos::Experimental::OpenMPTargetSpace, void>::
     // Pass through allocated [ SharedAllocationHeader , user_memory ]
     // Pass through deallocation function
     : SharedAllocationRecord<void, void>(
-#ifdef KOKKOS_DEBUG
+#ifdef KOKKOS_ENABLE_DEBUG
           &SharedAllocationRecord<Kokkos::Experimental::OpenMPTargetSpace,
                                   void>::s_root_record,
 #endif
@@ -151,6 +143,8 @@ SharedAllocationRecord<Kokkos::Experimental::OpenMPTargetSpace, void>::
   header.m_label[SharedAllocationHeader::maximum_label_length - 1] = (char)0;
   // TODO DeepCopy
   // DeepCopy
+  Kokkos::Impl::DeepCopy<Experimental::OpenMPTargetSpace, HostSpace>(
+      RecordBase::m_alloc_ptr, &header, sizeof(SharedAllocationHeader));
 }
 
 //----------------------------------------------------------------------------
@@ -159,7 +153,7 @@ void *SharedAllocationRecord<Kokkos::Experimental::OpenMPTargetSpace, void>::
     allocate_tracked(const Kokkos::Experimental::OpenMPTargetSpace &arg_space,
                      const std::string &arg_alloc_label,
                      const size_t arg_alloc_size) {
-  if (!arg_alloc_size) return (void *)0;
+  if (!arg_alloc_size) return nullptr;
 
   SharedAllocationRecord *const r =
       allocate(arg_space, arg_alloc_label, arg_alloc_size);
@@ -172,7 +166,7 @@ void *SharedAllocationRecord<Kokkos::Experimental::OpenMPTargetSpace, void>::
 void SharedAllocationRecord<Kokkos::Experimental::OpenMPTargetSpace,
                             void>::deallocate_tracked(void *const
                                                           arg_alloc_ptr) {
-  if (arg_alloc_ptr != 0) {
+  if (arg_alloc_ptr != nullptr) {
     SharedAllocationRecord *const r = get_record(arg_alloc_ptr);
 
     RecordBase::decrement(r);
@@ -199,36 +193,42 @@ void *SharedAllocationRecord<Kokkos::Experimental::OpenMPTargetSpace, void>::
 SharedAllocationRecord<Kokkos::Experimental::OpenMPTargetSpace, void>
     *SharedAllocationRecord<Kokkos::Experimental::OpenMPTargetSpace,
                             void>::get_record(void *alloc_ptr) {
-  typedef SharedAllocationHeader Header;
-  typedef SharedAllocationRecord<Kokkos::Experimental::OpenMPTargetSpace, void>
-      RecordHost;
+  using Header = SharedAllocationHeader;
+  using RecordHost =
+      SharedAllocationRecord<Kokkos::Experimental::OpenMPTargetSpace, void>;
 
-  SharedAllocationHeader const *const head =
-      alloc_ptr ? Header::get_header(alloc_ptr) : (SharedAllocationHeader *)0;
-  RecordHost *const record =
-      head ? static_cast<RecordHost *>(head->m_record) : (RecordHost *)0;
+  if (alloc_ptr) {
+    Header head;
+    const Header *const head_ompt = Header::get_header(alloc_ptr);
 
-  if (!alloc_ptr || record->m_alloc_ptr != head) {
-    Kokkos::Impl::throw_runtime_exception(std::string(
-        "Kokkos::Experimental::Impl::SharedAllocationRecord< "
-        "Kokkos::Experimental::OpenMPTargetSpace , void >::get_record ERROR"));
+    Kokkos::Impl::DeepCopy<HostSpace, Experimental::OpenMPTargetSpace>(
+        &head, head_ompt, sizeof(SharedAllocationHeader));
+
+    RecordHost *record = static_cast<RecordHost *>(head.m_record);
+    if (record->m_alloc_ptr == head_ompt) {
+      return record;
+    }
   }
-
-  return record;
+  Kokkos::Impl::throw_runtime_exception(std::string(
+      "Kokkos::Experimental::Impl::SharedAllocationRecord< "
+      "Kokkos::Experimental::OpenMPTargetSpace , void >::get_record ERROR"));
+  return nullptr;
 }
 
 // Iterate records to print orphaned memory ...
 void SharedAllocationRecord<Kokkos::Experimental::OpenMPTargetSpace, void>::
     print_records(std::ostream &s,
-                  const Kokkos::Experimental::OpenMPTargetSpace &space,
+                  const Kokkos::Experimental::OpenMPTargetSpace &,
                   bool detail) {
-#ifdef KOKKOS_DEBUG
+#ifdef KOKKOS_ENABLE_DEBUG
   SharedAllocationRecord<void, void>::print_host_accessible_records(
       s, "OpenMPTargetSpace", &s_root_record, detail);
 #else
+  (void)s;
+  (void)detail;
   throw_runtime_exception(
       "SharedAllocationRecord<OpenMPTargetSpace>::print_records"
-      " only works with KOKKOS_DEBUG enabled");
+      " only works with KOKKOS_ENABLE_DEBUG enabled");
 #endif
 }
 

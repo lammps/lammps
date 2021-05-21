@@ -140,7 +140,8 @@ The attributes that start with "a", "d", "i", refer to similar values
 for :doc:`angles <angle_style>`, :doc:`dihedrals <dihedral_style>`, and
 :doc:`impropers <improper_style>`.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a local vector or local array depending on the
 number of input values.  The length of the vector or number of rows in

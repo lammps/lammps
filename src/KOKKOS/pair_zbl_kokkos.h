@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -83,19 +83,18 @@ class PairZBLKokkos : public PairZBL {
 
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
-  F_FLOAT compute_ecoul(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const {
-    return 0;
-  }
+  F_FLOAT compute_ecoul(const F_FLOAT& /*rsq*/, const int& /*i*/, const int& /*j*/,
+                        const int& /*itype*/, const int& /*jtype*/) const { return 0; }
 
   void cleanup_copy();
   void allocate();
 
-  friend class PairComputeFunctor<PairZBLKokkos,FULL,true>;
-  friend class PairComputeFunctor<PairZBLKokkos,HALF,true>;
-  friend class PairComputeFunctor<PairZBLKokkos,HALFTHREAD,true>;
-  friend class PairComputeFunctor<PairZBLKokkos,FULL,false>;
-  friend class PairComputeFunctor<PairZBLKokkos,HALF,false>;
-  friend class PairComputeFunctor<PairZBLKokkos,HALFTHREAD,false>;
+  friend struct PairComputeFunctor<PairZBLKokkos,FULL,true>;
+  friend struct PairComputeFunctor<PairZBLKokkos,HALF,true>;
+  friend struct PairComputeFunctor<PairZBLKokkos,HALFTHREAD,true>;
+  friend struct PairComputeFunctor<PairZBLKokkos,FULL,false>;
+  friend struct PairComputeFunctor<PairZBLKokkos,HALF,false>;
+  friend struct PairComputeFunctor<PairZBLKokkos,HALFTHREAD,false>;
   friend EV_FLOAT pair_compute_neighlist<PairZBLKokkos,FULL,void>(PairZBLKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairZBLKokkos,HALF,void>(PairZBLKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairZBLKokkos,HALFTHREAD,void>(PairZBLKokkos*,NeighListKokkos<DeviceType>*);

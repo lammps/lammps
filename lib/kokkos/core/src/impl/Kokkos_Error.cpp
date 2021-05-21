@@ -51,6 +51,7 @@
 #include <iomanip>
 #include <stdexcept>
 #include <impl/Kokkos_Error.hpp>
+#include <Cuda/Kokkos_Cuda_Error.hpp>
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
@@ -129,6 +130,11 @@ void Experimental::RawMemoryAllocationFailure::print_error_message(
       o << "cudaMallocManaged().";
       break;
     case AllocationMechanism::CudaHostAlloc: o << "cudaHostAlloc()."; break;
+    case AllocationMechanism::HIPMalloc: o << "hipMalloc()."; break;
+    case AllocationMechanism::HIPHostMalloc: o << "hipHostMalloc()."; break;
+    case AllocationMechanism::SYCLMalloc:
+      o << "cl::sycl::malloc_device().";
+      break;
   }
   append_additional_error_information(o);
   o << ")" << std::endl;
@@ -154,4 +160,19 @@ void traceback_callstack(std::ostream &msg) {
 }
 
 }  // namespace Impl
+
+#ifdef KOKKOS_ENABLE_CUDA
+namespace Experimental {
+
+void CudaRawMemoryAllocationFailure::append_additional_error_information(
+    std::ostream &o) const {
+  if (m_error_code != cudaSuccess) {
+    o << "  The Cuda allocation returned the error code \"\""
+      << cudaGetErrorName(m_error_code) << "\".";
+  }
+}
+
+}  // end namespace Experimental
+#endif
+
 }  // namespace Kokkos

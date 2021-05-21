@@ -160,7 +160,11 @@ The *first* and *sort* options cannot be used together.  Since sorting
 is on by default, it will be turned off if the *first* keyword is
 used with a group-ID that is not "all".
 
-**Related commands:** none
+Related commands
+""""""""""""""""
+
+none
+
 
 Default
 """""""

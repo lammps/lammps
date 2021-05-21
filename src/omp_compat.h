@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2020) Sandia Corporation.  Under the terms of Contract
@@ -25,11 +25,32 @@
 // so this is what LAMMPS primarily uses.  For those compilers
 // that strictly implement OpenMP 4.0 (such as GCC 9.0 and later
 // or Clang 10.0 and later), we give up default(none).
+
+// autodetect OpenMP compatibility if not explicitly set
+
+#ifndef LAMMPS_OMP_COMPAT
+#  if defined(__INTEL_LLVM_COMPILER)
+#      define LAMMPS_OMP_COMPAT 4
+#  elif defined(__INTEL_COMPILER)
+#    if __INTEL_COMPILER > 18
+#      define LAMMPS_OMP_COMPAT 4
+#    endif
+#  elif defined(__clang__)
+#    if __clang_major__ >= 10
+#      define LAMMPS_OMP_COMPAT 4
+#    endif
+#  elif defined(__GNUC__)
+#    if __GNUC__ >= 9
+#      define LAMMPS_OMP_COMPAT 4
+#    endif
+#  endif
+#endif
+
 #if LAMMPS_OMP_COMPAT == 4
-#    define LMP_SHARED(...)
-#    define LMP_DEFAULT_NONE default(shared)
+#  define LMP_SHARED(...)
+#  define LMP_DEFAULT_NONE default(shared)
 #else
-#    define LMP_SHARED(...) shared(__VA_ARGS__)
-#    define LMP_DEFAULT_NONE default(none)
+#  define LMP_SHARED(...) shared(__VA_ARGS__)
+#  define LMP_DEFAULT_NONE default(none)
 #endif
 

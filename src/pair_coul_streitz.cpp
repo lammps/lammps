@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,25 +16,26 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_coul_streitz.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
+
 #include "atom.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "kspace.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "potential_file_reader.h"
+#include "tokenizer.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-#define MAXLINE 1024
 #define DELTA 4
 #define PGDELTA 1
 #define MAXNEIGH 24
@@ -47,13 +48,8 @@ PairCoulStreitz::PairCoulStreitz(LAMMPS *lmp) : Pair(lmp)
   restartinfo = 0;
   one_coeff = 1;
   nmax = 0;
-  nelements = 0;
 
-  elements = NULL;
-  nparams = 0;
-  maxparam = 0;
-  params = NULL;
-  elem2param = NULL;
+  params = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -62,12 +58,8 @@ PairCoulStreitz::PairCoulStreitz(LAMMPS *lmp) : Pair(lmp)
 
 PairCoulStreitz::~PairCoulStreitz()
 {
-  if (elements)
-    for (int i = 0; i < nelements; i++) delete [] elements[i];
-
-  delete [] elements;
   memory->sfree(params);
-  memory->destroy(elem2param);
+  memory->destroy(elem1param);
 
   if (allocated) {
     memory->destroy(setflag);
@@ -78,7 +70,6 @@ PairCoulStreitz::~PairCoulStreitz()
     memory->destroy(qeq_g);
     memory->destroy(qeq_z);
     memory->destroy(qeq_c);
-    delete [] map;
   }
 }
 
@@ -109,12 +100,12 @@ void PairCoulStreitz::settings(int narg, char **arg)
 {
   if (narg < 2) error->all(FLERR,"Illegal pair_style command");
 
-  cut_coul = force->numeric(FLERR,arg[0]);
+  cut_coul = utils::numeric(FLERR,arg[0],false,lmp);
 
-  if (strcmp(arg[1],"wolf") == 0){
+  if (strcmp(arg[1],"wolf") == 0) {
     kspacetype = 1;
-    g_wolf = force->numeric(FLERR,arg[2]);
-  } else if (strcmp(arg[1],"ewald") == 0){
+    g_wolf = utils::numeric(FLERR,arg[2],false,lmp);
+  } else if (strcmp(arg[1],"ewald") == 0) {
     ewaldflag = pppmflag = 1;
     kspacetype = 2;
   } else {
@@ -128,71 +119,19 @@ void PairCoulStreitz::settings(int narg, char **arg)
 
 void PairCoulStreitz::coeff(int narg, char **arg)
 {
-  int i,j,n;
-
   if (!allocated) allocate();
 
-  if (narg != 3 + atom->ntypes)
-    error->all(FLERR,"Incorrect args for pair coefficients");
-
-  // insure I,J args are * *
-
-  if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
-    error->all(FLERR,"Incorrect args for pair coefficients");
-
-  // read args that map atom types to elements in potential file
-  // map[i] = which element the Ith atom type is, -1 if NULL
-  // nelements = # of unique elements
-  // elements = list of element names
-
-  if (elements) {
-    for (i = 0; i < nelements; i++) delete [] elements[i];
-    delete [] elements;
-  }
-  elements = new char*[atom->ntypes];
-  for (i = 0; i < atom->ntypes; i++) elements[i] = NULL;
-
-  nelements = 0;
-  for (i = 3; i < narg; i++) {
-    if (strcmp(arg[i],"NULL") == 0) {
-      map[i-2] = -1;
-      continue;
-    }
-    for (j = 0; j < nelements; j++)
-      if (strcmp(arg[i],elements[j]) == 0) break;
-    map[i-2] = j;
-    if (j == nelements) {
-      n = strlen(arg[i]) + 1;
-      elements[j] = new char[n];
-      strcpy(elements[j],arg[i]);
-      nelements++;
-    }
-  }
+  map_element2type(narg-3, arg+3);
 
   // read potential file and initialize potential parameters
 
   read_file(arg[2]);
   setup_params();
-  n = atom->ntypes;
 
-  // clear setflag since coeff() called once with I,J = * *
-
+  const int n = atom->ntypes;
   for (int i = 1; i <= n; i++)
-    for (int j = i; j <= n; j++)
-      setflag[i][j] = 0;
-
-  // set setflag i,j for type pairs where both are mapped to elements
-
-  int count = 0;
-  for (int i = 1; i <= n; i++)
-    for (int j = i; j <= n; j++)
-      if (map[i] >= 0 && map[j] >= 0) {
+    for (int j = 1; j <= n; j++)
         scale[i][j] = 1.0;
-        setflag[i][j] = 1;
-        count++;
-      }
-
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -213,7 +152,7 @@ void PairCoulStreitz::init_style()
   // insure use of KSpace long-range solver when ewald specified, set g_ewald
 
   if (ewaldflag) {
-    if (force->kspace == NULL)
+    if (force->kspace == nullptr)
       error->all(FLERR,"Pair style requires a KSpace style");
     g_ewald = force->kspace->g_ewald;
   }
@@ -235,111 +174,71 @@ double PairCoulStreitz::init_one(int i, int j)
 
 void PairCoulStreitz::read_file(char *file)
 {
-  int params_per_line = 6;
-  char **words = new char*[params_per_line+1];
-
   memory->sfree(params);
-  params = NULL;
+  params = nullptr;
   nparams = 0;
   maxparam = 0;
 
   // open file on proc 0
-
-  FILE *fp;
   if (comm->me == 0) {
-    fp = fopen(file,"r");
-    if (fp == NULL) {
-      char str[128];
-      snprintf(str,128,"Cannot open coul/streitz potential file %s",file);
-      error->one(FLERR,str);
-    }
-  }
+    PotentialFileReader reader(lmp, file, "coul/streitz");
+    char * line;
 
-  // read each line out of file, skipping blank lines or leading '#'
-  // store line of params if all 3 element tags are in element list
+    while ((line = reader.next_line(NPARAMS_PER_LINE))) {
+      try {
+        ValueTokenizer values(line);
 
-  int n,nwords,ielement;
-  char line[MAXLINE],*ptr;
-  int eof = 0;
+        std::string iname = values.next_string();
 
-  while (1) {
-    if (comm->me == 0) {
-      ptr = fgets(line,MAXLINE,fp);
-      if (ptr == NULL) {
-        eof = 1;
-        fclose(fp);
-      } else n = strlen(line) + 1;
-    }
-    MPI_Bcast(&eof,1,MPI_INT,0,world);
-    if (eof) break;
-    MPI_Bcast(&n,1,MPI_INT,0,world);
-    MPI_Bcast(line,n,MPI_CHAR,0,world);
+        // ielement = 1st args
+        int ielement;
 
-    // strip comment, skip line if blank
+        for (ielement = 0; ielement < nelements; ielement++)
+          if (iname == elements[ielement]) break;
 
-    if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = atom->count_words(line);
-    if (nwords == 0) continue;
+        // load up parameter settings and error check their values
 
-    // concatenate additional lines until have params_per_line words
+        if (nparams == maxparam) {
+          maxparam += DELTA;
+          params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
+                                              "pair:params");
 
-    while (nwords < params_per_line) {
-      n = strlen(line);
-      if (comm->me == 0) {
-        ptr = fgets(&line[n],MAXLINE-n,fp);
-        if (ptr == NULL) {
-          eof = 1;
-          fclose(fp);
-        } else n = strlen(line) + 1;
+          // make certain all addional allocated storage is initialized
+          // to avoid false positives when checking with valgrind
+
+          memset(params + nparams, 0, DELTA*sizeof(Param));
+        }
+
+
+        params[nparams].ielement = ielement;
+        params[nparams].chi = values.next_double();
+        params[nparams].eta = values.next_double();
+        params[nparams].gamma = values.next_double();
+        params[nparams].zeta = values.next_double();
+        params[nparams].zcore = values.next_double();
+
+      } catch (TokenizerException &e) {
+        error->one(FLERR, e.what());
       }
-      MPI_Bcast(&eof,1,MPI_INT,0,world);
-      if (eof) break;
-      MPI_Bcast(&n,1,MPI_INT,0,world);
-      MPI_Bcast(line,n,MPI_CHAR,0,world);
-      if ((ptr = strchr(line,'#'))) *ptr = '\0';
-      nwords = atom->count_words(line);
+
+      // parameter sanity check
+
+      if (params[nparams].eta < 0.0 || params[nparams].zeta < 0.0 ||
+          params[nparams].zcore < 0.0 || params[nparams].gamma != 0.0 )
+        error->one(FLERR,"Illegal coul/streitz parameter");
+
+      nparams++;
     }
-
-    if (nwords != params_per_line)
-      error->all(FLERR,"Incorrect format in coul/streitz potential file");
-
-    // words = ptrs to all words in line
-
-    nwords = 0;
-    words[nwords++] = strtok(line," \t\n\r\f");
-    while ((words[nwords++] = strtok(NULL," \t\n\r\f"))) continue;
-
-    // ielement = 1st args
-
-    for (ielement = 0; ielement < nelements; ielement++)
-      if (strcmp(words[0],elements[ielement]) == 0) break;
-    if (ielement == nelements) continue;
-
-    // load up parameter settings and error check their values
-
-    if (nparams == maxparam) {
-      maxparam += DELTA;
-      params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
-                                          "pair:params");
-    }
-
-    params[nparams].ielement = ielement;
-    params[nparams].chi = atof(words[1]);
-    params[nparams].eta = atof(words[2]);
-    params[nparams].gamma = atof(words[3]);
-    params[nparams].zeta = atof(words[4]);
-    params[nparams].zcore = atof(words[5]);
-
-    // parameter sanity check
-
-    if (params[nparams].eta < 0.0 || params[nparams].zeta < 0.0 ||
-        params[nparams].zcore < 0.0 || params[nparams].gamma != 0.0 )
-      error->all(FLERR,"Illegal coul/streitz parameter");
-
-    nparams++;
   }
 
-  delete [] words;
+  MPI_Bcast(&nparams, 1, MPI_INT, 0, world);
+  MPI_Bcast(&maxparam, 1, MPI_INT, 0, world);
+
+  if (comm->me != 0) {
+    params = (Param *) memory->srealloc(params,maxparam*sizeof(Param), "pair:params");
+  }
+
+  MPI_Bcast(params, maxparam*sizeof(Param), MPI_BYTE, 0, world);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -348,21 +247,21 @@ void PairCoulStreitz::setup_params()
 {
   int i,m,n;
 
-  // set elem2param
+  // set elem1param
 
-  memory->destroy(elem2param);
-  memory->create(elem2param,nelements,"pair:elem2param");
+  memory->destroy(elem1param);
+  memory->create(elem1param,nelements,"pair:elem1param");
 
   for (i = 0; i < nelements; i++) {
     n = -1;
     for (m = 0; m < nparams; m++) {
-      if (i == params[m].ielement ) {
+      if (i == params[m].ielement) {
         if (n >= 0) error->all(FLERR,"Potential file has duplicate entry");
         n = m;
       }
     }
     if (n < 0) error->all(FLERR,"Potential file is missing an entry");
-    elem2param[i] = n;
+    elem1param[i] = n;
   }
 
   // Wolf sum self energy
@@ -421,7 +320,7 @@ void PairCoulStreitz::compute(int eflag, int vflag)
     ytmp = x[i][1];
     ztmp = x[i][2];
     itype = map[type[i]];
-    iparam_i = elem2param[itype];
+    iparam_i = elem1param[itype];
     qi = q[i];
     zei = params[iparam_i].zeta;
 
@@ -441,7 +340,7 @@ void PairCoulStreitz::compute(int eflag, int vflag)
       j &= NEIGHMASK;
 
       jtype = map[type[j]];
-      iparam_j = elem2param[jtype];
+      iparam_j = elem1param[jtype];
       qj = q[j];
       zej = params[iparam_j].zeta;
       zj = params[iparam_j].zcore;
@@ -494,7 +393,7 @@ void PairCoulStreitz::compute(int eflag, int vflag)
     ytmp = x[i][1];
     ztmp = x[i][2];
     itype = map[type[i]];
-    iparam_i = elem2param[itype];
+    iparam_i = elem1param[itype];
     qi = q[i];
     zei = params[iparam_i].zeta;
 
@@ -513,7 +412,7 @@ void PairCoulStreitz::compute(int eflag, int vflag)
       j = jlist[jj];
       j &= NEIGHMASK;
       jtype = map[type[j]];
-      iparam_j = elem2param[jtype];
+      iparam_j = elem1param[jtype];
       qj = q[j];
       zej = params[iparam_j].zeta;
       zj = params[iparam_j].zcore;
@@ -774,10 +673,10 @@ void PairCoulStreitz::ewald_sum(double qi, double qj, double zj, double r,
 
 double PairCoulStreitz::memory_usage()
 {
-  double bytes = maxeatom * sizeof(double);
-  bytes += maxvatom*6 * sizeof(double);
-  bytes += nmax * sizeof(int);
-  bytes += MAXNEIGH * nmax * sizeof(int);
+  double bytes = (double)maxeatom * sizeof(double);
+  bytes += (double)maxvatom*6 * sizeof(double);
+  bytes += (double)nmax * sizeof(int);
+  bytes += (double)MAXNEIGH * nmax * sizeof(int);
   return bytes;
 }
 
@@ -837,5 +736,5 @@ void *PairCoulStreitz::extract(const char *str, int &dim)
     if (kspacetype == 1) return (void *) &g_wolf;
     if (kspacetype == 2) return (void *) &g_ewald;
   }
-  return NULL;
+  return nullptr;
 }

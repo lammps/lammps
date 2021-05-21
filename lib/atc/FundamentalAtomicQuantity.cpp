@@ -126,7 +126,7 @@ namespace ATC {
                                              double unitsConversion,
                                              AtomType atomType) :
     ShallowAtomQuantity<double>(atc,0,atomType),
-    computePointer_(NULL),
+    computePointer_(nullptr),
     computeTag_(tag),
     unitsConversion_(unitsConversion)
   {

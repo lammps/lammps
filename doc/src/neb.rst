@@ -123,7 +123,7 @@ interpolated manner.  This is done by using the current position of
 the atom as the starting point and the read-in position as the final
 point.  The distance between them is calculated, and the new position
 is assigned to be a fraction of the distance.  E.g. if there are 10
-replicas, the 2nd replica will assign a position that is 10% of the
+replicas, the second replica will assign a position that is 10% of the
 distance along a line between the starting and final point, and the
 9th replica will assign a position that is 90% of the distance along
 the line.  Note that for this procedure to produce consistent
@@ -392,14 +392,20 @@ barrier.
 
 To illustrate, here are images from the final snapshot produced by the
 neb_combine.py script run on the dump files produced by the two
-example input scripts in examples/neb.  Click on them to see a larger
-image.
+example input scripts in examples/neb.
 
-.. image:: JPG/hop1_small.jpg
-   :target: JPG/hop1.jpg
 
-.. image:: JPG/hop2_small.jpg
-   :target: JPG/hop2.jpg
+.. |neb1| image:: img/hop1.jpg
+   :width: 48%
+
+.. |neb2| image:: img/hop2.jpg
+   :width: 48%
+
+|neb1|  |neb2|
+
+.. raw:: html
+
+   Click on them to see a larger image.
 
 ----------
 

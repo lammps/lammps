@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,7 +16,9 @@
    OpenMP based threading support for LAMMPS
 ------------------------------------------------------------------------- */
 
-#include "omp_compat.h"
+#include "fix_omp.h"
+#include "thr_data.h"
+
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
@@ -25,10 +27,6 @@
 #include "neigh_request.h"
 #include "universe.h"
 #include "update.h"
-#include "timer.h"
-
-#include "fix_omp.h"
-#include "thr_data.h"
 
 #include "pair_hybrid.h"
 #include "bond_hybrid.h"
@@ -39,6 +37,7 @@
 
 #include <cstring>
 
+#include "omp_compat.h"
 #if defined(_OPENMP)
 #include <omp.h>
 #endif
@@ -62,8 +61,9 @@ static int get_tid()
 
 FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg)
   :  Fix(lmp, narg, arg),
-     thr(NULL), last_omp_style(NULL), last_pair_hybrid(NULL),
-     _nthr(-1), _neighbor(true), _mixed(false), _reduced(true)
+     thr(nullptr), last_omp_style(nullptr), last_pair_hybrid(nullptr),
+     _nthr(-1), _neighbor(true), _mixed(false), _reduced(true),
+     _pair_compute_flag(false), _kspace_compute_flag(false)
 {
   if (narg < 4) error->all(FLERR,"Illegal package omp command");
 
@@ -74,14 +74,14 @@ FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg)
 #pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(nthreads)
       nthreads = omp_get_num_threads();
     else
-      nthreads = force->inumeric(FLERR,arg[3]);
+      nthreads = utils::inumeric(FLERR,arg[3],false,lmp);
 #endif
   }
 
+#if defined(_OPENMP)
   if (nthreads < 1)
     error->all(FLERR,"Illegal number of OpenMP threads requested");
 
-#if defined(_OPENMP)
   int reset_thr = 0;
 #endif
   if (nthreads != comm->nthreads) {
@@ -170,7 +170,7 @@ int FixOMP::setmask()
 void FixOMP::init()
 {
   // USER-OMP package cannot be used with atom_style template
-  if (atom->molecular == 2)
+  if (atom->molecular == Atom::TEMPLATE)
     error->all(FLERR,"USER-OMP package does not (yet) work with "
                "atom_style template");
 
@@ -203,23 +203,28 @@ void FixOMP::init()
     thr[i]->_timer_active=-1;
   }
 
-  if ((strstr(update->integrate_style,"respa") != NULL)
-      && (strstr(update->integrate_style,"respa/omp") == NULL))
-    error->all(FLERR,"Need to use respa/omp for r-RESPA with /omp styles");
+  if (utils::strmatch(update->integrate_style,"^respa")
+      && !utils::strmatch(update->integrate_style,"^respa/omp"))
+    error->all(FLERR,"Must use respa/omp for r-RESPA with /omp styles");
+
+  if (force->pair && force->pair->compute_flag) _pair_compute_flag = true;
+  else _pair_compute_flag = false;
+  if (force->kspace && force->kspace->compute_flag) _kspace_compute_flag = true;
+  else _kspace_compute_flag = false;
 
   int check_hybrid, kspace_split;
-  last_pair_hybrid = NULL;
-  last_omp_style = NULL;
-  const char *last_omp_name = NULL;
-  const char *last_hybrid_name = NULL;
-  const char *last_force_name = NULL;
+  last_pair_hybrid = nullptr;
+  last_omp_style = nullptr;
+  const char *last_omp_name = nullptr;
+  const char *last_hybrid_name = nullptr;
+  const char *last_force_name = nullptr;
 
   // support for verlet/split operation.
   // kspace_split == 0 : regular processing
   // kspace_split < 0  : master partition, does not do kspace
   // kspace_split > 0  : slave partition, only does kspace
 
-  if (strstr(update->integrate_style,"verlet/split") != NULL) {
+  if (strstr(update->integrate_style,"verlet/split") != nullptr) {
     if (universe->iworld == 0) kspace_split = -1;
     else kspace_split = 1;
   } else {
@@ -254,7 +259,7 @@ void FixOMP::init()
     }                                                         \
   }
 
-  if (kspace_split <= 0) {
+  if (_pair_compute_flag && (kspace_split <= 0)) {
     CheckStyleForOMP(pair);
     CheckHybridForOMP(pair,Pair);
     if (check_hybrid) {
@@ -275,7 +280,7 @@ void FixOMP::init()
     CheckHybridForOMP(improper,Improper);
   }
 
-  if (kspace_split >= 0) {
+  if (_kspace_compute_flag && (kspace_split >= 0)) {
     CheckStyleForOMP(kspace);
   }
 
@@ -347,16 +352,16 @@ void FixOMP::pre_force(int)
   double **f = atom->f;
   double **torque = atom->torque;
   double *erforce = atom->erforce;
-  double *de = atom->de;
+  double *desph = atom->desph;
   double *drho = atom->drho;
 
 #if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(f,torque,erforce,de,drho)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(f,torque,erforce,desph,drho)
 #endif
   {
     const int tid = get_tid();
     thr[tid]->check_tid(tid);
-    thr[tid]->init_force(nall,f,torque,erforce,de,drho);
+    thr[tid]->init_force(nall,f,torque,erforce,desph,drho);
   } // end of omp parallel region
 
   _reduced = false;
@@ -366,8 +371,8 @@ void FixOMP::pre_force(int)
 
 double FixOMP::memory_usage()
 {
-  double bytes = _nthr * (sizeof(ThrData *) + sizeof(ThrData));
-  bytes += _nthr * thr[0]->memory_usage();
+  double bytes = (double)_nthr * (sizeof(ThrData *) + sizeof(ThrData));
+  bytes += (double)_nthr * thr[0]->memory_usage();
 
   return bytes;
 }

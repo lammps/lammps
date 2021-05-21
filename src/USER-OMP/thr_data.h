@@ -1,6 +1,6 @@
 /* -*- c++ -*- -------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -18,7 +18,7 @@
 #ifndef LMP_THR_DATA_H
 #define LMP_THR_DATA_H
 
-#include "timer.h"
+#include "timer.h"    // IWYU pragma: export
 
 namespace LAMMPS_NS {
 
@@ -31,7 +31,7 @@ class ThrData {
 
  public:
   ThrData(int tid, class Timer *t);
-  ~ThrData() { delete _timer; _timer = NULL; };
+  ~ThrData() { delete _timer; _timer = nullptr; };
 
   void check_tid(int);    // thread id consistency check
   int get_tid() const { return _tid; }; // our thread id.
@@ -52,7 +52,6 @@ class ThrData {
 
   // setup and erase per atom arrays
   void init_adp(int, double *, double **, double **); // ADP (+ EAM)
-  void init_cdeam(int, double *, double *, double *); // CDEAM (+ EAM)
   void init_eam(int, double *);                       // EAM
   void init_eim(int, double *, double *);             // EIM (+ EAM)
 
@@ -140,7 +139,7 @@ class ThrData {
 
  // disabled default methods
  private:
-  ThrData() : _tid(-1), _timer(NULL) {};
+  ThrData() : _tid(-1), _timer(nullptr) {};
 };
 
 ////////////////////////////////////////////////////////////////////////

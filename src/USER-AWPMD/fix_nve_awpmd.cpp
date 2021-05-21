@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -22,7 +22,7 @@
 #include "update.h"
 #include "respa.h"
 #include "error.h"
-#include "utils.h"
+
 
 #include "TCP/wpmd_split.h"
 
@@ -36,8 +36,6 @@ FixNVEAwpmd::FixNVEAwpmd(LAMMPS *lmp, int narg, char **arg) :
 {
   if (!atom->wavepacket_flag)
     error->all(FLERR,"Fix nve/awpmd requires atom style wavepacket");
-  //if (!atom->mass_type != 1)
-   // error->all(FLERR,"Fix nve/awpmd requires per type mass");
 
   time_integrate = 1;
 }
@@ -74,8 +72,6 @@ void FixNVEAwpmd::init()
 
 void FixNVEAwpmd::initial_integrate(int /* vflag */)
 {
-
-
   // update v,vr and x,radius of atoms in group
 
   double **x = atom->x;
@@ -84,7 +80,7 @@ void FixNVEAwpmd::initial_integrate(int /* vflag */)
   double *ervel = atom->ervel;
   double **f = atom->f;
   double *erforce = atom->erforce;
-  double *vforce=atom->vforce;
+  double **vforce=atom->vforce;
   double *ervelforce=atom->ervelforce;
 
   double *mass = atom->mass;
@@ -100,8 +96,8 @@ void FixNVEAwpmd::initial_integrate(int /* vflag */)
     if (mask[i] & groupbit) {
       double dtfm = dtf / mass[type[i]];
       double dtfmr=dtfm;
-      for(int j=0;j<3;j++){
-        x[i][j] += dtv*vforce[3*i+j];
+      for (int j=0;j<3;j++) {
+        x[i][j] += dtv*vforce[i][j];
         v[i][j] += dtfm*f[i][j];
       }
       eradius[i]+= dtv*ervelforce[i];
@@ -113,7 +109,7 @@ void FixNVEAwpmd::initial_integrate(int /* vflag */)
 
 /* ---------------------------------------------------------------------- */
 
-void FixNVEAwpmd::final_integrate(){}
+void FixNVEAwpmd::final_integrate() {}
 
 /* ---------------------------------------------------------------------- */
 

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "angle_cross.h"
-#include <mpi.h>
+
 #include <cmath>
 #include "atom.h"
 #include "neighbor.h"
@@ -26,7 +26,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -223,16 +223,16 @@ void AngleCross::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nangletypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->nangletypes,ilo,ihi,error);
 
   int count = 0;
 
-    double kss_one = force->numeric(FLERR,arg[1]);
-    double kbs0_one = force->numeric(FLERR,arg[2]);
-    double kbs1_one = force->numeric(FLERR,arg[3]);
-    double r0_one = force->numeric(FLERR,arg[4]);
-    double r1_one = force->numeric(FLERR,arg[5]);
-    double theta0_one = force->numeric(FLERR,arg[6]);
+    double kss_one = utils::numeric(FLERR,arg[1],false,lmp);
+    double kbs0_one = utils::numeric(FLERR,arg[2],false,lmp);
+    double kbs1_one = utils::numeric(FLERR,arg[3],false,lmp);
+    double r0_one = utils::numeric(FLERR,arg[4],false,lmp);
+    double r1_one = utils::numeric(FLERR,arg[5],false,lmp);
+    double theta0_one = utils::numeric(FLERR,arg[6],false,lmp);
 
     for (int i = ilo; i <= ihi; i++) {
       kss[i] = kss_one;
@@ -279,12 +279,12 @@ void AngleCross::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    utils::sfread(FLERR,&kss[1],sizeof(double),atom->nangletypes,fp,NULL,error);
-    utils::sfread(FLERR,&kbs0[1],sizeof(double),atom->nangletypes,fp,NULL,error);
-    utils::sfread(FLERR,&kbs1[1],sizeof(double),atom->nangletypes,fp,NULL,error);
-    utils::sfread(FLERR,&r00[1],sizeof(double),atom->nangletypes,fp,NULL,error);
-    utils::sfread(FLERR,&r01[1],sizeof(double),atom->nangletypes,fp,NULL,error);
-    utils::sfread(FLERR,&theta0[1],sizeof(double),atom->nangletypes,fp,NULL,error);
+    utils::sfread(FLERR,&kss[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+    utils::sfread(FLERR,&kbs0[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+    utils::sfread(FLERR,&kbs1[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+    utils::sfread(FLERR,&r00[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+    utils::sfread(FLERR,&r01[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+    utils::sfread(FLERR,&theta0[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
   }
 
   MPI_Bcast(&kss[1],atom->nangletypes,MPI_DOUBLE,0,world);

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -65,7 +65,7 @@ class PairTersoffIntel : public PairTersoff {
     c_outer_t * * c_outer;
     c_inner_t * * * c_inner;
     ForceConst() : _ntypes(0) {}
-    ~ForceConst() { set_ntypes(0,NULL,_cop); }
+    ~ForceConst() { set_ntypes(0,nullptr,_cop); }
 
     void set_ntypes(const int ntypes, Memory *memory, const int cop);
 

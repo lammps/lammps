@@ -1,4 +1,5 @@
 .. index:: fix ave/histo
+.. index:: fix ave/histo/weight
 
 fix ave/histo command
 =====================
@@ -137,8 +138,8 @@ vector or columns of the array had been listed one by one.  E.g. these
 .. code-block:: LAMMPS
 
    compute myCOM all com/chunk
-   fix 1 all ave/histo 100 1 100 c_myCOM[*] file tmp1.com mode vector
-   fix 2 all ave/histo 100 1 100 c_myCOM[1] c_myCOM[2] c_myCOM[3] file tmp2.com mode vector
+   fix 1 all ave/histo 100 1 100 -10.0 10.0 100 c_myCOM[*] file tmp1.com mode vector
+   fix 2 all ave/histo 100 1 100 -10.0 10.0 100 c_myCOM[1] c_myCOM[2] c_myCOM[3] file tmp2.com mode vector
 
 If the fix ave/histo/weight command is used, exactly two values must
 be specified.  If the values are vectors, they must be the same
@@ -329,7 +330,8 @@ the histogram.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.
@@ -346,10 +348,10 @@ values:
 * 4 = max value of all input values, including ones not histogrammed
 
 The global array has # of rows = Nbins and # of columns = 3.  The
-first column has the bin coordinate, the 2nd column has the count of
-values in that histogram bin, and the 3rd column has the bin count
+first column has the bin coordinate, the second column has the count of
+values in that histogram bin, and the third column has the bin count
 divided by the total count (not including missing counts), so that the
-values in the 3rd column sum to 1.0.
+values in the third column sum to 1.0.
 
 The vector and array values calculated by this fix are all treated as
 intensive.  If this is not the case, e.g. due to histogramming
@@ -369,7 +371,10 @@ Related commands
 :doc:`compute <compute>`, :doc:`fix ave/atom <fix_ave_atom>`, :doc:`fix ave/chunk <fix_ave_chunk>`, :doc:`fix ave/time <fix_ave_time>`,
 :doc:`variable <variable>`, :doc:`fix ave/correlate <fix_ave_correlate>`,
 
-**Default:** none
+Default
+"""""""
+
+none
 
 The option defaults are mode = scalar, kind = figured out from input
 arguments, ave = one, start = 0, no file output, beyond = ignore, and

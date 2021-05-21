@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,15 +12,15 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_drag.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
-#include "update.h"
-#include "respa.h"
 #include "domain.h"
 #include "error.h"
-#include "force.h"
+#include "respa.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -42,14 +42,14 @@ FixDrag::FixDrag(LAMMPS *lmp, int narg, char **arg) :
   xflag = yflag = zflag = 1;
 
   if (strcmp(arg[3],"NULL") == 0) xflag = 0;
-  else xc = force->numeric(FLERR,arg[3]);
+  else xc = utils::numeric(FLERR,arg[3],false,lmp);
   if (strcmp(arg[4],"NULL") == 0) yflag = 0;
-  else yc = force->numeric(FLERR,arg[4]);
+  else yc = utils::numeric(FLERR,arg[4],false,lmp);
   if (strcmp(arg[5],"NULL") == 0) zflag = 0;
-  else zc = force->numeric(FLERR,arg[5]);
+  else zc = utils::numeric(FLERR,arg[5],false,lmp);
 
-  f_mag = force->numeric(FLERR,arg[6]);
-  delta = force->numeric(FLERR,arg[7]);
+  f_mag = utils::numeric(FLERR,arg[6],false,lmp);
+  delta = utils::numeric(FLERR,arg[7],false,lmp);
 
   force_flag = 0;
   ftotal[0] = ftotal[1] = ftotal[2] = 0.0;
@@ -69,7 +69,7 @@ int FixDrag::setmask()
 
 void FixDrag::init()
 {
-  if (strstr(update->integrate_style,"respa")) {
+  if (utils::strmatch(update->integrate_style,"^respa")) {
     ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
   }
@@ -79,7 +79,7 @@ void FixDrag::init()
 
 void FixDrag::setup(int vflag)
 {
-  if (strstr(update->integrate_style,"verlet"))
+  if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
     ((Respa *) update->integrate)->copy_flevel_f(ilevel_respa);

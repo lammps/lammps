@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -42,11 +42,12 @@ PairLJSDKKokkos<DeviceType>::PairLJSDKKokkos(LAMMPS *lmp) : PairLJSDK(lmp)
 {
   respa_enable = 0;
 
+  kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | F_MASK | TYPE_MASK | ENERGY_MASK | VIRIAL_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
-  cutsq = NULL;
+  cutsq = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -57,7 +58,7 @@ PairLJSDKKokkos<DeviceType>::~PairLJSDKKokkos()
   if (allocated) {
     k_cutsq = DAT::tdual_ffloat_2d();
     memory->sfree(cutsq);
-    cutsq = NULL;
+    cutsq = nullptr;
   }
 }
 
@@ -67,9 +68,9 @@ template<class DeviceType>
 void PairLJSDKKokkos<DeviceType>::cleanup_copy() {
   // WHY needed: this prevents parent copy from deallocating any arrays
   allocated = 0;
-  cutsq = NULL;
-  eatom = NULL;
-  vatom = NULL;
+  cutsq = nullptr;
+  eatom = nullptr;
+  vatom = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -175,7 +176,7 @@ compute_fpair(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, c
     return r6inv*(lj_1*r6inv - lj_2) * r2inv;
 
   }
-  if(ljt!=LJ12_4 && ljt!=LJ9_6 && ljt!=LJ12_6) return 0.0;*/
+  if (ljt!=LJ12_4 && ljt!=LJ9_6 && ljt!=LJ12_6) return 0.0;*/
   const F_FLOAT r4inv=r2inv*r2inv;
   const F_FLOAT r6inv=r2inv*r4inv;
   const F_FLOAT a = ljt==LJ12_4?r4inv:r6inv;
@@ -254,7 +255,7 @@ void PairLJSDKKokkos<DeviceType>::init_style()
 
   // error if rRESPA with inner levels
 
-  if (update->whichflag == 1 && strstr(update->integrate_style,"respa")) {
+  if (update->whichflag == 1 && utils::strmatch(update->integrate_style,"^respa")) {
     int respa = 0;
     if (((Respa *) update->integrate)->level_inner >= 0) respa = 1;
     if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;
@@ -279,9 +280,6 @@ void PairLJSDKKokkos<DeviceType>::init_style()
   } else if (neighflag == HALF || neighflag == HALFTHREAD) {
     neighbor->requests[irequest]->full = 0;
     neighbor->requests[irequest]->half = 1;
-  } else if (neighflag == N2) {
-    neighbor->requests[irequest]->full = 0;
-    neighbor->requests[irequest]->half = 0;
   } else {
     error->all(FLERR,"Cannot use chosen neighbor list style with lj/sdk/kk");
   }
@@ -304,7 +302,7 @@ double PairLJSDKKokkos<DeviceType>::init_one(int i, int j)
   k_params.h_view(i,j).cutsq = cutone*cutone;
   k_params.h_view(i,j).lj_type = lj_type[i][j];
   k_params.h_view(j,i) = k_params.h_view(i,j);
-  if(i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
+  if (i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
     m_params[i][j] = m_params[j][i] = k_params.h_view(i,j);
     m_cutsq[j][i] = m_cutsq[i][j] = cutone*cutone;
   }
@@ -320,7 +318,7 @@ double PairLJSDKKokkos<DeviceType>::init_one(int i, int j)
 
 namespace LAMMPS_NS {
 template class PairLJSDKKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class PairLJSDKKokkos<LMPHostType>;
 #endif
 }

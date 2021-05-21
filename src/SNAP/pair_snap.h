@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -50,15 +50,13 @@ protected:
   void compute_bispectrum();
 
   double rcutmax;               // max cutoff for all elements
-  int nelements;                // # of unique elements
-  char **elements;              // names of unique elements
   double *radelem;              // element radii
   double *wjelem;               // elements weights
   double **coeffelem;           // element bispectrum coefficients
   double** beta;                // betas for all atoms in list
   double** bispectrum;          // bispectrum components for all atoms in list
-  int *map;                     // mapping from atom types to elements
-  int twojmax, switchflag, bzeroflag;
+  int twojmax, switchflag, bzeroflag, bnormflag;
+  int chemflag, wselfallflag;
   int chunksize;
   double rfac0, rmin0, wj1, wj2;
   int rcutfacflag, twojmaxflag; // flags for required parameters

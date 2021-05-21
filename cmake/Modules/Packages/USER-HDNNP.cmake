@@ -38,11 +38,12 @@ if(DOWNLOAD_N2P2)
     UPDATE_COMMAND ""
     CONFIGURE_COMMAND ""
     BUILD_COMMAND make -f makefile libnnpif ${N2P2_BUILD_OPTIONS}
+    BUILD_ALWAYS YES
     INSTALL_COMMAND ""
     BUILD_IN_SOURCE 1
     LOG_BUILD ON
     SOURCE_SUBDIR src/
-    #BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libnnp.a <INSTALL_DIR>/lib/libnnpif.a
+    BUILD_BYPRODUCTS <SOURCE_DIR>/lib/libnnp.a <SOURCE_DIR>/lib/libnnpif.a
     )
   ExternalProject_get_property(n2p2_build SOURCE_DIR)
   # n2p2 core library "libnnp"
@@ -64,8 +65,6 @@ if(DOWNLOAD_N2P2)
   add_dependencies(LAMMPS::N2P2 n2p2_build)
   file(MAKE_DIRECTORY "${SOURCE_DIR}/include")
   file(MAKE_DIRECTORY "${SOURCE_DIR}/lib")
-  file(TOUCH "${SOURCE_DIR}/lib/lammps-extra.cmake")
-  include("${SOURCE_DIR}/lib/lammps-extra.cmake")
 else()
   find_package(N2P2)
   if(NOT N2P2_FOUND)

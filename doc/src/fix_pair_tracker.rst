@@ -45,8 +45,8 @@ Examples
 
 .. code-block:: LAMMPS
 
-   fix 1 all pair/tracker 1000 id1 id2 tmin 100
-   fix 1 all pair/tracker 1000 time/created time/broken type 1 * type 2 3,4
+   fix 1 all pair/tracker 1000 id1 id2 time/min 100
+   fix 1 all pair/tracker 1000 time/created time/broken type 1 * type/include 2 3,4
 
 Description
 """""""""""
@@ -58,7 +58,7 @@ Data is accumulated over a span of *N* timesteps after which it is cleared
 The number of datums generated, aggregated across all processors, equals 
 the number of broken interactions. Interactions are only included if both
 atoms are in the included in the specified fix group. Additional filters can be
-applied using the *tmin* or *type* keywords described below.
+applied using the *time/min* or *type/include* keywords described below.
 
 .. note::
 
@@ -96,7 +96,7 @@ Output info
 
 This compute calculates a local vector or local array depending on the
 number of input values.  The length of the vector or number of rows in
-the array is the number of bonds, angles, etc.  If a single input is
+the array is the number of recorded, lost interactions.  If a single input is
 specified, a local vector is produced.  If two or more inputs are
 specified, a local array is produced where the number of columns = the
 number of inputs.  The vector or array can be accessed by any command
@@ -108,7 +108,7 @@ specified attribute.
 
 Restrictions
 """"""""""""
- none
+Must be used in conjuction with :doc:`pair tracker <pair_tracker>`.
  
 Related commands
 """"""""""""""""

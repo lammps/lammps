@@ -27,6 +27,7 @@ class Dump : protected Pointers {
 
   int first_flag;            // 0 if no initial dump, 1 if yes initial dump
   int clearstep;             // 1 if dump invokes computes, 0 if not
+
   double vtime;              // time frequency for time-dependent dumps
   double last_time;          // last time time-dependent dump was written
 

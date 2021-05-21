@@ -280,7 +280,7 @@ void PairHDNNP::init_style()
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
-double PairHDNNP::init_one(int i, int j)
+double PairHDNNP::init_one(int, int)
 {
   return maxCutoffRadius;
 }

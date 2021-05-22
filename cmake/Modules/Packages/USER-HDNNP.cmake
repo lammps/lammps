@@ -21,7 +21,7 @@ if(DOWNLOAD_N2P2)
     set(N2P2_CXX_STD "-std=c++11")
   elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     set(N2P2_COMP gnu)
-    set(N2P2_CXX_STD "-std=c++11")
+    set(N2P2_CXX_STD "-std=gnu++11")
   elseif(CMAKE_CXX_COMPILER_ID STREQUAL "PGI")
     set(N2P2_COMP gnu)
     set(N2P2_CXX_STD "--c++11")
@@ -94,6 +94,9 @@ if(DOWNLOAD_N2P2)
   if(BUILD_MPI)
     set_target_properties(LAMMPS::N2P2::LIBNNPIF PROPERTIES
       INTERFACE_LINK_LIBRARIES MPI::MPI_CXX)
+    if((CMAKE_SYSTEM_NAME STREQUAL Windows) AND CMAKE_CROSSCOMPILING)
+      add_dependencies(LAMMPS::N2P2::LIBNNPIF MPI::MPI_CXX)
+    endif()
   endif()
 
   # final step to define imported target

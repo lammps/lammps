@@ -42,8 +42,8 @@ using namespace std;
 #define OFFSET 16384
 #define MAXORDER   7
 
-enum{REVERSE_RHO_NONE};
-enum{FORWARD_NONE};
+enum{REVERSE_RHO_NONE,};
+enum{FORWARD_NONE, FORWARD_GRID_DEN, FORWARD_AVG_GRID_DEN};
 
 #ifdef FFT_SINGLE
 #define ZEROF 0.0f
@@ -68,8 +68,8 @@ TILD::TILD(LAMMPS *lmp) : KSpace(lmp),
   peratom_allocate_flag = 0;
 
   group_allocate_flag = 0;
-
-  nstyles = 2;  // total number of sytles
+  
+  nstyles = 2;
 
   pppmflag = 0;
   group_group_enable = 0;
@@ -146,8 +146,11 @@ TILD::TILD(LAMMPS *lmp) : KSpace(lmp),
   set_rho0 = 1.0;
   subtract_rho0 = 0;
   norm_flag = 1;
+  npergrid = 0; 
 
   int ntypes = atom->ntypes;
+  if (me == 0) utils::logmesg(lmp,"{}\n", ntypes);
+  if (me == 0) utils::logmesg(lmp,"{}\n", nstyles);
   memory->create(potent_type_map,nstyles+1,ntypes+1,ntypes+1,"tild:potent_type_map");  
 
   memory->create(chi,ntypes+1,ntypes+1,"tild:chi");
@@ -174,7 +177,7 @@ TILD::TILD(LAMMPS *lmp) : KSpace(lmp),
 void TILD::settings(int narg, char **arg)
 {
     if (narg < 1) error->all(FLERR,"Illegal kspace_style tild command");
-    grid_res = fabs(force->numeric(FLERR, arg[0]));
+    grid_res = fabs(utils::numeric(FLERR,arg[0],false,lmp));
 }
 
 /* ----------------------------------------------------------------------
@@ -234,19 +237,82 @@ void TILD::init()
   if (order < 2 || order > MAXORDER)
     error->all(FLERR,"PPPM order cannot be < 2 or > {}",MAXORDER);
 
+  // PPPM does pair_check() here
+
+  // triclinic = domain->triclinic;
+  // pair_check();
+
+  
+
   // free all arrays previously allocated
   deallocate();
   if (peratom_allocate_flag) deallocate_peratom();
 
-  set_grid();
+  // setup FFT grid resolution and g_ewald
+  // normally one iteration thru while loop is all that is required
+  // if grid stencil does not extend beyond neighbor proc
+  //   or overlap is allowed, then done
+  // else reduce order and try again
 
-  //allocate();
-  //cg->ghost_notify();
-  //cg->setup();
+  GridComm *gctmp = nullptr;
+  int iteration = 0;
 
-  setup_grid();
+  while (order >= minorder) {
+    if (iteration && me == 0)
+      error->warning(FLERR,"Reducing PPPM order b/c stencil extends "
+                     "beyond nearest neighbor processor");
+
+    // if (stagger_flag && !differentiation_flag) compute_gf_denom();
+    set_grid_global();
+    set_grid_local();
+    if (overlap_allowed) break;
+
+    gctmp = new GridComm(lmp,world,nx_pppm,ny_pppm,nz_pppm,
+                         nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
+                         nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
+
+    int tmp1,tmp2;
+    gctmp->setup(tmp1,tmp2);
+    if (gctmp->ghost_adjacent()) break;
+    delete gctmp;
+
+    order--;
+    iteration++;
+  }
+
+  if (order < minorder) error->all(FLERR,"PPPM order < minimum allowed order");
+  if (!overlap_allowed && !gctmp->ghost_adjacent())
+    error->all(FLERR,"PPPM grid stencil extends "
+               "beyond nearest neighbor processor");
+  if (gctmp) delete gctmp;
+
+  set_grid_global();
+  set_grid_local();
+
+  // print stats
+
+  int ngrid_max,nfft_both_max;
+  MPI_Allreduce(&ngrid,&ngrid_max,1,MPI_INT,MPI_MAX,world);
+  MPI_Allreduce(&nfft_both,&nfft_both_max,1,MPI_INT,MPI_MAX,world);
+
+  if (me == 0) {
+    std::string mesg = fmt::format("  grid = {} {} {}\n",nx_pppm,ny_pppm,nz_pppm);
+    mesg += fmt::format("  stencil order = {}\n",order);
+    mesg += fmt::format("  using " LMP_FFT_PREC " precision " LMP_FFT_LIB "\n");
+    mesg += fmt::format("  3d grid and FFT values/proc = {} {}\n", ngrid_max, nfft_both_max);
+    utils::logmesg(lmp,mesg);
+  }
+
+  // allocate k-space dependent memory
+  // don't invoke allocate peratom() or group(), will be allocated when needed (which is when?)
+
+  allocate();
 
   // change number density to tild density 
+  double volume = domain->xprd * domain->yprd * domain->zprd;
+  force->nktv2p *= rho0 * volume / atom->natoms;
+}
+
 /* ----------------------------------------------------------------------
    adjust TILD coeffs, called initially and whenever volume has changed
 ------------------------------------------------------------------------- */
@@ -453,24 +519,18 @@ void TILD::setup_grid()
 
   set_grid_local();
 
-  int ngrid_max,nfft_both_max;
-  MPI_Allreduce(&ngrid,&ngrid_max,1,MPI_INT,MPI_MAX,world);
-  MPI_Allreduce(&nfft_both,&nfft_both_max,1,MPI_INT,MPI_MAX,world);
-
   // reallocate K-space dependent memory
   // check if grid communication is now overlapping if not allowed
   // don't invoke allocate_peratom(), compute() will allocate when needed
 
   allocate();
 
-  if (!overlap_allowed && gc->ghost_adjacent())
+  if (!overlap_allowed && !gc->ghost_adjacent())
     error->all(FLERR,"TILD grid stencil extends "
                "beyond nearest neighbor processor");
 
   // pre-compute 1d density distribution coefficients
   compute_rho_coeff(rho_coeff, drho_coeff, order);
-
-  rho0 = calculate_rho0();
 
   // pre-compute volume-dependent coeffs for portion of grid I now own
   setup();
@@ -510,7 +570,7 @@ void TILD::precompute_density_hat_fft() {
 }
 
 void TILD::compute(int eflag, int vflag){
-
+  
   if (triclinic == 0) boxlo = domain->boxlo;
   else {
     boxlo = domain->boxlo_lamda;
@@ -523,12 +583,12 @@ void TILD::compute(int eflag, int vflag){
   else evflag = evflag_atom = eflag_global = vflag_global =
          eflag_atom = vflag_atom = 0;
 
-  if (evflag_atom && !peratom_allocate_flag) {
-    allocate_peratom();
-    cg_peratom->ghost_notify();
-    cg_peratom->setup();
-    peratom_allocate_flag = 1;
-  }
+  // if (evflag_atom && !peratom_allocate_flag) {
+  //   allocate_peratom();
+  //   cg_peratom->ghost_notify();
+  //   cg_peratom->setup();
+  //   peratom_allocate_flag = 1;
+  // }
 
   if (atom->natoms != natoms_original) {
     natoms_original = atom->natoms;
@@ -549,15 +609,47 @@ void TILD::compute(int eflag, int vflag){
 
   make_rho();
 
-  cg->reverse_comm(this, REVERSE_RHO_NONE);
+  // all procs communicate density values from their ghost cells
+  //   to fully sum contribution in their 3d bricks
+  // remap from 3d decomposition to FFT decomposition
+
+  // cg->reverse_comm(this, REVERSE_RHO_NONE);
+  gc->reverse_comm_kspace(this,1,sizeof(FFT_SCALAR),REVERSE_RHO_NONE,
+                          gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
   brick2fft();
 
+  // compute potential gradient on my FFT grid 
+  // returns gradients in 3d brick decomposition 
+  // Question about whether it should perform per_atom calculations 
+
   accumulate_gradient();
 
-  cg->forward_comm(this, FORWARD_NONE);
+  // cg->forward_comm(this, FORWARD_NONE);
+
+  // all procs communicate gradient potential values
+  // to fill ghost cells surrounding their 3d bricks
+  
+  gc->forward_comm_kspace(this,1,sizeof(FFT_SCALAR),FORWARD_NONE,
+                          gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+  // if (differentiation_flag == 1)
+  //   gc->forward_comm_kspace(this,1,sizeof(FFT_SCALAR),FORWARD_AD,
+  //                           gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+  // else
+  //   gc->forward_comm_kspace(this,3,sizeof(FFT_SCALAR),FORWARD_IK,
+  //                           gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+
+
+  // PPPM has  extra per-atom energy/virial communication here. 
+  // Again, I don't know if we should do per-atom calculations.
+  // if so, the head LAMMPS developers will be able to tell us
+
+  // calculate the force on my particles
 
   fieldforce_param();
+
+  // check whether grid densities should be written out at this time 
+  // Serious question abotu whether this should be a fix instead of this 
 
   if ( write_grid_flag == 1 ) {
     if ( (update->ntimestep % grid_data_output_freq) ==  0) {
@@ -565,6 +657,8 @@ void TILD::compute(int eflag, int vflag){
     }
   }
   if ( ave_grid_flag == 1 ) ave_grid();
+
+  // sum global energy across procs and add in volume-dependent term
 
   if (eflag_global){
     double energy_all;
@@ -599,19 +693,21 @@ void TILD::compute(int eflag, int vflag){
 
 double TILD::memory_usage()
 {
-  double bytes = nmax *3 * sizeof(double); // positions
-  int nbrick = (nxhi_out-nxlo_out+1) * (nyhi_out-nylo_out+1) *
-    (nzhi_out-nzlo_out+1);
-  bytes += 4 * nbrick * sizeof(FFT_SCALAR); // work1 ?
+  // double bytes = nmax *3 * sizeof(double); // positions
+  // int nbrick = (nxhi_out-nxlo_out+1) * (nyhi_out-nylo_out+1) *
+  //   (nzhi_out-nzlo_out+1);
+  // bytes += 4 * nbrick * sizeof(FFT_SCALAR); // work1 ?
   
-  if (triclinic) bytes += 3 * nfft_both * sizeof(double);
-  bytes += atom->ntypes * 6 * nfft_both * sizeof(double); 
-  bytes += atom->ntypes * nfft_both * sizeof(double); 
-  bytes += atom->ntypes * nfft_both*5 * sizeof(FFT_SCALAR);
+  // if (triclinic) bytes += 3 * nfft_both * sizeof(double);
+  // bytes += atom->ntypes * 6 * nfft_both * sizeof(double); 
+  // bytes += atom->ntypes * nfft_both * sizeof(double); 
+  // bytes += atom->ntypes * nfft_both*5 * sizeof(FFT_SCALAR);
 
-  if (cg) bytes += cg->memory_usage();
+  // // two GridComm bufs 
+  // bytes += (double)(ngc_buf1 + ngc_buf2) * npergrid * sizeof(FFT_SCALAR);
 
-  return bytes;
+  // return bytes;
+  return 0;
 }
 
 
@@ -728,7 +824,7 @@ void TILD::allocate()
   // create ghost grid object for rho and electric field communication
   // also create 2 bufs for ghost grid cell comm, passed to GridComm methods
 
-  gc = new GridComm(lmp,world,
+  gc = new GridComm(lmp,world,nx_pppm,ny_pppm,nz_pppm,
                       nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
                       nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
 
@@ -889,19 +985,22 @@ void TILD::set_grid_global()
 
     }
 
+    if (triclinic) {
+      double tmp[3];
+      tmp[0] = nx_pppm / xprd;
+      tmp[1] = ny_pppm / yprd;
+      tmp[2] = nz_pppm / zprd;
+      lamda2xT(&tmp[0], &tmp[0]);
+      nx_pppm = static_cast<int>(tmp[0]) + 1;
+      ny_pppm = static_cast<int>(tmp[1]) + 1;
+      nz_pppm = static_cast<int>(tmp[2]) + 1;
+    }
+
   // boost grid size until it is factorable
 
   while (!factorable(nx_pppm)) nx_pppm++;
   while (!factorable(ny_pppm)) ny_pppm++;
   while (!factorable(nz_pppm)) nz_pppm++;
-
-  if (me == 0) {
-    std::string mesg = fmt::format("  grid = {} {} {}\n",nx_pppm,ny_pppm,nz_pppm);
-    mesg += fmt::format("  stencil order = {}\n",order);
-    mesg += fmt::format("  using " LMP_FFT_PREC " precision " LMP_FFT_LIB "\n");
-    mesg += fmt::format("  3d grid and FFT values/proc = {} {}\n", ngrid_max, nfft_both_max);
-    utils::logmesg(lmp,mesg);
-  }
 
   if (nx_pppm >= OFFSET || ny_pppm >= OFFSET || nz_pppm >= OFFSET)
     error->all(FLERR, "TILD grid is too large");
@@ -926,20 +1025,20 @@ void TILD::allocate_peratom()
 
   // create ghost grid object for rho and electric field communication
 
-  if (differentiation_flag == 1)
-    cg_peratom =
-      new GridComm(lmp,world,6,1,
-                   nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
-                   nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out,
-                   procneigh[0][0],procneigh[0][1],procneigh[1][0],
-                   procneigh[1][1],procneigh[2][0],procneigh[2][1]);
-  else
-    cg_peratom =
-      new GridComm(lmp,world,7,1,
-                   nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
-                   nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out,
-                   procneigh[0][0],procneigh[0][1],procneigh[1][0],
-                   procneigh[1][1],procneigh[2][0],procneigh[2][1]);
+  // if (differentiation_flag == 1)
+  //   cg_peratom =
+  //     new GridComm(lmp,world,6,1,
+  //                  nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
+  //                  nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out,
+  //                  procneigh[0][0],procneigh[0][1],procneigh[1][0],
+  //                  procneigh[1][1],procneigh[2][0],procneigh[2][1]);
+  // else
+  //   cg_peratom =
+  //     new GridComm(lmp,world,7,1,
+  //                  nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
+  //                  nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out,
+  //                  procneigh[0][0],procneigh[0][1],procneigh[1][0],
+  //                  procneigh[1][1],procneigh[2][0],procneigh[2][1]);
 }
 
 /* ----------------------------------------------------------------------
@@ -949,8 +1048,8 @@ void TILD::deallocate_peratom()
 {
   peratom_allocate_flag = 0;
 
-  delete cg_peratom;
-  cg_peratom = nullptr;
+  // delete cg_peratom;
+  // cg_peratom = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -1169,7 +1268,8 @@ void TILD::calc_work(FFT_SCALAR *wk, const int itype, const int jtype){
 
 /* ----------------------------------------------------------------------
    Initialize potentials in fourier space when possible
-------------------------------------------------------------------------- */kkk
+------------------------------------------------------------------------- */
+
 void TILD::init_potential_ft(FFT_SCALAR *wk1, const int type, const double* parameters){
 
   int n = 0;
@@ -1386,7 +1486,7 @@ void TILD::get_k_alias(FFT_SCALAR* wk1, FFT_SCALAR **out){
    store central grid pt indices in part2grid array
 ------------------------------------------------------------------------- */
 
-void PPPM::particle_map()
+void TILD::particle_map()
 {
   int nx,ny,nz;
 
@@ -1440,9 +1540,9 @@ int TILD::modify_param(int narg, char** arg)
       if (narg != 4) error->all(FLERR, "Illegal kspace_modify tild command");
 
       int ilo,ihi,jlo,jhi;
-      force->bounds(FLERR,arg[1],ntypes,ilo,ihi);
-      force->bounds(FLERR,arg[2],ntypes,jlo,jhi);
-      double chi_one = force->numeric(FLERR,arg[3]);
+      utils::bounds(FLERR,arg[1],1,ntypes,ilo,ihi,error);
+      utils::bounds(FLERR,arg[2],1,ntypes,jlo,jhi,error);
+      double chi_one = utils::numeric(FLERR,arg[3],false,lmp);
       for (int i = ilo; i <= ihi; i++) {
         for (int j = MAX(jlo,i); j <= jhi; j++) {
           chi[i][j] = chi_one;
@@ -1453,12 +1553,12 @@ int TILD::modify_param(int narg, char** arg)
       if (narg < 3) error->all(FLERR, "Illegal kspace_modify tild command");
 
       int ilo,ihi,jlo,jhi;
-      force->bounds(FLERR,arg[1],ntypes,ilo,ihi);
-      force->bounds(FLERR,arg[2],ntypes,jlo,jhi);
+      utils::bounds(FLERR,arg[1],1,ntypes,ilo,ihi,error);
+      utils::bounds(FLERR,arg[2],1,ntypes,jlo,jhi,error);
       if (strcmp(arg[3], "gaussian") == 0) {
         if (narg < 4) error->all(FLERR, "Illegal kspace_modify tild command");
 
-        double a2_one = force->numeric(FLERR,arg[4])*force->numeric(FLERR,arg[4]);
+        double a2_one = utils::numeric(FLERR,arg[4],false,lmp)*utils::numeric(FLERR,arg[4],false,lmp);
         for (int i = ilo; i <= ihi; i++) {
           for (int j = MAX(jlo,i); j <= jhi; j++) {
             potent_type_map[1][i][j] = 1;
@@ -1470,8 +1570,8 @@ int TILD::modify_param(int narg, char** arg)
 
       } else if (strcmp(arg[3], "erfc") == 0) {
         if (narg < 5) error->all(FLERR, "Illegal kspace_modify tild command");
-        double rp_one = force->numeric(FLERR,arg[4]);
-        double xi_one = force->numeric(FLERR,arg[5]);
+        double rp_one = utils::numeric(FLERR,arg[4],false,lmp);
+        double xi_one = utils::numeric(FLERR,arg[5],false,lmp);
         for (int i = ilo; i <= ihi; i++) {
           for (int j = MAX(jlo,i); j <= jhi; j++) {
             potent_type_map[2][i][j] = 1;
@@ -1499,7 +1599,7 @@ int TILD::modify_param(int narg, char** arg)
       else error->all(FLERR, "Illegal kspace_modify tild mix argument");
  } else if (strcmp(arg[0], "tild/set_rho0") == 0) {
      if (narg < 2 ) error->all(FLERR, "Illegal kspace_modify tild command");
-     set_rho0 = force->numeric(FLERR,arg[1]);
+     set_rho0 = utils::numeric(FLERR,arg[1],false,lmp);
   } else if (strcmp(arg[0], "tild/subtract_rho0") == 0) {
       if (narg != 2) error->all(FLERR, "Illegal kspace_modify tild command");
       if (strcmp(arg[1], "yes") == 0) sub_flag = 1;
@@ -1515,15 +1615,15 @@ int TILD::modify_param(int narg, char** arg)
   } else if (strcmp(arg[0], "tild/write_grid_data") == 0) {
       if (narg != 3) error->all(FLERR, "Illegal kspace_modify tild command");
       write_grid_flag = 1;
-      grid_data_output_freq = force->inumeric(FLERR,arg[1]);
+      grid_data_output_freq = utils::inumeric(FLERR,arg[1],false,lmp);
       strcpy(grid_data_filename,arg[2]);
 
   } else if (strcmp(arg[0], "tild/ave/grid") == 0) {
       if (narg != 5) error->all(FLERR, "Illegal kspace_modify tild command");
       ave_grid_flag = 1;
-      nevery = force->inumeric(FLERR,arg[1]);
-      nrepeat = force->inumeric(FLERR,arg[2]);
-      peratom_freq = force->inumeric(FLERR,arg[3]);
+      nevery = utils::inumeric(FLERR,arg[1],false,lmp);
+      nrepeat = utils::inumeric(FLERR,arg[2],false,lmp);
+      peratom_freq = utils::inumeric(FLERR,arg[3],false,lmp);
       strcpy(ave_grid_filename,arg[4]);
       nvalid = nextvalid();
       if (nevery <= 0 || nrepeat <= 0 || peratom_freq <= 0)
@@ -1540,8 +1640,10 @@ int TILD::modify_param(int narg, char** arg)
    pack own values to buf to send to another proc
 ------------------------------------------------------------------------- */
 
-void TILD::pack_forward_grid(int flag, FFT_SCALAR *buf, int nlist, int *list)
+void TILD::pack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 {
+  FFT_SCALAR *buf = (FFT_SCALAR *) vbuf;
+  
   int n = 0;
   //int Dim = domain->dimension;
 
@@ -1559,30 +1661,110 @@ void TILD::pack_forward_grid(int flag, FFT_SCALAR *buf, int nlist, int *list)
           buf[n++] = srcz[list[i]];
       }
     }
+  } else if (flag == FORWARD_GRID_DEN){
+    for (int ktype = 0; ktype <= atom->ntypes; ktype++) {
+      FFT_SCALAR *srcx = &density_brick_types[ktype][nzlo_out][nylo_out][nxlo_out];
+      FFT_SCALAR *srcy = &density_brick_types[ktype][nzlo_out][nylo_out][nxlo_out];
+      FFT_SCALAR *srcz = &density_brick_types[ktype][nzlo_out][nylo_out][nxlo_out];
+      for (int i = 0; i < nlist; i++) {
+        buf[n++] = srcx[list[i]];
+        buf[n++] = srcy[list[i]];
+        buf[n++] = srcz[list[i]];
+      }
+    // int ntypes = atom->ntypes;
+    // double fx = domain->xprd/nx_pppm;
+    // double fy = domain->yprd/ny_pppm;
+    // double fz = domain->zprd/nz_pppm;
+    // for (int iz = nzlo_in; iz <= nzhi_in; iz++) {
+    //   for (int iy = nylo_in; iy <= nyhi_in; iy++) {
+    //     for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
+    //       buf[n][0] = ix * fx;
+    //       buf[n][1] = iy * fy;
+    //       buf[n][2] = iz * fz;
+    //       for (int itype = 1; itype <= ntypes; itype++) {
+    //         buf[n][2+itype] = density_brick_types[itype][iz][iy][ix];
+    //       }
+    //       n++;
+    //     }
+    //   }
+    // }  
+    }
+  } else if (flag == FORWARD_AVG_GRID_DEN){
+    for (int ktype = 0; ktype <= atom->ntypes; ktype++) {
+      FFT_SCALAR *srcx = &avg_density_brick_types[ktype][nzlo_out][nylo_out][nxlo_out];
+      FFT_SCALAR *srcy = &avg_density_brick_types[ktype][nzlo_out][nylo_out][nxlo_out];
+      FFT_SCALAR *srcz = &avg_density_brick_types[ktype][nzlo_out][nylo_out][nxlo_out];
+      for (int i = 0; i < nlist; i++) {
+        buf[n++] = srcx[list[i]];
+        buf[n++] = srcy[list[i]];
+        buf[n++] = srcz[list[i]];
+      }
+    // int ntypes = atom->ntypes;
+    // double fx = domain->xprd/nx_pppm;
+    // double fy = domain->yprd/ny_pppm;
+    // double fz = domain->zprd/nz_pppm;
+    // int n = 0;
+    // //int n = nzlo_in + nylo_in + nxlo_in;
+    // for (int iz = nzlo_in; iz <= nzhi_in; iz++) {
+    //   for (int iy = nylo_in; iy <= nyhi_in; iy++) {
+    //     for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
+    //       buf[n][0] = ix * fx;
+    //       buf[n][1] = iy * fy;
+    //       buf[n][2] = iz * fz;
+    //       for (int itype = 1; itype <= ntypes; itype++) {
+    //         buf[n][2+itype] = avg_density_brick_types[itype][iz][iy][ix];
+    //       }
+    //       n++;
+    //     }
+    //   }
+    // }  
+    }
   }
 }
+
 
 /* ----------------------------------------------------------------------
    unpack another proc's own values from buf and set own ghost values
 ------------------------------------------------------------------------- */
 
-void TILD::unpack_forward_grid(int flag, FFT_SCALAR *buf, int nlist, int *list)
+void TILD::unpack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 {
+  FFT_SCALAR *buf = (FFT_SCALAR *) vbuf;
+
   int n = 0;
   //int Dim = domain->dimension;
 
   if (flag == FORWARD_NONE){
     for (int ktype = 0; ktype <= atom->ntypes; ktype++) {
-      //for (int j = 0; j < Dim; j++) {
-        //FFT_SCALAR *dest = &gradWtype[ktype][j][nzlo_out][nylo_out][nxlo_out];
-        FFT_SCALAR *destx = &gradWtypex[ktype][nzlo_out][nylo_out][nxlo_out];
-        FFT_SCALAR *desty = &gradWtypey[ktype][nzlo_out][nylo_out][nxlo_out];
-        FFT_SCALAR *destz = &gradWtypez[ktype][nzlo_out][nylo_out][nxlo_out];
-        for (int i = 0; i < nlist; i++) {
-          //dest[list[i]] = buf[n++];
-          destx[list[i]] = buf[n++];
-          desty[list[i]] = buf[n++];
-          destz[list[i]] = buf[n++];
+      FFT_SCALAR *destx = &gradWtypex[ktype][nzlo_out][nylo_out][nxlo_out];
+      FFT_SCALAR *desty = &gradWtypey[ktype][nzlo_out][nylo_out][nxlo_out];
+      FFT_SCALAR *destz = &gradWtypez[ktype][nzlo_out][nylo_out][nxlo_out];
+      for (int i = 0; i < nlist; i++) {
+        destx[list[i]] = buf[n++];
+        desty[list[i]] = buf[n++];
+        destz[list[i]] = buf[n++];
+      }
+    }
+  } else if (flag == FORWARD_GRID_DEN){
+    for (int ktype = 0; ktype <= atom->ntypes; ktype++) {
+      FFT_SCALAR *destx = &density_brick_types[ktype][nzlo_out][nylo_out][nxlo_out];
+      FFT_SCALAR *desty = &density_brick_types[ktype][nzlo_out][nylo_out][nxlo_out];
+      FFT_SCALAR *destz = &density_brick_types[ktype][nzlo_out][nylo_out][nxlo_out];
+      for (int i = 0; i < nlist; i++) {
+        destx[list[i]] = buf[n++];
+        desty[list[i]] = buf[n++];
+        destz[list[i]] = buf[n++];
+      }
+    }
+  } else if (flag == FORWARD_AVG_GRID_DEN){
+    for (int ktype = 0; ktype <= atom->ntypes; ktype++) {
+      FFT_SCALAR *destx = &avg_density_brick_types[ktype][nzlo_out][nylo_out][nxlo_out];
+      FFT_SCALAR *desty = &avg_density_brick_types[ktype][nzlo_out][nylo_out][nxlo_out];
+      FFT_SCALAR *destz = &avg_density_brick_types[ktype][nzlo_out][nylo_out][nxlo_out];
+      for (int i = 0; i < nlist; i++) {
+        destx[list[i]] = buf[n++];
+        desty[list[i]] = buf[n++];
+        destz[list[i]] = buf[n++];
       }
     }
   }
@@ -1592,8 +1774,9 @@ void TILD::unpack_forward_grid(int flag, FFT_SCALAR *buf, int nlist, int *list)
    pack ghost values into buf to send to another proc
 ------------------------------------------------------------------------- */
 
+void TILD::pack_reverse_grid(int flag, void *vbuf, int nlist, int *list) {
+  FFT_SCALAR *buf = (FFT_SCALAR *) vbuf;
 
-void TILD::pack_reverse_grid(int flag, FFT_SCALAR *buf, int nlist, int *list) {
   int n = 0;
   if (flag == REVERSE_RHO_NONE) {
     for (int ktype = 0; ktype <= atom->ntypes; ktype++) {
@@ -1608,8 +1791,9 @@ void TILD::pack_reverse_grid(int flag, FFT_SCALAR *buf, int nlist, int *list) {
    unpack another proc's ghost values from buf and add to own values
 ------------------------------------------------------------------------- */
 
-void TILD::unpack_reverse_grid(int flag, FFT_SCALAR *buf, int nlist, int *list)
+void TILD::unpack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
 {
+  FFT_SCALAR *buf = (FFT_SCALAR *) vbuf;  
   int n = 0;
   if (flag == REVERSE_RHO_NONE) {
     for (int ktype = 0; ktype <= atom->ntypes; ktype++) {
@@ -1665,7 +1849,7 @@ void TILD::procs2grid2d(int nprocs, int nx, int ny, int *px, int *py)
    n xyz lo/hi fft = FFT columns that I own (all of x dim, 2d decomp in yz)
 ------------------------------------------------------------------------- */
 
-void PPPM::set_grid_local()
+void TILD::set_grid_local()
 {
   // global indices of PPPM grid range from 0 to N-1
   // nlo_in,nhi_in = lower/upper limits of the 3d sub-brick of
@@ -1714,8 +1898,7 @@ void PPPM::set_grid_local()
   // effectively nlo_in,nhi_in + ghost cells
   // nlo,nhi = index of global grid pt to "lower left" of smallest/largest
   //           position a particle in my box can be at
-  // dist[3] = particle position bound = subbox + skin/2.0 + qdist
-  //   qdist = offset due to TIP4P fictitious charge
+  // dist[3] = particle position bound = subbox + skin/2.0 
   //   convert to triclinic if necessary
   // nlo_out,nhi_out = nlo,nhi + stencil size for particle mapping
   // for slab PPPM, assign z grid as if it were not extended
@@ -1740,7 +1923,7 @@ void PPPM::set_grid_local()
   double zprd_slab = zprd*slab_volfactor;
 
   double dist[3] = {0.0,0.0,0.0};
-  double cuthalf = 0.5*neighbor->skin + qdist;
+  double cuthalf = 0.5*neighbor->skin;
   if (triclinic == 0) dist[0] = dist[1] = dist[2] = cuthalf;
   else kspacebbox(cuthalf,&dist[0]);
 
@@ -2385,6 +2568,8 @@ void TILD::write_grid_data( char *filename, const int avg ) {
 
   if (avg == 1) pack_avg_grid_data(buf);
   else pack_grid_data(buf);
+  // if (avg == 1) pack_forward_grid(FORWARD_AVG_GRID_DEN);
+  // else pack_forward_grid(FORWARD_GRID_DEN);
 
   // write one chunk of atoms per proc to file
   // proc 0 pings each proc, receives its chunk, writes to file

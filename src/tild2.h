@@ -148,7 +148,7 @@ class TILD : public KSpace{
   class Remap *remap;
   class GridComm *gc;
 
-  FFT_SCALAR *gc_buf1, gc_buf2;
+  FFT_SCALAR *gc_buf1, *gc_buf2;
   int ngc_buf1, ngc_buf2, npergrid;
 
   int **part2grid;             // storage for particle -> grid mapping

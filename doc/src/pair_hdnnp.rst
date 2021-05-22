@@ -16,7 +16,7 @@ Syntax
 * value depends on the preceding keyword:
 
 .. parsed-literal::
-   
+
    *dir* value = directory
        directory = Path to HDNNP configuration files
    *showew* value = *yes* or *no*
@@ -73,16 +73,15 @@ types, the command
 
    pair_coeff * * H H O NULL
 
-maps types 1 and 2 to the element "H", type 3 to "O" and type 4 is not mapped
-(indicated by NULL). Atoms of an unmapped type are ignored by the HDNNP, i.e.
-they do not contribute in the evaluation of HDNNP energies and forces. This may
-be useful in a setup with multiple pair styles (see :doc:`pair_hybrid
-<pair_hybrid>`).
+maps atom types 1 and 2 to the element "H", type 3 to "O" and type 4 is not mapped
+(indicated by NULL).  Atoms mapped to NULL are ignored by the HDNNP calculation,
+i.e. they do not contribute in any way to the evaluation of HDNNP energies and forces.
+This may be useful in a setup with :doc: `hybrid pair styles <pair_hybrid>`.
 
 ----
 
 The mandatory pair style argument *cutoff* must match the short-range cutoff radius
-of the HDNNP. This corresponds to the maximum cutoff radius of all symmetry
+of the HDNNP.  This corresponds to the maximum cutoff radius of all symmetry
 functions (the atomic environment descriptors of HDNNPs) used.
 
 .. note::

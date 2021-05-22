@@ -11,28 +11,34 @@ if(DOWNLOAD_N2P2)
   mark_as_advanced(N2P2_URL)
   mark_as_advanced(N2P2_MD5)
 
+  # adjust settings from detected compiler to compiler platform in n2p2 library
+  # set compiler specific flag to turn on C++11 syntax (required on macOS and CentOS 7)
   if((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") OR (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang"))
     set(N2P2_COMP llvm)
     set(N2P2_CXX_STD "-std=c++11")
-  elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
+  elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
     set(N2P2_COMP intel)
     set(N2P2_CXX_STD "-std=c++11")
-  elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
+  elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     set(N2P2_COMP gnu)
     set(N2P2_CXX_STD "-std=c++11")
-  elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "PGI")
+  elseif(CMAKE_CXX_COMPILER_ID STREQUAL "PGI")
     set(N2P2_COMP gnu)
     set(N2P2_CXX_STD "--c++11")
   else() # default
     set(N2P2_COMP "")
   endif()
 
+  # pass on archive creator command. prefer compiler specific version, if set.
+  # important when using cross compiler.
   if(CMAKE_CXX_COMPILER_AR)
     set(N2P2_AR ${CMAKE_CXX_COMPILER_AR})
   else()
     set(N2P2_AR ${CMAKE_AR})
   endif()
 
+  # adjust compilation of n2p2 library to whether MPI is requested in LAMMPS or not
+  # need special care for compiling for MPICH2 with Linux-to-Windows cross compiler.
   if(NOT BUILD_MPI)
     set(N2P2_PROJECT_OPTIONS "-DN2P2_NO_MPI")
   else()
@@ -44,13 +50,18 @@ if(DOWNLOAD_N2P2)
     endif()
   endif()
 
+  # override compiler (optimization) flags in n2p2 library to flags used for LAMMPS
+  # specifically -march=native can result in problems when compiling on HPC clusters or with a cross compiler
+  # this convoluted way gets correct quoting/escaping when configuring the external project
   string(TOUPPER "${CMAKE_BUILD_TYPE}" BTYPE)
   set(N2P2_BUILD_FLAGS "${CMAKE_SHARED_LIBRARY_CXX_FLAGS} ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${BTYPE}} ${N2P2_CXX_STD}")
   set(N2P2_BUILD_OPTIONS INTERFACES=LAMMPS COMP=${N2P2_COMP} "PROJECT_OPTIONS=${N2P2_PROJECT_OPTIONS}" "PROJECT_DEBUG="
     "PROJECT_CC=${CMAKE_CXX_COMPILER}" "PROJECT_MPICC=${MPI_CXX_COMPILER}" "PROJECT_CFLAGS=${N2P2_BUILD_FLAGS}"
     "PROJECT_AR=${N2P2_AR}")
+  # echo final flag for debugging
   message(STATUS "N2P2 BUILD OPTIONS: ${N2P2_BUILD_OPTIONS}")
 
+  # download compile n2p2 library. much patch MPI calls in LAMMPS interface to accommodate MPI-2 (e.g. for cross-compiling)
   include(ExternalProject)
   ExternalProject_Add(n2p2_build
     URL     ${N2P2_URL}
@@ -66,6 +77,8 @@ if(DOWNLOAD_N2P2)
     SOURCE_SUBDIR src/
     BUILD_BYPRODUCTS <SOURCE_DIR>/lib/libnnp.a <SOURCE_DIR>/lib/libnnpif.a
     )
+
+  # create imported target LAMMPS::N2P2 from two libraries nnp and nnpif
   ExternalProject_get_property(n2p2_build SOURCE_DIR)
   # n2p2 core library "libnnp"
   add_library(LAMMPS::N2P2::LIBNNP UNKNOWN IMPORTED)
@@ -77,17 +90,20 @@ if(DOWNLOAD_N2P2)
   set_target_properties(LAMMPS::N2P2::LIBNNPIF PROPERTIES
     IMPORTED_LOCATION "${SOURCE_DIR}/lib/libnnpif.a"
     INTERFACE_INCLUDE_DIRECTORIES "${SOURCE_DIR}/include")
+  # nnpif library has MPI calls if MPI is enabled, so we must link with MPI libs
   if(BUILD_MPI)
     set_target_properties(LAMMPS::N2P2::LIBNNPIF PROPERTIES
       INTERFACE_LINK_LIBRARIES MPI::MPI_CXX)
   endif()
-  # Put libnnp, libnnpif and include directory together.
+
+  # final step to define imported target
   add_library(LAMMPS::N2P2 INTERFACE IMPORTED)
   set_property(TARGET LAMMPS::N2P2 PROPERTY
     INTERFACE_LINK_LIBRARIES LAMMPS::N2P2::LIBNNPIF LAMMPS::N2P2::LIBNNP)
   target_link_libraries(lammps PRIVATE LAMMPS::N2P2)
 
   add_dependencies(LAMMPS::N2P2 n2p2_build)
+  # work around issues with older CMake versions
   file(MAKE_DIRECTORY "${SOURCE_DIR}/include")
   file(MAKE_DIRECTORY "${SOURCE_DIR}/lib")
 else()

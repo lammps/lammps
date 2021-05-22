@@ -23,6 +23,13 @@ if(DOWNLOAD_N2P2)
 
   if(NOT BUILD_MPI)
     set(N2P2_PROJECT_OPTIONS "-DN2P2_NO_MPI")
+  else()
+    # get path to MPI include directory when cross-compiling to windows
+    if((CMAKE_SYSTEM_NAME STREQUAL Windows) AND CMAKE_CROSSCOMPILING)
+      get_target_property(N2P2_MPI_INCLUDE MPI::MPI_CXX INTERFACE_INCLUDE_DIRECTORIES)
+      set(N2P2_PROJECT_OPTIONS "-I ${N2P2_MPI_INCLUDE} -DMPICH_SKIP_MPICXX=1")
+      set(MPI_CXX_COMPILER ${CMAKE_CXX_COMPILER})
+    endif()
   endif()
 
   string(TOUPPER "${CMAKE_BUILD_TYPE}" BTYPE)
@@ -37,6 +44,7 @@ if(DOWNLOAD_N2P2)
     URL_MD5 ${N2P2_MD5}
     UPDATE_COMMAND ""
     CONFIGURE_COMMAND ""
+    PATCH_COMMAND sed -i -e "s/MPI_Pack(/MPI_Pack((void *) /" -e "s/MPI_Unpack(/MPI_Unpack((void *) /" src/libnnpif/LAMMPS/InterfaceLammps.cpp
     BUILD_COMMAND make -f makefile libnnpif ${N2P2_BUILD_OPTIONS}
     BUILD_ALWAYS YES
     INSTALL_COMMAND ""
@@ -56,6 +64,10 @@ if(DOWNLOAD_N2P2)
   set_target_properties(LAMMPS::N2P2::LIBNNPIF PROPERTIES
     IMPORTED_LOCATION "${SOURCE_DIR}/lib/libnnpif.a"
     INTERFACE_INCLUDE_DIRECTORIES "${SOURCE_DIR}/include")
+  if(BUILD_MPI)
+    set_target_properties(LAMMPS::N2P2::LIBNNPIF PROPERTIES
+      INTERFACE_LINK_LIBRARIES MPI::MPI_CXX)
+  endif()
   # Put libnnp, libnnpif and include directory together.
   add_library(LAMMPS::N2P2 INTERFACE IMPORTED)
   set_property(TARGET LAMMPS::N2P2 PROPERTY

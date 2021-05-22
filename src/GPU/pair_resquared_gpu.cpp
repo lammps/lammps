@@ -160,7 +160,7 @@ void PairRESquaredGPU::compute(int eflag, int vflag)
 void PairRESquaredGPU::init_style()
 {
   if (force->newton_pair)
-    error->all(FLERR,"Cannot use newton pair with resquared/gpu pair style");
+    error->all(FLERR,"Pair style resquared/gpu requires newton pair off");
   if (!atom->ellipsoid_flag)
     error->all(FLERR,"Pair resquared/gpu requires atom style ellipsoid");
 

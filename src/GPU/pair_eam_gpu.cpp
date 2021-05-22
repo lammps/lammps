@@ -156,7 +156,7 @@ void PairEAMGPU::compute(int eflag, int vflag)
 void PairEAMGPU::init_style()
 {
   if (force->newton_pair)
-    error->all(FLERR,"Cannot use newton pair with eam/gpu pair style");
+    error->all(FLERR,"Pair style eam/gpu requires newton pair off");
 
   // convert read-in file(s) to arrays and spline them
 

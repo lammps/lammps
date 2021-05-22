@@ -138,7 +138,7 @@ void PairLJSDKGPU::compute(int eflag, int vflag)
 void PairLJSDKGPU::init_style()
 {
   if (force->newton_pair)
-    error->all(FLERR,"Cannot use newton pair with lj/sdk/gpu pair style");
+    error->all(FLERR,"Pair style lj/sdk/gpu requires newton pair off");
 
   // Repeat cutsq calculation because done after call to init_style
   double maxcut = -1.0;

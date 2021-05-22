@@ -47,7 +47,7 @@ if(DOWNLOAD_N2P2)
     URL_MD5 ${N2P2_MD5}
     UPDATE_COMMAND ""
     CONFIGURE_COMMAND ""
-    PATCH_COMMAND sed -i -e "s/MPI_Pack(/MPI_Pack((void *) /" -e "s/MPI_Unpack(/MPI_Unpack((void *) /" src/libnnpif/LAMMPS/InterfaceLammps.cpp
+    PATCH_COMMAND sed -i -e "s/\\(MPI_\\(P\\|Unp\\)ack(\\)/\\1(void *) /" src/libnnpif/LAMMPS/InterfaceLammps.cpp
     BUILD_COMMAND make -f makefile libnnpif ${N2P2_BUILD_OPTIONS}
     BUILD_ALWAYS YES
     INSTALL_COMMAND ""

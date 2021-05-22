@@ -11,7 +11,7 @@ if(DOWNLOAD_N2P2)
   mark_as_advanced(N2P2_URL)
   mark_as_advanced(N2P2_MD5)
 
-  if(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
+  if((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") OR (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang"))
     set(N2P2_COMP llvm)
     set(N2P2_CXX_STD "-std=c++11")
   elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")

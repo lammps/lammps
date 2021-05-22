@@ -73,7 +73,6 @@ void FixBrownianAsphere::init()
 
     double f_rot[3];
     double *quat;
-    int *ellipsoid = atom->ellipsoid;
     AtomVecEllipsoid::Bonus *bonus = avec->bonus;
 
     double Q[3][3];

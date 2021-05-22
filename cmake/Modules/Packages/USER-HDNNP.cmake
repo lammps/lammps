@@ -48,6 +48,11 @@ if(DOWNLOAD_N2P2)
       set(N2P2_PROJECT_OPTIONS "-I ${N2P2_MPI_INCLUDE} -DMPICH_SKIP_MPICXX=1")
       set(MPI_CXX_COMPILER ${CMAKE_CXX_COMPILER})
     endif()
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
+      get_target_property(N2P2_MPI_INCLUDE MPI::MPI_CXX INTERFACE_INCLUDE_DIRECTORIES)
+      set(N2P2_PROJECT_OPTIONS "-I ${N2P2_MPI_INCLUDE} -DMPICH_SKIP_MPICXX=1")
+      set(MPI_CXX_COMPILER ${CMAKE_CXX_COMPILER})
+    endif()
   endif()
 
   # override compiler (optimization) flags in n2p2 library to flags used for LAMMPS

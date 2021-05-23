@@ -244,7 +244,7 @@ union ubuf {
 
 #if defined(__INTEL_LLVM_COMPILER) || defined(__INTEL_COMPILER)
 #define _alignvar(expr, val) __declspec(align(val)) expr
-#elif defined(__GNUC__)
+#elif defined(__GNUC__) || defined(__PGI)
 #define _alignvar(expr, val) expr __attribute((aligned(val)))
 #else
 #define _alignvar(expr, val) expr
@@ -252,7 +252,7 @@ union ubuf {
 
 // declaration to lift aliasing restrictions
 
-#if defined(__INTEL_COMPILER)
+#if defined(__INTEL_COMPILER) || defined(__PGI)
 #define _noalias restrict
 #elif defined(__GNUC__) || defined(__INTEL_LLVM_COMPILER)
 #define _noalias __restrict

@@ -149,8 +149,6 @@ TILD::TILD(LAMMPS *lmp) : KSpace(lmp),
   npergrid = 0; 
 
   int ntypes = atom->ntypes;
-  if (me == 0) utils::logmesg(lmp,"{}\n", ntypes);
-  if (me == 0) utils::logmesg(lmp,"{}\n", nstyles);
   memory->create(potent_type_map,nstyles+1,ntypes+1,ntypes+1,"tild:potent_type_map");  
 
   memory->create(chi,ntypes+1,ntypes+1,"tild:chi");
@@ -311,6 +309,8 @@ void TILD::init()
   // change number density to tild density 
   double volume = domain->xprd * domain->yprd * domain->zprd;
   force->nktv2p *= rho0 * volume / atom->natoms;
+
+  compute_rho_coeff(rho_coeff, drho_coeff, order);
 }
 
 /* ----------------------------------------------------------------------
@@ -590,9 +590,6 @@ void TILD::compute(int eflag, int vflag){
   //   peratom_allocate_flag = 1;
   // }
 
-  if (atom->natoms != natoms_original) {
-    natoms_original = atom->natoms;
-  }
   // extend size of per-atom arrays if necessary
 
   if (atom->nmax > nmax) {
@@ -833,8 +830,8 @@ void TILD::allocate()
   if (differentiation_flag) npergrid = 1;
   else npergrid = 3;
 
-  memory->create(gc_buf1,npergrid*ngc_buf1,"tild:gc_buf1");
-  memory->create(gc_buf2,npergrid*ngc_buf2,"tild:gc_buf2");
+  memory->create(gc_buf1,(ntypes+1) * npergrid*ngc_buf1,"tild:gc_buf1");
+  memory->create(gc_buf2,(ntypes+1) * npergrid*ngc_buf2,"tild:gc_buf2");
 }
 
 /* ----------------------------------------------------------------------
@@ -1645,20 +1642,20 @@ void TILD::pack_forward_grid(int flag, void *vbuf, int nlist, int *list)
   FFT_SCALAR *buf = (FFT_SCALAR *) vbuf;
   
   int n = 0;
-  //int Dim = domain->dimension;
+
 
   if (flag == FORWARD_NONE){
     for (int ktype = 0; ktype <= atom->ntypes; ktype++) {
       //for (int j = 0; j < Dim; j++) {
         //FFT_SCALAR *src = &gradWtype[ktype][j][nzlo_out][nylo_out][nxlo_out];
-        FFT_SCALAR *srcx = &gradWtypex[ktype][nzlo_out][nylo_out][nxlo_out];
-        FFT_SCALAR *srcy = &gradWtypey[ktype][nzlo_out][nylo_out][nxlo_out];
-        FFT_SCALAR *srcz = &gradWtypez[ktype][nzlo_out][nylo_out][nxlo_out];
+        FFT_SCALAR *xsrc = &gradWtypex[ktype][nzlo_out][nylo_out][nxlo_out];
+        FFT_SCALAR *ysrc = &gradWtypey[ktype][nzlo_out][nylo_out][nxlo_out];
+        FFT_SCALAR *zsrc = &gradWtypez[ktype][nzlo_out][nylo_out][nxlo_out];
         for (int i = 0; i < nlist; i++) {
           //buf[n++] = src[list[i]];
-          buf[n++] = srcx[list[i]];
-          buf[n++] = srcy[list[i]];
-          buf[n++] = srcz[list[i]];
+          buf[n++] = xsrc[list[i]];
+          buf[n++] = ysrc[list[i]];
+          buf[n++] = zsrc[list[i]];
       }
     }
   } else if (flag == FORWARD_GRID_DEN){
@@ -2449,7 +2446,6 @@ void TILD::ev_calculation(const int loc, const int itype, const int jtype) {
     // chi and kappa energy contribution
     n = 0;
     eng = 0.0;
-    engk = 0.0;
     for (int k = 0; k < nfft; k++) {
       // rho_i * u_ij * rho_j * chi * prefactor
       eng += ktmp2i[n] * density_fft_types[jtype][k];

@@ -7,6 +7,11 @@ cmake_minimum_required(VERSION 3.10)
 if(POLICY CMP0074)
   cmake_policy(SET CMP0074 NEW)
 endif()
+# set policy to silence warnings about missing executable permissions in
+# pythonx.y-config when cross-compiling. review occasionally if it may be set to NEW
+if (POLICY CMP0109)
+  cmake_policy(SET CMP0109 OLD)
+endif()
 ########################################
 
 project(lammps CXX)
@@ -103,6 +108,12 @@ endif()
 
 option(BUILD_TOOLS "Build and install LAMMPS tools (msi2lmp, binary2txt, chain)" OFF)
 option(BUILD_LAMMPS_SHELL "Build and install the LAMMPS shell" OFF)
+
+# allow enabling clang-tidy for C++ files
+set(ENABLE_CLANG_TIDY OFF CACHE BOOL "Include clang-tidy processing when compiling")
+if(ENABLE_CLANG_TIDY)
+  set(CMAKE_CXX_CLANG_TIDY "clang-tidy;-checks=*-header-filter=.*" CACHE STRING "")
+endif()
 
 include(GNUInstallDirs)
 file(GLOB ALL_SOURCES ${LAMMPS_SOURCE_DIR}/[^.]*.cpp)

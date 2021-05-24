@@ -40,7 +40,7 @@ ComputeGyrationShapeChunk::ComputeGyrationShapeChunk(LAMMPS *lmp, int narg, char
   // ID of compute gyration
   id_gyration_chunk = utils::strdup(arg[3]);
 
-  init();
+  ComputeGyrationShapeChunk::init();
 
   array_flag = 1;
   size_array_cols = 6;

@@ -48,7 +48,7 @@ ComputeTempChunk::ComputeTempChunk(LAMMPS *lmp, int narg, char **arg) :
   idchunk = utils::strdup(arg[3]);
 
   biasflag = 0;
-  init();
+  ComputeTempChunk::init();
 
   // optional per-chunk values
 

@@ -68,7 +68,6 @@ help:
 	@echo "Please use \`make <target>' where <target> is one of"
 	@echo "  html          create HTML pages in html dir"
 	@echo "  pdf           create Manual.pdf in this dir"
-	@echo "  fetch         fetch HTML and PDF files from LAMMPS web site"
 	@echo "  epub          create ePUB format manual for e-book readers"
 	@echo "  mobi          convert ePUB to MOBI format manual for e-book readers (e.g. Kindle)"
 	@echo "                      (requires ebook-convert tool from calibre)"
@@ -184,13 +183,6 @@ pdf: xmlgen $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK)
 	@cp -r src/PDF latex/PDF
 	@rm -rf latex/PDF/.[sg]*
 	@echo "Build finished. Manual.pdf is in this directory."
-
-fetch:
-	@rm -rf html_www Manual_www.pdf
-	@curl -s -o Manual_www.pdf http://lammps.sandia.gov/doc/Manual.pdf
-	@curl -s -o lammps-doc.tar.gz http://lammps.sandia.gov/tars/lammps-doc.tar.gz
-	@tar xzf lammps-doc.tar.gz
-	@rm -f lammps-doc.tar.gz
 
 anchor_check : $(ANCHORCHECK)
 	@(\

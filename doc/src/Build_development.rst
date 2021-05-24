@@ -28,7 +28,7 @@ variable VERBOSE set to 1:
 
 ----------
 
-.. _clang-tidy
+.. _clang-tidy:
 
 Enable static code analysis with clang-tidy
 -------------------------------------------

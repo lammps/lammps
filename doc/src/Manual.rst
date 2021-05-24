@@ -30,11 +30,13 @@ please :ref:`see this note <webbrowser>`.
 
 -----------
 
-The manual is organized in two parts:
+The manual is organized in three parts:
 1) the :ref:`User Guide <user_documentation>` for how to install
-and use LAMMPS and 2) the :ref:`Programmer Guide <programmer_documentation>`
+and use LAMMPS, 2) the :ref:`Programmer Guide <programmer_documentation>`
 for how to write programs using the LAMMPS library from different
-programming languages and how to modify and extend LAMMPS.
+programming languages and how to modify and extend LAMMPS, and 3) the
+:ref:`Command Reference <command_reference>` which includes detailed
+descriptions of all commands included in the LAMMPS code.
 
 .. only:: html
 

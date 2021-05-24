@@ -447,7 +447,7 @@ time via the "-sf kk" or "-suffix kk" :doc:`command-line switches <Run_options>`
 :ref:`USER-INTEL <PKG-USER-INTEL>`, and :ref:`USER-OMP <PKG-USER-OMP>` packages, which
 have styles optimized for CPUs, KNLs, and GPUs.
 
-You must have a C++11 compatible compiler to use this package.
+You must have a C++14 compatible compiler to use this package.
 KOKKOS makes extensive use of advanced C++ features, which can
 expose compiler bugs, especially when compiling for maximum
 performance at high optimization levels. Please see the file

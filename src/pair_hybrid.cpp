@@ -533,7 +533,7 @@ void PairHybrid::coeff(int narg, char **arg)
 void PairHybrid::init_style()
 {
   int i,m,itype,jtype,used,istyle,skip;
-
+  printf("pair hybrid init style\n");
   // error if a sub-style is not used
 
   int ntypes = atom->ntypes;
@@ -655,6 +655,7 @@ void PairHybrid::init_style()
 
 double PairHybrid::init_one(int i, int j)
 {
+  printf("pair hybrid init one\n");
   // if I,J is not set explicitly:
   // perform mixing only if I,I sub-style = J,J sub-style
   // also require I,I and J,J are both assigned to single sub-style

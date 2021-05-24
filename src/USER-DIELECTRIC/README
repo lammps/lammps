@@ -1,0 +1,73 @@
+* Description
+
+The USER-DIELECTRIC package provides several solvers for computing surface induced charges:
+  * the boundary element method using the GMRES solver (fix polarize/bem/gmres),
+  * the induced charge computation (ICC*) (fix polarize/bem/icc), and
+  * the direct optimization of an energy functional derived from the variational approach (fix polarize/functional).
+
+See the header of the source files for more details on the references of the methods.
+Example input scripts are given at examples/USER/dielectric.
+
+The USER-DIELECTRIC package was created by Trung Nguyen while at Northwestern,
+with contribution from Honghao Li (FixQeqDielectric) while at Northwestern.
+
+Questions can be addressed to Trung Nguyen (ndactrung@gmail.com).
+
+* Citation
+
+Please cite the following paper if you use the code for your publications
+
+Trung Dac Nguyen, Honghao Li, Debarshee Bagchi, Francisco J. Solis, Monica Olvera de la Cruz,
+"Incorporating surface polarization effects into large-scale coarse-grained Molecular Dynamics simulation",
+Computer Physics Communications 241, 80--91 (2019); DOI: 10.1016/j.cpc.2019.03.006.
+
+* Installation
+
+1. Clone the git repo: git clone https://bitbucket.org/ndtrung/lammps.git
+
+2. Check out the dielectric branch: git checkout dielectric
+
+3. Build: go to src/, and run
+
+make yes-molecule
+
+make yes-kspace
+
+make yes-user-dielectric
+
+a. If you don't have GSL libraries (libgsl.a and libgslcblas.a) installed in your machine,
+remove fix_qeq_dielectric.cpp and fix_qeq_dielectric.h. Then build with
+
+make mpi -j8
+
+
+b. If you do have GSL headers and libraries installed, assuming that they are in /path/to/gsl/install,
+copy MAKE/Makefile.mpi to MAKE/Makefile.mpi_gsl, and add to the variables CCFLAGS and LINKFLAGS
+in MAKE/Makefile.mpi_gsl:
+
+GSL_PATH = /path/to/gsl/install
+
+...
+
+CCFLAGS =	-O2 -march=native -funroll-loops -ffast-math -fopenmp -I$(GSL_PATH)/include
+
+...
+
+LINKFLAGS =     -O2 -fopenmp -L$(GSL_PATH)/lib
+
+LIB =           -lgsl -lgslcblas
+
+Finally, build with
+
+make mpi_gsl -j8
+
+* Test
+
+Go to examples/USER/dielectric, and run
+
+mpirun -np 8 ../../../src/lmp_mpi -in in.confined
+
+or with the modified Makefile.mpi_gsl:
+
+mpirun -np 8 ../../../src/lmp_mpi_gsl -in in.confined
+

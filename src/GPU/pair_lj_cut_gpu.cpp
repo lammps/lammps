@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -16,25 +17,18 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_lj_cut_gpu.h"
-#include <cmath>
-#include <cstdio>
 
-#include <cstring>
 #include "atom.h"
-#include "atom_vec.h"
-#include "comm.h"
-#include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "integrate.h"
-#include "memory.h"
-#include "error.h"
-#include "neigh_request.h"
-#include "universe.h"
-#include "update.h"
 #include "domain.h"
+#include "error.h"
+#include "force.h"
 #include "gpu_extra.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
 #include "suffix.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -141,22 +135,27 @@ void PairLJCutGPU::init_style()
 {
   cut_respa = nullptr;
 
-  if (force->newton_pair)
-    error->all(FLERR,"Cannot use newton pair with lj/cut/gpu pair style");
+  //if (force->newton_pair)
+//    error->all(FLERR,"Cannot use newton pair with lj/cut/gpu pair style");
 
   // Repeat cutsq calculation because done after call to init_style
   double maxcut = -1.0;
   double cut;
   for (int i = 1; i <= atom->ntypes; i++) {
     for (int j = i; j <= atom->ntypes; j++) {
+      cut = init_one(i,j);
       if (setflag[i][j] != 0 || (setflag[i][i] != 0 && setflag[j][j] != 0)) {
+      
         cut = init_one(i,j);
+        //printf("lj/cut/gpu: i = %d; j = %d: setflag = %d cut = %f\n", i, j, setflag[i][j], cut);
         cut *= cut;
         if (cut > maxcut)
           maxcut = cut;
         cutsq[i][j] = cutsq[j][i] = cut;
-      } else
+      } else {
+        //printf("lj/cut/gpu: i = %d; j = %d: setflag = %d cut = %f\n", i, j, setflag[i][j], cut);
         cutsq[i][j] = cutsq[j][i] = 0.0;
+      }
     }
   }
   double cell_size = sqrt(maxcut) + neighbor->skin;

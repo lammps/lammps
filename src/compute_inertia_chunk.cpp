@@ -44,7 +44,7 @@ ComputeInertiaChunk::ComputeInertiaChunk(LAMMPS *lmp, int narg, char **arg) :
 
   idchunk = utils::strdup(arg[3]);
 
-  init();
+  ComputeInertiaChunk::init();
 
   // chunk-based data
 

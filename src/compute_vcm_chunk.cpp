@@ -44,7 +44,7 @@ ComputeVCMChunk::ComputeVCMChunk(LAMMPS *lmp, int narg, char **arg) :
 
   idchunk = utils::strdup(arg[3]);
 
-  init();
+  ComputeVCMChunk::init();
 
   // chunk-based data
 

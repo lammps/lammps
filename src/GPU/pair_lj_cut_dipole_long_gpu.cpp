@@ -156,7 +156,7 @@ void PairLJCutDipoleLongGPU::init_style()
     error->all(FLERR,"Pair dipole/cut/gpu requires atom attributes q, mu, torque");
 
   if (force->newton_pair)
-    error->all(FLERR,"Cannot use newton pair with dipole/cut/gpu pair style");
+    error->all(FLERR,"Pair style dipole/cut/gpu requires newton pair off");
 
   if (strcmp(update->unit_style,"electron") == 0)
     error->all(FLERR,"Cannot (yet) use 'electron' units with dipoles");

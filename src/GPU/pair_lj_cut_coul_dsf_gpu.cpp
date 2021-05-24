@@ -152,7 +152,7 @@ void PairLJCutCoulDSFGPU::init_style()
     error->all(FLERR,"Pair style lj/cut/coul/dsf/gpu requires atom attribute q");
 
   if (force->newton_pair)
-    error->all(FLERR,"Cannot use newton pair with lj/cut/coul/dsf/gpu pair style");
+    error->all(FLERR,"Pair style lj/cut/coul/dsf/gpu requires newton pair off");
 
   // Repeat cutsq calculation because done after call to init_style
   double maxcut = -1.0;

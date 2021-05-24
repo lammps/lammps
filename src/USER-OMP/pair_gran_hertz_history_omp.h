@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(gran/hertz/history/omp,PairGranHertzHistoryOMP)
-
+// clang-format off
+PairStyle(gran/hertz/history/omp,PairGranHertzHistoryOMP);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_GRAN_HERTZ_HISTORY_OMP_H
@@ -39,10 +39,10 @@ class PairGranHertzHistoryOMP : public PairGranHertzHistory, public ThrOMP {
 
  private:
   template <int EVFLAG, int SHEARUPDATE, int NEWTON_PAIR>
-  void eval(int ifrom, int ito, ThrData * const thr);
+  void eval(int ifrom, int ito, ThrData *const thr);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

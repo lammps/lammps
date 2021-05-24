@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ANGLE_CLASS
-
-AngleStyle(cosine/delta,AngleCosineDelta)
-
+// clang-format off
+AngleStyle(cosine/delta,AngleCosineDelta);
+// clang-format on
 #else
 
 #ifndef LMP_ANGLE_COSINE_DELTA_H
@@ -31,7 +31,7 @@ class AngleCosineDelta : public AngleCosineSquared {
   double single(int, int, int, int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

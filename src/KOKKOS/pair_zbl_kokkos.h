@@ -1,3 +1,4 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -12,11 +13,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(zbl/kk,PairZBLKokkos<LMPDeviceType>)
-PairStyle(zbl/kk/device,PairZBLKokkos<LMPDeviceType>)
-PairStyle(zbl/kk/host,PairZBLKokkos<LMPHostType>)
-
+// clang-format off
+PairStyle(zbl/kk,PairZBLKokkos<LMPDeviceType>);
+PairStyle(zbl/kk/device,PairZBLKokkos<LMPDeviceType>);
+PairStyle(zbl/kk/host,PairZBLKokkos<LMPHostType>);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_ZBL_KOKKOS_H
@@ -86,7 +87,6 @@ class PairZBLKokkos : public PairZBL {
   F_FLOAT compute_ecoul(const F_FLOAT& /*rsq*/, const int& /*i*/, const int& /*j*/,
                         const int& /*itype*/, const int& /*jtype*/) const { return 0; }
 
-  void cleanup_copy();
   void allocate();
 
   friend struct PairComputeFunctor<PairZBLKokkos,FULL,true>;

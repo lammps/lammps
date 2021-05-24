@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -42,7 +43,7 @@ ComputeTorqueChunk::ComputeTorqueChunk(LAMMPS *lmp, int narg, char **arg) :
 
   idchunk = utils::strdup(arg[3]);
 
-  init();
+  ComputeTorqueChunk::init();
 
   // chunk-based data
 
@@ -100,7 +101,7 @@ void ComputeTorqueChunk::compute_array()
 
   // zero local per-chunk values
 
-  for (int i = 0; i < nchunk; i++) {
+  for (i = 0; i < nchunk; i++) {
     massproc[i] = 0.0;
     com[i][0] = com[i][1] = com[i][2] = 0.0;
     torque[i][0] = torque[i][1] = torque[i][2] = 0.0;
@@ -116,7 +117,7 @@ void ComputeTorqueChunk::compute_array()
   double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
 
-  for (int i = 0; i < nlocal; i++)
+  for (i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       index = ichunk[i]-1;
       if (index < 0) continue;
@@ -132,7 +133,7 @@ void ComputeTorqueChunk::compute_array()
   MPI_Allreduce(massproc,masstotal,nchunk,MPI_DOUBLE,MPI_SUM,world);
   MPI_Allreduce(&com[0][0],&comall[0][0],3*nchunk,MPI_DOUBLE,MPI_SUM,world);
 
-  for (int i = 0; i < nchunk; i++) {
+  for (i = 0; i < nchunk; i++) {
     if (masstotal[i] > 0.0) {
       comall[i][0] /= masstotal[i];
       comall[i][1] /= masstotal[i];

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMMAND_CLASS
-
-CommandStyle(write_data,WriteData)
-
+// clang-format off
+CommandStyle(write_data,WriteData);
+// clang-format on
 #else
 
 #ifndef LMP_WRITE_DATA_H
@@ -31,15 +31,15 @@ class WriteData : public Command {
   void write(const std::string &);
 
  private:
-  int me,nprocs;
+  int me, nprocs;
   int pairflag;
   int coeffflag;
   int fixflag;
   FILE *fp;
-  bigint nbonds_local,nbonds;
-  bigint nangles_local,nangles;
-  bigint ndihedrals_local,ndihedrals;
-  bigint nimpropers_local,nimpropers;
+  bigint nbonds_local, nbonds;
+  bigint nangles_local, nangles;
+  bigint ndihedrals_local, ndihedrals;
+  bigint nimpropers_local, nimpropers;
 
   void header();
   void type_arrays();
@@ -54,7 +54,7 @@ class WriteData : public Command {
   void fix(int, int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

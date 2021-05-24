@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ANGLE_CLASS
-
-AngleStyle(DEPRECATED,AngleDeprecated)
-
+// clang-format off
+AngleStyle(DEPRECATED,AngleDeprecated);
+// clang-format on
 #else
 
 #ifndef LMP_ANGLE_DEPRECATED_H
@@ -38,7 +38,7 @@ class AngleDeprecated : public Angle {
   virtual double single(int, int, int, int) { return 0.0; }
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(buck/gpu,PairBuckGPU)
-
+// clang-format off
+PairStyle(buck/gpu,PairBuckGPU);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_BUCK_GPU_H
@@ -34,14 +34,14 @@ class PairBuckGPU : public PairBuck {
   void reinit();
   double memory_usage();
 
- enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
+  enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
 
  private:
   int gpu_mode;
   double cpu_time;
 };
 
-}
+}    // namespace LAMMPS_NS
 #endif
 #endif
 

@@ -25,9 +25,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(colvars,FixColvars)
-
+// clang-format off
+FixStyle(colvars,FixColvars);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_COLVARS_H
@@ -49,7 +49,7 @@ class FixColvars : public Fix {
   virtual void init();
   virtual void setup(int);
   virtual int modify_param(int, char **);
-  virtual void min_setup(int vflag) {setup(vflag);};
+  virtual void min_setup(int vflag) { setup(vflag); };
   virtual void min_post_force(int);
   virtual void post_force(int);
   virtual void post_force_respa(int, int, int);
@@ -62,38 +62,38 @@ class FixColvars : public Fix {
   virtual void restart(char *);
 
  protected:
-  colvarproxy_lammps *proxy; // pointer to the colvars proxy class
-  char *conf_file;     // name of colvars config file
-  char *inp_name;      // name/prefix of colvars restart file
-  char *out_name;      // prefix string for all output files
-  char *tmp_name;      // name of thermostat fix.
-  int   rng_seed;      // seed to initialize random number generator
-  int   tstat_id;      // id of the thermostat fix
-  double energy;       // biasing energy of the fix
+  colvarproxy_lammps *proxy;    // pointer to the colvars proxy class
+  char *conf_file;              // name of colvars config file
+  char *inp_name;               // name/prefix of colvars restart file
+  char *out_name;               // prefix string for all output files
+  char *tmp_name;               // name of thermostat fix.
+  int rng_seed;                 // seed to initialize random number generator
+  int tstat_id;                 // id of the thermostat fix
+  double energy;                // biasing energy of the fix
 
-  int   me;            // my MPI rank in this "world".
-  int   num_coords;    // total number of atoms controlled by this fix
-  tagint *taglist;     // list of all atom IDs referenced by colvars.
+  int me;             // my MPI rank in this "world".
+  int num_coords;     // total number of atoms controlled by this fix
+  tagint *taglist;    // list of all atom IDs referenced by colvars.
 
-  int   nmax;          // size of atom communication buffer.
-  int   size_one;      // bytes per atom in communication buffer.
-  struct commdata *comm_buf; // communication buffer
-  double *force_buf;   // communication buffer
+  int nmax;                     // size of atom communication buffer.
+  int size_one;                 // bytes per atom in communication buffer.
+  struct commdata *comm_buf;    // communication buffer
+  double *force_buf;            // communication buffer
 
-  void *idmap;         // hash for mapping atom indices to consistent order.
-  int  *rev_idmap;     // list of the hash keys for reverse mapping.
+  void *idmap;       // hash for mapping atom indices to consistent order.
+  int *rev_idmap;    // list of the hash keys for reverse mapping.
 
-  int nlevels_respa;   // flag to determine respa levels.
-  int store_forces;    // flag to determine whether to store total forces
-  int unwrap_flag;     // 1 if atom coords are unwrapped, 0 if not
-  int init_flag;       // 1 if initialized, 0 if not
-  static  int instances; // count fix instances, since colvars currently
-                         // only supports one instance at a time
-  MPI_Comm root2root;   // inter-root communicator for multi-replica support
-  void one_time_init(); // one time initialization
+  int nlevels_respa;       // flag to determine respa levels.
+  int store_forces;        // flag to determine whether to store total forces
+  int unwrap_flag;         // 1 if atom coords are unwrapped, 0 if not
+  int init_flag;           // 1 if initialized, 0 if not
+  static int instances;    // count fix instances, since colvars currently
+                           // only supports one instance at a time
+  MPI_Comm root2root;      // inter-root communicator for multi-replica support
+  void one_time_init();    // one time initialization
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
@@ -149,4 +149,3 @@ Some error condition happened inside the colvars library that prohibits
 it from continuing. Please examine the output for additional information.
 
 */
-

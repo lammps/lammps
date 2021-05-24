@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef MINIMIZE_CLASS
-
-MinimizeStyle(cg,MinCG)
-
+// clang-format off
+MinimizeStyle(cg,MinCG);
+// clang-format on
 #else
 
 #ifndef LMP_MIN_CG_H
@@ -30,7 +30,7 @@ class MinCG : public MinLineSearch {
   int iterate(int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

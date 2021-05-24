@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef DIHEDRAL_CLASS
-
-DihedralStyle(fourier,DihedralFourier)
-
+// clang-format off
+DihedralStyle(fourier,DihedralFourier);
+// clang-format on
 #else
 
 #ifndef LMP_DIHEDRAL_FOURIER_H
@@ -35,15 +35,15 @@ class DihedralFourier : public Dihedral {
   void write_data(FILE *);
 
  protected:
-  double **k,**cos_shift,**sin_shift,**shift;
+  double **k, **cos_shift, **sin_shift, **shift;
   int **multiplicity;
   int *nterms;
-  int implicit,weightflag;
+  int implicit, weightflag;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

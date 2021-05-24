@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(tgnvt/drude,FixTGNVTDrude)
-
+// clang-format off
+FixStyle(tgnvt/drude,FixTGNVTDrude);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_TGNVT_DRUDE_H
@@ -24,13 +24,13 @@ FixStyle(tgnvt/drude,FixTGNVTDrude)
 
 namespace LAMMPS_NS {
 
-class FixTGNVTDrude: public FixTGNHDrude {
+class FixTGNVTDrude : public FixTGNHDrude {
  public:
   FixTGNVTDrude(class LAMMPS *, int, char **);
   ~FixTGNVTDrude() {}
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

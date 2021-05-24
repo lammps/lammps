@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(lineforce,FixLineForce)
-
+// clang-format off
+FixStyle(lineforce,FixLineForce);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_LINEFORCE_H
@@ -35,10 +35,10 @@ class FixLineForce : public Fix {
   void min_post_force(int);
 
  private:
-  double xdir,ydir,zdir;
+  double xdir, ydir, zdir;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

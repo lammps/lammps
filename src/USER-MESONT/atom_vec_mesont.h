@@ -14,9 +14,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ATOM_CLASS
-
-AtomStyle(mesont,AtomVecMesoNT)
-
+// clang-format off
+AtomStyle(mesont,AtomVecMesoNT);
+// clang-format on
 #else
 
 #ifndef LMP_ATOM_VEC_MESONT_H
@@ -31,7 +31,7 @@ class AtomVecMesoNT : public AtomVec {
   AtomVecMesoNT(class LAMMPS *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

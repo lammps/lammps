@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(nve/spin,FixNVESpin)
-
+// clang-format off
+FixStyle(nve/spin,FixNVESpin);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_NVE_SPIN_H
@@ -25,7 +25,8 @@ FixStyle(nve/spin,FixNVESpin)
 namespace LAMMPS_NS {
 
 class FixNVESpin : public Fix {
-friend class PairSpin;
+  friend class PairSpin;
+
  public:
   FixNVESpin(class LAMMPS *, int, char **);
   virtual ~FixNVESpin();
@@ -37,50 +38,50 @@ friend class PairSpin;
   void ComputeInteractionsSpin(int);    // compute and advance single spin functions
   void AdvanceSingleSpin(int);
 
-  void sectoring();                     // sectoring operation functions
+  void sectoring();    // sectoring operation functions
   int coords2sector(double *);
 
   void setup_pre_neighbor();
   void pre_neighbor();
 
-  int lattice_flag;                     // lattice_flag = 0 if spins only
-                                        // lattice_flag = 1 if spin-lattice calc.
+  int lattice_flag;    // lattice_flag = 0 if spins only
+                       // lattice_flag = 1 if spin-lattice calc.
 
  protected:
-  int sector_flag;                      // sector_flag = 0  if serial algorithm
-                                        // sector_flag = 1  if parallel algorithm
+  int sector_flag;    // sector_flag = 0  if serial algorithm
+                      // sector_flag = 1  if parallel algorithm
 
-  double dtv, dtf, dts;                 // velocity, force, and spin timesteps
+  double dtv, dtf, dts;    // velocity, force, and spin timesteps
 
-  int nlocal_max;                       // max value of nlocal (for size of lists)
+  int nlocal_max;    // max value of nlocal (for size of lists)
 
-  int pair_spin_flag;                   // magnetic pair flags
-  int long_spin_flag;                   // magnetic long-range flag
-  int precession_spin_flag;             // magnetic precession flags
-  int maglangevin_flag;                 // magnetic langevin flags
+  int pair_spin_flag;          // magnetic pair flags
+  int long_spin_flag;          // magnetic long-range flag
+  int precession_spin_flag;    // magnetic precession flags
+  int maglangevin_flag;        // magnetic langevin flags
   int tdamp_flag, temp_flag;
   int setforce_spin_flag;
+
+  // pointers to magnetic pair styles
+
+  int npairs, npairspin;    // # of pairs, and # of spin pairs
+  class Pair *pair;
+  class PairSpin **spin_pairs;    // vector of spin pairs
 
   // pointers to fix langevin/spin styles
 
   int nlangspin;
   class FixLangevinSpin **locklangevinspin;
-  
+
   // pointers to fix setforce/spin styles
-  
+
   int nsetspin;
-  class FixSetForceSpin *locksetforcespin; // to be done
-  
+  class FixSetForceSpin *locksetforcespin;    // to be done
+
   // pointers to fix precession/spin styles
 
-  int nprecspin; 
+  int nprecspin;
   class FixPrecessionSpin **lockprecessionspin;
-
-  // pointers to magnetic pair styles
-
-  int npairs, npairspin;                // # of pairs, and # of spin pairs
-  class Pair *pair;
-  class PairSpin **spin_pairs;          // vector of spin pairs
 
   // sectoring variables
 
@@ -89,14 +90,13 @@ friend class PairSpin;
 
   // stacking variables for sectoring algorithm
 
-  int *stack_head;                      // index of first atom in backward_stacks
-  int *stack_foot;                      // index of first atom in forward_stacks
-  int *backward_stacks;                 // index of next atom in backward stack
-  int *forward_stacks;                  // index of next atom in forward stack
-
+  int *stack_head;         // index of first atom in backward_stacks
+  int *stack_foot;         // index of first atom in forward_stacks
+  int *backward_stacks;    // index of next atom in backward stack
+  int *forward_stacks;     // index of next atom in forward stack
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

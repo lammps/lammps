@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(erotate/sphere,ComputeERotateSphere)
-
+// clang-format off
+ComputeStyle(erotate/sphere,ComputeERotateSphere);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_EROTATE_SPHERE_H
@@ -35,7 +35,7 @@ class ComputeERotateSphere : public Compute {
   double pfactor;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(dpd/atom,ComputeDpdAtom)
-
+// clang-format off
+ComputeStyle(dpd/atom,ComputeDpdAtom);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_DPD_ATOM_H
@@ -37,7 +37,7 @@ class ComputeDpdAtom : public Compute {
   double **dpdAtom;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

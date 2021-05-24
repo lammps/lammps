@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef KSPACE_CLASS
-
-KSpaceStyle(msm,MSM)
-
+// clang-format off
+KSpaceStyle(msm,MSM);
+// clang-format on
 #else
 
 #ifndef LMP_MSM_H
@@ -35,30 +35,30 @@ class MSM : public KSpace {
   virtual double memory_usage();
 
  protected:
-  int me,nprocs;
+  int me, nprocs;
   double precision;
   int nfactors;
   int *factors;
   double qqrd2e;
   double cutoff;
   double volume;
-  double *delxinv,*delyinv,*delzinv;
-  double h_x,h_y,h_z;
+  double *delxinv, *delyinv, *delzinv;
+  double h_x, h_y, h_z;
   double C_p;
 
-  int *nx_msm,*ny_msm,*nz_msm;
-  int *nxlo_in,*nylo_in,*nzlo_in;
-  int *nxhi_in,*nyhi_in,*nzhi_in;
-  int *nxlo_out,*nylo_out,*nzlo_out;
-  int *nxhi_out,*nyhi_out,*nzhi_out;
-  int *ngrid,*active_flag;
-  int *alpha,*betax,*betay,*betaz;
-  int nxlo_out_all,nylo_out_all,nzlo_out_all;
-  int nxhi_out_all,nyhi_out_all,nzhi_out_all;
-  int nxlo_direct,nxhi_direct,nylo_direct;
-  int nyhi_direct,nzlo_direct,nzhi_direct;
+  int *nx_msm, *ny_msm, *nz_msm;
+  int *nxlo_in, *nylo_in, *nzlo_in;
+  int *nxhi_in, *nyhi_in, *nzhi_in;
+  int *nxlo_out, *nylo_out, *nzlo_out;
+  int *nxhi_out, *nyhi_out, *nzhi_out;
+  int *ngrid, *active_flag;
+  int *alpha, *betax, *betay, *betaz;
+  int nxlo_out_all, nylo_out_all, nzlo_out_all;
+  int nxhi_out_all, nyhi_out_all, nzhi_out_all;
+  int nxlo_direct, nxhi_direct, nylo_direct;
+  int nyhi_direct, nzlo_direct, nzhi_direct;
   int nmax_direct;
-  int nlower,nupper;
+  int nlower, nupper;
   int peratom_allocate_flag;
   int levels;
 
@@ -66,32 +66,32 @@ class MSM : public KSpace {
 
   double ****qgrid;
   double ****egrid;
-  double ****v0grid,****v1grid,****v2grid;
-  double ****v3grid,****v4grid,****v5grid;
+  double ****v0grid, ****v1grid, ****v2grid;
+  double ****v3grid, ****v4grid, ****v5grid;
   double **g_direct;
-  double **v0_direct,**v1_direct,**v2_direct;
-  double **v3_direct,**v4_direct,**v5_direct;
+  double **v0_direct, **v1_direct, **v2_direct;
+  double **v3_direct, **v4_direct, **v5_direct;
   double *g_direct_top;
-  double *v0_direct_top,*v1_direct_top,*v2_direct_top;
-  double *v3_direct_top,*v4_direct_top,*v5_direct_top;
+  double *v0_direct_top, *v1_direct_top, *v2_direct_top;
+  double *v3_direct_top, *v4_direct_top, *v5_direct_top;
 
-  double **phi1d,**dphi1d;
+  double **phi1d, **dphi1d;
 
-  int procgrid[3];                  // procs assigned in each dim of 3d grid
-  int myloc[3];                     // which proc I am in each dim
-  int ***procneigh_levels;          // my 6 neighboring procs, 0/1 = left/right
+  int procgrid[3];            // procs assigned in each dim of 3d grid
+  int myloc[3];               // which proc I am in each dim
+  int ***procneigh_levels;    // my 6 neighboring procs, 0/1 = left/right
 
-  class GridComm *gcall;       // GridComm class for finest level grid
-  class GridComm **gc;         // GridComm classes for each hierarchical level
+  class GridComm *gcall;    // GridComm class for finest level grid
+  class GridComm **gc;      // GridComm classes for each hierarchical level
 
-  double *gcall_buf1,*gcall_buf2;
-  double **gc_buf1,**gc_buf2;
-  int ngcall_buf1,ngcall_buf2,npergrid;
-  int *ngc_buf1,*ngc_buf2;
+  double *gcall_buf1, *gcall_buf2;
+  double **gc_buf1, **gc_buf2;
+  int ngcall_buf1, ngcall_buf2, npergrid;
+  int *ngc_buf1, *ngc_buf2;
 
   int current_level;
 
-  int **part2grid;             // storage for particle -> grid mapping
+  int **part2grid;    // storage for particle -> grid mapping
   int nmax;
 
   int triclinic;
@@ -101,7 +101,7 @@ class MSM : public KSpace {
   void set_proc_grid(int);
   void set_grid_local();
   void setup_grid();
-  double estimate_1d_error(double,double);
+  double estimate_1d_error(double, double);
   double estimate_3d_error();
   double estimate_total_error();
   void allocate();
@@ -110,7 +110,7 @@ class MSM : public KSpace {
   void deallocate_peratom();
   void allocate_levels();
   void deallocate_levels();
-  int factorable(int,int&,int&);
+  int factorable(int, int &, int &);
   void particle_map();
   void make_rho();
   virtual void direct(int);
@@ -119,8 +119,8 @@ class MSM : public KSpace {
   void direct_peratom_top(int);
   void restriction(int);
   void prolongation(int);
-  void grid_swap_forward(int,double*** &);
-  void grid_swap_reverse(int,double*** &);
+  void grid_swap_forward(int, double ***&);
+  void grid_swap_reverse(int, double ***&);
   void fieldforce();
   void fieldforce_peratom();
   void compute_phis(const double &, const double &, const double &);
@@ -140,7 +140,7 @@ class MSM : public KSpace {
   void unpack_reverse_grid(int, void *, int, int *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

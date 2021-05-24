@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(viscous,FixViscous)
-
+// clang-format off
+FixStyle(viscous,FixViscous);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_VISCOUS_H
@@ -41,7 +41,7 @@ class FixViscous : public Fix {
   int ilevel_respa;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

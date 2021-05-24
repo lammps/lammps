@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -822,7 +823,7 @@ void FixRigidNH::nhc_press_integrate()
 
   double tb_mass = kt / (p_freq_max * p_freq_max);
   q_b[0] = dimension * dimension * tb_mass;
-  for (int i = 1; i < p_chain; i++) {
+  for (i = 1; i < p_chain; i++) {
     q_b[i] = tb_mass;
     f_eta_b[i] = q_b[i-1] * eta_dot_b[i-1] * eta_dot_b[i-1] - kt;
     f_eta_b[i] /= q_b[i];

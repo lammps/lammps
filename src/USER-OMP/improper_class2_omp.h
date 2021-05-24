@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef IMPROPER_CLASS
-
-ImproperStyle(class2/omp,ImproperClass2OMP)
-
+// clang-format off
+ImproperStyle(class2/omp,ImproperClass2OMP);
+// clang-format on
 #else
 
 #ifndef LMP_IMPROPER_CLASS2_OMP_H
@@ -37,14 +37,13 @@ class ImproperClass2OMP : public ImproperClass2, public ThrOMP {
 
  private:
   template <int EVFLAG, int EFLAG, int NEWTON_BOND>
-  void eval(int ifrom, int ito, ThrData * const thr);
+  void eval(int ifrom, int ito, ThrData *const thr);
 
   template <int EVFLAG, int EFLAG, int NEWTON_BOND>
-  void angleangle_thr(int, int, ThrData * const thr);
-
+  void angleangle_thr(int, int, ThrData *const thr);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

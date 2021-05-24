@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -45,7 +46,7 @@ ComputeCOMChunk::ComputeCOMChunk(LAMMPS *lmp, int narg, char **arg) :
 
   idchunk = utils::strdup(arg[3]);
 
-  init();
+  ComputeCOMChunk::init();
 
   // chunk-based data
 

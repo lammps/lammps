@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef INTEGRATE_CLASS
-
-IntegrateStyle(respa,Respa)
-
+// clang-format off
+IntegrateStyle(respa,Respa);
+// clang-format on
 #else
 
 #ifndef LMP_RESPA_H
@@ -26,18 +26,18 @@ namespace LAMMPS_NS {
 
 class Respa : public Integrate {
  public:
-                          // public so Fixes, Pairs, Neighbor can see them
-  int nlevels;            // number of rRESPA levels
-                          // 0 = innermost level, nlevels-1 = outermost level
-  double *step;           // timestep at each level
-  int *loop;              // sub-cycling factor at each level
-  double cutoff[4];       // cutoff[0] and cutoff[1] = between inner and middle
-                          // cutoff[2] and cutoff[3] = between middle and outer
-                          // if no middle then 0,1 = 2,3
+  // public so Fixes, Pairs, Neighbor can see them
+  int nlevels;         // number of rRESPA levels
+                       // 0 = innermost level, nlevels-1 = outermost level
+  double *step;        // timestep at each level
+  int *loop;           // sub-cycling factor at each level
+  double cutoff[4];    // cutoff[0] and cutoff[1] = between inner and middle
+                       // cutoff[2] and cutoff[3] = between middle and outer
+                       // if no middle then 0,1 = 2,3
 
-  int level_bond,level_angle,level_dihedral;   // level to compute forces at
-  int level_improper,level_pair,level_kspace;
-  int level_inner,level_middle,level_outer;
+  int level_bond, level_angle, level_dihedral;    // level to compute forces at
+  int level_improper, level_pair, level_kspace;
+  int level_inner, level_middle, level_outer;
 
   int nhybrid_styles;     // number of hybrid pair styles
   int *hybrid_level;      // level to compute pair hybrid sub-style at
@@ -58,11 +58,11 @@ class Respa : public Integrate {
   void copy_flevel_f(int);
 
  protected:
-  int triclinic;                    // 0 if domain is orthog, 1 if triclinic
-  int torqueflag,extraflag;
+  int triclinic;    // 0 if domain is orthog, 1 if triclinic
+  int torqueflag, extraflag;
 
-  int *newton;                      // newton flag at each level
-  class FixRespa *fix_respa;        // Fix to store the force level array
+  int *newton;                  // newton flag at each level
+  class FixRespa *fix_respa;    // Fix to store the force level array
 
   virtual void recurse(int);
   void force_clear(int);
@@ -70,7 +70,7 @@ class Respa : public Integrate {
   void set_compute_flags(int ilevel);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

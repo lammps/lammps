@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -17,19 +18,20 @@
 
 #include "pair_meamc.h"
 
-#include <memory>
-
-#include "meam.h"
 #include "atom.h"
-#include "force.h"
 #include "comm.h"
-#include "neighbor.h"
+#include "error.h"
+#include "force.h"
+#include "meam.h"
+#include "memory.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "memory.h"
-#include "error.h"
+#include "neighbor.h"
 #include "potential_file_reader.h"
 #include "tokenizer.h"
+
+#include <cstring>
+#include <memory>
 
 using namespace LAMMPS_NS;
 
@@ -143,7 +145,7 @@ void PairMEAMC::compute(int eflag, int vflag)
   meam_inst->meam_dens_final(nlocal,eflag_either,eflag_global,eflag_atom,
                    &eng_vdwl,eatom,ntype,type,map,scale,errorflag);
   if (errorflag)
-    error->one(FLERR,fmt::format("MEAM library error {}",errorflag));
+    error->one(FLERR,"MEAM library error {}",errorflag);
 
   comm->forward_comm_pair(this);
 
@@ -213,7 +215,7 @@ void PairMEAMC::coeff(int narg, char **arg)
 
   std::string lib_file = utils::get_potential_file_path(arg[2]);
   if (lib_file.empty())
-    error->all(FLERR,fmt::format("Cannot open MEAM library file {}",lib_file));
+    error->all(FLERR,"Cannot open MEAM library file {}",lib_file);
 
   // find meam parameter file in arguments:
   // first word that is a file or "NULL" after the MEAM library file
@@ -249,9 +251,9 @@ void PairMEAMC::coeff(int narg, char **arg)
   nlibelements = paridx - 3;
   if (nlibelements < 1) error->all(FLERR,"Incorrect args for pair coefficients");
   if (nlibelements > maxelt)
-    error->all(FLERR,fmt::format("Too many elements extracted from MEAM "
+    error->all(FLERR,"Too many elements extracted from MEAM "
                                  "library (current limit: {}). Increase "
-                                 "'maxelt' in meam.h and recompile.", maxelt));
+                                 "'maxelt' in meam.h and recompile.", maxelt);
 
   for (int i = 0; i < nlibelements; i++) {
     libelements.push_back(arg[i+3]);
@@ -413,8 +415,8 @@ void PairMEAMC::read_global_meamc_file(const std::string &globalfile)
         std::string lattice_type = values.next_string();
 
         if (!MEAM::str_to_lat(lattice_type.c_str(), true, lat[index]))
-          error->one(FLERR,fmt::format("Unrecognized lattice type in MEAM "
-                                       "library file: {}", lattice_type));
+          error->one(FLERR,"Unrecognized lattice type in MEAM "
+                                       "library file: {}", lattice_type);
 
         // store parameters
 
@@ -541,8 +543,8 @@ void PairMEAMC::read_user_meamc_file(const std::string &userfile)
     for (which = 0; which < nkeywords; which++)
       if (keyword == keywords[which]) break;
     if (which == nkeywords)
-      error->all(FLERR,fmt::format("Keyword {} in MEAM parameter file not "
-                                   "recognized", keyword));
+      error->all(FLERR,"Keyword {} in MEAM parameter file not "
+                                   "recognized", keyword);
 
     nindex = nparams - 2;
     for (int i = 0; i < nindex; i++) index[i] = values.next_int() - 1;
@@ -552,8 +554,8 @@ void PairMEAMC::read_user_meamc_file(const std::string &userfile)
       std::string lattice_type = values.next_string();
       lattice_t latt;
       if (!MEAM::str_to_lat(lattice_type, false, latt))
-        error->all(FLERR, fmt::format("Unrecognized lattice type in MEAM "
-                                      "parameter file: {}", lattice_type));
+        error->all(FLERR, "Unrecognized lattice type in MEAM "
+                                      "parameter file: {}", lattice_type);
       value = latt;
     }
     else value = values.next_double();
@@ -568,7 +570,7 @@ void PairMEAMC::read_user_meamc_file(const std::string &userfile)
               "expected more indices",
               "has out of range element index"};
       if ((errorflag < 0) || (errorflag > 3)) errorflag = 0;
-      error->all(FLERR, fmt::format("Error in MEAM parameter file: keyword {} {}", keyword, descr[errorflag]));
+      error->all(FLERR,"Error in MEAM parameter file: keyword {} {}", keyword, descr[errorflag]);
     }
   }
 }

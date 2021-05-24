@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(nvt/gpu,FixNVTGPU)
-
+// clang-format off
+FixStyle(nvt/gpu,FixNVTGPU);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_NVT_GPU_H
@@ -34,7 +34,7 @@ class FixNVTGPU : public FixNHGPU {
   ~FixNVTGPU() {}
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(msd/chunk,ComputeMSDChunk)
-
+// clang-format off
+ComputeStyle(msd/chunk,ComputeMSDChunk);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_MSD_CHUNK_H
@@ -48,14 +48,14 @@ class ComputeMSDChunk : public Compute {
   class FixStore *fix;
   int firstflag;
 
-  double *massproc,*masstotal;
-  double **com,**comall;
+  double *massproc, *masstotal;
+  double **com, **comall;
   double **msd;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

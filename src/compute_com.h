@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(com,ComputeCOM)
-
+// clang-format off
+ComputeStyle(com,ComputeCOM);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_COM_H
@@ -35,7 +35,7 @@ class ComputeCOM : public Compute {
   double masstotal;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

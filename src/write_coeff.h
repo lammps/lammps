@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMMAND_CLASS
-
-CommandStyle(write_coeff,WriteCoeff)
-
+// clang-format off
+CommandStyle(write_coeff,WriteCoeff);
+// clang-format on
 #else
 
 #ifndef LMP_WRITE_COEFF_H
@@ -26,11 +26,11 @@ namespace LAMMPS_NS {
 
 class WriteCoeff : public Command {
  public:
-  WriteCoeff(class LAMMPS *lmp) : Command(lmp) {};
+  WriteCoeff(class LAMMPS *lmp) : Command(lmp){};
   void command(int, char **);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

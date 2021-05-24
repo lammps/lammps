@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ATOM_CLASS
-
-AtomStyle(template,AtomVecTemplate)
-
+// clang-format off
+AtomStyle(template,AtomVecTemplate);
+// clang-format on
 #else
 
 #ifndef LMP_ATOM_VEC_TEMPLATE_H
@@ -36,10 +36,10 @@ class AtomVecTemplate : public AtomVec {
   void data_atom_post(int);
 
  private:
-  int *molindex,*molatom;
+  int *molindex, *molatom;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

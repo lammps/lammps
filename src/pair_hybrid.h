@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(hybrid,PairHybrid)
-
+// clang-format off
+PairStyle(hybrid,PairHybrid);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_HYBRID_H
@@ -25,14 +25,17 @@ PairStyle(hybrid,PairHybrid)
 namespace LAMMPS_NS {
 
 class PairHybrid : public Pair {
+  friend class ComputeSpin;
   friend class FixGPU;
   friend class FixIntel;
   friend class FixOMP;
+  friend class FixNVESpin;
   friend class Force;
+  friend class Info;
   friend class Neighbor;
   friend class Respa;
-  friend class Info;
   friend class PairDeprecated;
+
  public:
   PairHybrid(class LAMMPS *);
   virtual ~PairHybrid();
@@ -58,36 +61,38 @@ class PairHybrid : public Pair {
 
   virtual void add_tally_callback(class Compute *);
   virtual void del_tally_callback(class Compute *);
+  double atom2cut(int);
+  double radii2cut(double, double);
 
  protected:
-  int nstyles;                  // # of sub-styles
-  Pair **styles;                // list of Pair style classes
-  char **keywords;              // style name of each Pair style
-  int *multiple;                // 0 if style used once, else Mth instance
+  int nstyles;        // # of sub-styles
+  Pair **styles;      // list of Pair style classes
+  char **keywords;    // style name of each Pair style
+  int *multiple;      // 0 if style used once, else Mth instance
 
-  int outerflag;                // toggle compute() when invoked by outer()
-  int respaflag;                // 1 if different substyles are assigned to
-                                // different r-RESPA levels
+  int outerflag;    // toggle compute() when invoked by outer()
+  int respaflag;    // 1 if different substyles are assigned to
+                    // different r-RESPA levels
 
-  int **nmap;                   // # of sub-styles itype,jtype points to
-  int ***map;                   // list of sub-styles itype,jtype points to
-  double **special_lj;          // list of per style LJ exclusion factors
-  double **special_coul;        // list of per style Coulomb exclusion factors
-  int *compute_tally;           // list of on/off flags for tally computes
+  int **nmap;               // # of sub-styles itype,jtype points to
+  int ***map;               // list of sub-styles itype,jtype points to
+  double **special_lj;      // list of per style LJ exclusion factors
+  double **special_coul;    // list of per style Coulomb exclusion factors
+  int *compute_tally;       // list of on/off flags for tally computes
 
   void allocate();
   void flags();
 
   virtual void init_svector();
-  virtual void copy_svector(int,int);
+  virtual void copy_svector(int, int);
 
-  void modify_special(int, int, char**);
+  void modify_special(int, int, char **);
   double *save_special();
   void set_special(int);
   void restore_special(double *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

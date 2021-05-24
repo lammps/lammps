@@ -21,9 +21,9 @@
 #define LMP_ZSTD_FILE_WRITER_H
 
 #include "file_writer.h"
+
 #include <string>
 #include <zstd.h>
-#include <exception>
 
 namespace LAMMPS_NS {
 
@@ -31,25 +31,24 @@ class ZstdFileWriter : public FileWriter {
   int compression_level;
   int checksum_flag;
 
-  ZSTD_CCtx * cctx;
-  FILE * fp;
-  char * out_buffer;
+  ZSTD_CCtx *cctx;
+  FILE *fp;
+  char *out_buffer;
   size_t out_buffer_size;
-public:
-    ZstdFileWriter();
-    virtual ~ZstdFileWriter();
-    virtual void open(const std::string &path, bool append = false) override;
-    virtual void close() override;
-    virtual void flush() override;
-    virtual size_t write(const void * buffer, size_t length) override;
-    virtual bool isopen() const override;
 
-    void setCompressionLevel(int level);
-    void setChecksum(bool enabled);
+ public:
+  ZstdFileWriter();
+  virtual ~ZstdFileWriter();
+  virtual void open(const std::string &path, bool append = false) override;
+  virtual void close() override;
+  virtual void flush() override;
+  virtual size_t write(const void *buffer, size_t length) override;
+  virtual bool isopen() const override;
+
+  void setCompressionLevel(int level);
+  void setChecksum(bool enabled);
 };
-
-
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

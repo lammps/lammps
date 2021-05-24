@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef REGION_CLASS
-
-RegionStyle(cylinder,RegCylinder)
-
+// clang-format off
+RegionStyle(cylinder,RegCylinder);
+// clang-format on
 #else
 
 #ifndef LMP_REGION_CYLINDER_H
@@ -40,19 +40,18 @@ class RegCylinder : public Region {
 
  private:
   char axis;
-  double c1,c2;
+  double c1, c2;
   double radius;
-  double lo,hi;
-  int c1style,c1var;
-  int c2style,c2var;
-  int rstyle,rvar;
-  char *c1str,*c2str,*rstr;
+  double lo, hi;
+  int c1style, c1var;
+  int c2style, c2var;
+  int rstyle, rvar;
+  char *c1str, *c2str, *rstr;
 
   void variable_check();
-
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

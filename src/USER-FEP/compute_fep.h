@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(fep,ComputeFEP)
-
+// clang-format off
+ComputeStyle(fep,ComputeFEP);
+// clang-format on
 #else
 
 #ifndef COMPUTE_FEP_H
@@ -47,22 +47,22 @@ class ComputeFEP : public Compute {
   int nmax;
   double *q_orig;
   double **f_orig;
-  double eng_vdwl_orig,eng_coul_orig;
+  double eng_vdwl_orig, eng_coul_orig;
   double pvirial_orig[6];
-  double *peatom_orig,**pvatom_orig;
+  double *peatom_orig, **pvatom_orig;
   double energy_orig;
   double kvirial_orig[6];
-  double *keatom_orig,**kvatom_orig;
+  double *keatom_orig, **kvatom_orig;
 
   class Fix *fixgpu;
 
   struct Perturb {
-    int which,ivar;
+    int which, ivar;
     char *var;
-    char *pstyle,*pparam;
-    int ilo,ihi,jlo,jhi;
+    char *pstyle, *pparam;
+    int ilo, ihi, jlo, jhi;
     int pdim;
-    double **array,**array_orig;
+    double **array, **array_orig;
     int aparam;
   };
 
@@ -78,7 +78,7 @@ class ComputeFEP : public Compute {
   void restore_qfev();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

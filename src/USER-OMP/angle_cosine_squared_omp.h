@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ANGLE_CLASS
-
-AngleStyle(cosine/squared/omp,AngleCosineSquaredOMP)
-
+// clang-format off
+AngleStyle(cosine/squared/omp,AngleCosineSquaredOMP);
+// clang-format on
 #else
 
 #ifndef LMP_ANGLE_COSINE_SQUARED_OMP_H
@@ -37,10 +37,10 @@ class AngleCosineSquaredOMP : public AngleCosineSquared, public ThrOMP {
 
  private:
   template <int EVFLAG, int EFLAG, int NEWTON_BOND>
-  void eval(int ifrom, int ito, ThrData * const thr);
+  void eval(int ifrom, int ito, ThrData *const thr);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

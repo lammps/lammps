@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(lj/relres,PairLJRelRes)
-
+// clang-format off
+PairStyle(lj/relres,PairLJRelRes);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_LJ_RELRES_H
@@ -42,19 +42,19 @@ class PairLJRelRes : public Pair {
 
  protected:
   double cut_inner_global, cut_global, cutf_inner_global, cutf_global;
-  double **cut,**cut_inner,**cut_inner_sq,**cutf,**cutfsq,**cutf_inner,**cutf_inner_sq;
-  double **epsilon,**sigma;
-  double **epsilonf,**sigmaf;
-  double **lj1,**lj2,**lj3,**lj4;
-  double **ljf1,**ljf2,**ljf3,**ljf4;
-  double **ljsw0,**ljsw1,**ljsw2,**ljsw3,**ljsw4;
-  double **ljswf0,**ljswf1,**ljswf2,**ljswf3,**ljswf4;
-  double **offset,**offsetsp,**offsetsm;
+  double **cut, **cut_inner, **cut_inner_sq, **cutf, **cutfsq, **cutf_inner, **cutf_inner_sq;
+  double **epsilon, **sigma;
+  double **epsilonf, **sigmaf;
+  double **lj1, **lj2, **lj3, **lj4;
+  double **ljf1, **ljf2, **ljf3, **ljf4;
+  double **ljsw0, **ljsw1, **ljsw2, **ljsw3, **ljsw4;
+  double **ljswf0, **ljswf1, **ljswf2, **ljswf3, **ljswf4;
+  double **offset, **offsetsp, **offsetsm;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

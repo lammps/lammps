@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(wall/harmonic,FixWallHarmonic)
-
+// clang-format off
+FixStyle(wall/harmonic,FixWallHarmonic);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_WALL_HARMONIC_H
@@ -31,7 +31,7 @@ class FixWallHarmonic : public FixWall {
   void wall_particle(int, int, double);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

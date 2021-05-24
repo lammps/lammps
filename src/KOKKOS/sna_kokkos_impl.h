@@ -1,3 +1,4 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -54,6 +55,7 @@ SNAKokkos<DeviceType, real_type, vector_length>::SNAKokkos(real_type rfac0_in,
   ncoeff = compute_ncoeff();
 
   nmax = 0;
+  natom = 0;
 
   build_indexlist();
 

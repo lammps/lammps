@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(dihedral,ComputeDihedral)
-
+// clang-format off
+ComputeStyle(dihedral,ComputeDihedral);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_DIHEDRAL_H
@@ -37,7 +37,7 @@ class ComputeDihedral : public Compute {
   double *emine;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

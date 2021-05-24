@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef DIHEDRAL_CLASS
-
-DihedralStyle(opls,DihedralOPLS)
-
+// clang-format off
+DihedralStyle(opls,DihedralOPLS);
+// clang-format on
 #else
 
 #ifndef LMP_DIHEDRAL_OPLS_H
@@ -35,12 +35,12 @@ class DihedralOPLS : public Dihedral {
   void write_data(FILE *);
 
  protected:
-  double *k1,*k2,*k3,*k4;
+  double *k1, *k2, *k3, *k4;
 
   virtual void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

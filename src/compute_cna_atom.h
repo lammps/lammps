@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(cna/atom,ComputeCNAAtom)
-
+// clang-format off
+ComputeStyle(cna/atom,ComputeCNAAtom);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_CNA_ATOM_H
@@ -42,7 +42,7 @@ class ComputeCNAAtom : public Compute {
   double *pattern;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

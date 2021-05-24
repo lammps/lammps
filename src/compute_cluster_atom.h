@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(cluster/atom,ComputeClusterAtom)
-
+// clang-format off
+ComputeStyle(cluster/atom,ComputeClusterAtom);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_CLUSTER_ATOM_H
@@ -36,13 +36,13 @@ class ComputeClusterAtom : public Compute {
   double memory_usage();
 
  private:
-  int nmax,commflag;
+  int nmax, commflag;
   double cutsq;
   class NeighList *list;
   double *clusterID;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

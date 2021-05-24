@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef KSPACE_CLASS
-
-KSpaceStyle(msm/cg,MSMCG)
-
+// clang-format off
+KSpaceStyle(msm/cg,MSMCG);
+// clang-format on
 #else
 
 #ifndef LMP_MSM_CG_H
@@ -44,7 +44,7 @@ class MSMCG : public MSM {
   virtual void fieldforce_peratom();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(coul/dsf/gpu,PairCoulDSFGPU)
-
+// clang-format off
+PairStyle(coul/dsf/gpu,PairCoulDSFGPU);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_COUL_DSF_GPU_H
@@ -33,14 +33,14 @@ class PairCoulDSFGPU : public PairCoulDSF {
   void init_style();
   double memory_usage();
 
- enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
+  enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
 
  private:
   int gpu_mode;
   double cpu_time;
 };
 
-}
+}    // namespace LAMMPS_NS
 #endif
 #endif
 

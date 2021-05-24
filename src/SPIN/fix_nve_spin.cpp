@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -22,20 +23,23 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_nve_spin.h"
-#include <cstring>
+
 #include "atom.h"
 #include "citeme.h"
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "fix_precession_spin.h"
 #include "fix_langevin_spin.h"
+#include "fix_precession_spin.h"
 #include "fix_setforce_spin.h"
 #include "force.h"
 #include "memory.h"
 #include "modify.h"
+#include "pair_hybrid.h"
 #include "pair_spin.h"
 #include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -60,7 +64,7 @@ enum{NONE};
 
 FixNVESpin::FixNVESpin(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  pair(nullptr), spin_pairs(nullptr), locklangevinspin(nullptr), 
+  pair(nullptr), spin_pairs(nullptr), locklangevinspin(nullptr),
   locksetforcespin(nullptr), lockprecessionspin(nullptr),
   rsec(nullptr), stack_head(nullptr), stack_foot(nullptr),
   backward_stacks(nullptr), forward_stacks(nullptr)
@@ -75,7 +79,7 @@ FixNVESpin::FixNVESpin(LAMMPS *lmp, int narg, char **arg) :
   nlocal_max = 0;
   npairs = 0;
   npairspin = 0;
-  
+
   // test nprec
   nprecspin = nlangspin = nsetspin = 0;
 
@@ -172,15 +176,18 @@ void FixNVESpin::init()
 
   // loop 1: obtain # of Pairs, and # of Pair/Spin styles
 
-  if (force->pair_match("spin",0,0)) {        // only one Pair/Spin style
-    pair = force->pair_match("spin",0,0);
-    npairs = pair->instance_total;
+  PairHybrid *hybrid = (PairHybrid *)force->pair_match("^hybrid",0);
+  if (force->pair_match("^spin",0,0)) {        // only one Pair/Spin style
+    pair = force->pair_match("^spin",0,0);
+    if (hybrid == nullptr) npairs = 1;
+    else npairs = hybrid->nstyles;
     npairspin = 1;
-  } else if (force->pair_match("spin",0,1)) { // more than one Pair/Spin style
-    pair = force->pair_match("spin",0,1);
-    npairs = pair->instance_total;
+  } else if (force->pair_match("^spin",0,1)) { // more than one Pair/Spin style
+    pair = force->pair_match("^spin",0,1);
+    if (hybrid == nullptr) npairs = 1;
+    else npairs = hybrid->nstyles;
     for (int i = 0; i<npairs; i++) {
-      if (force->pair_match("spin",0,i)) {
+      if (force->pair_match("^spin",0,i)) {
         npairspin ++;
       }
     }
@@ -197,18 +204,18 @@ void FixNVESpin::init()
   int count1 = 0;
   if (npairspin == 1) {
     count1 = 1;
-    spin_pairs[0] = (PairSpin *) force->pair_match("spin",0,0);
+    spin_pairs[0] = (PairSpin *) force->pair_match("^spin",0,0);
   } else if (npairspin > 1) {
     for (int i = 0; i<npairs; i++) {
-      if (force->pair_match("spin",0,i)) {
-        spin_pairs[count1] = (PairSpin *) force->pair_match("spin",0,i);
+      if (force->pair_match("^spin",0,i)) {
+        spin_pairs[count1] = (PairSpin *) force->pair_match("^spin",0,i);
         count1++;
       }
     }
   }
 
   if (count1 != npairspin)
-    error->all(FLERR,"Incorrect number of spin pairs");
+    error->all(FLERR,"Incorrect number of spin pair styles");
 
   // set pair/spin and long/spin flags
 
@@ -221,74 +228,74 @@ void FixNVESpin::init()
   }
 
   // set ptrs for fix precession/spin styles
-  
+
   // loop 1: obtain # of fix precession/spin styles
-  
+
   int iforce;
   for (iforce = 0; iforce < modify->nfix; iforce++) {
-    if (strstr(modify->fix[iforce]->style,"precession/spin")) {
+    if (utils::strmatch(modify->fix[iforce]->style,"^precession/spin")) {
       nprecspin++;
     }
   }
-  
+
   // init length of vector of ptrs to precession/spin styles
 
   if (nprecspin > 0) {
     lockprecessionspin = new FixPrecessionSpin*[nprecspin];
   }
-  
+
   // loop 2: fill vector with ptrs to precession/spin styles
 
   int count2 = 0;
   if (nprecspin > 0) {
     for (iforce = 0; iforce < modify->nfix; iforce++) {
-      if (strstr(modify->fix[iforce]->style,"precession/spin")) {
+      if (utils::strmatch(modify->fix[iforce]->style,"^precession/spin")) {
         precession_spin_flag = 1;
         lockprecessionspin[count2] = (FixPrecessionSpin *) modify->fix[iforce];
         count2++;
       }
     }
   }
-  
+
   if (count2 != nprecspin)
-    error->all(FLERR,"Incorrect number of fix precession/spin");
+    error->all(FLERR,"Incorrect number of precession/spin fixes");
 
   // set ptrs for fix langevin/spin styles
-  
+
   // loop 1: obtain # of fix langevin/spin styles
-  
+
   for (iforce = 0; iforce < modify->nfix; iforce++) {
-    if (strstr(modify->fix[iforce]->style,"langevin/spin")) {
+    if (utils::strmatch(modify->fix[iforce]->style,"^langevin/spin")) {
       nlangspin++;
     }
   }
-  
-  // init length of vector of ptrs to precession/spin styles
+
+  // init length of vector of ptrs to langevin/spin styles
 
   if (nlangspin > 0) {
-    locklangevinspin = new FixLangevinSpin*[nprecspin];
+    locklangevinspin = new FixLangevinSpin*[nlangspin];
   }
-  
-  // loop 2: fill vector with ptrs to precession/spin styles
+
+  // loop 2: fill vector with ptrs to langevin/spin styles
 
   count2 = 0;
   if (nlangspin > 0) {
     for (iforce = 0; iforce < modify->nfix; iforce++) {
-      if (strstr(modify->fix[iforce]->style,"langevin/spin")) {
+      if (utils::strmatch(modify->fix[iforce]->style,"^langevin/spin")) {
         maglangevin_flag = 1;
         locklangevinspin[count2] = (FixLangevinSpin *) modify->fix[iforce];
         count2++;
       }
     }
   }
-  
+
   if (count2 != nlangspin)
-    error->all(FLERR,"Incorrect number of fix precession/spin");
-  
+    error->all(FLERR,"Incorrect number of langevin/spin fixes");
+
   // ptrs FixSetForceSpin classes
 
   for (iforce = 0; iforce < modify->nfix; iforce++) {
-    if (strstr(modify->fix[iforce]->style,"setforce/spin")) {
+    if (utils::strmatch(modify->fix[iforce]->style,"^setforce/spin")) {
       setforce_spin_flag = 1;
       locksetforcespin = (FixSetForceSpin *) modify->fix[iforce];
     }

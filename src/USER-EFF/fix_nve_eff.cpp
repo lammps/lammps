@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -15,15 +16,14 @@
    Contributing author: Andres Jaramillo-Botero (Caltech)
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-
 #include "fix_nve_eff.h"
+
 #include "atom.h"
-#include "force.h"
-#include "update.h"
-#include "respa.h"
-#include "error.h"
 #include "domain.h"
+#include "error.h"
+#include "force.h"
+#include "respa.h"
+#include "update.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

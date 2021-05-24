@@ -34,11 +34,11 @@ class ImbalanceTime : public Imbalance {
   virtual std::string info() override;
 
  private:
-  double factor;               // weight factor for time imbalance
-  double last;                 // combined wall time from last call
+  double factor;    // weight factor for time imbalance
+  double last;      // combined wall time from last call
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 

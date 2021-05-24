@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef IMPROPER_CLASS
-
-ImproperStyle(harmonic/omp,ImproperHarmonicOMP)
-
+// clang-format off
+ImproperStyle(harmonic/omp,ImproperHarmonicOMP);
+// clang-format on
 #else
 
 #ifndef LMP_IMPROPER_HARMONIC_OMP_H
@@ -37,10 +37,10 @@ class ImproperHarmonicOMP : public ImproperHarmonic, public ThrOMP {
 
  private:
   template <int EVFLAG, int EFLAG, int NEWTON_BOND>
-  void eval(int ifrom, int ito, ThrData * const thr);
+  void eval(int ifrom, int ito, ThrData *const thr);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

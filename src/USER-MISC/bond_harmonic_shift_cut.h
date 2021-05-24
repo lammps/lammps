@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef BOND_CLASS
-
-BondStyle(harmonic/shift/cut,BondHarmonicShiftCut)
-
+// clang-format off
+BondStyle(harmonic/shift/cut,BondHarmonicShiftCut);
+// clang-format on
 #else
 
 #ifndef LMP_BOND_HARMONIC_SHIFT_CUT_H
@@ -37,12 +37,12 @@ class BondHarmonicShiftCut : public Bond {
   double single(int, double, int, int, double &);
 
  protected:
-  double *k,*r0,*r1;
+  double *k, *r0, *r1;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

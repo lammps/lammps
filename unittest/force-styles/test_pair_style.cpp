@@ -778,6 +778,7 @@ TEST(PairStyle, omp)
 TEST(PairStyle, gpu)
 {
     if (!LAMMPS::is_installed_pkg("GPU")) GTEST_SKIP();
+    if (!Info::has_gpu_device()) GTEST_SKIP();
     if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
 
     const char *args_neigh[] = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite", "-sf", "gpu"};

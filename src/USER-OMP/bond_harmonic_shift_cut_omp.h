@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef BOND_CLASS
-
-BondStyle(harmonic/shift/cut/omp,BondHarmonicShiftCutOMP)
-
+// clang-format off
+BondStyle(harmonic/shift/cut/omp,BondHarmonicShiftCutOMP);
+// clang-format on
 #else
 
 #ifndef LMP_BOND_HARMONIC_SHIFT_CUT_OMP_H
@@ -37,10 +37,10 @@ class BondHarmonicShiftCutOMP : public BondHarmonicShiftCut, public ThrOMP {
 
  private:
   template <int EVFLAG, int EFLAG, int NEWTON_BOND>
-  void eval(int ifrom, int ito, ThrData * const thr);
+  void eval(int ifrom, int ito, ThrData *const thr);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

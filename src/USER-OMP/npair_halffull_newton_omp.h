@@ -12,17 +12,17 @@
 ------------------------------------------------------------------------- */
 
 #ifdef NPAIR_CLASS
-
+// clang-format off
 NPairStyle(halffull/newton/omp,
            NPairHalffullNewtonOmp,
-           NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI |
-           NP_ORTHO | NP_TRI| NP_OMP)
+           NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD |
+           NP_ORTHO | NP_TRI| NP_OMP);
 
 NPairStyle(halffull/newton/skip/omp,
            NPairHalffullNewtonOmp,
-           NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI |
-           NP_ORTHO | NP_TRI | NP_SKIP | NP_OMP)
-
+           NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD |
+           NP_ORTHO | NP_TRI | NP_SKIP | NP_OMP);
+// clang-format on
 #else
 
 #ifndef LMP_NPAIR_HALFFULL_NEWTON_OMP_H
@@ -39,7 +39,7 @@ class NPairHalffullNewtonOmp : public NPair {
   void build(class NeighList *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef IMPROPER_CLASS
-
-ImproperStyle(distance,ImproperDistance)
-
+// clang-format off
+ImproperStyle(distance,ImproperDistance);
+// clang-format on
 #else
 
 #ifndef LMP_IMPROPER_DISTANCE_H
@@ -35,13 +35,12 @@ class ImproperDistance : public Improper {
   void write_data(FILE *);
 
  private:
-  double *k,*chi;
+  double *k, *chi;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-

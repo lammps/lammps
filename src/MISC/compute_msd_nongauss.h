@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(msd/nongauss,ComputeMSDNonGauss)
-
+// clang-format off
+ComputeStyle(msd/nongauss,ComputeMSDNonGauss);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_MSD_NONGAUSS_H
@@ -31,7 +31,7 @@ class ComputeMSDNonGauss : public ComputeMSD {
   void compute_vector();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

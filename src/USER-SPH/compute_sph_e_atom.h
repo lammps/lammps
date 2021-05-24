@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(sph/e/atom,ComputeSPHEAtom)
-
+// clang-format off
+ComputeStyle(sph/e/atom,ComputeSPHEAtom);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_SPH_E_ATOM_H
@@ -37,7 +37,7 @@ class ComputeSPHEAtom : public Compute {
   double *evector;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

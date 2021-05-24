@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(coul/msm,PairCoulMSM)
-
+// clang-format off
+PairStyle(coul/msm,PairCoulMSM);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_COUL_MSM_H
@@ -27,13 +27,13 @@ namespace LAMMPS_NS {
 class PairCoulMSM : public PairCoulLong {
  public:
   PairCoulMSM(class LAMMPS *);
-  virtual ~PairCoulMSM() {};
+  virtual ~PairCoulMSM(){};
   virtual void compute(int, int);
   virtual double single(int, int, int, int, double, double, double, double &);
   virtual void *extract(const char *, int &);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

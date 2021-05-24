@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(hbond/dreiding/morse,PairHbondDreidingMorse)
-
+// clang-format off
+PairStyle(hbond/dreiding/morse,PairHbondDreidingMorse);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_HBOND_DREIDING_MORSE_H
@@ -27,14 +27,14 @@ namespace LAMMPS_NS {
 class PairHbondDreidingMorse : public PairHbondDreidingLJ {
  public:
   PairHbondDreidingMorse(class LAMMPS *);
-  virtual ~PairHbondDreidingMorse() {};
+  virtual ~PairHbondDreidingMorse(){};
   virtual void compute(int, int);
   void coeff(int, char **);
   void init_style();
   double single(int, int, int, int, double, double, double, double &);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

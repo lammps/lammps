@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef KSPACE_CLASS
-
-KSpaceStyle(ewald,Ewald)
-
+// clang-format off
+KSpaceStyle(ewald,Ewald);
+// clang-format on
 #else
 
 #ifndef LMP_EWALD_H
@@ -37,25 +37,25 @@ class Ewald : public KSpace {
   void compute_group_group(int, int, int);
 
  protected:
-  int kxmax,kymax,kzmax;
-  int kcount,kmax,kmax3d,kmax_created;
-  double gsqmx,volume;
+  int kxmax, kymax, kzmax;
+  int kcount, kmax, kmax3d, kmax_created;
+  double gsqmx, volume;
   int nmax;
 
   double unitk[3];
-  int *kxvecs,*kyvecs,*kzvecs;
-  int kxmax_orig,kymax_orig,kzmax_orig;
+  int *kxvecs, *kyvecs, *kzvecs;
+  int kxmax_orig, kymax_orig, kzmax_orig;
   double *ug;
-  double **eg,**vg;
+  double **eg, **vg;
   double **ek;
-  double *sfacrl,*sfacim,*sfacrl_all,*sfacim_all;
-  double ***cs,***sn;
+  double *sfacrl, *sfacim, *sfacrl_all, *sfacim_all;
+  double ***cs, ***sn;
 
   // group-group interactions
 
   int group_allocate_flag;
-  double *sfacrl_A,*sfacim_A,*sfacrl_A_all,*sfacim_A_all;
-  double *sfacrl_B,*sfacim_B,*sfacrl_B_all,*sfacim_B_all;
+  double *sfacrl_A, *sfacim_A, *sfacrl_A_all, *sfacim_A_all;
+  double *sfacrl_B, *sfacim_B, *sfacrl_B_all, *sfacim_B_all;
 
   double rms(int, double, bigint, double);
   virtual void eik_dot_r();
@@ -72,12 +72,12 @@ class Ewald : public KSpace {
 
   // group-group interactions
 
-  void slabcorr_groups(int,int,int);
+  void slabcorr_groups(int, int, int);
   void allocate_groups();
   void deallocate_groups();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef BOND_CLASS
-
-BondStyle(oxrna2/fene,BondOxrna2Fene)
-
+// clang-format off
+BondStyle(oxrna2/fene,BondOxrna2Fene);
+// clang-format on
 #else
 
 #ifndef LMP_BOND_OXRNA2_FENE_H
@@ -28,11 +28,10 @@ class BondOxrna2Fene : public BondOxdnaFene {
  public:
   BondOxrna2Fene(class LAMMPS *);
   virtual ~BondOxrna2Fene();
-  virtual void compute_interaction_sites(double *, double *, double *,
-    double *);
+  virtual void compute_interaction_sites(double *, double *, double *, double *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

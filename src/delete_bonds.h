@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMMAND_CLASS
-
-CommandStyle(delete_bonds,DeleteBonds)
-
+// clang-format off
+CommandStyle(delete_bonds,DeleteBonds);
+// clang-format on
 #else
 
 #ifndef LMP_DELETE_BONDS_H
@@ -30,7 +30,7 @@ class DeleteBonds : public Command {
   void command(int, char **);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

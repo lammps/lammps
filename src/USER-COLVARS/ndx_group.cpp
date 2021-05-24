@@ -1,3 +1,4 @@
+// clang-format off
 // -*- c++ -*-
 
 /* ----------------------------------------------------------------------
@@ -22,10 +23,7 @@
 #include "comm.h"
 #include "error.h"
 #include "group.h"
-#include "memory.h"
 #include "tokenizer.h"
-
-#include <cstdlib>
 
 using namespace LAMMPS_NS;
 #define BUFLEN 4096
@@ -86,9 +84,9 @@ void Ndx2Group::command(int narg, char **arg)
   if (comm->me == 0) {
     fp = fopen(arg[0], "r");
     if (fp == nullptr)
-      error->one(FLERR,fmt::format("Cannot open index file for reading: {}",
-                                   utils::getsyserror()));
-    utils::logmesg(lmp,fmt::format("Reading groups from index file {}:\n",arg[0]));
+      error->one(FLERR,"Cannot open index file for reading: {}",
+                                   utils::getsyserror());
+    utils::logmesg(lmp,"Reading groups from index file {}:\n",arg[0]);
   }
 
   if (narg == 1) {              // restore all groups
@@ -103,7 +101,7 @@ void Ndx2Group::command(int narg, char **arg)
           continue;
         }
 
-        utils::logmesg(lmp,fmt::format(" Processing group '{}'\n",name));
+        utils::logmesg(lmp," Processing group '{}'\n",name);
         len = name.size()+1;
         MPI_Bcast(&len,1,MPI_INT,0,world);
         if (len > 1) {
@@ -147,8 +145,8 @@ void Ndx2Group::command(int narg, char **arg)
         // find named section, search from beginning of file
         rewind(fp);
         name = find_section(fp,arg[idx]);
-        utils::logmesg(lmp,fmt::format(" {} group '{}'\n", name.size()
-                                       ? "Processing" : "Skipping",arg[idx]));
+        utils::logmesg(lmp," {} group '{}'\n", name.size()
+                       ? "Processing" : "Skipping",arg[idx]);
         len = name.size()+1;
         MPI_Bcast(&len,1,MPI_INT,0,world);
         if (len > 1) {

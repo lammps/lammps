@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -16,27 +17,21 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_gayberne_gpu.h"
-#include <cmath>
-#include <cstdio>
 
-#include <cstring>
-#include "math_extra.h"
 #include "atom.h"
-#include "atom_vec.h"
 #include "atom_vec_ellipsoid.h"
-#include "comm.h"
-#include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "integrate.h"
-#include "memory.h"
-#include "error.h"
-#include "neigh_request.h"
-#include "universe.h"
 #include "domain.h"
-#include "update.h"
+#include "error.h"
+#include "force.h"
 #include "gpu_extra.h"
+#include "math_extra.h"
+#include "memory.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
 #include "suffix.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 

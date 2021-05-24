@@ -12,16 +12,15 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(momentum/chunk,FixMomentumChunk)
-
+// clang-format off
+FixStyle(momentum/chunk,FixMomentumChunk);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_MOMENTUM_CHUNK_H
 #define LMP_FIX_MOMENTUM_CHUNK_H
 
 #include "fix.h"
-
 
 namespace LAMMPS_NS {
 
@@ -35,15 +34,15 @@ class FixMomentumChunk : public Fix {
   void post_run();
 
  protected:
-  std::string id_chunk,id_com,id_vcm,id_omega;
-  int nchunk,linear,angular,rescale;
-  int xflag,yflag,zflag;
+  std::string id_chunk, id_com, id_vcm, id_omega;
+  int nchunk, linear, angular, rescale;
+  int xflag, yflag, zflag;
 
   class ComputeChunkAtom *cchunk;
-  class Compute *ccom,*cvcm,*comega;
+  class Compute *ccom, *cvcm, *comega;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

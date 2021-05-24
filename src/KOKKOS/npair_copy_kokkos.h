@@ -1,3 +1,4 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -12,15 +13,15 @@
 ------------------------------------------------------------------------- */
 
 #ifdef NPAIR_CLASS
-
+// clang-format off
 NPairStyle(copy/kk/device,
            NPairCopyKokkos<LMPDeviceType>,
-           NP_COPY | NP_KOKKOS_DEVICE)
+           NP_COPY | NP_KOKKOS_DEVICE);
 
 NPairStyle(copy/kk/host,
            NPairCopyKokkos<LMPHostType>,
-           NP_COPY | NP_KOKKOS_HOST)
-
+           NP_COPY | NP_KOKKOS_HOST);
+// clang-format on
 #else
 
 #ifndef LMP_NPAIR_COPY_KOKKOS_H

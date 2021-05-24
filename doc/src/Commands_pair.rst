@@ -87,6 +87,8 @@ OPT.
    * :doc:`coul/wolf/cs <pair_cs>`
    * :doc:`dpd (gio) <pair_dpd>`
    * :doc:`dpd/fdt <pair_dpd_fdt>`
+   * :doc:`dpd/ext <pair_dpd_ext>`
+   * :doc:`dpd/ext/tstat <pair_dpd_ext>`
    * :doc:`dpd/fdt/energy (k) <pair_dpd_fdt>`
    * :doc:`dpd/tstat (go) <pair_dpd>`
    * :doc:`dsmc <pair_dsmc>`
@@ -169,7 +171,7 @@ OPT.
    * :doc:`lj/sdk/coul/long (go) <pair_sdk>`
    * :doc:`lj/sdk/coul/msm (o) <pair_sdk>`
    * :doc:`lj/sf/dipole/sf (go) <pair_dipole>`
-   * :doc:`lj/smooth (o) <pair_lj_smooth>`
+   * :doc:`lj/smooth (go) <pair_lj_smooth>`
    * :doc:`lj/smooth/linear (o) <pair_lj_smooth_linear>`
    * :doc:`lj/switch3/coulgauss/long <pair_lj_switch3_coulgauss_long>`
    * :doc:`lj96/cut (go) <pair_lj96>`

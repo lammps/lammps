@@ -12,11 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef NPAIR_CLASS
-
+// clang-format off
 NPairStyle(half/multi/newton,
            NPairHalfMultiNewton,
-           NP_HALF | NP_MULTI | NP_NEWTON | NP_ORTHO)
-
+           NP_HALF | NP_MULTI | NP_NEWTON | NP_ORTHO);
+// clang-format on
 #else
 
 #ifndef LMP_NPAIR_HALF_MULTI_NEWTON_H
@@ -33,15 +33,11 @@ class NPairHalfMultiNewton : public NPair {
   void build(class NeighList *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
 
 /* ERROR/WARNING messages:
-
-E: Neighbor list overflow, boost neigh_modify one
-
-UNDOCUMENTED
 
 */

@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ANGLE_CLASS
-
-AngleStyle(harmonic/omp,AngleHarmonicOMP)
-
+// clang-format off
+AngleStyle(harmonic/omp,AngleHarmonicOMP);
+// clang-format on
 #else
 
 #ifndef LMP_ANGLE_HARMONIC_OMP_H
@@ -37,10 +37,10 @@ class AngleHarmonicOMP : public AngleHarmonic, public ThrOMP {
 
  private:
   template <int EVFLAG, int EFLAG, int NEWTON_BOND>
-  void eval(int ifrom, int ito, ThrData * const thr);
+  void eval(int ifrom, int ito, ThrData *const thr);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

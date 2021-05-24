@@ -12,11 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef NBIN_CLASS
-
+// clang-format off
 NBinStyle(standard,
           NBinStandard,
-          0)
-
+          NB_STANDARD);
+// clang-format on
 #else
 
 #ifndef LMP_NBIN_STANDARD_H
@@ -30,11 +30,13 @@ class NBinStandard : public NBin {
  public:
   NBinStandard(class LAMMPS *);
   ~NBinStandard() {}
+  void bin_atoms_setup(int);
   void setup_bins(int);
   void bin_atoms();
+  double memory_usage();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

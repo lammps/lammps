@@ -191,11 +191,11 @@ do
     shift
     ;;
   #Handle known nvcc args
-  --dryrun|--verbose|--keep|--keep-dir*|-G|--relocatable-device-code*|-lineinfo|-expt-extended-lambda|-expt-relaxed-constexpr|--resource-usage|-Xptxas*|--fmad*|--Wext-lambda-captures-this|-Wext-lambda-captures-this)
+  --dryrun|--verbose|--keep|--keep-dir*|-G|--relocatable-device-code*|-lineinfo|-expt-extended-lambda|-expt-relaxed-constexpr|--resource-usage|-Xptxas*|--fmad*|--use_fast_math|--Wext-lambda-captures-this|-Wext-lambda-captures-this)
     cuda_args="$cuda_args $1"
     ;;
   #Handle more known nvcc args
-  --expt-extended-lambda|--expt-relaxed-constexpr)
+  --expt-extended-lambda|--expt-relaxed-constexpr|--Wno-deprecated-gpu-targets|-Wno-deprecated-gpu-targets)
     cuda_args="$cuda_args $1"
     ;;
   #Handle known nvcc args that have an argument

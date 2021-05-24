@@ -69,6 +69,7 @@ page gives those details.
    * :ref:`USER-ATC <PKG-USER-ATC>`
    * :ref:`USER-AWPMD <PKG-USER-AWPMD>`
    * :ref:`USER-BOCS <PKG-USER-BOCS>`
+   * :ref:`USER-BROWNIAN <PKG-USER-BROWNIAN>`
    * :ref:`USER-CGDNA <PKG-USER-CGDNA>`
    * :ref:`USER-CGSDK <PKG-USER-CGSDK>`
    * :ref:`USER-COLVARS <PKG-USER-COLVARS>`
@@ -81,6 +82,7 @@ page gives those details.
    * :ref:`USER-INTEL <PKG-USER-INTEL>`
    * :ref:`USER-LB <PKG-USER-LB>`
    * :ref:`USER-MANIFOLD <PKG-USER-MANIFOLD>`
+   * :ref:`USER-MDI <PKG-USER-MDI>`
    * :ref:`USER-MEAMC <PKG-USER-MEAMC>`
    * :ref:`USER-MESODPD <PKG-USER-MESODPD>`
    * :ref:`USER-MESONT <PKG-USER-MESONT>`
@@ -445,7 +447,7 @@ time via the "-sf kk" or "-suffix kk" :doc:`command-line switches <Run_options>`
 :ref:`USER-INTEL <PKG-USER-INTEL>`, and :ref:`USER-OMP <PKG-USER-OMP>` packages, which
 have styles optimized for CPUs, KNLs, and GPUs.
 
-You must have a C++11 compatible compiler to use this package.
+You must have a C++14 compatible compiler to use this package.
 KOKKOS makes extensive use of advanced C++ features, which can
 expose compiler bugs, especially when compiling for maximum
 performance at high optimization levels. Please see the file
@@ -1266,6 +1268,26 @@ Example inputs are in the examples/USER/bocs folder.
 
 ----------
 
+.. _PKG-USER-BROWNIAN:
+
+USER-BROWNIAN package
+---------------------
+
+**Contents:**
+
+This package provides :doc:`fix brownian, fix brownian/sphere, and
+fix brownian/asphere <fix_brownian>` as well as
+:doc:`fix propel/self <fix_propel_self>` which allow to do Brownian
+Dynamics time integration of point, spherical and aspherical particles
+and also support self-propelled particles.
+
+**Authors:** Sam Cameron (University of Bristol),
+Stefan Paquay (while at Brandeis University) (initial version of fix propel/self)
+
+Example inputs are in the examples/USER/brownian folder.
+
+----------
+
 .. _PKG-USER-CGDNA:
 
 USER-CGDNA package
@@ -1767,6 +1789,28 @@ Waltham, MA, USA)
 * :doc:`fix nvt/manifold/rattle <fix_nvt_manifold_rattle>`
 * examples/USER/manifold
 * https://lammps.sandia.gov/movies.html#manifold
+
+----------
+
+.. _PKG-USER-MDI:
+
+USER-MDI package
+----------------
+
+**Contents:**
+
+A LAMMPS command and fix to allow client-server coupling of LAMMPS to
+other atomic or molecular simulation codes via the `MolSSI Driver Interface
+(MDI) library <https://molssi-mdi.github.io/MDI_Library/html/index.html>`_.
+
+**Author:** Taylor Barnes - MolSSI, taylor.a.barnes at gmail.com
+
+**Supporting info:**
+
+* src/USER-MDI/README
+* :doc:`mdi/engine <mdi_engine>`
+* :doc:`fix mdi/engine <fix_mdi_engine>`
+* examples/USER/mdi
 
 ----------
 

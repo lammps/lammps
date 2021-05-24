@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(born/coul/dsf,PairBornCoulDSF)
-
+// clang-format off
+PairStyle(born/coul/dsf,PairBornCoulDSF);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_BORN_COUL_DSF_H
@@ -42,17 +42,17 @@ class PairBornCoulDSF : public Pair {
   double single(int, int, int, int, double, double, double, double &);
 
  protected:
-  double cut_lj_global,alpha;
-  double **cut_lj,**cut_ljsq;
-  double cut_coul,cut_coulsq;
-  double **a,**rho,**sigma,**c,**d;
-  double **rhoinv,**born1,**born2,**born3,**offset;
-  double f_shift,e_shift;
+  double cut_lj_global, alpha;
+  double **cut_lj, **cut_ljsq;
+  double cut_coul, cut_coulsq;
+  double **a, **rho, **sigma, **c, **d;
+  double **rhoinv, **born1, **born2, **born3, **offset;
+  double f_shift, e_shift;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

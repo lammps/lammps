@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(pressure/cylinder,ComputePressureCyl)
-
+// clang-format off
+ComputeStyle(pressure/cylinder,ComputePressureCyl);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_PRESSURE_CYLINDER
@@ -34,21 +34,20 @@ class ComputePressureCyl : public Compute {
   double memory_usage();
 
  private:
-  int nbins,nphi,nzbins;
-  double *Pr_temp,*Pr_all,*Pz_temp,*Pz_all,*Pphi_temp,*Pphi_all;
-  double *R,*Rinv,*R2,*PrAinv,*PzAinv,PphiAinv;
-  double Rmax,bin_width,nktv2p;
-  double *R2kin,*density_temp,*invVbin,*density_all;
-  double *tangent,*ephi_x,*ephi_y;
+  int nbins, nphi, nzbins;
+  double *Pr_temp, *Pr_all, *Pz_temp, *Pz_all, *Pphi_temp, *Pphi_all;
+  double *R, *Rinv, *R2, *PrAinv, *PzAinv, PphiAinv;
+  double Rmax, bin_width, nktv2p;
+  double *R2kin, *density_temp, *invVbin, *density_all;
+  double *tangent, *ephi_x, *ephi_y;
   double *binz;
 
-  double zlo,zhi;
+  double zlo, zhi;
 
   class NeighList *list;
-
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
@@ -71,4 +70,3 @@ The pair style does not have a single() function, so it can
 not be invoked by compute pressure/cylinder.
 
 */
-

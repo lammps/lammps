@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(planeforce,FixPlaneForce)
-
+// clang-format off
+FixStyle(planeforce,FixPlaneForce);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_PLANEFORCE_H
@@ -35,10 +35,10 @@ class FixPlaneForce : public Fix {
   void min_post_force(int);
 
  private:
-  double xdir,ydir,zdir;
+  double xdir, ydir, zdir;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(edip,PairEDIP)
-
+// clang-format off
+PairStyle(edip,PairEDIP);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_EDIP_H
@@ -41,7 +41,7 @@ class PairEDIP : public Pair {
     double alpha, beta;
     double eta, gamm, lambda, mu, rho, sigma, Q0;
     double u1, u2, u3, u4;
-    int ielement,jelement,kelement;
+    int ielement, jelement, kelement;
   };
 
   double *preInvR_ij;
@@ -86,8 +86,8 @@ class PairEDIP : public Pair {
   double u3;
   double u4;
 
-  double cutmax;                // max cutoff for all elements
-  Param *params;                // parameter set for an I-J-K interaction
+  double cutmax;    // max cutoff for all elements
+  Param *params;    // parameter set for an I-J-K interaction
 
   void allocate();
   void allocatePreLoops(void);
@@ -100,7 +100,7 @@ class PairEDIP : public Pair {
   void setup_params();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

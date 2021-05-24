@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(reduce/region,ComputeReduceRegion)
-
+// clang-format off
+ComputeStyle(reduce/region,ComputeReduceRegion);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_REDUCE_REGION_H
@@ -34,7 +34,7 @@ class ComputeReduceRegion : public ComputeReduce {
   bigint count(int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

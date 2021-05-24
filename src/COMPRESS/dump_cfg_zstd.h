@@ -17,9 +17,9 @@
 
 #ifdef LAMMPS_ZSTD
 #ifdef DUMP_CLASS
-
-DumpStyle(cfg/zstd,DumpCFGZstd)
-
+// clang-format off
+DumpStyle(cfg/zstd,DumpCFGZstd);
+// clang-format on
 #else
 
 #ifndef LMP_DUMP_CFG_ZSTD_H
@@ -46,7 +46,7 @@ class DumpCFGZstd : public DumpCFG {
   virtual int modify_param(int, char **);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

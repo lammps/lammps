@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(airebo/morse/omp,PairAIREBOMorseOMP)
-
+// clang-format off
+PairStyle(airebo/morse/omp,PairAIREBOMorseOMP);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_AIREBO_MORSE_OMP_H
@@ -30,7 +30,7 @@ class PairAIREBOMorseOMP : public PairAIREBOOMP {
   virtual void settings(int, char **);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

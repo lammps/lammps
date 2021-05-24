@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(group/group,ComputeGroupGroup)
-
+// clang-format off
+ComputeStyle(group/group,ComputeGroupGroup);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_GROUP_GROUP_H
@@ -35,10 +35,10 @@ class ComputeGroupGroup : public Compute {
 
  private:
   char *group2;
-  int jgroup,jgroupbit,othergroupbit;
+  int jgroup, jgroupbit, othergroupbit;
   double **cutsq;
-  double e_self,e_correction;
-  int pairflag,kspaceflag,boundaryflag,molflag;
+  double e_self, e_correction;
+  int pairflag, kspaceflag, boundaryflag, molflag;
   class Pair *pair;
   class NeighList *list;
   class KSpace *kspace;
@@ -48,7 +48,7 @@ class ComputeGroupGroup : public Compute {
   void kspace_correction();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

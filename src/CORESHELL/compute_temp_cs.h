@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(temp/cs,ComputeTempCS)
-
+// clang-format off
+ComputeStyle(temp/cs,ComputeTempCS);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_TEMP_CS_H
@@ -44,11 +44,11 @@ class ComputeTempCS : public Compute {
   void unpack_reverse_comm(int, int *, double *);
 
  private:
-  int groupbit_c,groupbit_s;
+  int groupbit_c, groupbit_s;
   int nshells;
   int firstflag;
   int maxatom;
-  int cgroup,sgroup;
+  int cgroup, sgroup;
 
   double tfactor;
   double **vint;
@@ -60,7 +60,7 @@ class ComputeTempCS : public Compute {
   void vcm_pairs();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

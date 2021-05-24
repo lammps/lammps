@@ -1,3 +1,4 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -16,9 +17,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(nve/intel,FixNVEIntel)
-
+// clang-format off
+FixStyle(nve/intel,FixNVEIntel);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_NVE_INTEL_H

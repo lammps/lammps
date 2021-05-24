@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -2481,20 +2482,20 @@ int AtomVec::process_fields(char *str, const char *default_str, Method *method)
     for (match = 0; match < nperatom; match++)
       if (field == peratom[match].name) break;
     if (match == nperatom)
-      error->all(FLERR,fmt::format("Peratom field {} not recognized", field));
+      error->all(FLERR,"Peratom field {} not recognized", field);
     index[i] = match;
 
     // error if field appears multiple times
 
     for (match = 0; match < i; match++)
       if (index[i] == index[match])
-        error->all(FLERR,fmt::format("Peratom field {} is repeated", field));
+        error->all(FLERR,"Peratom field {} is repeated", field);
 
     // error if field is in default str
 
     for (match = 0; match < ndef; match++)
       if (field == def_words[match])
-        error->all(FLERR,fmt::format("Peratom field {} is a default", field));
+        error->all(FLERR,"Peratom field {} is a default", field);
   }
 
   return nfield;

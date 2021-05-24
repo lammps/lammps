@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -173,8 +174,8 @@ void Force::init()
   // check if pair style must be specified after restart
   if (pair_restart) {
     if (!pair)
-      error->all(FLERR,fmt::format("Must re-specify non-restarted pair style "
-                                   "({}) after read_restart", pair_restart));
+      error->all(FLERR,"Must re-specify non-restarted pair style "
+                                   "({}) after read_restart", pair_restart);
   }
 
   if (kspace) kspace->init();         // kspace must come before pair
@@ -448,7 +449,7 @@ Angle *Force::new_angle(const std::string &style, int trysuffix, int &sflag)
 
     if (lmp->suffix2) {
       sflag = 2;
-      std::string estyle = style + "/" + lmp->suffix;
+      std::string estyle = style + "/" + lmp->suffix2;
       if (angle_map->find(estyle) != angle_map->end()) {
         AngleCreator &angle_creator = (*angle_map)[estyle];
         return angle_creator(lmp);
@@ -678,7 +679,7 @@ KSpace *Force::new_kspace(const std::string &style, int trysuffix, int &sflag)
     }
 
     if (lmp->suffix2) {
-      sflag = 1;
+      sflag = 2;
       std::string estyle = style + "/" + lmp->suffix2;
       if (kspace_map->find(estyle) != kspace_map->end()) {
         KSpaceCreator &kspace_creator = (*kspace_map)[estyle];

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(ave/atom,FixAveAtom)
-
+// clang-format off
+FixStyle(ave/atom,FixAveAtom);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_AVE_ATOM_H
@@ -41,16 +41,16 @@ class FixAveAtom : public Fix {
 
  private:
   int nvalues;
-  int nrepeat,irepeat;
-  bigint nvalid,nvalid_last;
-  int *which,*argindex,*value2index;
+  int nrepeat, irepeat;
+  bigint nvalid, nvalid_last;
+  int *which, *argindex, *value2index;
   char **ids;
   double **array;
 
   bigint nextvalid();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

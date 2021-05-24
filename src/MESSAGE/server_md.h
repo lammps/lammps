@@ -26,13 +26,13 @@ class ServerMD : protected Pointers {
 
  private:
   int units;
-  double fconvert,econvert,pconvert;
+  double fconvert, econvert, pconvert;
   double **fcopy;
 
   void box_change(double *, double *);
   void send_fev(int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif

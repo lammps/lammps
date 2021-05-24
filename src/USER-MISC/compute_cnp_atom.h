@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(cnp/atom,ComputeCNPAtom)
-
+// clang-format off
+ComputeStyle(cnp/atom,ComputeCNPAtom);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_CNP_ATOM_H
@@ -34,22 +34,22 @@ class ComputeCNPAtom : public Compute {
   double memory_usage();
 
  private:
-//revise
+  //revise
   int nmax;
   double cutsq;
   class NeighList *list;
   int **nearest;
   int *nnearest;
   double *cnpv;
-//  int nmax;
-//  double cutsq;
-//  class NeighList *list;
-//  int **nearest;
-// int *nnearest;
-//  double *pattern;
+  //  int nmax;
+  //  double cutsq;
+  //  class NeighList *list;
+  //  int **nearest;
+  // int *nnearest;
+  //  double *pattern;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

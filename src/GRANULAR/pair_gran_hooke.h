@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(gran/hooke,PairGranHooke)
-
+// clang-format off
+PairStyle(gran/hooke,PairGranHooke);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_GRAN_HOOKE_H
@@ -31,7 +31,7 @@ class PairGranHooke : public PairGranHookeHistory {
   double single(int, int, int, int, double, double, double, double &);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

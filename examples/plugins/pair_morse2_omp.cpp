@@ -27,8 +27,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairMorse2OMP::PairMorse2OMP(LAMMPS *lmp) :
-  PairMorse2(lmp), ThrOMP(lmp, THR_PAIR)
+PairMorse2OMP::PairMorse2OMP(LAMMPS *lmp) : PairMorse2(lmp), ThrOMP(lmp, THR_PAIR)
 {
   suffix_flag |= Suffix::OMP;
   respa_enable = 0;
@@ -38,14 +37,14 @@ PairMorse2OMP::PairMorse2OMP(LAMMPS *lmp) :
 
 void PairMorse2OMP::compute(int eflag, int vflag)
 {
-  ev_init(eflag,vflag);
+  ev_init(eflag, vflag);
 
   const int nall = atom->nlocal + atom->nghost;
   const int nthreads = comm->nthreads;
   const int inum = list->inum;
 
 #if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(eflag,vflag)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(eflag, vflag)
 #endif
   {
     int ifrom, ito, tid;
@@ -57,38 +56,44 @@ void PairMorse2OMP::compute(int eflag, int vflag)
 
     if (evflag) {
       if (eflag) {
-        if (force->newton_pair) eval<1,1,1>(ifrom, ito, thr);
-        else eval<1,1,0>(ifrom, ito, thr);
+        if (force->newton_pair)
+          eval<1, 1, 1>(ifrom, ito, thr);
+        else
+          eval<1, 1, 0>(ifrom, ito, thr);
       } else {
-        if (force->newton_pair) eval<1,0,1>(ifrom, ito, thr);
-        else eval<1,0,0>(ifrom, ito, thr);
+        if (force->newton_pair)
+          eval<1, 0, 1>(ifrom, ito, thr);
+        else
+          eval<1, 0, 0>(ifrom, ito, thr);
       }
     } else {
-      if (force->newton_pair) eval<0,0,1>(ifrom, ito, thr);
-      else eval<0,0,0>(ifrom, ito, thr);
+      if (force->newton_pair)
+        eval<0, 0, 1>(ifrom, ito, thr);
+      else
+        eval<0, 0, 0>(ifrom, ito, thr);
     }
 
     thr->timer(Timer::PAIR);
     reduce_thr(this, eflag, vflag, thr);
-  } // end of omp parallel region
+  }    // end of omp parallel region
 }
 
 template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
-void PairMorse2OMP::eval(int iifrom, int iito, ThrData * const thr)
+void PairMorse2OMP::eval(int iifrom, int iito, ThrData *const thr)
 {
-  int i,j,ii,jj,jnum,itype,jtype;
-  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
-  double rsq,r,dr,dexp,factor_lj;
-  int *ilist,*jlist,*numneigh,**firstneigh;
+  int i, j, ii, jj, jnum, itype, jtype;
+  double xtmp, ytmp, ztmp, delx, dely, delz, evdwl, fpair;
+  double rsq, r, dr, dexp, factor_lj;
+  int *ilist, *jlist, *numneigh, **firstneigh;
 
   evdwl = 0.0;
 
-  const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
-  dbl3_t * _noalias const f = (dbl3_t *) thr->get_f()[0];
-  const int * _noalias const type = atom->type;
+  const dbl3_t *_noalias const x = (dbl3_t *) atom->x[0];
+  dbl3_t *_noalias const f = (dbl3_t *) thr->get_f()[0];
+  const int *_noalias const type = atom->type;
   const int nlocal = atom->nlocal;
-  const double * _noalias const special_lj = force->special_lj;
-  double fxtmp,fytmp,fztmp;
+  const double *_noalias const special_lj = force->special_lj;
+  double fxtmp, fytmp, fztmp;
 
   ilist = list->ilist;
   numneigh = list->numneigh;
@@ -105,7 +110,7 @@ void PairMorse2OMP::eval(int iifrom, int iito, ThrData * const thr)
     itype = type[i];
     jlist = firstneigh[i];
     jnum = numneigh[i];
-    fxtmp=fytmp=fztmp=0.0;
+    fxtmp = fytmp = fztmp = 0.0;
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
@@ -115,32 +120,31 @@ void PairMorse2OMP::eval(int iifrom, int iito, ThrData * const thr)
       delx = xtmp - x[j].x;
       dely = ytmp - x[j].y;
       delz = ztmp - x[j].z;
-      rsq = delx*delx + dely*dely + delz*delz;
+      rsq = delx * delx + dely * dely + delz * delz;
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
         r = sqrt(rsq);
         dr = r - r0[itype][jtype];
         dexp = exp(-alpha[itype][jtype] * dr);
-        fpair = factor_lj * morse1[itype][jtype] * (dexp*dexp - dexp) / r;
+        fpair = factor_lj * morse1[itype][jtype] * (dexp * dexp - dexp) / r;
 
-        fxtmp += delx*fpair;
-        fytmp += dely*fpair;
-        fztmp += delz*fpair;
+        fxtmp += delx * fpair;
+        fytmp += dely * fpair;
+        fztmp += delz * fpair;
         if (NEWTON_PAIR || j < nlocal) {
-          f[j].x -= delx*fpair;
-          f[j].y -= dely*fpair;
-          f[j].z -= delz*fpair;
+          f[j].x -= delx * fpair;
+          f[j].y -= dely * fpair;
+          f[j].z -= delz * fpair;
         }
 
         if (EFLAG) {
-          evdwl = d0[itype][jtype] * (dexp*dexp - 2.0*dexp) -
-            offset[itype][jtype];
+          evdwl = d0[itype][jtype] * (dexp * dexp - 2.0 * dexp) - offset[itype][jtype];
           evdwl *= factor_lj;
         }
 
-        if (EVFLAG) ev_tally_thr(this,i,j,nlocal,NEWTON_PAIR,
-                                 evdwl,0.0,fpair,delx,dely,delz,thr);
+        if (EVFLAG)
+          ev_tally_thr(this, i, j, nlocal, NEWTON_PAIR, evdwl, 0.0, fpair, delx, dely, delz, thr);
       }
     }
     f[i].x += fxtmp;

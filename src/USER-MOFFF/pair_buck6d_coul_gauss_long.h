@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(buck6d/coul/gauss/long,PairBuck6dCoulGaussLong)
-
+// clang-format off
+PairStyle(buck6d/coul/gauss/long,PairBuck6dCoulGaussLong);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_BUCK6D_COUL_GAUSS_LONG_H
@@ -44,19 +44,19 @@ class PairBuck6dCoulGaussLong : public Pair {
 
  protected:
   double cut_lj_global;
-  double **cut_lj,**cut_ljsq;
+  double **cut_lj, **cut_ljsq;
   double **alpha_ij;
-  double **buck6d1,**buck6d2,**buck6d3,**buck6d4,**offset;
+  double **buck6d1, **buck6d2, **buck6d3, **buck6d4, **offset;
   double cut_coul, cut_coulsq;
   double vdwl_smooth, coul_smooth;
-  double c0_c,c1_c,c2_c,c3_c,c4_c,c5_c,rsmooth_sq_c;
-  double **c0,**c1,**c2,**c3,**c4,**c5,**rsmooth_sq;
+  double c0_c, c1_c, c2_c, c3_c, c4_c, c5_c, rsmooth_sq_c;
+  double **c0, **c1, **c2, **c3, **c4, **c5, **rsmooth_sq;
   double g_ewald;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

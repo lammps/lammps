@@ -7,9 +7,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(qeq/comb/omp,FixQEQCombOMP)
-
+// clang-format off
+FixStyle(qeq/comb/omp,FixQEQCombOMP);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_QEQ_COMB_OMP_H
@@ -26,7 +26,7 @@ class FixQEQCombOMP : public FixQEQComb {
   virtual void post_force(int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

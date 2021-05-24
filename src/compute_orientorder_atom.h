@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(orientorder/atom,ComputeOrientOrderAtom)
-
+// clang-format off
+ComputeStyle(orientorder/atom,ComputeOrientOrderAtom);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_ORIENTORDER_ATOM_H
@@ -38,7 +38,7 @@ class ComputeOrientOrderAtom : public Compute {
   int nqlist;
 
  protected:
-  int nmax,maxneigh,ncol,nnn;
+  int nmax, maxneigh, ncol, nnn;
   class NeighList *list;
   double *distsq;
   int *nearest;
@@ -49,20 +49,19 @@ class ComputeOrientOrderAtom : public Compute {
   double **qnm_i;
 
   void select3(int, int, double *, int *, double **);
-  void calc_boop(double **rlist, int numNeighbors,
-                 double qn[], int nlist[], int nnlist);
+  void calc_boop(double **rlist, int numNeighbors, double qn[], int nlist[], int nnlist);
   double dist(const double r[]);
 
   double polar_prefactor(int, int, double);
   double associated_legendre(int, int, double);
 
   virtual void init_clebsch_gordan();
-  double *cglist;                      // Clebsch-Gordan coeffs
+  double *cglist;    // Clebsch-Gordan coeffs
   int idxcg_max;
   int chunksize;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

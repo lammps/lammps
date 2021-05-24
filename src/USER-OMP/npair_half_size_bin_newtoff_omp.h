@@ -12,12 +12,12 @@
 ------------------------------------------------------------------------- */
 
 #ifdef NPAIR_CLASS
-
+// clang-format off
 NPairStyle(half/size/bin/newtoff/omp,
            NPairHalfSizeBinNewtoffOmp,
            NP_HALF | NP_SIZE | NP_BIN | NP_NEWTOFF | NP_OMP |
-           NP_ORTHO | NP_TRI)
-
+           NP_ORTHO | NP_TRI);
+// clang-format on
 #else
 
 #ifndef LMP_NPAIR_HALF_SIZE_BIN_NEWTOFF_OMP_H
@@ -34,7 +34,7 @@ class NPairHalfSizeBinNewtoffOmp : public NPair {
   void build(class NeighList *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

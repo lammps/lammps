@@ -12,10 +12,10 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(oxdna/hbond,PairOxdnaHbond)
-PairStyle(oxdna2/hbond,PairOxdnaHbond)
-
+// clang-format off
+PairStyle(oxdna/hbond,PairOxdnaHbond);
+PairStyle(oxdna2/hbond,PairOxdnaHbond);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_OXDNA_HBOND_H
@@ -72,7 +72,7 @@ class PairOxdnaHbond : public Pair {
   virtual void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef IMPROPER_CLASS
-
-ImproperStyle(cossq,ImproperCossq)
-
+// clang-format off
+ImproperStyle(cossq,ImproperCossq);
+// clang-format on
 #else
 
 #ifndef LMP_IMPROPER_COSSQ_H
@@ -39,7 +39,7 @@ class ImproperCossq : public Improper {
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

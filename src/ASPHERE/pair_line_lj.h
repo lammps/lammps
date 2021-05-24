@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(line/lj,PairLineLJ)
-
+// clang-format off
+PairStyle(line/lj,PairLineLJ);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_LINE_LJ_H
@@ -37,28 +37,28 @@ class PairLineLJ : public Pair {
  protected:
   double cut_global;
   double *subsize;
-  double **epsilon,**sigma,**cutsub,**cutsubsq;
+  double **epsilon, **sigma, **cutsub, **cutsubsq;
   double **cut;
-  double **lj1,**lj2,**lj3,**lj4;     // for sphere/sphere interactions
+  double **lj1, **lj2, **lj3, **lj4;    // for sphere/sphere interactions
   class AtomVecLine *avec;
 
-  double *size;     // per-type size of sub-particles to tile line segment
+  double *size;    // per-type size of sub-particles to tile line segment
 
   struct Discrete {
-    double dx,dy;
+    double dx, dy;
   };
-  Discrete *discrete;           // list of all discretes for all lines
-  int ndiscrete;                // number of discretes in list
-  int dmax;                     // allocated size of discrete list
-  int *dnum;                    // number of discretes per line, 0 if uninit
-  int *dfirst;                  // index of first discrete per each line
-  int nmax;                     // allocated size of dnum,dfirst vectors
+  Discrete *discrete;    // list of all discretes for all lines
+  int ndiscrete;         // number of discretes in list
+  int dmax;              // allocated size of discrete list
+  int *dnum;             // number of discretes per line, 0 if uninit
+  int *dfirst;           // index of first discrete per each line
+  int nmax;              // allocated size of dnum,dfirst vectors
 
   void allocate();
   void discretize(int, double);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

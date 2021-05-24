@@ -1,3 +1,4 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -19,27 +20,27 @@
 // standard routines.
 
 #ifdef NPAIR_CLASS
-
+// clang-format off
 NPairStyle(halffull/newtoff/intel,
            NPairHalffullNewtoff,
            NP_HALF_FULL | NP_NEWTOFF | NP_NSQ | NP_BIN | NP_MULTI | NP_HALF |
-           NP_ORTHO | NP_TRI | NP_INTEL)
+           NP_ORTHO | NP_TRI | NP_INTEL);
 
 NPairStyle(halffull/newtoff/skip/intel,
            NPairHalffullNewtoff,
            NP_HALF_FULL | NP_NEWTOFF | NP_NSQ | NP_BIN | NP_MULTI | NP_HALF |
-           NP_ORTHO | NP_TRI | NP_SKIP | NP_INTEL)
+           NP_ORTHO | NP_TRI | NP_SKIP | NP_INTEL);
 
 NPairStyle(halffull/newtoff/ghost/intel,
            NPairHalffullNewtoff,
            NP_HALF_FULL | NP_NEWTOFF | NP_NSQ | NP_BIN | NP_MULTI | NP_HALF |
-           NP_ORTHO | NP_TRI | NP_GHOST | NP_INTEL)
+           NP_ORTHO | NP_TRI | NP_GHOST | NP_INTEL);
 
 NPairStyle(halffull/newtoff/skip/ghost/intel,
            NPairHalffullNewtoff,
            NP_HALF_FULL | NP_NEWTOFF | NP_NSQ | NP_BIN | NP_MULTI | NP_HALF |
-           NP_ORTHO | NP_TRI | NP_SKIP | NP_GHOST | NP_INTEL)
-
+           NP_ORTHO | NP_TRI | NP_SKIP | NP_GHOST | NP_INTEL);
+// clang-format on
 #endif
 
 /* ERROR/WARNING messages:

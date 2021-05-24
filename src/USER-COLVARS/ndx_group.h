@@ -14,9 +14,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMMAND_CLASS
-
-CommandStyle(ndx2group,Ndx2Group)
-
+// clang-format off
+CommandStyle(ndx2group,Ndx2Group);
+// clang-format on
 #else
 
 #ifndef LMP_NDX_GROUP_H
@@ -29,13 +29,14 @@ namespace LAMMPS_NS {
 
 class Ndx2Group : public Command {
  public:
-  Ndx2Group(class LAMMPS *lmp) : Command(lmp) {};
+  Ndx2Group(class LAMMPS *lmp) : Command(lmp){};
   void command(int, char **);
+
  private:
   void create(const std::string &, const std::vector<tagint> &);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

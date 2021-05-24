@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(momentum,FixMomentum)
-
+// clang-format off
+FixStyle(momentum,FixMomentum);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_MOMENTUM_H
@@ -32,12 +32,12 @@ class FixMomentum : public Fix {
   void end_of_step();
 
  protected:
-  int linear,angular,rescale;
-  int xflag,yflag,zflag;
+  int linear, angular, rescale;
+  int xflag, yflag, zflag;
   double masstotal;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

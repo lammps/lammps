@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(READ_RESTART,FixReadRestart)
-
+// clang-format off
+FixStyle(READ_RESTART,FixReadRestart);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_READ_RESTART_H
@@ -40,10 +40,10 @@ class FixReadRestart : public Fix {
   int unpack_exchange(int, double *);
 
  private:
-  int nextra;          // max number of extra values for any atom
+  int nextra;    // max number of extra values for any atom
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

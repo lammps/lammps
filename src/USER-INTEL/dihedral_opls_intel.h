@@ -1,3 +1,4 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -16,9 +17,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef DIHEDRAL_CLASS
-
-DihedralStyle(opls/intel,DihedralOPLSIntel)
-
+// clang-format off
+DihedralStyle(opls/intel,DihedralOPLSIntel);
+// clang-format on
 #else
 
 #ifndef LMP_DIHEDRAL_OPLS_INTEL_H

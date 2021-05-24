@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -38,7 +39,7 @@ ComputeGyrationChunk::ComputeGyrationChunk(LAMMPS *lmp, int narg, char **arg) :
 
   idchunk = utils::strdup(arg[3]);
 
-  init();
+  ComputeGyrationChunk::init();
 
   // optional args
 
@@ -139,7 +140,7 @@ void ComputeGyrationChunk::compute_vector()
 
   MPI_Allreduce(rg,rgall,nchunk,MPI_DOUBLE,MPI_SUM,world);
 
-  for (int i = 0; i < nchunk; i++)
+  for (i = 0; i < nchunk; i++)
     if (masstotal[i] > 0.0)
       rgall[i] = sqrt(rgall[i]/masstotal[i]);
 }

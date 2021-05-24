@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(bond/create/angle,FixBondCreateAngle)
-
+// clang-format off
+FixStyle(bond/create/angle,FixBondCreateAngle);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_BOND_CREATE_ANGLE_H
@@ -32,7 +32,7 @@ class FixBondCreateAngle : public FixBondCreate {
   int constrain(int, int, double, double);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

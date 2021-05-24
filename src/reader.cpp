@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -56,8 +57,8 @@ void Reader::open_file(const char *file)
   }
 
   if (fp == nullptr)
-    error->one(FLERR,fmt::format("Cannot open file {}: {}",
-                                 file, utils::getsyserror()));
+    error->one(FLERR,"Cannot open file {}: {}",
+                                 file, utils::getsyserror());
 }
 
 /* ----------------------------------------------------------------------

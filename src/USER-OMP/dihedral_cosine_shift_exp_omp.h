@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef DIHEDRAL_CLASS
-
-DihedralStyle(cosine/shift/exp/omp,DihedralCosineShiftExpOMP)
-
+// clang-format off
+DihedralStyle(cosine/shift/exp/omp,DihedralCosineShiftExpOMP);
+// clang-format on
 #else
 
 #ifndef LMP_DIHEDRAL_COSINE_SHIFT_EXP_OMP_H
@@ -37,10 +37,10 @@ class DihedralCosineShiftExpOMP : public DihedralCosineShiftExp, public ThrOMP {
 
  private:
   template <int EVFLAG, int EFLAG, int NEWTON_BOND>
-  void eval(int ifrom, int ito, ThrData * const thr);
+  void eval(int ifrom, int ito, ThrData *const thr);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

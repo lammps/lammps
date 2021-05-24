@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef BOND_CLASS
-
-BondStyle(nonlinear/omp,BondNonlinearOMP)
-
+// clang-format off
+BondStyle(nonlinear/omp,BondNonlinearOMP);
+// clang-format on
 #else
 
 #ifndef LMP_BOND_NONLINEAR_OMP_H
@@ -37,10 +37,10 @@ class BondNonlinearOMP : public BondNonlinear, public ThrOMP {
 
  private:
   template <int EVFLAG, int EFLAG, int NEWTON_BOND>
-  void eval(int ifrom, int ito, ThrData * const thr);
+  void eval(int ifrom, int ito, ThrData *const thr);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef BOND_CLASS
-
-BondStyle(gromos,BondGromos)
-
+// clang-format off
+BondStyle(gromos,BondGromos);
+// clang-format on
 #else
 
 #ifndef LMP_BOND_GROMOS_H
@@ -38,12 +38,12 @@ class BondGromos : public Bond {
   virtual void *extract(const char *, int &);
 
  protected:
-  double *k,*r0;
+  double *k, *r0;
 
   virtual void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

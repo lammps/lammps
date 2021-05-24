@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(body/nparticle,PairBodyNparticle)
-
+// clang-format off
+PairStyle(body/nparticle,PairBodyNparticle);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_BODY_NPARTICLE_H
@@ -37,24 +37,24 @@ class PairBodyNparticle : public Pair {
  protected:
   double cut_global;
   double **cut;
-  double **epsilon,**sigma;
-  double **lj1,**lj2,**lj3,**lj4;
+  double **epsilon, **sigma;
+  double **lj1, **lj2, **lj3, **lj4;
 
   class AtomVecBody *avec;
   class BodyNparticle *bptr;
 
-  double **discrete;            // list of all sub-particles for all bodies
-  int ndiscrete;                // number of discretes in list
-  int dmax;                     // allocated size of discrete list
-  int *dnum;                    // number of discretes per line, 0 if uninit
-  int *dfirst;                  // index of first discrete per each line
-  int nmax;                     // allocated size of dnum,dfirst vectors
+  double **discrete;    // list of all sub-particles for all bodies
+  int ndiscrete;        // number of discretes in list
+  int dmax;             // allocated size of discrete list
+  int *dnum;            // number of discretes per line, 0 if uninit
+  int *dfirst;          // index of first discrete per each line
+  int nmax;             // allocated size of dnum,dfirst vectors
 
   void allocate();
   void body2space(int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

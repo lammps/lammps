@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -50,11 +51,19 @@ template<class DeviceType>
 PairTableKokkos<DeviceType>::~PairTableKokkos()
 {
   if (copymode) return;
+
+  if (allocated) {
+    memoryKK->destroy_kokkos(k_eatom,eatom);
+    memoryKK->destroy_kokkos(k_vatom,vatom);
+    memory->destroy(setflag);
+    memoryKK->destroy_kokkos(d_table->cutsq,cutsq);
+    memoryKK->destroy_kokkos(d_table->tabindex,tabindex);
+  }
+
   delete h_table;
   h_table = nullptr;
   delete d_table;
   d_table = nullptr;
-  copymode = true; //prevents base class destructor from running
 }
 
 /* ---------------------------------------------------------------------- */
@@ -116,6 +125,8 @@ void PairTableKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
   newton_pair = force->newton_pair;
   d_cutsq = d_table->cutsq;
   // loop over neighbors of my atoms
+
+  copymode = 1;
 
   EV_FLOAT ev;
   if (atom->ntypes > MAX_TYPES_STACKPARAMS) {
@@ -182,6 +193,7 @@ void PairTableKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
 
   if (vflag_fdotr) pair_virial_fdotr_compute(this);
 
+  copymode = 0;
 }
 
 template<class DeviceType>
@@ -517,16 +529,6 @@ void PairTableKokkos<DeviceType>::init_style()
   } else {
     error->all(FLERR,"Cannot use chosen neighbor list style with lj/cut/kk");
   }
-}
-
-template<class DeviceType>
-void PairTableKokkos<DeviceType>::cleanup_copy() {
-  // WHY needed: this prevents parent copy from deallocating any arrays
-  allocated = 0;
-  cutsq = nullptr;
-  eatom = nullptr;
-  vatom = nullptr;
-  h_table=nullptr; d_table=nullptr;
 }
 
 namespace LAMMPS_NS {

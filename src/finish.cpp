@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -121,9 +122,9 @@ void Finish::end(int flag)
 
     if (me == 0) {
       int ntasks = nprocs * nthreads;
-      utils::logmesg(lmp,fmt::format("Loop time of {:.6g} on {} procs for "
-                                     "{} steps with {} atoms\n\n",time_loop,
-                                     ntasks,update->nsteps,atom->natoms));
+      utils::logmesg(lmp,"Loop time of {:.6g} on {} procs for "
+                     "{} steps with {} atoms\n\n",time_loop,
+                     ntasks,update->nsteps,atom->natoms);
 
       // Gromacs/NAMD-style performance metric for suitable unit settings
 
@@ -141,20 +142,18 @@ void Finish::end(int flag)
 
         if (strcmp(update->unit_style,"lj") == 0) {
           double tau_day = 24.0*3600.0 / t_step * update->dt / one_fs;
-          utils::logmesg(lmp,fmt::format("Performance: {:.3f} tau/day, {:.3f} "
-                                         "timesteps/s\n",tau_day,step_t));
+          utils::logmesg(lmp,"Performance: {:.3f} tau/day, {:.3f} "
+                         "timesteps/s\n",tau_day,step_t);
         } else if (strcmp(update->unit_style,"electron") == 0) {
           double hrs_fs = t_step / update->dt * one_fs / 3600.0;
           double fs_day = 24.0*3600.0 / t_step * update->dt / one_fs;
-          utils::logmesg(lmp,fmt::format("Performance: {:.3f} fs/day, {:.3f} "
-                                         "hours/fs, {:.3f} timesteps/s\n",
-                                         fs_day,hrs_fs,step_t));
+          utils::logmesg(lmp,"Performance: {:.3f} fs/day, {:.3f} hours/fs, "
+                         "{:.3f} timesteps/s\n",fs_day,hrs_fs,step_t);
         } else {
           double hrs_ns = t_step / update->dt * 1000000.0 * one_fs / 3600.0;
           double ns_day = 24.0*3600.0 / t_step * update->dt / one_fs/1000000.0;
-          utils::logmesg(lmp,fmt::format("Performance: {:.3f} ns/day, {:.3f} "
-                                         "hours/ns, {:.3f} timesteps/s\n",
-                                         ns_day,hrs_ns,step_t));
+          utils::logmesg(lmp,"Performance: {:.3f} ns/day, {:.3f} hours/ns, "
+                         "{:.3f} timesteps/s\n",ns_day,hrs_ns,step_t);
         }
       }
 
@@ -162,17 +161,15 @@ void Finish::end(int flag)
 
       if (timeflag) {
         if (lmp->kokkos) {
-          utils::logmesg(lmp,fmt::format("{:.1f}% CPU use with {} MPI tasks "
-                                         "x {} OpenMP threads\n",cpu_loop,nprocs,
-                                         lmp->kokkos->nthreads));
+          utils::logmesg(lmp,"{:.1f}% CPU use with {} MPI tasks x {} OpenMP "
+                         "threads\n",cpu_loop,nprocs,lmp->kokkos->nthreads);
         } else {
 #if defined(_OPENMP)
-          utils::logmesg(lmp,fmt::format("{:.1f}% CPU use with {} MPI tasks "
-                                         "x {} OpenMP threads\n",
-                                         cpu_loop,nprocs,nthreads));
+          utils::logmesg(lmp,"{:.1f}% CPU use with {} MPI tasks x {} OpenMP "
+                         "threads\n",cpu_loop,nprocs,nthreads);
 #else
-          utils::logmesg(lmp,fmt::format("{:.1f}% CPU use with {} MPI tasks "
-                                         "x no OpenMP threads\n",cpu_loop,nprocs));
+          utils::logmesg(lmp,"{:.1f}% CPU use with {} MPI tasks "
+                         "x no OpenMP threads\n",cpu_loop,nprocs);
 #endif
         }
       }
@@ -225,33 +222,33 @@ void Finish::end(int flag)
     time = timer->get_wall(Timer::DEPHASE);
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
-    if (me == 0) utils::logmesg(lmp,fmt::format("  Dephase  time (%) = {} ({})\n",
-                                                time,time/time_loop*100.0));
+    if (me == 0) utils::logmesg(lmp,"  Dephase  time (%) = {} ({})\n",
+                                time,time/time_loop*100.0);
     time = timer->get_wall(Timer::DYNAMICS);
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
-    if (me == 0) utils::logmesg(lmp,fmt::format("  Dynamics time (%) = {} ({})\n",
-                                                time,time/time_loop*100.0));
+    if (me == 0) utils::logmesg(lmp,"  Dynamics time (%) = {} ({})\n",
+                                time,time/time_loop*100.0);
     time = timer->get_wall(Timer::QUENCH);
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
-    if (me == 0) utils::logmesg(lmp,fmt::format("  Quench   time (%) = {} ({})\n",
-                                                time,time/time_loop*100.0));
+    if (me == 0) utils::logmesg(lmp,"  Quench   time (%) = {} ({})\n",
+                                time,time/time_loop*100.0);
     time = timer->get_wall(Timer::REPCOMM);
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
-    if (me == 0) utils::logmesg(lmp,fmt::format("  Comm     time (%) = {} ({})\n",
-                                                time,time/time_loop*100.0));
+    if (me == 0) utils::logmesg(lmp,"  Comm     time (%) = {} ({})\n",
+                                time,time/time_loop*100.0);
     time = timer->get_wall(Timer::REPOUT);
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
-    if (me == 0) utils::logmesg(lmp,fmt::format("  Output   time (%) = {} ({})\n",
-                                                time,time/time_loop*100.0));
+    if (me == 0) utils::logmesg(lmp,"  Output   time (%) = {} ({})\n",
+                                time,time/time_loop*100.0);
     time = time_other;
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
-    if (me == 0) utils::logmesg(lmp,fmt::format("  Other    time (%) = {} ({})\n",
-                                                time,time/time_loop*100.0));
+    if (me == 0) utils::logmesg(lmp,"  Other    time (%) = {} ({})\n",
+                                time,time/time_loop*100.0);
   }
 
   // TAD stats
@@ -262,33 +259,33 @@ void Finish::end(int flag)
     time = timer->get_wall(Timer::NEB);
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
-    if (me == 0) utils::logmesg(lmp,fmt::format("  NEB      time (%) = {} ({})\n",
-                                                time,time/time_loop*100.0));
+    if (me == 0) utils::logmesg(lmp,"  NEB      time (%) = {} ({})\n",
+                                time,time/time_loop*100.0);
     time = timer->get_wall(Timer::DYNAMICS);
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
-    if (me == 0) utils::logmesg(lmp,fmt::format("  Dynamics time (%) = {} ({})\n",
-                                                time,time/time_loop*100.0));
+    if (me == 0) utils::logmesg(lmp,"  Dynamics time (%) = {} ({})\n",
+                                time,time/time_loop*100.0);
     time = timer->get_wall(Timer::QUENCH);
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
-    if (me == 0) utils::logmesg(lmp,fmt::format("  Quench   time (%) = {} ({})\n",
-                                                time,time/time_loop*100.0));
+    if (me == 0) utils::logmesg(lmp,"  Quench   time (%) = {} ({})\n",
+                                time,time/time_loop*100.0);
     time = timer->get_wall(Timer::REPCOMM);
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
-    if (me == 0) utils::logmesg(lmp,fmt::format("  Comm     time (%) = {} ({})\n",
-                                                time,time/time_loop*100.0));
+    if (me == 0) utils::logmesg(lmp,"  Comm     time (%) = {} ({})\n",
+                                time,time/time_loop*100.0);
     time = timer->get_wall(Timer::REPOUT);
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
-    if (me == 0) utils::logmesg(lmp,fmt::format("  Output   time (%) = {} ({})\n",
-                                                time,time/time_loop*100.0));
+    if (me == 0) utils::logmesg(lmp,"  Output   time (%) = {} ({})\n",
+                                time,time/time_loop*100.0);
     time = time_other;
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
-    if (me == 0) utils::logmesg(lmp,fmt::format("  Other    time (%) = {} ({})\n",
-                                                time,time/time_loop*100.0));
+    if (me == 0) utils::logmesg(lmp,"  Other    time (%) = {} ({})\n",
+                                time,time/time_loop*100.0);
   }
 
   // HYPER stats
@@ -299,18 +296,18 @@ void Finish::end(int flag)
     time = timer->get_wall(Timer::DYNAMICS);
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
-    if (me == 0) utils::logmesg(lmp,fmt::format("  Dynamics time (%) = {} ({})\n",
-                                                time,time/time_loop*100.0));
+    if (me == 0) utils::logmesg(lmp,"  Dynamics time (%) = {} ({})\n",
+                                time,time/time_loop*100.0);
     time = timer->get_wall(Timer::QUENCH);
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
-    if (me == 0) utils::logmesg(lmp,fmt::format("  Quench   time (%) = {} ({})\n",
-                                                time,time/time_loop*100.0));
+    if (me == 0) utils::logmesg(lmp,"  Quench   time (%) = {} ({})\n",
+                                time,time/time_loop*100.0);
     time = time_other;
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
-    if (me == 0) utils::logmesg(lmp,fmt::format("  Other    time (%) = {} ({})\n",
-                                                time,time/time_loop*100.0));
+    if (me == 0) utils::logmesg(lmp,"  Other    time (%) = {} ({})\n",
+                                time,time/time_loop*100.0);
   }
 
   // further timing breakdowns
@@ -358,13 +355,11 @@ void Finish::end(int flag)
 
     if (me == 0) {
       if (timer->has_full())
-        utils::logmesg(lmp,fmt::format("Other   |            | {:<10.4g} |    "
-                                       "        |       |       |{:6.2f}\n",
-                                       time,time/time_loop*100.0));
+        utils::logmesg(lmp,"Other   |            | {:<10.4g} |            |  "
+                       "     |       |{:6.2f}\n",time,time/time_loop*100.0);
       else
-        utils::logmesg(lmp,fmt::format("Other   |            | {:<10.4g} |    "
-                                       "        |       |{:6.2f}\n",
-                                       time,time/time_loop*100.0));
+        utils::logmesg(lmp,"Other   |            | {:<10.4g} |            |  "
+                       "     |{:6.2f}\n",time,time/time_loop*100.0);
     }
   }
 
@@ -388,7 +383,7 @@ void Finish::end(int flag)
         "\nThread timing breakdown (MPI rank {}):\nTotal threaded time {:.4g} / {:.1f}%\n"
         "Section |  min time  |  avg time  |  max time  |%varavg| %total\n"
         "---------------------------------------------------------------\n";
-      utils::logmesg(lmp,fmt::format(thr_fmt,me,thr_total,thr_total/time_loop*100.0));
+      utils::logmesg(lmp,thr_fmt,me,thr_total,thr_total/time_loop*100.0);
 
       omp_times(fixomp,"Pair",Timer::PAIR,nthreads,screen,logfile);
       if (atom->molecular != Atom::ATOMIC)
@@ -460,9 +455,9 @@ void Finish::end(int flag)
     } else fraction = flop3 = flop1 = 0.0;
 
     if (me == 0)
-      utils::logmesg(lmp,fmt::format("FFT time (% of Kspce) = {:.6} ({:.4})\n"
-                                     "FFT Gflps 3d (1d only) = {:.8} {:.8}\n",
-                                     time3d,fraction,flop3,flop1));
+      utils::logmesg(lmp,"FFT time (% of Kspce) = {:.6} ({:.4})\n"
+                     "FFT Gflps 3d (1d only) = {:.8} {:.8}\n",
+                     time3d,fraction,flop3,flop1);
   }
 
   if (histoflag) {

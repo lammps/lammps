@@ -76,16 +76,28 @@ int get_gpu(const InitArguments& args);
 }  // namespace Impl
 
 namespace Experimental {
-SYCL::SYCL() : m_space_instance(&Impl::SYCLInternal::singleton()) {
+SYCL::SYCL()
+    : m_space_instance(&Impl::SYCLInternal::singleton(),
+                       [](Impl::SYCLInternal*) {}) {
   Impl::SYCLInternal::singleton().verify_is_initialized(
       "SYCL instance constructor");
 }
 
-int SYCL::concurrency() {
-  // FIXME_SYCL We need a value larger than 1 here for some tests to pass,
-  // clearly this is true but not the roght value
-  return 2;
+SYCL::SYCL(const sycl::queue& stream)
+    : m_space_instance(new Impl::SYCLInternal, [](Impl::SYCLInternal* ptr) {
+        ptr->finalize();
+        delete ptr;
+      }) {
+  Impl::SYCLInternal::singleton().verify_is_initialized(
+      "SYCL instance constructor");
+  m_space_instance->initialize(stream);
 }
+
+int SYCL::concurrency() {
+  return Impl::SYCLInternal::singleton().m_maxConcurrency;
+}
+
+const char* SYCL::name() { return "SYCL"; }
 
 bool SYCL::impl_is_initialized() {
   return Impl::SYCLInternal::singleton().is_initialized();
@@ -93,25 +105,46 @@ bool SYCL::impl_is_initialized() {
 
 void SYCL::impl_finalize() { Impl::SYCLInternal::singleton().finalize(); }
 
-void SYCL::fence() const { m_space_instance->m_queue->wait(); }
+void SYCL::fence() const {
+  Impl::SYCLInternal::fence(*m_space_instance->m_queue);
+}
+
+void SYCL::impl_static_fence() {
+  // guard accessing all_queues
+  std::lock_guard<std::mutex> lock(Impl::SYCLInternal::mutex);
+  for (auto& queue : Impl::SYCLInternal::all_queues)
+    Impl::SYCLInternal::fence(**queue);
+}
 
 int SYCL::sycl_device() const {
   return impl_internal_space_instance()->m_syclDev;
 }
 
-SYCL::SYCLDevice::SYCLDevice(cl::sycl::device d) : m_device(std::move(d)) {}
+SYCL::SYCLDevice::SYCLDevice(sycl::device d) : m_device(std::move(d)) {}
 
-SYCL::SYCLDevice::SYCLDevice(const cl::sycl::device_selector& selector)
+SYCL::SYCLDevice::SYCLDevice(const sycl::device_selector& selector)
     : m_device(selector.select_device()) {}
 
-cl::sycl::device SYCL::SYCLDevice::get_device() const { return m_device; }
+SYCL::SYCLDevice::SYCLDevice(size_t id) {
+  std::vector<sycl::device> gpu_devices =
+      sycl::device::get_devices(sycl::info::device_type::gpu);
+  if (id >= gpu_devices.size()) {
+    std::stringstream error_message;
+    error_message << "Requested GPU with id " << id << " but only "
+                  << gpu_devices.size() << " GPU(s) available!\n";
+    Kokkos::Impl::throw_runtime_exception(error_message.str());
+  }
+  m_device = gpu_devices[id];
+}
+
+sycl::device SYCL::SYCLDevice::get_device() const { return m_device; }
 
 void SYCL::impl_initialize(SYCL::SYCLDevice d) {
   Impl::SYCLInternal::singleton().initialize(d.get_device());
 }
 
 std::ostream& SYCL::SYCLDevice::info(std::ostream& os) const {
-  using namespace cl::sycl::info;
+  using namespace sycl::info;
   return os << "Name: " << m_device.get_info<device::name>()
             << "\nDriver Version: "
             << m_device.get_info<device::driver_version>()
@@ -227,7 +260,7 @@ std::ostream& SYCL::SYCLDevice::info(std::ostream& os) const {
 
 namespace Impl {
 
-int g_hip_space_factory_initialized =
+int g_sycl_space_factory_initialized =
     Kokkos::Impl::initialize_space_factory<SYCLSpaceInitializer>("170_SYCL");
 
 void SYCLSpaceInitializer::initialize(const InitArguments& args) {
@@ -236,9 +269,13 @@ void SYCLSpaceInitializer::initialize(const InitArguments& args) {
   if (std::is_same<Kokkos::Experimental::SYCL,
                    Kokkos::DefaultExecutionSpace>::value ||
       0 < use_gpu) {
-    // FIXME_SYCL choose a specific device
-    Kokkos::Experimental::SYCL::impl_initialize(
-        Kokkos::Experimental::SYCL::SYCLDevice(cl::sycl::default_selector()));
+    if (use_gpu > -1) {
+      Kokkos::Experimental::SYCL::impl_initialize(
+          Kokkos::Experimental::SYCL::SYCLDevice(use_gpu));
+    } else {
+      Kokkos::Experimental::SYCL::impl_initialize(
+          Kokkos::Experimental::SYCL::SYCLDevice(sycl::default_selector()));
+    }
   }
 }
 
@@ -252,9 +289,7 @@ void SYCLSpaceInitializer::finalize(const bool all_spaces) {
 }
 
 void SYCLSpaceInitializer::fence() {
-  // FIXME_SYCL should be
-  //  Kokkos::Experimental::SYCL::impl_static_fence();
-  Kokkos::Experimental::SYCL().fence();
+  Kokkos::Experimental::SYCL::impl_static_fence();
 }
 
 void SYCLSpaceInitializer::print_configuration(std::ostream& msg,

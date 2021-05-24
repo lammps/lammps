@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(eam/fs/opt,PairEAMFSOpt)
-
+// clang-format off
+PairStyle(eam/fs/opt,PairEAMFSOpt);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_EAM_FS_OPT_H
@@ -31,7 +31,7 @@ class PairEAMFSOpt : public PairEAMFS, public PairEAMOpt {
   virtual ~PairEAMFSOpt() {}
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

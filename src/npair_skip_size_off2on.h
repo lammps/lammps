@@ -12,13 +12,13 @@
 ------------------------------------------------------------------------- */
 
 #ifdef NPAIR_CLASS
-
+// clang-format off
 NPairStyle(skip/size/off2on,
            NPairSkipSizeOff2on,
            NP_SKIP | NP_SIZE | NP_OFF2ON | NP_HALF |
-           NP_NSQ | NP_BIN | NP_MULTI |
-           NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI)
-
+           NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD |
+           NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI);
+// clang-format on
 #else
 
 #ifndef LMP_NPAIR_SKIP_SIZE_OFF2ON_H
@@ -35,7 +35,7 @@ class NPairSkipSizeOff2on : public NPair {
   void build(class NeighList *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

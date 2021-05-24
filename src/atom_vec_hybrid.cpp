@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -98,7 +99,7 @@ void AtomVecHybrid::process_args(int narg, char **arg)
   // call process_args() with set of args that are not atom style names
   // use known_style() to determine which args these are
 
-  int i,jarg,dummy;
+  int i,k,jarg,dummy;
 
   int iarg = 0;
   nstyles = 0;
@@ -123,7 +124,7 @@ void AtomVecHybrid::process_args(int narg, char **arg)
   molecular = Atom::ATOMIC;
   maxexchange = 0;
 
-  for (int k = 0; k < nstyles; k++) {
+  for (k = 0; k < nstyles; k++) {
     if ((styles[k]->molecular == Atom::MOLECULAR && molecular == Atom::TEMPLATE) ||
         (styles[k]->molecular == Atom::TEMPLATE && molecular == Atom::MOLECULAR))
       error->all(FLERR,
@@ -147,7 +148,7 @@ void AtomVecHybrid::process_args(int narg, char **arg)
   int mass_pertype = 0;
   int mass_peratom = 0;
 
-  for (int k = 0; k < nstyles; k++) {
+  for (k = 0; k < nstyles; k++) {
     if (styles[k]->mass_type == 0) mass_peratom = 1;
     if (styles[k]->mass_type == 1) mass_pertype = 1;
   }
@@ -159,14 +160,14 @@ void AtomVecHybrid::process_args(int narg, char **arg)
 
   // free allstyles created by build_styles()
 
-  for (int i = 0; i < nallstyles; i++) delete [] allstyles[i];
+  for (i = 0; i < nallstyles; i++) delete [] allstyles[i];
   delete [] allstyles;
 
   // set field strings from all substyles
 
   fieldstrings = new FieldStrings[nstyles];
 
-  for (int k = 0; k < nstyles; k++) {
+  for (k = 0; k < nstyles; k++) {
     fieldstrings[k].fstr = new char*[NFIELDSTRINGS];
     fieldstrings[k].fstr[0] = styles[k]->fields_grow;
     fieldstrings[k].fstr[1] = styles[k]->fields_copy;
@@ -226,7 +227,7 @@ void AtomVecHybrid::process_args(int narg, char **arg)
   // sum two sizes over contributions from each substyle with bonus data.
 
   nstyles_bonus = 0;
-  for (int k = 0; k < nstyles; k++)
+  for (k = 0; k < nstyles; k++)
     if (styles[k]->bonus_flag) nstyles_bonus++;
 
   if (nstyles_bonus) {
@@ -235,7 +236,7 @@ void AtomVecHybrid::process_args(int narg, char **arg)
     nstyles_bonus = 0;
     size_forward_bonus = 0;
     size_border_bonus = 0;
-    for (int k = 0; k < nstyles; k++) {
+    for (k = 0; k < nstyles; k++) {
       if (styles[k]->bonus_flag) {
         styles_bonus[nstyles_bonus++] = styles[k];
         size_forward_bonus += styles[k]->size_forward_bonus;

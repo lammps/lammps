@@ -27,7 +27,7 @@ class Finish : protected Pointers {
   void stats(int, double *, double *, double *, double *, int, int *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 

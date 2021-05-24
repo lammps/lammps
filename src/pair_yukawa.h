@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(yukawa,PairYukawa)
-
+// clang-format off
+PairStyle(yukawa,PairYukawa);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_YUKAWA_H
@@ -44,12 +44,12 @@ class PairYukawa : public Pair {
   double cut_global;
   double kappa;
   double *rad;
-  double **cut,**a,**offset;
+  double **cut, **a, **offset;
 
   virtual void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

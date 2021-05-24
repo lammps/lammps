@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(dpd/energy,FixDPDenergy)
-
+// clang-format off
+FixStyle(dpd/energy,FixDPDenergy);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_DPDE_H
@@ -36,7 +36,7 @@ class FixDPDenergy : public Fix {
   class PairDPDfdtEnergy *pairDPDE;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -9,7 +9,6 @@
  *
  * ----------------------------------------------------------------------- */
 
-
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -24,9 +23,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(smd/vol,ComputeSMDVol)
-
+// clang-format off
+ComputeStyle(smd/vol,ComputeSMDVol);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_SMD_VOL_H
@@ -50,7 +49,7 @@ class ComputeSMDVol : public Compute {
   double *volVector;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

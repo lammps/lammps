@@ -3871,7 +3871,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Fix orient/fcc found self twice*
    The neighbor lists used by fix orient/fcc are messed up.  If this
    error occurs, it is likely a bug, so send an email to the
-   `developers <https://lammps.sandia.gov/authors.html>`_.
+   `developers <https://www.lammps.org/authors.html>`_.
 
 *Fix peri neigh does not exist*
    Somehow a fix that the pair style defines has been deleted.

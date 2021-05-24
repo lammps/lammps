@@ -44,7 +44,7 @@ ComputeGyrationShape::ComputeGyrationShape(LAMMPS *lmp, int narg, char **arg) :
   // ID of compute gyration
   id_gyration = utils::strdup(arg[3]);
 
-  init();
+  ComputeGyrationShape::init();
 
   vector = new double[6];
 }

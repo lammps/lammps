@@ -638,7 +638,7 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
 char *utils::strdup(const std::string &text)
 {
   char *tmp = new char[text.size() + 1];
-  strcpy(tmp, text.c_str());
+  strcpy(tmp, text.c_str());    // NOLINT
   return tmp;
 }
 

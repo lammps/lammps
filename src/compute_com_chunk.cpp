@@ -46,7 +46,7 @@ ComputeCOMChunk::ComputeCOMChunk(LAMMPS *lmp, int narg, char **arg) :
 
   idchunk = utils::strdup(arg[3]);
 
-  init();
+  ComputeCOMChunk::init();
 
   // chunk-based data
 

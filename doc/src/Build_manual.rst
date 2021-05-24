@@ -46,8 +46,8 @@ b. You can build the HTML or PDF files yourself, by typing ``make html``
 
 A current version of the manual (latest patch release, aka unstable
 branch) is is available online at:
-`https://lammps.sandia.gov/doc/Manual.html
-<https://lammps.sandia.gov/doc/Manual.html>`_ A version of the manual
+`https://docs.lammps.org/Manual.html
+<https://docs.lammps.org/Manual.html>`_ A version of the manual
 corresponding to the ongoing development (aka master branch) is
 available online at: `https://docs.lammps.org/
 <https://docs.lammps.org/>`_
@@ -257,4 +257,4 @@ the file ``lammps/doc/utils/sphinx-config/false_positives.txt``.
 
 .. _rst: https://docutils.readthedocs.io/en/sphinx-docs/user/rst/quickstart.html
 
-.. _lws: https://lammps.sandia.gov
+.. _lws: https://www.lammps.org

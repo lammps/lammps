@@ -3,7 +3,7 @@ Howto discussions
 
 These doc pages describe how to perform various tasks with LAMMPS,
 both for users and developers.  The
-`glossary <https://lammps.sandia.gov/glossary.html>`_ website page also lists MD
+`glossary <https://www.lammps.org/glossary.html>`_ website page also lists MD
 terminology with links to corresponding LAMMPS manual pages.  The
 example input scripts included in the examples directory of the LAMMPS
 distribution and highlighted on the :doc:`Examples <Examples>` doc page

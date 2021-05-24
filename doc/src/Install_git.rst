@@ -78,7 +78,7 @@ this is as follows.
    $ git checkout tagID
 
 Stable versions and what tagID to use for a particular stable version
-are discussed on `this page <https://lammps.sandia.gov/bug.html#version>`_.
+are discussed on `this page <https://www.lammps.org/bug.html#version>`_.
 Note that this command will print some warnings, because in order to get
 back to the latest revision and to be able to update with ``git pull``
 again, you will need to do ``git checkout unstable`` (or

@@ -15,7 +15,7 @@ the GNU Public License (GPL).
 
 The `LAMMPS website <lws_>`_ has a variety of information about the
 code.  It includes links to an on-line version of this manual, a
-`mailing list <https://lammps.sandia.gov/mail.html>`_ where users can
+`mailing list <https://www.lammps.org/mail.html>`_ where users can
 post questions, and a `GitHub site <https://github.com/lammps/lammps>`_
 where all LAMMPS development is coordinated.
 
@@ -42,7 +42,7 @@ programming languages and how to modify and extend LAMMPS.
    :doc:`this page <Commands_all>` since it gives quick access
    the documentation for all LAMMPS commands.
 
-.. _lws: https://lammps.sandia.gov
+.. _lws: https://www.lammps.org
 
 ----------
 
@@ -129,4 +129,4 @@ Indices and tables
    where parts of the pages are not rendered as expected (e.g. the layout is
    broken or mathematical expressions not typeset).  In that case we
    recommend to install/use a different/newer web browser or use
-   the `PDF version of the manual <https://lammps.sandia.gov/doc/Manual.pdf>`_.
+   the `PDF version of the manual <https://docs.lammps.org/Manual.pdf>`_.

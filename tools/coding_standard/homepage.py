@@ -115,7 +115,7 @@ def main():
     parser.add_argument('-c', '--config', metavar='CONFIG_FILE', help='location of a optional configuration file')
     parser.add_argument('-f', '--fix', action='store_true', help='automatically fix URLs')
     parser.add_argument('-v', '--verbose', action='store_true', help='verbose output')
-    parser.add_argument('DIRECTORY', help='directory that should be checked')
+    parser.add_argument('DIRECTORY', help='directory (or file) that should be checked')
     args = parser.parse_args()
 
     if args.config:
@@ -124,8 +124,33 @@ def main():
     else:
         config = yaml.load(DEFAULT_CONFIG, Loader=yaml.FullLoader)
 
-    if not check_folder(args.DIRECTORY, config, args.fix, args.verbose):
-        sys.exit(1)
+    if os.path.isdir(args.DIRECTORY):
+        if not check_folder(args.DIRECTORY, config, args.fix, args.verbose):
+           sys.exit(1)
+    else:
+        success = True
+        path = os.path.normpath(args.DIRECTORY)
+
+        if args.verbose:
+            print("Checking file:", path)
+
+        result = check_file(path)
+
+        has_resolvable_errors = False
+
+        for lineno in result['homepage_errors']:
+            print("[Error] Incorrect LAMMPS homepage @ {}:{}".format(path, lineno))
+            has_resolvable_errors = True
+
+        if has_resolvable_errors:
+            if args.fix:
+                print("Applying automatic fixes to file:", path)
+                fix_file(path, result)
+            else:
+                success = False
+
+        if not success:
+            sys.exit(1)
 
 if __name__ == "__main__":
     main()

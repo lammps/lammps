@@ -715,9 +715,7 @@ box size stored with the snapshot.
 ----------
 
 The *vtime* keyword allows for writing dumps every *M* time units instead 
-of *N* timesteps. If this option is used, the *N* parameter becomes a frequency
-of a check whether the dump should be written. *N* equal to 1 gives the best
-accuracy. Atom-style variables which invoke computes are not supported yet.
+of *N* timesteps. If this option is used, the *N* parameter is ignored. 
 
 ----------
 

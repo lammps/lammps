@@ -1128,8 +1128,13 @@ void Dump::modify_params(int narg, char **arg)
       vtime = utils::numeric(FLERR, arg[iarg+1],false,lmp);
       if (vtime < 0) error->all(FLERR,"Illegal dump_modify command");
       last_time = vtime;
+      //resetting the frequency of the dump to 1 
+      int idump;
+      for (idump = 0; idump < output->ndump; idump++)
+        if (strcmp(id,output->dump[idump]->id) == 0) break;
+      output->every_dump[idump] = 1;
+      if (me == 0) error->warning(FLERR, "Switching to a time-based dump.");
       iarg += 2;
-
     } else {
       int n = modify_param(narg-iarg,&arg[iarg]);
       if (n == 0) error->all(FLERR,"Illegal dump_modify command");
@@ -1223,4 +1228,3 @@ bool Dump::should_clear_computes()
   return false;
 }
 
- void Dump::prepare_computes(bigint timestep) {}

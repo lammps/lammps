@@ -55,7 +55,6 @@ class Dump : protected Pointers {
   bool is_writing();
   int is_consuming_computes(bigint);
   bool should_clear_computes();
-  virtual void prepare_computes(bigint);
 
  protected:
   int me,nprocs;             // proc info

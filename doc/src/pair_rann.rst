@@ -168,9 +168,9 @@ length of the fingerprint vector is m*k.
    3
 
 *screening* specifies the Cmax and Cmin values used in the screening fingerprints. Neighbors' contribution to the
-fingerprint are ommitted if they are blocked by a closer neighbor, and reduced if they are partially blocked.
+fingerprint are omitted if they are blocked by a closer neighbor, and reduced if they are partially blocked.
 Larger values of Cmin correspond to neighbors being blocked more easily. Cmax cannot be greater than 3, and 
-Cmin cannot be greater than Cmax or less than zero. Screening may be ommitted in which case the default values
+Cmin cannot be greater than Cmax or less than zero. Screening may be omitted in which case the default values
 Cmax = 2.8, Cmin = 0.8 are used. Since screening is a bond computation, it is specified separately for each
 combination of three elements in which the latter two may be interchanged with no effect.
 

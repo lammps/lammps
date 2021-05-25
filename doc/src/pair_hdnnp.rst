@@ -76,7 +76,7 @@ types, the command
 maps atom types 1 and 2 to the element "H", type 3 to "O" and type 4 is not mapped
 (indicated by NULL).  Atoms mapped to NULL are ignored by the HDNNP calculation,
 i.e. they do not contribute in any way to the evaluation of HDNNP energies and forces.
-This may be useful in a setup with :doc: `hybrid pair styles <pair_hybrid>`.
+This may be useful in a setup with :doc:`hybrid pair styles <pair_hybrid>`.
 
 ----
 
@@ -108,8 +108,7 @@ warning may look like this:
 
    ### NNP EXTRAPOLATION WARNING ### STRUCTURE:      0 ATOM:       119 ELEMENT: Cu SYMFUNC:   32 TYPE:  3 VALUE:  2.166E-02 MIN:  2.003E-05 MAX:  1.756E-02
 
-stating that the value 2.166E-02 of symmetry function 32 of type 3 (angular
-narrow), element Cu (see the log file for a symmetry function listing) was out
+stating that the value 2.166E-02 of symmetry function 32 of type 3 (Narrow Angular symmetry function), element Cu (see the log file for a symmetry function listing) was out
 of bounds (maximum in ``scaling.data`` is 1.756E-02) for atom 119. Here, the
 atom index refers to the LAMMPS tag (global index) and the structure index is
 used to print out the MPI rank the atom belongs to.

@@ -305,10 +305,11 @@ void TILD::init()
   // don't invoke allocate peratom() or group(), will be allocated when needed (which is when?)
 
   allocate();
+  // calculate_rho0();
 
-  // change number density to tild density 
-  double volume = domain->xprd * domain->yprd * domain->zprd;
-  force->nktv2p *= rho0 * volume / atom->natoms;
+  // // change number density to tild density 
+  // double volume = domain->xprd * domain->yprd * domain->zprd;
+  // force->nktv2p *= rho0 * volume / atom->natoms;
 
   compute_rho_coeff();
 }

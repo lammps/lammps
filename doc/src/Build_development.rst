@@ -469,12 +469,24 @@ The following options are available.
 
 .. code-block:: bash
 
-   make check-whitespace    # generate coverage report in HTML format
-   make fix-whitespace      # generate coverage report in XML format
-   make check-permissions   # delete folder with HTML format coverage report
-   make fix-permissions     # delete all collected coverage data and HTML output
+   make check-whitespace    # search for files with whitespace issues
+   make fix-whitespace      # correct whitespace issues in files
+   make check-homepage      # search for files with old LAMMPS homepage URLs
+   make fix-homepage        # correct LAMMPS homepage URLs in files
+   make check-permissions   # search for files with permissions issues
+   make fix-permissions     # correct permissions issues in files
 
-For the code in the ``unittest`` tree we are using the `clang-format`
-tool (Clang version 8.0 or later is required). If available, the source
-code files in the ``unittest`` tree can be updated to conform to the
-formatting settings using ``make format-tests``.
+For the code in the ``unittest`` and ``src`` trees we are transitioning
+to use the `clang-format` tool to assist with having a consistent source
+code style.  The `clang-format` command bundled with Clang version 8.0
+or later is required.  The configuration is in files ``.clang-format``
+in the respective folders.  Since the modifications from `clang-format`
+can be significant and - especially for "legacy style code" - also is
+not always improving readability, a large number of files currently have
+a ``// clang-format off`` at the top, which will disable the processing.
+Over time, files will be refactored and updated to that `clang-format`
+may be applied to them (at least in part).
+
+If `clang-format` is available, the source code files in the ``unittest``
+tree can be updated to conform to the formatting settings using
+``make format-tests`` and the files in ``src`` with ``make format-src``.

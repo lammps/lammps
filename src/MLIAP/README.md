@@ -38,4 +38,4 @@ The `mliappy` energy model requires that the MLIAP package be compiled with Pyth
 This requires to also install the PYTHON package and have the [cython](https://cython.org) software installed. During configuration/compilation
 the cythonize script will be used to convert the provided .pyx file(s) to C++ code.  Please do not run the cythonize script in the src/MLIAP folder. If you have done so by accident, you need to delete the generated .cpp and .h file(s) in the src/MLIAP folder or there may be problems during compilation.
 
-More information on building LAMMPS with this package is [here](https://lammps.sandia.gov/doc/Build_extras.html#mliap).
+More information on building LAMMPS with this package is [here](https://docs.lammps.org/Build_extras.html#mliap).

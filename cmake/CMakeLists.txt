@@ -91,6 +91,11 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF CACHE BOOL "Use compiler extensions")
 
+# export all symbols when building a .dll file on windows
+if((CMAKE_SYSTEM_NAME STREQUAL "Windows") AND BUILD_SHARED_LIBS)
+  set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+endif()
+
 ########################################################################
 # User input options                                                   #
 ########################################################################
@@ -120,6 +125,12 @@ file(GLOB ALL_SOURCES ${LAMMPS_SOURCE_DIR}/[^.]*.cpp)
 file(GLOB MAIN_SOURCES ${LAMMPS_SOURCE_DIR}/main.cpp)
 list(REMOVE_ITEM ALL_SOURCES ${MAIN_SOURCES})
 add_library(lammps ${ALL_SOURCES})
+
+# tell CMake to export all symbols to a .dll on Windows with MinGW cross-compilers
+if(BUILD_SHARED_LIBS AND (CMAKE_SYSTEM_NAME STREQUAL "Windows") AND CMAKE_CROSSCOMPILING)
+  set_target_properties(lammps PROPERTIES LINK_FLAGS "-Wl,--export-all-symbols")
+endif()
+
 add_executable(lmp ${MAIN_SOURCES})
 target_link_libraries(lmp PRIVATE lammps)
 set_target_properties(lmp PROPERTIES OUTPUT_NAME ${LAMMPS_BINARY})
@@ -162,6 +173,7 @@ if(NOT CMAKE_CROSSCOMPILING)
   find_package(MPI QUIET)
   option(BUILD_MPI "Build MPI version" ${MPI_FOUND})
 else()
+  set(MPI_CXX_SKIP_MPICXX TRUE)
   option(BUILD_MPI "Build MPI version" OFF)
 endif()
 

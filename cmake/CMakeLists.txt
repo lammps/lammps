@@ -9,7 +9,7 @@ if(POLICY CMP0074)
 endif()
 # set policy to silence warnings about missing executable permissions in
 # pythonx.y-config when cross-compiling. review occasionally if it may be set to NEW
-if (POLICY CMP0109)
+if(POLICY CMP0109)
   cmake_policy(SET CMP0109 OLD)
 endif()
 ########################################
@@ -77,7 +77,7 @@ check_for_autogen_files(${LAMMPS_SOURCE_DIR})
 include(CheckIncludeFileCXX)
 
 # set required compiler flags and compiler/CPU arch specific optimizations
-if(${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -restrict")
   if(CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 17.3 OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 17.4)
     set(CMAKE_TUNE_DEFAULT "-xCOMMON-AVX512")
@@ -179,7 +179,7 @@ endif()
 
 if(BUILD_MPI)
   # We use a non-standard procedure to cross-compile with MPI on Windows
-  if((CMAKE_SYSTEM_NAME STREQUAL Windows) AND CMAKE_CROSSCOMPILING)
+  if((CMAKE_SYSTEM_NAME STREQUAL "Windows") AND CMAKE_CROSSCOMPILING)
     include(MPI4WIN)
     target_link_libraries(lammps PUBLIC MPI::MPI_CXX)
   else()
@@ -213,7 +213,7 @@ string(TOUPPER ${LAMMPS_SIZES} LAMMPS_SIZES)
 target_compile_definitions(lammps PUBLIC -DLAMMPS_${LAMMPS_SIZES})
 
 # posix_memalign is not available on Windows
-if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
   set(LAMMPS_MEMALIGN "0" CACHE STRING "posix_memalign() is not available on Windows" FORCE)
 else()
   set(LAMMPS_MEMALIGN "64" CACHE STRING "enables the use of the posix_memalign() call instead of malloc() when large chunks or memory are allocated by LAMMPS. Set to 0 to disable")
@@ -255,7 +255,7 @@ if(BUILD_OMP)
     message(FATAL_ERROR "Cannot find the 'omp.h' header file required for full OpenMP support")
   endif()
 
-  if (((CMAKE_CXX_COMPILER_ID STREQUAL "GNU") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 9.0)) OR
+  if(((CMAKE_CXX_COMPILER_ID STREQUAL "GNU") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 9.0)) OR
       (CMAKE_CXX_COMPILER_ID STREQUAL "PGI") OR
       ((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 10.0)) OR
       ((CMAKE_CXX_COMPILER_ID STREQUAL "Intel") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 19.0)))
@@ -319,7 +319,7 @@ find_program(GZIP_EXECUTABLE gzip)
 find_package_handle_standard_args(GZIP REQUIRED_VARS GZIP_EXECUTABLE)
 option(WITH_GZIP "Enable GZIP support" ${GZIP_FOUND})
 if(WITH_GZIP)
-  if(GZIP_FOUND OR ((CMAKE_SYSTEM_NAME STREQUAL Windows) AND CMAKE_CROSSCOMPILING))
+  if(GZIP_FOUND OR ((CMAKE_SYSTEM_NAME STREQUAL "Windows") AND CMAKE_CROSSCOMPILING))
     target_compile_definitions(lammps PRIVATE -DLAMMPS_GZIP)
   else()
     message(FATAL_ERROR "gzip executable not found")
@@ -330,7 +330,7 @@ find_program(FFMPEG_EXECUTABLE ffmpeg)
 find_package_handle_standard_args(FFMPEG REQUIRED_VARS FFMPEG_EXECUTABLE)
 option(WITH_FFMPEG "Enable FFMPEG support" ${FFMPEG_FOUND})
 if(WITH_FFMPEG)
-  if(FFMPEG_FOUND OR ((CMAKE_SYSTEM_NAME STREQUAL Windows) AND CMAKE_CROSSCOMPILING))
+  if(FFMPEG_FOUND OR ((CMAKE_SYSTEM_NAME STREQUAL "Windows") AND CMAKE_CROSSCOMPILING))
     target_compile_definitions(lammps PRIVATE -DLAMMPS_FFMPEG)
   else()
     message(FATAL_ERROR "ffmpeg executable not found")
@@ -445,7 +445,7 @@ foreach(SIMPLE_LIB POEMS USER-ATC USER-AWPMD USER-H5MD USER-MESONT)
   if(PKG_${SIMPLE_LIB})
     string(REGEX REPLACE "^USER-" "" PKG_LIB "${SIMPLE_LIB}")
     string(TOLOWER "${PKG_LIB}" PKG_LIB)
-    if(PKG_LIB STREQUAL mesont)
+    if(PKG_LIB STREQUAL "mesont")
       enable_language(Fortran)
       file(GLOB_RECURSE ${PKG_LIB}_SOURCES
         ${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB}/[^.]*.f90)
@@ -457,9 +457,9 @@ foreach(SIMPLE_LIB POEMS USER-ATC USER-AWPMD USER-H5MD USER-MESONT)
     add_library(${PKG_LIB} STATIC ${${PKG_LIB}_SOURCES})
     set_target_properties(${PKG_LIB} PROPERTIES OUTPUT_NAME lammps_${PKG_LIB}${LAMMPS_MACHINE})
     target_link_libraries(lammps PRIVATE ${PKG_LIB})
-    if(PKG_LIB STREQUAL awpmd)
+    if(PKG_LIB STREQUAL "awpmd")
       target_include_directories(awpmd PUBLIC ${LAMMPS_LIB_SOURCE_DIR}/awpmd/systems/interact ${LAMMPS_LIB_SOURCE_DIR}/awpmd/ivutils/include)
-    elseif(PKG_LIB STREQUAL h5md)
+    elseif(PKG_LIB STREQUAL "h5md")
       target_include_directories(h5md PUBLIC ${LAMMPS_LIB_SOURCE_DIR}/h5md/include ${HDF5_INCLUDE_DIRS})
     else()
       target_include_directories(${PKG_LIB} PUBLIC ${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB})
@@ -472,7 +472,7 @@ if(PKG_USER-AWPMD)
 endif()
 
 if(PKG_USER-ATC)
-  if(LAMMPS_SIZES STREQUAL BIGBIG)
+  if(LAMMPS_SIZES STREQUAL "BIGBIG")
     message(FATAL_ERROR "The USER-ATC Package is not compatible with -DLAMMPS_BIGBIG")
   endif()
   target_link_libraries(atc PRIVATE ${LAPACK_LIBRARIES})
@@ -516,7 +516,7 @@ endif()
 # and the MPI library - if use - has to be linked right before those
 # and after everything else that is compiled locally
 ######################################################################
-if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
   target_link_libraries(lammps PRIVATE -lwsock32 -lpsapi)
 endif()
 
@@ -565,8 +565,8 @@ add_dependencies(lammps gitversion)
 # Actually add executable and lib to build
 ############################################
 get_property(LANGUAGES GLOBAL PROPERTY ENABLED_LANGUAGES)
-list (FIND LANGUAGES "Fortran" _index)
-if(${_index} GREATER -1)
+list(FIND LANGUAGES "Fortran" _index)
+if(_index GREATER -1)
   target_link_libraries(lammps PRIVATE ${CMAKE_Fortran_IMPLICIT_LINK_LIBRARIES})
 endif()
 set(LAMMPS_CXX_HEADERS angle.h atom.h bond.h citeme.h comm.h compute.h dihedral.h domain.h error.h fix.h force.h group.h improper.h
@@ -644,7 +644,7 @@ if(BUILD_SHARED_LIBS)
   else()
     find_package(Python COMPONENTS Interpreter)
   endif()
-  if (Python_EXECUTABLE)
+  if(Python_EXECUTABLE)
     add_custom_target(
       install-python ${CMAKE_COMMAND} -E remove_directory build
       COMMAND ${Python_EXECUTABLE} install.py -v ${LAMMPS_SOURCE_DIR}/version.h
@@ -677,7 +677,7 @@ if(BUILD_SHARED_LIBS OR PKG_PYTHON)
   else()
     find_package(Python COMPONENTS Interpreter)
   endif()
-  if (Python_EXECUTABLE)
+  if(Python_EXECUTABLE)
     file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/python)
     install(CODE "execute_process(COMMAND ${Python_EXECUTABLE} setup.py build -b ${CMAKE_BINARY_DIR}/python install --prefix=${CMAKE_INSTALL_PREFIX} --root=\$ENV{DESTDIR}/ WORKING_DIRECTORY ${LAMMPS_PYTHON_DIR})")
   endif()
@@ -722,15 +722,15 @@ if(OPTIONS)
   message("      Options:       ${OPTIONS}")
 endif()
 get_property(LANGUAGES GLOBAL PROPERTY ENABLED_LANGUAGES)
-list (FIND LANGUAGES "Fortran" _index)
-if(${_index} GREATER -1)
+list(FIND LANGUAGES "Fortran" _index)
+if(_index GREATER -1)
   message(STATUS "Fortran Compiler: ${CMAKE_Fortran_COMPILER}
       Type:          ${CMAKE_Fortran_COMPILER_ID}
       Version:       ${CMAKE_Fortran_COMPILER_VERSION}
       Fortran Flags:${CMAKE_Fortran_FLAGS} ${CMAKE_Fortran_FLAGS_${BTYPE}}")
 endif()
-list (FIND LANGUAGES "C" _index)
-if(${_index} GREATER -1)
+list(FIND LANGUAGES "C" _index)
+if(_index GREATER -1)
   message(STATUS "C compiler:       ${CMAKE_C_COMPILER}
       Type:          ${CMAKE_C_COMPILER_ID}
       Version:       ${CMAKE_C_COMPILER_VERSION}
@@ -795,7 +795,7 @@ if(PKG_KSPACE)
   endif()
   if(PKG_KOKKOS)
     if(Kokkos_ENABLE_CUDA)
-      if (${FFT} STREQUAL "KISS")
+      if(FFT STREQUAL "KISS")
         message(STATUS "Kokkos FFT: KISS")
       else()
         message(STATUS "Kokkos FFT: cuFFT")

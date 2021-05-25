@@ -411,7 +411,7 @@ except NameError:
 is_website_build = os.environ.get('LAMMPS_WEBSITE_BUILD', '0') != '0'
 
 html_context['display_manual_versions'] = is_website_build
-html_context['current_version'] = os.environ.get('LAMMPS_WEBSITE_BUILD', version)
+html_context['current_version'] = os.environ.get('LAMMPS_WEBSITE_BUILD_VERSION', version)
 html_context['git_commit'] = git_commit
 html_context['versions'] = [
   ('latest', 'https://docs.lammps.org/latest/'),

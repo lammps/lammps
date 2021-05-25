@@ -1228,6 +1228,8 @@ hbn
 hbnewflag
 hbond
 hcp
+hdnnp
+HDNNP
 heatconduction
 Hebbeker
 Hebenstreit

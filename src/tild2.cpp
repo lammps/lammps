@@ -310,7 +310,7 @@ void TILD::init()
   double volume = domain->xprd * domain->yprd * domain->zprd;
   force->nktv2p *= rho0 * volume / atom->natoms;
 
-  compute_rho_coeff(rho_coeff, drho_coeff, order);
+  compute_rho_coeff();
 }
 
 /* ----------------------------------------------------------------------
@@ -530,7 +530,7 @@ void TILD::setup_grid()
                "beyond nearest neighbor processor");
 
   // pre-compute 1d density distribution coefficients
-  compute_rho_coeff(rho_coeff, drho_coeff, order);
+  compute_rho_coeff();
 
   // pre-compute volume-dependent coeffs for portion of grid I now own
   setup();
@@ -2360,21 +2360,20 @@ void TILD::fieldforce_param(){
   rho_coeff(l,((k+mod(n+1,2))/2) = a(l,k)
 ------------------------------------------------------------------------- */
 
-void TILD::compute_rho_coeff(FFT_SCALAR **coeff , FFT_SCALAR **dcoeff,
-                                 const int ord)
+void TILD::compute_rho_coeff()
 {
   int j,k,l,m;
   FFT_SCALAR s;
 
-  FFT_SCALAR **a; // = nullptr;
-  memory->create2d_offset(a,ord,-ord,ord,"pppm:a");
+  FFT_SCALAR **a;
+  memory->create2d_offset(a,order,-order,order,"pppm:a");
 
-  for (k = -ord; k <= ord; k++)
-    for (l = 0; l < ord; l++)
+  for (k = -order; k <= order; k++)
+    for (l = 0; l < order; l++)
       a[l][k] = 0.0;
   
   a[0][0] = 1.0;
-  for (j = 1; j < ord; j++) {
+  for (j = 1; j < order; j++) {
     for (k = -j; k <= j; k += 2) {
       s = 0.0;
       for (l = 0; l < j; l++) {
@@ -2391,16 +2390,16 @@ void TILD::compute_rho_coeff(FFT_SCALAR **coeff , FFT_SCALAR **dcoeff,
     }
   }
 
-  m = (1-ord)/2;
-  for (k = -(ord-1); k < ord; k += 2) {
-    for (l = 0; l < ord; l++)
-      coeff[l][m] = a[l][k];
-    for (l = 1; l < ord; l++)
-      dcoeff[l-1][m] = l*a[l][k];
+  m = (1-order)/2;
+  for (k = -(order-1); k < order; k += 2) {
+    for (l = 0; l < order; l++)
+      rho_coeff[l][m] = a[l][k];
+    for (l = 1; l < order; l++)
+      drho_coeff[l-1][m] = l*a[l][k];
     m++;
   }
 
-  memory->destroy2d_offset(a,-ord);
+  memory->destroy2d_offset(a,-order);
 }
 
 /* ----------------------------------------------------------------------

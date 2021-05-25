@@ -6,15 +6,15 @@ molecular dynamics computations.  Additional pre- and post-processing
 steps are often necessary to setup and analyze a simulation.  A list
 of such tools can be found on the `LAMMPS webpage <lws_>`_ at these links:
 
-* `Pre/Post processing <https://lammps.sandia.gov/prepost.html>`_
-* `Offsite LAMMPS packages & tools <https://lammps.sandia.gov/offsite.html>`_
+* `Pre/Post processing <https://www.lammps.org/prepost.html>`_
+* `Offsite LAMMPS packages & tools <https://www.lammps.org/offsite.html>`_
 * `Pizza.py toolkit <pizza_>`_
 
 The last link for `Pizza.py <pizza_>`_ is a Python-based tool developed at
 Sandia which provides tools for doing setup, analysis, plotting, and
 visualization for LAMMPS simulations.
 
-.. _lws: https://lammps.sandia.gov
+.. _lws: https://www.lammps.org
 .. _pizza: https://pizza.sandia.gov
 .. _python: https://www.python.org
 

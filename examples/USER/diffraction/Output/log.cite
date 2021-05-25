@@ -1,5 +1,5 @@
 This LAMMPS simulation made specific use of work described in the
-following references.  See http://lammps.sandia.gov/cite.html
+following references.  See https://www.lammps.org/cite.html
 for details.
 
 compute_xrd command:

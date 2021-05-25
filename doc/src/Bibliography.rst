@@ -1129,6 +1129,9 @@ Bibliography
 **(Sutmann)**
    Sutmann, Arnold, Fahrenberger, et. al., Physical review / E 88(6), 063308 (2013)
 
+**(Sutmann)** G. Sutmann. ScaFaCoS – a Scalable library of Fast Coulomb Solvers for particle Systems.
+  In Bajaj, Zavattieri, Koslowski, Siegmund, Proceedings of the Society of Engineering Science 51st Annual Technical Meeting. 2014.
+
 **(Swinburne)**
    Swinburne and Marinica, Physical Review Letters, 120, 1 (2018)
 
@@ -1284,9 +1287,6 @@ Bibliography
 
 **(Wennberg)**
    Wennberg, Murtola, Hess, Lindahl, J Chem Theory Comput, 9, 3527 (2013).
-
-**(Who)**
-   Who, Author2, Author3, J of Long Range Solvers, 35, 164-177 (2012).
 
 **(Wicaksono1)**
    Wicaksono, Sinclair, Militzer, Computational Materials Science, 117, 397-405 (2016).

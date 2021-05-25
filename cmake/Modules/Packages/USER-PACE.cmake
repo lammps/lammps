@@ -14,13 +14,12 @@ execute_process(
   WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )
 
-
 file(GLOB PACE_EVALUATOR_INCLUDE_DIR ${CMAKE_BINARY_DIR}/lammps-user-pace-*/USER-PACE)
 file(GLOB PACE_EVALUATOR_SOURCES ${CMAKE_BINARY_DIR}/lammps-user-pace-*/USER-PACE/*.cpp)
 list(FILTER PACE_EVALUATOR_SOURCES EXCLUDE REGEX pair_pace.cpp)
 
 add_library(pace STATIC ${PACE_EVALUATOR_SOURCES})
-set_target_properties(pace PROPERTIES OUTPUT_NAME lammps_pace${LAMMPS_MACHINE})
+set_target_properties(pace PROPERTIES CXX_EXTENSIONS ON OUTPUT_NAME lammps_pace${LAMMPS_MACHINE})
 target_include_directories(pace PUBLIC ${PACE_EVALUATOR_INCLUDE_DIR})
 target_link_libraries(lammps PRIVATE pace)
 

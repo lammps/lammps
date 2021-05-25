@@ -31,7 +31,7 @@
 
 #include "reaxc_types.h"
 
-void Hydrogen_BondsOMP( reax_system*, control_params*, simulation_data*,
-                     storage*, reax_list**, output_controls* );
+void Hydrogen_BondsOMP(reax_system *, control_params *, simulation_data *, storage *, reax_list **,
+                       output_controls *);
 
 #endif

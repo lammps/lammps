@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
- https://lammps.sandia.gov/, Sandia National Laboratories
+ https://www.lammps.org/, Sandia National Laboratories
  Steve Plimpton, sjplimp@sandia.gov
 
  Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
  ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(smd/wall_surface,FixSMDWallSurface)
-
+// clang-format off
+FixStyle(smd/wall_surface,FixSMDWallSurface);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_SMD_WALL_SURFACE_H
@@ -24,27 +24,26 @@ FixStyle(smd/wall_surface,FixSMDWallSurface)
 
 namespace LAMMPS_NS {
 
-class FixSMDWallSurface: public Fix {
+class FixSMDWallSurface : public Fix {
 
-public:
-        FixSMDWallSurface(class LAMMPS *, int, char **);
-        virtual ~FixSMDWallSurface();
-        int setmask();
-        void init();
-        void setup(int);
-        void min_setup(int);
+ public:
+  FixSMDWallSurface(class LAMMPS *, int, char **);
+  virtual ~FixSMDWallSurface();
+  int setmask();
+  void init();
+  void setup(int);
+  void min_setup(int);
 
-        void read_triangles(int pass);
+  void read_triangles(int pass);
 
-private:
-        int first;                 // flag for first time initialization
-        double sublo[3], subhi[3];   // epsilon-extended proc sub-box for adding atoms;
-        char *filename;
-        int wall_particle_type;
-        int wall_molecule_id;
+ private:
+  int first;                    // flag for first time initialization
+  double sublo[3], subhi[3];    // epsilon-extended proc sub-box for adding atoms;
+  char *filename;
+  int wall_particle_type;
+  int wall_molecule_id;
 };
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-

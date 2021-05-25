@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(temp/deform/eff,ComputeTempDeformEff)
-
+// clang-format off
+ComputeStyle(temp/deform/eff,ComputeTempDeformEff);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_TEMP_DEFORM_EFF_H
@@ -41,14 +41,14 @@ class ComputeTempDeformEff : public Compute {
 
  protected:
   double tfactor;
-  double vbias[3];    // stored velocity bias for one atom
-  double **vbiasall;  // stored velocity bias for all atoms
-  int maxbias;        // size of vbiasall array
+  double vbias[3];      // stored velocity bias for one atom
+  double **vbiasall;    // stored velocity bias for all atoms
+  int maxbias;          // size of vbiasall array
 
   virtual void dof_compute();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

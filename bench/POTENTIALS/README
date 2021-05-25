@@ -1,7 +1,7 @@
 These are input scripts used to run benchmark tests for many of the
 interatomic potentials in LAMMPS.  The results of running these
 scripts on different machines are shown on the Potentials section of
-the Benchmark page of the LAMMPS WWW site (lammps.sandia.gov/bench).
+the Benchmark page of the LAMMPS WWW site (https://www.lammps.org/bench.html).
 
 Examples are shown below of how to run these scripts.  Log files for
 running them on 1 and 4 processors of a Linux box are included in the

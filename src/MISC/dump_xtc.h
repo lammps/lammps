@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef DUMP_CLASS
-
-DumpStyle(xtc,DumpXTC)
-
+// clang-format off
+DumpStyle(xtc,DumpXTC);
+// clang-format on
 #else
 
 #ifndef LMP_DUMP_XTC_H
@@ -27,16 +27,16 @@ namespace LAMMPS_NS {
 
 class DumpXTC : public Dump {
  public:
-  DumpXTC(class LAMMPS *, int, char**);
+  DumpXTC(class LAMMPS *, int, char **);
   virtual ~DumpXTC();
 
  private:
-  int natoms,ntotal;
+  int natoms, ntotal;
   int nevery_save;
-  int unwrap_flag;            // 1 if atom coords are unwrapped, 0 if no
-  float precision;            // user-adjustable precision setting
+  int unwrap_flag;    // 1 if atom coords are unwrapped, 0 if no
+  float precision;    // user-adjustable precision setting
   float *coords;
-  double sfactor,tfactor;     // scaling factors for positions and time unit
+  double sfactor, tfactor;    // scaling factors for positions and time unit
   XDR xd;
 
   void init_style();
@@ -50,7 +50,7 @@ class DumpXTC : public Dump {
   void write_frame();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

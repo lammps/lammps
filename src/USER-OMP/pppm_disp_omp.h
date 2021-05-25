@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef KSPACE_CLASS
-
-KSpaceStyle(pppm/disp/omp,PPPMDispOMP)
-
+// clang-format off
+KSpaceStyle(pppm/disp/omp,PPPMDispOMP);
+// clang-format on
 #else
 
 #ifndef LMP_PPPM_DISP_OMP_H
@@ -25,10 +25,10 @@ KSpaceStyle(pppm/disp/omp,PPPMDispOMP)
 
 namespace LAMMPS_NS {
 
-  class PPPMDispOMP : public PPPMDisp, public ThrOMP {
+class PPPMDispOMP : public PPPMDisp, public ThrOMP {
  public:
   PPPMDispOMP(class LAMMPS *);
-  virtual ~PPPMDispOMP ();
+  virtual ~PPPMDispOMP();
   virtual void compute(int, int);
 
  protected:
@@ -37,10 +37,8 @@ namespace LAMMPS_NS {
   virtual void compute_gf();
   virtual void compute_gf_6();
 
-  virtual void particle_map(double,double,double,
-                            double,int**,int,int,
-                            int,int,int,int,int,int);
-
+  virtual void particle_map(double, double, double, double, int **, int, int, int, int, int, int,
+                            int, int);
 
   virtual void fieldforce_c_ik();
   virtual void fieldforce_c_ad();
@@ -56,18 +54,15 @@ namespace LAMMPS_NS {
   virtual void make_rho_g();
   virtual void make_rho_a();
 
-  void compute_rho1d_thr(FFT_SCALAR * const * const, const FFT_SCALAR &,
-                         const FFT_SCALAR &, const FFT_SCALAR &,
-                         const int, FFT_SCALAR * const * const);
-  void compute_drho1d_thr(FFT_SCALAR * const * const, const FFT_SCALAR &,
-                          const FFT_SCALAR &, const FFT_SCALAR &,
-                          const int, FFT_SCALAR * const * const);
-//  void compute_rho_coeff();
-//  void slabcorr(int);
-
+  void compute_rho1d_thr(FFT_SCALAR *const *const, const FFT_SCALAR &, const FFT_SCALAR &,
+                         const FFT_SCALAR &, const int, FFT_SCALAR *const *const);
+  void compute_drho1d_thr(FFT_SCALAR *const *const, const FFT_SCALAR &, const FFT_SCALAR &,
+                          const FFT_SCALAR &, const int, FFT_SCALAR *const *const);
+  //  void compute_rho_coeff();
+  //  void slabcorr(int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

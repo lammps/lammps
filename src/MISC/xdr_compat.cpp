@@ -1,3 +1,4 @@
+// clang-format off
 #include "xdr_compat.h"
 #include <cstdlib>
 #include <cstring>

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(controller,FixController)
-
+// clang-format off
+FixStyle(controller,FixController);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_CONTROLLER_H
@@ -35,20 +35,20 @@ class FixController : public Fix {
   double compute_vector(int);
 
  private:
-  double kp,ki,kd,alpha,tau;
+  double kp, ki, kd, alpha, tau;
   double setpoint;
-  int pvwhich,pvindex;
-  char *pvID,*cvID;
+  int pvwhich, pvindex;
+  char *pvID, *cvID;
   int firsttime;
 
-  double control,err,olderr,deltaerr,sumerr;
+  double control, err, olderr, deltaerr, sumerr;
 
   class Compute *pcompute;
   class Fix *pfix;
-  int pvar,cvar;
+  int pvar, cvar;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

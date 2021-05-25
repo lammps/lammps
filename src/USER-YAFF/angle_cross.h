@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ANGLE_CLASS
-
-AngleStyle(cross,AngleCross)
-
+// clang-format off
+AngleStyle(cross,AngleCross);
+// clang-format on
 #else
 
 #ifndef LMP_ANGLE_CROSS_H
@@ -37,12 +37,12 @@ class AngleCross : public Angle {
   double single(int, int, int, int);
 
  protected:
-  double *kss,*kbs0,*kbs1,*r00,*r01,*theta0;
+  double *kss, *kbs0, *kbs1, *r00, *r01, *theta0;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

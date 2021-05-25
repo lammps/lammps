@@ -49,6 +49,7 @@ This is the list of packages that may require additional steps.
    * :ref:`USER-COLVARS <user-colvars>`
    * :ref:`USER-H5MD <user-h5md>`
    * :ref:`USER-INTEL <user-intel>`
+   * :ref:`USER-MDI <user-mdi>`
    * :ref:`USER-MESONT <user-mesont>`
    * :ref:`USER-MOLFILE <user-molfile>`
    * :ref:`USER-NETCDF <user-netcdf>`
@@ -1536,6 +1537,35 @@ Best performance is achieved with Intel hardware, Intel compilers, as
 well as the Intel TBB and MKL libraries. However, the code also
 compiles, links, and runs with other compilers / hardware and without
 TBB and MKL.
+
+----------
+
+.. _user-mdi:
+
+USER-MDI package
+-----------------------------
+
+.. tabs::
+
+   .. tab:: CMake build
+
+      .. code-block:: bash
+
+         -D DOWNLOAD_MDI=value    # download MDI Library for build, value = no (default) or yes
+
+   .. tab:: Traditional make
+
+      Before building LAMMPS, you must build the MDI Library in
+      ``lib/mdi``\ .  You can do this by executing a command like one
+      of the following from the ``lib/mdi`` directory:
+
+      .. code-block:: bash
+
+         $ python Install.py -m gcc       # build using gcc compiler
+         $ python Install.py -m icc       # build using icc compiler
+
+      The build should produce two files: ``lib/mdi/includelink/mdi.h``
+      and ``lib/mdi/liblink/libmdi.so``\ .
 
 ----------
 

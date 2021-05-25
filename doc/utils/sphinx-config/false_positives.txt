@@ -47,6 +47,7 @@ Agnolin
 Ai
 Aidan
 aij
+aimd
 airebo
 Aj
 ajs
@@ -196,6 +197,7 @@ Ballenegger
 Bammann
 Banna
 Barashev
+barnes
 barostat
 Barostats
 barostatted
@@ -1207,6 +1209,7 @@ Halver
 Hamaker
 Hamel
 Hammerschmidt
+Hanley
 haptic
 Hara
 Harpertown
@@ -1269,6 +1272,7 @@ holonomic
 Homebrew
 hooke
 Hookean
+hostname
 hotpink
 Houlle
 howto
@@ -1728,6 +1732,7 @@ Lmpsdata
 lmptype
 LMT
 ln
+localhost
 localTemp
 localvectors
 Loewen
@@ -1858,6 +1863,8 @@ mc
 McLachlan
 md
 mdf
+MDI
+mdi
 mdpd
 mDPD
 meam
@@ -2843,6 +2850,8 @@ Runge
 runtime
 Rutuparna
 rx
+rxnave
+rxnsum
 ry
 rz
 Ryckaert
@@ -3143,6 +3152,7 @@ Tanmoy
 Tartakovsky
 taskset
 taubi
+taylor
 tb
 tchain
 Tchain

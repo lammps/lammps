@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/ Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -42,7 +42,7 @@ enum { DIPOLE, VELOCITY, QUAT };
 
 /* ---------------------------------------------------------------------- */
 
-FixPropelSelf::FixPropelSelf(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
+FixPropelSelf::FixPropelSelf(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), avec(nullptr)
 {
 
   virial_global_flag = virial_peratom_flag = 1;

@@ -161,6 +161,8 @@ TEST_F(LibraryProperties, box)
     boxhi[1] = 7.3;
     xy       = 0.1;
     if (!verbose) ::testing::internal::CaptureStdout();
+    // lammps_reset_box() may only be called without atoms
+    lammps_command(lmp, "delete_atoms group all bond yes");
     lammps_reset_box(lmp, boxlo, boxhi, xy, yz, xz);
     if (!verbose) ::testing::internal::GetCapturedStdout();
     lammps_extract_box(lmp, boxlo, boxhi, &xy, &yz, &xz, pflags, &boxflag);

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(shardlow,FixShardlow)
-
+// clang-format off
+FixStyle(shardlow,FixShardlow);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_SHARDLOW_H
@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 
 class FixShardlow : public Fix {
  public:
-  class NeighList *list; // The SSA specific neighbor list
+  class NeighList *list;    // The SSA specific neighbor list
 
   FixShardlow(class LAMMPS *, int, char **);
   ~FixShardlow();
@@ -47,8 +47,8 @@ class FixShardlow : public Fix {
  protected:
   int pack_reverse_comm(int, int, double *);
   void unpack_reverse_comm(int, int *, double *);
-  int pack_forward_comm(int , int *, double *, int, int *);
-  void unpack_forward_comm(int , int , double *);
+  int pack_forward_comm(int, int *, double *, int, int *);
+  void unpack_forward_comm(int, int, double *);
 
   class PairDPDfdt *pairDPD;
   class PairDPDfdtEnergy *pairDPDE;
@@ -57,14 +57,13 @@ class FixShardlow : public Fix {
 
  private:
   random_external_state::es_RNG_t *rand_state;
-  double dtsqrt; // = sqrt(update->dt);
+  double dtsqrt;    // = sqrt(update->dt);
 
-  void ssa_update_dpd(int, int, int);  // Constant Temperature
-  void ssa_update_dpde(int, int, int); // Constant Energy
-
+  void ssa_update_dpd(int, int, int);     // Constant Temperature
+  void ssa_update_dpde(int, int, int);    // Constant Energy
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

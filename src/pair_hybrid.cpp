@@ -1,7 +1,8 @@
+// clang-format off
 
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -340,6 +341,8 @@ void PairHybrid::settings(int narg, char **arg)
 
   // multiple[i] = 1 to M if sub-style used multiple times, else 0
 
+  int num_tip4p = 0, num_coul = 0; // count sub-styles with tip4p and coulomb
+
   for (int i = 0; i < nstyles; i++) {
     int count = 0;
     for (int j = 0; j < nstyles; j++) {
@@ -347,7 +350,21 @@ void PairHybrid::settings(int narg, char **arg)
       if (j == i) multiple[i] = count;
     }
     if (count == 1) multiple[i] = 0;
+
+    if (utils::strmatch(keywords[i],"/tip4p/")) ++num_tip4p;
+    if (utils::strmatch(keywords[i],"/coul/")
+        || utils::strmatch(keywords[i],"^comb")
+        || utils::strmatch(keywords[i],"^reax/c")) ++num_coul;
   }
+
+  if ((num_tip4p > 1) && (comm->me == 0))
+    error->warning(FLERR,"Using multiple tip4p sub-styles can result in "
+                   "inconsistent calculation of coulomb interactions");
+
+  if ((num_tip4p > 0) && (num_coul > 0) && (comm->me == 0))
+    error->warning(FLERR,"Using a tip4p sub-style with other sub-styles "
+                   "that include coulomb interactions can result in "
+                   "inconsistent calculation of the coulomb interactions");
 
   // set pair flags from sub-style flags
 

@@ -481,7 +481,7 @@ void TILD::vir_func_init() {
           ktmp[n++] = ZEROF;
         }
   
-        fft1->compute(ktmp, ktmp2, 1);
+        fft1->compute(ktmp, ktmp2, FFT3d::FORWARD);
 
         for (int j = 0; j < 2 * nfft; j++) {
           ktmp2[j] *= scale_inv;
@@ -550,7 +550,7 @@ void TILD::precompute_density_hat_fft() {
     }
 
     // FFT the density to k-space
-    fft1->compute(work1, work1, 1);
+    fft1->compute(work1, work1, FFT3d::FORWARD);
 
     for (int k = 0; k < 2*nfft; k++) {
       work1[k] *= scale_inv;
@@ -1130,7 +1130,7 @@ void TILD::init_cross_potentials(){
           ktmp[j++] = ZEROF;
         }
   
-        fft1->compute(ktmp, ktmp2, 1);
+        fft1->compute(ktmp, ktmp2, FFT3d::FORWARD);
 
         for (int i = 0; i < 2 * nfft; i++) {
           ktmp2[i] *= scale_inv;
@@ -1163,7 +1163,7 @@ void TILD::init_cross_potentials(){
           n += 2;
         }
 
-        fft1->compute(ktmp2, ktmp, -1);
+        fft1->compute(ktmp2, ktmp, FFT3d::BACKWARD);
 
         n = 0;
         for (int j = 0; j < nfft; j++){
@@ -1178,7 +1178,7 @@ void TILD::init_cross_potentials(){
           work1[j] = grad_potent_hat[loc][i][j];
         }
         //fft2->compute(work1, work2, -1);
-        fft1->compute(work1, work2, -1);
+        fft1->compute(work1, work2, FFT3d::BACKWARD);
         n = 0;
         for (int j = 0; j < nfft; j++) {
           grad_potent[loc][i][j] = -work2[n]; // still not sure about minus sign ..
@@ -1254,7 +1254,7 @@ void TILD::calc_work(FFT_SCALAR *wk, const int itype, const int jtype){
       ktmp[j++] = ZEROF;
     }
 
-    fft1->compute(ktmp, wk, 1);
+    fft1->compute(ktmp, wk, FFT3d::FORWARD);
 
     for (int i = 0; i < 2 * nfft; i++) {
       wk[i] *= scale_inv;
@@ -2205,8 +2205,8 @@ void TILD::accumulate_gradient() {
           n += 2;
         }
 
-        fft2->compute(ktmp2i, ktmpi, -1);
-        if (diff_type) fft2->compute(ktmp2j, ktmpj, -1);
+        fft2->compute(ktmp2i, ktmpi, FFT3d::BACKWARD);
+        if (diff_type) fft2->compute(ktmp2j, ktmpj, FFT3d::BACKWARD);
 
         n = 0;
         int j = 0;
@@ -2440,7 +2440,7 @@ void TILD::ev_calculation(const int loc, const int itype, const int jtype) {
       n += 2;
     }
     // IFFT the convolution
-    fft1->compute(ktmpi, ktmp2i, -1);
+    fft1->compute(ktmpi, ktmp2i, FFT3d::BACKWARD);
 
     // chi and kappa energy contribution
     n = 0;
@@ -2462,7 +2462,7 @@ void TILD::ev_calculation(const int loc, const int itype, const int jtype) {
         complex_multiply(density_hat_fft_types[itype], vg_hat[loc][i], ktmpi, n);
         n += 2;
       }
-      fft1->compute(ktmpi, ktmp2i, -1);
+      fft1->compute(ktmpi, ktmp2i, FFT3d::BACKWARD);
       n=0;
       vtmp = 0.0;
       vtmpk = 0.0;

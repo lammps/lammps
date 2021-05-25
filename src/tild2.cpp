@@ -603,7 +603,6 @@ void TILD::compute(int eflag, int vflag){
   // map my particle charge onto my local 3d density grid
 
   particle_map();
-
   make_rho();
 
   // all procs communicate density values from their ghost cells
@@ -613,7 +612,6 @@ void TILD::compute(int eflag, int vflag){
   // cg->reverse_comm(this, REVERSE_RHO_NONE);
   gc->reverse_comm_kspace(this,1,sizeof(FFT_SCALAR),REVERSE_RHO_NONE,
                           gc_buf1,gc_buf2,MPI_FFT_SCALAR);
-
   brick2fft();
 
   // compute potential gradient on my FFT grid 
@@ -622,19 +620,11 @@ void TILD::compute(int eflag, int vflag){
 
   accumulate_gradient();
 
-  // cg->forward_comm(this, FORWARD_NONE);
-
   // all procs communicate gradient potential values
   // to fill ghost cells surrounding their 3d bricks
   
   gc->forward_comm_kspace(this,1,sizeof(FFT_SCALAR),FORWARD_NONE,
                           gc_buf1,gc_buf2,MPI_FFT_SCALAR);
-  // if (differentiation_flag == 1)
-  //   gc->forward_comm_kspace(this,1,sizeof(FFT_SCALAR),FORWARD_AD,
-  //                           gc_buf1,gc_buf2,MPI_FFT_SCALAR);
-  // else
-  //   gc->forward_comm_kspace(this,3,sizeof(FFT_SCALAR),FORWARD_IK,
-  //                           gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
 
   // PPPM has  extra per-atom energy/virial communication here. 

@@ -29,19 +29,18 @@ DISTRIBUTION A. Approved for public release; distribution unlimited. OPSEC#4918
  */
 
 #ifdef PAIR_CLASS
-
-PairStyle(rann,PairRANN)
-
+// clang-format off
+PairStyle(rann,PairRANN);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_RANN
 #define LMP_PAIR_RANN
 
-
-#include "neighbor.h"
-#include "neigh_list.h"
 #include "pair.h"
 
+#include <vector>
+#include <string>
 
 namespace LAMMPS_NS {
 
@@ -65,8 +64,8 @@ namespace LAMMPS_NS {
     void errorf(const char*,int,const char*);
     int factorial(int);
 
-    RANN::Fingerprint * create_fingerprint(const char *);
-    RANN::Activation * create_activation(const char *);
+    RANN::Fingerprint *create_fingerprint(const char *);
+    RANN::Activation *create_activation(const char *);
 
     //global variables
     int nelements;                // # of elements (distinct from LAMMPS atom types since multiple atom types can be mapped to one element)

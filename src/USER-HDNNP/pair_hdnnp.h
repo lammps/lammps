@@ -19,9 +19,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(hdnnp,PairHDNNP)
-
+// clang-format off
+PairStyle(hdnnp,PairHDNNP);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_HDNNP_H

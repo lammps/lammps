@@ -10,7 +10,6 @@ endif
 BUILDDIR       = ${CURDIR}
 RSTDIR         = $(BUILDDIR)/src
 VENV           = $(BUILDDIR)/docenv
-TXT2RST        = $(VENV)/bin/txt2rst
 ANCHORCHECK    = $(VENV)/bin/rst_anchor_check
 SPHINXCONFIG   = $(BUILDDIR)/utils/sphinx-config
 MATHJAX        = $(SPHINXCONFIG)/_static/mathjax
@@ -59,7 +58,7 @@ SPHINXEXTRA = -E -j $(shell $(PYTHON) -c 'import multiprocessing;print(multiproc
 # we only want to use explicitly listed files.
 DOXYFILES      = $(shell sed -n -e 's/\#.*$$//' -e '/^ *INPUT \+=/,/^[A-Z_]\+ \+=/p' doxygen/Doxyfile.in | sed -e 's/@LAMMPS_SOURCE_DIR@/..\/src/g' -e 's/\\//g' -e 's/ \+/ /' -e 's/[A-Z_]\+ \+= *\(YES\|NO\|\)//') 
 
-.PHONY: help clean-all clean clean-spelling epub mobi rst html pdf spelling anchor_check style_check xmlgen
+.PHONY: help clean-all clean clean-spelling epub mobi rst html pdf spelling anchor_check style_check char_check xmlgen
 
 # ------------------------------------------
 
@@ -205,6 +204,9 @@ package_check : $(VENV)
 		deactivate ;\
 	)
 
+char_check :
+	@( env LC_ALL=C grep -n '[^ -~]' $(RSTDIR)/*.rst && exit 1 || : )
+
 xmlgen : doxygen/xml/index.xml
 
 doxygen/Doxyfile: doxygen/Doxyfile.in
@@ -230,7 +232,7 @@ $(VENV):
 $(MATHJAX):
 	@git clone -b 3.1.4 -c advice.detachedHead=0 --depth 1 git://github.com/mathjax/MathJax.git $@
 
-$(TXT2RST) $(ANCHORCHECK): $(VENV)
+$(ANCHORCHECK): $(VENV)
 	@( \
 		. $(VENV)/bin/activate; \
 		(cd utils/converters;\

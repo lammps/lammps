@@ -28,11 +28,6 @@ do not necessarily reflect the views of the United States Army.​”
 
 DISTRIBUTION A. Approved for public release; distribution unlimited. OPSEC#4918
  */
-#ifdef FINGERPRINT_CLASS
-
-FingerprintStyle(bondscreened,Fingerprint_bondscreened)
-
-#else
 
 #ifndef LMP_RANN_FINGERPRINT_BONDSCREENED_H
 #define LMP_RANN_FINGERPRINT_BONDSCREENED_H
@@ -75,6 +70,4 @@ namespace LAMMPS_NS {
 
 }
 
-
-#endif
 #endif /* FINGERPRINT_BOND_H_ */

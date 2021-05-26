@@ -1,4 +1,3 @@
-
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/ Sandia National Laboratories
@@ -28,14 +27,9 @@ do not necessarily reflect the views of the United States Army.​”
 
 DISTRIBUTION A. Approved for public release; distribution unlimited. OPSEC#4918
  */
-#ifdef FINGERPRINT_CLASS
 
-FingerprintStyle(radialscreenedspin,Fingerprint_radialscreenedspin)
-
-#else
 #ifndef LMP_RANN_FINGERPRINT_RADIALSCREENEDSPIN_H
 #define LMP_RANN_FINGERPRINT_RADIALSCREENEDSPIN_H
-
 
 #include "rann_fingerprint.h"
 
@@ -64,9 +58,5 @@ namespace LAMMPS_NS {
   }
 
 }
-
-#endif
-
-
 
 #endif /* FINGERPRINT_RADIALSCREENED_H_ */

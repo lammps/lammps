@@ -17,7 +17,7 @@ if(DOWNLOAD_MDI)
   # only ON/OFF are allowed for "mpi" flag when building MDI library
   # so translate boolean value of BUILD_MPI
   # always disable MPI when cross-compiling to Windows.
-  if((BUILD_MPI) AND NOT((CMAKE_SYSTEM_NAME STREQUAL Windows) AND CMAKE_CROSSCOMPILING))
+  if((BUILD_MPI) AND NOT((CMAKE_SYSTEM_NAME STREQUAL "Windows") AND CMAKE_CROSSCOMPILING))
     set(MDI_USE_MPI ON)
   else()
     set(MDI_USE_MPI OFF)
@@ -27,12 +27,12 @@ if(DOWNLOAD_MDI)
   set(MDI_USE_PYTHON_PLUGINS OFF)
   if(CMAKE_VERSION VERSION_LESS 3.12)
     find_package(PythonLibs QUIET) # Deprecated since version 3.12
-    if (PYTHONLIBS_FOUND)
+    if(PYTHONLIBS_FOUND)
       set(MDI_USE_PYTHON_PLUGINS ON)
     endif()
   else()
     find_package(Python QUIET COMPONENTS Development)
-    if (Python_Development_FOUND)
+    if(Python_Development_FOUND)
       set(MDI_USE_PYTHON_PLUGINS ON)
     endif()
   endif()
@@ -85,7 +85,7 @@ if(DOWNLOAD_MDI)
 
   endif()
   # need to add support for dlopen/dlsym, except when compiling for Windows.
-  if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+  if(NOT (CMAKE_SYSTEM_NAME STREQUAL "Windows"))
     list(APPEND MDI_DEP_LIBS "${CMAKE_DL_LIBS}")
   endif()
   if(MDI_DEP_LIBS)

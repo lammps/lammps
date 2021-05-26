@@ -2,7 +2,7 @@ Submitting new features for inclusion in LAMMPS
 ===============================================
 
 We encourage users to submit new features or modifications for LAMMPS to
-`the core developers <https://lammps.sandia.gov/authors.html>`_ so they
+`the core developers <https://www.lammps.org/authors.html>`_ so they
 can be added to the LAMMPS distribution. The preferred way to manage and
 coordinate this is via the LAMMPS project on `GitHub
 <https://github.com/lammps/lammps>`_.  Please see the :doc:`GitHub
@@ -31,7 +31,7 @@ send an e-mail to ``slack@lammps.org`` explaining what part of LAMMPS
 you are working on.  Only discussions related to LAMMPS development are
 tolerated, so this is **NOT** for people that look for help with compiling,
 installing, or using LAMMPS. Please contact the `lammps-users mailing
-list <https://lammps.sandia.gov/mail.html>`_ for those purposes instead.
+list <https://www.lammps.org/mail.html>`_ for those purposes instead.
 
 How quickly your contribution will be integrated depends largely on how
 much effort it will cause to integrate and test it, how many and what
@@ -67,7 +67,7 @@ distribution removed (e.g. interface to FFTW).  See the
 
 With user packages and files, all we are really providing (aside from
 the fame and fortune that accompanies having your name in the source
-code and on the `Authors page <https://lammps.sandia.gov/authors.html>`_
+code and on the `Authors page <https://www.lammps.org/authors.html>`_
 of the `LAMMPS WWW site <lws_>`_), is a means for you to distribute your
 work to the LAMMPS user community, and a mechanism for others to
 easily try out your new feature.  This may help you find bugs or make
@@ -81,13 +81,13 @@ unusual event).
    If you prefer to actively develop and support your add-on
    feature yourself, then you may wish to make it available for download
    from your own website, as a user package that LAMMPS users can add to
-   their copy of LAMMPS.  See the `Offsite LAMMPS packages and tools <https://lammps.sandia.gov/offsite.html>`_ page of the LAMMPS web
+   their copy of LAMMPS.  See the `Offsite LAMMPS packages and tools <https://www.lammps.org/offsite.html>`_ page of the LAMMPS web
    site for examples of groups that do this.  We are happy to advertise
    your package and web site from that page.  Simply email the
-   `developers <https://lammps.sandia.gov/authors.html>`_ with info about
+   `developers <https://www.lammps.org/authors.html>`_ with info about
    your package and we will post it there.
 
-.. _lws: https://lammps.sandia.gov
+.. _lws: https://www.lammps.org
 
 The previous sections of this doc page describe how to add new "style"
 files of various kinds to LAMMPS.  Packages are simply collections of
@@ -96,7 +96,7 @@ LAMMPS input script.  If designed correctly, these additions typically
 do not require changes to the main core of LAMMPS; they are simply
 add-on files.  If you think your new feature requires non-trivial
 changes in core LAMMPS files, you should `communicate with the
-developers <https://lammps.sandia.gov/authors.html>`_, since we may or
+developers <https://www.lammps.org/authors.html>`_, since we may or
 may not want to include those changes for some reason.  An example of a
 trivial change is making a parent-class method "virtual" when you derive
 a new child class from it.

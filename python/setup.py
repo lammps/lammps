@@ -26,7 +26,7 @@ setup(
     version = get_lammps_version(),
     author = "Steve Plimpton",
     author_email = "sjplimp@sandia.gov",
-    url = "https://lammps.sandia.gov",
+    url = "https://www.lammps.org",
     description = "LAMMPS Molecular Dynamics Python package",
     license = "GPL",
     packages=pkgs,

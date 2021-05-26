@@ -187,6 +187,7 @@ backends
 Baczewski
 Bagi
 Bagnold
+Bajaj
 Bkappa
 Bal
 balancer
@@ -1228,6 +1229,8 @@ hbn
 hbnewflag
 hbond
 hcp
+hdnnp
+HDNNP
 heatconduction
 Hebbeker
 Hebenstreit
@@ -1570,6 +1573,7 @@ Koning
 Kooser
 Korn
 Koskinen
+Koslowski
 Kosovan
 Koster
 Kosztin
@@ -2953,6 +2957,7 @@ shrinkexceed
 Shugaev
 si
 SiC
+Siegmund
 Siepmann
 Sievers
 sigmoid
@@ -3618,6 +3623,7 @@ yx
 yy
 yz
 Zannoni
+Zavattieri
 zbl
 ZBL
 Zc

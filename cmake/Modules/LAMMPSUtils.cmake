@@ -106,7 +106,7 @@ function(FetchPotentials pkgfolder potfolder)
 endfunction(FetchPotentials)
 
 # set CMAKE_LINUX_DISTRO and CMAKE_DISTRO_VERSION on Linux
-if((CMAKE_SYSTEM_NAME STREQUAL Linux) AND (EXISTS /etc/os-release))
+if((CMAKE_SYSTEM_NAME STREQUAL "Linux") AND (EXISTS /etc/os-release))
   file(STRINGS /etc/os-release distro REGEX "^NAME=")
   string(REGEX REPLACE "NAME=\"?([^\"]*)\"?" "\\1" distro "${distro}")
   file(STRINGS /etc/os-release disversion REGEX "^VERSION_ID=")

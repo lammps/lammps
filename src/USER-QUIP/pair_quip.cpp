@@ -264,6 +264,8 @@ void PairQUIP::coeff(int narg, char **arg)
 
   quip_file = utils::strdup(arg[2]);
   quip_string = utils::strdup(arg[3]);
+  n_quip_file = strlen(quip_file);
+  n_quip_string = strlen(quip_string);
 
   for (int i = 4; i < narg; i++) {
     if (strcmp(arg[i],"NULL") == 0)

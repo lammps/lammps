@@ -79,6 +79,7 @@ page gives those details.
    * :ref:`USER-EFF <PKG-USER-EFF>`
    * :ref:`USER-FEP <PKG-USER-FEP>`
    * :ref:`USER-H5MD <PKG-USER-H5MD>`
+   * :ref:`USER-HDNNP <PKG-USER-HDNNP>`
    * :ref:`USER-INTEL <PKG-USER-INTEL>`
    * :ref:`USER-LB <PKG-USER-LB>`
    * :ref:`USER-MANIFOLD <PKG-USER-MANIFOLD>`
@@ -1636,6 +1637,39 @@ This package has :ref:`specific installation instructions <user-h5md>` on the :d
 * src/USER-H5MD/README
 * lib/h5md/README
 * :doc:`dump h5md <dump_h5md>`
+
+----------
+
+.. _PKG-USER-HDNNP:
+
+USER-HDNNP package
+------------------
+
+**Contents:**
+
+A :doc:`pair_style hdnnp <pair_hdnnp>` command which allows to use
+high-dimensional neural network potentials (HDNNPs), a form of machine learning
+potentials. HDNNPs must be carefully trained prior to their application in a
+molecular dynamics simulation.
+
+.. _n2p2: https://github.com/CompPhysVienna/n2p2
+
+To use this package you must have the `n2p2 <n2p2_>`_ library installed and
+compiled on your system.
+
+**Author:** Andreas Singraber
+
+**Install:**
+
+This package has :ref:`specific installation instructions <user-hdnnp>` on the :doc:`Build extras <Build_extras>` page.
+
+**Supporting info:**
+
+* src/USER-HDNNP: filenames -> commands
+* src/USER-HDNNP/README
+* lib/hdnnp/README
+* :doc:`pair_style hdnnp <pair_hdnnp>`
+* examples/USER/hdnnp
 
 ----------
 

@@ -74,7 +74,7 @@ namespace RANN {
     {
     }
 
-    virtual int get_length(){return 0};
+    virtual int get_length(){return 0;};
     virtual double cutofffunction(double, double, double);
     virtual void generate_rinvssqrttable();
     bool spin;

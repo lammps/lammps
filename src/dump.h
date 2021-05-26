@@ -53,7 +53,7 @@ class Dump : protected Pointers {
   virtual double memory_usage();
 
   bool is_writing();
-  int is_consuming_computes(bigint);
+  int is_consuming_computes();
   bool should_clear_computes();
 
  protected:

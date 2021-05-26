@@ -936,6 +936,8 @@ void Dump::modify_params(int narg, char **arg)
 
     } else if (strcmp(arg[iarg],"every") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
+      if (vtime > 0)
+          error->all(FLERR,"Cannot change the dump frequency for a time-based dump");
       int idump;
       for (idump = 0; idump < output->ndump; idump++)
         if (strcmp(id,output->dump[idump]->id) == 0) break;
@@ -1193,10 +1195,11 @@ double Dump::memory_usage()
 
 bool Dump::is_writing()
 {
-  if (vtime <= 0) //always write if it is not time-based dump
+  if (vtime <= 0) //always write if it is not a time-based dump
     return true;
   if (update->atime > last_time) {
-    last_time += vtime;
+    while (update->atime > last_time)
+      last_time += vtime;
     return true;
   }
   return false;
@@ -1206,7 +1209,7 @@ bool Dump::is_writing()
    Checks whether computes should be prepared at a given time 
 ------------------------------------------------------------------------- */
 
-int Dump::is_consuming_computes(bigint timestep)
+int Dump::is_consuming_computes()
 {
   if (vtime <= 0)
     return clearstep;

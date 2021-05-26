@@ -295,7 +295,7 @@ void Output::write(bigint ntimestep)
         //the order is important
         clear_computes = dump[idump]->should_clear_computes();
         trigger_output = dump[idump]->is_writing();
-        prepare_computes = dump[idump]->is_consuming_computes(next_dump[idump]+every_dump[idump]);
+        prepare_computes = dump[idump]->is_consuming_computes();
 
         if (clear_computes || every_dump[idump] == 0)
           modify->clearstep_compute();

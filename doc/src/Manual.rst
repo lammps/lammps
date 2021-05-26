@@ -1,6 +1,6 @@
-######################################
-LAMMPS Documentation (|version|)
-######################################
+########################################
+LAMMPS Documentation (|version| version)
+########################################
 
 LAMMPS stands for **L**\ arge-scale **A**\ tomic/**M**\ olecular
 **M**\ assively **P**\ arallel **S**\ imulator.

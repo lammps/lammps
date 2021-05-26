@@ -35,38 +35,62 @@ DISTRIBUTION A. Approved for public release; distribution unlimited. OPSEC#4918
 #include "pair_rann.h"
 
 namespace LAMMPS_NS {
-  namespace RANN {
-    class Fingerprint {
-      public:
-      Fingerprint(PairRANN *);
-      virtual ~Fingerprint();
-      virtual bool parse_values(std::string,std::vector<std::string>);
-      virtual void write_values(FILE *);
-      virtual void init(int*,int);
-      virtual void allocate();
-      void init_screen(int);
-      virtual void compute_fingerprint(double*,double*,double*,double*,int,int,double*,double*,double*,int*,int,int*);//no screen,no spin
-      virtual void compute_fingerprint(double*,double*,double*,double*,double*,double*,double*,double*,double*,double*,double*,bool*,int,int,double*,double*,double*,int*,int,int*);//screen
-      virtual void compute_fingerprint(double*,double*,double*,double*,double*,double*,double*,int,int,double*,double*,double*,int*,int,int*);//spin
-      virtual void compute_fingerprint(double*,double*,double*,double*,double*,double*,double*,double*,double*,double*,double*,double*,double*,double*,bool*,int,int,double*,double*,double*,int*,int,int*);//spin,screen
-      virtual int get_length();
-      virtual double cutofffunction(double,double, double);
-      virtual void generate_rinvssqrttable();
-      bool spin;
-      bool screen;
-      int n_body_type;//i-j vs. i-j-k vs. i-j-k-l, etc.
-      bool empty;
-      bool fullydefined;
-      int startingneuron;
-      int id;//based on ordering of fingerprints listed for i-j in potential file
-      const char *style;
-      int* atomtypes;
-      double *rinvsqrttable;
-      double rc;
-      PairRANN *pair;
-      };
-  }
-}
+namespace RANN {
+  class Fingerprint {
+   public:
+    Fingerprint(PairRANN *);
+    virtual ~Fingerprint() {}
 
+    virtual bool parse_values(std::string, std::vector<std::string>) { return false; }
+    virtual void write_values(FILE *) {}
+
+    virtual void init(int *, int) {}
+    virtual void allocate() {}
+
+    void init_screen(int);
+
+    //no screen,no spin
+    virtual void compute_fingerprint(double *, double *, double *, double *, int, int, double *,
+                                     double *, double *, int *, int, int *)
+    {
+    }
+    //screen
+    virtual void compute_fingerprint(double *, double *, double *, double *, double *, double *,
+                                     double *, double *, double *, double *, double *, bool *, int,
+                                     int, double *, double *, double *, int *, int, int *)
+    {
+    }
+    //spin
+    virtual void compute_fingerprint(double *, double *, double *, double *, double *, double *,
+                                     double *, int, int, double *, double *, double *, int *, int,
+                                     int *)
+    {
+    }
+    //spin,screen
+    virtual void compute_fingerprint(double *, double *, double *, double *, double *, double *,
+                                     double *, double *, double *, double *, double *, double *,
+                                     double *, double *, bool *, int, int, double *, double *,
+                                     double *, int *, int, int *)
+    {
+    }
+
+    virtual int get_length(){return 0};
+    virtual double cutofffunction(double, double, double);
+    virtual void generate_rinvssqrttable();
+    bool spin;
+    bool screen;
+    int n_body_type;    //i-j vs. i-j-k vs. i-j-k-l, etc.
+    bool empty;
+    bool fullydefined;
+    int startingneuron;
+    int id;    //based on ordering of fingerprints listed for i-j in potential file
+    const char *style;
+    int *atomtypes;
+    double *rinvsqrttable;
+    double rc;
+    PairRANN *pair;
+  };
+}    // namespace RANN
+}    // namespace LAMMPS_NS
 
 #endif /* RANN_FINGERPRINT_H_ */

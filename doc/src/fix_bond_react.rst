@@ -17,7 +17,7 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command.
 * bond/react = style name of this fix command
 * the common keyword/values may be appended directly after 'bond/react'
-* this applies to all reaction specifications (below)
+* common keywords apply to all reaction specifications
 * common_keyword = *stabilization* or *reset_mol_ids*
 
   .. parsed-literal::

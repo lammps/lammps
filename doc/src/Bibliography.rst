@@ -1129,7 +1129,7 @@ Bibliography
 **(Sutmann)**
    Sutmann, Arnold, Fahrenberger, et. al., Physical review / E 88(6), 063308 (2013)
 
-**(Sutmann)** G. Sutmann. ScaFaCoS – a Scalable library of Fast Coulomb Solvers for particle Systems.
+**(Sutmann)** G. Sutmann. ScaFaCoS - a Scalable library of Fast Coulomb Solvers for particle Systems.
   In Bajaj, Zavattieri, Koslowski, Siegmund, Proceedings of the Society of Engineering Science 51st Annual Technical Meeting. 2014.
 
 **(Swinburne)**

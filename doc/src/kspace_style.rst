@@ -552,5 +552,5 @@ Illinois at Urbana-Champaign, (2006).
 
 .. _Sutmann2014:
 
-**(Sutmann)** G. Sutmann. ScaFaCoS – a Scalable library of Fast Coulomb Solvers for particle Systems.
+**(Sutmann)** G. Sutmann. ScaFaCoS - a Scalable library of Fast Coulomb Solvers for particle Systems.
   In Bajaj, Zavattieri, Koslowski, Siegmund, Proceedings of the Society of Engineering Science 51st Annual Technical Meeting. 2014.

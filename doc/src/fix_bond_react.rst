@@ -525,12 +525,12 @@ reaction can be imposed as follows:
 
 .. code-block:: LAMMPS
 
-compute 1 all pe/atom # in LAMMPS input script
-variable my_pe atom c_1 # in LAMMPS input script
+   compute 1 all pe/atom # in LAMMPS input script
+   variable my_pe atom c_1 # in LAMMPS input script
 
 .. code-block:: LAMMPS
 
-custom "rxnsum(v_my_pe) > 100" # in Constraints section of map file
+   custom "rxnsum(v_my_pe) > 100" # in Constraints section of map file
 
 The above example prevents the reaction from occurring unless the
 total potential energy of the reaction site is above 100. The variable

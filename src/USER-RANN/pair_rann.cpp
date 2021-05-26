@@ -27,22 +27,26 @@ do not necessarily reflect the views of the United States Army.​”
 
 DISTRIBUTION A. Approved for public release; distribution unlimited. OPSEC#4918
  */
-#define MAXLINE 1024
+
 #include "pair_rann.h"
-#include "tokenizer.h"
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
+
 #include "atom.h"
-#include "force.h"
 #include "comm.h"
-#include "memory.h"
-#include "neigh_request.h"
-#include "memory.h"
 #include "error.h"
-#include "update.h"
+#include "force.h"
 #include "math_special.h"
+#include "memory.h"
+#include "neighbor.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "tokenizer.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
+
+#include "rann_activation_linear.h"
+#include "rann_activation_sig_i.h"
 #include "rann_fingerprint_bond.h"
 #include "rann_fingerprint_bondscreened.h"
 #include "rann_fingerprint_bondscreenedspin.h"
@@ -51,9 +55,8 @@ DISTRIBUTION A. Approved for public release; distribution unlimited. OPSEC#4918
 #include "rann_fingerprint_radialscreened.h"
 #include "rann_fingerprint_radialscreenedspin.h"
 #include "rann_fingerprint_radialspin.h"
-#include "rann_activation_linear.h"
-#include "rann_activation_sig_i.h"
 
+#define MAXLINE 1024
 
 using namespace LAMMPS_NS;
 

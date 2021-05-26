@@ -87,6 +87,11 @@
 /fix_pafi*.cpp
 /fix_pafi*.h
 
+/pair_rann.cpp
+/pair_rann.h
+/rann_*.cpp
+/rann_*.h
+
 /compute_test_nbl.cpp
 /compute_test_nbl.h
 /pair_multi_lucy.cpp

@@ -687,6 +687,24 @@ struct Random_UniqueIndex<Kokkos::Experimental::SYCL> {
 };
 #endif
 
+#ifdef KOKKOS_ENABLE_OPENMPTARGET
+template <>
+struct Random_UniqueIndex<Kokkos::Experimental::OpenMPTarget> {
+  using locks_view_type = View<int*, Kokkos::Experimental::OpenMPTarget>;
+  KOKKOS_FUNCTION
+  static int get_state_idx(const locks_view_type& locks) {
+    const int team_size = omp_get_num_threads();
+    int i               = omp_get_team_num() * team_size + omp_get_thread_num();
+    const int lock_size = locks.extent_int(0);
+
+    while (Kokkos::atomic_compare_exchange(&locks(i), 0, 1)) {
+      i = (i + 1) % lock_size;
+    }
+    return i;
+  }
+};
+#endif
+
 }  // namespace Impl
 
 template <class DeviceType>

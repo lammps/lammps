@@ -113,7 +113,7 @@ class SYCL {
   void fence() const;
 
   /// \brief Print configuration information to the given output stream.
-  static void print_configuration(std::ostream&, const bool detail = false);
+  void print_configuration(std::ostream&, const bool detail = false);
 
   /// \brief Free any resources being consumed by the device.
   static void impl_finalize();
@@ -131,12 +131,10 @@ class SYCL {
     sycl::device get_device() const;
 
     friend std::ostream& operator<<(std::ostream& os, const SYCLDevice& that) {
-      return that.info(os);
+      return SYCL::impl_sycl_info(os, that.m_device);
     }
 
    private:
-    std::ostream& info(std::ostream& os) const;
-
     sycl::device m_device;
   };
 
@@ -154,6 +152,9 @@ class SYCL {
   }
 
  private:
+  static std::ostream& impl_sycl_info(std::ostream& os,
+                                      const sycl::device& device);
+
   Kokkos::Impl::HostSharedPtr<Impl::SYCLInternal> m_space_instance;
 };
 

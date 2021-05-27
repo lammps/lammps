@@ -44,7 +44,7 @@ IF(Kokkos_ENABLE_OPENMP)
   )
 ENDIF()
 
-foreach(Tag Threads;Serial;OpenMP;Cuda;HPX;HIP;SYCL)
+foreach(Tag Threads;Serial;OpenMP;Cuda;HPX;HIP;SYCL;OpenMPTarget)
   # Because there is always an exception to the rule
   if(Tag STREQUAL "Threads")
     set(DEVICE "PTHREAD")

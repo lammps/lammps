@@ -130,6 +130,16 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
 
   init_pkg_lists();
 
+#if defined(LMP_PYTHON) && defined(_WIN32)
+  // if the LAMMPSHOME environment variable is set, it should point
+  // to the location of the LAMMPS installation tree where we bundle
+  // the matching Python installation for use with the PYTHON package.
+  // this is currently only used on Windows with the windows installer packages
+  const char *lmpenv = getenv("LAMMPSHOME");
+  if (lmpenv) {
+    _putenv(utils::strdup(fmt::format("PYTHONHOME={}",lmpenv)));
+  }
+#endif
   // check if -mpicolor is first arg
   // if so, then 2 apps were launched with one mpirun command
   //   this means passed communicator (e.g. MPI_COMM_WORLD) is bigger than LAMMPS

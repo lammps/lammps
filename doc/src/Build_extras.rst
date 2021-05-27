@@ -457,6 +457,9 @@ They must be specified in uppercase.
    *  - ZEN2
       - HOST
       - AMD Zen2 class CPU (AVX 2)
+   *  - ZEN3
+      - HOST
+      - AMD Zen3 class CPU (AVX 2)
    *  - ARMV80
       - HOST
       - ARMv8.0 Compatible CPU
@@ -560,7 +563,7 @@ They must be specified in uppercase.
       - GPU
       - Intel GPUs Gen9+
 
-This list was last updated for version 3.4 of the Kokkos library.
+This list was last updated for version 3.4.1 of the Kokkos library.
 
 .. tabs::
 

@@ -1,6 +1,6 @@
-######################################
-LAMMPS version |version| Documentation
-######################################
+########################################
+LAMMPS Documentation (|version| version)
+########################################
 
 LAMMPS stands for **L**\ arge-scale **A**\ tomic/**M**\ olecular
 **M**\ assively **P**\ arallel **S**\ imulator.
@@ -15,7 +15,8 @@ the GNU Public License (GPL).
 
 The `LAMMPS website <lws_>`_ has a variety of information about the
 code.  It includes links to an on-line version of this manual, a
-`mailing list <https://www.lammps.org/mail.html>`_ where users can
+`mailing list <https://www.lammps.org/mail.html>`_ and
+`online forum <https://www.lammps.org/forum.html>`_  where users can
 post questions, and a `GitHub site <https://github.com/lammps/lammps>`_
 where all LAMMPS development is coordinated.
 

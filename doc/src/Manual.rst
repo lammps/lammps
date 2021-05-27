@@ -11,7 +11,7 @@ computers.  It was developed originally at Sandia National
 Laboratories, a US Department of Energy facility.  The majority of
 funding for LAMMPS has come from the US Department of Energy (DOE).
 LAMMPS is an open-source code, distributed freely under the terms of
-the GNU Public License (GPL).
+the GNU Public License Version 2 (GPLv2).
 
 The `LAMMPS website <lws_>`_ has a variety of information about the
 code.  It includes links to an on-line version of this manual, a

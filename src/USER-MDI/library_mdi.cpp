@@ -106,8 +106,12 @@ The function executes a single command from an external MDI driver.
  * \param  comm      MDI communicator that can be used to communicated with the driver.
  * \param  class_obj pointer to an instance of an mdi/engine fix cast to ``void *``.
  * \return 0 on no error, 1 on error. */
+
 int lammps_execute_mdi_command(const char *command, MDI_Comm comm, void *class_obj)
 {
   FixMDIEngine *mdi_fix = (FixMDIEngine *) class_obj;
   return mdi_fix->execute_command(command, comm);
+
+  // MDIEngine2 *mdi_engine = (MDIEngine2 *) class_obj;
+  // return mdi_engine->execute_command(command, comm);
 }

@@ -280,7 +280,7 @@ void PairDPDGPU::compute(int eflag, int vflag)
 void PairDPDGPU::init_style()
 {
   if (force->newton_pair)
-    error->all(FLERR,"Cannot use newton pair with dpd/gpu pair style");
+    error->all(FLERR,"Pair style dpd/gpu requires newton pair off");
 
   // Repeat cutsq calculation because done after call to init_style
   double maxcut = -1.0;

@@ -143,7 +143,7 @@ void PairLJSFDipoleSFGPU::init_style()
     error->all(FLERR,"Pair dipole/sf/gpu requires atom attributes q, mu, torque");
 
   if (force->newton_pair)
-    error->all(FLERR,"Cannot use newton pair with dipole/sf/gpu pair style");
+    error->all(FLERR,"Pair style dipole/sf/gpu requires newton pair off");
 
   if (strcmp(update->unit_style,"electron") == 0)
     error->all(FLERR,"Cannot (yet) use 'electron' units with dipoles");

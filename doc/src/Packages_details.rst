@@ -100,6 +100,7 @@ page gives those details.
    * :ref:`USER-QMMM <PKG-USER-QMMM>`
    * :ref:`USER-QTB <PKG-USER-QTB>`
    * :ref:`USER-QUIP <PKG-USER-QUIP>`
+   * :ref:`USER-RANN <PKG-USER-RANN>`
    * :ref:`USER-REACTION <PKG-USER-REACTION>`
    * :ref:`USER-REAXC <PKG-USER-REAXC>`
    * :ref:`USER-SCAFACOS <PKG-USER-SCAFACOS>`
@@ -2274,6 +2275,31 @@ This package has :ref:`specific installation instructions <user-quip>` on the :d
 * src/USER-QUIP/README
 * :doc:`pair_style quip <pair_quip>`
 * examples/USER/quip
+
+----------
+
+.. _PKG-USER-RANN:
+
+USER-RANN package
+-----------------
+
+**Contents:**
+
+A pair style for using rapid atomistic neural network (RANN) potentials.
+These neural network potentials work by first generating a series of symmetry
+functions from the neighbor list and then using these values as the input layer
+of a neural network.
+
+**Authors:**
+
+This package was written by Christopher Barrett
+with contributions by Doyl Dickel, Mississippi State University.
+
+**Supporting info:**
+
+* src/USER-RANN: filenames -> commands
+* :doc:`pair_style rann <pair_rann>`
+* examples/USER/rann
 
 ----------
 

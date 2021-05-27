@@ -23,6 +23,7 @@ acolor
 acos
 Acta
 actinide
+activationfunctions
 acylindricity
 addforce
 Addington
@@ -75,6 +76,7 @@ allocaters
 allosws
 AlO
 Alonso
+alphak
 alphashrink
 amap
 Amatrix
@@ -153,6 +155,7 @@ atomfile
 AtomicPairStyle
 atomID
 atomistic
+atomtypes
 attogram
 attograms
 attrac
@@ -288,6 +291,9 @@ BondAngle
 BondBond
 bondchk
 bondmax
+bondscreened
+bondscreenedspin
+bondspin
 bondtype
 Bonet
 Bonomi
@@ -340,6 +346,8 @@ bz
 cadetblue
 Cagin
 calc
+calibrationfunctions
+calibrationparameters
 calibre
 caltech
 Caltech
@@ -670,6 +678,7 @@ diagonalized
 diagonalizers
 diagonalizing
 Diallo
+Dickel
 diel
 differentiable
 diffusively
@@ -722,6 +731,7 @@ doxygenclass
 doxygenfunction
 downarrow
 Doye
+Doyl
 dpd
 DPD
 dpdTheta
@@ -1638,6 +1648,7 @@ Laupretre
 Lauriat
 lavenderblush
 lawngreen
+layersize
 lB
 lbfgs
 lbl
@@ -2164,6 +2175,7 @@ nemd
 netcdf
 netstat
 Nettleton
+networklayers
 Neumann
 Nevent
 nevery
@@ -2198,6 +2210,7 @@ Ninteger
 NiO
 Nissila
 nist
+Nitol
 nitride
 nitrides
 niu
@@ -2672,6 +2685,9 @@ qw
 qx
 qy
 qz
+radialscreened
+radialscreenedspin
+radialspin
 radian
 radians
 Rafferty
@@ -2684,6 +2700,8 @@ ramping
 Ramprasad
 Randisi
 randomizations
+rann
+RANN
 Raphson
 Rappe
 Ravelo
@@ -2960,6 +2978,7 @@ SiC
 Siegmund
 Siepmann
 Sievers
+sigI
 sigmoid
 Sij
 Sikandar
@@ -3661,6 +3680,8 @@ zz
 Zm
 PowerShell
 filesystems
+fingerprintconstants
+fingerprintsperelement
 zincblende
 Zstandard
 Zstd

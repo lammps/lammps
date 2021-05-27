@@ -227,6 +227,7 @@ OPT.
    * :doc:`polymorphic <pair_polymorphic>`
    * :doc:`python <pair_python>`
    * :doc:`quip <pair_quip>`
+   * :doc:`rann <pair_rann>`
    * :doc:`reax/c (ko) <pair_reaxc>`
    * :doc:`rebo (io) <pair_airebo>`
    * :doc:`resquared (go) <pair_resquared>`

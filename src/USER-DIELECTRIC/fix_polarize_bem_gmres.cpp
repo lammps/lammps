@@ -40,21 +40,20 @@
     LC: QA297.8.K45.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include <cstdlib>
 #include "fix_polarize_bem_gmres.h"
-#include "atom_vec_dielectric.h"
-#include "update.h"
+
 #include "atom.h"
+#include "atom_vec_dielectric.h"
 #include "comm.h"
 #include "domain.h"
 #include "neighbor.h"
+#include "error.h"
 #include "force.h"
 #include "group.h"
 #include "kspace.h"
+#include "math_const.h"
 #include "memory.h"
 #include "modify.h"
-#include "math_const.h"
 #include "pair_coul_cut_dielectric.h"
 #include "pair_coul_long_dielectric.h"
 #include "pair_lj_cut_coul_cut_dielectric.h"
@@ -64,7 +63,10 @@
 #include "msm_dielectric.h"
 #include "random_park.h"
 #include "timer.h"
-#include "error.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -85,9 +87,9 @@ FixPolarizeBEMGMRES::FixPolarizeBEMGMRES(LAMMPS *lmp, int narg, char **arg) :
 
   // parse required arguments
 
-  nevery = force->inumeric(FLERR,arg[3]);
+  nevery = utils::numeric(FLERR,arg[3],false,lmp);
   if (nevery < 0) error->all(FLERR,"Illegal fix polarize/bem/gmres command");
-  double tol =  force->numeric(FLERR,arg[4]);
+  double tol =  utils::numeric(FLERR,arg[4],false,lmp);
   tol_abs = tol_rel = tol;
 
   itr_max = 20;
@@ -149,7 +151,6 @@ int FixPolarizeBEMGMRES::setmask()
 {
   int mask = 0;
   mask |= PRE_FORCE;
-  mask |= THERMO_ENERGY;
   return mask;
 }
 
@@ -307,12 +308,12 @@ void FixPolarizeBEMGMRES::pre_force(int)
 void FixPolarizeBEMGMRES::compute_induced_charges()
 {
   double *q = atom->q;
-  double *q_real = avec->q_real;
-  double **norm = avec->mu;
-  double *area = avec->area;
-  double *ed = avec->ed;
-  double *em = avec->em;
-  double *epsilon = avec->epsilon;
+  double *q_real = atom->q_unscaled;
+  double **norm = atom->mu;
+  double *area = atom->area;
+  double *ed = atom->ed;
+  double *em = atom->em;
+  double *epsilon = atom->epsilon;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   double epsilon0 = force->dielectric;
@@ -602,11 +603,11 @@ void FixPolarizeBEMGMRES::apply_operator(double* w, double* Aw, int n)
 {
   int i;
   double *q = atom->q;
-  double **norm = avec->mu;
-  double *area = avec->area;
-  double *ed = avec->ed;
-  double *em = avec->em;
-  double *epsilon = avec->epsilon;
+  double **norm = atom->mu;
+  double *area = atom->area;
+  double *ed = atom->ed;
+  double *em = atom->em;
+  double *epsilon = atom->epsilon;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   double epsilon0 = force->dielectric; 
@@ -672,12 +673,12 @@ void FixPolarizeBEMGMRES::update_residual(double* w, double* r, int n)
 {
   int i;
   double *q = atom->q;
-  double *q_real = avec->q_real;
-  double **norm = avec->mu;
-  double *area = avec->area;
-  double *ed = avec->ed;
-  double *em = avec->em;
-  double *epsilon = avec->epsilon;
+  double *q_real = atom->q_unscaled;
+  double **norm = atom->mu;
+  double *area = atom->area;
+  double *ed = atom->ed;
+  double *em = atom->em;
+  double *epsilon = atom->epsilon;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   double epsilon0 = force->dielectric;
@@ -814,11 +815,11 @@ int FixPolarizeBEMGMRES::modify_param(int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"itr_max") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix_modify command");
-      itr_max = force->numeric(FLERR,arg[iarg+1]);
+      itr_max = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"mr") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix_modify command");
-      mr = force->numeric(FLERR,arg[iarg+1]);
+      mr = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"kspace") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix_modify command");
@@ -831,12 +832,12 @@ int FixPolarizeBEMGMRES::modify_param(int narg, char **arg)
       double epsiloni=-1, areai=-1;
       double qreali=0;
       int set_charge=0;
-      double ediff = force->numeric(FLERR,arg[iarg+1]);
-      double emean = force->numeric(FLERR,arg[iarg+2]);
-      if (strcmp(arg[iarg+3],"NULL") != 0) epsiloni = force->numeric(FLERR,arg[iarg+3]);
-      if (strcmp(arg[iarg+4],"NULL") != 0) areai = force->numeric(FLERR,arg[iarg+4]);
+      double ediff = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      double emean = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      if (strcmp(arg[iarg+3],"NULL") != 0) epsiloni = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+      if (strcmp(arg[iarg+4],"NULL") != 0) areai = utils::numeric(FLERR,arg[iarg+4],false,lmp);
       if (strcmp(arg[iarg+5],"NULL") != 0) {
-        qreali = force->numeric(FLERR,arg[iarg+5]);
+        qreali = utils::numeric(FLERR,arg[iarg+5],false,lmp);
         set_charge = 1;
       }
       set_dielectric_params(ediff, emean, epsiloni, areai, set_charge, qreali);
@@ -844,8 +845,8 @@ int FixPolarizeBEMGMRES::modify_param(int narg, char **arg)
       iarg += 6;
     } else if (strcmp(arg[iarg],"rand") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix_modify command");
-      ave_charge = force->numeric(FLERR,arg[iarg+1]);
-      seed_charge = force->numeric(FLERR,arg[iarg+2]);
+      ave_charge = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      seed_charge = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       randomized = 1;
       iarg += 3;
     } else error->all(FLERR,"Illegal fix_modify command");
@@ -939,11 +940,11 @@ double FixPolarizeBEMGMRES::compute_vector(int n)
 void FixPolarizeBEMGMRES::set_dielectric_params(double ediff, double emean,
    double epsiloni, double areai, int set_charge, double qreali)
 {
-  double *area = avec->area;
-  double *ed = avec->ed;
-  double *em = avec->em;
-  double *q_real = avec->q_real;
-  double *epsilon = avec->epsilon;
+  double *area = atom->area;
+  double *ed = atom->ed;
+  double *em = atom->em;
+  double *q_real = atom->q_unscaled;
+  double *epsilon = atom->epsilon;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   

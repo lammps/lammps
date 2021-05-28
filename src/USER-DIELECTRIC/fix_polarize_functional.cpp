@@ -26,36 +26,39 @@
    Reference: Jadhao, Solis, Olvera de la Cruz, J. Chem. Phys. 138, 054119, 2013
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include <cstdlib>
 #include "fix_polarize_functional.h"
-#include "atom_vec_dielectric.h"
-#include "update.h"
+
 #include "atom.h"
+#include "atom_vec_dielectric.h"
+
+
 #include "comm.h"
 #include "compute.h"
 #include "domain.h"
-#include "neighbor.h"
+#include "error.h"
 #include "force.h"
 #include "group.h"
-#include "pair.h"
+#include "kspace.h"
+#include "math_const.h"
+#include "math_extra.h"
+#include "memory.h"
+#include "modify.h"
+#include "msm_dielectric.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
 #include "pair_coul_cut_dielectric.h"
 #include "pair_coul_long_dielectric.h"
 #include "pair_lj_cut_coul_cut_dielectric.h"
 #include "pair_lj_cut_coul_long_dielectric.h"
 #include "pair_lj_cut_coul_msm_dielectric.h"
 #include "pppm_dielectric.h"
-#include "msm_dielectric.h"
-#include "kspace.h"
-#include "memory.h"
-#include "math_const.h"
-#include "math_extra.h"
-#include "modify.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
 #include "random_park.h"
 #include "timer.h"
-#include "error.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -392,8 +395,8 @@ void FixPolarizeFunctional::update_induced_charges()
 void FixPolarizeFunctional::charge_rescaled(int scaled2real)
 {
   double* q = atom->q;
-  double* q_real = avec->q_real;
-  double* epsilon = avec->epsilon;
+  double* q_real = atom->q_unscaled;
+  double* epsilon = atom->epsilon;
   int nlocal = atom->nlocal;
 
   if (scaled2real) {
@@ -479,12 +482,12 @@ int FixPolarizeFunctional::modify_param(int narg, char **arg)
       double epsiloni=-1, areai=-1;
       double qreali=0;
       int set_charge=0;
-      double ediff = force->numeric(FLERR,arg[iarg+1]);
-      double emean = force->numeric(FLERR,arg[iarg+2]);
-      if (strcmp(arg[iarg+3],"NULL") != 0) epsiloni = force->numeric(FLERR,arg[iarg+3]);
-      if (strcmp(arg[iarg+4],"NULL") != 0) areai = force->numeric(FLERR,arg[iarg+4]);
+      double ediff = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      double emean = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      if (strcmp(arg[iarg+3],"NULL") != 0) epsiloni = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+      if (strcmp(arg[iarg+4],"NULL") != 0) areai = utils::numeric(FLERR,arg[iarg+4],false,lmp);
       if (strcmp(arg[iarg+5],"NULL") != 0) {
-        qreali = force->numeric(FLERR,arg[iarg+5]);
+        qreali = utils::numeric(FLERR,arg[iarg+5],false,lmp);
         set_charge = 1;
       }
       set_dielectric_params(ediff, emean, epsiloni, areai, set_charge, qreali);
@@ -601,11 +604,11 @@ void FixPolarizeFunctional::calculate_Rww_cutoff()
   tagint* tag = atom->tag;
   int nlocal = atom->nlocal;
   double **x = atom->x;
-  double *area = avec->area;
-  double *curvature = avec->curvature;
-  double **norm = avec->mu;
-  double *ed = avec->ed;
-  double *em = avec->em;
+  double *area = atom->area;
+  double *curvature = atom->curvature;
+  double **norm = atom->mu;
+  double *ed = atom->ed;
+  double *em = atom->em;
 
   // invoke full neighbor list
 
@@ -815,12 +818,12 @@ void FixPolarizeFunctional::calculate_qiRqw_cutoff()
   tagint *tag = atom->tag;
   int nlocal = atom->nlocal;
   double **x = atom->x;
-  double *q = avec->q_real;
-  double *epsilon = avec->epsilon;
-  double *area = avec->area;
-  double **norm = avec->mu;
-  double *ed = avec->ed;
-  double *em = avec->em;
+  double *q = atom->q_unscaled;
+  double *epsilon = atom->epsilon;
+  double *area = atom->area;
+  double **norm = atom->mu;
+  double *ed = atom->ed;
+  double *em = atom->em;
 
   // invoke full neighbor list
 
@@ -1017,11 +1020,11 @@ void FixPolarizeFunctional::calculate_qiRqw_cutoff()
 void FixPolarizeFunctional::set_dielectric_params(double ediff, double emean,
    double epsiloni, double areai, int set_charge, double qreali)
 {
-  double *area = avec->area;
-  double *ed = avec->ed;
-  double *em = avec->em;
-  double *q_real = avec->q_real;
-  double *epsilon = avec->epsilon;
+  double *area = atom->area;
+  double *ed = atom->ed;
+  double *em = atom->em;
+  double *q_real = atom->q_unscaled;
+  double *epsilon = atom->epsilon;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   

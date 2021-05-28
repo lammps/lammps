@@ -1,4 +1,6 @@
-This folder contains some example data and input scripts for the USER-DIELECTRIC package.
+This folder contains some example data and input scripts for the USER-DIELECTRIC package. Please refer to the following reference for more details:
+
+Nguyen TD, Li H, Bagchi D, Solis FJ, Olvera de la Cruz, Incorporating surface polarization effects into large-scale coarse-grained molecular dynamics simulation, Computer Physics Communications 2019, 241, 80--91.
 
 - data.minimal     :  two point opposite charges facing a flat interface
 - data.plane       :  two point opposite charges facing a larger flat interface

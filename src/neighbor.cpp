@@ -1793,7 +1793,7 @@ int Neighbor::choose_stencil(NeighRequest *rq)
 
   // convert newton request to newtflag = on or off
 
-  int newtflag;
+  int newtflag = 1;
   if (rq->newton == 0 && newton_pair) newtflag = 1;
   else if (rq->newton == 0 && !newton_pair) newtflag = 0;
   else if (rq->newton == 1) newtflag = 1;

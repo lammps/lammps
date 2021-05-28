@@ -50,7 +50,6 @@ action pair_coul_cut_dielectric.cpp
 action pair_coul_cut_dielectric.h
 action pppm_dielectric.cpp
 action pppm_dielectric.h
-action pppm_disp_dielectric.cpp pppm_disp.cpp
-action pppm_disp_dielectric.h pppm_disp.h
 action msm_dielectric.cpp
 action msm_dielectric.h
+

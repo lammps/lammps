@@ -277,7 +277,7 @@ double PairLJCutCoulLongDielectric::single(int i, int j, int itype, int jtype,
   double r2inv,r6inv,r,grij,expm2,t,erfc,ei,ej,prefactor;
   double fraction,table,forcecoul,forcelj,phicoul,philj;
   int itable;
-  double *eps = avec->epsilon;
+  double *eps = atom->epsilon;
 
   r2inv = 1.0/rsq;
   if (rsq < cut_coulsq) {

@@ -482,9 +482,6 @@ void PPPMDielectric::qsum_qsq()
   const int nlocal = atom->nlocal;
   double qsum_local(0.0), qsqsum_local(0.0);
 
-#if defined(_OPENMP)
-#pragma omp parallel for default(none) reduction(+:qsum_local,qsqsum_local)
-#endif
   for (int i = 0; i < nlocal; i++) {
     double qtmp = eps[i]*q[i];
     qsum_local += qtmp;

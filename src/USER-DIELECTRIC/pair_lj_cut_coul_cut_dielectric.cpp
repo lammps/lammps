@@ -208,7 +208,7 @@ double PairLJCutCoulCutDielectric::single(int i, int j, int itype, int jtype,
                                 double &fforce)
 {
   double r2inv,r6inv,forcecoul,forcelj,phicoul,ei,ej,philj;
-  double* eps = avec->epsilon;
+  double* eps = atom->epsilon;
 
   r2inv = 1.0/rsq;
   if (rsq < cut_coulsq[itype][jtype])

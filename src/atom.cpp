@@ -520,7 +520,7 @@ void Atom::peratom_create()
   add_peratom("em",&em,DOUBLE,0);
   add_peratom("epsilon",&epsilon,DOUBLE,0);
   add_peratom("curvature",&curvature,DOUBLE,0);
-  add_peratom("q_unscaled",&curvature,DOUBLE,0);
+  add_peratom("q_unscaled",&q_unscaled,DOUBLE,0);
 
   // end of customization section
   // --------------------------------------------------------------------

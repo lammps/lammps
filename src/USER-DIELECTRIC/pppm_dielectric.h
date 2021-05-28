@@ -28,10 +28,7 @@ class PPPMDielectric : public PPPM {
  public:
   PPPMDielectric(class LAMMPS *);
   virtual ~PPPMDielectric();
-  virtual void init();
-  void setup_grid();
   virtual void compute(int, int);
-  virtual double memory_usage();
 
   double** efield;
   double* phi;
@@ -40,39 +37,10 @@ class PPPMDielectric : public PPPM {
   void qsum_qsq();
 
  protected:
-  FFT_SCALAR ***densityx_brick_dipole,***densityy_brick_dipole,***densityz_brick_dipole;
-  FFT_SCALAR ***vdxx_brick_dipole,***vdyy_brick_dipole,***vdzz_brick_dipole;
-  FFT_SCALAR ***vdxy_brick_dipole,***vdxz_brick_dipole,***vdyz_brick_dipole;
-  FFT_SCALAR ***u_brick_dipole;
-  FFT_SCALAR ***ux_brick_dipole,***uy_brick_dipole,***uz_brick_dipole;
-  FFT_SCALAR *densityx_fft_dipole,*densityy_fft_dipole,*densityz_fft_dipole;
-  FFT_SCALAR *work3,*work4;
-
-  class GridComm *cg_mu;
-
-  virtual void allocate();
-  virtual void deallocate();
   void slabcorr();
 
   void fieldforce_ik();
   void fieldforce_ad();
-
-  // grid communication
-
-  virtual void pack_forward(int, FFT_SCALAR *, int, int *);
-  virtual void unpack_forward(int, FFT_SCALAR *, int, int *);
-  virtual void pack_reverse(int, FFT_SCALAR *, int, int *);
-  virtual void unpack_reverse(int, FFT_SCALAR *, int, int *);
-
-  // dipole
-
-  int mu_flag;
-  double musqsum,musum,mu2;
-  void make_rho_dipole();
-  void brick2fft_dipole();
-  void poisson_ik_dipole();
-  void fieldforce_ik_dipole();
-  void musum_musq();
 
   class AtomVecDielectric* avec;
 

@@ -197,6 +197,10 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   rho = drho = esph = desph = cv = nullptr;
   vest = nullptr;
 
+  // USER-DIELECTRIC package
+
+  area = ed = em = epsilon = curvature = q_unscaled = nullptr;
+
   // end of customization section
   // --------------------------------------------------------------------
 
@@ -508,6 +512,15 @@ void Atom::peratom_create()
   add_peratom("eff_plastic_strain",&eff_plastic_strain,DOUBLE,0);
   add_peratom("eff_plastic_strain_rate",&eff_plastic_strain_rate,DOUBLE,0);
   add_peratom("damage",&damage,DOUBLE,0);
+
+  // USER-DIELECTRIC package
+
+  add_peratom("area",&area,DOUBLE,0);
+  add_peratom("ed",&ed,DOUBLE,0);
+  add_peratom("em",&em,DOUBLE,0);
+  add_peratom("epsilon",&epsilon,DOUBLE,0);
+  add_peratom("curvature",&curvature,DOUBLE,0);
+  add_peratom("q_unscaled",&curvature,DOUBLE,0);
 
   // end of customization section
   // --------------------------------------------------------------------

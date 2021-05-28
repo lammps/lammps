@@ -74,7 +74,7 @@ void PairCoulCutDielectric::compute(int eflag, int vflag)
   double **x = atom->x;
   double **f = atom->f;
   double *q = atom->q;
-  double *q_real = avec->q_real;
+  double *q_real = avec->q_unscaled;
   double* eps = avec->epsilon;
   double** norm = avec->mu;
   double* curvature = avec->curvature;
@@ -128,7 +128,7 @@ void PairCoulCutDielectric::compute(int eflag, int vflag)
       if (rsq < cutsq[itype][jtype] && rsq > EPSILON) {
         r2inv = 1.0/rsq;
         rinv = sqrt(r2inv);
-        efield_i = qqrd2e * scale[itype][jtype] * q[j]*rinv;
+        efield_i = scale[itype][jtype] * q[j]*rinv;
         forcecoul = qtmp*efield_i;
 
         fpair_i = factor_coul*etmp*forcecoul*r2inv;
@@ -175,3 +175,27 @@ void PairCoulCutDielectric::init_style()
   neighbor->requests[irequest]->full = 1;
 }
 
+/* ---------------------------------------------------------------------- */
+
+double PairCoulCutDielectric::single(int i, int j, int itype, int jtype,
+                                double rsq,
+                                double factor_coul, double factor_lj,
+                                double &fforce)
+{
+  double r2inv,forcecoul,phicoul,ei,ej;
+  double* eps = avec->epsilon;
+
+  r2inv = 1.0/rsq;
+  forcecoul = force->qqrd2e * atom->q[i]*atom->q[j]*sqrt(r2inv)*eps[i];
+  
+  double eng = 0.0;
+  if (eps[i] == 1) ei = 0;
+  else ei = eps[i];
+  if (eps[j] == 1) ej = 0;
+  else ej = eps[j];
+  phicoul = force->qqrd2e * atom->q[i]*atom->q[j]*sqrt(r2inv);
+  phicoul *= 0.5*(ei+ej);
+  eng += factor_coul*phicoul;
+
+  return eng;
+}

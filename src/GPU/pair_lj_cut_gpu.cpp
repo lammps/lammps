@@ -135,27 +135,22 @@ void PairLJCutGPU::init_style()
 {
   cut_respa = nullptr;
 
-  //if (force->newton_pair)
-//    error->all(FLERR,"Cannot use newton pair with lj/cut/gpu pair style");
+  if (force->newton_pair)
+    error->all(FLERR,"Cannot use newton pair with lj/cut/gpu pair style");
 
   // Repeat cutsq calculation because done after call to init_style
   double maxcut = -1.0;
   double cut;
   for (int i = 1; i <= atom->ntypes; i++) {
     for (int j = i; j <= atom->ntypes; j++) {
-      cut = init_one(i,j);
       if (setflag[i][j] != 0 || (setflag[i][i] != 0 && setflag[j][j] != 0)) {
-      
         cut = init_one(i,j);
-        //printf("lj/cut/gpu: i = %d; j = %d: setflag = %d cut = %f\n", i, j, setflag[i][j], cut);
         cut *= cut;
         if (cut > maxcut)
           maxcut = cut;
         cutsq[i][j] = cutsq[j][i] = cut;
-      } else {
-        //printf("lj/cut/gpu: i = %d; j = %d: setflag = %d cut = %f\n", i, j, setflag[i][j], cut);
+      } else
         cutsq[i][j] = cutsq[j][i] = 0.0;
-      }
     }
   }
   double cell_size = sqrt(maxcut) + neighbor->skin;

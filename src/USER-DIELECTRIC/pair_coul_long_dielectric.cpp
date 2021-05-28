@@ -15,25 +15,22 @@
    Contributing author: Trung Nguyen (Northwestern)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include "pair_coul_long_dielectric.h"
+
 #include "atom.h"
 #include "atom_vec_dielectric.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "kspace.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "update.h"
-#include "integrate.h"
-#include "respa.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -87,10 +84,10 @@ void PairCoulLongDielectric::compute(int eflag, int vflag)
   double **x = atom->x;
   double **f = atom->f;
   double *q = atom->q;
-  double** norm = avec->mu;
-  double* curvature = avec->curvature;
-  double* area = avec->area;
-  double *eps = avec->epsilon;
+  double** norm = atom->mu;
+  double* curvature = atom->curvature;
+  double* area = atom->area;
+  double *eps = atom->epsilon;
   int *type = atom->type;
   int nlocal = atom->nlocal;
   double *special_coul = force->special_coul;

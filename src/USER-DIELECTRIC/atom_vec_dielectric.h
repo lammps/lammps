@@ -20,54 +20,24 @@ AtomStyle(dielectric,AtomVecDielectric)
 #ifndef LMP_ATOM_VEC_DIELECTRIC_H
 #define LMP_ATOM_VEC_DIELECTRIC_H
 
-#include "atom_vec_full.h"
+#include "atom_vec.h"
 
 namespace LAMMPS_NS {
 
-class AtomVecDielectric : public AtomVecFull {
+class AtomVecDielectric : public AtomVec {
  public:
   AtomVecDielectric(class LAMMPS *);
-  ~AtomVecDielectric();
-  void grow(int);
-  void grow_reset();
 
-  void copy(int, int, int);
-  int pack_comm(int, int *, double *, int, int *);
-  int pack_comm_vel(int, int *, double *, int, int *);
-  int pack_comm_hybrid(int, int *, double *);
-  void unpack_comm(int, int, double *);
-  void unpack_comm_vel(int, int, double *);
-  int unpack_comm_hybrid(int, int, double *);
-  int pack_reverse(int, int, double *);
-  void unpack_reverse(int, int *, double *);
-  int pack_border(int, int *, double *, int, int *);
-  int pack_border_vel(int, int *, double *, int, int *);
-  int pack_border_hybrid(int, int *, double *);
-  void unpack_border(int, int, double *);
-  void unpack_border_vel(int, int, double *);
-  int unpack_border_hybrid(int, int, double *);
-  int pack_exchange(int, double *);
-  int unpack_exchange(double *);
-  int size_restart();
-  int pack_restart(int, double *);
-  int unpack_restart(double *);
-  void create_atom(int, double *);
-  void data_atom(double *, imageint, char **);
-  int data_atom_hybrid(int, char **);
-  void pack_data(double **);
-  int pack_data_hybrid(int, double *);
-  void write_data(FILE *, int, double **);
-  int write_data_hybrid(FILE *, double *);
-  bigint memory_usage();
+  void grow_pointers();
+  void create_atom_post(int);
+  void data_atom_post(int);
+  void pack_data_post(int);
 
- public:
-  double **mu;         // normal vector at the patch
-  double *area;        // patch area
-  double *em;          // mean dielectric constant at the patch
-  double *ed;          // difference in dielectric constants at the patch
-  double *epsilon;     // dielectric at the patch and real charges
-  double *curvature;   // curvature at the patch
-  double *q_real;      // unscaled charge: q_real = value read in from data file
+  double **mu;
+  double *area,*ed,*em,*epsilon,*curvature,*q_unscaled;
+
+ private:
+  
 };
 
 }

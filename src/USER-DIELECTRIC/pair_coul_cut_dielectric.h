@@ -29,6 +29,7 @@ class PairCoulCutDielectric : public PairCoulCut {
   PairCoulCutDielectric(class LAMMPS *);
   virtual ~PairCoulCutDielectric();
   virtual void compute(int, int);
+  virtual double single(int, int, int, int, double, double, double, double &);
   void init_style();
 
   double** efield;

@@ -15,21 +15,21 @@
    Contributing author: Trung Nguyen (Northwestern)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include "pair_lj_cut_coul_cut_dielectric.h"
+
 #include "atom.h"
 #include "atom_vec_dielectric.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -78,11 +78,11 @@ void PairLJCutCoulCutDielectric::compute(int eflag, int vflag)
   double **x = atom->x;
   double **f = atom->f;
   double *q = atom->q;
-  double *q_real = avec->q_real;
-  double* eps = avec->epsilon;
-  double** norm = avec->mu;
-  double* curvature = avec->curvature;
-  double* area = avec->area;
+  double *q_real = atom->q_unscaled;
+  double* eps = atom->epsilon;
+  double** norm = atom->mu;
+  double* curvature = atom->curvature;
+  double* area = atom->area;
   int *type = atom->type;
   int nlocal = atom->nlocal;
   double *special_coul = force->special_coul;

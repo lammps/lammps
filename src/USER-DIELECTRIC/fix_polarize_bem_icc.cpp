@@ -12,13 +12,15 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   An iterative solver for surface induced charges computation (ICC)
-   using Richarson iteration
-
-   Contributing author: Trung Nguyen (Northwestern)
+   Contributing authors:
+     Trung Nguyen and Monica Olvera de la Cruz (Northwestern)
    References:
-     Tyagi, Suzen, Sega, Barbosa, Kantorovich, Holm, J. Chem. Phys. 2010, 132, 154112
-     Barros, Sinkovits, Luijten, J. Chem. Phys 2014, 140, 064903
+     1) Tyagi, Suzen, Sega, Barbosa, Kantorovich, Holm, J. Chem. Phys. 2010,
+        132, 154112
+     2) Barros, Sinkovits, Luijten, J. Chem. Phys 2014, 140, 064903
+
+   Implement a boundary-element solver for image charge computation (ICC)
+   using successive overrelaxation
 ------------------------------------------------------------------------- */
 
 #include "fix_polarize_bem_icc.h"
@@ -56,8 +58,10 @@ using namespace MathConst;
 static const char cite_user_dielectric_package[] =
   "USER-DIELECTRIC package:\n\n"
   "@Article{TrungCPC19,\n"
-  " author = {Trung Dac Nguyen, Honghao Li, Debarshee Bagchi, Francisco J. Solis, Monica Olvera de la Cruz,\n"
-  " title = {Incorporating surface polarization effects into large-scale coarse-grained Molecular Dynamics simulation},\n"
+  " author = {Trung Dac Nguyen, Honghao Li, Debarshee Bagchi,"
+  " Francisco J. Solis, Monica Olvera de la Cruz,\n"
+  " title = {Incorporating surface polarization effects into large-scale"
+  " coarse-grained Molecular Dynamics simulation},\n"
   " journal = {Comp.~Phys.~Comm.},\n"
   " year =    2019,\n"
   " volume =  241,\n"

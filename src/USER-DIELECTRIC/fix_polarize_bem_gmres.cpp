@@ -12,32 +12,26 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Boundary element method for the Poisson equation for surface induced charges
-   using GMRES
+   Contributing authors:
+     Trung Nguyen and Monica Olvera de la Cruz (Northwestern)
+
+   Implement a boundary element solver for surface induced charges
+   using the GMRES algorithm
 
    Reference: Barros, Sinkovits, Luijten, J. Chem. Phys 2014, 140, 064903
-   Contributing author: Trung Nguyen (Northwestern)
 
-   GMRES solver:
-    Original C version by Lili Ju.
-    C++ version by John Burkardt.
-    Adapted to the version where A is an operator and (b-Ax) is computed directly
-      by Trung Nguyen.
+   GMRES solver: Original C version by Lili Ju, C++ version by John Burkardt.
+   The version adapted here is implemented where A is an operator acting on x,
+   and the residual (b-Ax) is computed directly.
 
-    Richard Barrett, Michael Berry, Tony Chan, James Demmel,
-    June Donato, Jack Dongarra, Victor Eijkhout, Roidan Pozo,
-    Charles Romine, Henk van der Vorst,
-    Templates for the Solution of Linear Systems:
-    Building Blocks for Iterative Methods,
-    SIAM, 1994,
-    ISBN: 0898714710,
-    LC: QA297.8.T45.
+   References:
+     1) R. Barrett, M. Berry, T. Chan, J. Demmel, J. Donato, J. Dongarra,
+     V. Eijkhout, R. Pozo, C. Romine, H. van der Vorst,
+     Templates for the Solution of Linear Systems: Building Blocks for
+     Iterative Methods, SIAM, 1994, ISBN: 0898714710, LC: QA297.8.T45.
 
-    Tim Kelley,
-    Iterative Methods for Linear and Nonlinear Equations,
-    SIAM, 2004,
-    ISBN: 0898713528,
-    LC: QA297.8.K45.
+     2) T. Kelley, Iterative Methods for Linear and Nonlinear Equations,
+     SIAM, 2004, ISBN: 0898713528, LC: QA297.8.K45.
 ------------------------------------------------------------------------- */
 
 #include "fix_polarize_bem_gmres.h"
@@ -76,8 +70,10 @@ using namespace MathConst;
 static const char cite_user_dielectric_package[] =
   "USER-DIELECTRIC package:\n\n"
   "@Article{TrungCPC19,\n"
-  " author = {Trung Dac Nguyen, Honghao Li, Debarshee Bagchi, Francisco J. Solis, Monica Olvera de la Cruz,\n"
-  " title = {Incorporating surface polarization effects into large-scale coarse-grained Molecular Dynamics simulation},\n"
+  " author = {Trung Dac Nguyen, Honghao Li, Debarshee Bagchi,"
+  " Francisco J. Solis, Monica Olvera de la Cruz,\n"
+  " title = {Incorporating surface polarization effects into large-scale"
+  " coarse-grained Molecular Dynamics simulation},\n"
   " journal = {Comp.~Phys.~Comm.},\n"
   " year =    2019,\n"
   " volume =  241,\n"

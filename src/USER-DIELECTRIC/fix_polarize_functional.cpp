@@ -12,12 +12,15 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Solve for induced charges on fixed sharp interfaces via optimizing the functional
-   developed by Jadhao et al. with respect to the induced charges themselves.
-   The linear equations to be solved for w are:
-       (Rww + Rww^T) w = q Rwq
-   At the beginning of the run, (Rww + Rww^T)^(-1) is computed;
-   at every time step, the vector (q Rwq) is computed and w is computed via
+   Contributing authors:
+     Trung Nguyen and Monica Olvera de la Cruz (Northwestern)
+     based on the original implementation by Honghao Li (Northwestern)
+   Reference:
+     Jadhao, Solis, Olvera de la Cruz, J. Chem. Phys. 138, 054119, 2013
+
+   Solve the following eq. for induced charges on fixed sharp interfaces:
+     (Rww + Rww^T) w = q Rwq
+   at every time step, the vector (q Rwq) is computed, and so
        w = [Rww + Rww^T)^(-1)] (q Rwq)
    NOTE: Oct 7, 2019: switch from matrix inversion to a conjugate gradient solver
 
@@ -72,8 +75,10 @@ enum {REAL2SCALED=0,SCALED2REAL=1};
 static const char cite_user_dielectric_package[] =
   "USER-DIELECTRIC package:\n\n"
   "@Article{TrungCPC19,\n"
-  " author = {Trung Dac Nguyen, Honghao Li, Debarshee Bagchi, Francisco J. Solis, Monica Olvera de la Cruz,\n"
-  " title = {Incorporating surface polarization effects into large-scale coarse-grained Molecular Dynamics simulation},\n"
+  " author = {Trung Dac Nguyen, Honghao Li, Debarshee Bagchi,"
+  " Francisco J. Solis, Monica Olvera de la Cruz,\n"
+  " title = {Incorporating surface polarization effects into large-scale"
+  " coarse-grained Molecular Dynamics simulation},\n"
   " journal = {Comp.~Phys.~Comm.},\n"
   " year =    2019,\n"
   " volume =  241,\n"
@@ -881,7 +886,7 @@ void FixPolarizeFunctional::calculate_qiRqw_cutoff()
     }
   }
 
-  MPI_Allreduce(buffer1[0],G1qw_real[0],num_ions*num_induced_charges,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(&buffer1[0][0],&G1qw_real[0][0],num_ions*num_induced_charges,MPI_DOUBLE,MPI_SUM,world);
 
   // the following loop need the above results: gradG1wq_real
   // calculate sum1G1qw_epsilon and sum2ndotGwq_epsilon 

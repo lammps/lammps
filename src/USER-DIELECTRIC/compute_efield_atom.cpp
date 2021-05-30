@@ -11,6 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Trung Nguyen (Northwestern)   
+------------------------------------------------------------------------- */
+
 #include "compute_efield_atom.h"
 
 #include "atom.h"
@@ -18,19 +22,17 @@
 #include "error.h"
 #include "force.h"
 #include "kspace.h"
+#include "memory.h"
+#include "msm_dielectric.h"
 #include "pair_coul_cut_dielectric.h"
 #include "pair_coul_long_dielectric.h"
 #include "pair_lj_cut_coul_cut_dielectric.h"
 #include "pair_lj_cut_coul_long_dielectric.h"
 #include "pair_lj_cut_coul_msm_dielectric.h"
 #include "pppm_dielectric.h"
-#include "memory.h"
-#include "msm_dielectric.h"
 #include "update.h"
 
 using namespace LAMMPS_NS;
-
-enum{NOBIAS,BIAS};
 
 /* ---------------------------------------------------------------------- */
 
@@ -161,7 +163,7 @@ void ComputeEfieldAtom::compute_peratom()
   if (pairflag && force->pair) {
     for (i = 0; i < npair; i++)
       for (j = 0; j < 3; j++) {
-        if (q[i] != 0) efield[i][j] += efield_pair[i][j]; //f[i][j]/q[i];
+        if (q[i] != 0) efield[i][j] += efield_pair[i][j];
       }
   }
 

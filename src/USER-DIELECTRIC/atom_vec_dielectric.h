@@ -31,7 +31,6 @@ class AtomVecDielectric : public AtomVec {
   void grow_pointers();
   void create_atom_post(int);
   void data_atom_post(int);
-  void pack_data_post(int);
   void unpack_restart_init(int);
 
  private:

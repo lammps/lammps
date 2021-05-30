@@ -39,7 +39,7 @@ AtomVecDielectric::AtomVecDielectric(LAMMPS *lmp) : AtomVec(lmp)
     "num_improper improper_type improper_atom1 improper_atom2 "
     "improper_atom3 improper_atom4 "
     "nspecial special "
-    "mu3 area ed em epsilon curvature q_unscaled";
+    "mu area ed em epsilon curvature q_unscaled";
   fields_copy = (char *)
     "q molecule num_bond bond_type bond_atom "
     "num_angle angle_type angle_atom1 angle_atom2 angle_atom3 "
@@ -48,12 +48,12 @@ AtomVecDielectric::AtomVecDielectric(LAMMPS *lmp) : AtomVec(lmp)
     "num_improper improper_type improper_atom1 improper_atom2 "
     "improper_atom3 improper_atom4 "
     "nspecial special "
-    "mu3 area ed em epsilon curvature q_unscaled";
-  fields_comm = (char *) "";
+    "mu area ed em epsilon curvature q_unscaled";
+  fields_comm = (char *) "q mu area ed em epsilon curvature q_unscaled";
   fields_comm_vel = (char *) "";
   fields_reverse = (char *) "";
-  fields_border = (char *) "q molecule mu3 area ed em epsilon curvature";
-  fields_border_vel = (char *) "q molecule mu3 area ed em epsilon curvature";
+  fields_border = (char *) "q molecule mu area ed em epsilon curvature q_unscaled";
+  fields_border_vel = (char *) "q molecule mu area ed em epsilon curvature q_unscaled";
   fields_exchange = (char *)
     "q molecule num_bond bond_type bond_atom "
     "num_angle angle_type angle_atom1 angle_atom2 angle_atom3 "
@@ -62,7 +62,7 @@ AtomVecDielectric::AtomVecDielectric(LAMMPS *lmp) : AtomVec(lmp)
     "num_improper improper_type improper_atom1 improper_atom2 "
     "improper_atom3 improper_atom4 "
     "nspecial special "
-    "mu3 area ed em epsilon curvature q_unscaled";
+    "mu area ed em epsilon curvature q_unscaled";
   fields_restart = (char *)
     "q molecule num_bond bond_type bond_atom "
     "num_angle angle_type angle_atom1 angle_atom2 angle_atom3 "
@@ -70,10 +70,10 @@ AtomVecDielectric::AtomVecDielectric(LAMMPS *lmp) : AtomVec(lmp)
     "dihedral_atom3 dihedral_atom4 "
     "num_improper improper_type improper_atom1 improper_atom2 "
     "improper_atom3 improper_atom4 "
-    "mu3 area ed em epsilon curvature q_unscaled";
+    "mu area ed em epsilon curvature q_unscaled";
   fields_create = (char *)
     "q molecule num_bond num_angle num_dihedral num_improper nspecial "
-    "mu3 area ed em epsilon curvature q_unscaled";
+    "mu area ed em epsilon curvature q_unscaled";
   fields_data_atom = (char *) "id molecule type q x "
     "mu3 area ed em epsilon curvature";
   fields_data_vel = (char *) "id v";
@@ -138,16 +138,10 @@ void AtomVecDielectric::data_atom_post(int ilocal)
   double* q = atom->q;
   q_unscaled[ilocal] = q[ilocal];
   q[ilocal] /= epsilon[ilocal];
-}
 
-/* ----------------------------------------------------------------------
-   unmodify values packed by AtomVec::pack_data()
-------------------------------------------------------------------------- */
-
-void AtomVecDielectric::pack_data_post(int ilocal)
-{
-  double* q = atom->q;
-  q_unscaled[ilocal] = q[ilocal]/epsilon[ilocal];
+  double *mu_one = mu[ilocal];
+  mu_one[3] =
+    sqrt(mu_one[0]*mu_one[0] + mu_one[1]*mu_one[1] + mu_one[2]*mu_one[2]);
 }
 
 /* ----------------------------------------------------------------------

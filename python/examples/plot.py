@@ -57,7 +57,7 @@ if me == 0:
   gn = gnu()
   gn.plot(xaxis,yaxis)
   gn.xrange(0,nsteps)
-  gn.title(compute,"Timestep","Temperature")
+  gn.title(compute.replace('_', ' '),"Timestep","Temperature")
 
 # run nfreq steps at a time w/out pre/post, query compute, refresh plot
 

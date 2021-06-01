@@ -15,13 +15,9 @@
    Contributing author: Trung Nguyen (Northwestern)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include "pair_lj_cut_coul_cut_dielectric_omp.h"
+
 #include "atom.h"
-#include "atom_vec_dielectric.h"
 #include "comm.h"
 #include "force.h"
 #include "neighbor.h"
@@ -30,6 +26,8 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -79,7 +77,7 @@ void PairLJCutCoulCutDielectricOMP::compute(int eflag, int vflag)
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
     thr->timer(Timer::START);
-    ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, nullptr, thr);
 
     if (evflag) {
       if (eflag) {
@@ -116,10 +114,10 @@ void PairLJCutCoulCutDielectricOMP::eval(int iifrom, int iito, ThrData * const t
   const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
   dbl3_t * _noalias const f = (dbl3_t *) thr->get_f()[0];
   const double * _noalias const q = atom->q;
-  const double * _noalias const eps = avec->epsilon;
-  const dbl3_t * _noalias const norm = (dbl3_t *) avec->mu[0];
-  const double * _noalias const curvature = avec->curvature;
-  const double * _noalias const area = avec->area;
+  const double * _noalias const eps = atom->epsilon;
+  const dbl3_t * _noalias const norm = (dbl3_t *) atom->mu[0];
+  const double * _noalias const curvature = atom->curvature;
+  const double * _noalias const area = atom->area;
   const int * _noalias const type = atom->type;
   const int nlocal = atom->nlocal;
   const double * _noalias const special_coul = force->special_coul;

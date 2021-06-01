@@ -29,7 +29,6 @@
 #include "memory.h"
 
 #include <cmath>
-#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -38,10 +37,11 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutCoulCutDielectric::PairLJCutCoulCutDielectric(LAMMPS *lmp) : PairLJCutCoulCut(lmp)
+PairLJCutCoulCutDielectric::PairLJCutCoulCutDielectric(LAMMPS *lmp) :
+  PairLJCutCoulCut(lmp)
 {
-  efield = NULL;
-  epot = NULL;
+  efield = nullptr;
+  epot = nullptr;
   nmax = 0;
 }
 

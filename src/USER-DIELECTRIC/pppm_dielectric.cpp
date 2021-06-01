@@ -17,10 +17,8 @@
 
 #include "pppm_dielectric.h"
 
-#include "angle.h"
 #include "atom.h"
 #include "atom_vec_dielectric.h"
-#include "bond.h"
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
@@ -35,7 +33,7 @@
 #include "remap_wrap.h"
 
 #include <cmath>
-#include <cstring>
+//#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -60,8 +58,8 @@ PPPMDielectric::PPPMDielectric(LAMMPS *lmp) : PPPM(lmp)
 {
   group_group_enable = 0;
 
-  efield = NULL;
-  phi = NULL;
+  efield = nullptr;
+  phi = nullptr;
   potflag = 0;
 
   avec = (AtomVecDielectric *) atom->style_match("dielectric");

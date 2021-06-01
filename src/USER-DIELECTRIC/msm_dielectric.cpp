@@ -41,8 +41,8 @@ enum{FORWARD_RHO,FORWARD_AD,FORWARD_AD_PERATOM};
 
 MSMDielectric::MSMDielectric(LAMMPS *lmp) : MSM(lmp)
 {
-  efield = NULL;
-  phi = NULL;
+  efield = nullptr;
+  phi = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -64,7 +64,7 @@ void MSMDielectric::init()
   MSM::init();
 
   avec = (AtomVecDielectric *) atom->style_match("dielectric");
-  if (!avec) error->all(FLERR,"pppm/dielectric requires atom style dielectric");
+  if (!avec) error->all(FLERR,"msm/dielectric requires atom style dielectric");
 }
 
 /* ----------------------------------------------------------------------

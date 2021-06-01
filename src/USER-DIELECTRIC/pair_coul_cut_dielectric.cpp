@@ -40,7 +40,7 @@ using namespace MathConst;
 
 PairCoulCutDielectric::PairCoulCutDielectric(LAMMPS *lmp) : PairCoulCut(lmp)
 {
-  efield = NULL;
+  efield = nullptr;
   nmax = 0;
 }
 
@@ -104,6 +104,7 @@ void PairCoulCutDielectric::compute(int eflag, int vflag)
     jnum = numneigh[i];
 
     // self term Eq. (55) for I_{ii} and Eq. (52) and in Barros et al
+
     double curvature_threshold = sqrt(area[i]);
     if (curvature[i] < curvature_threshold) {
       double sf = curvature[i]/(4.0*MY_PIS*curvature_threshold) * area[i]*q[i];
@@ -178,9 +179,9 @@ void PairCoulCutDielectric::init_style()
 /* ---------------------------------------------------------------------- */
 
 double PairCoulCutDielectric::single(int i, int j, int itype, int jtype,
-                                double rsq,
-                                double factor_coul, double factor_lj,
-                                double &fforce)
+                                     double rsq,
+                                     double factor_coul, double factor_lj,
+                                     double &fforce)
 {
   double r2inv,forcecoul,phicoul,ei,ej;
   double* eps = atom->epsilon;

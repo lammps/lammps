@@ -22,18 +22,14 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
-#include "integrate.h"
 #include "kspace.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "math_const.h"
 #include "memory.h"
-#include "respa.h"
-#include "update.h"
 
 #include <cmath>
-#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -50,12 +46,13 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutCoulLongDielectric::PairLJCutCoulLongDielectric(LAMMPS *lmp) : PairLJCutCoulLong(lmp)
+PairLJCutCoulLongDielectric::PairLJCutCoulLongDielectric(LAMMPS *lmp) :
+  PairLJCutCoulLong(lmp)
 {
   respa_enable = 0;
-  cut_respa = NULL;
-  efield = NULL;
-  epot = NULL;
+  cut_respa = nullptr;
+  efield = nullptr;
+  epot = nullptr;
   nmax = 0;
 }
 
@@ -124,7 +121,8 @@ void PairLJCutCoulLongDielectric::compute(int eflag, int vflag)
     jlist = firstneigh[i];
     jnum = numneigh[i];
 
-    // self term Eq. (55) for I_{ii} and Eq. (52) and in Barros et al
+    // self term Eq. (55) for I_{ii} and Eq. (52) and in Barros et al.
+
     double curvature_threshold = sqrt(area[i]);
     if (curvature[i] < curvature_threshold) {
       double sf = curvature[i]/(4.0*MY_PIS*curvature_threshold) * area[i]*q[i];

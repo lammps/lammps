@@ -29,11 +29,8 @@
 #include "neigh_request.h"
 #include "math_const.h"
 #include "memory.h"
-#include "respa.h"
-#include "update.h"
 
 #include <cmath>
-#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -42,16 +39,17 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutCoulMSMDielectric::PairLJCutCoulMSMDielectric(LAMMPS *lmp) : PairLJCutCoulLong(lmp)
+PairLJCutCoulMSMDielectric::PairLJCutCoulMSMDielectric(LAMMPS *lmp) :
+  PairLJCutCoulLong(lmp)
 {
   ewaldflag = pppmflag = 0;
   msmflag = 1;
   respa_enable = 0;
-  cut_respa = NULL;
+  cut_respa = nullptr;
 
   nmax = 0;
-  ftmp = NULL;
-  efield = NULL;
+  ftmp = nullptr;
+  efield = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -220,6 +218,7 @@ void PairLJCutCoulMSMDielectric::compute(int eflag, int vflag)
             f[j][2] -= delz*fpair_j;
           }
         } else {
+
           // separate LJ and Coulombic forces
 
           fpair = (factor_lj*forcelj) * r2inv;

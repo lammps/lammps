@@ -47,7 +47,7 @@ using namespace MathConst;
 
 PairCoulLongDielectric::PairCoulLongDielectric(LAMMPS *lmp) : PairCoulLong(lmp)
 {
-  efield = NULL;
+  efield = nullptr;
   nmax = 0;
 }
 

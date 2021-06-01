@@ -15,26 +15,18 @@
    Contributing author: Trung Nguyen (Northwestern)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include "pair_lj_cut_coul_long_dielectric_omp.h"
+
 #include "atom.h"
-#include "atom_vec_dielectric.h"
 #include "comm.h"
 #include "force.h"
-#include "kspace.h"
-#include "update.h"
-#include "integrate.h"
-#include "respa.h"
-#include "neighbor.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
 
+#include <cmath>
+
+#include "omp_compat.h"
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
@@ -46,8 +38,6 @@ using namespace MathConst;
 #define A4       -1.453152027
 #define A5        1.061405429
 
-#define EPSILON 1e-6
-
 /* ---------------------------------------------------------------------- */
 
 PairLJCutCoulLongDielectricOMP::PairLJCutCoulLongDielectricOMP(LAMMPS *lmp) :
@@ -58,7 +48,7 @@ PairLJCutCoulLongDielectricOMP::PairLJCutCoulLongDielectricOMP(LAMMPS *lmp) :
 /* ---------------------------------------------------------------------- */
 
 PairLJCutCoulLongDielectricOMP::~PairLJCutCoulLongDielectricOMP()
-{  
+{
 }
 
 /* ---------------------------------------------------------------------- */
@@ -90,7 +80,7 @@ void PairLJCutCoulLongDielectricOMP::compute(int eflag, int vflag)
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
     thr->timer(Timer::START);
-    ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, nullptr, thr);
 
     if (evflag) {
       if (eflag) {
@@ -127,10 +117,10 @@ void PairLJCutCoulLongDielectricOMP::eval(int iifrom, int iito, ThrData * const 
   const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
   dbl3_t * _noalias const f = (dbl3_t *) thr->get_f()[0];
   const double * _noalias const q = atom->q;
-  const double * _noalias const eps = avec->epsilon;
-  const dbl3_t * _noalias const norm = (dbl3_t *) avec->mu[0];
-  const double * _noalias const curvature = avec->curvature;
-  const double * _noalias const area = avec->area;
+  const double * _noalias const eps = atom->epsilon;
+  const dbl3_t * _noalias const norm = (dbl3_t *) atom->mu[0];
+  const double * _noalias const curvature = atom->curvature;
+  const double * _noalias const area = atom->area;
   const int * _noalias const type = atom->type;
   const int nlocal = atom->nlocal;
   const double * _noalias const special_coul = force->special_coul;
@@ -159,7 +149,8 @@ void PairLJCutCoulLongDielectricOMP::eval(int iifrom, int iito, ThrData * const 
     fxtmp=fytmp=fztmp=0.0;
     extmp=eytmp=eztmp=0.0;
 
-    // self term Eq. (55) for I_{ii} and Eq. (52) and in Barros et al
+    // self term Eq. (55) for I_{ii} and Eq. (52) and in Barros et al.
+
     double curvature_threshold = sqrt(area[i]);
     if (curvature[i] < curvature_threshold) {
       double sf = curvature[i]/(4.0*MY_PIS*curvature_threshold) * area[i]*q[i];

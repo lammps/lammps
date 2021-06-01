@@ -23,17 +23,17 @@ namespace LAMMPS_NS {
  ***************************************************************************/
 
 class INearList {
-public:
+ public:
   virtual ~INearList() = default;
-  virtual void insert(double * x, double r) = 0;
+  virtual void insert(double *x, double r) = 0;
   virtual size_t count() const = 0;
   virtual bool has_overlap(double *x, double r) const = 0;
 };
 
 class IDistributedNearList : public virtual INearList {
-public:
+ public:
   virtual ~IDistributedNearList() = default;
-  virtual void allgather(INearList * local_nlist) = 0;
+  virtual void allgather(INearList *local_nlist) = 0;
 };
 
 /***************************************************************************
@@ -47,22 +47,21 @@ public:
 class NearList : protected Pointers, public virtual INearList {
   friend class DistributedNearList;
 
-  double ** elements;
+  double **elements;
   int ncount;
   int nallocated;
 
-public:
+ public:
   NearList(class LAMMPS *);
   virtual ~NearList();
 
   void allocate(int nmax);
 
   // Implementation of INearList interface
-  virtual void insert(double * x, double r);
+  virtual void insert(double *x, double r);
   virtual size_t count() const;
   virtual bool has_overlap(double *x, double r) const;
 };
-
 
 /***************************************************************************
  * Extends NearList with allgather method to collect local lists from other
@@ -72,14 +71,14 @@ class DistributedNearList : public NearList, public virtual IDistributedNearList
   int nprocs;
   int *recvcounts, *displs;
 
-public:
-  DistributedNearList(class LAMMPS * lmp);
+ public:
+  DistributedNearList(class LAMMPS *lmp);
   virtual ~DistributedNearList();
 
   // Implementation of IDistributedNearList
-  virtual void allgather(INearList * local_nlist);
+  virtual void allgather(INearList *local_nlist);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif

@@ -16,28 +16,26 @@
 ------------------------------------------------------------------------- */
 
 #include "cell_list.h"
-#include <assert.h>
+#include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "comm.h"
 #include <algorithm>
-#include <numeric>
+#include <assert.h>
 #include <mpi.h>
+#include <numeric>
 
 #define SMALL 1.0e-6
 
 using namespace LAMMPS_NS;
 using namespace std;
 
-CellList::CellList(LAMMPS *lmp) : Pointers(lmp)
-{
-}
+CellList::CellList(LAMMPS *lmp) : Pointers(lmp) {}
 
 /* ----------------------------------------------------------------------
    insert element into cell list
 ------------------------------------------------------------------------- */
 
-void CellList::insert(double * x, double r)
+void CellList::insert(double *x, double r)
 {
   int ibin = coord2bin(x);
   assert(ibin >= 0 && ibin <= nbins);
@@ -72,15 +70,15 @@ bool CellList::has_overlap(double *x, double r) const
 
   for (int k = 0; k < NSTENCIL; ++k) {
     const int offset = stencil[k];
-    for (int j = binhead[ibin+stencil[k]]; j >= 0; j = next[j]) {
-        const CellList::Element & elem = elements[j];
-        double dx = x[0] - elem.x[0];
-        double dy = x[1] - elem.x[1];
-        double dz = x[2] - elem.x[2];
-        domain->minimum_image(dx, dy, dz);
-        const double rsq = dx*dx + dy*dy + dz*dz;
-        const double radsum = r + elem.r;
-        if (rsq <= radsum*radsum) return true;
+    for (int j = binhead[ibin + stencil[k]]; j >= 0; j = next[j]) {
+      const CellList::Element &elem = elements[j];
+      double dx = x[0] - elem.x[0];
+      double dy = x[1] - elem.x[1];
+      double dz = x[2] - elem.x[2];
+      domain->minimum_image(dx, dy, dz);
+      const double rsq = dx * dx + dy * dy + dz * dz;
+      const double radsum = r + elem.r;
+      if (rsq <= radsum * radsum) return true;
     }
   }
 
@@ -91,7 +89,7 @@ bool CellList::has_overlap(double *x, double r) const
    setup cell list for bounding box and binsize
 ------------------------------------------------------------------------- */
 
-void CellList::setup(double * bboxlo, double * bboxhi, double binsize)
+void CellList::setup(double *bboxlo, double *bboxhi, double binsize)
 {
   double extent[3];
 
@@ -108,19 +106,18 @@ void CellList::setup(double * bboxlo, double * bboxhi, double binsize)
   this->bboxhi[1] = bboxhi[1];
   this->bboxhi[2] = bboxhi[2];
 
-  const double binsizeinv = 1.0/binsize;
+  const double binsizeinv = 1.0 / binsize;
 
   // test for too many bins in any dimension due to huge global domain
 
-  assert(extent[0]*binsizeinv < MAXSMALLINT &&
-         extent[1]*binsizeinv < MAXSMALLINT &&
-         extent[2]*binsizeinv < MAXSMALLINT);
+  assert(extent[0] * binsizeinv < MAXSMALLINT && extent[1] * binsizeinv < MAXSMALLINT &&
+         extent[2] * binsizeinv < MAXSMALLINT);
 
   // create actual bins
 
-  nbinx = static_cast<int> (extent[0]*binsizeinv);
-  nbiny = static_cast<int> (extent[1]*binsizeinv);
-  nbinz = static_cast<int> (extent[2]*binsizeinv);
+  nbinx = static_cast<int>(extent[0] * binsizeinv);
+  nbiny = static_cast<int>(extent[1] * binsizeinv);
+  nbinz = static_cast<int>(extent[2] * binsizeinv);
 
   if (nbinx == 0) nbinx = 1;
   if (nbiny == 0) nbiny = 1;
@@ -128,9 +125,9 @@ void CellList::setup(double * bboxlo, double * bboxhi, double binsize)
 
   // compute actual bin size for nbins to fit into box exactly
 
-  binsizex = extent[0]/nbinx;
-  binsizey = extent[1]/nbiny;
-  binsizez = extent[2]/nbinz;
+  binsizex = extent[0] / nbinx;
+  binsizey = extent[1] / nbiny;
+  binsizez = extent[2] / nbinz;
 
   bininvx = 1.0 / binsizex;
   bininvy = 1.0 / binsizey;
@@ -141,28 +138,28 @@ void CellList::setup(double * bboxlo, double * bboxhi, double binsize)
   // static_cast(-1.5) = -1, so subract additional -1
   // add in SMALL for round-off safety
 
-  double * bsubboxlo = bboxlo;
-  double * bsubboxhi = bboxhi;
-  int mbinxhi,mbinyhi,mbinzhi;
+  double *bsubboxlo = bboxlo;
+  double *bsubboxhi = bboxhi;
+  int mbinxhi, mbinyhi, mbinzhi;
   double coord;
 
-  coord = bsubboxlo[0] - SMALL*extent[0];
-  mbinxlo = static_cast<int> ((coord-bboxlo[0])*bininvx);
+  coord = bsubboxlo[0] - SMALL * extent[0];
+  mbinxlo = static_cast<int>((coord - bboxlo[0]) * bininvx);
   if (coord < bboxlo[0]) mbinxlo = mbinxlo - 1;
-  coord = bsubboxhi[0] + SMALL*extent[0];
-  mbinxhi = static_cast<int> ((coord-bboxlo[0])*bininvx);
+  coord = bsubboxhi[0] + SMALL * extent[0];
+  mbinxhi = static_cast<int>((coord - bboxlo[0]) * bininvx);
 
-  coord = bsubboxlo[1] - SMALL*extent[1];
-  mbinylo = static_cast<int> ((coord-bboxlo[1])*bininvy);
+  coord = bsubboxlo[1] - SMALL * extent[1];
+  mbinylo = static_cast<int>((coord - bboxlo[1]) * bininvy);
   if (coord < bboxlo[1]) mbinylo = mbinylo - 1;
-  coord = bsubboxhi[1] + SMALL*extent[1];
-  mbinyhi = static_cast<int> ((coord-bboxlo[1])*bininvy);
+  coord = bsubboxhi[1] + SMALL * extent[1];
+  mbinyhi = static_cast<int>((coord - bboxlo[1]) * bininvy);
 
-  coord = bsubboxlo[2] - SMALL*extent[2];
-  mbinzlo = static_cast<int> ((coord-bboxlo[2])*bininvz);
+  coord = bsubboxlo[2] - SMALL * extent[2];
+  mbinzlo = static_cast<int>((coord - bboxlo[2]) * bininvz);
   if (coord < bboxlo[2]) mbinzlo = mbinzlo - 1;
-  coord = bsubboxhi[2] + SMALL*extent[2];
-  mbinzhi = static_cast<int> ((coord-bboxlo[2])*bininvz);
+  coord = bsubboxhi[2] + SMALL * extent[2];
+  mbinzhi = static_cast<int>((coord - bboxlo[2]) * bininvz);
 
   // extend bins by 1 to insure stencil extent is included
 
@@ -190,9 +187,7 @@ void CellList::setup(double * bboxlo, double * bboxhi, double binsize)
 
   for (int k = -1; k <= 1; ++k) {
     for (int j = -1; j <= 1; ++j) {
-      for (int i = -1; i <= 1; ++i) {
-        stencil[s++] = k*mbinx*mbiny + j*mbinx + i;
-      }
+      for (int i = -1; i <= 1; ++i) { stencil[s++] = k * mbinx * mbiny + j * mbinx + i; }
     }
   }
 }
@@ -202,60 +197,61 @@ int CellList::coord2bin(double *x) const
   int ix, iy, iz;
 
   if (x[0] >= bboxhi[0]) {
-    ix = static_cast<int> ((x[0]-bboxhi[0])*bininvx) + nbinx;
+    ix = static_cast<int>((x[0] - bboxhi[0]) * bininvx) + nbinx;
   } else if (x[0] >= bboxlo[0]) {
-    ix = static_cast<int> ((x[0]-bboxlo[0])*bininvx);
-    ix = std::min(ix,nbinx-1);
+    ix = static_cast<int>((x[0] - bboxlo[0]) * bininvx);
+    ix = std::min(ix, nbinx - 1);
   } else {
-    ix = static_cast<int> ((x[0]-bboxlo[0])*bininvx) - 1;
+    ix = static_cast<int>((x[0] - bboxlo[0]) * bininvx) - 1;
   }
 
   if (x[1] >= bboxhi[1]) {
-    iy = static_cast<int> ((x[1]-bboxhi[1])*bininvy) + nbiny;
+    iy = static_cast<int>((x[1] - bboxhi[1]) * bininvy) + nbiny;
   } else if (x[1] >= bboxlo[1]) {
-    iy = static_cast<int> ((x[1]-bboxlo[1])*bininvy);
-    iy = std::min(iy,nbiny-1);
+    iy = static_cast<int>((x[1] - bboxlo[1]) * bininvy);
+    iy = std::min(iy, nbiny - 1);
   } else {
-    iy = static_cast<int> ((x[1]-bboxlo[1])*bininvy) - 1;
+    iy = static_cast<int>((x[1] - bboxlo[1]) * bininvy) - 1;
   }
 
   if (x[2] >= bboxhi[2]) {
-    iz = static_cast<int> ((x[2]-bboxhi[2])*bininvz) + nbinz;
+    iz = static_cast<int>((x[2] - bboxhi[2]) * bininvz) + nbinz;
   } else if (x[2] >= bboxlo[2]) {
-    iz = static_cast<int> ((x[2]-bboxlo[2])*bininvz);
-    iz = std::min(iz,nbinz-1);
+    iz = static_cast<int>((x[2] - bboxlo[2]) * bininvz);
+    iz = std::min(iz, nbinz - 1);
   } else {
-    iz = static_cast<int> ((x[2]-bboxlo[2])*bininvz) - 1;
+    iz = static_cast<int>((x[2] - bboxlo[2]) * bininvz) - 1;
   }
 
-  return (iz-mbinzlo)*mbiny*mbinx + (iy-mbinylo)*mbinx + (ix-mbinxlo);
+  return (iz - mbinzlo) * mbiny * mbinx + (iy - mbinylo) * mbinx + (ix - mbinxlo);
 }
 
-
-size_t CellList::count() const {
-    return elements.size();
+size_t CellList::count() const
+{
+  return elements.size();
 }
 
 /* -------------------------------------------------------------------------- */
 
-DistributedCellList::DistributedCellList(LAMMPS * lmp) : CellList(lmp) {
+DistributedCellList::DistributedCellList(LAMMPS *lmp) : CellList(lmp)
+{
   recvcounts.resize(comm->nprocs);
   displs.resize(comm->nprocs);
 
   MPI_Datatype types[2] = {MPI_DOUBLE, MPI_DOUBLE};
-  int blocklenghts[2]   = {3, 1};
-  MPI_Aint offsets[2] = {0, 3*sizeof(double)};
+  int blocklenghts[2] = {3, 1};
+  MPI_Aint offsets[2] = {0, 3 * sizeof(double)};
   MPI_Type_create_struct(2, blocklenghts, offsets, types, &mpi_element_type);
   MPI_Type_commit(&mpi_element_type);
 }
 
-void DistributedCellList::allgather(INearList * local_nlist) {
-  CellList * clist = dynamic_cast<CellList*>(local_nlist);
+void DistributedCellList::allgather(INearList *local_nlist)
+{
+  CellList *clist = dynamic_cast<CellList *>(local_nlist);
 
-  if(!clist) {
-    error->all(FLERR,"DistributedCellList::allgather requires pointer to CellList object!");
+  if (!clist) {
+    error->all(FLERR, "DistributedCellList::allgather requires pointer to CellList object!");
   }
-
 
   int ncount_local = clist->count();
   assert(nbins == clist->nbins);
@@ -271,21 +267,23 @@ void DistributedCellList::allgather(INearList * local_nlist) {
 
   displs[0] = 0;
   for (int iproc = 1; iproc < nprocs; iproc++) {
-    displs[iproc] = displs[iproc-1] + recvcounts[iproc-1];
+    displs[iproc] = displs[iproc - 1] + recvcounts[iproc - 1];
   }
 
   // collect binheads from all processors
   MPI_Allgather(&clist->binhead[0], nbins, MPI_INT, &binhead[0], nbins, MPI_INT, world);
 
   // collect next array from all processors that have elements
-  int * nextptr = nullptr;
+  int *nextptr = nullptr;
   if (ncount_local) nextptr = &clist->next[0];
-  MPI_Allgatherv(nextptr, ncount_local, MPI_INT, &next[0], &recvcounts[0], &displs[0], MPI_INT, world);
+  MPI_Allgatherv(nextptr, ncount_local, MPI_INT, &next[0], &recvcounts[0], &displs[0], MPI_INT,
+                 world);
 
   // collect element arrays from all processors that have elements
-  CellList::Element * elementptr = nullptr;
+  CellList::Element *elementptr = nullptr;
   if (ncount_local) elementptr = &clist->elements[0];
-  MPI_Allgatherv(elementptr, ncount_local, mpi_element_type, &elements[0], &recvcounts[0], &displs[0], mpi_element_type, world);
+  MPI_Allgatherv(elementptr, ncount_local, mpi_element_type, &elements[0], &recvcounts[0],
+                 &displs[0], mpi_element_type, world);
 
   // at this point all processors have a full list of all elements in the global cell list,
   // however, their binheads still need to be merged
@@ -294,49 +292,45 @@ void DistributedCellList::allgather(INearList * local_nlist) {
   //         now that we have them in one array we can reuse the displs array to correct the indices
 
   for (int iproc = 1; iproc < nprocs; iproc++) {
-      const int offset = displs[iproc];
-      const int ibin_offset = iproc * nbins;
+    const int offset = displs[iproc];
+    const int ibin_offset = iproc * nbins;
 
-      // correct binhead index
-      for(int ibin = 0; ibin < nbins; ++ibin) {
-          int & head = binhead[ibin+ibin_offset];
-          if (head >= 0) {
-              head += offset;
-          }
-      }
+    // correct binhead index
+    for (int ibin = 0; ibin < nbins; ++ibin) {
+      int &head = binhead[ibin + ibin_offset];
+      if (head >= 0) { head += offset; }
+    }
 
-      // correct next index
-      for(int i = 0; i < recvcounts[iproc]; ++i) {
-          int & n = next[offset + i];
-          if (n >= 0) {
-              n += offset;
-          }
-      }
+    // correct next index
+    for (int i = 0; i < recvcounts[iproc]; ++i) {
+      int &n = next[offset + i];
+      if (n >= 0) { n += offset; }
+    }
   }
 
   // step 2: reduce binheads and next to single binning structure by merging lists
-  for(int ibin = 0; ibin < nbins; ++ibin) {
-      int iproc = 0;
-      int j = binhead[ibin];
-      int prev = -1;
+  for (int ibin = 0; ibin < nbins; ++ibin) {
+    int iproc = 0;
+    int j = binhead[ibin];
+    int prev = -1;
 
-      while(iproc < nprocs) {
-          while(j >= 0) {
-              prev = j;
-              j = next[j];
-          }
-
-          iproc++;
-
-          if(iproc < nprocs) {
-              const int ibin_offset = iproc * nbins;
-              j = binhead[ibin_offset + ibin];
-              if(prev >= 0) {
-                next[prev] = j;
-              } else {
-                binhead[ibin] = j;
-              }
-          }
+    while (iproc < nprocs) {
+      while (j >= 0) {
+        prev = j;
+        j = next[j];
       }
+
+      iproc++;
+
+      if (iproc < nprocs) {
+        const int ibin_offset = iproc * nbins;
+        j = binhead[ibin_offset + ibin];
+        if (prev >= 0) {
+          next[prev] = j;
+        } else {
+          binhead[ibin] = j;
+        }
+      }
+    }
   }
 }

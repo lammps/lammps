@@ -16,33 +16,29 @@
 ------------------------------------------------------------------------- */
 
 #include "near_list.h"
-#include <assert.h>
-#include "domain.h"
 #include "comm.h"
+#include "domain.h"
 #include "error.h"
 #include "memory.h"
+#include <assert.h>
 #include <mpi.h>
 
 using namespace LAMMPS_NS;
 using namespace std;
 
-NearList::NearList(LAMMPS *lmp) : Pointers(lmp), elements(nullptr), ncount(0), nallocated(0)
-{
-}
+NearList::NearList(LAMMPS *lmp) : Pointers(lmp), elements(nullptr), ncount(0), nallocated(0) {}
 
 NearList::~NearList()
 {
   // free local memory
-  if(elements) {
-    memory->destroy(elements);
-  }
+  if (elements) { memory->destroy(elements); }
 }
 
 /* ----------------------------------------------------------------------
    insert element into near list
 ------------------------------------------------------------------------- */
 
-void NearList::insert(double * x, double r)
+void NearList::insert(double *x, double r)
 {
   elements[ncount][0] = x[0];
   elements[ncount][1] = x[1];
@@ -51,7 +47,8 @@ void NearList::insert(double * x, double r)
   ncount++;
 }
 
-void NearList::allocate(int nmax){
+void NearList::allocate(int nmax)
+{
   memory->create(elements, nmax, 4, "nearlist:elements");
   nallocated = nmax;
 }
@@ -71,10 +68,10 @@ bool NearList::has_overlap(double *x, double r) const
     // use minimum_image() to account for PBC
     domain->minimum_image(dx, dy, dz);
 
-    const double rsq = dx*dx + dy*dy + dz*dz;
+    const double rsq = dx * dx + dy * dy + dz * dz;
     const double radsum = r + elements[i][3];
 
-    if (rsq <= radsum*radsum) {
+    if (rsq <= radsum * radsum) {
       // found overlap
       return true;
     }
@@ -82,28 +79,30 @@ bool NearList::has_overlap(double *x, double r) const
   return false;
 }
 
-size_t NearList::count() const {
+size_t NearList::count() const
+{
   return ncount;
 }
 
-
-
-DistributedNearList::DistributedNearList(LAMMPS * lmp) : NearList(lmp) {
+DistributedNearList::DistributedNearList(LAMMPS *lmp) : NearList(lmp)
+{
   // allgather arrays
   recvcounts = new int[comm->nprocs];
   displs = new int[comm->nprocs];
 }
 
-DistributedNearList::~DistributedNearList() {
-  delete [] recvcounts;
-  delete [] displs;
+DistributedNearList::~DistributedNearList()
+{
+  delete[] recvcounts;
+  delete[] displs;
 }
 
-void DistributedNearList::allgather(INearList * local_nlist) {
-  NearList * nlist = dynamic_cast<NearList*>(local_nlist);
+void DistributedNearList::allgather(INearList *local_nlist)
+{
+  NearList *nlist = dynamic_cast<NearList *>(local_nlist);
 
-  if(!nlist) {
-    error->all(FLERR,"DistributedNearList::allgather requires pointer to NearList object!");
+  if (!nlist) {
+    error->all(FLERR, "DistributedNearList::allgather requires pointer to NearList object!");
   }
 
   assert(nallocated >= nlist->count());
@@ -119,7 +118,7 @@ void DistributedNearList::allgather(INearList * local_nlist) {
   displs[0] = 0;
 
   for (int iproc = 1; iproc < comm->nprocs; iproc++) {
-    displs[iproc] = displs[iproc-1] + recvcounts[iproc-1];
+    displs[iproc] = displs[iproc - 1] + recvcounts[iproc - 1];
   }
 
   // perform allgatherv to acquire list of nearby particles on all procs

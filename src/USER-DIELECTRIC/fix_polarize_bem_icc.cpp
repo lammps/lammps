@@ -391,8 +391,10 @@ int FixPolarizeBEMICC::modify_param(int narg, char **arg)
       int set_charge=0;
       double ediff = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       double emean = utils::numeric(FLERR,arg[iarg+2],false,lmp);
-      if (strcmp(arg[iarg+3],"NULL") != 0) epsiloni = utils::numeric(FLERR,arg[iarg+3],false,lmp);
-      if (strcmp(arg[iarg+4],"NULL") != 0) areai = utils::numeric(FLERR,arg[iarg+4],false,lmp);
+      if (strcmp(arg[iarg+3],"NULL") != 0)
+        epsiloni = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+      if (strcmp(arg[iarg+4],"NULL") != 0)
+        areai = utils::numeric(FLERR,arg[iarg+4],false,lmp);
       if (strcmp(arg[iarg+5],"NULL") != 0) {
         qreali = utils::numeric(FLERR,arg[iarg+5],false,lmp);
         set_charge = 1;

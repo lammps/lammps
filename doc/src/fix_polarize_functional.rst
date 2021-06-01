@@ -1,8 +1,6 @@
-.. index:: fix polarize/bem/icc
-.. index:: fix polarize/bem/gmres
 .. index:: fix polarize/functional
 
-fix polarize command
+fix polarize/functional command
 ===================
 
 Syntax
@@ -13,7 +11,7 @@ Syntax
    fix ID group-ID polarize nevery tolerance ...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
-* polarize/bem/icc, polarize/bem/gmres, or polarize/functional  = style name of this fix command
+* polarize/functional  = style name of this fix command
 * Nevery = this fixed is invoked every this many timesteps
 * tolerance = the tolerance for the iterative solver to stop
 
@@ -23,9 +21,7 @@ Examples
 
 .. code-block:: LAMMPS
 
-   fix 1 all polarize/bem/icc 1 0.0001
-   fix 2 all polarize/bem/gmres 5 0.0001
-   fix 3 all polarize/bem/functional 1 0.0001
+   fix 3 all polarize/functional 1 0.001
 
 Description
 """""""""""
@@ -39,12 +35,6 @@ examples/USER/dielectric directory.
 
 ----------
 
-The charges of the atoms in the specified group will be computed by the solver.
-fix polarize bem/icc computes the induced charges at the boundary elements
-(i.e. interface vertices) using the successive overrelaxation as described
-in (Tyagi). fix polarize bem/gmres computes the induced charges at
-the interface vertices using the successive overrelaxation
-as described in (Barros).
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -71,7 +61,7 @@ not a limitation of functionality.
 Related commands
 """"""""""""""""
 
-:doc:`fix smd <fix_smd>`, :doc:`fix spring <fix_spring>`,
+:doc:`fix polarize/bem/icc <fix_polarize_bem_icc>`, :doc:`fix polarize/functional <fix_polarize_bem_gmres>`
 
 Default
 """""""
@@ -80,7 +70,11 @@ None.
 
 ----------
 
+.. _Jadhao:
+
+**(Jadhao)** Jadhao, Solis, Olvera de la Cruz, J Chem Phys, 138, 054119 (2013)
+
 .. _NguyenTD:
 
-**(NguyenTD)** Nguyen, Li, Bagchi, Solis, Olvera de la Cruz, Mol. Phys., DOI:10.1016/j.cpc.2019.03.006
+**(NguyenTD)** Nguyen, Li, Bagchi, Solis, Olvera de la Cruz, Comput Phys Commun 241, 80-19 (2019)
 

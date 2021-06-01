@@ -35,9 +35,9 @@ fix             1 ions nve
 if "${method} == gmres" then &
   "fix             3 interface polarize/bem/gmres 1 1.0e-4" &
 elif "${method} == icc"&
-  "fix             3 interface polarize/bem/icc 1 1.0e-4 itr_max 50" &
+  "fix             3 interface polarize/bem/icc 1 1.0e-4" &
 elif "${method} == dof" &
-  "fix             3 interface polarize/functional" &
+  "fix             3 interface polarize/functional 1 1.0e-4" &
 else &
   "print 'Unsupported method for polarization' "
 

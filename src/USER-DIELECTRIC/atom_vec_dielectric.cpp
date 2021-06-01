@@ -155,3 +155,69 @@ void AtomVecDielectric::unpack_restart_init(int ilocal)
   nspecial[ilocal][2] = 0;
 }
 
+/* ----------------------------------------------------------------------
+   assign an index to named atom property and return index
+   return -1 if name is unknown to this atom style
+------------------------------------------------------------------------- */
+
+int AtomVecDielectric::property_atom(char *name)
+{
+  if (strcmp(name,"area") == 0) return 0;
+  if (strcmp(name,"ed") == 0) return 1;
+  if (strcmp(name,"em") == 0) return 2;
+  if (strcmp(name,"epsilon") == 0) return 3;
+  if (strcmp(name,"curvature") == 0) return 4;
+  if (strcmp(name,"q_unscaled") == 0) return 5;
+  return -1;
+}
+
+/* ----------------------------------------------------------------------
+   pack per-atom data into buf for ComputePropertyAtom
+   index maps to data specific to this atom style
+------------------------------------------------------------------------- */
+
+void AtomVecDielectric::pack_property_atom(int index, double *buf,
+                                           int nvalues, int groupbit)
+{
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+  int n = 0;
+
+  if (index == 0) {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) buf[n] = area[i];
+      else buf[n] = 0.0;
+      n += nvalues;
+    }
+  } else if (index == 1) {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) buf[n] = ed[i];
+      else buf[n] = 0.0;
+      n += nvalues;
+    }
+  } else if (index == 2) {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) buf[n] = em[i];
+      else buf[n] = 0.0;
+      n += nvalues;
+    }
+  } else if (index == 3) {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) buf[n] = epsilon[i];
+      else buf[n] = 0.0;
+      n += nvalues;
+    }
+  } else if (index == 4) {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) buf[n] = curvature[i];
+      else buf[n] = 0.0;
+      n += nvalues;
+    }
+  } else if (index == 5) {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) buf[n] = q_unscaled[i];
+      else buf[n] = 0.0;
+      n += nvalues;
+    }
+  }
+}

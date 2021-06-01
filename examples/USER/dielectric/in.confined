@@ -63,7 +63,7 @@ elif "${method} == icc"&
   "fix             3 interface polarize/bem/icc 1 1.0e-4 itr_max 50" &
   "fix_modify      3 itr_max 50 dielectrics ${ed} ${em} ${epsilon} ${area} NULL" &
 elif "${method} == dof" &
-  "fix             3 interface polarize/functional" &
+  "fix             3 interface polarize/functional 1 0.001" &
   "fix_modify      3 dielectrics ${ed} ${em} ${epsilon} ${area} NULL" &
 else &
   "print 'Unsupported polarization solver' "

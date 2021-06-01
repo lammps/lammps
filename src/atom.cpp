@@ -2661,6 +2661,14 @@ void *Atom::extract(const char *name)
   if (strcmp(name,"dpdTheta") == 0) return (void *) dpdTheta;
   if (strcmp(name,"edpd_temp") == 0) return (void *) edpd_temp;
 
+  // USER-DIELECTRIC
+  if (strcmp(name,"area") == 0) return (void *) area;
+  if (strcmp(name,"ed") == 0) return (void *) ed;
+  if (strcmp(name,"em") == 0) return (void *) em;
+  if (strcmp(name,"epsilon") == 0) return (void *) epsilon;
+  if (strcmp(name,"curvature") == 0) return (void *) curvature;
+  if (strcmp(name,"q_unscaled") == 0) return (void *) q_unscaled;
+
   // end of customization section
   // --------------------------------------------------------------------
 
@@ -2743,6 +2751,14 @@ int Atom::extract_datatype(const char *name)
 
   if (strcmp(name,"dpdTheta") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"edpd_temp") == 0) return LAMMPS_DOUBLE;
+
+  // USER-DIELECTRIC
+  if (strcmp(name,"area") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"ed") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"em") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"epsilon") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"curvature") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"q_unscaled") == 0) return LAMMPS_DOUBLE;
 
   // end of customization section
   // --------------------------------------------------------------------

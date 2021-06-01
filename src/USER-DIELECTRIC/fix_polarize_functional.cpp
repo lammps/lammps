@@ -22,11 +22,7 @@
      (Rww + Rww^T) w = q Rwq
    at every time step, the vector (q Rwq) is computed, and so
        w = [Rww + Rww^T)^(-1)] (q Rwq)
-   NOTE: Oct 7, 2019: switch from matrix inversion to a conjugate gradient solver
-
-   Contributing author: Trung Nguyen (Northwestern)
-     based on the full-matrix implementation by Honghao Li (Northwestern University)
-   Reference: Jadhao, Solis, Olvera de la Cruz, J. Chem. Phys. 138, 054119, 2013
+   NOTE: Oct 7, 2019: switch to using a conjugate gradient solver
 ------------------------------------------------------------------------- */
 
 #include "fix_polarize_functional.h"
@@ -93,10 +89,16 @@ FixPolarizeFunctional::FixPolarizeFunctional(LAMMPS *lmp, int narg, char **arg) 
 {
   if (lmp->citeme) lmp->citeme->add(cite_user_dielectric_package);
 
-  if (narg != 3) error->all(FLERR,"Illegal fix polarize/functional command");
+  if (narg < 4) error->all(FLERR,"Illegal fix polarize/functional command");
 
   avec = (AtomVecDielectric *) atom->style_match("dielectric");
   if (!avec) error->all(FLERR,"Fix polarize/functional requires atom style dielectric");
+
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
+  if (nevery < 0) error->all(FLERR,"Illegal fix polarize/functional command");
+
+  tolerance = EPSILON;
+  if (narg == 5) tolerance =  utils::numeric(FLERR,arg[4],false,lmp);
 
   comm_forward = 1;
   nmax = 0;
@@ -362,6 +364,9 @@ void FixPolarizeFunctional::setup_pre_force(int vflag)
 
 void FixPolarizeFunctional::pre_force(int)
 {
+  if (nevery == 0) return;
+  if (update->ntimestep % nevery) return;
+
   // solve for the induced charges
 
   update_induced_charges();
@@ -631,14 +636,14 @@ void FixPolarizeFunctional::calculate_Rww_cutoff()
   // invoke full neighbor list
 
   int inum,jnum,*ilist,*jlist,*numneigh,**firstneigh;
-  inum = list->inum;               // number of entries in the neighbor list
-  ilist = list->ilist;             // ilist[ii] gives the atom index of the entry ii in the list
-  numneigh = list->numneigh;       // numneigh[i] gives the number of neighbors of local atom i
-  firstneigh = list->firstneigh;   // firstneigh[i] gives the pointer to the neighbors of i
+  inum = list->inum;
+  ilist = list->ilist;
+  numneigh = list->numneigh;
+  firstneigh = list->firstneigh;
 
   // calculate G1ww, gradG1ww, ndotG1ww
   // fill up buffer1 with local G1ww and buffer2 with local ndotGww
-  // seperate into two loops to let the compiler optimize / or later vectorization
+  // seperate into two loops to let the compiler optimize/or later vectorization
 
   for (int i = 0; i < num_induced_charges; i++)
     for (int j = 0; j < num_induced_charges; j++) buffer1[i][j] = 0;
@@ -660,6 +665,7 @@ void FixPolarizeFunctional::calculate_Rww_cutoff()
       for (int kk = 0; kk < jnum; kk++) {
         int k = jlist[kk] & NEIGHMASK;
         if (mask[k] & groupbit) {
+
           // interface particles: k can be ghost atoms
           double delx = xtmp - x[k][0];
           double dely = ytmp - x[k][1];
@@ -667,28 +673,31 @@ void FixPolarizeFunctional::calculate_Rww_cutoff()
           domain->minimum_image(delx,dely,delz);
           int mk = tag2mat[tag[k]];
 
-          //G1ww[mi][mk] = calculate_greens_ewald(delx, dely, delz);
+          // G1ww[mi][mk] = calculate_greens_ewald(delx, dely, delz);
           buffer1[mi][mk] = calculate_greens_ewald(delx, dely, delz);
+
           // gradG1ww is vector, directly change it in the function
           double gradG1ww[3];
-          //calculate_grad_greens_ewald(gradG1ww[mi][mk], delx, dely, delz);
           calculate_grad_greens_ewald(gradG1ww, delx, dely, delz);
+
           // use mu to store the normal vector of interface vertex
-          //ndotGww[mi][mk] = MathExtra::dot3(norm[i], gradG1ww[mi][mk]) / (4*MY_PI);
           buffer2[mi][mk] = MathExtra::dot3(norm[i], gradG1ww) / (4*MY_PI);
         }
       }
 
-      // special treatment for the diagonal terms, even though in the above loop there is mk == mi
-      //G1ww[mi][mi] = calculate_greens_ewald_self_vertex(area[i]);
+      // special treatment for the diagonal terms,
+      // even though in the above loop there is mk == mi
+
       buffer1[mi][mi] = calculate_greens_ewald_self_vertex(area[i]);
-      //ndotGww[mi][mi] = calculate_ndotgreens_ewald_self_vertex(area[i], curvature[i]) / (4*MY_PI);
-      buffer2[mi][mi] = calculate_ndotgreens_ewald_self_vertex(area[i], curvature[i]) / (4*MY_PI);
+      buffer2[mi][mi] = calculate_ndotgreens_ewald_self_vertex(area[i], curvature[i]) /
+         (4*MY_PI);
     }
   }
 
-  MPI_Allreduce(buffer1[0],G1ww[0],num_induced_charges*num_induced_charges,MPI_DOUBLE,MPI_SUM,world);
-  MPI_Allreduce(buffer2[0],ndotGww[0],num_induced_charges*num_induced_charges,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(buffer1[0],G1ww[0],num_induced_charges*num_induced_charges,
+    MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(buffer2[0],ndotGww[0],num_induced_charges*num_induced_charges,
+    MPI_DOUBLE,MPI_SUM,world);
 
   // calculate G2ww
   // fill up buffer1 with local G2ww
@@ -738,10 +747,12 @@ void FixPolarizeFunctional::calculate_Rww_cutoff()
     }
   }
 
-  MPI_Allreduce(buffer1[0],G2ww[0],num_induced_charges*num_induced_charges,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(buffer1[0],G2ww[0],num_induced_charges*num_induced_charges,
+    MPI_DOUBLE,MPI_SUM,world);
 
   // calculate G3ww and Rww
-  // G3ww is implemented as in _exact(), but can be optionally excluded due to its minor contribution
+  // G3ww is implemented as in _exact(), but can be optionally excluded
+  // due to its minor contribution
   // fill up buffer1 with local G3ww
 
   for (int i = 0; i < num_induced_charges; i++)
@@ -759,13 +770,17 @@ void FixPolarizeFunctional::calculate_Rww_cutoff()
         int k = jlist[kk] & NEIGHMASK;
 
         if (mask[k] & groupbit) {
+
           // interface particles: k can be ghost atoms
+
           int mk = tag2mat[tag[k]];
 
           double a1 = em[i] * (em[k] - 1.0);
           double a2 = 1.0 - em[i] - em[k];
+
           // The first term (w/ G1ww) contributes the most to Rww
           // the second term (w/ G2ww) includes certain correction
+
           //Rww[mi][mk] = a1 * G1ww[mi][mk] + a2 * G2ww[mi][mk];
           buffer1[mi][mk] = a1 * G1ww[mi][mk] + a2 * G2ww[mi][mk];
 
@@ -804,9 +819,11 @@ void FixPolarizeFunctional::calculate_Rww_cutoff()
       // including the diagonal term
       double a1 = em[i] * (em[i] - 1.0);
       double a2 = 1.0 - em[i] - em[i];
+
       // The first term (w/ G1ww) contributes the most to Rww
       // the second term (w/ G2ww) includes certain correction
       //Rww[mi][mi] = a1 * G1ww[mi][mi] + a2 * G2ww[mi][mi];
+
       buffer1[mi][mi] = a1 * G1ww[mi][mi] + a2 * G2ww[mi][mi];
     }
   }
@@ -846,10 +863,10 @@ void FixPolarizeFunctional::calculate_qiRqw_cutoff()
   // invoke full neighbor list
 
   int inum,*ilist,*jlist,*numneigh,**firstneigh;
-  inum = list->inum;               // number of entries in the neighbor list
-  ilist = list->ilist;             // ilist[ii] gives the atom index of the entry ii in the list
-  numneigh = list->numneigh;       // numneigh[i] gives the number of neighbors of local atom i
-  firstneigh = list->firstneigh;   // firstneigh[i] gives the pointer to the neighbors of i
+  inum = list->inum;
+  ilist = list->ilist;
+  numneigh = list->numneigh;
+  firstneigh = list->firstneigh;
 
   // calculate G1qw_real
   // fill up buffer1 with local G1qw_real
@@ -886,7 +903,8 @@ void FixPolarizeFunctional::calculate_qiRqw_cutoff()
     }
   }
 
-  MPI_Allreduce(&buffer1[0][0],&G1qw_real[0][0],num_ions*num_induced_charges,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(&buffer1[0][0],&G1qw_real[0][0],num_ions*num_induced_charges,
+    MPI_DOUBLE,MPI_SUM,world);
 
   // the following loop need the above results: gradG1wq_real
   // calculate sum1G1qw_epsilon and sum2ndotGwq_epsilon 
@@ -917,7 +935,8 @@ void FixPolarizeFunctional::calculate_qiRqw_cutoff()
           delz = x[i][2] - ztmp;
           domain->minimum_image(delx,dely,delz);
 
-          int mi = tag2mat_ions[tag[i]]; //ion_idx[i]; //get_matrix_index_from_local_index(i);
+          int mi = tag2mat_ions[tag[i]]; //ion_idx[i];
+
           //calculate_grad_greens_real(gradG1wq_real[mk][mi], delx, dely, delz);
           double gradG1wq[3];
           calculate_grad_greens_real(gradG1wq, delx, dely, delz);
@@ -929,8 +948,10 @@ void FixPolarizeFunctional::calculate_qiRqw_cutoff()
           temp_sum1 += G1qw_real[mi][mk] * q[i] / epsilon[i];
         }
       }
+
       //sum1G1qw_epsilon[mk] = temp_sum1;// + ewaldDielectric->sum1G1qw_k_epsilon[mk];
       rhs1[mk] = temp_sum1;
+
       //sum2ndotGwq_epsilon[mk] = MathExtra::dot3(norm[k], tempndotG);
       rhs2[mk] = MathExtra::dot3(norm[k], tempndotG);
     }
@@ -1007,14 +1028,16 @@ void FixPolarizeFunctional::calculate_qiRqw_cutoff()
           qiRwwVectorTemp1 += q[i] * (1.0 - em[k] / epsilon[i]) * G1qw_real[mi][mk];
         }
       }
-      // qiRwwVectorTemp1 += ewaldDielectric->sum1G1qw_k[mk] - em[k] * ewaldDielectric->sum1G1qw_k_epsilon[mk];
 
       // add the diagonal term
+
       sum1G3qw += sum2ndotGwq_epsilon[mk] * G2ww[mk][mk] * area[k] * ed[k];
 
       // qiRwwVectorTemp2 is a significant contribution, of which sum2G2wq is significant
-      double qiRwwVectorTemp2 = (1.0 - 2.0 * em[k]) * sum2G2wq[mk] + sum1G2qw[mk] + 2.0 * sum1G3qw;
-//      qiRqwVector[mk] = qiRwwVectorTemp1 + qiRwwVectorTemp2;
+      double qiRwwVectorTemp2 = (1.0 - 2.0 * em[k]) * sum2G2wq[mk] +
+        sum1G2qw[mk] + 2.0 * sum1G3qw;
+
+      // qiRqwVector[mk] = qiRwwVectorTemp1 + qiRwwVectorTemp2;
       rhs1[mk] = qiRwwVectorTemp1 + qiRwwVectorTemp2;
     }
   }
@@ -1071,14 +1094,16 @@ double FixPolarizeFunctional::greens_real(double r)
 double FixPolarizeFunctional::grad_greens_real_factor(double r)
 {
   double alpharij = g_ewald * r;
-  double factor = erfc(alpharij) + 2.0 * alpharij / MY_PIS * exp(-(alpharij * alpharij));
+  double factor = erfc(alpharij) + 2.0 * alpharij / MY_PIS *
+    exp(-(alpharij * alpharij));
   double r3 = r*r*r;
   return (factor * (-1.0 / r3));
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixPolarizeFunctional::calculate_grad_greens_real(double *vec, double dx, double dy, double dz)
+void FixPolarizeFunctional::calculate_grad_greens_real(double *vec,
+  double dx, double dy, double dz)
 {
   double r = sqrt(dx * dx + dy * dy + dz * dz);
   double real = grad_greens_real_factor(r);
@@ -1089,7 +1114,8 @@ void FixPolarizeFunctional::calculate_grad_greens_real(double *vec, double dx, d
 
 /* ---------------------------------------------------------------------- */
 
-double FixPolarizeFunctional::calculate_greens_ewald(double dx, double dy, double dz)
+double FixPolarizeFunctional::calculate_greens_ewald(double dx, double dy,
+  double dz)
 {
   // excluding the reciprocal term
   double r = sqrt(dx * dx + dy * dy + dz * dz);
@@ -1098,8 +1124,9 @@ double FixPolarizeFunctional::calculate_greens_ewald(double dx, double dy, doubl
 
 /* ---------------------------------------------------------------------- */
 
-void FixPolarizeFunctional::calculate_grad_greens_ewald(double *vec, double dx, double dy, double dz)
- {
+void FixPolarizeFunctional::calculate_grad_greens_ewald(double *vec,
+  double dx, double dy, double dz)
+{
   // real part of grad greens, excluding the reciprocal term
   calculate_grad_greens_real(vec, dx, dy, dz);
 }
@@ -1131,11 +1158,12 @@ double FixPolarizeFunctional::calculate_greens_ewald_self_vertex(double area)
 
 /* ---------------------------------------------------------------------- */
 
-double FixPolarizeFunctional::calculate_ndotgreens_ewald_self_vertex(double area, double curvature)
+double FixPolarizeFunctional::calculate_ndotgreens_ewald_self_vertex(double area,
+                                                                     double curvature)
 {
-  // this term is important, cannot be set to zero. see <Bugs in lammps implementation>.pptx
+  // this term is important, cannot be set to zero
   // curvature = 1 / R, minus if norm is inverse of R to center.
-  // Honghao Li's result, the same with Erik's paper, J Chem Phys 140 064903 (2014)
+
   return curvature * MY_PIS / sqrt(area);
 }
 
@@ -1179,9 +1207,10 @@ void FixPolarizeFunctional::cg_solver(double** A, double* b, double* x, int N)
     for (int i = 0; i < N; i++) {
       x[i]    =    x[i] + alpha*cg_p[i];
       cg_r[i] = cg_r[i] - alpha*cg_Ap[i];
-    } 
+    }
+
     double rsq_new = inner_product(cg_r, cg_r, N);
-    if (rsq_new < EPSILON) break;
+    if (rsq_new < tolerance) break;
 
     // beta = rsq_new / rsq
     double beta = rsq_new / rsq;
@@ -1189,5 +1218,4 @@ void FixPolarizeFunctional::cg_solver(double** A, double* b, double* x, int N)
       cg_p[i] = cg_r[i] + beta*cg_p[i];
     rsq = rsq_new;
   }
-  
 }

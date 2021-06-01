@@ -453,7 +453,8 @@ void FixPolarizeBEMGMRES::gmres_solve(double* x, double* r)
 
     // the inner loop k = 1..(n-1)
     // build up the k-th Krylov space,
-    // actually build the Q_k matrix of size n by k, whose the columns are k vectors v(1)...v(k)
+    // actually build the Q_k matrix of size n by k,
+    //   whose the columns are k vectors v(1)...v(k)
     // remember that v[0] is computed from the updated residual as above
 
     for (k = 1; k <= mr; k++) {
@@ -503,7 +504,8 @@ void FixPolarizeBEMGMRES::gmres_solve(double* x, double* r)
       }
 
       // if k is not the first iteration,
-      // find the vector y that minimizes the norm of the residual using the least square method
+      // find the vector y that minimizes the norm of the residual
+      //   using the least square method
 
       if (k > 1) {
 
@@ -547,7 +549,8 @@ void FixPolarizeBEMGMRES::gmres_solve(double* x, double* r)
       #ifdef _POLARIZE_DEBUG
       if (comm->me == 0) {
         char message[256];
-        sprintf(message, "itr = %d: k = %d, norm(r) = %g norm(b) = %g", itr, k, rho, normb);
+        sprintf(message, "itr = %d: k = %d, norm(r) = %g norm(b) = %g",
+          itr, k, rho, normb);
         error->warning(FLERR, message);
       }
       #endif
@@ -586,7 +589,8 @@ void FixPolarizeBEMGMRES::gmres_solve(double* x, double* r)
     #ifdef _POLARIZE_DEBUG
     if (comm->me == 0) {
       char message[256];
-      sprintf(message, "itr = %d: norm(r) = %g norm(b) = %g", itr, rho, normb);
+      sprintf(message, "itr = %d: norm(r) = %g norm(b) = %g",
+        itr, rho, normb);
       error->warning(FLERR, message);
     }
     #endif
@@ -739,7 +743,8 @@ void FixPolarizeBEMGMRES::update_residual(double* w, double* r, int n)
     }
     double dot = (Ex*norm[i][0] + Ey*norm[i][1] + Ez*norm[i][2]) / epsilon[i];
     double sigma_f = q_real[i] / area[i];
-    buffer[idx] = (1 - em[i]) * sigma_f - em[i] * w[idx] -  epsilon0 * ed[i] * dot / (4*MY_PI);  
+    buffer[idx] = (1 - em[i]) * sigma_f - em[i] * w[idx] - 
+      epsilon0 * ed[i] * dot / (4*MY_PI);  
   }
 
   MPI_Allreduce(buffer,r,num_induced_charges,MPI_DOUBLE,MPI_SUM,world);
@@ -843,8 +848,10 @@ int FixPolarizeBEMGMRES::modify_param(int narg, char **arg)
       int set_charge=0;
       double ediff = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       double emean = utils::numeric(FLERR,arg[iarg+2],false,lmp);
-      if (strcmp(arg[iarg+3],"NULL") != 0) epsiloni = utils::numeric(FLERR,arg[iarg+3],false,lmp);
-      if (strcmp(arg[iarg+4],"NULL") != 0) areai = utils::numeric(FLERR,arg[iarg+4],false,lmp);
+      if (strcmp(arg[iarg+3],"NULL") != 0)
+        epsiloni = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+      if (strcmp(arg[iarg+4],"NULL") != 0)
+        areai = utils::numeric(FLERR,arg[iarg+4],false,lmp);
       if (strcmp(arg[iarg+5],"NULL") != 0) {
         qreali = utils::numeric(FLERR,arg[iarg+5],false,lmp);
         set_charge = 1;
@@ -896,7 +903,7 @@ void FixPolarizeBEMGMRES::set_arrays(int i)
 /* ---------------------------------------------------------------------- */
 
 int FixPolarizeBEMGMRES::pack_forward_comm(int n, int *list, double *buf,
-                                  int pbc_flag, int *pbc)
+                                           int pbc_flag, int *pbc)
 {
   int m;
   for (m = 0; m < n; m++) buf[m] = atom->q[list[m]];

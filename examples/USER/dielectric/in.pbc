@@ -40,7 +40,7 @@ if "${method} == gmres" then &
 elif "${method} == icc"&
   "fix             3 interface polarize/bem/icc 1 1.0e-4 itr_max 50" &
 elif "${method} == dof" &
-  "fix             3 interface polarize/functional" &
+  "fix             3 interface polarize/functional 1 0.0001" &
 else &
   "print 'Unsupported method for polarization' "
 

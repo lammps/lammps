@@ -64,10 +64,10 @@ class FixPolarizeFunctional : public Fix {
   int* induced_charge_idx;  // return the index of the atoms in the induced charge arrays
   int num_induced_charges;  // total number of induced charges
   double* induced_charges;  // values of induced charges
-  int* tag2mat_ions;  // tag2mat_ions[atom->tag[i]] returns the index of the atoms in the ion arrays from atom tags
-  int* mat2tag_ions;  // mat2tag_ions[idx] returns the atom tag of the ion idx in the ion arrays
-  int* ion_idx;       // return the index of the atoms in the ion arrays
-  int num_ions;       // total number of ions
+  int* tag2mat_ions;        // tag2mat_ions[atom->tag[i]] returns the index of the atoms in the ion arrays from atom tags
+  int* mat2tag_ions;        // mat2tag_ions[idx] returns the atom tag of the ion idx in the ion arrays
+  int* ion_idx;             // return the index of the atoms in the ion arrays
+  int num_ions;             // total number of ions
   double* rhs1;
   double* rhs2;
   double** buffer1;
@@ -85,6 +85,7 @@ class FixPolarizeFunctional : public Fix {
   void calculate_qiRqw_cutoff();
 
   // qw, qq ion-interface terms
+
   double *qiRqwVector;
   double **G1qw_real;
   double *sum2G2wq;
@@ -93,10 +94,12 @@ class FixPolarizeFunctional : public Fix {
   double *sum2ndotGwq_epsilon;
 
   // conjugate gradient solver
+
   double *cg_r;
   double *cg_p;
   double *cg_Ap;
   double **cg_A;
+  double tolerance;
 
   void calculate_matrix_multiply_vector(double **, double *, double *, int);
   double inner_product(double*, double*, int);

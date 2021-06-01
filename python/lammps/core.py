@@ -100,7 +100,7 @@ class lammps(object):
 
     try:
       if ptr: self.lib = CDLL("",RTLD_GLOBAL)
-    except:
+    except OSError:
       self.lib = None
 
     # load liblammps.so unless name is given
@@ -307,7 +307,7 @@ class lammps(object):
         from mpi4py import __version__ as mpi4py_version
         # tested to work with mpi4py versions 2 and 3
         self.has_mpi4py = mpi4py_version.split('.')[0] in ['2','3']
-      except:
+      except ImportError:
         # ignore failing import
         pass
 

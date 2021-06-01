@@ -13,8 +13,6 @@
 from __future__ import print_function
 import sys
 sys.path.append("./pizza")
-import matplotlib
-matplotlib.use('tkagg')
 import matplotlib.pyplot as plt
 
 # parse command line
@@ -79,7 +77,8 @@ while ntimestep < nsteps:
     ax = plt.gca()
     ax.relim()
     ax.autoscale_view(True, True, True)
-    fig.canvas.draw()
+    plt.pause(0.001)
+
 
 lmp.command("run 0 pre no post yes")
 

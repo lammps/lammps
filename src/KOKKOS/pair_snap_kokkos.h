@@ -1,6 +1,7 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,15 +13,15 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(snap/kk,PairSNAPKokkosDevice<LMPDeviceType>)
-PairStyle(snap/kk/device,PairSNAPKokkosDevice<LMPDeviceType>)
+// clang-format off
+PairStyle(snap/kk,PairSNAPKokkosDevice<LMPDeviceType>);
+PairStyle(snap/kk/device,PairSNAPKokkosDevice<LMPDeviceType>);
 #ifdef LMP_KOKKOS_GPU
-PairStyle(snap/kk/host,PairSNAPKokkosHost<LMPHostType>)
+PairStyle(snap/kk/host,PairSNAPKokkosHost<LMPHostType>);
 #else
-PairStyle(snap/kk/host,PairSNAPKokkosDevice<LMPHostType>)
+PairStyle(snap/kk/host,PairSNAPKokkosDevice<LMPHostType>);
 #endif
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_SNAP_KOKKOS_H
@@ -50,6 +51,7 @@ struct TagPairSNAPBeta{};
 struct TagPairSNAPComputeBi{};
 struct TagPairSNAPTransformBi{}; // re-order blist from AoSoA to AoS
 struct TagPairSNAPComputeYi{};
+struct TagPairSNAPComputeYiWithZlist{};
 template<int dir>
 struct TagPairSNAPComputeFusedDeidrj{};
 
@@ -121,11 +123,11 @@ public:
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator() (TagPairSNAPComputeForce<NEIGHFLAG,EVFLAG>,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeForce<NEIGHFLAG,EVFLAG> >::member_type& team) const;
+  void operator() (TagPairSNAPComputeForce<NEIGHFLAG,EVFLAG>,const int& ii) const;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator() (TagPairSNAPComputeForce<NEIGHFLAG,EVFLAG>,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeForce<NEIGHFLAG,EVFLAG> >::member_type& team, EV_FLOAT&) const;
+  void operator() (TagPairSNAPComputeForce<NEIGHFLAG,EVFLAG>,const int& ii, EV_FLOAT&) const;
 
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPBetaCPU,const int& ii) const;
@@ -160,6 +162,9 @@ public:
 
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPComputeYi,const int iatom_mod, const int idxz, const int iatom_div) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator() (TagPairSNAPComputeYiWithZlist,const int iatom_mod, const int idxz, const int iatom_div) const;
 
   template<int dir>
   KOKKOS_INLINE_FUNCTION

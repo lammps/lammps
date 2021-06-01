@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -84,9 +85,7 @@ Thermo::Thermo(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 {
   MPI_Comm_rank(world,&me);
 
-  int n = strlen(arg[0]) + 1;
-  style = new char[n];
-  strcpy(style,arg[0]);
+  style = utils::strdup(arg[0]);
 
   // set thermo_modify defaults
 
@@ -94,7 +93,7 @@ Thermo::Thermo(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   normuserflag = 0;
   lineflag = ONELINE;
   lostflag = lostbond = Thermo::ERROR;
-  lostbefore = 0;
+  lostbefore = warnbefore = 0;
   flushflag = 0;
 
   // set style and corresponding lineflag
@@ -402,42 +401,56 @@ void Thermo::call_vfunc(int ifield_in)
 
 /* ----------------------------------------------------------------------
    check for lost atoms, return current number of atoms
+   also could number of warnings across MPI ranks and update total
 ------------------------------------------------------------------------- */
 
 bigint Thermo::lost_check()
 {
-  // ntotal = current # of atoms
+  // ntotal = current # of atoms, and Error class warnings
 
-  bigint ntotal;
-  bigint nblocal = atom->nlocal;
-  MPI_Allreduce(&nblocal,&ntotal,1,MPI_LMP_BIGINT,MPI_SUM,world);
-  if (ntotal < 0)
+  bigint nlocal[2], ntotal[2] = {0,0};
+  nlocal[0] = atom->nlocal;
+  nlocal[1] = error->get_numwarn();
+  MPI_Allreduce(nlocal,ntotal,2,MPI_LMP_BIGINT,MPI_SUM,world);
+  if (ntotal[0] < 0)
     error->all(FLERR,"Too many total atoms");
-  if (ntotal == atom->natoms) return ntotal;
+
+  // print notification, if future warnings will be ignored
+  int maxwarn = error->get_maxwarn();
+  if ((maxwarn > 0) && (warnbefore == 0) && (ntotal[1] > maxwarn)) {
+    warnbefore = 1;
+    if (comm->me == 0)
+      error->message(FLERR,"WARNING: Too many warnings: {} vs {}. All "
+                     "future warnings will be suppressed",ntotal[1],maxwarn);
+  }
+  error->set_allwarn(ntotal[1]);
+
+  // no lost atoms, nothing else to do.
+  if (ntotal[0] == atom->natoms) return ntotal[0];
 
   // if not checking or already warned, just return
-  if (lostflag == Thermo::IGNORE) return ntotal;
+  if (lostflag == Thermo::IGNORE) return ntotal[0];
   if (lostflag == Thermo::WARN && lostbefore == 1) {
-    return ntotal;
+    return ntotal[0];
   }
 
   // error message
 
   if (lostflag == Thermo::ERROR)
-    error->all(FLERR,fmt::format("Lost atoms: original {} current {}",
-                                 atom->natoms,ntotal));
+    error->all(FLERR,"Lost atoms: original {} current {}",
+               atom->natoms,ntotal[0]);
 
   // warning message
 
   if (me == 0)
-    error->warning(FLERR,fmt::format("Lost atoms: original {} current {}",
-                                     atom->natoms,ntotal),0);
+    error->warning(FLERR,"Lost atoms: original {} current {}",
+                   atom->natoms,ntotal[0]);
 
   // reset total atom count
 
-  atom->natoms = ntotal;
+  atom->natoms = ntotal[0];
   lostbefore = 1;
-  return ntotal;
+  return ntotal[0];
 }
 
 /* ----------------------------------------------------------------------
@@ -456,9 +469,7 @@ void Thermo::modify_params(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal thermo_modify command");
       if (index_temp < 0) error->all(FLERR,"Thermo style does not use temp");
       delete [] id_compute[index_temp];
-      int n = strlen(arg[iarg+1]) + 1;
-      id_compute[index_temp] = new char[n];
-      strcpy(id_compute[index_temp],arg[iarg+1]);
+      id_compute[index_temp] = utils::strdup(arg[iarg+1]);
 
       int icompute = modify->find_compute(arg[iarg+1]);
       if (icompute < 0)
@@ -496,15 +507,11 @@ void Thermo::modify_params(int narg, char **arg)
 
       if (index_press_scalar >= 0) {
         delete [] id_compute[index_press_scalar];
-        int n = strlen(arg[iarg+1]) + 1;
-        id_compute[index_press_scalar] = new char[n];
-        strcpy(id_compute[index_press_scalar],arg[iarg+1]);
+        id_compute[index_press_scalar] = utils::strdup(arg[iarg+1]);
       }
       if (index_press_vector >= 0) {
         delete [] id_compute[index_press_vector];
-        int n = strlen(arg[iarg+1]) + 1;
-        id_compute[index_press_vector] = new char[n];
-        strcpy(id_compute[index_press_vector],arg[iarg+1]);
+        id_compute[index_press_vector] = utils::strdup(arg[iarg+1]);
       }
 
       int icompute = modify->find_compute(arg[iarg+1]);
@@ -531,6 +538,20 @@ void Thermo::modify_params(int narg, char **arg)
       else if (strcmp(arg[iarg+1],"warn") == 0) lostbond = Thermo::WARN;
       else if (strcmp(arg[iarg+1],"error") == 0) lostbond = Thermo::ERROR;
       else error->all(FLERR,"Illegal thermo_modify command");
+      iarg += 2;
+
+    } else if (strcmp(arg[iarg],"warn") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal thermo_modify command");
+      if (strcmp(arg[iarg+1],"ignore") == 0) error->set_maxwarn(-1);
+      else if (strcmp(arg[iarg+1],"always") == 0) error->set_maxwarn(0);
+      else if (strcmp(arg[iarg+1],"reset") == 0) {
+        error->set_numwarn(0);
+        warnbefore = 0;
+      } else if (strcmp(arg[iarg+1],"default") == 0) {
+        warnbefore = 0;
+        error->set_numwarn(0);
+        error->set_maxwarn(100);
+      } else error->set_maxwarn(utils::inumeric(FLERR,arg[iarg+1],false,lmp));
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"norm") == 0) {
@@ -579,41 +600,32 @@ void Thermo::modify_params(int narg, char **arg)
 
       if (strcmp(arg[iarg+1],"line") == 0) {
         delete [] format_line_user;
-        int n = strlen(arg[iarg+2]) + 1;
-        format_line_user = new char[n];
-        strcpy(format_line_user,arg[iarg+2]);
+        format_line_user = utils::strdup(arg[iarg+2]);
       } else if (strcmp(arg[iarg+1],"int") == 0) {
         if (format_int_user) delete [] format_int_user;
-        int n = strlen(arg[iarg+2]) + 1;
-        format_int_user = new char[n];
-        strcpy(format_int_user,arg[iarg+2]);
+        format_int_user = utils::strdup(arg[iarg+2]);
         if (format_bigint_user) delete [] format_bigint_user;
-        n = strlen(format_int_user) + 8;
-        format_bigint_user = new char[n];
         // replace "d" in format_int_user with bigint format specifier
-        // use of &str[1] removes leading '%' from BIGINT_FORMAT string
         char *ptr = strchr(format_int_user,'d');
         if (ptr == nullptr)
           error->all(FLERR,
                      "Thermo_modify int format does not contain d character");
-        char str[8];
-        sprintf(str,"%s",BIGINT_FORMAT);
+
         *ptr = '\0';
-        sprintf(format_bigint_user,"%s%s%s",format_int_user,&str[1],ptr+1);
+        std::string fnew = fmt::format("{}{}{}",format_int_user,
+                                       std::string(BIGINT_FORMAT).substr(1),
+                                       ptr+1);
+        format_bigint_user = utils::strdup(fnew);
         *ptr = 'd';
       } else if (strcmp(arg[iarg+1],"float") == 0) {
         if (format_float_user) delete [] format_float_user;
-        int n = strlen(arg[iarg+2]) + 1;
-        format_float_user = new char[n];
-        strcpy(format_float_user,arg[iarg+2]);
+        format_float_user = utils::strdup(arg[iarg+2]);
       } else {
         int i = utils::inumeric(FLERR,arg[iarg+1],false,lmp) - 1;
         if (i < 0 || i >= nfield_initial+1)
           error->all(FLERR,"Illegal thermo_modify command");
         if (format_column_user[i]) delete [] format_column_user[i];
-        int n = strlen(arg[iarg+2]) + 1;
-        format_column_user[i] = new char[n];
-        strcpy(format_column_user[i],arg[iarg+2]);
+        format_column_user[i] = utils::strdup(arg[iarg+2]);
       }
       iarg += 3;
 
@@ -985,10 +997,8 @@ void Thermo::parse_fields(char *str)
 
 void Thermo::addfield(const char *key, FnPtr func, int typeflag)
 {
-  int n = strlen(key) + 1;
   delete[] keyword[nfield];
-  keyword[nfield] = new char[n];
-  strcpy(keyword[nfield],key);
+  keyword[nfield] = utils::strdup(key);
   vfunc[nfield] = func;
   vtype[nfield] = typeflag;
   nfield++;
@@ -1008,9 +1018,7 @@ int Thermo::add_compute(const char *id, int which)
         which == compute_which[icompute]) break;
   if (icompute < ncompute) return icompute;
 
-  int n = strlen(id) + 1;
-  id_compute[ncompute] = new char[n];
-  strcpy(id_compute[ncompute],id);
+  id_compute[ncompute] = utils::strdup(id);
   compute_which[ncompute] = which;
   ncompute++;
   return ncompute-1;
@@ -1022,9 +1030,7 @@ int Thermo::add_compute(const char *id, int which)
 
 int Thermo::add_fix(const char *id)
 {
-  int n = strlen(id) + 1;
-  id_fix[nfix] = new char[n];
-  strcpy(id_fix[nfix],id);
+  id_fix[nfix] = utils::strdup(id);
   nfix++;
   return nfix-1;
 }
@@ -1035,9 +1041,7 @@ int Thermo::add_fix(const char *id)
 
 int Thermo::add_variable(const char *id)
 {
-  int n = strlen(id) + 1;
-  id_variable[nvariable] = new char[n];
-  strcpy(id_variable[nvariable],id);
+  id_variable[nvariable] = utils::strdup(id);
   nvariable++;
   return nvariable-1;
 }
@@ -1856,7 +1860,7 @@ void Thermo::compute_eimp()
 void Thermo::compute_emol()
 {
   double tmp = 0.0;
-  if (atom->molecular) {
+  if (atom->molecular != Atom::ATOMIC) {
     if (force->bond) tmp += force->bond->energy;
     if (force->angle) tmp += force->angle->energy;
     if (force->dihedral) tmp += force->dihedral->energy;

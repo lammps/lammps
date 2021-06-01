@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,22 +17,17 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_tersoff_gpu.h"
-#include <cmath>
-#include <cstdio>
 
-#include <cstring>
 #include "atom.h"
-#include "neighbor.h"
-#include "neigh_request.h"
-#include "force.h"
 #include "comm.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
+#include "gpu_extra.h"
 #include "memory.h"
 #include "neighbor.h"
 #include "neigh_list.h"
-#include "memory.h"
-#include "error.h"
-#include "domain.h"
-#include "gpu_extra.h"
+#include "neigh_request.h"
 #include "suffix.h"
 
 using namespace LAMMPS_NS;
@@ -41,7 +37,7 @@ using namespace LAMMPS_NS;
 int tersoff_gpu_init(const int ntypes, const int inum, const int nall,
                      const int max_nbors, const double cell_size, int &gpu_mode,
                      FILE *screen, int* host_map, const int nelements,
-                     int*** host_elem2param, const int nparams,
+                     int*** host_elem3param, const int nparams,
                      const double* ts_lam1, const double* ts_lam2,
                      const double* ts_lam3, const double* ts_powermint,
                      const double* ts_biga, const double* ts_bigb,
@@ -218,7 +214,7 @@ void PairTersoffGPU::init_style()
   int success = tersoff_gpu_init(atom->ntypes+1, atom->nlocal,
                                  atom->nlocal+atom->nghost, mnf,
                                  cell_size, gpu_mode, screen, map, nelements,
-                                 elem2param, nparams, lam1, lam2, lam3,
+                                 elem3param, nparams, lam1, lam2, lam3,
                                  powermint, biga, bigb, bigr, bigd,
                                  c1, c2, c3, c4, c, d, h, gamma,
                                  beta, powern, _cutsq);

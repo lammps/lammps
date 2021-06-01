@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -59,9 +60,7 @@ ComputePressureBocs::ComputePressureBocs(LAMMPS *lmp, int narg, char **arg) :
 
   if (strcmp(arg[3],"NULL") == 0) id_temp = nullptr;
   else {
-    int n = strlen(arg[3]) + 1;
-    id_temp = new char[n];
-    strcpy(id_temp,arg[3]);
+    id_temp = utils::strdup(arg[3]);
 
     int icompute = modify->find_compute(id_temp);
     if (icompute < 0)
@@ -217,7 +216,7 @@ double ComputePressureBocs::find_index(double * grid, double value)
 
   if (value >= grid[i] && value <= (grid[i] + spacing)) { return i; }
 
-  error->all(FLERR, fmt::format("find_index could not find value in grid for value: {}", value));
+  error->all(FLERR,"find_index could not find value in grid for value: {}", value);
   for (int i = 0; i < gridsize; ++i)
   {
     fprintf(stderr, "grid %d: %f\n",i,grid[i]);
@@ -446,7 +445,5 @@ void ComputePressureBocs::virial_compute(int n, int ndiag)
 void ComputePressureBocs::reset_extra_compute_fix(const char *id_new)
 {
   delete [] id_temp;
-  int n = strlen(id_new) + 1;
-  id_temp = new char[n];
-  strcpy(id_temp,id_new);
+  id_temp = utils::strdup(id_new);
 }

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -150,39 +151,38 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
 
   ntypes = atom->ntypes;
   typenames = new char*[ntypes+1];
-  for (int itype = 1; itype <= ntypes; itype++) {
-    typenames[itype] = new char[2];
-    strcpy(typenames[itype],"C");
-  }
+  for (int itype = 1; itype <= ntypes; itype++)
+    typenames[itype] = utils::strdup("C");
 
   // setup format strings
 
   vformat = new char*[nfield];
+  std::string cols;
 
-  format_default = new char[4*nfield+1];
-  format_default[0] = '\0';
-
+  cols.clear();
   for (int i = 0; i < nfield; i++) {
-    if (vtype[i] == Dump::INT) strcat(format_default,"%d ");
-    else if (vtype[i] == Dump::DOUBLE) strcat(format_default,"%g ");
-    else if (vtype[i] == Dump::STRING) strcat(format_default,"%s ");
-    else if (vtype[i] == Dump::BIGINT) strcat(format_default,BIGINT_FORMAT " ");
+    if (vtype[i] == Dump::INT) cols += "%d ";
+    else if (vtype[i] == Dump::DOUBLE) cols += "%g ";
+    else if (vtype[i] == Dump::STRING) cols += "%s ";
+    else if (vtype[i] == Dump::BIGINT) cols += BIGINT_FORMAT " ";
     vformat[i] = nullptr;
   }
+  cols.resize(cols.size()-1);
+  format_default = utils::strdup(cols);
 
   format_column_user = new char*[nfield];
   for (int i = 0; i < nfield; i++) format_column_user[i] = nullptr;
 
   // setup column string
 
-  int n = 0;
-  for (int iarg = 0; iarg < nfield; iarg++) n += strlen(earg[iarg]) + 2;
-  columns = new char[n];
-  columns[0] = '\0';
+  cols.clear();
   for (int iarg = 0; iarg < nfield; iarg++) {
-    strcat(columns,earg[iarg]);
-    if (iarg+1 < nfield) strcat(columns," ");
+    cols += earg[iarg];
+    cols += " ";
   }
+  // remove trailing blank and copy
+  cols.resize(cols.size()-1);
+  columns = utils::strdup(cols);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -263,44 +263,36 @@ void DumpCustom::init_style()
   // format = copy of default or user-specified line format
 
   delete [] format;
-  char *str;
-  if (format_line_user) str = format_line_user;
-  else str = format_default;
-
-  int n = strlen(str) + 1;
-  format = new char[n];
-  strcpy(format,str);
+  if (format_line_user) format = utils::strdup(format_line_user);
+  else format = utils::strdup(format_default);
 
   // tokenize the format string and add space at end of each format element
   // if user-specified int/float format exists, use it instead
   // if user-specified column format exists, use it instead
   // lo priority = line, medium priority = int/float, hi priority = column
 
-  char *ptr;
-  for (int i = 0; i < nfield; i++) {
-    if (i == 0) ptr = strtok(format," \0");
-    else ptr = strtok(nullptr," \0");
-    if (ptr == nullptr) error->all(FLERR,"Dump_modify format line is too short");
+  auto words = utils::split_words(format);
+  if ((int) words.size() < nfield)
+    error->all(FLERR,"Dump_modify format line is too short");
+
+  int i=0;
+  for (auto word : words) {
     delete [] vformat[i];
 
-    if (format_column_user[i]) {
-      vformat[i] = new char[strlen(format_column_user[i]) + 2];
-      strcpy(vformat[i],format_column_user[i]);
-    } else if (vtype[i] == Dump::INT && format_int_user) {
-      vformat[i] = new char[strlen(format_int_user) + 2];
-      strcpy(vformat[i],format_int_user);
-    } else if (vtype[i] == Dump::DOUBLE && format_float_user) {
-      vformat[i] = new char[strlen(format_float_user) + 2];
-      strcpy(vformat[i],format_float_user);
-    } else if (vtype[i] == Dump::BIGINT && format_bigint_user) {
-      vformat[i] = new char[strlen(format_bigint_user) + 2];
-      strcpy(vformat[i],format_bigint_user);
-    } else {
-      vformat[i] = new char[strlen(ptr) + 2];
-      strcpy(vformat[i],ptr);
-    }
+    if (format_column_user[i])
+      vformat[i] = utils::strdup(std::string(format_column_user[i]) + " ");
+    else if (vtype[i] == Dump::INT && format_int_user)
+      vformat[i] = utils::strdup(std::string(format_int_user) + " ");
+    else if (vtype[i] == Dump::DOUBLE && format_float_user)
+      vformat[i] = utils::strdup(std::string(format_float_user) + " ");
+    else if (vtype[i] == Dump::BIGINT && format_bigint_user)
+      vformat[i] = utils::strdup(std::string(format_bigint_user) + " ");
+    else vformat[i] = utils::strdup(word + " ");
 
-    if (i+1 < nfield) vformat[i] = strcat(vformat[i]," ");
+    // remove trailing blank on last column's format
+    if (i == nfield-1) vformat[i][strlen(vformat[i])-1] = '\0';
+
+    ++i;
   }
 
   // setup boundary string
@@ -325,33 +317,29 @@ void DumpCustom::init_style()
   // find current ptr for each compute,fix,variable
   // check that fix frequency is acceptable
 
-  int icompute;
-  for (int i = 0; i < ncompute; i++) {
-    icompute = modify->find_compute(id_compute[i]);
+  for (i = 0; i < ncompute; i++) {
+    int icompute = modify->find_compute(id_compute[i]);
     if (icompute < 0) error->all(FLERR,"Could not find dump custom compute ID");
     compute[i] = modify->compute[icompute];
   }
 
-  int ifix;
-  for (int i = 0; i < nfix; i++) {
-    ifix = modify->find_fix(id_fix[i]);
+  for (i = 0; i < nfix; i++) {
+    int ifix = modify->find_fix(id_fix[i]);
     if (ifix < 0) error->all(FLERR,"Could not find dump custom fix ID");
     fix[i] = modify->fix[ifix];
     if (nevery % modify->fix[ifix]->peratom_freq)
       error->all(FLERR,"Dump custom and fix not computed at compatible times");
   }
 
-  int ivariable;
-  for (int i = 0; i < nvariable; i++) {
-    ivariable = input->variable->find(id_variable[i]);
+  for (i = 0; i < nvariable; i++) {
+    int ivariable = input->variable->find(id_variable[i]);
     if (ivariable < 0)
       error->all(FLERR,"Could not find dump custom variable name");
     variable[i] = ivariable;
   }
 
-  int icustom;
-  for (int i = 0; i < ncustom; i++) {
-    icustom = atom->find_custom(id_custom[i],flag_custom[i]);
+  for (i = 0; i < ncustom; i++) {
+    int icustom = atom->find_custom(id_custom[i],flag_custom[i]);
     if (icustom < 0)
       error->all(FLERR,"Could not find custom per-atom property ID");
   }
@@ -555,7 +543,7 @@ int DumpCustom::count()
 
   // grow choose and variable vbuf arrays if needed
 
-  int nlocal = atom->nlocal;
+  const int nlocal = atom->nlocal;
   if (atom->nmax > maxlocal) {
     maxlocal = atom->nmax;
 
@@ -629,7 +617,6 @@ int DumpCustom::count()
     double *values;
     double value;
     int nstride,lastflag;
-    int nlocal = atom->nlocal;
 
     for (int ithresh = 0; ithresh < nthresh; ithresh++) {
 
@@ -1545,7 +1532,6 @@ int DumpCustom::parse_fields(int narg, char **arg)
 
       default:
         return iarg;
-        break;
       }
     }
   }
@@ -1571,9 +1557,7 @@ int DumpCustom::add_compute(const char *id)
   delete [] compute;
   compute = new Compute*[ncompute+1];
 
-  int n = strlen(id) + 1;
-  id_compute[ncompute] = new char[n];
-  strcpy(id_compute[ncompute],id);
+  id_compute[ncompute] = utils::strdup(id);
   ncompute++;
   return ncompute-1;
 }
@@ -1596,9 +1580,7 @@ int DumpCustom::add_fix(const char *id)
   delete [] fix;
   fix = new Fix*[nfix+1];
 
-  int n = strlen(id) + 1;
-  id_fix[nfix] = new char[n];
-  strcpy(id_fix[nfix],id);
+  id_fix[nfix] = utils::strdup(id);
   nfix++;
   return nfix-1;
 }
@@ -1625,9 +1607,7 @@ int DumpCustom::add_variable(const char *id)
   vbuf = new double*[nvariable+1];
   for (int i = 0; i <= nvariable; i++) vbuf[i] = nullptr;
 
-  int n = strlen(id) + 1;
-  id_variable[nvariable] = new char[n];
-  strcpy(id_variable[nvariable],id);
+  id_variable[nvariable] = utils::strdup(id);
   nvariable++;
   return nvariable-1;
 }
@@ -1651,9 +1631,7 @@ int DumpCustom::add_custom(const char *id, int flag)
   flag_custom = (int *)
     memory->srealloc(flag_custom,(ncustom+1)*sizeof(int),"dump:flag_custom");
 
-  int n = strlen(id) + 1;
-  id_custom[ncustom] = new char[n];
-  strcpy(id_custom[ncustom],id);
+  id_custom[ncustom] = utils::strdup(id);
   flag_custom[ncustom] = flag;
 
   ncustom++;
@@ -1672,9 +1650,7 @@ int DumpCustom::modify_param(int narg, char **arg)
       if (iregion == -1)
         error->all(FLERR,"Dump_modify region ID does not exist");
       delete [] idregion;
-      int n = strlen(arg[1]) + 1;
-      idregion = new char[n];
-      strcpy(idregion,arg[1]);
+      idregion = utils::strdup(arg[1]);
     }
     return 2;
   }
@@ -1695,11 +1671,9 @@ int DumpCustom::modify_param(int narg, char **arg)
 
     if (strcmp(arg[1],"int") == 0) {
       delete [] format_int_user;
-      int n = strlen(arg[2]) + 1;
-      format_int_user = new char[n];
-      strcpy(format_int_user,arg[2]);
+      format_int_user = utils::strdup(arg[2]);
       delete [] format_bigint_user;
-      n = strlen(format_int_user) + 8;
+      int n = strlen(format_int_user) + 8;
       format_bigint_user = new char[n];
       // replace "d" in format_int_user with bigint format specifier
       // use of &str[1] removes leading '%' from BIGINT_FORMAT string
@@ -1715,18 +1689,14 @@ int DumpCustom::modify_param(int narg, char **arg)
 
     } else if (strcmp(arg[1],"float") == 0) {
       delete [] format_float_user;
-      int n = strlen(arg[2]) + 1;
-      format_float_user = new char[n];
-      strcpy(format_float_user,arg[2]);
+      format_float_user = utils::strdup(arg[2]);
 
     } else {
       int i = utils::inumeric(FLERR,arg[1],false,lmp) - 1;
       if (i < 0 || i >= nfield)
         error->all(FLERR,"Illegal dump_modify command");
       if (format_column_user[i]) delete [] format_column_user[i];
-      int n = strlen(arg[2]) + 1;
-      format_column_user[i] = new char[n];
-      strcpy(format_column_user[i],arg[2]);
+      format_column_user[i] = utils::strdup(arg[2]);
     }
     return 3;
   }
@@ -1739,9 +1709,7 @@ int DumpCustom::modify_param(int narg, char **arg)
     delete [] typenames;
     typenames = new char*[ntypes+1];
     for (int itype = 1; itype <= ntypes; itype++) {
-      int n = strlen(arg[itype]) + 1;
-      typenames[itype] = new char[n];
-      strcpy(typenames[itype],arg[itype]);
+      typenames[itype] = utils::strdup(arg[itype]);
     }
     return ntypes+1;
   }
@@ -2007,8 +1975,7 @@ int DumpCustom::modify_param(int narg, char **arg)
       memory->grow(thresh_first,(nthreshlast+1),"dump:thresh_first");
 
       std::string threshid = fmt::format("{}{}_DUMP_STORE",id,nthreshlast);
-      thresh_fixID[nthreshlast] = new char[threshid.size()+1];
-      strcpy(thresh_fixID[nthreshlast],threshid.c_str());
+      thresh_fixID[nthreshlast] = utils::strdup(threshid);
       modify->add_fix(fmt::format("{} {} STORE peratom 1 1",threshid,
                                   group->names[igroup]));
       thresh_fix[nthreshlast] = (FixStore *) modify->fix[modify->nfix-1];

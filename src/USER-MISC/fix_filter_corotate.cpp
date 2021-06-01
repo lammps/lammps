@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
      LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-     https://lammps.sandia.gov/, Sandia National Laboratories
+     https://www.lammps.org/, Sandia National Laboratories
      Steve Plimpton, sjplimp@sandia.gov
 
      Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -277,7 +278,7 @@ void FixFilterCorotate::init()
   // could have changed locations in fix list since created
   // set ptrs to rRESPA variables
 
-  if (strstr(update->integrate_style,"respa")) {
+  if (utils::strmatch(update->integrate_style,"^respa")) {
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
   }
   else error->all(FLERR,"Fix filter/corotate requires rRESPA!");

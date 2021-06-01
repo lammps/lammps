@@ -17,30 +17,24 @@ namespace Kokkos {
 namespace Impl {
 
 struct CudaTraits {
-  enum : CudaSpace::size_type { WarpSize = 32 /* 0x0020 */ };
-  enum : CudaSpace::size_type {
-    WarpIndexMask = 0x001f /* Mask for warpindex */
-  };
-  enum : CudaSpace::size_type {
-    WarpIndexShift = 5 /* WarpSize == 1 << WarpShift */
-  };
+  static constexpr CudaSpace::size_type WarpSize = 32 /* 0x0020 */;
+  static constexpr CudaSpace::size_type WarpIndexMask =
+      0x001f; /* Mask for warpindex */
+  static constexpr CudaSpace::size_type WarpIndexShift =
+      5; /* WarpSize == 1 << WarpShift */
 
-  enum : CudaSpace::size_type {
-    ConstantMemoryUsage = 0x008000 /* 32k bytes */
-  };
-  enum : CudaSpace::size_type {
-    ConstantMemoryCache = 0x002000 /*  8k bytes */
-  };
-  enum : CudaSpace::size_type {
-    KernelArgumentLimit = 0x001000 /*  4k bytes */
-  };
-  enum : CudaSpace::size_type {
-    MaxHierarchicalParallelism = 1024 /* team_size * vector_length */
-  };
+  static constexpr CudaSpace::size_type ConstantMemoryUsage =
+      0x008000; /* 32k bytes */
+  static constexpr CudaSpace::size_type ConstantMemoryCache =
+      0x002000; /*  8k bytes */
+  static constexpr CudaSpace::size_type KernelArgumentLimit =
+      0x001000; /*  4k bytes */
+  static constexpr CudaSpace::size_type MaxHierarchicalParallelism =
+      1024; /* team_size * vector_length */
   using ConstantGlobalBufferType =
       unsigned long[ConstantMemoryUsage / sizeof(unsigned long)];
 
-  enum { ConstantMemoryUseThreshold = 0x000200 /* 512 bytes */ };
+  static constexpr int ConstantMemoryUseThreshold = 0x000200 /* 512 bytes */;
 
   KOKKOS_INLINE_FUNCTION static CudaSpace::size_type warp_count(
       CudaSpace::size_type i) {

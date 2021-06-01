@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,7 +13,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Agilio Padua (Univ Blaise Pascal & CNRS)
+   Contributing author: Agilio Padua (ENS de Lyon & CNRS)
 ------------------------------------------------------------------------- */
 
 #include "compute_fep.h"
@@ -256,10 +257,11 @@ void ComputeFEP::init()
       for (int m = 0; m < npert; m++) {
         Perturb *pert = &perturb[m];
         if (pert->which == PAIR)
-          fprintf(screen, "  %s %s %d-%d %d-%d\n", pert->pstyle, pert->pparam,
+          fprintf(screen, "  pair %s %s %d-%d %d-%d\n", pert->pstyle,
+                  pert->pparam,
                   pert->ilo, pert->ihi, pert->jlo, pert->jhi);
         else if (pert->which == ATOM)
-          fprintf(screen, "  %d-%d charge\n", pert->ilo, pert->ihi);
+          fprintf(screen, "  atom charge %d-%d\n", pert->ilo, pert->ihi);
       }
     }
     if (logfile) {
@@ -269,10 +271,11 @@ void ComputeFEP::init()
       for (int m = 0; m < npert; m++) {
         Perturb *pert = &perturb[m];
         if (pert->which == PAIR)
-          fprintf(logfile, "  %s %s %d-%d %d-%d\n", pert->pstyle, pert->pparam,
+          fprintf(logfile, "  pair %s %s %d-%d %d-%d\n", pert->pstyle,
+                  pert->pparam,
                   pert->ilo, pert->ihi, pert->jlo, pert->jhi);
         else if (pert->which == ATOM)
-          fprintf(logfile, "  %d-%d charge\n", pert->ilo, pert->ihi);
+          fprintf(logfile, "  atom charge %d-%d\n", pert->ilo, pert->ihi);
       }
     }
   }

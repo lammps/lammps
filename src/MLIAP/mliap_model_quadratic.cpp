@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -59,7 +60,7 @@ void MLIAPModelQuadratic::compute_gradients(MLIAPData* data)
 {
   data->energy = 0.0;
 
-  for (int ii = 0; ii < data->natoms; ii++) {
+  for (int ii = 0; ii < data->nlistatoms; ii++) {
     const int ielem = data->ielems[ii];
 
     double* coeffi = coeffelem[ielem];
@@ -133,7 +134,7 @@ void MLIAPModelQuadratic::compute_gradgrads(class MLIAPData* data)
   for (int l = 0; l < data->nelements*data->nparams; l++)
     data->egradient[l] = 0.0;
 
-  for (int ii = 0; ii < data->natoms; ii++) {
+  for (int ii = 0; ii < data->nlistatoms; ii++) {
     const int ielem = data->ielems[ii];
     const int elemoffset = data->nparams*ielem;
 
@@ -215,7 +216,7 @@ void MLIAPModelQuadratic::compute_force_gradients(class MLIAPData* data) {
     data->egradient[l] = 0.0;
 
   int ij = 0;
-  for (int ii = 0; ii < data->natoms; ii++) {
+  for (int ii = 0; ii < data->nlistatoms; ii++) {
     const int i = data->iatoms[ii];
     const int ielem = data->ielems[ii];
     const int elemoffset = data->nparams*ielem;

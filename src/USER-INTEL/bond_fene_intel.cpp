@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -22,6 +23,7 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "math_const.h"
 #include "memory.h"
 #include "modify.h"
 #include "neighbor.h"
@@ -32,6 +34,7 @@
 #include "omp_compat.h"
 
 using namespace LAMMPS_NS;
+using MathConst::MY_CUBEROOT2;
 
 typedef struct { int a,b,t;  } int3_t;
 
@@ -183,11 +186,8 @@ void BondFENEIntel::eval(const int vflag,
       // if r > 2*r0 something serious is wrong, abort
 
       if (rlogarg < (flt_t)0.1) {
-        char str[128];
-        sprintf(str,"FENE bond too long: " BIGINT_FORMAT " "
-                TAGINT_FORMAT " " TAGINT_FORMAT " %g",
-                update->ntimestep,atom->tag[i1],atom->tag[i2],sqrt(rsq));
-        error->warning(FLERR,str,0);
+        error->warning(FLERR,"FENE bond too long: {} {} {} {:.8}",
+                       update->ntimestep,atom->tag[i1],atom->tag[i2],sqrt(rsq));
         if (rlogarg <= (flt_t)-3.0) error->one(FLERR,"Bad FENE bond");
         rlogarg = (flt_t)0.1;
       }
@@ -197,7 +197,7 @@ void BondFENEIntel::eval(const int vflag,
       // force from LJ term
 
       flt_t sr2,sr6;
-      if (rsq < (flt_t)TWO_1_3*sigmasq) {
+      if (rsq < (flt_t)MY_CUBEROOT2*sigmasq) {
         sr2 = sigmasq * irsq;
         sr6 = sr2 * sr2 * sr2;
         fbond += (flt_t)48.0 * epsilon * sr6 * (sr6 - (flt_t)0.5) * irsq;
@@ -208,7 +208,7 @@ void BondFENEIntel::eval(const int vflag,
       flt_t ebond;
       if (EFLAG) {
         ebond = (flt_t)-0.5 * k / ir0sq * log(rlogarg);
-        if (rsq < (flt_t)TWO_1_3 * sigmasq)
+        if (rsq < (flt_t)MY_CUBEROOT2 * sigmasq)
           ebond += (flt_t)4.0 * epsilon * sr6 * (sr6 - (flt_t)1.0) + epsilon;
       }
 

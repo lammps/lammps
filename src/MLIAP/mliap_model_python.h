@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -18,30 +18,27 @@
 
 namespace LAMMPS_NS {
 
-
 class MLIAPModelPython : public MLIAPModel {
-public:
-  MLIAPModelPython(LAMMPS*, char* = NULL);
+ public:
+  MLIAPModelPython(LAMMPS *, char * = NULL);
   ~MLIAPModelPython();
   virtual int get_nparams();
-  virtual int get_gamma_nnz(class MLIAPData*);
-  virtual void compute_gradients(class MLIAPData*);
-  virtual void compute_gradgrads(class MLIAPData*);
-  virtual void compute_force_gradients(class MLIAPData*);
+  virtual int get_gamma_nnz(class MLIAPData *);
+  virtual void compute_gradients(class MLIAPData *);
+  virtual void compute_gradgrads(class MLIAPData *);
+  virtual void compute_force_gradients(class MLIAPData *);
   virtual double memory_usage();
-  void connect_param_counts(); // If possible convert this to protected/private and
-                         // and figure out how to declare cython fn
-                         // load_from_python as a friend.
+  void connect_param_counts();    // If possible convert this to protected/private and
+                                  // and figure out how to declare cython fn
+                                  // load_from_python as a friend.
   int model_loaded;
 
-protected:
+ protected:
   virtual void read_coeffs(char *);
 
-private:
-
+ private:
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
-

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -18,19 +19,18 @@
 
 #include "fix_tmd.h"
 
+#include "atom.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
+#include "group.h"
+#include "memory.h"
+#include "modify.h"
+#include "respa.h"
+#include "update.h"
+
 #include <cmath>
 #include <cstring>
-#include "atom.h"
-#include "update.h"
-#include "modify.h"
-#include "domain.h"
-#include "group.h"
-#include "respa.h"
-#include "force.h"
-#include "memory.h"
-#include "error.h"
-
-
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -75,8 +75,8 @@ nfileevery(0), fp(nullptr), xf(nullptr), xold(nullptr)
     if (me == 0) {
       fp = fopen(arg[6],"w");
       if (fp == nullptr)
-        error->one(FLERR,fmt::format("Cannot open fix tmd file {}: {}",
-                                     arg[6], utils::getsyserror()));
+        error->one(FLERR,"Cannot open fix tmd file {}: {}",
+                                     arg[6], utils::getsyserror());
       fprintf(fp,"%s %s\n","# Step rho_target rho_old gamma_back",
               "gamma_forward lambda work_lambda work_analytical");
     }
@@ -520,31 +520,29 @@ void FixTMD::readfile(char *file)
 
 void FixTMD::open(char *file)
 {
-  compressed = 0;
-  char *suffix = file + strlen(file) - 3;
-  if (suffix > file && strcmp(suffix,".gz") == 0) compressed = 1;
-  if (!compressed) fp = fopen(file,"r");
-  else {
+  if (utils::strmatch(file,"\\.gz$")) {
+    compressed = 1;
+
 #ifdef LAMMPS_GZIP
-    char gunzip[128];
-    snprintf(gunzip,128,"gzip -c -d %s",file);
+    auto gunzip = fmt::format("gzip -c -d {}",file);
 
 #ifdef _WIN32
-    fp = _popen(gunzip,"rb");
+    fp = _popen(gunzip.c_str(),"rb");
 #else
-    fp = popen(gunzip,"r");
+    fp = popen(gunzip.c_str(),"r");
 #endif
 
 #else
-    error->one(FLERR,"Cannot open gzipped file");
+    error->one(FLERR,"Cannot open gzipped file without gzip support");
 #endif
+  } else {
+    compressed = 0;
+    fp = fopen(file,"r");
   }
 
-  if (fp == nullptr) {
-    char str[128];
-    snprintf(str,128,"Cannot open file %s",file);
-    error->one(FLERR,str);
-  }
+  if (fp == nullptr)
+    error->one(FLERR,"Cannot open file {}: {}",
+                                 file, utils::getsyserror());
 }
 
 /* ---------------------------------------------------------------------- */

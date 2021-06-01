@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -13,28 +14,26 @@
 
 #include "fix_rx.h"
 
-
-#include <cstring>
-#include <cmath>
-#include <cfloat> // DBL_EPSILON
 #include "atom.h"
-#include "error.h"
-#include "group.h"
-#include "modify.h"
-#include "force.h"
-#include "memory.h"
 #include "comm.h"
-#include "update.h"
 #include "domain.h"
-#include "neighbor.h"
+#include "error.h"
+#include "force.h"
+#include "group.h"
+#include "math_special.h"
+#include "memory.h"
+#include "modify.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "math_special.h"
+#include "neighbor.h"
 #include "pair_dpd_fdt_energy.h"
+#include "update.h"
 
-
-#include <vector> // std::vector<>
 #include <algorithm> // std::max
+#include <cfloat> // DBL_EPSILON
+#include <cmath>
+#include <cstring>
+#include <vector> // std::vector<>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -257,7 +256,6 @@ void FixRX::post_constructor()
   bool match;
 
   char **tmpspecies = new char*[maxspecies];
-  int tmpmaxstrlen = 0;
   for (int jj=0; jj < maxspecies; jj++)
     tmpspecies[jj] = nullptr;
 
@@ -316,9 +314,7 @@ void FixRX::post_constructor()
       if (!match) {
         if (nUniqueSpecies+1>=maxspecies)
           error->all(FLERR,"Exceeded the maximum number of species permitted in fix rx.");
-        tmpspecies[nUniqueSpecies] = new char[strlen(word)+1];
-        strcpy(tmpspecies[nUniqueSpecies],word);
-        tmpmaxstrlen = MAX(tmpmaxstrlen,(int)strlen(word));
+        tmpspecies[nUniqueSpecies] = utils::strdup(word);
         nUniqueSpecies++;
       }
       word = strtok(nullptr, " \t\n\r\f");
@@ -335,61 +331,31 @@ void FixRX::post_constructor()
   id_fix_species = nullptr;
   id_fix_species_old = nullptr;
 
-  n = strlen(id) + strlen("_SPECIES") + 1;
-  id_fix_species = new char[n];
-  n = strlen(id) + strlen("_SPECIES_OLD") + 1;
-  id_fix_species_old = new char[n];
+  id_fix_species = utils::strdup(std::string(id)+"_SPECIES");
+  id_fix_species_old = utils::strdup(std::string(id)+"_SPECIES_OLD");
 
-  strcpy(id_fix_species,id);
-  strcat(id_fix_species,"_SPECIES");
-  strcpy(id_fix_species_old,id);
-  strcat(id_fix_species_old,"_SPECIES_OLD");
-
-  char **newarg = new char*[nspecies+5];
-  char **newarg2 = new char*[nspecies+5];
-  newarg[0] = id_fix_species;
-  newarg[1] = group->names[igroup];
-  newarg[2] = (char *) "property/atom";
-  newarg2[0] = id_fix_species_old;
-  newarg2[1] = group->names[igroup];
-  newarg2[2] = (char *) "property/atom";
-  char *str1 = new char[tmpmaxstrlen+3];
-  char *str2 = new char[tmpmaxstrlen+6];
+  const std::string fmtstr = "{} {} property/atom ";
+  auto newcmd1 = fmt::format(fmtstr,id_fix_species,group->names[igroup]);
+  auto newcmd2 = fmt::format(fmtstr,id_fix_species_old,group->names[igroup]);
   for (int ii=0; ii<nspecies; ii++) {
-    strcpy(str1,"d_");
-    strcpy(str2,"d_");
-    strcat(str1,tmpspecies[ii]);
-    strcat(str2,tmpspecies[ii]);
-    strcat(str2,"Old");
-    newarg[ii+3] = new char[strlen(str1)+1];
-    newarg2[ii+3] = new char[strlen(str2)+1];
-    strcpy(newarg[ii+3],str1);
-    strcpy(newarg2[ii+3],str2);
+    newcmd1 += fmt::format(" d_{}",tmpspecies[ii]);
+    newcmd2 += fmt::format(" d_{}Old",tmpspecies[ii]);
   }
-  delete[] str1;
-  delete[] str2;
-  newarg[nspecies+3] = (char *) "ghost";
-  newarg[nspecies+4] = (char *) "yes";
-  newarg2[nspecies+3] = (char *) "ghost";
-  newarg2[nspecies+4] = (char *) "yes";
+  newcmd1 += " ghost yes";
+  newcmd2 += " ghost yes";
 
-  modify->add_fix(nspecies+5,newarg,1);
+  modify->add_fix(newcmd1);
   fix_species = (FixPropertyAtom *) modify->fix[modify->nfix-1];
   restartFlag = modify->fix[modify->nfix-1]->restart_reset;
 
-  modify->add_fix(nspecies+5,newarg2,1);
+  modify->add_fix(newcmd2);
   fix_species_old = (FixPropertyAtom *) modify->fix[modify->nfix-1];
 
   if (nspecies==0) error->all(FLERR,"There are no rx species specified.");
 
   for (int jj=0;jj<nspecies;jj++) {
     delete[] tmpspecies[jj];
-    delete[] newarg[jj+3];
-    delete[] newarg2[jj+3];
   }
-
-  delete[] newarg;
-  delete[] newarg2;
   delete[] tmpspecies;
 
   read_file( kineticsFile );

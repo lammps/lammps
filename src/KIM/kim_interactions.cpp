@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,11 +13,11 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Axel Kohlmeyer (Temple U),
-                         Ryan S. Elliott (UMN)
-                         Ellad B. Tadmor (UMN)
-                         Ronald Miller   (Carleton U)
-                         Yaser Afshar (UMN)
+   Contributing authors: Axel Kohlmeyer  (Temple U),
+                         Ryan S. Elliott (UMN),
+                         Ellad B. Tadmor (UMN),
+                         Ronald Miller   (Carleton U),
+                         Yaser Afshar    (UMN)
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
@@ -65,6 +66,7 @@
 #include "error.h"
 #include "fix_store_kim.h"
 #include "input.h"
+#include "variable.h"
 #include "modify.h"
 #include "update.h"
 
@@ -101,11 +103,11 @@ void KimInteractions::do_setup(int narg, char **arg)
   if ((narg == 1) && (arg_str == "fixed_types")) {
     fixed_types = true;
   } else if (narg != atom->ntypes) {
-    error->all(FLERR, fmt::format("Illegal 'kim interactions' command.\nThe "
+    error->all(FLERR, "Illegal 'kim interactions' command.\nThe "
                                   "LAMMPS simulation has {} atom type(s), but "
                                   "{} chemical species passed to the "
                                   "'kim interactions' command",
-                                  atom->ntypes, narg));
+                                  atom->ntypes, narg);
   } else {
     fixed_types = false;
   }
@@ -129,6 +131,7 @@ void KimInteractions::do_setup(int narg, char **arg)
                     "=======\n");
 
   if (simulatorModel) {
+    auto first_visit = input->variable->find("kim_update");
     if (!fixed_types) {
       std::string atom_type_sym_list =
         fmt::format("{}", fmt::join(arg, arg + narg, " "));
@@ -162,8 +165,8 @@ void KimInteractions::do_setup(int narg, char **arg)
           if (atom_type_sym == sim_species) species_is_supported = true;
         }
         if (!species_is_supported) {
-          error->all(FLERR, fmt::format("Species '{}' is not supported by this "
-                                        "KIM Simulator Model", atom_type_sym));
+          error->all(FLERR, "Species '{}' is not supported by this "
+                                        "KIM Simulator Model", atom_type_sym);
         }
       }
     } else {
@@ -198,15 +201,17 @@ void KimInteractions::do_setup(int narg, char **arg)
 
       const std::string sim_field_str(sim_field);
       if (sim_field_str == "model-defn") {
+        if (first_visit < 0) input->one("variable kim_update equal 0");
+        else  input->one("variable kim_update equal 1");
         if (domain->periodicity[0] &&
             domain->periodicity[1] &&
             domain->periodicity[2])
           input->one("variable kim_periodic equal 1");
-        else if (domain->periodicity[0] &&
-                 domain->periodicity[1] &&
+        else if (!domain->periodicity[0] &&
+                 !domain->periodicity[1] &&
                  !domain->periodicity[2])
-          input->one("variable kim_periodic equal 2");
-        else input->one("variable kim_periodic equal 0");
+          input->one("variable kim_periodic equal 0");
+        else input->one("variable kim_periodic equal 2");
 
         // KIM Simulator Model has a Model definition
         no_model_definition = false;
@@ -241,6 +246,7 @@ void KimInteractions::do_setup(int narg, char **arg)
 
   } else {
 
+
     // not a simulator model. issue pair_style and pair_coeff commands.
 
     if (fixed_types)
@@ -270,8 +276,8 @@ void KimInteractions::KIM_SET_TYPE_PARAMETERS(const std::string &input_line) con
 
   const std::string key = words[1];
   if (key != "pair" && key != "charge")
-    error->one(FLERR, fmt::format("Unrecognized KEY {} for "
-                                  "KIM_SET_TYPE_PARAMETERS command", key));
+    error->one(FLERR, "Unrecognized KEY {} for "
+                                  "KIM_SET_TYPE_PARAMETERS command", key);
 
   std::string filename = words[2];
   std::vector<std::string> species(words.begin() + 3, words.end());

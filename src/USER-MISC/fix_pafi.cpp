@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -74,9 +75,7 @@ FixPAFI::FixPAFI(LAMMPS *lmp, int narg, char **arg) :
   com_flag = 1;
   time_integrate = 1;
 
-  int n = strlen(arg[3])+1;
-  computename = new char[n];
-  strcpy(computename,&arg[3][0]);
+  computename = utils::strdup(&arg[3][0]);
 
   icompute = modify->find_compute(computename);
   if (icompute == -1)
@@ -88,7 +87,7 @@ FixPAFI::FixPAFI(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Compute for fix pafi must have 9 fields per atom");
 
   if (comm->me==0)
-    utils::logmesg(lmp,fmt::format("fix pafi compute name,style: {},{}\n",computename,PathCompute->style));
+    utils::logmesg(lmp,"fix pafi compute name,style: {},{}\n",computename,PathCompute->style);
 
   respa_level_support = 1;
   ilevel_respa = nlevels_respa = 0;
@@ -182,7 +181,7 @@ void FixPAFI::init()
     error->all(FLERR,"Compute for fix pafi must have 9 fields per atom");
 
 
-  if (strstr(update->integrate_style,"respa")) {
+  if (utils::strmatch(update->integrate_style,"^respa")) {
     step_respa = ((Respa *) update->integrate)->step; // nve
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level,nlevels_respa-1);
@@ -193,7 +192,7 @@ void FixPAFI::init()
 
 void FixPAFI::setup(int vflag)
 {
-  if (strstr(update->integrate_style,"verlet"))
+  if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else
     for (int ilevel = 0; ilevel < nlevels_respa; ilevel++) {

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -18,9 +18,9 @@
 #if defined(LMP_HAS_NETCDF)
 
 #ifdef DUMP_CLASS
-
-DumpStyle(netcdf,DumpNetCDF)
-
+// clang-format off
+DumpStyle(netcdf,DumpNetCDF);
+// clang-format on
 #else
 
 #ifndef LMP_DUMP_NETCDF_H
@@ -31,7 +31,7 @@ DumpStyle(netcdf,DumpNetCDF)
 namespace LAMMPS_NS {
 
 const int NC_FIELD_NAME_MAX = 100;
-const int DUMP_NC_MAX_DIMS  = 100;
+const int DUMP_NC_MAX_DIMS = 100;
 
 class DumpNetCDF : public DumpCustom {
  public:
@@ -42,32 +42,32 @@ class DumpNetCDF : public DumpCustom {
  private:
   // per-atoms quantities (positions, velocities, etc.)
   struct nc_perat_t {
-    int dims;                     // number of dimensions
-    int field[DUMP_NC_MAX_DIMS];  // field indices corresponding to the dim.
-    char name[NC_FIELD_NAME_MAX]; // field name
-    int var;                      // NetCDF variable
+    int dims;                        // number of dimensions
+    int field[DUMP_NC_MAX_DIMS];     // field indices corresponding to the dim.
+    char name[NC_FIELD_NAME_MAX];    // field name
+    int var;                         // NetCDF variable
 
-    bool constant;                // is this property per file (not per frame)
-    int ndumped;                  // number of enties written for this prop.
+    bool constant;    // is this property per file (not per frame)
+    int ndumped;      // number of enties written for this prop.
   };
 
-  int framei;                  // current frame index
-  int blocki;                  // current block index
-  int ndata;                   // number of data blocks to expect
+  int framei;    // current frame index
+  int blocki;    // current block index
+  int ndata;     // number of data blocks to expect
 
-  bigint ntotalgr;             // # of atoms
+  bigint ntotalgr;    // # of atoms
 
-  int n_perat;                 // # of netcdf per-atom properties
-  nc_perat_t *perat;           // per-atom properties
+  int n_perat;          // # of netcdf per-atom properties
+  nc_perat_t *perat;    // per-atom properties
 
-  int *thermovar;              // NetCDF variables for thermo output
+  int *thermovar;    // NetCDF variables for thermo output
 
-  bool double_precision;       // write everything as double precision
-  bool thermo;                 // write thermo output to netcdf file
+  bool double_precision;    // write everything as double precision
+  bool thermo;              // write thermo output to netcdf file
 
-  bigint n_buffer;             // size of buffer
-  bigint *int_buffer;          // buffer for passing data to netcdf
-  double *double_buffer;       // buffer for passing data to netcdf
+  bigint n_buffer;          // size of buffer
+  bigint *int_buffer;       // buffer for passing data to netcdf
+  double *double_buffer;    // buffer for passing data to netcdf
 
   int ncid;
 
@@ -97,7 +97,7 @@ class DumpNetCDF : public DumpCustom {
   void ncerr(int, const char *, int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

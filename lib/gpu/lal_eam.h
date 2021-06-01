@@ -40,8 +40,8 @@ class EAM : public BaseAtomic<numtyp, acctyp> {
     * - -5 Double precision is not supported on card **/
   int init(const int ntypes, double host_cutforcesq, int **host_type2rhor,
            int **host_type2z2r, int *host_type2frho, double ***host_rhor_spline,
-           double ***host_z2r_spline, double ***host_frho_spline, double rdr,
-           double rdrho, double rhomax, int nrhor, int nrho, int nz2r,
+           double ***host_z2r_spline, double ***host_frho_spline, double** host_cutsq,
+           double rdr, double rdrho, double rhomax, int nrhor, int nrho, int nz2r,
            int nfrho, int nr, const int nlocal, const int nall,
            const int max_nbors, const int maxspecial, const double cell_size,
            const double gpu_split, FILE *_screen);
@@ -111,6 +111,8 @@ class EAM : public BaseAtomic<numtyp, acctyp> {
   UCL_D_Vec<numtyp4> z2r_spline1, z2r_spline2;
   UCL_D_Vec<numtyp4> frho_spline1, frho_spline2;
   UCL_D_Vec<numtyp4> rhor_spline1, rhor_spline2;
+
+  UCL_D_Vec<numtyp> cutsq;
 
   numtyp _cutforcesq,_rdr,_rdrho, _rhomax;
 

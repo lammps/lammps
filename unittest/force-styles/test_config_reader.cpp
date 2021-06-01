@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,6 +15,7 @@
 #include "test_config.h"
 #include "yaml.h"
 #include "yaml_reader.h"
+#include "utils.h"
 
 #include <cstdlib>
 #include <cstring>
@@ -25,11 +26,14 @@
 #include <utility>
 #include <vector>
 
+using LAMMPS_NS::utils::split_words;
+
 TestConfigReader::TestConfigReader(TestConfig &config) : YamlReader(), config(config)
 {
     consumers["lammps_version"] = &TestConfigReader::lammps_version;
     consumers["date_generated"] = &TestConfigReader::date_generated;
     consumers["epsilon"]        = &TestConfigReader::epsilon;
+    consumers["skip_tests"]     = &TestConfigReader::skip_tests;
     consumers["prerequisites"]  = &TestConfigReader::prerequisites;
     consumers["pre_commands"]   = &TestConfigReader::pre_commands;
     consumers["post_commands"]  = &TestConfigReader::post_commands;
@@ -53,17 +57,24 @@ TestConfigReader::TestConfigReader(TestConfig &config) : YamlReader(), config(co
     consumers["global_scalar"] = &TestConfigReader::global_scalar;
     consumers["global_vector"] = &TestConfigReader::global_vector;
 
-    consumers["bond_style"]  = &TestConfigReader::bond_style;
-    consumers["bond_coeff"]  = &TestConfigReader::bond_coeff;
-    consumers["angle_style"] = &TestConfigReader::angle_style;
-    consumers["angle_coeff"] = &TestConfigReader::angle_coeff;
+    consumers["bond_style"]     = &TestConfigReader::bond_style;
+    consumers["bond_coeff"]     = &TestConfigReader::bond_coeff;
+    consumers["angle_style"]    = &TestConfigReader::angle_style;
+    consumers["angle_coeff"]    = &TestConfigReader::angle_coeff;
     consumers["dihedral_style"] = &TestConfigReader::dihedral_style;
     consumers["dihedral_coeff"] = &TestConfigReader::dihedral_coeff;
     consumers["improper_style"] = &TestConfigReader::improper_style;
     consumers["improper_coeff"] = &TestConfigReader::improper_coeff;
-    consumers["init_energy"] = &TestConfigReader::init_energy;
-    consumers["run_energy"]  = &TestConfigReader::run_energy;
-    consumers["equilibrium"] = &TestConfigReader::equilibrium;
+    consumers["init_energy"]    = &TestConfigReader::init_energy;
+    consumers["run_energy"]     = &TestConfigReader::run_energy;
+    consumers["equilibrium"]    = &TestConfigReader::equilibrium;
+}
+
+void TestConfigReader::skip_tests(const yaml_event_t &event)
+{
+    config.skip_tests.clear();
+    for (auto &word : split_words((char *)event.data.scalar.value))
+        config.skip_tests.insert(word);
 }
 
 void TestConfigReader::prerequisites(const yaml_event_t &event)

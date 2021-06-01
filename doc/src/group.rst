@@ -120,12 +120,12 @@ specified atom types, atom IDs, or molecule IDs into the group.  These
 The first format is a list of values (types or IDs).  For example, the
 second command in the examples above puts all atoms of type 3 or 4 into
 the group named *water*\ .  Each entry in the list can be a
-colon-separated sequence A:B or A:B:C, as in two of the examples
+colon-separated sequence ``A:B`` or ``A:B:C``, as in two of the examples
 above.  A "sequence" generates a sequence of values (types or IDs),
-with an optional increment.  The first example with 500:1000 has the
+with an optional increment.  The first example with ``500:1000`` has the
 default increment of 1 and would add all atom IDs from 500 to 1000
 (inclusive) to the group sub, along with 10,25,50 since they also
-appear in the list of values.  The second example with 100:10000:10
+appear in the list of values.  The second example with ``100:10000:10``
 uses an increment of 10 and would thus would add atoms IDs
 100,110,120, ... 9990,10000 to the group sub.
 
@@ -269,7 +269,7 @@ group and running further.
 .. code-block:: LAMMPS
 
    variable        nsteps equal 5000
-   variable        rad equal 18-(step/v_nsteps)\*(18-5)
+   variable        rad equal 18-(step/v_nsteps)*(18-5)
    region          ss sphere 20 20 0 v_rad
    group           mobile dynamic all region ss
    fix             1 mobile nve

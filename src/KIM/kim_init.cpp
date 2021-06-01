@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -93,10 +94,10 @@ void KimInit::command(int narg, char **arg)
     auto arg_str = std::string(arg[2]);
     if (arg_str == "unit_conversion_mode") unit_conversion_mode = true;
     else {
-      error->all(FLERR, fmt::format("Illegal 'kim init' command.\nThe argument "
+      error->all(FLERR, "Illegal 'kim init' command.\nThe argument "
                                     "followed by unit_style {} is an optional "
                                     "argument and when is used must "
-                                    "be unit_conversion_mode", user_units));
+                                    "be unit_conversion_mode", user_units);
     }
   } else unit_conversion_mode = false;
 
@@ -108,7 +109,7 @@ void KimInit::command(int narg, char **arg)
 
   determine_model_type_and_units(model_name, user_units, &model_units, pkim);
 
-  write_log_cite(model_name);
+  write_log_cite(lmp, model_type, model_name);
 
   do_init(model_name, user_units, model_units, pkim);
 }
@@ -159,8 +160,8 @@ void get_kim_unit_names(
   } else if ((system_str == "lj") ||
              (system_str == "micro") ||
              (system_str == "nano")) {
-    error->all(FLERR, fmt::format("LAMMPS unit_style {} not supported "
-                                  "by KIM models", system_str));
+    error->all(FLERR, "LAMMPS unit_style {} not supported "
+                                  "by KIM models", system_str);
   } else {
     error->all(FLERR, "Unknown unit_style");
   }
@@ -279,8 +280,8 @@ void KimInit::determine_model_type_and_units(char * model_name,
     const std::string model_units_str(*model_units);
     const std::string user_units_str(user_units);
     if ((!unit_conversion_mode) && (model_units_str != user_units_str)) {
-      error->all(FLERR, fmt::format("Incompatible units for KIM Simulator Model"
-                                    ", required units = {}", model_units_str));
+      error->all(FLERR, "Incompatible units for KIM Simulator Model"
+                                    ", required units = {}", model_units_str);
     }
   }
 }
@@ -475,9 +476,9 @@ void KimInit::do_variables(const std::string &from, const std::string &to)
     ier = lammps_unit_conversion(units[i], from, to,
                                  conversion_factor);
     if (ier != 0)
-      error->all(FLERR, fmt::format("Unable to obtain conversion factor: "
+      error->all(FLERR, "Unable to obtain conversion factor: "
                                     "unit = {}; from = {}; to = {}",
-                                    units[i], from, to));
+                                    units[i], from, to);
 
     variable->internal_set(v_unit, conversion_factor);
     input->write_echo(fmt::format("variable {:<15s} internal {:<15.12e}\n",
@@ -488,7 +489,9 @@ void KimInit::do_variables(const std::string &from, const std::string &to)
 
 /* ---------------------------------------------------------------------- */
 
-void KimInit::write_log_cite(char *model_name)
+void KimInit::write_log_cite(class LAMMPS *lmp,
+                             KimInit::model_type_enum model_type,
+                             char *model_name)
 {
   if (!lmp->citeme) return;
 
@@ -496,50 +499,52 @@ void KimInit::write_log_cite(char *model_name)
   std::string re = "[MS][OM]_\\d\\d\\d\\d\\d\\d\\d\\d\\d\\d\\d\\d_\\d\\d\\d";
   std::string kim_id = utils::strfind(model_name_str, re);
 
-  if (kim_id.empty()) return;
-
-  KIM_Collections *collections;
-  int err = KIM_Collections_Create(&collections);
-  if (err) return;
-
-  auto logID = fmt::format("{}_Collections", comm->me);
-  KIM_Collections_SetLogID(collections, logID.c_str());
-
-  int extent;
-  if (model_type == MO) {
-    err = KIM_Collections_CacheListOfItemMetadataFiles(
-      collections, KIM_COLLECTION_ITEM_TYPE_portableModel,
-      model_name, &extent);
-  } else if (model_type == SM) {
-    err = KIM_Collections_CacheListOfItemMetadataFiles(
-      collections, KIM_COLLECTION_ITEM_TYPE_simulatorModel,
-      model_name, &extent);
+  std::string cite_id;
+  if (kim_id.empty()) {
+    cite_id = fmt::format("KIM potential: unpublished, \"{}\"\n",model_name_str);
   } else {
-    error->all(FLERR, "Unknown model type");
-  }
+    KIM_Collections *collections;
+    int err = KIM_Collections_Create(&collections);
+    if (err) return;
 
-  if (err) {
+    auto logID = fmt::format("{}_Collections", lmp->comm->me);
+    KIM_Collections_SetLogID(collections, logID.c_str());
+
+    int extent;
+    if (model_type == MO) {
+      err = KIM_Collections_CacheListOfItemMetadataFiles(
+          collections, KIM_COLLECTION_ITEM_TYPE_portableModel,
+          model_name, &extent);
+    } else if (model_type == SM) {
+      err = KIM_Collections_CacheListOfItemMetadataFiles(
+          collections, KIM_COLLECTION_ITEM_TYPE_simulatorModel,
+          model_name, &extent);
+    } else {
+      lmp->error->all(FLERR, "Unknown model type");
+    }
+
+    if (err) {
+      KIM_Collections_Destroy(&collections);
+      return;
+    }
+
+    cite_id = fmt::format("OpenKIM potential: https://openkim.org/cite/"
+                          "{}#item-citation\n\n",kim_id);
+
+    for (int i = 0; i < extent; ++i) {
+      char const *fileName;
+      int availableAsString;
+      char const *fileString;
+      err = KIM_Collections_GetItemMetadataFile(
+          collections, i, &fileName, nullptr, nullptr,
+          &availableAsString, &fileString);
+      if (err) continue;
+
+      if (utils::strmatch(fileName, "^kimcite") && availableAsString)
+        cite_id += fileString;
+    }
     KIM_Collections_Destroy(&collections);
-    return;
-  }
-
-  auto cite_id = fmt::format("OpenKIM potential: https://openkim.org/cite/"
-                             "{}#item-citation\n\n",kim_id);
-
-  for (int i = 0; i < extent; ++i) {
-    char const *fileName;
-    int availableAsString;
-    char const *fileString;
-    err = KIM_Collections_GetItemMetadataFile(
-      collections, i, &fileName, nullptr, nullptr,
-      &availableAsString, &fileString);
-    if (err) continue;
-
-    if (utils::strmatch(fileName, "^kimcite") && availableAsString)
-      cite_id += fileString;
   }
 
   lmp->citeme->add(cite_id);
-
-  KIM_Collections_Destroy(&collections);
 }

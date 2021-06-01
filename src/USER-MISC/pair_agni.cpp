@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -67,12 +68,7 @@ PairAGNI::PairAGNI(LAMMPS *lmp) : Pair(lmp)
 
   no_virial_fdotr_compute = 1;
 
-  nelements = 0;
-  elements = nullptr;
-  elem2param = nullptr;
-  nparams = 0;
   params = nullptr;
-  map = nullptr;
   cutmax = 0.0;
 }
 
@@ -82,9 +78,6 @@ PairAGNI::PairAGNI(LAMMPS *lmp) : Pair(lmp)
 
 PairAGNI::~PairAGNI()
 {
-  if (elements)
-    for (int i = 0; i < nelements; i++) delete [] elements[i];
-  delete [] elements;
   if (params) {
     for (int i = 0; i < nparams; ++i) {
       memory->destroy(params[i].eta);
@@ -94,12 +87,11 @@ PairAGNI::~PairAGNI()
     memory->destroy(params);
     params = nullptr;
   }
-  memory->destroy(elem2param);
+  memory->destroy(elem1param);
 
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
-    delete [] map;
   }
 }
 
@@ -135,7 +127,7 @@ void PairAGNI::compute(int eflag, int vflag)
     ztmp = x[i][2];
     fxtmp = fytmp = fztmp = 0.0;
 
-    const Param &iparam = params[elem2param[itype]];
+    const Param &iparam = params[elem1param[itype]];
     Vx = new double[iparam.numeta];
     Vy = new double[iparam.numeta];
     Vz = new double[iparam.numeta];
@@ -238,46 +230,10 @@ void PairAGNI::settings(int narg, char ** /* arg */)
 
 void PairAGNI::coeff(int narg, char **arg)
 {
-  int i,j,n;
-
   if (!allocated) allocate();
 
-  if (narg != 3 + atom->ntypes)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+  map_element2type(narg-3,arg+3);
 
-  // insure I,J args are * *
-
-  if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
-    error->all(FLERR,"Incorrect args for pair coefficients");
-
-  // read args that map atom types to elements in potential file
-  // map[i] = which element the Ith atom type is, -1 if "NULL"
-  // nelements = # of unique elements
-  // elements = list of element names
-
-  if (elements) {
-    for (i = 0; i < nelements; i++) delete [] elements[i];
-    delete [] elements;
-  }
-  elements = new char*[atom->ntypes];
-  for (i = 0; i < atom->ntypes; i++) elements[i] = nullptr;
-
-  nelements = 0;
-  for (i = 3; i < narg; i++) {
-    if (strcmp(arg[i],"NULL") == 0) {
-      map[i-2] = -1;
-      continue;
-    }
-    for (j = 0; j < nelements; j++)
-      if (strcmp(arg[i],elements[j]) == 0) break;
-    map[i-2] = j;
-    if (j == nelements) {
-      n = strlen(arg[i]) + 1;
-      elements[j] = new char[n];
-      strcpy(elements[j],arg[i]);
-      nelements++;
-    }
-  }
   if (nelements != 1)
     error->all(FLERR,"Cannot handle multi-element systems with this potential");
 
@@ -285,25 +241,6 @@ void PairAGNI::coeff(int narg, char **arg)
 
   read_file(arg[2]);
   setup_params();
-
-  // clear setflag since coeff() called once with I,J = * *
-
-  n = atom->ntypes;
-  for (int i = 1; i <= n; i++)
-    for (int j = i; j <= n; j++)
-      setflag[i][j] = 0;
-
-  // set setflag i,j for type pairs where both are mapped to elements
-
-  int count = 0;
-  for (int i = 1; i <= n; i++)
-    for (int j = i; j <= n; j++)
-      if (map[i] >= 0 && map[j] >= 0) {
-        setflag[i][j] = 1;
-        count++;
-      }
-
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -413,8 +350,7 @@ void PairAGNI::read_file(char *filename)
               params[curparam].gwidth = 0.0;
             wantdata = curparam;
             curparam = -1;
-          } else error->warning(FLERR,fmt::format("Ignoring unknown tag '{}' "
-                                                  "in AGNI potential file.",tag));
+          } else error->warning(FLERR,"Ignoring unknown tag '{}' in AGNI potential file.",tag);
         } else {
           if (params && wantdata >=0) {
             if ((int)values.count() == params[wantdata].numeta + 2) {
@@ -466,10 +402,10 @@ void PairAGNI::setup_params()
   int i,m,n;
   double rtmp;
 
-  // set elem2param for all elements
+  // set elem1param for all elements
 
-  memory->destroy(elem2param);
-  memory->create(elem2param,nelements,"pair:elem2param");
+  memory->destroy(elem1param);
+  memory->create(elem1param,nelements,"pair:elem1param");
 
   for (i = 0; i < nelements; i++) {
     n = -1;
@@ -480,7 +416,7 @@ void PairAGNI::setup_params()
       }
     }
     if (n < 0) error->all(FLERR,"Potential file is missing an entry");
-    elem2param[i] = n;
+    elem1param[i] = n;
   }
 
   // compute parameter values derived from inputs

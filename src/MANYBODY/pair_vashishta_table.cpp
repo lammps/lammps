@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,11 +17,10 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_vashishta_table.h"
-#include <cstdio>
+
 #include "atom.h"
 #include "error.h"
 #include "force.h"
-#include "comm.h"
 #include "memory.h"
 #include "neigh_list.h"
 
@@ -120,7 +120,7 @@ void PairVashishtaTable::compute(int eflag, int vflag)
       }
 
       jtype = map[type[j]];
-      ijparam = elem2param[itype][jtype][jtype];
+      ijparam = elem3param[itype][jtype][jtype];
       if (rsq >= params[ijparam].cutsq) continue;
 
       twobody_table(params[ijparam],rsq,fpair,eflag,evdwl);
@@ -141,7 +141,7 @@ void PairVashishtaTable::compute(int eflag, int vflag)
     for (jj = 0; jj < jnumm1; jj++) {
       j = neighshort[jj];
       jtype = map[type[j]];
-      ijparam = elem2param[itype][jtype][jtype];
+      ijparam = elem3param[itype][jtype][jtype];
       delr1[0] = x[j][0] - xtmp;
       delr1[1] = x[j][1] - ytmp;
       delr1[2] = x[j][2] - ztmp;
@@ -154,8 +154,8 @@ void PairVashishtaTable::compute(int eflag, int vflag)
       for (kk = jj+1; kk < numshort; kk++) {
         k = neighshort[kk];
         ktype = map[type[k]];
-        ikparam = elem2param[itype][ktype][ktype];
-        ijkparam = elem2param[itype][jtype][ktype];
+        ikparam = elem3param[itype][ktype][ktype];
+        ijkparam = elem3param[itype][jtype][ktype];
 
         delr2[0] = x[k][0] - xtmp;
         delr2[1] = x[k][1] - ytmp;
@@ -272,7 +272,7 @@ void PairVashishtaTable::create_tables()
 
   for (i = 0; i < nelements; i++) {
     for (j = 0; j < nelements; j++) {
-      int ijparam = elem2param[i][j][j];
+      int ijparam = elem3param[i][j][j];
       for (idx = 0; idx <= ntable; idx++) {
         rsq = tabinnersq + idx*deltaR2;
         PairVashishta::twobody(&params[ijparam],rsq,fpair,1,eng);

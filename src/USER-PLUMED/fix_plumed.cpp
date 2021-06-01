@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,25 +17,24 @@
                          Pablo Piaggi (EPFL)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-
-#include <cstring>
+#include "fix_plumed.h"
 
 #include "atom.h"
 #include "comm.h"
-#include "update.h"
-#include "force.h"
-#include "respa.h"
+#include "compute.h"
 #include "domain.h"
 #include "error.h"
+#include "force.h"
 #include "group.h"
-#include "fix_plumed.h"
-#include "universe.h"
-#include "compute.h"
 #include "modify.h"
 #include "pair.h"
-
+#include "respa.h"
 #include "timer.h"
+#include "universe.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 #include "plumed/wrapper/Plumed.h"
 
@@ -420,7 +420,7 @@ void FixPlumed::post_force(int /* vflag */)
   p->cmd("getBias",&bias);
 
   // Pass virial to plumed
-  // If energy is needed plmd_virial is equal to Lammps' virial
+  // If energy is needed plmd_virial is equal to LAMMPS' virial
   // If energy is not needed plmd_virial is initialized to zero
   // In the first case the virial will be rescaled and an extra term will be added
   // In the latter case only an extra term will be added
@@ -542,9 +542,7 @@ int FixPlumed::modify_param(int narg, char **arg)
     if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
     modify->delete_compute(id_pe);
     delete[] id_pe;
-    int n = strlen(arg[1]) + 1;
-    id_pe = new char[n];
-    strcpy(id_pe,arg[1]);
+    id_pe = utils::strdup(arg[1]);
 
     int icompute = modify->find_compute(arg[1]);
     if (icompute < 0) error->all(FLERR,"Could not find fix_modify potential energy ID");
@@ -561,9 +559,7 @@ int FixPlumed::modify_param(int narg, char **arg)
     if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
     modify->delete_compute(id_press);
     delete[] id_press;
-    int n = strlen(arg[1]) + 1;
-    id_press = new char[n];
-    strcpy(id_press,arg[1]);
+    id_press = utils::strdup(arg[1]);
 
     int icompute = modify->find_compute(arg[1]);
     if (icompute < 0) error->all(FLERR,"Could not find fix_modify pressure ID");

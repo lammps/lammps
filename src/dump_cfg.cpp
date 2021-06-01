@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -74,14 +75,10 @@ DumpCFG::DumpCFG(LAMMPS *lmp, int narg, char **arg) :
                  |ArgInfo::DNAME|ArgInfo::INAME);
 
     if (argi.get_dim() == 1) {
-      std::string newarg(std::to_string(earg[iarg][0]));
-      newarg += std::string("_") + argi.get_name();
-      newarg += std::string("_") + std::to_string(argi.get_index1());
-      auxname[i] = new char[newarg.size()+1];
-      strcpy(auxname[i],newarg.c_str());
+      std::string newarg = fmt::format("{}_{}_{}", earg[iarg][0], argi.get_name(), argi.get_index1());
+      auxname[i] = utils::strdup(newarg);
     } else {
-      auxname[i] = new char[strlen(earg[iarg]) + 1];
-      strcpy(auxname[i],earg[iarg]);
+      auxname[i] = utils::strdup(earg[iarg]);
     }
   }
 }

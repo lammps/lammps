@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
          LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-         https://lammps.sandia.gov/, Sandia National Laboratories
+         https://www.lammps.org/, Sandia National Laboratories
          Steve Plimpton, sjplimp@sandia.gov
 
          Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,25 +18,28 @@ under
 ------------------------------------------------------------------------- */
 
 #include "compute_ptm_atom.h"
-#include <algorithm>
-#include <cmath>
-#include <cstring>
-#include <vector>
 
 #include "atom.h"
 #include "citeme.h"
 #include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "group.h"
 #include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "neighbor.h"
 #include "update.h"
-#include "group.h"
 
+#include <algorithm>
+#include <cmath>
+#include <cstring>
+#include <vector>
+
+#include "ptm_constants.h"
 #include "ptm_functions.h"
+#include "ptm_initialize_data.h"
 
 #define NUM_COLUMNS 7
 #define PTM_LAMMPS_UNKNOWN -1
@@ -203,7 +207,7 @@ static int get_neighbours(void* vdata, size_t central_index, size_t atom_index, 
 
   int *jlist = nullptr;
   int jnum = 0;
-  if (atom_index < data->nlocal) {
+  if ((int)atom_index < data->nlocal) {
     jlist = data->firstneigh[atom_index];
     jnum = data->numneigh[atom_index];
   }
@@ -220,7 +224,7 @@ static int get_neighbours(void* vdata, size_t central_index, size_t atom_index, 
       continue;
 
     j &= NEIGHMASK;
-    if (j == atom_index)
+    if (j == (int)atom_index)
       continue;
 
     double dx = pos[0] - x[j][0];

@@ -1,6 +1,7 @@
+// clang-format off
 /* -------------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -134,20 +135,6 @@ void ThrData::init_adp(int nall, double *rho, double **mu, double **lambda)
     _lambda = lambda + _tid*nall;
     memset(&(_mu[0][0]), 0, nall*3*sizeof(double));
     memset(&(_lambda[0][0]), 0, nall*6*sizeof(double));
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void ThrData::init_cdeam(int nall, double *rho, double *rhoB, double *D_values)
-{
-  init_eam(nall, rho);
-
-  if (nall >= 0 && rhoB && D_values) {
-    _rhoB = rhoB + _tid*nall;
-    _D_values = D_values + _tid*nall;
-    memset(_rhoB, 0, nall*sizeof(double));
-    memset(_D_values, 0, nall*sizeof(double));
   }
 }
 

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -1204,7 +1205,7 @@ void PairSWIntel::pack_force_const(ForceConst<flt_t> &fc,
         fc.p2e[ii][jj].c5 = 0;
         fc.p2e[ii][jj].c6 = 0;
       } else {
-        int ijparam = elem2param[i][j][j];
+        int ijparam = elem3param[i][j][j];
         fc.p2[ii][jj].cutsq = params[ijparam].cutsq;
         fc.p2[ii][jj].cut = params[ijparam].cut;
         fc.p2[ii][jj].sigma_gamma = params[ijparam].sigma_gamma;
@@ -1237,7 +1238,7 @@ void PairSWIntel::pack_force_const(ForceConst<flt_t> &fc,
           mytypes++;
           _onetype = ii * tp1 + jj;
           _onetype3 = ii * tp1 * tp1 + jj * tp1 + kk;
-          int ijkparam = elem2param[i][j][k];
+          int ijkparam = elem3param[i][j][k];
           fc.p3[ii][jj][kk].costheta = params[ijkparam].costheta;
           fc.p3[ii][jj][kk].lambda_epsilon = params[ijkparam].lambda_epsilon;
           fc.p3[ii][jj][kk].lambda_epsilon2 = params[ijkparam].lambda_epsilon2;

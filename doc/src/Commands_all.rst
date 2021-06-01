@@ -67,6 +67,7 @@ An alphabetic list of all general LAMMPS commands.
    * :doc:`lattice <lattice>`
    * :doc:`log <log>`
    * :doc:`mass <mass>`
+   * :doc:`mdi/engine <mdi_engine>`
    * :doc:`message <message>`
    * :doc:`minimize <minimize>`
    * :doc:`min_modify <min_modify>`
@@ -86,6 +87,7 @@ An alphabetic list of all general LAMMPS commands.
    * :doc:`pair_style <pair_style>`
    * :doc:`pair_write <pair_write>`
    * :doc:`partition <partition>`
+   * :doc:`plugin <plugin>`
    * :doc:`prd <prd>`
    * :doc:`print <print>`
    * :doc:`processors <processors>`

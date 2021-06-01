@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -29,7 +30,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-Rerun::Rerun(LAMMPS *lmp) : Pointers(lmp) {}
+Rerun::Rerun(LAMMPS *lmp) : Command(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
@@ -51,6 +52,7 @@ void Rerun::command(int narg, char **arg)
     if (strcmp(arg[iarg],"start") == 0) break;
     if (strcmp(arg[iarg],"stop") == 0) break;
     if (strcmp(arg[iarg],"dump") == 0) break;
+    if (strcmp(arg[iarg],"post") == 0) break;
     iarg++;
   }
   int nfile = iarg;
@@ -65,6 +67,7 @@ void Rerun::command(int narg, char **arg)
   int nskip = 1;
   int startflag = 0;
   int stopflag = 0;
+  int postflag = 0;
   bigint start = -1;
   bigint stop = -1;
 
@@ -100,6 +103,14 @@ void Rerun::command(int narg, char **arg)
       stopflag = 1;
       stop = utils::bnumeric(FLERR,arg[iarg+1],false,lmp);
       if (stop < 0) error->all(FLERR,"Illegal rerun command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"post") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal rerun command");
+      if (strcmp(arg[iarg+1],"yes") == 0) {
+        postflag = 1;
+      } else if (strcmp(arg[iarg+1],"no") == 0) {
+        postflag = 0;
+      } else error->all(FLERR,"Illegal rerun command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"dump") == 0) {
       break;
@@ -182,7 +193,7 @@ void Rerun::command(int narg, char **arg)
   update->nsteps = ndump;
 
   Finish finish(lmp);
-  finish.end(1);
+  finish.end(postflag);
 
   update->whichflag = 0;
   update->firststep = update->laststep = 0;

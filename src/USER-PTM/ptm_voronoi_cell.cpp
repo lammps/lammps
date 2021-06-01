@@ -1,3 +1,4 @@
+// clang-format off
 /*
 Voro++ Copyright (c) 2008, The Regents of the University of California, through
 Lawrence Berkeley National Laboratory (subject to receipt of any required

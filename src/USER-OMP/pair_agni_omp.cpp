@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    This software is distributed under the GNU General Public License.
@@ -101,7 +102,7 @@ void PairAGNIOMP::eval(int iifrom, int iito, ThrData * const thr)
     ztmp = x[i].z;
     fxtmp = fytmp = fztmp = 0.0;
 
-    const Param &iparam = params[elem2param[itype]];
+    const Param &iparam = params[elem1param[itype]];
     Vx = new double[iparam.numeta];
     Vy = new double[iparam.numeta];
     Vz = new double[iparam.numeta];

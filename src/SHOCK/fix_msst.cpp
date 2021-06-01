@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -19,19 +20,20 @@
 
 #include "fix_msst.h"
 
-#include <cstring>
-#include <cmath>
 #include "atom.h"
-#include "force.h"
 #include "comm.h"
-#include "modify.h"
-#include "fix_external.h"
 #include "compute.h"
-#include "kspace.h"
-#include "update.h"
 #include "domain.h"
-#include "memory.h"
 #include "error.h"
+#include "fix_external.h"
+#include "force.h"
+#include "kspace.h"
+#include "memory.h"
+#include "modify.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -326,7 +328,7 @@ void FixMSST::setup(int /*vflag*/)
     v0 = compute_vol();
     v0_set = 1;
     if (comm->me == 0)
-      utils::logmesg(lmp,fmt::format("Fix MSST v0 = {:.8g}\n", v0));
+      utils::logmesg(lmp,"Fix MSST v0 = {:.8g}\n", v0);
   }
 
   if (p0_set == 0) {
@@ -334,7 +336,7 @@ void FixMSST::setup(int /*vflag*/)
     p0_set = 1;
 
     if (comm->me == 0)
-      utils::logmesg(lmp,fmt::format("Fix MSST p0 = {:.8g}\n", p0));
+      utils::logmesg(lmp,"Fix MSST p0 = {:.8g}\n", p0);
   }
 
   if (e0_set == 0) {
@@ -342,7 +344,7 @@ void FixMSST::setup(int /*vflag*/)
     e0_set = 1;
 
     if (comm->me == 0)
-      utils::logmesg(lmp,fmt::format("Fix MSST e0 = {:.8g}\n", e0));
+      utils::logmesg(lmp,"Fix MSST e0 = {:.8g}\n", e0);
   }
 
   temperature->compute_vector();
@@ -363,10 +365,9 @@ void FixMSST::setup(int /*vflag*/)
     double fac2 = omega[direction]/v0;
 
     if ( comm->me == 0 && tscale != 1.0)
-      utils::logmesg(lmp,fmt::format("Fix MSST initial strain rate of "
-                                     "{:.8g} established by reducing "
-                                     "temperature by factor of {:.8g}\n",
-                                     fac2,tscale));
+      utils::logmesg(lmp,"Fix MSST initial strain rate of {:.8g} "
+                     "established by reducing temperature by factor "
+                     "of {:.8g}\n",fac2,tscale);
     for (int i = 0; i < atom->nlocal; i++) {
       if (mask[i] & groupbit) {
         for (int k = 0; k < 3; k++) {
@@ -840,9 +841,7 @@ int FixMSST::modify_param(int narg, char **arg)
       tflag = 0;
     }
     delete [] id_temp;
-    int n = strlen(arg[1]) + 1;
-    id_temp = new char[n];
-    strcpy(id_temp,arg[1]);
+    id_temp = utils::strdup(arg[1]);
 
     int icompute = modify->find_compute(id_temp);
     if (icompute < 0)
@@ -864,9 +863,7 @@ int FixMSST::modify_param(int narg, char **arg)
       pflag = 0;
     }
     delete [] id_press;
-    int n = strlen(arg[1]) + 1;
-    id_press = new char[n];
-    strcpy(id_press,arg[1]);
+    id_press = utils::strdup(arg[1]);
 
     int icompute = modify->find_compute(id_press);
     if (icompute < 0) error->all(FLERR,"Could not find fix_modify pressure ID");

@@ -411,10 +411,10 @@ interface (``ccmake`` or ``cmake-gui``).
 .. note::
 
    Using a preset to select a compiler package (``clang.cmake``,
-   ``gcc.cmake``, or ``intel.cmake``) are an exception to the option
-   of updating the configuration incrementally, as they will trigger
-   a reset of cached internal CMake settings and thus reset them to
-   their default values.
+   ``gcc.cmake``, ``intel.cmake``, ``oneapi.cmake``, or ``pgi.cmake``)
+   are an exception to the mechanism of updating the configuration incrementally,
+   as they will trigger a reset of cached internal CMake settings and thus
+   reset settings to their default values.
 
 Compilation and build targets
 -----------------------------

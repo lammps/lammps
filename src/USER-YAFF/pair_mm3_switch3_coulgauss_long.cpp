@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,21 +18,19 @@
 
 #include "pair_mm3_switch3_coulgauss_long.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "kspace.h"
-#include "update.h"
-#include "respa.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
+#include "neighbor.h"
+#include "neigh_list.h"
+#include "update.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -49,7 +48,6 @@ using namespace MathConst;
 PairMM3Switch3CoulGaussLong::PairMM3Switch3CoulGaussLong(LAMMPS *lmp) : Pair(lmp)
 {
   ewaldflag = pppmflag = 1;
-  respa_enable = 1;
   writedata = 1;
   ftable = nullptr;
   qdist = 0.0;
@@ -109,6 +107,7 @@ void PairMM3Switch3CoulGaussLong::compute(int eflag, int vflag)
   firstneigh = list->firstneigh;
 
   // loop over neighbors of my atoms
+
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     qtmp = q[i];
@@ -173,8 +172,8 @@ void PairMM3Switch3CoulGaussLong::compute(int eflag, int vflag)
             expn2 = 0.0;
             erfc2 = 0.0;
             forcecoul2 = 0.0;
-          }
-          else {
+            prefactor2 = 0.0;
+          } else {
             rrij = lj2[itype][jtype]*r;
             expn2 = exp(-rrij*rrij);
             erfc2 = erfc(rrij);
@@ -267,19 +266,18 @@ void PairMM3Switch3CoulGaussLong::allocate()
 
 void PairMM3Switch3CoulGaussLong::settings(int narg, char **arg)
 {
- if (narg < 2 || narg > 3) error->all(FLERR,"Illegal pair_style command");
+  if (narg < 2 || narg > 3) error->all(FLERR,"Illegal pair_style command");
 
   cut_lj_global = utils::numeric(FLERR,arg[0],false,lmp);
+
   if (narg == 2) {
     cut_coul = cut_lj_global;
     truncw = utils::numeric(FLERR,arg[1],false,lmp);
-  }
-  else {
+  } else {
     cut_coul = utils::numeric(FLERR,arg[1],false,lmp);
     truncw = utils::numeric(FLERR,arg[2],false,lmp);
   }
-  if (truncw>0.0) truncwi = 1.0/truncw;
-  else truncwi = 0.0;
+
   // reset cutoffs that have been explicitly set
 
   if (allocated) {
@@ -335,32 +333,10 @@ void PairMM3Switch3CoulGaussLong::init_style()
   if (!atom->q_flag)
     error->all(FLERR,"Pair style mm3/switch3/coulgauss/long requires atom attribute q");
 
-  // request regular or rRESPA neighbor list
-
-  int irequest;
-  int respa = 0;
-
-  if (update->whichflag == 1 && strstr(update->integrate_style,"respa")) {
-    if (((Respa *) update->integrate)->level_inner >= 0) respa = 1;
-    if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;
-  }
-
-  irequest = neighbor->request(this,instance_me);
-
-  if (respa >= 1) {
-    neighbor->requests[irequest]->respaouter = 1;
-    neighbor->requests[irequest]->respainner = 1;
-  }
-  if (respa == 2) neighbor->requests[irequest]->respamiddle = 1;
-
   cut_coulsq = cut_coul * cut_coul;
 
-  // set rRESPA cutoffs
-
-  if (strstr(update->integrate_style,"respa") &&
-      ((Respa *) update->integrate)->level_inner >= 0)
-    cut_respa = ((Respa *) update->integrate)->cutoff;
-  else cut_respa = nullptr;
+  if (truncw>0.0) truncwi = 1.0/truncw;
+  else truncwi = 0.0;
 
   // insure use of KSpace long-range solver, set g_ewald
 
@@ -368,9 +344,11 @@ void PairMM3Switch3CoulGaussLong::init_style()
     error->all(FLERR,"Pair style requires a KSpace style");
   g_ewald = force->kspace->g_ewald;
 
+  neighbor->request(this,instance_me);
+
   // setup force tables
 
-  if (ncoultablebits) init_tables(cut_coul,cut_respa);
+  if (ncoultablebits) init_tables(cut_coul,nullptr);
 }
 
 /* ----------------------------------------------------------------------
@@ -402,8 +380,7 @@ double PairMM3Switch3CoulGaussLong::init_one(int i, int j)
       double r6inv = r2inv*r2inv*r2inv;
       double expb = lj3[i][j]*exp(-lj1[i][j]*r);
       offset[i][j] = expb-lj4[i][j]*r6inv;
-    }
-    else {offset[i][j] = 0.0;}
+    } else {offset[i][j] = 0.0;}
   } else offset[i][j] = 0.0;
 
   cut_ljsq[j][i] = cut_ljsq[i][j];
@@ -413,11 +390,6 @@ double PairMM3Switch3CoulGaussLong::init_one(int i, int j)
   lj3[j][i] = lj3[i][j];
   lj4[j][i] = lj4[i][j];
   offset[j][i] = offset[i][j];
-
-  // check interior rRESPA cutoff
-
-  if (cut_respa && MIN(cut_lj[i][j],cut_coul) < cut_respa[3])
-    error->all(FLERR,"Pair cutoff < Respa interior cutoff");
 
   // compute I,J contribution to long-range tail correction
   // count total # of atoms of type I and J via Allreduce
@@ -458,8 +430,7 @@ double PairMM3Switch3CoulGaussLong::init_one(int i, int j)
         double t64 = cg * (0.6388888889e3 * ((-t3 + (0.7e1 / 0.36e2 * cg5 - t5) * t1 - 0.2e1 / 0.3e1 * t8 * (cg5 - cg1 / 0.4e1) * cg3 + cg5 * t14) * t20 + t3 + (cg5 / 0.12e2 + t5) * t1 + (cg5 + cg1 / 0.3e1) * cg1 * cg3 / 0.2e1 + t30 * cg5) * t2 * t36 * t39 - 0.225e1 * (0.2e1 * t43 * t44 - 0.2e1 * t43 * t47 + cg5 * (cg5 - 0.2e1 * cg1)) * t54 * t1 / cg1 / t8 * t39);
         etail_ij = 2.0*MY_PI*all[0]*all[1]*t64;
         ptail_ij = 2.0*MY_PI*all[0]*all[1]*t64;
-    }
-    else {
+    } else {
         double t2 = pow(cg3, 0.2e1);
         double t3 = t2 * t2;
         double t7 = 0.12e2 / cg3 * cg1;
@@ -610,15 +581,15 @@ double PairMM3Switch3CoulGaussLong::single(int i, int j, int itype, int jtype,
                                  double &fforce)
 {
   double r2inv,r6inv,r,grij,expm2,t,erfc1,prefactor,prefactor2;
-  double fraction,table,forcecoul,forcecoul2,forcelj,phicoul;
-  double expb,rrij,expn2,erfc2,ecoul,evdwl,trx,tr,ftr;
+  double fraction,table,forcecoul,forcecoul2,forcelj;
+  double expb,rrij,expn2,erfc2,evdwl,ecoul,trx,tr,ftr;
 
   int itable;
 
   r2inv = 1.0/rsq;
+  r = sqrt(rsq);
   if (rsq < cut_coulsq) {
     if (!ncoultablebits || rsq <= tabinnersq) {
-      r = sqrt(rsq);
       grij = g_ewald * r;
       expm2 = exp(-grij*grij);
       t = 1.0 / (1.0 + EWALD_P*grij);
@@ -643,33 +614,34 @@ double PairMM3Switch3CoulGaussLong::single(int i, int j, int itype, int jtype,
   } else forcecoul = 0.0;
 
   if (rsq < cut_ljsq[itype][jtype]) {
-    r = sqrt(rsq);
-    r6inv = r2inv*r2inv*r2inv;
     expb = lj3[itype][jtype]*exp(-lj1[itype][jtype]*r);
-    rrij = lj2[itype][jtype] * r;
-    if (rrij==0.0) {
+    forcelj = expb*lj1[itype][jtype]*r;
+    r6inv = r2inv*r2inv*r2inv;
+    forcelj -= 6.0*lj4[itype][jtype]*r6inv;
+
+    if (lj2[itype][jtype] == 0.0) {
       expn2 = 0.0;
       erfc2 = 0.0;
-    }
-    else {
+      forcecoul2 = 0.0;
+      prefactor2 = 0.0;
+    } else {
+      rrij = lj2[itype][jtype]*r;
       expn2 = exp(-rrij*rrij);
       erfc2 = erfc(rrij);
+      prefactor2 = -force->qqrd2e * atom->q[i]*atom->q[j]/r;
+      forcecoul2 = prefactor2 * (erfc2 + EWALD_F*rrij*expn2);
     }
-    prefactor2 = -force->qqrd2e * atom->q[i]*atom->q[j]/r;
-    forcecoul2 = prefactor2 * (erfc2 + EWALD_F*rrij*expn2);
-    forcelj = expb*lj1[itype][jtype]*r-6.0*lj4[itype][jtype]*r6inv;
-  } else forcelj = 0.0;
+  } else expb = forcelj = 0.0;
 
-  double eng = 0.0;
+  evdwl = ecoul = 0.0;
   if (rsq < cut_coulsq) {
     if (!ncoultablebits || rsq <= tabinnersq)
-      phicoul = prefactor*erfc1;
+      ecoul = prefactor*erfc1;
     else {
       table = etable[itable] + fraction*detable[itable];
-      phicoul = atom->q[i]*atom->q[j] * table;
+      ecoul = atom->q[i]*atom->q[j] * table;
     }
-    if (factor_coul < 1.0) phicoul -= (1.0-factor_coul)*prefactor;
-    eng += phicoul;
+    if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
   }
 
   if (rsq < cut_ljsq[itype][jtype]) {
@@ -678,7 +650,7 @@ double PairMM3Switch3CoulGaussLong::single(int i, int j, int itype, int jtype,
   } else evdwl = 0.0;
 
   // Truncation, see Yaff Switch3
-  if (truncw>0) {
+  if (truncw > 0) {
     if (rsq < cut_ljsq[itype][jtype]) {
       if (r>cut_lj[itype][jtype]-truncw) {
         trx = (cut_lj[itype][jtype]-r)*truncwi;
@@ -689,10 +661,10 @@ double PairMM3Switch3CoulGaussLong::single(int i, int j, int itype, int jtype,
       }
     }
   }
-  eng += evdwl*factor_lj;
   fforce = (forcecoul + factor_coul*forcecoul2 + factor_lj*forcelj) * r2inv;
 
-  return eng;
+  return ecoul + evdwl*factor_lj;
+;
 }
 
 /* ---------------------------------------------------------------------- */

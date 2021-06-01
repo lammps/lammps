@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -78,7 +79,7 @@ MLIAPDescriptorSNAP::~MLIAPDescriptorSNAP()
 void MLIAPDescriptorSNAP::compute_descriptors(class MLIAPData* data)
 {
   int ij = 0;
-  for (int ii = 0; ii < data->natoms; ii++) {
+  for (int ii = 0; ii < data->nlistatoms; ii++) {
     const int ielem = data->ielems[ii];
 
     // insure rij, inside, wj, and rcutij are of size jnum
@@ -130,7 +131,7 @@ void MLIAPDescriptorSNAP::compute_forces(class MLIAPData* data)
   double **f = atom->f;
 
   int ij = 0;
-  for (int ii = 0; ii < data->natoms; ii++) {
+  for (int ii = 0; ii < data->nlistatoms; ii++) {
     const int i = data->iatoms[ii];
     const int ielem = data->ielems[ii];
 
@@ -204,7 +205,7 @@ void MLIAPDescriptorSNAP::compute_forces(class MLIAPData* data)
 void MLIAPDescriptorSNAP::compute_force_gradients(class MLIAPData* data)
 {
   int ij = 0;
-  for (int ii = 0; ii < data->natoms; ii++) {
+  for (int ii = 0; ii < data->nlistatoms; ii++) {
     const int i = data->iatoms[ii];
     const int ielem = data->ielems[ii];
 
@@ -279,7 +280,7 @@ void MLIAPDescriptorSNAP::compute_force_gradients(class MLIAPData* data)
 void MLIAPDescriptorSNAP::compute_descriptor_gradients(class MLIAPData* data)
 {
   int ij = 0;
-  for (int ii = 0; ii < data->natoms; ii++) {
+  for (int ii = 0; ii < data->nlistatoms; ii++) {
     const int ielem = data->ielems[ii];
 
     // insure rij, inside, wj, and rcutij are of size jnum
@@ -379,8 +380,8 @@ void MLIAPDescriptorSNAP::read_paramfile(char *paramfilename)
   if (comm->me == 0) {
     fpparam = utils::open_potential(paramfilename,lmp,nullptr);
     if (fpparam == nullptr)
-      error->one(FLERR,fmt::format("Cannot open SNAP parameter file {}: {}",
-                                   paramfilename, utils::getsyserror()));
+      error->one(FLERR,"Cannot open SNAP parameter file {}: {}",
+                                   paramfilename, utils::getsyserror());
   }
 
   char line[MAXLINE],*ptr;
@@ -412,9 +413,8 @@ void MLIAPDescriptorSNAP::read_paramfile(char *paramfilename)
     char* keywd = strtok(line,"' \t\n\r\f");
     char* keyval = strtok(nullptr,"' \t\n\r\f");
 
-    if (comm->me == 0) {
-      utils::logmesg(lmp, fmt::format("SNAP keyword {} {} \n", keywd, keyval));
-    }
+    if (comm->me == 0)
+      utils::logmesg(lmp,"SNAP keyword {} {} \n", keywd, keyval);
 
     // check for keywords with one value per element
 
@@ -427,22 +427,19 @@ void MLIAPDescriptorSNAP::read_paramfile(char *paramfilename)
 
       if (strcmp(keywd,"elems") == 0) {
         for (int ielem = 0; ielem < nelements; ielem++) {
-          char* elemtmp = keyval;
-          int n = strlen(elemtmp) + 1;
-          elements[ielem] = new char[n];
-          strcpy(elements[ielem],elemtmp);
+          elements[ielem] = utils::strdup(keyval);
           keyval = strtok(nullptr,"' \t\n\r\f");
         }
         elementsflag = 1;
       } else if (strcmp(keywd,"radelems") == 0) {
         for (int ielem = 0; ielem < nelements; ielem++) {
-          radelem[ielem] = atof(keyval);
+          radelem[ielem] = utils::numeric(FLERR,keyval,false,lmp);
           keyval = strtok(nullptr,"' \t\n\r\f");
         }
         radelemflag = 1;
       } else if (strcmp(keywd,"welems") == 0) {
         for (int ielem = 0; ielem < nelements; ielem++) {
-          wjelem[ielem] = atof(keyval);
+          wjelem[ielem] = utils::numeric(FLERR,keyval,false,lmp);
           keyval = strtok(nullptr,"' \t\n\r\f");
         }
         wjelemflag = 1;

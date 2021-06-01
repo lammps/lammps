@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -25,6 +26,8 @@
 #include "update.h"
 #include "variable.h"
 
+#include <cstring>
+
 using namespace LAMMPS_NS;
 
 #define BIG 1.0e20
@@ -47,9 +50,7 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
     iregion = domain->find_region(arg[3]);
     if (iregion == -1)
       error->all(FLERR,"Region ID for compute reduce/region does not exist");
-    int n = strlen(arg[3]) + 1;
-    idregion = new char[n];
-    strcpy(idregion,arg[3]);
+    idregion = utils::strdup(arg[3]);
     iarg = 4;
   }
 

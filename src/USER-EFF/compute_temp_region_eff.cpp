@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,17 +17,16 @@
 ------------------------------------------------------------------------- */
 
 
-#include <cstring>
-
 #include "compute_temp_region_eff.h"
+
 #include "atom.h"
-#include "update.h"
-#include "force.h"
 #include "domain.h"
-#include "region.h"
+#include "error.h"
+#include "force.h"
 #include "group.h"
 #include "memory.h"
-#include "error.h"
+#include "region.h"
+#include "update.h"
 
 using namespace LAMMPS_NS;
 
@@ -43,9 +43,7 @@ ComputeTempRegionEff::ComputeTempRegionEff(LAMMPS *lmp, int narg, char **arg) :
   iregion = domain->find_region(arg[3]);
   if (iregion == -1)
     error->all(FLERR,"Region ID for compute temp/region/eff does not exist");
-  int n = strlen(arg[3]) + 1;
-  idregion = new char[n];
-  strcpy(idregion,arg[3]);
+  idregion = utils::strdup(arg[3]);
 
   scalar_flag = vector_flag = 1;
   size_vector = 6;

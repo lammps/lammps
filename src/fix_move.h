@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(move,FixMove)
-
+// clang-format off
+FixStyle(move,FixMove);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_MOVE_H
@@ -51,27 +51,27 @@ class FixMove : public Fix {
   void reset_dt();
 
  private:
-  char *xvarstr,*yvarstr,*zvarstr,*vxvarstr,*vyvarstr,*vzvarstr;
+  char *xvarstr, *yvarstr, *zvarstr, *vxvarstr, *vyvarstr, *vzvarstr;
   int mstyle;
-  int vxflag,vyflag,vzflag,axflag,ayflag,azflag;
-  double vx,vy,vz,ax,ay,az;
-  double period,omega_rotate;
-  double point[3],axis[3],runit[3];
-  double dt,dtv,dtf;
-  int xvar,yvar,zvar,vxvar,vyvar,vzvar;
-  int xvarstyle,yvarstyle,zvarstyle,vxvarstyle,vyvarstyle,vzvarstyle;
-  int extra_flag,omega_flag,angmom_flag;
-  int radius_flag,ellipsoid_flag,line_flag,tri_flag,body_flag;
-  int theta_flag,quat_flag;
-  int nlevels_respa,nrestart;
+  int vxflag, vyflag, vzflag, axflag, ayflag, azflag;
+  double vx, vy, vz, ax, ay, az;
+  double period, omega_rotate;
+  double point[3], axis[3], runit[3];
+  double dt, dtv, dtf;
+  int xvar, yvar, zvar, vxvar, vyvar, vzvar;
+  int xvarstyle, yvarstyle, zvarstyle, vxvarstyle, vyvarstyle, vzvarstyle;
+  int extra_flag, omega_flag, angmom_flag;
+  int radius_flag, ellipsoid_flag, line_flag, tri_flag, body_flag;
+  int theta_flag, quat_flag;
+  int nlevels_respa, nrestart;
   int time_origin;
 
-  double **xoriginal;         // original coords of atoms
-  double *toriginal;          // original theta of atoms
-  double **qoriginal;         // original quat of atoms
-  int displaceflag,velocityflag;
+  double **xoriginal;    // original coords of atoms
+  double *toriginal;     // original theta of atoms
+  double **qoriginal;    // original quat of atoms
+  int displaceflag, velocityflag;
   int maxatom;
-  double **displace,**velocity;
+  double **displace, **velocity;
 
   class AtomVecEllipsoid *avec_ellipsoid;
   class AtomVecLine *avec_line;
@@ -79,7 +79,7 @@ class FixMove : public Fix {
   class AtomVecBody *avec_body;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

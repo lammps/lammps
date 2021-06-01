@@ -201,7 +201,7 @@ build configuration and any binaries generated during compilation.
 
 There are countless ways to compile LAMMPS. It is beyond the scope of this
 tutorial. If you want to find out more about what can be enabled, please
-consult the extensive `documentation <https://lammps.sandia.gov/doc/Build_cmake.html>`_.
+consult the extensive `documentation <https://docs.lammps.org/Build_cmake.html>`_.
 
 To compile a minimal version of LAMMPS, we're going to use a preset.
 Presets are a way to specify a collection of CMake options using a file.

@@ -285,10 +285,7 @@ void run_test_graph4() {
 
 TEST(TEST_CATEGORY, staticcrsgraph) {
   TestStaticCrsGraph::run_test_graph<TEST_EXECSPACE>();
-  // FIXME_SYCL requires MDRangePolicy
-#ifndef KOKKOS_ENABLE_SYCL
   TestStaticCrsGraph::run_test_graph2<TEST_EXECSPACE>();
-#endif
   TestStaticCrsGraph::run_test_graph3<TEST_EXECSPACE>(1, 0);
   TestStaticCrsGraph::run_test_graph3<TEST_EXECSPACE>(1, 1000);
   TestStaticCrsGraph::run_test_graph3<TEST_EXECSPACE>(1, 10000);

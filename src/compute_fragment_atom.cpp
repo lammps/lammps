@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -82,7 +83,7 @@ void ComputeFragmentAtom::init()
 {
   if (atom->tag_enable == 0)
     error->all(FLERR,"Cannot use compute fragment/atom unless atoms have IDs");
-  if (!atom->molecular)
+  if (atom->molecular != Atom::MOLECULAR)
     error->all(FLERR,"Compute fragment/atom requires a molecular system");
 
   int count = 0;

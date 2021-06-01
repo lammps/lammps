@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -71,8 +72,8 @@ int mldivide3(const double m[3][3], const double *v, double *ans)
       }
 
     for (unsigned j = i+1; j < 3; j++) {
-      double m = aug[j][i]/aug[i][i];
-      for (unsigned k=i+1; k<4; k++) aug[j][k]-=m*aug[i][k];
+      double n = aug[j][i]/aug[i][i];
+      for (unsigned k=i+1; k<4; k++) aug[j][k]-=n*aug[i][k];
     }
   }
 

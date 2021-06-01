@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
-   Lammps - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -31,10 +32,8 @@
 
 ------------------------------------------------------------------------- */
 
-
 #include "fix_nve_manifold_rattle.h"
 
-#include <cstring>
 #include "atom.h"
 #include "force.h"
 #include "update.h"
@@ -44,17 +43,16 @@
 #include "citeme.h"
 #include "comm.h"
 
+#include <cstring>
+
 #include "manifold_factory.h"
 #include "manifold.h"
-
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace user_manifold;
 
-
 enum { CONST, EQUAL }; // For treating the variables.
-
 
 static const char* cite_fix_nve_manifold_rattle =
   "fix nve/manifold/rattle command:\n\n"
@@ -95,9 +93,7 @@ FixNVEManifoldRattle::FixNVEManifoldRattle( LAMMPS *lmp, int &narg, char **arg,
   max_iter  = utils::numeric( FLERR, arg[4] ,false,lmp);
 
   ptr_m = create_manifold(arg[5], lmp, narg, arg);
-  if (!ptr_m) {
-    error->all(FLERR,"Error creating manifold pointer");
-  }
+  if (!ptr_m) error->all(FLERR,"Error creating manifold pointer");
 
   nvars = ptr_m->nparams();
   tstrs  = new char*[nvars];
@@ -105,17 +101,13 @@ FixNVEManifoldRattle::FixNVEManifoldRattle( LAMMPS *lmp, int &narg, char **arg,
   tstyle = new int[nvars];
   is_var = new int[nvars];
 
-  if (!tstrs || !tvars || !tstyle || !is_var) {
+  if (!tstrs || !tvars || !tstyle || !is_var)
     error->all(FLERR, "Error creating manifold arg arrays");
-  }
 
   // Check if you have enough args:
-  if (6 + nvars > narg) {
-    char msg[2048];
-    sprintf(msg, "Not enough args for manifold %s, %d expected but got %d\n",
-            ptr_m->id(), nvars, narg - 6);
-    error->all(FLERR, msg);
-  }
+  if (6 + nvars > narg)
+    error->all(FLERR,"Not enough args for manifold {}, {} expected "
+                                 "but got {}\n",ptr_m->id(),nvars, narg - 6);
   // Loop over manifold args:
   for (int i = 0; i < nvars; ++i) {
     int len = 0, offset = 0;
@@ -154,9 +146,7 @@ FixNVEManifoldRattle::FixNVEManifoldRattle( LAMMPS *lmp, int &narg, char **arg,
       }
       argi += 2;
     } else if (error_on_unknown_keyword) {
-      char msg[2048];
-      sprintf(msg,"Error parsing arg \"%s\".\n", arg[argi]);
-      error->all(FLERR, msg);
+      error->all(FLERR,"Error parsing arg \"{}\".\n",arg[argi]);
     } else {
       argi += 1;
     }

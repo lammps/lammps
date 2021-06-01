@@ -275,7 +275,7 @@ class dump:
       print("no column assignments made")
     elif len(self.names):
       print("assigned columns:",self.names2str())
-    elif self.snaps[0].atoms == None:
+    elif self.snaps[0].atoms is None:
       print("no column assignments made")
     elif len(self.snaps[0].atoms[0]) == 5:
       self.map(1,"id",2,"type",3,"x",4,"y",5,"z")
@@ -969,12 +969,12 @@ class dump:
     xhi = yhi = zhi = None
     for snap in self.snaps:
       if not snap.tselect: continue
-      if xlo == None or snap.xlo < xlo: xlo = snap.xlo
-      if xhi == None or snap.xhi > xhi: xhi = snap.xhi
-      if ylo == None or snap.ylo < ylo: ylo = snap.ylo
-      if yhi == None or snap.yhi > yhi: yhi = snap.yhi
-      if zlo == None or snap.zlo < zlo: zlo = snap.zlo
-      if zhi == None or snap.zhi > zhi: zhi = snap.zhi
+      if xlo is None or snap.xlo < xlo: xlo = snap.xlo
+      if xhi is None or snap.xhi > xhi: xhi = snap.xhi
+      if ylo is None or snap.ylo < ylo: ylo = snap.ylo
+      if yhi is None or snap.yhi > yhi: yhi = snap.yhi
+      if zlo is None or snap.zlo < zlo: zlo = snap.zlo
+      if zhi is None or snap.zhi > zhi: zhi = snap.zhi
     return [xlo,ylo,zlo,xhi,yhi,zhi]
 
   # --------------------------------------------------------------------

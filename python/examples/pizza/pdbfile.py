@@ -68,7 +68,7 @@ index,time,flag = p.iterator(1)
 
 # Imports and external programs
 
-import sys, types, glob, urllib
+import sys, glob, urllib
 PY3 = sys.version_info[0] == 3
 
 if PY3:
@@ -93,7 +93,7 @@ class pdbfile:
     elif len(args) == 2:
       filestr = args[0]
       self.data = args[1]
-    else: raise StandardError("invalid args for pdb()")
+    else: raise Exception("invalid args for pdb()")
 
     # flist = full list of all PDB input file names
     # append .pdb if needed
@@ -104,17 +104,17 @@ class pdbfile:
       for file in list:
         if '*' in file: flist += glob.glob(file)
         else: flist.append(file)
-      for i in xrange(len(flist)):
+      for i in range(len(flist)):
         if flist[i][-4:] != ".pdb": flist[i] += ".pdb"
       if len(flist) == 0:
-        raise StandardError("no PDB file specified")
+        raise Exception("no PDB file specified")
       self.files = flist
     else: self.files = []
 
     if len(self.files) > 1 and self.data:
-      raise StandardError("cannot use multiple PDB files with data object")
+      raise Exception("cannot use multiple PDB files with data object")
     if len(self.files) == 0 and not self.data:
-      raise StandardError("no input PDB file(s)")
+      raise Exception("no input PDB file(s)")
 
     # grab PDB file from http://rcsb.org if not a local file
     

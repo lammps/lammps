@@ -43,7 +43,7 @@
 #include "pair_lj_cut_coul_msm_dielectric.h"
 #include "pppm_dielectric.h"
 #include "random_park.h"
-#include "timer.h"
+//#include "timer.h"
 #include "update.h"
 
 #include <cmath>
@@ -93,8 +93,8 @@ FixPolarizeBEMICC::FixPolarizeBEMICC(LAMMPS *lmp, int narg, char **arg) :
   randomized = 0;
   ave_charge = 0;
 
-  efield_pair = NULL;
-  efield_kspace = NULL;
+  efield_pair = nullptr;
+  efield_kspace = nullptr;
 
   comm_forward = 1;
   kspaceflag = 0;

@@ -104,18 +104,18 @@ FixPolarizeFunctional::FixPolarizeFunctional(LAMMPS *lmp, int narg, char **arg) 
   nmax = 0;
   allocated = 0;
 
-  induced_charge_idx = NULL;
-  induced_charges = NULL;
-  tag2mat = NULL;
-  mat2tag = NULL;
-  tag2mat_ions = NULL;
-  mat2tag_ions = NULL;
-  ion_idx = NULL;
+  induced_charge_idx = nullptr;
+  induced_charges = nullptr;
+  tag2mat = nullptr;
+  mat2tag = nullptr;
+  tag2mat_ions = nullptr;
+  mat2tag_ions = nullptr;
+  ion_idx = nullptr;
 
-  rhs1 = NULL;
-  rhs2 = NULL;
-  buffer1 = NULL;
-  buffer2 = NULL;
+  rhs1 = nullptr;
+  rhs2 = nullptr;
+  buffer1 = nullptr;
+  buffer2 = nullptr;
 
   // set flags for arrays to clear in force_clear()
 
@@ -123,28 +123,28 @@ FixPolarizeFunctional::FixPolarizeFunctional(LAMMPS *lmp, int narg, char **arg) 
   if (atom->torque_flag) torqueflag = 1;
   if (atom->avec->forceclearflag) extraflag = 1;
 
-  Rww = NULL;
-  inverse_matrix = NULL;
-  G1ww = NULL;
-  G2ww = NULL;
-  G3ww = NULL;
-  ndotGww = NULL;
+  Rww = nullptr;
+  inverse_matrix = nullptr;
+  G1ww = nullptr;
+  G2ww = nullptr;
+  G3ww = nullptr;
+  ndotGww = nullptr;
 
-  qiRqwVector = NULL;
-  G1qw_real = NULL;
-  sum2G2wq = NULL;
+  qiRqwVector = nullptr;
+  G1qw_real = nullptr;
+  sum2G2wq = nullptr;
 
-  sum1G2qw = NULL;
-  sum1G1qw_epsilon = NULL;
-  sum2ndotGwq_epsilon = NULL;
+  sum1G2qw = nullptr;
+  sum1G1qw_epsilon = nullptr;
+  sum2ndotGwq_epsilon = nullptr;
 
-  efield_pair = NULL;
-  efield_kspace = NULL;
+  efield_pair = nullptr;
+  efield_kspace = nullptr;
 
   includingG3ww = 1;
 
-  cg_r = cg_p = cg_Ap = NULL;
-  cg_A = NULL;
+  cg_r = cg_p = cg_Ap = nullptr;
+  cg_A = nullptr;
 
   grow_arrays(atom->nmax);
   atom->add_callback(0);       // to ensure to work with atom->sort()
@@ -192,7 +192,7 @@ void FixPolarizeFunctional::init()
   int nlocal = atom->nlocal;
   tagint max_tag;
   tagint itmp;
-  int *ncount = NULL;
+  int *ncount = nullptr;
 
   // induced charge arrays setup
 
@@ -507,9 +507,9 @@ int FixPolarizeFunctional::modify_param(int narg, char **arg)
       int set_charge=0;
       double ediff = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       double emean = utils::numeric(FLERR,arg[iarg+2],false,lmp);
-      if (strcmp(arg[iarg+3],"NULL") != 0) epsiloni = utils::numeric(FLERR,arg[iarg+3],false,lmp);
-      if (strcmp(arg[iarg+4],"NULL") != 0) areai = utils::numeric(FLERR,arg[iarg+4],false,lmp);
-      if (strcmp(arg[iarg+5],"NULL") != 0) {
+      if (strcmp(arg[iarg+3],"nullptr") != 0) epsiloni = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+      if (strcmp(arg[iarg+4],"nullptr") != 0) areai = utils::numeric(FLERR,arg[iarg+4],false,lmp);
+      if (strcmp(arg[iarg+5],"nullptr") != 0) {
         qreali = utils::numeric(FLERR,arg[iarg+5],false,lmp);
         set_charge = 1;
       }

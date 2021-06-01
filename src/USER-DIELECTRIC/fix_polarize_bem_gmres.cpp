@@ -106,20 +106,20 @@ FixPolarizeBEMGMRES::FixPolarizeBEMGMRES(LAMMPS *lmp, int narg, char **arg) :
   randomized = 0;
   ave_charge = 0;
 
-  efield_pair = NULL;
-  efield_kspace = NULL;
+  efield_pair = nullptr;
+  efield_kspace = nullptr;
 
   comm_forward = 1;
   nmax = 0;
   allocated = 0;
   kspaceflag = 0;
 
-  induced_charge_idx = NULL;
-  induced_charges = NULL;
-  rhs = NULL;
-  buffer = NULL;
-  tag2mat = NULL;
-  mat2tag = NULL;
+  induced_charge_idx = nullptr;
+  induced_charges = nullptr;
+  rhs = nullptr;
+  buffer = nullptr;
+  tag2mat = nullptr;
+  mat2tag = nullptr;
 
   // set flags for arrays to clear in force_clear()
 

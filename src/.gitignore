@@ -379,6 +379,8 @@
 /compute_erotate_rigid.h
 /compute_event_displace.cpp
 /compute_event_displace.h
+/compute_fabric.cpp
+/compute_fabric.h
 /compute_fep.cpp
 /compute_fep.h
 /compute_force_tally.cpp

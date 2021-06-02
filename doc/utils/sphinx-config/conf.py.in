@@ -255,6 +255,8 @@ htmlhelp_basename = 'LAMMPSdoc'
 
 html_permalinks = True
 
+html_baseurl = os.environ.get('LAMMPS_WEBSITE_BASEURL', '')
+
 if 'epub' in sys.argv:
   html_math_renderer = 'imgmath'
 else:

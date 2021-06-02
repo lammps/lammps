@@ -256,9 +256,8 @@ double FixPairTracker::memory_usage()
 }
 
 /* ----------------------------------------------------------------------
-   one method for every keyword fix property/local can output
-   the atom property is packed into buf starting at n with stride nvalues
-   customize a new keyword by adding a method
+   one method for every keyword fix pair/tracker can output
+   the atom property is packed into a local vector or array
 ------------------------------------------------------------------------- */
 
 /* ---------------------------------------------------------------------- */

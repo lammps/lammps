@@ -8,25 +8,25 @@ boundary    f f f
 
 variable    method index gmres  # gmres = BEM/GMRES
                                 # icc   = BEM/ICC*
-                                # dof   = Variational
+                                # dof   = Direct optimization of the functional
                                 # none
  
-variable    data index data.sphere #data.plane # data.minimal
+variable    data index data.sphere
 
 read_data   ${data}
 
 group interface type 1
 group ions type 2 3
 
-pair_style      lj/cut/coul/cut/dielectric 50.0
+pair_style      lj/cut/coul/cut/dielectric 1.122 20.0
 pair_coeff      * * 1.0 1.0
 pair_coeff      1 1 0.0 1.0
 
 neigh_modify    one 5000
 
 #compute         ef all efield/atom
-dump            1 all custom 100 all.dump id mol type q x y z #fx fy fz c_ef[1] c_ef[2] c_ef[3]
-dump            2 interface custom 100 interface.dump id mol type q x y z #fx fy fz c_ef[1] c_ef[2] c_ef[3]
+dump            1 all custom 100 all.dump id mol type q x y z #c_ef[1] c_ef[2] c_ef[3]
+dump            2 interface custom 100 interface.dump id mol type q x y z #c_ef[1] c_ef[2] c_ef[3]
 
 dump_modify     1 sort id
 
@@ -42,7 +42,7 @@ else &
   "print 'Unsupported method for polarization' "
 
 thermo          1000
-thermo_style    custom step evdwl ecoul elong epair #f_3
+thermo_style    custom step evdwl ecoul elong epair
 thermo_modify   flush yes
 
 run             0

@@ -14,11 +14,11 @@ units       lj
 atom_style  dielectric
 atom_modify map array
 dimension   3
-boundary    f f f
+boundary    p p f
 
 variable    method index gmres  # gmres = BEM/GMRES
                                 # icc   = BEM/ICC*
-                                # dof   = Variational
+                                # dof   = Direct optimization of the functional
                                 # none
 
 variable ed      equal "v_epsilon2 - v_epsilon1"
@@ -41,9 +41,12 @@ set group cations charge ${qscale}
 variable qscale equal "-1.0 / v_epsilon2"
 set group anions charge ${qscale}
 
-pair_style      lj/cut/coul/cut/dielectric 1.122 20.0
+pair_style      lj/cut/coul/long/dielectric 1.122 10.0
 pair_coeff      * * 1.0 1.0
 pair_coeff      1 1 0.0 1.0
+
+kspace_style    pppm/dielectric 0.0001
+kspace_modify   slab 3.0
 
 neigh_modify    every 1 delay 0 check yes one 5000
 

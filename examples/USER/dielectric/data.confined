@@ -1,4 +1,4 @@
-LAMMPS data file: using 2001 atoms for single point charge (no pbc), or 2002 atoms for two opposite charges (to have charge neutrality for pbc)
+LAMMPS data file: two oppositely charged ions confined between two walls
 
 4002 atoms
 3 atom types

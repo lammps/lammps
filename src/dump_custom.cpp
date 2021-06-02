@@ -328,6 +328,8 @@ void DumpCustom::init_style()
     fix[i] = modify->fix[ifix];
     if (nevery % modify->fix[ifix]->peratom_freq)
       error->all(FLERR,"Dump custom and fix not computed at compatible times");
+    if (vtime >0 &&  modify->fix[ifix]->peratom_freq != 1)
+      error->all(FLERR,"Time-dependent dumps can only use fixes with nfreq = 1");
   }
 
   for (i = 0; i < nvariable; i++) {

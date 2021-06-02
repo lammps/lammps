@@ -1,7 +1,7 @@
 .. index:: pair_style tracker
 
 pair_style tracker command
-=======================
+==========================
 
 Syntax
 """"""
@@ -15,7 +15,8 @@ Syntax
 
   .. parsed-literal::
 
-      *finite* pair style uses atomic diameters to identify contacts  
+      *finite* value = none
+         pair style uses atomic diameters to identify contacts  
 
 Examples
 """"""""
@@ -36,11 +37,11 @@ Description
 """""""""""
 
 Style *tracker* monitors information about pairwise interactions.
-It does not calculate any forces on atoms and should be used with  
-:doc:`pair hybrid/overlay <pair_hybrid>` to combine with a regularly
-used pair style. Style *tracker*  must be used in conjunction with about
-:doc:`fix pair_tracker <fix_pair_tracker>` which contains information on 
-what data can be output.
+It does not calculate any forces on atoms.
+:doc:`Pair hybrid/overlay <pair_hybrid>` can be used to combine this pair 
+style with another pair style. Style *tracker*  must be used in conjunction 
+with about :doc:`fix pair_tracker <fix_pair_tracker>` which contains 
+information on what data can be output.
 
 If the *finite* keyword is not defined, the following coefficients must be 
 defined for each pair of atom types via the :doc:`pair_coeff <pair_coeff>` 
@@ -51,7 +52,8 @@ commands, or by mixing as described below:
 * cutoff (distance units)
 
 If the *finite* keyword is defined, no coeffients may be defined. 
-Alternatively, interactions are defined if finite particles overlap.
+Interaction cutoffs are alternatively calculated based on the
+diameter of finite particles.
 
 
 Mixing, shift, table, tail correction, restart, rRESPA info

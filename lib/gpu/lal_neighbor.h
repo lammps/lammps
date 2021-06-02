@@ -33,6 +33,10 @@
 #endif
 #endif
 
+#if defined(USE_HIP)
+#define LAL_USE_OLD_NEIGHBOR
+#endif
+
 namespace LAMMPS_AL {
 
 class Neighbor {

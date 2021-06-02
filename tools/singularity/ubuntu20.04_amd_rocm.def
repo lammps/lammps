@@ -3,6 +3,7 @@ From: ubuntu:20.04
 
 %environment
     export PATH=/usr/lib/ccache:${PATH}:/opt/rocm/bin:/opt/rocm/profiler/bin:/opt/rocm/opencl/bin/x86_64
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/rocm/lib:/opt/rocm-4.2.0/llvm/lib
 %post
     export DEBIAN_FRONTEND=noninteractive
     apt-get update

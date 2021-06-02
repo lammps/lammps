@@ -13,13 +13,30 @@
 
 #include "atom_vec_dielectric.h"
 #include "atom.h"
+#include "citeme.h"
 
 using namespace LAMMPS_NS;
+
+static const char cite_user_dielectric_package[] =
+  "USER-DIELECTRIC package:\n\n"
+  "@Article{TrungCPC19,\n"
+  " author = {Trung Dac Nguyen, Honghao Li, Debarshee Bagchi,"
+  " Francisco J. Solis, Monica Olvera de la Cruz,\n"
+  " title = {Incorporating surface polarization effects into large-scale"
+  " coarse-grained Molecular Dynamics simulation},\n"
+  " journal = {Comp.~Phys.~Comm.},\n"
+  " year =    2019,\n"
+  " volume =  241,\n"
+  " pages =   {80--91}\n"
+  "}\n\n"
+  ;
 
 /* ---------------------------------------------------------------------- */
 
 AtomVecDielectric::AtomVecDielectric(LAMMPS *lmp) : AtomVec(lmp)
 {
+  if (lmp->citeme) lmp->citeme->add(cite_user_dielectric_package);
+
   molecular = Atom::MOLECULAR;
   bonds_allow = angles_allow = dihedrals_allow = impropers_allow = 1;
   mass_type = PER_TYPE;

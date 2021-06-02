@@ -27,7 +27,6 @@
 
 #include "atom.h"
 #include "atom_vec_dielectric.h"
-#include "citeme.h"
 #include "comm.h"
 #include "error.h"
 #include "force.h"
@@ -55,27 +54,11 @@ using namespace MathConst;
 
 //#define _POLARIZE_DEBUG
 
-static const char cite_user_dielectric_package[] =
-  "USER-DIELECTRIC package:\n\n"
-  "@Article{TrungCPC19,\n"
-  " author = {Trung Dac Nguyen, Honghao Li, Debarshee Bagchi,"
-  " Francisco J. Solis, Monica Olvera de la Cruz,\n"
-  " title = {Incorporating surface polarization effects into large-scale"
-  " coarse-grained Molecular Dynamics simulation},\n"
-  " journal = {Comp.~Phys.~Comm.},\n"
-  " year =    2019,\n"
-  " volume =  241,\n"
-  " pages =   {80--91}\n"
-  "}\n\n"
-  ;
-
 /* ---------------------------------------------------------------------- */
 
 FixPolarizeBEMICC::FixPolarizeBEMICC(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (lmp->citeme) lmp->citeme->add(cite_user_dielectric_package);
-
   if (narg < 5) error->all(FLERR,"Illegal fix polarize/bem/icc command");
 
   avec = (AtomVecDielectric *) atom->style_match("dielectric");

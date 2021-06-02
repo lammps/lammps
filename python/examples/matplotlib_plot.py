@@ -86,4 +86,7 @@ lmp.command("run 0 pre no post yes")
 #print("Proc %d out of %d procs has" % (me,nprocs), lmp)
 
 if me == 0:
-  input("Press Enter to exit...")
+  if sys.version_info[0] == 3:
+      input("Press Enter to exit...")
+  else:
+      raw_input("Press Enter to exit...")

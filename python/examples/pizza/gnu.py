@@ -88,6 +88,7 @@ g.curve(N,'r')                 set color of curve N
 # Imports and external programs
 
 import os
+import sys
 
 try: from DEFAULTS import PIZZA_GNUPLOT
 except ImportError: PIZZA_GNUPLOT = "gnuplot -p"
@@ -122,7 +123,10 @@ class gnu:
 
   def enter(self):
     while 1:
-      command = input("gnuplot> ")
+      if sys.version_info[0] == 3:
+        command = input("gnuplot> ")
+      else:
+        command = raw_input("gnuplot> ")
       if command == "quit" or command == "exit": return
       self.__call__(command)
 

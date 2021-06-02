@@ -12,7 +12,6 @@
 
 from __future__ import print_function
 import sys
-sys.path.append("./pizza")
 import matplotlib.pyplot as plt
 
 # parse command line

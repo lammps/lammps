@@ -163,7 +163,8 @@ void Output::setup(int memflag)
   // perform dump at start of run only if:
   //   current timestep is multiple of every and last dump not >= this step
   //   this is first run after dump created and firstflag is set
-  //   note that variable freq will not write unless triggered by firstflag
+  //   note that variable freq and time-dependent dumps 
+  //   will not write unless triggered by firstflag
   // set next_dump to multiple of every or variable value
   // set next_dump_any to smallest next_dump
   // wrap dumps that invoke computes and variable eval with clear/add
@@ -181,6 +182,9 @@ void Output::setup(int memflag)
       if (every_dump[idump] && ntimestep % every_dump[idump] == 0 &&
           last_dump[idump] != ntimestep) writeflag = 1;
       if (last_dump[idump] < 0 && dump[idump]->first_flag == 1) writeflag = 1;
+
+      if (dump[idump]->vtime > 0 && dump[idump]->first_flag == 0)
+          writeflag = 0;
 
       if (writeflag) {
         dump[idump]->write();

@@ -1197,8 +1197,8 @@ bool Dump::is_writing()
 {
   if (vtime <= 0) //always write if it is not a time-based dump
     return true;
-  if (update->atime > last_time) {
-    while (update->atime > last_time)
+  if (update->atime >= last_time) {
+    while (update->atime >= last_time)
       last_time += vtime;
     return true;
   }

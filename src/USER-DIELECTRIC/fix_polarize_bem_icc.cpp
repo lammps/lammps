@@ -370,7 +370,7 @@ int FixPolarizeBEMICC::modify_param(int narg, char **arg)
     } else if (strcmp(arg[iarg],"dielectrics") == 0) {
       if (iarg+6 > narg) error->all(FLERR,"Illegal fix_modify command");
       double epsiloni=-1, areai=-1;
-      double qreali=0;
+      double qunscaledi=0;
       int set_charge=0;
       double ediff = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       double emean = utils::numeric(FLERR,arg[iarg+2],false,lmp);
@@ -379,10 +379,11 @@ int FixPolarizeBEMICC::modify_param(int narg, char **arg)
       if (strcmp(arg[iarg+4],"NULL") != 0)
         areai = utils::numeric(FLERR,arg[iarg+4],false,lmp);
       if (strcmp(arg[iarg+5],"NULL") != 0) {
-        qreali = utils::numeric(FLERR,arg[iarg+5],false,lmp);
+        qunscaledi = utils::numeric(FLERR,arg[iarg+5],false,lmp);
         set_charge = 1;
       }
-      set_dielectric_params(ediff, emean, epsiloni, areai, set_charge, qreali);
+      set_dielectric_params(ediff, emean, epsiloni, areai, set_charge,
+                            qunscaledi);
 
       iarg += 6;
     } else if (strcmp(arg[iarg],"rand") == 0) {
@@ -416,16 +417,16 @@ void FixPolarizeBEMICC::unpack_forward_comm(int n, int first, double *buf)
 }
 
 /* ----------------------------------------------------------------------
-   set dielectric params for the atom in the group
+   set dielectric params for the atoms in the group
 ------------------------------------------------------------------------- */
 
 void FixPolarizeBEMICC::set_dielectric_params(double ediff, double emean,
-   double epsiloni, double areai, int set_charge, double qreali)
+   double epsiloni, double areai, int set_charge, double qvalue)
 {
   double *area = atom->area;
   double *ed = atom->ed;
   double *em = atom->em;
-  double *q_real = atom->q_unscaled;
+  double *q_unscaled = atom->q_unscaled;
   double *epsilon = atom->epsilon;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -436,7 +437,7 @@ void FixPolarizeBEMICC::set_dielectric_params(double ediff, double emean,
       em[i] = emean;
       if (areai > 0) area[i] = areai;
       if (epsiloni > 0) epsilon[i] = epsiloni;
-      if (set_charge) q_real[i] = qreali;
+      if (set_charge) q_unscaled[i] = qvalue;
     }
   }
 }
@@ -450,4 +451,5 @@ double FixPolarizeBEMICC::compute_vector(int n)
 {
   if (n == 0) return iterations;
   else if (n == 1) return rho;
+  else return 0;
 }

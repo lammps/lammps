@@ -930,19 +930,20 @@ double FixPolarizeBEMGMRES::compute_vector(int n)
 {
   if (n == 0) return iterations;
   else if (n == 1) return rho;
+  else return 0;
 }
 
 /* ----------------------------------------------------------------------
-   set dielectric params for the atom in the group
+   set dielectric params for the atoms in the group
 ------------------------------------------------------------------------- */
 
 void FixPolarizeBEMGMRES::set_dielectric_params(double ediff, double emean,
-   double epsiloni, double areai, int set_charge, double qreali)
+   double epsiloni, double areai, int set_charge, double qvalue)
 {
   double *area = atom->area;
   double *ed = atom->ed;
   double *em = atom->em;
-  double *q_real = atom->q_unscaled;
+  double *q_unscaled = atom->q_unscaled;
   double *epsilon = atom->epsilon;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -953,7 +954,7 @@ void FixPolarizeBEMGMRES::set_dielectric_params(double ediff, double emean,
       em[i] = emean;
       if (areai > 0) area[i] = areai;
       if (epsiloni > 0) epsilon[i] = epsiloni;
-      if (set_charge) q_real[i] = qreali;
+      if (set_charge) q_unscaled[i] = qvalue;
     }
   }
 }

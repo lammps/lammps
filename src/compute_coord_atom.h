@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(coord/atom,ComputeCoordAtom)
-
+// clang-format off
+ComputeStyle(coord/atom,ComputeCoordAtom);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_COORD_ATOM_H
@@ -34,28 +34,28 @@ class ComputeCoordAtom : public Compute {
   int pack_forward_comm(int, int *, double *, int, int *);
   void unpack_forward_comm(int, int, double *);
   double memory_usage();
-  enum {NONE,CUTOFF,ORIENT};
+  enum { NONE, CUTOFF, ORIENT };
 
  protected:
-  int nmax,ncol;
+  int nmax, ncol;
   double cutsq;
   class NeighList *list;
 
-  int *typelo,*typehi;
+  int *typelo, *typehi;
   double *cvec;
   double **carray;
 
   char *group2;
-  int jgroup,jgroupbit;
+  int jgroup, jgroupbit;
 
   class ComputeOrientOrderAtom *c_orientorder;
   char *id_orientorder;
   double threshold;
   double **normv;
-  int cstyle,nqlist,l;
+  int cstyle, nqlist, l;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

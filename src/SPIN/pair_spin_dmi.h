@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(spin/dmi,PairSpinDmi)
-
+// clang-format off
+PairStyle(spin/dmi,PairSpinDmi);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_SPIN_DMI_H
@@ -44,18 +44,18 @@ class PairSpinDmi : public PairSpin {
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
 
-  double cut_spin_dmi_global;                   // short range pair cutoff
+  double cut_spin_dmi_global;    // short range pair cutoff
 
  protected:
-  double **DM;                                  // dmi coeff in eV
-  double **v_dmx, **v_dmy, **v_dmz;             // dmi direction
-  double **vmech_dmx, **vmech_dmy, **vmech_dmz; // dmi mech direction
-  double **cut_spin_dmi;                        // cutoff distance dmi
+  double **DM;                                     // dmi coeff in eV
+  double **v_dmx, **v_dmy, **v_dmz;                // dmi direction
+  double **vmech_dmx, **vmech_dmy, **vmech_dmz;    // dmi mech direction
+  double **cut_spin_dmi;                           // cutoff distance dmi
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

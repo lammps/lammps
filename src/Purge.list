@@ -51,6 +51,11 @@ lmpinstalledpkgs.h
 lmpgitversion.h
 mliap_model_python_couple.cpp
 mliap_model_python_couple.h
+# removed on 14 May 2021
+nstencil_half_bin_2d_newton_ssa.cpp
+nstencil_half_bin_2d_newton_ssa.h
+nstencil_half_bin_3d_newton_ssa.cpp
+nstencil_half_bin_3d_newton_ssa.h
 # removed on 9 Sep 2020
 mergesort.h
 # renamed on 8 May 2020

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,9 +16,9 @@
   --------------------------------------------------------------------------*/
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(stress/mop/profile,ComputeStressMopProfile)
-
+// clang-format off
+ComputeStyle(stress/mop/profile,ComputeStressMopProfile);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_STRESS_MOP_PROFILE_H
@@ -28,35 +28,33 @@ ComputeStyle(stress/mop/profile,ComputeStressMopProfile)
 
 namespace LAMMPS_NS {
 
-  class ComputeStressMopProfile : public Compute {
-  public:
-    ComputeStressMopProfile(class LAMMPS *, int, char **);
-    virtual ~ComputeStressMopProfile();
-    void init();
-    void init_list(int, class NeighList *);
-    void compute_array();
+class ComputeStressMopProfile : public Compute {
+ public:
+  ComputeStressMopProfile(class LAMMPS *, int, char **);
+  virtual ~ComputeStressMopProfile();
+  void init();
+  void init_list(int, class NeighList *);
+  void compute_array();
 
-  private:
+ private:
+  void compute_pairs();
+  void setup_bins();
 
-    void compute_pairs();
-    void setup_bins();
+  int me, nvalues, dir;
+  int *which;
 
-    int me,nvalues,dir;
-    int *which;
+  int originflag;
+  double origin, delta, offset, invdelta;
+  int nbins;
+  double **coord, **coordp;
+  double **values_local, **values_global;
 
-    int originflag;
-    double origin,delta,offset,invdelta;
-    int nbins;
-    double **coord,**coordp;
-    double **values_local,**values_global;
+  double dt, nktv2p, ftm2v;
+  double area;
+  class NeighList *list;
+};
 
-    double dt,nktv2p,ftm2v;
-    double area;
-    class NeighList *list;
-
-  };
-
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
@@ -109,4 +107,3 @@ namespace LAMMPS_NS {
    the computation of local stress tensor components.
 
 */
-

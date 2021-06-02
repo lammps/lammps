@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -13,7 +13,7 @@
 
 #ifdef DUMP_CLASS
 // clang-format off
-DumpStyle(custom/adios, DumpCustomADIOS)
+DumpStyle(custom/adios, DumpCustomADIOS);
 // clang-format on
 #else
 
@@ -22,31 +22,29 @@ DumpStyle(custom/adios, DumpCustomADIOS)
 
 #include "dump_custom.h"
 
-namespace LAMMPS_NS
-{
+namespace LAMMPS_NS {
 
 class DumpCustomADIOSInternal;
 
-class DumpCustomADIOS : public DumpCustom
-{
-public:
-    DumpCustomADIOS(class LAMMPS *, int, char **);
-    virtual ~DumpCustomADIOS();
+class DumpCustomADIOS : public DumpCustom {
+ public:
+  DumpCustomADIOS(class LAMMPS *, int, char **);
+  virtual ~DumpCustomADIOS();
 
-protected:
-    virtual void openfile();
-    virtual void write();
-    virtual void init_style();
+ protected:
+  virtual void openfile();
+  virtual void write();
+  virtual void init_style();
 
-private:
-    DumpCustomADIOSInternal *internal;
+ private:
+  DumpCustomADIOSInternal *internal;
 };
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
 
-    /* ERROR/WARNING messages:
+/* ERROR/WARNING messages:
 
     E: Cannot open dump file %s
 

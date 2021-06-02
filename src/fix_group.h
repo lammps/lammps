@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(GROUP,FixGroup)
-
+// clang-format off
+FixStyle(GROUP,FixGroup);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_GROUP_H
@@ -32,14 +32,14 @@ class FixGroup : public Fix {
   void init();
   void setup(int);
   void post_integrate();
-  void post_integrate_respa(int,int);
-  void *extract(const char *,int &);
+  void post_integrate_respa(int, int);
+  void *extract(const char *, int &);
 
  private:
-  int gbit,gbitinverse;
-  int regionflag,varflag,propflag,typeflag;
-  int iregion,ivar,iprop;
-  char *idregion,*idvar,*idprop;
+  int gbit, gbitinverse;
+  int regionflag, varflag, propflag, typeflag;
+  int iregion, ivar, iprop;
+  char *idregion, *idvar, *idprop;
   class Region *region;
 
   int nlevels_respa;
@@ -47,7 +47,7 @@ class FixGroup : public Fix {
   void set_group();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

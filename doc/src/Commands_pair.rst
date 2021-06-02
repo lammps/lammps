@@ -118,6 +118,7 @@ OPT.
    * :doc:`gw/zbl <pair_gw>`
    * :doc:`hbond/dreiding/lj (o) <pair_hbond_dreiding>`
    * :doc:`hbond/dreiding/morse (o) <pair_hbond_dreiding>`
+   * :doc:`hdnnp <pair_hdnnp>`
    * :doc:`ilp/graphene/hbn <pair_ilp_graphene_hbn>`
    * :doc:`kolmogorov/crespi/full <pair_kolmogorov_crespi_full>`
    * :doc:`kolmogorov/crespi/z <pair_kolmogorov_crespi_z>`
@@ -226,6 +227,7 @@ OPT.
    * :doc:`polymorphic <pair_polymorphic>`
    * :doc:`python <pair_python>`
    * :doc:`quip <pair_quip>`
+   * :doc:`rann <pair_rann>`
    * :doc:`reax/c (ko) <pair_reaxc>`
    * :doc:`rebo (io) <pair_airebo>`
    * :doc:`resquared (go) <pair_resquared>`

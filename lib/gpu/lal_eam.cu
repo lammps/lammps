@@ -216,6 +216,7 @@ __kernel void k_energy(const __global numtyp4 *restrict x_,
                        const __global numtyp4 *restrict rhor_spline2,
                        const __global numtyp4 *restrict frho_spline1,
                        const __global numtyp4 *restrict frho_spline2,
+                       const __global numtyp *restrict cutsq,
                        const __global int *dev_nbor,
                        const __global int *dev_packed,
                        __global numtyp *restrict fp_,
@@ -257,7 +258,8 @@ __kernel void k_energy(const __global numtyp4 *restrict x_,
       numtyp delz = ix.z-jx.z;
       numtyp rsq = delx*delx+dely*dely+delz*delz;
 
-      if (rsq<cutforcesq) {
+      int ijtype=itype*ntypes+jtype;
+      if (rsq<cutforcesq && cutsq[ijtype]>(numtyp)0) {
         numtyp p = ucl_sqrt(rsq)*rdr + (numtyp)1.0;
         int m=p;
         m = MIN(m,nr-1);
@@ -281,6 +283,7 @@ __kernel void k_energy_fast(const __global numtyp4 *restrict x_,
                             const __global numtyp4 *restrict rhor_spline2,
                             const __global numtyp4 *restrict frho_spline1,
                             const __global numtyp4 *restrict frho_spline2,
+                            const __global numtyp *restrict cutsq,
                             const __global int *dev_nbor,
                             const __global int *dev_packed,
                             __global numtyp *restrict fp_,
@@ -340,7 +343,8 @@ __kernel void k_energy_fast(const __global numtyp4 *restrict x_,
       numtyp delz = ix.z-jx.z;
       numtyp rsq = delx*delx+dely*dely+delz*delz;
 
-      if (rsq<cutforcesq) {
+      int ijtype=fast_mul((int)MAX_SHARED_TYPES,ix.w)+jx.w;
+      if (rsq<cutforcesq && cutsq[ijtype]>(numtyp)0) {
         numtyp p = ucl_sqrt(rsq)*rdr + (numtyp)1.0;
         int m=p;
         m = MIN(m,nr-1);
@@ -369,6 +373,7 @@ __kernel void k_eam(const __global numtyp4 *restrict x_,
                     const __global numtyp4 *rhor_spline1,
                     const __global numtyp4 *z2r_spline1,
                     const __global numtyp4 *z2r_spline2,
+                    const __global numtyp *cutsq,
                     const __global int *dev_nbor,
                     const __global int *dev_packed,
                     __global acctyp4 *ans,
@@ -414,7 +419,8 @@ __kernel void k_eam(const __global numtyp4 *restrict x_,
       numtyp delz = ix.z-jx.z;
       numtyp rsq = delx*delx+dely*dely+delz*delz;
 
-      if (rsq<cutforcesq) {
+      int ijtype=itype*ntypes+jtype;
+      if (rsq<cutforcesq && cutsq[ijtype]>(numtyp)0) {
         numtyp r = ucl_sqrt(rsq);
         numtyp p = r*rdr + (numtyp)1.0;
         int m=p;
@@ -478,6 +484,7 @@ __kernel void k_eam_fast(const __global numtyp4 *x_,
                          const __global numtyp4 *rhor_spline1,
                          const __global numtyp4 *z2r_spline1,
                          const __global numtyp4 *z2r_spline2,
+                         const __global numtyp *cutsq,
                          const __global int *dev_nbor,
                          const __global int *dev_packed,
                          __global acctyp4 *ans,
@@ -540,7 +547,8 @@ __kernel void k_eam_fast(const __global numtyp4 *x_,
       numtyp delz = ix.z-jx.z;
       numtyp rsq = delx*delx+dely*dely+delz*delz;
 
-      if (rsq<cutforcesq) {
+      int ijtype=fast_mul((int)MAX_SHARED_TYPES,ix.w)+jx.w;
+      if (rsq<cutforcesq && cutsq[ijtype]>(numtyp)0) {
         numtyp r = ucl_sqrt(rsq);
         numtyp p = r*rdr + (numtyp)1.0;
         int m=p;

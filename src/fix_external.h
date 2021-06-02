@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(external,FixExternal)
-
+// clang-format off
+FixStyle(external,FixExternal);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_EXTERNAL_H
@@ -46,7 +46,7 @@ class FixExternal : public Fix {
   void set_energy_peratom(double *);
   void set_virial_peratom(double **);
   void set_vector_length(int);
-  void set_vector(int,double);
+  void set_vector(int, double);
 
   double memory_usage();
   void grow_arrays(int);
@@ -58,14 +58,14 @@ class FixExternal : public Fix {
   void set_callback(FnPtr, void *);
 
  private:
-  int mode,ncall,napply,eflag_caller;
+  int mode, ncall, napply, eflag_caller;
   FnPtr callback;
   void *ptr_caller;
   double user_energy;
   double *caller_vector;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

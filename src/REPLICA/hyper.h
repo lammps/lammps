@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMMAND_CLASS
-
-CommandStyle(hyper,Hyper)
-
+// clang-format off
+CommandStyle(hyper,Hyper);
+// clang-format on
 #else
 
 #ifndef LMP_HYPER_H
@@ -31,18 +31,18 @@ class Hyper : public Command {
   void command(int, char **);
 
  private:
-  int me,nprocs;
+  int me, nprocs;
   int t_event;
-  double etol,ftol;
-  int maxiter,maxeval;
-  int stepmode,dumpflag,ndump,rebond;
+  double etol, ftol;
+  int maxiter, maxeval;
+  int stepmode, dumpflag, ndump, rebond;
   int *dumplist;
 
-  int neigh_every,neigh_delay,neigh_dist_check;
+  int neigh_every, neigh_delay, neigh_dist_check;
   int quench_reneighbor;
-  bigint nbuild,ndanger;
+  bigint nbuild, ndanger;
 
-  double time_dynamics,time_quench;
+  double time_dynamics, time_quench;
   double time_start;
 
   class FixHyper *fix_hyper;
@@ -55,7 +55,7 @@ class Hyper : public Command {
   void options(int, char **);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

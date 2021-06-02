@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -20,32 +20,32 @@ namespace LAMMPS_NS {
 
 class NStencil : protected Pointers {
  public:
-  int istyle;                      // 1-N index into binnames
-  class NBin *nb;                  // ptr to NBin instance I depend on
-  bigint last_stencil;             // last timestep stencil was created
+  int istyle;             // 1-N index into binnames
+  class NBin *nb;         // ptr to NBin instance I depend on
+  bigint last_stencil;    // last timestep stencil was created
 
-  int nstencil;                    // # of bins in stencil
-  int *stencil;                    // list of bin offsets
-  int **stencilxyz;                // bin offsets in xyz dims
-  int *nstencil_multi_old;         // # bins in each type-based old multi stencil
-  int **stencil_multi_old;         // list of bin offsets in each stencil
-  double **distsq_multi_old;       // sq distances to bins in each stencil
-  int ** nstencil_multi;           // # bins bins in each igroup-jgroup multi stencil
-  int *** stencil_multi;           // list of bin offsets in each multi stencil
-  int ** maxstencil_multi;         // max stencil size for each multi stencil
-  int maxcollections;              // size of multi arrays
+  int nstencil;                 // # of bins in stencil
+  int *stencil;                 // list of bin offsets
+  int **stencilxyz;             // bin offsets in xyz dims
+  int *nstencil_multi_old;      // # bins in each type-based old multi stencil
+  int **stencil_multi_old;      // list of bin offsets in each stencil
+  double **distsq_multi_old;    // sq distances to bins in each stencil
+  int **nstencil_multi;         // # bins bins in each igroup-jgroup multi stencil
+  int ***stencil_multi;         // list of bin offsets in each multi stencil
+  int **maxstencil_multi;       // max stencil size for each multi stencil
+  int maxcollections;           // size of multi arrays
 
-  int sx,sy,sz;                    // extent of stencil in each dim
-  int **stencil_sx_multi;         // analogs for each multi stencil
+  int sx, sy, sz;            // extent of stencil in each dim
+  int **stencil_sx_multi;    // analogs for each multi stencil
   int **stencil_sy_multi;
   int **stencil_sz_multi;
 
-  double cutoff_custom;            // cutoff set by requestor
+  double cutoff_custom;    // cutoff set by requestor
 
   // Arrays to store options for multi itype-jtype stencils
-  bool **flag_half_multi;          // flag creation of a half stencil for icollection-jcollection
-  bool **flag_skip_multi;          // skip creation of icollection-jcollection stencils (for newton on)
-  int **bin_collection_multi;      // what collection to use for bin information
+  bool **flag_half_multi;    // flag creation of a half stencil for icollection-jcollection
+  bool **flag_skip_multi;    // skip creation of icollection-jcollection stencils (for newton on)
+  int **bin_collection_multi;    // what collection to use for bin information
 
   NStencil(class LAMMPS *);
   virtual ~NStencil();
@@ -56,10 +56,9 @@ class NStencil : protected Pointers {
 
   virtual void create() = 0;
 
-  inline int get_maxstencil() {return maxstencil;}
+  inline int get_maxstencil() { return maxstencil; }
 
  protected:
-
   // data from Neighbor class
 
   int neighstyle;
@@ -73,9 +72,9 @@ class NStencil : protected Pointers {
 
   // data from NBin class
 
-  int mbinx,mbiny,mbinz;
-  double binsizex,binsizey,binsizez;
-  double bininvx,bininvy,bininvz;
+  int mbinx, mbiny, mbinz;
+  double binsizex, binsizey, binsizez;
+  double bininvx, bininvy, bininvz;
 
   // data from NBin class for multi
 
@@ -100,25 +99,26 @@ class NStencil : protected Pointers {
 
   // data common to all NStencil variants
 
-  int xyzflag;                     // 1 if stencilxyz is allocated
-  int maxstencil;                  // max size of stencil
-  int maxstencil_multi_old;        // max sizes of stencils
+  int xyzflag;                 // 1 if stencilxyz is allocated
+  int maxstencil;              // max size of stencil
+  int maxstencil_multi_old;    // max sizes of stencils
 
   int dimension;
 
   // methods for standard NStencil variants
 
-  void copy_bin_info();                     // copy info from NBin class
-  double bin_distance(int, int, int);       // distance between bin corners
+  void copy_bin_info();                  // copy info from NBin class
+  double bin_distance(int, int, int);    // distance between bin corners
 
   // methods for multi NStencil
 
-  double bin_distance_multi(int, int, int, int);   // distance between bin corners for different collections
-  void copy_bin_info_multi();                      // copy multi info from NBin class
-  virtual void set_stencil_properties(){}          // determine which stencils to build and how
+  double bin_distance_multi(int, int, int,
+                            int);    // distance between bin corners for different collections
+  void copy_bin_info_multi();        // copy multi info from NBin class
+  virtual void set_stencil_properties() {}    // determine which stencils to build and how
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 

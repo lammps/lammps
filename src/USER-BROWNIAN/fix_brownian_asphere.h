@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/ Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class FixBrownianAsphere : public FixBrownianBase {
  public:
   FixBrownianAsphere(class LAMMPS *, int, char **);
-  virtual ~FixBrownianAsphere() {};
+  virtual ~FixBrownianAsphere(){};
   void initial_integrate(int);
   void init();
 

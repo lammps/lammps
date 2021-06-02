@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(lj/sdk,PairLJSDK)
-
+// clang-format off
+PairStyle(lj/sdk,PairLJSDK);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_LJ_SDK_H
@@ -47,11 +47,11 @@ class PairLJSDK : public Pair {
   virtual double memory_usage();
 
  protected:
-  int **lj_type; // type of lennard jones potential
+  int **lj_type;    // type of lennard jones potential
 
   double **cut;
-  double **epsilon,**sigma;
-  double **lj1,**lj2,**lj3,**lj4,**offset;
+  double **epsilon, **sigma;
+  double **lj1, **lj2, **lj3, **lj4, **offset;
 
   // cutoff and offset for minimum of LJ potential
   // to be used in SDK angle potential, which
@@ -65,10 +65,9 @@ class PairLJSDK : public Pair {
 
  private:
   template <int EVFLAG, int EFLAG, int NEWTON_PAIR> void eval();
-
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

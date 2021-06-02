@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/ Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -46,6 +46,7 @@ FixBrownianBase::FixBrownianBase(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, n
   gamma_t_flag = gamma_r_flag = 0;
   gamma_t_eigen_flag = gamma_r_eigen_flag = 0;
   dipole_flag = 0;
+  g2 = 0.0;
 
   if (narg < 5) error->all(FLERR, "Illegal fix brownian command.");
 
@@ -201,7 +202,7 @@ void FixBrownianBase::init()
 
   g1 = force->ftm2v;
   if (noise_flag == 0) {
-    g2 = 0;
+    g2 = 0.0;
   } else if (gaussian_noise_flag == 1) {
     g2 = sqrt(2 * force->boltz * temp / dt / force->mvv2e);
   } else {

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(saed,ComputeSAED)
-
+// clang-format off
+ComputeStyle(saed,ComputeSAED);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_SAED_H
@@ -28,36 +28,35 @@ class ComputeSAED : public Compute {
  public:
   ComputeSAED(class LAMMPS *, int, char **);
   ~ComputeSAED();
-  void    init();
-  void    compute_vector();
-  double  memory_usage();
-//testing
-  double  saed_var[10];
+  void init();
+  void compute_vector();
+  double memory_usage();
+  //testing
+  double saed_var[10];
 
  private:
-  int     me;
-  int     *ztype;            // Atomic number of the different atom types
-  double  c[3];              // Parameters controlling resolution of reciprocal space explored
-  double  dR_Ewald;          // Thickness of Ewald sphere slice
-  double  prd_inv[3];        // Inverse spacing of unit cell
-  bool    echo;              // echo compute_array progress
-  bool    manual;            // Turn on manual recpiprocal map
-  int     nRows;             // Number of relp explored
+  int me;
+  int *ztype;           // Atomic number of the different atom types
+  double c[3];          // Parameters controlling resolution of reciprocal space explored
+  double dR_Ewald;      // Thickness of Ewald sphere slice
+  double prd_inv[3];    // Inverse spacing of unit cell
+  bool echo;            // echo compute_array progress
+  bool manual;          // Turn on manual recpiprocal map
+  int nRows;            // Number of relp explored
 
-  double  Zone[3];           // Zone axis to view SAED
-  double  R_Ewald;           // Radius of Ewald sphere (distance units)
-  double  lambda;            // Radiation wavelenght (distance units)
-  double  dK[3];             // spacing of reciprocal points in each dimension
-  int     Knmax[3];          // maximum integer value for K points in each dimension
-  double  Kmax;              // Maximum reciprocal distance to explore
+  double Zone[3];    // Zone axis to view SAED
+  double R_Ewald;    // Radius of Ewald sphere (distance units)
+  double lambda;     // Radiation wavelenght (distance units)
+  double dK[3];      // spacing of reciprocal points in each dimension
+  int Knmax[3];      // maximum integer value for K points in each dimension
+  double Kmax;       // Maximum reciprocal distance to explore
 
   int ntypes;
   int nlocalgroup;
   int *store_tmp;
-
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

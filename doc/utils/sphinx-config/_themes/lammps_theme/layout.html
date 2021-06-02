@@ -134,14 +134,8 @@
           </a>
 
           {% if theme_display_version %}
-            {%- set nav_version = version %}
-            {% if READTHEDOCS and current_version %}
-              {%- set nav_version = current_version %}
-            {% endif %}
-            {% if nav_version %}
-              <div class="lammps_version">Version: <b>{{ nav_version }}</b></div>
+              <div class="lammps_version">Version: <b>{{ current_version }}</b></div>
               <div class="lammps_release">git info: {{ release }}</div>
-            {% endif %}
           {% endif %}
 
           {% include "searchbox.html" %}

@@ -17,7 +17,7 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command.
 * bond/react = style name of this fix command
 * the common keyword/values may be appended directly after 'bond/react'
-* this applies to all reaction specifications (below)
+* common keywords apply to all reaction specifications
 * common_keyword = *stabilization* or *reset_mol_ids*
 
   .. parsed-literal::
@@ -525,12 +525,12 @@ reaction can be imposed as follows:
 
 .. code-block:: LAMMPS
 
-compute 1 all pe/atom # in LAMMPS input script
-variable my_pe atom c_1 # in LAMMPS input script
+   compute 1 all pe/atom # in LAMMPS input script
+   variable my_pe atom c_1 # in LAMMPS input script
 
 .. code-block:: LAMMPS
 
-custom "rxnsum(v_my_pe) > 100" # in Constraints section of map file
+   custom "rxnsum(v_my_pe) > 100" # in Constraints section of map file
 
 The above example prevents the reaction from occurring unless the
 total potential energy of the reaction site is above 100. The variable

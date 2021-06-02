@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(tip4p/long/soft,PairTIP4PLongSoft)
-
+// clang-format off
+PairStyle(tip4p/long/soft,PairTIP4PLongSoft);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_TIP4P_LONG_SOFT_H
@@ -38,19 +38,19 @@ class PairTIP4PLongSoft : public PairCoulLongSoft {
   virtual double memory_usage();
 
  protected:
-  int typeH,typeO;             // atom types of TIP4P water H and O atoms
-  int typeA,typeB;             // angle and bond types of TIP4P water
-  double alpha;                // geometric constraint parameter for TIP4P
+  int typeH, typeO;    // atom types of TIP4P water H and O atoms
+  int typeA, typeB;    // angle and bond types of TIP4P water
+  double alpha;        // geometric constraint parameter for TIP4P
 
-  int nmax;                    // info on off-oxygen charge sites
-  int **hneigh;                // 0,1 = indices of 2 H associated with O
-                               // 2 = 0 if site loc not yet computed, 1 if yes
-  double **newsite;            // locations of charge sites
+  int nmax;            // info on off-oxygen charge sites
+  int **hneigh;        // 0,1 = indices of 2 H associated with O
+                       // 2 = 0 if site loc not yet computed, 1 if yes
+  double **newsite;    // locations of charge sites
 
   void compute_newsite(double *, double *, double *, double *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
 LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-https://lammps.sandia.gov/, Sandia National Laboratories
+https://www.lammps.org/, Sandia National Laboratories
 Steve Plimpton, sjplimp@sandia.gov
 
 Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -2212,6 +2213,7 @@ double FixBondReact::rxnfunction(std::string rxnfunc, std::string varid,
 
   if (rxnfunc == "rxnsum") return sumvvec;
   if (rxnfunc == "rxnave") return sumvvec/nsum;
+  return 0.0;
 }
 
 /* ----------------------------------------------------------------------

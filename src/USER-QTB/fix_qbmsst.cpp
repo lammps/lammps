@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -220,7 +221,7 @@ FixQBMSST::FixQBMSST(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   // create a new compute potential energy compute
 
   id_pe = utils::strdup(std::string(id) + "_pe");
-  modify->add_compute(fmt::format("{} all pe",id_temp));
+  modify->add_compute(fmt::format("{} all pe",id_pe));
   peflag = 1;
 
   // allocate qbmsst

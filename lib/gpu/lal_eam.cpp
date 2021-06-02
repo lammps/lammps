@@ -46,7 +46,7 @@ template <class numtyp, class acctyp>
 int EAMT::init(const int ntypes, double host_cutforcesq, int **host_type2rhor,
                int **host_type2z2r, int *host_type2frho,
                double ***host_rhor_spline, double ***host_z2r_spline,
-               double ***host_frho_spline, double rdr, double rdrho,
+               double ***host_frho_spline, double** host_cutsq, double rdr, double rdrho,
                double rhomax, int nrhor, int nrho, int nz2r, int nfrho, int nr,
                const int nlocal, const int nall, const int max_nbors,
                const int maxspecial, const double cell_size,
@@ -243,6 +243,12 @@ int EAMT::init(const int ntypes, double host_cutforcesq, int **host_type2rhor,
   z2r_spline2_tex.get_texture(*(this->pair_program),"z2r_sp2_tex");
   z2r_spline2_tex.bind_float(z2r_spline2,4);
 
+  UCL_H_Vec<numtyp> host_write(lj_types*lj_types,*(this->ucl_device),
+                               UCL_WRITE_ONLY);
+  host_write.zero();
+  cutsq.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
+  this->atom->type_pack1(ntypes,lj_types,cutsq,host_write,host_cutsq);
+
   _allocated=true;
   this->_max_bytes=type2rhor_z2r.row_bytes()
         + type2frho.row_bytes()
@@ -252,6 +258,7 @@ int EAMT::init(const int ntypes, double host_cutforcesq, int **host_type2rhor,
         + frho_spline2.row_bytes()
         + z2r_spline1.row_bytes()
         + z2r_spline2.row_bytes()
+        + cutsq.row_bytes()
         + _fp.device.row_bytes();
   return 0;
 }
@@ -270,6 +277,7 @@ void EAMT::clear() {
   frho_spline2.clear();
   z2r_spline1.clear();
   z2r_spline2.clear();
+  cutsq.clear();
 
   _fp.clear();
 
@@ -477,7 +485,7 @@ void EAMT::compute2(int *ilist, const bool eflag, const bool vflag,
 }
 
 // ---------------------------------------------------------------------------
-// Calculate per-atom energies and forces
+// Calculate per-atom fp
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
 int EAMT::loop(const int eflag, const int vflag) {
@@ -498,7 +506,7 @@ int EAMT::loop(const int eflag, const int vflag) {
 
     k_energy_sel->set_size(GX,BX);
     k_energy_sel->run(&this->atom->x, &type2rhor_z2r, &type2frho,
-                      &rhor_spline2, &frho_spline1,&frho_spline2,
+                      &rhor_spline2, &frho_spline1, &frho_spline2, &cutsq,
                       &this->nbor->dev_nbor,  &this->_nbor_data->begin(),
                       &_fp, &this->ans->engv, &eflag, &ainum,
                       &nbor_pitch, &_ntypes, &_cutforcesq, &_rdr, &_rdrho,
@@ -506,7 +514,7 @@ int EAMT::loop(const int eflag, const int vflag) {
   } else {
     this->k_energy.set_size(GX,BX);
     this->k_energy.run(&this->atom->x, &type2rhor_z2r, &type2frho,
-                       &rhor_spline2, &frho_spline1, &frho_spline2,
+                       &rhor_spline2, &frho_spline1, &frho_spline2, &cutsq,
                        &this->nbor->dev_nbor, &this->_nbor_data->begin(), &_fp,
                        &this->ans->engv,&eflag, &ainum, &nbor_pitch,
                        &_ntypes, &_cutforcesq, &_rdr, &_rdrho, &_rhomax, &_nrho,
@@ -545,7 +553,7 @@ void EAMT::loop2(const bool _eflag, const bool _vflag) {
   if (shared_types) {
     this->k_pair_sel->set_size(GX,BX);
     this->k_pair_sel->run(&this->atom->x, &_fp, &type2rhor_z2r,
-                          &rhor_spline1, &z2r_spline1, &z2r_spline2,
+                          &rhor_spline1, &z2r_spline1, &z2r_spline2, &cutsq,
                           &this->nbor->dev_nbor, &this->_nbor_data->begin(),
                           &this->ans->force, &this->ans->engv, &eflag,
                           &vflag, &ainum, &nbor_pitch, &_cutforcesq, &_rdr,
@@ -553,7 +561,7 @@ void EAMT::loop2(const bool _eflag, const bool _vflag) {
   } else {
     this->k_pair.set_size(GX,BX);
     this->k_pair.run(&this->atom->x, &_fp, &type2rhor_z2r, &rhor_spline1,
-                     &z2r_spline1, &z2r_spline2, &this->nbor->dev_nbor,
+                     &z2r_spline1, &z2r_spline2, &cutsq, &this->nbor->dev_nbor,
                      &this->_nbor_data->begin(), &this->ans->force,
                      &this->ans->engv, &eflag, &vflag, &ainum, &nbor_pitch,
                      &_ntypes, &_cutforcesq, &_rdr, &_nr,

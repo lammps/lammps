@@ -29,7 +29,7 @@ LAMMPS styles and neighbor list builds using CUDA, OpenCL, or ROCm HIP.
 Pair styles supported by this library are marked in the list of Pair style
 potentials with a "g". See the online version at:
 
-https://lammps.sandia.gov/doc/Commands_pair.html
+https://docs.lammps.org/Commands_pair.html
 
 In addition the (plain) pppm kspace style is supported as well.
 

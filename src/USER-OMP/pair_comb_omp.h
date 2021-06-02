@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    See the README file in the top-level LAMMPS directory.
@@ -11,9 +11,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(comb/omp,PairCombOMP)
-
+// clang-format off
+PairStyle(comb/omp,PairCombOMP);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_COMB_OMP_H
@@ -36,12 +36,12 @@ class PairCombOMP : public PairComb, public ThrOMP {
 
  private:
   template <int EVFLAG, int EFLAG, int VFLAG_ATOM>
-  void eval(int ifrom, int ito, ThrData * const thr);
+  void eval(int ifrom, int ito, ThrData *const thr);
 
   void Short_neigh_thr();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

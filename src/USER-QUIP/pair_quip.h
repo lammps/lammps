@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(quip,PairQUIP)
-
+// clang-format off
+PairStyle(quip,PairQUIP);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_QUIP_H
@@ -22,15 +22,11 @@ PairStyle(quip,PairQUIP)
 
 #include "pair.h"
 
-extern "C"
-{
-  int quip_lammps_api_version();
-  void quip_lammps_wrapper(int*, int*, int*, int*,
-                           int*, int*, int*,
-                           int*, int*, double*,
-                           int*, int*, double*,
-                           double*, double*, double*, double*, double*);
-  void quip_lammps_potential_initialise(int*, int*, double*, char*, int*, char*, int*);
+extern "C" {
+int quip_lammps_api_version();
+void quip_lammps_wrapper(int *, int *, int *, int *, int *, int *, int *, int *, int *, double *,
+                         int *, int *, double *, double *, double *, double *, double *, double *);
+void quip_lammps_potential_initialise(int *, int *, double *, char *, int *, char *, int *);
 }
 
 namespace LAMMPS_NS {
@@ -49,17 +45,16 @@ class PairQUIP : public Pair {
 
  private:
   double cutoff;
-  int* quip_potential;
+  int *quip_potential;
   int n_quip_potential;
-  int *map;                     // mapping from atom types to elements
-  char *quip_file;                     // mapping from atom types to elements
+  int *map;           // mapping from atom types to elements
+  char *quip_file;    // mapping from atom types to elements
   int n_quip_file;
-  char *quip_string;                     // mapping from atom types to elements
+  char *quip_string;    // mapping from atom types to elements
   int n_quip_string;
-
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

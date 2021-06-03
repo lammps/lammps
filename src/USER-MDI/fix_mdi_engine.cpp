@@ -228,9 +228,11 @@ int FixMDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
   // respond to any driver command
 
   if (strcmp(command, ">NATOMS") == 0) {
-    ierr = MDI_Recv((char *) &atom->natoms, 1, MDI_INT, mdicomm);
+    int mdi_natoms = 0;
+    ierr = MDI_Recv((char *) &mdi_natoms, 1, MDI_INT, mdicomm);
     if (ierr != 0) error->all(FLERR, "MDI: Unable to receive number of atoms from driver");
-    MPI_Bcast(&atom->natoms, 1, MPI_INT, 0, world);
+    atom->natoms = mdi_natoms;
+    MPI_Bcast(&atom->natoms, 1, MPI_LMP_BIGINT, 0, world);
 
   } else if (strcmp(command, "<NATOMS") == 0) {
     int64_t mdi_natoms = atom->natoms;

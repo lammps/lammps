@@ -45,7 +45,7 @@ class FixPIMD4 : public Fix {
   double compute_scalar();
 
 
-  int method;
+  int method, fmmode;
   int np;
   double inverse_np;
   double temp, beta_np;

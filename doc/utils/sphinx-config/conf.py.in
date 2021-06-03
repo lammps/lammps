@@ -76,7 +76,7 @@ master_doc = 'Manual'
 
 # General information about the project.
 project = 'LAMMPS'
-copyright = '2003-2020 Sandia Corporation'
+copyright = '2003-2021 Sandia Corporation'
 
 def get_lammps_version():
     import os

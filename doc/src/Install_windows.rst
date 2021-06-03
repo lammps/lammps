@@ -14,7 +14,7 @@ current and older versions of LAMMPS are available.  32-bit and 64-bit
 installers are available, and each installer contains both a serial
 and parallel executable.  The installer web site also explains how to
 install the Windows MPI package (MPICH2 from Argonne National Labs),
-needed to run in parallel.
+needed to run in parallel with MPI.
 
 The LAMMPS binaries contain *all* :doc:`optional packages <Packages>`
 included in the source distribution except: KIM, KOKKOS, MSCG, PYTHON,

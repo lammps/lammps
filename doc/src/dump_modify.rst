@@ -981,7 +981,7 @@ images less frequently.
 ----------
 
 The *header* keyword toggles whether the dump file will include a header.
-Excluding a header will reduce the size of the dump file for fixes such as 
+Excluding a header will reduce the size of the dump file for fixes such as
 :doc:`fix pair/tracker <fix_pair_tracker>` which do not require the information
 typically written to the header.
 

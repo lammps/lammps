@@ -16,7 +16,7 @@ Syntax
   .. parsed-literal::
 
       *finite* value = none
-         pair style uses atomic diameters to identify contacts  
+         pair style uses atomic diameters to identify contacts
 
 Examples
 """"""""
@@ -28,7 +28,7 @@ Examples
 
    pair_style hybrid/overlay tracker finite ...
    pair_coeff * * tracker
-   
+
    fix 1 all pair/tracker 1000 time/created time/broken
    dump 1 all local 1000 dump.local f_1[1] f_1[2]
    dump_modify 1 write_header no
@@ -38,20 +38,20 @@ Description
 
 Style *tracker* monitors information about pairwise interactions.
 It does not calculate any forces on atoms.
-:doc:`Pair hybrid/overlay <pair_hybrid>` can be used to combine this pair 
-style with another pair style. Style *tracker*  must be used in conjunction 
-with about :doc:`fix pair_tracker <fix_pair_tracker>` which contains 
+:doc:`Pair hybrid/overlay <pair_hybrid>` can be used to combine this pair
+style with another pair style. Style *tracker*  must be used in conjunction
+with about :doc:`fix pair_tracker <fix_pair_tracker>` which contains
 information on what data can be output.
 
-If the *finite* keyword is not defined, the following coefficients must be 
-defined for each pair of atom types via the :doc:`pair_coeff <pair_coeff>` 
-command as in the examples above, or in the data file or restart files 
+If the *finite* keyword is not defined, the following coefficients must be
+defined for each pair of atom types via the :doc:`pair_coeff <pair_coeff>`
+command as in the examples above, or in the data file or restart files
 read by the :doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands, or by mixing as described below:
 
 * cutoff (distance units)
 
-If the *finite* keyword is defined, no coefficients may be defined. 
+If the *finite* keyword is defined, no coefficients may be defined.
 Interaction cutoffs are alternatively calculated based on the
 diameter of finite particles.
 
@@ -64,8 +64,8 @@ distance for this pair style can be mixed.  The cutoff is always mixed via a
 *geometric* rule.  The cutoff is mixed according to the pair_modify
 mix value.  The default mix value is *geometric*\ .  See the
 "pair_modify" command for details.
-  
-This pair style writes its information to :doc:`binary restart files <restart>`, so 
+
+This pair style writes its information to :doc:`binary restart files <restart>`, so
 pair_style and pair_coeff commands do not need
 to be specified in an input script that reads a restart file.
 

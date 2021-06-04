@@ -86,6 +86,6 @@ The associated fix neigh/history is missing
 
 E: Cannot use pair tracker without fix pair/tracker
 
-This pairstyle requires one to define a pair/tracker fix 
+This pairstyle requires one to define a pair/tracker fix
 
 */

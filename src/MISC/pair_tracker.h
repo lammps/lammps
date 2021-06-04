@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(tracker,PairTracker)
-
+// clang-format off
+PairStyle(tracker,PairTracker);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_TRACKER_H
@@ -39,7 +39,7 @@ class PairTracker : public Pair {
   void read_restart_settings(FILE *);
   virtual double single(int, int, int, int, double, double, double, double &);
   double atom2cut(int);
-  double radii2cut(double,double);
+  double radii2cut(double, double);
 
  protected:
   int sizeflag;
@@ -47,19 +47,19 @@ class PairTracker : public Pair {
   int size_history;
   int neighprev;
   double **cut;
-  double *onerad_dynamic,*onerad_frozen;
-  double *maxrad_dynamic,*maxrad_frozen;
+  double *onerad_dynamic, *onerad_frozen;
+  double *maxrad_dynamic, *maxrad_frozen;
   int freeze_group_bit;
 
   class FixDummy *fix_dummy;
   class FixNeighHistory *fix_history;
   class FixPairTracker *fix_pair_tracker;
 
-  void transfer_history(double*, double*);
+  void transfer_history(double *, double *);
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

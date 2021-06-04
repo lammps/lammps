@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(pair/tracker,FixPairTracker)
-
+// clang-format off
+FixStyle(pair/tracker,FixPairTracker);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_PAIR_TRACKING_H
@@ -25,54 +25,53 @@ FixStyle(pair/tracker,FixPairTracker)
 namespace LAMMPS_NS {
 
 class FixPairTracker : public Fix {
- public: 
+ public:
   FixPairTracker(class LAMMPS *, int, char **);
   ~FixPairTracker();
-  int setmask();  
+  int setmask();
   void init();
   void post_force(int);
   double memory_usage();
   void lost_contact(int, int, double, double, double, double);
-    
+
  private:
   int nvalues, never;
   int nmax;
   int store_flag;
   int index_i, index_j;
   double tmin, rmin, rsum, time_initial, nstep_initial;
-  
+
   double *vector;
   double **array;
   int **type_filter;
-  
+
   double lx;
   double ly;
-  double lz;    
+  double lz;
 
   int ncount;
 
   void reallocate(int);
 
   typedef void (FixPairTracker::*FnPtrPack)(int);
-  FnPtrPack *pack_choice;              // ptrs to pack functions
+  FnPtrPack *pack_choice;    // ptrs to pack functions
 
   void pack_id1(int);
   void pack_id2(int);
-  
-  void pack_time_created(int);  
-  void pack_time_broken(int);  
-  void pack_time_total(int);  
-  
-  void pack_x(int);  
-  void pack_y(int);  
-  void pack_z(int);  
-  
+
+  void pack_time_created(int);
+  void pack_time_broken(int);
+  void pack_time_total(int);
+
+  void pack_x(int);
+  void pack_y(int);
+  void pack_z(int);
+
   void pack_rmin(int);
   void pack_rave(int);
-  
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

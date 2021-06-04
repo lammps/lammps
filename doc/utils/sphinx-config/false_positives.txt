@@ -2631,7 +2631,6 @@ PyLammps
 pymbar
 pymodule
 pymol
-pypar
 pythonic
 pytorch
 pyy

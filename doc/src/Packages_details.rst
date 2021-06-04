@@ -654,12 +654,22 @@ listing, "ls src/MISC", to see the list of commands.
 **Supporting info:**
 
 * src/MISC: filenames -> commands
+* :doc:`compute msd/nongauss <compute_msd_nongauss>`
 * :doc:`compute ti <compute_ti>`
+* :doc:`fix gld <fix_gld>`
 * :doc:`fix evaporate <fix_evaporate>`
+* :doc:`fix oneway <fix_oneway>`
+* :doc:`fix orient/bcc <fix_orient>`
 * :doc:`fix orient/fcc <fix_orient>`
+* :doc:`fix pair/tracker <fix_pair_tracker>`
 * :doc:`fix ttm <fix_ttm>`
 * :doc:`fix thermal/conductivity <fix_thermal_conductivity>`
 * :doc:`fix viscosity <fix_viscosity>`
+* :doc:`pair nm/cut <pair_nm>`
+* :doc:`pair nm/cut/coul/cut <pair_nm>`
+* :doc:`pair nm/cut/coul/long <pair_nm>`
+* :doc:`pair tracker <pair_tracker>`
+* examples/tracker
 * examples/KAPPA
 * examples/VISCOSITY
 * https://www.lammps.org/pictures.html#ttm

@@ -1903,9 +1903,6 @@ algorithm.
 * examples/USER/mesodpd
 * https://www.lammps.org/movies.html#mesodpd
 
-* examples/USER/meso
-* http://www.lammps.org/movies.html#mesodpd
-
 ----------
 
 .. _PKG-USER-MESONT:

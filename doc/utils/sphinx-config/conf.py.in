@@ -15,6 +15,7 @@
 
 import sys
 import os
+from datetime import date
 
 has_enchant = False
 try:
@@ -76,7 +77,7 @@ master_doc = 'Manual'
 
 # General information about the project.
 project = 'LAMMPS'
-copyright = '2003-2020 Sandia Corporation'
+copyright = '2003-{} Sandia Corporation'.format(date.today().year)
 
 def get_lammps_version():
     import os
@@ -254,6 +255,8 @@ html_show_sourcelink = False
 htmlhelp_basename = 'LAMMPSdoc'
 
 html_permalinks = True
+
+html_baseurl = os.environ.get('LAMMPS_WEBSITE_BASEURL', '')
 
 if 'epub' in sys.argv:
   html_math_renderer = 'imgmath'

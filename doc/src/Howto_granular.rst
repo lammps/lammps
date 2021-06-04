@@ -17,6 +17,11 @@ This compute
 * :doc:`compute erotate/sphere <compute_erotate_sphere>`
 
 calculates rotational kinetic energy which can be :doc:`output with thermodynamic info <Howto_output>`.
+The compute 
+
+* :doc:`compute fabric <compute_fabric>`
+
+calculates various versions of the fabric tensor for granular and non-granular pair styles.
 
 Use one of these 4 pair potentials, which compute forces and torques
 between interacting pairs of particles:

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -29,14 +29,14 @@ class ComputeFabric : public Compute {
   ComputeFabric(class LAMMPS *, int, char **);
   ~ComputeFabric();
   void init();
-  void init_list(int, class NeighList *);  
+  void init_list(int, class NeighList *);
   void compute_vector();
 
  private:
   int ntensors, pstyle, cutstyle;
   int *tensor_style;
   class NeighList *list;
-  
+
   int cn_flag, br_flag, fn_flag, ft_flag;
 };
 
@@ -55,19 +55,19 @@ command-line option when running LAMMPS to see the offending line.
 
 E: Compute fabric radius style requires atom attribute radius
 
-Self-explanatory. 
+Self-explanatory.
 
 E: No pair style is defined for compute fabric
 
-Self-explanatory. 
+Self-explanatory.
 
 E: Pair style does not support compute fabric normal or tangential force
 
 Pair style must be single enabled to calculate the normal or tangential force tensors
 
-E: Pair style does not have tangential forces for compute fabric
+E: Pair style does not calculate tangential forces for compute fabric
 
-The tangential force tensor can only be calculated for granular pair styles
+The tangential force tensor can only be calculated for granular pair styles with tangential forces
 
 E: Compute fabric does not support pair styles that extend beyond contact
 

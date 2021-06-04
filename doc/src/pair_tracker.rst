@@ -51,7 +51,7 @@ commands, or by mixing as described below:
 
 * cutoff (distance units)
 
-If the *finite* keyword is defined, no coeffients may be defined. 
+If the *finite* keyword is defined, no coefficients may be defined. 
 Interaction cutoffs are alternatively calculated based on the
 diameter of finite particles.
 
@@ -80,7 +80,7 @@ Restrictions
 A corresponding :doc:`fix pair_tracker <fix_pair_tracker>` must be defined
 to use this pair style.
 
-This pairstyle is currently incompatible with granular pairstyles that extend
+This pair style is currently incompatible with granular pair styles that extend
 beyond the contact (e.g. JKR and DMT).
 
 Related commands

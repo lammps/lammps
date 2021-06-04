@@ -53,7 +53,7 @@ Description
 
 Tracks properties of pairwise interactions between two atoms and records data
 whenever the atoms move beyond the interaction cutoff. 
-Must be used in conjuction with :doc:`pair tracker <pair_tracker>`.
+Must be used in conjunction with :doc:`pair tracker <pair_tracker>`.
 Data is accumulated over a span of *N* timesteps before being deleted.
 The number of datums generated, aggregated across all processors, equals 
 the number of broken interactions. Interactions are only included if both
@@ -107,7 +107,7 @@ specified attribute.
 
 Restrictions
 """"""""""""
-Must be used in conjuction with :doc:`pair tracker <pair_tracker>`.
+Must be used in conjunction with :doc:`pair style tracker <pair_tracker>`.
  
 Related commands
 """"""""""""""""

@@ -8,8 +8,14 @@ LAMMPS_PYTHON_DIR = os.path.dirname(os.path.realpath(__file__))
 LAMMPS_DIR = os.path.dirname(LAMMPS_PYTHON_DIR)
 LAMMPS_SOURCE_DIR = os.path.join(LAMMPS_DIR, 'src')
 
+if not os.path.exists(LAMMPS_SOURCE_DIR):
+    # allows installing and building wheel from current directory
+    LAMMPS_DIR = os.path.realpath(os.path.join(os.environ['PWD'], '..'))
+    LAMMPS_SOURCE_DIR = os.path.join(LAMMPS_DIR, 'src')
+
 def get_lammps_version():
-    with open(os.path.join(LAMMPS_SOURCE_DIR, 'version.h'), 'r') as f:
+    version_h_file = os.path.join(LAMMPS_SOURCE_DIR, 'version.h')
+    with open(version_h_file, 'r') as f:
         line = f.readline()
         start_pos = line.find('"')+1
         end_pos = line.find('"', start_pos)

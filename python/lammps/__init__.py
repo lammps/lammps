@@ -25,18 +25,18 @@ def get_version_number():
 
     vstring = None
     if version_info.major == 3 and version_info.minor >= 8:
-        from importlib.metadata import version
+        from importlib.metadata import version, PackageNotFoundError
         try:
             vstring = version('lammps')
-        except:
+        except PackageNotFoundError:
             # nothing to do, ignore
             pass
 
     else:
-        from pkg_resources import get_distribution
+        from pkg_resources import get_distribution, DistributionNotFound
         try:
             vstring = get_distribution('lammps').version
-        except:
+        except DistributionNotFound:
             # nothing to do, ignore
             pass
 

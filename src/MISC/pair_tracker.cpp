@@ -91,9 +91,6 @@ void PairTracker::compute(int eflag, int vflag)
   double **x = atom->x;
   double *radius = atom->radius;
   int *type = atom->type;
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
-  int newton_pair = force->newton_pair;
 
   inum = list->inum;
   ilist = list->ilist;
@@ -444,8 +441,8 @@ void PairTracker::read_restart_settings(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double PairTracker::single(int i, int j, int /*itype*/, int /*jtype*/, double rsq,
-                           double /*factor_coul*/, double /*factor_lj*/, double &fforce)
+double PairTracker::single(int /*i*/, int /*j*/, int /*itype*/, int /*jtype*/, double /*rsq*/,
+                           double /*factor_coul*/, double /*factor_lj*/, double &/*fforce*/)
 {
   return 0.0;
 }

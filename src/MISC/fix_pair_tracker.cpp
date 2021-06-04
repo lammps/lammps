@@ -31,7 +31,7 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixPairTracker::FixPairTracker(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), nvalues(0), array(NULL), vector(NULL), pack_choice(NULL)
+    Fix(lmp, narg, arg), nvalues(0), vector(NULL), array(NULL), pack_choice(NULL)
 {
   if (narg < 3) error->all(FLERR, "Illegal fix pair/tracker command");
   local_flag = 1;

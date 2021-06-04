@@ -35,19 +35,13 @@ class FixPairTracker : public Fix {
   void lost_contact(int, int, double, double, double, double);
 
  private:
-  int nvalues, never;
-  int nmax;
-  int store_flag;
+  int nvalues, nmax;
   int index_i, index_j;
   double tmin, rmin, rsum, time_initial, nstep_initial;
 
   double *vector;
   double **array;
   int **type_filter;
-
-  double lx;
-  double ly;
-  double lz;
 
   int ncount;
 

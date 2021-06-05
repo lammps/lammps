@@ -52,7 +52,7 @@ PACKAGE = asphere body class2 colloid compress coreshell dipole gpu \
 	  python qeq replica rigid shock snap spin srd voronoi
 
 PACKUSER = user-adios user-atc user-awpmd user-brownian user-bocs user-cgdna \
-	   user-cgsdk user-colvars user-diffraction user-dpd user-drude \
+	   user-cgsdk user-colvars user-dielectric user-diffraction user-dpd user-drude \
 	   user-eff user-fep user-h5md user-hdnnp user-intel user-lb user-manifold \
 	   user-mdi user-meamc user-mesodpd user-mesont user-mgpt user-misc \
 	   user-mofff user-molfile user-netcdf user-omp user-phonon \

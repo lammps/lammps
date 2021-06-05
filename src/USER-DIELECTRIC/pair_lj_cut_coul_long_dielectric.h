@@ -33,15 +33,15 @@ class PairLJCutCoulLongDielectric : public PairLJCutCoulLong {
   virtual void init_style();
   virtual double single(int, int, int, int, double, double, double, double &);
 
-  double** efield;
-  double* epot;
+  double **efield;
+  double *epot;
 
  protected:
-  class AtomVecDielectric* avec;
+  class AtomVecDielectric *avec;
   int nmax;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

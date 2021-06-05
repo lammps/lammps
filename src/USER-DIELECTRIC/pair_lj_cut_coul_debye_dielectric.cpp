@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/ Sandia National Laboratories
@@ -16,21 +15,21 @@
    Contributing author: Trung Nguyen (Northwestern)
 ------------------------------------------------------------------------- */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include "pair_lj_cut_coul_debye_dielectric.h"
+
 #include "atom.h"
 #include "atom_vec_dielectric.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -58,33 +57,31 @@ PairLJCutCoulDebyeDielectric::~PairLJCutCoulDebyeDielectric()
 
 void PairLJCutCoulDebyeDielectric::compute(int eflag, int vflag)
 {
-  int i,j,ii,jj,inum,jnum,itype,jtype;
-  double qtmp,etmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
-  double fpair_i,fpair_j;
-  double rsq,r2inv,r6inv,forcecoul,forcelj,factor_coul,factor_lj,efield_i,epot_i;
-   double r,rinv,screening;
-  int *ilist,*jlist,*numneigh,**firstneigh;
+  int i, j, ii, jj, inum, jnum, itype, jtype;
+  double qtmp, etmp, xtmp, ytmp, ztmp, delx, dely, delz, evdwl, ecoul, fpair;
+  double fpair_i, fpair_j;
+  double rsq, r2inv, r6inv, forcecoul, forcelj, factor_coul, factor_lj, efield_i, epot_i;
+  double r, rinv, screening;
+  int *ilist, *jlist, *numneigh, **firstneigh;
 
   if (atom->nmax > nmax) {
     memory->destroy(efield);
     memory->destroy(epot);
     nmax = atom->nmax;
-    memory->create(efield,nmax,3,"pair:efield");
-    memory->create(epot,nmax,"pair:epot");
+    memory->create(efield, nmax, 3, "pair:efield");
+    memory->create(epot, nmax, "pair:epot");
   }
 
   evdwl = ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag, vflag);
 
   double **x = atom->x;
   double **f = atom->f;
   double *q = atom->q;
-  double *q_real = avec->q_real;
-  double* eps = avec->epsilon;
-  double** norm = avec->mu;
-  double* curvature = avec->curvature;
-  double* area = avec->area;
+  double *eps = avec->epsilon;
+  double **norm = avec->mu;
+  double *curvature = avec->curvature;
+  double *area = avec->area;
   int *type = atom->type;
   int nlocal = atom->nlocal;
   double *special_coul = force->special_coul;
@@ -113,10 +110,10 @@ void PairLJCutCoulDebyeDielectric::compute(int eflag, int vflag)
     // self term Eq. (55) for I_{ii} and Eq. (52) and in Barros et al
     double curvature_threshold = sqrt(area[i]);
     if (curvature[i] < curvature_threshold) {
-      double sf = curvature[i]/(4.0*MY_PIS*curvature_threshold) * area[i]*q[i];
-      efield[i][0] = sf*norm[i][0];
-      efield[i][1] = sf*norm[i][1];
-      efield[i][2] = sf*norm[i][2];
+      double sf = curvature[i] / (4.0 * MY_PIS * curvature_threshold) * area[i] * q[i];
+      efield[i][0] = sf * norm[i][0];
+      efield[i][1] = sf * norm[i][1];
+      efield[i][2] = sf * norm[i][2];
     } else {
       efield[i][0] = efield[i][1] = efield[i][2] = 0;
     }
@@ -132,58 +129,61 @@ void PairLJCutCoulDebyeDielectric::compute(int eflag, int vflag)
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
-      rsq = delx*delx + dely*dely + delz*delz;
+      rsq = delx * delx + dely * dely + delz * delz;
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-        r2inv = 1.0/rsq;
+        r2inv = 1.0 / rsq;
 
         if (rsq < cut_coulsq[itype][jtype] && rsq > EPSILON) {
           r = sqrt(rsq);
-          rinv = 1.0/r;
-          screening = exp(-kappa*r);
+          rinv = 1.0 / r;
+          screening = exp(-kappa * r);
           efield_i = qqrd2e * q[j] * screening * (kappa + rinv);
-          forcecoul = qtmp*efield_i;
+          forcecoul = qtmp * efield_i;
           epot_i = efield_i;
-        } else efield_i = forcecoul = 0.0;
+        } else
+          efield_i = forcecoul = 0.0;
 
         if (rsq < cut_ljsq[itype][jtype]) {
-          r6inv = r2inv*r2inv*r2inv;
-          forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
-        } else forcelj = 0.0;
+          r6inv = r2inv * r2inv * r2inv;
+          forcelj = r6inv * (lj1[itype][jtype] * r6inv - lj2[itype][jtype]);
+        } else
+          forcelj = 0.0;
 
-        fpair_i = (factor_coul*etmp*forcecoul + factor_lj*forcelj) * r2inv;
-        f[i][0] += delx*fpair_i;
-        f[i][1] += dely*fpair_i;
-        f[i][2] += delz*fpair_i;
+        fpair_i = (factor_coul * etmp * forcecoul + factor_lj * forcelj) * r2inv;
+        f[i][0] += delx * fpair_i;
+        f[i][1] += dely * fpair_i;
+        f[i][2] += delz * fpair_i;
 
-        efield_i *= (factor_coul*etmp*r2inv);
-        efield[i][0] += delx*efield_i;
-        efield[i][1] += dely*efield_i;
-        efield[i][2] += delz*efield_i;
+        efield_i *= (factor_coul * etmp * r2inv);
+        efield[i][0] += delx * efield_i;
+        efield[i][1] += dely * efield_i;
+        efield[i][2] += delz * efield_i;
 
         epot[i] += epot_i;
 
         if (newton_pair && j >= nlocal) {
-          fpair_j = (factor_coul*eps[j]*forcecoul + factor_lj*forcelj) * r2inv;
-          f[j][0] -= delx*fpair_j;
-          f[j][1] -= dely*fpair_j;
-          f[j][2] -= delz*fpair_j;
+          fpair_j = (factor_coul * eps[j] * forcecoul + factor_lj * forcelj) * r2inv;
+          f[j][0] -= delx * fpair_j;
+          f[j][1] -= dely * fpair_j;
+          f[j][2] -= delz * fpair_j;
         }
 
         if (eflag) {
           if (rsq < cut_coulsq[itype][jtype]) {
-            ecoul = factor_coul * qqrd2e * qtmp*q[j]*(etmp+eps[j]) * rinv * screening;
-          } else ecoul = 0.0;
+            ecoul = factor_coul * qqrd2e * qtmp * q[j] * (etmp + eps[j]) * rinv * screening;
+          } else
+            ecoul = 0.0;
           ecoul *= 0.5;
           if (rsq < cut_ljsq[itype][jtype]) {
-            evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) -
-              offset[itype][jtype];
+            evdwl = r6inv * (lj3[itype][jtype] * r6inv - lj4[itype][jtype]) - offset[itype][jtype];
             evdwl *= factor_lj;
-          } else evdwl = 0.0;
+          } else
+            evdwl = 0.0;
         }
 
-        if (evflag) ev_tally_full(i,evdwl,ecoul,fpair_i,delx,dely,delz);
+        if (evflag) ev_tally_full(i, evdwl, ecoul, fpair_i, delx, dely, delz);
       }
     }
   }
@@ -198,52 +198,54 @@ void PairLJCutCoulDebyeDielectric::compute(int eflag, int vflag)
 void PairLJCutCoulDebyeDielectric::init_style()
 {
   avec = (AtomVecDielectric *) atom->style_match("dielectric");
-  if (!avec) error->all(FLERR,"Pair lj/cut/coul/debye/dielectric requires atom style dielectric");
+  if (!avec) error->all(FLERR, "Pair lj/cut/coul/debye/dielectric requires atom style dielectric");
 
-  int irequest = neighbor->request(this,instance_me);
+  int irequest = neighbor->request(this, instance_me);
   neighbor->requests[irequest]->half = 0;
   neighbor->requests[irequest]->full = 1;
 }
 
 /* ---------------------------------------------------------------------- */
 
-double PairLJCutCoulDebyeDielectric::single(int i, int j, int itype, int jtype,
-                                double rsq,
-                                double factor_coul, double factor_lj,
-                                double &fforce)
+double PairLJCutCoulDebyeDielectric::single(int i, int j, int itype, int jtype, double rsq,
+                                            double factor_coul, double factor_lj, double &fforce)
 {
-  double r2inv,r6inv,forcecoul,forcelj,phicoul,ei,ej,philj;
-  double r,rinv,screening;
-  double* eps = avec->epsilon;
+  double r2inv, r6inv, forcecoul, forcelj, phicoul, ei, ej, philj;
+  double r, rinv, screening;
+  double *eps = avec->epsilon;
 
-  r2inv = 1.0/rsq;
+  r2inv = 1.0 / rsq;
   if (rsq < cut_coulsq[itype][jtype]) {
     r = sqrt(rsq);
-    rinv = 1.0/r;
-    screening = exp(-kappa*r);
-    forcecoul = force->qqrd2e * atom->q[i]*atom->q[j] *
-      screening * (kappa + rinv) * eps[i];
-  } else forcecoul = 0.0;
+    rinv = 1.0 / r;
+    screening = exp(-kappa * r);
+    forcecoul = force->qqrd2e * atom->q[i] * atom->q[j] * screening * (kappa + rinv) * eps[i];
+  } else
+    forcecoul = 0.0;
   if (rsq < cut_ljsq[itype][jtype]) {
-    r6inv = r2inv*r2inv*r2inv;
-    forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
-  } else forcelj = 0.0;
-  fforce = (factor_coul*forcecoul + factor_lj*forcelj) * r2inv;
+    r6inv = r2inv * r2inv * r2inv;
+    forcelj = r6inv * (lj1[itype][jtype] * r6inv - lj2[itype][jtype]);
+  } else
+    forcelj = 0.0;
+  fforce = (factor_coul * forcecoul + factor_lj * forcelj) * r2inv;
 
   double eng = 0.0;
-  if (eps[i] == 1) ei = 0;
-  else ei = eps[i];
-  if (eps[j] == 1) ej = 0;
-  else ej = eps[j];
+  if (eps[i] == 1)
+    ei = 0;
+  else
+    ei = eps[i];
+  if (eps[j] == 1)
+    ej = 0;
+  else
+    ej = eps[j];
   if (rsq < cut_coulsq[itype][jtype]) {
-    phicoul = force->qqrd2e * atom->q[i]*atom->q[j] * rinv * screening;
-    phicoul *= 0.5*(ei+ej);
-    eng += factor_coul*phicoul;
+    phicoul = force->qqrd2e * atom->q[i] * atom->q[j] * rinv * screening;
+    phicoul *= 0.5 * (ei + ej);
+    eng += factor_coul * phicoul;
   }
   if (rsq < cut_ljsq[itype][jtype]) {
-    philj = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) -
-      offset[itype][jtype];
-    eng += factor_lj*philj;
+    philj = r6inv * (lj3[itype][jtype] * r6inv - lj4[itype][jtype]) - offset[itype][jtype];
+    eng += factor_lj * philj;
   }
 
   return eng;

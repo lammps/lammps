@@ -30,14 +30,14 @@ class FixPolarizeFunctional : public Fix {
   ~FixPolarizeFunctional();
   int setmask();
   void init();
-  void init_list(int,class NeighList *);
+  void init_list(int, class NeighList *);
   void setup(int);
   void setup_pre_force(int vflag);
   void pre_force(int);
   int pack_exchange(int, double *);
   int unpack_exchange(int, double *);
-  int pack_forward_comm(int, int*, double*, int, int*);
-  void unpack_forward_comm(int, int, double*);
+  int pack_forward_comm(int, int *, double *, int, int *);
+  void unpack_forward_comm(int, int, double *);
 
   int modify_param(int, char **);
   double memory_usage();
@@ -49,7 +49,7 @@ class FixPolarizeFunctional : public Fix {
 
  protected:
   int nmax;
-  class AtomVecDielectric* avec;
+  class AtomVecDielectric *avec;
   class NeighList *list;
 
   void set_dielectric_params(double, double, double, double, int, double);
@@ -59,25 +59,28 @@ class FixPolarizeFunctional : public Fix {
   double **inverse_matrix;
   double **G1ww, **ndotGww, **G2ww, **G3ww, **Rww;
 
-  int* tag2mat;             // tag2mat[atom->tag[i]] = the index of the atoms in the induced charge arrays from atom tags
-  int* mat2tag;             // mat2tag[idx] = the atom tag of the induced charge idx in the induced charge arrays
-  int* induced_charge_idx;  // return the index of the atoms in the induced charge arrays
-  int num_induced_charges;  // total number of induced charges
-  double* induced_charges;  // values of induced charges
-  int* tag2mat_ions;        // tag2mat_ions[atom->tag[i]] returns the index of the atoms in the ion arrays from atom tags
-  int* mat2tag_ions;        // mat2tag_ions[idx] returns the atom tag of the ion idx in the ion arrays
-  int* ion_idx;             // return the index of the atoms in the ion arrays
-  int num_ions;             // total number of ions
-  double* rhs1;
-  double* rhs2;
-  double** buffer1;
-  double** buffer2;
+  int *
+      tag2mat;    // tag2mat[atom->tag[i]] = the index of the atoms in the induced charge arrays from atom tags
+  int *
+      mat2tag;    // mat2tag[idx] = the atom tag of the induced charge idx in the induced charge arrays
+  int *induced_charge_idx;    // return the index of the atoms in the induced charge arrays
+  int num_induced_charges;    // total number of induced charges
+  double *induced_charges;    // values of induced charges
+  int *
+      tag2mat_ions;    // tag2mat_ions[atom->tag[i]] returns the index of the atoms in the ion arrays from atom tags
+  int *mat2tag_ions;    // mat2tag_ions[idx] returns the atom tag of the ion idx in the ion arrays
+  int *ion_idx;         // return the index of the atoms in the ion arrays
+  int num_ions;         // total number of ions
+  double *rhs1;
+  double *rhs2;
+  double **buffer1;
+  double **buffer2;
 
   int allocated;
-  int kspaceflag;           // 1 if kspace is used for the induced charge computation
-  double **efield_pair;     // electrical field at position of atom i due to pair contribution
-  double **efield_kspace;   // electrical field at position of atom i due to kspace contribution
-  int torqueflag,extraflag;
+  int kspaceflag;            // 1 if kspace is used for the induced charge computation
+  double **efield_pair;      // electrical field at position of atom i due to pair contribution
+  double **efield_kspace;    // electrical field at position of atom i due to kspace contribution
+  int torqueflag, extraflag;
   double g_ewald;
   int includingG3ww;
 
@@ -102,8 +105,8 @@ class FixPolarizeFunctional : public Fix {
   double tolerance;
 
   void calculate_matrix_multiply_vector(double **, double *, double *, int);
-  double inner_product(double*, double*, int);
-  void cg_solver(double**, double*, double*, int);
+  double inner_product(double *, double *, int);
+  void cg_solver(double **, double *, double *, int);
 
   inline double greens_real(double);
   inline double grad_greens_real_factor(double);
@@ -114,7 +117,7 @@ class FixPolarizeFunctional : public Fix {
   inline double calculate_ndotgreens_ewald_self_vertex(double, double);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

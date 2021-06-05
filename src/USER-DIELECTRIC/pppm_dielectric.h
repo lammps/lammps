@@ -30,9 +30,9 @@ class PPPMDielectric : public PPPM {
   virtual ~PPPMDielectric();
   virtual void compute(int, int);
 
-  double** efield;
-  double* phi;
-  int potflag;   // 1/0 if per-atom electrostatic potential phi is needed
+  double **efield;
+  double *phi;
+  int potflag;    // 1/0 if per-atom electrostatic potential phi is needed
 
   void qsum_qsq();
 
@@ -42,11 +42,10 @@ class PPPMDielectric : public PPPM {
   void fieldforce_ik();
   void fieldforce_ad();
 
-  class AtomVecDielectric* avec;
-
+  class AtomVecDielectric *avec;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

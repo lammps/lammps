@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/ Sandia National Laboratories
@@ -24,31 +23,30 @@
 #include "error.h"
 #include "force.h"
 #include "kspace.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
 #include "math_const.h"
 #include "memory.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
 
 #include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-#define EWALD_F   1.12837917
-#define EWALD_P   0.3275911
-#define A1        0.254829592
-#define A2       -0.284496736
-#define A3        1.421413741
-#define A4       -1.453152027
-#define A5        1.061405429
+#define EWALD_F 1.12837917
+#define EWALD_P 0.3275911
+#define A1 0.254829592
+#define A2 -0.284496736
+#define A3 1.421413741
+#define A4 -1.453152027
+#define A5 1.061405429
 
 #define EPSILON 1e-6
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutCoulLongDielectric::PairLJCutCoulLongDielectric(LAMMPS *lmp) :
-  PairLJCutCoulLong(lmp)
+PairLJCutCoulLongDielectric::PairLJCutCoulLongDielectric(LAMMPS *lmp) : PairLJCutCoulLong(lmp)
 {
   respa_enable = 0;
   cut_respa = nullptr;
@@ -69,34 +67,33 @@ PairLJCutCoulLongDielectric::~PairLJCutCoulLongDielectric()
 
 void PairLJCutCoulLongDielectric::compute(int eflag, int vflag)
 {
-  int i,ii,j,jj,inum,jnum,itype,jtype,itable;
-  double qtmp,etmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul;
-  double fpair_i,fpair_j;
-  double fraction,table;
-  double r,r2inv,r6inv,forcecoul,forcelj,factor_coul,factor_lj;
-  double grij,expm2,prefactor,t,erfc,prefactorE,efield_i,epot_i;
-  int *ilist,*jlist,*numneigh,**firstneigh;
+  int i, ii, j, jj, inum, jnum, itype, jtype, itable;
+  double qtmp, etmp, xtmp, ytmp, ztmp, delx, dely, delz, evdwl, ecoul;
+  double fpair_i, fpair_j;
+  double fraction, table;
+  double r, r2inv, r6inv, forcecoul, forcelj, factor_coul, factor_lj;
+  double grij, expm2, prefactor, t, erfc, prefactorE, efield_i, epot_i;
+  int *ilist, *jlist, *numneigh, **firstneigh;
   double rsq;
 
   evdwl = ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag, vflag);
 
   if (atom->nmax > nmax) {
     memory->destroy(efield);
     memory->destroy(epot);
     nmax = atom->nmax;
-    memory->create(efield,nmax,3,"pair:efield");
-    memory->create(epot,nmax,"pair:epot");
+    memory->create(efield, nmax, 3, "pair:efield");
+    memory->create(epot, nmax, "pair:epot");
   }
 
   double **x = atom->x;
   double **f = atom->f;
   double *q = atom->q;
   double *eps = atom->epsilon;
-  double** norm = atom->mu;
-  double* curvature = atom->curvature;
-  double* area = atom->area;
+  double **norm = atom->mu;
+  double *curvature = atom->curvature;
+  double *area = atom->area;
   int *type = atom->type;
   int nlocal = atom->nlocal;
   double *special_coul = force->special_coul;
@@ -126,10 +123,10 @@ void PairLJCutCoulLongDielectric::compute(int eflag, int vflag)
 
     double curvature_threshold = sqrt(area[i]);
     if (curvature[i] < curvature_threshold) {
-      double sf = curvature[i]/(4.0*MY_PIS*curvature_threshold) * area[i]*q[i];
-      efield[i][0] = sf*norm[i][0];
-      efield[i][1] = sf*norm[i][1];
-      efield[i][2] = sf*norm[i][2];
+      double sf = curvature[i] / (4.0 * MY_PIS * curvature_threshold) * area[i] * q[i];
+      efield[i][0] = sf * norm[i][0];
+      efield[i][1] = sf * norm[i][1];
+      efield[i][2] = sf * norm[i][2];
     } else {
       efield[i][0] = efield[i][1] = efield[i][2] = 0;
     }
@@ -145,27 +142,27 @@ void PairLJCutCoulLongDielectric::compute(int eflag, int vflag)
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
-      rsq = delx*delx + dely*dely + delz*delz;
+      rsq = delx * delx + dely * dely + delz * delz;
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-        r2inv = 1.0/rsq;
+        r2inv = 1.0 / rsq;
         r = sqrt(rsq);
 
         if (rsq < cut_coulsq && rsq > EPSILON) {
           if (!ncoultablebits || rsq <= tabinnersq) {
 
             grij = g_ewald * r;
-            expm2 = exp(-grij*grij);
-            t = 1.0 / (1.0 + EWALD_P*grij);
-            erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
-            prefactor = qqrd2e * qtmp*q[j]/r;
-            forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
-            if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
+            expm2 = exp(-grij * grij);
+            t = 1.0 / (1.0 + EWALD_P * grij);
+            erfc = t * (A1 + t * (A2 + t * (A3 + t * (A4 + t * A5)))) * expm2;
+            prefactor = qqrd2e * qtmp * q[j] / r;
+            forcecoul = prefactor * (erfc + EWALD_F * grij * expm2);
+            if (factor_coul < 1.0) forcecoul -= (1.0 - factor_coul) * prefactor;
 
-            prefactorE = q[j]/r;
-            efield_i = prefactorE * (erfc + EWALD_F*grij*expm2);
-            if (factor_coul < 1.0) efield_i -= (1.0-factor_coul)*prefactorE;
+            prefactorE = q[j] / r;
+            efield_i = prefactorE * (erfc + EWALD_F * grij * expm2);
+            if (factor_coul < 1.0) efield_i -= (1.0 - factor_coul) * prefactorE;
             epot_i = efield_i;
           } else {
             union_int_float_t rsq_lookup;
@@ -173,66 +170,69 @@ void PairLJCutCoulLongDielectric::compute(int eflag, int vflag)
             itable = rsq_lookup.i & ncoulmask;
             itable >>= ncoulshiftbits;
             fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
-            table = ftable[itable] + fraction*dftable[itable];
-            forcecoul = qtmp*q[j] * table;
-            efield_i = q[j] * table/qqrd2e;
+            table = ftable[itable] + fraction * dftable[itable];
+            forcecoul = qtmp * q[j] * table;
+            efield_i = q[j] * table / qqrd2e;
             if (factor_coul < 1.0) {
-              table = ctable[itable] + fraction*dctable[itable];
-              prefactor = qtmp*q[j] * table;
-              forcecoul -= (1.0-factor_coul)*prefactor;
+              table = ctable[itable] + fraction * dctable[itable];
+              prefactor = qtmp * q[j] * table;
+              forcecoul -= (1.0 - factor_coul) * prefactor;
 
-              prefactorE = q[j] * table/qqrd2e;
-              efield_i -= (1.0-factor_coul)*prefactorE;
+              prefactorE = q[j] * table / qqrd2e;
+              efield_i -= (1.0 - factor_coul) * prefactorE;
             }
             epot_i = efield_i;
           }
-        } else epot_i = efield_i = forcecoul = 0.0;
+        } else
+          epot_i = efield_i = forcecoul = 0.0;
 
         if (rsq < cut_ljsq[itype][jtype]) {
-          r6inv = r2inv*r2inv*r2inv;
-          forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
-        } else forcelj = 0.0;
+          r6inv = r2inv * r2inv * r2inv;
+          forcelj = r6inv * (lj1[itype][jtype] * r6inv - lj2[itype][jtype]);
+        } else
+          forcelj = 0.0;
 
-        fpair_i = (forcecoul*etmp + factor_lj*forcelj) * r2inv;
-        f[i][0] += delx*fpair_i;
-        f[i][1] += dely*fpair_i;
-        f[i][2] += delz*fpair_i;
+        fpair_i = (forcecoul * etmp + factor_lj * forcelj) * r2inv;
+        f[i][0] += delx * fpair_i;
+        f[i][1] += dely * fpair_i;
+        f[i][2] += delz * fpair_i;
 
-        efield_i *= (etmp*r2inv);
-        efield[i][0] += delx*efield_i;
-        efield[i][1] += dely*efield_i;
-        efield[i][2] += delz*efield_i;
+        efield_i *= (etmp * r2inv);
+        efield[i][0] += delx * efield_i;
+        efield[i][1] += dely * efield_i;
+        efield[i][2] += delz * efield_i;
 
         epot[i] += epot_i;
 
         if (newton_pair && j >= nlocal) {
 
-          fpair_j = (forcecoul*eps[j] + factor_lj*forcelj) * r2inv;
-          f[j][0] -= delx*fpair_j;
-          f[j][1] -= dely*fpair_j;
-          f[j][2] -= delz*fpair_j;
+          fpair_j = (forcecoul * eps[j] + factor_lj * forcelj) * r2inv;
+          f[j][0] -= delx * fpair_j;
+          f[j][1] -= dely * fpair_j;
+          f[j][2] -= delz * fpair_j;
         }
 
         if (eflag) {
           if (rsq < cut_coulsq) {
             if (!ncoultablebits || rsq <= tabinnersq)
-              ecoul = prefactor*(etmp+eps[j])*erfc;
+              ecoul = prefactor * (etmp + eps[j]) * erfc;
             else {
-              table = etable[itable] + fraction*detable[itable];
-              ecoul = qtmp*q[j]*(etmp+eps[j]) * table;
+              table = etable[itable] + fraction * detable[itable];
+              ecoul = qtmp * q[j] * (etmp + eps[j]) * table;
             }
             ecoul *= 0.5;
-            if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
-          } else ecoul = 0.0;
+            if (factor_coul < 1.0) ecoul -= (1.0 - factor_coul) * prefactor;
+          } else
+            ecoul = 0.0;
 
           if (rsq < cut_ljsq[itype][jtype]) {
-            evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) -
-              offset[itype][jtype];
+            evdwl = r6inv * (lj3[itype][jtype] * r6inv - lj4[itype][jtype]) - offset[itype][jtype];
             evdwl *= factor_lj;
-          } else evdwl = 0.0;
+          } else
+            evdwl = 0.0;
         }
 
-        if (evflag) ev_tally_full(i,evdwl,ecoul,fpair_i,delx,dely,delz);
+        if (evflag) ev_tally_full(i, evdwl, ecoul, fpair_i, delx, dely, delz);
       }
     }
   }
@@ -247,9 +247,9 @@ void PairLJCutCoulLongDielectric::compute(int eflag, int vflag)
 void PairLJCutCoulLongDielectric::init_style()
 {
   avec = (AtomVecDielectric *) atom->style_match("dielectric");
-  if (!avec) error->all(FLERR,"Pair lj/cut/coul/long/dielectric requires atom style dielectric");
+  if (!avec) error->all(FLERR, "Pair lj/cut/coul/long/dielectric requires atom style dielectric");
 
-  int irequest = neighbor->request(this,instance_me);
+  int irequest = neighbor->request(this, instance_me);
   neighbor->requests[irequest]->half = 0;
   neighbor->requests[irequest]->full = 1;
 
@@ -257,82 +257,84 @@ void PairLJCutCoulLongDielectric::init_style()
 
   // insure use of KSpace long-range solver, set g_ewald
 
-  if (force->kspace == NULL)
-    error->all(FLERR,"Pair style requires a KSpace style");
+  if (force->kspace == NULL) error->all(FLERR, "Pair style requires a KSpace style");
   g_ewald = force->kspace->g_ewald;
 
   // setup force tables
 
-  if (ncoultablebits) init_tables(cut_coul,cut_respa);
+  if (ncoultablebits) init_tables(cut_coul, cut_respa);
 }
 
 /* ---------------------------------------------------------------------- */
 
-double PairLJCutCoulLongDielectric::single(int i, int j, int itype, int jtype,
-                                 double rsq,
-                                 double factor_coul, double factor_lj,
-                                 double &fforce)
+double PairLJCutCoulLongDielectric::single(int i, int j, int itype, int jtype, double rsq,
+                                           double factor_coul, double factor_lj, double &fforce)
 {
-  double r2inv,r6inv,r,grij,expm2,t,erfc,ei,ej,prefactor;
-  double fraction,table,forcecoul,forcelj,phicoul,philj;
+  double r2inv, r6inv, r, grij, expm2, t, erfc, ei, ej, prefactor;
+  double fraction, table, forcecoul, forcelj, phicoul, philj;
   int itable;
   double *eps = atom->epsilon;
 
-  r2inv = 1.0/rsq;
+  r2inv = 1.0 / rsq;
   if (rsq < cut_coulsq) {
     if (!ncoultablebits || rsq <= tabinnersq) {
       r = sqrt(rsq);
       grij = g_ewald * r;
-      expm2 = exp(-grij*grij);
-      t = 1.0 / (1.0 + EWALD_P*grij);
-      erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
-      prefactor = force->qqrd2e * atom->q[i]*atom->q[j]/r;
-      forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
-      if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
+      expm2 = exp(-grij * grij);
+      t = 1.0 / (1.0 + EWALD_P * grij);
+      erfc = t * (A1 + t * (A2 + t * (A3 + t * (A4 + t * A5)))) * expm2;
+      prefactor = force->qqrd2e * atom->q[i] * atom->q[j] / r;
+      forcecoul = prefactor * (erfc + EWALD_F * grij * expm2);
+      if (factor_coul < 1.0) forcecoul -= (1.0 - factor_coul) * prefactor;
     } else {
       union_int_float_t rsq_lookup_single;
       rsq_lookup_single.f = rsq;
       itable = rsq_lookup_single.i & ncoulmask;
       itable >>= ncoulshiftbits;
       fraction = (rsq_lookup_single.f - rtable[itable]) * drtable[itable];
-      table = ftable[itable] + fraction*dftable[itable];
-      forcecoul = atom->q[i]*atom->q[j] * table;
+      table = ftable[itable] + fraction * dftable[itable];
+      forcecoul = atom->q[i] * atom->q[j] * table;
       if (factor_coul < 1.0) {
-        table = ctable[itable] + fraction*dctable[itable];
-        prefactor = atom->q[i]*atom->q[j] * table;
-        forcecoul -= (1.0-factor_coul)*prefactor;
+        table = ctable[itable] + fraction * dctable[itable];
+        prefactor = atom->q[i] * atom->q[j] * table;
+        forcecoul -= (1.0 - factor_coul) * prefactor;
       }
     }
-  } else forcecoul = 0.0;
+  } else
+    forcecoul = 0.0;
 
   if (rsq < cut_ljsq[itype][jtype]) {
-    r6inv = r2inv*r2inv*r2inv;
-    forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
-  } else forcelj = 0.0;
+    r6inv = r2inv * r2inv * r2inv;
+    forcelj = r6inv * (lj1[itype][jtype] * r6inv - lj2[itype][jtype]);
+  } else
+    forcelj = 0.0;
 
-  fforce = (forcecoul*eps[i] + factor_lj*forcelj) * r2inv;
+  fforce = (forcecoul * eps[i] + factor_lj * forcelj) * r2inv;
 
   double eng = 0.0;
-  if (eps[i] == 1) ei = 0;
-  else ei = eps[i];
-  if (eps[j] == 1) ej = 0;
-  else ej = eps[j];
+  if (eps[i] == 1)
+    ei = 0;
+  else
+    ei = eps[i];
+  if (eps[j] == 1)
+    ej = 0;
+  else
+    ej = eps[j];
   if (rsq < cut_coulsq) {
     if (!ncoultablebits || rsq <= tabinnersq)
-      phicoul = prefactor*(ei+ej)*erfc;
+      phicoul = prefactor * (ei + ej) * erfc;
     else {
-      table = etable[itable] + fraction*detable[itable];
-      phicoul = atom->q[i]*atom->q[j]*(ei+ej) * table;
+      table = etable[itable] + fraction * detable[itable];
+      phicoul = atom->q[i] * atom->q[j] * (ei + ej) * table;
     }
     phicoul *= 0.5;
-    if (factor_coul < 1.0) phicoul -= (1.0-factor_coul)*prefactor;
+    if (factor_coul < 1.0) phicoul -= (1.0 - factor_coul) * prefactor;
     eng += phicoul;
   }
 
   if (rsq < cut_ljsq[itype][jtype]) {
-    philj = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) -
-      offset[itype][jtype];
-    eng += factor_lj*philj;
+    philj = r6inv * (lj3[itype][jtype] * r6inv - lj4[itype][jtype]) - offset[itype][jtype];
+    eng += factor_lj * philj;
   }
 
   return eng;

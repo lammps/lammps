@@ -20,9 +20,9 @@
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
-#include "neigh_list.h"
 #include "math_const.h"
 #include "memory.h"
+#include "neigh_list.h"
 
 #include <cmath>
 
@@ -30,41 +30,37 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-#define EWALD_F   1.12837917
-#define EWALD_P   0.3275911
-#define A1        0.254829592
-#define A2       -0.284496736
-#define A3        1.421413741
-#define A4       -1.453152027
-#define A5        1.061405429
+#define EWALD_F 1.12837917
+#define EWALD_P 0.3275911
+#define A1 0.254829592
+#define A2 -0.284496736
+#define A3 1.421413741
+#define A4 -1.453152027
+#define A5 1.061405429
 
 /* ---------------------------------------------------------------------- */
 
 PairLJCutCoulLongDielectricOMP::PairLJCutCoulLongDielectricOMP(LAMMPS *lmp) :
-  PairLJCutCoulLongDielectric(lmp), ThrOMP(lmp, THR_PAIR)
+    PairLJCutCoulLongDielectric(lmp), ThrOMP(lmp, THR_PAIR)
 {
 }
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutCoulLongDielectricOMP::~PairLJCutCoulLongDielectricOMP()
-{
-}
+PairLJCutCoulLongDielectricOMP::~PairLJCutCoulLongDielectricOMP() {}
 
 /* ---------------------------------------------------------------------- */
 
 void PairLJCutCoulLongDielectricOMP::compute(int eflag, int vflag)
 {
-  if (eflag || vflag) {
-    ev_setup(eflag,vflag);
-  } else evflag = vflag_fdotr = 0;
+  ev_init(eflag, vflag);
 
   if (atom->nmax > nmax) {
     memory->destroy(efield);
     memory->destroy(epot);
     nmax = atom->nmax;
-    memory->create(efield,nmax,3,"pair:efield");
-    memory->create(epot,nmax,"pair:epot");
+    memory->create(efield, nmax, 3, "pair:efield");
+    memory->create(epot, nmax, "pair:epot");
   }
 
   const int nall = atom->nlocal + atom->nghost;
@@ -72,7 +68,7 @@ void PairLJCutCoulLongDielectricOMP::compute(int eflag, int vflag)
   const int inum = list->inum;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(eflag,vflag)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(eflag, vflag)
 #endif
   {
     int ifrom, ito, tid;
@@ -84,50 +80,55 @@ void PairLJCutCoulLongDielectricOMP::compute(int eflag, int vflag)
 
     if (evflag) {
       if (eflag) {
-        if (force->newton_pair) eval<1,1,1>(ifrom, ito, thr);
-        else eval<1,1,0>(ifrom, ito, thr);
+        if (force->newton_pair)
+          eval<1, 1, 1>(ifrom, ito, thr);
+        else
+          eval<1, 1, 0>(ifrom, ito, thr);
       } else {
-        if (force->newton_pair) eval<1,0,1>(ifrom, ito, thr);
-        else eval<1,0,0>(ifrom, ito, thr);
+        if (force->newton_pair)
+          eval<1, 0, 1>(ifrom, ito, thr);
+        else
+          eval<1, 0, 0>(ifrom, ito, thr);
       }
     } else {
-      if (force->newton_pair) eval<0,0,1>(ifrom, ito, thr);
-      else eval<0,0,0>(ifrom, ito, thr);
+      if (force->newton_pair)
+        eval<0, 0, 1>(ifrom, ito, thr);
+      else
+        eval<0, 0, 0>(ifrom, ito, thr);
     }
 
     thr->timer(Timer::PAIR);
     reduce_thr(this, eflag, vflag, thr);
-  } // end of omp parallel region
+  }    // end of omp parallel region
 }
 
 /* ---------------------------------------------------------------------- */
 
 template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
-void PairLJCutCoulLongDielectricOMP::eval(int iifrom, int iito, ThrData * const thr)
+void PairLJCutCoulLongDielectricOMP::eval(int iifrom, int iito, ThrData *const thr)
 {
-  int i,j,ii,jj,jnum,itype,jtype,itable;
-  double qtmp,etmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
-  double fraction,table;
-  double r,rsq,r2inv,r6inv,forcecoul,forcelj,factor_coul,factor_lj;
-  double grij,expm2,prefactor,t,erfc,prefactorE,efield_i,epot_i;
-  int *ilist,*jlist,*numneigh,**firstneigh;
+  int i, j, ii, jj, jnum, itype, jtype, itable;
+  double qtmp, etmp, xtmp, ytmp, ztmp, delx, dely, delz, evdwl, ecoul, fpair;
+  double fraction, table;
+  double r, rsq, r2inv, r6inv, forcecoul, forcelj, factor_coul, factor_lj;
+  double grij, expm2, prefactor, t, erfc, prefactorE, efield_i, epot_i;
+  int *ilist, *jlist, *numneigh, **firstneigh;
 
   evdwl = ecoul = 0.0;
 
-  const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
-  dbl3_t * _noalias const f = (dbl3_t *) thr->get_f()[0];
-  const double * _noalias const q = atom->q;
-  const double * _noalias const eps = atom->epsilon;
-  const dbl3_t * _noalias const norm = (dbl3_t *) atom->mu[0];
-  const double * _noalias const curvature = atom->curvature;
-  const double * _noalias const area = atom->area;
-  const int * _noalias const type = atom->type;
+  const dbl3_t *_noalias const x = (dbl3_t *) atom->x[0];
+  dbl3_t *_noalias const f = (dbl3_t *) thr->get_f()[0];
+  const double *_noalias const q = atom->q;
+  const double *_noalias const eps = atom->epsilon;
+  const dbl3_t *_noalias const norm = (dbl3_t *) atom->mu[0];
+  const double *_noalias const curvature = atom->curvature;
+  const double *_noalias const area = atom->area;
+  const int *_noalias const type = atom->type;
   const int nlocal = atom->nlocal;
-  const double * _noalias const special_coul = force->special_coul;
-  const double * _noalias const special_lj = force->special_lj;
+  const double *_noalias const special_coul = force->special_coul;
+  const double *_noalias const special_lj = force->special_lj;
   const double qqrd2e = force->qqrd2e;
-  double fxtmp,fytmp,fztmp,extmp,eytmp,eztmp;
-
+  double fxtmp, fytmp, fztmp, extmp, eytmp, eztmp;
 
   ilist = list->ilist;
   numneigh = list->numneigh;
@@ -146,17 +147,17 @@ void PairLJCutCoulLongDielectricOMP::eval(int iifrom, int iito, ThrData * const 
     itype = type[i];
     jlist = firstneigh[i];
     jnum = numneigh[i];
-    fxtmp=fytmp=fztmp=0.0;
-    extmp=eytmp=eztmp=0.0;
+    fxtmp = fytmp = fztmp = 0.0;
+    extmp = eytmp = eztmp = 0.0;
 
     // self term Eq. (55) for I_{ii} and Eq. (52) and in Barros et al.
 
     double curvature_threshold = sqrt(area[i]);
     if (curvature[i] < curvature_threshold) {
-      double sf = curvature[i]/(4.0*MY_PIS*curvature_threshold) * area[i]*q[i];
-      efield[i][0] = sf*norm[i].x;
-      efield[i][1] = sf*norm[i].y;
-      efield[i][2] = sf*norm[i].z;
+      double sf = curvature[i] / (4.0 * MY_PIS * curvature_threshold) * area[i] * q[i];
+      efield[i][0] = sf * norm[i].x;
+      efield[i][1] = sf * norm[i].y;
+      efield[i][2] = sf * norm[i].z;
     } else {
       efield[i][0] = efield[i][1] = efield[i][2] = 0;
     }
@@ -170,26 +171,26 @@ void PairLJCutCoulLongDielectricOMP::eval(int iifrom, int iito, ThrData * const 
       delx = xtmp - x[j].x;
       dely = ytmp - x[j].y;
       delz = ztmp - x[j].z;
-      rsq = delx*delx + dely*dely + delz*delz;
+      rsq = delx * delx + dely * dely + delz * delz;
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-        r2inv = 1.0/rsq;
+        r2inv = 1.0 / rsq;
 
         if (rsq < cut_coulsq) {
           if (!ncoultablebits || rsq <= tabinnersq) {
             r = sqrt(rsq);
             grij = g_ewald * r;
-            expm2 = exp(-grij*grij);
-            t = 1.0 / (1.0 + EWALD_P*grij);
-            erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
-            prefactor = qqrd2e * qtmp*q[j]/r;
-            forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
-            if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
+            expm2 = exp(-grij * grij);
+            t = 1.0 / (1.0 + EWALD_P * grij);
+            erfc = t * (A1 + t * (A2 + t * (A3 + t * (A4 + t * A5)))) * expm2;
+            prefactor = qqrd2e * qtmp * q[j] / r;
+            forcecoul = prefactor * (erfc + EWALD_F * grij * expm2);
+            if (factor_coul < 1.0) forcecoul -= (1.0 - factor_coul) * prefactor;
 
-            prefactorE = q[j]/r;
-            efield_i = prefactorE * (erfc + EWALD_F*grij*expm2);
-            if (factor_coul < 1.0) efield_i -= (1.0-factor_coul)*prefactorE;
+            prefactorE = q[j] / r;
+            efield_i = prefactorE * (erfc + EWALD_F * grij * expm2);
+            if (factor_coul < 1.0) efield_i -= (1.0 - factor_coul) * prefactorE;
             epot_i = efield_i;
 
           } else {
@@ -198,65 +199,68 @@ void PairLJCutCoulLongDielectricOMP::eval(int iifrom, int iito, ThrData * const 
             itable = rsq_lookup.i & ncoulmask;
             itable >>= ncoulshiftbits;
             fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
-            table = ftable[itable] + fraction*dftable[itable];
-            forcecoul = qtmp*q[j] * table;
-            efield_i = q[j] * table/qqrd2e;
+            table = ftable[itable] + fraction * dftable[itable];
+            forcecoul = qtmp * q[j] * table;
+            efield_i = q[j] * table / qqrd2e;
             if (factor_coul < 1.0) {
-              table = ctable[itable] + fraction*dctable[itable];
-              prefactor = qtmp*q[j] * table;
-              forcecoul -= (1.0-factor_coul)*prefactor;
+              table = ctable[itable] + fraction * dctable[itable];
+              prefactor = qtmp * q[j] * table;
+              forcecoul -= (1.0 - factor_coul) * prefactor;
 
-              prefactorE = q[j] * table/qqrd2e;
-              efield_i -= (1.0-factor_coul)*prefactorE;
+              prefactorE = q[j] * table / qqrd2e;
+              efield_i -= (1.0 - factor_coul) * prefactorE;
             }
             epot_i = efield_i;
           }
-        } else epot_i = efield_i = forcecoul = 0.0;
+        } else
+          epot_i = efield_i = forcecoul = 0.0;
 
         if (rsq < cut_ljsq[itype][jtype]) {
-          r6inv = r2inv*r2inv*r2inv;
-          forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
+          r6inv = r2inv * r2inv * r2inv;
+          forcelj = r6inv * (lj1[itype][jtype] * r6inv - lj2[itype][jtype]);
           forcelj *= factor_lj;
-        } else forcelj = 0.0;
+        } else
+          forcelj = 0.0;
 
         fpair = (forcecoul + forcelj) * r2inv;
 
-        fxtmp += delx*fpair;
-        fytmp += dely*fpair;
-        fztmp += delz*fpair;
+        fxtmp += delx * fpair;
+        fytmp += dely * fpair;
+        fztmp += delz * fpair;
 
-        efield_i *= (etmp*r2inv);
-        extmp += delx*efield_i;
-        eytmp += dely*efield_i;
-        eztmp += delz*efield_i;
+        efield_i *= (etmp * r2inv);
+        extmp += delx * efield_i;
+        eytmp += dely * efield_i;
+        eztmp += delz * efield_i;
         epot[i] += epot_i;
 
         if (NEWTON_PAIR || j < nlocal) {
-          f[j].x -= delx*fpair;
-          f[j].y -= dely*fpair;
-          f[j].z -= delz*fpair;
+          f[j].x -= delx * fpair;
+          f[j].y -= dely * fpair;
+          f[j].z -= delz * fpair;
         }
 
         if (EFLAG) {
           if (rsq < cut_coulsq) {
             if (!ncoultablebits || rsq <= tabinnersq)
-              ecoul = prefactor*(etmp+eps[j])*erfc;
+              ecoul = prefactor * (etmp + eps[j]) * erfc;
             else {
-              table = etable[itable] + fraction*detable[itable];
-              ecoul = qtmp*q[j]*(etmp+eps[j]) * table;
+              table = etable[itable] + fraction * detable[itable];
+              ecoul = qtmp * q[j] * (etmp + eps[j]) * table;
             }
-            if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
-          } else ecoul = 0.0;
+            if (factor_coul < 1.0) ecoul -= (1.0 - factor_coul) * prefactor;
+          } else
+            ecoul = 0.0;
 
           if (rsq < cut_ljsq[itype][jtype]) {
-            evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) -
-              offset[itype][jtype];
+            evdwl = r6inv * (lj3[itype][jtype] * r6inv - lj4[itype][jtype]) - offset[itype][jtype];
             evdwl *= factor_lj;
-          } else evdwl = 0.0;
+          } else
+            evdwl = 0.0;
         }
 
-        if (EVFLAG) ev_tally_thr(this, i,j,nlocal,NEWTON_PAIR,
-                                 evdwl,ecoul,fpair,delx,dely,delz,thr);
+        if (EVFLAG)
+          ev_tally_thr(this, i, j, nlocal, NEWTON_PAIR, evdwl, ecoul, fpair, delx, dely, delz, thr);
       }
     }
     f[i].x += fxtmp;

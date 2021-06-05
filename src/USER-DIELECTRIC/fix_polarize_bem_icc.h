@@ -33,9 +33,9 @@ class FixPolarizeBEMICC : public Fix {
   virtual void setup(int);
   virtual void pre_force(int);
   virtual double compute_vector(int);
-  int modify_param(int, char**);
-  int pack_forward_comm(int, int*, double*, int, int*);
-  void unpack_forward_comm(int, int, double*);
+  int modify_param(int, char **);
+  int pack_forward_comm(int, int *, double *, int, int *);
+  void unpack_forward_comm(int, int, double *);
 
   virtual void compute_induced_charges();
   void set_dielectric_params(double, double, double, double, int, double);
@@ -43,27 +43,26 @@ class FixPolarizeBEMICC : public Fix {
   class AtomVecDielectric *avec;
 
  protected:
-  int nevery;              // to be invoked every time steps
-  double **efield_pair;     // electrical field at position of atom i due to pair contribution
-  double **efield_kspace;   // electrical field at position of atom i due to kspace contribution
-  int kspaceflag;           // 1 if kspace is used for the induced charge computation
-  int torqueflag,extraflag;
+  int nevery;                // to be invoked every time steps
+  double **efield_pair;      // electrical field at position of atom i due to pair contribution
+  double **efield_kspace;    // electrical field at position of atom i due to kspace contribution
+  int kspaceflag;            // 1 if kspace is used for the induced charge computation
+  int torqueflag, extraflag;
 
   void force_clear();
 
  private:
-  int iterations;           // actual number of iterations
-  int itr_max;              // maximum number of outer iterations
-  double tol_abs, tol_rel;  // tolerance for convergence
-  double rho;               // current error
-  double omega;             // iterative weight
-  int randomized;           // 1 if generating random induced charges, 0 otherwise
-  double ave_charge;        // average random charge
+  int iterations;             // actual number of iterations
+  int itr_max;                // maximum number of outer iterations
+  double tol_abs, tol_rel;    // tolerance for convergence
+  double rho;                 // current error
+  double omega;               // iterative weight
+  int randomized;             // 1 if generating random induced charges, 0 otherwise
+  double ave_charge;          // average random charge
   int seed_charge;
-
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

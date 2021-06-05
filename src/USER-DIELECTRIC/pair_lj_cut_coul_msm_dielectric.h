@@ -36,12 +36,12 @@ class PairLJCutCoulMSMDielectric : public PairLJCutCoulLong {
   double **efield;
 
  protected:
-  class AtomVecDielectric* avec;
+  class AtomVecDielectric *avec;
   int nmax;
   double **ftmp;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

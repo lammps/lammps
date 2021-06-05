@@ -32,14 +32,14 @@ class MSMDielectric : public MSM {
   virtual void compute(int, int);
   void fieldforce();
 
-  double** efield;
-  double* phi;
+  double **efield;
+  double *phi;
 
  protected:
-  class AtomVecDielectric* avec;
+  class AtomVecDielectric *avec;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

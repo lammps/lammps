@@ -34,12 +34,11 @@ class PairCoulLongDielectric : public PairCoulLong {
   double **efield;
 
  protected:
-  class AtomVecDielectric* avec;
+  class AtomVecDielectric *avec;
   int nmax;
-
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

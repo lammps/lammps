@@ -32,14 +32,14 @@ class PairCoulCutDielectric : public PairCoulCut {
   virtual double single(int, int, int, int, double, double, double, double &);
   void init_style();
 
-  double** efield;
+  double **efield;
 
  protected:
-  class AtomVecDielectric* avec;
+  class AtomVecDielectric *avec;
   int nmax;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -44,7 +44,7 @@ class ComputeEfieldAtom : public Compute {
   double **efield;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

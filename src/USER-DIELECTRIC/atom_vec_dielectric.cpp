@@ -13,6 +13,7 @@
 ------------------------------------------------------------------------- */
 
 #include "atom_vec_dielectric.h"
+
 #include "atom.h"
 #include "citeme.h"
 

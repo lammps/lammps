@@ -205,7 +205,7 @@ void PairLJCutCoulLongDielectricOMP::eval(int iifrom, int iito, ThrData * const 
               table = ctable[itable] + fraction*dctable[itable];
               prefactor = qtmp*q[j] * table;
               forcecoul -= (1.0-factor_coul)*prefactor;
-              
+
               prefactorE = q[j] * table/qqrd2e;
               efield_i -= (1.0-factor_coul)*prefactorE;
             }

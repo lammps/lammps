@@ -243,7 +243,7 @@ void PairLJCutCoulMSMDielectric::compute(int eflag, int vflag)
           efield[i][2] += delz*efield_i;
 
           if (newton_pair && j >= nlocal) {
-            fpair_j = (forcecoul*eps[j]) * r2inv; 
+            fpair_j = (forcecoul*eps[j]) * r2inv;
             ftmp[j][0] -= delx*fpair_j;
             ftmp[j][1] -= dely*fpair_j;
             ftmp[j][2] -= delz*fpair_j;

@@ -61,7 +61,7 @@ class FixPolarizeBEMGMRES : public Fix {
   double* induced_charges;  // values of induced charges
   double* buffer;           // buffer of size num_induced_charges
   double* q_backup;         // backup for the real charges
-  int allocated;  
+  int allocated;
   double **efield_pair;     // electrical field at position of atom i due to pair contribution
   double **efield_kspace;   // electrical field at position of atom i due to kspace contribution
   int kspaceflag;           // 1 if kspace is used for the induced charge computation

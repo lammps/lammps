@@ -39,7 +39,7 @@ using namespace MathConst;
 PairLJCutCoulCutDielectricOMP::PairLJCutCoulCutDielectricOMP(LAMMPS *lmp) :
   PairLJCutCoulCutDielectric(lmp), ThrOMP(lmp, THR_PAIR)
 {
-  
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -185,7 +185,7 @@ void PairLJCutCoulCutDielectricOMP::eval(int iifrom, int iito, ThrData * const t
         } else forcelj = 0.0;
 
         fpair_i = (factor_coul*etmp*forcecoul + factor_lj*forcelj) * r2inv;
-        
+
         fxtmp += delx*fpair_i;
         fytmp += dely*fpair_i;
         fztmp += delz*fpair_i;
@@ -212,7 +212,7 @@ void PairLJCutCoulCutDielectricOMP::eval(int iifrom, int iito, ThrData * const t
             evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) -
               offset[itype][jtype];
             evdwl *= factor_lj;
-          } else evdwl = 0.0;         
+          } else evdwl = 0.0;
         }
 
         if (EVFLAG) ev_tally_thr(this, i,j,nlocal,NEWTON_PAIR,

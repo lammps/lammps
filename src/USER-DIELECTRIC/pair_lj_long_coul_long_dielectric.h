@@ -31,7 +31,7 @@ class PairLJLongCoulLongDielectric : public PairLJLongCoulLong {
   virtual void compute(int, int);
   void init_style();
   double single(int, int, int, int, double, double, double, double &);
-   
+
   double** efield;
   double* epot;
 

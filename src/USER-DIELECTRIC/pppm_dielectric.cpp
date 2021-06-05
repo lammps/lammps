@@ -412,7 +412,7 @@ void PPPMDielectric::slabcorr()
   double *q = atom->q;
   double **x = atom->x;
   double *eps = atom->epsilon;
-  
+
   double zprd = domain->zprd;
   int nlocal = atom->nlocal;
 

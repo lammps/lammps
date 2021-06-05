@@ -62,7 +62,7 @@ as described in :ref:`(Tyagi) <Tyagi>` to solve for :math:`\sigma_b`.
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-The :doc:`fix_modify <fix_modify>` 
+The :doc:`fix_modify <fix_modify>`
 
 This fix computes a global scalar which can be accessed by various
 :doc:`output commands <Howto_output>`.  The scalar is the Colvars

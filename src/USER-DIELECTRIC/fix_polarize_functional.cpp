@@ -148,7 +148,7 @@ FixPolarizeFunctional::~FixPolarizeFunctional()
   memory->destroy(rhs2);
   memory->destroy(buffer1);
   memory->destroy(buffer2);
- 
+
   if (allocated) deallocate();
   atom->delete_callback(id,0);
 }
@@ -244,7 +244,7 @@ void FixPolarizeFunctional::init()
   memory->create(buffer2,num_induced_charges,num_induced_charges,"polarize:buffer2");
   memory->create(induced_charges,num_induced_charges,"polarize:induced_charges");
 
-  
+
 
   num_ions = 0;
   for (i = 0; i <= maxtag; i++)
@@ -340,7 +340,7 @@ void FixPolarizeFunctional::setup_pre_force(int vflag)
   // calculate Rww before the run (assuming that the interface is fixed for now)
   // otherwise this should be done every time step in pre_force()
 
-  calculate_Rww_cutoff();  
+  calculate_Rww_cutoff();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -368,15 +368,15 @@ void FixPolarizeFunctional::update_induced_charges()
   calculate_qiRqw_cutoff();
 
   // conjugate gradient solver for w from Rww * w = -qRqw
-  
+
   for (int i = 0; i < num_induced_charges; i++)
     for (int j = 0; j < num_induced_charges; j++)
       cg_A[i][j] = Rww[i][j] + Rww[j][i];
-  
+
   for (int i = 0; i < num_induced_charges; i++) induced_charges[i] = 0;
 
   cg_solver(cg_A, qiRqwVector, induced_charges, num_induced_charges);
-  
+
   // assign charges to the particles in the group
 
   double *q = atom->q;
@@ -393,7 +393,7 @@ void FixPolarizeFunctional::update_induced_charges()
   charge_rescaled(REAL2SCALED);
 }
 
-/* ---------------------------------------------------------------------- 
+/* ----------------------------------------------------------------------
   scaled2real = 1: convert ion charges from scaled values (divided by epsilon) to real values
               = 0:                          real values to scaled values
 ------------------------------------------------------------------------- */
@@ -598,7 +598,7 @@ double FixPolarizeFunctional::memory_usage()
   bytes += num_induced_charges*sizeof(double);                     // sum1G1qw_epsilon
   bytes += num_induced_charges*sizeof(double);                     // sum2ndotGwq_epsilon
   bytes += num_ions*num_induced_charges*sizeof(double);            // G1qw_real
-  bytes += nmax*sizeof(int);                                       // induced_charge_idx 
+  bytes += nmax*sizeof(int);                                       // induced_charge_idx
   bytes += nmax*sizeof(int);                                       // ion_idx
   bytes += num_induced_charges*sizeof(double);                     // induced_charges
   return bytes;
@@ -893,7 +893,7 @@ void FixPolarizeFunctional::calculate_qiRqw_cutoff()
     MPI_DOUBLE,MPI_SUM,world);
 
   // the following loop need the above results: gradG1wq_real
-  // calculate sum1G1qw_epsilon and sum2ndotGwq_epsilon 
+  // calculate sum1G1qw_epsilon and sum2ndotGwq_epsilon
   // fill up rhs1 with local sum1G1qw_epsilon and rhs2 with local sum2ndotGwq_epsilon
 
   memset(rhs1, 0, num_induced_charges*sizeof(double));
@@ -1054,7 +1054,7 @@ void FixPolarizeFunctional::set_dielectric_params(double ediff, double emean,
   double *epsilon = atom->epsilon;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-  
+
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       ed[i] = ediff;
@@ -1066,7 +1066,7 @@ void FixPolarizeFunctional::set_dielectric_params(double ediff, double emean,
   }
 }
 
-/* ---------------------------------------------------------------------- 
+/* ----------------------------------------------------------------------
    real Green's function
 ------------------------------------------------------------------------ */
 
@@ -1153,7 +1153,7 @@ double FixPolarizeFunctional::calculate_ndotgreens_ewald_self_vertex(double area
   return curvature * MY_PIS / sqrt(area);
 }
 
-/* ---------------------------------------------------------------------- 
+/* ----------------------------------------------------------------------
   compute the inner product between two vectors x and y: x^t * y
     where ^t is the transpose operator
 -- ---------------------------------------------------------------------- */
@@ -1175,7 +1175,7 @@ void FixPolarizeFunctional::cg_solver(double** A, double* b, double* x, int N)
     cg_p[i] = cg_r[i];
   }
   double rsq = inner_product(cg_r, cg_r, N);
- 
+
   // maximum number of iterations do not exceed N
   for (int k = 0; k < N; k++) {
 
@@ -1200,7 +1200,7 @@ void FixPolarizeFunctional::cg_solver(double** A, double* b, double* x, int N)
 
     // beta = rsq_new / rsq
     double beta = rsq_new / rsq;
-    for (int i = 0; i < N; i++) 
+    for (int i = 0; i < N; i++)
       cg_p[i] = cg_r[i] + beta*cg_p[i];
     rsq = rsq_new;
   }

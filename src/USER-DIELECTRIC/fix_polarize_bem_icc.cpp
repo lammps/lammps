@@ -223,7 +223,7 @@ void FixPolarizeBEMICC::compute_induced_charges()
   double *epsilon = atom->epsilon;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-  double epsilon0 = force->dielectric; 
+  double epsilon0 = force->dielectric;
   int eflag = 1;
   int vflag = 0;
   int itr;
@@ -291,7 +291,7 @@ void FixPolarizeBEMICC::compute_induced_charges()
 
       // Eq. (69) in Barros et al.,  sigma_f[i] = q_real[i] / area[i]
       // note the area[i] is included here to ensure correct charge unit
-      // for direct use in force/efield compute 
+      // for direct use in force/efield compute
 
       double dot = (Ex*norm[i][0] + Ey*norm[i][1] + Ez*norm[i][2]) / (4*MY_PI) / epsilon[i];
       double q_bound = q[i] - q_free;
@@ -300,7 +300,7 @@ void FixPolarizeBEMICC::compute_induced_charges()
       q[i] = q_free + q_bound;
 
       // Eq. (11) in Tyagi et al., with f from Eq. (6)
-      // NOTE: Tyagi et al. defined the normal vector n_i pointing 
+      // NOTE: Tyagi et al. defined the normal vector n_i pointing
       // from the medium containg the ions toward the other medium,
       // which makes the normal vector direction depend on the ion position
       // Also, since Tyagi et al. chose epsilon_1 for the uniform dielectric constant
@@ -430,7 +430,7 @@ void FixPolarizeBEMICC::set_dielectric_params(double ediff, double emean,
   double *epsilon = atom->epsilon;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-  
+
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       ed[i] = ediff;

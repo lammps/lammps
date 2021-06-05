@@ -392,7 +392,7 @@ void FixPolarizeBEMGMRES::compute_induced_charges()
       int idx = induced_charge_idx[i];
       q[i] = induced_charges[idx]*area[i] + q_real[i];
     } else {
-      q[i] = q_backup[i]; 
+      q[i] = q_backup[i];
     }
   }
 
@@ -504,7 +504,7 @@ void FixPolarizeBEMGMRES::gmres_solve(double* x, double* r)
 
         // update h(k-1, i-1) <- y(i-1) for i = 1..(k_1)
 
-        for (i = 1; i <= k + 1; i++) 
+        for (i = 1; i <= k + 1; i++)
           h[i-1+(k-1)*(mr+1)] = y[i-1];
       }
 
@@ -517,7 +517,7 @@ void FixPolarizeBEMGMRES::gmres_solve(double* x, double* r)
 
       // update h(k-1,k-1) and set h(k-1,k) to zero
 
-      h[(k-1)+(k-1)*(mr+1)] = c[k-1] * h[(k-1)+(k-1)*(mr+1)] 
+      h[(k-1)+(k-1)*(mr+1)] = c[k-1] * h[(k-1)+(k-1)*(mr+1)]
                             - s[k-1] * h[ k   +(k-1)*(mr+1)];
       h[k    +(k-1)*(mr+1)] = 0;
 
@@ -549,7 +549,7 @@ void FixPolarizeBEMGMRES::gmres_solve(double* x, double* r)
     y[k] = g[k] / h[k + k*(mr+1)];
     for (i = k; i >= 1; i--) {
       y[i-1] = g[i-1];
-      for (j = i + 1; j <= k + 1; j++) 
+      for (j = i + 1; j <= k + 1; j++)
         y[i-1] = y[i-1] - h[(i-1)+(j-1)*(mr+1)] * y[j-1];
       y[i-1] = y[i-1] / h[(i-1)+(i-1)*(mr+1)];
     }
@@ -590,7 +590,7 @@ void FixPolarizeBEMGMRES::gmres_solve(double* x, double* r)
   iterations = itr;
 }
 
-/* ---------------------------------------------------------------------- 
+/* ----------------------------------------------------------------------
   compute the result of operator A on a given vector w
   matvec(A, v(k-1), v(k), n);
 ------------------------------------------------------------------------- */
@@ -606,11 +606,11 @@ void FixPolarizeBEMGMRES::apply_operator(double* w, double* Aw, int n)
   double *epsilon = atom->epsilon;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-  double epsilon0 = force->dielectric; 
+  double epsilon0 = force->dielectric;
   int eflag = 0;
   int vflag = 0;
 
-  // set the induced charges to be w 
+  // set the induced charges to be w
   // the real charges are set to zero: Aw only involves sigma_b (not sigma_f)
   // need not to revert the induced charges
   //   because update_residual() will set the induced charges anyway
@@ -618,7 +618,7 @@ void FixPolarizeBEMGMRES::apply_operator(double* w, double* Aw, int n)
   for (i = 0; i < nlocal; i++) {
     if (induced_charge_idx[i] < 0) {
       q[i] = 0;
-    } else {  
+    } else {
       int idx = induced_charge_idx[i];
       q[i] = w[idx]*area[i];
     }
@@ -658,7 +658,7 @@ void FixPolarizeBEMGMRES::apply_operator(double* w, double* Aw, int n)
   MPI_Allreduce(buffer,Aw,num_induced_charges,MPI_DOUBLE,MPI_SUM,world);
 }
 
-/* ---------------------------------------------------------------------- 
+/* ----------------------------------------------------------------------
   need to turn the real charges back on
   set the induced charges to be w
   compute the new residual in r = b - Ax without directly computing A x
@@ -705,7 +705,7 @@ void FixPolarizeBEMGMRES::update_residual(double* w, double* r, int n)
   // compute the residual according to Eq. (60) in Barros et al.
   // Note: in the definition of the electrical fields in Equations (41) and (53)
   // in Ref. Barros et al there is a factor 1/(4pi).
- 
+
   for (i = 0; i < num_induced_charges; i++) buffer[i] = 0;
 
   for (i = 0; i < nlocal; i++) {
@@ -726,8 +726,8 @@ void FixPolarizeBEMGMRES::update_residual(double* w, double* r, int n)
     }
     double dot = (Ex*norm[i][0] + Ey*norm[i][1] + Ez*norm[i][2]) / epsilon[i];
     double sigma_f = q_real[i] / area[i];
-    buffer[idx] = (1 - em[i]) * sigma_f - em[i] * w[idx] - 
-      epsilon0 * ed[i] * dot / (4*MY_PI);  
+    buffer[idx] = (1 - em[i]) * sigma_f - em[i] * w[idx] -
+      epsilon0 * ed[i] * dot / (4*MY_PI);
   }
 
   MPI_Allreduce(buffer,r,num_induced_charges,MPI_DOUBLE,MPI_SUM,world);
@@ -947,7 +947,7 @@ void FixPolarizeBEMGMRES::set_dielectric_params(double ediff, double emean,
   double *epsilon = atom->epsilon;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-  
+
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       ed[i] = ediff;

@@ -73,14 +73,14 @@ class FixPolarizeFunctional : public Fix {
   double** buffer1;
   double** buffer2;
 
-  int allocated;  
+  int allocated;
   int kspaceflag;           // 1 if kspace is used for the induced charge computation
   double **efield_pair;     // electrical field at position of atom i due to pair contribution
   double **efield_kspace;   // electrical field at position of atom i due to kspace contribution
   int torqueflag,extraflag;
   double g_ewald;
   int includingG3ww;
-  
+
   void calculate_Rww_cutoff();
   void calculate_qiRqw_cutoff();
 

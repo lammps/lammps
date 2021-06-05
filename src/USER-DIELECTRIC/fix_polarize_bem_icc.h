@@ -52,7 +52,7 @@ class FixPolarizeBEMICC : public Fix {
   void force_clear();
 
  private:
-  int iterations;           // actual number of iterations   
+  int iterations;           // actual number of iterations
   int itr_max;              // maximum number of outer iterations
   double tol_abs, tol_rel;  // tolerance for convergence
   double rho;               // current error

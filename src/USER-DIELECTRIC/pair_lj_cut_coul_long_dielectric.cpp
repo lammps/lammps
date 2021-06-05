@@ -153,7 +153,7 @@ void PairLJCutCoulLongDielectric::compute(int eflag, int vflag)
 
         if (rsq < cut_coulsq && rsq > EPSILON) {
           if (!ncoultablebits || rsq <= tabinnersq) {
-            
+
             grij = g_ewald * r;
             expm2 = exp(-grij*grij);
             t = 1.0 / (1.0 + EWALD_P*grij);
@@ -196,7 +196,7 @@ void PairLJCutCoulLongDielectric::compute(int eflag, int vflag)
         f[i][0] += delx*fpair_i;
         f[i][1] += dely*fpair_i;
         f[i][2] += delz*fpair_i;
-        
+
         efield_i *= (etmp*r2inv);
         efield[i][0] += delx*efield_i;
         efield[i][1] += dely*efield_i;

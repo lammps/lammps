@@ -220,7 +220,7 @@ double PairLJCutCoulDebyeDielectric::single(int i, int j, int itype, int jtype,
     r = sqrt(rsq);
     rinv = 1.0/r;
     screening = exp(-kappa*r);
-    forcecoul = force->qqrd2e * atom->q[i]*atom->q[j] * 
+    forcecoul = force->qqrd2e * atom->q[i]*atom->q[j] *
       screening * (kappa + rinv) * eps[i];
   } else forcecoul = 0.0;
   if (rsq < cut_ljsq[itype][jtype]) {

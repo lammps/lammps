@@ -177,7 +177,7 @@ void PairLJLongCoulLongDielectric::compute(int eflag, int vflag)
 
       if (order1 && (rsq < cut_coulsq)) {                // coulombic
         if (!ncoultablebits || rsq <= tabinnersq) {
-            
+
           grij = g_ewald * r;
           expm2 = exp(-grij*grij);
           t = 1.0 / (1.0 + EWALD_P*grij);

@@ -188,7 +188,7 @@ double PairCoulCutDielectric::single(int i, int j, int itype, int jtype,
 
   r2inv = 1.0/rsq;
   forcecoul = force->qqrd2e * atom->q[i]*atom->q[j]*sqrt(r2inv)*eps[i];
-  
+
   double eng = 0.0;
   if (eps[i] == 1) ei = 0;
   else ei = eps[i];

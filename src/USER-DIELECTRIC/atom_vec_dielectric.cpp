@@ -42,7 +42,7 @@ AtomVecDielectric::AtomVecDielectric(LAMMPS *lmp) : AtomVec(lmp)
   mass_type = PER_TYPE;
 
   atom->molecule_flag = atom->q_flag = atom->mu_flag = 1;
-  
+
   // strings with peratom variables to include in each AtomVec method
   // strings cannot contain fields in corresponding AtomVec default strings
   // order of fields in a string does not matter

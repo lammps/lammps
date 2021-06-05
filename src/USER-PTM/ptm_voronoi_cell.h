@@ -40,6 +40,7 @@ works, incorporate into other computer software, distribute, and sublicense
 such enhancements or derivative works thereof, in binary and source code form.
 */
 
+// clang-format off
 
 // Voro++, a 3D cell-based Voronoi library
 //
@@ -362,3 +363,4 @@ class voronoicell_neighbor : public voronoicell_base {
 
 #endif
 
+// clang-format on

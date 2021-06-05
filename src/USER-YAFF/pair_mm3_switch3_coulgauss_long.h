@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(mm3/switch3/coulgauss/long,PairMM3Switch3CoulGaussLong)
-
+// clang-format off
+PairStyle(mm3/switch3/coulgauss/long,PairMM3Switch3CoulGaussLong);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_MM3_SWITCH3_COULGAUSS_LONG_H
@@ -47,18 +47,18 @@ class PairMM3Switch3CoulGaussLong : public Pair {
  protected:
   double cut_lj_global;
   double truncw, truncwi;
-  double **cut_lj,**cut_ljsq;
-  double cut_coul,cut_coulsq;
-  double **epsilon,**sigma,**gamma;
-  double **lj1,**lj2,**lj3,**lj4,**offset;
+  double **cut_lj, **cut_ljsq;
+  double cut_coul, cut_coulsq;
+  double **epsilon, **sigma, **gamma;
+  double **lj1, **lj2, **lj3, **lj4, **offset;
   double *cut_respa;
-  double qdist;             // TIP4P distance from O site to negative charge
+  double qdist;    // TIP4P distance from O site to negative charge
   double g_ewald;
 
   virtual void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

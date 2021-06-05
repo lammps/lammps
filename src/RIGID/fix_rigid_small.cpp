@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -192,7 +193,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   pcouple = NONE;
   pstyle = ANISO;
 
-  for (int i = 0; i < 3; i++) {
+  for (i = 0; i < 3; i++) {
     p_start[i] = p_stop[i] = p_period[i] = 0.0;
     p_flag[i] = 0;
   }
@@ -367,7 +368,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   // error check and further setup for Molecule template
 
   if (onemols) {
-    for (int i = 0; i < nmol; i++) {
+    for (i = 0; i < nmol; i++) {
       if (onemols[i]->xflag == 0)
         error->all(FLERR,"Fix rigid/small molecule must have coordinates");
       if (onemols[i]->typeflag == 0)
@@ -385,7 +386,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   // set pstat_flag
 
   pstat_flag = 0;
-  for (int i = 0; i < 3; i++)
+  for (i = 0; i < 3; i++)
     if (p_flag[i]) pstat_flag = 1;
 
   if (pcouple == XYZ || (domain->dimension == 2 && pcouple == XY)) pstyle = ISO;
@@ -401,8 +402,8 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   if (customflag) delete [] bodyID;
 
   if (comm->me == 0)
-    utils::logmesg(lmp,fmt::format("  create bodies CPU = {:.3f} seconds\n",
-                                   MPI_Wtime()-time1));
+    utils::logmesg(lmp,"  create bodies CPU = {:.3f} seconds\n",
+                   MPI_Wtime()-time1);
 
   // set nlocal_body and allocate bodies I own
 
@@ -451,7 +452,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
 
   int one = 0;
   bigint atomone = 0;
-  for (int i = 0; i < nlocal; i++) {
+  for (i = 0; i < nlocal; i++) {
     if (bodyown[i] >= 0) one++;
     if (bodytag[i] > 0) atomone++;
   }
@@ -460,10 +461,9 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   MPI_Allreduce(&atomone,&atomall,1,MPI_LMP_BIGINT,MPI_SUM,world);
 
   if (me == 0) {
-    auto msg = fmt::format("  {} rigid bodies with {} atoms\n",nbody,atomall);
-    msg += fmt::format("  {:.8} = max distance from body owner to body atom\n",
-                       maxextent);
-    utils::logmesg(lmp,msg);
+    utils::logmesg(lmp,"  {} rigid bodies with {} atoms\n"
+                   "  {:.8} = max distance from body owner to body atom\n",
+                   nbody,atomall,maxextent);
   }
 
   // initialize Marsaglia RNG with processor-unique seed
@@ -549,8 +549,8 @@ void FixRigidSmall::init()
       if (modify->fix[i]->rigid_flag) rflag = 1;
       if (rflag && (modify->fmask[i] & POST_FORCE) &&
           !modify->fix[i]->rigid_flag)
-        error->warning(FLERR,fmt::format("Fix {} alters forces after fix "
-                                         "rigid",modify->fix[i]->id));
+        error->warning(FLERR,"Fix {} alters forces after fix rigid",
+                       modify->fix[i]->id);
     }
   }
 
@@ -978,7 +978,7 @@ void FixRigidSmall::compute_forces_and_torques()
   // include Langevin thermostat forces and torques
 
   if (langflag) {
-    for (int ibody = 0; ibody < nlocal_body; ibody++) {
+    for (ibody = 0; ibody < nlocal_body; ibody++) {
       fcm = body[ibody].fcm;
       fcm[0] += langextra[ibody][0];
       fcm[1] += langextra[ibody][1];
@@ -1163,7 +1163,7 @@ int FixRigidSmall::dof(int tgroup)
   // 2 = # of particles in rigid body, disregarding temperature group
 
   memory->create(counts,nlocal_body+nghost_body,3,"rigid/small:counts");
-  for (int i = 0; i < nlocal_body+nghost_body; i++)
+  for (i = 0; i < nlocal_body+nghost_body; i++)
     counts[i][0] = counts[i][1] = counts[i][2] = 0;
 
   // tally counts from my owned atoms
@@ -1630,7 +1630,7 @@ void FixRigidSmall::create_bodies(tagint *bodyID)
   MPI_Allreduce(&rsqfar,&maxextent,1,MPI_DOUBLE,MPI_MAX,world);
   maxextent = sqrt(maxextent);
   if (onemols) {
-    for (int i = 0; i < nmol; i++)
+    for (i = 0; i < nmol; i++)
       maxextent = MAX(maxextent,onemols[i]->maxextent);
   }
 }
@@ -1741,7 +1741,7 @@ int FixRigidSmall::rendezvous_body(int n, char *inbuf,
 
   double rsqfar = 0.0;
 
-  for (int i = 0; i < n; i++) {
+  for (i = 0; i < n; i++) {
     m = hash.find(in[i].bodyID)->second;
     xown = in[iclose[m]].x;
     x = in[i].x;
@@ -1761,7 +1761,7 @@ int FixRigidSmall::rendezvous_body(int n, char *inbuf,
   OutRvous *out = (OutRvous *)
     memory->smalloc(nout*sizeof(OutRvous),"rigid/small:out");
 
-  for (int i = 0; i < nout; i++) {
+  for (i = 0; i < nout; i++) {
     proclist[i] = in[i].me;
     out[i].ilocal = in[i].ilocal;
     m = hash.find(in[i].bodyID)->second;
@@ -2454,8 +2454,8 @@ void FixRigidSmall::readfile(int which, double **array, int *inbody)
   if (me == 0) {
     fp = fopen(inpfile,"r");
     if (fp == nullptr)
-      error->one(FLERR,fmt::format("Cannot open fix rigid/small file {}: {}",
-                                   inpfile,utils::getsyserror()));
+      error->one(FLERR,"Cannot open fix rigid/small file {}: {}",
+                                   inpfile,utils::getsyserror());
     while (1) {
       eof = fgets(line,MAXLINE,fp);
       if (eof == nullptr)
@@ -2475,7 +2475,7 @@ void FixRigidSmall::readfile(int which, double **array, int *inbody)
   int nread = 0;
   while (nread < nlines) {
     nchunk = MIN(nlines-nread,CHUNK);
-    eofflag = comm->read_lines_from_file(fp,nchunk,MAXLINE,buffer);
+    eofflag = utils::read_lines_from_file(fp,nchunk,MAXLINE,buffer,me,world);
     if (eofflag) error->all(FLERR,"Unexpected end of fix rigid/small file");
 
     buf = buffer;
@@ -2493,7 +2493,7 @@ void FixRigidSmall::readfile(int which, double **array, int *inbody)
     // for which = 0, store all but inertia directly in body struct
     // for which = 1, store inertia tensor array, invert 3,4,5 values to Voigt
 
-    for (int i = 0; i < nchunk; i++) {
+    for (i = 0; i < nchunk; i++) {
       next = strchr(buf,'\n');
 
       values[0] = strtok(buf," \t\n\r\f");
@@ -2568,8 +2568,8 @@ void FixRigidSmall::write_restart_file(const char *file)
     auto outfile = std::string(file) + ".rigid";
     fp = fopen(outfile.c_str(),"w");
     if (fp == nullptr)
-      error->one(FLERR,fmt::format("Cannot open fix rigid restart file {}: {}",
-                                   outfile,utils::getsyserror()));
+      error->one(FLERR,"Cannot open fix rigid restart file {}: {}",
+                                   outfile,utils::getsyserror());
 
     fmt::print(fp,"# fix rigid mass, COM, inertia tensor info for "
                "{} bodies on timestep {}\n\n",nbody,update->ntimestep);
@@ -3312,9 +3312,9 @@ void FixRigidSmall::reset_atom2body()
     if (bodytag[i]) {
       iowner = atom->map(bodytag[i]);
       if (iowner == -1)
-        error->one(FLERR,fmt::format("Rigid body atoms {} {} missing on "
+        error->one(FLERR,"Rigid body atoms {} {} missing on "
                                      "proc {} at step {}",atom->tag[i],
-                                     bodytag[i],comm->me,update->ntimestep));
+                                     bodytag[i],comm->me,update->ntimestep);
 
       atom2body[i] = bodyown[iowner];
     }

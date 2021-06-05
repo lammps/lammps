@@ -37,9 +37,10 @@ atom_modify     first charged
 kspace_style    pppm/cg 0.00001
 kspace_modify   order 3 
 
-comm_modify     mode multi
 neighbor        2.0 multi
 neigh_modify    delay 4 every 2 check yes
+
+comm_modify     mode multi
 
 timestep        10.0
 

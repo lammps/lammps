@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -166,7 +167,7 @@ void Replicate::command(int narg, char **arg)
     atom->molecules = (Molecule **) memory->smalloc((old->nmolecule)*sizeof(Molecule *),
                                                     "atom::molecules");
     atom->nmolecule = old->nmolecule;
-    for (int i = 0; i < old->nmolecule; ++i)
+    for (i = 0; i < old->nmolecule; ++i)
       atom->molecules[i] = old->molecules[i];
     memory->sfree(old->molecules);
     old->molecules = nullptr;
@@ -647,9 +648,8 @@ void Replicate::command(int narg, char **arg)
     MPI_Reduce(&num_replicas_added, &sum, 1, MPI_INT, MPI_SUM, 0, world);
     double avg = (double) sum / nprocs;
     if (me == 0)
-      utils::logmesg(lmp,fmt::format("  average # of replicas added to proc ="
-                                     " {:.2f} out of {} ({:.2f}%)\n",
-                                     avg,nx*ny*nz,avg/(nx*ny*nz)*100.0));
+      utils::logmesg(lmp,"  average # of replicas added to proc = {:.2f} out "
+                     "of {} ({:.2f}%)\n",avg,nx*ny*nz,avg/(nx*ny*nz)*100.0);
   } else {
 
     for (int iproc = 0; iproc < nprocs; iproc++) {
@@ -753,7 +753,7 @@ void Replicate::command(int narg, char **arg)
   MPI_Allreduce(&nblocal,&natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
 
   if (me == 0) {
-    utils::logmesg(lmp,fmt::format("  {} atoms\n",natoms));
+    utils::logmesg(lmp,"  {} atoms\n",natoms);
   }
 
   if (natoms != atom->natoms)
@@ -763,16 +763,16 @@ void Replicate::command(int narg, char **arg)
     const char *molstyle = "";
     if (atom->molecular == Atom::TEMPLATE) molstyle = "template ";
     if (atom->nbonds) {
-      utils::logmesg(lmp,fmt::format("  {} {}bonds\n",atom->nbonds,molstyle));
+      utils::logmesg(lmp,"  {} {}bonds\n",atom->nbonds,molstyle);
     }
     if (atom->nangles) {
-      utils::logmesg(lmp,fmt::format("  {} {}angles\n",atom->nangles,molstyle));
+      utils::logmesg(lmp,"  {} {}angles\n",atom->nangles,molstyle);
     }
     if (atom->ndihedrals) {
-      utils::logmesg(lmp,fmt::format("  {} {}dihedrals\n",atom->ndihedrals,molstyle));
+      utils::logmesg(lmp,"  {} {}dihedrals\n",atom->ndihedrals,molstyle);
     }
     if (atom->nimpropers) {
-      utils::logmesg(lmp,fmt::format("  {} {}impropers\n",atom->nimpropers,molstyle));
+      utils::logmesg(lmp,"  {} {}impropers\n",atom->nimpropers,molstyle);
     }
   }
 
@@ -799,6 +799,5 @@ void Replicate::command(int narg, char **arg)
   MPI_Barrier(world);
 
   if (me == 0)
-    utils::logmesg(lmp,fmt::format("  replicate CPU = {:.3f} seconds\n",
-                                   MPI_Wtime()-time1));
+    utils::logmesg(lmp,"  replicate CPU = {:.3f} seconds\n",MPI_Wtime()-time1);
 }

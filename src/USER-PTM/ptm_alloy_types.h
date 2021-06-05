@@ -14,9 +14,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 namespace ptm {
 
-int32_t find_alloy_type(const refdata_t* ref, int8_t* mapping, int32_t* numbers);
+int32_t find_alloy_type(const refdata_t *ref, int8_t *mapping, int32_t *numbers);
 
 }
 
 #endif
-

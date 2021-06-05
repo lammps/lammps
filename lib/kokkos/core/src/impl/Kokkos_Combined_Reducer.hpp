@@ -53,6 +53,8 @@
 #include <Kokkos_AnonymousSpace.hpp>
 #include <impl/Kokkos_Utilities.hpp>  // comma operator fold emulation
 
+#include <utility>
+
 namespace Kokkos {
 namespace Impl {
 
@@ -99,7 +101,7 @@ template <class IdxSeq, class... ValueTypes>
 struct CombinedReducerValueImpl;
 
 template <size_t... Idxs, class... ValueTypes>
-struct CombinedReducerValueImpl<integer_sequence<size_t, Idxs...>,
+struct CombinedReducerValueImpl<std::integer_sequence<size_t, Idxs...>,
                                 ValueTypes...>
     : CombinedReducerValueItemImpl<Idxs, ValueTypes>... {
  public:
@@ -220,14 +222,15 @@ template <class IdxSeq, class Space, class...>
 struct CombinedReducerImpl;
 
 template <size_t... Idxs, class Space, class... Reducers>
-struct CombinedReducerImpl<integer_sequence<size_t, Idxs...>, Space,
+struct CombinedReducerImpl<std::integer_sequence<size_t, Idxs...>, Space,
                            Reducers...>
     : private CombinedReducerStorageImpl<Idxs, Reducers>... {
  public:
-  using reducer = CombinedReducerImpl<integer_sequence<size_t, Idxs...>, Space,
-                                      Reducers...>;
-  using value_type = CombinedReducerValueImpl<integer_sequence<size_t, Idxs...>,
-                                              typename Reducers::value_type...>;
+  using reducer = CombinedReducerImpl<std::integer_sequence<size_t, Idxs...>,
+                                      Space, Reducers...>;
+  using value_type =
+      CombinedReducerValueImpl<std::integer_sequence<size_t, Idxs...>,
+                               typename Reducers::value_type...>;
   using result_view_type =
       Kokkos::View<value_type, Space, Kokkos::MemoryUnmanaged>;
 
@@ -309,10 +312,11 @@ struct CombinedReducerImpl<integer_sequence<size_t, Idxs...>, Space,
 // thing.
 template <class Space, class... Reducers>
 struct CombinedReducer
-    : CombinedReducerImpl<make_index_sequence<sizeof...(Reducers)>, Space,
+    : CombinedReducerImpl<std::make_index_sequence<sizeof...(Reducers)>, Space,
                           Reducers...> {
-  using base_t = CombinedReducerImpl<make_index_sequence<sizeof...(Reducers)>,
-                                     Space, Reducers...>;
+  using base_t =
+      CombinedReducerImpl<std::make_index_sequence<sizeof...(Reducers)>, Space,
+                          Reducers...>;
   using base_t::base_t;
   using reducer = CombinedReducer<Space, Reducers...>;
 };
@@ -327,8 +331,8 @@ template <class IdxSeq, class Functor, class Space, class... Reducers>
 struct CombinedReductionFunctorWrapperImpl;
 
 template <size_t... Idxs, class Functor, class Space, class... Reducers>
-struct CombinedReductionFunctorWrapperImpl<integer_sequence<size_t, Idxs...>,
-                                           Functor, Space, Reducers...> {
+struct CombinedReductionFunctorWrapperImpl<
+    std::integer_sequence<size_t, Idxs...>, Functor, Space, Reducers...> {
  private:
   Functor m_functor;
 
@@ -425,10 +429,11 @@ struct CombinedReductionFunctorWrapperImpl<integer_sequence<size_t, Idxs...>,
 template <class Functor, class Space, class... Reducers>
 struct CombinedReductionFunctorWrapper
     : CombinedReductionFunctorWrapperImpl<
-          make_index_sequence<sizeof...(Reducers)>, Functor, Space,
+          std::make_index_sequence<sizeof...(Reducers)>, Functor, Space,
           Reducers...> {
   using base_t = CombinedReductionFunctorWrapperImpl<
-      make_index_sequence<sizeof...(Reducers)>, Functor, Space, Reducers...>;
+      std::make_index_sequence<sizeof...(Reducers)>, Functor, Space,
+      Reducers...>;
   using base_t::base_t;
 };
 
@@ -488,11 +493,8 @@ using _reducer_from_arg_t =
 //------------------------------------------------------------------------------
 
 template <class Space, class... ReferencesOrViewsOrReducers>
-KOKKOS_INLINE_FUNCTION constexpr CombinedReducerValueImpl<
-    make_index_sequence<sizeof...(ReferencesOrViewsOrReducers)>,
-    typename _reducer_from_arg_t<Space,
-                                 ReferencesOrViewsOrReducers>::value_type...>
-make_combined_reducer_value(ReferencesOrViewsOrReducers&&... args) {
+KOKKOS_INLINE_FUNCTION constexpr auto make_combined_reducer_value(
+    ReferencesOrViewsOrReducers&&... args) {
   //----------------------------------------
   // This is a bit round-about and we should make sure it doesn't have
   // any performance implications. Basically, we make a reducer out of anything
@@ -500,7 +502,7 @@ make_combined_reducer_value(ReferencesOrViewsOrReducers&&... args) {
   // compilers should figure out what's going on, but we should double-check
   // that.
   return CombinedReducerValueImpl<
-      make_index_sequence<sizeof...(ReferencesOrViewsOrReducers)>,
+      std::make_index_sequence<sizeof...(ReferencesOrViewsOrReducers)>,
       typename _reducer_from_arg_t<Space,
                                    ReferencesOrViewsOrReducers>::value_type...>{
       // This helper function is now poorly named after refactoring.
@@ -510,9 +512,8 @@ make_combined_reducer_value(ReferencesOrViewsOrReducers&&... args) {
 }
 
 template <class Space, class ValueType, class... ReferencesOrViewsOrReducers>
-KOKKOS_INLINE_FUNCTION constexpr CombinedReducer<
-    Space, _reducer_from_arg_t<Space, ReferencesOrViewsOrReducers>...>
-make_combined_reducer(ValueType& value, ReferencesOrViewsOrReducers&&... args) {
+KOKKOS_INLINE_FUNCTION constexpr auto make_combined_reducer(
+    ValueType& value, ReferencesOrViewsOrReducers&&... args) {
   //----------------------------------------
   // This is doing more or less the same thing of making every argument into
   // a reducer, just in a different place than in `make_combined_reducer_value`,
@@ -526,10 +527,8 @@ make_combined_reducer(ValueType& value, ReferencesOrViewsOrReducers&&... args) {
 }
 
 template <class Functor, class Space, class... ReferencesOrViewsOrReducers>
-KOKKOS_INLINE_FUNCTION constexpr CombinedReductionFunctorWrapper<
-    Functor, Space, _reducer_from_arg_t<Space, ReferencesOrViewsOrReducers>...>
-make_wrapped_combined_functor(Functor const& functor, Space,
-                              ReferencesOrViewsOrReducers&&...) {
+KOKKOS_INLINE_FUNCTION constexpr auto make_wrapped_combined_functor(
+    Functor const& functor, Space, ReferencesOrViewsOrReducers&&...) {
   //----------------------------------------
   return CombinedReductionFunctorWrapper<
       Functor, Space,

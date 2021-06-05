@@ -1,7 +1,8 @@
+// clang-format off
 /* ----------------------------------------------------------------------
 
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -637,11 +638,12 @@ int AtomVecSpinKokkos::unpack_border_hybrid(int n, int first, double *buf)
 
   m = 0;
   last = first + n;
-  for (i = first; i < last; i++)
+  for (i = first; i < last; i++) {
     h_sp(i,0) = buf[m++];
     h_sp(i,1) = buf[m++];
     h_sp(i,2) = buf[m++];
     h_sp(i,3) = buf[m++];
+  }
   return m;
 }
 

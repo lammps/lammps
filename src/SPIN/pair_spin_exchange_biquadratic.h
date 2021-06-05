@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(spin/exchange/biquadratic,PairSpinExchangeBiquadratic)
-
+// clang-format off
+PairStyle(spin/exchange/biquadratic,PairSpinExchangeBiquadratic);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_SPIN_EXCHANGE_BIQUADRATIC_H
@@ -38,30 +38,29 @@ class PairSpinExchangeBiquadratic : public PairSpin {
 
   void compute_exchange(int, int, double, double *, double *, double *);
   void compute_exchange_mech(int, int, double, double *, double *, double *, double *);
-  double compute_energy(int , int , double , double *, double *);
+  double compute_energy(int, int, double, double *, double *);
 
   void write_restart(FILE *);
   void read_restart(FILE *);
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
 
-  double cut_spin_exchange_global;      // global exchange cutoff distance
+  double cut_spin_exchange_global;    // global exchange cutoff distance
 
  protected:
-
-  int e_offset;                         // apply energy offset
-  double **J1_mag;                      // H exchange coeffs in eV
-  double **J1_mech;                     // mech exchange coeffs in
-  double **J2, **J3;                    // J1 in eV, J2 in Ang-1, J3 in Ang
-  double **K1_mag;                      // Bi exchange coeffs in eV
-  double **K1_mech;                     // mech exchange coeffs in
-  double **K2, **K3;                    // K1 in eV, K2 Ang-1, K3 in Ang
-  double **cut_spin_exchange;           // cutoff distance exchange
+  int e_offset;                  // apply energy offset
+  double **J1_mag;               // H exchange coeffs in eV
+  double **J1_mech;              // mech exchange coeffs in
+  double **J2, **J3;             // J1 in eV, J2 in Ang-1, J3 in Ang
+  double **K1_mag;               // Bi exchange coeffs in eV
+  double **K1_mech;              // mech exchange coeffs in
+  double **K2, **K3;             // K1 in eV, K2 Ang-1, K3 in Ang
+  double **cut_spin_exchange;    // cutoff distance exchange
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

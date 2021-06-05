@@ -10,6 +10,7 @@ letter abbreviation can be used:
 * :ref:`-i or -in <file>`
 * :ref:`-k or -kokkos <run-kokkos>`
 * :ref:`-l or -log <log>`
+* :ref:`-mdi <mdi>`
 * :ref:`-m or -mpicolor <mpicolor>`
 * :ref:`-c or -cite <cite>`
 * :ref:`-nc or -nocite <nocite>`
@@ -196,9 +197,23 @@ Option -plog will override the name of the partition log files file.N.
 
 ----------
 
+.. _mdi:
+
+**-mdi 'multiple flags'**
+
+This flag is only recognized and used when LAMMPS has support for the MolSSI
+Driver Interface (MDI) included as part of the :ref:`USER-MDI <PKG-USER-MDI>`
+package.  This flag is specific to the MDI library and controls how LAMMPS
+interacts with MDI.  There are usually multiple flags that have to follow it
+and those have to be placed in quotation marks.  For more information about
+how to launch LAMMPS in MDI client/server mode please refer to the
+:doc:`MDI Howto <Howto_mdi>`.
+
+----------
+
 .. _mpicolor:
 
-**-mpicolor** color
+**-mpicolor color**
 
 If used, this must be the first command-line argument after the LAMMPS
 executable name.  It is only used when LAMMPS is launched by an mpirun
@@ -223,7 +238,7 @@ links with from the lib/message directory.  See the
 
 .. _cite:
 
-**-cite style or file name**
+**-cite style** or **file name**
 
 Select how and where to output a reminder about citing contributions
 to the LAMMPS code that were used during the run. Available styles are

@@ -5,8 +5,8 @@ If you are confident that you have found a bug in LAMMPS, please follow
 the steps outlined below:
 
  * Check the `New features and bug fixes
-   <https://lammps.sandia.gov/bug.html>`_ section of the `LAMMPS WWW site
-   <https://lammps.sandia.gov>`_ or the
+   <https://www.lammps.org/bug.html>`_ section of the `LAMMPS WWW site
+   <https://www.lammps.org>`_ or the
    `GitHub Releases page <https://github.com/lammps/lammps/releases>`_ to
    see if the bug has already been addressed in a patch release.
  * Check that your issue can be reproduced with the latest development
@@ -17,7 +17,7 @@ the steps outlined below:
    if your issue has already been reported and if it is still open.
  * Check the `GitHub Pull Requests page <https://github.com/lammps/lammps/pulls>`_
    to see if there is already a fix for your bug pending.
- * Check the `mailing list archives <https://lammps.sandia.gov/mail.html>`_
+ * Check the `mailing list archives <https://www.lammps.org/mail.html>`_
    to see if the issue has been discussed before.
 
 If none of these steps yields any useful information, please file a new

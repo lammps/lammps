@@ -9,7 +9,7 @@ on your system. See lib/netcdf/README for additional details.
 PACKAGE DESCRIPTION
 -------------------
 
-This is a LAMMPS (http://lammps.sandia.gov/) dump style for output into a NetCDF
+This is a LAMMPS (https://www.lammps.org/) dump style for output into a NetCDF
 database. The database format follows the AMBER NetCDF trajectory convention
 (http://ambermd.org/netcdf/nctraj.xhtml), but includes extensions to this
 convention. These extension are:

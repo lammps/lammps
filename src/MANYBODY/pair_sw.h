@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(sw,PairSW)
-
+// clang-format off
+PairStyle(sw,PairSW);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_SW_H
@@ -37,32 +37,32 @@ class PairSW : public Pair {
   static constexpr int NPARAMS_PER_LINE = 14;
 
   struct Param {
-    double epsilon,sigma;
-    double littlea,lambda,gamma,costheta;
-    double biga,bigb;
-    double powerp,powerq;
+    double epsilon, sigma;
+    double littlea, lambda, gamma, costheta;
+    double biga, bigb;
+    double powerp, powerq;
     double tol;
-    double cut,cutsq;
-    double sigma_gamma,lambda_epsilon,lambda_epsilon2;
-    double c1,c2,c3,c4,c5,c6;
-    int ielement,jelement,kelement;
+    double cut, cutsq;
+    double sigma_gamma, lambda_epsilon, lambda_epsilon2;
+    double c1, c2, c3, c4, c5, c6;
+    int ielement, jelement, kelement;
   };
 
  protected:
-  double cutmax;                // max cutoff for all elements
-  Param *params;                // parameter set for an I-J-K interaction
-  int maxshort;                 // size of short neighbor list array
-  int *neighshort;              // short neighbor list array
+  double cutmax;      // max cutoff for all elements
+  Param *params;      // parameter set for an I-J-K interaction
+  int maxshort;       // size of short neighbor list array
+  int *neighshort;    // short neighbor list array
 
   virtual void allocate();
   void read_file(char *);
   virtual void setup_params();
   void twobody(Param *, double, double &, int, double &);
-  void threebody(Param *, Param *, Param *, double, double, double *, double *,
-                 double *, double *, int, double &);
+  void threebody(Param *, Param *, Param *, double, double, double *, double *, double *, double *,
+                 int, double &);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

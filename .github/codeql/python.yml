@@ -1,0 +1,5 @@
+paths:
+ - python/lammps
+
+queries:
+ - uses: security-and-quality

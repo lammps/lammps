@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -817,7 +818,6 @@ void Output::memory_usage()
   mbavg /= comm->nprocs;
 
   if (comm->me == 0)
-    utils::logmesg(lmp,fmt::format("Per MPI rank memory allocation (min/avg/"
-                                   "max) = {:.4} | {:.4} | {:.4} Mbytes\n",
-                                   mbmin,mbavg,mbmax));
+    utils::logmesg(lmp,"Per MPI rank memory allocation (min/avg/max) = "
+                   "{:.4} | {:.4} | {:.4} Mbytes\n",mbmin,mbavg,mbmax);
 }

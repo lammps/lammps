@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -36,7 +37,9 @@ static std::string truncpath(const std::string &path)
 
 /* ---------------------------------------------------------------------- */
 
-Error::Error(LAMMPS *lmp) : Pointers(lmp) {
+Error::Error(LAMMPS *lmp)
+  : Pointers(lmp), numwarn(0), maxwarn(100), allwarn(0)
+{
 #ifdef LAMMPS_EXCEPTIONS
   last_error_message.clear();
   last_error_type = ERROR_NONE;
@@ -116,6 +119,8 @@ void Error::universe_one(const std::string &file, int line, const std::string &s
 
 void Error::universe_warn(const std::string &file, int line, const std::string &str)
 {
+  ++numwarn;
+  if ((numwarn > maxwarn) || (allwarn > maxwarn) || (maxwarn < 0)) return;
   if (universe->uscreen)
     fmt::print(universe->uscreen,"WARNING on proc {}: {} ({}:{})\n",
                universe->me,str,truncpath(file),line);
@@ -214,16 +219,58 @@ void Error::one(const std::string &file, int line, const std::string &str)
 }
 
 /* ----------------------------------------------------------------------
+   forward vararg version to single string version
+------------------------------------------------------------------------- */
+
+void Error::_all(const std::string &file, int line, fmt::string_view format,
+                 fmt::format_args args)
+{
+  try {
+    all(file,line,fmt::vformat(format, args));
+  } catch (fmt::format_error &e) {
+    all(file,line,e.what());
+  }
+  exit(1); // to trick "smart" compilers into believing this does not return
+}
+
+void Error::_one(const std::string &file, int line, fmt::string_view format,
+                 fmt::format_args args)
+{
+  try {
+    one(file,line,fmt::vformat(format, args));
+  } catch (fmt::format_error &e) {
+    one(file,line,e.what());
+  }
+  exit(1); // to trick "smart" compilers into believing this does not return
+}
+
+/* ----------------------------------------------------------------------
    called by one proc in world
    only write to screen if non-nullptr on this proc since could be file
 ------------------------------------------------------------------------- */
 
-void Error::warning(const std::string &file, int line, const std::string &str, int logflag)
+void Error::warning(const std::string &file, int line, const std::string &str)
 {
+  ++numwarn;
+  if ((numwarn > maxwarn) || (allwarn > maxwarn) || (maxwarn < 0)) return;
   std::string mesg = fmt::format("WARNING: {} ({}:{})\n",
                                  str,truncpath(file),line);
   if (screen) fputs(mesg.c_str(),screen);
-  if (logflag && logfile) fputs(mesg.c_str(),logfile);
+  if (logfile) fputs(mesg.c_str(),logfile);
+}
+
+/* ----------------------------------------------------------------------
+   forward vararg version to single string version
+------------------------------------------------------------------------- */
+
+void Error::_warning(const std::string &file, int line, fmt::string_view format,
+                     fmt::format_args args)
+{
+  try {
+    warning(file,line,fmt::vformat(format, args));
+  } catch (fmt::format_error &e) {
+    warning(file,line,e.what());
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -231,12 +278,26 @@ void Error::warning(const std::string &file, int line, const std::string &str, i
    write message to screen and logfile (if logflag is set)
 ------------------------------------------------------------------------- */
 
-void Error::message(const std::string &file, int line, const std::string &str, int logflag)
+void Error::message(const std::string &file, int line, const std::string &str)
 {
   std::string mesg = fmt::format("{} ({}:{})\n",str,truncpath(file),line);
 
   if (screen) fputs(mesg.c_str(),screen);
-  if (logflag && logfile) fputs(mesg.c_str(),logfile);
+  if (logfile) fputs(mesg.c_str(),logfile);
+}
+
+/* ----------------------------------------------------------------------
+   forward vararg version to single string version
+------------------------------------------------------------------------- */
+
+void Error::_message(const std::string &file, int line, fmt::string_view format,
+                     fmt::format_args args)
+{
+  try {
+    message(file,line,fmt::vformat(format, args));
+  } catch (fmt::format_error &e) {
+    message(file,line,e.what());
+  }
 }
 
 /* ----------------------------------------------------------------------

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(PRESSURE/GREM,ComputePressureGrem)
-
+// clang-format off
+ComputeStyle(PRESSURE/GREM,ComputePressureGrem);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_PRESSURE_GREM_H
@@ -34,11 +34,11 @@ class ComputePressureGrem : public ComputePressure {
 
  protected:
   // Access to gREM fix scale factor
-  char   *fix_grem;
+  char *fix_grem;
   double *scale_grem;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

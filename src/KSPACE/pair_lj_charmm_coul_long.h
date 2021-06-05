@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(lj/charmm/coul/long,PairLJCharmmCoulLong)
-
+// clang-format off
+PairStyle(lj/charmm/coul/long,PairLJCharmmCoulLong);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_LJ_CHARMM_COUL_LONG_H
@@ -49,25 +49,25 @@ class PairLJCharmmCoulLong : public Pair {
 
  protected:
   int implicit;
-  double cut_lj_inner,cut_lj;
-  double cut_lj_innersq,cut_ljsq;
-  double cut_coul,cut_coulsq;
+  double cut_lj_inner, cut_lj;
+  double cut_lj_innersq, cut_ljsq;
+  double cut_coul, cut_coulsq;
   double cut_bothsq;
   double cut_in_off, cut_in_on, cut_out_off, cut_out_on;
   double cut_in_diff, cut_out_diff;
   double cut_in_diff_inv, cut_out_diff_inv;
   double cut_in_off_sq, cut_in_on_sq, cut_out_off_sq, cut_out_on_sq;
   double denom_lj, denom_lj_inv;
-  double **epsilon,**sigma,**eps14,**sigma14;
-  double **lj1,**lj2,**lj3,**lj4,**offset;
-  double **lj14_1,**lj14_2,**lj14_3,**lj14_4;
+  double **epsilon, **sigma, **eps14, **sigma14;
+  double **lj1, **lj2, **lj3, **lj4, **offset;
+  double **lj14_1, **lj14_2, **lj14_3, **lj14_4;
   double *cut_respa;
   double g_ewald;
 
   virtual void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -80,7 +80,7 @@ LAMMPS commands require a map, even for atomic systems, and will
 generate an error if one does not exist.  The *map* keyword thus
 allows you to force the creation of a map.  The *yes* value will
 create either an *array* or *hash* style map, as explained in the next
-paragraph.  The *array* and *hash* values create an atom-style or
+paragraph.  The *array* and *hash* values create an array-style or
 hash-style map respectively.
 
 For an *array*\ -style map, each processor stores a lookup table of

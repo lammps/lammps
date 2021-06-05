@@ -1123,7 +1123,9 @@ void FixPolarizeFunctional::calculate_grad_greens_ewald(double *vec,
 void FixPolarizeFunctional::calculate_matrix_multiply_vector(double **matrix,
   double *in_vec, double *out_vec, int M)
 {
-  #pragma parallel omp for
+#if defined(OPENMP)
+#pragma parallel omp for
+#endif
   for (int k = 0; k < M; ++k) {
     double temp = 0.0;
     for (int l = 0; l < M; ++l) {

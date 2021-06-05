@@ -393,7 +393,7 @@ RegisterStyles(${LAMMPS_SOURCE_DIR})
 ########################################################
 # Fetch missing external files and archives for packages
 ########################################################
-foreach(PKG ${STANDARD_PACKAGES} ${SUFFIX_PACKAGES})
+foreach(PKG ${STANDARD_PACKAGES} ${SUFFIX_PACKAGES} ${DEPEND_PACKAGES})
   if(PKG_${PKG})
     FetchPotentials(${LAMMPS_SOURCE_DIR}/${PKG} ${LAMMPS_POTENTIALS_DIR})
   endif()
@@ -427,6 +427,15 @@ foreach(PKG MPIIO)
   if(PKG_${PKG})
     target_compile_definitions(lammps PRIVATE -DLMP_${PKG})
   endif()
+endforeach()
+
+# packages with custom dependencies
+foreach(PKG ${DEPEND_PACKAGES})
+  if(PKG_${PKG})
+    include(Packages/${PKG})
+  endif()
+  set(${PKG}_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/${PKG})
+  RegisterPackages(${${PKG}_SOURCES_DIR})
 endforeach()
 
 # dedicated check for entire contents of accelerator packages
@@ -541,7 +550,7 @@ target_include_directories(lammps PRIVATE ${LAMMPS_STYLE_HEADERS_DIR})
 ######################################
 set(temp "#ifndef LMP_INSTALLED_PKGS_H\n#define LMP_INSTALLED_PKGS_H\n")
 set(temp "${temp}const char * LAMMPS_NS::LAMMPS::installed_packages[] =  {\n")
-set(temp_PKG_LIST ${STANDARD_PACKAGES} ${SUFFIX_PACKAGES})
+set(temp_PKG_LIST ${STANDARD_PACKAGES} ${DEPEND_PACKAGES} ${SUFFIX_PACKAGES})
 list(SORT temp_PKG_LIST)
 foreach(PKG ${temp_PKG_LIST})
     if(PKG_${PKG})

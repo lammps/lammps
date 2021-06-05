@@ -36,20 +36,20 @@ action fix_polarize_bem_icc.cpp
 action fix_polarize_bem_icc.h
 action fix_polarize_functional.cpp
 action fix_polarize_functional.h
-action pair_lj_cut_coul_msm_dielectric.cpp
-action pair_lj_cut_coul_msm_dielectric.h
-action pair_lj_cut_coul_long_dielectric.cpp
-action pair_lj_cut_coul_long_dielectric.h
-action pair_lj_long_coul_long_dielectric.cpp pair_lj_long_coul_long.cpp
-action pair_lj_long_coul_long_dielectric.h pair_lj_long_coul_long.cpp
+action pair_lj_cut_coul_msm_dielectric.cpp  pair_lj_cut_coul_msm.cpp
+action pair_lj_cut_coul_msm_dielectric.h  pair_lj_cut_coul_msm.h
+action pair_lj_cut_coul_long_dielectric.cpp  pair_lj_cut_coul_long.cpp
+action pair_lj_cut_coul_long_dielectric.h  pair_lj_cut_coul_long.h
+action pair_lj_long_coul_long_dielectric.cpp  pair_lj_long_coul_long.cpp
+action pair_lj_long_coul_long_dielectric.h  pair_lj_long_coul_long.cpp
 action pair_lj_cut_coul_cut_dielectric.cpp
 action pair_lj_cut_coul_cut_dielectric.h
-action pair_coul_long_dielectric.cpp
-action pair_coul_long_dielectric.h
+action pair_coul_long_dielectric.cpp  pair_coul_long.cpp
+action pair_coul_long_dielectric.h  pair_coul_long.h
 action pair_coul_cut_dielectric.cpp
 action pair_coul_cut_dielectric.h
-action pppm_dielectric.cpp
-action pppm_dielectric.h
-action msm_dielectric.cpp
-action msm_dielectric.h
+action pppm_dielectric.cpp  pppm.cpp
+action pppm_dielectric.h  pppm.h
+action msm_dielectric.cpp  msm.cpp
+action msm_dielectric.h  msm.h
 

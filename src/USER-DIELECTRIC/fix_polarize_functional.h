@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(polarize/functional,FixPolarizeFunctional)
-
+// clang-format off
+FixStyle(polarize/functional,FixPolarizeFunctional);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_POLARIZE_FUNCTIONAL_H

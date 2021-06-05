@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(polarize/bem/icc,FixPolarizeBEMICC)
-
+// clang-format off
+FixStyle(polarize/bem/icc,FixPolarizeBEMICC);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_POLARIZE_BEM_ICC_H

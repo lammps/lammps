@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(lj/cut/coul/cut/dielectric/omp,PairLJCutCoulCutDielectricOMP)
-
+// clang-format off
+PairStyle(lj/cut/coul/cut/dielectric/omp,PairLJCutCoulCutDielectricOMP);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_LJ_CUT_COUL_CUT_DIELECTRIC_OMP_H

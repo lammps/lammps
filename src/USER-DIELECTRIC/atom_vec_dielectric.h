@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ATOM_CLASS
-
-AtomStyle(dielectric,AtomVecDielectric)
-
+// clang-format off
+AtomStyle(dielectric,AtomVecDielectric);
+// clang-format on
 #else
 
 #ifndef LMP_ATOM_VEC_DIELECTRIC_H

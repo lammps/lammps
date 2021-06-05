@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef KSPACE_CLASS
-
-KSpaceStyle(pppm/dielectric,PPPMDielectric)
-
+// clang-format off
+KSpaceStyle(pppm/dielectric,PPPMDielectric);
+// clang-format on
 #else
 
 #ifndef LMP_PPPM_DIELECTRIC_H

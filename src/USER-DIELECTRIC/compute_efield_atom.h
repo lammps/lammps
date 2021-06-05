@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(efield/atom,ComputeEfieldAtom)
-
+// clang-format off
+ComputeStyle(efield/atom,ComputeEfieldAtom);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_EFIELD_ATOM_H

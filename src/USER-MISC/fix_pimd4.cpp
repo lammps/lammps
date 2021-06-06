@@ -115,6 +115,12 @@ FixPIMD4::FixPIMD4(LAMMPS *lmp, int narg, char **arg) :
       else error->universe_all(FLERR, "Unknown fictitious mass mode for fix pimd. Only physical mass and normal mode mass are supported!");
     }
 
+    else if(strcmp(arg[i],"scale")==0)
+    {
+      pilescale = atof(arg[i+1]);
+      if(pilescale<0.0) error->universe_all(FLERR,"Invalid pile scale value for fix pimd");
+    }
+
     else if(strcmp(arg[i],"sp")==0)
     {
       sp = atof(arg[i+1]);
@@ -290,9 +296,16 @@ FixPIMD4::FixPIMD4(LAMMPS *lmp, int narg, char **arg) :
 /*
 FixPIMD4::~FixPIMD4()
 {
-  if(thermostat==baoab)
+  delete _omega_k;
+  delete baoab_c, baoab_s;
+  if(integrator==baoab)
   {
     delete random;
+  }
+
+  if(thermostat==PILE_L)
+  {
+    delete tau_k ,c1_k, c2_k;
   }
 }
 */
@@ -814,7 +827,7 @@ void FixPIMD4::baoab_init()
       _omega_k[i] = _omega_np; 
       baoab_c[i] = cos(_omega_np_dt_half);
       baoab_s[i] = sin(_omega_np_dt_half);
-   printf("initializing baoab, i=%d, c = %.6f, s = %.6f.\n", i, baoab_c[i], baoab_s[i]);
+   //printf("initializing baoab, i=%d, c = %.6f, s = %.6f.\n", i, baoab_c[i], baoab_s[i]);
     }
   }
   // baoab_c = cos(_omega_np_dt_half);
@@ -822,8 +835,23 @@ void FixPIMD4::baoab_init()
   // printf("initializing baoab, c = %.6f, s = %.6f.\n", baoab_c, baoab_s);
   if(tau > 0) gamma = 1.0 / tau;
   else gamma = np / beta / hbar;
-  c1 = exp(-gamma * update->dt);
-  c2 = sqrt(1.0 - c1 * c1);
+  c1 = exp(-gamma * update->dt); // tau is the damping time of the centroid mode.
+  c2 = sqrt(1.0 - c1 * c1); // note that c1 and c2 here only works for the centroid mode.
+
+  if(thermostat == PILE_L)
+  {
+    tau_k = new double[np];
+    c1_k = new double[np];
+    c2_k = new double[np];
+    tau_k[0] = tau; c1_k[0] = c1; c2_k[0] = c2;
+    for(int i=1; i<np; i++)
+    {
+      tau_k[i] = 0.5 / pilescale / _omega_k[i];
+      c1_k[i] = exp(-1.0 * update->dt / tau_k[i]);
+      c2_k[i] = sqrt(1.0 - c1_k[i] * c1_k[i]);
+    }
+    fprintf(stdout, "iworld=%d, tau=%.6e, c1=%.6e, c2=%.6e.\n", universe->iworld, tau_k[universe->iworld], c1_k[universe->iworld], c2_k[universe->iworld]);
+  }
 
   if(thermostat == PILE_G)
   {
@@ -1079,12 +1107,13 @@ void FixPIMD4::o_step()
     for(int i=0; i<nlocal; i++)
     {
       //fprintf(stdout, "iworld=%d, mass=%.2e.\n", universe->iworld, mass[type[i]]);
+      fprintf(stdout, "iworld=%d, c1=%.2e, c2=%.2e.\n", universe->iworld, c1_k[universe->iworld], c2_k[universe->iworld]);
       r1 = random->gaussian();
       r2 = random->gaussian();
       r3 = random->gaussian();
-      atom->v[i][0] = c1 * atom->v[i][0] + c2 * sqrt(1.0 / mass[type[i]] / beta_np) * r1; 
-      atom->v[i][1] = c1 * atom->v[i][1] + c2 * sqrt(1.0 / mass[type[i]] / beta_np) * r2;
-      atom->v[i][2] = c1 * atom->v[i][2] + c2 * sqrt(1.0 / mass[type[i]] / beta_np) * r3;
+      atom->v[i][0] = c1_k[universe->iworld] * atom->v[i][0] + c2_k[universe->iworld] * sqrt(1.0 / mass[type[i]] / beta_np) * r1; 
+      atom->v[i][1] = c1_k[universe->iworld] * atom->v[i][1] + c2_k[universe->iworld] * sqrt(1.0 / mass[type[i]] / beta_np) * r2;
+      atom->v[i][2] = c1_k[universe->iworld] * atom->v[i][2] + c2_k[universe->iworld] * sqrt(1.0 / mass[type[i]] / beta_np) * r3;
     }
   }
   else if(thermostat == SVR)

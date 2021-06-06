@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class FixPIMD4 : public Fix {
  public:
   FixPIMD4(class LAMMPS *, int, char **);
-//  virtual ~FixPIMD4();
+  //virtual ~FixPIMD4();
 
   int setmask();
 
@@ -128,6 +128,8 @@ class FixPIMD4 : public Fix {
   double dtv, dtf, dtv2, dtv3;
   bool baoab_ready;
   double gamma, c1, c2, tau;
+  double *tau_k, *c1_k, *c2_k;
+  double pilescale=1.0;
   double baoab_temp;
 
   class RanMars *random;

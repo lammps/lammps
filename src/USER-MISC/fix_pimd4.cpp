@@ -840,7 +840,8 @@ void FixPIMD4::baoab_init()
 
   if(thermostat == PILE_L)
   {
-    if(universe->iworld==0) fprintf(stdout, "Initializing PILE_L thermostat.\n");
+    std::string out = "Initializing PILE_L thermostat...\n";
+    //if(universe->iworld==0) fprintf(stdout, "Initializing PILE_L thermostat.\n");
     tau_k = new double[np];
     c1_k = new double[np];
     c2_k = new double[np];
@@ -851,11 +852,16 @@ void FixPIMD4::baoab_init()
       c1_k[i] = exp(-1.0 * update->dt / tau_k[i]);
       c2_k[i] = sqrt(1.0 - c1_k[i] * c1_k[i]);
     }
-    MPI_Barrier(universe->uworld);
-    fprintf(stdout, "Bead ID=%d, omega=%.6e, tau=%.6e, c1=%.6e, c2=%.6e.\n", universe->iworld, _omega_k[universe->iworld], tau_k[universe->iworld], c1_k[universe->iworld], c2_k[universe->iworld]);
-    MPI_Barrier(universe->uworld);
-    
-    if(universe->iworld==0) fprintf(stdout, "PILE_L thermostat successfully initialized!\n");
+    for(int i=0; i<np; i++)
+    {
+      out += fmt::format("Bead {:d}: omega = {:.8e}, tau = {:.8e}, c1 = {:.8e}, c2 = {:.8e}.\n", i, _omega_k[i], tau_k[i], c1_k[i], c2_k[i]);
+    }
+    //MPI_Barrier(universe->uworld);
+    //fprintf(stdout, "Bead ID=%d, omega=%.6e, tau=%.6e, c1=%.6e, c2=%.6e.\n", universe->iworld, _omega_k[universe->iworld], tau_k[universe->iworld], c1_k[universe->iworld], c2_k[universe->iworld]);
+    //MPI_Barrier(universe->uworld);
+    out += "PILE_L thermostat successfully initialized!\n";
+    utils::logmesg(lmp, out);
+    //if(universe->iworld==0) fprintf(stdout, "PILE_L thermostat successfully initialized!\n");
   }
 
   //if(thermostat == PILE_L)

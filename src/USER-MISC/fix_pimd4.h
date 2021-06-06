@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class FixPIMD4 : public Fix {
  public:
   FixPIMD4(class LAMMPS *, int, char **);
-  //virtual ~FixPIMD4();
+  virtual ~FixPIMD4();
 
   int setmask();
 

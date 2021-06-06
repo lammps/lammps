@@ -293,7 +293,7 @@ FixPIMD4::FixPIMD4(LAMMPS *lmp, int narg, char **arg) :
 }
 
 /* ---------------------------------------------------------------------- */
-/*
+
 FixPIMD4::~FixPIMD4()
 {
   delete _omega_k;
@@ -308,7 +308,7 @@ FixPIMD4::~FixPIMD4()
     delete tau_k ,c1_k, c2_k;
   }
 }
-*/
+
 /* ---------------------------------------------------------------------- */
 
 int FixPIMD4::setmask()
@@ -840,6 +840,7 @@ void FixPIMD4::baoab_init()
 
   if(thermostat == PILE_L)
   {
+    if(universe->iworld==0) fprintf(stdout, "Initializing PILE_L thermostat.\n");
     tau_k = new double[np];
     c1_k = new double[np];
     c2_k = new double[np];
@@ -850,8 +851,17 @@ void FixPIMD4::baoab_init()
       c1_k[i] = exp(-1.0 * update->dt / tau_k[i]);
       c2_k[i] = sqrt(1.0 - c1_k[i] * c1_k[i]);
     }
-    fprintf(stdout, "iworld=%d, tau=%.6e, c1=%.6e, c2=%.6e.\n", universe->iworld, tau_k[universe->iworld], c1_k[universe->iworld], c2_k[universe->iworld]);
+    MPI_Barrier(universe->uworld);
+    fprintf(stdout, "Bead ID=%d, omega=%.6e, tau=%.6e, c1=%.6e, c2=%.6e.\n", universe->iworld, _omega_k[universe->iworld], tau_k[universe->iworld], c1_k[universe->iworld], c2_k[universe->iworld]);
+    MPI_Barrier(universe->uworld);
+    
+    if(universe->iworld==0) fprintf(stdout, "PILE_L thermostat successfully initialized!\n");
   }
+
+  //if(thermostat == PILE_L)
+  //{
+  //  if(universe->iworld==0) fprintf(stdout, "PILE_L thermostat successfully initialized!\n");
+  //}
 
   if(thermostat == PILE_G)
   {
@@ -1107,7 +1117,7 @@ void FixPIMD4::o_step()
     for(int i=0; i<nlocal; i++)
     {
       //fprintf(stdout, "iworld=%d, mass=%.2e.\n", universe->iworld, mass[type[i]]);
-      fprintf(stdout, "iworld=%d, c1=%.2e, c2=%.2e.\n", universe->iworld, c1_k[universe->iworld], c2_k[universe->iworld]);
+      //fprintf(stdout, "iworld=%d, c1=%.2e, c2=%.2e.\n", universe->iworld, c1_k[universe->iworld], c2_k[universe->iworld]);
       r1 = random->gaussian();
       r2 = random->gaussian();
       r3 = random->gaussian();

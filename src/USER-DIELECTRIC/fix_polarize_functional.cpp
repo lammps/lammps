@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/ Sandia National Laboratories
@@ -62,7 +61,7 @@ using namespace FixConst;
 using namespace MathExtra;
 using namespace MathConst;
 
-enum {REAL2SCALED=0,SCALED2REAL=1};
+enum { REAL2SCALED = 0, SCALED2REAL = 1 };
 
 #define EPSILON 1e-6
 
@@ -71,18 +70,18 @@ enum {REAL2SCALED=0,SCALED2REAL=1};
 /* ---------------------------------------------------------------------- */
 
 FixPolarizeFunctional::FixPolarizeFunctional(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+    Fix(lmp, narg, arg)
 {
-  if (narg < 4) error->all(FLERR,"Illegal fix polarize/functional command");
+  if (narg < 4) error->all(FLERR, "Illegal fix polarize/functional command");
 
   avec = (AtomVecDielectric *) atom->style_match("dielectric");
-  if (!avec) error->all(FLERR,"Fix polarize/functional requires atom style dielectric");
+  if (!avec) error->all(FLERR, "Fix polarize/functional requires atom style dielectric");
 
-  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
-  if (nevery < 0) error->all(FLERR,"Illegal fix polarize/functional command");
+  nevery = utils::inumeric(FLERR, arg[3], false, lmp);
+  if (nevery < 0) error->all(FLERR, "Illegal fix polarize/functional command");
 
   tolerance = EPSILON;
-  if (narg == 5) tolerance =  utils::numeric(FLERR,arg[4],false,lmp);
+  if (narg == 5) tolerance = utils::numeric(FLERR, arg[4], false, lmp);
 
   comm_forward = 1;
   nmax = 0;
@@ -131,7 +130,7 @@ FixPolarizeFunctional::FixPolarizeFunctional(LAMMPS *lmp, int narg, char **arg) 
   cg_A = nullptr;
 
   grow_arrays(atom->nmax);
-  atom->add_callback(0);       // to ensure to work with atom->sort()
+  atom->add_callback(0);    // to ensure to work with atom->sort()
 }
 
 /* ---------------------------------------------------------------------- */
@@ -151,7 +150,7 @@ FixPolarizeFunctional::~FixPolarizeFunctional()
   memory->destroy(buffer2);
 
   if (allocated) deallocate();
-  atom->delete_callback(id,0);
+  atom->delete_callback(id, 0);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -169,7 +168,7 @@ void FixPolarizeFunctional::init()
 {
   // mapping induced charge matrix/vector to atom tags and vice versa
 
-  int i,maxtag;
+  int i, maxtag;
   double *q = atom->q;
   int *mask = atom->mask;
   tagint *tag = atom->tag;
@@ -182,26 +181,28 @@ void FixPolarizeFunctional::init()
 
   max_tag = -1;
   for (i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) max_tag = MAX(max_tag,tag[i]);
+    if (mask[i] & groupbit) max_tag = MAX(max_tag, tag[i]);
 
-  MPI_Allreduce(&max_tag,&itmp,1,MPI_LMP_TAGINT,MPI_MAX,world);
+  MPI_Allreduce(&max_tag, &itmp, 1, MPI_LMP_TAGINT, MPI_MAX, world);
   maxtag = (int) itmp;
 
-  memory->create(ncount,maxtag+1,"polarize:ncount");
+  memory->create(ncount, maxtag + 1, "polarize:ncount");
   for (i = 0; i <= maxtag; i++) ncount[i] = 0;
 
   for (i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) ncount[tag[i]]++;
 
-  memory->create(tag2mat,maxtag+1,"polarize:tag2mat");
-  MPI_Allreduce(ncount,tag2mat,maxtag+1,MPI_INT,MPI_SUM,world);
+  memory->create(tag2mat, maxtag + 1, "polarize:tag2mat");
+  MPI_Allreduce(ncount, tag2mat, maxtag + 1, MPI_INT, MPI_SUM, world);
 
   num_induced_charges = 0;
   for (i = 0; i <= maxtag; i++)
-    if (tag2mat[i]) tag2mat[i] = num_induced_charges++;
-    else tag2mat[i] = -1;
+    if (tag2mat[i])
+      tag2mat[i] = num_induced_charges++;
+    else
+      tag2mat[i] = -1;
 
-  memory->create(mat2tag,num_induced_charges,"polarize:mat2tag");
+  memory->create(mat2tag, num_induced_charges, "polarize:mat2tag");
 
   num_induced_charges = 0;
   for (i = 0; i <= maxtag; i++)
@@ -218,34 +219,34 @@ void FixPolarizeFunctional::init()
 
   max_tag = -1;
   for (i = 0; i < nlocal; i++)
-    if (!(mask[i] & groupbit)) max_tag = MAX(max_tag,tag[i]);
+    if (!(mask[i] & groupbit)) max_tag = MAX(max_tag, tag[i]);
 
-  MPI_Allreduce(&max_tag,&itmp,1,MPI_LMP_TAGINT,MPI_MAX,world);
+  MPI_Allreduce(&max_tag, &itmp, 1, MPI_LMP_TAGINT, MPI_MAX, world);
   maxtag = (int) itmp;
 
-  memory->create(ncount,maxtag+1,"polarize:ncount");
+  memory->create(ncount, maxtag + 1, "polarize:ncount");
   for (i = 0; i <= maxtag; i++) ncount[i] = 0;
 
   for (i = 0; i < nlocal; i++)
     if (!(mask[i] & groupbit)) ncount[tag[i]]++;
 
-  memory->create(tag2mat_ions,maxtag+1,"polarize:tag2mat_ions");
-  MPI_Allreduce(ncount,tag2mat_ions,maxtag+1,MPI_INT,MPI_SUM,world);
+  memory->create(tag2mat_ions, maxtag + 1, "polarize:tag2mat_ions");
+  MPI_Allreduce(ncount, tag2mat_ions, maxtag + 1, MPI_INT, MPI_SUM, world);
 
   num_ions = 0;
   for (i = 0; i <= maxtag; i++)
-    if (tag2mat_ions[i]) tag2mat_ions[i] = num_ions++;
-    else tag2mat_ions[i] = -1;
+    if (tag2mat_ions[i])
+      tag2mat_ions[i] = num_ions++;
+    else
+      tag2mat_ions[i] = -1;
 
-  memory->create(mat2tag_ions,num_ions,"polarize:mat2tag_ions");
-  memory->create(rhs1,num_induced_charges,"polarize:rhs1");
-  memory->create(rhs2,num_induced_charges,"polarize:rhs2");
+  memory->create(mat2tag_ions, num_ions, "polarize:mat2tag_ions");
+  memory->create(rhs1, num_induced_charges, "polarize:rhs1");
+  memory->create(rhs2, num_induced_charges, "polarize:rhs2");
   int buffer_size = (num_induced_charges > num_ions) ? num_induced_charges : num_ions;
-  memory->create(buffer1,buffer_size,num_induced_charges,"polarize:buffer1");
-  memory->create(buffer2,num_induced_charges,num_induced_charges,"polarize:buffer2");
-  memory->create(induced_charges,num_induced_charges,"polarize:induced_charges");
-
-
+  memory->create(buffer1, buffer_size, num_induced_charges, "polarize:buffer1");
+  memory->create(buffer2, num_induced_charges, num_induced_charges, "polarize:buffer2");
+  memory->create(induced_charges, num_induced_charges, "polarize:induced_charges");
 
   num_ions = 0;
   for (i = 0; i <= maxtag; i++)
@@ -267,22 +268,21 @@ void FixPolarizeFunctional::init()
   // need a full neighbor list w/ Newton off and ghost neighbors
   // built whenever re-neighboring occurs
 
-  int irequest = neighbor->request(this,instance_me);
+  int irequest = neighbor->request(this, instance_me);
   neighbor->requests[irequest]->pair = 0;
   neighbor->requests[irequest]->fix = 1;
   neighbor->requests[irequest]->half = 0;
   neighbor->requests[irequest]->full = 1;
   neighbor->requests[irequest]->occasional = 0;
 
-  if (force->kspace) g_ewald = force->kspace->g_ewald;
-  else g_ewald = 0.01;
+  if (force->kspace)
+    g_ewald = force->kspace->g_ewald;
+  else
+    g_ewald = 0.01;
 
-  if (comm->me == 0) {
-    if (screen) fprintf(screen,"Direct solver using the variational approach "
-      "for %d induced charges\n", num_induced_charges);
-    if (logfile) fprintf(logfile,"Direct solver using the variational approach "
-      "for %d induced charges\n", num_induced_charges);
-  }
+  if (comm->me == 0)
+    utils::logmesg(lmp, "Direct solver using a variational approach for {} induced charges\n",
+                   num_induced_charges);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -298,35 +298,37 @@ void FixPolarizeFunctional::setup(int vflag)
 {
   // check if the pair styles in use are compatible
 
-  if (strcmp(force->pair_style,"lj/cut/coul/long/dielectric") == 0)
-    efield_pair = ((PairLJCutCoulLongDielectric*)force->pair)->efield;
-  else if (strcmp(force->pair_style,"lj/cut/coul/long/dielectric/omp") == 0)
-    efield_pair = ((PairLJCutCoulLongDielectric*)force->pair)->efield;
-  else if (strcmp(force->pair_style,"lj/cut/coul/msm/dielectric") == 0)
-    efield_pair = ((PairLJCutCoulMSMDielectric*)force->pair)->efield;
-  else if (strcmp(force->pair_style,"lj/cut/coul/cut/dielectric") == 0)
-    efield_pair = ((PairLJCutCoulCutDielectric*)force->pair)->efield;
-  else if (strcmp(force->pair_style,"lj/cut/coul/cut/dielectric/omp") == 0)
-    efield_pair = ((PairLJCutCoulCutDielectric*)force->pair)->efield;
-  else if (strcmp(force->pair_style,"coul/long/dielectric") == 0)
-    efield_pair = ((PairCoulLongDielectric*)force->pair)->efield;
-  else if (strcmp(force->pair_style,"coul/cut/dielectric") == 0)
-    efield_pair = ((PairCoulCutDielectric*)force->pair)->efield;
-  else error->all(FLERR,"Pair style not compatible with fix polarize/functional");
+  if (strcmp(force->pair_style, "lj/cut/coul/long/dielectric") == 0)
+    efield_pair = ((PairLJCutCoulLongDielectric *) force->pair)->efield;
+  else if (strcmp(force->pair_style, "lj/cut/coul/long/dielectric/omp") == 0)
+    efield_pair = ((PairLJCutCoulLongDielectric *) force->pair)->efield;
+  else if (strcmp(force->pair_style, "lj/cut/coul/msm/dielectric") == 0)
+    efield_pair = ((PairLJCutCoulMSMDielectric *) force->pair)->efield;
+  else if (strcmp(force->pair_style, "lj/cut/coul/cut/dielectric") == 0)
+    efield_pair = ((PairLJCutCoulCutDielectric *) force->pair)->efield;
+  else if (strcmp(force->pair_style, "lj/cut/coul/cut/dielectric/omp") == 0)
+    efield_pair = ((PairLJCutCoulCutDielectric *) force->pair)->efield;
+  else if (strcmp(force->pair_style, "coul/long/dielectric") == 0)
+    efield_pair = ((PairCoulLongDielectric *) force->pair)->efield;
+  else if (strcmp(force->pair_style, "coul/cut/dielectric") == 0)
+    efield_pair = ((PairCoulCutDielectric *) force->pair)->efield;
+  else
+    error->all(FLERR, "Pair style not compatible with fix polarize/functional");
 
   if (force->kspace) {
 
     kspaceflag = 1;
-    if (strcmp(force->kspace_style,"pppm/dielectric") == 0)
-      efield_kspace = ((PPPMDielectric*)force->kspace)->efield;
-    else if (strcmp(force->kspace_style,"msm/dielectric") == 0)
-      efield_kspace = ((MSMDielectric*)force->kspace)->efield;
-    else error->all(FLERR,"Kspace style not compatible with fix polarize/functional");
+    if (strcmp(force->kspace_style, "pppm/dielectric") == 0)
+      efield_kspace = ((PPPMDielectric *) force->kspace)->efield;
+    else if (strcmp(force->kspace_style, "msm/dielectric") == 0)
+      efield_kspace = ((MSMDielectric *) force->kspace)->efield;
+    else
+      error->all(FLERR, "Kspace style not compatible with fix polarize/functional");
 
   } else {
 
-    if (kspaceflag == 1) { // users specified kspace yes
-      error->warning(FLERR,"No Kspace style available for fix polarize/functional");
+    if (kspaceflag == 1) {    // users specified kspace yes
+      error->warning(FLERR, "No Kspace style available for fix polarize/functional");
       kspaceflag = 0;
     }
   }
@@ -371,8 +373,7 @@ void FixPolarizeFunctional::update_induced_charges()
   // conjugate gradient solver for w from Rww * w = -qRqw
 
   for (int i = 0; i < num_induced_charges; i++)
-    for (int j = 0; j < num_induced_charges; j++)
-      cg_A[i][j] = Rww[i][j] + Rww[j][i];
+    for (int j = 0; j < num_induced_charges; j++) cg_A[i][j] = Rww[i][j] + Rww[j][i];
 
   for (int i = 0; i < num_induced_charges; i++) induced_charges[i] = 0;
 
@@ -386,7 +387,7 @@ void FixPolarizeFunctional::update_induced_charges()
   for (int i = 0; i < nlocal; i++) {
     if (induced_charge_idx[i] < 0) continue;
     int idx = induced_charge_idx[i];
-    q[i] = -induced_charges[idx] / (4*MY_PI);
+    q[i] = -induced_charges[idx] / (4 * MY_PI);
   }
 
   // revert to scaled charges to calculate forces
@@ -401,9 +402,9 @@ void FixPolarizeFunctional::update_induced_charges()
 
 void FixPolarizeFunctional::charge_rescaled(int scaled2real)
 {
-  double* q = atom->q;
-  double* q_real = atom->q_unscaled;
-  double* epsilon = atom->epsilon;
+  double *q = atom->q;
+  double *q_real = atom->q_unscaled;
+  double *epsilon = atom->epsilon;
   int nlocal = atom->nlocal;
 
   if (scaled2real) {
@@ -478,32 +479,35 @@ int FixPolarizeFunctional::modify_param(int narg, char **arg)
 {
   int iarg = 0;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"kspace") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix_modify command");
-      if (strcmp(arg[iarg+1],"yes") == 0) kspaceflag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) kspaceflag = 0;
-      else error->all(FLERR,"Illegal fix_modify command for fix polarize/functional");
+    if (strcmp(arg[iarg], "kspace") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal fix_modify command");
+      if (strcmp(arg[iarg + 1], "yes") == 0)
+        kspaceflag = 1;
+      else if (strcmp(arg[iarg + 1], "no") == 0)
+        kspaceflag = 0;
+      else
+        error->all(FLERR, "Illegal fix_modify command for fix polarize/functional");
       iarg += 2;
-    } else if (strcmp(arg[iarg],"dielectrics") == 0) {
-      if (iarg+6 > narg) error->all(FLERR,"Illegal fix_modify command");
-      double epsiloni=-1, areai=-1;
-      double q_unscaled=0;
-      int set_charge=0;
-      double ediff = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-      double emean = utils::numeric(FLERR,arg[iarg+2],false,lmp);
-      if (strcmp(arg[iarg+3],"nullptr") != 0)
-        epsiloni = utils::numeric(FLERR,arg[iarg+3],false,lmp);
-      if (strcmp(arg[iarg+4],"nullptr") != 0)
-        areai = utils::numeric(FLERR,arg[iarg+4],false,lmp);
-      if (strcmp(arg[iarg+5],"nullptr") != 0) {
-        q_unscaled = utils::numeric(FLERR,arg[iarg+5],false,lmp);
+    } else if (strcmp(arg[iarg], "dielectrics") == 0) {
+      if (iarg + 6 > narg) error->all(FLERR, "Illegal fix_modify command");
+      double epsiloni = -1, areai = -1;
+      double q_unscaled = 0;
+      int set_charge = 0;
+      double ediff = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
+      double emean = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
+      if (strcmp(arg[iarg + 3], "nullptr") != 0)
+        epsiloni = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
+      if (strcmp(arg[iarg + 4], "nullptr") != 0)
+        areai = utils::numeric(FLERR, arg[iarg + 4], false, lmp);
+      if (strcmp(arg[iarg + 5], "nullptr") != 0) {
+        q_unscaled = utils::numeric(FLERR, arg[iarg + 5], false, lmp);
         set_charge = 1;
       }
-      set_dielectric_params(ediff, emean, epsiloni, areai, set_charge,
-                            q_unscaled);
+      set_dielectric_params(ediff, emean, epsiloni, areai, set_charge, q_unscaled);
 
       iarg += 6;
-    } else error->all(FLERR,"Illegal fix_modify command");
+    } else
+      error->all(FLERR, "Illegal fix_modify command");
   }
 
   return iarg;
@@ -533,8 +537,7 @@ int FixPolarizeFunctional::unpack_exchange(int nlocal, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-int FixPolarizeFunctional::pack_forward_comm(int n, int *list, double *buf,
-                                  int pbc_flag, int *pbc)
+int FixPolarizeFunctional::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
 {
   int m;
   for (m = 0; m < n; m++) buf[m] = atom->q[list[m]];
@@ -556,8 +559,8 @@ void FixPolarizeFunctional::unpack_forward_comm(int n, int first, double *buf)
 void FixPolarizeFunctional::grow_arrays(int n)
 {
   if (n > nmax) nmax = n;
-  memory->grow(induced_charge_idx,nmax,"fix:induced_charge_idx");
-  memory->grow(ion_idx,nmax,"fix:ion_idx");
+  memory->grow(induced_charge_idx, nmax, "fix:induced_charge_idx");
+  memory->grow(ion_idx, nmax, "fix:ion_idx");
 }
 
 /* ----------------------------------------------------------------------
@@ -587,21 +590,21 @@ void FixPolarizeFunctional::set_arrays(int i)
 double FixPolarizeFunctional::memory_usage()
 {
   double bytes = 0;
-  bytes += num_induced_charges*num_induced_charges*sizeof(double); // inverse_matrix
-  bytes += num_induced_charges*num_induced_charges*sizeof(double); // Rww
-  bytes += num_induced_charges*num_induced_charges*sizeof(double); // G1ww
-  bytes += num_induced_charges*num_induced_charges*sizeof(double); // ndotGww
-  bytes += num_induced_charges*num_induced_charges*sizeof(double); // G2ww
-  bytes += num_induced_charges*num_induced_charges*sizeof(double); // G3ww
-  bytes += num_induced_charges*sizeof(double);                     // qiRqwVector
-  bytes += num_induced_charges*sizeof(double);                     // sum2G2wq
-  bytes += num_induced_charges*sizeof(double);                     // sum1G2qw
-  bytes += num_induced_charges*sizeof(double);                     // sum1G1qw_epsilon
-  bytes += num_induced_charges*sizeof(double);                     // sum2ndotGwq_epsilon
-  bytes += num_ions*num_induced_charges*sizeof(double);            // G1qw_real
-  bytes += nmax*sizeof(int);                                       // induced_charge_idx
-  bytes += nmax*sizeof(int);                                       // ion_idx
-  bytes += num_induced_charges*sizeof(double);                     // induced_charges
+  bytes += num_induced_charges * num_induced_charges * sizeof(double);    // inverse_matrix
+  bytes += num_induced_charges * num_induced_charges * sizeof(double);    // Rww
+  bytes += num_induced_charges * num_induced_charges * sizeof(double);    // G1ww
+  bytes += num_induced_charges * num_induced_charges * sizeof(double);    // ndotGww
+  bytes += num_induced_charges * num_induced_charges * sizeof(double);    // G2ww
+  bytes += num_induced_charges * num_induced_charges * sizeof(double);    // G3ww
+  bytes += num_induced_charges * sizeof(double);                          // qiRqwVector
+  bytes += num_induced_charges * sizeof(double);                          // sum2G2wq
+  bytes += num_induced_charges * sizeof(double);                          // sum1G2qw
+  bytes += num_induced_charges * sizeof(double);                          // sum1G1qw_epsilon
+  bytes += num_induced_charges * sizeof(double);                          // sum2ndotGwq_epsilon
+  bytes += num_ions * num_induced_charges * sizeof(double);               // G1qw_real
+  bytes += nmax * sizeof(int);                                            // induced_charge_idx
+  bytes += nmax * sizeof(int);                                            // ion_idx
+  bytes += num_induced_charges * sizeof(double);                          // induced_charges
   return bytes;
 }
 
@@ -611,7 +614,7 @@ void FixPolarizeFunctional::calculate_Rww_cutoff()
 {
   int *mask = atom->mask;
   int *type = atom->type;
-  tagint* tag = atom->tag;
+  tagint *tag = atom->tag;
   int nlocal = atom->nlocal;
   double **x = atom->x;
   double *area = atom->area;
@@ -622,7 +625,7 @@ void FixPolarizeFunctional::calculate_Rww_cutoff()
 
   // invoke full neighbor list
 
-  int inum,jnum,*ilist,*jlist,*numneigh,**firstneigh;
+  int inum, jnum, *ilist, *jlist, *numneigh, **firstneigh;
   inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;
@@ -657,7 +660,7 @@ void FixPolarizeFunctional::calculate_Rww_cutoff()
           double delx = xtmp - x[k][0];
           double dely = ytmp - x[k][1];
           double delz = ztmp - x[k][2];
-          domain->minimum_image(delx,dely,delz);
+          domain->minimum_image(delx, dely, delz);
           int mk = tag2mat[tag[k]];
 
           // G1ww[mi][mk] = calculate_greens_ewald(delx, dely, delz);
@@ -668,7 +671,7 @@ void FixPolarizeFunctional::calculate_Rww_cutoff()
           calculate_grad_greens_ewald(gradG1ww, delx, dely, delz);
 
           // use mu to store the normal vector of interface vertex
-          buffer2[mi][mk] = MathExtra::dot3(norm[i], gradG1ww) / (4*MY_PI);
+          buffer2[mi][mk] = MathExtra::dot3(norm[i], gradG1ww) / (4 * MY_PI);
         }
       }
 
@@ -676,15 +679,14 @@ void FixPolarizeFunctional::calculate_Rww_cutoff()
       // even though in the above loop there is mk == mi
 
       buffer1[mi][mi] = calculate_greens_ewald_self_vertex(area[i]);
-      buffer2[mi][mi] = calculate_ndotgreens_ewald_self_vertex(area[i], curvature[i]) /
-         (4*MY_PI);
+      buffer2[mi][mi] = calculate_ndotgreens_ewald_self_vertex(area[i], curvature[i]) / (4 * MY_PI);
     }
   }
 
-  MPI_Allreduce(buffer1[0],G1ww[0],num_induced_charges*num_induced_charges,
-    MPI_DOUBLE,MPI_SUM,world);
-  MPI_Allreduce(buffer2[0],ndotGww[0],num_induced_charges*num_induced_charges,
-    MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(buffer1[0], G1ww[0], num_induced_charges * num_induced_charges, MPI_DOUBLE, MPI_SUM,
+                world);
+  MPI_Allreduce(buffer2[0], ndotGww[0], num_induced_charges * num_induced_charges, MPI_DOUBLE,
+                MPI_SUM, world);
 
   // calculate G2ww
   // fill up buffer1 with local G2ww
@@ -734,8 +736,8 @@ void FixPolarizeFunctional::calculate_Rww_cutoff()
     }
   }
 
-  MPI_Allreduce(buffer1[0],G2ww[0],num_induced_charges*num_induced_charges,
-    MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(buffer1[0], G2ww[0], num_induced_charges * num_induced_charges, MPI_DOUBLE, MPI_SUM,
+                world);
 
   // calculate G3ww and Rww
   // G3ww is implemented as in _exact(), but can be optionally excluded
@@ -815,18 +817,18 @@ void FixPolarizeFunctional::calculate_Rww_cutoff()
     }
   }
 
-  MPI_Allreduce(buffer1[0],Rww[0],num_induced_charges*num_induced_charges,
-    MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(buffer1[0], Rww[0], num_induced_charges * num_induced_charges, MPI_DOUBLE, MPI_SUM,
+                world);
 
-  #ifdef _POLARIZE_DEBUG
+#ifdef _POLARIZE_DEBUG
   if (comm->me == 0) {
-    FILE* fp = fopen("Rww-functional.txt", "w");
+    FILE *fp = fopen("Rww-functional.txt", "w");
     for (int i = 0; i < num_induced_charges; i++)
-      fprintf(fp, "%d %g %g %g\n", i, Rww[i][i], Rww[i][num_induced_charges/2],
-        Rww[num_induced_charges/2][i]);
+      fprintf(fp, "%d %g %g %g\n", i, Rww[i][i], Rww[i][num_induced_charges / 2],
+              Rww[num_induced_charges / 2][i]);
     fclose(fp);
   }
-  #endif
+#endif
 }
 
 /* ---------------------------------------------------------------------- */
@@ -849,7 +851,7 @@ void FixPolarizeFunctional::calculate_qiRqw_cutoff()
 
   // invoke full neighbor list
 
-  int inum,*ilist,*jlist,*numneigh,**firstneigh;
+  int inum, *ilist, *jlist, *numneigh, **firstneigh;
   inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;
@@ -879,7 +881,7 @@ void FixPolarizeFunctional::calculate_qiRqw_cutoff()
           delx = xtmp - x[k][0];
           dely = ytmp - x[k][1];
           delz = ztmp - x[k][2];
-          domain->minimum_image(delx,dely,delz);
+          domain->minimum_image(delx, dely, delz);
           r = sqrt(delx * delx + dely * dely + delz * delz);
 
           int mk = tag2mat[tag[k]];
@@ -890,18 +892,18 @@ void FixPolarizeFunctional::calculate_qiRqw_cutoff()
     }
   }
 
-  MPI_Allreduce(&buffer1[0][0],&G1qw_real[0][0],num_ions*num_induced_charges,
-    MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(&buffer1[0][0], &G1qw_real[0][0], num_ions * num_induced_charges, MPI_DOUBLE,
+                MPI_SUM, world);
 
   // the following loop need the above results: gradG1wq_real
   // calculate sum1G1qw_epsilon and sum2ndotGwq_epsilon
   // fill up rhs1 with local sum1G1qw_epsilon and rhs2 with local sum2ndotGwq_epsilon
 
-  memset(rhs1, 0, num_induced_charges*sizeof(double));
-  memset(rhs2, 0, num_induced_charges*sizeof(double));
+  memset(rhs1, 0, num_induced_charges * sizeof(double));
+  memset(rhs2, 0, num_induced_charges * sizeof(double));
 
   for (kk = 0; kk < inum; kk++) {
-    k = ilist[kk];  // k is local index
+    k = ilist[kk];    // k is local index
     if (mask[k] & groupbit) {
       // interface particles
       int mk = induced_charge_idx[k];
@@ -920,9 +922,9 @@ void FixPolarizeFunctional::calculate_qiRqw_cutoff()
           delx = x[i][0] - xtmp;
           dely = x[i][1] - ytmp;
           delz = x[i][2] - ztmp;
-          domain->minimum_image(delx,dely,delz);
+          domain->minimum_image(delx, dely, delz);
 
-          int mi = tag2mat_ions[tag[i]]; //ion_idx[i];
+          int mi = tag2mat_ions[tag[i]];    //ion_idx[i];
 
           //calculate_grad_greens_real(gradG1wq_real[mk][mi], delx, dely, delz);
           double gradG1wq[3];
@@ -944,18 +946,18 @@ void FixPolarizeFunctional::calculate_qiRqw_cutoff()
     }
   }
 
-  MPI_Allreduce(rhs1,sum1G1qw_epsilon,num_induced_charges,MPI_DOUBLE,MPI_SUM,world);
-  MPI_Allreduce(rhs2,sum2ndotGwq_epsilon,num_induced_charges,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(rhs1, sum1G1qw_epsilon, num_induced_charges, MPI_DOUBLE, MPI_SUM, world);
+  MPI_Allreduce(rhs2, sum2ndotGwq_epsilon, num_induced_charges, MPI_DOUBLE, MPI_SUM, world);
 
   // calculate G2, gradient G2
   // sum2G2wq and sum1G2qw
 
-//  for (int i = 0; i < num_induced_charges; i++) rhs1[i] = rhs2[i] = 0;
-  memset(rhs1, 0, num_induced_charges*sizeof(double));
-  memset(rhs2, 0, num_induced_charges*sizeof(double));
+  //  for (int i = 0; i < num_induced_charges; i++) rhs1[i] = rhs2[i] = 0;
+  memset(rhs1, 0, num_induced_charges * sizeof(double));
+  memset(rhs2, 0, num_induced_charges * sizeof(double));
 
   for (kk = 0; kk < inum; kk++) {
-    k = ilist[kk];  // k is local index
+    k = ilist[kk];    // k is local index
     if (mask[k] & groupbit) {
       // interface particles
       int mk = induced_charge_idx[k];
@@ -985,16 +987,16 @@ void FixPolarizeFunctional::calculate_qiRqw_cutoff()
     }
   }
 
-  MPI_Allreduce(rhs1,sum2G2wq,num_induced_charges,MPI_DOUBLE,MPI_SUM,world);
-  MPI_Allreduce(rhs2,sum1G2qw,num_induced_charges,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(rhs1, sum2G2wq, num_induced_charges, MPI_DOUBLE, MPI_SUM, world);
+  MPI_Allreduce(rhs2, sum1G2qw, num_induced_charges, MPI_DOUBLE, MPI_SUM, world);
 
   // calculate G3, gradient G3
   // fill up rhs1 with local qiRqwVector
 
-  memset(rhs1, 0, num_induced_charges*sizeof(double));
+  memset(rhs1, 0, num_induced_charges * sizeof(double));
 
   for (kk = 0; kk < inum; kk++) {
-    k = ilist[kk];  // k is local index
+    k = ilist[kk];    // k is local index
     if (mask[k] & groupbit) {
       // interface particles
       int mk = induced_charge_idx[k];
@@ -1011,7 +1013,7 @@ void FixPolarizeFunctional::calculate_qiRqw_cutoff()
           sum1G3qw += sum2ndotGwq_epsilon[mi] * G2ww[mi][mk] * area[i] * ed[i];
         } else {
           // ions particles: i can be ghost atoms
-          int mi = tag2mat_ions[tag[i]]; //ion_idx[i];
+          int mi = tag2mat_ions[tag[i]];    //ion_idx[i];
           qiRwwVectorTemp1 += q[i] * (1.0 - em[k] / epsilon[i]) * G1qw_real[mi][mk];
         }
       }
@@ -1021,32 +1023,30 @@ void FixPolarizeFunctional::calculate_qiRqw_cutoff()
       sum1G3qw += sum2ndotGwq_epsilon[mk] * G2ww[mk][mk] * area[k] * ed[k];
 
       // qiRwwVectorTemp2 is a significant contribution, of which sum2G2wq is significant
-      double qiRwwVectorTemp2 = (1.0 - 2.0 * em[k]) * sum2G2wq[mk] +
-        sum1G2qw[mk] + 2.0 * sum1G3qw;
+      double qiRwwVectorTemp2 = (1.0 - 2.0 * em[k]) * sum2G2wq[mk] + sum1G2qw[mk] + 2.0 * sum1G3qw;
 
       // qiRqwVector[mk] = qiRwwVectorTemp1 + qiRwwVectorTemp2;
       rhs1[mk] = qiRwwVectorTemp1 + qiRwwVectorTemp2;
     }
   }
 
-  MPI_Allreduce(rhs1,qiRqwVector,num_induced_charges,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(rhs1, qiRqwVector, num_induced_charges, MPI_DOUBLE, MPI_SUM, world);
 
-  #ifdef _POLARIZE_DEBUG
+#ifdef _POLARIZE_DEBUG
   if (comm->me == 0) {
-    FILE* fp = fopen("qRqw-functional.txt", "w");
-    for (int i = 0; i < num_induced_charges; i++)
-      fprintf(fp, "%d %g\n", i, qiRqwVector[i]);
+    FILE *fp = fopen("qRqw-functional.txt", "w");
+    for (int i = 0; i < num_induced_charges; i++) fprintf(fp, "%d %g\n", i, qiRqwVector[i]);
     fclose(fp);
   }
-  #endif
+#endif
 }
 
 /* ----------------------------------------------------------------------
    set dielectric params for the atom in the group
 ------------------------------------------------------------------------- */
 
-void FixPolarizeFunctional::set_dielectric_params(double ediff, double emean,
-   double epsiloni, double areai, int set_charge, double qvalue)
+void FixPolarizeFunctional::set_dielectric_params(double ediff, double emean, double epsiloni,
+                                                  double areai, int set_charge, double qvalue)
 {
   double *area = atom->area;
   double *ed = atom->ed;
@@ -1081,16 +1081,14 @@ double FixPolarizeFunctional::greens_real(double r)
 double FixPolarizeFunctional::grad_greens_real_factor(double r)
 {
   double alpharij = g_ewald * r;
-  double factor = erfc(alpharij) + 2.0 * alpharij / MY_PIS *
-    exp(-(alpharij * alpharij));
-  double r3 = r*r*r;
+  double factor = erfc(alpharij) + 2.0 * alpharij / MY_PIS * exp(-(alpharij * alpharij));
+  double r3 = r * r * r;
   return (factor * (-1.0 / r3));
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixPolarizeFunctional::calculate_grad_greens_real(double *vec,
-  double dx, double dy, double dz)
+void FixPolarizeFunctional::calculate_grad_greens_real(double *vec, double dx, double dy, double dz)
 {
   double r = sqrt(dx * dx + dy * dy + dz * dz);
   double real = grad_greens_real_factor(r);
@@ -1101,8 +1099,7 @@ void FixPolarizeFunctional::calculate_grad_greens_real(double *vec,
 
 /* ---------------------------------------------------------------------- */
 
-double FixPolarizeFunctional::calculate_greens_ewald(double dx, double dy,
-  double dz)
+double FixPolarizeFunctional::calculate_greens_ewald(double dx, double dy, double dz)
 {
   // excluding the reciprocal term
   double r = sqrt(dx * dx + dy * dy + dz * dz);
@@ -1111,8 +1108,8 @@ double FixPolarizeFunctional::calculate_greens_ewald(double dx, double dy,
 
 /* ---------------------------------------------------------------------- */
 
-void FixPolarizeFunctional::calculate_grad_greens_ewald(double *vec,
-  double dx, double dy, double dz)
+void FixPolarizeFunctional::calculate_grad_greens_ewald(double *vec, double dx, double dy,
+                                                        double dz)
 {
   // real part of grad greens, excluding the reciprocal term
   calculate_grad_greens_real(vec, dx, dy, dz);
@@ -1120,17 +1117,15 @@ void FixPolarizeFunctional::calculate_grad_greens_ewald(double *vec,
 
 /* ---------------------------------------------------------------------- */
 
-void FixPolarizeFunctional::calculate_matrix_multiply_vector(double **matrix,
-  double *in_vec, double *out_vec, int M)
+void FixPolarizeFunctional::calculate_matrix_multiply_vector(double **matrix, double *in_vec,
+                                                             double *out_vec, int M)
 {
 #if defined(OPENMP)
 #pragma parallel omp for
 #endif
   for (int k = 0; k < M; ++k) {
     double temp = 0.0;
-    for (int l = 0; l < M; ++l) {
-      temp += matrix[k][l] * in_vec[l];
-    }
+    for (int l = 0; l < M; ++l) { temp += matrix[k][l] * in_vec[l]; }
     out_vec[k] = temp;
   }
 }
@@ -1147,8 +1142,7 @@ double FixPolarizeFunctional::calculate_greens_ewald_self_vertex(double area)
 
 /* ---------------------------------------------------------------------- */
 
-double FixPolarizeFunctional::calculate_ndotgreens_ewald_self_vertex(double area,
-                                                                     double curvature)
+double FixPolarizeFunctional::calculate_ndotgreens_ewald_self_vertex(double area, double curvature)
 {
   // this term is important, cannot be set to zero
   // curvature = 1 / R, minus if norm is inverse of R to center.
@@ -1161,16 +1155,16 @@ double FixPolarizeFunctional::calculate_ndotgreens_ewald_self_vertex(double area
     where ^t is the transpose operator
 -- ---------------------------------------------------------------------- */
 
-double FixPolarizeFunctional::inner_product(double* x, double* y, int N)
+double FixPolarizeFunctional::inner_product(double *x, double *y, int N)
 {
   double t = 0;
-  for (int i = 0; i < N; i++) t += x[i]*y[i];
+  for (int i = 0; i < N; i++) t += x[i] * y[i];
   return t;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixPolarizeFunctional::cg_solver(double** A, double* b, double* x, int N)
+void FixPolarizeFunctional::cg_solver(double **A, double *b, double *x, int N)
 {
   calculate_matrix_multiply_vector(A, x, cg_p, N);
   for (int i = 0; i < N; i++) {
@@ -1194,8 +1188,8 @@ void FixPolarizeFunctional::cg_solver(double** A, double* b, double* x, int N)
     // x = x + alpha * p
     // r = r - alpha * Ap
     for (int i = 0; i < N; i++) {
-      x[i]    =    x[i] + alpha*cg_p[i];
-      cg_r[i] = cg_r[i] - alpha*cg_Ap[i];
+      x[i] = x[i] + alpha * cg_p[i];
+      cg_r[i] = cg_r[i] - alpha * cg_Ap[i];
     }
 
     double rsq_new = inner_product(cg_r, cg_r, N);
@@ -1203,8 +1197,7 @@ void FixPolarizeFunctional::cg_solver(double** A, double* b, double* x, int N)
 
     // beta = rsq_new / rsq
     double beta = rsq_new / rsq;
-    for (int i = 0; i < N; i++)
-      cg_p[i] = cg_r[i] + beta*cg_p[i];
+    for (int i = 0; i < N; i++) cg_p[i] = cg_r[i] + beta * cg_p[i];
     rsq = rsq_new;
   }
 }

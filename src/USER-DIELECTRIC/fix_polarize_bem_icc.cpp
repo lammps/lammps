@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/ Sandia National Laboratories
@@ -43,7 +42,6 @@
 #include "pair_lj_cut_coul_msm_dielectric.h"
 #include "pppm_dielectric.h"
 #include "random_park.h"
-//#include "timer.h"
 #include "update.h"
 
 #include <cmath>
@@ -57,19 +55,18 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixPolarizeBEMICC::FixPolarizeBEMICC(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+FixPolarizeBEMICC::FixPolarizeBEMICC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 {
-  if (narg < 5) error->all(FLERR,"Illegal fix polarize/bem/icc command");
+  if (narg < 5) error->all(FLERR, "Illegal fix polarize/bem/icc command");
 
   avec = (AtomVecDielectric *) atom->style_match("dielectric");
-  if (!avec) error->all(FLERR,"Fix polarize requires atom style dielectric");
+  if (!avec) error->all(FLERR, "Fix polarize requires atom style dielectric");
 
   // parse required arguments
 
-  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
-  if (nevery < 0) error->all(FLERR,"Illegal fix polarize/bem/icc command");
-  double tol =  utils::numeric(FLERR,arg[4],false,lmp);
+  nevery = utils::inumeric(FLERR, arg[3], false, lmp);
+  if (nevery < 0) error->all(FLERR, "Illegal fix polarize/bem/icc command");
+  double tol = utils::numeric(FLERR, arg[4], false, lmp);
   tol_abs = tol_rel = tol;
 
   itr_max = 20;
@@ -97,9 +94,7 @@ FixPolarizeBEMICC::FixPolarizeBEMICC(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-FixPolarizeBEMICC::~FixPolarizeBEMICC()
-{
-}
+FixPolarizeBEMICC::~FixPolarizeBEMICC() {}
 
 /* ---------------------------------------------------------------------- */
 
@@ -115,10 +110,7 @@ int FixPolarizeBEMICC::setmask()
 void FixPolarizeBEMICC::init()
 {
   int ncount = group->count(igroup);
-  if (comm->me == 0) {
-    if (screen) fprintf(screen,"BEM/ICC solver for %d induced charges\n", ncount);
-    if (logfile) fprintf(logfile,"BEM/ICC solver for %d induced charges\n", ncount);
-  }
+  if (comm->me == 0) utils::logmesg(lmp, "BEM/ICC solver for {} induced charges\n", ncount);
 
   // initialize random induced charges with zero sum
 
@@ -129,16 +121,16 @@ void FixPolarizeBEMICC::init()
     int *mask = atom->mask;
     int nlocal = atom->nlocal;
 
-    RanPark *random = new RanPark(lmp,seed_charge + comm->me);
+    RanPark *random = new RanPark(lmp, seed_charge + comm->me);
     for (i = 0; i < 100; i++) random->uniform();
-    double sum,tmp = 0;
+    double sum, tmp = 0;
     for (i = 0; i < nlocal; i++) {
       if (!(mask[i] & groupbit)) continue;
-      q[i] = ave_charge*(random->uniform() - 0.5);
+      q[i] = ave_charge * (random->uniform() - 0.5);
       tmp += q[i];
     }
-    MPI_Allreduce(&tmp,&sum,1,MPI_DOUBLE,MPI_SUM,world);
-    sum /= (double)ncount;
+    MPI_Allreduce(&tmp, &sum, 1, MPI_DOUBLE, MPI_SUM, world);
+    sum /= (double) ncount;
 
     tmp = 0;
     for (i = 0; i < nlocal; i++) {
@@ -146,11 +138,10 @@ void FixPolarizeBEMICC::init()
       q[i] -= sum;
       tmp += q[i];
     }
-    MPI_Allreduce(&tmp,&sum,1,MPI_DOUBLE,MPI_SUM,world);
+    MPI_Allreduce(&tmp, &sum, 1, MPI_DOUBLE, MPI_SUM, world);
 
     delete random;
   }
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -159,37 +150,39 @@ void FixPolarizeBEMICC::setup(int vflag)
 {
   // check if the pair styles in use are compatible
 
-  if (strcmp(force->pair_style,"lj/cut/coul/long/dielectric") == 0)
-    efield_pair = ((PairLJCutCoulLongDielectric*)force->pair)->efield;
-  else if  (strcmp(force->pair_style,"lj/cut/coul/long/dielectric/omp") == 0)
-    efield_pair = ((PairLJCutCoulLongDielectric*)force->pair)->efield;
-  else if (strcmp(force->pair_style,"lj/cut/coul/msm/dielectric") == 0)
-    efield_pair = ((PairLJCutCoulMSMDielectric*)force->pair)->efield;
-  else if (strcmp(force->pair_style,"lj/cut/coul/cut/dielectric") == 0)
-    efield_pair = ((PairLJCutCoulCutDielectric*)force->pair)->efield;
-  else if (strcmp(force->pair_style,"lj/cut/coul/cut/dielectric/omp") == 0)
-    efield_pair = ((PairLJCutCoulCutDielectric*)force->pair)->efield;
-  else if (strcmp(force->pair_style,"coul/long/dielectric") == 0)
-    efield_pair = ((PairCoulLongDielectric*)force->pair)->efield;
-  else if (strcmp(force->pair_style,"coul/cut/dielectric") == 0)
-    efield_pair = ((PairCoulCutDielectric*)force->pair)->efield;
-  else error->all(FLERR,"Pair style not compatible with fix polarize/bem/icc");
+  if (strcmp(force->pair_style, "lj/cut/coul/long/dielectric") == 0)
+    efield_pair = ((PairLJCutCoulLongDielectric *) force->pair)->efield;
+  else if (strcmp(force->pair_style, "lj/cut/coul/long/dielectric/omp") == 0)
+    efield_pair = ((PairLJCutCoulLongDielectric *) force->pair)->efield;
+  else if (strcmp(force->pair_style, "lj/cut/coul/msm/dielectric") == 0)
+    efield_pair = ((PairLJCutCoulMSMDielectric *) force->pair)->efield;
+  else if (strcmp(force->pair_style, "lj/cut/coul/cut/dielectric") == 0)
+    efield_pair = ((PairLJCutCoulCutDielectric *) force->pair)->efield;
+  else if (strcmp(force->pair_style, "lj/cut/coul/cut/dielectric/omp") == 0)
+    efield_pair = ((PairLJCutCoulCutDielectric *) force->pair)->efield;
+  else if (strcmp(force->pair_style, "coul/long/dielectric") == 0)
+    efield_pair = ((PairCoulLongDielectric *) force->pair)->efield;
+  else if (strcmp(force->pair_style, "coul/cut/dielectric") == 0)
+    efield_pair = ((PairCoulCutDielectric *) force->pair)->efield;
+  else
+    error->all(FLERR, "Pair style not compatible with fix polarize/bem/icc");
 
   // check if kspace is used for force computation
 
   if (force->kspace) {
 
     kspaceflag = 1;
-    if (strcmp(force->kspace_style,"pppm/dielectric") == 0)
-      efield_kspace = ((PPPMDielectric*)force->kspace)->efield;
-    else if (strcmp(force->kspace_style,"msm/dielectric") == 0)
-      efield_kspace = ((MSMDielectric*)force->kspace)->efield;
-    else error->all(FLERR,"Kspace style not compatible with fix polarize/bem/icc");
+    if (strcmp(force->kspace_style, "pppm/dielectric") == 0)
+      efield_kspace = ((PPPMDielectric *) force->kspace)->efield;
+    else if (strcmp(force->kspace_style, "msm/dielectric") == 0)
+      efield_kspace = ((MSMDielectric *) force->kspace)->efield;
+    else
+      error->all(FLERR, "Kspace style not compatible with fix polarize/bem/icc");
 
   } else {
 
-    if (kspaceflag == 1) { // users specified kspace yes
-      error->warning(FLERR,"No Kspace style available for fix polarize/bem/icc");
+    if (kspaceflag == 1) {    // users specified kspace yes
+      error->warning(FLERR, "No Kspace style available for fix polarize/bem/icc");
       kspaceflag = 0;
     }
   }
@@ -239,8 +232,8 @@ void FixPolarizeBEMICC::compute_induced_charges()
   // Let's choose that epsilon[i] = em[i] for the interface particles
 
   force_clear();
-  force->pair->compute(eflag,vflag);
-  if (kspaceflag) force->kspace->compute(eflag,vflag);
+  force->pair->compute(eflag, vflag);
+  if (kspaceflag) force->kspace->compute(eflag, vflag);
   if (force->newton) comm->reverse_comm();
 
   int i10 = 0;
@@ -257,7 +250,7 @@ void FixPolarizeBEMICC::compute_induced_charges()
     }
 
     // divide (Ex,Ey,Ez) by epsilon[i] here
-    double dot = (Ex*norm[i][0] + Ey*norm[i][1] + Ez*norm[i][2]) / (2*MY_PI) / epsilon[i];
+    double dot = (Ex * norm[i][0] + Ey * norm[i][1] + Ez * norm[i][2]) / (2 * MY_PI) / epsilon[i];
     double q_free = q_real[i];
     double q_bound = 0;
     q_bound = (1.0 / em[i] - 1) * q_free - epsilon0 * (ed[i] / (2 * em[i])) * dot * area[i];
@@ -271,8 +264,8 @@ void FixPolarizeBEMICC::compute_induced_charges()
   for (itr = 0; itr < itr_max; itr++) {
 
     force_clear();
-    force->pair->compute(eflag,vflag);
-    if (kspaceflag) force->kspace->compute(eflag,vflag);
+    force->pair->compute(eflag, vflag);
+    if (kspaceflag) force->kspace->compute(eflag, vflag);
     if (force->newton) comm->reverse_comm();
 
     double tol = 0;
@@ -294,10 +287,10 @@ void FixPolarizeBEMICC::compute_induced_charges()
       // note the area[i] is included here to ensure correct charge unit
       // for direct use in force/efield compute
 
-      double dot = (Ex*norm[i][0] + Ey*norm[i][1] + Ez*norm[i][2]) / (4*MY_PI) / epsilon[i];
+      double dot = (Ex * norm[i][0] + Ey * norm[i][1] + Ez * norm[i][2]) / (4 * MY_PI) / epsilon[i];
       double q_bound = q[i] - q_free;
-      q_bound = (1 - omega) * q_bound + omega * ((1.0 / em[i] - 1) * q_free -
-          epsilon0 * (ed[i] / em[i]) * dot * area[i]);
+      q_bound = (1 - omega) * q_bound +
+          omega * ((1.0 / em[i] - 1) * q_free - epsilon0 * (ed[i] / em[i]) * dot * area[i]);
       q[i] = q_free + q_bound;
 
       // Eq. (11) in Tyagi et al., with f from Eq. (6)
@@ -314,20 +307,20 @@ void FixPolarizeBEMICC::compute_induced_charges()
       //q[i] = (1 - omega) * q[i] - omega * epsilon0 * f * dot * area[i];
 
       double delta = fabs(qtmp - q_bound);
-      double r = (fabs(qtmp) > 0) ? delta/fabs(qtmp) : 0;
+      double r = (fabs(qtmp) > 0) ? delta / fabs(qtmp) : 0;
       if (tol < r) tol = r;
 
-      #ifdef _POLARIZE_DEBUG
-      //printf("i = %d: q_bound = %f \n", i, q_bound);
-      #endif
+#ifdef _POLARIZE_DEBUG
+//printf("i = %d: q_bound = %f \n", i, q_bound);
+#endif
     }
 
     comm->forward_comm_fix(this);
 
-    MPI_Allreduce(&tol,&rho,1,MPI_DOUBLE,MPI_MAX,world);
-    #ifdef _POLARIZE_DEBUG
+    MPI_Allreduce(&tol, &rho, 1, MPI_DOUBLE, MPI_MAX, world);
+#ifdef _POLARIZE_DEBUG
     printf("itr = %d: rho = %f\n", itr, rho);
-    #endif
+#endif
     if (itr > 0 && rho < tol_rel) break;
   }
 
@@ -342,9 +335,9 @@ void FixPolarizeBEMICC::force_clear()
   if (force->newton) nbytes += sizeof(double) * atom->nghost;
 
   if (nbytes) {
-    memset(&atom->f[0][0],0,3*nbytes);
-    if (torqueflag) memset(&atom->torque[0][0],0,3*nbytes);
-    if (extraflag) atom->avec->force_clear(0,nbytes);
+    memset(&atom->f[0][0], 0, 3 * nbytes);
+    if (torqueflag) memset(&atom->torque[0][0], 0, 3 * nbytes);
+    if (extraflag) atom->avec->force_clear(0, nbytes);
   }
 }
 
@@ -354,46 +347,49 @@ int FixPolarizeBEMICC::modify_param(int narg, char **arg)
 {
   int iarg = 0;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"itr_max") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix_modify command");
-      itr_max = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+    if (strcmp(arg[iarg], "itr_max") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal fix_modify command");
+      itr_max = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"omega") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix_modify command");
-      omega = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+    } else if (strcmp(arg[iarg], "omega") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal fix_modify command");
+      omega = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"kspace") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix_modify command");
-      if (strcmp(arg[iarg+1],"yes") == 0) kspaceflag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) kspaceflag = 0;
-      else error->all(FLERR,"Illegal fix_modify command for fix polarize");
+    } else if (strcmp(arg[iarg], "kspace") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal fix_modify command");
+      if (strcmp(arg[iarg + 1], "yes") == 0)
+        kspaceflag = 1;
+      else if (strcmp(arg[iarg + 1], "no") == 0)
+        kspaceflag = 0;
+      else
+        error->all(FLERR, "Illegal fix_modify command for fix polarize");
       iarg += 2;
-    } else if (strcmp(arg[iarg],"dielectrics") == 0) {
-      if (iarg+6 > narg) error->all(FLERR,"Illegal fix_modify command");
-      double epsiloni=-1, areai=-1;
-      double qunscaledi=0;
-      int set_charge=0;
-      double ediff = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-      double emean = utils::numeric(FLERR,arg[iarg+2],false,lmp);
-      if (strcmp(arg[iarg+3],"NULL") != 0)
-        epsiloni = utils::numeric(FLERR,arg[iarg+3],false,lmp);
-      if (strcmp(arg[iarg+4],"NULL") != 0)
-        areai = utils::numeric(FLERR,arg[iarg+4],false,lmp);
-      if (strcmp(arg[iarg+5],"NULL") != 0) {
-        qunscaledi = utils::numeric(FLERR,arg[iarg+5],false,lmp);
+    } else if (strcmp(arg[iarg], "dielectrics") == 0) {
+      if (iarg + 6 > narg) error->all(FLERR, "Illegal fix_modify command");
+      double epsiloni = -1, areai = -1;
+      double qunscaledi = 0;
+      int set_charge = 0;
+      double ediff = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
+      double emean = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
+      if (strcmp(arg[iarg + 3], "NULL") != 0)
+        epsiloni = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
+      if (strcmp(arg[iarg + 4], "NULL") != 0)
+        areai = utils::numeric(FLERR, arg[iarg + 4], false, lmp);
+      if (strcmp(arg[iarg + 5], "NULL") != 0) {
+        qunscaledi = utils::numeric(FLERR, arg[iarg + 5], false, lmp);
         set_charge = 1;
       }
-      set_dielectric_params(ediff, emean, epsiloni, areai, set_charge,
-                            qunscaledi);
+      set_dielectric_params(ediff, emean, epsiloni, areai, set_charge, qunscaledi);
 
       iarg += 6;
-    } else if (strcmp(arg[iarg],"rand") == 0) {
-      if (iarg+3 > narg) error->all(FLERR,"Illegal fix_modify command");
-      ave_charge = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-      seed_charge = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+    } else if (strcmp(arg[iarg], "rand") == 0) {
+      if (iarg + 3 > narg) error->all(FLERR, "Illegal fix_modify command");
+      ave_charge = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
+      seed_charge = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
       randomized = 1;
       iarg += 3;
-    } else error->all(FLERR,"Illegal fix_modify command");
+    } else
+      error->all(FLERR, "Illegal fix_modify command");
   }
 
   return iarg;
@@ -401,8 +397,7 @@ int FixPolarizeBEMICC::modify_param(int narg, char **arg)
 
 /* ---------------------------------------------------------------------- */
 
-int FixPolarizeBEMICC::pack_forward_comm(int n, int *list, double *buf,
-                                  int pbc_flag, int *pbc)
+int FixPolarizeBEMICC::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
 {
   int m;
   for (m = 0; m < n; m++) buf[m] = atom->q[list[m]];
@@ -421,8 +416,8 @@ void FixPolarizeBEMICC::unpack_forward_comm(int n, int first, double *buf)
    set dielectric params for the atoms in the group
 ------------------------------------------------------------------------- */
 
-void FixPolarizeBEMICC::set_dielectric_params(double ediff, double emean,
-   double epsiloni, double areai, int set_charge, double qvalue)
+void FixPolarizeBEMICC::set_dielectric_params(double ediff, double emean, double epsiloni,
+                                              double areai, int set_charge, double qvalue)
 {
   double *area = atom->area;
   double *ed = atom->ed;
@@ -450,7 +445,10 @@ void FixPolarizeBEMICC::set_dielectric_params(double ediff, double emean,
 
 double FixPolarizeBEMICC::compute_vector(int n)
 {
-  if (n == 0) return iterations;
-  else if (n == 1) return rho;
-  else return 0;
+  if (n == 0)
+    return iterations;
+  else if (n == 1)
+    return rho;
+  else
+    return 0;
 }

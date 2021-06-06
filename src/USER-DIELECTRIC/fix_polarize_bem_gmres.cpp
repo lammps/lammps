@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/ Sandia National Laboratories
@@ -47,13 +46,13 @@
 #include "math_const.h"
 #include "memory.h"
 #include "modify.h"
+#include "msm_dielectric.h"
 #include "pair_coul_cut_dielectric.h"
 #include "pair_coul_long_dielectric.h"
 #include "pair_lj_cut_coul_cut_dielectric.h"
 #include "pair_lj_cut_coul_long_dielectric.h"
 #include "pair_lj_cut_coul_msm_dielectric.h"
 #include "pppm_dielectric.h"
-#include "msm_dielectric.h"
 #include "random_park.h"
 #include "timer.h"
 #include "update.h"
@@ -70,19 +69,19 @@ using namespace MathConst;
 /* ---------------------------------------------------------------------- */
 
 FixPolarizeBEMGMRES::FixPolarizeBEMGMRES(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg),
-  q_backup(NULL), c(NULL), g(NULL), h(NULL), r(NULL), s(NULL), v(NULL), y(NULL)
+    Fix(lmp, narg, arg), q_backup(NULL), c(NULL), g(NULL), h(NULL), r(NULL), s(NULL), v(NULL),
+    y(NULL)
 {
-  if (narg < 5) error->all(FLERR,"Illegal fix polarize/bem/gmres command");
+  if (narg < 5) error->all(FLERR, "Illegal fix polarize/bem/gmres command");
 
   avec = (AtomVecDielectric *) atom->style_match("dielectric");
-  if (!avec) error->all(FLERR,"Fix polarize requires atom style dielectric");
+  if (!avec) error->all(FLERR, "Fix polarize requires atom style dielectric");
 
   // parse required arguments
 
-  nevery = utils::numeric(FLERR,arg[3],false,lmp);
-  if (nevery < 0) error->all(FLERR,"Illegal fix polarize/bem/gmres command");
-  double tol =  utils::numeric(FLERR,arg[4],false,lmp);
+  nevery = utils::numeric(FLERR, arg[3], false, lmp);
+  if (nevery < 0) error->all(FLERR, "Illegal fix polarize/bem/gmres command");
+  double tol = utils::numeric(FLERR, arg[4], false, lmp);
   tol_abs = tol_rel = tol;
 
   itr_max = 20;
@@ -112,7 +111,7 @@ FixPolarizeBEMGMRES::FixPolarizeBEMGMRES(LAMMPS *lmp, int narg, char **arg) :
   if (atom->avec->forceclearflag) extraflag = 1;
 
   grow_arrays(atom->nmax);
-  atom->add_callback(0);       // to ensure to work with atom->sort()
+  atom->add_callback(0);    // to ensure to work with atom->sort()
 
   // output the residual and actual number of iterations
 
@@ -135,7 +134,7 @@ FixPolarizeBEMGMRES::~FixPolarizeBEMGMRES()
   memory->destroy(tag2mat);
 
   if (allocated) deallocate();
-  atom->delete_callback(id,0);
+  atom->delete_callback(id, 0);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -153,7 +152,7 @@ void FixPolarizeBEMGMRES::init()
 {
   // mapping induced charge matrix/vector to atom tags and vice versa
 
-  int i,maxtag;
+  int i, maxtag;
   double *q = atom->q;
   int *mask = atom->mask;
   tagint *tag = atom->tag;
@@ -161,28 +160,30 @@ void FixPolarizeBEMGMRES::init()
 
   tagint max_tag = -1;
   for (i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) max_tag = MAX(max_tag,tag[i]);
+    if (mask[i] & groupbit) max_tag = MAX(max_tag, tag[i]);
 
   tagint itmp;
-  MPI_Allreduce(&max_tag,&itmp,1,MPI_LMP_TAGINT,MPI_MAX,world);
+  MPI_Allreduce(&max_tag, &itmp, 1, MPI_LMP_TAGINT, MPI_MAX, world);
   maxtag = (int) itmp;
 
   int *ncount;
-  memory->create(ncount,maxtag+1,"polarize:ncount");
+  memory->create(ncount, maxtag + 1, "polarize:ncount");
   for (i = 0; i <= maxtag; i++) ncount[i] = 0;
 
   for (i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) ncount[tag[i]]++;
 
-  memory->create(tag2mat,maxtag+1,"polarize:tag2mat");
-  MPI_Allreduce(ncount,tag2mat,maxtag+1,MPI_INT,MPI_SUM,world);
+  memory->create(tag2mat, maxtag + 1, "polarize:tag2mat");
+  MPI_Allreduce(ncount, tag2mat, maxtag + 1, MPI_INT, MPI_SUM, world);
 
   num_induced_charges = 0;
   for (i = 0; i <= maxtag; i++)
-    if (tag2mat[i]) tag2mat[i] = num_induced_charges++;
-    else tag2mat[i] = -1;
+    if (tag2mat[i])
+      tag2mat[i] = num_induced_charges++;
+    else
+      tag2mat[i] = -1;
 
-  memory->create(mat2tag,num_induced_charges,"polarize:mat2tag");
+  memory->create(mat2tag, num_induced_charges, "polarize:mat2tag");
 
   num_induced_charges = 0;
   for (i = 0; i <= maxtag; i++)
@@ -197,9 +198,9 @@ void FixPolarizeBEMGMRES::init()
 
   // allocate memory for the solver
 
-  memory->create(induced_charges,num_induced_charges,"polarize:induced_charges");
-  memory->create(rhs,num_induced_charges,"polarize:rhs");
-  memory->create(buffer,num_induced_charges,"polarize:buffer");
+  memory->create(induced_charges, num_induced_charges, "polarize:induced_charges");
+  memory->create(rhs, num_induced_charges, "polarize:rhs");
+  memory->create(buffer, num_induced_charges, "polarize:buffer");
 
   mat_dim = num_induced_charges;
   if (mr > mat_dim - 1 || mr <= 0) mr = mat_dim - 1;
@@ -213,16 +214,16 @@ void FixPolarizeBEMGMRES::init()
 
   if (randomized) {
 
-    RanPark *random = new RanPark(lmp,seed_charge + comm->me);
+    RanPark *random = new RanPark(lmp, seed_charge + comm->me);
     for (i = 0; i < 100; i++) random->uniform();
-    double sum,tmp = 0;
+    double sum, tmp = 0;
     for (i = 0; i < nlocal; i++) {
       if (induced_charge_idx[i] < 0) continue;
-      q[i] = ave_charge*(random->uniform() - 0.5);
+      q[i] = ave_charge * (random->uniform() - 0.5);
       tmp += q[i];
     }
-    MPI_Allreduce(&tmp,&sum,1,MPI_DOUBLE,MPI_SUM,world);
-    sum /= (double)num_induced_charges;
+    MPI_Allreduce(&tmp, &sum, 1, MPI_DOUBLE, MPI_SUM, world);
+    sum /= (double) num_induced_charges;
 
     tmp = 0;
     for (i = 0; i < nlocal; i++) {
@@ -230,20 +231,17 @@ void FixPolarizeBEMGMRES::init()
       q[i] -= sum;
       tmp += q[i];
     }
-    MPI_Allreduce(&tmp,&sum,1,MPI_DOUBLE,MPI_SUM,world);
+    MPI_Allreduce(&tmp, &sum, 1, MPI_DOUBLE, MPI_SUM, world);
 
-    if (comm->me == 0) {
-      if (screen) fprintf(screen, "ave induced charge q = %g\n", sum);
-    }
+    if (comm->me == 0) utils::logmesg(lmp, "ave induced charge q = {:.8}\n", sum);
     delete random;
   }
 
-  if (comm->me == 0) {
-    if (screen) fprintf(screen,"GMRES solver for %d induced charges "
-      "using maximum %d q-vectors\n",num_induced_charges,mr);
-    if (logfile) fprintf(logfile,"GMRES solver for %d induced charges "
-      "using maximum %d q-vectors\n",num_induced_charges,mr);
-  }
+  if (comm->me == 0)
+    utils::logmesg(lmp,
+                   "GMRES solver for {} induced charges "
+                   "using maximum {} q-vectors\n",
+                   num_induced_charges, mr);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -252,30 +250,33 @@ void FixPolarizeBEMGMRES::setup(int vflag)
 {
   // check if the pair styles in use are compatible
 
-  if (strcmp(force->pair_style,"lj/cut/coul/long/dielectric") == 0)
-    efield_pair = ((PairLJCutCoulLongDielectric*)force->pair)->efield;
-  else if (strcmp(force->pair_style,"lj/cut/coul/long/dielectric/omp") == 0)
-    efield_pair = ((PairLJCutCoulLongDielectric*)force->pair)->efield;
-  else if (strcmp(force->pair_style,"lj/cut/coul/msm/dielectric") == 0)
-    efield_pair = ((PairLJCutCoulMSMDielectric*)force->pair)->efield;
-  else if (strcmp(force->pair_style,"lj/cut/coul/cut/dielectric") == 0)
-    efield_pair = ((PairLJCutCoulCutDielectric*)force->pair)->efield;
-  else if (strcmp(force->pair_style,"lj/cut/coul/cut/dielectric/omp") == 0)
-    efield_pair = ((PairLJCutCoulCutDielectric*)force->pair)->efield;
-  else if (strcmp(force->pair_style,"coul/long/dielectric") == 0)
-    efield_pair = ((PairCoulLongDielectric*)force->pair)->efield;
-  else if (strcmp(force->pair_style,"coul/cut/dielectric") == 0)
-    efield_pair = ((PairCoulCutDielectric*)force->pair)->efield;
-  else error->all(FLERR,"Pair style not compatible with fix polarize");
+  if (strcmp(force->pair_style, "lj/cut/coul/long/dielectric") == 0)
+    efield_pair = ((PairLJCutCoulLongDielectric *) force->pair)->efield;
+  else if (strcmp(force->pair_style, "lj/cut/coul/long/dielectric/omp") == 0)
+    efield_pair = ((PairLJCutCoulLongDielectric *) force->pair)->efield;
+  else if (strcmp(force->pair_style, "lj/cut/coul/msm/dielectric") == 0)
+    efield_pair = ((PairLJCutCoulMSMDielectric *) force->pair)->efield;
+  else if (strcmp(force->pair_style, "lj/cut/coul/cut/dielectric") == 0)
+    efield_pair = ((PairLJCutCoulCutDielectric *) force->pair)->efield;
+  else if (strcmp(force->pair_style, "lj/cut/coul/cut/dielectric/omp") == 0)
+    efield_pair = ((PairLJCutCoulCutDielectric *) force->pair)->efield;
+  else if (strcmp(force->pair_style, "coul/long/dielectric") == 0)
+    efield_pair = ((PairCoulLongDielectric *) force->pair)->efield;
+  else if (strcmp(force->pair_style, "coul/cut/dielectric") == 0)
+    efield_pair = ((PairCoulCutDielectric *) force->pair)->efield;
+  else
+    error->all(FLERR, "Pair style not compatible with fix polarize");
 
   if (kspaceflag) {
     if (force->kspace) {
-      if (strcmp(force->kspace_style,"pppm/dielectric") == 0)
-        efield_kspace = ((PPPMDielectric*)force->kspace)->efield;
-      else if (strcmp(force->kspace_style,"msm/dielectric") == 0)
-        efield_kspace = ((MSMDielectric*)force->kspace)->efield;
-      else error->all(FLERR,"Kspace style not compatible with fix polarize/bem/gmres");
-    } else error->all(FLERR,"No Kspace style available for fix polarize/bem/gmres");
+      if (strcmp(force->kspace_style, "pppm/dielectric") == 0)
+        efield_kspace = ((PPPMDielectric *) force->kspace)->efield;
+      else if (strcmp(force->kspace_style, "msm/dielectric") == 0)
+        efield_kspace = ((MSMDielectric *) force->kspace)->efield;
+      else
+        error->all(FLERR, "Kspace style not compatible with fix polarize/bem/gmres");
+    } else
+      error->all(FLERR, "No Kspace style available for fix polarize/bem/gmres");
   }
 
   first = 1;
@@ -336,8 +337,8 @@ void FixPolarizeBEMGMRES::compute_induced_charges()
   // Note: the right-hand side (b) is in the unit of charge density
 
   force_clear();
-  force->pair->compute(eflag,vflag);
-  if (kspaceflag) force->kspace->compute(eflag,vflag);
+  force->pair->compute(eflag, vflag);
+  if (kspaceflag) force->kspace->compute(eflag, vflag);
   if (force->newton) comm->reverse_comm();
 
   for (int i = 0; i < num_induced_charges; i++) buffer[i] = 0;
@@ -357,12 +358,12 @@ void FixPolarizeBEMGMRES::compute_induced_charges()
       Ey += efield_kspace[i][1];
       Ez += efield_kspace[i][2];
     }
-    double dot = (Ex*norm[i][0] + Ey*norm[i][1] + Ez*norm[i][2]) / epsilon[i];
+    double dot = (Ex * norm[i][0] + Ey * norm[i][1] + Ez * norm[i][2]) / epsilon[i];
     double sigma_f = q_real[i] / area[i];
-    buffer[idx] = (1 - em[i]) * sigma_f - epsilon0 * ed[i] * dot / (4*MY_PI);
+    buffer[idx] = (1 - em[i]) * sigma_f - epsilon0 * ed[i] * dot / (4 * MY_PI);
   }
 
-  MPI_Allreduce(buffer,rhs,num_induced_charges,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(buffer, rhs, num_induced_charges, MPI_DOUBLE, MPI_SUM, world);
 
   // compute the initial residual r before iteration
   // while it seems that assigning induced charges to the last values
@@ -391,7 +392,7 @@ void FixPolarizeBEMGMRES::compute_induced_charges()
   for (int i = 0; i < nlocal; i++) {
     if (induced_charge_idx[i] >= 0) {
       int idx = induced_charge_idx[i];
-      q[i] = induced_charges[idx]*area[i] + q_real[i];
+      q[i] = induced_charges[idx] * area[i] + q_real[i];
     } else {
       q[i] = q_backup[i];
     }
@@ -400,22 +401,21 @@ void FixPolarizeBEMGMRES::compute_induced_charges()
   comm->forward_comm_fix(this);
 
   if (first) first = 0;
-
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixPolarizeBEMGMRES::gmres_solve(double* x, double* r)
+void FixPolarizeBEMGMRES::gmres_solve(double *x, double *r)
 {
-  int i,j,k,k_copy,n,itr;
-  double av,htmp,mu,rho_tol;
+  int i, j, k, k_copy, n, itr;
+  double av, htmp, mu, rho_tol;
   double delta = 1.0e-03;
 
   n = mat_dim;
 
   // compute the relative tolerance
   // rho = norm(r)
-  rho = sqrt( vec_dot(r, r, n) );
+  rho = sqrt(vec_dot(r, r, n));
   rho_tol = rho * tol_rel;
 
   // the outer loop to itr_max
@@ -425,15 +425,14 @@ void FixPolarizeBEMGMRES::gmres_solve(double* x, double* r)
 
     // the first vector v (i.e. v[0]) is the updated residual normalized
 
-    for (i = 0; i < n; i++)
-      v[i+0*n] = r[i] / rho;
+    for (i = 0; i < n; i++) v[i + 0 * n] = r[i] / rho;
 
     g[0] = rho;
     for (i = 1; i <= mr; i++) g[i] = 0.0;
 
     // fill up h with zero
 
-    memset(h, 0, (mr+1)*mr*sizeof(double));
+    memset(h, 0, (mr + 1) * mr * sizeof(double));
 
     // the inner loop k = 1..(n-1)
     // build up the k-th Krylov space,
@@ -448,43 +447,40 @@ void FixPolarizeBEMGMRES::gmres_solve(double* x, double* r)
       // here is the tricky part: v(k-1) plays a role as "charges"
       // matvec(a, v+(k-1)*n, v+k*n, n);
 
-      apply_operator(v+(k-1)*n, v+k*n, n);
+      apply_operator(v + (k - 1) * n, v + k * n, n);
 
       // compute the norm of the vector v(k)
 
-      av = sqrt(vec_dot(v+k*n, v+k*n, n));
+      av = sqrt(vec_dot(v + k * n, v + k * n, n));
 
       // Arnoldi iteration to find v's
       // orthogonalize the k vectors v(1) . . . v(k)
 
       for (j = 1; j <= k; j++) {
-        h[(j-1)+(k-1)*(mr+1)] = vec_dot(v+k*n, v+(j-1)*n, n);
+        h[(j - 1) + (k - 1) * (mr + 1)] = vec_dot(v + k * n, v + (j - 1) * n, n);
         for (i = 0; i < n; i++)
-          v[i+k*n] = v[i+k*n] - h[(j-1)+(k-1)*(mr+1)] * v[i+(j-1)*n];
+          v[i + k * n] = v[i + k * n] - h[(j - 1) + (k - 1) * (mr + 1)] * v[i + (j - 1) * n];
       }
 
       // compute the norm of the newly created vector v(k)
 
-      h[k+(k-1)*(mr+1)] = sqrt(vec_dot(v+k*n, v+k*n, n));
+      h[k + (k - 1) * (mr + 1)] = sqrt(vec_dot(v + k * n, v + k * n, n));
 
       // if the norm is close to zero, repeat the above orthogonalization
 
-      if ((av + delta * h[k+(k-1)*(mr+1)]) == av) {
+      if ((av + delta * h[k + (k - 1) * (mr + 1)]) == av) {
         for (j = 1; j <= k; j++) {
-          htmp = vec_dot(v+k*n, v+(j-1)*n, n);
-          h[(j-1)+(k-1)*(mr+1)] = h[(j-1)+(k-1)*(mr+1)] + htmp;
-          for (i = 0; i < n; i++)
-            v[i+k*n] = v[i+k*n] - htmp * v[i+(j-1)*n];
+          htmp = vec_dot(v + k * n, v + (j - 1) * n, n);
+          h[(j - 1) + (k - 1) * (mr + 1)] = h[(j - 1) + (k - 1) * (mr + 1)] + htmp;
+          for (i = 0; i < n; i++) v[i + k * n] = v[i + k * n] - htmp * v[i + (j - 1) * n];
         }
-        h[k+(k-1)*(mr+1)] = sqrt( vec_dot(v+k*n, v+k*n, n) );
+        h[k + (k - 1) * (mr + 1)] = sqrt(vec_dot(v + k * n, v + k * n, n));
       }
 
       // if the norm of v(k) is nonzero, normalize v(k)
 
-      if (h[k+(k-1)*(mr+1)] != 0.0) {
-        for (i = 0; i < n; i++) {
-          v[i+k*n] = v[i+k*n] / h[k+(k-1)*(mr+1)];
-        }
+      if (h[k + (k - 1) * (mr + 1)] != 0.0) {
+        for (i = 0; i < n; i++) { v[i + k * n] = v[i + k * n] / h[k + (k - 1) * (mr + 1)]; }
       }
 
       // if k is not the first iteration,
@@ -495,71 +491,65 @@ void FixPolarizeBEMGMRES::gmres_solve(double* x, double* r)
 
         // update y(i-1) <- h(k-1, i-1) for i = 1...(k+1)
 
-        for (i = 1; i <= k + 1; i++)
-          y[i-1] = h[(i-1)+(k-1)*(mr+1)];
+        for (i = 1; i <= k + 1; i++) y[i - 1] = h[(i - 1) + (k - 1) * (mr + 1)];
 
         // apply the Given rotation to y[j-1] and y[j] for j = 1..(k-1)
 
-        for (j = 1; j <= k - 1; j++)
-          mult_givens(c[j-1], s[j-1], j-1, y);
+        for (j = 1; j <= k - 1; j++) mult_givens(c[j - 1], s[j - 1], j - 1, y);
 
         // update h(k-1, i-1) <- y(i-1) for i = 1..(k_1)
 
-        for (i = 1; i <= k + 1; i++)
-          h[i-1+(k-1)*(mr+1)] = y[i-1];
+        for (i = 1; i <= k + 1; i++) h[i - 1 + (k - 1) * (mr + 1)] = y[i - 1];
       }
 
       // compute cosine and sine terms of the Given rotations
 
-      mu = sqrt(h[(k-1)+(k-1)*(mr+1)]*h[(k-1)+(k-1)*(mr+1)]
-              + h[ k   +(k-1)*(mr+1)]*h[ k   +(k-1)*(mr+1)]);
-      c[k-1] =  h[(k-1)+(k-1)*(mr+1)] / mu;
-      s[k-1] = -h[ k   +(k-1)*(mr+1)] / mu;
+      mu = sqrt(h[(k - 1) + (k - 1) * (mr + 1)] * h[(k - 1) + (k - 1) * (mr + 1)] +
+                h[k + (k - 1) * (mr + 1)] * h[k + (k - 1) * (mr + 1)]);
+      c[k - 1] = h[(k - 1) + (k - 1) * (mr + 1)] / mu;
+      s[k - 1] = -h[k + (k - 1) * (mr + 1)] / mu;
 
       // update h(k-1,k-1) and set h(k-1,k) to zero
 
-      h[(k-1)+(k-1)*(mr+1)] = c[k-1] * h[(k-1)+(k-1)*(mr+1)]
-                            - s[k-1] * h[ k   +(k-1)*(mr+1)];
-      h[k    +(k-1)*(mr+1)] = 0;
+      h[(k - 1) + (k - 1) * (mr + 1)] =
+          c[k - 1] * h[(k - 1) + (k - 1) * (mr + 1)] - s[k - 1] * h[k + (k - 1) * (mr + 1)];
+      h[k + (k - 1) * (mr + 1)] = 0;
 
       // apply the Givens rotation to g[k-1] and g[k]
 
-      mult_givens(c[k-1], s[k-1], k-1, g);
+      mult_givens(c[k - 1], s[k - 1], k - 1, g);
 
       // compute the norm of the residual
 
       rho = fabs(g[k]);
 
-      #ifdef _POLARIZE_DEBUG
+#ifdef _POLARIZE_DEBUG
       if (comm->me == 0) {
         char message[256];
-        sprintf(message, "itr = %d: k = %d, norm(r) = %g norm(b) = %g",
-          itr, k, rho, normb);
+        sprintf(message, "itr = %d: k = %d, norm(r) = %g norm(b) = %g", itr, k, rho, normb);
         error->warning(FLERR, message);
       }
-      #endif
+#endif
 
-      if (rho <= rho_tol && rho <= tol_abs)
-        break;
+      if (rho <= rho_tol && rho <= tol_abs) break;
     }
 
     k = k_copy - 1;
 
     // compute the estimate y from h
 
-    y[k] = g[k] / h[k + k*(mr+1)];
+    y[k] = g[k] / h[k + k * (mr + 1)];
     for (i = k; i >= 1; i--) {
-      y[i-1] = g[i-1];
+      y[i - 1] = g[i - 1];
       for (j = i + 1; j <= k + 1; j++)
-        y[i-1] = y[i-1] - h[(i-1)+(j-1)*(mr+1)] * y[j-1];
-      y[i-1] = y[i-1] / h[(i-1)+(i-1)*(mr+1)];
+        y[i - 1] = y[i - 1] - h[(i - 1) + (j - 1) * (mr + 1)] * y[j - 1];
+      y[i - 1] = y[i - 1] / h[(i - 1) + (i - 1) * (mr + 1)];
     }
 
     // update x at the current iteration: x <- Q(n by k) * y (k by 1)
 
     for (i = 1; i <= n; i++) {
-      for (j = 1; j <= k + 1; j++)
-        x[i-1] = x[i-1] + v[(i-1)+(j-1)*n] * y[j-1];
+      for (j = 1; j <= k + 1; j++) x[i - 1] = x[i - 1] + v[(i - 1) + (j - 1) * n] * y[j - 1];
     }
 
     // update the residual with the updated induced charges (x)
@@ -568,16 +558,15 @@ void FixPolarizeBEMGMRES::gmres_solve(double* x, double* r)
 
     // rho = norm(r)
 
-    rho = sqrt( vec_dot(r, r, n) );
+    rho = sqrt(vec_dot(r, r, n));
 
-    #ifdef _POLARIZE_DEBUG
+#ifdef _POLARIZE_DEBUG
     if (comm->me == 0) {
       char message[256];
-      sprintf(message, "itr = %d: norm(r) = %g norm(b) = %g",
-        itr, rho, normb);
+      sprintf(message, "itr = %d: norm(r) = %g norm(b) = %g", itr, rho, normb);
       error->warning(FLERR, message);
     }
-    #endif
+#endif
 
     // Barros et al. suggested the condition: norm(r) < EPSILON norm(b)
 
@@ -596,7 +585,7 @@ void FixPolarizeBEMGMRES::gmres_solve(double* x, double* r)
   matvec(A, v(k-1), v(k), n);
 ------------------------------------------------------------------------- */
 
-void FixPolarizeBEMGMRES::apply_operator(double* w, double* Aw, int n)
+void FixPolarizeBEMGMRES::apply_operator(double *w, double *Aw, int n)
 {
   int i;
   double *q = atom->q;
@@ -621,7 +610,7 @@ void FixPolarizeBEMGMRES::apply_operator(double* w, double* Aw, int n)
       q[i] = 0;
     } else {
       int idx = induced_charge_idx[i];
-      q[i] = w[idx]*area[i];
+      q[i] = w[idx] * area[i];
     }
   }
 
@@ -630,8 +619,8 @@ void FixPolarizeBEMGMRES::apply_operator(double* w, double* Aw, int n)
   // compute the electrical field due to w*area: y = A (w*area)
 
   force_clear();
-  force->pair->compute(eflag,vflag);
-  if (kspaceflag) force->kspace->compute(eflag,vflag);
+  force->pair->compute(eflag, vflag);
+  if (kspaceflag) force->kspace->compute(eflag, vflag);
   if (force->newton) comm->reverse_comm();
 
   // now efield is the electrical field due to induced charges only
@@ -652,11 +641,11 @@ void FixPolarizeBEMGMRES::apply_operator(double* w, double* Aw, int n)
       Ey += efield_kspace[i][1];
       Ez += efield_kspace[i][2];
     }
-    double dot = (Ex*norm[i][0] + Ey*norm[i][1] + Ez*norm[i][2]) / epsilon[i];
-    buffer[idx] = em[i] * w[idx] + epsilon0 * ed[i] * dot / (4*MY_PI);
+    double dot = (Ex * norm[i][0] + Ey * norm[i][1] + Ez * norm[i][2]) / epsilon[i];
+    buffer[idx] = em[i] * w[idx] + epsilon0 * ed[i] * dot / (4 * MY_PI);
   }
 
-  MPI_Allreduce(buffer,Aw,num_induced_charges,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(buffer, Aw, num_induced_charges, MPI_DOUBLE, MPI_SUM, world);
 }
 
 /* ----------------------------------------------------------------------
@@ -666,7 +655,7 @@ void FixPolarizeBEMGMRES::apply_operator(double* w, double* Aw, int n)
   using Eq. (60) in Barros et al.
 ------------------------------------------------------------------------ */
 
-void FixPolarizeBEMGMRES::update_residual(double* w, double* r, int n)
+void FixPolarizeBEMGMRES::update_residual(double *w, double *r, int n)
 {
   int i;
   double *q = atom->q;
@@ -692,15 +681,15 @@ void FixPolarizeBEMGMRES::update_residual(double* w, double* r, int n)
       q[i] = q_backup[i];
     } else {
       int idx = induced_charge_idx[i];
-      q[i] = w[idx]*area[i] + q_real[i];
+      q[i] = w[idx] * area[i] + q_real[i];
     }
   }
 
   comm->forward_comm_fix(this);
 
   force_clear();
-  force->pair->compute(eflag,vflag);
-  if (kspaceflag) force->kspace->compute(eflag,vflag);
+  force->pair->compute(eflag, vflag);
+  if (kspaceflag) force->kspace->compute(eflag, vflag);
   if (force->newton) comm->reverse_comm();
 
   // compute the residual according to Eq. (60) in Barros et al.
@@ -725,13 +714,12 @@ void FixPolarizeBEMGMRES::update_residual(double* w, double* r, int n)
       Ey += efield_kspace[i][1];
       Ez += efield_kspace[i][2];
     }
-    double dot = (Ex*norm[i][0] + Ey*norm[i][1] + Ez*norm[i][2]) / epsilon[i];
+    double dot = (Ex * norm[i][0] + Ey * norm[i][1] + Ez * norm[i][2]) / epsilon[i];
     double sigma_f = q_real[i] / area[i];
-    buffer[idx] = (1 - em[i]) * sigma_f - em[i] * w[idx] -
-      epsilon0 * ed[i] * dot / (4*MY_PI);
+    buffer[idx] = (1 - em[i]) * sigma_f - em[i] * w[idx] - epsilon0 * ed[i] * dot / (4 * MY_PI);
   }
 
-  MPI_Allreduce(buffer,r,num_induced_charges,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(buffer, r, num_induced_charges, MPI_DOUBLE, MPI_SUM, world);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -742,15 +730,15 @@ void FixPolarizeBEMGMRES::force_clear()
   if (force->newton) nbytes += sizeof(double) * atom->nghost;
 
   if (nbytes) {
-    memset(&atom->f[0][0],0,3*nbytes);
-    if (torqueflag) memset(&atom->torque[0][0],0,3*nbytes);
-    if (extraflag) atom->avec->force_clear(0,nbytes);
+    memset(&atom->f[0][0], 0, 3 * nbytes);
+    if (torqueflag) memset(&atom->torque[0][0], 0, 3 * nbytes);
+    if (extraflag) atom->avec->force_clear(0, nbytes);
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
-double FixPolarizeBEMGMRES::vec_dot(const double* a1, const double* a2, int n)
+double FixPolarizeBEMGMRES::vec_dot(const double *a1, const double *a2, int n)
 {
   double value = 0.0;
   for (int i = 0; i < n; i++) value += (a1[i] * a2[i]);
@@ -764,18 +752,18 @@ double FixPolarizeBEMGMRES::vec_dot(const double* a1, const double* a2, int n)
 double FixPolarizeBEMGMRES::memory_usage()
 {
   double bytes = 0;
-  bytes += mat_dim*sizeof(double);        // induced_charges
-  bytes += mat_dim*sizeof(double);        // buffer
-  bytes += mat_dim*sizeof(double);        // rhs
-  bytes += atom->nmax*sizeof(double);     // induced_charge_idx
-  bytes += atom->nmax*sizeof(double);     // q_backup
-  bytes += mr*sizeof(double);             // c
-  bytes += (mr+1)*sizeof(double);         // g
-  bytes += (mr+1)*mr*sizeof(double);      // h
-  bytes += mat_dim*sizeof(double);        // r
-  bytes += mr*(mr+1)*sizeof(double);      // s
-  bytes += mat_dim*sizeof(double);        // v
-  bytes += (mr+1)*mr*sizeof(double);      // y
+  bytes += mat_dim * sizeof(double);          // induced_charges
+  bytes += mat_dim * sizeof(double);          // buffer
+  bytes += mat_dim * sizeof(double);          // rhs
+  bytes += atom->nmax * sizeof(double);       // induced_charge_idx
+  bytes += atom->nmax * sizeof(double);       // q_backup
+  bytes += mr * sizeof(double);               // c
+  bytes += (mr + 1) * sizeof(double);         // g
+  bytes += (mr + 1) * mr * sizeof(double);    // h
+  bytes += mat_dim * sizeof(double);          // r
+  bytes += mr * (mr + 1) * sizeof(double);    // s
+  bytes += mat_dim * sizeof(double);          // v
+  bytes += (mr + 1) * mr * sizeof(double);    // y
   return bytes;
 }
 
@@ -784,12 +772,12 @@ double FixPolarizeBEMGMRES::memory_usage()
 void FixPolarizeBEMGMRES::allocate()
 {
   memory->create(c, mr, "polarize:c");
-  memory->create(g, mr+1, "polarize:g");
-  memory->create(h, (mr+1)*mr, "polarize:h");
+  memory->create(g, mr + 1, "polarize:g");
+  memory->create(h, (mr + 1) * mr, "polarize:h");
   memory->create(r, mat_dim, "polarize:r");
   memory->create(s, mr, "polarize:s");
-  memory->create(v, mat_dim*(mr+1), "polarize:v");
-  memory->create(y, mr+1, "polarize:y");
+  memory->create(v, mat_dim * (mr + 1), "polarize:v");
+  memory->create(y, mr + 1, "polarize:y");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -811,45 +799,49 @@ int FixPolarizeBEMGMRES::modify_param(int narg, char **arg)
 {
   int iarg = 0;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"itr_max") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix_modify command");
-      itr_max = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+    if (strcmp(arg[iarg], "itr_max") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal fix_modify command");
+      itr_max = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"mr") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix_modify command");
-      mr = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+    } else if (strcmp(arg[iarg], "mr") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal fix_modify command");
+      mr = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"kspace") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix_modify command");
-      if (strcmp(arg[iarg+1],"yes") == 0) kspaceflag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) kspaceflag = 0;
-      else error->all(FLERR,"Illegal fix_modify command for fix polarize");
+    } else if (strcmp(arg[iarg], "kspace") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal fix_modify command");
+      if (strcmp(arg[iarg + 1], "yes") == 0)
+        kspaceflag = 1;
+      else if (strcmp(arg[iarg + 1], "no") == 0)
+        kspaceflag = 0;
+      else
+        error->all(FLERR, "Illegal fix_modify command for fix polarize");
       iarg += 2;
-    } else if (strcmp(arg[iarg],"dielectrics") == 0) {
-      if (iarg+6 > narg) error->all(FLERR,"Illegal fix_modify command");
-      double epsiloni=-1, areai=-1;
-      double qreali=0;
-      int set_charge=0;
-      double ediff = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-      double emean = utils::numeric(FLERR,arg[iarg+2],false,lmp);
-      if (strcmp(arg[iarg+3],"NULL") != 0)
-        epsiloni = utils::numeric(FLERR,arg[iarg+3],false,lmp);
-      if (strcmp(arg[iarg+4],"NULL") != 0)
-        areai = utils::numeric(FLERR,arg[iarg+4],false,lmp);
-      if (strcmp(arg[iarg+5],"NULL") != 0) {
-        qreali = utils::numeric(FLERR,arg[iarg+5],false,lmp);
+    } else if (strcmp(arg[iarg], "dielectrics") == 0) {
+      if (iarg + 6 > narg) error->all(FLERR, "Illegal fix_modify command");
+      double epsiloni = -1, areai = -1;
+      double qreali = 0;
+      int set_charge = 0;
+      double ediff = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
+      double emean = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
+      if (strcmp(arg[iarg + 3], "NULL") != 0)
+        epsiloni = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
+      if (strcmp(arg[iarg + 4], "NULL") != 0)
+        areai = utils::numeric(FLERR, arg[iarg + 4], false, lmp);
+      if (strcmp(arg[iarg + 5], "NULL") != 0) {
+        qreali = utils::numeric(FLERR, arg[iarg + 5], false, lmp);
         set_charge = 1;
       }
       set_dielectric_params(ediff, emean, epsiloni, areai, set_charge, qreali);
 
       iarg += 6;
-    } else if (strcmp(arg[iarg],"rand") == 0) {
-      if (iarg+3 > narg) error->all(FLERR,"Illegal fix_modify command");
-      ave_charge = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-      seed_charge = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+    } else if (strcmp(arg[iarg], "rand") == 0) {
+      if (iarg + 3 > narg) error->all(FLERR, "Illegal fix_modify command");
+      ave_charge = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
+      seed_charge = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
       randomized = 1;
       iarg += 3;
-    } else error->all(FLERR,"Illegal fix_modify command");
+    } else
+      error->all(FLERR, "Illegal fix_modify command");
   }
 
   return iarg;
@@ -862,8 +854,8 @@ int FixPolarizeBEMGMRES::modify_param(int narg, char **arg)
 void FixPolarizeBEMGMRES::grow_arrays(int n)
 {
   if (n > nmax) nmax = n;
-  memory->grow(induced_charge_idx,nmax,"polarize:induced_charge_idx");
-  memory->grow(q_backup,nmax,"polarize:q_backup");
+  memory->grow(induced_charge_idx, nmax, "polarize:induced_charge_idx");
+  memory->grow(q_backup, nmax, "polarize:q_backup");
 }
 
 /* ----------------------------------------------------------------------
@@ -886,8 +878,7 @@ void FixPolarizeBEMGMRES::set_arrays(int i)
 
 /* ---------------------------------------------------------------------- */
 
-int FixPolarizeBEMGMRES::pack_forward_comm(int n, int *list, double *buf,
-                                           int pbc_flag, int *pbc)
+int FixPolarizeBEMGMRES::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
 {
   int m;
   for (m = 0; m < n; m++) buf[m] = atom->q[list[m]];
@@ -929,17 +920,20 @@ int FixPolarizeBEMGMRES::unpack_exchange(int nlocal, double *buf)
 
 double FixPolarizeBEMGMRES::compute_vector(int n)
 {
-  if (n == 0) return iterations;
-  else if (n == 1) return rho;
-  else return 0;
+  if (n == 0)
+    return iterations;
+  else if (n == 1)
+    return rho;
+  else
+    return 0;
 }
 
 /* ----------------------------------------------------------------------
    set dielectric params for the atoms in the group
 ------------------------------------------------------------------------- */
 
-void FixPolarizeBEMGMRES::set_dielectric_params(double ediff, double emean,
-   double epsiloni, double areai, int set_charge, double qvalue)
+void FixPolarizeBEMGMRES::set_dielectric_params(double ediff, double emean, double epsiloni,
+                                                double areai, int set_charge, double qvalue)
 {
   double *area = atom->area;
   double *ed = atom->ed;

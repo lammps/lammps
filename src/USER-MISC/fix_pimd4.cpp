@@ -841,6 +841,7 @@ void FixPIMD4::baoab_init()
   if(thermostat == PILE_L)
   {
     std::string out = "Initializing PILE_L thermostat...\n";
+    out += "Bead ID    |    omega    |    tau    |    c1    |    c2\n"; 
     //if(universe->iworld==0) fprintf(stdout, "Initializing PILE_L thermostat.\n");
     tau_k = new double[np];
     c1_k = new double[np];
@@ -854,7 +855,8 @@ void FixPIMD4::baoab_init()
     }
     for(int i=0; i<np; i++)
     {
-      out += fmt::format("Bead {:d}: omega = {:.8e}, tau = {:.8e}, c1 = {:.8e}, c2 = {:.8e}.\n", i, _omega_k[i], tau_k[i], c1_k[i], c2_k[i]);
+      //out += fmt::format("Bead {:d}: omega = {:.8e}, tau = {:.8e}, c1 = {:.8e}, c2 = {:.8e}.\n", i, _omega_k[i], tau_k[i], c1_k[i], c2_k[i]);
+      out += fmt::format("    {:d}     {:.8e} {:.8e} {:.8e} {:.8e}\n", i, _omega_k[i], tau_k[i], c1_k[i], c2_k[i]);
     }
     //MPI_Barrier(universe->uworld);
     //fprintf(stdout, "Bead ID=%d, omega=%.6e, tau=%.6e, c1=%.6e, c2=%.6e.\n", universe->iworld, _omega_k[universe->iworld], tau_k[universe->iworld], c1_k[universe->iworld], c2_k[universe->iworld]);

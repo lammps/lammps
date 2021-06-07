@@ -19,20 +19,26 @@ Examples
 .. code-block:: LAMMPS
 
    compute 1 all efield/atom
+   compute 1 all efield/atom pair yes kspace no
 
 Description
 """""""""""
 
-FIXME update docs from here
+Define a computation that calculates the electric field at each atom in a group.
+The compute should only enabled with pair and kspace styles that are provided
+by the USER-DIELECTRIC package because only these styles compute the per-atom
+electric field at every time step.
 
-Define a computation that calculates the per-atom translational
-kinetic energy for each atom in a group.
+The electric field is a 3-component vector.  The value of the electric field
+components will be 0.0 for atoms not in the specified compute group.
 
-The kinetic energy is simply 1/2 m v\^2, where m is the mass and v is
-the velocity of each atom.
+----------
 
-The value of the kinetic energy will be 0.0 for atoms not in the
-specified compute group.
+The keyword/value option pairs are used in the following ways.
+
+For the *pair* and *kspace* keywords, the real-space and reciprocal-space
+contributions to the electric field can be turned off and on.
+
 
 Output info
 """""""""""
@@ -42,11 +48,12 @@ any command that uses per-atom values from a compute as input.  See
 the :doc:`Howto output <Howto_output>` doc page for an overview of
 LAMMPS output options.
 
-The per-atom vector values will be in energy :doc:`units <units>`.
+The per-atom vector values will be in electric field :doc:`units <units>`.
 
 Restrictions
 """"""""""""
- none
+This compute is part of the USER-DIELECTRIC package. It is only enabled if
+LAMMPS was built with that package.  
 
 Related commands
 """"""""""""""""
@@ -56,4 +63,5 @@ Related commands
 Default
 """""""
 
-none
+The option defaults are pair = yes and kspace = yes.
+

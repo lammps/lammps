@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(nvt/sllod/omp,FixNVTSllodOMP)
-
+// clang-format off
+FixStyle(nvt/sllod/omp,FixNVTSllodOMP);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_NVT_SLLOD_OMP_H
@@ -36,7 +36,7 @@ class FixNVTSllodOMP : public FixNHOMP {
   virtual void nh_v_temp();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

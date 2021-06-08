@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -535,24 +536,20 @@ void DeleteBonds::command(int narg, char **arg)
 
   if (comm->me == 0) {
     if (atom->avec->bonds_allow)
-      utils::logmesg(lmp,fmt::format("  {} total bonds, "
-                                     "{} turned on, {} turned off\n",
-                                     atom->nbonds,bond_on,bond_off));
+      utils::logmesg(lmp,"  {} total bonds, {} turned on, {} turned off\n",
+                     atom->nbonds,bond_on,bond_off);
 
     if (atom->avec->angles_allow)
-      utils::logmesg(lmp,fmt::format("  {} total angles, "
-                                     "{} turned on, {} turned off\n",
-                                     atom->nangles,angle_on,angle_off));
+      utils::logmesg(lmp,"  {} total angles, {} turned on, {} turned off\n",
+                     atom->nangles,angle_on,angle_off);
 
     if (atom->avec->dihedrals_allow)
-      utils::logmesg(lmp,fmt::format("  {} total dihedrals, "
-                                     "{} turned on, {} turned off\n",
-                                     atom->ndihedrals,dihedral_on,dihedral_off));
+      utils::logmesg(lmp,"  {} total dihedrals, {} turned on, {} turned off\n",
+                     atom->ndihedrals,dihedral_on,dihedral_off);
 
     if (atom->avec->impropers_allow)
-      utils::logmesg(lmp,fmt::format("  {} total impropers, "
-                                     "{} turned on, {} turned off\n",
-                                     atom->nimpropers,improper_on,improper_off));
+      utils::logmesg(lmp,"  {} total impropers, {} turned on, {} turned off\n",
+                     atom->nimpropers,improper_on,improper_off);
   }
 
   // re-compute special list if requested

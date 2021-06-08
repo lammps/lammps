@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -271,7 +272,7 @@ void Input::file()
     // execute the command
 
     if (execute_command() && line)
-      error->all(FLERR,fmt::format("Unknown command: {}",line));
+      error->all(FLERR,"Unknown command: {}",line);
   }
 }
 
@@ -303,8 +304,8 @@ void Input::file(const char *filename)
 
     infile = fopen(filename,"r");
     if (infile == nullptr)
-      error->one(FLERR,fmt::format("Cannot open input script {}: {}",
-                                   filename, utils::getsyserror()));
+      error->one(FLERR,"Cannot open input script {}: {}",
+                                   filename, utils::getsyserror());
 
     infiles[nfile++] = infile;
   }
@@ -360,7 +361,7 @@ char *Input::one(const std::string &single)
   // execute the command and return its name
 
   if (execute_command())
-    error->all(FLERR,fmt::format("Unknown command: {}",line));
+    error->all(FLERR,"Unknown command: {}",line);
 
   return command;
 }
@@ -614,8 +615,8 @@ void Input::substitute(char *&str, char *&str2, int &max, int &max2, int flag)
       }
 
       if (value == nullptr)
-        error->one(FLERR,fmt::format("Substitution for illegal "
-                                     "variable {}",var));
+        error->one(FLERR,"Substitution for illegal "
+                                     "variable {}",var);
 
       // check if storage in str2 needs to be expanded
       // re-initialize ptr and ptr2 to the point beyond the variable.
@@ -1009,8 +1010,8 @@ void Input::include()
 
     infile = fopen(arg[0],"r");
     if (infile == nullptr)
-      error->one(FLERR,fmt::format("Cannot open input script {}: {}",
-                                   arg[0], utils::getsyserror()));
+      error->one(FLERR,"Cannot open input script {}: {}",
+                                   arg[0], utils::getsyserror());
 
     infiles[nfile++] = infile;
   }
@@ -1043,8 +1044,8 @@ void Input::jump()
       if (infile && infile != stdin) fclose(infile);
       infile = fopen(arg[0],"r");
       if (infile == nullptr)
-        error->one(FLERR,fmt::format("Cannot open input script {}: {}",
-                                     arg[0], utils::getsyserror()));
+        error->one(FLERR,"Cannot open input script {}: {}",
+                                     arg[0], utils::getsyserror());
 
       infiles[nfile-1] = infile;
     }
@@ -1085,8 +1086,8 @@ void Input::log()
       else logfile = fopen(arg[0],"w");
 
       if (logfile == nullptr)
-        error->one(FLERR,fmt::format("Cannot open logfile {}: {}",
-                                     arg[0], utils::getsyserror()));
+        error->one(FLERR,"Cannot open logfile {}: {}",
+                                     arg[0], utils::getsyserror());
 
     }
     if (universe->nworlds == 1) universe->ulogfile = logfile;
@@ -1161,8 +1162,8 @@ void Input::print()
         if (strcmp(arg[iarg],"file") == 0) fp = fopen(arg[iarg+1],"w");
         else fp = fopen(arg[iarg+1],"a");
         if (fp == nullptr)
-          error->one(FLERR,fmt::format("Cannot open print file {}: {}",
-                                       arg[iarg+1], utils::getsyserror()));
+          error->one(FLERR,"Cannot open print file {}: {}",
+                                       arg[iarg+1], utils::getsyserror());
       }
       iarg += 2;
     } else if (strcmp(arg[iarg],"screen") == 0) {

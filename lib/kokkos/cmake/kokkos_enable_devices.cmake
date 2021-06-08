@@ -48,9 +48,6 @@ IF(KOKKOS_ENABLE_OPENMP)
   IF(KOKKOS_CLANG_IS_CRAY)
     SET(ClangOpenMPFlag -fopenmp)
   ENDIF()
-  IF(KOKKOS_CLANG_IS_INTEL)
-    SET(ClangOpenMPFlag -fiopenmp)
-  ENDIF()
   IF(KOKKOS_COMPILER_CLANG_MSVC)
     #for clang-cl expression /openmp yields an error, so directly add the specific Clang flag
     SET(ClangOpenMPFlag /clang:-fopenmp=libomp)
@@ -64,6 +61,7 @@ IF(KOKKOS_ENABLE_OPENMP)
     COMPILER_SPECIFIC_FLAGS(
       COMPILER_ID KOKKOS_CXX_HOST_COMPILER_ID
       Clang      -Xcompiler ${ClangOpenMPFlag}
+      IntelLLVM  -Xcompiler -fiopenmp
       PGI        -Xcompiler -mp
       Cray       NO-VALUE-SPECIFIED
       XL         -Xcompiler -qsmp=omp
@@ -72,6 +70,7 @@ IF(KOKKOS_ENABLE_OPENMP)
   ELSE()
     COMPILER_SPECIFIC_FLAGS(
       Clang      ${ClangOpenMPFlag}
+      IntelLLVM  -fiopenmp
       AppleClang -Xpreprocessor -fopenmp
       PGI        -mp
       Cray       NO-VALUE-SPECIFIED
@@ -93,7 +92,7 @@ IF (KOKKOS_ENABLE_OPENMPTARGET)
 
   COMPILER_SPECIFIC_FLAGS(
     Clang      ${ClangOpenMPFlag} -Wno-openmp-mapping
-    IntelClang -fiopenmp -Wno-openmp-mapping
+    IntelLLVM  -fiopenmp -Wno-openmp-mapping
     XL         -qsmp=omp -qoffload -qnoeh
     PGI        -mp=gpu
     DEFAULT    -fopenmp
@@ -152,3 +151,11 @@ IF (KOKKOS_ENABLE_HIP)
 ENDIF()
 
 KOKKOS_DEVICE_OPTION(SYCL OFF DEVICE "Whether to build SYCL backend")
+
+## SYCL has extra setup requirements, turn on Kokkos_Setup_SYCL.hpp in macros
+IF (KOKKOS_ENABLE_SYCL)
+  IF(KOKKOS_CXX_STANDARD LESS 17)
+    MESSAGE(FATAL_ERROR "SYCL backend requires C++17 or newer!")
+  ENDIF()
+  LIST(APPEND DEVICE_SETUP_LIST SYCL)
+ENDIF()

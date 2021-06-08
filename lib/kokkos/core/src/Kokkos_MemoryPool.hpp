@@ -408,7 +408,7 @@ class MemoryPool {
     const size_t alloc_size =
         header_size + (size_t(m_sb_count) << m_sb_size_lg2);
 
-    Record *rec = Record::allocate(memspace, "MemoryPool", alloc_size);
+    Record *rec = Record::allocate(memspace, "Kokkos::MemoryPool", alloc_size);
 
     m_tracker.assign_allocated_record_to_uninitialized(rec);
 
@@ -524,7 +524,9 @@ class MemoryPool {
     // Fast query clock register 'tic' to pseudo-randomize
     // the guess for which block within a superblock should
     // be claimed.  If not available then a search occurs.
-
+#if defined(KOKKOS_ENABLE_SYCL) && !defined(KOKKOS_ARCH_INTEL_GEN)
+    const uint32_t block_id_hint = alloc_size;
+#else
     const uint32_t block_id_hint =
         (uint32_t)(Kokkos::Impl::clock_tic()
 #if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_CUDA)
@@ -533,6 +535,7 @@ class MemoryPool {
                    + (threadIdx.x + blockDim.x * threadIdx.y)
 #endif
         );
+#endif
 
     // expected state of superblock for allocation
     uint32_t sb_state = block_state;

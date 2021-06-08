@@ -48,7 +48,9 @@ This is the list of packages that may require additional steps.
    * :ref:`USER-AWPMD <user-awpmd>`
    * :ref:`USER-COLVARS <user-colvars>`
    * :ref:`USER-H5MD <user-h5md>`
+   * :ref:`USER-HDNNP <user-hdnnp>`
    * :ref:`USER-INTEL <user-intel>`
+   * :ref:`USER-MDI <user-mdi>`
    * :ref:`USER-MESONT <user-mesont>`
    * :ref:`USER-MOLFILE <user-molfile>`
    * :ref:`USER-NETCDF <user-netcdf>`
@@ -455,6 +457,9 @@ They must be specified in uppercase.
    *  - ZEN2
       - HOST
       - AMD Zen2 class CPU (AVX 2)
+   *  - ZEN3
+      - HOST
+      - AMD Zen3 class CPU (AVX 2)
    *  - ARMV80
       - HOST
       - ARMv8.0 Compatible CPU
@@ -467,6 +472,9 @@ They must be specified in uppercase.
    *  - ARMV8_THUNDERX2
       - HOST
       - ARMv8 Cavium ThunderX2 CPU
+   *  - A64FX
+      - HOST
+      - ARMv8.2 with SVE Support
    *  - WSM
       - HOST
       - Intel Westmere CPU (SSE 4.2)
@@ -539,6 +547,9 @@ They must be specified in uppercase.
    *  - AMPERE80
       - GPU
       - NVIDIA Ampere generation CC 8.0 GPU
+   *  - AMPERE86
+      - GPU
+      - NVIDIA Ampere generation CC 8.6 GPU
    *  - VEGA900
       - GPU
       - AMD GPU MI25 GFX900
@@ -547,12 +558,12 @@ They must be specified in uppercase.
       - AMD GPU MI50/MI60 GFX906
    *  - VEGA908
       - GPU
-      - AMD GPU GFX908
+      - AMD GPU MI100 GFX908
    *  - INTEL_GEN
       - GPU
       - Intel GPUs Gen9+
 
-This list was last updated for version 3.3 of the Kokkos library.
+This list was last updated for version 3.4.1 of the Kokkos library.
 
 .. tabs::
 
@@ -1463,6 +1474,60 @@ the HDF5 library.
 
 ----------
 
+.. _user-hdnnp:
+
+USER-HDNNP package
+---------------------------------
+
+To build with the USER-HDNNP package it is required to download and build the
+external `n2p2 <https://github.com/CompPhysVienna/n2p2>`__ library ``v2.1.4``
+(or higher). The LAMMPS build process offers an automatic download and
+compilation of *n2p2* or allows you to choose the installation directory of
+*n2p2* manually. Please see the boxes below for the CMake and traditional build
+system for detailed information.
+
+In case of a manual installation of *n2p2* you only need to build the *n2p2* core
+library ``libnnp`` and interface library ``libnnpif``. When using GCC it should
+suffice to execute ``make libnnpif`` in the *n2p2* ``src`` directory. For more
+details please see ``lib/hdnnp/README`` and the `n2p2 build documentation
+<https://compphysvienna.github.io/n2p2/topics/build.html>`__.
+
+.. tabs::
+
+   .. tab:: CMake build
+
+      .. code-block:: bash
+
+         -D DOWNLOAD_N2P2=value    # download n2p2 for build, value = no (default) or yes
+         -D N2P2_DIR=path          # n2p2 base directory (only needed if a custom location)
+
+      If ``DOWNLOAD_N2P2`` is set, the *n2p2* library will be downloaded and
+      built inside the CMake build directory.  If the *n2p2* library is already
+      on your system (in a location CMake cannot find it), set the ``N2P2_DIR``
+      to path where *n2p2* is located. If *n2p2* is located directly in
+      ``lib/hdnnp/n2p2`` it will be automatically found by CMake.
+
+   .. tab:: Traditional make
+
+      You can download and build the *n2p2* library manually if you prefer;
+      follow the instructions in ``lib/hdnnp/README``\ . You can also do it in
+      one step from the ``lammps/src`` dir, using a command like these, which
+      simply invoke the ``lib/hdnnp/Install.py`` script with the specified args:
+
+      .. code-block:: bash
+
+         $ make lib-hdnnp             # print help message
+         $ make lib-hdnnp args="-b"   # download and build in lib/hdnnp/n2p2-...
+         $ make lib-hdnnp args="-b -v 2.1.4" # download and build specific version
+         $ make lib-hdnnp args="-p /usr/local/n2p2" # use the existing n2p2 installation in /usr/local/n2p2
+
+      Note that 3 symbolic (soft) links, ``includelink``, ``liblink`` and
+      ``Makefile.lammps``, will be created in ``lib/hdnnp`` to point to
+      ``n2p2/include``, ``n2p2/lib`` and ``n2p2/lib/Makefile.lammps-extra``,
+      respectively. When LAMMPS is built in ``src`` it will use these links.
+
+----------
+
 .. _user-intel:
 
 USER-INTEL package
@@ -1530,6 +1595,35 @@ Best performance is achieved with Intel hardware, Intel compilers, as
 well as the Intel TBB and MKL libraries. However, the code also
 compiles, links, and runs with other compilers / hardware and without
 TBB and MKL.
+
+----------
+
+.. _user-mdi:
+
+USER-MDI package
+-----------------------------
+
+.. tabs::
+
+   .. tab:: CMake build
+
+      .. code-block:: bash
+
+         -D DOWNLOAD_MDI=value    # download MDI Library for build, value = no (default) or yes
+
+   .. tab:: Traditional make
+
+      Before building LAMMPS, you must build the MDI Library in
+      ``lib/mdi``\ .  You can do this by executing a command like one
+      of the following from the ``lib/mdi`` directory:
+
+      .. code-block:: bash
+
+         $ python Install.py -m gcc       # build using gcc compiler
+         $ python Install.py -m icc       # build using icc compiler
+
+      The build should produce two files: ``lib/mdi/includelink/mdi.h``
+      and ``lib/mdi/liblink/libmdi.so``\ .
 
 ----------
 

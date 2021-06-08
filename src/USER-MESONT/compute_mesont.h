@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -14,9 +14,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(mesont,ComputeMesoNT)
-
+// clang-format off
+ComputeStyle(mesont,ComputeMesoNT);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_MESONT_ATOM_H
@@ -41,11 +41,11 @@ class ComputeMesoNT : public Compute {
   int nmax;
   double *energy;
 
-  enum ComputeType {ES, EB, ET};
+  enum ComputeType { ES, EB, ET };
   ComputeType compute_type;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -132,7 +133,7 @@ void PairLJExpandGPU::compute(int eflag, int vflag)
 void PairLJExpandGPU::init_style()
 {
   if (force->newton_pair)
-    error->all(FLERR,"Cannot use newton pair with lj/expand/gpu pair style");
+    error->all(FLERR,"Pair style lj/expand/gpu requires newton pair off");
 
   // Repeat cutsq calculation because done after call to init_style
   double maxcut = -1.0;

@@ -1,3 +1,4 @@
+// clang-format off
 #ifndef LMP_INTEL_AIREBO_SCALAR
 # ifdef __INTEL_COMPILER
 #  if defined(__MIC__) || defined(__AVX512F__)

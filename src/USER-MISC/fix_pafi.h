@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(pafi,FixPAFI)
-
+// clang-format off
+FixStyle(pafi,FixPAFI);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_PAFI_H
@@ -48,26 +48,26 @@ class FixPAFI : public Fix {
   double memory_usage();
 
  protected:
-  int varflag,icompute;
+  int varflag, icompute;
   char *computename;
   class Compute *PathCompute;
-  double proj[6], proj_all[6]; // f,v,h, psi
-  double results[5], results_all[5]; // f.n, (f.n)**2, psi, dx.n
-  double c_v[10],c_v_all[10];
-  double temperature,gamma,sqrtD,t_period,local_norm,mass_f;
-  int force_flag,od_flag,com_flag;
-  int nlevels_respa,ilevel_respa;
+  double proj[6], proj_all[6];          // f,v,h, psi
+  double results[5], results_all[5];    // f.n, (f.n)**2, psi, dx.n
+  double c_v[10], c_v_all[10];
+  double temperature, gamma, sqrtD, t_period, local_norm, mass_f;
+  int force_flag, od_flag, com_flag;
+  int nlevels_respa, ilevel_respa;
   int maxatom;
   class RanMars *random;
   int seed;
   double **h;
   // nve
-  double dtv,dtf;
+  double dtv, dtf;
   double *step_respa;
   int mass_require;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

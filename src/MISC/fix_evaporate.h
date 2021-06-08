@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(evaporate,FixEvaporate)
-
+// clang-format off
+FixStyle(evaporate,FixEvaporate);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_EVAPORATE_H
@@ -35,18 +35,18 @@ class FixEvaporate : public Fix {
   double memory_usage();
 
  private:
-  int nevery,nflux,iregion;
+  int nevery, nflux, iregion;
   int molflag;
   int ndeleted;
   char *idregion;
 
   int nmax;
-  int *list,*mark;
+  int *list, *mark;
 
   class RanPark *random;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

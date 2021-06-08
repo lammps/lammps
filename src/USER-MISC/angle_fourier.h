@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ANGLE_CLASS
-
-AngleStyle(fourier,AngleFourier)
-
+// clang-format off
+AngleStyle(fourier,AngleFourier);
+// clang-format on
 #else
 
 #ifndef ANGLE_FOURIER_H
@@ -37,12 +37,12 @@ class AngleFourier : public Angle {
   virtual double single(int, int, int, int);
 
  protected:
-  double *k,*C0,*C1,*C2;
+  double *k, *C0, *C1, *C2;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

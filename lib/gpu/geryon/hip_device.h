@@ -8,10 +8,6 @@
 #ifndef HIP_DEVICE
 #define HIP_DEVICE
 
-// workaround after GPU package Feb2021 update
-// todo: make new neighbor code work with HIP
-#define LAL_USE_OLD_NEIGHBOR
-
 #include <hip/hip_runtime.h>
 #include <unordered_map>
 #include <string>

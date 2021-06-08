@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -778,6 +778,7 @@ TEST(PairStyle, omp)
 TEST(PairStyle, gpu)
 {
     if (!LAMMPS::is_installed_pkg("GPU")) GTEST_SKIP();
+    if (!Info::has_gpu_device()) GTEST_SKIP();
     if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
 
     const char *args_neigh[] = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite", "-sf", "gpu"};

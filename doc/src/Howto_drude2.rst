@@ -9,6 +9,8 @@ USER-DRUDE package activated. Then, the data file and input scripts
 have to be modified to include the Drude dipoles and how to handle
 them.
 
+Example input scripts available: examples/USER/drude
+
 ----------
 
 **Overview of Drude induced dipoles**

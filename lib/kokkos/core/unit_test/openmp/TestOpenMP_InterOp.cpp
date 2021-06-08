@@ -43,7 +43,7 @@
 */
 
 #include <Kokkos_Core.hpp>
-#include <openmp/TestOpenMP_Category.hpp>
+#include <TestOpenMP_Category.hpp>
 #include <omp.h>
 
 namespace Test {

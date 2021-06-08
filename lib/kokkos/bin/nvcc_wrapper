@@ -67,6 +67,11 @@ shared_versioned_libraries=""
 
 # Does the User set the architecture
 arch_set=0
+arch_flag=""
+
+# Does the user set RDC?
+rdc_set=0
+rdc_flag=""
 
 # Does the user overwrite the host compiler
 ccbin_set=0
@@ -190,21 +195,47 @@ do
     host_only_args="$host_only_args $1 $2"
     shift
     ;;
+  # Handle nvcc args controlling whether to generated relocatable device code
+  --relocatable-device-code=*|-rdc=*)
+    if [ "$rdc_set" -eq 0 ]; then
+        rdc_set=1
+        rdc_flag="$1"
+        cuda_args="$cuda_args $rdc_flag"
+    elif [  "$rdc_flag" != "$1" ]; then
+        echo "RDC is being set twice with different flags, which is not handled"
+        echo "$rdc_flag"
+        echo "$1"
+        exit 1
+    fi
+    ;;
+  -rdc)
+    if [ "$rdc_set" -eq 0 ]; then
+        rdc_set=1
+        rdc_flag="$1 $2"
+        cuda_args="$cuda_args $rdc_flag"
+        shift
+    elif [ "$rdc_flag" != "$1 $2" ]; then
+        echo "RDC is being set twice with different flags, which is not handled"
+        echo "$rdc_flag"
+        echo "$1 $2"
+        exit 1
+    fi
+    ;;
   #Handle known nvcc args
-  --dryrun|--verbose|--keep|--keep-dir*|-G|--relocatable-device-code*|-lineinfo|-expt-extended-lambda|-expt-relaxed-constexpr|--resource-usage|-Xptxas*|--fmad*|--Wext-lambda-captures-this|-Wext-lambda-captures-this)
+  --dryrun|--verbose|--keep|--keep-dir*|-G|-lineinfo|-expt-extended-lambda|-expt-relaxed-constexpr|--resource-usage|-Xptxas*|--fmad=*|--use_fast_math|--Wext-lambda-captures-this|-Wext-lambda-captures-this)
     cuda_args="$cuda_args $1"
     ;;
   #Handle more known nvcc args
-  --expt-extended-lambda|--expt-relaxed-constexpr)
+  --expt-extended-lambda|--expt-relaxed-constexpr|--Wno-deprecated-gpu-targets|-Wno-deprecated-gpu-targets)
     cuda_args="$cuda_args $1"
     ;;
   #Handle known nvcc args that have an argument
-  -rdc|-maxrregcount|--default-stream|-Xnvlink|--fmad|-cudart|--cudart|-include)
+  -maxrregcount=*|--maxrregcount=*)
+    cuda_args="$cuda_args $1"
+    ;;
+  -maxrregcount|--default-stream|-Xnvlink|--fmad|-cudart|--cudart|-include)
     cuda_args="$cuda_args $1 $2"
     shift
-    ;;
-  -rdc=*|-maxrregcount*|--maxrregcount*)
-    cuda_args="$cuda_args $1"
     ;;
   #Handle unsupported standard flags
   --std=c++1y|-std=c++1y|--std=gnu++1y|-std=gnu++1y|--std=c++1z|-std=c++1z|--std=gnu++1z|-std=gnu++1z|--std=c++2a|-std=c++2a)
@@ -323,19 +354,35 @@ do
     ;;
 
   #Handle -arch argument (if its not set use a default) this is the version with = sign
-  -arch*|-gencode*)
-    cuda_args="$cuda_args $1"
-    arch_set=1
+  -arch=*|-gencode=*)
+    if [ "$arch_set" -eq 0 ]; then
+        arch_set=1
+        arch_flag="$1"
+        cuda_args="$cuda_args $arch_flag"
+    elif [  "$arch_flag" != "$1" ]; then
+        echo "ARCH is being set twice with different flags, which is not handled"
+        echo "$arch_flag"
+        echo "$1"
+        exit 1
+    fi
+    ;;
+  #Handle -arch argument (if its not set use a default) this is the version without = sign
+  -arch|-gencode)
+    if [ "$arch_set" -eq 0 ]; then
+        arch_set=1
+        arch_flag="$1 $2"
+        cuda_args="$cuda_args $arch_flag"
+        shift
+    elif [ "$arch_flag" != "$1 $2" ]; then
+        echo "ARCH is being set twice with different flags, which is not handled"
+        echo "$arch_flag"
+        echo "$1 $2"
+        exit 1
+    fi
     ;;
   #Handle -code argument (if its not set use a default) this is the version with = sign
   -code*)
     cuda_args="$cuda_args $1"
-    ;;
-  #Handle -arch argument (if its not set use a default) this is the version without = sign
-  -arch|-gencode)
-    cuda_args="$cuda_args $1 $2"
-    arch_set=1
-    shift
     ;;
   #Handle -code argument (if its not set use a default) this is the version without = sign
   -code)

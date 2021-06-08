@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,15 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(python/invoke,FixPythonInvoke)
-FixStyle(python,FixPythonInvoke)
-
+// clang-format off
+FixStyle(python/invoke,FixPythonInvoke);
+FixStyle(python,FixPythonInvoke);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_PYTHON_INVOKE_H
 #define LMP_FIX_PYTHON_INVOKE_H
-
 
 #include "fix.h"
 
@@ -35,12 +34,12 @@ class FixPythonInvoke : public Fix {
   virtual void post_force(int);
 
  private:
-  void * lmpPtr;
-  void * pFunc;
+  void *lmpPtr;
+  void *pFunc;
   int selected_callback;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

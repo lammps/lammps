@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(adapt/fep,FixAdaptFEP)
-
+// clang-format off
+FixStyle(adapt/fep,FixAdaptFEP);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_ADAPT_FEP_H
@@ -26,7 +26,7 @@ namespace LAMMPS_NS {
 
 class FixAdaptFEP : public Fix {
  public:
-  int diamflag;        // 1 if atom diameters will vary, for AtomVecGranular
+  int diamflag;    // 1 if atom diameters will vary, for AtomVecGranular
   int chgflag;
 
   FixAdaptFEP(class LAMMPS *, int, char **);
@@ -37,25 +37,25 @@ class FixAdaptFEP : public Fix {
   void setup_pre_force(int);
   void pre_force(int);
   void post_run();
-  void setup_pre_force_respa(int,int);
-  void pre_force_respa(int,int,int);
+  void setup_pre_force_respa(int, int);
+  void pre_force_respa(int, int, int);
   void set_arrays(int);
 
  private:
-  int nadapt,resetflag,scaleflag,afterflag;
+  int nadapt, resetflag, scaleflag, afterflag;
   int anypair;
   int nlevels_respa;
-  char *id_fix_diam,*id_fix_chg;
-  class FixStore *fix_diam,*fix_chg;
+  char *id_fix_diam, *id_fix_chg;
+  class FixStore *fix_diam, *fix_chg;
 
   struct Adapt {
-    int which,ivar;
+    int which, ivar;
     char *var;
-    char *pstyle,*pparam;
-    int ilo,ihi,jlo,jhi;
+    char *pstyle, *pparam;
+    int ilo, ihi, jlo, jhi;
     int pdim;
-    double *scalar,scalar_orig;
-    double **array,**array_orig;
+    double *scalar, scalar_orig;
+    double **array, **array_orig;
     int aparam;
   };
 
@@ -66,7 +66,7 @@ class FixAdaptFEP : public Fix {
   void restore_settings();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

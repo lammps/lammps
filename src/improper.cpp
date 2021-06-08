@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,13 +13,15 @@
 ------------------------------------------------------------------------- */
 
 #include "improper.h"
+
 #include "atom.h"
-#include "comm.h"
-#include "force.h"
-#include "suffix.h"
 #include "atom_masks.h"
-#include "memory.h"
+#include "comm.h"
 #include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "suffix.h"
+#include "update.h"
 
 using namespace LAMMPS_NS;
 
@@ -382,6 +385,27 @@ void Improper::ev_tally(int i1, int i2, int i3, int i4,
       cvatom[i4][8] += a4[2]*f4[1];
     }
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+
+void Improper::problem(const char *filename, int lineno,
+                       int i1, int i2, int i3, int i4)
+{
+  const auto x = atom->x;
+  auto warn = fmt::format("Improper problem: {} {} {} {} {} {}\n",
+                          comm->me, update->ntimestep, atom->tag[i1],
+                          atom->tag[i2], atom->tag[i3], atom->tag[i4]);
+  warn += fmt::format("WARNING:   1st atom: {} {:.8} {:.8} {:.8}\n",
+                      comm->me,x[i1][0],x[i1][1],x[i1][2]);
+  warn += fmt::format("WARNING:   2nd atom: {} {:.8} {:.8} {:.8}\n",
+                      comm->me,x[i2][0],x[i2][1],x[i2][2]);
+  warn += fmt::format("WARNING:   3rd atom: {} {:.8} {:.8} {:.8}\n",
+                      comm->me,x[i3][0],x[i3][1],x[i3][2]);
+  warn += fmt::format("WARNING:   4th atom: {} {:.8} {:.8} {:.8}",
+                      comm->me,x[i4][0],x[i4][1],x[i4][2]);
+  error->warning(filename, lineno, warn);
 }
 
 /* ---------------------------------------------------------------------- */

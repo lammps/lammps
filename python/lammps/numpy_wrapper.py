@@ -1,6 +1,6 @@
 # ----------------------------------------------------------------------
 #   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-#   http://lammps.sandia.gov, Sandia National Laboratories
+#   https://www.lammps.org/ Sandia National Laboratories
 #   Steve Plimpton, sjplimp@sandia.gov
 #
 #   Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -142,7 +142,7 @@ class numpy_wrapper:
 
   # -------------------------------------------------------------------------
 
-  def extract_compute(self, cid, style, type):
+  def extract_compute(self, cid, cstyle, ctype):
     """Retrieve data from a LAMMPS compute
 
     This is a wrapper around the
@@ -150,50 +150,50 @@ class numpy_wrapper:
     It behaves the same as the original method, but returns NumPy arrays
     instead of ``ctypes`` pointers.
 
-    :param id: compute ID
-    :type id:  string
-    :param style: style of the data retrieve (global, atom, or local), see :ref:`py_style_constants`
-    :type style:  int
-    :param type: type of the returned data (scalar, vector, or array), see :ref:`py_type_constants`
-    :type type:  int
+    :param cid: compute ID
+    :type cid:  string
+    :param cstyle: style of the data retrieve (global, atom, or local), see :ref:`py_style_constants`
+    :type cstyle:  int
+    :param ctype: type of the returned data (scalar, vector, or array), see :ref:`py_type_constants`
+    :type ctype:  int
     :return: requested data either as float, as NumPy array with direct access to C data, or None
     :rtype: float, numpy.array, or NoneType
     """
-    value = self.lmp.extract_compute(cid, style, type)
+    value = self.lmp.extract_compute(cid, cstyle, ctype)
 
-    if style in (LMP_STYLE_GLOBAL, LMP_STYLE_LOCAL):
-      if type == LMP_TYPE_VECTOR:
-        nrows = self.lmp.extract_compute(cid, style, LMP_SIZE_VECTOR)
+    if cstyle in (LMP_STYLE_GLOBAL, LMP_STYLE_LOCAL):
+      if ctype == LMP_TYPE_VECTOR:
+        nrows = self.lmp.extract_compute(cid, cstyle, LMP_SIZE_VECTOR)
         return self.darray(value, nrows)
-      elif type == LMP_TYPE_ARRAY:
-        nrows = self.lmp.extract_compute(cid, style, LMP_SIZE_ROWS)
-        ncols = self.lmp.extract_compute(cid, style, LMP_SIZE_COLS)
+      elif ctype == LMP_TYPE_ARRAY:
+        nrows = self.lmp.extract_compute(cid, cstyle, LMP_SIZE_ROWS)
+        ncols = self.lmp.extract_compute(cid, cstyle, LMP_SIZE_COLS)
         return self.darray(value, nrows, ncols)
-    elif style == LMP_STYLE_ATOM:
-      if type == LMP_TYPE_VECTOR:
+    elif cstyle == LMP_STYLE_ATOM:
+      if ctype == LMP_TYPE_VECTOR:
         nlocal = self.lmp.extract_global("nlocal")
         return self.darray(value, nlocal)
-      elif type == LMP_TYPE_ARRAY:
+      elif ctype == LMP_TYPE_ARRAY:
         nlocal = self.lmp.extract_global("nlocal")
-        ncols = self.lmp.extract_compute(cid, style, LMP_SIZE_COLS)
+        ncols = self.lmp.extract_compute(cid, cstyle, LMP_SIZE_COLS)
         return self.darray(value, nlocal, ncols)
     return value
 
   # -------------------------------------------------------------------------
 
-  def extract_fix(self, fid, style, type, nrow=0, ncol=0):
+  def extract_fix(self, fid, fstyle, ftype, nrow=0, ncol=0):
     """Retrieve data from a LAMMPS fix
 
     This is a wrapper around the :py:meth:`lammps.extract_fix() <lammps.lammps.extract_fix()>` method.
     It behaves the same as the original method, but returns NumPy arrays
     instead of ``ctypes`` pointers.
 
-    :param id: fix ID
-    :type id:  string
-    :param style: style of the data retrieve (global, atom, or local), see :ref:`py_style_constants`
-    :type style:  int
-    :param type: type or size of the returned data (scalar, vector, or array), see :ref:`py_type_constants`
-    :type type:  int
+    :param fid: fix ID
+    :type fid:  string
+    :param fstyle: style of the data retrieve (global, atom, or local), see :ref:`py_style_constants`
+    :type fstyle:  int
+    :param ftype: type or size of the returned data (scalar, vector, or array), see :ref:`py_type_constants`
+    :type ftype:  int
     :param nrow: index of global vector element or row index of global array element
     :type nrow:  int
     :param ncol: column index of global array element
@@ -202,22 +202,22 @@ class numpy_wrapper:
     :rtype: integer or double value, pointer to 1d or 2d double array  or None
 
     """
-    value = self.lmp.extract_fix(fid, style, type, nrow, ncol)
-    if style == LMP_STYLE_ATOM:
-      if type == LMP_TYPE_VECTOR:
+    value = self.lmp.extract_fix(fid, fstyle, ftype, nrow, ncol)
+    if fstyle == LMP_STYLE_ATOM:
+      if ftype == LMP_TYPE_VECTOR:
         nlocal = self.lmp.extract_global("nlocal")
         return self.darray(value, nlocal)
-      elif type == LMP_TYPE_ARRAY:
+      elif ftype == LMP_TYPE_ARRAY:
         nlocal = self.lmp.extract_global("nlocal")
-        ncols = self.lmp.extract_fix(fid, style, LMP_SIZE_COLS, 0, 0)
+        ncols = self.lmp.extract_fix(fid, fstyle, LMP_SIZE_COLS, 0, 0)
         return self.darray(value, nlocal, ncols)
-    elif style == LMP_STYLE_LOCAL:
-      if type == LMP_TYPE_VECTOR:
-        nrows = self.lmp.extract_fix(fid, style, LMP_SIZE_ROWS, 0, 0)
+    elif fstyle == LMP_STYLE_LOCAL:
+      if ftype == LMP_TYPE_VECTOR:
+        nrows = self.lmp.extract_fix(fid, fstyle, LMP_SIZE_ROWS, 0, 0)
         return self.darray(value, nrows)
-      elif type == LMP_TYPE_ARRAY:
-        nrows = self.lmp.extract_fix(fid, style, LMP_SIZE_ROWS, 0, 0)
-        ncols = self.lmp.extract_fix(fid, style, LMP_SIZE_COLS, 0, 0)
+      elif ftype == LMP_TYPE_ARRAY:
+        nrows = self.lmp.extract_fix(fid, fstyle, LMP_SIZE_ROWS, 0, 0)
+        ncols = self.lmp.extract_fix(fid, fstyle, LMP_SIZE_COLS, 0, 0)
         return self.darray(value, nrows, ncols)
     return value
 
@@ -293,7 +293,11 @@ class numpy_wrapper:
       ptr = cast(raw_ptr[0], POINTER(c_int_type * nelem * dim))
 
     a = np.frombuffer(ptr.contents, dtype=np_int_type)
-    a.shape = (nelem, dim)
+
+    if dim > 1:
+      a.shape = (nelem, dim)
+    else:
+      a.shape = (nelem)
     return a
 
   # -------------------------------------------------------------------------
@@ -306,7 +310,11 @@ class numpy_wrapper:
       ptr = cast(raw_ptr[0], POINTER(c_double * nelem * dim))
 
     a = np.frombuffer(ptr.contents)
-    a.shape = (nelem, dim)
+
+    if dim > 1:
+      a.shape = (nelem, dim)
+    else:
+      a.shape = (nelem)
     return a
 
 # -------------------------------------------------------------------------

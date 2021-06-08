@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(tersoff/mod/gpu,PairTersoffMODGPU)
-
+// clang-format off
+PairStyle(tersoff/mod/gpu,PairTersoffMODGPU);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_TERSOFF_MOD_GPU_H
@@ -32,7 +32,7 @@ class PairTersoffMODGPU : public PairTersoffMOD {
   double init_one(int, int);
   void init_style();
 
- enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
+  enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
 
  protected:
   void allocate();
@@ -42,7 +42,7 @@ class PairTersoffMODGPU : public PairTersoffMOD {
   int *gpulist;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

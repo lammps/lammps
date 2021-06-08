@@ -35,6 +35,16 @@ _texture( q_tex,int2);
 #endif
 
 #else
+#ifdef LAMMPS_SMALLBIG
+#define tagint int
+#endif
+#ifdef LAMMPS_BIGBIG
+#include "inttypes.h"
+#define tagint int64_t
+#endif
+#ifdef LAMMPS_SMALLSMALL
+#define tagint int
+#endif
 #define pos_tex x_
 #define q_tex q_
 #endif

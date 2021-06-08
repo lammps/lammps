@@ -48,12 +48,10 @@
 
 #if !defined(KOKKOS_ENABLE_CUDA) || defined(__CUDACC__)
 
-#include <default/TestDefaultDeviceType_Category.hpp>
+#include <TestDefaultDeviceType_Category.hpp>
 #include <TestUtilities.hpp>
 
 namespace Test {
-
-TEST(defaultdevicetype, test_utilities) { test_utilities(); }
 
 TEST(defaultdevicetype, malloc) {
   int* data = (int*)Kokkos::kokkos_malloc(100 * sizeof(int));

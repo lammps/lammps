@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(property/atom,ComputePropertyAtom)
-
+// clang-format off
+ComputeStyle(property/atom,ComputePropertyAtom);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_PROPERTY_ATOM_H
@@ -43,7 +43,7 @@ class ComputePropertyAtom : public Compute {
   class AtomVecBody *avec_body;
 
   typedef void (ComputePropertyAtom::*FnPtrPack)(int);
-  FnPtrPack *pack_choice;              // ptrs to pack functions
+  FnPtrPack *pack_choice;    // ptrs to pack functions
 
   void pack_id(int);
   void pack_molecule(int);
@@ -135,7 +135,7 @@ class ComputePropertyAtom : public Compute {
   void pack_property_atom(int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -228,9 +228,12 @@ int FixMDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
   // respond to any driver command
 
   if (strcmp(command, ">NATOMS") == 0) {
-    int mdi_natoms = 0;
-    ierr = MDI_Recv((char *) &mdi_natoms, 1, MDI_INT, mdicomm);
+    int64_t mdi_natoms = 0;
+    ierr = MDI_Recv((char *) &mdi_natoms, 1, MDI_INT64_T, mdicomm);
     if (ierr != 0) error->all(FLERR, "MDI: Unable to receive number of atoms from driver");
+    error->all(FLERR, "MDI: '>NATOMS' driver command not (yet) supported");
+    // FIXME: to import the number of atoms, more steps than below are needed for LAMMPS.
+    //        also a check for overflow is needed in case natoms is 32-bit
     atom->natoms = mdi_natoms;
     MPI_Bcast(&atom->natoms, 1, MPI_LMP_BIGINT, 0, world);
 

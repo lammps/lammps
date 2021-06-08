@@ -40,6 +40,7 @@ MLIAPModelNN::MLIAPModelNN(LAMMPS* lmp, char* coefffilename) :
   activation = nullptr;
   scale = nullptr;
   if (coefffilename) read_coeffs(coefffilename);
+  nonlinearflag = 1;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -64,7 +64,7 @@ the interface, are computed using the equation:
 Fix *polarize/bem/gmres* employs the Generalized Minimum Residual (GMRES)
 as described in :ref:`(Barros) <Barros>` to solve :math:`\sigma_b`.
 
-Fix *polarize/bem/icc* employs the successive overrelaxation algorithm
+Fix *polarize/bem/icc* employs the successive over-relaxation algorithm
 as described in :ref:`(Tyagi) <Tyagi>` to solve :math:`\sigma_b`.
 
 Fix *polarize/functional* ...

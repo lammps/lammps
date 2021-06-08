@@ -4,7 +4,7 @@ extraction:
       command:
       - "mkdir build"
       - "cd build"
-      - "cmake -G Ninja -C ../cmake/presets/minimal.cmake ../cmake"
+      - "cmake -G Ninja -C ../cmake/presets/most.cmake ../cmake"
     index:
       build_command:
       - "cd build"

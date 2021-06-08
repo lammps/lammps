@@ -123,7 +123,7 @@ try:
   sys.argv = ["setup.py","install"]    # as if had run "python setup.py install"
   setup_kwargs['data_files']=[(os.path.join(get_python_lib(), 'lammps'), [args.lib])]
   setup(**setup_kwargs)
-except:
+except:                                # lgtm [py/catch-base-exception]
   tryuser=True
   print ("Installation into global site-packages folder failed.\nTrying user folder %s now." % site.USER_SITE)
 
@@ -132,5 +132,5 @@ if tryuser:
     sys.argv = ["setup.py","install","--user"]    # as if had run "python setup.py install --user"
     setup_kwargs['data_files']=[(os.path.join(site.USER_SITE, 'lammps'), [args.lib])]
     setup(**setup_kwargs)
-  except:
+  except:                              # lgtm [py/catch-base-exception]
     print("Installation into user site package folder failed.")

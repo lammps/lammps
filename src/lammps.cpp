@@ -55,6 +55,10 @@
 #include <cstring>
 #include <map>
 
+#if !defined(_WIN32)
+#include <unistd.h>             // for isatty()
+#endif
+
 #include "lmpinstalledpkgs.h"
 #include "lmpgitversion.h"
 
@@ -1114,12 +1118,24 @@ void _noopt LAMMPS::help()
   FILE *fp = screen;
   const char *pager = nullptr;
 
-  // if output is "stdout", use a pipe to a pager for paged output.
+  // if output is a console, use a pipe to a pager for paged output.
   // this will avoid the most important help text to rush past the
   // user. scrollback buffers are often not large enough. this is most
   // beneficial to windows users, who are not used to command line.
 
-  if (fp == stdout) {
+#if defined(_WIN32)
+  int use_pager = _isatty(fileno(fp));
+#else
+  int use_pager = isatty(fileno(fp));
+#endif
+
+  // cannot use this with OpenMPI since its console is non-functional
+
+#if defined(OPEN_MPI)
+  use_pager = 0;
+#endif
+
+  if (use_pager) {
     pager = getenv("PAGER");
     if (pager == nullptr) pager = "more";
 #if defined(_WIN32)
@@ -1130,7 +1146,7 @@ void _noopt LAMMPS::help()
 
     // reset to original state, if pipe command failed
     if (fp == nullptr) {
-      fp = stdout;
+      fp = screen;
       pager = nullptr;
     }
   }

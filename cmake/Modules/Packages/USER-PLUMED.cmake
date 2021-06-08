@@ -72,6 +72,7 @@ if(DOWNLOAD_PLUMED)
                                              ${PLUMED_CONFIG_OMP}
                                              CXX=${PLUMED_CONFIG_CXX}
                                              CC=${PLUMED_CONFIG_CC}
+    PATCH_COMMAND sed -i "/^#include <algorithm>/a #include <limits>" <SOURCE_DIR>/src/lepton/Operation.h
     BUILD_BYPRODUCTS ${PLUMED_BUILD_BYPRODUCTS}
   )
   ExternalProject_get_property(plumed_build INSTALL_DIR)

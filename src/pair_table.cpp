@@ -215,7 +215,7 @@ void PairTable::settings(int narg, char **arg)
   else if (strcmp(arg[0],"linear") == 0) tabstyle = LINEAR;
   else if (strcmp(arg[0],"spline") == 0) tabstyle = SPLINE;
   else if (strcmp(arg[0],"bitmap") == 0) tabstyle = BITMAP;
-  else error->all(FLERR,"Unknown table style in pair_style command");
+  else error->all(FLERR,"Unknown table style in pair_style command: {}", arg[0]);
 
   tablength = utils::inumeric(FLERR,arg[1],false,lmp);
   if (tablength < 2) error->all(FLERR,"Illegal number of pair table entries");

@@ -458,7 +458,7 @@ void Balance::options(int iarg, int narg, char **arg)
         nopt = imb->options(narg-iarg,arg+iarg+2);
         imbalances[nimbalance++] = imb;
       } else {
-        error->all(FLERR,"Unknown (fix) balance weight method");
+        error->all(FLERR,"Unknown (fix) balance weight method: {}", arg[iarg+1]);
       }
       iarg += 2+nopt;
 

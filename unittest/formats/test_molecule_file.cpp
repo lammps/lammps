@@ -209,6 +209,7 @@ TEST_F(MoleculeFileTest, twofiles)
 
 TEST_F(MoleculeFileTest, bonds)
 {
+    if (!LAMMPS::is_installed_pkg("MOLECULE")) GTEST_SKIP();
     BEGIN_CAPTURE_OUTPUT();
     command("atom_style bond");
     command("region box block 0 1 0 1 0 1");

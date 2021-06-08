@@ -908,7 +908,7 @@ void Thermo::parse_fields(char *str)
       if ((argi.get_type() == ArgInfo::UNKNOWN)
           || (argi.get_type() == ArgInfo::NONE)
           || (argi.get_dim() > 2))
-        error->all(FLERR,"Unknown keyword in thermo_style custom command");
+        error->all(FLERR,"Unknown keyword '{}' in thermo_style custom command",word);
 
       // process zero or one or two trailing brackets
       // argindex1,argindex2 = int inside each bracket pair, 0 if no bracket

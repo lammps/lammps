@@ -31,7 +31,7 @@ if not tests_dir:
 try:
     src_dir = os.path.abspath(os.path.expanduser(src_dir))
     tests_dir = os.path.abspath(os.path.expanduser(tests_dir))
-except:
+except:                                 # lgtm [py/catch-base-exception]
     parser.print_help()
     sys.exit(1)
 

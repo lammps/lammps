@@ -494,7 +494,7 @@ void PairHybrid::coeff(int narg, char **arg)
   int none = 0;
   if (m == nstyles) {
     if (strcmp(arg[2],"none") == 0) none = 1;
-    else error->all(FLERR,"Pair coeff for hybrid has invalid style");
+    else error->all(FLERR,"Pair coeff for hybrid has invalid style: {}",arg[2]);
   }
 
   // move 1st/2nd args to 2nd/3rd args
@@ -896,7 +896,7 @@ void PairHybrid::modify_params(int narg, char **arg)
     int m;
     for (m = 0; m < nstyles; m++)
       if (strcmp(arg[1],keywords[m]) == 0) break;
-    if (m == nstyles) error->all(FLERR,"Unknown pair_modify hybrid sub-style");
+    if (m == nstyles) error->all(FLERR,"Unknown pair_modify hybrid sub-style: {}",arg[1]);
     int iarg = 2;
 
     if (multiple[m]) {
@@ -905,7 +905,7 @@ void PairHybrid::modify_params(int narg, char **arg)
       for (m = 0; m < nstyles; m++)
         if (strcmp(arg[1],keywords[m]) == 0 && multiflag == multiple[m]) break;
       if (m == nstyles)
-        error->all(FLERR,"Unknown pair_modify hybrid sub-style");
+        error->all(FLERR,"Unknown pair_modify hybrid sub-style: {}",arg[1]);
       iarg = 3;
     }
 

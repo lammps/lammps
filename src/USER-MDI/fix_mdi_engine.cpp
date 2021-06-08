@@ -43,7 +43,7 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixMDIEngine::FixMDIEngine(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), id_pe(nullptr), pe(nullptr), id_ke(nullptr), ke(nullptr)
+    Fix(lmp, narg, arg), id_pe(nullptr), id_ke(nullptr), pe(nullptr), ke(nullptr)
 {
   if (narg != 3) error->all(FLERR, "Illegal fix mdi command");
 
@@ -167,7 +167,7 @@ void FixMDIEngine::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixMDIEngine::min_setup(int vflag)
+void FixMDIEngine::min_setup(int /* vflag */)
 {
   engine_mode("@FORCES");
 }
@@ -181,21 +181,21 @@ void FixMDIEngine::post_integrate()
 
 /* ---------------------------------------------------------------------- */
 
-void FixMDIEngine::min_pre_force(int vflag)
+void FixMDIEngine::min_pre_force(int /* vflag */)
 {
   engine_mode("@COORDS");
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixMDIEngine::min_post_force(int vflag)
+void FixMDIEngine::min_post_force(int /* vflag */)
 {
   engine_mode("@FORCES");
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixMDIEngine::post_force(int vflag)
+void FixMDIEngine::post_force(int /* vflag */)
 {
   if (most_recent_init == 1)
     engine_mode("@FORCES");
@@ -228,9 +228,14 @@ int FixMDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
   // respond to any driver command
 
   if (strcmp(command, ">NATOMS") == 0) {
-    ierr = MDI_Recv((char *) &atom->natoms, 1, MDI_INT, mdicomm);
+    int64_t mdi_natoms = 0;
+    ierr = MDI_Recv((char *) &mdi_natoms, 1, MDI_INT64_T, mdicomm);
     if (ierr != 0) error->all(FLERR, "MDI: Unable to receive number of atoms from driver");
-    MPI_Bcast(&atom->natoms, 1, MPI_INT, 0, world);
+    error->all(FLERR, "MDI: '>NATOMS' driver command not (yet) supported");
+    // FIXME: to import the number of atoms, more steps than below are needed for LAMMPS.
+    //        also a check for overflow is needed in case natoms is 32-bit
+    atom->natoms = mdi_natoms;
+    MPI_Bcast(&atom->natoms, 1, MPI_LMP_BIGINT, 0, world);
 
   } else if (strcmp(command, "<NATOMS") == 0) {
     int64_t mdi_natoms = atom->natoms;
@@ -444,7 +449,6 @@ void FixMDIEngine::receive_coordinates(Error *error)
   // pick local atoms from the buffer
 
   double **x = atom->x;
-  int *mask = atom->mask;
   int nlocal = atom->nlocal;
   for (int i = 0; i < nlocal; i++) {
     x[i][0] = buffer[3 * (atom->tag[i] - 1) + 0] * posconv;
@@ -500,7 +504,6 @@ void FixMDIEngine::send_coordinates(Error *error)
   // copy local atoms into buffer at correct locations
 
   double **x = atom->x;
-  int *mask = atom->mask;
   int nlocal = atom->nlocal;
   for (int i = 0; i < nlocal; i++) {
     coords[3 * (atom->tag[i] - 1) + 0] = x[i][0] / posconv;
@@ -534,7 +537,6 @@ void FixMDIEngine::send_charges(Error *error)
   // pick local atoms from the buffer
 
   double *charge = atom->q;
-  int *mask = atom->mask;
   int nlocal = atom->nlocal;
   for (int i = 0; i < nlocal; i++) { charges[atom->tag[i] - 1] = charge[i]; }
 
@@ -723,7 +725,6 @@ void FixMDIEngine::send_forces(Error *error)
   double *forces_reduced;
   double *x_buf;
 
-  int *mask = atom->mask;
   int nlocal = atom->nlocal;
   int64_t ncoords = 3 * atom->natoms;
 
@@ -818,7 +819,6 @@ void FixMDIEngine::receive_forces(Error *error, int mode)
 
   // pick local atoms from the buffer
   double **f = atom->f;
-  int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
   if (mode == 0) {    // Replace

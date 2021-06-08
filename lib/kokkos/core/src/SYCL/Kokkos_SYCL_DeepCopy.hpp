@@ -131,6 +131,100 @@ struct DeepCopy<Kokkos::Experimental::SYCLDeviceUSMSpace, Kokkos::HostSpace,
   }
 };
 
+template <>
+struct DeepCopy<Experimental::SYCLSharedUSMSpace,
+                Experimental::SYCLSharedUSMSpace, Kokkos::Experimental::SYCL>
+    : public DeepCopy<Experimental::SYCLDeviceUSMSpace,
+                      Experimental::SYCLDeviceUSMSpace,
+                      Kokkos::Experimental::SYCL> {
+  using DeepCopy<Experimental::SYCLDeviceUSMSpace,
+                 Experimental::SYCLDeviceUSMSpace,
+                 Kokkos::Experimental::SYCL>::DeepCopy;
+};
+
+template <>
+struct DeepCopy<Experimental::SYCLSharedUSMSpace, HostSpace,
+                Kokkos::Experimental::SYCL>
+    : public DeepCopy<Experimental::SYCLDeviceUSMSpace, HostSpace,
+                      Kokkos::Experimental::SYCL> {
+  using DeepCopy<Experimental::SYCLDeviceUSMSpace, HostSpace,
+                 Kokkos::Experimental::SYCL>::DeepCopy;
+};
+
+template <>
+struct DeepCopy<HostSpace, Experimental::SYCLSharedUSMSpace,
+                Kokkos::Experimental::SYCL>
+    : public DeepCopy<HostSpace, Experimental::SYCLDeviceUSMSpace,
+                      Kokkos::Experimental::SYCL> {
+  using DeepCopy<HostSpace, Experimental::SYCLDeviceUSMSpace,
+                 Kokkos::Experimental::SYCL>::DeepCopy;
+};
+
+template <>
+struct DeepCopy<Experimental::SYCLSharedUSMSpace,
+                Experimental::SYCLDeviceUSMSpace, Kokkos::Experimental::SYCL>
+    : public DeepCopy<Experimental::SYCLDeviceUSMSpace,
+                      Experimental::SYCLDeviceUSMSpace,
+                      Kokkos::Experimental::SYCL> {
+  using DeepCopy<Experimental::SYCLDeviceUSMSpace,
+                 Experimental::SYCLDeviceUSMSpace,
+                 Kokkos::Experimental::SYCL>::DeepCopy;
+};
+
+template <>
+struct DeepCopy<Experimental::SYCLDeviceUSMSpace,
+                Experimental::SYCLSharedUSMSpace, Kokkos::Experimental::SYCL>
+    : public DeepCopy<Experimental::SYCLDeviceUSMSpace,
+                      Experimental::SYCLDeviceUSMSpace,
+                      Kokkos::Experimental::SYCL> {
+  using DeepCopy<Experimental::SYCLDeviceUSMSpace,
+                 Experimental::SYCLDeviceUSMSpace,
+                 Kokkos::Experimental::SYCL>::DeepCopy;
+};
+
+template <class ExecutionSpace>
+struct DeepCopy<Experimental::SYCLDeviceUSMSpace,
+                Experimental::SYCLSharedUSMSpace, ExecutionSpace>
+    : public DeepCopy<Experimental::SYCLDeviceUSMSpace,
+                      Experimental::SYCLDeviceUSMSpace, ExecutionSpace> {
+  using DeepCopy<Experimental::SYCLDeviceUSMSpace,
+                 Experimental::SYCLDeviceUSMSpace, ExecutionSpace>::DeepCopy;
+};
+
+template <class ExecutionSpace>
+struct DeepCopy<Experimental::SYCLSharedUSMSpace,
+                Experimental::SYCLDeviceUSMSpace, ExecutionSpace>
+    : public DeepCopy<Experimental::SYCLDeviceUSMSpace,
+                      Experimental::SYCLDeviceUSMSpace, ExecutionSpace> {
+  using DeepCopy<Experimental::SYCLDeviceUSMSpace,
+                 Experimental::SYCLDeviceUSMSpace, ExecutionSpace>::DeepCopy;
+};
+
+template <class ExecutionSpace>
+struct DeepCopy<Experimental::SYCLSharedUSMSpace,
+                Experimental::SYCLSharedUSMSpace, ExecutionSpace>
+    : public DeepCopy<Experimental::SYCLDeviceUSMSpace,
+                      Experimental::SYCLDeviceUSMSpace, ExecutionSpace> {
+  using DeepCopy<Experimental::SYCLDeviceUSMSpace,
+                 Experimental::SYCLDeviceUSMSpace, ExecutionSpace>::DeepCopy;
+};
+
+template <class ExecutionSpace>
+struct DeepCopy<Experimental::SYCLSharedUSMSpace, HostSpace, ExecutionSpace>
+    : public DeepCopy<Experimental::SYCLDeviceUSMSpace, HostSpace,
+                      ExecutionSpace> {
+  using DeepCopy<Experimental::SYCLDeviceUSMSpace, HostSpace,
+                 ExecutionSpace>::DeepCopy;
+};
+
+template <class ExecutionSpace>
+struct DeepCopy<HostSpace, Experimental::SYCLSharedUSMSpace, ExecutionSpace>
+    : public DeepCopy<HostSpace, Experimental::SYCLDeviceUSMSpace,
+                      ExecutionSpace> {
+  using DeepCopy<HostSpace, Experimental::SYCLDeviceUSMSpace,
+                 ExecutionSpace>::DeepCopy;
+};
+
 }  // namespace Impl
 }  // namespace Kokkos
 #endif

@@ -199,7 +199,7 @@ class CrsRowMapFromCounts {
  public:
   KOKKOS_INLINE_FUNCTION
   void operator()(index_type i, value_type& update, bool final_pass) const {
-    if (i < m_in.size()) {
+    if (i < static_cast<index_type>(m_in.size())) {
       update += m_in(i);
       if (final_pass) m_out(i + 1) = update;
     } else if (final_pass) {

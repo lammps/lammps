@@ -150,6 +150,8 @@ accelerated styles exist.
 * :doc:`coul/wolf <pair_coul>` - Coulomb via Wolf potential
 * :doc:`coul/wolf/cs <pair_cs>` - Coulomb via Wolf potential with core/shell adjustments
 * :doc:`dpd <pair_dpd>` - dissipative particle dynamics (DPD)
+* :doc:`dpd/ext <pair_dpd_ext>` - generalized force field for DPD
+* :doc:`dpd/ext/tstat <pair_dpd_ext>` - pair-wise DPD thermostatting  with generalized force field
 * :doc:`dpd/fdt <pair_dpd_fdt>` - DPD for constant temperature and pressure
 * :doc:`dpd/fdt/energy <pair_dpd_fdt>` - DPD for constant energy and enthalpy
 * :doc:`dpd/tstat <pair_dpd>` - pair-wise DPD thermostatting
@@ -180,6 +182,7 @@ accelerated styles exist.
 * :doc:`gw/zbl <pair_gw>` - Gao-Weber potential with a repulsive ZBL core
 * :doc:`hbond/dreiding/lj <pair_hbond_dreiding>` - DREIDING hydrogen bonding LJ potential
 * :doc:`hbond/dreiding/morse <pair_hbond_dreiding>` - DREIDING hydrogen bonding Morse potential
+* :doc:`hdnnp <pair_hdnnp>` - High-dimensional neural network potential
 * :doc:`ilp/graphene/hbn <pair_ilp_graphene_hbn>` - registry-dependent interlayer potential (ILP)
 * :doc:`kim <pair_kim>` - interface to potentials provided by KIM project
 * :doc:`kolmogorov/crespi/full <pair_kolmogorov_crespi_full>` - Kolmogorov-Crespi (KC) potential with no simplifications
@@ -288,6 +291,7 @@ accelerated styles exist.
 * :doc:`polymorphic <pair_polymorphic>` - polymorphic 3-body potential
 * :doc:`python <pair_python>` -
 * :doc:`quip <pair_quip>` -
+* :doc:`rann <pair_rann>` -
 * :doc:`reax/c <pair_reaxc>` - ReaxFF potential in C
 * :doc:`rebo <pair_airebo>` - second generation REBO potential of Brenner
 * :doc:`resquared <pair_resquared>` - Everaers RE-Squared ellipsoidal potential

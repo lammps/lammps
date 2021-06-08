@@ -223,6 +223,9 @@ The structure of the data file is important, though many settings and
 sections are optional or can come in any order.  See the examples
 directory for sample data files for different problems.
 
+The file will be read line by line, but there is a limit of 254
+characters per line and characters beyond that limit will be ignored.
+
 A data file has a header and a body.  The header appears first.  The
 first line of the header is always skipped; it typically contains a
 description of the file.  Then lines are read one at a time.  Lines

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(stress/tally,ComputeStressTally)
-
+// clang-format off
+ComputeStyle(stress/tally,ComputeStressTally);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_STRESS_TALLY_H
@@ -40,18 +40,16 @@ class ComputeStressTally : public Compute {
   double memory_usage();
 
   void pair_setup_callback(int, int);
-  void pair_tally_callback(int, int, int, int,
-                           double, double, double,
-                           double, double, double);
+  void pair_tally_callback(int, int, int, int, double, double, double, double, double, double);
 
  private:
   bigint did_setup;
-  int nmax,igroup2,groupbit2;
+  int nmax, igroup2, groupbit2;
   double **stress;
   double *virial;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

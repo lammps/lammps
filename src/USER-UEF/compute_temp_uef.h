@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -14,9 +14,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(temp/uef,ComputeTempUef)
-
+// clang-format off
+ComputeStyle(temp/uef,ComputeTempUef);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_TEMP_UEF_H
@@ -35,15 +35,13 @@ class ComputeTempUef : public ComputeTemp {
   void yes_rot();
   void no_rot();
 
-
  protected:
   bool rot_flag;
-  void virial_rot(double*,const double[3][3]);
+  void virial_rot(double *, const double[3][3]);
   int ifix_uef;
 };
 
-
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(lubricateU,PairLubricateU)
-
+// clang-format off
+PairStyle(lubricateU,PairLubricateU);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_LUBRICATEU_H
@@ -41,7 +41,7 @@ class PairLubricateU : public Pair {
   void unpack_forward_comm(int, int, double *);
 
  protected:
-  double cut_inner_global,cut_global;
+  double cut_inner_global, cut_global;
   double mu;
   double rad;
   int flaglog;
@@ -50,16 +50,16 @@ class PairLubricateU : public Pair {
   double vol_P;
   class FixWall *wallfix;
 
-  double gdot,Ef[3][3];
-  double **cut_inner,**cut;
+  double gdot, Ef[3][3];
+  double **cut_inner, **cut;
   void allocate();
-  double R0,RT0,RS0;
+  double R0, RT0, RS0;
 
   int nmax;
-  double **fl,**Tl,**xl;
+  double **fl, **Tl, **xl;
 
   int cgmax;
-  double *bcg,*xcg,*rcg,*rcg1,*pcg,*RU;
+  double *bcg, *xcg, *rcg, *rcg1, *pcg, *RU;
 
   void compute_RE();
   virtual void compute_RE(double **);
@@ -71,10 +71,10 @@ class PairLubricateU : public Pair {
   void stage_two(double **);
   void copy_vec_uo(int, double *, double **, double **);
   void copy_uo_vec(int, double **, double **, double *);
-  double dot_vec_vec(int , double *, double *);
+  double dot_vec_vec(int, double *, double *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

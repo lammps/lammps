@@ -48,23 +48,29 @@
 #include <Kokkos_Core.hpp>
 
 #ifdef KOKKOS_ENABLE_CUDA
-#include <cuda/TestCuda_Category.hpp>
+#include <TestCuda_Category.hpp>
+#endif
+#ifdef KOKKOS_ENABLE_HIP
+#include <TestHIP_Category.hpp>
+#endif
+#ifdef KOKKOS_ENABLE_SYCL
+#include <TestSYCL_Category.hpp>
 #endif
 #ifdef KOKKOS_ENABLE_OPENMP
-#include <openmp/TestOpenMP_Category.hpp>
+#include <TestOpenMP_Category.hpp>
 #endif
 #ifdef KOKKOS_ENABLE_THREADS
-#include <threads/TestThreads_Category.hpp>
+#include <TestThreads_Category.hpp>
 #endif
 #ifdef KOKKOS_ENABLE_HPX
-#include <hpx/TestHPX_Category.hpp>
+#include <TestHPX_Category.hpp>
 #endif
 #ifdef KOKKOS_ENABLE_OPENMPTARGET
-#include <openmptarget/TestOpenMPTarget_Category.hpp>
+#include <TestOpenMPTarget_Category.hpp>
 #endif
 #ifndef TEST_EXECSPACE
 #ifdef KOKKOS_ENABLE_SERIAL
-#include <serial/TestSerial_Category.hpp>
+#include <TestSerial_Category.hpp>
 #endif
 #endif
 #include <TestReducers_d.hpp>

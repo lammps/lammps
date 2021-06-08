@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,11 +12,10 @@
 ------------------------------------------------------------------------- */
 
 #ifdef REGION_CLASS
-
+// clang-format off
 // list all deprecated and removed region styles here
-
-RegionStyle(DEPRECATED,RegionDeprecated)
-
+RegionStyle(DEPRECATED,RegionDeprecated);
+// clang-format on
 #else
 
 #ifndef LMP_REGION_DEPRECATED_H
@@ -34,9 +33,9 @@ class RegionDeprecated : public Region {
   virtual int inside(double, double, double) { return 0; }
   virtual int surface_interior(double *, double) { return 0; }
   virtual int surface_exterior(double *, double) { return 0; }
- };
+};
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

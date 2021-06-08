@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(hexorder/atom,ComputeHexOrderAtom)
-
+// clang-format off
+ComputeStyle(hexorder/atom,ComputeHexOrderAtom);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_HEXORDER_ATOM_H
@@ -34,7 +34,7 @@ class ComputeHexOrderAtom : public Compute {
   double memory_usage();
 
  private:
-  int nmax,maxneigh,ncol,nnn,ndegree;
+  int nmax, maxneigh, ncol, nnn, ndegree;
   double cutsq;
   class NeighList *list;
   double *distsq;
@@ -42,12 +42,12 @@ class ComputeHexOrderAtom : public Compute {
 
   double **qnarray;
 
-  void calc_qn_complex(double, double, double&, double&);
-  void calc_qn_trig(double, double, double&, double&);
+  void calc_qn_complex(double, double, double &, double &);
+  void calc_qn_trig(double, double, double &, double &);
   void select2(int, int, double *, int *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

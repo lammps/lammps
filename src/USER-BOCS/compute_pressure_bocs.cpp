@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -215,7 +216,7 @@ double ComputePressureBocs::find_index(double * grid, double value)
 
   if (value >= grid[i] && value <= (grid[i] + spacing)) { return i; }
 
-  error->all(FLERR, fmt::format("find_index could not find value in grid for value: {}", value));
+  error->all(FLERR,"find_index could not find value in grid for value: {}", value);
   for (int i = 0; i < gridsize; ++i)
   {
     fprintf(stderr, "grid %d: %f\n",i,grid[i]);

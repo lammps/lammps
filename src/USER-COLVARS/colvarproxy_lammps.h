@@ -10,10 +10,10 @@
 #ifndef COLVARPROXY_LAMMPS_H
 #define COLVARPROXY_LAMMPS_H
 
-#include "colvarproxy_lammps_version.h"  // IWYU pragma: export
+#include "colvarproxy_lammps_version.h"    // IWYU pragma: export
 
-#include <mpi.h>
 #include <cstddef>
+#include <mpi.h>
 #include <string>
 #include <vector>
 
@@ -21,11 +21,11 @@
 #include "colvarproxy.h"
 #include "colvartypes.h"
 
+#include "domain.h"    // IWYU pragma: keep
+#include "force.h"     // IWYU pragma: keep
+#include "lammps.h"    // IWYU pragma: keep
 #include "random_park.h"
-#include "lammps.h"  // IWYU pragma: keep
-#include "domain.h"  // IWYU pragma: keep
-#include "force.h"   // IWYU pragma: keep
-#include "update.h"  // IWYU pragma: keep
+#include "update.h"    // IWYU pragma: keep
 
 /// \brief Communication between colvars and LAMMPS
 /// (implementation of \link colvarproxy \endlink)
@@ -33,7 +33,6 @@ class colvarproxy_lammps : public colvarproxy {
 
   // LAMMPS specific data objects and flags
  protected:
-
   // pointers to LAMMPS class instances
   LAMMPS_NS::LAMMPS *_lmp;
   LAMMPS_NS::RanPark *_random;
@@ -41,28 +40,28 @@ class colvarproxy_lammps : public colvarproxy {
   // state of LAMMPS properties
   double t_target, my_timestep, my_boltzmann, my_angstrom;
   double bias_energy;
-  int  previous_step;
+  int previous_step;
 
   bool first_timestep;
   bool do_exit;
 
-  std::vector<int>          atoms_types;
+  std::vector<int> atoms_types;
 
-  MPI_Comm inter_comm;     // MPI comm with 1 root proc from each world
-  int inter_me, inter_num; // rank for the inter replica comm
+  MPI_Comm inter_comm;        // MPI comm with 1 root proc from each world
+  int inter_me, inter_num;    // rank for the inter replica comm
 
  public:
   friend class cvm::atom;
-  colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp, const char *,
-                     const char *, const int, const double, MPI_Comm);
+  colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp, const char *, const char *, const int, const double,
+                     MPI_Comm);
   virtual ~colvarproxy_lammps();
-  void init(const char*);
+  void init(const char *);
   virtual int setup();
 
- // disable default and copy constructor
+  // disable default and copy constructor
  private:
-  colvarproxy_lammps() {};
-  colvarproxy_lammps(const colvarproxy_lammps &) {};
+  colvarproxy_lammps(){};
+  colvarproxy_lammps(const colvarproxy_lammps &){};
 
   // methods for lammps to move data or trigger actions in the proxy
  public:
@@ -96,7 +95,10 @@ class colvarproxy_lammps : public colvarproxy {
 
   inline cvm::real boltzmann() { return my_boltzmann; };
   inline cvm::real temperature() { return t_target; };
-  inline cvm::real dt() { return my_timestep; }; // return _lmp->update->dt * _lmp->force->femtosecond; };
+  inline cvm::real dt()
+  {
+    return my_timestep;
+  };    // return _lmp->update->dt * _lmp->force->femtosecond; };
 
   void add_energy(cvm::real energy) { bias_energy += energy; };
   void request_total_force(bool yesno) { total_force_requested = yesno; };
@@ -104,8 +106,7 @@ class colvarproxy_lammps : public colvarproxy {
   void log(std::string const &message);
   void error(std::string const &message);
 
-  cvm::rvector position_distance(cvm::atom_pos const &pos1,
-                                 cvm::atom_pos const &pos2) const;
+  cvm::rvector position_distance(cvm::atom_pos const &pos1, cvm::atom_pos const &pos2) const;
 
   int backup_file(char const *filename);
 
@@ -121,9 +122,8 @@ class colvarproxy_lammps : public colvarproxy {
   virtual int num_replicas();
 
   virtual void replica_comm_barrier();
-  virtual int replica_comm_recv(char* msg_data, int buf_len, int src_rep);
-  virtual int replica_comm_send(char* msg_data, int msg_len, int dest_rep);
+  virtual int replica_comm_recv(char *msg_data, int buf_len, int src_rep);
+  virtual int replica_comm_send(char *msg_data, int msg_len, int dest_rep);
 };
 
 #endif
-

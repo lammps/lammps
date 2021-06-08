@@ -28,29 +28,18 @@ If you downloaded LAMMPS as a tarball from `the LAMMPS website <lws_>`_,
 the html folder and the PDF files should be included.
 
 If you downloaded LAMMPS from the public git repository, then the HTML
-and PDF files are not included.  Instead you need to create them, in one
-of two ways:
-
-a. You can "fetch" the current HTML and PDF files from the LAMMPS web
-   site.  Just type ``make fetch``.  This should download a ``html_www``
-   directory and a ``Manual_www.pdf`` file.  Note that if new LAMMPS features
-   have been added more recently than the date of your LAMMPS version, the
-   fetched documentation will include those changes (but your source code
-   will not, unless you update your local repository).
-
-b. You can build the HTML or PDF files yourself, by typing ``make html``
-   or ``make pdf`` in the ``doc`` folder.  This requires various tools
-   and files.  Some of them have to be installed (see below).  For the
-   rest the build process will attempt to download and install them into
-   a python virtual environment and local folders.
+and PDF files are not included.  You can build the HTML or PDF files yourself,
+by typing ``make html``  or ``make pdf`` in the ``doc`` folder.  This requires
+various tools and files.  Some of them have to be installed (see below).  For
+the rest the build process will attempt to download and install them into
+a python virtual environment and local folders.
 
 A current version of the manual (latest patch release, aka unstable
 branch) is is available online at:
-`https://lammps.sandia.gov/doc/Manual.html
-<https://lammps.sandia.gov/doc/Manual.html>`_ A version of the manual
-corresponding to the ongoing development (aka master branch) is
-available online at: `https://docs.lammps.org/
-<https://docs.lammps.org/>`_
+`https://docs.lammps.org/Manual.html <https://docs.lammps.org/Manual.html>`_.
+A version of the manual corresponding to the ongoing development (aka master branch)
+is available online at: `https://docs.lammps.org/latest/
+<https://docs.lammps.org/latest/>`_
 
 Build using GNU make
 --------------------
@@ -257,4 +246,4 @@ the file ``lammps/doc/utils/sphinx-config/false_positives.txt``.
 
 .. _rst: https://docutils.readthedocs.io/en/sphinx-docs/user/rst/quickstart.html
 
-.. _lws: https://lammps.sandia.gov
+.. _lws: https://www.lammps.org

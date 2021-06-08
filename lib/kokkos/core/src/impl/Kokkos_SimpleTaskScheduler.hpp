@@ -225,9 +225,9 @@ class SimpleTaskScheduler
                                      Impl::DefaultDestroy<task_queue_type> >;
 
     // Allocate space for the task queue
-    auto* record =
-        record_type::allocate(memory_space(), "TaskQueue", allocation_size);
-    m_queue = new (record->data())
+    auto* record = record_type::allocate(memory_space(), "Kokkos::TaskQueue",
+                                         allocation_size);
+    m_queue      = new (record->data())
         task_queue_type(arg_execution_space, arg_memory_space, arg_memory_pool);
     record->m_destroy.managed_object = m_queue;
     m_track.assign_allocated_record_to_uninitialized(record);

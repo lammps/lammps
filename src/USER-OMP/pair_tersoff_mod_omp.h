@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    See the README file in the top-level LAMMPS directory.
@@ -11,9 +11,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(tersoff/mod/omp,PairTersoffMODOMP)
-
+// clang-format off
+PairStyle(tersoff/mod/omp,PairTersoffMODOMP);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_TERSOFF_MOD_OMP_H
@@ -34,10 +34,10 @@ class PairTersoffMODOMP : public PairTersoffMOD, public ThrOMP {
 
  private:
   template <int SHIFT_FLAG, int EVFLAG, int EFLAG, int VFLAG_ATOM>
-  void eval(int ifrom, int ito, ThrData * const thr);
+  void eval(int ifrom, int ito, ThrData *const thr);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

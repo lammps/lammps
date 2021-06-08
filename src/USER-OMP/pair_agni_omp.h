@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(agni/omp,PairAGNIOMP)
-
+// clang-format off
+PairStyle(agni/omp,PairAGNIOMP);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_AGNI_OMP_H
@@ -39,10 +39,10 @@ class PairAGNIOMP : public PairAGNI, public ThrOMP {
 
  private:
   template <int ATOMIC_FEATURE_VERSION, int EVFLAG>
-  void eval(int ifrom, int ito, ThrData * const thr);
+  void eval(int ifrom, int ito, ThrData *const thr);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

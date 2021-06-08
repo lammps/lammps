@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(accelerate/cos,FixAccelerateCos)
-
+// clang-format off
+FixStyle(accelerate/cos,FixAccelerateCos);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_ACCELERATE_COS_H
@@ -28,12 +28,12 @@ FixStyle(accelerate/cos,FixAccelerateCos)
 
 namespace LAMMPS_NS {
 
-class FixAccelerateCos: public Fix {
+class FixAccelerateCos : public Fix {
  public:
   FixAccelerateCos(class LAMMPS *, int, char **);
-  virtual ~FixAccelerateCos() {};
+  virtual ~FixAccelerateCos(){};
   int setmask();
-  virtual void init() {};
+  virtual void init(){};
   void setup(int);
   virtual void post_force(int);
 
@@ -41,7 +41,7 @@ class FixAccelerateCos: public Fix {
   double acceleration;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

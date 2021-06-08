@@ -4,10 +4,10 @@ Download source and documentation as a tarball
 You can download a current LAMMPS tarball from the `download page <download_>`_
 of the `LAMMPS website <lws_>`_.
 
-.. _download: https://lammps.sandia.gov/download.html
-.. _bug: https://lammps.sandia.gov/bug.html
-.. _older: https://lammps.sandia.gov/tars
-.. _lws: https://lammps.sandia.gov
+.. _download: https://www.lammps.org/download.html
+.. _bug: https://www.lammps.org/bug.html
+.. _older: https://www.lammps.org/tars
+.. _lws: https://www.lammps.org
 
 You have two choices of tarballs, either the most recent stable
 release or the most current patch release.  Stable releases occur a

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -784,10 +785,10 @@ void DihedralTable::coeff(int narg, char **arg)
   // ---  and resolve issues with periodicity  ---
 
   if (tb->ninput < 2)
-    error->all(FLERR,fmt::format("Invalid dihedral table length: {}",arg[2]));
+    error->all(FLERR,"Invalid dihedral table length: {}",arg[2]);
   else if ((tb->ninput == 2) && (tabstyle == SPLINE))
-    error->all(FLERR,fmt::format("Invalid dihedral spline table length: {} "
-                                 "(Try linear)",arg[2]));
+    error->all(FLERR,"Invalid dihedral spline table length: {} "
+                                 "(Try linear)",arg[2]);
 
   // check for monotonicity
   for (int i=0; i < tb->ninput-1; i++) {
@@ -805,12 +806,12 @@ void DihedralTable::coeff(int narg, char **arg)
   double phihi = tb->phifile[tb->ninput-1];
   if (tb->use_degrees) {
     if ((phihi - philo) >= 360)
-      error->all(FLERR,fmt::format("Dihedral table angle range must be < 360 "
-                                   "degrees ({}).",arg[2]));
+      error->all(FLERR,"Dihedral table angle range must be < 360 "
+                                   "degrees ({}).",arg[2]);
   } else {
     if ((phihi - philo) >= MY_2PI)
-      error->all(FLERR,fmt::format("Dihedral table angle range must be < 2*PI "
-                                   "radians ({}).",arg[2]));
+      error->all(FLERR,"Dihedral table angle range must be < 2*PI "
+                                   "radians ({}).",arg[2]);
   }
 
   // convert phi from degrees to radians
@@ -1268,8 +1269,8 @@ void DihedralTable::param_extract(Table *tb, char *line)
       //else if (word == "EQ") {
       //  tb->theta0 = values.next_double();
       //}
-      else error->one(FLERR,fmt::format("Invalid keyword in dihedral angle "
-                                        "table parameters ({})", word));
+      else error->one(FLERR,"Invalid keyword in dihedral angle "
+                                        "table parameters ({})", word);
     }
   } catch (TokenizerException &e) {
     error->one(FLERR, e.what());

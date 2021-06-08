@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,9 +15,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(cosine/squared, PairCosineSquared)
-
+// clang-format off
+PairStyle(cosine/squared, PairCosineSquared);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_LJ_COS_SQ_H
@@ -46,7 +46,7 @@ class PairCosineSquared : public Pair {
   double single(int, int, int, int, double, double, double, double &);
   // void *extract(const char *, int &);
 
-/* RESPA stuff not implemented...
+  /* RESPA stuff not implemented...
   void compute_inner();
   void compute_middle();
   void compute_outer(int, int);
@@ -61,7 +61,7 @@ class PairCosineSquared : public Pair {
   virtual void allocate();
 };
 
-}  // namespace LAMMPS_NS
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
@@ -97,4 +97,3 @@ If cutoff is equal to sigma (minimum) then this pair style basically
 degenerates/reverts to only WCA. This is for convenience.
 
 */
-

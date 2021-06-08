@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(gran/hooke/history,PairGranHookeHistory)
-
+// clang-format off
+PairStyle(gran/hooke/history,PairGranHookeHistory);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_GRAN_HOOKE_HISTORY_H
@@ -42,9 +42,11 @@ class PairGranHookeHistory : public Pair {
   int pack_forward_comm(int, int *, double *, int, int *);
   void unpack_forward_comm(int, int, double *);
   double memory_usage();
+  double atom2cut(int);
+  double radii2cut(double, double);
 
  protected:
-  double kn,kt,gamman,gammat,xmu;
+  double kn, kt, gamman, gammat, xmu;
   int dampflag;
   double dt;
   int freeze_group_bit;
@@ -52,8 +54,8 @@ class PairGranHookeHistory : public Pair {
   int limit_damping;
 
   int neighprev;
-  double *onerad_dynamic,*onerad_frozen;
-  double *maxrad_dynamic,*maxrad_frozen;
+  double *onerad_dynamic, *onerad_frozen;
+  double *maxrad_dynamic, *maxrad_frozen;
 
   int size_history;
 
@@ -69,7 +71,7 @@ class PairGranHookeHistory : public Pair {
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

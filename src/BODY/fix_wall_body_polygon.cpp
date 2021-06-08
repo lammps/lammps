@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -99,7 +100,7 @@ FixWallBodyPolygon::FixWallBodyPolygon(LAMMPS *lmp, int narg, char **arg) :
     lo = hi = 0.0;
     cylradius = utils::numeric(FLERR,arg[iarg+1],false,lmp);
     iarg += 2;
-  } else error->all(FLERR,fmt::format("Unknown wall style {}",arg[iarg]));
+  } else error->all(FLERR,"Unknown wall style {}",arg[iarg]);
 
   // check for trailing keyword/values
 

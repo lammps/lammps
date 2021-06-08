@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef KSPACE_CLASS
-
-KSpaceStyle(msm/cg,MSMCG)
-
+// clang-format off
+KSpaceStyle(msm/cg,MSMCG);
+// clang-format on
 #else
 
 #ifndef LMP_MSM_CG_H
@@ -44,7 +44,7 @@ class MSMCG : public MSM {
   virtual void fieldforce_peratom();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

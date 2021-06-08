@@ -99,7 +99,6 @@ TEST_F(LAMMPS_plain, InitMembers)
         EXPECT_STREQ(LAMMPS::git_branch, "(unknown)");
         EXPECT_STREQ(LAMMPS::git_descriptor, "(unknown)");
     }
-    EXPECT_EQ(lmp->comm->nthreads, 1);
 }
 
 TEST_F(LAMMPS_plain, TestStyles)
@@ -234,7 +233,6 @@ TEST_F(LAMMPS_omp, InitMembers)
         EXPECT_STREQ(LAMMPS::git_branch, "(unknown)");
         EXPECT_STREQ(LAMMPS::git_descriptor, "(unknown)");
     }
-    EXPECT_EQ(lmp->comm->nthreads, 2);
 }
 
 // test fixture for Kokkos tests
@@ -324,10 +322,10 @@ TEST_F(LAMMPS_kokkos, InitMembers)
     }
 }
 
-// check if Comm::nthreads is initialized to either 1 or 2 (from the previous tests)
 TEST(LAMMPS_init, OpenMP)
 {
     if (!LAMMPS::is_installed_pkg("USER-OMP")) GTEST_SKIP();
+    if (Info::get_openmp_info() == "OpenMP not enabled") GTEST_SKIP();
 
     FILE *fp = fopen("in.lammps_empty", "w");
     fputs("\n", fp);
@@ -364,7 +362,11 @@ TEST(LAMMPS_init, NoOpenMP)
     FILE *fp = fopen("in.lammps_class_noomp", "w");
     fputs("\n", fp);
     fclose(fp);
+#if defined(__WIN32)
+    _putenv("OMP_NUM_THREADS");
+#else
     unsetenv("OMP_NUM_THREADS");
+#endif
 
     const char *args[] = {"LAMMPS_init", "-in", "in.lammps_class_noomp", "-log", "none", "-nocite"};
     char **argv        = (char **)args;

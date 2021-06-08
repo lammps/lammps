@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -253,8 +254,8 @@ void PairQUIP::coeff(int narg, char **arg)
 
   int n = atom->ntypes;
   if (narg != (4+n))
-    error->all(FLERR,fmt::format("Number of arguments {} is not correct, "
-                                 "it should be {}", narg, 4+n));
+    error->all(FLERR,"Number of arguments {} is not correct, "
+                                 "it should be {}", narg, 4+n);
 
   // ensure I,J args are * *
 
@@ -263,6 +264,8 @@ void PairQUIP::coeff(int narg, char **arg)
 
   quip_file = utils::strdup(arg[2]);
   quip_string = utils::strdup(arg[3]);
+  n_quip_file = strlen(quip_file);
+  n_quip_string = strlen(quip_string);
 
   for (int i = 4; i < narg; i++) {
     if (strcmp(arg[i],"NULL") == 0)

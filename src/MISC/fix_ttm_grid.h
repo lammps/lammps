@@ -13,62 +13,52 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(ttm,FixTTM);
+FixStyle(ttm/grid,FixTTMGrid);
 // clang-format on
 #else
 
-#ifndef LMP_FIX_TTM_H
-#define LMP_FIX_TTM_H
+#ifndef LMP_FIX_TTM_GRID_H
+#define LMP_FIX_TTM_GRID_H
 
-#include "fix.h"
+#include "fix_ttm.h"
 
 namespace LAMMPS_NS {
 
-class FixTTM : public Fix {
+class FixTTMGrid : public FixTTM {
  public:
-  FixTTM(class LAMMPS *, int, char **);
-  virtual ~FixTTM();
-  int setmask();
-  void init();
-  void setup(int);
-  void post_force_setup(int);
-  virtual void post_force(int);
-  void post_force_respa_setup(int, int, int);
-  void post_force_respa(int, int, int);
-  virtual void end_of_step();
-  void reset_dt();
-  void grow_arrays(int);
-  virtual void write_restart(FILE *);
-  virtual void restart(char *);
-  int pack_restart(int, double *);
-  void unpack_restart(int, int);
-  int size_restart(int);
-  int maxsize_restart();
-  virtual double compute_vector(int);
-  virtual double memory_usage();
+  FixTTMGrid(class LAMMPS *, int, char **);
+  ~FixTTMGrid() {}
+  void post_force(int);
+  void end_of_step();
+  double compute_vector(int);
+  void write_restart(FILE *);
+  void restart(char *);
+  double memory_usage();
 
- protected:
-  int nfileevery;
-  int nlevels_respa;
-  int seed;
-  class RanMars *random;
-  FILE *fp;
-  int nxnodes, nynodes, nznodes;
-  bigint total_nnodes;
-  int ***nsum, ***nsum_all;
-  double *gfactor1, *gfactor2, *ratio, **flangevin;
-  double ***T_electron, ***T_electron_old;
-  double ***sum_vsq, ***sum_mass_vsq;
-  double ***sum_vsq_all, ***sum_mass_vsq_all;
-  double ***net_energy_transfer, ***net_energy_transfer_all;
-  double electronic_specific_heat, electronic_density;
-  double electronic_thermal_conductivity;
-  double gamma_p, gamma_s, v_0, v_0_sq;
+  // grid communication
 
-  virtual void allocate_grid();
-  virtual void init_grid();
-  virtual void deallocate_grid();
-  virtual void read_initial_electron_temperatures(const char *);
+  void pack_forward_grid(int, void *, int, int *);
+  void unpack_forward_grid(int, void *, int, int *);
+  void pack_reverse_grid(int, void *, int, int *);
+  void unpack_reverse_grid(int, void *, int, int *);
+
+ private:
+  int ngridout;
+  int nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in;
+  int nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out;
+  double shift;
+  double delxinv,delyinv,delzinv;
+  double ***dsum;
+
+  class GridComm *gc;
+  int ngc_buf1,ngc_buf2;
+  double *gc_buf1,*gc_buf2;
+
+  void allocate_grid();
+  void init_grid();
+  void deallocate_grid();
+
+  void read_initial_electron_temperatures(const char *);
 };
 
 }    // namespace LAMMPS_NS

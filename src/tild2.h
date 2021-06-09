@@ -172,7 +172,7 @@ class TILD : public KSpace{
   void procs2grid2d(int,int,int,int *, int*);
   void compute_rho1d(const FFT_SCALAR &, const FFT_SCALAR &,
                      const FFT_SCALAR &, int, FFT_SCALAR **, FFT_SCALAR **);
-  void compute_rho_coeff(FFT_SCALAR **,FFT_SCALAR **, const int);
+  void compute_rho_coeff();
 
   // grid communication
 

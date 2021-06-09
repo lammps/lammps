@@ -937,8 +937,8 @@ void MLIAP_SO3::spectrum(int natoms, int *numneighs, int *jelems,
                          int lmax, double rcut, double alpha,
                          int ncoefs)
 {
-  if (m_init_arrays == 0)
-    init_arrays(natoms, numneighs, ncoefs);
+
+  init_arrays(natoms, numneighs, ncoefs);
 
   int totaln = 0;
   int totali;

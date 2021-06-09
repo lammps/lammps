@@ -28,6 +28,7 @@ class FixTTM : public Fix {
  public:
   FixTTM(class LAMMPS *, int, char **);
   virtual ~FixTTM();
+  virtual void post_constructor();
   int setmask();
   void init();
   void setup(int);
@@ -48,27 +49,24 @@ class FixTTM : public Fix {
   virtual double memory_usage();
 
  protected:
-  int nfileevery;
   int nlevels_respa;
   int seed;
-  class RanMars *random;
-  FILE *fp;
   int nxnodes, nynodes, nznodes;
   bigint total_nnodes;
-  int ***nsum, ***nsum_all;
+  int deallocate_flag;
+
+  class RanMars *random;
+  char *infile;
   double *gfactor1, *gfactor2, *ratio, **flangevin;
   double ***T_electron, ***T_electron_old;
-  double ***sum_vsq, ***sum_mass_vsq;
-  double ***sum_vsq_all, ***sum_mass_vsq_all;
   double ***net_energy_transfer, ***net_energy_transfer_all;
   double electronic_specific_heat, electronic_density;
   double electronic_thermal_conductivity;
   double gamma_p, gamma_s, v_0, v_0_sq;
 
   virtual void allocate_grid();
-  virtual void init_grid();
   virtual void deallocate_grid();
-  virtual void read_initial_electron_temperatures(const char *);
+  virtual void read_electron_temperatures(const char *);
 };
 
 }    // namespace LAMMPS_NS

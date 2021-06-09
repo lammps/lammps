@@ -37,18 +37,18 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 
 #define MAXLINE 1024
+#define OFFSET 16384
 
 /* ---------------------------------------------------------------------- */
 
 FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  random(nullptr), fp(nullptr), nsum(nullptr), nsum_all(nullptr),
+  random(nullptr), 
   gfactor1(nullptr), gfactor2(nullptr), ratio(nullptr), flangevin(nullptr),
-  T_electron(nullptr), T_electron_old(nullptr), sum_vsq(nullptr), sum_mass_vsq(nullptr),
-  sum_vsq_all(nullptr), sum_mass_vsq_all(nullptr), net_energy_transfer(nullptr),
-  net_energy_transfer_all(nullptr)
+  T_electron(nullptr), T_electron_old(nullptr), 
+  net_energy_transfer(nullptr), net_energy_transfer_all(nullptr)
 {
-  if (narg < 15) error->all(FLERR,"Illegal fix ttm command");
+  if (narg != 14) error->all(FLERR,"Illegal fix ttm command");
 
   vector_flag = 1;
   size_vector = 2;
@@ -68,17 +68,10 @@ FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
   nxnodes = utils::inumeric(FLERR,arg[10],false,lmp);
   nynodes = utils::inumeric(FLERR,arg[11],false,lmp);
   nznodes = utils::inumeric(FLERR,arg[12],false,lmp);
-  nfileevery = utils::inumeric(FLERR,arg[14],false,lmp);
 
-  if (nfileevery) {
-    if (narg != 16) error->all(FLERR,"Illegal fix ttm command");
-    if (comm->me == 0) {
-      fp = fopen(arg[15],"w");
-      if (fp == nullptr)
-        error->one(FLERR,"Cannot open output file {}: {}",
-                                     arg[15], utils::getsyserror());
-    }
-  }
+  int n = strlen(arg[13]) + 1;
+  infile = new char[n];
+  strcpy(infile,arg[13]);
 
   // error check
 
@@ -113,10 +106,6 @@ FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
   if (total_nnodes > MAXSMALLINT)
     error->all(FLERR,"Too many nodes in fix ttm");
 
-  // allocate 3d grid variables
-
-  allocate_grid();
-
   // allocate per-atom flangevin and zero it
   // NOTE: is init to zero necessary?
 
@@ -134,16 +123,35 @@ FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
   atom->add_callback(Atom::GROW);
   atom->add_callback(Atom::RESTART);
 
+  deallocate_flag = 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixTTM::post_constructor()
+{
+  // allocate 3d grid variables
+
+  allocate_grid();
+
+  // zero net_energy_transfer
+  // in case compute_vector accesses it on timestep 0
+
+  for (int ixnode = 0; ixnode < nxnodes; ixnode++)
+    for (int iynode = 0; iynode < nynodes; iynode++)
+      for (int iznode = 0; iznode < nznodes; iznode++)
+        net_energy_transfer_all[ixnode][iynode][iznode] = 0;
+
   // set initial electron temperatures from user input file
 
-  read_initial_electron_temperatures(arg[13]);
+  read_electron_temperatures(infile);
 }
 
 /* ---------------------------------------------------------------------- */
 
 FixTTM::~FixTTM()
 {
-  if (fp) fclose(fp);
+  delete [] infile;
 
   delete random;
 
@@ -152,7 +160,7 @@ FixTTM::~FixTTM()
 
   memory->destroy(flangevin);
 
-  deallocate_grid();
+  if (!deallocate_flag) deallocate_grid();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -187,10 +195,6 @@ void FixTTM::init()
 
   if (utils::strmatch(update->integrate_style,"^respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
-
-  // initialize grid quantities
-
-  init_grid();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -242,13 +246,12 @@ void FixTTM::post_force(int /*vflag*/)
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
-
       double xscale = (x[i][0] - domain->boxlo[0])/domain->xprd;
       double yscale = (x[i][1] - domain->boxlo[1])/domain->yprd;
       double zscale = (x[i][2] - domain->boxlo[2])/domain->zprd;
-      int ixnode = static_cast<int>(xscale*nxnodes);
-      int iynode = static_cast<int>(yscale*nynodes);
-      int iznode = static_cast<int>(zscale*nznodes);
+      int ixnode = static_cast<int>(xscale*nxnodes + OFFSET) - OFFSET;
+      int iynode = static_cast<int>(yscale*nynodes + OFFSET) - OFFSET;
+      int iznode = static_cast<int>(zscale*nznodes + OFFSET) - OFFSET;
       while (ixnode > nxnodes-1) ixnode -= nxnodes;
       while (iynode > nynodes-1) iynode -= nynodes;
       while (iznode > nznodes-1) iznode -= nznodes;
@@ -313,9 +316,9 @@ void FixTTM::end_of_step()
       double xscale = (x[i][0] - domain->boxlo[0])/domain->xprd;
       double yscale = (x[i][1] - domain->boxlo[1])/domain->yprd;
       double zscale = (x[i][2] - domain->boxlo[2])/domain->zprd;
-      int ixnode = static_cast<int>(xscale*nxnodes);
-      int iynode = static_cast<int>(yscale*nynodes);
-      int iznode = static_cast<int>(zscale*nznodes);
+      int ixnode = static_cast<int>(xscale*nxnodes + OFFSET) - OFFSET;
+      int iynode = static_cast<int>(yscale*nynodes + OFFSET) - OFFSET;
+      int iznode = static_cast<int>(zscale*nznodes + OFFSET) - OFFSET;
       while (ixnode > nxnodes-1) ixnode -= nxnodes;
       while (iynode > nynodes-1) iynode -= nynodes;
       while (iznode > nznodes-1) iznode -= nznodes;
@@ -395,76 +398,66 @@ void FixTTM::end_of_step()
              (net_energy_transfer_all[ixnode][iynode][iznode])/del_vol);
         }
   }
+}
 
-  // output nodal temperatures for current timestep
+/* ----------------------------------------------------------------------
+   read in initial electron temperatures from a user-specified file
+   only called by proc 0
+------------------------------------------------------------------------- */
 
-  if ((nfileevery) && !(update->ntimestep % nfileevery)) {
+void FixTTM::read_electron_temperatures(const char *filename)
+{
+  int ***T_initial_set;
+  memory->create(T_initial_set,nxnodes,nynodes,nznodes,"ttm:T_initial_set");
+  memset(&T_initial_set[0][0][0],0,total_nnodes*sizeof(int));
 
-    // compute atomic Ta for each grid point
+  std::string name = utils::get_potential_file_path(filename);
+  if (name.empty())
+    error->one(FLERR,"Cannot open input file: {}",
+                                 filename);
+  FILE *fp = fopen(name.c_str(),"r");
 
-    for (int ixnode = 0; ixnode < nxnodes; ixnode++)
-      for (int iynode = 0; iynode < nynodes; iynode++)
-        for (int iznode = 0; iznode < nznodes; iznode++) {
-          nsum[ixnode][iynode][iznode] = 0;
-          nsum_all[ixnode][iynode][iznode] = 0;
-          sum_vsq[ixnode][iynode][iznode] = 0.0;
-          sum_mass_vsq[ixnode][iynode][iznode] = 0.0;
-          sum_vsq_all[ixnode][iynode][iznode] = 0.0;
-          sum_mass_vsq_all[ixnode][iynode][iznode] = 0.0;
-        }
+  // read initial electron temperature values from file
 
-    double massone;
-    for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
-        if (rmass) massone = rmass[i];
-        else massone = mass[type[i]];
-        double xscale = (x[i][0] - domain->boxlo[0])/domain->xprd;
-        double yscale = (x[i][1] - domain->boxlo[1])/domain->yprd;
-        double zscale = (x[i][2] - domain->boxlo[2])/domain->zprd;
-        int ixnode = static_cast<int>(xscale*nxnodes);
-        int iynode = static_cast<int>(yscale*nynodes);
-        int iznode = static_cast<int>(zscale*nznodes);
-        while (ixnode > nxnodes-1) ixnode -= nxnodes;
-        while (iynode > nynodes-1) iynode -= nynodes;
-        while (iznode > nznodes-1) iznode -= nznodes;
-        while (ixnode < 0) ixnode += nxnodes;
-        while (iynode < 0) iynode += nynodes;
-        while (iznode < 0) iznode += nznodes;
-        double vsq = v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2];
-        nsum[ixnode][iynode][iznode] += 1;
-        sum_vsq[ixnode][iynode][iznode] += vsq;
-        sum_mass_vsq[ixnode][iynode][iznode] += massone*vsq;
-      }
+  char line[MAXLINE];
+  int ixnode,iynode,iznode;
+  double T_tmp;
+  while (1) {
+    if (fgets(line,MAXLINE,fp) == nullptr) break;
+    ValueTokenizer values(line);
+    if (values.has_next()) ixnode = values.next_int();
+    if (values.has_next()) iynode = values.next_int();
+    if (values.has_next()) iznode = values.next_int();
+    if (values.has_next()) T_tmp  = values.next_double();
+    else error->one(FLERR,"Incorrect format in fix ttm input file");
 
-    MPI_Allreduce(&nsum[0][0][0],&nsum_all[0][0][0],total_nnodes,
-                  MPI_INT,MPI_SUM,world);
-    MPI_Allreduce(&sum_vsq[0][0][0],&sum_vsq_all[0][0][0],total_nnodes,
-                  MPI_DOUBLE,MPI_SUM,world);
-    MPI_Allreduce(&sum_mass_vsq[0][0][0],&sum_mass_vsq_all[0][0][0],
-                  total_nnodes,MPI_DOUBLE,MPI_SUM,world);
+    // check correctness of input data
 
-    if (comm->me == 0) {
-      fmt::print(fp,"{}",update->ntimestep);
+    if ((ixnode < 0) || (ixnode >= nxnodes)
+        || (iynode < 0) || (iynode >= nynodes)
+        || (iznode < 0) || (iznode >= nznodes))
+      error->one(FLERR,"Fix ttm invalide node index in fix ttm input");
 
-      double T_a;
-      for (int ixnode = 0; ixnode < nxnodes; ixnode++)
-        for (int iynode = 0; iynode < nynodes; iynode++)
-          for (int iznode = 0; iznode < nznodes; iznode++) {
-            T_a = 0;
-            if (nsum_all[ixnode][iynode][iznode] > 0)
-              T_a = sum_mass_vsq_all[ixnode][iynode][iznode]/
-                (3.0*force->boltz*nsum_all[ixnode][iynode][iznode]/force->mvv2e);
-            fmt::print(fp," {}",T_a);
-          }
+    if (T_tmp < 0.0)
+      error->one(FLERR,"Fix ttm electron temperatures must be > 0.0");
 
-      fputs("\t",fp);
-      for (int ixnode = 0; ixnode < nxnodes; ixnode++)
-        for (int iynode = 0; iynode < nynodes; iynode++)
-          for (int iznode = 0; iznode < nznodes; iznode++)
-            fmt::print(fp," {}",T_electron[ixnode][iynode][iznode]);
-      fputs("\n",fp);
-    }
+    T_electron[ixnode][iynode][iznode] = T_tmp;
+    T_initial_set[ixnode][iynode][iznode] = 1;
   }
+
+  fclose(fp);
+
+  // check completeness of input data
+
+  for (int ixnode = 0; ixnode < nxnodes; ixnode++)
+    for (int iynode = 0; iynode < nynodes; iynode++)
+      for (int iznode = 0; iznode < nznodes; iznode++)
+        if (T_initial_set[ixnode][iynode][iznode] == 0)
+          error->one(FLERR,"Initial temperatures not all set in fix ttm");
+
+  memory->destroy(T_initial_set);
+
+  MPI_Bcast(&T_electron[0][0][0],total_nnodes,MPI_DOUBLE,0,world);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -621,10 +614,7 @@ double FixTTM::memory_usage()
 {
   double bytes = 0.0;
   bytes += (double)atom->nmax * 3 * sizeof(double);
-
-  bytes += (double)5*total_nnodes * sizeof(int);
-  bytes += (double)14*total_nnodes * sizeof(double);
-
+  bytes += (double)4*total_nnodes * sizeof(int);
   return bytes;
 }
 
@@ -634,31 +624,12 @@ double FixTTM::memory_usage()
 
 void FixTTM::allocate_grid()
 {
-  memory->create(nsum,nxnodes,nynodes,nznodes,"ttm:nsum");
-  memory->create(nsum_all,nxnodes,nynodes,nznodes,"ttm:nsum_all");
-  memory->create(sum_vsq,nxnodes,nynodes,nznodes,"ttm:sum_vsq");
-  memory->create(sum_mass_vsq,nxnodes,nynodes,nznodes,"ttm:sum_mass_vsq");
-  memory->create(sum_vsq_all,nxnodes,nynodes,nznodes,"ttm:sum_vsq_all");
-  memory->create(sum_mass_vsq_all,nxnodes,nynodes,nznodes,
-                 "ttm:sum_mass_vsq_all");
   memory->create(T_electron_old,nxnodes,nynodes,nznodes,"ttm:T_electron_old");
   memory->create(T_electron,nxnodes,nynodes,nznodes,"ttm:T_electron");
   memory->create(net_energy_transfer,nxnodes,nynodes,nznodes,
-                 "TTM:net_energy_transfer");
+                 "ttm:net_energy_transfer");
   memory->create(net_energy_transfer_all,nxnodes,nynodes,nznodes,
-                 "TTM:net_energy_transfer_all");
-}
-
-/* ----------------------------------------------------------------------
-   initialize 3d grid quantities
-------------------------------------------------------------------------- */
-
-void FixTTM::init_grid()
-{
-  for (int ixnode = 0; ixnode < nxnodes; ixnode++)
-    for (int iynode = 0; iynode < nynodes; iynode++)
-      for (int iznode = 0; iznode < nznodes; iznode++)
-        net_energy_transfer_all[ixnode][iynode][iznode] = 0;
+                 "ttm:net_energy_transfer_all");
 }
 
 /* ----------------------------------------------------------------------
@@ -667,74 +638,8 @@ void FixTTM::init_grid()
 
 void FixTTM::deallocate_grid()
 {
-  memory->destroy(nsum);
-  memory->destroy(nsum_all);
-  memory->destroy(sum_vsq);
-  memory->destroy(sum_mass_vsq);
-  memory->destroy(sum_vsq_all);
-  memory->destroy(sum_mass_vsq_all);
   memory->destroy(T_electron_old);
   memory->destroy(T_electron);
-  memory->destroy(flangevin);
   memory->destroy(net_energy_transfer);
   memory->destroy(net_energy_transfer_all);
-}
-
-/* ----------------------------------------------------------------------
-   read in initial electron temperatures from a user-specified file
-   only called by proc 0
-------------------------------------------------------------------------- */
-
-void FixTTM::read_initial_electron_temperatures(const char *filename)
-{
-  int ***T_initial_set;
-  memory->create(T_initial_set,nxnodes,nynodes,nznodes,"ttm:T_initial_set");
-  memset(&T_initial_set[0][0][0],0,total_nnodes*sizeof(int));
-
-  std::string name = utils::get_potential_file_path(filename);
-  if (name.empty())
-    error->one(FLERR,"Cannot open input file: {}",
-                                 filename);
-  FILE *fpr = fopen(name.c_str(),"r");
-
-  // read initial electron temperature values from file
-
-  char line[MAXLINE];
-  int ixnode,iynode,iznode;
-  double T_tmp;
-  while (1) {
-    if (fgets(line,MAXLINE,fpr) == nullptr) break;
-    ValueTokenizer values(line);
-    if (values.has_next()) ixnode = values.next_int();
-    if (values.has_next()) iynode = values.next_int();
-    if (values.has_next()) iznode = values.next_int();
-    if (values.has_next()) T_tmp  = values.next_double();
-    else error->one(FLERR,"Incorrect format in fix ttm input file");
-
-    // check correctness of input data
-
-    if ((ixnode < 0) || (ixnode >= nxnodes)
-        || (iynode < 0) || (iynode >= nynodes)
-        || (iznode < 0) || (iznode >= nznodes))
-      error->one(FLERR,"Fix ttm invalide node index in fix ttm input");
-
-    if (T_tmp < 0.0)
-      error->one(FLERR,"Fix ttm electron temperatures must be > 0.0");
-
-    T_electron[ixnode][iynode][iznode] = T_tmp;
-    T_initial_set[ixnode][iynode][iznode] = 1;
-  }
-  fclose(fpr);
-
-  // check completeness of input data
-
-  for (int ixnode = 0; ixnode < nxnodes; ixnode++)
-    for (int iynode = 0; iynode < nynodes; iynode++)
-      for (int iznode = 0; iznode < nznodes; iznode++)
-        if (T_initial_set[ixnode][iynode][iznode] == 0)
-          error->one(FLERR,"Initial temperatures not all set in fix ttm");
-
-  memory->destroy(T_initial_set);
-
-  MPI_Bcast(&T_electron[0][0][0],total_nnodes,MPI_DOUBLE,0,world);
 }

@@ -27,13 +27,10 @@ namespace LAMMPS_NS {
 class FixTTMGrid : public FixTTM {
  public:
   FixTTMGrid(class LAMMPS *, int, char **);
-  ~FixTTMGrid() {}
+  ~FixTTMGrid();
+  void post_constructor();
   void post_force(int);
   void end_of_step();
-  double compute_vector(int);
-  void write_restart(FILE *);
-  void restart(char *);
-  double memory_usage();
 
   // grid communication
 
@@ -42,23 +39,25 @@ class FixTTMGrid : public FixTTM {
   void pack_reverse_grid(int, void *, int, int *);
   void unpack_reverse_grid(int, void *, int, int *);
 
+  void write_restart(FILE *);
+  void restart(char *);
+  double compute_vector(int);
+  double memory_usage();
+
  private:
   int ngridout;
   int nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in;
   int nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out;
   double shift;
   double delxinv,delyinv,delzinv;
-  double ***dsum;
 
   class GridComm *gc;
   int ngc_buf1,ngc_buf2;
   double *gc_buf1,*gc_buf2;
 
   void allocate_grid();
-  void init_grid();
   void deallocate_grid();
-
-  void read_initial_electron_temperatures(const char *);
+  void read_electron_temperatures(const char *);
 };
 
 }    // namespace LAMMPS_NS

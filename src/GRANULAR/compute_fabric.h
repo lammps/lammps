@@ -35,6 +35,7 @@ class ComputeFabric : public Compute {
  private:
   int ntensors, pstyle, cutstyle;
   int *tensor_style;
+  int **type_filter;
   class NeighList *list;
 
   int cn_flag, br_flag, fn_flag, ft_flag;

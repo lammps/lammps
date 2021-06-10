@@ -8,7 +8,7 @@ Syntax
 
 .. parsed-literal::
 
-   compute ID group-ID fabric cutoff attribute1 attribute2 ...
+   compute ID group-ID fabric cutoff attribute1 attribute2 ... keyword values ...
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * fabric = style name of this compute command
@@ -28,19 +28,27 @@ Syntax
        *force/normal* = normal force tensor
        *force/tangential* = tangential force tensor
 
+* zero or more keyword/value pairs may be appended
+* keyword = *type/include*
+
+  .. parsed-literal::
+
+       *type/include* value = arg1 arg2
+         arg = separate lists of types (see below)
+
 Examples
 """"""""
 
 .. code-block:: LAMMPS
 
-   compute 1 all fabric type contact force/normal
+   compute 1 all fabric type contact force/normal type/include 1,2 3*4
    compute 1 all fabric radius force/normal force/tangential
 
 Description
 """""""""""
 
 Define a computation that calculates various fabric tensors for pairwise
-interactions. The *type* and *radius* settings are used to select whether
+interactions :ref:`(Ouadfel) <Ouadfel>`. The *type* and *radius* settings are used to select whether
 the compute will be used used with regular interactions with cutoffs
 determined by atom types or with granular interactions with interaction
 lengths determined by particle radii, respectively.
@@ -103,7 +111,7 @@ as
 
 .. math::
 
-   F^t_{ab}  =  \frac{15}{9 tr(N)} (T_{ab} - tr(T) \delta_{ab})
+   F^t_{ab}  =  \frac{15}{9 \mathrm{tr}(N)} (T_{ab} - ]mathrm{tr}(T) \delta_{ab})
 
 where the tensor :math:`T` is defined as
 
@@ -115,6 +123,17 @@ where the tensor :math:`T` is defined as
 
 where :math:`f_t` is the magnitude of the tagential force between the two atoms.
 
+The *type/include* keyword filters interactions based on the types of the two atoms.
+Interactions between two atoms are only included in calculations if the atom types 
+are in the two lists. Each list consists of a series of type
+ranges separated by commas. The range can be specified as a
+single numeric value, or a wildcard asterisk can be used to specify a range
+of values.  This takes the form "\*" or "\*n" or "n\*" or "m\*n".  For
+example, if M = the number of atom types, then an asterisk with no numeric
+values means all types from 1 to M.  A leading asterisk means all types
+from 1 to n (inclusive).  A trailing asterisk means all types from n to M
+(inclusive).  A middle asterisk means all types from m to n (inclusive).
+Multiple *type/include* keywords may be added.
 
 Output info
 """""""""""
@@ -149,3 +168,11 @@ Default
 """""""
 
 none
+
+----------
+
+.. _Ouadfel:
+
+**(Ouadfel)** Ouadfel and Rothenburg
+"Stress-force-fabric relationship for assemblies of ellipsoids",
+Mechanics of Materials (2001). (`link to paper <https://doi.org/10.1016/S0167-6636(00)00057-0>`_)

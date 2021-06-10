@@ -16,14 +16,18 @@
 #include <cstring>
 #include <mpi.h>
 #include "atom.h"
-#include "update.h"
+#include "error.h"
 #include "force.h"
-#include "pair.h"
+#include "memory.h"
 #include "modify.h"
 #include "neighbor.h"
 #include "neigh_request.h"
 #include "neigh_list.h"
-#include "error.h"
+#include "pair.h"
+#include "tokenizer.h"
+#include "update.h"
+
+#include <string.h>
 
 using namespace LAMMPS_NS;
 
@@ -35,7 +39,7 @@ enum{CN,BR,FN,FT};
 
 ComputeFabric::ComputeFabric(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  tensor_style(NULL), vector(NULL)
+  tensor_style(NULL)
 {
   if (narg < 3) error->all(FLERR,"Illegal compute fabric command");
 
@@ -53,6 +57,7 @@ ComputeFabric::ComputeFabric(LAMMPS *lmp, int narg, char **arg) :
   br_flag = 0;
   fn_flag = 0;
   ft_flag = 0;
+  type_filter = nullptr;
 
   ntensors = 0;
   int iarg = 4;
@@ -69,6 +74,54 @@ ComputeFabric::ComputeFabric(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"force/tangential") == 0) {
       ft_flag = 1;
       tensor_style[ntensors++] = FT;
+    } else if (strcmp(arg[iarg], "type/include") == 0) {
+      if (iarg + 1 >= narg) error->all(FLERR, "Invalid keyword in compute fabric command");
+      int ntypes = atom->ntypes;
+
+      int i, j, itype, jtype, in, jn, infield, jnfield;
+      int inlo, inhi, jnlo, jnhi;
+      char *istr, *jstr;
+      if (!type_filter) {
+        memory->create(type_filter, ntypes + 1, ntypes + 1, "compute/fabric:type_filter");
+
+        for (i = 0; i <= ntypes; i++) {
+          for (j = 0; j <= ntypes; j++) { type_filter[i][j] = 0; }
+        }
+      }
+
+      in = strlen(arg[iarg + 1]) + 1;
+      istr = new char[in];
+      strcpy(istr, arg[iarg + 1]);
+      std::vector<std::string> iwords = Tokenizer(istr, ",").as_vector();
+      infield = iwords.size();
+
+      jn = strlen(arg[iarg + 2]) + 1;
+      jstr = new char[jn];
+      strcpy(jstr, arg[iarg + 2]);
+      std::vector<std::string> jwords = Tokenizer(jstr, ",").as_vector();
+      jnfield = jwords.size();
+
+      for (i = 0; i < infield; i++) {
+        const char *ifield = iwords[i].c_str();
+        utils::bounds(FLERR, ifield, 1, ntypes, inlo, inhi, error);
+
+        for (j = 0; j < jnfield; j++) {
+          const char *jfield = jwords[j].c_str();
+          utils::bounds(FLERR, jfield, 1, ntypes, jnlo, jnhi, error);
+
+          for (itype = inlo; itype <= inhi; itype++) {
+            for (jtype = jnlo; jtype <= jnhi; jtype++) {
+              type_filter[itype][jtype] = 1;
+              type_filter[jtype][itype] = 1;
+            }
+          }
+        }
+      }
+
+      delete[] istr;
+      delete[] jstr;
+
+      iarg += 2;      
     } else error->all(FLERR,"Illegal compute fabric command");
     iarg++;
   }
@@ -86,6 +139,7 @@ ComputeFabric::~ComputeFabric()
 {
   delete [] vector;
   delete [] tensor_style;
+  memory->destroy(type_filter);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -209,11 +263,15 @@ void ComputeFabric::compute_vector()
         }
       }
 
+      jtype = type[j];
+      
+      if (type_filter) 
+        if (type_filter[itype][jtype] == 0) return;
+
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
-      jtype = type[j];
 
       if (cutstyle == TYPE) {
         if (rsq >= cutsq[itype][jtype]) continue;
@@ -303,11 +361,15 @@ void ComputeFabric::compute_vector()
           }
         }
 
+        jtype = type[j];
+        
+        if (type_filter) 
+          if (type_filter[itype][jtype] == 0) return;        
+
         delx = xtmp - x[j][0];
         dely = ytmp - x[j][1];
         delz = ztmp - x[j][2];
         rsq = delx*delx + dely*dely + delz*delz;
-        jtype = type[j];
 
         if (cutstyle == TYPE) {
           if (rsq >= cutsq[itype][jtype]) continue;

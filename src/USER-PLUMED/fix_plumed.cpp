@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -419,7 +420,7 @@ void FixPlumed::post_force(int /* vflag */)
   p->cmd("getBias",&bias);
 
   // Pass virial to plumed
-  // If energy is needed plmd_virial is equal to Lammps' virial
+  // If energy is needed plmd_virial is equal to LAMMPS' virial
   // If energy is not needed plmd_virial is initialized to zero
   // In the first case the virial will be rescaled and an extra term will be added
   // In the latter case only an extra term will be added

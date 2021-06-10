@@ -2036,8 +2036,6 @@ template <class Space, class MemTraits = void>
 void test_layoutleft_to_layoutleft() {
   Impl::test_subview_legal_args_left();
 
-  // FIXME_SYCL requires MDRange policy
-#ifndef KOKKOS_ENABLE_SYCL
   using view3D_t = Kokkos::View<int***, Kokkos::LayoutLeft, Space>;
   using view4D_t = Kokkos::View<int****, Kokkos::LayoutLeft, Space>;
   {
@@ -2075,15 +2073,12 @@ void test_layoutleft_to_layoutleft() {
                                                                   1);
     check.run();
   }
-#endif
 }
 
 template <class Space, class MemTraits = void>
 void test_layoutright_to_layoutright() {
   Impl::test_subview_legal_args_right();
 
-  // FIXME_SYCL requires MDRange policy
-#ifndef KOKKOS_ENABLE_SYCL
   using view3D_t = Kokkos::View<int***, Kokkos::LayoutRight, Space>;
   using view4D_t = Kokkos::View<int****, Kokkos::LayoutRight, Space>;
   {
@@ -2107,7 +2102,6 @@ void test_layoutright_to_layoutright() {
                                                                   0);
     check.run();
   }
-#endif
 }
 //----------------------------------------------------------------------------
 
@@ -2135,6 +2129,51 @@ void test_unmanaged_subview_reset() {
   Kokkos::parallel_for(
       Kokkos::RangePolicy<typename Space::execution_space>(0, 1),
       TestUnmanagedSubviewReset<Space>());
+}
+
+//----------------------------------------------------------------------------
+
+template <std::underlying_type_t<Kokkos::MemoryTraitsFlags> MTF>
+struct TestSubviewMemoryTraitsConstruction {
+  void operator()() const noexcept {
+    using view_type          = Kokkos::View<double*, Kokkos::HostSpace>;
+    using size_type          = view_type::size_type;
+    using memory_traits_type = Kokkos::MemoryTraits<MTF>;
+
+    view_type v("v", 7);
+    for (size_type i = 0; i != v.size(); ++i) v[i] = static_cast<double>(i);
+
+    std::pair<int, int> range(3, 5);
+    auto sv = Kokkos::subview<memory_traits_type>(v, range);
+
+    ASSERT_EQ(2u, sv.size());
+    EXPECT_EQ(3., sv[0]);
+    EXPECT_EQ(4., sv[1]);
+  }
+};
+
+inline void test_subview_memory_traits_construction() {
+  // Test all combinations of MemoryTraits:
+  // Unmanaged (1)
+  // RandomAccess (2)
+  // Atomic (4)
+  // Restricted (8)
+  TestSubviewMemoryTraitsConstruction<0>()();
+  TestSubviewMemoryTraitsConstruction<1>()();
+  TestSubviewMemoryTraitsConstruction<2>()();
+  TestSubviewMemoryTraitsConstruction<3>()();
+  TestSubviewMemoryTraitsConstruction<4>()();
+  TestSubviewMemoryTraitsConstruction<5>()();
+  TestSubviewMemoryTraitsConstruction<6>()();
+  TestSubviewMemoryTraitsConstruction<7>()();
+  TestSubviewMemoryTraitsConstruction<8>()();
+  TestSubviewMemoryTraitsConstruction<9>()();
+  TestSubviewMemoryTraitsConstruction<10>()();
+  TestSubviewMemoryTraitsConstruction<11>()();
+  TestSubviewMemoryTraitsConstruction<12>()();
+  TestSubviewMemoryTraitsConstruction<13>()();
+  TestSubviewMemoryTraitsConstruction<14>()();
+  TestSubviewMemoryTraitsConstruction<15>()();
 }
 
 //----------------------------------------------------------------------------

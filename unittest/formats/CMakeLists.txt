@@ -28,6 +28,11 @@ if(PKG_MANYBODY)
     set_tests_properties(EIMPotentialFileReader PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
 endif()
 
+add_executable(test_text_file_reader test_text_file_reader.cpp)
+target_link_libraries(test_text_file_reader PRIVATE lammps GTest::GMock GTest::GTest)
+add_test(NAME TextFileReader COMMAND test_text_file_reader WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+set_tests_properties(TextFileReader PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
+
 add_executable(test_file_operations test_file_operations.cpp)
 target_link_libraries(test_file_operations PRIVATE lammps GTest::GMock GTest::GTest)
 add_test(NAME FileOperations COMMAND test_file_operations WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
@@ -101,6 +106,11 @@ add_executable(test_dump_cfg test_dump_cfg.cpp)
 target_link_libraries(test_dump_cfg PRIVATE lammps GTest::GMock GTest::GTest)
 add_test(NAME DumpCfg COMMAND test_dump_cfg WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 set_tests_properties(DumpCfg PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
+
+add_executable(test_dump_local test_dump_local.cpp)
+target_link_libraries(test_dump_local PRIVATE lammps GTest::GMock GTest::GTest)
+add_test(NAME DumpLocal COMMAND test_dump_local WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+set_tests_properties(DumpLocal PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
 
 if(BUILD_TOOLS)
     set_tests_properties(DumpAtom PROPERTIES ENVIRONMENT "BINARY2TXT_BINARY=$<TARGET_FILE:binary2txt>")

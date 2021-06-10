@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,18 +18,17 @@
 
 #include "improper_class2.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
-#include "neighbor.h"
-#include "update.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
+#include "neighbor.h"
+#include "update.h"
 
-
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -153,19 +153,8 @@ void ImproperClass2::compute(int eflag, int vflag)
     // angle error check
 
     for (i = 0; i < 3; i++) {
-      if (costheta[i] == -1.0) {
-        int me = comm->me;
-        if (screen) {
-          error->warning(FLERR,fmt::format("Improper problem: {} {} {} {} {} {}",
-                                           me,update->ntimestep,
-                                           atom->tag[i1],atom->tag[i2],
-                                           atom->tag[i3],atom->tag[i4]));
-          fmt::print(screen,"  1st atom: {} {} {} {}\n",me,x[i1][0],x[i1][1],x[i1][2]);
-          fmt::print(screen,"  2nd atom: {} {} {} {}\n",me,x[i2][0],x[i2][1],x[i2][2]);
-          fmt::print(screen,"  3rd atom: {} {} {} {}\n",me,x[i3][0],x[i3][1],x[i3][2]);
-          fmt::print(screen,"  4th atom: {} {} {} {}\n",me,x[i4][0],x[i4][1],x[i4][2]);
-        }
-      }
+      if (costheta[i] == -1.0)
+        problem(FLERR, i1, i2, i3, i4);
     }
 
     for (i = 0; i < 3; i++) {

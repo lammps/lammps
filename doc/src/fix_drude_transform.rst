@@ -25,6 +25,8 @@ Examples
    fix 3 all drude/transform/direct
    fix 1 all drude/transform/inverse
 
+Example input scripts available: examples/USER/drude
+
 Description
 """""""""""
 

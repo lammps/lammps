@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -216,7 +217,7 @@ void PPPM::init()
   }
 
   if (order < 2 || order > MAXORDER)
-    error->all(FLERR,fmt::format("PPPM order cannot be < 2 or > {}",MAXORDER));
+    error->all(FLERR,"PPPM order cannot be < 2 or > {}",MAXORDER);
 
   // compute two charge force
 

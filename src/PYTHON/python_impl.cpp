@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -263,14 +264,14 @@ void PythonImpl::command(int narg, char **arg)
 
   if (!pFunc) {
     PyUtils::Print_Errors();
-    error->all(FLERR,fmt::format("Could not find Python function {}",
-                                 pfuncs[ifunc].name));
+    error->all(FLERR,"Could not find Python function {}",
+                                 pfuncs[ifunc].name);
   }
 
   if (!PyCallable_Check(pFunc)) {
     PyUtils::Print_Errors();
-    error->all(FLERR,fmt::format("Python function {} is not callable",
-                                 pfuncs[ifunc].name));
+    error->all(FLERR,"Python function {} is not callable",
+                                 pfuncs[ifunc].name);
   }
 
   pfuncs[ifunc].pFunc = (void *) pFunc;

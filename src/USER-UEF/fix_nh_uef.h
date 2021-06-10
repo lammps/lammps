@@ -13,17 +13,16 @@
    Contributing Author: David Nicholson (MIT)
 ------------------------------------------------------------------------- */
 
-
 #ifndef LMP_FIX_NH_UEF_H
 #define LMP_FIX_NH_UEF_H
 
 #include "fix_nh.h"
 
 namespace LAMMPS_NS {
-  // forward declaration
-  namespace UEF_utils {
-    class UEFBox;
-  }
+// forward declaration
+namespace UEF_utils {
+  class UEFBox;
+}
 
 class FixNHUef : public FixNH {
  public:
@@ -33,7 +32,7 @@ class FixNHUef : public FixNH {
   virtual void init();
   virtual void setup(int);
   virtual void pre_exchange();
-  virtual int pack_restart_data(double*);
+  virtual int pack_restart_data(double *);
   virtual void restart(char *);
   virtual void end_of_step();
   virtual void initial_integrate(int);
@@ -42,7 +41,7 @@ class FixNHUef : public FixNH {
   virtual void final_integrate_respa(int, int);
   virtual void post_run();
   void get_rot(double[3][3]);
-  void get_ext_flags(bool*);
+  void get_ext_flags(bool *);
   void get_box(double[3][3]);
 
  protected:
@@ -50,26 +49,26 @@ class FixNHUef : public FixNH {
   virtual int size_restart_global();
   virtual void nve_x();
   virtual void nve_v();
-  void rotate_x(double [3][3]);
+  void rotate_x(double[3][3]);
   void inv_rotate_x(double[3][3]);
   void rotate_v(double[3][3]);
   void inv_rotate_v(double[3][3]);
   void rotate_f(double[3][3]);
   void inv_rotate_f(double[3][3]);
-  double strain[2],erate[2]; // strain/strain rate : [e_x, e_y]
-                             // always assume traceless e_z = -e_x-e_y
+  double strain[2], erate[2];    // strain/strain rate : [e_x, e_y]
+                                 // always assume traceless e_z = -e_x-e_y
 
-  int rem;                   //this is for the narg kluge
+  int rem;    //this is for the narg kluge
 
-  UEF_utils::UEFBox *uefbox;      // interface for the special simulation box
+  UEF_utils::UEFBox *uefbox;    // interface for the special simulation box
 
-  double rot[3][3];          // rotation matrix
-  bool ext_flags[3];         // flags for external "free surfaces"
-  bool nearly_equal(double,double,double);
+  double rot[3][3];     // rotation matrix
+  bool ext_flags[3];    // flags for external "free surfaces"
+  bool nearly_equal(double, double, double);
   //bool rotate_output;      // experimental feature. Too many issues for now
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 

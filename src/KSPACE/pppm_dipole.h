@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef KSPACE_CLASS
-
-KSpaceStyle(pppm/dipole,PPPMDipole)
-
+// clang-format off
+KSpaceStyle(pppm/dipole,PPPMDipole);
+// clang-format on
 #else
 
 #ifndef LMP_PPPM_DIPOLE_H
@@ -57,23 +57,23 @@ class PPPMDipole : public PPPM {
 
   // dipole
 
-  FFT_SCALAR ***densityx_brick_dipole,***densityy_brick_dipole,***densityz_brick_dipole;
-  FFT_SCALAR ***vdxx_brick_dipole,***vdyy_brick_dipole,***vdzz_brick_dipole;
-  FFT_SCALAR ***vdxy_brick_dipole,***vdxz_brick_dipole,***vdyz_brick_dipole;
-  FFT_SCALAR ***ux_brick_dipole,***uy_brick_dipole,***uz_brick_dipole;
-  FFT_SCALAR ***v0x_brick_dipole,***v1x_brick_dipole,***v2x_brick_dipole;
-  FFT_SCALAR ***v3x_brick_dipole,***v4x_brick_dipole,***v5x_brick_dipole;
-  FFT_SCALAR ***v0y_brick_dipole,***v1y_brick_dipole,***v2y_brick_dipole;
-  FFT_SCALAR ***v3y_brick_dipole,***v4y_brick_dipole,***v5y_brick_dipole;
-  FFT_SCALAR ***v0z_brick_dipole,***v1z_brick_dipole,***v2z_brick_dipole;
-  FFT_SCALAR ***v3z_brick_dipole,***v4z_brick_dipole,***v5z_brick_dipole;
-  FFT_SCALAR *work3,*work4;
-  FFT_SCALAR *densityx_fft_dipole,*densityy_fft_dipole,*densityz_fft_dipole;
+  FFT_SCALAR ***densityx_brick_dipole, ***densityy_brick_dipole, ***densityz_brick_dipole;
+  FFT_SCALAR ***vdxx_brick_dipole, ***vdyy_brick_dipole, ***vdzz_brick_dipole;
+  FFT_SCALAR ***vdxy_brick_dipole, ***vdxz_brick_dipole, ***vdyz_brick_dipole;
+  FFT_SCALAR ***ux_brick_dipole, ***uy_brick_dipole, ***uz_brick_dipole;
+  FFT_SCALAR ***v0x_brick_dipole, ***v1x_brick_dipole, ***v2x_brick_dipole;
+  FFT_SCALAR ***v3x_brick_dipole, ***v4x_brick_dipole, ***v5x_brick_dipole;
+  FFT_SCALAR ***v0y_brick_dipole, ***v1y_brick_dipole, ***v2y_brick_dipole;
+  FFT_SCALAR ***v3y_brick_dipole, ***v4y_brick_dipole, ***v5y_brick_dipole;
+  FFT_SCALAR ***v0z_brick_dipole, ***v1z_brick_dipole, ***v2z_brick_dipole;
+  FFT_SCALAR ***v3z_brick_dipole, ***v4z_brick_dipole, ***v5z_brick_dipole;
+  FFT_SCALAR *work3, *work4;
+  FFT_SCALAR *densityx_fft_dipole, *densityy_fft_dipole, *densityz_fft_dipole;
 
   class GridComm *gc_dipole;
 
   int only_dipole_flag;
-  double musum,musqsum,mu2;
+  double musum, musqsum, mu2;
 
   double find_gewald_dipole(double, double, bigint, double, double);
   double newton_raphson_f_dipole(double, double, bigint, double, double);
@@ -91,7 +91,7 @@ class PPPMDipole : public PPPM {
   void musum_musq();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

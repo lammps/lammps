@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -116,27 +117,27 @@ void PairTable::compute(int eflag, int vflag)
       if (rsq < cutsq[itype][jtype]) {
         tb = &tables[tabindex[itype][jtype]];
         if (rsq < tb->innersq)
-          error->one(FLERR,fmt::format("Pair distance < table inner cutoff: "
-                                       "ijtype {} {} dist {}",itype,jtype,sqrt(rsq)));
+          error->one(FLERR,"Pair distance < table inner cutoff: "
+                                       "ijtype {} {} dist {}",itype,jtype,sqrt(rsq));
         if (tabstyle == LOOKUP) {
           itable = static_cast<int> ((rsq - tb->innersq) * tb->invdelta);
           if (itable >= tlm1)
-            error->one(FLERR,fmt::format("Pair distance > table outer cutoff: "
-                                         "ijtype {} {} dist {}",itype,jtype,sqrt(rsq)));
+            error->one(FLERR,"Pair distance > table outer cutoff: "
+                                         "ijtype {} {} dist {}",itype,jtype,sqrt(rsq));
           fpair = factor_lj * tb->f[itable];
         } else if (tabstyle == LINEAR) {
           itable = static_cast<int> ((rsq - tb->innersq) * tb->invdelta);
           if (itable >= tlm1)
-            error->one(FLERR,fmt::format("Pair distance > table outer cutoff: "
-                                         "ijtype {} {} dist {}",itype,jtype,sqrt(rsq)));
+            error->one(FLERR,"Pair distance > table outer cutoff: "
+                                         "ijtype {} {} dist {}",itype,jtype,sqrt(rsq));
           fraction = (rsq - tb->rsq[itable]) * tb->invdelta;
           value = tb->f[itable] + fraction*tb->df[itable];
           fpair = factor_lj * value;
         } else if (tabstyle == SPLINE) {
           itable = static_cast<int> ((rsq - tb->innersq) * tb->invdelta);
           if (itable >= tlm1)
-            error->one(FLERR,fmt::format("Pair distance > table outer cutoff: "
-                                         "ijtype {} {} dist {}",itype,jtype,sqrt(rsq)));
+            error->one(FLERR,"Pair distance > table outer cutoff: "
+                                         "ijtype {} {} dist {}",itype,jtype,sqrt(rsq));
           b = (rsq - tb->rsq[itable]) * tb->invdelta;
           a = 1.0 - b;
           value = a * tb->f[itable] + b * tb->f[itable+1] +
@@ -214,7 +215,7 @@ void PairTable::settings(int narg, char **arg)
   else if (strcmp(arg[0],"linear") == 0) tabstyle = LINEAR;
   else if (strcmp(arg[0],"spline") == 0) tabstyle = SPLINE;
   else if (strcmp(arg[0],"bitmap") == 0) tabstyle = BITMAP;
-  else error->all(FLERR,"Unknown table style in pair_style command");
+  else error->all(FLERR,"Unknown table style in pair_style command: {}", arg[0]);
 
   tablength = utils::inumeric(FLERR,arg[1],false,lmp);
   if (tablength < 2) error->all(FLERR,"Illegal number of pair table entries");
@@ -458,25 +459,23 @@ void PairTable::read_table(Table *tb, char *file, char *keyword)
   }
 
   if (ferror)
-    error->warning(FLERR,fmt::format("{} of {} force values in table {} are "
-                                     "inconsistent with -dE/dr.\n  Should "
-                                     "only be flagged at inflection points",
-                                     ferror,tb->ninput,keyword));
+    error->warning(FLERR,"{} of {} force values in table {} are inconsistent "
+                   "with -dE/dr.\nWARNING:  Should only be flagged at "
+                   "inflection points",ferror,tb->ninput,keyword);
 
   // warn if re-computed distance values differ from file values
 
   if (rerror)
-    error->warning(FLERR,fmt::format("{} of {} distance values in table {} "
-                                     "with relative error\n  over {} to "
-                                     "re-computed values",
-                                     rerror,tb->ninput,EPSILONR,keyword));
+    error->warning(FLERR,"{} of {} distance values in table {} with relative "
+                   "error\nWARNING:  over {} to re-computed values",
+                   rerror,tb->ninput,EPSILONR,keyword);
 
   // warn if data was read incompletely, e.g. columns were missing
 
   if (cerror)
-    error->warning(FLERR,fmt::format("{} of {} lines in table {} were "
-                                     "incomplete\n  or could not be parsed "
-                                     "completely",cerror,tb->ninput,keyword));
+    error->warning(FLERR,"{} of {} lines in table {} were incomplete\n"
+                   "WARNING:  or could not be parsed completely",
+                   cerror,tb->ninput,keyword);
 }
 
 /* ----------------------------------------------------------------------
@@ -568,7 +567,7 @@ void PairTable::param_extract(Table *tb, char *line)
         tb->fplo = values.next_double();
         tb->fphi = values.next_double();
       } else {
-        error->one(FLERR,fmt::format("Invalid keyword {} in pair table parameters", word).c_str());
+        error->one(FLERR,"Invalid keyword {} in pair table parameters", word);
       }
     }
   } catch (TokenizerException &e) {

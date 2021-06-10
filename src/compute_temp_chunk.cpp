@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -47,7 +48,7 @@ ComputeTempChunk::ComputeTempChunk(LAMMPS *lmp, int narg, char **arg) :
   idchunk = utils::strdup(arg[3]);
 
   biasflag = 0;
-  init();
+  ComputeTempChunk::init();
 
   // optional per-chunk values
 
@@ -438,7 +439,7 @@ void ComputeTempChunk::vcm_compute()
 
   int *ichunk = cchunk->ichunk;
 
-  for (int i = 0; i < nchunk; i++) {
+  for (i = 0; i < nchunk; i++) {
     vcm[i][0] = vcm[i][1] = vcm[i][2] = 0.0;
     massproc[i] = 0.0;
   }
@@ -487,7 +488,7 @@ void ComputeTempChunk::temperature(int icol)
 
   // zero local per-chunk values
 
-  for (int i = 0; i < nchunk; i++) {
+  for (i = 0; i < nchunk; i++) {
     count[i] = 0;
     sum[i] = 0.0;
   }
@@ -560,7 +561,7 @@ void ComputeTempChunk::temperature(int icol)
   double mvv2e = force->mvv2e;
   double boltz = force->boltz;
 
-  for (int i = 0; i < nchunk; i++) {
+  for (i = 0; i < nchunk; i++) {
     dof = cdof + adof*countall[i];
     if (dof > 0.0) tfactor = mvv2e / (dof * boltz);
     else tfactor = 0.0;

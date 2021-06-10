@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(shake,FixShake)
-
+// clang-format off
+FixStyle(shake,FixShake);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_SHAKE_H
@@ -26,7 +26,7 @@ namespace LAMMPS_NS {
 
 class FixShake : public Fix {
 
- friend class FixEHEX;
+  friend class FixEHEX;
 
  public:
   FixShake(class LAMMPS *, int, char **);
@@ -59,64 +59,64 @@ class FixShake : public Fix {
   void *extract(const char *, int &);
 
  protected:
-  int vflag_post_force;                  // store the vflag of last post_force call
-  int respa;                             // 0 = vel. Verlet, 1 = respa
-  int me,nprocs;
-  int rattle;                            // 0 = SHAKE, 1 = RATTLE
-  double tolerance;                      // SHAKE tolerance
-  int max_iter;                          // max # of SHAKE iterations
-  int output_every;                      // SHAKE stat output every so often
-  bigint next_output;                    // timestep for next output
+  int vflag_post_force;    // store the vflag of last post_force call
+  int respa;               // 0 = vel. Verlet, 1 = respa
+  int me, nprocs;
+  int rattle;            // 0 = SHAKE, 1 = RATTLE
+  double tolerance;      // SHAKE tolerance
+  int max_iter;          // max # of SHAKE iterations
+  int output_every;      // SHAKE stat output every so often
+  bigint next_output;    // timestep for next output
 
-                                         // settings from input command
-  int *bond_flag,*angle_flag;            // bond/angle types to constrain
-  int *type_flag;                        // constrain bonds to these types
-  double *mass_list;                     // constrain bonds to these masses
-  int nmass;                             // # of masses in mass_list
+  // settings from input command
+  int *bond_flag, *angle_flag;    // bond/angle types to constrain
+  int *type_flag;                 // constrain bonds to these types
+  double *mass_list;              // constrain bonds to these masses
+  int nmass;                      // # of masses in mass_list
 
-  int molecular;                         // copy of atom->molecular
-  double *bond_distance,*angle_distance; // constraint distances
+  int molecular;                             // copy of atom->molecular
+  double *bond_distance, *angle_distance;    // constraint distances
 
-  int ifix_respa;                        // rRESPA fix needed by SHAKE
-  int nlevels_respa;                     // copies of needed rRESPA variables
+  int ifix_respa;       // rRESPA fix needed by SHAKE
+  int nlevels_respa;    // copies of needed rRESPA variables
   int *loop_respa;
   double *step_respa;
 
-  double **x,**v,**f;                    // local ptrs to atom class quantities
-  double **ftmp,**vtmp;                  // pointers to temporary arrays for f,v
+  double **x, **v, **f;     // local ptrs to atom class quantities
+  double **ftmp, **vtmp;    // pointers to temporary arrays for f,v
 
-  double *mass,*rmass;
+  double *mass, *rmass;
   int *type;
   int nlocal;
-                                         // atom-based arrays
-  int *shake_flag;                       // 0 if atom not in SHAKE cluster
-                                         // 1 = size 3 angle cluster
-                                         // 2,3,4 = size of bond-only cluster
-  tagint **shake_atom;                   // global IDs of atoms in cluster
-                                         // central atom is 1st
-                                         // lowest global ID is 1st for size 2
-  int **shake_type;                      // bondtype of each bond in cluster
-                                         // for angle cluster, 3rd value
-                                         //   is angletype
-  double **xshake;                       // unconstrained atom coords
-  int *nshake;                           // count
+  // atom-based arrays
+  int *shake_flag;        // 0 if atom not in SHAKE cluster
+                          // 1 = size 3 angle cluster
+                          // 2,3,4 = size of bond-only cluster
+  tagint **shake_atom;    // global IDs of atoms in cluster
+                          // central atom is 1st
+                          // lowest global ID is 1st for size 2
+  int **shake_type;       // bondtype of each bond in cluster
+                          // for angle cluster, 3rd value
+                          //   is angletype
+  double **xshake;        // unconstrained atom coords
+  int *nshake;            // count
 
-  double dtv,dtfsq;                     // timesteps for trial move
-  double dtf_inner,dtf_innerhalf;       // timesteps for rRESPA trial move
+  double dtv, dtfsq;                  // timesteps for trial move
+  double dtf_inner, dtf_innerhalf;    // timesteps for rRESPA trial move
 
-  int *list;                            // list of clusters to SHAKE
-  int nlist,maxlist;                    // size and max-size of list
+  int *list;             // list of clusters to SHAKE
+  int nlist, maxlist;    // size and max-size of list
 
-                                        // stat quantities
-  int *b_count,*b_count_all;            // counts for each bond type
-  double *b_ave,*b_max,*b_min;          // ave/max/min dist for each bond type
-  double *b_ave_all,*b_max_all,*b_min_all;   // MPI summing arrays
-  int *a_count,*a_count_all;            // ditto for angle types
-  double *a_ave,*a_max,*a_min;
-  double *a_ave_all,*a_max_all,*a_min_all;
+  // stat quantities
+  int *b_count, *b_count_all;                   // counts for each bond type
+  double *b_ave, *b_max, *b_min;                // ave/max/min dist for each bond type
+  double *b_ave_all, *b_max_all, *b_min_all;    // MPI summing arrays
+  int *a_count, *a_count_all;                   // ditto for angle types
+  double *a_ave, *a_max, *a_min;
+  double *a_ave_all, *a_max_all, *a_min_all;
 
-  class Molecule **atommols;            // atom style template pointer
-  class Molecule **onemols;             // molecule added on-the-fly
+  class Molecule **atommols;    // atom style template pointer
+  class Molecule **onemols;     // molecule added on-the-fly
   int nmol;
 
   void find_clusters();
@@ -148,12 +148,12 @@ class FixShake : public Fix {
   };
 
   struct PartnerInfo {
-    tagint atomID,partnerID;
-    int mask,type,massflag,bondtype;
+    tagint atomID, partnerID;
+    int mask, type, massflag, bondtype;
   };
 
   struct NShakeInfo {
-    tagint atomID,partnerID;
+    tagint atomID, partnerID;
     int nshake;
   };
 
@@ -172,7 +172,7 @@ class FixShake : public Fix {
   static int rendezvous_shake(int, char *, int &, int *&, char *&, void *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

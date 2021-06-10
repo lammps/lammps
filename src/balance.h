@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,25 +12,25 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMMAND_CLASS
-
-CommandStyle(balance,Balance)
-
+// clang-format off
+CommandStyle(balance,Balance);
+// clang-format on
 #else
 
 #ifndef LMP_BALANCE_H
 #define LMP_BALANCE_H
 
-#include "pointers.h"
+#include "command.h"
 
 namespace LAMMPS_NS {
 
-class Balance : protected Pointers {
+class Balance : public Command {
  public:
   class RCB *rcb;
-  class FixStore *fixstore;       // per-atom weights stored in FixStore
-  int wtflag;                     // 1 if particle weighting is used
-  int varflag;                    // 1 if weight style var(iable) is used
-  int outflag;                    // 1 for output of balance results to file
+  class FixStore *fixstore;    // per-atom weights stored in FixStore
+  int wtflag;                  // 1 if particle weighting is used
+  int varflag;                 // 1 if weight style var(iable) is used
+  int outflag;                 // 1 for output of balance results to file
 
   Balance(class LAMMPS *);
   ~Balance();
@@ -46,38 +46,38 @@ class Balance : protected Pointers {
   void dumpout(bigint);
 
  private:
-  int me,nprocs;
+  int me, nprocs;
 
-  double thresh;                                    // threshold to perform LB
-  int style;                                        // style of LB
-  int xflag,yflag,zflag;                            // xyz LB flags
-  double *user_xsplit,*user_ysplit,*user_zsplit;    // params for xyz LB
-  int oldrcb;                                    // use old-style RCB compute
+  double thresh;                                      // threshold to perform LB
+  int style;                                          // style of LB
+  int xflag, yflag, zflag;                            // xyz LB flags
+  double *user_xsplit, *user_ysplit, *user_zsplit;    // params for xyz LB
+  int oldrcb;                                         // use old-style RCB compute
 
-  int nitermax;              // params for shift LB
+  int nitermax;    // params for shift LB
   double stopthresh;
   char bstr[4];
 
-  int shift_allocate;        // 1 if SHIFT vectors have been allocated
-  int ndim;                  // length of balance string bstr
-  int *bdim;                 // XYZ for each character in bstr
-  double *onecost;           // work vector of counts in one dim
-  double *allcost;           // counts for slices in one dim
-  double *sum;               // cumulative count for slices in one dim
-  double *target;            // target sum for slices in one dim
-  double *lo,*hi;            // lo/hi split coords that bound each target
-  double *losum,*hisum;      // cumulative counts at lo/hi coords
-  int rho;                   // 0 for geometric recursion
-                             // 1 for density weighted recursion
+  int shift_allocate;       // 1 if SHIFT vectors have been allocated
+  int ndim;                 // length of balance string bstr
+  int *bdim;                // XYZ for each character in bstr
+  double *onecost;          // work vector of counts in one dim
+  double *allcost;          // counts for slices in one dim
+  double *sum;              // cumulative count for slices in one dim
+  double *target;           // target sum for slices in one dim
+  double *lo, *hi;          // lo/hi split coords that bound each target
+  double *losum, *hisum;    // cumulative counts at lo/hi coords
+  int rho;                  // 0 for geometric recursion
+                            // 1 for density weighted recursion
 
-  double *proccost;          // particle cost per processor
-  double *allproccost;       // proccost summed across procs
+  double *proccost;       // particle cost per processor
+  double *allproccost;    // proccost summed across procs
 
-  int nimbalance;                 // number of user-specified weight styles
-  class Imbalance **imbalances;   // list of Imb classes, one per weight style
-  double *weight;                 // ptr to FixStore weight vector
+  int nimbalance;                  // number of user-specified weight styles
+  class Imbalance **imbalances;    // list of Imb classes, one per weight style
+  double *weight;                  // ptr to FixStore weight vector
 
-  FILE *fp;                  // balance output file
+  FILE *fp;    // balance output file
   int firststep;
 
   double imbalance_splits();
@@ -90,7 +90,7 @@ class Balance : protected Pointers {
 #endif
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

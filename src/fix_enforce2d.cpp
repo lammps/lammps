@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,14 +13,13 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_enforce2d.h"
-#include <cstring>
+
 #include "atom.h"
-#include "update.h"
 #include "domain.h"
+#include "error.h"
 #include "modify.h"
 #include "respa.h"
-#include "error.h"
-
+#include "update.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -78,8 +78,8 @@ void FixEnforce2D::init()
         if (myindex < 0)
           flist[nfixlist++] = modify->fix[i];
         else
-          error->all(FLERR,fmt::format("Fix enforce2d must be defined after fix {}",
-                                       modify->fix[i]->style));
+          error->all(FLERR,"Fix enforce2d must be defined after fix {}",
+                                       modify->fix[i]->style);
       }
       if (modify->fix[i] == this) myindex = i;
     }

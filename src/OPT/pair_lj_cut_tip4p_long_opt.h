@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(lj/cut/tip4p/long/opt,PairLJCutTIP4PLongOpt)
-
+// clang-format off
+PairStyle(lj/cut/tip4p/long/opt,PairLJCutTIP4PLongOpt);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_LJ_CUT_TIP4P_LONG_OPT_H
@@ -24,22 +24,20 @@ PairStyle(lj/cut/tip4p/long/opt,PairLJCutTIP4PLongOpt)
 
 namespace LAMMPS_NS {
 
-  class PairLJCutTIP4PLongOpt : public PairLJCutTIP4PLong {
+class PairLJCutTIP4PLongOpt : public PairLJCutTIP4PLong {
  public:
-    PairLJCutTIP4PLongOpt(class LAMMPS *);
-    virtual ~PairLJCutTIP4PLongOpt() {};
+  PairLJCutTIP4PLongOpt(class LAMMPS *);
+  virtual ~PairLJCutTIP4PLongOpt(){};
 
   virtual void compute(int, int);
   virtual double memory_usage();
 
  protected:
-  template < const int, const int, const int, const int >
-  void eval();
-  void compute_newsite_opt(const double *, const double *,
-                           const double *, double *) const;
+  template <const int, const int, const int, const int> void eval();
+  void compute_newsite_opt(const double *, const double *, const double *, double *) const;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

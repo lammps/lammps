@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef KSPACE_CLASS
-
-KSpaceStyle(pppm/tip4p/omp,PPPMTIP4POMP)
-
+// clang-format off
+KSpaceStyle(pppm/tip4p/omp,PPPMTIP4POMP);
+// clang-format on
 #else
 
 #ifndef LMP_PPPM_TIP4P_OMP_H
@@ -28,7 +28,7 @@ namespace LAMMPS_NS {
 class PPPMTIP4POMP : public PPPMTIP4P, public ThrOMP {
  public:
   PPPMTIP4POMP(class LAMMPS *);
-  virtual ~PPPMTIP4POMP ();
+  virtual ~PPPMTIP4POMP();
   virtual void compute(int, int);
 
  protected:
@@ -38,25 +38,24 @@ class PPPMTIP4POMP : public PPPMTIP4P, public ThrOMP {
   virtual void compute_gf_ad();
 
   virtual void particle_map();
-  virtual void make_rho();  // XXX: not (yet) multi-threaded
+  virtual void make_rho();    // XXX: not (yet) multi-threaded
 
   virtual void fieldforce_ik();
   virtual void fieldforce_ad();
   // virtual void fieldforce_peratom();  XXX: need to benchmark first.
 
  private:
-  void compute_rho1d_thr(FFT_SCALAR * const * const, const FFT_SCALAR &,
-                         const FFT_SCALAR &, const FFT_SCALAR &);
-  void compute_drho1d_thr(FFT_SCALAR * const * const, const FFT_SCALAR &,
-                          const FFT_SCALAR &, const FFT_SCALAR &);
+  void compute_rho1d_thr(FFT_SCALAR *const *const, const FFT_SCALAR &, const FFT_SCALAR &,
+                         const FFT_SCALAR &);
+  void compute_drho1d_thr(FFT_SCALAR *const *const, const FFT_SCALAR &, const FFT_SCALAR &,
+                          const FFT_SCALAR &);
 
   void find_M_thr(const int, int &, int &, dbl3_t &);
 
-//  void slabcorr(int);  // XXX: not (yet) multi-threaded
-
+  //  void slabcorr(int);  // XXX: not (yet) multi-threaded
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

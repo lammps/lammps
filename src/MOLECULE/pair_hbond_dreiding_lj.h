@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(hbond/dreiding/lj,PairHbondDreidingLJ)
-
+// clang-format off
+PairStyle(hbond/dreiding/lj,PairHbondDreidingLJ);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_HBOND_DREIDING_LJ_H
@@ -36,31 +36,31 @@ class PairHbondDreidingLJ : public Pair {
   virtual double single(int, int, int, int, double, double, double, double &);
 
  protected:
-  double cut_inner_global,cut_outer_global,cut_angle_global;
+  double cut_inner_global, cut_outer_global, cut_angle_global;
   int ap_global;
 
   struct Param {
-    double epsilon,sigma;
-    double lj1,lj2,lj3,lj4;
-    double d0,alpha,r0;
+    double epsilon, sigma;
+    double lj1, lj2, lj3, lj4;
+    double d0, alpha, r0;
     double morse1;
     double denom_vdw;
-    double cut_inner,cut_outer,cut_innersq,cut_outersq,cut_angle,offset;
+    double cut_inner, cut_outer, cut_innersq, cut_outersq, cut_angle, offset;
     int ap;
   };
 
-  Param *params;              // parameter set for an I-J-K interaction
-  int nparams;                // number of parameters read
+  Param *params;    // parameter set for an I-J-K interaction
+  int nparams;      // number of parameters read
   int maxparam;
 
-  int *donor;                 // 1 if this type is ever a donor, else 0
-  int *acceptor;              // 1 if this type is ever an acceptor, else 0
-  int ***type2param;          // mapping from D,A,H to params, -1 if no map
+  int *donor;           // 1 if this type is ever a donor, else 0
+  int *acceptor;        // 1 if this type is ever an acceptor, else 0
+  int ***type2param;    // mapping from D,A,H to params, -1 if no map
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

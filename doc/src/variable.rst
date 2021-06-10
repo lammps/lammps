@@ -363,12 +363,14 @@ variable, as discussed below.
 
 The rules for formatting the file are as follows.  Each time a set of
 per-atom values is read, a non-blank line is searched for in the file.
-A comment character "#" can be used anywhere on a line; text starting
-with the comment character is stripped.  Blank lines are skipped.  The
-first "word" of a non-blank line, delimited by white-space, is read as
-the count N of per-atom lines to immediately follow.  N can be the
-total number of atoms in the system, or only a subset.  The next N
-lines have the following format
+The file is read line by line but only up to 254 characters are used.
+The rest are ignored.  A comment character "#" can be used anywhere
+on a line and all text following and the "#" character are ignored;
+text starting with the comment character is stripped.  Blank lines
+are skipped.  The first "word" of a non-blank line, delimited by
+white-space, is read as the count N of per-atom lines to immediately
+follow.  N can be the total number of atoms in the system, or only a
+subset.  The next N lines have the following format
 
 .. parsed-literal::
 

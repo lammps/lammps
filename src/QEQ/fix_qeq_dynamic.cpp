@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,20 +18,20 @@
 
 #include "fix_qeq_dynamic.h"
 
-#include <cmath>
-
-#include <cstring>
 #include "atom.h"
 #include "comm.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "update.h"
+#include "error.h"
 #include "force.h"
 #include "group.h"
 #include "kspace.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
 #include "respa.h"
-#include "error.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -154,14 +155,9 @@ void FixQEqDynamic::pre_force(int /*vflag*/)
     }
   }
 
-  if (comm->me == 0) {
-    if (iloop == maxiter) {
-      char str[128];
-      sprintf(str,"Charges did not converge at step " BIGINT_FORMAT
-                  ": %lg",update->ntimestep,enegchk);
-      error->warning(FLERR,str);
-    }
-  }
+  if ((comm->me == 0) && (iloop >= maxiter))
+      error->warning(FLERR,"Charges did not converge at step {}: {}",
+                     update->ntimestep,enegchk);
 
   if (force->kspace) force->kspace->qsum_qsq();
 }

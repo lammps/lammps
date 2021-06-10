@@ -1,6 +1,6 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -50,20 +50,21 @@ namespace user_manifold {
   class manifold_gaussian_bump : public manifold {
    public:
     enum { NPARAMS = 4 };
-    manifold_gaussian_bump(class LAMMPS*, int, char **);
+    manifold_gaussian_bump(class LAMMPS *, int, char **);
     virtual ~manifold_gaussian_bump();
 
-    virtual double g( const double * );
-    virtual void   n( const double *, double * );
+    virtual double g(const double *);
+    virtual void n(const double *, double *);
 
     // Variant of g that computes n at the same time.
-    virtual double g_and_n( const double *x, double *nn );
+    virtual double g_and_n(const double *x, double *nn);
 
-    static const char* type() { return "gaussian_bump"; }
+    static const char *type() { return "gaussian_bump"; }
     virtual const char *id() { return type(); }
 
     virtual int nparams() { return NPARAMS; }
     virtual void post_param_init();
+
    private:
     // Some private constants:
     double AA, ll, ll2, f_at_rc, fp_at_rc;
@@ -76,24 +77,22 @@ namespace user_manifold {
     double *lut_z;
     double *lut_zp;
 
-    double gaussian_bump    ( double ) const;
-    double gaussian_bump_x2 ( double ) const;
-    double gaussian_bump_der( double ) const;
+    double gaussian_bump(double) const;
+    double gaussian_bump_x2(double) const;
+    double gaussian_bump_der(double) const;
 
-    void   make_lut();
-    double lut_get_z ( double rr ) const;
-    double lut_get_zp( double rr ) const;
-    void lut_get_z_and_zp( double rr, double &zz, double &zzp ) const;
+    void make_lut();
+    double lut_get_z(double rr) const;
+    double lut_get_zp(double rr) const;
+    void lut_get_z_and_zp(double rr, double &zz, double &zzp) const;
 
     void test_lut();
 
-    double taper( double );
-    double taper_der( double );
-
+    double taper(double);
+    double taper_der(double);
   };
-}
+}    // namespace user_manifold
 
-}
+}    // namespace LAMMPS_NS
 
-
-#endif // LMP_MANIFOLD_GAUSSIAN_BUMP_H
+#endif    // LMP_MANIFOLD_GAUSSIAN_BUMP_H

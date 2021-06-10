@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -93,7 +94,7 @@ void FixPythonInvoke::end_of_step()
 {
   PyUtils::GIL lock;
 
-  PyObject * result = PyObject_CallFunction((PyObject*)pFunc, "O", (PyObject*)lmpPtr);
+  PyObject * result = PyObject_CallFunction((PyObject*)pFunc, (char *)"O", (PyObject*)lmpPtr);
 
   if (!result) {
     PyUtils::Print_Errors();
@@ -110,8 +111,9 @@ void FixPythonInvoke::post_force(int vflag)
   if (update->ntimestep % nevery != 0) return;
 
   PyUtils::GIL lock;
+  char fmt[] = "Oi";
 
-  PyObject * result = PyObject_CallFunction((PyObject*)pFunc, "Oi", (PyObject*)lmpPtr, vflag);
+  PyObject * result = PyObject_CallFunction((PyObject*)pFunc, fmt, (PyObject*)lmpPtr, vflag);
 
   if (!result) {
     PyUtils::Print_Errors();

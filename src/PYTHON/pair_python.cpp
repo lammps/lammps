@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -288,7 +289,7 @@ void PairPython::coeff(int narg, char **arg)
 
   py_potential = (void *) py_pair_instance;
 
-  PyObject *py_value = PyObject_CallMethod(py_pair_instance, "check_units", "s", update->unit_style);
+  PyObject *py_value = PyObject_CallMethod(py_pair_instance, (char *)"check_units", (char *)"s", update->unit_style);
   if (!py_value) {
     PyUtils::Print_Errors();
     error->all(FLERR,"Calling 'check_units' function failed");
@@ -306,7 +307,7 @@ void PairPython::coeff(int narg, char **arg)
     } else skip_types[i] = 0;
     const int type = i;
     const char * name = arg[2+i];
-    py_value = PyObject_CallMethod(py_pair_instance, "map_coeff", "si", name, type);
+    py_value = PyObject_CallMethod(py_pair_instance, (char *)"map_coeff", (char *)"si", name, type);
     if (!py_value) {
       PyUtils::Print_Errors();
       error->all(FLERR,"Calling 'map_coeff' function failed");
@@ -382,11 +383,11 @@ void * PairPython::get_member_function(const char * name)
   PyObject * py_mfunc = PyObject_GetAttrString(py_pair_instance, name);
   if (!py_mfunc) {
     PyUtils::Print_Errors();
-    error->all(FLERR, fmt::format("Could not find '{}' method'", name));
+    error->all(FLERR,"Could not find '{}' method'", name);
   }
   if (!PyCallable_Check(py_mfunc)) {
     PyUtils::Print_Errors();
-    error->all(FLERR, fmt::format("Python '{}' is not callable", name));
+    error->all(FLERR,"Python '{}' is not callable", name);
   }
   return py_mfunc;
 }

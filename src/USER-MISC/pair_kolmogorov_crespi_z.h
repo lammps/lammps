@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(kolmogorov/crespi/z,PairKolmogorovCrespiZ)
-
+// clang-format off
+PairStyle(kolmogorov/crespi/z,PairKolmogorovCrespiZ);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_KolmogorovCrespiZ_H
@@ -38,20 +38,20 @@ class PairKolmogorovCrespiZ : public Pair {
   int me;
 
   struct Param {
-    double z0,C0,C2,C4,C,delta,lambda,A,S;
-    double delta2inv,z06;
-    int ielement,jelement;
+    double z0, C0, C2, C4, C, delta, lambda, A, S;
+    double delta2inv, z06;
+    int ielement, jelement;
   };
-  Param *params;       // parameter set for I-J interactions
+  Param *params;    // parameter set for I-J interactions
 
   double cut_global;
   double **cut;
   double **offset;
-  void read_file( char * );
+  void read_file(char *);
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
@@ -74,4 +74,3 @@ All pair coefficients must be set in the data file or by the
 pair_coeff command before running a simulation.
 
 */
-

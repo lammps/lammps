@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef KSPACE_CLASS
-
-KSpaceStyle(pppm/dipole/spin,PPPMDipoleSpin)
-
+// clang-format off
+KSpaceStyle(pppm/dipole/spin,PPPMDipoleSpin);
+// clang-format on
 #else
 
 #ifndef LMP_PPPM_DIPOLE_SPIN_H
@@ -32,11 +32,11 @@ class PPPMDipoleSpin : public PPPMDipole {
   void compute(int, int);
 
  protected:
-  double hbar;                  // reduced Planck's constant
-  double mub;                   // Bohr's magneton
-  double mu_0;                  // vacuum permeability
-  double mub2mu0;               // prefactor for mech force
-  double mub2mu0hbinv;          // prefactor for mag force
+  double hbar;            // reduced Planck's constant
+  double mub;             // Bohr's magneton
+  double mu_0;            // vacuum permeability
+  double mub2mu0;         // prefactor for mech force
+  double mub2mu0hbinv;    // prefactor for mag force
 
   void slabcorr();
 
@@ -48,7 +48,7 @@ class PPPMDipoleSpin : public PPPMDipole {
   void spsum_spsq();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

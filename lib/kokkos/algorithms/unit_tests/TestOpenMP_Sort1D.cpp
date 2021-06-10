@@ -59,6 +59,8 @@ TEST(openmp, SortUnsigned1D) {
   Impl::test_1D_sort<Kokkos::OpenMP, unsigned>(171);
 }
 
+TEST(openmp, SortIssue1160) { Impl::test_issue_1160_sort<Kokkos::OpenMP>(); }
+
 }  // namespace Test
 #else
 void KOKKOS_ALGORITHMS_UNITTESTS_TESTOPENMP_PREVENT_LINK_ERROR() {}

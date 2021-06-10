@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,48 +12,48 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMMAND_CLASS
-
-CommandStyle(prd,PRD)
-
+// clang-format off
+CommandStyle(prd,PRD);
+// clang-format on
 #else
 
 #ifndef LMP_PRD_H
 #define LMP_PRD_H
 
-#include "pointers.h"
+#include "command.h"
 
 namespace LAMMPS_NS {
 
-class PRD : protected Pointers {
+class PRD : public Command {
  public:
   PRD(class LAMMPS *);
   ~PRD() {}
   void command(int, char **);
 
  private:
-  int me,nprocs;
-  int t_event,n_dephase,t_dephase,t_corr;
-  double etol,ftol,temp_dephase;
-  int maxiter,maxeval,temp_flag,stepmode,cmode;
-  char *loop_setting,*dist_setting;
+  int me, nprocs;
+  int t_event, n_dephase, t_dephase, t_corr;
+  double etol, ftol, temp_dephase;
+  int maxiter, maxeval, temp_flag, stepmode, cmode;
+  char *loop_setting, *dist_setting;
 
-  int equal_size_replicas,natoms;
-  int neigh_every,neigh_delay,neigh_dist_check;
+  int equal_size_replicas, natoms;
+  int neigh_every, neigh_delay, neigh_dist_check;
   int quench_reneighbor;
-  bigint nbuild,ndanger;
+  bigint nbuild, ndanger;
 
-  double time_dephase,time_dynamics,time_quench,time_comm,time_output;
+  double time_dephase, time_dynamics, time_quench, time_comm, time_output;
   double time_start;
 
   MPI_Comm comm_replica;
-  int *counts,*displacements;
+  int *counts, *displacements;
   tagint *tagall;
   double **xall;
   imageint *imageall;
 
   int ncoincident;
 
-  class RanPark *random_select,*random_clock;
+  class RanPark *random_select, *random_clock;
   class RanMars *random_dephase;
   class Compute *compute_event;
   class FixEventPRD *fix_event;
@@ -71,7 +71,7 @@ class PRD : protected Pointers {
   void options(int, char **);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

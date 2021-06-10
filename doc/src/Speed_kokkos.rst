@@ -406,7 +406,7 @@ Generally speaking, the following rules of thumb apply:
   package also can increase the vector length of vector instructions
   by switching to single or mixed precision mode.
 
-See the `Benchmark page <https://lammps.sandia.gov/bench.html>`_ of the
+See the `Benchmark page <https://www.lammps.org/bench.html>`_ of the
 LAMMPS web site for performance of the KOKKOS package on different
 hardware.
 

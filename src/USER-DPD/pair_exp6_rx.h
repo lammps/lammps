@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(exp6/rx,PairExp6rx)
-
+// clang-format off
+PairStyle(exp6/rx,PairExp6rx);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_EXP6_RX_H
@@ -38,26 +38,26 @@ class PairExp6rx : public Pair {
   void read_restart_settings(FILE *);
 
   struct Param {
-    double epsilon,rm,alpha;
+    double epsilon, rm, alpha;
     int ispecies;
-    char *name, *potential;      // names of unique molecules and interaction type
-    char *tablename;             // name of interaction table
-   int potentialType;              // enumerated interaction potential type.
+    char *name, *potential;    // names of unique molecules and interaction type
+    char *tablename;           // name of interaction table
+    int potentialType;         // enumerated interaction potential type.
   };
 
  protected:
-  enum{LINEAR};
-  enum{NONE,EXPONENT,POLYNOMIAL};
+  enum { LINEAR };
+  enum { NONE, EXPONENT, POLYNOMIAL };
   double cut_global;
   double **cut;
-  double **epsilon,**rm,**alpha;
-  double **rminv,**buck1,**buck2,**offset;
+  double **epsilon, **rm, **alpha;
+  double **rminv, **buck1, **buck2, **offset;
 
   virtual void allocate();
-  int *mol2param;               // mapping from molecule to parameters
-  int nparams;                  // # of stored parameter sets
-  int maxparam;                 // max # of parameter sets
-  Param *params;                // parameter set for an I-J-K interaction
+  int *mol2param;    // mapping from molecule to parameters
+  int nparams;       // # of stored parameter sets
+  int maxparam;      // max # of parameter sets
+  Param *params;     // parameter set for an I-J-K interaction
 
   int nspecies;
   virtual void read_file(char *);
@@ -66,7 +66,9 @@ class PairExp6rx : public Pair {
 
   int isite1, isite2;
   char *site1, *site2;
-  void getMixingWeights(int, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &) const;
+  void getMixingWeights(int, double &, double &, double &, double &, double &, double &, double &,
+                        double &, double &, double &, double &, double &, double &, double &,
+                        double &, double &) const;
   double exponentR, exponentEpsilon;
   int scalingFlag;
   void exponentScaling(double, double &, double &) const;
@@ -78,7 +80,7 @@ class PairExp6rx : public Pair {
   inline double expValue(const double) const;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

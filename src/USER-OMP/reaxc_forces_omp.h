@@ -31,7 +31,7 @@
 
 #include "reaxc_types.h"
 
-void Init_Force_FunctionsOMP( control_params* );
-void Compute_ForcesOMP( reax_system*, control_params*, simulation_data*,
-                     storage*, reax_list**, output_controls*, mpi_datatypes* );
+void Init_Force_FunctionsOMP(control_params *);
+void Compute_ForcesOMP(reax_system *, control_params *, simulation_data *, storage *, reax_list **,
+                       output_controls *, mpi_datatypes *);
 #endif

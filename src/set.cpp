@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -600,11 +601,11 @@ void Set::command(int narg, char **arg)
 
     if (comm->me == 0) {
       if (strcmp(arg[origarg],"cc") == 0)
-        utils::logmesg(lmp,fmt::format("  {} settings made for {} index {}\n",
-                       allcount,arg[origarg],arg[origarg+1]));
+        utils::logmesg(lmp,"  {} settings made for {} index {}\n",
+                       allcount,arg[origarg],arg[origarg+1]);
       else
-        utils::logmesg(lmp,fmt::format("  {} settings made for {}\n",
-                       allcount,arg[origarg]));
+        utils::logmesg(lmp,"  {} settings made for {}\n",
+                       allcount,arg[origarg]);
     }
   }
 

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -206,7 +207,7 @@ void ComputeCNPAtom::compute_peratom()
   if (nerrorall && comm->me == 0) {
     char str[128];
     sprintf(str,"Too many neighbors in CNP for %d atoms",nerrorall);
-    error->warning(FLERR,str,0);
+    error->warning(FLERR,str);
   }
 
   // compute CNP value for each atom in group

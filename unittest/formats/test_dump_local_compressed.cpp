@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -43,6 +43,135 @@ TEST_F(DumpLocalCompressTest, compressed_run0)
 
     auto base_name         = "run*.melt.local";
     auto base_name_0       = "run0.melt.local";
+    auto text_files        = text_dump_filename(base_name);
+    auto compressed_files  = compressed_dump_filename(base_name);
+    auto text_file_0       = text_dump_filename(base_name_0);
+    auto compressed_file_0 = compressed_dump_filename(base_name_0);
+    auto fields            = "index c_comp[1]";
+
+    if(compression_style == "local/zstd") {
+        generate_text_and_compressed_dump(text_files, compressed_files, fields, fields, "", "checksum yes", 0);
+    } else {
+        generate_text_and_compressed_dump(text_files, compressed_files, fields, "", 0);
+    }
+
+    TearDown();
+
+    ASSERT_FILE_EXISTS(text_file_0);
+    ASSERT_FILE_EXISTS(compressed_file_0);
+
+    auto converted_file_0 = convert_compressed_to_text(compressed_file_0);
+
+    ASSERT_FILE_EXISTS(converted_file_0);
+    ASSERT_FILE_EQUAL(text_file_0, converted_file_0);
+    delete_file(text_file_0);
+    delete_file(compressed_file_0);
+    delete_file(converted_file_0);
+}
+
+TEST_F(DumpLocalCompressTest, compressed_no_buffer_run0)
+{
+    if (!COMPRESS_BINARY) GTEST_SKIP();
+
+    auto base_name         = "no_buffer_run*.melt.local";
+    auto base_name_0       = "no_buffer_run0.melt.local";
+    auto text_files        = text_dump_filename(base_name);
+    auto compressed_files  = compressed_dump_filename(base_name);
+    auto text_file_0       = text_dump_filename(base_name_0);
+    auto compressed_file_0 = compressed_dump_filename(base_name_0);
+    auto fields            = "index c_comp[1]";
+
+    if(compression_style == "local/zstd") {
+        generate_text_and_compressed_dump(text_files, compressed_files, fields, fields, "buffer no", "buffer no checksum yes", 0);
+    } else {
+        generate_text_and_compressed_dump(text_files, compressed_files, fields, "buffer no", 0);
+    }
+
+    TearDown();
+
+    ASSERT_FILE_EXISTS(text_file_0);
+    ASSERT_FILE_EXISTS(compressed_file_0);
+
+    auto converted_file_0 = convert_compressed_to_text(compressed_file_0);
+
+    ASSERT_FILE_EXISTS(converted_file_0);
+    ASSERT_FILE_EQUAL(text_file_0, converted_file_0);
+    delete_file(text_file_0);
+    delete_file(compressed_file_0);
+    delete_file(converted_file_0);
+}
+
+TEST_F(DumpLocalCompressTest, compressed_with_time_run0)
+{
+    if (!COMPRESS_BINARY) GTEST_SKIP();
+
+    auto base_name         = "with_time_run*.melt.local";
+    auto base_name_0       = "with_time_run0.melt.local";
+    auto text_files        = text_dump_filename(base_name);
+    auto compressed_files  = compressed_dump_filename(base_name);
+    auto text_file_0       = text_dump_filename(base_name_0);
+    auto compressed_file_0 = compressed_dump_filename(base_name_0);
+    auto fields            = "index c_comp[1]";
+
+    if(compression_style == "local/zstd") {
+        generate_text_and_compressed_dump(text_files, compressed_files, fields, fields, "time yes", "time yes checksum yes", 0);
+    } else {
+        generate_text_and_compressed_dump(text_files, compressed_files, fields, "time yes", 0);
+    }
+
+    TearDown();
+
+    ASSERT_FILE_EXISTS(text_file_0);
+    ASSERT_FILE_EXISTS(compressed_file_0);
+
+    auto converted_file_0 = convert_compressed_to_text(compressed_file_0);
+
+    ASSERT_FILE_EXISTS(converted_file_0);
+    ASSERT_FILE_EQUAL(text_file_0, converted_file_0);
+    delete_file(text_file_0);
+    delete_file(compressed_file_0);
+    delete_file(converted_file_0);
+}
+
+TEST_F(DumpLocalCompressTest, compressed_with_units_run0)
+{
+    if (!COMPRESS_BINARY) GTEST_SKIP();
+
+    auto base_name         = "with_units_run*.melt.local";
+    auto base_name_0       = "with_units_run0.melt.local";
+    auto text_files        = text_dump_filename(base_name);
+    auto compressed_files  = compressed_dump_filename(base_name);
+    auto text_file_0       = text_dump_filename(base_name_0);
+    auto compressed_file_0 = compressed_dump_filename(base_name_0);
+    auto fields            = "index c_comp[1]";
+
+    if(compression_style == "local/zstd") {
+        generate_text_and_compressed_dump(text_files, compressed_files, fields, fields, "units yes", "units yes checksum yes", 0);
+    } else {
+        generate_text_and_compressed_dump(text_files, compressed_files, fields, "units yes", 0);
+    }
+
+    TearDown();
+
+    ASSERT_FILE_EXISTS(text_file_0);
+    ASSERT_FILE_EXISTS(compressed_file_0);
+
+    auto converted_file_0 = convert_compressed_to_text(compressed_file_0);
+
+    ASSERT_FILE_EXISTS(converted_file_0);
+    ASSERT_FILE_EQUAL(text_file_0, converted_file_0);
+    delete_file(text_file_0);
+    delete_file(compressed_file_0);
+    delete_file(converted_file_0);
+}
+
+TEST_F(DumpLocalCompressTest, compressed_triclinic_run0)
+{
+    if (!COMPRESS_BINARY) GTEST_SKIP();
+    enable_triclinic();
+
+    auto base_name         = "triclinic_run*.melt.local";
+    auto base_name_0       = "triclinic_run0.melt.local";
     auto text_files        = text_dump_filename(base_name);
     auto compressed_files  = compressed_dump_filename(base_name);
     auto text_file_0       = text_dump_filename(base_name_0);
@@ -209,7 +338,7 @@ TEST_F(DumpLocalCompressTest, compressed_modify_bad_param)
     command(fmt::format("dump id1 all {} 1 {} {}", compression_style, compressed_dump_filename("modify_bad_param_run0_*.melt.local"), fields));
     END_HIDE_OUTPUT();
 
-    TEST_FAILURE(".*ERROR: Illegal dump_modify command: compression level must in the range of.*",
+    TEST_FAILURE(".*ERROR on proc 0: Illegal dump_modify command: Compression level must in the range of.*",
         command("dump_modify id1 compression_level 12");
     );
 }
@@ -224,7 +353,7 @@ TEST_F(DumpLocalCompressTest, compressed_modify_multi_bad_param)
     command(fmt::format("dump id1 all {} 1 {} {}", compression_style, compressed_dump_filename("modify_multi_bad_param_run0_*.melt.local"), fields));
     END_HIDE_OUTPUT();
 
-    TEST_FAILURE(".*ERROR: Illegal dump_modify command: compression level must in the range of.*",
+    TEST_FAILURE(".*ERROR on proc 0: Illegal dump_modify command: Compression level must in the range of.*",
         command("dump_modify id1 pad 3 compression_level 12");
     );
 }

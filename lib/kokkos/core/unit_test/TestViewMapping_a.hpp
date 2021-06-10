@@ -905,8 +905,6 @@ void test_view_mapping() {
         Kokkos::Impl::ViewCtorProp<int*>(nullptr), stride);
   }
 
-  // FIXME_SYCL requires MDRangePolicy
-#ifndef KOKKOS_ENABLE_SYCL
   {
     using V           = Kokkos::View<int**, Space>;
     using M           = typename V::HostMirror;
@@ -1033,7 +1031,6 @@ void test_view_mapping() {
     ASSERT_EQ(d.extent(0), 7);
     ASSERT_EQ(d.extent(1), 8);
   }
-#endif
 
   {
     using V = Kokkos::View<int*, Space>;

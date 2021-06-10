@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,22 +13,24 @@
 ------------------------------------------------------------------------- */
 
 #include "create_box.h"
-#include <cstring>
+
 #include "atom.h"
 #include "atom_vec.h"
+#include "comm.h"
 #include "domain.h"
+#include "error.h"
+#include "force.h"
 #include "region.h"
 #include "region_prism.h"
-#include "force.h"
-#include "comm.h"
 #include "update.h"
-#include "error.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-CreateBox::CreateBox(LAMMPS *lmp) : Pointers(lmp) {}
+CreateBox::CreateBox(LAMMPS *lmp) : Command(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 

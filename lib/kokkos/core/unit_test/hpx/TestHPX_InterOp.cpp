@@ -43,7 +43,7 @@
 */
 
 #include <Kokkos_Core.hpp>
-#include <hpx/TestHPX_Category.hpp>
+#include <TestHPX_Category.hpp>
 
 namespace Test {
 

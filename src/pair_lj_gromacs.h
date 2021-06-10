@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(lj/gromacs,PairLJGromacs)
-
+// clang-format off
+PairStyle(lj/gromacs,PairLJGromacs);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_LJ_GROMACS_H
@@ -41,16 +41,16 @@ class PairLJGromacs : public Pair {
   virtual double single(int, int, int, int, double, double, double, double &);
 
  protected:
-  double cut_inner_global,cut_global;
-  double **cut,**cut_inner,**cut_inner_sq;
-  double **epsilon,**sigma;
-  double **lj1,**lj2,**lj3,**lj4;
-  double **ljsw1,**ljsw2,**ljsw3,**ljsw4,**ljsw5;
+  double cut_inner_global, cut_global;
+  double **cut, **cut_inner, **cut_inner_sq;
+  double **epsilon, **sigma;
+  double **lj1, **lj2, **lj3, **lj4;
+  double **ljsw1, **ljsw2, **ljsw3, **ljsw4, **ljsw5;
 
   virtual void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

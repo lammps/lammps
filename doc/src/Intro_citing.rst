@@ -38,8 +38,8 @@ In addition there are DOIs for individual stable releases. Currently there are:
 Home page
 ^^^^^^^^^
 
-The LAMMPS website at `https://lammps.sandia.gov/
-<https://lammps.sandia.gov>`_ is the canonical location for information
+The LAMMPS website at `https://www.lammps.org/
+<https://www.lammps.org>`_ is the canonical location for information
 about LAMMPS and its features.
 
 Citing contributions

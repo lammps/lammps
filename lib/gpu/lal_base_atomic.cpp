@@ -335,7 +335,7 @@ void BaseAtomicT::compile_kernels(UCL_Device &dev, const void *pair_str,
   _compiled=true;
 
   #if defined(USE_OPENCL) && (defined(CL_VERSION_2_1) || defined(CL_VERSION_3_0))
-  if (dev.cl_device_version() >= 210) {
+  if (dev.has_subgroup_support()) {
     size_t mx_subgroup_sz = k_pair_fast.max_subgroup_size(_block_size);
     #if defined(LAL_OCL_EV_JIT)
     mx_subgroup_sz = std::min(mx_subgroup_sz, k_pair_noev.max_subgroup_size(_block_size));

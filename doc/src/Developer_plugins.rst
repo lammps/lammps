@@ -59,31 +59,25 @@ Members of ``lammpsplugin_t``
    * - author
      - String with the name and email of the author
    * - creator.v1
-     - Pointer to factory function for pair, bond, angle, dihedral, or improper styles
+     - Pointer to factory function for pair, bond, angle, dihedral, improper or command styles
    * - creator.v2
      - Pointer to factory function for compute, fix, or region styles
-   * - creator.v3
-     - Pointer to factory function for command styles
    * - handle
      - Pointer to the open DSO file handle
 
 Only one of the three alternate creator entries can be used at a time
-and which of those is determined by the style of plugin. The "creator.v1"
-element is for factory functions of supported styles computing forces (i.e.
-pair, bond, angle, dihedral, or improper styles) and the function takes
-as single argument the pointer to the LAMMPS instance. The factory function
-is cast to the ``lammpsplugin_factory1`` type before assignment.  The
-"creator.v2" element is for factory functions creating an instance of
-a fix, compute, or region style and takes three arguments: a pointer to
-the LAMMPS instance, an integer with the length of the argument list and
-a ``char **`` pointer to the list of arguments. The factory function pointer
-needs to be cast to the ``lammpsplugin_factory2`` type before assignment.
-The "creator.v3" element takes the same arguments as "creator.v3" but is
-specific to creating command styles: the factory function has to instantiate
-the command style locally passing the LAMMPS pointer as argument and then
-call its "command" member function with the number and list of arguments.
-The factory function pointer needs to be cast to the
-``lammpsplugin_factory3`` type before assignment.
+and which of those is determined by the style of plugin. The
+"creator.v1" element is for factory functions of supported styles
+computing forces (i.e.  command, pair, bond, angle, dihedral, or
+improper styles) and the function takes as single argument the pointer
+to the LAMMPS instance. The factory function is cast to the
+``lammpsplugin_factory1`` type before assignment.  The "creator.v2"
+element is for factory functions creating an instance of a fix, compute,
+or region style and takes three arguments: a pointer to the LAMMPS
+instance, an integer with the length of the argument list and a ``char
+**`` pointer to the list of arguments. The factory function pointer
+needs to be cast to the ``lammpsplugin_factory2`` type before
+assignment.
 
 Pair style example
 ^^^^^^^^^^^^^^^^^^
@@ -123,12 +117,12 @@ function would look like this:
 
 The factory function in this example is called ``morse2creator()``.  It
 receives a pointer to the LAMMPS class as only argument and thus has to
-be assigned to the *creator.v1* member of the plugin struct and cast to the
-``lammpsplugin_factory1`` pointer type.  It returns a
+be assigned to the *creator.v1* member of the plugin struct and cast to
+the ``lammpsplugin_factory1`` function pointer type.  It returns a
 pointer to the allocated class instance derived from the ``Pair`` class.
-This function may be declared static to avoid clashes with other plugins.
-The name of the derived class, ``PairMorse2``, must be unique inside
-the entire LAMMPS executable.
+This function may be declared static to avoid clashes with other
+plugins.  The name of the derived class, ``PairMorse2``, however must be
+unique inside the entire LAMMPS executable.
 
 Fix style example
 ^^^^^^^^^^^^^^^^^
@@ -169,9 +163,9 @@ Below is an example for that:
 
 Command style example
 ^^^^^^^^^^^^^^^^^^^^^
-For command styles there is a third variant of factory function as
+Command styles also use the first variant of factory function as
 demonstrated in the following example, which also shows that the
-implementation of the plugin class may also be within the same
+implementation of the plugin class may be within the same source
 file as the plugin interface code:
 
 .. code-block:: C++
@@ -180,15 +174,15 @@ file as the plugin interface code:
 
    #include "comm.h"
    #include "error.h"
-   #include "pointers.h"
+   #include "command.h"
    #include "version.h"
 
    #include <cstring>
 
    namespace LAMMPS_NS {
-     class Hello : protected Pointers {
+     class Hello : public Command {
       public:
-       Hello(class LAMMPS *lmp) : Pointers(lmp) {};
+       Hello(class LAMMPS *lmp) : Command(lmp) {};
        void command(int, char **);
      };
    }
@@ -202,10 +196,9 @@ file as the plugin interface code:
         utils::logmesg(lmp,fmt::format("Hello, {}!\n",argv[0]));
    }
 
-   static void hellocreator(LAMMPS *lmp, int argc, char **argv)
+   static void hellocreator(LAMMPS *lmp)
    {
-     Hello hello(lmp);
-     hello.command(argc,argv);
+     return new Hello(lmp);
    }
 
    extern "C" void lammpsplugin_init(void *lmp, void *handle, void *regfunc)
@@ -216,9 +209,9 @@ file as the plugin interface code:
      plugin.version = LAMMPS_VERSION;
      plugin.style   = "command";
      plugin.name    = "hello";
-     plugin.info    = "Hello world command v1.0";
+     plugin.info    = "Hello world command v1.1";
      plugin.author  = "Axel Kohlmeyer (akohlmey@gmail.com)";
-     plugin.creator.v3 = (lammpsplugin_factory3 *) &hellocreator;
+     plugin.creator.v1 = (lammpsplugin_factory1 *) &hellocreator;
      plugin.handle  = handle;
      (*register_plugin)(&plugin,lmp);
    }

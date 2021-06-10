@@ -9,9 +9,6 @@
 #          compute-ID = ID of compute that calculates temperature
 #                       (or any other scalar quantity)
 
-# IMPORTANT: this script cannot yet be run in parallel via Pypar,
-#            because I can't seem to do a MPI-style broadcast in Pypar
-
 from __future__ import print_function
 import sys,time
 sys.path.append("./pizza")
@@ -56,10 +53,6 @@ nfreq = int(sys.argv[2])
 compute = sys.argv[3]
 
 me = 0
-# uncomment if running in parallel via Pypar
-#import pypar
-#me = pypar.rank()
-#nprocs = pypar.size()
 
 from lammps import lammps
 lmp = lammps()
@@ -171,7 +164,3 @@ while 1:
   time.sleep(0.01)
 
 lmp.command("run 0 pre no post yes")
-
-# uncomment if running in parallel via Pypar
-#print("Proc %d out of %d procs has" % (me,nprocs), lmp)
-#pypar.finalize()

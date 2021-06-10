@@ -1,6 +1,6 @@
 message(STATUS "Downloading and building Google Test library")
 
-if(CMAKE_BUILD_TYPE STREQUAL Debug)
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   set(GTEST_LIB_POSTFIX d)
 else()
   set(GTEST_LIB_POSTFIX)

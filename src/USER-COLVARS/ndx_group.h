@@ -2,7 +2,7 @@
 
 /* ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -14,27 +14,29 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMMAND_CLASS
-
-CommandStyle(ndx2group,Ndx2Group)
-
+// clang-format off
+CommandStyle(ndx2group,Ndx2Group);
+// clang-format on
 #else
 
 #ifndef LMP_NDX_GROUP_H
 #define LMP_NDX_GROUP_H
 
-#include "pointers.h"
+#include "command.h"
 #include <vector>
 
 namespace LAMMPS_NS {
 
-class Ndx2Group : protected Pointers {
+class Ndx2Group : public Command {
  public:
-  Ndx2Group(class LAMMPS *lmp) : Pointers(lmp) {};
+  Ndx2Group(class LAMMPS *lmp) : Command(lmp){};
   void command(int, char **);
+
+ private:
   void create(const std::string &, const std::vector<tagint> &);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

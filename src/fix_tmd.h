@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(tmd,FixTMD)
-
+// clang-format off
+FixStyle(tmd,FixTMD);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_TMD_H
@@ -42,20 +42,20 @@ class FixTMD : public Fix {
 
  private:
   int me;
-  int nfileevery,compressed;
+  int nfileevery, compressed;
   bigint previous_stat;
   FILE *fp;
-  double rho_start,rho_stop,rho_old,masstotal;
-  double dtv,dtf;
+  double rho_start, rho_stop, rho_old, masstotal;
+  double dtv, dtf;
   double *step_respa;
-  double work_lambda,work_analytical;
-  double **xf,**xold;
+  double work_lambda, work_analytical;
+  double **xf, **xold;
 
   void readfile(char *);
   void open(char *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

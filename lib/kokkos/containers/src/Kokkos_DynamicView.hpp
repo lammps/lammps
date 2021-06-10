@@ -76,6 +76,12 @@ struct ChunkArraySpace<Kokkos::Experimental::HIPSpace> {
   using memory_space = typename Kokkos::Experimental::HIPHostPinnedSpace;
 };
 #endif
+#ifdef KOKKOS_ENABLE_SYCL
+template <>
+struct ChunkArraySpace<Kokkos::Experimental::SYCLDeviceUSMSpace> {
+  using memory_space = typename Kokkos::Experimental::SYCLSharedUSMSpace;
+};
+#endif
 }  // end namespace Impl
 
 /** \brief Dynamic views are restricted to rank-one and no layout.

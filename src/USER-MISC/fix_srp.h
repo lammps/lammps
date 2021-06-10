@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(SRP,FixSRP)
-
+// clang-format off
+FixStyle(SRP,FixSRP);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_SRP_H
@@ -44,7 +44,7 @@ class FixSRP : public Fix {
   int unpack_border(int, int, double *);
   void post_run();
 
-  int pack_restart(int, double*);
+  int pack_restart(int, double *);
   void unpack_restart(int, int);
   int maxsize_restart();
   int size_restart(int);
@@ -59,7 +59,7 @@ class FixSRP : public Fix {
   int bptype;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

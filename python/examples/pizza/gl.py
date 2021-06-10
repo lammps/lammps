@@ -851,7 +851,7 @@ class gl:
             ncolor = self.vizinfo.ntcolor
             for tri in self.tridraw:
               itype = int(tri[1])
-              if itype > ncolor: raise StandardError("tri type too big")
+              if itype > ncolor: raise Exception("tri type too big")
               red,green,blue = self.vizinfo.tcolor[itype]
               glMaterialfv(GL_FRONT_AND_BACK,GL_EMISSION,[red,green,blue,1.0]);
               glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,self.shiny);
@@ -909,7 +909,7 @@ class gl:
                    ymin >= ylo and ymax <= yhi and zmin >= zlo and zmax <= zhi:
               if bond[10] > bound: continue
               itype = int(bond[1])
-              if itype > ncolor: raise StandardError("bond type too big")
+              if itype > ncolor: raise Exception("bond type too big")
               red,green,blue = self.vizinfo.bcolor[itype]
               rad = self.vizinfo.brad[itype]
               glPushMatrix()
@@ -941,7 +941,7 @@ class gl:
                      ymin >= ylo and ymax <= yhi and \
                      zmin >= zlo and zmax <= zhi:
                 itype = int(tri[1])
-                if itype > ncolor: raise StandardError("tri type too big")
+                if itype > ncolor: raise Exception("tri type too big")
                 red,green,blue = self.vizinfo.tcolor[itype]
                 glMaterialfv(GL_FRONT_AND_BACK,GL_EMISSION,
                              [red,green,blue,1.0]);

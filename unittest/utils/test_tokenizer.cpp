@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -53,6 +53,11 @@ TEST(Tokenizer, skip)
     ASSERT_FALSE(t.has_next());
     ASSERT_EQ(t.count(), 2);
     ASSERT_THROW(t.skip(), TokenizerException);
+    try {
+        t.skip();
+    } catch (TokenizerException &e) {
+        ASSERT_STREQ(e.what(), "No more tokens");
+    }
 }
 
 TEST(Tokenizer, prefix_separators)
@@ -85,6 +90,47 @@ TEST(Tokenizer, copy_constructor)
     ASSERT_THAT(u.next(), Eq("test"));
     ASSERT_THAT(u.next(), Eq("word"));
     ASSERT_EQ(u.count(), 2);
+}
+
+TEST(Tokenizer, move_constructor)
+{
+    Tokenizer u = std::move(Tokenizer("test new word   ", " "));
+    ASSERT_THAT(u.next(), Eq("test"));
+    ASSERT_THAT(u.next(), Eq("new"));
+    ASSERT_THAT(u.next(), Eq("word"));
+    ASSERT_EQ(u.count(), 3);
+}
+
+TEST(Tokenizer, copy_assignment)
+{
+    Tokenizer t("  test word   ", " ");
+    Tokenizer u("  test2 word2 other2 ", " ");
+    ASSERT_THAT(t.next(), Eq("test"));
+    ASSERT_THAT(t.next(), Eq("word"));
+    ASSERT_EQ(t.count(), 2);
+    Tokenizer v = u;
+    u = t;
+    ASSERT_THAT(u.next(), Eq("test"));
+    ASSERT_THAT(u.next(), Eq("word"));
+    ASSERT_EQ(u.count(), 2);
+
+    ASSERT_THAT(v.next(), Eq("test2"));
+    ASSERT_THAT(v.next(), Eq("word2"));
+    ASSERT_THAT(v.next(), Eq("other2"));
+    ASSERT_EQ(v.count(), 3);
+}
+
+TEST(Tokenizer, move_assignment)
+{
+    Tokenizer t("  test word   ", " ");
+    ASSERT_THAT(t.next(), Eq("test"));
+    ASSERT_THAT(t.next(), Eq("word"));
+    ASSERT_EQ(t.count(), 2);
+    t = Tokenizer("test new word   ", " ");
+    ASSERT_THAT(t.next(), Eq("test"));
+    ASSERT_THAT(t.next(), Eq("new"));
+    ASSERT_THAT(t.next(), Eq("word"));
+    ASSERT_EQ(t.count(), 3);
 }
 
 TEST(Tokenizer, no_separator_path)
@@ -181,12 +227,72 @@ TEST(ValueTokenizer, skip)
     ASSERT_FALSE(t.has_next());
     ASSERT_EQ(t.count(), 2);
     ASSERT_THROW(t.skip(), TokenizerException);
+    try {
+        t.skip();
+    } catch (TokenizerException &e) {
+        ASSERT_STREQ(e.what(), "No more tokens");
+    }
+}
+
+TEST(ValueTokenizer, copy_constructor)
+{
+    ValueTokenizer t("  test word   ", " ");
+    ASSERT_THAT(t.next_string(), Eq("test"));
+    ASSERT_THAT(t.next_string(), Eq("word"));
+    ASSERT_EQ(t.count(), 2);
+    ValueTokenizer u(t);
+    ASSERT_THAT(u.next_string(), Eq("test"));
+    ASSERT_THAT(u.next_string(), Eq("word"));
+    ASSERT_EQ(u.count(), 2);
+}
+
+TEST(ValueTokenizer, move_constructor)
+{
+    ValueTokenizer u = std::move(ValueTokenizer("  test new word   ", " "));
+    ASSERT_THAT(u.next_string(), Eq("test"));
+    ASSERT_THAT(u.next_string(), Eq("new"));
+    ASSERT_THAT(u.next_string(), Eq("word"));
+    ASSERT_EQ(u.count(), 3);
+}
+
+TEST(ValueTokenizer, copy_assignment)
+{
+    ValueTokenizer t("  test word   ", " ");
+    ValueTokenizer u("  test2 word2 other2 ", " ");
+    ASSERT_THAT(t.next_string(), Eq("test"));
+    ASSERT_THAT(t.next_string(), Eq("word"));
+    ASSERT_EQ(t.count(), 2);
+    ValueTokenizer v = u;
+    u = t;
+    ASSERT_THAT(u.next_string(), Eq("test"));
+    ASSERT_THAT(u.next_string(), Eq("word"));
+    ASSERT_EQ(u.count(), 2);
+
+    ASSERT_THAT(v.next_string(), Eq("test2"));
+    ASSERT_THAT(v.next_string(), Eq("word2"));
+    ASSERT_THAT(v.next_string(), Eq("other2"));
+    ASSERT_EQ(v.count(), 3);
+}
+
+TEST(ValueTokenizer, move_assignment)
+{
+    ValueTokenizer t("  test word   ", " ");
+    ASSERT_THAT(t.next_string(), Eq("test"));
+    ASSERT_THAT(t.next_string(), Eq("word"));
+    ASSERT_EQ(t.count(), 2);
+    t = ValueTokenizer("test new word   ", " ");
+    ASSERT_THAT(t.next_string(), Eq("test"));
+    ASSERT_THAT(t.next_string(), Eq("new"));
+    ASSERT_THAT(t.next_string(), Eq("word"));
+    ASSERT_EQ(t.count(), 3);
 }
 
 TEST(ValueTokenizer, bad_integer)
 {
-    ValueTokenizer values("f10");
+    ValueTokenizer values("f10 f11 f12");
     ASSERT_THROW(values.next_int(), InvalidIntegerException);
+    ASSERT_THROW(values.next_bigint(), InvalidIntegerException);
+    ASSERT_THROW(values.next_tagint(), InvalidIntegerException);
 }
 
 TEST(ValueTokenizer, bad_double)

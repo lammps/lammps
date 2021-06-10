@@ -250,10 +250,10 @@ SharedAllocationRecord<Kokkos::Experimental::HBWSpace, void>::
       static_cast<SharedAllocationRecord<void, void> *>(this);
 
   strncpy(RecordBase::m_alloc_ptr->m_label, arg_label.c_str(),
-          SharedAllocationHeader::maximum_label_length);
+          SharedAllocationHeader::maximum_label_length - 1);
   // Set last element zero, in case c_str is too long
   RecordBase::m_alloc_ptr
-      ->m_label[SharedAllocationHeader::maximum_label_length - 1] = (char)0;
+      ->m_label[SharedAllocationHeader::maximum_label_length - 1] = '\0';
 }
 
 //----------------------------------------------------------------------------

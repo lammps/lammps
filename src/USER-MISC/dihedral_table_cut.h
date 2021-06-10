@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef DIHEDRAL_CLASS
-
-DihedralStyle(table/cut,DihedralTableCut)
-
+// clang-format off
+DihedralStyle(table/cut,DihedralTableCut);
+// clang-format on
 #else
 
 #ifndef LMP_DIHEDRAL_TABLE_CUT_H
@@ -32,12 +32,12 @@ class DihedralTableCut : public DihedralTable {
   virtual void coeff(int, char **);
 
  protected:
-  double *aat_k,*aat_theta0_1,*aat_theta0_2;
+  double *aat_k, *aat_theta0_1, *aat_theta0_2;
 
   virtual void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

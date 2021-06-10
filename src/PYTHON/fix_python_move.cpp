@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -75,7 +76,7 @@ FixPythonMove::FixPythonMove(LAMMPS *lmp, int narg, char **arg) :
   }
 
   PyObject *ptr = PY_VOID_POINTER(lmp);
-  PyObject *py_move_obj = PyObject_CallFunction(py_move_type, "O", ptr);
+  PyObject *py_move_obj = PyObject_CallFunction(py_move_type, (char *)"O", ptr);
   Py_CLEAR(ptr);
 
   if (!py_move_obj) {
@@ -112,7 +113,7 @@ int FixPythonMove::setmask()
 void FixPythonMove::init()
 {
   PyUtils::GIL lock;
-  PyObject * result = PyObject_CallMethod((PyObject *)py_move, "init", nullptr);
+  PyObject * result = PyObject_CallMethod((PyObject *)py_move, (char *)"init", nullptr);
 
   if (!result) {
     PyUtils::Print_Errors();
@@ -126,7 +127,7 @@ void FixPythonMove::init()
 void FixPythonMove::initial_integrate(int vflag)
 {
   PyUtils::GIL lock;
-  PyObject * result = PyObject_CallMethod((PyObject*)py_move, "initial_integrate", "i", vflag);
+  PyObject * result = PyObject_CallMethod((PyObject*)py_move, (char *)"initial_integrate", (char *)"i", vflag);
 
   if (!result) {
     PyUtils::Print_Errors();
@@ -140,7 +141,7 @@ void FixPythonMove::initial_integrate(int vflag)
 void FixPythonMove::final_integrate()
 {
   PyUtils::GIL lock;
-  PyObject * result = PyObject_CallMethod((PyObject*)py_move, "final_integrate", nullptr);
+  PyObject * result = PyObject_CallMethod((PyObject*)py_move, (char *)"final_integrate", nullptr);
 
   if (!result) {
     PyUtils::Print_Errors();
@@ -154,7 +155,7 @@ void FixPythonMove::final_integrate()
 void FixPythonMove::initial_integrate_respa(int vflag, int ilevel, int iloop)
 {
   PyUtils::GIL lock;
-  PyObject * result = PyObject_CallMethod((PyObject*)py_move, "initial_integrate_respa", "iii", vflag, ilevel, iloop);
+  PyObject * result = PyObject_CallMethod((PyObject*)py_move, (char *)"initial_integrate_respa", (char *)"iii", vflag, ilevel, iloop);
 
   if (!result) {
     PyUtils::Print_Errors();
@@ -168,7 +169,7 @@ void FixPythonMove::initial_integrate_respa(int vflag, int ilevel, int iloop)
 void FixPythonMove::final_integrate_respa(int ilevel, int iloop)
 {
   PyUtils::GIL lock;
-  PyObject * result = PyObject_CallMethod((PyObject*)py_move, "final_integrate_respa", "ii", ilevel, iloop);
+  PyObject * result = PyObject_CallMethod((PyObject*)py_move, (char *)"final_integrate_respa", (char *)"ii", ilevel, iloop);
 
   if (!result) {
     PyUtils::Print_Errors();
@@ -182,7 +183,7 @@ void FixPythonMove::final_integrate_respa(int ilevel, int iloop)
 void FixPythonMove::reset_dt()
 {
   PyUtils::GIL lock;
-  PyObject * result = PyObject_CallMethod((PyObject*)py_move, "reset_dt", nullptr);
+  PyObject * result = PyObject_CallMethod((PyObject*)py_move, (char *)"reset_dt", nullptr);
 
   if (!result) {
     PyUtils::Print_Errors();

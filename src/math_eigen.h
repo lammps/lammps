@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -10,7 +10,6 @@
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
-
 
 #ifndef LMP_MATH_EIGEN_H
 #define LMP_MATH_EIGEN_H
@@ -25,12 +24,12 @@ namespace MathEigen {
  * \param  evec  store the eigenvectors here...
  * \return       0 if eigenvalue calculation converged, 1 if it failed */
 
-int jacobi3(double const* const* mat, double *eval, double **evec);
+int jacobi3(double const *const *mat, double *eval, double **evec);
 
 /** \overload */
 
 int jacobi3(double const mat[3][3], double *eval, double evec[3][3]);
 
-}
+}    // namespace MathEigen
 
-#endif //#ifndef LMP_MATH_EIGEN_H
+#endif    //#ifndef LMP_MATH_EIGEN_H

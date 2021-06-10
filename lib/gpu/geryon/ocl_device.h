@@ -29,7 +29,7 @@
 #include <iostream>
 
 #ifndef CL_TARGET_OPENCL_VERSION
-#define CL_TARGET_OPENCL_VERSION 210
+#define CL_TARGET_OPENCL_VERSION 300
 #endif
 
 #ifdef __APPLE__
@@ -728,6 +728,9 @@ void UCL_Device::print_all(std::ostream &out) {
       out << "\nDevice " << i << ": \"" << name(i).c_str() << "\"\n";
       out << "  Type of device:                                "
           << device_type_name(i).c_str() << std::endl;
+      out << "  Supported OpenCL Version:                      "
+          << _properties[i].cl_device_version / 100 << "."
+	  << _properties[i].cl_device_version % 100 << std::endl;
       out << "  Is a subdevice:                                ";
       if (is_subdevice(i))
 	out << "Yes\n";
@@ -793,6 +796,16 @@ void UCL_Device::print_all(std::ostream &out) {
           << max_sub_devices(i) << std::endl;
       out << "  Shared memory system:                          ";
       if (shared_memory(i))
+        out << "Yes\n";
+      else
+        out << "No\n";
+      out << "  Subgroup support:                              ";
+      if (_properties[i].has_subgroup_support)
+        out << "Yes\n";
+      else
+        out << "No\n";
+      out << "  Shuffle support:                               ";
+      if (_properties[i].has_shuffle_support)
         out << "Yes\n";
       else
         out << "No\n";

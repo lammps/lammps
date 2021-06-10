@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -250,14 +251,14 @@ void Modify::init()
 
   for (i = 0; i < nfix; i++)
     if (!fix[i]->dynamic_group_allow && group->dynamic[fix[i]->igroup])
-      error->all(FLERR,fmt::format("Fix {} does not allow use with a "
-                                   "dynamic group",fix[i]->id));
+      error->all(FLERR,"Fix {} does not allow use with a "
+                                   "dynamic group",fix[i]->id);
 
   for (i = 0; i < ncompute; i++)
     if (!compute[i]->dynamic_group_allow &&
         group->dynamic[compute[i]->igroup])
-      error->all(FLERR,fmt::format("Compute {} does not allow use with a "
-                                   "dynamic group",compute[i]->id));
+      error->all(FLERR,"Compute {} does not allow use with a "
+                                   "dynamic group",compute[i]->id);
 
   // warn if any particle is time integrated more than once
 
@@ -925,9 +926,9 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
       used_restart_global[i] = 1;
       fix[ifix]->restart_reset = 1;
       if (comm->me == 0)
-        utils::logmesg(lmp,fmt::format("Resetting global fix info from restart file:\n"
-                                       "  fix style: {}, fix ID: {}\n",
-                                       fix[ifix]->style,fix[ifix]->id));
+        utils::logmesg(lmp,"Resetting global fix info from restart file:\n"
+                       "  fix style: {}, fix ID: {}\n",
+                       fix[ifix]->style,fix[ifix]->id);
     }
 
   // check if Fix is in restart_peratom list
@@ -941,9 +942,9 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
         fix[ifix]->unpack_restart(j,index_restart_peratom[i]);
       fix[ifix]->restart_reset = 1;
       if (comm->me == 0)
-        utils::logmesg(lmp,fmt::format("Resetting peratom fix info from restart file:\n"
-                                       "  fix style: {}, fix ID: {}\n",
-                                       fix[ifix]->style,fix[ifix]->id));
+        utils::logmesg(lmp,"Resetting peratom fix info from restart file:\n"
+                       "  fix style: {}, fix ID: {}\n",
+                       fix[ifix]->style,fix[ifix]->id);
     }
 
   // increment nfix (if new)
@@ -964,13 +965,12 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
 void Modify::add_fix(const std::string &fixcmd, int trysuffix)
 {
   auto args = utils::split_words(fixcmd);
-  char **newarg = new char*[args.size()];
-  int i=0;
+  std::vector<char *> newarg(args.size());
+  int i = 0;
   for (const auto &arg : args) {
     newarg[i++] = (char *)arg.c_str();
   }
-  add_fix(args.size(),newarg,trysuffix);
-  delete[] newarg;
+  add_fix(args.size(),newarg.data(),trysuffix);
 }
 
 
@@ -1222,7 +1222,7 @@ void Modify::add_compute(int narg, char **arg, int trysuffix)
 
   for (int icompute = 0; icompute < ncompute; icompute++)
     if (strcmp(arg[0],compute[icompute]->id) == 0)
-      error->all(FLERR,fmt::format("Reuse of compute ID '{}'",arg[0]));
+      error->all(FLERR,"Reuse of compute ID '{}'",arg[0]);
 
   // extend Compute list if necessary
 
@@ -1575,8 +1575,8 @@ void Modify::restart_deallocate(int flag)
         utils::logmesg(lmp,"Unused restart file global fix info:\n");
         for (i = 0; i < nfix_restart_global; i++) {
           if (used_restart_global[i]) continue;
-          utils::logmesg(lmp,fmt::format("  fix style: {}, fix ID: {}\n",
-                                         style_restart_global[i],id_restart_global[i]));
+          utils::logmesg(lmp,"  fix style: {}, fix ID: {}\n",
+                         style_restart_global[i],id_restart_global[i]);
         }
       }
     }
@@ -1603,8 +1603,8 @@ void Modify::restart_deallocate(int flag)
         utils::logmesg(lmp,"Unused restart file peratom fix info:\n");
         for (i = 0; i < nfix_restart_peratom; i++) {
           if (used_restart_peratom[i]) continue;
-          utils::logmesg(lmp,fmt::format("  fix style: {}, fix ID: {}\n",
-                                         style_restart_peratom[i],id_restart_peratom[i]));
+          utils::logmesg(lmp,"  fix style: {}, fix ID: {}\n",
+                         style_restart_peratom[i],id_restart_peratom[i]);
         }
       }
     }

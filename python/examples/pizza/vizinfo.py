@@ -79,7 +79,7 @@ class vizinfo:
     # if list of types has a 0, increment each type value
 
     if 0 in ids:
-      for i in xrange(len(ids)): ids[i] += 1
+      for i in range(len(ids)): ids[i] += 1
 
     # extend storage list if necessary
     # extend other arrays for same "which" so that gl::make_atom_calllist
@@ -109,7 +109,7 @@ class vizinfo:
     ntypes = len(ids)
     nrgbs = len(rgbs)
 
-    for i in xrange(ntypes):
+    for i in range(ntypes):
       id = ids[i]
 
       if rgbs[0] == "loop":
@@ -157,7 +157,7 @@ class vizinfo:
     # if list of types has a 0, increment each type value
 
     if 0 in ids:
-      for i in xrange(len(ids)): ids[i] += 1
+      for i in range(len(ids)): ids[i] += 1
 
     # extend storage list if necessary
     # extend other arrays for same "which" so that gl::make_atom_calllist
@@ -220,7 +220,7 @@ class vizinfo:
     # if list of types has a 0, increment each type value
 
     if 0 in ids:
-      for i in xrange(len(ids)): ids[i] += 1
+      for i in range(len(ids)): ids[i] += 1
 
     # extend storage list if necessary
     # extend other arrays for same "which" so that gl::make_atom_calllist
@@ -234,7 +234,7 @@ class vizinfo:
     # if list lengths match, set directly, else set types to 1st fill value
 
     if len(fills) == len(ids):
-      for i in xrange(len(ids)): self.tfill[ids[i]] = int(fills[i])
+      for i in range(len(ids)): self.tfill[ids[i]] = int(fills[i])
     else:
       for id in ids: self.tfill[id] = int(fills[0])
     

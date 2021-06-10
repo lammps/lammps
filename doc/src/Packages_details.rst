@@ -69,18 +69,22 @@ page gives those details.
    * :ref:`USER-ATC <PKG-USER-ATC>`
    * :ref:`USER-AWPMD <PKG-USER-AWPMD>`
    * :ref:`USER-BOCS <PKG-USER-BOCS>`
+   * :ref:`USER-BROWNIAN <PKG-USER-BROWNIAN>`
    * :ref:`USER-CGDNA <PKG-USER-CGDNA>`
    * :ref:`USER-CGSDK <PKG-USER-CGSDK>`
    * :ref:`USER-COLVARS <PKG-USER-COLVARS>`
+   * :ref:`USER-DIELECTRIC <PKG-USER-DIELECTRIC>`
    * :ref:`USER-DIFFRACTION <PKG-USER-DIFFRACTION>`
    * :ref:`USER-DPD <PKG-USER-DPD>`
    * :ref:`USER-DRUDE <PKG-USER-DRUDE>`
    * :ref:`USER-EFF <PKG-USER-EFF>`
    * :ref:`USER-FEP <PKG-USER-FEP>`
    * :ref:`USER-H5MD <PKG-USER-H5MD>`
+   * :ref:`USER-HDNNP <PKG-USER-HDNNP>`
    * :ref:`USER-INTEL <PKG-USER-INTEL>`
    * :ref:`USER-LB <PKG-USER-LB>`
    * :ref:`USER-MANIFOLD <PKG-USER-MANIFOLD>`
+   * :ref:`USER-MDI <PKG-USER-MDI>`
    * :ref:`USER-MEAMC <PKG-USER-MEAMC>`
    * :ref:`USER-MESODPD <PKG-USER-MESODPD>`
    * :ref:`USER-MESONT <PKG-USER-MESONT>`
@@ -97,6 +101,7 @@ page gives those details.
    * :ref:`USER-QMMM <PKG-USER-QMMM>`
    * :ref:`USER-QTB <PKG-USER-QTB>`
    * :ref:`USER-QUIP <PKG-USER-QUIP>`
+   * :ref:`USER-RANN <PKG-USER-RANN>`
    * :ref:`USER-REACTION <PKG-USER-REACTION>`
    * :ref:`USER-REAXC <PKG-USER-REAXC>`
    * :ref:`USER-SCAFACOS <PKG-USER-SCAFACOS>`
@@ -131,8 +136,8 @@ particle models including ellipsoids, 2d lines, and 3d triangles.
 * `doc/PDF/pair_resquared_extra.pdf <PDF/pair_resquared_extra.pdf>`_
 * examples/ASPHERE
 * examples/ellipse
-* https://lammps.sandia.gov/movies.html#line
-* https://lammps.sandia.gov/movies.html#tri
+* https://www.lammps.org/movies.html#line
+* https://www.lammps.org/movies.html#tri
 
 ----------
 
@@ -328,7 +333,7 @@ This package has :ref:`specific installation instructions <gpu>` on the :doc:`Bu
 * :doc:`package gpu <package>`
 * :doc:`Commands <Commands_all>` pages (:doc:`pair <Commands_pair>`, :doc:`kspace <Commands_kspace>`)
   for styles followed by (g)
-* `Benchmarks page <https://lammps.sandia.gov/bench.html>`_ of web site
+* `Benchmarks page <https://www.lammps.org/bench.html>`_ of web site
 
 ----------
 
@@ -354,11 +359,11 @@ potentials.
 * examples/granregion
 * examples/pour
 * bench/in.chute
-* https://lammps.sandia.gov/pictures.html#jamming
-* https://lammps.sandia.gov/movies.html#hopper
-* https://lammps.sandia.gov/movies.html#dem
-* https://lammps.sandia.gov/movies.html#brazil
-* https://lammps.sandia.gov/movies.html#granregion
+* https://www.lammps.org/pictures.html#jamming
+* https://www.lammps.org/movies.html#hopper
+* https://www.lammps.org/movies.html#dem
+* https://www.lammps.org/movies.html#brazil
+* https://www.lammps.org/movies.html#granregion
 
 ----------
 
@@ -445,7 +450,7 @@ time via the "-sf kk" or "-suffix kk" :doc:`command-line switches <Run_options>`
 :ref:`USER-INTEL <PKG-USER-INTEL>`, and :ref:`USER-OMP <PKG-USER-OMP>` packages, which
 have styles optimized for CPUs, KNLs, and GPUs.
 
-You must have a C++11 compatible compiler to use this package.
+You must have a C++14 compatible compiler to use this package.
 KOKKOS makes extensive use of advanced C++ features, which can
 expose compiler bugs, especially when compiling for maximum
 performance at high optimization levels. Please see the file
@@ -477,7 +482,7 @@ This package has :ref:`specific installation instructions <kokkos>` on the :doc:
 * Search the :doc:`commands <Commands_all>` pages (:doc:`fix <Commands_fix>`, :doc:`compute <Commands_compute>`,
   :doc:`pair <Commands_pair>`, :doc:`bond, angle, dihedral, improper <Commands_bond>`,
   :doc:`kspace <Commands_kspace>`) for styles followed by (k)
-* `Benchmarks page <https://lammps.sandia.gov/bench.html>`_ of web site
+* `Benchmarks page <https://www.lammps.org/bench.html>`_ of web site
 
 ----------
 
@@ -601,7 +606,7 @@ bonds, for performing atomic swaps, and performing grand-canonical MC
 * :doc:`fix tfmc <fix_tfmc>`
 * :doc:`fix widom <fix_widom>`
 * :doc:`pair_style dsmc <pair_dsmc>`
-* https://lammps.sandia.gov/movies.html#gcmc
+* https://www.lammps.org/movies.html#gcmc
 
 ----------
 
@@ -658,8 +663,8 @@ listing, "ls src/MISC", to see the list of commands.
 * :doc:`fix viscosity <fix_viscosity>`
 * examples/KAPPA
 * examples/VISCOSITY
-* https://lammps.sandia.gov/pictures.html#ttm
-* https://lammps.sandia.gov/movies.html#evaporation
+* https://www.lammps.org/pictures.html#ttm
+* https://www.lammps.org/movies.html#evaporation
 
 ----------
 
@@ -814,7 +819,7 @@ This package has :ref:`specific installation instructions <opt>` on the :doc:`Bu
 * :doc:`OPT package <Speed_opt>`
 * :doc:`Section 2.6 -sf opt <Run_options>`
 * Search the :doc:`pair style <Commands_pair>` page for styles followed by (t)
-* `Benchmarks page <https://lammps.sandia.gov/bench.html>`_ of web site
+* `Benchmarks page <https://www.lammps.org/bench.html>`_ of web site
 
 ----------
 
@@ -845,7 +850,7 @@ Foster (UTSA).
 * :doc:`compute damage/atom <compute_damage_atom>`
 * :doc:`compute plasticity/atom <compute_plasticity_atom>`
 * examples/peri
-* https://lammps.sandia.gov/movies.html#peri
+* https://www.lammps.org/movies.html#peri
 
 ----------
 
@@ -1006,8 +1011,8 @@ Also several computes which calculate properties of rigid bodies.
 * examples/ASPHERE
 * examples/rigid
 * bench/in.rhodo
-* https://lammps.sandia.gov/movies.html#box
-* https://lammps.sandia.gov/movies.html#star
+* https://www.lammps.org/movies.html#box
+* https://www.lammps.org/movies.html#star
 
 ----------
 
@@ -1108,9 +1113,9 @@ colloidal particles.
 * :doc:`fix wall/srd <fix_wall_srd>`
 * examples/srd
 * examples/ASPHERE
-* https://lammps.sandia.gov/movies.html#tri
-* https://lammps.sandia.gov/movies.html#line
-* https://lammps.sandia.gov/movies.html#poly
+* https://www.lammps.org/movies.html#tri
+* https://www.lammps.org/movies.html#line
+* https://www.lammps.org/movies.html#poly
 
 ----------
 
@@ -1202,7 +1207,7 @@ This package has :ref:`specific installation instructions <user-atc>` on the :do
 * src/USER-ATC/README
 * :doc:`fix atc <fix_atc>`
 * examples/USER/atc
-* https://lammps.sandia.gov/pictures.html#atc
+* https://www.lammps.org/pictures.html#atc
 
 ----------
 
@@ -1266,6 +1271,26 @@ Example inputs are in the examples/USER/bocs folder.
 
 ----------
 
+.. _PKG-USER-BROWNIAN:
+
+USER-BROWNIAN package
+---------------------
+
+**Contents:**
+
+This package provides :doc:`fix brownian, fix brownian/sphere, and
+fix brownian/asphere <fix_brownian>` as well as
+:doc:`fix propel/self <fix_propel_self>` which allow to do Brownian
+Dynamics time integration of point, spherical and aspherical particles
+and also support self-propelled particles.
+
+**Authors:** Sam Cameron (University of Bristol),
+Stefan Paquay (while at Brandeis University) (initial version of fix propel/self)
+
+Example inputs are in the examples/USER/brownian folder.
+
+----------
+
 .. _PKG-USER-CGDNA:
 
 USER-CGDNA package
@@ -1315,7 +1340,7 @@ acids.
 * :doc:`pair_style lj/sdk/\* <pair_sdk>`
 * :doc:`angle_style sdk <angle_sdk>`
 * examples/USER/cgsdk
-* https://lammps.sandia.gov/pictures.html#cg
+* https://www.lammps.org/pictures.html#cg
 
 ----------
 
@@ -1422,6 +1447,29 @@ This package has :ref:`specific installation instructions <user-plumed>` on the 
 * lib/plumed/README
 * :doc:`fix plumed <fix_plumed>`
 * examples/USER/plumed
+
+----------
+
+.. _PKG-USER-DIELECTRIC:
+
+USER-DIELECTRIC package
+------------------------
+
+**Contents:**
+
+An atom style, multiple pair styles, several fixes, Kspace styles and a
+compute for simulating systems using boundary element solvers for
+computing the induced charges at the interface between two media with
+different dielectric constants.
+
+**Author:** Trung Nguyen and Monica Olvera de la Cruz (Northwestern U)
+
+**Supporting info:**
+
+* src/USER-DIELECTRIC: filenames -> commands
+* :doc:`compute efield/atom  <compute_efield_atom>`
+* TODO: add all styles
+* examples/USER/dielectric
 
 ----------
 
@@ -1552,7 +1600,7 @@ tools/eff; see its README file.
 * examples/USER/eff
 * tools/eff/README
 * tools/eff
-* https://lammps.sandia.gov/movies.html#eff
+* https://www.lammps.org/movies.html#eff
 
 ----------
 
@@ -1617,6 +1665,39 @@ This package has :ref:`specific installation instructions <user-h5md>` on the :d
 
 ----------
 
+.. _PKG-USER-HDNNP:
+
+USER-HDNNP package
+------------------
+
+**Contents:**
+
+A :doc:`pair_style hdnnp <pair_hdnnp>` command which allows to use
+high-dimensional neural network potentials (HDNNPs), a form of machine learning
+potentials. HDNNPs must be carefully trained prior to their application in a
+molecular dynamics simulation.
+
+.. _n2p2: https://github.com/CompPhysVienna/n2p2
+
+To use this package you must have the `n2p2 <n2p2_>`_ library installed and
+compiled on your system.
+
+**Author:** Andreas Singraber
+
+**Install:**
+
+This package has :ref:`specific installation instructions <user-hdnnp>` on the :doc:`Build extras <Build_extras>` page.
+
+**Supporting info:**
+
+* src/USER-HDNNP: filenames -> commands
+* src/USER-HDNNP/README
+* lib/hdnnp/README
+* :doc:`pair_style hdnnp <pair_hdnnp>`
+* examples/USER/hdnnp
+
+----------
+
 .. _PKG-USER-INTEL:
 
 USER-INTEL package
@@ -1661,7 +1742,7 @@ This package has :ref:`specific installation instructions <user-intel>` on the :
 * Search the :doc:`commands <Commands_all>` pages (:doc:`fix <Commands_fix>`, :doc:`compute <Commands_compute>`,
   :doc:`pair <Commands_pair>`, :doc:`bond, angle, dihedral, improper <Commands_bond>`, :doc:`kspace <Commands_kspace>`) for styles followed by (i)
 * src/USER-INTEL/TEST
-* `Benchmarks page <https://lammps.sandia.gov/bench.html>`_ of web site
+* `Benchmarks page <https://www.lammps.org/bench.html>`_ of web site
 
 ----------
 
@@ -1766,7 +1847,29 @@ Waltham, MA, USA)
 * :doc:`fix nve/manifold/rattle <fix_nve_manifold_rattle>`
 * :doc:`fix nvt/manifold/rattle <fix_nvt_manifold_rattle>`
 * examples/USER/manifold
-* https://lammps.sandia.gov/movies.html#manifold
+* https://www.lammps.org/movies.html#manifold
+
+----------
+
+.. _PKG-USER-MDI:
+
+USER-MDI package
+----------------
+
+**Contents:**
+
+A LAMMPS command and fix to allow client-server coupling of LAMMPS to
+other atomic or molecular simulation codes via the `MolSSI Driver Interface
+(MDI) library <https://molssi-mdi.github.io/MDI_Library/html/index.html>`_.
+
+**Author:** Taylor Barnes - MolSSI, taylor.a.barnes at gmail.com
+
+**Supporting info:**
+
+* src/USER-MDI/README
+* :doc:`mdi/engine <mdi_engine>`
+* :doc:`fix mdi/engine <fix_mdi_engine>`
+* examples/USER/mdi
 
 ----------
 
@@ -1822,10 +1925,7 @@ algorithm.
 * :doc:`pair_style tdpd <pair_mesodpd>`
 * :doc:`fix mvv/dpd <fix_mvv_dpd>`
 * examples/USER/mesodpd
-* https://lammps.sandia.gov/movies.html#mesodpd
-
-* examples/USER/meso
-* http://lammps.sandia.gov/movies.html#mesodpd
+* https://www.lammps.org/movies.html#mesodpd
 
 ----------
 
@@ -2041,7 +2141,7 @@ This package has :ref:`specific installation instructions <user-omp>` on the :do
 * Search the :doc:`commands <Commands_all>` pages (:doc:`fix <Commands_fix>`, :doc:`compute <Commands_compute>`,
   :doc:`pair <Commands_pair>`, :doc:`bond, angle, dihedral, improper <Commands_bond>`,
   :doc:`kspace <Commands_kspace>`) for styles followed by (o)
-* `Benchmarks page <https://lammps.sandia.gov/bench.html>`_ of web site
+* `Benchmarks page <https://www.lammps.org/bench.html>`_ of web site
 
 ----------
 
@@ -2199,6 +2299,31 @@ This package has :ref:`specific installation instructions <user-quip>` on the :d
 
 ----------
 
+.. _PKG-USER-RANN:
+
+USER-RANN package
+-----------------
+
+**Contents:**
+
+A pair style for using rapid atomistic neural network (RANN) potentials.
+These neural network potentials work by first generating a series of symmetry
+functions from the neighbor list and then using these values as the input layer
+of a neural network.
+
+**Authors:**
+
+This package was written by Christopher Barrett
+with contributions by Doyl Dickel, Mississippi State University.
+
+**Supporting info:**
+
+* src/USER-RANN: filenames -> commands
+* :doc:`pair_style rann <pair_rann>`
+* examples/USER/rann
+
+----------
+
 .. _PKG-USER-REACTION:
 
 USER-REACTION package
@@ -2224,8 +2349,8 @@ molecules, and chiral-sensitive reactions.
 * src/USER-REACTION/README
 * :doc:`fix bond/react <fix_bond_react>`
 * examples/USER/reaction
-* `2017 LAMMPS Workshop <https://lammps.sandia.gov/workshops/Aug17/pdf/gissinger.pdf>`_
-* `2019 LAMMPS Workshop <https://lammps.sandia.gov/workshops/Aug19/talk_gissinger.pdf>`_
+* `2017 LAMMPS Workshop <https://www.lammps.org/workshops/Aug17/pdf/gissinger.pdf>`_
+* `2019 LAMMPS Workshop <https://www.lammps.org/workshops/Aug19/talk_gissinger.pdf>`_
 * reacter.org
 
 ----------
@@ -2352,7 +2477,7 @@ This package has :ref:`specific installation instructions <user-smd>` on the :do
 * src/USER-SMD/README
 * doc/PDF/SMD_LAMMPS_userguide.pdf
 * examples/USER/smd
-* https://lammps.sandia.gov/movies.html#smd
+* https://www.lammps.org/movies.html#smd
 
 ----------
 
@@ -2409,7 +2534,7 @@ Dynamics, Ernst Mach Institute, Germany).
 * src/USER-SPH/README
 * doc/PDF/SPH_LAMMPS_userguide.pdf
 * examples/USER/sph
-* https://lammps.sandia.gov/movies.html#sph
+* https://www.lammps.org/movies.html#sph
 
 ----------
 

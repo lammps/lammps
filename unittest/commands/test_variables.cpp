@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -105,8 +105,8 @@ protected:
               "# comments only\n	five\n#END\n",
               fp);
         fclose(fp);
-        fp = fopen("test_variable.atomfile", "w");
 
+        fp = fopen("test_variable.atomfile", "w");
         fputs("# test file for atomfile style variable\n\n"
               "4  # four lines\n4 0.5   #with comment\n"
               "2 -0.5         \n3 1.5\n1 -1.5\n\n"

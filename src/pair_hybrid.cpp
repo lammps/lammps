@@ -1,7 +1,8 @@
+// clang-format off
 
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -265,8 +266,8 @@ void PairHybrid::settings(int narg, char **arg)
 {
   if (narg < 1) error->all(FLERR,"Illegal pair_style command");
   if (lmp->kokkos && !utils::strmatch(force->pair_style,"^hybrid.*/kk$"))
-    error->all(FLERR,fmt::format("Must use pair_style {}/kk with Kokkos",
-                                 force->pair_style));
+    error->all(FLERR,"Must use pair_style {}/kk with Kokkos",
+                                 force->pair_style);
 
   // delete old lists, since cannot just change settings
 
@@ -340,6 +341,8 @@ void PairHybrid::settings(int narg, char **arg)
 
   // multiple[i] = 1 to M if sub-style used multiple times, else 0
 
+  int num_tip4p = 0, num_coul = 0; // count sub-styles with tip4p and coulomb
+
   for (int i = 0; i < nstyles; i++) {
     int count = 0;
     for (int j = 0; j < nstyles; j++) {
@@ -347,7 +350,21 @@ void PairHybrid::settings(int narg, char **arg)
       if (j == i) multiple[i] = count;
     }
     if (count == 1) multiple[i] = 0;
+
+    if (utils::strmatch(keywords[i],"/tip4p/")) ++num_tip4p;
+    if (utils::strmatch(keywords[i],"/coul/")
+        || utils::strmatch(keywords[i],"^comb")
+        || utils::strmatch(keywords[i],"^reax/c")) ++num_coul;
   }
+
+  if ((num_tip4p > 1) && (comm->me == 0))
+    error->warning(FLERR,"Using multiple tip4p sub-styles can result in "
+                   "inconsistent calculation of coulomb interactions");
+
+  if ((num_tip4p > 0) && (num_coul > 0) && (comm->me == 0))
+    error->warning(FLERR,"Using a tip4p sub-style with other sub-styles "
+                   "that include coulomb interactions can result in "
+                   "inconsistent calculation of the coulomb interactions");
 
   // set pair flags from sub-style flags
 
@@ -400,6 +417,7 @@ void PairHybrid::flags()
     if (styles[m]->dispersionflag) dispersionflag = 1;
     if (styles[m]->tip4pflag) tip4pflag = 1;
     if (styles[m]->compute_flag) compute_flag = 1;
+    if (styles[m]->finitecutflag) finitecutflag = 1;
   }
   single_enable = (single_enable == nstyles) ? 1 : 0;
   respa_enable = (respa_enable == nstyles) ? 1 : 0;
@@ -476,7 +494,7 @@ void PairHybrid::coeff(int narg, char **arg)
   int none = 0;
   if (m == nstyles) {
     if (strcmp(arg[2],"none") == 0) none = 1;
-    else error->all(FLERR,"Pair coeff for hybrid has invalid style");
+    else error->all(FLERR,"Pair coeff for hybrid has invalid style: {}",arg[2]);
   }
 
   // move 1st/2nd args to 2nd/3rd args
@@ -545,6 +563,15 @@ void PairHybrid::init_style()
         for (m = 0; m < nmap[itype][jtype]; m++)
           if (map[itype][jtype][m] == istyle) used = 1;
     if (used == 0) error->all(FLERR,"Pair hybrid sub-style is not used");
+  }
+
+  // The GPU library uses global data for each pair style, so the
+  // same style must not be used multiple times
+
+  for (istyle = 0; istyle < nstyles; istyle++) {
+    bool is_gpu = (((PairHybrid *)styles[istyle])->suffix_flag & Suffix::GPU);
+    if (multiple[istyle] && is_gpu)
+      error->all(FLERR,"GPU package styles must not be used multiple times");
   }
 
   // check if special_lj/special_coul overrides are compatible
@@ -869,7 +896,7 @@ void PairHybrid::modify_params(int narg, char **arg)
     int m;
     for (m = 0; m < nstyles; m++)
       if (strcmp(arg[1],keywords[m]) == 0) break;
-    if (m == nstyles) error->all(FLERR,"Unknown pair_modify hybrid sub-style");
+    if (m == nstyles) error->all(FLERR,"Unknown pair_modify hybrid sub-style: {}",arg[1]);
     int iarg = 2;
 
     if (multiple[m]) {
@@ -878,7 +905,7 @@ void PairHybrid::modify_params(int narg, char **arg)
       for (m = 0; m < nstyles; m++)
         if (strcmp(arg[1],keywords[m]) == 0 && multiflag == multiple[m]) break;
       if (m == nstyles)
-        error->all(FLERR,"Unknown pair_modify hybrid sub-style");
+        error->all(FLERR,"Unknown pair_modify hybrid sub-style: {}",arg[1]);
       iarg = 3;
     }
 
@@ -1066,6 +1093,42 @@ int PairHybrid::check_ijtype(int itype, int jtype, char *substyle)
   for (int m = 0; m < nmap[itype][jtype]; m++)
     if (strcmp(keywords[map[itype][jtype][m]],substyle) == 0) return 1;
   return 0;
+}
+
+/* ----------------------------------------------------------------------
+   check if substyles calculate self-interaction range of particle
+------------------------------------------------------------------------- */
+
+double PairHybrid::atom2cut(int i)
+{
+  double temp, cut;
+
+  cut = 0.0;
+  for (int m = 0; m < nstyles; m++) {
+    if (styles[m]->finitecutflag) {
+      temp = styles[m]->atom2cut(i);
+      if (temp > cut) cut = temp;
+    }
+  }
+  return cut;
+}
+
+/* ----------------------------------------------------------------------
+   check if substyles calculate maximum interaction range for two finite particles
+------------------------------------------------------------------------- */
+
+double PairHybrid::radii2cut(double r1, double r2)
+{
+  double temp, cut;
+
+ cut = 0.0;
+  for (int m = 0; m < nstyles; m++) {
+    if (styles[m]->finitecutflag) {
+      temp = styles[m]->radii2cut(r1,r2);
+      if (temp > cut) cut = temp;
+    }
+  }
+  return cut;
 }
 
 /* ----------------------------------------------------------------------

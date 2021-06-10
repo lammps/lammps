@@ -161,7 +161,7 @@ void PairGayBerneGPU::init_style()
   if (!avec)
     error->all(FLERR,"Pair gayberne/gpu requires atom style ellipsoid");
   if (force->newton_pair)
-    error->all(FLERR,"Cannot use newton pair with gayberne/gpu pair style");
+    error->all(FLERR,"Pair style gayberne/gpu requires newton pair off");
   if (!atom->ellipsoid_flag)
     error->all(FLERR,"Pair gayberne/gpu requires atom style ellipsoid");
 

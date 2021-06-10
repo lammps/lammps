@@ -28,6 +28,7 @@ OPT.
    * :doc:`ewald/dipole/spin <kspace_style>`
    * :doc:`msm (o) <kspace_style>`
    * :doc:`msm/cg (o) <kspace_style>`
+   * :doc:`msm/dielectric <kspace_style>`
    * :doc:`pppm (giko) <kspace_style>`
    * :doc:`pppm/cg (o) <kspace_style>`
    * :doc:`pppm/dipole <kspace_style>`
@@ -36,4 +37,5 @@ OPT.
    * :doc:`pppm/disp/tip4p (o) <kspace_style>`
    * :doc:`pppm/stagger <kspace_style>`
    * :doc:`pppm/tip4p (o) <kspace_style>`
+   * :doc:`pppm/dielectric <kspace_style>`
    * :doc:`scafacos <kspace_style>`

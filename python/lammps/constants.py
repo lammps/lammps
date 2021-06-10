@@ -11,8 +11,6 @@
 #   See the README file in the top-level LAMMPS directory.
 # -------------------------------------------------------------------------
 
-from ctypes import c_int, c_int32, c_int64
-
 # various symbolic constants to be used
 # in certain calls to select data formats
 LAMMPS_AUTODETECT = None
@@ -42,6 +40,7 @@ LMP_VAR_ATOM  = 1
 # -------------------------------------------------------------------------
 
 def get_ctypes_int(size):
+  from ctypes import c_int, c_int32, c_int64
   if size == 4:
     return c_int32
   elif size == 8:

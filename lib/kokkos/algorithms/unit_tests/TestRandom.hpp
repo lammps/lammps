@@ -109,6 +109,16 @@ struct RandomProperties {
   }
 };
 
+// FIXME_OPENMPTARGET: Need this for OpenMPTarget because contra to the standard
+// llvm requires the binary operator defined not just the +=
+KOKKOS_INLINE_FUNCTION
+RandomProperties operator+(const RandomProperties& org,
+                           const RandomProperties& add) {
+  RandomProperties val = org;
+  val += add;
+  return val;
+}
+
 template <class GeneratorPool, class Scalar>
 struct test_random_functor {
   using rnd_type = typename GeneratorPool::generator_type;

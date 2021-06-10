@@ -133,6 +133,7 @@ accelerated styles exist.
 * :doc:`comb3 <pair_comb>` - charge-optimized many-body (COMB3) potential
 * :doc:`cosine/squared <pair_cosine_squared>` - Cooke-Kremer-Deserno membrane model potential
 * :doc:`coul/cut <pair_coul>` - cutoff Coulomb potential
+* :doc:`coul/cut/dielectric <pair_dielectric>` -
 * :doc:`coul/cut/global <pair_coul>` - cutoff Coulomb potential
 * :doc:`coul/cut/soft <pair_fep_soft>` - Coulomb potential with a soft core
 * :doc:`coul/debye <pair_coul>` - cutoff Coulomb potential with Debye screening
@@ -140,6 +141,7 @@ accelerated styles exist.
 * :doc:`coul/dsf <pair_coul>` - Coulomb with damped-shifted-force model
 * :doc:`coul/long <pair_coul>` - long-range Coulomb potential
 * :doc:`coul/long/cs <pair_cs>` - long-range Coulomb potential and core/shell
+* :doc:`coul/long/dielectric <pair_dielectric>` -
 * :doc:`coul/long/soft <pair_fep_soft>` - long-range Coulomb potential with a soft core
 * :doc:`coul/msm <pair_coul>` - long-range MSM Coulomb
 * :doc:`coul/slater/cut <pair_coul>` - smeared out Coulomb
@@ -209,13 +211,17 @@ accelerated styles exist.
 * :doc:`lj/cubic <pair_lj_cubic>` - LJ with cubic after inflection point
 * :doc:`lj/cut <pair_lj>` - cutoff Lennard-Jones potential without Coulomb
 * :doc:`lj/cut/coul/cut <pair_lj_cut_coul>` - LJ with cutoff Coulomb
+* :doc:`lj/cut/coul/cut/dielectric <pair_dielectric>` -
 * :doc:`lj/cut/coul/cut/soft <pair_fep_soft>` - LJ with cutoff Coulomb with a soft core
 * :doc:`lj/cut/coul/debye <pair_lj_cut_coul>` - LJ with Debye screening added to Coulomb
+* :doc:`lj/cut/coul/debye/dielectric <pair_dielectric>` -
 * :doc:`lj/cut/coul/dsf <pair_lj_cut_coul>` - LJ with Coulomb via damped shifted forces
 * :doc:`lj/cut/coul/long <pair_lj_cut_coul>` - LJ with long-range Coulomb
 * :doc:`lj/cut/coul/long/cs <pair_cs>` - LJ with long-range Coulomb with core/shell adjustments
+* :doc:`lj/cut/coul/long/dielectric <pair_dielectric>` -
 * :doc:`lj/cut/coul/long/soft <pair_fep_soft>` - LJ with long-range Coulomb with a soft core
 * :doc:`lj/cut/coul/msm <pair_lj_cut_coul>` - LJ with long-range MSM Coulomb
+* :doc:`lj/cut/coul/msm/dielectric <pair_dielectric>` -
 * :doc:`lj/cut/coul/wolf <pair_lj_cut_coul>` - LJ with Coulomb via Wolf potential
 * :doc:`lj/cut/dipole/cut <pair_dipole>` - point dipoles with cutoff
 * :doc:`lj/cut/dipole/long <pair_dipole>` - point dipoles with long-range Ewald
@@ -229,6 +235,7 @@ accelerated styles exist.
 * :doc:`lj/gromacs <pair_gromacs>` - GROMACS-style Lennard-Jones potential
 * :doc:`lj/gromacs/coul/gromacs <pair_gromacs>` - GROMACS-style LJ and Coulomb potential
 * :doc:`lj/long/coul/long <pair_lj_long>` - long-range LJ and long-range Coulomb
+* :doc:`lj/long/coul/long/dielectric <pair_dielectric>` -
 * :doc:`lj/long/dipole/long <pair_dipole>` - long-range LJ and long-range point dipoles
 * :doc:`lj/long/tip4p/long <pair_lj_long>` - long-range LJ and long-range Coulomb for TIP4P water
 * :doc:`lj/mdf <pair_mdf>` - LJ potential with a taper function
@@ -291,6 +298,7 @@ accelerated styles exist.
 * :doc:`polymorphic <pair_polymorphic>` - polymorphic 3-body potential
 * :doc:`python <pair_python>` -
 * :doc:`quip <pair_quip>` -
+* :doc:`rann <pair_rann>` -
 * :doc:`reax/c <pair_reaxc>` - ReaxFF potential in C
 * :doc:`rebo <pair_airebo>` - second generation REBO potential of Brenner
 * :doc:`resquared <pair_resquared>` - Everaers RE-Squared ellipsoidal potential

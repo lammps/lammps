@@ -73,6 +73,7 @@ page gives those details.
    * :ref:`USER-CGDNA <PKG-USER-CGDNA>`
    * :ref:`USER-CGSDK <PKG-USER-CGSDK>`
    * :ref:`USER-COLVARS <PKG-USER-COLVARS>`
+   * :ref:`USER-DIELECTRIC <PKG-USER-DIELECTRIC>`
    * :ref:`USER-DIFFRACTION <PKG-USER-DIFFRACTION>`
    * :ref:`USER-DPD <PKG-USER-DPD>`
    * :ref:`USER-DRUDE <PKG-USER-DRUDE>`
@@ -100,6 +101,7 @@ page gives those details.
    * :ref:`USER-QMMM <PKG-USER-QMMM>`
    * :ref:`USER-QTB <PKG-USER-QTB>`
    * :ref:`USER-QUIP <PKG-USER-QUIP>`
+   * :ref:`USER-RANN <PKG-USER-RANN>`
    * :ref:`USER-REACTION <PKG-USER-REACTION>`
    * :ref:`USER-REAXC <PKG-USER-REAXC>`
    * :ref:`USER-SCAFACOS <PKG-USER-SCAFACOS>`
@@ -1448,6 +1450,29 @@ This package has :ref:`specific installation instructions <user-plumed>` on the 
 
 ----------
 
+.. _PKG-USER-DIELECTRIC:
+
+USER-DIELECTRIC package
+------------------------
+
+**Contents:**
+
+An atom style, multiple pair styles, several fixes, Kspace styles and a
+compute for simulating systems using boundary element solvers for
+computing the induced charges at the interface between two media with
+different dielectric constants.
+
+**Author:** Trung Nguyen and Monica Olvera de la Cruz (Northwestern U)
+
+**Supporting info:**
+
+* src/USER-DIELECTRIC: filenames -> commands
+* :doc:`compute efield/atom  <compute_efield_atom>`
+* TODO: add all styles
+* examples/USER/dielectric
+
+----------
+
 .. _PKG-USER-DIFFRACTION:
 
 USER-DIFFRACTION package
@@ -1902,9 +1927,6 @@ algorithm.
 * examples/USER/mesodpd
 * https://www.lammps.org/movies.html#mesodpd
 
-* examples/USER/meso
-* http://www.lammps.org/movies.html#mesodpd
-
 ----------
 
 .. _PKG-USER-MESONT:
@@ -2274,6 +2296,31 @@ This package has :ref:`specific installation instructions <user-quip>` on the :d
 * src/USER-QUIP/README
 * :doc:`pair_style quip <pair_quip>`
 * examples/USER/quip
+
+----------
+
+.. _PKG-USER-RANN:
+
+USER-RANN package
+-----------------
+
+**Contents:**
+
+A pair style for using rapid atomistic neural network (RANN) potentials.
+These neural network potentials work by first generating a series of symmetry
+functions from the neighbor list and then using these values as the input layer
+of a neural network.
+
+**Authors:**
+
+This package was written by Christopher Barrett
+with contributions by Doyl Dickel, Mississippi State University.
+
+**Supporting info:**
+
+* src/USER-RANN: filenames -> commands
+* :doc:`pair_style rann <pair_rann>`
+* examples/USER/rann
 
 ----------
 

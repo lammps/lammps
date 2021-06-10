@@ -41,7 +41,7 @@ int eam_gpu_init(const int ntypes, double host_cutforcesq,
                  int **host_type2rhor, int **host_type2z2r,
                  int *host_type2frho, double ***host_rhor_spline,
                  double ***host_z2r_spline, double ***host_frho_spline,
-                 double rdr, double rdrho, double rhomax,
+                 double** host_cutsq, double rdr, double rdrho, double rhomax,
                  int nrhor, int nrho, int nz2r, int nfrho, int nr,
                  const int nlocal, const int nall, const int max_nbors,
                  const int maxspecial, const double cell_size, int &gpu_mode,
@@ -156,7 +156,7 @@ void PairEAMGPU::compute(int eflag, int vflag)
 void PairEAMGPU::init_style()
 {
   if (force->newton_pair)
-    error->all(FLERR,"Cannot use newton pair with eam/gpu pair style");
+    error->all(FLERR,"Pair style eam/gpu requires newton pair off");
 
   // convert read-in file(s) to arrays and spline them
 
@@ -187,7 +187,7 @@ void PairEAMGPU::init_style()
   int mnf = 5e-2 * neighbor->oneatom;
   int success = eam_gpu_init(atom->ntypes+1, cutforcesq, type2rhor, type2z2r,
                              type2frho, rhor_spline, z2r_spline, frho_spline,
-                             rdr, rdrho, rhomax, nrhor, nrho, nz2r, nfrho, nr,
+                             cutsq, rdr, rdrho, rhomax, nrhor, nrho, nz2r, nfrho, nr,
                              atom->nlocal, atom->nlocal+atom->nghost, mnf,
                              maxspecial, cell_size, gpu_mode, screen, fp_size);
   GPU_EXTRA::check_flag(success,error,world);

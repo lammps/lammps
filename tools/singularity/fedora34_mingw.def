@@ -1,15 +1,15 @@
 BootStrap: docker
-From: fedora:32
+From: fedora:34
 
 %post
         dnf -y update
         dnf -y install vim-enhanced git file make cmake patch which file Lmod \
-               ninja-build clang libomp-devel libubsan libasan libtsan diffutils \
-               dos2unix findutils rsync python-devel libjpeg-devel libpng-devel \
+               ninja-build clang clang-tools-extra libomp-devel libubsan libasan libtsan \
+               diffutils dos2unix findutils rsync python-devel libjpeg-devel libpng-devel \
                ccache gcc-c++ gcc-gfortran gdb valgrind eigen3-devel openblas-devel \
                openmpi-devel mpich-devel fftw-devel voro++-devel gsl-devel hdf5-devel \
                netcdf-devel netcdf-cxx-devel netcdf-mpich-devel netcdf-openmpi-devel \
-               readline-devel python3-pyyaml \
+               readline-devel python3-pyyaml python3-Cython \
                mingw-filesystem-base mingw32-nsis mingw-binutils-generic \
                mingw32-filesystem mingw32-pkg-config \
                mingw64-filesystem mingw64-pkg-config \
@@ -23,6 +23,10 @@ From: fedora:32
                mingw32-fftw mingw64-fftw \
                mingw32-libjpeg-turbo mingw64-libjpeg-turbo \
                mingw32-libpng mingw64-libpng \
+               mingw32-python3 mingw64-python3 \
+               mingw32-python3-numpy mingw64-python3-numpy \
+               mingw32-python3-pyyaml mingw64-python3-pyyaml \
+               mingw32-python3-setuptools mingw64-python3-setuptools \
                mingw32-readline mingw64-readline \
                mingw32-termcap mingw64-termcap \
                mingw32-zlib mingw64-zlib \
@@ -44,10 +48,12 @@ From: fedora:32
         # manually install Plumed
         mkdir plumed
         cd plumed
-        version=2.6.1
+        version=2.7.1
         curl -L -o plumed.tar.gz https://github.com/plumed/plumed2/releases/download/v${version}/plumed-src-${version}.tgz
         tar -xzf plumed.tar.gz
         cd plumed-${version}
+        # temporary fix for Plumed-2.7.1 (should do no harm on later versions)
+        sed -i '/^#include <algorithm>/a #include <limits>' src/lepton/Operation.h
         ./configure --disable-doc --prefix=/usr
         make
         make install
@@ -87,7 +93,7 @@ EOF
         CUSTOM_PROMPT_ENV=/.singularity.d/env/99-zz_custom_prompt.sh
         cat >$CUSTOM_PROMPT_ENV <<EOF
 #!/bin/bash
-PS1="[fedora32:\u@\h] \W> "
+PS1="[fedora34:\u@\h] \W> "
 EOF
         chmod 755 $CUSTOM_PROMPT_ENV
 

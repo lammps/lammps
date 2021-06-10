@@ -52,12 +52,12 @@ PACKAGE = asphere body class2 colloid compress coreshell dipole gpu \
 	  python qeq replica rigid shock snap spin srd voronoi
 
 PACKUSER = user-adios user-atc user-awpmd user-brownian user-bocs user-cgdna \
-	   user-cgsdk user-colvars user-diffraction user-dpd user-drude \
+	   user-cgsdk user-colvars user-dielectric user-diffraction user-dpd user-drude \
 	   user-eff user-fep user-h5md user-hdnnp user-intel user-lb user-manifold \
 	   user-mdi user-meamc user-mesodpd user-mesont user-mgpt user-misc \
-	   user-mofff \user-molfile user-netcdf user-omp user-phonon \
+	   user-mofff user-molfile user-netcdf user-omp user-phonon \
 	   user-pace user-plumed user-ptm user-qmmm user-qtb user-quip \
-	   user-reaction user-reaxc user-scafacos user-smd user-smtbq \
+	   user-rann user-reaction user-reaxc user-scafacos user-smd user-smtbq \
 	   user-sdpd user-sph user-tally user-uef user-vtk user-yaff
 
 PACKLIB = compress gpu kim kokkos latte message mpiio mscg poems python voronoi \

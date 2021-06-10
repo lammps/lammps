@@ -162,6 +162,9 @@ OPT.
    * :doc:`planeforce <fix_planeforce>`
    * :doc:`plumed <fix_plumed>`
    * :doc:`poems <fix_poems>`
+   * :doc:`polarize/bem/gmres <fix_polarize>`
+   * :doc:`polarize/bem/icc <fix_polarize>`
+   * :doc:`polarize/functional <fix_polarize>`
    * :doc:`pour <fix_pour>`
    * :doc:`precession/spin <fix_precession_spin>`
    * :doc:`press/berendsen <fix_press_berendsen>`

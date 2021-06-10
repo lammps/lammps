@@ -305,6 +305,9 @@ accelerated styles exist.
 * :doc:`planeforce <fix_planeforce>` - constrain atoms to move in a plane
 * :doc:`plumed <fix_plumed>` - wrapper on PLUMED free energy library
 * :doc:`poems <fix_poems>` - constrain clusters of atoms to move as coupled rigid bodies
+* :doc:`polarize/bem/gmres <fix_polarize>` -
+* :doc:`polarize/bem/icc <fix_polarize>` -
+* :doc:`polarize/functional <fix_polarize>` -
 * :doc:`pour <fix_pour>` - pour new atoms/molecules into a granular simulation domain
 * :doc:`precession/spin <fix_precession_spin>` -
 * :doc:`press/berendsen <fix_press_berendsen>` - pressure control by Berendsen barostat

@@ -47,6 +47,13 @@
 /pair_pace.cpp
 /pair_pace.h
 
+/fix_polarize*.cpp
+/fix_polarize*.h
+/*_dielectric.cpp
+/*_dielectric.h
+/compute_efield_atom.cpp
+/compute_efield_atom.j
+
 /superpose3d.h
 
 /kokkos.cpp
@@ -86,6 +93,11 @@
 
 /fix_pafi*.cpp
 /fix_pafi*.h
+
+/pair_rann.cpp
+/pair_rann.h
+/rann_*.cpp
+/rann_*.h
 
 /compute_test_nbl.cpp
 /compute_test_nbl.h

@@ -55,6 +55,10 @@
 #include <cstring>
 #include <map>
 
+#if !defined(_WIN32)
+#include <unistd.h>             // for isatty()
+#endif
+
 #include "lmpinstalledpkgs.h"
 #include "lmpgitversion.h"
 
@@ -130,6 +134,16 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
 
   init_pkg_lists();
 
+#if defined(LMP_PYTHON) && defined(_WIN32)
+  // if the LAMMPSHOME environment variable is set, it should point
+  // to the location of the LAMMPS installation tree where we bundle
+  // the matching Python installation for use with the PYTHON package.
+  // this is currently only used on Windows with the windows installer packages
+  const char *lmpenv = getenv("LAMMPSHOME");
+  if (lmpenv) {
+    _putenv(utils::strdup(fmt::format("PYTHONHOME={}",lmpenv)));
+  }
+#endif
   // check if -mpicolor is first arg
   // if so, then 2 apps were launched with one mpirun command
   //   this means passed communicator (e.g. MPI_COMM_WORLD) is bigger than LAMMPS
@@ -1104,12 +1118,24 @@ void _noopt LAMMPS::help()
   FILE *fp = screen;
   const char *pager = nullptr;
 
-  // if output is "stdout", use a pipe to a pager for paged output.
+  // if output is a console, use a pipe to a pager for paged output.
   // this will avoid the most important help text to rush past the
   // user. scrollback buffers are often not large enough. this is most
   // beneficial to windows users, who are not used to command line.
 
-  if (fp == stdout) {
+#if defined(_WIN32)
+  int use_pager = _isatty(fileno(fp));
+#else
+  int use_pager = isatty(fileno(fp));
+#endif
+
+  // cannot use this with OpenMPI since its console is non-functional
+
+#if defined(OPEN_MPI)
+  use_pager = 0;
+#endif
+
+  if (use_pager) {
     pager = getenv("PAGER");
     if (pager == nullptr) pager = "more";
 #if defined(_WIN32)
@@ -1120,7 +1146,7 @@ void _noopt LAMMPS::help()
 
     // reset to original state, if pipe command failed
     if (fp == nullptr) {
-      fp = stdout;
+      fp = screen;
       pager = nullptr;
     }
   }

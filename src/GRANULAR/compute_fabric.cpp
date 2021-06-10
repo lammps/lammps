@@ -267,7 +267,7 @@ void ComputeFabric::compute_vector()
       jtype = type[j];
       
       if (type_filter) 
-        if (type_filter[itype][jtype] == 0) return;
+        if (type_filter[itype][jtype] == 0) continue;
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];

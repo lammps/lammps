@@ -16,8 +16,8 @@ Syntax
 
   .. parsed-literal::
 
-       *type* = cutoffs determined for the types of the two atoms
-       *radius* = cutoffs determined based on finite size of atoms
+       *type* = cutoffs determined based on atom types
+       *radius* = cutoffs determined based on atom diameters (atom style sphere)
 
 * one or more attributes may be appended
 
@@ -47,13 +47,12 @@ Examples
 Description
 """""""""""
 
-Define a computation that calculates various fabric tensors for pairwise
-interactions :ref:`(Ouadfel) <Ouadfel>`. The *type* and *radius* settings are used to select whether
-the compute will be used used with regular interactions with cutoffs
-determined by atom types or with granular interactions with interaction
-lengths determined by particle radii, respectively.
+Define a computate that calculates various fabric tensors for pairwise
+interactions :ref:`(Ouadfel) <Ouadfel>`. The *type* and *radius* settings
+are used to select whether interactions cutoffs are determined by atom types
+or by the sum of atomic radii (atom style sphere), respectively.
 
-Four fabric tensors can be computed: a contact, branch, normal force, or
+Four fabric tensors are available: the contact, branch, normal force, or
 tangential force tensor. The contact tensor is calculated as
 
 .. math::
@@ -68,9 +67,9 @@ the tensor :math:`\phi` is defined as
 
    \phi_{ab}  =  \sum_{n = 1}^{N_p} \frac{r_{a} r_{b}}{r^2}
 
-where :math:`N_p` is the number of pair interactions in the simulation,
+where :math:`n` loops over the :math:`N_p` pair interactions in the simulation,
 :math:`r_{a}` is the :math:`a` component of the radial vector between the
-two particles, and :math:`r` is the magnitude of the radial vector.
+two pairwise interacting particles, and :math:`r` is the magnitude of the radial vector.
 
 The branch tensor is calculated as
 
@@ -87,7 +86,7 @@ where the tensor :math:`D` is defined as
                 \frac{r_{a} r_{b}}{r}
 
 where :math:`N_c` is the total number of contacts in the system and the subscripts
-:math:`c` and :math:`d` are summed according to Einstein notation.
+:math:`c` and :math:`d` indices are summed according to Einstein notation.
 
 The normal force fabric tensor is calculated as
 
@@ -103,7 +102,7 @@ where the tensor :math:`N` is defined as
                 \frac{1}{N_c (r^2 + C_{cd} r_c r_d)}
                 \frac{r_{a} r_{b}}{r^2} f_n
 
-where :math:`f_n` is the magnitude of the normal, central-body force between the two atoms.
+and :math:`f_n` is the magnitude of the normal, central-body force between the two atoms.
 
 Finally, the tangential force fabric tensor is only defined for pair styles that
 apply tangential forces to particles, namely granular pair styles. It is calculated
@@ -111,7 +110,7 @@ as
 
 .. math::
 
-   F^t_{ab}  =  \frac{15}{9 \mathrm{tr}(N)} (T_{ab} - ]mathrm{tr}(T) \delta_{ab})
+   F^t_{ab}  =  \frac{15}{9 \mathrm{tr}(N)} (T_{ab} - \mathrm{tr}(T) \delta_{ab})
 
 where the tensor :math:`T` is defined as
 
@@ -121,10 +120,10 @@ where the tensor :math:`T` is defined as
                 \frac{1}{N_c (r^2 + C_{cd} r_c r_d)}
                 \frac{r_{a} r_{b}}{r^2} f_t
 
-where :math:`f_t` is the magnitude of the tagential force between the two atoms.
+and :math:`f_t` is the magnitude of the tagential force between the two atoms.
 
 The *type/include* keyword filters interactions based on the types of the two atoms.
-Interactions between two atoms are only included in calculations if the atom types 
+Interactions between two atoms are only included in calculations if the atom types
 are in the two lists. Each list consists of a series of type
 ranges separated by commas. The range can be specified as a
 single numeric value, or a wildcard asterisk can be used to specify a range
@@ -157,7 +156,8 @@ i.e. the kspace_style command in LAMMPS.  It also does not support the
 following fixes which add rigid-body constraints: :doc:`fix shake
 <fix_shake>`, :doc:`fix rattle <fix_shake>`, :doc:`fix rigid
 <fix_rigid>`, :doc:`fix rigid/small <fix_rigid>`. It does not support
-granular pair styles that extend beyond the contact (e.g. JKR and DMT).
+granular pair styles that extend beyond the contact of atomic radii
+(e.g. JKR and DMT).
 
 Related commands
 """"""""""""""""

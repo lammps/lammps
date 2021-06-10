@@ -50,6 +50,7 @@ ComputeFabric::ComputeFabric(LAMMPS *lmp, int narg, char **arg) :
   if (cutstyle == RADIUS && !atom->radius_flag)
     error->all(FLERR,"Compute fabric radius style requires atom attribute radius");
 
+  // If optional arguments included, this will be oversized
   ntensors = narg - 4;
   tensor_style = new int[ntensors];
 

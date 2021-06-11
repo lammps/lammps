@@ -134,6 +134,7 @@ class FixPIMD4 : public Fix {
 
   class RanMars *random;
   int seed=975481;
+  FILE *frand;
 
   void baoab_init();
   // void baoab_update_v();

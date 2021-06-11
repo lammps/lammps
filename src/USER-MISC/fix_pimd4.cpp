@@ -290,6 +290,12 @@ FixPIMD4::FixPIMD4(LAMMPS *lmp, int narg, char **arg) :
   delete [] newarg;
   
   domain->set_global_box();
+ 
+  //FILE *frand;
+  std::string fname = "rand_";
+  fname += std::to_string(universe->iworld);
+  fname += ".txt";
+  frand = fopen(fname.c_str(), "w");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -307,6 +313,7 @@ FixPIMD4::~FixPIMD4()
   {
     delete tau_k ,c1_k, c2_k;
   }
+  fclose(frand);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1129,6 +1136,11 @@ void FixPIMD4::o_step()
       r1 = random->gaussian();
       r2 = random->gaussian();
       r3 = random->gaussian();
+      //r1 = r2 = r3 = 0.0;
+      char* rns;
+      //sprintf(rns, "%.6e %.6e %.6e\n", r1, r2, r3); 
+      //fwrite(rns, sizeof(char), sizeof(rns), frand);
+      fprintf(frand, "%ld %d %.6e %.6e %.6e\n", update->ntimestep, i, r1, r2, r3);
       atom->v[i][0] = c1_k[universe->iworld] * atom->v[i][0] + c2_k[universe->iworld] * sqrt(1.0 / mass[type[i]] / beta_np) * r1; 
       atom->v[i][1] = c1_k[universe->iworld] * atom->v[i][1] + c2_k[universe->iworld] * sqrt(1.0 / mass[type[i]] / beta_np) * r2;
       atom->v[i][2] = c1_k[universe->iworld] * atom->v[i][2] + c2_k[universe->iworld] * sqrt(1.0 / mass[type[i]] / beta_np) * r3;

@@ -58,7 +58,7 @@ PairLJCutCoulDebyeDielectric::~PairLJCutCoulDebyeDielectric()
 void PairLJCutCoulDebyeDielectric::compute(int eflag, int vflag)
 {
   int i, j, ii, jj, inum, jnum, itype, jtype;
-  double qtmp, etmp, xtmp, ytmp, ztmp, delx, dely, delz, evdwl, ecoul, fpair;
+  double qtmp, etmp, xtmp, ytmp, ztmp, delx, dely, delz, evdwl, ecoul;
   double fpair_i, fpair_j;
   double rsq, r2inv, r6inv, forcecoul, forcelj, factor_coul, factor_lj, efield_i, epot_i;
   double r, rinv, screening;

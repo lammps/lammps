@@ -17,7 +17,7 @@ This compute
 * :doc:`compute erotate/sphere <compute_erotate_sphere>`
 
 calculates rotational kinetic energy which can be :doc:`output with thermodynamic info <Howto_output>`.
-The compute 
+The compute
 
 * :doc:`compute fabric <compute_fabric>`
 

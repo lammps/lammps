@@ -138,9 +138,9 @@ Output info
 """""""""""
 
 This compute calculates a local vector of doubles. The vector stores the
-unique components of the first requested tensor in the order xx, yy, zz, xy, xz, yz 
-followed by the same components for all subsequent tensors. The final entry is the 
-number of pairwise interactions included in the calculation of the fabric tensor. 
+unique components of the first requested tensor in the order xx, yy, zz, xy, xz, yz
+followed by the same components for all subsequent tensors. The final entry is the
+number of pairwise interactions included in the calculation of the fabric tensor.
 The length of the vector is therefore six times the number of requested tensors plus one.
 
 Restrictions

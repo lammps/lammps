@@ -2668,6 +2668,7 @@ qoverride
 qqr
 qqrd
 qtb
+Quadfel
 quadratically
 quadrupolar
 Quant
@@ -2849,6 +2850,7 @@ Rossky
 rosybrown
 rotationally
 Rotenberg
+Rothenburg
 Rovigatti
 royalblue
 rozero

@@ -47,7 +47,7 @@ Examples
 Description
 """""""""""
 
-Define a computate that calculates various fabric tensors for pairwise
+Define a compute that calculates various fabric tensors for pairwise
 interactions :ref:`(Ouadfel) <Ouadfel>`. The *type* and *radius* settings
 are used to select whether interactions cutoffs are determined by atom types
 or by the sum of atomic radii (atom style sphere), respectively.
@@ -120,7 +120,7 @@ where the tensor :math:`T` is defined as
                 \frac{1}{N_c (r^2 + C_{cd} r_c r_d)}
                 \frac{r_{a} r_{b}}{r^2} f_t
 
-and :math:`f_t` is the magnitude of the tagential force between the two atoms.
+and :math:`f_t` is the magnitude of the tangential force between the two atoms.
 
 The *type/include* keyword filters interactions based on the types of the two atoms.
 Interactions between two atoms are only included in calculations if the atom types

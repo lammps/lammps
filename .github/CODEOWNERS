@@ -26,6 +26,7 @@ src/USER-BROWNIAN/*   @samueljmcameron
 src/USER-CGDNA/*      @ohenrich
 src/USER-CGSDK/*      @akohlmey
 src/USER-COLVARS/*    @giacomofiorin
+src/USER-DIELECTRIC/* @ndtrung81
 src/USER-FEP/*        @agiliopadua
 src/USER-HDNNP/*      @singraber
 src/USER-INTEL/*      @wmbrownintel

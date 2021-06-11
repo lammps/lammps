@@ -425,10 +425,10 @@ void PairOxrna2Stk::compute(int eflag, int vflag)
         b_st10[atype][btype], dtheta_st10_c[atype][btype]);
 
     f5c1 = F5(-cosphi1, a_st1[atype][btype], -cosphi_st1_ast[atype][btype], b_st1[atype][btype],
-        cosphi_st1_c[atype][btype]);
+        -cosphi_st1_c[atype][btype]);
 
     f5c2 = F5(-cosphi2, a_st2[atype][btype], -cosphi_st2_ast[atype][btype], b_st2[atype][btype],
-        cosphi_st2_c[atype][btype]);
+        -cosphi_st2_c[atype][btype]);
 
 
     evdwl = f1 * f4t5 * f4t6 * f4t9 * f4t10 * f5c1 * f5c2;
@@ -453,10 +453,10 @@ void PairOxrna2Stk::compute(int eflag, int vflag)
         b_st10[atype][btype], dtheta_st10_c[atype][btype])/sin(theta10);
 
     df5c1 = DF5(-cosphi1, a_st1[atype][btype], -cosphi_st1_ast[atype][btype], b_st1[atype][btype],
-        cosphi_st1_c[atype][btype]);
+        -cosphi_st1_c[atype][btype]);
 
     df5c2 = DF5(-cosphi2, a_st2[atype][btype], -cosphi_st2_ast[atype][btype], b_st2[atype][btype],
-        cosphi_st2_c[atype][btype]);
+        -cosphi_st2_c[atype][btype]);
 
 
     // force, torque and virial contribution for forces between stacking sites

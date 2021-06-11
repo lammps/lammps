@@ -55,6 +55,9 @@ if(DOWNLOAD_N2P2)
     endif()
   endif()
 
+  # prefer GNU make, if available. N2P2 lib seems to need it.
+  find_program(N2P2_MAKE NAMES gmake make)
+
   # override compiler (optimization) flags in n2p2 library to flags used for LAMMPS
   # specifically -march=native can result in problems when compiling on HPC clusters or with a cross compiler
   # this convoluted way gets correct quoting/escaping when configuring the external project
@@ -74,7 +77,7 @@ if(DOWNLOAD_N2P2)
     UPDATE_COMMAND ""
     CONFIGURE_COMMAND ""
     PATCH_COMMAND sed -i -e "s/\\(MPI_\\(P\\|Unp\\)ack(\\)/\\1(void *) /" src/libnnpif/LAMMPS/InterfaceLammps.cpp
-    BUILD_COMMAND make -f makefile libnnpif ${N2P2_BUILD_OPTIONS}
+    BUILD_COMMAND ${N2P2_MAKE} -f makefile libnnpif ${N2P2_BUILD_OPTIONS}
     BUILD_ALWAYS YES
     INSTALL_COMMAND ""
     BUILD_IN_SOURCE 1

@@ -73,6 +73,7 @@ page gives those details.
    * :ref:`USER-CGDNA <PKG-USER-CGDNA>`
    * :ref:`USER-CGSDK <PKG-USER-CGSDK>`
    * :ref:`USER-COLVARS <PKG-USER-COLVARS>`
+   * :ref:`USER-DIELECTRIC <PKG-USER-DIELECTRIC>`
    * :ref:`USER-DIFFRACTION <PKG-USER-DIFFRACTION>`
    * :ref:`USER-DPD <PKG-USER-DPD>`
    * :ref:`USER-DRUDE <PKG-USER-DRUDE>`
@@ -1450,6 +1451,29 @@ This package has :ref:`specific installation instructions <user-plumed>` on the 
 
 ----------
 
+.. _PKG-USER-DIELECTRIC:
+
+USER-DIELECTRIC package
+------------------------
+
+**Contents:**
+
+An atom style, multiple pair styles, several fixes, Kspace styles and a
+compute for simulating systems using boundary element solvers for
+computing the induced charges at the interface between two media with
+different dielectric constants.
+
+**Author:** Trung Nguyen and Monica Olvera de la Cruz (Northwestern U)
+
+**Supporting info:**
+
+* src/USER-DIELECTRIC: filenames -> commands
+* :doc:`compute efield/atom  <compute_efield_atom>`
+* TODO: add all styles
+* examples/USER/dielectric
+
+----------
+
 .. _PKG-USER-DIFFRACTION:
 
 USER-DIFFRACTION package
@@ -1903,9 +1927,6 @@ algorithm.
 * :doc:`fix mvv/dpd <fix_mvv_dpd>`
 * examples/USER/mesodpd
 * https://www.lammps.org/movies.html#mesodpd
-
-* examples/USER/meso
-* http://www.lammps.org/movies.html#mesodpd
 
 ----------
 

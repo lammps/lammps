@@ -24,10 +24,10 @@ nfreq = int(sys.argv[2])
 nsteps = int(sys.argv[3])
 
 me = 0
-# uncomment if running in parallel via Pypar
-#import pypar
-#me = pypar.rank()
-#nprocs = pypar.size()
+# uncomment this if running in parallel via mpi4py
+#from mpi4py import MPI
+#me = MPI.COMM_WORLD.Get_rank()
+#nprocs = MPI.COMM_WORLD.Get_size()
 
 from lammps import lammps
 lmp = lammps()
@@ -83,6 +83,5 @@ while ntimestep < nsteps:
 
 lmp.command("run 0 pre no post yes")
 
-# uncomment if running in parallel via Pypar
+# uncomment if running in parallel via mpi4py
 #print("Proc %d out of %d procs has" % (me,nprocs), lmp)
-#pypar.finalize()

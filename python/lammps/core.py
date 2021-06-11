@@ -18,12 +18,12 @@ from __future__ import print_function
 
 import os
 import sys
-from ctypes import *
+from ctypes import *                    # lgtm [py/polluting-import]
 from os.path import dirname,abspath,join
 from inspect import getsourcefile
 
-from .constants import *
-from .data import *
+from .constants import *                # lgtm [py/polluting-import]
+from .data import *                     # lgtm [py/polluting-import]
 
 # -------------------------------------------------------------------------
 
@@ -100,7 +100,7 @@ class lammps(object):
 
     try:
       if ptr: self.lib = CDLL("",RTLD_GLOBAL)
-    except:
+    except OSError:
       self.lib = None
 
     # load liblammps.so unless name is given
@@ -307,13 +307,12 @@ class lammps(object):
         from mpi4py import __version__ as mpi4py_version
         # tested to work with mpi4py versions 2 and 3
         self.has_mpi4py = mpi4py_version.split('.')[0] in ['2','3']
-      except:
+      except ImportError:
         # ignore failing import
         pass
 
     # if no ptr provided, create an instance of LAMMPS
-    #   don't know how to pass an MPI communicator from PyPar
-    #   but we can pass an MPI communicator from mpi4py v2.0.0 and later
+    #   we can pass an MPI communicator from mpi4py v2.0.0 and later
     #   no_mpi call lets LAMMPS use MPI_COMM_WORLD
     #   cargs = array of C strings from args
     # if ptr, then are embedding Python in LAMMPS input script
@@ -1134,10 +1133,10 @@ class lammps(object):
     with ExceptionCheck(self):
       if dtype == 0:
         data = ((count*natoms)*c_int)()
-        self.lib.lammps_gather_atoms(self.lmp,name,type,count,data)
+        self.lib.lammps_gather_atoms(self.lmp,name,dtype,count,data)
       elif dtype == 1:
         data = ((count*natoms)*c_double)()
-        self.lib.lammps_gather_atoms(self.lmp,name,type,count,data)
+        self.lib.lammps_gather_atoms(self.lmp,name,dtype,count,data)
       else:
         return None
     return data
@@ -1150,10 +1149,10 @@ class lammps(object):
     with ExceptionCheck(self):
       if dtype == 0:
         data = ((count*natoms)*c_int)()
-        self.lib.lammps_gather_atoms_concat(self.lmp,name,type,count,data)
+        self.lib.lammps_gather_atoms_concat(self.lmp,name,dtype,count,data)
       elif dtype == 1:
         data = ((count*natoms)*c_double)()
-        self.lib.lammps_gather_atoms_concat(self.lmp,name,type,count,data)
+        self.lib.lammps_gather_atoms_concat(self.lmp,name,dtype,count,data)
       else:
           return None
     return data
@@ -1352,7 +1351,7 @@ class lammps(object):
       id_lmp = (self.c_tagint*n)()
       try:
         id_lmp[:] = id[0:n]
-      except:
+      except:                           # lgtm [py/catch-base-exception]
         return 0
     else:
       id_lmp = None
@@ -1360,21 +1359,21 @@ class lammps(object):
     type_lmp = (c_int*n)()
     try:
       type_lmp[:] = type[0:n]
-    except:
+    except:                             # lgtm [py/catch-base-exception]
       return 0
 
     three_n = 3*n
     x_lmp = (c_double*three_n)()
     try:
       x_lmp[:] = x[0:three_n]
-    except:
+    except:                             # lgtm [py/catch-base-exception]
       return 0
 
     if v:
       v_lmp = (c_double*(three_n))()
       try:
         v_lmp[:] = v[0:three_n]
-      except:
+      except:                           # lgtm [py/catch-base-exception]
         return 0
     else:
       v_lmp = None
@@ -1383,7 +1382,7 @@ class lammps(object):
       img_lmp = (self.c_imageint*n)()
       try:
         img_lmp[:] = image[0:n]
-      except:
+      except:                           # lgtm [py/catch-base-exception]
         return 0
     else:
       img_lmp = None

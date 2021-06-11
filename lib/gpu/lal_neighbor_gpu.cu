@@ -40,6 +40,10 @@ _texture_2d( pos_tex,int4);
 #endif
 #endif
 
+#ifdef USE_HIP
+#define LAL_USE_OLD_NEIGHBOR
+#endif
+
 __kernel void calc_cell_id(const numtyp4 *restrict x_,
                            unsigned *restrict cell_id,
                            int *restrict particle_id,

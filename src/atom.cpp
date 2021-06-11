@@ -199,6 +199,10 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   rho = drho = esph = desph = cv = nullptr;
   vest = nullptr;
 
+  // USER-DIELECTRIC package
+
+  area = ed = em = epsilon = curvature = q_unscaled = nullptr;
+
   // end of customization section
   // --------------------------------------------------------------------
 
@@ -510,6 +514,15 @@ void Atom::peratom_create()
   add_peratom("eff_plastic_strain",&eff_plastic_strain,DOUBLE,0);
   add_peratom("eff_plastic_strain_rate",&eff_plastic_strain_rate,DOUBLE,0);
   add_peratom("damage",&damage,DOUBLE,0);
+
+  // USER-DIELECTRIC package
+
+  add_peratom("area",&area,DOUBLE,0);
+  add_peratom("ed",&ed,DOUBLE,0);
+  add_peratom("em",&em,DOUBLE,0);
+  add_peratom("epsilon",&epsilon,DOUBLE,0);
+  add_peratom("curvature",&curvature,DOUBLE,0);
+  add_peratom("q_unscaled",&q_unscaled,DOUBLE,0);
 
   // end of customization section
   // --------------------------------------------------------------------
@@ -2650,6 +2663,14 @@ void *Atom::extract(const char *name)
   if (strcmp(name,"dpdTheta") == 0) return (void *) dpdTheta;
   if (strcmp(name,"edpd_temp") == 0) return (void *) edpd_temp;
 
+  // USER-DIELECTRIC
+  if (strcmp(name,"area") == 0) return (void *) area;
+  if (strcmp(name,"ed") == 0) return (void *) ed;
+  if (strcmp(name,"em") == 0) return (void *) em;
+  if (strcmp(name,"epsilon") == 0) return (void *) epsilon;
+  if (strcmp(name,"curvature") == 0) return (void *) curvature;
+  if (strcmp(name,"q_unscaled") == 0) return (void *) q_unscaled;
+
   // end of customization section
   // --------------------------------------------------------------------
 
@@ -2732,6 +2753,14 @@ int Atom::extract_datatype(const char *name)
 
   if (strcmp(name,"dpdTheta") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"edpd_temp") == 0) return LAMMPS_DOUBLE;
+
+  // USER-DIELECTRIC
+  if (strcmp(name,"area") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"ed") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"em") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"epsilon") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"curvature") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"q_unscaled") == 0) return LAMMPS_DOUBLE;
 
   // end of customization section
   // --------------------------------------------------------------------

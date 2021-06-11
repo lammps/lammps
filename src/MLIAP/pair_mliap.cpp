@@ -172,10 +172,10 @@ void PairMLIAP::settings(int narg, char ** arg)
         if (iarg+3 > narg) error->all(FLERR,"Illegal pair_style mliap command");
         descriptor = new MLIAPDescriptorSNAP(lmp,arg[iarg+2]);
         iarg += 3;
-      }else if (strcmp(arg[iarg+1],"so3") == 0) {
-          if (iarg+3 > narg) error->all(FLERR,"Illegal pair_style mliap command");
-          descriptor = new MLIAPDescriptorSO3(lmp,arg[iarg+2]);
-          iarg += 3;
+      } else if (strcmp(arg[iarg+1],"so3") == 0) {
+        if (iarg+3 > narg) error->all(FLERR,"Illegal pair_style mliap command");
+        descriptor = new MLIAPDescriptorSO3(lmp,arg[iarg+2]);
+        iarg += 3;
 
       } else error->all(FLERR,"Illegal pair_style mliap command");
       descriptorflag = 1;

@@ -12,43 +12,44 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_fabric.h"
-#include <cmath>
-#include <cstring>
-#include <mpi.h>
+
 #include "atom.h"
 #include "error.h"
 #include "force.h"
 #include "memory.h"
 #include "modify.h"
-#include "neighbor.h"
-#include "neigh_request.h"
 #include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
 #include "pair.h"
 #include "tokenizer.h"
 #include "update.h"
 
-#include <string.h>
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
-enum{OTHER,GRANULAR};
-enum{TYPE,RADIUS};
-enum{CN,BR,FN,FT};
+enum { OTHER, GRANULAR };
+enum { TYPE, RADIUS };
+enum { CN, BR, FN, FT };
 
 /* ---------------------------------------------------------------------- */
 
 ComputeFabric::ComputeFabric(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg),
-  tensor_style(NULL)
+    Compute(lmp, narg, arg), tensor_style(NULL)
 {
-  if (narg < 3) error->all(FLERR,"Illegal compute fabric command");
+  if (narg < 3) error->all(FLERR, "Illegal compute fabric command");
 
-  if (strcmp(arg[3],"type") == 0) cutstyle = TYPE;
-  else if (strcmp(arg[3],"radius") == 0) cutstyle = RADIUS;
-  else error->all(FLERR,"Illegal compute fabric command");
+  if (strcmp(arg[3], "type") == 0)
+    cutstyle = TYPE;
+  else if (strcmp(arg[3], "radius") == 0)
+    cutstyle = RADIUS;
+  else
+    error->all(FLERR, "Illegal compute fabric command");
 
   if (cutstyle == RADIUS && !atom->radius_flag)
-    error->all(FLERR,"Compute fabric radius style requires atom attribute radius");
+    error->all(FLERR, "Compute fabric radius style requires atom attribute radius");
 
   // If optional arguments included, this will be oversized
   ntensors = narg - 4;
@@ -63,16 +64,16 @@ ComputeFabric::ComputeFabric(LAMMPS *lmp, int narg, char **arg) :
   ntensors = 0;
   int iarg = 4;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"contact") == 0) {
+    if (strcmp(arg[iarg], "contact") == 0) {
       cn_flag = 1;
       tensor_style[ntensors++] = CN;
-    } else if (strcmp(arg[iarg],"branch") == 0) {
+    } else if (strcmp(arg[iarg], "branch") == 0) {
       br_flag = 1;
       tensor_style[ntensors++] = BR;
-    } else if (strcmp(arg[iarg],"force/normal") == 0) {
+    } else if (strcmp(arg[iarg], "force/normal") == 0) {
       fn_flag = 1;
       tensor_style[ntensors++] = FN;
-    } else if (strcmp(arg[iarg],"force/tangential") == 0) {
+    } else if (strcmp(arg[iarg], "force/tangential") == 0) {
       ft_flag = 1;
       tensor_style[ntensors++] = FT;
     } else if (strcmp(arg[iarg], "type/include") == 0) {
@@ -185,12 +186,12 @@ void ComputeFabric::init_list(int /*id*/, NeighList *ptr)
 
 void ComputeFabric::compute_vector()
 {
-  int i,j,ii,jj,inum,jnum,itype,jtype;
-  tagint itag,jtag;
-  double xtmp,ytmp,ztmp,delx,dely,delz;
-  double r,rinv,rsq,radsum,eng,fpair;
+  int i, j, ii, jj, inum, jnum, itype, jtype;
+  tagint itag, jtag;
+  double xtmp, ytmp, ztmp, delx, dely, delz;
+  double r, rinv, rsq, radsum, eng, fpair;
 
-  double nx, ny, nz, fx, fy ,fz;
+  double nx, ny, nz, fx, fy, fz;
   double ncinv, denom, fn, ft, prefactor;
   double cn_tensor[6], br_tensor[6], ft_tensor[6], fn_tensor[6];
   double trace_phi, trace_D, trace_Xfn, trace_Xft;
@@ -202,7 +203,7 @@ void ComputeFabric::compute_vector()
   int nc, temp_int;
   double temp_dbl[6];
 
-  int *ilist,*jlist,*numneigh,**firstneigh;
+  int *ilist, *jlist, *numneigh, **firstneigh;
 
   double **x = atom->x;
   double *radius = atom->radius;
@@ -248,9 +249,9 @@ void ComputeFabric::compute_vector()
       if (newton_pair == 0 && j >= nlocal) {
         jtag = tag[j];
         if (itag > jtag) {
-          if ((itag+jtag) % 2 == 0) continue;
+          if ((itag + jtag) % 2 == 0) continue;
         } else if (itag < jtag) {
-          if ((itag+jtag) % 2 == 1) continue;
+          if ((itag + jtag) % 2 == 1) continue;
         } else {
           if (x[j][2] < ztmp) continue;
           if (x[j][2] == ztmp) {
@@ -261,64 +262,64 @@ void ComputeFabric::compute_vector()
       }
 
       jtype = type[j];
-      
-      if (type_filter) 
+
+      if (type_filter)
         if (type_filter[itype][jtype] == 0) continue;
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
-      rsq = delx*delx + dely*dely + delz*delz;
+      rsq = delx * delx + dely * dely + delz * delz;
 
       if (cutstyle == TYPE) {
         if (rsq >= cutsq[itype][jtype]) continue;
       } else {
         radsum = radius[i] + radius[j];
-        if (rsq >= radsum*radsum) continue;
+        if (rsq >= radsum * radsum) continue;
       }
 
       nc += 1;
 
       r = sqrt(rsq);
-      rinv = 1.0/r;
-      nx = delx*rinv;
-      ny = dely*rinv;
-      nz = delz*rinv;
+      rinv = 1.0 / r;
+      nx = delx * rinv;
+      ny = dely * rinv;
+      nz = delz * rinv;
 
-      phi_ij[0] += nx*nx;
-      phi_ij[1] += ny*ny;
-      phi_ij[2] += nz*nz;
-      phi_ij[3] += nx*ny;
-      phi_ij[4] += nx*nz;
-      phi_ij[5] += ny*nz;
+      phi_ij[0] += nx * nx;
+      phi_ij[1] += ny * ny;
+      phi_ij[2] += nz * nz;
+      phi_ij[3] += nx * ny;
+      phi_ij[4] += nx * nz;
+      phi_ij[5] += ny * nz;
     }
   }
 
   //Count total contacts across processors
-  MPI_Allreduce(&nc,&temp_int,1,MPI_INT,MPI_SUM,world);
+  MPI_Allreduce(&nc, &temp_int, 1, MPI_INT, MPI_SUM, world);
   nc = temp_int;
 
   // If no contacts, everything will be zero
   if (nc == 0) {
-    for (i = 0; i < size_vector; i ++) vector[i] = 0.0;
+    for (i = 0; i < size_vector; i++) vector[i] = 0.0;
     return;
   }
 
-  vector[ntensors*6] = nc;
-  ncinv = 1.0/nc;
+  vector[ntensors * 6] = nc;
+  ncinv = 1.0 / nc;
 
   //Sum phi across processors
-  MPI_Allreduce(phi_ij,temp_dbl,6,MPI_DOUBLE,MPI_SUM,world);
-  for (i = 0; i < 6; i++) phi_ij[i] = temp_dbl[i]*ncinv;
+  MPI_Allreduce(phi_ij, temp_dbl, 6, MPI_DOUBLE, MPI_SUM, world);
+  for (i = 0; i < 6; i++) phi_ij[i] = temp_dbl[i] * ncinv;
 
-  trace_phi = (1.0/3.0)*(phi_ij[0]+phi_ij[1]+phi_ij[2]);
+  trace_phi = (1.0 / 3.0) * (phi_ij[0] + phi_ij[1] + phi_ij[2]);
 
-  Ac_ij[0] = (15.0/2.0)*(phi_ij[0] - trace_phi);
-  Ac_ij[1] = (15.0/2.0)*(phi_ij[1] - trace_phi);
-  Ac_ij[2] = (15.0/2.0)*(phi_ij[2] - trace_phi);
-  Ac_ij[3] = (15.0/2.0)*(phi_ij[3]);
-  Ac_ij[4] = (15.0/2.0)*(phi_ij[4]);
-  Ac_ij[5] = (15.0/2.0)*(phi_ij[5]);
+  Ac_ij[0] = (15.0 / 2.0) * (phi_ij[0] - trace_phi);
+  Ac_ij[1] = (15.0 / 2.0) * (phi_ij[1] - trace_phi);
+  Ac_ij[2] = (15.0 / 2.0) * (phi_ij[2] - trace_phi);
+  Ac_ij[3] = (15.0 / 2.0) * (phi_ij[3]);
+  Ac_ij[4] = (15.0 / 2.0) * (phi_ij[4]);
+  Ac_ij[5] = (15.0 / 2.0) * (phi_ij[5]);
 
   // If needed, loop through and calculate other fabric tensors
   if (br_flag || fn_flag || ft_flag) {
@@ -346,9 +347,9 @@ void ComputeFabric::compute_vector()
         if (newton_pair == 0 && j >= nlocal) {
           jtag = tag[j];
           if (itag > jtag) {
-            if ((itag+jtag) % 2 == 0) continue;
+            if ((itag + jtag) % 2 == 0) continue;
           } else if (itag < jtag) {
-            if ((itag+jtag) % 2 == 1) continue;
+            if ((itag + jtag) % 2 == 1) continue;
           } else {
             if (x[j][2] < ztmp) continue;
             if (x[j][2] == ztmp) {
@@ -359,63 +360,62 @@ void ComputeFabric::compute_vector()
         }
 
         jtype = type[j];
-        
-        if (type_filter) 
-          if (type_filter[itype][jtype] == 0) continue;        
+
+        if (type_filter)
+          if (type_filter[itype][jtype] == 0) continue;
 
         delx = xtmp - x[j][0];
         dely = ytmp - x[j][1];
         delz = ztmp - x[j][2];
-        rsq = delx*delx + dely*dely + delz*delz;
+        rsq = delx * delx + dely * dely + delz * delz;
 
         if (cutstyle == TYPE) {
           if (rsq >= cutsq[itype][jtype]) continue;
         } else {
           radsum = radius[i] + radius[j];
-          if (rsq >= radsum*radsum) continue;
+          if (rsq >= radsum * radsum) continue;
         }
 
-        if (fn_flag || ft_flag)
-          eng = pair->single(i,j,itype,jtype,rsq,1.0,1.0,fpair);
+        if (fn_flag || ft_flag) eng = pair->single(i, j, itype, jtype, rsq, 1.0, 1.0, fpair);
 
         r = sqrt(rsq);
-        rinv = 1.0/r;
-        nx = delx*rinv;
-        ny = dely*rinv;
-        nz = delz*rinv;
+        rinv = 1.0 / r;
+        nx = delx * rinv;
+        ny = dely * rinv;
+        nz = delz * rinv;
 
-        denom = 1 + Ac_ij[0]*nx*nx + Ac_ij[1]*ny*ny + Ac_ij[2]*nz*nz;
-        denom += 2*Ac_ij[3]*nx*ny + 2*Ac_ij[4]*nx*nz + 2*Ac_ij[5]*ny*nz;
-        prefactor = ncinv/denom;
+        denom = 1 + Ac_ij[0] * nx * nx + Ac_ij[1] * ny * ny + Ac_ij[2] * nz * nz;
+        denom += 2 * Ac_ij[3] * nx * ny + 2 * Ac_ij[4] * nx * nz + 2 * Ac_ij[5] * ny * nz;
+        prefactor = ncinv / denom;
 
         if (br_flag) {
-          D_ij[0] += prefactor*nx*nx*r;
-          D_ij[1] += prefactor*ny*ny*r;
-          D_ij[2] += prefactor*nz*nz*r;
-          D_ij[3] += prefactor*nx*ny*r;
-          D_ij[4] += prefactor*nx*nz*r;
-          D_ij[5] += prefactor*ny*nz*r;
+          D_ij[0] += prefactor * nx * nx * r;
+          D_ij[1] += prefactor * ny * ny * r;
+          D_ij[2] += prefactor * nz * nz * r;
+          D_ij[3] += prefactor * nx * ny * r;
+          D_ij[4] += prefactor * nx * nz * r;
+          D_ij[5] += prefactor * ny * nz * r;
         }
 
         if (fn_flag || ft_flag) {
-          fn = r*fpair;
+          fn = r * fpair;
 
-          Xfn_ij[0] += prefactor*nx*nx*fn;
-          Xfn_ij[1] += prefactor*ny*ny*fn;
-          Xfn_ij[2] += prefactor*nz*nz*fn;
-          Xfn_ij[3] += prefactor*nx*ny*fn;
-          Xfn_ij[4] += prefactor*nx*nz*fn;
-          Xfn_ij[5] += prefactor*ny*nz*fn;
+          Xfn_ij[0] += prefactor * nx * nx * fn;
+          Xfn_ij[1] += prefactor * ny * ny * fn;
+          Xfn_ij[2] += prefactor * nz * nz * fn;
+          Xfn_ij[3] += prefactor * nx * ny * fn;
+          Xfn_ij[4] += prefactor * nx * nz * fn;
+          Xfn_ij[5] += prefactor * ny * nz * fn;
 
           if (ft_flag) {
             ft = force->pair->svector[3];
 
-            Xft_ij[0] += prefactor*nx*nx*ft;
-            Xft_ij[1] += prefactor*ny*ny*ft;
-            Xft_ij[2] += prefactor*nz*nz*ft;
-            Xft_ij[3] += prefactor*nx*ny*ft;
-            Xft_ij[4] += prefactor*nx*nz*ft;
-            Xft_ij[5] += prefactor*ny*nz*ft;
+            Xft_ij[0] += prefactor * nx * nx * ft;
+            Xft_ij[1] += prefactor * ny * ny * ft;
+            Xft_ij[2] += prefactor * nz * nz * ft;
+            Xft_ij[3] += prefactor * nx * ny * ft;
+            Xft_ij[4] += prefactor * nx * nz * ft;
+            Xft_ij[5] += prefactor * ny * nz * ft;
           }
         }
       }
@@ -425,72 +425,72 @@ void ComputeFabric::compute_vector()
   // Output results
 
   if (cn_flag) {
-    for (i = 0; i < ntensors; i ++) {
+    for (i = 0; i < ntensors; i++) {
       if (tensor_style[i] == CN) {
-        for (j = 0; j < 6; j++) vector[6*i + j] = Ac_ij[j];
+        for (j = 0; j < 6; j++) vector[6 * i + j] = Ac_ij[j];
       }
     }
   }
 
   if (br_flag) {
-    MPI_Allreduce(D_ij,temp_dbl,6,MPI_DOUBLE,MPI_SUM,world);
+    MPI_Allreduce(D_ij, temp_dbl, 6, MPI_DOUBLE, MPI_SUM, world);
     for (i = 0; i < 6; i++) D_ij[i] = temp_dbl[i];
 
-    trace_D = (1.0/3.0)*(D_ij[0]+D_ij[1]+D_ij[2]);
+    trace_D = (1.0 / 3.0) * (D_ij[0] + D_ij[1] + D_ij[2]);
 
-    br_tensor[0] = (15.0/(6.0*trace_D))*(D_ij[0] - trace_D);
-    br_tensor[1] = (15.0/(6.0*trace_D))*(D_ij[1] - trace_D);
-    br_tensor[2] = (15.0/(6.0*trace_D))*(D_ij[2] - trace_D);
-    br_tensor[3] = (15.0/(6.0*trace_D))*(D_ij[3]);
-    br_tensor[4] = (15.0/(6.0*trace_D))*(D_ij[4]);
-    br_tensor[5] = (15.0/(6.0*trace_D))*(D_ij[5]);
+    br_tensor[0] = (15.0 / (6.0 * trace_D)) * (D_ij[0] - trace_D);
+    br_tensor[1] = (15.0 / (6.0 * trace_D)) * (D_ij[1] - trace_D);
+    br_tensor[2] = (15.0 / (6.0 * trace_D)) * (D_ij[2] - trace_D);
+    br_tensor[3] = (15.0 / (6.0 * trace_D)) * (D_ij[3]);
+    br_tensor[4] = (15.0 / (6.0 * trace_D)) * (D_ij[4]);
+    br_tensor[5] = (15.0 / (6.0 * trace_D)) * (D_ij[5]);
 
-    for (i = 0; i < ntensors; i ++) {
+    for (i = 0; i < ntensors; i++) {
       if (tensor_style[i] == BR) {
-        for (j = 0; j < 6; j++) vector[6*i + j] = br_tensor[j];
+        for (j = 0; j < 6; j++) vector[6 * i + j] = br_tensor[j];
       }
     }
   }
 
   if (fn_flag || ft_flag) {
-    MPI_Allreduce(Xfn_ij,temp_dbl,6,MPI_DOUBLE,MPI_SUM,world);
+    MPI_Allreduce(Xfn_ij, temp_dbl, 6, MPI_DOUBLE, MPI_SUM, world);
     for (i = 0; i < 6; i++) Xfn_ij[i] = temp_dbl[i];
 
-    trace_Xfn = (1.0/3.0)*(Xfn_ij[0]+Xfn_ij[1]+Xfn_ij[2]);
+    trace_Xfn = (1.0 / 3.0) * (Xfn_ij[0] + Xfn_ij[1] + Xfn_ij[2]);
   }
 
   if (fn_flag) {
 
-    fn_tensor[0] = (15.0/(6.0*trace_Xfn))*(Xfn_ij[0] - trace_Xfn);
-    fn_tensor[1] = (15.0/(6.0*trace_Xfn))*(Xfn_ij[1] - trace_Xfn);
-    fn_tensor[2] = (15.0/(6.0*trace_Xfn))*(Xfn_ij[2] - trace_Xfn);
-    fn_tensor[3] = (15.0/(6.0*trace_Xfn))*(Xfn_ij[3]);
-    fn_tensor[4] = (15.0/(6.0*trace_Xfn))*(Xfn_ij[4]);
-    fn_tensor[5] = (15.0/(6.0*trace_Xfn))*(Xfn_ij[5]);
+    fn_tensor[0] = (15.0 / (6.0 * trace_Xfn)) * (Xfn_ij[0] - trace_Xfn);
+    fn_tensor[1] = (15.0 / (6.0 * trace_Xfn)) * (Xfn_ij[1] - trace_Xfn);
+    fn_tensor[2] = (15.0 / (6.0 * trace_Xfn)) * (Xfn_ij[2] - trace_Xfn);
+    fn_tensor[3] = (15.0 / (6.0 * trace_Xfn)) * (Xfn_ij[3]);
+    fn_tensor[4] = (15.0 / (6.0 * trace_Xfn)) * (Xfn_ij[4]);
+    fn_tensor[5] = (15.0 / (6.0 * trace_Xfn)) * (Xfn_ij[5]);
 
-    for (i = 0; i < ntensors; i ++) {
+    for (i = 0; i < ntensors; i++) {
       if (tensor_style[i] == FN) {
-        for (j = 0; j < 6; j++) vector[6*i + j] = fn_tensor[j];
+        for (j = 0; j < 6; j++) vector[6 * i + j] = fn_tensor[j];
       }
     }
   }
 
   if (ft_flag) {
-    MPI_Allreduce(Xft_ij,temp_dbl,6,MPI_DOUBLE,MPI_SUM,world);
+    MPI_Allreduce(Xft_ij, temp_dbl, 6, MPI_DOUBLE, MPI_SUM, world);
     for (i = 0; i < 6; i++) Xft_ij[i] = temp_dbl[i];
 
-    trace_Xft = (1.0/3.0)*(Xft_ij[0]+Xft_ij[1]+Xft_ij[2]);
+    trace_Xft = (1.0 / 3.0) * (Xft_ij[0] + Xft_ij[1] + Xft_ij[2]);
 
-    ft_tensor[0] = (15.0/(9.0*trace_Xfn))*(Xft_ij[0] - trace_Xft);
-    ft_tensor[1] = (15.0/(9.0*trace_Xfn))*(Xft_ij[1] - trace_Xft);
-    ft_tensor[2] = (15.0/(9.0*trace_Xfn))*(Xft_ij[2] - trace_Xft);
-    ft_tensor[3] = (15.0/(9.0*trace_Xfn))*(Xft_ij[3]);
-    ft_tensor[4] = (15.0/(9.0*trace_Xfn))*(Xft_ij[4]);
-    ft_tensor[5] = (15.0/(9.0*trace_Xfn))*(Xft_ij[5]);
+    ft_tensor[0] = (15.0 / (9.0 * trace_Xfn)) * (Xft_ij[0] - trace_Xft);
+    ft_tensor[1] = (15.0 / (9.0 * trace_Xfn)) * (Xft_ij[1] - trace_Xft);
+    ft_tensor[2] = (15.0 / (9.0 * trace_Xfn)) * (Xft_ij[2] - trace_Xft);
+    ft_tensor[3] = (15.0 / (9.0 * trace_Xfn)) * (Xft_ij[3]);
+    ft_tensor[4] = (15.0 / (9.0 * trace_Xfn)) * (Xft_ij[4]);
+    ft_tensor[5] = (15.0 / (9.0 * trace_Xfn)) * (Xft_ij[5]);
 
-    for (i = 0; i < ntensors; i ++) {
+    for (i = 0; i < ntensors; i++) {
       if (tensor_style[i] == FT) {
-        for (j = 0; j < 6; j++) vector[6*i + j] = ft_tensor[j];
+        for (j = 0; j < 6; j++) vector[6 * i + j] = ft_tensor[j];
       }
     }
   }

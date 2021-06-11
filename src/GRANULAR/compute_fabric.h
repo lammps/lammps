@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(fabric,ComputeFabric)
-
+// clang-format off
+ComputeStyle(fabric,ComputeFabric);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_FABRIC_H
@@ -41,7 +41,7 @@ class ComputeFabric : public Compute {
   int cn_flag, br_flag, fn_flag, ft_flag;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

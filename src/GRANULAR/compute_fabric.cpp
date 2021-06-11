@@ -122,13 +122,14 @@ ComputeFabric::ComputeFabric(LAMMPS *lmp, int narg, char **arg) :
       delete[] istr;
       delete[] jstr;
 
-      iarg += 2;      
-    } else error->all(FLERR,"Illegal compute fabric command");
+      iarg += 2;
+    } else
+      error->all(FLERR, "Illegal compute fabric command");
     iarg++;
   }
 
   vector_flag = 1;
-  size_vector = 1+ntensors*6;
+  size_vector = 1 + ntensors * 6;
   extvector = 0;
 
   vector = new double[size_vector];
@@ -138,8 +139,8 @@ ComputeFabric::ComputeFabric(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeFabric::~ComputeFabric()
 {
-  delete [] vector;
-  delete [] tensor_style;
+  delete[] vector;
+  delete[] tensor_style;
   memory->destroy(type_filter);
 }
 
@@ -147,30 +148,25 @@ ComputeFabric::~ComputeFabric()
 
 void ComputeFabric::init()
 {
-  if (force->pair == NULL)
-    error->all(FLERR,"No pair style is defined for compute fabric");
+  if (force->pair == NULL) error->all(FLERR, "No pair style is defined for compute fabric");
   if (force->pair->single_enable == 0 && (fn_flag || ft_flag))
-    error->all(FLERR,"Pair style does not support compute fabric normal or tangential force");
+    error->all(FLERR, "Pair style does not support compute fabric normal or tangential force");
 
   // Find if granular or gran
   pstyle = OTHER;
-  if (force->pair_match("granular",0) ||
-    force->pair_match("gran/hooke",0) ||
-    force->pair_match("gran/hertz",0) ||
-    force->pair_match("gran/hooke/history",0) ||
-    force->pair_match("gran/hertz/history",0)) pstyle = GRANULAR;
+  if (force->pair_match("^granular", 0) || force->pair_match("^gran/", 0)) pstyle = GRANULAR;
 
   if (pstyle != GRANULAR && ft_flag)
-    error->all(FLERR,"Pair style does not calculate tangential forces for compute fabric");
+    error->all(FLERR, "Pair style does not calculate tangential forces for compute fabric");
 
-  if(force->pair->beyond_contact)
+  if (force->pair->beyond_contact)
     error->all(FLERR, "Compute fabric does not support pair styles that extend beyond contact");
 
   // need an occasional half neighbor list
   // set size to same value as request made by force->pair
   // this should enable it to always be a copy list (e.g. for granular pstyle)
 
-  int irequest = neighbor->request(this,instance_me);
+  int irequest = neighbor->request(this, instance_me);
   neighbor->requests[irequest]->pair = 0;
   neighbor->requests[irequest]->compute = 1;
   neighbor->requests[irequest]->occasional = 1;

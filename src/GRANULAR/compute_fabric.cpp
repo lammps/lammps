@@ -191,9 +191,9 @@ void ComputeFabric::compute_vector()
   double xtmp, ytmp, ztmp, delx, dely, delz;
   double r, rinv, rsq, radsum, eng, fpair;
 
-  double nx, ny, nz, fx, fy, fz;
+  double nx, ny, nz;
   double ncinv, denom, fn, ft, prefactor;
-  double cn_tensor[6], br_tensor[6], ft_tensor[6], fn_tensor[6];
+  double br_tensor[6], ft_tensor[6], fn_tensor[6];
   double trace_phi, trace_D, trace_Xfn, trace_Xft;
   double phi_ij[6] = {0.0};
   double Ac_ij[6] = {0.0};

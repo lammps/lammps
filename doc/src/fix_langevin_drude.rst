@@ -35,6 +35,8 @@ Examples
    fix 3 all langevin/drude 300.0 100.0 19377 1.0 20.0 83451
    fix 1 all langevin/drude 298.15 100.0 19377 5.0 10.0 83451 zero yes
 
+Example input scripts available: examples/USER/drude
+
 Description
 """""""""""
 
@@ -256,7 +258,8 @@ Comments:
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  Because the state of the random number generator
 is not saved in restart files, this means you cannot do "exact"

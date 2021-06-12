@@ -1,13 +1,11 @@
 .. index:: pair_style lj96/cut
+.. index:: pair_style lj96/cut/gpu
+.. index:: pair_style lj96/cut/omp
 
 pair_style lj96/cut command
 ===========================
 
-pair_style lj96/cut/gpu command
-===============================
-
-pair_style lj96/cut/omp command
-===============================
+Accelerator Variants: *lj96/cut/gpu*, *lj96/cut/omp*
 
 Syntax
 """"""
@@ -60,7 +58,8 @@ cutoff specified in the pair_style command is used.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 For atom type pairs I,J and I != J, the epsilon and sigma coefficients
 and cutoff distance for all of the lj/cut pair styles can be mixed.
@@ -97,4 +96,7 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none

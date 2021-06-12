@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,26 +13,22 @@
 ------------------------------------------------------------------------- */
 
 #include "atom_vec.h"
-#include <cstdio>
-#include <cstring>
+
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
-#include "force.h"
-#include "modify.h"
+#include "error.h"
 #include "fix.h"
+#include "force.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
-#include "utils.h"
+#include "modify.h"
 #include "tokenizer.h"
-#include "fmt/format.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
-
-#define DELTA 16384
-#define DELTA_BONUS 8192
 
 /* ---------------------------------------------------------------------- */
 
@@ -40,9 +37,9 @@ AtomVec::AtomVec(LAMMPS *lmp) : Pointers(lmp)
   nmax = 0;
   ngrow = 0;
 
-  molecular = 0;
+  molecular = Atom::ATOMIC;
   bonds_allow = angles_allow = dihedrals_allow = impropers_allow = 0;
-  mass_type = dipole_type = 0;
+  mass_type = dipole_type = PER_ATOM;
   forceclearflag = 0;
   maxexchange = 0;
   bonus_flag = 0;
@@ -75,21 +72,6 @@ AtomVec::AtomVec(LAMMPS *lmp) : Pointers(lmp)
   default_create = "id type mask image x v";
   default_data_atom = "";
   default_data_vel = "";
-
-  // initializations
-
-  init_method(&mgrow);
-  init_method(&mcopy);
-  init_method(&mcomm);
-  init_method(&mcomm_vel);
-  init_method(&mreverse);
-  init_method(&mborder);
-  init_method(&mborder_vel);
-  init_method(&mexchange);
-  init_method(&mrestart);
-  init_method(&mcreate);
-  init_method(&mdata_atom);
-  init_method(&mdata_vel);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -133,19 +115,6 @@ AtomVec::~AtomVec()
     }
   }
 
-  destroy_method(&mgrow);
-  destroy_method(&mcopy);
-  destroy_method(&mcomm);
-  destroy_method(&mcomm_vel);
-  destroy_method(&mreverse);
-  destroy_method(&mborder);
-  destroy_method(&mborder_vel);
-  destroy_method(&mexchange);
-  destroy_method(&mrestart);
-  destroy_method(&mcreate);
-  destroy_method(&mdata_atom);
-  destroy_method(&mdata_vel);
-
   delete [] threads;
 }
 
@@ -158,11 +127,8 @@ void AtomVec::store_args(int narg, char **arg)
   nargcopy = narg;
   if (nargcopy) argcopy = new char*[nargcopy];
   else argcopy = nullptr;
-  for (int i = 0; i < nargcopy; i++) {
-    int n = strlen(arg[i]) + 1;
-    argcopy[i] = new char[n];
-    strcpy(argcopy[i],arg[i]);
-  }
+  for (int i = 0; i < nargcopy; i++)
+    argcopy[i] = utils::strdup(arg[i]);
 }
 
 /* ----------------------------------------------------------------------
@@ -189,6 +155,8 @@ void AtomVec::init()
     error->all(FLERR,"KOKKOS package requires a kokkos enabled atom_style");
 }
 
+static constexpr bigint DELTA=16384;
+
 /* ----------------------------------------------------------------------
    roundup N so it is a multiple of DELTA
    error if N exceeds 32-bit int, since will be used as arg to grow()
@@ -211,6 +179,8 @@ void AtomVec::grow_nmax()
   nmax = nmax/DELTA * DELTA;
   nmax += DELTA;
 }
+
+static constexpr bigint DELTA_BONUS=8192;
 
 /* ----------------------------------------------------------------------
    grow nmax_bonus so it is a multiple of DELTA_BONUS
@@ -2061,7 +2031,7 @@ void AtomVec::write_vel(FILE *fp, int n, double **buf)
 }
 
 /* ----------------------------------------------------------------------
-   pack bond info for data file into buf if non-NULL
+   pack bond info for data file into buf if non-nullptr
    return count of bonds from this proc
    do not count/pack bonds with bondtype = 0
    if bondtype is negative, flip back to positive
@@ -2119,7 +2089,7 @@ void AtomVec::write_bond(FILE *fp, int n, tagint **buf, int index)
 }
 
 /* ----------------------------------------------------------------------
-   pack angle info for data file into buf if non-NULL
+   pack angle info for data file into buf if non-nullptr
    return count of angles from this proc
    do not count/pack angles with angletype = 0
    if angletype is negative, flip back to positive
@@ -2307,12 +2277,12 @@ void AtomVec::write_improper(FILE *fp, int n, tagint **buf, int index)
    return # of bytes of allocated memory
 ------------------------------------------------------------------------- */
 
-bigint AtomVec::memory_usage()
+double AtomVec::memory_usage()
 {
   int datatype,cols,maxcols;
   void *pdata;
 
-  bigint bytes = 0;
+  double bytes = 0;
 
   bytes += memory->usage(tag,nmax);
   bytes += memory->usage(type,nmax);
@@ -2398,18 +2368,18 @@ void AtomVec::setup_fields()
 
   // populate field-based data struct for each method to use
 
-  create_method(ngrow,&mgrow);
-  create_method(ncopy,&mcopy);
-  create_method(ncomm,&mcomm);
-  create_method(ncomm_vel,&mcomm_vel);
-  create_method(nreverse,&mreverse);
-  create_method(nborder,&mborder);
-  create_method(nborder_vel,&mborder_vel);
-  create_method(nexchange,&mexchange);
-  create_method(nrestart,&mrestart);
-  create_method(ncreate,&mcreate);
-  create_method(ndata_atom,&mdata_atom);
-  create_method(ndata_vel,&mdata_vel);
+  init_method(ngrow,&mgrow);
+  init_method(ncopy,&mcopy);
+  init_method(ncomm,&mcomm);
+  init_method(ncomm_vel,&mcomm_vel);
+  init_method(nreverse,&mreverse);
+  init_method(nborder,&mborder);
+  init_method(nborder_vel,&mborder_vel);
+  init_method(nexchange,&mexchange);
+  init_method(nrestart,&mrestart);
+  init_method(ncreate,&mcreate);
+  init_method(ndata_atom,&mdata_atom);
+  init_method(ndata_vel,&mdata_vel);
 
   // create threads data struct for grow and memory_usage to use
 
@@ -2483,7 +2453,6 @@ void AtomVec::setup_fields()
 int AtomVec::process_fields(char *str, const char *default_str, Method *method)
 {
   if (str == nullptr) {
-    method->index = nullptr;
     return 0;
   }
 
@@ -2499,62 +2468,45 @@ int AtomVec::process_fields(char *str, const char *default_str, Method *method)
   Atom::PerAtom *peratom = atom->peratom;
   int nperatom = atom->nperatom;
 
-  int *index;
+  // allocate memory in method
+  method->resize(nfield);
+
+  std::vector<int> & index = method->index;
   int match;
 
-  if (nfield) index = new int[nfield];
   for (int i = 0; i < nfield; i++) {
-    const char * field = words[i].c_str();
+    const std::string & field = words[i];
 
     // find field in master Atom::peratom list
 
     for (match = 0; match < nperatom; match++)
-      if (strcmp(field, peratom[match].name) == 0) break;
+      if (field == peratom[match].name) break;
     if (match == nperatom)
-      error->all(FLERR,fmt::format("Peratom field {} not recognized", field));
+      error->all(FLERR,"Peratom field {} not recognized", field);
     index[i] = match;
 
     // error if field appears multiple times
 
     for (match = 0; match < i; match++)
       if (index[i] == index[match])
-        error->all(FLERR,fmt::format("Peratom field {} is repeated", field));
+        error->all(FLERR,"Peratom field {} is repeated", field);
 
     // error if field is in default str
 
     for (match = 0; match < ndef; match++)
-      if (strcmp(field, def_words[match].c_str()) == 0)
-        error->all(FLERR,fmt::format("Peratom field {} is a default", field));
+      if (field == def_words[match])
+        error->all(FLERR,"Peratom field {} is a default", field);
   }
 
-  if (nfield) method->index = index;
-  else method->index = nullptr;
   return nfield;
 }
 
 /* ----------------------------------------------------------------------
-   create a method data structs for processing fields
+   init method data structs for processing fields
 ------------------------------------------------------------------------- */
 
-void AtomVec::create_method(int nfield, Method *method)
+void AtomVec::init_method(int nfield, Method *method)
 {
-  if (nfield > 0) {
-    method->pdata = new void*[nfield];
-    method->datatype = new int[nfield];
-    method->cols = new int[nfield];
-    method->maxcols = new int*[nfield];
-    method->collength = new int[nfield];
-    method->plength = new void*[nfield];
-  } else {
-    method->pdata = nullptr;
-    method->datatype = nullptr;
-    method->cols = nullptr;
-    method->maxcols = nullptr;
-    method->collength = nullptr;
-    method->plength = nullptr;
-    return;
-  }
-
   for (int i = 0; i < nfield; i++) {
     Atom::PerAtom *field = &atom->peratom[method->index[i]];
     method->pdata[i] = (void *) field->address;
@@ -2569,31 +2521,15 @@ void AtomVec::create_method(int nfield, Method *method)
 }
 
 /* ----------------------------------------------------------------------
-   free memory in a method data structs
+   Method class members
 ------------------------------------------------------------------------- */
 
-void AtomVec::init_method(Method *method)
-{
-  method->pdata = nullptr;
-  method->datatype = nullptr;
-  method->cols = nullptr;
-  method->maxcols = nullptr;
-  method->collength = nullptr;
-  method->plength = nullptr;
-  method->index = nullptr;
-}
-
-/* ----------------------------------------------------------------------
-   free memory in a method data structs
-------------------------------------------------------------------------- */
-
-void AtomVec::destroy_method(Method *method)
-{
-  delete [] method->pdata;
-  delete [] method->datatype;
-  delete [] method->cols;
-  delete [] method->maxcols;
-  delete [] method->collength;
-  delete [] method->plength;
-  delete [] method->index;
+void AtomVec::Method::resize(int nfield) {
+  pdata.resize(nfield);
+  datatype.resize(nfield);
+  cols.resize(nfield);
+  maxcols.resize(nfield);
+  collength.resize(nfield);
+  plength.resize(nfield);
+  index.resize(nfield);
 }

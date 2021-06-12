@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(temp/profile,ComputeTempProfile)
-
+// clang-format off
+ComputeStyle(temp/profile,ComputeTempProfile);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_TEMP_PROFILE_H
@@ -43,20 +43,20 @@ class ComputeTempProfile : public Compute {
   double memory_usage();
 
  private:
-  int xflag,yflag,zflag,ncount,outflag;
-  int nbinx,nbiny,nbinz,nbins;
-  int ivx,ivy,ivz;
+  int xflag, yflag, zflag, ncount, outflag;
+  int nbinx, nbiny, nbinz, nbins;
+  int ivx, ivy, ivz;
   double tfactor;
 
-  int box_change,triclinic;
+  int box_change, triclinic;
   int *periodicity;
-  double *boxlo,*boxhi,*prd;
+  double *boxlo, *boxhi, *prd;
   double invdelta[3];
 
   int maxatom;
   int *bin;
-  double **vbin,**binave;
-  double *tbin,*tbinall;
+  double **vbin, **binave;
+  double *tbin, *tbinall;
 
   void dof_compute();
   void bin_average();
@@ -64,7 +64,7 @@ class ComputeTempProfile : public Compute {
   void bin_assign();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

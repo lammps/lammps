@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -13,7 +14,7 @@
 
 #include "compute_snad_atom.h"
 #include <cstring>
-#include <cstdlib>
+
 #include "sna.h"
 #include "atom.h"
 #include "update.h"
@@ -30,13 +31,13 @@
 using namespace LAMMPS_NS;
 
 ComputeSNADAtom::ComputeSNADAtom(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), cutsq(NULL), list(NULL), snad(NULL),
-  radelem(NULL), wjelem(NULL)
+  Compute(lmp, narg, arg), cutsq(nullptr), list(nullptr), snad(nullptr),
+  radelem(nullptr), wjelem(nullptr)
 {
   double rfac0, rmin0;
   int twojmax, switchflag, bzeroflag, bnormflag, wselfallflag;
-  radelem = NULL;
-  wjelem = NULL;
+  radelem = nullptr;
+  wjelem = nullptr;
 
   int ntypes = atom->ntypes;
   int nargmin = 6+2*ntypes;
@@ -62,9 +63,9 @@ ComputeSNADAtom::ComputeSNADAtom(LAMMPS *lmp, int narg, char **arg) :
   rcutfac = atof(arg[3]);
   rfac0 = atof(arg[4]);
   twojmax = atoi(arg[5]);
-  for(int i = 0; i < ntypes; i++)
+  for (int i = 0; i < ntypes; i++)
     radelem[i+1] = atof(arg[6+i]);
-  for(int i = 0; i < ntypes; i++)
+  for (int i = 0; i < ntypes; i++)
     wjelem[i+1] = atof(arg[6+ntypes+i]);
 
   // construct cutsq
@@ -72,11 +73,11 @@ ComputeSNADAtom::ComputeSNADAtom(LAMMPS *lmp, int narg, char **arg) :
   double cut;
   cutmax = 0.0;
   memory->create(cutsq,ntypes+1,ntypes+1,"sna/atom:cutsq");
-  for(int i = 1; i <= ntypes; i++) {
+  for (int i = 1; i <= ntypes; i++) {
     cut = 2.0*radelem[i]*rcutfac;
     if (cut > cutmax) cutmax = cut;
     cutsq[i][i] = cut*cut;
-    for(int j = i+1; j <= ntypes; j++) {
+    for (int j = i+1; j <= ntypes; j++) {
       cut = (radelem[i]+radelem[j])*rcutfac;
       cutsq[i][j] = cutsq[j][i] = cut*cut;
     }
@@ -112,9 +113,9 @@ ComputeSNADAtom::ComputeSNADAtom(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Illegal compute snad/atom command");
       chemflag = 1;
       memory->create(map,ntypes+1,"compute_snad_atom:map");
-      nelements = force->inumeric(FLERR,arg[iarg+1]);
-      for(int i = 0; i < ntypes; i++) {
-        int jelem = force->inumeric(FLERR,arg[iarg+2+i]);
+      nelements = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      for (int i = 0; i < ntypes; i++) {
+        int jelem = utils::inumeric(FLERR,arg[iarg+2+i],false,lmp);
         if (jelem < 0 || jelem >= nelements)
           error->all(FLERR,"Illegal compute snad/atom command");
         map[i+1] = jelem;
@@ -147,7 +148,7 @@ ComputeSNADAtom::ComputeSNADAtom(LAMMPS *lmp, int narg, char **arg) :
   peratom_flag = 1;
 
   nmax = 0;
-  snad = NULL;
+  snad = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -165,7 +166,7 @@ ComputeSNADAtom::~ComputeSNADAtom()
 
 void ComputeSNADAtom::init()
 {
-  if (force->pair == NULL)
+  if (force->pair == nullptr)
     error->all(FLERR,"Compute snad/atom requires a pair style be defined");
 
   if (cutmax > force->pair->cutforce)
@@ -406,7 +407,7 @@ void ComputeSNADAtom::unpack_reverse_comm(int n, int *list, double *buf)
 double ComputeSNADAtom::memory_usage()
 {
 
-  double bytes = nmax*size_peratom_cols * sizeof(double); // snad
+  double bytes = (double)nmax*size_peratom_cols * sizeof(double); // snad
   bytes += snaptr->memory_usage();                        // SNA object
 
   return bytes;

@@ -84,9 +84,9 @@ void checkReportersAndReportsAgree(const std::vector<int> &reporters,
 
 template <typename DeviceType>
 struct ErrorReporterDriverBase {
-  typedef ThreeValReport<int, int, double> report_type;
-  typedef Kokkos::Experimental::ErrorReporter<report_type, DeviceType>
-      error_reporter_type;
+  using report_type = ThreeValReport<int, int, double>;
+  using error_reporter_type =
+      Kokkos::Experimental::ErrorReporter<report_type, DeviceType>;
   error_reporter_type m_errorReporter;
 
   ErrorReporterDriverBase(int reporter_capacity, int /*test_size*/)
@@ -97,10 +97,11 @@ struct ErrorReporterDriverBase {
   }
 
   void check_expectations(int reporter_capacity, int test_size) {
+    using namespace std;
     int num_reported = m_errorReporter.getNumReports();
     int num_attempts = m_errorReporter.getNumReportAttempts();
 
-    int expected_num_reports = std::min(reporter_capacity, test_size / 2);
+    int expected_num_reports = min(reporter_capacity, test_size / 2);
     EXPECT_EQ(expected_num_reports, num_reported);
     EXPECT_EQ(test_size / 2, num_attempts);
 
@@ -112,7 +113,7 @@ struct ErrorReporterDriverBase {
 
 template <typename ErrorReporterDriverType>
 void TestErrorReporter() {
-  typedef ErrorReporterDriverType tester_type;
+  using tester_type = ErrorReporterDriverType;
   std::vector<int> reporters;
   std::vector<typename tester_type::report_type> reports;
 
@@ -147,9 +148,9 @@ void TestErrorReporter() {
 
 template <typename DeviceType>
 struct ErrorReporterDriver : public ErrorReporterDriverBase<DeviceType> {
-  typedef ErrorReporterDriverBase<DeviceType> driver_base;
-  typedef typename driver_base::error_reporter_type::execution_space
-      execution_space;
+  using driver_base = ErrorReporterDriverBase<DeviceType>;
+  using execution_space =
+      typename driver_base::error_reporter_type::execution_space;
 
   ErrorReporterDriver(int reporter_capacity, int test_size)
       : driver_base(reporter_capacity, test_size) {
@@ -185,12 +186,16 @@ struct ErrorReporterDriver : public ErrorReporterDriverBase<DeviceType> {
 template <typename DeviceType>
 struct ErrorReporterDriverUseLambda
     : public ErrorReporterDriverBase<DeviceType> {
-  typedef ErrorReporterDriverBase<DeviceType> driver_base;
-  typedef typename driver_base::error_reporter_type::execution_space
-      execution_space;
+  using driver_base = ErrorReporterDriverBase<DeviceType>;
+  using execution_space =
+      typename driver_base::error_reporter_type::execution_space;
 
   ErrorReporterDriverUseLambda(int reporter_capacity, int test_size)
       : driver_base(reporter_capacity, test_size) {
+    execute(reporter_capacity, test_size);
+  }
+
+  void execute(int reporter_capacity, int test_size) {
     Kokkos::parallel_for(
         Kokkos::RangePolicy<execution_space>(0, test_size),
         KOKKOS_CLASS_LAMBDA(const int work_idx) {
@@ -210,9 +215,9 @@ struct ErrorReporterDriverUseLambda
 #ifdef KOKKOS_ENABLE_OPENMP
 struct ErrorReporterDriverNativeOpenMP
     : public ErrorReporterDriverBase<Kokkos::OpenMP> {
-  typedef ErrorReporterDriverBase<Kokkos::OpenMP> driver_base;
-  typedef typename driver_base::error_reporter_type::execution_space
-      execution_space;
+  using driver_base = ErrorReporterDriverBase<Kokkos::OpenMP>;
+  using execution_space =
+      typename driver_base::error_reporter_type::execution_space;
 
   ErrorReporterDriverNativeOpenMP(int reporter_capacity, int test_size)
       : driver_base(reporter_capacity, test_size) {

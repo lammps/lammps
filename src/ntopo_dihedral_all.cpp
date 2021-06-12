@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,7 +13,7 @@
 ------------------------------------------------------------------------- */
 
 #include "ntopo_dihedral_all.h"
-#include <mpi.h>
+
 #include "atom.h"
 #include "force.h"
 #include "domain.h"
@@ -21,7 +22,7 @@
 #include "thermo.h"
 #include "memory.h"
 #include "error.h"
-#include "fmt/format.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -62,11 +63,11 @@ void NTopoDihedralAll::build()
       if (atom1 == -1 || atom2 == -1 || atom3 == -1 || atom4 == -1) {
         nmissing++;
         if (lostbond == Thermo::ERROR)
-          error->one(FLERR,fmt::format("Dihedral atoms {} {} {} {} missing on "
+          error->one(FLERR,"Dihedral atoms {} {} {} {} missing on "
                                        "proc {} at step {}",
                                        dihedral_atom1[i][m],dihedral_atom2[i][m],
                                        dihedral_atom3[i][m],dihedral_atom4[i][m],
-                                       me,update->ntimestep));
+                                       me,update->ntimestep);
         continue;
       }
       atom1 = domain->closest_image(i,atom1);
@@ -94,6 +95,5 @@ void NTopoDihedralAll::build()
   int all;
   MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
   if (all && (me == 0))
-    error->warning(FLERR,fmt::format("Dihedral atoms missing at step {}",
-                                     update->ntimestep));
+    error->warning(FLERR,"Dihedral atoms missing at step {}",update->ntimestep);
 }

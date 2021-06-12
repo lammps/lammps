@@ -257,7 +257,7 @@ protected:
   std::string            replica_hills_file;
 
   /// Position within replica_hills_file (when reading it)
-  int                    replica_hills_file_pos;
+  std::streampos         replica_hills_file_pos;
 
 };
 

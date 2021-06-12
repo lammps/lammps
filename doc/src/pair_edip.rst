@@ -1,10 +1,11 @@
 .. index:: pair_style edip
+.. index:: pair_style edip/omp
+.. index:: pair_style edip/multi
 
 pair_style edip command
 =======================
 
-pair_style edip/omp command
-===========================
+Accelerator Variants: *edip/omp*
 
 pair_style edip/multi command
 =============================
@@ -129,7 +130,8 @@ the EDIP package.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
@@ -165,7 +167,10 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

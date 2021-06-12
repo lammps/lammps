@@ -52,9 +52,9 @@ namespace TestAtomicOperations {
 
 template <class T, class DEVICE_TYPE>
 struct ZeroFunctor {
-  typedef DEVICE_TYPE execution_space;
-  typedef typename Kokkos::View<T, execution_space> type;
-  typedef typename Kokkos::View<T, execution_space>::HostMirror h_type;
+  using execution_space = DEVICE_TYPE;
+  using type            = typename Kokkos::View<T, execution_space>;
+  using h_type          = typename Kokkos::View<T, execution_space>::HostMirror;
 
   type data;
 
@@ -68,9 +68,9 @@ struct ZeroFunctor {
 
 template <class T, class DEVICE_TYPE>
 struct InitFunctor {
-  typedef DEVICE_TYPE execution_space;
-  typedef typename Kokkos::View<T, execution_space> type;
-  typedef typename Kokkos::View<T, execution_space>::HostMirror h_type;
+  using execution_space = DEVICE_TYPE;
+  using type            = typename Kokkos::View<T, execution_space>;
+  using h_type          = typename Kokkos::View<T, execution_space>::HostMirror;
 
   type data;
   T init_value;
@@ -87,8 +87,8 @@ struct InitFunctor {
 
 template <class T, class DEVICE_TYPE>
 struct MaxFunctor {
-  typedef DEVICE_TYPE execution_space;
-  typedef Kokkos::View<T, execution_space> type;
+  using execution_space = DEVICE_TYPE;
+  using type            = Kokkos::View<T, execution_space>;
 
   type data;
   T i0;
@@ -160,8 +160,8 @@ bool MaxAtomicTest(T i0, T i1) {
 
 template <class T, class DEVICE_TYPE>
 struct MinFunctor {
-  typedef DEVICE_TYPE execution_space;
-  typedef Kokkos::View<T, execution_space> type;
+  using execution_space = DEVICE_TYPE;
+  using type            = Kokkos::View<T, execution_space>;
 
   type data;
   T i0;
@@ -231,8 +231,8 @@ bool MinAtomicTest(T i0, T i1) {
 
 template <class T, class DEVICE_TYPE>
 struct IncFunctor {
-  typedef DEVICE_TYPE execution_space;
-  typedef Kokkos::View<T, execution_space> type;
+  using execution_space = DEVICE_TYPE;
+  using type            = Kokkos::View<T, execution_space>;
 
   type data;
   T i0;
@@ -301,8 +301,8 @@ bool IncAtomicTest(T i0) {
 
 template <class T, class DEVICE_TYPE>
 struct DecFunctor {
-  typedef DEVICE_TYPE execution_space;
-  typedef Kokkos::View<T, execution_space> type;
+  using execution_space = DEVICE_TYPE;
+  using type            = Kokkos::View<T, execution_space>;
 
   type data;
   T i0;
@@ -371,8 +371,8 @@ bool DecAtomicTest(T i0) {
 
 template <class T, class DEVICE_TYPE>
 struct MulFunctor {
-  typedef DEVICE_TYPE execution_space;
-  typedef Kokkos::View<T, execution_space> type;
+  using execution_space = DEVICE_TYPE;
+  using type            = Kokkos::View<T, execution_space>;
 
   type data;
   T i0;
@@ -442,8 +442,8 @@ bool MulAtomicTest(T i0, T i1) {
 
 template <class T, class DEVICE_TYPE>
 struct DivFunctor {
-  typedef DEVICE_TYPE execution_space;
-  typedef Kokkos::View<T, execution_space> type;
+  using execution_space = DEVICE_TYPE;
+  using type            = Kokkos::View<T, execution_space>;
 
   type data;
   T i0;
@@ -515,8 +515,8 @@ bool DivAtomicTest(T i0, T i1) {
 
 template <class T, class DEVICE_TYPE>
 struct ModFunctor {
-  typedef DEVICE_TYPE execution_space;
-  typedef Kokkos::View<T, execution_space> type;
+  using execution_space = DEVICE_TYPE;
+  using type            = Kokkos::View<T, execution_space>;
 
   type data;
   T i0;
@@ -586,8 +586,8 @@ bool ModAtomicTest(T i0, T i1) {
 
 template <class T, class DEVICE_TYPE>
 struct AndFunctor {
-  typedef DEVICE_TYPE execution_space;
-  typedef Kokkos::View<T, execution_space> type;
+  using execution_space = DEVICE_TYPE;
+  using type            = Kokkos::View<T, execution_space>;
 
   type data;
   T i0;
@@ -657,8 +657,8 @@ bool AndAtomicTest(T i0, T i1) {
 
 template <class T, class DEVICE_TYPE>
 struct OrFunctor {
-  typedef DEVICE_TYPE execution_space;
-  typedef Kokkos::View<T, execution_space> type;
+  using execution_space = DEVICE_TYPE;
+  using type            = Kokkos::View<T, execution_space>;
 
   type data;
   T i0;
@@ -728,8 +728,8 @@ bool OrAtomicTest(T i0, T i1) {
 
 template <class T, class DEVICE_TYPE>
 struct XorFunctor {
-  typedef DEVICE_TYPE execution_space;
-  typedef Kokkos::View<T, execution_space> type;
+  using execution_space = DEVICE_TYPE;
+  using type            = Kokkos::View<T, execution_space>;
 
   type data;
   T i0;
@@ -799,8 +799,8 @@ bool XorAtomicTest(T i0, T i1) {
 
 template <class T, class DEVICE_TYPE>
 struct LShiftFunctor {
-  typedef DEVICE_TYPE execution_space;
-  typedef Kokkos::View<T, execution_space> type;
+  using execution_space = DEVICE_TYPE;
+  using type            = Kokkos::View<T, execution_space>;
 
   type data;
   T i0;
@@ -870,8 +870,8 @@ bool LShiftAtomicTest(T i0, T i1) {
 
 template <class T, class DEVICE_TYPE>
 struct RShiftFunctor {
-  typedef DEVICE_TYPE execution_space;
-  typedef Kokkos::View<T, execution_space> type;
+  using execution_space = DEVICE_TYPE;
+  using type            = Kokkos::View<T, execution_space>;
 
   type data;
   T i0;

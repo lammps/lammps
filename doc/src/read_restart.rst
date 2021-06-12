@@ -272,4 +272,7 @@ Related commands
 :doc:`read_data <read_data>`, :doc:`read_dump <read_dump>`,
 :doc:`write_restart <write_restart>`, :doc:`restart <restart>`
 
-**Default:** none
+Default
+"""""""
+
+none

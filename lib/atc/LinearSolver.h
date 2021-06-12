@@ -64,7 +64,7 @@ class LinearSolver {
          allow_reinitialization must be called before first solve, etc */
   void allow_reinitialization(void); // depending on method save a copy of A
   void set_homogeneous_bcs(void) { homogeneousBCs_ = true;} // for nonlinear solver, solve for increment
-  void initialize(const BC_SET * bcs = NULL);
+  void initialize(const BC_SET * bcs = nullptr);
 
   /** solve
       - solves A x = b
@@ -80,7 +80,7 @@ class LinearSolver {
       - returns the e-values & e-vectors for constrained system Ax + v x = 0 
       - if M is provided the eval problem : ( A + v M ) x = 0 is solved*/
   void eigen_system(DENS_MAT & eigenvalues, DENS_MAT & eigenvectors, 
-   const DENS_MAT * M = NULL);
+   const DENS_MAT * M = nullptr);
 
   /** access to penalty coefficient
       - if a penalty method is not being used this returns zero */

@@ -1,6 +1,7 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -22,9 +23,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(reax/c,PairReaxC)
-
+// clang-format off
+PairStyle(reax/c,PairReaxC);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_REAXC_H
@@ -62,9 +63,6 @@ class PairReaxC : public Pair {
  protected:
   char *fix_id;
   double cutmax;
-  int nelements;                // # of unique elements
-  char **elements;              // names of unique elements
-  int *map;
   class FixReaxC *fix_reax;
 
   double *chi,*eta,*gamma;

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,10 +18,10 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_gle.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
+
 #include "atom.h"
 #include "force.h"
 #include "update.h"
@@ -29,7 +30,6 @@
 #include "random_mars.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -186,6 +186,8 @@ void MatrixExp(int n, const double* M, double* EM, int j=8, int k=8)
 }
 }
 
+/* ---------------------------------------------------------------------- */
+
 FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
@@ -193,11 +195,12 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Illegal fix gle command. Expecting: fix <fix-ID>"
                " <group-ID> gle <ns> <Tstart> <Tstop> <seed> <Amatrix>");
 
+  ecouple_flag = 1;
   restart_peratom = 1;
   time_integrate = 1;
 
   // number of additional momenta
-  ns = force->inumeric(FLERR,arg[3]);
+  ns = utils::inumeric(FLERR,arg[3],false,lmp);
   ns1sq = (ns+1)*(ns+1);
 
   // allocate GLE matrices
@@ -209,20 +212,20 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
   ST = new double[ns1sq];
 
   // start temperature (t ramp)
-  t_start = force->numeric(FLERR,arg[4]);
+  t_start = utils::numeric(FLERR,arg[4],false,lmp);
 
   // final temperature (t ramp)
-  t_stop = force->numeric(FLERR,arg[5]);
+  t_stop = utils::numeric(FLERR,arg[5],false,lmp);
 
   // PRNG seed
-  int seed = force->inumeric(FLERR,arg[6]);
+  int seed = utils::inumeric(FLERR,arg[6],false,lmp);
 
   // LOADING A matrix
-  FILE *fgle = NULL;
+  FILE *fgle = nullptr;
   char *fname = arg[7];
   if (comm->me == 0) {
-    fgle = force->open_potential(fname);
-    if (fgle == NULL) {
+    fgle = utils::open_potential(fname,lmp,nullptr);
+    if (fgle == nullptr) {
       char str[128];
       snprintf(str,128,"Cannot open A-matrix file %s",fname);
       error->one(FLERR,str);
@@ -238,7 +241,7 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
   while (1) {
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fgle);
-      if (ptr == NULL) {
+      if (ptr == nullptr) {
         eof = 1;
         fclose(fgle);
       } else n = strlen(line) + 1;
@@ -258,14 +261,14 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
     ptr = strtok(line," \t\n\r\f");
     do {
       A[ndone] = atof(ptr);
-      ptr = strtok(NULL," \t\n\r\f");
+      ptr = strtok(nullptr," \t\n\r\f");
       ndone++;
-    } while ((ptr != NULL) && (ndone < ns1sq));
+    } while ((ptr != nullptr) && (ndone < ns1sq));
   }
 
   fnoneq=0; gle_every=1; gle_step=0;
   for (int iarg=8; iarg<narg; iarg+=2) {
-    if(strcmp(arg[iarg],"noneq") == 0) {
+    if (strcmp(arg[iarg],"noneq") == 0) {
       fnoneq = 1;
       if (iarg+2>narg)
         error->all(FLERR,"Did not specify C matrix for non-equilibrium GLE");
@@ -276,7 +279,7 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
 
       if (iarg+2>narg)
         error->all(FLERR, "Did not specify interval for applying the GLE");
-      gle_every=force->inumeric(FLERR,arg[iarg+1]);
+      gle_every=utils::inumeric(FLERR,arg[iarg+1],false,lmp);
     }
   }
 
@@ -291,8 +294,8 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
 
   } else {
     if (comm->me == 0) {
-      fgle = force->open_potential(fname);
-      if (fgle == NULL) {
+      fgle = utils::open_potential(fname,lmp,nullptr);
+      if (fgle == nullptr) {
         char str[128];
         snprintf(str,128,"Cannot open C-matrix file %s",fname);
         error->one(FLERR,str);
@@ -310,7 +313,7 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
     while (1) {
       if (comm->me == 0) {
         ptr = fgets(line,MAXLINE,fgle);
-        if (ptr == NULL) {
+        if (ptr == nullptr) {
           eof = 1;
           fclose(fgle);
         } else n = strlen(line) + 1;
@@ -330,9 +333,9 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
       ptr = strtok(line," \t\n\r\f");
       do {
         C[ndone] = cfac*atof(ptr);
-        ptr = strtok(NULL," \t\n\r\f");
+        ptr = strtok(nullptr," \t\n\r\f");
         ndone++;
-      } while ((ptr != NULL) && (ndone < ns1sq));
+      } while ((ptr != nullptr) && (ndone < ns1sq));
     }
   }
 
@@ -349,20 +352,20 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
   random = new RanMars(lmp,seed + comm->me);
 
   // allocate per-type arrays for mass-scaling
-  sqrt_m=NULL;
+  sqrt_m=nullptr;
   memory->grow(sqrt_m, atom->ntypes+1,"gle:sqrt_m");
 
   // allocates space for additional degrees of freedom
-  gle_s=NULL;
+  gle_s=nullptr;
   // allocates space for temporaries
-  gle_tmp1=gle_tmp2=NULL;
+  gle_tmp1=gle_tmp2=nullptr;
 
   grow_arrays(atom->nmax);
   init_gles();
 
   // add callbacks to enable restarts
-  atom->add_callback(0);
-  atom->add_callback(1);
+  atom->add_callback(Atom::GROW);
+  atom->add_callback(Atom::RESTART);
 
   energy = 0.0;
 }
@@ -395,9 +398,6 @@ int FixGLE::setmask()
   mask |= FINAL_INTEGRATE;
   mask |= INITIAL_INTEGRATE_RESPA;
   mask |= FINAL_INTEGRATE_RESPA;
-  mask |= THERMO_ENERGY;
-
-
   return mask;
 }
 
@@ -417,7 +417,7 @@ void FixGLE::init()
     }
   }
 
-  if (strstr(update->integrate_style,"respa")) {
+  if (utils::strmatch(update->integrate_style,"^respa")) {
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
     step_respa = ((Respa *) update->integrate)->step;
   }
@@ -499,12 +499,11 @@ void FixGLE::init_gles()
   return;
 }
 
-
 /* ---------------------------------------------------------------------- */
 
 void FixGLE::setup(int vflag)
 {
-  if (strstr(update->integrate_style,"verlet"))
+  if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
     ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);
@@ -512,6 +511,8 @@ void FixGLE::setup(int vflag)
     ((Respa *) update->integrate)->copy_f_flevel(nlevels_respa-1);
   }
 }
+
+/* ---------------------------------------------------------------------- */
 
 void FixGLE::gle_integrate()
 {
@@ -720,7 +721,7 @@ void *FixGLE::extract(const char *str, int &dim)
   if (strcmp(str,"t_target") == 0) {
     return &t_target;
   }
-  return NULL;
+  return nullptr;
 }
 
 
@@ -762,7 +763,7 @@ void FixGLE::reset_dt()
 
 double FixGLE::memory_usage()
 {
-  double bytes = atom->nmax*(3*ns+2*3*(ns+1))*sizeof(double);
+  double bytes = (double)atom->nmax*(3*ns+2*3*(ns+1))*sizeof(double);
   return bytes;
 }
 
@@ -843,7 +844,7 @@ void FixGLE::unpack_restart(int nlocal, int nth)
 
   // skip to the nth set of extended variables
   // unpack the Nth first values this way because other fixes pack them
-  
+
   int m = 0;
   for (int i = 0; i< nth; i++) m += static_cast<int> (extra[nlocal][m]);
   m++;

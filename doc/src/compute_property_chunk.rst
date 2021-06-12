@@ -88,7 +88,8 @@ command, for example:
    compute myChunk2 all com/chunk cc1
    fix 1 all ave/time 100 1 100 c_myChunk1 c_myChunk2[*] file tmp.out mode vector
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global vector or global array depending on
 the number of input values.  The length of the vector or number of
@@ -116,4 +117,7 @@ Related commands
 
 :doc:`fix ave/chunk <fix_ave_chunk>`
 
-**Default:** none
+Default
+"""""""
+
+none

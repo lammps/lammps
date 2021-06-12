@@ -42,13 +42,5 @@
 //@HEADER
 */
 
-#include <cuda/TestCudaUVM_Category.hpp>
+#include <TestCudaUVM_Category.hpp>
 #include <TestSharedAlloc.hpp>
-
-namespace Test {
-
-TEST(TEST_CATEGORY, impl_shared_alloc) {
-  test_shared_alloc<TEST_EXECSPACE, Kokkos::DefaultHostExecutionSpace>();
-}
-
-}  // namespace Test

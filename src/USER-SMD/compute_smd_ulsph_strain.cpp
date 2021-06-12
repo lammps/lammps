@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
  *
  *                    *** Smooth Mach Dynamics ***
@@ -12,7 +13,7 @@
 
 /* ----------------------------------------------------------------------
  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
- http://lammps.sandia.gov, Sandia National Laboratories
+ https://www.lammps.org/, Sandia National Laboratories
  Steve Plimpton, sjplimp@sandia.gov
 
  Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -46,7 +47,7 @@ ComputeSMDULSPHstrain::ComputeSMDULSPHstrain(LAMMPS *lmp, int narg, char **arg) 
         size_peratom_cols = 6;
 
         nmax = 0;
-        strainVector = NULL;
+        strainVector = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -108,6 +109,6 @@ void ComputeSMDULSPHstrain::compute_peratom() {
  ------------------------------------------------------------------------- */
 
 double ComputeSMDULSPHstrain::memory_usage() {
-        double bytes = size_peratom_cols * nmax * sizeof(double);
+        double bytes = (double)size_peratom_cols * nmax * sizeof(double);
         return bytes;
 }

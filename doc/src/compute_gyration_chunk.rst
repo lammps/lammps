@@ -92,7 +92,8 @@ command, for example:
    compute myChunk all gyration/chunk cc1
    fix 1 all ave/time 100 1 100 c_myChunk file tmp.out mode vector
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global vector if the *tensor* keyword is not
 specified and a global array if it is.  The length of the vector or
@@ -112,8 +113,15 @@ Restrictions
 """"""""""""
  none
 
-**Related commands:** none
+Related commands
+""""""""""""""""
+
+none
+
 
 :doc:`compute gyration <compute_gyration>`
 
-**Default:** none
+Default
+"""""""
+
+none

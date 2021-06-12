@@ -359,7 +359,8 @@ recent published MEAM parameter sets, such as :ref:`(Valone) <Valone>`
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 For atom type pairs I,J and I != J, where types I and J correspond to
 two different element types, mixing is performed by LAMMPS with
@@ -399,7 +400,10 @@ Related commands
 :doc:`pair_coeff <pair_coeff>`, :doc:`pair_style eam <pair_eam>`,
 :doc:`pair_style meam/spline <pair_meam_spline>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

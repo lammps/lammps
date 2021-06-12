@@ -1,10 +1,10 @@
 .. index:: dihedral_style helix
+.. index:: dihedral_style helix/omp
 
 dihedral_style helix command
 ============================
 
-dihedral_style helix/omp command
-================================
+Accelerator Variants: *helix/omp*
 
 Syntax
 """"""
@@ -67,7 +67,10 @@ Related commands
 
 :doc:`dihedral_coeff <dihedral_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

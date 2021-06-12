@@ -1,0 +1,238 @@
+LAMMPS (10 Feb 2021)
+# kim property example
+#
+# For detailed information of this example please refer to:
+# `https://openkim.org/doc/evaluation/tutorial-lammps/`
+#
+# Description:
+#
+# This example is designed to calculate the cohesive energy corresponding to
+# the equilibrium FCC lattice constant for
+# `LJ_Shifted_Bernardes_1958MedCutoff_Ar__MO_126566794224_004` model for
+# argon. The material properties computed in LAMMPS are represented as a
+# standard KIM property instance format. (See
+# `https://openkim.org/doc/schema/properties-framework/` and
+# `https://docs.lammps.org/kim_commands.html` for further details).
+# Then the created property instance is written to a file named `results.edn`
+# using the `kim property dump` command.
+#
+# Requirement:
+#
+# This example requires LAMMPS built with the Python 3.6 or later package
+# installed. See the `https://docs.lammps.org/python.html` doc page for
+# more info on building LAMMPS with the version of Python on your system.
+# After successfully building LAMMPS with Python, you need to install the
+# kim-property Python package, See the
+# `https://docs.lammps.org/Build_extras.html#kim` doc page for
+# further details.
+#
+# This example requires that the KIM Portable Model (PM)
+# `LJ_Shifted_Bernardes_1958MedCutoff_Ar__MO_126566794224_004`
+# is installed.  This can be done with the command
+#   kim-api-collections-management install user LJ_Shifted_Bernardes_1958MedCutoff_Ar__MO_126566794224_004
+# If this command does not work, you may need to setup your PATH to find the utility.
+# If you installed the kim-api using the LAMMPS CMake build, you can do the following
+# (where the current working directory is assumed to be the LAMMPS build directory)
+#   source ./kim_build-prefix/bin/kim-api-activate
+# If you installed the kim-api using the LAMMPS Make build, you can do the following
+# (where the current working directory is assumed to be the LAMMPS src directory)
+#   source ../lib/kim/installed-kim-api-X.Y.Z/bin/kim-api-activate
+# (where you should relplace X.Y.Z with the appropriate kim-api version number).
+#
+# Or, see `https://openkim.org/doc/obtaining-models` for alternative options.
+#
+
+# Initialize interatomic potential (KIM model) and units
+atom_style atomic
+
+# Set the OpenKIM model that will be used
+kim init LJ_Shifted_Bernardes_1958MedCutoff_Ar__MO_126566794224_004 metal
+#=== BEGIN kim init ==========================================
+units metal
+neighbor 2.0 bin   # Angstroms
+timestep 1.0e-3    # picoseconds
+
+This model has 3 mutable parameters. 
+ No.      | Parameter name     | data type  | extent
+-----------------------------------------------------
+ 1        | cutoff             | "Double"   | 1
+ 2        | epsilon            | "Double"   | 1
+ 3        | sigma              | "Double"   | 1
+#=== END kim init ============================================
+
+
+# the equilibrium lattice constant for the fcc structure
+variable lattice_constant equal 5.248509056866169
+
+# Periodic boundary conditions along all three dimensions
+boundary p p p
+
+# Create an FCC lattice with the lattice spacing
+# using a single conventional (orthogonal) unit cell
+lattice      fcc ${lattice_constant}
+lattice      fcc 5.24850905686617
+Lattice spacing in x,y,z = 5.2485091 5.2485091 5.2485091
+region box   block 0 1 0 1 0 1 units lattice
+create_box   1 box
+Created orthogonal box = (0.0000000 0.0000000 0.0000000) to (5.2485091 5.2485091 5.2485091)
+  1 by 2 by 2 MPI processor grid
+create_atoms 1 box
+Created 4 atoms
+  create_atoms CPU = 0.001 seconds
+mass         1 39.948
+
+# Specify the KIM interactions
+kim interactions Ar
+#=== BEGIN kim interactions ==================================
+pair_style kim LJ_Shifted_Bernardes_1958MedCutoff_Ar__MO_126566794224_004
+pair_coeff * * Ar
+#=== END kim interactions ====================================
+
+
+# Compute energy
+run 0
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- OpenKIM: https://doi.org/10.1007/s11837-011-0102-6
+
+@Article{tadmor:elliott:2011,
+ author = {E. B. Tadmor and R. S. Elliott and J. P. Sethna and R. E. Miller and C. A. Becker},
+ title = {The potential of atomistic simulations and the {K}nowledgebase of {I}nteratomic {M}odels},
+ journal = {{JOM}},
+ year =    2011,
+ volume =  63,
+ number =  17,
+ pages =   {17},
+ doi =     {10.1007/s11837-011-0102-6}
+}
+
+- OpenKIM potential: https://openkim.org/cite/MO_126566794224_004#item-citation
+
+@Comment
+{
+\documentclass{article}
+\usepackage{url}
+\begin{document}
+This Model originally published in \cite{MO_126566794224_004a} is archived in OpenKIM~\cite{MO_126566794224_004, MD_498634107543_004, tadmor:elliott:2011, elliott:tadmor:2011}.
+\bibliographystyle{vancouver}
+\bibliography{kimcite-MO_126566794224_004.bib}
+\end{document}
+}
+
+@Misc{MO_126566794224_004,
+  author       = {Ellad Tadmor},
+  title        = {{L}ennard-{J}ones model (shifted) for {A}r with parameters from {B}ernardes (1958) (medium precision cutoff) v004},
+  doi          = {10.25950/9f98b989},
+  howpublished = {OpenKIM, \url{https://doi.org/10.25950/9f98b989}},
+  keywords     = {OpenKIM, Model, MO_126566794224_004},
+  publisher    = {OpenKIM},
+  year         = 2020,
+}
+
+@Misc{MD_498634107543_004,
+  author       = {Ellad Tadmor},
+  title        = {{D}river for the {L}ennard-{J}ones model uniformly shifted to have zero energy at the cutoff radius v004},
+  doi          = {10.25950/bdffd6a6},
+  howpublished = {OpenKIM, \url{https://doi.org/10.25950/9f98b989}},
+  keywords     = {OpenKIM, Model Driver, MD_498634107543_004},
+  publisher    = {OpenKIM},
+  year         = 2020,
+}
+
+@Article{tadmor:elliott:2011,
+  author    = {E. B. Tadmor and R. S. Elliott and J. P. Sethna and R. E. Miller and C. A. Becker},
+  title     = {The potential of atomistic simulations and the {K}nowledgebase of {I}nteratomic {M}odels},
+  journal   = {{JOM}},
+  year      = {2011},
+  volume    = {63},
+  number    = {7},
+  pages     = {17},
+  doi       = {10.1007/s11837-011-0102-6},
+}
+
+@Misc{elliott:tadmor:2011,
+  author       = {Ryan S. Elliott and Ellad B. Tadmor},
+  title        = {{K}nowledgebase of {I}nteratomic {M}odels ({KIM}) Application Programming Interface ({API})},
+  howpublished = {\url{https://openkim.org/kim-api}},
+  publisher    = {OpenKIM},
+  year         = 2011,
+  doi          = {10.25950/ff8f563a},
+}
+
+@Article{MO_126566794224_004a,
+  author = {Newton Bernardes},
+  doi = {10.1103/PhysRev.112.1534},
+  issue = {5},
+  journal = {Physical Review},
+  pages = {1534--1539},
+  publisher = {American Physical Society},
+  title = {Theory of Solid {N}e, {A}, {K}r, and {X}e at 0{K}},
+  volume = {112},
+  year = {1958},
+}
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Neighbor list info ...
+  update every 1 steps, delay 10 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 15.5
+  ghost atom cutoff = 15.5
+  binsize = 7.75, bins = 1 1 1
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair kim, perpetual
+      attributes: full, newton off, cut 15.5
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.165 | 3.165 | 3.165 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0            0  -0.34602203            0  -0.34602203 0.00061471244 
+Loop time of 1.5e-06 on 4 procs for 0 steps with 4 atoms
+
+100.0% CPU use with 4 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0          | 0          | 0          |   0.0 |  0.00
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0          | 0          | 0          |   0.0 |  0.00
+Output  | 0          | 0          | 0          |   0.0 |  0.00
+Modify  | 0          | 0          | 0          |   0.0 |  0.00
+Other   |            | 1.5e-06    |            |       |100.00
+
+Nlocal:        1.00000 ave           1 max           1 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:        935.000 ave         935 max         935 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:         0.00000 ave           0 max           0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:      428.000 ave         428 max         428 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 1712
+Ave neighs/atom = 428.00000
+Neighbor list builds = 0
+Dangerous builds = 0
+
+# Get cohesive energy
+variable natoms       equal "count(all)"
+variable ecohesive    equal "-pe/v_natoms"
+
+# Create a property instance
+kim property create 1 cohesive-potential-energy-cubic-crystal
+#=== kim property ===========================================
+
+# Set all the key-value pairs for this property instance
+kim property modify 1 key short-name source-value 1 fcc                                                key species source-value 1 Ar                                                    key a source-value ${lattice_constant}                                                 source-unit angstrom                                                       key basis-atom-coordinates source-value 1 1:3 0.0 0.0 0.0                                                   source-value 2 1:3 0.0 0.5 0.5                                                   source-value 3 1:3 0.5 0.0 0.5                                                   source-value 4 1:3 0.5 0.5 0.0                        key space-group source-value Fm-3m                                               key cohesive-potential-energy source-value ${ecohesive}                                                        source-unit eV
+kim property modify 1 key short-name source-value 1 fcc                                                key species source-value 1 Ar                                                    key a source-value 5.24850905686617                                                 source-unit angstrom                                                       key basis-atom-coordinates source-value 1 1:3 0.0 0.0 0.0                                                   source-value 2 1:3 0.0 0.5 0.5                                                   source-value 3 1:3 0.5 0.0 0.5                                                   source-value 4 1:3 0.5 0.5 0.0                        key space-group source-value Fm-3m                                               key cohesive-potential-energy source-value ${ecohesive}                                                        source-unit eV
+kim property modify 1 key short-name source-value 1 fcc                                                key species source-value 1 Ar                                                    key a source-value 5.24850905686617                                                 source-unit angstrom                                                       key basis-atom-coordinates source-value 1 1:3 0.0 0.0 0.0                                                   source-value 2 1:3 0.0 0.5 0.5                                                   source-value 3 1:3 0.5 0.0 0.5                                                   source-value 4 1:3 0.5 0.5 0.0                        key space-group source-value Fm-3m                                               key cohesive-potential-energy source-value 0.0865055084950538                                                        source-unit eV
+#=== kim property ===========================================
+
+# Dump the results in a file
+kim property dump "results.edn"
+#=== kim property ===========================================
+Total wall time: 0:00:00

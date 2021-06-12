@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -21,19 +22,18 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_drip.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
+
 #include "atom.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
-#include "neighbor.h"
+#include "memory.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "memory.h"
-#include "error.h"
-#include "utils.h"
+#include "neighbor.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -48,13 +48,10 @@ PairDRIP::PairDRIP(LAMMPS *lmp) : Pair(lmp)
   single_enable = 0;
   restartinfo = 0;
   manybody_flag = 1;
+  centroidstressflag = CENTROID_NOTAVAIL;
 
-  params = NULL;
-  nearest3neigh = NULL;
-  elements = NULL;
-  elem2param = NULL;
-  map = NULL;
-  nelements = 0;
+  params = nullptr;
+  nearest3neigh = nullptr;
   cutmax = 0.0;
 }
 
@@ -65,14 +62,8 @@ PairDRIP::~PairDRIP()
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
-    delete [] map;
   }
 
-  if (elements != NULL) {
-    for (int i = 0; i < nelements; i++) delete [] elements[i];
-    delete [] elements;
-    elements = NULL;
-  }
   memory->destroy(params);
   memory->destroy(elem2param);
   memory->destroy(nearest3neigh);
@@ -127,64 +118,10 @@ void PairDRIP::settings(int narg, char ** /* arg */)
 
 void PairDRIP::coeff(int narg, char **arg)
 {
-  int i,j,n;
-
   if (!allocated) allocate();
 
-  if (narg != 3 + atom->ntypes)
-    error->all(FLERR,"Incorrect args for pair coefficients");
-
-  // insure I,J args are * *
-  if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
-    error->all(FLERR,"Incorrect args for pair coefficients");
-
-  // read args that map atom types to elements in potential file
-  // map[i] = which element the Ith atom type is, -1 if NULL
-  // nelements = # of unique elements
-  // elements = list of element names
-
-  if (elements) {
-    for (i = 0; i < nelements; i++) delete [] elements[i];
-    delete [] elements;
-  }
-  elements = new char*[atom->ntypes];
-  for (i = 0; i < atom->ntypes; i++) elements[i] = NULL;
-
-  nelements = 0;
-  for (i = 3; i < narg; i++) {
-    if (strcmp(arg[i],"NULL") == 0) {
-      map[i-2] = -1;
-      continue;
-    }
-    for (j = 0; j < nelements; j++)
-      if (strcmp(arg[i],elements[j]) == 0) break;
-    map[i-2] = j;
-    if (j == nelements) {
-      n = strlen(arg[i]) + 1;
-      elements[j] = new char[n];
-      strcpy(elements[j],arg[i]);
-      nelements++;
-    }
-  }
-
+  map_element2type(narg-3,arg+3);
   read_file(arg[2]);
-
-
-  // clear setflag since coeff() called once with I,J = * *
-  n = atom->ntypes;
-  for (i = 1; i <= n; i++)
-    for (j = i; j <= n; j++)
-      setflag[i][j] = 0;
-
-  int count = 0;
-  for (i = 1; i <= n; i++)
-    for (j = i; j <= n; j++)
-      if (map[i] >= 0 && map[j] >= 0) {
-        setflag[i][j] = 1;
-        count++;
-      }
-
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 
@@ -223,8 +160,8 @@ void PairDRIP::read_file(char *filename)
 
   FILE *fp;
   if (comm->me == 0) {
-    fp = force->open_potential(filename);
-    if (fp == NULL) {
+    fp = utils::open_potential(filename,lmp,nullptr);
+    if (fp == nullptr) {
       char str[128];
       snprintf(str,128,"Cannot open DRIP potential file %s",filename);
       error->one(FLERR,str);
@@ -241,7 +178,7 @@ void PairDRIP::read_file(char *filename)
   while (1) {
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fp);
-      if (ptr == NULL) {
+      if (ptr == nullptr) {
         eof = 1;
         fclose(fp);
       } else n = strlen(line) + 1;
@@ -263,7 +200,7 @@ void PairDRIP::read_file(char *filename)
       n = strlen(line);
       if (comm->me == 0) {
         ptr = fgets(&line[n],MAXLINE-n,fp);
-        if (ptr == NULL) {
+        if (ptr == nullptr) {
           eof = 1;
           fclose(fp);
         } else n = strlen(line) + 1;
@@ -283,7 +220,7 @@ void PairDRIP::read_file(char *filename)
 
     nwords = 0;
     words[nwords++] = strtok(line," \t\n\r\f");
-    while ((words[nwords++] = strtok(NULL," \t\n\r\f"))) continue;
+    while ((words[nwords++] = strtok(nullptr," \t\n\r\f"))) continue;
 
     // ielement,jelement = 1st args
     // if these 2 args are in element list, then parse this line

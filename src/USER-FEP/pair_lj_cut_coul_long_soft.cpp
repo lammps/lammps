@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -13,11 +14,11 @@
 
 /* ----------------------------------------------------------------------
    Contributing author: Paul Crozier (SNL)
-   Soft-core version: Agilio Padua (Univ Blaise Pascal & CNRS)
+   Soft-core version: Agilio Padua (ENS de Lyon & CNRS)
 ------------------------------------------------------------------------- */
 
 #include "pair_lj_cut_coul_long_soft.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"
@@ -32,7 +33,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -566,13 +567,13 @@ void PairLJCutCoulLongSoft::settings(int narg, char **arg)
 {
  if (narg < 4 || narg > 5) error->all(FLERR,"Illegal pair_style command");
 
-  nlambda = force->numeric(FLERR,arg[0]);
-  alphalj = force->numeric(FLERR,arg[1]);
-  alphac  = force->numeric(FLERR,arg[2]);
+  nlambda = utils::numeric(FLERR,arg[0],false,lmp);
+  alphalj = utils::numeric(FLERR,arg[1],false,lmp);
+  alphac  = utils::numeric(FLERR,arg[2],false,lmp);
 
-  cut_lj_global = force->numeric(FLERR,arg[3]);
+  cut_lj_global = utils::numeric(FLERR,arg[3],false,lmp);
   if (narg == 4) cut_coul = cut_lj_global;
-  else cut_coul = force->numeric(FLERR,arg[4]);
+  else cut_coul = utils::numeric(FLERR,arg[4],false,lmp);
 
   // reset cutoffs that have been explicitly set
 
@@ -595,17 +596,17 @@ void PairLJCutCoulLongSoft::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  double epsilon_one = force->numeric(FLERR,arg[2]);
-  double sigma_one = force->numeric(FLERR,arg[3]);
-  double lambda_one = force->numeric(FLERR,arg[4]);
+  double epsilon_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double sigma_one = utils::numeric(FLERR,arg[3],false,lmp);
+  double lambda_one = utils::numeric(FLERR,arg[4],false,lmp);
   if (sigma_one <= 0.0)
     error->all(FLERR,"Incorrect args for pair coefficients");
 
   double cut_lj_one = cut_lj_global;
-  if (narg == 6) cut_lj_one = force->numeric(FLERR,arg[5]);
+  if (narg == 6) cut_lj_one = utils::numeric(FLERR,arg[5],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -634,51 +635,33 @@ void PairLJCutCoulLongSoft::init_style()
   // request regular or rRESPA neighbor lists
 
   int irequest;
+  int respa = 0;
 
-  if (update->whichflag == 1 && strstr(update->integrate_style,"respa")) {
-    int respa = 0;
+  if (update->whichflag == 1 && utils::strmatch(update->integrate_style,"^respa")) {
     if (((Respa *) update->integrate)->level_inner >= 0) respa = 1;
     if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;
+  }
 
-    if (respa == 0) irequest = neighbor->request(this,instance_me);
-    else if (respa == 1) {
-      irequest = neighbor->request(this,instance_me);
-      neighbor->requests[irequest]->id = 1;
-      neighbor->requests[irequest]->half = 0;
-      neighbor->requests[irequest]->respainner = 1;
-      irequest = neighbor->request(this,instance_me);
-      neighbor->requests[irequest]->id = 3;
-      neighbor->requests[irequest]->half = 0;
-      neighbor->requests[irequest]->respaouter = 1;
-    } else {
-      irequest = neighbor->request(this,instance_me);
-      neighbor->requests[irequest]->id = 1;
-      neighbor->requests[irequest]->half = 0;
-      neighbor->requests[irequest]->respainner = 1;
-      irequest = neighbor->request(this,instance_me);
-      neighbor->requests[irequest]->id = 2;
-      neighbor->requests[irequest]->half = 0;
-      neighbor->requests[irequest]->respamiddle = 1;
-      irequest = neighbor->request(this,instance_me);
-      neighbor->requests[irequest]->id = 3;
-      neighbor->requests[irequest]->half = 0;
-      neighbor->requests[irequest]->respaouter = 1;
-    }
+  irequest = neighbor->request(this,instance_me);
 
-  } else irequest = neighbor->request(this,instance_me);
+  if (respa >= 1) {
+    neighbor->requests[irequest]->respaouter = 1;
+    neighbor->requests[irequest]->respainner = 1;
+  }
+  if (respa == 2) neighbor->requests[irequest]->respamiddle = 1;
 
   cut_coulsq = cut_coul * cut_coul;
 
   // set rRESPA cutoffs
 
-  if (strstr(update->integrate_style,"respa") &&
+  if (utils::strmatch(update->integrate_style,"^respa") &&
       ((Respa *) update->integrate)->level_inner >= 0)
     cut_respa = ((Respa *) update->integrate)->cutoff;
-  else cut_respa = NULL;
+  else cut_respa = nullptr;
 
   // insure use of KSpace long-range solver, set g_ewald
 
-  if (force->kspace == NULL)
+  if (force->kspace == nullptr)
     error->all(FLERR,"Pair style requires a KSpace style");
   g_ewald = force->kspace->g_ewald;
 }
@@ -793,14 +776,14 @@ void PairLJCutCoulLongSoft::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          utils::sfread(FLERR,&epsilon[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&sigma[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&lambda[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&cut_lj[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&epsilon[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&sigma[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&lambda[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut_lj[i][j],sizeof(double),1,fp,nullptr,error);
         }
         MPI_Bcast(&epsilon[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&sigma[i][j],1,MPI_DOUBLE,0,world);
@@ -834,15 +817,15 @@ void PairLJCutCoulLongSoft::write_restart_settings(FILE *fp)
 void PairLJCutCoulLongSoft::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    utils::sfread(FLERR,&nlambda,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&alphalj,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&alphac,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&nlambda,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&alphalj,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&alphac,sizeof(double),1,fp,nullptr,error);
 
-    utils::sfread(FLERR,&cut_lj_global,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&cut_coul,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&tail_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&cut_lj_global,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&cut_coul,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&tail_flag,sizeof(int),1,fp,nullptr,error);
   }
 
   MPI_Bcast(&nlambda,1,MPI_DOUBLE,0,world);
@@ -941,5 +924,5 @@ void *PairLJCutCoulLongSoft::extract(const char *str, int &dim)
   if (strcmp(str,"epsilon") == 0) return (void *) epsilon;
   if (strcmp(str,"sigma") == 0) return (void *) sigma;
   if (strcmp(str,"lambda") == 0) return (void *) lambda;
-  return NULL;
+  return nullptr;
 }

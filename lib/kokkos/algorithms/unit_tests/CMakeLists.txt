@@ -3,6 +3,7 @@
 KOKKOS_INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
 KOKKOS_INCLUDE_DIRECTORIES(REQUIRED_DURING_INSTALLATION_TESTING ${CMAKE_CURRENT_SOURCE_DIR})
 KOKKOS_INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/../src )
+KOKKOS_INCLUDE_DIRECTORIES(${KOKKOS_SOURCE_DIR}/core/unit_test/category_files)
 
 
 SET(GTEST_SOURCE_DIR ${${PARENT_PACKAGE_NAME}_SOURCE_DIR}/tpls/gtest)
@@ -20,60 +21,55 @@ KOKKOS_ADD_TEST_LIBRARY(
   HEADERS ${GTEST_SOURCE_DIR}/gtest/gtest.h
   SOURCES ${GTEST_SOURCE_DIR}/gtest/gtest-all.cc
 )
-# WORKAROUND FOR HIPCC
-IF(Kokkos_ENABLE_HIP)
-  TARGET_COMPILE_DEFINITIONS(kokkosalgorithms_gtest PUBLIC "-DGTEST_HAS_PTHREAD=0 --amdgpu-target=gfx906")
-ELSE()
-  TARGET_COMPILE_DEFINITIONS(kokkosalgorithms_gtest PUBLIC "-DGTEST_HAS_PTHREAD=0")
+
+# avoid deprecation warnings from MSVC
+TARGET_COMPILE_DEFINITIONS(kokkosalgorithms_gtest PUBLIC GTEST_HAS_TR1_TUPLE=0 GTEST_HAS_PTHREAD=0)
+
+IF((NOT (Kokkos_ENABLE_CUDA AND WIN32)) AND (NOT ("${KOKKOS_CXX_COMPILER_ID}" STREQUAL "Fujitsu")))
+  TARGET_COMPILE_FEATURES(kokkosalgorithms_gtest PUBLIC cxx_std_14)
 ENDIF()
 
-TARGET_COMPILE_FEATURES(kokkosalgorithms_gtest PUBLIC cxx_std_11)
+# Suppress clang-tidy diagnostics on code that we do not have control over
+IF(CMAKE_CXX_CLANG_TIDY)
+  SET_TARGET_PROPERTIES(kokkosalgorithms_gtest PROPERTIES CXX_CLANG_TIDY "")
+ENDIF()
 
-SET(SOURCES
-  UnitTestMain.cpp
-)
+SET(ALGORITHM UnitTestMain.cpp)
 
 IF(Kokkos_ENABLE_OPENMP)
-  LIST( APPEND SOURCES
-    TestOpenMP.cpp
+  LIST(APPEND ALGORITHM_SOURCES
     TestOpenMP_Sort1D.cpp
     TestOpenMP_Sort3D.cpp
     TestOpenMP_SortDynamicView.cpp
-    TestOpenMP_Random.cpp
   )
 ENDIF()
 
-IF(Kokkos_ENABLE_HIP)
-  LIST( APPEND SOURCES
-    TestHIP.cpp
-  )
-ENDIF()
+foreach(Tag Threads;Serial;OpenMP;Cuda;HPX;HIP;SYCL;OpenMPTarget)
+  # Because there is always an exception to the rule
+  if(Tag STREQUAL "Threads")
+    set(DEVICE "PTHREAD")
+  else()
+    string(TOUPPER ${Tag} DEVICE)
+  endif()
 
-IF(Kokkos_ENABLE_CUDA)
-  LIST( APPEND SOURCES
-    TestCuda.cpp
-  )
-ENDIF()
-
-IF(Kokkos_ENABLE_HPX)
-  LIST( APPEND SOURCES
-    TestHPX.cpp
-  )
-ENDIF()
-
-IF(Kokkos_ENABLE_SERIAL)
-  LIST( APPEND SOURCES
-    TestSerial.cpp
-  )
-ENDIF()
-
-IF(Kokkos_ENABLE_PTHREAD)
-  LIST( APPEND SOURCES
-    TestThreads.cpp
-  )
-ENDIF()
+  if(Kokkos_ENABLE_${DEVICE})
+    set(dir ${CMAKE_CURRENT_BINARY_DIR})
+    set(file ${dir}/Test${Tag}.cpp)
+      # Write to a temporary intermediate file and call configure_file to avoid
+      # updating timestamps triggering unnecessary rebuilds on subsequent cmake runs.
+      file(WRITE ${dir}/dummy.cpp
+          "#include <Test${Tag}_Category.hpp>\n"
+	  "#include <TestRandomCommon.hpp>\n"
+	  "#include <TestSortCommon.hpp>\n"
+      )
+      configure_file(${dir}/dummy.cpp ${file})
+      list(APPEND ALGORITHM_SOURCES ${file})
+  endif()
+endforeach()
 
 KOKKOS_ADD_EXECUTABLE_AND_TEST(
   UnitTest
-  SOURCES ${SOURCES}
+  SOURCES
+    UnitTestMain.cpp
+    ${ALGORITHM_SOURCES}
 )

@@ -1,10 +1,10 @@
 .. index:: pair_style eim
+.. index:: pair_style eim/omp
 
 pair_style eim command
 ======================
 
-pair_style eim/omp command
-==========================
+Accelerator Variants: *eim/omp*
 
 Syntax
 """"""
@@ -171,7 +171,10 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

@@ -50,4 +50,7 @@ Related commands
 
 :doc:`bond_style none <bond_none>`
 
-**Default:** none
+Default
+"""""""
+
+none

@@ -271,7 +271,8 @@ units of distance or velocity.
    the :doc:`compute_modify dynamic yes <compute_modify>` command for the
    temperature compute you are using.
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This fix writes the state of the deposition to :doc:`binary restart files <restart>`.  This includes information about how many
 particles have been deposited, the random number generator seed, the

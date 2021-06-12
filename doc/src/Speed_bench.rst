@@ -1,7 +1,7 @@
 Benchmarks
 ==========
 
-Current LAMMPS performance is discussed on the `Benchmarks page <https://lammps.sandia.gov/bench.html>`_ of the `LAMMPS website <lws_>`_
+Current LAMMPS performance is discussed on the `Benchmarks page <https://www.lammps.org/bench.html>`_ of the `LAMMPS website <lws_>`_
 where timings and parallel efficiency are listed.  The page has
 several sections, which are briefly described below:
 
@@ -38,16 +38,16 @@ of these 5 problems on 1 or 4 cores of Linux desktop.  The bench/FERMI
 and bench/KEPLER directories have input files and scripts and instructions
 for running the same (or similar) problems using OpenMP or GPU or Xeon
 Phi acceleration options.  See the README files in those directories and the
-:doc:`Speed packages <Speed_packages>` doc pages for instructions on how
+:doc:`Accelerator packages <Speed_packages>` pages for instructions on how
 to build LAMMPS and run on that kind of hardware.
 
 The bench/POTENTIALS directory has input files which correspond to the
 table of results on the
-`Potentials <https://lammps.sandia.gov/bench.html#potentials>`_ section of
+`Potentials <https://www.lammps.org/bench.html#potentials>`_ section of
 the Benchmarks web page.  So you can also run those test problems on
 your machine.
 
-The `billion-atom <https://lammps.sandia.gov/bench.html#billion>`_ section
+The `billion-atom <https://www.lammps.org/bench.html#billion>`_ section
 of the Benchmarks web page has performance data for very large
 benchmark runs of simple Lennard-Jones (LJ) models, which use the
 bench/in.lj input script.
@@ -73,4 +73,4 @@ estimate parallel performance for multi-node runs using the same logic
 as for all-MPI mode, except that now you will typically need many more
 atoms/node to achieve good scalability.
 
-.. _lws: https://lammps.sandia.gov
+.. _lws: https://www.lammps.org

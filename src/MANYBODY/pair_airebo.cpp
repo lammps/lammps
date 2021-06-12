@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -21,23 +22,23 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_airebo.h"
-#include <cmath>
-#include <cstring>
-#include <mpi.h>
+
 #include "atom.h"
-#include "neighbor.h"
-#include "force.h"
 #include "comm.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "my_page.h"
+#include "error.h"
+#include "force.h"
 #include "math_special.h"
 #include "memory.h"
-#include "error.h"
-#include "utils.h"
-#include "tokenizer.h"
+#include "my_page.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
 #include "potential_file_reader.h"
-#include "fmt/format.h"
+#include "text_file_reader.h"
+#include "tokenizer.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathSpecial;
@@ -61,14 +62,15 @@ PairAIREBO::PairAIREBO(LAMMPS *lmp)
   pvector = new double[nextra];
 
   maxlocal = 0;
-  REBO_numneigh = NULL;
-  REBO_firstneigh = NULL;
-  ipage = NULL;
+  REBO_numneigh = nullptr;
+  REBO_firstneigh = nullptr;
+  ipage = nullptr;
   pgsize = oneatom = 0;
 
-  nC = nH = NULL;
-  map = NULL;
+  nC = nH = nullptr;
+  map = nullptr;
   manybody_flag = 1;
+  centroidstressflag = CENTROID_NOTAVAIL;
 
   sigwid = 0.84;
   sigcut = 3.0;
@@ -154,15 +156,15 @@ void PairAIREBO::settings(int narg, char **arg)
   if (narg != 1 && narg != 3 && narg != 4)
     error->all(FLERR,"Illegal pair_style command");
 
-  cutlj = force->numeric(FLERR,arg[0]);
+  cutlj = utils::numeric(FLERR,arg[0],false,lmp);
 
   if (narg >= 3) {
-    ljflag = force->inumeric(FLERR,arg[1]);
-    torflag = force->inumeric(FLERR,arg[2]);
+    ljflag = utils::inumeric(FLERR,arg[1],false,lmp);
+    torflag = utils::inumeric(FLERR,arg[2],false,lmp);
   }
   if (narg == 4) {
     sigcut = cutlj;
-    sigmin = force->numeric(FLERR,arg[3]);
+    sigmin = utils::numeric(FLERR,arg[3],false,lmp);
     sigwid = sigcut - sigmin;
   }
 
@@ -185,7 +187,7 @@ void PairAIREBO::coeff(int narg, char **arg)
     error->all(FLERR,"Incorrect args for pair coefficients");
 
   // read args that map atom types to C and H
-  // map[i] = which element (0,1) the Ith atom type is, -1 if NULL
+  // map[i] = which element (0,1) the Ith atom type is, -1 if "NULL"
 
   for (int i = 3; i < narg; i++) {
     if (strcmp(arg[i],"NULL") == 0) {
@@ -245,7 +247,7 @@ void PairAIREBO::init_style()
   // create pages if first time or if neighbor pgsize/oneatom has changed
 
   int create = 0;
-  if (ipage == NULL) create = 1;
+  if (ipage == nullptr) create = 1;
   if (pgsize != neighbor->pgsize) create = 1;
   if (oneatom != neighbor->oneatom) create = 1;
 
@@ -3378,7 +3380,7 @@ void PairAIREBO::read_file(char *filename)
       break;
 
     default:
-      error->one(FLERR, fmt::format("Unknown REBO style variant {}",variant));
+      error->one(FLERR,"Unknown REBO style variant {}",variant);
     }
 
     PotentialFileReader reader(lmp, filename, potential_name);
@@ -3390,7 +3392,7 @@ void PairAIREBO::read_file(char *filename)
     char * line = reader.next_line();
 
     if (std::string(line).find(header) == std::string::npos) {
-      error->one(FLERR, fmt::format("Potential file does not match AIREBO/REBO style variant: {}: {}", header, line));
+      error->one(FLERR,"Potential file does not match AIREBO/REBO style variant: {}: {}", header, line);
     }
 
     // skip remaining comments
@@ -3488,7 +3490,7 @@ void PairAIREBO::read_file(char *filename)
       // global parameters
       current_section = "global parameters";
 
-      for(int i = 0; i < (int)params.size(); i++) {
+      for (int i = 0; i < (int)params.size(); i++) {
         *params[i] = reader.next_double();
       }
 
@@ -3634,12 +3636,12 @@ void PairAIREBO::read_file(char *filename)
           }
         }
       }
-    } catch (TokenizerException & e) {
+    } catch (TokenizerException &e) {
       std::string msg = fmt::format("ERROR reading {} section in {} file\n"
                                     "REASON: {}\n",
                                     current_section, potential_name, e.what());
       error->one(FLERR, msg);
-    } catch (FileReaderException & fre) {
+    } catch (FileReaderException &fre) {
       error->one(FLERR, fre.what());
       std::string msg = fmt::format("ERROR reading {} section in {} file\n"
                                     "REASON: {}\n",
@@ -4380,22 +4382,22 @@ void PairAIREBO::spline_init()
 
   //  make top end of piCC flat instead of zero
   i = 4;
-  for (j = 0; j < 4; j++){
-      for (k = 1; k < 11; k++){
+  for (j = 0; j < 4; j++) {
+      for (k = 1; k < 11; k++) {
           piCCf[i][j][k] = piCCf[i-1][j][k];
       }
   }
-  for (i = 0; i < 4; i++){ // also enforces some symmetry
-      for (j = i+1; j < 5; j++){
-          for (k = 1; k < 11; k++){
+  for (i = 0; i < 4; i++) { // also enforces some symmetry
+      for (j = i+1; j < 5; j++) {
+          for (k = 1; k < 11; k++) {
               piCCf[i][j][k] = piCCf[j][i][k];
           }
       }
   }
   for (k = 1; k < 11; k++) piCCf[4][4][k] = piCCf[3][4][k];
   k = 10;
-  for (i = 0; i < 5; i++){
-      for (j = 0; j < 5; j++){
+  for (i = 0; i < 5; i++) {
+      for (j = 0; j < 5; j++) {
       piCCf[i][j][k] = piCCf[i][j][k-1];
       }
   }
@@ -4423,22 +4425,22 @@ void PairAIREBO::spline_init()
  // also enforces some symmetry
 
   i = 4;
-  for (j = 0; j < 4; j++){
-      for (k = 1; k < 11; k++){
+  for (j = 0; j < 4; j++) {
+      for (k = 1; k < 11; k++) {
           piCHf[i][j][k] = piCHf[i-1][j][k];
       }
   }
-  for (i = 0; i < 4; i++){
-      for (j = i+1; j < 5; j++){
-          for (k = 1; k < 11; k++){
+  for (i = 0; i < 4; i++) {
+      for (j = i+1; j < 5; j++) {
+          for (k = 1; k < 11; k++) {
               piCHf[i][j][k] = piCHf[j][i][k];
           }
       }
   }
   for (k = 1; k < 11; k++) piCHf[4][4][k] = piCHf[3][4][k];
   k = 10;
-  for (i = 0; i < 5; i++){
-      for (j = 0; j < 5; j++){
+  for (i = 0; i < 5; i++) {
+      for (j = 0; j < 5; j++) {
       piCHf[i][j][k] = piCHf[i][j][k-1];
       }
   }
@@ -4496,12 +4498,12 @@ void PairAIREBO::spline_init()
 double PairAIREBO::memory_usage()
 {
   double bytes = 0.0;
-  bytes += maxlocal * sizeof(int);
-  bytes += maxlocal * sizeof(int *);
+  bytes += (double)maxlocal * sizeof(int);
+  bytes += (double)maxlocal * sizeof(int *);
 
   for (int i = 0; i < comm->nthreads; i++)
     bytes += ipage[i].size();
 
-  bytes += 2*maxlocal * sizeof(double);
+  bytes += (double)2*maxlocal * sizeof(double);
   return bytes;
 }

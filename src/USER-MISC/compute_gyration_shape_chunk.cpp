@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,32 +16,31 @@
  *    Contributing author:  Evangelos Voyiatzis (Royal DSM)
  * ------------------------------------------------------------------------- */
 
-
 #include "compute_gyration_shape_chunk.h"
+
+#include "error.h"
+#include "math_eigen.h"
+#include "math_special.h"
+#include "memory.h"
+#include "modify.h"
+#include "update.h"
+
 #include <cmath>
 #include <cstring>
-#include "error.h"
-#include "math_extra.h"
-#include "math_special.h"
-#include "modify.h"
-#include "memory.h"
-#include "update.h"
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
 ComputeGyrationShapeChunk::ComputeGyrationShapeChunk(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), id_gyration_chunk(NULL), shape_parameters(NULL)
+  Compute(lmp, narg, arg), id_gyration_chunk(nullptr), shape_parameters(nullptr)
 {
   if (narg != 4) error->all(FLERR,"Illegal compute gyration/shape/chunk command");
 
   // ID of compute gyration
-  int n = strlen(arg[3]) + 1;
-  id_gyration_chunk = new char[n];
-  strcpy(id_gyration_chunk,arg[3]);
+  id_gyration_chunk = utils::strdup(arg[3]);
 
-  init();
+  ComputeGyrationShapeChunk::init();
 
   array_flag = 1;
   size_array_cols = 6;
@@ -125,7 +125,7 @@ void ComputeGyrationShapeChunk::compute_array()
     ione[0][2] = ione[2][0] = gyration_tensor[ichunk][4];
     ione[1][2] = ione[2][1] = gyration_tensor[ichunk][5];
 
-    int ierror = MathExtra::jacobi(ione,evalues,evectors);
+    int ierror = MathEigen::jacobi3(ione,evalues,evectors);
     if (ierror) error->all(FLERR, "Insufficient Jacobi rotations "
                          "for gyration/shape");
 

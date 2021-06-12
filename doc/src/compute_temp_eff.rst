@@ -78,7 +78,8 @@ See the :doc:`Howto thermostat <Howto_thermostat>` doc page for a
 discussion of different ways to compute temperature and perform
 thermostatting.
 
-**Output info:**
+Output info
+"""""""""""
 
 The scalar value calculated by this compute is "intensive", meaning it
 is independent of the number of atoms in the simulation.  The vector
@@ -96,4 +97,7 @@ Related commands
 
 :doc:`compute temp/partial <compute_temp_partial>`, :doc:`compute temp/region <compute_temp_region>`, :doc:`compute pressure <compute_pressure>`
 
-**Default:** none
+Default
+"""""""
+
+none

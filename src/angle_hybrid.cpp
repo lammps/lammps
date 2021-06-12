@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,16 +13,16 @@
 ------------------------------------------------------------------------- */
 
 #include "angle_hybrid.h"
-#include <mpi.h>
-#include <cstring>
-#include <cctype>
+
 #include "atom.h"
 #include "neighbor.h"
 #include "comm.h"
 #include "force.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
+#include <cstring>
+#include <cctype>
 
 using namespace LAMMPS_NS;
 
@@ -113,7 +114,7 @@ void AngleHybrid::compute(int eflag, int vflag)
 
   const int nthreads = comm->nthreads;
   if (comm->nthreads > 1) {
-    const int nall = atom->nlocal + atom->nghost;
+    const bigint nall = atom->nlocal + atom->nghost;
     if (eflag_atom)
       memset(&eatom[0],0,nall*nthreads*sizeof(double));
     if (vflag_atom)
@@ -174,7 +175,7 @@ void AngleHybrid::allocate()
   maxangle = new int[nstyles];
   anglelist = new int**[nstyles];
   for (int m = 0; m < nstyles; m++) maxangle[m] = 0;
-  for (int m = 0; m < nstyles; m++) anglelist[m] = NULL;
+  for (int m = 0; m < nstyles; m++) anglelist[m] = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -183,16 +184,16 @@ void AngleHybrid::allocate()
 
 void AngleHybrid::settings(int narg, char **arg)
 {
-  int i,m,istyle;
+  int i, m,istyle;
 
   if (narg < 1) error->all(FLERR,"Illegal angle_style command");
 
   // delete old lists, since cannot just change settings
 
   if (nstyles) {
-    for (int i = 0; i < nstyles; i++) delete styles[i];
+    for (i = 0; i < nstyles; i++) delete styles[i];
     delete [] styles;
-    for (int i = 0; i < nstyles; i++) delete [] keywords[i];
+    for (i = 0; i < nstyles; i++) delete [] keywords[i];
     delete [] keywords;
   }
 
@@ -201,7 +202,7 @@ void AngleHybrid::settings(int narg, char **arg)
     memory->destroy(map);
     delete [] nanglelist;
     delete [] maxangle;
-    for (int i = 0; i < nstyles; i++)
+    for (i = 0; i < nstyles; i++)
       memory->destroy(anglelist[i]);
     delete [] anglelist;
   }
@@ -267,7 +268,7 @@ void AngleHybrid::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nangletypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->nangletypes,ilo,ihi,error);
 
   // 2nd arg = angle sub-style name
   // allow for "none" or "skip" as valid sub-style name
@@ -358,7 +359,7 @@ void AngleHybrid::write_restart(FILE *fp)
 void AngleHybrid::read_restart(FILE *fp)
 {
   int me = comm->me;
-  if (me == 0) utils::sfread(FLERR,&nstyles,sizeof(int),1,fp,NULL,error);
+  if (me == 0) utils::sfread(FLERR,&nstyles,sizeof(int),1,fp,nullptr,error);
   MPI_Bcast(&nstyles,1,MPI_INT,0,world);
   styles = new Angle*[nstyles];
   keywords = new char*[nstyles];
@@ -367,10 +368,10 @@ void AngleHybrid::read_restart(FILE *fp)
 
   int n,dummy;
   for (int m = 0; m < nstyles; m++) {
-    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,NULL,error);
+    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,nullptr,error);
     MPI_Bcast(&n,1,MPI_INT,0,world);
     keywords[m] = new char[n];
-    if (me == 0) utils::sfread(FLERR,keywords[m],sizeof(char),n,fp,NULL,error);
+    if (me == 0) utils::sfread(FLERR,keywords[m],sizeof(char),n,fp,nullptr,error);
     MPI_Bcast(keywords[m],n,MPI_CHAR,0,world);
     styles[m] = force->new_angle(keywords[m],0,dummy);
     styles[m]->read_restart_settings(fp);
@@ -391,10 +392,10 @@ double AngleHybrid::single(int type, int i1, int i2, int i3)
 
 double AngleHybrid::memory_usage()
 {
-  double bytes = maxeatom * sizeof(double);
-  bytes += maxvatom*6 * sizeof(double);
-  bytes += maxcvatom*9 * sizeof(double);
-  for (int m = 0; m < nstyles; m++) bytes += maxangle[m]*4 * sizeof(int);
+  double bytes = (double)maxeatom * sizeof(double);
+  bytes += (double)maxvatom*6 * sizeof(double);
+  bytes += (double)maxcvatom*9 * sizeof(double);
+  for (int m = 0; m < nstyles; m++) bytes += (double)maxangle[m]*4 * sizeof(int);
   for (int m = 0; m < nstyles; m++)
     if (styles[m]) bytes += styles[m]->memory_usage();
   return bytes;

@@ -56,7 +56,8 @@ LAMMPS was built with that package.  See the :doc:`Build package <Build_package>
 This quantity will be computed only for particles which interact with
 tlsph pair style.
 
-**Related Commands:**
+Related commands
+""""""""""""""""
 
 :doc:`smd/tlsph_defgrad <compute_smd_tlsph_defgrad>`
 

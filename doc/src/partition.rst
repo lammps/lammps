@@ -72,4 +72,7 @@ Related commands
 
 :doc:`run_style verlet/split <run_style>`
 
-**Default:** none
+Default
+"""""""
+
+none

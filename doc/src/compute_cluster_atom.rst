@@ -1,4 +1,6 @@
 .. index:: compute cluster/atom
+.. index:: compute fragment/atom
+.. index:: compute aggregate/atom
 
 compute cluster/atom command
 ============================
@@ -104,7 +106,8 @@ style computes.
    because it does not perform a full update of the bond topology data
    structures within LAMMPS.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a per-atom vector, which can be accessed by
 any command that uses per-atom values from a compute as input.  See
@@ -122,7 +125,9 @@ Related commands
 
 :doc:`compute coord/atom <compute_coord_atom>`
 
-**Default:**
+Default
+"""""""
+
 
 The default for fragment/atom is single no.
 

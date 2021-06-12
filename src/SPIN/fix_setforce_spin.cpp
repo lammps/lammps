@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -52,7 +53,7 @@ void FixSetForceSpin::post_force(int /*vflag*/)
 
   // update region if necessary
 
-  Region *region = NULL;
+  Region *region = nullptr;
   if (iregion >= 0) {
     region = domain->regions[iregion];
     region->prematch();
@@ -124,7 +125,7 @@ void FixSetForceSpin::single_setforce_spin(int i, double fmi[3])
 
   // update region if necessary
 
-  Region *region = NULL;
+  Region *region = nullptr;
   if (iregion >= 0) {
     region = domain->regions[iregion];
     region->prematch();
@@ -195,7 +196,7 @@ void FixSetForceSpin::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 
   if (ilevel == ilevel_respa) post_force(vflag);
   else {
-    Region *region = NULL;
+    Region *region = nullptr;
     if (iregion >= 0) {
       region = domain->regions[iregion];
       region->prematch();

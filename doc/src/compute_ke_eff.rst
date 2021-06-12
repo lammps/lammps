@@ -64,7 +64,8 @@ freedom.
 
 See :doc:`compute temp/eff <compute_temp_eff>`.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global scalar (the KE).  This value can be
 used by any command that uses a global scalar value from a compute as
@@ -80,6 +81,13 @@ Restrictions
 This compute is part of the USER-EFF package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
-**Related commands:** none
+Related commands
+""""""""""""""""
 
-**Default:** none
+none
+
+
+Default
+"""""""
+
+none

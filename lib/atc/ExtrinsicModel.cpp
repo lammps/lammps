@@ -114,7 +114,7 @@ namespace ATC {
       ATC::LammpsInterface::instance()->print_msg_once(ss.str());
       myModel = new ExtrinsicModelElectrostatic
         (this,modelType,matFileName);
-    } else myModel = NULL;
+    } else myModel = nullptr;
     extrinsicModels_.push_back(myModel);
 
      // add new fields to fields data
@@ -157,7 +157,7 @@ namespace ATC {
       for(imodel=extrinsicModels_.begin(); imodel!=extrinsicModels_.end(); imodel++) {
         if ((*imodel)->model_type()==type) return *imodel;
       }
-      return NULL;
+      return nullptr;
     }
 
 
@@ -343,7 +343,7 @@ namespace ATC {
     atc_(modelManager->atc()),
     modelManager_(modelManager),
     modelType_(modelType),
-    physicsModel_(NULL)
+    physicsModel_(nullptr)
   {
     rhsMaskIntrinsic_.reset(NUM_FIELDS,NUM_FLUX);
     rhsMaskIntrinsic_ = false;

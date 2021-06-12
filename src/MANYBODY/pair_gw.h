@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(gw,PairGW)
-
+// clang-format off
+PairStyle(gw,PairGW);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_GW_H
@@ -34,41 +34,34 @@ class PairGW : public Pair {
   void init_style();
   double init_one(int, int);
 
-  static const int NPARAMS_PER_LINE = 17;
+  static constexpr int NPARAMS_PER_LINE = 17;
 
  protected:
   struct Param {
-    double lam1,lam2,lam3;
-    double c,d,h;
-    double gamma,powerm;
-    double powern,beta;
-    double biga,bigb,bigd,bigr;
-    double cut,cutsq;
-    double c1,c2,c3,c4;
-    int ielement,jelement,kelement;
+    double lam1, lam2, lam3;
+    double c, d, h;
+    double gamma, powerm;
+    double powern, beta;
+    double biga, bigb, bigd, bigr;
+    double cut, cutsq;
+    double c1, c2, c3, c4;
+    int ielement, jelement, kelement;
     int powermint;
-    double Z_i,Z_j;
-    double ZBLcut,ZBLexpscale;
+    double Z_i, Z_j;
+    double ZBLcut, ZBLexpscale;
   };
 
-  Param *params;                // parameter set for an I-J-K interaction
-  char **elements;              // names of unique elements
-  int ***elem2param;            // mapping from element triplets to paramegw
-  int *map;                     // mapping from atom types to elements
-  double cutmax;                // max cutoff for all elements
-  int nelements;                // # of unique elements
-  int nparams;                  // # of stored parameter sets
-  int maxparam;                 // max # of parameter sets
+  Param *params;    // parameter set for an I-J-K interaction
+  double cutmax;    // max cutoff for all elements
 
-  int **pages;                     // neighbor list pages
-  int maxlocal;                    // size of numneigh, firstneigh arrays
-  int maxpage;                     // # of pages currently allocated
-  int pgsize;                      // size of neighbor page
-  int oneatom;                     // max # of neighbors for one atom
+  int **pages;     // neighbor list pages
+  int maxlocal;    // size of numneigh, firstneigh arrays
+  int maxpage;     // # of pages currently allocated
+  int pgsize;      // size of neighbor page
+  int oneatom;     // max # of neighbors for one atom
 
-
-  int *GW_numneigh;             // # of pair neighbors for each atom
-  int **GW_firstneigh;          // ptr to 1st neighbor of each atom
+  int *GW_numneigh;       // # of pair neighbors for each atom
+  int **GW_firstneigh;    // ptr to 1st neighbor of each atom
 
   void GW_neigh();
   void add_pages(int howmany = 1);
@@ -78,10 +71,9 @@ class PairGW : public Pair {
   void setup_params();
   virtual void repulsive(Param *, double, double &, int, double &);
   double zeta(Param *, double, double, double *, double *);
-  virtual void force_zeta(Param *, double, double, double &,
-                          double &, int, double &);
-  void attractive(Param *, double, double, double, double *, double *,
-                  double *, double *, double *);
+  virtual void force_zeta(Param *, double, double, double &, double &, int, double &);
+  void attractive(Param *, double, double, double, double *, double *, double *, double *,
+                  double *);
 
   double gw_fc(double, Param *);
   double gw_fc_d(double, Param *);
@@ -90,57 +82,35 @@ class PairGW : public Pair {
   double gw_bij(double, Param *);
   double gw_bij_d(double, Param *);
 
-  void gw_zetaterm_d(double, double *, double, double *, double,
-                               double *, double *, double *, Param *);
-  void costheta_d(double *, double, double *, double,
-                  double *, double *, double *);
+  void gw_zetaterm_d(double, double *, double, double *, double, double *, double *, double *,
+                     Param *);
+  void costheta_d(double *, double, double *, double, double *, double *, double *);
 
   // inlined functions for efficiency
 
-  inline double gw_gijk(const double costheta,
-                          const Param * const param) const {
+  inline double gw_gijk(const double costheta, const Param *const param) const
+  {
     const double gw_c = param->c * param->c;
     const double gw_d = param->d * param->d;
     const double hcth = param->h - costheta;
 
-          //printf("gw_gijk: gw_c=%f gw_d=%f hcth=%f=%f-%f\n", gw_c, gw_d, hcth, param->h, costheta);
+    //printf("gw_gijk: gw_c=%f gw_d=%f hcth=%f=%f-%f\n", gw_c, gw_d, hcth, param->h, costheta);
 
-    return param->gamma*(1.0 + gw_c/gw_d - gw_c / (gw_d + hcth*hcth));
+    return param->gamma * (1.0 + gw_c / gw_d - gw_c / (gw_d + hcth * hcth));
   }
 
-  inline double gw_gijk_d(const double costheta,
-                            const Param * const param) const {
+  inline double gw_gijk_d(const double costheta, const Param *const param) const
+  {
     const double gw_c = param->c * param->c;
     const double gw_d = param->d * param->d;
     const double hcth = param->h - costheta;
     const double numerator = -2.0 * gw_c * hcth;
-    const double denominator = 1.0/(gw_d + hcth*hcth);
-    return param->gamma*numerator*denominator*denominator;
-  }
-
-  inline double vec3_dot(const double x[3], const double y[3]) const {
-    return x[0]*y[0] + x[1]*y[1] + x[2]*y[2];
-  }
-
-  inline void vec3_add(const double x[3], const double y[3],
-                       double * const z) const {
-    z[0] = x[0]+y[0];  z[1] = x[1]+y[1];  z[2] = x[2]+y[2];
-  }
-
-  inline void vec3_scale(const double k, const double x[3],
-                         double y[3]) const {
-    y[0] = k*x[0];  y[1] = k*x[1];  y[2] = k*x[2];
-  }
-
-  inline void vec3_scaleadd(const double k, const double x[3],
-                            const double y[3], double * const z) const {
-    z[0] = k*x[0]+y[0];
-    z[1] = k*x[1]+y[1];
-    z[2] = k*x[2]+y[2];
+    const double denominator = 1.0 / (gw_d + hcth * hcth);
+    return param->gamma * numerator * denominator * denominator;
   }
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

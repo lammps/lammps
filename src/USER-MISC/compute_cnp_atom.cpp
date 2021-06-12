@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -22,7 +23,7 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_cnp_atom.h"
-#include <mpi.h>
+
 #include <cstring>
 #include <cmath>
 #include "atom.h"
@@ -49,14 +50,14 @@ enum{NCOMMON};
 
 ComputeCNPAtom::ComputeCNPAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  list(NULL), nearest(NULL), nnearest(NULL), cnpv(NULL)
+  list(nullptr), nearest(nullptr), nnearest(nullptr), cnpv(nullptr)
 {
   if (narg != 4) error->all(FLERR,"Illegal compute cnp/atom command");
 
   peratom_flag = 1;
   size_peratom_cols = 0;
 
-  double cutoff = force->numeric(FLERR,arg[3]);
+  double cutoff = utils::numeric(FLERR,arg[3],false,lmp);
   if (cutoff < 0.0) error->all(FLERR,"Illegal compute cnp/atom command");
   cutsq = cutoff*cutoff;
 
@@ -92,7 +93,7 @@ ComputeCNPAtom::~ComputeCNPAtom()
 
 void ComputeCNPAtom::init()
 {
-  if (force->pair == NULL)
+  if (force->pair == nullptr)
     error->all(FLERR,"Compute cnp/atom requires a pair style be defined");
 
   if (sqrt(cutsq) > force->pair->cutforce)
@@ -206,7 +207,7 @@ void ComputeCNPAtom::compute_peratom()
   if (nerrorall && comm->me == 0) {
     char str[128];
     sprintf(str,"Too many neighbors in CNP for %d atoms",nerrorall);
-    error->warning(FLERR,str,0);
+    error->warning(FLERR,str);
   }
 
   // compute CNP value for each atom in group
@@ -323,8 +324,8 @@ void ComputeCNPAtom::compute_peratom()
 
 double ComputeCNPAtom::memory_usage()
 {
-  double bytes = nmax * sizeof(int);
-  bytes += nmax * MAXNEAR * sizeof(int);
-  bytes += nmax * sizeof(double);
+  double bytes = (double)nmax * sizeof(int);
+  bytes += (double)nmax * MAXNEAR * sizeof(int);
+  bytes += (double)nmax * sizeof(double);
   return bytes;
 }

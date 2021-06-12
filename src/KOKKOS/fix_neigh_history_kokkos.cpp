@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,13 +13,13 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_neigh_history_kokkos.h"
+
 #include "atom_kokkos.h"
 #include "error.h"
 #include "memory_kokkos.h"
+#include "modify.h"
 #include "neigh_list_kokkos.h"
 #include "pair_kokkos.h"
-#include "comm.h"
-#include "modify.h"
 
 using namespace LAMMPS_NS;
 
@@ -35,19 +36,15 @@ FixNeighHistoryKokkos<DeviceType>::FixNeighHistoryKokkos(LAMMPS *lmp, int narg, 
   memory->destroy(npartner);
   memory->sfree(partner);
   memory->sfree(valuepartner);
-  npartner = NULL;
-  partner = NULL;
-  valuepartner = NULL;
+  npartner = nullptr;
+  partner = nullptr;
+  valuepartner = nullptr;
 
   maxpartner = 8;
   grow_arrays(atom->nmax);
 
   d_resize = typename ArrayTypes<DeviceType>::t_int_scalar("FixNeighHistoryKokkos::resize");
-#ifndef KOKKOS_USE_CUDA_UVM
   h_resize = Kokkos::create_mirror_view(d_resize);
-#else
-  h_resize = d_resize;
-#endif
   h_resize() = 1;
 }
 
@@ -186,7 +183,7 @@ void FixNeighHistoryKokkos<DeviceType>::post_neighbor()
 
   // realloc firstflag and firstvalue if needed
 
-  if (maxatom < nlocal || k_list->maxneighs > d_firstflag.extent(1)) {
+  if (maxatom < nlocal || k_list->maxneighs > (int)d_firstflag.extent(1)) {
     maxatom = nall;
     d_firstflag = Kokkos::View<int**>("neighbor_history:firstflag",maxatom,k_list->maxneighs);
     d_firstvalue = Kokkos::View<LMP_FLOAT**>("neighbor_history:firstvalue",maxatom,k_list->maxneighs*dnum);
@@ -247,11 +244,11 @@ void FixNeighHistoryKokkos<DeviceType>::post_neighbor_item(const int &ii) const
 template<class DeviceType>
 double FixNeighHistoryKokkos<DeviceType>::memory_usage()
 {
-  double bytes = d_firstflag.extent(0)*d_firstflag.extent(1)*sizeof(int);
-  bytes += d_firstvalue.extent(0)*d_firstvalue.extent(1)*sizeof(double);
-  bytes += 2*k_npartner.extent(0)*sizeof(int);
-  bytes += 2*k_partner.extent(0)*k_partner.extent(1)*sizeof(int);
-  bytes += 2*k_valuepartner.extent(0)*k_valuepartner.extent(1)*sizeof(double);
+  double bytes = (double)d_firstflag.extent(0)*d_firstflag.extent(1)*sizeof(int);
+  bytes += (double)d_firstvalue.extent(0)*d_firstvalue.extent(1)*sizeof(double);
+  bytes += (double)2*k_npartner.extent(0)*sizeof(int);
+  bytes += (double)2*k_partner.extent(0)*k_partner.extent(1)*sizeof(int);
+  bytes += (double)2*k_valuepartner.extent(0)*k_valuepartner.extent(1)*sizeof(double);
   return bytes;
 }
 
@@ -284,7 +281,7 @@ void FixNeighHistoryKokkos<DeviceType>::grow_arrays(int nmax)
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixNeighHistoryKokkos<DeviceType>::copy_arrays(int i, int j, int delflag)
+void FixNeighHistoryKokkos<DeviceType>::copy_arrays(int i, int j, int /*delflag*/)
 {
   k_npartner.template sync<LMPHostType>();
   k_partner.template sync<LMPHostType>();

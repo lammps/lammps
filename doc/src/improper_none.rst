@@ -36,4 +36,7 @@ Related commands
 
 :doc:`improper_style zero <improper_zero>`
 
-**Default:** none
+Default
+"""""""
+
+none

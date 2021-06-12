@@ -646,7 +646,7 @@ double fermi_dirac(const double E, const double T)
     double mu, double D
   ) :
   SliceSchrodingerPoissonSolver(atc,schrodingerSolver,poissonSolver,physicsModel,maxConsistencyIter,maxConstraintIter,oneDconserve,0,0),
-  solver_(NULL), 
+  solver_(nullptr), 
   mobility_(mu),diffusivity_(D)
   {
     Ef0_ = Ef0;

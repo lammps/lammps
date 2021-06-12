@@ -74,7 +74,8 @@ In order to get meaningful result, the group ID of this fix should be all.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to binary restart files.
 None of the fix_modify options are relevant to this fix.

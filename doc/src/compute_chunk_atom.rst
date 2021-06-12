@@ -620,7 +620,8 @@ cylinder, x for a y-axis cylinder, and x for a z-axis cylinder.
 
 ----------
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a per-atom vector (the chunk ID), which can
 be accessed by any command that uses per-atom values from a compute

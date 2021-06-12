@@ -1,6 +1,8 @@
 #ifndef KOKKOS_CUDA_INSTANCE_HPP_
 #define KOKKOS_CUDA_INSTANCE_HPP_
 
+#include <vector>
+#include <impl/Kokkos_Tools.hpp>
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 // These functions fulfill the purpose of allowing to work around
@@ -15,25 +17,24 @@ namespace Kokkos {
 namespace Impl {
 
 struct CudaTraits {
-  enum { WarpSize = 32 /* 0x0020 */ };
-  enum { WarpIndexMask = 0x001f /* Mask for warpindex */ };
-  enum { WarpIndexShift = 5 /* WarpSize == 1 << WarpShift */ };
+  static constexpr CudaSpace::size_type WarpSize = 32 /* 0x0020 */;
+  static constexpr CudaSpace::size_type WarpIndexMask =
+      0x001f; /* Mask for warpindex */
+  static constexpr CudaSpace::size_type WarpIndexShift =
+      5; /* WarpSize == 1 << WarpShift */
 
-  enum { ConstantMemoryUsage = 0x008000 /* 32k bytes */ };
-  enum { ConstantMemoryCache = 0x002000 /*  8k bytes */ };
-  enum { KernelArgumentLimit = 0x001000 /*  4k bytes */ };
+  static constexpr CudaSpace::size_type ConstantMemoryUsage =
+      0x008000; /* 32k bytes */
+  static constexpr CudaSpace::size_type ConstantMemoryCache =
+      0x002000; /*  8k bytes */
+  static constexpr CudaSpace::size_type KernelArgumentLimit =
+      0x001000; /*  4k bytes */
+  static constexpr CudaSpace::size_type MaxHierarchicalParallelism =
+      1024; /* team_size * vector_length */
+  using ConstantGlobalBufferType =
+      unsigned long[ConstantMemoryUsage / sizeof(unsigned long)];
 
-  typedef unsigned long
-      ConstantGlobalBufferType[ConstantMemoryUsage / sizeof(unsigned long)];
-
-#if defined(KOKKOS_ARCH_VOLTA) || defined(KOKKOS_ARCH_PASCAL)
-  enum {
-    ConstantMemoryUseThreshold =
-        0x000200 /* 0 bytes -> always use constant (or global)*/
-  };
-#else
-  enum { ConstantMemoryUseThreshold = 0x000200 /* 512 bytes */ };
-#endif
+  static constexpr int ConstantMemoryUseThreshold = 0x000200 /* 512 bytes */;
 
   KOKKOS_INLINE_FUNCTION static CudaSpace::size_type warp_count(
       CudaSpace::size_type i) {
@@ -42,7 +43,7 @@ struct CudaTraits {
 
   KOKKOS_INLINE_FUNCTION static CudaSpace::size_type warp_align(
       CudaSpace::size_type i) {
-    enum { Mask = ~CudaSpace::size_type(WarpIndexMask) };
+    constexpr CudaSpace::size_type Mask = ~WarpIndexMask;
     return (i + WarpIndexMask) & Mask;
   }
 };
@@ -79,7 +80,7 @@ class CudaInternal {
 #endif
 
  public:
-  typedef Cuda::size_type size_type;
+  using size_type = Cuda::size_type;
 
   int m_cudaDev;
 
@@ -99,10 +100,12 @@ class CudaInternal {
 
   cudaDeviceProp m_deviceProp;
 
+  // Scratch Spaces for Reductions
   mutable size_type m_scratchSpaceCount;
   mutable size_type m_scratchFlagsCount;
   mutable size_type m_scratchUnifiedCount;
   mutable size_type m_scratchFunctorSize;
+
   size_type m_scratchUnifiedSupported;
   size_type m_streamCount;
   mutable size_type* m_scratchSpace;
@@ -112,18 +115,27 @@ class CudaInternal {
   uint32_t* m_scratchConcurrentBitset;
   cudaStream_t m_stream;
 
-  static int was_initialized;
-  static int was_finalized;
+  // Team Scratch Level 1 Space
+  mutable int64_t m_team_scratch_current_size;
+  mutable void* m_team_scratch_ptr;
+
+  bool was_initialized = false;
+  bool was_finalized   = false;
+
+  // FIXME_CUDA: these want to be per-device, not per-stream...  use of 'static'
+  //  here will break once there are multiple devices though
+  static unsigned long* constantMemHostStaging;
+  static cudaEvent_t constantMemReusable;
 
   static CudaInternal& singleton();
 
   int verify_is_initialized(const char* const label) const;
 
   int is_initialized() const {
-    return 0 != m_scratchSpace && 0 != m_scratchFlags;
+    return nullptr != m_scratchSpace && nullptr != m_scratchFlags;
   }
 
-  void initialize(int cuda_device_id, cudaStream_t stream = 0);
+  void initialize(int cuda_device_id, cudaStream_t stream = nullptr);
   void finalize();
 
   void print_configuration(std::ostream&) const;
@@ -157,17 +169,24 @@ class CudaInternal {
         m_scratchFunctorSize(0),
         m_scratchUnifiedSupported(0),
         m_streamCount(0),
-        m_scratchSpace(0),
-        m_scratchFlags(0),
-        m_scratchUnified(0),
-        m_scratchFunctor(0),
-        m_scratchConcurrentBitset(0),
-        m_stream(0) {}
+        m_scratchSpace(nullptr),
+        m_scratchFlags(nullptr),
+        m_scratchUnified(nullptr),
+        m_scratchFunctor(nullptr),
+        m_scratchConcurrentBitset(nullptr),
+        m_stream(nullptr),
+        m_team_scratch_current_size(0),
+        m_team_scratch_ptr(nullptr) {}
 
+  // Resizing of reduction related scratch spaces
   size_type* scratch_space(const size_type size) const;
   size_type* scratch_flags(const size_type size) const;
   size_type* scratch_unified(const size_type size) const;
   size_type* scratch_functor(const size_type size) const;
+
+  // Resizing of team level 1 scratch
+  void* resize_team_scratch_space(std::int64_t bytes,
+                                  bool force_shrink = false);
 };
 
 }  // Namespace Impl

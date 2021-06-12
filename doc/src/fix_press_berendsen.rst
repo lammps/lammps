@@ -190,7 +190,8 @@ or pressure during thermodynamic output via the :doc:`thermo_style custom <therm
 It also means that changing attributes of *thermo_temp* or
 *thermo_press* will have no effect on this fix.
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 

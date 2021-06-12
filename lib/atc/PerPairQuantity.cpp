@@ -272,7 +272,7 @@ BondMatrixKernel::BondMatrixKernel(LammpsInterface * lammpsInterface,
   BondMatrix(lammpsInterface,pairMap,x,feMesh),
   kernelFunction_(kernelFunction)
 {
-  if (kernelFunction_ == NULL)
+  if (kernelFunction_ == nullptr)
     throw ATC_Error("No AtC kernel function initialized");
 };
 void BondMatrixKernel::reset(void) const

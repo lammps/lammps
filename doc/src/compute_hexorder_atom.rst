@@ -97,7 +97,8 @@ too frequently.
    :doc:`special_bonds <special_bonds>` command that includes all pairs in
    the neighbor list.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a per-atom array with 2 columns, giving the
 real and imaginary parts :math:`q_n`, a complex number restricted to the

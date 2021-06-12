@@ -173,7 +173,8 @@ example:
    compute myADF all adf 32 2 2 2 0.5 3.5 0.5 3.5
    fix 1 all ave/time 100 1 100 c_myADF[*] file tmp.adf mode vector
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global array with the number of rows =
 *Nbins*\ , and the number of columns = 1 + 2\*Ntriples, where Ntriples is the

@@ -1,16 +1,17 @@
 .. index:: pair_style hbond/dreiding/lj
+.. index:: pair_style hbond/dreiding/lj/omp
+.. index:: pair_style hbond/dreiding/morse
+.. index:: pair_style hbond/dreiding/morse/omp
 
 pair_style hbond/dreiding/lj command
 ====================================
 
-pair_style hbond/dreiding/lj/omp command
-========================================
+Accelerator Variants: *hbond/dreiding/lj/omp*
 
 pair_style hbond/dreiding/morse command
 =======================================
 
-pair_style hbond/dreiding/morse/omp command
-===========================================
+Accelerator Variants: *hbond/dreiding/morse/omp*
 
 Syntax
 """"""
@@ -197,7 +198,8 @@ optional parameters.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 These pair styles do not support mixing. You must explicitly identify
 each donor/acceptor type pair.
@@ -245,7 +247,10 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

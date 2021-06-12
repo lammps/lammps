@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/ Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -14,6 +14,7 @@
 #ifndef TEST_CONFIG_H
 #define TEST_CONFIG_H
 
+#include <set>
 #include <string>
 #include <utility>
 #include <vector>
@@ -32,6 +33,7 @@ public:
     std::string date_generated;
     std::string basename;
     double epsilon;
+    std::set<std::string> skip_tests;
     std::vector<std::pair<std::string, std::string>> prerequisites;
     std::vector<std::string> pre_commands;
     std::vector<std::string> post_commands;
@@ -58,16 +60,23 @@ public:
     double run_coul;
     stress_t init_stress;
     stress_t run_stress;
+    double global_scalar;
+    std::vector<double> global_vector;
     std::vector<coord_t> init_forces;
     std::vector<coord_t> run_forces;
+    std::vector<coord_t> run_pos;
+    std::vector<coord_t> restart_pos;
+    std::vector<coord_t> run_vel;
+    std::vector<coord_t> restart_vel;
 
     TestConfig() :
         lammps_version(""), date_generated(""), basename(""), epsilon(1.0e-14), input_file(""),
         pair_style("zero"), bond_style("zero"), angle_style("zero"), dihedral_style("zero"),
         improper_style("zero"), kspace_style("none"), natoms(0), init_energy(0), run_energy(0),
         init_vdwl(0), run_vdwl(0), init_coul(0), run_coul(0), init_stress({0, 0, 0, 0, 0, 0}),
-        run_stress({0, 0, 0, 0, 0, 0})
+        run_stress({0, 0, 0, 0, 0, 0}), global_scalar(0)
     {
+        skip_tests.clear();
         prerequisites.clear();
         pre_commands.clear();
         post_commands.clear();
@@ -79,6 +88,11 @@ public:
         extract.clear();
         init_forces.clear();
         run_forces.clear();
+        run_pos.clear();
+        restart_pos.clear();
+        run_vel.clear();
+        restart_vel.clear();
+        global_vector.clear();
     }
     virtual ~TestConfig(){};
 

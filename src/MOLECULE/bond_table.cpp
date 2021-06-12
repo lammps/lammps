@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,20 +17,18 @@
 ------------------------------------------------------------------------- */
 
 #include "bond_table.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
+
 #include "atom.h"
-#include "neighbor.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "memory.h"
-#include "error.h"
-#include "utils.h"
-#include "tokenizer.h"
+#include "neighbor.h"
 #include "table_file_reader.h"
-#include "fmt/format.h"
+#include "tokenizer.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -43,7 +42,7 @@ BondTable::BondTable(LAMMPS *lmp) : Bond(lmp)
 {
   writedata = 0;
   ntables = 0;
-  tables = NULL;
+  tables = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -142,7 +141,7 @@ void BondTable::settings(int narg, char **arg)
   else if (strcmp(arg[0],"spline") == 0) tabstyle = SPLINE;
   else error->all(FLERR,"Unknown table style in bond style table");
 
-  tablength = force->inumeric(FLERR,arg[1]);
+  tablength = utils::inumeric(FLERR,arg[1],false,lmp);
   if (tablength < 2) error->all(FLERR,"Illegal number of bond table entries");
 
   // delete old tables, since cannot just change settings
@@ -157,7 +156,7 @@ void BondTable::settings(int narg, char **arg)
   allocated = 0;
 
   ntables = 0;
-  tables = NULL;
+  tables = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -170,7 +169,7 @@ void BondTable::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nbondtypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->nbondtypes,ilo,ihi,error);
 
   int me;
   MPI_Comm_rank(world,&me);
@@ -254,8 +253,8 @@ void BondTable::write_restart_settings(FILE *fp)
 void BondTable::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    utils::sfread(FLERR,&tabstyle,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&tablength,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&tabstyle,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&tablength,sizeof(int),1,fp,nullptr,error);
   }
   MPI_Bcast(&tabstyle,1,MPI_INT,0,world);
   MPI_Bcast(&tablength,1,MPI_INT,0,world);
@@ -278,10 +277,10 @@ double BondTable::single(int type, double rsq, int /*i*/, int /*j*/,
 
 void BondTable::null_table(Table *tb)
 {
-  tb->rfile = tb->efile = tb->ffile = NULL;
-  tb->e2file = tb->f2file = NULL;
-  tb->r = tb->e = tb->de = NULL;
-  tb->f = tb->df = tb->e2 = tb->f2 = NULL;
+  tb->rfile = tb->efile = tb->ffile = nullptr;
+  tb->e2file = tb->f2file = nullptr;
+  tb->r = tb->e = tb->de = nullptr;
+  tb->f = tb->df = tb->e2 = tb->f2 = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -341,7 +340,7 @@ void BondTable::read_table(Table *tb, char *file, char *keyword)
       tb->rfile[i] = values.next_double();
       tb->efile[i] = values.next_double();
       tb->ffile[i] = values.next_double();
-    } catch (TokenizerException & e) {
+    } catch (TokenizerException &e) {
       ++cerror;
     }
 
@@ -378,15 +377,15 @@ void BondTable::read_table(Table *tb, char *file, char *keyword)
   }
 
   if (ferror) {
-    error->warning(FLERR, fmt::format("{} of {} force values in table are inconsistent with -dE/dr.\n"
-                                      "  Should only be flagged at inflection points",ferror,tb->ninput));
+    error->warning(FLERR, "{} of {} force values in table are inconsistent with -dE/dr.\n"
+                   "WARNING:  Should only be flagged at inflection points",ferror,tb->ninput);
   }
 
   // warn if data was read incompletely, e.g. columns were missing
 
   if (cerror) {
-    error->warning(FLERR, fmt::format("{} of {} lines in table were incomplete or could not be"
-                                      " parsed completely",cerror,tb->ninput));
+    error->warning(FLERR, "{} of {} lines in table were incomplete or could not be"
+                   " parsed completely",cerror,tb->ninput);
   }
 }
 
@@ -491,7 +490,7 @@ void BondTable::param_extract(Table *tb, char *line)
         error->one(FLERR,"Invalid keyword in bond table parameters");
       }
     }
-  } catch(TokenizerException & e) {
+  } catch(TokenizerException &e) {
     error->one(FLERR, e.what());
   }
 
@@ -596,18 +595,14 @@ void BondTable::uf_lookup(int type, double x, double &u, double &f)
   }
 
   double fraction,a,b;
-  char estr[128];
   const Table *tb = &tables[tabindex[type]];
   const int itable = static_cast<int> ((x - tb->lo) * tb->invdelta);
-  if (itable < 0) {
-    sprintf(estr,"Bond length < table inner cutoff: "
-            "type %d length %g",type,x);
-    error->one(FLERR,estr);
-  } else if (itable >= tablength) {
-    sprintf(estr,"Bond length > table outer cutoff: "
-            "type %d length %g",type,x);
-    error->one(FLERR,estr);
-  }
+  if (itable < 0)
+    error->one(FLERR,"Bond length < table inner cutoff: "
+               "type {} length {:.8}",type,x);
+  else if (itable >= tablength)
+    error->one(FLERR,"Bond length > table outer cutoff: "
+               "type {} length {:.8}",type,x);
 
   if (tabstyle == LINEAR) {
     fraction = (x - tb->r[itable]) * tb->invdelta;

@@ -12,7 +12,7 @@ improper_style  class2
 pair_modify     mix sixthpower tail yes
 special_bonds   lj/coul 0 0 1
 
-read_data       data.init_conf_without_heptane
+read_data       data.init_conf_with_heptane
 
 pair_coeff    1    6  lj/class2/coul/long/soft   0.054 4.01 0.0
 pair_coeff    2    6  lj/class2/coul/long/soft   0.054 4.01 0.0
@@ -47,7 +47,7 @@ fix ADAPT all adapt/fep 10 &
   atom charge 8 v_q3 &
   after yes
 
-thermo_style custom step spcpu temp press vol etotal pe v_lambda v_q1 v_q2 v_q3
+thermo_style custom step temp press vol etotal pe v_lambda v_q1 v_q2 v_q3
 thermo_modify line one
 thermo          100
 

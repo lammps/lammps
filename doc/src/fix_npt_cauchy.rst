@@ -13,7 +13,7 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * style_name = *npt/cauchy*
 * one or more keyword/value pairs may be appended
-* keyword = *temp* or *iso* or *aniso* or *tri* or *x* or *y* or *z* or *xy* or *yz* or *xz* or *couple* or *tchain* or *pchain* or *mtk* or *tloop* or *ploop* or *nreset* or *drag* or *dilate* or *scalexy* or *scaleyz* or *scalexz* or *flip* or *fixedpoint* or *update*
+* keyword = *temp* or *iso* or *aniso* or *tri* or *x* or *y* or *z* or *xy* or *yz* or *xz* or *couple* or *tchain* or *pchain* or *mtk* or *tloop* or *ploop* or *nreset* or *drag* or *dilate* or *scalexy* or *scaleyz* or *scalexz* or *flip* or *fixedpoint*
 
   .. parsed-literal::
 
@@ -45,9 +45,8 @@ Syntax
        *scaleyz* value = *yes* or *no* = scale yz with lz
        *scalexz* value = *yes* or *no* = scale xz with lz
        *flip* value = *yes* or *no* = allow or disallow box flips when it becomes highly skewed
-       *cauchystat* cauchystat values = alpha continue
-         alpha = strength of Cauchy stress control parameter
-         continue = *yes* or *no* = whether of not to continue from a previous run
+       *alpha* value = strength of Cauchy stress control parameter
+       *continue* value = *yes* or *no* = whether of not to continue from a previous run
        *fixedpoint* values = x y z
          x,y,z = perform barostat dilation/contraction around this point (distance units)
 
@@ -56,7 +55,7 @@ Examples
 
 .. code-block:: LAMMPS
 
-   fix 1 water npt/cauchy temp 300.0 300.0 100.0 iso 0.0 0.0 1000.0
+   fix 1 water npt/cauchy temp 300.0 300.0 100.0 iso 0.0 0.0 1000.0 alpha 0.001
 
 Description
 """""""""""
@@ -467,7 +466,8 @@ of the underlying non-Hamiltonian equations of motion.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This fix writes the state of all the thermostat and barostat
 variables to :doc:`binary restart files <restart>`.  See the
@@ -487,26 +487,30 @@ compute temperature on a subset of atoms.
 .. note::
 
    If both the *temp* and *press* keywords are used in a single
-   thermo_modify command (or in two separate commands), then the order in
-   which the keywords are specified is important.  Note that a :doc:`pressure compute <compute_pressure>` defines its own temperature compute as
-   an argument when it is specified.  The *temp* keyword will override
-   this (for the pressure compute being used by fix npt), but only if the
-   *temp* keyword comes after the *press* keyword.  If the *temp* keyword
-   comes before the *press* keyword, then the new pressure compute
-   specified by the *press* keyword will be unaffected by the *temp*
-   setting.
+   thermo_modify command (or in two separate commands), then the order
+   in which the keywords are specified is important.  Note that a
+   :doc:`pressure compute <compute_pressure>` defines its own
+   temperature compute as an argument when it is specified.  The
+   *temp* keyword will override this (for the pressure compute being
+   used by fix npt), but only if the *temp* keyword comes after the
+   *press* keyword.  If the *temp* keyword comes before the *press*
+   keyword, then the new pressure compute specified by the *press*
+   keyword will be unaffected by the *temp* setting.
 
-The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
-fix to add the energy change induced by Nose/Hoover thermostatting
-and barostatting to the system's potential energy as part of
-:doc:`thermodynamic output <thermo_style>`.
+The cumulative energy change in the system imposed by this fix, due to
+thermostatting and/or barostatting, is included in the
+:doc:`thermodynamic output <thermo_style>` keywords *ecouple* and
+*econserve*.  See the :doc:`thermo_style <thermo_style>` doc page for
+details.
 
-This fix computes a global scalar and a global vector of quantities,
-which can be accessed by various :doc:`output commands <Howto_output>`.
-The scalar value calculated by this fix is "extensive"; the vector
+This fix computes a global scalar which can be accessed by various
+:doc:`output commands <Howto_output>`.  The scalar is the same
+cumulative energy change due to this fix described in the previous
+paragraph.  The scalar value calculated by this fix is "extensive".
+
+This fix also computes a global vector of quantities, which can be
+accessed by various :doc:`output commands <Howto_output>`.  Rhe vector
 values are "intensive".
-
-The scalar is the cumulative energy change due to the fix.
 
 The vector stores internal Nose/Hoover thermostat and barostat
 variables.  The number and meaning of the vector values depends on
@@ -573,14 +577,7 @@ can only be used if the second dimension in the keyword is periodic,
 and if the tilt factor is not coupled to the barostat via keywords
 *tri*\ , *yz*\ , *xz*\ , and *xy*\ .
 
-Without the *cauchystat* keyword, the barostat algorithm
-controls the Second-Piola Kirchhoff stress, which is a stress measure
-referred to the unmodified (initial) simulation box.  If the box
-deforms substantially during the equilibration, the difference between
-the set values and the final true (Cauchy) stresses can be
-considerable.
-
-The *cauchystat* keyword modifies the barostat as per Miller et
+The *alpha* keyword modifies the barostat as per Miller et
 al. (Miller)_"#nc-Miller" so that the Cauchy stress is controlled.
 *alpha* is the non-dimensional parameter, typically set to 0.001 or
 0.01 that determines how aggressively the algorithm drives the system
@@ -598,13 +595,12 @@ sequence over several fixes.
 
 Setting *alpha* to zero is not permitted.  To "turn off" the
 cauchystat control and thus restore the equilibrium stress
-fluctuations, two subsequent fixes should be used.  In the first, the
-cauchystat flag is used and the simulation box equilibrates to the
-correct shape for the desired stresses.  In the second, the *fix*
-statement is identical except that the *cauchystat* keyword is removed
-(along with related *alpha* and *continue* values). This restores the
-original Parrinello-Rahman algorithm, but now with the correct simulation
-box shape from the first fix.
+fluctuations, two subsequent fixes should be used.  In the first, fix
+npt/cauchy is used and the simulation box equilibrates to the
+correct shape for the desired stresses.  In the second,
+:doc:`fix npt <fix_nh>` is used instead which uses the
+original Parrinello-Rahman algorithm, but now with the corrected
+simulation box shape from using fix npt/cauchy.
 
 This fix can be used with dynamic groups as defined by the
 :doc:`group <group>` command.  Likewise it can be used with groups to

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,16 +12,16 @@
 ------------------------------------------------------------------------- */
 
 #ifdef DUMP_CLASS
-
-DumpStyle(xyz/gz,DumpXYZGZ)
-
+// clang-format off
+DumpStyle(xyz/gz,DumpXYZGZ);
+// clang-format on
 #else
 
 #ifndef LMP_DUMP_XYZ_GZ_H
 #define LMP_DUMP_XYZ_GZ_H
 
 #include "dump_xyz.h"
-#include <zlib.h>
+#include "gz_file_writer.h"
 
 namespace LAMMPS_NS {
 
@@ -31,15 +31,17 @@ class DumpXYZGZ : public DumpXYZ {
   virtual ~DumpXYZGZ();
 
  protected:
-  gzFile gzFp;  // file pointer for the compressed output stream
+  GzFileWriter writer;
 
   virtual void openfile();
   virtual void write_header(bigint);
   virtual void write_data(int, double *);
   virtual void write();
+
+  virtual int modify_param(int, char **);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

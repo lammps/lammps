@@ -88,7 +88,8 @@ in the graphs below:
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 Mixing is not supported for this style.
 
@@ -106,7 +107,7 @@ These pair styles can only be used via the *pair* keyword of the
 Restrictions
 """"""""""""
 
-The *cosine/squared* style is part of the "USER-MISC" package. It is only
+The *cosine/squared* style is part of the USER-MISC package. It is only
 enabled if LAMMPS is build with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 Related commands
@@ -115,7 +116,10 @@ Related commands
 :doc:`pair_coeff <pair_coeff>`,
 :doc:`pair_style lj/cut <pair_lj>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 .. _CKD:
 

@@ -3,7 +3,6 @@
 */
 
 #include "msi2lmp.h"
-#include "Forcefield.h"
 
 #include <stdlib.h>
 

@@ -227,6 +227,8 @@ public:
     f_cvb_active,
     /// \brief Bias is awake (active on its own accord) this timestep
     f_cvb_awake,
+    /// Accumulates data starting from step 0 of a simulation run
+    f_cvb_step_zero_data,
     /// \brief will apply forces
     f_cvb_apply_force,
     /// \brief force this bias to act on actual value for extended-Lagrangian coordinates
@@ -302,6 +304,10 @@ public:
     f_cv_hard_lower_boundary,
     /// \brief The upper boundary is not defined from user's choice
     f_cv_hard_upper_boundary,
+    /// \brief Reflecting lower boundary condition
+    f_cv_reflecting_lower_boundary,
+    /// \brief Reflecting upper boundary condition
+    f_cv_reflecting_upper_boundary,
     /// \brief Provide a discretization of the values of the colvar to
     /// be used by the biases or in analysis (needs lower and upper
     /// boundary)

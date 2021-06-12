@@ -307,7 +307,9 @@ atoms in the chunk.  The averaged output value for the chunk on the
 average over atoms across the entire *Nfreq* timescale.  For the
 *density/number* and *density/mass* values, the volume (bin volume or
 system volume) used in the final normalization will be the volume at
-the final *Nfreq* timestep.
+the final *Nfreq* timestep. For the *temp* values, degrees of freedom and
+kinetic energy are summed separately across the entire *Nfreq* timescale, and
+the output value is calculated by dividing those two sums.
 
 If the *norm* setting is *sample*\ , the chunk value is summed over
 atoms for each sample, as is the count, and an "average sample value"
@@ -456,7 +458,8 @@ dimensions.  Those values are always in distance :doc:`units <units>`.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.

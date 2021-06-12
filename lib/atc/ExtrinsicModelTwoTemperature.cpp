@@ -26,7 +26,7 @@ namespace ATC {
                                  string matFileName) :
     ExtrinsicModel(modelManager,modelType,matFileName),
     electronTimeIntegration_(TimeIntegrator::IMPLICIT),
-    temperatureIntegrator_(NULL),
+    temperatureIntegrator_(nullptr),
     nsubcycle_(1),
     exchangeFlag_(true), 
     baseSize_(0)
@@ -164,7 +164,7 @@ namespace ATC {
       rhsMask(ELECTRON_TEMPERATURE,i) = atc_->fieldMask_(ELECTRON_TEMPERATURE,i);
     }
     if (electronTimeIntegration_ == TimeIntegrator::NONE) {
-      temperatureIntegrator_ = NULL;
+      temperatureIntegrator_ = nullptr;
       return;
     }
     if (temperatureIntegrator_) delete temperatureIntegrator_;

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(lj/cubic,PairLJCubic)
-
+// clang-format off
+PairStyle(lj/cubic,PairLJCubic);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_LJ_CUBIC_H
@@ -40,27 +40,13 @@ class PairLJCubic : public Pair {
   double single(int, int, int, int, double, double, double, double &);
 
  protected:
-  double **cut,**cut_inner,**cut_inner_sq;
-  double **epsilon,**sigma;
-  double **lj1,**lj2,**lj3,**lj4;
+  double **cut, **cut_inner, **cut_inner_sq;
+  double **epsilon, **sigma;
+  double **lj1, **lj2, **lj3, **lj4;
 
   void allocate();
 };
-
-namespace PairLJCubicConstants {
-
-  // LJ quantities scaled by epsilon and rmin = sigma*2^1/6
-
-  static const double RT6TWO = 1.1224621;  // 2^1/6
-  static const double SS = 1.1086834;      // inflection point (13/7)^1/6
-  static const double PHIS = -0.7869823;   // energy at s
-  static const double DPHIDS = 2.6899009;  // gradient at s
-  static const double A3 = 27.93357;       // cubic coefficient
-  static const double SM = 1.5475375;      // cubic cutoff = s*67/48
-
-}
-
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

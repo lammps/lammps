@@ -1,4 +1,5 @@
 .. index:: fix drude/transform/direct
+.. index:: fix drude/transform/inverse
 
 fix drude/transform/direct command
 ==================================
@@ -23,6 +24,8 @@ Examples
 
    fix 3 all drude/transform/direct
    fix 1 all drude/transform/inverse
+
+Example input scripts available: examples/USER/drude
 
 Description
 """""""""""
@@ -182,7 +185,8 @@ to add a *fix momentum* command:
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
@@ -198,7 +202,10 @@ Related commands
 :doc:`compute temp/drude <compute_temp_drude>`,
 :doc:`pair_style thole <pair_thole>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

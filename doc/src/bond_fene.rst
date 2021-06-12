@@ -1,16 +1,12 @@
 .. index:: bond_style fene
+.. index:: bond_style fene/intel
+.. index:: bond_style fene/kk
+.. index:: bond_style fene/omp
 
 bond_style fene command
 =======================
 
-bond_style fene/intel command
-=============================
-
-bond_style fene/kk command
-==========================
-
-bond_style fene/omp command
-===========================
+Accelerator Variants: *fene/intel*, *fene/kk*, *fene/omp*
 
 Syntax
 """"""
@@ -74,7 +70,10 @@ Related commands
 
 :doc:`bond_coeff <bond_coeff>`, :doc:`delete_bonds <delete_bonds>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

@@ -52,13 +52,13 @@ namespace ATC {
         coordinates : num _total_ points/nodes X num spatial dim 
         connectivities : num elements X num nodes per element*/
     void write_geometry(const MATRIX *coordinates,
-                        const Array2D<int> *connectivity=NULL);
+                        const Array2D<int> *connectivity=nullptr);
 
     /** write data from a time step
         specify node_map to handle periodic soln & data */
-    void write_data(double time, OUTPUT_LIST *data, const int *node_map=NULL);
+    void write_data(double time, OUTPUT_LIST *data, const int *node_map=nullptr);
     void write_data(double time, FIELDS *soln, OUTPUT_LIST *data, 
-      const int *node_map=NULL);
+      const int *node_map=nullptr);
 
     /** add custom names for any field */
     void add_field_names(const std::string& name, const std::vector<std::string>& list) {

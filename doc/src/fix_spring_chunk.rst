@@ -48,13 +48,25 @@ chunk.  Note that *K* thus represents the spring constant for the
 total force on each chunk of atoms, not for a spring applied to each
 atom.
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-No information about this fix is written to :doc:`binary restart files <restart>`.
+This fix writes the locations of the initial per-chunk center of mass
+coordinates to :doc:`binary restart files <restart>`.  See the
+:doc:`read_restart <read_restart>` command for info on how to
+re-specify a fix in an input script that reads a restart file, so that
+the fix continues in an uninterrupted fashion.  Since this fix depends
+on an instance of :doc:`compute chunk/atom <compute_chunk_atom>`
+it will check when reading the restart if the chunk still exists and
+will define the same number of chunks. The restart data is only applied
+when the number of chunks matches. Otherwise the center of mass
+coordinates are recomputed.
 
-The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
-fix to add the energy stored in all the springs to the system's potential
-energy as part of :doc:`thermodynamic output <thermo_style>`.
+The :doc:`fix_modify <fix_modify>` *energy* option is supported by
+this fix to add the energy stored in all the springs to the global
+potential energy of the system as part of :doc:`thermodynamic output
+<thermo_style>`.  The default setting for this fix is :doc:`fix_modify
+energy no <fix_modify>`.
 
 The :doc:`fix_modify <fix_modify>` *respa* option is supported by this
 fix. This allows to set at which level of the :doc:`r-RESPA <run_style>`
@@ -89,4 +101,7 @@ Related commands
 :doc:`fix spring <fix_spring>`, :doc:`fix spring/self <fix_spring_self>`,
 :doc:`fix spring/rg <fix_spring_rg>`
 
-**Default:** none
+Default
+"""""""
+
+none

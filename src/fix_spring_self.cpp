@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,15 +17,15 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_spring_self.h"
-#include <mpi.h>
-#include <cstring>
+
 #include "atom.h"
-#include "update.h"
 #include "domain.h"
-#include "respa.h"
-#include "memory.h"
 #include "error.h"
-#include "force.h"
+#include "memory.h"
+#include "respa.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -33,7 +34,7 @@ using namespace FixConst;
 
 FixSpringSelf::FixSpringSelf(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  xoriginal(NULL)
+  xoriginal(nullptr)
 {
   if ((narg < 4) || (narg > 5))
     error->all(FLERR,"Illegal fix spring/self command");
@@ -42,9 +43,10 @@ FixSpringSelf::FixSpringSelf(LAMMPS *lmp, int narg, char **arg) :
   scalar_flag = 1;
   global_freq = 1;
   extscalar = 1;
+  energy_global_flag = 1;
   respa_level_support = 1;
 
-  k = force->numeric(FLERR,arg[3]);
+  k = utils::numeric(FLERR,arg[3],false,lmp);
   if (k <= 0.0) error->all(FLERR,"Illegal fix spring/self command");
 
   xflag = yflag = zflag = 1;
@@ -70,10 +72,10 @@ FixSpringSelf::FixSpringSelf(LAMMPS *lmp, int narg, char **arg) :
   // perform initial allocation of atom-based array
   // register with Atom class
 
-  xoriginal = NULL;
+  xoriginal = nullptr;
   grow_arrays(atom->nmax);
-  atom->add_callback(0);
-  atom->add_callback(1);
+  atom->add_callback(Atom::GROW);
+  atom->add_callback(Atom::RESTART);
 
   // xoriginal = initial unwrapped positions of atoms
 
@@ -96,8 +98,8 @@ FixSpringSelf::~FixSpringSelf()
 {
   // unregister callbacks to this fix from Atom class
 
-  atom->delete_callback(id,0);
-  atom->delete_callback(id,1);
+  atom->delete_callback(id,Atom::GROW);
+  atom->delete_callback(id,Atom::RESTART);
 
   // delete locally stored array
 
@@ -110,7 +112,6 @@ int FixSpringSelf::setmask()
 {
   int mask = 0;
   mask |= POST_FORCE;
-  mask |= THERMO_ENERGY;
   mask |= POST_FORCE_RESPA;
   mask |= MIN_POST_FORCE;
   return mask;
@@ -120,7 +121,7 @@ int FixSpringSelf::setmask()
 
 void FixSpringSelf::init()
 {
-  if (strstr(update->integrate_style,"respa")) {
+  if (utils::strmatch(update->integrate_style,"^respa")) {
     ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
   }
@@ -130,7 +131,7 @@ void FixSpringSelf::init()
 
 void FixSpringSelf::setup(int vflag)
 {
-  if (strstr(update->integrate_style,"verlet"))
+  if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
     ((Respa *) update->integrate)->copy_flevel_f(ilevel_respa);
@@ -210,7 +211,7 @@ double FixSpringSelf::compute_scalar()
 
 double FixSpringSelf::memory_usage()
 {
-  double bytes = atom->nmax*3 * sizeof(double);
+  double bytes = (double)atom->nmax*3 * sizeof(double);
   return bytes;
 }
 

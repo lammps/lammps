@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -21,9 +21,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(tersoff/table,PairTersoffTable)
-
+// clang-format off
+PairStyle(tersoff/table,PairTersoffTable);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_TERSOFF_TABLE_H
@@ -43,29 +43,22 @@ class PairTersoffTable : public Pair {
   void init_style();
   double init_one(int, int);
 
-  static const int NPARAMS_PER_LINE = 17;
+  static constexpr int NPARAMS_PER_LINE = 17;
 
  protected:
   struct Param {
-    double lam1,lam2,lam3;
-    double c,d,h;
-    double gamma,powerm;
-    double powern,beta;
-    double biga,bigb,cutoffR, cutoffS;
-    double cut,cutsq;
-    int ielement,jelement,kelement;
+    double lam1, lam2, lam3;
+    double c, d, h;
+    double gamma, powerm;
+    double powern, beta;
+    double biga, bigb, cutoffR, cutoffS;
+    double cut, cutsq;
+    int ielement, jelement, kelement;
     int powermint;
   };
 
-
-  double cutmax;                // max cutoff for all elements
-  int nelements;                // # of unique elements
-  char **elements;              // names of unique elements
-  int ***elem2param;            // mapping from element triplets to parameters
-  int *map;                     // mapping from atom types to elements
-  int nparams;                  // # of stored parameter sets
-  int maxparam;                 // max # of parameter sets
-  Param *params;                // parameter set for an I-J-K interaction
+  double cutmax;    // max cutoff for all elements
+  Param *params;    // parameter set for an I-J-K interaction
 
   void allocate();
 
@@ -90,7 +83,7 @@ class PairTersoffTable : public Pair {
   void deallocateGrids(void);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

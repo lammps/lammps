@@ -1,7 +1,7 @@
 .. index:: dihedral_style zero
 
 dihedral_style zero command
-============================
+===========================
 
 Syntax
 """"""
@@ -44,8 +44,15 @@ Restrictions
 """"""""""""
  none
 
-**Related commands:** none
+Related commands
+""""""""""""""""
+
+none
+
 
 :doc:`dihedral_style none <dihedral_none>`
 
-**Default:** none
+Default
+"""""""
+
+none

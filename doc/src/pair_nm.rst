@@ -1,22 +1,24 @@
 .. index:: pair_style nm/cut
+.. index:: pair_style nm/cut/coul/cut
+.. index:: pair_style nm/cut/coul/long
+.. index:: pair_style nm/cut/omp
+.. index:: pair_style nm/cut/coul/cut/omp
+.. index:: pair_style nm/cut/coul/long/omp
 
 pair_style nm/cut command
 =========================
 
+Accelerator Variants: *nm/cut/omp*
+
 pair_style nm/cut/coul/cut command
 ==================================
+
+Accelerator Variants: *nm/cut/coul/cut/omp*
 
 pair_style nm/cut/coul/long command
 ===================================
 
-pair_style nm/cut/omp command
-=============================
-
-pair_style nm/cut/coul/cut/omp command
-======================================
-
-pair_style nm/cut/coul/long/omp command
-=======================================
+Accelerator Variants: *nm/cut/coul/long/omp*
 
 Syntax
 """"""
@@ -122,7 +124,8 @@ pair_style command.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 These pair styles do not support mixing. Thus, coefficients for all
 I,J pairs must be specified explicitly.
@@ -161,7 +164,10 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

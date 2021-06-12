@@ -47,7 +47,7 @@
 #include <cstdio>
 #include <cstdlib>
 
-typedef Kokkos::View<double*> view_type;
+using view_type = Kokkos::View<double*>;
 // Kokkos::Views have an MemoryTraits template parameter which
 // allows users to specify usage scenarios of a View.
 // Some of those act simply as hints, which can be used to insert
@@ -71,10 +71,10 @@ typedef Kokkos::View<double*> view_type;
 // data (i.e. const double* and double*). While these pointers can point to the
 // same data you should not use them together if that brakes the const guarantee
 // of the first pointer.
-typedef Kokkos::View<const double*, Kokkos::MemoryTraits<Kokkos::RandomAccess> >
-    view_type_rnd;
-typedef Kokkos::View<int**> idx_type;
-typedef idx_type::HostMirror idx_type_host;
+using view_type_rnd =
+    Kokkos::View<const double*, Kokkos::MemoryTraits<Kokkos::RandomAccess> >;
+using idx_type      = Kokkos::View<int**>;
+using idx_type_host = idx_type::HostMirror;
 
 // We template this functor on the ViewTypes to show the effect of the
 // RandomAccess trait.
@@ -113,8 +113,9 @@ int main(int narg, char* arg[]) {
 
     srand(134231);
 
+    using size_type = view_type::size_type;
     for (int i = 0; i < size; i++) {
-      for (view_type::size_type j = 0; j < h_idx.extent(1); ++j) {
+      for (size_type j = 0; j < static_cast<size_type>(h_idx.extent(1)); ++j) {
         h_idx(i, j) = (size + i + (rand() % 500 - 250)) % size;
       }
     }

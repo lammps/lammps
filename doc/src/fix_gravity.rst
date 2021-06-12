@@ -1,13 +1,11 @@
 .. index:: fix gravity
+.. index:: fix gravity/omp
+.. index:: fix gravity/kk
 
 fix gravity command
 ===================
 
-fix gravity/omp command
-=======================
-
-fix gravity/kk command
-======================
+Accelerator Variants: *gravity/omp*, *gravity/kk*
 
 Syntax
 """"""
@@ -100,27 +98,32 @@ field.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
-The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
-fix to add the gravitational potential energy of the system to the
-system's potential energy as part of :doc:`thermodynamic output <thermo_style>`.
+The :doc:`fix_modify <fix_modify>` *energy* option is supported by
+this fix to add the gravitational potential energy of the system to
+the global potential energy of the system as part of
+:doc:`thermodynamic output <thermo_style>`.  The default setting for
+this fix is :doc:`fix_modify energy no <fix_modify>`.
 
 The :doc:`fix_modify <fix_modify>` *respa* option is supported by this
-fix. This allows to set at which level of the :doc:`r-RESPA <run_style>`
-integrator the fix is adding its forces. Default is the outermost level.
+fix. This allows to set at which level of the :doc:`r-RESPA
+<run_style>` integrator the fix is adding its forces. Default is the
+outermost level.
 
 This fix computes a global scalar which can be accessed by various
-:doc:`output commands <Howto_output>`.  This scalar is the gravitational
-potential energy of the particles in the defined field, namely mass \*
-(g dot x) for each particles, where x and mass are the particles
-position and mass, and g is the gravitational field.  The scalar value
-calculated by this fix is "extensive".
+:doc:`output commands <Howto_output>`.  This scalar is the
+gravitational potential energy of the particles in the defined field,
+namely mass \* (g dot x) for each particles, where x and mass are the
+particles position and mass, and g is the gravitational field.  The
+scalar value calculated by this fix is "extensive".
 
 No parameter of this fix can be used with the *start/stop* keywords of
-the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minimization <minimize>`.
+the :doc:`run <run>` command.  This fix is not invoked during
+:doc:`energy minimization <minimize>`.
 
 Restrictions
 """"""""""""
@@ -131,4 +134,7 @@ Related commands
 
 :doc:`atom_style sphere <atom_style>`, :doc:`fix addforce <fix_addforce>`
 
-**Default:** none
+Default
+"""""""
+
+none

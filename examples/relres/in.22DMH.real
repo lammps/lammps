@@ -1,0 +1,109 @@
+# Example: use of lj/relres for simulation of 2,2-dimethylhexane: C3H7-C5H11 
+# with various Rso setting as well as run of reference system for time comparison (real units)
+# The first run writes restart file that is used by all subsequent runs.
+
+# Run relres with Rso=6.25
+
+units           real
+atom_style      molecular
+boundary        p p p
+dielectric      1
+special_bonds   lj/coul 0.0 0.0 0.5
+bond_style      harmonic
+angle_style     harmonic
+dihedral_style  fourier
+
+pair_style      lj/relres 5.75 6.25 12.0 14.0
+read_data       Data.22DMH.in.real
+
+pair_coeff      6    6  0.175  3.905  0.0     0.0   
+pair_coeff      4    4  0.118  3.905  0.0     0.0  
+pair_coeff      2    2  0.118  3.905  1.2218  3.905  
+pair_coeff      5    5  0.145  3.960  0.0     0.0
+pair_coeff      3    3  0.118  3.905  0.0     0.0
+pair_coeff      1    1  0.05   3.8    2.9128  3.9309
+pair_modify     shift yes
+neighbor        2.0 bin
+neigh_modify    every 2 delay 4 check yes
+
+timestep 1.0
+thermo 100
+thermo_style custom step temp press pe ke etotal epair emol vol
+fix 2 all nvt temp 290 290 2.0e+02
+
+run 1000
+
+write_restart	restart.relres.real
+
+# Run relres with Rso=7.25
+
+clear
+read_restart	restart.relres.real
+
+pair_style      lj/relres 6.75 7.25 12.0 14.0
+
+pair_coeff      6    6  0.175  3.905  0.0     0.0  
+pair_coeff      4    4  0.118  3.905  0.0     0.0  
+pair_coeff      2    2  0.118  3.905  1.2218  3.905  
+pair_coeff      5    5  0.145  3.960  0.0     0.0
+pair_coeff      3    3  0.118  3.905  0.0     0.0
+pair_coeff      1    1  0.05   3.8    2.9128  3.9309
+pair_modify     shift yes
+neighbor        2.0 bin
+neigh_modify    every 2 delay 4 check yes
+
+timestep 1.0
+thermo 100
+thermo_style custom step temp press pe ke etotal epair emol vol
+fix 2 all nvt temp 290 290 2.0e+02
+
+run 1000
+
+# Run relres with mixed Rso: 6.25 for C3H7 group and 7.25 for C5H11 group
+
+clear
+read_restart	restart.relres.real
+
+pair_style      lj/relres 6.75 7.25 12.0 14.0
+
+pair_coeff      6    6  0.175  3.905  0.0     0.0    5.75 6.25 12.0 14.0
+pair_coeff      4    4  0.118  3.905  0.0     0.0    5.75 6.25 12.0 14.0
+pair_coeff      2    2  0.118  3.905  1.2218  3.905  5.75 6.25 12.0 14.0
+pair_coeff      5    5  0.145  3.960  0.0     0.0
+pair_coeff      3    3  0.118  3.905  0.0     0.0
+pair_coeff      1    1  0.05   3.8    2.9128  3.9309
+pair_modify     shift yes
+neighbor        2.0 bin
+neigh_modify    every 2 delay 4 check yes
+
+timestep 1.0
+thermo 100
+thermo_style custom step temp press pe ke etotal epair emol vol
+fix 2 all nvt temp 290 290 2.0e+02
+
+run 1000
+
+# Run reference system with lj/smooth
+
+clear
+read_restart	restart.relres.real
+
+pair_style      lj/smooth 12.0 14.0
+
+pair_coeff      6    6  0.175  3.905  
+pair_coeff      4    4  0.118  3.905  
+pair_coeff      2    2  0.118  3.905  
+pair_coeff      5    5  0.145  3.960  
+pair_coeff      3    3  0.118  3.905  
+pair_coeff      1    1  0.05   3.8    
+pair_modify     shift yes
+neighbor        2.0 bin
+neigh_modify    every 2 delay 4 check yes
+
+timestep 1.0
+thermo 100
+thermo_style custom step temp press pe ke etotal epair emol vol
+fix 2 all nvt temp 290 290 2.0e+02
+
+run 1000
+

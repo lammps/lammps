@@ -1,16 +1,12 @@
 .. index:: pair_style ufm
+.. index:: pair_style ufm/gpu
+.. index:: pair_style ufm/omp
+.. index:: pair_style ufm/opt
 
 pair_style ufm command
 ======================
 
-pair_style ufm/gpu command
-==========================
-
-pair_style ufm/omp command
-==========================
-
-pair_style ufm/opt command
-==========================
+Accelerator Variants: *ufm/gpu*, *ufm/omp*, *ufm/opt*
 
 Syntax
 """"""
@@ -92,7 +88,8 @@ of a run:
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 For atom type pairs I,J and I != J, the epsilon and sigma coefficients and cutoff
 distance for this pair style can be mixed. The default mix value is *geometric*\ .  See the
@@ -123,7 +120,10 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`, :doc:`fix adapt <fix_adapt>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 .. _PL1:
 

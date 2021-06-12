@@ -1,6 +1,7 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +13,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(eam/intel,PairEAMIntel)
-
+// clang-format off
+PairStyle(eam/intel,PairEAMIntel);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_EAM_INTEL_H
@@ -76,7 +77,7 @@ class PairEAMIntel : public PairEAM {
     fc_packed2 *z2r_spline_t;
 
     ForceConst() : _ntypes(0), _nr(0)  {}
-    ~ForceConst() { set_ntypes(0, 0, 0, NULL, _cop); }
+    ~ForceConst() { set_ntypes(0, 0, 0, nullptr, _cop); }
 
     void set_ntypes(const int ntypes, const int nr, const int nrho,
                     Memory *memory, const int cop);

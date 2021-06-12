@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -71,12 +72,12 @@ NeighRequest::NeighRequest(LAMMPS *lmp) : Pointers(lmp)
   // skip info, default is no skipping
 
   skip = 0;
-  iskip = NULL;
-  ijskip = NULL;
+  iskip = nullptr;
+  ijskip = nullptr;
 
   // only set when command = 1;
 
-  command_style = NULL;
+  command_style = nullptr;
 
   // info set by Neighbor class when morphing original requests
 
@@ -217,13 +218,15 @@ void NeighRequest::copy_request(NeighRequest *other, int skipflag)
   cut = other->cut;
   cutoff = other->cutoff;
 
-  iskip = NULL;
-  ijskip = NULL;
+  iskip = nullptr;
+  ijskip = nullptr;
 
   if (!skipflag) return;
 
   int i,j;
   int ntypes = atom->ntypes;
+
+  skip = other->skip;
 
   if (other->iskip) {
     iskip = new int[ntypes+1];

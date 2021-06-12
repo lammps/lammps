@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,12 +17,11 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_nh_intel.h"
+
 #include "atom.h"
-#include "compute.h"
 #include "domain.h"
 #include "error.h"
 #include "force.h"
-#include "kspace.h"
 #include "memory.h"
 #include "modify.h"
 #include "neighbor.h"
@@ -29,7 +29,6 @@
 
 #include <cstring>
 #include <cmath>
-#include <cstdio>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -319,7 +318,7 @@ void FixNHIntel::reset_dt()
 
   // If using respa, then remap is performed in innermost level
 
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     dto = 0.5*step_respa[0];
 
   if (pstat_flag)

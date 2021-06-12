@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    This software is distributed under the GNU General Public License.
@@ -13,16 +14,17 @@
    Most code borrowed from pair_morse_omp.cpp
 ------------------------------------------------------------------------- */
 
-#include "omp_compat.h"
-#include <cmath>
 #include "pair_morse_smooth_linear_omp.h"
+
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
-#include "neighbor.h"
 #include "neigh_list.h"
-
 #include "suffix.h"
+
+#include <cmath>
+
+#include "omp_compat.h"
 using namespace LAMMPS_NS;
 
 
@@ -34,8 +36,6 @@ PairMorseSmoothLinearOMP::PairMorseSmoothLinearOMP(LAMMPS *lmp) :
   suffix_flag |= Suffix::OMP;
   respa_enable = 0;
 }
-
-
 
 /* ---------------------------------------------------------------------- */
 
@@ -56,7 +56,7 @@ void PairMorseSmoothLinearOMP::compute(int eflag, int vflag)
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
     thr->timer(Timer::START);
-    ev_setup_thr(eflag, vflag, nall, eatom, vatom, NULL, thr);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, nullptr, thr);
 
     if (evflag) {
       if (eflag) {
@@ -75,8 +75,6 @@ void PairMorseSmoothLinearOMP::compute(int eflag, int vflag)
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
 }
-
-
 
 template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
 void PairMorseSmoothLinearOMP::eval(int iifrom, int iito, ThrData * const thr)
@@ -129,7 +127,7 @@ void PairMorseSmoothLinearOMP::eval(int iifrom, int iito, ThrData * const thr)
         dexp = exp(-alpha[itype][jtype] * dr);
 
         fpartial = morse1[itype][jtype] * (dexp*dexp - dexp) / r;
-        fpair = factor_lj * ( fpartial - der_at_cutoff[itype][jtype] / r);
+        fpair = factor_lj * ( fpartial + der_at_cutoff[itype][jtype] / r);
 
         fxtmp += delx*fpair;
         fytmp += dely*fpair;
@@ -143,7 +141,7 @@ void PairMorseSmoothLinearOMP::eval(int iifrom, int iito, ThrData * const thr)
         if (EFLAG) {
           evdwl = d0[itype][jtype] * (dexp*dexp - 2.0*dexp) -
                   offset[itype][jtype];
-          evdwl += ( r - cut[itype][jtype] ) * der_at_cutoff[itype][jtype];
+          evdwl -= ( r - cut[itype][jtype] ) * der_at_cutoff[itype][jtype];
           evdwl *= factor_lj;
         }
 

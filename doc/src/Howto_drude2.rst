@@ -9,6 +9,8 @@ USER-DRUDE package activated. Then, the data file and input scripts
 have to be modified to include the Drude dipoles and how to handle
 them.
 
+Example input scripts available: examples/USER/drude
+
 ----------
 
 **Overview of Drude induced dipoles**
@@ -36,7 +38,7 @@ polarizability :math:`\alpha` by
 
 Ideally, the mass of the Drude particle should be small, and the
 stiffness of the harmonic bond should be large, so that the Drude
-particle remains close ot the core. The values of Drude mass, Drude
+particle remains close to the core. The values of Drude mass, Drude
 charge, and force constant can be chosen following different
 strategies, as in the following examples of polarizable force
 fields:
@@ -221,6 +223,14 @@ modification of forces but no position/velocity updates), the fix
 
    fix NVE all nve
 
+To avoid the flying ice cube artifact, where the atoms progressively freeze and the
+center of mass of the whole system drifts faster and faster, the *fix momentum*
+can be used. For instance:
+
+.. code-block:: LAMMPS
+
+   fix MOMENTUM all momentum 100 linear 1 1 1
+
 Finally, do not forget to update the atom type elements if you use
 them in a *dump_modify ... element ...* command, by adding the element
 type of the DPs. Here for instance
@@ -376,14 +386,7 @@ For our phenol example, the groups would be defined as
 
 Note that with the fixes *drude/transform*\ , it is not required to
 specify *comm_modify vel yes* because the fixes do it anyway (several
-times and for the forces also).  To avoid the flying ice cube artifact
-:ref:`(Lamoureux) <Lamoureux2>`, where the atoms progressively freeze and the
-center of mass of the whole system drifts faster and faster, the *fix
-momentum* can be used. For instance:
-
-.. code-block:: LAMMPS
-
-   fix MOMENTUM all momentum 100 linear 1 1 1
+times and for the forces also).
 
 It is a bit more tricky to run a NPT simulation with Nose-Hoover
 barostat and thermostat.  First, the volume should be integrated only
@@ -403,6 +406,31 @@ instructions for thermostatting and barostatting will look like
    fix_modify NPT temp TATOMS press thermo_press
    fix NVT DRUDES nvt temp 1. 1. 20
    fix INVERSE all drude/transform/inverse
+
+Another option for thermalizing the Drude model is to use the
+temperature-grouped Nose-Hoover (TGNH) thermostat proposed by :ref:`(Son) <TGNH-SON>`.
+This is implemented as :doc:`fix tgnvt/drude <fix_tgnh_drude>` and :doc:`fix tgnpt/drude <fix_tgnh_drude>`.
+It separates the kinetic energy into three contributions:
+the molecular center of mass (COM) motion, the motion of atoms or atom-Drude pairs relative to molecular COMs,
+and the relative motion of atom-Drude pairs.
+An independent Nose-Hoover chain is applied to each type of motion.
+When TGNH is used, the temperatures of molecular, atomic and Drude motion can be printed out with :doc:`thermo_style` command.
+
+NVT simulation with TGNH thermostat
+
+.. code-block:: LAMMPS
+
+   comm_modify vel yes
+   fix TGNVT all tgnvt/drude temp 300. 300. 100 1. 20
+   thermo_style custom f_TGNVT[1] f_TGNVT[2] f_TGNVT[3]
+
+NPT simulation with TGNH thermostat
+
+.. code-block:: LAMMPS
+
+   comm_modify vel yes
+   fix TGNPT all tgnpt/drude temp 300. 300. 100 1. 20 iso 1. 1. 500
+   thermo_style custom f_TGNPT[1] f_TGNPT[2] f_TGNPT[3]
 
 ----------
 
@@ -456,7 +484,7 @@ NPT ensemble using Nose-Hoover thermostat:
 
 .. _Lamoureux2:
 
-**(Lamoureux)** Lamoureux and Roux, J Chem Phys, 119, 3025-3039 (2003)
+**(Lamoureux and Roux)** Lamoureux and Roux, J Chem Phys, 119, 3025-3039 (2003)
 
 .. _Schroeder:
 
@@ -480,3 +508,7 @@ NPT ensemble using Nose-Hoover thermostat:
 
 **(SWM4-NDP)** Lamoureux, Harder, Vorobyov, Roux, MacKerell, Chem Phys
 Let, 418, 245-249 (2006)
+
+.. _TGNH-Son:
+
+**(Son)** Son, McDaniel, Cui and Yethiraj, J Phys Chem Lett, 10, 7523 (2019).

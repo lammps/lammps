@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -18,47 +18,48 @@
 #ifndef LMP_POTENTIAL_FILE_READER_H
 #define LMP_POTENTIAL_FILE_READER_H
 
-#include <string>
-
-#include "pointers.h"
+#include "pointers.h"    // IWYU pragma: export
 #include "tokenizer.h"
-#include "text_file_reader.h"
 
-namespace LAMMPS_NS
-{
-  class PotentialFileReader : protected Pointers {
-  protected:
-    TextFileReader *reader;
-    std::string filename;
-    std::string filetype;
-    int unit_convert;
+namespace LAMMPS_NS {
+class TextFileReader;
 
-    TextFileReader *open_potential(const std::string& path);
+class PotentialFileReader : protected Pointers {
+ protected:
+  TextFileReader *reader;
+  std::string filename;
+  std::string filetype;
+  int unit_convert;
 
-  public:
-    PotentialFileReader(class LAMMPS *lmp, const std::string &filename,
-                        const std::string &potential_name,
-                        const int auto_convert = 0);
-    virtual ~PotentialFileReader();
+  TextFileReader *open_potential(const std::string &path);
 
-    void ignore_comments(bool value);
+ public:
+  PotentialFileReader(class LAMMPS *lmp, const std::string &filename,
+                      const std::string &potential_name, const int auto_convert = 0);
+  PotentialFileReader(class LAMMPS *lmp, const std::string &filename,
+                      const std::string &potential_name, const std::string &name_suffix,
+                      const int auto_convert = 0);
+  virtual ~PotentialFileReader();
 
-    void skip_line();
-    char *next_line(int nparams = 0);
-    void next_dvector(double *list, int n);
-    ValueTokenizer next_values(int nparams, const std::string &separators = TOKENIZER_DEFAULT_SEPARATORS);
+  void ignore_comments(bool value);
 
-    // convenience functions
-    double next_double();
-    int    next_int();
-    tagint next_tagint();
-    bigint next_bigint();
-    std::string next_string();
+  void skip_line();
+  char *next_line(int nparams = 0);
+  void next_dvector(double *list, int n);
+  ValueTokenizer next_values(int nparams,
+                             const std::string &separators = TOKENIZER_DEFAULT_SEPARATORS);
 
-    // unit conversion info
-    int get_unit_convert() const { return unit_convert; }
-  };
+  // convenience functions
+  double next_double();
+  int next_int();
+  tagint next_tagint();
+  bigint next_bigint();
+  std::string next_string();
 
-} // namespace LAMMPS_NS
+  // unit conversion info
+  int get_unit_convert() const { return unit_convert; }
+};
+
+}    // namespace LAMMPS_NS
 
 #endif

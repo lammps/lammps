@@ -95,7 +95,7 @@ CUDPPResult cudppScan(CUDPPHandle planHandle,
                       size_t      numElements)
 {
     CUDPPScanPlan *plan = (CUDPPScanPlan*)CUDPPPlanManager::GetPlan(planHandle);
-    if (plan != NULL)
+    if (plan != nullptr)
     {
         cudppScanDispatch(d_out, d_in, numElements, 1, plan);
         return CUDPP_SUCCESS;
@@ -159,7 +159,7 @@ CUDPPResult cudppSegmentedScan(CUDPPHandle        planHandle,
 {
     CUDPPSegmentedScanPlan *plan = 
         (CUDPPSegmentedScanPlan*)CUDPPPlanManager::GetPlan(planHandle);
-    if (plan != NULL)
+    if (plan != nullptr)
     {
         cudppSegmentedScanDispatch(d_out, d_idata, d_iflags, numElements, plan);
         return CUDPP_SUCCESS;
@@ -200,7 +200,7 @@ CUDPPResult cudppMultiScan(CUDPPHandle planHandle,
                             size_t     numRows)
 {
     CUDPPScanPlan *plan = (CUDPPScanPlan*)CUDPPPlanManager::GetPlan(planHandle);
-    if (plan != NULL)
+    if (plan != nullptr)
     {
         cudppScanDispatch(d_out, d_in, numElements, numRows, plan);
         return CUDPP_SUCCESS;
@@ -255,7 +255,7 @@ CUDPPResult cudppCompact(CUDPPHandle        planHandle,
                          size_t             numElements)
 {
     CUDPPCompactPlan *plan = (CUDPPCompactPlan*)CUDPPPlanManager::GetPlan(planHandle);
-    if (plan != NULL)
+    if (plan != nullptr)
     {
         cudppCompactDispatch(d_out, d_numValidElements, d_in, d_isValid, 
             numElements, plan);
@@ -300,7 +300,7 @@ CUDPPResult cudppSort(CUDPPHandle planHandle,
                       size_t      numElements)
 {
     CUDPPRadixSortPlan *plan = (CUDPPRadixSortPlan*)CUDPPPlanManager::GetPlan(planHandle);
-    if (plan != NULL)
+    if (plan != nullptr)
     {
         cudppRadixSortDispatch(d_keys, d_values, numElements, keyBits, plan);
         return CUDPP_SUCCESS;
@@ -331,7 +331,7 @@ CUDPPResult cudppSparseMatrixVectorMultiply(CUDPPHandle        sparseMatrixHandl
     CUDPPSparseMatrixVectorMultiplyPlan *plan = 
         (CUDPPSparseMatrixVectorMultiplyPlan*)CUDPPPlanManager::GetPlan(sparseMatrixHandle);
     
-    if (plan != NULL)
+    if (plan != nullptr)
     {
         cudppSparseMatrixVectorMultiplyDispatch(d_y, d_x, plan);
         return CUDPP_SUCCESS;
@@ -366,7 +366,7 @@ CUDPP_DLL
 CUDPPResult cudppRand(CUDPPHandle planHandle,void * d_out, size_t numElements)
 {
     CUDPPRandPlan * plan = (CUDPPRandPlan *) CUDPPPlanManager::GetPlan(planHandle);
-    if(plan != NULL)
+    if(plan != nullptr)
     {
         //dispatch the rand algorithm here
         cudppRandDispatch(d_out, numElements, plan);

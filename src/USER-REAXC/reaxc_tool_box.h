@@ -1,3 +1,4 @@
+// clang-format off
 /*----------------------------------------------------------------------
   PuReMD - Purdue ReaxFF Molecular Dynamics Program
 
@@ -29,9 +30,6 @@
 
 #include "reaxc_types.h"
 namespace LAMMPS_NS { class Error; }
-
-/* from system_props.h */
-double Get_Time( );
 
 /* from io_tools.h */
 int   Tokenize( char*, char*** );

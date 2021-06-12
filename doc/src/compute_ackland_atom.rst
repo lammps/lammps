@@ -58,7 +58,8 @@ is dumped).  Thus it can be inefficient to compute/dump this quantity
 too frequently or to have multiple compute/dump commands, each of
 which computes this quantity.-
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a per-atom vector, which can be accessed by
 any command that uses per-atom values from a compute as input.  See

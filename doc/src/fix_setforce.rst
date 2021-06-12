@@ -1,10 +1,11 @@
 .. index:: fix setforce
+.. index:: fix setforce/kk
+.. index:: fix setforce/spin
 
 fix setforce command
 ====================
 
-fix setforce/kk command
-=======================
+Accelerator Variants: *setforce/kk*
 
 fix setforce/spin command
 =========================
@@ -111,7 +112,8 @@ instructions on how to use the accelerated styles effectively.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
@@ -148,4 +150,7 @@ Related commands
 
 :doc:`fix addforce <fix_addforce>`, :doc:`fix aveforce <fix_aveforce>`
 
-**Default:** none
+Default
+"""""""
+
+none

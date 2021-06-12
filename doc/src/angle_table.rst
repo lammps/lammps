@@ -1,10 +1,10 @@
 .. index:: angle_style table
+.. index:: angle_style table/omp
 
 angle_style table command
 =========================
 
-angle_style table/omp command
-=============================
+Accelerator Variants: *table/omp*
 
 Syntax
 """"""
@@ -69,7 +69,6 @@ parenthesized comments):
    HAM                           (keyword is the first text on line)
    N 181 FP 0 0 EQ 90.0          (N, FP, EQ parameters)
                                  (blank line)
-   N 181 FP 0 0                  (N, FP parameters)
    1 0.0 200.5 2.5               (index, angle, energy, derivative)
    2 1.0 198.0 2.5
    ...
@@ -130,7 +129,8 @@ one that matches the specified keyword.
 
 ----------
 
-**Restart info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This angle style writes the settings for the "angle_style table"
 command to :doc:`binary restart files <restart>`, so a angle_style
@@ -152,4 +152,7 @@ Related commands
 
 :doc:`angle_coeff <angle_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none

@@ -47,8 +47,8 @@
 namespace Test {
 
 TEST(TEST_CATEGORY, mdrange_4d) {
-#if !defined(KOKKOS_ENABLE_ROCM)  // MDRange Reduce explicitly handled in its
-                                  // own cpp file
+// FIXME_OPENMPTARGET requires MDRange parallel_reduce
+#ifndef KOKKOS_ENABLE_OPENMPTARGET
   TestMDRange_4D<TEST_EXECSPACE>::test_reduce4(100, 10, 10, 10);
 #endif
   TestMDRange_4D<TEST_EXECSPACE>::test_for4(100, 10, 10, 10);

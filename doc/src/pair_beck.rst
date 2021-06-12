@@ -1,13 +1,11 @@
 .. index:: pair_style beck
+.. index:: pair_style beck/gpu
+.. index:: pair_style beck/omp
 
 pair_style beck command
 =======================
 
-pair_style beck/gpu command
-===========================
-
-pair_style beck/omp command
-===========================
+Accelerator Variants: *beck/gpu*, *beck/omp*
 
 Syntax
 """"""
@@ -60,7 +58,8 @@ The last coefficient is optional.  If not specified, the global cutoff
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 For atom type pairs I,J and I != J, coefficients must be specified.
 No default mixing rules are used.
@@ -92,7 +91,10 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

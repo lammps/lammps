@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,26 +13,25 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_deposit.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
 #include "atom_vec.h"
-#include "molecule.h"
-#include "force.h"
-#include "update.h"
-#include "modify.h"
-#include "fix.h"
 #include "comm.h"
 #include "domain.h"
-#include "lattice.h"
-#include "region.h"
-#include "random_park.h"
-#include "math_extra.h"
-#include "math_const.h"
-#include "memory.h"
 #include "error.h"
-#include "fmt/format.h"
+#include "fix.h"
+#include "lattice.h"
+#include "math_const.h"
+#include "math_extra.h"
+#include "memory.h"
+#include "modify.h"
+#include "molecule.h"
+#include "random_park.h"
+#include "region.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -45,9 +45,9 @@ enum{DIST_UNIFORM,DIST_GAUSSIAN};
 /* ---------------------------------------------------------------------- */
 
 FixDeposit::FixDeposit(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), idregion(NULL), idrigid(NULL),
-  idshake(NULL), onemols(NULL), molfrac(NULL), coords(NULL), imageflags(NULL),
-  fixrigid(NULL), fixshake(NULL), random(NULL)
+  Fix(lmp, narg, arg), idregion(nullptr), idrigid(nullptr),
+  idshake(nullptr), onemols(nullptr), molfrac(nullptr), coords(nullptr), imageflags(nullptr),
+  fixrigid(nullptr), fixshake(nullptr), random(nullptr)
 {
   if (narg < 7) error->all(FLERR,"Illegal fix deposit command");
 
@@ -56,10 +56,10 @@ FixDeposit::FixDeposit(LAMMPS *lmp, int narg, char **arg) :
 
   // required args
 
-  ninsert = force->inumeric(FLERR,arg[3]);
-  ntype = force->inumeric(FLERR,arg[4]);
-  nfreq = force->inumeric(FLERR,arg[5]);
-  seed = force->inumeric(FLERR,arg[6]);
+  ninsert = utils::inumeric(FLERR,arg[3],false,lmp);
+  ntype = utils::inumeric(FLERR,arg[4],false,lmp);
+  nfreq = utils::inumeric(FLERR,arg[5],false,lmp);
+  seed = utils::inumeric(FLERR,arg[6],false,lmp);
 
   if (seed <= 0) error->all(FLERR,"Illegal fix deposit command");
 
@@ -114,7 +114,7 @@ FixDeposit::FixDeposit(LAMMPS *lmp, int narg, char **arg) :
           ntype+onemols[i]->ntypes > atom->ntypes)
         error->all(FLERR,"Invalid atom type in fix deposit mol command");
 
-      if (atom->molecular == 2 && onemols != atom->avec->onemols)
+      if (atom->molecular == Atom::TEMPLATE && onemols != atom->avec->onemols)
         error->all(FLERR,"Fix deposit molecule template ID must be same "
                    "as atom_style template ID");
       onemols[i]->check_attributes(0);
@@ -234,7 +234,7 @@ void FixDeposit::init()
   // if rigidflag defined, check for rigid/small fix
   // its molecule template must be same as this one
 
-  fixrigid = NULL;
+  fixrigid = nullptr;
   if (rigidflag) {
     int ifix = modify->find_fix(idrigid);
     if (ifix < 0) error->all(FLERR,"Fix deposit rigid fix does not exist");
@@ -249,7 +249,7 @@ void FixDeposit::init()
   // if shakeflag defined, check for SHAKE fix
   // its molecule template must be same as this one
 
-  fixshake = NULL;
+  fixshake = nullptr;
   if (shakeflag) {
     int ifix = modify->find_fix(idshake);
     if (ifix < 0) error->all(FLERR,"Fix deposit shake fix does not exist");
@@ -288,9 +288,17 @@ void FixDeposit::init()
 
     double separation = MAX(2.0*maxradinsert,maxradall+maxradinsert);
     if (sqrt(nearsq) < separation && comm->me == 0)
-      error->warning(FLERR,fmt::format("Fix deposit near setting < possible "
-                                       "overlap separation {}",separation));
+      error->warning(FLERR,"Fix deposit near setting < possible "
+                     "overlap separation {}",separation);
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixDeposit::setup_pre_exchange()
+{
+  if (ninserted < ninsert) next_reneighbor = update->ntimestep+1;
+  else next_reneighbor = 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -308,10 +316,12 @@ void FixDeposit::pre_exchange()
 
   if (next_reneighbor != update->ntimestep) return;
 
-  // clear ghost count and any ghost bonus data internal to AtomVec
+  // clear ghost count (and atom map) and any ghost bonus data
+  //   internal to AtomVec
   // same logic as beginning of Comm::exchange()
   // do it now b/c inserting atoms will overwrite ghost atoms
 
+  if (atom->map_style != Atom::MAP_NONE) atom->map_clear();
   atom->nghost = 0;
   atom->avec->clear_bonus();
 
@@ -544,7 +554,7 @@ void FixDeposit::pre_exchange()
               atom->molecule[n] = maxmol_all+1;
             }
           }
-          if (atom->molecular == 2) {
+          if (atom->molecular == Atom::TEMPLATE) {
             atom->molindex[n] = 0;
             atom->molatom[n] = m;
           }
@@ -571,14 +581,6 @@ void FixDeposit::pre_exchange()
     else if (shakeflag)
       fixshake->set_molecule(nlocalprev,maxtag_all,imol,coord,vnew,quat);
 
-    // old code: unsuccessful if no proc performed insertion of an atom
-    // don't think that check is necessary
-    // if get this far, should always be successful
-    // would be hard to undo partial insertion for a molecule
-    // better to check how many atoms could be inserted (w/out inserting)
-    //   then sum to insure all are inserted, before doing actual insertion
-    // MPI_Allreduce(&flag,&success,1,MPI_INT,MPI_MAX,world);
-
     success = 1;
     break;
   }
@@ -586,7 +588,7 @@ void FixDeposit::pre_exchange()
   // warn if not successful b/c too many attempts
 
   if (!success && comm->me == 0)
-    error->warning(FLERR,"Particle deposition was unsuccessful",0);
+    error->warning(FLERR,"Particle deposition was unsuccessful");
 
   // reset global natoms,nbonds,etc
   // increment maxtag_all and maxmol_all if necessary
@@ -614,10 +616,13 @@ void FixDeposit::pre_exchange()
         maxmol_all++;
       }
     }
-    if (atom->map_style) {
-      atom->map_init();
-      atom->map_set();
-    }
+  }
+
+  // rebuild atom map
+
+  if (atom->map_style != Atom::MAP_NONE) {
+    if (success) atom->map_init();
+    atom->map_set();
   }
 
   // next timestep to insert
@@ -659,13 +664,13 @@ void FixDeposit::options(int narg, char **arg)
   // defaults
 
   iregion = -1;
-  idregion = NULL;
+  idregion = nullptr;
   mode = ATOM;
-  molfrac = NULL;
+  molfrac = nullptr;
   rigidflag = 0;
-  idrigid = NULL;
+  idrigid = nullptr;
   shakeflag = 0;
-  idshake = NULL;
+  idshake = nullptr;
   idnext = 0;
   globalflag = localflag = 0;
   lo = hi = deltasq = 0.0;
@@ -690,9 +695,7 @@ void FixDeposit::options(int narg, char **arg)
       iregion = domain->find_region(arg[iarg+1]);
       if (iregion == -1)
         error->all(FLERR,"Region ID for fix deposit does not exist");
-      int n = strlen(arg[iarg+1]) + 1;
-      idregion = new char[n];
-      strcpy(idregion,arg[iarg+1]);
+      idregion = utils::strdup(arg[iarg+1]);
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"mol") == 0) {
@@ -712,28 +715,23 @@ void FixDeposit::options(int narg, char **arg)
     } else if (strcmp(arg[iarg],"molfrac") == 0) {
       if (mode != MOLECULE) error->all(FLERR,"Illegal fix deposit command");
       if (iarg+nmol+1 > narg) error->all(FLERR,"Illegal fix deposit command");
-      molfrac[0] = force->numeric(FLERR,arg[iarg+1]);
+      molfrac[0] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       for (int i = 1; i < nmol; i++)
-        molfrac[i] = molfrac[i-1] + force->numeric(FLERR,arg[iarg+i+1]);
+        molfrac[i] = molfrac[i-1] + utils::numeric(FLERR,arg[iarg+i+1],false,lmp);
       if (molfrac[nmol-1] < 1.0-EPSILON || molfrac[nmol-1] > 1.0+EPSILON)
         error->all(FLERR,"Illegal fix deposit command");
       molfrac[nmol-1] = 1.0;
       iarg += nmol+1;
-
     } else if (strcmp(arg[iarg],"rigid") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix deposit command");
-      int n = strlen(arg[iarg+1]) + 1;
       delete [] idrigid;
-      idrigid = new char[n];
-      strcpy(idrigid,arg[iarg+1]);
+      idrigid = utils::strdup(arg[iarg+1]);
       rigidflag = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"shake") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix deposit command");
-      int n = strlen(arg[iarg+1]) + 1;
       delete [] idshake;
-      idshake = new char[n];
-      strcpy(idshake,arg[iarg+1]);
+      idshake = utils::strdup(arg[iarg+1]);
       shakeflag = 1;
       iarg += 2;
 
@@ -747,54 +745,54 @@ void FixDeposit::options(int narg, char **arg)
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix deposit command");
       globalflag = 1;
       localflag = 0;
-      lo = force->numeric(FLERR,arg[iarg+1]);
-      hi = force->numeric(FLERR,arg[iarg+2]);
+      lo = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      hi = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       iarg += 3;
     } else if (strcmp(arg[iarg],"local") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix deposit command");
       localflag = 1;
       globalflag = 0;
-      lo = force->numeric(FLERR,arg[iarg+1]);
-      hi = force->numeric(FLERR,arg[iarg+2]);
-      deltasq = force->numeric(FLERR,arg[iarg+3]) *
-        force->numeric(FLERR,arg[iarg+3]);
+      lo = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      hi = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      deltasq = utils::numeric(FLERR,arg[iarg+3],false,lmp) *
+        utils::numeric(FLERR,arg[iarg+3],false,lmp);
       iarg += 4;
 
     } else if (strcmp(arg[iarg],"near") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix deposit command");
-      nearsq = force->numeric(FLERR,arg[iarg+1]) *
-        force->numeric(FLERR,arg[iarg+1]);
+      nearsq = utils::numeric(FLERR,arg[iarg+1],false,lmp) *
+        utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"attempt") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix deposit command");
-      maxattempt = force->inumeric(FLERR,arg[iarg+1]);
+      maxattempt = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"rate") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix deposit command");
       rateflag = 1;
-      rate = force->numeric(FLERR,arg[iarg+1]);
+      rate = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"vx") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix deposit command");
-      vxlo = force->numeric(FLERR,arg[iarg+1]);
-      vxhi = force->numeric(FLERR,arg[iarg+2]);
+      vxlo = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      vxhi = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       iarg += 3;
     } else if (strcmp(arg[iarg],"vy") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix deposit command");
-      vylo = force->numeric(FLERR,arg[iarg+1]);
-      vyhi = force->numeric(FLERR,arg[iarg+2]);
+      vylo = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      vyhi = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       iarg += 3;
     } else if (strcmp(arg[iarg],"vz") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix deposit command");
-      vzlo = force->numeric(FLERR,arg[iarg+1]);
-      vzhi = force->numeric(FLERR,arg[iarg+2]);
+      vzlo = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      vzhi = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       iarg += 3;
     } else if (strcmp(arg[iarg],"orient") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix deposit command");
       orientflag = 1;
-      rx = force->numeric(FLERR,arg[iarg+1]);
-      ry = force->numeric(FLERR,arg[iarg+2]);
-      rz = force->numeric(FLERR,arg[iarg+3]);
+      rx = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      ry = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      rz = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       if (domain->dimension == 2 && (rx != 0.0 || ry != 0.0))
         error->all(FLERR,"Illegal fix deposit orient settings");
       if (rx == 0.0 && ry == 0.0 && rz == 0.0)
@@ -808,17 +806,17 @@ void FixDeposit::options(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"gaussian") == 0) {
       if (iarg+5 > narg) error->all(FLERR,"Illegal fix deposit command");
-      xmid = force->numeric(FLERR,arg[iarg+1]);
-      ymid = force->numeric(FLERR,arg[iarg+2]);
-      zmid = force->numeric(FLERR,arg[iarg+3]);
-      sigma = force->numeric(FLERR,arg[iarg+4]);
+      xmid = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      ymid = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      zmid = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+      sigma = utils::numeric(FLERR,arg[iarg+4],false,lmp);
       distflag = DIST_GAUSSIAN;
       iarg += 5;
     } else if (strcmp(arg[iarg],"target") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix deposit command");
-      tx = force->numeric(FLERR,arg[iarg+1]);
-      ty = force->numeric(FLERR,arg[iarg+2]);
-      tz = force->numeric(FLERR,arg[iarg+3]);
+      tx = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      ty = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      tz = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       targetflag = 1;
       iarg += 4;
     } else error->all(FLERR,"Illegal fix deposit command");
@@ -835,7 +833,7 @@ void FixDeposit::write_restart(FILE *fp)
   double list[5];
   list[n++] = random->state();
   list[n++] = ninserted;
-  list[n++] = nfirst;
+  list[n++] = ubuf(nfirst).d;
   list[n++] = ubuf(next_reneighbor).d;
   list[n++] = ubuf(update->ntimestep).d;
 
@@ -855,12 +853,12 @@ void FixDeposit::restart(char *buf)
   int n = 0;
   double *list = (double *) buf;
 
-  seed = static_cast<int> (list[n++]);
-  ninserted = static_cast<int> (list[n++]);
-  nfirst = static_cast<int> (list[n++]);
-  next_reneighbor = (bigint) ubuf(list[n++]).i;
+  seed = static_cast<int>(list[n++]);
+  ninserted = static_cast<int>(list[n++]);
+  nfirst = static_cast<bigint>(ubuf(list[n++]).i);
+  next_reneighbor = static_cast<bigint>(ubuf(list[n++]).i);
 
-  bigint ntimestep_restart = (bigint) ubuf(list[n++]).i;
+  bigint ntimestep_restart = static_cast<bigint>(ubuf(list[n++]).i);
   if (ntimestep_restart != update->ntimestep)
     error->all(FLERR,"Must not reset timestep when restarting this fix");
 
@@ -905,5 +903,5 @@ void *FixDeposit::extract(const char *str, int &itype)
     return &oneradius;
   }
 
-  return NULL;
+  return nullptr;
 }

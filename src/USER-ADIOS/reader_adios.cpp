@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -50,7 +51,7 @@ class ReadADIOSInternal
 {
 
 public:
-    ReadADIOSInternal(){};
+    ReadADIOSInternal() {};
     ~ReadADIOSInternal() = default;
 
     // name of adios group, referrable in adios2_config.xml
@@ -73,7 +74,7 @@ public:
 
 ReaderADIOS::ReaderADIOS(LAMMPS *lmp) : Reader(lmp)
 {
-    fieldindex = NULL;
+    fieldindex = nullptr;
     nAtoms = 0;
     nAtomsTotal = 0;
     atomOffset = 0;
@@ -230,7 +231,7 @@ void ReaderADIOS::skip() { internal->fh.EndStep(); }
      match Nfield fields to per-atom column labels
      allocate and set fieldindex = which column each field maps to
      fieldtype = X,VX,IZ etc
-     fieldlabel = user-specified label or NULL if use fieldtype default
+     fieldlabel = user-specified label or nullptr if use fieldtype default
    xyz flag = scaledflag if has fieldlabel name, else set by x,xs,xu,xsu
    only called by proc 0
 ------------------------------------------------------------------------- */

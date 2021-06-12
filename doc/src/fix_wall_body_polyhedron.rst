@@ -83,7 +83,8 @@ the *amplitude*\ , *omega* is 2 PI / *period*\ , and *delta* is the time
 elapsed since the fix was specified.  The velocity of the wall is set
 to the derivative of this expression.
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 None of the :doc:`fix_modify <fix_modify>` options are relevant to this
 fix.  No global or per-atom quantities are stored by this fix for
@@ -104,4 +105,7 @@ Related commands
 
 :doc:`atom_style body <atom_style>`, :doc:`pair_style body/rounded/polyhedron <pair_body_rounded_polyhedron>`
 
-**Default:** none
+Default
+"""""""
+
+none

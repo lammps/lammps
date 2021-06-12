@@ -71,7 +71,7 @@ namespace ATC {
       const std::map<std::string,std::pair<MolSize,int> > & moleculeIds);
         
     // destructor
-    virtual ~SpeciesIntegrationMethod() {nodalAtomicMassDensity_=NULL;};
+    virtual ~SpeciesIntegrationMethod() {nodalAtomicMassDensity_=nullptr;};
 
     /** create and get necessary transfer operators */
     virtual void construct_transfers();

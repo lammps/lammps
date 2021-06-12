@@ -426,7 +426,7 @@ namespace ATC {
       for (INDEX j=i; j<3; j++)
         s(i,j) += factor * dd(i,j);
 
-    // If f_W is not NULL then append thermal contribution.
+    // If f_W is not nullptr then append thermal contribution.
     if (F_w) *F_w += 0.5*kb*T*log(detD);
   }
   //============================================================================

@@ -1,6 +1,7 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,11 +13,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ATOM_CLASS
-
-AtomStyle(full/kk,AtomVecFullKokkos)
-AtomStyle(full/kk/device,AtomVecFullKokkos)
-AtomStyle(full/kk/host,AtomVecFullKokkos)
-
+// clang-format off
+AtomStyle(full/kk,AtomVecFullKokkos);
+AtomStyle(full/kk/device,AtomVecFullKokkos);
+AtomStyle(full/kk/host,AtomVecFullKokkos);
+// clang-format on
 #else
 
 #ifndef LMP_ATOM_VEC_FULL_KOKKOS_H
@@ -50,7 +51,7 @@ class AtomVecFullKokkos : public AtomVecKokkos {
   int pack_data_hybrid(int, double *);
   void write_data(FILE *, int, double **);
   int write_data_hybrid(FILE *, double *);
-  bigint memory_usage();
+  double memory_usage();
 
   void grow_pointers();
   int pack_border_kokkos(int n, DAT::tdual_int_2d k_sendlist,

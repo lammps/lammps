@@ -216,7 +216,7 @@ above.  It changes the positions of cutting planes between processors
 in an iterative fashion, seeking to reduce the imbalance factor.
 
 The *dimstr* argument is a string of characters, each of which must be
-an "x" or "y" or "z".  Eacn character can appear zero or one time,
+an "x" or "y" or "z".  Each character can appear zero or one time,
 since there is no advantage to balancing on a dimension more than
 once.  You should normally only list dimensions where you expect there
 to be a density variation in the particles.
@@ -361,7 +361,8 @@ each processor, instead of 4, and "SQUARES" replaced by "CUBES".
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.
@@ -404,4 +405,7 @@ Related commands
 
 .. _pizza: https://pizza.sandia.gov
 
-**Default:** none
+Default
+"""""""
+
+none

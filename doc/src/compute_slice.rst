@@ -89,7 +89,8 @@ of columns equal to the number of inputs specified.
 
 ----------
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global vector if a single input value is
 specified or a global array with N columns where N is the number of
@@ -123,4 +124,7 @@ Related commands
 
 :doc:`compute <compute>`, :doc:`fix <fix>`, :doc:`compute reduce <compute_reduce>`
 
-**Default:** none
+Default
+"""""""
+
+none

@@ -1,10 +1,10 @@
 .. index:: angle_style cosine/delta
+.. index:: angle_style cosine/delta/omp
 
 angle_style cosine/delta command
 ================================
 
-angle_style cosine/delta/omp command
-====================================
+Accelerator Variants: *cosine/delta/omp*
 
 Syntax
 """"""
@@ -62,4 +62,7 @@ Related commands
 
 :doc:`angle_coeff <angle_coeff>`, :doc:`angle_style cosine/squared <angle_cosine_squared>`
 
-**Default:** none
+Default
+"""""""
+
+none

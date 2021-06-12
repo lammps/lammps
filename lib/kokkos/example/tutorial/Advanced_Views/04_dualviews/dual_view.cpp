@@ -66,30 +66,30 @@
 // operations to help you manage memory take almost no time in that
 // case.  This makes your code even more performance portable.
 
-typedef Kokkos::DualView<double*> view_type;
-typedef Kokkos::DualView<int**> idx_type;
+using view_type = Kokkos::DualView<double*>;
+using idx_type  = Kokkos::DualView<int**>;
 
 template <class ExecutionSpace>
 struct localsum {
-  // If the functor has a public 'execution_space' typedef, that defines
+  // If the functor has a public 'execution_space' alias, that defines
   // the functor's execution space (where it runs in parallel).  This
   // overrides Kokkos' default execution space.
-  typedef ExecutionSpace execution_space;
+  using execution_space = ExecutionSpace;
 
-  typedef typename Kokkos::Impl::if_c<
+  using memory_space = typename Kokkos::Impl::if_c<
       std::is_same<ExecutionSpace, Kokkos::DefaultExecutionSpace>::value,
-      idx_type::memory_space, idx_type::host_mirror_space>::type memory_space;
+      idx_type::memory_space, idx_type::host_mirror_space>::type;
 
   // Get the view types on the particular device for which the functor
   // is instantiated.
   //
-  // "const_data_type" is a typedef in View (and DualView) which is
+  // "const_data_type" is an alias in View (and DualView) which is
   // the const version of the first template parameter of the View.
   // For example, the const_data_type version of double** is const
   // double**.
   Kokkos::View<idx_type::const_data_type, idx_type::array_layout, memory_space>
       idx;
-  // "scalar_array_type" is a typedef in ViewTraits (and DualView) which is the
+  // "scalar_array_type" is an alias in ViewTraits (and DualView) which is the
   // array version of the value(s) stored in the View.
   Kokkos::View<view_type::scalar_array_type, view_type::array_layout,
                memory_space>
@@ -150,7 +150,7 @@ class ParticleType {
  protected:
 };
 
-typedef Kokkos::DualView<ParticleType[10]> ParticleTypes;
+using ParticleTypes = Kokkos::DualView<ParticleType[10]>;
 int main(int narg, char* arg[]) {
   Kokkos::initialize(narg, arg);
 
@@ -175,8 +175,9 @@ int main(int narg, char* arg[]) {
     // Get a reference to the host view of idx directly (equivalent to
     // idx.view<idx_type::host_mirror_space>() )
     idx_type::t_host h_idx = idx.h_view;
+    using size_type        = view_type::size_type;
     for (int i = 0; i < size; ++i) {
-      for (view_type::size_type j = 0; j < h_idx.extent(1); ++j) {
+      for (size_type j = 0; j < static_cast<size_type>(h_idx.extent(1)); ++j) {
         h_idx(i, j) = (size + i + (rand() % 500 - 250)) % size;
       }
     }

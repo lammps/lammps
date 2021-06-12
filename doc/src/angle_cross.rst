@@ -1,7 +1,7 @@
 .. index:: angle_style cross
 
 angle_style cross command
-==========================
+=========================
 
 Syntax
 """"""
@@ -62,4 +62,7 @@ Related commands
 
 :doc:`angle_coeff <angle_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none

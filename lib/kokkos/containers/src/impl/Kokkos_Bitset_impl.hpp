@@ -58,18 +58,30 @@ namespace Kokkos {
 namespace Impl {
 
 KOKKOS_FORCEINLINE_FUNCTION
+unsigned rotate_left(unsigned i, int r) {
+  constexpr int size = static_cast<int>(sizeof(unsigned) * CHAR_BIT);
+  return r ? ((i << r) | (i >> (size - r))) : i;
+}
+
+KOKKOS_FORCEINLINE_FUNCTION
 unsigned rotate_right(unsigned i, int r) {
-  enum { size = static_cast<int>(sizeof(unsigned) * CHAR_BIT) };
+  constexpr int size = static_cast<int>(sizeof(unsigned) * CHAR_BIT);
+  // FIXME_SYCL llvm.fshr.i32 missing
+  // (https://github.com/intel/llvm/issues/3308)
+#ifdef __SYCL_DEVICE_ONLY__
+  return rotate_left(i, size - r);
+#else
   return r ? ((i >> r) | (i << (size - r))) : i;
+#endif
 }
 
 template <typename Bitset>
 struct BitsetCount {
-  typedef Bitset bitset_type;
-  typedef
-      typename bitset_type::execution_space::execution_space execution_space;
-  typedef typename bitset_type::size_type size_type;
-  typedef size_type value_type;
+  using bitset_type = Bitset;
+  using execution_space =
+      typename bitset_type::execution_space::execution_space;
+  using size_type  = typename bitset_type::size_type;
+  using value_type = size_type;
 
   bitset_type m_bitset;
 

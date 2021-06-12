@@ -1,64 +1,75 @@
 .. index:: pair_style lj/cut/soft
+.. index:: pair_style lj/cut/soft/omp
+.. index:: pair_style lj/cut/coul/cut/soft
+.. index:: pair_style lj/cut/coul/cut/soft/omp
+.. index:: pair_style lj/cut/coul/long/soft
+.. index:: pair_style lj/cut/coul/long/soft/omp
+.. index:: pair_style lj/cut/tip4p/long/soft
+.. index:: pair_style lj/cut/tip4p/long/soft/omp
+.. index:: pair_style lj/charmm/coul/long/soft
+.. index:: pair_style lj/charmm/coul/long/soft/omp
+.. index:: pair_style lj/class2/soft
+.. index:: pair_style lj/class2/coul/cut/soft
+.. index:: pair_style lj/class2/coul/long/soft
+.. index:: pair_style coul/cut/soft
+.. index:: pair_style coul/cut/soft/omp
+.. index:: pair_style coul/long/soft
+.. index:: pair_style coul/long/soft/omp
+.. index:: pair_style tip4p/long/soft
+.. index:: pair_style tip4p/long/soft/omp
+.. index:: pair_style morse/soft
 
 pair_style lj/cut/soft command
 ==============================
 
-pair_style lj/cut/soft/omp command
-==================================
+Accelerator Variants: *lj/cut/soft/omp*
 
 pair_style lj/cut/coul/cut/soft command
 =======================================
 
-pair_style lj/cut/coul/cut/soft/omp command
-===========================================
+Accelerator Variants: *lj/cut/coul/cut/soft/omp*
 
 pair_style lj/cut/coul/long/soft command
 ========================================
 
-pair_style lj/cut/coul/long/soft/omp command
-============================================
+Accelerator Variants: *lj/cut/coul/long/soft/omp*
 
 pair_style lj/cut/tip4p/long/soft command
-==========================================
+=========================================
 
-pair_style lj/cut/tip4p/long/soft/omp command
-==============================================
+Accelerator Variants: *lj/cut/tip4p/long/soft/omp*
 
 pair_style lj/charmm/coul/long/soft command
-============================================
-
-pair_style lj/charmm/coul/long/soft/omp command
-================================================
-
-pair_style lj/class2/soft command
-==================================
-
-pair_style lj/class2/coul/cut/soft command
 ===========================================
 
-pair_style lj/class2/coul/long/soft command
-============================================
+Accelerator Variants: *lj/charmm/coul/long/soft/omp*
 
-pair_style coul/cut/soft command
+pair_style lj/class2/soft command
 =================================
 
-pair_style coul/cut/soft/omp command
-=====================================
+pair_style lj/class2/coul/cut/soft command
+==========================================
+
+pair_style lj/class2/coul/long/soft command
+===========================================
+
+pair_style coul/cut/soft command
+================================
+
+Accelerator Variants: *coul/cut/soft/omp*
 
 pair_style coul/long/soft command
-==================================
+=================================
 
-pair_style coul/long/soft/omp command
-======================================
+Accelerator Variants: *coul/long/soft/omp*
 
 pair_style tip4p/long/soft command
-===================================
+==================================
 
-pair_style tip4p/long/soft/omp command
-=======================================
+Accelerator Variants: *tip4p/long/soft/omp*
 
 pair_style morse/soft command
-==============================
+=============================
 
 Syntax
 """"""
@@ -161,15 +172,17 @@ Examples
 
    pair_style coul/long/soft 1.0 10.0 9.5
    pair_coeff * * 1.0
-   pair_coeff 1 1 1.0 9.5
+   pair_coeff 1 1 1.0
 
    pair_style tip4p/long/soft 1 2 7 8 0.15 2.0 0.5 10.0 9.8
    pair_coeff * * 1.0
-   pair_coeff 1 1 1.0 9.5
+   pair_coeff 1 1 1.0
 
    pair_style morse/soft 4 0.9 10.0
    pair_coeff * * 100.0 2.0 1.5 1.0
    pair_coeff 1 1 100.0 2.0 1.5 1.0 3.0
+
+Example input scripts available: examples/USER/fep
 
 Description
 """""""""""
@@ -284,7 +297,9 @@ core.  Hence, if used by themselves, there will be no repulsion to keep two
 oppositely charged particles from overlapping each other. In this case, if
 :math:`\lambda = 1`, a singularity may occur.  These sub-styles are suitable to
 represent charges embedded in the Lennard-Jones radius of another site (for
-example hydrogen atoms in several water models).
+example hydrogen atoms in several water models). The :math:`\lambda` must
+be defined for each pair, and *coul/cut/soft* can accept an optional cutoff as
+the second coefficient.
 
 .. note::
 
@@ -345,11 +360,12 @@ used.
 
 ----------
 
-**Mixing, shift, tail correction, restart info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 The different versions of the *lj/cut/soft* pair styles support mixing.  For
 atom type pairs I,J and I != J, the :math:`\epsilon` and :math:`\sigma`
-coefficients and cutoff distance for these pair style can be mixed.  The default
+coefficients and cutoff distance for these pair styles can be mixed.  The default
 mix value is *geometric* for 12-6 styles.
 
 The mixing rule for epsilon and sigma for *lj/class2/soft* 9-6 potentials is to
@@ -410,7 +426,10 @@ Related commands
 :doc:`pair_coeff <pair_coeff>`, :doc:`fix adapt <fix_adapt>`,
 :doc:`fix adapt/fep <fix_adapt_fep>`, :doc:`compute fep <compute_fep>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

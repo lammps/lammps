@@ -63,8 +63,8 @@
 // it defaults to binary operator+ (adding numbers together).
 struct squaresum {
   // Specify the type of the reduction value with a "value_type"
-  // typedef.  In this case, the reduction value has type int.
-  typedef int value_type;
+  // alias.  In this case, the reduction value has type int.
+  using value_type = int;
 
   // The reduction functor's operator() looks a little different than
   // the parallel_for functor's operator().  For the reduction, we

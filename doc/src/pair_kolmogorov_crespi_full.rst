@@ -36,7 +36,7 @@ No simplification is made,
 .. math::
 
    E  = & \frac{1}{2} \sum_i \sum_{j \neq i} V_{ij} \\
-   V_{ij}  = & e^{-\lambda (r_{ij} -z_0)} \left [ C + f(\rho_{ij}) + f(\rho_{ji}) - A \left ( \frac{r_{ij}}{z_0}\right )^{-6} \right ] \\
+   V_{ij}  = & e^{-\lambda (r_{ij} -z_0)} \left [ C + f(\rho_{ij}) + f(\rho_{ji}) \right ] - A \left ( \frac{r_{ij}}{z_0}\right )^{-6} \\
   \rho_{ij}^2 = & r_{ij}^2 - ({\bf r}_{ij}\cdot {\bf n}_{i})^2 \\
   \rho_{ji}^2 = & r_{ij}^2 - ({\bf r}_{ij}\cdot  {\bf n}_{j})^2 \\
   f(\rho) & =  e^{-(\rho/\delta)^2} \sum_{n=0}^2 C_{2n} { (\rho/\delta) }^{2n}
@@ -105,7 +105,8 @@ headings) the following commands could be included in an input script:
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This pair style does not support the pair_modify mix, shift, table,
 and tail options.
@@ -141,7 +142,11 @@ Related commands
 :doc:`pair_style kolmogorov/crespi/z <pair_kolmogorov_crespi_z>`,
 :doc:`pair_style ilp/graphene/hbn <pair_ilp_graphene_hbn>`.
 
-**Default:** tap_flag = 0
+Default
+"""""""
+
+tap_flag = 0
+
 
 ----------
 

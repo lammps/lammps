@@ -38,15 +38,15 @@ namespace ATC {
     poissonSolverType_(DIRECT), // ITERATIVE | DIRECT
     poissonSolverTol_(0),
     poissonSolverMaxIter_(0),
-    poissonSolver_(NULL),
+    poissonSolver_(nullptr),
     maxSolves_(0),
     baseSize_(0),
-    chargeRegulator_(NULL),
+    chargeRegulator_(nullptr),
     useSlab_(false),
     includeShortRange_(true),
-    atomForces_(NULL),
-    nodalAtomicCharge_(NULL),
-    nodalAtomicGhostCharge_(NULL)
+    atomForces_(nullptr),
+    nodalAtomicCharge_(nullptr),
+    nodalAtomicGhostCharge_(nullptr)
   {
      physicsModel_ = new PhysicsModelSpeciesElectrostatic(matFileName);
      // set up correct masks for coupling

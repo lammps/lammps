@@ -1,10 +1,10 @@
 .. index:: angle_style quartic
+.. index:: angle_style quartic/omp
 
 angle_style quartic command
 ===========================
 
-angle_style quartic/omp command
-===============================
+Accelerator Variants: *quartic/omp*
 
 Syntax
 """"""
@@ -65,4 +65,7 @@ Related commands
 
 :doc:`angle_coeff <angle_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none

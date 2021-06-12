@@ -1,22 +1,19 @@
 .. index:: pair_style vashishta
+.. index:: pair_style vashishta/gpu
+.. index:: pair_style vashishta/omp
+.. index:: pair_style vashishta/kk
+.. index:: pair_style vashishta/table
+.. index:: pair_style vashishta/table/omp
 
 pair_style vashishta command
 ============================
 
-pair_style vashishta/gpu command
-================================
-
-pair_style vashishta/omp command
-================================
-
-pair_style vashishta/kk command
-===============================
+Accelerator Variants: *vashishta/gpu*, *vashishta/omp*, *vashishta/kk*
 
 pair_style vashishta/table command
 ==================================
 
-pair_style vashishta/table/omp command
-======================================
+Accelerator Variants: *vashishta/table/omp*
 
 Syntax
 """"""
@@ -197,7 +194,8 @@ two-body parameters from the CCC and CSiSi entries.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 For atom type pairs I,J and I != J, where types I and J correspond to
 two different element types, mixing is performed by LAMMPS as
@@ -219,7 +217,7 @@ This pair style can only be used via the *pair* keyword of the
 Restrictions
 """"""""""""
 
-These pair style are part of the MANYBODY package.  They is only
+These pair styles are part of the MANYBODY package.  They are only
 enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 These pair styles requires the :doc:`newton <newton>` setting to be "on"
@@ -236,7 +234,10 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

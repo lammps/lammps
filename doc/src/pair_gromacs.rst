@@ -1,25 +1,20 @@
 .. index:: pair_style lj/gromacs
+.. index:: pair_style lj/gromacs/gpu
+.. index:: pair_style lj/gromacs/kk
+.. index:: pair_style lj/gromacs/omp
+.. index:: pair_style lj/gromacs/coul/gromacs
+.. index:: pair_style lj/gromacs/coul/gromacs/kk
+.. index:: pair_style lj/gromacs/coul/gromacs/omp
 
 pair_style lj/gromacs command
 =============================
 
-pair_style lj/gromacs/gpu command
-=================================
-
-pair_style lj/gromacs/kk command
-================================
-
-pair_style lj/gromacs/omp command
-=================================
+Accelerator Variants: *lj/gromacs/gpu*, *lj/gromacs/kk*, *lj/gromacs/omp*
 
 pair_style lj/gromacs/coul/gromacs command
 ==========================================
 
-pair_style lj/gromacs/coul/gromacs/kk command
-=============================================
-
-pair_style lj/gromacs/coul/gromacs/omp command
-==============================================
+Accelerator Variants: *lj/gromacs/coul/gromacs/kk*, *lj/gromacs/coul/gromacs/omp*
 
 Syntax
 """"""
@@ -119,7 +114,8 @@ cutoff(s) specified in the pair_style command.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 For atom type pairs I,J and I != J, the epsilon and sigma coefficients
 and cutoff distance for all of the lj/cut pair styles can be mixed.
@@ -157,7 +153,10 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

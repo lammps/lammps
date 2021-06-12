@@ -64,7 +64,8 @@ The tensor keyword must be specified in the compute gyration/chunk command.
    atom.  You can reset the image flags (e.g. to 0) before invoking this
    compute by using the :doc:`set image <set>` command.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global array with six columns,
 which can be accessed by indices 1-6. The first three columns are the
@@ -89,7 +90,10 @@ Related commands
 :doc:`compute gyration/chunk <compute_gyration_chunk>`
 :doc:`compute gyration/shape <compute_gyration_shape>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

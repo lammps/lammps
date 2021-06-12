@@ -41,7 +41,8 @@ number density, P_rhorho, P_phiphi, and P_zz. The number of rows is
 governed by the values of Rmax and bin_width. Pressure tensor values are
 output in pressure units.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global array with 5 columns and Rmax/bin_width
 rows. The output columns are: R (distance units), number density (inverse
@@ -75,7 +76,10 @@ Related commands
 :doc:`compute temp <compute_temp>`, :doc:`compute stress/atom <compute_stress_atom>`,
 :doc:`thermo_style <thermo_style>`,
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

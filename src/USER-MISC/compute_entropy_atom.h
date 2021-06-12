@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(entropy/atom,ComputeEntropyAtom)
-
+// clang-format off
+ComputeStyle(entropy/atom,ComputeEntropyAtom);
+// clang-format on
 #else
 
 #ifndef COMPUTE_ENTROPY_ATOM_H
@@ -34,7 +34,7 @@ class ComputeEntropyAtom : public Compute {
   double memory_usage();
 
  private:
-  int nmax,maxneigh, nbin;
+  int nmax, maxneigh, nbin;
   class NeighList *list;
   double *pair_entropy, *pair_entropy_avg;
   double sigma, cutoff, cutoff2;
@@ -45,7 +45,7 @@ class ComputeEntropyAtom : public Compute {
   int local_flag;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

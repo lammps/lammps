@@ -47,6 +47,7 @@
 
 //----------------------------------------------------------------------------
 
+#include <cstddef>
 #include <Kokkos_Macros.hpp>
 #if defined(KOKKOS_ENABLE_TASKDAG)
 

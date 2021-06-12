@@ -1,4 +1,9 @@
 .. index:: pair_style oxrna2/excv
+.. index:: pair_style oxrna2/stk
+.. index:: pair_style oxrna2/hbond
+.. index:: pair_style oxrna2/xstk
+.. index:: pair_style oxrna2/coaxstk
+.. index:: pair_style oxrna2/dh
 
 pair_style oxrna2/excv command
 ==============================
@@ -125,7 +130,9 @@ Related commands
 :doc:`bond_style oxdna2/fene <bond_oxdna>`, :doc:`pair_style oxdna2/excv <pair_oxdna2>`,
 :doc:`fix nve/dotc/langevin <fix_nve_dotc_langevin>`
 
-**Default:**
+Default
+"""""""
+
 
 none
 

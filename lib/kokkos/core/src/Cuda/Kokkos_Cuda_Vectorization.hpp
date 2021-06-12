@@ -47,7 +47,7 @@
 #include <Kokkos_Macros.hpp>
 #ifdef KOKKOS_ENABLE_CUDA
 
-#include <Kokkos_Cuda.hpp>
+#include <type_traits>
 #include <Cuda/Kokkos_Cuda_Version_9_8_Compatibility.hpp>
 
 namespace Kokkos {

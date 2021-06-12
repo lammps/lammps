@@ -1,6 +1,6 @@
 ## reorder_remd_traj
 
-LAMMPS Replica Exchange Molecular Dynamics (REMD) trajectories (implemented using the temper command) are arranged by replica, i.e., each trajectory is a continuous replica that records all the ups and downs in temperature. However, often the requirement is  that trajectories be continuous in temperature. This requires the LAMMPS REMD trajectories to be re-ordered, which LAMMPS does not do automatically. (see the discussion [here](https://lammps.sandia.gov/threads/msg60440.html)). The reorderLAMMPSREMD tool does exactly this in parallel (using MPI)
+LAMMPS Replica Exchange Molecular Dynamics (REMD) trajectories (implemented using the temper command) are arranged by replica, i.e., each trajectory is a continuous replica that records all the ups and downs in temperature. However, often the requirement is  that trajectories be continuous in temperature. This requires the LAMMPS REMD trajectories to be re-ordered, which LAMMPS does not do automatically. (see the discussion [here](https://www.lammps.org/threads/msg60440.html)). The reorderLAMMPSREMD tool does exactly this in parallel (using MPI)
 
 (Protein folding trajectories in [Sanyal, Mittal and Shell, JPC, 2019, 151(4), 044111](https://aip.scitation.org/doi/abs/10.1063/1.5108761) were ordered in temperature space using this tool)
 
@@ -49,7 +49,7 @@ So, when the dust settles,
   - `n` = replica number (0-15 in this case). Note: trajectories **must be in default LAMMPS format **(so stuff like dcd won't work)
 
 - You will also have a master LAMMPS log file (`logfn`) that contains the swap history of all the replicas
-  (for more details see [here](https://lammps.sandia.gov/doc/temper.html). Assume that this is called `log.peptide`
+  (for more details see [here](https://docs.lammps.org/temper.html). Assume that this is called `log.peptide`
 
 - Further you must have a txt file that numpy can read which stores all the temperature values (say this is called `temps.txt`)
 

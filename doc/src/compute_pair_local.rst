@@ -138,7 +138,8 @@ Here is an example of how to do this:
    computed in the pair style.  Hence in that case, those atom pairs will
    be part of the local data created by this command.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a local vector or local array depending on the
 number of keywords.  The length of the vector or number of rows in the

@@ -1,6 +1,7 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,9 +17,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(gayberne/intel,PairGayBerneIntel)
-
+// clang-format off
+PairStyle(gayberne/intel,PairGayBerneIntel);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_GAYBERNE_INTEL_H
@@ -74,7 +75,7 @@ class PairGayBerneIntel : public PairGayBerne {
     int **jtype_form, **jlist_form;
 
     ForceConst() : _ntypes(0)  {}
-    ~ForceConst() { set_ntypes(0, 0, 0, NULL, _cop); }
+    ~ForceConst() { set_ntypes(0, 0, 0, nullptr, _cop); }
 
     void set_ntypes(const int ntypes, const int one_length,
                     const int nthreads, Memory *memory, const int cop);

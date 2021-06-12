@@ -137,7 +137,8 @@ screen output is active.
 
 .. _vrpnicms: http://sites.google.com/site/akohlmey/software/vrpn-icms
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global scalar or vector or per-atom
@@ -160,6 +161,13 @@ be assigned 0-based consecutive index numbers.
 When using multiple active IMD connections at the same time, each
 needs to use a different port number.
 
-**Related commands:** none
+Related commands
+""""""""""""""""
 
-**Default:** none
+none
+
+
+Default
+"""""""
+
+none

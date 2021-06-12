@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(mliap,PairMLIAP)
-
+// clang-format off
+PairStyle(mliap,PairMLIAP);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_MLIAP_H
@@ -25,29 +25,28 @@ PairStyle(mliap,PairMLIAP)
 namespace LAMMPS_NS {
 
 class PairMLIAP : public Pair {
-public:
+ public:
   PairMLIAP(class LAMMPS *);
   ~PairMLIAP();
   virtual void compute(int, int);
   void settings(int, char **);
   virtual void coeff(int, char **);
-  void e_tally(int, double);
-  void v_tally(int, int, double*, double*);
+  void e_tally(class MLIAPData *);
+  void v_tally(int, int, double *, double *);
   virtual void init_style();
   virtual double init_one(int, int);
   virtual double memory_usage();
-  int *map;                     // mapping from atom types to elements
+  int *map;    // mapping from atom types to elements
 
-protected:
+ protected:
   virtual void allocate();
 
-  class MLIAPModel* model;
-  class MLIAPDescriptor* descriptor;
+  class MLIAPModel *model;
+  class MLIAPDescriptor *descriptor;
   class MLIAPData *data;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-

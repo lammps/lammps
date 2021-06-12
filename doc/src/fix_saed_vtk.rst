@@ -165,7 +165,8 @@ The *overwrite* keyword will continuously overwrite the output file
 with the latest output, so that it only contains one timestep worth of
 output.  This option can only be used with the *ave running* setting.
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.

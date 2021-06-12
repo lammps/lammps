@@ -1,7 +1,8 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
 
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -13,11 +14,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(reax/c/kk,PairReaxCKokkos<LMPDeviceType>)
-PairStyle(reax/c/kk/device,PairReaxCKokkos<LMPDeviceType>)
-PairStyle(reax/c/kk/host,PairReaxCKokkos<LMPHostType>)
-
+// clang-format off
+PairStyle(reax/c/kk,PairReaxCKokkos<LMPDeviceType>);
+PairStyle(reax/c/kk/device,PairReaxCKokkos<LMPDeviceType>);
+PairStyle(reax/c/kk/host,PairReaxCKokkos<LMPHostType>);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_REAXC_KOKKOS_H
@@ -249,10 +250,10 @@ class PairReaxCKokkos : public PairReaxC {
 
   struct params_sing{
     KOKKOS_INLINE_FUNCTION
-    params_sing(){mass=0;chi=0;eta=0;r_s=0;r_pi=0;r_pi2=0;valency=0;valency_val=0;valency_e=0;valency_boc=0;nlp_opt=0;
+    params_sing() {mass=0;chi=0;eta=0;r_s=0;r_pi=0;r_pi2=0;valency=0;valency_val=0;valency_e=0;valency_boc=0;nlp_opt=0;
       p_lp2=0;p_ovun2=0;p_ovun5=0;p_val3=0;p_val5=0;p_hbond=0;};
     KOKKOS_INLINE_FUNCTION
-    params_sing(int i){mass=0;chi=0;eta=0;r_s=0;r_pi=0;r_pi2=0;valency=0;valency_val=0;valency_e=0;valency_boc=0;nlp_opt=0;
+    params_sing(int /*i*/) {mass=0;chi=0;eta=0;r_s=0;r_pi=0;r_pi2=0;valency=0;valency_val=0;valency_e=0;valency_boc=0;nlp_opt=0;
       p_lp2=0;p_ovun2=0;p_ovun5=0;p_val3=0;p_val5=0;p_hbond=0;};
     F_FLOAT mass,chi,eta,r_s,r_pi,r_pi2,valency,valency_val,valency_e,valency_boc,nlp_opt,
       p_lp2,p_ovun2,p_ovun5, p_val3, p_val5, p_hbond;
@@ -260,12 +261,12 @@ class PairReaxCKokkos : public PairReaxC {
 
   struct params_twbp{
     KOKKOS_INLINE_FUNCTION
-    params_twbp(){gamma=0;gamma_w=0;alpha=0;r_vdw=0;epsilon=0;acore=0;ecore=0;rcore=0;lgre=0;lgcij=0;
+    params_twbp() {gamma=0;gamma_w=0;alpha=0;r_vdw=0;epsilon=0;acore=0;ecore=0;rcore=0;lgre=0;lgcij=0;
       r_s=0;r_pi=0;r_pi2=0;p_bo1=0;p_bo2=0;p_bo3=0;p_bo4=0;p_bo5=0;p_bo6=0;ovc=0;v13cor=0;
       p_boc3=0;p_boc4=0;p_boc5=0;p_be1=0,p_be2=0,De_s=0,De_p=0;De_pp=0;
           p_ovun1=0;};
     KOKKOS_INLINE_FUNCTION
-    params_twbp(int i){gamma=0;gamma_w=0;alpha=0;r_vdw=0;epsilon=0;acore=0;ecore=0;rcore=0;lgre=0;lgcij=0;
+    params_twbp(int /*i*/) {gamma=0;gamma_w=0;alpha=0;r_vdw=0;epsilon=0;acore=0;ecore=0;rcore=0;lgre=0;lgcij=0;
       r_s=0;r_pi=0;r_pi2=0;p_bo1=0;p_bo2=0;p_bo3=0;p_bo4=0;p_bo5=0;p_bo6=0;ovc=0;v13cor=0;
       p_boc3=0;p_boc4=0;p_boc5=0;p_be1=0,p_be2=0,De_s=0,De_p=0;De_pp=0;
           p_ovun1=0;};
@@ -277,25 +278,25 @@ class PairReaxCKokkos : public PairReaxC {
 
   struct params_thbp{
     KOKKOS_INLINE_FUNCTION
-    params_thbp(){cnt=0;theta_00=0;p_val1=0;p_val2=0;p_val4=0;p_val7=0;p_pen1=0;p_coa1=0;};
+    params_thbp() {cnt=0;theta_00=0;p_val1=0;p_val2=0;p_val4=0;p_val7=0;p_pen1=0;p_coa1=0;};
     KOKKOS_INLINE_FUNCTION
-    params_thbp(int i){cnt=0;theta_00=0;p_val1=0;p_val2=0;p_val4=0;p_val7=0;p_pen1=0;p_coa1=0;};
+    params_thbp(int /*i*/) {cnt=0;theta_00=0;p_val1=0;p_val2=0;p_val4=0;p_val7=0;p_pen1=0;p_coa1=0;};
     F_FLOAT cnt, theta_00, p_val1, p_val2, p_val4, p_val7, p_pen1, p_coa1;
   };
 
   struct params_fbp{
     KOKKOS_INLINE_FUNCTION
-    params_fbp(){p_tor1=0;p_cot1=0;V1=0;V2=0;V3=0;};
+    params_fbp() {p_tor1=0;p_cot1=0;V1=0;V2=0;V3=0;};
     KOKKOS_INLINE_FUNCTION
-    params_fbp(int i){p_tor1=0;p_cot1=0;V1=0;V2=0;V3=0;};
+    params_fbp(int /*i*/) {p_tor1=0;p_cot1=0;V1=0;V2=0;V3=0;};
     F_FLOAT p_tor1, p_cot1, V1, V2, V3;
   };
 
   struct params_hbp{
     KOKKOS_INLINE_FUNCTION
-    params_hbp(){p_hb1=0;p_hb2=0;p_hb3=0;r0_hb=0;};
+    params_hbp() {p_hb1=0;p_hb2=0;p_hb3=0;r0_hb=0;};
     KOKKOS_INLINE_FUNCTION
-    params_hbp(int i){p_hb1=0;p_hb2=0;p_hb3=0;r0_hb=0;};
+    params_hbp(int /*i*/) {p_hb1=0;p_hb2=0;p_hb3=0;r0_hb=0;};
     F_FLOAT p_hb1, p_hb2, p_hb3, r0_hb;
   };
 
@@ -331,7 +332,6 @@ class PairReaxCKokkos : public PairReaxC {
     F_FLOAT *fi, F_FLOAT *fj, F_FLOAT *fk, F_FLOAT *dril, F_FLOAT *drjl, F_FLOAT *drkl) const;
 
  protected:
-  void cleanup_copy();
   void allocate();
   void allocate_array();
   void setup();
@@ -386,25 +386,25 @@ class PairReaxCKokkos : public PairReaxC {
   typename AT::t_ffloat_2d_dl d_C1dbopi2, d_C2dbopi2, d_C3dbopi2, d_C4dbopi2;
   typename AT::t_ffloat_2d_dl d_Cdbo, d_Cdbopi, d_Cdbopi2, d_dDeltap_self;
 
-  Kokkos::Experimental::ScatterView<F_FLOAT*, typename DAT::t_float_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterDuplicated> dup_total_bo;
-  Kokkos::Experimental::ScatterView<F_FLOAT*, typename DAT::t_float_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterDuplicated> dup_CdDelta;
-  Kokkos::Experimental::ScatterView<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterDuplicated> dup_eatom;
-  Kokkos::Experimental::ScatterView<F_FLOAT*[3], typename DAT::t_f_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterDuplicated> dup_f;
-  Kokkos::Experimental::ScatterView<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterDuplicated> dup_vatom;
-  Kokkos::Experimental::ScatterView<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,typename KKDevice<DeviceType>::value,Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterDuplicated> dup_dDeltap_self;
-  Kokkos::Experimental::ScatterView<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,typename KKDevice<DeviceType>::value,Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterDuplicated> dup_Cdbo;
-  Kokkos::Experimental::ScatterView<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,typename KKDevice<DeviceType>::value,Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterDuplicated> dup_Cdbopi;
-  Kokkos::Experimental::ScatterView<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,typename KKDevice<DeviceType>::value,Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterDuplicated> dup_Cdbopi2;
+  Kokkos::Experimental::ScatterView<F_FLOAT*, typename DAT::t_float_1d::array_layout,typename KKDevice<DeviceType>::value,typename Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterDuplicated> dup_total_bo;
+  Kokkos::Experimental::ScatterView<F_FLOAT*, typename DAT::t_float_1d::array_layout,typename KKDevice<DeviceType>::value,typename Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterDuplicated> dup_CdDelta;
+  Kokkos::Experimental::ScatterView<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,typename KKDevice<DeviceType>::value,typename Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterDuplicated> dup_eatom;
+  Kokkos::Experimental::ScatterView<F_FLOAT*[3], typename DAT::t_f_array::array_layout,typename KKDevice<DeviceType>::value,typename Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterDuplicated> dup_f;
+  Kokkos::Experimental::ScatterView<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,typename KKDevice<DeviceType>::value,typename Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterDuplicated> dup_vatom;
+  Kokkos::Experimental::ScatterView<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,typename KKDevice<DeviceType>::value,typename Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterDuplicated> dup_dDeltap_self;
+  Kokkos::Experimental::ScatterView<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,typename KKDevice<DeviceType>::value,typename Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterDuplicated> dup_Cdbo;
+  Kokkos::Experimental::ScatterView<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,typename KKDevice<DeviceType>::value,typename Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterDuplicated> dup_Cdbopi;
+  Kokkos::Experimental::ScatterView<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,typename KKDevice<DeviceType>::value,typename Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterDuplicated> dup_Cdbopi2;
 
-  Kokkos::Experimental::ScatterView<F_FLOAT*, typename DAT::t_float_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterNonDuplicated> ndup_total_bo;
-  Kokkos::Experimental::ScatterView<F_FLOAT*, typename DAT::t_float_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterNonDuplicated> ndup_CdDelta;
-  Kokkos::Experimental::ScatterView<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterNonDuplicated> ndup_eatom;
-  Kokkos::Experimental::ScatterView<F_FLOAT*[3], typename DAT::t_f_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterNonDuplicated> ndup_f;
-  Kokkos::Experimental::ScatterView<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterNonDuplicated> ndup_vatom;
-  Kokkos::Experimental::ScatterView<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,typename KKDevice<DeviceType>::value,Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterNonDuplicated> ndup_dDeltap_self;
-  Kokkos::Experimental::ScatterView<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,typename KKDevice<DeviceType>::value,Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterNonDuplicated> ndup_Cdbo;
-  Kokkos::Experimental::ScatterView<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,typename KKDevice<DeviceType>::value,Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterNonDuplicated> ndup_Cdbopi;
-  Kokkos::Experimental::ScatterView<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,typename KKDevice<DeviceType>::value,Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterNonDuplicated> ndup_Cdbopi2;
+  Kokkos::Experimental::ScatterView<F_FLOAT*, typename DAT::t_float_1d::array_layout,typename KKDevice<DeviceType>::value,typename Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterNonDuplicated> ndup_total_bo;
+  Kokkos::Experimental::ScatterView<F_FLOAT*, typename DAT::t_float_1d::array_layout,typename KKDevice<DeviceType>::value,typename Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterNonDuplicated> ndup_CdDelta;
+  Kokkos::Experimental::ScatterView<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,typename KKDevice<DeviceType>::value,typename Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterNonDuplicated> ndup_eatom;
+  Kokkos::Experimental::ScatterView<F_FLOAT*[3], typename DAT::t_f_array::array_layout,typename KKDevice<DeviceType>::value,typename Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterNonDuplicated> ndup_f;
+  Kokkos::Experimental::ScatterView<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,typename KKDevice<DeviceType>::value,typename Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterNonDuplicated> ndup_vatom;
+  Kokkos::Experimental::ScatterView<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,typename KKDevice<DeviceType>::value,typename Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterNonDuplicated> ndup_dDeltap_self;
+  Kokkos::Experimental::ScatterView<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,typename KKDevice<DeviceType>::value,typename Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterNonDuplicated> ndup_Cdbo;
+  Kokkos::Experimental::ScatterView<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,typename KKDevice<DeviceType>::value,typename Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterNonDuplicated> ndup_Cdbopi;
+  Kokkos::Experimental::ScatterView<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,typename KKDevice<DeviceType>::value,typename Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterNonDuplicated> ndup_Cdbopi2;
 
   int need_dup;
 

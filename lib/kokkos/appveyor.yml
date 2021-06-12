@@ -3,8 +3,4 @@ image:
 clone_folder: c:\projects\source
 build_script:
 - cmd: >-
-    mkdir build &&
-    cd build &&
-    cmake c:\projects\source -DKokkos_ENABLE_TESTS=ON -DKokkos_ENABLE_LIBDL=OFF -DKokkos_ENABLE_PROFILING=OFF &&
-    cmake --build . --target install &&
-    ctest -C Debug -V
+    cmake c:\projects\source -DKokkos_ENABLE_TESTS=ON -DCMAKE_CXX_FLAGS="/W0 /EHsc /d1reportClassLayoutChanges" -DCTEST_ARGS="-C Debug -V --output-on-failure" -DBUILD_NAME=MSVC-2019 -DBUILD_TYPE=Debug -DSITE=AppVeyor -DTARGET=install -P cmake/KokkosCI.cmake

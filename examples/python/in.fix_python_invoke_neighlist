@@ -32,20 +32,20 @@ def post_force_callback(lmp, v):
     t = L.extract_global("ntimestep", 0)
     print(pid_prefix, "### POST_FORCE ###", t)
 
-    #mylist = L.get_neighlist(0)
-    mylist = L.find_pair_neighlist("lj/cut", request=0)
+    #mylist = L.numpy.get_neighlist(0)
+    idx = L.find_pair_neighlist("lj/cut", reqid=0)
+    mylist = L.numpy.get_neighlist(idx)
     print(pid_prefix, mylist)
-    nlocal = L.extract_global("nlocal", 0)
-    nghost = L.extract_global("nghost", 0)
-    ntypes = L.extract_global("ntypes", 0)
-    mass = L.numpy.extract_atom_darray("mass", ntypes+1)
-    atype = L.numpy.extract_atom_iarray("type", nlocal+nghost)
-    x = L.numpy.extract_atom_darray("x", nlocal+nghost, dim=3)
-    v = L.numpy.extract_atom_darray("v", nlocal+nghost, dim=3)
-    f = L.numpy.extract_atom_darray("f", nlocal+nghost, dim=3)
+    nlocal = L.extract_global("nlocal")
+    nghost = L.extract_global("nghost")
+    mass = L.numpy.extract_atom("mass")
+    atype = L.numpy.extract_atom("type", nelem=nlocal+nghost)
+    x = L.numpy.extract_atom("x", nelem=nlocal+nghost, dim=3)
+    v = L.numpy.extract_atom("v", nelem=nlocal+nghost, dim=3)
+    f = L.numpy.extract_atom("f", nelem=nlocal+nghost, dim=3)
 
-    for iatom, numneigh, neighs in mylist:
-      print(pid_prefix, "- {}".format(iatom), x[iatom], v[iatom], f[iatom], " : ",  numneigh, "Neighbors")
+    for iatom, neighs in mylist:
+      print(pid_prefix, "- {}".format(iatom), x[iatom], v[iatom], f[iatom], " : ",  len(neighs), "Neighbors")
       for jatom in neighs:
         if jatom < nlocal:
             print(pid_prefix, "    *  ", jatom, x[jatom], v[jatom], f[jatom])

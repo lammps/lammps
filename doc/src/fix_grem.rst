@@ -83,13 +83,19 @@ to large temperature changes. Replicas are easily added where needed.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
 The :doc:`thermo_modify <thermo_modify>` *press* option is supported
 by this fix to add the rescaled kinetic pressure as part of
 :doc:`thermodynamic output <thermo_style>`.
+
+This fix computes a global scalar which can be accessed by various
+:doc:`output commands <Howto_output>`.  The scalar is the effective
+temperature :math:`T_{eff}`.  The scalar value calculated by this
+fix is "intensive".
 
 Restrictions
 """"""""""""
@@ -102,7 +108,10 @@ Related commands
 
 :doc:`temper/grem <temper_grem>`, :doc:`fix nvt <fix_nh>`, :doc:`fix npt <fix_nh>`, :doc:`thermo_modify <thermo_modify>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

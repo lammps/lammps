@@ -53,7 +53,8 @@ complete listing of the possible keywords and material models.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No mixing is performed automatically.  Currently, no part of USER-SMD
 supports restarting nor minimization.  rRESPA does not apply to this
@@ -72,4 +73,7 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none

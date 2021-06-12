@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,7 +18,7 @@
 ------------------------------------------------------------------------- */
 
 #include "dihedral_quadratic.h"
-#include <mpi.h>
+
 #include <cmath>
 #include "atom.h"
 #include "neighbor.h"
@@ -27,7 +28,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -159,27 +160,8 @@ void DihedralQuadratic::compute(int eflag, int vflag)
 
     // error check
 
-    if (c > 1.0 + TOLERANCE || c < (-1.0 - TOLERANCE)) {
-      int me;
-      MPI_Comm_rank(world,&me);
-      if (screen) {
-        char str[128];
-        sprintf(str,"Dihedral problem: %d " BIGINT_FORMAT " "
-                TAGINT_FORMAT " " TAGINT_FORMAT " "
-                TAGINT_FORMAT " " TAGINT_FORMAT,
-                me,update->ntimestep,
-                atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
-        error->warning(FLERR,str,0);
-        fprintf(screen,"  1st atom: %d %g %g %g\n",
-                me,x[i1][0],x[i1][1],x[i1][2]);
-        fprintf(screen,"  2nd atom: %d %g %g %g\n",
-                me,x[i2][0],x[i2][1],x[i2][2]);
-        fprintf(screen,"  3rd atom: %d %g %g %g\n",
-                me,x[i3][0],x[i3][1],x[i3][2]);
-        fprintf(screen,"  4th atom: %d %g %g %g\n",
-                me,x[i4][0],x[i4][1],x[i4][2]);
-      }
-    }
+    if (c > 1.0 + TOLERANCE || c < (-1.0 - TOLERANCE))
+      problem(FLERR, i1, i2, i3, i4);
 
     if (c > 1.0) c = 1.0;
     if (c < -1.0) c = -1.0;
@@ -195,6 +177,8 @@ void DihedralQuadratic::compute(int eflag, int vflag)
     siinv = 1.0/si;
 
     double dphi = phi-phi0[type];
+    if (dphi > MY_PI) dphi -= 2*MY_PI;
+    else if (dphi < -MY_PI) dphi += 2*MY_PI;
     p = k[type]*dphi;
     pd = - 2.0 * p * siinv;
     p = p * dphi;
@@ -287,10 +271,10 @@ void DihedralQuadratic::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->ndihedraltypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->ndihedraltypes,ilo,ihi,error);
 
-  double k_one = force->numeric(FLERR,arg[1]);
-  double phi0_one= force->numeric(FLERR,arg[2]);
+  double k_one = utils::numeric(FLERR,arg[1],false,lmp);
+  double phi0_one= utils::numeric(FLERR,arg[2],false,lmp);
 
   // require k >= 0
   if (k_one < 0.0)
@@ -326,8 +310,8 @@ void DihedralQuadratic::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    utils::sfread(FLERR,&k[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
-    utils::sfread(FLERR,&phi0[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&k[1],sizeof(double),atom->ndihedraltypes,fp,nullptr,error);
+    utils::sfread(FLERR,&phi0[1],sizeof(double),atom->ndihedraltypes,fp,nullptr,error);
   }
   MPI_Bcast(&k[1],atom->ndihedraltypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&phi0[1],atom->ndihedraltypes,MPI_DOUBLE,0,world);

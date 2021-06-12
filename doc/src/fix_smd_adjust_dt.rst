@@ -46,7 +46,8 @@ additional safety factor *s_fact* is applied to the time increment.
 See `this PDF guide <PDF/SMD_LAMMPS_userguide.pdf>`_ to use Smooth Mach
 Dynamics in LAMMPS.
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 Currently, no part of USER-SMD supports restarting nor minimization.
 
@@ -61,4 +62,7 @@ Related commands
 
 :doc:`smd/tlsph_dt <compute_smd_tlsph_dt>`
 
-**Default:** none
+Default
+"""""""
+
+none

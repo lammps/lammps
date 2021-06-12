@@ -33,7 +33,8 @@ total chemical energy and
 average internal temperature of the entire system or group of dpd
 particles.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a per-particle array with 4 columns (:math:`u^{cond}`,
 :math:`u^{mech}`, :math:`u^{chem}`, :math:`\theta`), which can be accessed
@@ -60,7 +61,10 @@ Related commands
 
 :doc:`dump custom <dump>`, :doc:`compute dpd <compute_dpd>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

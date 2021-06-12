@@ -68,19 +68,19 @@ namespace ATC {
                              LAMMPS_NS::Fix * thisFix,
                              string matParamFile)
     : ATC_Method(groupName,perAtomArray,thisFix),
-      xPointer_(NULL), 
+      xPointer_(nullptr), 
       outputStepZero_(true),
       neighborReset_(false),
-      pairMap_(NULL),
-      bondMatrix_(NULL),
-      pairVirial_(NULL),
-      pairHeatFlux_(NULL),
+      pairMap_(nullptr),
+      bondMatrix_(nullptr),
+      pairVirial_(nullptr),
+      pairHeatFlux_(nullptr),
       nComputes_(0),
       hasPairs_(true),
       hasBonds_(false),
       resetKernelFunction_(false),
       dxaExactMode_(true),
-      cauchyBornStress_(NULL)
+      cauchyBornStress_(nullptr)
   {
     nTypes_ = lammpsInterface_->ntypes();
 
@@ -114,7 +114,7 @@ namespace ATC {
     rateFlags_ = false;
 
     outputFields_.resize(NUM_TOTAL_FIELDS);
-    for (int i = 0; i < NUM_TOTAL_FIELDS; i++) { outputFields_[i] = NULL; }
+    for (int i = 0; i < NUM_TOTAL_FIELDS; i++) { outputFields_[i] = nullptr; }
 
     // Hardy requires ref positions for processor ghosts for bond list
     
@@ -491,7 +491,7 @@ namespace ATC {
       ComputedAtomQuantity * c = new ComputedAtomQuantity(this, tag);
       interscaleManager_.add_per_atom_quantity(c,tag);
       int projection = iter->second;
-      DIAG_MAN * w = NULL;
+      DIAG_MAN * w = nullptr;
       if      (projection == VOLUME_NORMALIZATION ) 
          { w = accumulantInverseVolumes_; }
       else if (projection == NUMBER_NORMALIZATION ) 
@@ -976,7 +976,7 @@ namespace ATC {
       DENS_MAT & H = hardyData_["displacement_gradient"].set_quantity();
       DENS_MAT E(H.nRows(),1);
       ATOMIC_DATA::const_iterator tfield = hardyData_.find("temperature");
-      const DENS_MAT *temp = tfield==hardyData_.end() ? NULL : &((tfield->second).quantity());
+      const DENS_MAT *temp = tfield==hardyData_.end() ? nullptr : &((tfield->second).quantity());
       //DENS_MAT & T = hardyData_["temperature"];
       //cauchy_born_entropic_energy(H,E,T); E += hardyData_["internal_energy"];
       cauchy_born_energy(H, E, temp);
@@ -988,14 +988,14 @@ namespace ATC {
     // compute: cauchy born stress 
     if (fieldFlags_(CAUCHY_BORN_STRESS)) {
       ATOMIC_DATA::const_iterator tfield = hardyData_.find("temperature");
-      const DENS_MAT *temp = tfield==hardyData_.end() ? NULL : &((tfield->second).quantity());
+      const DENS_MAT *temp = tfield==hardyData_.end() ? nullptr : &((tfield->second).quantity());
       cauchy_born_stress(hardyData_["displacement_gradient"].quantity(),
                          hardyData_["cauchy_born_stress"].set_quantity(), temp);
     }
     // compute: cauchy born energy 
     if (fieldFlags_(CAUCHY_BORN_ENERGY)) {
       ATOMIC_DATA::const_iterator tfield = hardyData_.find("temperature");
-      const DENS_MAT *temp = tfield==hardyData_.end() ? NULL : &((tfield->second).quantity());
+      const DENS_MAT *temp = tfield==hardyData_.end() ? nullptr : &((tfield->second).quantity());
       cauchy_born_energy(hardyData_["displacement_gradient"].quantity(), 
                          hardyData_["cauchy_born_energy"].set_quantity(), temp);
     }

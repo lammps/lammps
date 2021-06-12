@@ -128,9 +128,9 @@ formulas for the meaning of these parameters:
 +------------------------------------------------------------------------------+--------------------------------------------------+-------------+
 | :doc:`born/coul/long, born/coul/msm <pair_born>`                             | coulombic_cutoff                                 | type global |
 +------------------------------------------------------------------------------+--------------------------------------------------+-------------+
-| :doc:`buck <pair_buck>`                                                      | a,c                                              | type pairs  |
+| :doc:`buck, buck/coul/cut  <pair_buck>`                                      | a,c                                              | type pairs  |
 +------------------------------------------------------------------------------+--------------------------------------------------+-------------+
-| :doc:`buck/coul/long, buck/coul/msm <pair_buck>`                             | coulombic_cutoff                                 | type global |
+| :doc:`buck/coul/long, buck/coul/msm <pair_buck>`                             | a,c,coulombic_cutoff                             | type pairs  |
 +------------------------------------------------------------------------------+--------------------------------------------------+-------------+
 | :doc:`buck/mdf <pair_mdf>`                                                   | a,c                                              | type pairs  |
 +------------------------------------------------------------------------------+--------------------------------------------------+-------------+
@@ -401,7 +401,8 @@ restored when the restarted run finally completes.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 If the *atom* keyword is used and the *scale* or *reset* keyword is
 set to *yes*, then this fix writes information to a restart file so

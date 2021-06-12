@@ -60,7 +60,7 @@ struct collision {
   // one i.
   // This function was chosen as one that very simply can increase the
   // register count.
-  typedef int value_type;
+  using value_type = int;
 
   KOKKOS_INLINE_FUNCTION
   int hash(int q) const {

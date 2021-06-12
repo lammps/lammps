@@ -92,4 +92,7 @@ Related commands
 
 :doc:`angle_style <angle_style>`
 
-**Default:** none
+Default
+"""""""
+
+none

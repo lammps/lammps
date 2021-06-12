@@ -15,7 +15,7 @@ Syntax
 * k_n = normal repulsion strength (force/distance or pressure units)
 * c_n = normal damping coefficient (force/distance or pressure units)
 * c_t = tangential damping coefficient (force/distance or pressure units)
-* wallstyle = *xplane* or *yplane* or *zplane* or *zcylinder*
+* wallstyle = *xplane* or *yplane* or *zcylinder*
 * args = list of arguments for a particular style
 
   .. parsed-literal::
@@ -87,7 +87,8 @@ the *amplitude*\ , *omega* is 2 PI / *period*\ , and *delta* is the time
 elapsed since the fix was specified.  The velocity of the wall is set
 to the derivative of this expression.
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 None of the :doc:`fix_modify <fix_modify>` options are relevant to this
 fix.  No global or per-atom quantities are stored by this fix for
@@ -108,4 +109,7 @@ Related commands
 
 :doc:`atom_style body <atom_style>`, :doc:`pair_style body/rounded/polygon <pair_body_rounded_polygon>`
 
-**Default:** none
+Default
+"""""""
+
+none

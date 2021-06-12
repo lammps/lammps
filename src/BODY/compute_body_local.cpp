@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,15 +13,15 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_body_local.h"
-#include <mpi.h>
-#include <cstring>
+
 #include "atom.h"
 #include "atom_vec_body.h"
 #include "body.h"
-#include "update.h"
-#include "force.h"
-#include "memory.h"
 #include "error.h"
+#include "memory.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -31,7 +32,7 @@ enum{ID,TYPE,INDEX};
 /* ---------------------------------------------------------------------- */
 
 ComputeBodyLocal::ComputeBodyLocal(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), which(NULL), index(NULL), avec(NULL), bptr(NULL)
+  Compute(lmp, narg, arg), which(nullptr), index(nullptr), avec(nullptr), bptr(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute body/local command");
 
@@ -47,7 +48,7 @@ ComputeBodyLocal::ComputeBodyLocal(LAMMPS *lmp, int narg, char **arg) :
     else if (strcmp(arg[iarg],"type") == 0) which[nvalues++] = TYPE;
     else {
       which[nvalues] = INDEX;
-      index[nvalues] = force->inumeric(FLERR,arg[iarg]) - 1;
+      index[nvalues] = utils::inumeric(FLERR,arg[iarg],false,lmp) - 1;
       nvalues++;
     }
   }
@@ -66,8 +67,8 @@ ComputeBodyLocal::ComputeBodyLocal(LAMMPS *lmp, int narg, char **arg) :
   else size_local_cols = nvalues;
 
   nmax = 0;
-  vector = NULL;
-  array = NULL;
+  vector = nullptr;
+  array = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -123,7 +124,7 @@ void ComputeBodyLocal::compute_local()
   int ncount = compute_body(0);
   if (ncount > nmax) reallocate(ncount);
   size_local_rows = ncount;
-  ncount = compute_body(1);
+  compute_body(1);
 }
 
 /* ----------------------------------------------------------------------
@@ -226,6 +227,6 @@ void ComputeBodyLocal::reallocate(int n)
 
 double ComputeBodyLocal::memory_usage()
 {
-  double bytes = nmax*nvalues * sizeof(double);
+  double bytes = (double)nmax*nvalues * sizeof(double);
   return bytes;
 }

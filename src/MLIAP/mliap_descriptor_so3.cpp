@@ -50,6 +50,16 @@ MLIAPDescriptorSO3::MLIAPDescriptorSO3(LAMMPS *lmp,
 
 MLIAPDescriptorSO3::~MLIAPDescriptorSO3()
 {
+
+  if (nelements) {
+    for (int i = 0; i < nelements; i++)
+      delete[] elements[i];
+    delete[] elements;
+    memory->destroy(radelem);
+    memory->destroy(wjelem);
+    memory->destroy(cutsq);
+  }
+
   delete so3ptr;
 }
 

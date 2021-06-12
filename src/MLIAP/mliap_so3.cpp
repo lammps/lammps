@@ -337,49 +337,6 @@ double MLIAP_SO3::memory_usage()
   return bytes;
 }
 
-void MLIAP_SO3::swap(double *a, double *b)
-{
-  double t = *a;
-  *a = *b;
-  *b = t;
-}
-
-int MLIAP_SO3::partition(double arr[], int low, int high,
-                         double arrv[], int n)
-{
-  double pivot = arr[high];
-  int i = (low - 1);
-  int vi;
-
-  for (int j = low; j <= high - 1; j++)
-
-    if (arr[j] >= pivot) {
-      i++;
-      swap(&arr[i], &arr[j]);
-      for (vi = 0; vi < n; vi++)
-        swap(&arrv[vi * n + i], &arrv[vi * n + j]);
-    }
-
-  swap(&arr[i + 1], &arr[high]);
-  for (vi = 0; vi < n; vi++)
-    swap(&arrv[vi * n + i + 1], &arrv[vi * n + high]);
-
-  return (i + 1);
-}
-
-void MLIAP_SO3::quickSort(double arr[], int low, int high,
-                          double arrv[], int n)
-{
-  if (low < high) {
-
-    int pi = partition(arr, low, high, arrv, n);
-
-    quickSort(arr, low, pi - 1, arrv, n);
-    quickSort(arr, pi + 1, high, arrv, n);
-  }
-
-}
-
 void MLIAP_SO3::compute_W(int nmax, double *arr)
 {
   int alpha, beta, temp1, temp2;

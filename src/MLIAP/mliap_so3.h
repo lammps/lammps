@@ -98,13 +98,6 @@ class MLIAP_SO3: protected Pointers {
                   int lpl2, int indpl);
 
   void compute_W(int nmax, double *arr);
-
-  void swap(double *a, double *b);
-  int partition(double arr[], int low, int high, double arrv[],
-                int n);
-  void quickSort(double arr[], int low, int high, double arrv[],
-                 int n);
-
 };
 
 }

@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -12,6 +13,7 @@
 ------------------------------------------------------------------------- */
 
 #include "mliap_descriptor_so3.h"
+
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
@@ -72,7 +74,7 @@ void MLIAPDescriptorSO3::read_paramfile(char *paramfilename)
   if (comm->me == 0) {
     fpparam = utils::open_potential(paramfilename,lmp,nullptr);
     if (fpparam == nullptr)
-      error->one(FLERR,fmt::format
+      error->one(FLERR,
         ("Cannot open SO3 parameter file {}: {}",
           paramfilename, utils::getsyserror()));
   }
@@ -267,19 +269,6 @@ void MLIAPDescriptorSO3::compute_forces(class MLIAPData* data)
 
   }
 }
-
-void MLIAPDescriptorSO3::compute_force_gradients
-  (class MLIAPData* data)
-{
-
-}
-
-void MLIAPDescriptorSO3::compute_descriptor_gradients
-  (class MLIAPData* data)
-{
-
-}
-
 void MLIAPDescriptorSO3::init()
 {
   so3ptr->init();

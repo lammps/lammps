@@ -89,7 +89,7 @@ class MLIAP_SO3: protected Pointers {
   double *dclist_i, int ldcli1, int ldcli2, int ldcli3,
   double *dplist_r, int dpli1, int dpli2);
 
-  double g(double r, int n, int nmax, double rcut, double *w, int lw1,
+  double compute_g(double r, int n, int nmax, double rcut, double *w, int lw1,
            int lw2);
   double phi(double r, int alpha, double rcut);
   void compute_pi(int nmax, int lmax, double *clisttot_r,
@@ -97,7 +97,7 @@ class MLIAP_SO3: protected Pointers {
                   double *plist_r, double *plist_i, int lpl1,
                   int lpl2, int indpl);
 
-  void W(int nmax, double *arr);
+  void compute_W(int nmax, double *arr);
 
   void swap(double *a, double *b);
   int partition(double arr[], int low, int high, double arrv[],

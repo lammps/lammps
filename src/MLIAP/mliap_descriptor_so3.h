@@ -28,8 +28,8 @@ class MLIAPDescriptorSO3 : public MLIAPDescriptor {
 
   virtual void compute_descriptors(class MLIAPData*);
   virtual void compute_forces(class MLIAPData*);
-  virtual void compute_force_gradients(class MLIAPData*);
-  virtual void compute_descriptor_gradients(class MLIAPData*);
+  virtual void compute_force_gradients(class MLIAPData*) {};
+  virtual void compute_descriptor_gradients(class MLIAPData*) {};
   virtual void init();
   virtual double memory_usage();
 

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
- https://lammps.sandia.gov/, Sandia National Laboratories
+ https://www.lammps.org/, Sandia National Laboratories
  Steve Plimpton, sjplimp@sandia.gov
 
  Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -23,15 +23,9 @@
 #include "error.h"
 #include "comm.h"
 
-#ifdef MLIAP_SO3_MKL
-#include "mkl.h"
-#else
-
 #include "mliap_so3_math.h"
 
-using namespace jacobi_pd;
-#endif
-
+using namespace SO3Math;
 using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace MathSpecial;
@@ -175,7 +169,7 @@ void MLIAP_SO3::init()
     m_ellm1[l] = get_sum(0, l, 1, 2);
   }
 
-  double pfac1 = 1.0 / 4.0 / M_PI;
+  double pfac1 = 1.0 / 4.0 / MY_PI;
   m_pfac_l1 = m_lmax + 2;
   m_pfac_l2 = (m_lmax + 2) * (m_lmax + 2) + 1;
   totali = m_pfac_l1 * m_pfac_l2;
@@ -231,7 +225,7 @@ void MLIAP_SO3::init()
   for (i = 0; i < totali; i++)
     m_w[i] = 0.0;
 
-  W(m_nmax, m_w);
+  compute_W(m_nmax, m_w);
 
   totali = m_nmax * m_Nmax;
   memory->create(m_g_array, totali, "MLIAP_SO3:g_array");
@@ -386,7 +380,7 @@ void MLIAP_SO3::quickSort(double arr[], int low, int high,
 
 }
 
-void MLIAP_SO3::W(int nmax, double *arr)
+void MLIAP_SO3::compute_W(int nmax, double *arr)
 {
   int alpha, beta, temp1, temp2;
 
@@ -413,82 +407,41 @@ void MLIAP_SO3::W(int nmax, double *arr)
   double *sqrtD = new double[n * n];
   double *tempM = new double[n * n];
 
-  int *IPIV = new int[n];
-  double *eigReal = new double[n];
-  double *eigImag = new double[n];
+  double **temparr;
+  double tempout[n];
+  double **tempvl;
 
-  int lwork = 6 * n;
-  double *vl = new double[n * n];
-  double *vr = new double[n * n];
-  double *work = new double[lwork];
   int info;
 
-  #ifdef MLIAP_SO3_MKL
-  //*******************  // for mkl
 
-  dgetrf(&n,&n,arr,&n,IPIV,&info);
-  dgetri(&n,arr,&n,IPIV,work,&lwork,&info);
-
-  // calculate eigenvalues using the DGEEV subroutine
-  dgeev(&Nchar,&Nchar,&n,arr,&n,outeig,eigImag,
-    vl,&n,vr,&n,work,&lwork,&info);
-  // check for errors
-  if (info!=0)
-    error->all(FLERR,"Invert matrix Error in W calculation!");
-
-  for( i=0;i<n;i++)
-    for( j=0;j<n;j++)
-      outeigvec[i*n+j]=vl[j*n+i];
-
-  quickSort(outeig,0,n-1,outeigvec,n);
-
-  for ( i=0;i<n;i++)
-    for ( j=0;j<n;j++)
-      if(i==j) sqrtD[i*n+j]=sqrt(outeig[i]);
-      else sqrtD[i*n+j]=0.0;
-
-  double dtemp;
-  for(i=0;i<n;i++)
-    for(j=0;j<n;j++){
-      dtemp=0;
-      for(k=0;k<n;k++) dtemp+=outeigvec[i*n+k]*sqrtD[k*n+j];
-
-      tempM[i*n+j]=dtemp;
-    }
-
-  dgetrf_(&n,&n,outeigvec,&n,IPIV,&info);
-  dgetri_(&n,outeigvec,&n,IPIV,work,&lwork,&info);
-
-  for(i=0;i<n;i++){
-    for(j=0;j<n;j++){
-      dtemp=0;
-      for(k=0;k<n;k++) dtemp+=tempM[i*n+k]*outeigvec[k*n+j];
-
-      arr[i*n+j]=dtemp;
-    }
-  ///////////////////////////////// end for mkl
-
-  #else
-
-  //*********** for internal lib
-  Jacobi<double, double*, double**> eigen_calc(n);
-
-  info = eigen_calc.invert_matrix(arr, arrinv);
+  info = invert_matrix(n, arr, arrinv );
   if (info != 0)
     error->all(FLERR, "Invert matrix Error in W calculation!");
 
-  eigen_calc.Diagonalize_1DArray(arrinv, outeig, vl);
+  temparr = new double* [n];
+  for (int iy=0; iy<n; iy++)
+    temparr[iy] = new double[n];
+
+  tempvl = new double* [n];
+  for (int iy=0; iy<n; iy++)
+    tempvl[iy] = new double[n];
+
+  for(i=0; i<n; i++)
+    for(j=0; j<n; j++)
+      temparr[i][j]=arrinv[i*n+j];
+
+  jacobin(n,temparr,tempout,tempvl);
+
 
   for (i = 0; i < n; i++)
     for (j = 0; j < n; j++)
-      outeigvec[i * n + j] = vl[j * n + i];
+      outeigvec[i * n + j] = tempvl[i][j];
 
-  quickSort(outeig, 0, n - 1, outeigvec, n);
 
   for (i = 0; i < n; i++)
     for (j = 0; j < n; j++)
       if (i == j)
-        sqrtD[i * n + j] = sqrt(outeig[i]);
+        sqrtD[i * n + j] = sqrt(tempout[i]);
       else
         sqrtD[i * n + j] = 0.0;
 
@@ -502,7 +455,10 @@ void MLIAP_SO3::W(int nmax, double *arr)
       tempM[i * n + j] = dtemp;
     }
 
-  info = eigen_calc.invert_matrix(outeigvec, arrinv);
+  info=invert_matrix(n, outeigvec, arrinv );
+  if (info != 0)
+    error->all(FLERR,"Invert matrix Error in W calculation!");
+
 
   for (i = 0; i < n; i++)
     for (j = 0; j < n; j++) {
@@ -513,9 +469,6 @@ void MLIAP_SO3::W(int nmax, double *arr)
       arr[i * n + j] = dtemp;
     }
 
-  /////////// end for interanl lib.
-
-  #endif
 
   delete outeig;
   delete outeigvec;
@@ -524,13 +477,8 @@ void MLIAP_SO3::W(int nmax, double *arr)
   delete sqrtD;
   delete tempM;
 
-  delete IPIV;
-  delete eigReal;
-  delete eigImag;
-
-  delete vl;
-  delete vr;
-  delete work;
+  delete temparr;
+  delete tempvl;
 
 }
 
@@ -545,7 +493,7 @@ void MLIAP_SO3::compute_pi(int nmax, int lmax, double *clisttot_r,
     for (n2 = 0; n2 < n1 + 1; n2++) {
       j = 0;
       for (l = 0; l < lmax + 1; l++) {
-        norm = 2.0 * sqrt(2.0) * M_PI / sqrt(2.0 * l + 1.0);
+        norm = 2.0 * sqrt(2.0) * MY_PI / sqrt(2.0 * l + 1.0);
 
         for (m = -l; m < l + 1; m++) {
 
@@ -573,7 +521,7 @@ double MLIAP_SO3::phi(double r, int alpha, double rcut)
       / (2 * alpha + 6) / (2 * alpha + 7));
 }
 
-double MLIAP_SO3::g(double r, int n, int nmax, double rcut,
+double MLIAP_SO3::compute_g(double r, int n, int nmax,double rcut,
                     double *w, int lw1, int lw2)
 {
   double Sum;
@@ -590,13 +538,13 @@ double MLIAP_SO3::g(double r, int n, int nmax, double rcut,
 double MLIAP_SO3::Cosine(double Rij, double Rc)
 {
 
-  return 0.5 * (cos(M_PI * Rij / Rc) + 1.0);
+  return 0.5 * (cos(MY_PI * Rij / Rc) + 1.0);
 
 }
 double MLIAP_SO3::CosinePrime(double Rij, double Rc)
 {
 
-  return -0.5 * M_PI / Rc * sin(M_PI * Rij / Rc);
+  return -0.5 * MY_PI / Rc * sin(MY_PI * Rij / Rc);
 
 }
 double MLIAP_SO3::compute_sfac(double r, double rcut)
@@ -629,7 +577,7 @@ void MLIAP_SO3::compute_dpidrj(int nmax, int lmax, double *clisttot_r,
     for (n2 = 0; n2 < n1 + 1; n2++) {
       j = 0;
       for (l = 0; l < lmax + 1; l++) {
-        norm = 2.0 * sqrt(2.0) * M_PI / sqrt(2.0 * l + 1.0);
+        norm = 2.0 * sqrt(2.0) * MY_PI / sqrt(2.0 * l + 1.0);
         for (m = -l; m < l + 1; m++) {
           for (ii = 0; ii < 3; ii++) {
 
@@ -775,14 +723,15 @@ void MLIAP_SO3::init_garray(int nmax, int lmax, double rcut,
 
   for (i = 1; i < Nmax + 1; i++) {
     // roots of Chebyshev polynomial of degree N
-    x = cos((2 * i - 1) * M_PI / 2 / Nmax);
+    x = cos((2 * i - 1) * MY_PI / 2 / Nmax);
     // transform the interval [-1,1] to [0, rcut]
     xi = rcut / 2 * (x + 1);
     for (n = 1; n < nmax + 1; n++)
       // r**2*g(n)(r)*e^(-alpha*r**2)
-      g_array[(n - 1) * lg2 + i - 1] = rcut / 2 * M_PI / Nmax
+      g_array[(n - 1) * lg2 + i - 1] = rcut / 2 * MY_PI / Nmax
         * sqrt(1 - x * x) * xi * xi
-          * g(xi, n, nmax, rcut, w, lw1, lw2) * exp(-alpha * xi * xi);
+          * compute_g(xi, n, nmax, rcut, w, lw1, lw2)
+            * exp(-alpha * xi * xi);
 
   }
 }
@@ -804,7 +753,7 @@ void MLIAP_SO3::get_sbes_array(int natoms, int *numneighs,
 
   pfac1 = alpha * rcut;
   pfac4 = rcut / 2;
-  pfac3 = M_PI / 2 / m_Nmax;
+  pfac3 = MY_PI / 2 / m_Nmax;
 
   int ipair = 0;
   int gindex;
@@ -903,7 +852,7 @@ void MLIAP_SO3::get_rip_array(int natoms, int *numneighs,
       if (ri < pow(10, -8))
         continue;
 
-      expfac = 4 * M_PI * exp(-alpha * ri * ri);
+      expfac = 4 * MY_PI * exp(-alpha * ri * ri);
 
       for (n = 1; n < nmax + 1; n++)
         for (l = 0; l < lmax + 1; l++) {
@@ -949,7 +898,7 @@ void MLIAP_SO3::spectrum(int natoms, int *numneighs, int *jelems,
   double x, y, z, r;
   double r_int;
   int twolmax = 2 * (lmax + 1);
-  double pfac1 = 1.0 / 4.0 / M_PI;
+  double pfac1 = 1.0 / 4.0 / MY_PI;
   double pfac2;
   int findex, gindex;
   int ipair = 0;
@@ -1095,7 +1044,7 @@ void MLIAP_SO3::spectrum_dxdr(int natoms, int *numneighs,
   double r_int;
   double r_int_temp;
 
-  double pfac1 = 1.0 / 4.0 / M_PI;
+  double pfac1 = 1.0 / 4.0 / MY_PI;
   double pfac2;
   double oneofr;
   int findex, gindex;

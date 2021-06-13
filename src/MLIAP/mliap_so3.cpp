@@ -233,8 +233,7 @@ void MLIAP_SO3::init()
   for (i = 0; i < totali; i++)
     m_g_array[i] = 0.0;
 
-  init_garray(m_nmax, m_lmax, m_rcut, m_alpha, m_w, m_nmax, m_nmax,
-    m_g_array, m_nmax, m_Nmax);
+  init_garray(m_nmax, m_lmax, m_rcut, m_alpha, m_w, m_nmax, m_g_array, m_Nmax);
 
   int twolmax;
   twolmax = 2 * (m_lmax + 1);
@@ -672,8 +671,7 @@ void MLIAP_SO3::compute_uarray_recursive(double x, double y,
 
 void MLIAP_SO3::init_garray(int nmax, int lmax, double rcut,
                             double alpha, double *w, int lw1,
-                            int lw2, double *g_array, int /*lg1*/,
-                            int lg2)
+                            double *g_array, int lg2)
 {
   int i, n, Nmax = (nmax + lmax + 1) * 10;
   double x, xi;

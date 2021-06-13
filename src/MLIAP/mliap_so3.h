@@ -70,8 +70,7 @@ class MLIAP_SO3: protected Pointers {
                      double **rij, int nmax, int lmax, double alpha);
   void init_arrays(int natoms, int ncoefs);
   void init_garray(int nmax, int lmax, double rcut, double alpha,
-                   double *w, int lw1, int lw2, double *g_array,
-                   int lg1, int lg2);
+                   double *w, int lw1, double *g_array, int lg2);
 
   void compute_uarray_recursive(double x, double y, double z,
                                 double r, int twol, double *ulist_r,

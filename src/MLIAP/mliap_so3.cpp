@@ -277,7 +277,7 @@ void MLIAP_SO3::init()
   m_numYlms = (m_lmax + 1) * (m_lmax + 1);
 }
 
-void MLIAP_SO3::init_arrays(int natoms, int *numneighs, int ncoefs)
+void MLIAP_SO3::init_arrays(int natoms, int * /*numneighs*/, int ncoefs)
 {
   int totali = natoms * ncoefs;
   memory->destroy(m_plist_r);
@@ -353,10 +353,7 @@ void MLIAP_SO3::compute_W(int nmax, double *arr)
     }
   }
 
-  char Nchar = 'V';
-  char charN = 'N';
-  char charT = 'T';
-  int i, j, k, l, totaln, n = nmax;
+  int i, j, k, n = nmax;
   double *outeig = new double[n];
   double *outeigvec = new double[n * n];
   double *arrinv = new double[n * n];
@@ -446,9 +443,9 @@ void MLIAP_SO3::compute_W(int nmax, double *arr)
 }
 
 void MLIAP_SO3::compute_pi(int nmax, int lmax, double *clisttot_r,
-                           double *clisttot_i, int lcl1, int lcl2,
+                           double *clisttot_i, int /*lcl1*/, int lcl2,
                            double *plist_r, double *plist_i,
-                           int lpl1, int lpl2, int indpl)
+                           int /*lpl1*/, int lpl2, int indpl)
 {
   int n1, n2, j, l, m, i = 0;
   double norm;
@@ -485,7 +482,7 @@ double MLIAP_SO3::phi(double r, int alpha, double rcut)
 }
 
 double MLIAP_SO3::compute_g(double r, int n, int nmax,double rcut,
-                    double *w, int lw1, int lw2)
+                    double *w, int lw1, int /*lw2*/)
 {
   double Sum;
   Sum = 0.0;
@@ -526,11 +523,11 @@ double MLIAP_SO3::compute_dsfac(double r, double rcut)
 }
 
 void MLIAP_SO3::compute_dpidrj(int nmax, int lmax, double *clisttot_r,
-                               double *clisttot_i, int lctot1,
+                               double *clisttot_i, int /*lctot1*/,
                                int lctot2, double *dclist_r,
-                               double *dclist_i, int ldcli1,
+                               double *dclist_i, int /*ldcli1*/,
                                int ldcli2, int ldcli3,
-                               double *dplist_r, int dpli1, int dpli2)
+                               double *dplist_r, int /*dpli1*/, int dpli2)
 {
   double temp_r;
   double norm;
@@ -564,7 +561,6 @@ void MLIAP_SO3::compute_dpidrj(int nmax, int lmax, double *clisttot_r,
         i += 1;
       }
     }
-
 }
 
 int MLIAP_SO3::get_sum(int istart, int iend, int id, int imult)
@@ -576,7 +572,6 @@ int MLIAP_SO3::get_sum(int istart, int iend, int id, int imult)
     ires += i * imult;
 
   return ires;
-
 }
 
 void MLIAP_SO3::compute_uarray_recursive(double x, double y,
@@ -585,7 +580,7 @@ void MLIAP_SO3::compute_uarray_recursive(double x, double y,
                                          double *ulist_i,
                                          int *idxu_block,
                                          double *rootpqarray,
-                                         int roi1, int roi2)
+                                         int /*roi1*/, int /*roi2*/)
 {
   int l, llu, llup, mb, ma, mbpar, mapar;
   double rootpq;
@@ -678,7 +673,7 @@ void MLIAP_SO3::compute_uarray_recursive(double x, double y,
 
 void MLIAP_SO3::init_garray(int nmax, int lmax, double rcut,
                             double alpha, double *w, int lw1,
-                            int lw2, double *g_array, int lg1,
+                            int lw2, double *g_array, int /*lg1*/,
                             int lg2)
 {
   int i, n, Nmax = (nmax + lmax + 1) * 10;
@@ -700,16 +695,14 @@ void MLIAP_SO3::init_garray(int nmax, int lmax, double rcut,
 }
 
 void MLIAP_SO3::get_sbes_array(int natoms, int *numneighs,
-                               int *jelems, double *wjelem,
-                               double **rij, int nmax, int lmax,
-                               double rcut, double alpha, int ncoefs)
+                               int * /*jelems*/, double * /*wjelem*/,
+                               double **rij, int /*nmax*/, int lmax,
+                               double rcut, double alpha, int /*ncoefs*/)
 {
-  int i, j, k, l, ti, n;
-  int totali;
-
+  int i, j;
   int neighbor;
 
-  double x, y, z, r, ri, xi, rb;
+  double x, y, z, ri, xi, rb;
   double sa, sb;
   double pfac1, pfac2, pfac3, pfac4;
   double exts;
@@ -788,16 +781,15 @@ void MLIAP_SO3::get_sbes_array(int natoms, int *numneighs,
 }
 
 void MLIAP_SO3::get_rip_array(int natoms, int *numneighs,
-                              int *jelems, double *wjelem,
+                              int * /*jelems*/, double * /*wjelem*/,
                               double **rij, int nmax, int lmax,
-                              double rcut, double alpha, int ncoefs)
+                              double /*rcut*/, double alpha, int /*ncoefs*/)
 {
-  int i, j, k, l, ti, n;
-  int totali;
+  int i, l, n;
   double integrald, integral = 0.0;
   int neighbor;
 
-  double x, y, z, r, ri, expfac, xi, rb;
+  double x, y, z, ri, expfac;
 
   int ipair = 0;
 
@@ -854,15 +846,11 @@ void MLIAP_SO3::spectrum(int natoms, int *numneighs, int *jelems,
   int totaln = 0;
   int totali;
   double Ylm_r, Ylm_i;
-  double expfac;
-  int i, j, k, l, ti;
-  int numps, nstart, nsite, n, weight, neighbor;
-  double isite;
+  int i, ti;
+  int weight, neighbor;
   double x, y, z, r;
   double r_int;
   int twolmax = 2 * (lmax + 1);
-  double pfac1 = 1.0 / 4.0 / MY_PI;
-  double pfac2;
   int findex, gindex;
   int ipair = 0;
   double sfac;
@@ -994,21 +982,17 @@ void MLIAP_SO3::spectrum_dxdr(int natoms, int *numneighs,
   double dr_int[3];
   double Ylm_r, Ylm_i;
 
-  int ellpl1, ellm1;
   double rvec[3];
   double dexpfac[3];
   double dfact[6];
-  double expfac;
 
-  int i, j, k, l, ti;
+  int i, ti;
 
   double xcov0_r, xcov0_i, xcovpl1_r, xcovpl1_i, xcovm1_r, xcovm1_i;
-  double comj_r, comj_i;
+  double comj_i;
   double r_int;
   double r_int_temp;
 
-  double pfac1 = 1.0 / 4.0 / MY_PI;
-  double pfac2;
   double oneofr;
   int findex, gindex;
 
@@ -1189,15 +1173,11 @@ void MLIAP_SO3::spectrum_dxdr(int natoms, int *numneighs,
           m_dYlm_i[tn] = 0.0;
         }
 
-        comj_r = 0.0;
         comj_i = 1.0 / sqrt(2.0);
         oneofr = 1.0 / r;
 
         i = 1;
         for (int l = 1; l < lmax + 1; l++) {
-          ellpl1 = get_sum(0, l + 2, 1, 2);
-          ellm1 = get_sum(0, l, 1, 2);
-
           for (int m = -l; m < l + 1; m++) {
 
             dfact[0] = m_dfac0[l * m_dfac_l2 + m] * oneofr;
@@ -1239,7 +1219,6 @@ void MLIAP_SO3::spectrum_dxdr(int natoms, int *numneighs,
 
             i += 1;
           }
-
         }
 
         for (int ii = 0; ii < 3; ii++)

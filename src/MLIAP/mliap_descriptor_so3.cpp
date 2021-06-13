@@ -50,7 +50,6 @@ MLIAPDescriptorSO3::MLIAPDescriptorSO3(LAMMPS *lmp,
 
 MLIAPDescriptorSO3::~MLIAPDescriptorSO3()
 {
-
   if (nelements) {
     for (int i = 0; i < nelements; i++)
       delete[] elements[i];
@@ -59,7 +58,6 @@ MLIAPDescriptorSO3::~MLIAPDescriptorSO3()
     memory->destroy(wjelem);
     memory->destroy(cutsq);
   }
-
   delete so3ptr;
 }
 
@@ -85,9 +83,8 @@ void MLIAPDescriptorSO3::read_paramfile(char *paramfilename)
   if (comm->me == 0) {
     fpparam = utils::open_potential(paramfilename,lmp,nullptr);
     if (fpparam == nullptr)
-      error->one(FLERR,
-        ("Cannot open SO3 parameter file {}: {}",
-          paramfilename, utils::getsyserror()));
+      error->one(FLERR, "Cannot open SO3 parameter file {}: {}",
+                 paramfilename, utils::getsyserror());
   }
 
   char line[MAXLINE],*ptr;
@@ -208,24 +205,18 @@ void MLIAPDescriptorSO3::read_paramfile(char *paramfilename)
       cut = (radelem[ielem]+radelem[jelem])*rcutfac;
       cutsq[ielem][jelem] = cutsq[jelem][ielem] = cut*cut;
     }
-
   }
-
 }
 
 void MLIAPDescriptorSO3::compute_descriptors(class MLIAPData* data)
 {
-
-  so3ptr->spectrum(data->nlistatoms,data->numneighs,
-    data->jelems,wjelem,data->rij,nmax, lmax, rcutfac,alpha,
-      data->ndescriptors);
+  so3ptr->spectrum(data->nlistatoms,data->numneighs,data->jelems,wjelem,
+                   data->rij,nmax,lmax,rcutfac,alpha,data->ndescriptors);
 
   for (int ii = 0; ii < data->nlistatoms; ii++) {
     for (int icoeff = 0; icoeff < data->ndescriptors; icoeff++)
-      data->descriptors[ii][icoeff] =
-        so3ptr->m_plist_r[ii*(data->ndescriptors)+icoeff];
+      data->descriptors[ii][icoeff] = so3ptr->m_plist_r[ii*(data->ndescriptors)+icoeff];
   }
-
 }
 
 void MLIAPDescriptorSO3::compute_forces(class MLIAPData* data)
@@ -234,21 +225,14 @@ void MLIAPDescriptorSO3::compute_forces(class MLIAPData* data)
   for (int ii = 0; ii < data->nlistatoms; ii++)
     npairs+=data->numneighs[ii];
 
-  int totali;
-
-  so3ptr->spectrum_dxdr(data->nlistatoms,data->numneighs,
-    data->jelems,wjelem,data->rij,nmax, lmax, rcutfac,alpha,npairs,
-      data->ndescriptors);
-
-
+  so3ptr->spectrum_dxdr(data->nlistatoms,data->numneighs,data->jelems,wjelem,
+                        data->rij,nmax,lmax,rcutfac,alpha,npairs,data->ndescriptors);
   double fij[3];
   double **f = atom->f;
-
   int ij = 0;
 
   for (int ii = 0; ii < data->nlistatoms; ii++) {
     const int i = data->iatoms[ii];
-    const int ielem = data->ielems[ii];
 
     // insure rij, inside, wj, and rcutij are of size jnum
 

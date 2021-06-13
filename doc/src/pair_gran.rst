@@ -1,32 +1,32 @@
 .. index:: pair_style gran/hooke
+.. index:: pair_style gran/hooke/omp
+.. index:: pair_style gran/hooke/history
+.. index:: pair_style gran/hooke/history/omp
+.. index:: pair_style gran/hooke/history/kk
+.. index:: pair_style gran/hertz/history
+.. index:: pair_style gran/hertz/history/omp
 
 pair_style gran/hooke command
 =============================
 
-pair_style gran/hooke/omp command
-=================================
+Accelerator Variants: *gran/hooke/omp*
 
 pair_style gran/hooke/history command
 =====================================
 
-pair_style gran/hooke/history/omp command
-=========================================
-
-pair_style gran/hooke/history/kk command
-========================================
+Accelerator Variants: *gran/hooke/history/omp*, *gran/hooke/history/kk*
 
 pair_style gran/hertz/history command
 =====================================
 
-pair_style gran/hertz/history/omp command
-=========================================
+Accelerator Variants: *gran/hertz/history/omp*
 
 Syntax
 """"""
 
 .. code-block:: LAMMPS
 
-   pair_style style Kn Kt gamma_n gamma_t xmu dampflag
+   pair_style style Kn Kt gamma_n gamma_t xmu dampflag keyword
 
 * style = *gran/hooke* or *gran/hooke/history* or *gran/hertz/history*
 * Kn = elastic constant for normal particle repulsion (force/distance units or pressure units - see discussion below)
@@ -35,6 +35,13 @@ Syntax
 * gamma_t = damping coefficient for collisions in tangential direction (1/time units or 1/time-distance units - see discussion below)
 * xmu = static yield criterion (unitless value between 0.0 and 1.0e4)
 * dampflag = 0 or 1 if tangential damping force is excluded or included
+
+* keyword = *limit_damping*
+
+  .. parsed-literal::
+
+      *limit_damping* value = none
+         limit damping to prevent attractive interaction
 
 .. note::
 
@@ -54,6 +61,8 @@ Examples
 
    pair_style gran/hooke/history 200000.0 NULL 50.0 NULL 0.5 1
    pair_style gran/hooke 200000.0 70000.0 50.0 30.0 0.5 0
+   pair_style gran/hooke 200000.0 70000.0 50.0 30.0 0.5 0 limit_damping
+
 
 Description
 """""""""""
@@ -208,13 +217,20 @@ potential is used as a sub-style of :doc:`pair_style hybrid <pair_hybrid>`, then
 pair_coeff command to determine which atoms interact via a granular
 potential.
 
+If two particles are moving away from each other while in contact, there
+is a possibility that the particles could experience an effective attractive
+force due to damping. If the *limit_damping* keyword is used, this option
+will zero out the normal component of the force if there is an effective
+attractive force.
+
 ----------
 
 .. include:: accel_styles.rst
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 The :doc:`pair_modify <pair_modify>` mix, shift, table, and tail options
 are not relevant for granular pair styles.
@@ -268,7 +284,10 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

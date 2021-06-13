@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -36,7 +37,7 @@ ComputeSPHTAtom::ComputeSPHTAtom(LAMMPS *lmp, int narg, char **arg) :
   size_peratom_cols = 0;
 
   nmax = 0;
-  tvector = NULL;
+  tvector = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -96,6 +97,6 @@ void ComputeSPHTAtom::compute_peratom()
 
 double ComputeSPHTAtom::memory_usage()
 {
-  double bytes = nmax * sizeof(double);
+  double bytes = (double)nmax * sizeof(double);
   return bytes;
 }

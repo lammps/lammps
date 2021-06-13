@@ -1,6 +1,7 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,9 +17,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef BOND_CLASS
-
-BondStyle(harmonic/intel,BondHarmonicIntel)
-
+// clang-format off
+BondStyle(harmonic/intel,BondHarmonicIntel);
+// clang-format on
 #else
 
 #ifndef LMP_BOND_HARMONIC_INTEL_H
@@ -61,7 +62,7 @@ class BondHarmonicIntel : public BondHarmonic {
     fc_packed1 *fc;
 
     ForceConst() : _nbondtypes(0)  {}
-    ~ForceConst() { set_ntypes(0, NULL); }
+    ~ForceConst() { set_ntypes(0, nullptr); }
 
     void set_ntypes(const int nbondtypes, Memory *memory);
 

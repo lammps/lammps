@@ -128,7 +128,8 @@ group-group calculations are performed.
 
 ----------
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global scalar (the energy) and a global
 vector of length 3 (force), which can be accessed by indices 1-3.
@@ -154,7 +155,11 @@ system and not valid if particles have been moved since.
 Not all :doc:`Kspace styles <kspace_style>` support the calculation of
 group/group interactions. The regular *ewald* and *pppm* styles do.
 
-**Related commands:** none
+Related commands
+""""""""""""""""
+
+none
+
 
 Default
 """""""

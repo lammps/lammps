@@ -176,7 +176,7 @@ void test_count_fill(std::int32_t nrows) {
 template <class ExecSpace>
 void test_constructor(std::int32_t nrows) {
   for (int nTest = 1; nTest < 5; nTest++) {
-    typedef Kokkos::Crs<float, ExecSpace, void, std::int32_t> crs_type;
+    using crs_type = Kokkos::Crs<float, ExecSpace, void, std::int32_t>;
     crs_type graph;
     Kokkos::count_and_fill_crs(graph, nrows, CountFillFunctor<ExecSpace>());
     ASSERT_EQ(graph.numRows(), nrows);

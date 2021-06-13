@@ -1,10 +1,10 @@
 .. index:: fix deform
+.. index:: fix deform/kk
 
 fix deform command
 ==================
 
-fix deform/kk command
-=====================
+Accelerator Variants: *deform/kk*
 
 Syntax
 """"""
@@ -565,7 +565,8 @@ command if you want to include lattice spacings in a variable formula.
 
 .. include:: accel_styles.rst
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This fix will restore the initial box settings from :doc:`binary restart files <restart>`, which allows the fix to be properly continue
 deformation, when using the start/stop options of the :doc:`run <run>`

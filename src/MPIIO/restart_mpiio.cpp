@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,8 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include "restart_mpiio.h"
-#include <mpi.h>
-#include <climits>
+
 #include "error.h"
 
 using namespace LAMMPS_NS;

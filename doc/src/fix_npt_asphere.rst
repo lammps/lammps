@@ -1,10 +1,10 @@
 .. index:: fix npt/asphere
+.. index:: fix npt/asphere/omp
 
 fix npt/asphere command
 =======================
 
-fix npt/asphere/omp command
-===========================
+Accelerator Variants: *npt/asphere/omp*
 
 Syntax
 """"""
@@ -106,7 +106,8 @@ thermal degrees of freedom, and the bias is added back in.
 
 .. include:: accel_styles.rst
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This fix writes the state of the Nose/Hoover thermostat and barostat
 to :doc:`binary restart files <restart>`.  See the
@@ -123,10 +124,10 @@ consistent with the virial term computed using all atoms for the
 pressure.  LAMMPS will warn you if you choose to compute temperature
 on a subset of atoms.
 
-The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
-fix to add the energy change induced by Nose/Hoover thermostatting and
-barostatting to the system's potential energy as part of
-:doc:`thermodynamic output <thermo_style>`.
+The cumulative energy change in the system imposed by this fix is
+included in the :doc:`thermodynamic output <thermo_style>` keywords
+*ecouple* and *econserve*.  See the :doc:`thermo_style <thermo_style>`
+doc page for details.
 
 This fix computes the same global scalar and global vector of
 quantities as does the :doc:`fix npt <fix_nh>` command.
@@ -157,4 +158,7 @@ Related commands
 
 :doc:`fix npt <fix_nh>`, :doc:`fix nve_asphere <fix_nve_asphere>`, :doc:`fix nvt_asphere <fix_nvt_asphere>`, :doc:`fix_modify <fix_modify>`
 
-**Default:** none
+Default
+"""""""
+
+none

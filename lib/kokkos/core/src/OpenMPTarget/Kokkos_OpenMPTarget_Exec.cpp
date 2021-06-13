@@ -50,10 +50,12 @@
 #include <impl/Kokkos_Error.hpp>
 #include <iostream>
 #include <impl/Kokkos_CPUDiscovery.hpp>
-#include <impl/Kokkos_Profiling_Interface.hpp>
+#include <impl/Kokkos_Tools.hpp>
 
 #ifdef KOKKOS_ENABLE_OPENMPTARGET
 
+// FIXME_OPENMPTARGET currently unused
+/*
 namespace Kokkos {
 namespace Impl {
 namespace {
@@ -69,6 +71,7 @@ bool s_using_hwloc = false;
 }  // namespace
 }  // namespace Impl
 }  // namespace Kokkos
+*/
 
 namespace Kokkos {
 namespace Impl {
@@ -89,8 +92,11 @@ void OpenMPTargetExec::verify_initialized(const char* const label) {
   }
 }
 
-void* OpenMPTargetExec::m_scratch_ptr    = nullptr;
-int64_t OpenMPTargetExec::m_scratch_size = 0;
+void* OpenMPTargetExec::m_scratch_ptr         = nullptr;
+int64_t OpenMPTargetExec::m_scratch_size      = 0;
+int* OpenMPTargetExec::m_lock_array           = nullptr;
+int64_t OpenMPTargetExec::m_lock_size         = 0;
+uint32_t* OpenMPTargetExec::m_uniquetoken_ptr = nullptr;
 
 void OpenMPTargetExec::clear_scratch() {
   Kokkos::Experimental::OpenMPTargetSpace space;
@@ -99,18 +105,28 @@ void OpenMPTargetExec::clear_scratch() {
   m_scratch_size = 0;
 }
 
+void OpenMPTargetExec::clear_lock_array() {
+  if (m_lock_array != nullptr) {
+    Kokkos::Experimental::OpenMPTargetSpace space;
+    space.deallocate(m_lock_array, m_lock_size);
+    m_lock_array = nullptr;
+    m_lock_size  = 0;
+  }
+}
+
 void* OpenMPTargetExec::get_scratch_ptr() { return m_scratch_ptr; }
 
-void OpenMPTargetExec::resize_scratch(int64_t reduce_bytes,
-                                      int64_t team_reduce_bytes,
-                                      int64_t team_shared_bytes,
-                                      int64_t thread_local_bytes) {
+void OpenMPTargetExec::resize_scratch(int64_t team_size, int64_t shmem_size_L0,
+                                      int64_t shmem_size_L1) {
   Kokkos::Experimental::OpenMPTargetSpace space;
-  uint64_t total_size =
-      MAX_ACTIVE_TEAMS * reduce_bytes +         // Inter Team Reduction
-      MAX_ACTIVE_TEAMS * team_reduce_bytes +    // Intra Team Reduction
-      MAX_ACTIVE_TEAMS * team_shared_bytes +    // Team Local Scratch
-      MAX_ACTIVE_THREADS * thread_local_bytes;  // Thread Private Scratch
+  const int64_t shmem_size =
+      shmem_size_L0 + shmem_size_L1;  // L0 + L1 scratch memory per team.
+  const int64_t padding = shmem_size * 10 / 100;  // Padding per team.
+  // Total amount of scratch memory allocated is depenedent
+  // on the maximum number of in-flight teams possible.
+  int64_t total_size =
+      (shmem_size + OpenMPTargetExecTeamMember::TEAM_REDUCE_SIZE + padding) *
+      (MAX_ACTIVE_THREADS / team_size);
 
   if (total_size > m_scratch_size) {
     space.deallocate(m_scratch_ptr, m_scratch_size);
@@ -118,6 +134,35 @@ void OpenMPTargetExec::resize_scratch(int64_t reduce_bytes,
     m_scratch_ptr  = space.allocate(total_size);
   }
 }
+
+int* OpenMPTargetExec::get_lock_array(int num_teams) {
+  Kokkos::Experimental::OpenMPTargetSpace space;
+  int max_active_league_size = MAX_ACTIVE_THREADS / 32;
+  int lock_array_elem =
+      (num_teams > max_active_league_size) ? num_teams : max_active_league_size;
+  if (m_lock_size < (lock_array_elem * sizeof(int))) {
+    space.deallocate(m_lock_array, m_lock_size);
+    m_lock_size  = lock_array_elem * sizeof(int);
+    m_lock_array = static_cast<int*>(space.allocate(m_lock_size));
+
+    // FIXME_OPENMPTARGET - Creating a target region here to initialize the
+    // lock_array with 0's fails. Hence creating an equivalent host array to
+    // achieve the same. Value of host array are then copied to the lock_array.
+    int* h_lock_array = static_cast<int*>(
+        omp_target_alloc(m_lock_size, omp_get_initial_device()));
+
+    for (int i = 0; i < lock_array_elem; ++i) h_lock_array[i] = 0;
+
+    OMPT_SAFE_CALL(omp_target_memcpy(m_lock_array, h_lock_array, m_lock_size, 0,
+                                     0, omp_get_default_device(),
+                                     omp_get_initial_device()));
+
+    omp_target_free(h_lock_array, omp_get_initial_device());
+  }
+
+  return m_lock_array;
+}
+
 }  // namespace Impl
 }  // namespace Kokkos
 

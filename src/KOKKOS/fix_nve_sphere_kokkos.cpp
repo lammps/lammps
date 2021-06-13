@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -39,8 +40,8 @@ FixNVESphereKokkos<DeviceType>::FixNVESphereKokkos(LAMMPS *lmp, int narg, char *
 template<class DeviceType>
 void FixNVESphereKokkos<DeviceType>::cleanup_copy()
 {
-  id = style = NULL;
-  vatom = NULL;
+  id = style = nullptr;
+  vatom = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -58,7 +59,7 @@ void FixNVESphereKokkos<DeviceType>::init()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixNVESphereKokkos<DeviceType>::initial_integrate(int vflag)
+void FixNVESphereKokkos<DeviceType>::initial_integrate(int /*vflag*/)
 {
   atomKK->sync(execution_space,datamask_read);
   atomKK->modified(execution_space,datamask_modify);

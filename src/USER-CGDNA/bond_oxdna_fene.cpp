@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "bond_oxdna_fene.h"
-#include <mpi.h>
+
 #include <cmath>
 #include "atom.h"
 #include "neighbor.h"
@@ -24,7 +25,7 @@
 #include "force.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 #include "atom_vec_ellipsoid.h"
 #include "math_extra.h"
 
@@ -173,6 +174,7 @@ void BondOxdnaFene::compute(int eflag, int vflag)
 
   AtomVecEllipsoid *avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
   AtomVecEllipsoid::Bonus *bonus = avec->bonus;
+  int *ellipsoid = atom->ellipsoid;
 
   int **bondlist = neighbor->bondlist;
   int nbondlist = neighbor->nbondlist;
@@ -190,9 +192,9 @@ void BondOxdnaFene::compute(int eflag, int vflag)
     b = bondlist[in][0];
     type = bondlist[in][2];
 
-    qa=bonus[a].quat;
+    qa=bonus[ellipsoid[a]].quat;
     MathExtra::q_to_exyz(qa,ax,ay,az);
-    qb=bonus[b].quat;
+    qb=bonus[ellipsoid[b]].quat;
     MathExtra::q_to_exyz(qb,bx,by,bz);
 
     // vector COM-backbone site a and b
@@ -220,7 +222,7 @@ void BondOxdnaFene::compute(int eflag, int vflag)
       sprintf(str,"FENE bond too long: " BIGINT_FORMAT " "
               TAGINT_FORMAT " " TAGINT_FORMAT " %g",
               update->ntimestep,atom->tag[a],atom->tag[b],r);
-      error->warning(FLERR,str,0);
+      error->warning(FLERR,str);
       rlogarg = 0.1;
     }
 
@@ -302,11 +304,11 @@ void BondOxdnaFene::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nbondtypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->nbondtypes,ilo,ihi,error);
 
-  double k_one = force->numeric(FLERR,arg[1]);
-  double Delta_one = force->numeric(FLERR,arg[2]);
-  double r0_one = force->numeric(FLERR,arg[3]);
+  double k_one = utils::numeric(FLERR,arg[1],false,lmp);
+  double Delta_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double r0_one = utils::numeric(FLERR,arg[3],false,lmp);
 
   int count = 0;
 
@@ -359,9 +361,9 @@ void BondOxdnaFene::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    utils::sfread(FLERR,&k[1],sizeof(double),atom->nbondtypes,fp,NULL,error);
-    utils::sfread(FLERR,&Delta[1],sizeof(double),atom->nbondtypes,fp,NULL,error);
-    utils::sfread(FLERR,&r0[1],sizeof(double),atom->nbondtypes,fp,NULL,error);
+    utils::sfread(FLERR,&k[1],sizeof(double),atom->nbondtypes,fp,nullptr,error);
+    utils::sfread(FLERR,&Delta[1],sizeof(double),atom->nbondtypes,fp,nullptr,error);
+    utils::sfread(FLERR,&r0[1],sizeof(double),atom->nbondtypes,fp,nullptr,error);
   }
   MPI_Bcast(&k[1],atom->nbondtypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&Delta[1],atom->nbondtypes,MPI_DOUBLE,0,world);
@@ -399,7 +401,7 @@ double BondOxdnaFene::single(int type, double rsq, int /*i*/, int /*j*/,
     char str[128];
     sprintf(str,"FENE bond too long: " BIGINT_FORMAT " %g",
             update->ntimestep,sqrt(rsq));
-    error->warning(FLERR,str,0);
+    error->warning(FLERR,str);
     rlogarg = 0.1;
   }
 

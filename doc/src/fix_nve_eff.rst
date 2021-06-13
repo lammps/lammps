@@ -30,7 +30,8 @@ system trajectory consistent with the microcanonical ensemble.
 The operation of this fix is exactly like that described by the :doc:`fix nve <fix_nve>` command, except that the radius and radial velocity
 of electrons are also updated.
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global or per-atom quantities are stored
@@ -49,4 +50,7 @@ Related commands
 
 :doc:`fix nve <fix_nve>`, :doc:`fix nvt/eff <fix_nh_eff>`, :doc:`fix npt/eff <fix_nh_eff>`
 
-**Default:** none
+Default
+"""""""
+
+none

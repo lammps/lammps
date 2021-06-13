@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ATOM_CLASS
-
-AtomStyle(ellipsoid,AtomVecEllipsoid)
-
+// clang-format off
+AtomStyle(ellipsoid,AtomVecEllipsoid);
+// clang-format on
 #else
 
 #ifndef LMP_ATOM_VEC_ELLIPSOID_H
@@ -49,7 +49,7 @@ class AtomVecEllipsoid : public AtomVec {
   int pack_restart_bonus(int, double *);
   int unpack_restart_bonus(int, double *);
   void data_atom_bonus(int, char **);
-  bigint memory_usage_bonus();
+  double memory_usage_bonus();
 
   void create_atom_post(int);
   void data_atom_post(int);
@@ -70,7 +70,7 @@ class AtomVecEllipsoid : public AtomVec {
   double *rmass;
   double **angmom;
 
-  int nghost_bonus,nmax_bonus;
+  int nghost_bonus, nmax_bonus;
   int ellipsoid_flag;
   double rmass_one;
 
@@ -78,7 +78,7 @@ class AtomVecEllipsoid : public AtomVec {
   void copy_bonus_all(int, int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

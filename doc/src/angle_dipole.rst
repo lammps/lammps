@@ -1,10 +1,10 @@
 .. index:: angle_style dipole
+.. index:: angle_style dipole/omp
 
 angle_style dipole command
 ==========================
 
-angle_style dipole/omp command
-==============================
+Accelerator Variants: *dipole/omp*
 
 Syntax
 """"""
@@ -113,7 +113,10 @@ Related commands
 
 :doc:`angle_coeff <angle_coeff>`, :doc:`angle_hybrid <angle_hybrid>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

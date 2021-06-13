@@ -48,8 +48,8 @@ Examples
    fix 1 ellipsoid rigid/meso single
    fix 1 rods      rigid/meso molecule
    fix 1 spheres   rigid/meso single force 1 off off on
-   fix 1 particles rigid/meso molecule force 1\*5 off off off force 6\*10 off off on
-   fix 2 spheres   rigid/meso group 3 sphere1 sphere2 sphere3 torque \* off off off
+   fix 1 particles rigid/meso molecule force 1*5 off off off force 6*10 off off on
+   fix 2 spheres   rigid/meso group 3 sphere1 sphere2 sphere3 torque * off off off
 
 Description
 """""""""""
@@ -288,7 +288,8 @@ cross periodic boundaries during the simulation.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information is written to :doc:`binary restart files <restart>`.
 If the *infile* keyword is used, an auxiliary file is written out

@@ -45,8 +45,11 @@
 #ifndef KOKKOS_HIP_ATOMIC_HPP
 #define KOKKOS_HIP_ATOMIC_HPP
 
-#ifdef KOKKOS_ENABLE_HIP_ATOMICS
+#include <impl/Kokkos_Atomic_Memory_Order.hpp>
+#include <impl/Kokkos_Memory_Fence.hpp>
+#include <HIP/Kokkos_HIP_Locks.hpp>
 
+#if defined(KOKKOS_ENABLE_HIP_ATOMICS)
 namespace Kokkos {
 // HIP can do:
 // Types int/unsigned int
@@ -91,7 +94,7 @@ __inline__ __device__ T atomic_exchange(
     typename std::enable_if<sizeof(T) != sizeof(int) &&
                                 sizeof(T) == sizeof(unsigned long long int),
                             const T &>::type val) {
-  typedef unsigned long long int type;
+  using type = unsigned long long int;
 
   type tmp = atomicExch(reinterpret_cast<type *>(const_cast<T *>(dest)),
                         *reinterpret_cast<type *>(const_cast<T *>(&val)));
@@ -104,19 +107,16 @@ atomic_exchange(volatile T *const dest,
                 typename std::enable_if<sizeof(T) != sizeof(int) &&
                                             sizeof(T) != sizeof(long long),
                                         const T>::type &val) {
-  // FIXME_HIP
-  Kokkos::abort("atomic_exchange not implemented for large types.\n");
   T return_val;
   int done                 = 0;
   unsigned int active      = __ballot(1);
   unsigned int done_active = 0;
   while (active != done_active) {
     if (!done) {
-      // if (Impl::lock_address_hip_space((void*)dest))
-      {
+      if (Impl::lock_address_hip_space((void *)dest)) {
         return_val = *dest;
         *dest      = val;
-        // Impl::unlock_address_hip_space((void*)dest);
+        Impl::unlock_address_hip_space((void *)dest);
         done = 1;
       }
     }
@@ -141,7 +141,7 @@ __inline__ __device__ void atomic_assign(
     typename std::enable_if<sizeof(T) != sizeof(int) &&
                                 sizeof(T) == sizeof(unsigned long long int),
                             const T &>::type val) {
-  typedef unsigned long long int type;
+  using type = unsigned long long int;
   atomicExch(reinterpret_cast<type *>(const_cast<T *>(dest)),
              *reinterpret_cast<type *>(const_cast<T *>(&val)));
 }
@@ -216,19 +216,16 @@ __inline__ __device__ T atomic_compare_exchange(
     typename std::enable_if<sizeof(T) != sizeof(int) &&
                                 sizeof(T) != sizeof(long long),
                             const T>::type &val) {
-  // FIXME_HIP
-  Kokkos::abort("atomic_compare_exchange not implemented for large types.\n");
   T return_val;
   int done                 = 0;
   unsigned int active      = __ballot(1);
   unsigned int done_active = 0;
   while (active != done_active) {
     if (!done) {
-      // if (Impl::lock_address_hip_space((void*)dest))
-      {
+      if (Impl::lock_address_hip_space((void *)dest)) {
         return_val = *dest;
         if (return_val == compare) *dest = val;
-        // Impl::unlock_address_hip_space((void*)dest);
+        Impl::unlock_address_hip_space((void *)dest);
         done = 1;
       }
     }
@@ -351,19 +348,16 @@ atomic_fetch_add(volatile T *dest,
                  typename std::enable_if<sizeof(T) != sizeof(int) &&
                                              sizeof(T) != sizeof(long long),
                                          const T &>::type val) {
-  // FIXME_HIP
-  Kokkos::abort("atomic_fetch_add not implemented for large types.\n");
   T return_val;
   int done                 = 0;
   unsigned int active      = __ballot(1);
   unsigned int done_active = 0;
   while (active != done_active) {
     if (!done) {
-      // if(Kokkos::Impl::lock_address_hip_space((void *)dest))
-      {
+      if (Kokkos::Impl::lock_address_hip_space((void *)dest)) {
         return_val = *dest;
         *dest      = return_val + val;
-        // Kokkos::Impl::unlock_address_hip_space((void *)dest);
+        Kokkos::Impl::unlock_address_hip_space((void *)dest);
         done = 1;
       }
     }
@@ -514,19 +508,16 @@ atomic_fetch_sub(volatile T *const dest,
                  typename std::enable_if<sizeof(T) != sizeof(int) &&
                                              sizeof(T) != sizeof(long long),
                                          const T>::type &val) {
-  // FIXME_HIP
-  Kokkos::abort("atomic_fetch_sub not implemented for large types.\n");
   T return_val;
   int done                 = 0;
   unsigned int active      = __ballot(1);
   unsigned int done_active = 0;
   while (active != done_active) {
     if (!done) {
-      /*if (Impl::lock_address_hip_space((void*)dest)) */
-      {
+      if (Impl::lock_address_hip_space((void *)dest)) {
         return_val = *dest;
         *dest      = return_val - val;
-        // Impl::unlock_address_hip_space((void*)dest);
+        Impl::unlock_address_hip_space((void *)dest);
         done = 1;
       }
     }
@@ -570,6 +561,62 @@ __inline__ __device__ unsigned long long int atomic_fetch_and(
     unsigned long long int const val) {
   return atomicAnd(const_cast<unsigned long long int *>(dest), val);
 }
+
+namespace Impl {
+
+template <typename T>
+__inline__ __device__ void _atomic_store(T *ptr, T val,
+                                         memory_order_relaxed_t) {
+  (void)atomic_exchange(ptr, val);
+}
+
+template <typename T>
+__inline__ __device__ void _atomic_store(T *ptr, T val,
+                                         memory_order_seq_cst_t) {
+  memory_fence();
+  atomic_store(ptr, val, memory_order_relaxed);
+  memory_fence();
+}
+
+template <typename T>
+__inline__ __device__ void _atomic_store(T *ptr, T val,
+                                         memory_order_release_t) {
+  memory_fence();
+  atomic_store(ptr, val, memory_order_relaxed);
+}
+
+template <typename T>
+__inline__ __device__ void _atomic_store(T *ptr, T val) {
+  atomic_store(ptr, val, memory_order_relaxed);
+}
+
+template <typename T>
+__inline__ __device__ T _atomic_load(T *ptr, memory_order_relaxed_t) {
+  T dummy{};
+  return atomic_compare_exchange(ptr, dummy, dummy);
+}
+
+template <typename T>
+__inline__ __device__ T _atomic_load(T *ptr, memory_order_seq_cst_t) {
+  memory_fence();
+  T rv = atomic_load(ptr, memory_order_relaxed);
+  memory_fence();
+  return rv;
+}
+
+template <typename T>
+__inline__ __device__ T _atomic_load(T *ptr, memory_order_acquire_t) {
+  T rv = atomic_load(ptr, memory_order_relaxed);
+  memory_fence();
+  return rv;
+}
+
+template <typename T>
+__inline__ __device__ T _atomic_load(T *ptr) {
+  return atomic_load(ptr, memory_order_relaxed);
+}
+
+}  // namespace Impl
 }  // namespace Kokkos
 #endif
 

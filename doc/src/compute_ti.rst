@@ -113,7 +113,8 @@ du/dl can be found in the paper by :ref:`Eike <Eike>`.
 
 ----------
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global scalar, namely dUs/dlambda.  This
 value can be used by any command that uses a global scalar value from
@@ -135,7 +136,10 @@ Related commands
 
 :doc:`fix adapt <fix_adapt>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

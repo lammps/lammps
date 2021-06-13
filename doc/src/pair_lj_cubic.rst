@@ -1,13 +1,11 @@
 .. index:: pair_style lj/cubic
+.. index:: pair_style lj/cubic/gpu
+.. index:: pair_style lj/cubic/omp
 
 pair_style lj/cubic command
 ===========================
 
-pair_style lj/cubic/gpu command
-===============================
-
-pair_style lj/cubic/omp command
-===============================
+Accelerator Variants: *lj/cubic/gpu*, *lj/cubic/omp*
 
 Syntax
 """"""
@@ -74,7 +72,8 @@ above example, :math:`\sigma = 0.8908987`, so :math:`r_{min} = 1.0`.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 For atom type pairs I,J and I != J, the epsilon and sigma coefficients
 and cutoff distance for all of the lj/cut pair styles can be mixed.
@@ -112,7 +111,10 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

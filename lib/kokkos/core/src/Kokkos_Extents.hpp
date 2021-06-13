@@ -45,6 +45,8 @@
 #define KOKKOS_KOKKOS_EXTENTS_HPP
 
 #include <cstddef>
+#include <type_traits>
+#include <Kokkos_Macros.hpp>
 
 namespace Kokkos {
 namespace Experimental {

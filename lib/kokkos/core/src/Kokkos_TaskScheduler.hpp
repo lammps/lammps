@@ -232,12 +232,12 @@ class BasicTaskScheduler : public Impl::TaskSchedulerBase {
 
   explicit BasicTaskScheduler(memory_pool const& arg_memory_pool) noexcept
       : m_track(), m_queue(nullptr) {
-    typedef Kokkos::Impl::SharedAllocationRecord<memory_space,
-                                                 typename queue_type::Destroy>
-        record_type;
+    using record_type =
+        Kokkos::Impl::SharedAllocationRecord<memory_space,
+                                             typename queue_type::Destroy>;
 
-    record_type* record =
-        record_type::allocate(memory_space(), "TaskQueue", sizeof(queue_type));
+    record_type* record = record_type::allocate(
+        memory_space(), "Kokkos::TaskQueue", sizeof(queue_type));
 
     m_queue = new (record->data()) queue_type(arg_memory_pool);
 

@@ -139,7 +139,7 @@ struct CudaLDGFetch {
 
   template <typename iType>
   KOKKOS_INLINE_FUNCTION ValueType operator[](const iType& i) const {
-#ifdef __CUDA_ARCH__
+#if defined(__CUDA_ARCH__) && (350 <= _CUDA_ARCH__)
     AliasType v = __ldg(reinterpret_cast<const AliasType*>(&m_ptr[i]));
     return *(reinterpret_cast<ValueType*>(&v));
 #else
@@ -257,8 +257,8 @@ class ViewDataHandle<
     // which can only occur on the host.  In addition, 'get_record' is only
     // valid if called in a host execution space
 
-    typedef typename Traits::memory_space memory_space;
-    typedef typename Impl::SharedAllocationRecord<memory_space, void> record;
+    using memory_space = typename Traits::memory_space;
+    using record = typename Impl::SharedAllocationRecord<memory_space, void>;
 
     record* const r = arg_tracker.template get_record<memory_space>();
 

@@ -58,12 +58,12 @@ namespace Test {
 
 template <typename Scalar, class Space>
 struct TestDynamicView {
-  typedef typename Space::execution_space execution_space;
-  typedef typename Space::memory_space memory_space;
+  using execution_space = typename Space::execution_space;
+  using memory_space    = typename Space::memory_space;
 
-  typedef Kokkos::Experimental::DynamicView<Scalar*, Space> view_type;
+  using view_type = Kokkos::Experimental::DynamicView<Scalar*, Space>;
 
-  typedef double value_type;
+  using value_type = double;
 
   static void run(unsigned arg_total_size) {
     // Test: Create DynamicView, initialize size (via resize), run through
@@ -71,6 +71,27 @@ struct TestDynamicView {
     // values and repeat
     //   Case 1: min_chunk_size is a power of 2
     {
+      {
+        view_type d1;
+        ASSERT_FALSE(d1.is_allocated());
+
+        d1 = view_type("d1", 1024, arg_total_size);
+        view_type d2(d1);
+        view_type d3("d3", 1024, arg_total_size);
+
+        ASSERT_FALSE(d1.is_allocated());
+        ASSERT_FALSE(d2.is_allocated());
+        ASSERT_FALSE(d3.is_allocated());
+
+        unsigned d_size = arg_total_size / 8;
+        d1.resize_serial(d_size);
+        d2.resize_serial(d_size);
+        d3.resize_serial(d_size);
+
+        ASSERT_TRUE(d1.is_allocated());
+        ASSERT_TRUE(d2.is_allocated());
+        ASSERT_TRUE(d3.is_allocated());
+      }
       view_type da("da", 1024, arg_total_size);
       ASSERT_EQ(da.size(), 0);
       // Init
@@ -223,7 +244,7 @@ struct TestDynamicView {
 };
 
 TEST(TEST_CATEGORY, dynamic_view) {
-  typedef TestDynamicView<double, TEST_EXECSPACE> TestDynView;
+  using TestDynView = TestDynamicView<double, TEST_EXECSPACE>;
 
   for (int i = 0; i < 10; ++i) {
     TestDynView::run(100000 + 100 * i);

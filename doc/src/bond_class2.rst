@@ -1,13 +1,11 @@
 .. index:: bond_style class2
+.. index:: bond_style class2/omp
+.. index:: bond_style class2/kk
 
 bond_style class2 command
 =========================
 
-bond_style class2/omp command
-=============================
-
-bond_style class2/kk command
-============================
+Accelerator Variants: *class2/omp*, *class2/kk*
 
 Syntax
 """"""
@@ -65,7 +63,10 @@ Related commands
 
 :doc:`bond_coeff <bond_coeff>`, :doc:`delete_bonds <delete_bonds>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

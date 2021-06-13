@@ -1,3 +1,4 @@
+// clang-format off
 /*----------------------------------------------------------------------
   PuReMD - Purdue ReaxFF Molecular Dynamics Program
 
@@ -21,37 +22,17 @@
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the GNU General Public License for more details:
-  <http://www.gnu.org/licenses/>.
+  <https://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
 #include "reaxc_tool_box.h"
+#include "reaxc_defs.h"
+
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "reaxc_defs.h"
-
-#if !defined(_MSC_VER)
-#include <sys/time.h>
-#endif
 
 #include "error.h"
-
-struct timeval tim;
-double t_end;
-
-double Get_Time( )
-{
-#if defined(_MSC_VER)
-  double t;
-
-  t = GetTickCount();
-  t /= 1000.0;
-  return t;
-#else
-  gettimeofday(&tim, NULL );
-  return( tim.tv_sec + (tim.tv_usec / 1000000.0) );
-#endif
-}
 
 int Tokenize( char* s, char*** tok )
 {
@@ -62,7 +43,7 @@ int Tokenize( char* s, char*** tok )
 
   strncpy( test, s, MAX_LINE-1);
 
-  for( word = strtok(test, sep); word; word = strtok(NULL, sep) ) {
+  for (word = strtok(test, sep); word; word = strtok(nullptr, sep)) {
     strncpy( (*tok)[count], word, MAX_LINE );
     count++;
   }
@@ -70,62 +51,58 @@ int Tokenize( char* s, char*** tok )
   return count;
 }
 
-
-
 /* safe malloc */
 void *smalloc( LAMMPS_NS::Error *error_ptr, rc_bigint n, const char *name )
 {
   void *ptr;
-  char errmsg[256];
 
   if (n <= 0) {
-    snprintf(errmsg, 256, "Trying to allocate %ld bytes for array %s. "
-              "returning NULL.", n, name);
+    auto errmsg = fmt::format("Trying to allocate {} bytes for array {}. "
+                              "returning NULL.", n, name);
     if (error_ptr) error_ptr->one(FLERR,errmsg);
-    else fputs(errmsg,stderr);
+    else fputs(errmsg.c_str(),stderr);
 
-    return NULL;
+    return nullptr;
   }
 
   ptr = malloc( n );
-  if (ptr == NULL) {
-    snprintf(errmsg, 256, "Failed to allocate %ld bytes for array %s", n, name);
+  if (ptr == nullptr) {
+    auto errmsg = fmt::format("Failed to allocate {} bytes for array {}",
+                              n, name);
     if (error_ptr) error_ptr->one(FLERR,errmsg);
-    else fputs(errmsg,stderr);
+    else fputs(errmsg.c_str(),stderr);
   }
 
   return ptr;
 }
 
-
 /* safe calloc */
 void *scalloc( LAMMPS_NS::Error *error_ptr, rc_bigint n, rc_bigint size, const char *name )
 {
   void *ptr;
-  char errmsg[256];
 
   if (n <= 0) {
-    snprintf(errmsg, 256, "Trying to allocate %ld elements for array %s. "
-            "returning NULL.\n", n, name );
+    auto errmsg = fmt::format("Trying to allocate {} elements for array {}. "
+            "returning NULL.\n", n, name);
     if (error_ptr) error_ptr->one(FLERR,errmsg);
-    else fputs(errmsg,stderr);
-    return NULL;
+    else fputs(errmsg.c_str(),stderr);
+    return nullptr;
   }
 
   if (size <= 0) {
-    snprintf(errmsg, 256, "Elements size for array %s is %ld. "
-             "returning NULL", name, size );
+    auto errmsg = fmt::format("Elements size for array {} is {}. "
+             "returning NULL", name, size);
     if (error_ptr) error_ptr->one(FLERR,errmsg);
-    else fputs(errmsg,stderr);
-    return NULL;
+    else fputs(errmsg.c_str(),stderr);
+    return nullptr;
   }
 
   ptr = calloc( n, size );
-  if (ptr == NULL) {
-    char errmsg[256];
-    snprintf(errmsg, 256, "Failed to allocate %ld bytes for array %s", n*size, name);
+  if (ptr == nullptr) {
+    auto errmsg = fmt::format("Failed to allocate {} bytes for array {}",
+                              n*size, name);
     if (error_ptr) error_ptr->one(FLERR,errmsg);
-    else fputs(errmsg,stderr);
+    else fputs(errmsg.c_str(),stderr);
   }
 
   return ptr;
@@ -135,15 +112,15 @@ void *scalloc( LAMMPS_NS::Error *error_ptr, rc_bigint n, rc_bigint size, const c
 /* safe free */
 void sfree( LAMMPS_NS::Error* error_ptr, void *ptr, const char *name )
 {
-  if (ptr == NULL) {
-    char errmsg[256];
-    snprintf(errmsg, 256, "Trying to free the already NULL pointer %s", name );
+  if (ptr == nullptr) {
+    auto errmsg = fmt::format("Trying to free the already free()'d pointer {}",
+                              name);
     if (error_ptr) error_ptr->one(FLERR,errmsg);
-    else fputs(errmsg,stderr);
+    else fputs(errmsg.c_str(),stderr);
     return;
   }
 
-  free( ptr );
-  ptr = NULL;
+  free(ptr);
+  ptr = nullptr;
 }
 

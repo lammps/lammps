@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,19 +12,23 @@
 ------------------------------------------------------------------------- */
 
 #include "test_main.h"
+#include "pointers.h"
 #include "test_config.h"
 #include "test_config_reader.h"
 #include "utils.h"
+#include "yaml_writer.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
 #include <cstdlib>
 #include <cstring>
+#include <ctime>
 #include <iostream>
 #include <mpi.h>
 #include <vector>
 
 using LAMMPS_NS::utils::split_words;
+using LAMMPS_NS::utils::trim;
 
 // common read_yaml_file function
 bool read_yaml_file(const char *infile, TestConfig &config)
@@ -34,6 +38,55 @@ bool read_yaml_file(const char *infile, TestConfig &config)
 
     config.basename = reader.get_basename();
     return true;
+}
+
+// write out common header items for yaml files
+void write_yaml_header(YamlWriter *writer,
+                       TestConfig *cfg,
+                       const char *version)
+{
+    // lammps_version
+    writer->emit("lammps_version", version);
+
+    // date_generated
+    std::time_t now = time(NULL);
+    std::string block = trim(ctime(&now));
+    writer->emit("date_generated", block);
+
+    // epsilon
+    writer->emit("epsilon", cfg->epsilon);
+
+    // skip tests
+    block.clear();
+    for (auto &skip : cfg->skip_tests) {
+        if (block.empty()) block = skip;
+        else block += " " + skip;
+    }
+    writer->emit("skip_tests", block);
+
+    // prerequisites
+    block.clear();
+    for (auto &prerequisite : cfg->prerequisites) {
+        block += prerequisite.first + " " + prerequisite.second + "\n";
+    }
+    writer->emit_block("prerequisites", block);
+
+    // pre_commands
+    block.clear();
+    for (auto &command : cfg->pre_commands) {
+        block += command + "\n";
+    }
+    writer->emit_block("pre_commands", block);
+
+    // post_commands
+    block.clear();
+    for (auto &command : cfg->post_commands) {
+        block += command + "\n";
+    }
+    writer->emit_block("post_commands", block);
+
+    // input_file
+    writer->emit("input_file", cfg->input_file);
 }
 
 // need to be defined in unit test body
@@ -102,13 +155,16 @@ int main(int argc, char **argv)
         if (strcmp(argv[iarg], "-g") == 0) {
             if (iarg + 1 < argc) {
                 generate_yaml_file(argv[iarg + 1], test_config);
+                MPI_Finalize();
                 return 0;
             } else {
                 usage(std::cerr, argv[0]);
+                MPI_Finalize();
                 return 1;
             }
         } else if (strcmp(argv[iarg], "-u") == 0) {
             generate_yaml_file(argv[1], test_config);
+            MPI_Finalize();
             return 0;
         } else if (strcmp(argv[iarg], "-d") == 0) {
             if (iarg + 1 < argc) {
@@ -116,6 +172,7 @@ int main(int argc, char **argv)
                 iarg += 2;
             } else {
                 usage(std::cerr, argv[0]);
+                MPI_Finalize();
                 return 1;
             }
         } else if (strcmp(argv[iarg], "-s") == 0) {
@@ -127,6 +184,7 @@ int main(int argc, char **argv)
         } else {
             std::cerr << "unknown option: " << argv[iarg] << "\n\n";
             usage(std::cerr, argv[0]);
+            MPI_Finalize();
             return 1;
         }
     }

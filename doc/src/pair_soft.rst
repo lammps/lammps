@@ -1,13 +1,11 @@
 .. index:: pair_style soft
+.. index:: pair_style soft/gpu
+.. index:: pair_style soft/omp
 
 pair_style soft command
 =======================
 
-pair_style soft/gpu command
-===========================
-
-pair_style soft/omp command
-===========================
+Accelerator Variants: *soft/gpu*, *soft/omp*
 
 Syntax
 """"""
@@ -95,7 +93,8 @@ variables.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 For atom type pairs I,J and I != J, the A coefficient and cutoff
 distance for this pair style can be mixed.  A is always mixed via a
@@ -127,4 +126,7 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`, :doc:`fix nve/limit <fix_nve_limit>`, :doc:`fix adapt <fix_adapt>`
 
-**Default:** none
+Default
+"""""""
+
+none

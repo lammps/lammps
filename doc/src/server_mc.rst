@@ -120,4 +120,7 @@ Related commands
 
 :doc:`message <message>`
 
-**Default:** none
+Default
+"""""""
+
+none

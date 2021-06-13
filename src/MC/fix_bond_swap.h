@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(bond/swap,FixBondSwap)
-
+// clang-format off
+FixStyle(bond/swap,FixBondSwap);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_BONDSWAP_H
@@ -37,10 +37,10 @@ class FixBondSwap : public Fix {
   double memory_usage();
 
  private:
-  double fraction,cutsq;
-  int nmax,tflag;
+  double fraction, cutsq;
+  int nmax, tflag;
   int *alist;
-  int naccept,foursome;
+  int naccept, foursome;
   int angleflag;
   char *id_temp;
   int *type;
@@ -56,7 +56,7 @@ class FixBondSwap : public Fix {
   double angle_eng(int, int, int, int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

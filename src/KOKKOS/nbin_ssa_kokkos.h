@@ -1,6 +1,7 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,15 +13,15 @@
 ------------------------------------------------------------------------- */
 
 #ifdef NBIN_CLASS
-
+// clang-format off
 NBinStyle(ssa/kk/host,
           NBinSSAKokkos<LMPHostType>,
-          NB_SSA | NB_KOKKOS_HOST)
+          NB_STANDARD | NB_SSA | NB_KOKKOS_HOST);
 
 NBinStyle(ssa/kk/device,
           NBinSSAKokkos<LMPDeviceType>,
-          NB_SSA | NB_KOKKOS_DEVICE)
-
+          NB_STANDARD | NB_SSA | NB_KOKKOS_DEVICE);
+// clang-format on
 #else
 
 #ifndef LMP_NBIN_SSA_KOKKOS_H
@@ -108,20 +109,20 @@ class NBinSSAKokkos : public NBinStandard {
     if (y >= subhi_[1]) iy = 1;
     if (x < sublo_[0]) ix = -1;
     if (x >= subhi_[0]) ix = 1;
-    if(iz < 0){
+    if (iz < 0) {
       return -1;
-    } else if(iz == 0){
-      if( iy<0 ) return -1; // bottom left/middle/right
-      if( (iy==0) && (ix<0)  ) return -1; // left atoms
-      if( (iy==0) && (ix==0) ) return 0; // Locally owned atoms
-      if( (iy==0) && (ix>0)  ) return 2; // Right atoms
-      if( (iy>0)  && (ix==0) ) return 1; // Top-middle atoms
-      if( (iy>0)  && (ix!=0) ) return 3; // Top-right and top-left atoms
+    } else if (iz == 0) {
+      if (iy<0) return -1; // bottom left/middle/right
+      if ((iy==0) && (ix<0) ) return -1; // left atoms
+      if ((iy==0) && (ix==0)) return 0; // Locally owned atoms
+      if ((iy==0) && (ix>0) ) return 2; // Right atoms
+      if ((iy>0)  && (ix==0)) return 1; // Top-middle atoms
+      if ((iy>0)  && (ix!=0)) return 3; // Top-right and top-left atoms
     } else { // iz > 0
-      if((ix==0) && (iy==0)) return 4; // Back atoms
-      if((ix==0) && (iy!=0)) return 5; // Top-back and bottom-back atoms
-      if((ix!=0) && (iy==0)) return 6; // Left-back and right-back atoms
-      if((ix!=0) && (iy!=0)) return 7; // Back corner atoms
+      if ((ix==0) && (iy==0)) return 4; // Back atoms
+      if ((ix==0) && (iy!=0)) return 5; // Top-back and bottom-back atoms
+      if ((ix!=0) && (iy==0)) return 6; // Left-back and right-back atoms
+      if ((ix!=0) && (iy!=0)) return 7; // Back corner atoms
     }
     return -2;
   }

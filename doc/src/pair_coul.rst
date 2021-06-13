@@ -1,58 +1,61 @@
 .. index:: pair_style coul/cut
+.. index:: pair_style coul/cut/gpu
+.. index:: pair_style coul/cut/kk
+.. index:: pair_style coul/cut/omp
+.. index:: pair_style coul/debye
+.. index:: pair_style coul/debye/gpu
+.. index:: pair_style coul/debye/kk
+.. index:: pair_style coul/debye/omp
+.. index:: pair_style coul/dsf
+.. index:: pair_style coul/dsf/gpu
+.. index:: pair_style coul/dsf/kk
+.. index:: pair_style coul/dsf/omp
+.. index:: pair_style coul/cut/global
+.. index:: pair_style coul/cut/global/omp
+.. index:: pair_style coul/long
+.. index:: pair_style coul/long/omp
+.. index:: pair_style coul/long/kk
+.. index:: pair_style coul/long/gpu
+.. index:: pair_style coul/msm
+.. index:: pair_style coul/msm/omp
+.. index:: pair_style coul/streitz
+.. index:: pair_style coul/wolf
+.. index:: pair_style coul/wolf/kk
+.. index:: pair_style coul/wolf/omp
+.. index:: pair_style tip4p/cut
+.. index:: pair_style tip4p/cut/omp
+.. index:: pair_style tip4p/long
+.. index:: pair_style tip4p/long/omp
 
 pair_style coul/cut command
 ===========================
 
-pair_style coul/cut/gpu command
-===============================
-
-pair_style coul/cut/kk command
-==============================
-
-pair_style coul/cut/omp command
-===============================
+Accelerator Variants: *coul/cut/gpu*, *coul/cut/kk*, *coul/cut/omp*
 
 pair_style coul/debye command
 =============================
 
-pair_style coul/debye/gpu command
-=================================
-
-pair_style coul/debye/kk command
-================================
-
-pair_style coul/debye/omp command
-=================================
+Accelerator Variants: *coul/debye/gpu*, *coul/debye/kk*, *coul/debye/omp*
 
 pair_style coul/dsf command
 ===========================
 
-pair_style coul/dsf/gpu command
-===============================
+Accelerator Variants: *coul/dsf/gpu*, *coul/dsf/kk*, *coul/dsf/omp*
 
-pair_style coul/dsf/kk command
-==============================
+pair_style coul/cut/global command
+==================================
 
-pair_style coul/dsf/omp command
-===============================
+Accelerator Variants: *coul/cut/omp*
 
 pair_style coul/long command
 ============================
 
-pair_style coul/long/omp command
-================================
-
-pair_style coul/long/gpu command
-================================
-
-pair_style coul/long/kk command
-===============================
+Accelerator Variants: *coul/long/omp*, *coul/long/kk*, *coul/long/gpu*
 
 pair_style coul/msm command
 ===========================
 
-pair_style coul/msm/omp command
-===============================
+Accelerator Variants: *coul/msm/omp*
 
 pair_style coul/streitz command
 ===============================
@@ -60,23 +63,17 @@ pair_style coul/streitz command
 pair_style coul/wolf command
 ============================
 
-pair_style coul/wolf/kk command
-===============================
-
-pair_style coul/wolf/omp command
-================================
+Accelerator Variants: *coul/wolf/kk*, *coul/wolf/omp*
 
 pair_style tip4p/cut command
 ============================
 
+Accelerator Variants: *tip4p/cut/omp*
+
 pair_style tip4p/long command
 =============================
 
-pair_style tip4p/cut/omp command
-================================
-
-pair_style tip4p/long/omp command
-=================================
+Accelerator Variants: *tip4p/long/omp*
 
 Syntax
 """"""
@@ -86,8 +83,8 @@ Syntax
    pair_style coul/cut cutoff
    pair_style coul/debye kappa cutoff
    pair_style coul/dsf alpha cutoff
+   pair_style coul/cut/global cutoff
    pair_style coul/long cutoff
-   pair_style coul/long/gpu cutoff
    pair_style coul/wolf alpha cutoff
    pair_style coul/streitz cutoff keyword alpha
    pair_style tip4p/cut otype htype btype atype qdist cutoff
@@ -255,6 +252,11 @@ Streitz-Mintmire parameterization for the material being modeled.
 
 ----------
 
+Pair style *coul/cut/global* computes the same Coulombic interactions
+as style *coul/cut* except that it allows only a single global cutoff
+and thus makes it compatible for use in combination with long-range
+coulomb styles in :doc:`hybrid pair styles <pair_hybrid>`.
+
 Styles *coul/long* and *coul/msm* compute the same Coulombic
 interactions as style *coul/cut* except that an additional damping
 factor is applied so it can be used in conjunction with the
@@ -324,7 +326,8 @@ command.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 For atom type pairs I,J and I != J, the cutoff distance for the
 *coul/cut* style can be mixed.  The default mix value is *geometric*\ .
@@ -363,7 +366,10 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`, :doc:`pair_style, hybrid/overlay <pair_hybrid>`, :doc:`kspace_style <kspace_style>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

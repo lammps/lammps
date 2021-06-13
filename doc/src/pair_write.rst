@@ -85,4 +85,7 @@ Related commands
 :doc:`pair_style table <pair_table>`,
 :doc:`pair_style <pair_style>`, :doc:`pair_coeff <pair_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none

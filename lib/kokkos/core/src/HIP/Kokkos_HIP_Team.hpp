@@ -54,6 +54,7 @@
 
 #include <HIP/Kokkos_HIP_KernelLaunch.hpp>
 #include <HIP/Kokkos_HIP_ReduceScan.hpp>
+#include <HIP/Kokkos_HIP_Shuffle_Reduce.hpp>
 #include <HIP/Kokkos_HIP_BlockSize_Deduction.hpp>
 #include <Kokkos_Vectorization.hpp>
 
@@ -65,7 +66,7 @@ namespace Impl {
 
 template <typename Type>
 struct HIPJoinFunctor {
-  typedef Type value_type;
+  using value_type = Type;
 
   KOKKOS_INLINE_FUNCTION
   static void join(volatile value_type& update,
@@ -77,16 +78,16 @@ struct HIPJoinFunctor {
 /**\brief  Team member_type passed to TeamPolicy or TeamTask closures.
  *
  *  HIP thread blocks for team closures are dimensioned as:
- *    hipBlockDim_x == number of "vector lanes" per "thread"
- *    hipBlockDim_y == number of "threads" per team
- *    hipBlockDim_z == number of teams in a block
+ *    blockDim.x == number of "vector lanes" per "thread"
+ *    blockDim.y == number of "threads" per team
+ *    blockDim.z == number of teams in a block
  *  where
  *    A set of teams exactly fill a warp OR a team is the whole block
- *      ( 0 == WarpSize % ( hipBlockDim_x * hipBlockDim_y ) )
+ *      ( 0 == WarpSize % ( blockDim.x * blockDim.y ) )
  *      OR
- *      ( 1 == hipBlockDim_z )
+ *      ( 1 == blockDim.z )
 
- *  Thus when 1 < hipBlockDim_z the team is warp-synchronous
+ *  Thus when 1 < blockDim.z the team is warp-synchronous
  *  and __syncthreads should not be called in team collectives.
  *
  *  When multiple teams are mapped onto a single block then the
@@ -126,7 +127,7 @@ class HIPTeamMember {
   KOKKOS_INLINE_FUNCTION int league_size() const { return m_league_size; }
   KOKKOS_INLINE_FUNCTION int team_rank() const {
 #ifdef __HIP_DEVICE_COMPILE__
-    return hipThreadIdx_y;
+    return threadIdx.y;
 #else
     return 0;
 #endif
@@ -134,15 +135,15 @@ class HIPTeamMember {
 
   KOKKOS_INLINE_FUNCTION int team_size() const {
 #ifdef __HIP_DEVICE_COMPILE__
-    return hipBlockDim_y;
+    return blockDim.y;
 #else
-    return 1;
+    return 0;
 #endif
   }
 
   KOKKOS_INLINE_FUNCTION void team_barrier() const {
 #ifdef __HIP_DEVICE_COMPILE__
-    if (1 == hipBlockDim_z)
+    if (1 == blockDim.z)
       __syncthreads();  // team == block
     else
       __threadfence_block();  // team <= warp
@@ -155,11 +156,11 @@ class HIPTeamMember {
   KOKKOS_INLINE_FUNCTION void team_broadcast(ValueType& val,
                                              const int& thread_id) const {
 #ifdef __HIP_DEVICE_COMPILE__
-    if (1 == hipBlockDim_z) {  // team == block
+    if (blockDim.z == 1) {  // team == block
       __syncthreads();
       // Wait for shared data write until all threads arrive here
-      if (hipThreadIdx_x == 0u &&
-          hipThreadIdx_y == static_cast<uint32_t>(thread_id)) {
+      if (threadIdx.x == 0u &&
+          threadIdx.y == static_cast<uint32_t>(thread_id)) {
         *(reinterpret_cast<ValueType*>(m_team_reduce)) = val;
       }
       __syncthreads();  // Wait for shared data read until root thread writes
@@ -167,7 +168,7 @@ class HIPTeamMember {
     } else {               // team <= warp
       ValueType tmp(val);  // input might not be a register variable
       ::Kokkos::Experimental::Impl::in_place_shfl(
-          val, tmp, hipBlockDim_x * thread_id, hipBlockDim_x * hipBlockDim_y);
+          val, tmp, blockDim.x * thread_id, blockDim.x * blockDim.y);
     }
 #else
     (void)val;
@@ -178,44 +179,24 @@ class HIPTeamMember {
   template <class Closure, class ValueType>
   KOKKOS_INLINE_FUNCTION void team_broadcast(Closure const& f, ValueType& val,
                                              const int& thread_id) const {
-#ifdef __HIP_DEVICE_COMPILE__
     f(val);
-
-    if (1 == hipBlockDim_z) {  // team == block
-      __syncthreads();
-      // Wait for shared data write until all threads arrive here
-      if (hipThreadIdx_x == 0u &&
-          hipThreadIdx_y == static_cast<uint32_t>(thread_id)) {
-        *(reinterpret_cast<ValueType*>(m_team_reduce)) = val;
-      }
-      __syncthreads();  // Wait for shared data read until root thread writes
-      val = *(reinterpret_cast<ValueType*>(m_team_reduce));
-    } else {               // team <= warp
-      ValueType tmp(val);  // input might not be a register variable
-      ::Kokkos::Experimental::Impl::in_place_shfl(
-          val, tmp, hipBlockDim_x * thread_id, hipBlockDim_x * hipBlockDim_y);
-    }
-#else
-    (void)f;
-    (void)val;
-    (void)thread_id;
-#endif
+    team_broadcast(val, thread_id);
   }
 
   //--------------------------------------------------------------------------
   /**\brief  Reduction across a team
    *
    *  Mapping of teams onto blocks:
-   *    hipBlockDim_x  is "vector lanes"
-   *    hipBlockDim_y  is team "threads"
-   *    hipBlockDim_z  is number of teams per block
+   *    blockDim.x  is "vector lanes"
+   *    blockDim.y  is team "threads"
+   *    blockDim.z  is number of teams per block
    *
    *  Requires:
-   *    hipBlockDim_x is power two
-   *    hipBlockDim_x <= HIPTraits::WarpSize
-   *    ( 0 == HIPTraits::WarpSize % ( hipBlockDim_x * hipBlockDim_y )
+   *    blockDim.x is power two
+   *    blockDim.x <= HIPTraits::WarpSize
+   *    ( 0 == HIPTraits::WarpSize % ( blockDim.x * blockDim.y )
    *      OR
-   *    ( 1 == hipBlockDim_z )
+   *    ( 1 == blockDim.z )
    */
   template <typename ReducerType>
   KOKKOS_INLINE_FUNCTION
@@ -230,7 +211,7 @@ class HIPTeamMember {
       team_reduce(ReducerType const& reducer,
                   typename ReducerType::value_type& value) const noexcept {
 #ifdef __HIP_DEVICE_COMPILE__
-    hip_intra_block_reduction(reducer, value, hipBlockDim_y);
+    hip_intra_block_shuffle_reduction(reducer, value, blockDim.y);
 #else
     (void)reducer;
     (void)value;
@@ -256,25 +237,25 @@ class HIPTeamMember {
     __syncthreads();  // Don't write in to shared data until all threads have
                       // entered this function
 
-    if (0 == hipThreadIdx_y) {
+    if (0 == threadIdx.y) {
       base_data[0] = 0;
     }
 
-    base_data[hipThreadIdx_y + 1] = value;
+    base_data[threadIdx.y + 1] = value;
 
     Impl::hip_intra_block_reduce_scan<true, Impl::HIPJoinFunctor<Type>, void>(
         Impl::HIPJoinFunctor<Type>(), base_data + 1);
 
     if (global_accum) {
-      if (hipBlockDim_y == hipThreadIdx_y + 1) {
-        base_data[hipBlockDim_y] =
-            atomic_fetch_add(global_accum, base_data[hipBlockDim_y]);
+      if (blockDim.y == threadIdx.y + 1) {
+        base_data[blockDim.y] =
+            atomic_fetch_add(global_accum, base_data[blockDim.y]);
       }
       __syncthreads();  // Wait for atomic
-      base_data[hipThreadIdx_y] += base_data[hipBlockDim_y];
+      base_data[threadIdx.y] += base_data[blockDim.y];
     }
 
-    return base_data[hipThreadIdx_y];
+    return base_data[threadIdx.y];
 #else
     (void)value;
     (void)global_accum;
@@ -289,7 +270,7 @@ class HIPTeamMember {
    */
   template <typename Type>
   KOKKOS_INLINE_FUNCTION Type team_scan(const Type& value) const {
-    return this->template team_scan<Type>(value, 0);
+    return this->template team_scan<Type>(value, nullptr);
   }
 
   //----------------------------------------
@@ -307,24 +288,16 @@ class HIPTeamMember {
       vector_reduce(ReducerType const& reducer,
                     typename ReducerType::value_type& value) {
 #ifdef __HIP_DEVICE_COMPILE__
-    if (hipBlockDim_x == 1) return;
+    if (blockDim.x == 1) return;
 
     // Intra vector lane shuffle reduction:
     typename ReducerType::value_type tmp(value);
     typename ReducerType::value_type tmp2 = tmp;
 
-    int constexpr warp_size = ::Kokkos::Experimental::Impl::HIPTraits::WarpSize;
-    unsigned mask =
-        hipBlockDim_x == warp_size
-            ? 0xffffffff
-            : ((1 << hipBlockDim_x) - 1)
-                  << ((hipThreadIdx_y % (warp_size / hipBlockDim_x)) *
-                      hipBlockDim_x);
-
-    for (int i = hipBlockDim_x; (i >>= 1);) {
+    for (int i = blockDim.x; (i >>= 1);) {
       ::Kokkos::Experimental::Impl::in_place_shfl_down(tmp2, tmp, i,
-                                                       hipBlockDim_x, mask);
-      if (static_cast<int>(hipThreadIdx_x) < i) {
+                                                       blockDim.x);
+      if (static_cast<int>(threadIdx.x) < i) {
         reducer.join(tmp, tmp2);
       }
     }
@@ -334,8 +307,7 @@ class HIPTeamMember {
     // because floating point summation is not associative
     // and thus different threads could have different results.
 
-    ::Kokkos::Experimental::Impl::in_place_shfl(tmp2, tmp, 0, hipBlockDim_x,
-                                                mask);
+    ::Kokkos::Experimental::Impl::in_place_shfl(tmp2, tmp, 0, blockDim.x);
     value               = tmp2;
     reducer.reference() = tmp2;
 #else
@@ -355,19 +327,17 @@ class HIPTeamMember {
       global_reduce(ReducerType const& reducer, int* const global_scratch_flags,
                     void* const global_scratch_space, void* const shmem,
                     int const shmem_size) {
-#ifdef __HIP_COMPILE_DEVICE__
-
-    typedef typename ReducerType::value_type value_type;
-    typedef value_type volatile* pointer_type;
+#ifdef __HIP_DEVICE_COMPILE__
+    using value_type   = typename ReducerType::value_type;
+    using pointer_type = value_type volatile*;
 
     // Number of shared memory entries for the reduction:
     const int nsh = shmem_size / sizeof(value_type);
 
     // Number of HIP threads in the block, rank within the block
-    const int nid = hipBlockDim_x * hipBlockDim_y * hipBlockDim_z;
+    const int nid = blockDim.x * blockDim.y * blockDim.z;
     const int tid =
-        hipThreadIdx_x +
-        hipBlockDim_x * (hipThreadIdx_y + hipBlockDim_y * hipThreadIdx_z);
+        threadIdx.x + blockDim.x * (threadIdx.y + blockDim.y * threadIdx.z);
 
     // Reduces within block using all available shared memory
     // Contributes if it is the root "vector lane"
@@ -376,23 +346,24 @@ class HIPTeamMember {
     // wx == which lane within the warp
     // wy == which warp within the block
 
-    const int wn =
-        (nid + HIPTraits::WarpIndexMask) >> HIPTraits::WarpIndexShift;
-    const int wx = tid & HIPTraits::WarpIndexMask;
-    const int wy = tid >> HIPTraits::WarpIndexShift;
+    const int wn = (nid + Experimental::Impl::HIPTraits::WarpIndexMask) >>
+                   Experimental::Impl::HIPTraits::WarpIndexShift;
+    const int wx = tid & Experimental::Impl::HIPTraits::WarpIndexMask;
+    const int wy = tid >> Experimental::Impl::HIPTraits::WarpIndexShift;
 
     //------------------------
-    {  // Intra warp shuffle reduction from contributing CUDA threads
+    {  // Intra warp shuffle reduction from contributing HIP threads
 
       value_type tmp(reducer.reference());
 
       int constexpr warp_size =
           ::Kokkos::Experimental::Impl::HIPTraits::WarpSize;
-      for (int i = warp_size; static_cast<int>(hipBlockDim_x) <= (i >>= 1);) {
-        Impl::in_place_shfl_down(reducer.reference(), tmp, i, warp_size);
+      for (int i = warp_size; static_cast<int>(blockDim.x) <= (i >>= 1);) {
+        Experimental::Impl::in_place_shfl_down(reducer.reference(), tmp, i,
+                                               warp_size);
 
         // Root of each vector lane reduces "thread" contribution
-        if (0 == hipThreadIdx_x && wx < i) {
+        if (0 == threadIdx.x && wx < i) {
           reducer.join(&tmp, reducer.data());
         }
       }
@@ -432,7 +403,7 @@ class HIPTeamMember {
       if (0 == wy) {
         // Start fan-in at power of two covering nentry
 
-        for (int i = (1 << (32 - __clz(nentry - 1))); (i >>= 1);) {
+        for (int i = (1 << (warp_size - __clz(nentry - 1))); (i >>= 1);) {
           const int k = wx + i;
           if (wx < i && k < nentry) {
             reducer.join((reinterpret_cast<pointer_type>(shmem)) + wx,
@@ -449,12 +420,12 @@ class HIPTeamMember {
 
       if (0 == wx) {
         reducer.copy((reinterpret_cast<pointer_type>(global_scratch_space)) +
-                         hipBlockIdx_x * reducer.length(),
+                         blockIdx.x * reducer.length(),
                      reducer.data());
 
         __threadfence();  // Wait until global write is visible.
 
-        last_block = static_cast<int>(hipGridDim_x) ==
+        last_block = static_cast<int>(gridDim.x) ==
                      1 + Kokkos::atomic_fetch_add(global_scratch_flags, 1);
 
         // If last block then reset count
@@ -473,9 +444,8 @@ class HIPTeamMember {
     //------------------------
     // Last block reads global_scratch_memory into shared memory.
 
-    const int nentry = nid < hipGridDim_x
-                           ? (nid < nsh ? nid : nsh)
-                           : (hipGridDim_x < nsh ? hipGridDim_x : nsh);
+    const int nentry = nid < gridDim.x ? (nid < nsh ? nid : nsh)
+                                       : (gridDim.x < nsh ? gridDim.x : nsh);
 
     // nentry = min( nid , nsh , gridDim.x )
 
@@ -488,8 +458,7 @@ class HIPTeamMember {
           (reinterpret_cast<pointer_type>(shmem)) + offset,
           (reinterpret_cast<pointer_type>(global_scratch_space)) + offset);
 
-      for (int i = nentry + tid; i < static_cast<int>(hipGridDim_x);
-           i += nentry) {
+      for (int i = nentry + tid; i < static_cast<int>(gridDim.x); i += nentry) {
         reducer.join((reinterpret_cast<pointer_type>(shmem)) + offset,
                      (reinterpret_cast<pointer_type>(global_scratch_space)) +
                          i * reducer.length());
@@ -529,12 +498,11 @@ class HIPTeamMember {
       }
     }
     return 0;
-
 #else
     (void)reducer;
     (void)global_scratch_flags;
-    (void)shmem;
     (void)global_scratch_space;
+    (void)shmem;
     (void)shmem_size;
     return 0;
 #endif
@@ -574,7 +542,7 @@ namespace Impl {
 
 template <typename iType>
 struct TeamThreadRangeBoundariesStruct<iType, HIPTeamMember> {
-  typedef iType index_type;
+  using index_type = iType;
   const HIPTeamMember& member;
   const iType start;
   const iType end;
@@ -591,7 +559,7 @@ struct TeamThreadRangeBoundariesStruct<iType, HIPTeamMember> {
 
 template <typename iType>
 struct TeamVectorRangeBoundariesStruct<iType, HIPTeamMember> {
-  typedef iType index_type;
+  using index_type = iType;
   const HIPTeamMember& member;
   const iType start;
   const iType end;
@@ -609,7 +577,7 @@ struct TeamVectorRangeBoundariesStruct<iType, HIPTeamMember> {
 
 template <typename iType>
 struct ThreadVectorRangeBoundariesStruct<iType, HIPTeamMember> {
-  typedef iType index_type;
+  using index_type = iType;
   const index_type start;
   const index_type end;
 
@@ -645,7 +613,7 @@ template <typename iType1, typename iType2>
 KOKKOS_INLINE_FUNCTION Impl::TeamThreadRangeBoundariesStruct<
     typename std::common_type<iType1, iType2>::type, Impl::HIPTeamMember>
 TeamThreadRange(const Impl::HIPTeamMember& thread, iType1 begin, iType2 end) {
-  typedef typename std::common_type<iType1, iType2>::type iType;
+  using iType = typename std::common_type<iType1, iType2>::type;
   return Impl::TeamThreadRangeBoundariesStruct<iType, Impl::HIPTeamMember>(
       thread, iType(begin), iType(end));
 }
@@ -663,7 +631,7 @@ KOKKOS_INLINE_FUNCTION Impl::TeamVectorRangeBoundariesStruct<
     typename std::common_type<iType1, iType2>::type, Impl::HIPTeamMember>
 TeamVectorRange(const Impl::HIPTeamMember& thread, const iType1& begin,
                 const iType2& end) {
-  typedef typename std::common_type<iType1, iType2>::type iType;
+  using iType = typename std::common_type<iType1, iType2>::type;
   return Impl::TeamVectorRangeBoundariesStruct<iType, Impl::HIPTeamMember>(
       thread, iType(begin), iType(end));
 }
@@ -676,13 +644,14 @@ KOKKOS_INLINE_FUNCTION
       thread, count);
 }
 
-template <typename iType>
-KOKKOS_INLINE_FUNCTION
-    Impl::ThreadVectorRangeBoundariesStruct<iType, Impl::HIPTeamMember>
-    ThreadVectorRange(const Impl::HIPTeamMember& thread, iType arg_begin,
-                      iType arg_end) {
+template <typename iType1, typename iType2>
+KOKKOS_INLINE_FUNCTION Impl::ThreadVectorRangeBoundariesStruct<
+    typename std::common_type<iType1, iType2>::type, Impl::HIPTeamMember>
+ThreadVectorRange(const Impl::HIPTeamMember& thread, iType1 arg_begin,
+                  iType2 arg_end) {
+  using iType = typename std::common_type<iType1, iType2>::type;
   return Impl::ThreadVectorRangeBoundariesStruct<iType, Impl::HIPTeamMember>(
-      thread, arg_begin, arg_end);
+      thread, iType(arg_begin), iType(arg_end));
 }
 
 KOKKOS_INLINE_FUNCTION
@@ -711,8 +680,8 @@ KOKKOS_INLINE_FUNCTION void parallel_for(
         loop_boundaries,
     const Closure& closure) {
 #ifdef __HIP_DEVICE_COMPILE__
-  for (iType i = loop_boundaries.start + hipThreadIdx_y;
-       i < loop_boundaries.end; i += hipBlockDim_y)
+  for (iType i = loop_boundaries.start + threadIdx.y; i < loop_boundaries.end;
+       i += blockDim.y)
     closure(i);
 #else
   (void)loop_boundaries;
@@ -740,8 +709,8 @@ KOKKOS_INLINE_FUNCTION
   typename ReducerType::value_type value;
   reducer.init(value);
 
-  for (iType i = loop_boundaries.start + hipThreadIdx_y;
-       i < loop_boundaries.end; i += hipBlockDim_y) {
+  for (iType i = loop_boundaries.start + threadIdx.y; i < loop_boundaries.end;
+       i += blockDim.y) {
     closure(i, value);
   }
 
@@ -773,8 +742,8 @@ KOKKOS_INLINE_FUNCTION
 
   reducer.init(reducer.reference());
 
-  for (iType i = loop_boundaries.start + hipThreadIdx_y;
-       i < loop_boundaries.end; i += hipBlockDim_y) {
+  for (iType i = loop_boundaries.start + threadIdx.y; i < loop_boundaries.end;
+       i += blockDim.y) {
     closure(i, val);
   }
 
@@ -787,15 +756,60 @@ KOKKOS_INLINE_FUNCTION
 #endif
 }
 
+/** \brief  Inter-thread parallel exclusive prefix sum.
+ *
+ *  Executes closure(iType i, ValueType & val, bool final) for each i=[0..N)
+ *
+ *  The range [0..N) is mapped to each rank in the team (whose global rank is
+ *  less than N) and a scan operation is performed. The last call to closure has
+ *  final == true.
+ */
+// This is the same code as in CUDA and largely the same as in OpenMPTarget
+template <typename iType, typename FunctorType>
+KOKKOS_INLINE_FUNCTION void parallel_scan(
+    const Impl::TeamThreadRangeBoundariesStruct<iType, Impl::HIPTeamMember>&
+        loop_bounds,
+    const FunctorType& lambda) {
+  // Extract value_type from lambda
+  using value_type = typename Kokkos::Impl::FunctorAnalysis<
+      Kokkos::Impl::FunctorPatternInterface::SCAN, void,
+      FunctorType>::value_type;
+
+  const auto start     = loop_bounds.start;
+  const auto end       = loop_bounds.end;
+  auto& member         = loop_bounds.member;
+  const auto team_size = member.team_size();
+  const auto team_rank = member.team_rank();
+  const auto nchunk    = (end - start + team_size - 1) / team_size;
+  value_type accum     = 0;
+  // each team has to process one or more chunks of the prefix scan
+  for (iType i = 0; i < nchunk; ++i) {
+    auto ii = start + i * team_size + team_rank;
+    // local accumulation for this chunk
+    value_type local_accum = 0;
+    // user updates value with prefix value
+    if (ii < loop_bounds.end) lambda(ii, local_accum, false);
+    // perform team scan
+    local_accum = member.team_scan(local_accum);
+    // add this blocks accum to total accumulation
+    auto val = accum + local_accum;
+    // user updates their data with total accumulation
+    if (ii < loop_bounds.end) lambda(ii, val, true);
+    // the last value needs to be propogated to next chunk
+    if (team_rank == team_size - 1) accum = val;
+    // broadcast last value to rest of the team
+    member.team_broadcast(accum, team_size - 1);
+  }
+}
+
 template <typename iType, class Closure>
 KOKKOS_INLINE_FUNCTION void parallel_for(
     const Impl::TeamVectorRangeBoundariesStruct<iType, Impl::HIPTeamMember>&
         loop_boundaries,
     const Closure& closure) {
 #ifdef __HIP_DEVICE_COMPILE__
-  for (iType i = loop_boundaries.start + hipThreadIdx_y * hipBlockDim_x +
-                 hipThreadIdx_x;
-       i < loop_boundaries.end; i += hipBlockDim_y * hipBlockDim_x)
+  for (iType i = loop_boundaries.start + threadIdx.y * blockDim.x + threadIdx.x;
+       i < loop_boundaries.end; i += blockDim.y * blockDim.x)
     closure(i);
 #else
   (void)loop_boundaries;
@@ -813,9 +827,8 @@ KOKKOS_INLINE_FUNCTION
   typename ReducerType::value_type value;
   reducer.init(value);
 
-  for (iType i = loop_boundaries.start + hipThreadIdx_y * hipBlockDim_x +
-                 hipThreadIdx_x;
-       i < loop_boundaries.end; i += hipBlockDim_y * hipBlockDim_x) {
+  for (iType i = loop_boundaries.start + threadIdx.y * blockDim.x + threadIdx.x;
+       i < loop_boundaries.end; i += blockDim.y * blockDim.x) {
     closure(i, value);
   }
 
@@ -840,9 +853,8 @@ KOKKOS_INLINE_FUNCTION
 
   reducer.init(reducer.reference());
 
-  for (iType i = loop_boundaries.start + hipThreadIdx_y * hipBlockDim_x +
-                 hipThreadIdx_x;
-       i < loop_boundaries.end; i += hipBlockDim_y * hipBlockDim_x) {
+  for (iType i = loop_boundaries.start + threadIdx.y * blockDim.x + threadIdx.x;
+       i < loop_boundaries.end; i += blockDim.y * blockDim.x) {
     closure(i, val);
   }
 
@@ -870,8 +882,8 @@ KOKKOS_INLINE_FUNCTION void parallel_for(
         loop_boundaries,
     const Closure& closure) {
 #ifdef __HIP_DEVICE_COMPILE__
-  for (iType i = loop_boundaries.start + hipThreadIdx_x;
-       i < loop_boundaries.end; i += hipBlockDim_x) {
+  for (iType i = loop_boundaries.start + threadIdx.x; i < loop_boundaries.end;
+       i += blockDim.x) {
     closure(i);
   }
 #else
@@ -902,8 +914,8 @@ KOKKOS_INLINE_FUNCTION
 #ifdef __HIP_DEVICE_COMPILE__
   reducer.init(reducer.reference());
 
-  for (iType i = loop_boundaries.start + hipThreadIdx_x;
-       i < loop_boundaries.end; i += hipBlockDim_x) {
+  for (iType i = loop_boundaries.start + threadIdx.x; i < loop_boundaries.end;
+       i += blockDim.x) {
     closure(i, reducer.reference());
   }
 
@@ -935,8 +947,8 @@ KOKKOS_INLINE_FUNCTION
 #ifdef __HIP_DEVICE_COMPILE__
   result = ValueType();
 
-  for (iType i = loop_boundaries.start + hipThreadIdx_x;
-       i < loop_boundaries.end; i += hipBlockDim_x) {
+  for (iType i = loop_boundaries.start + threadIdx.x; i < loop_boundaries.end;
+       i += blockDim.x) {
     closure(i, result);
   }
 
@@ -945,6 +957,88 @@ KOKKOS_INLINE_FUNCTION
   (void)loop_boundaries;
   (void)closure;
   (void)result;
+#endif
+}
+
+//----------------------------------------------------------------------------
+
+/** \brief  Intra-thread vector parallel scan with reducer.
+ *
+ *  Executes closure(iType i, ValueType & val, bool final) for each i=[0..N)
+ *
+ *  The range [0..N) is mapped to all vector lanes in the
+ *  thread and a scan operation is performed.
+ *  The last call to closure has final == true.
+ */
+template <typename iType, class Closure, typename ReducerType>
+KOKKOS_INLINE_FUNCTION
+    typename std::enable_if<Kokkos::is_reducer<ReducerType>::value>::type
+    parallel_scan(const Impl::ThreadVectorRangeBoundariesStruct<
+                      iType, Impl::HIPTeamMember>& loop_boundaries,
+                  const Closure& closure, const ReducerType& reducer) {
+#ifdef __HIP_DEVICE_COMPILE__
+  using value_type = typename ReducerType::value_type;
+  value_type accum;
+  reducer.init(accum);
+  const value_type identity = accum;
+
+  // Loop through boundaries by vector-length chunks
+  // must scan at each iteration
+
+  // All thread "lanes" must loop the same number of times.
+  // Determine an loop end for all thread "lanes."
+  // Requires:
+  //   blockDim.x is power of two and thus
+  //     ( end % blockDim.x ) == ( end & ( blockDim.x - 1 ) )
+  //   1 <= blockDim.x <= HIPTraits::WarpSize
+
+  const int mask = blockDim.x - 1;
+  const int rem  = loop_boundaries.end & mask;  // == end % blockDim.x
+  const int end  = loop_boundaries.end + (rem ? blockDim.x - rem : 0);
+
+  for (int i = threadIdx.x; i < end; i += blockDim.x) {
+    value_type val = identity;
+
+    // First acquire per-lane contributions.
+    // This sets i's val to i-1's contribution
+    // to make the latter in_place_shfl_up an
+    // exclusive scan -- the final accumulation
+    // of i's val will be included in the second
+    // closure call later.
+    if (i < loop_boundaries.end && threadIdx.x > 0) closure(i - 1, val, false);
+
+    // Bottom up exclusive scan in triangular pattern
+    // where each HIP thread is the root of a reduction tree
+    // from the zeroth "lane" to itself.
+    //  [t] += [t-1] if t >= 1
+    //  [t] += [t-2] if t >= 2
+    //  [t] += [t-4] if t >= 4
+    //  ...
+    //  This differs from the non-reducer overload, where an inclusive scan was
+    //  implemented, because in general the binary operator cannot be inverted
+    //  and we would not be able to remove the inclusive contribution by
+    //  inversion.
+    for (int j = 1; j < static_cast<int>(blockDim.x); j <<= 1) {
+      value_type tmp = identity;
+      ::Kokkos::Experimental::Impl::in_place_shfl_up(tmp, val, j, blockDim.x);
+      if (j <= static_cast<int>(threadIdx.x)) {
+        reducer.join(val, tmp);
+      }
+    }
+
+    // Include accumulation
+    reducer.join(val, accum);
+
+    // Update i's contribution into the val
+    // and add it to accum for next round
+    if (i < loop_boundaries.end) closure(i, val, true);
+    ::Kokkos::Experimental::Impl::in_place_shfl(accum, val, blockDim.x - 1,
+                                                blockDim.x);
+  }
+#else
+  (void)loop_boundaries;
+  (void)closure;
+  (void)reducer;
 #endif
 }
 
@@ -963,76 +1057,10 @@ KOKKOS_INLINE_FUNCTION void parallel_scan(
     const Impl::ThreadVectorRangeBoundariesStruct<iType, Impl::HIPTeamMember>&
         loop_boundaries,
     const Closure& closure) {
-#ifdef __HIP_DEVICE_COMPILE__
-  // Extract value_type from closure
-
   using value_type = typename Kokkos::Impl::FunctorAnalysis<
       Kokkos::Impl::FunctorPatternInterface::SCAN, void, Closure>::value_type;
-
-  // Loop through boundaries by vector-length chunks
-  // must scan at each iteration
-
-  value_type accum = 0;
-
-  // All thread "lanes" must loop the same number of times.
-  // Determine an loop end for all thread "lanes."
-  // Requires:
-  //   hipBlockDim_x is power of two and thus
-  //     ( end % hipBlockDim_x ) == ( end & ( hipBlockDim_x - 1 ) )
-  //   1 <= hipBlockDim_x <= HIPTraits::WarpSize
-
-  int constexpr warp_size = ::Kokkos::Experimental::Impl::HIPTraits::WarpSize;
-  const int mask          = hipBlockDim_x - 1;
-  const unsigned active_mask =
-      blockDim.x == warp_size
-          ? 0xffffffff
-          : ((1 << hipBlockDim_x) - 1)
-                << (hipThreadIdx_y % (warp_size / hipBlockDim_x)) *
-                       hipBlockDim_x;
-  const int rem = loop_boundaries.end & mask;  // == end % hipBlockDim_x
-  const int end = loop_boundaries.end + (rem ? hipBlockDim_x - rem : 0);
-
-  for (int i = hipThreadIdx_x; i < end; i += hipBlockDim_x) {
-    value_type val = 0;
-
-    // First acquire per-lane contributions:
-    if (i < loop_boundaries.end) closure(i, val, false);
-
-    value_type sval = val;
-
-    // Bottom up inclusive scan in triangular pattern
-    // where each HIP thread is the root of a reduction tree
-    // from the zeroth "lane" to itself.
-    //  [t] += [t-1] if t >= 1
-    //  [t] += [t-2] if t >= 2
-    //  [t] += [t-4] if t >= 4
-    //  ...
-
-    for (int j = 1; j < static_cast<int>(hipBlockDim_x); j <<= 1) {
-      value_type tmp = 0;
-      ::Kokkos::Experimental::Impl::in_place_shfl_up(
-          tmp, sval, j, hipBlockDim_x, active_mask);
-      if (j <= static_cast<int>(hipThreadIdx_x)) {
-        sval += tmp;
-      }
-    }
-
-    // Include accumulation and remove value for exclusive scan:
-    val = accum + sval - val;
-
-    // Provide exclusive scan value:
-    if (i < loop_boundaries.end) closure(i, val, true);
-
-    // Accumulate the last value in the inclusive scan:
-    ::Kokkos::Experimental::Impl::in_place_shfl(sval, sval, mask, blockDim.x,
-                                                active_mask);
-
-    accum += sval;
-  }
-#else
-  (void)loop_boundaries;
-  (void)closure;
-#endif
+  value_type dummy;
+  parallel_scan(loop_boundaries, closure, Kokkos::Sum<value_type>(dummy));
 }
 
 }  // namespace Kokkos
@@ -1044,7 +1072,7 @@ KOKKOS_INLINE_FUNCTION void single(
     const Impl::VectorSingleStruct<Impl::HIPTeamMember>&,
     const FunctorType& lambda) {
 #ifdef __HIP_DEVICE_COMPILE__
-  if (hipThreadIdx_x == 0) lambda();
+  if (threadIdx.x == 0) lambda();
 #else
   (void)lambda;
 #endif
@@ -1055,7 +1083,7 @@ KOKKOS_INLINE_FUNCTION void single(
     const Impl::ThreadSingleStruct<Impl::HIPTeamMember>&,
     const FunctorType& lambda) {
 #ifdef __HIP_DEVICE_COMPILE__
-  if (hipThreadIdx_x == 0 && hipThreadIdx_y == 0) lambda();
+  if (threadIdx.x == 0 && threadIdx.y == 0) lambda();
 #else
   (void)lambda;
 #endif
@@ -1066,14 +1094,8 @@ KOKKOS_INLINE_FUNCTION void single(
     const Impl::VectorSingleStruct<Impl::HIPTeamMember>&,
     const FunctorType& lambda, ValueType& val) {
 #ifdef __HIP_DEVICE_COMPILE__
-  int constexpr warp_size = ::Kokkos::Experimental::Impl::HIPTraits::WarpSize;
-  if (hipThreadIdx_x == 0) lambda(val);
-  unsigned mask = hipBlockDim_x == warp_size
-                      ? 0xffffffff
-                      : ((1 << hipBlockDim_x) - 1)
-                            << ((hipThreadIdx_y % (warp_size / hipBlockDim_x)) *
-                                hipBlockDim_x);
-  ::Kokkos::Experimental::Impl::in_place_shfl(val, val, 0, hipBlockDim_x, mask);
+  if (threadIdx.x == 0) lambda(val);
+  ::Kokkos::Experimental::Impl::in_place_shfl(val, val, 0, blockDim.x);
 #else
   (void)lambda;
   (void)val;
@@ -1084,11 +1106,8 @@ template <class FunctorType, class ValueType>
 KOKKOS_INLINE_FUNCTION void single(
     const Impl::ThreadSingleStruct<Impl::HIPTeamMember>& single_struct,
     const FunctorType& lambda, ValueType& val) {
-  (void)single_struct;
-  (void)lambda;
-  (void)val;
 #ifdef __HIP_DEVICE_COMPILE__
-  if (hipThreadIdx_x == 0 && hipThreadIdx_y == 0) {
+  if (threadIdx.x == 0 && threadIdx.y == 0) {
     lambda(val);
   }
   single_struct.team_member.team_broadcast(val, 0);
@@ -1103,4 +1122,4 @@ KOKKOS_INLINE_FUNCTION void single(
 
 #endif /* defined( __HIPCC__ ) */
 
-#endif /* #ifndef KOKKOS_CUDA_TEAM_HPP */
+#endif /* #ifndef KOKKOS_HIP_TEAM_HPP */

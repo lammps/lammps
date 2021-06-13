@@ -37,4 +37,7 @@ Related commands
 
 :doc:`angle_style zero <angle_zero>`
 
-**Default:** none
+Default
+"""""""
+
+none

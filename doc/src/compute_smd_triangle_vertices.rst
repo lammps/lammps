@@ -29,7 +29,8 @@ corresponding to the triangle-elements of a mesh created by the :doc:`fix smd/wa
 See `this PDF guide <PDF/SMD_LAMMPS_userguide.pdf>`_ to using Smooth
 Mach Dynamics in LAMMPS.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute returns a per-particle vector of vectors, which can be
 accessed by any command that uses per-particle values from a compute
@@ -61,4 +62,7 @@ Related commands
 :doc:`fix smd/move/tri/surf <fix_smd_move_triangulated_surface>`,
 :doc:`fix smd/wall_surface <fix_smd_wall_surface>`
 
-**Default:** none
+Default
+"""""""
+
+none

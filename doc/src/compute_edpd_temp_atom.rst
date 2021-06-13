@@ -31,7 +31,8 @@ of each eDPD particle based on the local equilibrium hypothesis.
 For more details please see :ref:`(Espanol1997) <Espanol1997>` and
 :ref:`(Li2014) <Li2014a>`.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a per-atom vector, which can be accessed by
 any command that uses per-atom values from a compute as input. See the
@@ -51,7 +52,10 @@ Related commands
 
 :doc:`pair_style edpd <pair_mesodpd>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

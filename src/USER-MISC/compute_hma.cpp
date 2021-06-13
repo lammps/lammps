@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -43,49 +44,43 @@ properties of crystals by molecular simulation”, Phys. Rev. E 92, 043303 (2015
 https://doi.org/10.1103/PhysRevE.92.043303
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstring>
-#include <mpi.h>
 #include "compute_hma.h"
-#include "atom.h"
-#include "update.h"
-#include "force.h"
-#include "pair.h"
-#include "bond.h"
+
 #include "angle.h"
+#include "atom.h"
+#include "bond.h"
+#include "comm.h"
 #include "dihedral.h"
-#include "improper.h"
-#include "kspace.h"
-#include "group.h"
 #include "domain.h"
-#include "modify.h"
+#include "error.h"
 #include "fix.h"
 #include "fix_store.h"
+#include "force.h"
+#include "group.h"
+#include "improper.h"
+#include "kspace.h"
 #include "memory.h"
-#include "error.h"
-#include "comm.h"
-#include "neighbor.h"
-#include "neigh_request.h"
+#include "modify.h"
 #include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "pair.h"
+#include "update.h"
 
-#include <vector>
-
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
 ComputeHMA::ComputeHMA(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), id_temp(NULL), deltaR(NULL)
+  Compute(lmp, narg, arg), id_temp(nullptr), deltaR(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute hma command");
   if (igroup) error->all(FLERR,"Compute hma must use group all");
-  if (strcmp(arg[3],"NULL") == 0) {error->all(FLERR,"fix ID specifying the set temperature of canonical simulation is required");}
-  else {
-    int n = strlen(arg[3]) + 1;
-    id_temp = new char[n];
-    strcpy(id_temp,arg[3]);
-  }
+  if (strcmp(arg[3],"NULL") == 0)
+    error->all(FLERR,"fix ID specifying the set temperature of canonical simulation is required");
+  else id_temp = utils::strdup(arg[3]);
 
   create_attribute = 1;
   extscalar = 1;
@@ -95,22 +90,10 @@ ComputeHMA::ComputeHMA(LAMMPS *lmp, int narg, char **arg) :
   // our new fix's id (id_fix)= compute-ID + COMPUTE_STORE
   // our new fix's group = same as compute group
 
-  int n = strlen(id) + strlen("_COMPUTE_STORE") + 1;
-  id_fix = new char[n];
-  strcpy(id_fix,id);
-  strcat(id_fix,"_COMPUTE_STORE");
-
-  char **newarg = new char*[6];
-  newarg[0] = id_fix;
-  newarg[1] = group->names[igroup];
-  newarg[2] = (char *) "STORE";
-  newarg[3] = (char *) "peratom";
-  newarg[4] = (char *) "1";
-  newarg[5] = (char *) "3";
-  modify->add_fix(6,newarg);
+  id_fix = utils::strdup(std::string(id)+"_COMPUTE_STORE");
+  modify->add_fix(fmt::format("{} {} STORE peratom 1 3",
+                              id_fix, group->names[igroup]));
   fix = (FixStore *) modify->fix[modify->nfix-1];
-
-  delete [] newarg;
 
   // calculate xu,yu,zu for fix store array
   // skip if reset from restart file
@@ -140,28 +123,24 @@ ComputeHMA::ComputeHMA(LAMMPS *lmp, int narg, char **arg) :
       computeU = size_vector;
       extlist[size_vector] = 1;
       size_vector++;
-    }
-    else if (!strcmp(arg[iarg], "p")) {
+    } else if (!strcmp(arg[iarg], "p")) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal compute hma command");
       if (computeP>-1) continue;
       computeP = size_vector;
-      deltaPcap = force->numeric(FLERR, arg[iarg+1]);
+      deltaPcap = utils::numeric(FLERR, arg[iarg+1],false,lmp);
       extlist[size_vector] = 0;
       size_vector++;
       iarg++;
-    }
-    else if (!strcmp(arg[iarg], "cv")) {
+    } else if (!strcmp(arg[iarg], "cv")) {
       if (computeCv>-1) continue;
       computeCv = size_vector;
       comm_forward = 3;
       extlist[size_vector] = 1;
       size_vector++;
-    }
-    else if (!strcmp(arg[iarg], "anharmonic")) {
+    } else if (!strcmp(arg[iarg], "anharmonic")) {
       // the first time we're called, we'll grab lattice pressure and energy
       returnAnharmonic = -1;
-    }
-    else {
+    } else {
       error->all(FLERR,"Illegal compute hma command");
     }
   }
@@ -202,7 +181,7 @@ ComputeHMA::~ComputeHMA()
 
 void ComputeHMA::init() {
   if (computeCv>-1) {
-    if (force->pair == NULL)
+    if (force->pair == nullptr)
       error->all(FLERR,"No pair style is defined for compute hma cv");
     if (force->pair->single_enable == 0)
       error->all(FLERR,"Pair style does not support compute hma cv");
@@ -225,7 +204,7 @@ void ComputeHMA::setup()
   int ifix = modify->find_fix(id_temp);
   if (ifix < 0) error->all(FLERR,"Could not find compute hma temperature ID");
   double * temperat = (double *) modify->fix[ifix]->extract("t_target",dummy);
-  if (temperat==NULL) error->all(FLERR,"Could not find compute hma temperature ID");
+  if (temperat==nullptr) error->all(FLERR,"Could not find compute hma temperature ID");
   finaltemp = * temperat;
 
   // set fix which stores original atom coords
@@ -297,8 +276,7 @@ void ComputeHMA::compute_vector()
       }
       fdr += dx*f[i][0] + dy*f[i][1] + dz*f[i][2];
     }
-  }
-  else {
+  } else {
     for (int i = 0; i < nlocal; i++) {
       int xbox = (image[i] & IMGMASK) - IMGMAX;
       int ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
@@ -388,8 +366,7 @@ void ComputeHMA::compute_vector()
     if (computeU>-1) {
       if (returnAnharmonic) {
         vector[computeU] = uTotal - uLat + 0.5*fdrTotal;
-      }
-      else {
+      } else {
         vector[computeU] = uTotal + 0.5*fdrTotal + 0.5*dimension*(atom->natoms - 1)*force->boltz*finaltemp;
       }
     }
@@ -399,8 +376,7 @@ void ComputeHMA::compute_vector()
     double fv = ((deltaPcap)-(force->boltz*finaltemp*force->nktv2p*atom->natoms/vol))/(force->boltz*finaltemp*dimension*(atom->natoms - 1));
     if (returnAnharmonic) {
       vector[computeP] = p - pLat + (fv*fdrTotal);
-    }
-    else {
+    } else {
       vector[computeP] = p + (fv*fdrTotal) + deltaPcap;
     }
   }
@@ -410,8 +386,7 @@ void ComputeHMA::compute_vector()
     double buTot;
     if (returnAnharmonic) {
       buTot = (uTotal - uLat + 0.5*fdrTotal)/finaltemp;
-    }
-    else {
+    } else {
       buTot = (uTotal + 0.5*fdrTotal)/finaltemp + 0.5*dimension*(atom->natoms - 1)*force->boltz;
     }
     double one = -0.25*(fdr + phiSum)/finaltemp;
@@ -500,6 +475,6 @@ void ComputeHMA::set_arrays(int i)
 
 double ComputeHMA::memory_usage()
 {
-  double bytes = nmax * 3 * sizeof(double);
+  double bytes = (double)nmax * 3 * sizeof(double);
   return bytes;
 }

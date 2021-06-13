@@ -38,7 +38,8 @@ application.
 This command can be used to steer one or more atoms to a new location
 in the simulation.
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
@@ -64,4 +65,7 @@ Related commands
 :doc:`fix spring <fix_spring>`, :doc:`fix spring/self <fix_spring_self>`,
 :doc:`fix spring/rg <fix_spring_rg>`, :doc:`fix smd <fix_smd>`
 
-**Default:** none
+Default
+"""""""
+
+none

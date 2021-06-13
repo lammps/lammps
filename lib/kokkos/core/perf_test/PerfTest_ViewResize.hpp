@@ -120,7 +120,7 @@ void run_resizeview_tests123(int N, int R) {
     Kokkos::Timer timer;
     for (int r = 0; r < R; r++) {
       Kokkos::View<double*, Layout> a1(
-          Kokkos::ViewAllocateWithoutInitializing("A1"), int(N8 * 1.1));
+          Kokkos::view_alloc(Kokkos::WithoutInitializing, "A1"), int(N8 * 1.1));
       double* a1_ptr = a1.data();
       Kokkos::parallel_for(
           N8, KOKKOS_LAMBDA(const int& i) { a1_ptr[i] = a_ptr[i]; });
@@ -201,7 +201,7 @@ void run_resizeview_tests45(int N, int R) {
     Kokkos::Timer timer;
     for (int r = 0; r < R; r++) {
       Kokkos::View<double*, Layout> a1(
-          Kokkos::ViewAllocateWithoutInitializing("A1"), int(N8 * 1.1));
+          Kokkos::view_alloc(Kokkos::WithoutInitializing, "A1"), int(N8 * 1.1));
       double* a1_ptr = a1.data();
       Kokkos::parallel_for(
           N8, KOKKOS_LAMBDA(const int& i) { a1_ptr[i] = a_ptr[i]; });
@@ -258,7 +258,7 @@ void run_resizeview_tests6(int N, int R) {
     Kokkos::Timer timer;
     for (int r = 0; r < R; r++) {
       Kokkos::View<double*, Layout> a1(
-          Kokkos::ViewAllocateWithoutInitializing("A1"), int(N8 * 1.1));
+          Kokkos::view_alloc(Kokkos::WithoutInitializing, "A1"), int(N8 * 1.1));
       double* a1_ptr = a1.data();
       Kokkos::parallel_for(
           N8, KOKKOS_LAMBDA(const int& i) { a1_ptr[i] = a_ptr[i]; });
@@ -311,7 +311,7 @@ void run_resizeview_tests7(int N, int R) {
     Kokkos::Timer timer;
     for (int r = 0; r < R; r++) {
       Kokkos::View<double*, Layout> a1(
-          Kokkos::ViewAllocateWithoutInitializing("A1"), int(N8 * 1.1));
+          Kokkos::view_alloc(Kokkos::WithoutInitializing, "A1"), int(N8 * 1.1));
       double* a1_ptr = a1.data();
       Kokkos::parallel_for(
           N8, KOKKOS_LAMBDA(const int& i) { a1_ptr[i] = a_ptr[i]; });
@@ -366,7 +366,7 @@ void run_resizeview_tests8(int N, int R) {
     Kokkos::Timer timer;
     for (int r = 0; r < R; r++) {
       Kokkos::View<double*, Layout> a1(
-          Kokkos::ViewAllocateWithoutInitializing("A1"), int(N8 * 1.1));
+          Kokkos::view_alloc(Kokkos::WithoutInitializing, "A1"), int(N8 * 1.1));
       double* a1_ptr = a1.data();
       Kokkos::parallel_for(
           N8, KOKKOS_LAMBDA(const int& i) { a1_ptr[i] = a_ptr[i]; });

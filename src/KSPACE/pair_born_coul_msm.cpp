@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -34,7 +35,7 @@ PairBornCoulMSM::PairBornCoulMSM(LAMMPS *lmp) : PairBornCoulLong(lmp)
   ewaldflag = pppmflag = 0;
   msmflag = 1;
   nmax = 0;
-  ftmp = NULL;
+  ftmp = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -195,7 +196,7 @@ void PairBornCoulMSM::compute(int eflag, int vflag)
 
   if (force->kspace->scalar_pressure_flag && vflag) {
     for (i = 0; i < 3; i++) virial[i] += force->pair->eng_coul/3.0;
-    for (int i = 0; i < nmax; i++) {
+    for (i = 0; i < nmax; i++) {
       f[i][0] += ftmp[i][0];
       f[i][1] += ftmp[i][1];
       f[i][2] += ftmp[i][2];
@@ -251,5 +252,5 @@ void *PairBornCoulMSM::extract(const char *str, int &dim)
 {
   dim = 0;
   if (strcmp(str,"cut_coul") == 0) return (void *) &cut_coul;
-  return NULL;
+  return nullptr;
 }

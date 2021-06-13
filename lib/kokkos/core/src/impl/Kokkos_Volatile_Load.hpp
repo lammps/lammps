@@ -42,6 +42,8 @@
 //@HEADER
 */
 
+#include <Kokkos_Macros.hpp>
+
 #if defined(KOKKOS_ATOMIC_HPP) && !defined(KOKKOS_VOLATILE_LOAD_HPP)
 #define KOKKOS_VOLATILE_LOAD_HPP
 
@@ -62,10 +64,10 @@ namespace Kokkos {
 
 template <typename T>
 KOKKOS_FORCEINLINE_FUNCTION T volatile_load(T const volatile* const src_ptr) {
-  typedef uint64_t KOKKOS_IMPL_MAY_ALIAS T64;
-  typedef uint32_t KOKKOS_IMPL_MAY_ALIAS T32;
-  typedef uint16_t KOKKOS_IMPL_MAY_ALIAS T16;
-  typedef uint8_t KOKKOS_IMPL_MAY_ALIAS T8;
+  typedef uint64_t KOKKOS_IMPL_MAY_ALIAS T64;  // NOLINT(modernize-use-using)
+  typedef uint32_t KOKKOS_IMPL_MAY_ALIAS T32;  // NOLINT(modernize-use-using)
+  typedef uint16_t KOKKOS_IMPL_MAY_ALIAS T16;  // NOLINT(modernize-use-using)
+  typedef uint8_t KOKKOS_IMPL_MAY_ALIAS T8;    // NOLINT(modernize-use-using)
 
   enum {
     NUM_8  = sizeof(T),
@@ -114,10 +116,10 @@ KOKKOS_FORCEINLINE_FUNCTION T volatile_load(T const volatile* const src_ptr) {
 template <typename T>
 KOKKOS_FORCEINLINE_FUNCTION void volatile_store(
     T volatile* const dst_ptr, T const volatile* const src_ptr) {
-  typedef uint64_t KOKKOS_IMPL_MAY_ALIAS T64;
-  typedef uint32_t KOKKOS_IMPL_MAY_ALIAS T32;
-  typedef uint16_t KOKKOS_IMPL_MAY_ALIAS T16;
-  typedef uint8_t KOKKOS_IMPL_MAY_ALIAS T8;
+  typedef uint64_t KOKKOS_IMPL_MAY_ALIAS T64;  // NOLINT(modernize-use-using)
+  typedef uint32_t KOKKOS_IMPL_MAY_ALIAS T32;  // NOLINT(modernize-use-using)
+  typedef uint16_t KOKKOS_IMPL_MAY_ALIAS T16;  // NOLINT(modernize-use-using)
+  typedef uint8_t KOKKOS_IMPL_MAY_ALIAS T8;    // NOLINT(modernize-use-using)
 
   enum {
     NUM_8  = sizeof(T),
@@ -162,10 +164,10 @@ KOKKOS_FORCEINLINE_FUNCTION void volatile_store(
 template <typename T>
 KOKKOS_FORCEINLINE_FUNCTION void volatile_store(T volatile* const dst_ptr,
                                                 T const* const src_ptr) {
-  typedef uint64_t KOKKOS_IMPL_MAY_ALIAS T64;
-  typedef uint32_t KOKKOS_IMPL_MAY_ALIAS T32;
-  typedef uint16_t KOKKOS_IMPL_MAY_ALIAS T16;
-  typedef uint8_t KOKKOS_IMPL_MAY_ALIAS T8;
+  typedef uint64_t KOKKOS_IMPL_MAY_ALIAS T64;  // NOLINT(modernize-use-using)
+  typedef uint32_t KOKKOS_IMPL_MAY_ALIAS T32;  // NOLINT(modernize-use-using)
+  typedef uint16_t KOKKOS_IMPL_MAY_ALIAS T16;  // NOLINT(modernize-use-using)
+  typedef uint8_t KOKKOS_IMPL_MAY_ALIAS T8;    // NOLINT(modernize-use-using)
 
   enum {
     NUM_8  = sizeof(T),

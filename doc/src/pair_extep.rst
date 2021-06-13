@@ -35,7 +35,10 @@ Related commands
 
 `pair_tersoff <pair tersoff>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

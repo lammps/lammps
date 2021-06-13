@@ -324,7 +324,8 @@ published research.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 Due to the large size of the fluid data, this fix writes it's own
 binary restart files, if requested, independent of the main LAMMPS

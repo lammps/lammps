@@ -49,202 +49,38 @@
 #include <cstdlib>
 #include <cstdint>
 #include <cinttypes>
-
-namespace TestTeamVector {
-
-struct my_complex {
-  double re, im;
-  int dummy;
-
-  KOKKOS_INLINE_FUNCTION
-  my_complex() {
-    re    = 0.0;
-    im    = 0.0;
-    dummy = 0;
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  my_complex(const my_complex &src) {
-    re    = src.re;
-    im    = src.im;
-    dummy = src.dummy;
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  my_complex &operator=(const my_complex &src) {
-    re    = src.re;
-    im    = src.im;
-    dummy = src.dummy;
-    return *this;
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  my_complex &operator=(const volatile my_complex &src) {
-    re    = src.re;
-    im    = src.im;
-    dummy = src.dummy;
-    return *this;
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  volatile my_complex &operator=(const my_complex &src) volatile {
-    re    = src.re;
-    im    = src.im;
-    dummy = src.dummy;
-    return *this;
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  volatile my_complex &operator=(const volatile my_complex &src) volatile {
-    re    = src.re;
-    im    = src.im;
-    dummy = src.dummy;
-    return *this;
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  my_complex(const volatile my_complex &src) {
-    re    = src.re;
-    im    = src.im;
-    dummy = src.dummy;
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  my_complex(const double &val) {
-    re    = val;
-    im    = 0.0;
-    dummy = 0;
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  my_complex &operator+=(const my_complex &src) {
-    re += src.re;
-    im += src.im;
-    dummy += src.dummy;
-    return *this;
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  void operator+=(const volatile my_complex &src) volatile {
-    re += src.re;
-    im += src.im;
-    dummy += src.dummy;
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  my_complex operator+(const my_complex &src) {
-    my_complex tmp = *this;
-    tmp.re += src.re;
-    tmp.im += src.im;
-    tmp.dummy += src.dummy;
-    return tmp;
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  my_complex operator+(const volatile my_complex &src) volatile {
-    my_complex tmp = *this;
-    tmp.re += src.re;
-    tmp.im += src.im;
-    tmp.dummy += src.dummy;
-    return tmp;
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  my_complex &operator*=(const my_complex &src) {
-    double re_tmp = re * src.re - im * src.im;
-    double im_tmp = re * src.im + im * src.re;
-    re            = re_tmp;
-    im            = im_tmp;
-    dummy *= src.dummy;
-    return *this;
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  void operator*=(const volatile my_complex &src) volatile {
-    double re_tmp = re * src.re - im * src.im;
-    double im_tmp = re * src.im + im * src.re;
-    re            = re_tmp;
-    im            = im_tmp;
-    dummy *= src.dummy;
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  bool operator==(const my_complex &src) {
-    return (re == src.re) && (im == src.im) && (dummy == src.dummy);
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  bool operator!=(const my_complex &src) {
-    return (re != src.re) || (im != src.im) || (dummy != src.dummy);
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  bool operator!=(const double &val) {
-    return (re != val) || (im != 0) || (dummy != 0);
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  my_complex &operator=(const int &val) {
-    re    = val;
-    im    = 0.0;
-    dummy = 0;
-    return *this;
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  my_complex &operator=(const double &val) {
-    re    = val;
-    im    = 0.0;
-    dummy = 0;
-    return *this;
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  operator double() { return re; }
-};
-}  // namespace TestTeamVector
-
-namespace Kokkos {
-template <>
-struct reduction_identity<TestTeamVector::my_complex> {
-  typedef reduction_identity<double> t_red_ident;
-  KOKKOS_FORCEINLINE_FUNCTION static TestTeamVector::my_complex sum() {
-    return TestTeamVector::my_complex(t_red_ident::sum());
-  }
-  KOKKOS_FORCEINLINE_FUNCTION static TestTeamVector::my_complex prod() {
-    return TestTeamVector::my_complex(t_red_ident::prod());
-  }
-};
-}  // namespace Kokkos
+#include <TestNonTrivialScalarTypes.hpp>
 
 namespace TestTeamVector {
 
 template <typename Scalar, class ExecutionSpace>
 struct functor_team_for {
-  typedef Kokkos::TeamPolicy<ExecutionSpace> policy_type;
-  typedef ExecutionSpace execution_space;
+  using policy_type     = Kokkos::TeamPolicy<ExecutionSpace>;
+  using execution_space = ExecutionSpace;
 
   Kokkos::View<int, Kokkos::LayoutLeft, ExecutionSpace> flag;
 
   functor_team_for(Kokkos::View<int, Kokkos::LayoutLeft, ExecutionSpace> flag_)
       : flag(flag_) {}
 
-  typedef typename ExecutionSpace::scratch_memory_space shmem_space;
-  typedef Kokkos::View<Scalar *, shmem_space, Kokkos::MemoryUnmanaged>
-      shared_int;
+  using shmem_space = typename ExecutionSpace::scratch_memory_space;
+  using shared_int =
+      Kokkos::View<Scalar *, shmem_space, Kokkos::MemoryUnmanaged>;
   unsigned team_shmem_size(int team_size) const {
     return shared_int::shmem_size(team_size * 13);
   }
 
   KOKKOS_INLINE_FUNCTION
   void operator()(typename policy_type::member_type team) const {
-    typedef typename shmem_space::size_type size_type;
+    using size_type           = typename shmem_space::size_type;
     const size_type shmemSize = team.team_size() * 13;
     shared_int values         = shared_int(team.team_shmem(), shmemSize);
 
-    if (values.data() == nullptr || values.extent(0) < shmemSize) {
-      printf("FAILED to allocate shared memory of size %u\n",
-             static_cast<unsigned int>(shmemSize));
+    if (values.data() == nullptr ||
+        static_cast<size_type>(values.extent(0)) < shmemSize) {
+      KOKKOS_IMPL_DO_NOT_USE_PRINTF(
+          "FAILED to allocate shared memory of size %u\n",
+          static_cast<unsigned int>(shmemSize));
     } else {
       // Initialize shared memory.
       values(team.team_rank()) = 0;
@@ -274,9 +110,10 @@ struct functor_team_for {
         }
 
         if (test != value) {
-          printf("FAILED team_parallel_for %i %i %f %f\n", team.league_rank(),
-                 team.team_rank(), static_cast<double>(test),
-                 static_cast<double>(value));
+          KOKKOS_IMPL_DO_NOT_USE_PRINTF(
+              "FAILED team_parallel_for %i %i %f %f\n", team.league_rank(),
+              team.team_rank(), static_cast<double>(test),
+              static_cast<double>(value));
           flag() = 1;
         }
       });
@@ -286,8 +123,8 @@ struct functor_team_for {
 
 template <typename Scalar, class ExecutionSpace>
 struct functor_team_reduce {
-  typedef Kokkos::TeamPolicy<ExecutionSpace> policy_type;
-  typedef ExecutionSpace execution_space;
+  using policy_type     = Kokkos::TeamPolicy<ExecutionSpace>;
+  using execution_space = ExecutionSpace;
 
   Kokkos::View<int, Kokkos::LayoutLeft, ExecutionSpace> flag;
 
@@ -295,9 +132,9 @@ struct functor_team_reduce {
       Kokkos::View<int, Kokkos::LayoutLeft, ExecutionSpace> flag_)
       : flag(flag_) {}
 
-  typedef typename ExecutionSpace::scratch_memory_space shmem_space;
-  typedef Kokkos::View<Scalar *, shmem_space, Kokkos::MemoryUnmanaged>
-      shared_scalar_t;
+  using shmem_space = typename ExecutionSpace::scratch_memory_space;
+  using shared_scalar_t =
+      Kokkos::View<Scalar *, shmem_space, Kokkos::MemoryUnmanaged>;
   unsigned team_shmem_size(int team_size) const {
     return shared_scalar_t::shmem_size(team_size * 13);
   }
@@ -332,21 +169,23 @@ struct functor_team_reduce {
 
       if (test != value) {
         if (team.league_rank() == 0) {
-          printf("FAILED team_parallel_reduce %i %i %lf %lf %lu\n",
-                 team.league_rank(), team.team_rank(),
-                 static_cast<double>(test), static_cast<double>(value),
-                 sizeof(Scalar));
+          KOKKOS_IMPL_DO_NOT_USE_PRINTF(
+              "FAILED team_parallel_reduce %i %i %lf %lf %lu\n",
+              team.league_rank(), team.team_rank(), static_cast<double>(test),
+              static_cast<double>(value),
+              static_cast<unsigned long>(sizeof(Scalar)));
         }
 
         flag() = 1;
       }
       if (test != shared_value(0)) {
         if (team.league_rank() == 0) {
-          printf(
+          KOKKOS_IMPL_DO_NOT_USE_PRINTF(
               "FAILED team_parallel_reduce with shared result %i %i %lf %lf "
               "%lu\n",
               team.league_rank(), team.team_rank(), static_cast<double>(test),
-              static_cast<double>(shared_value(0)), sizeof(Scalar));
+              static_cast<double>(shared_value(0)),
+              static_cast<unsigned long>(sizeof(Scalar)));
         }
 
         flag() = 1;
@@ -357,8 +196,8 @@ struct functor_team_reduce {
 
 template <typename Scalar, class ExecutionSpace>
 struct functor_team_reduce_reducer {
-  typedef Kokkos::TeamPolicy<ExecutionSpace> policy_type;
-  typedef ExecutionSpace execution_space;
+  using policy_type     = Kokkos::TeamPolicy<ExecutionSpace>;
+  using execution_space = ExecutionSpace;
 
   Kokkos::View<int, Kokkos::LayoutLeft, ExecutionSpace> flag;
 
@@ -366,9 +205,9 @@ struct functor_team_reduce_reducer {
       Kokkos::View<int, Kokkos::LayoutLeft, ExecutionSpace> flag_)
       : flag(flag_) {}
 
-  typedef typename ExecutionSpace::scratch_memory_space shmem_space;
-  typedef Kokkos::View<Scalar *, shmem_space, Kokkos::MemoryUnmanaged>
-      shared_scalar_t;
+  using shmem_space = typename ExecutionSpace::scratch_memory_space;
+  using shared_scalar_t =
+      Kokkos::View<Scalar *, shmem_space, Kokkos::MemoryUnmanaged>;
   unsigned team_shmem_size(int team_size) const {
     return shared_scalar_t::shmem_size(team_size * 13);
   }
@@ -402,14 +241,15 @@ struct functor_team_reduce_reducer {
       }
 
       if (test != value) {
-        printf("FAILED team_vector_parallel_reduce_reducer %i %i %lf %lf\n",
-               team.league_rank(), team.team_rank(), static_cast<double>(test),
-               static_cast<double>(value));
+        KOKKOS_IMPL_DO_NOT_USE_PRINTF(
+            "FAILED team_vector_parallel_reduce_reducer %i %i %lf %lf\n",
+            team.league_rank(), team.team_rank(), static_cast<double>(test),
+            static_cast<double>(value));
 
         flag() = 1;
       }
       if (test != shared_value(0)) {
-        printf(
+        KOKKOS_IMPL_DO_NOT_USE_PRINTF(
             "FAILED team_vector_parallel_reduce_reducer shared value %i %i %lf "
             "%lf\n",
             team.league_rank(), team.team_rank(), static_cast<double>(test),
@@ -423,8 +263,8 @@ struct functor_team_reduce_reducer {
 
 template <typename Scalar, class ExecutionSpace>
 struct functor_team_vector_for {
-  typedef Kokkos::TeamPolicy<ExecutionSpace> policy_type;
-  typedef ExecutionSpace execution_space;
+  using policy_type     = Kokkos::TeamPolicy<ExecutionSpace>;
+  using execution_space = ExecutionSpace;
 
   Kokkos::View<int, Kokkos::LayoutLeft, ExecutionSpace> flag;
 
@@ -432,23 +272,25 @@ struct functor_team_vector_for {
       Kokkos::View<int, Kokkos::LayoutLeft, ExecutionSpace> flag_)
       : flag(flag_) {}
 
-  typedef typename ExecutionSpace::scratch_memory_space shmem_space;
-  typedef Kokkos::View<Scalar *, shmem_space, Kokkos::MemoryUnmanaged>
-      shared_int;
+  using shmem_space = typename ExecutionSpace::scratch_memory_space;
+  using shared_int =
+      Kokkos::View<Scalar *, shmem_space, Kokkos::MemoryUnmanaged>;
   unsigned team_shmem_size(int team_size) const {
     return shared_int::shmem_size(team_size * 13);
   }
 
   KOKKOS_INLINE_FUNCTION
   void operator()(typename policy_type::member_type team) const {
-    typedef typename shared_int::size_type size_type;
+    using size_type = typename shared_int::size_type;
 
     const size_type shmemSize = team.team_size() * 13;
     shared_int values         = shared_int(team.team_shmem(), shmemSize);
 
-    if (values.data() == nullptr || values.extent(0) < shmemSize) {
-      printf("FAILED to allocate shared memory of size %u\n",
-             static_cast<unsigned int>(shmemSize));
+    if (values.data() == nullptr ||
+        static_cast<size_type>(values.extent(0)) < shmemSize) {
+      KOKKOS_IMPL_DO_NOT_USE_PRINTF(
+          "FAILED to allocate shared memory of size %u\n",
+          static_cast<unsigned int>(shmemSize));
     } else {
       team.team_barrier();
 
@@ -478,9 +320,10 @@ struct functor_team_vector_for {
         }
 
         if (test != value) {
-          printf("FAILED team_vector_parallel_for %i %i %f %f\n",
-                 team.league_rank(), team.team_rank(),
-                 static_cast<double>(test), static_cast<double>(value));
+          KOKKOS_IMPL_DO_NOT_USE_PRINTF(
+              "FAILED team_vector_parallel_for %i %i %f %f\n",
+              team.league_rank(), team.team_rank(), static_cast<double>(test),
+              static_cast<double>(value));
 
           flag() = 1;
         }
@@ -491,17 +334,17 @@ struct functor_team_vector_for {
 
 template <typename Scalar, class ExecutionSpace>
 struct functor_team_vector_reduce {
-  typedef Kokkos::TeamPolicy<ExecutionSpace> policy_type;
-  typedef ExecutionSpace execution_space;
+  using policy_type     = Kokkos::TeamPolicy<ExecutionSpace>;
+  using execution_space = ExecutionSpace;
 
   Kokkos::View<int, Kokkos::LayoutLeft, ExecutionSpace> flag;
   functor_team_vector_reduce(
       Kokkos::View<int, Kokkos::LayoutLeft, ExecutionSpace> flag_)
       : flag(flag_) {}
 
-  typedef typename ExecutionSpace::scratch_memory_space shmem_space;
-  typedef Kokkos::View<Scalar *, shmem_space, Kokkos::MemoryUnmanaged>
-      shared_int;
+  using shmem_space = typename ExecutionSpace::scratch_memory_space;
+  using shared_int =
+      Kokkos::View<Scalar *, shmem_space, Kokkos::MemoryUnmanaged>;
   unsigned team_shmem_size(int team_size) const {
     return shared_int::shmem_size(team_size * 13);
   }
@@ -528,10 +371,11 @@ struct functor_team_vector_reduce {
 
       if (test != value) {
         if (team.league_rank() == 0) {
-          printf("FAILED team_vector_parallel_reduce %i %i %f %f %lu\n",
-                 team.league_rank(), team.team_rank(),
-                 static_cast<double>(test), static_cast<double>(value),
-                 sizeof(Scalar));
+          KOKKOS_IMPL_DO_NOT_USE_PRINTF(
+              "FAILED team_vector_parallel_reduce %i %i %f %f %lu\n",
+              team.league_rank(), team.team_rank(), static_cast<double>(test),
+              static_cast<double>(value),
+              static_cast<unsigned long>(sizeof(Scalar)));
         }
 
         flag() = 1;
@@ -542,8 +386,8 @@ struct functor_team_vector_reduce {
 
 template <typename Scalar, class ExecutionSpace>
 struct functor_team_vector_reduce_reducer {
-  typedef Kokkos::TeamPolicy<ExecutionSpace> policy_type;
-  typedef ExecutionSpace execution_space;
+  using policy_type     = Kokkos::TeamPolicy<ExecutionSpace>;
+  using execution_space = ExecutionSpace;
 
   Kokkos::View<int, Kokkos::LayoutLeft, ExecutionSpace> flag;
 
@@ -551,9 +395,9 @@ struct functor_team_vector_reduce_reducer {
       Kokkos::View<int, Kokkos::LayoutLeft, ExecutionSpace> flag_)
       : flag(flag_) {}
 
-  typedef typename ExecutionSpace::scratch_memory_space shmem_space;
-  typedef Kokkos::View<Scalar *, shmem_space, Kokkos::MemoryUnmanaged>
-      shared_int;
+  using shmem_space = typename ExecutionSpace::scratch_memory_space;
+  using shared_int =
+      Kokkos::View<Scalar *, shmem_space, Kokkos::MemoryUnmanaged>;
   unsigned team_shmem_size(int team_size) const {
     return shared_int::shmem_size(team_size * 13);
   }
@@ -579,9 +423,10 @@ struct functor_team_vector_reduce_reducer {
       }
 
       if (test != value) {
-        printf("FAILED team_vector_parallel_reduce_reducer %i %i %f %f\n",
-               team.league_rank(), team.team_rank(), static_cast<double>(test),
-               static_cast<double>(value));
+        KOKKOS_IMPL_DO_NOT_USE_PRINTF(
+            "FAILED team_vector_parallel_reduce_reducer %i %i %f %f\n",
+            team.league_rank(), team.team_rank(), static_cast<double>(test),
+            static_cast<double>(value));
 
         flag() = 1;
       }
@@ -591,8 +436,8 @@ struct functor_team_vector_reduce_reducer {
 
 template <typename Scalar, class ExecutionSpace>
 struct functor_vec_single {
-  typedef Kokkos::TeamPolicy<ExecutionSpace> policy_type;
-  typedef ExecutionSpace execution_space;
+  using policy_type     = Kokkos::TeamPolicy<ExecutionSpace>;
+  using execution_space = ExecutionSpace;
 
   Kokkos::View<int, Kokkos::LayoutLeft, ExecutionSpace> flag;
   int nStart;
@@ -624,9 +469,10 @@ struct functor_vec_single {
         Kokkos::ThreadVectorRange(team, nStart, nEnd),
         [&](int /*i*/, Scalar &val) { val += value; }, value2);
 
-    if (value2 != (value * (nEnd - nStart))) {
-      printf("FAILED vector_single broadcast %i %i %f %f\n", team.league_rank(),
-             team.team_rank(), (double)value2, (double)value);
+    if (value2 != (value * Scalar(nEnd - nStart))) {
+      KOKKOS_IMPL_DO_NOT_USE_PRINTF(
+          "FAILED vector_single broadcast %i %i %f %f\n", team.league_rank(),
+          team.team_rank(), (double)value2, (double)value);
 
       flag() = 1;
     }
@@ -635,17 +481,17 @@ struct functor_vec_single {
 
 template <typename Scalar, class ExecutionSpace>
 struct functor_vec_for {
-  typedef Kokkos::TeamPolicy<ExecutionSpace> policy_type;
-  typedef ExecutionSpace execution_space;
+  using policy_type     = Kokkos::TeamPolicy<ExecutionSpace>;
+  using execution_space = ExecutionSpace;
 
   Kokkos::View<int, Kokkos::LayoutLeft, ExecutionSpace> flag;
 
   functor_vec_for(Kokkos::View<int, Kokkos::LayoutLeft, ExecutionSpace> flag_)
       : flag(flag_) {}
 
-  typedef typename ExecutionSpace::scratch_memory_space shmem_space;
-  typedef Kokkos::View<Scalar *, shmem_space, Kokkos::MemoryUnmanaged>
-      shared_int;
+  using shmem_space = typename ExecutionSpace::scratch_memory_space;
+  using shared_int =
+      Kokkos::View<Scalar *, shmem_space, Kokkos::MemoryUnmanaged>;
   unsigned team_shmem_size(int team_size) const {
     return shared_int::shmem_size(team_size * 13);
   }
@@ -656,8 +502,8 @@ struct functor_vec_for {
 
     if (values.data() == nullptr ||
         values.extent(0) < (unsigned)team.team_size() * 13) {
-      printf("FAILED to allocate memory of size %i\n",
-             static_cast<int>(team.team_size() * 13));
+      KOKKOS_IMPL_DO_NOT_USE_PRINTF("FAILED to allocate memory of size %i\n",
+                                    static_cast<int>(team.team_size() * 13));
       flag() = 1;
     } else {
       Kokkos::parallel_for(Kokkos::ThreadVectorRange(team, 13), [&](int i) {
@@ -677,9 +523,10 @@ struct functor_vec_for {
         }
 
         if (test != value) {
-          printf("FAILED vector_par_for %i %i %f %f\n", team.league_rank(),
-                 team.team_rank(), static_cast<double>(test),
-                 static_cast<double>(value));
+          KOKKOS_IMPL_DO_NOT_USE_PRINTF("FAILED vector_par_for %i %i %f %f\n",
+                                        team.league_rank(), team.team_rank(),
+                                        static_cast<double>(test),
+                                        static_cast<double>(value));
 
           flag() = 1;
         }
@@ -690,8 +537,8 @@ struct functor_vec_for {
 
 template <typename Scalar, class ExecutionSpace>
 struct functor_vec_red {
-  typedef Kokkos::TeamPolicy<ExecutionSpace> policy_type;
-  typedef ExecutionSpace execution_space;
+  using policy_type     = Kokkos::TeamPolicy<ExecutionSpace>;
+  using execution_space = ExecutionSpace;
 
   Kokkos::View<int, Kokkos::LayoutLeft, ExecutionSpace> flag;
 
@@ -713,8 +560,9 @@ struct functor_vec_red {
       for (int i = 0; i < 13; i++) test += i;
 
       if (test != value) {
-        printf("FAILED vector_par_reduce %i %i %f %f\n", team.league_rank(),
-               team.team_rank(), (double)test, (double)value);
+        KOKKOS_IMPL_DO_NOT_USE_PRINTF("FAILED vector_par_reduce %i %i %f %f\n",
+                                      team.league_rank(), team.team_rank(),
+                                      (double)test, (double)value);
 
         flag() = 1;
       }
@@ -724,8 +572,8 @@ struct functor_vec_red {
 
 template <typename Scalar, class ExecutionSpace>
 struct functor_vec_red_reducer {
-  typedef Kokkos::TeamPolicy<ExecutionSpace> policy_type;
-  typedef ExecutionSpace execution_space;
+  using policy_type     = Kokkos::TeamPolicy<ExecutionSpace>;
+  using execution_space = ExecutionSpace;
 
   Kokkos::View<int, Kokkos::LayoutLeft, ExecutionSpace> flag;
 
@@ -751,9 +599,9 @@ struct functor_vec_red_reducer {
       for (int i = 0; i < 13; i++) test *= (i % 5 + 1);
 
       if (test != value) {
-        printf("FAILED vector_par_reduce_reducer %i %i %f %f\n",
-               team.league_rank(), team.team_rank(), (double)test,
-               (double)value);
+        KOKKOS_IMPL_DO_NOT_USE_PRINTF(
+            "FAILED vector_par_reduce_reducer %i %i %f %f\n",
+            team.league_rank(), team.team_rank(), (double)test, (double)value);
 
         flag() = 1;
       }
@@ -763,8 +611,8 @@ struct functor_vec_red_reducer {
 
 template <typename Scalar, class ExecutionSpace>
 struct functor_vec_scan {
-  typedef Kokkos::TeamPolicy<ExecutionSpace> policy_type;
-  typedef ExecutionSpace execution_space;
+  using policy_type     = Kokkos::TeamPolicy<ExecutionSpace>;
+  using execution_space = ExecutionSpace;
 
   Kokkos::View<int, Kokkos::LayoutLeft, ExecutionSpace> flag;
   functor_vec_scan(Kokkos::View<int, Kokkos::LayoutLeft, ExecutionSpace> flag_)
@@ -781,9 +629,10 @@ struct functor_vec_scan {
                               for (int k = 0; k <= i; k++) test += k;
 
                               if (test != val) {
-                                printf("FAILED vector_par_scan %i %i %f %f\n",
-                                       team.league_rank(), team.team_rank(),
-                                       (double)test, (double)val);
+                                KOKKOS_IMPL_DO_NOT_USE_PRINTF(
+                                    "FAILED vector_par_scan %i %i %f %f\n",
+                                    team.league_rank(), team.team_rank(),
+                                    (double)test, (double)val);
 
                                 flag() = 1;
                               }
@@ -794,9 +643,9 @@ struct functor_vec_scan {
 
 template <typename Scalar, class ExecutionSpace>
 struct functor_reduce {
-  typedef double value_type;
-  typedef Kokkos::TeamPolicy<ExecutionSpace> policy_type;
-  typedef ExecutionSpace execution_space;
+  using value_type      = double;
+  using policy_type     = Kokkos::TeamPolicy<ExecutionSpace>;
+  using execution_space = ExecutionSpace;
 
   Kokkos::View<int, Kokkos::LayoutLeft, ExecutionSpace> flag;
   functor_reduce(Kokkos::View<int, Kokkos::LayoutLeft, ExecutionSpace> flag_)
@@ -882,8 +731,14 @@ bool Test(int test) {
            test_scalar<long long int, ExecutionSpace>(317, team_size, test);
   passed = passed && test_scalar<float, ExecutionSpace>(317, team_size, test);
   passed = passed && test_scalar<double, ExecutionSpace>(317, team_size, test);
-  passed =
-      passed && test_scalar<my_complex, ExecutionSpace>(317, team_size, test);
+  passed = passed &&
+           test_scalar<Test::my_complex, ExecutionSpace>(317, team_size, test);
+  passed = passed && test_scalar<Test::array_reduce<double, 1>, ExecutionSpace>(
+                         317, team_size, test);
+  passed = passed && test_scalar<Test::array_reduce<float, 1>, ExecutionSpace>(
+                         317, team_size, test);
+  passed = passed && test_scalar<Test::array_reduce<double, 3>, ExecutionSpace>(
+                         317, team_size, test);
 
   return passed;
 }
@@ -899,8 +754,8 @@ namespace Test {
 template <typename ScalarType, class DeviceType>
 class TestTripleNestedReduce {
  public:
-  typedef DeviceType execution_space;
-  typedef typename execution_space::size_type size_type;
+  using execution_space = DeviceType;
+  using size_type       = typename execution_space::size_type;
 
   TestTripleNestedReduce(const size_type &nrows, const size_type &ncols,
                          const size_type &team_size,
@@ -920,17 +775,17 @@ class TestTripleNestedReduce {
     }
 #endif
 
-    // typedef Kokkos::LayoutLeft Layout;
-    typedef Kokkos::LayoutRight Layout;
+    // using Layout = Kokkos::LayoutLeft;
+    using Layout = Kokkos::LayoutRight;
 
-    typedef Kokkos::View<ScalarType *, DeviceType> ViewVector;
-    typedef Kokkos::View<ScalarType **, Layout, DeviceType> ViewMatrix;
+    using ViewVector = Kokkos::View<ScalarType *, DeviceType>;
+    using ViewMatrix = Kokkos::View<ScalarType **, Layout, DeviceType>;
 
     ViewVector y("y", nrows);
     ViewVector x("x", ncols);
     ViewMatrix A("A", nrows, ncols);
 
-    typedef Kokkos::RangePolicy<DeviceType> range_policy;
+    using range_policy = Kokkos::RangePolicy<DeviceType>;
 
     // Initialize y vector.
     Kokkos::parallel_for(
@@ -941,8 +796,8 @@ class TestTripleNestedReduce {
         range_policy(0, ncols), KOKKOS_LAMBDA(const int i) { x(i) = 1; });
     Kokkos::fence();
 
-    typedef Kokkos::TeamPolicy<DeviceType> team_policy;
-    typedef typename Kokkos::TeamPolicy<DeviceType>::member_type member_type;
+    using team_policy = Kokkos::TeamPolicy<DeviceType>;
+    using member_type = typename Kokkos::TeamPolicy<DeviceType>::member_type;
 
     // Initialize A matrix, note 2D indexing computation.
     Kokkos::parallel_for(
@@ -1000,8 +855,8 @@ class TestTripleNestedReduce {
 template <typename ScalarType, class DeviceType>
 class TestTripleNestedReduce {
  public:
-  typedef DeviceType execution_space;
-  typedef typename execution_space::size_type size_type;
+  using execution_space = DeviceType;
+  using size_type       = typename execution_space::size_type;
 
   TestTripleNestedReduce(const size_type &, const size_type, const size_type &,
                          const size_type) {}
@@ -1009,7 +864,121 @@ class TestTripleNestedReduce {
 
 #endif
 
-#if !defined(KOKKOS_IMPL_CUDA_CLANG_WORKAROUND)
+namespace VectorScanReducer {
+enum class ScanType : bool { Inclusive, Exclusive };
+
+template <typename ExecutionSpace, ScanType scan_type, int n,
+          int n_vector_range, class Reducer>
+struct checkScan {
+  const int n_team_thread_range = 1000;
+  const int n_per_team          = n_team_thread_range * n_vector_range;
+
+  using size_type  = typename ExecutionSpace::size_type;
+  using value_type = typename Reducer::value_type;
+  using view_type  = Kokkos::View<value_type[n], ExecutionSpace>;
+
+  view_type inputs  = view_type{"inputs"};
+  view_type outputs = view_type{"outputs"};
+
+  value_type result;
+  Reducer reducer = {result};
+
+  struct ThreadVectorFunctor {
+    KOKKOS_FUNCTION void operator()(const size_type j, value_type &update,
+                                    const bool final) const {
+      const size_type element = j + m_team_offset + m_thread_offset;
+      const auto tmp          = m_inputs(element);
+      if (scan_type == ScanType::Inclusive) {
+        m_reducer.join(update, tmp);
+        if (final) {
+          m_outputs(element) = update;
+        }
+      } else {
+        if (final) {
+          m_outputs(element) = update;
+        }
+        m_reducer.join(update, tmp);
+      }
+    }
+
+    const Reducer &m_reducer;
+    const size_type &m_team_offset;
+    const size_type &m_thread_offset;
+    const view_type &m_outputs;
+    const view_type &m_inputs;
+  };
+
+  struct TeamThreadRangeFunctor {
+    KOKKOS_FUNCTION void operator()(const size_type i) const {
+      const size_type thread_offset = i * n_vector_range;
+      Kokkos::parallel_scan(
+          Kokkos::ThreadVectorRange(m_team, n_vector_range),
+          ThreadVectorFunctor{m_reducer, m_team_offset, thread_offset,
+                              m_outputs, m_inputs},
+          m_reducer);
+    }
+
+    const typename Kokkos::TeamPolicy<ExecutionSpace>::member_type &m_team;
+    const Reducer &m_reducer;
+    const size_type &m_team_offset;
+    const view_type &m_outputs;
+    const view_type &m_inputs;
+  };
+
+  KOKKOS_FUNCTION void operator()(
+      const typename Kokkos::TeamPolicy<ExecutionSpace>::member_type &team)
+      const {
+    const size_type iTeam       = team.league_rank();
+    const size_type iTeamOffset = iTeam * n_per_team;
+    Kokkos::parallel_for(
+        Kokkos::TeamThreadRange(team, n_team_thread_range),
+        TeamThreadRangeFunctor{team, reducer, iTeamOffset, outputs, inputs});
+  }
+
+  KOKKOS_FUNCTION void operator()(size_type i) const { inputs(i) = i * 1. / n; }
+
+  void run() {
+    const int n_teams = n / n_per_team;
+
+    Kokkos::parallel_for(Kokkos::RangePolicy<ExecutionSpace>(0, n), *this);
+
+    // run ThreadVectorRange parallel_scan
+    Kokkos::TeamPolicy<ExecutionSpace> policy(n_teams, Kokkos::AUTO,
+                                              Kokkos::AUTO);
+    const std::string label =
+        (scan_type == ScanType::Inclusive ? std::string("inclusive")
+                                          : std::string("exclusive")) +
+        "Scan" + typeid(Reducer).name();
+    Kokkos::parallel_for(label, policy, *this);
+    Kokkos::fence();
+
+    auto host_outputs =
+        Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, outputs);
+    auto host_inputs =
+        Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, inputs);
+
+    Kokkos::View<value_type[n], Kokkos::HostSpace> expected("expected");
+    {
+      value_type identity;
+      reducer.init(identity);
+      for (int i = 0; i < expected.extent_int(0); ++i) {
+        const int vector       = i % n_vector_range;
+        const value_type accum = vector == 0 ? identity : expected(i - 1);
+        const value_type val =
+            scan_type == ScanType::Inclusive
+                ? host_inputs(i)
+                : (vector == 0 ? identity : host_inputs(i - 1));
+        expected(i) = accum;
+        reducer.join(expected(i), val);
+      }
+    }
+    for (int i = 0; i < host_outputs.extent_int(0); ++i)
+      ASSERT_EQ(host_outputs(i), expected(i));
+  }
+};
+}  // namespace VectorScanReducer
+
+#if !(defined(KOKKOS_IMPL_CUDA_CLANG_WORKAROUND) || defined(KOKKOS_ENABLE_HIP))
 TEST(TEST_CATEGORY, team_vector) {
   ASSERT_TRUE((TestTeamVector::Test<TEST_EXECSPACE>(0)));
   ASSERT_TRUE((TestTeamVector::Test<TEST_EXECSPACE>(1)));
@@ -1028,16 +997,13 @@ TEST(TEST_CATEGORY, team_vector) {
 
 #if !defined(KOKKOS_IMPL_CUDA_CLANG_WORKAROUND)
 TEST(TEST_CATEGORY, triple_nested_parallelism) {
-// With KOKKOS_DEBUG enabled, the functor uses too many registers to run
+// With KOKKOS_ENABLE_DEBUG enabled, the functor uses too many registers to run
 // with a team size of 32 on GPUs, 16 is the max possible (at least on a K80
 // GPU) See https://github.com/kokkos/kokkos/issues/1513
 #if defined(KOKKOS_ENABLE_DEBUG) && defined(KOKKOS_ENABLE_CUDA)
   if (!std::is_same<TEST_EXECSPACE, Kokkos::Cuda>::value) {
 #endif
-#ifdef KOKKOS_ENABLE_ROCM  // ROCm doesn't support TeamSize 32x32
-    if (!std::is_same<TEST_EXECSPACE, Kokkos::Experimental::ROCm>::value)
-#endif
-      TestTripleNestedReduce<double, TEST_EXECSPACE>(8192, 2048, 32, 32);
+    TestTripleNestedReduce<double, TEST_EXECSPACE>(8192, 2048, 32, 32);
     TestTripleNestedReduce<double, TEST_EXECSPACE>(8192, 2048, 32, 16);
 #if defined(KOKKOS_ENABLE_DEBUG) && defined(KOKKOS_ENABLE_CUDA)
   }
@@ -1045,11 +1011,37 @@ TEST(TEST_CATEGORY, triple_nested_parallelism) {
   TestTripleNestedReduce<double, TEST_EXECSPACE>(8192, 2048, 16, 16);
   TestTripleNestedReduce<double, TEST_EXECSPACE>(8192, 2048, 16, 33);
   TestTripleNestedReduce<double, TEST_EXECSPACE>(8192, 2048, 16, 19);
-#ifdef KOKKOS_ENABLE_ROCM  // ROCm doesn't support team sizes not powers of two
-  if (!std::is_same<TEST_EXECSPACE, Kokkos::Experimental::ROCm>::value)
-#endif
-    TestTripleNestedReduce<double, TEST_EXECSPACE>(8192, 2048, 7, 16);
+  TestTripleNestedReduce<double, TEST_EXECSPACE>(8192, 2048, 7, 16);
 }
 #endif
+
+TEST(TEST_CATEGORY, parallel_scan_with_reducers) {
+  using T = double;
+  using namespace VectorScanReducer;
+
+  static constexpr int n              = 1000000;
+  static constexpr int n_vector_range = 100;
+
+  checkScan<TEST_EXECSPACE, ScanType::Exclusive, n, n_vector_range,
+            Kokkos::Prod<T, TEST_EXECSPACE>>()
+      .run();
+  checkScan<TEST_EXECSPACE, ScanType::Inclusive, n, n_vector_range,
+            Kokkos::Prod<T, TEST_EXECSPACE>>()
+      .run();
+
+  checkScan<TEST_EXECSPACE, ScanType::Exclusive, n, n_vector_range,
+            Kokkos::Max<T, TEST_EXECSPACE>>()
+      .run();
+  checkScan<TEST_EXECSPACE, ScanType::Inclusive, n, n_vector_range,
+            Kokkos::Max<T, TEST_EXECSPACE>>()
+      .run();
+
+  checkScan<TEST_EXECSPACE, ScanType::Exclusive, n, n_vector_range,
+            Kokkos::Min<T, TEST_EXECSPACE>>()
+      .run();
+  checkScan<TEST_EXECSPACE, ScanType::Inclusive, n, n_vector_range,
+            Kokkos::Min<T, TEST_EXECSPACE>>()
+      .run();
+}
 
 }  // namespace Test

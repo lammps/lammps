@@ -1,10 +1,10 @@
 .. index:: improper_style umbrella
+.. index:: improper_style umbrella/omp
 
 improper_style umbrella command
 ===============================
 
-improper_style umbrella/omp command
-===================================
+Accelerator Variants: *umbrella/omp*
 
 Syntax
 """"""
@@ -72,7 +72,10 @@ Related commands
 
 :doc:`improper_coeff <improper_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

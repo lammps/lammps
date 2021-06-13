@@ -1,10 +1,10 @@
 .. index:: pair_style lj/smooth/linear
+.. index:: pair_style lj/smooth/linear/omp
 
 pair_style lj/smooth/linear command
 ===================================
 
-pair_style lj/smooth/linear/omp command
-=======================================
+Accelerator Variants: *lj/smooth/linear/omp*
 
 Syntax
 """"""
@@ -58,7 +58,8 @@ LJ cutoff specified in the pair_style command is used.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 For atom type pairs I,J and I != J, the epsilon and sigma coefficients
 and cutoff distance can be mixed. The default mix value is geometric.
@@ -94,7 +95,10 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`, :doc:`pair lj/smooth <pair_lj_smooth>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

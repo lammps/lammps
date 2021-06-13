@@ -5,8 +5,8 @@ The shear viscosity eta of a fluid can be measured in at least 6 ways
 using various options in LAMMPS.  See the examples/VISCOSITY directory
 for scripts that implement the 5 methods discussed here for a simple
 Lennard-Jones fluid model and 1 method for SPC/E water model.
-Also, see the :doc:`Howto kappa <Howto_kappa>` doc page for an analogous discussion for
-thermal conductivity.
+Also, see the :doc:`page on calculating thermal conductivity <Howto_kappa>`
+for an analogous discussion for thermal conductivity.
 
 Eta is a measure of the propensity of a fluid to transmit momentum in
 a direction perpendicular to the direction of velocity or momentum

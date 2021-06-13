@@ -60,6 +60,7 @@ reader = {}
 region = {}
 total = 0
 
+index_pattern = re.compile(r"^.. index:: (compute|fix|pair_style|angle_style|bond_style|dihedral_style|improper_style|kspace_style)\s+([a-zA-Z0-9/_]+)$")
 style_pattern = re.compile(r"(.+)Style\((.+),(.+)\)")
 upper = re.compile("[A-Z]+")
 gpu = re.compile("(.+)/gpu$")
@@ -69,6 +70,26 @@ kokkos_skip = re.compile("(.+)/kk/(host|device)$")
 omp = re.compile("(.+)/omp$")
 opt = re.compile("(.+)/opt$")
 removed = re.compile("(.*)Deprecated$")
+
+def load_index_entries_in_file(path):
+    entries = []
+    with open(path, 'r') as reader:
+        for line in reader:
+            m = index_pattern.match(line)
+            if m:
+                command_type = m.group(1)
+                style = m.group(2)
+                entries.append((command_type, style))
+    return entries
+
+def load_index_entries():
+    index = {'compute': set(), 'fix': set(), 'pair_style': set(), 'angle_style': set(),
+             'bond_style': set(), 'dihedral_style': set(), 'improper_style': set(), 'kspace_style': set()}
+    rst_files = glob(os.path.join(doc_dir, '*.rst'))
+    for f in rst_files:
+        for command_type, style in load_index_entries_in_file(f):
+            index[command_type].add(style)
+    return index
 
 def register_style(styles, name, info):
     if name in styles:
@@ -109,6 +130,24 @@ def check_style(filename, dirname, pattern, styles, name, suffix=False, skip=set
         if not s in matches:
             if not styles[c]['removed']:
                 print(f"{name} style entry {s} is missing or incomplete in {filename}")
+                counter += 1
+    return counter
+
+def check_style_index(name, styles, index, skip=[]):
+    counter = 0
+    for style in styles:
+        if style not in index and not styles[style]['removed'] and style not in skip:
+            print(f"{name} index entry {style} is missing")
+            counter += 1
+
+        for suffix in styles[style]:
+            if suffix == 'removed': continue
+            if suffix == 'kokkos':
+                suffix_style = f"{style}/kk"
+            else:
+                suffix_style = f"{style}/{suffix}"
+            if styles[style][suffix] and suffix_style not in index and style not in skip:
+                print(f"{name} index entry {suffix_style} is missing")
                 counter += 1
     return counter
 
@@ -207,6 +246,13 @@ Total number of styles (including suffixes): %d""" \
        len(fix), len(improper), len(integrate), len(kspace), \
        len(minimize), len(pair), len(reader), len(region), total))
 
+index = load_index_entries()
+
+total_index = 0
+for command_type, entries in index.items():
+    total_index += len(entries)
+
+print("Total number of style index entries:", total_index)
 
 counter = 0
 
@@ -244,5 +290,18 @@ counter += check_style('Commands_kspace.rst', doc_dir, ":doc:`(.+) <kspace_style
                        kspace,'KSpace',suffix=True)
 
 if counter:
-    print("Found %d issue(s) with style lists" % counter)
+    print(f"Found {counter} issue(s) with style lists")
 
+counter = 0
+
+counter += check_style_index("compute", compute, index["compute"])
+counter += check_style_index("fix", fix, index["fix"], skip=['python'])
+counter += check_style_index("angle_style", angle, index["angle_style"])
+counter += check_style_index("bond_style", bond, index["bond_style"])
+counter += check_style_index("dihedral_style", dihedral, index["dihedral_style"])
+counter += check_style_index("improper_style", improper, index["improper_style"])
+counter += check_style_index("kspace_style", kspace, index["kspace_style"])
+counter += check_style_index("pair_style", pair, index["pair_style"], skip=['meam', 'lj/sf'])
+
+if counter:
+    print(f"Found {counter} issue(s) with style index")

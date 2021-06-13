@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -20,9 +21,9 @@ using namespace LAMMPS_NS;
 
 AtomVecBond::AtomVecBond(LAMMPS *lmp) : AtomVec(lmp)
 {
-  molecular = 1;
+  molecular = Atom::MOLECULAR;
   bonds_allow = 1;
-  mass_type = 1;
+  mass_type = PER_TYPE;
 
   atom->molecule_flag = 1;
 
@@ -50,7 +51,7 @@ AtomVecBond::AtomVecBond(LAMMPS *lmp) : AtomVec(lmp)
   setup_fields();
 
   bond_per_atom = 0;
-  bond_negative = NULL;
+  bond_negative = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

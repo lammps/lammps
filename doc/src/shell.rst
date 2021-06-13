@@ -111,6 +111,13 @@ LAMMPS does not detect errors or print warnings when any of these
 commands execute.  E.g. if the specified directory does not exist,
 executing the *cd* command will silently do nothing.
 
-**Related commands:** none
+Related commands
+""""""""""""""""
 
-**Default:** none
+none
+
+
+Default
+"""""""
+
+none

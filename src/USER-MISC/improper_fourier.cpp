@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,7 +18,7 @@
 ------------------------------------------------------------------------- */
 
 #include "improper_fourier.h"
-#include <mpi.h>
+
 #include <cmath>
 #include "atom.h"
 #include "comm.h"
@@ -26,7 +27,7 @@
 #include "update.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -47,6 +48,7 @@ ImproperFourier::~ImproperFourier()
     memory->destroy(C0);
     memory->destroy(C1);
     memory->destroy(C2);
+    memory->destroy(all);
   }
 }
 
@@ -92,7 +94,7 @@ void ImproperFourier::compute(int eflag, int vflag)
            vb1x, vb1y, vb1z,
            vb2x, vb2y, vb2z,
            vb3x, vb3y, vb3z);
-    if ( all[type] ) {
+    if (all[type]) {
       addone(i1,i4,i2,i3, type,evflag,eflag,
              vb3x, vb3y, vb3z,
              vb1x, vb1y, vb1z,
@@ -115,7 +117,6 @@ void ImproperFourier::addone(const int &i1,const int &i2,const int &i3,const int
   double c,c2,a,s,projhfg,dhax,dhay,dhaz,dahx,dahy,dahz,cotphi;
   double ax,ay,az,ra2,rh2,ra,rh,rar,rhr,arx,ary,arz,hrx,hry,hrz;
 
-  double **x = atom->x;
   double **f = atom->f;
   int nlocal = atom->nlocal;
   int newton_bond = force->newton_bond;
@@ -148,27 +149,8 @@ void ImproperFourier::addone(const int &i1,const int &i2,const int &i3,const int
 
   // error check
 
-  if (c > 1.0 + TOLERANCE || c < (-1.0 - TOLERANCE)) {
-    int me;
-    MPI_Comm_rank(world,&me);
-    if (screen) {
-      char str[128];
-      sprintf(str,"Improper problem: %d " BIGINT_FORMAT " "
-              TAGINT_FORMAT " " TAGINT_FORMAT " "
-              TAGINT_FORMAT " " TAGINT_FORMAT,
-              me,update->ntimestep,
-              atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
-      error->warning(FLERR,str,0);
-      fprintf(screen,"  1st atom: %d %g %g %g\n",
-              me,x[i1][0],x[i1][1],x[i1][2]);
-      fprintf(screen,"  2nd atom: %d %g %g %g\n",
-              me,x[i2][0],x[i2][1],x[i2][2]);
-      fprintf(screen,"  3rd atom: %d %g %g %g\n",
-              me,x[i3][0],x[i3][1],x[i3][2]);
-      fprintf(screen,"  4th atom: %d %g %g %g\n",
-              me,x[i4][0],x[i4][1],x[i4][2]);
-    }
-  }
+  if (c > 1.0 + TOLERANCE || c < (-1.0 - TOLERANCE))
+    problem(FLERR, i1, i2, i3, i4);
 
   if (c > 1.0) c = 1.0;
   if (c < -1.0) c = -1.0;
@@ -274,19 +256,19 @@ void ImproperFourier::allocate()
 void ImproperFourier::coeff(int narg, char **arg)
 {
 
-  if ( narg != 5 && narg != 6 ) error->all(FLERR,"Incorrect args for improper coefficients");
+  if (narg != 5 && narg != 6) error->all(FLERR,"Incorrect args for improper coefficients");
 
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nimpropertypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->nimpropertypes,ilo,ihi,error);
 
-  double k_one = force->numeric(FLERR,arg[1]);
-  double C0_one = force->numeric(FLERR,arg[2]);
-  double C1_one = force->numeric(FLERR,arg[3]);
-  double C2_one = force->numeric(FLERR,arg[4]);
+  double k_one = utils::numeric(FLERR,arg[1],false,lmp);
+  double C0_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double C1_one = utils::numeric(FLERR,arg[3],false,lmp);
+  double C2_one = utils::numeric(FLERR,arg[4],false,lmp);
   int all_one = 1;
-  if ( narg == 6 ) all_one = force->inumeric(FLERR,arg[5]);
+  if (narg == 6) all_one = utils::inumeric(FLERR,arg[5],false,lmp);
 
   // convert w0 from degrees to radians
 
@@ -326,11 +308,11 @@ void ImproperFourier::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    utils::sfread(FLERR,&k[1],sizeof(double),atom->nimpropertypes,fp,NULL,error);
-    utils::sfread(FLERR,&C0[1],sizeof(double),atom->nimpropertypes,fp,NULL,error);
-    utils::sfread(FLERR,&C1[1],sizeof(double),atom->nimpropertypes,fp,NULL,error);
-    utils::sfread(FLERR,&C2[1],sizeof(double),atom->nimpropertypes,fp,NULL,error);
-    utils::sfread(FLERR,&all[1],sizeof(int),atom->nimpropertypes,fp,NULL,error);
+    utils::sfread(FLERR,&k[1],sizeof(double),atom->nimpropertypes,fp,nullptr,error);
+    utils::sfread(FLERR,&C0[1],sizeof(double),atom->nimpropertypes,fp,nullptr,error);
+    utils::sfread(FLERR,&C1[1],sizeof(double),atom->nimpropertypes,fp,nullptr,error);
+    utils::sfread(FLERR,&C2[1],sizeof(double),atom->nimpropertypes,fp,nullptr,error);
+    utils::sfread(FLERR,&all[1],sizeof(int),atom->nimpropertypes,fp,nullptr,error);
   }
   MPI_Bcast(&k[1],atom->nimpropertypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&C0[1],atom->nimpropertypes,MPI_DOUBLE,0,world);

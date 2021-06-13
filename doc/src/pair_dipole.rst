@@ -1,28 +1,27 @@
 .. index:: pair_style lj/cut/dipole/cut
+.. index:: pair_style lj/cut/dipole/cut/gpu
+.. index:: pair_style lj/cut/dipole/cut/omp
+.. index:: pair_style lj/sf/dipole/sf
+.. index:: pair_style lj/sf/dipole/sf/gpu
+.. index:: pair_style lj/sf/dipole/sf/omp
+.. index:: pair_style lj/cut/dipole/long
+.. index:: pair_style lj/cut/dipole/long/gpu
+.. index:: pair_style lj/long/dipole/long
 
 pair_style lj/cut/dipole/cut command
 ====================================
 
-pair_style lj/cut/dipole/cut/gpu command
-========================================
-
-pair_style lj/cut/dipole/cut/omp command
-========================================
+Accelerator Variants: *lj/cut/dipole/cut/gpu*, *lj/cut/dipole/cut/omp*
 
 pair_style lj/sf/dipole/sf command
 ==================================
 
-pair_style lj/sf/dipole/sf/gpu command
-======================================
-
-pair_style lj/sf/dipole/sf/omp command
-======================================
+Accelerator Variants: *lj/sf/dipole/sf/gpu*, *lj/sf/dipole/sf/omp*
 
 pair_style lj/cut/dipole/long command
 =====================================
 
-pair_style lj/cut/dipole/long/gpu command
-=========================================
+Accelerator Variants: *lj/cut/dipole/long/gpu*
 
 pair_style lj/long/dipole/long command
 ======================================
@@ -292,7 +291,8 @@ type pair.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 For atom type pairs I,J and I != J, the epsilon and sigma coefficients
 and cutoff distances for this pair style can be mixed.  The default
@@ -341,7 +341,10 @@ Related commands
 :doc:`pair_coeff <pair_coeff>`, :doc:`set <set>`, :doc:`read_data <read_data>`,
 :doc:`fix nve/sphere <fix_nve_sphere>`, :doc:`fix nvt/sphere <fix_nvt_sphere>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

@@ -72,7 +72,7 @@ struct TestReductionDeductionFunctor {
 
 template <class ExecSpace>
 void test_reduction_deduction() {
-  typedef TestReductionDeductionFunctor<ExecSpace> Functor;
+  using Functor = TestReductionDeductionFunctor<ExecSpace>;
 
   const long N = 50;
   // const long answer  = N % 2 ? ( N * ( ( N + 1 ) / 2 ) ) : ( ( N / 2 ) * ( N

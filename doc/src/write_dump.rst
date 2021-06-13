@@ -31,6 +31,11 @@ Examples
    write_dump all image snap*.jpg element element &
       bond atom 0.3 shiny 0.1 ssao yes 6345 0.2 size 1600 1600  &
       modify backcolor white element C C O H N C C C O H H S O H
+   write_dump all atom/gz dump.atom.gz modify compression_level 9
+   write_dump flow custom/zstd dump.%.myforce.zst &
+                   id type c_myF[3] v_ke &
+                   modify sort id &
+                   compression_level 15
 
 Description
 """""""""""

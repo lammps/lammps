@@ -48,30 +48,31 @@ endif
 
 PACKAGE = asphere body class2 colloid compress coreshell dipole gpu \
 	  granular kim kokkos kspace latte manybody mc message misc \
-	  mliap molecule mpiio mscg opt peri poems \
+	  mliap molecule mpiio mscg opt peri plugin poems \
 	  python qeq replica rigid shock snap spin srd voronoi
 
-PACKUSER = user-adios user-atc user-awpmd user-bocs user-cgdna user-cgsdk user-colvars user-cac \
-	   user-diffraction user-dpd user-drude user-eff user-fep user-h5md \
-	   user-intel user-lb user-manifold user-meamc user-mesodpd user-mesont \
-	   user-mgpt user-misc user-mofff user-molfile \
-	   user-netcdf user-omp user-phonon user-plumed user-ptm user-qmmm \
-	   user-qtb user-quip user-reaction user-reaxc user-scafacos user-smd user-smtbq \
+PACKUSER = user-adios user-atc user-awpmd user-brownian user-bocs user-cac user-cgdna \
+	   user-cgsdk user-colvars user-dielectric user-diffraction user-dpd user-drude \
+	   user-eff user-fep user-h5md user-hdnnp user-intel user-lb user-manifold \
+	   user-mdi user-meamc user-mesodpd user-mesont user-mgpt user-misc \
+	   user-mofff user-molfile user-netcdf user-omp user-phonon \
+	   user-pace user-plumed user-ptm user-qmmm user-qtb user-quip \
+	   user-rann user-reaction user-reaxc user-scafacos user-smd user-smtbq \
 	   user-sdpd user-sph user-tally user-uef user-vtk user-yaff
 
-PACKLIB = compress gpu kim kokkos latte message mpiio mscg poems \
-	  python voronoi \
-	  user-adios user-atc user-awpmd user-colvars user-h5md user-lb user-molfile \
-	  user-netcdf user-plumed user-qmmm user-quip user-scafacos \
-	  user-smd user-vtk user-mesont
+PACKLIB = compress gpu kim kokkos latte message mpiio mscg poems python voronoi \
+	  user-adios user-atc user-awpmd user-colvars user-h5md user-hdnnp user-lb user-mdi \
+	  user-mesont user-molfile user-netcdf user-pace user-plumed user-qmmm user-quip \
+	  user-scafacos user-smd user-vtk
 
 PACKSYS = compress mpiio python user-lb
 
-PACKINT = gpu kokkos message poems user-atc user-awpmd user-colvars user-mesont
+PACKINT = gpu kokkos message poems user-atc user-awpmd user-colvars user-mesont \
+	  user-mdi
 
 PACKEXT = kim latte mscg voronoi \
-	  user-adios user-h5md user-molfile user-netcdf user-plumed user-qmmm user-quip \
-	  user-smd user-vtk
+	  user-adios user-h5md user-hdnnp user-molfile user-netcdf user-pace user-plumed \
+	  user-qmmm user-quip user-scafacos user-smd user-vtk
 
 PACKALL = $(PACKAGE) $(PACKUSER)
 
@@ -85,8 +86,8 @@ PACKUSERUC = $(call uppercase,$(PACKUSER))
 
 YESDIR = $(call uppercase,$(@:yes-%=%))
 NODIR  = $(call uppercase,$(@:no-%=%))
-LIBDIR = $($(@:lib-%=%))
-LIBUSERDIR = $($(@:lib-user-%=%))
+LIBDIR = $(@:lib-%=%)
+LIBUSERDIR = $(@:lib-user-%=%)
 
 # List of all targets
 
@@ -272,13 +273,15 @@ mpi-stubs:
 	@cd STUBS; $(MAKE) clean; $(MAKE)
 
 # install LAMMPS shared lib and Python wrapper for Python usage
-# include python package settings to
-#   automatically adapt name of python interpreter
+# include python package settings to automatically adapt name of
+# the python interpreter. must purge build folder to not install
+# unwanted outdated files.
 
 sinclude ../lib/python/Makefile.lammps
 install-python:
+	@rm -rf ../python/build
 	@$(PYTHON) ../python/install.py -v ../src/version.h \
-		-m ../python/lammps.py -l ../src/liblammps.so
+		-p ../python/lammps -l ../src/liblammps.so
 
 # Create a tarball of src dir and packages
 
@@ -364,7 +367,7 @@ yes-%:
 	@if [ ! -e Makefile.package.settings ]; \
 	  then cp Makefile.package.settings.empty Makefile.package.settings; fi
 	@if [ ! -e $(YESDIR) ]; then \
-	  echo "Package $(@:yes-%=%) does not exist"; \
+	  echo "Package $(YESDIR) does not exist"; exit 1; \
 	elif [ -e $(YESDIR)/Install.sh ]; then \
 	  echo "Installing package $(@:yes-%=%)"; \
 	  cd $(YESDIR); $(SHELL) Install.sh 1; cd ..; \
@@ -378,7 +381,7 @@ yes-%:
 
 no-%:
 	@if [ ! -e $(NODIR) ]; then \
-	  echo "Package $(@:no-%=%) does not exist"; \
+	  echo "Package $(NODIR) does not exist"; exit 1; \
 	elif [ -e $(NODIR)/Install.sh ]; then \
 	  echo "Uninstalling package $(@:no-%=%)"; \
 	  cd $(NODIR); $(SHELL) Install.sh 0; cd ..; \

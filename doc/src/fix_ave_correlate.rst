@@ -93,7 +93,7 @@ from a compute, fix, or variable, then see the :doc:`fix ave/chunk <fix_ave_chun
 :doc:`fix ave/histo <fix_ave_histo>` commands.  If you wish to convert a
 per-atom quantity into a single global value, see the :doc:`compute reduce <compute_reduce>` command.
 
-The input values must either be all scalars.  What kinds of
+The input values must be all scalars.  What kinds of
 correlations between input values are calculated is determined by the
 *type* keyword as discussed below.
 
@@ -310,7 +310,8 @@ included in the variable formula or via the *prefactor* keyword.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.
@@ -361,7 +362,10 @@ Related commands
 :doc:`compute <compute>`, :doc:`fix ave/time <fix_ave_time>`, :doc:`fix ave/atom <fix_ave_atom>`, :doc:`fix ave/chunk <fix_ave_chunk>`,
 :doc:`fix ave/histo <fix_ave_histo>`, :doc:`variable <variable>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 The option defaults are ave = one, type = auto, start = 0, no file
 output, title 1,2,3 = strings as described above, and prefactor = 1.0.

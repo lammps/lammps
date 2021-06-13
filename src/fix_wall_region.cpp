@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,17 +13,17 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_wall_region.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
 #include "domain.h"
-#include "region.h"
-#include "force.h"
-#include "update.h"
-#include "respa.h"
 #include "error.h"
 #include "math_const.h"
+#include "region.h"
+#include "respa.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -34,7 +35,7 @@ enum{LJ93,LJ126,LJ1043,COLLOID,HARMONIC,MORSE};
 
 FixWallRegion::FixWallRegion(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  idregion(NULL)
+  idregion(nullptr)
 {
   if (narg < 8) error->all(FLERR,"Illegal fix wall/region command");
 
@@ -44,18 +45,17 @@ FixWallRegion::FixWallRegion(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   extscalar = 1;
   extvector = 1;
+  energy_global_flag = 1;
+  virial_global_flag = virial_peratom_flag = 1;
   respa_level_support = 1;
   ilevel_respa = 0;
-  virial_flag = 1;
 
   // parse args
 
   iregion = domain->find_region(arg[3]);
   if (iregion == -1)
     error->all(FLERR,"Region ID for fix wall/region does not exist");
-  int n = strlen(arg[3]) + 1;
-  idregion = new char[n];
-  strcpy(idregion,arg[3]);
+  idregion = utils::strdup(arg[3]);
 
   if (strcmp(arg[4],"lj93") == 0) style = LJ93;
   else if (strcmp(arg[4],"lj126") == 0) style = LJ126;
@@ -71,18 +71,18 @@ FixWallRegion::FixWallRegion(LAMMPS *lmp, int narg, char **arg) :
     if (narg != 9)
       error->all(FLERR,"Illegal fix wall/region command");
 
-    epsilon = force->numeric(FLERR,arg[5]);
-    alpha = force->numeric(FLERR,arg[6]);
-    sigma = force->numeric(FLERR,arg[7]);
-    cutoff = force->numeric(FLERR,arg[8]);
+    epsilon = utils::numeric(FLERR,arg[5],false,lmp);
+    alpha = utils::numeric(FLERR,arg[6],false,lmp);
+    sigma = utils::numeric(FLERR,arg[7],false,lmp);
+    cutoff = utils::numeric(FLERR,arg[8],false,lmp);
 
   } else {
     if (narg != 8)
       error->all(FLERR,"Illegal fix wall/region command");
 
-    epsilon = force->numeric(FLERR,arg[5]);
-    sigma = force->numeric(FLERR,arg[6]);
-    cutoff = force->numeric(FLERR,arg[7]);
+    epsilon = utils::numeric(FLERR,arg[5],false,lmp);
+    sigma = utils::numeric(FLERR,arg[6],false,lmp);
+    cutoff = utils::numeric(FLERR,arg[7],false,lmp);
   }
 
   if (cutoff <= 0.0) error->all(FLERR,"Fix wall/region cutoff <= 0.0");
@@ -104,7 +104,6 @@ int FixWallRegion::setmask()
 {
   int mask = 0;
   mask |= POST_FORCE;
-  mask |= THERMO_ENERGY;
   mask |= POST_FORCE_RESPA;
   mask |= MIN_POST_FORCE;
   return mask;
@@ -189,7 +188,7 @@ void FixWallRegion::init()
     offset = coeff3*r4inv*r4inv*rinv - coeff4*r2inv*rinv;
   }
 
-  if (strstr(update->integrate_style,"respa")) {
+  if (utils::strmatch(update->integrate_style,"^respa")) {
     ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
   }
@@ -199,7 +198,7 @@ void FixWallRegion::init()
 
 void FixWallRegion::setup(int vflag)
 {
-  if (strstr(update->integrate_style,"verlet"))
+  if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
     ((Respa *) update->integrate)->copy_flevel_f(ilevel_respa);
@@ -234,11 +233,9 @@ void FixWallRegion::post_force(int vflag)
 
   int onflag = 0;
 
-  // energy and virial setup
+  // virial setup
 
-  eflag = 0;
-  if (vflag) v_setup(vflag);
-  else evflag = 0;
+  v_init(vflag);
 
   // region->match() insures particle is in region or on surface, else error
   // if returned contact dist r = 0, is on surface, also an error
@@ -400,7 +397,7 @@ void FixWallRegion::morse(double r)
 {
   double dr = r - sigma;
   double dexp = exp(-alpha * dr);
-  fwall = coeff1 * (dexp*dexp - dexp) / r;
+  fwall = coeff1 * (dexp*dexp - dexp);
   eng = epsilon * (dexp*dexp - 2.0*dexp) - offset;
 }
 

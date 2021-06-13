@@ -1,40 +1,49 @@
 .. index:: fix rigid
+.. index:: fix rigid/omp
+.. index:: fix rigid/nve
+.. index:: fix rigid/nve/omp
+.. index:: fix rigid/nvt
+.. index:: fix rigid/nvt/omp
+.. index:: fix rigid/npt
+.. index:: fix rigid/npt/omp
+.. index:: fix rigid/nph
+.. index:: fix rigid/nph/omp
+.. index:: fix rigid/small
+.. index:: fix rigid/small/omp
+.. index:: fix rigid/nve/small
+.. index:: fix rigid/nvt/small
+.. index:: fix rigid/npt/small
+.. index:: fix rigid/nph/small
 
 fix rigid command
 =================
 
-fix rigid/omp command
-=====================
+Accelerator Variants: *rigid/omp*
 
 fix rigid/nve command
 =====================
 
-fix rigid/nve/omp command
-=========================
+Accelerator Variants: *rigid/nve/omp*
 
 fix rigid/nvt command
 =====================
 
-fix rigid/nvt/omp command
-=========================
+Accelerator Variants: *rigid/nvt/omp*
 
 fix rigid/npt command
 =====================
 
-fix rigid/npt/omp command
-=========================
+Accelerator Variants: *rigid/npt/omp*
 
 fix rigid/nph command
 =====================
 
-fix rigid/nph/omp command
-=========================
+Accelerator Variants: *rigid/nph/omp*
 
 fix rigid/small command
 =======================
 
-fix rigid/small/omp command
-===========================
+Accelerator Variants: *rigid/small/omp*
 
 fix rigid/nve/small command
 ===========================
@@ -740,27 +749,20 @@ rigid/nvt.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-No information about the 4 NVE rigid styles is written to :doc:`binary restart files <restart>`.  The exception is if the *infile* or
-*mol* keyword is used, in which case an auxiliary file is written out
-with rigid body information each time a restart file is written, as
+No information about the 4 NVE rigid styles is written to :doc:`binary
+restart files <restart>`.  The exception is if the *infile* or *mol*
+keyword is used, in which case an auxiliary file is written out with
+rigid body information each time a restart file is written, as
 explained above for the *infile* keyword.  For the 2 NVT rigid styles,
-the state of the Nose/Hoover thermostat is written to :doc:`binary restart files <restart>`.  Ditto for the 4 NPT and NPH rigid styles, and
-the state of the Nose/Hoover barostat.  See the
-:doc:`read_restart <read_restart>` command for info on how to re-specify
-a fix in an input script that reads a restart file, so that the
-operation of the fix continues in an uninterrupted fashion.
-
-The :doc:`fix_modify <fix_modify>` *energy* option is supported by the 6
-NVT, NPT, NPH rigid styles to add the energy change induced by the
-thermostatting to the system's potential energy as part of
-:doc:`thermodynamic output <thermo_style>`.
-
-The :doc:`fix_modify <fix_modify>` *virial* option is supported by this
-fix to add the contribution due to keeping the objects rigid to the
-system's virial as part of :doc:`thermodynamic output <thermo_style>`.
-The default is *virial yes*
+the state of the Nose/Hoover thermostat is written to :doc:`binary
+restart files <restart>`.  Ditto for the 4 NPT and NPH rigid styles,
+and the state of the Nose/Hoover barostat.  See the :doc:`read_restart
+<read_restart>` command for info on how to re-specify a fix in an
+input script that reads a restart file, so that the operation of the
+fix continues in an uninterrupted fashion.
 
 The :doc:`fix_modify <fix_modify>` *temp* and *press* options are
 supported by the 4 NPT and NPH rigid styles to change the computes
@@ -772,6 +774,12 @@ The :doc:`fix_modify <fix_modify>` *bodyforces* option is supported by
 all rigid styles to set whether per-body forces and torques are
 computed early or late in a timestep, i.e. at the post-force stage or
 at the final-integrate stage or the timestep, respectively.
+
+The cumulative energy change in the system imposed by the 6 NVT, NPT,
+NPH rigid fixes, via either thermostatting and/or barostatting, is
+included in the :doc:`thermodynamic output <thermo_style>` keywords
+*ecouple* and *econserve*.  See the :doc:`thermo_style <thermo_style>`
+doc page for details.
 
 The 2 NVE rigid fixes compute a global scalar which can be accessed by
 various :doc:`output commands <Howto_output>`.  The scalar value
@@ -788,13 +796,22 @@ are removed from this calculation, but only for the *rigid* and
 
 The 6 NVT, NPT, NPH rigid fixes compute a global scalar which can be
 accessed by various :doc:`output commands <Howto_output>`.  The scalar
-value calculated by these fixes is "extensive".  The scalar is the
-cumulative energy change due to the thermostatting and barostatting
-the fix performs.
+is the same cumulative energy change due to these fixes described
+above.  The scalar value calculated by this fix is "extensive".
+
+The :doc:`fix_modify <fix_modify>` *virial* option is supported by
+these fixes to add the contribution due to the added forces on atoms
+to both the global pressure and per-atom stress of the system via the
+:doc:`compute pressure <compute_pressure>` and :doc:`compute
+stress/atom <compute_stress_atom>` commands.  The former can be
+accessed by :doc:`thermodynamic output <thermo_style>`.  The default
+setting for this fix is :doc:`fix_modify virial yes <fix_modify>`.
 
 All of the *rigid* styles (not the *rigid/small* styles) compute a
-global array of values which can be accessed by various :doc:`output commands <Howto_output>`.  Similar information about the bodies
-defined by the *rigid/small* styles can be accessed via the :doc:`compute rigid/local <compute_rigid_local>` command.
+global array of values which can be accessed by various :doc:`output
+commands <Howto_output>`.  Similar information about the bodies
+defined by the *rigid/small* styles can be accessed via the
+:doc:`compute rigid/local <compute_rigid_local>` command.
 
 The number of rows in the array is equal to the number of rigid
 bodies.  The number of columns is 15.  Thus for each rigid body, 15

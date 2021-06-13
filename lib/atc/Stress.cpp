@@ -299,10 +299,10 @@ void StressCubicElasticDamped::stress(const FIELD_MATS      &fields,
 // cauchy born model
 //==============================================================================
 StressCauchyBorn::StressCauchyBorn(fstream &fileId, CbData &cb)
-  :  cblattice_(NULL),
-     potential_(NULL),
+  :  cblattice_(nullptr),
+     potential_(nullptr),
      makeLinear_(false),
-     cubicMat_(NULL),
+     cubicMat_(nullptr),
      initialized_(false),
      fixed_temperature_(0.),
      cbdata_(cb)

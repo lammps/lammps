@@ -1,16 +1,12 @@
 .. index:: dihedral_style opls
+.. index:: dihedral_style opls/intel
+.. index:: dihedral_style opls/kk
+.. index:: dihedral_style opls/omp
 
 dihedral_style opls command
 ===========================
 
-dihedral_style opls/intel command
-=================================
-
-dihedral_style opls/kk command
-==============================
-
-dihedral_style opls/omp command
-===============================
+Accelerator Variants: *opls/intel*, *opls/kk*, *opls/omp*
 
 Syntax
 """"""
@@ -72,7 +68,10 @@ Related commands
 
 :doc:`dihedral_coeff <dihedral_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

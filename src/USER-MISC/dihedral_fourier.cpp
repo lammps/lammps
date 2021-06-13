@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,7 +18,7 @@
 ------------------------------------------------------------------------- */
 
 #include "dihedral_fourier.h"
-#include <mpi.h>
+
 #include <cmath>
 #include "atom.h"
 #include "comm.h"
@@ -27,7 +28,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -50,11 +51,11 @@ DihedralFourier::~DihedralFourier()
     memory->destroy(nterms);
 
     for (int i=1; i<= atom->ndihedraltypes; i++) {
-      if ( k[i] ) delete [] k[i];
-      if ( multiplicity[i] ) delete [] multiplicity[i];
-      if ( shift[i] ) delete [] shift[i];
-      if ( cos_shift[i] ) delete [] cos_shift[i];
-      if ( sin_shift[i] ) delete [] sin_shift[i];
+      delete [] k[i];
+      delete [] multiplicity[i];
+      delete [] shift[i];
+      delete [] cos_shift[i];
+      delete [] sin_shift[i];
     }
     delete [] k;
     delete [] multiplicity;
@@ -138,27 +139,8 @@ void DihedralFourier::compute(int eflag, int vflag)
 
     // error check
 
-    if (c > 1.0 + TOLERANCE || c < (-1.0 - TOLERANCE)) {
-      int me;
-      MPI_Comm_rank(world,&me);
-      if (screen) {
-        char str[128];
-        sprintf(str,"Dihedral problem: %d " BIGINT_FORMAT " "
-                TAGINT_FORMAT " " TAGINT_FORMAT " "
-                TAGINT_FORMAT " " TAGINT_FORMAT,
-                me,update->ntimestep,
-                atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
-        error->warning(FLERR,str,0);
-        fprintf(screen,"  1st atom: %d %g %g %g\n",
-                me,x[i1][0],x[i1][1],x[i1][2]);
-        fprintf(screen,"  2nd atom: %d %g %g %g\n",
-                me,x[i2][0],x[i2][1],x[i2][2]);
-        fprintf(screen,"  3rd atom: %d %g %g %g\n",
-                me,x[i3][0],x[i3][1],x[i3][2]);
-        fprintf(screen,"  4th atom: %d %g %g %g\n",
-                me,x[i4][0],x[i4][1],x[i4][2]);
-      }
-    }
+    if (c > 1.0 + TOLERANCE || c < (-1.0 - TOLERANCE))
+      problem(FLERR, i1, i2, i3, i4);
 
     if (c > 1.0) c = 1.0;
     if (c < -1.0) c = -1.0;
@@ -279,8 +261,8 @@ void DihedralFourier::allocate()
   cos_shift = new double * [n+1];
   sin_shift = new double * [n+1];
   for (int i = 1; i <= n; i++) {
-    k[i] = shift[i] = cos_shift[i] = sin_shift[i] = 0;
-    multiplicity[i] = 0;
+    k[i] = shift[i] = cos_shift[i] = sin_shift[i] = nullptr;
+    multiplicity[i] = nullptr;
   }
 
   memory->create(setflag,n+1,"dihedral:setflag");
@@ -297,7 +279,7 @@ void DihedralFourier::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->ndihedraltypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->ndihedraltypes,ilo,ihi,error);
 
   // require integer values of shift for backwards compatibility
   // arbitrary phase angle shift could be allowed, but would break
@@ -306,7 +288,7 @@ void DihedralFourier::coeff(int narg, char **arg)
   double k_one;
   int multiplicity_one;
   double shift_one;
-  int nterms_one = force->inumeric(FLERR,arg[1]);
+  int nterms_one = utils::inumeric(FLERR,arg[1],false,lmp);
 
   if (nterms_one < 1)
     error->all(FLERR,"Incorrect number of terms arg for dihedral coefficients");
@@ -317,6 +299,11 @@ void DihedralFourier::coeff(int narg, char **arg)
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
     nterms[i] = nterms_one;
+    delete[] k[i];
+    delete[] multiplicity[i];
+    delete[] shift[i];
+    delete[] cos_shift[i];
+    delete[] sin_shift[i];
     k[i] = new double [nterms_one];
     multiplicity[i] = new int [nterms_one];
     shift[i] = new double [nterms_one];
@@ -324,9 +311,9 @@ void DihedralFourier::coeff(int narg, char **arg)
     sin_shift[i] = new double [nterms_one];
     for (int j = 0; j<nterms_one; j++) {
       int offset = 1+3*j;
-      k_one = force->numeric(FLERR,arg[offset+1]);
-      multiplicity_one = force->inumeric(FLERR,arg[offset+2]);
-      shift_one = force->numeric(FLERR,arg[offset+3]);
+      k_one = utils::numeric(FLERR,arg[offset+1],false,lmp);
+      multiplicity_one = utils::inumeric(FLERR,arg[offset+2],false,lmp);
+      shift_one = utils::numeric(FLERR,arg[offset+3],false,lmp);
       k[i][j] = k_one;
       multiplicity[i][j] = multiplicity_one;
       shift[i][j] = shift_one;
@@ -348,7 +335,7 @@ void DihedralFourier::write_restart(FILE *fp)
 {
 
   fwrite(&nterms[1],sizeof(int),atom->ndihedraltypes,fp);
-  for(int i = 1; i <= atom->ndihedraltypes; i++) {
+  for (int i = 1; i <= atom->ndihedraltypes; i++) {
     fwrite(k[i],sizeof(double),nterms[i],fp);
     fwrite(multiplicity[i],sizeof(int),nterms[i],fp);
     fwrite(shift[i],sizeof(double),nterms[i],fp);
@@ -365,7 +352,7 @@ void DihedralFourier::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0)
-    utils::sfread(FLERR,&nterms[1],sizeof(int),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&nterms[1],sizeof(int),atom->ndihedraltypes,fp,nullptr,error);
 
   MPI_Bcast(&nterms[1],atom->ndihedraltypes,MPI_INT,0,world);
 
@@ -380,9 +367,9 @@ void DihedralFourier::read_restart(FILE *fp)
 
   if (comm->me == 0) {
     for (int i=1; i<=atom->ndihedraltypes; i++) {
-      utils::sfread(FLERR,k[i],sizeof(double),nterms[i],fp,NULL,error);
-      utils::sfread(FLERR,multiplicity[i],sizeof(int),nterms[i],fp,NULL,error);
-      utils::sfread(FLERR,shift[i],sizeof(double),nterms[i],fp,NULL,error);
+      utils::sfread(FLERR,k[i],sizeof(double),nterms[i],fp,nullptr,error);
+      utils::sfread(FLERR,multiplicity[i],sizeof(int),nterms[i],fp,nullptr,error);
+      utils::sfread(FLERR,shift[i],sizeof(double),nterms[i],fp,nullptr,error);
     }
   }
 
@@ -410,7 +397,7 @@ void DihedralFourier::write_data(FILE *fp)
   for (int i = 1; i <= atom->ndihedraltypes; i++)
   {
     fprintf(fp,"%d %d",i,nterms[i]);
-    for(int j = 0; j < nterms[i]; j++)
+    for (int j = 0; j < nterms[i]; j++)
        fprintf(fp," %g %d %g",k[i][j],multiplicity[i][j],shift[i][j]);
     fprintf(fp,"\n");
   }

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -18,22 +19,23 @@
                          W. Michael Brown (Intel)
 ------------------------------------------------------------------------- */
 
-#include "omp_compat.h"
-#include <mpi.h>
-#include <cstdlib>
-#include <cmath>
 #include "pppm_intel.h"
+
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "modify.h"
-#include "fft3d_wrap.h"
 #include "gridcomm.h"
 #include "math_const.h"
 #include "math_special.h"
 #include "memory.h"
+#include "modify.h"
 #include "suffix.h"
+
+#include <cstdlib>
+#include <cmath>
+
+#include "omp_compat.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -64,10 +66,10 @@ PPPMIntel::PPPMIntel(LAMMPS *lmp) : PPPM(lmp)
 
   order = 7; //sets default stencil size to 7
 
-  perthread_density = NULL;
-  particle_ekx = particle_eky = particle_ekz = NULL;
+  perthread_density = nullptr;
+  particle_ekx = particle_eky = particle_ekz = nullptr;
 
-  rho_lookup = drho_lookup = NULL;
+  rho_lookup = drho_lookup = nullptr;
   rho_points = 0;
 
   _use_table = _use_lrt = 0;
@@ -124,7 +126,7 @@ void PPPMIntel::init()
     memory->destroy(rho_lookup);
     memory->create(rho_lookup, rho_points, INTEL_P3M_ALIGNED_MAXORDER,
                    "pppmintel:rho_lookup");
-    if(differentiation_flag == 1) {
+    if (differentiation_flag == 1) {
       memory->destroy(drho_lookup);
       memory->create(drho_lookup, rho_points, INTEL_P3M_ALIGNED_MAXORDER,
                      "pppmintel:drho_lookup");
@@ -164,11 +166,7 @@ void PPPMIntel::compute_first(int eflag, int vflag)
 
   ev_init(eflag,vflag);
 
-  if (evflag_atom && !peratom_allocate_flag) {
-    allocate_peratom();
-    cg_peratom->ghost_notify();
-    cg_peratom->setup();
-  }
+  if (evflag_atom && !peratom_allocate_flag) allocate_peratom();
 
   // if atom count has changed, update qsum and qsqsum
 
@@ -232,7 +230,8 @@ void PPPMIntel::compute_first(int eflag, int vflag)
   //   to fully sum contribution in their 3d bricks
   // remap from 3d decomposition to FFT decomposition
 
-  cg->reverse_comm(this,REVERSE_RHO);
+  gc->reverse_comm_kspace(this,1,sizeof(FFT_SCALAR),REVERSE_RHO,
+                          gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   brick2fft();
 
   // compute potential gradient on my FFT grid and
@@ -246,16 +245,22 @@ void PPPMIntel::compute_first(int eflag, int vflag)
   // all procs communicate E-field values
   // to fill ghost cells surrounding their 3d bricks
 
-  if (differentiation_flag == 1) cg->forward_comm(this,FORWARD_AD);
-  else cg->forward_comm(this,FORWARD_IK);
+  if (differentiation_flag == 1)
+    gc->forward_comm_kspace(this,1,sizeof(FFT_SCALAR),FORWARD_AD,
+                            gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+  else
+    gc->forward_comm_kspace(this,3,sizeof(FFT_SCALAR),FORWARD_IK,
+                            gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
   // extra per-atom energy/virial communication
 
   if (evflag_atom) {
     if (differentiation_flag == 1 && vflag_atom)
-      cg_peratom->forward_comm(this,FORWARD_AD_PERATOM);
+      gc->forward_comm_kspace(this,6,sizeof(FFT_SCALAR),FORWARD_AD_PERATOM,
+                              gc_buf1,gc_buf2,MPI_FFT_SCALAR);
     else if (differentiation_flag == 0)
-      cg_peratom->forward_comm(this,FORWARD_IK_PERATOM);
+      gc->forward_comm_kspace(this,7,sizeof(FFT_SCALAR),FORWARD_IK_PERATOM,
+                              gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   }
 }
 
@@ -374,7 +379,7 @@ void PPPMIntel::particle_map(IntelBuffers<flt_t,acc_t> *buffers)
 
   #if defined(_OPENMP)
   #pragma omp parallel LMP_DEFAULT_NONE \
-    shared(nlocal, nthr) reduction(+:flag) if(!_use_lrt)
+    shared(nlocal, nthr) reduction(+:flag) if (!_use_lrt)
   #endif
   {
     const flt_t lo0 = boxlo[0];
@@ -448,7 +453,7 @@ void PPPMIntel::make_rho(IntelBuffers<flt_t,acc_t> *buffers)
 
   #if defined(_OPENMP)
   #pragma omp parallel LMP_DEFAULT_NONE \
-    shared(nthr, nlocal, global_density) if(!_use_lrt)
+    shared(nthr, nlocal, global_density) if (!_use_lrt)
   #endif
   {
     const int nix = nxhi_out - nxlo_out + 1;
@@ -497,7 +502,7 @@ void PPPMIntel::make_rho(IntelBuffers<flt_t,acc_t> *buffers)
         #if defined(LMP_SIMD_COMPILER)
         #pragma simd
         #endif
-        for(int k = 0; k < INTEL_P3M_ALIGNED_MAXORDER; k++) {
+        for (int k = 0; k < INTEL_P3M_ALIGNED_MAXORDER; k++) {
           rho[0][k] = rho_lookup[idx][k];
           rho[1][k] = rho_lookup[idy][k];
           rho[2][k] = rho_lookup[idz][k];
@@ -551,7 +556,7 @@ void PPPMIntel::make_rho(IntelBuffers<flt_t,acc_t> *buffers)
   if (nthr > 1) {
     #if defined(_OPENMP)
     #pragma omp parallel LMP_DEFAULT_NONE \
-      shared(nthr, global_density) if(!_use_lrt)
+      shared(nthr, global_density) if (!_use_lrt)
     #endif
     {
       int ifrom, ito, tid;
@@ -561,7 +566,7 @@ void PPPMIntel::make_rho(IntelBuffers<flt_t,acc_t> *buffers)
       #pragma simd
       #endif
       for (int i = ifrom; i < ito; i++) {
-        for(int j = 1; j < nthr; j++) {
+        for (int j = 1; j < nthr; j++) {
           global_density[i] += perthread_density[j-1][i];
         }
       }
@@ -600,7 +605,7 @@ void PPPMIntel::fieldforce_ik(IntelBuffers<flt_t,acc_t> *buffers)
 
   #if defined(_OPENMP)
   #pragma omp parallel LMP_DEFAULT_NONE \
-    shared(nlocal, nthr) if(!_use_lrt)
+    shared(nlocal, nthr) if (!_use_lrt)
   #endif
   {
     const flt_t lo0 = boxlo[0];
@@ -751,7 +756,7 @@ void PPPMIntel::fieldforce_ad(IntelBuffers<flt_t,acc_t> *buffers)
 
   #if defined(_OPENMP)
   #pragma omp parallel LMP_DEFAULT_NONE \
-    shared(nlocal, nthr) if(!_use_lrt)
+    shared(nlocal, nthr) if (!_use_lrt)
   #endif
   {
     const flt_t ftwo_pi = MY_PI * 2.0;
@@ -810,7 +815,7 @@ void PPPMIntel::fieldforce_ad(IntelBuffers<flt_t,acc_t> *buffers)
         #if defined(LMP_SIMD_COMPILER)
         #pragma simd
         #endif
-        for(int k = 0; k < INTEL_P3M_ALIGNED_MAXORDER; k++) {
+        for (int k = 0; k < INTEL_P3M_ALIGNED_MAXORDER; k++) {
           rho[0][k] = rho_lookup[idx][k];
           rho[1][k] = rho_lookup[idy][k];
           rho[2][k] = rho_lookup[idz][k];
@@ -880,7 +885,7 @@ void PPPMIntel::fieldforce_ad(IntelBuffers<flt_t,acc_t> *buffers)
       #if defined(LMP_SIMD_COMPILER)
       #pragma loop_count min(2), max(INTEL_P3M_ALIGNED_MAXORDER), avg(7)
       #endif
-      for (int l = 0; l < order; l++){
+      for (int l = 0; l < order; l++) {
         particle_ekx[i] += ekx[l];
         particle_eky[i] += eky[l];
         particle_ekz[i] += ekz[l];
@@ -939,9 +944,9 @@ void PPPMIntel::precompute_rho()
     #if defined(LMP_SIMD_COMPILER)
     #pragma simd
     #endif
-    for (int k=nlower; k<=nupper;k++){
+    for (int k=nlower; k<=nupper;k++) {
       FFT_SCALAR r1 = ZEROF;
-      for(int l=order-1; l>=0; l--){
+      for (int l=order-1; l>=0; l--) {
         r1 = rho_coeff[l][k] + r1*dx;
       }
       rho_lookup[i][k-nlower] = r1;
@@ -953,9 +958,9 @@ void PPPMIntel::precompute_rho()
       #if defined(LMP_SIMD_COMPILER)
       #pragma simd
       #endif
-      for(int k=nlower; k<=nupper;k++){
+      for (int k=nlower; k<=nupper;k++) {
         FFT_SCALAR r1 = ZEROF;
-        for(int l=order-2; l>=0; l--){
+        for (int l=order-2; l>=0; l--) {
           r1 = drho_coeff[l][k] + r1*dx;
         }
         drho_lookup[i][k-nlower] = r1;
@@ -975,16 +980,16 @@ double PPPMIntel::memory_usage()
 {
   double bytes = PPPM::memory_usage();
   if ((comm->nthreads > 1) && !_use_lrt) {
-    bytes += (comm->nthreads - 1) * (ngrid + INTEL_P3M_ALIGNED_MAXORDER) *
+    bytes += (double)(comm->nthreads - 1) * (ngrid + INTEL_P3M_ALIGNED_MAXORDER) *
       sizeof(FFT_SCALAR);
   }
   if (differentiation_flag == 1) {
-    bytes += 3 * nmax * sizeof(FFT_SCALAR);
+    bytes += (double)3 * nmax * sizeof(FFT_SCALAR);
   }
   if (_use_table) {
-    bytes += rho_points * INTEL_P3M_ALIGNED_MAXORDER * sizeof(FFT_SCALAR);
+    bytes += (double)rho_points * INTEL_P3M_ALIGNED_MAXORDER * sizeof(FFT_SCALAR);
     if (differentiation_flag == 1) {
-      bytes += rho_points * INTEL_P3M_ALIGNED_MAXORDER * sizeof(FFT_SCALAR);
+      bytes += (double)rho_points * INTEL_P3M_ALIGNED_MAXORDER * sizeof(FFT_SCALAR);
     }
   }
   return bytes;
@@ -1001,7 +1006,7 @@ void PPPMIntel::pack_buffers()
   if (comm->nthreads > INTEL_HTHREADS) packthreads = comm->nthreads;
   else packthreads = 1;
   #if defined(_OPENMP)
-  #pragma omp parallel if(packthreads > 1)
+  #pragma omp parallel if (packthreads > 1)
   #endif
   {
     int ifrom, ito, tid;

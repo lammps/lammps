@@ -24,9 +24,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(phonon,FixPhonon)
-
+// clang-format off
+FixStyle(phonon,FixPhonon);
+// clang-format on
 #else
 
 #ifndef FIX_PHONON_H
@@ -40,8 +40,8 @@ typedef double FFT_SCALAR;
 #define MPI_FFT_SCALAR MPI_DOUBLE
 #endif
 
-#include <complex>
 #include "fix.h"
+#include <complex>
 #include <map>
 
 namespace LAMMPS_NS {
@@ -51,7 +51,7 @@ class FixPhonon : public Fix {
   FixPhonon(class LAMMPS *, int, char **);
   ~FixPhonon();
 
-  int  setmask();
+  int setmask();
   void init();
   void setup(int);
   void end_of_step();
@@ -60,66 +60,66 @@ class FixPhonon : public Fix {
   int modify_param(int, char **);
 
  private:
-  int me,nprocs;
-  bigint waitsteps;                             // wait these number of timesteps before recording atom positions
-  bigint prev_nstep;                            // number of steps from previous run(s); to judge if waitsteps is reached.
-  int nfreq, ifreq;                             // after this number of measurement (nfreq), the result will be output once
-  int nx,ny,nz,nucell,ntotal;                   // surface dimensions in x- and y-direction, number of atom per unit surface cell
-  int neval;                                    // # of evaluations
-  int sysdim;                                   // system dimension
-  int ngroup, nfind;                            // total number of atoms in group; total number of atoms on this proc
-  char *prefix, *logfile;                       // prefix of output file names
+  int me, nprocs;
+  bigint waitsteps;     // wait these number of timesteps before recording atom positions
+  bigint prev_nstep;    // number of steps from previous run(s); to judge if waitsteps is reached.
+  int nfreq, ifreq;     // after this number of measurement (nfreq), the result will be output once
+  int nx, ny, nz, nucell,
+      ntotal;    // surface dimensions in x- and y-direction, number of atom per unit surface cell
+  int neval;     // # of evaluations
+  int sysdim;    // system dimension
+  int ngroup, nfind;         // total number of atoms in group; total number of atoms on this proc
+  char *prefix, *logfile;    // prefix of output file names
   FILE *flog;
 
   double *M_inv_sqrt;
 
-  class FFT3d *fft;                             // to do fft via the fft3d wrapper
-  int nxlo,nxhi,mysize;                         // size info for local MPI_FFTW
-  int mynpt,mynq,fft_nsend;
+  class FFT3d *fft;          // to do fft via the fft3d wrapper
+  int nxlo, nxhi, mysize;    // size info for local MPI_FFTW
+  int mynpt, mynq, fft_nsend;
   int *fft_cnts, *fft_disp;
   int fft_dim, fft_dim2;
   FFT_SCALAR *fft_data;
 
-  tagint itag;                                  // index variables
-  int idx, idq;                                 // more index variables
-  std::map<tagint,int> tag2surf;                // Mapping info
-  std::map<int,tagint> surf2tag;                // more Mapping info
+  tagint itag;                       // index variables
+  int idx, idq;                      // more index variables
+  std::map<tagint, int> tag2surf;    // Mapping info
+  std::map<int, tagint> surf2tag;    // more Mapping info
 
-  double **RIloc;                               // R(r) and index on local proc
-  double **RIall;                               // gathered R(r) and index
-  double **Rsort;                               // sorted R(r)
-  double **Rnow;                                // Current R(r) on local proc
-  double **Rsum;                                // Accumulated R(r) on local proc
+  double **RIloc;    // R(r) and index on local proc
+  double **RIall;    // gathered R(r) and index
+  double **Rsort;    // sorted R(r)
+  double **Rnow;     // Current R(r) on local proc
+  double **Rsum;     // Accumulated R(r) on local proc
 
-  int *recvcnts, *displs;                       // MPI related variables
+  int *recvcnts, *displs;    // MPI related variables
 
-  std::complex<double> **Rqnow;                 // Current R(q) on local proc
-  std::complex<double> **Rqsum;                 // Accumulator for conj(R(q)_alpha)*R(q)_beta
-  std::complex<double> **Phi_q;                 // Phi's on local proc
-  std::complex<double> **Phi_all;               // Phi for all
+  std::complex<double> **Rqnow;      // Current R(q) on local proc
+  std::complex<double> **Rqsum;      // Accumulator for conj(R(q)_alpha)*R(q)_beta
+  std::complex<double> **Phi_q;      // Phi's on local proc
+  std::complex<double> **Phi_all;    // Phi for all
 
-  void readmap();                               // to read the mapping of gf atoms
-  char *mapfile;                                // file name of the map file
+  void readmap();    // to read the mapping of gf atoms
+  char *mapfile;     // file name of the map file
 
-  void getmass();                               // to get the mass of each atom in a unit cell
+  void getmass();    // to get the mass of each atom in a unit cell
 
   int nasr;
-  void postprocess();                           // to post process the data
-  void EnforceASR();                            // to apply acoustic sum rule to gamma point force constant matrix
+  void postprocess();    // to post process the data
+  void EnforceASR();     // to apply acoustic sum rule to gamma point force constant matrix
 
-  char *id_temp;                                // compute id for temperature
-  double *TempSum;                              // to get the average temperature vector
-  double inv_nTemp;                             // inverse of number of atoms in temperature group
-  class Compute *temperature;                   // compute that computes the temperature
+  char *id_temp;                 // compute id for temperature
+  double *TempSum;               // to get the average temperature vector
+  double inv_nTemp;              // inverse of number of atoms in temperature group
+  class Compute *temperature;    // compute that computes the temperature
 
   double hsum[6], **basis;
   int *basetype;
 
   // private methods to do matrix inversion
-  void GaussJordan(int, std::complex<double>*);
-
+  void GaussJordan(int, std::complex<double> *);
 };
-}
+}    // namespace LAMMPS_NS
 #endif
 #endif
 

@@ -57,7 +57,8 @@ following manner, using the :doc:`variable trap() <variable>` function:
    quantities will also have the same ID, and thus be initialized
    correctly with time=0 atom velocities from the restart file.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global vector of length 4, which can be
 accessed by indices 1-4 by any command that uses global vector values
@@ -76,4 +77,7 @@ Related commands
 
 :doc:`compute msd <compute_msd>`
 
-**Default:** none
+Default
+"""""""
+
+none

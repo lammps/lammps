@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    CSlib - Client/server library for code coupling
-   http://cslib.sandia.gov, Sandia National Laboratories
+   https://cslib.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright 2018 National Technology & Engineering Solutions of
@@ -52,7 +52,7 @@ void MsgMPITwo::init(char *filename)
 {
   if (client) {
     if (me == 0) {
-      FILE *fp = NULL;
+      FILE *fp = nullptr;
       while (!fp) {
         fp = fopen(filename,"r");
         if (!fp) sleep(1);

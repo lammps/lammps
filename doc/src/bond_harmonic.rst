@@ -1,16 +1,12 @@
 .. index:: bond_style harmonic
+.. index:: bond_style harmonic/intel
+.. index:: bond_style harmonic/kk
+.. index:: bond_style harmonic/omp
 
 bond_style harmonic command
 ===========================
 
-bond_style harmonic/intel command
-=================================
-
-bond_style harmonic/kk command
-==============================
-
-bond_style harmonic/omp command
-===============================
+Accelerator Variants: *harmonic/intel*, *harmonic/kk*, *harmonic/omp*
 
 Syntax
 """"""
@@ -65,4 +61,7 @@ Related commands
 
 :doc:`bond_coeff <bond_coeff>`, :doc:`delete_bonds <delete_bonds>`
 
-**Default:** none
+Default
+"""""""
+
+none

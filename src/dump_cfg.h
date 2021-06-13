@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef DUMP_CLASS
-
-DumpStyle(cfg,DumpCFG)
-
+// clang-format off
+DumpStyle(cfg,DumpCFG);
+// clang-format on
 #else
 
 #ifndef LMP_DUMP_CFG_H
@@ -26,14 +26,14 @@ namespace LAMMPS_NS {
 
 class DumpCFG : public DumpCustom {
  public:
-  int multifile_override;          // used by write_dump command
+  int multifile_override;    // used by write_dump command
 
   DumpCFG(class LAMMPS *, int, char **);
   virtual ~DumpCFG();
 
  protected:
-  char **auxname;            // name strings of auxiliary properties
-  int unwrapflag;            // 1 if unwrapped coordinates are requested
+  char **auxname;    // name strings of auxiliary properties
+  int unwrapflag;    // 1 if unwrapped coordinates are requested
 
   void init_style();
   virtual void write_header(bigint);
@@ -41,12 +41,12 @@ class DumpCFG : public DumpCustom {
   virtual void write_data(int, double *);
 
   typedef void (DumpCFG::*FnPtrWrite)(int, double *);
-  FnPtrWrite write_choice;             // ptr to write data functions
+  FnPtrWrite write_choice;    // ptr to write data functions
   void write_string(int, double *);
   void write_lines(int, double *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

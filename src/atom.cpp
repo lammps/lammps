@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,34 +13,37 @@
 ------------------------------------------------------------------------- */
 
 #include "atom.h"
-#include <mpi.h>
-#include <climits>
-#include <cstdlib>
-#include <cstring>
-#include <algorithm>
-#include <string>
-#include "style_atom.h"
 #include "atom_vec.h"
-#include "atom_vec_ellipsoid.h"
+#include "style_atom.h"  // IWYU pragma: keep
+
 #include "comm.h"
-#include "neighbor.h"
-#include "force.h"
-#include "modify.h"
-#include "fix.h"
 #include "compute.h"
-#include "update.h"
 #include "domain.h"
+#include "error.h"
+#include "fix.h"
+#include "force.h"
 #include "group.h"
 #include "input.h"
-#include "variable.h"
-#include "molecule.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
-#include "utils.h"
+#include "modify.h"
+#include "molecule.h"
+#include "neighbor.h"
+#include "update.h"
+#include "variable.h"
+
+#include "library.h"
+
+#include <algorithm>
+#include <cmath>
+#include <cstring>
 
 #ifdef LMP_USER_INTEL
 #include "neigh_request.h"
+#endif
+
+#ifdef LMP_GPU
+#include "fix_gpu.h"
 #endif
 
 using namespace LAMMPS_NS;
@@ -51,6 +55,33 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
+/** \class LAMMPS_NS::Atom
+ *  \brief Class to provide access to atom data
+
+\verbatim embed:rst
+The Atom class provides access to atom style related global settings and
+per-atom data that is stored with atoms and migrates with them from
+sub-domain to sub-domain as atoms move around.  This includes topology
+data, which is stored with either one specific atom or all atoms involved
+depending on the settings of the :doc:`newton command <newton>`.
+
+The actual per-atom data is allocated and managed by one of the various
+classes derived from the AtomVec class as determined by
+the :doc:`atom_style command <atom_style>`.  The pointers in the Atom class
+are updated by the AtomVec class as needed.
+\endverbatim
+ */
+
+/** Atom class constructor
+ *
+ * This resets and initialized all kinds of settings,
+ * parameters, and pointer variables for per-atom arrays.
+ * This also initializes the factory for creating
+ * instances of classes derived from the AtomVec base
+ * class, which correspond to the selected atom style.
+ *
+ * \param  lmp  pointer to the base LAMMPS class */
+
 Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
 {
   natoms = 0;
@@ -60,83 +91,83 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   nbondtypes = nangletypes = ndihedraltypes = nimpropertypes = 0;
   nbonds = nangles = ndihedrals = nimpropers = 0;
 
-  firstgroupname = NULL;
+  firstgroupname = nullptr;
   sortfreq = 1000;
   nextsort = 0;
   userbinsize = 0.0;
   maxbin = maxnext = 0;
-  binhead = NULL;
-  next = permute = NULL;
+  binhead = nullptr;
+  next = permute = nullptr;
 
   // data structure with info on per-atom vectors/arrays
 
   nperatom = maxperatom = 0;
-  peratom = NULL;
+  peratom = nullptr;
 
   // --------------------------------------------------------------------
   // 1st customization section: customize by adding new per-atom variables
 
-  tag = NULL;
-  type = mask = NULL;
-  image = NULL;
-  x = v = f = NULL;
+  tag = nullptr;
+  type = mask = nullptr;
+  image = nullptr;
+  x = v = f = nullptr;
 
   // charged and dipolar particles
 
-  q = NULL;
-  mu = NULL;
+  q = nullptr;
+  mu = nullptr;
 
   // finite-size particles
 
-  omega = angmom = torque = NULL;
-  radius = rmass = NULL;
-  ellipsoid = line = tri = body = NULL;
+  omega = angmom = torque = nullptr;
+  radius = rmass = nullptr;
+  ellipsoid = line = tri = body = nullptr;
 
   // molecular systems
 
-  molecule = NULL;
-  molindex = molatom = NULL;
+  molecule = nullptr;
+  molindex = molatom = nullptr;
 
   bond_per_atom =  extra_bond_per_atom = 0;
-  num_bond = NULL;
-  bond_type = NULL;
-  bond_atom = NULL;
+  num_bond = nullptr;
+  bond_type = nullptr;
+  bond_atom = nullptr;
 
   angle_per_atom = extra_angle_per_atom = 0;
-  num_angle = NULL;
-  angle_type = NULL;
-  angle_atom1 = angle_atom2 = angle_atom3 = NULL;
+  num_angle = nullptr;
+  angle_type = nullptr;
+  angle_atom1 = angle_atom2 = angle_atom3 = nullptr;
 
   dihedral_per_atom = extra_dihedral_per_atom = 0;
-  num_dihedral = NULL;
-  dihedral_type = NULL;
-  dihedral_atom1 = dihedral_atom2 = dihedral_atom3 = dihedral_atom4 = NULL;
+  num_dihedral = nullptr;
+  dihedral_type = nullptr;
+  dihedral_atom1 = dihedral_atom2 = dihedral_atom3 = dihedral_atom4 = nullptr;
 
   improper_per_atom = extra_improper_per_atom = 0;
-  num_improper = NULL;
-  improper_type = NULL;
-  improper_atom1 = improper_atom2 = improper_atom3 = improper_atom4 = NULL;
+  num_improper = nullptr;
+  improper_type = nullptr;
+  improper_atom1 = improper_atom2 = improper_atom3 = improper_atom4 = nullptr;
 
   maxspecial = 1;
-  nspecial = NULL;
-  special = NULL;
+  nspecial = nullptr;
+  special = nullptr;
 
   // PERI package
 
-  vfrac = s0 = NULL;
-  x0 = NULL;
+  vfrac = s0 = nullptr;
+  x0 = nullptr;
 
   // SPIN package
 
-  sp = fm = fm_long = NULL;
+  sp = fm = fm_long = nullptr;
 
   // USER-EFF and USER-AWPMD packages
 
-  spin = NULL;
-  eradius = ervel = erforce = NULL;
-  ervelforce = NULL;
-  cs = csforce = vforce = NULL;
-  etag = NULL;
+  spin = nullptr;
+  eradius = ervel = erforce = nullptr;
+  ervelforce = nullptr;
+  cs = csforce = vforce = nullptr;
+  etag = nullptr;
 
   //USER-CAC package
   
@@ -179,33 +210,37 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
 
   // USER-DPD package
 
-  uCond = uMech = uChem = uCG = uCGnew = NULL;
-  duChem = dpdTheta = NULL;
+  uCond = uMech = uChem = uCG = uCGnew = nullptr;
+  duChem = dpdTheta = nullptr;
 
   // USER-MESO package
 
-  cc = cc_flux = NULL;
-  edpd_temp = edpd_flux = edpd_cv = NULL;
+  cc = cc_flux = nullptr;
+  edpd_temp = edpd_flux = edpd_cv = nullptr;
 
   // USER-MESONT package
 
-  length = NULL;
-  buckling = NULL;
-  bond_nt = NULL;
+  length = nullptr;
+  buckling = nullptr;
+  bond_nt = nullptr;
 
   // USER-SMD package
 
-  contact_radius = NULL;
-  smd_data_9 = NULL;
-  smd_stress = NULL;
-  eff_plastic_strain = NULL;
-  eff_plastic_strain_rate = NULL;
-  damage = NULL;
+  contact_radius = nullptr;
+  smd_data_9 = nullptr;
+  smd_stress = nullptr;
+  eff_plastic_strain = nullptr;
+  eff_plastic_strain_rate = nullptr;
+  damage = nullptr;
 
   // USER-SPH package
 
-  rho = drho = esph = desph = cv = NULL;
-  vest = NULL;
+  rho = drho = esph = desph = cv = nullptr;
+  vest = nullptr;
+
+  // USER-DIELECTRIC package
+
+  area = ed = em = epsilon = curvature = q_unscaled = nullptr;
 
   // end of customization section
   // --------------------------------------------------------------------
@@ -213,14 +248,14 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   // user-defined molecules
 
   nmolecule = 0;
-  molecules = NULL;
+  molecules = nullptr;
 
   // custom atom arrays
 
   nivector = ndvector = 0;
-  ivector = NULL;
-  dvector = NULL;
-  iname = dname = NULL;
+  ivector = nullptr;
+  dvector = nullptr;
+  iname = dname = nullptr;
 
   // initialize atom style and array existence flags
 
@@ -232,34 +267,34 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
 
   // ntype-length arrays
 
-  mass = NULL;
-  mass_setflag = NULL;
+  mass = nullptr;
+  mass_setflag = nullptr;
 
   // callback lists & extra restart info
 
   nextra_grow = nextra_restart = nextra_border = nextra_clear = 0;
-  extra_grow = extra_restart = extra_border = extra_clear = NULL;
+  extra_grow = extra_restart = extra_border = extra_clear = nullptr;
   nextra_grow_max = nextra_restart_max = nextra_border_max = nextra_clear_max = 0;
   nextra_store = 0;
-  extra = NULL;
+  extra = nullptr;
 
   // default atom ID and mapping values
 
   tag_enable = 1;
-  map_style = map_user = 0;
+  map_style = map_user = MAP_NONE;
   map_tag_max = -1;
   map_maxarray = map_nhash = map_nbucket = -1;
 
   max_same = 0;
-  sametag = NULL;
-  map_array = NULL;
-  map_bucket = NULL;
-  map_hash = NULL;
+  sametag = nullptr;
+  map_array = nullptr;
+  map_bucket = nullptr;
+  map_hash = nullptr;
 
   unique_tags = nullptr;
 
-  atom_style = NULL;
-  avec = NULL;
+  atom_style = nullptr;
+  avec = nullptr;
 
   avec_map = new AtomVecCreatorMap();
 
@@ -304,7 +339,7 @@ Atom::~Atom()
     delete [] iname[i];
     memory->destroy(ivector[i]);
   }
-  if (dvector != NULL) {
+  if (dvector != nullptr) {
     for (int i = 0; i < ndvector; i++) {
       delete [] dname[i];
       memory->destroy(dvector[i]);
@@ -372,11 +407,8 @@ void Atom::settings(Atom *old)
   map_style = old->map_style;
   sortfreq = old->sortfreq;
   userbinsize = old->userbinsize;
-  if (old->firstgroupname) {
-    int n = strlen(old->firstgroupname) + 1;
-    firstgroupname = new char[n];
-    strcpy(firstgroupname,old->firstgroupname);
-  }
+  if (old->firstgroupname)
+    firstgroupname = utils::strdup(old->firstgroupname);
 }
 
 /* ----------------------------------------------------------------------
@@ -389,7 +421,7 @@ void Atom::peratom_create()
     delete [] peratom[i].name;
   memory->sfree(peratom);
 
-  peratom = NULL;
+  peratom = nullptr;
   nperatom = maxperatom = 0;
 
   // --------------------------------------------------------------------
@@ -543,6 +575,15 @@ void Atom::peratom_create()
   add_peratom("eff_plastic_strain_rate",&eff_plastic_strain_rate,DOUBLE,0);
   add_peratom("damage",&damage,DOUBLE,0);
 
+  // USER-DIELECTRIC package
+
+  add_peratom("area",&area,DOUBLE,0);
+  add_peratom("ed",&ed,DOUBLE,0);
+  add_peratom("em",&em,DOUBLE,0);
+  add_peratom("epsilon",&epsilon,DOUBLE,0);
+  add_peratom("curvature",&curvature,DOUBLE,0);
+  add_peratom("q_unscaled",&q_unscaled,DOUBLE,0);
+
   // end of customization section
   // --------------------------------------------------------------------
 }
@@ -563,14 +604,12 @@ void Atom::add_peratom(const char *name, void *address,
       memory->srealloc(peratom,maxperatom*sizeof(PerAtom),"atom:peratom");
   }
 
-  int n = strlen(name) + 1;
-  peratom[nperatom].name = new char[n];
-  strcpy(peratom[nperatom].name,name);
+  peratom[nperatom].name = utils::strdup(name);
   peratom[nperatom].address = address;
   peratom[nperatom].datatype = datatype;
   peratom[nperatom].cols = cols;
   peratom[nperatom].threadflag = threadflag;
-  peratom[nperatom].address_length = NULL;
+  peratom[nperatom].address_length = nullptr;
 
   nperatom++;
 }
@@ -613,9 +652,7 @@ void Atom::add_peratom_vary(const char *name, void *address,
       memory->srealloc(peratom,maxperatom*sizeof(PerAtom),"atom:peratom");
   }
 
-  int n = strlen(name) + 1;
-  peratom[nperatom].name = new char[n];
-  strcpy(peratom[nperatom].name,name);
+  peratom[nperatom].name = utils::strdup(name);
   peratom[nperatom].address = address;
   peratom[nperatom].datatype = datatype;
   peratom[nperatom].cols = -1;
@@ -666,8 +703,8 @@ void Atom::create_avec(const std::string &style, int narg, char **arg, int trysu
 {
   delete [] atom_style;
   if (avec) delete avec;
-  atom_style = NULL;
-  avec = NULL;
+  atom_style = nullptr;
+  avec = nullptr;
 
   // unset atom style and array existence flags
   // may have been set by old avec
@@ -701,9 +738,9 @@ void Atom::create_avec(const std::string &style, int narg, char **arg, int trysu
   // map style will be reset to array vs hash to by map_init()
 
   molecular = avec->molecular;
-  if (molecular && tag_enable == 0)
+  if ((molecular != Atom::ATOMIC) && (tag_enable == 0))
     error->all(FLERR,"Atom IDs must be used for molecular systems");
-  if (molecular) map_style = 3;
+  if (molecular != Atom::ATOMIC) map_style = MAP_YES;
 }
 
 /* ----------------------------------------------------------------------
@@ -739,7 +776,7 @@ AtomVec *Atom::new_avec(const std::string &style, int trysuffix, int &sflag)
   }
 
   error->all(FLERR,utils::check_packages_for_style("atom",style,lmp));
-  return NULL;
+  return nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -752,7 +789,6 @@ AtomVec *Atom::avec_creator(LAMMPS *lmp)
   return new T(lmp);
 }
 
-
 /* ---------------------------------------------------------------------- */
 
 void Atom::init()
@@ -761,7 +797,7 @@ void Atom::init()
 
   if (nextra_store) {
     memory->destroy(extra);
-    extra = NULL;
+    extra = nullptr;
     nextra_store = 0;
   }
 
@@ -794,7 +830,7 @@ void Atom::setup()
 
 /* ----------------------------------------------------------------------
    return ptr to AtomVec class if matches style or to matching hybrid sub-class
-   return NULL if no match
+   return nullptr if no match
 ------------------------------------------------------------------------- */
 
 AtomVec *Atom::style_match(const char *style)
@@ -806,7 +842,7 @@ AtomVec *Atom::style_match(const char *style)
       if (strcmp(avec_hybrid->keywords[i],style) == 0)
         return avec_hybrid->styles[i];
   }
-  return NULL;
+  return nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -845,18 +881,16 @@ void Atom::modify_params(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal atom_modify command");
       if (strcmp(arg[iarg+1],"all") == 0) {
         delete [] firstgroupname;
-        firstgroupname = NULL;
+        firstgroupname = nullptr;
       } else {
-        int n = strlen(arg[iarg+1]) + 1;
-        firstgroupname = new char[n];
-        strcpy(firstgroupname,arg[iarg+1]);
+        firstgroupname = utils::strdup(arg[iarg+1]);
         sortfreq = 0;
       }
       iarg += 2;
     } else if (strcmp(arg[iarg],"sort") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal atom_modify command");
-      sortfreq = force->inumeric(FLERR,arg[iarg+1]);
-      userbinsize = force->numeric(FLERR,arg[iarg+2]);
+      sortfreq = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      userbinsize = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       if (sortfreq < 0 || userbinsize < 0.0)
         error->all(FLERR,"Illegal atom_modify command");
       if (sortfreq >= 0 && firstgroupname)
@@ -1021,33 +1055,33 @@ void Atom::deallocate_topology()
 {
   memory->destroy(atom->bond_type);
   memory->destroy(atom->bond_atom);
-  atom->bond_type = NULL;
-  atom->bond_atom = NULL;
+  atom->bond_type = nullptr;
+  atom->bond_atom = nullptr;
 
   memory->destroy(atom->angle_type);
   memory->destroy(atom->angle_atom1);
   memory->destroy(atom->angle_atom2);
   memory->destroy(atom->angle_atom3);
-  atom->angle_type = NULL;
-  atom->angle_atom1 = atom->angle_atom2 = atom->angle_atom3 = NULL;
+  atom->angle_type = nullptr;
+  atom->angle_atom1 = atom->angle_atom2 = atom->angle_atom3 = nullptr;
 
   memory->destroy(atom->dihedral_type);
   memory->destroy(atom->dihedral_atom1);
   memory->destroy(atom->dihedral_atom2);
   memory->destroy(atom->dihedral_atom3);
   memory->destroy(atom->dihedral_atom4);
-  atom->dihedral_type = NULL;
+  atom->dihedral_type = nullptr;
   atom->dihedral_atom1 = atom->dihedral_atom2 =
-    atom->dihedral_atom3 = atom->dihedral_atom4 = NULL;
+    atom->dihedral_atom3 = atom->dihedral_atom4 = nullptr;
 
   memory->destroy(atom->improper_type);
   memory->destroy(atom->improper_atom1);
   memory->destroy(atom->improper_atom2);
   memory->destroy(atom->improper_atom3);
   memory->destroy(atom->improper_atom4);
-  atom->improper_type = NULL;
+  atom->improper_type = nullptr;
   atom->improper_atom1 = atom->improper_atom2 =
-    atom->improper_atom3 = atom->improper_atom4 = NULL;
+    atom->improper_atom3 = atom->improper_atom4 = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -1142,27 +1176,29 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
   // remap atom into simulation box
   // if atom is in my sub-domain, unpack its values
 
+  int flagx = 0, flagy = 0, flagz = 0;
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
 
-    values[0] = strtok(buf," \t\n\r\f");
-    if (values[0] == NULL)
-      error->all(FLERR,"Incorrect atom format in data file");
-    for (m = 1; m < nwords; m++) {
-      values[m] = strtok(NULL," \t\n\r\f");
-      if (values[m] == NULL)
+    for (m = 0; m < nwords; m++) {
+      buf += strspn(buf," \t\n\r\f");
+      buf[strcspn(buf," \t\n\r\f")] = '\0';
+      if (strlen(buf) == 0)
         error->all(FLERR,"Incorrect atom format in data file");
+      values[m] = buf;
+      buf += strlen(buf)+1;
     }
 
-    int imx = 0;
-    int imy = 0;
-    int imz = 0;
+    int imx = 0, imy = 0, imz = 0;
     if (imageflag) {
       imx = utils::inumeric(FLERR,values[iptr],false,lmp);
       imy = utils::inumeric(FLERR,values[iptr+1],false,lmp);
       imz = utils::inumeric(FLERR,values[iptr+2],false,lmp);
       if ((domain->dimension == 2) && (imz != 0))
         error->all(FLERR,"Z-direction image flag must be 0 for 2d-systems");
+      if ((!domain->xperiodic) && (imx != 0)) { flagx = 1; imx = 0; }
+      if ((!domain->yperiodic) && (imy != 0)) { flagy = 1; imy = 0; }
+      if ((!domain->zperiodic) && (imz != 0)) { flagz = 1; imz = 0; }
     }
     imagedata = ((imageint) (imx + IMGMAX) & IMGMASK) |
         (((imageint) (imy + IMGMAX) & IMGMASK) << IMGBITS) |
@@ -1199,6 +1235,22 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
     buf = next + 1;
   }
 
+  // warn if reading data with non-zero image flags for non-periodic boundaries.
+  // we may want to turn this into an error at some point, since this essentially
+  // creates invalid position information that works by accident most of the time.
+
+  if (comm->me == 0) {
+    if (flagx)
+      error->warning(FLERR,"Non-zero imageflag(s) in x direction for "
+                           "non-periodic boundary reset to zero");
+    if (flagy)
+      error->warning(FLERR,"Non-zero imageflag(s) in y direction for "
+                           "non-periodic boundary reset to zero");
+    if (flagz)
+      error->warning(FLERR,"Non-zero imageflag(s) in z direction for "
+                           "non-periodic boundary reset to zero");
+  }
+
   delete [] values;
 }
 
@@ -1231,9 +1283,12 @@ void Atom::data_vels(int n, char *buf, tagint id_offset)
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
 
-    values[0] = strtok(buf," \t\n\r\f");
-    for (j = 1; j < nwords; j++)
-      values[j] = strtok(NULL," \t\n\r\f");
+    for (j = 0; j < nwords; j++) {
+      buf += strspn(buf," \t\n\r\f");
+      buf[strcspn(buf," \t\n\r\f")] = '\0';
+      values[j] = buf;
+      buf += strlen(buf)+1;
+    }
 
     tagdata = ATOTAGINT(values[0]) + id_offset;
     if (tagdata <= 0 || tagdata > map_tag_max)
@@ -1248,7 +1303,7 @@ void Atom::data_vels(int n, char *buf, tagint id_offset)
 
 /* ----------------------------------------------------------------------
    process N bonds read into buf from data files
-   if count is non-NULL, just count bonds per atom
+   if count is non-nullptr, just count bonds per atom
    else store them with atoms
    check that atom IDs are > 0 and <= map_tag_max
 ------------------------------------------------------------------------- */
@@ -1303,7 +1358,7 @@ void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset,
 
 /* ----------------------------------------------------------------------
    process N angles read into buf from data files
-   if count is non-NULL, just count angles per atom
+   if count is non-nullptr, just count angles per atom
    else store them with atoms
    check that atom IDs are > 0 and <= map_tag_max
 ------------------------------------------------------------------------- */
@@ -1375,7 +1430,7 @@ void Atom::data_angles(int n, char *buf, int *count, tagint id_offset,
 
 /* ----------------------------------------------------------------------
    process N dihedrals read into buf from data files
-   if count is non-NULL, just count diihedrals per atom
+   if count is non-nullptr, just count diihedrals per atom
    else store them with atoms
    check that atom IDs are > 0 and <= map_tag_max
 ------------------------------------------------------------------------- */
@@ -1466,7 +1521,7 @@ void Atom::data_dihedrals(int n, char *buf, int *count, tagint id_offset,
 
 /* ----------------------------------------------------------------------
    process N impropers read into buf from data files
-   if count is non-NULL, just count impropers per atom
+   if count is non-nullptr, just count impropers per atom
    else store them with atoms
    check that atom IDs are > 0 and <= map_tag_max
 ------------------------------------------------------------------------- */
@@ -1583,9 +1638,12 @@ void Atom::data_bonus(int n, char *buf, AtomVec *avec_bonus, tagint id_offset)
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
 
-    values[0] = strtok(buf," \t\n\r\f");
-    for (j = 1; j < nwords; j++)
-      values[j] = strtok(NULL," \t\n\r\f");
+    for (j = 0; j < nwords; j++) {
+      buf += strspn(buf," \t\n\r\f");
+      buf[strcspn(buf," \t\n\r\f")] = '\0';
+      values[j] = buf;
+      buf += strlen(buf)+1;
+    }
 
     tagdata = ATOTAGINT(values[0]) + id_offset;
     if (tagdata <= 0 || tagdata > map_tag_max)
@@ -1615,8 +1673,8 @@ void Atom::data_bodies(int n, char *buf, AtomVec *avec_body, tagint id_offset)
 
   int maxint = 0;
   int maxdouble = 0;
-  int *ivalues = NULL;
-  double *dvalues = NULL;
+  int *ivalues = nullptr;
+  double *dvalues = nullptr;
 
   if (!unique_tags) unique_tags = new std::set<tagint>;
 
@@ -1625,8 +1683,10 @@ void Atom::data_bodies(int n, char *buf, AtomVec *avec_body, tagint id_offset)
   // else skip values
 
   for (int i = 0; i < n; i++) {
-    if (i == 0) tagdata = ATOTAGINT(strtok(buf," \t\n\r\f")) + id_offset;
-    else tagdata = ATOTAGINT(strtok(NULL," \t\n\r\f")) + id_offset;
+    buf += strspn(buf," \t\n\r\f");
+    buf[strcspn(buf," \t\n\r\f")] = '\0';
+    tagdata = utils::tnumeric(FLERR,buf,false,lmp) + id_offset;
+    buf += strlen(buf)+1;
 
     if (tagdata <= 0 || tagdata > map_tag_max)
       error->one(FLERR,"Invalid atom ID in Bodies section of data file");
@@ -1636,8 +1696,15 @@ void Atom::data_bodies(int n, char *buf, AtomVec *avec_body, tagint id_offset)
     else
       error->one(FLERR,"Duplicate atom ID in Bodies section of data file");
 
-    ninteger = force->inumeric(FLERR,strtok(NULL," \t\n\r\f"));
-    ndouble = force->inumeric(FLERR,strtok(NULL," \t\n\r\f"));
+    buf += strspn(buf," \t\n\r\f");
+    buf[strcspn(buf," \t\n\r\f")] = '\0';
+    ninteger = utils::inumeric(FLERR,buf,false,lmp);
+    buf += strlen(buf)+1;
+
+    buf += strspn(buf," \t\n\r\f");
+    buf[strcspn(buf," \t\n\r\f")] = '\0';
+    ndouble = utils::inumeric(FLERR,buf,false,lmp);
+    buf += strlen(buf)+1;
 
     if ((m = map(tagdata)) >= 0) {
       if (ninteger > maxint) {
@@ -1651,17 +1718,29 @@ void Atom::data_bodies(int n, char *buf, AtomVec *avec_body, tagint id_offset)
         dvalues = new double[maxdouble];
       }
 
-      for (j = 0; j < ninteger; j++)
-        ivalues[j] = force->inumeric(FLERR,strtok(NULL," \t\n\r\f"));
-      for (j = 0; j < ndouble; j++)
-        dvalues[j] = force->numeric(FLERR,strtok(NULL," \t\n\r\f"));
+      for (j = 0; j < ninteger; j++) {
+        buf += strspn(buf," \t\n\r\f");
+        buf[strcspn(buf," \t\n\r\f")] = '\0';
+        ivalues[j] = utils::inumeric(FLERR,buf,false,lmp);
+        buf += strlen(buf)+1;
+      }
+
+      for (j = 0; j < ndouble; j++) {
+        buf += strspn(buf," \t\n\r\f");
+        buf[strcspn(buf," \t\n\r\f")] = '\0';
+        dvalues[j] = utils::numeric(FLERR,buf,false,lmp);
+        buf += strlen(buf)+1;
+      }
 
       avec_body->data_body(m,ninteger,ndouble,ivalues,dvalues);
 
     } else {
       nvalues = ninteger + ndouble;    // number of values to skip
-      for (j = 0; j < nvalues; j++)
-        strtok(NULL," \t\n\r\f");
+      for (j = 0; j < nvalues; j++) {
+        buf += strspn(buf," \t\n\r\f");
+        buf[strcspn(buf," \t\n\r\f")] = '\0';
+        buf += strlen(buf)+1;
+      }
     }
   }
 
@@ -1914,7 +1993,7 @@ void Atom::data_fix_compute_variable(int nprev, int nnew)
 
 void Atom::allocate_type_arrays()
 {
-  if (avec->mass_type) {
+  if (avec->mass_type == AtomVec::PER_TYPE) {
     mass = new double[ntypes+1];
     mass_setflag = new int[ntypes+1];
     for (int itype = 1; itype <= ntypes; itype++) mass_setflag[itype] = 0;
@@ -1929,7 +2008,7 @@ void Atom::allocate_type_arrays()
 
 void Atom::set_mass(const char *file, int line, const char *str, int type_offset)
 {
-  if (mass == NULL) error->all(file,line,"Cannot set mass for this atom style");
+  if (mass == nullptr) error->all(file,line,"Cannot set mass for this atom style");
 
   int itype;
   double mass_one;
@@ -1953,7 +2032,7 @@ void Atom::set_mass(const char *file, int line, const char *str, int type_offset
 
 void Atom::set_mass(const char *file, int line, int itype, double value)
 {
-  if (mass == NULL) error->all(file,line,"Cannot set mass for this atom style");
+  if (mass == nullptr) error->all(file,line,"Cannot set mass for this atom style");
   if (itype < 1 || itype > ntypes)
     error->all(file,line,"Invalid type for mass set");
 
@@ -1970,14 +2049,14 @@ void Atom::set_mass(const char *file, int line, int itype, double value)
 
 void Atom::set_mass(const char *file, int line, int /*narg*/, char **arg)
 {
-  if (mass == NULL) error->all(file,line,"Cannot set mass for this atom style");
+  if (mass == nullptr) error->all(file,line,"Cannot set mass for this atom style");
 
   int lo,hi;
-  force->bounds(file,line,arg[0],ntypes,lo,hi);
+  utils::bounds(file,line,arg[0],1,ntypes,lo,hi,error);
   if (lo < 1 || hi > ntypes) error->all(file,line,"Invalid type for mass set");
 
   for (int itype = lo; itype <= hi; itype++) {
-    mass[itype] = atof(arg[1]);
+    mass[itype] = utils::numeric(FLERR,arg[1],false,lmp);
     mass_setflag[itype] = 1;
 
     if (mass[itype] <= 0.0) error->all(file,line,"Invalid mass value");
@@ -2003,7 +2082,7 @@ void Atom::set_mass(double *values)
 
 void Atom::check_mass(const char *file, int line)
 {
-  if (mass == NULL) return;
+  if (mass == nullptr) return;
   if (rmass_flag) return;
   for (int itype = 1; itype <= ntypes; itype++)
     if (mass_setflag[itype] == 0)
@@ -2113,7 +2192,7 @@ void Atom::add_molecule(int narg, char **arg)
 
 int Atom::find_molecule(char *id)
 {
-  if(id == NULL) return -1;
+  if (id == nullptr) return -1;
   int imol;
   for (imol = 0; imol < nmolecule; imol++)
     if (strcmp(id,molecules[imol]->id) == 0) return imol;
@@ -2142,7 +2221,7 @@ void Atom::add_molecule_atom(Molecule *onemol, int iatom,
     onemol->avec_body->set_quat(ilocal,onemol->quat_external);
   }
 
-  if (molecular != 1) return;
+  if (molecular != Atom::MOLECULAR) return;
 
   // add bond topology info
   // for molecular atom styles, but not atom style template
@@ -2378,7 +2457,7 @@ void Atom::setup_sort_bins()
   bininvy = nbiny / (bboxhi[1]-bboxlo[1]);
   bininvz = nbinz / (bboxhi[2]-bboxlo[2]);
 
-  #ifdef LMP_USER_INTEL
+#ifdef LMP_USER_INTEL
   int intel_neigh = 0;
   if (neighbor->nrequest) {
     if (neighbor->requests[0]->intel) intel_neigh = 1;
@@ -2423,7 +2502,36 @@ void Atom::setup_sort_bins()
     bboxhi[1] = bboxlo[1] + static_cast<double>(nbiny) / bininvy;
     bboxhi[2] = bboxlo[2] + static_cast<double>(nbinz) / bininvz;
   }
-  #endif
+#endif
+
+#ifdef LMP_GPU
+  if (userbinsize == 0.0) {
+    int ifix = modify->find_fix("package_gpu");
+    if (ifix >= 0) {
+      const double subx = domain->subhi[0] - domain->sublo[0];
+      const double suby = domain->subhi[1] - domain->sublo[1];
+      const double subz = domain->subhi[2] - domain->sublo[2];
+
+      FixGPU *fix = static_cast<FixGPU *>(modify->fix[ifix]);
+      binsize = fix->binsize(subx, suby, subz, atom->nlocal,
+                             neighbor->cutneighmax);
+      bininv = 1.0 / binsize;
+
+      nbinx = static_cast<int> (ceil(subx * bininv));
+      nbiny = static_cast<int> (ceil(suby * bininv));
+      nbinz = static_cast<int> (ceil(subz * bininv));
+      if (domain->dimension == 2) nbinz = 1;
+
+      if (nbinx == 0) nbinx = 1;
+      if (nbiny == 0) nbiny = 1;
+      if (nbinz == 0) nbinz = 1;
+
+      bininvx = bininv;
+      bininvy = bininv;
+      bininvz = bininv;
+    }
+  }
+#endif
 
   if (1.0*nbinx*nbiny*nbinz > INT_MAX)
     error->one(FLERR,"Too many atom sorting bins");
@@ -2450,20 +2558,20 @@ void Atom::add_callback(int flag)
   int ifix;
 
   // find the fix
-  // if find NULL ptr:
+  // if find null pointer:
   //   it's this one, since it is being replaced and has just been deleted
   //   at this point in re-creation
-  // if don't find NULL ptr:
+  // if don't find null pointer:
   //   i is set to nfix = new one currently being added at end of list
 
   for (ifix = 0; ifix < modify->nfix; ifix++)
-    if (modify->fix[ifix] == NULL) break;
+    if (modify->fix[ifix] == nullptr) break;
 
   // add callback to lists and sort, reallocating if necessary
   // sorting is required in cases where fixes were replaced as it ensures atom
   // data is read/written/transfered in the same order that fixes are called
 
-  if (flag == 0) {
+  if (flag == GROW) {
     if (nextra_grow == nextra_grow_max) {
       nextra_grow_max += DELTA;
       memory->grow(extra_grow,nextra_grow_max,"atom:extra_grow");
@@ -2471,7 +2579,7 @@ void Atom::add_callback(int flag)
     extra_grow[nextra_grow] = ifix;
     nextra_grow++;
     std::sort(extra_grow, extra_grow + nextra_grow);
-  } else if (flag == 1) {
+  } else if (flag == RESTART) {
     if (nextra_restart == nextra_restart_max) {
       nextra_restart_max += DELTA;
       memory->grow(extra_restart,nextra_restart_max,"atom:extra_restart");
@@ -2479,7 +2587,7 @@ void Atom::add_callback(int flag)
     extra_restart[nextra_restart] = ifix;
     nextra_restart++;
     std::sort(extra_restart, extra_restart + nextra_restart);
-  } else if (flag == 2) {
+  } else if (flag == BORDER) {
     if (nextra_border == nextra_border_max) {
       nextra_border_max += DELTA;
       memory->grow(extra_border,nextra_border_max,"atom:extra_border");
@@ -2506,13 +2614,13 @@ void Atom::add_callback(int flag)
 
 void Atom::delete_callback(const char *id, int flag)
 {
-  if (id == NULL) return;
+  if (id == nullptr) return;
 
   int ifix = modify->find_fix(id);
 
   // compact the list of callbacks
 
-  if (flag == 0) {
+  if (flag == GROW) {
     int match;
     for (match = 0; match < nextra_grow; match++)
       if (extra_grow[match] == ifix) break;
@@ -2522,7 +2630,7 @@ void Atom::delete_callback(const char *id, int flag)
       extra_grow[i] = extra_grow[i+1];
     nextra_grow--;
 
-  } else if (flag == 1) {
+  } else if (flag == RESTART) {
     int match;
     for (match = 0; match < nextra_restart; match++)
       if (extra_restart[match] == ifix) break;
@@ -2532,7 +2640,7 @@ void Atom::delete_callback(const char *id, int flag)
       extra_restart[i] = extra_restart[i+1];
     nextra_restart--;
 
-  } else if (flag == 2) {
+  } else if (flag == BORDER) {
     int match;
     for (match = 0; match < nextra_border; match++)
       if (extra_border[match] == ifix) break;
@@ -2578,7 +2686,7 @@ void Atom::update_callback(int ifix)
 
 int Atom::find_custom(const char *name, int &flag)
 {
-  if(name == NULL) return -1;
+  if (name == nullptr) return -1;
 
   for (int i = 0; i < nivector; i++)
     if (iname[i] && strcmp(iname[i],name) == 0) {
@@ -2595,12 +2703,17 @@ int Atom::find_custom(const char *name, int &flag)
   return -1;
 }
 
-/* ----------------------------------------------------------------------
-   add a custom variable with name of type flag = 0/1 for int/double
-   assumes name does not already exist
-   return index in ivector or dvector of its location
-------------------------------------------------------------------------- */
+/** \brief Add a custom per-atom property with the given name and type
+\verbatim embed:rst
 
+This function will add a custom per-atom property with the name "name"
+as either list of int or double to the list of custom properties.  This
+function is called, e.g. from :doc:`fix property/atom <fix_property_atom>`.
+\endverbatim
+ * \param name Name of the property (w/o a "d_" or "i_" prefix)
+ * \param flag Data type of property: 0 for int, 1 for double
+ * \return Index of property in the respective list of properties
+ */
 int Atom::add_custom(const char *name, int flag)
 {
   int index;
@@ -2610,9 +2723,7 @@ int Atom::add_custom(const char *name, int flag)
     nivector++;
     iname = (char **) memory->srealloc(iname,nivector*sizeof(char *),
                                        "atom:iname");
-    int n = strlen(name) + 1;
-    iname[index] = new char[n];
-    strcpy(iname[index],name);
+    iname[index] = utils::strdup(name);
     ivector = (int **) memory->srealloc(ivector,nivector*sizeof(int *),
                                         "atom:ivector");
     memory->create(ivector[index],nmax,"atom:ivector");
@@ -2621,9 +2732,7 @@ int Atom::add_custom(const char *name, int flag)
     ndvector++;
     dname = (char **) memory->srealloc(dname,ndvector*sizeof(char *),
                                        "atom:dname");
-    int n = strlen(name) + 1;
-    dname[index] = new char[n];
-    strcpy(dname[index],name);
+    dname[index] = utils::strdup(name);
     dvector = (double **) memory->srealloc(dvector,ndvector*sizeof(double *),
                                            "atom:dvector");
     memory->create(dvector[index],nmax,"atom:dvector");
@@ -2632,37 +2741,158 @@ int Atom::add_custom(const char *name, int flag)
   return index;
 }
 
-/* ----------------------------------------------------------------------
-   remove a custom variable of type flag = 0/1 for int/double at index
-   free memory for vector and name and set ptrs to NULL
-   ivector/dvector and iname/dname lists never shrink
-------------------------------------------------------------------------- */
-
+/*! \brief Remove a custom per-atom property of a given type
+ *
+\verbatim embed:rst
+This will remove a property that was requested e.g. by the
+:doc:`fix property/atom <fix_property_atom>` command.  It frees the
+allocated memory and sets the pointer to ``nullptr`` to the entry in
+the list can be reused. The lists of those pointers will never be
+compacted or never shrink, so that index to name mappings remain valid.
+\endverbatim
+ *
+ * \param flag whether the property is integer (=0) or double (=1)
+ * \param index of that property in the respective list.
+ */
 void Atom::remove_custom(int flag, int index)
 {
   if (flag == 0) {
     memory->destroy(ivector[index]);
-    ivector[index] = NULL;
+    ivector[index] = nullptr;
     delete [] iname[index];
-    iname[index] = NULL;
+    iname[index] = nullptr;
   } else {
     memory->destroy(dvector[index]);
-    dvector[index] = NULL;
+    dvector[index] = nullptr;
     delete [] dname[index];
-    dname[index] = NULL;
+    dname[index] = nullptr;
   }
 }
 
-/* ----------------------------------------------------------------------
-   return a pointer to a named internal variable
-   if don't recognize name, return NULL
-------------------------------------------------------------------------- */
+/** Provide access to internal data of the Atom class by keyword
+ *
+\verbatim embed:rst
 
-void *Atom::extract(char *name)
+This function is a way to access internal per-atom data.  This data is
+distributed across MPI ranks and thus only the data for "local" atoms
+are expected to be available.  Whether also data for "ghost" atoms is
+stored and up-to-date depends on various simulation settings.
+
+This table lists a large part of the supported names, their data types,
+length of the data area, and a short description.
+
+.. list-table::
+   :header-rows: 1
+   :widths: auto
+
+   * - Name
+     - Type
+     - Items per atom
+     - Description
+   * - mass
+     - double
+     - 1
+     - per-type mass. This array is **NOT** a per-atom array
+       but of length ``ntypes+1``, element 0 is ignored.
+   * - id
+     - tagint
+     - 1
+     - atom ID of the particles
+   * - type
+     - int
+     - 1
+     - atom type of the particles
+   * - mask
+     - int
+     - 1
+     - bitmask for mapping to groups. Individual bits are set
+       to 0 or 1 for each group.
+   * - image
+     - imageint
+     - 1
+     - 3 image flags encoded into a single integer.
+       See :cpp:func:`lammps_encode_image_flags`.
+   * - x
+     - double
+     - 3
+     - x-, y-, and z-coordinate of the particles
+   * - v
+     - double
+     - 3
+     - x-, y-, and z-component of the velocity of the particles
+   * - f
+     - double
+     - 3
+     - x-, y-, and z-component of the force on the particles
+   * - molecule
+     - int
+     - 1
+     - molecule ID of the particles
+   * - q
+     - double
+     - 1
+     - charge of the particles
+   * - mu
+     - double
+     - 3
+     - dipole moment of the particles
+   * - omega
+     - double
+     - 3
+     - x-, y-, and z-component of rotational velocity of the particles
+   * - angmom
+     - double
+     - 3
+     - x-, y-, and z-component of angular momentum of the particles
+   * - torque
+     - double
+     - 3
+     - x-, y-, and z-component of the torque on the particles
+   * - radius
+     - double
+     - 1
+     - radius of the (extended) particles
+   * - rmass
+     - double
+     - 1
+     - per-atom mass of the particles. ``nullptr`` if per-type masses are
+       used. See the :cpp:func:`rmass_flag<lammps_extract_setting>` setting.
+   * - ellipsoid
+     - int
+     - 1
+     - 1 if the particle is an ellipsoidal particle, 0 if not
+   * - line
+     - int
+     - 1
+     - 1 if the particle is a line particle, 0 if not
+   * - tri
+     - int
+     - 1
+     - 1 if the particle is a triangulated particle, 0 if not
+   * - body
+     - int
+     - 1
+     - 1 if the particle is a body particle, 0 if not
+
+*See also*
+   :cpp:func:`lammps_extract_atom`
+
+\endverbatim
+ *
+ * \sa extract_datatype
+ *
+ * \param  name  string with the keyword of the desired property.
+                 Typically the name of the pointer variable returned
+ * \return       pointer to the requested data cast to ``void *`` or ``nullptr`` */
+
+void *Atom::extract(const char *name)
 {
   // --------------------------------------------------------------------
   // 4th customization section: customize by adding new variable name
+  // please see the following function to set the type of the data
+  // so that programs can detect it dynamically at run time.
 
+  /* NOTE: this array is only of length ntypes+1 */
   if (strcmp(name,"mass") == 0) return (void *) mass;
 
   if (strcmp(name,"id") == 0) return (void *) tag;
@@ -2683,6 +2913,7 @@ void *Atom::extract(char *name)
   if (strcmp(name,"ellipsoid") == 0) return (void *) ellipsoid;
   if (strcmp(name,"line") == 0) return (void *) line;
   if (strcmp(name,"tri") == 0) return (void *) tri;
+  if (strcmp(name,"body") == 0) return (void *) body;
 
   if (strcmp(name,"vfrac") == 0) return (void *) vfrac;
   if (strcmp(name,"s0") == 0) return (void *) s0;
@@ -2722,10 +2953,109 @@ void *Atom::extract(char *name)
   if (strcmp(name,"dpdTheta") == 0) return (void *) dpdTheta;
   if (strcmp(name,"edpd_temp") == 0) return (void *) edpd_temp;
 
+  // USER-DIELECTRIC
+  if (strcmp(name,"area") == 0) return (void *) area;
+  if (strcmp(name,"ed") == 0) return (void *) ed;
+  if (strcmp(name,"em") == 0) return (void *) em;
+  if (strcmp(name,"epsilon") == 0) return (void *) epsilon;
+  if (strcmp(name,"curvature") == 0) return (void *) curvature;
+  if (strcmp(name,"q_unscaled") == 0) return (void *) q_unscaled;
+
   // end of customization section
   // --------------------------------------------------------------------
 
-  return NULL;
+  return nullptr;
+}
+
+
+/** Provide data type info about internal data of the Atom class
+ *
+\verbatim embed:rst
+
+.. versionadded:: 18Sep2020
+
+\endverbatim
+ *
+ * \sa extract
+ *
+ * \param  name  string with the keyword of the desired property.
+ * \return       data type constant for desired property or -1 */
+
+int Atom::extract_datatype(const char *name)
+{
+  // --------------------------------------------------------------------
+  // 5th customization section: customize by adding new variable name
+
+  if (strcmp(name,"mass") == 0) return LAMMPS_DOUBLE;
+
+  if (strcmp(name,"id") == 0) return LAMMPS_TAGINT;
+  if (strcmp(name,"type") == 0) return LAMMPS_INT;
+  if (strcmp(name,"mask") == 0) return LAMMPS_INT;
+  if (strcmp(name,"image") == 0) return LAMMPS_TAGINT;
+  if (strcmp(name,"x") == 0) return LAMMPS_DOUBLE_2D;
+  if (strcmp(name,"v") == 0) return LAMMPS_DOUBLE_2D;
+  if (strcmp(name,"f") == 0) return LAMMPS_DOUBLE_2D;
+  if (strcmp(name,"molecule") == 0) return LAMMPS_TAGINT;
+  if (strcmp(name,"q") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"mu") == 0) return LAMMPS_DOUBLE_2D;
+  if (strcmp(name,"omega") == 0) return LAMMPS_DOUBLE_2D;
+  if (strcmp(name,"angmom") == 0) return LAMMPS_DOUBLE_2D;
+  if (strcmp(name,"torque") == 0) return LAMMPS_DOUBLE_2D;
+  if (strcmp(name,"radius") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"rmass") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"ellipsoid") == 0) return LAMMPS_INT;
+  if (strcmp(name,"line") == 0) return LAMMPS_INT;
+  if (strcmp(name,"tri") == 0) return LAMMPS_INT;
+  if (strcmp(name,"body") == 0) return LAMMPS_INT;
+
+  if (strcmp(name,"vfrac") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"s0") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"x0") == 0) return LAMMPS_DOUBLE_2D;
+
+  if (strcmp(name,"spin") == 0) return LAMMPS_INT;
+  if (strcmp(name,"eradius") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"ervel") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"erforce") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"ervelforce") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"cs") == 0) return LAMMPS_DOUBLE_2D;
+  if (strcmp(name,"csforce") == 0) return LAMMPS_DOUBLE_2D;
+  if (strcmp(name,"vforce") == 0) return LAMMPS_DOUBLE_2D;
+  if (strcmp(name,"etag") == 0) return LAMMPS_INT;
+
+  if (strcmp(name,"rho") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"drho") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"esph") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"desph") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"cv") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"vest") == 0) return LAMMPS_DOUBLE_2D;
+
+  // USER-MESONT package
+  if (strcmp(name,"length") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"buckling") == 0) return LAMMPS_INT;
+  if (strcmp(name,"bond_nt") == 0) return  LAMMPS_TAGINT_2D;
+
+  if (strcmp(name, "contact_radius") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name, "smd_data_9") == 0) return LAMMPS_DOUBLE_2D;
+  if (strcmp(name, "smd_stress") == 0) return LAMMPS_DOUBLE_2D;
+  if (strcmp(name, "eff_plastic_strain") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name, "eff_plastic_strain_rate") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name, "damage") == 0) return LAMMPS_DOUBLE;
+
+  if (strcmp(name,"dpdTheta") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"edpd_temp") == 0) return LAMMPS_DOUBLE;
+
+  // USER-DIELECTRIC
+  if (strcmp(name,"area") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"ed") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"em") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"epsilon") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"curvature") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"q_unscaled") == 0) return LAMMPS_DOUBLE;
+
+  // end of customization section
+  // --------------------------------------------------------------------
+
+  return -1;
 }
 
 /* ----------------------------------------------------------------------
@@ -2734,16 +3064,16 @@ void *Atom::extract(char *name)
    add in global to local mapping storage
 ------------------------------------------------------------------------- */
 
-bigint Atom::memory_usage()
+double Atom::memory_usage()
 {
-  bigint bytes = avec->memory_usage();
+  double bytes = avec->memory_usage();
 
-  bytes += max_same*sizeof(int);
-  if (map_style == 1)
+  bytes += (double)max_same*sizeof(int);
+  if (map_style == MAP_ARRAY)
     bytes += memory->usage(map_array,map_maxarray);
-  else if (map_style == 2) {
-    bytes += map_nbucket*sizeof(int);
-    bytes += map_nhash*sizeof(HashElem);
+  else if (map_style == MAP_HASH) {
+    bytes += (double)map_nbucket*sizeof(int);
+    bytes += (double)map_nhash*sizeof(HashElem);
   }
   if (maxnext) {
     bytes += memory->usage(next,maxnext);

@@ -64,9 +64,9 @@ namespace Kokkos {
 template <class T1, class T2>
 struct pair {
   //! The first template parameter of this class.
-  typedef T1 first_type;
+  using first_type = T1;
   //! The second template parameter of this class.
-  typedef T2 second_type;
+  using second_type = T2;
 
   //! The first element of the pair.
   first_type first;
@@ -156,9 +156,9 @@ struct pair {
 template <class T1, class T2>
 struct pair<T1&, T2&> {
   //! The first template parameter of this class.
-  typedef T1& first_type;
+  using first_type = T1&;
   //! The second template parameter of this class.
-  typedef T2& second_type;
+  using second_type = T2&;
 
   //! The first element of the pair.
   first_type first;
@@ -213,9 +213,9 @@ struct pair<T1&, T2&> {
 template <class T1, class T2>
 struct pair<T1, T2&> {
   //! The first template parameter of this class.
-  typedef T1 first_type;
+  using first_type = T1;
   //! The second template parameter of this class.
-  typedef T2& second_type;
+  using second_type = T2&;
 
   //! The first element of the pair.
   first_type first;
@@ -270,9 +270,9 @@ struct pair<T1, T2&> {
 template <class T1, class T2>
 struct pair<T1&, T2> {
   //! The first template parameter of this class.
-  typedef T1& first_type;
+  using first_type = T1&;
   //! The second template parameter of this class.
-  typedef T2 second_type;
+  using second_type = T2;
 
   //! The first element of the pair.
   first_type first;
@@ -426,8 +426,8 @@ KOKKOS_FORCEINLINE_FUNCTION pair<T1&, T2&> tie(T1& x, T2& y) {
 //
 template <class T1>
 struct pair<T1, void> {
-  typedef T1 first_type;
-  typedef void second_type;
+  using first_type  = T1;
+  using second_type = void;
 
   first_type first;
   enum { second = 0 };

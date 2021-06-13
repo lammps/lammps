@@ -65,7 +65,7 @@ non-granular particles and simpler wall geometries, respectively.
 
 Here are snapshots of example models using this command.  Corresponding
 input scripts can be found in examples/granregion.  Movies of these
-simulations are `here on the Movies page <https://lammps.sandia.gov/movies.html#granregion>`_
+simulations are `here on the Movies page <https://www.lammps.org/movies.html#granregion>`_
 of the LAMMPS web site.
 
 .. |wallgran1| image:: img/gran_funnel.png
@@ -181,7 +181,8 @@ radius - r = overlap of particle with wall, m_eff = mass of particle,
 and the effective radius of contact is just the radius of the
 particle.
 
-The parameters *Kn*\ , *Kt*\ , *gamma_n*, *gamma_t*, *xmu* and *dampflag*
+The parameters *Kn*\ , *Kt*\ , *gamma_n*, *gamma_t*, *xmu*, *dampflag*,
+and the optional keyword *limit_damping*
 have the same meaning and units as those specified with the
 :doc:`pair_style gran/\* <pair_gran>` commands.  This means a NULL can be
 used for either *Kt* or *gamma_t* as described on that page.  If a
@@ -199,7 +200,8 @@ values for the 6 wall/particle coefficients than for particle/particle
 interactions.  E.g. if you wish to model the wall as a different
 material.
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 Similar to :doc:`fix wall/gran <fix_wall_gran>` command, this fix writes
 the shear friction state of atoms interacting with the wall to :doc:`binary restart files <restart>`, so that a simulation can continue
@@ -239,17 +241,17 @@ the following table:
 |     1 | 1.0 if particle is in contact with wall,           |                |
 |       | 0.0 otherwise                                      |                |
 +-------+----------------------------------------------------+----------------+
-|     2 | Force :math:`f_x` exerted on the wall              | force units    |
+|     2 | Force :math:`f_x` exerted by the wall              | force units    |
 +-------+----------------------------------------------------+----------------+
-|     3 | Force :math:`f_y` exerted on the wall              | force units    |
+|     3 | Force :math:`f_y` exerted by the wall              | force units    |
 +-------+----------------------------------------------------+----------------+
-|     4 | Force :math:`f_z` exerted on the wall              | force units    |
+|     4 | Force :math:`f_z` exerted by the wall              | force units    |
 +-------+----------------------------------------------------+----------------+
-|     5 | :math:`\Delta x` between wall surface and particle | distance units |
+|     5 | :math:`x`-coordinate of contact point on wall      | distance units |
 +-------+----------------------------------------------------+----------------+
-|     6 | :math:`\Delta y` between wall surface and particle | distance units |
+|     6 | :math:`y`-coordinate of contact point on wall      | distance units |
 +-------+----------------------------------------------------+----------------+
-|     7 | :math:`\Delta z` between wall surface and particle | distance units |
+|     7 | :math:`z`-coordinate of contact point on wall      | distance units |
 +-------+----------------------------------------------------+----------------+
 |     8 | Radius :math:`r` of atom                           | distance units |
 +-------+----------------------------------------------------+----------------+
@@ -274,4 +276,7 @@ Related commands
 :doc:`pair_style granular <pair_gran>`,
 :doc:`region <region>`
 
-**Default:** none
+Default
+"""""""
+
+none

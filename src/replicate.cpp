@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,19 +13,17 @@
 ------------------------------------------------------------------------- */
 
 #include "replicate.h"
-#include <mpi.h>
-#include <cstring>
+
+#include "accelerator_kokkos.h"
 #include "atom.h"
 #include "atom_vec.h"
-#include "force.h"
-#include "domain.h"
 #include "comm.h"
-#include "special.h"
-#include "accelerator_kokkos.h"
-#include "memory.h"
+#include "domain.h"
 #include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+#include "memory.h"
+#include "special.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -33,7 +32,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-Replicate::Replicate(LAMMPS *lmp) : Pointers(lmp) {}
+Replicate::Replicate(LAMMPS *lmp) : Command(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
@@ -52,9 +51,9 @@ void Replicate::command(int narg, char **arg)
 
   // nrep = total # of replications
 
-  int nx = force->inumeric(FLERR,arg[0]);
-  int ny = force->inumeric(FLERR,arg[1]);
-  int nz = force->inumeric(FLERR,arg[2]);
+  int nx = utils::inumeric(FLERR,arg[0],false,lmp);
+  int ny = utils::inumeric(FLERR,arg[1],false,lmp);
+  int nz = utils::inumeric(FLERR,arg[2],false,lmp);
   int nrep = nx*ny*nz;
 
   int bbox_flag = 0;
@@ -156,11 +155,25 @@ void Replicate::command(int narg, char **arg)
   // also set atomKK for Kokkos version of Atom class
 
   Atom *old = atom;
-  atomKK = NULL;
+  atomKK = nullptr;
   if (lmp->kokkos) atom = atomKK = new AtomKokkos(lmp);
   else atom = new Atom(lmp);
 
   atom->settings(old);
+
+  // transfer molecule templates. needs to be done early for atom style template
+
+  if (old->nmolecule) {
+    atom->molecules = (Molecule **) memory->smalloc((old->nmolecule)*sizeof(Molecule *),
+                                                    "atom::molecules");
+    atom->nmolecule = old->nmolecule;
+    for (i = 0; i < old->nmolecule; ++i)
+      atom->molecules[i] = old->molecules[i];
+    memory->sfree(old->molecules);
+    old->molecules = nullptr;
+    old->nmolecule = 0;
+  }
+
   atom->create_avec(old->atom_style,old->avec->nargcopy,old->avec->argcopy,0);
 
   // check that new system will not be too large
@@ -498,12 +511,12 @@ void Replicate::command(int narg, char **arg)
             if (!xoverlap) {
               if (xboxlo < 0) {
                 _xoverlap1 = 1;
-                if ( _lo[0] > (subhi[0] - EPSILON) ) _xoverlap1 = 0;
+                if (_lo[0] > (subhi[0] - EPSILON)) _xoverlap1 = 0;
               }
 
               if (xboxhi > 0) {
                 _xoverlap2 = 1;
-                if ( _hi[0] < (sublo[0] + EPSILON) ) _xoverlap2 = 0;
+                if (_hi[0] < (sublo[0] + EPSILON)) _xoverlap2 = 0;
               }
 
               if (_xoverlap1 || _xoverlap2) xoverlap = 1;
@@ -514,12 +527,12 @@ void Replicate::command(int narg, char **arg)
             if (!yoverlap) {
               if (yboxlo < 0) {
                 _yoverlap1 = 1;
-                if ( _lo[1] > (subhi[1] - EPSILON) ) _yoverlap1 = 0;
+                if (_lo[1] > (subhi[1] - EPSILON)) _yoverlap1 = 0;
               }
 
               if (yboxhi > 0) {
                 _yoverlap2 = 1;
-                if ( _hi[1] < (sublo[1] + EPSILON) ) _yoverlap2 = 0;
+                if (_hi[1] < (sublo[1] + EPSILON)) _yoverlap2 = 0;
               }
 
               if (_yoverlap1 || _yoverlap2) yoverlap = 1;
@@ -531,12 +544,12 @@ void Replicate::command(int narg, char **arg)
             if (!zoverlap) {
               if (zboxlo < 0) {
                 _zoverlap1 = 1;
-                if ( _lo[2] > (subhi[2] - EPSILON) ) _zoverlap1 = 0;
+                if (_lo[2] > (subhi[2] - EPSILON)) _zoverlap1 = 0;
               }
 
               if (zboxhi > 0) {
                 _zoverlap2 = 1;
-                if ( _hi[2] < (sublo[2] + EPSILON) ) _zoverlap2 = 0;
+                if (_hi[2] < (sublo[2] + EPSILON)) _zoverlap2 = 0;
               }
 
               if (_zoverlap1 || _zoverlap2) zoverlap = 1;
@@ -590,10 +603,10 @@ void Replicate::command(int narg, char **arg)
                 atom->tag[i] += atom_offset;
                 atom->image[i] = image;
 
-                if (atom->molecular) {
+                if (atom->molecular != Atom::ATOMIC) {
                   if (atom->molecule[i] > 0)
                     atom->molecule[i] += mol_offset;
-                  if (atom->molecular == 1) {
+                  if (atom->molecular == Atom::MOLECULAR) {
                     if (atom->avec->bonds_allow)
                       for (j = 0; j < atom->num_bond[i]; j++)
                         atom->bond_atom[i][j] += atom_offset;
@@ -635,9 +648,8 @@ void Replicate::command(int narg, char **arg)
     MPI_Reduce(&num_replicas_added, &sum, 1, MPI_INT, MPI_SUM, 0, world);
     double avg = (double) sum / nprocs;
     if (me == 0)
-      utils::logmesg(lmp,fmt::format("  average # of replicas added to proc ="
-                                     " {:.2f} out of {} ({:.2f}%)\n",
-                                     avg,nx*ny*nz,avg/(nx*ny*nz)*100.0));
+      utils::logmesg(lmp,"  average # of replicas added to proc = {:.2f} out "
+                     "of {} ({:.2f}%)\n",avg,nx*ny*nz,avg/(nx*ny*nz)*100.0);
   } else {
 
     for (int iproc = 0; iproc < nprocs; iproc++) {
@@ -692,10 +704,10 @@ void Replicate::command(int narg, char **arg)
                 atom->tag[i] += atom_offset;
                 atom->image[i] = image;
 
-                if (atom->molecular) {
+                if (atom->molecular != Atom::ATOMIC) {
                   if (atom->molecule[i] > 0)
                     atom->molecule[i] += mol_offset;
-                  if (atom->molecular == 1) {
+                  if (atom->molecular == Atom::MOLECULAR) {
                     if (atom->avec->bonds_allow)
                       for (j = 0; j < atom->num_bond[i]; j++)
                         atom->bond_atom[i][j] += atom_offset;
@@ -741,24 +753,26 @@ void Replicate::command(int narg, char **arg)
   MPI_Allreduce(&nblocal,&natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
 
   if (me == 0) {
-    utils::logmesg(lmp,fmt::format("  {} atoms\n",natoms));
+    utils::logmesg(lmp,"  {} atoms\n",natoms);
   }
 
   if (natoms != atom->natoms)
     error->all(FLERR,"Replicate did not assign all atoms correctly");
 
   if (me == 0) {
+    const char *molstyle = "";
+    if (atom->molecular == Atom::TEMPLATE) molstyle = "template ";
     if (atom->nbonds) {
-      utils::logmesg(lmp,fmt::format("  {} bonds\n",atom->nbonds));
+      utils::logmesg(lmp,"  {} {}bonds\n",atom->nbonds,molstyle);
     }
     if (atom->nangles) {
-      utils::logmesg(lmp,fmt::format("  {} angles\n",atom->nangles));
+      utils::logmesg(lmp,"  {} {}angles\n",atom->nangles,molstyle);
     }
     if (atom->ndihedrals) {
-      utils::logmesg(lmp,fmt::format("  {} dihedrals\n",atom->ndihedrals));
+      utils::logmesg(lmp,"  {} {}dihedrals\n",atom->ndihedrals,molstyle);
     }
     if (atom->nimpropers) {
-      utils::logmesg(lmp,fmt::format("  {} impropers\n",atom->nimpropers));
+      utils::logmesg(lmp,"  {} {}impropers\n",atom->nimpropers,molstyle);
     }
   }
 
@@ -768,14 +782,14 @@ void Replicate::command(int narg, char **arg)
 
   // create global mapping of atoms
 
-  if (atom->map_style) {
+  if (atom->map_style != Atom::MAP_NONE) {
     atom->map_init();
     atom->map_set();
   }
 
   // create special bond lists for molecular systems
 
-  if (atom->molecular == 1) {
+  if (atom->molecular == Atom::MOLECULAR) {
     Special special(lmp);
     special.build();
   }
@@ -785,6 +799,5 @@ void Replicate::command(int narg, char **arg)
   MPI_Barrier(world);
 
   if (me == 0)
-    utils::logmesg(lmp,fmt::format("  replicate CPU = {:.3f} seconds\n",
-                                   MPI_Wtime()-time1));
+    utils::logmesg(lmp,"  replicate CPU = {:.3f} seconds\n",MPI_Wtime()-time1);
 }

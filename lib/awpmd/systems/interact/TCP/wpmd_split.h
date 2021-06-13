@@ -116,14 +116,14 @@ public:
   ///    \a n is the number of electrons of a given spin component
   ///    Electron velocity v is multiplied by mass to obtain momentum.
   ///    Default mass (-1) means me.
-  ///    Electronic charges q are -1 by default (when q=NULL), otherwise the charges are assigned for each split
-  int set_electrons(int s, int nel, Vector_3P x, Vector_3P v, double* w, double* pw, Vector_2 *c, int *splits, double mass=-1, double *q=NULL);
+  ///    Electronic charges q are -1 by default (when q=nullptr), otherwise the charges are assigned for each split
+  int set_electrons(int s, int nel, Vector_3P x, Vector_3P v, double* w, double* pw, Vector_2 *c, int *splits, double mass=-1, double *q=nullptr);
 
-  
+
   ///\en Starts adding new electron: continue with \ref add_split functions.
   int add_electron(int s){
     if(s < 0 || s > 1)
-      return LOGERR(-1,fmt("AWPMD_split.add_electron: invaid spin setting (%d)!",s),LINFO);
+      return LOGERR(-1,logfmt("AWPMD_split.add_electron: invaid spin setting (%d)!",s),LINFO);
     s_add=s;
     spl_add=0;
     return ne[s_add];
@@ -141,7 +141,7 @@ public:
   
   
   ///\en gets current electronic coordinates, and (optionally) number of wave packets for each electron
-  int get_electrons(int spin, Vector_3P x, Vector_3P v, double* w, double* pw, cdouble *c, int *splits=NULL, double mass=-1);
+  int get_electrons(int spin, Vector_3P x, Vector_3P v, double* w, double* pw, cdouble *c, int *splits=nullptr, double mass=-1);
 
 
   void eterm_deriv(int ic1,int s1, int c1,int k1,int ic2,int s2, int c2,int j2,cdouble pref,
@@ -164,8 +164,8 @@ public:
   cdouble overlap(int ic1, int s1, int c1,int ic2, int s2, int c2);
 
   //e same as interaction, but using Hartee factorization (no antisymmetrization)
-  int interaction_hartree(int flag=0, Vector_3P fi=NULL, Vector_3P fe_x=NULL, 
-                                      Vector_3P fe_p=NULL, double *fe_w=NULL, double *fe_pw=NULL, Vector_2P fe_c=NULL);
+  int interaction_hartree(int flag=0, Vector_3P fi=nullptr, Vector_3P fe_x=nullptr, 
+                                      Vector_3P fe_p=nullptr, double *fe_w=nullptr, double *fe_pw=nullptr, Vector_2P fe_c=nullptr);
 
   ///\en Calculates interaction in the system of ni ions + electrons 
   /// the electonic subsystem must be previously setup by set_electrons, ionic by set_ions
@@ -174,12 +174,12 @@ public:
   /// 0x4   -- calculate electronic forces  \n
   /// 0x8   -- add electronic forces to the existing arrays \n
   /// 0x10  -- calculate internal electronic derivatives only: \n
-  ///          will not update electronic force arrays, which may be NULL, \n
+  ///          will not update electronic force arrays, which may be null pointers, \n
   ///          the forces may be obtained then using \ref get_el_forces() for all WPs \n
   ///          or separately for each WP using \ref get_wp_force()
   /// if PBCs are used the coords must be within a range [0, cell)
-  int interaction(int flag=0, Vector_3P fi=NULL, Vector_3P fe_x=NULL, 
-                            Vector_3P fe_p=NULL, double *fe_w=NULL, double *fe_pw=NULL, Vector_2P fe_c=NULL);
+  int interaction(int flag=0, Vector_3P fi=nullptr, Vector_3P fe_x=nullptr, 
+                            Vector_3P fe_p=nullptr, double *fe_w=nullptr, double *fe_pw=nullptr, Vector_2P fe_c=nullptr);
 
   ///\en Get electronic forcess in the arrays provided, using calculated internal representation
   ///    Valid flag settings are:\n

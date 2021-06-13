@@ -203,7 +203,8 @@ type. Valid chemical symbols for compute xrd are:
 If the *echo* keyword is specified, compute xrd will provide extra
 reporting information to the screen.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global array.  The number of rows in the
 array is the number of reciprocal lattice nodes that are explored

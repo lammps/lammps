@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ANGLE_CLASS
-
-AngleStyle(dipole/omp,AngleDipoleOMP)
-
+// clang-format off
+AngleStyle(dipole/omp,AngleDipoleOMP);
+// clang-format on
 #else
 
 #ifndef LMP_ANGLE_DIPOLE_OMP_H
@@ -36,11 +36,10 @@ class AngleDipoleOMP : public AngleDipole, public ThrOMP {
   virtual void compute(int, int);
 
  private:
-  template <int EFLAG>
-  void eval(int ifrom, int ito, ThrData * const thr);
+  template <int EFLAG> void eval(int ifrom, int ito, ThrData *const thr);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

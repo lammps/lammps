@@ -1,4 +1,6 @@
 .. index:: pair_style dpd/fdt
+.. index:: pair_style dpd/fdt/energy
+.. index:: pair_style dpd/fdt/energy/kk
 
 pair_style dpd/fdt command
 ==========================
@@ -6,8 +8,7 @@ pair_style dpd/fdt command
 pair_style dpd/fdt/energy command
 =================================
 
-pair_style dpd/fdt/energy/kk command
-====================================
+Accelerator Variants: *dpd/fdt/energy/kk*
 
 Syntax
 """"""
@@ -177,7 +178,10 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`, :doc:`fix shardlow <fix_shardlow>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

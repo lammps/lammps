@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,17 +17,17 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_fragment_atom.h"
-#include <mpi.h>
-#include <cstring>
+
 #include "atom.h"
 #include "atom_vec.h"
-#include "update.h"
-#include "modify.h"
-#include "force.h"
-#include "group.h"
 #include "comm.h"
-#include "memory.h"
 #include "error.h"
+#include "group.h"
+#include "memory.h"
+#include "modify.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -36,7 +37,7 @@ using namespace LAMMPS_NS;
 
 ComputeFragmentAtom::ComputeFragmentAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  fragmentID(NULL)
+  fragmentID(nullptr)
 {
   if (atom->avec->bonds_allow == 0)
     error->all(FLERR,"Compute fragment/atom used when bonds are not allowed");
@@ -61,9 +62,9 @@ ComputeFragmentAtom::ComputeFragmentAtom(LAMMPS *lmp, int narg, char **arg) :
   }
 
   nmax = 0;
-  stack = NULL;
-  clist = NULL;
-  markflag = NULL;
+  stack = nullptr;
+  clist = nullptr;
+  markflag = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -82,7 +83,7 @@ void ComputeFragmentAtom::init()
 {
   if (atom->tag_enable == 0)
     error->all(FLERR,"Cannot use compute fragment/atom unless atoms have IDs");
-  if (!atom->molecular)
+  if (atom->molecular != Atom::MOLECULAR)
     error->all(FLERR,"Compute fragment/atom requires a molecular system");
 
   int count = 0;
@@ -285,7 +286,7 @@ void ComputeFragmentAtom::unpack_forward_comm(int n, int first, double *buf)
 
 double ComputeFragmentAtom::memory_usage()
 {
-  double bytes = nmax * sizeof(double);
-  bytes += 3*nmax * sizeof(int);
+  double bytes = (double)nmax * sizeof(double);
+  bytes += (double)3*nmax * sizeof(int);
   return bytes;
 }

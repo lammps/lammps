@@ -1,10 +1,10 @@
 .. index:: bond_style nonlinear
+.. index:: bond_style nonlinear/omp
 
 bond_style nonlinear command
 ============================
 
-bond_style nonlinear/omp command
-================================
+Accelerator Variants: *nonlinear/omp*
 
 Syntax
 """"""
@@ -60,7 +60,10 @@ Related commands
 
 :doc:`bond_coeff <bond_coeff>`, :doc:`delete_bonds <delete_bonds>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

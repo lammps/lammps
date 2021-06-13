@@ -81,6 +81,13 @@ all be defined before a :doc:`velocity <velocity>` or :doc:`fix shake <fix_shake
 
 The mass assigned to any type or atom must be > 0.0.
 
-**Related commands:** none
+Related commands
+""""""""""""""""
 
-**Default:** none
+none
+
+
+Default
+"""""""
+
+none

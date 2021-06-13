@@ -1,55 +1,40 @@
 .. index:: pair_style buck
+.. index:: pair_style buck/gpu
+.. index:: pair_style buck/intel
+.. index:: pair_style buck/kk
+.. index:: pair_style buck/omp
+.. index:: pair_style buck/coul/cut
+.. index:: pair_style buck/coul/cut/gpu
+.. index:: pair_style buck/coul/cut/intel
+.. index:: pair_style buck/coul/cut/kk
+.. index:: pair_style buck/coul/cut/omp
+.. index:: pair_style buck/coul/long
+.. index:: pair_style buck/coul/long/gpu
+.. index:: pair_style buck/coul/long/intel
+.. index:: pair_style buck/coul/long/kk
+.. index:: pair_style buck/coul/long/omp
+.. index:: pair_style buck/coul/msm
+.. index:: pair_style buck/coul/msm/omp
 
 pair_style buck command
-========================
+=======================
 
-pair_style buck/gpu command
-============================
-
-pair_style buck/intel command
-==============================
-
-pair_style buck/kk command
-===========================
-
-pair_style buck/omp command
-============================
+Accelerator Variants: *buck/gpu*, *buck/intel*, *buck/kk*, *buck/omp*
 
 pair_style buck/coul/cut command
-=================================
+================================
 
-pair_style buck/coul/cut/gpu command
-=====================================
-
-pair_style buck/coul/cut/intel command
-=======================================
-
-pair_style buck/coul/cut/kk command
-====================================
-
-pair_style buck/coul/cut/omp command
-=====================================
+Accelerator Variants: *buck/coul/cut/gpu*, *buck/coul/cut/intel*, *buck/coul/cut/kk*, *buck/coul/cut/omp*
 
 pair_style buck/coul/long command
-==================================
-
-pair_style buck/coul/long/gpu command
-======================================
-
-pair_style buck/coul/long/intel command
-========================================
-
-pair_style buck/coul/long/kk command
-=====================================
-
-pair_style buck/coul/long/omp command
-======================================
-
-pair_style buck/coul/msm command
 =================================
 
-pair_style buck/coul/msm/omp command
-=====================================
+Accelerator Variants: *buck/coul/long/gpu*, *buck/coul/long/intel*, *buck/coul/long/kk*, *buck/coul/long/omp*
+
+pair_style buck/coul/msm command
+================================
+
+Accelerator Variants: *buck/coul/msm/omp*
 
 Syntax
 """"""
@@ -172,7 +157,8 @@ pair_style command.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 These pair styles do not support mixing.  Thus, coefficients for all
 I,J pairs must be specified explicitly.
@@ -205,7 +191,10 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`, :doc:`pair_style born <pair_born>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 .. _Khrapak:
 

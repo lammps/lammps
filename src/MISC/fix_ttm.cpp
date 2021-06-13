@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,7 +18,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_ttm.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"
@@ -29,8 +30,8 @@
 #include "random_mars.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+
+
 #include "tokenizer.h"
 
 using namespace LAMMPS_NS;
@@ -42,11 +43,11 @@ using namespace FixConst;
 
 FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  random(NULL), fp(NULL), nsum(NULL), nsum_all(NULL),
-  gfactor1(NULL), gfactor2(NULL), ratio(NULL), flangevin(NULL),
-  T_electron(NULL), T_electron_old(NULL), sum_vsq(NULL), sum_mass_vsq(NULL),
-  sum_vsq_all(NULL), sum_mass_vsq_all(NULL), net_energy_transfer(NULL),
-  net_energy_transfer_all(NULL)
+  random(nullptr), fp(nullptr), nsum(nullptr), nsum_all(nullptr),
+  gfactor1(nullptr), gfactor2(nullptr), ratio(nullptr), flangevin(nullptr),
+  T_electron(nullptr), T_electron_old(nullptr), sum_vsq(nullptr), sum_mass_vsq(nullptr),
+  sum_vsq_all(nullptr), sum_mass_vsq_all(nullptr), net_energy_transfer(nullptr),
+  net_energy_transfer_all(nullptr)
 {
   if (narg < 15) error->all(FLERR,"Illegal fix ttm command");
 
@@ -58,25 +59,25 @@ FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
   restart_peratom = 1;
   restart_global = 1;
 
-  seed = force->inumeric(FLERR,arg[3]);
-  electronic_specific_heat = force->numeric(FLERR,arg[4]);
-  electronic_density = force->numeric(FLERR,arg[5]);
-  electronic_thermal_conductivity = force->numeric(FLERR,arg[6]);
-  gamma_p = force->numeric(FLERR,arg[7]);
-  gamma_s = force->numeric(FLERR,arg[8]);
-  v_0 = force->numeric(FLERR,arg[9]);
-  nxnodes = force->inumeric(FLERR,arg[10]);
-  nynodes = force->inumeric(FLERR,arg[11]);
-  nznodes = force->inumeric(FLERR,arg[12]);
-  nfileevery = force->inumeric(FLERR,arg[14]);
+  seed = utils::inumeric(FLERR,arg[3],false,lmp);
+  electronic_specific_heat = utils::numeric(FLERR,arg[4],false,lmp);
+  electronic_density = utils::numeric(FLERR,arg[5],false,lmp);
+  electronic_thermal_conductivity = utils::numeric(FLERR,arg[6],false,lmp);
+  gamma_p = utils::numeric(FLERR,arg[7],false,lmp);
+  gamma_s = utils::numeric(FLERR,arg[8],false,lmp);
+  v_0 = utils::numeric(FLERR,arg[9],false,lmp);
+  nxnodes = utils::inumeric(FLERR,arg[10],false,lmp);
+  nynodes = utils::inumeric(FLERR,arg[11],false,lmp);
+  nznodes = utils::inumeric(FLERR,arg[12],false,lmp);
+  nfileevery = utils::inumeric(FLERR,arg[14],false,lmp);
 
   if (nfileevery) {
     if (narg != 16) error->all(FLERR,"Illegal fix ttm command");
     if (comm->me == 0) {
       fp = fopen(arg[15],"w");
-      if (fp == NULL)
-        error->one(FLERR,fmt::format("Cannot open output file {}: {}",
-                                     arg[15], utils::getsyserror()));
+      if (fp == nullptr)
+        error->one(FLERR,"Cannot open output file {}: {}",
+                                     arg[15], utils::getsyserror());
     }
   }
 
@@ -128,7 +129,7 @@ FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
   memory->create(net_energy_transfer_all,nxnodes,nynodes,nznodes,
                  "TTM:net_energy_transfer_all");
 
-  flangevin = NULL;
+  flangevin = nullptr;
   grow_arrays(atom->nmax);
 
   // zero out the flangevin array
@@ -139,8 +140,8 @@ FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
     flangevin[i][2] = 0;
   }
 
-  atom->add_callback(0);
-  atom->add_callback(1);
+  atom->add_callback(Atom::GROW);
+  atom->add_callback(Atom::RESTART);
 
   // set initial electron temperatures from user input file
 
@@ -207,7 +208,7 @@ void FixTTM::init()
       for (int iznode = 0; iznode < nznodes; iznode++)
         net_energy_transfer_all[ixnode][iynode][iznode] = 0;
 
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 }
 
@@ -331,8 +332,8 @@ void FixTTM::read_initial_electron_temperatures(const char *filename)
 
   std::string name = utils::get_potential_file_path(filename);
   if (name.empty())
-    error->one(FLERR,fmt::format("Cannot open input file: {}",
-                                 filename));
+    error->one(FLERR,"Cannot open input file: {}",
+                                 filename);
   FILE *fpr = fopen(name.c_str(),"r");
 
   // read initial electron temperature values from file
@@ -341,7 +342,7 @@ void FixTTM::read_initial_electron_temperatures(const char *filename)
   int ixnode,iynode,iznode;
   double T_tmp;
   while (1) {
-    if (fgets(line,MAXLINE,fpr) == NULL) break;
+    if (fgets(line,MAXLINE,fpr) == nullptr) break;
     ValueTokenizer values(line);
     if (values.has_next()) ixnode = values.next_int();
     if (values.has_next()) iynode = values.next_int();
@@ -434,7 +435,7 @@ void FixTTM::end_of_step()
     num_inner_timesteps = static_cast<int>(update->dt/inner_dt) + 1;
     inner_dt = update->dt/double(num_inner_timesteps);
     if (num_inner_timesteps > 1000000)
-      error->warning(FLERR,"Too many inner timesteps in fix ttm",0);
+      error->warning(FLERR,"Too many inner timesteps in fix ttm");
   }
 
   for (int ith_inner_timestep = 0; ith_inner_timestep < num_inner_timesteps;
@@ -558,8 +559,8 @@ void FixTTM::end_of_step()
 double FixTTM::memory_usage()
 {
   double bytes = 0.0;
-  bytes += 5*total_nnodes * sizeof(int);
-  bytes += 14*total_nnodes * sizeof(double);
+  bytes += (double)5*total_nnodes * sizeof(int);
+  bytes += (double)14*total_nnodes * sizeof(double);
   return bytes;
 }
 
@@ -674,7 +675,7 @@ void FixTTM::unpack_restart(int nlocal, int nth)
 
   // skip to Nth set of extra values
   // unpack the Nth first values this way because other fixes pack them
-  
+
   int m = 0;
   for (int i = 0; i < nth; i++) m += static_cast<int> (extra[nlocal][m]);
   m++;

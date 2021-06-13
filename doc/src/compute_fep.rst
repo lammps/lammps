@@ -48,6 +48,8 @@ Examples
    compute 1 all fep 298 pair lj/cut epsilon 1 * v_delta pair lj/cut sigma 1 * v_delta volume yes
    compute 1 all fep 300 atom charge 2 v_delta
 
+Example input scripts available: examples/USER/fep
+
 Description
 """""""""""
 
@@ -163,7 +165,7 @@ the meaning of these parameters:
 +------------------------------------------------------------------------------+-------------------------+------------+
 | :doc:`born <pair_born>`                                                      | a,b,c                   | type pairs |
 +------------------------------------------------------------------------------+-------------------------+------------+
-| :doc:`buck <pair_buck>`                                                      | a,c                     | type pairs |
+| :doc:`buck, buck/coul/cut, buck/coul/long, buck/coul/msm  <pair_buck>`       | a,c                     | type pairs |
 +------------------------------------------------------------------------------+-------------------------+------------+
 | :doc:`buck/mdf <pair_mdf>`                                                   | a,c                     | type pairs |
 +------------------------------------------------------------------------------+-------------------------+------------+
@@ -279,7 +281,8 @@ trajectories during which the volume fluctuates or changes :ref:`(Allen and Tild
 
 ----------
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global vector of length 3 which contains the
 energy difference ( :math:`U_1-U_0` ) as c_ID[1], the

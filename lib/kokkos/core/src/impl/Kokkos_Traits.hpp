@@ -60,22 +60,22 @@ namespace Impl {
 
 template <unsigned I, typename... Pack>
 struct get_type {
-  typedef void type;
+  using type = void;
 };
 
 template <typename T, typename... Pack>
 struct get_type<0, T, Pack...> {
-  typedef T type;
+  using type = T;
 };
 
 template <unsigned I, typename T, typename... Pack>
 struct get_type<I, T, Pack...> {
-  typedef typename get_type<I - 1, Pack...>::type type;
+  using type = typename get_type<I - 1, Pack...>::type;
 };
 
 template <typename T, typename... Pack>
 struct has_type {
-  enum { value = false };
+  enum : bool { value = false };
 };
 
 template <typename T, typename S, typename... Pack>
@@ -83,21 +83,21 @@ struct has_type<T, S, Pack...> {
  private:
   enum { self_value = std::is_same<T, S>::value };
 
-  typedef has_type<T, Pack...> next;
+  using next = has_type<T, Pack...>;
 
   static_assert(
       !(self_value && next::value),
       "Error: more than one member of the argument pack matches the type");
 
  public:
-  enum { value = self_value || next::value };
+  enum : bool { value = self_value || next::value };
 };
 
 template <typename DefaultType, template <typename> class Condition,
           typename... Pack>
 struct has_condition {
-  enum { value = false };
-  typedef DefaultType type;
+  enum : bool { value = false };
+  using type = DefaultType;
 };
 
 template <typename DefaultType, template <typename> class Condition, typename S,
@@ -106,22 +106,22 @@ struct has_condition<DefaultType, Condition, S, Pack...> {
  private:
   enum { self_value = Condition<S>::value };
 
-  typedef has_condition<DefaultType, Condition, Pack...> next;
+  using next = has_condition<DefaultType, Condition, Pack...>;
 
   static_assert(
       !(self_value && next::value),
       "Error: more than one member of the argument pack satisfies condition");
 
  public:
-  enum { value = self_value || next::value };
+  enum : bool { value = self_value || next::value };
 
-  typedef
-      typename std::conditional<self_value, S, typename next::type>::type type;
+  using type =
+      typename std::conditional<self_value, S, typename next::type>::type;
 };
 
 template <class... Args>
 struct are_integral {
-  enum { value = true };
+  enum : bool { value = true };
 };
 
 template <typename T, class... Args>
@@ -148,25 +148,18 @@ namespace Kokkos {
 namespace Impl {
 
 //----------------------------------------------------------------------------
-
-template <class, class T = void>
-struct enable_if_type {
-  typedef T type;
-};
-
-//----------------------------------------------------------------------------
 // if_
 
 template <bool Cond, typename TrueType, typename FalseType>
 struct if_c {
-  enum { value = Cond };
+  enum : bool { value = Cond };
 
-  typedef FalseType type;
+  using type = FalseType;
 
-  typedef typename std::remove_const<
-      typename std::remove_reference<type>::type>::type value_type;
+  using value_type = typename std::remove_const<
+      typename std::remove_reference<type>::type>::type;
 
-  typedef typename std::add_const<value_type>::type const_value_type;
+  using const_value_type = typename std::add_const<value_type>::type;
 
   static KOKKOS_INLINE_FUNCTION const_value_type& select(const_value_type& v) {
     return v;
@@ -194,14 +187,14 @@ struct if_c {
 
 template <typename TrueType, typename FalseType>
 struct if_c<true, TrueType, FalseType> {
-  enum { value = true };
+  enum : bool { value = true };
 
-  typedef TrueType type;
+  using type = TrueType;
 
-  typedef typename std::remove_const<
-      typename std::remove_reference<type>::type>::type value_type;
+  using value_type = typename std::remove_const<
+      typename std::remove_reference<type>::type>::type;
 
-  typedef typename std::add_const<value_type>::type const_value_type;
+  using const_value_type = typename std::add_const<value_type>::type;
 
   static KOKKOS_INLINE_FUNCTION const_value_type& select(const_value_type& v) {
     return v;
@@ -229,46 +222,21 @@ struct if_c<true, TrueType, FalseType> {
 
 template <typename TrueType>
 struct if_c<false, TrueType, void> {
-  enum { value = false };
+  enum : bool { value = false };
 
-  typedef void type;
-  typedef void value_type;
+  using type       = void;
+  using value_type = void;
 };
 
 template <typename FalseType>
 struct if_c<true, void, FalseType> {
-  enum { value = true };
+  enum : bool { value = true };
 
-  typedef void type;
-  typedef void value_type;
+  using type       = void;
+  using value_type = void;
 };
 
-template <typename Cond, typename TrueType, typename FalseType>
-struct if_ : public if_c<Cond::value, TrueType, FalseType> {};
-
 //----------------------------------------------------------------------------
-
-template <typename T>
-struct is_label : public std::false_type {};
-
-template <>
-struct is_label<const char*> : public std::true_type {};
-
-template <>
-struct is_label<char*> : public std::true_type {};
-
-template <int N>
-struct is_label<const char[N]> : public std::true_type {};
-
-template <int N>
-struct is_label<char[N]> : public std::true_type {};
-
-template <>
-struct is_label<const std::string> : public std::true_type {};
-
-template <>
-struct is_label<std::string> : public std::true_type {};
-
 // These 'constexpr'functions can be used as
 // both regular functions and meta-function.
 
@@ -337,46 +305,17 @@ struct integral_nonzero_constant {
   // Declaration of 'static const' causes an unresolved linker symbol in debug
   // static const T value = v ;
   enum { value = T(v) };
-  typedef T value_type;
-  typedef integral_nonzero_constant<T, v> type;
+  using value_type = T;
+  using type       = integral_nonzero_constant<T, v>;
   KOKKOS_INLINE_FUNCTION integral_nonzero_constant(const T&) {}
 };
 
 template <typename T, T zero>
 struct integral_nonzero_constant<T, zero, false> {
   const T value;
-  typedef T value_type;
-  typedef integral_nonzero_constant<T, 0> type;
+  using value_type = T;
+  using type       = integral_nonzero_constant<T, 0>;
   KOKKOS_INLINE_FUNCTION integral_nonzero_constant(const T& v) : value(v) {}
-};
-
-//----------------------------------------------------------------------------
-
-template <class...>
-class TypeList;
-
-//----------------------------------------------------------------------------
-
-template <class>
-struct ReverseTypeList;
-
-template <class Head, class... Tail>
-struct ReverseTypeList<TypeList<Head, Tail...>> {
-  template <class... ReversedTail>
-  struct impl {
-    using type = typename ReverseTypeList<TypeList<Tail...>>::template impl<
-        Head, ReversedTail...>::type;
-  };
-  using type = typename impl<>::type;
-};
-
-template <>
-struct ReverseTypeList<TypeList<>> {
-  template <class... ReversedTail>
-  struct impl {
-    using type = TypeList<ReversedTail...>;
-  };
-  using type = TypeList<>;
 };
 
 //----------------------------------------------------------------------------

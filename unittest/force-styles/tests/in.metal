@@ -8,8 +8,8 @@ variable  pair_style      index 'zero 8.0'
 atom_style       atomic
 atom_modify      map array
 neigh_modify     delay 2 every 2 check no
-timestep         0.0001
 units            ${units}
+timestep         0.0001
 newton           ${newton_pair} ${newton_bond}
 
 pair_style       ${pair_style}

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(deposit,FixDeposit)
-
+// clang-format off
+FixStyle(deposit,FixDeposit);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_DEPOSIT_H
@@ -30,39 +30,41 @@ class FixDeposit : public Fix {
   ~FixDeposit();
   int setmask();
   void init();
+  void setup_pre_exchange();
   void pre_exchange();
   void write_restart(FILE *);
   void restart(char *);
   void *extract(const char *, int &);
 
  private:
-  int ninsert,ntype,nfreq,seed;
-  int iregion,globalflag,localflag,maxattempt,rateflag,scaleflag,targetflag;
-  int mode,rigidflag,shakeflag,idnext,distflag,orientflag;
-  double lo,hi,deltasq,nearsq,rate,sigma;
-  double vxlo,vxhi,vylo,vyhi,vzlo,vzhi;
-  double xlo,xhi,ylo,yhi,zlo,zhi,xmid,ymid,zmid;
-  double rx,ry,rz,tx,ty,tz;
+  int ninsert, ntype, nfreq, seed;
+  int iregion, globalflag, localflag, maxattempt, rateflag, scaleflag, targetflag;
+  int mode, rigidflag, shakeflag, idnext, distflag, orientflag;
+  double lo, hi, deltasq, nearsq, rate, sigma;
+  double vxlo, vxhi, vylo, vyhi, vzlo, vzhi;
+  double xlo, xhi, ylo, yhi, zlo, zhi, xmid, ymid, zmid;
+  double rx, ry, rz, tx, ty, tz;
   char *idregion;
-  char *idrigid,*idshake;
+  char *idrigid, *idshake;
 
   class Molecule **onemols;
-  int nmol,natom_max;
+  int nmol, natom_max;
   double *molfrac;
   double **coords;
   imageint *imageflags;
-  class Fix *fixrigid,*fixshake;
+  class Fix *fixrigid, *fixshake;
   double oneradius;
 
-  int nfirst,ninserted;
-  tagint maxtag_all,maxmol_all;
+  int ninserted;
+  bigint nfirst;
+  tagint maxtag_all, maxmol_all;
   class RanPark *random;
 
   void find_maxid();
   void options(int, char **);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,12 +13,10 @@
 ------------------------------------------------------------------------- */
 
 #include "imbalance_group.h"
+
 #include "atom.h"
-#include "force.h"
-#include "group.h"
 #include "error.h"
-#include <string>
-#include "fmt/format.h"
+#include "group.h"
 
 using namespace LAMMPS_NS;
 
@@ -40,7 +39,7 @@ int ImbalanceGroup::options(int narg, char **arg)
 {
   if (narg < 3) error->all(FLERR,"Illegal balance weight command");
 
-  num = force->inumeric(FLERR,arg[0]);
+  num = utils::inumeric(FLERR,arg[0],false,lmp);
   if (num < 1) error->all(FLERR,"Illegal balance weight command");
   if (2*num+1 > narg) error->all(FLERR,"Illegal balance weight command");
 
@@ -49,8 +48,8 @@ int ImbalanceGroup::options(int narg, char **arg)
   for (int i = 0; i < num; ++i) {
     id[i] = group->find(arg[2*i+1]);
     if (id[i] < 0)
-      error->all(FLERR,"Unknown group in balance weight command");
-    factor[i] = force->numeric(FLERR,arg[2*i+2]);
+      error->all(FLERR,"Unknown group in balance weight command: {}", arg[2*i+1]);
+    factor[i] = utils::numeric(FLERR,arg[2*i+2],false,lmp);
     if (factor[i] <= 0.0) error->all(FLERR,"Illegal balance weight command");
   }
   return 2*num+1;

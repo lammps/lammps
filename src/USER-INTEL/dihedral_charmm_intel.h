@@ -1,6 +1,7 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,9 +17,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef DIHEDRAL_CLASS
-
-DihedralStyle(charmm/intel,DihedralCharmmIntel)
-
+// clang-format off
+DihedralStyle(charmm/intel,DihedralCharmmIntel);
+// clang-format on
 #else
 
 #ifndef LMP_DIHEDRAL_CHARMM_INTEL_H
@@ -66,7 +67,7 @@ class DihedralCharmmIntel : public DihedralCharmm {
     flt_t *weight;
 
     ForceConst() : _npairtypes(0), _nbondtypes(0)  {}
-    ~ForceConst() { set_ntypes(0, 0, NULL); }
+    ~ForceConst() { set_ntypes(0, 0, nullptr); }
 
     void set_ntypes(const int npairtypes, const int nbondtypes, Memory *memory);
 

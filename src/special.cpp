@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,18 +13,16 @@
 ------------------------------------------------------------------------- */
 
 #include "special.h"
-#include <mpi.h>
-#include "atom.h"
-#include "atom_vec.h"
-#include "force.h"
-#include "comm.h"
-#include "modify.h"
-#include "fix.h"
+
 #include "accelerator_kokkos.h"  // IWYU pragma: export
+#include "atom.h"
 #include "atom_masks.h"
+#include "atom_vec.h"
+#include "comm.h"
+#include "fix.h"
+#include "force.h"
 #include "memory.h"
-#include "utils.h"
-#include "fmt/format.h"
+#include "modify.h"
 
 using namespace LAMMPS_NS;
 
@@ -36,7 +35,7 @@ Special::Special(LAMMPS *lmp) : Pointers(lmp)
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
 
-  onetwo = onethree = onefour = NULL;
+  onetwo = onethree = onefour = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -94,7 +93,7 @@ void Special::build()
   // print max # of 1-2 neighbors
 
   if (me == 0)
-    utils::logmesg(lmp,fmt::format("{:>6} = max # of 1-2 neighbors\n",maxall));
+    utils::logmesg(lmp,"{:>6} = max # of 1-2 neighbors\n",maxall);
 
   // done if special_bond weights for 1-3, 1-4 are set to 1.0
 
@@ -117,7 +116,7 @@ void Special::build()
   // print max # of 1-3 neighbors
 
   if (me == 0)
-    utils::logmesg(lmp,fmt::format("{:>6} = max # of 1-3 neighbors\n",maxall));
+    utils::logmesg(lmp,"{:>6} = max # of 1-3 neighbors\n",maxall);
 
   // done if special_bond weights for 1-4 are set to 1.0
 
@@ -140,7 +139,7 @@ void Special::build()
   // print max # of 1-4 neighbors
 
   if (me == 0)
-    utils::logmesg(lmp,fmt::format("{:>6} = max # of 1-4 neighbors\n",maxall));
+    utils::logmesg(lmp,"{:>6} = max # of 1-4 neighbors\n",maxall);
 
   // finish processing the onetwo, onethree, onefour lists
 
@@ -692,8 +691,7 @@ void Special::combine()
   force->special_extra = 0;
 
   if (me == 0)
-    utils::logmesg(lmp,fmt::format("{:>6} = max # of special "
-                   "neighbors\n",atom->maxspecial));
+    utils::logmesg(lmp,"{:>6} = max # of special neighbors\n",atom->maxspecial);
 
   if (lmp->kokkos) {
     AtomKokkos* atomKK = (AtomKokkos*) atom;
@@ -795,8 +793,8 @@ void Special::angle_trim()
   MPI_Allreduce(&onethreecount,&allcount,1,MPI_DOUBLE,MPI_SUM,world);
 
   if (me == 0)
-    utils::logmesg(lmp,fmt::format("  {} = # of 1-3 neighbors "
-                   "before angle trim\n",allcount));
+    utils::logmesg(lmp,"  {} = # of 1-3 neighbors before angle trim\n",
+                   allcount);
 
   // if angles or dihedrals are defined
   // rendezvous angle 1-3 and dihedral 1-3,2-4 pairs
@@ -1025,8 +1023,8 @@ void Special::angle_trim()
   MPI_Allreduce(&onethreecount,&allcount,1,MPI_DOUBLE,MPI_SUM,world);
 
   if (me == 0)
-    utils::logmesg(lmp,fmt::format("  {} = # of 1-3 neighbors "
-                   "after angle trim\n",allcount));
+    utils::logmesg(lmp,"  {} = # of 1-3 neighbors after angle trim\n",
+                   allcount);
 }
 
 /* ----------------------------------------------------------------------
@@ -1055,8 +1053,8 @@ void Special::dihedral_trim()
   MPI_Allreduce(&onefourcount,&allcount,1,MPI_DOUBLE,MPI_SUM,world);
 
   if (me == 0)
-    utils::logmesg(lmp,fmt::format("  {} = # of 1-4 neighbors "
-                   "before dihedral trim\n",allcount));
+    utils::logmesg(lmp,"  {} = # of 1-4 neighbors before dihedral trim\n",
+                   allcount);
 
   // if dihedrals are defined, rendezvous the dihedral 1-4 pairs
 
@@ -1199,8 +1197,8 @@ void Special::dihedral_trim()
   MPI_Allreduce(&onefourcount,&allcount,1,MPI_DOUBLE,MPI_SUM,world);
 
   if (me == 0)
-    utils::logmesg(lmp,fmt::format("  {} = # of 1-4 neighbors "
-                   "after dihedral trim\n",allcount));
+    utils::logmesg(lmp,"  {} = # of 1-4 neighbors after dihedral trim\n",
+                   allcount);
 }
 
 /* ----------------------------------------------------------------------
@@ -1315,6 +1313,6 @@ void Special::fix_alteration()
 void Special::timer_output(double time1)
 {
   if (comm->me == 0)
-    utils::logmesg(lmp,fmt::format("  special bonds CPU = {:.3f} seconds\n",
-                                   MPI_Wtime()-time1));
+    utils::logmesg(lmp,"  special bonds CPU = {:.3f} seconds\n",
+                   MPI_Wtime()-time1);
 }

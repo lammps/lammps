@@ -26,7 +26,7 @@ _texture( q_tex,int2);
 
 // Allow PPPM to compile without atomics for NVIDIA 1.0 cards, error
 // generated at runtime with use of pppm/gpu
-#if (__CUDA_ARCH__ < 110)
+#if defined(NV_KERNEL) && (__CUDA_ARCH__ < 110)
 #define atomicAdd(x,y) *(x)+=0
 #endif
 
@@ -35,10 +35,13 @@ _texture( q_tex,int2);
 #define pos_tex x_
 #define q_tex q_
 #pragma OPENCL EXTENSION cl_khr_global_int32_base_atomics: enable
+
+#ifdef GRD_DBL
 #if defined(cl_amd_fp64)
 #pragma OPENCL EXTENSION cl_amd_fp64 : enable
 #else
 #pragma OPENCL EXTENSION cl_khr_fp64 : enable
+#endif
 #endif
 
 #endif

@@ -48,8 +48,8 @@ namespace Test {
 
 TEST(TEST_CATEGORY, mdrange_6d) {
   TestMDRange_6D<TEST_EXECSPACE>::test_for6(10, 10, 10, 10, 5, 5);
-#if !defined(KOKKOS_ENABLE_ROCM)  // MDRange Reduce explicitly handled in its
-                                  // own cpp file
+#ifndef KOKKOS_ENABLE_OPENMPTARGET
+  // FIXME_OPENMPTARGET requires MDRange parallel_reduce
   TestMDRange_6D<TEST_EXECSPACE>::test_reduce6(100, 10, 10, 10, 5, 5);
 #endif
 }

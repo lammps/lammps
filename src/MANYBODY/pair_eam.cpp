@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,9 +17,9 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_eam.h"
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "force.h"
@@ -28,7 +29,7 @@
 #include "memory.h"
 #include "error.h"
 #include "update.h"
-#include "utils.h"
+
 #include "tokenizer.h"
 #include "potential_file_reader.h"
 
@@ -46,26 +47,27 @@ PairEAM::PairEAM(LAMMPS *lmp) : Pair(lmp)
   unit_convert_flag = utils::get_supported_conversions(utils::ENERGY);
 
   nmax = 0;
-  rho = NULL;
-  fp = NULL;
-  numforce = NULL;
-  map = NULL;
-  type2frho = NULL;
+  rho = nullptr;
+  fp = nullptr;
+  numforce = nullptr;
+  type2frho = nullptr;
 
   nfuncfl = 0;
-  funcfl = NULL;
+  funcfl = nullptr;
 
-  setfl = NULL;
-  fs = NULL;
+  setfl = nullptr;
+  fs = nullptr;
 
-  frho = NULL;
-  rhor = NULL;
-  z2r = NULL;
-  scale = NULL;
+  frho = nullptr;
+  rhor = nullptr;
+  z2r = nullptr;
+  scale = nullptr;
 
-  frho_spline = NULL;
-  rhor_spline = NULL;
-  z2r_spline = NULL;
+  rhomax = rhomin = 0.0;
+
+  frho_spline = nullptr;
+  rhor_spline = nullptr;
+  z2r_spline = nullptr;
 
   // set comm size needed by this Pair
 
@@ -88,10 +90,8 @@ PairEAM::~PairEAM()
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
-    delete [] map;
     delete [] type2frho;
-    map = NULL;
-    type2frho = NULL;
+    type2frho = nullptr;
     memory->destroy(type2rhor);
     memory->destroy(type2z2r);
     memory->destroy(scale);
@@ -105,7 +105,7 @@ PairEAM::~PairEAM()
       memory->destroy(funcfl[i].zr);
     }
     memory->sfree(funcfl);
-    funcfl = NULL;
+    funcfl = nullptr;
   }
 
   if (setfl) {
@@ -116,7 +116,7 @@ PairEAM::~PairEAM()
     memory->destroy(setfl->rhor);
     memory->destroy(setfl->z2r);
     delete setfl;
-    setfl = NULL;
+    setfl = nullptr;
   }
 
   if (fs) {
@@ -127,7 +127,7 @@ PairEAM::~PairEAM()
     memory->destroy(fs->rhor);
     memory->destroy(fs->z2r);
     delete fs;
-    fs = NULL;
+    fs = nullptr;
   }
 
   memory->destroy(frho);
@@ -346,6 +346,7 @@ void PairEAM::allocate()
 
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
 
+  delete[] map;
   map = new int[n+1];
   for (int i = 1; i <= n; i++) map[i] = -1;
 
@@ -378,8 +379,8 @@ void PairEAM::coeff(int narg, char **arg)
   // parse pair of atom types
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
   // read funcfl file if hasn't already been read
   // store filename in Funcfl data struct
@@ -466,7 +467,7 @@ void PairEAM::read_file(char *filename)
   Funcfl *file = &funcfl[nfuncfl-1];
 
   // read potential file
-  if(comm->me == 0) {
+  if (comm->me == 0) {
     PotentialFileReader reader(lmp, filename, "eam", unit_convert_flag);
 
     // transparently convert units for supported conversions
@@ -506,7 +507,7 @@ void PairEAM::read_file(char *filename)
         for (int j = 1; j <= file->nr; ++j)
           file->zr[j] *= sqrt_conv;
       }
-    } catch (TokenizerException & e) {
+    } catch (TokenizerException &e) {
       error->one(FLERR, e.what());
     }
   }
@@ -518,7 +519,7 @@ void PairEAM::read_file(char *filename)
   MPI_Bcast(&file->dr, 1, MPI_DOUBLE, 0, world);
   MPI_Bcast(&file->cut, 1, MPI_DOUBLE, 0, world);
 
-  if(comm->me != 0) {
+  if (comm->me != 0) {
     memory->create(file->frho, (file->nrho+1), "pair:frho");
     memory->create(file->rhor, (file->nr+1), "pair:rhor");
     memory->create(file->zr, (file->nr+1), "pair:zr");
@@ -911,9 +912,9 @@ void PairEAM::unpack_reverse_comm(int n, int *list, double *buf)
 
 double PairEAM::memory_usage()
 {
-  double bytes = maxeatom * sizeof(double);
-  bytes += maxvatom*6 * sizeof(double);
-  bytes += 2 * nmax * sizeof(double);
+  double bytes = (double)maxeatom * sizeof(double);
+  bytes += (double)maxvatom*6 * sizeof(double);
+  bytes += (double)2 * nmax * sizeof(double);
   return bytes;
 }
 
@@ -937,5 +938,5 @@ void *PairEAM::extract(const char *str, int &dim)
 {
   dim = 2;
   if (strcmp(str,"scale") == 0) return (void *) scale;
-  return NULL;
+  return nullptr;
 }

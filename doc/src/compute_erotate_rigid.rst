@@ -38,7 +38,8 @@ compute command is ignored.  The rotational energy of all the rigid
 bodies defined by the fix rigid command in included in the
 calculation.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global scalar (the summed rotational energy
 of all the rigid bodies).  This value can be used by any command that
@@ -59,4 +60,7 @@ Related commands
 
 :doc:`compute ke/rigid <compute_ke_rigid>`
 
-**Default:** none
+Default
+"""""""
+
+none

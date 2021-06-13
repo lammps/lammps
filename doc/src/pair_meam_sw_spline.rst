@@ -98,7 +98,8 @@ in the examples/USER/misc/meam_sw_spline directory.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 The pair style does not support multiple element types or mixing.
 It has been designed for pure elements only.
@@ -133,7 +134,10 @@ Related commands
 :doc:`pair_coeff <pair_coeff>`, :doc:`pair_style meam/c <pair_meamc>`,
 :doc:`pair_style meam/spline <pair_meam_spline>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

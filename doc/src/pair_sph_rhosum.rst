@@ -37,7 +37,8 @@ above.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This style does not support mixing.  Thus, coefficients for all
 I,J pairs must be specified explicitly.
@@ -62,4 +63,7 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`, pair_sph/taitwater
 
-**Default:** none
+Default
+"""""""
+
+none

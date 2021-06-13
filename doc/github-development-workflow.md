@@ -95,7 +95,7 @@ on the pull request discussion page on GitHub, so that other developers
 can later review the entire discussion after the fact and understand the
 rationale behind choices made.  Exceptions to this policy are technical
 discussions, that are centered on tools or policies themselves
-(git, github, c++) rather than on the content of the pull request.
+(git, GitHub, c++) rather than on the content of the pull request.
 
 ### Checklist for Pull Requests
 
@@ -136,7 +136,8 @@ Here are some items to check:
     * string.h -> cstring
     * time.h -> ctime
     * Do NOT replace (as they are C++-11): `inttypes.h` and `stdint.h`.
-  * Code should follow the C++-98 standard. C++-11 is only accepted
+  * Code must follow the C++-11 standard. C++98-only is no longer accepted
+  * Code should use `nullptr` instead of `NULL` where applicable.
   in individual special purpose packages
   * indentation is 2 spaces per level
   * there should be NO tabs and no trailing whitespace (review the "checkstyle" test on pull requests)
@@ -145,6 +146,8 @@ Here are some items to check:
   Forward declarations should be used instead when possible.
   * iostreams should be avoided. LAMMPS uses stdio from the C-library.
   * use of STL in headers and class definitions should be avoided.
+  exception is <string>, but it won't need to be explicitly included
+  since pointers.h already includes it. so std::string can be used directly.
   * there MUST NOT be any "using namespace XXX;" statements in headers.
   * static class members should be avoided at all cost.
   * anything storing atom IDs should be using `tagint` and not `int`.
@@ -152,6 +155,8 @@ Here are some items to check:
   compiling LAMMPS with `-DLAMMPS_BIGBIG`.
   * when including both `lmptype.h` (and using defines or macros from it)
   and `mpi.h`, `lmptype.h` must be included first.
+  * see https://github.com/lammps/lammps/blob/master/doc/include-file-conventions.md
+  for general include file conventions and best practices
   * when pair styles are added, check if settings for flags like
   `single_enable`, `writedata`, `reinitflag`, `manybody_flag`
   and others are correctly set and supported.

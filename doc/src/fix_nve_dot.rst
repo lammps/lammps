@@ -54,7 +54,10 @@ Related commands
 
 :doc:`fix nve/dotc/langevin <fix_nve_dotc_langevin>`, :doc:`fix nve <fix_nve>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

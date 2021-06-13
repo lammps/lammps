@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,16 +13,15 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_temp_region.h"
-#include <mpi.h>
-#include <cstring>
+
 #include "atom.h"
-#include "update.h"
-#include "force.h"
 #include "domain.h"
-#include "region.h"
+#include "error.h"
+#include "force.h"
 #include "group.h"
 #include "memory.h"
-#include "error.h"
+#include "region.h"
+#include "update.h"
 
 using namespace LAMMPS_NS;
 
@@ -29,16 +29,14 @@ using namespace LAMMPS_NS;
 
 ComputeTempRegion::ComputeTempRegion(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  idregion(NULL)
+  idregion(nullptr)
 {
   if (narg != 4) error->all(FLERR,"Illegal compute temp/region command");
 
   iregion = domain->find_region(arg[3]);
   if (iregion == -1)
     error->all(FLERR,"Region ID for compute temp/region does not exist");
-  int n = strlen(arg[3]) + 1;
-  idregion = new char[n];
-  strcpy(idregion,arg[3]);
+  idregion = utils::strdup(arg[3]);
 
   scalar_flag = vector_flag = 1;
   size_vector = 6;
@@ -48,7 +46,7 @@ ComputeTempRegion::ComputeTempRegion(LAMMPS *lmp, int narg, char **arg) :
   tempbias = 1;
 
   maxbias = 0;
-  vbiasall = NULL;
+  vbiasall = nullptr;
   vector = new double[size_vector];
 }
 

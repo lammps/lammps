@@ -108,7 +108,8 @@ See the :doc:`Howto thermostat <Howto_thermostat>` doc page for a
 discussion of different ways to compute temperature and perform
 thermostatting.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global scalar (the temperature) and a global
 vector of length 6 (KE tensor), which can be accessed by indices 1-6.
@@ -132,4 +133,7 @@ Related commands
 :doc:`compute temp/ramp <compute_temp_ramp>`, :doc:`compute temp/profile <compute_temp_profile>`, :doc:`fix deform <fix_deform>`,
 :doc:`fix nvt/sllod <fix_nvt_sllod>`
 
-**Default:** none
+Default
+"""""""
+
+none

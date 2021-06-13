@@ -1,6 +1,7 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,11 +13,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(lj/sdk/kk,PairLJSDKKokkos<LMPDeviceType>)
-PairStyle(lj/sdk/kk/device,PairLJSDKKokkos<LMPDeviceType>)
-PairStyle(lj/sdk/kk/host,PairLJSDKKokkos<LMPHostType>)
-
+// clang-format off
+PairStyle(lj/sdk/kk,PairLJSDKKokkos<LMPDeviceType>);
+PairStyle(lj/sdk/kk/device,PairLJSDKKokkos<LMPDeviceType>);
+PairStyle(lj/sdk/kk/host,PairLJSDKKokkos<LMPHostType>);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_LJ_SDK_KOKKOS_H
@@ -46,16 +47,14 @@ class PairLJSDKKokkos : public PairLJSDK {
 
   struct params_lj{
     KOKKOS_INLINE_FUNCTION
-    params_lj(){cutsq=0,lj1=0;lj2=0;lj3=0;lj4=0;offset=0;lj_type=0;};
+    params_lj() {cutsq=0,lj1=0;lj2=0;lj3=0;lj4=0;offset=0;lj_type=0;};
     KOKKOS_INLINE_FUNCTION
-    params_lj(int i){cutsq=0,lj1=0;lj2=0;lj3=0;lj4=0;offset=0;lj_type=0;};
+    params_lj(int /*i*/) {cutsq=0,lj1=0;lj2=0;lj3=0;lj4=0;offset=0;lj_type=0;};
     F_FLOAT cutsq,lj1,lj2,lj3,lj4,offset;
     int lj_type;
   };
 
  protected:
-  void cleanup_copy();
-
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
   F_FLOAT compute_fpair(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const;
@@ -66,9 +65,8 @@ class PairLJSDKKokkos : public PairLJSDK {
 
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
-  F_FLOAT compute_ecoul(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const {
-    return 0;
-  }
+  F_FLOAT compute_ecoul(const F_FLOAT& /*rsq*/, const int& /*i*/, const int& /*j*/,
+                        const int& /*itype*/, const int& /*jtype*/) const { return 0; }
 
 
   Kokkos::DualView<params_lj**,Kokkos::LayoutRight,DeviceType> k_params;
@@ -97,12 +95,12 @@ class PairLJSDKKokkos : public PairLJSDK {
   int nlocal,nall,eflag,vflag;
 
   void allocate();
-  friend class PairComputeFunctor<PairLJSDKKokkos,FULL,true>;
-  friend class PairComputeFunctor<PairLJSDKKokkos,HALF,true>;
-  friend class PairComputeFunctor<PairLJSDKKokkos,HALFTHREAD,true>;
-  friend class PairComputeFunctor<PairLJSDKKokkos,FULL,false>;
-  friend class PairComputeFunctor<PairLJSDKKokkos,HALF,false>;
-  friend class PairComputeFunctor<PairLJSDKKokkos,HALFTHREAD,false>;
+  friend struct PairComputeFunctor<PairLJSDKKokkos,FULL,true>;
+  friend struct PairComputeFunctor<PairLJSDKKokkos,HALF,true>;
+  friend struct PairComputeFunctor<PairLJSDKKokkos,HALFTHREAD,true>;
+  friend struct PairComputeFunctor<PairLJSDKKokkos,FULL,false>;
+  friend struct PairComputeFunctor<PairLJSDKKokkos,HALF,false>;
+  friend struct PairComputeFunctor<PairLJSDKKokkos,HALFTHREAD,false>;
   friend EV_FLOAT pair_compute_neighlist<PairLJSDKKokkos,FULL,void>(PairLJSDKKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairLJSDKKokkos,HALF,void>(PairLJSDKKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairLJSDKKokkos,HALFTHREAD,void>(PairLJSDKKokkos*,NeighListKokkos<DeviceType>*);

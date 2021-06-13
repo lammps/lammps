@@ -109,7 +109,8 @@ and for bcc sodium (lattice constant 4.23 Angstroms),
 
    compute 1 all entropy/atom 0.25 7.3 avg yes 5.1
 
-**Output info:**
+Output info
+"""""""""""
 
 By default, this compute calculates the pair entropy value for each
 atom as a per-atom vector, which can be accessed by any command that

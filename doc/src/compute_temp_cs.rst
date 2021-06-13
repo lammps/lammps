@@ -84,7 +84,8 @@ The internal energy of core/shell pairs can be calculated by the
 defined as core/shell pairs.  See the :doc:`Howto coreshell <Howto_coreshell>` doc page doc page for more discussion
 on how to do this.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global scalar (the temperature) and a global
 vector of length 6 (KE tensor), which can be accessed by indices 1-6.
@@ -109,7 +110,10 @@ Related commands
 
 :doc:`compute temp <compute_temp>`, :doc:`compute temp/chunk <compute_temp_chunk>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

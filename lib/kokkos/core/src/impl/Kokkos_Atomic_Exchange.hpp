@@ -100,7 +100,7 @@ __inline__ __device__ T atomic_exchange(
     typename std::enable_if<sizeof(T) != sizeof(int) &&
                                 sizeof(T) == sizeof(unsigned long long int),
                             const T&>::type val) {
-  typedef unsigned long long int type;
+  using type = unsigned long long int;
 
 #if defined(KOKKOS_ENABLE_RFO_PREFETCH)
   _mm_prefetch((const char*)dest, _MM_HINT_ET0);
@@ -133,8 +133,10 @@ atomic_exchange(volatile T* const dest,
   while (active != done_active) {
     if (!done) {
       if (Impl::lock_address_cuda_space((void*)dest)) {
+        Kokkos::memory_fence();
         return_val = *dest;
         *dest      = val;
+        Kokkos::memory_fence();
         Impl::unlock_address_cuda_space((void*)dest);
         done = 1;
       }
@@ -162,7 +164,7 @@ __inline__ __device__ void atomic_assign(
     typename std::enable_if<sizeof(T) != sizeof(int) &&
                                 sizeof(T) == sizeof(unsigned long long int),
                             const T&>::type val) {
-  typedef unsigned long long int type;
+  using type = unsigned long long int;
   // (void) __ullAtomicExch( (type*) dest , *((type*)&val) );
   (void)atomicExch(((type*)dest), *((type*)&val));
 }
@@ -189,8 +191,7 @@ inline T atomic_exchange(volatile T* const dest,
                          typename std::enable_if<sizeof(T) == sizeof(int) ||
                                                      sizeof(T) == sizeof(long),
                                                  const T&>::type val) {
-  typedef typename Kokkos::Impl::if_c<sizeof(T) == sizeof(int), int, long>::type
-      type;
+  using type = std::conditional_t<sizeof(T) == sizeof(int), int, long>;
 #if defined(KOKKOS_ENABLE_RFO_PREFETCH)
   _mm_prefetch((const char*)dest, _MM_HINT_ET0);
 #endif
@@ -257,6 +258,7 @@ inline T atomic_exchange(
                             const T>::type& val) {
   while (!Impl::lock_address_host_space((void*)dest))
     ;
+  Kokkos::memory_fence();
   T return_val = *dest;
   // Don't use the following line of code here:
   //
@@ -272,6 +274,7 @@ inline T atomic_exchange(
 #ifndef KOKKOS_COMPILER_CLANG
   (void)tmp;
 #endif
+  Kokkos::memory_fence();
   Impl::unlock_address_host_space((void*)dest);
   return return_val;
 }
@@ -281,8 +284,7 @@ inline void atomic_assign(volatile T* const dest,
                           typename std::enable_if<sizeof(T) == sizeof(int) ||
                                                       sizeof(T) == sizeof(long),
                                                   const T&>::type val) {
-  typedef typename Kokkos::Impl::if_c<sizeof(T) == sizeof(int), int, long>::type
-      type;
+  using type = std::conditional_t<sizeof(T) == sizeof(int), int, long>;
 
 #if defined(KOKKOS_ENABLE_RFO_PREFETCH)
   _mm_prefetch((const char*)dest, _MM_HINT_ET0);
@@ -343,6 +345,7 @@ inline void atomic_assign(
                             const T>::type& val) {
   while (!Impl::lock_address_host_space((void*)dest))
     ;
+  Kokkos::memory_fence();
   // This is likely an aggregate type with a defined
   // 'volatile T & operator = ( const T & ) volatile'
   // member.  The volatile return value implicitly defines a
@@ -350,7 +353,7 @@ inline void atomic_assign(
   // Suppress warning by casting return to void.
   //(void)( *dest = val );
   *dest = val;
-
+  Kokkos::memory_fence();
   Impl::unlock_address_host_space((void*)dest);
 }
 //----------------------------------------------------------------------------

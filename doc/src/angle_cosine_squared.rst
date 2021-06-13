@@ -1,10 +1,10 @@
 .. index:: angle_style cosine/squared
+.. index:: angle_style cosine/squared/omp
 
 angle_style cosine/squared command
 ==================================
 
-angle_style cosine/squared/omp command
-======================================
+Accelerator Variants: *cosine/squared/omp*
 
 Syntax
 """"""
@@ -30,8 +30,11 @@ The *cosine/squared* angle style uses the potential
 
    E = K [\cos(\theta) - \cos(\theta_0)]^2
 
-where :math:`\theta_0` is the equilibrium value of the angle, and :math:`K` is a
-prefactor.  Note that the usual 1/2 factor is included in :math:`K`.
+, which is commonly used in the :doc:`DREIDING <Howto_bioFF>` force field,
+where :math:`\theta_0` is the equilibrium value of the angle, and :math:`K`
+is a prefactor.  Note that the usual 1/2 factor is included in :math:`K`.
+
+See :ref:`(Mayo) <cosine-Mayo>` for a description of the DREIDING force field.
 
 The following coefficients must be defined for each angle type via the
 :doc:`angle_coeff <angle_coeff>` command as in the example above, or in
@@ -62,4 +65,14 @@ Related commands
 
 :doc:`angle_coeff <angle_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none
+
+----------
+
+.. _cosine-Mayo:
+
+**(Mayo)** Mayo, Olfason, Goddard III, J Phys Chem, 94, 8897-8909
+(1990).

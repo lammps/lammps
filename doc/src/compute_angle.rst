@@ -24,15 +24,16 @@ Description
 """""""""""
 
 Define a computation that extracts the angle energy calculated by each
-of the angle sub-styles used in the  "angle_style
-hybrid" angle_hybrid.html command.  These values are made accessible
+of the angle sub-styles used in the doc:`angle_style hybrid <angle_hybrid>`
+command.  These values are made accessible
 for output or further processing by other commands.  The group
 specified for this command is ignored.
 
 This compute is useful when using :doc:`angle_style hybrid <angle_hybrid>` if you want to know the portion of the total
 energy contributed by one or more of the hybrid sub-styles.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global vector of length N where N is the
 number of sub_styles defined by the :doc:`angle_style hybrid <angle_style>` command, which can be accessed by indices
@@ -52,4 +53,7 @@ Related commands
 
 :doc:`compute pe <compute_pe>`, :doc:`compute pair <compute_pair>`
 
-**Default:** none
+Default
+"""""""
+
+none

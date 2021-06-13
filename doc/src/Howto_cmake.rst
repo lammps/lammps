@@ -191,19 +191,19 @@ You start the command ``ccmake ../cmake`` in the ``build`` folder.
 .. list-table::
 
    * - .. figure:: JPG/ccmake-initial.png
-          :target: JPG/ccmake-initial.png
+          :scale: 33%
           :align: center
 
           Initial ``ccmake`` screen
 
      - .. figure:: JPG/ccmake-config.png
-          :target: JPG/ccmake-config.png
+          :scale: 33%
           :align: center
 
           Configure output of ``ccmake``
 
      - .. figure:: JPG/ccmake-options.png
-          :target: JPG/ccmake-options.png
+          :scale: 33%
           :align: center
 
           Options screen of ``ccmake``
@@ -236,19 +236,19 @@ not required, it can also be entered from the GUI.
 .. list-table::
 
    * - .. figure:: JPG/cmake-gui-initial.png
-          :target: JPG/cmake-gui-initial.png
+          :scale: 40%
           :align: center
 
           Initial ``cmake-gui`` screen
 
      - .. figure:: JPG/cmake-gui-popup.png
-          :target: JPG/cmake-gui-popup.png
+          :scale: 60%
           :align: center
 
           Generator selection in ``cmake-gui``
 
      - .. figure:: JPG/cmake-gui-options.png
-          :target: JPG/cmake-gui-options.png
+          :scale: 40%
           :align: center
 
           Options screen of ``cmake-gui``
@@ -296,6 +296,8 @@ Some common CMake variables
      - Description
    * - ``CMAKE_INSTALL_PREFIX``
      - root directory of install location for ``make install``  (default: ``$HOME/.local``)
+   * - ``LAMMPS_INSTALL_RPATH``
+     - set or remove runtime path setting from binaries for ``make install`` (default: ``off``)
    * - ``CMAKE_BUILD_TYPE``
      - controls compilation options:
        one of ``RelWithDebInfo`` (default), ``Release``, ``Debug``, ``MinSizeRel``
@@ -328,6 +330,8 @@ Some common LAMMPS specific variables
      - build LAMMPS with OpenMP support (default: ``on`` if compiler supports OpenMP fully, else ``off``)
    * - ``BUILD_TOOLS``
      - compile some additional executables from the ``tools`` folder (default: ``off``)
+   * - ``BUILD_LAMMPS_SHELL``
+     - compile the LAMMPS shell from the ``tools/lammps-shell`` folder (default: ``off``)
    * - ``BUILD_DOC``
      - include building the HTML format documentation for packaging/installing (default: ``off``)
    * - ``CMAKE_TUNE_FLAGS``
@@ -399,10 +403,18 @@ It is also possible to do this incrementally.
    cmake -C ../cmake/presets/minimal.cmake ../cmake
    cmake -D PKG_MISC=on .
 
-will achieve the same configuration like in the first example above.  In
-this scenario it is particularly convenient to do the second
+will achieve the same final configuration as in the first example above.
+In this scenario it is particularly convenient to do the second
 configuration step using either the text mode or graphical user
 interface (``ccmake`` or ``cmake-gui``).
+
+.. note::
+
+   Using a preset to select a compiler package (``clang.cmake``,
+   ``gcc.cmake``, ``intel.cmake``, ``oneapi.cmake``, or ``pgi.cmake``)
+   are an exception to the mechanism of updating the configuration incrementally,
+   as they will trigger a reset of cached internal CMake settings and thus
+   reset settings to their default values.
 
 Compilation and build targets
 -----------------------------

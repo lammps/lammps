@@ -7,10 +7,15 @@ else()
 endif()
 option(DOWNLOAD_MSCG "Download MSCG library instead of using an already installed one)" ${DOWNLOAD_MSCG_DEFAULT})
 if(DOWNLOAD_MSCG)
+  set(MSCG_URL "https://github.com/uchicago-voth/MSCG-release/archive/1.7.3.1.tar.gz" CACHE STRING "URL for MSCG tarball")
+  set(MSCG_MD5 "8c45e269ee13f60b303edd7823866a91" CACHE STRING "MD5 checksum of MSCG tarball")
+  mark_as_advanced(MSCG_URL)
+  mark_as_advanced(MSCG_MD5)
+
   include(ExternalProject)
   ExternalProject_Add(mscg_build
-    URL https://github.com/uchicago-voth/MSCG-release/archive/1.7.3.1.tar.gz
-    URL_MD5 8c45e269ee13f60b303edd7823866a91
+    URL     ${MSCG_URL}
+    URL_MD5 ${MSCG_MD5}
     SOURCE_SUBDIR src/CMake
     CMAKE_ARGS ${CMAKE_REQUEST_PIC} ${EXTRA_MSCG_OPTS}
                -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
@@ -38,7 +43,7 @@ if(DOWNLOAD_MSCG)
 else()
   find_package(MSCG)
   if(NOT MSCG_FOUND)
-    message(FATAL_ERROR "MSCG not found, help CMake to find it by setting MSCG_LIBRARY and MSCG_INCLUDE_DIRS, or set DOWNLOAD_MSCG=ON to download it")
+    message(FATAL_ERROR "MSCG not found, help CMake to find it by setting MSCG_LIBRARY and MSCG_INCLUDE_DIR, or set DOWNLOAD_MSCG=ON to download it")
   endif()
   target_link_libraries(lammps PRIVATE MSCG::MSCG)
 endif()

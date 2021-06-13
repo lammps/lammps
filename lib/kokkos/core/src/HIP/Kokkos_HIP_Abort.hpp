@@ -53,12 +53,21 @@
 namespace Kokkos {
 namespace Impl {
 
-__device__ inline void hip_abort(char const *msg) {
-  printf("%s", msg);
-  // FIXME_HIP both abort and the __assertfail system call are currently
-  // implemented with __builtin_trap which causes the program to exit abnormally
-  // without printing the error message.
-  // abort();
+[[noreturn]] __device__ __attribute__((noinline)) void hip_abort(
+    char const *msg) {
+#ifdef NDEBUG
+  (void)msg;
+#else
+  // disable printf on release builds, as it has a non-trivial performance
+  // impact
+  printf("Aborting with message `%s'.\n", msg);
+#endif
+  abort();
+  // This loop is never executed. It's intended to suppress warnings that the
+  // function returns, even though it does not. This is necessary because
+  // abort() is not marked as [[noreturn]], even though it does not return.
+  while (true)
+    ;
 }
 
 }  // namespace Impl

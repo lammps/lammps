@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(srp,PairSRP)
-
+// clang-format off
+PairStyle(srp,PairSRP);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_SRP_H
@@ -41,11 +41,11 @@ class PairSRP : public Pair {
   virtual void read_restart_settings(FILE *);
 
  private:
-  inline void onetwoexclude(int* &, int &, int* &, int* &, int** &);
+  inline void onetwoexclude(int *&, int &, int *&, int *&, int **&);
   inline void remapBonds(int &);
   void allocate();
-  void getMinDist(double** &, double &, double &, double &, double &,
-                  double &, int &, int &, int &, int &);
+  void getMinDist(double **&, double &, double &, double &, double &, double &, int &, int &, int &,
+                  int &);
   bool min, midpoint;
   double **cut;
   double **a0;
@@ -55,11 +55,11 @@ class PairSRP : public Pair {
   int btype;
   class Fix *f_srp;
   char *fix_id;
-  int exclude,maxcount;
+  int exclude, maxcount;
   int **segment;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

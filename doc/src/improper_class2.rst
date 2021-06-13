@@ -1,13 +1,11 @@
 .. index:: improper_style class2
+.. index:: improper_style class2/omp
+.. index:: improper_style class2/kk
 
 improper_style class2 command
 =============================
 
-improper_style class2/omp command
-=================================
-
-improper_style class2/kk command
-================================
+Accelerator Variants: *class2/omp*, *class2/kk*
 
 Syntax
 """"""
@@ -118,7 +116,10 @@ Related commands
 
 :doc:`improper_coeff <improper_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

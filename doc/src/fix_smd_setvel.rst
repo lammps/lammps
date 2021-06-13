@@ -63,7 +63,8 @@ specified geometric :doc:`region <region>` in order to have its velocity set by 
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 Currently, no part of USER-SMD supports restarting nor minimization
 None of the :doc:`fix_modify <fix_modify>` options
@@ -83,6 +84,13 @@ Restrictions
 This fix is part of the USER-SMD package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
-**Related commands:** none
+Related commands
+""""""""""""""""
 
-**Default:** none
+none
+
+
+Default
+"""""""
+
+none

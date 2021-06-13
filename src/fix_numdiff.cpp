@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,7 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_numdiff.h"
-#include <mpi.h>
+
 #include <cstring>
 #include "atom.h"
 #include "domain.h"
@@ -40,8 +41,8 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixNumDiff::FixNumDiff(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), id_pe(NULL), numdiff_forces(NULL),
-  temp_x(NULL), temp_f(NULL)
+  Fix(lmp, narg, arg), id_pe(nullptr), numdiff_forces(nullptr),
+  temp_x(nullptr), temp_f(nullptr)
 {
   if (narg < 5) error->all(FLERR,"Illegal fix numdiff command");
 
@@ -50,8 +51,8 @@ FixNumDiff::FixNumDiff(LAMMPS *lmp, int narg, char **arg) :
   size_peratom_cols = 3;
   respa_level_support = 1;
 
-  nevery = force->inumeric(FLERR,arg[3]);
-  delta = force->numeric(FLERR,arg[4]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
+  delta = utils::numeric(FLERR,arg[4],false,lmp);
   if (nevery <= 0 || delta <= 0.0)
     error->all(FLERR,"Illegal fix numdiff command");
 
@@ -64,7 +65,7 @@ FixNumDiff::FixNumDiff(LAMMPS *lmp, int narg, char **arg) :
 
   maxatom = 0;
 
-  if (atom->map_style == 0)
+  if (atom->map_style == Atom::MAP_NONE)
     error->all(FLERR,"Fix numdiff requires an atom map, see atom_modify");
 
   // perform initial allocation of atom-based arrays
@@ -120,7 +121,7 @@ void FixNumDiff::init()
   if (force->kspace && force->kspace->compute_flag) kspace_compute_flag = 1;
   else kspace_compute_flag = 0;
 
-  if (strstr(update->integrate_style,"respa")) {
+  if (utils::strmatch(update->integrate_style,"^respa")) {
     ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
   }
@@ -130,7 +131,7 @@ void FixNumDiff::init()
 
 void FixNumDiff::setup(int vflag)
 {
-  if (strstr(update->integrate_style,"verlet"))
+  if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
     ((Respa *) update->integrate)->copy_flevel_f(ilevel_respa);
@@ -292,7 +293,7 @@ double FixNumDiff::update_energy()
 
   if (pair_compute_flag) force->pair->compute(eflag,0);
 
-  if (atom->molecular) {
+  if (atom->molecular != Atom::ATOMIC) {
     if (force->bond) force->bond->compute(eflag,0);
     if (force->angle) force->angle->compute(eflag,0);
     if (force->dihedral) force->dihedral->compute(eflag,0);
@@ -338,7 +339,7 @@ void FixNumDiff::reallocate()
 
 double FixNumDiff::memory_usage()
 {
-  bigint bytes = 0.0;
-  bytes += 3 * maxatom*3 * sizeof(double);
+  double bytes = 0.0;
+  bytes += (double)3 * maxatom*3 * sizeof(double);
   return bytes;
 }

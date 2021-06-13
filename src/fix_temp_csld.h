@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(temp/csld,FixTempCSLD)
-
+// clang-format off
+FixStyle(temp/csld,FixTempCSLD);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_TEMP_CSLD_H
@@ -34,14 +34,16 @@ class FixTempCSLD : public Fix {
   int modify_param(int, char **);
   void reset_target(double);
   virtual double compute_scalar();
+  void write_restart(FILE *);
+  void restart(char *buf);
   virtual void *extract(const char *, int &);
 
  private:
-  double t_start,t_stop,t_period,t_target;
+  double t_start, t_stop, t_period, t_target;
   double **vhold;
   double energy;
-  int nmax,which;
-  int tstyle,tvar;
+  int nmax, which;
+  int tstyle, tvar;
   char *tstr;
 
   char *id_temp;
@@ -51,7 +53,7 @@ class FixTempCSLD : public Fix {
   class RanMars *random;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

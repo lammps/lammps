@@ -1,10 +1,10 @@
 .. index:: bond_style gromos
+.. index:: bond_style gromos/omp
 
 bond_style gromos command
 =========================
 
-bond_style gromos/omp command
-=============================
+Accelerator Variants: *gromos/omp*
 
 Syntax
 """"""
@@ -59,4 +59,7 @@ Related commands
 
 :doc:`bond_coeff <bond_coeff>`, :doc:`delete_bonds <delete_bonds>`
 
-**Default:** none
+Default
+"""""""
+
+none

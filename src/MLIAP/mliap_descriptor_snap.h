@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -18,33 +18,32 @@
 
 namespace LAMMPS_NS {
 
-class MLIAPDescriptorSNAP : public MLIAPDescriptor  {
-public:
-  MLIAPDescriptorSNAP(LAMMPS*, char*);
+class MLIAPDescriptorSNAP : public MLIAPDescriptor {
+ public:
+  MLIAPDescriptorSNAP(LAMMPS *, char *);
   ~MLIAPDescriptorSNAP();
-  virtual void compute_descriptors(class MLIAPData*);
-  virtual void compute_forces(class MLIAPData*);
-  virtual void compute_force_gradients(class MLIAPData*);
-  virtual void compute_descriptor_gradients(class MLIAPData*);
+  virtual void compute_descriptors(class MLIAPData *);
+  virtual void compute_forces(class MLIAPData *);
+  virtual void compute_force_gradients(class MLIAPData *);
+  virtual void compute_descriptor_gradients(class MLIAPData *);
   virtual void init();
   virtual double memory_usage();
 
   double rcutfac;
 
-protected:
-  class SNA* snaptr;
+ protected:
+  class SNA *snaptr;
   void read_paramfile(char *);
-  inline int equal(double* x,double* y);
-  inline double dist2(double* x,double* y);
+  inline int equal(double *x, double *y);
+  inline double dist2(double *x, double *y);
 
-  double *radelem;              // element radii
-  double *wjelem;               // elements weights
+  double *radelem;    // element radii
+  double *wjelem;     // elements weights
   int twojmax, switchflag, bzeroflag;
   int chemflag, bnormflag, wselfallflag;
   double rfac0, rmin0;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
-

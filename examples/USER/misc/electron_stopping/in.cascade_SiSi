@@ -1,0 +1,36 @@
+# ***
+# Example input for including electronic stopping effects using fix electron/stopping/fit
+# Si lattice with one primary knock-on atom (PKA) - single species simulation
+# ***
+
+units            metal
+boundary         p p p
+
+lattice          diamond 5.431
+
+region           box block -10 10 -10 10 -10 10
+create_box       1 box
+create_atoms     1 box
+
+pair_style       tersoff/zbl
+pair_coeff       * * ../../../../potentials/SiC.tersoff.zbl Si
+
+mass             1 28.0855
+
+velocity         all create 300 42534 mom yes rot yes
+
+group            pka id 1
+velocity         pka set 1120 1620 400
+
+fix              1 all nve
+fix              2 all dt/reset 1 NULL 0.001 0.05 emax 10.0
+fix              3 all electron/stopping/fit 4.63 3.3e-3 4.0e-8
+
+thermo           5
+thermo_style     custom step dt time temp pe ke f_3
+thermo_modify    lost warn flush yes
+
+#dump             0 all custom 10 dump.pka_* id type x y z vx vy vz fx fy fz
+#dump_modify      0 first yes
+
+run              100

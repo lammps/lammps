@@ -54,24 +54,16 @@ For specifics see the LICENSE file contained in the repository or distribution.
 # Requirements
 
 ### Primary tested compilers on X86 are:
-* GCC 4.8.4
-* GCC 4.9.3
-* GCC 5.1.0
+* GCC 5.3.0
 * GCC 5.4.0
 * GCC 5.5.0
 * GCC 6.1.0
 * GCC 7.2.0
 * GCC 7.3.0
 * GCC 8.1.0
-* Intel 15.0.2
-* Intel 16.0.1
 * Intel 17.0.1
 * Intel 17.4.196
 * Intel 18.2.128
-* Clang 3.6.1
-* Clang 3.7.1
-* Clang 3.8.1
-* Clang 3.9.0
 * Clang 4.0.0
 * Clang 6.0.0 for CUDA (CUDA Toolkit 9.0)
 * Clang 7.0.0 for CUDA (CUDA Toolkit 9.1)
@@ -81,6 +73,7 @@ For specifics see the LICENSE file contained in the repository or distribution.
 * NVCC 9.2 for CUDA (with gcc 7.2.0)
 * NVCC 10.0 for CUDA (with gcc 7.4.0)
 * NVCC 10.1 for CUDA (with gcc 7.4.0)
+* NVCC 11.0 for CUDA (with gcc 8.4.0)
 
 ### Primary tested compilers on Power 8 are:
 * GCC 6.4.0 (OpenMP,Serial)
@@ -89,9 +82,8 @@ For specifics see the LICENSE file contained in the repository or distribution.
 * NVCC 9.2.88 for CUDA (with gcc 7.2.0 and XL 16.1.0)
 
 ### Primary tested compilers on Intel KNL are:
-* Intel 16.4.258 (with gcc 4.7.2)
-* Intel 17.2.174 (with gcc 4.9.3)
-* Intel 18.2.199 (with gcc 4.9.3)
+* Intel 17.2.174 (with gcc 6.2.0 and 6.4.0)
+* Intel 18.2.199 (with gcc 6.2.0 and 6.4.0)
 
 ### Primary tested compilers on ARM (Cavium ThunderX2)
 * GCC 7.2.0
@@ -108,6 +100,10 @@ For specifics see the LICENSE file contained in the repository or distribution.
 * ARM
     * Pthreads backend
 
+### Build system:
+* CMake >= 3.10: required
+* CMake >= 3.13: recommended
+* CMake >= 3.18: Fortran linkage. This does not affect most mixed Fortran/Kokkos builds. See [build issues](BUILD.md#KnownIssues).
 
 Primary tested compiler are passing in release mode
 with warnings as errors. They also are tested with a comprehensive set of
@@ -151,7 +147,7 @@ Full details are given in the [build instructions](BUILD.md). Basic setups are s
 ## CMake
 
 The best way to install Kokkos is using the CMake build system. Assuming Kokkos lives in `$srcdir`:
-````
+````bash
 cmake $srcdir \
   -DCMAKE_CXX_COMPILER=$path_to_compiler \
   -DCMAKE_INSTALL_PREFIX=$path_to_install \
@@ -170,7 +166,7 @@ and run `make test` after completing the build.
 
 For your CMake project using Kokkos, code such as the following:
 
-````
+````cmake
 find_package(Kokkos)
 ...
 target_link_libraries(myTarget Kokkos::kokkos)
@@ -187,17 +183,15 @@ for the install location given above.
 
 ## Spack
 An alternative to manually building with the CMake is to use the Spack package manager.
-To do so, download the `kokkos-spack` git repo and add to the package list:
-````
-spack repo add $path-to-kokkos-spack
+To get started, download the Spack [repo](https://github.com/spack/spack).
 ````
 A basic installation would be done as:
-````
-spack install kokkos
+````bash
+> spack install kokkos
 ````
 Spack allows options and and compilers to be tuned in the install command.
-````
-spack install kokkos@3.0 %gcc@7.3.0 +openmp
+````bash
+> spack install kokkos@3.0 %gcc@7.3.0 +openmp
 ````
 This example illustrates the three most common parameters to Spack:
 * Variants: specified with, e.g. `+openmp`, this activates (or deactivates with, e.g. `~openmp`) certain options.
@@ -205,33 +199,33 @@ This example illustrates the three most common parameters to Spack:
 * Compiler: a default compiler will be chosen if not specified, but an exact compiler version can be given with the `%`option.
 
 For a complete list of Kokkos options, run:
-````
-spack info kokkos
+````bash
+> spack info kokkos
 ````
 Spack currently installs packages to a location determined by a unique hash. This hash name is not really "human readable".
 Generally, Spack usage should never really require you to reference the computer-generated unique install folder.
 More details are given in the [build instructions](BUILD.md). If you must know, you can locate Spack Kokkos installations with:
-````
-spack find -p kokkos ...
+````bash
+> spack find -p kokkos ...
 ````
 where `...` is the unique spec identifying the particular Kokkos configuration and version.
-
+Some more details can found in the Kokkos spack [documentation](Spack.md) or the Spack [website](https://spack.readthedocs.io/en/latest).
 
 ## Raw Makefile
 A bash script is provided to generate raw makefiles.
 To install Kokkos as a library create a build directory and run the following
-````
-$KOKKOS_PATH/generate_makefile.bash --prefix=$path_to_install
+````bash
+> $KOKKOS_PATH/generate_makefile.bash --prefix=$path_to_install
 ````
 Once the Makefile is generated, run:
-````
-make kokkoslib
-make install
+````bash
+> make kokkoslib
+> make install
 ````
 To additionally run the unit tests:
-````
-make build-test
-make test
+````bash
+> make build-test
+> make test
 ````
 Run `generate_makefile.bash --help` for more detailed options such as
 changing the device type for which to build.
@@ -274,7 +268,7 @@ more than a single GPU is used by a single process.
 
 If you publish work which mentions Kokkos, please cite the following paper:
 
-````
+````BibTeX
 @article{CarterEdwards20143202,
   title = "Kokkos: Enabling manycore performance portability through polymorphic memory access patterns ",
   journal = "Journal of Parallel and Distributed Computing ",

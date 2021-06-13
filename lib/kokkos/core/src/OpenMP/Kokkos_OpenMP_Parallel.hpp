@@ -49,7 +49,6 @@
 #if defined(KOKKOS_ENABLE_OPENMP)
 
 #include <omp.h>
-#include <iostream>
 #include <OpenMP/Kokkos_OpenMP_Exec.hpp>
 #include <impl/Kokkos_FunctorAdapter.hpp>
 
@@ -64,10 +63,10 @@ namespace Impl {
 template <class FunctorType, class... Traits>
 class ParallelFor<FunctorType, Kokkos::RangePolicy<Traits...>, Kokkos::OpenMP> {
  private:
-  typedef Kokkos::RangePolicy<Traits...> Policy;
-  typedef typename Policy::work_tag WorkTag;
-  typedef typename Policy::WorkRange WorkRange;
-  typedef typename Policy::member_type Member;
+  using Policy    = Kokkos::RangePolicy<Traits...>;
+  using WorkTag   = typename Policy::work_tag;
+  using WorkRange = typename Policy::WorkRange;
+  using Member    = typename Policy::member_type;
 
   OpenMPExec* m_instance;
   const FunctorType m_functor;
@@ -116,11 +115,7 @@ class ParallelFor<FunctorType, Kokkos::RangePolicy<Traits...>, Kokkos::OpenMP> {
     } else {
       OpenMPExec::verify_is_master("Kokkos::OpenMP parallel_for");
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-#pragma omp parallel num_threads(OpenMP::thread_pool_size())
-#else
 #pragma omp parallel num_threads(OpenMP::impl_thread_pool_size())
-#endif
       {
         HostThreadTeamData& data = *(m_instance->get_thread_data());
 
@@ -158,16 +153,15 @@ template <class FunctorType, class... Traits>
 class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>,
                   Kokkos::OpenMP> {
  private:
-  typedef Kokkos::MDRangePolicy<Traits...> MDRangePolicy;
-  typedef typename MDRangePolicy::impl_range_policy Policy;
-  typedef typename MDRangePolicy::work_tag WorkTag;
+  using MDRangePolicy = Kokkos::MDRangePolicy<Traits...>;
+  using Policy        = typename MDRangePolicy::impl_range_policy;
+  using WorkTag       = typename MDRangePolicy::work_tag;
 
-  typedef typename Policy::WorkRange WorkRange;
-  typedef typename Policy::member_type Member;
+  using WorkRange = typename Policy::WorkRange;
+  using Member    = typename Policy::member_type;
 
-  typedef typename Kokkos::Impl::HostIterateTile<
-      MDRangePolicy, FunctorType, typename MDRangePolicy::work_tag, void>
-      iterate_type;
+  using iterate_type = typename Kokkos::Impl::HostIterateTile<
+      MDRangePolicy, FunctorType, typename MDRangePolicy::work_tag, void>;
 
   OpenMPExec* m_instance;
   const FunctorType m_functor;
@@ -201,11 +195,7 @@ class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>,
     } else {
       OpenMPExec::verify_is_master("Kokkos::OpenMP parallel_for");
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-#pragma omp parallel num_threads(OpenMP::thread_pool_size())
-#else
 #pragma omp parallel num_threads(OpenMP::impl_thread_pool_size())
-#endif
       {
         HostThreadTeamData& data = *(m_instance->get_thread_data());
 
@@ -238,6 +228,15 @@ class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>,
         m_functor(arg_functor),
         m_mdr_policy(arg_policy),
         m_policy(Policy(0, m_mdr_policy.m_num_tiles).set_chunk_size(1)) {}
+  template <typename Policy, typename Functor>
+  static int max_tile_size_product(const Policy&, const Functor&) {
+    /**
+     * 1024 here is just our guess for a reasonable max tile size,
+     * it isn't a hardware constraint. If people see a use for larger
+     * tile size products, we're happy to change this.
+     */
+    return 1024;
+  }
 };
 
 }  // namespace Impl
@@ -253,30 +252,30 @@ template <class FunctorType, class ReducerType, class... Traits>
 class ParallelReduce<FunctorType, Kokkos::RangePolicy<Traits...>, ReducerType,
                      Kokkos::OpenMP> {
  private:
-  typedef Kokkos::RangePolicy<Traits...> Policy;
+  using Policy = Kokkos::RangePolicy<Traits...>;
 
-  typedef typename Policy::work_tag WorkTag;
-  typedef typename Policy::WorkRange WorkRange;
-  typedef typename Policy::member_type Member;
+  using WorkTag   = typename Policy::work_tag;
+  using WorkRange = typename Policy::WorkRange;
+  using Member    = typename Policy::member_type;
 
-  typedef FunctorAnalysis<FunctorPatternInterface::REDUCE, Policy, FunctorType>
-      Analysis;
+  using Analysis =
+      FunctorAnalysis<FunctorPatternInterface::REDUCE, Policy, FunctorType>;
 
-  typedef Kokkos::Impl::if_c<std::is_same<InvalidType, ReducerType>::value,
-                             FunctorType, ReducerType>
-      ReducerConditional;
-  typedef typename ReducerConditional::type ReducerTypeFwd;
-  typedef
-      typename Kokkos::Impl::if_c<std::is_same<InvalidType, ReducerType>::value,
-                                  WorkTag, void>::type WorkTagFwd;
+  using ReducerConditional =
+      Kokkos::Impl::if_c<std::is_same<InvalidType, ReducerType>::value,
+                         FunctorType, ReducerType>;
+  using ReducerTypeFwd = typename ReducerConditional::type;
+  using WorkTagFwd =
+      std::conditional_t<std::is_same<InvalidType, ReducerType>::value, WorkTag,
+                         void>;
 
   // Static Assert WorkTag void if ReducerType not InvalidType
 
-  typedef Kokkos::Impl::FunctorValueInit<ReducerTypeFwd, WorkTagFwd> ValueInit;
-  typedef Kokkos::Impl::FunctorValueJoin<ReducerTypeFwd, WorkTagFwd> ValueJoin;
+  using ValueInit = Kokkos::Impl::FunctorValueInit<ReducerTypeFwd, WorkTagFwd>;
+  using ValueJoin = Kokkos::Impl::FunctorValueJoin<ReducerTypeFwd, WorkTagFwd>;
 
-  typedef typename Analysis::pointer_type pointer_type;
-  typedef typename Analysis::reference_type reference_type;
+  using pointer_type   = typename Analysis::pointer_type;
+  using reference_type = typename Analysis::reference_type;
 
   OpenMPExec* m_instance;
   const FunctorType m_functor;
@@ -307,6 +306,15 @@ class ParallelReduce<FunctorType, Kokkos::RangePolicy<Traits...>, ReducerType,
 
  public:
   inline void execute() const {
+    if (m_policy.end() <= m_policy.begin()) {
+      if (m_result_ptr) {
+        ValueInit::init(ReducerConditional::select(m_functor, m_reducer),
+                        m_result_ptr);
+        Kokkos::Impl::FunctorFinal<ReducerTypeFwd, WorkTagFwd>::final(
+            ReducerConditional::select(m_functor, m_reducer), m_result_ptr);
+      }
+      return;
+    }
     enum {
       is_dynamic = std::is_same<typename Policy::schedule_type::type,
                                 Kokkos::Dynamic>::value
@@ -324,11 +332,7 @@ class ParallelReduce<FunctorType, Kokkos::RangePolicy<Traits...>, ReducerType,
                                    0  // thread_local_bytes
     );
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-    const int pool_size = OpenMP::thread_pool_size();
-#else
     const int pool_size = OpenMP::impl_thread_pool_size();
-#endif
 #pragma omp parallel num_threads(pool_size)
     {
       HostThreadTeamData& data = *(m_instance->get_thread_data());
@@ -420,31 +424,30 @@ template <class FunctorType, class ReducerType, class... Traits>
 class ParallelReduce<FunctorType, Kokkos::MDRangePolicy<Traits...>, ReducerType,
                      Kokkos::OpenMP> {
  private:
-  typedef Kokkos::MDRangePolicy<Traits...> MDRangePolicy;
-  typedef typename MDRangePolicy::impl_range_policy Policy;
+  using MDRangePolicy = Kokkos::MDRangePolicy<Traits...>;
+  using Policy        = typename MDRangePolicy::impl_range_policy;
 
-  typedef typename MDRangePolicy::work_tag WorkTag;
-  typedef typename Policy::WorkRange WorkRange;
-  typedef typename Policy::member_type Member;
+  using WorkTag   = typename MDRangePolicy::work_tag;
+  using WorkRange = typename Policy::WorkRange;
+  using Member    = typename Policy::member_type;
 
-  typedef FunctorAnalysis<FunctorPatternInterface::REDUCE, MDRangePolicy,
-                          FunctorType>
-      Analysis;
+  using Analysis = FunctorAnalysis<FunctorPatternInterface::REDUCE,
+                                   MDRangePolicy, FunctorType>;
 
-  typedef Kokkos::Impl::if_c<std::is_same<InvalidType, ReducerType>::value,
-                             FunctorType, ReducerType>
-      ReducerConditional;
-  typedef typename ReducerConditional::type ReducerTypeFwd;
-  typedef
-      typename Kokkos::Impl::if_c<std::is_same<InvalidType, ReducerType>::value,
-                                  WorkTag, void>::type WorkTagFwd;
+  using ReducerConditional =
+      Kokkos::Impl::if_c<std::is_same<InvalidType, ReducerType>::value,
+                         FunctorType, ReducerType>;
+  using ReducerTypeFwd = typename ReducerConditional::type;
+  using WorkTagFwd =
+      std::conditional_t<std::is_same<InvalidType, ReducerType>::value, WorkTag,
+                         void>;
 
-  typedef Kokkos::Impl::FunctorValueInit<ReducerTypeFwd, WorkTagFwd> ValueInit;
-  typedef Kokkos::Impl::FunctorValueJoin<ReducerTypeFwd, WorkTagFwd> ValueJoin;
+  using ValueInit = Kokkos::Impl::FunctorValueInit<ReducerTypeFwd, WorkTagFwd>;
+  using ValueJoin = Kokkos::Impl::FunctorValueJoin<ReducerTypeFwd, WorkTagFwd>;
 
-  typedef typename Analysis::pointer_type pointer_type;
-  typedef typename Analysis::value_type value_type;
-  typedef typename Analysis::reference_type reference_type;
+  using pointer_type   = typename Analysis::pointer_type;
+  using value_type     = typename Analysis::value_type;
+  using reference_type = typename Analysis::reference_type;
 
   using iterate_type =
       typename Kokkos::Impl::HostIterateTile<MDRangePolicy, FunctorType,
@@ -485,11 +488,7 @@ class ParallelReduce<FunctorType, Kokkos::MDRangePolicy<Traits...>, ReducerType,
                                    0  // thread_local_bytes
     );
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-    const int pool_size = OpenMP::thread_pool_size();
-#else
     const int pool_size = OpenMP::impl_thread_pool_size();
-#endif
 #pragma omp parallel num_threads(pool_size)
     {
       HostThreadTeamData& data = *(m_instance->get_thread_data());
@@ -577,6 +576,15 @@ class ParallelReduce<FunctorType, Kokkos::MDRangePolicy<Traits...>, ReducerType,
       , "Reduction result on Kokkos::OpenMP must be a Kokkos::View in HostSpace"
       );*/
   }
+  template <typename Policy, typename Functor>
+  static int max_tile_size_product(const Policy&, const Functor&) {
+    /**
+     * 1024 here is just our guess for a reasonable max tile size,
+     * it isn't a hardware constraint. If people see a use for larger
+     * tile size products, we're happy to change this.
+     */
+    return 1024;
+  }
 };
 
 }  // namespace Impl
@@ -592,21 +600,21 @@ template <class FunctorType, class... Traits>
 class ParallelScan<FunctorType, Kokkos::RangePolicy<Traits...>,
                    Kokkos::OpenMP> {
  private:
-  typedef Kokkos::RangePolicy<Traits...> Policy;
+  using Policy = Kokkos::RangePolicy<Traits...>;
 
-  typedef FunctorAnalysis<FunctorPatternInterface::SCAN, Policy, FunctorType>
-      Analysis;
+  using Analysis =
+      FunctorAnalysis<FunctorPatternInterface::SCAN, Policy, FunctorType>;
 
-  typedef typename Policy::work_tag WorkTag;
-  typedef typename Policy::WorkRange WorkRange;
-  typedef typename Policy::member_type Member;
+  using WorkTag   = typename Policy::work_tag;
+  using WorkRange = typename Policy::WorkRange;
+  using Member    = typename Policy::member_type;
 
-  typedef Kokkos::Impl::FunctorValueInit<FunctorType, WorkTag> ValueInit;
-  typedef Kokkos::Impl::FunctorValueJoin<FunctorType, WorkTag> ValueJoin;
-  typedef Kokkos::Impl::FunctorValueOps<FunctorType, WorkTag> ValueOps;
+  using ValueInit = Kokkos::Impl::FunctorValueInit<FunctorType, WorkTag>;
+  using ValueJoin = Kokkos::Impl::FunctorValueJoin<FunctorType, WorkTag>;
+  using ValueOps  = Kokkos::Impl::FunctorValueOps<FunctorType, WorkTag>;
 
-  typedef typename Analysis::pointer_type pointer_type;
-  typedef typename Analysis::reference_type reference_type;
+  using pointer_type   = typename Analysis::pointer_type;
+  using reference_type = typename Analysis::reference_type;
 
   OpenMPExec* m_instance;
   const FunctorType m_functor;
@@ -647,11 +655,7 @@ class ParallelScan<FunctorType, Kokkos::RangePolicy<Traits...>,
                                    0  // thread_local_bytes
     );
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-#pragma omp parallel num_threads(OpenMP::thread_pool_size())
-#else
 #pragma omp parallel num_threads(OpenMP::impl_thread_pool_size())
-#endif
     {
       HostThreadTeamData& data = *(m_instance->get_thread_data());
 
@@ -665,7 +669,7 @@ class ParallelScan<FunctorType, Kokkos::RangePolicy<Traits...>,
           m_functor, range.begin(), range.end(), update_sum, false);
 
       if (data.pool_rendezvous()) {
-        pointer_type ptr_prev = 0;
+        pointer_type ptr_prev = nullptr;
 
         const int n = omp_get_num_threads();
 
@@ -710,21 +714,21 @@ template <class FunctorType, class ReturnType, class... Traits>
 class ParallelScanWithTotal<FunctorType, Kokkos::RangePolicy<Traits...>,
                             ReturnType, Kokkos::OpenMP> {
  private:
-  typedef Kokkos::RangePolicy<Traits...> Policy;
+  using Policy = Kokkos::RangePolicy<Traits...>;
 
-  typedef FunctorAnalysis<FunctorPatternInterface::SCAN, Policy, FunctorType>
-      Analysis;
+  using Analysis =
+      FunctorAnalysis<FunctorPatternInterface::SCAN, Policy, FunctorType>;
 
-  typedef typename Policy::work_tag WorkTag;
-  typedef typename Policy::WorkRange WorkRange;
-  typedef typename Policy::member_type Member;
+  using WorkTag   = typename Policy::work_tag;
+  using WorkRange = typename Policy::WorkRange;
+  using Member    = typename Policy::member_type;
 
-  typedef Kokkos::Impl::FunctorValueInit<FunctorType, WorkTag> ValueInit;
-  typedef Kokkos::Impl::FunctorValueJoin<FunctorType, WorkTag> ValueJoin;
-  typedef Kokkos::Impl::FunctorValueOps<FunctorType, WorkTag> ValueOps;
+  using ValueInit = Kokkos::Impl::FunctorValueInit<FunctorType, WorkTag>;
+  using ValueJoin = Kokkos::Impl::FunctorValueJoin<FunctorType, WorkTag>;
+  using ValueOps  = Kokkos::Impl::FunctorValueOps<FunctorType, WorkTag>;
 
-  typedef typename Analysis::pointer_type pointer_type;
-  typedef typename Analysis::reference_type reference_type;
+  using pointer_type   = typename Analysis::pointer_type;
+  using reference_type = typename Analysis::reference_type;
 
   OpenMPExec* m_instance;
   const FunctorType m_functor;
@@ -766,11 +770,7 @@ class ParallelScanWithTotal<FunctorType, Kokkos::RangePolicy<Traits...>,
                                    0  // thread_local_bytes
     );
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-#pragma omp parallel num_threads(OpenMP::thread_pool_size())
-#else
 #pragma omp parallel num_threads(OpenMP::impl_thread_pool_size())
-#endif
     {
       HostThreadTeamData& data = *(m_instance->get_thread_data());
 
@@ -783,7 +783,7 @@ class ParallelScanWithTotal<FunctorType, Kokkos::RangePolicy<Traits...>,
           m_functor, range.begin(), range.end(), update_sum, false);
 
       if (data.pool_rendezvous()) {
-        pointer_type ptr_prev = 0;
+        pointer_type ptr_prev = nullptr;
 
         const int n = omp_get_num_threads();
 
@@ -846,11 +846,11 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
  private:
   enum { TEAM_REDUCE_SIZE = 512 };
 
-  typedef Kokkos::Impl::TeamPolicyInternal<Kokkos::OpenMP, Properties...>
-      Policy;
-  typedef typename Policy::work_tag WorkTag;
-  typedef typename Policy::schedule_type::type SchedTag;
-  typedef typename Policy::member_type Member;
+  using Policy =
+      Kokkos::Impl::TeamPolicyInternal<Kokkos::OpenMP, Properties...>;
+  using WorkTag  = typename Policy::work_tag;
+  using SchedTag = typename Policy::schedule_type::type;
+  using Member   = typename Policy::member_type;
 
   OpenMPExec* m_instance;
   const FunctorType m_functor;
@@ -911,11 +911,7 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
     m_instance->resize_thread_data(pool_reduce_size, team_reduce_size,
                                    team_shared_size, thread_local_size);
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-#pragma omp parallel num_threads(OpenMP::thread_pool_size())
-#else
 #pragma omp parallel num_threads(OpenMP::impl_thread_pool_size())
-#endif
     {
       HostThreadTeamData& data = *(m_instance->get_thread_data());
 
@@ -969,30 +965,30 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
  private:
   enum { TEAM_REDUCE_SIZE = 512 };
 
-  typedef Kokkos::Impl::TeamPolicyInternal<Kokkos::OpenMP, Properties...>
-      Policy;
+  using Policy =
+      Kokkos::Impl::TeamPolicyInternal<Kokkos::OpenMP, Properties...>;
 
-  typedef FunctorAnalysis<FunctorPatternInterface::REDUCE, Policy, FunctorType>
-      Analysis;
+  using Analysis =
+      FunctorAnalysis<FunctorPatternInterface::REDUCE, Policy, FunctorType>;
 
-  typedef typename Policy::work_tag WorkTag;
-  typedef typename Policy::schedule_type::type SchedTag;
-  typedef typename Policy::member_type Member;
+  using WorkTag  = typename Policy::work_tag;
+  using SchedTag = typename Policy::schedule_type::type;
+  using Member   = typename Policy::member_type;
 
-  typedef Kokkos::Impl::if_c<std::is_same<InvalidType, ReducerType>::value,
-                             FunctorType, ReducerType>
-      ReducerConditional;
+  using ReducerConditional =
+      Kokkos::Impl::if_c<std::is_same<InvalidType, ReducerType>::value,
+                         FunctorType, ReducerType>;
 
-  typedef typename ReducerConditional::type ReducerTypeFwd;
-  typedef
-      typename Kokkos::Impl::if_c<std::is_same<InvalidType, ReducerType>::value,
-                                  WorkTag, void>::type WorkTagFwd;
+  using ReducerTypeFwd = typename ReducerConditional::type;
+  using WorkTagFwd =
+      std::conditional_t<std::is_same<InvalidType, ReducerType>::value, WorkTag,
+                         void>;
 
-  typedef Kokkos::Impl::FunctorValueInit<ReducerTypeFwd, WorkTagFwd> ValueInit;
-  typedef Kokkos::Impl::FunctorValueJoin<ReducerTypeFwd, WorkTagFwd> ValueJoin;
+  using ValueInit = Kokkos::Impl::FunctorValueInit<ReducerTypeFwd, WorkTagFwd>;
+  using ValueJoin = Kokkos::Impl::FunctorValueJoin<ReducerTypeFwd, WorkTagFwd>;
 
-  typedef typename Analysis::pointer_type pointer_type;
-  typedef typename Analysis::reference_type reference_type;
+  using pointer_type   = typename Analysis::pointer_type;
+  using reference_type = typename Analysis::reference_type;
 
   OpenMPExec* m_instance;
   const FunctorType m_functor;
@@ -1045,6 +1041,15 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
   inline void execute() const {
     enum { is_dynamic = std::is_same<SchedTag, Kokkos::Dynamic>::value };
 
+    if (m_policy.league_size() * m_policy.team_size() == 0) {
+      if (m_result_ptr) {
+        ValueInit::init(ReducerConditional::select(m_functor, m_reducer),
+                        m_result_ptr);
+        Kokkos::Impl::FunctorFinal<ReducerTypeFwd, WorkTagFwd>::final(
+            ReducerConditional::select(m_functor, m_reducer), m_result_ptr);
+      }
+      return;
+    }
     OpenMPExec::verify_is_master("Kokkos::OpenMP parallel_reduce");
 
     const size_t pool_reduce_size =
@@ -1057,11 +1062,7 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
     m_instance->resize_thread_data(pool_reduce_size, team_reduce_size,
                                    team_shared_size, thread_local_size);
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-    const int pool_size = OpenMP::thread_pool_size();
-#else
     const int pool_size = OpenMP::impl_thread_pool_size();
-#endif
 #pragma omp parallel num_threads(pool_size)
     {
       HostThreadTeamData& data = *(m_instance->get_thread_data());

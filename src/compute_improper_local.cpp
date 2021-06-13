@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -35,7 +36,7 @@ using namespace MathConst;
 
 ComputeImproperLocal::ComputeImproperLocal(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  vlocal(NULL), alocal(NULL)
+  vlocal(nullptr), alocal(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute improper/local command");
 
@@ -57,8 +58,8 @@ ComputeImproperLocal::ComputeImproperLocal(LAMMPS *lmp, int narg, char **arg) :
   else size_local_cols = nvalues;
 
   nmax = 0;
-  vlocal = NULL;
-  alocal = NULL;
+  vlocal = nullptr;
+  alocal = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -73,7 +74,7 @@ ComputeImproperLocal::~ComputeImproperLocal()
 
 void ComputeImproperLocal::init()
 {
-  if (force->improper == NULL)
+  if (force->improper == nullptr)
     error->all(FLERR,"No improper style is defined for compute improper/local");
 
   // do initial memory allocation so that memory_usage() is correct
@@ -135,7 +136,7 @@ int ComputeImproperLocal::compute_impropers(int flag)
       if (cflag >= 0) cbuf = vlocal;
     } else {
       if (cflag >= 0 && alocal) cbuf = &alocal[0][cflag];
-      else cbuf = NULL;
+      else cbuf = nullptr;
     }
   }
 
@@ -143,7 +144,7 @@ int ComputeImproperLocal::compute_impropers(int flag)
   for (atom2 = 0; atom2 < nlocal; atom2++) {
     if (!(mask[atom2] & groupbit)) continue;
 
-    if (molecular == 1) ni = num_improper[atom2];
+    if (molecular == Atom::MOLECULAR) ni = num_improper[atom2];
     else {
       if (molindex[atom2] < 0) continue;
       imol = molindex[atom2];
@@ -152,7 +153,7 @@ int ComputeImproperLocal::compute_impropers(int flag)
     }
 
     for (i = 0; i < ni; i++) {
-      if (molecular == 1) {
+      if (molecular == Atom::MOLECULAR) {
         if (tag[atom2] != improper_atom2[atom2][i]) continue;
         atom1 = atom->map(improper_atom1[atom2][i]);
         atom3 = atom->map(improper_atom3[atom2][i]);
@@ -251,6 +252,6 @@ void ComputeImproperLocal::reallocate(int n)
 
 double ComputeImproperLocal::memory_usage()
 {
-  double bytes = nmax*nvalues * sizeof(double);
+  double bytes = (double)nmax*nvalues * sizeof(double);
   return bytes;
 }

@@ -353,9 +353,9 @@ void MLIAPModelNN::compute_gradients(MLIAPData* data)
       // Deleting the variables
 
       for (int n=0; n<nl; n++) {
-        delete nodes[n];
-        delete dnodes[n];
-        delete bnodes[n];
+        delete[] nodes[n];
+        delete[] dnodes[n];
+        delete[] bnodes[n];
       }
 
       delete[] nodes;

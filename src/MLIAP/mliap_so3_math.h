@@ -76,9 +76,9 @@ int SO3Math::invert_matrix(int n, double *A, double *Ainv)
     for (j = 0; j < n; j++) Ainv[j * n + i] = b[j];
   }
 
-  delete P;
-  delete b;
-  delete Atemp;
+  delete[] P;
+  delete[] b;
+  delete[] Atemp;
 
   return 0;
 }
@@ -139,7 +139,7 @@ int SO3Math::LUPdecompose(int n, double dtol, double *A, int *P)
     }
   }
 
-  delete normi;
+  delete[] normi;
   return 0;
 }
 

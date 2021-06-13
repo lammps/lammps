@@ -64,13 +64,11 @@ class MLIAP_SO3: protected Pointers {
   double CosinePrime(double Rij, double Rc);
   double compute_sfac(double r, double rcut);
   double compute_dsfac(double r, double rcut);
-  void get_sbes_array(int natoms, int *numneighs, int *jelems,
-                      double *wjelem, double **rij, int nmax, int lmax,
-                      double rcut, double alpha,int ncoefs);
-  void get_rip_array(int natoms, int *numneighs, int *jelems,
-                     double *wjelem, double **rij, int nmax, int lmax,
-                     double rcut, double alpha, int ncoefs);
-  void init_arrays(int natoms, int *numneighs, int ncoefs);
+  void get_sbes_array(int natoms, int *numneighs, double **rij,
+                      int lmax, double rcut, double alpha);
+  void get_rip_array(int natoms, int *numneighs,
+                     double **rij, int nmax, int lmax, double alpha);
+  void init_arrays(int natoms, int ncoefs);
   void init_garray(int nmax, int lmax, double rcut, double alpha,
                    double *w, int lw1, int lw2, double *g_array,
                    int lg1, int lg2);
@@ -78,23 +76,21 @@ class MLIAP_SO3: protected Pointers {
   void compute_uarray_recursive(double x, double y, double z,
                                 double r, int twol, double *ulist_r,
                                 double *ulist_i, int *idxu_block,
-                                double *rootpqarray, int roi1,
-                                int roi2);
+                                double *rootpqarray);
   void compute_ncoeff();
 
   int get_sum(int istart, int iend, int id, int imult);
 
   void compute_dpidrj(int nmax, int lmax, double *clisttot_r,
-  double *clisttot_i, int lctot1, int lctot2, double *dclist_r,
-  double *dclist_i, int ldcli1, int ldcli2, int ldcli3,
-  double *dplist_r, int dpli1, int dpli2);
+  double *clisttot_i, int lctot2, double *dclist_r,
+  double *dclist_i, int ldcli2, int ldcli3,
+  double *dplist_r, int dpli2);
 
-  double compute_g(double r, int n, int nmax, double rcut, double *w, int lw1,
-           int lw2);
+  double compute_g(double r, int n, int nmax, double rcut, double *w, int lw1);
   double phi(double r, int alpha, double rcut);
   void compute_pi(int nmax, int lmax, double *clisttot_r,
-                  double *clisttot_i, int lcl1, int lcl2,
-                  double *plist_r, double *plist_i, int lpl1,
+                  double *clisttot_i, int lcl2,
+                  double *plist_r, double *plist_i,
                   int lpl2, int indpl);
 
   void compute_W(int nmax, double *arr);

@@ -11,11 +11,11 @@ boundary        p p p
 atom_modify     sort 0 0.0
 
 #read_data Si.data
-lattice  	diamond 5.43
-region		box block 0 10 0 10 0 10
-create_box	1 box
-create_atoms	1 box
-mass		1 29.0
+lattice         diamond 5.43
+region          box block 0 2 0 2 0 2
+create_box      1 box
+create_atoms    1 box
+mass            1 29.0
 
 # temperature
 variable t equal 500.

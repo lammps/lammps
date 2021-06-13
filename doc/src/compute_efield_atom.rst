@@ -53,7 +53,7 @@ The per-atom vector values will be in electric field :doc:`units <units>`.
 Restrictions
 """"""""""""
 This compute is part of the USER-DIELECTRIC package. It is only enabled if
-LAMMPS was built with that package.  
+LAMMPS was built with that package.
 
 Related commands
 """"""""""""""""

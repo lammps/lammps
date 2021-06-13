@@ -16,7 +16,6 @@
 
 #include "mliap_descriptor.h"
 
-
 namespace LAMMPS_NS {
 
 class MLIAPDescriptorSO3 : public MLIAPDescriptor {
@@ -50,9 +49,7 @@ class MLIAPDescriptorSO3 : public MLIAPDescriptor {
   int twojmax, switchflag, bzeroflag;
   int chemflag, bnormflag, wselfallflag;
   double rfac0, rmin0;
-
 };
-
 }
 
 #endif

@@ -1203,7 +1203,7 @@ void MLIAP_SO3::spectrum_dxdr(int natoms, int *numneighs,
             }
             xcovm1_r = dfact[4] * m_Ylms_r[m_ellpl1[l] + m - 1];
             xcovm1_i = dfact[4] * m_Ylms_i[m_ellpl1[l] + m - 1];
-            if (abs(m - 1.0) <= l - 1.0) {
+            if (fabs(m - 1.0) <= l - 1.0) {
               xcovm1_r -= dfact[5] * m_Ylms_r[m_ellm1[l] + m - 1];
               xcovm1_i -= dfact[5] * m_Ylms_i[m_ellm1[l] + m - 1];
             }

@@ -35,7 +35,6 @@ class MLIAPModelNN : public MLIAPModel {
   int *activation;       // activation functions
   int *nnodes;           // number of nodes per layer
   double ***scale;       // element scale values
-  double **coeffelem;    // element coefficients
   virtual void read_coeffs(char *);
 
   inline double sigm(double x, double &deriv)

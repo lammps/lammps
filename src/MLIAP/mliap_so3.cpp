@@ -424,12 +424,12 @@ void MLIAP_SO3::compute_W(int nmax, double *arr)
     }
 
 
-  delete outeig;
-  delete outeigvec;
-  delete arrinv;
+  delete[] outeig;
+  delete[] outeigvec;
+  delete[] arrinv;
 
-  delete sqrtD;
-  delete tempM;
+  delete[] sqrtD;
+  delete[] tempM;
 
   for (int iy=0; iy<n; iy++)
     delete[] temparr[iy];

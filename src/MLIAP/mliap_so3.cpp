@@ -12,16 +12,18 @@
  ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
- Contributing authors: Aidan Thompson, Christian Trott, SNL
+ Contributing authors:
  ------------------------------------------------------------------------- */
 
 #include "mliap_so3.h"
-#include <cmath>
+
+#include "comm.h"
+#include "error.h"
 #include "math_const.h"
 #include "math_special.h"
 #include "memory.h"
-#include "error.h"
-#include "comm.h"
+
+#include <cmath>
 
 #include "mliap_so3_math.h"
 
@@ -30,8 +32,11 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace MathSpecial;
 
-MLIAP_SO3::MLIAP_SO3(LAMMPS *lmp, double vrcut, int vlmax, int vnmax,
-                     double valpha) : Pointers(lmp)
+#define SMALL 1.0e-8
+
+/* ---------------------------------------------------------------------- */
+
+MLIAP_SO3::MLIAP_SO3(LAMMPS *lmp, double vrcut, int vlmax, int vnmax, double valpha) : Pointers(lmp)
 {
   m_rcut = vrcut;
   m_alpha = valpha;
@@ -90,8 +95,9 @@ MLIAP_SO3::MLIAP_SO3(LAMMPS *lmp, double vrcut, int vlmax, int vnmax,
   m_clisttot_i = nullptr;
 
   m_init_arrays = 0;
-
 }
+
+/* ---------------------------------------------------------------------- */
 
 MLIAP_SO3::~MLIAP_SO3()
 {
@@ -144,15 +150,17 @@ MLIAP_SO3::~MLIAP_SO3()
 
   memory->destroy(m_clisttot_r);
   memory->destroy(m_clisttot_i);
-
 }
+
+/* ---------------------------------------------------------------------- */
 
 void MLIAP_SO3::compute_ncoeff()
 {
 
   ncoeff = m_nmax * (m_nmax + 1) * (m_lmax + 1) / 2;
-
 }
+
+/* ---------------------------------------------------------------------- */
 
 void MLIAP_SO3::init()
 {
@@ -177,8 +185,7 @@ void MLIAP_SO3::init()
   memory->create(m_pfac, totali, "MLIAP_SO3:m_pfac");
   for (int l = 0; l < m_lmax + 2; l++)
     for (int m = -l; m < l + 1; m++)
-      m_pfac[l * m_pfac_l2 + m] = sqrt((2.0 * l + 1.0) * pfac1)
-        * pow(-1, m);
+      m_pfac[l * m_pfac_l2 + m] = sqrt((2.0 * l + 1.0) * pfac1) * powsign(m);
 
   m_dfac_l1 = m_lmax + 1;
   m_dfac_l2 = (m_lmax + 1) * (m_lmax + 1) + 1;
@@ -198,40 +205,32 @@ void MLIAP_SO3::init()
 
   for (int l = 1; l < m_lmax + 1; l++)
     for (int m = -l; m < l + 1; m++) {
-      m_dfac0[l * m_dfac_l2 + m] = -sqrt(
-        ((l + 1.0) * (l + 1.0) - m * m) / (2.0 * l + 1.0)
-          / (2.0 * l + 3.0)) * l;
-      m_dfac1[l * m_dfac_l2 + m] = sqrt(
-        (l * l - m * m) / (2.0 * l - 1.0) / (2.0 * l + 1.0))
-          * (l + 1.0);
-      m_dfac2[l * m_dfac_l2 + m] = -sqrt(
-        (l + m + 1.0) * (l + m + 2.0) / 2.0 / (2.0 * l + 1.0)
-          / (2.0 * l + 3.0)) * l;
-      m_dfac3[l * m_dfac_l2 + m] = sqrt(
-        (l - m - 1.0) * (l - m) / 2.0 / (2.0 * l - 1.0)
-          / (2.0 * l + 1.0)) * (l + 1.0);
-      m_dfac4[l * m_dfac_l2 + m] = -sqrt(
-        (l - m + 1.0) * (l - m + 2.0) / 2.0 / (2.0 * l + 1.0)
-          / (2.0 * l + 3.0)) * l;
-      m_dfac5[l * m_dfac_l2 + m] = sqrt(
-        (l + m - 1.0) * (l + m) / 2.0 / (2.0 * l - 1.0)
-          / (2.0 * l + 1.0)) * (l + 1.0);
+      m_dfac0[l * m_dfac_l2 + m] =
+          -sqrt(((l + 1.0) * (l + 1.0) - m * m) / (2.0 * l + 1.0) / (2.0 * l + 3.0)) * l;
+      m_dfac1[l * m_dfac_l2 + m] =
+          sqrt((l * l - m * m) / (2.0 * l - 1.0) / (2.0 * l + 1.0)) * (l + 1.0);
+      m_dfac2[l * m_dfac_l2 + m] =
+          -sqrt((l + m + 1.0) * (l + m + 2.0) / 2.0 / (2.0 * l + 1.0) / (2.0 * l + 3.0)) * l;
+      m_dfac3[l * m_dfac_l2 + m] =
+          sqrt((l - m - 1.0) * (l - m) / 2.0 / (2.0 * l - 1.0) / (2.0 * l + 1.0)) * (l + 1.0);
+      m_dfac4[l * m_dfac_l2 + m] =
+          -sqrt((l - m + 1.0) * (l - m + 2.0) / 2.0 / (2.0 * l + 1.0) / (2.0 * l + 3.0)) * l;
+      m_dfac5[l * m_dfac_l2 + m] =
+          sqrt((l + m - 1.0) * (l + m) / 2.0 / (2.0 * l - 1.0) / (2.0 * l + 1.0)) * (l + 1.0);
     }
 
   totali = m_nmax * m_nmax;
   memory->destroy(m_w);
   memory->create(m_w, totali, "MLIAP_SO3:w");
 
-  for (i = 0; i < totali; i++)
-    m_w[i] = 0.0;
+  for (i = 0; i < totali; i++) m_w[i] = 0.0;
 
   compute_W(m_nmax, m_w);
 
   totali = m_nmax * m_Nmax;
   memory->create(m_g_array, totali, "MLIAP_SO3:g_array");
 
-  for (i = 0; i < totali; i++)
-    m_g_array[i] = 0.0;
+  for (i = 0; i < totali; i++) m_g_array[i] = 0.0;
 
   init_garray(m_nmax, m_lmax, m_rcut, m_alpha, m_w, m_nmax, m_g_array, m_Nmax);
 
@@ -241,23 +240,19 @@ void MLIAP_SO3::init()
   totali = m_ldim * m_ldim;
   memory->create(m_rootpq, totali, "MLIAP_SO3:rootpq");
 
-  for (i = 0; i < totali; i++)
-    m_rootpq[i] = 0.0;
+  for (i = 0; i < totali; i++) m_rootpq[i] = 0.0;
 
   for (int p = 1; p < m_ldim; p++)
-    for (int q = 1; q < m_ldim; q++)
-      m_rootpq[p * m_ldim + q] = sqrt(static_cast<double>(p) / q);
+    for (int q = 1; q < m_ldim; q++) m_rootpq[p * m_ldim + q] = sqrt(static_cast<double>(p) / q);
 
   memory->create(m_idxu_block, m_ldim, "MLIAP_SO3:idxu_bloc");
 
-  for (i = 0; i < m_ldim; i++)
-    m_idxu_block[i] = 0;
+  for (i = 0; i < m_ldim; i++) m_idxu_block[i] = 0;
 
-  totali = pow(m_lmax + 2, 2);
+  totali = square(m_lmax + 2);
   memory->create(m_idxylm, totali, "MLIAP_SO3:idxylm");
 
-  for (i = 0; i < totali; i++)
-    m_idxylm[i] = 0;
+  for (i = 0; i < totali; i++) m_idxylm[i] = 0;
 
   m_idxu_count = 0, m_idxy_count = 0;
 
@@ -275,6 +270,8 @@ void MLIAP_SO3::init()
 
   m_numYlms = (m_lmax + 1) * (m_lmax + 1);
 }
+
+/* ---------------------------------------------------------------------- */
 
 void MLIAP_SO3::init_arrays(int natoms, int ncoefs)
 {
@@ -326,6 +323,8 @@ void MLIAP_SO3::init_arrays(int natoms, int ncoefs)
   m_init_arrays = 1;
 }
 
+/* ---------------------------------------------------------------------- */
+
 double MLIAP_SO3::memory_usage()
 {
   double bytes;
@@ -336,6 +335,8 @@ double MLIAP_SO3::memory_usage()
   return bytes;
 }
 
+/* ---------------------------------------------------------------------- */
+
 void MLIAP_SO3::compute_W(int nmax, double *arr)
 {
   int alpha, beta, temp1, temp2;
@@ -344,11 +345,9 @@ void MLIAP_SO3::compute_W(int nmax, double *arr)
     temp1 = (2 * alpha + 5) * (2 * alpha + 6) * (2 * alpha + 7);
     for (beta = 1; beta < alpha + 1; beta++) {
       temp2 = (2 * beta + 5) * (2 * beta + 6) * (2 * beta + 7);
-      arr[(alpha - 1) * nmax + beta - 1] = sqrt(temp1 * temp2)
-        / (5 + alpha + beta) / (6 + alpha + beta)
-          / (7 + alpha + beta);
-      arr[(beta - 1) * nmax + alpha - 1] = arr[(alpha - 1)
-        * nmax + beta - 1];
+      arr[(alpha - 1) * nmax + beta - 1] =
+          sqrt(temp1 * temp2) / (5 + alpha + beta) / (6 + alpha + beta) / (7 + alpha + beta);
+      arr[(beta - 1) * nmax + alpha - 1] = arr[(alpha - 1) * nmax + beta - 1];
     }
   }
 
@@ -366,30 +365,22 @@ void MLIAP_SO3::compute_W(int nmax, double *arr)
 
   int info;
 
+  info = invert_matrix(n, arr, arrinv);
+  if (info != 0) error->all(FLERR, "Invert matrix Error in W calculation!");
 
-  info = invert_matrix(n, arr, arrinv );
-  if (info != 0)
-    error->all(FLERR, "Invert matrix Error in W calculation!");
+  temparr = new double *[n];
+  for (int iy = 0; iy < n; iy++) temparr[iy] = new double[n];
 
-  temparr = new double* [n];
-  for (int iy=0; iy<n; iy++)
-    temparr[iy] = new double[n];
-
-  tempvl = new double* [n];
-  for (int iy=0; iy<n; iy++)
-    tempvl[iy] = new double[n];
-
-  for(i=0; i<n; i++)
-    for(j=0; j<n; j++)
-      temparr[i][j]=arrinv[i*n+j];
-
-  jacobin(n,temparr,tempout,tempvl);
-
+  tempvl = new double *[n];
+  for (int iy = 0; iy < n; iy++) tempvl[iy] = new double[n];
 
   for (i = 0; i < n; i++)
-    for (j = 0; j < n; j++)
-      outeigvec[i * n + j] = tempvl[i][j];
+    for (j = 0; j < n; j++) temparr[i][j] = arrinv[i * n + j];
 
+  jacobin(n, temparr, tempout, tempvl);
+
+  for (i = 0; i < n; i++)
+    for (j = 0; j < n; j++) outeigvec[i * n + j] = tempvl[i][j];
 
   for (i = 0; i < n; i++)
     for (j = 0; j < n; j++)
@@ -402,26 +393,21 @@ void MLIAP_SO3::compute_W(int nmax, double *arr)
   for (i = 0; i < n; i++)
     for (j = 0; j < n; j++) {
       dtemp = 0;
-      for (k = 0; k < n; k++)
-        dtemp += outeigvec[i * n + k] * sqrtD[k * n + j];
+      for (k = 0; k < n; k++) dtemp += outeigvec[i * n + k] * sqrtD[k * n + j];
 
       tempM[i * n + j] = dtemp;
     }
 
-  info=invert_matrix(n, outeigvec, arrinv );
-  if (info != 0)
-    error->all(FLERR,"Invert matrix Error in W calculation!");
-
+  info = invert_matrix(n, outeigvec, arrinv);
+  if (info != 0) error->all(FLERR, "Invert matrix Error in W calculation!");
 
   for (i = 0; i < n; i++)
     for (j = 0; j < n; j++) {
       dtemp = 0;
-      for (k = 0; k < n; k++)
-        dtemp += tempM[i * n + k] * arrinv[k * n + j];
+      for (k = 0; k < n; k++) dtemp += tempM[i * n + k] * arrinv[k * n + j];
 
       arr[i * n + j] = dtemp;
     }
-
 
   delete[] outeig;
   delete[] outeigvec;
@@ -430,21 +416,17 @@ void MLIAP_SO3::compute_W(int nmax, double *arr)
   delete[] sqrtD;
   delete[] tempM;
 
-  for (int iy=0; iy<n; iy++)
-    delete[] temparr[iy];
+  for (int iy = 0; iy < n; iy++) delete[] temparr[iy];
   delete[] temparr;
 
-  for (int iy=0; iy<n; iy++)
-    delete[] tempvl[iy];
+  for (int iy = 0; iy < n; iy++) delete[] tempvl[iy];
   delete[] tempvl;
-
-
 }
 
-void MLIAP_SO3::compute_pi(int nmax, int lmax, double *clisttot_r,
-                           double *clisttot_i, int lcl2,
-                           double *plist_r, double *plist_i,
-                           int lpl2, int indpl)
+/* ---------------------------------------------------------------------- */
+
+void MLIAP_SO3::compute_pi(int nmax, int lmax, double *clisttot_r, double *clisttot_i, int lcl2,
+                           double *plist_r, double *plist_i, int lpl2, int indpl)
 {
   int n1, n2, j, l, m, i = 0;
   double norm;
@@ -456,32 +438,31 @@ void MLIAP_SO3::compute_pi(int nmax, int lmax, double *clisttot_r,
 
         for (m = -l; m < l + 1; m++) {
 
-          plist_r[lpl2 * indpl + i] += (clisttot_r[lcl2 * n1 + j]
-            * clisttot_r[lcl2 * n2 + j]
-              + clisttot_i[lcl2 * n1 + j]
-                * clisttot_i[lcl2 * n2 + j]) * norm;
-          plist_i[lpl2 * indpl + i] += (-clisttot_r[lcl2 * n1 + j]
-            * clisttot_i[lcl2 * n2 + j]
-              + clisttot_i[lcl2 * n1 + j]
-                * clisttot_r[lcl2 * n2 + j]) * norm;
+          plist_r[lpl2 * indpl + i] += (clisttot_r[lcl2 * n1 + j] * clisttot_r[lcl2 * n2 + j] +
+                                        clisttot_i[lcl2 * n1 + j] * clisttot_i[lcl2 * n2 + j]) *
+              norm;
+          plist_i[lpl2 * indpl + i] += (-clisttot_r[lcl2 * n1 + j] * clisttot_i[lcl2 * n2 + j] +
+                                        clisttot_i[lcl2 * n1 + j] * clisttot_r[lcl2 * n2 + j]) *
+              norm;
 
           j += 1;
         }
         i += 1;
       }
     }
-
 }
+
+/* ---------------------------------------------------------------------- */
 
 double MLIAP_SO3::phi(double r, int alpha, double rcut)
 {
-  return pow((rcut - r), (alpha + 2))
-    / sqrt( 2 * pow(rcut, (2 * alpha + 7)) / (2 * alpha + 5)
-      / (2 * alpha + 6) / (2 * alpha + 7));
+  return powint((rcut - r), (alpha + 2)) /
+      sqrt(2 * powint(rcut, (2 * alpha + 7)) / (2 * alpha + 5) / (2 * alpha + 6) / (2 * alpha + 7));
 }
 
-double MLIAP_SO3::compute_g(double r, int n, int nmax,double rcut,
-                    double *w, int lw1)
+/* ---------------------------------------------------------------------- */
+
+double MLIAP_SO3::compute_g(double r, int n, int nmax, double rcut, double *w, int lw1)
 {
   double Sum;
   Sum = 0.0;
@@ -491,42 +472,51 @@ double MLIAP_SO3::compute_g(double r, int n, int nmax,double rcut,
     Sum += w[(n - 1) * lw1 + alpha - 1] * phi(r, alpha, rcut);
 
   return Sum;
-
 }
+
+/* ---------------------------------------------------------------------- */
 
 double MLIAP_SO3::Cosine(double Rij, double Rc)
 {
 
   return 0.5 * (cos(MY_PI * Rij / Rc) + 1.0);
-
 }
+
+/* ---------------------------------------------------------------------- */
+
 double MLIAP_SO3::CosinePrime(double Rij, double Rc)
 {
 
   return -0.5 * MY_PI / Rc * sin(MY_PI * Rij / Rc);
-
 }
+
+/* ---------------------------------------------------------------------- */
+
 double MLIAP_SO3::compute_sfac(double r, double rcut)
 {
 
-  if(r>rcut) return 0.0;
-  else return Cosine(r,rcut);
-
+  if (r > rcut)
+    return 0.0;
+  else
+    return Cosine(r, rcut);
 }
+
+/* ---------------------------------------------------------------------- */
+
 double MLIAP_SO3::compute_dsfac(double r, double rcut)
 {
 
-  if(r>rcut) return 0.0;
-  else return CosinePrime(r,rcut);
-
+  if (r > rcut)
+    return 0.0;
+  else
+    return CosinePrime(r, rcut);
 }
 
-void MLIAP_SO3::compute_dpidrj(int nmax, int lmax, double *clisttot_r,
-                               double *clisttot_i,
-                               int lctot2, double *dclist_r,
-                               double *dclist_i,
-                               int ldcli2, int ldcli3,
-                               double *dplist_r, int dpli2)
+/* ---------------------------------------------------------------------- */
+
+void MLIAP_SO3::compute_dpidrj(int nmax, int lmax, double *clisttot_r, double *clisttot_i,
+                               int lctot2, double *dclist_r, double *dclist_i, int ldcli2,
+                               int ldcli3, double *dplist_r, int dpli2)
 {
   double temp_r;
   double norm;
@@ -540,20 +530,15 @@ void MLIAP_SO3::compute_dpidrj(int nmax, int lmax, double *clisttot_r,
         for (m = -l; m < l + 1; m++) {
           for (ii = 0; ii < 3; ii++) {
 
-            temp_r = dclist_r[(n1 * ldcli2 + j) * ldcli3 + ii]
-              * clisttot_r[n2 * lctot2 + j]
-                + dclist_i[(n1 * ldcli2 + j) * ldcli3 + ii]
-                  * clisttot_i[n2 * lctot2 + j];
+            temp_r = dclist_r[(n1 * ldcli2 + j) * ldcli3 + ii] * clisttot_r[n2 * lctot2 + j] +
+                dclist_i[(n1 * ldcli2 + j) * ldcli3 + ii] * clisttot_i[n2 * lctot2 + j];
 
-            temp_r += clisttot_r[n1 * lctot2 + j]
-              * dclist_r[(n2 * ldcli2 + j) * ldcli3 + ii]
-                + clisttot_i[n1 * lctot2 + j]
-                  * dclist_i[(n2 * ldcli2 + j) * ldcli3 + ii];
+            temp_r += clisttot_r[n1 * lctot2 + j] * dclist_r[(n2 * ldcli2 + j) * ldcli3 + ii] +
+                clisttot_i[n1 * lctot2 + j] * dclist_i[(n2 * ldcli2 + j) * ldcli3 + ii];
 
             temp_r *= norm;
 
             dplist_r[i * dpli2 + ii] += temp_r;
-
           }
           j += 1;
         }
@@ -562,22 +547,22 @@ void MLIAP_SO3::compute_dpidrj(int nmax, int lmax, double *clisttot_r,
     }
 }
 
+/* ---------------------------------------------------------------------- */
+
 int MLIAP_SO3::get_sum(int istart, int iend, int id, int imult)
 {
   int ires = 0;
   int i;
 
-  for (i = istart; i < iend; i = i + id)
-    ires += i * imult;
+  for (i = istart; i < iend; i = i + id) ires += i * imult;
 
   return ires;
 }
 
-void MLIAP_SO3::compute_uarray_recursive(double x, double y,
-                                         double z, double r,
-                                         int twol, double *ulist_r,
-                                         double *ulist_i,
-                                         int *idxu_block,
+/* ---------------------------------------------------------------------- */
+
+void MLIAP_SO3::compute_uarray_recursive(double x, double y, double z, double r, int twol,
+                                         double *ulist_r, double *ulist_i, int *idxu_block,
                                          double *rootpqarray)
 {
   int l, llu, llup, mb, ma, mbpar, mapar;
@@ -619,17 +604,13 @@ void MLIAP_SO3::compute_uarray_recursive(double x, double y,
 
         rootpq = rootpqarray[(l - ma) * ldim + l - mb];
 
-        ulist_r[llu] += rootpq
-          * (a_r * ulist_r[llup] + a_i * ulist_i[llup]);
-        ulist_i[llu] += rootpq
-          * (a_r * ulist_i[llup] - a_i * ulist_r[llup]);
+        ulist_r[llu] += rootpq * (a_r * ulist_r[llup] + a_i * ulist_i[llup]);
+        ulist_i[llu] += rootpq * (a_r * ulist_i[llup] - a_i * ulist_r[llup]);
 
         rootpq = rootpqarray[(ma + 1) * ldim + l - mb];
 
-        ulist_r[llu + 1] += -rootpq
-          * (b_r * ulist_r[llup] + b_i * ulist_i[llup]);
-        ulist_i[llu + 1] += -rootpq
-          * (b_r * ulist_i[llup] - b_i * ulist_r[llup]);
+        ulist_r[llu + 1] += -rootpq * (b_r * ulist_r[llup] + b_i * ulist_i[llup]);
+        ulist_i[llu + 1] += -rootpq * (b_r * ulist_i[llup] - b_i * ulist_r[llup]);
 
         llu += 1;
         llup += 1;
@@ -656,7 +637,6 @@ void MLIAP_SO3::compute_uarray_recursive(double x, double y,
 
           ulist_r[llup] = -ulist_r[llu];
           ulist_i[llup] = ulist_i[llu];
-
         }
         mapar = -mapar;
         llu += 1;
@@ -666,11 +646,11 @@ void MLIAP_SO3::compute_uarray_recursive(double x, double y,
       mb += 1;
     }
   }
-
 }
 
-void MLIAP_SO3::init_garray(int nmax, int lmax, double rcut,
-                            double alpha, double *w, int lw1,
+/* ---------------------------------------------------------------------- */
+
+void MLIAP_SO3::init_garray(int nmax, int lmax, double rcut, double alpha, double *w, int lw1,
                             double *g_array, int lg2)
 {
   int i, n, Nmax = (nmax + lmax + 1) * 10;
@@ -683,17 +663,15 @@ void MLIAP_SO3::init_garray(int nmax, int lmax, double rcut,
     xi = rcut / 2 * (x + 1);
     for (n = 1; n < nmax + 1; n++)
       // r**2*g(n)(r)*e^(-alpha*r**2)
-      g_array[(n - 1) * lg2 + i - 1] = rcut / 2 * MY_PI / Nmax
-        * sqrt(1 - x * x) * xi * xi
-          * compute_g(xi, n, nmax, rcut, w, lw1)
-            * exp(-alpha * xi * xi);
-
+      g_array[(n - 1) * lg2 + i - 1] = rcut / 2 * MY_PI / Nmax * sqrt(1 - x * x) * xi * xi *
+          compute_g(xi, n, nmax, rcut, w, lw1) * exp(-alpha * xi * xi);
   }
 }
 
-void MLIAP_SO3::get_sbes_array(int natoms, int *numneighs,
-                               double **rij, int lmax,
-                               double rcut, double alpha)
+/* ---------------------------------------------------------------------- */
+
+void MLIAP_SO3::get_sbes_array(int natoms, int *numneighs, double **rij, int lmax, double rcut,
+                               double alpha)
 {
   int i, j;
   int neighbor;
@@ -723,8 +701,7 @@ void MLIAP_SO3::get_sbes_array(int natoms, int *numneighs,
 
       ri = sqrt(x * x + y * y + z * z);
 
-      if (ri < pow(10, -8))
-        continue;
+      if (ri < SMALL) continue;
 
       pfac2 = pfac1 * ri;
 
@@ -744,40 +721,34 @@ void MLIAP_SO3::get_sbes_array(int natoms, int *numneighs,
 
         for (j = 2; j < lmax + 1; j++)
           m_sbes_array[gindex + (i - 1) * mindex + j] =
-            m_sbes_array[gindex + (i - 1) * mindex + j - 2]
-              - (2 * j - 1) / rb
-                * m_sbes_array[gindex
-                  + (i - 1) * mindex + j - 1];
+              m_sbes_array[gindex + (i - 1) * mindex + j - 2] -
+              (2 * j - 1) / rb * m_sbes_array[gindex + (i - 1) * mindex + j - 1];
 
-        exts = m_sbes_array[gindex + (i - 1) * mindex + j - 2]
-          - (2 * j - 1) / rb
-            * m_sbes_array[gindex + (i - 1) * mindex + j - 1];
+        exts = m_sbes_array[gindex + (i - 1) * mindex + j - 2] -
+            (2 * j - 1) / rb * m_sbes_array[gindex + (i - 1) * mindex + j - 1];
 
         m_sbes_darray[gindex + (i - 1) * mindex + 0] = sb;
 
         for (j = 1; j < lmax; j++)
-          m_sbes_darray[gindex + (i - 1) * mindex + j] = xi * (j
-            * m_sbes_array[gindex + (i - 1) * mindex + j - 1]
-              + (j + 1) * m_sbes_array[gindex
-                + (i - 1) * mindex + j + 1]) / (2 * j + 1);
+          m_sbes_darray[gindex + (i - 1) * mindex + j] = xi *
+              (j * m_sbes_array[gindex + (i - 1) * mindex + j - 1] +
+               (j + 1) * m_sbes_array[gindex + (i - 1) * mindex + j + 1]) /
+              (2 * j + 1);
 
-        m_sbes_darray[gindex + (i - 1) * mindex + j] = xi
-          * (j * m_sbes_array[gindex + (i - 1) * mindex + j - 1]
-            + (j + 1) * exts) / (2 * j + 1);
+        m_sbes_darray[gindex + (i - 1) * mindex + j] = xi *
+            (j * m_sbes_array[gindex + (i - 1) * mindex + j - 1] + (j + 1) * exts) / (2 * j + 1);
         m_sbes_darray[gindex + (i - 1) * mindex + 0] = xi * sb;
-
       }
-
     }
-
   }
 
   return;
-
 }
 
-void MLIAP_SO3::get_rip_array(int natoms, int *numneighs,
-                              double **rij, int nmax, int lmax, double alpha)
+/* ---------------------------------------------------------------------- */
+
+void MLIAP_SO3::get_rip_array(int natoms, int *numneighs, double **rij, int nmax, int lmax,
+                              double alpha)
 {
   int i, l, n;
   double integrald, integral = 0.0;
@@ -798,8 +769,7 @@ void MLIAP_SO3::get_rip_array(int natoms, int *numneighs,
 
       ri = sqrt(x * x + y * y + z * z);
 
-      if (ri < pow(10, -8))
-        continue;
+      if (ri < SMALL) continue;
 
       expfac = 4 * MY_PI * exp(-alpha * ri * ri);
 
@@ -809,30 +779,26 @@ void MLIAP_SO3::get_rip_array(int natoms, int *numneighs,
           integral = 0.0;
           integrald = 0.0;
           for (i = 0; i < m_Nmax; i++) {
-            integral += m_g_array[(n - 1) * m_Nmax + i]
-              * m_sbes_array[(ipair - 1) * m_Nmax
-                * (m_lmax + 1) + i * (m_lmax + 1) + l];
-            integrald += m_g_array[(n - 1) * m_Nmax + i]
-              * m_sbes_darray[(ipair - 1) * m_Nmax
-                * (m_lmax + 1) + i * (m_lmax + 1) + l];
+            integral += m_g_array[(n - 1) * m_Nmax + i] *
+                m_sbes_array[(ipair - 1) * m_Nmax * (m_lmax + 1) + i * (m_lmax + 1) + l];
+            integrald += m_g_array[(n - 1) * m_Nmax + i] *
+                m_sbes_darray[(ipair - 1) * m_Nmax * (m_lmax + 1) + i * (m_lmax + 1) + l];
           }
 
-          m_rip_array[(ipair - 1) * m_nmax * (m_lmax + 1)
-            + (n - 1) * (m_lmax + 1) + l] = integral * expfac;
-          m_rip_darray[(ipair - 1) * m_nmax * (m_lmax + 1)
-            + (n - 1) * (m_lmax + 1) + l] = integrald * expfac;
-
+          m_rip_array[(ipair - 1) * m_nmax * (m_lmax + 1) + (n - 1) * (m_lmax + 1) + l] =
+              integral * expfac;
+          m_rip_darray[(ipair - 1) * m_nmax * (m_lmax + 1) + (n - 1) * (m_lmax + 1) + l] =
+              integrald * expfac;
         }
-
     }
 
   return;
 }
 
-void MLIAP_SO3::spectrum(int natoms, int *numneighs, int *jelems,
-                         double *wjelem, double **rij, int nmax,
-                         int lmax, double rcut, double alpha,
-                         int ncoefs)
+/* ---------------------------------------------------------------------- */
+
+void MLIAP_SO3::spectrum(int natoms, int *numneighs, int *jelems, double *wjelem, double **rij,
+                         int nmax, int lmax, double rcut, double alpha, int ncoefs)
 {
 
   init_arrays(natoms, ncoefs);
@@ -851,8 +817,7 @@ void MLIAP_SO3::spectrum(int natoms, int *numneighs, int *jelems,
 
   findex = m_nmax * (m_lmax + 1);
 
-  for (i = 0; i < natoms; i++)
-    totaln += numneighs[i];
+  for (i = 0; i < natoms; i++) totaln += numneighs[i];
 
   totali = totaln * m_Nmax * (m_lmax + 1);
   memory->destroy(m_sbes_array);
@@ -872,9 +837,9 @@ void MLIAP_SO3::spectrum(int natoms, int *numneighs, int *jelems,
   memory->destroy(m_dplist_i);
   memory->create(m_dplist_i, totali, "MLIAP_SO3:m_dplist_i");
 
-  get_sbes_array(natoms,numneighs,rij,lmax,rcut,alpha);
+  get_sbes_array(natoms, numneighs, rij, lmax, rcut, alpha);
 
-  get_rip_array(natoms,numneighs,rij,nmax,lmax,alpha);
+  get_rip_array(natoms, numneighs, rij, nmax, lmax, alpha);
 
   totali = natoms * ncoefs;
   for (i = 0; i < totali; i++) {
@@ -903,8 +868,7 @@ void MLIAP_SO3::spectrum(int natoms, int *numneighs, int *jelems,
 
       r = sqrt(x * x + y * y + z * z);
 
-      if (r < pow(10, -8))
-        continue;
+      if (r < SMALL) continue;
       totali = nmax * m_numYlms;
       for (ti = 0; ti < totali; ti++) {
         m_clist_r[ti] = 0.0;
@@ -915,10 +879,9 @@ void MLIAP_SO3::spectrum(int natoms, int *numneighs, int *jelems,
         m_ulist_i[ti] = 0.0;
       }
 
-      compute_uarray_recursive(x, y, z, r, twolmax, m_ulist_r,
-        m_ulist_i,m_idxu_block, m_rootpq);
+      compute_uarray_recursive(x, y, z, r, twolmax, m_ulist_r, m_ulist_i, m_idxu_block, m_rootpq);
 
-      sfac=compute_sfac(r,rcut);
+      sfac = compute_sfac(r, rcut);
 
       gindex = (ipair - 1) * findex;
       for (int n = 1; n < nmax + 1; n++) {
@@ -928,14 +891,10 @@ void MLIAP_SO3::spectrum(int natoms, int *numneighs, int *jelems,
 
           for (int m = -l; m < l + 1; m++) {
 
-            Ylm_r = (m_ulist_r[m_idxylm[i]])
-              * m_pfac[l * m_pfac_l2 + m];
-            m_clist_r[(n - 1) * m_numYlms + i]
-              += r_int * Ylm_r * sfac;
-            Ylm_i = (m_ulist_i[m_idxylm[i]])
-              * m_pfac[l * m_pfac_l2 + m];
-            m_clist_i[(n - 1) * m_numYlms + i]
-              += r_int * Ylm_i*sfac;
+            Ylm_r = (m_ulist_r[m_idxylm[i]]) * m_pfac[l * m_pfac_l2 + m];
+            m_clist_r[(n - 1) * m_numYlms + i] += r_int * Ylm_r * sfac;
+            Ylm_i = (m_ulist_i[m_idxylm[i]]) * m_pfac[l * m_pfac_l2 + m];
+            m_clist_i[(n - 1) * m_numYlms + i] += r_int * Ylm_i * sfac;
             i += 1;
           }
         }
@@ -951,23 +910,18 @@ void MLIAP_SO3::spectrum(int natoms, int *numneighs, int *jelems,
         m_clisttot_r[tn] += m_clist_r[tn];
         m_clisttot_i[tn] += m_clist_i[tn];
       }
-
     }
 
-    compute_pi(nmax, lmax, m_clisttot_r, m_clisttot_i,
-      m_numYlms,m_plist_r, m_plist_i, ncoefs, ii);
-
+    compute_pi(nmax, lmax, m_clisttot_r, m_clisttot_i, m_numYlms, m_plist_r, m_plist_i, ncoefs, ii);
   }
 
   return;
-
 }
 
-void MLIAP_SO3::spectrum_dxdr(int natoms, int *numneighs,
-                              int *jelems, double *wjelem,
-                              double **rij, int nmax, int lmax,
-                              double rcut, double alpha, int npairs,
-                              int ncoefs)
+/* ---------------------------------------------------------------------- */
+
+void MLIAP_SO3::spectrum_dxdr(int natoms, int *numneighs, int *jelems, double *wjelem, double **rij,
+                              int nmax, int lmax, double rcut, double alpha, int npairs, int ncoefs)
 {
   int totaln = 0;
   int totali;
@@ -994,12 +948,11 @@ void MLIAP_SO3::spectrum_dxdr(int natoms, int *numneighs,
 
   int ipair = 0;
   int idpair = 0;
-  double sfac,dsfac,dsfac_arr[3];
+  double sfac, dsfac, dsfac_arr[3];
 
   findex = m_nmax * (m_lmax + 1);
 
-  for (i = 0; i < natoms; i++)
-    totaln += numneighs[i];
+  for (i = 0; i < natoms; i++) totaln += numneighs[i];
 
   totali = totaln * m_Nmax * (m_lmax + 1);
   memory->destroy(m_sbes_array);
@@ -1054,8 +1007,7 @@ void MLIAP_SO3::spectrum_dxdr(int natoms, int *numneighs,
 
       r = sqrt(x * x + y * y + z * z);
 
-      if (r < pow(10, -8))
-        continue;
+      if (r < SMALL) continue;
       totali = nmax * m_numYlms;
 
       for (ti = 0; ti < totali; ti++) {
@@ -1068,10 +1020,9 @@ void MLIAP_SO3::spectrum_dxdr(int natoms, int *numneighs,
         m_ulist_i[ti] = 0.0;
       }
 
-      compute_uarray_recursive(x, y, z, r, twolmax, m_ulist_r,
-        m_ulist_i, m_idxu_block, m_rootpq);
+      compute_uarray_recursive(x, y, z, r, twolmax, m_ulist_r, m_ulist_i, m_idxu_block, m_rootpq);
 
-      sfac=compute_sfac(r,rcut);
+      sfac = compute_sfac(r, rcut);
 
       gindex = (ipair - 1) * findex;
       for (int n = 1; n < nmax + 1; n++) {
@@ -1081,14 +1032,10 @@ void MLIAP_SO3::spectrum_dxdr(int natoms, int *numneighs,
 
           for (int m = -l; m < l + 1; m++) {
 
-            Ylm_r = (m_ulist_r[m_idxylm[i]])
-              * m_pfac[l * m_pfac_l2 + m];
-            m_clist_r[(n - 1) * m_numYlms + i]
-              += r_int * Ylm_r * sfac;
-            Ylm_i = (m_ulist_i[m_idxylm[i]])
-              * m_pfac[l * m_pfac_l2 + m];
-            m_clist_i[(n - 1) * m_numYlms + i]
-              += r_int * Ylm_i * sfac;
+            Ylm_r = (m_ulist_r[m_idxylm[i]]) * m_pfac[l * m_pfac_l2 + m];
+            m_clist_r[(n - 1) * m_numYlms + i] += r_int * Ylm_r * sfac;
+            Ylm_i = (m_ulist_i[m_idxylm[i]]) * m_pfac[l * m_pfac_l2 + m];
+            m_clist_i[(n - 1) * m_numYlms + i] += r_int * Ylm_i * sfac;
             i += 1;
           }
         }
@@ -1104,7 +1051,6 @@ void MLIAP_SO3::spectrum_dxdr(int natoms, int *numneighs,
         m_clisttot_r[tn] += m_clist_r[tn];
         m_clisttot_i[tn] += m_clist_i[tn];
       }
-
     }
 
     for (neighbor = 0; neighbor < numneighs[ii]; neighbor++) {
@@ -1118,8 +1064,7 @@ void MLIAP_SO3::spectrum_dxdr(int natoms, int *numneighs,
       idpair++;
 
       r = sqrt(x * x + y * y + z * z);
-      if (r < pow(10, -8))
-        continue;
+      if (r < SMALL) continue;
 
       totali = nmax * m_numYlms * 3;
       for (int tn = 0; tn < totali; tn++) {
@@ -1132,8 +1077,7 @@ void MLIAP_SO3::spectrum_dxdr(int natoms, int *numneighs,
         m_ulist_i[ti] = 0.0;
       }
 
-      compute_uarray_recursive(x, y, z, r, twolmax, m_ulist_r,
-        m_ulist_i, m_idxu_block, m_rootpq);
+      compute_uarray_recursive(x, y, z, r, twolmax, m_ulist_r, m_ulist_i, m_idxu_block, m_rootpq);
 
       /////////  compute_carray_wD  ////////
       {
@@ -1149,10 +1093,8 @@ void MLIAP_SO3::spectrum_dxdr(int natoms, int *numneighs,
         int i = 0;
         for (int l = 0; l < lmax + 2; l++) {
           for (int m = -l; m < l + 1; m++) {
-            m_Ylms_r[i] = (m_ulist_r[m_idxylm[i]])
-              * m_pfac[l * m_pfac_l2 + m];
-            m_Ylms_i[i] = (m_ulist_i[m_idxylm[i]])
-              * m_pfac[l * m_pfac_l2 + m];
+            m_Ylms_r[i] = (m_ulist_r[m_idxylm[i]]) * m_pfac[l * m_pfac_l2 + m];
+            m_Ylms_i[i] = (m_ulist_i[m_idxylm[i]]) * m_pfac[l * m_pfac_l2 + m];
             i += 1;
           }
         }
@@ -1186,10 +1128,8 @@ void MLIAP_SO3::spectrum_dxdr(int natoms, int *numneighs,
             xcovpl1_r = dfact[2] * m_Ylms_r[m_ellpl1[l] + m + 1];
             xcovpl1_i = dfact[2] * m_Ylms_i[m_ellpl1[l] + m + 1];
             if (abs(m + 1) <= l - 1.0) {
-              xcovpl1_r -= dfact[3]
-                * m_Ylms_r[m_ellm1[l] + m + 1];
-              xcovpl1_i -= dfact[3]
-                * m_Ylms_i[m_ellm1[l] + m + 1];
+              xcovpl1_r -= dfact[3] * m_Ylms_r[m_ellm1[l] + m + 1];
+              xcovpl1_i -= dfact[3] * m_Ylms_i[m_ellm1[l] + m + 1];
             }
             xcovm1_r = dfact[4] * m_Ylms_r[m_ellpl1[l] + m - 1];
             xcovm1_i = dfact[4] * m_Ylms_i[m_ellpl1[l] + m - 1];
@@ -1197,13 +1137,11 @@ void MLIAP_SO3::spectrum_dxdr(int natoms, int *numneighs,
               xcovm1_r -= dfact[5] * m_Ylms_r[m_ellm1[l] + m - 1];
               xcovm1_i -= dfact[5] * m_Ylms_i[m_ellm1[l] + m - 1];
             }
-            m_dYlm_r[i * 3 + 0] = 1.0 / sqrt(2.0)
-              * (xcovm1_r - xcovpl1_r);
+            m_dYlm_r[i * 3 + 0] = 1.0 / sqrt(2.0) * (xcovm1_r - xcovpl1_r);
             m_dYlm_r[i * 3 + 1] = -comj_i * (xcovm1_i + xcovpl1_i);
             m_dYlm_r[i * 3 + 2] = xcov0_r;
 
-            m_dYlm_i[i * 3 + 0] = 1.0 / sqrt(2.0)
-              * (xcovm1_i - xcovpl1_i);
+            m_dYlm_i[i * 3 + 0] = 1.0 / sqrt(2.0) * (xcovm1_i - xcovpl1_i);
             m_dYlm_i[i * 3 + 1] = comj_i * (xcovm1_r + xcovpl1_r);
             m_dYlm_i[i * 3 + 2] = xcov0_i;
 
@@ -1211,68 +1149,61 @@ void MLIAP_SO3::spectrum_dxdr(int natoms, int *numneighs,
           }
         }
 
-        for (int ii = 0; ii < 3; ii++)
-          dexpfac[ii] = -2.0 * alpha * rvec[ii];
+        for (int ii = 0; ii < 3; ii++) dexpfac[ii] = -2.0 * alpha * rvec[ii];
 
-        sfac=compute_sfac(r,rcut);
-        dsfac=compute_dsfac(r,rcut);
-        for(int ii=0;ii<3;ii++){
-          dsfac_arr[ii]=dsfac*rvec[ii]/r;
-        }
+        sfac = compute_sfac(r, rcut);
+        dsfac = compute_dsfac(r, rcut);
+        for (int ii = 0; ii < 3; ii++) { dsfac_arr[ii] = dsfac * rvec[ii] / r; }
 
         for (int n = 1; n < nmax + 1; n++) {
           int i = 0;
           for (int l = 0; l < lmax + 1; l++) {
-            r_int = m_rip_array[(idpair - 1) * m_nmax * (m_lmax + 1)
-              + (n - 1) * (m_lmax + 1) + l];
-            r_int_temp = m_rip_darray[(idpair - 1) * m_nmax
-              * (m_lmax + 1) + (n - 1) * (m_lmax + 1) + l];
+            r_int = m_rip_array[(idpair - 1) * m_nmax * (m_lmax + 1) + (n - 1) * (m_lmax + 1) + l];
+            r_int_temp =
+                m_rip_darray[(idpair - 1) * m_nmax * (m_lmax + 1) + (n - 1) * (m_lmax + 1) + l];
 
-            for (int ii = 0; ii < 3; ii++)
-              dr_int[ii] = r_int_temp * 2.0 * alpha * rvec[ii] / r;
+            for (int ii = 0; ii < 3; ii++) dr_int[ii] = r_int_temp * 2.0 * alpha * rvec[ii] / r;
 
             for (int m = -l; m < l + 1; m++) {
 
-              m_dclist_r[((n-1)*m_numYlms+i)*3+0] +=
-                (r_int*m_Ylms_r[i]*dexpfac[0] + dr_int[0]*m_Ylms_r[i]
-                  + r_int*m_dYlm_r[i*3+0])*sfac;
-              m_dclist_r[((n-1)*m_numYlms+i)*3+1] +=
-                (r_int*m_Ylms_r[i]*dexpfac[1] + dr_int[1]*m_Ylms_r[i]
-                  + r_int*m_dYlm_r[i*3+1])*sfac;
-              m_dclist_r[((n-1)*m_numYlms+i)*3+2] +=
-                (r_int*m_Ylms_r[i]*dexpfac[2] + dr_int[2]*m_Ylms_r[i]
-                  + r_int*m_dYlm_r[i*3+2])*sfac;
+              m_dclist_r[((n - 1) * m_numYlms + i) * 3 + 0] +=
+                  (r_int * m_Ylms_r[i] * dexpfac[0] + dr_int[0] * m_Ylms_r[i] +
+                   r_int * m_dYlm_r[i * 3 + 0]) *
+                  sfac;
+              m_dclist_r[((n - 1) * m_numYlms + i) * 3 + 1] +=
+                  (r_int * m_Ylms_r[i] * dexpfac[1] + dr_int[1] * m_Ylms_r[i] +
+                   r_int * m_dYlm_r[i * 3 + 1]) *
+                  sfac;
+              m_dclist_r[((n - 1) * m_numYlms + i) * 3 + 2] +=
+                  (r_int * m_Ylms_r[i] * dexpfac[2] + dr_int[2] * m_Ylms_r[i] +
+                   r_int * m_dYlm_r[i * 3 + 2]) *
+                  sfac;
 
-              m_dclist_i[((n-1)*m_numYlms+i)*3+0] +=
-                (r_int*m_Ylms_i[i]*dexpfac[0] + dr_int[0]*m_Ylms_i[i]
-                  + r_int*m_dYlm_i[i*3+0])*sfac;
-              m_dclist_i[((n-1)*m_numYlms+i)*3+1] +=
-                (r_int*m_Ylms_i[i]*dexpfac[1] + dr_int[1]*m_Ylms_i[i]
-                  + r_int*m_dYlm_i[i*3+1])*sfac;
-              m_dclist_i[((n-1)*m_numYlms+i)*3+2] +=
-                (r_int*m_Ylms_i[i]*dexpfac[2] + dr_int[2]*m_Ylms_i[i]
-                  + r_int*m_dYlm_i[i*3+2])*sfac;
+              m_dclist_i[((n - 1) * m_numYlms + i) * 3 + 0] +=
+                  (r_int * m_Ylms_i[i] * dexpfac[0] + dr_int[0] * m_Ylms_i[i] +
+                   r_int * m_dYlm_i[i * 3 + 0]) *
+                  sfac;
+              m_dclist_i[((n - 1) * m_numYlms + i) * 3 + 1] +=
+                  (r_int * m_Ylms_i[i] * dexpfac[1] + dr_int[1] * m_Ylms_i[i] +
+                   r_int * m_dYlm_i[i * 3 + 1]) *
+                  sfac;
+              m_dclist_i[((n - 1) * m_numYlms + i) * 3 + 2] +=
+                  (r_int * m_Ylms_i[i] * dexpfac[2] + dr_int[2] * m_Ylms_i[i] +
+                   r_int * m_dYlm_i[i * 3 + 2]) *
+                  sfac;
 
+              m_dclist_r[((n - 1) * m_numYlms + i) * 3 + 0] += (r_int * m_Ylms_r[i]) * dsfac_arr[0];
+              m_dclist_r[((n - 1) * m_numYlms + i) * 3 + 1] += (r_int * m_Ylms_r[i]) * dsfac_arr[1];
+              m_dclist_r[((n - 1) * m_numYlms + i) * 3 + 2] += (r_int * m_Ylms_r[i]) * dsfac_arr[2];
 
-              m_dclist_r[((n-1)*m_numYlms+i)*3+0] +=
-                (r_int*m_Ylms_r[i])*dsfac_arr[0];
-              m_dclist_r[((n-1)*m_numYlms+i)*3+1] +=
-                (r_int*m_Ylms_r[i])*dsfac_arr[1];
-              m_dclist_r[((n-1)*m_numYlms+i)*3+2] +=
-                (r_int*m_Ylms_r[i])*dsfac_arr[2];
-
-              m_dclist_i[((n-1)*m_numYlms+i)*3+0] +=
-                (r_int*m_Ylms_i[i])*dsfac_arr[0];
-              m_dclist_i[((n-1)*m_numYlms+i)*3+1] +=
-                (r_int*m_Ylms_i[i])*dsfac_arr[1];
-              m_dclist_i[((n-1)*m_numYlms+i)*3+2] +=
-                (r_int*m_Ylms_i[i])*dsfac_arr[2];
+              m_dclist_i[((n - 1) * m_numYlms + i) * 3 + 0] += (r_int * m_Ylms_i[i]) * dsfac_arr[0];
+              m_dclist_i[((n - 1) * m_numYlms + i) * 3 + 1] += (r_int * m_Ylms_i[i]) * dsfac_arr[1];
+              m_dclist_i[((n - 1) * m_numYlms + i) * 3 + 2] += (r_int * m_Ylms_i[i]) * dsfac_arr[2];
 
               i += 1;
             }
           }
         }
-
       }
       /////// end compute_carray_wD //////////////////
 
@@ -1283,21 +1214,15 @@ void MLIAP_SO3::spectrum_dxdr(int natoms, int *numneighs,
       }
 
       totali = numps * 3;
-      for (ti = 0; ti < totali; ti++)
-        m_tempdp_r[ti] = 0.0;
+      for (ti = 0; ti < totali; ti++) m_tempdp_r[ti] = 0.0;
 
-      compute_dpidrj(nmax, lmax, m_clisttot_r, m_clisttot_i,
-        m_numYlms, m_dclist_r, m_dclist_i, m_numYlms, 3,
-          m_tempdp_r, 3);
+      compute_dpidrj(nmax, lmax, m_clisttot_r, m_clisttot_i, m_numYlms, m_dclist_r, m_dclist_i,
+                     m_numYlms, 3, m_tempdp_r, 3);
 
       for (int tn = 0; tn < totali; tn++)
-        m_dplist_r[((idpair - 1) * (numps * 3)) + tn] +=
-          m_tempdp_r[tn];
+        m_dplist_r[((idpair - 1) * (numps * 3)) + tn] += m_tempdp_r[tn];
 
-    } //for(neighbor=0;neighbor<numneighs[ii];neighbor++){
+    }    //for(neighbor=0;neighbor<numneighs[ii];neighbor++){
 
-  } //for (int ii = 0; ii < natoms; ii++) {
-
-  return;
-
+  }    //for (int ii = 0; ii < natoms; ii++) {
 }

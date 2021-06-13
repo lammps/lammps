@@ -5,12 +5,11 @@
 
 namespace LAMMPS_NS {
 
-class MLIAP_SO3: protected Pointers {
+class MLIAP_SO3 : protected Pointers {
 
  public:
-
-  MLIAP_SO3(LAMMPS*, double vrcut, int vlmax, int vnmax, double valpha);
-  MLIAP_SO3(LAMMPS *lmp) : Pointers(lmp) {};
+  MLIAP_SO3(LAMMPS *, double vrcut, int vlmax, int vnmax, double valpha);
+  MLIAP_SO3(LAMMPS *lmp) : Pointers(lmp){};
 
   ~MLIAP_SO3();
 
@@ -23,7 +22,6 @@ class MLIAP_SO3: protected Pointers {
   double *m_dplist_r;
 
  private:
-
   int *m_ellpl1, *m_ellm1;
   double *m_pfac;
   int m_pfac_l1, m_pfac_l2;
@@ -50,52 +48,41 @@ class MLIAP_SO3: protected Pointers {
   double *m_dplist_i, *m_dclist_r, *m_dclist_i, *m_tempdp_r;
 
  public:
-
-  void spectrum(int natoms, int *numneighs, int *jelems,
-                double *wjelem,double **rij, int nmax, int lmax,
-                double rcut, double alpha, int ncoefs);
-  void spectrum_dxdr(int natoms, int *numneighs, int *jelems,
-                double *wjelem, double **rij, int nmax, int lmax,
-                double rcut, double alpha, int npairs, int ncoefs);
+  void spectrum(int natoms, int *numneighs, int *jelems, double *wjelem, double **rij, int nmax,
+                int lmax, double rcut, double alpha, int ncoefs);
+  void spectrum_dxdr(int natoms, int *numneighs, int *jelems, double *wjelem, double **rij,
+                     int nmax, int lmax, double rcut, double alpha, int npairs, int ncoefs);
 
  private:
-
   double Cosine(double Rij, double Rc);
   double CosinePrime(double Rij, double Rc);
   double compute_sfac(double r, double rcut);
   double compute_dsfac(double r, double rcut);
-  void get_sbes_array(int natoms, int *numneighs, double **rij,
-                      int lmax, double rcut, double alpha);
-  void get_rip_array(int natoms, int *numneighs,
-                     double **rij, int nmax, int lmax, double alpha);
+  void get_sbes_array(int natoms, int *numneighs, double **rij, int lmax, double rcut,
+                      double alpha);
+  void get_rip_array(int natoms, int *numneighs, double **rij, int nmax, int lmax, double alpha);
   void init_arrays(int natoms, int ncoefs);
-  void init_garray(int nmax, int lmax, double rcut, double alpha,
-                   double *w, int lw1, double *g_array, int lg2);
+  void init_garray(int nmax, int lmax, double rcut, double alpha, double *w, int lw1,
+                   double *g_array, int lg2);
 
-  void compute_uarray_recursive(double x, double y, double z,
-                                double r, int twol, double *ulist_r,
-                                double *ulist_i, int *idxu_block,
-                                double *rootpqarray);
+  void compute_uarray_recursive(double x, double y, double z, double r, int twol, double *ulist_r,
+                                double *ulist_i, int *idxu_block, double *rootpqarray);
   void compute_ncoeff();
 
   int get_sum(int istart, int iend, int id, int imult);
 
-  void compute_dpidrj(int nmax, int lmax, double *clisttot_r,
-  double *clisttot_i, int lctot2, double *dclist_r,
-  double *dclist_i, int ldcli2, int ldcli3,
-  double *dplist_r, int dpli2);
+  void compute_dpidrj(int nmax, int lmax, double *clisttot_r, double *clisttot_i, int lctot2,
+                      double *dclist_r, double *dclist_i, int ldcli2, int ldcli3, double *dplist_r,
+                      int dpli2);
 
   double compute_g(double r, int n, int nmax, double rcut, double *w, int lw1);
   double phi(double r, int alpha, double rcut);
-  void compute_pi(int nmax, int lmax, double *clisttot_r,
-                  double *clisttot_i, int lcl2,
-                  double *plist_r, double *plist_i,
-                  int lpl2, int indpl);
+  void compute_pi(int nmax, int lmax, double *clisttot_r, double *clisttot_i, int lcl2,
+                  double *plist_r, double *plist_i, int lpl2, int indpl);
 
   void compute_W(int nmax, double *arr);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
-

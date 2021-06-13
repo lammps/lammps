@@ -21,27 +21,25 @@ namespace LAMMPS_NS {
 class MLIAPDescriptorSO3 : public MLIAPDescriptor {
 
  public:
-
-  MLIAPDescriptorSO3(LAMMPS*, char*);
+  MLIAPDescriptorSO3(LAMMPS *, char *);
   ~MLIAPDescriptorSO3();
 
-  virtual void compute_descriptors(class MLIAPData*);
-  virtual void compute_forces(class MLIAPData*);
-  virtual void compute_force_gradients(class MLIAPData*) {};
-  virtual void compute_descriptor_gradients(class MLIAPData*) {};
+  virtual void compute_descriptors(class MLIAPData *);
+  virtual void compute_forces(class MLIAPData *);
+  virtual void compute_force_gradients(class MLIAPData *){};
+  virtual void compute_descriptor_gradients(class MLIAPData *){};
   virtual void init();
   virtual double memory_usage();
 
   double rcutfac;
 
  protected:
-
-  class MLIAP_SO3* so3ptr;
+  class MLIAP_SO3 *so3ptr;
   void read_paramfile(char *);
-  inline int equal(double* x,double* y);
-  inline double dist2(double* x,double* y);
+  inline int equal(double *x, double *y);
+  inline double dist2(double *x, double *y);
 
-  int nmax,lmax;
+  int nmax, lmax;
   double alpha;
 
   double *radelem;
@@ -50,7 +48,6 @@ class MLIAPDescriptorSO3 : public MLIAPDescriptor {
   int chemflag, bnormflag, wselfallflag;
   double rfac0, rmin0;
 };
-}
+}    // namespace LAMMPS_NS
 
 #endif
-

@@ -21,19 +21,21 @@ namespace LAMMPS_NS {
 class MLIAPDescriptor : protected Pointers {
  public:
   MLIAPDescriptor(LAMMPS *);
-  ~MLIAPDescriptor();
+  virtual ~MLIAPDescriptor();
   virtual void compute_descriptors(class MLIAPData *) = 0;
   virtual void compute_forces(class MLIAPData *) = 0;
   virtual void compute_force_gradients(class MLIAPData *) = 0;
   virtual void compute_descriptor_gradients(class MLIAPData *) = 0;
   virtual void init() = 0;
-  virtual double memory_usage() = 0;
+  virtual double memory_usage();
 
   int ndescriptors;    // number of descriptors
   int nelements;       // # of unique elements
   char **elements;     // names of unique elements
   double **cutsq;      // nelem x nelem rcutsq values
   double cutmax;       // maximum cutoff needed
+  double *radelem;     // element radii
+  double *wjelem;      // elements weights
  protected:
 };
 

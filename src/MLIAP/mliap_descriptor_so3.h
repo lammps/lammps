@@ -22,7 +22,7 @@ class MLIAPDescriptorSO3 : public MLIAPDescriptor {
 
  public:
   MLIAPDescriptorSO3(LAMMPS *, char *);
-  ~MLIAPDescriptorSO3();
+  virtual ~MLIAPDescriptorSO3();
 
   virtual void compute_descriptors(class MLIAPData *);
   virtual void compute_forces(class MLIAPData *);
@@ -42,8 +42,6 @@ class MLIAPDescriptorSO3 : public MLIAPDescriptor {
   int nmax, lmax;
   double alpha;
 
-  double *radelem;
-  double *wjelem;
   int twojmax, switchflag, bzeroflag;
   int chemflag, bnormflag, wselfallflag;
   double rfac0, rmin0;

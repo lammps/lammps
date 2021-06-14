@@ -34,8 +34,6 @@ using namespace LAMMPS_NS;
 
 MLIAPDescriptorSO3::MLIAPDescriptorSO3(LAMMPS *lmp, char *paramfilename) : MLIAPDescriptor(lmp)
 {
-  nelements = 0;
-  elements = nullptr;
   radelem = nullptr;
   wjelem = nullptr;
   so3ptr = nullptr;
@@ -50,13 +48,8 @@ MLIAPDescriptorSO3::MLIAPDescriptorSO3(LAMMPS *lmp, char *paramfilename) : MLIAP
 
 MLIAPDescriptorSO3::~MLIAPDescriptorSO3()
 {
-  if (nelements) {
-    for (int i = 0; i < nelements; i++) delete[] elements[i];
-    delete[] elements;
-    memory->destroy(radelem);
-    memory->destroy(wjelem);
-    memory->destroy(cutsq);
-  }
+  memory->destroy(radelem);
+  memory->destroy(wjelem);
   delete so3ptr;
 }
 
@@ -77,6 +70,12 @@ void MLIAPDescriptorSO3::read_paramfile(char *paramfilename)
 
   rfac0 = 0.99363;
   rmin0 = 0.0;
+
+  for (int i = 0; i < nelements; i++) delete[] elements[i];
+  delete[] elements;
+  memory->destroy(radelem);
+  memory->destroy(wjelem);
+  memory->destroy(cutsq);
 
   // open SO3 parameter file on proc 0
 
@@ -272,11 +271,8 @@ void MLIAPDescriptorSO3::init()
 
 double MLIAPDescriptorSO3::memory_usage()
 {
-  double bytes = 0;
-
-  bytes += (double) nelements * sizeof(double);
-  bytes += (double) nelements * sizeof(double);
-  bytes += (double) nelements * nelements * sizeof(int);
+  double bytes = MLIAPDescriptor::memory_usage();
+  bytes += so3ptr->memory_usage();
 
   return bytes;
 }

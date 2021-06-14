@@ -30,7 +30,7 @@ action () {
 # are installed, which in turn requires KSPACE
 
 if (test $1 = 1) then
-  if (test ! -e ../ppp.cpp) then
+  if (test ! -e ../pppm.cpp) then
     echo "Must install KSPACE package with USER-DIELECTRIC"
     exit 1
   fi

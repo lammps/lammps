@@ -269,7 +269,9 @@ void FixGCMC::options(int narg, char **arg)
   energy_intra = 0.0;
   tfac_insert = 1.0;
   overlap_cutoffsq = 0.0;
+  max_sepsq = 1.0e50;
   overlap_flag = 0;
+  max_sep_flag = 0;
   min_ngas = -1;
   max_ngas = INT_MAX;
 
@@ -380,6 +382,12 @@ void FixGCMC::options(int narg, char **arg)
       double rtmp = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       overlap_cutoffsq = rtmp*rtmp;
       overlap_flag = 1;
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"max_sep") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
+      double rtmp = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      max_sepsq = rtmp*rtmp;
+      max_sep_flag = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"min") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
@@ -737,6 +745,9 @@ void FixGCMC::pre_exchange()
     if (overlap_flag && energy_stored > MAXENERGYTEST)
         error->warning(FLERR,"Energy of old configuration in "
                        "fix gcmc is > MAXENERGYTEST.");
+    if (max_sep_flag && energy_stored > MAXENERGYTEST)
+        error->warning(FLERR,"Energy of old configuration in "
+                       "fix gcmc is > MAXENERGYTEST.");
 
     for (int i = 0; i < ncycles; i++) {
       int ixm = static_cast<int>(random_equal->uniform()*ncycles) + 1;
@@ -803,6 +814,9 @@ void FixGCMC::attempt_atomic_translation()
     double **x = atom->x;
     double energy_before = energy(i,ngcmc_type,-1,x[i]);
     if (overlap_flag && energy_before > MAXENERGYTEST)
+        error->warning(FLERR,"Energy of old configuration in "
+                       "fix gcmc is > MAXENERGYTEST.");
+    if (max_sep_flag && energy_before > MAXENERGYTEST)
         error->warning(FLERR,"Energy of old configuration in "
                        "fix gcmc is > MAXENERGYTEST.");
     double rsq = 1.1;
@@ -1030,6 +1044,9 @@ void FixGCMC::attempt_molecule_translation()
   if (overlap_flag && energy_before_sum > MAXENERGYTEST)
     error->warning(FLERR,"Energy of old configuration in "
                    "fix gcmc is > MAXENERGYTEST.");
+  if (max_sep_flag && energy_before_sum > MAXENERGYTEST)
+    error->warning(FLERR,"Energy of old configuration in "
+                   "fix gcmc is > MAXENERGYTEST.");
 
   double **x = atom->x;
   double rx,ry,rz;
@@ -1127,6 +1144,9 @@ void FixGCMC::attempt_molecule_rotation()
 
   double energy_before_sum = molecule_energy(rotation_molecule);
   if (overlap_flag && energy_before_sum > MAXENERGYTEST)
+    error->warning(FLERR,"Energy of old configuration in "
+                   "fix gcmc is > MAXENERGYTEST.");
+  if (max_sep_flag && energy_before_sum > MAXENERGYTEST)
     error->warning(FLERR,"Energy of old configuration in "
                    "fix gcmc is > MAXENERGYTEST.");
 
@@ -2195,6 +2215,8 @@ double FixGCMC::energy(int i, int itype, tagint imolecule, double *coord)
 
   double total_energy = 0.0;
 
+  int belongs_to_cluster = 0;
+
   for (int j = 0; j < nall; j++) {
 
     if (i == j) continue;
@@ -2213,10 +2235,19 @@ double FixGCMC::energy(int i, int itype, tagint imolecule, double *coord)
     if (overlap_flag && rsq < overlap_cutoffsq)
       return MAXENERGYSIGNAL;
 
+    if (max_sep_flag && rsq < max_sepsq)
+      belongs_to_cluster = 1;
+
     if (rsq < cutsq[itype][jtype])
       total_energy +=
         pair->single(i,j,itype,jtype,rsq,factor_coul,factor_lj,fpair);
   }
+
+  // if atom is farther than max_sep distance from
+  // all other atoms, return signal value for energy
+
+  if (max_sep_flag && belongs_to_cluster == 0)
+    return MAXENERGYSIGNAL;
 
   return total_energy;
 }
@@ -2262,9 +2293,11 @@ double FixGCMC::energy_full()
   // if overlap check requested, if overlap,
   // return signal value for energy
 
-  if (overlap_flag) {
+  if (overlap_flag || max_sep_flag) {
     int overlaptestall;
+    int max_septestall;
     int overlaptest = 0;
+    int max_septest = 0;
     double delx,dely,delz,rsq;
     double **x = atom->x;
     tagint *molecule = atom->molecule;
@@ -2281,16 +2314,24 @@ double FixGCMC::energy_full()
         delz = x[i][2] - x[j][2];
         rsq = delx*delx + dely*dely + delz*delz;
 
-        if (rsq < overlap_cutoffsq) {
+        if (overlap_flag && rsq < overlap_cutoffsq) {
           overlaptest = 1;
+          break;
+        }
+        if (max_sep_flag && rsq > max_sepsq) {
+          max_septest = 1;
           break;
         }
       }
       if (overlaptest) break;
+      if (max_septest) break;
     }
     MPI_Allreduce(&overlaptest, &overlaptestall, 1,
                   MPI_INT, MPI_MAX, world);
+    MPI_Allreduce(&max_septest, &max_septestall, 1,
+                  MPI_INT, MPI_MAX, world);
     if (overlaptestall) return MAXENERGYSIGNAL;
+    if (max_septestall) return MAXENERGYSIGNAL;
   }
 
   // clear forces so they don't accumulate over multiple

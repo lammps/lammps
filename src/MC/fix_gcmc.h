@@ -118,7 +118,9 @@ class FixGCMC : public Fix {
   imageint *molimage;
   imageint imagezero;
   double overlap_cutoffsq;    // square distance cutoff for overlap
+  double max_sepsq;           // square max separation distance
   int overlap_flag;
+  int max_sep_flag;
   int max_ngas;
   int min_ngas;
 

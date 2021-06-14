@@ -469,21 +469,22 @@ void PPPMDielectric::slabcorr()
 }
 
 /* ----------------------------------------------------------------------
-   compute qsum,qsqsum,q2 and give error/warning if not charge neutral
-   called initially, when particle count changes, when charges are changed
+   compute qsum,qsqsum,q2 and ignore error/warning if not charge neutral
+   called whenever charges are changed
 ------------------------------------------------------------------------- */
 
 void PPPMDielectric::qsum_qsq()
 {
   const double * const q = atom->q;
-  const double * const eps = atom->epsilon;
   const int nlocal = atom->nlocal;
   double qsum_local(0.0), qsqsum_local(0.0);
 
+#if defined(_OPENMP)
+#pragma omp parallel for default(shared) reduction(+:qsum_local,qsqsum_local)
+#endif
   for (int i = 0; i < nlocal; i++) {
-    double qtmp = eps[i]*q[i];
-    qsum_local += qtmp;
-    qsqsum_local += qtmp*qtmp;
+    qsum_local += q[i];
+    qsqsum_local += q[i]*q[i];
   }
 
   MPI_Allreduce(&qsum_local,&qsum,1,MPI_DOUBLE,MPI_SUM,world);

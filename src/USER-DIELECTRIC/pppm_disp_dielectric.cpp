@@ -852,7 +852,6 @@ double PPPMDispDielectric::memory_usage()
 void PPPMDispDielectric::qsum_qsq()
 {
   const double * const q = atom->q;
-  const double * const eps = atom->epsilon;
   const int nlocal = atom->nlocal;
   double qsum_local(0.0), qsqsum_local(0.0);
 
@@ -860,9 +859,8 @@ void PPPMDispDielectric::qsum_qsq()
 #pragma omp parallel for default(none) reduction(+:qsum_local,qsqsum_local)
 #endif
   for (int i = 0; i < nlocal; i++) {
-    double qtmp = eps[i]*q[i];
-    qsum_local += qtmp;
-    qsqsum_local += qtmp*qtmp;
+    qsum_local += q[i];
+    qsqsum_local += q[i]*q[i];
   }
 
   MPI_Allreduce(&qsum_local,&qsum,1,MPI_DOUBLE,MPI_SUM,world);

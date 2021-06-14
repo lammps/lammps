@@ -17,6 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_box_relax.h"
+
 #include "atom.h"
 #include "comm.h"
 #include "compute.h"
@@ -900,7 +901,6 @@ double FixBoxRelax::compute_strain_energy()
   }
 
   double energy = 0.5*(d0+d1+d2)*pv2e;
-  std::cout << energy << "\n";
   return energy;
 }
 

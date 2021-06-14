@@ -77,9 +77,38 @@
    fun:call_init
    fun:call_init
    fun:_dl_init
-   obj:/usr/lib*/ld*.so
+   ...
    obj:*
+}
+{
+   OpnMP_init_part7
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   ...
+   fun:GOMP_parallel
+   ...
    obj:*
+}
+{
+   OpnMP_init_part8
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   ...
+   fun:omp_set_num_threads
+   ...
    obj:*
+}
+{
+   OpnMP_init_part9
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   ...
+   fun:pthread_create
+   ...
+   fun:GOMP_parallel
+   ...
    obj:*
 }

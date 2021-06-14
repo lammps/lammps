@@ -3758,7 +3758,7 @@ void CommCAC::deallocate_swap(int n)
    return # of bytes of allocated memory
 ------------------------------------------------------------------------- */
 
-bigint CommCAC::memory_usage()
+double CommCAC::memory_usage()
 {
   bigint bytes = 0;
   return bytes;

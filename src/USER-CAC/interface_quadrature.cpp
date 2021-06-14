@@ -25,7 +25,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-InterfaceQuadrature::InterfaceQuadrature(LAMMPS *lmp) : Pointers(lmp) {}
+InterfaceQuadrature::InterfaceQuadrature(LAMMPS *lmp) : Command(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 

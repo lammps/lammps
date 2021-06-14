@@ -68,10 +68,10 @@ FixCACSwap::FixCACSwap(LAMMPS *lmp, int narg, char **arg) :
 
   // required args
 
-  nevery = force->inumeric(FLERR,arg[3]);
-  ncycles = force->inumeric(FLERR,arg[4]);
-  seed = force->inumeric(FLERR,arg[5]);
-  double temperature = force->numeric(FLERR,arg[6]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
+  ncycles = utils::inumeric(FLERR,arg[4],false,lmp);
+  seed = utils::inumeric(FLERR,arg[5],false,lmp);
+  double temperature = utils::numeric(FLERR,arg[6],false,lmp);
   beta = 1.0/(force->boltz*temperature);
 
   if (nevery <= 0) error->all(FLERR,"Illegal fix cac/swap command");
@@ -162,7 +162,7 @@ void FixCACSwap::options(int narg, char **arg)
       while (iarg < narg) {
         if (isalpha(arg[iarg][0])) break;
         if (nswaptypes >= atom->ntypes) error->all(FLERR,"Illegal fix cac/swap command");
-        type_list[nswaptypes] = force->numeric(FLERR,arg[iarg]);
+        type_list[nswaptypes] = utils::numeric(FLERR,arg[iarg],false,lmp);
         nswaptypes++;
         iarg++;
       }
@@ -173,7 +173,7 @@ void FixCACSwap::options(int narg, char **arg)
         if (isalpha(arg[iarg][0])) break;
         nmutypes++;
         if (nmutypes > atom->ntypes) error->all(FLERR,"Illegal fix cac/swap command");
-        mu[nmutypes] = force->numeric(FLERR,arg[iarg]);
+        mu[nmutypes] = utils::numeric(FLERR,arg[iarg],false,lmp);
         iarg++;
       }
     } else error->all(FLERR,"Illegal fix cac/swap command");

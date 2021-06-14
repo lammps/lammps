@@ -61,7 +61,7 @@ class AtomVecCAC : public AtomVec {
   virtual void data_atom(double *, imageint, char **);
   virtual void pack_data(double **);
   virtual void write_data(FILE *, int, double **);
-  virtual bigint memory_usage();
+  virtual double memory_usage();
   virtual void force_clear(int, size_t);
   virtual int check_distance_function(double deltasq); //specific neighbor rebuild check function 
   virtual void set_hold_properties(); //sets nodal positions at reneighboring step for comparison

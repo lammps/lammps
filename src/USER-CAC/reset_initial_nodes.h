@@ -12,19 +12,19 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMMAND_CLASS
-
+// clang-format off
 CommandStyle(reset_initial_nodes,ResetInitialNodes)
-
+// clang-format on
 #else
 
 #ifndef LMP_RESET_INITIAL_NODES_H
 #define LMP_RESET_INITIAL_NODES_H
 
-#include "pointers.h"
+#include "command.h"
 
 namespace LAMMPS_NS {
 
-class ResetInitialNodes : protected Pointers {
+class ResetInitialNodes : public Command {
  public:
   ResetInitialNodes(class LAMMPS *);
   void command(int, char **);

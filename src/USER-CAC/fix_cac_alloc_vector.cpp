@@ -29,7 +29,7 @@ FixCACAllocVector::FixCACAllocVector(LAMMPS *lmp, int narg, char **arg) :
   nvector(0), peratom(NULL), nodal_vectors(NULL)
 {
   if(narg==4)
-    callback = force->inumeric(FLERR,arg[3]);
+    callback = utils::inumeric(FLERR,arg[3],false,lmp);
   else
     callback = 0;
   // register callback to this fix from Atom class

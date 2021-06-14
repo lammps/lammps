@@ -98,7 +98,7 @@ void NStencilCAC::post_create_setup()
       }
     }
 
-  } else {
+  } /*else {
     int i;
     int n = atom->ntypes;
     if (maxstencil_multi == 0) {
@@ -123,4 +123,5 @@ void NStencilCAC::post_create_setup()
       }
     }
   }
+  */
 }

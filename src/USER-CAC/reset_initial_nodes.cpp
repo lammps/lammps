@@ -12,6 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "reset_initial_nodes.h"
+
 #include "atom.h"
 #include "atom_vec.h"
 #include "domain.h"
@@ -24,7 +25,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ResetInitialNodes::ResetInitialNodes(LAMMPS *lmp) : Pointers(lmp) {}
+ResetInitialNodes::ResetInitialNodes(LAMMPS *lmp) : Command(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 

@@ -20,11 +20,11 @@ CommandStyle(interface_quadrature,InterfaceQuadrature)
 #ifndef LMP_INTERFACE_QUADRATURE_H
 #define LMP_INTERFACE_QUADRATURE_H
 
-#include "pointers.h"
+#include "command.h"
 
 namespace LAMMPS_NS {
 
-class InterfaceQuadrature : protected Pointers {
+class InterfaceQuadrature : public Command {
  public:
   InterfaceQuadrature(class LAMMPS *);
   void command(int, char **);

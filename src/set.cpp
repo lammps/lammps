@@ -100,7 +100,7 @@ void Set::command(int narg, char **arg)
     } else if (strcmp(arg[iarg],"cac/type") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal set command");
       if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) varparse(arg[iarg+1],1);
-      else ivalue = force->numeric(FLERR,arg[iarg+1]);
+      else ivalue = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (!atom->CAC_flag)
         error->all(FLERR,"Cannot set this attribute for this atom style");
       set(CAC_TYPE);
@@ -122,9 +122,9 @@ void Set::command(int narg, char **arg)
 
     } else if (strcmp(arg[iarg],"cac/type/fraction") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal set command");
-      newtype = force->inumeric(FLERR,arg[iarg+1]);
-      fraction = force->numeric(FLERR,arg[iarg+2]);
-      ivalue = force->inumeric(FLERR,arg[iarg+3]);
+      newtype = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      fraction = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      ivalue = utils::inumeric(FLERR,arg[iarg+3],false,lmp);
       if (newtype <= 0 || newtype > atom->ntypes)
         error->all(FLERR,"Invalid value in set command");
       if (fraction < 0.0 || fraction > 1.0)
@@ -227,7 +227,7 @@ void Set::command(int narg, char **arg)
     } else if (strcmp(arg[iarg],"cac/charge") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal set command");
       if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) varparse(arg[iarg+1],1);
-      else dvalue = force->numeric(FLERR,arg[iarg+1]);
+      else dvalue = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (!atom->CAC_flag)
         error->all(FLERR,"Cannot set this attribute for this atom style");
       set(CAC_CHARGE);

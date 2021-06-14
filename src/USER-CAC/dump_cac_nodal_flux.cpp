@@ -48,16 +48,16 @@ DumpCACNodalFlux::DumpCACNodalFlux(LAMMPS *lmp, int narg, char **arg) : Dump(lmp
   box_center[1]=0;
   box_center[2]=0;
 
-  box_size[0]=force->numeric(FLERR,arg[6]);
-  box_size[1]=force->numeric(FLERR,arg[7]);
-  box_size[2]=force->numeric(FLERR,arg[8]);
+  box_size[0]=utils::numeric(FLERR,arg[6],false,lmp);
+  box_size[1]=utils::numeric(FLERR,arg[7],false,lmp);
+  box_size[2]=utils::numeric(FLERR,arg[8],false,lmp);
   
   if(narg>9){
     if(narg!=12)
     error->all(FLERR,"Illegal dump cac/fluxes command; if specifying box centers specify all three dims.");
-    box_center[0]=force->numeric(FLERR,arg[9]);
-    box_center[1]=force->numeric(FLERR,arg[10]);
-    box_center[2]=force->numeric(FLERR,arg[11]);
+    box_center[0]=utils::numeric(FLERR,arg[9],false,lmp);
+    box_center[1]=utils::numeric(FLERR,arg[10],false,lmp);
+    box_center[2]=utils::numeric(FLERR,arg[11],false,lmp);
   }
 
   //test box sizes for feasibility

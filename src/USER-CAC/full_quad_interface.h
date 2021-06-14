@@ -20,11 +20,11 @@ CommandStyle(full_quad_interface,FullQuadInterface)
 #ifndef LMP_FULL_QUAD_INTERFACE_H
 #define LMP_FULL_QUAD_INTERFACE_H
 
-#include "pointers.h"
+#include "command.h"
 
 namespace LAMMPS_NS {
 
-class FullQuadInterface : protected Pointers {
+class FullQuadInterface : public Command {
  public:
   FullQuadInterface(class LAMMPS *);
   void command(int, char **);

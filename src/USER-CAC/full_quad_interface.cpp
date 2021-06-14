@@ -25,7 +25,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-FullQuadInterface::FullQuadInterface(LAMMPS *lmp) : Pointers(lmp) {}
+FullQuadInterface::FullQuadInterface(LAMMPS *lmp) : Command(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 

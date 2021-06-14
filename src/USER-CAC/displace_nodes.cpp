@@ -42,7 +42,7 @@ enum{MOVE,RAMP,RANDOM,ROTATE};
 
 /* ---------------------------------------------------------------------- */
 
-DisplaceNodes::DisplaceNodes(LAMMPS *lmp) : Pointers(lmp)
+DisplaceNodes::DisplaceNodes(LAMMPS *lmp) : Command(lmp)
 {
   mvec = NULL;
 }
@@ -123,14 +123,14 @@ void DisplaceNodes::command(int narg, char **arg)
 
     double d_lo,d_hi;
     if (d_dim == 0) {
-      d_lo = xscale*force->numeric(FLERR,arg[3]);
-      d_hi = xscale*force->numeric(FLERR,arg[4]);
+      d_lo = xscale*utils::numeric(FLERR,arg[3],false,lmp);
+      d_hi = xscale*utils::numeric(FLERR,arg[4],false,lmp);
     } else if (d_dim == 1) {
-      d_lo = yscale*force->numeric(FLERR,arg[3]);
-      d_hi = yscale*force->numeric(FLERR,arg[4]);
+      d_lo = yscale*utils::numeric(FLERR,arg[3],false,lmp);
+      d_hi = yscale*utils::numeric(FLERR,arg[4],false,lmp);
     } else if (d_dim == 2) {
-      d_lo = zscale*force->numeric(FLERR,arg[3]);
-      d_hi = zscale*force->numeric(FLERR,arg[4]);
+      d_lo = zscale*utils::numeric(FLERR,arg[3],false,lmp);
+      d_hi = zscale*utils::numeric(FLERR,arg[4],false,lmp);
     }
 
     int coord_dim = 0;
@@ -141,14 +141,14 @@ void DisplaceNodes::command(int narg, char **arg)
 
     double coord_lo,coord_hi;
     if (coord_dim == 0) {
-      coord_lo = xscale*force->numeric(FLERR,arg[6]);
-      coord_hi = xscale*force->numeric(FLERR,arg[7]);
+      coord_lo = xscale*utils::numeric(FLERR,arg[6],false,lmp);
+      coord_hi = xscale*utils::numeric(FLERR,arg[7],false,lmp);
     } else if (coord_dim == 1) {
-      coord_lo = yscale*force->numeric(FLERR,arg[6]);
-      coord_hi = yscale*force->numeric(FLERR,arg[7]);
+      coord_lo = yscale*utils::numeric(FLERR,arg[6],false,lmp);
+      coord_hi = yscale*utils::numeric(FLERR,arg[7],false,lmp);
     } else if (coord_dim == 2) {
-      coord_lo = zscale*force->numeric(FLERR,arg[6]);
-      coord_hi = zscale*force->numeric(FLERR,arg[7]);
+      coord_lo = zscale*utils::numeric(FLERR,arg[6],false,lmp);
+      coord_hi = zscale*utils::numeric(FLERR,arg[7],false,lmp);
     }
 
     double **x = atom->x;
@@ -230,7 +230,7 @@ void DisplaceNodes::move(int idim, char *arg, double scale)
   int nodes_per_element;
 
   if (strstr(arg,"v_") != arg) {
-    double delta = scale*force->numeric(FLERR,arg);
+    double delta = scale*utils::numeric(FLERR,arg,false,lmp);
     for (int i = 0; i < nlocal; i++){
       if (mask[i] & groupbit){
         x[i][idim] = 0;

@@ -34,7 +34,7 @@ FixNVECACLimit::FixNVECACLimit(LAMMPS *lmp, int narg, char **arg) :
 
   dynamic_group_allow = 1;
   time_integrate = 1;
-  xlimit = force->numeric(FLERR,arg[3]);
+  xlimit = utils::numeric(FLERR,arg[3],false,lmp);
 }
 
 /* ---------------------------------------------------------------------- */

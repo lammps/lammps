@@ -31,7 +31,7 @@ FixViscousCAC::FixViscousCAC(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 4) error->all(FLERR,"Illegal fix cac/viscous command");
 
-  double gamma_one = force->numeric(FLERR,arg[3]);
+  double gamma_one = utils::numeric(FLERR,arg[3],false,lmp);
   gamma = new double[atom->ntypes+1];
   for (int i = 1; i <= atom->ntypes; i++) gamma[i] = gamma_one;
 
@@ -41,8 +41,8 @@ FixViscousCAC::FixViscousCAC(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"scale") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix cac/viscous command");
-      int itype = force->inumeric(FLERR,arg[iarg+1]);
-      double scale = force->numeric(FLERR,arg[iarg+2]);
+      int itype = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      double scale = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       if (itype <= 0 || itype > atom->ntypes)
         error->all(FLERR,"Illegal fix cac/viscous command");
       gamma[itype] = gamma_one * scale;

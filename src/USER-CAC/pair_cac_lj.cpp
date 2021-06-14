@@ -110,7 +110,7 @@ void PairCACLJ::settings(int narg, char **arg) {
   if (narg <1 || narg>2) error->all(FLERR, "Illegal pair_style command");
 
   force->newton_pair = 0;
-  cut_global_s = force->numeric(FLERR, arg[0]);
+  cut_global_s = utils::numeric(FLERR, arg[0],false,lmp);
   if (narg == 2) {
     if (strcmp(arg[1], "one") == 0) atom->one_layer_flag=one_layer_flag = 1;
     else error->all(FLERR, "Unexpected argument in pair style cac/lj invocation; only accepts cutoff and the 'one' keyword");
@@ -135,14 +135,14 @@ void PairCACLJ::coeff(int narg, char **arg) {
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR, arg[0], atom->ntypes, ilo, ihi);
-  force->bounds(FLERR, arg[1], atom->ntypes, jlo, jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  double epsilon_one = force->numeric(FLERR,arg[2]);
-  double sigma_one = force->numeric(FLERR,arg[3]);
+  double epsilon_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double sigma_one = utils::numeric(FLERR,arg[3],false,lmp);
 
   double cut_one = cut_global_s;
-  if (narg == 5) cut_one = force->numeric(FLERR,arg[4]);
+  if (narg == 5) cut_one = utils::numeric(FLERR,arg[4],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

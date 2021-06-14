@@ -20,11 +20,11 @@ CommandStyle(displace_nodes,DisplaceNodes)
 #ifndef LMP_DISPLACE_NODES_H
 #define LMP_DISPLACE_NODES_H
 
-#include "pointers.h"
+#include "command.h"
 
 namespace LAMMPS_NS {
 
-class DisplaceNodes : protected Pointers {
+class DisplaceNodes : public Command {
  public:
   DisplaceNodes(class LAMMPS *);
   ~DisplaceNodes();

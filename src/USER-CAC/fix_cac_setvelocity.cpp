@@ -55,7 +55,7 @@ FixCAC_Set_Velocity::FixCAC_Set_Velocity(LAMMPS *lmp, int narg, char **arg) :
   } else if (strcmp(arg[3],"NULL") == 0) {
     xstyle = NONE;
   } else {
-    xvalue = force->numeric(FLERR,arg[3]);
+    xvalue = utils::numeric(FLERR,arg[3],false,lmp);
     xstyle = CONSTANT;
   }
   if (strstr(arg[4],"v_") == arg[4]) {
@@ -65,7 +65,7 @@ FixCAC_Set_Velocity::FixCAC_Set_Velocity(LAMMPS *lmp, int narg, char **arg) :
   } else if (strcmp(arg[4],"NULL") == 0) {
     ystyle = NONE;
   } else {
-    yvalue = force->numeric(FLERR,arg[4]);
+    yvalue = utils::numeric(FLERR,arg[4],false,lmp);
     ystyle = CONSTANT;
   }
   if (strstr(arg[5],"v_") == arg[5]) {
@@ -75,7 +75,7 @@ FixCAC_Set_Velocity::FixCAC_Set_Velocity(LAMMPS *lmp, int narg, char **arg) :
   } else if (strcmp(arg[5],"NULL") == 0) {
     zstyle = NONE;
   } else {
-    zvalue = force->numeric(FLERR,arg[5]);
+    zvalue = utils::numeric(FLERR,arg[5],false,lmp);
     zstyle = CONSTANT;
   }
 

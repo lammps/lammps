@@ -100,8 +100,8 @@ void PairCACCoulDSF::settings(int narg, char **arg) {
 
   force->newton_pair = 0;
 
-  alf = force->numeric(FLERR, arg[0]);
-  cut_global_s = force->numeric(FLERR, arg[1]);
+  alf = utils::numeric(FLERR, arg[0],false,lmp);
+  cut_global_s = utils::numeric(FLERR, arg[1],false,lmp);
   if (narg == 3) {
     if (strcmp(arg[2], "one") == 0) atom->one_layer_flag=one_layer_flag = 1;
     else error->all(FLERR, "Unexpected argument in cac/coul/dsf invocation");
@@ -118,8 +118,8 @@ void PairCACCoulDSF::coeff(int narg, char **arg) {
   if (!allocated) allocate();
 
   int ilo, ihi, jlo, jhi;
-  force->bounds(FLERR, arg[0], atom->ntypes, ilo, ihi);
-  force->bounds(FLERR, arg[1], atom->ntypes, jlo, jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

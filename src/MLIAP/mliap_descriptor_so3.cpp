@@ -10,6 +10,9 @@
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+ Contributing authors: Byungkyun Kang (University of Nevada, Las Vegas)
+ ------------------------------------------------------------------------- */
 
 #include "mliap_descriptor_so3.h"
 

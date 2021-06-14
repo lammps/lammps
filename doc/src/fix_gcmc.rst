@@ -24,7 +24,7 @@ Syntax
 
   .. parsed-literal::
 
-     keyword = *mol*\ , *region*\ , *maxangle*\ , *pressure*\ , *fugacity_coeff*, *full_energy*, *charge*\ , *group*\ , *grouptype*\ , *intra_energy*, *tfac_insert*, or *overlap_cutoff*
+     keyword = *mol*\ , *region*\ , *maxangle*\ , *pressure*\ , *fugacity_coeff*, *full_energy*, *charge*\ , *group*\ , *grouptype*\ , *intra_energy*, *tfac_insert*, *overlap_cutoff*, *max_sep*, *max* or *min*
        *mol* value = template-ID
          template-ID = ID of molecule template specified in a separate :doc:`molecule <molecule>` command
        *mcmoves* values = Patomtrans Pmoltrans Pmolrotate
@@ -50,8 +50,9 @@ Syntax
        *intra_energy* value = intramolecular energy (energy units)
        *tfac_insert* value = scale up/down temperature of inserted atoms (unitless)
        *overlap_cutoff* value = maximum pair distance for overlap rejection (distance units)
-       *max* value = Maximum number of molecules allowed in the system
-       *min* value = Minimum number of molecules allowed in the system
+       *max_sep* value = maximum distance between an atom/molecule and a cluster (distance units)
+       *max* value = maximum number of molecules allowed in the system
+       *min* value = minimum number of molecules allowed in the system
 
 Examples
 """"""""
@@ -384,6 +385,17 @@ assigning an infinite positive energy to all new configurations that
 place any pair of atoms closer than the specified overlap cutoff
 distance.
 
+The *max_sep* option can be used to force the atoms to always have a
+neighbor within this distance. In cluster terms, all atoms/molecules belong
+to a cluster when this keyword in envoked. The clusters are then defined by
+the Stillinger cluster criterion :ref:`(Stillinger) <Stillinger1>` with the
+value as the minimum distance between two clusters. If an atom/molecule does
+not belong to a cluster, the interaction energy is effectively set to infinity.
+
+.. note::
+   If the *max_sep* argument is applied and the initial system is empty,
+   the system will remain empty during the GCMC run.
+
 The *max* and *min* keywords allow for the restriction of the number
 of atoms in the simulation. They automatically reject all insertion
 or deletion moves that would take the system beyond the set boundaries.
@@ -488,3 +500,8 @@ listed above.
 
 **(Frenkel)** Frenkel and Smit, Understanding Molecular Simulation,
 Academic Press, London, 2002.
+
+.. _Stillinger1:
+
+**(Stillinger)** F. H. Stillinger, Rigorous Basis of the Frenkel-Band
+Theory of Association Equilibrium, J. Chem. Phys. 38, 1486, (1963).

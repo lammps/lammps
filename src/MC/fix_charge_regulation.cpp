@@ -161,7 +161,7 @@ void FixChargeRegulation::init() {
       error->all(FLERR,"Variable name for fix charge/regulation does not exist");
     if (input->variable->equalstyle(pHvar)) pHstyle = EQUAL;
     else error->all(FLERR,"Variable for fix charge/regulation is invalid style");
-    
+
   }
   if (atom->molecule_flag) {
 

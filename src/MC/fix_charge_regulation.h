@@ -97,7 +97,7 @@ class FixChargeRegulation : public Fix {
   int acid_type, cation_type, base_type, anion_type;    // reacting atom types
   int reaction_distance_flag;                           // radial reaction restriction flag
   double reaction_distance;    // max radial distance from acid/base for ion insertion
-  int pHvar, pHstyle;	       // variable pH style  
+  int pHvar, pHstyle;          // variable pH style
   char *pHstr;                 // variable pH input parsing
 
   class Pair *pair;

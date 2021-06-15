@@ -146,7 +146,7 @@ void FixPolarizeBEMICC::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPolarizeBEMICC::setup(int vflag)
+void FixPolarizeBEMICC::setup(int /*vflag*/)
 {
   // check if the pair styles in use are compatible
 
@@ -236,7 +236,6 @@ void FixPolarizeBEMICC::compute_induced_charges()
   if (kspaceflag) force->kspace->compute(eflag, vflag);
   if (force->newton) comm->reverse_comm();
 
-  int i10 = 0;
   for (int i = 0; i < nlocal; i++) {
     if (!(mask[i] & groupbit)) continue;
 
@@ -397,7 +396,7 @@ int FixPolarizeBEMICC::modify_param(int narg, char **arg)
 
 /* ---------------------------------------------------------------------- */
 
-int FixPolarizeBEMICC::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
+int FixPolarizeBEMICC::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int * /*pbc*/)
 {
   int m;
   for (m = 0; m < n; m++) buf[m] = atom->q[list[m]];

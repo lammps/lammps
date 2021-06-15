@@ -160,14 +160,12 @@ See the :doc:`pair_coeff <pair_coeff>` doc page for alternate ways
 to specify the path for these *model* and *descriptor* files.
 
 .. note::
-   To reduce SO3 descriptor/force calculation time, some variables are pre-computed
-   and reused during the calculation. There are two major arrays where pre-computed factors 
-   were saved. The size of arrays is increased with the number of neighbor atoms.
-   One can estimate size of two major arrays,
-   size of m_sbes_array is (lmax+1)*(nmax+lmax+1)*10*8*total_neighs bytes,
-   and size of m_rip_arry is nmax*(lmax+1)*8*total_neighs, where total_neighs is obtained by
-   summing over number of neighbor of individual atoms which is distributed on MPI ranks
- 
+
+   To significantly reduce SO3 descriptor/force calculation time,
+   some properties are pre-computed and reused during the calculation.
+   These can consume a significant amount of RAM for simulations of
+   larger systems since their size depends on the total number of
+   neighbors per MPI process.
 
 Mixing, shift, table, tail correction, restart, rRESPA info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""

@@ -27,11 +27,11 @@
 #include "dihedral.h"
 #include "domain.h"
 #include "error.h"
-#include "input.h"
 #include "fix.h"
 #include "force.h"
 #include "group.h"
 #include "improper.h"
+#include "input.h"
 #include "kspace.h"
 #include "math_const.h"
 #include "math_special.h"
@@ -1285,9 +1285,7 @@ void FixChargeRegulation::options(int narg, char **arg) {
       if (iarg + 2 > narg)
         error->all(FLERR, "Illegal fix charge/regulation command");
       if (strstr(arg[iarg + 1],"v_") == arg[iarg + 1]) {
-        int n = strlen(&arg[iarg + 1][2]) + 1;
-        pHstr = new char[n];
-        strcpy(pHstr,&arg[iarg + 1][2]);
+        pHstr = utils::strdup(&arg[iarg + 1][2]);
       } else {
         pH = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
         pHstyle = CONSTANT;

@@ -285,9 +285,9 @@ void MLIAP_SO3::init()
 
 /* ---------------------------------------------------------------------- */
 
-void MLIAP_SO3::init_arrays(int natoms, int ncoefs)
+void MLIAP_SO3::init_arrays(int nlocal, int ncoefs)
 {
-  int totali = natoms * ncoefs;
+  int totali = nlocal * ncoefs;
   memory->destroy(m_plist_r);
   memory->create(m_plist_r, totali, "MLIAP_SO3:m_plist_r");
   memory->destroy(m_plist_i);
@@ -685,7 +685,7 @@ void MLIAP_SO3::init_garray(int nmax, int lmax, double rcut, double alpha, doubl
 
 /* ---------------------------------------------------------------------- */
 
-void MLIAP_SO3::get_sbes_array(int natoms, int *numneighs, double **rij, int lmax, double rcut,
+void MLIAP_SO3::get_sbes_array(int nlocal, int *numneighs, double **rij, int lmax, double rcut,
                                double alpha)
 {
   int i, j;
@@ -705,7 +705,7 @@ void MLIAP_SO3::get_sbes_array(int natoms, int *numneighs, double **rij, int lma
   int findex = m_Nmax * (m_lmax + 1);
   int mindex = m_lmax + 1;
 
-  for (int ii = 0; ii < natoms; ii++) {
+  for (int ii = 0; ii < nlocal; ii++) {
 
     for (neighbor = 0; neighbor < numneighs[ii]; neighbor++) {
 
@@ -762,7 +762,7 @@ void MLIAP_SO3::get_sbes_array(int natoms, int *numneighs, double **rij, int lma
 
 /* ---------------------------------------------------------------------- */
 
-void MLIAP_SO3::get_rip_array(int natoms, int *numneighs, double **rij, int nmax, int lmax,
+void MLIAP_SO3::get_rip_array(int nlocal, int *numneighs, double **rij, int nmax, int lmax,
                               double alpha)
 {
   int i, l, n;
@@ -773,7 +773,7 @@ void MLIAP_SO3::get_rip_array(int natoms, int *numneighs, double **rij, int nmax
 
   bigint ipair = 0;
 
-  for (int ii = 0; ii < natoms; ii++)
+  for (int ii = 0; ii < nlocal; ii++)
 
     for (neighbor = 0; neighbor < numneighs[ii]; neighbor++) {
 
@@ -812,10 +812,10 @@ void MLIAP_SO3::get_rip_array(int natoms, int *numneighs, double **rij, int nmax
 
 /* ---------------------------------------------------------------------- */
 
-void MLIAP_SO3::spectrum(int natoms, int *numneighs, int *jelems, double *wjelem, double **rij,
+void MLIAP_SO3::spectrum(int nlocal, int *numneighs, int *jelems, double *wjelem, double **rij,
                          int nmax, int lmax, double rcut, double alpha, int ncoefs)
 {
-  init_arrays(natoms, ncoefs);
+  init_arrays(nlocal, ncoefs);
 
   bigint totaln = 0;
   bigint totali;
@@ -831,7 +831,7 @@ void MLIAP_SO3::spectrum(int natoms, int *numneighs, int *jelems, double *wjelem
 
   findex = m_nmax * (m_lmax + 1);
 
-  for (i = 0; i < natoms; i++) totaln += numneighs[i];
+  for (i = 0; i < nlocal; i++) totaln += numneighs[i];
 
   totali = totaln * m_Nmax * (m_lmax + 1);
   memory->destroy(m_sbes_array);
@@ -854,17 +854,17 @@ void MLIAP_SO3::spectrum(int natoms, int *numneighs, int *jelems, double *wjelem
   memory->create(m_dplist_i, totali, "MLIAP_SO3:m_dplist_i");
   alloc_arrays += 2.0*totali*sizeof(double);
 
-  get_sbes_array(natoms, numneighs, rij, lmax, rcut, alpha);
+  get_sbes_array(nlocal, numneighs, rij, lmax, rcut, alpha);
 
-  get_rip_array(natoms, numneighs, rij, nmax, lmax, alpha);
+  get_rip_array(nlocal, numneighs, rij, nmax, lmax, alpha);
 
-  totali = natoms * ncoefs;
+  totali = nlocal * ncoefs;
   for (i = 0; i < totali; i++) {
     m_plist_r[i] = 0.0;
     m_plist_i[i] = 0.0;
   }
 
-  for (int ii = 0; ii < natoms; ii++) {
+  for (int ii = 0; ii < nlocal; ii++) {
     totali = nmax * m_numYlms;
 
     for (ti = 0; ti < totali; ti++) {
@@ -935,7 +935,7 @@ void MLIAP_SO3::spectrum(int natoms, int *numneighs, int *jelems, double *wjelem
 
 /* ---------------------------------------------------------------------- */
 
-void MLIAP_SO3::spectrum_dxdr(int natoms, int *numneighs, int *jelems, double *wjelem, double **rij,
+void MLIAP_SO3::spectrum_dxdr(int nlocal, int *numneighs, int *jelems, double *wjelem, double **rij,
                               int nmax, int lmax, double rcut, double alpha, int npairs, int ncoefs)
 {
   bigint totaln = 0;
@@ -967,7 +967,7 @@ void MLIAP_SO3::spectrum_dxdr(int natoms, int *numneighs, int *jelems, double *w
 
   findex = m_nmax * (m_lmax + 1);
 
-  for (i = 0; i < natoms; i++) totaln += numneighs[i];
+  for (i = 0; i < nlocal; i++) totaln += numneighs[i];
 
   totali = totaln * m_Nmax * (m_lmax + 1);
   memory->destroy(m_sbes_array);
@@ -996,13 +996,13 @@ void MLIAP_SO3::spectrum_dxdr(int natoms, int *numneighs, int *jelems, double *w
 
   numps = nmax * (nmax + 1) * (lmax + 1) / 2;
 
-  get_sbes_array(natoms, numneighs, rij, lmax, rcut, alpha);
+  get_sbes_array(nlocal, numneighs, rij, lmax, rcut, alpha);
 
-  get_rip_array(natoms, numneighs, rij, nmax, lmax, alpha);
+  get_rip_array(nlocal, numneighs, rij, nmax, lmax, alpha);
 
   int twolmax = 2 * (lmax + 1);
 
-  for (int ii = 0; ii < natoms; ii++) {
+  for (int ii = 0; ii < nlocal; ii++) {
 
     totali = nmax * m_numYlms;
     for (ti = 0; ti < totali; ti++) {
@@ -1239,5 +1239,5 @@ void MLIAP_SO3::spectrum_dxdr(int natoms, int *numneighs, int *jelems, double *w
 
     }    //for(neighbor=0;neighbor<numneighs[ii];neighbor++){
 
-  }    //for (int ii = 0; ii < natoms; ii++) {
+  }    //for (int ii = 0; ii < nlocal; ii++) {
 }

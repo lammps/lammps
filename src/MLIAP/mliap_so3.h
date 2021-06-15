@@ -49,9 +49,9 @@ class MLIAP_SO3 : protected Pointers {
   double *m_dplist_i, *m_dclist_r, *m_dclist_i, *m_tempdp_r;
 
  public:
-  void spectrum(int natoms, int *numneighs, int *jelems, double *wjelem, double **rij, int nmax,
+  void spectrum(int nlocal, int *numneighs, int *jelems, double *wjelem, double **rij, int nmax,
                 int lmax, double rcut, double alpha, int ncoefs);
-  void spectrum_dxdr(int natoms, int *numneighs, int *jelems, double *wjelem, double **rij,
+  void spectrum_dxdr(int nlocal, int *numneighs, int *jelems, double *wjelem, double **rij,
                      int nmax, int lmax, double rcut, double alpha, int npairs, int ncoefs);
 
  private:
@@ -59,10 +59,10 @@ class MLIAP_SO3 : protected Pointers {
   double CosinePrime(double Rij, double Rc);
   double compute_sfac(double r, double rcut);
   double compute_dsfac(double r, double rcut);
-  void get_sbes_array(int natoms, int *numneighs, double **rij, int lmax, double rcut,
+  void get_sbes_array(int nlocal, int *numneighs, double **rij, int lmax, double rcut,
                       double alpha);
-  void get_rip_array(int natoms, int *numneighs, double **rij, int nmax, int lmax, double alpha);
-  void init_arrays(int natoms, int ncoefs);
+  void get_rip_array(int nlocal, int *numneighs, double **rij, int nmax, int lmax, double alpha);
+  void init_arrays(int nlocal, int ncoefs);
   void init_garray(int nmax, int lmax, double rcut, double alpha, double *w, int lw1,
                    double *g_array, int lg2);
 

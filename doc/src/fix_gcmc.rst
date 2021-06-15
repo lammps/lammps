@@ -50,7 +50,7 @@ Syntax
        *intra_energy* value = intramolecular energy (energy units)
        *tfac_insert* value = scale up/down temperature of inserted atoms (unitless)
        *overlap_cutoff* value = maximum pair distance for overlap rejection (distance units)
-       *max_sep* value = maximum distance between an atom/molecule and a cluster (distance units)
+       *max_sep* value = maximum distance between an added atom/molecule and a cluster (distance units)
        *max* value = maximum number of molecules allowed in the system
        *min* value = minimum number of molecules allowed in the system
 
@@ -385,11 +385,11 @@ assigning an infinite positive energy to all new configurations that
 place any pair of atoms closer than the specified overlap cutoff
 distance.
 
-The *max_sep* option can be used to force the atoms to always have a
-neighbor within this distance. In cluster terms, all atoms/molecules belong
-to a cluster when this keyword in envoked. The clusters are then defined by
+The *max_sep* option can be used to force an added atom/molecule to always have
+a neighbor within this distance. In cluster terms, all atoms/molecules will be
+added to a cluster when this keyword in envoked. The clusters are then defined by
 the Stillinger cluster criterion :ref:`(Stillinger) <Stillinger1>` with the
-value as the minimum distance between two clusters. If an atom/molecule does
+value as the minimum distance between two clusters. If an added atom/molecule does
 not belong to a cluster, the interaction energy is effectively set to infinity.
 
 .. note::

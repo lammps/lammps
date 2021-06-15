@@ -56,9 +56,9 @@ w.r.t. model parameters. This information can be accessed using the
 related :doc:`compute mliap <compute_mliap>` command.
 
 The descriptor style *so3* is a descriptor that is derived from the
-the smooth SO(3) power spectrum with the explicit inclusion of a radial 
+the smooth SO(3) power spectrum with the explicit inclusion of a radial
 basis :ref:`(Bartok) <Bartok2013>` and :ref:`(Zagaceta) <Zagaceta2020>`.
-The available models are *linear* and *nn*. 
+The available models are *linear* and *nn*.
 
 The pair_style *mliap* command must be followed by two keywords *model*
 and *descriptor* in either order. A single *pair_coeff* command is also
@@ -153,7 +153,7 @@ the elements are listed must be consistent for all three keywords.
 
 The SO3 descriptor file is similar to the SNAP descriptor except that it
 contains a few more arguments (e.g., *nmax* and *alpha*). The preparation
-of SO3 descriptor and model files can be done with the 
+of SO3 descriptor and model files can be done with the
 `*Pyxtal_FF*<https://github.com/qzhu2017/PyXtal_FF>`_ package.
 
 See the :doc:`pair_coeff <pair_coeff>` doc page for alternate ways

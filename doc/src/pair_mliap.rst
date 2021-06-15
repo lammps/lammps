@@ -41,8 +41,8 @@ of the interatomic potential functional form (*model*) and the geometric
 quantities that characterize the atomic positions (*descriptor*). By
 defining *model* and *descriptor* separately, it is possible to use many
 different models with a given descriptor, or many different descriptors
-with a given model. The pair style currently supports just one
-descriptor style, but it is is straightforward to add new descriptor
+with a given model. The pair style currently supports only *sna* and *so3*
+descriptor styles, but it is is straightforward to add new descriptor
 styles.
 
 The SNAP descriptor style *sna* is the same as that used by
@@ -55,7 +55,10 @@ useful to know the gradient or derivative of energy, force, and stress
 w.r.t. model parameters. This information can be accessed using the
 related :doc:`compute mliap <compute_mliap>` command.
 
-The descriptor style *so3* is FIXME
+The descriptor style *so3* is a descriptor that is derived from the
+the smooth SO(3) power spectrum with the explicit inclusion of a radial 
+basis :ref:`(Bartok) <Bartok2013>` and :ref:`(Zagaceta) <Zagaceta2020>`.
+The available models are *linear* and *nn*. 
 
 The pair_style *mliap* command must be followed by two keywords *model*
 and *descriptor* in either order. A single *pair_coeff* command is also
@@ -106,6 +109,8 @@ parameters, including *bias* and *weights* of the model, starting with
 the first node of the first layer and so on, with a maximum of 30 values
 per line.
 
+The detail of *nn* module implementation can be found at :ref:`(Yanxon) <Yanxon2020>`.
+
 .. admonition:: Notes on mliappy models
 
    When the *model* keyword is *mliappy*, the filename should end in '.pt',
@@ -127,7 +132,8 @@ Currently two descriptor styles are available: *sna* and *so3*.
   descriptor.  The descriptor filename usually ends in the
   *.mliap.descriptor* extension.
 
-- *so3* FIXME
+- *so3* indicated the power spectrum component descriptors. A single additional
+argument specifies the descriptor filename containing the parameters and setting.
 
 The SNAP descriptor file closely follows the format of the
 :doc:`pair_style snap <pair_snap>` parameter file.  The file can contain
@@ -145,7 +151,10 @@ keywords are followed by lists of *nelems* numbers giving the element
 radius and element weight of each element. Obviously, the order in which
 the elements are listed must be consistent for all three keywords.
 
-The SO3 descriptor file FIXME
+The SO3 descriptor file is similar to the SNAP descriptor except that it
+contains a few more arguments (e.g., *nmax* and *alpha*). The preparation
+of SO3 descriptor and model files can be done with the 
+`*Pyxtal_FF*<https://github.com/qzhu2017/PyXtal_FF>`_ package.
 
 See the :doc:`pair_coeff <pair_coeff>` doc page for alternate ways
 to specify the path for these *model* and *descriptor* files.
@@ -191,3 +200,19 @@ Default
 """""""
 
 none
+
+----------
+
+.. _Bartok2013:
+
+**(Bartok2013)** Bartok, Kondor, Csanyi, Phys Rev B, 87, 184115 (2013).
+
+.. _Zagaceta2020:
+
+**(Zagaceta2020)** Zagaceta, Yanxon, Zhu, J Appl Phys, 128, 045113 (2020).
+
+.. _Yanxon2020:
+
+**(Yanxon2020)** Yanxon, Zagaceta, Tang, Matteson, Zhu, Mach. Learn.: Sci. Technol. 2, 027001 (2020).
+
+

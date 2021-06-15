@@ -22,6 +22,7 @@ class MLIAP_SO3 : protected Pointers {
   double *m_dplist_r;
 
  private:
+  double alloc_init, alloc_arrays;
   int *m_ellpl1, *m_ellm1;
   double *m_pfac;
   int m_pfac_l1, m_pfac_l2;

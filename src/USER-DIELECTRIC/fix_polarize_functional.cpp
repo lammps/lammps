@@ -169,7 +169,6 @@ void FixPolarizeFunctional::init()
   // mapping induced charge matrix/vector to atom tags and vice versa
 
   int i, maxtag;
-  double *q = atom->q;
   int *mask = atom->mask;
   tagint *tag = atom->tag;
   int nlocal = atom->nlocal;
@@ -287,14 +286,14 @@ void FixPolarizeFunctional::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPolarizeFunctional::init_list(int id, NeighList *ptr)
+void FixPolarizeFunctional::init_list(int /*id*/, NeighList *ptr)
 {
   list = ptr;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixPolarizeFunctional::setup(int vflag)
+void FixPolarizeFunctional::setup(int /*vflag*/)
 {
   // check if the pair styles in use are compatible
 
@@ -338,7 +337,7 @@ void FixPolarizeFunctional::setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixPolarizeFunctional::setup_pre_force(int vflag)
+void FixPolarizeFunctional::setup_pre_force(int /*vflag*/)
 {
   // calculate Rww before the run (assuming that the interface is fixed for now)
   // otherwise this should be done every time step in pre_force()
@@ -537,7 +536,7 @@ int FixPolarizeFunctional::unpack_exchange(int nlocal, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-int FixPolarizeFunctional::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
+int FixPolarizeFunctional::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int * /*pbc*/)
 {
   int m;
   for (m = 0; m < n; m++) buf[m] = atom->q[list[m]];
@@ -567,7 +566,7 @@ void FixPolarizeFunctional::grow_arrays(int n)
    copy values within local atom-based arrays
 ------------------------------------------------------------------------- */
 
-void FixPolarizeFunctional::copy_arrays(int i, int j, int delflag)
+void FixPolarizeFunctional::copy_arrays(int i, int j, int /*delflag*/)
 {
   induced_charge_idx[j] = induced_charge_idx[i];
   ion_idx[j] = ion_idx[i];
@@ -613,9 +612,7 @@ double FixPolarizeFunctional::memory_usage()
 void FixPolarizeFunctional::calculate_Rww_cutoff()
 {
   int *mask = atom->mask;
-  int *type = atom->type;
   tagint *tag = atom->tag;
-  int nlocal = atom->nlocal;
   double **x = atom->x;
   double *area = atom->area;
   double *curvature = atom->curvature;
@@ -838,9 +835,7 @@ void FixPolarizeFunctional::calculate_qiRqw_cutoff()
   int ii, i, k, kk, jnum;
   double xtmp, ytmp, ztmp, delx, dely, delz, r;
   int *mask = atom->mask;
-  int *type = atom->type;
   tagint *tag = atom->tag;
-  int nlocal = atom->nlocal;
   double **x = atom->x;
   double *q = atom->q_unscaled;
   double *epsilon = atom->epsilon;

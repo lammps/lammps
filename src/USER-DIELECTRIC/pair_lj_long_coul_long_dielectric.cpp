@@ -104,7 +104,7 @@ void PairLJLongCoulLongDielectric::compute(int eflag, int vflag)
   }
 
   double **x = atom->x, *x0 = x[0];
-  double **f = atom->f, *f0 = f[0];
+  double **f = atom->f;
   double *q = atom->q;
   double *eps = avec->epsilon;
   double **norm = avec->mu;
@@ -121,7 +121,6 @@ void PairLJLongCoulLongDielectric::compute(int eflag, int vflag)
   double qtmp, etmp, xtmp, ytmp, ztmp, delx, dely, delz;
   int order1 = ewald_order & (1 << 1), order6 = ewald_order & (1 << 6);
   int *ineigh, *ineighn, *jneigh, *jneighn, ni;
-  double qi = 0.0;
   double fpair_i, fpair_j;
   double fraction, table;
   double *cut_ljsqi, *lj1i, *lj2i, *lj3i, *lj4i, *offseti;

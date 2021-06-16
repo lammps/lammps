@@ -1416,7 +1416,11 @@ void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFComputeLJCoulomb<NEIGHFL
            // Coulomb energy/force
            const F_FLOAT shld = paramstwbp(itype,jtype).gamma;
            const F_FLOAT denom1 = rij * rij * rij + shld;
+           #ifdef HIP_OPT_USE_LESS_MATH
+           const F_FLOAT denom3 = cbrt(denom1);
+           #else
            const F_FLOAT denom3 = pow(denom1,0.3333333333333);
+           #endif
            const F_FLOAT ecoul = C_ele * qi*qj*Tap/denom3;
            const F_FLOAT fcoul = C_ele * qi*qj*(dTap-Tap*rij/denom1)/denom3;
 

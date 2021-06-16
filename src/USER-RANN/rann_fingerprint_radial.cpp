@@ -175,13 +175,13 @@ void Fingerprint_radial::init(int *i,int _id)
   id = _id;
 }
 
-void Fingerprint_radial::compute_fingerprint(double * features,double * dfeaturesx,double *dfeaturesy,double *dfeaturesz,int ii,int sid,double *xn,double *yn,double*zn,int *tn,int jnum,int *jl)
+void Fingerprint_radial::compute_fingerprint(double * features,double * dfeaturesx,double *dfeaturesy,double *dfeaturesz,int ii,int sid,double *xn,double *yn,double*zn,int *tn,int jnum,int * /*jl*/)
 {
   int nelements = pair->nelements;
   int res = pair->res;
-  int i,j,jj,itype,jtype,l;
-  double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
-  int *ilist,*jlist,*numneigh,**firstneigh;
+  int i,jj,itype,jtype,l;
+  double delx,dely,delz,rsq;
+  int *ilist;
   //
   PairRANN::Simulation *sim = &pair->sims[sid];
   int count=0;

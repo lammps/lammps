@@ -176,17 +176,16 @@ void Fingerprint_radialscreened::init(int *i,int _id)
   id = _id;
 }
 
-void Fingerprint_radialscreened::compute_fingerprint(double * features,double * dfeaturesx,double *dfeaturesy,double *dfeaturesz,double *Sik, double *dSikx, double*dSiky, double *dSikz, double *dSijkx, double *dSijky, double *dSijkz, bool *Bij,int ii,int sid,double *xn,double *yn,double*zn,int *tn,int jnum,int *jl)
+void Fingerprint_radialscreened::compute_fingerprint(double * features,double * dfeaturesx,double *dfeaturesy,double *dfeaturesz,double *Sik, double *dSikx, double*dSiky, double *dSikz, double *dSijkx, double *dSijky, double *dSijkz, bool *Bij,int ii,int sid,double *xn,double *yn,double*zn,int *tn,int jnum,int * /*jl*/)
 {
     int nelements = pair->nelements;
     int res = pair->res;
-    int i,j,jj,itype,jtype,l,kk;
-    double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
-    int *ilist,*jlist,*numneigh,**firstneigh;
+    int i,jj,itype,jtype,l,kk;
+    double delx,dely,delz,rsq;
+    int *ilist;
     //
     PairRANN::Simulation *sim = &pair->sims[sid];
     int count=0;
-    double **x = sim->x;
     int *type = sim->type;
     ilist = sim->ilist;
     double cutmax = pair->cutmax;

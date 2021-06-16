@@ -287,12 +287,6 @@ void Fingerprint_bond::generate_coefficients() {      //calculates multinomial c
 
 //Called by getproperties. Gets 3-body features and dfeatures
 void Fingerprint_bond::compute_fingerprint(double * features,double * dfeaturesx,double *dfeaturesy,double *dfeaturesz, int ii,int sid,double *xn,double *yn,double*zn,int *tn,int jnum,int *jl) {
-  int i;
-  int *ilist,*numneigh;
-  PairRANN::Simulation *sim = &pair->sims[sid];
-  ilist = sim->ilist;
-  numneigh = sim->numneigh;
-  i = ilist[ii];
   //select the more efficient algorithm for this particular potential and environment.
   if (jnum*2>(mlength+1)*mlength*20) {
     do3bodyfeatureset_singleneighborloop(features,dfeaturesx,dfeaturesy,dfeaturesz,ii,sid,xn,yn,zn,tn,jnum,jl);
@@ -304,10 +298,10 @@ void Fingerprint_bond::compute_fingerprint(double * features,double * dfeaturesx
 }
 
 //Called by do3bodyfeatureset. Algorithm for high neighbor numbers and small series of bond angle powers
-void Fingerprint_bond::do3bodyfeatureset_singleneighborloop(double * features,double * dfeaturesx,double *dfeaturesy,double *dfeaturesz,int ii,int sid,double *xn,double *yn,double*zn,int *tn,int jnum,int *jl) {
-  int i,j,jj,itype,jtype,kk,m,n,mcount,a,a1,a2,ai;
-  double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
-  int *ilist,*jlist,*numneigh,**firstneigh;
+void Fingerprint_bond::do3bodyfeatureset_singleneighborloop(double * features,double * dfeaturesx,double *dfeaturesy,double *dfeaturesz,int ii,int sid,double *xn,double *yn,double*zn,int *tn,int jnum,int * /*jl*/) {
+  int i,jj,itype,jtype,kk,m,n,mcount,a,a1,a2,ai;
+  double delx,dely,delz,rsq;
+  int *ilist;
   int count=0;
   PairRANN::Simulation *sim = &pair->sims[sid];
   int *type = sim->type;
@@ -557,15 +551,14 @@ void Fingerprint_bond::do3bodyfeatureset_singleneighborloop(double * features,do
 }
 
 //Called by do3bodyfeatureset. Algorithm for low neighbor numbers and large series of bond angle powers
-void Fingerprint_bond::do3bodyfeatureset_doubleneighborloop(double * features,double * dfeaturesx,double *dfeaturesy,double *dfeaturesz,int ii, int sid,double *xn,double *yn,double*zn,int *tn,int jnum,int *jl) {
-  int i,j,jj,itype,jtype,ktype,kk,m,n;
-  double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *ilist,*jlist,*numneigh,**firstneigh;
+void Fingerprint_bond::do3bodyfeatureset_doubleneighborloop(double * features,double * dfeaturesx,double *dfeaturesy,double *dfeaturesz,int ii, int sid,double *xn,double *yn,double*zn,int *tn,int jnum,int * /*jl*/) {
+  int i,jj,itype,jtype,ktype,kk,m,n;
+  double delx,dely,delz,rsq;
   int jtypes = atomtypes[1];
   int ktypes = atomtypes[2];
   int count=0;
   PairRANN::Simulation *sim = &pair->sims[sid];
-  double **x = sim->x;
   int *type = sim->type;
   int nelements = pair->nelements;
   int res = pair->res;

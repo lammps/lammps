@@ -104,7 +104,7 @@ void PairLJLongCoulLongDielectric::compute(int eflag, int vflag)
   }
 
   double **x = atom->x, *x0 = x[0];
-  double **f = atom->f, *f0 = f[0], *fi = f0;
+  double **f = atom->f, *f0 = f[0];
   double *q = atom->q;
   double *eps = avec->epsilon;
   double **norm = avec->mu;
@@ -121,10 +121,10 @@ void PairLJLongCoulLongDielectric::compute(int eflag, int vflag)
   double qtmp, etmp, xtmp, ytmp, ztmp, delx, dely, delz;
   int order1 = ewald_order & (1 << 1), order6 = ewald_order & (1 << 6);
   int *ineigh, *ineighn, *jneigh, *jneighn, ni;
-  double qi = 0.0, qri = 0.0;
+  double qi = 0.0;
   double fpair_i, fpair_j;
   double fraction, table;
-  double *cutsqi, *cut_ljsqi, *lj1i, *lj2i, *lj3i, *lj4i, *offseti;
+  double *cut_ljsqi, *lj1i, *lj2i, *lj3i, *lj4i, *offseti;
   double grij, expm2, prefactor, t, erfc, prefactorE, efield_i, epot_i;
   double r, rsq, r2inv, force_coul, force_lj, factor_coul, factor_lj;
   double g2 = g_ewald_6 * g_ewald_6, g6 = g2 * g2 * g2, g8 = g6 * g2;
@@ -134,20 +134,17 @@ void PairLJLongCoulLongDielectric::compute(int eflag, int vflag)
 
   for (; ineigh < ineighn; ++ineigh) {    // loop over my atoms
     i = *ineigh;
-    fi = f0 + 3 * i;
     qtmp = q[i];
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
     etmp = eps[i];
 
-    if (order1) qri = (qi = q[i]) * qqrd2e;    // initialize constants
     offseti = offset[itype = type[i]];
     lj1i = lj1[itype];
     lj2i = lj2[itype];
     lj3i = lj3[itype];
     lj4i = lj4[itype];
-    cutsqi = cutsq[itype];
     cut_ljsqi = cut_ljsq[itype];
     memcpy(xi, x0 + (i + (i << 1)), 3 * sizeof(double));
     jneighn = (jneigh = list->firstneigh[i]) + list->numneigh[i];

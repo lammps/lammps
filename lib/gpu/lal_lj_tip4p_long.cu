@@ -140,7 +140,8 @@ __kernel void k_lj_tip4p_long_distrib(const __global numtyp4 *restrict x_,
           engv[inum*engv_iter + i] += vM.z * (acctyp)0.5 * alpha;
         }
       }
-    } else {
+    }
+    if (itype == typeO) {
       fM = ansO[i];
       int iH1 = hneigh[i*4  ];
       int iH2 = hneigh[i*4+1];
@@ -202,7 +203,8 @@ __kernel void k_lj_tip4p_reneigh(const __global numtyp4 *restrict x_,
         hneigh[i*4+1] = iH2;
         hneigh[i*4+2] = -1;
       }
-    } else {
+    }
+    if (itype == typeH) {
       if (hneigh[i*4+2] != -1) {
         int iI, iH;
         iI = atom_mapping(map,tag[i] - 1);
@@ -301,12 +303,13 @@ __kernel void k_lj_tip4p_long(const __global numtyp4 *restrict x_,
     int non_local_oxy = 0;
     int iH1, iH2, iO;
 
-    if(itype == typeO) {
+    if (itype == typeO) {
       iO  = i;
       iH1 = hneigh[i*4  ];
       iH2 = hneigh[i*4+1];
       x1 = m[iO];
-    } else {
+    }
+    if (itype == typeH) {
       iO  = hneigh[i *4  ];
       iH1 = hneigh[iO*4  ];
       iH2 = hneigh[iO*4+1];
@@ -390,7 +393,8 @@ __kernel void k_lj_tip4p_long(const __global numtyp4 *restrict x_,
             f.y += dely * force_coul;
             f.z += delz * force_coul;
             f.w += 0;
-          } else {
+          }
+          if (itype == typeO) {
             fO.x += delx * force_coul;
             fO.y += dely * force_coul;
             fO.z += delz * force_coul;
@@ -412,7 +416,8 @@ __kernel void k_lj_tip4p_long(const __global numtyp4 *restrict x_,
                 virial[3] += delx*fd.y;
                 virial[4] += delx*fd.z;
                 virial[5] += dely*fd.z;
-              } else {
+              }
+              if (jtype == typeO) {
                 numtyp cO = 1 - alpha, cH = 0.5*alpha;
                 numtyp4 vdj;
                 numtyp4 xjH1; fetch4(xjH1,jH1,pos_tex);
@@ -429,7 +434,8 @@ __kernel void k_lj_tip4p_long(const __global numtyp4 *restrict x_,
                 virial[4] += (ix.x - vdj.x)*fd.z;
                 virial[5] += (ix.y - vdj.y)*fd.z;
               }
-            } else {
+            }
+            if (itype == typeO) {
               numtyp cO = 1 - alpha, cH = 0.5*alpha;
               numtyp4 vdi, vdj;
               numtyp4 xH1; fetch4(xH1,iH1,pos_tex);
@@ -439,7 +445,7 @@ __kernel void k_lj_tip4p_long(const __global numtyp4 *restrict x_,
               vdi.y = xO.y*cO + xH1.y*cH + xH2.y*cH;
               vdi.z = xO.z*cO + xH1.z*cH + xH2.z*cH;
               //vdi.w = vdi.w;
-              if (jtype != typeH) {
+              if (jtype == typeO) {
                 numtyp4 xjH1; fetch4(xjH1,jH1,pos_tex);
                 numtyp4 xjH2; fetch4(xjH2,jH2,pos_tex);
                 numtyp4 xjO; fetch4(xjO,jO,pos_tex);
@@ -625,12 +631,13 @@ __kernel void k_lj_tip4p_long_fast(const __global numtyp4 *restrict x_,
     int non_local_oxy = 0;
     int iH1, iH2, iO;
 
-    if(itype == typeO) {
+    if (itype == typeO) {
       iO  = i;
       iH1 = hneigh[i*4  ];
       iH2 = hneigh[i*4+1];
       x1 = m[iO];
-    } else {
+    }
+    if (itype == typeH) {
       iO  = hneigh[i *4  ];
       iH1 = hneigh[iO*4  ];
       iH2 = hneigh[iO*4+1];
@@ -714,7 +721,8 @@ __kernel void k_lj_tip4p_long_fast(const __global numtyp4 *restrict x_,
             f.y += dely * force_coul;
             f.z += delz * force_coul;
             f.w += 0;
-          } else {
+          }
+          if (itype == typeO) {
             fO.x += delx * force_coul;
             fO.y += dely * force_coul;
             fO.z += delz * force_coul;
@@ -736,7 +744,8 @@ __kernel void k_lj_tip4p_long_fast(const __global numtyp4 *restrict x_,
                 virial[3] += delx*fd.y;
                 virial[4] += delx*fd.z;
                 virial[5] += dely*fd.z;
-              } else {
+              }
+              if (jtype == typeO) {
                 numtyp cO = 1 - alpha, cH = 0.5*alpha;
                 numtyp4 vdj;
                 numtyp4 xjH1; fetch4(xjH1,jH1,pos_tex);
@@ -753,7 +762,8 @@ __kernel void k_lj_tip4p_long_fast(const __global numtyp4 *restrict x_,
                 virial[4] += (ix.x - vdj.x)*fd.z;
                 virial[5] += (ix.y - vdj.y)*fd.z;
               }
-            } else {
+            }
+            if (itype == typeO) {
               numtyp cO = 1 - alpha, cH = 0.5*alpha;
               numtyp4 vdi, vdj;
               numtyp4 xH1; fetch4(xH1,iH1,pos_tex);
@@ -763,7 +773,7 @@ __kernel void k_lj_tip4p_long_fast(const __global numtyp4 *restrict x_,
               vdi.y = xO.y*cO + xH1.y*cH + xH2.y*cH;
               vdi.z = xO.z*cO + xH1.z*cH + xH2.z*cH;
               //vdi.w = vdi.w;
-              if (jtype != typeH) {
+              if (jtype == typeO) {
                 numtyp4 xjH1; fetch4(xjH1,jH1,pos_tex);
                 numtyp4 xjH2; fetch4(xjH2,jH2,pos_tex);
                 numtyp4 xjO; fetch4(xjO,jO,pos_tex);

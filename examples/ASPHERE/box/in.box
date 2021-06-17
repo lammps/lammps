@@ -7,7 +7,7 @@ dimension       2
 
 # read in clusters of rigid bodies
 
-fix             molprop all property/atom mol
+fix             molprop all property/atom mol ghost yes
 read_data       data.box fix molprop NULL Molecules
 
 set             type 1 mass 1.0
@@ -17,7 +17,7 @@ velocity        big create 1.44 87287 loop geom
 # equilibrate big particles
 
 pair_style      soft 1.12
-pair_coeff      1 1 0.0 
+pair_coeff      1 1 0.0
 pair_coeff      2 2 0.0 0.0
 pair_coeff      1 2 0.0 0.0
 
@@ -108,4 +108,4 @@ thermo          1000
 #dump           1 all image 1000 image.*.jpg type type zoom 1.6
 #dump_modify    1 pad 6 adiam 1 1 adiam 2 0.2
 
-run             100000
+run             10000

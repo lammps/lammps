@@ -70,4 +70,3 @@ Build for example using
 For more information, example scripts, python jupyter notebooks 
 see http://mango-selm.org
 
-

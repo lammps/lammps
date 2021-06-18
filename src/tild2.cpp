@@ -542,7 +542,7 @@ void TILD::precompute_density_hat_fft() {
   double scale_inv = 1.0 / (nx_pppm * ny_pppm * nz_pppm);
   int ntypes = atom->ntypes;
 
-  for ( int ktype = 0; ktype <= ntypes; ktype++) {
+  for ( int ktype = 1; ktype <= ntypes; ktype++) {
     n = 0;
     for (int k = 0; k < nfft; k++) {
       //fprintf(screen,"rho %d %d %f\n", ktype, k,density_fft_types[ktype][k]);
@@ -612,7 +612,8 @@ void TILD::compute(int eflag, int vflag){
   // remap from 3d decomposition to FFT decomposition
 
   // cg->reverse_comm(this, REVERSE_RHO_NONE);
-  gc->reverse_comm_kspace(this,1,sizeof(FFT_SCALAR),REVERSE_RHO_NONE,
+  int ntypes = atom->ntypes;
+  gc->reverse_comm_kspace(this,ntypes,sizeof(FFT_SCALAR),REVERSE_RHO_NONE,
                           gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   brick2fft();
 
@@ -625,7 +626,7 @@ void TILD::compute(int eflag, int vflag){
   // all procs communicate gradient potential values
   // to fill ghost cells surrounding their 3d bricks
   
-  gc->forward_comm_kspace(this,1,sizeof(FFT_SCALAR),FORWARD_NONE,
+  gc->forward_comm_kspace(this,ntypes,sizeof(FFT_SCALAR),FORWARD_NONE,
                           gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
 
@@ -1455,12 +1456,12 @@ void TILD::get_k_alias(FFT_SCALAR* wk1, FFT_SCALAR **out){
           }
         }
 */
-        out[0][n] = -wk1[n + 1] * k[0];
-        out[0][n + 1] = wk1[n] * k[0];
-        out[1][n] = -wk1[n + 1] * k[1];
-        out[1][n + 1] = wk1[n] * k[1];
-        out[2][n] = -wk1[n + 1] * k[2];
-        out[2][n + 1] = wk1[n] * k[2];
+        out[0][n] = wk1[n + 1] * k[0];
+        out[0][n + 1] = -wk1[n] * k[0];
+        out[1][n] = wk1[n + 1] * k[1];
+        out[1][n + 1] = -wk1[n] * k[1];
+        out[2][n] = wk1[n + 1] * k[2];
+        out[2][n + 1] = -wk1[n] * k[2];
         n += 2;
           
       }
@@ -1637,7 +1638,7 @@ void TILD::pack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 
 
   if (flag == FORWARD_NONE){
-    for (int ktype = 0; ktype <= atom->ntypes; ktype++) {
+    for (int ktype = 1; ktype <= atom->ntypes; ktype++) {
       //for (int j = 0; j < Dim; j++) {
         //FFT_SCALAR *src = &gradWtype[ktype][j][nzlo_out][nylo_out][nxlo_out];
         FFT_SCALAR *xsrc = &gradWtypex[ktype][nzlo_out][nylo_out][nxlo_out];
@@ -1651,7 +1652,7 @@ void TILD::pack_forward_grid(int flag, void *vbuf, int nlist, int *list)
       }
     }
   } else if (flag == FORWARD_GRID_DEN){
-    for (int ktype = 0; ktype <= atom->ntypes; ktype++) {
+    for (int ktype = 1; ktype <= atom->ntypes; ktype++) {
       FFT_SCALAR *srcx = &density_brick_types[ktype][nzlo_out][nylo_out][nxlo_out];
       FFT_SCALAR *srcy = &density_brick_types[ktype][nzlo_out][nylo_out][nxlo_out];
       FFT_SCALAR *srcz = &density_brick_types[ktype][nzlo_out][nylo_out][nxlo_out];
@@ -1679,7 +1680,7 @@ void TILD::pack_forward_grid(int flag, void *vbuf, int nlist, int *list)
     // }  
     }
   } else if (flag == FORWARD_AVG_GRID_DEN){
-    for (int ktype = 0; ktype <= atom->ntypes; ktype++) {
+    for (int ktype = 1; ktype <= atom->ntypes; ktype++) {
       FFT_SCALAR *srcx = &avg_density_brick_types[ktype][nzlo_out][nylo_out][nxlo_out];
       FFT_SCALAR *srcy = &avg_density_brick_types[ktype][nzlo_out][nylo_out][nxlo_out];
       FFT_SCALAR *srcz = &avg_density_brick_types[ktype][nzlo_out][nylo_out][nxlo_out];
@@ -1724,7 +1725,7 @@ void TILD::unpack_forward_grid(int flag, void *vbuf, int nlist, int *list)
   //int Dim = domain->dimension;
 
   if (flag == FORWARD_NONE){
-    for (int ktype = 0; ktype <= atom->ntypes; ktype++) {
+    for (int ktype = 1; ktype <= atom->ntypes; ktype++) {
       FFT_SCALAR *destx = &gradWtypex[ktype][nzlo_out][nylo_out][nxlo_out];
       FFT_SCALAR *desty = &gradWtypey[ktype][nzlo_out][nylo_out][nxlo_out];
       FFT_SCALAR *destz = &gradWtypez[ktype][nzlo_out][nylo_out][nxlo_out];
@@ -1735,7 +1736,7 @@ void TILD::unpack_forward_grid(int flag, void *vbuf, int nlist, int *list)
       }
     }
   } else if (flag == FORWARD_GRID_DEN){
-    for (int ktype = 0; ktype <= atom->ntypes; ktype++) {
+    for (int ktype = 1; ktype <= atom->ntypes; ktype++) {
       FFT_SCALAR *destx = &density_brick_types[ktype][nzlo_out][nylo_out][nxlo_out];
       FFT_SCALAR *desty = &density_brick_types[ktype][nzlo_out][nylo_out][nxlo_out];
       FFT_SCALAR *destz = &density_brick_types[ktype][nzlo_out][nylo_out][nxlo_out];
@@ -1746,7 +1747,7 @@ void TILD::unpack_forward_grid(int flag, void *vbuf, int nlist, int *list)
       }
     }
   } else if (flag == FORWARD_AVG_GRID_DEN){
-    for (int ktype = 0; ktype <= atom->ntypes; ktype++) {
+    for (int ktype = 1; ktype <= atom->ntypes; ktype++) {
       FFT_SCALAR *destx = &avg_density_brick_types[ktype][nzlo_out][nylo_out][nxlo_out];
       FFT_SCALAR *desty = &avg_density_brick_types[ktype][nzlo_out][nylo_out][nxlo_out];
       FFT_SCALAR *destz = &avg_density_brick_types[ktype][nzlo_out][nylo_out][nxlo_out];
@@ -1768,7 +1769,7 @@ void TILD::pack_reverse_grid(int flag, void *vbuf, int nlist, int *list) {
 
   int n = 0;
   if (flag == REVERSE_RHO_NONE) {
-    for (int ktype = 0; ktype <= atom->ntypes; ktype++) {
+    for (int ktype = 1; ktype <= atom->ntypes; ktype++) {
       FFT_SCALAR *src = &density_brick_types[ktype][nzlo_out][nylo_out][nxlo_out];
       for (int i = 0; i < nlist; i++)
         buf[n++] = src[list[i]];
@@ -2084,7 +2085,8 @@ void TILD::brick2fft()
   // remap could be done as pre-stage of FFT,
   //   but this works optimally on only double values, not complex values
 
-  for (int k = 0; k <= ntypes; k++) {
+
+  for (int k = 1; k <= ntypes; k++) {
     //std::string fname = "rho_"+std::to_string(comm->me)+"_"+std::to_string(k)+".txt";
     int n = 0;
     for (iz = nzlo_in; iz <= nzhi_in; iz++)
@@ -2511,8 +2513,7 @@ double TILD::calculate_rho0(){
   double vole = domain->xprd * domain->yprd * domain->zprd;
 
   rho0 = lmass_all / vole;
-
-  if (me == 0) {
+  if (comm->me == 0) {
     std::string mesg = 
       fmt::format("  Found {} particles without a TILD potential\n", particles_not_tild);
     mesg += fmt::format("  User set rho0 = {:.6f}; actual rho0 = {:.6f} for TILD potential.\n",
@@ -2529,7 +2530,7 @@ double TILD::calculate_rho0(){
 
 void TILD::write_grid_data( char *filename, const int avg ) {
   int ntypes = atom->ntypes;
-  if (me == 0) {
+  if (comm->me == 0) {
     otp = fopen( filename, "w" ) ;
 
     // header

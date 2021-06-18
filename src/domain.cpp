@@ -1558,13 +1558,14 @@ void Domain::remap_near(double *xnew, double *xold)
    for triclinic, use h[] to add in tilt factors in other dims as needed
 ------------------------------------------------------------------------- */
 
-void Domain::unmap(double *x, imageint image)
+void Domain::unmap(double *x, imageint &image)
 {
   int xbox = (image & IMGMASK) - IMGMAX;
   int ybox = (image >> IMGBITS & IMGMASK) - IMGMAX;
   int zbox = (image >> IMG2BITS) - IMGMAX;
 
   if (triclinic == 0) {
+    //fprintf(stdout, "in unmap, image=%d, xbox=%d, ybox=%d, zbox=%d.\n", image, xbox, ybox, zbox);
     x[0] += xbox*xprd;
     x[1] += ybox*yprd;
     x[2] += zbox*zprd;
@@ -1573,6 +1574,7 @@ void Domain::unmap(double *x, imageint image)
     x[1] += h[1]*ybox + h[3]*zbox;
     x[2] += h[2]*zbox;
   }
+  image -= (pow(2, 0) * xbox + pow(2, IMGBITS) * ybox + pow(2, IMG2BITS) * zbox);
 }
 
 /* ----------------------------------------------------------------------
@@ -1588,6 +1590,7 @@ void Domain::unmap(const double *x, imageint image, double *y)
   int zbox = (image >> IMG2BITS) - IMGMAX;
 
   if (triclinic == 0) {
+    //fprintf(stdout, "in unmap, image=%d, xbox=%d.\n", image, xbox);
     y[0] = x[0] + xbox*xprd;
     y[1] = x[1] + ybox*yprd;
     y[2] = x[2] + zbox*zprd;

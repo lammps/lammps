@@ -292,10 +292,10 @@ FixPIMD4::FixPIMD4(LAMMPS *lmp, int narg, char **arg) :
   domain->set_global_box();
  
   //FILE *frand;
-  std::string fname = "rand_";
-  fname += std::to_string(universe->iworld);
-  fname += ".txt";
-  frand = fopen(fname.c_str(), "w");
+  //std::string fname = "rand_";
+  //fname += std::to_string(universe->iworld);
+  //fname += ".txt";
+  //frand = fopen(fname.c_str(), "w");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -905,7 +905,7 @@ void FixPIMD4::baoab_init()
 void FixPIMD4::b_step()
 {
   // if(universe->iworld==0) printf("start of b_step, %.6e.\n", atom->x[0][0]);
-  fprintf(stdout, "step=%ld, starting b_step, iworld = %d, x=%.8e, v=%.8e, f=%.8e, dtf=%.6e.\n", update->ntimestep, universe->iworld, atom->x[0][0], atom->v[0][0], atom->f[0][0],dtf);
+  //fprintf(stdout, "step=%ld, starting b_step, iworld = %d, x=%.8e, v=%.8e, f=%.8e, dtf=%.6e.\n", update->ntimestep, universe->iworld, atom->x[0][0], atom->v[0][0], atom->f[0][0],dtf);
   int n = atom->nlocal;
   int *type = atom->type;
   double **v = atom->v;
@@ -922,10 +922,10 @@ void FixPIMD4::b_step()
   //double dtfm = dtf / mass[type[0]];
   //printf("before v_step, vw = %.6e.\n", vw);
   //printf("end of b_step, x=%.8e, v=%.6e, f=%.6e, dtf=%.6e, mass=%.6e, dtfm=%.6e, o_np=%.6e, c=%.6e, s=%.6e.\n", atom->x[0][0], atom->v[0][0], atom->f[0][0], dtf, mass[type[0]], dtfm, _omega_np, baoab_c[1], baoab_s[1]);
-  fprintf(stdout, "step=%ld, ending b_step, iworld = %d, x=%.8e, v=%.8e, f=%.8e, dtf=%.6e.\n", update->ntimestep, universe->iworld, atom->x[0][0], atom->v[0][0], atom->f[0][0],dtf);
+  //fprintf(stdout, "step=%ld, ending b_step, iworld = %d, x=%.8e, v=%.8e, f=%.8e, dtf=%.6e.\n", update->ntimestep, universe->iworld, atom->x[0][0], atom->v[0][0], atom->f[0][0],dtf);
   //if(pextflag) press_v_step();
   //printf("after v_step, vw = %.6e.\n", vw);
-  MPI_Barrier(universe->uworld);
+  //MPI_Barrier(universe->uworld);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -981,7 +981,7 @@ void FixPIMD4::qc_step(){
 
     //printf("after reset xprd=%f, expq=%f.\n", domain->xprd, expq);
   }
-  MPI_Barrier(universe->uworld);
+  //MPI_Barrier(universe->uworld);
 }
 void FixPIMD4::a_step(){
   int n = atom->nlocal;
@@ -1020,7 +1020,7 @@ void FixPIMD4::a_step(){
 
   //fprintf(stdout, "step=%ld, end_a_step, x=%.8e, v=%.8e, dtv=%.6e.\n", update->ntimestep, x[0][0], v[0][0], dtv);
   // if(universe->iworld==0) printf("end of a_step, %.6e, %.6e, %.6e, %.6e, %.6e, %.6e, %.6e, %.6e, %.6e, %.6e.\n", atom->x[0][0], atom->v[0][0], atom->f[0][0], mass[atom->type[0]], dtf, dtv, dtf, _omega_np, baoab_c, baoab_s);
-  MPI_Barrier(universe->uworld);
+  //MPI_Barrier(universe->uworld);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1145,7 +1145,7 @@ void FixPIMD4::o_step()
   double beta_np = 1.0 / force->boltz / baoab_temp / np * force->mvv2e;
   if(thermostat == PILE_L)
   {
-      fprintf(stdout, "iworld = %d, before o, v = %.8e.\n", universe->iworld, atom->v[0][0]);
+    //fprintf(stdout, "iworld = %d, before o, v = %.8e.\n", universe->iworld, atom->v[0][0]);
     for(int i=0; i<nlocal; i++)
     {
       //fprintf(stdout, "iworld=%d, mass=%.2e.\n", universe->iworld, mass[type[i]]);
@@ -1154,15 +1154,15 @@ void FixPIMD4::o_step()
       r2 = random->gaussian();
       r3 = random->gaussian();
       //r1 = r2 = r3 = 0.0;
-      char* rns;
+      //char* rns;
       //sprintf(rns, "%.6e %.6e %.6e\n", r1, r2, r3); 
       //fwrite(rns, sizeof(char), sizeof(rns), frand);
-      fprintf(frand, "%ld %d %.6e %.6e %.6e\n", update->ntimestep, i, r1, r2, r3);
+      //fprintf(frand, "%ld %d %.6e %.6e %.6e\n", update->ntimestep, i, r1, r2, r3);
       atom->v[i][0] = c1_k[universe->iworld] * atom->v[i][0] + c2_k[universe->iworld] * sqrt(1.0 / mass[type[i]] / beta_np) * r1; 
       atom->v[i][1] = c1_k[universe->iworld] * atom->v[i][1] + c2_k[universe->iworld] * sqrt(1.0 / mass[type[i]] / beta_np) * r2;
       atom->v[i][2] = c1_k[universe->iworld] * atom->v[i][2] + c2_k[universe->iworld] * sqrt(1.0 / mass[type[i]] / beta_np) * r3;
     }
-      fprintf(stdout, "iworld = %d, after o, v = %.8e.\n", universe->iworld, atom->v[0][0]);
+      //fprintf(stdout, "iworld = %d, after o, v = %.8e.\n", universe->iworld, atom->v[0][0]);
   }
   else if(thermostat == SVR)
   {
@@ -1225,7 +1225,7 @@ void FixPIMD4::o_step()
       }
     }
   }
-  MPI_Barrier(universe->uworld);
+  //MPI_Barrier(universe->uworld);
 }
 
 /* ----------------------------------------------------------------------

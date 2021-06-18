@@ -61,9 +61,12 @@ Example usage:
 
 Build for example using 
 
-``make yes-user-selm``
 ``make yes-molecule``
+``make yes-user-selm``
 ``make atz_selm_serial mode=shlib LMP_INC="-DLAMMPS_EXCEPTIONS" JPG_LIB="-lpng -ljpeg"``
+
+(optional) For VTK support in examples suggested also to use before build 
+``make yes-user-vtk``
 
 --------------------------------------------------------------------------
 

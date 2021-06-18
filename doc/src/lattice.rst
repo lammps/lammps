@@ -251,16 +251,12 @@ in commands that use the spacings should be decipherable.
 
 ----------
 
-Example commands for generating a Wurtzite crystal.
-The lattice constants approximate those of CdSe.
-The :math:`\sqrt{3}\times 1` orthorhombic supercell is used
-with the x, y, and z directions oriented
-along :math:`[\bar{1}\bar{2}30]`,
-:math:`[10\bar{1}0]`, and :math:`[0001]`, respectively.
+Example commands for generating a Wurtzite crystal (courtesy
+of Aidan Thompson), with its 8 atom unit cell.
 
 .. code-block:: LAMMPS
 
-   variable a equal  4.34
+   variable a equal  4.340330
    variable b equal  $a*sqrt(3.0)
    variable c equal  $a*sqrt(8.0/3.0)
 
@@ -268,8 +264,8 @@ along :math:`[\bar{1}\bar{2}30]`,
    variable five6 equal 5.0/6.0
 
    lattice custom    1.0     &
-           a1      $b       0.0     0.0     &
-           a2      0.0      $a      0.0     &
+           a1      $a       0.0     0.0     &
+           a2      0.0      $b      0.0     &
            a3      0.0      0.0     $c      &
            basis   0.0      0.0     0.0     &
            basis   0.5      0.5     0.0     &

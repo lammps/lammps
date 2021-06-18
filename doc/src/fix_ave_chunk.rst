@@ -307,9 +307,7 @@ atoms in the chunk.  The averaged output value for the chunk on the
 average over atoms across the entire *Nfreq* timescale.  For the
 *density/number* and *density/mass* values, the volume (bin volume or
 system volume) used in the final normalization will be the volume at
-the final *Nfreq* timestep. For the *temp* values, degrees of freedom and
-kinetic energy are summed separately across the entire *Nfreq* timescale, and
-the output value is calculated by dividing those two sums.
+the final *Nfreq* timestep.
 
 If the *norm* setting is *sample*\ , the chunk value is summed over
 atoms for each sample, as is the count, and an "average sample value"

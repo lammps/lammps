@@ -370,8 +370,6 @@ needed to generate absolute, unscaled coordinates.
 Restrictions
 """"""""""""
 
-The *native* dump file reader does not support binary .bin dump files.
-
 To read gzipped dump files, you must compile LAMMPS with the
 -DLAMMPS_GZIP option.  See the :doc:`Build settings <Build_settings>`
 doc page for details.

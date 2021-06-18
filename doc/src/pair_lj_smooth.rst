@@ -1,11 +1,10 @@
 .. index:: pair_style lj/smooth
-.. index:: pair_style lj/smooth/gpu
 .. index:: pair_style lj/smooth/omp
 
 pair_style lj/smooth command
 ============================
 
-Accelerator Variants: *lj/smooth/gpu*, *lj/smooth/omp*
+Accelerator Variants: *lj/smooth/omp*
 
 Syntax
 """"""

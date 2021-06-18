@@ -10,8 +10,6 @@
 .. index:: pair_style coul/dsf/gpu
 .. index:: pair_style coul/dsf/kk
 .. index:: pair_style coul/dsf/omp
-.. index:: pair_style coul/cut/global
-.. index:: pair_style coul/cut/global/omp
 .. index:: pair_style coul/long
 .. index:: pair_style coul/long/omp
 .. index:: pair_style coul/long/kk
@@ -41,11 +39,6 @@ pair_style coul/dsf command
 ===========================
 
 Accelerator Variants: *coul/dsf/gpu*, *coul/dsf/kk*, *coul/dsf/omp*
-
-pair_style coul/cut/global command
-==================================
-
-Accelerator Variants: *coul/cut/omp*
 
 pair_style coul/long command
 ============================
@@ -83,8 +76,8 @@ Syntax
    pair_style coul/cut cutoff
    pair_style coul/debye kappa cutoff
    pair_style coul/dsf alpha cutoff
-   pair_style coul/cut/global cutoff
    pair_style coul/long cutoff
+   pair_style coul/long/gpu cutoff
    pair_style coul/wolf alpha cutoff
    pair_style coul/streitz cutoff keyword alpha
    pair_style tip4p/cut otype htype btype atype qdist cutoff
@@ -251,11 +244,6 @@ hybrid/overlay mode.  To do this, you would need to provide a
 Streitz-Mintmire parameterization for the material being modeled.
 
 ----------
-
-Pair style *coul/cut/global* computes the same Coulombic interactions
-as style *coul/cut* except that it allows only a single global cutoff
-and thus makes it compatible for use in combination with long-range
-coulomb styles in :doc:`hybrid pair styles <pair_hybrid>`.
 
 Styles *coul/long* and *coul/msm* compute the same Coulombic
 interactions as style *coul/cut* except that an additional damping

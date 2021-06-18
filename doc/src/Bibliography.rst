@@ -1039,6 +1039,12 @@ Bibliography
 **(Schroeder)**
    Schroeder and Steinhauser, J Chem Phys, 133, 154511 (2010).
 
+**(SELM LAMMPS)** Y. Wang, J. K. Sigurdsson, and P.J. Atzberger, SIAM J. Sci. Comput. , 38(5), S62–S77, (2016). 
+
+**(SELM Reduc)** G. Tabak and P.J. Atzberger, SIAM J. Appl. Math., 75(4), 1884–1914, (2015).
+
+**(SELM Shear)** P.J. Atzberger, Physica D, Vol. 265, pg. 57–70, (2013).
+
 **(Semaev)**
    Semaev, Cryptography and Lattices, 181 (2001).
 
@@ -1128,9 +1134,6 @@ Bibliography
 
 **(Sutmann)**
    Sutmann, Arnold, Fahrenberger, et. al., Physical review / E 88(6), 063308 (2013)
-
-**(Sutmann)** G. Sutmann. ScaFaCoS - a Scalable library of Fast Coulomb Solvers for particle Systems.
-  In Bajaj, Zavattieri, Koslowski, Siegmund, Proceedings of the Society of Engineering Science 51st Annual Technical Meeting. 2014.
 
 **(Swinburne)**
    Swinburne and Marinica, Physical Review Letters, 120, 1 (2018)
@@ -1287,6 +1290,9 @@ Bibliography
 
 **(Wennberg)**
    Wennberg, Murtola, Hess, Lindahl, J Chem Theory Comput, 9, 3527 (2013).
+
+**(Who)**
+   Who, Author2, Author3, J of Long Range Solvers, 35, 164-177 (2012).
 
 **(Wicaksono1)**
    Wicaksono, Sinclair, Militzer, Computational Materials Science, 117, 397-405 (2016).

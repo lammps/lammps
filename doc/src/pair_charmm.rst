@@ -1,5 +1,4 @@
 .. index:: pair_style lj/charmm/coul/charmm
-.. index:: pair_style lj/charmm/coul/charmm/gpu
 .. index:: pair_style lj/charmm/coul/charmm/intel
 .. index:: pair_style lj/charmm/coul/charmm/kk
 .. index:: pair_style lj/charmm/coul/charmm/omp
@@ -20,7 +19,7 @@
 pair_style lj/charmm/coul/charmm command
 ========================================
 
-Accelerator Variants: *lj/charmm/coul/charmm/gpu*, *lj/charmm/coul/charmm/intel*, *lj/charmm/coul/charmm/kk*, *lj/charmm/coul/charmm/omp*
+Accelerator Variants: *lj/charmm/coul/charmm/intel*, *lj/charmm/coul/charmm/kk*, *lj/charmm/coul/charmm/omp*
 
 pair_style lj/charmm/coul/charmm/implicit command
 =================================================

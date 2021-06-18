@@ -66,15 +66,11 @@ generality, LAMMPS sets the fundamental quantities mass, :math:`\sigma`,
 masses, distances, energies you specify are multiples of these
 fundamental values.  The formulas relating the reduced or unitless
 quantity (with an asterisk) to the same quantity with units is also
-given.  Thus you can use the mass, :math:`\sigma`, and :math:`\epsilon`
+given.  Thus you can use the mass & :math:`\sigma` & :math:`\epsilon`
 values for a specific material and convert the results from a unitless
-LJ simulation into physical quantities.  Please note that using
-these three properties as base, your unit of time has to conform
-to the relation :math:`\epsilon = \frac{m \sigma^2}{\tau^2}` since
-energy is a derived unit (in SI units you equivalently have the relation
-:math:`1\mathsf{J} = 1\frac{\mathsf{kg}\cdot\mathsf{m}^2}{\mathsf{s}^2}`).
+LJ simulation into physical quantities.
 
-* mass = mass or :math:`m`, where :math:`M^* = \frac{M}{m}`
+* mass = mass or *m*
 * distance = :math:`\sigma`, where :math:`x^* = \frac{x}{\sigma}`
 * time = :math:`\tau`, where :math:`\tau^* = \tau \sqrt{\frac{\epsilon}{m \sigma^2}}`
 * energy = :math:`\epsilon`, where :math:`E^* = \frac{E}{\epsilon}`
@@ -87,7 +83,7 @@ energy is a derived unit (in SI units you equivalently have the relation
 * charge = reduced LJ charge, where :math:`q^* = q \frac{1}{\sqrt{4 \pi \varepsilon_0 \sigma \epsilon}}`
 * dipole = reduced LJ dipole, moment where :math:`\mu^* = \mu \frac{1}{\sqrt{4 \pi \varepsilon_0 \sigma^3 \epsilon}}`
 * electric field = force/charge, where :math:`E^* = E \frac{\sqrt{4 \pi \varepsilon_0 \sigma \epsilon} \sigma}{\epsilon}`
-* density = mass/volume, where :math:`\rho^* = \rho \frac{\sigma^{dim}}{m}`
+* density = mass/volume, where :math:`\rho^* = \rho \sigma^{dim}`
 
 Note that for LJ units, the default mode of thermodynamic output via
 the :doc:`thermo_style <thermo_style>` command is to normalize all

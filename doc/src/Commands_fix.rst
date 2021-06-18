@@ -39,9 +39,6 @@ OPT.
    * :doc:`ave/time <fix_ave_time>`
    * :doc:`aveforce <fix_aveforce>`
    * :doc:`balance <fix_balance>`
-   * :doc:`brownian <fix_brownian>`
-   * :doc:`brownian/asphere <fix_brownian>`
-   * :doc:`brownian/sphere <fix_brownian>`
    * :doc:`bocs <fix_bocs>`
    * :doc:`bond/break <fix_bond_break>`
    * :doc:`bond/create <fix_bond_create>`
@@ -49,7 +46,6 @@ OPT.
    * :doc:`bond/react <fix_bond_react>`
    * :doc:`bond/swap <fix_bond_swap>`
    * :doc:`box/relax <fix_box_relax>`
-   * :doc:`charge/regulation <fix_charge_regulation>`
    * :doc:`client/md <fix_client_md>`
    * :doc:`cmap <fix_cmap>`
    * :doc:`colvars <fix_colvars>`
@@ -66,7 +62,6 @@ OPT.
    * :doc:`efield <fix_efield>`
    * :doc:`ehex <fix_ehex>`
    * :doc:`electron/stopping <fix_electron_stopping>`
-   * :doc:`electron/stopping/fit <fix_electron_stopping>`
    * :doc:`enforce2d (k) <fix_enforce2d>`
    * :doc:`eos/cv <fix_eos_cv>`
    * :doc:`eos/table <fix_eos_table>`
@@ -101,7 +96,6 @@ OPT.
    * :doc:`lb/viscous <fix_lb_viscous>`
    * :doc:`lineforce <fix_lineforce>`
    * :doc:`manifoldforce <fix_manifoldforce>`
-   * :doc:`mdi/engine <fix_mdi_engine>`
    * :doc:`meso/move <fix_meso_move>`
    * :doc:`momentum (k) <fix_momentum>`
    * :doc:`momentum/chunk <fix_momentum>`
@@ -119,7 +113,7 @@ OPT.
    * :doc:`nph/eff <fix_nh_eff>`
    * :doc:`nph/sphere (o) <fix_nph_sphere>`
    * :doc:`nphug <fix_nphug>`
-   * :doc:`npt (giko) <fix_nh>`
+   * :doc:`npt (iko) <fix_nh>`
    * :doc:`npt/asphere (o) <fix_npt_asphere>`
    * :doc:`npt/body <fix_npt_body>`
    * :doc:`npt/cauchy <fix_npt_cauchy>`
@@ -127,8 +121,8 @@ OPT.
    * :doc:`npt/sphere (o) <fix_npt_sphere>`
    * :doc:`npt/uef <fix_nh_uef>`
    * :doc:`numdiff <fix_numdiff>`
-   * :doc:`nve (giko) <fix_nve>`
-   * :doc:`nve/asphere (gi) <fix_nve_asphere>`
+   * :doc:`nve (iko) <fix_nve>`
+   * :doc:`nve/asphere (i) <fix_nve_asphere>`
    * :doc:`nve/asphere/noforce <fix_nve_asphere_noforce>`
    * :doc:`nve/awpmd <fix_nve_awpmd>`
    * :doc:`nve/body <fix_nve_body>`
@@ -143,7 +137,7 @@ OPT.
    * :doc:`nve/spin <fix_nve_spin>`
    * :doc:`nve/tri <fix_nve_tri>`
    * :doc:`nvk <fix_nvk>`
-   * :doc:`nvt (giko) <fix_nh>`
+   * :doc:`nvt (iko) <fix_nh>`
    * :doc:`nvt/asphere (o) <fix_nvt_asphere>`
    * :doc:`nvt/body <fix_nvt_body>`
    * :doc:`nvt/eff <fix_nh_eff>`
@@ -162,9 +156,6 @@ OPT.
    * :doc:`planeforce <fix_planeforce>`
    * :doc:`plumed <fix_plumed>`
    * :doc:`poems <fix_poems>`
-   * :doc:`polarize/bem/gmres <fix_polarize>`
-   * :doc:`polarize/bem/icc <fix_polarize>`
-   * :doc:`polarize/functional <fix_polarize>`
    * :doc:`pour <fix_pour>`
    * :doc:`precession/spin <fix_precession_spin>`
    * :doc:`press/berendsen <fix_press_berendsen>`
@@ -202,9 +193,11 @@ OPT.
    * :doc:`rigid/small (o) <fix_rigid>`
    * :doc:`rx (k) <fix_rx>`
    * :doc:`saed/vtk <fix_saed_vtk>`
+   * :doc:`selm <fix_selm>`
    * :doc:`setforce (k) <fix_setforce>`
    * :doc:`setforce/spin <fix_setforce>`
-   * :doc:`shake (k) <fix_shake>`
+   * :doc:`shake <fix_shake>`
+   * :doc:`shake <fix_shake>`
    * :doc:`shardlow (k) <fix_shardlow>`
    * :doc:`smd <fix_smd>`
    * :doc:`smd/adjust_dt <fix_smd_adjust_dt>`
@@ -229,8 +222,6 @@ OPT.
    * :doc:`temp/rescale <fix_temp_rescale>`
    * :doc:`temp/rescale/eff <fix_temp_rescale_eff>`
    * :doc:`tfmc <fix_tfmc>`
-   * :doc:`tgnpt/drude <fix_tgnh_drude>`
-   * :doc:`tgnvt/drude <fix_tgnh_drude>`
    * :doc:`thermal/conductivity <fix_thermal_conductivity>`
    * :doc:`ti/spring <fix_ti_spring>`
    * :doc:`tmd <fix_tmd>`

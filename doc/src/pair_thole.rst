@@ -42,8 +42,6 @@ Examples
 
    pair_style lj/cut/thole/long 2.6 12.0
 
-Example input scripts available: examples/USER/drude
-
 Description
 """""""""""
 

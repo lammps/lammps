@@ -59,7 +59,8 @@ Example usage:
 
 ``fix s1 all selm parameters.xml``
 
-Build for example using 
+Build for example by copy files from USER-SELM/MAKE to src/MAKE/MINE 
+and editing as needed.  Then use
 
 ``make yes-molecule``
 ``make yes-user-selm``

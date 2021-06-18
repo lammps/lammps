@@ -52,6 +52,9 @@ Build ``libselm`` using for example
 
   Note, the shared library ``lib_shared`` build is preferred.
 
+  May need to use ``make yes-user-selm`` first before building 
+  since the library interface references back to the fix_selm.h.
+
 --------------------------------------------------------------------------
 
 For more information, example scripts, and python jupyter notebooks, see 

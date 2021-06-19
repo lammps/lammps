@@ -45,8 +45,8 @@
 #include "fix_selm.h"
 
 #include "citeme.h"
+#include "comm.h"
 #include "error.h"
-#include "lammps.h"
 
 #include "driver_selm.h"
 
@@ -68,6 +68,8 @@ static const char cite_selm_str[] =
     "URL = {https://doi.org/10.1137/15M1026390},\n"
     "}\n\n";
 
+int FixSELM::instances = 0;
+
 /* =========================== Class definitions =========================== */
 FixSELM::FixSELM(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 {
@@ -76,6 +78,11 @@ FixSELM::FixSELM(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
   /* set to 1 for fix performing integration, 0 if fix does not */
   time_integrate = 1;
+
+  if (instances > 0) error->all(FLERR,"Only one fix selm instance can be active at any time");
+  ++instances;
+
+  if (comm->nprocs > 1) error->all(FLERR,"Fix selm cannot be used in parallel");
 
   /* setup the wrapper for SELM library */
   driver_selm = new DriverSELM(this,lmp,narg,arg);

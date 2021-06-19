@@ -57,7 +57,6 @@ class FixSELM : public Fix {
 
  public:
 
-  /* ================= Function prototypes ================= */
   FixSELM(class LAMMPS *, int, char **);
   virtual ~FixSELM();
 
@@ -69,12 +68,11 @@ class FixSELM : public Fix {
   void reset_dt();
   void post_force(int vflag);
 
-  // additional methods/hooks
   void pre_exchange();
   void end_of_step();
-
-  /* =========================== Function Calls =========================== */
+ protected:
   class DriverSELM *driver_selm;
+  static int instances;
 };
 }    // namespace LAMMPS_NS
 #endif

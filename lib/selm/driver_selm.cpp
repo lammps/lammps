@@ -52,25 +52,6 @@
 #include "universe.h"
 #include "version.h" 
 #include "random_mars.h"
-#include "citeme.h"
-
-/* include these to help trigger recompile each time */
-/*
-#include "style_angle.h"
-#include "style_atom.h"
-#include "style_bond.h"
-#include "style_command.h"
-#include "style_compute.h"
-#include "style_dihedral.h"
-#include "style_dump.h"
-#include "style_fix.h"
-#include "style_improper.h"
-#include "style_integrate.h"
-#include "style_kspace.h"
-#include "style_minimize.h"
-#include "style_pair.h"
-#include "style_region.h"
-*/
 
 /* C/C++ includes */
 #include <cstdlib>

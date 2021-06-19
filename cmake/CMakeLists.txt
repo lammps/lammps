@@ -235,6 +235,7 @@ pkg_depends(USER-ATC MANYBODY)
 pkg_depends(USER-LB MPI)
 pkg_depends(USER-PHONON KSPACE)
 pkg_depends(USER-SCAFACOS MPI)
+pkg_depends(USER-SELM KSPACE)
 pkg_depends(USER-DIELECTRIC KSPACE)
 
 # detect if we may enable OpenMP support by default

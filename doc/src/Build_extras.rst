@@ -1932,21 +1932,30 @@ To build with this package, you must download and build the
 .. _user-selm:
 
 USER-SELM package
--------------------------------------
+-----------------
 
-When using the USER-SELM package you should first build or install
-the SELM library libselm.  This can be done by using a default
-version distributed with LAMMPS in the lib/selm directory
-by running the build scripts there, or by downloading the
-latest version of the library source files or binaries
-from http://mango-selm.org
+The USER-SELM package requires building with and linking to the
+FFTW3 library from `www.fftw.org <http://www.fftw.org>`_ in double precision mode.
+Thus the KSPACE package also must be :ref:`set up accordingly <fft>`.
 
 .. tabs::
 
-  .. tab:: Traditional make
+   .. tab:: CMake build
+
+      When enabling the USER-SELM package also the :ref:`KSPACE package <PKG-KSPACE>`
+      must be installed and configured for FFTW3 in double precision.
+
+      To select whether dynamically loaded plugins for SELM are enabled or not,
+      you can use:
+
+      .. code-block:: bash
+
+         -D SELM_PLUGINS=value    # enable dynamically loaded plugins, value = no (default) or yes
+
+   .. tab:: Traditional make
 
       When using the USER-SELM package the SELM library should be built
-      or installed, such as libselm.a or libselm.so.  For example, see
+      or installed.  For example, see
       in the LAMMPS distribution the directory lib/selm, or download the
       library from the selm website.  The LAMMPS Makefiles should be
       adjusted so that the compiler and linker can find the library
@@ -1956,16 +1965,12 @@ from http://mango-selm.org
       .. code-block:: bash
 
          $ make yes-molecule
+         $ make yes-kspace
          $ make yes-user-selm
          $ make machine
 
-      While optional many examples also use the USER-VTK package,
+      While optional, many examples also use the USER-VTK package,
       which can be included using ``make yes-user-vtk``.
-
-      Note for shared linkage mode, libselm.so must be found by
-      LAMMPS during execution, which in linux may require setting
-      the LD_LIBRARY_PATH environment variable to the location of
-      the library libselm.so.
 
       More information can be found at http://mango-selm.org
 

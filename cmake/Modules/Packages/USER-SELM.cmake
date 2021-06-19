@@ -1,4 +1,13 @@
-find_package(FFTW3 REQUIRED)
+# check requirements
+if(NOT PKG_KSPACE)
+  message(FATAL_ERROR "The USER-SELM package requires installing the KSPACE package")
+endif()
+if(FFT_SINGLE)
+  message(FATAL_ERROR "The USER-SELM package is not compatible with single precision FFTs")
+endif()
+if(NOT (FFT STREQUAL "FFTW3"))
+  message(FATAL_ERROR "The USER-SELM package requires compiling with FFTW3")
+endif()
 
 set(SELM_SOURCE_DIR ${LAMMPS_LIB_SOURCE_DIR}/selm)
 file(GLOB SELM_SOURCES ${SELM_SOURCE_DIR}/[^.]*.cpp)
@@ -8,7 +17,7 @@ if((CMAKE_SYSTEM_NAME STREQUAL "Windows") AND SELM_PLUGINS)
   message(FATAL_ERROR "SELM plugins are not supported on Windows")
 endif()
 
-set(SELM_DEFINES FFT_FFTW)
+get_target_property(SELM_DEFINES lammps COMPILE_DEFINITIONS)
 set(SELM_LIBRARIES MPI::MPI_CXX;FFTW3::FFTW3)
 if(SELM_PLUGINS)
   list(APPEND SELM_DEFINES DYNAMIC_LINK_PLUG_IN)

@@ -48,7 +48,7 @@
 #include "error.h"
 #include "lammps.h"
 
-#include "wrapper/wrapper_selm.h"
+#include "wrapper_selm.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

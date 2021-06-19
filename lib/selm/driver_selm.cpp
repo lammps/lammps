@@ -547,6 +547,9 @@ void DriverSELM::writeFinalInfo() {
 
 // Get current date/time, (format such as YYYY-MM-DD.HH:mm:ss)
 const string DriverSELM::currentDateTime() {
+#if defined(_WIN32)
+  return string("(unknown)");
+#else
 
   time_t     now = time(0);
   struct tm  tstruct;
@@ -561,6 +564,7 @@ const string DriverSELM::currentDateTime() {
   strftime(buf, sizeof(buf), "%m-%d-%Y %X", &tstruct);
 
   return buf;
+#endif
 }
 
 // pass along the initialization

@@ -93,9 +93,9 @@ class DriverSELM {
 
   DriverSELM(); /* used to construct empty object,
                 primarily for testing purposes */
-  ~DriverSELM();
+  virtual ~DriverSELM();
 
-  // =========================== Fix Related Function Calls ==================== */
+  /* =========================== Fix Related Function Calls ==================== */
   int          setmask();
   virtual void init();
   void         setup(int vflag);
@@ -112,9 +112,6 @@ class DriverSELM {
   void init_attributes();
   void init_from_fix();
  
-  /* Generates messages when encountering errors. */
-  void packageError(int code, void *extras);
-
   /* SELM parse parameter file */
   void SELM_parse_ParameterFile_TXT(char *filename);
 

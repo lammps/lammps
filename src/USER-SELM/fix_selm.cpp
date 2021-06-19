@@ -141,10 +141,3 @@ void FixSELM::post_force(int vflag)
   driver_selm->post_force(vflag);
 }
 
-/*****************************************************************************************/
-/* Supporting SELM codes */
-/*****************************************************************************************/
-void FixSELM::packageError(int code, void *extras)
-{
-  std::exit(code);    // exit, may want also to notify lammps
-}

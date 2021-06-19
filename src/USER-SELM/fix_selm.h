@@ -74,7 +74,6 @@ class FixSELM : public Fix {
   void end_of_step();
 
   /* =========================== Function Calls =========================== */
-  void packageError(int code, void *extras);
   class DriverSELM *driver_selm;
 };
 }    // namespace LAMMPS_NS

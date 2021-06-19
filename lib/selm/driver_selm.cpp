@@ -405,10 +405,6 @@ void DriverSELM::init_attributes() {
 
 }
 
-void DriverSELM::packageError(int code, void *extras) {
-    std::exit(code);
-}
-
 /* parses the parameters from a file */
 void DriverSELM::SELM_parse_ParameterFile_XML(char *filename) {
 

@@ -2460,7 +2460,7 @@ lagrangian methods, and implicit-solvent coarse-grained methods.
 
 Simulations are performed using the command :doc:`fix selm <fix_selm>`.
 
-**Author:** The :doc:`fix selm command <fix_selm>` and `SELM library <SELM>`
+**Author:** The :doc:`fix selm command <fix_selm>` and :ref:`SELM library <SELM>`
 were developed by and are maintained by Paul Atzberger.
 
 .. _SELM: https://mango-selm.org

@@ -88,7 +88,7 @@ void SELM_Parser1::parseParameters(const char *filename,
   }
 
   while (!quitFlag) {
-    scanFlag = fscanf(fid,"%s",&inputString);
+    scanFlag = fscanf(fid,"%s",inputString);
     if (scanFlag != EOF) {
       if (verboseFlag)
         printf("[%d] %d: %s \n",scanFlag,stringNumber,inputString);
@@ -102,7 +102,7 @@ void SELM_Parser1::parseParameters(const char *filename,
                           after # */
           c = fgetc(fid);
           if (verboseFlag)
-            printf(" Comment Char: %1s \n",&c);
+            printf(" Comment Char: %c \n",c);
         }
 
         if (c == EOF) {
@@ -204,8 +204,7 @@ void SELM_Parser1::parseParameters(const char *filename,
 
                 scanFlag = fscanf(fid,
                                   "%s",
-                                  paramSpecification
-                                  ->paramDescrList[k].paramVar);
+                                  (char *)paramSpecification->paramDescrList[k].paramVar);
 
                 paramSpecification->paramDescrList[k].paramSetFlag = 1;
 
@@ -512,7 +511,7 @@ void SELM_Parser1::printParameters(paramSpecificationType *paramSpecification) {
         printf(" %s.list[%d] = %s \n",
                paramSpecification->paramDescrList[k].paramName,
                j,
-               ((char *)paramSpecification->paramDescrList[k].paramVar)[j]);
+               ((char **)paramSpecification->paramDescrList[k].paramVar)[j]);
       }
       break;
 

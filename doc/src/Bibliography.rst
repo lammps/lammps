@@ -1039,6 +1039,15 @@ Bibliography
 **(Schroeder)**
    Schroeder and Steinhauser, J Chem Phys, 133, 154511 (2010).
 
+**(SELM LAMMPS)** 
+   Y. Wang, J. K. Sigurdsson, and P.J. Atzberger, SIAM J. Sci. Comput. , 38(5), S62–S77, (2016). 
+
+**(SELM Reduc)** 
+   G. Tabak and P.J. Atzberger, SIAM J. Appl. Math., 75(4), 1884–1914, (2015).
+
+**(SELM Shear)** 
+   P.J. Atzberger, Physica D, Vol. 265, pg. 57–70, (2013).
+
 **(Semaev)**
    Semaev, Cryptography and Lattices, 181 (2001).
 

@@ -106,6 +106,7 @@ page gives those details.
    * :ref:`USER-REAXC <PKG-USER-REAXC>`
    * :ref:`USER-SCAFACOS <PKG-USER-SCAFACOS>`
    * :ref:`USER-SDPD <PKG-USER-SDPD>`
+   * :ref:`USER-SELM <PKG-USER-SELM>`
    * :ref:`USER-SMD <PKG-USER-SMD>`
    * :ref:`USER-SMTBQ <PKG-USER-SMTBQ>`
    * :ref:`USER-SPH <PKG-USER-SPH>`
@@ -2440,6 +2441,44 @@ Sciences, Iran).
 * :doc:`fix meso/move <fix_meso_move>`
 * :doc:`fix rigid/meso <fix_rigid_meso>`
 * examples/USER/sdpd
+
+----------
+
+.. _PKG-USER-SELM:
+
+USER-SELM package
+-------------------
+
+**Contents:**
+
+.. image:: JPG/selm_img1.png
+   :width: 100%
+   :alt: (user-selm package image)
+   :align: center
+
+Package provides methods for fluctuating hydrodynamics simulations.  This
+includes integrators based on stochastic eulerian lagrangian methods 
+(SELMs) for performing simulations of hydrodynamic coupling subject 
+to thermal fluctuations by using stochastic continuum fields.  Methods 
+include stochastic immersed boundary methods, stochastic eulerian 
+lagrangian methods, and implicit-solvent coarse-grained methods.
+
+Simulations are performed using the command :doc:`fix selm <fix_selm>`.
+
+**Author:** The :doc:`fix selm <fix_selm>` and :doc:`SELM library <fix_selm>` were developed and are maintained by Paul Atzberger.
+
+.. _SELM: https://mango-selm.org
+
+**Install:**
+
+This package has :ref:`specific installation instructions <user-selm>` on the :doc:`Build extras <Build_extras>` page.
+
+**Supporting info:**
+
+* src/USER-SELM/README.rst
+* lib/selm/README.rst
+* :doc:`fix selm <fix_selm>`
+* examples/USER/selm
 
 ----------
 

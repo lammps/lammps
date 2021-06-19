@@ -2155,11 +2155,9 @@ for molecular dynamics to analyze and bias your LAMMPS trajectory on
 the fly.  The PLUMED library is called from within the LAMMPS input
 script by using the :doc:`fix plumed <fix_plumed>` command.
 
-**Authors:** The :ref:`PLUMED library <PLUMED>` is written and maintained by
+**Authors:** The `PLUMED library <https://www.plumed.org>`_ is written and maintained by
 Massimilliano Bonomi, Giovanni Bussi, Carlo Camiloni and Gareth
 Tribello.
-
-.. _PLUMED: https://www.plumed.org
 
 **Install:**
 
@@ -2460,14 +2458,14 @@ lagrangian methods, and implicit-solvent coarse-grained methods.
 
 Simulations are performed using the command :doc:`fix selm <fix_selm>`.
 
-**Author:** The :doc:`fix selm command <fix_selm>` and :ref:`SELM library <SELM>`
-were developed by and are maintained by Paul Atzberger.
-
-.. _SELM: https://mango-selm.org
+**Author:** The :doc:`fix selm command <fix_selm>` and `SELM library
+<https://mango-selm.org>`_ were developed by and are maintained by Paul
+Atzberger.
 
 **Install:**
 
-This package has :ref:`specific installation instructions <user-selm>` on the :doc:`Build extras <Build_extras>` page.
+This package has :ref:`specific installation instructions <user-selm>`
+on the :doc:`Build extras <Build_extras>` page.
 
 **Supporting info:**
 

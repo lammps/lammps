@@ -48,7 +48,7 @@
 #include "error.h"
 #include "lammps.h"
 
-#include "wrapper_selm.h"
+#include "driver_selm.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -78,70 +78,67 @@ FixSELM::FixSELM(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   time_integrate = 1;
 
   /* setup the wrapper for SELM library */
-  wrapper_selm = new WrapperSELM(this, lmp, narg, arg);
+  driver_selm = new DriverSELM(this,lmp,narg,arg);
 }
 
 /* destructor */
 FixSELM::~FixSELM()
 {
-  delete wrapper_selm;
+  delete driver_selm;
 }
 
 /* ---------------------------------------------------------------------- */
 void FixSELM::setup(int vflag)
 {
-  wrapper_selm->setup(vflag);
+  driver_selm->setup(vflag);
 }
 
 /* ---------------------------------------------------------------------- */
 int FixSELM::setmask()
 {
-  // pass value back from the wrapper
-  SELM_integrator_mask = wrapper_selm->setmask();
-
-  return SELM_integrator_mask; /* syncronize the SELM mask with that returned to LAMMPS */
+  return driver_selm->setmask();
 }
 
 /* ---------------------------------------------------------------------- */
 void FixSELM::pre_exchange()
 {
-  wrapper_selm->pre_exchange();
+  driver_selm->pre_exchange();
 }
 
 /* ---------------------------------------------------------------------- */
 void FixSELM::end_of_step()
 {
-  wrapper_selm->end_of_step();
+  driver_selm->end_of_step();
 }
 
 /* ---------------------------------------------------------------------- */
 void FixSELM::init()
 {
-  wrapper_selm->init_from_fix();
+  driver_selm->init_from_fix();
 }
 
 /* ---------------------------------------------------------------------- */
 void FixSELM::initial_integrate(int vflag)
 {
-  wrapper_selm->initial_integrate(vflag);
+  driver_selm->initial_integrate(vflag);
 }
 
 /* ---------------------------------------------------------------------- */
 void FixSELM::final_integrate()
 {
-  wrapper_selm->final_integrate();
+  driver_selm->final_integrate();
 }
 
 /* ---------------------------------------------------------------------- */
 void FixSELM::reset_dt()
 {
-  wrapper_selm->reset_dt();
+  driver_selm->reset_dt();
 }
 
 /* ---------------------------------------------------------------------- */
 void FixSELM::post_force(int vflag)
 {
-  wrapper_selm->post_force(vflag);
+  driver_selm->post_force(vflag);
 }
 
 /*****************************************************************************************/

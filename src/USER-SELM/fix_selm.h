@@ -53,12 +53,9 @@ FixStyle(selm,FixSELM);
 
 namespace LAMMPS_NS {
 
-class WrapperSELM;
-
 class FixSELM : public Fix {
 
  public:
-  int SELM_integrator_mask;
 
   /* ================= Function prototypes ================= */
   FixSELM(class LAMMPS *, int, char **);
@@ -78,7 +75,7 @@ class FixSELM : public Fix {
 
   /* =========================== Function Calls =========================== */
   void packageError(int code, void *extras);
-  WrapperSELM *wrapper_selm;
+  class DriverSELM *driver_selm;
 };
 }    // namespace LAMMPS_NS
 #endif

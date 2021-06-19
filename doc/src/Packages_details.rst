@@ -2451,13 +2451,8 @@ USER-SELM package
 
 **Contents:**
 
-.. image:: JPG/selm_img1.png
-   :width: 100%
-   :alt: (user-selm package image)
-   :align: center
-
-Package provides methods for fluctuating hydrodynamics simulations.  This
-includes integrators based on stochastic eulerian lagrangian methods
+The USER-SELM package provides methods for fluctuating hydrodynamics simulations.
+This includes integrators based on stochastic eulerian lagrangian methods
 (SELMs) for performing simulations of hydrodynamic coupling subject
 to thermal fluctuations by using stochastic continuum fields.  Methods
 include stochastic immersed boundary methods, stochastic eulerian
@@ -2465,7 +2460,8 @@ lagrangian methods, and implicit-solvent coarse-grained methods.
 
 Simulations are performed using the command :doc:`fix selm <fix_selm>`.
 
-**Author:** The :doc:`fix selm <fix_selm>` and :doc:`SELM library <fix_selm>` were developed and are maintained by Paul Atzberger.
+**Author:** The :doc:`fix selm command <fix_selm>` and `SELM library <SELM>`
+were developed by and are maintained by Paul Atzberger.
 
 .. _SELM: https://mango-selm.org
 

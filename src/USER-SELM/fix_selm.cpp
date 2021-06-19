@@ -69,12 +69,6 @@ static const char cite_selm_str[] =
     "}\n\n";
 
 /* =========================== Class definitions =========================== */
-FixSELM::FixSELM() : Fix(NULL, 0, NULL)
-{
-  wrapper_selm = new WrapperSELM();
-}
-
-/* =========================== Class definitions =========================== */
 FixSELM::FixSELM(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 {
   /* add to citation collection */

@@ -1958,10 +1958,13 @@ from http://mango-selm.org
 
       .. code-block:: bash
 
-         $ make yes-user-selm
          $ make yes-molecule
+         $ make yes-user-selm
          $ make machine
 
+      While optional many examples also use the USER-VTK package, 
+      which can be included using ``make yes-user-vtk``.  
+            
       Note for shared linkage mode, libselm.so must be found by  
       LAMMPS during execution, which in linux may require setting 
       the LD_LIBRARY_PATH environment variable to the location of 

@@ -61,7 +61,6 @@ This is the list of packages that may require additional steps.
    * :ref:`USER-QUIP <user-quip>`
    * :ref:`USER-SCAFACOS <user-scafacos>`
    * :ref:`USER-SELM <user-selm>`
-   * :ref:`USER-OMP <user-omp>`
    * :ref:`USER-SMD <user-smd>`
    * :ref:`USER-VTK <user-vtk>`
 

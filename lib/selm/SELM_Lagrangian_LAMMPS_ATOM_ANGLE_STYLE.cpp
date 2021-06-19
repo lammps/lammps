@@ -10,7 +10,6 @@
 #include <cstdlib>
 #include "stdio.h"
 #include <string.h>
-#include "wrapper_selm.h"
 
 //#include "SELM_Parser1.h"
 #include "Atz_XML_Package.h"
@@ -24,7 +23,6 @@
 #include "error.h"
 #include "lammps.h"
 #include "domain.h"
-#include "wrapper_selm.h"
 
 #include <malloc.h>
 

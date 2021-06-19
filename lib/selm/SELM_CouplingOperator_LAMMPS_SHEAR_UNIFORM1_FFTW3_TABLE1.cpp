@@ -16,7 +16,6 @@
 #include <malloc.h>
 
 /* SELM includes */
-#include "wrapper_selm.h"
 #include "SELM_Parser1.h"
 
 #include "SELM_CouplingOperator.h"

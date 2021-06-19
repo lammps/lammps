@@ -10,7 +10,6 @@
 #include <cstdlib>
 #include "stdio.h"
 #include "string.h"
-#include "wrapper_selm.h"
 #include "SELM_Package.h"
 #include "SELM_Parser1.h"
 #include "SELM_Eulerian.h"

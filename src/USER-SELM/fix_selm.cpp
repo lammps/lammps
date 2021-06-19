@@ -1,4 +1,17 @@
 /* ----------------------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   https://www.lammps.org/, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
+
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under
+   the GNU General Public License.
+
+   See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
 
   Stochastic Eulerian Lagrangian Methods (SELMs) Package (library version)
 
@@ -29,59 +42,41 @@
 -------------------------------------------------------------------------
 */
 
-//#include <cstdlib>
-//#include <cstddef>
-//#include <cstdio>
-//#include <cstring>
-//#include <iostream>
-//#include <sstream>
+#include "fix_selm.h"
 
-/* LAMMPS includes */
-//#include "atom.h"
-//#include "force.h"
-//#include "update.h"
-//#include "respa.h"
-#include "error.h"
-//#include "comm.h"
-//#include "universe.h"
-//#include "version.h"
-//#include "random_mars.h"
 #include "citeme.h"
+#include "error.h"
 #include "lammps.h"
 
-/* SELM_includes */
-#include "fix_selm.h"
 #include "wrapper/wrapper_selm.h"
 
-//using namespace SELM;
 using namespace LAMMPS_NS;
 using namespace FixConst;
-using namespace std;
 
 static const char cite_selm_str[] =
-  "USER-SELM Package: Fluctuating Hydrodynamics \n\n"
-  "@article{atz_selm_lammps_fluct_hydro,\n"
-  "title = {Fluctuating Hydrodynamics Methods for Dynamic\n"
-  "Coarse-Grained Implicit-Solvent Simulations in LAMMPS},\n"
-  "author = {Wang, Y. and Sigurdsson, J. K. and Atzberger, P. J.},\n"
-  "journal = {SIAM Journal on Scientific Computing},\n"
-  "volume = {38},\n"
-  "number = {5},\n"
-  "pages = {S62-S77},\n"
-  "year = {2016},\n"
-  "doi = {10.1137/15M1026390},\n"
-  "URL = {https://doi.org/10.1137/15M1026390},\n"
-  "}\n\n";
+    "USER-SELM Package: Fluctuating Hydrodynamics doi:10.1137/15M1026390\n\n"
+    "@article{atz_selm_lammps_fluct_hydro,\n"
+    "title = {Fluctuating Hydrodynamics Methods for Dynamic\n"
+    "Coarse-Grained Implicit-Solvent Simulations in LAMMPS},\n"
+    "author = {Wang, Y. and Sigurdsson, J. K. and Atzberger, P. J.},\n"
+    "journal = {SIAM Journal on Scientific Computing},\n"
+    "volume = {38},\n"
+    "number = {5},\n"
+    "pages = {S62-S77},\n"
+    "year = {2016},\n"
+    "doi = {10.1137/15M1026390},\n"
+    "URL = {https://doi.org/10.1137/15M1026390},\n"
+    "}\n\n";
 
 /* =========================== Class definitions =========================== */
-FixSELM::FixSELM() : Fix(NULL, 0, NULL) {
+FixSELM::FixSELM() : Fix(NULL, 0, NULL)
+{
   wrapper_selm = new WrapperSELM();
 }
 
 /* =========================== Class definitions =========================== */
 FixSELM::FixSELM(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 {
-
   /* add to citation collection */
   if (lmp->citeme) lmp->citeme->add(cite_selm_str);
 
@@ -89,27 +84,24 @@ FixSELM::FixSELM(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   time_integrate = 1;
 
   /* setup the wrapper for SELM library */
-  wrapper_selm = new WrapperSELM(this,lmp,narg,arg);
-
+  wrapper_selm = new WrapperSELM(this, lmp, narg, arg);
 }
 
 /* destructor */
-FixSELM::~FixSELM() {
+FixSELM::~FixSELM()
+{
   delete wrapper_selm;
 }
 
-
 /* ---------------------------------------------------------------------- */
-void FixSELM::setup(int vflag) { wrapper_selm->setup(vflag); }
+void FixSELM::setup(int vflag)
+{
+  wrapper_selm->setup(vflag);
+}
 
 /* ---------------------------------------------------------------------- */
 int FixSELM::setmask()
 {
-  /*
-    mask |= INITIAL_INTEGRATE;
-    mask |= FINAL_INTEGRATE;
-   */
-
   // pass value back from the wrapper
   SELM_integrator_mask = wrapper_selm->setmask();
 
@@ -117,30 +109,51 @@ int FixSELM::setmask()
 }
 
 /* ---------------------------------------------------------------------- */
-void FixSELM::pre_exchange() { wrapper_selm->pre_exchange(); }
+void FixSELM::pre_exchange()
+{
+  wrapper_selm->pre_exchange();
+}
 
 /* ---------------------------------------------------------------------- */
-void FixSELM::end_of_step() { wrapper_selm->end_of_step(); }
+void FixSELM::end_of_step()
+{
+  wrapper_selm->end_of_step();
+}
 
 /* ---------------------------------------------------------------------- */
-void FixSELM::init() { wrapper_selm->init_from_fix(); }
+void FixSELM::init()
+{
+  wrapper_selm->init_from_fix();
+}
 
 /* ---------------------------------------------------------------------- */
-void FixSELM::initial_integrate(int vflag) { wrapper_selm->initial_integrate(vflag); }
+void FixSELM::initial_integrate(int vflag)
+{
+  wrapper_selm->initial_integrate(vflag);
+}
 
 /* ---------------------------------------------------------------------- */
-void FixSELM::final_integrate() { wrapper_selm->final_integrate(); }
+void FixSELM::final_integrate()
+{
+  wrapper_selm->final_integrate();
+}
 
 /* ---------------------------------------------------------------------- */
-void FixSELM::reset_dt() { wrapper_selm->reset_dt(); }
+void FixSELM::reset_dt()
+{
+  wrapper_selm->reset_dt();
+}
 
 /* ---------------------------------------------------------------------- */
-void FixSELM::post_force(int vflag) { wrapper_selm->post_force(vflag); }
+void FixSELM::post_force(int vflag)
+{
+  wrapper_selm->post_force(vflag);
+}
 
 /*****************************************************************************************/
 /* Supporting SELM codes */
 /*****************************************************************************************/
-void FixSELM::packageError(int code, void *extras) {
-  std::exit(code); // exit, may want also to notify lammps
+void FixSELM::packageError(int code, void *extras)
+{
+  std::exit(code);    // exit, may want also to notify lammps
 }
-

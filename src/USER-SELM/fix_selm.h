@@ -1,3 +1,15 @@
+/* -*- c++ -*- ----------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   https://www.lammps.org/, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
+
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under
+   the GNU General Public License.
+
+   See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
 /* ----------------------------------------------------------------------
 
   Stochastic Eulerian Lagrangian Methods (SELMs) Package
@@ -29,25 +41,15 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(selm,FixSELM)
-
+// clang-format off
+FixStyle(selm,FixSELM);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_SELM_H
 #define LMP_FIX_SELM_H
 
-//#include "wrapper_selm.h"
-
 #include "fix.h"
-#include "lammps.h"
-
-#include <cstdlib>
-#include <cstdio>
-#include <cstring>
-#include <cstddef>
-
-using namespace std;
 
 namespace LAMMPS_NS {
 
@@ -56,21 +58,19 @@ class WrapperSELM;
 class FixSELM : public Fix {
 
  public:
-
   int SELM_integrator_mask;
 
   /* ================= Function prototypes ================= */
   FixSELM(class LAMMPS *, int, char **);
-  FixSELM();
-  ~FixSELM();
+  virtual ~FixSELM();
 
-  int          setmask();
+  int setmask();
   virtual void init();
-  void         setup(int vflag);
+  void setup(int vflag);
   virtual void initial_integrate(int);
   virtual void final_integrate();
-  void         reset_dt();
-  void         post_force(int vflag);
+  void reset_dt();
+  void post_force(int vflag);
 
   // additional methods/hooks
   void pre_exchange();
@@ -78,16 +78,8 @@ class FixSELM : public Fix {
 
   /* =========================== Function Calls =========================== */
   void packageError(int code, void *extras);
-
-  /* =========================== Variables =========================== */
-  LAMMPS                                                    *lammps;
-  WrapperSELM                                               *wrapper_selm;
-
+  WrapperSELM *wrapper_selm;
 };
-
-}
-
+}    // namespace LAMMPS_NS
 #endif
 #endif
-
-

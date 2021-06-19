@@ -81,21 +81,6 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-static const char cite_selm_str[] =
-  "USER-SELM Package: Fluctuating Hydrodynamics \n\n"
-  "@article{atz_selm_lammps_fluct_hydro,\n"
-  "title = {Fluctuating Hydrodynamics Methods for Dynamic\n"
-  "Coarse-Grained Implicit-Solvent Simulations in LAMMPS},\n"
-  "author = {Wang, Y. and Sigurdsson, J. K. and Atzberger, P. J.},\n"
-  "journal = {SIAM Journal on Scientific Computing},\n"
-  "volume = {38},\n"
-  "number = {5},\n"
-  "pages = {S62-S77},\n"
-  "year = {2016},\n"
-  "doi = {10.1137/15M1026390},\n"
-  "URL = {https://doi.org/10.1137/15M1026390},\n"
-  "}\n\n";
-
 /* =========================== Class definitions =========================== */
 DriverSELM::DriverSELM() : error_str_code("fix_selm.cpp"), MAX_STR_LEN(10000), PARAM_FILE_TYPE_NULL(0), PARAM_FILE_TYPE_TXT(1), PARAM_FILE_TYPE_XML(2) {
   /* WARNING: May need to modify LAMMPS codes so that we have
@@ -153,8 +138,6 @@ DriverSELM::DriverSELM(FixSELM *fixSELM, LAMMPS *lmp, int narg, char **arg) : er
   //PARAM_FILE_TYPE_XML  = 2;
   
   /* ================= init ================= */
-  /* add to citation collection */
-  if (lmp->citeme) lmp->citeme->add(cite_selm_str);
 
   this->fixSELM = fixSELM;
       

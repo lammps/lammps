@@ -9,7 +9,7 @@
 #ifndef SELM_LAGRANGIAN_CONTROLPTS_BASIC1_H
 #define SELM_LAGRANGIAN_CONTROLPTS_BASIC1_H
 
-#ifndef FFT_FFTW /* determine if FFTW package specified */
+#ifndef FFT_FFTW3 /* determine if FFTW package specified */
   #warning "No FFTW package specified for SELM codes.  The SELM functionality will be disabled."
 #else
   #define USE_PACKAGE_FFTW3

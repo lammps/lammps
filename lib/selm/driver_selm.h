@@ -73,7 +73,7 @@ using namespace std;
 
 namespace LAMMPS_NS {
 
-struct DriverSELM {
+class DriverSELM {
 
  public:
 

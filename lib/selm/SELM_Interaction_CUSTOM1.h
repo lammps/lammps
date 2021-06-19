@@ -16,13 +16,6 @@
   #define USE_PACKAGE_FFTW3
 #endif
 
-#ifndef DYNAMIC_LINK_PLUG_IN /* determine if plug-in features enabled */
-  #warning "Dynamic link plug-ins for the SELM package are no enabled.  Must specify compiler flag DYNAMIC_LINK_PLUG_IN to use these features. "
-#else
-  //#warning "Dynamic link plug-ins for the SELM package are disabled.  Must specify compiler flag DYNAMIC_LINK_PLUG_IN to use these features. "
-#endif
-
-
 #include "SELM_Interaction.h"
 #include "SELM_Interaction_Types.h"
 

@@ -26,12 +26,6 @@
 
 #include <malloc.h>
 
-#ifdef DYNAMIC_LINK_PLUG_IN /* determine if plug-in features enabled */
-  #include <iostream>
-  #include <dlfcn.h>
-#endif
-
-
 using namespace LAMMPS_NS;
 using std::cout;
 using std::cerr;

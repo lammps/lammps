@@ -81,7 +81,7 @@ public:
 
     int            flagWriteVTK;
 
-    int            flagMobile;          /* 0: fixed atom, 1: mobile atom
+    int            flagMobile;          /* 0: fixed atom, 1: mobile atom */
 
     /* store data related to SELM operators */
     int            numEntriesOpGammaVel;

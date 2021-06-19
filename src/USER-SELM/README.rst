@@ -4,7 +4,16 @@ Provides integrators based on stochastic eulerian lagrangian methods
 to thermal fluctuations by using stochastic continuum fields.  
 Methods include stochastic immersed boundary methods, stochastic 
 eulerian lagrangian methods, and implicit-solvent coarse-grained 
-methods.  Details can be found in the papers
+methods.  
+
+This package was developed and is maintained by
+
+Paul J. Atzberger
+University of California Santa Barbara
+http://atzberger.org
+atzberg@gmail.com
+
+Details can be found in the papers
 
 * Fluctuating Hydrodynamics Methods for Dynamic Coarse-Grained 
 Implicit-Solvent Simulations in LAMMPS, Y. Wang, J. K. Sigurdsson, 
@@ -42,12 +51,6 @@ NOTE: While not strictly required, many of the example scripts make
 use of USER-VTK, which ideally should be installed.  For example,
 ``make yes-user-vtk``.
 
-This package was developed and is maintained by
-
-Paul J. Atzberger
-University of California Santa Barbara
-atzberg@gmail.com
-
 --------------------------------------------------------------------------
 Fixes provided by this package:
 
@@ -59,7 +62,9 @@ Example usage:
 
 ``fix s1 all selm parameters.xml``
 
-Build for example by copy files from USER-SELM/MAKE to src/MAKE/MINE 
+--------------------------------------------------------------------------
+
+To build the package copy files from USER-SELM/MAKE to src/MAKE/MINE 
 and editing as needed.  Then use
 
 ``make yes-molecule``
@@ -69,8 +74,19 @@ and editing as needed.  Then use
 (optional) For VTK support in examples suggested also to use before build 
 ``make yes-user-vtk``
 
+NOTE: For the shared library, you make need to adjust library search path
+that includes the ``libselm``.  For example, on linux you may need to set
+LD_LIBRARY_PATH to include location of ``libselm.so``, such as 
+  
+``LD_LIBRARY_PATH=$LD_LIBRARY_PATH:../lib/selm`` 
+
+or 
+
+``LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(LAMMPS_DIR)/lib/selm`` 
+
 --------------------------------------------------------------------------
 
 For more information, example scripts, python jupyter notebooks 
 see http://mango-selm.org
+
 

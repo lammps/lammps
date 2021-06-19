@@ -4,14 +4,14 @@
 
   Paul J. Atzberger
   http://atzberger.org/
-  
+
   Please cite the follow paper when referencing this package
-  
-  "Fluctuating Hydrodynamics Methods for Dynamic Coarse-Grained Implicit-Solvent Simulations in LAMMPS," 
+
+  "Fluctuating Hydrodynamics Methods for Dynamic Coarse-Grained Implicit-Solvent Simulations in LAMMPS,"
   Wang, Y. and Sigurdsson, J. K. and Atzberger, P. J., SIAM Journal on Scientific Computing, 38(5), 2016.
-  
+
   @article{atz_selm_lammps_fluct_hydro,
-    title = {Fluctuating Hydrodynamics Methods for Dynamic 
+    title = {Fluctuating Hydrodynamics Methods for Dynamic
     Coarse-Grained Implicit-Solvent Simulations in LAMMPS},
     author = {Wang, Y. and Sigurdsson, J. K. and Atzberger, P. J.},
     journal = {SIAM Journal on Scientific Computing},
@@ -21,12 +21,12 @@
     year = {2016},
     doi = {10.1137/15M1026390},
     URL = {https://doi.org/10.1137/15M1026390},
-  }  
-    
-  For latest version of the codes, examples, and additional information see 
+  }
+
+  For latest version of the codes, examples, and additional information see
   http://mango-selm.org/
- 
-------------------------------------------------------------------------- 
+
+-------------------------------------------------------------------------
 */
 
 //#include <cstdlib>
@@ -44,7 +44,7 @@
 #include "error.h"
 //#include "comm.h"
 //#include "universe.h"
-//#include "version.h" 
+//#include "version.h"
 //#include "random_mars.h"
 #include "citeme.h"
 #include "lammps.h"
@@ -75,21 +75,21 @@ static const char cite_selm_str[] =
 
 /* =========================== Class definitions =========================== */
 FixSELM::FixSELM() : Fix(NULL, 0, NULL) {
-  wrapper_selm = new WrapperSELM(); 
+  wrapper_selm = new WrapperSELM();
 }
 
 /* =========================== Class definitions =========================== */
-FixSELM::FixSELM(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg) 
-{  
+FixSELM::FixSELM(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
+{
 
   /* add to citation collection */
-  if (lmp->citeme) lmp->citeme->add(cite_selm_str); 
- 
+  if (lmp->citeme) lmp->citeme->add(cite_selm_str);
+
   /* set to 1 for fix performing integration, 0 if fix does not */
   time_integrate = 1;
-  
+
   /* setup the wrapper for SELM library */
-  wrapper_selm = new WrapperSELM(this,lmp,narg,arg);  
+  wrapper_selm = new WrapperSELM(this,lmp,narg,arg);
 
 }
 
@@ -141,6 +141,6 @@ void FixSELM::post_force(int vflag) { wrapper_selm->post_force(vflag); }
 /* Supporting SELM codes */
 /*****************************************************************************************/
 void FixSELM::packageError(int code, void *extras) {
-  std::exit(code); // exit, may want also to notify lammps 
+  std::exit(code); // exit, may want also to notify lammps
 }
 

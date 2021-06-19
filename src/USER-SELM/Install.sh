@@ -7,7 +7,7 @@ if (test $1 = 1) then
   echo "--------------------------------------------------------------------------------"
 
   ## PJA: can be helpful in some cases to use symbolic links.
-  #echo "Symbolic link copying files for USER-SELM package."    
+  #echo "Symbolic link copying files for USER-SELM package."
   #basePath=$(pwd -P)
   #echo "Base Path = $basePath"
   #ln -sf $basePath/*.h ../

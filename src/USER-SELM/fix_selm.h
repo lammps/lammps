@@ -4,14 +4,14 @@
 
   Paul J. Atzberger
   http://atzberger.org/
-  
+
   Please cite the follow paper when referencing this package
-  
-  "Fluctuating Hydrodynamics Methods for Dynamic Coarse-Grained Implicit-Solvent Simulations in LAMMPS," 
+
+  "Fluctuating Hydrodynamics Methods for Dynamic Coarse-Grained Implicit-Solvent Simulations in LAMMPS,"
   Wang, Y. and Sigurdsson, J. K. and Atzberger, P. J., SIAM Journal on Scientific Computing, 38(5), 2016.
-  
+
   @article{atz_selm_lammps_fluct_hydro,
-    title = {Fluctuating Hydrodynamics Methods for Dynamic 
+    title = {Fluctuating Hydrodynamics Methods for Dynamic
     Coarse-Grained Implicit-Solvent Simulations in LAMMPS},
     author = {Wang, Y. and Sigurdsson, J. K. and Atzberger, P. J.},
     journal = {SIAM Journal on Scientific Computing},
@@ -21,11 +21,11 @@
     year = {2016},
     doi = {10.1137/15M1026390},
     URL = {https://doi.org/10.1137/15M1026390},
-  }  
-    
-  For latest version of the codes, examples, and additional information see 
+  }
+
+  For latest version of the codes, examples, and additional information see
   http://mango-selm.org/
- 
+
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
@@ -56,7 +56,7 @@ class WrapperSELM;
 class FixSELM : public Fix {
 
  public:
-  
+
   int SELM_integrator_mask;
 
   /* ================= Function prototypes ================= */
@@ -71,7 +71,7 @@ class FixSELM : public Fix {
   virtual void final_integrate();
   void         reset_dt();
   void         post_force(int vflag);
-  
+
   // additional methods/hooks
   void pre_exchange();
   void end_of_step();
@@ -80,7 +80,7 @@ class FixSELM : public Fix {
   void packageError(int code, void *extras);
 
   /* =========================== Variables =========================== */
-  LAMMPS                                                    *lammps; 
+  LAMMPS                                                    *lammps;
   WrapperSELM                                               *wrapper_selm;
 
 };

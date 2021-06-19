@@ -1,0 +1,6 @@
+# Settings that the LAMMPS build will import when this package library is used
+# SELM uses FFTW3 for many procedures.
+user-selm_SYSINC =
+user-selm_SYSLIB = -lfftw3
+user-selm_SYSPATH = 
+

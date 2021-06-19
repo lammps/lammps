@@ -1,0 +1,100 @@
+# library build -*- makefile -*-
+SHELL = /bin/sh
+
+# which file will be copied to Makefile.lammps
+EXTRAMAKE = Makefile.lammps.selm1
+
+# ---------------------------------------------------------------------
+
+# PJA: get svn revision number to include in codes (added by Paul J. Atzberger)
+# note the directory of the compilation codes is a copy and not an 
+# SVN dir.  We assume it is always one dir up from SVN source codes.
+
+SVNDEV          := -D'SVN_REV="$(shell svnversion -n ..)"'
+COMPILEDATETIME := -D'COMPILE_DATE_TIME="$(shell date)"'
+
+# ------ FILES ------
+
+SRC = $(wildcard *.cpp)
+INC = $(wildcard *.h)
+
+# ------ DEFINITIONS ------
+
+ARLIBNAME = libselm.a
+SHAREDLIBNAME = libselm.so
+
+OBJ = $(SRC:.cpp=.o)
+
+default: lib_shared
+
+# ------ SETTINGS ------
+
+.PHONY: clean lib_shared lib_static depend
+
+# include any MPI settings needed for the ATC library to build with
+# must be the same MPI library that LAMMPS is built with
+
+CC = g++
+CCFLAGS = -O3 -g -fPIC 
+CPPFLAGS = -I../../src -I../../lib/selm -I../../src/STUBS $(SVNDEV) $(COMPILEDATETIME)
+ 
+ARCHIVE = ar
+ARCHFLAG = -rc
+
+SHAREDLIB = g++
+SHAREDFLAGS = -shared
+
+# ----- FFT ------
+
+# FFT library
+# see discussion in Section 3.5.2 of manual
+# can be left blank to use provided KISS FFT library
+# INC = -DFFT setting, e.g. -DFFT_FFTW, FFT compiler settings
+# PATH = path for FFT library
+# LIB = name of FFT library
+
+FFT_INC =       -DFFT_FFTW -I/usr/include/
+#FFT_INC =       -DFFT_FFTW -I/opt/fftw3-gcc/include
+
+FFT_PATH =      -L/usr/lib/x86_64-linux-gnu/
+#FFT_PATH =      -L/opt/fftw3-gcc/lib
+
+FFT_LIB = -lfftw3	
+
+# ----- EXTRAs ------
+
+EXTRA_INC = $(FFT_INC) 
+EXTRA_PATH = $(FFT_PATH)
+EXTRA_LIB = $(FFT_LIB) 
+
+# ------ MAKE PROCEDURE ------
+
+lib_shared: $(OBJ)
+	$(SHAREDLIB) $(SHAREDFLAGS) -o $(SHAREDLIBNAME) $(OBJ)
+	@cp $(EXTRAMAKE) Makefile.lammps
+
+lib_static: $(OBJ)
+	$(ARCHIVE) $(ARFLAGS) $(ARLIBNAME) $(OBJ)
+	@cp $(EXTRAMAKE) Makefile.lammps
+
+# ------ COMPILE RULES ------
+
+%.o:%.cpp
+	$(CC) $(CPPFLAGS) $(CCFLAGS) $(EXTRA_PATH) $(EXTRA_INC) -c $<
+
+# ------ DEPENDENCIES ------
+
+depend .depend : fastdep.exe $(SRC)
+	@./fastdep.exe $(INCFLAGS) -- $^ > .depend || exit 1
+
+fastdep.exe: ../../src/DEPEND/fastdep.c
+	@cc -O -o $@ $<
+
+# ------ CLEAN ------
+
+clean:
+	-rm -f *.o *~ .depend $(ARLIBNAME) $(SHAREDLIBNAME) fastdep.exe
+
+sinclude .depend
+
+

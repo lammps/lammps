@@ -162,10 +162,10 @@ void SELM_Lagrangian_LAMMPS_ATOM_STYLE_ELLIPSOID::setControlPtsDataFromLammpsDat
   double **v      = atom->v;
   double **f      = atom->f;
   double *mass    = atom->mass;
-  int    *tag     = atom->tag;
+  tagint *tag     = atom->tag;
 
   int    *type    = atom->type; /* not each Lagrangian data structure corresponds to one LAMMPS type */
-  int    *molecule= atom->molecule; /* not each Lagrangian data structure corresponds to one LAMMPS type */
+  tagint *molecule= atom->molecule; /* not each Lagrangian data structure corresponds to one LAMMPS type */
 
   /*
   int    igroup   = fix->igroup;

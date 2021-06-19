@@ -91,16 +91,15 @@ The default options are params_file = NULL
 
 ----------
 
-.. _SELM:
+.. _SELM_LAMMPS:
 
-References for SELM Package:
+**(SELM LAMMPS)** *Fluctuating Hydrodynamics Methods for Dynamic Coarse-Grained Implicit-Solvent Simulations in LAMMPS,* Y. Wang, J. K. Sigurdsson, and P.J. Atzberger, SIAM J. Sci. Comput. , 38(5), S62-S77, (2016), https://doi.org/10.1137/15M1026390
 
- * **(SELM LAMMPS)** *Fluctuating Hydrodynamics Methods for Dynamic Coarse-Grained Implicit-Solvent Simulations in LAMMPS,* Y. Wang, J. K. Sigurdsson, and P.J. Atzberger, SIAM J. Sci. Comput. , 38(5), S62–S77, (2016), https://doi.org/10.1137/15M1026390
+.. _SELM_Reduc:
 
-* **(SELM Reduc)** *Stochastic Reductions for Inertial Fluid-Structure Interactions Subject to Thermal Fluctuations,* G. Tabak and P.J. Atzberger, SIAM J. Appl. Math., 75(4), 1884–1914, (2015), http://dx.doi.org/10.1137/15M1019088
+**(SELM Reduc)** *Stochastic Reductions for Inertial Fluid-Structure Interactions Subject to Thermal Fluctuations,* G. Tabak and P.J. Atzberger, SIAM J. Appl. Math., 75(4), 1884-1914, (2015), http://dx.doi.org/10.1137/15M1019088
 
-* **(SELM Shear)** *Incorporating Shear into Stochastic Eulerian Lagrangian Methods for Rheological Studies of Complex Fluids and Soft Materials,* P.J. Atzberger, Physica D, Vol. 265, pg. 57–70, (2013), http://dx.doi.org/10.1016/j.physd.2013.09.002
+.. _SELM_Shear:
 
-.. _selmdocs: https://mango-selm.org
+**(SELM Shear)** *Incorporating Shear into Stochastic Eulerian Lagrangian Methods for Rheological Studies of Complex Fluids and Soft Materials,* P.J. Atzberger, Physica D, Vol. 265, pg. 57-70, (2013), http://dx.doi.org/10.1016/j.physd.2013.09.002
 
-.. _selmhome: https://mango-selm.org

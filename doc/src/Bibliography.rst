@@ -1028,7 +1028,7 @@ Bibliography
    Schlitter and Klahn, "The free energy of a reaction coordinate at multiple constraints: a concise formulation", Molecular Physics, 101, 3439-3443 (2003).
 
 **(Schmid)**
-   S.\  Bureekaew, S. Amirjalayer, M. Tafipolsky, C. Spickermann, T.K. Roy and R. Schmid, Phys. Status Solidi B, 6, 1128 (2013).
+   S. Bureekaew, S. Amirjalayer, M. Tafipolsky, C. Spickermann, T.K. Roy and R. Schmid, Phys. Status Solidi B, 6, 1128 (2013).
 
 **(Schneider)**
    Schneider and Stoll, Phys Rev B, 17, 1302 (1978).
@@ -1039,14 +1039,14 @@ Bibliography
 **(Schroeder)**
    Schroeder and Steinhauser, J Chem Phys, 133, 154511 (2010).
 
-**(SELM LAMMPS)** 
-   Y. Wang, J. K. Sigurdsson, and P.J. Atzberger, SIAM J. Sci. Comput. , 38(5), S62–S77, (2016). 
+**(SELM LAMMPS)**
+   Y. Wang, J. K. Sigurdsson, and P.J. Atzberger, SIAM J. Sci. Comput. , 38(5), S62-S77, (2016).
 
-**(SELM Reduc)** 
-   G. Tabak and P.J. Atzberger, SIAM J. Appl. Math., 75(4), 1884–1914, (2015).
+**(SELM Reduc)**
+   G. Tabak and P.J. Atzberger, SIAM J. Appl. Math., 75(4), 1884-1914, (2015).
 
-**(SELM Shear)** 
-   P.J. Atzberger, Physica D, Vol. 265, pg. 57–70, (2013).
+**(SELM Shear)**
+   P.J. Atzberger, Physica D, Vol. 265, pg. 57-70, (2013).
 
 **(Semaev)**
    Semaev, Cryptography and Lattices, 181 (2001).

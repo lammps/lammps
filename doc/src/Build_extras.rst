@@ -1947,8 +1947,8 @@ from http://mango-selm.org
 
       When using the USER-SELM package the SELM library should be built
       or installed, such as libselm.a or libselm.so.  For example, see
-      in the LAMMPS distributiom the directory lib/selm, or download the
-      library from the selm website.  The LAMMPS Makfiles should be
+      in the LAMMPS distribution the directory lib/selm, or download the
+      library from the selm website.  The LAMMPS Makefiles should be
       adjusted so that the compiler and linker can find the library
       when constructing the executable.  See examples in USER-SELM/MAKE.
       A typical build would involve

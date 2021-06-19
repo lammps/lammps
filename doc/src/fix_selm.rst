@@ -42,7 +42,7 @@ The latest library version and development is hosted at https://mango-selm.org
 Examples LAMMPS scripts can also be found in directory
 ``examples/USER/selm``
 
-For addition information including jupyter python notebooks, example
+For addition information including Jupyter python notebooks, example
 scripts, and pre-compiled binaries, see http://mango-selm.org
 
 ----------

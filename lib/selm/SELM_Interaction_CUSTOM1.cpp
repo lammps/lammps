@@ -118,6 +118,7 @@ void SELM_Interaction_CUSTOM1::init_library() {
     const char *dlsym_error = dlerror();
 
     if (dlsym_error) {
+      stringstream message;
       message << "Trouble loading symbol from the dynamic link library : " << dlsym_error << endl;
       message << "library_name = " << libName << endl;
 

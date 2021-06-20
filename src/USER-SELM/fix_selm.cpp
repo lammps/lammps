@@ -84,6 +84,10 @@ FixSELM::FixSELM(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
   if (comm->nprocs > 1) error->all(FLERR,"Fix selm cannot be used in parallel");
 
+  if (!atom->mass) error->all(FLERR,"Fix selm requires per atom type masses");
+  if (atom->rmass_flag && comm->me == 0)
+      error->warning(FLERR,"Per-atom masses present, but fix selm will only use per-type masses");
+
   /* setup the wrapper for SELM library */
   driver_selm = new DriverSELM(this,lmp,narg,arg);
 }

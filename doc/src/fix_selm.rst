@@ -71,7 +71,7 @@ SELM, such as the hydrodynamic fields and other information.
 Restrictions
 """"""""""""
 
-Fix selm can only be used in serial mode. It can be compiled
+Fix *selm* can only be used in serial mode. It can be compiled
 with MPI enabled, but then LAMMPS must only be run with a single
 MPI process.  LAMMPS will stop with an error, if this condition
 is not met.
@@ -79,7 +79,10 @@ is not met.
 There may only be one instance of fix selm at any time.  LAMMPS
 will stop with an error, if this condition is not met.
 
-The fix is part of the USER-SELM package.  It is only enabled if
+Fix *selm* requires using per-type masses for atoms.  If per-atom
+masses are present, they will be ignored.
+
+Fix *selm* is part of the USER-SELM package.  It is only enabled if
 LAMMPS was built with this package.  For more information see the
 :doc:`Build package <Build_package>` document page.
 

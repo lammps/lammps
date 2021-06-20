@@ -64,9 +64,9 @@ enum{CONSTANT,EQUAL}; // parsing input variables
 
 FixChargeRegulation::FixChargeRegulation(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  ngroups(0), groupstrings(nullptr), ptype_ID(nullptr),
-  random_equal(nullptr), random_unequal(nullptr),
-  idftemp(nullptr), pHstr(nullptr)
+  ngroups(0), groupstrings(nullptr), ptype_ID(nullptr), pHstr(nullptr),
+  c_pe(nullptr), random_equal(nullptr), random_unequal(nullptr),
+  idftemp(nullptr)
 {
 
   // Region restrictions not yet implemented ..

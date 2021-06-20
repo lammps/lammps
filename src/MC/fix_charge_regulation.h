@@ -100,7 +100,6 @@ class FixChargeRegulation : public Fix {
   int pHvar, pHstyle;          // variable pH style
   char *pHstr;                 // variable pH input parsing
 
-  class Pair *pair;
   class Compute *c_pe;               // energy compute pointer
   class RanPark *random_equal;       // random number generator
   class RanPark *random_unequal;     // random number generator

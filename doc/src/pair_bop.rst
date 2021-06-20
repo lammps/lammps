@@ -387,7 +387,7 @@ These pair potentials require the :doc:`newtion <newton>` setting to be
 
 Pair style bop is not compatible with being used as a substyle with
 doc:`hybrid pair styles <pair_hybrid>`. Pair style bop is also not
-compatible with :doc:`multi-cutoff neighbor lists <neigbor>` or
+compatible with :doc:`multi-cutoff neighbor lists <neighbor>` or
 :doc:`multi-cutoff communitcation <comm_modify>`.
 
 The .bop.table potential files provided with LAMMPS (see the

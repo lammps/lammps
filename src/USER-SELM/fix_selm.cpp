@@ -44,6 +44,7 @@
 
 #include "fix_selm.h"
 
+#include "atom.h"
 #include "citeme.h"
 #include "comm.h"
 #include "error.h"

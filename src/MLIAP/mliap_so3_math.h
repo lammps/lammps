@@ -24,28 +24,26 @@ using namespace MathEigen;
 typedef Jacobi<double, double *, double **, double const *const *> Jacobi_v2;
 int SO3Math::jacobin(int n, double const *const *mat, double *eval, double **evec)
 {
-  int i, j;
-  double **mat_cpy;
+  int *midx = new int[n];
+  double **M = new double*[n];
+  double **mat_cpy = new double*[n];
 
-  mat_cpy = new double *[n];
-  for (int iy = 0; iy < n; iy++) mat_cpy[iy] = new double[n];
-
-  for (i = 0; i < n; i++)
-    for (j = 0; j < n; j++) mat_cpy[i][j] = mat[i][j];
-
-  double *M[n];
-  for (i = 0; i < n; i++) M[i] = &(mat_cpy[i][0]);
-
-  int midx[n];
+  for (int i = 0; i < n; i++) {
+    mat_cpy[i] = new double[n];
+    for (int j = 0; j < n; j++) mat_cpy[i][j] = mat[i][j];
+    M[i] = &(mat_cpy[i][0]);
+  }
 
   Jacobi_v2 ecalcn(n, M, midx);
   int ierror = ecalcn.Diagonalize(mat, eval, evec, Jacobi_v2::SORT_DECREASING_EVALS);
 
-  for (int i = 0; i < n; i++)
+  for (int i = 0; i < n; i++) {
     for (int j = i + 1; j < n; j++) std::swap(evec[i][j], evec[j][i]);
-
-  for (int iy = 0; iy < n; iy++) delete[] mat_cpy[iy];
+    delete[] mat_cpy[i];
+  }
   delete[] mat_cpy;
+  delete[] M;
+  delete[] midx;
 
   return ierror;
 }

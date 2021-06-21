@@ -45,13 +45,12 @@ namespace LAMMPS_NS {
     const char *style;
     };
 
-    Activation::Activation(PairRANN *_pair) {
+    Activation::Activation(PairRANN *) {
     empty = true;
     style = "empty";
     }
 
     Activation::~Activation() {
-
     }
 
     //default is linear activation (no change).
@@ -59,11 +58,11 @@ namespace LAMMPS_NS {
     return A;
     }
 
-    double Activation::dactivation_function(double A) {
+    double Activation::dactivation_function(double) {
     return 1.0;
     }
 
-    double Activation::ddactivation_function(double A) {
+    double Activation::ddactivation_function(double) {
     return 0.0;
     }
   }

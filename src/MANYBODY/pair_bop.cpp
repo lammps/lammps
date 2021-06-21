@@ -406,6 +406,15 @@ void PairBOP::init_style()
   if (force->newton_pair == 0)
     error->all(FLERR,"Pair style BOP requires newton pair on");
 
+  if (utils::strmatch(force->pair_style,"^hybrid"))
+    error->all(FLERR,"Pair style BOP is not compatible with hybrid pair styles");
+
+  if ((neighbor->style == Neighbor::MULTI) || (neighbor->style == Neighbor::MULTI_OLD))
+    error->all(FLERR,"Pair style BOP is not compatible with multi-cutoff neighbor lists");
+
+  if (comm->mode != Comm::SINGLE)
+    error->all(FLERR,"Pair style BOP is not compatible with multi-cutoff communication");
+
   // check that user sets comm->cutghostuser to 3x the max BOP cutoff
 
   if (comm->cutghostuser-0.001 < 3.0*cutmax)

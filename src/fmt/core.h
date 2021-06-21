@@ -18,7 +18,7 @@
 // The fmt library version in the form major * 10000 + minor * 100 + patch.
 #define FMT_VERSION 80000
 
-#ifdef __clang__
+#if defined (__clang__ ) && !defined(__ibmxl__)
 #  define FMT_CLANG_VERSION (__clang_major__ * 100 + __clang_minor__)
 #else
 #  define FMT_CLANG_VERSION 0
@@ -218,6 +218,12 @@
 #  endif
 #endif
 
+// LAMMPS customization
+// use 'v7_lmp' namespace instead of 'v7' so that our
+// bundled copy does not collide with linking other code
+// using system wide installations which may be using
+// a different version.
+
 #ifndef FMT_BEGIN_NAMESPACE
 #  if FMT_USE_INLINE_NAMESPACES
 #    define FMT_INLINE_NAMESPACE inline namespace
@@ -228,12 +234,12 @@
 #    define FMT_INLINE_NAMESPACE namespace
 #    define FMT_END_NAMESPACE \
       }                       \
-      using namespace v7;     \
+      using namespace v7_lmp;     \
       }
 #  endif
 #  define FMT_BEGIN_NAMESPACE \
     namespace fmt {           \
-    FMT_INLINE_NAMESPACE v7 {
+    FMT_INLINE_NAMESPACE v7_lmp {
 #endif
 
 #ifndef FMT_MODULE_EXPORT
@@ -578,10 +584,11 @@ constexpr auto to_string_view(const S& s)
   return basic_string_view<typename S::char_type>(s);
 }
 
-FMT_BEGIN_DETAIL_NAMESPACE
+// LAMMPS customization using 'v7_lmp' instead of 'v7'
 
+FMT_BEGIN_DETAIL_NAMESPACE
 void to_string_view(...);
-using fmt::v7::to_string_view;
+using fmt::v7_lmp::to_string_view;
 
 // Specifies whether S is a string type convertible to fmt::basic_string_view.
 // It should be a constexpr function but MSVC 2017 fails to compile it in

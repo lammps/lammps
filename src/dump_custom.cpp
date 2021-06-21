@@ -182,6 +182,8 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
   // remove trailing blank and copy
   cols.resize(cols.size()-1);
   columns = utils::strdup(cols);
+
+  vartime_flag = 1;
 }
 
 /* ---------------------------------------------------------------------- */

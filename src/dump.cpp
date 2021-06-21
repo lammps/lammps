@@ -145,6 +145,7 @@ Dump::Dump(LAMMPS *lmp, int /*narg*/, char **arg) : Pointers(lmp)
   if (utils::strmatch(filename, "\\.gz$")
       || utils::strmatch(filename, "\\.zst$")) compressed = 1;
 
+  vartime_flag = 0;
   vtime = -1;
   last_time = 0.0;
 }
@@ -1127,8 +1128,11 @@ void Dump::modify_params(int narg, char **arg)
 
     } else if (strcmp(arg[iarg],"vtime") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
+      if (vartime_flag == 0) {
+        error->all(FLERR,"Time-dependent dump writing is not supported");
+      }
       vtime = utils::numeric(FLERR, arg[iarg+1],false,lmp);
-      if (vtime < 0) error->all(FLERR,"Illegal dump_modify command");
+      if (vtime <= 0) error->all(FLERR,"Illegal dump_modify command");
       last_time = vtime;
       //resetting the frequency of the dump to 1 
       int idump;

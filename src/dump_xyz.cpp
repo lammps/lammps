@@ -44,6 +44,8 @@ DumpXYZ::DumpXYZ(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg),
 
   ntypes = atom->ntypes;
   typenames = nullptr;
+
+  vartime_flag = 1;
 }
 
 /* ---------------------------------------------------------------------- */

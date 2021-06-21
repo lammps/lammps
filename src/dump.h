@@ -32,7 +32,6 @@ class Dump : protected Pointers {
   int comm_reverse;          // size of reverse communication (0 if none)
 
   double vtime;              // time frequency for time-dependent dumps
-  double last_time;          // last time time-dependent dump was written
 
 #if defined(LMP_QSORT)
   // static variable across all Dump objects
@@ -141,6 +140,9 @@ class Dump : protected Pointers {
   double **xpbc,**vpbc;
   imageint *imagepbc;
   int maxpbc;
+
+  int vartime_flag;          // 1 if time-dependent dumping is supported
+  double last_time;          // last time a time-dependent dump was written
 
   class Irregular *irregular;
 

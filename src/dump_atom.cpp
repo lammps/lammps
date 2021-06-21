@@ -35,6 +35,8 @@ DumpAtom::DumpAtom(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
   buffer_allow = 1;
   buffer_flag = 1;
   format_default = nullptr;
+
+  vartime_flag = 1;
 }
 
 /* ---------------------------------------------------------------------- */

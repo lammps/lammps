@@ -164,7 +164,7 @@ LAMMPS:
    allowed, but that should be sufficient for most use cases.
 
 .. admonition:: ASCII versus UTF-8
-        :class: note
+   :class: note
 
    LAMMPS expects and processes 7-bit ASCII format text internally.
    Many modern environments use UTF-8 encoding, which is a superset

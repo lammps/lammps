@@ -94,9 +94,7 @@ PairRANN::PairRANN(LAMMPS *lmp) : Pair(lmp)
   //at least one of the following will change during fingerprint definition:
   doscreen = false;
   allscreen = true;
-
   dospin = false;
-
 }
 
 PairRANN::~PairRANN()
@@ -327,7 +325,7 @@ void PairRANN::read_file(char *filename)
     linev = values.as_vector();
     line1v = values1.as_vector();
     if (linev[0]=="atomtypes") read_atom_types(line1v,filename,linenum);
-    else if (linev[0]=="mass") read_mass(line1v,filename,linenum);
+    else if (linev[0]=="mass") read_mass(linev,line1v,filename,linenum);
     else if (linev[0]=="fingerprintsperelement") read_fpe(linev,line1v,filename,linenum);
     else if (linev[0]=="fingerprints") read_fingerprints(linev,line1v,filename,linenum);
     else if (linev[0]=="fingerprintconstants") read_fingerprint_constants(linev,line1v,filename,linenum);
@@ -368,11 +366,11 @@ void PairRANN::read_atom_types(std::vector<std::string> line,char *filename,int 
   allocate(line);
 }
 
-void PairRANN::read_mass(const std::vector<std::string> &line,char *filename,int linenum) {
+void PairRANN::read_mass(const std::vector<std::string> &line1, const std::vector<std::string> &line2, const char *filename,int linenum) {
   if (nelements == -1)error->one(filename,linenum-1,"atom types must be defined before mass in potential file.");
   for (int i=0;i<nelements;i++) {
-    if (line[1].compare(elements[i])==0) {
-      mass[i]=utils::numeric(filename,linenum,line[0].c_str(),1,lmp);
+    if (line1[1].compare(elements[i])==0) {
+      mass[i]=utils::numeric(filename,linenum,line2[0].c_str(),1,lmp);
       return;
     }
   }

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+
+<!--
+=======================================================
+  Data file for MANGO-SELM package.
+
+  These files provide data and scripting control 
+  of the MANGO-SELM package.
+                                                       
+  Based on scripts generated using the 
+  MANGO-SELM Model Builder.
+                            
+  Author: Paul J. Atzberger
+
+=======================================================
+-->
+
+<FixSELM>
+
+<!--=======================================================-->
+
+<SELM_Version value="1"/>
+
+<SELM_Run_Description value="Performs SELM simulations.  Author: Paul J. Atzberger"/>
+
+<!--=======================================================-->
+
+<SELM_BaseFilename value="Model"/>
+<SELM_BasePath value="./"/>
+
+<!--=======================================================-->
+
+<SELM_Seed value="12345"/>
+
+<!--=======================================================-->
+
+<SELM_Lagrangian_List numEntries="1">
+
+<SELM_Lagrangian>
+<SELM_LagrangianName value="Particles"/>
+<SELM_LagrangianTypeStr value="LAMMPS_ATOM_ANGLE_STYLE"/>
+</SELM_Lagrangian>
+
+</SELM_Lagrangian_List>
+
+<!--=======================================================-->
+
+<SELM_Eulerian_List numEntries="1">
+
+<SELM_Eulerian>
+<SELM_EulerianName value="LAMMPS_SHEAR_UNIFORM1_FFTW3"/>
+<SELM_EulerianTypeStr value="LAMMPS_SHEAR_UNIFORM1_FFTW3"/>
+</SELM_Eulerian>
+
+</SELM_Eulerian_List>
+
+<!--=======================================================-->
+
+<SELM_CouplingOperator_List numEntries="1">
+
+<SELM_CouplingOperator>
+<SELM_CouplingOperatorName value="CouplingOp"/>
+<SELM_CouplingOperatorTypeStr value="LAMMPS_SHEAR_UNIFORM1_FFTW3_TABLE1"/>
+</SELM_CouplingOperator>
+
+</SELM_CouplingOperator_List>
+
+<!--=======================================================-->
+
+<SELM_Interaction_List numEntries="0">
+</SELM_Interaction_List>
+
+<!--=======================================================-->
+
+
+<SELM_Integrator>
+<SELM_IntegratorName value="LAMMPS_SHEAR_QUASI_STEADY1_FFTW3"/>
+<SELM_IntegratorTypeStr value="LAMMPS_SHEAR_QUASI_STEADY1_FFTW3"/>
+</SELM_Integrator>
+
+
+<!--=======================================================-->
+
+
+</FixSELM>
+
+

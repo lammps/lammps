@@ -768,6 +768,8 @@
 /fix_rigid_nvt_small.h
 /fix_rigid_small.cpp
 /fix_rigid_small.h
+/fix_selm.cpp
+/fix_selm.h
 /fix_shake.cpp
 /fix_shake.h
 /fix_shardlow.cpp

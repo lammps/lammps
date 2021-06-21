@@ -345,6 +345,7 @@ accelerated styles exist.
 * :doc:`rigid/small <fix_rigid>` - constrain many small clusters of atoms to move as a rigid body with NVE integration
 * :doc:`rx <fix_rx>` -
 * :doc:`saed/vtk <fix_saed_vtk>` -
+* :doc:`selm <fix_selm>` - fluctuating hydrodynamics and implicit-solvent methods using stochastic fluid mechanics
 * :doc:`setforce <fix_setforce>` - set the force on each atom
 * :doc:`setforce/spin <fix_setforce>` - set magnetic precession vectors on each atom
 * :doc:`shake <fix_shake>` - SHAKE constraints on bonds and/or angles

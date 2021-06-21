@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+
+<!--
+=======================================================
+  Data file for MANGO-SELM package.
+
+  These files provide data and scripting control 
+  of the MANGO-SELM package.
+                                                       
+  Based on scripts generated using the 
+  MANGO-SELM Model Builder.
+                            
+  Author: Paul J. Atzberger
+
+=======================================================
+-->
+
+<SELM_Integrator>
+<IntegratorName value="LAMMPS_SHEAR_QUASI_STEADY1_FFTW3"/>
+<IntegratorTypeStr value="LAMMPS_SHEAR_QUASI_STEADY1_FFTW3"/>
+
+<mu value="1.0"/>
+<rho value="0.001"/>
+<KB value="0.01380651"/>
+<T value="298.15"/>
+
+<!-- For deterministic simulations use small T value and set flags below -->
+<!-- <T value="0.00001"/> -->
+
+<!--
+<shearData value="RM_OSC1"> 
+<shearOmega value="0.0002"/> 
+<shearRateAmplitude value="50.0"/>
+<shearDir value="2"/>
+<shearVelDir value="0"/>
+</shearData>
+-->
+
+<shearData value="RM_SHEAR1">
+<shearRate value="0.0"/>
+<shearDir value="2"/>
+<shearVelDir value="0"/>
+</shearData>
+
+<!-- For deterministic simulations set the stochastic flag to zero -->
+<flagStochasticDriving value="1"/>
+<flagIncompressibleFluid value="1"/>
+
+</SELM_Integrator>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+
+<!--
+=======================================================
+  Data file for MANGO-SELM package.
+
+  These files provide data and scripting control 
+  of the MANGO-SELM package.
+                                                       
+  Based on scripts generated using the 
+  MANGO-SELM Model Builder.
+                            
+  Author: Paul J. Atzberger 
+
+=======================================================
+-->
+
+<SELM_Eulerian>
+<EulerianName value="LAMMPS_SHEAR_UNIFORM1_FFTW3"/>
+<EulerianTypeStr value="LAMMPS_SHEAR_UNIFORM1_FFTW3"/>
+
+<num_dim value="3"/>
+<meshDeltaX value="5.625"/>
+<numMeshPtsPerDir>72 72 72 </numMeshPtsPerDir>
+<meshCenterX0>0.0 0.0 0.0 </meshCenterX0>
+
+<flagWriteSimulationData value="1"/>
+<saveSkipSimulationData value="1"/>
+
+<flagWriteFluidVel_VTK value="1"/>
+<flagWriteFluidForce_VTK value="1"/>
+<flagWriteFluidPressure_VTK value="0"/>
+
+</SELM_Eulerian>
+

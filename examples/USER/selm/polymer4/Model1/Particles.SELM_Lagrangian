@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+
+<!--
+=======================================================
+  Data file for MANGO-SELM package.
+
+  These files provide data and scripting control 
+  of the MANGO-SELM package.
+                                                       
+  Based on scripts generated using the 
+  MANGO-SELM Model Builder.
+                            
+  Author: Paul J. Atzberger, 2011                              
+
+=======================================================
+-->
+
+<SELM_Lagrangian>
+<LagrangianName value="Particles"/>
+<LagrangianTypeStr value="LAMMPS_ATOM_ANGLE_STYLE"/>
+<num_dim value="3"/>
+
+<plotColor>
+<Color>
+<colorArray>67 183 46 </colorArray>
+</Color>
+</plotColor>
+
+<flagVisible value="true"/>
+
+<flagWriteSimulationData value="0"/>
+<saveSkipSimulationData value="1"/>
+<outputSimulationData value="vtk"/>
+
+</SELM_Lagrangian>

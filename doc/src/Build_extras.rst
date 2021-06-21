@@ -60,6 +60,7 @@ This is the list of packages that may require additional steps.
    * :ref:`USER-QMMM <user-qmmm>`
    * :ref:`USER-QUIP <user-quip>`
    * :ref:`USER-SCAFACOS <user-scafacos>`
+   * :ref:`USER-SELM <user-selm>`
    * :ref:`USER-SMD <user-smd>`
    * :ref:`USER-VTK <user-vtk>`
 
@@ -1925,6 +1926,53 @@ To build with this package, you must download and build the
       created in ``lib/scafacos`` to point to the ScaFaCoS src dir.  When LAMMPS
       builds in src it will use these links.  You should not need to edit
       the ``lib/scafacos/Makefile.lammps`` file.
+
+----------
+
+.. _user-selm:
+
+USER-SELM package
+-----------------
+
+The USER-SELM package requires building with and linking to the
+FFTW3 library from `www.fftw.org <http://www.fftw.org>`_ in double precision mode.
+Thus the KSPACE package also must be :ref:`set up accordingly <fft>`.
+
+.. tabs::
+
+   .. tab:: CMake build
+
+      When enabling the USER-SELM package also the :ref:`KSPACE package <PKG-KSPACE>`
+      must be installed and configured for FFTW3 in double precision.
+
+      To select whether dynamically loaded plugins for SELM are enabled or not,
+      you can use:
+
+      .. code-block:: bash
+
+         -D SELM_PLUGINS=value    # enable dynamically loaded plugins, value = no (default) or yes
+
+   .. tab:: Traditional make
+
+      When using the USER-SELM package the SELM library should be built
+      or installed.  For example, see
+      in the LAMMPS distribution the directory lib/selm, or download the
+      library from the selm website.  The LAMMPS Makefiles should be
+      adjusted so that the compiler and linker can find the library
+      when constructing the executable.  See examples in USER-SELM/MAKE.
+      A typical build would involve
+
+      .. code-block:: bash
+
+         $ make yes-molecule
+         $ make yes-kspace
+         $ make yes-user-selm
+         $ make machine
+
+      While optional, many examples also use the USER-VTK package,
+      which can be included using ``make yes-user-vtk``.
+
+      More information can be found at http://mango-selm.org
 
 ----------
 

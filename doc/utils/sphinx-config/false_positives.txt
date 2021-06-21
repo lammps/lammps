@@ -1713,6 +1713,7 @@ libqmmm
 librar
 libreax
 libs
+libselm
 Lifshitz
 ligand
 lightblue
@@ -2942,6 +2943,8 @@ segmental
 Seifert
 sellerio
 Sellerio
+selm
+SELM
 Semaev
 semiaxes
 semimetals
@@ -2987,6 +2990,7 @@ Siepmann
 Sievers
 sigI
 sigmoid
+Sigurdsson
 Sij
 Sikandar
 Silbert
@@ -3167,6 +3171,7 @@ Syst
 systemd
 Sz
 sz
+Tabak
 Tabbernor
 tabinner
 Tadmor

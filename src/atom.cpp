@@ -169,6 +169,10 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   cs = csforce = vforce = nullptr;
   etag = nullptr;
 
+  // USER-CGDNA package
+
+  id5p = nullptr;
+
   // USER-DPD package
 
   uCond = uMech = uChem = uCG = uCGnew = nullptr;
@@ -471,6 +475,10 @@ void Atom::peratom_create()
   add_peratom("vforce",&vforce,DOUBLE,3);
   add_peratom("ervelforce",&ervelforce,DOUBLE,0);
   add_peratom("etag",&etag,INT,0);
+
+  // USER-CGDNA package
+
+  add_peratom_vary("id5p",&id5p,tagintsize,&bond_per_atom,&num_bond);
 
   // USER-DPD package
 
@@ -1280,6 +1288,7 @@ void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset,
         bond_type[m][num_bond[m]] = itype;
         bond_atom[m][num_bond[m]] = atom2;
         num_bond[m]++;
+        if (style_match("oxdna")) data_bonds_oxdna(m,num_bond,atom2);
       }
     }
     if (newton_bond == 0) {
@@ -1292,7 +1301,23 @@ void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset,
         }
       }
     }
+
     buf = next + 1;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   process bond information from data file
+   store 5' partner to inform 3'->5' bond directionality 
+------------------------------------------------------------------------- */
+
+void Atom::data_bonds_oxdna(int i, int *num_bond, tagint atom2)
+{
+  int ib;
+  tagint **id5p = atom->id5p;
+
+  for (ib=0; ib<atom->num_bond[i]; ib++) {
+    id5p[i][ib] = atom2;
   }
 }
 

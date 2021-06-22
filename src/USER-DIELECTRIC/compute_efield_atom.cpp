@@ -121,7 +121,6 @@ void ComputeEfieldAtom::setup()
 void ComputeEfieldAtom::compute_peratom()
 {
   int i,j;
-  double onemass;
 
   invoked_peratom = update->ntimestep;
   if (update->vflag_atom != invoked_peratom)
@@ -143,7 +142,6 @@ void ComputeEfieldAtom::compute_peratom()
   // ntotal includes ghosts if either newton flag is set
   // KSpace includes ghosts if tip4pflag is set
 
-  double** f = atom->f;
   double* q = atom->q;
   int nlocal = atom->nlocal;
   int npair = nlocal;

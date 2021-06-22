@@ -1,5 +1,4 @@
-LAMMPS (10 Feb 2021)
-  using 1 OpenMP thread(s) per MPI task
+LAMMPS (27 May 2021)
 # Demonstrate MLIAP interface to linear SNAP potential
 
 # Initialize simulation
@@ -29,7 +28,7 @@ region          box block 0 4 0 4 0 ${nz}
 region          box block 0 4 0 4 0 4
 create_box      1 box
 Created orthogonal box = (0.0000000 0.0000000 0.0000000) to (13.264000 13.264000 13.264000)
-  1 by 2 by 2 MPI processor grid
+  1 by 1 by 1 MPI processor grid
 create_atoms    1 box
 Created 128 atoms
   create_atoms CPU = 0.000 seconds
@@ -112,7 +111,7 @@ Neighbor list info ...
       pair build: full/bin/atomonly
       stencil: full/bin/3d
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 18.06 | 18.06 | 18.06 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 18.15 | 18.15 | 18.15 Mbytes
 Step Temp E_pair c_energy TotEng Press v_press 
        0          300    -11.85157    -11.85157   -11.813095    2717.1661   -2717.1661 
       10    296.01467   -11.851059   -11.851059   -11.813095    2697.4796   -2697.4796 
@@ -125,33 +124,33 @@ Step Temp E_pair c_energy TotEng Press v_press
       80    124.79303   -11.829099   -11.829099   -11.813094    1947.0715   -1947.0715 
       90    97.448054   -11.825592   -11.825592   -11.813094    2231.9563   -2231.9563 
      100    74.035418   -11.822589   -11.822589   -11.813094    2515.8526   -2515.8526 
-Loop time of 0.858301 on 4 procs for 100 steps with 128 atoms
+Loop time of 1.46158 on 1 procs for 100 steps with 128 atoms
 
-Performance: 5.033 ns/day, 4.768 hours/ns, 116.509 timesteps/s
-100.2% CPU use with 4 MPI tasks x 1 OpenMP threads
+Performance: 2.956 ns/day, 8.120 hours/ns, 68.419 timesteps/s
+99.9% CPU use with 1 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.75351    | 0.79999    | 0.85429    |   4.2 | 93.21
+Pair    | 1.4607     | 1.4607     | 1.4607     |   0.0 | 99.94
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.0026857  | 0.057019   | 0.10354    |  15.8 |  6.64
-Output  | 0.00078796 | 0.00080864 | 0.00085671 |   0.0 |  0.09
-Modify  | 0.00011437 | 0.00012275 | 0.00013339 |   0.0 |  0.01
-Other   |            | 0.0003564  |            |       |  0.04
+Comm    | 0.00028086 | 0.00028086 | 0.00028086 |   0.0 |  0.02
+Output  | 0.00035334 | 0.00035334 | 0.00035334 |   0.0 |  0.02
+Modify  | 0.00011992 | 0.00011992 | 0.00011992 |   0.0 |  0.01
+Other   |            | 0.0001502  |            |       |  0.01
 
-Nlocal:        32.0000 ave          32 max          32 min
-Histogram: 4 0 0 0 0 0 0 0 0 0
-Nghost:        431.000 ave         431 max         431 min
-Histogram: 4 0 0 0 0 0 0 0 0 0
-Neighs:        928.000 ave         928 max         928 min
-Histogram: 4 0 0 0 0 0 0 0 0 0
-FullNghs:      1856.00 ave        1856 max        1856 min
-Histogram: 4 0 0 0 0 0 0 0 0 0
+Nlocal:        128.000 ave         128 max         128 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:        727.000 ave         727 max         727 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:        3712.00 ave        3712 max        3712 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:      7424.00 ave        7424 max        7424 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
 
 Total # of neighbors = 7424
 Ave neighs/atom = 58.000000
 Neighbor list builds = 0
 Dangerous builds = 0
 
-Total wall time: 0:00:00
+Total wall time: 0:00:01

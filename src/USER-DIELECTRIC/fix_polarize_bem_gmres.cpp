@@ -246,7 +246,7 @@ void FixPolarizeBEMGMRES::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPolarizeBEMGMRES::setup(int vflag)
+void FixPolarizeBEMGMRES::setup(int /*vflag*/)
 {
   // check if the pair styles in use are compatible
 
@@ -308,7 +308,6 @@ void FixPolarizeBEMGMRES::compute_induced_charges()
   double *ed = atom->ed;
   double *em = atom->em;
   double *epsilon = atom->epsilon;
-  int *mask = atom->mask;
   int nlocal = atom->nlocal;
   double epsilon0 = force->dielectric;
   int eflag = 0;
@@ -585,7 +584,7 @@ void FixPolarizeBEMGMRES::gmres_solve(double *x, double *r)
   matvec(A, v(k-1), v(k), n);
 ------------------------------------------------------------------------- */
 
-void FixPolarizeBEMGMRES::apply_operator(double *w, double *Aw, int n)
+void FixPolarizeBEMGMRES::apply_operator(double *w, double *Aw, int /*n*/)
 {
   int i;
   double *q = atom->q;
@@ -594,7 +593,6 @@ void FixPolarizeBEMGMRES::apply_operator(double *w, double *Aw, int n)
   double *ed = atom->ed;
   double *em = atom->em;
   double *epsilon = atom->epsilon;
-  int *mask = atom->mask;
   int nlocal = atom->nlocal;
   double epsilon0 = force->dielectric;
   int eflag = 0;
@@ -655,7 +653,7 @@ void FixPolarizeBEMGMRES::apply_operator(double *w, double *Aw, int n)
   using Eq. (60) in Barros et al.
 ------------------------------------------------------------------------ */
 
-void FixPolarizeBEMGMRES::update_residual(double *w, double *r, int n)
+void FixPolarizeBEMGMRES::update_residual(double *w, double *r, int /*n*/)
 {
   int i;
   double *q = atom->q;
@@ -665,7 +663,6 @@ void FixPolarizeBEMGMRES::update_residual(double *w, double *r, int n)
   double *ed = atom->ed;
   double *em = atom->em;
   double *epsilon = atom->epsilon;
-  int *mask = atom->mask;
   int nlocal = atom->nlocal;
   double epsilon0 = force->dielectric;
   int eflag = 0;
@@ -862,7 +859,7 @@ void FixPolarizeBEMGMRES::grow_arrays(int n)
    copy values within local atom-based arrays
 ------------------------------------------------------------------------- */
 
-void FixPolarizeBEMGMRES::copy_arrays(int i, int j, int delflag)
+void FixPolarizeBEMGMRES::copy_arrays(int i, int j, int /*delflag*/)
 {
   induced_charge_idx[j] = induced_charge_idx[i];
 }
@@ -878,7 +875,7 @@ void FixPolarizeBEMGMRES::set_arrays(int i)
 
 /* ---------------------------------------------------------------------- */
 
-int FixPolarizeBEMGMRES::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
+int FixPolarizeBEMGMRES::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int * /*pbc*/)
 {
   int m;
   for (m = 0; m < n; m++) buf[m] = atom->q[list[m]];

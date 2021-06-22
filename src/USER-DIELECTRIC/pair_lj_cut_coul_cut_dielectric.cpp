@@ -57,7 +57,7 @@ PairLJCutCoulCutDielectric::~PairLJCutCoulCutDielectric()
 void PairLJCutCoulCutDielectric::compute(int eflag, int vflag)
 {
   int i, j, ii, jj, inum, jnum, itype, jtype;
-  double qtmp, etmp, xtmp, ytmp, ztmp, delx, dely, delz, evdwl, ecoul, fpair;
+  double qtmp, etmp, xtmp, ytmp, ztmp, delx, dely, delz, evdwl, ecoul;
   double fpair_i, fpair_j;
   double rsq, r2inv, r6inv, forcecoul, forcelj, factor_coul, factor_lj, efield_i, epot_i;
   int *ilist, *jlist, *numneigh, **firstneigh;
@@ -76,7 +76,6 @@ void PairLJCutCoulCutDielectric::compute(int eflag, int vflag)
   double **x = atom->x;
   double **f = atom->f;
   double *q = atom->q;
-  double *q_real = atom->q_unscaled;
   double *eps = atom->epsilon;
   double **norm = atom->mu;
   double *curvature = atom->curvature;

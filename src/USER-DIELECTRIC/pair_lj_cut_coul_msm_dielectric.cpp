@@ -64,7 +64,7 @@ PairLJCutCoulMSMDielectric::~PairLJCutCoulMSMDielectric()
 void PairLJCutCoulMSMDielectric::compute(int eflag, int vflag)
 {
   int i, ii, j, jj, inum, jnum, itype, jtype, itable;
-  double qtmp, etmp, xtmp, ytmp, ztmp, delx, dely, delz, evdwl, ecoul, fpair, fcoul;
+  double qtmp, etmp, xtmp, ytmp, ztmp, delx, dely, delz, evdwl, ecoul, fpair;
   double fpair_i, fpair_j;
   double fraction, table;
   double r, r2inv, r6inv, forcecoul, forcelj, factor_coul, factor_lj;

@@ -36,18 +36,17 @@ using namespace LAMMPS_NS;
 MLIAPModelNN::MLIAPModelNN(LAMMPS* lmp, char* coefffilename) :
   MLIAPModel(lmp, coefffilename)
 {
-  coeffelem = nullptr;
   nnodes = nullptr;
   activation = nullptr;
   scale = nullptr;
   if (coefffilename) read_coeffs(coefffilename);
+  nonlinearflag = 1;
 }
 
 /* ---------------------------------------------------------------------- */
 
 MLIAPModelNN::~MLIAPModelNN()
 {
-    memory->destroy(coeffelem);
     memory->destroy(nnodes);
     memory->destroy(activation);
     memory->destroy(scale);
@@ -118,6 +117,7 @@ void MLIAPModelNN::read_coeffs(char *coefffilename)
 
   // set up coeff lists
 
+  memory->destroy(coeffelem);
   memory->create(coeffelem,nelements,nparams,"mliap_snap_model:coeffelem");
 
   int stats = 0;
@@ -352,9 +352,9 @@ void MLIAPModelNN::compute_gradients(MLIAPData* data)
       // Deleting the variables
 
       for (int n=0; n<nl; n++) {
-        delete nodes[n];
-        delete dnodes[n];
-        delete bnodes[n];
+        delete[] nodes[n];
+        delete[] dnodes[n];
+        delete[] bnodes[n];
       }
 
       delete[] nodes;

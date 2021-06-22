@@ -288,12 +288,6 @@ void Fingerprint_bondspin::generate_coefficients() {      //calculates multinomi
 
 //Called by getproperties. Gets 3-body features and dfeatures
 void Fingerprint_bondspin::compute_fingerprint(double * features,double * dfeaturesx,double *dfeaturesy,double *dfeaturesz,double * dspinx,double *dspiny,double *dspinz,int ii,int sid,double *xn,double *yn,double*zn,int *tn,int jnum,int *jl) {
-  int i;
-  int *ilist,*numneigh;
-  PairRANN::Simulation *sim = &pair->sims[sid];
-  ilist = sim->ilist;
-  numneigh = sim->numneigh;
-  i = ilist[ii];
   //select the more efficient algorithm for this particular potential and environment.
   if (jnum*2>(mlength+1)*mlength*20) {
     do3bodyfeatureset_singleneighborloop(features,dfeaturesx,dfeaturesy,dfeaturesz,dspinx,dspiny,dspinz,ii,sid,xn,yn,zn,tn,jnum,jl);
@@ -306,8 +300,8 @@ void Fingerprint_bondspin::compute_fingerprint(double * features,double * dfeatu
 //Called by do3bodyfeatureset. Algorithm for high neighbor numbers and small series of bond angle powers
 void Fingerprint_bondspin::do3bodyfeatureset_singleneighborloop(double * features,double * dfeaturesx,double *dfeaturesy,double *dfeaturesz,double * dspinx,double *dspiny,double *dspinz,int ii,int sid,double *xn,double *yn,double*zn,int *tn,int jnum,int *jl) {
   int i,j,jj,itype,jtype,kk,m,n,mcount,a,a1,a2,ai;
-  double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
-  int *ilist,*jlist,*numneigh,**firstneigh;
+  double delx,dely,delz,rsq;
+  int *ilist;
   int count=0;
   PairRANN::Simulation *sim = &pair->sims[sid];
   int *type = sim->type;
@@ -599,13 +593,12 @@ void Fingerprint_bondspin::do3bodyfeatureset_singleneighborloop(double * feature
 //Called by do3bodyfeatureset. Algorithm for low neighbor numbers and large series of bond angle powers
 void Fingerprint_bondspin::do3bodyfeatureset_doubleneighborloop(double * features,double * dfeaturesx,double *dfeaturesy,double *dfeaturesz,double * dspinx,double *dspiny,double *dspinz,int ii,int sid,double *xn,double *yn,double*zn,int *tn,int jnum,int *jl) {
   int i,j,jj,itype,jtype,ktype,kk,m,n;
-  double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
-  int *ilist,*jlist,*numneigh,**firstneigh;
+  double delx,dely,delz,rsq;
+  int *ilist;
   int jtypes = atomtypes[1];
   int ktypes = atomtypes[2];
   int count=0;
   PairRANN::Simulation *sim = &pair->sims[sid];
-  double **x = sim->x;
   int *type = sim->type;
   int nelements = pair->nelements;
   int res = pair->res;
@@ -629,16 +622,16 @@ void Fingerprint_bondspin::do3bodyfeatureset_doubleneighborloop(double * feature
   for (jj = 0; jj < jnum; jj++) {
     jtype = tn[jj];
     if (jtypes != nelements && jtypes != jtype && ktypes != nelements && ktypes != jtype) {
-    	expr[jj][0]=0;
-    	continue;
+        expr[jj][0]=0;
+        continue;
     }
     delx = xn[jj];
     dely = yn[jj];
     delz = zn[jj];
     rsq = delx*delx + dely*dely + delz*delz;
     if (rsq>rc*rc) {
-    	expr[jj][0]=0;
-    	continue;
+        expr[jj][0]=0;
+        continue;
     }
     double r1 = (rsq*((double)res)*cutinv2);
     int m1 = (int)r1;
@@ -649,7 +642,7 @@ void Fingerprint_bondspin::do3bodyfeatureset_doubleneighborloop(double * feature
     double *p2 = &expcuttable[(m1+1)*kmax];
     double *p3 = &expcuttable[(m1+2)*kmax];
     for (kk=0;kk<kmax;kk++) {
-    	expr[jj][kk] = p1[kk]+0.5*r1*(p2[kk]-p0[kk]+r1*(2.0*p0[kk]-5.0*p1[kk]+4.0*p2[kk]-p3[kk]+r1*(3.0*(p1[kk]-p2[kk])+p3[kk]-p0[kk])));
+        expr[jj][kk] = p1[kk]+0.5*r1*(p2[kk]-p0[kk]+r1*(2.0*p0[kk]-5.0*p1[kk]+4.0*p2[kk]-p3[kk]+r1*(3.0*(p1[kk]-p2[kk])+p3[kk]-p0[kk])));
     }
     double* q = &dfctable[m1-1];
     double* r2 = &rinvsqrttable[m1-1];

@@ -53,7 +53,7 @@ namespace LAMMPS_NS {
       return A;
     }
 
-    double Activation_linear::dactivation_function(double A)
+    double Activation_linear::dactivation_function(double)
     {
       return 1.0;
     }
@@ -61,8 +61,6 @@ namespace LAMMPS_NS {
     double Activation_linear::ddactivation_function(double) {
       return 0.0;
     }
-
-
   }
 }
 

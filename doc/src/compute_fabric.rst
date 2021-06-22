@@ -48,9 +48,15 @@ Description
 """""""""""
 
 Define a compute that calculates various fabric tensors for pairwise
-interactions :ref:`(Ouadfel) <Ouadfel>`. The *type* and *radius* settings
-are used to select whether interactions cutoffs are determined by atom types
-or by the sum of atomic radii (atom style sphere), respectively.
+interaction :ref:`(Ouadfel) <Ouadfel>`. Fabric tensors are commonly used
+to quantify the anisotropy or orientation of granular contacts but can also
+be used to characterize the direction of pairwise interactions in general
+systems. The *type* and *radius* settings are used to select whether interactions
+cutoffs are determined by atom types or by the sum of atomic radii (atom
+style sphere), respectively. Calling this compute is roughly the cost of a
+pair style invocation as it involves a loop over the neighbor list. If the
+normal or tangential force tensors are requested, it will be more expensive
+than a pair style invocation as it will also recalculate all pair forces.
 
 Four fabric tensors are available: the contact, branch, normal force, or
 tangential force tensor. The contact tensor is calculated as
@@ -137,17 +143,18 @@ Multiple *type/include* keywords may be added.
 Output info
 """""""""""
 
-This compute calculates a local vector of doubles. The vector stores the
+This compute calculates a local vector of doubles and a scalar. The vector stores the
 unique components of the first requested tensor in the order xx, yy, zz, xy, xz, yz
-followed by the same components for all subsequent tensors. The final entry is the
+followed by the same components for all subsequent tensors. The length of the vector
+is therefore six times the number of requested tensors. The scalar output is the
 number of pairwise interactions included in the calculation of the fabric tensor.
-The length of the vector is therefore six times the number of requested tensors plus one.
 
 Restrictions
 """"""""""""
 
 This fix is part of the GRANULAR package.  It is only enabled if LAMMPS
-was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+was built with that package.  See the :doc:`Build package <Build_package>`
+doc page for more info.
 
 Currently, compute *fabric* does not support pair styles
 with many-body interactions.  It also does not

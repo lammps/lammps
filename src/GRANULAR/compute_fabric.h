@@ -31,9 +31,11 @@ class ComputeFabric : public Compute {
   void init();
   void init_list(int, class NeighList *);
   void compute_vector();
+  double compute_scalar();
 
  private:
   int ntensors, pstyle, cutstyle;
+  double nc;
   int *tensor_style;
   int **type_filter;
   class NeighList *list;

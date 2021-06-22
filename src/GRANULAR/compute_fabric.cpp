@@ -130,8 +130,11 @@ ComputeFabric::ComputeFabric(LAMMPS *lmp, int narg, char **arg) :
   }
 
   vector_flag = 1;
-  size_vector = 1 + ntensors * 6;
+  size_vector = ntensors * 6;
   extvector = 0;
+
+  scalar_flag = 1;
+  extscalar = 0;
 
   vector = new double[size_vector];
 }
@@ -186,6 +189,8 @@ void ComputeFabric::init_list(int /*id*/, NeighList *ptr)
 
 void ComputeFabric::compute_vector()
 {
+  invoked_vector = update->ntimestep;
+
   int i, j, ii, jj, inum, jnum, itype, jtype;
   tagint itag, jtag;
   double xtmp, ytmp, ztmp, delx, dely, delz;
@@ -200,7 +205,6 @@ void ComputeFabric::compute_vector()
   double D_ij[6] = {0.0};
   double Xfn_ij[6] = {0.0};
   double Xft_ij[6] = {0.0};
-  int nc, temp_int;
   double temp_dbl[6];
 
   int *ilist, *jlist, *numneigh, **firstneigh;
@@ -224,8 +228,17 @@ void ComputeFabric::compute_vector()
   Pair *pair = force->pair;
   double **cutsq = force->pair->cutsq;
 
+  // invoke compute_scalar() to update the number of contacts, if needed
+  nc = compute_scalar();
+
+  // If no contacts, everything will be zero
+  if (nc == 0) {
+    for (i = 0; i < size_vector; i++) vector[i] = 0.0;
+    return;
+  }
+  ncinv = 1.0 / nc;
+
   // First loop through and calculate contact fabric tensor
-  nc = 0;
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     if (!(mask[i] & groupbit)) continue;
@@ -278,8 +291,6 @@ void ComputeFabric::compute_vector()
         if (rsq >= radsum * radsum) continue;
       }
 
-      nc += 1;
-
       r = sqrt(rsq);
       rinv = 1.0 / r;
       nx = delx * rinv;
@@ -294,19 +305,6 @@ void ComputeFabric::compute_vector()
       phi_ij[5] += ny * nz;
     }
   }
-
-  //Count total contacts across processors
-  MPI_Allreduce(&nc, &temp_int, 1, MPI_INT, MPI_SUM, world);
-  nc = temp_int;
-
-  // If no contacts, everything will be zero
-  if (nc == 0) {
-    for (i = 0; i < size_vector; i++) vector[i] = 0.0;
-    return;
-  }
-
-  vector[ntensors * 6] = nc;
-  ncinv = 1.0 / nc;
 
   //Sum phi across processors
   MPI_Allreduce(phi_ij, temp_dbl, 6, MPI_DOUBLE, MPI_SUM, world);
@@ -495,3 +493,103 @@ void ComputeFabric::compute_vector()
     }
   }
 }
+
+/* ---------------------------------------------------------------------- */
+
+double ComputeFabric::compute_scalar()
+{
+  // Skip if already calculated on this timestep
+  if (invoked_scalar == update->ntimestep) return nc;
+
+  invoked_scalar = update->ntimestep;
+
+  int i, j, ii, jj, inum, jnum, itype, jtype;
+  tagint itag, jtag;
+  double xtmp, ytmp, ztmp, delx, dely, delz;
+  double rsq, radsum, temp_dbl;
+
+  int *ilist, *jlist, *numneigh, **firstneigh;
+
+  double **x = atom->x;
+  double *radius = atom->radius;
+  tagint *tag = atom->tag;
+  int *type = atom->type;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+  int newton_pair = force->newton_pair;
+
+  // invoke half neighbor list (will copy or build if necessary)
+  neighbor->build_one(list);
+
+  inum = list->inum;
+  ilist = list->ilist;
+  numneigh = list->numneigh;
+  firstneigh = list->firstneigh;
+
+  double **cutsq = force->pair->cutsq;
+
+  // First loop through and calculate contact fabric tensor
+  nc = 0;
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
+    if (!(mask[i] & groupbit)) continue;
+
+    xtmp = x[i][0];
+    ytmp = x[i][1];
+    ztmp = x[i][2];
+    itag = tag[i];
+    itype = type[i];
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
+
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
+      j &= NEIGHMASK;
+
+      if (!(mask[j] & groupbit)) continue;
+
+      // itag = jtag is possible for long cutoffs that include images of self
+
+      if (newton_pair == 0 && j >= nlocal) {
+        jtag = tag[j];
+        if (itag > jtag) {
+          if ((itag + jtag) % 2 == 0) continue;
+        } else if (itag < jtag) {
+          if ((itag + jtag) % 2 == 1) continue;
+        } else {
+          if (x[j][2] < ztmp) continue;
+          if (x[j][2] == ztmp) {
+            if (x[j][1] < ytmp) continue;
+            if (x[j][1] == ytmp && x[j][0] < xtmp) continue;
+          }
+        }
+      }
+
+      jtype = type[j];
+
+      if (type_filter)
+        if (type_filter[itype][jtype] == 0) continue;
+
+      delx = xtmp - x[j][0];
+      dely = ytmp - x[j][1];
+      delz = ztmp - x[j][2];
+      rsq = delx * delx + dely * dely + delz * delz;
+
+      if (cutstyle == TYPE) {
+        if (rsq >= cutsq[itype][jtype]) continue;
+      } else {
+        radsum = radius[i] + radius[j];
+        if (rsq >= radsum * radsum) continue;
+      }
+
+      nc += 1.0;
+    }
+  }
+
+  //Count total contacts across processors
+  MPI_Allreduce(&nc, &temp_dbl, 1, MPI_DOUBLE, MPI_SUM, world);
+  nc = temp_dbl;
+
+  return nc;
+}
+

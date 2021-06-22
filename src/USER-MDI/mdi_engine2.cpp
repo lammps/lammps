@@ -29,6 +29,7 @@
 #include "fix_mdi_engine2.h"
 #include "force.h"
 #include "group.h"
+#include "input.h"
 #include "irregular.h"
 #include "library.h"
 #include "mdi.h"
@@ -65,9 +66,11 @@ void MDIEngine2::command(int narg, char **arg)
 
   // check that LAMMPS defines what an MDI engine needs
 
-  if (atom->tag_enable == 0) error->all(FLERR, "Cannot use mdi/engine without atom IDs");
+  if (atom->tag_enable == 0) 
+    error->all(FLERR, "Cannot use mdi/engine without atom IDs");
 
-  if (atom->tag_consecutive() == 0) error->all(FLERR, "mdi/engine requires consecutive atom IDs");
+  if (atom->natoms && atom->tag_consecutive() == 0) 
+    error->all(FLERR, "mdi/engine requires consecutive atom IDs");
 
   // must use real or metal units with MDI (atomic scale)
   // real: coords = Ang, eng = Kcal/mole, force = Kcal/mole/Ang
@@ -118,23 +121,26 @@ void MDIEngine2::command(int narg, char **arg)
   strncpy(node_driver, "\0", MDI_COMMAND_LENGTH);
   strncpy(node_engine, "@DEFAULT", MDI_COMMAND_LENGTH);
 
-  // create computes for KE and PE
+  // create computes for KE. PE, pressure
+ 
+  id_ke = utils::strdup(std::string("MDI_ENGINE") + "_ke");
+  modify->add_compute(fmt::format("{} all ke", id_ke));
 
-  //id_pe = utils::strdup(std::string("MDI_ENGINE") + "_pe");
-  //modify->add_compute(fmt::format("{} all pe", id_pe));
+  id_pe = utils::strdup(std::string("MDI_ENGINE") + "_pe");
+  modify->add_compute(fmt::format("{} all pe", id_pe));
 
-  //id_ke = utils::strdup(std::string("MDI_ENGINE") + "_ke");
-  //modify->add_compute(fmt::format("{} all ke", id_ke));
+  id_press = utils::strdup(std::string("MDI_ENGINE") + "_press");
+  modify->add_compute(fmt::format("{} all pressure thermo_temp", id_press));
 
-  // confirm that two required computes are still available
+  // store pointers to the new computes
 
-  //int icompute_pe = modify->find_compute(id_pe);
-  //if (icompute_pe < 0) error->all(FLERR, "Potential energy ID for fix mdi/engine does not exist");
-  //int icompute_ke = modify->find_compute(id_ke);
-  //if (icompute_pe < 0) error->all(FLERR, "Kinetic energy ID for fix mdi/engine does not exist");
+  int icompute_ke = modify->find_compute(id_ke);
+  int icompute_pe = modify->find_compute(id_pe);
+  int icompute_press = modify->find_compute(id_press);
 
-  //pe = modify->compute[icompute_pe];
-  //ke = modify->compute[icompute_ke];
+  ke = modify->compute[icompute_ke];
+  pe = modify->compute[icompute_pe];
+  press = modify->compute[icompute_press];
 
   // irregular class and data structs used by MDI
 
@@ -274,54 +280,56 @@ int MDIEngine2::execute_command(const char *command, MDI_Comm mdicomm)
     if (ierr != 0) error->all(FLERR, "MDI: Unable to send number of atom types to driver");
 
   } else if (strcmp(command, "<TYPES") == 0) {
-    send_types(error);
+    send_types();
 
   } else if (strcmp(command, "<LABELS") == 0) {
-    send_labels(error);
+    send_labels();
 
   } else if (strcmp(command, "<MASSES") == 0) {
-    send_masses(error);
+    send_masses();
 
   } else if (strcmp(command, "<CELL") == 0) {
-    send_cell(error);
+    send_cell();
 
   } else if (strcmp(command, ">CELL") == 0) {
-    receive_cell(error);
+    receive_cell();
 
   } else if (strcmp(command, "<CELL_DISPL") == 0) {
-    send_celldispl(error);
+    send_celldispl();
 
   } else if (strcmp(command, ">CELL_DISPL") == 0) {
-    receive_celldispl(error);
+    receive_celldispl();
 
   } else if (strcmp(command, ">COORDS") == 0) {
-    receive_coordinates(error);
+    receive_coordinates();
 
   } else if (strcmp(command, "<COORDS") == 0) {
-    send_coordinates(error);
+    send_coordinates();
 
   } else if (strcmp(command, "<CHARGES") == 0) {
-    send_charges(error);
+    send_charges();
 
   } else if (strcmp(command, "<ENERGY") == 0) {
-    send_energy(error);
+    send_energy();
 
   } else if (strcmp(command, "<FORCES") == 0) {
-    send_forces(error);
+    send_forces();
 
   } else if (strcmp(command, ">FORCES") == 0) {
-    receive_forces(error, 0);
+    receive_forces(0);
 
   } else if (strcmp(command, ">+FORCES") == 0) {
-    receive_forces(error, 1);
+    receive_forces(1);
 
   } else if (strcmp(command, "@INIT_MD") == 0) {
-    if (mode != DEFAULT) error->all(FLERR, "MDI: MDI is already performing a simulation");
+    if (mode != DEFAULT) 
+      error->all(FLERR, "MDI: MDI is already performing a simulation");
     mode = MD;
     local_exit_flag = true;
 
   } else if (strcmp(command, "@INIT_OPTG") == 0) {
-    if (mode != DEFAULT) error->all(FLERR, "MDI: MDI is already performing a simulation");
+    if (mode != DEFAULT) 
+      error->all(FLERR, "MDI: MDI is already performing a simulation");
     mode = OPT;
     local_exit_flag = true;
 
@@ -334,10 +342,10 @@ int MDIEngine2::execute_command(const char *command, MDI_Comm mdicomm)
     if (ierr) error->all(FLERR, "MDI: Unable to send node to driver");
 
   } else if (strcmp(command, "<KE") == 0) {
-    send_ke(error);
+    send_ke();
 
   } else if (strcmp(command, "<PE") == 0) {
-    send_pe(error);
+    send_pe();
 
   } else if (strcmp(command, "@DEFAULT") == 0) {
     mode = DEFAULT;
@@ -377,6 +385,29 @@ int MDIEngine2::execute_command(const char *command, MDI_Comm mdicomm)
       update->max_eval = 0;
     }
 
+  // -------------------------------------------------------
+  // LAMMPS specific commands
+  // -------------------------------------------------------
+
+  } else if (strcmp(command, "COMMAND") == 0) {
+    single_command();
+  } else if (strcmp(command, "COMMANDS") == 0) {
+    many_commands();
+  } else if (strcmp(command, "INFILE") == 0) {
+    infile();
+  } else if (strcmp(command, "RESET_BOX") == 0) {
+    reset_box();
+  } else if (strcmp(command, "CREATE_ATOM") == 0) {
+    create_atoms();
+  } else if (strcmp(command, "<PRESSURE") == 0) {
+    send_pressure();
+  } else if (strcmp(command, "<VIRIAL") == 0) {
+    send_virial();
+
+  // -------------------------------------------------------
+  // unknown command
+  // -------------------------------------------------------
+
   } else {
     error->all(FLERR, "MDI: Unknown command from driver");
   }
@@ -408,6 +439,8 @@ void MDIEngine2::mdi_commands()
   MDI_Register_command("@DEFAULT", "<LABELS");
   MDI_Register_command("@DEFAULT", "<MASSES");
   MDI_Register_command("@DEFAULT", "<NATOMS");
+  MDI_Register_command("@DEFAULT", "<KE");
+  MDI_Register_command("@DEFAULT", "<PE");
   MDI_Register_command("@DEFAULT", "<TYPES");
   MDI_Register_command("@DEFAULT", ">CELL");
   MDI_Register_command("@DEFAULT", ">CELL_DISPL");
@@ -530,6 +563,14 @@ void MDIEngine2::mdi_commands()
   // ------------------------------------
   // list of custom MDI nodes and commands which LAMMPS adds support for
   // ------------------------------------
+
+  MDI_Register_command("@DEFAULT", "COMMAND");
+  MDI_Register_command("@DEFAULT", "COMMANDS");
+  MDI_Register_command("@DEFAULT", "INFILE");
+  MDI_Register_command("@DEFAULT", "RESET_BOX");
+  MDI_Register_command("@DEFAULT", "CREATE_ATOM");
+  MDI_Register_command("@DEFAULT", "<PRESSURE");
+  MDI_Register_command("@DEFAULT", "<VIRIAL");
 }
 
 /* ----------------------------------------------------------------------
@@ -642,7 +683,7 @@ void MDIEngine2::mdi_optg()
 // ----------------------------------------------------------------------
 // ----------------------------------------------------------------------
 
-void MDIEngine2::receive_coordinates(Error *error)
+void MDIEngine2::receive_coordinates()
 {
   // get conversion factor to atomic units
   double posconv;
@@ -701,7 +742,7 @@ void MDIEngine2::receive_coordinates(Error *error)
 
 /* ---------------------------------------------------------------------- */
 
-void MDIEngine2::send_coordinates(Error *error)
+void MDIEngine2::send_coordinates()
 {
   // get conversion factor to atomic units
   double posconv;
@@ -747,7 +788,7 @@ void MDIEngine2::send_coordinates(Error *error)
 
 /* ---------------------------------------------------------------------- */
 
-void MDIEngine2::send_charges(Error *error)
+void MDIEngine2::send_charges()
 {
   double *charges;
   double *charges_reduced;
@@ -777,7 +818,7 @@ void MDIEngine2::send_charges(Error *error)
 
 /* ---------------------------------------------------------------------- */
 
-void MDIEngine2::send_energy(Error *error)
+void MDIEngine2::send_energy()
 {
   // get conversion factor to atomic units
   double energy_conv;
@@ -810,10 +851,12 @@ void MDIEngine2::send_energy(Error *error)
 
 /* ---------------------------------------------------------------------- */
 
-void MDIEngine2::send_pe(Error *error)
+void MDIEngine2::send_pe()
 {
   // get conversion factor to atomic units
-  double energy_conv;
+
+  double energy_conv = 1.0;
+  /*
   if (lmpunits == REAL) {
     double kelvin_to_hartree;
     MDI_Conversion_factor("kelvin_energy", "hartree", &kelvin_to_hartree);
@@ -823,20 +866,21 @@ void MDIEngine2::send_pe(Error *error)
     MDI_Conversion_factor("electron_volt", "hartree", &ev_to_hartree);
     energy_conv = ev_to_hartree;
   }
+  */
 
   double potential_energy = pe->compute_scalar();
-  double *send_energy = &potential_energy;
 
   // convert the energy to atomic units
+
   potential_energy *= energy_conv;
 
-  int ierr = MDI_Send((char *) send_energy, 1, MDI_DOUBLE, mdicomm);
+  int ierr = MDI_Send((char *) &potential_energy, 1, MDI_DOUBLE, mdicomm);
   if (ierr) error->all(FLERR, "MDI: Unable to send potential energy to driver");
 }
 
 /* ---------------------------------------------------------------------- */
 
-void MDIEngine2::send_ke(Error *error)
+void MDIEngine2::send_ke()
 {
   // get conversion factor to atomic units
   double energy_conv;
@@ -851,18 +895,18 @@ void MDIEngine2::send_ke(Error *error)
   }
 
   double kinetic_energy = ke->compute_scalar();
-  double *send_energy = &kinetic_energy;
 
   // convert the energy to atomic units
+
   kinetic_energy *= energy_conv;
 
-  int ierr = MDI_Send((char *) send_energy, 1, MDI_DOUBLE, mdicomm);
+  int ierr = MDI_Send((char *) &kinetic_energy, 1, MDI_DOUBLE, mdicomm);
   if (ierr) error->all(FLERR, "MDI: Unable to send potential energy to driver");
 }
 
 /* ---------------------------------------------------------------------- */
 
-void MDIEngine2::send_types(Error *error)
+void MDIEngine2::send_types()
 {
   int *const type = atom->type;
 
@@ -872,7 +916,7 @@ void MDIEngine2::send_types(Error *error)
 
 /* ---------------------------------------------------------------------- */
 
-void MDIEngine2::send_labels(Error *error)
+void MDIEngine2::send_labels()
 {
   char *labels = new char[atom->natoms * MDI_LABEL_LENGTH];
   memset(labels, ' ', atom->natoms * MDI_LABEL_LENGTH);
@@ -891,7 +935,7 @@ void MDIEngine2::send_labels(Error *error)
 
 /* ---------------------------------------------------------------------- */
 
-void MDIEngine2::send_masses(Error *error)
+void MDIEngine2::send_masses()
 {
   double *const rmass = atom->rmass;
   double *const mass = atom->mass;
@@ -929,7 +973,7 @@ void MDIEngine2::send_masses(Error *error)
 
 /* ---------------------------------------------------------------------- */
 
-void MDIEngine2::send_forces(Error *error)
+void MDIEngine2::send_forces()
 {
   // get conversion factor to atomic units
   double force_conv;
@@ -1020,7 +1064,7 @@ void MDIEngine2::send_forces(Error *error)
 //    mode = 0: replace current forces with forces from driver
 //    mode = 1: add forces from driver to current forces
 
-void MDIEngine2::receive_forces(Error *error, int mode)
+void MDIEngine2::receive_forces(int mode)
 {
   // get conversion factor to atomic units
   double force_conv;
@@ -1070,7 +1114,7 @@ void MDIEngine2::receive_forces(Error *error, int mode)
 
 /* ---------------------------------------------------------------------- */
 
-void MDIEngine2::send_cell(Error *error)
+void MDIEngine2::send_cell()
 {
   double angstrom_to_bohr;
   MDI_Conversion_factor("angstrom", "bohr", &angstrom_to_bohr);
@@ -1098,7 +1142,7 @@ void MDIEngine2::send_cell(Error *error)
 
 /* ---------------------------------------------------------------------- */
 
-void MDIEngine2::receive_cell(Error *error)
+void MDIEngine2::receive_cell()
 {
   double celldata[9];
 
@@ -1137,7 +1181,7 @@ void MDIEngine2::receive_cell(Error *error)
 
 /* ---------------------------------------------------------------------- */
 
-void MDIEngine2::send_celldispl(Error *error)
+void MDIEngine2::send_celldispl()
 {
   double angstrom_to_bohr;
   MDI_Conversion_factor("angstrom", "bohr", &angstrom_to_bohr);
@@ -1159,7 +1203,7 @@ void MDIEngine2::send_celldispl(Error *error)
 
 /* ---------------------------------------------------------------------- */
 
-void MDIEngine2::receive_celldispl(Error *error)
+void MDIEngine2::receive_celldispl()
 {
   // receive the cell displacement from the driver
 
@@ -1213,4 +1257,207 @@ void MDIEngine2::exchange_forces()
       f[i][2] += add_force[3 * (atom->tag[i] - 1) + 2];
     }
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void MDIEngine2::single_command()
+{
+  int length;
+  int ierr = MDI_Recv(&length, 1, MDI_INT, mdicomm);
+  if (ierr) 
+    error->all(FLERR, "MDI single_command: no length");
+  MPI_Bcast(&length, 1, MPI_INT, 0, world);
+
+  char *cmd = new char[length+1];
+  ierr = MDI_Recv(cmd, length, MDI_CHAR, mdicomm);
+  if (ierr) error->all(FLERR, "MDI single_command: did not receive command");
+  MPI_Bcast(cmd, length, MPI_CHAR, 0, world);
+  cmd[length] = '\0';
+
+  lammps_command(lmp,cmd);
+
+  delete [] cmd;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void MDIEngine2::many_commands()
+{
+  int length;
+  int ierr = MDI_Recv(&length, 1, MDI_INT, mdicomm);
+  if (ierr) 
+    error->all(FLERR, "MDI many_commands: no length");
+  MPI_Bcast(&length, 1, MPI_INT, 0, world);
+
+  char *cmds = new char[length+1];
+  ierr = MDI_Recv(cmds, length, MDI_CHAR, mdicomm);
+  if (ierr) error->all(FLERR, "MDI many_commands: did not receive commands");
+  MPI_Bcast(cmds, length, MPI_CHAR, 0, world);
+  cmds[length] = '\0';
+
+  char *ptr;
+  char *cmd = cmds;
+
+  while (*cmd) {
+    ptr = strchr(cmd,'\n');
+    if (ptr) *ptr = '\0';
+    lammps_command(lmp,cmd);
+    if (!ptr) break;
+    cmd = ptr+1;
+  }
+
+  delete [] cmds;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void MDIEngine2::infile()
+{
+  int length;
+  int ierr = MDI_Recv(&length, 1, MDI_INT, mdicomm);
+  if (ierr) error->all(FLERR, "MDI infile: no length");
+  MPI_Bcast(&length, 1, MPI_INT, 0, world);
+
+  char *infile = new char[length+1];
+  ierr = MDI_Recv(infile, length, MDI_CHAR, mdicomm);
+  if (ierr) error->all(FLERR, "MDI infile: did not receive filename");
+  MPI_Bcast(infile, length, MPI_CHAR, 0, world);
+  cmd[length] = '\0';
+
+  lammps_file(lmp,infile);
+
+  delete [] infile;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void MDIEngine2::reset_box()
+{
+  int ierr;
+  double boxlo[3],boxhi[3],tilts[3];
+  ierr = MDI_Recv(boxlo, 3, MDI_DOUBLE, mdicomm);
+  ierr = MDI_Recv(boxhi, 3, MDI_DOUBLE, mdicomm);
+  ierr = MDI_Recv(tilts, 3, MDI_DOUBLE, mdicomm);
+  // ierr check?
+  MPI_Bcast(boxlo, 3, MPI_DOUBLE, 0, world);
+  MPI_Bcast(boxhi, 3, MPI_DOUBLE, 0, world);
+  MPI_Bcast(tilts, 3, MPI_DOUBLE, 0, world);
+
+  lammps_reset_box(lmp,boxlo,boxhi,tilts[0],tilts[1],tilts[2]);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void MDIEngine2::create_atoms()
+{
+  int ierr;
+  int natoms;
+  ierr = MDI_Recv(&natoms, 1, MDI_INT, mdicomm);
+  // ierr checks everywhere?
+  MPI_Bcast(&natoms, 1, MPI_INT, 0, world);
+
+  tagint *id = nullptr;
+  int *type = nullptr;
+  double *x = nullptr;
+  double *v = nullptr;
+  imageint *image = nullptr;
+
+  while (1) {
+    char label;
+    ierr = MDI_Recv(&label, 1, MDI_CHAR, mdicomm);
+    MPI_Bcast(&label, 1, MPI_CHAR, 0, world);
+
+    if (label == '0') break;
+
+    if (label == 'i') {
+      id = new tagint[natoms];
+      ierr = MDI_Recv(id, natoms, MDI_INT, mdicomm);
+      MPI_Bcast(id, natoms, MPI_INT, 0, world);
+    } else if (label == 't') {
+      type = new int[natoms];
+      ierr = MDI_Recv(type, natoms, MDI_INT, mdicomm);
+      MPI_Bcast(type, natoms, MPI_INT, 0, world);
+    } else if (label == 'x') {
+      x = new double[3*natoms];
+      ierr = MDI_Recv(x, 3*natoms, MDI_DOUBLE, mdicomm);
+      MPI_Bcast(x, 3*natoms, MPI_DOUBLE, 0, world);
+    } else if (label == 'v') {
+      v = new double[3*natoms];
+      ierr = MDI_Recv(v, 3*natoms, MDI_DOUBLE, mdicomm);
+      MPI_Bcast(v, 3*natoms, MPI_DOUBLE, 0, world);
+    } else if (label == 'i') { 
+      image = new imageint[natoms];
+      ierr = MDI_Recv(image, natoms, MDI_INT, mdicomm);
+      MPI_Bcast(image, natoms, MPI_INT, 0, world);
+    }
+  }
+
+  if (!x || !type) 
+    error->all(FLERR,"MDI create_atoms: did not receive atom coords or types");
+
+  int ncreate = lammps_create_atoms(lmp,natoms,id,type,x,v,image,1);
+
+  if (ncreate != natoms) 
+    error->all(FLERR, "MDI create_atoms: created atoms != sent atoms");
+}
+
+/* ---------------------------------------------------------------------- */
+
+void MDIEngine2::send_pressure()
+{
+  // get conversion factor to atomic units
+
+  double pressure_conv = 1.0;
+
+  /*
+  if (lmpunits == REAL) {
+    double kelvin_to_hartree;
+    MDI_Conversion_factor("kelvin_energy", "hartree", &kelvin_to_hartree);
+    pressure_conv = kelvin_to_hartree / force->boltz;
+  } else if (lmpunits == METAL) {
+    double ev_to_hartree;
+    MDI_Conversion_factor("electron_volt", "hartree", &ev_to_hartree);
+    pressure_conv = ev_to_hartree;
+  }
+  */
+
+  double pressure = press->compute_scalar();
+
+  // convert the pressure to atomic units
+
+  pressure *= pressure_conv;
+
+  int ierr = MDI_Send(&pressure, 1, MDI_DOUBLE, mdicomm);
+  if (ierr) error->all(FLERR, "MDI: Unable to send pressure to driver");
+}
+
+/* ---------------------------------------------------------------------- */
+
+void MDIEngine2::send_virial()
+{
+  // get conversion factor to atomic units
+
+  double pressure_conv = 1.0;
+
+  /*
+  if (lmpunits == REAL) {
+    double kelvin_to_hartree;
+    MDI_Conversion_factor("kelvin_energy", "hartree", &kelvin_to_hartree);
+    pressure_conv = kelvin_to_hartree / force->boltz;
+  } else if (lmpunits == METAL) {
+    double ev_to_hartree;
+    MDI_Conversion_factor("electron_volt", "hartree", &ev_to_hartree);
+    pressure_conv = ev_to_hartree;
+  }
+  */
+
+  press->compute_vector();
+
+  // convert the pressure to atomic units
+
+  //pressure *= pressure_conv;
+
+  int ierr = MDI_Send(press->vector, 6, MDI_DOUBLE, mdicomm);
+  if (ierr) error->all(FLERR, "MDI: Unable to send pressure to driver");
 }

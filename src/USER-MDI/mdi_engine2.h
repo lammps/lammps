@@ -52,34 +52,40 @@ class MDIEngine2 : public Command {
 
   char *target_command;
 
-  char *id_pe;
-  char *id_ke;
+  char *id_ke,*id_pe,*id_press;
   class Irregular *irregular;
   class Minimize *minimizer;
-  class Compute *pe;
-  class Compute *ke;
+  class Compute *ke,*pe,*press;
   double *add_force;
 
   void mdi_commands();
   void mdi_md();
   void mdi_optg();
 
-  void send_types(Error *);
-  void send_labels(Error *);
-  void send_masses(Error *);
-  void receive_coordinates(Error *);
-  void send_coordinates(Error *);
-  void send_charges(Error *);
-  void send_energy(Error *);
-  void send_forces(Error *);
-  void send_pe(Error *);
-  void send_ke(Error *);
-  void receive_forces(Error *, int);
-  void send_cell(Error *);
-  void receive_cell(Error *);
-  void send_celldispl(Error *);
-  void receive_celldispl(Error *);
+  void send_types();
+  void send_labels();
+  void send_masses();
+  void receive_coordinates();
+  void send_coordinates();
+  void send_charges();
+  void send_energy();
+  void send_forces();
+  void send_pe();
+  void send_ke();
+  void receive_forces(int);
+  void send_cell();
+  void receive_cell();
+  void send_celldispl();
+  void receive_celldispl();
   void exchange_forces();
+
+  void single_command();
+  void many_commands();
+  void infile();
+  void reset_box();
+  void create_atoms();
+  void send_pressure();
+  void send_virial();
 };
 
 }

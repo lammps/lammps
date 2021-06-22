@@ -134,7 +134,7 @@ ComputeFabric::ComputeFabric(LAMMPS *lmp, int narg, char **arg) :
   extvector = 0;
 
   scalar_flag = 1;
-  extscalar = 0;
+  extscalar = 1;
 
   vector = new double[size_vector];
 }
@@ -585,11 +585,11 @@ double ComputeFabric::compute_scalar()
       nc += 1.0;
     }
   }
-
   //Count total contacts across processors
   MPI_Allreduce(&nc, &temp_dbl, 1, MPI_DOUBLE, MPI_SUM, world);
   nc = temp_dbl;
 
+  scalar = nc;
   return nc;
 }
 

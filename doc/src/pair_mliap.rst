@@ -133,7 +133,7 @@ Currently two descriptor styles are available: *sna* and *so3*.
   *.mliap.descriptor* extension.
 
 - *so3* indicated the power spectrum component descriptors. A single additional
-argument specifies the descriptor filename containing the parameters and setting.
+  argument specifies the descriptor filename containing the parameters and setting.
 
 The SNAP descriptor file closely follows the format of the
 :doc:`pair_style snap <pair_snap>` parameter file.  The file can contain
@@ -154,7 +154,7 @@ the elements are listed must be consistent for all three keywords.
 The SO3 descriptor file is similar to the SNAP descriptor except that it
 contains a few more arguments (e.g., *nmax* and *alpha*). The preparation
 of SO3 descriptor and model files can be done with the
-`*Pyxtal_FF*<https://github.com/qzhu2017/PyXtal_FF>`_ package.
+`Pyxtal_FF <https://github.com/qzhu2017/PyXtal_FF>`_ package.
 
 See the :doc:`pair_coeff <pair_coeff>` doc page for alternate ways
 to specify the path for these *model* and *descriptor* files.

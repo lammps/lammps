@@ -42,7 +42,7 @@ using namespace std;
 #define OFFSET 16384
 #define MAXORDER   7
 
-enum{REVERSE_RHO_NONE,};
+enum{REVERSE_RHO_NONE};
 enum{FORWARD_NONE, FORWARD_GRID_DEN, FORWARD_AVG_GRID_DEN};
 
 #ifdef FFT_SINGLE
@@ -613,7 +613,7 @@ void TILD::compute(int eflag, int vflag){
 
   // cg->reverse_comm(this, REVERSE_RHO_NONE);
   int ntypes = atom->ntypes;
-  gc->reverse_comm_kspace(this,ntypes,sizeof(FFT_SCALAR),REVERSE_RHO_NONE,
+  gc->reverse_comm_kspace(this,(ntypes+1)*3,sizeof(FFT_SCALAR),REVERSE_RHO_NONE,
                           gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   brick2fft();
 
@@ -626,7 +626,7 @@ void TILD::compute(int eflag, int vflag){
   // all procs communicate gradient potential values
   // to fill ghost cells surrounding their 3d bricks
   
-  gc->forward_comm_kspace(this,ntypes,sizeof(FFT_SCALAR),FORWARD_NONE,
+  gc->forward_comm_kspace(this,(ntypes+1)*3,sizeof(FFT_SCALAR),FORWARD_NONE,
                           gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
 
@@ -1513,7 +1513,7 @@ void TILD::particle_map()
       flag = 1;
   }
 
-  if (flag) error->one(FLERR,"Out of range atoms - cannot compute PPPM");
+  if (flag) error->one(FLERR,"Out of range atoms - cannot compute TILD");
 }
 
 /* ----------------------------------------------------------------------
@@ -1786,7 +1786,7 @@ void TILD::unpack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
   FFT_SCALAR *buf = (FFT_SCALAR *) vbuf;  
   int n = 0;
   if (flag == REVERSE_RHO_NONE) {
-    for (int ktype = 0; ktype <= atom->ntypes; ktype++) {
+    for (int ktype = 1; ktype <= atom->ntypes; ktype++) {
       FFT_SCALAR *dest = &density_brick_types[ktype][nzlo_out][nylo_out][nxlo_out];
       for (int i = 0; i < nlist; i++)
         dest[list[i]] += buf[n++];

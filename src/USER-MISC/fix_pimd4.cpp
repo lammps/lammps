@@ -549,72 +549,18 @@ void FixPIMD4::initial_integrate(int /*vflag*/)
     //  comm_exec(atom->v);
     //  nmpimd_transform(buf_beads, atom->v, M_x2xp[universe->iworld]);
     //}
+
+  // unmap the atom coordinates and image flags so that the ring polymer is not wrapped
   int nlocal = atom->nlocal;
   double **x = atom->x;
   imageint *image = atom->image;
-  //xc = (double*) memory->srealloc(xc, sizeof(double) * nlocal * 3, "FixPIMD4:xc");
-
-  //x_unwrap = new double* [nlocal];
-  //for(int i=0; i<nlocal; i++) 
-  //{
-    //x_unwrap[i] = nullptr;
-    //x_unwrap[i] = new double [3];
-    //memory->srealloc(x_unwrap[i], sizeof(double)*3, "FixPIMD4:x_unwrap[i]");
-  //}
-
   for(int i=0; i<nlocal; i++)
   {
-    //memcpy(x_unwrap[i][0], &(x[i][0]), sizeof(double)*3);
-    //fprintf(stdout, "before unmap, image=%d, x=%.6e.\n", image[i], x[i][0]);
-    //domain->unmap(x[i], image[i], x_unwrap[i]);
     domain->unmap(x[i], image[i]);
-    //fprintf(stdout, "after unmap, image=%d, x=%.6e, x_unwrp=%.6e.\n", image[i], x[i][0], x_unwrap[i][0]);
   }
   
-  char x_tmp[8];
-  for(int i=0; i<nlocal; i++)
-  {
-    for(int j=0; j<3; j++)
-    {
-      //sprintf(x_tmp, "%.4f", atom->x[i][j]);
-      //atom->x[i][j] = (double)(atof(x_tmp));
-      //fprintf(stdout, "%s %.8e\n", x_tmp, atom->x[i][j]);
-      //x_tmp = "\0";
-    }
-  }  
-
-  //double *boxlo = domain->boxlo;
-  //double *boxhi = domain->boxhi;
-  //char xdim[8], ydim[8], zdim[8];
-  //double xdimd, ydimd, zdimd;
-  //sprintf(xdim, "%.3f", domain->xprd);
-  //sprintf(ydim, "%.3f", domain->yprd);
-  //sprintf(zdim, "%.3f", domain->zprd);
-  //xdimd = (double)(atof(xdim));
-  //ydimd = (double)(atof(ydim));
-  //zdimd = (double)(atof(zdim));
-  // fprintf(stdout, "%.8e, %.8e, %.8e, %.8e, %.8e, %.8e\n", boxlo[0], boxlo[1], boxlo[2], boxhi[0], boxhi[1], boxhi[2]);
-  // fprintf(stdout, "%.8e, %.8e, %.8e.\n", xdimd, ydimd, zdimd);
-  //boxlo[0] = -0.5 * xdimd;
-  //boxlo[1] = -0.5 * ydimd;
-  //boxlo[2] = -0.5 * zdimd;
-  //boxlo[0] = -0.5 * domain->xprd;
-  //boxlo[1] = -0.5 * domain->yprd;
-  //boxlo[2] = -0.5 * domain->zprd;
-  //boxhi[0] = -boxlo[0];
-  //boxhi[1] = -boxlo[1];
-  //boxhi[2] = -boxlo[2];
-  //domain->xy = domain->yz = domain->xz = 0.0;
-  // fprintf(stdout, "%.8e, %.8e, %.8e, %.8e, %.8e, %.8e\n", boxlo[0], boxlo[1], boxlo[2], boxhi[0], boxhi[1], boxhi[2]);
-  // fprintf(stdout, "%.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f\n", boxlo[0], boxlo[1], boxlo[2], boxhi[0], boxhi[1], boxhi[2], domain->xy, domain->xz, domain->yz);
-
-  //domain->set_initial_box();
-  //domain->reset_box();
-  //domain->box_change=1;
-  // printf("begin to initialize integrate\n");
   if(integrator==baoab)
   {
-    // printf("trying to perform b_step\n");
     b_step();
     if(pextflag) press_v_step();
     // printf("b_step succeeded\n");
@@ -708,32 +654,16 @@ void FixPIMD4::post_integrate()
     }
   //printf("after xp2x, x=%.6e, v=%.6e, f=%.6e, dtf=%.6e, dtv=%.6e.\n", atom->x[0][0], atom->v[0][0], atom->f[0][0], dtf, dtv);
 
-  //char x_tmp[8];
   int nlocal = atom->nlocal;
   double **x = atom->x;
   imageint *image = atom->image;
 
-  //fprintf(stdout, "before pbc, image=%d, x=%.6e.\n", image[0], x[0][0]);
-  //domain->pbc();
-  //fprintf(stdout, "after pbc, image=%d, x=%.6e.\n", image[0], x[0][0]);
+  // remap the atom coordinates and image flags so that all the atoms are in the box and domain->pbc() does not change their coordinates
   for(int i=0; i<nlocal; i++)
   {
-    //fprintf(stdout, "before remap, image=%d, x=%.6e.\n", image[i], x[i][0]);
-    //domain->remap(x[i]);
     domain->remap(x[i], image[i]);
-    //fprintf(stdout, "after remap, image=%d, x=%.6e.\n", image[i], x[i][0]);
   }
 
-  //for(int i=0; i<nlocal; i++)
-  //{
-  //  for(int j=0; j<3; j++)
-  //  {
-      //sprintf(x_tmp, "%.4f", atom->x[i][j]);
-      //atom->x[i][j] = (double)(atof(x_tmp));
-      //fprintf(stdout, "%s %.8e\n", x_tmp, atom->x[i][j]);
-      //x_tmp = "\0";
-  //  }
-  //}  
   }
 
   else
@@ -765,18 +695,15 @@ void FixPIMD4::final_integrate()
 
 void FixPIMD4::post_force(int /*flag*/)
 {
-  //char x_tmp[8];
-  //int nlocal = atom->nlocal;
-  //for(int i=0; i<nlocal; i++)
-  //{
-  //  for(int j=0; j<3; j++)
-  //  {
-  //    sprintf(x_tmp, "%.4f", atom->f[i][j]);
-  //    atom->f[i][j] = (double)(atof(x_tmp));
-  //    // fprintf(stdout, "%s %.8e\n", x_tmp, atom->f[i][j]);
-  //    //x_tmp = "\0";
-  //  }
-  //}  
+  // unmap the atom coordinates and image flags so that the ring polymer is not wrapped
+  int nlocal = atom->nlocal;
+  double **x = atom->x;
+  imageint *image = atom->image;
+  for(int i=0; i<nlocal; i++)
+  {
+    domain->unmap(x[i], image[i]);
+  }
+
   inv_volume = 1.0 / (domain->xprd * domain->yprd * domain->zprd);
   //vol_ = domain->xprd * domain->yprd * domain->zprd;
   comm_exec(atom->x);
@@ -790,9 +717,6 @@ void FixPIMD4::post_force(int /*flag*/)
   compute_t_prim();
   compute_t_vir();
   compute_pote();
-  // fprintf(stdout, "me = %d, x = %.6e, f = %.6e.\n", universe->me, atom->x[0][0], atom->f[0][0]);
-  // fprintf(stdout, "me = %d, vir = %.6e, pote = %.6e.\n", universe->me, vir, pote);
-  // fprintf(stdout, "Coming into post_force!\n");
   
   // divide the force by np 
   // for(int i=0; i<atom->nlocal; i++) 

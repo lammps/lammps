@@ -1856,6 +1856,7 @@ Matous
 matplotlib
 Matsubara
 Matteo
+Matteson
 Mattice
 Mattox
 Mattson
@@ -3620,6 +3621,7 @@ xz
 xzhou
 yaff
 yaml
+Yanxon
 YAFF
 Yamada
 Yaser
@@ -3692,6 +3694,7 @@ PowerShell
 filesystems
 fingerprintconstants
 fingerprintsperelement
+Zagaceta
 zincblende
 Zstandard
 Zstd

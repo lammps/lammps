@@ -374,23 +374,20 @@ void MLIAP_SO3::compute_W(int nmax, double *arr)
   double *sqrtD = new double[n * n];
   double *tempM = new double[n * n];
 
-  double **temparr;
-  double tempout[n];
-  double **tempvl;
+  double **temparr = new double*[n];
+  double **tempvl = new double*[n];
+  double *tempout = new double[n];
 
   int info;
 
   info = invert_matrix(n, arr, arrinv);
   if (info != 0) error->all(FLERR, "Invert matrix Error in W calculation!");
 
-  temparr = new double *[n];
-  for (int iy = 0; iy < n; iy++) temparr[iy] = new double[n];
-
-  tempvl = new double *[n];
-  for (int iy = 0; iy < n; iy++) tempvl[iy] = new double[n];
-
-  for (i = 0; i < n; i++)
+  for (i = 0; i < n; i++) {
+    temparr[i] = new double[n];
+    tempvl[i] = new double[n];
     for (j = 0; j < n; j++) temparr[i][j] = arrinv[i * n + j];
+  }
 
   jacobin(n, temparr, tempout, tempvl);
 
@@ -431,11 +428,13 @@ void MLIAP_SO3::compute_W(int nmax, double *arr)
   delete[] sqrtD;
   delete[] tempM;
 
-  for (int iy = 0; iy < n; iy++) delete[] temparr[iy];
+  for (i = 0; i < n; i++) {
+    delete[] temparr[i];
+    delete[] tempvl[i];
+  }
   delete[] temparr;
-
-  for (int iy = 0; iy < n; iy++) delete[] tempvl[iy];
   delete[] tempvl;
+  delete[] tempout;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -20,6 +20,7 @@ AtomStyle(oxdna,AtomVecOxdna);
 #ifndef LMP_ATOM_VEC_OXDNA_H
 #define LMP_ATOM_VEC_OXDNA_H
 
+#include "atom.h"
 #include "atom_vec.h"
 
 namespace LAMMPS_NS {

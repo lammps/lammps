@@ -13,7 +13,6 @@
 ------------------------------------------------------------------------- */
 
 #include "atom_vec_oxdna.h"
-#include "atom.h"
 
 using namespace LAMMPS_NS;
 
@@ -62,4 +61,17 @@ AtomVecOxdna::~AtomVecOxdna()
 void AtomVecOxdna::grow_pointers()
 {
   id5p = atom->id5p;
+
+}
+
+/* ----------------------------------------------------------------------
+   process bond information as per data file
+   store 5' partner to inform 3'->5' bond directionality 
+------------------------------------------------------------------------- */
+
+void AtomVecOxdna::data_bonds_post()
+{
+
+printf("CALLED FROM ATOM_VEC_OXDNA.CPP\n");
+
 }

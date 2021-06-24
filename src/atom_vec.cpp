@@ -2533,3 +2533,9 @@ void AtomVec::Method::resize(int nfield) {
   plength.resize(nfield);
   index.resize(nfield);
 }
+
+void AtomVec::data_bonds_post()
+{
+  printf("CALLED FROM ATOM_VEC.CPP\n");
+}
+

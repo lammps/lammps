@@ -20,6 +20,7 @@
 #include "atom_vec_ellipsoid.h"
 #include "atom_vec_line.h"
 #include "atom_vec_tri.h"
+#include "atom_vec_oxdna.h"
 #include "bond.h"
 #include "comm.h"
 #include "dihedral.h"
@@ -1334,6 +1335,7 @@ void ReadData::bonds(int firstpass)
     eof = utils::read_lines_from_file(fp,nchunk,MAXLINE,buffer,me,world);
     if (eof) error->all(FLERR,"Unexpected end of data file");
     atom->data_bonds(nchunk,buffer,count,id_offset,boffset);
+//    atom->avec->data_bonds_post();
     nread += nchunk;
   }
 

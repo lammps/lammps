@@ -1288,7 +1288,6 @@ void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset,
         bond_type[m][num_bond[m]] = itype;
         bond_atom[m][num_bond[m]] = atom2;
         num_bond[m]++;
-        if (style_match("oxdna")) data_bonds_oxdna(m,num_bond,atom2);
       }
     }
     if (newton_bond == 0) {
@@ -1303,21 +1302,6 @@ void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset,
     }
 
     buf = next + 1;
-  }
-}
-
-/* ----------------------------------------------------------------------
-   process bond information from data file
-   store 5' partner to inform 3'->5' bond directionality 
-------------------------------------------------------------------------- */
-
-void Atom::data_bonds_oxdna(int i, int *num_bond, tagint atom2)
-{
-  int ib;
-  tagint **id5p = atom->id5p;
-
-  for (ib=0; ib<atom->num_bond[i]; ib++) {
-    id5p[i][ib] = atom2;
   }
 }
 

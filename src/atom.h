@@ -307,7 +307,6 @@ class Atom : protected Pointers {
   void data_atoms(int, char *, tagint, tagint, int, int, double *);
   void data_vels(int, char *, tagint);
   void data_bonds(int, char *, int *, tagint, int);
-  void data_bonds_oxdna(int, int *, tagint);
   void data_angles(int, char *, int *, tagint, int);
   void data_dihedrals(int, char *, int *, tagint, int);
   void data_impropers(int, char *, int *, tagint, int);

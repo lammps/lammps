@@ -1,7 +1,6 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://www.lammps.org/, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -13,11 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef KSPACE_CLASS
-// clang-format off
-KSpaceStyle(pppm/kk,PPPMKokkos<LMPDeviceType>);
-KSpaceStyle(pppm/kk/device,PPPMKokkos<LMPDeviceType>);
-KSpaceStyle(pppm/kk/host,PPPMKokkos<LMPHostType>);
-// clang-format on
+
+KSpaceStyle(pppm/kk,PPPMKokkos<LMPDeviceType>)
+KSpaceStyle(pppm/kk/device,PPPMKokkos<LMPDeviceType>)
+KSpaceStyle(pppm/kk/host,PPPMKokkos<LMPHostType>)
+
 #else
 
 #ifndef LMP_PPPM_KOKKOS_H
@@ -29,6 +28,7 @@ KSpaceStyle(pppm/kk/host,PPPMKokkos<LMPHostType>);
 #include "kokkos_base_fft.h"
 #include "fftdata_kokkos.h"
 #include "kokkos_type.h"
+#include "kokkos_few.h"
 
 // fix up FFT defines for KOKKOS with CUDA
 
@@ -55,6 +55,8 @@ struct TagPPPM_setup1{};
 struct TagPPPM_setup2{};
 struct TagPPPM_setup3{};
 struct TagPPPM_setup4{};
+struct TagPPPM_setup_triclinic1{};
+struct TagPPPM_setup_triclinic2{};
 struct TagPPPM_compute_gf_ik{};
 struct TagPPPM_compute_gf_ik_triclinic{};
 struct TagPPPM_self1{};
@@ -137,6 +139,12 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPPPM_setup4, const int&) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagPPPM_setup_triclinic1, const int&) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagPPPM_setup_triclinic2, const int&) const;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPPPM_compute_gf_ik, const int&) const;
@@ -308,6 +316,25 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
   int numx_inout,numy_inout,numz_inout;
   int numx_out,numy_out,numz_out;
   int ix,iy,nlocal;
+
+  // Local copies of the domain box tilt etc. 
+  // TODO: Will need to put in a less
+  // hacky solution later, since this needs to be manually updated
+  Few<double,6> h, h_inv;
+
+  KOKKOS_INLINE_FUNCTION
+  void x2lamdaT(double* v, double* lamda) const
+  {
+    double lamda_tmp[3];                                                         
+                                                                                
+    lamda_tmp[0] = h_inv[0]*v[0];                                                
+    lamda_tmp[1] = h_inv[5]*v[0] + h_inv[1]*v[1];                                
+    lamda_tmp[2] = h_inv[4]*v[0] + h_inv[3]*v[1] + h_inv[2]*v[2];                
+                                                                                
+    lamda[0] = lamda_tmp[0];                                                     
+    lamda[1] = lamda_tmp[1];                                                     
+    lamda[2] = lamda_tmp[2];
+  }
 
   int nx,ny,nz;
   typename AT::t_int_1d_um d_list_index;

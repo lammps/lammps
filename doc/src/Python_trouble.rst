@@ -33,7 +33,7 @@ the constructor call as follows (see :ref:`python_create_lammps` for more detail
    >>> lmp = lammps(name='mpi')
 
 You can also test the load directly in Python as follows, without
-first importing from the lammps.py file:
+first importing from the ``lammps`` module:
 
 .. code-block:: python
 

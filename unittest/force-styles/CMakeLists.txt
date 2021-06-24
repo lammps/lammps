@@ -1,8 +1,8 @@
 
 find_package(YAML)
 if(NOT YAML_FOUND)
-  message(STATUS "Skipping tests because libyaml is not found")
-  return()
+  # download and build a local copy of libyaml
+  include(YAML)
 endif()
 
 if(CMAKE_VERSION VERSION_LESS 3.12)
@@ -15,7 +15,7 @@ if(CMAKE_VERSION VERSION_LESS 3.12)
 else()
   find_package(Python COMPONENTS Interpreter)
 endif()
-if (Python_EXECUTABLE)
+if(Python_EXECUTABLE)
   add_custom_target(check-tests
     ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/check_tests.py
     -s ${LAMMPS_SOURCE_DIR} -t ${CMAKE_CURRENT_SOURCE_DIR}/tests
@@ -26,14 +26,14 @@ set(TEST_INPUT_FOLDER ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 add_library(style_tests STATIC yaml_writer.cpp error_stats.cpp test_config_reader.cpp test_main.cpp)
 target_compile_definitions(style_tests PRIVATE -DTEST_INPUT_FOLDER=${TEST_INPUT_FOLDER})
 target_include_directories(style_tests PRIVATE ${LAMMPS_SOURCE_DIR})
-target_link_libraries(style_tests PUBLIC GTest::GTest GTest::GMock Yaml::Yaml)
+target_link_libraries(style_tests PUBLIC GTest::GTest GTest::GMock Yaml::Yaml lammps)
 if(BUILD_MPI)
   target_link_libraries(style_tests PUBLIC MPI::MPI_CXX)
 else()
   target_link_libraries(style_tests PUBLIC mpi_stubs)
 endif()
 # propagate sanitizer options to test tools
-if (NOT ENABLE_SANITIZER STREQUAL "none")
+if(ENABLE_SANITIZER AND (NOT (ENABLE_SANITIZER STREQUAL "none")))
   if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.13)
     target_compile_options(style_tests PUBLIC -fsanitize=${ENABLE_SANITIZER})
     target_link_options(style_tests PUBLIC -fsanitize=${ENABLE_SANITIZER})
@@ -56,7 +56,7 @@ endif()
 # tests for a molecular systems and related pair styles
 file(GLOB MOL_PAIR_TESTS LIST_DIRECTORIES false ${TEST_INPUT_FOLDER}/mol-pair-*.yaml)
 # cannot test MSM with single precision data
-if (FFT_SINGLE)
+if(FFT_SINGLE)
   list(FILTER MOL_PAIR_TESTS EXCLUDE REGEX "msm")
 endif()
 foreach(TEST ${MOL_PAIR_TESTS})
@@ -106,7 +106,7 @@ endforeach()
 # kspace style tester, currently uses the pair style tool
 file(GLOB KSPACE_TESTS LIST_DIRECTORIES false ${TEST_INPUT_FOLDER}/kspace-*.yaml)
 # cannot test MSM with single precision data
-if (FFT_SINGLE)
+if(FFT_SINGLE)
   list(FILTER KSPACE_TESTS EXCLUDE REGEX "msm")
 endif()
 foreach(TEST ${KSPACE_TESTS})
@@ -124,6 +124,27 @@ file(GLOB FIX_TIMESTEP_TESTS LIST_DIRECTORIES false ${TEST_INPUT_FOLDER}/fix-tim
 foreach(TEST ${FIX_TIMESTEP_TESTS})
   string(REGEX REPLACE "^.*fix-timestep-(.*)\.yaml" "FixTimestep:\\1" TNAME ${TEST})
   add_test(NAME ${TNAME} COMMAND test_fix_timestep ${TEST} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+  set_tests_properties(${TNAME} PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};PYTHONPATH=${TEST_INPUT_FOLDER}:${LAMMPS_PYTHON_DIR}:$ENV{PYTHONPATH}")
+endforeach()
+
+# dihedral style tester
+add_executable(test_dihedral_style test_dihedral_style.cpp)
+target_link_libraries(test_dihedral_style PRIVATE lammps style_tests)
+
+file(GLOB DIHEDRAL_TESTS LIST_DIRECTORIES false ${TEST_INPUT_FOLDER}/dihedral-*.yaml)
+foreach(TEST ${DIHEDRAL_TESTS})
+  string(REGEX REPLACE "^.*dihedral-(.*)\.yaml" "DihedralStyle:\\1" TNAME ${TEST})
+  add_test(NAME ${TNAME} COMMAND test_dihedral_style ${TEST} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
   set_tests_properties(${TNAME} PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};PYTHONPATH=${TEST_INPUT_FOLDER}:$ENV{PYTHONPATH}")
 endforeach()
 
+# improper style tester
+add_executable(test_improper_style test_improper_style.cpp)
+target_link_libraries(test_improper_style PRIVATE lammps style_tests)
+
+file(GLOB IMPROPER_TESTS LIST_DIRECTORIES false ${TEST_INPUT_FOLDER}/improper-*.yaml)
+foreach(TEST ${IMPROPER_TESTS})
+  string(REGEX REPLACE "^.*improper-(.*)\.yaml" "ImproperStyle:\\1" TNAME ${TEST})
+  add_test(NAME ${TNAME} COMMAND test_improper_style ${TEST} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+  set_tests_properties(${TNAME} PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};PYTHONPATH=${TEST_INPUT_FOLDER}:$ENV{PYTHONPATH}")
+endforeach()

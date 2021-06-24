@@ -1,6 +1,7 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -25,7 +26,7 @@ namespace LAMMPS_NS {
       d0 = d1 = 0.0;
     }
     KOKKOS_INLINE_FUNCTION
-    s_double2& operator+=(const s_double2 &rhs){
+    s_double2& operator+=(const s_double2 &rhs) {
       d0 += rhs.d0;
       d1 += rhs.d1;
       return *this;

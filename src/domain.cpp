@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -1816,8 +1817,18 @@ void Domain::delete_region(int narg, char **arg)
   int iregion = find_region(arg[0]);
   if (iregion == -1) error->all(FLERR,"Delete region ID does not exist");
 
+  delete_region(iregion);
+}
+
+void Domain::delete_region(int iregion)
+{
+  if ((iregion < 0) || (iregion >= nregion)) return;
+
+  // delete and move other Regions down in list one slot
+
   delete regions[iregion];
-  regions[iregion] = regions[nregion-1];
+  for (int i = iregion+1; i < nregion; ++i)
+    regions[i-1] = regions[i];
   nregion--;
 }
 
@@ -1826,10 +1837,22 @@ void Domain::delete_region(int narg, char **arg)
    return -1 if no such region
 ------------------------------------------------------------------------- */
 
-int Domain::find_region(char *name)
+int Domain::find_region(const std::string &name)
 {
   for (int iregion = 0; iregion < nregion; iregion++)
-    if (strcmp(name,regions[iregion]->id) == 0) return iregion;
+    if (name == regions[iregion]->id) return iregion;
+  return -1;
+}
+
+/* ----------------------------------------------------------------------
+   return region index if name matches existing region style
+   return -1 if no such region
+------------------------------------------------------------------------- */
+
+int Domain::find_region_by_style(const std::string &name)
+{
+  for (int iregion = 0; iregion < nregion; iregion++)
+    if (name == regions[iregion]->style) return iregion;
   return -1;
 }
 
@@ -1873,6 +1896,7 @@ void Domain::set_boundary(int narg, char **arg, int flag)
   else zperiodic = 0;
 
   // record if we changed a periodic boundary to a non-periodic one
+
   int pflag=0;
   if ((periodicity[0] && !xperiodic)
       || (periodicity[1] && !yperiodic)
@@ -1889,23 +1913,27 @@ void Domain::set_boundary(int narg, char **arg, int flag)
         boundary[1][0] >= 2 || boundary[1][1] >= 2 ||
         boundary[2][0] >= 2 || boundary[2][1] >= 2) nonperiodic = 2;
   }
+
+  // force non-zero image flags to zero for non-periodic dimensions
+  // keep track if a change was made, so we can print a warning message
+
   if (pflag) {
     pflag = 0;
     for (int i=0; i < atom->nlocal; ++i) {
       int xbox = (atom->image[i] & IMGMASK) - IMGMAX;
       int ybox = (atom->image[i] >> IMGBITS & IMGMASK) - IMGMAX;
       int zbox = (atom->image[i] >> IMG2BITS) - IMGMAX;
-      if (!xperiodic) { xbox = 0; pflag = 1; }
-      if (!yperiodic) { ybox = 0; pflag = 1; }
-      if (!zperiodic) { zbox = 0; pflag = 1; }
+      if ((!xperiodic) && (xbox != 0)) { xbox = 0; pflag = 1; }
+      if ((!yperiodic) && (ybox != 0)) { ybox = 0; pflag = 1; }
+      if ((!zperiodic) && (zbox != 0)) { zbox = 0; pflag = 1; }
       atom->image[i] = ((imageint) (xbox + IMGMAX) & IMGMASK) |
         (((imageint) (ybox + IMGMAX) & IMGMASK) << IMGBITS) |
         (((imageint) (zbox + IMGMAX) & IMGMASK) << IMG2BITS);
     }
     int flag_all;
-    MPI_Allreduce(&flag,&flag_all, 1, MPI_INT, MPI_SUM, world);
+    MPI_Allreduce(&pflag,&flag_all, 1, MPI_INT, MPI_SUM, world);
     if ((flag_all > 0) && (comm->me == 0))
-      error->warning(FLERR,"Reset image flags for non-periodic boundary");
+      error->warning(FLERR,"Resetting image flags for non-periodic dimensions");
   }
 }
 

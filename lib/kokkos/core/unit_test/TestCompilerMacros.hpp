@@ -81,7 +81,7 @@ struct AddFunctor {
 #ifdef KOKKOS_ENABLE_PRAGMA_LOOPCOUNT
 #pragma loop count(128)
 #endif
-#ifndef KOKKOS_DEBUG
+#ifndef KOKKOS_ENABLE_DEBUG
 #ifdef KOKKOS_ENABLE_PRAGMA_SIMD
 #pragma simd
 #endif

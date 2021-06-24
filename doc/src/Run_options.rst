@@ -10,7 +10,9 @@ letter abbreviation can be used:
 * :ref:`-i or -in <file>`
 * :ref:`-k or -kokkos <run-kokkos>`
 * :ref:`-l or -log <log>`
+* :ref:`-mdi <mdi>`
 * :ref:`-m or -mpicolor <mpicolor>`
+* :ref:`-c or -cite <cite>`
 * :ref:`-nc or -nocite <nocite>`
 * :ref:`-pk or -package <package>`
 * :ref:`-p or -partition <partition>`
@@ -62,15 +64,18 @@ used.
 
 **-in file**
 
-Specify a file to use as an input script.  This is an optional switch
-when running LAMMPS in one-partition mode.  If it is not specified,
-LAMMPS reads its script from standard input, typically from a script
-via I/O redirection; e.g. lmp_linux < in.run.  I/O redirection should
-also work in parallel, but if it does not (in the unlikely case that
-an MPI implementation does not support it), then use the -in flag.
+Specify a file to use as an input script.  This is an optional but
+recommended switch when running LAMMPS in one-partition mode.  If it
+is not specified, LAMMPS reads its script from standard input, typically
+from a script via I/O redirection; e.g. lmp_linux < in.run.
+With many MPI implementations I/O redirection also works in parallel,
+but using the -in flag will always work.
+
 Note that this is a required switch when running LAMMPS in
 multi-partition mode, since multiple processors cannot all read from
-stdin.
+stdin concurrently.  The file name may be "none" for starting
+multi-partition calculations without reading an initial input file
+from the library interface.
 
 ----------
 
@@ -192,9 +197,23 @@ Option -plog will override the name of the partition log files file.N.
 
 ----------
 
+.. _mdi:
+
+**-mdi 'multiple flags'**
+
+This flag is only recognized and used when LAMMPS has support for the MolSSI
+Driver Interface (MDI) included as part of the :ref:`USER-MDI <PKG-USER-MDI>`
+package.  This flag is specific to the MDI library and controls how LAMMPS
+interacts with MDI.  There are usually multiple flags that have to follow it
+and those have to be placed in quotation marks.  For more information about
+how to launch LAMMPS in MDI client/server mode please refer to the
+:doc:`MDI Howto <Howto_mdi>`.
+
+----------
+
 .. _mpicolor:
 
-**-mpicolor** color
+**-mpicolor color**
 
 If used, this must be the first command-line argument after the LAMMPS
 executable name.  It is only used when LAMMPS is launched by an mpirun
@@ -217,14 +236,31 @@ links with from the lib/message directory.  See the
 
 ----------
 
+.. _cite:
+
+**-cite style** or **file name**
+
+Select how and where to output a reminder about citing contributions
+to the LAMMPS code that were used during the run. Available styles are
+"both", "none", "screen", or "log".  Any flag will be considered a file
+name to write the detailed citation info to.  Default is the "log" style
+where there is a short summary in the screen output and detailed citations
+in BibTeX format in the logfile.  The option "both" selects the detailed
+output for both, "none", the short output for both, and "screen" will
+write the detailed info to the screen and the short version to the log
+file.  If a dedicated citation info file is requested, the screen and
+log file output will be in the short format (same as with "none").
+
+See the :doc:`citation page <Intro_citing>` for more details on
+how to correctly reference and cite LAMMPS.
+
+----------
+
 .. _nocite:
 
 **-nocite**
 
-Disable writing the log.cite file which is normally written to list
-references for specific cite-able features used during a LAMMPS run.
-See the `citation page <https://lammps.sandia.gov/cite.html>`_ for more
-details.
+Disable generating a citation reminder (see above) at all.
 
 ----------
 
@@ -296,7 +332,7 @@ command-line option.
 **-pscreen file**
 
 Specify the base name for the partition screen file, so partition N
-writes screen information to file.N. If file is none, then no
+writes screen information to file.N. If file is "none", then no
 partition screen files are created.  This overrides the filename
 specified in the -screen command-line option.  This option is useful
 when working with large numbers of partitions, allowing the partition

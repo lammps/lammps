@@ -1,6 +1,7 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -54,6 +55,11 @@ class AtomKokkos : public Atom {
 
   DAT::tdual_float_2d k_dvector;
 
+  // SPIN package
+
+  DAT::tdual_float_1d_4 k_sp;
+  DAT::tdual_f_array k_fm;
+  DAT::tdual_f_array k_fm_long;
 
 // USER-DPD package
   DAT::tdual_efloat_1d k_uCond, k_uMech, k_uChem, k_uCG, k_uCGnew,
@@ -83,16 +89,16 @@ struct SortFunctor {
   ViewType source;
   Kokkos::View<typename ViewType::non_const_data_type,typename ViewType::array_type,device_type> dest;
   IndexView index;
-  SortFunctor(ViewType src, typename std::enable_if<ViewType::dynamic_rank==1,IndexView>::type ind):source(src),index(ind){
+  SortFunctor(ViewType src, typename std::enable_if<ViewType::dynamic_rank==1,IndexView>::type ind):source(src),index(ind) {
     dest = Kokkos::View<typename ViewType::non_const_data_type,typename ViewType::array_type,device_type>("",src.extent(0));
   }
-  SortFunctor(ViewType src, typename std::enable_if<ViewType::dynamic_rank==2,IndexView>::type ind):source(src),index(ind){
+  SortFunctor(ViewType src, typename std::enable_if<ViewType::dynamic_rank==2,IndexView>::type ind):source(src),index(ind) {
     dest = Kokkos::View<typename ViewType::non_const_data_type,typename ViewType::array_type,device_type>("",src.extent(0),src.extent(1));
   }
-  SortFunctor(ViewType src, typename std::enable_if<ViewType::dynamic_rank==3,IndexView>::type ind):source(src),index(ind){
+  SortFunctor(ViewType src, typename std::enable_if<ViewType::dynamic_rank==3,IndexView>::type ind):source(src),index(ind) {
     dest = Kokkos::View<typename ViewType::non_const_data_type,typename ViewType::array_type,device_type>("",src.extent(0),src.extent(1),src.extent(2));
   }
-  SortFunctor(ViewType src, typename std::enable_if<ViewType::dynamic_rank==4,IndexView>::type ind):source(src),index(ind){
+  SortFunctor(ViewType src, typename std::enable_if<ViewType::dynamic_rank==4,IndexView>::type ind):source(src),index(ind) {
     dest = Kokkos::View<typename ViewType::non_const_data_type,typename ViewType::array_type,device_type>("",src.extent(0),src.extent(1),src.extent(2),src.extent(3));
   }
   KOKKOS_INLINE_FUNCTION
@@ -100,18 +106,18 @@ struct SortFunctor {
     dest(i) = source(index(i));
   }
   void operator()(const typename std::enable_if<ViewType::rank==2, int>::type& i) {
-    for(int j=0; j < (int)source.extent(1); j++)
+    for (int j=0; j < (int)source.extent(1); j++)
       dest(i,j) = source(index(i),j);
   }
   void operator()(const typename std::enable_if<ViewType::rank==3, int>::type& i) {
-    for(int j=0; j < (int)source.extent(1); j++)
-      for(int k=0; k < (int)source.extent(2); k++)
+    for (int j=0; j < (int)source.extent(1); j++)
+      for (int k=0; k < (int)source.extent(2); k++)
         dest(i,j,k) = source(index(i),j,k);
   }
   void operator()(const typename std::enable_if<ViewType::rank==4, int>::type& i) {
-    for(int j=0; j < (int)source.extent(1); j++)
-      for(int k=0; k < (int)source.extent(2); k++)
-        for(int l=0; l < (int)source.extent(3); l++)
+    for (int j=0; j < (int)source.extent(1); j++)
+      for (int k=0; k < (int)source.extent(2); k++)
+        for (int l=0; l < (int)source.extent(3); l++)
           dest(i,j,k,l) = source(index(i),j,k,l);
   }
 };

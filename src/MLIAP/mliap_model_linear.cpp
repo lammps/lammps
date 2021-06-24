@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -9,6 +10,10 @@
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
+   Contributing author: Aidan Thompson (SNL)
 ------------------------------------------------------------------------- */
 
 #include "mliap_model_linear.h"
@@ -21,14 +26,14 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 MLIAPModelLinear::MLIAPModelLinear(LAMMPS* lmp, char* coefffilename) :
-  MLIAPModel(lmp, coefffilename)
+  MLIAPModelSimple(lmp, coefffilename)
 {
   if (nparams > 0) ndescriptors = nparams - 1;
 }
 
 /* ---------------------------------------------------------------------- */
 
-MLIAPModelLinear::~MLIAPModelLinear(){}
+MLIAPModelLinear::~MLIAPModelLinear() {}
 
 /* ----------------------------------------------------------------------
    get number of parameters
@@ -51,8 +56,9 @@ int MLIAPModelLinear::get_nparams()
 
 void MLIAPModelLinear::compute_gradients(MLIAPData* data)
 {
-  for (int ii = 0; ii < data->natoms; ii++) {
-    const int i = data->iatoms[ii];
+  data->energy = 0.0;
+
+  for (int ii = 0; ii < data->nlistatoms; ii++) {
     const int ielem = data->ielems[ii];
 
     double* coeffi = coeffelem[ielem];
@@ -74,7 +80,8 @@ void MLIAPModelLinear::compute_gradients(MLIAPData* data)
       for (int icoeff = 0; icoeff < data->ndescriptors; icoeff++)
         etmp += coeffi[icoeff+1]*data->descriptors[ii][icoeff];
 
-      data->pairmliap->e_tally(i,etmp);
+      data->energy += etmp;
+      data->eatoms[ii] = etmp;
     }
   }
 }
@@ -101,7 +108,7 @@ void MLIAPModelLinear::compute_gradgrads(class MLIAPData* data)
   for (int l = 0; l < data->nelements*data->nparams; l++)
     data->egradient[l] = 0.0;
 
-  for (int ii = 0; ii < data->natoms; ii++) {
+  for (int ii = 0; ii < data->nlistatoms; ii++) {
     const int ielem = data->ielems[ii];
     const int elemoffset = data->nparams*ielem;
 
@@ -137,7 +144,7 @@ void MLIAPModelLinear::compute_force_gradients(class MLIAPData* data)
     data->egradient[l] = 0.0;
 
   int ij = 0;
-  for (int ii = 0; ii < data->natoms; ii++) {
+  for (int ii = 0; ii < data->nlistatoms; ii++) {
     const int i = data->iatoms[ii];
     const int ielem = data->ielems[ii];
     const int elemoffset = data->nparams*ielem;

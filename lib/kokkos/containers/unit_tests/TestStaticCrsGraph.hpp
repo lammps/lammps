@@ -200,8 +200,7 @@ void run_test_graph3(size_t B, size_t N) {
 
   for (size_t i = 0; i < B; i++) {
     size_t ne = 0;
-    for (size_t j = hx.row_block_offsets(i); j < hx.row_block_offsets(i + 1);
-         j++)
+    for (auto j = hx.row_block_offsets(i); j < hx.row_block_offsets(i + 1); j++)
       ne += hx.row_map(j + 1) - hx.row_map(j) + C;
 
     ASSERT_FALSE(
@@ -212,7 +211,7 @@ void run_test_graph3(size_t B, size_t N) {
 
 template <class Space>
 void run_test_graph4() {
-  using ordinal_type       = unsigned;
+  using ordinal_type       = unsigned int;
   using layout_type        = Kokkos::LayoutRight;
   using space_type         = Space;
   using memory_traits_type = Kokkos::MemoryUnmanaged;

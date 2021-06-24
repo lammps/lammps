@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -59,7 +60,6 @@ PairCoulSlaterLong::~PairCoulSlaterLong()
 
       memory->destroy(scale);
     }
-    //if (ftable) free_tables();
   }
 }
 
@@ -69,17 +69,14 @@ void PairCoulSlaterLong::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,ecoul,fpair;
-//  double fraction,table;
   double r,r2inv,forcecoul,factor_coul;
   double grij,expm2,prefactor,t,erfc;
   int *ilist,*jlist,*numneigh,**firstneigh;
   double rsq;
   double slater_term;
-//  int itable;
 
+  ev_init(eflag,vflag);
   ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
 
   double **x = atom->x;
   double **f = atom->f;

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -68,9 +69,9 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
   rcutfac = atof(arg[3]);
   rfac0 = atof(arg[4]);
   twojmax = atoi(arg[5]);
-  for(int i = 0; i < ntypes; i++)
+  for (int i = 0; i < ntypes; i++)
     radelem[i+1] = atof(arg[6+i]);
-  for(int i = 0; i < ntypes; i++)
+  for (int i = 0; i < ntypes; i++)
     wjelem[i+1] = atof(arg[6+ntypes+i]);
 
   // construct cutsq
@@ -78,11 +79,11 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
   double cut;
   cutmax = 0.0;
   memory->create(cutsq,ntypes+1,ntypes+1,"snap:cutsq");
-  for(int i = 1; i <= ntypes; i++) {
+  for (int i = 1; i <= ntypes; i++) {
     cut = 2.0*radelem[i]*rcutfac;
     if (cut > cutmax) cutmax = cut;
     cutsq[i][i] = cut*cut;
-    for(int j = i+1; j <= ntypes; j++) {
+    for (int j = i+1; j <= ntypes; j++) {
       cut = (radelem[i]+radelem[j])*rcutfac;
       cutsq[i][j] = cutsq[j][i] = cut*cut;
     }
@@ -119,7 +120,7 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
       chemflag = 1;
       memory->create(map,ntypes+1,"compute_snap:map");
       nelements = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
-      for(int i = 0; i < ntypes; i++) {
+      for (int i = 0; i < ntypes; i++) {
         int jelem = utils::inumeric(FLERR,arg[iarg+2+i],false,lmp);
         if (jelem < 0 || jelem >= nelements)
           error->all(FLERR,"Illegal compute snap command");
@@ -529,14 +530,14 @@ void ComputeSnap::dbdotr_compute()
 double ComputeSnap::memory_usage()
 {
 
-  double bytes = size_array_rows*size_array_cols *
+  double bytes = (double)size_array_rows*size_array_cols *
     sizeof(double);                                     // snap
-  bytes += size_array_rows*size_array_cols *
+  bytes += (double)size_array_rows*size_array_cols *
     sizeof(double);                                     // snapall
-  bytes += nmax*size_peratom * sizeof(double);          // snap_peratom
+  bytes += (double)nmax*size_peratom * sizeof(double);  // snap_peratom
   bytes += snaptr->memory_usage();                      // SNA object
   int n = atom->ntypes+1;
-  bytes += n*sizeof(int);        // map
+  bytes += (double)n*sizeof(int);        // map
 
   return bytes;
 }

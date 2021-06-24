@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -13,27 +14,26 @@
 
 #include "fix_shake.h"
 
+#include "angle.h"
+#include "atom.h"
+#include "atom_vec.h"
+#include "bond.h"
+#include "comm.h"
+#include "domain.h"
+#include "error.h"
+#include "fix_respa.h"
+#include "force.h"
+#include "group.h"
+#include "math_const.h"
+#include "memory.h"
+#include "modify.h"
+#include "molecule.h"
+#include "respa.h"
+#include "update.h"
+
 #include <cmath>
 #include <cctype>
 #include <cstring>
-#include "atom.h"
-#include "atom_vec.h"
-#include "molecule.h"
-#include "update.h"
-#include "respa.h"
-#include "modify.h"
-#include "domain.h"
-#include "force.h"
-#include "bond.h"
-#include "angle.h"
-#include "comm.h"
-#include "group.h"
-#include "fix_respa.h"
-#include "math_const.h"
-#include "memory.h"
-#include "error.h"
-
-
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -61,7 +61,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
 
-  virial_flag = 1;
+  virial_global_flag = virial_peratom_flag = 1;
   thermo_virial = 1;
   create_attribute = 1;
   dof_flag = 1;
@@ -227,8 +227,8 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
   find_clusters();
 
   if (comm->me == 0)
-    utils::logmesg(lmp,fmt::format("  find clusters CPU = {:.3f} seconds\n",
-                                   MPI_Wtime()-time1));
+    utils::logmesg(lmp,"  find clusters CPU = {:.3f} seconds\n",
+                   MPI_Wtime()-time1);
 
   // initialize list of SHAKE clusters to constrain
 
@@ -240,6 +240,8 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
 
 FixShake::~FixShake()
 {
+  if (copymode) return;
+
   // unregister callbacks to this fix from Atom class
 
   atom->delete_callback(id,Atom::GROW);
@@ -249,23 +251,24 @@ FixShake::~FixShake()
 
   int nlocal = atom->nlocal;
 
-  for (int i = 0; i < nlocal; i++) {
-    if (shake_flag[i] == 0) continue;
-    else if (shake_flag[i] == 1) {
-      bondtype_findset(i,shake_atom[i][0],shake_atom[i][1],1);
-      bondtype_findset(i,shake_atom[i][0],shake_atom[i][2],1);
-      angletype_findset(i,shake_atom[i][1],shake_atom[i][2],1);
-    } else if (shake_flag[i] == 2) {
-      bondtype_findset(i,shake_atom[i][0],shake_atom[i][1],1);
-    } else if (shake_flag[i] == 3) {
-      bondtype_findset(i,shake_atom[i][0],shake_atom[i][1],1);
-      bondtype_findset(i,shake_atom[i][0],shake_atom[i][2],1);
-    } else if (shake_flag[i] == 4) {
-      bondtype_findset(i,shake_atom[i][0],shake_atom[i][1],1);
-      bondtype_findset(i,shake_atom[i][0],shake_atom[i][2],1);
-      bondtype_findset(i,shake_atom[i][0],shake_atom[i][3],1);
+  if (shake_flag)
+    for (int i = 0; i < nlocal; i++) {
+      if (shake_flag[i] == 0) continue;
+      else if (shake_flag[i] == 1) {
+        bondtype_findset(i,shake_atom[i][0],shake_atom[i][1],1);
+        bondtype_findset(i,shake_atom[i][0],shake_atom[i][2],1);
+        angletype_findset(i,shake_atom[i][1],shake_atom[i][2],1);
+      } else if (shake_flag[i] == 2) {
+        bondtype_findset(i,shake_atom[i][0],shake_atom[i][1],1);
+      } else if (shake_flag[i] == 3) {
+        bondtype_findset(i,shake_atom[i][0],shake_atom[i][1],1);
+        bondtype_findset(i,shake_atom[i][0],shake_atom[i][2],1);
+      } else if (shake_flag[i] == 4) {
+        bondtype_findset(i,shake_atom[i][0],shake_atom[i][1],1);
+        bondtype_findset(i,shake_atom[i][0],shake_atom[i][2],1);
+        bondtype_findset(i,shake_atom[i][0],shake_atom[i][3],1);
+      }
     }
-  }
 
   // delete locally stored arrays
 
@@ -455,7 +458,7 @@ void FixShake::setup(int vflag)
 
   // set respa to 0 if verlet is used and to 1 otherwise
 
-  if (strstr(update->integrate_style,"verlet"))
+  if (utils::strmatch(update->integrate_style,"^verlet"))
     respa = 0;
   else
     respa = 1;
@@ -522,19 +525,19 @@ void FixShake::pre_neighbor()
         atom1 = atom->map(shake_atom[i][0]);
         atom2 = atom->map(shake_atom[i][1]);
         if (atom1 == -1 || atom2 == -1)
-          error->one(FLERR,fmt::format("Shake atoms {} {} missing on proc "
+          error->one(FLERR,"Shake atoms {} {} missing on proc "
                                        "{} at step {}",shake_atom[i][0],
-                                       shake_atom[i][1],me,update->ntimestep));
+                                       shake_atom[i][1],me,update->ntimestep);
         if (i <= atom1 && i <= atom2) list[nlist++] = i;
       } else if (shake_flag[i] % 2 == 1) {
         atom1 = atom->map(shake_atom[i][0]);
         atom2 = atom->map(shake_atom[i][1]);
         atom3 = atom->map(shake_atom[i][2]);
         if (atom1 == -1 || atom2 == -1 || atom3 == -1)
-          error->one(FLERR,fmt::format("Shake atoms {} {} {} missing on proc "
+          error->one(FLERR,"Shake atoms {} {} {} missing on proc "
                                        "{} at step {}",shake_atom[i][0],
                                        shake_atom[i][1],shake_atom[i][2],
-                                       me,update->ntimestep));
+                                       me,update->ntimestep);
         if (i <= atom1 && i <= atom2 && i <= atom3) list[nlist++] = i;
       } else {
         atom1 = atom->map(shake_atom[i][0]);
@@ -542,10 +545,10 @@ void FixShake::pre_neighbor()
         atom3 = atom->map(shake_atom[i][2]);
         atom4 = atom->map(shake_atom[i][3]);
         if (atom1 == -1 || atom2 == -1 || atom3 == -1 || atom4 == -1)
-          error->one(FLERR,fmt::format("Shake atoms {} {} {} {} missing on "
+          error->one(FLERR,"Shake atoms {} {} {} {} missing on "
                                        "proc {} at step {}",shake_atom[i][0],
                                        shake_atom[i][1],shake_atom[i][2],
-                                       shake_atom[i][3],me,update->ntimestep));
+                                       shake_atom[i][3],me,update->ntimestep);
         if (i <= atom1 && i <= atom2 && i <= atom3 && i <= atom4)
           list[nlist++] = i;
       }
@@ -568,8 +571,7 @@ void FixShake::post_force(int vflag)
 
   // virial setup
 
-  if (vflag) v_setup(vflag);
-  else evflag = 0;
+  v_init(vflag);
 
   // loop over clusters to add constraint forces
 
@@ -615,7 +617,7 @@ void FixShake::post_force_respa(int vflag, int ilevel, int iloop)
   //   and if pressure is requested
   // virial accumulation happens via evflag at last iteration of each level
 
-  if (ilevel == 0 && iloop == loop_respa[ilevel]-1 && vflag) v_setup(vflag);
+  if (ilevel == 0 && iloop == loop_respa[ilevel]-1 && vflag) v_init(vflag);
   if (iloop == loop_respa[ilevel]-1) evflag = 1;
   else evflag = 0;
 
@@ -1006,11 +1008,11 @@ void FixShake::find_clusters()
   MPI_Allreduce(&tmp,&count4,1,MPI_INT,MPI_SUM,world);
 
   if (me == 0) {
-    auto mesg = fmt::format("{:>8} = # of size 2 clusters\n",count2/2);
-    mesg += fmt::format("{:>8} = # of size 3 clusters\n",count3/3);
-    mesg += fmt::format("{:>8} = # of size 4 clusters\n",count4/4);
-    mesg += fmt::format("{:>8} = # of frozen angles\n",count1/3);
-    utils::logmesg(lmp,mesg);
+    utils::logmesg(lmp,"{:>8} = # of size 2 clusters\n"
+                   "{:>8} = # of size 3 clusters\n"
+                   "{:>8} = # of size 4 clusters\n"
+                   "{:>8} = # of frozen angles\n",
+                   count2/2,count3/3,count4/4,count1/3);
   }
 }
 
@@ -1715,7 +1717,7 @@ void FixShake::shake(int m)
 
   double determ = b*b - 4.0*a*c;
   if (determ < 0.0) {
-    error->warning(FLERR,"Shake determinant < 0.0",0);
+    error->warning(FLERR,"Shake determinant < 0.0");
     determ = 0.0;
   }
 
@@ -2539,13 +2541,13 @@ void FixShake::stats()
       const auto bcnt = b_count_all[i]/2;
       if (bcnt)
         mesg += fmt::format("{:>6d}   {:<9.6} {:<11.6} {:>8d}\n",i,
-                            b_ave_all[i]/bcnt,b_max_all[i]-b_min_all[i],bcnt);
+                            b_ave_all[i]/bcnt/2.0,b_max_all[i]-b_min_all[i],bcnt);
     }
     for (i = 1; i < na; i++) {
       const auto acnt = a_count_all[i]/3;
       if (acnt)
         mesg += fmt::format("{:>6d}   {:<9.6} {:<11.6} {:>8d}\n",i,
-                            a_ave_all[i]/acnt,a_max_all[i]-a_min_all[i],acnt);
+                            a_ave_all[i]/acnt/3.0,a_max_all[i]-a_min_all[i],acnt);
     }
     utils::logmesg(lmp,mesg);
   }
@@ -2675,11 +2677,11 @@ int FixShake::angletype_findset(int i, tagint n1, tagint n2, int setflag)
 double FixShake::memory_usage()
 {
   int nmax = atom->nmax;
-  double bytes = nmax * sizeof(int);
-  bytes += nmax*4 * sizeof(int);
-  bytes += nmax*3 * sizeof(int);
-  bytes += nmax*3 * sizeof(double);
-  bytes += maxvatom*6 * sizeof(double);
+  double bytes = (double)nmax * sizeof(int);
+  bytes += (double)nmax*4 * sizeof(int);
+  bytes += (double)nmax*3 * sizeof(int);
+  bytes += (double)nmax*3 * sizeof(double);
+  bytes += (double)maxvatom*6 * sizeof(double);
   return bytes;
 }
 
@@ -2956,7 +2958,7 @@ void FixShake::unpack_forward_comm(int n, int first, double *buf)
 
 void FixShake::reset_dt()
 {
-  if (strstr(update->integrate_style,"verlet")) {
+  if (utils::strmatch(update->integrate_style,"^verlet")) {
     dtv = update->dt;
     if (rattle) dtfsq   = 0.5 * update->dt * update->dt * force->ftm2v;
     else dtfsq = update->dt * update->dt * force->ftm2v;

@@ -4,6 +4,15 @@
 
 struct Kokkos_Profiling_KokkosPDeviceInfo;
 
+// just get the basename for print_help/parse_args
+std::string get_basename(char* cmd, int idx = 0) {
+  if (idx > 0) return cmd;
+  std::string _cmd = cmd;
+  auto _pos        = _cmd.find_last_of('/');
+  if (_pos != std::string::npos) return _cmd.substr(_pos + 1);
+  return _cmd;
+}
+
 struct SpaceHandle {
   char name[64];
 };
@@ -21,6 +30,16 @@ extern "C" void kokkosp_init_library(
 
 extern "C" void kokkosp_finalize_library() {
   std::cout << "kokkosp_finalize_library::";
+}
+
+extern "C" void kokkosp_print_help(char* exe) {
+  std::cout << "kokkosp_print_help:" << get_basename(exe) << "::";
+}
+
+extern "C" void kokkosp_parse_args(int argc, char** argv) {
+  std::cout << "kokkosp_parse_args:" << argc;
+  for (int i = 0; i < argc; ++i) std::cout << ":" << get_basename(argv[i], i);
+  std::cout << "::";
 }
 
 extern "C" void kokkosp_begin_parallel_for(const char* name,
@@ -115,4 +134,7 @@ extern "C" void kokkosp_destroy_profile_section(uint32_t sec_id) {
 
 extern "C" void kokkosp_profile_event(const char* name) {
   std::cout << "kokkosp_profile_event:" << name << "::";
+}
+extern "C" void kokkosp_declare_metadata(const char* key, const char* value) {
+  std::cout << "kokkosp_declare_metadata:" << key << ":" << value << "::";
 }

@@ -26,6 +26,15 @@ task). These are Serial (MPI-only for CPUs and Intel Phi), OpenMP
 GPUs) and HIP (for AMD GPUs). You choose the mode at build time to
 produce an executable compatible with a specific hardware.
 
+.. admonition:: C++14 support
+   :class: note
+
+   Kokkos requires using a compiler that supports the c++14 standard. For
+   some compilers, it may be necessary to add a flag to enable c++14 support.
+   For example, the GNU compiler uses the -std=c++14 flag. For a list of
+   compilers that have been tested with the Kokkos library, see the Kokkos
+   `README <https://github.com/kokkos/kokkos/blob/master/README.md>`_.
+
 .. admonition:: NVIDIA CUDA support
    :class: note
 
@@ -38,14 +47,14 @@ produce an executable compatible with a specific hardware.
    :class: note
 
    Kokkos with CUDA currently implicitly assumes that the MPI library is
-   CUDA-aware. This is not always the case, especially when using
+   GPU-aware. This is not always the case, especially when using
    pre-compiled MPI libraries provided by a Linux distribution. This is
    not a problem when using only a single GPU with a single MPI
    rank. When running with multiple MPI ranks, you may see segmentation
-   faults without CUDA-aware MPI support. These can be avoided by adding
-   the flags :doc:`-pk kokkos cuda/aware off <Run_options>` to the
+   faults without GPU-aware MPI support. These can be avoided by adding
+   the flags :doc:`-pk kokkos gpu/aware off <Run_options>` to the
    LAMMPS command line or by using the command :doc:`package kokkos
-   cuda/aware off <package>` in the input file.
+   gpu/aware off <package>` in the input file.
 
 .. admonition:: AMD GPU support
    :class: note
@@ -242,8 +251,8 @@ case, also packing/unpacking communication buffers on the host may give
 speedup (see the KOKKOS :doc:`package <package>` command). Using CUDA MPS
 is recommended in this scenario.
 
-Using a CUDA-aware MPI library is highly recommended. CUDA-aware MPI use can be
-avoided by using :doc:`-pk kokkos cuda/aware no <package>`. As above for
+Using a GPU-aware MPI library is highly recommended. GPU-aware MPI use can be
+avoided by using :doc:`-pk kokkos gpu/aware off <package>`. As above for
 multi-core CPUs (and no GPU), if N is the number of physical cores/node,
 then the number of MPI tasks/node should not exceed N.
 
@@ -397,7 +406,7 @@ Generally speaking, the following rules of thumb apply:
   package also can increase the vector length of vector instructions
   by switching to single or mixed precision mode.
 
-See the `Benchmark page <https://lammps.sandia.gov/bench.html>`_ of the
+See the `Benchmark page <https://www.lammps.org/bench.html>`_ of the
 LAMMPS web site for performance of the KOKKOS package on different
 hardware.
 

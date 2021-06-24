@@ -72,7 +72,7 @@ explained in more detail here: `feature branch workflow <https://www.atlassian.c
 
 **Feature branches**
 
-First of all, create a clone of your version on github on your local
+First of all, create a clone of your version on GitHub on your local
 machine via HTTPS:
 
 .. code-block:: bash
@@ -155,7 +155,7 @@ useful message that explains the change.
 
 .. code-block:: bash
 
-     $ git commit -m 'Finally updated the github tutorial'
+     $ git commit -m 'Finally updated the GitHub tutorial'
 
 After the commit, the changes can be pushed to the same branch on GitHub:
 

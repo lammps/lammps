@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -137,20 +138,20 @@ void PairLubricatePoly::compute(int eflag, int vflag)
 
   double dims[3], wallcoord;
   if (flagVF) // Flag for volume fraction corrections
-    if (flagdeform || flagwall == 2){ // Possible changes in volume fraction
+    if (flagdeform || flagwall == 2) { // Possible changes in volume fraction
       if (flagdeform && !flagwall)
         for (j = 0; j < 3; j++)
           dims[j] = domain->prd[j];
-      else if (flagwall == 2 || (flagdeform && flagwall == 1)){
+      else if (flagwall == 2 || (flagdeform && flagwall == 1)) {
          double wallhi[3], walllo[3];
-         for (int j = 0; j < 3; j++){
+         for (int j = 0; j < 3; j++) {
            wallhi[j] = domain->prd[j];
            walllo[j] = 0;
          }
-         for (int m = 0; m < wallfix->nwall; m++){
+         for (int m = 0; m < wallfix->nwall; m++) {
            int dim = wallfix->wallwhich[m] / 2;
            int side = wallfix->wallwhich[m] % 2;
-           if (wallfix->xstyle[m] == VARIABLE){
+           if (wallfix->xstyle[m] == VARIABLE) {
              wallcoord = input->variable->compute_equal(wallfix->xindex[m]);
            }
            else wallcoord = wallfix->coord0[m];
@@ -461,7 +462,7 @@ void PairLubricatePoly::init_style()
   // are re-calculated at every step.
 
   shearing = flagdeform = flagwall = 0;
-  for (int i = 0; i < modify->nfix; i++){
+  for (int i = 0; i < modify->nfix; i++) {
     if (strcmp(modify->fix[i]->style,"deform") == 0) {
       shearing = flagdeform = 1;
       if (((FixDeform *) modify->fix[i])->remapflag != Domain::V_REMAP)
@@ -478,9 +479,9 @@ void PairLubricatePoly::init_style()
       if (wallfix->xflag) flagwall = 2; // Moving walls exist
     }
 
-    if (strstr(modify->fix[i]->style,"wall") != nullptr){
+    if (strstr(modify->fix[i]->style,"wall") != nullptr) {
       flagwall = 1; // Walls exist
-      if (((FixWall *) modify->fix[i])->xflag ) {
+      if (((FixWall *) modify->fix[i])->xflag) {
         flagwall = 2; // Moving walls exist
         wallfix = (FixWall *) modify->fix[i];
       }
@@ -492,14 +493,14 @@ void PairLubricatePoly::init_style()
   if (!flagwall) vol_T = domain->xprd*domain->yprd*domain->zprd;
   else {
     double wallhi[3], walllo[3];
-    for (int j = 0; j < 3; j++){
+    for (int j = 0; j < 3; j++) {
       wallhi[j] = domain->prd[j];
       walllo[j] = 0;
     }
-    for (int m = 0; m < wallfix->nwall; m++){
+    for (int m = 0; m < wallfix->nwall; m++) {
       int dim = wallfix->wallwhich[m] / 2;
       int side = wallfix->wallwhich[m] % 2;
-      if (wallfix->xstyle[m] == VARIABLE){
+      if (wallfix->xstyle[m] == VARIABLE) {
         wallfix->xindex[m] = input->variable->find(wallfix->xstr[m]);
         //Since fix->wall->init happens after pair->init_style
         wallcoord = input->variable->compute_equal(wallfix->xindex[m]);

@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
  *
  *                    *** Smooth Mach Dynamics ***
@@ -11,7 +12,7 @@
 
 /* ----------------------------------------------------------------------
  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
- https://lammps.sandia.gov/, Sandia National Laboratories
+ https://www.lammps.org/, Sandia National Laboratories
  Steve Plimpton, sjplimp@sandia.gov
 
  Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -679,7 +680,7 @@ void PairTlsph::ComputeForces(int eflag, int vflag) {
                 } // end loop over jj neighbors of i
 
                 // avoid division by zero and overflow
-                if ((shepardWeight != 0.0) && (fabs(hourglass_error[i]) < 1.0e300)){
+                if ((shepardWeight != 0.0) && (fabs(hourglass_error[i]) < 1.0e300)) {
                         hourglass_error[i] /= shepardWeight;
                 }
 

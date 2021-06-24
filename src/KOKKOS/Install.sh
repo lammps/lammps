@@ -63,6 +63,8 @@ action atom_vec_bond_kokkos.cpp atom_vec_bond.cpp
 action atom_vec_bond_kokkos.h atom_vec_bond.h
 action atom_vec_charge_kokkos.cpp
 action atom_vec_charge_kokkos.h
+action atom_vec_spin_kokkos.cpp
+action atom_vec_spin_kokkos.h
 action atom_vec_dpd_kokkos.cpp atom_vec_dpd.cpp
 action atom_vec_dpd_kokkos.h atom_vec_dpd.h
 action atom_vec_full_kokkos.cpp atom_vec_full.cpp
@@ -142,6 +144,8 @@ action fix_reaxc_species_kokkos.cpp fix_reaxc_species.cpp
 action fix_reaxc_species_kokkos.h fix_reaxc_species.h
 action fix_setforce_kokkos.cpp
 action fix_setforce_kokkos.h
+action fix_shake_kokkos.cpp fix_shake.cpp
+action fix_shake_kokkos.h fix_shake.h
 action fix_shardlow_kokkos.cpp fix_shardlow.cpp
 action fix_shardlow_kokkos.h fix_shardlow.h
 action fix_momentum_kokkos.cpp

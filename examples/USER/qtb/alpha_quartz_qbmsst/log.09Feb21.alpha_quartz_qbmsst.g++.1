@@ -1,0 +1,435 @@
+LAMMPS (24 Dec 2020)
+  using 1 OpenMP thread(s) per MPI task
+## This script first uses fix qtb to equilibrate alpha quartz structure to an initial state with quantum nuclear correction and then simulate shock induced phase transition through the quantum thermal bath multi-scale shock technique
+variable                x_rep equal 2   #plot is made with x_rep = 8                                            #x-direction replication number
+variable                y_rep equal 1   #plot is made with y_rep = 5                                            #y-direction replication number
+variable                z_rep equal 4   #plot is made with z_rep = 15                                           #z-direction replication number
+variable                cut_off equal 10.0                                                                      #Cut-off distance for the Buckingham term (Angstrom in metal units)
+variable                pressure equal 1.03125                                                                  #Initial state pressure (bar in metal units)
+variable                temperature equal 300.0                                                                 #Initial state quantum temperature (K in metal units)
+variable                delta_t equal 1.0e-3                                                                    #MD timestep length (ps in metal units)
+variable                damp_qtb equal 1                                                                        #1/gamma where gamma is the friction coefficient in quantum thermal bath (ps in metal units)
+variable                v_msst equal 78.0                                                                       #Shock velocity (Angstrom/ps in metal units)
+variable                q_msst equal 40.0                                                                       #Box mass-like parameter in the MSST (mass^2/length^4, where mass=grams/mole and length=Angstrom in metal units)
+variable                tscale_msst equal 0.05                                                                  #Temperature reduction parameter in the MSST (unitless)
+variable                eta_qbmsst equal 1.0                                                                    #Coupling constant between the shock and the quantum thermal bath (unitless constant)
+
+
+## This part uses fix qtb to prepare alpha-quartz with quantum nuclear correction of the initial state
+include                 alpha_quartz_qtb.mod
+## This script first constructs an alpha quartz structure of a given size. It then uses fix qtb to equilibrate the computational cell to the specified temperature and pressure.
+
+
+## This part defines units, alpha-quartz crystal, and atomic information
+#General
+units                   metal
+dimension               3
+boundary                p p p
+atom_style              charge
+
+#Lattice
+lattice                 custom 1.0                         a1      4.916000 0.000000 0.000000                         a2      -2.45800 4.257381 0.000000                         a3      0.000000 0.000000 5.405400                                                 basis   0.469700 0.000000 0.000000                         basis   0.000000 0.469700 0.666667                         basis   0.530300 0.530300 0.333333                                                 basis   0.413500 0.266900 0.119100                         basis   0.266900 0.413500 0.547567                         basis   0.733100 0.146600 0.785767                         basis   0.586500 0.853400 0.214233                         basis   0.853400 0.586500 0.452433                         basis   0.146600 0.733100 0.880900                                                      #American Mineralogist 65 920 1980 (Space Group 154)
+Lattice spacing in x,y,z = 7.3740000 4.2573810 5.4054000
+
+#Computational Cell
+region                  orthorhombic_unit_cell block 0 4.916000 0 8.514762 0 5.405400 units box
+create_box              2 orthorhombic_unit_cell
+Created orthogonal box = (0.0000000 0.0000000 0.0000000) to (4.9160000 8.5147620 5.4054000)
+  1 by 1 by 1 MPI processor grid
+create_atoms            1 box                         basis   1 1                         basis   2 1                         basis   3 1                         basis   4 2                         basis   5 2                         basis   6 2                         basis   7 2                         basis   8 2                         basis   9 2
+Created 18 atoms
+  create_atoms CPU = 0.000 seconds
+replicate               ${x_rep} ${y_rep} ${z_rep}
+replicate               2 ${y_rep} ${z_rep}
+replicate               2 1 ${z_rep}
+replicate               2 1 4
+Replicating atoms ...
+  orthogonal box = (0.0000000 0.0000000 0.0000000) to (9.8320000 8.5147620 21.621600)
+  1 by 1 by 1 MPI processor grid
+  144 atoms
+  replicate CPU = 0.001 seconds
+
+#Atomic Information
+mass                    1 28.085500
+mass                    2 15.999400
+set                     type 1 charge +2.4
+Setting atom values ...
+  48 settings made for charge
+set                     type 2 charge -1.2
+Setting atom values ...
+  96 settings made for charge
+
+
+## This part implements the BKS pair potential with a cut-off distance for the Buckingham term. Long range Coulomb interactions are evaluated with the pppm method.
+include                 alpha_quartz_potential.mod
+#This script implements the BKS pair potential for various silicon dioxide compounds. Inner part is fixed with a harmonic potential. Long range Coulomb interactions are evaluated with the pppm method.
+
+#Pair Potentials
+pair_style              hybrid/overlay buck/coul/long ${cut_off} table linear 39901
+pair_style              hybrid/overlay buck/coul/long 10 table linear 39901
+pair_coeff              1 1 buck/coul/long 0.0 1.0 0.0                                                          #No interactions between Si atoms
+pair_coeff              1 2 buck/coul/long 18003.757200 0.205205 133.538100
+pair_coeff              2 2 buck/coul/long 1388.773000  0.362319 175.000000                                     #BKS interaction in PRL 64 1955 (1990)
+pair_modify             shift yes
+pair_coeff              1 2 table potential_SiO2.TPF Si-O ${cut_off}
+pair_coeff              1 2 table potential_SiO2.TPF Si-O 10
+pair_coeff              2 2 table potential_SiO2.TPF O-O ${cut_off}                                             #See the potential file for more information
+pair_coeff              2 2 table potential_SiO2.TPF O-O 10                                             
+WARNING: 1 of 39901 force values in table O-O are inconsistent with -dE/dr.
+  Should only be flagged at inflection points (src/pair_table.cpp:461)
+kspace_style            pppm 1.0e-4
+
+#Neighbor style
+neighbor                2.0 bin
+neigh_modify            check yes every 1 delay 0 page 100000 one 2000
+
+
+## This part equilibrates your crystal to a pressure of ${pressure}(unit pressure) and a temperature of ${temperature}(unit temperatureture) with quantum nuclear effects
+variable                p_damp equal ${delta_t}*1000                                                            #Recommended pressure damping parameter in fix nph
+variable                p_damp equal 0.001*1000                                                            
+fix                     scapegoat_qtb all nph iso ${pressure} ${pressure} ${p_damp} ptemp ${temperature}                                #NPH does the time integration
+fix                     scapegoat_qtb all nph iso 1.03125 ${pressure} ${p_damp} ptemp ${temperature}                                
+fix                     scapegoat_qtb all nph iso 1.03125 1.03125 ${p_damp} ptemp ${temperature}                                
+fix                     scapegoat_qtb all nph iso 1.03125 1.03125 1 ptemp ${temperature}                                
+fix                     scapegoat_qtb all nph iso 1.03125 1.03125 1 ptemp 300                                
+fix                     quartz_qtb all qtb temp ${temperature} damp ${damp_qtb} seed 35082 f_max 120.00 N_f 100 #Change f_max (THz) if your Debye frequency is higher
+fix                     quartz_qtb all qtb temp 300 damp ${damp_qtb} seed 35082 f_max 120.00 N_f 100 
+fix                     quartz_qtb all qtb temp 300 damp 1 seed 35082 f_max 120.00 N_f 100 
+thermo_style            custom step temp press etotal vol lx ly lz pxx pyy pzz pxy pyz pxz
+thermo                  200
+run                     2000                                                                                    # 2 ps
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb (src/kspace.cpp:339)
+  G vector (1/distance) = 0.30159814
+  grid = 9 8 15
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.0011705589
+  estimated relative force accuracy = 8.1290814e-05
+  using double precision FFTW3
+  3d grid and FFT values/proc = 5280 1080
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 12
+  ghost atom cutoff = 12
+  binsize = 6, bins = 2 2 4
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair buck/coul/long, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+  (2) pair table, perpetual, skip from (1)
+      attributes: half, newton on
+      pair build: skip
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 80.09 | 80.09 | 80.09 Mbytes
+Step Temp Press TotEng Volume Lx Ly Lz Pxx Pyy Pzz Pxy Pyz Pxz 
+       0            0   -34026.791   -2793.6042    1810.0985        9.832     8.514762      21.6216   -37470.578   -37470.432   -27139.363 3.7975984e-11   0.94245783 8.5085457e-11 
+     200     170.7381    43248.332   -2790.8398     1879.164    9.9554912    8.6217086     21.89317    39337.624    42979.126    47428.246    324.91326    454.85872   -2034.6053 
+     400    258.09921     -28257.8   -2788.3487    1856.1432    9.9146707    8.5863569    21.803402   -19478.873   -29571.375   -35723.151    4633.9025    8487.8103   -626.12008 
+     600    277.77032   -22751.351   -2786.2715    1866.9783    9.9339253    8.6030319    21.845744   -21727.333   -29200.028   -17326.691   -4327.8577   -8218.4994    252.30614 
+     800     349.8665    30508.004   -2784.2204    1873.4953    9.9454706    8.6130304    21.871134    29929.053    33562.675    28032.284   -3188.5636    12329.485    7558.5604 
+    1000    373.67652   -18839.562   -2783.2178    1855.5937    9.9136922    8.5855095     21.80125   -18063.481    -22288.32   -16166.887   -416.09489   -10368.975    9030.4151 
+    1200    423.34739    6846.9842   -2781.9271    1896.2131    9.9855083    8.6477041    21.959181    2147.3919    11765.847    6627.7141   -7627.6762    -1297.649   -4758.4757 
+    1400    418.54526   -6416.7547   -2781.4358    1834.2719    9.8755745    8.5524986    21.717425    5693.0508   -19487.901   -5455.4139    827.66188    -523.1469   -3890.9904 
+    1600    429.42798     3939.889   -2780.5861    1895.8859     9.984934    8.6472068    21.957918    3755.6972   -1326.4252     9390.395    1948.1084    4489.8536     1466.083 
+    1800    447.76215   -8344.6447   -2780.1071    1858.4925    9.9188519    8.5899779    21.812596   -17549.502    3336.8092   -10821.241    1643.4315   -644.54621     -8935.98 
+    2000     438.1305   -6691.4324   -2780.7407    1871.3547    9.9416812    8.6097487      21.8628   -6959.1834   -8486.8262   -4628.2877   -1019.8998    443.04638   -2751.9173 
+Loop time of 11.2763 on 1 procs for 2000 steps with 144 atoms
+
+Performance: 15.324 ns/day, 1.566 hours/ns, 177.363 timesteps/s
+99.5% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 7.9085     | 7.9085     | 7.9085     |   0.0 | 70.13
+Kspace  | 2.0339     | 2.0339     | 2.0339     |   0.0 | 18.04
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.15276    | 0.15276    | 0.15276    |   0.0 |  1.35
+Output  | 0.00036049 | 0.00036049 | 0.00036049 |   0.0 |  0.00
+Modify  | 1.1706     | 1.1706     | 1.1706     |   0.0 | 10.38
+Other   |            | 0.01023    |            |       |  0.09
+
+Nlocal:        144.000 ave         144 max         144 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:        3943.00 ave        3943 max        3943 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:        41952.0 ave       41952 max       41952 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 41952
+Ave neighs/atom = 291.33333
+Neighbor list builds = 0
+Dangerous builds = 0
+unfix                   quartz_qtb
+unfix                   scapegoat_qtb
+
+
+## This part demonstrates how to retart fix qbmsst during any stage of the shock simulation.
+## PPPM may break down when compression ratio becomes extremely large. One can always use this restart technique to resume the shock simulation.
+#Compression restart 1
+reset_timestep          0
+#Beta is the number of time steps between each update of the quantum bath temperature. Setting a larger beta can reduce thermal flactuations.
+fix                     shock all qbmsst z ${v_msst} q ${q_msst} tscale ${tscale_msst} damp ${damp_qtb} f_max 120 N_f 100 seed 35082 eta ${eta_qbmsst} beta 5 T_init ${temperature}
+fix                     shock all qbmsst z 78 q ${q_msst} tscale ${tscale_msst} damp ${damp_qtb} f_max 120 N_f 100 seed 35082 eta ${eta_qbmsst} beta 5 T_init ${temperature}
+fix                     shock all qbmsst z 78 q 40 tscale ${tscale_msst} damp ${damp_qtb} f_max 120 N_f 100 seed 35082 eta ${eta_qbmsst} beta 5 T_init ${temperature}
+fix                     shock all qbmsst z 78 q 40 tscale 0.05 damp ${damp_qtb} f_max 120 N_f 100 seed 35082 eta ${eta_qbmsst} beta 5 T_init ${temperature}
+fix                     shock all qbmsst z 78 q 40 tscale 0.05 damp 1 f_max 120 N_f 100 seed 35082 eta ${eta_qbmsst} beta 5 T_init ${temperature}
+fix                     shock all qbmsst z 78 q 40 tscale 0.05 damp 1 f_max 120 N_f 100 seed 35082 eta 1 beta 5 T_init ${temperature}
+fix                     shock all qbmsst z 78 q 40 tscale 0.05 damp 1 f_max 120 N_f 100 seed 35082 eta 1 beta 5 T_init 300
+QBMSST parameters:
+  Shock in z direction
+  Cell mass-like parameter qmass (units of mass^2/length^4) =  4.00000e+01
+  Shock velocity =  7.80000e+01
+  Artificial viscosity (units of mass/length/time) =  0.00000e+00
+  Initial pressure calculated on first step
+  Initial volume calculated on first step
+  Initial energy calculated on first step
+variable                dhug equal f_shock[1]
+variable                dray equal f_shock[2]
+variable                lgr_vel equal f_shock[3]
+variable                lgr_pos equal f_shock[4]
+variable                T_qm equal f_shock[5]                                                                   #Temperature with quantum nuclear correction
+thermo_style            custom step v_T_qm press econserve vol lx ly lz pzz v_dhug v_dray v_lgr_vel v_lgr_pos
+thermo                  200
+timestep                ${delta_t}
+timestep                0.001
+run                     1000
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb (src/kspace.cpp:339)
+  G vector (1/distance) = 0.30313178
+  grid = 9 8 16
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.0010469888
+  estimated relative force accuracy = 7.2709348e-05
+  using double precision FFTW3
+  3d grid and FFT values/proc = 5520 1152
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 12
+  ghost atom cutoff = 12
+  binsize = 6, bins = 2 2 4
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair buck/coul/long, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+  (2) pair table, perpetual, skip from (1)
+      attributes: half, newton on
+      pair build: skip
+      stencil: none
+      bin: none
+Fix QBMSST v0 =  1.87135e+03
+Fix QBMSST p0 = -4.62942e+03
+Fix QBMSST e0 = to be -2.78074e+03
+Fix QBMSST initial strain rate of -4.01095e-01 established by reducing temperature by factor of  5.00000e-02
+Per MPI rank memory allocation (min/avg/max) = 80.10 | 80.10 | 80.10 Mbytes
+Step v_T_qm Press Econserve Volume Lx Ly Lz Pzz v_dhug v_dray v_lgr_vel v_lgr_pos 
+       0          300   -6922.9066   -2780.7394    1871.3547    9.9416812    8.6097487      21.8628   -4819.9374    10.953262    -190.5127            0            0 
+     200    294.95802    54876.628   -2779.2988    1723.7617    9.9416812    8.6097487     20.13849    108897.62   -29.773363   -9271.7016    6.1518278   -15.057866 
+     400    288.37122    139520.66   -2778.7321    1628.5573    9.9416812    8.6097487     19.02623    222107.14    8.0673735    24726.892    10.120044   -28.714689 
+     600    280.56538    98072.818   -2779.8934    1687.2396    9.9416812    8.6097487    19.711808    164562.57    2.6099747    16006.563    7.6741039   -42.704989 
+     800     274.9472    106058.35   -2779.2916    1651.0755    9.9416812    8.6097487    19.289307    176839.13   -39.647552   -1805.8176    9.1814643   -56.628046 
+    1000     268.4714    189679.65   -2779.4952    1492.6558    9.9416812    8.6097487     17.43851    277332.66   -84.846841   -33118.917    15.784559   -69.870561 
+Loop time of 8.7779 on 1 procs for 1000 steps with 144 atoms
+
+Performance: 9.843 ns/day, 2.438 hours/ns, 113.922 timesteps/s
+99.2% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 6.8031     | 6.8031     | 6.8031     |   0.0 | 77.50
+Kspace  | 1.0505     | 1.0505     | 1.0505     |   0.0 | 11.97
+Neigh   | 0.024976   | 0.024976   | 0.024976   |   0.0 |  0.28
+Comm    | 0.082612   | 0.082612   | 0.082612   |   0.0 |  0.94
+Output  | 0.00032592 | 0.00032592 | 0.00032592 |   0.0 |  0.00
+Modify  | 0.8108     | 0.8108     | 0.8108     |   0.0 |  9.24
+Other   |            | 0.005632   |            |       |  0.06
+
+Nlocal:        144.000 ave         144 max         144 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:        4243.00 ave        4243 max        4243 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:        48210.0 ave       48210 max       48210 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 48210
+Ave neighs/atom = 334.79167
+Neighbor list builds = 8
+Dangerous builds = 0
+write_restart           restart.1000
+System init for write_restart ...
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb (src/kspace.cpp:339)
+  G vector (1/distance) = 0.30643517
+  grid = 9 8 15
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.0009556927
+  estimated relative force accuracy = 6.6369185e-05
+  using double precision FFTW3
+  3d grid and FFT values/proc = 5280 1080
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 12
+  ghost atom cutoff = 12
+  binsize = 6, bins = 2 2 3
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair buck/coul/long, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+  (2) pair table, perpetual, skip from (1)
+      attributes: half, newton on
+      pair build: skip
+      stencil: none
+      bin: none
+
+#Compression restart 2
+#Read restart file and load potential again
+clear
+  using 1 OpenMP thread(s) per MPI task
+read_restart            restart.1000
+Reading restart file ...
+  restart file = 24 Dec 2020, LAMMPS = 24 Dec 2020
+  restoring atom style charge from restart
+  orthogonal box = (-0.054840605 -0.047493358 2.0915450) to (9.8868406 8.5622554 19.530055)
+  1 by 1 by 1 MPI processor grid
+  restoring pair style hybrid/overlay from restart
+  144 atoms
+  read_restart CPU = 0.001 seconds
+include                 alpha_quartz_potential.mod
+#This script implements the BKS pair potential for various silicon dioxide compounds. Inner part is fixed with a harmonic potential. Long range Coulomb interactions are evaluated with the pppm method.
+
+#Pair Potentials
+pair_style              hybrid/overlay buck/coul/long ${cut_off} table linear 39901
+pair_style              hybrid/overlay buck/coul/long 10 table linear 39901
+pair_coeff              1 1 buck/coul/long 0.0 1.0 0.0                                                          #No interactions between Si atoms
+pair_coeff              1 2 buck/coul/long 18003.757200 0.205205 133.538100
+pair_coeff              2 2 buck/coul/long 1388.773000  0.362319 175.000000                                     #BKS interaction in PRL 64 1955 (1990)
+pair_modify             shift yes
+pair_coeff              1 2 table potential_SiO2.TPF Si-O ${cut_off}
+pair_coeff              1 2 table potential_SiO2.TPF Si-O 10
+pair_coeff              2 2 table potential_SiO2.TPF O-O ${cut_off}                                             #See the potential file for more information
+pair_coeff              2 2 table potential_SiO2.TPF O-O 10                                             
+WARNING: 1 of 39901 force values in table O-O are inconsistent with -dE/dr.
+  Should only be flagged at inflection points (src/pair_table.cpp:461)
+kspace_style            pppm 1.0e-4
+
+#Neighbor style
+neighbor                2.0 bin
+neigh_modify            check yes every 1 delay 0 page 100000 one 2000
+#Use the same fix id and add no tscale if the system is already compressed
+fix                     shock all qbmsst z ${v_msst} q ${q_msst} tscale 0.0 damp ${damp_qtb} f_max 120 N_f 100 seed 35082 eta ${eta_qbmsst} beta 5 T_init ${temperature}
+fix                     shock all qbmsst z 78 q ${q_msst} tscale 0.0 damp ${damp_qtb} f_max 120 N_f 100 seed 35082 eta ${eta_qbmsst} beta 5 T_init ${temperature}
+fix                     shock all qbmsst z 78 q 40 tscale 0.0 damp ${damp_qtb} f_max 120 N_f 100 seed 35082 eta ${eta_qbmsst} beta 5 T_init ${temperature}
+fix                     shock all qbmsst z 78 q 40 tscale 0.0 damp 1 f_max 120 N_f 100 seed 35082 eta ${eta_qbmsst} beta 5 T_init ${temperature}
+fix                     shock all qbmsst z 78 q 40 tscale 0.0 damp 1 f_max 120 N_f 100 seed 35082 eta 1 beta 5 T_init ${temperature}
+fix                     shock all qbmsst z 78 q 40 tscale 0.0 damp 1 f_max 120 N_f 100 seed 35082 eta 1 beta 5 T_init 300
+QBMSST parameters:
+  Shock in z direction
+  Cell mass-like parameter qmass (units of mass^2/length^4) =  4.00000e+01
+  Shock velocity =  7.80000e+01
+  Artificial viscosity (units of mass/length/time) =  0.00000e+00
+  Initial pressure calculated on first step
+  Initial volume calculated on first step
+  Initial energy calculated on first step
+Resetting global fix info from restart file:
+  fix style: qbmsst, fix ID: shock
+variable                dhug equal f_shock[1]
+variable                dray equal f_shock[2]
+variable                lgr_vel equal f_shock[3]
+variable                lgr_pos equal f_shock[4]
+variable                T_qm equal f_shock[5]                                                                   #Temperature with quantum nuclear correction
+thermo_style            custom step v_T_qm press econserve vol lx ly lz pzz v_dhug v_dray v_lgr_vel v_lgr_pos
+thermo                  500
+timestep                ${delta_t}
+timestep                0.001
+#restart                 1000 restart
+run                     10000                                                                                   #10 ps
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb (src/kspace.cpp:339)
+  G vector (1/distance) = 0.30643517
+  grid = 9 8 15
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.0009556927
+  estimated relative force accuracy = 6.6369185e-05
+  using double precision FFTW3
+  3d grid and FFT values/proc = 5280 1080
+All restart file global fix info was re-assigned
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 12
+  ghost atom cutoff = 12
+  binsize = 6, bins = 2 2 3
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair buck/coul/long, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+  (2) pair table, perpetual, skip from (1)
+      attributes: half, newton on
+      pair build: skip
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 80.12 | 80.12 | 80.12 Mbytes
+Step v_T_qm Press Econserve Volume Lx Ly Lz Pzz v_dhug v_dray v_lgr_vel v_lgr_pos 
+    1000     268.4714    189671.09   -2781.5189    1492.6558    9.9416812    8.6097487     17.43851    277359.52   -84.704915   -33092.054    15.784559            0 
+    1500    362.24943    690690.88   -2801.3189    1013.1871    9.9416812    8.6097487    11.836938    660912.81    210.15736   -48461.278     35.76931   -24.117097 
+    2000    851.29288    687202.75     -2829.28    998.92158    9.9416812    8.6097487    11.670275    702779.72     1177.175   -18463.457    36.363914   -45.102068 
+    2500    1584.7231     702373.6   -2840.9926    998.47448    9.9416812    8.6097487    11.665052    685551.65    1366.7769   -36063.512    36.382549   -65.966813 
+    3000    2369.1915    765783.04   -2835.3495    994.53954    9.9416812    8.6097487     11.61908    742616.98    1609.2532    17727.912    36.546562   -86.541922 
+    3500    3092.3052    829161.44   -2827.8974    977.82563    9.9416812    8.6097487    11.423814    768559.05    1500.9858     29763.85    37.243215   -107.10048 
+    4000    3627.1538    773057.81    -2813.687    988.31955    9.9416812    8.6097487    11.546413    738541.81    959.39292    8477.6525    36.805818   -127.75274 
+    4500    3910.5455    753799.74   -2790.7863     1002.749    9.9416812    8.6097487     11.71499    763069.75     602.0127    45010.991    36.204385   -148.51594 
+    5000    3976.7913    761978.62   -2782.0448    998.85434    9.9416812    8.6097487    11.669489     780709.6    482.34112    59410.482    36.366717   -169.42341 
+    5500    3928.0113    702739.91   -2765.8379     1008.695    9.9416812    8.6097487    11.784456    632171.28    -991.2791   -80940.344    35.956549   -190.30951 
+    6000    3731.5486    654300.14   -2763.1253    1032.1476    9.9416812    8.6097487     12.05845    642590.19    -832.8417   -51008.602    34.979018   -211.41573 
+    6500    3505.5984    713092.19   -2767.3169    1010.6873    9.9416812    8.6097487    11.807732    735218.98    -176.4579    23764.995    35.873507   -232.57305 
+    7000    3348.5047    762624.48   -2769.0996    1010.8032    9.9416812    8.6097487    11.809086    662703.98   -667.90587   -48653.562    35.868676   -253.64668 
+    7500    3197.2839    689038.79   -2770.7583     1036.994    9.9416812    8.6097487     12.11507    679188.92   -330.37222   -10377.635    34.777016   -275.06425 
+    8000    3117.1867    765531.79   -2775.0143    1023.9741    9.9416812    8.6097487     11.96296    681640.02   -288.82226   -18759.215    35.319699   -296.38453 
+    8500    3053.5599    667992.24    -2772.057    1027.6458    9.9416812    8.6097487    12.005857    657921.43   -507.92809   -39422.884    35.166657   -317.64367 
+    9000    2997.4957    704542.99   -2780.9279     1020.074    9.9416812    8.6097487    11.917396    647510.98    -398.1601   -56133.168    35.482259    -338.8598 
+    9500    2990.5818     810181.5   -2783.2413    1002.8927    9.9416812    8.6097487    11.716669    859476.58    1107.5241    141537.42    36.198393   -359.85577 
+   10000    3055.8298    792271.02   -2786.5277    991.62826    9.9416812    8.6097487    11.585068    847298.17    1051.5369    119986.89    36.667907   -380.83279 
+   10500    3159.7134    706528.08   -2793.5555    1009.9173    9.9416812    8.6097487    11.798737    673106.83     67.67511   -38987.761    35.905599   -401.74903 
+   11000    3261.7609    748345.85   -2783.0699    1017.8806    9.9416812    8.6097487    11.891771    656140.32    -267.8786   -49328.779    35.573683   -422.65593 
+Loop time of 130.289 on 1 procs for 10000 steps with 144 atoms
+
+Performance: 6.631 ns/day, 3.619 hours/ns, 76.752 timesteps/s
+99.6% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 109.8      | 109.8      | 109.8      |   0.0 | 84.27
+Kspace  | 10.328     | 10.328     | 10.328     |   0.0 |  7.93
+Neigh   | 1.0855     | 1.0855     | 1.0855     |   0.0 |  0.83
+Comm    | 1.2041     | 1.2041     | 1.2041     |   0.0 |  0.92
+Output  | 0.0012848  | 0.0012848  | 0.0012848  |   0.0 |  0.00
+Modify  | 7.8094     | 7.8094     | 7.8094     |   0.0 |  5.99
+Other   |            | 0.06511    |            |       |  0.05
+
+Nlocal:        144.000 ave         144 max         144 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:        5430.00 ave        5430 max        5430 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:        72807.0 ave       72807 max       72807 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 72807
+Ave neighs/atom = 505.60417
+Neighbor list builds = 206
+Dangerous builds = 0
+shell rm restart.1000
+Total wall time: 0:02:32

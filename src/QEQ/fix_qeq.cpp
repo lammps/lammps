@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -18,16 +19,16 @@
 
 #include "fix_qeq.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
 #include "comm.h"
-#include "neigh_list.h"
-#include "update.h"
+#include "error.h"
 #include "force.h"
 #include "memory.h"
-#include "error.h"
+#include "neigh_list.h"
+#include "update.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -103,7 +104,7 @@ FixQEq::FixQEq(LAMMPS *lmp, int narg, char **arg) :
   grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);
 
-  for( int i = 0; i < atom->nmax; i++ )
+  for (int i = 0; i < atom->nmax; i++)
     for (int j = 0; j < nprev; ++j )
       s_hist[i][j] = t_hist[i][j] = atom->q[i];
 
@@ -234,7 +235,7 @@ void FixQEq::allocate_matrix()
   numneigh = list->numneigh;
 
   m = 0;
-  for( ii = 0; ii < inum; ii++ ) {
+  for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     m += numneigh[i];
   }
@@ -306,7 +307,7 @@ void FixQEq::init_storage()
   nlocal = atom->nlocal;
   nall = atom->nlocal + atom->nghost;
 
-  for( int i = 0; i < nall; i++ ) {
+  for (int i = 0; i < nall; i++) {
     Hdia_inv[i] = 1. / eta[atom->type[i]];
     b_s[i] = -chi[atom->type[i]];
     b_t[i] = -1.0;
@@ -352,7 +353,7 @@ int FixQEq::CG( double *b, double *x )
 
   vector_sum( r , 1.,  b, -1., q, inum );
 
-  for( ii = 0; ii < inum; ++ii ) {
+  for (ii = 0; ii < inum; ++ii) {
     i = ilist[ii];
     if (atom->mask[i] & groupbit)
       d[i] = r[i] * Hdia_inv[i];
@@ -362,7 +363,7 @@ int FixQEq::CG( double *b, double *x )
   b_norm = parallel_norm( b, inum );
   sig_new = parallel_dot( r, d, inum);
 
-  for( loop = 1; loop < maxiter && sqrt(sig_new)/b_norm > tolerance; ++loop ) {
+  for (loop = 1; loop < maxiter && sqrt(sig_new)/b_norm > tolerance; ++loop) {
     comm->forward_comm_fix(this);
     sparse_matvec( &H, d, q );
     comm->reverse_comm_fix(this);
@@ -373,7 +374,7 @@ int FixQEq::CG( double *b, double *x )
     vector_add( x, alfa, d, inum );
     vector_add( r, -alfa, q, inum );
 
-    for( ii = 0; ii < inum; ++ii ) {
+    for (ii = 0; ii < inum; ++ii) {
       i = ilist[ii];
       if (atom->mask[i] & groupbit)
         p[i] = r[i] * Hdia_inv[i];
@@ -386,13 +387,10 @@ int FixQEq::CG( double *b, double *x )
     vector_sum( d, 1., p, beta, d, inum );
   }
 
-  if (loop >= maxiter && comm->me == 0) {
-    char str[128];
-    sprintf(str,"Fix qeq CG convergence failed (%g) after %d iterations "
-            "at " BIGINT_FORMAT " step",sqrt(sig_new)/b_norm,loop,update->ntimestep);
-    error->warning(FLERR,str);
-  }
-
+  if ((comm->me == 0) && (loop >= maxiter))
+    error->warning(FLERR,"Fix qeq CG convergence failed ({}) after {} "
+                   "iterations at step {}",sqrt(sig_new)/b_norm,loop,
+                   update->ntimestep);
   return loop;
 }
 
@@ -406,19 +404,19 @@ void FixQEq::sparse_matvec( sparse_matrix *A, double *x, double *b )
   nlocal = atom->nlocal;
   nall = atom->nlocal + atom->nghost;
 
-  for( i = 0; i < nlocal; ++i ) {
+  for (i = 0; i < nlocal; ++i) {
     if (atom->mask[i] & groupbit)
       b[i] = eta[ atom->type[i] ] * x[i];
   }
 
-  for( i = nlocal; i < nall; ++i ) {
+  for (i = nlocal; i < nall; ++i) {
     if (atom->mask[i] & groupbit)
       b[i] = 0;
   }
 
-  for( i = 0; i < nlocal; ++i ) {
+  for (i = 0; i < nlocal; ++i) {
     if (atom->mask[i] & groupbit) {
-      for( itr_j=A->firstnbr[i]; itr_j<A->firstnbr[i]+A->numnbrs[i]; itr_j++) {
+      for ( itr_j=A->firstnbr[i]; itr_j<A->firstnbr[i]+A->numnbrs[i]; itr_j++) {
         j = A->jlist[itr_j];
         b[i] += A->val[itr_j] * x[j];
         b[j] += A->val[itr_j] * x[i];
@@ -444,12 +442,12 @@ void FixQEq::calculate_Q()
   t_sum = parallel_vector_acc( t, inum);
   u = s_sum / t_sum;
 
-  for( ii = 0; ii < inum; ++ii ) {
+  for (ii = 0; ii < inum; ++ii) {
     i = ilist[ii];
     if (atom->mask[i] & groupbit) {
       q[i] = s[i] - u * t[i];
 
-      for( k = 4; k > 0; --k ) {
+      for (k = 4; k > 0; --k) {
         s_hist[i][k] = s_hist[i][k-1];
         t_hist[i][k] = t_hist[i][k-1];
       }
@@ -470,13 +468,13 @@ int FixQEq::pack_forward_comm(int n, int *list, double *buf,
   int m;
 
   if (pack_flag == 1)
-    for(m = 0; m < n; m++) buf[m] = d[list[m]];
-  else if( pack_flag == 2 )
-    for(m = 0; m < n; m++) buf[m] = s[list[m]];
-  else if( pack_flag == 3 )
-    for(m = 0; m < n; m++) buf[m] = t[list[m]];
-  else if( pack_flag == 4 )
-    for(m = 0; m < n; m++) buf[m] = atom->q[list[m]];
+    for (m = 0; m < n; m++) buf[m] = d[list[m]];
+  else if (pack_flag == 2)
+    for (m = 0; m < n; m++) buf[m] = s[list[m]];
+  else if (pack_flag == 3)
+    for (m = 0; m < n; m++) buf[m] = t[list[m]];
+  else if (pack_flag == 4)
+    for (m = 0; m < n; m++) buf[m] = atom->q[list[m]];
   else m = 0;
 
   return m;
@@ -489,13 +487,13 @@ void FixQEq::unpack_forward_comm(int n, int first, double *buf)
   int i, m;
 
   if (pack_flag == 1)
-    for(m = 0, i = first; m < n; m++, i++) d[i] = buf[m];
-  else if( pack_flag == 2)
-    for(m = 0, i = first; m < n; m++, i++) s[i] = buf[m];
-  else if( pack_flag == 3)
-    for(m = 0, i = first; m < n; m++, i++) t[i] = buf[m];
-  else if( pack_flag == 4)
-    for(m = 0, i = first; m < n; m++, i++) atom->q[i] = buf[m];
+    for (m = 0, i = first; m < n; m++, i++) d[i] = buf[m];
+  else if ( pack_flag == 2)
+    for (m = 0, i = first; m < n; m++, i++) s[i] = buf[m];
+  else if ( pack_flag == 3)
+    for (m = 0, i = first; m < n; m++, i++) t[i] = buf[m];
+  else if ( pack_flag == 4)
+    for (m = 0, i = first; m < n; m++, i++) atom->q[i] = buf[m];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -503,7 +501,7 @@ void FixQEq::unpack_forward_comm(int n, int first, double *buf)
 int FixQEq::pack_reverse_comm(int n, int first, double *buf)
 {
   int i, m;
-  for(m = 0, i = first; m < n; m++, i++) buf[m] = q[i];
+  for (m = 0, i = first; m < n; m++, i++) buf[m] = q[i];
   return m;
 }
 
@@ -513,7 +511,7 @@ void FixQEq::unpack_reverse_comm(int n, int *list, double *buf)
 {
   int m;
 
-  for(m = 0; m < n; m++) q[list[m]] += buf[m];
+  for (m = 0; m < n; m++) q[list[m]] += buf[m];
 }
 
 /* ----------------------------------------------------------------------
@@ -524,11 +522,11 @@ double FixQEq::memory_usage()
 {
   double bytes;
 
-  bytes = atom->nmax*nprev*2 * sizeof(double); // s_hist & t_hist
-  bytes += atom->nmax*11 * sizeof(double); // storage
-  bytes += n_cap*2 * sizeof(int); // matrix...
-  bytes += m_cap * sizeof(int);
-  bytes += m_cap * sizeof(double);
+  bytes = (double)atom->nmax*nprev*2 * sizeof(double); // s_hist & t_hist
+  bytes += (double)atom->nmax*11 * sizeof(double); // storage
+  bytes += (double)n_cap*2 * sizeof(int); // matrix...
+  bytes += (double)m_cap * sizeof(int);
+  bytes += (double)m_cap * sizeof(double);
 
   return bytes;
 }
@@ -591,7 +589,7 @@ double FixQEq::parallel_norm( double *v, int n )
 
   my_sum = 0.0;
   norm_sqr = 0.0;
-  for( ii = 0; ii < n; ++ii ) {
+  for (ii = 0; ii < n; ++ii) {
     i = ilist[ii];
     if (atom->mask[i] & groupbit)
       my_sum += v[i]*v[i];
@@ -616,7 +614,7 @@ double FixQEq::parallel_dot( double *v1, double *v2, int n)
 
   my_dot = 0.0;
   res = 0.0;
-  for( ii = 0; ii < n; ++ii ) {
+  for (ii = 0; ii < n; ++ii) {
     i = ilist[ii];
     if (atom->mask[i] & groupbit)
       my_dot += v1[i] * v2[i];
@@ -641,7 +639,7 @@ double FixQEq::parallel_vector_acc( double *v, int n )
 
   my_acc = 0.0;
   res = 0.0;
-  for( ii = 0; ii < n; ++ii ) {
+  for (ii = 0; ii < n; ++ii) {
     i = ilist[ii];
     if (atom->mask[i] & groupbit)
       my_acc += v[i];
@@ -662,7 +660,7 @@ void FixQEq::vector_sum( double* dest, double c, double* v,
 
   ilist = list->ilist;
 
-  for( --k; k>=0; --k ) {
+  for (--k; k>=0; --k) {
     kk = ilist[k];
     if (atom->mask[kk] & groupbit)
       dest[kk] = c * v[kk] + d * y[kk];
@@ -678,7 +676,7 @@ void FixQEq::vector_add( double* dest, double c, double* v, int k )
 
   ilist = list->ilist;
 
-  for( --k; k>=0; --k ) {
+  for (--k; k>=0; --k) {
     kk = ilist[k];
     if (atom->mask[kk] & groupbit)
       dest[kk] += c * v[kk];
@@ -708,11 +706,9 @@ void FixQEq::read_file(char *file)
   FILE *fp;
   if (comm->me == 0) {
     fp = utils::open_potential(file,lmp,nullptr);
-    if (fp == nullptr) {
-      char str[128];
-      snprintf(str,128,"Cannot open fix qeq parameter file %s",file);
-      error->one(FLERR,str);
-    }
+    if (fp == nullptr)
+      error->one(FLERR,"Cannot open fix qeq parameter file {}: {}",
+                                   file,utils::getsyserror());
   }
 
   // read each line out of file, skipping blank lines or leading '#'

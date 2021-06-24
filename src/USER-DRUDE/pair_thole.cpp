@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -137,7 +138,7 @@ void PairThole::compute(int eflag, int vflag)
         exp_asr = exp(-asr);
         dcoul = qqrd2e * qi * qj *scale[itype][jtype] * rinv;
         factor_f = 0.5*(2. + (exp_asr * (-2. - asr * (2. + asr)))) - factor_coul;
-        if(eflag) factor_e = 0.5*(2. - (exp_asr * (2. + asr))) - factor_coul;
+        if (eflag) factor_e = 0.5*(2. - (exp_asr * (2. + asr))) - factor_coul;
         fpair = factor_f * dcoul * r2inv;
 
         f[i][0] += delx*fpair;

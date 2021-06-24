@@ -1,3 +1,4 @@
+// clang-format off
 /*----------------------------------------------------------------------
   PuReMD - Purdue ReaxFF Molecular Dynamics Program
 
@@ -54,11 +55,11 @@ void Bonds( reax_system *system, control_params * /*control*/,
   gp37 = (int) system->reax_param.gp.l[37];
   natoms = system->n;
 
-  for( i = 0; i < natoms; ++i ) {
+  for (i = 0; i < natoms; ++i) {
     start_i = Start_Index(i, bonds);
     end_i = End_Index(i, bonds);
 
-    for( pj = start_i; pj < end_i; ++pj ) {
+    for (pj = start_i; pj < end_i; ++pj) {
       j = bonds->select.bond_list[pj].nbr;
 
       if (system->my_atoms[i].orig_id > system->my_atoms[j].orig_id)
@@ -104,9 +105,9 @@ void Bonds( reax_system *system, control_params * /*control*/,
 
       /* Stabilisation terminal triple bond */
       if (bo_ij->BO >= 1.00) {
-        if( gp37 == 2 ||
+        if ( gp37 == 2 ||
             (sbp_i->mass == 12.0000 && sbp_j->mass == 15.9990) ||
-            (sbp_j->mass == 12.0000 && sbp_i->mass == 15.9990) ) {
+            (sbp_j->mass == 12.0000 && sbp_i->mass == 15.9990)) {
           exphu = exp( -gp7 * SQR(bo_ij->BO - 2.50) );
           exphua1 = exp(-gp3 * (workspace->total_bond_order[i]-bo_ij->BO));
           exphub1 = exp(-gp3 * (workspace->total_bond_order[j]-bo_ij->BO));

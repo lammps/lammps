@@ -76,6 +76,12 @@ struct ChunkArraySpace<Kokkos::Experimental::HIPSpace> {
   using memory_space = typename Kokkos::Experimental::HIPHostPinnedSpace;
 };
 #endif
+#ifdef KOKKOS_ENABLE_SYCL
+template <>
+struct ChunkArraySpace<Kokkos::Experimental::SYCLDeviceUSMSpace> {
+  using memory_space = typename Kokkos::Experimental::SYCLSharedUSMSpace;
+};
+#endif
 }  // end namespace Impl
 
 /** \brief Dynamic views are restricted to rank-one and no layout.
@@ -299,19 +305,21 @@ class DynamicView : public Kokkos::ViewTraits<DataType, P...> {
 
     // *m_chunks[m_chunk_max] stores the current number of chunks being used
     uintptr_t* const pc = reinterpret_cast<uintptr_t*>(m_chunks + m_chunk_max);
-
+    std::string _label =
+        m_track.template get_label<typename traits::memory_space>();
     if (*pc < NC) {
       while (*pc < NC) {
         m_chunks[*pc] = reinterpret_cast<value_pointer_type>(
-            typename traits::memory_space().allocate(sizeof(local_value_type)
-                                                     << m_chunk_shift));
+            typename traits::memory_space().allocate(
+                _label.c_str(), sizeof(local_value_type) << m_chunk_shift));
         ++*pc;
       }
     } else {
       while (NC + 1 <= *pc) {
         --*pc;
         typename traits::memory_space().deallocate(
-            m_chunks[*pc], sizeof(local_value_type) << m_chunk_shift);
+            _label.c_str(), m_chunks[*pc],
+            sizeof(local_value_type) << m_chunk_shift);
         m_chunks[*pc] = nullptr;
       }
     }
@@ -356,7 +364,9 @@ class DynamicView : public Kokkos::ViewTraits<DataType, P...> {
   //----------------------------------------------------------------------
 
   struct Destroy {
-    typename traits::value_type** m_chunks;
+    using local_value_type = typename traits::value_type;
+    std::string m_label;
+    local_value_type** m_chunks;
     unsigned m_chunk_max;
     bool m_destroy;
     unsigned m_chunk_size;
@@ -365,7 +375,9 @@ class DynamicView : public Kokkos::ViewTraits<DataType, P...> {
     // Two entries beyond the max chunks are allocation counters.
     inline void operator()(unsigned i) const {
       if (m_destroy && i < m_chunk_max && nullptr != m_chunks[i]) {
-        typename traits::memory_space().deallocate(m_chunks[i], m_chunk_size);
+        typename traits::memory_space().deallocate(
+            m_label.c_str(), m_chunks[i],
+            sizeof(local_value_type) * m_chunk_size);
       }
       m_chunks[i] = nullptr;
     }
@@ -397,9 +409,10 @@ class DynamicView : public Kokkos::ViewTraits<DataType, P...> {
     Destroy& operator=(Destroy&&) = default;
     Destroy& operator=(const Destroy&) = default;
 
-    Destroy(typename traits::value_type** arg_chunk,
+    Destroy(std::string label, typename traits::value_type** arg_chunk,
             const unsigned arg_chunk_max, const unsigned arg_chunk_size)
-        : m_chunks(arg_chunk),
+        : m_label(label),
+          m_chunks(arg_chunk),
           m_chunk_max(arg_chunk_max),
           m_destroy(false),
           m_chunk_size(arg_chunk_size) {}
@@ -443,7 +456,7 @@ class DynamicView : public Kokkos::ViewTraits<DataType, P...> {
 
     m_chunks = reinterpret_cast<pointer_type*>(record->data());
 
-    record->m_destroy = Destroy(m_chunks, m_chunk_max, m_chunk_size);
+    record->m_destroy = Destroy(arg_label, m_chunks, m_chunk_max, m_chunk_size);
 
     // Initialize to zero
     record->m_destroy.construct_shared_allocation();

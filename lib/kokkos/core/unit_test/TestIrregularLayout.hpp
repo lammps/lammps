@@ -58,7 +58,7 @@ struct LayoutSelective {
   size_t offset_list[OFFSET_LIST_MAX_SIZE];
   size_t list_size;
 
-  enum { is_extent_constructible = false };
+  enum : bool { is_extent_constructible = false };
 
   KOKKOS_INLINE_FUNCTION
   LayoutSelective() {

@@ -45,7 +45,7 @@ if(BUILD_LAMMPS_SHELL)
   target_include_directories(lammps-shell PRIVATE ${LAMMPS_TOOLS_DIR}/lammps-shell)
 
   # workaround for broken readline pkg-config file on FreeBSD
-  if(CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
+  if(CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
     target_include_directories(lammps-shell PRIVATE /usr/local/include)
   endif()
   target_link_libraries(lammps-shell PRIVATE lammps PkgConfig::READLINE)

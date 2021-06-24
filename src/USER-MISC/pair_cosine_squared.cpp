@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -344,11 +345,8 @@ void PairCosineSquared::compute(int eflag, int vflag)
   double r, rsq, r2inv, r6inv;
   double factor_lj, force_lj, force_cos, cosone;
 
+  ev_init(eflag, vflag);
   evdwl = 0.0;
-  if (eflag || vflag)
-    ev_setup(eflag, vflag);
-  else
-    evflag = vflag_fdotr = 0;
 
   double **x = atom->x;
   double **f = atom->f;

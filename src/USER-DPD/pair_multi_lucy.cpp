@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -21,21 +22,19 @@
    The Journal of Chemical Physics, 2016, 144, 104501.
 ------------------------------------------------------------------------------------------- */
 
+#include "pair_multi_lucy.h"
+
+#include "atom.h"
+#include "citeme.h"
+#include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "math_const.h"
+#include "memory.h"
+#include "neigh_list.h"
 
 #include <cmath>
-#include "math_const.h"
-
 #include <cstring>
-#include "pair_multi_lucy.h"
-#include "atom.h"
-#include "force.h"
-#include "comm.h"
-#include "neigh_list.h"
-#include "memory.h"
-#include "error.h"
-
-#include "citeme.h"
-
 
 using namespace LAMMPS_NS;
 
@@ -192,9 +191,9 @@ void PairMultiLucy::compute(int eflag, int vflag)
       error->one(FLERR,"Density < table inner cutoff");
     itable = static_cast<int> (((rho[i]*rho[i]) - tb->innersq) * tb->invdelta);
     if (tabstyle == LOOKUP) evdwl = tb->e[itable];
-    else if (tabstyle == LINEAR){
+    else if (tabstyle == LINEAR) {
       if (itable >= tlm1) error->one(FLERR,"Density > table outer cutoff");
-      if(itable==0) fraction_i=0.0;
+      if (itable==0) fraction_i=0.0;
       else fraction_i = (((rho[i]*rho[i]) - tb->rsq[itable]) * tb->invdelta);
       evdwl = tb->e[itable] + fraction_i*tb->de[itable];
     } else error->one(FLERR,"Only LOOKUP and LINEAR table styles have been implemented for pair multi/lucy");
@@ -221,9 +220,9 @@ void PairMultiLucy::allocate()
   memory->create(cutsq,nt,nt,"pair:cutsq");
   memory->create(tabindex,nt,nt,"pair:tabindex");
 
-  memset(&setflag[0][0],0,nt*nt*sizeof(int));
-  memset(&cutsq[0][0],0,nt*nt*sizeof(double));
-  memset(&tabindex[0][0],0,nt*nt*sizeof(int));
+  memset(&setflag[0][0],0,sizeof(int)*nt*nt);
+  memset(&cutsq[0][0],0,sizeof(double)*nt*nt);
+  memset(&tabindex[0][0],0,sizeof(int)*nt*nt);
 }
 
 /* ----------------------------------------------------------------------

@@ -238,7 +238,7 @@ warning is generated.
 
 .. note::
 
-   The fix srd command can be used with simulations the size and/or
+   The fix srd command can be used with simulations where the size and/or
    shape of the simulation box changes.  This can be due to non-periodic
    boundary conditions or the use of fixes such as the :doc:`fix deform <fix_deform>` or :doc:`fix wall/srd <fix_wall_srd>` commands
    to impose a shear on an SRD fluid or an interaction with an external

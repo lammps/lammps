@@ -1,0 +1,685 @@
+LAMMPS (10 Feb 2021)
+# kim query example
+#
+# Requirement:
+#
+# This example requires LAMMPS is built with KIM package. A requirement for
+# the KIM package, is the KIM API library that must be downloaded from the
+# OpenKIM website and installed before LAMMPS is compiled. The 'kim query'
+# command requires the libcurl library to be installed. See the
+# `https://docs.lammps.org/Build_extras.html#kim` doc page for further
+# details
+#
+# This example requires that the KIM Models
+# `EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005`
+# and
+# `EAM_Dynamo_MendelevAckland_2007v3_Zr__MO_004835508849_000`
+# are installed.
+#
+# This can be done with the commands
+# `kim-api-collections-management install user `EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005`
+# `kim-api-collections-management install user `EAM_Dynamo_MendelevAckland_2007v3_Zr__MO_004835508849_000`
+#
+# If these commands do not work, you may need to setup your PATH to find the utility.
+# If you installed the kim-api using the LAMMPS CMake build, you can do the following
+# (where the current working directory is assumed to be the LAMMPS build directory)
+#   source ./kim_build-prefix/bin/kim-api-activate
+# If you installed the kim-api using the LAMMPS Make build, you can do the following
+# (where the current working directory is assumed to be the LAMMPS src directory)
+#   source ../lib/kim/installed-kim-api-X.Y.Z/bin/kim-api-activate
+# (where you should relplace X.Y.Z with the appropriate kim-api version number).
+#
+# Or, see https://openkim.org/doc/obtaining-models for alternative options.
+#
+
+# -----------------------------------------------
+# Get an equilibrium fcc crystal lattice constant
+# -----------------------------------------------
+kim   init EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005 metal
+#=== BEGIN kim init ==========================================
+units metal
+neighbor 2.0 bin   # Angstroms
+timestep 1.0e-3    # picoseconds
+
+This model has 6 mutable parameters. 
+ No.      | Parameter name     | data type  | extent
+-----------------------------------------------------
+ 1        | cutoff             | "Double"   | 1
+ 2        | deltaRho           | "Double"   | 1
+ 3        | deltaR             | "Double"   | 1
+ 4        | embeddingData      | "Double"   | 500
+ 5        | rPhiData           | "Double"   | 500
+ 6        | densityData        | "Double"   | 500
+#=== END kim init ============================================
+
+kim   query latconst_1 get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom]
+#=== BEGIN kim-query =========================================
+variable latconst_1 string "4.032082033157349"
+#=== END kim-query ===========================================
+
+print "FCC lattice constant (EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005) = ${latconst_1}"
+FCC lattice constant (EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005) = 4.032082033157349
+# Get the lattice contant from a different model
+kim   query latconst_2 get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[EAM_Dynamo_WineyKubotaGupta_2010_Al__MO_149316865608_005]
+#=== BEGIN kim-query =========================================
+variable latconst_2 string "4.024845376610756"
+#=== END kim-query ===========================================
+
+print "FCC lattice constant (EAM_Dynamo_WineyKubotaGupta_2010_Al__MO_149316865608_005) = ${latconst_2}"
+FCC lattice constant (EAM_Dynamo_WineyKubotaGupta_2010_Al__MO_149316865608_005) = 4.024845376610756
+clear
+
+
+# -----------------------------------------------
+# Get an equilibrium fcc crystal lattice constant
+# -----------------------------------------------
+kim   query latconst_1 get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005]
+#=== BEGIN kim-query =========================================
+variable latconst_1 string "4.032082033157349"
+#=== END kim-query ===========================================
+
+kim   query latconst_2 get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[EAM_Dynamo_WineyKubotaGupta_2010_Al__MO_149316865608_005]
+#=== BEGIN kim-query =========================================
+variable latconst_2 string "4.024845376610756"
+#=== END kim-query ===========================================
+
+print "FCC lattice constant (EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005)   = ${latconst_1}"
+FCC lattice constant (EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005)   = 4.032082033157349
+print "FCC lattice constant (EAM_Dynamo_WineyKubotaGupta_2010_Al__MO_149316865608_005) = ${latconst_2}"
+FCC lattice constant (EAM_Dynamo_WineyKubotaGupta_2010_Al__MO_149316865608_005) = 4.024845376610756
+clear
+
+
+# -----------------------------------------------
+# Get an equilibrium hcp crystal lattice constant
+# -----------------------------------------------
+kim   init EAM_Dynamo_MendelevAckland_2007v3_Zr__MO_004835508849_000 metal
+#=== BEGIN kim init ==========================================
+units metal
+neighbor 2.0 bin   # Angstroms
+timestep 1.0e-3    # picoseconds
+
+This model has 6 mutable parameters. 
+ No.      | Parameter name     | data type  | extent
+-----------------------------------------------------
+ 1        | cutoff             | "Double"   | 1
+ 2        | deltaRho           | "Double"   | 1
+ 3        | deltaR             | "Double"   | 1
+ 4        | embeddingData      | "Double"   | 10000
+ 5        | rPhiData           | "Double"   | 10000
+ 6        | densityData        | "Double"   | 10000
+#=== END kim init ============================================
+
+kim   query latconst split get_lattice_constant_hexagonal crystal=["hcp"] species=["Zr"] units=["angstrom"]
+#=== BEGIN kim-query =========================================
+variable latconst_1 string 3.234055244384789
+variable latconst_2 string  5.167650199630013
+#=== END kim-query ===========================================
+
+print "HCP lattice constants = ${latconst_1}, ${latconst_2}"
+HCP lattice constants = 3.234055244384789, 5.167650199630013
+clear
+
+
+# -----------------------------------------------
+# Query for KIM models from openkim.org
+# Get all the EAM models that support Al
+# -----------------------------------------------
+kim   query model index get_available_models species=[Al] potential_type=[eam]
+#=== BEGIN kim-query =========================================
+variable model index "EAM_CubicNaturalSpline_ErcolessiAdams_1994_Al__MO_800509458712_002"  "EAM_Dynamo_AngeloMoodyBaskes_1995_NiAlH__MO_418978237058_005"  "EAM_Dynamo_CaiYe_1996_AlCu__MO_942551040047_005"  "EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005"  "EAM_Dynamo_FarkasJones_1996_NbTiAl__MO_042691367780_000"  "EAM_Dynamo_JacobsenNorskovPuska_1987_Al__MO_411692133366_000"  "EAM_Dynamo_LandaWynblattSiegel_2000_AlPb__MO_699137396381_005"  "EAM_Dynamo_LiuAdams_1998_AlMg__MO_019873715786_000"  "EAM_Dynamo_LiuErcolessiAdams_2004_Al__MO_051157671505_000"  "EAM_Dynamo_LiuLiuBorucki_1999_AlCu__MO_020851069572_000"  "EAM_Dynamo_LiuOhotnickyAdams_1997_AlMg__MO_559870613549_000"  "EAM_Dynamo_MendelevAstaRahman_2009_AlMg__MO_658278549784_005"  "EAM_Dynamo_MendelevFangYe_2015_AlSm__MO_338600200739_000"  "EAM_Dynamo_MendelevKramerBecker_2008_Al__MO_106969701023_005"  "EAM_Dynamo_MendelevSrolovitzAckland_2005_AlFe__MO_577453891941_005"  "EAM_Dynamo_MishinFarkasMehl_1999_Al__MO_651801486679_005"  "EAM_Dynamo_MishinMehlPapaconstantopoulos_2002_NiAl__MO_109933561507_005"  "EAM_Dynamo_Mishin_2004_NiAl__MO_101214310689_005"  "EAM_Dynamo_PunMishin_2009_NiAl__MO_751354403791_005"  "EAM_Dynamo_PunYamakovMishin_2013_AlCo__MO_678952612413_000"  "EAM_Dynamo_PunYamakovMishin_2013_NiAlCo__MO_826591359508_000"  "EAM_Dynamo_SchopfBrommerFrigan_2012_AlMnPd__MO_137572817842_000"  "EAM_Dynamo_SturgeonLaird_2000_Al__MO_120808805541_005"  "EAM_Dynamo_VailheFarkas_1997_CoAl__MO_284963179498_005"  "EAM_Dynamo_WineyKubotaGupta_2010_Al__MO_149316865608_005"  "EAM_Dynamo_Zhakhovsky_2009_Al__MO_519613893196_000"  "EAM_Dynamo_ZhouJohnsonWadley_2004NISTretabulation_Al__MO_060567868558_000"  "EAM_Dynamo_ZhouJohnsonWadley_2004_Al__MO_131650261510_005"  "EAM_Dynamo_ZhouWadleyJohnson_2001_Al__MO_049243498555_000"  "EAM_Dynamo_ZopeMishin_2003_Al__MO_664470114311_005"  "EAM_Dynamo_ZopeMishin_2003_TiAl__MO_117656786760_005"  "EAM_ErcolessiAdams_1994_Al__MO_324507536345_003"  "EAM_IMD_BrommerGaehler_2006A_AlNiCo__MO_122703700223_003"  "EAM_IMD_BrommerGaehler_2006B_AlNiCo__MO_128037485276_003"  "EAM_IMD_SchopfBrommerFrigan_2012_AlMnPd__MO_878712978062_003"  "EAM_QuinticClampedSpline_ErcolessiAdams_1994_Al__MO_450093727396_002"  "EAM_QuinticHermiteSpline_ErcolessiAdams_1994_Al__MO_781138671863_002"  "EMT_Asap_Standard_JacobsenStoltzeNorskov_1996_AlAgAuCuNiPdPt__MO_115316750986_001"  "EMT_Asap_Standard_JacobsenStoltzeNorskov_1996_Al__MO_623376124862_001"
+#=== END kim-query ===========================================
+
+label model_loop
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[${model}]
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[EAM_CubicNaturalSpline_ErcolessiAdams_1994_Al__MO_800509458712_002]
+#=== BEGIN kim-query =========================================
+variable latconst string "4.032082748413087"
+#=== END kim-query ===========================================
+
+print "FCC lattice constant (${model}) = ${latconst}"
+FCC lattice constant (EAM_CubicNaturalSpline_ErcolessiAdams_1994_Al__MO_800509458712_002) = 4.032082748413087
+next  model
+jump  SELF model_loop
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[${model}]
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[EAM_Dynamo_AngeloMoodyBaskes_1995_NiAlH__MO_418978237058_005]
+#=== BEGIN kim-query =========================================
+variable latconst string "4.050000071525574"
+#=== END kim-query ===========================================
+
+print "FCC lattice constant (${model}) = ${latconst}"
+FCC lattice constant (EAM_Dynamo_AngeloMoodyBaskes_1995_NiAlH__MO_418978237058_005) = 4.050000071525574
+next  model
+jump  SELF model_loop
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[${model}]
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[EAM_Dynamo_CaiYe_1996_AlCu__MO_942551040047_005]
+#=== BEGIN kim-query =========================================
+variable latconst string "4.049763545393944"
+#=== END kim-query ===========================================
+
+print "FCC lattice constant (${model}) = ${latconst}"
+FCC lattice constant (EAM_Dynamo_CaiYe_1996_AlCu__MO_942551040047_005) = 4.049763545393944
+next  model
+jump  SELF model_loop
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[${model}]
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005]
+#=== BEGIN kim-query =========================================
+variable latconst string "4.032082033157349"
+#=== END kim-query ===========================================
+
+print "FCC lattice constant (${model}) = ${latconst}"
+FCC lattice constant (EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005) = 4.032082033157349
+next  model
+jump  SELF model_loop
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[${model}]
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[EAM_Dynamo_FarkasJones_1996_NbTiAl__MO_042691367780_000]
+#=== BEGIN kim-query =========================================
+variable latconst string "3.869337007403374"
+#=== END kim-query ===========================================
+
+print "FCC lattice constant (${model}) = ${latconst}"
+FCC lattice constant (EAM_Dynamo_FarkasJones_1996_NbTiAl__MO_042691367780_000) = 3.869337007403374
+next  model
+jump  SELF model_loop
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[${model}]
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[EAM_Dynamo_JacobsenNorskovPuska_1987_Al__MO_411692133366_000]
+#=== BEGIN kim-query =========================================
+variable latconst string "3.987558534741402"
+#=== END kim-query ===========================================
+
+print "FCC lattice constant (${model}) = ${latconst}"
+FCC lattice constant (EAM_Dynamo_JacobsenNorskovPuska_1987_Al__MO_411692133366_000) = 3.987558534741402
+next  model
+jump  SELF model_loop
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[${model}]
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[EAM_Dynamo_LandaWynblattSiegel_2000_AlPb__MO_699137396381_005]
+#=== BEGIN kim-query =========================================
+variable latconst string "4.031036108732224"
+#=== END kim-query ===========================================
+
+print "FCC lattice constant (${model}) = ${latconst}"
+FCC lattice constant (EAM_Dynamo_LandaWynblattSiegel_2000_AlPb__MO_699137396381_005) = 4.031036108732224
+next  model
+jump  SELF model_loop
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[${model}]
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[EAM_Dynamo_LiuAdams_1998_AlMg__MO_019873715786_000]
+#=== BEGIN kim-query =========================================
+variable latconst string "4.03203821182251"
+#=== END kim-query ===========================================
+
+print "FCC lattice constant (${model}) = ${latconst}"
+FCC lattice constant (EAM_Dynamo_LiuAdams_1998_AlMg__MO_019873715786_000) = 4.03203821182251
+next  model
+jump  SELF model_loop
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[${model}]
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[EAM_Dynamo_LiuErcolessiAdams_2004_Al__MO_051157671505_000]
+#=== BEGIN kim-query =========================================
+variable latconst string "9.5"
+#=== END kim-query ===========================================
+
+print "FCC lattice constant (${model}) = ${latconst}"
+FCC lattice constant (EAM_Dynamo_LiuErcolessiAdams_2004_Al__MO_051157671505_000) = 9.5
+next  model
+jump  SELF model_loop
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[${model}]
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[EAM_Dynamo_LiuLiuBorucki_1999_AlCu__MO_020851069572_000]
+#=== BEGIN kim-query =========================================
+variable latconst string "4.032073378562927"
+#=== END kim-query ===========================================
+
+print "FCC lattice constant (${model}) = ${latconst}"
+FCC lattice constant (EAM_Dynamo_LiuLiuBorucki_1999_AlCu__MO_020851069572_000) = 4.032073378562927
+next  model
+jump  SELF model_loop
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[${model}]
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[EAM_Dynamo_LiuOhotnickyAdams_1997_AlMg__MO_559870613549_000]
+#=== BEGIN kim-query =========================================
+variable latconst string "8.5"
+#=== END kim-query ===========================================
+
+print "FCC lattice constant (${model}) = ${latconst}"
+FCC lattice constant (EAM_Dynamo_LiuOhotnickyAdams_1997_AlMg__MO_559870613549_000) = 8.5
+next  model
+jump  SELF model_loop
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[${model}]
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[EAM_Dynamo_MendelevAstaRahman_2009_AlMg__MO_658278549784_005]
+#=== BEGIN kim-query =========================================
+variable latconst string "4.045270472764969"
+#=== END kim-query ===========================================
+
+print "FCC lattice constant (${model}) = ${latconst}"
+FCC lattice constant (EAM_Dynamo_MendelevAstaRahman_2009_AlMg__MO_658278549784_005) = 4.045270472764969
+next  model
+jump  SELF model_loop
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[${model}]
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[EAM_Dynamo_MendelevFangYe_2015_AlSm__MO_338600200739_000]
+#=== BEGIN kim-query =========================================
+variable latconst string "4.040926471352577"
+#=== END kim-query ===========================================
+
+print "FCC lattice constant (${model}) = ${latconst}"
+FCC lattice constant (EAM_Dynamo_MendelevFangYe_2015_AlSm__MO_338600200739_000) = 4.040926471352577
+next  model
+jump  SELF model_loop
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[${model}]
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[EAM_Dynamo_MendelevKramerBecker_2008_Al__MO_106969701023_005]
+#=== BEGIN kim-query =========================================
+variable latconst string "4.045259781181811"
+#=== END kim-query ===========================================
+
+print "FCC lattice constant (${model}) = ${latconst}"
+FCC lattice constant (EAM_Dynamo_MendelevKramerBecker_2008_Al__MO_106969701023_005) = 4.045259781181811
+next  model
+jump  SELF model_loop
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[${model}]
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[EAM_Dynamo_MendelevSrolovitzAckland_2005_AlFe__MO_577453891941_005]
+#=== BEGIN kim-query =========================================
+variable latconst string "4.03330184519291"
+#=== END kim-query ===========================================
+
+print "FCC lattice constant (${model}) = ${latconst}"
+FCC lattice constant (EAM_Dynamo_MendelevSrolovitzAckland_2005_AlFe__MO_577453891941_005) = 4.03330184519291
+next  model
+jump  SELF model_loop
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[${model}]
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[EAM_Dynamo_MishinFarkasMehl_1999_Al__MO_651801486679_005]
+#=== BEGIN kim-query =========================================
+variable latconst string "4.050004702806472"
+#=== END kim-query ===========================================
+
+print "FCC lattice constant (${model}) = ${latconst}"
+FCC lattice constant (EAM_Dynamo_MishinFarkasMehl_1999_Al__MO_651801486679_005) = 4.050004702806472
+next  model
+jump  SELF model_loop
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[${model}]
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[EAM_Dynamo_MishinMehlPapaconstantopoulos_2002_NiAl__MO_109933561507_005]
+#=== BEGIN kim-query =========================================
+variable latconst string "4.051526293158533"
+#=== END kim-query ===========================================
+
+print "FCC lattice constant (${model}) = ${latconst}"
+FCC lattice constant (EAM_Dynamo_MishinMehlPapaconstantopoulos_2002_NiAl__MO_109933561507_005) = 4.051526293158533
+next  model
+jump  SELF model_loop
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[${model}]
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[EAM_Dynamo_Mishin_2004_NiAl__MO_101214310689_005]
+#=== BEGIN kim-query =========================================
+variable latconst string "4.049999862909317"
+#=== END kim-query ===========================================
+
+print "FCC lattice constant (${model}) = ${latconst}"
+FCC lattice constant (EAM_Dynamo_Mishin_2004_NiAl__MO_101214310689_005) = 4.049999862909317
+next  model
+jump  SELF model_loop
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[${model}]
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[EAM_Dynamo_PunMishin_2009_NiAl__MO_751354403791_005]
+#=== BEGIN kim-query =========================================
+variable latconst string "4.050000071525574"
+#=== END kim-query ===========================================
+
+print "FCC lattice constant (${model}) = ${latconst}"
+FCC lattice constant (EAM_Dynamo_PunMishin_2009_NiAl__MO_751354403791_005) = 4.050000071525574
+next  model
+jump  SELF model_loop
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[${model}]
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[EAM_Dynamo_PunYamakovMishin_2013_AlCo__MO_678952612413_000]
+#=== BEGIN kim-query =========================================
+variable latconst string "4.05000014603138"
+#=== END kim-query ===========================================
+
+print "FCC lattice constant (${model}) = ${latconst}"
+FCC lattice constant (EAM_Dynamo_PunYamakovMishin_2013_AlCo__MO_678952612413_000) = 4.05000014603138
+next  model
+jump  SELF model_loop
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[${model}]
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[EAM_Dynamo_PunYamakovMishin_2013_NiAlCo__MO_826591359508_000]
+#=== BEGIN kim-query =========================================
+variable latconst string "4.05000014603138"
+#=== END kim-query ===========================================
+
+print "FCC lattice constant (${model}) = ${latconst}"
+FCC lattice constant (EAM_Dynamo_PunYamakovMishin_2013_NiAlCo__MO_826591359508_000) = 4.05000014603138
+next  model
+jump  SELF model_loop
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[${model}]
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[EAM_Dynamo_SchopfBrommerFrigan_2012_AlMnPd__MO_137572817842_000]
+#=== BEGIN kim-query =========================================
+variable latconst string "4.210718545317654"
+#=== END kim-query ===========================================
+
+print "FCC lattice constant (${model}) = ${latconst}"
+FCC lattice constant (EAM_Dynamo_SchopfBrommerFrigan_2012_AlMnPd__MO_137572817842_000) = 4.210718545317654
+next  model
+jump  SELF model_loop
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[${model}]
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[EAM_Dynamo_SturgeonLaird_2000_Al__MO_120808805541_005]
+#=== BEGIN kim-query =========================================
+variable latconst string "4.050010219216347"
+#=== END kim-query ===========================================
+
+print "FCC lattice constant (${model}) = ${latconst}"
+FCC lattice constant (EAM_Dynamo_SturgeonLaird_2000_Al__MO_120808805541_005) = 4.050010219216347
+next  model
+jump  SELF model_loop
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[${model}]
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[EAM_Dynamo_VailheFarkas_1997_CoAl__MO_284963179498_005]
+#=== BEGIN kim-query =========================================
+variable latconst string "4.049696564674378"
+#=== END kim-query ===========================================
+
+print "FCC lattice constant (${model}) = ${latconst}"
+FCC lattice constant (EAM_Dynamo_VailheFarkas_1997_CoAl__MO_284963179498_005) = 4.049696564674378
+next  model
+jump  SELF model_loop
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[${model}]
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[EAM_Dynamo_WineyKubotaGupta_2010_Al__MO_149316865608_005]
+#=== BEGIN kim-query =========================================
+variable latconst string "4.024845376610756"
+#=== END kim-query ===========================================
+
+print "FCC lattice constant (${model}) = ${latconst}"
+FCC lattice constant (EAM_Dynamo_WineyKubotaGupta_2010_Al__MO_149316865608_005) = 4.024845376610756
+next  model
+jump  SELF model_loop
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[${model}]
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[EAM_Dynamo_Zhakhovsky_2009_Al__MO_519613893196_000]
+#=== BEGIN kim-query =========================================
+variable latconst string "4.031999975442885"
+#=== END kim-query ===========================================
+
+print "FCC lattice constant (${model}) = ${latconst}"
+FCC lattice constant (EAM_Dynamo_Zhakhovsky_2009_Al__MO_519613893196_000) = 4.031999975442885
+next  model
+jump  SELF model_loop
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[${model}]
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[EAM_Dynamo_ZhouJohnsonWadley_2004NISTretabulation_Al__MO_060567868558_000]
+#=== BEGIN kim-query =========================================
+variable latconst string "4.050199627876282"
+#=== END kim-query ===========================================
+
+print "FCC lattice constant (${model}) = ${latconst}"
+FCC lattice constant (EAM_Dynamo_ZhouJohnsonWadley_2004NISTretabulation_Al__MO_060567868558_000) = 4.050199627876282
+next  model
+jump  SELF model_loop
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[${model}]
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[EAM_Dynamo_ZhouJohnsonWadley_2004_Al__MO_131650261510_005]
+#=== BEGIN kim-query =========================================
+variable latconst string "4.050180745124819"
+#=== END kim-query ===========================================
+
+print "FCC lattice constant (${model}) = ${latconst}"
+FCC lattice constant (EAM_Dynamo_ZhouJohnsonWadley_2004_Al__MO_131650261510_005) = 4.050180745124819
+next  model
+jump  SELF model_loop
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[${model}]
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[EAM_Dynamo_ZhouWadleyJohnson_2001_Al__MO_049243498555_000]
+#=== BEGIN kim-query =========================================
+variable latconst string "4.081654928624631"
+#=== END kim-query ===========================================
+
+print "FCC lattice constant (${model}) = ${latconst}"
+FCC lattice constant (EAM_Dynamo_ZhouWadleyJohnson_2001_Al__MO_049243498555_000) = 4.081654928624631
+next  model
+jump  SELF model_loop
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[${model}]
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[EAM_Dynamo_ZopeMishin_2003_Al__MO_664470114311_005]
+#=== BEGIN kim-query =========================================
+variable latconst string "4.050000011920929"
+#=== END kim-query ===========================================
+
+print "FCC lattice constant (${model}) = ${latconst}"
+FCC lattice constant (EAM_Dynamo_ZopeMishin_2003_Al__MO_664470114311_005) = 4.050000011920929
+next  model
+jump  SELF model_loop
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[${model}]
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[EAM_Dynamo_ZopeMishin_2003_TiAl__MO_117656786760_005]
+#=== BEGIN kim-query =========================================
+variable latconst string "4.049999445676804"
+#=== END kim-query ===========================================
+
+print "FCC lattice constant (${model}) = ${latconst}"
+FCC lattice constant (EAM_Dynamo_ZopeMishin_2003_TiAl__MO_117656786760_005) = 4.049999445676804
+next  model
+jump  SELF model_loop
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[${model}]
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[EAM_ErcolessiAdams_1994_Al__MO_324507536345_003]
+#=== BEGIN kim-query =========================================
+variable latconst string "4.032082714140415"
+#=== END kim-query ===========================================
+
+print "FCC lattice constant (${model}) = ${latconst}"
+FCC lattice constant (EAM_ErcolessiAdams_1994_Al__MO_324507536345_003) = 4.032082714140415
+next  model
+jump  SELF model_loop
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[${model}]
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[EAM_IMD_BrommerGaehler_2006A_AlNiCo__MO_122703700223_003]
+#=== BEGIN kim-query =========================================
+variable latconst string "4.128871455788613"
+#=== END kim-query ===========================================
+
+print "FCC lattice constant (${model}) = ${latconst}"
+FCC lattice constant (EAM_IMD_BrommerGaehler_2006A_AlNiCo__MO_122703700223_003) = 4.128871455788613
+next  model
+jump  SELF model_loop
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[${model}]
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[EAM_IMD_BrommerGaehler_2006B_AlNiCo__MO_128037485276_003]
+#=== BEGIN kim-query =========================================
+variable latconst string "4.073718130588532"
+#=== END kim-query ===========================================
+
+print "FCC lattice constant (${model}) = ${latconst}"
+FCC lattice constant (EAM_IMD_BrommerGaehler_2006B_AlNiCo__MO_128037485276_003) = 4.073718130588532
+next  model
+jump  SELF model_loop
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[${model}]
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[EAM_IMD_SchopfBrommerFrigan_2012_AlMnPd__MO_878712978062_003]
+#=== BEGIN kim-query =========================================
+variable latconst string "4.210700303316115"
+#=== END kim-query ===========================================
+
+print "FCC lattice constant (${model}) = ${latconst}"
+FCC lattice constant (EAM_IMD_SchopfBrommerFrigan_2012_AlMnPd__MO_878712978062_003) = 4.210700303316115
+next  model
+jump  SELF model_loop
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[${model}]
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[EAM_QuinticClampedSpline_ErcolessiAdams_1994_Al__MO_450093727396_002]
+#=== BEGIN kim-query =========================================
+variable latconst string "4.032082897424699"
+#=== END kim-query ===========================================
+
+print "FCC lattice constant (${model}) = ${latconst}"
+FCC lattice constant (EAM_QuinticClampedSpline_ErcolessiAdams_1994_Al__MO_450093727396_002) = 4.032082897424699
+next  model
+jump  SELF model_loop
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[${model}]
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[EAM_QuinticHermiteSpline_ErcolessiAdams_1994_Al__MO_781138671863_002]
+#=== BEGIN kim-query =========================================
+variable latconst string "4.03208246231079"
+#=== END kim-query ===========================================
+
+print "FCC lattice constant (${model}) = ${latconst}"
+FCC lattice constant (EAM_QuinticHermiteSpline_ErcolessiAdams_1994_Al__MO_781138671863_002) = 4.03208246231079
+next  model
+jump  SELF model_loop
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[${model}]
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[EMT_Asap_Standard_JacobsenStoltzeNorskov_1996_AlAgAuCuNiPdPt__MO_115316750986_001]
+#=== BEGIN kim-query =========================================
+variable latconst string "3.994616635143757"
+#=== END kim-query ===========================================
+
+print "FCC lattice constant (${model}) = ${latconst}"
+FCC lattice constant (EMT_Asap_Standard_JacobsenStoltzeNorskov_1996_AlAgAuCuNiPdPt__MO_115316750986_001) = 3.994616635143757
+next  model
+jump  SELF model_loop
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[${model}]
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[EMT_Asap_Standard_JacobsenStoltzeNorskov_1996_Al__MO_623376124862_001]
+#=== BEGIN kim-query =========================================
+variable latconst string "3.994608342647553"
+#=== END kim-query ===========================================
+
+print "FCC lattice constant (${model}) = ${latconst}"
+FCC lattice constant (EMT_Asap_Standard_JacobsenStoltzeNorskov_1996_Al__MO_623376124862_001) = 3.994608342647553
+next  model
+jump  SELF model_loop
+clear
+
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- OpenKIM: https://doi.org/10.1007/s11837-011-0102-6
+
+@Article{tadmor:elliott:2011,
+ author = {E. B. Tadmor and R. S. Elliott and J. P. Sethna and R. E. Miller and C. A. Becker},
+ title = {The potential of atomistic simulations and the {K}nowledgebase of {I}nteratomic {M}odels},
+ journal = {{JOM}},
+ year =    2011,
+ volume =  63,
+ number =  17,
+ pages =   {17},
+ doi =     {10.1007/s11837-011-0102-6}
+}
+
+- OpenKIM potential: https://openkim.org/cite/MO_123629422045_005#item-citation
+
+@Comment
+{
+\documentclass{article}
+\usepackage{url}
+\begin{document}
+This Model originally published in \cite{MO_123629422045_005a} is archived in OpenKIM~\cite{MO_123629422045_005, MD_120291908751_005, tadmor:elliott:2011, elliott:tadmor:2011}.
+\bibliographystyle{vancouver}
+\bibliography{kimcite-MO_123629422045_005.bib}
+\end{document}
+}
+
+@Misc{MO_123629422045_005,
+  author       = {Ryan S. Elliott},
+  title        = {{EAM} potential ({LAMMPS} cubic hermite tabulation) for {A}l developed by {E}rcolessi and {A}dams (1994) v005},
+  doi          = {10.25950/7cd2a6ab},
+  howpublished = {OpenKIM, \url{https://doi.org/10.25950/7cd2a6ab}},
+  keywords     = {OpenKIM, Model, MO_123629422045_005},
+  publisher    = {OpenKIM},
+  year         = 2018,
+}
+
+@Misc{MD_120291908751_005,
+  author       = {Ryan S. Elliott},
+  title        = {{EAM} {M}odel {D}river for tabulated potentials with cubic {H}ermite spline interpolation as used in {LAMMPS} v005},
+  doi          = {10.25950/68defa36},
+  howpublished = {OpenKIM, \url{https://doi.org/10.25950/7cd2a6ab}},
+  keywords     = {OpenKIM, Model Driver, MD_120291908751_005},
+  publisher    = {OpenKIM},
+  year         = 2018,
+}
+
+@Article{tadmor:elliott:2011,
+  author    = {E. B. Tadmor and R. S. Elliott and J. P. Sethna and R. E. Miller and C. A. Becker},
+  title     = {The potential of atomistic simulations and the {K}nowledgebase of {I}nteratomic {M}odels},
+  journal   = {{JOM}},
+  year      = {2011},
+  volume    = {63},
+  number    = {7},
+  pages     = {17},
+  doi       = {10.1007/s11837-011-0102-6},
+}
+
+@Misc{elliott:tadmor:2011,
+  author       = {Ryan S. Elliott and Ellad B. Tadmor},
+  title        = {{K}nowledgebase of {I}nteratomic {M}odels ({KIM}) Application Programming Interface ({API})},
+  howpublished = {\url{https://openkim.org/kim-api}},
+  publisher    = {OpenKIM},
+  year         = 2011,
+  doi          = {10.25950/ff8f563a},
+}
+
+@Article{MO_123629422045_005a,
+  author = {F. Ercolessi and J. B. Adams},
+  doi = {10.1209/0295-5075/26/8/005},
+  journal = {Europhysics Letters},
+  number = {8},
+  pages = {583},
+  title = {Interatomic Potentials from First-Principles Calculations: {T}he Force-Matching Method},
+  volume = {26},
+  year = {1994},
+}
+- OpenKIM query: https://doi.org/10.1063/5.0014267
+
+@Article{karls:bierbaum:2020,
+ author = {D. S. Karls and M. Bierbaum and A. A. Alemi and R. S. Elliott and J. P. Sethna and E. B. Tadmor},
+ title = {The {O}pen{KIM} processing pipeline: {A} cloud-based automatic material property computation engine},
+ journal = {{T}he {J}ournal of {C}hemical {P}hysics},
+ year =    2020,
+ volume =  153,
+ number =  6,
+ pages =   {064104},
+ doi =     {10.1063/5.0014267}
+}
+
+- OpenKIM potential: https://openkim.org/cite/MO_004835508849_000#item-citation
+
+@Comment
+{
+\documentclass{article}
+\usepackage{url}
+\begin{document}
+This Model originally published in \cite{MO_004835508849_000a} is archived in OpenKIM~\cite{MO_004835508849_000, MD_120291908751_005, tadmor:elliott:2011, elliott:tadmor:2011}.
+\bibliographystyle{vancouver}
+\bibliography{kimcite-MO_004835508849_000.bib}
+\end{document}
+}
+
+@Misc{MO_004835508849_000,
+  author       = {Ellad Tadmor},
+  title        = {{F}innis-{S}inclair potential ({LAMMPS} cubic hermite tabulation) for {Z}r developed by {M}endelev and {A}ckland (2007); version 3 refitted for radiation studies v000},
+  doi          = {10.25950/7b7b5ab5},
+  howpublished = {OpenKIM, \url{https://doi.org/10.25950/7b7b5ab5}},
+  keywords     = {OpenKIM, Model, MO_004835508849_000},
+  publisher    = {OpenKIM},
+  year         = 2018,
+}
+
+@Misc{MD_120291908751_005,
+  author       = {Ryan S. Elliott},
+  title        = {{EAM} {M}odel {D}river for tabulated potentials with cubic {H}ermite spline interpolation as used in {LAMMPS} v005},
+  doi          = {10.25950/68defa36},
+  howpublished = {OpenKIM, \url{https://doi.org/10.25950/7b7b5ab5}},
+  keywords     = {OpenKIM, Model Driver, MD_120291908751_005},
+  publisher    = {OpenKIM},
+  year         = 2018,
+}
+
+@Article{tadmor:elliott:2011,
+  author    = {E. B. Tadmor and R. S. Elliott and J. P. Sethna and R. E. Miller and C. A. Becker},
+  title     = {The potential of atomistic simulations and the {K}nowledgebase of {I}nteratomic {M}odels},
+  journal   = {{JOM}},
+  year      = {2011},
+  volume    = {63},
+  number    = {7},
+  pages     = {17},
+  doi       = {10.1007/s11837-011-0102-6},
+}
+
+@Misc{elliott:tadmor:2011,
+  author       = {Ryan S. Elliott and Ellad B. Tadmor},
+  title        = {{K}nowledgebase of {I}nteratomic {M}odels ({KIM}) Application Programming Interface ({API})},
+  howpublished = {\url{https://openkim.org/kim-api}},
+  publisher    = {OpenKIM},
+  year         = 2011,
+  doi          = {10.25950/ff8f563a},
+}
+
+@Article{MO_004835508849_000a,
+  author = {Mendelev, M. I. and Ackland, G. J.},
+  doi = {10.1080/09500830701191393},
+  journal = {Philosophical Magazine Letters},
+  number = {5},
+  pages = {349-359},
+  title = {Development of an interatomic potential for the simulation of phase transformations in zirconium},
+  volume = {87},
+  year = {2007},
+}
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Total wall time: 0:01:59

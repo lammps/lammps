@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -244,31 +245,35 @@ void PairSpinDmi::compute(int eflag, int vflag)
 
       if (rsq <= local_cut2) {
         compute_dmi(i,j,eij,fmi,spj);
-        if (lattice_flag) {
+
+        if (lattice_flag)
           compute_dmi_mech(i,j,rsq,eij,fi,spi,spj);
+
+        if (eflag) {
+          evdwl -= (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
+          evdwl *= 0.5*hbar;
+          emag[i] += evdwl;
+        } else evdwl = 0.0;
+
+        f[i][0] += fi[0];
+        f[i][1] += fi[1];
+        f[i][2] += fi[2];
+        if (newton_pair || j < nlocal) {
+          f[j][0] -= fi[0];
+          f[j][1] -= fi[1];
+          f[j][2] -= fi[2];
         }
+        fm[i][0] += fmi[0];
+        fm[i][1] += fmi[1];
+        fm[i][2] += fmi[2];
+
+        if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,
+            evdwl,ecoul,fi[0],fi[1],fi[2],delx,dely,delz);
       }
-
-      f[i][0] += fi[0];
-      f[i][1] += fi[1];
-      f[i][2] += fi[2];
-      fm[i][0] += fmi[0];
-      fm[i][1] += fmi[1];
-      fm[i][2] += fmi[2];
-
-      if (eflag) {
-        evdwl -= (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
-        evdwl *= 0.5*hbar;
-        emag[i] += evdwl;
-      } else evdwl = 0.0;
-
-      if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,
-          evdwl,ecoul,fi[0],fi[1],fi[2],delx,dely,delz);
     }
   }
 
   if (vflag_fdotr) virial_fdotr_compute();
-
 }
 
 /* ----------------------------------------------------------------------
@@ -405,9 +410,9 @@ void PairSpinDmi::compute_dmi_mech(int i, int j, double rsq, double /*eij*/[3],
   cdmy = (dmiz*csx - dmix*csz);
   cdmz = (dmix*csy - dmiy*csz);
 
-  fi[0] += irij*cdmx;
-  fi[1] += irij*cdmy;
-  fi[2] += irij*cdmz;
+  fi[0] += 0.5*irij*cdmx;
+  fi[1] += 0.5*irij*cdmy;
+  fi[2] += 0.5*irij*cdmz;
 }
 
 /* ----------------------------------------------------------------------

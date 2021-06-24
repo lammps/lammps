@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -488,8 +489,8 @@ MEAM::phi_meam(double r, int a, int b)
   } else if (this->lattce_meam[a][b] == CH4) {
     phi_m = (5 * Eu - F1 - 4*F2)/4;
 
-  } else if (this->lattce_meam[a][b] == ZIG){
-      if (a==b){
+  } else if (this->lattce_meam[a][b] == ZIG) {
+      if (a==b) {
         phi_m = (2 * Eu - F1 - F2) / Z12;
       } else{
         Z1 = get_Zij(this->lattce_meam[a][b]);
@@ -504,7 +505,7 @@ MEAM::phi_meam(double r, int a, int b)
       }
 
   } else if (this->lattce_meam[a][b] == TRI) {
-      if (a==b){
+      if (a==b) {
         phi_m = (3.0*Eu - 2.0*F1 - F2) / Z12;
      } else {
         Z1 = get_Zij(this->lattce_meam[a][b]);

@@ -1,6 +1,7 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,17 +13,17 @@
 ------------------------------------------------------------------------- */
 
 #ifdef NPAIR_CLASS
-
+// clang-format off
 typedef NPairSSAKokkos<LMPHostType> NPairSSAKokkosHost;
 NPairStyle(half/bin/newton/ssa/kk/host,
            NPairSSAKokkosHost,
-           NP_HALF | NP_BIN | NP_NEWTON | NP_ORTHO | NP_SSA | NP_GHOST | NP_KOKKOS_HOST)
+           NP_HALF | NP_BIN | NP_NEWTON | NP_ORTHO | NP_SSA | NP_GHOST | NP_KOKKOS_HOST);
 
 typedef NPairSSAKokkos<LMPDeviceType> NPairSSAKokkosDevice;
 NPairStyle(half/bin/newton/ssa/kk/device,
            NPairSSAKokkosDevice,
-           NP_HALF | NP_BIN | NP_NEWTON | NP_ORTHO | NP_SSA | NP_GHOST | NP_KOKKOS_DEVICE)
-
+           NP_HALF | NP_BIN | NP_NEWTON | NP_ORTHO | NP_SSA | NP_GHOST | NP_KOKKOS_DEVICE);
+// clang-format on
 #else
 
 #ifndef LMP_NPAIR_SSA_KOKKOS_H
@@ -281,19 +282,11 @@ class NPairSSAKokkosExecute
     bboxhi[0] = _bboxhi[0]; bboxhi[1] = _bboxhi[1]; bboxhi[2] = _bboxhi[2];
 
     resize = typename AT::t_int_scalar("NPairSSAKokkosExecute::resize");
-#ifndef KOKKOS_USE_CUDA_UVM
     h_resize = Kokkos::create_mirror_view(resize);
-#else
-    h_resize = resize;
-#endif
     h_resize() = 1;
     new_maxneighs = typename AT::
       t_int_scalar("NPairSSAKokkosExecute::new_maxneighs");
-#ifndef KOKKOS_USE_CUDA_UVM
     h_new_maxneighs = Kokkos::create_mirror_view(new_maxneighs);
-#else
-    h_new_maxneighs = new_maxneighs;
-#endif
     h_new_maxneighs() = neigh_list.maxneighs;
   };
 

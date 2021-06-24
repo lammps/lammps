@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -383,7 +384,7 @@ MEAM::get_Zij2(const lattice_t latt, const double cmin, const double cmax,
   }
 
   // Compute screening for each first neighbor
-  if (latt==DIA3){ // special case for 3NN diamond structure
+  if (latt==DIA3) { // special case for 3NN diamond structure
     C = 1.0;
   } else {
     C = 4.0 / (a * a) - 1.0;

@@ -56,6 +56,9 @@ Examples
    fix 1 all adapt/fep 1 pair lj/cut epsilon * * v_scale1 coul/cut scale 3 3 v_scale2 scale yes reset yes
    fix 1 all adapt/fep 10 atom diameter 1 v_size
 
+
+Example input scripts available: examples/USER/fep
+
 Description
 """""""""""
 
@@ -120,7 +123,7 @@ styles and their energy formulas for the meaning of these parameters:
 +------------------------------------------------------------------------------+-------------------------+------------+
 | :doc:`born <pair_born>`                                                      | a,b,c                   | type pairs |
 +------------------------------------------------------------------------------+-------------------------+------------+
-| :doc:`buck <pair_buck>`                                                      | a,c                     | type pairs |
+| :doc:`buck, buck/coul/cut, buck/coul/long, buck/coul/msm  <pair_buck>`       | a,c                     | type pairs |
 +------------------------------------------------------------------------------+-------------------------+------------+
 | :doc:`buck/mdf <pair_mdf>`                                                   | a,c                     | type pairs |
 +------------------------------------------------------------------------------+-------------------------+------------+

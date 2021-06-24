@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(bond/create,FixBondCreate)
-
+// clang-format off
+FixStyle(bond/create,FixBondCreate);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_BOND_CREATE_H
@@ -48,26 +48,26 @@ class FixBondCreate : public Fix {
 
  protected:
   int me;
-  int iatomtype,jatomtype;
-  int btype,seed;
-  int imaxbond,jmaxbond;
-  int inewtype,jnewtype;
-  int constrainflag,constrainpass;
-  double amin,amax;
-  double cutsq,fraction;
-  int atype,dtype,itype;
-  int angleflag,dihedralflag,improperflag;
+  int iatomtype, jatomtype;
+  int btype, seed;
+  int imaxbond, jmaxbond;
+  int inewtype, jnewtype;
+  int constrainflag, constrainpass;
+  double amin, amax;
+  double cutsq, fraction;
+  int atype, dtype, itype;
+  int angleflag, dihedralflag, improperflag;
 
   int overflow;
   tagint lastcheck;
 
   int *bondcount;
-  int createcount,createcounttotal;
+  int createcount, createcounttotal;
   int nmax;
-  tagint *partner,*finalpartner;
-  double *distsq,*probability;
+  tagint *partner, *finalpartner;
+  double *distsq, *probability;
 
-  int ncreate,maxcreate;
+  int ncreate, maxcreate;
   tagint **created;
 
   tagint *copy;
@@ -75,9 +75,9 @@ class FixBondCreate : public Fix {
   class RanMars *random;
   class NeighList *list;
 
-  int countflag,commflag;
+  int countflag, commflag;
   int nlevels_respa;
-  int nangles,ndihedrals,nimpropers;
+  int nangles, ndihedrals, nimpropers;
 
   void check_ghosts();
   void update_topology();
@@ -87,7 +87,7 @@ class FixBondCreate : public Fix {
   void create_impropers(int);
   int dedup(int, int, tagint *);
 
-  virtual int constrain(int, int, double, double) {return 1;}
+  virtual int constrain(int, int, double, double) { return 1; }
 
   // DEBUG
 
@@ -95,7 +95,7 @@ class FixBondCreate : public Fix {
   void print_copy(const char *, tagint, int, int, int, int *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

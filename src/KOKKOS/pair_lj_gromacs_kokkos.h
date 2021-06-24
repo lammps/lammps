@@ -1,6 +1,7 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,11 +13,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(lj/gromacs/kk,PairLJGromacsKokkos<LMPDeviceType>)
-PairStyle(lj/gromacs/kk/device,PairLJGromacsKokkos<LMPDeviceType>)
-PairStyle(lj/gromacs/kk/host,PairLJGromacsKokkos<LMPHostType>)
-
+// clang-format off
+PairStyle(lj/gromacs/kk,PairLJGromacsKokkos<LMPDeviceType>);
+PairStyle(lj/gromacs/kk/device,PairLJGromacsKokkos<LMPDeviceType>);
+PairStyle(lj/gromacs/kk/host,PairLJGromacsKokkos<LMPHostType>);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_LJ_GROMACS_KOKKOS_H
@@ -46,15 +47,13 @@ class PairLJGromacsKokkos : public PairLJGromacs {
 
   struct params_lj{
     KOKKOS_INLINE_FUNCTION
-    params_lj(){cut_inner_sq=0;cut_inner=0;lj1=0;lj2=0;lj3=0;lj4=0;offset=0;ljsw1=0;ljsw2=0;ljsw3=0;ljsw4=0;ljsw5=0;};
+    params_lj() {cut_inner_sq=0;cut_inner=0;lj1=0;lj2=0;lj3=0;lj4=0;offset=0;ljsw1=0;ljsw2=0;ljsw3=0;ljsw4=0;ljsw5=0;};
     KOKKOS_INLINE_FUNCTION
-    params_lj(int /*i*/){cut_inner_sq=0;cut_inner=0;lj1=0;lj2=0;lj3=0;lj4=0;offset=0;ljsw1=0;ljsw2=0;ljsw3=0;ljsw4=0;ljsw5=0;};
+    params_lj(int /*i*/) {cut_inner_sq=0;cut_inner=0;lj1=0;lj2=0;lj3=0;lj4=0;offset=0;ljsw1=0;ljsw2=0;ljsw3=0;ljsw4=0;ljsw5=0;};
     F_FLOAT cut_inner_sq,cut_inner,lj1,lj2,lj3,lj4,offset,ljsw1,ljsw2,ljsw3,ljsw4,ljsw5;
   };
 
  protected:
-  void cleanup_copy();
-
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
   F_FLOAT compute_fpair(const F_FLOAT& rsq, const int& i, const int&j,

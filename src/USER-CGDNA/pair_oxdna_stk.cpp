@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -245,6 +246,7 @@ void PairOxdnaStk::compute(int eflag, int vflag)
 
   AtomVecEllipsoid *avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
   AtomVecEllipsoid::Bonus *bonus = avec->bonus;
+  int *ellipsoid = atom->ellipsoid;
 
   int a,b,in,atype,btype;
 
@@ -262,9 +264,9 @@ void PairOxdnaStk::compute(int eflag, int vflag)
     a = bondlist[in][1];
     b = bondlist[in][0];
 
-    qa=bonus[a].quat;
+    qa=bonus[ellipsoid[a]].quat;
     MathExtra::q_to_exyz(qa,ax,ay,az);
-    qb=bonus[b].quat;
+    qb=bonus[ellipsoid[b]].quat;
     MathExtra::q_to_exyz(qb,bx,by,bz);
 
     // vector COM a - stacking site a

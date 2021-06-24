@@ -15,7 +15,7 @@ Questions: Mitchell Wood, mitwood@sandia.gov
   The file is read line by line looking for keywords to set up this run. 
   It will read in the configuration given by the argument of the read_data command, which is supplied in this distribution.
   The type of simulation is set by the 'fix' commands, dynamic charges are controlled with 'fix qeq' and the integration style is given as 'fix nve' here.
-  More information about each of the individual commands can be found online at lammps.sandia.gov in the user manual section.
+  More information about each of the individual commands can be found online at www.lammps.org in the user manual section.
 
   *There are four free variables in this file, three of which control the size of the simulation and the last will dictate how many MD time steps are taken.
   *The size of the system is controlled by the 'replicate' command given the values of $x, $y and $z.
@@ -27,7 +27,7 @@ Questions: Mitchell Wood, mitwood@sandia.gov
     lmp_serial -in in.reaxc.hns -v x 2 -v y 2 -v z 2 -v t 100
 
 2) LAMMPS Data file for crystalline HNS
-  This file matches the LAMMPS data format, more information about this data structure can be found at lammps.sandia.gov
+  This file matches the LAMMPS data format, more information about this data structure can be found at www.lammps.org
   
   This particular data file is of the energetic material Hexanitrostilbene (HNS) with atom_style charge (id type q x y z).
   The file contains eight molecules (2 unit cells).

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,20 +18,22 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_meso_move.h"
-#include <cstring>
-#include <cmath>
+
 #include "atom.h"
-#include "update.h"
-#include "modify.h"
-#include "force.h"
-#include "domain.h"
-#include "lattice.h"
 #include "comm.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
 #include "input.h"
-#include "variable.h"
+#include "lattice.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
+#include "modify.h"
+#include "update.h"
+#include "variable.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -127,40 +130,28 @@ FixMesoMove::FixMesoMove (LAMMPS *lmp, int narg, char **arg) :
     iarg = 10;
     mstyle = VARIABLE;
     if (strcmp(arg[4],"NULL") == 0) xvarstr = nullptr;
-    else if (strstr(arg[4],"v_") == arg[4]) {
-      int n = strlen(&arg[4][2]) + 1;
-      xvarstr = new char[n];
-      strcpy(xvarstr,&arg[4][2]);
+    else if (utils::strmatch(arg[4],"^v_")) {
+      xvarstr = utils::strdup(arg[4]+2);
     } else error->all(FLERR,"Illegal fix meso/move command");
     if (strcmp(arg[5],"NULL") == 0) yvarstr = nullptr;
-    else if (strstr(arg[5],"v_") == arg[5]) {
-      int n = strlen(&arg[5][2]) + 1;
-      yvarstr = new char[n];
-      strcpy(yvarstr,&arg[5][2]);
+    else if (utils::strmatch(arg[5],"^v_")) {
+      yvarstr = utils::strdup(arg[5]+2);
     } else error->all(FLERR,"Illegal fix meso/move command");
     if (strcmp(arg[6],"NULL") == 0) zvarstr = nullptr;
-    else if (strstr(arg[6],"v_") == arg[6]) {
-      int n = strlen(&arg[6][2]) + 1;
-      zvarstr = new char[n];
-      strcpy(zvarstr,&arg[6][2]);
+    else if (utils::strmatch(arg[6],"^v_")) {
+      zvarstr = utils::strdup(arg[6]+2);
     } else error->all(FLERR,"Illegal fix meso/move command");
     if (strcmp(arg[7],"NULL") == 0) vxvarstr = nullptr;
-    else if (strstr(arg[7],"v_") == arg[7]) {
-      int n = strlen(&arg[7][2]) + 1;
-      vxvarstr = new char[n];
-      strcpy(vxvarstr,&arg[7][2]);
+    else if (utils::strmatch(arg[7],"^v_")) {
+      vxvarstr = utils::strdup(arg[7]+2);
     } else error->all(FLERR,"Illegal fix meso/move command");
     if (strcmp(arg[8],"NULL") == 0) vyvarstr = nullptr;
-    else if (strstr(arg[8],"v_") == arg[8]) {
-      int n = strlen(&arg[8][2]) + 1;
-      vyvarstr = new char[n];
-      strcpy(vyvarstr,&arg[8][2]);
+    else if (utils::strmatch(arg[8],"^v_")) {
+      vyvarstr = utils::strdup(arg[8]+2);
     } else error->all(FLERR,"Illegal fix meso/move command");
     if (strcmp(arg[9],"NULL") == 0) vzvarstr = nullptr;
-    else if (strstr(arg[9],"v_") == arg[9]) {
-      int n = strlen(&arg[9][2]) + 1;
-      vzvarstr = new char[n];
-      strcpy(vzvarstr,&arg[9][2]);
+    else if (utils::strmatch(arg[9],"^v_")) {
+      vzvarstr = utils::strdup(arg[9]+2);
     } else error->all(FLERR,"Illegal fix meso/move command");
 
   } else error->all(FLERR,"Illegal fix meso/move command");
@@ -799,9 +790,9 @@ void FixMesoMove::final_integrate () {
 ------------------------------------------------------------------------- */
 
 double FixMesoMove::memory_usage () {
-  double bytes = atom->nmax*3 * sizeof(double);
-  if (displaceflag) bytes += atom->nmax*3 * sizeof(double);
-  if (velocityflag) bytes += atom->nmax*3 * sizeof(double);
+  double bytes = (double)atom->nmax*3 * sizeof(double);
+  if (displaceflag) bytes += (double)atom->nmax*3 * sizeof(double);
+  if (velocityflag) bytes += (double)atom->nmax*3 * sizeof(double);
   return bytes;
 }
 

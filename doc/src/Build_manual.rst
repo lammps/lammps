@@ -28,29 +28,18 @@ If you downloaded LAMMPS as a tarball from `the LAMMPS website <lws_>`_,
 the html folder and the PDF files should be included.
 
 If you downloaded LAMMPS from the public git repository, then the HTML
-and PDF files are not included.  Instead you need to create them, in one
-of two ways:
-
-a. You can "fetch" the current HTML and PDF files from the LAMMPS web
-   site.  Just type ``make fetch``.  This should download a ``html_www``
-   directory and a ``Manual_www.pdf`` file.  Note that if new LAMMPS features
-   have been added more recently than the date of your LAMMPS version, the
-   fetched documentation will include those changes (but your source code
-   will not, unless you update your local repository).
-
-b. You can build the HTML or PDF files yourself, by typing ``make html``
-   or ``make pdf`` in the ``doc`` folder.  This requires various tools
-   and files.  Some of them have to be installed (see below).  For the
-   rest the build process will attempt to download and install them into
-   a python virtual environment and local folders.
+and PDF files are not included.  You can build the HTML or PDF files yourself,
+by typing ``make html``  or ``make pdf`` in the ``doc`` folder.  This requires
+various tools and files.  Some of them have to be installed (see below).  For
+the rest the build process will attempt to download and install them into
+a python virtual environment and local folders.
 
 A current version of the manual (latest patch release, aka unstable
 branch) is is available online at:
-`https://lammps.sandia.gov/doc/Manual.html
-<https://lammps.sandia.gov/doc/Manual.html>`_ A version of the manual
-corresponding to the ongoing development (aka master branch) is
-available online at: `https://docs.lammps.org/
-<https://docs.lammps.org/>`_
+`https://docs.lammps.org/Manual.html <https://docs.lammps.org/Manual.html>`_.
+A version of the manual corresponding to the ongoing development (aka master branch)
+is available online at: `https://docs.lammps.org/latest/
+<https://docs.lammps.org/latest/>`_
 
 Build using GNU make
 --------------------
@@ -74,7 +63,11 @@ For the documentation build a python virtual environment is set up in
 the folder ``doc/docenv`` and various python packages are installed into
 that virtual environment via the ``pip`` tool.  For rendering embedded
 LaTeX code also the `MathJax <https://www.mathjax.org/>`_ JavaScript
-engine needs to be downloaded.
+engine needs to be downloaded.  If you need to pass additional options
+to the pip commands to work (e.g. to use a web proxy or to point to
+additional SSL certificates) you can set them via the ``PIP_OPTIONS``
+environment variable or uncomment and edit the ``PIP_OPTIONS`` setting
+at beginning of the makefile.
 
 The actual translation is then done via ``make`` commands in the doc
 folder.  The following ``make`` commands are available:
@@ -108,7 +101,10 @@ installation of the HTML manual pages into the "install" step when
 installing LAMMPS after the CMake build via ``cmake --build . --target
 install``.  The documentation build is included in the default build
 target, but can also be requested independently with
-``cmake --build . --target doc``.
+``cmake --build . --target doc``.  If you need to pass additional options
+to the pip commands to work (e.g. to use a web proxy or to point to
+additional SSL certificates) you can set them via the ``PIP_OPTIONS``
+environment variable.
 
 .. code-block:: bash
 
@@ -250,4 +246,4 @@ the file ``lammps/doc/utils/sphinx-config/false_positives.txt``.
 
 .. _rst: https://docutils.readthedocs.io/en/sphinx-docs/user/rst/quickstart.html
 
-.. _lws: https://lammps.sandia.gov
+.. _lws: https://www.lammps.org

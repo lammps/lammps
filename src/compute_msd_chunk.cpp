@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -44,12 +45,10 @@ ComputeMSDChunk::ComputeMSDChunk(LAMMPS *lmp, int narg, char **arg) :
 
   // ID of compute chunk/atom
 
-  int n = strlen(arg[3]) + 1;
-  idchunk = new char[n];
-  strcpy(idchunk,arg[3]);
+  idchunk = utils::strdup(arg[3]);
 
   firstflag = 1;
-  init();
+  ComputeMSDChunk::init();
 
   // create a new fix STORE style for reference positions
   // id = compute-ID + COMPUTE_STORE, fix group = compute group
@@ -58,11 +57,9 @@ ComputeMSDChunk::ComputeMSDChunk(LAMMPS *lmp, int narg, char **arg) :
   //   potentially re-populate the fix array (and change it to correct size)
   // otherwise size reset and init will be done in setup()
 
-  std::string fixcmd = id + std::string("_COMPUTE_STORE");
-  id_fix = new char[fixcmd.size()+1];
-  strcpy(id_fix,fixcmd.c_str());
-
-  fixcmd += fmt::format(" {} STORE global 1 1",group->names[igroup]);
+  id_fix = utils::strdup(std::string(id) + "_COMPUTE_STORE");
+  std::string fixcmd = id_fix
+    + fmt::format(" {} STORE global 1 1",group->names[igroup]);
   modify->add_fix(fixcmd);
   fix = (FixStore *) modify->fix[modify->nfix-1];
 }
@@ -296,7 +293,7 @@ void ComputeMSDChunk::allocate()
 double ComputeMSDChunk::memory_usage()
 {
   double bytes = (bigint) nchunk * 2 * sizeof(double);
-  bytes += (bigint) nchunk * 2*3 * sizeof(double);
-  bytes += (bigint) nchunk * 4 * sizeof(double);
+  bytes += (double) nchunk * 2*3 * sizeof(double);
+  bytes += (double) nchunk * 4 * sizeof(double);
   return bytes;
 }

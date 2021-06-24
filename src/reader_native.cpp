@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -165,11 +166,11 @@ bigint ReaderNative::read_header(double box[3][3], int &boxinfo, int &triclinic,
   Tokenizer tokens(labelline);
   nwords = 0;
 
-  while(tokens.has_next()) {
+  while (tokens.has_next()) {
     labels[tokens.next()] = nwords++;
   }
 
-  if(nwords == 0) {
+  if (nwords == 0) {
     return 1;
   }
 

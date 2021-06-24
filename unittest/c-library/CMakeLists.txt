@@ -11,6 +11,7 @@ add_executable(test_library_properties test_library_properties.cpp test_main.cpp
 target_link_libraries(test_library_properties PRIVATE lammps GTest::GTest GTest::GMock)
 target_compile_definitions(test_library_properties PRIVATE -DTEST_INPUT_FOLDER=${CMAKE_CURRENT_SOURCE_DIR})
 add_test(LibraryProperties test_library_properties)
+set_tests_properties(LibraryProperties PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
 
 set(TEST_CONFIG_DEFS "-DTEST_INPUT_FOLDER=${CMAKE_CURRENT_SOURCE_DIR};-DLAMMPS_${LAMMPS_SIZES}")
 set(PKG_COUNT 0)
@@ -55,3 +56,10 @@ add_executable(test_library_config test_library_config.cpp test_main.cpp)
 target_link_libraries(test_library_config PRIVATE lammps GTest::GTest GTest::GMock)
 target_compile_definitions(test_library_config PRIVATE ${TEST_CONFIG_DEFS})
 add_test(LibraryConfig test_library_config)
+
+if(BUILD_MPI)
+  add_executable(test_library_mpi test_library_mpi.cpp)
+  target_link_libraries(test_library_mpi PRIVATE lammps GTest::GTest GTest::GMock)
+  target_compile_definitions(test_library_mpi PRIVATE ${TEST_CONFIG_DEFS})
+  add_mpi_test(NAME LibraryMPI NUM_PROCS 4 COMMAND $<TARGET_FILE:test_library_mpi>)
+endif()

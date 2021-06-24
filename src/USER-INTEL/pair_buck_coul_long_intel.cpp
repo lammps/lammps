@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -90,7 +91,7 @@ void PairBuckCoulLongIntel::compute(int eflag, int vflag,
     if (nthreads > INTEL_HTHREADS) packthreads = nthreads;
     else packthreads = 1;
     #if defined(_OPENMP)
-    #pragma omp parallel if(packthreads > 1)
+    #pragma omp parallel if (packthreads > 1)
     #endif
     {
       int ifrom, ito, tid;
@@ -200,7 +201,7 @@ void PairBuckCoulLongIntel::eval(const int offload, const int vflag,
   #endif
 
   if (offload) fix->start_watch(TIME_OFFLOAD_LATENCY);
-  #pragma offload target(mic:_cop) if(offload)                 \
+  #pragma offload target(mic:_cop) if (offload)                 \
     in(special_lj,special_coul:length(0) alloc_if(0) free_if(0)) \
     in(c_force, c_energy:length(0) alloc_if(0) free_if(0)) \
     in(rho_inv:length(0) alloc_if(0) free_if(0)) \
@@ -604,7 +605,7 @@ void PairBuckCoulLongIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
                                                            const int ntable,
                                                            Memory *memory,
                                                            const int cop) {
-  if ( (ntypes != _ntypes || ntable != _ntable) ) {
+  if ((ntypes != _ntypes || ntable != _ntable)) {
     if (_ntypes > 0) {
       #ifdef _LMP_INTEL_OFFLOAD
       flt_t * ospecial_lj = special_lj;

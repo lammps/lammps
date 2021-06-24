@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    This software is distributed under the GNU General Public License.
@@ -141,7 +142,7 @@ void PairVashishtaTableOMP::eval(int iifrom, int iito, ThrData * const thr)
       }
 
       jtype = map[type[j]];
-      ijparam = elem2param[itype][jtype][jtype];
+      ijparam = elem3param[itype][jtype][jtype];
       if (rsq >= params[ijparam].cutsq) continue;
 
       twobody_table(params[ijparam],rsq,fpair,EFLAG,evdwl);
@@ -162,7 +163,7 @@ void PairVashishtaTableOMP::eval(int iifrom, int iito, ThrData * const thr)
     for (jj = 0; jj < jnumm1; jj++) {
       j = neighshort_thr[jj];
       jtype = map[type[j]];
-      ijparam = elem2param[itype][jtype][jtype];
+      ijparam = elem3param[itype][jtype][jtype];
       delr1[0] = x[j].x - xtmp;
       delr1[1] = x[j].y - ytmp;
       delr1[2] = x[j].z - ztmp;
@@ -175,8 +176,8 @@ void PairVashishtaTableOMP::eval(int iifrom, int iito, ThrData * const thr)
       for (kk = jj+1; kk < numshort; kk++) {
         k = neighshort_thr[kk];
         ktype = map[type[k]];
-        ikparam = elem2param[itype][ktype][ktype];
-        ijkparam = elem2param[itype][jtype][ktype];
+        ikparam = elem3param[itype][ktype][ktype];
+        ijkparam = elem3param[itype][jtype][ktype];
 
         delr2[0] = x[k].x - xtmp;
         delr2[1] = x[k].y - ytmp;

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -13,26 +14,26 @@
 
 #include "fix_pour.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
 #include "atom_vec.h"
-#include "force.h"
-#include "update.h"
 #include "comm.h"
-#include "molecule.h"
-#include "modify.h"
-#include "fix_gravity.h"
 #include "domain.h"
+#include "error.h"
+#include "fix_gravity.h"
+#include "force.h"
+#include "math_const.h"
+#include "math_extra.h"
+#include "memory.h"
+#include "modify.h"
+#include "molecule.h"
+#include "random_park.h"
 #include "region.h"
 #include "region_block.h"
 #include "region_cylinder.h"
-#include "random_park.h"
-#include "math_extra.h"
-#include "math_const.h"
-#include "memory.h"
-#include "error.h"
+#include "update.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -263,7 +264,7 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
 
   nper = static_cast<int> (volfrac*volume/volume_one);
   if (nper == 0) error->all(FLERR,"Fix pour insertion count per timestep is 0");
-  int nfinal = update->ntimestep + 1 + (ninsert-1)/nper * nfreq;
+  int nfinal = update->ntimestep + 1 + ((bigint)ninsert-1)/nper * nfreq;
 
   // print stats
 
@@ -371,6 +372,14 @@ void FixPour::init()
   }
 }
 
+/* ---------------------------------------------------------------------- */
+
+void FixPour::setup_pre_exchange()
+{
+  if (ninserted < ninsert) next_reneighbor = update->ntimestep + 1;
+  else next_reneighbor = 0;
+}
+
 /* ----------------------------------------------------------------------
    perform particle insertion
 ------------------------------------------------------------------------- */
@@ -385,10 +394,12 @@ void FixPour::pre_exchange()
 
   if (next_reneighbor != update->ntimestep) return;
 
-  // clear ghost count and any ghost bonus data internal to AtomVec
+  // clear ghost count (and atom map) and any ghost bonus data
+  //   internal to AtomVec
   // same logic as beginning of Comm::exchange()
   // do it now b/c inserting atoms will overwrite ghost atoms
 
+  if (atom->map_style != Atom::MAP_NONE) atom->map_clear();
   atom->nghost = 0;
   atom->avec->clear_bonus();
 
@@ -692,7 +703,7 @@ void FixPour::pre_exchange()
   int ninserted_mols = ninserted_atoms / natom;
   ninserted += ninserted_mols;
   if (ninserted_mols < nnew && me == 0)
-    error->warning(FLERR,"Less insertions than requested",0);
+    error->warning(FLERR,"Less insertions than requested");
 
   // reset global natoms,nbonds,etc
   // increment maxtag_all and maxmol_all if necessary
@@ -705,17 +716,20 @@ void FixPour::pre_exchange()
     if (atom->natoms < 0)
       error->all(FLERR,"Too many total atoms");
     if (mode == MOLECULE) {
-      atom->nbonds += onemols[imol]->nbonds * ninserted_mols;
-      atom->nangles += onemols[imol]->nangles * ninserted_mols;
-      atom->ndihedrals += onemols[imol]->ndihedrals * ninserted_mols;
-      atom->nimpropers += onemols[imol]->nimpropers * ninserted_mols;
+      atom->nbonds += (bigint)onemols[imol]->nbonds * ninserted_mols;
+      atom->nangles += (bigint)onemols[imol]->nangles * ninserted_mols;
+      atom->ndihedrals += (bigint)onemols[imol]->ndihedrals * ninserted_mols;
+      atom->nimpropers += (bigint)onemols[imol]->nimpropers * ninserted_mols;
     }
     if (maxtag_all >= MAXTAGINT)
       error->all(FLERR,"New atom IDs exceed maximum allowed ID");
-    if (atom->map_style != Atom::MAP_NONE) {
-      atom->map_init();
-      atom->map_set();
-    }
+  }
+
+  // rebuild atom map
+
+  if (atom->map_style != Atom::MAP_NONE) {
+    if (success) atom->map_init();
+    atom->map_set();
   }
 
   // free local memory
@@ -940,18 +954,14 @@ void FixPour::options(int narg, char **arg)
 
     } else if (strcmp(arg[iarg],"rigid") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix pour command");
-      int n = strlen(arg[iarg+1]) + 1;
       delete [] idrigid;
-      idrigid = new char[n];
-      strcpy(idrigid,arg[iarg+1]);
+      idrigid = utils::strdup(arg[iarg+1]);
       rigidflag = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"shake") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix pour command");
-      int n = strlen(arg[iarg+1]) + 1;
       delete [] idshake;
-      idshake = new char[n];
-      strcpy(idshake,arg[iarg+1]);
+      idshake = utils::strdup(arg[iarg+1]);
       shakeflag = 1;
       iarg += 2;
 

@@ -1,3 +1,4 @@
+// clang-format off
 /*----------------------------------------------------------------------
   PuReMD - Purdue ReaxFF Molecular Dynamics Program
   Website: https://www.cs.purdue.edu/puremd
@@ -111,8 +112,8 @@ void Hydrogen_BondsOMP( reax_system *system, control_params *control,
      Hydrogen bond is between j and k.
      so in this function i->X, j->H, k->Z when we map
      variables onto the ones in the handout.*/
-  //  for( j = 0; j < system->n; ++j )
-  for( j = ifrom; j < ito; ++j ) {
+  //  for (j = 0; j < system->n; ++j)
+  for (j = ifrom; j < ito; ++j) {
     /* j has to be of type H */
     if (system->reax_param.sbp[system->my_atoms[j].type].p_hbond == 1) {
       /*set j's variables */
@@ -121,31 +122,31 @@ void Hydrogen_BondsOMP( reax_system *system, control_params *control,
       end_j      = End_Index(j, bonds);
       hb_start_j = Start_Index( system->my_atoms[j].Hindex, hbonds );
       hb_end_j   = End_Index( system->my_atoms[j].Hindex, hbonds );
-      if(type_j < 0) continue;
+      if (type_j < 0) continue;
 
       top = 0;
-      for( pi = start_j; pi < end_j; ++pi )  {
+      for (pi = start_j; pi < end_j; ++pi)  {
         pbond_ij = &( bond_list[pi] );
         i = pbond_ij->nbr;
         type_i = system->my_atoms[i].type;
-        if(type_i < 0) continue;
+        if (type_i < 0) continue;
         bo_ij = &(pbond_ij->bo_data);
 
-        if( system->reax_param.sbp[type_i].p_hbond == 2 &&
+        if ( system->reax_param.sbp[type_i].p_hbond == 2 &&
             bo_ij->BO >= HB_THRESHOLD )
           hblist[top++] = pi;
       }
 
-      for( pk = hb_start_j; pk < hb_end_j; ++pk ) {
+      for (pk = hb_start_j; pk < hb_end_j; ++pk) {
         /* set k's varibles */
         k = hbond_list[pk].nbr;
         type_k = system->my_atoms[k].type;
-        if(type_k < 0) continue;
+        if (type_k < 0) continue;
         nbr_jk = hbond_list[pk].ptr;
         r_jk = nbr_jk->d;
         rvec_Scale( dvec_jk, hbond_list[pk].scl, nbr_jk->dvec );
 
-        for( itr = 0; itr < top; ++itr ) {
+        for (itr = 0; itr < top; ++itr) {
           pi = hblist[itr];
           pbond_ij = &( bonds->select.bond_list[pi] );
           i = pbond_ij->nbr;
@@ -153,7 +154,7 @@ void Hydrogen_BondsOMP( reax_system *system, control_params *control,
           if (system->my_atoms[i].orig_id != system->my_atoms[k].orig_id) {
             bo_ij = &(pbond_ij->bo_data);
             type_i = system->my_atoms[i].type;
-            if(type_i < 0) continue;
+            if (type_i < 0) continue;
             hbp = &(system->reax_param.hbp[ type_i ][ type_j ][ type_k ]);
             ++num_hb_intrs;
 

@@ -50,6 +50,7 @@
 // and compiler environment then sets a collection of #define macros.
 
 #include <Kokkos_Macros.hpp>
+#include <impl/Kokkos_Error.hpp>
 #include <impl/Kokkos_Utilities.hpp>
 
 #include <Kokkos_MasterLock.hpp>
@@ -87,58 +88,16 @@ namespace Kokkos {
 class HostSpace;  ///< Memory space for main process and CPU execution spaces
 class AnonymousSpace;
 
-#ifdef KOKKOS_ENABLE_HBWSPACE
-namespace Experimental {
-class HBWSpace;  /// Memory space for hbw_malloc from memkind (e.g. for KNL
-                 /// processor)
-}
-#endif
-
-#if defined(KOKKOS_ENABLE_SERIAL)
-class Serial;  ///< Execution space main process on CPU.
-#endif
-
-#if defined(KOKKOS_ENABLE_HPX)
-namespace Experimental {
-class HPX;  ///< Execution space with HPX back-end.
-}
-#endif
-
-#if defined(KOKKOS_ENABLE_THREADS)
-class Threads;  ///< Execution space with pthreads back-end.
-#endif
-
-#if defined(KOKKOS_ENABLE_OPENMP)
-class OpenMP;  ///< OpenMP execution space.
-#endif
-
-#if defined(KOKKOS_ENABLE_OPENMPTARGET)
-namespace Experimental {
-class OpenMPTarget;  ///< OpenMPTarget execution space.
-class OpenMPTargetSpace;
-}  // namespace Experimental
-#endif
-
-#if defined(KOKKOS_ENABLE_ROCM)
-namespace Experimental {
-class ROCmSpace;  ///< Memory space on ROCm GPU
-class ROCm;       ///< Execution space for ROCm GPU
-}  // namespace Experimental
-#endif
-
-#if defined(KOKKOS_ENABLE_HIP)
-namespace Experimental {
-class HIPSpace;  ///< Memory space on HIP GPU
-class HIP;       ///< Execution space for HIP GPU
-}  // namespace Experimental
-#endif
-
 template <class ExecutionSpace, class MemorySpace>
 struct Device;
 
+// forward declare here so that backend initializer calls can use it.
+struct InitArguments;
+
 }  // namespace Kokkos
 
-#include "Cuda/Kokkos_Cuda_fwd.hpp"
+// Include backend forward statements as determined by build options
+#include <KokkosCore_Config_FwdBackend.hpp>
 
 //----------------------------------------------------------------------------
 // Set the default execution space.
@@ -168,9 +127,9 @@ using DefaultExecutionSpace KOKKOS_IMPL_DEFAULT_EXEC_SPACE_ANNOTATION =
 #elif defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_HIP)
 using DefaultExecutionSpace KOKKOS_IMPL_DEFAULT_EXEC_SPACE_ANNOTATION =
     Experimental::HIP;
-#elif defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_ROCM)
+#elif defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_SYCL)
 using DefaultExecutionSpace KOKKOS_IMPL_DEFAULT_EXEC_SPACE_ANNOTATION =
-    Experimental::ROCm;
+    Experimental::SYCL;
 #elif defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_OPENMP)
 using DefaultExecutionSpace KOKKOS_IMPL_DEFAULT_EXEC_SPACE_ANNOTATION = OpenMP;
 #elif defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_THREADS)
@@ -182,7 +141,7 @@ using DefaultExecutionSpace KOKKOS_IMPL_DEFAULT_EXEC_SPACE_ANNOTATION =
 using DefaultExecutionSpace KOKKOS_IMPL_DEFAULT_EXEC_SPACE_ANNOTATION = Serial;
 #else
 #error \
-    "At least one of the following execution spaces must be defined in order to use Kokkos: Kokkos::Cuda, Kokkos::Experimental::HIP, Kokkos::Experimental::OpenMPTarget, Kokkos::OpenMP, Kokkos::Threads, Kokkos::Experimental::HPX, or Kokkos::Serial."
+    "At least one of the following execution spaces must be defined in order to use Kokkos: Kokkos::Cuda, Kokkos::Experimental::HIP, Kokkos::Experimental::SYCL, Kokkos::Experimental::OpenMPTarget, Kokkos::OpenMP, Kokkos::Threads, Kokkos::Experimental::HPX, or Kokkos::Serial."
 #endif
 
 #if defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_OPENMP)
@@ -222,14 +181,13 @@ using DefaultHostExecutionSpace KOKKOS_IMPL_DEFAULT_HOST_EXEC_SPACE_ANNOTATION =
 // a given memory space.
 
 namespace Kokkos {
-
 namespace Impl {
 
 #if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_CUDA) && \
     defined(KOKKOS_ENABLE_CUDA)
 using ActiveExecutionMemorySpace = Kokkos::CudaSpace;
-#elif defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_ROCM_GPU)
-using ActiveExecutionMemorySpace = Kokkos::HostSpace;
+#elif defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_SYCL)
+using ActiveExecutionMemorySpace = Kokkos::Experimental::SYCLDeviceUSMSpace;
 #elif defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HIP_GPU)
 using ActiveExecutionMemorySpace = Kokkos::Experimental::HIPSpace;
 #elif defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
@@ -238,28 +196,43 @@ using ActiveExecutionMemorySpace = Kokkos::HostSpace;
 using ActiveExecutionMemorySpace = void;
 #endif
 
-template <class ActiveSpace, class MemorySpace>
-struct VerifyExecutionCanAccessMemorySpace {
-  enum { value = 0 };
+template <typename DstMemorySpace, typename SrcMemorySpace>
+struct MemorySpaceAccess;
+
+template <typename DstMemorySpace, typename SrcMemorySpace,
+          bool = Kokkos::Impl::MemorySpaceAccess<DstMemorySpace,
+                                                 SrcMemorySpace>::accessible>
+struct verify_space {
+  KOKKOS_FUNCTION static void check() {}
 };
 
-template <class Space>
-struct VerifyExecutionCanAccessMemorySpace<Space, Space> {
-  enum { value = 1 };
-  KOKKOS_INLINE_FUNCTION static void verify(void) {}
-  KOKKOS_INLINE_FUNCTION static void verify(const void *) {}
+template <typename DstMemorySpace, typename SrcMemorySpace>
+struct verify_space<DstMemorySpace, SrcMemorySpace, false> {
+  KOKKOS_FUNCTION static void check() {
+    Kokkos::abort(
+        "Kokkos::View ERROR: attempt to access inaccessible memory space");
+  };
 };
+
+// Base class for exec space initializer factories
+class ExecSpaceInitializerBase;
+
 }  // namespace Impl
+
+namespace Experimental {
+template <class, class, class, class>
+class LogicalMemorySpace;
+}
 
 }  // namespace Kokkos
 
-#define KOKKOS_RESTRICT_EXECUTION_TO_DATA(DATA_SPACE, DATA_PTR) \
-  Kokkos::Impl::VerifyExecutionCanAccessMemorySpace<            \
-      Kokkos::Impl::ActiveExecutionMemorySpace, DATA_SPACE>::verify(DATA_PTR)
+#define KOKKOS_RESTRICT_EXECUTION_TO_DATA(DATA_SPACE, DATA_PTR)        \
+  Kokkos::Impl::verify_space<Kokkos::Impl::ActiveExecutionMemorySpace, \
+                             DATA_SPACE>::check();
 
-#define KOKKOS_RESTRICT_EXECUTION_TO_(DATA_SPACE)    \
-  Kokkos::Impl::VerifyExecutionCanAccessMemorySpace< \
-      Kokkos::Impl::ActiveExecutionMemorySpace, DATA_SPACE>::verify()
+#define KOKKOS_RESTRICT_EXECUTION_TO_(DATA_SPACE)                      \
+  Kokkos::Impl::verify_space<Kokkos::Impl::ActiveExecutionMemorySpace, \
+                             DATA_SPACE>::check();
 
 //----------------------------------------------------------------------------
 
@@ -289,8 +262,7 @@ template <class ViewTypeA, class ViewTypeB, class Layout, class ExecSpace,
           int Rank, typename iType>
 struct ViewCopy;
 
-template <class Functor, class Policy, class EnableFunctor = void,
-          class EnablePolicy = void>
+template <class Functor, class Policy>
 struct FunctorPolicyExecutionSpace;
 
 //----------------------------------------------------------------------------

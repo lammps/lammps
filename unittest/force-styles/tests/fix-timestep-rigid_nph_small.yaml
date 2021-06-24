@@ -1,7 +1,7 @@
 ---
-lammps_version: 24 Aug 2020
-date_generated: Tue Sep 15 22:36:55 202
-epsilon: 5e-13
+lammps_version: 10 Feb 2021
+date_generated: Fri Feb 26 23:09:56 2021
+epsilon: 6.5e-13
 prerequisites: ! |
   atom full
   fix rigid/nph/small

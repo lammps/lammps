@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -22,7 +23,6 @@
 #include "modify.h"
 
 #include <cstring>
-#include <cctype>
 
 using namespace LAMMPS_NS;
 
@@ -49,22 +49,15 @@ Compute::Compute(LAMMPS *lmp, int narg, char **arg) :
   // compute ID, group, and style
   // ID must be all alphanumeric chars or underscores
 
-  int n = strlen(arg[0]) + 1;
-  id = new char[n];
-  strcpy(id,arg[0]);
-
-  for (int i = 0; i < n-1; i++)
-    if (!isalnum(id[i]) && id[i] != '_')
-      error->all(FLERR,
-                 "Compute ID must be alphanumeric or underscore characters");
+  id = utils::strdup(arg[0]);
+  if (!utils::is_id(id))
+    error->all(FLERR,"Compute ID must be alphanumeric or underscore characters");
 
   igroup = group->find(arg[1]);
   if (igroup == -1) error->all(FLERR,"Could not find compute group ID");
   groupbit = group->bitmask[igroup];
 
-  n = strlen(arg[2]) + 1;
-  style = new char[n];
-  strcpy(style,arg[2]);
+  style = utils::strdup(arg[2]);
 
   // set child class defaults
 
@@ -84,7 +77,7 @@ Compute::Compute(LAMMPS *lmp, int narg, char **arg) :
 
   invoked_scalar = invoked_vector = invoked_array = -1;
   invoked_peratom = invoked_local = -1;
-  invoked_flag = 0;
+  invoked_flag = INVOKED_NONE;
 
   // set modify defaults
 

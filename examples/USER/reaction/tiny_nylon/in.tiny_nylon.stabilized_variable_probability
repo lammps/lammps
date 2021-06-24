@@ -22,7 +22,7 @@ improper_style class2
 read_data tiny_nylon.data
 
 variable runsteps equal 1000
-variable prob1 equal step/v_runsteps*2
+variable prob1 equal step/v_runsteps*2+0.1
 variable prob2 equal (step/v_runsteps)>0.5
 
 velocity all create 300.0 4928459 dist gaussian

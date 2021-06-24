@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -14,9 +14,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(pressure/uef,ComputePressureUef)
-
+// clang-format off
+ComputeStyle(pressure/uef,ComputePressureUef);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_PRESSURE_UEF_H
@@ -29,23 +29,21 @@ namespace LAMMPS_NS {
 class ComputePressureUef : public ComputePressure {
  public:
   ComputePressureUef(class LAMMPS *, int, char **);
-  virtual ~ComputePressureUef(){}
+  virtual ~ComputePressureUef() {}
   virtual void init();
   virtual void compute_vector();
   virtual double compute_scalar();
   void update_rot();
-  bool in_fix; //true if this compute is used in fix/nvt/npt
-
+  bool in_fix;    //true if this compute is used in fix/nvt/npt
 
  protected:
-  bool ext_flags[3]; // true if used in average output pressure
-  void virial_rot(double*,const double[3][3]);
+  bool ext_flags[3];    // true if used in average output pressure
+  void virial_rot(double *, const double[3][3]);
   int ifix_uef;
   double rot[3][3];
 };
 
-
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

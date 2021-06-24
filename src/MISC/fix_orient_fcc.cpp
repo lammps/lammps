@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -30,7 +31,6 @@
 #include "update.h"
 
 #include <cmath>
-#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -65,7 +65,7 @@ FixOrientFCC::FixOrientFCC(LAMMPS *lmp, int narg, char **arg) :
   scalar_flag = 1;
   global_freq = 1;
   extscalar = 1;
-
+  energy_global_flag = 1;
   peratom_flag = 1;
   size_peratom_cols = 2;
   peratom_freq = 1;
@@ -80,19 +80,11 @@ FixOrientFCC::FixOrientFCC(LAMMPS *lmp, int narg, char **arg) :
   uxif_high = utils::numeric(FLERR,arg[8],false,lmp);
 
   if (direction_of_motion == 0) {
-    int n = strlen(arg[9]) + 1;
-    chifilename = new char[n];
-    strcpy(chifilename,arg[9]);
-    n = strlen(arg[10]) + 1;
-    xifilename = new char[n];
-    strcpy(xifilename,arg[10]);
+    chifilename = utils::strdup(arg[9]);
+    xifilename = utils::strdup(arg[10]);
   } else if (direction_of_motion == 1) {
-    int n = strlen(arg[9]) + 1;
-    xifilename = new char[n];
-    strcpy(xifilename,arg[9]);
-    n = strlen(arg[10]) + 1;
-    chifilename = new char[n];
-    strcpy(chifilename,arg[10]);
+    xifilename = utils::strdup(arg[9]);
+    chifilename = utils::strdup(arg[10]);
   } else error->all(FLERR,"Illegal fix orient/fcc command");
 
   // initializations
@@ -200,7 +192,6 @@ int FixOrientFCC::setmask()
 {
   int mask = 0;
   mask |= POST_FORCE;
-  mask |= THERMO_ENERGY;
   mask |= POST_FORCE_RESPA;
   return mask;
 }
@@ -209,7 +200,7 @@ int FixOrientFCC::setmask()
 
 void FixOrientFCC::init()
 {
-  if (strstr(update->integrate_style,"respa")) {
+  if (utils::strmatch(update->integrate_style,"^respa")) {
     ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
   }
@@ -235,7 +226,7 @@ void FixOrientFCC::init_list(int /*id*/, NeighList *ptr)
 
 void FixOrientFCC::setup(int vflag)
 {
-  if (strstr(update->integrate_style,"verlet"))
+  if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
     ((Respa *) update->integrate)->copy_flevel_f(ilevel_respa);
@@ -594,7 +585,7 @@ int FixOrientFCC::compare(const void *pi, const void *pj)
 
 double FixOrientFCC::memory_usage()
 {
-  double bytes = nmax * sizeof(Nbr);
-  bytes += 2*nmax * sizeof(double);
+  double bytes = (double)nmax * sizeof(Nbr);
+  bytes += (double)2*nmax * sizeof(double);
   return bytes;
 }

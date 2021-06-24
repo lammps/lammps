@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -45,7 +46,6 @@ PairADP::PairADP(LAMMPS *lmp) : Pair(lmp)
   fp = nullptr;
   mu = nullptr;
   lambda = nullptr;
-  map = nullptr;
 
   setfl = nullptr;
 
@@ -69,6 +69,7 @@ PairADP::PairADP(LAMMPS *lmp) : Pair(lmp)
   single_enable = 0;
   one_coeff = 1;
   manybody_flag = 1;
+  centroidstressflag = CENTROID_NOTAVAIL;
 }
 
 /* ----------------------------------------------------------------------
@@ -85,7 +86,6 @@ PairADP::~PairADP()
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
-    delete [] map;
     delete [] type2frho;
     memory->destroy(type2rhor);
     memory->destroy(type2z2r);
@@ -542,7 +542,7 @@ void PairADP::read_file(char *filename)
   Setfl *file = setfl;
 
   // read potential file
-  if(comm->me == 0) {
+  if (comm->me == 0) {
     PotentialFileReader reader(lmp, filename, "adp");
 
     try {
@@ -1025,6 +1025,6 @@ void PairADP::unpack_reverse_comm(int n, int *list, double *buf)
 double PairADP::memory_usage()
 {
   double bytes = Pair::memory_usage();
-  bytes += 21 * nmax * sizeof(double);
+  bytes += (double)21 * nmax * sizeof(double);
   return bytes;
 }

@@ -18,12 +18,13 @@ This compute
 
 calculates rotational kinetic energy which can be :doc:`output with thermodynamic info <Howto_output>`.
 
-Use one of these 3 pair potentials, which compute forces and torques
+Use one of these 4 pair potentials, which compute forces and torques
 between interacting pairs of particles:
 
-* :doc:`pair_style <pair_style>` gran/history
-* :doc:`pair_style <pair_style>` gran/no_history
-* :doc:`pair_style <pair_style>` gran/hertzian
+* :doc:`pair_style gran/history <pair_gran>`
+* :doc:`pair_style gran/no_history <pair_gran>`
+* :doc:`pair_style gran/hertzian <pair_gran>`
+* :doc:`pair_style granular <pair_granular>`
 
 These commands implement fix options specific to granular systems:
 
@@ -31,6 +32,7 @@ These commands implement fix options specific to granular systems:
 * :doc:`fix pour <fix_pour>`
 * :doc:`fix viscous <fix_viscous>`
 * :doc:`fix wall/gran <fix_wall_gran>`
+* :doc:`fix wall/gran/region <fix_wall_gran_region>`
 
 The fix style *freeze* zeroes both the force and torque of frozen
 atoms, and should be used for granular system instead of the fix style

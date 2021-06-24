@@ -1,3 +1,4 @@
+// clang-format off
 // -*- c++ -*-
 
 // This file is part of the Collective Variables module (Colvars).
@@ -9,7 +10,7 @@
 
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -132,7 +133,7 @@ static void rebuild_table_int(inthash_t *tptr) {
   inthash_init(tptr, old_size<<1);
   for (i=0; i<old_size; i++) {
     old_hash=old_bucket[i];
-    while(old_hash) {
+    while (old_hash) {
       tmp=old_hash;
       old_hash=old_hash->next;
       h=inthash(tptr, tmp->key);
@@ -282,6 +283,7 @@ int FixColvars::instances=0;
   tstat   <fix label>       (label of thermostatting fix)
 
  ***************************************************************/
+
 FixColvars::FixColvars(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
@@ -297,6 +299,7 @@ FixColvars::FixColvars(LAMMPS *lmp, int narg, char **arg) :
   nevery = 1;
   extscalar = 1;
   restart_global = 1;
+  energy_global_flag = 1;
 
   me = comm->me;
   root2root = MPI_COMM_NULL;
@@ -360,6 +363,7 @@ FixColvars::FixColvars(LAMMPS *lmp, int narg, char **arg) :
 /*********************************
  * Clean up on deleting the fix. *
  *********************************/
+
 FixColvars::~FixColvars()
 {
   memory->sfree(conf_file);
@@ -386,7 +390,6 @@ FixColvars::~FixColvars()
 int FixColvars::setmask()
 {
   int mask = 0;
-  mask |= THERMO_ENERGY;
   mask |= MIN_POST_FORCE;
   mask |= POST_FORCE;
   mask |= POST_FORCE_RESPA;
@@ -410,7 +413,7 @@ void FixColvars::init()
   if ((me == 0) && (update->whichflag == 2))
     error->warning(FLERR,"Using fix colvars with minimization");
 
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 }
 
@@ -678,7 +681,7 @@ void FixColvars::setup(int vflag)
     proxy->setup();
 
   // initialize forces
-  if (strstr(update->integrate_style,"verlet") || (update->whichflag == 2))
+  if (utils::strmatch(update->integrate_style,"^verlet") || (update->whichflag == 2))
     post_force(vflag);
   else {
     ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);
@@ -1000,6 +1003,6 @@ double FixColvars::compute_scalar()
 double FixColvars::memory_usage(void)
 {
   double bytes = (double) (num_coords * (2*sizeof(int)+3*sizeof(double)));
-  bytes += (double) (nmax*size_one) + sizeof(this);
+  bytes += (double)(double) (nmax*size_one) + sizeof(this);
   return bytes;
 }

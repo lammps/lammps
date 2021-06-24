@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -23,11 +24,13 @@
 #include "neighbor.h"
 #include "force.h"
 #include "update.h"
+#include "math_const.h"
 #include "error.h"
 
 
 #include "suffix.h"
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define TOLERANCE 0.05
 #define SMALL     0.001
@@ -182,27 +185,8 @@ void DihedralQuadraticOMP::eval(int nfrom, int nto, ThrData * const thr)
 
     // error check
 
-    if (c > 1.0 + TOLERANCE || c < (-1.0 - TOLERANCE)) {
-      int me = comm->me;
-
-      if (screen) {
-        char str[128];
-        sprintf(str,"Dihedral problem: %d/%d " BIGINT_FORMAT " "
-                TAGINT_FORMAT " " TAGINT_FORMAT " "
-                TAGINT_FORMAT " " TAGINT_FORMAT,
-                me,thr->get_tid(),update->ntimestep,
-                atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
-        error->warning(FLERR,str,0);
-        fprintf(screen,"  1st atom: %d %g %g %g\n",
-                me,x[i1].x,x[i1].y,x[i1].z);
-        fprintf(screen,"  2nd atom: %d %g %g %g\n",
-                me,x[i2].x,x[i2].y,x[i2].z);
-        fprintf(screen,"  3rd atom: %d %g %g %g\n",
-                me,x[i3].x,x[i3].y,x[i3].z);
-        fprintf(screen,"  4th atom: %d %g %g %g\n",
-                me,x[i4].x,x[i4].y,x[i4].z);
-      }
-    }
+    if (c > 1.0 + TOLERANCE || c < (-1.0 - TOLERANCE))
+      problem(FLERR, i1, i2, i3, i4);
 
     if (c > 1.0) c = 1.0;
     if (c < -1.0) c = -1.0;
@@ -218,6 +202,8 @@ void DihedralQuadraticOMP::eval(int nfrom, int nto, ThrData * const thr)
     siinv = 1.0/si;
 
     double dphi = phi-phi0[type];
+    if (dphi > MY_PI) dphi -= 2*MY_PI;
+    else if (dphi < -MY_PI) dphi += 2*MY_PI;
     p = k[type]*dphi;
     pd = - 2.0 * p * siinv;
     p = p * dphi;

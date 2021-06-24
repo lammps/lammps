@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -146,7 +147,7 @@ static void rebuild_table_tagint(taginthash_t *tptr) {
   taginthash_init(tptr, old_size<<1);
   for (i=0; i<old_size; i++) {
     old_hash=old_bucket[i];
-    while(old_hash) {
+    while (old_hash) {
       tmp=old_hash;
       old_hash=old_hash->next;
       h=taginthash(tptr, tmp->key);
@@ -349,7 +350,7 @@ static void id_sort(tagint *idmap, tagint left, tagint right)
 
 #include <climits>
 
-#if ( INT_MAX == 2147483647 )
+#if (INT_MAX == 2147483647)
 typedef int     int32;
 #else
 typedef short   int32;
@@ -601,7 +602,7 @@ int FixIMD::setmask()
 /* ---------------------------------------------------------------------- */
 void FixIMD::init()
 {
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 
   return;
@@ -919,7 +920,7 @@ void FixIMD::post_force(int /*vflag*/)
 
           if (imd_forces < length) { /* grow holding space for forces, if needed. */
             memory->destroy(force_buf);
-            force_buf = (void *) memory->smalloc(length*size_one,
+            force_buf = (void *) memory->smalloc((bigint)length*size_one,
                                                  "imd:force_buf");
           }
           imd_forces = length;
@@ -960,7 +961,7 @@ void FixIMD::post_force(int /*vflag*/)
       if (old_imd_forces < imd_forces) { /* grow holding space for forces, if needed. */
         if (force_buf != nullptr)
           memory->sfree(force_buf);
-        force_buf = memory->smalloc(imd_forces*size_one, "imd:force_buf");
+        force_buf = memory->smalloc((bigint)imd_forces*size_one, "imd:force_buf");
       }
     }
     MPI_Bcast(force_buf, imd_forces*size_one, MPI_BYTE, 0, world);

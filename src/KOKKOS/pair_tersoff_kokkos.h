@@ -1,7 +1,8 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
 
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -13,11 +14,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(tersoff/kk,PairTersoffKokkos<LMPDeviceType>)
-PairStyle(tersoff/kk/device,PairTersoffKokkos<LMPDeviceType>)
-PairStyle(tersoff/kk/host,PairTersoffKokkos<LMPHostType>)
-
+// clang-format off
+PairStyle(tersoff/kk,PairTersoffKokkos<LMPDeviceType>);
+PairStyle(tersoff/kk/device,PairTersoffKokkos<LMPDeviceType>);
+PairStyle(tersoff/kk/host,PairTersoffKokkos<LMPHostType>);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_TERSOFF_KOKKOS_H
@@ -153,10 +154,10 @@ class PairTersoffKokkos : public PairTersoff {
 
   struct params_ters{
     KOKKOS_INLINE_FUNCTION
-    params_ters(){powerm=0;gamma=0;lam3=0;c=0;d=0;h=0;powern=0;beta=0;lam2=0;bigb=0;
+    params_ters() {powerm=0;gamma=0;lam3=0;c=0;d=0;h=0;powern=0;beta=0;lam2=0;bigb=0;
                   bigr=0;bigd=0;lam1=0;biga=0;cutsq=0;c1=0;c2=0;c3=0;c4=0;};
     KOKKOS_INLINE_FUNCTION
-    params_ters(int /*i*/){powerm=0;gamma=0;lam3=0;c=0;d=0;h=0;powern=0;beta=0;lam2=0;bigb=0;
+    params_ters(int /*i*/) {powerm=0;gamma=0;lam3=0;c=0;d=0;h=0;powern=0;beta=0;lam2=0;bigb=0;
                   bigr=0;bigd=0;lam1=0;biga=0;cutsq=0;c1=0;c2=0;c3=0;c4=0;};
     F_FLOAT powerm, gamma, lam3, c, d, h, powern, beta, lam2, bigb, bigr,
             bigd, lam1, biga, cutsq, c1, c2, c3, c4;
@@ -181,8 +182,6 @@ class PairTersoffKokkos : public PairTersoff {
   void setup_params();
 
  protected:
-  void cleanup_copy();
-
   typedef Kokkos::DualView<int***,DeviceType> tdual_int_3d;
   Kokkos::DualView<params_ters***,Kokkos::LayoutRight,DeviceType> k_params;
   typename Kokkos::DualView<params_ters***,

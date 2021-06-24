@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -19,29 +19,38 @@
 namespace LAMMPS_NS {
 
 class MLIAPModel : protected Pointers {
-public:
-  MLIAPModel(LAMMPS*, char*);
-  ~MLIAPModel();
+ public:
+  MLIAPModel(LAMMPS *, char *);
+  virtual ~MLIAPModel();
   void set_ndescriptors(int);
   void set_nelements(int);
-  virtual int get_nparams()=0;
-  virtual int get_gamma_nnz(class MLIAPData*)=0;
-  virtual void compute_gradients(class MLIAPData*)=0;
-  virtual void compute_gradgrads(class MLIAPData*)=0;
-  virtual void compute_force_gradients(class MLIAPData*)=0;
+  virtual int get_nparams() = 0;
+  virtual int get_gamma_nnz(class MLIAPData *) = 0;
+  virtual void compute_gradients(class MLIAPData *) = 0;
+  virtual void compute_gradgrads(class MLIAPData *) = 0;
+  virtual void compute_force_gradients(class MLIAPData *) = 0;
   virtual void init();
-  virtual double memory_usage();
-  int nelements;                 // # of unique elements
-  int nonlinearflag;             // 1 if gradient() requires escriptors
-  int ndescriptors;              // number of descriptors
-  int nparams;                   // number of parameters per element
+  virtual double memory_usage() = 0;
+  int nelements;        // # of unique elements
+  int nonlinearflag;    // 1 if gradient() requires descriptors
+  int ndescriptors;     // number of descriptors
+  int nparams;          // number of parameters per element
+  double **coeffelem;    // element coefficients
 
-protected:
-  void read_coeffs(char *);
-  double **coeffelem;            // element coefficients
+ protected:
+  virtual void read_coeffs(char *) = 0;
 };
 
-}
+class MLIAPModelSimple : public MLIAPModel {
+ public:
+  MLIAPModelSimple(LAMMPS *, char *);
+  ~MLIAPModelSimple(){};
+  virtual double memory_usage();
+
+ protected:
+  virtual void read_coeffs(char *);
+};
+
+}    // namespace LAMMPS_NS
 
 #endif
-

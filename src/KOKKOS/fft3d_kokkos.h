@@ -1,6 +1,7 @@
-/* ----------------------------------------------------------------------
+// clang-format off
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -72,6 +73,7 @@ struct fft_plan_3d_kokkos {
 template<class DeviceType>
 class FFT3dKokkos : protected Pointers {
  public:
+  enum{FORWARD=1,BACKWARD=-1};
   typedef DeviceType device_type;
   typedef FFTArrayTypes<DeviceType> FFT_AT;
 

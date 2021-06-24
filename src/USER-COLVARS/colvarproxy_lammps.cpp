@@ -1,3 +1,4 @@
+// clang-format off
 // -*- c++ -*-
 
 // This file is part of the Collective Variables module (Colvars).
@@ -207,7 +208,7 @@ double colvarproxy_lammps::compute()
     first_timestep = false;
   } else {
     // Use the time step number from LAMMPS Update object
-    if ( _lmp->update->ntimestep - previous_step == 1 ) {
+    if (_lmp->update->ntimestep - previous_step == 1) {
       colvars->it++;
       b_simulation_continuing = false;
     } else {
@@ -412,7 +413,7 @@ int colvarproxy_lammps::check_atom_id(int atom_number)
         " for collective variables calculation.\n");
 
   // TODO add upper boundary check?
-  if ( (aid < 0) ) {
+  if ((aid < 0)) {
     cvm::error("Error: invalid atom number specified, "+
                cvm::to_str(atom_number)+"\n", INPUT_ERROR);
     return INPUT_ERROR;

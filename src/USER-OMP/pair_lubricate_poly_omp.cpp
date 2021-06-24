@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    This software is distributed under the GNU General Public License.
@@ -65,20 +66,20 @@ void PairLubricatePolyOMP::compute(int eflag, int vflag)
 
   double dims[3], wallcoord;
   if (flagVF) // Flag for volume fraction corrections
-    if (flagdeform || flagwall == 2){ // Possible changes in volume fraction
+    if (flagdeform || flagwall == 2) { // Possible changes in volume fraction
       if (flagdeform && !flagwall)
         for (int j = 0; j < 3; j++)
           dims[j] = domain->prd[j];
-      else if (flagwall == 2 || (flagdeform && flagwall == 1)){
+      else if (flagwall == 2 || (flagdeform && flagwall == 1)) {
          double wallhi[3], walllo[3];
-         for (int j = 0; j < 3; j++){
+         for (int j = 0; j < 3; j++) {
            wallhi[j] = domain->prd[j];
            walllo[j] = 0;
          }
-         for (int m = 0; m < wallfix->nwall; m++){
+         for (int m = 0; m < wallfix->nwall; m++) {
            int dim = wallfix->wallwhich[m] / 2;
            int side = wallfix->wallwhich[m] % 2;
-           if (wallfix->xstyle[m] == VARIABLE){
+           if (wallfix->xstyle[m] == VARIABLE) {
              wallcoord = input->variable->compute_equal(wallfix->xindex[m]);
            }
            else wallcoord = wallfix->coord0[m];

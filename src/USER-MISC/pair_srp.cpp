@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -174,9 +175,9 @@ void PairSRP::compute(int eflag, int vflag)
 
     // mapping global to local for atoms inside bond particles
     // exclude 1-2 neighs if requested
-    if (neighbor->ago == 0){
+    if (neighbor->ago == 0) {
       remapBonds(nall);
-      if(exclude) onetwoexclude(ilist, inum, jlist, numneigh, firstneigh);
+      if (exclude) onetwoexclude(ilist, inum, jlist, numneigh, firstneigh);
     }
 
   // this pair style only used with hybrid
@@ -185,7 +186,7 @@ void PairSRP::compute(int eflag, int vflag)
   // each neigh j is type bptype
 
   // using midpoint distance option
-  if(midpoint){
+  if (midpoint) {
 
     for (ii = 0; ii < inum; ii++) {
 
@@ -215,7 +216,7 @@ void PairSRP::compute(int eflag, int vflag)
         dz = 0.5*(x[i0][2] - x[i1][2] + x[j0][2] - x[j1][2]);
         dijsq = dx*dx + dy*dy + dz*dz;
 
-        if (dijsq < cutsq[bptype][bptype]){
+        if (dijsq < cutsq[bptype][bptype]) {
         dij = sqrt(dijsq);
 
         if (dij < SMALL)
@@ -248,11 +249,11 @@ void PairSRP::compute(int eflag, int vflag)
 
         // ************************************************* //
 
-        if (eflag){
+        if (eflag) {
           evdwl = 0.5 * a0[bptype][bptype] * cut[bptype][bptype] * wd * wd;
         }
 
-        if (evflag){
+        if (evflag) {
           ev_tally(i0,i1,nlocal,1,0.5*evdwl,0.0,fpair,dx,dy,dz);
           ev_tally(j0,j1,nlocal,1,0.5*evdwl,0.0,fpair,dx,dy,dz);
         }
@@ -289,7 +290,7 @@ void PairSRP::compute(int eflag, int vflag)
         getMinDist(x, dx, dy, dz, ti, tj, i0, j0, i1, j1);
         dijsq = dx*dx + dy*dy + dz*dz;
 
-        if (dijsq < cutsq[bptype][bptype]){
+        if (dijsq < cutsq[bptype][bptype]) {
 
         dij = sqrt(dijsq);
 
@@ -333,11 +334,11 @@ void PairSRP::compute(int eflag, int vflag)
 
         // ************************************************* //
 
-        if (eflag){
+        if (eflag) {
           evdwl = 0.5 * a0[bptype][bptype] * cut[bptype][bptype] * wd * wd;
         }
 
-        if (evflag){
+        if (evflag) {
           ev_tally(i0,i1,nlocal,1,0.5*evdwl,0.0,0.5*fpair,dx,dy,dz);
           ev_tally(j0,j1,nlocal,1,0.5*evdwl,0.0,0.5*fpair,dx,dy,dz);
         }
@@ -394,7 +395,7 @@ void PairSRP::settings(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair srp command");
       if (strcmp(arg[iarg+1],"yes") == 0)
         exclude = 1;
-      if (strcmp(arg[iarg+1],"no") == 0){
+      if (strcmp(arg[iarg+1],"no") == 0) {
         if (min) error->all(FLERR,"Illegal exclude option in pair srp command");
         exclude = 0;
       }
@@ -552,8 +553,8 @@ inline void PairSRP::getMinDist(double** &x, double &dx, double &dy, double &dz,
 
     // handle case of parallel lines
     // reduce to midpt distance
-    if (fabs(denom) < SMALL){
-        if(denom < 0) denom = -BIG;
+    if (fabs(denom) < SMALL) {
+        if (denom < 0) denom = -BIG;
         else denom = BIG;
     }
 
@@ -586,7 +587,7 @@ map global id of atoms in stored by each bond particle
  ------------------------------------------------------- */
 inline void PairSRP::remapBonds(int &nall)
 {
-  if(nall > maxcount){
+  if (nall > maxcount) {
     memory->grow(segment, nall, 2, "pair:segment");
     maxcount = nall;
   }
@@ -600,7 +601,7 @@ inline void PairSRP::remapBonds(int &nall)
   srp = f_srp->array_atom;
 
     for (int i = 0; i < nall; i++) {
-      if(atom->type[i] == bptype){
+      if (atom->type[i] == bptype) {
         // tmp is local id
         // tmp == -1 is ok
         tmp = atom->map((int)srp[i][0]);
@@ -643,7 +644,7 @@ inline void PairSRP::onetwoexclude(int* &ilist, int &inum, int* &jlist, int* &nu
         j1 = segment[j][1];
 
         // check for a 1-2 neigh
-        if(i0 == i1 || i0 == j1 || i1 == j0 || j0 == j1){
+        if (i0 == i1 || i0 == j1 || i1 == j0 || j0 == j1) {
           j |= ONETWOBIT;
           jlist[jj] = j;
         }

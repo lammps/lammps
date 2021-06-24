@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -155,7 +156,7 @@ static void readbuffer(int sockfd, char *data, int len, Error* error)
 
   n = nr = read(sockfd,data,len);
 
-  while (nr>0 && n<len ) {
+  while (nr>0 && n<len) {
     nr=read(sockfd,&data[n],len-n);
     n+=nr;
   }

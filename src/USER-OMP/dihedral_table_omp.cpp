@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -344,7 +345,7 @@ void DihedralTableOMP::eval(int nfrom, int nto, ThrData * const thr)
     //          d U          d U      d phi
     // -f  =   -----   =    -----  *  -----
     //          d x         d phi      d x
-    for(int d=0; d < g_dim; ++d) {
+    for (int d=0; d < g_dim; ++d) {
       f1[d] = m_du_dphi * dphi_dx1[d];
       f2[d] = m_du_dphi * dphi_dx2[d];
       f3[d] = m_du_dphi * dphi_dx3[d];

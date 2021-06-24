@@ -182,6 +182,8 @@ Examples
    pair_coeff * * 100.0 2.0 1.5 1.0
    pair_coeff 1 1 100.0 2.0 1.5 1.0 3.0
 
+Example input scripts available: examples/USER/fep
+
 Description
 """""""""""
 
@@ -363,7 +365,7 @@ Mixing, shift, table, tail correction, restart, rRESPA info
 
 The different versions of the *lj/cut/soft* pair styles support mixing.  For
 atom type pairs I,J and I != J, the :math:`\epsilon` and :math:`\sigma`
-coefficients and cutoff distance for these pair style can be mixed.  The default
+coefficients and cutoff distance for these pair styles can be mixed.  The default
 mix value is *geometric* for 12-6 styles.
 
 The mixing rule for epsilon and sigma for *lj/class2/soft* 9-6 potentials is to

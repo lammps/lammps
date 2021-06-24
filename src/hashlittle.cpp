@@ -1,3 +1,4 @@
+// clang-format off
 // Hash function hashlittle()
 // from lookup3.c, by Bob Jenkins, May 2006, Public Domain
 // bob_jenkins@burtleburtle.net
@@ -327,13 +328,13 @@ uint32_t LAMMPS_NS::hashlittle(const void *key, size_t length, uint32_t initval)
   h = 0;
   for (p = (uint32_t *)key, bytes=num_bytes;
        bytes >= (uint32_t) sizeof(uint32_t);
-       bytes-=sizeof(uint32_t), p++){
+       bytes-=sizeof(uint32_t), p++) {
     h = (h^(*p))*MAXINT_DIV_PHI;
   }
 
   /* Then take care of the remaining bytes, if any */
   rest = 0;
-  for (byteptr = (char *)p; bytes > 0; bytes--, byteptr++){
+  for (byteptr = (char *)p; bytes > 0; bytes--, byteptr++) {
     rest = (rest<<8) | (*byteptr);
   }
 

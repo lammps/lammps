@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,9 +16,7 @@
 
 #include "error.h"
 #include "memory.h"
-#include "version.h"
 
-#include <cctype>
 #include <cstring>
 
 using namespace LAMMPS_NS;
@@ -113,8 +112,8 @@ void Universe::reorder(char *style, char *arg)
       rv = sscanf(line,"%d %d",&me_orig,&me_new);
       if (me_orig < 0 || me_orig >= nprocs ||
           me_new < 0 || me_new >= nprocs || rv != 2)
-        error->one(FLERR,fmt::format("Invalid entry '{} {}' in -reorder "
-                                     "file", me_orig, me_new));
+        error->one(FLERR,"Invalid entry '{} {}' in -reorder "
+                                     "file", me_orig, me_new);
       uni2orig[me_new] = me_orig;
 
       for (int i = 1; i < nprocs; i++) {
@@ -123,8 +122,8 @@ void Universe::reorder(char *style, char *arg)
         rv = sscanf(line,"%d %d",&me_orig,&me_new);
         if (me_orig < 0 || me_orig >= nprocs ||
             me_new < 0 || me_new >= nprocs || rv != 2)
-          error->one(FLERR,fmt::format("Invalid entry '{} {}' in -reorder "
-                                       "file", me_orig, me_new));
+          error->one(FLERR,"Invalid entry '{} {}' in -reorder "
+                                       "file", me_orig, me_new);
         uni2orig[me_new] = me_orig;
       }
       fclose(fp);
@@ -158,7 +157,6 @@ void Universe::reorder(char *style, char *arg)
 void Universe::add_world(char *str)
 {
   int n,nper;
-  char *ptr;
 
   n = 1;
   nper = 0;
@@ -171,28 +169,23 @@ void Universe::add_world(char *str)
 
     // str may not be empty and may only consist of digits or 'x'
 
-    size_t len = strlen(str);
-    if (len < 1) valid = false;
-    for (size_t i=0; i < len; ++i)
-      if (isdigit(str[i]) || str[i] == 'x') continue;
-      else valid = false;
+    std::string part(str);
+    if (part.size() == 0) valid = false;
+    if (part.find_first_not_of("0123456789x") != std::string::npos) valid = false;
 
     if (valid) {
-      if ((ptr = strchr(str,'x')) != nullptr) {
+      std::size_t found = part.find_first_of("x");
 
-        // 'x' may not be the first or last character
+      // 'x' may not be the first or last character
 
-        if (ptr == str) {
-          valid = false;
-        } else if (strlen(str) == len-1) {
-          valid = false;
-        } else {
-          *ptr = '\0';
-          n = atoi(str);
-          nper = atoi(ptr+1);
-          *ptr = 'x';
-        }
-      } else nper = atoi(str);
+      if ((found == 0) || (found == (part.size() - 1))) {
+        valid = false;
+      } else if (found == std::string::npos) {
+        nper = atoi(part.c_str());
+      } else {
+        n = atoi(part.substr(0,found).c_str());
+        nper = atoi(part.substr(found+1).c_str());
+      }
     }
 
     // require minimum of 1 partition with 1 processor

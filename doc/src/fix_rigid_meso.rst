@@ -48,8 +48,8 @@ Examples
    fix 1 ellipsoid rigid/meso single
    fix 1 rods      rigid/meso molecule
    fix 1 spheres   rigid/meso single force 1 off off on
-   fix 1 particles rigid/meso molecule force 1\*5 off off off force 6\*10 off off on
-   fix 2 spheres   rigid/meso group 3 sphere1 sphere2 sphere3 torque \* off off off
+   fix 1 particles rigid/meso molecule force 1*5 off off off force 6*10 off off on
+   fix 2 spheres   rigid/meso group 3 sphere1 sphere2 sphere3 torque * off off off
 
 Description
 """""""""""

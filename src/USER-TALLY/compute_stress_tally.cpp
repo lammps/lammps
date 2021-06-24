@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -124,7 +125,7 @@ void ComputeStressTally::pair_tally_callback(int i, int j, int nlocal, int newto
   const int * const mask = atom->mask;
 
   if ( ((mask[i] & groupbit) && (mask[j] & groupbit2))
-       || ((mask[i] & groupbit2) && (mask[j] & groupbit)) ) {
+       || ((mask[i] & groupbit2) && (mask[j] & groupbit))) {
 
     fpair *= 0.5;
     const double v0 = dx*dx*fpair;

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/ Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -10,15 +10,13 @@
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
-#ifndef TEST_EXTENSIONS__H
-#define TEST_EXTENSIONS__H
+#ifndef LMP_TESTING_UTILS_H
+#define LMP_TESTING_UTILS_H
 
+#include <fstream>
+#include <iostream>
 #include <string>
 #include <vector>
-#include <iostream>
-#include <fstream>
-#include <sys/types.h>
-#include <sys/stat.h>
 
 static void delete_file(const std::string &filename)
 {
@@ -44,14 +42,15 @@ static bool equal_lines(const std::string &fileA, const std::string &fileB)
     std::string lineA, lineB;
 
     while (std::getline(afile, lineA)) {
-        if(!std::getline(bfile, lineB)) return false;
-        if(lineA != lineB) return false;
+        if (!std::getline(bfile, lineB)) return false;
+        if (lineA != lineB) return false;
     }
 
     return true;
 }
 
-static std::vector<std::string> read_lines(const std::string &filename) {
+static std::vector<std::string> read_lines(const std::string &filename)
+{
     std::vector<std::string> lines;
     std::ifstream infile(filename);
     std::string line;
@@ -62,12 +61,16 @@ static std::vector<std::string> read_lines(const std::string &filename) {
     return lines;
 }
 
-static bool file_exists(const std::string &filename) {
-    struct stat result;
-    return stat(filename.c_str(), &result) == 0;
+static bool file_exists(const std::string &filename)
+{
+    std::ifstream infile(filename);
+    return infile.good();
 }
 
 #define ASSERT_FILE_EXISTS(NAME) ASSERT_TRUE(file_exists(NAME))
+#define ASSERT_FILE_NOT_EXISTS(NAME) ASSERT_FALSE(file_exists(NAME))
 #define ASSERT_FILE_EQUAL(FILE_A, FILE_B) ASSERT_TRUE(equal_lines(FILE_A, FILE_B))
+
+
 
 #endif

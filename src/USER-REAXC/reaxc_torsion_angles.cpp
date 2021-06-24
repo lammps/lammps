@@ -1,3 +1,4 @@
+// clang-format off
 /*----------------------------------------------------------------------
   PuReMD - Purdue ReaxFF Molecular Dynamics Program
 
@@ -85,9 +86,9 @@ double Calculate_Omega( rvec dvec_ij, double r_ij,
   if (arg < -1.0) arg = -1.0;
 
   if (sin_ijk >= 0 && sin_ijk <= MIN_SINE) sin_ijk = MIN_SINE;
-  else if( sin_ijk <= 0 && sin_ijk >= -MIN_SINE ) sin_ijk = -MIN_SINE;
+  else if (sin_ijk <= 0 && sin_ijk >= -MIN_SINE) sin_ijk = -MIN_SINE;
   if (sin_jkl >= 0 && sin_jkl <= MIN_SINE) sin_jkl = MIN_SINE;
-  else if( sin_jkl <= 0 && sin_jkl >= -MIN_SINE ) sin_jkl = -MIN_SINE;
+  else if (sin_jkl <= 0 && sin_jkl >= -MIN_SINE) sin_jkl = -MIN_SINE;
 
   // dcos_omega_di
   rvec_ScaledSum( dcos_omega_di, (htra-arg*hnra)/r_ij, dvec_ij, -1., dvec_li );
@@ -169,13 +170,13 @@ void Torsion_Angles( reax_system *system, control_params *control,
 
   natoms = system->n;
 
-  for( j = 0; j < natoms; ++j ) {
+  for (j = 0; j < natoms; ++j) {
     type_j = system->my_atoms[j].type;
     Delta_j = workspace->Delta_boc[j];
     start_j = Start_Index(j, bonds);
     end_j = End_Index(j, bonds);
 
-    for( pk = start_j; pk < end_j; ++pk ) {
+    for (pk = start_j; pk < end_j; ++pk) {
       pbond_jk = &( bonds->select.bond_list[pk] );
       k = pbond_jk->nbr;
       bo_jk = &( pbond_jk->bo_data );
@@ -212,7 +213,7 @@ void Torsion_Angles( reax_system *system, control_params *control,
           exp_tor34_inv = 1.0 / (1.0 + exp_tor3_DjDk + exp_tor4_DjDk);
           f11_DjDk = (2.0 + exp_tor3_DjDk) * exp_tor34_inv;
 
-          for( pi = start_pk; pi < end_pk; ++pi ) {
+          for (pi = start_pk; pi < end_pk; ++pi) {
             p_ijk = &( thb_intrs->select.three_body_list[pi] );
             pij = p_ijk->pthb; // pij is pointer to i on j's bond_list
             pbond_ij = &( bonds->select.bond_list[pij] );
@@ -230,14 +231,14 @@ void Torsion_Angles( reax_system *system, control_params *control,
               //tan_ijk_i = 1. / tan( theta_ijk );
               if (sin_ijk >= 0 && sin_ijk <= MIN_SINE)
                 tan_ijk_i = cos_ijk / MIN_SINE;
-              else if( sin_ijk <= 0 && sin_ijk >= -MIN_SINE )
+              else if (sin_ijk <= 0 && sin_ijk >= -MIN_SINE)
                 tan_ijk_i = cos_ijk / -MIN_SINE;
               else tan_ijk_i = cos_ijk / sin_ijk;
 
               exp_tor2_ij = exp( -p_tor2 * BOA_ij );
               exp_cot2_ij = exp( -p_cot2 * SQR(BOA_ij -1.5) );
 
-              for( pl = start_pj; pl < end_pj; ++pl ) {
+              for (pl = start_pj; pl < end_pj; ++pl) {
                 p_jkl = &( thb_intrs->select.three_body_list[pl] );
                 l = p_jkl->thb;
                 plk = p_jkl->pthb; //pointer to l on k's bond_list!
@@ -249,9 +250,9 @@ void Torsion_Angles( reax_system *system, control_params *control,
                 fbp = &(system->reax_param.fbp[type_i][type_j]
                         [type_k][type_l].prm[0]);
 
-                if( i != l && fbh->cnt &&
+                if ( i != l && fbh->cnt &&
                     bo_kl->BO > control->thb_cut/*0*/ &&
-                    bo_ij->BO * bo_jk->BO * bo_kl->BO > control->thb_cut/*0*/ ){
+                    bo_ij->BO * bo_jk->BO * bo_kl->BO > control->thb_cut/*0*/) {
                   ++num_frb_intrs;
                   r_kl = pbond_kl->d;
                   BOA_kl = bo_kl->BO - control->thb_cut;
@@ -262,7 +263,7 @@ void Torsion_Angles( reax_system *system, control_params *control,
                   //tan_jkl_i = 1. / tan( theta_jkl );
                   if (sin_jkl >= 0 && sin_jkl <= MIN_SINE)
                     tan_jkl_i = cos_jkl / MIN_SINE;
-                  else if( sin_jkl <= 0 && sin_jkl >= -MIN_SINE )
+                  else if (sin_jkl <= 0 && sin_jkl >= -MIN_SINE)
                     tan_jkl_i = cos_jkl / -MIN_SINE;
                   else tan_jkl_i = cos_jkl /sin_jkl;
 

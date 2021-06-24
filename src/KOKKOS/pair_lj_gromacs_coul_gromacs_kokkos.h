@@ -1,6 +1,7 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,11 +13,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(lj/gromacs/coul/gromacs/kk,PairLJGromacsCoulGromacsKokkos<LMPDeviceType>)
-PairStyle(lj/gromacs/coul/gromacs/kk/device,PairLJGromacsCoulGromacsKokkos<LMPDeviceType>)
-PairStyle(lj/gromacs/coul/gromacs/kk/host,PairLJGromacsCoulGromacsKokkos<LMPHostType>)
-
+// clang-format off
+PairStyle(lj/gromacs/coul/gromacs/kk,PairLJGromacsCoulGromacsKokkos<LMPDeviceType>);
+PairStyle(lj/gromacs/coul/gromacs/kk/device,PairLJGromacsCoulGromacsKokkos<LMPDeviceType>);
+PairStyle(lj/gromacs/coul/gromacs/kk/host,PairLJGromacsCoulGromacsKokkos<LMPHostType>);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_LJ_GROMACS_COUL_GROMACS_KOKKOS_H
@@ -47,15 +48,13 @@ class PairLJGromacsCoulGromacsKokkos : public PairLJGromacsCoulGromacs {
 
   struct params_lj_coul_gromacs{
     KOKKOS_INLINE_FUNCTION
-    params_lj_coul_gromacs(){cut_ljsq=0;cut_coulsq=0;lj1=0;lj2=0;lj3=0;lj4=0;offset=0;ljsw1=0;ljsw2=0;ljsw3=0;ljsw4=0;ljsw5=0;};
+    params_lj_coul_gromacs() {cut_ljsq=0;cut_coulsq=0;lj1=0;lj2=0;lj3=0;lj4=0;offset=0;ljsw1=0;ljsw2=0;ljsw3=0;ljsw4=0;ljsw5=0;};
     KOKKOS_INLINE_FUNCTION
-    params_lj_coul_gromacs(int /*i*/){cut_ljsq=0;cut_coulsq=0;lj1=0;lj2=0;lj3=0;lj4=0;offset=0;ljsw1=0;ljsw2=0;ljsw3=0;ljsw4=0;ljsw5=0;};
+    params_lj_coul_gromacs(int /*i*/) {cut_ljsq=0;cut_coulsq=0;lj1=0;lj2=0;lj3=0;lj4=0;offset=0;ljsw1=0;ljsw2=0;ljsw3=0;ljsw4=0;ljsw5=0;};
     F_FLOAT cut_ljsq,cut_coulsq,lj1,lj2,lj3,lj4,offset,ljsw1,ljsw2,ljsw3,ljsw4,ljsw5;
   };
 
  protected:
-  void cleanup_copy();
-
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
   F_FLOAT compute_fpair(const F_FLOAT& rsq, const int& i, const int&j,
@@ -100,9 +99,7 @@ class PairLJGromacsCoulGromacsKokkos : public PairLJGromacsCoulGromacs {
 
   typename AT::tdual_ffloat_2d k_cutsq;
   typename AT::t_ffloat_2d d_cutsq;
-  typename AT::tdual_ffloat_2d k_cut_ljsq;
   typename AT::t_ffloat_2d d_cut_ljsq;
-  typename AT::tdual_ffloat_2d k_cut_coulsq;
   typename AT::t_ffloat_2d d_cut_coulsq;
 
   typename AT::t_ffloat_1d_randomread

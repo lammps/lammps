@@ -1,6 +1,7 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,11 +13,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(coul/debye/kk,PairCoulDebyeKokkos<LMPDeviceType>)
-PairStyle(coul/debye/kk/device,PairCoulDebyeKokkos<LMPDeviceType>)
-PairStyle(coul/debye/kk/host,PairCoulDebyeKokkos<LMPHostType>)
-
+// clang-format off
+PairStyle(coul/debye/kk,PairCoulDebyeKokkos<LMPDeviceType>);
+PairStyle(coul/debye/kk/device,PairCoulDebyeKokkos<LMPDeviceType>);
+PairStyle(coul/debye/kk/host,PairCoulDebyeKokkos<LMPHostType>);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_COUL_DEBYE_KOKKOS_H
@@ -46,15 +47,13 @@ class PairCoulDebyeKokkos : public PairCoulDebye {
 
   struct params_coul{
     KOKKOS_INLINE_FUNCTION
-    params_coul(){cutsq=0,scale=0;};
+    params_coul() {cutsq=0,scale=0;};
     KOKKOS_INLINE_FUNCTION
-    params_coul(int /*i*/){cutsq=0,scale=0;};
+    params_coul(int /*i*/) {cutsq=0,scale=0;};
     F_FLOAT cutsq, scale;
   };
 
  protected:
-  void cleanup_copy();
-
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
   F_FLOAT compute_fpair(const F_FLOAT& /*rsq*/, const int& /*i*/, const int& /*j*/,

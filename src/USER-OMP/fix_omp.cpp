@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -203,9 +204,9 @@ void FixOMP::init()
     thr[i]->_timer_active=-1;
   }
 
-  if ((strstr(update->integrate_style,"respa") != nullptr)
-      && (strstr(update->integrate_style,"respa/omp") == nullptr))
-    error->all(FLERR,"Need to use respa/omp for r-RESPA with /omp styles");
+  if (utils::strmatch(update->integrate_style,"^respa")
+      && !utils::strmatch(update->integrate_style,"^respa/omp"))
+    error->all(FLERR,"Must use respa/omp for r-RESPA with /omp styles");
 
   if (force->pair && force->pair->compute_flag) _pair_compute_flag = true;
   else _pair_compute_flag = false;
@@ -371,8 +372,8 @@ void FixOMP::pre_force(int)
 
 double FixOMP::memory_usage()
 {
-  double bytes = _nthr * (sizeof(ThrData *) + sizeof(ThrData));
-  bytes += _nthr * thr[0]->memory_usage();
+  double bytes = (double)_nthr * (sizeof(ThrData *) + sizeof(ThrData));
+  bytes += (double)_nthr * thr[0]->memory_usage();
 
   return bytes;
 }

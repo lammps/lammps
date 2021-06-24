@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -201,8 +202,7 @@ void FixRigidNHOMP::initial_integrate(int vflag)
 
   // virial setup before call to set_xv
 
-  if (vflag) v_setup(vflag);
-  else evflag = 0;
+  v_init(vflag);
 
   // remap simulation box by 1/2 step
 
@@ -235,8 +235,6 @@ void FixRigidNHOMP::initial_integrate(int vflag)
 
 void FixRigidNHOMP::compute_forces_and_torques()
 {
-  int ibody;
-
   double * const * _noalias const x = atom->x;
   const dbl3_t * _noalias const f = (dbl3_t *) atom->f[0];
   const double * const * const torque_one = atom->torque;
@@ -374,9 +372,9 @@ void FixRigidNHOMP::compute_forces_and_torques()
   MPI_Allreduce(sum[0],all[0],6*nbody,MPI_DOUBLE,MPI_SUM,world);
 
 #if defined(_OPENMP)
-#pragma omp parallel for LMP_DEFAULT_NONE private(ibody) schedule(static)
+#pragma omp parallel for LMP_DEFAULT_NONE schedule(static)
 #endif
-  for (ibody = 0; ibody < nbody; ibody++) {
+  for (int ibody = 0; ibody < nbody; ibody++) {
     fcm[ibody][0] = all[ibody][0] + langextra[ibody][0];
     fcm[ibody][1] = all[ibody][1] + langextra[ibody][1];
     fcm[ibody][2] = all[ibody][2] + langextra[ibody][2];
@@ -389,9 +387,9 @@ void FixRigidNHOMP::compute_forces_and_torques()
 
   if (id_gravity) {
 #if defined(_OPENMP)
-#pragma omp parallel for LMP_DEFAULT_NONE private(ibody) schedule(static)
+#pragma omp parallel for LMP_DEFAULT_NONE schedule(static)
 #endif
-    for (ibody = 0; ibody < nbody; ibody++) {
+    for (int ibody = 0; ibody < nbody; ibody++) {
       fcm[ibody][0] += gvec[0]*masstotal[ibody];
       fcm[ibody][1] += gvec[1]*masstotal[ibody];
       fcm[ibody][2] += gvec[2]*masstotal[ibody];
@@ -629,12 +627,11 @@ void FixRigidNHOMP::set_xv_thr()
   // set x and v of each atom
 
   const int nlocal = atom->nlocal;
-  int i;
 
 #if defined(_OPENMP)
-#pragma omp parallel for LMP_DEFAULT_NONE private(i) reduction(+:v0,v1,v2,v3,v4,v5)
+#pragma omp parallel for LMP_DEFAULT_NONE reduction(+:v0,v1,v2,v3,v4,v5)
 #endif
-  for (i = 0; i < nlocal; i++) {
+  for (int i = 0; i < nlocal; i++) {
     const int ibody = body[i];
     if (ibody < 0) continue;
 
@@ -830,12 +827,11 @@ void FixRigidNHOMP::set_v_thr()
   // set v of each atom
 
   const int nlocal = atom->nlocal;
-  int i;
 
 #if defined(_OPENMP)
-#pragma omp parallel for LMP_DEFAULT_NONE private(i) reduction(+:v0,v1,v2,v3,v4,v5)
+#pragma omp parallel for LMP_DEFAULT_NONE reduction(+:v0,v1,v2,v3,v4,v5)
 #endif
-  for (i = 0; i < nlocal; i++) {
+  for (int i = 0; i < nlocal; i++) {
     const int ibody = body[i];
     if (ibody < 0) continue;
 

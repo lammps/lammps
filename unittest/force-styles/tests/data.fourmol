@@ -46,6 +46,19 @@ Angle Coeffs # zero
 3 120
 4 108.5
 
+Dihedral Coeffs # zero
+
+1
+2
+3
+4
+5
+
+Improper Coeffs # zero
+
+1
+2
+
 Atoms # full
 
 10 2 1 7.0000000000000007e-02 2.0185283555536988e+00 -1.4283966846517357e+00 -9.6733527271133024e-01 0 0 0

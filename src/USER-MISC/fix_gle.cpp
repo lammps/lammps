@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -29,7 +30,6 @@
 #include "random_mars.h"
 #include "memory.h"
 #include "error.h"
-
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -186,6 +186,8 @@ void MatrixExp(int n, const double* M, double* EM, int j=8, int k=8)
 }
 }
 
+/* ---------------------------------------------------------------------- */
+
 FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
@@ -193,6 +195,7 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Illegal fix gle command. Expecting: fix <fix-ID>"
                " <group-ID> gle <ns> <Tstart> <Tstop> <seed> <Amatrix>");
 
+  ecouple_flag = 1;
   restart_peratom = 1;
   time_integrate = 1;
 
@@ -265,7 +268,7 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
 
   fnoneq=0; gle_every=1; gle_step=0;
   for (int iarg=8; iarg<narg; iarg+=2) {
-    if(strcmp(arg[iarg],"noneq") == 0) {
+    if (strcmp(arg[iarg],"noneq") == 0) {
       fnoneq = 1;
       if (iarg+2>narg)
         error->all(FLERR,"Did not specify C matrix for non-equilibrium GLE");
@@ -395,9 +398,6 @@ int FixGLE::setmask()
   mask |= FINAL_INTEGRATE;
   mask |= INITIAL_INTEGRATE_RESPA;
   mask |= FINAL_INTEGRATE_RESPA;
-  mask |= THERMO_ENERGY;
-
-
   return mask;
 }
 
@@ -417,7 +417,7 @@ void FixGLE::init()
     }
   }
 
-  if (strstr(update->integrate_style,"respa")) {
+  if (utils::strmatch(update->integrate_style,"^respa")) {
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
     step_respa = ((Respa *) update->integrate)->step;
   }
@@ -499,12 +499,11 @@ void FixGLE::init_gles()
   return;
 }
 
-
 /* ---------------------------------------------------------------------- */
 
 void FixGLE::setup(int vflag)
 {
-  if (strstr(update->integrate_style,"verlet"))
+  if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
     ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);
@@ -512,6 +511,8 @@ void FixGLE::setup(int vflag)
     ((Respa *) update->integrate)->copy_f_flevel(nlevels_respa-1);
   }
 }
+
+/* ---------------------------------------------------------------------- */
 
 void FixGLE::gle_integrate()
 {
@@ -762,7 +763,7 @@ void FixGLE::reset_dt()
 
 double FixGLE::memory_usage()
 {
-  double bytes = atom->nmax*(3*ns+2*3*(ns+1))*sizeof(double);
+  double bytes = (double)atom->nmax*(3*ns+2*3*(ns+1))*sizeof(double);
   return bytes;
 }
 

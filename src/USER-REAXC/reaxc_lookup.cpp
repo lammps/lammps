@@ -1,3 +1,4 @@
+// clang-format off
 /*----------------------------------------------------------------------
   PuReMD - Purdue ReaxFF Molecular Dynamics Program
 
@@ -31,20 +32,20 @@
 #include "reaxc_tool_box.h"
 
 void Tridiagonal_Solve( const double *a, const double *b,
-                        double *c, double *d, double *x, unsigned int n){
+                        double *c, double *d, double *x, unsigned int n) {
   int i;
   double id;
 
   c[0] /= b[0];        /* Division by zero risk. */
   d[0] /= b[0];        /* Division by zero would imply a singular matrix. */
-  for(i = 1; i < (int)n; i++){
+  for (i = 1; i < (int)n; i++) {
     id = (b[i] - c[i-1] * a[i]);  /* Division by zero risk. */
     c[i] /= id;                /* Last value calculated is redundant. */
     d[i] = (d[i] - d[i-1] * a[i])/id;
   }
 
   x[n - 1] = d[n - 1];
-  for(i = n - 2; i >= 0; i--)
+  for (i = n - 2; i >= 0; i--)
     x[i] = d[i] - c[i] * x[i + 1];
 }
 
@@ -64,26 +65,26 @@ void Natural_Cubic_Spline( LAMMPS_NS::Error* error_ptr, const double *h, const d
 
   /* build the linear system */
   a[0] = a[1] = a[n-1] = 0;
-  for( i = 2; i < (int)n-1; ++i )
+  for (i = 2; i < (int)n-1; ++i)
     a[i] = h[i-1];
 
   b[0] = b[n-1] = 0;
-  for( i = 1; i < (int)n-1; ++i )
+  for (i = 1; i < (int)n-1; ++i)
     b[i] = 2 * (h[i-1] + h[i]);
 
   c[0] = c[n-2] = c[n-1] = 0;
-  for( i = 1; i < (int)n-2; ++i )
+  for (i = 1; i < (int)n-2; ++i)
     c[i] = h[i];
 
   d[0] = d[n-1] = 0;
-  for( i = 1; i < (int)n-1; ++i )
+  for (i = 1; i < (int)n-1; ++i)
     d[i] = 6 * ((f[i+1]-f[i])/h[i] - (f[i]-f[i-1])/h[i-1]);
 
   v[0] = 0;
   v[n-1] = 0;
   Tridiagonal_Solve( &(a[1]), &(b[1]), &(c[1]), &(d[1]), &(v[1]), n-2 );
 
-  for( i = 1; i < (int)n; ++i ){
+  for (i = 1; i < (int)n; ++i) {
     coef[i-1].d = (v[i] - v[i-1]) / (6*h[i-1]);
     coef[i-1].c = v[i]/2;
     coef[i-1].b = (f[i]-f[i-1])/h[i-1] + h[i-1]*(2*v[i] + v[i-1])/6;
@@ -114,25 +115,25 @@ void Complete_Cubic_Spline( LAMMPS_NS::Error* error_ptr, const double *h, const 
 
   /* build the linear system */
   a[0] = 0;
-  for( i = 1; i < (int)n; ++i )
+  for (i = 1; i < (int)n; ++i)
     a[i] = h[i-1];
 
   b[0] = 2*h[0];
-  for( i = 1; i < (int)n; ++i )
+  for (i = 1; i < (int)n; ++i)
     b[i] = 2 * (h[i-1] + h[i]);
 
   c[n-1] = 0;
-  for( i = 0; i < (int)n-1; ++i )
+  for (i = 0; i < (int)n-1; ++i)
     c[i] = h[i];
 
   d[0] = 6 * (f[1]-f[0])/h[0] - 6 * v0;
   d[n-1] = 6 * vlast - 6 * (f[n-1]-f[n-2]/h[n-2]);
-  for( i = 1; i < (int)n-1; ++i )
+  for (i = 1; i < (int)n-1; ++i)
     d[i] = 6 * ((f[i+1]-f[i])/h[i] - (f[i]-f[i-1])/h[i-1]);
 
   Tridiagonal_Solve( &(a[0]), &(b[0]), &(c[0]), &(d[0]), &(v[0]), n );
 
-  for( i = 1; i < (int)n; ++i ){
+  for (i = 1; i < (int)n; ++i) {
     coef[i-1].d = (v[i] - v[i-1]) / (6*h[i-1]);
     coef[i-1].c = v[i]/2;
     coef[i-1].b = (f[i]-f[i-1])/h[i-1] + h[i-1]*(2*v[i] + v[i-1])/6;
@@ -181,21 +182,21 @@ int Init_Lookup_Tables( reax_system *system, control_params *control,
 
   LR = (LR_lookup_table**)
     scalloc(system->error_ptr,  num_atom_types, sizeof(LR_lookup_table*), "lookup:LR");
-  for( i = 0; i < num_atom_types; ++i )
+  for (i = 0; i < num_atom_types; ++i)
     LR[i] = (LR_lookup_table*)
       scalloc(system->error_ptr,  num_atom_types, sizeof(LR_lookup_table), "lookup:LR[i]");
 
-  for( i = 0; i < REAX_MAX_ATOM_TYPES; ++i )
+  for (i = 0; i < REAX_MAX_ATOM_TYPES; ++i)
     existing_types[i] = 0;
-  for( i = 0; i < system->n; ++i )
+  for (i = 0; i < system->n; ++i)
     existing_types[ system->my_atoms[i].type ] = 1;
 
   MPI_Allreduce( existing_types, aggregated, REAX_MAX_ATOM_TYPES,
                  MPI_INT, MPI_SUM, mpi_data->world );
 
-  for( i = 0; i < num_atom_types; ++i ) {
+  for (i = 0; i < num_atom_types; ++i) {
     if (aggregated[i]) {
-      for( j = i; j < num_atom_types; ++j ) {
+      for (j = i; j < num_atom_types; ++j) {
         if (aggregated[j]) {
           LR[i][j].xmin = 0;
           LR[i][j].xmax = control->nonb_cut;
@@ -216,7 +217,7 @@ int Init_Lookup_Tables( reax_system *system, control_params *control,
             smalloc(system->error_ptr,  LR[i][j].n*sizeof(cubic_spline_coef),
                      "lookup:LR[i,j].CEclmb");
 
-          for( r = 1; r <= control->tabulate; ++r ) {
+          for (r = 1; r <= control->tabulate; ++r) {
             LR_vdW_Coulomb( system, workspace, control, i, j, r * dr, &(LR[i][j].y[r]) );
             h[r] = LR[i][j].dx;
             fh[r] = LR[i][j].y[r].H;
@@ -277,8 +278,8 @@ void Deallocate_Lookup_Tables( reax_system *system )
 
   ntypes = system->reax_param.num_atom_types;
 
-  for( i = 0; i < ntypes; ++i ) {
-    for( j = i; j < ntypes; ++j )
+  for (i = 0; i < ntypes; ++i) {
+    for (j = i; j < ntypes; ++j)
       if (LR[i][j].n) {
         sfree(system->error_ptr,  LR[i][j].y, "LR[i,j].y" );
         sfree(system->error_ptr,  LR[i][j].H, "LR[i,j].H" );

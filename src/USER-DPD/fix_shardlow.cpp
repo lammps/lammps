@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -99,7 +100,7 @@ FixShardlow::FixShardlow(LAMMPS *lmp, int narg, char **arg) :
     pairDPDE = (PairDPDfdtEnergy *) force->pair_match("dpd/fdt/energy/kk",1);
 
   maxRNG = 0;
-  if(pairDPDE){
+  if (pairDPDE) {
     comm_forward = 3;
     comm_reverse = 5;
   } else {
@@ -107,7 +108,7 @@ FixShardlow::FixShardlow(LAMMPS *lmp, int narg, char **arg) :
     comm_reverse = 3;
   }
 
-  if(pairDPD == nullptr && pairDPDE == nullptr)
+  if (pairDPD == nullptr && pairDPDE == nullptr)
     error->all(FLERR,"Must use pair_style dpd/fdt or dpd/fdt/energy with fix shardlow");
 
 }
@@ -159,10 +160,10 @@ void FixShardlow::setup(int /*vflag*/)
         strstr(modify->fix[i]->style,"gle") || strstr(modify->fix[i]->style,"gld"))
       error->all(FLERR,"Cannot use constant temperature integration routines with USER-DPD.");
 
-  for (int i = 0; i < modify->nfix; i++){
+  for (int i = 0; i < modify->nfix; i++) {
     if (utils::strmatch(modify->fix[i]->style,"^shardlow")) fixShardlow = true;
-    if (utils::strmatch(modify->fix[i]->style,"^nve") || utils::strmatch(modify->fix[i]->style,"^nph")){
-      if(fixShardlow) break;
+    if (utils::strmatch(modify->fix[i]->style,"^nve") || utils::strmatch(modify->fix[i]->style,"^nph")) {
+      if (fixShardlow) break;
       else error->all(FLERR,"The deterministic integrator must follow fix shardlow in the input file.");
     }
     if (i == modify->nfix-1) error->all(FLERR,"A deterministic integrator (e.g. fix nve or fix nph) is required when using fix shardlow.");
@@ -547,7 +548,7 @@ void FixShardlow::initial_integrate(int /*vflag*/)
   if (domain->triclinic)
     error->all(FLERR,"Fix shardlow does not yet support triclinic geometries");
 
-  if(rcut >= bbx || rcut >= bby || rcut>= bbz )
+  if (rcut >= bbx || rcut >= bby || rcut>= bbz )
   {
     char fmt[] = {"Shardlow algorithm requires sub-domain length > 2*(rcut+skin). Either reduce the number of processors requested, or change the cutoff/skin: rcut= %e bbx= %e bby= %e bbz= %e\n"};
     char *msg = (char *) malloc(sizeof(fmt) + 4*15);
@@ -611,7 +612,7 @@ void FixShardlow::initial_integrate(int /*vflag*/)
     // Communicate the updated velocities to all nodes
     comm->forward_comm_fix(this);
 
-    if(useDPDE){
+    if (useDPDE) {
       // Zero out the ghosts' uCond & uMech to be used as delta accumulators
       memset(&(atom->uCond[nlocal]), 0, sizeof(double)*nghost);
       memset(&(atom->uMech[nlocal]), 0, sizeof(double)*nghost);
@@ -693,7 +694,7 @@ int FixShardlow::pack_reverse_comm(int n, int first, double *buf)
     buf[m++] = v[i][0] - v_t0[i - nlocal][0];
     buf[m++] = v[i][1] - v_t0[i - nlocal][1];
     buf[m++] = v[i][2] - v_t0[i - nlocal][2];
-    if(pairDPDE){
+    if (pairDPDE) {
       buf[m++] = uCond[i]; // for ghosts, this is an accumulated delta
       buf[m++] = uMech[i]; // for ghosts, this is an accumulated delta
     }
@@ -717,7 +718,7 @@ void FixShardlow::unpack_reverse_comm(int n, int *list, double *buf)
     v[j][0] += buf[m++];
     v[j][1] += buf[m++];
     v[j][2] += buf[m++];
-    if(pairDPDE){
+    if (pairDPDE) {
       uCond[j] += buf[m++]; // add in the accumulated delta
       uMech[j] += buf[m++]; // add in the accumulated delta
     }
@@ -729,8 +730,8 @@ void FixShardlow::unpack_reverse_comm(int n, int *list, double *buf)
 double FixShardlow::memory_usage()
 {
   double bytes = 0.0;
-  bytes += sizeof(double)*3*atom->nghost; // v_t0[]
-  bytes += sizeof(*rand_state)*maxRNG; // rand_state[]
+  bytes += (double)sizeof(double)*3*atom->nghost; // v_t0[]
+  bytes += (double)sizeof(*rand_state)*maxRNG; // rand_state[]
   return bytes;
 }
 

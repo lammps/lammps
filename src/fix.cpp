@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,11 +17,11 @@
 #include "atom.h"
 #include "atom_masks.h"
 #include "error.h"
+#include "force.h"
 #include "group.h"
 #include "memory.h"
 
 #include <cstring>
-#include <cctype>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -41,30 +42,25 @@ Fix::Fix(LAMMPS *lmp, int /*narg*/, char **arg) :
   // fix ID, group, and style
   // ID must be all alphanumeric chars or underscores
 
-  int n = strlen(arg[0]) + 1;
-  id = new char[n];
-  strcpy(id,arg[0]);
-
-  for (int i = 0; i < n-1; i++)
-    if (!isalnum(id[i]) && id[i] != '_')
-      error->all(FLERR,"Fix ID must be alphanumeric or underscore characters");
+  id = utils::strdup(arg[0]);
+  if (!utils::is_id(id))
+    error->all(FLERR,"Fix ID must be alphanumeric or underscore characters");
 
   igroup = group->find(arg[1]);
   if (igroup == -1) error->all(FLERR,"Could not find fix group ID");
   groupbit = group->bitmask[igroup];
 
-  n = strlen(arg[2]) + 1;
-  style = new char[n];
-  strcpy(style,arg[2]);
+  style = utils::strdup(arg[2]);
 
   restart_global = restart_peratom = restart_file = 0;
   force_reneighbor = 0;
   box_change = NO_BOX_CHANGE;
   thermo_energy = 0;
   thermo_virial = 0;
+  energy_global_flag = energy_peratom_flag = 0;
+  virial_global_flag = virial_peratom_flag = 0;
+  ecouple_flag = 0;
   rigid_flag = 0;
-  peatom_flag = 0;
-  virial_flag = 0;
   no_change_box = 0;
   time_integrate = 0;
   time_depend = 0;
@@ -103,6 +99,7 @@ Fix::Fix(LAMMPS *lmp, int /*narg*/, char **arg) :
 
   maxeatom = maxvatom = 0;
   vflag_atom = 0;
+  centroidstressflag = CENTROID_SAME;
 
   // KOKKOS per-fix data masks
 
@@ -111,6 +108,7 @@ Fix::Fix(LAMMPS *lmp, int /*narg*/, char **arg) :
   datamask_modify = ALL_MASK;
 
   kokkosable = 0;
+  forward_comm_device = 0;
   copymode = 0;
 }
 
@@ -147,7 +145,7 @@ void Fix::modify_params(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix_modify command");
       if (strcmp(arg[iarg+1],"no") == 0) thermo_energy = 0;
       else if (strcmp(arg[iarg+1],"yes") == 0) {
-        if (!(THERMO_ENERGY & setmask()))
+        if (energy_global_flag == 0 && energy_peratom_flag == 0)
           error->all(FLERR,"Illegal fix_modify command");
         thermo_energy = 1;
       } else error->all(FLERR,"Illegal fix_modify command");
@@ -156,7 +154,7 @@ void Fix::modify_params(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix_modify command");
       if (strcmp(arg[iarg+1],"no") == 0) thermo_virial = 0;
       else if (strcmp(arg[iarg+1],"yes") == 0) {
-        if (virial_flag == 0)
+        if (virial_global_flag == 0 && virial_peratom_flag == 0)
           error->all(FLERR,"Illegal fix_modify command");
         thermo_virial = 1;
       } else error->all(FLERR,"Illegal fix_modify command");
@@ -176,10 +174,18 @@ void Fix::modify_params(int narg, char **arg)
   }
 }
 
+void::Fix::set_molecule(int, tagint, int, double *, double *, double *)
+{
+  error->all(FLERR,"Molecule update not implemented for fix {}", style);
+}
+
 /* ----------------------------------------------------------------------
-   setup for energy, virial computation
+   setup for peratom energy and global/peratom virial computation
    see integrate::ev_set() for values of eflag (0-3) and vflag (0-6)
-   fixes call this if they use ev_tally()
+   fixes call Fix::ev_init() if tally energy and virial values
+   if thermo_energy is not set, energy tallying is disabled
+   if thermo_virial is not set, virial tallying is disabled
+   global energy is tallied separately, output by compute_scalar() method
 ------------------------------------------------------------------------- */
 
 void Fix::ev_setup(int eflag, int vflag)
@@ -188,13 +194,19 @@ void Fix::ev_setup(int eflag, int vflag)
 
   evflag = 1;
 
-  eflag_either = eflag;
-  eflag_global = eflag % 2;
-  eflag_atom = eflag / 2;
+  if (!thermo_energy) eflag_either = eflag_global = eflag_atom = 0;
+  else {
+    eflag_either = eflag;
+    eflag_global = eflag & ENERGY_GLOBAL;
+    eflag_atom = eflag & ENERGY_ATOM;
+  }
 
-  vflag_either = vflag;
-  vflag_global = vflag % 4;
-  vflag_atom = vflag / 4;
+  if (!thermo_virial) vflag_either = vflag_global = vflag_atom = 0;
+  else {
+    vflag_either = vflag;
+    vflag_global = vflag & (VIRIAL_PAIR | VIRIAL_FDOTR);
+    vflag_atom = vflag & (VIRIAL_ATOM | VIRIAL_CENTROID);
+  }
 
   // reallocate per-atom arrays if necessary
 
@@ -232,26 +244,19 @@ void Fix::ev_setup(int eflag, int vflag)
 }
 
 /* ----------------------------------------------------------------------
-   if thermo_virial is on:
-     setup for virial computation
-     see integrate::ev_set() for values of vflag (0-6)
-     fixes call this if use v_tally()
-   else: set evflag=0
+   setup for global/peratom virial computation
+   see integrate::ev_set() for values of vflag (0-6)
+   fixes call Fix::v_init() if tally virial values but not energy
+   if thermo_virial is not set, virial tallying is disabled
 ------------------------------------------------------------------------- */
 
 void Fix::v_setup(int vflag)
 {
   int i,n;
 
-  if (!thermo_virial) {
-    evflag = 0;
-    return;
-  }
-
   evflag = 1;
-
-  vflag_global = vflag % 4;
-  vflag_atom = vflag / 4;
+  vflag_global = vflag & (VIRIAL_PAIR | VIRIAL_FDOTR);
+  vflag_atom = vflag & (VIRIAL_ATOM | VIRIAL_CENTROID);
 
   // reallocate per-atom array if necessary
 
@@ -300,7 +305,6 @@ void Fix::ev_tally(int n, int *list, double total, double eng, double *v)
 
   v_tally(n,list,total,v);
 }
-
 
 /* ----------------------------------------------------------------------
    tally virial into global and per-atom accumulators

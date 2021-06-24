@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    This software is distributed under the GNU General Public License.
@@ -23,6 +24,8 @@
 #include <cmath>
 
 #include "omp_compat.h"
+#include "pair_lj_cubic_const.h"
+
 using namespace LAMMPS_NS;
 using namespace PairLJCubicConstants;
 

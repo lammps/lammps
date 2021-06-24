@@ -370,7 +370,10 @@ template <class ExecutionSpace, typename KeyType>
 void test_sort(unsigned int N) {
   test_1D_sort<ExecutionSpace, KeyType>(N);
   test_3D_sort<ExecutionSpace, KeyType>(N);
+// FIXME_OPENMPTARGET: OpenMPTarget doesn't support DynamicView yet.
+#ifndef KOKKOS_ENABLE_OPENMPTARGET
   test_dynamic_view_sort<ExecutionSpace, KeyType>(N);
+#endif
   test_issue_1160_sort<ExecutionSpace>();
 }
 }  // namespace Impl

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,27 +12,25 @@
 ------------------------------------------------------------------------- */
 
 #ifdef KSPACE_CLASS
-
-KSpaceStyle(ewald/disp,EwaldDisp)
-
+// clang-format off
+KSpaceStyle(ewald/disp,EwaldDisp);
+// clang-format on
 #else
 
 #ifndef LMP_EWALD_DISP_H
 #define LMP_EWALD_DISP_H
 
 #include "kspace.h"
-#include "math_complex.h"
 
 namespace LAMMPS_NS {
 
-#define EWALD_NORDER        6
-#define EWALD_NFUNCS        4
-#define EWALD_MAX_NSUMS     10
-#define EWALD_NSUMS        {1, 1, 7, 1}
-
-typedef struct cvector { complex x, y, z; } cvector;
-typedef struct hvector { double x, y, z; } hvector;
-typedef struct kvector { long x, y, z; } kvector;
+#define EWALD_NORDER 6
+#define EWALD_NFUNCS 4
+#define EWALD_MAX_NSUMS 10
+#define EWALD_NSUMS \
+  {                 \
+    1, 1, 7, 1      \
+  }
 
 class EwaldDisp : public KSpace {
  public:
@@ -42,29 +40,30 @@ class EwaldDisp : public KSpace {
   void setup();
   void settings(int, char **);
   void compute(int, int);
-  double memory_usage() {return bytes;}
+  double memory_usage() { return bytes; }
 
  private:
   double unit[6];
   int function[EWALD_NFUNCS], first_output;
 
-  int nkvec, nkvec_max, nevec, nevec_max,
-      nbox, nfunctions, nsums, sums;
+  int nkvec, nkvec_max, nevec, nevec_max, nbox, nfunctions, nsums, sums;
   int peratom_allocate_flag;
   int nmax;
   double bytes;
-  double gsqmx,q2,b2,M2;
+  double gsqmx, q2, b2, M2;
   double *kenergy, energy_self[EWALD_NFUNCS];
   double *kvirial, virial_self[EWALD_NFUNCS];
   double **energy_self_peratom;
   double **virial_self_peratom;
-  cvector *ekr_local;
-  hvector *hvec;
-  kvector *kvec;
+  struct cvector *ekr_local;
+  struct hvector *hvec;
+  struct kvector *kvec;
 
   double mumurd2e, dielectric, *B, volume;
-  struct Sum { double x, x2; } sum[EWALD_MAX_NSUMS];
-  complex *cek_local, *cek_global;
+  struct Sum {
+    double x, x2;
+  } sum[EWALD_MAX_NSUMS];
+  struct complex *cek_local, *cek_global;
 
   double rms(int, double, bigint, double, double, double);
   void reallocate();
@@ -91,7 +90,7 @@ class EwaldDisp : public KSpace {
   double derivf(double, double, bigint, double, double);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

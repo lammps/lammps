@@ -78,7 +78,7 @@ this is as follows.
    $ git checkout tagID
 
 Stable versions and what tagID to use for a particular stable version
-are discussed on `this page <https://lammps.sandia.gov/bug.html#version>`_.
+are discussed on `this page <https://www.lammps.org/bug.html#version>`_.
 Note that this command will print some warnings, because in order to get
 back to the latest revision and to be able to update with ``git pull``
 again, you will need to do ``git checkout unstable`` (or
@@ -86,33 +86,59 @@ check out any other desired branch) first.
 
 Once you have updated your local files with a ``git pull`` (or ``git
 checkout``), you still need to re-build LAMMPS if any source files have
-changed.  To do this, you should cd to the src directory and type:
+changed.  How to do this depends on the build system you are using.
 
-.. code-block:: bash
+.. tabs::
 
-   $ make purge             # remove any deprecated src files
-   $ make package-update    # sync package files with src files
-   $ make foo               # re-build for your machine (mpi, serial, etc)
+   .. tab:: CMake build
 
-just as described on the :doc:`Apply patch <Install_patch>` page,
-after a patch has been installed.
+      Change to your build folder and type:
 
-.. warning::
+      .. code-block:: bash
 
-   If you wish to edit/change a src file that is from a
-   package, you should edit the version of the file inside the package
-   sub-directory with src, then re-install the package.  The version in
-   the source directory is merely a copy and will be wiped out if you type "make
-   package-update".
+         cmake . --build
 
-.. warning::
+      CMake should auto-detect whether it needs to re-run the CMake
+      configuration step and otherwise redo the build for all files
+      that have been changed or files that depend on changed files.
+      In case some build options have been changed or renamed, you
+      may have to update those by running:
 
-   The GitHub servers support both the "git://" and
-   "https://" access protocols for anonymous read-only access.  If you
-   have a correspondingly configured GitHub account, you may also use
-   SSH access with the URL "git@github.com:lammps/lammps.git".
+      .. code-block:: bash
 
-The LAMMPS GitHub project is managed by Christoph Junghans (LANL,
-junghans at lanl.gov), Axel Kohlmeyer (Temple U, akohlmey at
-gmail.com) and Richard Berger (Temple U, richard.berger at
-temple.edu).
+         cmake .
+
+      and then rebuild.
+
+   .. tab:: Traditional make
+
+      Switch to the src directory and type:
+
+      .. code-block:: bash
+
+         $ make purge             # remove any deprecated src files
+         $ make package-update    # sync package files with src files
+         $ make foo               # re-build for your machine (mpi, serial, etc)
+
+      Just as described on the :doc:`Apply patch <Install_patch>` page,
+      after a patch has been installed.
+
+      .. warning::
+
+         If you wish to edit/change a src file that is from a package,
+         you should edit the version of the file inside the package
+         sub-directory with src, then re-install the package.  The
+         version in the source directory is merely a copy and will be
+         wiped out if you type "make package-update".
+
+.. admonition:: Git protocols
+   :class: note
+
+   The servers at github.com support the "git://" and "https://" access
+   protocols for anonymous, read-only access.  If you have a suitably
+   configured GitHub account, you may also use SSH protocol with the
+   URL "git@github.com:lammps/lammps.git".
+
+The LAMMPS GitHub project is currently managed by Axel Kohlmeyer
+(Temple U, akohlmey at gmail.com) and Richard Berger (Temple U,
+richard.berger at temple.edu).

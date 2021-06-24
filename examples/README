@@ -37,7 +37,7 @@ produce dump snapshots of the running simulation in any of 3 formats.
 
 If you uncomment the dump command in the input script, a text dump
 file will be produced, which can be animated by various visualization
-programs (see http://lammps.sandia.gov/viz.html) such as Ovito, VMD,
+programs (see https://www.lammps.org/viz.html) such as Ovito, VMD,
 or AtomEye.
 
 If you uncomment the dump image command in the input script, and
@@ -112,7 +112,8 @@ steinhardt: Steinhardt-Nelson Q_l and W_l parameters usng orientorder/atom
 streitz:  Streitz-Mintmire potential for Al2O3
 tad:      temperature-accelerated dynamics of vacancy diffusion in bulk Si
 template: examples for using atom_style template and comparing to atom style molecular
-threebody: regression test input for a variety of manybody potentials
+tersoff:  regression test input for Tersoff variants
+threebody: regression test input for a variety of threebody potentials
 vashishta: models using the Vashishta potential
 voronoi:  Voronoi tesselation via compute voronoi/atom command
 wall:     use of reflective walls with different stochastic models

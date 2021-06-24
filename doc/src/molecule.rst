@@ -201,11 +201,12 @@ bonds between nuclear cores and Drude electrons in a different manner.
 
 Each section is listed below in alphabetic order.  The format of each
 section is described including the number of lines it must contain and
-rules (if any) for whether it can appear in the data file.  In each
-case the ID is ignored; it is simply included for readability, and
-should be a number from 1 to Nlines for the section, indicating which
-atom (or bond, etc) the entry applies to.  The lines are assumed to be
-listed in order from 1 to Nlines, but LAMMPS does not check for this.
+rules (if any) for whether it can appear in the data file.  For per-
+atom sections, entries should be numbered from 1 to Natoms (where
+Natoms is the number of atoms in the template), indicating which atom
+(or bond, etc) the entry applies to.  Per-atom sections need to
+include a setting for every atom, but the atoms can be listed in any
+order.
 
 ----------
 

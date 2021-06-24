@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -277,9 +278,9 @@ void rotation_matrix(double q[3][3], double r[3][3], const double m[3][3])
   // this makes r have positive diagonals
   // q*m = r <==> (-q)*m = (-r) will hold row-wise
 
-  if (r[0][0] < 0){ neg_row(q,0); neg_row(r,0); }
-  if (r[1][1] < 0){ neg_row(q,1); neg_row(r,1); }
-  if (r[2][2] < 0){ neg_row(q,2); neg_row(r,2); }
+  if (r[0][0] < 0) { neg_row(q,0); neg_row(r,0); }
+  if (r[1][1] < 0) { neg_row(q,1); neg_row(r,1); }
+  if (r[2][2] < 0) { neg_row(q,2); neg_row(r,2); }
 }
 
 /* ----------------------------------------------------------------------

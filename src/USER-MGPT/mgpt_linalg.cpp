@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -84,10 +85,10 @@ static void transprod_generic(const double * restrict A,
   const int lda = 8,n = mgpt_linalg::matrix_size;
   int i,j,k;
   double s;
-  for(i = 0; i<n; i++)
-    for(j = 0; j<n; j++) {
+  for (i = 0; i<n; i++)
+    for (j = 0; j<n; j++) {
       s = 0.0;
-      for(k = 1; k<=n; k++)
+      for (k = 1; k<=n; k++)
         s = s + A[i*lda+k]*B[j*lda+k];
       C[i*lda+(j+1)] = s;
     }
@@ -101,8 +102,8 @@ static void transtrace3_generic(const double * restrict A,
   double t0 = 0.0,t1 = 0.0,t2 = 0.0;
   int i,j;
 
-  for(i = 0; i<n; i++)
-    for(j = 1; j<=n; j++) {
+  for (i = 0; i<n; i++)
+    for (j = 1; j<=n; j++) {
       int idx = i*lda + j;
       double atmp = A[idx];
       t0 = t0 + atmp*B0[idx];
@@ -156,43 +157,43 @@ mgpt_linalg::mgpt_linalg(int n,int single_precision) {
 
 #ifdef IBM_BG_SIMD
   msg = "@@@ Choosing BG/L optimized linear algebra routines.\n";
-  if(n == 5) {
+  if (n == 5) {
     tr_mul = mmul_bg_5_8_5x2v2;
     tr_trace = ttr_bg_5_8_3_v2r3;
-  } else if(n == 7) {
+  } else if (n == 7) {
     //tr_mul = mmul_bg_7_8_2x2v2;
     tr_mul = (trmul_fun) bgmul_7;
     tr_trace = ttr_bg_7_8_3_v2r3;
   }
 #elif defined(IBM_BGQ_SIMD)
   msg = "@@@ Choosing BG/Q optimized linear algebra routines.\n";
-  if(1) {
-    if(n == 5) {
+  if (1) {
+    if (n == 5) {
       tr_mul = mmul_bgq_n5_lda8_2x8;
       tr_trace = ttr_bg_5_8_3_v4r1;
-    } else if(n == 7) {
+    } else if (n == 7) {
       tr_mul = mmul_bgq_n7_lda8_4x8;
       tr_trace = ttr_bg_7_8_3_v4r1;
     }
   }
 #elif defined(x86_SIMD)
-  if(single_precision) {
+  if (single_precision) {
     msg = "@@@ Choosing Intel/AMD single precision linear algebra routines.\n";
-    if(n == 5) {
+    if (n == 5) {
       tr_mul = (trmul_fun) mmul3_5_8_3x8v4;
       tr_trace = (trtrace3_fun) ttr_5_8_3_v4r2;
       single = 1;
-    } else if(n == 7) {
+    } else if (n == 7) {
       tr_mul = (trmul_fun) mmul3_7_8_4x8v4;
       tr_trace = (trtrace3_fun) ttr_7_8_3_v4r2;
       single = 1;
     }
   } else {
     msg = "@@@ Choosing Intel/AMD double precision linear algebra routines.\n";
-    if(n == 5) {
+    if (n == 5) {
       tr_mul = mmul3_5_8_2x6v2;
       tr_trace = ttr_5_8_3_v2r2;
-    } else if(n == 7) {
+    } else if (n == 7) {
       tr_mul = mmul3_7_8_4x4v2;
       tr_trace = ttr_7_8_3_v2r2;
     }

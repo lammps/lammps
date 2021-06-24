@@ -1,6 +1,7 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,11 +13,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(buck/kk,PairBuckKokkos<LMPDeviceType>)
-PairStyle(buck/kk/device,PairBuckKokkos<LMPDeviceType>)
-PairStyle(buck/kk/host,PairBuckKokkos<LMPHostType>)
-
+// clang-format off
+PairStyle(buck/kk,PairBuckKokkos<LMPDeviceType>);
+PairStyle(buck/kk/device,PairBuckKokkos<LMPDeviceType>);
+PairStyle(buck/kk/host,PairBuckKokkos<LMPHostType>);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_BUCK_KOKKOS_H
@@ -45,15 +46,13 @@ class PairBuckKokkos : public PairBuck {
 
   struct params_buck{
     KOKKOS_INLINE_FUNCTION
-    params_buck(){cutsq=0;a=0;c=0;rhoinv=0;buck1=0;buck2=0;offset=0;};
+    params_buck() {cutsq=0;a=0;c=0;rhoinv=0;buck1=0;buck2=0;offset=0;};
     KOKKOS_INLINE_FUNCTION
-    params_buck(int /*i*/){cutsq=0;a=0;c=0;rhoinv=0;buck1=0;buck2=0;offset=0;};
+    params_buck(int /*i*/) {cutsq=0;a=0;c=0;rhoinv=0;buck1=0;buck2=0;offset=0;};
     F_FLOAT cutsq,a,c,rhoinv,buck1,buck2,offset;
   };
 
  protected:
-  void cleanup_copy() {}
-
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
   F_FLOAT compute_fpair(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const;

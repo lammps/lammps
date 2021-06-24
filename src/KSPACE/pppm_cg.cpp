@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -148,11 +149,10 @@ void PPPMCG::compute(int eflag, int vflag)
                    / static_cast<double>(atom->natoms);
 
     if (me == 0)
-      utils::logmesg(lmp,fmt::format("  PPPM/cg optimization cutoff: {:.8g}\n"
-                                     "  Total charged atoms: {:.1f}%\n"
-                                     "  Min/max charged atoms/proc: {:.1f}%"
-                                     " {:.1f}%\n",smallq,
-                                     charged_frac,charged_fmin,charged_fmax));
+      utils::logmesg(lmp,"  PPPM/cg optimization cutoff: {:.8g}\n"
+                     "  Total charged atoms: {:.1f}%\n"
+                     "  Min/max charged atoms/proc: {:.1f}% {:.1f}%\n",
+                     smallq,charged_frac,charged_fmin,charged_fmax);
   }
 
   // only need to rebuild this list after a neighbor list update
@@ -735,6 +735,6 @@ void PPPMCG::make_rho_groups(int groupbit_A, int groupbit_B, int BA_flag)
 double PPPMCG::memory_usage()
 {
   double bytes = PPPM::memory_usage();
-  bytes += nmax * sizeof(int);
+  bytes += (double)nmax * sizeof(int);
   return bytes;
 }

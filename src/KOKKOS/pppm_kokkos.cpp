@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -199,7 +200,7 @@ void PPPMKokkos<DeviceType>::init()
   }
 
   if (order < 2 || order > MAXORDER)
-    error->all(FLERR,fmt::format("PPPM order cannot be < 2 or > {}",MAXORDER));
+    error->all(FLERR,"PPPM order cannot be < 2 or > {}",MAXORDER);
 
   // compute two charge force
 
@@ -579,7 +580,6 @@ void PPPMKokkos<DeviceType>::compute(int eflag, int vflag)
   // invoke allocate_peratom() if needed for first time
 
   ev_init(eflag,vflag,0);
-         eflag_atom = vflag_atom = 0;
 
   // reallocate per-atom arrays if necessary
 
@@ -1653,8 +1653,7 @@ void PPPMKokkos<DeviceType>::poisson_ik()
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_ik1>(0,nfft),*this);
   copymode = 0;
 
-  fft1->compute(d_work1,d_work1,1);
-
+  fft1->compute(d_work1,d_work1,FFT3dKokkos<DeviceType>::FORWARD);
 
   // global energy and virial contribution
 
@@ -1695,7 +1694,7 @@ void PPPMKokkos<DeviceType>::poisson_ik()
     return;
   }
 
-  // compute gradients of V(r) in each of 3 dims by transformimg -ik*V(k)
+  // compute gradients of V(r) in each of 3 dims by transforming ik*V(k)
   // FFT leaves data in 3d brick decomposition
   // copy it into inner portion of vdx,vdy,vdz arrays
 
@@ -1717,7 +1716,7 @@ void PPPMKokkos<DeviceType>::poisson_ik()
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_ik5>(0,inum_fft),*this);
   copymode = 0;
 
-  fft2->compute(d_work2,d_work2,-1);
+  fft2->compute(d_work2,d_work2,FFT3dKokkos<DeviceType>::BACKWARD);
 
 
   copymode = 1;
@@ -1731,7 +1730,7 @@ void PPPMKokkos<DeviceType>::poisson_ik()
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_ik7>(0,inum_fft),*this);
   copymode = 0;
 
-  fft2->compute(d_work2,d_work2,-1);
+  fft2->compute(d_work2,d_work2,FFT3dKokkos<DeviceType>::BACKWARD);
 
 
   copymode = 1;
@@ -1744,7 +1743,7 @@ void PPPMKokkos<DeviceType>::poisson_ik()
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_ik9>(0,inum_fft),*this);
   copymode = 0;
 
-  fft2->compute(d_work2,d_work2,-1);
+  fft2->compute(d_work2,d_work2,FFT3dKokkos<DeviceType>::BACKWARD);
 
 
   copymode = 1;
@@ -1794,8 +1793,8 @@ void PPPMKokkos<DeviceType>::operator()(TagPPPM_poisson_ik5, const int &ii) cons
   const int k = ii/(numy_fft*numx_fft);
   const int j = (ii - k*numy_fft*numx_fft) / numx_fft;
   const int i = ii - k*numy_fft*numx_fft - j*numx_fft;
-  d_work2[n] = d_fkx[i]*d_work1[n+1];
-  d_work2[n+1] = -d_fkx[i]*d_work1[n];
+  d_work2[n] = -d_fkx[i]*d_work1[n+1];
+  d_work2[n+1] = d_fkx[i]*d_work1[n];
 }
 
 template<class DeviceType>
@@ -1819,8 +1818,8 @@ void PPPMKokkos<DeviceType>::operator()(TagPPPM_poisson_ik7, const int &ii) cons
   const int n = ii*2;
   const int k = ii/(numy_fft*numx_fft);
   const int j = (ii - k*numy_fft*numx_fft) / numx_fft;
-  d_work2[n] = d_fky[j]*d_work1[n+1];
-  d_work2[n+1] = -d_fky[j]*d_work1[n];
+  d_work2[n] = -d_fky[j]*d_work1[n+1];
+  d_work2[n+1] = d_fky[j]*d_work1[n];
 }
 
 template<class DeviceType>
@@ -1843,8 +1842,8 @@ void PPPMKokkos<DeviceType>::operator()(TagPPPM_poisson_ik9, const int &ii) cons
 {
   const int n = ii*2;
   const int k = ii/(numy_fft*numx_fft);
-  d_work2[n] = d_fkz[k]*d_work1[n+1];
-  d_work2[n+1] = -d_fkz[k]*d_work1[n];
+  d_work2[n] = -d_fkz[k]*d_work1[n+1];
+  d_work2[n+1] = d_fkz[k]*d_work1[n];
 }
 
 template<class DeviceType>
@@ -1870,7 +1869,7 @@ void PPPMKokkos<DeviceType>::poisson_ik_triclinic()
 {
 //  int i,j,k,n;
 //
-//  // compute gradients of V(r) in each of 3 dims by transformimg -ik*V(k)
+//  // compute gradients of V(r) in each of 3 dims by transforming ik*V(k)
 //  // FFT leaves data in 3d brick decomposition
 //  // copy it into inner portion of vdx,vdy,vdz arrays
 //
@@ -1878,12 +1877,12 @@ void PPPMKokkos<DeviceType>::poisson_ik_triclinic()
 //
 //  n = 0;
 //  for (i = 0; i < nfft; i++) { // parallel_for1
-//    d_work2[n] = d_fkx[i]*d_work1[n+1];
-//    d_work2[n+1] = -d_fkx[i]*d_work1[n];
+//    d_work2[n] = -d_fkx[i]*d_work1[n+1];
+//    d_work2[n+1] = d_fkx[i]*d_work1[n];
 //    n += 2;
 //  }
 //
-//  fft2->compute(d_work2,d_work2,-1);
+//  fft2->compute(d_work2,d_work2,FFT3dKokkos<DeviceType>::BACKWARD);
 //
 //  n = 0;
 //  for (k = nzlo_in-nzlo_out; k <= nzhi_in-nzlo_out; k++) // parallel_for2
@@ -1893,12 +1892,12 @@ void PPPMKokkos<DeviceType>::poisson_ik_triclinic()
 //
 //  n = 0;
 //  for (i = 0; i < nfft; i++) { // parallel_for3
-//    d_work2[n] = d_fky[i]*d_work1[n+1];
-//    d_work2[n+1] = -d_fky[i]*d_work1[n];
+//    d_work2[n] = -d_fky[i]*d_work1[n+1];
+//    d_work2[n+1] = d_fky[i]*d_work1[n];
 //    n += 2;
 //  }
 //
-//  fft2->compute(d_work2,d_work2,-1);
+//  fft2->compute(d_work2,d_work2,FFT3dKokkos<DeviceType>::BACKWARD);
 //
 //  n = 0;
 //  for (k = nzlo_in-nzlo_out; k <= nzhi_in-nzlo_out; k++) // parallel_for4
@@ -1912,12 +1911,12 @@ void PPPMKokkos<DeviceType>::poisson_ik_triclinic()
 //
 //  n = 0;
 //  for (i = 0; i < nfft; i++) { // parallel_for5
-//    d_work2[n] = d_fkz[i]*d_work1[n+1];
-//    d_work2[n+1] = -d_fkz[i]*d_work1[n];
+//    d_work2[n] = -d_fkz[i]*d_work1[n+1];
+//    d_work2[n+1] = d_fkz[i]*d_work1[n];
 //    n += 2;
 //  }
 //
-//  fft2->compute(d_work2,d_work2,-1);
+//  fft2->compute(d_work2,d_work2,FFT3dKokkos<DeviceType>::BACKWARD);
 //
 //  n = 0;
 //  for (k = nzlo_in-nzlo_out; k <= nzhi_in-nzlo_out; k++) // parallel_for6
@@ -2000,7 +1999,7 @@ void PPPMKokkos<DeviceType>::poisson_peratom()
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_peratom1>(0,nfft),*this);
     copymode = 0;
 
-    fft2->compute(d_work2,d_work2,-1);
+    fft2->compute(d_work2,d_work2,FFT3dKokkos<DeviceType>::BACKWARD);
 
 
     copymode = 1;
@@ -2017,7 +2016,7 @@ void PPPMKokkos<DeviceType>::poisson_peratom()
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_peratom3>(0,nfft),*this);
   copymode = 0;
 
-  fft2->compute(d_work2,d_work2,-1);
+  fft2->compute(d_work2,d_work2,FFT3dKokkos<DeviceType>::BACKWARD);
 
 
   copymode = 1;
@@ -2029,7 +2028,7 @@ void PPPMKokkos<DeviceType>::poisson_peratom()
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_peratom5>(0,nfft),*this);
   copymode = 0;
 
-  fft2->compute(d_work2,d_work2,-1);
+  fft2->compute(d_work2,d_work2,FFT3dKokkos<DeviceType>::BACKWARD);
 
 
   copymode = 1;
@@ -2041,7 +2040,7 @@ void PPPMKokkos<DeviceType>::poisson_peratom()
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_peratom7>(0,nfft),*this);
   copymode = 0;
 
-  fft2->compute(d_work2,d_work2,-1);
+  fft2->compute(d_work2,d_work2,FFT3dKokkos<DeviceType>::BACKWARD);
 
 
   copymode = 1;
@@ -2052,7 +2051,7 @@ void PPPMKokkos<DeviceType>::poisson_peratom()
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_peratom9>(0,nfft),*this);
   copymode = 0;
 
-  fft2->compute(d_work2,d_work2,-1);
+  fft2->compute(d_work2,d_work2,FFT3dKokkos<DeviceType>::BACKWARD);
 
 
   copymode = 1;
@@ -2064,7 +2063,7 @@ void PPPMKokkos<DeviceType>::poisson_peratom()
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_peratom11>(0,nfft),*this);
   copymode = 0;
 
-  fft2->compute(d_work2,d_work2,-1);
+  fft2->compute(d_work2,d_work2,FFT3dKokkos<DeviceType>::BACKWARD);
 
 
   copymode = 1;
@@ -2076,7 +2075,7 @@ void PPPMKokkos<DeviceType>::poisson_peratom()
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_peratom13>(0,nfft),*this);
   copymode = 0;
 
-  fft2->compute(d_work2,d_work2,-1);
+  fft2->compute(d_work2,d_work2,FFT3dKokkos<DeviceType>::BACKWARD);
 
 
   copymode = 1;
@@ -2818,10 +2817,10 @@ int PPPMKokkos<DeviceType>::timing_1d(int n, double &time1d)
   time1 = MPI_Wtime();
 
   for (int i = 0; i < n; i++) {
-    fft1->timing1d(d_work1,nfft_both,1);
-    fft2->timing1d(d_work1,nfft_both,-1);
-    fft2->timing1d(d_work1,nfft_both,-1);
-    fft2->timing1d(d_work1,nfft_both,-1);
+    fft1->timing1d(d_work1,nfft_both,FFT3dKokkos<DeviceType>::FORWARD);
+    fft2->timing1d(d_work1,nfft_both,FFT3dKokkos<DeviceType>::BACKWARD);
+    fft2->timing1d(d_work1,nfft_both,FFT3dKokkos<DeviceType>::BACKWARD);
+    fft2->timing1d(d_work1,nfft_both,FFT3dKokkos<DeviceType>::BACKWARD);
   }
 
   MPI_Barrier(world);
@@ -2855,10 +2854,10 @@ int PPPMKokkos<DeviceType>::timing_3d(int n, double &time3d)
   time1 = MPI_Wtime();
 
   for (int i = 0; i < n; i++) {
-    fft1->compute(d_work1,d_work1,1);
-    fft2->compute(d_work1,d_work1,-1);
-    fft2->compute(d_work1,d_work1,-1);
-    fft2->compute(d_work1,d_work1,-1);
+    fft1->compute(d_work1,d_work1,FFT3dKokkos<DeviceType>::FORWARD);
+    fft2->compute(d_work1,d_work1,FFT3dKokkos<DeviceType>::BACKWARD);
+    fft2->compute(d_work1,d_work1,FFT3dKokkos<DeviceType>::BACKWARD);
+    fft2->compute(d_work1,d_work1,FFT3dKokkos<DeviceType>::BACKWARD);
   }
 
   MPI_Barrier(world);
@@ -2875,21 +2874,21 @@ int PPPMKokkos<DeviceType>::timing_3d(int n, double &time3d)
 template<class DeviceType>
 double PPPMKokkos<DeviceType>::memory_usage()
 {
-  double bytes = nmax*3 * sizeof(double);
+  double bytes = (double)nmax*3 * sizeof(double);
   int nbrick = (nxhi_out-nxlo_out+1) * (nyhi_out-nylo_out+1) *
     (nzhi_out-nzlo_out+1);
-  bytes += 4 * nbrick * sizeof(FFT_SCALAR);
-  if (triclinic) bytes += 3 * nfft_both * sizeof(double);
-  bytes += 6 * nfft_both * sizeof(double);
-  bytes += nfft_both * sizeof(double);
-  bytes += nfft_both*5 * sizeof(FFT_SCALAR);
+  bytes += (double)4 * nbrick * sizeof(FFT_SCALAR);
+  if (triclinic) bytes += (double)3 * nfft_both * sizeof(double);
+  bytes += (double)6 * nfft_both * sizeof(double);
+  bytes += (double)nfft_both * sizeof(double);
+  bytes += (double)nfft_both*5 * sizeof(FFT_SCALAR);
 
   if (peratom_allocate_flag)
-    bytes += 6 * nbrick * sizeof(FFT_SCALAR);
+    bytes += (double)6 * nbrick * sizeof(FFT_SCALAR);
 
   // two GridComm bufs
 
-  bytes += (ngc_buf1 + ngc_buf2) * npergrid * sizeof(FFT_SCALAR);
+  bytes += (double)(ngc_buf1 + ngc_buf2) * npergrid * sizeof(FFT_SCALAR);
 
   return bytes;
 }

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -63,7 +64,7 @@ void BondQuartic::compute(int eflag, int vflag)
 
   // insure pair->ev_tally() will use 1-4 virial contribution
 
-  if (vflag_global == 2)
+  if (vflag_global == VIRIAL_FDOTR)
     force->pair->vflag_either = force->pair->vflag_global = 1;
 
   double **cutsq = force->pair->cutsq;

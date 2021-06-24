@@ -1,3 +1,4 @@
+// clang-format off
 /*----------------------------------------------------------------------
   PuReMD - Purdue ReaxFF Molecular Dynamics Program
   Website: https://www.cs.purdue.edu/puremd
@@ -174,7 +175,7 @@ void BondsOMP( reax_system *system, control_params * /* control */,
         }
       }
     }
-  } // for(i)
+  } // for (i)
 
  } // omp
 

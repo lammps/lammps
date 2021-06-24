@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -13,11 +14,12 @@
 
 #include "omp_compat.h"
 #include "fix_nve_sphere_omp.h"
-#include <cmath>
+
 #include "atom.h"
 #include "force.h"
-#include "math_vector.h"
 #include "math_extra.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -100,8 +102,8 @@ void FixNVESphereOMP::initial_integrate(int /* vflag */)
 #endif
       // Integrate orientation following Dullweber-Leimkuhler-Maclachlan scheme
       for (int i = 0; i < nlocal; i++) {
-        vector w, w_temp, a;
-        matrix Q, Q_temp, R;
+        double w[3], w_temp[3], a[3];
+        double Q[3][3], Q_temp[3][3], R[3][3];
 
         if (mask[i] & groupbit && mu[i][3] > 0.0) {
 
@@ -126,7 +128,7 @@ void FixNVESphereOMP::initial_integrate(int /* vflag */)
           // Q = I + vx + vx^2 * (1-c)/s^2
 
           const double s2 = a[0]*a[0] + a[1]*a[1];
-          if (s2 != 0.0){ // i.e. the vectors are not parallel
+          if (s2 != 0.0) { // i.e. the vectors are not parallel
             const double scale = (1.0 - a[2])/s2;
 
             Q[0][0] = 1.0 - scale*a[0]*a[0]; Q[0][1] = -scale*a[0]*a[1];      Q[0][2] = -a[0];

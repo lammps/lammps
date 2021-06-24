@@ -1,7 +1,8 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
 
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -13,11 +14,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(eam/fs/kk,PairEAMFSKokkos<LMPDeviceType>)
-PairStyle(eam/fs/kk/device,PairEAMFSKokkos<LMPDeviceType>)
-PairStyle(eam/fs/kk/host,PairEAMFSKokkos<LMPHostType>)
-
+// clang-format off
+PairStyle(eam/fs/kk,PairEAMFSKokkos<LMPDeviceType>);
+PairStyle(eam/fs/kk/device,PairEAMFSKokkos<LMPDeviceType>);
+PairStyle(eam/fs/kk/host,PairEAMFSKokkos<LMPHostType>);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_EAM_FS_KOKKOS_H
@@ -116,11 +117,9 @@ class PairEAMFSKokkos : public PairEAM, public KokkosBase {
   void unpack_reverse_comm(int, int *, double *);
 
  protected:
-  void cleanup_copy();
-
-  typename AT::t_x_array_randomread x;
+  typename AT::t_x_array x;
   typename AT::t_f_array f;
-  typename AT::t_int_1d_randomread type;
+  typename AT::t_int_1d type;
   typename AT::t_tagint_1d tag;
 
   DAT::tdual_efloat_1d k_eatom;
@@ -145,17 +144,17 @@ class PairEAMFSKokkos : public PairEAM, public KokkosBase {
   HAT::t_ffloat_1d h_rho;
   HAT::t_ffloat_1d h_fp;
 
-  typename AT::t_int_1d_randomread d_type2frho;
-  typename AT::t_int_2d_randomread d_type2rhor;
-  typename AT::t_int_2d_randomread d_type2z2r;
+  typename AT::t_int_1d d_type2frho;
+  typename AT::t_int_2d_dl d_type2rhor;
+  typename AT::t_int_2d_dl d_type2z2r;
 
-  typedef Kokkos::DualView<F_FLOAT**[7],Kokkos::LayoutRight,DeviceType> tdual_ffloat_2d_n7;
-  typedef typename tdual_ffloat_2d_n7::t_dev_const_randomread t_ffloat_2d_n7_randomread;
+  typedef Kokkos::DualView<F_FLOAT**[7],DeviceType> tdual_ffloat_2d_n7;
+  typedef typename tdual_ffloat_2d_n7::t_dev_const t_ffloat_2d_n7;
   typedef typename tdual_ffloat_2d_n7::t_host t_host_ffloat_2d_n7;
 
-  t_ffloat_2d_n7_randomread d_frho_spline;
-  t_ffloat_2d_n7_randomread d_rhor_spline;
-  t_ffloat_2d_n7_randomread d_z2r_spline;
+  t_ffloat_2d_n7 d_frho_spline;
+  t_ffloat_2d_n7 d_rhor_spline;
+  t_ffloat_2d_n7 d_z2r_spline;
 
   void file2array();
   void file2array_fs();
@@ -164,9 +163,8 @@ class PairEAMFSKokkos : public PairEAM, public KokkosBase {
   void read_file(char *);
 
   typename AT::t_neighbors_2d d_neighbors;
-  typename AT::t_int_1d_randomread d_ilist;
-  typename AT::t_int_1d_randomread d_numneigh;
-  //NeighListKokkos<DeviceType> k_list;
+  typename AT::t_int_1d d_ilist;
+  typename AT::t_int_1d d_numneigh;
 
   int iswap;
   int first;

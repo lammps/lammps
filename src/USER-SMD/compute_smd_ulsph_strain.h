@@ -9,10 +9,9 @@
  *
  * ----------------------------------------------------------------------- */
 
-
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -24,9 +23,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(smd/ulsph/strain,ComputeSMDULSPHstrain)
-
+// clang-format off
+ComputeStyle(smd/ulsph/strain,ComputeSMDULSPHstrain);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_SMD_ULSPH_STRAIN_H
@@ -49,7 +48,7 @@ class ComputeSMDULSPHstrain : public Compute {
   double **strainVector;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

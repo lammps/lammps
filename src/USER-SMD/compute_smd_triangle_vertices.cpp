@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
  *
  *                    *** Smooth Mach Dynamics ***
@@ -12,7 +13,7 @@
 
 /* ----------------------------------------------------------------------
  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
- https://lammps.sandia.gov/, Sandia National Laboratories
+ https://www.lammps.org/, Sandia National Laboratories
  Steve Plimpton, sjplimp@sandia.gov
 
  Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -95,7 +96,7 @@ void ComputeSMDTriangleVertices::compute_peratom() {
     int nlocal = atom->nlocal;
 
     for (int i = 0; i < nlocal; i++) {
-        if ((mask[i] & groupbit) && (mol[i] >= 65535) ){
+        if ((mask[i] & groupbit) && (mol[i] >= 65535)) {
             outputVector[i][0] = smd_data_9[i][0];
             outputVector[i][1] = smd_data_9[i][1];
             outputVector[i][2] = smd_data_9[i][2];
@@ -118,6 +119,6 @@ void ComputeSMDTriangleVertices::compute_peratom() {
  ------------------------------------------------------------------------- */
 
 double ComputeSMDTriangleVertices::memory_usage() {
-    double bytes = size_peratom_cols * nmax * sizeof(double);
+    double bytes = (double)size_peratom_cols * nmax * sizeof(double);
     return bytes;
 }

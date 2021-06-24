@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,20 +13,22 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_property_atom.h"
-#include <cmath>
-#include <cstring>
-#include "math_extra.h"
+
 #include "atom.h"
 #include "atom_vec.h"
+#include "atom_vec_body.h"
 #include "atom_vec_ellipsoid.h"
 #include "atom_vec_line.h"
 #include "atom_vec_tri.h"
-#include "atom_vec_body.h"
-#include "update.h"
-#include "domain.h"
 #include "comm.h"
-#include "memory.h"
+#include "domain.h"
 #include "error.h"
+#include "math_extra.h"
+#include "memory.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -361,14 +364,14 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
                    "atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_nbonds;
 
-    } else if (strstr(arg[iarg],"i_") == arg[iarg]) {
+    } else if (utils::strmatch(arg[iarg],"^i_")) {
       int flag;
       index[i] = atom->find_custom(&arg[iarg][2],flag);
       if (index[i] < 0 || flag != 0)
         error->all(FLERR,"Compute property/atom integer "
                    "vector does not exist");
       pack_choice[i] = &ComputePropertyAtom::pack_iname;
-    } else if (strstr(arg[iarg],"d_") == arg[iarg]) {
+    } else if (utils::strmatch(arg[iarg],"^d_")) {
       int flag;
       index[i] = atom->find_custom(&arg[iarg][2],flag);
       if (index[i] < 0 || flag != 1)
@@ -453,7 +456,7 @@ void ComputePropertyAtom::compute_peratom()
 
 double ComputePropertyAtom::memory_usage()
 {
-  double bytes = nmax*nvalues * sizeof(double);
+  double bytes = (double)nmax*nvalues * sizeof(double);
   return bytes;
 }
 

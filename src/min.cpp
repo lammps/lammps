@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -144,11 +145,12 @@ void Min::init()
   requestor = nullptr;
 
   // virial_style:
-  // 1 if computed explicitly by pair->compute via sum over pair interactions
-  // 2 if computed implicitly by pair->virial_compute via sum over ghost atoms
+  // VIRIAL_PAIR if computed explicitly in pair via sum over pair interactions
+  // VIRIAL_FDOTR if computed implicitly in pair by
+  //   virial_fdotr_compute() via sum over ghosts
 
-  if (force->newton_pair) virial_style = 2;
-  else virial_style = 1;
+  if (force->newton_pair) virial_style = VIRIAL_FDOTR;
+  else virial_style = VIRIAL_PAIR;
 
   // setup lists of computes for global and per-atom PE and pressure
 
@@ -303,7 +305,7 @@ void Min::setup(int flag)
   if (pair_compute_flag) force->pair->compute(eflag,vflag);
   else if (force->pair) force->pair->compute_dummy(eflag,vflag);
 
-  if (atom->molecular) {
+  if (atom->molecular != Atom::ATOMIC) {
     if (force->bond) force->bond->compute(eflag,vflag);
     if (force->angle) force->angle->compute(eflag,vflag);
     if (force->dihedral) force->dihedral->compute(eflag,vflag);
@@ -385,7 +387,7 @@ void Min::setup_minimal(int flag)
   if (pair_compute_flag) force->pair->compute(eflag,vflag);
   else if (force->pair) force->pair->compute_dummy(eflag,vflag);
 
-  if (atom->molecular) {
+  if (atom->molecular != Atom::ATOMIC) {
     if (force->bond) force->bond->compute(eflag,vflag);
     if (force->angle) force->angle->compute(eflag,vflag);
     if (force->dihedral) force->dihedral->compute(eflag,vflag);
@@ -557,7 +559,7 @@ double Min::energy_force(int resetflag)
     timer->stamp(Timer::PAIR);
   }
 
-  if (atom->molecular) {
+  if (atom->molecular != Atom::ATOMIC) {
     if (force->bond) force->bond->compute(eflag,vflag);
     if (force->angle) force->angle->compute(eflag,vflag);
     if (force->dihedral) force->dihedral->compute(eflag,vflag);
@@ -801,19 +803,16 @@ void Min::ev_setup()
    invoke matchstep() on all timestep-dependent computes to clear their arrays
    eflag/vflag based on computes that need info on this ntimestep
    always set eflag_global = 1, since need energy every iteration
-   eflag = 0 = no energy computation
-   eflag = 1 = global energy only
-   eflag = 2 = per-atom energy only
-   eflag = 3 = both global and per-atom energy
-   vflag = 0 = no virial computation (pressure)
-   vflag = 1 = global virial with pair portion via sum of pairwise interactions
-   vflag = 2 = global virial with pair portion via F dot r including ghosts
-   vflag = 4 = per-atom virial only
-   vflag = 5 or 6 = both global and per-atom virial
-   vflag = 8 = per-atom centroid virial only
-   vflag = 9 or 10 = both global and per-atom centroid virial
-   vflag = 12 = both per-atom virial and per-atom centroid virial
-   vflag = 13 or 15 = global, per-atom virial and per-atom centroid virial
+   eflag: set any or no bits
+     ENERGY_GLOBAL bit for global energy
+     ENERGY_ATOM   bit for per-atom energy
+   vflag: set any or no bits, but GLOBAL/FDOTR bit cannot both be set
+     VIRIAL_PAIR     bit for global virial as sum of pairwise terms
+     VIRIAL_FDOTR    bit for global virial via F dot r
+     VIRIAL_ATOM     bit for per-atom virial
+     VIRIAL_CENTROID bit for per-atom centroid virial
+   all force components (pair,bond,angle,...,kspace) use eflag/vflag
+     in their ev_setup() method to set local energy/virial flags
 ------------------------------------------------------------------------- */
 
 void Min::ev_set(bigint ntimestep)
@@ -828,7 +827,7 @@ void Min::ev_set(bigint ntimestep)
   int eflag_atom = 0;
   for (i = 0; i < nelist_atom; i++)
     if (elist_atom[i]->matchstep(ntimestep)) flag = 1;
-  if (flag) eflag_atom = 2;
+  if (flag) eflag_atom = ENERGY_ATOM;
 
   if (eflag_global) update->eflag_global = update->ntimestep;
   if (eflag_atom) update->eflag_atom = update->ntimestep;
@@ -844,13 +843,13 @@ void Min::ev_set(bigint ntimestep)
   int vflag_atom = 0;
   for (i = 0; i < nvlist_atom; i++)
     if (vlist_atom[i]->matchstep(ntimestep)) flag = 1;
-  if (flag) vflag_atom = 4;
+  if (flag) vflag_atom = VIRIAL_ATOM;
 
   flag = 0;
   int cvflag_atom = 0;
   for (i = 0; i < ncvlist_atom; i++)
     if (cvlist_atom[i]->matchstep(ntimestep)) flag = 1;
-  if (flag) cvflag_atom = 8;
+  if (flag) cvflag_atom = VIRIAL_CENTROID;
 
   if (vflag_global) update->vflag_global = update->ntimestep;
   if (vflag_atom || cvflag_atom) update->vflag_atom = update->ntimestep;

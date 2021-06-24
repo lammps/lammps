@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -42,14 +43,11 @@ PairLJGromacsKokkos<DeviceType>::PairLJGromacsKokkos(LAMMPS *lmp):PairLJGromacs(
 {
   respa_enable = 0;
 
+  kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | F_MASK | TYPE_MASK | Q_MASK | ENERGY_MASK | VIRIAL_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
-  cutsq = nullptr;
-  cut_inner = nullptr;
-  cut_inner_sq = nullptr;
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -57,31 +55,13 @@ PairLJGromacsKokkos<DeviceType>::PairLJGromacsKokkos(LAMMPS *lmp):PairLJGromacs(
 template<class DeviceType>
 PairLJGromacsKokkos<DeviceType>::~PairLJGromacsKokkos()
 {
-  if (!copymode) {
+  if (copymode) return;
+
+  if (allocated) {
     memoryKK->destroy_kokkos(k_eatom,eatom);
     memoryKK->destroy_kokkos(k_vatom,vatom);
-    k_cutsq = DAT::tdual_ffloat_2d();
-    k_cut_inner_sq = DAT::tdual_ffloat_2d();
-    memory->sfree(cutsq);
-    eatom = nullptr;
-    vatom = nullptr;
-    cutsq = nullptr;
-    cut_inner = nullptr;
-    cut_inner_sq = nullptr;
+    memoryKK->destroy_kokkos(k_cutsq,cutsq);
   }
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-void PairLJGromacsKokkos<DeviceType>::cleanup_copy() {
-  // WHY needed: this prevents parent copy from deallocating any arrays
-  allocated = 0;
-  cutsq = nullptr;
-  cut_inner = nullptr;
-  cut_inner_sq = nullptr;
-  eatom = nullptr;
-  vatom = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -271,7 +251,7 @@ void PairLJGromacsKokkos<DeviceType>::init_style()
 
   // error if rRESPA with inner levels
 
-  if (update->whichflag == 1 && strstr(update->integrate_style,"respa")) {
+  if (update->whichflag == 1 && utils::strmatch(update->integrate_style,"^respa")) {
     int respa = 0;
     if (((Respa *) update->integrate)->level_inner >= 0) respa = 1;
     if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;
@@ -324,7 +304,7 @@ double PairLJGromacsKokkos<DeviceType>::init_one(int i, int j)
   k_params.h_view(i,j).cut_inner = cut_inner[i][j];
 
   k_params.h_view(j,i) = k_params.h_view(i,j);
-  if(i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
+  if (i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
     m_params[i][j] = m_params[j][i] = k_params.h_view(i,j);
     m_cutsq[j][i] = m_cutsq[i][j] = cutone*cutone;
     m_cut_inner_sq[j][i] = m_cut_inner_sq[i][j] = cut_inner_sqm;

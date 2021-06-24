@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -159,7 +160,7 @@ void PairTDPD::compute(int eflag, int vflag)
 
         // chemical concentration transport
         if (r < cutcc[itype][jtype]) {
-          for(int k=0; k<cc_species; k++) {
+          for (int k=0; k<cc_species; k++) {
             double wcr = 1.0 - r/cutcc[itype][jtype];
             wcr = MAX(0,wcr);
             wcr = pow(wcr, 0.5*powercc[itype][jtype][k]);
@@ -239,7 +240,7 @@ void PairTDPD::settings(int narg, char **arg)
 
   // initialize Marsaglia RNG with processor-unique seed
 
-  if (seed <= 0 ) {
+  if (seed <= 0) {
     struct timespec time;
     clock_gettime( CLOCK_REALTIME, &time );
     seed = time.tv_nsec;  // if seed is non-positive, get the current time as the seed
@@ -280,7 +281,7 @@ void PairTDPD::coeff(int narg, char **arg)
   double *kappa_one = new double[cc_species];
   double *epsilon_one = new double[cc_species];
   double *powercc_one = new double[cc_species];
-  for(int k=0; k<cc_species; k++) {
+  for (int k=0; k<cc_species; k++) {
     kappa_one[k]   = utils::numeric(FLERR,arg[7+3*k],false,lmp);
     epsilon_one[k] = utils::numeric(FLERR,arg[8+3*k],false,lmp);
     powercc_one[k] = utils::numeric(FLERR,arg[9+3*k],false,lmp);
@@ -294,7 +295,7 @@ void PairTDPD::coeff(int narg, char **arg)
     power[i][j] = power_one;
     cut[i][j]   = cut_one;
     cutcc[i][j] = cutcc_one;
-    for(int k=0; k<cc_species; k++)
+    for (int k=0; k<cc_species; k++)
     {
       kappa [i][j][k] = kappa_one[k];
       epsilon[i][j][k]= epsilon_one[k];
@@ -348,7 +349,7 @@ double PairTDPD::init_one(int i, int j)
   gamma[j][i] = gamma[i][j];
   sigma[j][i] = sigma[i][j];
   power[j][i] = power[i][j];
-  for(int k=0; k<cc_species; k++) {
+  for (int k=0; k<cc_species; k++) {
     kappa[j][i][k] = kappa[i][j][k];
     epsilon[j][i][k] = epsilon[i][j][k];
     powercc[j][i][k] = powercc[i][j][k];
@@ -373,7 +374,7 @@ void PairTDPD::write_restart(FILE *fp)
       fwrite(&power[i][j],sizeof(double),1,fp);
       fwrite(&cut[i][j],sizeof(double),1,fp);
       fwrite(&cutcc[i][j],sizeof(double),1,fp);
-      for(int k=0; k<cc_species; k++) {
+      for (int k=0; k<cc_species; k++) {
         fwrite(&kappa[i][j][k],sizeof(double),1,fp);
         fwrite(&epsilon[i][j][k],sizeof(double),1,fp);
         fwrite(&powercc[i][j][k],sizeof(double),1,fp);
@@ -404,7 +405,7 @@ void PairTDPD::read_restart(FILE *fp)
           utils::sfread(FLERR,&power[i][j],sizeof(double),1,fp,nullptr,error);
           utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,nullptr,error);
           utils::sfread(FLERR,&cutcc[i][j],sizeof(double),1,fp,nullptr,error);
-          for(int k=0; k<cc_species; k++) {
+          for (int k=0; k<cc_species; k++) {
             utils::sfread(FLERR,&kappa[i][j][k],sizeof(double),1,fp,nullptr,error);
             utils::sfread(FLERR,&epsilon[i][j][k],sizeof(double),1,fp,nullptr,error);
             utils::sfread(FLERR,&powercc[i][j][k],sizeof(double),1,fp,nullptr,error);
@@ -415,7 +416,7 @@ void PairTDPD::read_restart(FILE *fp)
         MPI_Bcast(&power[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&cutcc[i][j],1,MPI_DOUBLE,0,world);
-        for(int k=0; k<cc_species; k++) {
+        for (int k=0; k<cc_species; k++) {
           MPI_Bcast(&kappa[i][j][k],1,MPI_DOUBLE,0,world);
           MPI_Bcast(&epsilon[i][j][k],1,MPI_DOUBLE,0,world);
           MPI_Bcast(&powercc[i][j][k],1,MPI_DOUBLE,0,world);

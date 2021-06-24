@@ -49,6 +49,8 @@
 
 #include <Kokkos_HIP_Space.hpp>
 
+#include <mutex>
+
 namespace Kokkos {
 namespace Experimental {
 namespace Impl {
@@ -57,6 +59,8 @@ struct HIPTraits {
   static int constexpr WarpSize       = 64;
   static int constexpr WarpIndexMask  = 0x003f; /* hexadecimal for 63 */
   static int constexpr WarpIndexShift = 6;      /* WarpSize == 1 << WarpShift*/
+  static int constexpr MaxThreadsPerBlock =
+      1024;  // FIXME_HIP -- assumed constant for now
 
   static int constexpr ConstantMemoryUsage        = 0x008000; /* 32k bytes */
   static int constexpr ConstantMemoryUseThreshold = 0x000200; /* 512 bytes */
@@ -81,27 +85,46 @@ class HIPInternal {
  public:
   using size_type = ::Kokkos::Experimental::HIP::size_type;
 
-  int m_hipDev;
-  int m_hipArch;
-  unsigned m_multiProcCount;
-  unsigned m_maxWarpCount;
-  unsigned m_maxBlock;
-  unsigned m_maxBlocksPerSM;
-  unsigned m_maxSharedWords;
+  int m_hipDev              = -1;
+  int m_hipArch             = -1;
+  unsigned m_multiProcCount = 0;
+  unsigned m_maxWarpCount   = 0;
+  unsigned m_maxBlock       = 0;
+  unsigned m_maxBlocksPerSM = 0;
+  unsigned m_maxSharedWords = 0;
   int m_regsPerSM;
-  int m_shmemPerSM;
-  int m_maxShmemPerBlock;
-  int m_maxThreadsPerSM;
-  int m_maxThreadsPerBlock;
-  size_type m_scratchSpaceCount;
-  size_type m_scratchFlagsCount;
-  size_type *m_scratchSpace;
-  size_type *m_scratchFlags;
+  int m_shmemPerSM       = 0;
+  int m_maxShmemPerBlock = 0;
+  int m_maxThreadsPerSM  = 0;
+
+  // array of DriverTypes to be allocated in host-pinned memory for async
+  // kernel launches
+  mutable char *d_driverWorkArray = nullptr;
+  // number of kernel launches that can be in-flight w/o synchronization
+  const int m_maxDriverCycles = 100;
+  // max size of a DriverType [bytes]
+  mutable size_t m_maxDriverTypeSize = 1024 * 10;
+  // the current index in the driverWorkArray
+  mutable int m_cycleId = 0;
+  // mutex to access d_driverWorkArray
+  mutable std::mutex m_mutexWorkArray;
+
+  // Scratch Spaces for Reductions
+  size_type m_scratchSpaceCount = 0;
+  size_type m_scratchFlagsCount = 0;
+
+  size_type *m_scratchSpace           = nullptr;
+  size_type *m_scratchFlags           = nullptr;
   uint32_t *m_scratchConcurrentBitset = nullptr;
 
   hipDeviceProp_t m_deviceProp;
 
-  hipStream_t m_stream;
+  hipStream_t m_stream = nullptr;
+
+  // Team Scratch Level 1 Space
+  mutable int64_t m_team_scratch_current_size = 0;
+  mutable void *m_team_scratch_ptr            = nullptr;
+  mutable std::mutex m_team_scratch_mutex;
 
   bool was_finalized = false;
 
@@ -109,38 +132,29 @@ class HIPInternal {
 
   int verify_is_initialized(const char *const label) const;
 
-  int is_initialized() const {
-    return m_hipDev >= 0;
-  }  // 0 != m_scratchSpace && 0 != m_scratchFlags ; }
+  int is_initialized() const { return m_hipDev >= 0; }
 
-  void initialize(int hip_device_id, hipStream_t stream = 0);
+  void initialize(int hip_device_id, hipStream_t stream = nullptr);
   void finalize();
 
   void print_configuration(std::ostream &) const;
 
   void fence() const;
 
+  // returns the next driver type pointer in our work array
+  char *get_next_driver(size_t driverTypeSize) const;
+
   ~HIPInternal();
 
-  HIPInternal()
-      : m_hipDev(-1),
-        m_hipArch(-1),
-        m_multiProcCount(0),
-        m_maxWarpCount(0),
-        m_maxBlock(0),
-        m_maxSharedWords(0),
-        m_shmemPerSM(0),
-        m_maxShmemPerBlock(0),
-        m_maxThreadsPerSM(0),
-        m_maxThreadsPerBlock(0),
-        m_scratchSpaceCount(0),
-        m_scratchFlagsCount(0),
-        m_scratchSpace(0),
-        m_scratchFlags(0),
-        m_stream(0) {}
+  HIPInternal() = default;
 
+  // Resizing of reduction related scratch spaces
   size_type *scratch_space(const size_type size);
   size_type *scratch_flags(const size_type size);
+
+  // Resizing of team level 1 scratch
+  void *resize_team_scratch_space(std::int64_t bytes,
+                                  bool force_shrink = false);
 };
 
 }  // namespace Impl

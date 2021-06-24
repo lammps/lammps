@@ -1,3 +1,17 @@
+// clang-format off
+/* ----------------------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   https://www.lammps.org/, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
+
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under
+   the GNU General Public License.
+
+   See the README file in the top-level LAMMPS directory.
+   ----------------------------------------------------------------------- */
+
 #include "manifold_thylakoid_shared.h"
 #include <cmath>
 
@@ -10,7 +24,7 @@ thyla_part::thyla_part( int type, double *args, double xlo, double ylo, double z
   : type(type), xlo(xlo), xhi(xhi),
     ylo(ylo), yhi(yhi), zlo(zlo), zhi(zhi)
 {
-  switch(type){
+  switch(type) {
     case THYLA_TYPE_PLANE: // a*(x-x0) + b*(y-y0) + c*(z-z0) = 0
       params[0] = args[0]; // a
       params[1] = args[1]; // b
@@ -40,7 +54,7 @@ thyla_part::thyla_part( int type, double *args, double xlo, double ylo, double z
       // The others should be 1.
       if ( (args[0] != 1.0) && (args[0] != 0.0) &&
            (args[1] != 1.0) && (args[1] != 0.0) &&
-           (args[2] != 1.0) && (args[2] != 0.0) ){
+           (args[2] != 1.0) && (args[2] != 0.0)) {
         err_flag = -1;
       }
       break;
@@ -83,7 +97,7 @@ thyla_part::~thyla_part()
 
 double thyla_part::g(const double *x)
 {
-  switch(type){
+  switch(type) {
     case THYLA_TYPE_PLANE:{ // a*(x-x0) + b*(y-y0) + c*(z-z0) = 0
       double a  = params[0];
       double b  = params[1];
@@ -144,7 +158,7 @@ double thyla_part::g(const double *x)
 
 void   thyla_part::n( const double *x, double *n )
 {
-  switch(type){
+  switch(type) {
     case THYLA_TYPE_PLANE:{ // a*(x-x0) + b*(y-y0) + c*(z-z0) = 0
       double a  = params[0];
       double b  = params[1];

@@ -173,7 +173,7 @@ equation for the Hamaker constant presented here.  Mixing of sigma and
 epsilon followed by calculation of the energy prefactors using the
 equations above is recommended.
 
-This pair styles supports the :doc:`pair_modify <pair_modify>` shift
+This pair style supports the :doc:`pair_modify <pair_modify>` shift
 option for the energy of the Lennard-Jones portion of the pair
 interaction, but only for sphere-sphere interactions.  There is no
 shifting performed for ellipsoidal interactions due to the anisotropic

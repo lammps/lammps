@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,11 +17,6 @@
 
 #include "fix_bocs.h"
 
-#include <cstring>
-
-#include <cmath>
-#include <vector>
-
 #include "atom.h"
 #include "citeme.h"
 #include "comm.h"
@@ -29,7 +25,6 @@
 #include "domain.h"
 #include "error.h"
 #include "fix_deform.h"
-
 #include "force.h"
 #include "group.h"
 #include "irregular.h"
@@ -39,6 +34,10 @@
 #include "neighbor.h"
 #include "respa.h"
 #include "update.h"
+
+#include <cmath>
+#include <cstring>
+#include <vector>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -70,7 +69,8 @@ const int NUM_INPUT_DATA_COLUMNS = 2;     // columns in the pressure correction 
 
 FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  rfix(nullptr), id_dilate(nullptr), irregular(nullptr), id_temp(nullptr), id_press(nullptr),
+  rfix(nullptr), id_dilate(nullptr), irregular(nullptr),
+  id_temp(nullptr), id_press(nullptr),
   eta(nullptr), eta_dot(nullptr), eta_dotdot(nullptr),
   eta_mass(nullptr), etap(nullptr), etap_dot(nullptr), etap_dotdot(nullptr),
   etap_mass(nullptr)
@@ -87,6 +87,7 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   extscalar = 1;
   extvector = 0;
+  ecouple_flag = 1;
 
   // default values
 
@@ -186,7 +187,7 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
       }
       iarg += 4;
 
-      if ( strcmp(arg[iarg], "analytic") == 0  ) {
+      if (strcmp(arg[iarg], "analytic") == 0) {
         if (iarg + 4 > narg) {
           error->all(FLERR,"Illegal fix bocs command. Basis type analytic"
                     " must be followed by: avg_vol n_mol n_pmatch_coeff");
@@ -202,13 +203,13 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
         for (int pmatchi = 0; pmatchi < N_p_match; pmatchi++)
           p_match_coeffs[pmatchi] = utils::numeric(FLERR,arg[iarg+pmatchi],false,lmp);
         iarg += (N_p_match);
-      } else if (strcmp(arg[iarg], "linear_spline") == 0  ) {
+      } else if (strcmp(arg[iarg], "linear_spline") == 0) {
         if (iarg+2 > narg) error->all(FLERR,"Illegal fix bocs command. "
                               "Supply a file name after linear_spline.");
         p_basis_type = BASIS_LINEAR_SPLINE;
         spline_length = read_F_table( arg[iarg+1], p_basis_type );
         iarg += 2;
-      } else if (strcmp(arg[iarg], "cubic_spline") == 0 ) {
+      } else if (strcmp(arg[iarg], "cubic_spline") == 0) {
         if (iarg+2 > narg) error->all(FLERR,"Illegal fix bocs command. "
                                "Supply a file name after cubic_spline.");
         p_basis_type = BASIS_CUBIC_SPLINE;
@@ -402,38 +403,16 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
   // compute group = all since pressure is always global (group all)
   // and thus its KE/temperature contribution should use group all
 
-
-  int n = strlen(id) + 6;
-  id_temp = new char[n];
-  strcpy(id_temp,id);
-  strcat(id_temp,"_temp");
-
-  char **newarg = new char*[3];
-  newarg[0] = id_temp;
-  newarg[1] = (char *) "all";
-  newarg[2] = (char *) "temp";
-
-
-  modify->add_compute(3,newarg);
-  delete [] newarg;
+  id_temp = utils::strdup(std::string(id)+"_temp");
+  modify->add_compute(fmt::format("{} all temp",id_temp));
   tcomputeflag = 1;
 
   // create a new compute pressure style
   // id = fix-ID + press, compute group = all
   // pass id_temp as 4th arg to pressure constructor
 
-  n = strlen(id) + 7;
-  id_press = new char[n];
-  strcpy(id_press,id);
-  strcat(id_press,"_press");
-
-  newarg = new char*[4];
-  newarg[0] = id_press;
-  newarg[1] = (char *) "all";
-  newarg[2] = (char *) "PRESSURE/BOCS";
-  newarg[3] = id_temp;
-  modify->add_compute(4,newarg);
-  delete [] newarg;
+  id_press = utils::strdup(std::string(id)+"_press");
+  modify->add_compute(fmt::format("{} all PRESSURE/BOCS {}",id_press,id_temp));
   pcomputeflag = 1;
 
 /*~ MRD End of stuff copied from fix_npt.cpp~*/
@@ -489,7 +468,6 @@ int FixBocs::setmask()
   int mask = 0;
   mask |= INITIAL_INTEGRATE;
   mask |= FINAL_INTEGRATE;
-  mask |= THERMO_ENERGY;
   mask |= INITIAL_INTEGRATE_RESPA;
   mask |= FINAL_INTEGRATE_RESPA;
   if (pre_exchange_flag) mask |= PRE_EXCHANGE;
@@ -551,7 +529,7 @@ void FixBocs::init()
           ((ComputePressureBocs *)pressure)->send_cg_info(p_basis_type,
                                N_p_match, p_match_coeffs, N_mol, vavg);
         }
-        else if ( p_basis_type == BASIS_LINEAR_SPLINE || p_basis_type == BASIS_CUBIC_SPLINE )
+        else if (p_basis_type == BASIS_LINEAR_SPLINE || p_basis_type == BASIS_CUBIC_SPLINE)
         {
           ((ComputePressureBocs *)pressure)->send_cg_info(p_basis_type,
                                                splines, spline_length);
@@ -613,7 +591,7 @@ void FixBocs::init()
   if (force->kspace) kspace_flag = 1;
   else kspace_flag = 0;
 
-  if (strstr(update->integrate_style,"respa")) {
+  if (utils::strmatch(update->integrate_style,"^respa")) {
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
     step_respa = ((Respa *) update->integrate)->step;
     dto = 0.5*step_respa[0];
@@ -652,7 +630,7 @@ int FixBocs::read_F_table( char *filename, int p_basis_type )
     // NB: LAMMPS coding guidelines prefer cstdio so we are intentionally
     // foregoing  reading with getline
     if (comm->me == 0) {
-        error->message(FLERR, fmt::format("INFO: About to read data file: {}", filename));
+        error->message(FLERR, "INFO: About to read data file: {}", filename);
     }
 
     // Data file lines hold two floating point numbers.
@@ -668,7 +646,7 @@ int FixBocs::read_F_table( char *filename, int p_basis_type )
 
     numEntries = inputLines.size();
     if (comm->me == 0) {
-      error->message(FLERR, fmt::format("INFO: Read {} lines from file", numEntries));
+      error->message(FLERR, "INFO: Read {} lines from file", numEntries);
     }
 
 
@@ -688,39 +666,28 @@ int FixBocs::read_F_table( char *filename, int p_basis_type )
     int numBadVolumeIntervals = 0; // count these for message
     float f1, f2;
     int test_sscanf;
-    for (int i = 0; i < inputLines.size(); ++i) {
+    for (int i = 0; i < (int)inputLines.size(); ++i) {
       lineNum++;  // count each line processed now so lineNum messages can be 1-based
       test_sscanf = sscanf(inputLines.at(i).c_str()," %f , %f ",&f1, &f2);
       if (test_sscanf == 2)
       {
-        //if (comm->me == 0) {
-        //    error->message(FLERR, fmt::format("INFO: f1 = {}, f2 = {}", f1, f2));
-        //}
         data[VOLUME][i] = (double)f1;
         data[PRESSURE_CORRECTION][i] = (double)f2;
         if (i == 1)
         {
           // second entry is used to compute the validation interval used below
           stdVolumeInterval = data[VOLUME][i] - data[VOLUME][i-1];
-          //if (comm->me == 0) {
-          //    error->message(FLERR, fmt::format("INFO: standard volume interval computed: {}", stdVolumeInterval));
-          //}
         }
         else if (i > 1)
         {
           // after second entry, all intervals are validated
           currVolumeInterval = data[VOLUME][i] - data[VOLUME][i-1];
-          //if (comm->me == 0) {
-          //    error->message(FLERR, fmt::format("INFO: current volume interval: {}", currVolumeInterval));
-          //}
           if (fabs(currVolumeInterval - stdVolumeInterval) > volumeIntervalTolerance) {
-            if (comm->me == 0) {
-                message = fmt::format("Bad volume interval. Spline analysis requires uniform"
-                                      " volume distribution, found inconsistent volume"
-                                      " differential, line {} of file {}\n\tline: {}",
-                                      lineNum, filename, inputLines.at(i));
-                error->warning(FLERR, message);
-            }
+            if (comm->me == 0)
+              error->warning(FLERR,"Bad volume interval. Spline analysis requires uniform"
+                             " volume distribution, found inconsistent volume"
+                             " differential, line {} of file {}\nWARNING:\tline: {}",
+                             lineNum, filename, inputLines.at(i));
             badInput = true;
             numBadVolumeIntervals++;
           }
@@ -729,12 +696,10 @@ int FixBocs::read_F_table( char *filename, int p_basis_type )
       }
       else
       {
-        if (comm->me == 0) {
-          message = fmt::format("Bad input format: did not find 2 comma separated numeric"
-                                " values in line {} of file {}\n\tline: {}",
-                                lineNum, filename, inputLines.at(i));
-          error->warning(FLERR, message);
-        }
+        if (comm->me == 0)
+          error->warning(FLERR,"Bad input format: did not find 2 comma separated numeric"
+                         " values in line {} of file {}\nWARNING:\tline: {}",
+                         lineNum, filename, inputLines.at(i));
         badInput = true;
       }
       if (badInput)
@@ -744,15 +709,15 @@ int FixBocs::read_F_table( char *filename, int p_basis_type )
     }
 
     if (numBadVolumeIntervals > 0 && comm->me == 0) {
-      error->message(FLERR, fmt::format("INFO: total number bad volume intervals = {}", numBadVolumeIntervals));
+      error->message(FLERR, "INFO: total number bad volume intervals = {}", numBadVolumeIntervals);
     }
   }
   else {
-    error->all(FLERR,fmt::format("ERROR: Unable to open file: {}", filename));
+    error->all(FLERR,"ERROR: Unable to open file: {}", filename);
   }
 
   if (badInput && comm->me == 0) {
-    error->warning(FLERR,fmt::format("Bad volume / pressure-correction data: {}\nSee details above", filename));
+    error->warning(FLERR,"Bad volume / pressure-correction data: {}\nSee details above", filename);
   }
 
   if (p_basis_type == BASIS_LINEAR_SPLINE)
@@ -767,7 +732,7 @@ int FixBocs::read_F_table( char *filename, int p_basis_type )
   }
   else
   {
-    error->all(FLERR,fmt::format("ERROR: invalid p_basis_type value of {} in read_F_table", p_basis_type));
+    error->all(FLERR,"ERROR: invalid p_basis_type value of {} in read_F_table", p_basis_type);
   }
 
   memory->destroy(data);
@@ -775,9 +740,6 @@ int FixBocs::read_F_table( char *filename, int p_basis_type )
 }
 
 int FixBocs::build_linear_splines(double **data) {
-  //if (comm->me == 0) {
-    //error->message(FLERR, fmt::format("INFO: entering build_linear_splines, spline_length = {}", spline_length));
-  //}
   splines = (double **) calloc(NUM_LINEAR_SPLINE_COLUMNS,sizeof(double *));
   splines[VOLUME] = (double *) calloc(spline_length,sizeof(double));
   splines[PRESSURE_CORRECTION] = (double *) calloc(spline_length,sizeof(double));
@@ -789,7 +751,7 @@ int FixBocs::build_linear_splines(double **data) {
   }
 
   if (comm->me == 0) {
-    error->message(FLERR, fmt::format("INFO: leaving build_linear_splines, spline_length = {}", spline_length));
+    error->message(FLERR, "INFO: leaving build_linear_splines, spline_length = {}", spline_length);
   }
 
   return spline_length;
@@ -797,14 +759,11 @@ int FixBocs::build_linear_splines(double **data) {
 
 int FixBocs::build_cubic_splines(double **data)
 {
-  //if (comm->me == 0) {
-    //error->message(FLERR, fmt::format("INFO: entering build_cubic_splines, spline_length = {}", spline_length));
-  //}
   int n = spline_length;
   double *a, *b, *d, *h, *alpha, *c, *l, *mu, *z;
   // 2020-07-17 ag:
   // valgrind says that we read/write a[n] down in the
-  // for(int j=n-1; j>=0; j--) loop below
+  // for (int j=n-1; j>=0; j--) loop below
   // and I agree.
   // So the size of a must be n+1, not n as was found
   // in the original code.
@@ -858,7 +817,7 @@ int FixBocs::build_cubic_splines(double **data)
   c[n] = 0.0;
   d[n] = 0.0;
 
-  for(int j=n-1; j>=0; j--)
+  for (int j=n-1; j>=0; j--)
   {
     c[j] = z[j] - mu[j]*c[j+1];
 
@@ -890,7 +849,7 @@ int FixBocs::build_cubic_splines(double **data)
   memory->destroy(z);
 
   if (comm->me == 0) {
-    error->message(FLERR, fmt::format("INFO: leaving build_cubic_splines, numSplines = {}", numSplines));
+    error->message(FLERR, "INFO: leaving build_cubic_splines, numSplines = {}", numSplines);
   }
 
   // Tell the caller how many splines we created
@@ -1548,9 +1507,7 @@ int FixBocs::modify_param(int narg, char **arg)
       tcomputeflag = 0;
     }
     delete [] id_temp;
-    int n = strlen(arg[1]) + 1;
-    id_temp = new char[n];
-    strcpy(id_temp,arg[1]);
+    id_temp = utils::strdup(arg[1]);
 
     int icompute = modify->find_compute(arg[1]);
     if (icompute < 0)
@@ -1582,9 +1539,7 @@ int FixBocs::modify_param(int narg, char **arg)
       pcomputeflag = 0;
     }
     delete [] id_press;
-    int n = strlen(arg[1]) + 1;
-    id_press = new char[n];
-    strcpy(id_press,arg[1]);
+    id_press = utils::strdup(arg[1]);
 
     int icompute = modify->find_compute(arg[1]);
     if (icompute < 0) error->all(FLERR,"Could not find fix_modify pressure ID");
@@ -1592,12 +1547,12 @@ int FixBocs::modify_param(int narg, char **arg)
 
     if (p_match_flag) // NJD MRD
     {
-      if ( p_basis_type == BASIS_ANALYTIC )
+      if (p_basis_type == BASIS_ANALYTIC)
       {
         ((ComputePressureBocs *)pressure)->send_cg_info(p_basis_type, N_p_match,
                                                    p_match_coeffs, N_mol, vavg);
       }
-      else if ( p_basis_type == BASIS_LINEAR_SPLINE || p_basis_type == BASIS_CUBIC_SPLINE  )
+      else if (p_basis_type == BASIS_LINEAR_SPLINE || p_basis_type == BASIS_CUBIC_SPLINE )
       {
         ((ComputePressureBocs *)pressure)->send_cg_info(p_basis_type, splines, spline_length );
       }
@@ -1877,7 +1832,7 @@ void FixBocs::reset_dt()
 
   // If using respa, then remap is performed in innermost level
 
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     dto = 0.5*step_respa[0];
 
   if (pstat_flag)

@@ -69,6 +69,8 @@ From: ubuntu:18.04
         mpi-default-bin \
         mpi-default-dev \
         ninja-build \
+        ocl-icd-libopencl1 \
+        ocl-icd-opencl-dev \
         python-dev \
         python-pip \
         python-pygments \
@@ -120,6 +122,12 @@ From: ubuntu:18.04
     ln -s /usr/local/cuda-11.0 /usr/local/cuda
     ln -s /usr/local/cuda-11.0/lib64/stubs/libcuda.so /usr/local/cuda-11.0/lib64/stubs/libcuda.so.1
 
+    ###########################################################################
+    # NVIDIA OpenCL
+    ###########################################################################
+
+    mkdir -p /etc/OpenCL/vendors
+    echo "libnvidia-opencl.so.1" > /etc/OpenCL/vendors/nvidia.icd
 
     ###########################################################################
     # ROCm hipCUB

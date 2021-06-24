@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -66,8 +67,8 @@ void ComputeDpd::compute_vector()
 
   for (int i = 0; i < size_vector; i++) dpdU[i] = 0.0;
 
-  for (int i = 0; i < nlocal; i++){
-    if (mask[i] & groupbit){
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) {
       dpdU[0] += uCond[i];
       dpdU[1] += uMech[i];
       dpdU[2] += uChem[i];

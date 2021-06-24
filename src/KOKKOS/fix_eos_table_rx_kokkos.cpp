@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -193,7 +194,7 @@ KOKKOS_INLINE_FUNCTION
 void FixEOStableRXKokkos<DeviceType>::operator()(TagFixEOStableRXInit, const int &i) const {
   double tmp;
   if (mask[i] & groupbit) {
-    if(dpdTheta[i] <= 0.0)
+    if (dpdTheta[i] <= 0.0)
       k_error_flag.template view<DeviceType>()() = 1;
     energy_lookup(i,dpdTheta[i],tmp);
     uCond[i] = 0.0;
@@ -233,7 +234,7 @@ void FixEOStableRXKokkos<DeviceType>::post_integrate()
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixEOStableRXKokkos<DeviceType>::operator()(TagFixEOStableRXTemperatureLookup2, const int &i) const {
-  if (mask[i] & groupbit){
+  if (mask[i] & groupbit) {
     temperature_lookup(i,uCond[i]+uMech[i]+uChem[i],dpdTheta[i]);
     if (dpdTheta[i] <= 0.0)
       k_error_flag.template view<DeviceType>()() = 1;
@@ -303,7 +304,7 @@ void FixEOStableRXKokkos<DeviceType>::energy_lookup(int id, double thetai, doubl
   nPG = 0;
 
   if (rx_flag) {
-    for (int ispecies = 0; ispecies < nspecies; ispecies++ ) {
+    for (int ispecies = 0; ispecies < nspecies; ispecies++) {
       nTotal += dvector(ispecies,id);
       if (fabs(d_moleculeCorrCoeff[ispecies]) > tolerance) {
         nPG++;
@@ -314,7 +315,7 @@ void FixEOStableRXKokkos<DeviceType>::energy_lookup(int id, double thetai, doubl
     nTotal = 1.0;
   }
 
-  for(int ispecies=0;ispecies<nspecies;ispecies++){
+  for (int ispecies=0;ispecies<nspecies;ispecies++) {
     //Table *tb = &tables[ispecies];
     //thetai = MAX(thetai,tb->lo);
     thetai = MAX(thetai,d_table_const.lo(ispecies));
@@ -364,7 +365,7 @@ void FixEOStableRXKokkos<DeviceType>::temperature_lookup(int id, double ui, doub
   // Store the current thetai in t1
   t1 = MAX(thetai,lo);
   t1 = MIN(t1,hi);
-  if(t1==hi) delta = -delta;
+  if (t1==hi) delta = -delta;
 
   // Compute u1 at thetai
   energy_lookup(id,t1,u1);
@@ -382,9 +383,9 @@ void FixEOStableRXKokkos<DeviceType>::temperature_lookup(int id, double ui, doub
   f2 = u2 - ui;
 
   // Apply the Secant Method
-  for(it=0; it<maxit; it++){
-    if(fabs(f2-f1) < MY_EPSILON){
-      if(std::isnan(f1) || std::isnan(f2)) k_error_flag.template view<DeviceType>()() = 2;
+  for (it=0; it<maxit; it++) {
+    if (fabs(f2-f1) < MY_EPSILON) {
+      if (std::isnan(f1) || std::isnan(f2)) k_error_flag.template view<DeviceType>()() = 2;
       temp = t1;
       temp = MAX(temp,lo);
       temp = MIN(temp,hi);
@@ -392,15 +393,15 @@ void FixEOStableRXKokkos<DeviceType>::temperature_lookup(int id, double ui, doub
       break;
     }
     temp = t2 - f2*(t2-t1)/(f2-f1);
-    if(fabs(temp-t2) < tolerance) break;
+    if (fabs(temp-t2) < tolerance) break;
     f1 = f2;
     t1 = t2;
     t2 = temp;
     energy_lookup(id,t2,u2);
     f2 = u2 - ui;
   }
-  if(it==maxit){
-    if(std::isnan(f1) || std::isnan(f2) || std::isnan(ui) || std::isnan(thetai) || std::isnan(t1) || std::isnan(t2))
+  if (it==maxit) {
+    if (std::isnan(f1) || std::isnan(f2) || std::isnan(ui) || std::isnan(thetai) || std::isnan(t1) || std::isnan(t2))
       k_error_flag.template view<DeviceType>()() = 2;
     else
       k_error_flag.template view<DeviceType>()() = 3;
@@ -440,7 +441,7 @@ void FixEOStableRXKokkos<DeviceType>::unpack_forward_comm(int n, int first, doub
 
   m = 0;
   last = first + n ;
-  for (ii = first; ii < last; ii++){
+  for (ii = first; ii < last; ii++) {
     h_uChem[ii]  = buf[m++];
     h_uCG[ii]    = buf[m++];
     h_uCGnew[ii] = buf[m++];
@@ -518,24 +519,24 @@ void FixEOStableRXKokkos<DeviceType>::create_kokkos_tables()
   memoryKK->create_kokkos(d_table->hi,h_table->hi,ntables,"Table::hi");
   memoryKK->create_kokkos(d_table->invdelta,h_table->invdelta,ntables,"Table::invdelta");
 
-  if(tabstyle == LINEAR) {
+  if (tabstyle == LINEAR) {
     memoryKK->create_kokkos(d_table->r,h_table->r,ntables,tablength,"Table::r");
     memoryKK->create_kokkos(d_table->e,h_table->e,ntables,tablength,"Table::e");
     memoryKK->create_kokkos(d_table->de,h_table->de,ntables,tlm1,"Table::de");
   }
 
-  for(int i=0; i < ntables; i++) {
+  for (int i=0; i < ntables; i++) {
     Table* tb = &tables[i];
 
     h_table->lo[i] = tb->lo;
     h_table->hi[i] = tb->hi;
     h_table->invdelta[i] = tb->invdelta;
 
-    for(int j = 0; j<h_table->r.extent(1); j++)
+    for (int j = 0; j < (int)h_table->r.extent(1); j++)
       h_table->r(i,j) = tb->r[j];
-    for(int j = 0; j<h_table->e.extent(1); j++)
+    for (int j = 0; j < (int)h_table->e.extent(1); j++)
       h_table->e(i,j) = tb->e[j];
-    for(int j = 0; j<h_table->de.extent(1); j++)
+    for (int j = 0; j < (int)h_table->de.extent(1); j++)
       h_table->de(i,j) = tb->de[j];
   }
 

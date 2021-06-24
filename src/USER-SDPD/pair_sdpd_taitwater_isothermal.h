@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(sdpd/taitwater/isothermal,PairSDPDTaitwaterIsothermal)
-
+// clang-format off
+PairStyle(sdpd/taitwater/isothermal,PairSDPDTaitwaterIsothermal);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_SDPD_TAITWATER_MORRIS_ISOTHERMAL_H
@@ -22,20 +22,20 @@ PairStyle(sdpd/taitwater/isothermal,PairSDPDTaitwaterIsothermal)
 
 #include "pair.h"
 #ifdef USE_ZEST
-#include <random>
 #include "zest.hpp"
+#include <random>
 #endif
 
 namespace LAMMPS_NS {
 
 class PairSDPDTaitwaterIsothermal : public Pair {
  public:
-  PairSDPDTaitwaterIsothermal (class LAMMPS *);
-  virtual ~PairSDPDTaitwaterIsothermal ();
-  virtual void compute (int, int);
-  void settings (int, char **);
-  void coeff (int, char **);
-  virtual double init_one (int, int);
+  PairSDPDTaitwaterIsothermal(class LAMMPS *);
+  virtual ~PairSDPDTaitwaterIsothermal();
+  virtual void compute(int, int);
+  void settings(int, char **);
+  void coeff(int, char **);
+  virtual double init_one(int, int);
   virtual void init_style();
 
  protected:
@@ -43,18 +43,18 @@ class PairSDPDTaitwaterIsothermal : public Pair {
   double *rho0, *soundspeed, *B;
   double **cut;
 
-  void allocate ();
+  void allocate();
 
   unsigned int seed;
 #ifdef USE_ZEST
   std::mt19937_64 generator;
-  Ziggurat<zest::StandardNormal,std::mt19937_64> gaussian;
+  Ziggurat<zest::StandardNormal, std::mt19937_64> gaussian;
 #else
   class RanMars *random;
 #endif
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

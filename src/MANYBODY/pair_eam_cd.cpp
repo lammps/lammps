@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -506,13 +507,13 @@ void PairEAMCD::read_h_coeff(char *filename)
     int convert_flag = unit_convert_flag;
     fptr = utils::open_potential(filename, lmp, &convert_flag);
     if (fptr == nullptr)
-      error->one(FLERR,fmt::format("Cannot open EAMCD potential file {}",
-                                   filename));
+      error->one(FLERR,"Cannot open EAMCD potential file {}",
+                                   filename);
 
     // h coefficients are stored at the end of the file.
     // Skip to last line of file.
 
-    while(fgets(nextline, MAXLINE, fptr) != nullptr) {
+    while (fgets(nextline, MAXLINE, fptr) != nullptr) {
       strcpy(line, nextline);
     }
 
@@ -527,7 +528,7 @@ void PairEAMCD::read_h_coeff(char *filename)
     hcoeff = new double[nhcoeff];
 
     int i = 0;
-    while(values.has_next()) {
+    while (values.has_next()) {
       hcoeff[i++] = values.next_double();
     }
 

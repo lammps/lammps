@@ -223,6 +223,9 @@ The structure of the data file is important, though many settings and
 sections are optional or can come in any order.  See the examples
 directory for sample data files for different problems.
 
+The file will be read line by line, but there is a limit of 254
+characters per line and characters beyond that limit will be ignored.
+
 A data file has a header and a body.  The header appears first.  The
 first line of the header is always skipped; it typically contains a
 description of the file.  Then lines are read one at a time.  Lines
@@ -345,10 +348,11 @@ Similarly, the z dimension should be periodic if xz or yz is non-zero.
 LAMMPS does not require this periodicity, but you may lose atoms if
 this is not the case.
 
-Also note that if your simulation will tilt the box, e.g. via the :doc:`fix deform <fix_deform>` command, the simulation box must be setup to
-be triclinic, even if the tilt factors are initially 0.0.  You can
-also change an orthogonal box to a triclinic box or vice versa by
-using the :doc:`change box <change_box>` command with its *ortho* and
+Also note that if your simulation will tilt the box, e.g. via the
+:doc:`fix deform <fix_deform>` command, the simulation box must be setup
+to be triclinic, even if the tilt factors are initially 0.0.  You can
+also change an orthogonal box to a triclinic box or vice versa by using
+the :doc:`change box <change_box>` command with its *ortho* and
 *triclinic* options.
 
 For 2d simulations, the *zlo zhi* values should be set to bound the z
@@ -364,24 +368,53 @@ periodic remapping will be performed using simulation box bounds that
 are the union of the existing box and the box boundaries in the new
 data file.
 
+If the system is non-periodic (in a dimension), then an image flag for
+that direction has no meaning, since there cannot be periodic images
+without periodicity and the data file is therefore - technically speaking
+- invalid.  This situation would happen when a data file was written
+with periodic boundaries and then read back for non-periodic boundaries.
+Accepting a non-zero image flag can lead to unexpected results for any
+operations and computations in LAMMPS that internally use unwrapped
+coordinates (for example computing the center of mass of a group of
+atoms). Thus all non-zero image flags for non-periodic dimensions will
+be be reset to zero on reading the data file and LAMMPS will print a
+warning message, if that happens.  This is equivalent to wrapping atoms
+individually back into the principal unit cell in that direction.  This
+operation is equivalent to the behavior of the :doc:`change_box command
+<change_box>` when used to change periodicity.
+
+
+If those atoms with non-zero image flags are involved in bonded
+interactions, this reset can lead to undesired changes, when the image
+flag values differ between the atoms, i.e. the bonded interaction
+straddles domain boundaries.  For example a bond can become stretched
+across the unit cell if one of its atoms is wrapped to one side of the
+cell and the second atom to the other. In those cases the data file
+needs to be pre-processed externally to become valid again.  This can be
+done by first unwrapping coordinates and then wrapping entire molecules
+instead of individual atoms back into the principal simulation cell and
+finally expanding the cell dimensions in the non-periodic direction as
+needed, so that the image flag would be zero.
+
 .. note::
 
-   If the system is non-periodic (in a dimension), then all atoms
-   in the data file must have coordinates (in that dimension) that are
-   "greater than or equal to" the lo value and "less than or equal to"
-   the hi value.  If the non-periodic dimension is of style "fixed" (see
-   the :doc:`boundary <boundary>` command), then the atom coords must be
+   If the system is non-periodic (in a dimension), then all atoms in the
+   data file must have coordinates (in that dimension) that are "greater
+   than or equal to" the lo value and "less than or equal to" the hi
+   value.  If the non-periodic dimension is of style "fixed" (see the
+   :doc:`boundary <boundary>` command), then the atom coords must be
    strictly "less than" the hi value, due to the way LAMMPS assign atoms
    to processors.  Note that you should not make the lo/hi values
    radically smaller/larger than the extent of the atoms.  For example,
    if your atoms extend from 0 to 50, you should not specify the box
-   bounds as -10000 and 10000.  This is because LAMMPS uses the specified
-   box size to layout the 3d grid of processors.  A huge (mostly empty)
-   box will be sub-optimal for performance when using "fixed" boundary
+   bounds as -10000 and 10000 unless you also use the :doc:`processors
+   command <processors>`.  This is because LAMMPS uses the specified box
+   size to layout the 3d grid of processors.  A huge (mostly empty) box
+   will be sub-optimal for performance when using "fixed" boundary
    conditions (see the :doc:`boundary <boundary>` command).  When using
    "shrink-wrap" boundary conditions (see the :doc:`boundary <boundary>`
-   command), a huge (mostly empty) box may cause a parallel simulation to
-   lose atoms when LAMMPS shrink-wraps the box around the atoms.  The
+   command), a huge (mostly empty) box may cause a parallel simulation
+   to lose atoms when LAMMPS shrink-wraps the box around the atoms.  The
    read_data command will generate an error in this case.
 
 The "extra bond per atom" setting (angle, dihedral, improper) is only

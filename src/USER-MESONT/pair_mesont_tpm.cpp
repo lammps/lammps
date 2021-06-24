@@ -1,6 +1,7 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -9,7 +10,6 @@
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
-
    Contributing author: Maxim Shugaev (UVA), mvs9t@virginia.edu
 ------------------------------------------------------------------------- */
 
@@ -29,6 +29,7 @@
 #include <cstring>
 #include <vector>
 #include <cmath>
+#include <array>
 
 #include <fstream>
 #include <sstream>
@@ -36,28 +37,17 @@
 
 using namespace LAMMPS_NS;
 
-//since LAMMPS is compiled with C++ 2003, define a substitution for std::array
-template<typename T, int N>
-class array2003{
-public:
-  T& operator[] (int idx){ return data[idx];};
-  const T& operator[] (int idx) const{ return data[idx];};
-private:
-  T data[N];
-};
-
-
 class MESONTList {
 public:
-  MESONTList(const Atom* atom, const NeighList* nblist, double rc2);
+  MESONTList(const Atom* atom, const NeighList* nblist);
   ~MESONTList() {};
   //list of segments
-  const std::vector<array2003<int,2> >& get_segments() const;
+  const std::vector<std::array<int,2>>& get_segments() const;
   //list of triplets
-  const std::vector<array2003<int,3> >& get_triplets() const;
+  const std::vector<std::array<int,3>>& get_triplets() const;
   //list of neighbor chains [start,end] for segments
   //(use idx() to get real indexes)
-  const std::vector<std::vector<array2003<int,2> > >& get_nbs() const;
+  const std::vector<std::vector<std::array<int,2>>>& get_nbs() const;
   //convert idx from sorted representation to real idx
   int get_idx(int idx) const;
   //return list of indexes for conversion from sorted representation
@@ -69,22 +59,22 @@ public:
   //check if the node is the end of the tube
   bool is_end(int idx) const;
 
-  array2003<int, 2> get_segment(int idx) const;
-  array2003<int, 3> get_triplet(int idx) const;
+  std::array<int,2> get_segment(int idx) const;
+  std::array<int,3> get_triplet(int idx) const;
 
   static const int cnt_end = -1;
   static const int domain_end = -2;
   static const int not_cnt = -3;
 private:
-  std::vector<array2003<int, 2> > chain_list, segments;
-  std::vector<array2003<int, 3> > triplets;
-  std::vector<std::vector<array2003<int, 2> > > nb_chains;
+  std::vector<std::array<int,2>> chain_list, segments;
+  std::vector<std::array<int,3>> triplets;
+  std::vector<std::vector<std::array<int,2>>> nb_chains;
   std::vector<int> index_list, index_list_b;
 };
 
 //=============================================================================
 
-inline const std::vector<std::vector<array2003<int, 2> > > &
+inline const std::vector<std::vector<std::array<int,2>>> &
  MESONTList::get_nbs() const {
   return nb_chains;
 }
@@ -106,25 +96,25 @@ inline const std::vector<int>& MESONTList::get_idxb_list() const {
   return index_list_b;
 };
 
-inline const std::vector<array2003<int, 2> > & MESONTList::get_segments()
+inline const std::vector<std::array<int,2>> & MESONTList::get_segments()
  const {
   return segments;
 }
 
-inline const std::vector<array2003<int, 3> > & MESONTList::get_triplets()
+inline const std::vector<std::array<int,3>> & MESONTList::get_triplets()
  const {
   return triplets;
 }
 
-inline array2003<int, 2> MESONTList::get_segment(int idx) const {
-  array2003<int, 2> result;
+inline std::array<int,2> MESONTList::get_segment(int idx) const {
+  std::array<int,2> result;
   result[0] = chain_list[idx][0];
   result[1] = idx;
   return result;
 }
 
-inline array2003<int, 3> MESONTList::get_triplet(int idx) const {
-  array2003<int, 3> result;
+inline std::array<int,3> MESONTList::get_triplet(int idx) const {
+  std::array<int,3> result;
   result[0] = chain_list[idx][0];
   result[1] = idx;
   result[2] = chain_list[idx][1];
@@ -165,12 +155,13 @@ void vector_union(std::vector<T>& v1, std::vector<T>& v2,
   }
 }
 
-MESONTList::MESONTList(const Atom* atom, const NeighList* nblist, double /* rc2 */){
+MESONTList::MESONTList(const Atom* atom, const NeighList* nblist) {
   if (atom == nullptr || nblist == nullptr) return;
   //number of local atoms at the node
   int nlocal = atom->nlocal;
-  //total number of atoms in the node and ghost shell
+  //total number of atoms in the node and ghost shell treated as NTs
   int nall = nblist->inum + nblist->gnum;
+  //total number of atoms in the node and ghost shell
   int ntot = atom->nlocal + atom->nghost;
   tagint* const g_id = atom->tag;
   tagint** const bonds = atom->bond_nt;
@@ -178,9 +169,7 @@ MESONTList::MESONTList(const Atom* atom, const NeighList* nblist, double /* rc2 
   int* ilist = nblist->ilist;
 
   //convert bonds to local id representation
-  array2003<int, 2> tmp_arr;
-  tmp_arr[0] = not_cnt; tmp_arr[1] = not_cnt;
-  chain_list.resize(ntot, tmp_arr);
+  chain_list.resize(ntot, {not_cnt,not_cnt});
   for (int ii = 0; ii < nall; ii++) {
     int i = ilist[ii];
     chain_list[i][0] = domain_end;
@@ -193,7 +182,7 @@ MESONTList::MESONTList(const Atom* atom, const NeighList* nblist, double /* rc2 
       if (bonds[i][m] == cnt_end) chain_list[i][m] = cnt_end;
     for (int j = 0; j < nnb; j++) {
       int nb = nblist->firstneigh[i][j];
-      if (bonds[i][0] == g_id[nb]){
+      if (bonds[i][0] == g_id[nb]) {
         chain_list[i][0] = nb;
         chain_list[nb][1] = i;
         break;
@@ -223,22 +212,16 @@ MESONTList::MESONTList(const Atom* atom, const NeighList* nblist, double /* rc2 
   for (int i = 0; i < nlocal; i++) {
     if (chain_list[i][0] == not_cnt) continue;
     if (chain_list[i][0] != cnt_end && chain_list[i][0] != domain_end &&
-     g_id[i] < g_id[chain_list[i][0]]){
-      array2003<int, 2> tmp_c;
-      tmp_c[0] = i; tmp_c[1] = chain_list[i][0];
-      segments.push_back(tmp_c);
-    }
+     g_id[i] < g_id[chain_list[i][0]])
+      segments.push_back({i,chain_list[i][0]});
     if (chain_list[i][1] != cnt_end && chain_list[i][1] != domain_end &&
-     g_id[i] < g_id[chain_list[i][1]]){
-      array2003<int, 2> tmp_c;
-       tmp_c[0] = i; tmp_c[1] = chain_list[i][1];
-       segments.push_back(tmp_c);
-    }
+     g_id[i] < g_id[chain_list[i][1]])
+      segments.push_back({i,chain_list[i][1]});
   }
   int nbonds = segments.size();
 
   //triplets
-  for (int i = 0; i < nlocal; i++){
+  for (int i = 0; i < nlocal; i++) {
     if (chain_list[i][0] == not_cnt) continue;
     if (chain_list[i][0] != cnt_end && chain_list[i][0] != domain_end &&
      chain_list[i][1] != cnt_end && chain_list[i][1] != domain_end)
@@ -274,7 +257,7 @@ MESONTList::MESONTList(const Atom* atom, const NeighList* nblist, double /* rc2 
         int idx_next = chain_list[index_list[nb_list[j]]][1];
         if ((j == nnb - 1) || (nb_list[j] + 1 != nb_list[j+1]) ||
          (idx_next == cnt_end) || (idx_next == domain_end)) {
-          array2003<int, 2> chain;
+          std::array<int,2> chain;
           chain[0] = idx_s;
           chain[1] = nb_list[j];
           //make sure that segments having at least one node
@@ -285,7 +268,7 @@ MESONTList::MESONTList(const Atom* atom, const NeighList* nblist, double /* rc2 
            chain_list[idx0][0] != domain_end) chain[0] -= 1;
           if (chain_list[idx1][1] != cnt_end &&
            chain_list[idx1][1] != domain_end) chain[1] += 1;
-          if(chain[0] != chain[1]) nb_chains[i].push_back(chain);
+          if (chain[0] != chain[1]) nb_chains[i].push_back(chain);
           idx_s = (j == nnb - 1) ? -1 : nb_list[j + 1];
         }
       }
@@ -311,8 +294,9 @@ PairMESONTTPM::PairMESONTTPM(LAMMPS *lmp) : Pair(lmp) {
   eatom_s = nullptr;
   eatom_b = nullptr;
   eatom_t = nullptr;
+  nmax = 0;
   instance_count++;
-  if(instance_count > 1) error->all(FLERR,
+  if (instance_count > 1) error->all(FLERR,
    "only a single instance of mesont/tpm pair style can be created");
 }
 
@@ -335,13 +319,25 @@ PairMESONTTPM::~PairMESONTTPM()
 
 /* ---------------------------------------------------------------------- */
 
-void PairMESONTTPM::compute(int eflag, int vflag){
+void PairMESONTTPM::compute(int eflag, int vflag) {
+  // set per atom values and accumulators
+  // reallocate per-atom arrays if necessary
   ev_init(eflag,vflag);
-  //total number of atoms in the node and ghost shell
+  if (atom->nmax > nmax && eflag_atom) {
+    memory->destroy(eatom_s);
+    memory->create(eatom_s,comm->nthreads*maxeatom,"pair:eatom_s");
+    memory->destroy(eatom_b);
+    memory->create(eatom_b,comm->nthreads*maxeatom,"pair:eatom_b");
+    memory->destroy(eatom_t);
+    memory->create(eatom_t,comm->nthreads*maxeatom,"pair:eatom_t");
+    nmax = atom->nmax;
+  }
+  //total number of atoms in the node and ghost shell treated as NTs
   int nall = list->inum + list->gnum;
+  //total number of atoms in the node and ghost shell
   int ntot = atom->nlocal + atom->nghost;
   int newton_pair = force->newton_pair;
-  if(!newton_pair)
+  if (!newton_pair)
    error->all(FLERR,"Pair style mesont/tpm requires newton pair on");
 
   double **x = atom->x;
@@ -360,7 +356,7 @@ void PairMESONTTPM::compute(int eflag, int vflag){
   }
   double Rcut_min = std::max(2.0*Lmax, std::sqrt(0.5*Lmax*Lmax +
    std::pow((2.0*RT + TPBRcutoff),2)));
-  if (cut_global < Rcut_min){
+  if (cut_global < Rcut_min) {
     std::stringstream err;
     err << "The selected cutoff is too small for the current system : " <<
      "L_max = " << Lmax << ", R_max = " << RT << ", Rc = " << cut_global <<
@@ -369,14 +365,14 @@ void PairMESONTTPM::compute(int eflag, int vflag){
   }
 
   //generate bonds and chain nblist
-  MESONTList ntlist(atom, list, cut_global*cut_global);
+  MESONTList ntlist(atom, list);
 
   //reorder data to make it contiguous within tubes
   //and compatible with Fortran functions
   std::vector<double> x_sort(3*nall), f_sort(3*nall), s_sort(9*nall);
   std::vector<double> u_ts_sort(nall), u_tb_sort(nall), u_tt_sort(nall);
   std::vector<int> b_sort(nall);
-  for (int i = 0; i < nall; i++){
+  for (int i = 0; i < nall; i++) {
     int idx = ntlist.get_idx(i);
     for (int j = 0; j < 3; j++) x_sort[3*i+j] = x[idx][j];
     b_sort[i] = buckling[idx];
@@ -385,7 +381,7 @@ void PairMESONTTPM::compute(int eflag, int vflag){
   //bending potential
   int n_triplets = ntlist.get_triplets().size();
   for (int i = 0; i < n_triplets; i++) {
-    const array2003<int,3>& t = ntlist.get_triplets()[i];
+    const std::array<int,3>& t = ntlist.get_triplets()[i];
     //idx of nodes of a triplet in sorted representation
     int idx_s0 = ntlist.get_idxb(t[0]);
     int idx_s1 = ntlist.get_idxb(t[1]);
@@ -412,13 +408,13 @@ void PairMESONTTPM::compute(int eflag, int vflag){
   }
 
   //share new values of buckling
-  if (BendingMode == 1){
-    for (int i = 0; i < nall; i++){
+  if (BendingMode == 1) {
+    for (int i = 0; i < nall; i++) {
       int idx = ntlist.get_idx(i);
       buckling[idx] = b_sort[i];
     }
     comm->forward_comm_pair(this);
-    for (int i = 0; i < nall; i++){
+    for (int i = 0; i < nall; i++) {
       int idx = ntlist.get_idx(i);
       b_sort[i] = buckling[idx];
     }
@@ -429,7 +425,7 @@ void PairMESONTTPM::compute(int eflag, int vflag){
   double Rmax = 0.0;
   Lmax = 0.0;
   for (int i = 0; i < n_segments; i++) {
-    const array2003<int,2>& s = ntlist.get_segments()[i];
+    const std::array<int,2>& s = ntlist.get_segments()[i];
     //idx of a segment end 1 in sorted representation
     int idx_s0 = ntlist.get_idxb(s[0]);
     //idx of a segment end 2 in sorted representation
@@ -456,9 +452,9 @@ void PairMESONTTPM::compute(int eflag, int vflag){
     mesont_lib_TubeStretchingForceField(U1s, U2s, F1, F2, S1, S2, X1, X2,
      R12, L12);
 
-    for (int nc = 0; nc < (int)ntlist.get_nbs()[i].size(); nc++){
+    for (int nc = 0; nc < (int)ntlist.get_nbs()[i].size(); nc++) {
       //id of the beginning and end of the chain in the sorted representation
-      const array2003<int,2>& chain = ntlist.get_nbs()[i][nc];
+      const std::array<int,2>& chain = ntlist.get_nbs()[i][nc];
       int N = chain[1] - chain[0] + 1;  //number of elements in the chain
       int end1 = ntlist.get_idx(chain[0]);  //chain ends (real representation)
       int end2 = ntlist.get_idx(chain[1]);
@@ -475,7 +471,7 @@ void PairMESONTTPM::compute(int eflag, int vflag){
       double* Xe = X; double* Fe = F; double* Se = S;
       if (!E1 && ntlist.get_triplet(end1)[0] != MESONTList::domain_end &&
        ntlist.get_triplet(ntlist.get_triplet(end1)[0])[0] ==
-       MESONTList::cnt_end){
+       MESONTList::cnt_end) {
         Ee = 1;
         int idx = ntlist.get_idxb(ntlist.get_triplet(end1)[0]);
         Xe = &(x_sort[3*idx]);
@@ -484,7 +480,7 @@ void PairMESONTTPM::compute(int eflag, int vflag){
       }
       else if (!E2 && ntlist.get_triplet(end2)[2] != MESONTList::domain_end &&
        ntlist.get_triplet(ntlist.get_triplet(end2)[2])[2] ==
-       MESONTList::cnt_end){
+       MESONTList::cnt_end) {
         Ee = 2;
         int idx = ntlist.get_idxb(ntlist.get_triplet(end2)[2]);
         Xe = &(x_sort[3*idx]);
@@ -500,7 +496,7 @@ void PairMESONTTPM::compute(int eflag, int vflag){
   //check if cutoff is chosen correctly
   Rcut_min = std::max(2.0*Lmax, std::sqrt(0.5*Lmax*Lmax +
    std::pow((2.0*Rmax + TPBRcutoff),2)));
-  if (cut_global < Rcut_min){
+  if (cut_global < Rcut_min) {
     std::stringstream err;
     err << "The selected cutoff is too small for the current system : " <<
      "L_max = " << Lmax << ", R_max = " << RT << ", Rc = " << cut_global <<
@@ -508,65 +504,62 @@ void PairMESONTTPM::compute(int eflag, int vflag){
     error->all(FLERR, err.str().c_str());
   }
 
-  // set per atom values and accumulators
-  // reallocate per-atom arrays if necessary
-  if (atom->nmax > maxeatom) {
-    maxeatom = atom->nmax;
-    memory->destroy(eatom);
-    memory->create(eatom,comm->nthreads*maxeatom,"pair:eatom");
-    memory->destroy(eatom_s);
-    memory->create(eatom_s,comm->nthreads*maxeatom,"pair:eatom_s");
-    memory->destroy(eatom_b);
-    memory->create(eatom_b,comm->nthreads*maxeatom,"pair:eatom_b");
-    memory->destroy(eatom_t);
-    memory->create(eatom_t,comm->nthreads*maxeatom,"pair:eatom_t");
-  }
-
-  if (atom->nmax > maxvatom) {
-    maxvatom = atom->nmax;
-    memory->destroy(vatom);
-    memory->create(vatom,comm->nthreads*maxvatom,6,"pair:vatom");
-  }
-
-  // zero accumulators
-  eng_vdwl = 0.0; energy_s = 0.0;
-  energy_b = 0.0; energy_t = 0.0;
-  for (int i = 0; i < 6; i++) virial[i] = 0.0;
-  for (int i = 0; i < ntot; i++){
-    eatom[i] = 0.0; eatom_s[i] = 0.0;
-    eatom_b[i] = 0.0; eatom_t[i] = 0.0;
-  }
-  for (int i = 0; i < ntot; i++)
-    for (int j = 0; j < 6; j++) vatom[i][j] = 0.0;
-
   //convert from sorted representation
-  for (int i = 0; i < nall; i++){
-    int idx = ntlist.get_idx(i);
-    for (int j = 0; j < 3; j++) f[idx][j] += f_sort[3*i+j];
-    eatom_s[idx] = u_ts_sort[i];
-    eatom_b[idx] = u_tb_sort[i];
-    eatom_t[idx] = u_tt_sort[i];
-    eatom[idx] = u_ts_sort[i] + u_tb_sort[i] + u_tt_sort[i];
-    energy_s += u_ts_sort[i];
-    energy_b += u_tb_sort[i];
-    energy_t += u_tt_sort[i];
-    vatom[idx][0] = s_sort[9*i+0]; //xx
-    vatom[idx][1] = s_sort[9*i+4]; //yy
-    vatom[idx][2] = s_sort[9*i+8]; //zz
-    vatom[idx][3] = s_sort[9*i+1]; //xy
-    vatom[idx][4] = s_sort[9*i+2]; //xz
-    vatom[idx][5] = s_sort[9*i+5]; //yz
-    for (int j = 0; j < 6; j++) virial[j] += vatom[idx][j];
-    buckling[idx] = b_sort[i];
+  for (int i = 0; i < nall; i++) {
+      int idx = ntlist.get_idx(i);
+      for (int j = 0; j < 3; j++) f[idx][j] += f_sort[3*i+j];
+      buckling[idx] = b_sort[i];
   }
-  eng_vdwl = energy_s + energy_b + energy_t;
+  if (eflag_global) {
+    energy_s = energy_b = energy_t = 0.0;
+    for (int i = 0; i < nall; i++) {
+      energy_s += u_ts_sort[i];
+      energy_b += u_tb_sort[i];
+      energy_t += u_tt_sort[i];
+    }
+    eng_vdwl += energy_s + energy_b + energy_t;
+  }
+  if (eflag_atom) {
+    for (int i = 0; i < ntot; i++)
+      eatom_s[i] = eatom_b[i] = eatom_t[i] = 0.0;
+
+    for (int i = 0; i < nall; i++) {
+      int idx = ntlist.get_idx(i);
+      eatom_s[idx] += u_ts_sort[i];
+      eatom_b[idx] += u_tb_sort[i];
+      eatom_t[idx] += u_tt_sort[i];
+      eatom[idx] += u_ts_sort[i] + u_tb_sort[i] + u_tt_sort[i];
+    }
+  }
+  if (vflag_global) {
+    for (int i = 0; i < nall; i++) {
+      virial[0] += s_sort[9*i+0]; //xx
+      virial[1] += s_sort[9*i+4]; //yy
+      virial[2] += s_sort[9*i+8]; //zz
+      virial[3] += s_sort[9*i+1]; //xy
+      virial[4] += s_sort[9*i+2]; //xz
+      virial[5] += s_sort[9*i+5]; //yz
+    }
+  }
+  if (vflag_atom) {
+    for (int i = 0; i < nall; i++) {
+      int idx = ntlist.get_idx(i);
+      vatom[idx][0] += s_sort[9*i+0]; //xx
+      vatom[idx][1] += s_sort[9*i+4]; //yy
+      vatom[idx][2] += s_sort[9*i+8]; //zz
+      vatom[idx][3] += s_sort[9*i+1]; //xy
+      vatom[idx][4] += s_sort[9*i+2]; //xz
+      vatom[idx][5] += s_sort[9*i+5]; //yz
+    }
+  }
+
 }
 
 /* ----------------------------------------------------------------------
    allocate all arrays
 ------------------------------------------------------------------------- */
 
-void PairMESONTTPM::allocate(){
+void PairMESONTTPM::allocate() {
   allocated = 1;
   int n = atom->ntypes;
 
@@ -583,7 +576,7 @@ void PairMESONTTPM::allocate(){
    global settings
 ------------------------------------------------------------------------- */
 
-void PairMESONTTPM::settings(int narg, char **arg){
+void PairMESONTTPM::settings(int narg, char **arg) {
   if ((narg == 0) || (narg > 4))
     error->all(FLERR,"Illegal pair_style command");
   cut_global = utils::numeric(FLERR,arg[0],false,lmp);
@@ -632,7 +625,7 @@ void PairMESONTTPM::settings(int narg, char **arg){
    set coeffs for one or more type pairs
 ------------------------------------------------------------------------- */
 
-void PairMESONTTPM::coeff(int narg, char **arg){
+void PairMESONTTPM::coeff(int narg, char **arg) {
   if ((narg < 2) || (narg > 3))
     error->all(FLERR,"Incorrect args for pair coefficients");
 
@@ -661,7 +654,7 @@ void PairMESONTTPM::coeff(int narg, char **arg){
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
-double PairMESONTTPM::init_one(int i, int j){
+double PairMESONTTPM::init_one(int i, int j) {
   if (setflag[i][j] == 0) {
     cut[i][j] = mix_distance(cut[i][i],cut[j][j]);
   }
@@ -673,7 +666,7 @@ double PairMESONTTPM::init_one(int i, int j){
    proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
-void PairMESONTTPM::write_restart(FILE *fp){
+void PairMESONTTPM::write_restart(FILE *fp) {
   write_restart_settings(fp);
 
   int i,j;
@@ -690,7 +683,7 @@ void PairMESONTTPM::write_restart(FILE *fp){
    proc 0 reads from restart file, bcasts
 ------------------------------------------------------------------------- */
 
-void PairMESONTTPM::read_restart(FILE *fp){
+void PairMESONTTPM::read_restart(FILE *fp) {
   read_restart_settings(fp);
   allocate();
 
@@ -713,7 +706,7 @@ void PairMESONTTPM::read_restart(FILE *fp){
    proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
-void PairMESONTTPM::write_restart_settings(FILE *fp){
+void PairMESONTTPM::write_restart_settings(FILE *fp) {
   fwrite(&BendingMode,sizeof(int),1,fp);
   fwrite(&TPMType,sizeof(int),1,fp);
   fwrite(&cut_global,sizeof(double),1,fp);
@@ -725,7 +718,7 @@ void PairMESONTTPM::write_restart_settings(FILE *fp){
    proc 0 reads from restart file, bcasts
 ------------------------------------------------------------------------- */
 
-void PairMESONTTPM::read_restart_settings(FILE *fp){
+void PairMESONTTPM::read_restart_settings(FILE *fp) {
   int me = comm->me;
   if (me == 0) {
     fread(&BendingMode,sizeof(int),1,fp);
@@ -761,7 +754,7 @@ void PairMESONTTPM::read_restart_settings(FILE *fp){
    proc 0 writes to data file
 ------------------------------------------------------------------------- */
 
-void PairMESONTTPM::write_data(FILE *fp){
+void PairMESONTTPM::write_data(FILE *fp) {
   for (int i = 1; i <= atom->ntypes; i++)
     fprintf(fp,"%d\n",i);
 }
@@ -770,7 +763,7 @@ void PairMESONTTPM::write_data(FILE *fp){
    proc 0 writes all pairs to data file
 ------------------------------------------------------------------------- */
 
-void PairMESONTTPM::write_data_all(FILE *fp){
+void PairMESONTTPM::write_data_all(FILE *fp) {
   for (int i = 1; i <= atom->ntypes; i++)
     for (int j = i; j <= atom->ntypes; j++)
       fprintf(fp,"%d %d %g\n",i,j,cut[i][j]);
@@ -778,7 +771,7 @@ void PairMESONTTPM::write_data_all(FILE *fp){
 
 /* ---------------------------------------------------------------------- */
 
-void PairMESONTTPM::init_style(){
+void PairMESONTTPM::init_style() {
   //make sure that a full list is created (including ghost nodes)
   int r = neighbor->request(this,instance_me);
   neighbor->requests[r]->half = false;
@@ -786,7 +779,7 @@ void PairMESONTTPM::init_style(){
   neighbor->requests[r]->ghost = true;
 }
 
-void* PairMESONTTPM::extract(const char *str, int &){
+void* PairMESONTTPM::extract(const char *str, int &) {
   if (strcmp(str,"mesonttpm_Es_tot") == 0) return &energy_s;
   else if (strcmp(str,"mesonttpm_Eb_tot") == 0) return &energy_b;
   else if (strcmp(str,"mesonttpm_Et_tot") == 0) return &energy_t;

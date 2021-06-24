@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,15 +17,18 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_zbl.h"
+
 #include <cmath>
+
 #include "atom.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
+#include "memory.h"
 #include "neighbor.h"
 #include "neigh_list.h"
-#include "memory.h"
-#include "error.h"
 
+#include "pair_zbl_const.h"
 
 // From J.F. Zeigler, J. P. Biersack and U. Littmark,
 // "The Stopping and Range of Ions in Matter" volume 1, Pergamon, 1985.

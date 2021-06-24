@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -146,7 +147,7 @@ void PairLJCutTholeLongOMP::eval(int iifrom, int iito, ThrData * const thr)
     jnum = numneigh[i];
     fxtmp=fytmp=fztmp=0.;
 
-    if (drudetype[type[i]] != NOPOL_TYPE){
+    if (drudetype[type[i]] != NOPOL_TYPE) {
       di = atom->map(drudeid[i]);
       if (di < 0) error->all(FLERR, "Drude partner not found");
       di_closest = domain->closest_image(i, di);
@@ -202,9 +203,9 @@ void PairLJCutTholeLongOMP::eval(int iifrom, int iito, ThrData * const thr)
           }
 
           if (drudetype[type[i]] != NOPOL_TYPE &&
-              drudetype[type[j]] != NOPOL_TYPE){
-            if (j != di_closest){
-              if (drudetype[type[j]] == CORE_TYPE){
+              drudetype[type[j]] != NOPOL_TYPE) {
+            if (j != di_closest) {
+              if (drudetype[type[j]] == CORE_TYPE) {
                 dj = atom->map(drudeid[j]);
                 dqj = -q[dj];
               } else dqj = qj;
@@ -246,7 +247,7 @@ void PairLJCutTholeLongOMP::eval(int iifrom, int iito, ThrData * const thr)
             }
             if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
             if (drudetype[type[i]] != NOPOL_TYPE &&
-                drudetype[type[j]] != NOPOL_TYPE && j != di_closest){
+                drudetype[type[j]] != NOPOL_TYPE && j != di_closest) {
               ecoul += factor_e * dcoul;
             }
           } else ecoul = 0.0;

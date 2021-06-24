@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    This software is distributed under the GNU General Public License.
@@ -308,7 +309,7 @@ void PairHbondDreidingMorseOMP::eval(int iifrom, int iito, ThrData * const thr)
 double PairHbondDreidingMorseOMP::memory_usage()
 {
   double bytes = memory_usage_thr();
-  bytes += comm->nthreads * 2 * sizeof(double);
+  bytes += (double)comm->nthreads * 2 * sizeof(double);
   bytes += PairHbondDreidingMorse::memory_usage();
 
   return bytes;

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,23 +18,24 @@
 
 #include "pair_lj_long_dipole_long.h"
 
-#include <cmath>
-#include <cstring>
-#include "math_const.h"
-#include "math_vector.h"
 #include "atom.h"
 #include "comm.h"
-#include "neighbor.h"
-#include "neigh_list.h"
+#include "error.h"
 #include "force.h"
 #include "kspace.h"
-#include "update.h"
+#include "math_const.h"
+#include "math_extra.h"
 #include "memory.h"
-#include "error.h"
+#include "neigh_list.h"
+#include "neighbor.h"
+#include "update.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
+using namespace MathExtra;
 
 #define EWALD_F   1.12837917
 #define EWALD_P   0.3275911
@@ -421,8 +423,8 @@ void PairLJLongDipoleLong::compute(int eflag, int vflag)
   double rsq, r2inv, force_coul, force_lj;
   double g2 = g_ewald*g_ewald, g6 = g2*g2*g2, g8 = g6*g2;
   double B0, B1, B2, B3, G0, G1, G2, mudi, mudj, muij;
-  vector force_d = VECTOR_NULL, ti = VECTOR_NULL, tj = VECTOR_NULL;
-  vector mui, muj, xi, d;
+  double force_d[3] = {0.0,0.0,0.0}, ti[3] = {0.0,0.0,0.0}, tj[3] = {0.0,0.0,0.0};
+  double mui[3], muj[3], xi[3], d[3];
 
   double C1 = 2.0 * g_ewald / MY_PIS;
   double C2 = 2.0 * g2 * C1;
@@ -436,8 +438,8 @@ void PairLJLongDipoleLong::compute(int eflag, int vflag)
     offseti = offset[typei = type[i]];
     lj1i = lj1[typei]; lj2i = lj2[typei]; lj3i = lj3[typei]; lj4i = lj4[typei];
     cutsqi = cutsq[typei]; cut_ljsqi = cut_ljsq[typei];
-    memcpy(xi, x0+(i+(i<<1)), sizeof(vector));
-    memcpy(mui, imu = mu0+(i<<2), sizeof(vector));
+    memcpy(xi, x0+(i+(i<<1)), 3*sizeof(double));
+    memcpy(mui, imu = mu0+(i<<2), 3*sizeof(double));
 
     jneighn = (jneigh = list->firstneigh[i])+list->numneigh[i];
 
@@ -451,11 +453,11 @@ void PairLJLongDipoleLong::compute(int eflag, int vflag)
         d[1] = xi[1] - xj[1];
         d[2] = xi[2] - xj[2]; }
 
-      if ((rsq = vec_dot(d, d)) >= cutsqi[typej = type[j]]) continue;
+      if ((rsq = dot3(d, d)) >= cutsqi[typej = type[j]]) continue;
       r2inv = 1.0/rsq;
 
       if (order3 && (rsq < cut_coulsq)) {               // dipole
-        memcpy(muj, jmu = mu0+(j<<2), sizeof(vector));
+        memcpy(muj, jmu = mu0+(j<<2), 3*sizeof(double));
         {                                               // series real space
           double r = sqrt(rsq);
           double x = g_ewald*r;

@@ -1,3 +1,4 @@
+// clang-format off
 /*----------------------------------------------------------------------
   PuReMD - Purdue ReaxFF Molecular Dynamics Program
 
@@ -44,10 +45,7 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
   int lgflag = control->lgflag;
   int errorflag = 1;
   double     val;
-  MPI_Comm comm;
-  int me;
-  comm = MPI_COMM_WORLD;
-  MPI_Comm_rank(comm, &me);
+  int me = control->me;
 
   s = (char*) malloc(sizeof(char)*MAX_LINE);
   tmp = (char**) malloc(sizeof(char*)*MAX_TOKENS);
@@ -112,7 +110,7 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
   tor_flag  = (char****)
     scalloc(control->error_ptr,  reax->num_atom_types, sizeof(char***), "tor_flag");
 
-  for( i = 0; i < reax->num_atom_types; i++ ) {
+  for (i = 0; i < reax->num_atom_types; i++) {
     reax->tbp[i] = (two_body_parameters*)
       scalloc(control->error_ptr,  reax->num_atom_types, sizeof(two_body_parameters), "tbp[i]");
     reax->thbp[i]= (three_body_header**)
@@ -124,7 +122,7 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
     tor_flag[i]  = (char***)
       scalloc(control->error_ptr,  reax->num_atom_types, sizeof(char**), "tor_flag[i]");
 
-    for( j = 0; j < reax->num_atom_types; j++ ) {
+    for (j = 0; j < reax->num_atom_types; j++) {
       reax->thbp[i][j]= (three_body_header*)
         scalloc(control->error_ptr,  reax->num_atom_types, sizeof(three_body_header), "thbp[i,j]");
       reax->hbp[i][j] = (hbond_parameters*)
@@ -147,7 +145,7 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
 
   char errmsg[1024];
 
-  for( i = 0; i < reax->num_atom_types; i++ ) {
+  for (i = 0; i < reax->num_atom_types; i++) {
     /* line one */
     fgets( s, MAX_LINE, fp );
     c = Tokenize( s, &tmp );
@@ -161,7 +159,7 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
       control->error_ptr->all(FLERR, errmsg);
     }
 
-    for( j = 0; j < (int)(strlen(tmp[0])); ++j )
+    for (j = 0; j < (int)(strlen(tmp[0])); ++j)
       reax->sbp[i].name[j] = toupper( tmp[0][j] );
 
     val = atof(tmp[1]); reax->sbp[i].r_s        = val;
@@ -305,9 +303,9 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
   }
 
   /* Equate vval3 to valf for first-row elements (25/10/2004) */
-  for( i = 0; i < reax->num_atom_types; i++ )
-    if( reax->sbp[i].mass < 21 &&
-        reax->sbp[i].valency_val != reax->sbp[i].valency_boc ) {
+  for (i = 0; i < reax->num_atom_types; i++)
+    if ( reax->sbp[i].mass < 21 &&
+        reax->sbp[i].valency_val != reax->sbp[i].valency_boc) {
       if (me == 0) {
         char errmsg[256];
         snprintf(errmsg, 256, "Changed valency_val to valency_boc for %s",
@@ -545,16 +543,16 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
     }
   }
 
-  for( i = 0; i < reax->num_atom_types; ++i )
-    for( j = 0; j < reax->num_atom_types; ++j )
-      for( k = 0; k < reax->num_atom_types; ++k )
+  for (i = 0; i < reax->num_atom_types; ++i)
+    for (j = 0; j < reax->num_atom_types; ++j)
+      for (k = 0; k < reax->num_atom_types; ++k)
         reax->thbp[i][j][k].cnt = 0;
 
   fgets( s, MAX_LINE, fp );
   c = Tokenize( s, &tmp );
   l = atoi( tmp[0] );
 
-  for( i = 0; i < l; i++ ) {
+  for (i = 0; i < l; i++) {
     fgets(s,MAX_LINE,fp);
     c=Tokenize(s,&tmp);
 
@@ -601,10 +599,10 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
   }
 
   /* clear all entries first */
-  for( i = 0; i < reax->num_atom_types; ++i )
-    for( j = 0; j < reax->num_atom_types; ++j )
-      for( k = 0; k < reax->num_atom_types; ++k )
-        for( m = 0; m < reax->num_atom_types; ++m ) {
+  for (i = 0; i < reax->num_atom_types; ++i)
+    for (j = 0; j < reax->num_atom_types; ++j)
+      for (k = 0; k < reax->num_atom_types; ++k)
+        for (m = 0; m < reax->num_atom_types; ++m) {
           reax->fbp[i][j][k][m].cnt = 0;
           tor_flag[i][j][k][m] = 0;
         }
@@ -614,7 +612,7 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
   c = Tokenize( s, &tmp );
   l = atoi( tmp[0] );
 
-  for( i = 0; i < l; i++ ) {
+  for (i = 0; i < l; i++) {
     fgets( s, MAX_LINE, fp );
     c = Tokenize( s, &tmp );
 
@@ -656,8 +654,8 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
       }
     } else { /* This means the entry is of the form 0-X-Y-0 */
       if (k < reax->num_atom_types && m < reax->num_atom_types)
-        for( p = 0; p < reax->num_atom_types; p++ )
-          for( o = 0; o < reax->num_atom_types; o++ ) {
+        for (p = 0; p < reax->num_atom_types; p++)
+          for (o = 0; o < reax->num_atom_types; o++) {
             reax->fbp[p][k][m][o].cnt = 1;
             reax->fbp[o][m][k][p].cnt = 1;
 
@@ -685,12 +683,12 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
   c = Tokenize( s, &tmp );
   l = atoi( tmp[0] );
 
-  for( i = 0; i < reax->num_atom_types; ++i )
-    for( j = 0; j < reax->num_atom_types; ++j )
-      for( k = 0; k < reax->num_atom_types; ++k )
+  for (i = 0; i < reax->num_atom_types; ++i)
+    for (j = 0; j < reax->num_atom_types; ++j)
+      for (k = 0; k < reax->num_atom_types; ++k)
         reax->hbp[i][j][k].r0_hb = -1.0;
 
-  for( i = 0; i < l; i++ ) {
+  for (i = 0; i < l; i++) {
     fgets( s, MAX_LINE, fp );
     c = Tokenize( s, &tmp );
 
@@ -716,16 +714,16 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
   }
 
   /* deallocate helper storage */
-  for( i = 0; i < MAX_TOKENS; i++ )
+  for (i = 0; i < MAX_TOKENS; i++)
     free( tmp[i] );
   free( tmp );
   free( s );
 
 
   /* deallocate tor_flag */
-  for( i = 0; i < reax->num_atom_types; i++ ) {
-    for( j = 0; j < reax->num_atom_types; j++ ) {
-      for( k = 0; k < reax->num_atom_types; k++ ) {
+  for (i = 0; i < reax->num_atom_types; i++) {
+    for (j = 0; j < reax->num_atom_types; j++) {
+      for (k = 0; k < reax->num_atom_types; k++) {
         free( tor_flag[i][j][k] );
       }
       free( tor_flag[i][j] );

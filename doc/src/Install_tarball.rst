@@ -4,10 +4,10 @@ Download source and documentation as a tarball
 You can download a current LAMMPS tarball from the `download page <download_>`_
 of the `LAMMPS website <lws_>`_.
 
-.. _download: https://lammps.sandia.gov/download.html
-.. _bug: https://lammps.sandia.gov/bug.html
-.. _older: https://lammps.sandia.gov/tars
-.. _lws: https://lammps.sandia.gov
+.. _download: https://www.lammps.org/download.html
+.. _bug: https://www.lammps.org/bug.html
+.. _older: https://www.lammps.org/tars
+.. _lws: https://www.lammps.org
 
 You have two choices of tarballs, either the most recent stable
 release or the most current patch release.  Stable releases occur a
@@ -33,22 +33,19 @@ in its name, e.g. lammps-23Jun18.
 
 ----------
 
-You can also download a zip file via the "Clone or download" button on
-the `LAMMPS GitHub site <git_>`_.  The file name will be lammps-master.zip
-which can be unzipped with the following command, to create
-a lammps-master dir:
+You can also download a compressed tar or zip archives from the
+"Assets" sections of the `LAMMPS GitHub releases site <git_>`_.
+The file name will be lammps-<version>.zip which can be unzipped
+with the following command, to create a lammps-<version> dir:
 
 .. code-block:: bash
 
    $ unzip lammps*.zip
 
-This version is the most up-to-date LAMMPS development version.  It
-will have the date of the most recent patch release (see the file
-src/version.h).  But it will also include any new bug-fixes or
-features added since the last patch release.  They will be included in
-the next patch release tarball.
+This version corresponds to the selected LAMMPS patch or stable
+release.
 
-.. _git: https://github.com/lammps/lammps
+.. _git: https://github.com/lammps/lammps/releases
 
 ----------
 

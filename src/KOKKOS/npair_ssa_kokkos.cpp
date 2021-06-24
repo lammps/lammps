@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -452,7 +453,7 @@ fprintf(stdout, "tota%03d total %3d could use %6d inums, expected %6d inums. inu
 
   bool firstTry = true;
   data.h_resize()=1;
-  while(data.h_resize()) {
+  while (data.h_resize()) {
     data.h_new_maxneighs() = list->maxneighs;
     data.h_resize() = 0;
 
@@ -460,7 +461,8 @@ fprintf(stdout, "tota%03d total %3d could use %6d inums, expected %6d inums. inu
     Kokkos::deep_copy(data.new_maxneighs, data.h_new_maxneighs);
 
     // loop over bins with local atoms, storing half of the neighbors
-    Kokkos::parallel_for(ssa_phaseCt, LAMMPS_LAMBDA (const int workPhase) {
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,ssa_phaseCt),
+     LAMMPS_LAMBDA (const int workPhase) {
       data.build_locals_onePhase(firstTry, comm->me, workPhase);
     });
     k_ssa_itemLoc.modify<DeviceType>();
@@ -473,7 +475,8 @@ fprintf(stdout, "tota%03d total %3d could use %6d inums, expected %6d inums. inu
       h_ssa_itemLen(ssa_phaseCt-1,h_ssa_phaseLen(ssa_phaseCt-1)-1);
 
     // loop over AIR ghost atoms, storing their local neighbors
-    Kokkos::parallel_for(ssa_gphaseCt, LAMMPS_LAMBDA (const int workPhase) {
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,ssa_gphaseCt),
+     LAMMPS_LAMBDA (const int workPhase) {
       data.build_ghosts_onePhase(workPhase);
     });
     k_ssa_gitemLoc.modify<DeviceType>();
@@ -489,7 +492,7 @@ fprintf(stdout, "tota%03d total %3d could use %6d inums, expected %6d inums. inu
 
     deep_copy(data.h_resize, data.resize);
 
-    if(data.h_resize()) {
+    if (data.h_resize()) {
       deep_copy(data.h_new_maxneighs, data.new_maxneighs);
       list->maxneighs = data.h_new_maxneighs() * 1.2;
       list->d_neighbors = typename ArrayTypes<DeviceType>::t_neighbors_2d("neighbors", list->d_neighbors.extent(0), list->maxneighs);
@@ -571,13 +574,13 @@ void NPairSSAKokkosExecute<DeviceType>::build_locals_onePhase(const bool firstTr
           for (; jl < c_bincount(jbin); ++jl) {
             const int j = c_bins(jbin, jl);
             const int jtype = type(j);
-            if(exclude && exclusion(i,j,itype,jtype)) continue;
+            if (exclude && exclusion(i,j,itype,jtype)) continue;
 
             const X_FLOAT delx = xtmp - x(j, 0);
             const X_FLOAT dely = ytmp - x(j, 1);
             const X_FLOAT delz = ztmp - x(j, 2);
             const X_FLOAT rsq = delx*delx + dely*dely + delz*delz;
-            if(rsq <= cutneighsq(itype,jtype)) {
+            if (rsq <= cutneighsq(itype,jtype)) {
               if (molecular != Atom::ATOMIC) {
                 if (!moltemplate)
                   which = find_special(i,j);
@@ -586,19 +589,19 @@ void NPairSSAKokkosExecute<DeviceType>::build_locals_onePhase(const bool firstTr
                     /*                        onemols[imol]->nspecial[iatom], */
                     /*                        tag[j]-tagprev); */
                     /* else which = 0; */
-                if (which == 0){
-                  if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
+                if (which == 0) {
+                  if (n<neigh_list.maxneighs) neighbors_i(n++) = j;
                   else n++;
-                } else if (minimum_image_check(delx,dely,delz)){
-                  if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
+                } else if (minimum_image_check(delx,dely,delz)) {
+                  if (n<neigh_list.maxneighs) neighbors_i(n++) = j;
                   else n++;
                 }
                 else if (which > 0) {
-                  if(n<neigh_list.maxneighs) neighbors_i(n++) = j ^ (which << SBBITS);
+                  if (n<neigh_list.maxneighs) neighbors_i(n++) = j ^ (which << SBBITS);
                   else n++;
                 }
               } else {
-                if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
+                if (n<neigh_list.maxneighs) neighbors_i(n++) = j;
                 else n++;
               }
             }
@@ -608,9 +611,9 @@ void NPairSSAKokkosExecute<DeviceType>::build_locals_onePhase(const bool firstTr
         if (n > 0) {
           neigh_list.d_numneigh(inum) = n;
           neigh_list.d_ilist(inum++) = i;
-          if(n > neigh_list.maxneighs) {
+          if (n > neigh_list.maxneighs) {
             resize() = 1;
-            if(n > new_maxneighs()) Kokkos::atomic_fetch_max(&new_maxneighs(),n);
+            if (n > new_maxneighs()) Kokkos::atomic_fetch_max(&new_maxneighs(),n);
           }
         }
       }
@@ -699,13 +702,13 @@ void NPairSSAKokkosExecute<DeviceType>::build_ghosts_onePhase(int workPhase) con
           for (int jl = 0; jl < c_bincount(jbin); ++jl) {
             const int j = c_bins(jbin, jl);
             const int jtype = type(j);
-            if(exclude && exclusion(i,j,itype,jtype)) continue;
+            if (exclude && exclusion(i,j,itype,jtype)) continue;
 
             const X_FLOAT delx = xtmp - x(j, 0);
             const X_FLOAT dely = ytmp - x(j, 1);
             const X_FLOAT delz = ztmp - x(j, 2);
             const X_FLOAT rsq = delx*delx + dely*dely + delz*delz;
-            if(rsq <= cutneighsq(itype,jtype)) {
+            if (rsq <= cutneighsq(itype,jtype)) {
               if (molecular != Atom::ATOMIC) {
                 if (!moltemplate)
                   which = find_special(j,i);
@@ -714,19 +717,19 @@ void NPairSSAKokkosExecute<DeviceType>::build_ghosts_onePhase(int workPhase) con
                     /*                        onemols[jmol]->nspecial[jatom], */
                     /*                        tag[i]-jtagprev); */
                     /* else which = 0; */
-                if (which == 0){
-                  if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
+                if (which == 0) {
+                  if (n<neigh_list.maxneighs) neighbors_i(n++) = j;
                   else n++;
-                } else if (minimum_image_check(delx,dely,delz)){
-                  if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
+                } else if (minimum_image_check(delx,dely,delz)) {
+                  if (n<neigh_list.maxneighs) neighbors_i(n++) = j;
                   else n++;
                 }
                 else if (which > 0) {
-                  if(n<neigh_list.maxneighs) neighbors_i(n++) = j ^ (which << SBBITS);
+                  if (n<neigh_list.maxneighs) neighbors_i(n++) = j ^ (which << SBBITS);
                   else n++;
                 }
               } else {
-                if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
+                if (n<neigh_list.maxneighs) neighbors_i(n++) = j;
                 else n++;
               }
             }
@@ -736,9 +739,9 @@ void NPairSSAKokkosExecute<DeviceType>::build_ghosts_onePhase(int workPhase) con
         if (n > 0) {
           neigh_list.d_numneigh(gNdx) = n;
           neigh_list.d_ilist(gNdx++) = i;
-          if(n > neigh_list.maxneighs) {
+          if (n > neigh_list.maxneighs) {
             resize() = 1;
-            if(n > new_maxneighs()) Kokkos::atomic_fetch_max(&new_maxneighs(),n);
+            if (n > new_maxneighs()) Kokkos::atomic_fetch_max(&new_maxneighs(),n);
           }
         }
       }

@@ -47,11 +47,13 @@ KOKKOS, o = USER-OMP, t = OPT.
    * :doc:`dihedral <compute_dihedral>`
    * :doc:`dihedral/local <compute_dihedral_local>`
    * :doc:`dilatation/atom <compute_dilatation_atom>`
+   * :doc:`dipole <compute_dipole>`
    * :doc:`dipole/chunk <compute_dipole_chunk>`
    * :doc:`displace/atom <compute_displace_atom>`
    * :doc:`dpd <compute_dpd>`
    * :doc:`dpd/atom <compute_dpd_atom>`
    * :doc:`edpd/temp/atom <compute_edpd_temp_atom>`
+   * :doc:`efield/atom <compute_efield_atom>`
    * :doc:`entropy/atom <compute_entropy_atom>`
    * :doc:`erotate/asphere <compute_erotate_asphere>`
    * :doc:`erotate/rigid <compute_erotate_rigid>`

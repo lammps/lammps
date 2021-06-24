@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/
+   https://www.lammps.org/
    Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -14,24 +15,26 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_nh_uef.h"
-#include <cstring>
-#include <cmath>
+
 #include "atom.h"
-#include "force.h"
-#include "comm.h"
 #include "citeme.h"
-#include "irregular.h"
-#include "modify.h"
+#include "comm.h"
 #include "compute.h"
-#include "update.h"
-#include "domain.h"
-#include "error.h"
-#include "output.h"
-#include "timer.h"
-#include "neighbor.h"
 #include "compute_pressure_uef.h"
 #include "compute_temp_uef.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
+#include "irregular.h"
+#include "modify.h"
+#include "neighbor.h"
+#include "output.h"
+#include "timer.h"
 #include "uef_utils.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -179,29 +182,12 @@ FixNHUef::FixNHUef(LAMMPS *lmp, int narg, char **arg) :
 
   // Create temp and pressure computes for nh/uef
 
-  int n = strlen(id) + 6;
-  id_temp = new char[n];
-  strcpy(id_temp,id);
-  strcat(id_temp,"_temp");
-  char **newarg = new char*[3];
-  newarg[0] = id_temp;
-  newarg[1] = (char *) "all";
-  newarg[2] = (char *) "temp/uef";
-  modify->add_compute(3,newarg);
-  delete [] newarg;
+  id_temp = utils::strdup(std::string(id) + "_temp");
+  modify->add_compute(fmt::format("{} all temp/uef",id_temp));
   tcomputeflag = 1;
 
-  n = strlen(id) + 7;
-  id_press = new char[n];
-  strcpy(id_press,id);
-  strcat(id_press,"_press");
-  newarg = new char*[4];
-  newarg[0] = id_press;
-  newarg[1] = (char *) "all";
-  newarg[2] = (char *) "pressure/uef";
-  newarg[3] = id_temp;
-  modify->add_compute(4,newarg);
-  delete [] newarg;
+  id_press = utils::strdup(std::string(id) + "_press");
+  modify->add_compute(fmt::format("{} all pressure/uef {}",id_press, id_temp));
   pcomputeflag = 1;
 
   nevery = 1;
@@ -214,8 +200,7 @@ FixNHUef::FixNHUef(LAMMPS *lmp, int narg, char **arg) :
 FixNHUef::~FixNHUef()
 {
   delete uefbox;
-  if (pcomputeflag && !pstat_flag)
-  {
+  if (pcomputeflag && !pstat_flag)  {
     modify->delete_compute(id_press);
     delete [] id_press;
   }

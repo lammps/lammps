@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,25 +17,24 @@
                          Pablo Piaggi (EPFL)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-
-#include <cstring>
+#include "fix_plumed.h"
 
 #include "atom.h"
 #include "comm.h"
-#include "update.h"
-#include "force.h"
-#include "respa.h"
+#include "compute.h"
 #include "domain.h"
 #include "error.h"
+#include "force.h"
 #include "group.h"
-#include "fix_plumed.h"
-#include "universe.h"
-#include "compute.h"
 #include "modify.h"
 #include "pair.h"
-
+#include "respa.h"
 #include "timer.h"
+#include "universe.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 #include "plumed/wrapper/Plumed.h"
 
@@ -49,7 +49,6 @@ static char plumed_default_kernel[] = "PLUMED_KERNEL=" PLUMED_QUOTE(__PLUMED_DEF
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-#define INVOKED_SCALAR 1
 
 FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
@@ -76,11 +75,11 @@ FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
 
   // Check API version
 
-  int api_version;
+  int api_version=0;
   p->cmd("getApiVersion",&api_version);
-  if ((api_version < 5) || (api_version > 7))
+  if ((api_version < 5) || (api_version > 8))
     error->all(FLERR,"Incompatible API version for PLUMED in fix plumed. "
-               "Only Plumed 2.4.x, 2.5.x, and 2.6.x are tested and supported.");
+               "Only Plumed 2.4.x, 2.5.x, 2.6.x, 2.7.x are tested and supported.");
 
 #if !defined(MPI_STUBS)
   // If the -partition option is activated then enable
@@ -118,7 +117,7 @@ FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
   // LAMMPS units wrt kj/mol - nm - ps
   // Set up units
 
-  if(strcmp(update->unit_style,"lj") == 0) {
+  if (strcmp(update->unit_style,"lj") == 0) {
     // LAMMPS units lj
     p->cmd("setNaturalUnits");
   } else {
@@ -210,9 +209,9 @@ FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
   double dt=update->dt;
   p->cmd("setTimestep",&dt);
 
-  virial_flag=1;
-  thermo_virial=1;
   scalar_flag = 1;
+  energy_global_flag = virial_global_flag = 1;
+  thermo_energy = thermo_virial = 1;
 
   // This is the real initialization:
 
@@ -288,7 +287,6 @@ int FixPlumed::setmask()
   // set with a bitmask how and when apply the force from plumed
   int mask = 0;
   mask |= POST_FORCE;
-  mask |= THERMO_ENERGY;
   mask |= POST_FORCE_RESPA;
   mask |= MIN_POST_FORCE;
   return mask;
@@ -422,7 +420,7 @@ void FixPlumed::post_force(int /* vflag */)
   p->cmd("getBias",&bias);
 
   // Pass virial to plumed
-  // If energy is needed plmd_virial is equal to Lammps' virial
+  // If energy is needed plmd_virial is equal to LAMMPS' virial
   // If energy is not needed plmd_virial is initialized to zero
   // In the first case the virial will be rescaled and an extra term will be added
   // In the latter case only an extra term will be added
@@ -486,7 +484,7 @@ void FixPlumed::post_force(int /* vflag */)
   // do the real calculation:
   p->cmd("performCalc");
 
-  if(plumedStopCondition) timer->force_timeout();
+  if (plumedStopCondition) timer->force_timeout();
 
   // retransform virial to lammps representation and assign it to this
   // fix's virial. If the energy is biased, Plumed is giving back the full
@@ -544,9 +542,7 @@ int FixPlumed::modify_param(int narg, char **arg)
     if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
     modify->delete_compute(id_pe);
     delete[] id_pe;
-    int n = strlen(arg[1]) + 1;
-    id_pe = new char[n];
-    strcpy(id_pe,arg[1]);
+    id_pe = utils::strdup(arg[1]);
 
     int icompute = modify->find_compute(arg[1]);
     if (icompute < 0) error->all(FLERR,"Could not find fix_modify potential energy ID");
@@ -563,9 +559,7 @@ int FixPlumed::modify_param(int narg, char **arg)
     if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
     modify->delete_compute(id_press);
     delete[] id_press;
-    int n = strlen(arg[1]) + 1;
-    id_press = new char[n];
-    strcpy(id_press,arg[1]);
+    id_press = utils::strdup(arg[1]);
 
     int icompute = modify->find_compute(arg[1]);
     if (icompute < 0) error->all(FLERR,"Could not find fix_modify pressure ID");

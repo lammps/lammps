@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -63,7 +64,7 @@ void FixDPDenergy::initial_integrate(int /*vflag*/)
   double *duCond = pairDPDE->duCond;
   double *duMech = pairDPDE->duMech;
 
-  for (int i = 0; i < nlocal; i++){
+  for (int i = 0; i < nlocal; i++) {
     uCond[i] += 0.5*update->dt*duCond[i];
     uMech[i] += 0.5*update->dt*duMech[i];
   }
@@ -81,7 +82,7 @@ void FixDPDenergy::final_integrate()
   double *duCond = pairDPDE->duCond;
   double *duMech = pairDPDE->duMech;
 
-  for (int i = 0; i < nlocal; i++){
+  for (int i = 0; i < nlocal; i++) {
     uCond[i] += 0.5*update->dt*duCond[i];
     uMech[i] += 0.5*update->dt*duMech[i];
   }

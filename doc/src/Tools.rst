@@ -6,15 +6,15 @@ molecular dynamics computations.  Additional pre- and post-processing
 steps are often necessary to setup and analyze a simulation.  A list
 of such tools can be found on the `LAMMPS webpage <lws_>`_ at these links:
 
-* `Pre/Post processing <https://lammps.sandia.gov/prepost.html>`_
-* `Offsite LAMMPS packages & tools <https://lammps.sandia.gov/offsite.html>`_
+* `Pre/Post processing <https://www.lammps.org/prepost.html>`_
+* `Offsite LAMMPS packages & tools <https://www.lammps.org/offsite.html>`_
 * `Pizza.py toolkit <pizza_>`_
 
 The last link for `Pizza.py <pizza_>`_ is a Python-based tool developed at
 Sandia which provides tools for doing setup, analysis, plotting, and
 visualization for LAMMPS simulations.
 
-.. _lws: https://lammps.sandia.gov
+.. _lws: https://www.lammps.org
 .. _pizza: https://pizza.sandia.gov
 .. _python: https://www.python.org
 
@@ -93,6 +93,8 @@ Miscellaneous tools
    * :ref:`i-pi <ipi>`
    * :ref:`kate <kate>`
    * :ref:`LAMMPS shell <lammps_shell>`
+   * :ref:`LAMMPS magic patterns for file(1) <magic>`
+   * :ref:`Offline build tool <offline>`
    * :ref:`singularity <singularity_tool>`
    * :ref:`SWIG interface <swig>`
    * :ref:`vim <vim>`
@@ -267,7 +269,7 @@ data file in the required format.
 See the header of the polarizer.py file for details.
 
 The tool is authored by Agilio Padua and Alain Dequidt: agilio.padua
-at univ-bpclermont.fr, alain.dequidt at univ-bpclermont.fr
+at ens-lyon.fr, alain.dequidt at uca.fr
 
 ----------
 
@@ -341,8 +343,7 @@ The tools/fep directory contains Python scripts useful for
 post-processing results from performing free-energy perturbation
 simulations using the USER-FEP package.
 
-The scripts were contributed by Agilio Padua (Universite Blaise
-Pascal Clermont-Ferrand), agilio.padua at univ-bpclermont.fr.
+The scripts were contributed by Agilio Padua (ENS de Lyon), agilio.padua at ens-lyon.fr.
 
 See README file in the tools/fep directory.
 
@@ -642,6 +643,39 @@ This tool was written by Ara Kooser at Sandia (askoose at sandia.gov).
 
 ----------
 
+.. _magic:
+
+Magic patterns for the "file" command
+-------------------------------------
+
+.. versionadded:: 10Mar2021
+
+The file ``magic`` contains patterns that are used by the
+`file program <https://en.wikipedia.org/wiki/File_(command)>`_
+available on most Unix-like operating systems which enables it
+to detect various LAMMPS files and print some useful information
+about them.  To enable these patterns, append or copy the contents
+of the file to either the file ``.magic`` in your home directory
+or (as administrator) to ``/etc/magic`` (for a system-wide
+installation).  Afterwards the ``file`` command should be able to
+detect most LAMMPS restarts, dump, data and log files. Examples:
+
+.. code-block:: bash
+
+   $ file *.*
+   dihedral-quadratic.restart:   LAMMPS binary restart file (rev 2), Version 10 Mar 2021, Little Endian
+   mol-pair-wf_cut.restart:      LAMMPS binary restart file (rev 2), Version 24 Dec 2020, Little Endian
+   atom.bin:                     LAMMPS atom style binary dump (rev 2), Little Endian, First time step: 445570
+   custom.bin:                   LAMMPS custom style binary dump (rev 2), Little Endian, First time step: 100
+   bn1.lammpstrj:                LAMMPS text mode dump, First time step: 5000
+   data.fourmol:                 LAMMPS data file written by LAMMPS
+   pnc.data:                     LAMMPS data file written by msi2lmp
+   data.spce:                    LAMMPS data file written by TopoTools
+   B.data:                       LAMMPS data file written by OVITO
+   log.lammps:                   LAMMPS log file written by version 10 Feb 2021
+
+----------
+
 .. _matlab:
 
 matlab tool
@@ -720,6 +754,103 @@ This tool has several known limitations and is no longer under active
 development, so there are no changes except for the occasional bug fix.
 
 See the README file in the tools/msi2lmp folder for more information.
+
+----------
+
+.. _offline:
+
+Scripts for building LAMMPS when offline
+----------------------------------------
+
+In some situations it might be necessary to build LAMMPS on a system
+without direct internet access. The scripts in ``tools/offline`` folder
+allow you to pre-load external dependencies for both the documentation
+build and for building LAMMPS with CMake.
+
+It does so by
+
+ #. downloading necessary ``pip`` packages,
+ #. cloning ``git`` repositories
+ #. downloading tarballs
+
+to a designated cache folder.
+
+As of April 2021, all of these downloads make up around 600MB. By
+default, the offline scripts will download everything into the
+``$HOME/.cache/lammps`` folder, but this can be changed by setting the
+``LAMMPS_CACHING_DIR`` environment variable.
+
+Once the caches have been initialized, they can be used for building the
+LAMMPS documentation or compiling LAMMPS using CMake on an offline
+system.
+
+The ``use_caches.sh`` script must be sourced into the current shell
+to initialize the offline build environment. Note that it must use
+the same ``LAMMPS_CACHING_DIR``. This script does the following:
+
+ #. Set up environment variables that modify the behavior of both,
+    ``pip`` and ``git``
+ #. Start a simple local HTTP server using Python to host files for CMake
+
+Afterwards, it will print out instruction on how to modify the CMake
+command line to make sure it uses the local HTTP server.
+
+To undo the environment changes and shutdown the local HTTP server,
+run the ``deactivate_caches`` command.
+
+Examples
+^^^^^^^^
+
+For all of the examples below, you first need to create the cache, which
+requires an internet connection.
+
+.. code-block:: bash
+
+   ./tools/offline/init_caches.sh
+
+Afterwards, you can disconnect or copy the contents of the
+``LAMMPS_CACHING_DIR`` folder to an offline system.
+
+Documentation Build
+^^^^^^^^^^^^^^^^^^^
+
+The documentation build will create a new virtual environment that
+typically first installs dependencies from ``pip``. With the offline
+environment loaded, these installations will instead grab the necessary
+packages from your local cache.
+
+.. code-block:: bash
+
+   # if LAMMPS_CACHING_DIR is different from default, make sure to set it first
+   # export LAMMPS_CACHING_DIR=path/to/folder
+   source tools/offline/use_caches.sh
+   cd doc/
+   make html
+
+   deactivate_caches
+
+CMake Build
+^^^^^^^^^^^
+
+When compiling certain packages with external dependencies, the CMake
+build system will download necessary files or sources from the web. For
+more flexibility the CMake configuration allows users to specify the URL
+of each of these dependencies.  What the ``init_caches.sh`` script does
+is create a CMake "preset" file, which sets the URLs for all of the known
+dependencies and redirects the download to the local cache.
+
+.. code-block:: bash
+
+   # if LAMMPS_CACHING_DIR is different from default, make sure to set it first
+   # export LAMMPS_CACHING_DIR=path/to/folder
+   source tools/offline/use_caches.sh
+
+   mkdir build
+   cd build
+   cmake -D LAMMPS_DOWNLOADS_URL=${HTTP_CACHE_URL} -C "${LAMMPS_HTTP_CACHE_CONFIG}" -C ../cmake/presets/most.cmake ../cmake
+   make -j 8
+
+   deactivate_caches
 
 ----------
 

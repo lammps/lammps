@@ -189,7 +189,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   args.num_numa = numa;
   args.device_id = device;
 
-  Kokkos::initialize(args);
+  initialize(args);
 
   // default settings for package kokkos command
 
@@ -300,6 +300,25 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 KokkosLMP::~KokkosLMP()
 {
 
+}
+
+/* ---------------------------------------------------------------------- */
+
+void KokkosLMP::initialize(Kokkos::InitArguments args)
+{
+  if (!Kokkos::is_initialized())
+    Kokkos::initialize(args);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void KokkosLMP::finalize()
+{
+  static int is_finalized = 0;
+
+  if (Kokkos::is_initialized() && !is_finalized)
+    Kokkos::finalize();
+  is_finalized = 1;
 }
 
 /* ----------------------------------------------------------------------

@@ -356,7 +356,7 @@ void lammps_mpi_finalize()
 
 void lammps_kokkos_finalize()
 {
-  if (Kokkos::is_initialized()) Kokkos::finalize();
+  KokkosLMP::finalize();
 }
 
 // ----------------------------------------------------------------------

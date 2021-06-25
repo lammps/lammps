@@ -32,7 +32,7 @@ class ReadData : public Command {
 
  private:
   int me, compressed;
-  char *line, *keyword, *buffer, *style;
+  char *line, *keyword, *buffer, *buffer_post, *style;
   FILE *fp;
   char **coeffarg;
   int ncoeffarg, maxcoeffarg;

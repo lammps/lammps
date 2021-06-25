@@ -13,6 +13,8 @@
 ------------------------------------------------------------------------- */
 
 #include "atom_vec_oxdna.h"
+#include "atom.h"
+#include "comm.h"
 
 using namespace LAMMPS_NS;
 
@@ -69,9 +71,49 @@ void AtomVecOxdna::grow_pointers()
    store 5' partner to inform 3'->5' bond directionality 
 ------------------------------------------------------------------------- */
 
-void AtomVecOxdna::data_bonds_post()
+void AtomVecOxdna::data_bonds_post(int n, char *buf, tagint id_offset)
 {
 
-printf("CALLED FROM ATOM_VEC_OXDNA.CPP\n");
+ int m,tmp,itype,rv;
+  tagint atom1,atom2;
+  char *next;
+
+  tagint **id5p = atom->id5p;
+
+  if (comm->me == 0) utils::logmesg(lmp,"Setting oxDNA 3'->5' bond directionality ...\n");
+
+  for (int i = 0; i < n; i++) {
+
+    next = strchr(buf,'\n');
+    *next = '\0';
+    rv = sscanf(buf,"%d %d " TAGINT_FORMAT " " TAGINT_FORMAT,
+                &tmp,&itype,&atom1,&atom2);
+
+    if (id_offset) {
+      atom1 += id_offset;
+      atom2 += id_offset;
+    }
+
+    if ((m = atom->map(atom1)) >= 0) {
+//      for (int n=0; n<atom->num_bond[m]; n++) {
+        id5p[m][0] = atom2;
+//      }
+//    for (int n=0; n<atom->num_bond[m]; n++) {
+//      printf("I %d N %d TAG[M] %d ATOM1 %d ATOM2 %d ID5P[M][N] %d\n", i, n, atom->tag[m],atom1, atom2, id5p[m][n]); 
+//    }
+
+
+    }
+
+    buf = next + 1;
+  }
+
+
+for (int i=0; i<atom->nlocal; i++) {
+//    for (int n=0; n<atom->num_bond[i]; n++) {
+      printf("I %d TAG[I] %d ID5P[I][N] %d\n", i, atom->tag[i], id5p[i][0]); 
+//    }
+}
+
 
 }

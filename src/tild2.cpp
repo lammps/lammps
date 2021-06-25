@@ -2106,7 +2106,7 @@ void TILD::brick2fft()
     rhof.close();
 */
 
-  for (int k = 0; k <= ntypes; k++) {
+  for (int k = 1; k <= ntypes; k++) {
     remap->perform(density_fft_types[k],density_fft_types[k],work1); 
   }
 }

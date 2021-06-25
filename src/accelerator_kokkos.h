@@ -43,10 +43,6 @@
 #include "modify.h"
 #include "neighbor.h"
 
-namespace Kokkos {
-  typedef int InitArguements;
-};
-
 #define LAMMPS_INLINE inline
 
 namespace LAMMPS_NS {
@@ -60,7 +56,6 @@ class KokkosLMP {
 
   KokkosLMP(class LAMMPS *, int, char **) { kokkos_exists = 0; }
   ~KokkosLMP() {}
-  static void initialize(Kokkos::InitArguements args) {}
   static void finalize() {}
   void accelerator(int, char **) {}
   int neigh_list_kokkos(int) { return 0; }

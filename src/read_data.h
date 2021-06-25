@@ -54,6 +54,7 @@ class ReadData : public Command {
   class AtomVecTri *avec_tri;
   bigint nbodies;
   class AtomVecBody *avec_body;
+  class AtomVec *avec;
 
   // box info
 

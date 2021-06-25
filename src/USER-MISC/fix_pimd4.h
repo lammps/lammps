@@ -143,7 +143,7 @@ class FixPIMD4 : public Fix {
   void b_step(); // integrate the dynamics for dt/2 time according to B part (external force)
   void a_step(); // integrate the dynamics for dt/2 time according to A part (harmonic force between replicas)
   void o_step(); // integrate the dynamics for dt time according to O part (O-U process, for thermostating)
-  void svr_step(); // stochastic velocity rescaling thermostat
+  void svr_step(MPI_Comm which); // stochastic velocity rescaling thermostat
  
   double r1, r2, r3;
   double **eta;
@@ -167,7 +167,7 @@ class FixPIMD4 : public Fix {
 
   /* potential energy and total energy of the extended system */
   double pote, tote, totke;
-  double centroid_ke;
+  double ke_bead;
   
   void compute_totke();
   void compute_pote();

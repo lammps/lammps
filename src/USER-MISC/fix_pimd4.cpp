@@ -228,7 +228,7 @@ FixPIMD4::FixPIMD4(LAMMPS *lmp, int narg, char **arg) :
   for(int i=0; i<9; i++) virial[i] = 0.0;
 
   tote = totke = totenthalpy = 0.0;
-  centroid_ke = 0.0;
+  ke_bead = 0.0;
 
   dfdl = 0.0;
   x_scaled = nullptr;
@@ -313,7 +313,7 @@ FixPIMD4::~FixPIMD4()
   {
     delete tau_k ,c1_k, c2_k;
   }
-  fclose(frand);
+  //fclose(frand);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -520,7 +520,7 @@ void FixPIMD4::setup(int vflag)
     {
       nmpimd_fill(atom->v);
       comm_exec(atom->v);
-      nmpimd_transform(buf_beads, atom->v, M_x2xp[universe->iworld]);
+      //nmpimd_transform(buf_beads, atom->v, M_x2xp[universe->iworld]);
     }
   if(universe->me==0 && screen) fprintf(screen,"Setting up Path-Integral ...\n");
   if(universe->me==0) printf("Setting up Path-Integral ...\n");
@@ -581,7 +581,7 @@ void FixPIMD4::initial_integrate(int /*vflag*/)
       //nmpimd_fill(x_unwrap);
       //comm_exec(x_unwrap);
       //fprintf(stdout, "%.6f, %.6f, %.6f, %.6f\n", buf_beads[0][0], buf_beads[0][3], buf_beads[1][0], buf_beads[1][3]);
-      nmpimd_transform(buf_beads, atom->x, M_x2xp[universe->iworld]);
+      //nmpimd_transform(buf_beads, atom->x, M_x2xp[universe->iworld]);
       // printf("transformed\n");
     }
     //fprintf(stdout, "after x2xp, x0=%.6e.\n", atom->x[0][0]);
@@ -650,7 +650,7 @@ void FixPIMD4::post_integrate()
     {
       nmpimd_fill(atom->x);
       comm_exec(atom->x);
-      nmpimd_transform(buf_beads, atom->x, M_xp2x[universe->iworld]);
+      //nmpimd_transform(buf_beads, atom->x, M_xp2x[universe->iworld]);
     }
   //printf("after xp2x, x=%.6e, v=%.6e, f=%.6e, dtf=%.6e, dtv=%.6e.\n", atom->x[0][0], atom->v[0][0], atom->f[0][0], dtf, dtv);
 
@@ -733,7 +733,7 @@ void FixPIMD4::post_force(int /*flag*/)
   {
     nmpimd_fill(atom->f);
     comm_exec(atom->f);
-    nmpimd_transform(buf_beads, atom->f, M_x2xp[universe->iworld]);
+    //nmpimd_transform(buf_beads, atom->f, M_x2xp[universe->iworld]);
   }
   // if(universe->iworld==0) printf("after f2fp, %.6e, %.6e, %.6e, %.6e, %.6e, %.6e, %.6e, %.6e, %.6e, %.6e.\n", atom->x[0][0], atom->v[0][0], atom->f[0][0], mass[atom->type[0]], dtf, dtv, dtf, _omega_np, baoab_c, baoab_s);
   c_pe->addstep(update->ntimestep+1); 
@@ -781,9 +781,9 @@ void FixPIMD4::baoab_init()
   c1 = exp(-gamma * update->dt); // tau is the damping time of the centroid mode.
   c2 = sqrt(1.0 - c1 * c1); // note that c1 and c2 here only works for the centroid mode.
 
-  if(thermostat == PILE_L)
+  if(thermostat == PILE_L || thermostat == PILE_G)
   {
-    std::string out = "Initializing PILE_L thermostat...\n";
+    std::string out = "\nInitializing PI Langevin equation thermostat...\n";
     out += "Bead ID    |    omega    |    tau    |    c1    |    c2\n"; 
     //if(universe->iworld==0) fprintf(stdout, "Initializing PILE_L thermostat.\n");
     tau_k = new double[np];
@@ -804,7 +804,9 @@ void FixPIMD4::baoab_init()
     //MPI_Barrier(universe->uworld);
     //fprintf(stdout, "Bead ID=%d, omega=%.6e, tau=%.6e, c1=%.6e, c2=%.6e.\n", universe->iworld, _omega_k[universe->iworld], tau_k[universe->iworld], c1_k[universe->iworld], c2_k[universe->iworld]);
     //MPI_Barrier(universe->uworld);
-    out += "PILE_L thermostat successfully initialized!\n";
+    if(thermostat == PILE_L) out += "PILE_L thermostat successfully initialized!\n";
+    else if(thermostat == PILE_G) out += "PILE_G thermostat successfully initialized!\n";
+    out += "\n";
     utils::logmesg(lmp, out);
     //if(universe->iworld==0) fprintf(stdout, "PILE_L thermostat successfully initialized!\n");
   }
@@ -814,12 +816,12 @@ void FixPIMD4::baoab_init()
   //  if(universe->iworld==0) fprintf(stdout, "PILE_L thermostat successfully initialized!\n");
   //}
 
-  if(thermostat == PILE_G)
-  {
-    int natoms = atom->natoms;
-    eta = new double* [np];
-    for(int i=0; i<np; i++) eta[i] = new double [3*natoms];
-  }
+  //if(thermostat == PILE_G)
+  //{
+  //  int natoms = atom->natoms;
+  //  eta = new double* [np];
+  //  for(int i=0; i<np; i++) eta[i] = new double [3*natoms];
+  //}
 
   baoab_ready = true;
 }
@@ -948,40 +950,46 @@ void FixPIMD4::a_step(){
 }
 
 /* ---------------------------------------------------------------------- */
-void FixPIMD4::svr_step()
+void FixPIMD4::svr_step(MPI_Comm which)
 {
   int nlocal = atom->nlocal;
   int *type = atom->type;
   double beta_np = 1.0 / force->boltz / baoab_temp / np * force->mvv2e;
 
-  // compute centroid kinetic energy
-  double ke_0 = 0.0;
+  // compute bead kinetic energy
+  double ke_0 = 0.0, ke_total = 0.0;
   for(int i=0; i<nlocal; i++) for(int j=0; j<3; j++) ke_0 += 0.5 * mass[type[i]] * atom->v[i][j] * atom->v[i][j];
-  MPI_Allreduce(&ke_0, &ke_centroid, 1, MPI_DOUBLE, MPI_SUM, world);
+  MPI_Allreduce(&ke_0, &ke_total, 1, MPI_DOUBLE, MPI_SUM, which);
 
   // compute alpha
-  double noise_ = 0.0, ksi0_ = 0.0, ksi_ = 0.0;
+  double noise_ = 0.0, noise_total = 0.0, ksi0_ = 0.0, ksi_ = 0.0;
   for(int i=0; i<atom->natoms; i++) 
   {
     for(int j=0; j<3; j++) 
     {
       ksi_ = random->gaussian();
-      if(i==0 && j==0) ksi0_ = ksi_;
+      if(i==0 && j==0 && universe->iworld==0) ksi0_ = ksi_;
       noise_ += ksi_ * ksi_;
     }
   }
+  MPI_Allreduce(&noise_, &noise_total, 1, MPI_DOUBLE, MPI_SUM, which);
+  //MPI_Bcast(&ksi0_, 1, MPI_DOUBLE, 0, which);
   
-  alpha2 = c1 + (1.0 - c1) * (noise_) / 2 / beta_np / ke_centroid + 2 * ksi0_ * sqrt(c1 * (1.0 - c1) / 2 / beta_np / ke_centroid);
-  sgn_ = ksi0_ + sqrt(2 * beta_np * ke_centroid * c1 / (1.0 - c1));
-  // sgn = sgn_ / abs(sgn_);
-  if(sgn_<0) sgn = -1.0;
-  else sgn = 1.0;
-  alpha = sgn * sqrt(alpha2);
+  if(universe->me == 0)
+  {
+    alpha2 = c1 + (1.0 - c1) * (noise_total) / 2 / beta_np / ke_total + 2 * ksi0_ * sqrt(c1 * (1.0 - c1) / 2 / beta_np / ke_total);
+    sgn_ = ksi0_ + sqrt(2 * beta_np * ke_total * c1 / (1.0 - c1));
+    // sgn = sgn_ / abs(sgn_);
+    if(sgn_<0) sgn = -1.0;
+    else sgn = 1.0;
+    alpha = sgn * sqrt(alpha2);
+  }
+  //fprintf(stdout, "iworld = %d, ke_total = %.6e, ksi0_ = %.6e, noise_total = %.6e, c1 = %.6e, alpha2 = %.6e.\n", universe->iworld, ke_total, ksi0_, noise_total, c1, alpha2);
 
-  // broadcast alpha to the other processes in world 0
-  MPI_Bcast(&alpha, 1, MPI_DOUBLE, 0, world);
+  // broadcast alpha to the other processes in this world world
+  MPI_Bcast(&alpha, 1, MPI_DOUBLE, 0, which);
 
-  // fprintf(stdout, "me = %d, alpha = %.6e.\n", universe->me, alpha);
+  //fprintf(stdout, "iworld = %d, me = %d, alpha = %.6e.\n", universe->iworld, universe->me, alpha);
 
   // scale the velocities
   for(int i=0; i<nlocal; i++)
@@ -1069,11 +1077,8 @@ void FixPIMD4::o_step()
   double beta_np = 1.0 / force->boltz / baoab_temp / np * force->mvv2e;
   if(thermostat == PILE_L)
   {
-    //fprintf(stdout, "iworld = %d, before o, v = %.8e.\n", universe->iworld, atom->v[0][0]);
     for(int i=0; i<nlocal; i++)
     {
-      //fprintf(stdout, "iworld=%d, mass=%.2e.\n", universe->iworld, mass[type[i]]);
-      //fprintf(stdout, "iworld=%d, c1=%.2e, c2=%.2e.\n", universe->iworld, c1_k[universe->iworld], c2_k[universe->iworld]);
       r1 = random->gaussian();
       r2 = random->gaussian();
       r3 = random->gaussian();
@@ -1090,51 +1095,13 @@ void FixPIMD4::o_step()
   }
   else if(thermostat == SVR)
   {
-    svr_step();
+    svr_step(universe->uworld);
   }
   else if(thermostat == PILE_G)
   {
     if(universe->iworld == 0)
     {
-      svr_step();
-/*
-      // compute centroid kinetic energy
-      double ke_0 = 0.0;
-      for(int i=0; i<nlocal; i++) for(int j=0; j<3; j++) ke_0 += 0.5 * mass[type[i]] * atom->v[i][j] * atom->v[i][j];
-      MPI_Allreduce(&ke_0, &ke_centroid, 1, MPI_DOUBLE, MPI_SUM, world);
-
-      // compute alpha
-      double noise_ = 0.0, ksi0_ = 0.0, ksi_ = 0.0;
-      for(int i=0; i<atom->natoms; i++) 
-      {
-        for(int j=0; j<3; j++) 
-        {
-          ksi_ = random->gaussian();
-          if(i==0 && j==0) ksi0_ = ksi_;
-          noise_ += ksi_ * ksi_;
-        }
-      }
-      
-      alpha2 = c1 + (1.0 - c1) * (noise_) / 2 / beta / ke_centroid + 2 * ksi0_ * sqrt(c1 * (1.0 - c1) / 2 / beta / ke_centroid);
-      sgn_ = ksi0_ + sqrt(2 * beta * ke_centroid * c1 / (1.0 - c1));
-      // sgn = sgn_ / abs(sgn_);
-      if(sgn_<0) sgn = -1.0;
-      else sgn = 1.0;
-      alpha = sgn * sqrt(alpha2);
-
-      // broadcast alpha to the other processes in world 0
-      MPI_Bcast(&alpha, 1, MPI_DOUBLE, 0, world);
-
-      // fprintf(stdout, "me = %d, alpha = %.6e.\n", universe->me, alpha);
-
-      for(int i=0; i<nlocal; i++)
-      {
-        for(int j=0; j<3; j++)
-        {
-          atom->v[i][j] *= alpha;
-        }
-      }
-*/
+      svr_step(world);
     }
     else
     {
@@ -1143,13 +1110,12 @@ void FixPIMD4::o_step()
         r1 = random->gaussian();
         r2 = random->gaussian();
         r3 = random->gaussian();
-        atom->v[i][0] = c1 * atom->v[i][0] + c2 * sqrt(1.0 / mass[type[i]] / beta_np) * r1; 
-        atom->v[i][1] = c1 * atom->v[i][1] + c2 * sqrt(1.0 / mass[type[i]] / beta_np) * r2;
-        atom->v[i][2] = c1 * atom->v[i][2] + c2 * sqrt(1.0 / mass[type[i]] / beta_np) * r3;
+        atom->v[i][0] = c1_k[universe->iworld] * atom->v[i][0] + c2_k[universe->iworld] * sqrt(1.0 / mass[type[i]] / beta_np) * r1; 
+        atom->v[i][1] = c1_k[universe->iworld] * atom->v[i][1] + c2_k[universe->iworld] * sqrt(1.0 / mass[type[i]] / beta_np) * r2;
+        atom->v[i][2] = c1_k[universe->iworld] * atom->v[i][2] + c2_k[universe->iworld] * sqrt(1.0 / mass[type[i]] / beta_np) * r3;
       }
     }
   }
-  //MPI_Barrier(universe->uworld);
 }
 
 /* ----------------------------------------------------------------------
@@ -1697,7 +1663,7 @@ void FixPIMD4::compute_p_prim()
 void FixPIMD4::compute_p_cv()
 {
   //p_cv = 2. / 3.  * inv_volume / np * totke - 1. / 3. / np * inv_volume * centroid_vir; 
-  p_cv = 1. / 3.  * inv_volume  * (2. * centroid_ke - 1. * centroid_vir + 1. * vir) / force->nktv2p / np; 
+  //p_cv = 1. / 3.  * inv_volume  * (2. * centroid_ke - 1. * centroid_vir + 1. * vir) / force->nktv2p / np; 
 }
 
 void FixPIMD4::compute_p_vir()
@@ -1723,17 +1689,12 @@ void FixPIMD4::compute_totke()
       kine += 0.5 * mass[type[i]] * atom->v[i][j] * atom->v[i][j];
     }
   }
-  if(universe->iworld==0) MPI_Allreduce(&kine, &centroid_ke, 1, MPI_DOUBLE, MPI_SUM, world);
-  //if(universe->iworld==0) printf("kine = %.6e, centroid_ke = %.6e.\n", kine, centroid_ke);
-  //printf("iworld=%d, me=%d, kine = %.6e, centroid_ke = %.6e.\n", universe->iworld, comm->me, kine, centroid_ke);
-  //printf("iworld = %d, m = %.6e, _m = %.6e, kine = %.6e.\n", universe->iworld, mass[type[0]], atom->mass[type[0]], kine*force->mvv2e);
+  MPI_Allreduce(&kine, &ke_bead, 1, MPI_DOUBLE, MPI_SUM, world);
+  ke_bead *= force->mvv2e;
   MPI_Allreduce(&kine, &totke, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
-  // printf("iworld = %d, totke = %.6e.\n", universe->iworld, totke);
-  // if(universe->iworld==0) printf("mvv2e = %.6e.\n", force->mvv2e);
   totke *= force->mvv2e / np;
+
   c_press->compute_scalar();
-  //p_vir = 2.  / 3 * inv_volume * centroid_ke + c_press->scalar;
-  //p_cv = 2.  / 3 * inv_volume * totke + 1. / 3 * inv_volume * vir * force->nktv2p;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1823,7 +1784,8 @@ void FixPIMD4::compute_totenthalpy()
 
 double FixPIMD4::compute_vector(int n)
 {
-  if(n==0) { return totke; }
+  //if(n==0) { return totke; }
+  if(n==0) { return ke_bead; }
   if(n==1) { return spring_energy; }
   //if(n==1) { return atom->v[0][0]; }
   if(n==2) { return pote; }

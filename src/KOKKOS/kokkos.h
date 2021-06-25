@@ -49,6 +49,8 @@ class KokkosLMP : protected Pointers {
   int newtonflag;
   double binsize;
 
+  static int is_finalized;
+
   KokkosLMP(class LAMMPS *, int, char **);
   ~KokkosLMP();
   static void initialize(Kokkos::InitArguments);

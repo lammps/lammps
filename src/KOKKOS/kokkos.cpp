@@ -306,16 +306,17 @@ KokkosLMP::~KokkosLMP()
 
 void KokkosLMP::initialize(Kokkos::InitArguments args)
 {
-  if (!Kokkos::is_initialized())
+  if (!Kokkos::is_initialized()) {
+    if (is_finalized)
+      error->all(FLERR,"Kokkos package already finalized, cannot re-initialize");
     Kokkos::initialize(args);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
 void KokkosLMP::finalize()
 {
-  static int is_finalized = 0;
-
   if (Kokkos::is_initialized() && !is_finalized)
     Kokkos::finalize();
   is_finalized = 1;

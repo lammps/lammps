@@ -32,6 +32,8 @@
 #include "atom_vec_oxdna.h"
 #include "math_extra.h"
 
+#include "update.h"
+
 using namespace LAMMPS_NS;
 using namespace MFOxdna;
 
@@ -269,6 +271,9 @@ void PairOxdnaStk::compute(int eflag, int vflag)
     b = bondlist[in][1];
 
     // directionality test: a -> b is 3' -> 5'
+//    for (int n=0; n<atom->num_bond[a]; n++) {
+//printf("TIMESTEP %d PROC %d BEFORE TAG[A] %d TAG[B] %d ID5P[A] %d ID5P[B] %d\n",update->ntimestep,comm->me,atom->tag[a], atom->tag[b], id5p[a][0], id5p[b][0]);
+//}
     if(atom->tag[b] != id5p[a][0]) {
 
       btemp = b;
@@ -276,6 +281,10 @@ void PairOxdnaStk::compute(int eflag, int vflag)
       a = btemp;
 
     }
+//    for (int n=0; n<atom->num_bond[a]; n++) {
+printf("TIMESTEP %d PROC %d AFTER  TAG[A] %d TAG[B] %d ID5P[A] %d ID5P[B] %d\n",update->ntimestep,comm->me,atom->tag[a], atom->tag[b], id5p[a][0], id5p[b][0]);
+//printf("\n");
+//}
     // a now in 3' direction, b in 5' direction
 
     qa=bonus[ellipsoid[a]].quat;

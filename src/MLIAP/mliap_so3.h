@@ -29,7 +29,7 @@ class MLIAP_SO3 : protected Pointers {
   double *m_dfac0, *m_dfac1, *m_dfac2, *m_dfac3, *m_dfac4, *m_dfac5;
   int m_dfac_l1, m_dfac_l2;
   double m_rcut, m_alpha;
-  int m_lmax, m_nmax, m_Nmax, m_ldim;
+  int m_lmax, m_nmax, m_Nmax;
   double *m_g_array, *m_w, *m_rootpq;
   int *m_idxu_block, *m_idxylm;
   int m_idxu_count, m_idxy_count;

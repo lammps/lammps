@@ -819,18 +819,18 @@ void MLIAP_SO3::spectrum(int nlocal, int *numneighs, int *jelems, double *wjelem
   bigint totaln = 0;
   bigint totali;
   double Ylm_r, Ylm_i;
-  int i, ti;
   int weight, neighbor;
   double x, y, z, r;
   double r_int;
   int twolmax = 2 * (lmax + 1);
-  int findex, gindex;
-  int ipair = 0;
+  int findex;
+  bigint gindex;
+  bigint ipair = 0;
   double sfac;
 
   findex = m_nmax * (m_lmax + 1);
 
-  for (i = 0; i < nlocal; i++) totaln += numneighs[i];
+  for (int i = 0; i < nlocal; i++) totaln += numneighs[i];
 
   totali = totaln * m_Nmax * (m_lmax + 1);
   memory->destroy(m_sbes_array);
@@ -857,16 +857,16 @@ void MLIAP_SO3::spectrum(int nlocal, int *numneighs, int *jelems, double *wjelem
 
   get_rip_array(nlocal, numneighs, rij, nmax, lmax, alpha);
 
-  totali = nlocal * ncoefs;
-  for (i = 0; i < totali; i++) {
+  totali = (bigint)nlocal * ncoefs;
+  for (int i = 0; i < totali; i++) {
     m_plist_r[i] = 0.0;
     m_plist_i[i] = 0.0;
   }
 
   for (int ii = 0; ii < nlocal; ii++) {
-    totali = nmax * m_numYlms;
+    totali = (bigint)nmax * m_numYlms;
 
-    for (ti = 0; ti < totali; ti++) {
+    for (bigint ti = 0; ti < totali; ti++) {
       m_clisttot_r[ti] = 0.0;
       m_clisttot_i[ti] = 0.0;
     }
@@ -883,12 +883,12 @@ void MLIAP_SO3::spectrum(int nlocal, int *numneighs, int *jelems, double *wjelem
       r = sqrt(x * x + y * y + z * z);
 
       if (r < SMALL) continue;
-      totali = nmax * m_numYlms;
-      for (ti = 0; ti < totali; ti++) {
+      totali = (bigint)nmax * m_numYlms;
+      for (bigint ti = 0; ti < totali; ti++) {
         m_clist_r[ti] = 0.0;
         m_clist_i[ti] = 0.0;
       }
-      for (ti = 0; ti < m_idxu_count; ti++) {
+      for (bigint ti = 0; ti < m_idxu_count; ti++) {
         m_ulist_r[ti] = 0.0;
         m_ulist_i[ti] = 0.0;
       }
@@ -914,18 +914,17 @@ void MLIAP_SO3::spectrum(int nlocal, int *numneighs, int *jelems, double *wjelem
         }
       }
 
-      totali = nmax * m_numYlms;
-      for (int tn = 0; tn < totali; tn++) {
+      totali = (bigint)nmax * m_numYlms;
+      for (bigint tn = 0; tn < totali; tn++) {
         m_clist_r[tn] = m_clist_r[tn] * double(weight);
         m_clist_i[tn] = m_clist_i[tn] * double(weight);
       }
 
-      for (int tn = 0; tn < totali; tn++) {
+      for (bigint tn = 0; tn < totali; tn++) {
         m_clisttot_r[tn] += m_clist_r[tn];
         m_clisttot_i[tn] += m_clist_i[tn];
       }
     }
-
     compute_pi(nmax, lmax, m_clisttot_r, m_clisttot_i, m_numYlms, m_plist_r, m_plist_i, ncoefs, ii);
   }
 
@@ -935,7 +934,7 @@ void MLIAP_SO3::spectrum(int nlocal, int *numneighs, int *jelems, double *wjelem
 /* ---------------------------------------------------------------------- */
 
 void MLIAP_SO3::spectrum_dxdr(int nlocal, int *numneighs, int *jelems, double *wjelem, double **rij,
-                              int nmax, int lmax, double rcut, double alpha, int npairs, int ncoefs)
+                              int nmax, int lmax, double rcut, double alpha, bigint npairs, int ncoefs)
 {
   bigint totaln = 0;
   bigint totali;
@@ -946,15 +945,14 @@ void MLIAP_SO3::spectrum_dxdr(int nlocal, int *numneighs, int *jelems, double *w
   double dexpfac[3];
   double dfact[6];
 
-  int i, ti;
-
   double xcov0_r, xcov0_i, xcovpl1_r, xcovpl1_i, xcovm1_r, xcovm1_i;
   double comj_i;
   double r_int;
   double r_int_temp;
 
   double oneofr;
-  int findex, gindex;
+  int findex;
+  bigint gindex;
 
   int numps, weight, neighbor;
 
@@ -966,7 +964,7 @@ void MLIAP_SO3::spectrum_dxdr(int nlocal, int *numneighs, int *jelems, double *w
 
   findex = m_nmax * (m_lmax + 1);
 
-  for (i = 0; i < nlocal; i++) totaln += numneighs[i];
+  for (int i = 0; i < nlocal; i++) totaln += numneighs[i];
 
   totali = totaln * m_Nmax * (m_lmax + 1);
   memory->destroy(m_sbes_array);
@@ -988,7 +986,7 @@ void MLIAP_SO3::spectrum_dxdr(int nlocal, int *numneighs, int *jelems, double *w
 
   totali = npairs * ncoefs * 3;
 
-  for (i = 0; i < totali; i++) {
+  for (int i = 0; i < totali; i++) {
     m_dplist_r[i] = 0.0;
     m_dplist_i[i] = 0.0;
   }
@@ -1004,7 +1002,7 @@ void MLIAP_SO3::spectrum_dxdr(int nlocal, int *numneighs, int *jelems, double *w
   for (int ii = 0; ii < nlocal; ii++) {
 
     totali = nmax * m_numYlms;
-    for (ti = 0; ti < totali; ti++) {
+    for (bigint ti = 0; ti < totali; ti++) {
       m_clisttot_r[ti] = 0.0;
       m_clisttot_i[ti] = 0.0;
     }
@@ -1024,12 +1022,12 @@ void MLIAP_SO3::spectrum_dxdr(int nlocal, int *numneighs, int *jelems, double *w
       if (r < SMALL) continue;
       totali = nmax * m_numYlms;
 
-      for (ti = 0; ti < totali; ti++) {
+      for (bigint ti = 0; ti < totali; ti++) {
         m_clist_r[ti] = 0.0;
         m_clist_i[ti] = 0.0;
       }
 
-      for (ti = 0; ti < m_idxu_count; ti++) {
+      for (bigint ti = 0; ti < m_idxu_count; ti++) {
         m_ulist_r[ti] = 0.0;
         m_ulist_i[ti] = 0.0;
       }
@@ -1056,12 +1054,12 @@ void MLIAP_SO3::spectrum_dxdr(int nlocal, int *numneighs, int *jelems, double *w
       }
 
       totali = nmax * m_numYlms;
-      for (int tn = 0; tn < totali; tn++) {
+      for (bigint tn = 0; tn < totali; tn++) {
         m_clist_r[tn] = m_clist_r[tn] * double(weight);
         m_clist_i[tn] = m_clist_i[tn] * double(weight);
       }
 
-      for (int tn = 0; tn < totali; tn++) {
+      for (bigint tn = 0; tn < totali; tn++) {
         m_clisttot_r[tn] += m_clist_r[tn];
         m_clisttot_i[tn] += m_clist_i[tn];
       }
@@ -1080,13 +1078,13 @@ void MLIAP_SO3::spectrum_dxdr(int nlocal, int *numneighs, int *jelems, double *w
       r = sqrt(x * x + y * y + z * z);
       if (r < SMALL) continue;
 
-      totali = nmax * m_numYlms * 3;
-      for (int tn = 0; tn < totali; tn++) {
+      totali = (bigint) nmax * m_numYlms * 3;
+      for (bigint tn = 0; tn < totali; tn++) {
         m_dclist_r[tn] = 0.0;
         m_dclist_i[tn] = 0.0;
       }
 
-      for (ti = 0; ti < m_idxu_count; ti++) {
+      for (int ti = 0; ti < m_idxu_count; ti++) {
         m_ulist_r[ti] = 0.0;
         m_ulist_i[ti] = 0.0;
       }
@@ -1098,8 +1096,8 @@ void MLIAP_SO3::spectrum_dxdr(int nlocal, int *numneighs, int *jelems, double *w
         rvec[0] = x;
         rvec[1] = y;
         rvec[2] = z;
-        totali = (lmax + 2) * (lmax + 2);
-        for (int tn = 0; tn < totali; tn++) {
+        totali = ((bigint)lmax + 2) * (lmax + 2);
+        for (bigint tn = 0; tn < totali; tn++) {
           m_Ylms_r[tn] = 0.0;
           m_Ylms_i[tn] = 0.0;
         }
@@ -1113,8 +1111,8 @@ void MLIAP_SO3::spectrum_dxdr(int nlocal, int *numneighs, int *jelems, double *w
           }
         }
 
-        totali = (lmax + 1) * (lmax + 1) * 3;
-        for (int tn = 0; tn < totali; tn++) {
+        totali = ((bigint)lmax + 1) * (lmax + 1) * 3;
+        for (bigint tn = 0; tn < totali; tn++) {
           m_dYlm_r[tn] = 0.0;
           m_dYlm_i[tn] = 0.0;
         }
@@ -1221,19 +1219,19 @@ void MLIAP_SO3::spectrum_dxdr(int nlocal, int *numneighs, int *jelems, double *w
       }
       /////// end compute_carray_wD //////////////////
 
-      totali = nmax * m_numYlms * 3;
-      for (int tn = 0; tn < totali; tn++) {
+      totali = (bigint)nmax * m_numYlms * 3;
+      for (bigint tn = 0; tn < totali; tn++) {
         m_dclist_r[tn] = m_dclist_r[tn] * double(weight);
         m_dclist_i[tn] = m_dclist_i[tn] * double(weight);
       }
 
-      totali = numps * 3;
-      for (ti = 0; ti < totali; ti++) m_tempdp_r[ti] = 0.0;
+      totali = (bigint)numps * 3;
+      for (bigint ti = 0; ti < totali; ti++) m_tempdp_r[ti] = 0.0;
 
       compute_dpidrj(nmax, lmax, m_clisttot_r, m_clisttot_i, m_numYlms, m_dclist_r, m_dclist_i,
                      m_numYlms, 3, m_tempdp_r, 3);
 
-      for (int tn = 0; tn < totali; tn++)
+      for (bigint tn = 0; tn < totali; tn++)
         m_dplist_r[((idpair - 1) * (numps * 3)) + tn] += m_tempdp_r[tn];
 
     }    //for(neighbor=0;neighbor<numneighs[ii];neighbor++){

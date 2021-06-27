@@ -52,7 +52,7 @@ class MLIAP_SO3 : protected Pointers {
   void spectrum(int nlocal, int *numneighs, int *jelems, double *wjelem, double **rij, int nmax,
                 int lmax, double rcut, double alpha, int ncoefs);
   void spectrum_dxdr(int nlocal, int *numneighs, int *jelems, double *wjelem, double **rij,
-                     int nmax, int lmax, double rcut, double alpha, int npairs, int ncoefs);
+                     int nmax, int lmax, double rcut, double alpha, bigint npairs, int ncoefs);
 
  private:
   double Cosine(double Rij, double Rc);

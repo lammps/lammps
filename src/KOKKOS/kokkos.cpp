@@ -167,10 +167,8 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   // initialize Kokkos
 
-  if (me == 0) {
-    if (screen) fprintf(screen,"  will use up to %d GPU(s) per node\n",ngpus);
-    if (logfile) fprintf(logfile,"  will use up to %d GPU(s) per node\n",ngpus);
-  }
+  if (me == 0)
+    utils::logmesg(lmp, "  will use up to {} GPU(s) per node\n",ngpus);
 
 #ifdef LMP_KOKKOS_GPU
   if (ngpus <= 0)

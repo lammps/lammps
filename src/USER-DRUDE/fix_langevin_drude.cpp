@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -156,7 +157,7 @@ void FixLangevinDrude::init()
 
 void FixLangevinDrude::setup(int /*vflag*/)
 {
-  if (!strstr(update->integrate_style,"verlet"))
+  if (!utils::strmatch(update->integrate_style,"^verlet"))
     error->all(FLERR,"RESPA style not compatible with fix langevin/drude");
   if (!comm->ghost_velocity)
     error->all(FLERR,"fix langevin/drude requires ghost velocities. Use comm_modify vel yes");

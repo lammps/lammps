@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -80,9 +81,7 @@ ComputeVoronoi::ComputeVoronoi(LAMMPS *lmp, int narg, char **arg) :
     else if (strcmp(arg[iarg], "radius") == 0) {
       if (iarg + 2 > narg || strstr(arg[iarg+1],"v_") != arg[iarg+1] )
         error->all(FLERR,"Illegal compute voronoi/atom command");
-      int n = strlen(&arg[iarg+1][2]) + 1;
-      radstr = new char[n];
-      strcpy(radstr,&arg[iarg+1][2]);
+      radstr = utils::strdup(&arg[iarg+1][2]);
       iarg += 2;
     }
     else if (strcmp(arg[iarg], "surface") == 0) {

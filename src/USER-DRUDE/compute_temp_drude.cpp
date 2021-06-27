@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -13,15 +14,16 @@
 
 #include "compute_temp_drude.h"
 
-#include <cstring>
 #include "atom.h"
-#include "update.h"
-#include "force.h"
-#include "modify.h"
-#include "fix_drude.h"
+#include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "comm.h"
+#include "fix_drude.h"
+#include "force.h"
+#include "modify.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -116,9 +118,7 @@ int ComputeTempDrude::modify_param(int narg, char **arg)
   if (strcmp(arg[0],"temp") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
     delete [] id_temp;
-    int n = strlen(arg[1]) + 1;
-    id_temp = new char[n];
-    strcpy(id_temp,arg[1]);
+    id_temp = utils::strdup(arg[1]);
 
     int icompute = modify->find_compute(id_temp);
     if (icompute < 0)

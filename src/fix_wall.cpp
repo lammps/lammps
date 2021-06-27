@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -263,7 +264,7 @@ void FixWall::init()
 
   for (int m = 0; m < nwall; m++) precompute(m);
 
-  if (strstr(update->integrate_style,"respa")) {
+  if (utils::strmatch(update->integrate_style,"^respa")) {
     ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
   }
@@ -273,7 +274,7 @@ void FixWall::init()
 
 void FixWall::setup(int vflag)
 {
-  if (strstr(update->integrate_style,"verlet")) {
+  if (utils::strmatch(update->integrate_style,"^verlet")) {
     if (!fldflag) post_force(vflag);
   } else {
     ((Respa *) update->integrate)->copy_flevel_f(ilevel_respa);
@@ -306,8 +307,10 @@ void FixWall::post_force(int vflag)
 
   v_init(vflag);
 
-  // energy intialize
+  // energy intialize.
+  // eflag is used to track whether wall energies have been communitcated.
 
+  eflag = 0;
   for (int m = 0; m <= nwall; m++) ewall[m] = 0.0;
 
   // coord = current position of wall

@@ -56,27 +56,28 @@ Examples
 Description
 """""""""""
 
-Perform the charge equilibration (QEq) method as described in :ref:`(Rappe and Goddard) <Rappe1>` and formulated in :ref:`(Nakano) <Nakano1>` (also known
-as the matrix inversion method) and in :ref:`(Rick and Stuart) <Rick1>` (also
-known as the extended Lagrangian method) based on the
-electronegativity equilization principle.
+Perform the charge equilibration (QEq) method as described in
+:ref:`(Rappe and Goddard) <Rappe1>` and formulated in :ref:`(Nakano)
+<Nakano1>` (also known as the matrix inversion method) and in
+:ref:`(Rick and Stuart) <Rick1>` (also known as the extended Lagrangian
+method) based on the electronegativity equilization principle.
 
 These fixes can be used with any :doc:`pair style <pair_style>` in
 LAMMPS, so long as per-atom charges are defined.  The most typical
 use-case is in conjunction with a :doc:`pair style <pair_style>` that
 performs charge equilibration periodically (e.g. every timestep), such
-as the ReaxFF or Streitz-Mintmire potential.
-But these fixes can also be used with
-potentials that normally assume per-atom charges are fixed, e.g. a
-:doc:`Buckingham <pair_buck>` or :doc:`LJ/Coulombic <pair_lj>` potential.
+as the ReaxFF or Streitz-Mintmire potential.  But these fixes can also
+be used with potentials that normally assume per-atom charges are fixed,
+e.g. a :doc:`Buckingham <pair_buck>` or :doc:`LJ/Coulombic <pair_lj>`
+potential.
 
-Because the charge equilibration calculation is effectively
-independent of the pair style, these fixes can also be used to perform
-a one-time assignment of charges to atoms.  For example, you could
-define the QEq fix, perform a zero-timestep run via the :doc:`run <run>`
-command without any pair style defined which would set per-atom
-charges (based on the current atom configuration), then remove the fix
-via the :doc:`unfix <unfix>` command before performing further dynamics.
+Because the charge equilibration calculation is effectively independent
+of the pair style, these fixes can also be used to perform a one-time
+assignment of charges to atoms.  For example, you could define the QEq
+fix, perform a zero-timestep run via the :doc:`run <run>` command
+without any pair style defined which would set per-atom charges (based
+on the current atom configuration), then remove the fix via the
+:doc:`unfix <unfix>` command before performing further dynamics.
 
 .. note::
 
@@ -87,11 +88,14 @@ via the :doc:`unfix <unfix>` command before performing further dynamics.
 
 .. note::
 
-   The :doc:`fix qeq/comb <fix_qeq_comb>` command must still be used
-   to perform charge equilibration with the :doc:`COMB potential <pair_comb>`.  The :doc:`fix qeq/reax <fix_qeq_reax>`
-   command can be used to perform charge equilibration with the :doc:`ReaxFF force field <pair_reaxc>`, although fix qeq/shielded yields the
-   same results as fix qeq/reax if *Nevery*\ , *cutoff*\ , and *tolerance*
-   are the same.  Eventually the fix qeq/reax command will be deprecated.
+   The :doc:`fix qeq/comb <fix_qeq_comb>` command must still be used to
+   perform charge equilibration with the :doc:`COMB potential
+   <pair_comb>`.  The :doc:`fix qeq/reax <fix_qeq_reax>` command can be
+   used to perform charge equilibration with the :doc:`ReaxFF force
+   field <pair_reaxc>`, although fix qeq/shielded yields the same
+   results as fix qeq/reax if *Nevery*\ , *cutoff*\ , and *tolerance*
+   are the same.  Eventually the fix qeq/reax command will be
+   deprecated.
 
 The QEq method minimizes the electrostatic energy of the system (or
 equalizes the derivative of energy with respect to charge of all the
@@ -134,55 +138,57 @@ usually a good number.
 The *qeq/shielded* style describes partial charges on atoms also as
 point charges, but uses a shielded Coulomb potential to describe the
 interaction between a pair of charged particles.  Interaction through
-the shielded Coulomb is given by equation (13) of the :ref:`ReaxFF force field <vanDuin>` paper.  The shielding accounts for charge overlap
+the shielded Coulomb is given by equation (13) of the :ref:`ReaxFF force
+field <vanDuin>` paper.  The shielding accounts for charge overlap
 between charged particles at small separation.  This style is the same
-as :doc:`fix qeq/reax <fix_qeq_reax>`, and can be used with :doc:`pair_style reax/c <pair_reaxc>`.  Only the *chi*\ , *eta*\ , and *gamma*
-parameters from the *qfile* file are used. When using the string
-*reax/c* as filename, these parameters are extracted directly from
-an active *reax/c* pair style.  This style solves partial
-charges on atoms via the matrix inversion method.  A tolerance of
-1.0e-6 is usually a good number.
+as :doc:`fix qeq/reax <fix_qeq_reax>`, and can be used with
+:doc:`pair_style reax/c <pair_reaxc>`.  Only the *chi*\ , *eta*\ , and
+*gamma* parameters from the *qfile* file are used. When using the string
+*reax/c* as filename, these parameters are extracted directly from an
+active *reax/c* pair style.  This style solves partial charges on atoms
+via the matrix inversion method.  A tolerance of 1.0e-6 is usually a
+good number.
 
 The *qeq/slater* style describes partial charges on atoms as spherical
 charge densities centered around atoms via the Slater 1\ *s* orbital, so
-that the interaction between a pair of charged particles is the
-product of two Slater 1\ *s* orbitals.  The expression for the Slater
-1\ *s* orbital is given under equation (6) of the
-:ref:`Streitz-Mintmire <Streitz1>` paper.  Only the *chi*\ , *eta*\ , *zeta*\ , and
-*qcore* parameters from the *qfile* file are used. When using the string
+that the interaction between a pair of charged particles is the product
+of two Slater 1\ *s* orbitals.  The expression for the Slater 1\ *s*
+orbital is given under equation (6) of the :ref:`Streitz-Mintmire
+<Streitz1>` paper.  Only the *chi*\ , *eta*\ , *zeta*\ , and *qcore*
+parameters from the *qfile* file are used. When using the string
 *coul/streitz* as filename, these parameters are extracted directly from
-an active *coul/streitz* pair style.  This style solves
-partial charges on atoms via the matrix inversion method.  A tolerance
-of 1.0e-6 is usually a good number.  Keyword *alpha* can be used to
-change the Slater type orbital exponent.
+an active *coul/streitz* pair style.  This style solves partial charges
+on atoms via the matrix inversion method.  A tolerance of 1.0e-6 is
+usually a good number.  Keyword *alpha* can be used to change the Slater
+type orbital exponent.
 
 The *qeq/dynamic* style describes partial charges on atoms as point
-charges that interact through 1/r, but the extended Lagrangian method
-is used to solve partial charges on atoms.  Only the *chi* and *eta*
+charges that interact through 1/r, but the extended Lagrangian method is
+used to solve partial charges on atoms.  Only the *chi* and *eta*
 parameters from the *qfile* file are used.  Note that Coulomb
-catastrophe can occur if repulsion between the pair of charged
-particles is too weak.  A tolerance of 1.0e-3 is usually a good
-number.  Keyword *qdamp* can be used to change the damping factor, while
-keyword *qstep* can be used to change the time step size.
+catastrophe can occur if repulsion between the pair of charged particles
+is too weak.  A tolerance of 1.0e-3 is usually a good number.  Keyword
+*qdamp* can be used to change the damping factor, while keyword *qstep*
+can be used to change the time step size.
 
-The :ref:`\ *qeq/fire*\ <Shan>` style describes the same charge model and charge
-solver as the *qeq/dynamic* style, but employs a FIRE minimization
-algorithm to solve for equilibrium charges.
-Keyword *qdamp* can be used to change the damping factor, while
-keyword *qstep* can be used to change the time step size.
+The :ref:`\ *qeq/fire*\ <Shan>` style describes the same charge model
+and charge solver as the *qeq/dynamic* style, but employs a FIRE
+minimization algorithm to solve for equilibrium charges.  Keyword
+*qdamp* can be used to change the damping factor, while keyword *qstep*
+can be used to change the time step size.
 
 Note that *qeq/point*\ , *qeq/shielded*\ , and *qeq/slater* describe
 different charge models, whereas the matrix inversion method and the
 extended Lagrangian method (\ *qeq/dynamic* and *qeq/fire*\ ) are
 different solvers.
 
-Note that *qeq/point*\ , *qeq/dynamic* and *qeq/fire* styles all describe
-charges as point charges that interact through 1/r relationship, but
-solve partial charges on atoms using different solvers.  These three
-styles should yield comparable results if
-the QEq parameters and *Nevery*\ , *cutoff*\ , and *tolerance* are the
-same.  Style *qeq/point* is typically faster, *qeq/dynamic* scales
-better on larger sizes, and *qeq/fire* is faster than *qeq/dynamic*\ .
+Note that *qeq/point*\ , *qeq/dynamic* and *qeq/fire* styles all
+describe charges as point charges that interact through 1/r
+relationship, but solve partial charges on atoms using different
+solvers.  These three styles should yield comparable results if the QEq
+parameters and *Nevery*\ , *cutoff*\ , and *tolerance* are the same.
+Style *qeq/point* is typically faster, *qeq/dynamic* scales better on
+larger sizes, and *qeq/fire* is faster than *qeq/dynamic*\ .
 
 .. note::
 
@@ -200,9 +206,11 @@ better on larger sizes, and *qeq/fire* is faster than *qeq/dynamic*\ .
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-No information about these fixes is written to :doc:`binary restart files <restart>`.  No global scalar or vector or per-atom
-quantities are stored by these fixes for access by various :doc:`output commands <Howto_output>`.  No parameter of these fixes can be used
-with the *start/stop* keywords of the :doc:`run <run>` command.
+No information about these fixes is written to :doc:`binary restart
+files <restart>`.  No global scalar or vector or per-atom quantities are
+stored by these fixes for access by various :doc:`output commands
+<Howto_output>`.  No parameter of these fixes can be used with the
+*start/stop* keywords of the :doc:`run <run>` command.
 
 Thexe fixes are invoked during :doc:`energy minimization <minimize>`.
 
@@ -210,7 +218,8 @@ Restrictions
 """"""""""""
 
 These fixes are part of the QEQ package.  They are only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+LAMMPS was built with that package.  See the :doc:`Build package
+<Build_package>` doc page for more info.
 
 Related commands
 """"""""""""""""

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,21 +17,22 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_qeq_shielded.h"
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
 #include "comm.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "update.h"
+#include "error.h"
 #include "force.h"
 #include "group.h"
-#include "pair.h"
 #include "kspace.h"
-#include "respa.h"
 #include "memory.h"
-#include "error.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "pair.h"
+#include "respa.h"
+#include "update.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -68,7 +70,7 @@ void FixQEqShielded::init()
       error->all(FLERR,"Invalid param file for fix qeq/shielded");
   }
 
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 
 }
@@ -223,13 +225,9 @@ void FixQEqShielded::compute_H()
     }
   }
 
-  if (m_fill >= H.m) {
-    char str[128];
-    sprintf(str,"H matrix size has been exceeded: m_fill=%d H.m=%d\n",
-             m_fill, H.m );
-    error->warning(FLERR,str);
-    error->all(FLERR,"Fix qeq/shielded has insufficient QEq matrix size");
-  }
+  if (m_fill >= H.m)
+    error->all(FLERR,"Fix qeq/shielded has insufficient H matrix "
+                                 "size: m_fill={} H.m={}\n",m_fill,H.m);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -247,7 +245,7 @@ double FixQEqShielded::calculate_H( double r, double gamma )
   Taper = Taper * r + Tap[0];
 
   denom = r * r * r + gamma;
-  denom = pow(denom,0.3333333333333);
+  denom = pow(denom,1.0/3.0);
 
   return Taper * EV_TO_KCAL_PER_MOL / denom;
 }

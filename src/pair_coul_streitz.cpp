@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -36,7 +37,6 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-#define MAXLINE 1024
 #define DELTA 4
 #define PGDELTA 1
 #define MAXNEIGH 24
@@ -49,13 +49,8 @@ PairCoulStreitz::PairCoulStreitz(LAMMPS *lmp) : Pair(lmp)
   restartinfo = 0;
   one_coeff = 1;
   nmax = 0;
-  nelements = 0;
 
-  elements = nullptr;
-  nparams = 0;
-  maxparam = 0;
   params = nullptr;
-  elem2param = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -64,12 +59,8 @@ PairCoulStreitz::PairCoulStreitz(LAMMPS *lmp) : Pair(lmp)
 
 PairCoulStreitz::~PairCoulStreitz()
 {
-  if (elements)
-    for (int i = 0; i < nelements; i++) delete [] elements[i];
-
-  delete [] elements;
   memory->sfree(params);
-  memory->destroy(elem2param);
+  memory->destroy(elem1param);
 
   if (allocated) {
     memory->destroy(setflag);
@@ -80,7 +71,6 @@ PairCoulStreitz::~PairCoulStreitz()
     memory->destroy(qeq_g);
     memory->destroy(qeq_z);
     memory->destroy(qeq_c);
-    delete [] map;
   }
 }
 
@@ -130,69 +120,19 @@ void PairCoulStreitz::settings(int narg, char **arg)
 
 void PairCoulStreitz::coeff(int narg, char **arg)
 {
-  int i,j,n;
-
   if (!allocated) allocate();
 
-  if (narg != 3 + atom->ntypes)
-    error->all(FLERR,"Incorrect args for pair coefficients");
-
-  // insure I,J args are * *
-
-  if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
-    error->all(FLERR,"Incorrect args for pair coefficients");
-
-  // read args that map atom types to elements in potential file
-  // map[i] = which element the Ith atom type is, -1 if "NULL"
-  // nelements = # of unique elements
-  // elements = list of element names
-
-  if (elements) {
-    for (i = 0; i < nelements; i++) delete [] elements[i];
-    delete [] elements;
-  }
-  elements = new char*[atom->ntypes];
-  for (i = 0; i < atom->ntypes; i++) elements[i] = nullptr;
-
-  nelements = 0;
-  for (i = 3; i < narg; i++) {
-    if (strcmp(arg[i],"NULL") == 0) {
-      map[i-2] = -1;
-      continue;
-    }
-    for (j = 0; j < nelements; j++)
-      if (strcmp(arg[i],elements[j]) == 0) break;
-    map[i-2] = j;
-    if (j == nelements) {
-      elements[j] = utils::strdup(arg[i]);
-      nelements++;
-    }
-  }
+  map_element2type(narg-3, arg+3);
 
   // read potential file and initialize potential parameters
 
   read_file(arg[2]);
   setup_params();
-  n = atom->ntypes;
 
-  // clear setflag since coeff() called once with I,J = * *
-
+  const int n = atom->ntypes;
   for (int i = 1; i <= n; i++)
-    for (int j = i; j <= n; j++)
-      setflag[i][j] = 0;
-
-  // set setflag i,j for type pairs where both are mapped to elements
-
-  int count = 0;
-  for (int i = 1; i <= n; i++)
-    for (int j = i; j <= n; j++)
-      if (map[i] >= 0 && map[j] >= 0) {
+    for (int j = 1; j <= n; j++)
         scale[i][j] = 1.0;
-        setflag[i][j] = 1;
-        count++;
-      }
-
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -308,10 +248,10 @@ void PairCoulStreitz::setup_params()
 {
   int i,m,n;
 
-  // set elem2param
+  // set elem1param
 
-  memory->destroy(elem2param);
-  memory->create(elem2param,nelements,"pair:elem2param");
+  memory->destroy(elem1param);
+  memory->create(elem1param,nelements,"pair:elem1param");
 
   for (i = 0; i < nelements; i++) {
     n = -1;
@@ -322,7 +262,7 @@ void PairCoulStreitz::setup_params()
       }
     }
     if (n < 0) error->all(FLERR,"Potential file is missing an entry");
-    elem2param[i] = n;
+    elem1param[i] = n;
   }
 
   // Wolf sum self energy
@@ -381,7 +321,7 @@ void PairCoulStreitz::compute(int eflag, int vflag)
     ytmp = x[i][1];
     ztmp = x[i][2];
     itype = map[type[i]];
-    iparam_i = elem2param[itype];
+    iparam_i = elem1param[itype];
     qi = q[i];
     zei = params[iparam_i].zeta;
 
@@ -401,7 +341,7 @@ void PairCoulStreitz::compute(int eflag, int vflag)
       j &= NEIGHMASK;
 
       jtype = map[type[j]];
-      iparam_j = elem2param[jtype];
+      iparam_j = elem1param[jtype];
       qj = q[j];
       zej = params[iparam_j].zeta;
       zj = params[iparam_j].zcore;
@@ -454,7 +394,7 @@ void PairCoulStreitz::compute(int eflag, int vflag)
     ytmp = x[i][1];
     ztmp = x[i][2];
     itype = map[type[i]];
-    iparam_i = elem2param[itype];
+    iparam_i = elem1param[itype];
     qi = q[i];
     zei = params[iparam_i].zeta;
 
@@ -473,7 +413,7 @@ void PairCoulStreitz::compute(int eflag, int vflag)
       j = jlist[jj];
       j &= NEIGHMASK;
       jtype = map[type[j]];
-      iparam_j = elem2param[jtype];
+      iparam_j = elem1param[jtype];
       qj = q[j];
       zej = params[iparam_j].zeta;
       zj = params[iparam_j].zcore;

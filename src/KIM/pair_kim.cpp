@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -434,8 +435,8 @@ void PairKIM::coeff(int narg, char **arg)
     if (supported) {
       kim_particle_codes[i] = code;
     } else {
-      error->all(FLERR,fmt::format("GetSpeciesSupportAndCode: symbol not "
-                                   "found: {}",lmps_unique_elements[i]));
+      error->all(FLERR,"GetSpeciesSupportAndCode: symbol not "
+                                   "found: {}",lmps_unique_elements[i]);
     }
   }
   // Set the new values for PM parameters
@@ -477,12 +478,10 @@ void PairKIM::coeff(int narg, char **arg)
         if (paramname == str_name_str) break;
       }
 
-      if (param_index >= numberOfParameters) {
-        auto msg = fmt::format("Wrong argument for pair coefficients.\n"
-                               "This Model does not have the requested "
-                               "'{}' parameter", paramname);
-        error->all(FLERR,msg);
-      }
+      if (param_index >= numberOfParameters)
+        error->all(FLERR,"Wrong argument for pair coefficients.\n"
+                                     "This Model does not have the requested "
+                                     "'{}' parameter", paramname);
 
       // Get the index_range for the requested parameter
       int nlbound(0);
@@ -492,12 +491,10 @@ void PairKIM::coeff(int narg, char **arg)
         std::string argtostr(arg[i++]);
 
         // Check to see if the indices range contains only integer numbers & :
-        if (argtostr.find_first_not_of("0123456789:") != std::string::npos) {
-          auto msg = fmt::format("Illegal index_range.\nExpected integer "
-                                 "parameter(s) instead of '{}' in "
-                                 "index_range", argtostr);
-          error->all(FLERR,msg);
-        }
+        if (argtostr.find_first_not_of("0123456789:") != std::string::npos)
+          error->all(FLERR,"Illegal index_range.\nExpected integer"
+                                       " parameter(s) instead of '{}' in "
+                                       "index_range", argtostr);
 
         std::string::size_type npos = argtostr.find(':');
         if (npos != std::string::npos) {
@@ -507,21 +504,17 @@ void PairKIM::coeff(int narg, char **arg)
           nubound = atoi(words[1].c_str());
 
           if (nubound < 1 || nubound > extent ||
-              nlbound < 1 || nlbound > nubound) {
-            auto msg = fmt::format("Illegal index_range '{}-{}' for '{}' "
-                                   "parameter with the extent of '{}'",
-                                   nlbound, nubound, paramname, extent);
-            error->all(FLERR,msg);
-          }
+              nlbound < 1 || nlbound > nubound)
+            error->all(FLERR,"Illegal index_range '{}-{}' for '{}' "
+                                         "parameter with the extent of '{}'",
+                                         nlbound, nubound, paramname, extent);
         } else {
           nlbound = atoi(argtostr.c_str());
 
-          if (nlbound < 1 || nlbound > extent) {
-            auto msg = fmt::format("Illegal index '{}' for '{}' parameter "
-                                   "with the extent of '{}'", nlbound,
-                                   paramname, extent);
-            error->all(FLERR,msg);
-          }
+          if (nlbound < 1 || nlbound > extent)
+            error->all(FLERR,"Illegal index '{}' for '{}' parameter "
+                                         "with the extent of '{}'", nlbound,
+                                         paramname, extent);
 
           nubound = nlbound;
         }
@@ -551,11 +544,10 @@ void PairKIM::coeff(int narg, char **arg)
         } else
           error->all(FLERR,"Wrong parameter type to update");
       } else {
-        auto msg = fmt::format("Wrong number of variable values for pair "
-                               "coefficients.\n'{}' values are requested "
-                               "for '{}' parameter", nubound - nlbound + 1,
-                               paramname);
-        error->all(FLERR,msg);
+        error->all(FLERR,"Wrong number of variable values for pair "
+                                     "coefficients.\n'{}' values are requested "
+                                     "for '{}' parameter", nubound - nlbound + 1,
+                                     paramname);
       }
     }
 
@@ -1061,8 +1053,8 @@ void PairKIM::set_lmps_flags()
   } else if ((unit_style_str == "lj") ||
              (unit_style_str == "micro") ||
              (unit_style_str == "nano")) {
-    error->all(FLERR,fmt::format("LAMMPS unit_style {} not supported "
-                                 "by KIM models", unit_style_str));
+    error->all(FLERR,"LAMMPS unit_style {} not supported "
+                                 "by KIM models", unit_style_str);
   } else {
     error->all(FLERR,"Unknown unit_style");
   }

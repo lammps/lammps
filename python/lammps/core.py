@@ -1,6 +1,6 @@
 # ----------------------------------------------------------------------
 #   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-#   http://lammps.sandia.gov, Sandia National Laboratories
+#   https://www.lammps.org/ Sandia National Laboratories
 #   Steve Plimpton, sjplimp@sandia.gov
 #
 #   Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -18,15 +18,12 @@ from __future__ import print_function
 
 import os
 import sys
-import traceback
-import types
-import warnings
-from ctypes import *
+from ctypes import *                    # lgtm [py/polluting-import]
 from os.path import dirname,abspath,join
 from inspect import getsourcefile
 
-from .constants import *
-from .data import *
+from .constants import *                # lgtm [py/polluting-import]
+from .data import *                     # lgtm [py/polluting-import]
 
 # -------------------------------------------------------------------------
 
@@ -47,7 +44,7 @@ class ExceptionCheck:
   def __enter__(self):
     pass
 
-  def __exit__(self, type, value, traceback):
+  def __exit__(self, exc_type, exc_value, traceback):
     if self.lmp.has_exceptions and self.lmp.lib.lammps_has_error(self.lmp.lmp):
       raise self.lmp._lammps_exception
 
@@ -103,7 +100,7 @@ class lammps(object):
 
     try:
       if ptr: self.lib = CDLL("",RTLD_GLOBAL)
-    except:
+    except OSError:
       self.lib = None
 
     # load liblammps.so unless name is given
@@ -281,9 +278,13 @@ class lammps(object):
 
     self.lib.lammps_id_name.argtypes = [c_void_p, c_char_p, c_int, c_char_p, c_int]
 
+    self.lib.lammps_plugin_count.argtypes = [ ]
+    self.lib.lammps_plugin_name.argtypes = [c_int, c_char_p, c_char_p, c_int]
+
     self.lib.lammps_version.argtypes = [c_void_p]
 
     self.lib.lammps_get_os_info.argtypes = [c_char_p, c_int]
+    self.lib.lammps_get_gpu_device_info.argtypes = [c_char_p, c_int]
 
     self.lib.lammps_get_mpi_comm.argtypes = [c_void_p]
 
@@ -309,12 +310,12 @@ class lammps(object):
         from mpi4py import __version__ as mpi4py_version
         # tested to work with mpi4py versions 2 and 3
         self.has_mpi4py = mpi4py_version.split('.')[0] in ['2','3']
-      except:
+      except ImportError:
+        # ignore failing import
         pass
 
     # if no ptr provided, create an instance of LAMMPS
-    #   don't know how to pass an MPI communicator from PyPar
-    #   but we can pass an MPI communicator from mpi4py v2.0.0 and later
+    #   we can pass an MPI communicator from mpi4py v2.0.0 and later
     #   no_mpi call lets LAMMPS use MPI_COMM_WORLD
     #   cargs = array of C strings from args
     # if ptr, then are embedding Python in LAMMPS input script
@@ -418,9 +419,16 @@ class lammps(object):
   # shut-down LAMMPS instance
 
   def __del__(self):
-    if self.lmp and self.opened:
-      self.lib.lammps_close(self.lmp)
-      self.opened = 0
+    self.close()
+
+  # -------------------------------------------------------------------------
+  # context manager implementation
+
+  def __enter__(self):
+    return self
+
+  def __exit__(self, ex_type, ex_value, ex_traceback):
+    self.close()
 
   # -------------------------------------------------------------------------
 
@@ -447,7 +455,8 @@ class lammps(object):
 
     This is a wrapper around the :cpp:func:`lammps_close` function of the C-library interface.
     """
-    if self.opened: self.lib.lammps_close(self.lmp)
+    if self.lmp and self.opened:
+      self.lib.lammps_close(self.lmp)
     self.lmp = None
     self.opened = 0
 
@@ -456,9 +465,7 @@ class lammps(object):
   def finalize(self):
     """Shut down the MPI communication through the library interface by calling :cpp:func:`lammps_finalize`.
     """
-    if self.opened: self.lib.lammps_close(self.lmp)
-    self.lmp = None
-    self.opened = 0
+    self.close()
     self.lib.lammps_finalize()
 
   # -------------------------------------------------------------------------
@@ -486,7 +493,7 @@ class lammps(object):
 
     sb = create_string_buffer(512)
     self.lib.lammps_get_os_info(sb,512)
-    return sb
+    return sb.value.decode()
 
   # -------------------------------------------------------------------------
 
@@ -732,12 +739,11 @@ class lammps(object):
   def extract_global(self, name, dtype=LAMMPS_AUTODETECT):
     """Query LAMMPS about global settings of different types.
 
-    This is a wrapper around the :cpp:func:`lammps_extract_global`
-    function of the C-library interface.  Unlike the C function
-    this method returns the value and not a pointer and thus can
-    only return the first value for keywords representing a list
-    of values.  The :cpp:func:`lammps_extract_global` documentation
-    includes a list of the supported keywords and their data types.
+    This is a wrapper around the :cpp:func:`lammps_extract_global` function
+    of the C-library interface.  Since there are no pointers in Python, this
+    method will - unlike the C function - return the value or a list of
+    values.  The :cpp:func:`lammps_extract_global` documentation includes a
+    list of the supported keywords and their data types.
     Since Python needs to know the data type to be able to interpret
     the result, by default, this function will try to auto-detect the data type
     by asking the library. You can also force a specific data type.  For that
@@ -749,11 +755,22 @@ class lammps(object):
     :type name:  string
     :param dtype: data type of the returned data (see :ref:`py_datatype_constants`)
     :type dtype:  int, optional
-    :return: value of the property or None
-    :rtype: int, float, or NoneType
+    :return: value of the property or list of values or None
+    :rtype: int, float, list, or NoneType
     """
+
     if dtype == LAMMPS_AUTODETECT:
       dtype = self.extract_global_datatype(name)
+
+    # set length of vector for items that are not a scalar
+    vec_dict = { 'boxlo':3, 'boxhi':3, 'sublo':3, 'subhi':3,
+                 'sublo_lambda':3, 'subhi_lambda':3, 'periodicity':3 }
+    if name in vec_dict:
+      veclen = vec_dict[name]
+    elif name == 'respa_dt':
+      veclen = self.extract_global('respa_levels',LAMMPS_INT)
+    else:
+      veclen = 1
 
     if name: name = name.encode()
     else: return None
@@ -769,13 +786,21 @@ class lammps(object):
       target_type = float
     elif dtype == LAMMPS_STRING:
       self.lib.lammps_extract_global.restype = c_char_p
-      target_type = lambda x: str(x, 'ascii')
+      target_type = str
+    else:
+      target_type = None
 
     ptr = self.lib.lammps_extract_global(self.lmp, name)
     if ptr:
-      return target_type(ptr[0])
+      if dtype == LAMMPS_STRING:
+        return ptr.decode('utf-8')
+      if veclen > 1:
+        result = []
+        for i in range(0,veclen):
+          result.append(target_type(ptr[i]))
+        return result
+      else: return target_type(ptr[0])
     return None
-
 
   # -------------------------------------------------------------------------
   # extract per-atom info datatype
@@ -863,71 +888,71 @@ class lammps(object):
 
   # -------------------------------------------------------------------------
 
-  def extract_compute(self,id,style,type):
+  def extract_compute(self,cid,cstyle,ctype):
     """Retrieve data from a LAMMPS compute
 
     This is a wrapper around the :cpp:func:`lammps_extract_compute`
     function of the C-library interface.
     This function returns ``None`` if either the compute id is not
-    recognized, or an invalid combination of :ref:`style <py_style_constants>`
-    and :ref:`type <py_type_constants>` constants is used. The
+    recognized, or an invalid combination of :ref:`cstyle <py_style_constants>`
+    and :ref:`ctype <py_type_constants>` constants is used. The
     names and functionality of the constants are the same as for
     the corresponding C-library function.  For requests to return
     a scalar or a size, the value is returned, otherwise a pointer.
 
-    :param id: compute ID
-    :type id:  string
-    :param style: style of the data retrieve (global, atom, or local), see :ref:`py_style_constants`
-    :type style:  int
-    :param type: type or size of the returned data (scalar, vector, or array), see :ref:`py_type_constants`
-    :type type:  int
+    :param cid: compute ID
+    :type cid:  string
+    :param cstyle: style of the data retrieve (global, atom, or local), see :ref:`py_style_constants`
+    :type cstyle:  int
+    :param ctype: type or size of the returned data (scalar, vector, or array), see :ref:`py_type_constants`
+    :type ctype:  int
     :return: requested data as scalar, pointer to 1d or 2d double array, or None
     :rtype: c_double, ctypes.POINTER(c_double), ctypes.POINTER(ctypes.POINTER(c_double)), or NoneType
     """
-    if id: id = id.encode()
+    if cid: cid = cid.encode()
     else: return None
 
-    if type == LMP_TYPE_SCALAR:
-      if style == LMP_STYLE_GLOBAL:
+    if ctype == LMP_TYPE_SCALAR:
+      if cstyle == LMP_STYLE_GLOBAL:
         self.lib.lammps_extract_compute.restype = POINTER(c_double)
         with ExceptionCheck(self):
-          ptr = self.lib.lammps_extract_compute(self.lmp,id,style,type)
+          ptr = self.lib.lammps_extract_compute(self.lmp,cid,cstyle,ctype)
         return ptr[0]
-      elif style == LMP_STYLE_ATOM:
+      elif cstyle == LMP_STYLE_ATOM:
         return None
-      elif style == LMP_STYLE_LOCAL:
+      elif cstyle == LMP_STYLE_LOCAL:
         self.lib.lammps_extract_compute.restype = POINTER(c_int)
         with ExceptionCheck(self):
-          ptr = self.lib.lammps_extract_compute(self.lmp,id,style,type)
+          ptr = self.lib.lammps_extract_compute(self.lmp,cid,cstyle,ctype)
         return ptr[0]
 
-    elif type == LMP_TYPE_VECTOR:
+    elif ctype == LMP_TYPE_VECTOR:
       self.lib.lammps_extract_compute.restype = POINTER(c_double)
       with ExceptionCheck(self):
-        ptr = self.lib.lammps_extract_compute(self.lmp,id,style,type)
+        ptr = self.lib.lammps_extract_compute(self.lmp,cid,cstyle,ctype)
       return ptr
 
-    elif type == LMP_TYPE_ARRAY:
+    elif ctype == LMP_TYPE_ARRAY:
       self.lib.lammps_extract_compute.restype = POINTER(POINTER(c_double))
       with ExceptionCheck(self):
-        ptr = self.lib.lammps_extract_compute(self.lmp,id,style,type)
+        ptr = self.lib.lammps_extract_compute(self.lmp,cid,cstyle,ctype)
       return ptr
 
-    elif type == LMP_SIZE_COLS:
-      if style == LMP_STYLE_GLOBAL  \
-         or style == LMP_STYLE_ATOM \
-         or style == LMP_STYLE_LOCAL:
+    elif ctype == LMP_SIZE_COLS:
+      if cstyle == LMP_STYLE_GLOBAL  \
+         or cstyle == LMP_STYLE_ATOM \
+         or cstyle == LMP_STYLE_LOCAL:
         self.lib.lammps_extract_compute.restype = POINTER(c_int)
         with ExceptionCheck(self):
-          ptr = self.lib.lammps_extract_compute(self.lmp,id,style,type)
+          ptr = self.lib.lammps_extract_compute(self.lmp,cid,cstyle,ctype)
         return ptr[0]
 
-    elif type == LMP_SIZE_VECTOR or type == LMP_SIZE_ROWS:
-      if style == LMP_STYLE_GLOBAL  \
-         or style == LMP_STYLE_LOCAL:
+    elif ctype == LMP_SIZE_VECTOR or ctype == LMP_SIZE_ROWS:
+      if cstyle == LMP_STYLE_GLOBAL  \
+         or cstyle == LMP_STYLE_LOCAL:
         self.lib.lammps_extract_compute.restype = POINTER(c_int)
         with ExceptionCheck(self):
-          ptr = self.lib.lammps_extract_compute(self.lmp,id,style,type)
+          ptr = self.lib.lammps_extract_compute(self.lmp,cid,cstyle,ctype)
         return ptr[0]
 
     return None
@@ -937,25 +962,25 @@ class lammps(object):
   # in case of global data, free memory for 1 double via lammps_free()
   # double was allocated by library interface function
 
-  def extract_fix(self,id,style,type,nrow=0,ncol=0):
+  def extract_fix(self,fid,fstyle,ftype,nrow=0,ncol=0):
     """Retrieve data from a LAMMPS fix
 
     This is a wrapper around the :cpp:func:`lammps_extract_fix`
     function of the C-library interface.
     This function returns ``None`` if either the fix id is not
-    recognized, or an invalid combination of :ref:`style <py_style_constants>`
-    and :ref:`type <py_type_constants>` constants is used. The
+    recognized, or an invalid combination of :ref:`fstyle <py_style_constants>`
+    and :ref:`ftype <py_type_constants>` constants is used. The
     names and functionality of the constants are the same as for
     the corresponding C-library function.  For requests to return
     a scalar or a size, the value is returned, also when accessing
     global vectors or arrays, otherwise a pointer.
 
-    :param id: fix ID
-    :type id:  string
-    :param style: style of the data retrieve (global, atom, or local), see :ref:`py_style_constants`
-    :type style:  int
-    :param type: type or size of the returned data (scalar, vector, or array), see :ref:`py_type_constants`
-    :type type:  int
+    :param fid: fix ID
+    :type fid:  string
+    :param fstyle: style of the data retrieve (global, atom, or local), see :ref:`py_style_constants`
+    :type fstyle:  int
+    :param ftype: type or size of the returned data (scalar, vector, or array), see :ref:`py_type_constants`
+    :type ftype:  int
     :param nrow: index of global vector element or row index of global array element
     :type nrow:  int
     :param ncol: column index of global array element
@@ -964,53 +989,53 @@ class lammps(object):
     :rtype: c_double, ctypes.POINTER(c_double), ctypes.POINTER(ctypes.POINTER(c_double)), or NoneType
 
     """
-    if id: id = id.encode()
+    if fid: fid = fid.encode()
     else: return None
 
-    if style == LMP_STYLE_GLOBAL:
-      if type in (LMP_TYPE_SCALAR, LMP_TYPE_VECTOR, LMP_TYPE_ARRAY):
+    if fstyle == LMP_STYLE_GLOBAL:
+      if ftype in (LMP_TYPE_SCALAR, LMP_TYPE_VECTOR, LMP_TYPE_ARRAY):
         self.lib.lammps_extract_fix.restype = POINTER(c_double)
         with ExceptionCheck(self):
-          ptr = self.lib.lammps_extract_fix(self.lmp,id,style,type,nrow,ncol)
+          ptr = self.lib.lammps_extract_fix(self.lmp,fid,fstyle,ftype,nrow,ncol)
         result = ptr[0]
         self.lib.lammps_free(ptr)
         return result
-      elif type in (LMP_SIZE_VECTOR, LMP_SIZE_ROWS, LMP_SIZE_COLS):
+      elif ftype in (LMP_SIZE_VECTOR, LMP_SIZE_ROWS, LMP_SIZE_COLS):
         self.lib.lammps_extract_fix.restype = POINTER(c_int)
         with ExceptionCheck(self):
-          ptr = self.lib.lammps_extract_fix(self.lmp,id,style,type,nrow,ncol)
+          ptr = self.lib.lammps_extract_fix(self.lmp,fid,fstyle,ftype,nrow,ncol)
         return ptr[0]
       else:
         return None
 
-    elif style == LMP_STYLE_ATOM:
-      if type == LMP_TYPE_VECTOR:
+    elif fstyle == LMP_STYLE_ATOM:
+      if ftype == LMP_TYPE_VECTOR:
         self.lib.lammps_extract_fix.restype = POINTER(c_double)
-      elif type == LMP_TYPE_ARRAY:
+      elif ftype == LMP_TYPE_ARRAY:
         self.lib.lammps_extract_fix.restype = POINTER(POINTER(c_double))
-      elif type == LMP_SIZE_COLS:
+      elif ftype == LMP_SIZE_COLS:
         self.lib.lammps_extract_fix.restype = POINTER(c_int)
       else:
         return None
       with ExceptionCheck(self):
-        ptr = self.lib.lammps_extract_fix(self.lmp,id,style,type,nrow,ncol)
-      if type == LMP_SIZE_COLS:
+        ptr = self.lib.lammps_extract_fix(self.lmp,fid,fstyle,ftype,nrow,ncol)
+      if ftype == LMP_SIZE_COLS:
         return ptr[0]
       else:
         return ptr
 
-    elif style == LMP_STYLE_LOCAL:
-      if type == LMP_TYPE_VECTOR:
+    elif fstyle == LMP_STYLE_LOCAL:
+      if ftype == LMP_TYPE_VECTOR:
         self.lib.lammps_extract_fix.restype = POINTER(c_double)
-      elif type == LMP_TYPE_ARRAY:
+      elif ftype == LMP_TYPE_ARRAY:
         self.lib.lammps_extract_fix.restype = POINTER(POINTER(c_double))
-      elif type in (LMP_TYPE_SCALAR, LMP_SIZE_VECTOR, LMP_SIZE_ROWS, LMP_SIZE_COLS):
+      elif ftype in (LMP_TYPE_SCALAR, LMP_SIZE_VECTOR, LMP_SIZE_ROWS, LMP_SIZE_COLS):
         self.lib.lammps_extract_fix.restype = POINTER(c_int)
       else:
         return None
       with ExceptionCheck(self):
-        ptr = self.lib.lammps_extract_fix(self.lmp,id,style,type,nrow,ncol)
-      if type in (LMP_TYPE_VECTOR, LMP_TYPE_ARRAY):
+        ptr = self.lib.lammps_extract_fix(self.lmp,fid,fstyle,ftype,nrow,ncol)
+      if ftype in (LMP_TYPE_VECTOR, LMP_TYPE_ARRAY):
         return ptr
       else:
         return ptr[0]
@@ -1099,51 +1124,51 @@ class lammps(object):
   # return vector of atom properties gathered across procs
   # 3 variants to match src/library.cpp
   # name = atom property recognized by LAMMPS in atom->extract()
-  # type = 0 for integer values, 1 for double values
+  # dtype = 0 for integer values, 1 for double values
   # count = number of per-atom valus, 1 for type or charge, 3 for x or f
   # returned data is a 1d vector - doc how it is ordered?
   # NOTE: need to insure are converting to/from correct Python type
   #   e.g. for Python list or NumPy or ctypes
 
-  def gather_atoms(self,name,type,count):
+  def gather_atoms(self,name,dtype,count):
     if name: name = name.encode()
     natoms = self.get_natoms()
     with ExceptionCheck(self):
-      if type == 0:
+      if dtype == 0:
         data = ((count*natoms)*c_int)()
-        self.lib.lammps_gather_atoms(self.lmp,name,type,count,data)
-      elif type == 1:
+        self.lib.lammps_gather_atoms(self.lmp,name,dtype,count,data)
+      elif dtype == 1:
         data = ((count*natoms)*c_double)()
-        self.lib.lammps_gather_atoms(self.lmp,name,type,count,data)
+        self.lib.lammps_gather_atoms(self.lmp,name,dtype,count,data)
       else:
         return None
     return data
 
   # -------------------------------------------------------------------------
 
-  def gather_atoms_concat(self,name,type,count):
+  def gather_atoms_concat(self,name,dtype,count):
     if name: name = name.encode()
     natoms = self.get_natoms()
     with ExceptionCheck(self):
-      if type == 0:
+      if dtype == 0:
         data = ((count*natoms)*c_int)()
-        self.lib.lammps_gather_atoms_concat(self.lmp,name,type,count,data)
-      elif type == 1:
+        self.lib.lammps_gather_atoms_concat(self.lmp,name,dtype,count,data)
+      elif dtype == 1:
         data = ((count*natoms)*c_double)()
-        self.lib.lammps_gather_atoms_concat(self.lmp,name,type,count,data)
+        self.lib.lammps_gather_atoms_concat(self.lmp,name,dtype,count,data)
       else:
           return None
     return data
 
-  def gather_atoms_subset(self,name,type,count,ndata,ids):
+  def gather_atoms_subset(self,name,dtype,count,ndata,ids):
     if name: name = name.encode()
     with ExceptionCheck(self):
-      if type == 0:
+      if dtype == 0:
         data = ((count*ndata)*c_int)()
-        self.lib.lammps_gather_atoms_subset(self.lmp,name,type,count,ndata,ids,data)
-      elif type == 1:
+        self.lib.lammps_gather_atoms_subset(self.lmp,name,dtype,count,ndata,ids,data)
+      elif dtype == 1:
         data = ((count*ndata)*c_double)()
-        self.lib.lammps_gather_atoms_subset(self.lmp,name,type,count,ndata,ids,data)
+        self.lib.lammps_gather_atoms_subset(self.lmp,name,dtype,count,ndata,ids,data)
       else:
         return None
     return data
@@ -1159,17 +1184,17 @@ class lammps(object):
   # NOTE: need to insure are converting to/from correct Python type
   #   e.g. for Python list or NumPy or ctypes
 
-  def scatter_atoms(self,name,type,count,data):
+  def scatter_atoms(self,name,dtype,count,data):
     if name: name = name.encode()
     with ExceptionCheck(self):
-      self.lib.lammps_scatter_atoms(self.lmp,name,type,count,data)
+      self.lib.lammps_scatter_atoms(self.lmp,name,dtype,count,data)
 
   # -------------------------------------------------------------------------
 
-  def scatter_atoms_subset(self,name,type,count,ndata,ids,data):
+  def scatter_atoms_subset(self,name,dtype,count,ndata,ids,data):
     if name: name = name.encode()
     with ExceptionCheck(self):
-      self.lib.lammps_scatter_atoms_subset(self.lmp,name,type,count,ndata,ids,data)
+      self.lib.lammps_scatter_atoms_subset(self.lmp,name,dtype,count,ndata,ids,data)
 
   # return vector of atom/compute/fix properties gathered across procs
   # 3 variants to match src/library.cpp
@@ -1179,43 +1204,43 @@ class lammps(object):
   # returned data is a 1d vector - doc how it is ordered?
   # NOTE: need to insure are converting to/from correct Python type
   #   e.g. for Python list or NumPy or ctypes
-  def gather(self,name,type,count):
+  def gather(self,name,dtype,count):
     if name: name = name.encode()
     natoms = self.get_natoms()
     with ExceptionCheck(self):
-      if type == 0:
+      if dtype == 0:
         data = ((count*natoms)*c_int)()
-        self.lib.lammps_gather(self.lmp,name,type,count,data)
-      elif type == 1:
+        self.lib.lammps_gather(self.lmp,name,dtype,count,data)
+      elif dtype == 1:
         data = ((count*natoms)*c_double)()
-        self.lib.lammps_gather(self.lmp,name,type,count,data)
+        self.lib.lammps_gather(self.lmp,name,dtype,count,data)
       else:
         return None
     return data
 
-  def gather_concat(self,name,type,count):
+  def gather_concat(self,name,dtype,count):
     if name: name = name.encode()
     natoms = self.get_natoms()
     with ExceptionCheck(self):
-      if type == 0:
+      if dtype == 0:
         data = ((count*natoms)*c_int)()
-        self.lib.lammps_gather_concat(self.lmp,name,type,count,data)
-      elif type == 1:
+        self.lib.lammps_gather_concat(self.lmp,name,dtype,count,data)
+      elif dtype == 1:
         data = ((count*natoms)*c_double)()
-        self.lib.lammps_gather_concat(self.lmp,name,type,count,data)
+        self.lib.lammps_gather_concat(self.lmp,name,dtype,count,data)
       else:
         return None
     return data
 
-  def gather_subset(self,name,type,count,ndata,ids):
+  def gather_subset(self,name,dtype,count,ndata,ids):
     if name: name = name.encode()
     with ExceptionCheck(self):
-      if type == 0:
+      if dtype == 0:
         data = ((count*ndata)*c_int)()
-        self.lib.lammps_gather_subset(self.lmp,name,type,count,ndata,ids,data)
-      elif type == 1:
+        self.lib.lammps_gather_subset(self.lmp,name,dtype,count,ndata,ids,data)
+      elif dtype == 1:
         data = ((count*ndata)*c_double)()
-        self.lib.lammps_gather_subset(self.lmp,name,type,count,ndata,ids,data)
+        self.lib.lammps_gather_subset(self.lmp,name,dtype,count,ndata,ids,data)
       else:
         return None
     return data
@@ -1229,15 +1254,15 @@ class lammps(object):
   # NOTE: need to insure are converting to/from correct Python type
   #   e.g. for Python list or NumPy or ctypes
 
-  def scatter(self,name,type,count,data):
+  def scatter(self,name,dtype,count,data):
     if name: name = name.encode()
     with ExceptionCheck(self):
-      self.lib.lammps_scatter(self.lmp,name,type,count,data)
+      self.lib.lammps_scatter(self.lmp,name,dtype,count,data)
 
-  def scatter_subset(self,name,type,count,ndata,ids,data):
+  def scatter_subset(self,name,dtype,count,ndata,ids,data):
     if name: name = name.encode()
     with ExceptionCheck(self):
-      self.lib.lammps_scatter_subset(self.lmp,name,type,count,ndata,ids,data)
+      self.lib.lammps_scatter_subset(self.lmp,name,dtype,count,ndata,ids,data)
 
    # -------------------------------------------------------------------------
 
@@ -1329,7 +1354,7 @@ class lammps(object):
       id_lmp = (self.c_tagint*n)()
       try:
         id_lmp[:] = id[0:n]
-      except:
+      except:                           # lgtm [py/catch-base-exception]
         return 0
     else:
       id_lmp = None
@@ -1337,21 +1362,21 @@ class lammps(object):
     type_lmp = (c_int*n)()
     try:
       type_lmp[:] = type[0:n]
-    except:
+    except:                             # lgtm [py/catch-base-exception]
       return 0
 
     three_n = 3*n
     x_lmp = (c_double*three_n)()
     try:
       x_lmp[:] = x[0:three_n]
-    except:
+    except:                             # lgtm [py/catch-base-exception]
       return 0
 
     if v:
       v_lmp = (c_double*(three_n))()
       try:
         v_lmp[:] = v[0:three_n]
-      except:
+      except:                           # lgtm [py/catch-base-exception]
         return 0
     else:
       v_lmp = None
@@ -1360,7 +1385,7 @@ class lammps(object):
       img_lmp = (self.c_imageint*n)()
       try:
         img_lmp[:] = image[0:n]
-      except:
+      except:                           # lgtm [py/catch-base-exception]
         return 0
     else:
       img_lmp = None
@@ -1531,6 +1556,37 @@ class lammps(object):
   # -------------------------------------------------------------------------
 
   @property
+  def has_gpu_device(self):
+    """ Availability of GPU package compatible device
+
+    This is a wrapper around the :cpp:func:`lammps_has_gpu_device`
+    function of the C library interface.
+
+    :return: True if a GPU package compatible device is present, otherwise False
+    :rtype: bool
+    """
+    return self.lib.lammps_has_gpu_device() != 0
+
+  # -------------------------------------------------------------------------
+
+  def get_gpu_device_info(self):
+    """Return a string with detailed information about any devices that are
+    usable by the GPU package.
+
+    This is a wrapper around the :cpp:func:`lammps_get_gpu_device_info` 
+    function of the C-library interface. 
+
+    :return: GPU device info string
+    :rtype:  string
+    """
+
+    sb = create_string_buffer(8192)
+    self.lib.lammps_get_gpu_device_info(sb,8192)
+    return sb.value.decode()
+
+  # -------------------------------------------------------------------------
+
+  @property
   def installed_packages(self):
     """ List of the names of enabled packages in the LAMMPS shared library
 
@@ -1643,6 +1699,29 @@ class lammps(object):
 
   # -------------------------------------------------------------------------
 
+  def available_plugins(self, category):
+    """Returns a list of plugins available for a given category
+
+    This is a wrapper around the functions :cpp:func:`lammps_plugin_count()`
+    and :cpp:func:`lammps_plugin_name()` of the library interface.
+
+    .. versionadded:: 10Mar2021
+
+    :return: list of style/name pairs of loaded plugins
+    :rtype:  list
+    """
+
+    available_plugins = []
+    num = self.lib.lammps_plugin_count(self.lmp)
+    sty = create_string_buffer(100)
+    nam = create_string_buffer(100)
+    for idx in range(num):
+      self.lib.lammps_plugin_name(idx, sty, nam, 100)
+      available_plugins.append([sty.value.decode(), nam.value.decode()])
+    return available_plugins
+
+  # -------------------------------------------------------------------------
+
   def set_fix_external_callback(self, fix_name, callback, caller=None):
     import numpy as np
 
@@ -1709,17 +1788,23 @@ class lammps(object):
 
   # -------------------------------------------------------------------------
 
-  def find_pair_neighlist(self, style, exact=True, nsub=0, request=0):
+  def find_pair_neighlist(self, style, exact=True, nsub=0, reqid=0):
     """Find neighbor list index of pair style neighbor list
 
-    Try finding pair instance that matches style. If exact is set, the pair must
-    match style exactly. If exact is 0, style must only be contained. If pair is
-    of style pair/hybrid, style is instead matched the nsub-th hybrid sub-style.
+    Search for a neighbor list requested by a pair style instance that
+    matches "style".  If exact is True, the pair style name must match
+    exactly. If exact is False, the pair style name is matched against
+    "style" as regular expression or sub-string. If the pair style is a
+    hybrid pair style, the style is instead matched against the hybrid
+    sub-styles. If the same pair style is used as sub-style multiple
+    types, you must set nsub to a value n > 0 which indicates the nth
+    instance of that sub-style to be used (same as for the pair_coeff
+    command). The default value of 0 will fail to match in that case.
 
-    Once the pair instance has been identified, multiple neighbor list requests
-    may be found. Every neighbor list is uniquely identified by its request
-    index. Thus, providing this request index ensures that the correct neighbor
-    list index is returned.
+    Once the pair style instance has been identified, it may have
+    requested multiple neighbor lists. Those are uniquely identified by
+    a request ID > 0 as set by the pair style. Otherwise the request
+    ID is 0.
 
     :param style: name of pair style that should be searched for
     :type  style: string
@@ -1727,44 +1812,58 @@ class lammps(object):
     :type  exact: bool, optional
     :param nsub:  match nsub-th hybrid sub-style, defaults to 0
     :type  nsub:  int, optional
-    :param request:   index of neighbor list request, in case there are more than one, defaults to 0
-    :type  request:   int, optional
+    :param reqid: list request id, > 0 in case there are more than one, defaults to 0
+    :type  reqid:   int, optional
     :return: neighbor list index if found, otherwise -1
     :rtype:  int
-     """
+
+    """
     style = style.encode()
     exact = int(exact)
-    idx = self.lib.lammps_find_pair_neighlist(self.lmp, style, exact, nsub, request)
+    idx = self.lib.lammps_find_pair_neighlist(self.lmp, style, exact, nsub, reqid)
     return idx
 
   # -------------------------------------------------------------------------
 
-  def find_fix_neighlist(self, fixid, request=0):
+  def find_fix_neighlist(self, fixid, reqid=0):
     """Find neighbor list index of fix neighbor list
+
+    The fix instance requesting the neighbor list is uniquely identified
+    by the fix ID.  In case the fix has requested multiple neighbor
+    lists, those are uniquely identified by a request ID > 0 as set by
+    the fix.  Otherwise the request ID is 0 (the default).
 
     :param fixid: name of fix
     :type  fixid: string
-    :param request:   index of neighbor list request, in case there are more than one, defaults to 0
-    :type  request:   int, optional
+    :param reqid:   id of neighbor list request, in case there are more than one request, defaults to 0
+    :type  reqid:   int, optional
     :return: neighbor list index if found, otherwise -1
     :rtype:  int
-     """
+
+    """
     fixid = fixid.encode()
-    idx = self.lib.lammps_find_fix_neighlist(self.lmp, fixid, request)
+    idx = self.lib.lammps_find_fix_neighlist(self.lmp, fixid, reqid)
     return idx
 
   # -------------------------------------------------------------------------
 
-  def find_compute_neighlist(self, computeid, request=0):
+  def find_compute_neighlist(self, computeid, reqid=0):
     """Find neighbor list index of compute neighbor list
+
+    The compute instance requesting the neighbor list is uniquely
+    identified by the compute ID.  In case the compute has requested
+    multiple neighbor lists, those are uniquely identified by a request
+    ID > 0 as set by the compute.  Otherwise the request ID is 0 (the
+    default).
 
     :param computeid: name of compute
     :type  computeid: string
-    :param request:   index of neighbor list request, in case there are more than one, defaults to 0
-    :type  request:   int, optional
+    :param reqid:   index of neighbor list request, in case there are more than one request, defaults to 0
+    :type  reqid:   int, optional
     :return: neighbor list index if found, otherwise -1
     :rtype:  int
-     """
+
+    """
     computeid = computeid.encode()
-    idx = self.lib.lammps_find_compute_neighlist(self.lmp, computeid, request)
+    idx = self.lib.lammps_find_compute_neighlist(self.lmp, computeid, reqid)
     return idx

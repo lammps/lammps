@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -46,7 +47,7 @@ enum{SINGLE_PROC_DIRECT,SINGLE_PROC_MAP,MULTI_PROC};
 
 /* ---------------------------------------------------------------------- */
 
-PRD::PRD(LAMMPS *lmp) : Pointers(lmp) {}
+PRD::PRD(LAMMPS *lmp) : Command(lmp) {}
 
 /* ----------------------------------------------------------------------
    perform PRD simulation on one or more replicas
@@ -77,8 +78,7 @@ void PRD::command(int narg, char **arg)
   t_dephase = utils::inumeric(FLERR,arg[3],false,lmp);
   t_corr = utils::inumeric(FLERR,arg[4],false,lmp);
 
-  char *id_compute = new char[strlen(arg[5])+1];
-  strcpy(id_compute,arg[5]);
+  char *id_compute = utils::strdup(arg[5]);
   int seed = utils::inumeric(FLERR,arg[6],false,lmp);
 
   options(narg-7,&arg[7]);
@@ -875,15 +875,8 @@ void PRD::options(int narg, char **arg)
   temp_flag = 0;
   stepmode = 0;
 
-  char *str = (char *) "geom";
-  int n = strlen(str) + 1;
-  loop_setting = new char[n];
-  strcpy(loop_setting,str);
-
-  str = (char *) "gaussian";
-  n = strlen(str) + 1;
-  dist_setting = new char[n];
-  strcpy(dist_setting,str);
+  loop_setting = utils::strdup("geom");
+  dist_setting = utils::strdup("gaussian");
 
   int iarg = 0;
   while (iarg < narg) {
@@ -912,16 +905,12 @@ void PRD::options(int narg, char **arg)
       else if (strcmp(arg[iarg+1],"local") == 0) loop_setting = nullptr;
       else if (strcmp(arg[iarg+1],"geom") == 0) loop_setting = nullptr;
       else error->all(FLERR,"Illegal prd command");
-      int n = strlen(arg[iarg+1]) + 1;
-      loop_setting = new char[n];
-      strcpy(loop_setting,arg[iarg+1]);
+      loop_setting = utils::strdup(arg[iarg+1]);
 
       if (strcmp(arg[iarg+2],"uniform") == 0) dist_setting = nullptr;
       else if (strcmp(arg[iarg+2],"gaussian") == 0) dist_setting = nullptr;
       else error->all(FLERR,"Illegal prd command");
-      n = strlen(arg[iarg+2]) + 1;
-      dist_setting = new char[n];
-      strcpy(dist_setting,arg[iarg+2]);
+      dist_setting = utils::strdup(arg[iarg+2]);
 
       iarg += 3;
 

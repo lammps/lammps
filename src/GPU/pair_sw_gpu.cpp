@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,22 +17,17 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_sw_gpu.h"
-#include <cmath>
-#include <cstdio>
 
-#include <cstring>
 #include "atom.h"
-#include "neighbor.h"
-#include "neigh_request.h"
-#include "force.h"
 #include "comm.h"
-#include "memory.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "memory.h"
-#include "error.h"
 #include "domain.h"
+#include "error.h"
+#include "force.h"
 #include "gpu_extra.h"
+#include "memory.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
 #include "suffix.h"
 
 using namespace LAMMPS_NS;
@@ -186,7 +182,7 @@ void PairSWGPU::init_style()
       if (i < 0 || j < 0)
         continue;
       else {
-        int ijparam = elem2param[i][j][j];
+        int ijparam = elem3param[i][j][j];
         ncutsq[ii][jj] = params[ijparam].cutsq;
         ncut[ii][jj] = params[ijparam].cut;
         sigma[ii][jj] = params[ijparam].sigma;
@@ -206,7 +202,7 @@ void PairSWGPU::init_style()
         if (k < 0)
           continue;
         else {
-          int ijkparam = elem2param[i][j][k];
+          int ijkparam = elem3param[i][j][k];
           costheta[ii][jj][kk] = params[ijkparam].costheta;
           lambda_epsilon[ii][jj][kk] = params[ijkparam].lambda_epsilon;
         }
@@ -218,7 +214,7 @@ void PairSWGPU::init_style()
   int success = sw_gpu_init(tp1, atom->nlocal, atom->nlocal+atom->nghost, mnf,
                             cell_size, gpu_mode, screen, ncutsq, ncut, sigma,
                             powerp, powerq, sigma_gamma,  c1, c2, c3, c4, c5,
-                            c6, lambda_epsilon, costheta, map, elem2param);
+                            c6, lambda_epsilon, costheta, map, elem3param);
 
   memory->destroy(ncutsq);
   memory->destroy(ncut);

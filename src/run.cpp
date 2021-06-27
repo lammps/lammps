@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -27,11 +28,9 @@
 
 using namespace LAMMPS_NS;
 
-#define MAXLINE 2048
-
 /* ---------------------------------------------------------------------- */
 
-Run::Run(LAMMPS *lmp) : Pointers(lmp) {}
+Run::Run(LAMMPS *lmp) : Command(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
@@ -134,7 +133,7 @@ void Run::command(int narg, char **arg)
       error->all(FLERR,"Run command stop value is before end of run");
   }
 
-  if (!preflag && strstr(update->integrate_style,"respa"))
+  if (!preflag && utils::strmatch(update->integrate_style,"^respa"))
     error->all(FLERR,"Run flag 'pre no' not compatible with r-RESPA");
 
   // if nevery, make copies of arg strings that are commands

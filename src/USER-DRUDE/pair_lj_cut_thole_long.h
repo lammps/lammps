@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(lj/cut/thole/long,PairLJCutTholeLong)
-
+// clang-format off
+PairStyle(lj/cut/thole/long,PairLJCutTholeLong);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_LJ_CUT_THOLE_LONG_H
@@ -44,23 +44,23 @@ class PairLJCutTholeLong : public Pair {
 
  protected:
   double cut_lj_global;
-  double **cut_lj,**cut_ljsq;
-  double cut_coul,cut_coulsq;
-  double **epsilon,**sigma;
-  double **lj1,**lj2,**lj3,**lj4,**offset;
+  double **cut_lj, **cut_ljsq;
+  double cut_coul, cut_coulsq;
+  double **epsilon, **sigma;
+  double **lj1, **lj2, **lj3, **lj4, **offset;
   double *cut_respa;
-  double qdist;             // TIP4P distance from O site to negative charge
+  double qdist;    // TIP4P distance from O site to negative charge
   double g_ewald;
   double thole_global;
   double cut_global;
-  double **cut,**scale;
-  double **polar,**thole,**ascreen;
+  double **cut, **scale;
+  double **polar, **thole, **ascreen;
   class FixDrude *fix_drude;
 
   virtual void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

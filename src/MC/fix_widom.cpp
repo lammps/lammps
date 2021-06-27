@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -224,9 +225,7 @@ void FixWidom::options(int narg, char **arg)
       iregion = domain->find_region(arg[iarg+1]);
       if (iregion == -1)
         error->all(FLERR,"Region ID for fix widom does not exist");
-      int n = strlen(arg[iarg+1]) + 1;
-      idregion = new char[n];
-      strcpy(idregion,arg[iarg+1]);
+      idregion = utils::strdup(arg[iarg+1]);
       regionflag = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"charge") == 0) {
@@ -344,14 +343,7 @@ void FixWidom::init()
     // neighbor list exclusion setup
     // turn off interactions between group all and the exclusion group
 
-    int narg = 4;
-    char **arg = new char*[narg];;
-    arg[0] = (char *) "exclude";
-    arg[1] = (char *) "group";
-    arg[2] = (char *) group_id.c_str();
-    arg[3] = (char *) "all";
-    neighbor->modify_params(narg,arg);
-    delete [] arg;
+    neighbor->modify_params(fmt::format("exclude group {} all",group_id));
   }
 
   // create a new group for temporary use with selected molecules

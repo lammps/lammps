@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -297,7 +298,7 @@ void FixGPU::setup(int vflag)
       error->all(FLERR,
                  "Cannot use neigh_modify exclude with GPU neighbor builds");
 
-  if (strstr(update->integrate_style,"verlet")) post_force(vflag);
+  if (utils::strmatch(update->integrate_style,"^verlet")) post_force(vflag);
   else {
     // In setup only, all forces calculated on GPU are put in the outer level
     ((Respa *) update->integrate)->copy_flevel_f(_nlevels_respa-1);

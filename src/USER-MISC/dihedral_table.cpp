@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -464,7 +465,6 @@ DihedralTable::~DihedralTable()
 
   if (allocated) {
     memory->destroy(setflag);
-    //memory->destroy(phi0); <- equilibrium angles not supported
     memory->destroy(tabindex);
   }
 }
@@ -718,36 +718,7 @@ void DihedralTable::compute(int eflag, int vflag)
   }
 } // void DihedralTable::compute()
 
-
-
-
-
-
-
-// single() calculates the dihedral-angle energy of atoms i1, i2, i3, i4.
-double DihedralTable::single(int type, int i1, int i2, int i3, int i4)
-{
-  double vb12[g_dim];
-  double vb23[g_dim];
-  double vb34[g_dim];
-  double n123[g_dim];
-  double n234[g_dim];
-
-  double **x = atom->x;
-
-  double phi = Phi(x[i1], x[i2], x[i3], x[i4], domain,
-                   vb12, vb23, vb34, n123, n234);
-
-  double u=0.0;
-  u_lookup(type, phi, u); //Calculate the energy, and store it in "u"
-
-  return u;
-}
-
-
 /* ---------------------------------------------------------------------- */
-
-
 
 void DihedralTable::allocate()
 {
@@ -755,11 +726,9 @@ void DihedralTable::allocate()
   int n = atom->ndihedraltypes;
 
   memory->create(tabindex,n+1,"dihedral:tabindex");
-  //memory->create(phi0,n+1,"dihedral:phi0"); <-equilibrium angles not supported
   memory->create(setflag,n+1,"dihedral:setflag");
   for (int i = 1; i <= n; i++) setflag[i] = 0;
 }
-
 
 /* ----------------------------------------------------------------------
    global settings
@@ -791,16 +760,13 @@ void DihedralTable::settings(int narg, char **arg)
   tables = nullptr;
 }
 
-
-
 /* ----------------------------------------------------------------------
    set coeffs for one type
 ------------------------------------------------------------------------- */
 
-
 void DihedralTable::coeff(int narg, char **arg)
 {
-  if (narg != 3) error->all(FLERR,"Illegal dihedral_coeff command");
+  if (narg != 3) error->all(FLERR,"Incorrect args for dihedral coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi;
@@ -815,25 +781,22 @@ void DihedralTable::coeff(int narg, char **arg)
   if (me == 0) read_table(tb,arg[1],arg[2]);
   bcast_table(tb);
 
-
   // --- check the angle data for range errors ---
   // ---  and resolve issues with periodicity  ---
 
-  if (tb->ninput < 2) {
-    error->one(FLERR,fmt::format("Invalid dihedral table length ({}).",
-                                 arg[2]));
-  } else if ((tb->ninput == 2) && (tabstyle == SPLINE)) {
-    error->one(FLERR,fmt::format("Invalid dihedral spline table length. "
-                                 "(Try linear)\n ({}).",arg[2]));
-  }
+  if (tb->ninput < 2)
+    error->all(FLERR,"Invalid dihedral table length: {}",arg[2]);
+  else if ((tb->ninput == 2) && (tabstyle == SPLINE))
+    error->all(FLERR,"Invalid dihedral spline table length: {} "
+                                 "(Try linear)",arg[2]);
 
   // check for monotonicity
   for (int i=0; i < tb->ninput-1; i++) {
     if (tb->phifile[i] >= tb->phifile[i+1]) {
       auto err_msg = fmt::format("Dihedral table values are not increasing "
-                                 "({}, {}th entry)",arg[2],i+1);
+                                 "({}, entry {})",arg[2],i+1);
       if (i==0)
-        err_msg += std::string("\n(This is probably a mistake with your table format.)\n");
+        err_msg += "\n(This is probably a mistake with your table format.)\n";
       error->all(FLERR,err_msg);
     }
   }
@@ -843,12 +806,12 @@ void DihedralTable::coeff(int narg, char **arg)
   double phihi = tb->phifile[tb->ninput-1];
   if (tb->use_degrees) {
     if ((phihi - philo) >= 360)
-      error->all(FLERR,fmt::format("Dihedral table angle range must be < 360 "
-                                   "degrees ({}).",arg[2]));
+      error->all(FLERR,"Dihedral table angle range must be < 360 "
+                                   "degrees ({}).",arg[2]);
   } else {
     if ((phihi - philo) >= MY_2PI)
-      error->all(FLERR,fmt::format("Dihedral table angle range must be < 2*PI "
-                                   "radians ({}).",arg[2]));
+      error->all(FLERR,"Dihedral table angle range must be < 2*PI "
+                                   "radians ({}).",arg[2]);
   }
 
   // convert phi from degrees to radians
@@ -971,15 +934,12 @@ void DihedralTable::coeff(int narg, char **arg)
   }
   ntables++;
 
-  if (count == 0)
-    error->all(FLERR,"Illegal dihedral_coeff command");
-
-} //DihedralTable::coeff()
-
+  if (count == 0) error->all(FLERR,"Incorrect args for dihedral coefficients");
+}
 
 /* ----------------------------------------------------------------------
-   proc 0 writes to restart file
- ------------------------------------------------------------------------- */
+   proc 0 writes out coeffs to restart file
+------------------------------------------------------------------------- */
 
 void DihedralTable::write_restart(FILE *fp)
 {
@@ -1064,7 +1024,6 @@ void DihedralTable::read_table(Table *tb, char *file, char *keyword)
   if (!line) {
     error->one(FLERR,"Did not find keyword in table file");
   }
-
 
   // read args on 2nd line of section
   // allocate table arrays for file values
@@ -1183,10 +1142,8 @@ void DihedralTable::spline_table(Table *tb)
       }
     } // for (int i=0; i<tb->ninput; i++)
 
-    if ((num_disagreements > tb->ninput/2) && (num_disagreements > 2)) {
-      std::string msg("Dihedral table has inconsistent forces and energies. (Try \"NOF\".)\n");
-      error->all(FLERR, msg);
-    }
+    if ((num_disagreements > tb->ninput/2) && (num_disagreements > 2))
+      error->all(FLERR,"Dihedral table has inconsistent forces and energies. (Try \"NOF\".)\n");
 
   } // check for consistency if (! tb->f_unspecified)
 
@@ -1281,7 +1238,6 @@ void DihedralTable::compute_table(Table *tb)
 
 void DihedralTable::param_extract(Table *tb, char *line)
 {
-  //tb->theta0 = 180.0; <- equilibrium angles not supported
   tb->ninput = 0;
   tb->f_unspecified = false; //default
   tb->use_degrees   = true;  //default
@@ -1313,8 +1269,8 @@ void DihedralTable::param_extract(Table *tb, char *line)
       //else if (word == "EQ") {
       //  tb->theta0 = values.next_double();
       //}
-      else error->one(FLERR,fmt::format("Invalid keyword in dihedral angle "
-                                        "table parameters ({})", word));
+      else error->one(FLERR,"Invalid keyword in dihedral angle "
+                                        "table parameters ({})", word);
     }
   } catch (TokenizerException &e) {
     error->one(FLERR, e.what());

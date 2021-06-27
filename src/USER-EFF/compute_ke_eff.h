@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(ke/eff,ComputeKEEff)
-
+// clang-format off
+ComputeStyle(ke/eff,ComputeKEEff);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_KE_EFF_H
@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class ComputeKEEff : public Compute {
  public:
   ComputeKEEff(class LAMMPS *, int, char **);
-  ~ComputeKEEff() {};
+  ~ComputeKEEff(){};
   void init();
   double compute_scalar();
 
@@ -35,7 +35,7 @@ class ComputeKEEff : public Compute {
   double pfactor;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -262,7 +262,7 @@ none
 
 .. _Bartok20102:
 
-**(Bartok2010)** Bartok, Payne, Risi, Csanyi, Phys Rev Lett, 104, 136403 (2010).
+**(Bartok2010)** Bartok, Payne, Kondor, Csanyi, Phys Rev Lett, 104, 136403 (2010).
 
 .. _Wood20182:
 

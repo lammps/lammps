@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -18,9 +19,9 @@
 #include "mliap_model_nn.h"
 #include "pair_mliap.h"
 #include "mliap_data.h"
-#include "error.h"
 
 #include "comm.h"
+#include "error.h"
 #include "memory.h"
 #include "tokenizer.h"
 
@@ -35,18 +36,17 @@ using namespace LAMMPS_NS;
 MLIAPModelNN::MLIAPModelNN(LAMMPS* lmp, char* coefffilename) :
   MLIAPModel(lmp, coefffilename)
 {
-  coeffelem = nullptr;
   nnodes = nullptr;
   activation = nullptr;
   scale = nullptr;
   if (coefffilename) read_coeffs(coefffilename);
+  nonlinearflag = 1;
 }
 
 /* ---------------------------------------------------------------------- */
 
 MLIAPModelNN::~MLIAPModelNN()
 {
-    memory->destroy(coeffelem);
     memory->destroy(nnodes);
     memory->destroy(activation);
     memory->destroy(scale);
@@ -73,8 +73,8 @@ void MLIAPModelNN::read_coeffs(char *coefffilename)
   if (comm->me == 0) {
     fpcoeff = utils::open_potential(coefffilename,lmp,nullptr);
     if (fpcoeff == nullptr)
-      error->one(FLERR,fmt::format("Cannot open MLIAPModel coeff file {}: {}",
-                                   coefffilename,utils::getsyserror()));
+      error->one(FLERR,"Cannot open MLIAPModel coeff file {}: {}",
+                                   coefffilename,utils::getsyserror());
   }
 
   char line[MAXLINE], *ptr, *tstr;
@@ -111,12 +111,13 @@ void MLIAPModelNN::read_coeffs(char *coefffilename)
     nelements = coeffs.next_int();
     nparams = coeffs.next_int();
   } catch (TokenizerException &e) {
-    error->all(FLERR,fmt::format("Incorrect format in MLIAPModel coefficient "
-                                 "file: {}",e.what()));
+    error->all(FLERR,"Incorrect format in MLIAPModel coefficient "
+                                 "file: {}",e.what());
   }
 
   // set up coeff lists
 
+  memory->destroy(coeffelem);
   memory->create(coeffelem,nelements,nparams,"mliap_snap_model:coeffelem");
 
   int stats = 0;
@@ -351,9 +352,9 @@ void MLIAPModelNN::compute_gradients(MLIAPData* data)
       // Deleting the variables
 
       for (int n=0; n<nl; n++) {
-        delete nodes[n];
-        delete dnodes[n];
-        delete bnodes[n];
+        delete[] nodes[n];
+        delete[] dnodes[n];
+        delete[] bnodes[n];
       }
 
       delete[] nodes;

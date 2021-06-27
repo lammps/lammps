@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -24,7 +25,6 @@
 #include "update.h"
 
 #include <cmath>
-#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -95,7 +95,7 @@ int FixRhok::setmask()
 void FixRhok::init()
 {
   // RESPA boilerplate
-  if (strcmp( update->integrate_style, "respa" ) == 0)
+  if (utils::strmatch(update->integrate_style,"^respa"))
     mNLevelsRESPA = ((Respa *) update->integrate)->nlevels;
 
   // Count the number of affected particles
@@ -117,7 +117,7 @@ void FixRhok::init()
 // Initial application of the fix to a system (when doing MD)
 void FixRhok::setup( int inVFlag )
 {
-  if (strcmp( update->integrate_style, "verlet" ) == 0)
+  if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force( inVFlag );
   else
     {

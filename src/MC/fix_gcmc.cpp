@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,32 +18,33 @@
 
 #include "fix_gcmc.h"
 
-#include <cmath>
-#include <cstring>
+#include "angle.h"
 #include "atom.h"
 #include "atom_vec.h"
-#include "molecule.h"
-#include "update.h"
-#include "modify.h"
-#include "fix.h"
+#include "bond.h"
 #include "comm.h"
 #include "compute.h"
-#include "group.h"
-#include "domain.h"
-#include "region.h"
-#include "random_park.h"
-#include "force.h"
-#include "pair.h"
-#include "bond.h"
-#include "angle.h"
 #include "dihedral.h"
+#include "domain.h"
+#include "error.h"
+#include "fix.h"
+#include "force.h"
+#include "group.h"
 #include "improper.h"
 #include "kspace.h"
-#include "math_extra.h"
 #include "math_const.h"
+#include "math_extra.h"
 #include "memory.h"
-#include "error.h"
+#include "modify.h"
+#include "molecule.h"
 #include "neighbor.h"
+#include "pair.h"
+#include "random_park.h"
+#include "region.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -301,9 +303,7 @@ void FixGCMC::options(int narg, char **arg)
       iregion = domain->find_region(arg[iarg+1]);
       if (iregion == -1)
         error->all(FLERR,"Region ID for fix gcmc does not exist");
-      int n = strlen(arg[iarg+1]) + 1;
-      idregion = new char[n];
-      strcpy(idregion,arg[iarg+1]);
+      idregion = utils::strdup(arg[iarg+1]);
       regionflag = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"maxangle") == 0) {
@@ -327,18 +327,14 @@ void FixGCMC::options(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"rigid") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
-      int n = strlen(arg[iarg+1]) + 1;
       delete [] idrigid;
-      idrigid = new char[n];
-      strcpy(idrigid,arg[iarg+1]);
+      idrigid = utils::strdup(arg[iarg+1]);
       rigidflag = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"shake") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
-      int n = strlen(arg[iarg+1]) + 1;
       delete [] idshake;
-      idshake = new char[n];
-      strcpy(idshake,arg[iarg+1]);
+      idshake = utils::strdup(arg[iarg+1]);
       shakeflag = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"full_energy") == 0) {
@@ -353,9 +349,7 @@ void FixGCMC::options(int narg, char **arg)
                            ngroupsmax*sizeof(char *),
                            "fix_gcmc:groupstrings");
       }
-      int n = strlen(arg[iarg+1]) + 1;
-      groupstrings[ngroups] = new char[n];
-      strcpy(groupstrings[ngroups],arg[iarg+1]);
+      groupstrings[ngroups] = utils::strdup(arg[iarg+1]);
       ngroups++;
       iarg += 2;
     } else if (strcmp(arg[iarg],"grouptype") == 0) {
@@ -370,9 +364,7 @@ void FixGCMC::options(int narg, char **arg)
                            "fix_gcmc:grouptypestrings");
       }
       grouptypes[ngrouptypes] = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
-      int n = strlen(arg[iarg+2]) + 1;
-      grouptypestrings[ngrouptypes] = new char[n];
-      strcpy(grouptypestrings[ngrouptypes],arg[iarg+2]);
+      grouptypestrings[ngrouptypes] = utils::strdup(arg[iarg+2]);
       ngrouptypes++;
       iarg += 3;
     } else if (strcmp(arg[iarg],"intra_energy") == 0) {
@@ -589,14 +581,7 @@ void FixGCMC::init()
     // neighbor list exclusion setup
     // turn off interactions between group all and the exclusion group
 
-    int narg = 4;
-    char **arg = new char*[narg];;
-    arg[0] = (char *) "exclude";
-    arg[1] = (char *) "group";
-    arg[2] = (char *) group_id.c_str();
-    arg[3] = (char *) "all";
-    neighbor->modify_params(narg,arg);
-    delete [] arg;
+    neighbor->modify_params(fmt::format("exclude group {} all",group_id));
   }
 
   // create a new group for temporary use with selected molecules

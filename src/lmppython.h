@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -19,7 +19,7 @@
 namespace LAMMPS_NS {
 
 class PythonInterface {
-public:
+ public:
   virtual ~PythonInterface();
   virtual void command(int, char **) = 0;
   virtual void invoke_function(int, char *) = 0;
@@ -32,7 +32,7 @@ public:
 };
 
 class Python : protected Pointers {
-public:
+ public:
   Python(class LAMMPS *);
   ~Python();
 
@@ -40,7 +40,7 @@ public:
   void invoke_function(int, char *);
   int find(const char *);
   int variable_match(const char *, const char *, int);
-  char * long_string(int ifunc);
+  char *long_string(int ifunc);
   int execute_string(char *);
   int execute_file(char *);
   bool has_minimum_version(int major, int minor);
@@ -48,11 +48,11 @@ public:
   bool is_enabled() const;
   void init();
 
-private:
-  PythonInterface * impl;
+ private:
+  PythonInterface *impl;
 };
 
-}
+}    // namespace LAMMPS_NS
 #endif
 
 /* ERROR/WARNING messages:

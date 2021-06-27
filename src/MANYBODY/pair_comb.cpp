@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -62,12 +63,7 @@ PairComb::PairComb(LAMMPS *lmp) : Pair(lmp)
   map = nullptr;
   esm = nullptr;
 
-  nelements = 0;
-  elements = nullptr;
-  nparams = 0;
-  maxparam = 0;
   params = nullptr;
-  elem2param = nullptr;
 
   intype = nullptr;
   fafb = nullptr;
@@ -97,12 +93,8 @@ PairComb::~PairComb()
 {
   memory->destroy(NCo);
 
-  if (elements)
-    for (int i = 0; i < nelements; i++) delete [] elements[i];
-
-  delete [] elements;
   memory->sfree(params);
-  memory->destroy(elem2param);
+  memory->destroy(elem3param);
 
   memory->destroy(intype);
   memory->destroy(fafb);
@@ -120,7 +112,6 @@ PairComb::~PairComb()
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
-    delete [] map;
     delete [] esm;
   }
 }
@@ -184,7 +175,7 @@ void PairComb::compute(int eflag, int vflag)
     iq = q[i];
     NCo[i] = 0;
     nj = 0;
-    iparam_i = elem2param[itype][itype][itype];
+    iparam_i = elem3param[itype][itype][itype];
 
     // self energy, only on i atom
 
@@ -223,7 +214,7 @@ void PairComb::compute(int eflag, int vflag)
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
-      iparam_ij = elem2param[itype][jtype][jtype];
+      iparam_ij = elem3param[itype][jtype][jtype];
 
       // long range q-dependent
 
@@ -282,7 +273,7 @@ void PairComb::compute(int eflag, int vflag)
       for (jj = 0; jj < sht_jnum; jj++) {
         j = sht_jlist[jj];
         jtype = map[type[j]];
-        iparam_ij = elem2param[itype][jtype][jtype];
+        iparam_ij = elem3param[itype][jtype][jtype];
 
         if (params[iparam_ij].hfocor > 0.0) {
           delr1[0] = x[j][0] - xtmp;
@@ -303,7 +294,7 @@ void PairComb::compute(int eflag, int vflag)
       j = sht_jlist[jj];
 
       jtype = map[type[j]];
-      iparam_ij = elem2param[itype][jtype][jtype];
+      iparam_ij = elem3param[itype][jtype][jtype];
 
       // this Qj for q-dependent BSi
 
@@ -326,7 +317,7 @@ void PairComb::compute(int eflag, int vflag)
         k = sht_jlist[kk];
         if (j == k) continue;
         ktype = map[type[k]];
-        iparam_ijk = elem2param[itype][jtype][ktype];
+        iparam_ijk = elem3param[itype][jtype][ktype];
 
         delr2[0] = x[k][0] - xtmp;
         delr2[1] = x[k][1] - ytmp;
@@ -370,7 +361,7 @@ void PairComb::compute(int eflag, int vflag)
         k = sht_jlist[kk];
         if (j == k) continue;
         ktype = map[type[k]];
-        iparam_ijk = elem2param[itype][jtype][ktype];
+        iparam_ijk = elem3param[itype][jtype][ktype];
 
         delr2[0] = x[k][0] - xtmp;
         delr2[1] = x[k][1] - ytmp;
@@ -445,53 +436,14 @@ void PairComb::settings(int narg, char **/*arg*/)
 
 void PairComb::coeff(int narg, char **arg)
 {
-  int i,j,n;
-
   if (!allocated) allocate();
 
-  if (narg != 3 + atom->ntypes)
-    error->all(FLERR,"Incorrect args for pair coefficients");
-
-  // insure I,J args are * *
-
-  if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
-    error->all(FLERR,"Incorrect args for pair coefficients");
-
-  // read args that map atom types to elements in potential file
-  // map[i] = which element the Ith atom type is, -1 if "NULL"
-  // nelements = # of unique elements
-  // elements = list of element names
-
-  if (elements) {
-    for (i = 0; i < nelements; i++) delete [] elements[i];
-    delete [] elements;
-  }
-  elements = new char*[atom->ntypes];
-  for (i = 0; i < atom->ntypes; i++) elements[i] = nullptr;
-
-  nelements = 0;
-  for (i = 3; i < narg; i++) {
-    if (strcmp(arg[i],"NULL") == 0) {
-      map[i-2] = -1;
-      continue;
-    }
-    for (j = 0; j < nelements; j++)
-      if (strcmp(arg[i],elements[j]) == 0) break;
-    map[i-2] = j;
-    if (j == nelements) {
-      n = strlen(arg[i]) + 1;
-      elements[j] = new char[n];
-      strcpy(elements[j],arg[i]);
-      nelements++;
-    }
-  }
+  map_element2type(narg-3,arg+3);
 
   // read potential file and initialize potential parameters
 
   read_file(arg[2]);
   setup_params();
-
-  n = atom->ntypes;
 
   // generate streitz-mintmire direct 1/r energy look-up table
 
@@ -506,24 +458,6 @@ void PairComb::coeff(int narg, char **arg)
     else
       fputs("  will not apply over-coordination correction ...\n",screen);
   }
-
-  // clear setflag since coeff() called once with I,J = * *
-
-  for (int i = 1; i <= n; i++)
-    for (int j = i; j <= n; j++)
-      setflag[i][j] = 0;
-
-  // set setflag i,j for type pairs where both are mapped to elements
-
-  int count = 0;
-  for (int i = 1; i <= n; i++)
-    for (int j = i; j <= n; j++)
-      if (map[i] >= 0 && map[j] >= 0) {
-        setflag[i][j] = 1;
-        count++;
-      }
-
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -741,12 +675,12 @@ void PairComb::setup_params()
 {
   int i,j,k,m,n;
 
-  // set elem2param for all element triplet combinations
+  // set elem3param for all element triplet combinations
   // must be a single exact match to lines read from file
   // do not allow for ACB in place of ABC
 
-  memory->destroy(elem2param);
-  memory->create(elem2param,nelements,nelements,nelements,"pair:elem2param");
+  memory->destroy(elem3param);
+  memory->create(elem3param,nelements,nelements,nelements,"pair:elem3param");
 
   for (i = 0; i < nelements; i++)
     for (j = 0; j < nelements; j++)
@@ -760,7 +694,7 @@ void PairComb::setup_params()
           }
         }
         if (n < 0) error->all(FLERR,"Potential file is missing an entry");
-        elem2param[i][j][k] = n;
+        elem3param[i][j][k] = n;
       }
 
   // compute parameter values derived from inputs
@@ -1403,7 +1337,7 @@ void PairComb::sm_table()
     if (map[i+1] < 0) continue;
     r = drin;
     itype = params[map[i+1]].ielement;
-    iparam_i = elem2param[itype][itype][itype];
+    iparam_i = elem3param[itype][itype][itype];
     z = params[iparam_i].esm1;
 
     if (comm->me == 0 && screen)
@@ -1425,7 +1359,7 @@ void PairComb::sm_table()
       if (j == i) {
         itype = params[map[i+1]].ielement;
         inty = intype[itype][itype];
-        iparam_i = elem2param[itype][itype][itype];
+        iparam_i = elem3param[itype][itype][itype];
         z = params[iparam_i].esm1;
         zrc = z * rc;
         exp2ersh = exp(-2.0 * zrc);
@@ -1451,10 +1385,10 @@ void PairComb::sm_table()
         itype = params[map[i+1]].ielement;
         jtype = params[map[j+1]].ielement;
         inty = intype[itype][jtype];
-        iparam_ij = elem2param[itype][jtype][jtype];
+        iparam_ij = elem3param[itype][jtype][jtype];
         ea = params[iparam_ij].esm1;
         ea3 = ea*ea*ea;
-        iparam_ji = elem2param[jtype][itype][itype];
+        iparam_ji = elem3param[jtype][itype][itype];
         eb = params[iparam_ji].esm1;
         eb3 = eb*eb*eb;
         E1 = ea*eb3*eb/((ea+eb)*(ea+eb)*(ea-eb)*(ea-eb));
@@ -1672,7 +1606,7 @@ double PairComb::yasu_char(double *qf_fix, int &igroup)
       ytmp = x[i][1];
       ztmp = x[i][2];
       iq = q[i];
-      iparam_i = elem2param[itype][itype][itype];
+      iparam_i = elem3param[itype][itype][itype];
 
       // charge force from self energy
 
@@ -1706,7 +1640,7 @@ double PairComb::yasu_char(double *qf_fix, int &igroup)
         delr1[2] = x[j][2] - ztmp;
         rsq1 = dot3(delr1,delr1);
 
-        iparam_ij = elem2param[itype][jtype][jtype];
+        iparam_ij = elem3param[itype][jtype][jtype];
 
         // long range q-dependent
 
@@ -1743,7 +1677,7 @@ double PairComb::yasu_char(double *qf_fix, int &igroup)
         delr1[2] = x[j][2] - ztmp;
         rsq1 = dot3(delr1,delr1);
 
-        iparam_ij = elem2param[itype][jtype][jtype];
+        iparam_ij = elem3param[itype][jtype][jtype];
 
         if (rsq1 > params[iparam_ij].cutsq) continue;
         nj ++;

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -49,7 +50,6 @@ PairEAM::PairEAM(LAMMPS *lmp) : Pair(lmp)
   rho = nullptr;
   fp = nullptr;
   numforce = nullptr;
-  map = nullptr;
   type2frho = nullptr;
 
   nfuncfl = 0;
@@ -90,9 +90,7 @@ PairEAM::~PairEAM()
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
-    delete [] map;
     delete [] type2frho;
-    map = nullptr;
     type2frho = nullptr;
     memory->destroy(type2rhor);
     memory->destroy(type2z2r);
@@ -348,6 +346,7 @@ void PairEAM::allocate()
 
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
 
+  delete[] map;
   map = new int[n+1];
   for (int i = 1; i <= n; i++) map[i] = -1;
 

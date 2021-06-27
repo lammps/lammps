@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,17 +18,17 @@
 
 #include "angle_cosine_periodic.h"
 
-#include <cmath>
 #include "atom.h"
-#include "neighbor.h"
-#include "domain.h"
 #include "comm.h"
+#include "domain.h"
+#include "error.h"
 #include "force.h"
 #include "math_const.h"
 #include "math_special.h"
 #include "memory.h"
-#include "error.h"
+#include "neighbor.h"
 
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -222,9 +223,9 @@ void AngleCosinePeriodic::coeff(int narg, char **arg)
 
 /* ---------------------------------------------------------------------- */
 
-double AngleCosinePeriodic::equilibrium_angle(int /*i*/)
+double AngleCosinePeriodic::equilibrium_angle(int i)
 {
-  return MY_PI;
+  return MY_PI*(1.0 - ((b[i]>0) ? 0.0 : (1.0/static_cast<double>(multiplicity[i]))));
 }
 
 /* ----------------------------------------------------------------------

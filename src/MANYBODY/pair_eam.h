@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(eam,PairEAM)
-
+// clang-format off
+PairStyle(eam,PairEAM);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_EAM_H
@@ -24,10 +24,9 @@ PairStyle(eam,PairEAM)
 
 namespace LAMMPS_NS {
 
-
 class PairEAM : public Pair {
  public:
-  friend class FixSemiGrandCanonicalMC;   // Alex Stukowski option
+  friend class FixSemiGrandCanonicalMC;    // Alex Stukowski option
 
   // public variables so USER-ATC package can access them
 
@@ -35,15 +34,15 @@ class PairEAM : public Pair {
 
   // potentials as array data
 
-  int nrho,nr;
-  int nfrho,nrhor,nz2r;
-  double **frho,**rhor,**z2r;
-  int *type2frho,**type2rhor,**type2z2r;
+  int nrho, nr;
+  int nfrho, nrhor, nz2r;
+  double **frho, **rhor, **z2r;
+  int *type2frho, **type2rhor, **type2z2r;
 
   // potentials in spline form used for force computation
 
-  double dr,rdr,drho,rdrho,rhomax,rhomin;
-  double ***rhor_spline,***frho_spline,***z2r_spline;
+  double dr, rdr, drho, rdrho, rhomax, rhomin;
+  double ***rhor_spline, ***frho_spline, ***z2r_spline;
 
   PairEAM(class LAMMPS *);
   virtual ~PairEAM();
@@ -63,44 +62,42 @@ class PairEAM : public Pair {
   void swap_eam(double *, double **);
 
  protected:
-  int nmax;                   // allocated size of per-atom arrays
+  int nmax;    // allocated size of per-atom arrays
   double cutforcesq;
   double **scale;
-  bigint embedstep;           // timestep, the embedding term was computed
+  bigint embedstep;    // timestep, the embedding term was computed
 
   // per-atom arrays
 
-  double *rho,*fp;
+  double *rho, *fp;
   int *numforce;
 
   // potentials as file data
 
-  int *map;                   // which element each atom type maps to
-
   struct Funcfl {
     char *file;
-    int nrho,nr;
-    double drho,dr,cut,mass;
-    double *frho,*rhor,*zr;
+    int nrho, nr;
+    double drho, dr, cut, mass;
+    double *frho, *rhor, *zr;
   };
   Funcfl *funcfl;
   int nfuncfl;
 
   struct Setfl {
     char **elements;
-    int nelements,nrho,nr;
-    double drho,dr,cut;
+    int nelements, nrho, nr;
+    double drho, dr, cut;
     double *mass;
-    double **frho,**rhor,***z2r;
+    double **frho, **rhor, ***z2r;
   };
   Setfl *setfl;
 
   struct Fs {
     char **elements;
-    int nelements,nrho,nr;
-    double drho,dr,cut;
+    int nelements, nrho, nr;
+    double drho, dr, cut;
     double *mass;
-    double **frho,***rhor,***z2r;
+    double **frho, ***rhor, ***z2r;
   };
   Fs *fs;
 
@@ -112,7 +109,7 @@ class PairEAM : public Pair {
   virtual void file2array();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

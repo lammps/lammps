@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -18,30 +19,31 @@
 
 #include "fix_atom_swap.h"
 
+#include "angle.h"
+#include "atom.h"
+#include "bond.h"
+#include "comm.h"
+#include "compute.h"
+#include "dihedral.h"
+#include "domain.h"
+#include "error.h"
+#include "fix.h"
+#include "force.h"
+#include "group.h"
+#include "improper.h"
+#include "kspace.h"
+#include "memory.h"
+#include "modify.h"
+#include "neighbor.h"
+#include "pair.h"
+#include "random_park.h"
+#include "region.h"
+#include "update.h"
+
 #include <cmath>
 #include <cctype>
 #include <cfloat>
 #include <cstring>
-#include "atom.h"
-#include "update.h"
-#include "modify.h"
-#include "fix.h"
-#include "comm.h"
-#include "compute.h"
-#include "group.h"
-#include "domain.h"
-#include "region.h"
-#include "random_park.h"
-#include "force.h"
-#include "pair.h"
-#include "bond.h"
-#include "angle.h"
-#include "dihedral.h"
-#include "improper.h"
-#include "kspace.h"
-#include "memory.h"
-#include "error.h"
-#include "neighbor.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -116,6 +118,21 @@ FixAtomSwap::FixAtomSwap(LAMMPS *lmp, int narg, char **arg) :
 
 }
 
+/* ---------------------------------------------------------------------- */
+
+FixAtomSwap::~FixAtomSwap()
+{
+  memory->destroy(type_list);
+  memory->destroy(mu);
+  memory->destroy(qtype);
+  memory->destroy(sqrt_mass_ratio);
+  memory->destroy(local_swap_iatom_list);
+  memory->destroy(local_swap_jatom_list);
+  if (regionflag) delete [] idregion;
+  delete random_equal;
+  delete random_unequal;
+}
+
 /* ----------------------------------------------------------------------
    parse optional parameters at end of input line
 ------------------------------------------------------------------------- */
@@ -138,9 +155,7 @@ void FixAtomSwap::options(int narg, char **arg)
       iregion = domain->find_region(arg[iarg+1]);
       if (iregion == -1)
         error->all(FLERR,"Region ID for fix atom/swap does not exist");
-      int n = strlen(arg[iarg+1]) + 1;
-      idregion = new char[n];
-      strcpy(idregion,arg[iarg+1]);
+      idregion = utils::strdup(arg[iarg+1]);
       regionflag = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"ke") == 0) {
@@ -177,19 +192,6 @@ void FixAtomSwap::options(int narg, char **arg)
       }
     } else error->all(FLERR,"Illegal fix atom/swap command");
   }
-}
-
-/* ---------------------------------------------------------------------- */
-
-FixAtomSwap::~FixAtomSwap()
-{
-  memory->destroy(type_list);
-  memory->destroy(mu);
-  memory->destroy(qtype);
-  memory->destroy(sqrt_mass_ratio);
-  if (regionflag) delete [] idregion;
-  delete random_equal;
-  delete random_unequal;
 }
 
 /* ---------------------------------------------------------------------- */

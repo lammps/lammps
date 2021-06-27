@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(nve/asphere/gpu,FixNVEAsphereGPU)
-
+// clang-format off
+FixStyle(nve/asphere/gpu,FixNVEAsphereGPU);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_NVE_ASPHERE_GPU_H
@@ -46,7 +46,7 @@ class FixNVEAsphereGPU : public FixNVE {
   class AtomVecEllipsoid *avec;
 };
 
-}
+}    // namespace LAMMPS_NS
 #endif
 #endif
 

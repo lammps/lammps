@@ -1,3 +1,4 @@
+// clang-format off
 // -*- c++ -*-
 
 // This file is part of the Collective Variables module (Colvars).
@@ -9,7 +10,7 @@
 
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -412,7 +413,7 @@ void FixColvars::init()
   if ((me == 0) && (update->whichflag == 2))
     error->warning(FLERR,"Using fix colvars with minimization");
 
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 }
 
@@ -680,7 +681,7 @@ void FixColvars::setup(int vflag)
     proxy->setup();
 
   // initialize forces
-  if (strstr(update->integrate_style,"verlet") || (update->whichflag == 2))
+  if (utils::strmatch(update->integrate_style,"^verlet") || (update->whichflag == 2))
     post_force(vflag);
   else {
     ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);

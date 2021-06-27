@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -10,6 +10,7 @@
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
+// clang-format off
 
 #ifndef LMP_RIGID_CONST_H
 #define LMP_RIGID_CONST_H
@@ -17,10 +18,10 @@
 namespace LAMMPS_NS {
   namespace RigidConst {
 
-    enum{SINGLE,MOLECULE,GROUP};
-    enum{NONE,XYZ,XY,YZ,XZ};
-    enum{ISO,ANISO,TRICLINIC};
-    enum{FULL_BODY,INITIAL,FINAL,FORCE_TORQUE,VCM_ANGMOM,XCM_MASS,ITENSOR,DOF};
+    enum{SINGLE, MOLECULE, GROUP};
+    enum{NONE, XYZ, XY, YZ, XZ};
+    enum{ISO, ANISO, TRICLINIC};
+    enum{FULL_BODY, INITIAL, FINAL, FORCE_TORQUE, VCM_ANGMOM, XCM_MASS, ITENSOR, DOF};
 
     enum {POINT     = 1<<0,
           SPHERE    = 1<<1,

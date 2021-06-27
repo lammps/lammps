@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -25,7 +26,6 @@
 #include "tokenizer.h"
 
 #include <cmath>
-#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -42,8 +42,6 @@ PairSNAP::PairSNAP(LAMMPS *lmp) : Pair(lmp)
   manybody_flag = 1;
   centroidstressflag = CENTROID_NOTAVAIL;
 
-  nelements = 0;
-  elements = nullptr;
   radelem = nullptr;
   wjelem = nullptr;
   coeffelem = nullptr;
@@ -60,14 +58,9 @@ PairSNAP::~PairSNAP()
 {
   if (copymode) return;
 
-  if (nelements) {
-    for (int i = 0; i < nelements; i++)
-      delete[] elements[i];
-    delete[] elements;
-    memory->destroy(radelem);
-    memory->destroy(wjelem);
-    memory->destroy(coeffelem);
-  }
+  memory->destroy(radelem);
+  memory->destroy(wjelem);
+  memory->destroy(coeffelem);
 
   memory->destroy(beta);
   memory->destroy(bispectrum);
@@ -77,7 +70,6 @@ PairSNAP::~PairSNAP()
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
-    memory->destroy(map);
   }
 
 }
@@ -362,7 +354,7 @@ void PairSNAP::allocate()
 
   memory->create(setflag,n+1,n+1,"pair:setflag");
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
-  memory->create(map,n+1,"pair:map");
+  map = new int[n+1];
 }
 
 /* ----------------------------------------------------------------------
@@ -384,61 +376,11 @@ void PairSNAP::coeff(int narg, char **arg)
   if (!allocated) allocate();
   if (narg != 4 + atom->ntypes) error->all(FLERR,"Incorrect args for pair coefficients");
 
-  char* type1 = arg[0];
-  char* type2 = arg[1];
-  char* coefffilename = arg[2];
-  char* paramfilename = arg[3];
-  char** elemtypes = &arg[4];
-
-  // insure I,J args are * *
-
-  if (strcmp(type1,"*") != 0 || strcmp(type2,"*") != 0)
-    error->all(FLERR,"Incorrect args for pair coefficients");
-
-  // clean out old arrays
-
-  if (elements) {
-    for (int i = 0; i < nelements; i++)
-      delete[] elements[i];
-    delete[] elements;
-    memory->destroy(radelem);
-    memory->destroy(wjelem);
-    memory->destroy(coeffelem);
-  }
-
-  // nelements = # of unique elements declared
-  // elements = list of unique element names
-  //            allocate as ntypes >= nelements
-
-  elements = new char*[atom->ntypes];
-  for (int i = 0; i < atom->ntypes; i++) elements[i] = nullptr;
-
-  // read args that map atom types to SNAP elements
-  // map[i] = which element the Ith atom type is, -1 if not mapped
-  // map[0] is not used
-
-  nelements = 0;
-  for (int i = 1; i <= atom->ntypes; i++) {
-    char* elemstring = elemtypes[i-1];
-    if (strcmp(elemstring,"NULL") == 0) {
-      map[i] = -1;
-      continue;
-    }
-    int j;
-    for (j = 0; j < nelements; j++)
-      if (strcmp(elemstring,elements[j]) == 0) break;
-    map[i] = j;
-    if (j == nelements) {
-      int n = strlen(elemstring) + 1;
-      elements[j] = new char[n];
-      strcpy(elements[j],elemstring);
-      nelements++;
-    }
-  }
+  map_element2type(narg-4,arg+4);
 
   // read snapcoeff and snapparam files
 
-  read_files(coefffilename,paramfilename);
+  read_files(arg[2],arg[3]);
 
   if (!quadraticflag)
     ncoeff = ncoeffall - 1;
@@ -454,25 +396,6 @@ void PairSNAP::coeff(int narg, char **arg)
       error->all(FLERR,"Incorrect SNAP coeff file");
     }
   }
-
-  // clear setflag since coeff() called once with I,J = * *
-
-  int n = atom->ntypes;
-  for (int i = 1; i <= n; i++)
-    for (int j = i; j <= n; j++)
-      setflag[i][j] = 0;
-
-  // set setflag i,j for type pairs where both are mapped to elements
-
-  int count = 0;
-  for (int i = 1; i <= n; i++)
-    for (int j = i; j <= n; j++)
-      if (map[i] >= 0 && map[j] >= 0) {
-        setflag[i][j] = 1;
-        count++;
-      }
-
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 
   snaptr = new SNA(lmp, rfac0, twojmax,
                    rmin0, switchflag, bzeroflag,
@@ -533,8 +456,8 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
   if (comm->me == 0) {
     fpcoeff = utils::open_potential(coefffilename,lmp,nullptr);
     if (fpcoeff == nullptr)
-      error->one(FLERR,fmt::format("Cannot open SNAP coefficient file {}: ",
-                                   coefffilename, utils::getsyserror()));
+      error->one(FLERR,"Cannot open SNAP coefficient file {}: ",
+                                   coefffilename, utils::getsyserror());
   }
 
   char line[MAXLINE],*ptr;
@@ -567,19 +490,22 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
     nelemtmp = words.next_int();
     ncoeffall = words.next_int();
   } catch (TokenizerException &e) {
-    error->all(FLERR,fmt::format("Incorrect format in SNAP coefficient "
-                                 "file: {}", e.what()));
+    error->all(FLERR,"Incorrect format in SNAP coefficient "
+                                 "file: {}", e.what());
   }
 
-  // set up element lists
+  // clean out old arrays and set up element lists
 
+  memory->destroy(radelem);
+  memory->destroy(wjelem);
+  memory->destroy(coeffelem);
   memory->create(radelem,nelements,"pair:radelem");
   memory->create(wjelem,nelements,"pair:wjelem");
   memory->create(coeffelem,nelements,ncoeffall,"pair:coeffelem");
 
   // initialize checklist for all required nelements
 
-  int elementflags[nelements];
+  int *elementflags = new int[nelements];
   for (int jelem = 0; jelem < nelements; jelem++)
       elementflags[jelem] = 0;
 
@@ -639,8 +565,8 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
     wjelem[jelem] = utils::numeric(FLERR,words[2].c_str(),false,lmp);
 
     if (comm->me == 0)
-      utils::logmesg(lmp,fmt::format("SNAP Element = {}, Radius {}, Weight {}\n",
-                                     elements[jelem], radelem[jelem], wjelem[jelem]));
+      utils::logmesg(lmp,"SNAP Element = {}, Radius {}, Weight {}\n",
+                     elements[jelem], radelem[jelem], wjelem[jelem]);
 
     for (int icoeff = 0; icoeff < ncoeffall; icoeff++) {
       if (comm->me == 0) {
@@ -663,8 +589,8 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
 
         coeffelem[jelem][icoeff] = coeff.next_double();
       } catch (TokenizerException &e) {
-        error->all(FLERR,fmt::format("Incorrect format in SNAP coefficient "
-                                     "file: {}", e.what()));
+        error->all(FLERR,"Incorrect format in SNAP coefficient "
+                                     "file: {}", e.what());
       }
     }
   }
@@ -673,9 +599,10 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
 
   for (int jelem = 0; jelem < nelements; jelem++) {
     if (elementflags[jelem] == 0)
-      error->all(FLERR,fmt::format("Element {} not found in SNAP coefficient "
-                                   "file", elements[jelem]));
+      error->all(FLERR,"Element {} not found in SNAP coefficient "
+                                   "file", elements[jelem]);
   }
+  delete[] elementflags;
 
   // set flags for required keywords
 
@@ -700,8 +627,8 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
   if (comm->me == 0) {
     fpparam = utils::open_potential(paramfilename,lmp,nullptr);
     if (fpparam == nullptr)
-      error->one(FLERR,fmt::format("Cannot open SNAP parameter file {}: {}",
-                                   paramfilename, utils::getsyserror()));
+      error->one(FLERR,"Cannot open SNAP parameter file {}: {}",
+                                   paramfilename, utils::getsyserror());
   }
 
   eof = 0;
@@ -734,7 +661,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
     auto keyval = words[1];
 
     if (comm->me == 0)
-      utils::logmesg(lmp,fmt::format("SNAP keyword {} {}\n",keywd,keyval));
+      utils::logmesg(lmp,"SNAP keyword {} {}\n",keywd,keyval);
 
     if (keywd == "rcutfac") {
       rcutfac = utils::numeric(FLERR,keyval.c_str(),false,lmp);
@@ -761,8 +688,8 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
     else if (keywd == "chunksize")
       chunksize = utils::inumeric(FLERR,keyval.c_str(),false,lmp);
     else
-      error->all(FLERR,fmt::format("Unknown parameter '{}' in SNAP "
-                                   "parameter file", keywd));
+      error->all(FLERR,"Unknown parameter '{}' in SNAP "
+                                   "parameter file", keywd);
   }
 
   if (rcutfacflag == 0 || twojmaxflag == 0)

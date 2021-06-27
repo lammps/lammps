@@ -1,4 +1,4 @@
-/* -----------------------------------------------------------------------
+/* -*- c++ -*- -----------------------------------------------------------
    LAMMPS 2003 (July 31) - Molecular Dynamics Simulator
    Sandia National Laboratories, www.cs.sandia.gov/~sjplimp/lammps.html
    Steve Plimpton, sjplimp@sandia.gov
@@ -26,13 +26,12 @@
 #error "MPI STUBS must be compiled with a C++ compiler"
 #endif
 
-
 /* Dummy defs for MPI stubs */
 
 #define MPI_COMM_WORLD 0
 
-#define MPI_SUCCESS   0
-#define MPI_ERR_ARG  -1
+#define MPI_SUCCESS 0
+#define MPI_ERR_ARG -1
 
 #define MPI_INT 1
 #define MPI_FLOAT 2
@@ -70,8 +69,7 @@
 #define MPI_MAX_PROCESSOR_NAME 128
 #define MPI_MAX_LIBRARY_VERSION_STRING 128
 
-typedef void MPI_User_function(void *invec, void *inoutvec,
-                               int *len, MPI_Datatype *datatype);
+typedef void MPI_User_function(void *invec, void *inoutvec, int *len, MPI_Datatype *datatype);
 
 /* MPI data structs */
 
@@ -98,24 +96,20 @@ double MPI_Wtime();
 int MPI_Type_size(int, int *);
 int MPI_Request_free(MPI_Request *request);
 
-int MPI_Send(const void *buf, int count, MPI_Datatype datatype,
-             int dest, int tag, MPI_Comm comm);
-int MPI_Isend(const void *buf, int count, MPI_Datatype datatype,
-              int source, int tag, MPI_Comm comm, MPI_Request *request);
-int MPI_Rsend(const void *buf, int count, MPI_Datatype datatype,
-              int dest, int tag, MPI_Comm comm);
-int MPI_Recv(void *buf, int count, MPI_Datatype datatype,
-             int source, int tag, MPI_Comm comm, MPI_Status *status);
-int MPI_Irecv(void *buf, int count, MPI_Datatype datatype,
-              int source, int tag, MPI_Comm comm, MPI_Request *request);
+int MPI_Send(const void *buf, int count, MPI_Datatype datatype, int dest, int tag, MPI_Comm comm);
+int MPI_Isend(const void *buf, int count, MPI_Datatype datatype, int source, int tag, MPI_Comm comm,
+              MPI_Request *request);
+int MPI_Rsend(const void *buf, int count, MPI_Datatype datatype, int dest, int tag, MPI_Comm comm);
+int MPI_Recv(void *buf, int count, MPI_Datatype datatype, int source, int tag, MPI_Comm comm,
+             MPI_Status *status);
+int MPI_Irecv(void *buf, int count, MPI_Datatype datatype, int source, int tag, MPI_Comm comm,
+              MPI_Request *request);
 int MPI_Wait(MPI_Request *request, MPI_Status *status);
 int MPI_Waitall(int n, MPI_Request *request, MPI_Status *status);
-int MPI_Waitany(int count, MPI_Request *request, int *index,
-                MPI_Status *status);
-int MPI_Sendrecv(const void *sbuf, int scount, MPI_Datatype sdatatype,
-                  int dest, int stag, void *rbuf, int rcount,
-                  MPI_Datatype rdatatype, int source, int rtag,
-                  MPI_Comm comm, MPI_Status *status);
+int MPI_Waitany(int count, MPI_Request *request, int *index, MPI_Status *status);
+int MPI_Sendrecv(const void *sbuf, int scount, MPI_Datatype sdatatype, int dest, int stag,
+                 void *rbuf, int rcount, MPI_Datatype rdatatype, int source, int rtag,
+                 MPI_Comm comm, MPI_Status *status);
 int MPI_Get_count(MPI_Status *status, MPI_Datatype datatype, int *count);
 
 int MPI_Comm_split(MPI_Comm comm, int color, int key, MPI_Comm *comm_out);
@@ -127,16 +121,13 @@ int MPI_Comm_group(MPI_Comm comm, MPI_Group *group);
 int MPI_Comm_create(MPI_Comm comm, MPI_Group group, MPI_Comm *newcomm);
 int MPI_Group_incl(MPI_Group group, int n, int *ranks, MPI_Group *newgroup);
 
-int MPI_Cart_create(MPI_Comm comm_old, int ndims, int *dims, int *periods,
-                    int reorder, MPI_Comm *comm_cart);
-int MPI_Cart_get(MPI_Comm comm, int maxdims, int *dims, int *periods,
-                 int *coords);
-int MPI_Cart_shift(MPI_Comm comm, int direction, int displ,
-                   int *source, int *dest);
+int MPI_Cart_create(MPI_Comm comm_old, int ndims, int *dims, int *periods, int reorder,
+                    MPI_Comm *comm_cart);
+int MPI_Cart_get(MPI_Comm comm, int maxdims, int *dims, int *periods, int *coords);
+int MPI_Cart_shift(MPI_Comm comm, int direction, int displ, int *source, int *dest);
 int MPI_Cart_rank(MPI_Comm comm, int *coords, int *rank);
 
-int MPI_Type_contiguous(int count, MPI_Datatype oldtype,
-                        MPI_Datatype *newtype);
+int MPI_Type_contiguous(int count, MPI_Datatype oldtype, MPI_Datatype *newtype);
 int MPI_Type_commit(MPI_Datatype *datatype);
 int MPI_Type_free(MPI_Datatype *datatype);
 
@@ -144,41 +135,32 @@ int MPI_Op_create(MPI_User_function *function, int commute, MPI_Op *op);
 int MPI_Op_free(MPI_Op *op);
 
 int MPI_Barrier(MPI_Comm comm);
-int MPI_Bcast(void *buf, int count, MPI_Datatype datatype,
-              int root, MPI_Comm comm);
-int MPI_Allreduce(void *sendbuf, void *recvbuf, int count,
-                  MPI_Datatype datatype, MPI_Op op, MPI_Comm comm);
-int MPI_Reduce(void *sendbuf, void *recvbuf, int count,
-                   MPI_Datatype datatype, MPI_Op op, int root, MPI_Comm comm);
-int MPI_Scan(void *sendbuf, void *recvbuf, int count,
-             MPI_Datatype datatype, MPI_Op op, MPI_Comm comm);
-int MPI_Allgather(void *sendbuf, int sendcount, MPI_Datatype sendtype,
-                  void *recvbuf, int recvcount, MPI_Datatype recvtype,
+int MPI_Bcast(void *buf, int count, MPI_Datatype datatype, int root, MPI_Comm comm);
+int MPI_Allreduce(void *sendbuf, void *recvbuf, int count, MPI_Datatype datatype, MPI_Op op,
                   MPI_Comm comm);
-int MPI_Allgatherv(void *sendbuf, int sendcount, MPI_Datatype sendtype,
-                   void *recvbuf, int *recvcounts, int *displs,
-                   MPI_Datatype recvtype, MPI_Comm comm);
-int MPI_Reduce_scatter(void *sendbuf, void *recvbuf, int *recvcounts,
-                       MPI_Datatype datatype, MPI_Op op, MPI_Comm comm);
-int MPI_Gather(void *sendbuf, int sendcount, MPI_Datatype sendtype,
-               void *recvbuf, int recvcount, MPI_Datatype recvtype,
-               int root, MPI_Comm comm);
-int MPI_Gatherv(void *sendbuf, int sendcount, MPI_Datatype sendtype,
-                void *recvbuf, int *recvcounts, int *displs,
-                MPI_Datatype recvtype, int root, MPI_Comm comm);
-int MPI_Scatter(void *sendbuf, int sendcount, MPI_Datatype sendtype,
-                void *recvbuf, int recvcount, MPI_Datatype recvtype,
-                int root, MPI_Comm comm);
-int MPI_Scatterv(void *sendbuf, int *sendcounts, int *displs,
-                 MPI_Datatype sendtype, void *recvbuf, int recvcount,
-                 MPI_Datatype recvtype, int root, MPI_Comm comm);
-int MPI_Alltoall(void *sendbuf, int sendcount, MPI_Datatype sendtype,
-                 void *recvbuf, int recvcount, MPI_Datatype recvtype,
-                 MPI_Comm comm);
-int MPI_Alltoallv(void *sendbuf, int *sendcounts, int *sdispls,
-                  MPI_Datatype sendtype,
-                  void *recvbuf, int *recvcounts, int *rdispls,
+int MPI_Reduce(void *sendbuf, void *recvbuf, int count, MPI_Datatype datatype, MPI_Op op, int root,
+               MPI_Comm comm);
+int MPI_Scan(void *sendbuf, void *recvbuf, int count, MPI_Datatype datatype, MPI_Op op,
+             MPI_Comm comm);
+int MPI_Allgather(void *sendbuf, int sendcount, MPI_Datatype sendtype, void *recvbuf, int recvcount,
                   MPI_Datatype recvtype, MPI_Comm comm);
+int MPI_Allgatherv(void *sendbuf, int sendcount, MPI_Datatype sendtype, void *recvbuf,
+                   int *recvcounts, int *displs, MPI_Datatype recvtype, MPI_Comm comm);
+int MPI_Reduce_scatter(void *sendbuf, void *recvbuf, int *recvcounts, MPI_Datatype datatype,
+                       MPI_Op op, MPI_Comm comm);
+int MPI_Gather(void *sendbuf, int sendcount, MPI_Datatype sendtype, void *recvbuf, int recvcount,
+               MPI_Datatype recvtype, int root, MPI_Comm comm);
+int MPI_Gatherv(void *sendbuf, int sendcount, MPI_Datatype sendtype, void *recvbuf, int *recvcounts,
+                int *displs, MPI_Datatype recvtype, int root, MPI_Comm comm);
+int MPI_Scatter(void *sendbuf, int sendcount, MPI_Datatype sendtype, void *recvbuf, int recvcount,
+                MPI_Datatype recvtype, int root, MPI_Comm comm);
+int MPI_Scatterv(void *sendbuf, int *sendcounts, int *displs, MPI_Datatype sendtype, void *recvbuf,
+                 int recvcount, MPI_Datatype recvtype, int root, MPI_Comm comm);
+int MPI_Alltoall(void *sendbuf, int sendcount, MPI_Datatype sendtype, void *recvbuf, int recvcount,
+                 MPI_Datatype recvtype, MPI_Comm comm);
+int MPI_Alltoallv(void *sendbuf, int *sendcounts, int *sdispls, MPI_Datatype sendtype,
+                  void *recvbuf, int *recvcounts, int *rdispls, MPI_Datatype recvtype,
+                  MPI_Comm comm);
 /* ---------------------------------------------------------------------- */
 
 #endif

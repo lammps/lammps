@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(langevin/drude,FixLangevinDrude)
-
+// clang-format off
+FixStyle(langevin/drude,FixLangevinDrude);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_LANGEVIN_DRUDE_H
@@ -34,13 +34,13 @@ class FixLangevinDrude : public Fix {
   virtual void post_force(int vflag);
   void reset_target(double);
   virtual void *extract(const char *, int &);
-  int pack_reverse_comm(int, int, double*);
-  void unpack_reverse_comm(int, int*, double*);
+  int pack_reverse_comm(int, int, double *);
+  void unpack_reverse_comm(int, int *, double *);
   int modify_param(int, char **);
 
  protected:
-  double t_start_core,t_period_core,t_target_core;
-  double t_start_drude,t_period_drude,t_target_drude;
+  double t_start_core, t_period_core, t_target_core;
+  double t_start_drude, t_period_drude, t_target_drude;
   int tstyle_core, tstyle_drude;
   int tvar_core, tvar_drude;
   char *tstr_core, *tstr_drude;
@@ -50,13 +50,12 @@ class FixLangevinDrude : public Fix {
   class RanMars *random_core, *random_drude;
   int zero;
   bigint ncore;
-  class FixDrude * fix_drude;
+  class FixDrude *fix_drude;
   class Compute *temperature;
   char *id_temp;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-

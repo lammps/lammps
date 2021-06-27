@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -23,14 +24,16 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_grem.h"
-#include <cstring>
+
 #include "atom.h"
-#include "force.h"
-#include "update.h"
-#include "modify.h"
-#include "domain.h"
 #include "compute.h"
+#include "domain.h"
 #include "error.h"
+#include "force.h"
+#include "modify.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -65,65 +68,28 @@ FixGrem::FixGrem(LAMMPS *lmp, int narg, char **arg) :
   // compute group = all since pressure is always global (group all)
   //   and thus its KE/temperature contribution should use group all
 
-  n = strlen(id) + 6;
-  id_temp = new char[n];
-  strcpy(id_temp,id);
-  strcat(id_temp,"_temp");
-
-  char **newarg = new char*[3];
-  newarg[0] = id_temp;
-  newarg[1] = (char *) "all";
-  newarg[2] = (char *) "temp";
-  modify->add_compute(3,newarg);
-  delete [] newarg;
+  id_temp = utils::strdup(std::string(id) + "_temp");
+  modify->add_compute(fmt::format("{} all temp",id_temp));
 
   // create a new compute pressure style
   // id = fix-ID + press, compute group = all
   // pass id_temp as 4th arg to pressure constructor
 
-  n = strlen(id) + 7;
-  id_press = new char[n];
-  strcpy(id_press,id);
-  strcat(id_press,"_press");
-
-  newarg = new char*[5];
-  newarg[0] = id_press;
-  newarg[1] = (char *) "all";
-  newarg[2] = (char *) "PRESSURE/GREM";
-  newarg[3] = id_temp;
-  newarg[4] = id;
-  modify->add_compute(5,newarg);
-  delete [] newarg;
+  id_press = utils::strdup(std::string(id) + "_press");
+  modify->add_compute(fmt::format("{} all PRESSURE/GREM {}",
+                                  id_press, id_temp));
 
   // create a new compute ke style
   // id = fix-ID + ke
 
-  n = strlen(id) + 8;
-  id_ke = new char[n];
-  strcpy(id_ke,id);
-  strcat(id_ke,"_ke");
-
-  newarg = new char*[3];
-  newarg[0] = id_ke;
-  newarg[1] = (char *) "all";
-  newarg[2] = (char *) "ke";
-  modify->add_compute(3,newarg);
-  delete [] newarg;
+  id_ke = utils::strdup(std::string(id) + "_ke");
+  modify->add_compute(fmt::format("{} all ke",id_temp));
 
   // create a new compute pe style
   // id = fix-ID + pe
 
-  n = strlen(id) + 9;
-  id_pe = new char[n];
-  strcpy(id_pe,id);
-  strcat(id_pe,"_pe");
-
-  newarg = new char*[3];
-  newarg[0] = id_pe;
-  newarg[1] = (char *) "all";
-  newarg[2] = (char *) "pe";
-  modify->add_compute(3,newarg);
-  delete [] newarg;
+  id_pe = utils::strdup(std::string(id) + "_pe");
+  modify->add_compute(fmt::format("{} all pe",id_temp));
 
   int ifix = modify->find_fix(id_nh);
   if (ifix < 0)
@@ -235,10 +201,10 @@ void FixGrem::init()
 
 void FixGrem::setup(int vflag)
 {
-  if (strstr(update->integrate_style,"verlet"))
+  if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
 
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     error->all(FLERR,"Run style 'respa' is not supported");
 }
 

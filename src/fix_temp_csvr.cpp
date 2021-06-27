@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -39,6 +40,7 @@ using namespace FixConst;
 enum{NOBIAS,BIAS};
 enum{CONSTANT,EQUAL};
 
+static constexpr int PRNGSIZE = 98+2+3;
 /* ---------------------------------------------------------------------- */
 
 FixTempCSVR::FixTempCSVR(LAMMPS *lmp, int narg, char **arg) :
@@ -81,10 +83,8 @@ FixTempCSVR::FixTempCSVR(LAMMPS *lmp, int narg, char **arg) :
   // create a new compute temp style
   // id = fix-ID + temp, compute group = fix group
 
-  std::string cmd = id + std::string("_temp");
-  id_temp = utils::strdup(cmd);
-  cmd += fmt::format(" {} temp",group->names[igroup]);
-  modify->add_compute(cmd);
+  id_temp = utils::strdup(std::string(id) + "_temp");
+  modify->add_compute(fmt::format("{} {} temp",id_temp,group->names[igroup]));
   tflag = 1;
 
   nmax = -1;
@@ -332,7 +332,6 @@ double FixTempCSVR::compute_scalar()
 
 void FixTempCSVR::write_restart(FILE *fp)
 {
-  const int PRNGSIZE = 98+2+3;
   int nsize = PRNGSIZE*comm->nprocs+2; // pRNG state per proc + nprocs + energy
   double *list = nullptr;
   if (comm->me == 0) {
@@ -365,7 +364,7 @@ void FixTempCSVR::restart(char *buf)
   if (nprocs != comm->nprocs) {
     if (comm->me == 0)
       error->warning(FLERR,"Different number of procs. Cannot restore RNG state.");
-  } else random->set_state(list+2+comm->me*103);
+  } else random->set_state(list+2+comm->me*PRNGSIZE);
 }
 
 /* ----------------------------------------------------------------------

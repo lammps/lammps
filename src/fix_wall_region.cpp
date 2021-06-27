@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -187,7 +188,7 @@ void FixWallRegion::init()
     offset = coeff3*r4inv*r4inv*rinv - coeff4*r2inv*rinv;
   }
 
-  if (strstr(update->integrate_style,"respa")) {
+  if (utils::strmatch(update->integrate_style,"^respa")) {
     ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
   }
@@ -197,7 +198,7 @@ void FixWallRegion::init()
 
 void FixWallRegion::setup(int vflag)
 {
-  if (strstr(update->integrate_style,"verlet"))
+  if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
     ((Respa *) update->integrate)->copy_flevel_f(ilevel_respa);
@@ -396,7 +397,7 @@ void FixWallRegion::morse(double r)
 {
   double dr = r - sigma;
   double dexp = exp(-alpha * dr);
-  fwall = coeff1 * (dexp*dexp - dexp) / r;
+  fwall = coeff1 * (dexp*dexp - dexp);
   eng = epsilon * (dexp*dexp - 2.0*dexp) - offset;
 }
 

@@ -10,19 +10,18 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #ifndef PTM_GRAPH_DATA_H
 #define PTM_GRAPH_DATA_H
 
-#include <stdint.h>
 #include "ptm_constants.h"
+#include <cstdint>
 
 namespace ptm {
 
-typedef struct
-{
-        int id;
-        uint64_t hash;
-        int automorphism_index;
-        int num_automorphisms;
-        int8_t canonical_labelling[PTM_MAX_POINTS];
-        int8_t facets[PTM_MAX_FACETS][3];
+typedef struct {
+  int id;
+  uint64_t hash;
+  int automorphism_index;
+  int num_automorphisms;
+  int8_t canonical_labelling[PTM_MAX_POINTS];
+  int8_t facets[PTM_MAX_FACETS][3];
 } graph_t;
 
 #define NUM_SC_GRAPHS 1
@@ -43,7 +42,6 @@ extern graph_t graphs_bcc[NUM_BCC_GRAPHS];
 extern graph_t graphs_dcub[NUM_DCUB_GRAPHS];
 extern graph_t graphs_dhex[NUM_DHEX_GRAPHS];
 
-}
+}    // namespace ptm
 
 #endif
-

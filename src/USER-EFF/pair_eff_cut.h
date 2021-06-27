@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
- http://lammps.sandia.gov, Sandia National Laboratories
+ https://www.lammps.org/, Sandia National Laboratories
  Steve Plimpton, sjplimp@sandia.gov
 
  Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
  ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(eff/cut,PairEffCut)
-
+// clang-format off
+PairStyle(eff/cut,PairEffCut);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_EFF_CUT_H
@@ -50,19 +50,19 @@ class PairEffCut : public Pair {
   double cut_global;
   double **cut;
   int ecp_type[100];
-  double PAULI_CORE_A[100],PAULI_CORE_B[100],PAULI_CORE_C[100];
-  double PAULI_CORE_D[100],PAULI_CORE_E[100];
+  double PAULI_CORE_A[100], PAULI_CORE_B[100], PAULI_CORE_C[100];
+  double PAULI_CORE_D[100], PAULI_CORE_E[100];
   double hhmss2e, h2e;
 
   int nmax;
-  double *min_eradius,*min_erforce;
+  double *min_eradius, *min_erforce;
 
   void allocate();
   void virial_eff_compute();
   void ev_tally_eff(int, int, int, int, double, double);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

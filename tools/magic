@@ -3,7 +3,7 @@
 # your LAMMPS files and print some useful information.
 # Last change: 2021-03-15 by akohlmey@gmail.com
 
-# Binary restart file for the LAMMPS MD code, https://lammps.sandia.gov
+# Binary restart file for the LAMMPS MD code, https://www.lammps.org
 
 # written on a little endian machine
 0            string  LammpS\ RestartT  LAMMPS binary restart file
@@ -23,7 +23,7 @@
 >>>>>&5      bequad  x                 Timestep %lld,
 >>>>>>0x10   lelong  0x1000            Big Endian
 
-# Atom style binary dump file for the LAMMPS MD code, https://lammps.sandia.gov
+# Atom style binary dump file for the LAMMPS MD code, https://www.lammps.org
 
 # written on a little endian machine
 0         lequad  -8
@@ -39,7 +39,7 @@
 >>>0x10   lelong  0x1000       Big Endian,
 >>>>0x18  bequad  x            First time step: %lld
 
-# Atom style binary dump file for the LAMMPS MD code, https://lammps.sandia.gov
+# Atom style binary dump file for the LAMMPS MD code, https://www.lammps.org
 # written on a little endian machine
 0         lequad  -10
 >0x08     string  DUMPCUSTOM   LAMMPS custom style binary dump

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
- https://lammps.sandia.gov/, Sandia National Laboratdir_veces
+ https://www.lammps.org/, Sandia National Laboratdir_veces
  Steve Plimpton, sjplimp@sandia.gov
 
  Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -32,7 +33,6 @@
 #include "update.h"
 
 #include <cmath>
-#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -87,9 +87,7 @@ FixOrientECO::FixOrientECO(LAMMPS *lmp, int narg, char **arg) :
   // read reference orientations from file
   // work on rank 0 only
 
-  int n = strlen(arg[6]) + 1;
-  dir_filename = new char[n];
-  strcpy(dir_filename, arg[6]);
+  dir_filename = utils::strdup(arg[6]);
   if (me == 0) {
     char line[IMGMAX];
     char *result;
@@ -97,8 +95,8 @@ FixOrientECO::FixOrientECO(LAMMPS *lmp, int narg, char **arg) :
 
     FILE *infile = utils::open_potential(dir_filename,lmp,nullptr);
     if (infile == nullptr)
-      error->one(FLERR,fmt::format("Cannot open fix orient/eco file {}: {}",
-                                   dir_filename, utils::getsyserror()));
+      error->one(FLERR,"Cannot open fix orient/eco file {}: {}",
+                                   dir_filename, utils::getsyserror());
     for (int i = 0; i < 6; ++i) {
       result = fgets(line, IMGMAX, infile);
       if (!result) error->one(FLERR, "Fix orient/eco file read failed");
@@ -164,8 +162,8 @@ void FixOrientECO::init() {
   // compute normalization factor
   int neigh = get_norm();
   if (me == 0) {
-    utils::logmesg(lmp,fmt::format("  fix orient/eco: cutoff={} norm_fac={} "
-                                   "neighbors={}\n", r_cut, norm_fac, neigh));
+    utils::logmesg(lmp,"  fix orient/eco: cutoff={} norm_fac={} "
+                   "neighbors={}\n", r_cut, norm_fac, neigh);
   }
 
   inv_norm_fac = 1.0 / norm_fac;
@@ -179,7 +177,7 @@ void FixOrientECO::init() {
   MPI_Bcast(&norm_fac, 1, MPI_DOUBLE, 0, world);
   MPI_Bcast(&inv_norm_fac, 1, MPI_DOUBLE, 0, world);
 
-  if (strstr(update->integrate_style, "respa")) {
+  if (utils::strmatch(update->integrate_style,"^respa")) {
     ilevel_respa = ((Respa *) update->integrate)->nlevels - 1;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level, ilevel_respa);
   }
@@ -203,7 +201,7 @@ void FixOrientECO::init_list(int /* id */, NeighList *ptr) {
 /* ---------------------------------------------------------------------- */
 
 void FixOrientECO::setup(int vflag) {
-  if (strstr(update->integrate_style, "verlet"))
+  if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
     ((Respa *) update->integrate)->copy_flevel_f(ilevel_respa);

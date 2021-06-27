@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -287,8 +288,8 @@ void FixDeposit::init()
 
     double separation = MAX(2.0*maxradinsert,maxradall+maxradinsert);
     if (sqrt(nearsq) < separation && comm->me == 0)
-      error->warning(FLERR,fmt::format("Fix deposit near setting < possible "
-                                       "overlap separation {}",separation));
+      error->warning(FLERR,"Fix deposit near setting < possible "
+                     "overlap separation {}",separation);
   }
 }
 
@@ -315,10 +316,12 @@ void FixDeposit::pre_exchange()
 
   if (next_reneighbor != update->ntimestep) return;
 
-  // clear ghost count and any ghost bonus data internal to AtomVec
+  // clear ghost count (and atom map) and any ghost bonus data
+  //   internal to AtomVec
   // same logic as beginning of Comm::exchange()
   // do it now b/c inserting atoms will overwrite ghost atoms
 
+  if (atom->map_style != Atom::MAP_NONE) atom->map_clear();
   atom->nghost = 0;
   atom->avec->clear_bonus();
 
@@ -578,14 +581,6 @@ void FixDeposit::pre_exchange()
     else if (shakeflag)
       fixshake->set_molecule(nlocalprev,maxtag_all,imol,coord,vnew,quat);
 
-    // old code: unsuccessful if no proc performed insertion of an atom
-    // don't think that check is necessary
-    // if get this far, should always be successful
-    // would be hard to undo partial insertion for a molecule
-    // better to check how many atoms could be inserted (w/out inserting)
-    //   then sum to insure all are inserted, before doing actual insertion
-    // MPI_Allreduce(&flag,&success,1,MPI_INT,MPI_MAX,world);
-
     success = 1;
     break;
   }
@@ -593,7 +588,7 @@ void FixDeposit::pre_exchange()
   // warn if not successful b/c too many attempts
 
   if (!success && comm->me == 0)
-    error->warning(FLERR,"Particle deposition was unsuccessful",0);
+    error->warning(FLERR,"Particle deposition was unsuccessful");
 
   // reset global natoms,nbonds,etc
   // increment maxtag_all and maxmol_all if necessary
@@ -621,10 +616,13 @@ void FixDeposit::pre_exchange()
         maxmol_all++;
       }
     }
-    if (atom->map_style != Atom::MAP_NONE) {
-      atom->map_init();
-      atom->map_set();
-    }
+  }
+
+  // rebuild atom map
+
+  if (atom->map_style != Atom::MAP_NONE) {
+    if (success) atom->map_init();
+    atom->map_set();
   }
 
   // next timestep to insert
@@ -697,9 +695,7 @@ void FixDeposit::options(int narg, char **arg)
       iregion = domain->find_region(arg[iarg+1]);
       if (iregion == -1)
         error->all(FLERR,"Region ID for fix deposit does not exist");
-      int n = strlen(arg[iarg+1]) + 1;
-      idregion = new char[n];
-      strcpy(idregion,arg[iarg+1]);
+      idregion = utils::strdup(arg[iarg+1]);
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"mol") == 0) {
@@ -728,18 +724,14 @@ void FixDeposit::options(int narg, char **arg)
       iarg += nmol+1;
     } else if (strcmp(arg[iarg],"rigid") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix deposit command");
-      int n = strlen(arg[iarg+1]) + 1;
       delete [] idrigid;
-      idrigid = new char[n];
-      strcpy(idrigid,arg[iarg+1]);
+      idrigid = utils::strdup(arg[iarg+1]);
       rigidflag = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"shake") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix deposit command");
-      int n = strlen(arg[iarg+1]) + 1;
       delete [] idshake;
-      idshake = new char[n];
-      strcpy(idshake,arg[iarg+1]);
+      idshake = utils::strdup(arg[iarg+1]);
       shakeflag = 1;
       iarg += 2;
 

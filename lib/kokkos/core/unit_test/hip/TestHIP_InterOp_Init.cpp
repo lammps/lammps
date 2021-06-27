@@ -43,7 +43,9 @@
 */
 
 #include <Kokkos_Core.hpp>
-#include <hip/TestHIP_Category.hpp>
+#include <TestHIP_Category.hpp>
+
+#include <array>
 
 namespace Test {
 
@@ -70,8 +72,8 @@ TEST(hip, raw_hip_interop) {
   offset<<<dim3(100), dim3(100), 0, nullptr>>>(p);
   HIP_SAFE_CALL(hipDeviceSynchronize());
 
-  int* h_p = new int[100];
-  HIP_SAFE_CALL(hipMemcpy(h_p, p, sizeof(int) * 100, hipMemcpyDefault));
+  std::array<int, 100> h_p;
+  HIP_SAFE_CALL(hipMemcpy(h_p.data(), p, sizeof(int) * 100, hipMemcpyDefault));
   HIP_SAFE_CALL(hipDeviceSynchronize());
   int64_t sum        = 0;
   int64_t sum_expect = 0;
@@ -81,5 +83,6 @@ TEST(hip, raw_hip_interop) {
   }
 
   ASSERT_EQ(sum, sum_expect);
+  HIP_SAFE_CALL(hipFree(p));
 }
 }  // namespace Test

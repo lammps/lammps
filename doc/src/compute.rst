@@ -193,11 +193,13 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` doc
 * :doc:`dihedral <compute_dihedral>` - energy of each dihedral sub-style
 * :doc:`dihedral/local <compute_dihedral_local>` - angle of each dihedral
 * :doc:`dilatation/atom <compute_dilatation_atom>` - Peridynamic dilatation for each atom
+* :doc:`dipole <compute_dipole>` - dipole vector and total dipole
 * :doc:`dipole/chunk <compute_dipole_chunk>` - dipole vector and total dipole for each chunk
 * :doc:`displace/atom <compute_displace_atom>` - displacement of each atom
 * :doc:`dpd <compute_dpd>` -
 * :doc:`dpd/atom <compute_dpd_atom>` -
 * :doc:`edpd/temp/atom <compute_edpd_temp_atom>` - per-atom temperature for each eDPD particle in a group
+* :doc:`efield/atom <compute_efield_atom>` -
 * :doc:`entropy/atom <compute_entropy_atom>` - pair entropy fingerprint of each atom
 * :doc:`erotate/asphere <compute_erotate_asphere>` - rotational energy of aspherical particles
 * :doc:`erotate/rigid <compute_erotate_rigid>` - rotational energy of rigid bodies

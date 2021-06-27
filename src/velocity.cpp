@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -42,7 +43,7 @@ enum{NONE,CONSTANT,EQUAL,ATOM};
 
 /* ---------------------------------------------------------------------- */
 
-Velocity::Velocity(LAMMPS *lmp) : Pointers(lmp) {}
+Velocity::Velocity(LAMMPS *lmp) : Command(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
@@ -108,7 +109,7 @@ void Velocity::command(int narg, char **arg)
 
   int initcomm = 0;
   if (style == ZERO && rfix >= 0 &&
-      utils::strmatch(modify->fix[rfix]->style,"^rigid/small")) initcomm = 1;
+      utils::strmatch(modify->fix[rfix]->style,"^rigid.*/small.*")) initcomm = 1;
   if ((style == CREATE || style == SET) && temperature &&
       strcmp(temperature->style,"temp/cs") == 0) initcomm = 1;
 
@@ -186,15 +187,11 @@ void Velocity::create(double t_desired, int seed)
   Compute *temperature_nobias = nullptr;
 
   if (temperature == nullptr || bias_flag) {
-    char **arg = new char*[3];
-    arg[0] = (char *) "velocity_temp";
-    arg[1] = group->names[igroup];
-    arg[2] = (char *) "temp";
+    modify->add_compute(fmt::format("velocity_temp {} temp",group->names[igroup]));
     if (temperature == nullptr) {
-      temperature = new ComputeTemp(lmp,3,arg);
+      temperature = modify->compute[modify->ncompute-1];
       tcreate_flag = 1;
-    } else temperature_nobias = new ComputeTemp(lmp,3,arg);
-    delete [] arg;
+    } else temperature_nobias = modify->compute[modify->ncompute-1];
   }
 
   // initialize temperature computation(s)
@@ -401,8 +398,8 @@ void Velocity::create(double t_desired, int seed)
   // if temperature compute was created, delete it
 
   delete random;
-  if (tcreate_flag) delete temperature;
-  if (temperature_nobias) delete temperature_nobias;
+  if (tcreate_flag) modify->delete_compute("velocity_temp");
+  if (temperature_nobias) modify->delete_compute("velocity_temp");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -578,13 +575,9 @@ void Velocity::scale(int /*narg*/, char **arg)
 
   int tflag = 0;
   if (temperature == nullptr) {
-    char **arg = new char*[3];
-    arg[0] = (char *) "velocity_temp";
-    arg[1] = group->names[igroup];
-    arg[2] = (char *) "temp";
-    temperature = new ComputeTemp(lmp,3,arg);
+    modify->add_compute(fmt::format("velocity_temp {} temp",group->names[igroup]));
+    temperature = modify->compute[modify->ncompute-1];
     tflag = 1;
-    delete [] arg;
   }
 
   // initialize temperature computation
@@ -612,7 +605,7 @@ void Velocity::scale(int /*narg*/, char **arg)
 
   // if temperature was created, delete it
 
-  if (tflag) delete temperature;
+  if (tflag) modify->delete_compute("velocity_temp");
 }
 
 /* ----------------------------------------------------------------------

@@ -345,7 +345,7 @@ KOKKOS_INLINE_FUNCTION T atomic_fetch_oper(
   return return_val;
 #elif defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_SYCL)
   // FIXME_SYCL
-  std::abort();
+  Kokkos::abort("Not implemented!");
   (void)op;
   (void)dest;
   (void)val;

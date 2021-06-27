@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,21 +17,23 @@
 ------------------------------------------------------------------------- */
 
 #include "temper_grem.h"
-#include <cmath>
-#include <cstring>
-#include "fix_grem.h"
-#include "universe.h"
+
+#include "compute.h"
 #include "domain.h"
-#include "update.h"
+#include "error.h"
+#include "finish.h"
+#include "fix.h"
+#include "fix_grem.h"
+#include "force.h"
 #include "integrate.h"
 #include "modify.h"
-#include "compute.h"
-#include "force.h"
-#include "fix.h"
 #include "random_park.h"
-#include "finish.h"
 #include "timer.h"
-#include "error.h"
+#include "universe.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -38,7 +41,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-TemperGrem::TemperGrem(LAMMPS *lmp) : Pointers(lmp) {}
+TemperGrem::TemperGrem(LAMMPS *lmp) : Command(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
@@ -90,9 +93,7 @@ void TemperGrem::command(int narg, char **arg)
   double pressref = 0;
 
   // Get and check for nh fix
-  int n = strlen(arg[4])+1;
-  id_nh = new char[n];
-  strcpy(id_nh,arg[4]);
+  id_nh = utils::strdup(arg[4]);
   int ifix = modify->find_fix(id_nh);
   if (ifix < 0)
     error->all(FLERR,"Fix id for nvt or npt fix does not exist");

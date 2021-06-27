@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -31,14 +31,14 @@ class MinLineSearch : public Min {
   // allocated and stored by fix_minimize
   // x,f are stored by parent or Atom class or Pair class
 
-  double *x0;                 // coords at start of linesearch
-  double *g;                  // old gradient vector
-  double *h;                  // search direction vector
+  double *x0;    // coords at start of linesearch
+  double *g;     // old gradient vector
+  double *h;     // search direction vector
 
-  double *gextra;             // g,h for extra global dof, x0 is stored by fix
+  double *gextra;    // g,h for extra global dof, x0 is stored by fix
   double *hextra;
 
-  double **x0extra_atom;      // x0,g,h for extra per-atom dof
+  double **x0extra_atom;    // x0,g,h for extra per-atom dof
   double **gextra_atom;
   double **hextra_atom;
 
@@ -52,6 +52,6 @@ class MinLineSearch : public Min {
   double compute_dir_deriv(double &);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif

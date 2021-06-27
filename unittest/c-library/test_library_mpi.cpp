@@ -191,7 +191,7 @@ TEST(MPI, multi_partition)
     EXPECT_EQ(lammps_extract_setting(lmp, "world_rank"), 0);
 
     char *part_id = (char *)lammps_extract_variable(lmp, "partition", nullptr);
-    ASSERT_THAT(part_id, StrEq(std::to_string(me+1)));
+    ASSERT_THAT(part_id, StrEq(std::to_string(me + 1)));
 
     lammps_close(lmp);
 };

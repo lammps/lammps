@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ATOM_CLASS
-
-AtomStyle(full,AtomVecFull)
-
+// clang-format off
+AtomStyle(full,AtomVecFull);
+// clang-format on
 #else
 
 #ifndef LMP_ATOM_VEC_FULL_H
@@ -36,17 +36,16 @@ class AtomVecFull : public AtomVec {
   void data_atom_post(int);
 
  private:
-  int *num_bond,*num_angle,*num_dihedral,*num_improper;
-  int **bond_type,**angle_type,**dihedral_type,**improper_type;
+  int *num_bond, *num_angle, *num_dihedral, *num_improper;
+  int **bond_type, **angle_type, **dihedral_type, **improper_type;
   int **nspecial;
 
-  int any_bond_negative,any_angle_negative,
-    any_dihedral_negative,any_improper_negative;
-  int bond_per_atom,angle_per_atom,dihedral_per_atom,improper_per_atom;
-  int *bond_negative,*angle_negative,*dihedral_negative,*improper_negative;
+  int any_bond_negative, any_angle_negative, any_dihedral_negative, any_improper_negative;
+  int bond_per_atom, angle_per_atom, dihedral_per_atom, improper_per_atom;
+  int *bond_negative, *angle_negative, *dihedral_negative, *improper_negative;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

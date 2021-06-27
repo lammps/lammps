@@ -16,6 +16,7 @@
 .. index:: kspace_style pppm/disp/tip4p
 .. index:: kspace_style pppm/disp/tip4p/omp
 .. index:: kspace_style pppm/disp/intel
+.. index:: kspace_style pppm/dielectric
 .. index:: kspace_style pppm/cg/omp
 .. index:: kspace_style pppm/stagger
 .. index:: kspace_style pppm/tip4p
@@ -24,6 +25,7 @@
 .. index:: kspace_style msm/omp
 .. index:: kspace_style msm/cg
 .. index:: kspace_style msm/cg/omp
+.. index:: kspace_style msm/dielectric
 .. index:: kspace_style scafacos
 
 kspace_style command
@@ -36,7 +38,7 @@ Syntax
 
    kspace_style style value
 
-* style = *none* or *ewald* or *ewald/dipole* or *ewald/dipole/spin* or *ewald/disp* or *ewald/omp* or *pppm* or *pppm/cg* or *pppm/disp* or *pppm/tip4p* or *pppm/stagger* or *pppm/disp/tip4p* or *pppm/gpu* or *pppm/intel* or *pppm/disp/intel* or *pppm/kk* or *pppm/omp* or *pppm/cg/omp* or *pppm/disp/tip4p/omp* or *pppm/tip4p/omp* or *msm* or *msm/cg* or *msm/omp* or *msm/cg/omp* or *scafacos*
+* style = *none* or *ewald* or *ewald/dipole* or *ewald/dipole/spin* or *ewald/disp* or *ewald/omp* or *pppm* or *pppm/cg* or *pppm/disp* or *pppm/tip4p* or *pppm/stagger* or *pppm/disp/tip4p* or *pppm/gpu* or *pppm/intel* or *pppm/disp/intel* or *pppm/kk* or *pppm/omp* or *pppm/cg/omp* or *pppm/disp/tip4p/omp* or *pppm/tip4p/omp* or *pppm/dielectic* or *msm* or *msm/cg* or *msm/omp* or *msm/cg/omp* or *msm/dielectric* or *scafacos*
 
   .. parsed-literal::
 
@@ -87,6 +89,8 @@ Syntax
          accuracy = desired relative error in forces
        *pppm/stagger* value = accuracy
          accuracy = desired relative error in forces
+       *pppm/dielectric* value = accuracy
+         accuracy = desired relative error in forces
        *msm* value = accuracy
          accuracy = desired relative error in forces
        *msm/cg* value = accuracy (smallq)
@@ -97,6 +101,8 @@ Syntax
        *msm/cg/omp* value = accuracy (smallq)
          accuracy = desired relative error in forces
          smallq = cutoff for charges to be considered (optional) (charge units)
+       *msm/dielectric* value = accuracy
+         accuracy = desired relative error in forces
        *scafacos* values = method accuracy
          method = fmm or p2nfft or p3m or ewald or direct
          accuracy = desired relative error in forces
@@ -278,7 +284,7 @@ pressure simulation with MSM will cause the code to run slower.
 ----------
 
 The *scafacos* style is a wrapper on the `ScaFaCoS Coulomb solver library <http://www.scafacos.de>`_ which provides a variety of solver
-methods which can be used with LAMMPS.  The paper by :ref:`(Who) <Who2012>`
+methods which can be used with LAMMPS.  The paper by :ref:`(Sutman) <Sutmann2014>`
 gives an overview of ScaFaCoS.
 
 ScaFaCoS was developed by a consortium of German research facilities
@@ -435,8 +441,14 @@ non-orthogonal (triclinic symmetry) simulation boxes. However,
 triclinic simulation cells may not yet be supported by all suffix
 versions of these styles.
 
-All of the kspace styles are part of the KSPACE package.  They are
-only enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+Most of the base kspace styles are part of the KSPACE package.  They are
+only enabled if LAMMPS was built with that package.  See the :doc:`Build
+package <Build_package>` doc page for more info.
+
+The *msm/dielectric* and *pppm/dielectric* kspace styles are part of the
+USER-DIELECTRIC package. They are only enabled if LAMMPS was built with
+that package **and** the KSPACE package.  See the :doc:`Build package
+<Build_package>` doc page for more info.
 
 For MSM, a simulation must be 3d and one can use any combination of
 periodic, non-periodic, or shrink-wrapped boundaries (specified using
@@ -550,7 +562,7 @@ Illinois at Urbana-Champaign, (2006).
 
 **(Cerda)** Cerda, Ballenegger, Lenz, Holm, J Chem Phys 129, 234104 (2008)
 
-.. _Who2012:
+.. _Sutmann2014:
 
-**(Who)** Who, Author2, Author3, J of Long Range Solvers, 35, 164-177
-(2012).
+**(Sutmann)** G. Sutmann. ScaFaCoS - a Scalable library of Fast Coulomb Solvers for particle Systems.
+  In Bajaj, Zavattieri, Koslowski, Siegmund, Proceedings of the Society of Engineering Science 51st Annual Technical Meeting. 2014.

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,27 +16,28 @@
    Contributing authors:
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-
-#include <cmath>
 #include "fix_npt_cauchy.h"
-#include "math_extra.h"
+
 #include "atom.h"
-#include "force.h"
-#include "group.h"
 #include "comm.h"
-#include "neighbor.h"
-#include "irregular.h"
-#include "modify.h"
+#include "compute.h"
+#include "domain.h"
+#include "error.h"
 #include "fix_deform.h"
 #include "fix_store.h"
-#include "compute.h"
+#include "force.h"
+#include "group.h"
+#include "irregular.h"
 #include "kspace.h"
-#include "update.h"
-#include "respa.h"
-#include "domain.h"
+#include "math_extra.h"
 #include "memory.h"
-#include "error.h"
+#include "modify.h"
+#include "neighbor.h"
+#include "respa.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -53,7 +55,8 @@ enum{ISO,ANISO,TRICLINIC};
 
 FixNPTCauchy::FixNPTCauchy(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  rfix(nullptr), id_dilate(nullptr), irregular(nullptr), id_temp(nullptr), id_press(nullptr),
+  rfix(nullptr), id_dilate(nullptr), irregular(nullptr),
+  id_temp(nullptr), id_press(nullptr),
   eta(nullptr), eta_dot(nullptr), eta_dotdot(nullptr),
   eta_mass(nullptr), etap(nullptr), etap_dot(nullptr), etap_dotdot(nullptr),
   etap_mass(nullptr), id_store(nullptr),init_store(nullptr)
@@ -604,36 +607,16 @@ FixNPTCauchy::FixNPTCauchy(LAMMPS *lmp, int narg, char **arg) :
   // compute group = all since pressure is always global (group all)
   // and thus its KE/temperature contribution should use group all
 
-  int n = strlen(id) + 6;
-  id_temp = new char[n];
-  strcpy(id_temp,id);
-  strcat(id_temp,"_temp");
-
-  char **newarg = new char*[3];
-  newarg[0] = id_temp;
-  newarg[1] = (char *) "all";
-  newarg[2] = (char *) "temp";
-
-  modify->add_compute(3,newarg);
-  delete [] newarg;
+  id_temp = utils::strdup(std::string(id) + "_temp");
+  modify->add_compute(fmt::format("{} all temp",id_temp));
   tcomputeflag = 1;
 
   // create a new compute pressure style
   // id = fix-ID + press, compute group = all
   // pass id_temp as 4th arg to pressure constructor
 
-  n = strlen(id) + 7;
-  id_press = new char[n];
-  strcpy(id_press,id);
-  strcat(id_press,"_press");
-
-  newarg = new char*[4];
-  newarg[0] = id_press;
-  newarg[1] = (char *) "all";
-  newarg[2] = (char *) "pressure";
-  newarg[3] = id_temp;
-  modify->add_compute(4,newarg);
-  delete [] newarg;
+  id_press = utils::strdup(std::string(id) + "_press");
+  modify->add_compute(fmt::format("{} all pressure {}",id_press, id_temp));
   pcomputeflag = 1;
 }
 
@@ -783,7 +766,7 @@ void FixNPTCauchy::init()
   if (force->kspace) kspace_flag = 1;
   else kspace_flag = 0;
 
-  if (strstr(update->integrate_style,"respa")) {
+  if (utils::strmatch(update->integrate_style,"^respa")) {
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
     step_respa = ((Respa *) update->integrate)->step;
     dto = 0.5*step_respa[0];
@@ -1770,7 +1753,7 @@ void FixNPTCauchy::reset_dt()
 
   // If using respa, then remap is performed in innermost level
 
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     dto = 0.5*step_respa[0];
 
   if (pstat_flag)

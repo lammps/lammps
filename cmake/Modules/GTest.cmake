@@ -1,6 +1,6 @@
 message(STATUS "Downloading and building Google Test library")
 
-if(CMAKE_BUILD_TYPE STREQUAL Debug)
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   set(GTEST_LIB_POSTFIX d)
 else()
   set(GTEST_LIB_POSTFIX)
@@ -8,10 +8,12 @@ endif()
 
 include(ExternalProject)
 set(GTEST_URL "https://github.com/google/googletest/archive/release-1.10.0.tar.gz" CACHE STRING "URL for GTest tarball")
+set(GTEST_MD5 "ecd1fa65e7de707cd5c00bdac56022cd" CACHE STRING "MD5 checksum of GTest tarball")
 mark_as_advanced(GTEST_URL)
+mark_as_advanced(GTEST_MD5)
 ExternalProject_Add(googletest
-                    URL ${GTEST_URL}
-                    URL_MD5         ecd1fa65e7de707cd5c00bdac56022cd
+                    URL             ${GTEST_URL}
+                    URL_MD5         ${GTEST_MD5}
                     SOURCE_DIR      "${CMAKE_BINARY_DIR}/gtest-src"
                     BINARY_DIR      "${CMAKE_BINARY_DIR}/gtest-build"
                     CMAKE_ARGS      ${CMAKE_REQUEST_PIC} ${CMAKE_EXTRA_GTEST_OPTS}

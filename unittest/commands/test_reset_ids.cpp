@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -21,18 +21,13 @@
 #include "utils.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#include "../testing/core.h"
 
 #include <cstdio>
 #include <mpi.h>
 
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
 bool verbose = false;
-
-#if defined(OMPI_MAJOR_VERSION)
-const bool have_openmpi = true;
-#else
-const bool have_openmpi = false;
-#endif
 
 using LAMMPS_NS::utils::split_words;
 
@@ -41,49 +36,22 @@ using ::testing::MatchesRegex;
 
 #define GETIDX(i) lmp->atom->map(i)
 
-#define TEST_FAILURE(errmsg, ...)                                 \
-    if (Info::has_exceptions()) {                                 \
-        ::testing::internal::CaptureStdout();                     \
-        ASSERT_ANY_THROW({__VA_ARGS__});                          \
-        auto mesg = ::testing::internal::GetCapturedStdout();     \
-        ASSERT_THAT(mesg, MatchesRegex(errmsg));                  \
-    } else {                                                      \
-        if (!have_openmpi) {                                      \
-            ::testing::internal::CaptureStdout();                 \
-            ASSERT_DEATH({__VA_ARGS__}, "");                      \
-            auto mesg = ::testing::internal::GetCapturedStdout(); \
-            ASSERT_THAT(mesg, MatchesRegex(errmsg));              \
-        }                                                         \
-    }
 
 #define STRINGIFY(val) XSTR(val)
 #define XSTR(val) #val
 
-class ResetIDsTest : public ::testing::Test {
+class ResetIDsTest : public LAMMPSTest {
 protected:
-    LAMMPS *lmp;
-
     void SetUp() override
     {
-        const char *args[] = {"ResetIDsTest", "-log", "none", "-nocite", "-echo", "screen"};
-        char **argv        = (char **)args;
-        int argc           = sizeof(args) / sizeof(char *);
-        if (!verbose) ::testing::internal::CaptureStdout();
-        lmp        = new LAMMPS(argc, argv, MPI_COMM_WORLD);
-        Info *info = new Info(lmp);
+        testbinary = "ResetIDsTest";
+        LAMMPSTest::SetUp();
         if (info->has_style("atom", "full")) {
-            lmp->input->one("variable input_dir index " STRINGIFY(TEST_INPUT_FOLDER));
-            lmp->input->one("include ${input_dir}/in.fourmol");
+            BEGIN_HIDE_OUTPUT();
+            command("variable input_dir index " STRINGIFY(TEST_INPUT_FOLDER));
+            command("include ${input_dir}/in.fourmol");
+            END_HIDE_OUTPUT();
         }
-        delete info;
-        if (!verbose) ::testing::internal::GetCapturedStdout();
-    }
-
-    void TearDown() override
-    {
-        if (!verbose) ::testing::internal::CaptureStdout();
-        delete lmp;
-        if (!verbose) ::testing::internal::GetCapturedStdout();
     }
 };
 
@@ -124,9 +92,9 @@ TEST_F(ResetIDsTest, MolIDAll)
 
     // the original data file has two different molecule IDs
     // for two residues of the same molecule/fragment.
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("reset_mol_ids all");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("reset_mol_ids all");
+    END_HIDE_OUTPUT();
 
     ASSERT_EQ(molid[GETIDX(1)], 1);
     ASSERT_EQ(molid[GETIDX(2)], 1);
@@ -166,12 +134,12 @@ TEST_F(ResetIDsTest, DeletePlusAtomID)
     auto molid = lmp->atom->molecule;
 
     // delete two water molecules
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("group allwater molecule 3:6");
-    lmp->input->one("group twowater molecule 4:6:2");
-    lmp->input->one("delete_atoms group twowater compress no bond yes");
-    lmp->input->one("reset_mol_ids all");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("group allwater molecule 3:6");
+    command("group twowater molecule 4:6:2");
+    command("delete_atoms group twowater compress no bond yes");
+    command("reset_mol_ids all");
+    END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->atom->natoms, 23);
     ASSERT_EQ(lmp->atom->map_tag_max, 26);
 
@@ -228,9 +196,9 @@ TEST_F(ResetIDsTest, DeletePlusAtomID)
     ASSERT_GE(GETIDX(25), 0);
     ASSERT_GE(GETIDX(26), 0);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("reset_atom_ids");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("reset_atom_ids");
+    END_HIDE_OUTPUT();
 
     ASSERT_EQ(lmp->atom->map_tag_max, 23);
     for (int i = 1; i <= 23; ++i)
@@ -244,11 +212,11 @@ TEST_F(ResetIDsTest, PartialOffset)
     auto molid = lmp->atom->molecule;
 
     // delete two water molecules
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("group allwater molecule 3:6");
-    lmp->input->one("group nowater subtract all allwater");
-    lmp->input->one("reset_mol_ids allwater offset 4");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("group allwater molecule 3:6");
+    command("group nowater subtract all allwater");
+    command("reset_mol_ids allwater offset 4");
+    END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->atom->natoms, 29);
     ASSERT_EQ(lmp->atom->map_tag_max, 29);
 
@@ -282,9 +250,9 @@ TEST_F(ResetIDsTest, PartialOffset)
     ASSERT_EQ(molid[GETIDX(28)], 8);
     ASSERT_EQ(molid[GETIDX(29)], 8);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("reset_mol_ids nowater offset 0");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("reset_mol_ids nowater offset 0");
+    END_HIDE_OUTPUT();
 
     ASSERT_EQ(molid[GETIDX(1)], 1);
     ASSERT_EQ(molid[GETIDX(2)], 1);
@@ -324,13 +292,13 @@ TEST_F(ResetIDsTest, DeleteAdd)
     auto molid = lmp->atom->molecule;
 
     // delete two water molecules
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("group allwater molecule 3:6");
-    lmp->input->one("group twowater molecule 4:6:2");
-    lmp->input->one("group nowater subtract all allwater");
-    lmp->input->one("delete_atoms group twowater compress no bond yes mol yes");
-    lmp->input->one("reset_mol_ids allwater");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("group allwater molecule 3:6");
+    command("group twowater molecule 4:6:2");
+    command("group nowater subtract all allwater");
+    command("delete_atoms group twowater compress no bond yes mol yes");
+    command("reset_mol_ids allwater");
+    END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->atom->natoms, 23);
     ASSERT_EQ(lmp->atom->map_tag_max, 26);
 
@@ -387,17 +355,17 @@ TEST_F(ResetIDsTest, DeleteAdd)
     ASSERT_GE(GETIDX(25), 0);
     ASSERT_GE(GETIDX(26), 0);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("reset_atom_ids sort yes");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("reset_atom_ids sort yes");
+    END_HIDE_OUTPUT();
 
     ASSERT_EQ(lmp->atom->map_tag_max, 23);
     for (int i = 1; i <= 23; ++i)
         ASSERT_GE(GETIDX(i), 0);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("reset_mol_ids nowater offset 1");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("reset_mol_ids nowater offset 1");
+    END_HIDE_OUTPUT();
 
     ASSERT_EQ(molid[GETIDX(1)], 2);
     ASSERT_EQ(molid[GETIDX(2)], 2);
@@ -423,13 +391,13 @@ TEST_F(ResetIDsTest, DeleteAdd)
     ASSERT_EQ(molid[GETIDX(22)], 4);
     ASSERT_EQ(molid[GETIDX(23)], 4);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("create_atoms 1 single 0.0 0.0 0.0");
-    lmp->input->one("create_atoms 2 single 1.0 0.0 0.0");
-    lmp->input->one("create_atoms 3 single 2.0 0.0 0.0");
-    lmp->input->one("create_atoms 4 single 3.0 0.0 0.0");
-    lmp->input->one("reset_mol_ids all single yes");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("create_atoms 1 single 0.0 0.0 0.0");
+    command("create_atoms 2 single 1.0 0.0 0.0");
+    command("create_atoms 3 single 2.0 0.0 0.0");
+    command("create_atoms 4 single 3.0 0.0 0.0");
+    command("reset_mol_ids all single yes");
+    END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->atom->natoms, 27);
     ASSERT_EQ(lmp->atom->map_tag_max, 27);
 
@@ -441,9 +409,9 @@ TEST_F(ResetIDsTest, DeleteAdd)
     ASSERT_EQ(molid[GETIDX(26)], 6);
     ASSERT_EQ(molid[GETIDX(27)], 7);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("reset_mol_ids all single no");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("reset_mol_ids all single no");
+    END_HIDE_OUTPUT();
 
     ASSERT_EQ(molid[GETIDX(21)], 3);
     ASSERT_EQ(molid[GETIDX(22)], 3);
@@ -453,9 +421,9 @@ TEST_F(ResetIDsTest, DeleteAdd)
     ASSERT_EQ(molid[GETIDX(26)], 0);
     ASSERT_EQ(molid[GETIDX(27)], 0);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("reset_mol_ids all compress no single yes");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("reset_mol_ids all compress no single yes");
+    END_HIDE_OUTPUT();
 
     ASSERT_EQ(molid[GETIDX(21)], 21);
     ASSERT_EQ(molid[GETIDX(22)], 21);
@@ -471,21 +439,21 @@ TEST_F(ResetIDsTest, TopologyData)
     if (lmp->atom->natoms == 0) GTEST_SKIP();
 
     // delete two water molecules
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("group allwater molecule 3:6");
-    lmp->input->one("group twowater molecule 4:6:2");
-    lmp->input->one("group nowater subtract all allwater");
-    lmp->input->one("delete_atoms group twowater compress no bond yes mol yes");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("group allwater molecule 3:6");
+    command("group twowater molecule 4:6:2");
+    command("group nowater subtract all allwater");
+    command("delete_atoms group twowater compress no bond yes mol yes");
+    END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->atom->natoms, 23);
     ASSERT_EQ(lmp->atom->map_tag_max, 26);
 
-    auto num_bond     = lmp->atom->num_bond;
-    auto num_angle    = lmp->atom->num_angle;
-    auto bond_atom    = lmp->atom->bond_atom;
-    auto angle_atom1  = lmp->atom->angle_atom1;
-    auto angle_atom2  = lmp->atom->angle_atom2;
-    auto angle_atom3  = lmp->atom->angle_atom3;
+    auto num_bond    = lmp->atom->num_bond;
+    auto num_angle   = lmp->atom->num_angle;
+    auto bond_atom   = lmp->atom->bond_atom;
+    auto angle_atom1 = lmp->atom->angle_atom1;
+    auto angle_atom2 = lmp->atom->angle_atom2;
+    auto angle_atom3 = lmp->atom->angle_atom3;
     ASSERT_EQ(num_bond[GETIDX(1)], 2);
     ASSERT_EQ(bond_atom[GETIDX(1)][0], 2);
     ASSERT_EQ(bond_atom[GETIDX(1)][1], 3);
@@ -560,16 +528,16 @@ TEST_F(ResetIDsTest, TopologyData)
     ASSERT_EQ(angle_atom2[GETIDX(24)][0], 24);
     ASSERT_EQ(angle_atom3[GETIDX(24)][0], 26);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("reset_atom_ids sort yes");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("reset_atom_ids sort yes");
+    END_HIDE_OUTPUT();
 
-    num_bond     = lmp->atom->num_bond;
-    num_angle    = lmp->atom->num_angle;
-    bond_atom    = lmp->atom->bond_atom;
-    angle_atom1  = lmp->atom->angle_atom1;
-    angle_atom2  = lmp->atom->angle_atom2;
-    angle_atom3  = lmp->atom->angle_atom3;
+    num_bond    = lmp->atom->num_bond;
+    num_angle   = lmp->atom->num_angle;
+    bond_atom   = lmp->atom->bond_atom;
+    angle_atom1 = lmp->atom->angle_atom1;
+    angle_atom2 = lmp->atom->angle_atom2;
+    angle_atom3 = lmp->atom->angle_atom3;
     ASSERT_EQ(num_bond[GETIDX(1)], 2);
     ASSERT_EQ(bond_atom[GETIDX(1)][0], 3);
     ASSERT_EQ(bond_atom[GETIDX(1)][1], 2);
@@ -658,60 +626,59 @@ TEST_F(ResetIDsTest, DeathTests)
 {
     if (lmp->atom->natoms == 0) GTEST_SKIP();
 
-    TEST_FAILURE(".*ERROR: Illegal reset_mol_ids command.*", lmp->input->one("reset_mol_ids"););
+    TEST_FAILURE(".*ERROR: Illegal reset_mol_ids command.*", command("reset_mol_ids"););
     TEST_FAILURE(".*ERROR: Illegal reset_mol_ids command.*",
-                 lmp->input->one("reset_mol_ids all offset 1 1"););
+                 command("reset_mol_ids all offset 1 1"););
     TEST_FAILURE(".*ERROR: Illegal reset_mol_ids command.*",
-                 lmp->input->one("reset_mol_ids all offset -2"););
+                 command("reset_mol_ids all offset -2"););
+    TEST_FAILURE(".*ERROR on proc 0: Expected integer.*", command("reset_mol_ids all offset xxx"););
     TEST_FAILURE(".*ERROR on proc 0: Expected integer.*",
-                 lmp->input->one("reset_mol_ids all offset xxx"););
-    TEST_FAILURE(".*ERROR on proc 0: Expected integer.*",
-                 lmp->input->one("reset_mol_ids all compress yes single no offset xxx"););
+                 command("reset_mol_ids all compress yes single no offset xxx"););
+    TEST_FAILURE(".*ERROR: Illegal reset_mol_ids command.*", command("reset_mol_ids all offset"););
     TEST_FAILURE(".*ERROR: Illegal reset_mol_ids command.*",
-                 lmp->input->one("reset_mol_ids all offset"););
-    TEST_FAILURE(".*ERROR: Illegal reset_mol_ids command.*",
-                 lmp->input->one("reset_mol_ids all compress"););
+                 command("reset_mol_ids all compress"););
 
     TEST_FAILURE(".*ERROR: Illegal reset_mol_ids command.*",
-                 lmp->input->one("reset_mol_ids all compress xxx"););
+                 command("reset_mol_ids all compress xxx"););
+    TEST_FAILURE(".*ERROR: Illegal reset_mol_ids command.*", command("reset_mol_ids all single"););
     TEST_FAILURE(".*ERROR: Illegal reset_mol_ids command.*",
-                 lmp->input->one("reset_mol_ids all single"););
-    TEST_FAILURE(".*ERROR: Illegal reset_mol_ids command.*",
-                 lmp->input->one("reset_mol_ids all single xxx"););
+                 command("reset_mol_ids all single xxx"););
 }
 
-TEST(ResetMolIds, CMDFail)
-{
-    LAMMPS *lmp;
-    const char *args[] = {"ResetIDsTest", "-log", "none", "-nocite", "-echo", "screen"};
-    char **argv        = (char **)args;
-    int argc           = sizeof(args) / sizeof(char *);
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp = new LAMMPS(argc, argv, MPI_COMM_WORLD);
-    if (!verbose) ::testing::internal::GetCapturedStdout();
-
-    TEST_FAILURE(".*ERROR: Reset_mol_ids command before simulation box is.*",
-                 lmp->input->one("reset_mol_ids all"););
-
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("atom_modify id no");
-    lmp->input->one("region box block 0 1 0 1 0 1");
-    lmp->input->one("create_box 1 box");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
-    TEST_FAILURE(".*ERROR: Cannot use reset_mol_ids unless.*",
-                 lmp->input->one("reset_mol_ids all"););
-
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("clear");
-    lmp->input->one("region box block 0 1 0 1 0 1");
-    lmp->input->one("create_box 1 box");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
-    TEST_FAILURE(".*ERROR: Can only use reset_mol_ids.*", lmp->input->one("reset_mol_ids all"););
-
-    if (!verbose) ::testing::internal::CaptureStdout();
-    delete lmp;
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+class ResetMolIDsTest : public LAMMPSTest {
+protected:
+    void SetUp() override
+    {
+        testbinary = "ResetIDsTest";
+        LAMMPSTest::SetUp();
+    }
 };
+
+TEST_F(ResetMolIDsTest, FailBeforeBox)
+{
+    TEST_FAILURE(".*ERROR: Reset_mol_ids command before simulation box is.*",
+                 command("reset_mol_ids all"););
+}
+
+TEST_F(ResetMolIDsTest, FailMissingId)
+{
+    BEGIN_HIDE_OUTPUT();
+    command("atom_modify id no");
+    command("region box block 0 1 0 1 0 1");
+    command("create_box 1 box");
+    END_HIDE_OUTPUT();
+    TEST_FAILURE(".*ERROR: Cannot use reset_mol_ids unless.*", command("reset_mol_ids all"););
+}
+
+TEST_F(ResetMolIDsTest, FailOnlyMolecular)
+{
+    BEGIN_HIDE_OUTPUT();
+    command("clear");
+    command("region box block 0 1 0 1 0 1");
+    command("create_box 1 box");
+    END_HIDE_OUTPUT();
+    TEST_FAILURE(".*ERROR: Can only use reset_mol_ids.*", command("reset_mol_ids all"););
+}
 
 } // namespace LAMMPS_NS
 
@@ -720,7 +687,7 @@ int main(int argc, char **argv)
     MPI_Init(&argc, &argv);
     ::testing::InitGoogleMock(&argc, argv);
 
-    if (have_openmpi && !LAMMPS_NS::Info::has_exceptions())
+    if (Info::get_mpi_vendor() == "Open MPI" && !LAMMPS_NS::Info::has_exceptions())
         std::cout << "Warning: using OpenMPI without exceptions. "
                      "Death tests will be skipped\n";
 

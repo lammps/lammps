@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -155,6 +156,7 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
     if ((which == ArgInfo::UNKNOWN) || (which == ArgInfo::NONE)
         || (argi.get_dim() > 1))
       error->all(FLERR,"Illegal compute chunk/atom command");
+    iarg = 4;
   }
 
   // optional args
@@ -237,15 +239,12 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
       else if (strcmp(arg[iarg+1],"y") == 0) idim = 1;
       else if (strcmp(arg[iarg+1],"z") == 0) idim = 2;
       else error->all(FLERR,"Illegal compute chunk/atom command");
+      minflag[idim] = COORD;
       if (strcmp(arg[iarg+2],"lower") == 0) minflag[idim] = LOWER;
-      else minflag[idim] = COORD;
-      if (minflag[idim] == COORD)
-        minvalue[idim] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      else minvalue[idim] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      maxflag[idim] = COORD;
       if (strcmp(arg[iarg+3],"upper") == 0) maxflag[idim] = UPPER;
-      else maxflag[idim] = COORD;
-      if (maxflag[idim] == COORD)
-        maxvalue[idim] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
-      else error->all(FLERR,"Illegal compute chunk/atom command");
+      else maxvalue[idim] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       iarg += 4;
     } else if (strcmp(arg[iarg],"units") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal compute chunk/atom command");
@@ -690,6 +689,7 @@ void ComputeChunkAtom::compute_ichunk()
   //   or if idsflag = NFREQ and lock is in place and are on later timestep
   // else proceed to recalculate per-atom chunk assignments
 
+  const int nlocal = atom->nlocal;
   int restore = 0;
   if (idsflag == ONCE && invoked_ichunk >= 0) restore = 1;
   if (idsflag == NFREQ && lockfix && update->ntimestep > lockstart) restore = 1;
@@ -697,7 +697,6 @@ void ComputeChunkAtom::compute_ichunk()
   if (restore) {
     invoked_ichunk = update->ntimestep;
     double *vstore = fixstore->vstore;
-    int nlocal = atom->nlocal;
     for (i = 0; i < nlocal; i++) ichunk[i] = static_cast<int> (vstore[i]);
     return;
   }
@@ -713,8 +712,6 @@ void ComputeChunkAtom::compute_ichunk()
 
   // compress chunk IDs via hash of the original uncompressed IDs
   // also apply discard rule except for binning styles which already did
-
-  int nlocal = atom->nlocal;
 
   if (compress) {
     if (binflag) {
@@ -764,8 +761,7 @@ void ComputeChunkAtom::compute_ichunk()
 
   if (idsflag == ONCE || (idsflag == NFREQ && lockfix)) {
     double *vstore = fixstore->vstore;
-    int nlocal = atom->nlocal;
-    for (int i = 0; i < nlocal; i++) vstore[i] = ichunk[i];
+    for (i = 0; i < nlocal; i++) vstore[i] = ichunk[i];
   }
 
   // one-time check if which = MOLECULE and
@@ -900,7 +896,7 @@ void ComputeChunkAtom::assign_chunk_ids()
 
   double **x = atom->x;
   int *mask = atom->mask;
-  int nlocal = atom->nlocal;
+  const int nlocal = atom->nlocal;
 
   if (regionflag) {
     for (i = 0; i < nlocal; i++) {

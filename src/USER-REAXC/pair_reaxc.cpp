@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -22,23 +23,23 @@
 
 #include "pair_reaxc.h"
 
-#include <cmath>
-
-#include <cstring>
-#include <strings.h>
 #include "atom.h"
-#include "update.h"
-#include "force.h"
+#include "citeme.h"
 #include "comm.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "modify.h"
+#include "error.h"
 #include "fix.h"
 #include "fix_reaxc.h"
-#include "citeme.h"
+#include "force.h"
 #include "memory.h"
-#include "error.h"
+#include "modify.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
+#include <strings.h>    // for strcasecmp()
 
 #include "reaxc_defs.h"
 #include "reaxc_types.h"
@@ -175,7 +176,6 @@ PairReaxC::~PairReaxC()
     memory->destroy(setflag);
     memory->destroy(cutsq);
     memory->destroy(cutghost);
-    delete [] map;
 
     delete [] chi;
     delete [] eta;

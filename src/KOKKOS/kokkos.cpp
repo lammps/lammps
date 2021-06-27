@@ -69,6 +69,8 @@ GPU_AWARE_UNKNOWN
 
 using namespace LAMMPS_NS;
 
+int KokkosLMP::is_finalized = 0;
+
 /* ---------------------------------------------------------------------- */
 
 KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)

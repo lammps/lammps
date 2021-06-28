@@ -55,6 +55,7 @@ action angle_harmonic_kokkos.cpp angle_harmonic.cpp
 action angle_harmonic_kokkos.h angle_harmonic.h
 action atom_kokkos.cpp
 action atom_kokkos.h
+action atom_map_kokkos.cpp
 action atom_vec_angle_kokkos.cpp atom_vec_angle.cpp
 action atom_vec_angle_kokkos.h atom_vec_angle.h
 action atom_vec_atomic_kokkos.cpp

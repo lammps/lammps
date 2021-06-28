@@ -29,7 +29,9 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-AtomKokkos::AtomKokkos(LAMMPS *lmp) : Atom(lmp) {}
+AtomKokkos::AtomKokkos(LAMMPS *lmp) : Atom(lmp) {
+  k_error_flag = DAT::tdual_int_scalar("atom:error_flag");
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -76,6 +78,8 @@ AtomKokkos::~AtomKokkos()
   memoryKK->destroy_kokkos(k_improper_atom2, improper_atom2);
   memoryKK->destroy_kokkos(k_improper_atom3, improper_atom3);
   memoryKK->destroy_kokkos(k_improper_atom4, improper_atom4);
+
+  map_delete();
 
   // SPIN package
 

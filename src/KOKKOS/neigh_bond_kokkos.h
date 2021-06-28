@@ -19,6 +19,7 @@
 #include "kokkos_type.h"
 #include "domain_kokkos.h"
 #include "pointers.h"
+#include <Kokkos_UnorderedMap.hpp>
 
 namespace LAMMPS_NS {
 
@@ -81,13 +82,19 @@ class NeighBondKokkos : protected Pointers  {
   int me,nprocs;
 
  private:
-
-
-  DAT::tdual_int_1d k_map_array;
-  typename AT::t_int_1d_randomread map_array;
+  int map_style;
 
   DAT::tdual_int_1d k_sametag;
-  typename AT::t_int_1d_randomread sametag;
+  typename AT::t_int_1d d_sametag;
+
+  DAT::tdual_int_1d k_map_array;
+
+  typedef Kokkos::UnorderedMap<tagint,int,LMPDeviceType> hash_type;
+  typedef Kokkos::DualView<hash_type, LMPDeviceType::array_layout, LMPDeviceType> dual_hash_type;
+  dual_hash_type k_map_hash;
+
+  KOKKOS_INLINE_FUNCTION
+  int map_kokkos(tagint) const;
 
   typename AT::t_int_2d v_bondlist;
   typename AT::t_int_2d v_anglelist;
@@ -130,7 +137,7 @@ class NeighBondKokkos : protected Pointers  {
   KOKKOS_INLINE_FUNCTION
   void minimum_image(X_FLOAT &dx, X_FLOAT &dy, X_FLOAT &dz) const;
 
-  void update_domain_variables();
+  void update_class_variables();
 
   // topology build functions
 

@@ -364,13 +364,13 @@ class Atom : protected Pointers {
       return -1;
   };
 
-  void map_init(int check = 1);
-  void map_clear();
-  void map_set();
-  void map_one(tagint, int);
+  virtual void map_init(int check = 1);
+  virtual void map_clear();
+  virtual void map_set();
+  virtual void map_one(tagint, int);
   int map_style_set();
-  void map_delete();
-  int map_find_hash(tagint);
+  virtual void map_delete();
+  virtual int map_find_hash(tagint);
 
  protected:
   // global to local ID mapping

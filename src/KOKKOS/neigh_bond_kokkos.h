@@ -181,10 +181,6 @@ class NeighBondKokkos : protected Pointers  {
 
 /* ERROR/WARNING messages:
 
-E: Must use atom map style array with Kokkos
-
-See the atom_modify map command.
-
 E: Bond atoms missing on proc %d at step %ld
 
 The 2nd atom needed to compute a particular bond is missing on this

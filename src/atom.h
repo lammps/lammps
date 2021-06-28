@@ -367,10 +367,10 @@ class Atom : protected Pointers {
   virtual void map_init(int check = 1);
   virtual void map_clear();
   virtual void map_set();
-  virtual void map_one(tagint, int);
+  void map_one(tagint, int);
   int map_style_set();
   virtual void map_delete();
-  virtual int map_find_hash(tagint);
+  int map_find_hash(tagint);
 
  protected:
   // global to local ID mapping

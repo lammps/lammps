@@ -34,8 +34,8 @@
 #define inline __inline__
 #endif /*IBMC*/
 
-#ifndef SUCCESS
-#define SUCCESS  1
+#ifndef REAXC_SUCCESS
+#define REAXC_SUCCESS  1
 #endif
 #ifndef FAILURE
 #define FAILURE  0

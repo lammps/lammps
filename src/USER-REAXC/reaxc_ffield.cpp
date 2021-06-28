@@ -736,5 +736,5 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
 
   fclose(fp);
 
-  return SUCCESS;
+  return REAXC_SUCCESS;
 }

@@ -109,19 +109,8 @@ ComputeXRD::ComputeXRD(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"2Theta") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal Compute XRD Command");
-      Min2Theta = atof(arg[iarg+1]) / 2;
-      Max2Theta = atof(arg[iarg+2]) / 2;
-      if (Max2Theta > MY_PI) {
-        Min2Theta = Min2Theta * MY_PI / 180;  // converting to radians if necessary
-        Max2Theta = Max2Theta * MY_PI / 180;
-        radflag = 0;
-      }
-      if (Min2Theta <= 0)
-        error->all(FLERR,"Minimum 2theta value must be greater than zero");
-      if (Max2Theta >= MY_PI )
-        error->all(FLERR,"Maximum 2theta value must be less than 180 degrees");
-      if (Max2Theta-Min2Theta <= 0)
-        error->all(FLERR,"Two-theta range must be greater than zero");
+      Min2Theta = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      Max2Theta = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       iarg += 3;
 
     } else if (strcmp(arg[iarg],"c") == 0) {
@@ -152,6 +141,20 @@ ComputeXRD::ComputeXRD(LAMMPS *lmp, int narg, char **arg) :
     } else error->all(FLERR,"Illegal Compute XRD Command");
   }
 
+  // error check and process min/max 2Theta values
+  Min2Theta /= 2.0;
+  Max2Theta /= 2.0;
+  if (Max2Theta > MY_PI) {
+    Min2Theta = Min2Theta * MY_PI / 180;  // converting to radians if necessary
+    Max2Theta = Max2Theta * MY_PI / 180;
+    radflag = 0;
+  }
+  if (Min2Theta <= 0)
+    error->all(FLERR,"Minimum 2Theta value must be greater than zero");
+  if (Max2Theta >= MY_PI )
+    error->all(FLERR,"Maximum 2Theta value must be less than 180 degrees");
+  if (Max2Theta-Min2Theta <= 0)
+    error->all(FLERR,"2Theta range must be greater than zero");
   Kmax = 2 * sin(Max2Theta) / lambda;
 
   // Calculating spacing between reciprocal lattice points

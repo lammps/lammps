@@ -90,7 +90,7 @@ standard. A more detailed discussion of that is below.
       directory, or ``make`` from the ``src/STUBS`` dir.  If the build
       fails, you may need to edit the ``STUBS/Makefile`` for your
       platform.  The stubs library does not provide MPI/IO functions
-      required by some LAMMPS packages, e.g. ``MPIIO`` or ``USER-LB``,
+      required by some LAMMPS packages, e.g. ``MPIIO`` or ``LATBOLTZ``,
       and thus is not compatible with those packages.
 
       .. note::

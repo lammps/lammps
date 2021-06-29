@@ -53,7 +53,7 @@ PACKAGE = asphere body class2 colloid compress coreshell dipole gpu \
 
 PACKUSER = user-adios user-atc user-awpmd user-brownian user-bocs cg-dna \
 	   cg-sdk user-colvars user-dielectric user-diffraction user-dpd user-drude \
-	   user-eff user-fep user-h5md ml-hdnnp user-intel user-lb user-manifold \
+	   user-eff user-fep user-h5md ml-hdnnp user-intel latboltz user-manifold \
 	   user-mdi meam user-mesodpd user-mesont user-mgpt user-misc \
 	   user-mofff user-molfile user-netcdf user-omp user-phonon \
 	   ml-pace user-plumed user-ptm user-qmmm user-qtb ml-quip \
@@ -61,11 +61,11 @@ PACKUSER = user-adios user-atc user-awpmd user-brownian user-bocs cg-dna \
 	   user-sdpd user-sph user-tally user-uef user-vtk user-yaff
 
 PACKLIB = compress gpu kim kokkos latte message mpiio mscg poems python voronoi \
-	  user-adios user-atc user-awpmd user-colvars user-h5md ml-hdnnp user-lb user-mdi \
+	  user-adios user-atc user-awpmd user-colvars user-h5md ml-hdnnp latboltz user-mdi \
 	  user-mesont user-molfile user-netcdf ml-pace user-plumed user-qmmm ml-quip \
 	  user-scafacos user-smd user-vtk
 
-PACKSYS = compress mpiio python user-lb
+PACKSYS = compress mpiio python latboltz
 
 PACKINT = gpu kokkos message poems user-atc user-awpmd user-colvars user-mesont \
 	  user-mdi

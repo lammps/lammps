@@ -23,7 +23,7 @@ FixStyle(lb/fluid,FixLbFluid);
 #include "fix.h"
 
 #if defined(MPI_STUBS)
-#error "The USER-LB package cannot be compiled in serial with MPI STUBS"
+#error "The LATBOLTZ package cannot be compiled in serial with MPI STUBS"
 #endif
 
 namespace LAMMPS_NS {

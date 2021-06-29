@@ -82,7 +82,7 @@ page gives those details.
    * :ref:`USER-H5MD <PKG-USER-H5MD>`
    * :ref:`ML-HDNNP <PKG-ML-HDNNP>`
    * :ref:`USER-INTEL <PKG-USER-INTEL>`
-   * :ref:`USER-LB <PKG-USER-LB>`
+   * :ref:`LATBOLTZ <PKG-LATBOLTZ>`
    * :ref:`USER-MANIFOLD <PKG-USER-MANIFOLD>`
    * :ref:`USER-MDI <PKG-USER-MDI>`
    * :ref:`MEAM <PKG-MEAM>`
@@ -1676,9 +1676,9 @@ This package has :ref:`specific installation instructions <user-intel>` on the :
 
 ----------
 
-.. _PKG-USER-LB:
+.. _PKG-LATBOLTZ:
 
-USER-LB package
+LATBOLTZ package
 ---------------
 
 **Contents:**
@@ -1691,12 +1691,12 @@ Ontario).
 
 **Supporting info:**
 
-* src/USER-LB: filenames -> commands
-* src/USER-LB/README
+* src/LATBOLTZ: filenames -> commands
+* src/LATBOLTZ/README
 * :doc:`fix lb/fluid <fix_lb_fluid>`
 * :doc:`fix lb/momentum <fix_lb_momentum>`
 * :doc:`fix lb/viscous <fix_lb_viscous>`
-* examples/PACKAGES/lb
+* examples/PACKAGES/latboltz
 
 ----------
 

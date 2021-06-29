@@ -16,7 +16,7 @@ brief descriptions of other fixes below, each of which have their own
 doc page.
 
 There are example scripts for using this package in
-examples/PACKAGES/lb.
+examples/PACKAGES/latboltz.
 
 IMPORTANT NOTE: This package can only be used if LAMMPS is compiled
 with MPI (i.e. the serial makefile should not be used to compile the

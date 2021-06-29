@@ -60,7 +60,7 @@ This is the list of packages that may require additional steps.
    * :ref:`USER-QMMM <user-qmmm>`
    * :ref:`ML-QUIP <ml-quip>`
    * :ref:`USER-SCAFACOS <user-scafacos>`
-   * :ref:`USER-SMD <user-smd>`
+   * :ref:`MACHDYN <machdyn>`
    * :ref:`USER-VTK <user-vtk>`
 
 ----------
@@ -1930,9 +1930,9 @@ To build with this package, you must download and build the
 
 ----------
 
-.. _user-smd:
+.. _machdyn:
 
-USER-SMD package
+MACHDYN package
 -------------------------------
 
 To build with this package, you must download the Eigen3 library.

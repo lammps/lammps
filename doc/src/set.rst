@@ -446,12 +446,12 @@ to using SPH in LAMMPS.
 
 Keyword *smd/mass/density* sets the mass of all selected particles,
 but it is only applicable to the Smooth Mach Dynamics package
-USER-SMD.  It assumes that the particle volume has already been
+MACHDYN.  It assumes that the particle volume has already been
 correctly set and calculates particle mass from the provided mass
 density value.
 
 Keyword *smd/contact/radius* only applies to simulations with the
-Smooth Mach Dynamics package USER-SMD.  Itsets an interaction radius
+Smooth Mach Dynamics package MACHDYN.  Itsets an interaction radius
 for computing short-range interactions, e.g. repulsive forces to
 prevent different individual physical bodies from penetrating each
 other. Note that the SPH smoothing kernel diameter used for computing

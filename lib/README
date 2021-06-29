@@ -53,7 +53,7 @@ qmmm          quantum mechanics/molecular mechanics coupling interface
                 from Axel Kohlmeyer (Temple U)
 quip          interface to QUIP/libAtoms framework, ML-QUIP package
                 from Albert Bartok-Partay and Gabor Csanyi (U Cambridge)
-smd           hooks to Eigen library, used by USER-SMD package
+machdyn       hooks to Eigen library, used by MACHDYN package
                 from Georg Ganzenmueller (Ernst Mach Institute, Germany)
 voronoi       hooks to the Voro++ library, used by compute voronoi/atom command
                 from Daniel Schwen (LANL)

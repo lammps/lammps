@@ -143,7 +143,7 @@ class Atom : protected Pointers {
   int *buckling;
   tagint **bond_nt;
 
-  // USER-SMD package
+  // MACHDYN package
 
   double *contact_radius;
   double **smd_data_9;
@@ -187,7 +187,7 @@ class Atom : protected Pointers {
 
   int sp_flag;
 
-  // USER-SMD package
+  // MACHDYN package
 
   int x0_flag;
   int smd_flag, damage_flag;

@@ -185,7 +185,7 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   buckling = nullptr;
   bond_nt = nullptr;
 
-  // USER-SMD package
+  // MACHDYN package
 
   contact_radius = nullptr;
   smd_data_9 = nullptr;
@@ -506,7 +506,7 @@ void Atom::peratom_create()
   add_peratom("vest",&vest,DOUBLE,3);
   add_peratom("cv",&cv,DOUBLE,0);
 
-  // USER-SMD package
+  // MACHDYN package
 
   add_peratom("contact_radius",&contact_radius,DOUBLE,0);
   add_peratom("smd_data_9",&smd_data_9,DOUBLE,1);

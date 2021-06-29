@@ -145,7 +145,7 @@ TEST_F(LAMMPS_plain, TestStyles)
     found = lmp->match_style("atom", "spin");
     EXPECT_STREQ(found, "SPIN");
     found = lmp->match_style("atom", "smd");
-    EXPECT_STREQ(found, "USER-SMD");
+    EXPECT_STREQ(found, "MACHDYN");
     found = lmp->match_style("atom", "sph");
     EXPECT_STREQ(found, "USER-SPH");
     found = lmp->match_style("atom", "i_don't_exist");

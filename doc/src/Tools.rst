@@ -968,13 +968,13 @@ smd tool
 
 The smd sub-directory contains a C++ file dump2vtk_tris.cpp and
 Makefile which can be compiled and used to convert triangle output
-files created by the Smooth-Mach Dynamics (USER-SMD) package into a
+files created by the Smooth-Mach Dynamics (MACHDYN) package into a
 VTK-compatible unstructured grid file.  It could then be read in and
 visualized by VTK.
 
 See the header of dump2vtk.cpp for more details.
 
-This tool was written by the USER-SMD package author, Georg
+This tool was written by the MACHDYN package author, Georg
 Ganzenmuller at the Fraunhofer-Institute for High-Speed Dynamics,
 Ernst Mach Institute in Germany (georg.ganzenmueller at emi.fhg.de).
 

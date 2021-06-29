@@ -106,7 +106,7 @@ page gives those details.
    * :ref:`USER-REAXC <PKG-USER-REAXC>`
    * :ref:`USER-SCAFACOS <PKG-USER-SCAFACOS>`
    * :ref:`USER-SDPD <PKG-USER-SDPD>`
-   * :ref:`USER-SMD <PKG-USER-SMD>`
+   * :ref:`MACHDYN <PKG-MACHDYN>`
    * :ref:`USER-SMTBQ <PKG-USER-SMTBQ>`
    * :ref:`USER-SPH <PKG-USER-SPH>`
    * :ref:`USER-TALLY <PKG-USER-TALLY>`
@@ -2445,9 +2445,9 @@ Sciences, Iran).
 
 ----------
 
-.. _PKG-USER-SMD:
+.. _PKG-MACHDYN:
 
-USER-SMD package
+MACHDYN package
 ----------------
 
 **Contents:**
@@ -2471,14 +2471,14 @@ Dynamics, Ernst Mach Institute, Germany).
 
 **Install:**
 
-This package has :ref:`specific installation instructions <user-smd>` on the :doc:`Build extras <Build_extras>` page.
+This package has :ref:`specific installation instructions <machdyn>` on the :doc:`Build extras <Build_extras>` page.
 
 **Supporting info:**
 
-* src/USER-SMD: filenames -> commands
-* src/USER-SMD/README
-* doc/PDF/SMD_LAMMPS_userguide.pdf
-* examples/PACKAGES/smd
+* src/MACHDYN: filenames -> commands
+* src/MACHDYN/README
+* doc/PDF/MACHDYN_LAMMPS_userguide.pdf
+* examples/PACKAGES/machdyn
 * https://www.lammps.org/movies.html#smd
 
 ----------
@@ -2515,7 +2515,7 @@ USER-SPH package
 
 An atom style, fixes, computes, and several pair styles which
 implements smoothed particle hydrodynamics (SPH) for liquids.  See the
-related :ref:`USER-SMD package <PKG-USER-SMD>` package for smooth Mach dynamics
+related :ref:`MACHDYN package <PKG-MACHDYN>` package for smooth Mach dynamics
 (SMD) for solids.
 
 This package contains ideal gas, Lennard-Jones equation of states,

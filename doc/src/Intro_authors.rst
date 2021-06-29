@@ -32,7 +32,7 @@ general-purpose as it is without their expertise and efforts.
 * Metin Aktulga (MSU), USER-REAXC package for C version of ReaxFF
 * Mike Brown (Intel), GPU and USER-INTEL packages
 * Colin Denniston (U Western Ontario), LATBOLTZ package
-* Georg Ganzenmuller (EMI), USER-SMD and USER-SPH packages
+* Georg Ganzenmuller (EMI), MACHDYN and USER-SPH packages
 * Andres Jaramillo-Botero (Caltech), USER-EFF package for electron force field
 * Reese Jones (Sandia) and colleagues, USER-ATC package for atom/continuum coupling
 * Christoph Kloss (DCS Computing), LIGGGHTS code for granular materials, built on top of LAMMPS

@@ -42,5 +42,5 @@
 //@HEADER
 */
 
-#include <hip/TestHIPHostPinned_Category.hpp>
+#include <TestHIPHostPinned_Category.hpp>
 #include <TestViewAPI_b.hpp>

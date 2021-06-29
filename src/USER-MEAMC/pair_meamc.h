@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,18 +12,18 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(meam/c,PairMEAMC)
-PairStyle(meam,PairMEAMC)
-
+// clang-format off
+PairStyle(meam/c,PairMEAMC);
+PairStyle(meam,PairMEAMC);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_MEAMC_H
 #define LMP_PAIR_MEAMC_H
 
 #include "pair.h"
+
 #include <vector>
-#include <string>
 
 namespace LAMMPS_NS {
 
@@ -47,12 +47,12 @@ class PairMEAMC : public Pair {
 
  private:
   class MEAM *meam_inst;
-  double cutmax;                        // max cutoff for all elements
-  int nlibelements;                     // # of library elements
-  std::vector<std::string> libelements; // names of library elements
-  std::vector<double> mass;             // mass of library element
+  double cutmax;                           // max cutoff for all elements
+  int nlibelements;                        // # of library elements
+  std::vector<std::string> libelements;    // names of library elements
+  std::vector<double> mass;                // mass of library element
 
-  double **scale;               // scaling factor for adapt
+  double **scale;    // scaling factor for adapt
 
   void allocate();
   void read_files(const std::string &, const std::string &);
@@ -61,7 +61,7 @@ class PairMEAMC : public Pair {
   void neigh_strip(int, int *, int *, int **);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

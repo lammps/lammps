@@ -145,8 +145,14 @@ template <class T, int N, class PolicyType>
 void test_team_policy_max_recommended(int scratch_size) {
   test_team_policy_max_recommended_static_size<T, N, PolicyType, 1>(
       scratch_size);
+  // FIXME_SYCL prevent running out of total kernel argument size limit
+#ifdef KOKKOS_ENABLE_SYCL
+  test_team_policy_max_recommended_static_size<T, N, PolicyType, 100>(
+      scratch_size);
+#else
   test_team_policy_max_recommended_static_size<T, N, PolicyType, 1000>(
       scratch_size);
+#endif
 }
 
 TEST(TEST_CATEGORY, team_policy_max_recommended) {
@@ -186,7 +192,8 @@ template <typename TeamHandleType, typename ReducerValueType>
 struct PrintFunctor1 {
   KOKKOS_INLINE_FUNCTION void operator()(const TeamHandleType& team,
                                          ReducerValueType&) const {
-    printf("Test %i %i\n", int(team.league_rank()), int(team.team_rank()));
+    KOKKOS_IMPL_DO_NOT_USE_PRINTF("Test %i %i\n", int(team.league_rank()),
+                                  int(team.team_rank()));
   }
 };
 
@@ -194,7 +201,8 @@ template <typename TeamHandleType, typename ReducerValueType>
 struct PrintFunctor2 {
   KOKKOS_INLINE_FUNCTION void operator()(const TeamHandleType& team,
                                          ReducerValueType& teamVal) const {
-    printf("Test %i %i\n", int(team.league_rank()), int(team.team_rank()));
+    KOKKOS_IMPL_DO_NOT_USE_PRINTF("Test %i %i\n", int(team.league_rank()),
+                                  int(team.team_rank()));
     teamVal += 1;
   }
 };

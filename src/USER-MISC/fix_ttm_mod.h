@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(ttm/mod,FixTTMMod)
-
+// clang-format off
+FixStyle(ttm/mod,FixTTMMod);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_TTM_MOD_H
@@ -25,8 +25,8 @@ FixStyle(ttm/mod,FixTTMMod)
 namespace LAMMPS_NS {
 
 struct el_heat_capacity_thermal_conductivity {
-double el_heat_capacity;
-double el_thermal_conductivity;
+  double el_heat_capacity;
+  double el_thermal_conductivity;
 };
 
 class FixTTMMod : public Fix {
@@ -58,22 +58,22 @@ class FixTTMMod : public Fix {
   int seed;
   class RanMars *random;
   FILE *fp;
-  int nxnodes,nynodes,nznodes;
+  int nxnodes, nynodes, nznodes;
   bigint total_nnodes;
   int ***nsum, ***nsum_all;
-  double *gfactor1,*gfactor2,*ratio,**flangevin;
-  double ***T_electron,***T_electron_old,***T_electron_first;
-  double ***sum_vsq,***sum_mass_vsq;
-  double ***sum_vsq_all,***sum_mass_vsq_all;
-  double ***net_energy_transfer,***net_energy_transfer_all;
-  double gamma_p,gamma_s,v_0,v_0_sq;
-  int skin_layer,surface_l,surface_r,t_surface_l,t_surface_r;
+  double *gfactor1, *gfactor2, *ratio, **flangevin;
+  double ***T_electron, ***T_electron_old, ***T_electron_first;
+  double ***sum_vsq, ***sum_mass_vsq;
+  double ***sum_vsq_all, ***sum_mass_vsq_all;
+  double ***net_energy_transfer, ***net_energy_transfer_all;
+  double gamma_p, gamma_s, v_0, v_0_sq;
+  int skin_layer, surface_l, surface_r, t_surface_l, t_surface_r;
   int movsur;
-  double esheat_0,esheat_1,esheat_2,esheat_3,esheat_4,C_limit,electronic_density;
-  double el_th_diff,T_damp;
-  double intensity,width,duration,surface_double;
-  double mult_factor,ttm_dt;
-  double pres_factor,free_path,ionic_density;
+  double esheat_0, esheat_1, esheat_2, esheat_3, esheat_4, C_limit, electronic_density;
+  double el_th_diff, T_damp;
+  double intensity, width, duration, surface_double;
+  double mult_factor, ttm_dt;
+  double pres_factor, free_path, ionic_density;
   double electron_temperature_min;
   el_heat_capacity_thermal_conductivity el_properties(double);
   double el_sp_heat_integral(double);
@@ -81,7 +81,7 @@ class FixTTMMod : public Fix {
   void read_initial_electron_temperatures(const char *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -18,22 +19,24 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_rigid_nh.h"
-#include <cmath>
-#include <cstring>
-#include "math_extra.h"
+
 #include "atom.h"
+#include "comm.h"
 #include "compute.h"
 #include "domain.h"
-#include "update.h"
-#include "modify.h"
-#include "fix_deform.h"
-#include "group.h"
-#include "comm.h"
-#include "force.h"
-#include "kspace.h"
-#include "memory.h"
 #include "error.h"
+#include "fix_deform.h"
+#include "force.h"
+#include "group.h"
+#include "kspace.h"
+#include "math_extra.h"
+#include "memory.h"
+#include "modify.h"
 #include "rigid_const.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -820,7 +823,7 @@ void FixRigidNH::nhc_press_integrate()
 
   double tb_mass = kt / (p_freq_max * p_freq_max);
   q_b[0] = dimension * dimension * tb_mass;
-  for (int i = 1; i < p_chain; i++) {
+  for (i = 1; i < p_chain; i++) {
     q_b[i] = tb_mass;
     f_eta_b[i] = q_b[i-1] * eta_dot_b[i-1] * eta_dot_b[i-1] - kt;
     f_eta_b[i] /= q_b[i];

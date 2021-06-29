@@ -7,7 +7,7 @@ To run a serial (non-MPI) executable, follow these steps:
   then typing "cmd".
 * Move to the directory where you have your input script,
   (e.g. by typing: cd "Documents").
-* At the command prompt, type "lmp_serial -in in.file", where
+* At the command prompt, type "lmp -in in.file", where
   in.file is the name of your LAMMPS input script.
 
 Note that the serial executable includes support for multi-threading
@@ -16,7 +16,7 @@ parallelization from the styles in the USER-OMP packages.  To run with
 
 .. code-block:: bash
 
-   lmp_serial -in in.lj -pk omp 4 -sf omp
+   lmp -in in.lj -pk omp 4 -sf omp
 
 ----------
 
@@ -41,15 +41,17 @@ into the MPICH2 installation directory, then into the sub-directory
 * Move to the directory where you have your input file
   (e.g. by typing: cd "Documents").
 
-Then type something like this:
+Then you can run the executable in serial like in the example above
+or in parallel using MPI with one of the following commands:
 
 .. code-block:: bash
 
-   mpiexec -localonly 4 lmp_mpi -in in.file
-   mpiexec -np 4 lmp_mpi -in in.file
+   mpiexec -localonly 4 lmp -in in.file
+   mpiexec -np 4 lmp -in in.file
 
 where in.file is the name of your LAMMPS input script. For the latter
-case, you may be prompted to enter your password.
+case, you may be prompted to enter the password that you set during
+installation of the MPI library software.
 
 In this mode, output may not immediately show up on the screen, so if
 your input script takes a long time to execute, you may need to be
@@ -60,11 +62,12 @@ something like this:
 
 .. code-block:: bash
 
-   lmp_mpi -in in.lj
+   lmp -in in.lj
 
 Note that the parallel executable also includes OpenMP
 multi-threading, which can be combined with MPI using something like:
 
 .. code-block:: bash
 
-   mpiexec -localonly 2 lmp_mpi -in in.lj -pk omp 2 -sf omp
+   mpiexec -localonly 2 lmp -in in.lj -pk omp 2 -sf omp
+

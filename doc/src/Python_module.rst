@@ -142,7 +142,7 @@ Style Constants
 Type Constants
 --------------
 
-.. py:data:: LMP_TYPE_SCALAR, LMP_TYLE_VECTOR, LMP_TYPE_ARRAY, LMP_SIZE_VECTOR, LMP_SIZE_ROWS, LMP_SIZE_COLS
+.. py:data:: LMP_TYPE_SCALAR, LMP_TYPE_VECTOR, LMP_TYPE_ARRAY, LMP_SIZE_VECTOR, LMP_SIZE_ROWS, LMP_SIZE_COLS
    :type: int
 
    Constants in the :py:mod:`lammps` module to select what type of data

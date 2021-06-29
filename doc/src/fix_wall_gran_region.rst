@@ -65,7 +65,7 @@ non-granular particles and simpler wall geometries, respectively.
 
 Here are snapshots of example models using this command.  Corresponding
 input scripts can be found in examples/granregion.  Movies of these
-simulations are `here on the Movies page <https://lammps.sandia.gov/movies.html#granregion>`_
+simulations are `here on the Movies page <https://www.lammps.org/movies.html#granregion>`_
 of the LAMMPS web site.
 
 .. |wallgran1| image:: img/gran_funnel.png
@@ -181,7 +181,8 @@ radius - r = overlap of particle with wall, m_eff = mass of particle,
 and the effective radius of contact is just the radius of the
 particle.
 
-The parameters *Kn*\ , *Kt*\ , *gamma_n*, *gamma_t*, *xmu* and *dampflag*
+The parameters *Kn*\ , *Kt*\ , *gamma_n*, *gamma_t*, *xmu*, *dampflag*,
+and the optional keyword *limit_damping*
 have the same meaning and units as those specified with the
 :doc:`pair_style gran/\* <pair_gran>` commands.  This means a NULL can be
 used for either *Kt* or *gamma_t* as described on that page.  If a

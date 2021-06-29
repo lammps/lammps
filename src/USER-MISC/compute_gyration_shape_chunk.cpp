@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -19,7 +20,6 @@
 
 #include "error.h"
 #include "math_eigen.h"
-#include "math_extra.h"
 #include "math_special.h"
 #include "memory.h"
 #include "modify.h"
@@ -40,7 +40,7 @@ ComputeGyrationShapeChunk::ComputeGyrationShapeChunk(LAMMPS *lmp, int narg, char
   // ID of compute gyration
   id_gyration_chunk = utils::strdup(arg[3]);
 
-  init();
+  ComputeGyrationShapeChunk::init();
 
   array_flag = 1;
   size_array_cols = 6;

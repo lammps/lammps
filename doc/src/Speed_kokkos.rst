@@ -27,7 +27,7 @@ GPUs) and HIP (for AMD GPUs). You choose the mode at build time to
 produce an executable compatible with a specific hardware.
 
 .. admonition:: C++14 support
-      :class: note
+   :class: note
 
    Kokkos requires using a compiler that supports the c++14 standard. For
    some compilers, it may be necessary to add a flag to enable c++14 support.
@@ -406,7 +406,7 @@ Generally speaking, the following rules of thumb apply:
   package also can increase the vector length of vector instructions
   by switching to single or mixed precision mode.
 
-See the `Benchmark page <https://lammps.sandia.gov/bench.html>`_ of the
+See the `Benchmark page <https://www.lammps.org/bench.html>`_ of the
 LAMMPS web site for performance of the KOKKOS package on different
 hardware.
 

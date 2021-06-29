@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,10 +12,10 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(drude/transform/direct,FixDrudeTransform<false>)
-FixStyle(drude/transform/inverse,FixDrudeTransform<true>)
-
+// clang-format off
+FixStyle(drude/transform/direct,FixDrudeTransform<false>);
+FixStyle(drude/transform/inverse,FixDrudeTransform<true>);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_DRUDE_TRANSFORM_H
@@ -25,8 +25,7 @@ FixStyle(drude/transform/inverse,FixDrudeTransform<true>)
 
 namespace LAMMPS_NS {
 
-template <bool inverse>
-class FixDrudeTransform : public Fix {
+template <bool inverse> class FixDrudeTransform : public Fix {
  public:
   FixDrudeTransform<inverse>(class LAMMPS *, int, char **);
   ~FixDrudeTransform<inverse>();
@@ -39,13 +38,13 @@ class FixDrudeTransform : public Fix {
   void final_integrate();
   int pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc);
   void unpack_forward_comm(int n, int first, double *buf);
+
  protected:
-  double * mcoeff;
-  class FixDrude * fix_drude;
+  double *mcoeff;
+  class FixDrude *fix_drude;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/ Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -42,6 +42,9 @@ using ::testing::MatchesRegex;
             auto mesg = ::testing::internal::GetCapturedStdout(); \
             ASSERT_THAT(mesg, MatchesRegex(errmsg));              \
         }                                                         \
+        else { \
+           std::cerr << "[          ] [ INFO ] Skipping death test (no exception support) \n";   \
+        } \
     }
 
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).

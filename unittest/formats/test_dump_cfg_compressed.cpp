@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -50,6 +50,39 @@ TEST_F(DumpCfgCompressTest, compressed_run0)
         generate_text_and_compressed_dump(text_files, compressed_files, fields, fields, "", "checksum yes", 0);
     } else {
         generate_text_and_compressed_dump(text_files, compressed_files, fields, "", 0);
+    }
+
+    TearDown();
+
+    ASSERT_FILE_EXISTS(text_file_0);
+    ASSERT_FILE_EXISTS(compressed_file_0);
+
+    auto converted_file_0 = convert_compressed_to_text(compressed_file_0);
+
+    ASSERT_FILE_EXISTS(converted_file_0);
+    ASSERT_FILE_EQUAL(text_file_0, converted_file_0);
+    delete_file(text_file_0);
+    delete_file(compressed_file_0);
+    delete_file(converted_file_0);
+}
+
+TEST_F(DumpCfgCompressTest, compressed_no_buffer_run0)
+{
+    if (!COMPRESS_BINARY) GTEST_SKIP();
+
+    auto base_name        = "no_buffer_run*.melt.cfg";
+    auto text_files       = text_dump_filename(base_name);
+    auto compressed_files = compressed_dump_filename(base_name);
+
+    auto base_name_0       = "no_buffer_run0.melt.cfg";
+    auto text_file_0       = text_dump_filename(base_name_0);
+    auto compressed_file_0 = compressed_dump_filename(base_name_0);
+    auto fields            = "mass type xs ys zs id proc procp1 x y z ix iy iz vx vy vz fx fy fz";
+
+    if(compression_style == "cfg/zstd") {
+        generate_text_and_compressed_dump(text_files, compressed_files, fields, fields, "buffer no", "buffer no", 0);
+    } else {
+        generate_text_and_compressed_dump(text_files, compressed_files, fields, "buffer no", 0);
     }
 
     TearDown();
@@ -234,7 +267,7 @@ TEST_F(DumpCfgCompressTest, compressed_modify_bad_param)
     command(fmt::format("dump id1 all {} 1 {} {}", compression_style, compressed_dump_filename("modify_bad_param_run0_*.melt.cfg"), fields));
     END_HIDE_OUTPUT();
 
-    TEST_FAILURE(".*ERROR: Illegal dump_modify command: compression level must in the range of.*",
+    TEST_FAILURE(".*ERROR on proc 0: Illegal dump_modify command: Compression level must in the range of.*",
         command("dump_modify id1 compression_level 12");
     );
 }
@@ -248,7 +281,7 @@ TEST_F(DumpCfgCompressTest, compressed_modify_multi_bad_param)
     command(fmt::format("dump id1 all {} 1 {} {}", compression_style, compressed_dump_filename("modify_multi_bad_param_run0_*.melt.cfg"), fields));
     END_HIDE_OUTPUT();
 
-    TEST_FAILURE(".*ERROR: Illegal dump_modify command: compression level must in the range of.*",
+    TEST_FAILURE(".*ERROR on proc 0: Illegal dump_modify command: Compression level must in the range of.*",
         command("dump_modify id1 pad 3 compression_level 12");
     );
 }

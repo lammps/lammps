@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,27 +17,22 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_lj_cut_dipole_long_gpu.h"
-#include <cmath>
-#include <cstdio>
 
-#include <cstring>
 #include "atom.h"
-#include "atom_vec.h"
-#include "comm.h"
-#include "force.h"
-#include "kspace.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "integrate.h"
-#include "math_const.h"
-#include "memory.h"
-#include "error.h"
-#include "neigh_request.h"
-#include "universe.h"
-#include "update.h"
 #include "domain.h"
+#include "error.h"
+#include "force.h"
 #include "gpu_extra.h"
+#include "kspace.h"
+#include "math_const.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
 #include "suffix.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 #define EWALD_F   1.12837917
 #define EWALD_P   0.3275911
@@ -160,7 +156,7 @@ void PairLJCutDipoleLongGPU::init_style()
     error->all(FLERR,"Pair dipole/cut/gpu requires atom attributes q, mu, torque");
 
   if (force->newton_pair)
-    error->all(FLERR,"Cannot use newton pair with dipole/cut/gpu pair style");
+    error->all(FLERR,"Pair style dipole/cut/gpu requires newton pair off");
 
   if (strcmp(update->unit_style,"electron") == 0)
     error->all(FLERR,"Cannot (yet) use 'electron' units with dipoles");

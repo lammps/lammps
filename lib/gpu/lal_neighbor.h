@@ -26,11 +26,15 @@
 
 #if !defined(USE_OPENCL) && !defined(USE_HIP)
 #ifndef LAL_USE_OLD_NEIGHBOR
-// Issue with incorrect results with CUDA 11.2
-#if (CUDA_VERSION > 11019) && (CUDA_VERSION < 11030)
+// Issue with incorrect results with CUDA >= 11.2
+#if (CUDA_VERSION > 11019)
 #define LAL_USE_OLD_NEIGHBOR
 #endif
 #endif
+#endif
+
+#if defined(USE_HIP)
+#define LAL_USE_OLD_NEIGHBOR
 #endif
 
 namespace LAMMPS_AL {

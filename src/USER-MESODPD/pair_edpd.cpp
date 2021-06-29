@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -18,20 +19,20 @@
 
 #include "pair_edpd.h"
 
+#include "atom.h"
+#include "citeme.h"
+#include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "neigh_list.h"
+#include "neighbor.h"
+#include "random_mars.h"
+#include "update.h"
+
 #include <cmath>
 #include <ctime>
 #include <cstring>
-#include "atom.h"
-#include "comm.h"
-#include "update.h"
-#include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "random_mars.h"
-#include "citeme.h"
-#include "memory.h"
-#include "error.h"
-
 
 using namespace LAMMPS_NS;
 
@@ -275,11 +276,9 @@ void PairEDPD::settings(int narg, char **arg)
 
   // initialize Marsaglia RNG with processor-unique seed
 
-  if (seed <= 0) {
-    struct timespec time;
-    clock_gettime( CLOCK_REALTIME, &time );
-    seed = time.tv_nsec;  // if seed is non-positive, get the current time as the seed
-  }
+  if (seed <= 0)
+    error->all(FLERR,"Invalid random number seed");
+
   delete random;
   random = new RanMars(lmp,(seed + comm->me) % 900000000);
   randomT = new RanMars(lmp,(2*seed + comm->me) % 900000000);

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    This software is distributed under the GNU General Public License.
@@ -197,6 +198,7 @@ void PairGranHookeOMP::eval(int iifrom, int iito, ThrData * const thr)
 
         damp = meff*gamman*vnnr*rsqinv;
         ccel = kn*(radsum-r)*rinv - damp;
+        if (limit_damping && (ccel < 0.0)) ccel = 0.0;
 
         // relative velocities
 

@@ -208,14 +208,6 @@ struct MemorySpaceAccess<Kokkos::OpenMP::memory_space,
   enum : bool { deepcopy = false };
 };
 
-template <>
-struct VerifyExecutionCanAccessMemorySpace<
-    Kokkos::OpenMP::memory_space, Kokkos::OpenMP::scratch_memory_space> {
-  enum : bool { value = true };
-  inline static void verify(void) {}
-  inline static void verify(const void*) {}
-};
-
 }  // namespace Impl
 }  // namespace Kokkos
 

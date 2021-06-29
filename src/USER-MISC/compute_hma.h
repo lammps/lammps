@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(hma,ComputeHMA)
-
+// clang-format off
+ComputeStyle(hma,ComputeHMA);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_HMA_H
@@ -47,21 +47,20 @@ class ComputeHMA : public Compute {
   double boltz, nktv2p, inv_volume;
   double deltaPcap;
   double virial_compute(int);
-  static double sumVirial(int n, double* v) {
+  static double sumVirial(int n, double *v)
+  {
     double x = 0;
-    for (int i=0; i<n; i++) x += v[i];
+    for (int i = 0; i < n; i++) x += v[i];
     return x;
   }
   int computeU, computeP, computeCv;
-  class NeighList *list; // half neighbor list
+  class NeighList *list;    // half neighbor list
   double **deltaR;
   int returnAnharmonic;
   double uLat, pLat;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-

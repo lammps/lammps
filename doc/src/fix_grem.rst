@@ -92,6 +92,11 @@ The :doc:`thermo_modify <thermo_modify>` *press* option is supported
 by this fix to add the rescaled kinetic pressure as part of
 :doc:`thermodynamic output <thermo_style>`.
 
+This fix computes a global scalar which can be accessed by various
+:doc:`output commands <Howto_output>`.  The scalar is the effective
+temperature :math:`T_{eff}`.  The scalar value calculated by this
+fix is "intensive".
+
 Restrictions
 """"""""""""
 

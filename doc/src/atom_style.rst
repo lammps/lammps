@@ -27,7 +27,7 @@ Syntax
            template-ID = ID of molecule template specified in a separate :doc:`molecule <molecule>` command
          *hybrid* args = list of one or more sub-styles, each with their args
 
-* accelerated styles (with same args) = *angle/kk* or *atomic/kk* or *bond/kk* or *charge/kk* or *full/kk* or *molecular/kk*
+* accelerated styles (with same args) = *angle/kk* or *atomic/kk* or *bond/kk* or *charge/kk* or *full/kk* or *molecular/kk* or *spin/kk*
 
 Examples
 """"""""
@@ -87,6 +87,8 @@ quantities.
 | *bond*       | bonds                                               | bead-spring polymers                 |
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *charge*     | charge                                              | atomic system with charges           |
++--------------+-----------------------------------------------------+--------------------------------------+
+| *dielectric* | dipole, area, curvature                             | system with surface polarization     |
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *dipole*     | charge and dipole moment                            | system with dipolar particles        |
 +--------------+-----------------------------------------------------+--------------------------------------+
@@ -165,6 +167,17 @@ stores a flag which indicates whether it is a finite-size ellipsoid or
 a point particle.  If it is an ellipsoid, it also stores a shape
 vector with the 3 diameters of the ellipsoid and a quaternion 4-vector
 with its orientation.
+
+For the *dielectric* style, each particle can be either a physical
+particle (e.g. an ion), or an interface particle representing a boundary
+element. For physical particles, the per-particle properties are
+the same as atom_style full.  For interface particles, in addition to
+these properties, each particle also has an area, a normal unit vector,
+a mean local curvature, the mean and difference of the dielectric constants
+of two sides of the interface, and the local dielectric constant at the
+boundary element.  The distinction between the physical and interface
+particles is only meaningful when :doc:`fix polarize <fix_polarize>`
+commands are applied to the interface particles.
 
 For the *dipole* style, a point dipole is defined for each point
 particle.  Note that if you wish the particles to be finite-size

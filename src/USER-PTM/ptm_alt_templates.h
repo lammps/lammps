@@ -7,11 +7,14 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
+// clang-format off
+
 #ifndef PTM_ALT_TEMPLATES_H
 #define PTM_ALT_TEMPLATES_H
 
-#include <cmath>
+#include "ptm_constants.h"
 
+#include <cmath>
 
 const double ptm_template_hcp_alt1[PTM_NUM_POINTS_HCP][3] = {
                                                                 {          0,          0,          0 },
@@ -125,3 +128,4 @@ const double ptm_template_graphene_alt1[PTM_NUM_POINTS_GRAPHENE][3] = {
 
 #endif
 
+// clang-format on

@@ -49,8 +49,8 @@ underscore character '_' to separate words. Outside of bundled libraries
 which may have different conventions, all C and C++ header files have a
 ``.h`` extension, all C++ files have a ``.cpp`` extension, and C files a
 ``.c`` extension. A small number of C++ classes and utility functions
-are implemented with only a ``.h`` file. Examples are the Pointer class
-or the MathVec functions.
+are implemented with only a ``.h`` file. Examples are the Pointers and
+Commands classes or the MathVec functions.
 
 Class topology
 --------------
@@ -144,7 +144,7 @@ implement specific commands that can be invoked before, after, or in
 between runs.  For these an instance of the class is created, its
 command() method called and then, after completion, the class instance
 deleted.  Examples for this are the create_box, create_atoms, minimize,
-run, or velocity command styles.
+run, set, or velocity command styles.
 
 For all those ``styles`` certain naming conventions are employed: for
 the fix nve command the class is called FixNVE and the source files are
@@ -175,11 +175,11 @@ follows:
 - The Input class reads and processes input input strings and files,
   stores variables, and invokes :doc:`commands <Commands_all>`.
 
-- As discussed above, command style classes are directly derived from
-  the Pointers class. They provide input script commands that perform
-  one-time operations before/after/between simulations or which invoke a
-  simulation.  They are instantiated from within the Input class,
-  invoked, then immediately destructed.
+- Command style classes are derived from the Command class. They provide
+  input script commands that perform one-time operations
+  before/after/between simulations or which invoke a simulation.  They
+  are usually instantiated from within the Input class, its ``command``
+  method invoked, and then immediately destructed.
 
 - The Finish class is instantiated to print statistics to the screen
   after a simulation is performed, by commands like run and minimize.

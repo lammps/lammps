@@ -38,13 +38,14 @@ Once you have successfully wrapped LAMMPS, you can run the Python
 scripts in the examples sub-directory:
 
 trivial.py          read/run a LAMMPS input script thru Python
-demo.py	  	    invoke various LAMMPS library interface routines
-simple.py	    parallel example, mimicing examples/COUPLE/simple/simple.cpp
+demo.py             invoke various LAMMPS library interface routines
+simple.py           parallel example, mimicing examples/COUPLE/simple/simple.cpp
 split.py            parallel example
 mc.py               Monte Carlo energy relaxation wrapper on LAMMPS
-gui.py		    GUI go/stop/temperature-slider to control LAMMPS
-plot.py		    real-time temperature plot with GnuPlot via Pizza.py
-viz_tool.py	    real-time viz via some viz package
+gui.py              GUI go/stop/temperature-slider to control LAMMPS
+plot.py             real-time temperature plot with GnuPlot via Pizza.py
+matplotlib_plot.py  real-time temperature plot with Matplotlib via Pizza.py
+viz_tool.py         real-time viz via some viz package
 vizplotgui_tool.py  combination of viz.py and plot.py and gui.py
 
 For the viz_tool.py and vizplotgui_tool.py commands, replace "tool"
@@ -100,24 +101,24 @@ split.py in.simple       # can run in parallel (see below)
 
 gui.py in.gui 100
 plot.py in.plot 10 1000 thermo_temp
+matplotlib_plot.py in.plot 10 1000 thermo_temp
 viz_tool.py in.viz 100 5000
 vizplotgui_tool.py in.viz 100 thermo_temp
 
 To run LAMMPS in parallel from Python, so something like this:
 
-% mpirun -np 4 simple.py in.simple
-% mpirun -np 4 python split.py in.simple
+% mpirun -np P simple.py in.simple
+% mpirun -np P python split.py in.simple
 
 If you run simple.py as-is, this will invoke P instances of a
 one-processor run, where both Python and LAMMPS will run on single
 processors.  Each running job will read the same input file, and write
 to same log.lammps file, which isn't too useful.
 
-However, if you have either the Pypar or mpi4py packages installed in
-your Python, and uncomment the Pypar or mpi4py code in simple.py, then
-the above commands will invoke 1 instance of a P-processor run.  Both
-Python and LAMMPS will run on P processors.  The job will read the
-input file and write a single log.lammps file.
+However, if you have the mpi4py Python package installed and uncomment mpi4py
+code in simple.py, then the above commands will invoke 1 instance of a
+P-processor run.  Both Python and LAMMPS will run on P processors.  The job will
+read the input file and write a single log.lammps file.
 
 The split.py script can also be run in parallel.  It uses mpi4py
 version 2.0.0 (or later), which makes it possible to pass a

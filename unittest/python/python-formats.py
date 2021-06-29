@@ -4,7 +4,7 @@ from lammps.formats import LogFile, AvgChunkFile
 
 EXAMPLES_DIR=os.path.abspath(os.path.join(__file__, '..', '..', '..', 'examples'))
 
-DEFAULT_STYLE_EXAMPLE_LOG="melt/log.27Nov18.melt.g++.1"
+DEFAULT_STYLE_EXAMPLE_LOG="melt/log.8Apr21.melt.g++.1"
 MULTI_STYLE_EXAMPLE_LOG="peptide/log.27Nov18.peptide.g++.1"
 AVG_CHUNK_FILE="VISCOSITY/profile.13Oct16.nemd.2d.g++.1"
 

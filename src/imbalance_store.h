@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -32,10 +32,10 @@ class ImbalanceStore : public Imbalance {
   virtual std::string info() override;
 
  private:
-  char *name;                  // property name
+  char *name;    // property name
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 

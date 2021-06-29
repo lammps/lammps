@@ -27,7 +27,7 @@ gpu           general GPU routines, GPU package
                 from Mike Brown (ORNL)
 h5md          ch5md library for output of MD data in HDF5 format
                 from Pierre de Buyl (KU Leuven)
-hdnnp         hooks to n2p2, neural network potential package, used by USER-HDNNP
+hdnnp         hooks to n2p2, neural network potential package, used by ML-HDNNP
                 from Andreas Singraber
 kim           hooks to the KIM library, used by KIM package
                 from Ryan Elliott and Ellad Tadmor (U Minn)

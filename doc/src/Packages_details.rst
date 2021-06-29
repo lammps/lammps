@@ -80,7 +80,7 @@ page gives those details.
    * :ref:`USER-EFF <PKG-USER-EFF>`
    * :ref:`USER-FEP <PKG-USER-FEP>`
    * :ref:`USER-H5MD <PKG-USER-H5MD>`
-   * :ref:`USER-HDNNP <PKG-USER-HDNNP>`
+   * :ref:`ML-HDNNP <PKG-ML-HDNNP>`
    * :ref:`USER-INTEL <PKG-USER-INTEL>`
    * :ref:`USER-LB <PKG-USER-LB>`
    * :ref:`USER-MANIFOLD <PKG-USER-MANIFOLD>`
@@ -1594,9 +1594,9 @@ This package has :ref:`specific installation instructions <user-h5md>` on the :d
 
 ----------
 
-.. _PKG-USER-HDNNP:
+.. _PKG-ML-HDNNP:
 
-USER-HDNNP package
+ML-HDNNP package
 ------------------
 
 **Contents:**
@@ -1615,12 +1615,13 @@ compiled on your system.
 
 **Install:**
 
-This package has :ref:`specific installation instructions <user-hdnnp>` on the :doc:`Build extras <Build_extras>` page.
+This package has :ref:`specific installation instructions <ml-hdnnp>` on the
+:doc:`Build extras <Build_extras>` page.
 
 **Supporting info:**
 
-* src/USER-HDNNP: filenames -> commands
-* src/USER-HDNNP/README
+* src/ML-HDNNP: filenames -> commands
+* src/ML-HDNNP/README
 * lib/hdnnp/README
 * :doc:`pair_style hdnnp <pair_hdnnp>`
 * examples/PACKAGES/hdnnp

@@ -28,7 +28,7 @@ src/CG-SDK/*      @akohlmey
 src/USER-COLVARS/*    @giacomofiorin
 src/USER-DIELECTRIC/* @ndtrung81
 src/USER-FEP/*        @agiliopadua
-src/USER-HDNNP/*      @singraber
+src/ML-HDNNP/*      @singraber
 src/USER-INTEL/*      @wmbrownintel
 src/USER-MANIFOLD/*   @Pakketeretet2
 src/USER-MDI/*        @taylor-a-barnes

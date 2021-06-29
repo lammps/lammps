@@ -48,7 +48,7 @@ This is the list of packages that may require additional steps.
    * :ref:`USER-AWPMD <user-awpmd>`
    * :ref:`USER-COLVARS <user-colvars>`
    * :ref:`USER-H5MD <user-h5md>`
-   * :ref:`USER-HDNNP <user-hdnnp>`
+   * :ref:`ML-HDNNP <ml-hdnnp>`
    * :ref:`USER-INTEL <user-intel>`
    * :ref:`USER-MDI <user-mdi>`
    * :ref:`USER-MESONT <user-mesont>`
@@ -1476,13 +1476,13 @@ the HDF5 library.
 
 ----------
 
-.. _user-hdnnp:
+.. _ml-hdnnp:
 
-USER-HDNNP package
----------------------------------
+ML-HDNNP package
+----------------
 
-To build with the USER-HDNNP package it is required to download and build the
-external `n2p2 <https://github.com/CompPhysVienna/n2p2>`__ library ``v2.1.4``
+To build with the ML-HDNNP package it is required to download and build the
+external `n2p2 <https://github.com/CompPhysVienna/n2p2>`_ library ``v2.1.4``
 (or higher). The LAMMPS build process offers an automatic download and
 compilation of *n2p2* or allows you to choose the installation directory of
 *n2p2* manually. Please see the boxes below for the CMake and traditional build
@@ -1492,7 +1492,7 @@ In case of a manual installation of *n2p2* you only need to build the *n2p2* cor
 library ``libnnp`` and interface library ``libnnpif``. When using GCC it should
 suffice to execute ``make libnnpif`` in the *n2p2* ``src`` directory. For more
 details please see ``lib/hdnnp/README`` and the `n2p2 build documentation
-<https://compphysvienna.github.io/n2p2/topics/build.html>`__.
+<https://compphysvienna.github.io/n2p2/topics/build.html>`_.
 
 .. tabs::
 

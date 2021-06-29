@@ -194,7 +194,7 @@ For the *peri* style, the particles are spherical and each stores a
 per-particle mass and volume.
 
 The *dpd* style is for dissipative particle dynamics (DPD) particles.
-Note that it is part of the USER-DPD package, and is not for use with
+Note that it is part of the DPD-REACT package, and is not for use with
 the :doc:`pair_style dpd or dpd/stat <pair_dpd>` commands, which can
 simply use atom_style atomic.  Atom_style dpd extends DPD particle
 properties with internal temperature (dpdTheta), internal conductive
@@ -354,7 +354,7 @@ The *peri* style is part of the PERI package for Peridynamics.
 
 The *electron* style is part of the USER-EFF package for :doc:`electronic force fields <pair_eff>`.
 
-The *dpd* style is part of the USER-DPD package for dissipative
+The *dpd* style is part of the DPD-REACT package for dissipative
 particle dynamics (DPD).
 
 The *edpd*\ , *mdpd*\ , and *tdpd* styles are part of the USER-MESODPD package

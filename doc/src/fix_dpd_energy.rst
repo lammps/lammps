@@ -56,7 +56,7 @@ examples/PACKAGES/dpd directory.
 Restrictions
 """"""""""""
 
-This command is part of the USER-DPD package.  It is only enabled if
+This command is part of the DPD-REACT package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 This fix must be used with an additional fix that specifies time

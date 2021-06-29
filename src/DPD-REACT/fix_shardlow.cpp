@@ -158,7 +158,7 @@ void FixShardlow::setup(int /*vflag*/)
   for (int i = 0; i < modify->nfix; i++)
     if (strstr(modify->fix[i]->style,"nvt") || strstr(modify->fix[i]->style,"npt") ||
         strstr(modify->fix[i]->style,"gle") || strstr(modify->fix[i]->style,"gld"))
-      error->all(FLERR,"Cannot use constant temperature integration routines with USER-DPD.");
+      error->all(FLERR,"Cannot use constant temperature integration routines with DPD-REACT.");
 
   for (int i = 0; i < modify->nfix; i++) {
     if (utils::strmatch(modify->fix[i]->style,"^shardlow")) fixShardlow = true;

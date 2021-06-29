@@ -135,7 +135,7 @@ TEST_F(LAMMPS_plain, TestStyles)
     found = lmp->match_style("atom", "wavepacket");
     EXPECT_STREQ(found, "USER-AWPMD");
     found = lmp->match_style("atom", "dpd");
-    EXPECT_STREQ(found, "USER-DPD");
+    EXPECT_STREQ(found, "DPD-REACT");
     found = lmp->match_style("atom", "edpd");
     EXPECT_STREQ(found, "USER-MESODPD");
     found = lmp->match_style("atom", "mdpd");

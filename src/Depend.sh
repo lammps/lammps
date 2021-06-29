@@ -127,7 +127,7 @@ if (test $1 = "CG-SDK") then
   depend OPENMP
 fi
 
-if (test $1 = "USER-DPD") then
+if (test $1 = "DPD-REACT") then
   depend KOKKOS
 fi
 

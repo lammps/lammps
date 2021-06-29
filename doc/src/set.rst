@@ -459,7 +459,7 @@ long range, nonlocal interactions, is set using the *diameter*
 keyword.
 
 Keyword *dpd/theta* sets the internal temperature of a DPD particle as
-defined by the USER-DPD package.  If the specified value is a number
+defined by the DPD-REACT package.  If the specified value is a number
 it must be >= 0.0.  If the specified value is NULL, then the kinetic
 temperature Tkin of each particle is computed as 3/2 k Tkin = KE = 1/2
 m v\^2 = 1/2 m (vx\*vx+vy\*vy+vz\*vz).  Each particle's internal

@@ -70,7 +70,7 @@ class NeighRequest : protected Pointers {
   int intel;           // set by USER-INTEL package
   int kokkos_host;     // set by KOKKOS package
   int kokkos_device;
-  int ssa;          // set by USER-DPD package, for Shardlow lists
+  int ssa;          // set by DPD-REACT package, for Shardlow lists
   int cut;          // 1 if use a non-standard cutoff length
   double cutoff;    // special cutoff distance for this list
 

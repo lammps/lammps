@@ -75,7 +75,7 @@ page gives those details.
    * :ref:`USER-COLVARS <PKG-USER-COLVARS>`
    * :ref:`USER-DIELECTRIC <PKG-USER-DIELECTRIC>`
    * :ref:`USER-DIFFRACTION <PKG-USER-DIFFRACTION>`
-   * :ref:`USER-DPD <PKG-USER-DPD>`
+   * :ref:`DPD-REACT <PKG-DPD-REACT>`
    * :ref:`USER-DRUDE <PKG-USER-DRUDE>`
    * :ref:`USER-EFF <PKG-USER-EFF>`
    * :ref:`USER-FEP <PKG-USER-FEP>`
@@ -1424,9 +1424,9 @@ intensities based on kinematic diffraction theory.
 
 ----------
 
-.. _PKG-USER-DPD:
+.. _PKG-DPD-REACT:
 
-USER-DPD package
+DPD-REACT package
 ----------------
 
 **Contents:**
@@ -1446,8 +1446,8 @@ Brennan (ARL).
 
 **Supporting info:**
 
-* src/USER-DPD: filenames -> commands
-* /src/USER-DPD/README
+* src/DPD-REACT: filenames -> commands
+* /src/DPD-REACT/README
 * :doc:`compute dpd <compute_dpd>`
 * :doc:`compute dpd/atom <compute_dpd_atom>`
 * :doc:`fix eos/cv <fix_eos_table>`

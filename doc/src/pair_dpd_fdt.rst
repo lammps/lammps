@@ -162,7 +162,7 @@ significantly larger timesteps to be taken.
 Restrictions
 """"""""""""
 
-These commands are part of the USER-DPD package.  They are only
+These commands are part of the DPD-REACT package.  They are only
 enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 Pair styles *dpd/fdt* and *dpd/fdt/energy* require use of the

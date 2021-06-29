@@ -122,7 +122,7 @@ class Atom : protected Pointers {
   double **cs, **csforce, **vforce;
   int *etag;
 
-  // USER-DPD package
+  // DPD-REACT package
 
   double *uCond, *uMech, *uChem, *uCGnew, *uCG;
   double *duChem;

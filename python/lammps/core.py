@@ -130,7 +130,7 @@ class lammps(object):
         lib_ext = ".dll"
       else:
         lib_ext = ".so"
-      
+
     if not self.lib:
       if name:
         libpath = join(modpath,"liblammps_%s" % name + lib_ext)

@@ -37,7 +37,7 @@ AtomVecOxdna::AtomVecOxdna(LAMMPS *lmp) : AtomVec(lmp)
   fields_comm = (char *) "";
   fields_comm_vel = (char *) "";
   fields_reverse = (char *) "";
-  fields_border = (char *) "";
+  fields_border = (char *) "id5p";
   fields_border_vel = (char *) "";
   fields_exchange = (char *) "id5p";
   fields_restart = (char *) "id5p";
@@ -95,25 +95,9 @@ void AtomVecOxdna::data_bonds_post(int n, char *buf, tagint id_offset)
     }
 
     if ((m = atom->map(atom1)) >= 0) {
-//      for (int n=0; n<atom->num_bond[m]; n++) {
         id5p[m][0] = atom2;
-//      }
-//    for (int n=0; n<atom->num_bond[m]; n++) {
-//      printf("I %d N %d TAG[M] %d ATOM1 %d ATOM2 %d ID5P[M][N] %d\n", i, n, atom->tag[m],atom1, atom2, id5p[m][n]); 
-//    }
-
-
     }
 
     buf = next + 1;
   }
-
-
-for (int i=0; i<atom->nlocal; i++) {
-//    for (int n=0; n<atom->num_bond[i]; n++) {
-      printf("I %d TAG[I] %d ID5P[I][N] %d\n", i, atom->tag[i], id5p[i][0]); 
-//    }
-}
-
-
 }

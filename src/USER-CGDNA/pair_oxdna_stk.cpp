@@ -248,13 +248,12 @@ void PairOxdnaStk::compute(int eflag, int vflag)
   int nbondlist = neighbor->nbondlist;
 
   tagint **id5p = atom->id5p;
-  int *num_bond = atom->num_bond;
 
   AtomVecEllipsoid *avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
   AtomVecEllipsoid::Bonus *bonus = avec->bonus;
   int *ellipsoid = atom->ellipsoid;
 
-  int a,b,btemp,in,ib,atype,btype;
+  int a,b,btemp,in,atype,btype;
 
   double f1,f4t4,f4t5,f4t6,f5c1,f5c2;
   double df1,df4t4,df4t5,df4t6,df5c1,df5c2;
@@ -271,9 +270,6 @@ void PairOxdnaStk::compute(int eflag, int vflag)
     b = bondlist[in][1];
 
     // directionality test: a -> b is 3' -> 5'
-//    for (int n=0; n<atom->num_bond[a]; n++) {
-//printf("TIMESTEP %d PROC %d BEFORE TAG[A] %d TAG[B] %d ID5P[A] %d ID5P[B] %d\n",update->ntimestep,comm->me,atom->tag[a], atom->tag[b], id5p[a][0], id5p[b][0]);
-//}
     if(atom->tag[b] != id5p[a][0]) {
 
       btemp = b;
@@ -281,10 +277,7 @@ void PairOxdnaStk::compute(int eflag, int vflag)
       a = btemp;
 
     }
-//    for (int n=0; n<atom->num_bond[a]; n++) {
-printf("TIMESTEP %d PROC %d AFTER  TAG[A] %d TAG[B] %d ID5P[A] %d ID5P[B] %d\n",update->ntimestep,comm->me,atom->tag[a], atom->tag[b], id5p[a][0], id5p[b][0]);
-//printf("\n");
-//}
+
     // a now in 3' direction, b in 5' direction
 
     qa=bonus[ellipsoid[a]].quat;
@@ -302,7 +295,7 @@ printf("TIMESTEP %d PROC %d AFTER  TAG[A] %d TAG[B] %d ID5P[A] %d ID5P[B] %d\n",
     rb_cst[1] = d_cst*bx[1];
     rb_cst[2] = d_cst*bx[2];
 
-    // vector stacking site b to a
+    // vector stacking site a to b
     delr_st[0] = x[b][0] + rb_cst[0] - x[a][0] - ra_cst[0];
     delr_st[1] = x[b][1] + rb_cst[1] - x[a][1] - ra_cst[1];
     delr_st[2] = x[b][2] + rb_cst[2] - x[a][2] - ra_cst[2];

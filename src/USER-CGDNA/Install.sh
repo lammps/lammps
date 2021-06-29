@@ -28,6 +28,8 @@ action () {
 
 # list of files with dependcies
 
+action  atom_vec_oxdna.cpp atom_vec.h
+action  atom_vec_oxdna.h atom_vec.h
 action  bond_oxdna_fene.cpp bond_fene.h
 action  bond_oxdna2_fene.cpp bond_fene.h
 action  bond_oxrna2_fene.cpp bond_fene.h
@@ -53,10 +55,10 @@ action  pair_oxdna_hbond.cpp atom_vec_ellipsoid.h
 action  pair_oxdna_hbond.h atom_vec_ellipsoid.h
 action  pair_oxrna2_hbond.cpp atom_vec_ellipsoid.h
 action  pair_oxrna2_hbond.h atom_vec_ellipsoid.h
-action  pair_oxdna_stk.cpp atom_vec_ellipsoid.h
-action  pair_oxdna_stk.h atom_vec_ellipsoid.h
-action  pair_oxrna2_stk.cpp atom_vec_ellipsoid.h
-action  pair_oxrna2_stk.h atom_vec_ellipsoid.h
+action  pair_oxdna_stk.cpp atom_vec_ellipsoid.h atom_vec_oxdna.h
+action  pair_oxdna_stk.h atom_vec_ellipsoid.h atom_vec_oxdna.h
+action  pair_oxrna2_stk.cpp atom_vec_ellipsoid.h atom_vec_oxdna.h
+action  pair_oxrna2_stk.h atom_vec_ellipsoid.h atom_vec_oxdna.h
 action  pair_oxdna_xstk.cpp atom_vec_ellipsoid.h
 action  pair_oxdna_xstk.h atom_vec_ellipsoid.h
 action  pair_oxrna2_xstk.cpp atom_vec_ellipsoid.h

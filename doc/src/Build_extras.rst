@@ -54,7 +54,7 @@ This is the list of packages that may require additional steps.
    * :ref:`USER-MESONT <user-mesont>`
    * :ref:`USER-MOLFILE <user-molfile>`
    * :ref:`USER-NETCDF <user-netcdf>`
-   * :ref:`USER-PACE <user-pace>`
+   * :ref:`ML-PACE <ml-pace>`
    * :ref:`USER-PLUMED <user-plumed>`
    * :ref:`USER-OMP <user-omp>`
    * :ref:`USER-QMMM <user-qmmm>`
@@ -1261,9 +1261,9 @@ be built for the most part with all major versions of the C++ language.
 
 ----------
 
-.. _user-pace:
+.. _ml-pace:
 
-USER-PACE package
+ML-PACE package
 -----------------------------
 
 This package requires a library that can be downloaded and built
@@ -1276,8 +1276,8 @@ at: `https://github.com/ICAMS/lammps-user-pace/ <https://github.com/ICAMS/lammps
    .. tab:: CMake build
 
       By default the library will be downloaded from the git repository
-      and built automatically when the USER-PACE package is enabled with
-      ``-D PKG_USER-PACE=yes``.  The location for the sources may be
+      and built automatically when the ML-PACE package is enabled with
+      ``-D PKG_ML-PACE=yes``.  The location for the sources may be
       customized by setting the variable ``PACELIB_URL`` when
       configuring with CMake (e.g. to use a local archive on machines
       without internet access).  Since CMake checks the validity of the
@@ -1288,7 +1288,7 @@ at: `https://github.com/ICAMS/lammps-user-pace/ <https://github.com/ICAMS/lammps
 
    .. tab:: Traditional make
 
-      You can download and build the USER-PACE library
+      You can download and build the ML-PACE library
       in one step from the ``lammps/src`` dir, using these commands,
       which invoke the ``lib/pace/Install.py`` script.
 

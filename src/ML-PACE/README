@@ -1,4 +1,4 @@
-The USER-PACE package provides the pace pair style,
+The ML-PACE package provides the pace pair style,
 an efficient implementation of the Atomic Cluster Expansion
 potential (ACE).
 
@@ -17,7 +17,7 @@ provided to help automate the process.  Also see the LAMMPS manual for
 general information on building LAMMPS with external libraries
 using either traditional make or CMake.
 
-More information about the USER-PACE implementation of ACE
+More information about the ML-PACE implementation of ACE
 is available here:
 
 https://github.com/ICAMS/lammps-user-pace

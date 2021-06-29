@@ -94,7 +94,7 @@ page gives those details.
    * :ref:`USER-MOLFILE <PKG-USER-MOLFILE>`
    * :ref:`USER-NETCDF <PKG-USER-NETCDF>`
    * :ref:`USER-OMP <PKG-USER-OMP>`
-   * :ref:`USER-PACE <PKG-USER-PACE>`
+   * :ref:`ML-PACE <PKG-ML-PACE>`
    * :ref:`USER-PHONON <PKG-USER-PHONON>`
    * :ref:`USER-PLUMED <PKG-USER-PLUMED>`
    * :ref:`USER-PTM <PKG-USER-PTM>`
@@ -2075,16 +2075,16 @@ This package has :ref:`specific installation instructions <user-omp>` on the :do
 
 ----------
 
-.. _PKG-USER-PACE:
+.. _PKG-ML-PACE:
 
-USER-PACE package
+ML-PACE package
 -------------------
 
 **Contents:**
 
 A pair style for the Atomic Cluster Expansion potential (ACE).
 ACE is a methodology for deriving a highly accurate classical potential
-fit to a large archive of quantum mechanical (DFT) data. The USER-PACE
+fit to a large archive of quantum mechanical (DFT) data. The ML-PACE
 package provides an efficient implementation for running simulations
 with ACE potentials.
 
@@ -2105,11 +2105,12 @@ Aidan Thompson^3, Gabor Csanyi^2, Christoph Ortner^4, Ralf Drautz^1.
 
 **Install:**
 
-This package has :ref:`specific installation instructions <user-pace>` on the :doc:`Build extras <Build_extras>` page.
+This package has :ref:`specific installation instructions <ml-pace>` on the
+:doc:`Build extras <Build_extras>` page.
 
 **Supporting info:**
 
-* src/USER-PACE: filenames -> commands
+* src/ML-PACE: filenames -> commands
 * :doc:`pair_style pace <pair_pace>`
 * examples/PACKAGES/pace
 

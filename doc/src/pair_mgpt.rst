@@ -132,7 +132,7 @@ range for each potential and give appropriate references for the
 potentials.  It is expected that MGPT potentials for additional
 materials will be added over time.
 
-Useful example MGPT scripts are given in the examples/USER/mgpt
+Useful example MGPT scripts are given in the examples/PACKAGES/mgpt
 directory.  These scripts show the necessary steps to perform
 constant-volume calculations and simulations.  It is strongly
 recommended that the user work through and understand these examples

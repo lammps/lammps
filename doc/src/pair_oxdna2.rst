@@ -100,9 +100,9 @@ and  :ref:`(Ouldridge) <Ouldridge2>` for a detailed description of the oxDNA2 fo
    e.g. through :doc:`fix langevin <fix_langevin>` or :doc:`fix nve/dotc/langevin <fix_nve_dotc_langevin>`
    the temperature coefficients have to be matched to the one used in the fix.
 
-Example input and data files for DNA duplexes can be found in examples/USER/cgdna/examples/oxDNA/ and /oxDNA2/.
+Example input and data files for DNA duplexes can be found in examples/PACKAGES/cgdna/examples/oxDNA/ and /oxDNA2/.
 A simple python setup tool which creates single straight or helical DNA strands,
-DNA duplexes or arrays of DNA duplexes can be found in examples/USER/cgdna/util/.
+DNA duplexes or arrays of DNA duplexes can be found in examples/PACKAGES/cgdna/util/.
 
 Please cite :ref:`(Henrich) <Henrich2>` in any publication that uses
 this implementation.  The article contains general information

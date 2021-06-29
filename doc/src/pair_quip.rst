@@ -55,7 +55,7 @@ appropriate initialization strings are also advised. The list of
 atomic numbers must be matched to the LAMMPS atom types specified in
 the LAMMPS data file or elsewhere.
 
-Two examples input scripts are provided in the examples/USER/quip
+Two examples input scripts are provided in the examples/PACKAGES/quip
 directory.
 
 Mixing, shift, table, tail correction, restart, rRESPA info

@@ -864,7 +864,7 @@ analyzing the output of the :doc:`fix phonon <fix_phonon>` command in
 the USER-PHONON package.
 
 See the README file for instruction on building the tool and what
-library it needs.  And see the examples/USER/phonon directory
+library it needs.  And see the examples/PACKAGES/phonon directory
 for example problems that can be post-processed with this tool.
 
 This tool was written by Ling-Ti Kong at Shanghai Jiao Tong

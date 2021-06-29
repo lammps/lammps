@@ -205,11 +205,11 @@ Uppercase directories
 +------------+--------------------------------------------------------------------------------------------------+
 | MC         | using LAMMPS in a Monte Carlo mode to relax the energy of a system                               |
 +------------+--------------------------------------------------------------------------------------------------+
+| PACKAGES   | examples for specific packages and contributed commands in USER-MISC                             |
++------------+--------------------------------------------------------------------------------------------------+
 | SPIN       | examples for features of the SPIN package                                                        |
 +------------+--------------------------------------------------------------------------------------------------+
 | UNITS      | examples that run the same simulation in lj, real, metal units                                   |
-+------------+--------------------------------------------------------------------------------------------------+
-| USER       | examples for USER packages and USER-contributed commands                                         |
 +------------+--------------------------------------------------------------------------------------------------+
 | VISCOSITY  | compute viscosity via several methods                                                            |
 +------------+--------------------------------------------------------------------------------------------------+
@@ -217,11 +217,11 @@ Uppercase directories
 Nearly all of these directories have README files which give more
 details on how to understand and use their contents.
 
-The USER directory has a large number of sub-directories which
-correspond by name to a USER package.  They contain scripts that
-illustrate how to use the command(s) provided in that package.  Many
+The PACKAGES directory has a large number of sub-directories which
+correspond by name to specific packages.  They contain scripts that
+illustrate how to use the command(s) provided in those packages.  Many
 of the sub-directories have their own README files which give further
 instructions.  See the :doc:`Packages_details <Packages_details>` doc
-page for more info on specific USER packages.
+page for more info on specific packages.
 
 .. _openkim: https://openkim.org

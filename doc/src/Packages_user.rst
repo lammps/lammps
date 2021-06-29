@@ -19,7 +19,7 @@ doc page.
 The "Example" column is a sub-directory in the examples directory of
 the distribution which has an input script that uses the package.
 E.g. "peptide" refers to the examples/peptide directory; USER/atc
-refers to the examples/USER/atc directory.  The "Library" column
+refers to the examples/PACKAGES/atc directory.  The "Library" column
 indicates whether an extra library is needed to build and use the
 package:
 

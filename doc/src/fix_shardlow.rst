@@ -49,7 +49,7 @@ under isobaric conditions can be specified by using fix shardlow, fix
 *nph* and pair_style *dpd/fdt*\ .  DPD under isoenthalpic conditions can
 be specified by using fix shardlow, fix *nph* and pair_style
 *dpd/fdt/energy*\ .  Examples of each DPD variant are provided in the
-examples/USER/dpd directory.
+examples/PACKAGES/dpd directory.
 
 ----------
 

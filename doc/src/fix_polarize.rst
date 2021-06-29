@@ -40,7 +40,7 @@ These fixes compute induced charges at the interface between two
 impermeable media with different dielectric constants.
 
 There are some example scripts for using this fix
-with LAMMPS in the examples/USER/dielectric directory.
+with LAMMPS in the examples/PACKAGES/dielectric directory.
 
 ----------
 

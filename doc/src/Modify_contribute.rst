@@ -226,7 +226,7 @@ packages in the src directory for examples. If you are uncertain, please ask.
 * For a new package (or even a single command) you should include one or
   more example scripts demonstrating its use.  These should run in no
   more than a couple minutes, even on a single processor, and not require
-  large data files as input.  See directories under examples/USER for
+  large data files as input.  See directories under examples/PACKAGES for
   examples of input scripts other users provided for their packages.
   These example inputs are also required for validating memory accesses
   and testing for memory leaks with valgrind

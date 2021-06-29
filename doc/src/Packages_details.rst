@@ -1176,7 +1176,7 @@ This package has :ref:`specific installation instructions <user-adios>` on the :
 
 * src/USER-ADIOS: filenames -> commands
 * src/USER-ADIOS/README
-* examples/USER/adios
+* examples/PACKAGES/adios
 * https://github.com/ornladios/ADIOS2
 * :doc:`dump atom/adios <dump_adios>`
 * :doc:`dump custom/adios <dump_adios>`
@@ -1206,7 +1206,7 @@ This package has :ref:`specific installation instructions <user-atc>` on the :do
 * src/USER-ATC: filenames -> commands
 * src/USER-ATC/README
 * :doc:`fix atc <fix_atc>`
-* examples/USER/atc
+* examples/PACKAGES/atc
 * https://www.lammps.org/pictures.html#atc
 
 ----------
@@ -1234,7 +1234,7 @@ This package has :ref:`specific installation instructions <user-awpmd>` on the :
 * src/USER-AWPMD: filenames -> commands
 * src/USER-AWPMD/README
 * :doc:`pair_style awpmd/cut <pair_awpmd>`
-* examples/USER/awpmd
+* examples/PACKAGES/awpmd
 
 ----------
 
@@ -1267,7 +1267,7 @@ Dunn, NJH; Lebold, KM; DeLyser, MR; Rudzinski, JF; Noid, WG.
 "BOCS: Bottom-Up Open-Source Coarse-Graining Software."
 J. Phys. Chem. B. 122, 13, 3363-3377 (2018).
 
-Example inputs are in the examples/USER/bocs folder.
+Example inputs are in the examples/PACKAGES/bocs folder.
 
 ----------
 
@@ -1287,7 +1287,7 @@ and also support self-propelled particles.
 **Authors:** Sam Cameron (University of Bristol),
 Stefan Paquay (while at Brandeis University) (initial version of fix propel/self)
 
-Example inputs are in the examples/USER/brownian folder.
+Example inputs are in the examples/PACKAGES/brownian folder.
 
 ----------
 
@@ -1339,7 +1339,7 @@ acids.
 * src/USER-CGSDK/README
 * :doc:`pair_style lj/sdk/\* <pair_sdk>`
 * :doc:`angle_style sdk <angle_sdk>`
-* examples/USER/cgsdk
+* examples/PACKAGES/cgsdk
 * https://www.lammps.org/pictures.html#cg
 
 ----------
@@ -1375,7 +1375,7 @@ This package has :ref:`specific installation instructions <user-colvars>` on the
 * src/USER-COLVARS/README
 * lib/colvars/README
 * :doc:`fix colvars <fix_colvars>`
-* examples/USER/colvars
+* examples/PACKAGES/colvars
 
 ----------
 
@@ -1398,7 +1398,7 @@ different dielectric constants.
 * src/USER-DIELECTRIC: filenames -> commands
 * :doc:`compute efield/atom  <compute_efield_atom>`
 * TODO: add all styles
-* examples/USER/dielectric
+* examples/PACKAGES/dielectric
 
 ----------
 
@@ -1420,7 +1420,7 @@ intensities based on kinematic diffraction theory.
 * :doc:`compute saed <compute_saed>`
 * :doc:`compute xrd <compute_xrd>`
 * :doc:`fix saed/vtk <fix_saed_vtk>`
-* examples/USER/diffraction
+* examples/PACKAGES/diffraction
 
 ----------
 
@@ -1461,7 +1461,7 @@ Brennan (ARL).
 * :doc:`pair_style exp6/rx <pair_exp6_rx>`
 * :doc:`pair_style multi/lucy <pair_multi_lucy>`
 * :doc:`pair_style multi/lucy/rx <pair_multi_lucy_rx>`
-* examples/USER/dpd
+* examples/PACKAGES/dpd
 
 ----------
 
@@ -1492,7 +1492,7 @@ Devemy (CNRS), and Agilio Padua (ENS de Lyon).
 * :doc:`compute temp/drude <compute_temp_drude>`
 * :doc:`pair_style thole <pair_thole>`
 * :doc:`pair_style lj/cut/thole/long <pair_thole>`
-* examples/USER/drude
+* examples/PACKAGES/drude
 * tools/drude
 
 ----------
@@ -1526,7 +1526,7 @@ tools/eff; see its README file.
 * :doc:`compute temp/eff <compute_temp_eff>`
 * :doc:`pair_style eff/cut <pair_eff>`
 * :doc:`pair_style eff/inline <pair_eff>`
-* examples/USER/eff
+* examples/PACKAGES/eff
 * tools/eff/README
 * tools/eff
 * https://www.lammps.org/movies.html#eff
@@ -1554,7 +1554,7 @@ for using this package in tools/fep; see its README file.
 * :doc:`fix adapt/fep <fix_adapt_fep>`
 * :doc:`compute fep <compute_fep>`
 * :doc:`pair_style \*/soft <pair_fep_soft>`
-* examples/USER/fep
+* examples/PACKAGES/fep
 * tools/fep/README
 * tools/fep
 
@@ -1623,7 +1623,7 @@ This package has :ref:`specific installation instructions <user-hdnnp>` on the :
 * src/USER-HDNNP/README
 * lib/hdnnp/README
 * :doc:`pair_style hdnnp <pair_hdnnp>`
-* examples/USER/hdnnp
+* examples/PACKAGES/hdnnp
 
 ----------
 
@@ -1695,7 +1695,7 @@ Ontario).
 * :doc:`fix lb/fluid <fix_lb_fluid>`
 * :doc:`fix lb/momentum <fix_lb_momentum>`
 * :doc:`fix lb/viscous <fix_lb_viscous>`
-* examples/USER/lb
+* examples/PACKAGES/lb
 
 ----------
 
@@ -1722,7 +1722,7 @@ matrix-MGPT algorithm due to Tomas Oppelstrup at LLNL.
 * src/USER-MGPT: filenames -> commands
 * src/USER-MGPT/README
 * :doc:`pair_style mgpt <pair_mgpt>`
-* examples/USER/mgpt
+* examples/PACKAGES/mgpt
 
 ----------
 
@@ -1745,7 +1745,7 @@ src/USER-MISC/README file.
 * src/USER-MISC: filenames -> commands
 * src/USER-MISC/README
 * one page per individual command listed in src/USER-MISC/README
-* examples/USER/misc
+* examples/PACKAGES/USER-MISC
 
 ----------
 
@@ -1775,7 +1775,7 @@ Waltham, MA, USA)
 * :doc:`fix manifoldforce <fix_manifoldforce>`
 * :doc:`fix nve/manifold/rattle <fix_nve_manifold_rattle>`
 * :doc:`fix nvt/manifold/rattle <fix_nvt_manifold_rattle>`
-* examples/USER/manifold
+* examples/PACKAGES/manifold
 * https://www.lammps.org/movies.html#manifold
 
 ----------
@@ -1798,7 +1798,7 @@ other atomic or molecular simulation codes via the `MolSSI Driver Interface
 * src/USER-MDI/README
 * :doc:`mdi/engine <mdi_engine>`
 * :doc:`fix mdi/engine <fix_mdi_engine>`
-* examples/USER/mdi
+* examples/PACKAGES/mdi
 
 ----------
 
@@ -1853,7 +1853,7 @@ algorithm.
 * :doc:`pair_style mdpd <pair_mesodpd>`
 * :doc:`pair_style tdpd <pair_mesodpd>`
 * :doc:`fix mvv/dpd <fix_mvv_dpd>`
-* examples/USER/mesodpd
+* examples/PACKAGES/mesodpd
 * https://www.lammps.org/movies.html#mesodpd
 
 ----------
@@ -1900,7 +1900,7 @@ Philipp Kloza (U Cambridge)
 * :doc:`pair_style mesont/tpm <pair_mesont_tpm>`
 * :doc:`compute mesont <compute_mesont>`
 * :doc:`pair_style mesocnt <pair_mesocnt>`
-* examples/USER/mesont
+* examples/PACKAGES/mesont
 * tools/mesont
 
 ----------
@@ -1934,7 +1934,7 @@ Rochus Schmid (Ruhr-University Bochum).
 * :doc:`angle_style class2 <angle_class2>`
 * :doc:`angle_style cosine/buck6d <angle_cosine_buck6d>`
 * :doc:`improper_style inversion/harmonic <improper_inversion_harmonic>`
-* examples/USER/mofff
+* examples/PACKAGES/mofff
 
 ----------
 
@@ -2110,7 +2110,7 @@ This package has :ref:`specific installation instructions <user-pace>` on the :d
 
 * src/USER-PACE: filenames -> commands
 * :doc:`pair_style pace <pair_pace>`
-* examples/USER/pace
+* examples/PACKAGES/pace
 
 ----------
 
@@ -2138,7 +2138,7 @@ and Charlie Sievers (UC Davis) for "dynamical_matrix" and "third_order"
 * :doc:`fix phonon <fix_phonon>`
 * :doc:`dynamical_matrix <dynamical_matrix>`
 * :doc:`third_order <third_order>`
-* examples/USER/phonon
+* examples/PACKAGES/phonon
 
 ----------
 
@@ -2167,7 +2167,7 @@ This package has :ref:`specific installation instructions <user-plumed>` on the 
 * src/USER-PLUMED/README
 * lib/plumed/README
 * :doc:`fix plumed <fix_plumed>`
-* examples/USER/plumed
+* examples/PACKAGES/plumed
 
 ----------
 
@@ -2262,7 +2262,7 @@ simulation.
 * src/USER-QTB/README
 * :doc:`fix qtb <fix_qtb>`
 * :doc:`fix qbmsst <fix_qbmsst>`
-* examples/USER/qtb
+* examples/PACKAGES/qtb
 
 ----------
 
@@ -2293,7 +2293,7 @@ This package has :ref:`specific installation instructions <user-quip>` on the :d
 * src/USER-QUIP: filenames -> commands
 * src/USER-QUIP/README
 * :doc:`pair_style quip <pair_quip>`
-* examples/USER/quip
+* examples/PACKAGES/quip
 
 ----------
 
@@ -2318,7 +2318,7 @@ with contributions by Doyl Dickel, Mississippi State University.
 
 * src/USER-RANN: filenames -> commands
 * :doc:`pair_style rann <pair_rann>`
-* examples/USER/rann
+* examples/PACKAGES/rann
 
 ----------
 
@@ -2346,7 +2346,7 @@ molecules, and chiral-sensitive reactions.
 * src/USER-REACTION: filenames -> commands
 * src/USER-REACTION/README
 * :doc:`fix bond/react <fix_bond_react>`
-* examples/USER/reaction
+* examples/PACKAGES/reaction
 * `2017 LAMMPS Workshop <https://www.lammps.org/workshops/Aug17/pdf/gissinger.pdf>`_
 * `2019 LAMMPS Workshop <https://www.lammps.org/workshops/Aug19/talk_gissinger.pdf>`_
 * reacter.org
@@ -2409,7 +2409,7 @@ This package has :ref:`specific installation instructions <user-scafacos>` on th
 * src/USER-SCAFACOS/README
 * :doc:`kspace_style scafacos <kspace_style>`
 * :doc:`kspace_modify <kspace_modify>`
-* examples/USER/scafacos
+* examples/PACKAGES/scafacos
 
 ----------
 
@@ -2437,7 +2437,7 @@ Sciences, Iran).
 * :doc:`pair_style sdpd/taitwater/isothermal <pair_sdpd_taitwater_isothermal>`
 * :doc:`fix meso/move <fix_meso_move>`
 * :doc:`fix rigid/meso <fix_rigid_meso>`
-* examples/USER/sdpd
+* examples/PACKAGES/sdpd
 
 ----------
 
@@ -2474,7 +2474,7 @@ This package has :ref:`specific installation instructions <user-smd>` on the :do
 * src/USER-SMD: filenames -> commands
 * src/USER-SMD/README
 * doc/PDF/SMD_LAMMPS_userguide.pdf
-* examples/USER/smd
+* examples/PACKAGES/smd
 * https://www.lammps.org/movies.html#smd
 
 ----------
@@ -2498,7 +2498,7 @@ Tetot (LAAS-CNRS, France).
 * src/USER-SMTBQ: filenames -> commands
 * src/USER-SMTBQ/README
 * :doc:`pair_style smtbq <pair_smtbq>`
-* examples/USER/smtbq
+* examples/PACKAGES/smtbq
 
 ----------
 
@@ -2531,7 +2531,7 @@ Dynamics, Ernst Mach Institute, Germany).
 * src/USER-SPH: filenames -> commands
 * src/USER-SPH/README
 * doc/PDF/SPH_LAMMPS_userguide.pdf
-* examples/USER/sph
+* examples/PACKAGES/sph
 * https://www.lammps.org/movies.html#sph
 
 ----------
@@ -2554,7 +2554,7 @@ stress, etc) about individual interactions.
 * src/USER-TALLY: filenames -> commands
 * src/USER-TALLY/README
 * :doc:`compute \*/tally <compute_tally>`
-* examples/USER/tally
+* examples/PACKAGES/tally
 
 ----------
 
@@ -2649,4 +2649,4 @@ which discuss the `QuickFF <quickff_>`_ methodology.
 * :doc:`improper_style sqdistharm <improper_sqdistharm>`
 * :doc:`pair_style mm3/switch3/coulgauss/long <pair_lj_switch3_coulgauss_long>`
 * :doc:`pair_style lj/switch3/coulgauss/long <pair_lj_switch3_coulgauss_long>`
-* examples/USER/yaff
+* examples/PACKAGES/yaff

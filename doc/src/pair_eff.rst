@@ -232,7 +232,7 @@ complexity in higher Z elements (up to Z<18).  A fixed-core should be
 defined with a mass that includes the corresponding nuclear mass plus
 the 2 s electrons in atomic mass units (2x5.4857990943e-4), and a
 radius equivalent to that of minimized 1s electrons (see examples
-under /examples/USER/eff/fixed-core).  An pseudo-core should be
+under /examples/PACKAGES/eff/fixed-core).  An pseudo-core should be
 described with a mass that includes the corresponding nuclear mass,
 plus all the core electrons (i.e no outer shell electrons), and a
 radius equivalent to that of a corresponding minimized full-electron

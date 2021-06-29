@@ -77,10 +77,10 @@ commands:
    be changed without reparameterizing the entire model.
 
 Example input and data files for DNA and RNA duplexes can be found in
-examples/USER/cgdna/examples/oxDNA/ , /oxDNA2/ and /oxRNA2/.  A simple python
+examples/PACKAGES/cgdna/examples/oxDNA/ , /oxDNA2/ and /oxRNA2/.  A simple python
 setup tool which creates single straight or helical DNA strands, DNA/RNA
 duplexes or arrays of DNA/RNA duplexes can be found in
-examples/USER/cgdna/util/.
+examples/PACKAGES/cgdna/util/.
 
 Please cite :ref:`(Henrich) <Henrich0>` in any publication that uses
 this implementation.  The article contains general information

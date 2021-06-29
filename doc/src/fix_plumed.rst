@@ -44,7 +44,7 @@ in the PLUMED source code.  The PLUMED library development is hosted at
 A detailed discussion of the code can be found in :ref:`(PLUMED) <PLUMED>`.
 
 There is an example input for using this package with LAMMPS in the
-examples/USER/plumed directory.
+examples/PACKAGES/plumed directory.
 
 ----------
 

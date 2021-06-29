@@ -45,7 +45,7 @@ can be specified by using fix *dpd/energy*\ , fix *nve* and pair_style
 *dpd/fdt/energy*\ .  DPD under isoenthalpic conditions can
 be specified by using fix *dpd/energy*\ , fix *nph* and pair_style
 *dpd/fdt/energy*\ .  Examples of each DPD variant are provided in the
-examples/USER/dpd directory.
+examples/PACKAGES/dpd directory.
 
 ----------
 

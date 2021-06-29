@@ -50,7 +50,7 @@ The Colvars library is developed at `https://github.com/colvars/colvars <https:/
 A detailed discussion of its implementation is in :ref:`(Fiorin) <Fiorin>`.
 
 There are some example scripts for using this package with LAMMPS in the
-examples/USER/colvars directory.
+examples/PACKAGES/colvars directory.
 
 ----------
 

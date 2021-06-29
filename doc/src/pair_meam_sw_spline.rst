@@ -94,7 +94,7 @@ potentials.
    systems in the future.
 
 Example input scripts that use this pair style are provided
-in the examples/USER/misc/meam_sw_spline directory.
+in the examples/PACKAGES/USER-MISC/meam_sw_spline directory.
 
 ----------
 

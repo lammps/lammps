@@ -51,7 +51,7 @@ python        hooks to the system Python library, used by the PYTHON package
                 from the LAMMPS development team
 qmmm          quantum mechanics/molecular mechanics coupling interface
                 from Axel Kohlmeyer (Temple U)
-quip          interface to QUIP/libAtoms framework, USER-QUIP package
+quip          interface to QUIP/libAtoms framework, ML-QUIP package
                 from Albert Bartok-Partay and Gabor Csanyi (U Cambridge)
 smd           hooks to Eigen library, used by USER-SMD package
                 from Georg Ganzenmueller (Ernst Mach Institute, Germany)

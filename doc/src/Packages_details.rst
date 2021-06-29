@@ -100,7 +100,7 @@ page gives those details.
    * :ref:`USER-PTM <PKG-USER-PTM>`
    * :ref:`USER-QMMM <PKG-USER-QMMM>`
    * :ref:`USER-QTB <PKG-USER-QTB>`
-   * :ref:`USER-QUIP <PKG-USER-QUIP>`
+   * :ref:`ML-QUIP <PKG-ML-QUIP>`
    * :ref:`USER-RANN <PKG-USER-RANN>`
    * :ref:`USER-REACTION <PKG-USER-REACTION>`
    * :ref:`USER-REAXC <PKG-USER-REAXC>`
@@ -2268,14 +2268,15 @@ simulation.
 
 ----------
 
-.. _PKG-USER-QUIP:
+.. _PKG-ML-QUIP:
 
-USER-QUIP package
+ML-QUIP package
 -----------------
 
 **Contents:**
 
-A :doc:`pair_style quip <pair_quip>` command which wraps the `QUIP libAtoms library <quip_>`_, which includes a variety of interatomic
+A :doc:`pair_style quip <pair_quip>` command which wraps the `QUIP
+libAtoms library <quip_>`_, which includes a variety of interatomic
 potentials, including Gaussian Approximation Potential (GAP) models
 developed by the Cambridge University group.
 
@@ -2288,12 +2289,13 @@ on your system.
 
 **Install:**
 
-This package has :ref:`specific installation instructions <user-quip>` on the :doc:`Build extras <Build_extras>` page.
+This package has :ref:`specific installation instructions <ml-quip>` on the
+:doc:`Build extras <Build_extras>` page.
 
 **Supporting info:**
 
-* src/USER-QUIP: filenames -> commands
-* src/USER-QUIP/README
+* src/ML-QUIP: filenames -> commands
+* src/ML-QUIP/README
 * :doc:`pair_style quip <pair_quip>`
 * examples/PACKAGES/quip
 

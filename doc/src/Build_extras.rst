@@ -58,7 +58,7 @@ This is the list of packages that may require additional steps.
    * :ref:`USER-PLUMED <user-plumed>`
    * :ref:`USER-OMP <user-omp>`
    * :ref:`USER-QMMM <user-qmmm>`
-   * :ref:`USER-QUIP <user-quip>`
+   * :ref:`ML-QUIP <ml-quip>`
    * :ref:`USER-SCAFACOS <user-scafacos>`
    * :ref:`USER-SMD <user-smd>`
    * :ref:`USER-VTK <user-vtk>`
@@ -1848,9 +1848,9 @@ verified to work in February 2020 with Quantum Espresso versions 6.3 to
 
 ----------
 
-.. _user-quip:
+.. _ml-quip:
 
-USER-QUIP package
+ML-QUIP package
 ---------------------------------
 
 To build with this package, you must download and build the QUIP
@@ -1868,7 +1868,7 @@ to be downloaded and configured.  See step 1 and step 1.1 in the
          -D QUIP_LIBRARY=path     # path to libquip.a (only needed if a custom location)
 
       CMake will **not** download and build the QUIP library.  But once you have
-      done that, a CMake build of LAMMPS with ``-D PKG_USER-QUIP=yes`` should
+      done that, a CMake build of LAMMPS with ``-D PKG_ML-QUIP=yes`` should
       work.  Set the ``QUIP_LIBRARY`` variable if CMake cannot find the QUIP library.
 
    .. tab:: Traditional make

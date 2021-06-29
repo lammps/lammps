@@ -18,7 +18,7 @@ needed to run in parallel with MPI.
 
 The LAMMPS binaries contain *all* :doc:`optional packages <Packages>`
 included in the source distribution except: KIM, KOKKOS, MSCG, PYTHON,
-USER-ADIOS, USER-H5MD, USER-NETCDF, USER-QMMM, USER-QUIP, and USER-VTK.
+USER-ADIOS, USER-H5MD, USER-NETCDF, USER-QMMM, ML-QUIP, and USER-VTK.
 The serial version also does not include the MPIIO and
 USER-LB packages.  The GPU package is compiled for OpenCL with
 mixed precision kernels.

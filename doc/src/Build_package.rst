@@ -39,7 +39,7 @@ packages:
 +--------------------------------------+--------------------------------------+------------------------------------+----------------------------------+--------------------------------+--------------------------------+
 | :ref:`USER-MOLFILE <user-molfile>`   | :ref:`USER-NETCDF <user-netcdf>`     | :ref:`ML-PACE <ml-pace>`       | :ref:`USER-PLUMED <user-plumed>` | :ref:`USER-OMP <user-omp>`     | :ref:`USER-QMMM <user-qmmm>`   |
 +--------------------------------------+--------------------------------------+------------------------------------+----------------------------------+--------------------------------+--------------------------------+
-| :ref:`USER-QUIP <user-quip>`         | :ref:`USER-SCAFACOS <user-scafacos>` | :ref:`USER-SMD <user-smd>`         | :ref:`USER-VTK <user-vtk>`       |                                |                                |
+| :ref:`ML-QUIP <ml-quip>`         | :ref:`USER-SCAFACOS <user-scafacos>` | :ref:`USER-SMD <user-smd>`         | :ref:`USER-VTK <user-vtk>`       |                                |                                |
 +--------------------------------------+--------------------------------------+------------------------------------+----------------------------------+--------------------------------+--------------------------------+
 
 The mechanism for including packages is simple but different for CMake

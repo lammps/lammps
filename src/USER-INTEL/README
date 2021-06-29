@@ -42,8 +42,8 @@ be added or changed in the Makefile depending on the version:
 -----------------------------------------------------------------------------
 
 When using the suffix command with "intel", intel styles will be used if they
-exist. If the suffix command is used with "hybrid intel omp" and the USER-OMP
-is installed, USER-OMP styles will be used whenever USER-INTEL styles are not
+exist. If the suffix command is used with "hybrid intel omp" and the OPENMP
+is installed, OPENMP styles will be used whenever USER-INTEL styles are not
 available. This allow for running most styles in LAMMPS with threading.
 
 -----------------------------------------------------------------------------

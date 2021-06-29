@@ -56,7 +56,7 @@ This is the list of packages that may require additional steps.
    * :ref:`USER-NETCDF <user-netcdf>`
    * :ref:`ML-PACE <ml-pace>`
    * :ref:`USER-PLUMED <user-plumed>`
-   * :ref:`USER-OMP <user-omp>`
+   * :ref:`OPENMP <openmp>`
    * :ref:`USER-QMMM <user-qmmm>`
    * :ref:`ML-QUIP <ml-quip>`
    * :ref:`USER-SCAFACOS <user-scafacos>`
@@ -1537,13 +1537,13 @@ USER-INTEL package
 
 To build with this package, you must choose which hardware you want to
 build for, either x86 CPUs or Intel KNLs in offload mode.  You should
-also typically :ref:`install the USER-OMP package <user-omp>`, as it can be
+also typically :ref:`install the OPENMP package <openmp>`, as it can be
 used in tandem with the USER-INTEL package to good effect, as explained
 on the :doc:`Speed_intel` page.
 
 When using Intel compilers version 16.0 or later is required.  You can
 also use the GNU or Clang compilers and they will provide performance
-improvements over regular styles and USER-OMP styles, but less so than
+improvements over regular styles and OPENMP styles, but less so than
 with the Intel compilers.  Please also note, that some compilers have
 been found to apply memory alignment constraints incompletely or
 incorrectly and thus can cause segmentation faults in otherwise correct
@@ -1740,9 +1740,9 @@ on your system.
 
 ----------
 
-.. _user-omp:
+.. _openmp:
 
-USER-OMP package
+OPENMP package
 -------------------------------
 
 .. tabs::
@@ -1750,13 +1750,13 @@ USER-OMP package
    .. tab:: CMake build
 
       No additional settings are required besides ``-D
-      PKG_USER-OMP=yes``.  If CMake detects OpenMP compiler support, the
-      USER-OMP code will be compiled with multi-threading support
+      PKG_OPENMP=yes``.  If CMake detects OpenMP compiler support, the
+      OPENMP code will be compiled with multi-threading support
       enabled, otherwise as optimized serial code.
 
    .. tab:: Traditional make
 
-      To enable multi-threading support in the USER-OMP package (and
+      To enable multi-threading support in the OPENMP package (and
       other styles supporting OpenMP) the following compile and link
       flags must be added to your Makefile.machine file.  See
       ``src/MAKE/OPTIONS/Makefile.omp`` for an example.

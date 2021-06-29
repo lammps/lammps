@@ -50,7 +50,7 @@ void FixQEQCombOMP::init()
     error->all(FLERR,"Fix qeq/comb/omp requires atom attribute q");
 
   if (nullptr != force->pair_match("comb3",0))
-    error->all(FLERR,"No support for comb3 currently available in USER-OMP");
+    error->all(FLERR,"No support for comb3 currently available in OPENMP");
 
   comb = (PairComb *) force->pair_match("comb/omp",1);
   if (comb == nullptr)

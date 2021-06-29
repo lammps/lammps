@@ -176,9 +176,9 @@ protected:
         char **argv        = (char **)args;
         int argc           = sizeof(args) / sizeof(char *);
 
-        // only run this test fixture with omp suffix if USER-OMP package is installed
+        // only run this test fixture with omp suffix if OPENMP package is installed
 
-        if (LAMMPS::is_installed_pkg("USER-OMP"))
+        if (LAMMPS::is_installed_pkg("OPENMP"))
             lmp = new LAMMPS(argc, argv, MPI_COMM_WORLD);
         else
             GTEST_SKIP();
@@ -324,7 +324,7 @@ TEST_F(LAMMPS_kokkos, InitMembers)
 
 TEST(LAMMPS_init, OpenMP)
 {
-    if (!LAMMPS::is_installed_pkg("USER-OMP")) GTEST_SKIP();
+    if (!LAMMPS::is_installed_pkg("OPENMP")) GTEST_SKIP();
     if (Info::get_openmp_info() == "OpenMP not enabled") GTEST_SKIP();
 
     FILE *fp = fopen("in.lammps_empty", "w");
@@ -340,7 +340,7 @@ TEST(LAMMPS_init, OpenMP)
     std::string output = ::testing::internal::GetCapturedStdout();
     EXPECT_THAT(output, MatchesRegex(".*using 2 OpenMP thread.*per MPI task.*"));
 
-    if (LAMMPS_NS::Info::has_accelerator_feature("USER-OMP", "api", "openmp"))
+    if (LAMMPS_NS::Info::has_accelerator_feature("OPENMP", "api", "openmp"))
         EXPECT_EQ(lmp->comm->nthreads, 2);
     else
         EXPECT_EQ(lmp->comm->nthreads, 1);
@@ -356,7 +356,7 @@ TEST(LAMMPS_init, OpenMP)
 
 TEST(LAMMPS_init, NoOpenMP)
 {
-    if (!LAMMPS_NS::Info::has_accelerator_feature("USER-OMP", "api", "openmp"))
+    if (!LAMMPS_NS::Info::has_accelerator_feature("OPENMP", "api", "openmp"))
         GTEST_SKIP() << "No threading enabled";
 
     FILE *fp = fopen("in.lammps_class_noomp", "w");

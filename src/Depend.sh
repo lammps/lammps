@@ -47,7 +47,7 @@ depend () {
 
 if (test $1 = "ASPHERE") then
   depend GPU
-  depend USER-OMP
+  depend OPENMP
   depend CG-DNA
   depend USER-INTEL
 fi
@@ -55,22 +55,22 @@ fi
 if (test $1 = "CLASS2") then
   depend GPU
   depend KOKKOS
-  depend USER-OMP
+  depend OPENMP
 fi
 
 if (test $1 = "COLLOID") then
   depend GPU
-  depend USER-OMP
+  depend OPENMP
 fi
 
 if (test $1 = "DIPOLE") then
   depend USER-MISC
-  depend USER-OMP
+  depend OPENMP
 fi
 
 if (test $1 = "GRANULAR") then
   depend KOKKOS
-  depend USER-OMP
+  depend OPENMP
 fi
 
 if (test $1 = "KSPACE") then
@@ -78,7 +78,7 @@ if (test $1 = "KSPACE") then
   depend GPU
   depend KOKKOS
   depend OPT
-  depend USER-OMP
+  depend OPENMP
   depend USER-INTEL
   depend USER-PHONON
   depend USER-FEP
@@ -90,7 +90,7 @@ if (test $1 = "MANYBODY") then
   depend OPT
   depend QEQ
   depend USER-MISC
-  depend USER-OMP
+  depend OPENMP
 fi
 
 if (test $1 = "MOLECULE") then
@@ -98,12 +98,12 @@ if (test $1 = "MOLECULE") then
   depend KOKKOS
   depend USER-MISC
   depend USER-FEP
-  depend USER-OMP
+  depend OPENMP
   depend USER-INTEL
 fi
 
 if (test $1 = "PERI") then
-  depend USER-OMP
+  depend OPENMP
 fi
 
 if (test $1 = "PYTHON") then
@@ -112,7 +112,7 @@ fi
 
 if (test $1 = "RIGID") then
   depend KOKKOS
-  depend USER-OMP
+  depend OPENMP
   depend USER-SDPD
 fi
 
@@ -124,7 +124,7 @@ fi
 if (test $1 = "CG-SDK") then
   depend GPU
   depend KOKKOS
-  depend USER-OMP
+  depend OPENMP
 fi
 
 if (test $1 = "USER-DPD") then
@@ -132,20 +132,20 @@ if (test $1 = "USER-DPD") then
 fi
 
 if (test $1 = "USER-DRUDE") then
-  depend USER-OMP
+  depend OPENMP
 fi
 
 if (test $1 = "USER-FEP") then
-  depend USER-OMP
+  depend OPENMP
 fi
 
 if (test $1 = "USER-MISC") then
   depend GPU
-  depend USER-OMP
+  depend OPENMP
   depend USER-INTEL
 fi
 
 if (test $1 = "USER-REAXC") then
   depend KOKKOS
-  depend USER-OMP
+  depend OPENMP
 fi

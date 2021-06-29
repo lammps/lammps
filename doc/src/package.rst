@@ -131,7 +131,7 @@ Description
 This command invokes package-specific settings for the various
 accelerator packages available in LAMMPS.  Currently the following
 packages use settings from this command: GPU, USER-INTEL, KOKKOS, and
-USER-OMP.
+OPENMP.
 
 If this command is specified in an input script, it must be near the
 top of the script, before the simulation box has been defined.  This
@@ -152,7 +152,7 @@ accelerator settings.
 The KOKKOS package requires a "-k on" :doc:`command-line switch <Run_options>` respectively, which invokes a "package
 kokkos" command with default settings.
 
-For the GPU, USER-INTEL, and USER-OMP packages, if a "-sf gpu" or "-sf
+For the GPU, USER-INTEL, and OPENMP packages, if a "-sf gpu" or "-sf
 intel" or "-sf omp" :doc:`command-line switch <Run_options>` is used to
 auto-append accelerator suffixes to various styles in the input
 script, then those switches also invoke a "package gpu", "package
@@ -556,7 +556,7 @@ result in better performance for certain configurations and system sizes.
 ----------
 
 The *omp* style invokes settings associated with the use of the
-USER-OMP package.
+OPENMP package.
 
 The *Nthreads* argument sets the number of OpenMP threads allocated for
 each MPI task.  For example, if your system has nodes with dual
@@ -595,12 +595,12 @@ for OpenMPI.  Check your MPI documentation for additional details.
 What combination of threads and MPI tasks gives the best performance
 is difficult to predict and can depend on many components of your
 input.  Not all features of LAMMPS support OpenMP threading via the
-USER-OMP package and the parallel efficiency can be very different,
+OPENMP package and the parallel efficiency can be very different,
 too.
 
 .. note::
 
-   If you build LAMMPS with the GPU, USER-INTEL, and / or USER-OMP
+   If you build LAMMPS with the GPU, USER-INTEL, and / or OPENMP
    packages, be aware these packages all allow setting of the *Nthreads*
    value via their package commands, but there is only a single global
    *Nthreads* value used by OpenMP.  Thus if multiple package commands are
@@ -649,7 +649,7 @@ with the KOKKOS package.  See the :doc:`Build package <Build_package>`
 doc page for more info.
 
 The omp style of this command can only be invoked if LAMMPS was built
-with the USER-OMP package.  See the :doc:`Build package <Build_package>`
+with the OPENMP package.  See the :doc:`Build package <Build_package>`
 doc page for more info.
 
 Related commands

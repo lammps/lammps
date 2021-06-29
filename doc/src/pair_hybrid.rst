@@ -389,7 +389,7 @@ corresponding suffix to all sub-styles, if those versions
 exist. Otherwise the non-accelerated version will be used.
 
 The individual accelerated sub-styles are part of the GPU, KOKKOS,
-USER-INTEL, USER-OMP, and OPT packages, respectively.  They are only
+USER-INTEL, OPENMP, and OPT packages, respectively.  They are only
 enabled if LAMMPS was built with those packages.  See the :doc:`Build
 package <Build_package>` doc page for more info.
 

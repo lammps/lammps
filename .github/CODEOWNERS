@@ -41,7 +41,7 @@ src/ML-PACE/*       @yury-lysogorskiy
 src/USER-PLUMED/*     @gtribello
 src/USER-PHONON/*     @lingtikong
 src/USER-PTM/*        @pmla
-src/USER-OMP/*        @akohlmey
+src/OPENMP/*        @akohlmey
 src/USER-QMMM/*       @akohlmey
 src/USER-REAXC/*      @hasanmetin
 src/USER-REACTION/*   @jrgissing

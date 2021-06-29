@@ -67,8 +67,8 @@ section below for examples where this has been done.
   pair style - on the CPU. This can often be easily achieved with placing
   a *suffix off* command before and a *suffix on* command after the
   *kspace_style pppm* command.
-* The KOKKOS/OpenMP and USER-OMP package have different thread management
-  strategies, which should result in USER-OMP being more efficient for a
+* The KOKKOS/OpenMP and OPENMP package have different thread management
+  strategies, which should result in OPENMP being more efficient for a
   small number of threads with increasing overhead as the number of threads
   per MPI rank grows. The KOKKOS/OpenMP kernels have less overhead in that
   case, but have lower performance with few threads.

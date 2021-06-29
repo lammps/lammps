@@ -5899,7 +5899,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    other.
 
 *Must set number of threads via package omp command*
-   Because you are using the USER-OMP package, set the number of threads
+   Because you are using the OPENMP package, set the number of threads
    via its settings, not by the pair_style snap nthreads setting.
 
 *Must shrink-wrap piston boundary*
@@ -6352,8 +6352,8 @@ keyword to allow for additional bonds to be formed
    The KOKKOS package must be installed via "make yes-kokkos" before
    LAMMPS is built, and the "-k on" must be used to enable the package.
 
-*Package omp command without USER-OMP package installed*
-   The USER-OMP package must be installed via "make yes-user-omp" before
+*Package omp command without OPENMP package installed*
+   The OPENMP package must be installed via "make yes-openmp" before
    LAMMPS is built.
 
 *Pair body requires atom style body*
@@ -8070,7 +8070,7 @@ keyword to allow for additional bonds to be formed
 *Using suffix kk without KOKKOS package enabled*
    Self-explanatory.
 
-*Using suffix omp without USER-OMP package installed*
+*Using suffix omp without OPENMP package installed*
    Self-explanatory.
 
 *Using update dipole flag requires atom attribute mu*

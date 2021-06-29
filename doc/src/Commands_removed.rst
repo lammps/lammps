@@ -38,7 +38,7 @@ REAX package
 The REAX package has been removed since it was superseded by the
 :ref:`USER-REAXC package <PKG-USER-REAXC>`.  The USER-REAXC
 package has been tested to yield equivalent results to the REAX package,
-offers better performance, supports OpenMP multi-threading via USER-OMP,
+offers better performance, supports OpenMP multi-threading via OPENMP,
 and GPU and threading parallelization through KOKKOS.  The new pair styles
 are not syntax compatible with the removed reax pair style, so input
 files will have to be adapted.

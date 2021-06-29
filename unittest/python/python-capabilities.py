@@ -133,12 +133,12 @@ class PythonCapabilities(unittest.TestCase):
     def test_accelerator_config(self):
 
         settings = self.lmp.accelerator_config
-        if self.cmake_cache['PKG_USER-OMP']:
+        if self.cmake_cache['PKG_OPENMP']:
             if self.cmake_cache['BUILD_OMP']:
-                self.assertIn('openmp',settings['USER-OMP']['api'])
+                self.assertIn('openmp',settings['OPENMP']['api'])
             else:
-                self.assertIn('serial',settings['USER-OMP']['api'])
-            self.assertIn('double',settings['USER-OMP']['precision'])
+                self.assertIn('serial',settings['OPENMP']['api'])
+            self.assertIn('double',settings['OPENMP']['precision'])
 
         if self.cmake_cache['PKG_USER-INTEL']:
             if 'LMP_INTEL_OFFLOAD' in self.cmake_cache.keys():

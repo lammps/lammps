@@ -120,9 +120,9 @@ self-installed MPICH or OpenMPI, so you should study the provided
 documentation to find out how to build and link with it.
 
 The majority of OpenMP (threading) support in LAMMPS is provided by the
-``USER-OMP`` package; see the :doc:`Speed_omp`
+``OPENMP`` package; see the :doc:`Speed_omp`
 page for details. The ``USER-INTEL`` package also includes OpenMP
-threading (it is compatible with ``USER-OMP`` and will usually fall
+threading (it is compatible with ``OPENMP`` and will usually fall
 back on styles from that package, if a ``USER-INTEL`` does not exist)
 and adds vectorization support when compiled with compatible compilers,
 in particular the Intel compilers on top of OpenMP. Also, the ``KOKKOS``
@@ -325,7 +325,7 @@ LAMMPS.
          .. code-block:: bash
 
             Makefile.opt                   # OPT package
-            Makefile.omp                   # USER-OMP package
+            Makefile.omp                   # OPENMP package
             Makefile.intel_cpu             # USER-INTEL package for CPUs
             Makefile.intel_coprocessor     # USER-INTEL package for KNLs
             Makefile.gpu                   # GPU package

@@ -112,17 +112,9 @@ FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg)
 #if defined(_OPENMP)
     const char * const nmode = _neighbor ? "multi-threaded" : "serial";
 
-    if (screen) {
-      if (reset_thr)
-        fprintf(screen,"set %d OpenMP thread(s) per MPI task\n", nthreads);
-      fprintf(screen,"using %s neighbor list subroutines\n", nmode);
-    }
-
-    if (logfile) {
-      if (reset_thr)
-        fprintf(logfile,"set %d OpenMP thread(s) per MPI task\n", nthreads);
-      fprintf(logfile,"using %s neighbor list subroutines\n", nmode);
-    }
+    if (reset_thr)
+      utils::logmesg(lmp, "set {} OpenMP thread(s) per MPI task\n", nthreads);
+    utils::logmesg(lmp, "using {} neighbor list subroutines\n", nmode);
 #else
     error->warning(FLERR,"OpenMP support not enabled during compilation; "
                          "using 1 thread only.");
@@ -170,17 +162,17 @@ int FixOMP::setmask()
 
 void FixOMP::init()
 {
-  // USER-OMP package cannot be used with atom_style template
+  // OPENMP package cannot be used with atom_style template
   if (atom->molecular == Atom::TEMPLATE)
-    error->all(FLERR,"USER-OMP package does not (yet) work with "
+    error->all(FLERR,"OPENMP package does not (yet) work with "
                "atom_style template");
 
   // adjust number of data objects when the number of OpenMP
   // threads has been changed somehow
   const int nthreads = comm->nthreads;
   if (_nthr != nthreads) {
-    if (screen) fprintf(screen,"Re-init USER-OMP for %d OpenMP thread(s)\n", nthreads);
-    if (logfile) fprintf(logfile,"Re-init USER-OMP for %d OpenMP thread(s)\n", nthreads);
+    if (comm->me == 0)
+      utils::logmesg(lmp,"Re-init OPENMP for {} OpenMP thread(s)\n", nthreads);
 
     for (int i=0; i < _nthr; ++i)
       delete thr[i];
@@ -292,23 +284,11 @@ void FixOMP::init()
   // diagnostic output
   if (comm->me == 0) {
     if (last_omp_style) {
-      if (last_pair_hybrid) {
-        if (screen)
-          fprintf(screen,"Hybrid pair style last /omp style %s\n", last_hybrid_name);
-        if (logfile)
-          fprintf(logfile,"Hybrid pair style last /omp style %s\n", last_hybrid_name);
-      }
-      if (screen)
-        fprintf(screen,"Last active /omp style is %s_style %s\n",
-                last_force_name, last_omp_name);
-      if (logfile)
-        fprintf(logfile,"Last active /omp style is %s_style %s\n",
-                last_force_name, last_omp_name);
+      if (last_pair_hybrid)
+        utils::logmesg(lmp,"Hybrid pair style last /omp style {}\n",last_hybrid_name);
+      utils::logmesg(lmp,"Last active /omp style is {}_style {}\n",last_force_name,last_omp_name);
     } else {
-      if (screen)
-        fprintf(screen,"No /omp style for force computation currently active\n");
-      if (logfile)
-        fprintf(logfile,"No /omp style for force computation currently active\n");
+      utils::logmesg(lmp,"No /omp style for force computation currently active\n");
     }
   }
 }
@@ -327,7 +307,7 @@ void FixOMP::set_neighbor_omp()
   const int neigh_omp = _neighbor ? 1 : 0;
   const int nrequest = neighbor->nrequest;
 
-  // flag *all* neighbor list requests as USER-OMP threaded,
+  // flag *all* neighbor list requests as OPENMP threaded,
   // but skip lists already flagged as USER-INTEL threaded
   for (int i = 0; i < nrequest; ++i)
     if (! neighbor->requests[i]->intel)

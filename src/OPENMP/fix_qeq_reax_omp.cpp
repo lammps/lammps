@@ -22,7 +22,7 @@
    by Hasan Metin Aktulga (MSU), Chris Knight (ALCF), Paul Coffman (ALCF),
    Kurt O'Hearn (MSU), Ray Shan (Materials Design), Wei Jiang (ALCF)
 
-   Integration of the pair_style reax/c/omp into the User-OMP package
+   Integration of the pair_style reax/c/omp into the OPENMP package
    by Axel Kohlmeyer (Temple U.)
 
    Please cite the related publication:

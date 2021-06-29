@@ -357,9 +357,9 @@ E: Package kokkos command without KOKKOS package enabled
 The KOKKOS package must be installed via "make yes-kokkos" before
 LAMMPS is built, and the "-k on" must be used to enable the package.
 
-E: Package omp command without USER-OMP package installed
+E: Package omp command without OPENMP package installed
 
-The USER-OMP package must be installed via "make yes-user-omp" before
+The OPENMP package must be installed via "make yes-openmp" before
 LAMMPS is built.
 
 E: Package intel command without USER-INTEL package installed

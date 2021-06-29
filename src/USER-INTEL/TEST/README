@@ -106,7 +106,7 @@ export bench=in.intel.lj
 mpirun -np $LMP_CORES $LMP_BIN -in $bench -log none -v N on
 
 #############################################################################
-# To run with USER-OMP package
+# To run with OPENMP package
 #############################################################################
 mpirun -np $LMP_CORES $LMP_BIN -in $bench -log none -pk omp 0 -sf omp -v N on
 

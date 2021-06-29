@@ -598,7 +598,7 @@ TEST(PairStyle, plain)
 
 TEST(PairStyle, omp)
 {
-    if (!LAMMPS::is_installed_pkg("USER-OMP")) GTEST_SKIP();
+    if (!LAMMPS::is_installed_pkg("OPENMP")) GTEST_SKIP();
     if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
 
     const char *args[] = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite",
@@ -632,7 +632,7 @@ TEST(PairStyle, omp)
     const int nlocal = lmp->atom->nlocal;
     ASSERT_EQ(lmp->atom->natoms, nlocal);
 
-    // relax error a bit for USER-OMP package
+    // relax error a bit for OPENMP package
     double epsilon = 5.0 * test_config.epsilon;
     // relax test precision when using pppm and single precision FFTs
 #if defined(FFT_SINGLE)

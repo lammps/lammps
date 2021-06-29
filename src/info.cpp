@@ -1223,7 +1223,7 @@ bool Info::has_accelerator_feature(const std::string &package,
   }
 #endif
 #if defined(LMP_USER_OMP)
-  if (package == "USER-OMP") {
+  if (package == "OPENMP") {
     if (category == "precision") {
       if (setting == "double") return true;
       else return false;
@@ -1466,14 +1466,14 @@ std::string Info::get_accelerator_info(const std::string &package)
     if (has_accelerator_feature("KOKKOS","precision","double")) mesg += " double";
     mesg += "\n";
   }
-  if ((package.empty() || (package == "USER-OMP")) && has_package("USER-OMP")) {
-    mesg += "USER-OMP package API:";
-    if (has_accelerator_feature("USER-OMP","api","openmp"))   mesg += " OpenMP";
-    if (has_accelerator_feature("USER-OMP","api","serial"))   mesg += " Serial";
-    mesg +=  "\nUSER-OMP package precision:";
-    if (has_accelerator_feature("USER-OMP","precision","single")) mesg += " single";
-    if (has_accelerator_feature("USER-OMP","precision","mixed"))  mesg += " mixed";
-    if (has_accelerator_feature("USER-OMP","precision","double")) mesg += " double";
+  if ((package.empty() || (package == "OPENMP")) && has_package("OPENMP")) {
+    mesg += "OPENMP package API:";
+    if (has_accelerator_feature("OPENMP","api","openmp"))   mesg += " OpenMP";
+    if (has_accelerator_feature("OPENMP","api","serial"))   mesg += " Serial";
+    mesg +=  "\nOPENMP package precision:";
+    if (has_accelerator_feature("OPENMP","precision","single")) mesg += " single";
+    if (has_accelerator_feature("OPENMP","precision","mixed"))  mesg += " mixed";
+    if (has_accelerator_feature("OPENMP","precision","double")) mesg += " double";
     mesg += "\n";
   }
   if ((package.empty() || (package == "USER-INTEL")) && has_package("USER-INTEL")) {

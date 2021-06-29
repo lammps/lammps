@@ -207,7 +207,7 @@ E: Using suffix kk without KOKKOS package enabled
 
 Self-explanatory.
 
-E: Using suffix omp without USER-OMP package installed
+E: Using suffix omp without OPENMP package installed
 
 Self-explanatory.
 

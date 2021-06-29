@@ -63,7 +63,7 @@ the compiler wrapped by mpicxx.  Setting this requires a different
 syntax for different MPIs.
 
 Makefile.opt                 OPT package, using default MPI
-Makefile.omp                 USER-OMP package, using default MPI
+Makefile.omp                 OPENMP package, using default MPI
 Makefile.gpu                 GPU package, using default MPI
 
 Makefile.intel_cpu_intelmpi  USER-INTEL package for CPU with Intel MPI

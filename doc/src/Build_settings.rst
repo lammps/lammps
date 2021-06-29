@@ -64,7 +64,7 @@ LAMMPS can use them if they are available on your system.
       selected, then CMake will try to detect, if threaded FFTW
       libraries are available and enable them by default.  This setting
       is independent of whether OpenMP threads are enabled and a
-      packages like KOKKOS or USER-OMP is used.  If CMake cannot detect
+      packages like KOKKOS or OPENMP is used.  If CMake cannot detect
       the FFT library, you can set these variables to assist:
 
       .. code-block:: bash

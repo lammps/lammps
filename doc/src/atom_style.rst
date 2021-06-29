@@ -319,7 +319,7 @@ styles take the same arguments and should produce the same results,
 except for round-off and precision issues.
 
 Note that other acceleration packages in LAMMPS, specifically the GPU,
-USER-INTEL, USER-OMP, and OPT packages do not use accelerated atom
+USER-INTEL, OPENMP, and OPT packages do not use accelerated atom
 styles.
 
 The accelerated styles are part of the KOKKOS package.  They are only

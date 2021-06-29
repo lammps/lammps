@@ -529,7 +529,7 @@ This will most likely cause errors in kinetic fluctuations.
 
 *OMP_NUM_THREADS environment is not set.*
    This environment variable must be set appropriately to use the
-   USER-OMP package.
+   OPENMP package.
 
 *One or more atoms are time integrated more than once*
    This is probably an error since you typically do not want to

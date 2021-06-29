@@ -75,7 +75,7 @@ FixQEqReax::FixQEqReax(LAMMPS *lmp, int narg, char **arg) :
   tolerance = utils::numeric(FLERR,arg[6],false,lmp);
   pertype_option = utils::strdup(arg[7]);
 
-  // dual CG support only available for USER-OMP variant
+  // dual CG support only available for OPENMP variant
   // check for compatibility is in Fix::post_constructor()
   dual_enabled = 0;
   imax = 200;

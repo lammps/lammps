@@ -185,7 +185,7 @@ can start running so that the CPU pipeline is still being used
 efficiently. Although benefits can be seen by launching a MPI task
 for every hardware thread, for multinode simulations, we recommend
 that OpenMP threads are used for SMT instead, either with the
-USER-INTEL package, :doc:`USER-OMP package <Speed_omp>`, or
+USER-INTEL package, :doc:`OPENMP package <Speed_omp>`, or
 :doc:`KOKKOS package <Speed_kokkos>`. In the example above, up
 to 36X speedups can be observed by using all 36 physical cores with
 LAMMPS. By using all 72 hardware threads, an additional 10-30%
@@ -409,7 +409,7 @@ when using offload.
 
 Not all styles are supported in the USER-INTEL package. You can mix
 the USER-INTEL package with styles from the :doc:`OPT <Speed_opt>`
-package or the :doc:`USER-OMP package <Speed_omp>`. Of course, this
+package or the :doc:`OPENMP package <Speed_omp>`. Of course, this
 requires that these packages were installed at build time. This can
 performed automatically by using "-sf hybrid intel opt" or "-sf hybrid
 intel omp" command-line options. Alternatively, the "opt" and "omp"

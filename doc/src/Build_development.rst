@@ -310,7 +310,7 @@ and working.
      parameter needs to be adjusted. Typically a value around 1.0e-13
      can be used, but it may need to be as large as 1.0e-8 in some
      cases.
-   - The tests for pair styles from OPT, USER-OMP and USER-INTEL are
+   - The tests for pair styles from OPT, OPENMP and USER-INTEL are
      performed with automatically rescaled epsilon to account for
      additional loss of precision from code optimizations and different
      summation orders.
@@ -345,7 +345,7 @@ and compared.  If the fix is a thermostat and thus the internal property
 ``t_target`` can be extracted, then this is compared to the reference
 data.  The tests are repeated with the respa run style.
 
-If the fix has a multi-threaded version in the USER-OMP package, then
+If the fix has a multi-threaded version in the OPENMP package, then
 the entire set of tests is repeated for that version as well.
 
 For this to work, some additional conditions have to be met by the

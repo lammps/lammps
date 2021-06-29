@@ -390,10 +390,10 @@ Generally speaking, the following rules of thumb apply:
 * When running on CPUs only, with a single thread per MPI task,
   performance of a KOKKOS style is somewhere between the standard
   (un-accelerated) styles (MPI-only mode), and those provided by the
-  USER-OMP package. However the difference between all 3 is small (less
+  OPENMP package. However the difference between all 3 is small (less
   than 20%).
 * When running on CPUs only, with multiple threads per MPI task,
-  performance of a KOKKOS style is a bit slower than the USER-OMP
+  performance of a KOKKOS style is a bit slower than the OPENMP
   package.
 * When running large number of atoms per GPU, KOKKOS is typically faster
   than the GPU package when compiled for double precision. The benefit

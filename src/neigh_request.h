@@ -66,7 +66,7 @@ class NeighRequest : protected Pointers {
   int respamiddle;     // 1 if need a rRESPA middle list
   int respaouter;      // 1 if need a rRESPA outer list
   int bond;            // 1 if store bond neighbors instead of atom neighs
-  int omp;             // set by USER-OMP package
+  int omp;             // set by OPENMP package
   int intel;           // set by USER-INTEL package
   int kokkos_host;     // set by KOKKOS package
   int kokkos_device;

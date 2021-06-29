@@ -421,7 +421,7 @@ calculations, along with the FFTs themselves, on the GPU or (optionally) threade
 on the CPU when using OpenMP and FFTW3.
 
 These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
-USER-OMP, and OPT packages respectively.  They are only enabled if
+OPENMP, and OPT packages respectively.  They are only enabled if
 LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 See the :doc:`Speed packages <Speed_packages>` doc page for more

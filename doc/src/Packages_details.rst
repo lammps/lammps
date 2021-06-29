@@ -93,7 +93,7 @@ page gives those details.
    * :ref:`USER-MOFFF <PKG-USER-MOFFF>`
    * :ref:`USER-MOLFILE <PKG-USER-MOLFILE>`
    * :ref:`USER-NETCDF <PKG-USER-NETCDF>`
-   * :ref:`USER-OMP <PKG-USER-OMP>`
+   * :ref:`OPENMP <PKG-OPENMP>`
    * :ref:`ML-PACE <PKG-ML-PACE>`
    * :ref:`USER-PHONON <PKG-USER-PHONON>`
    * :ref:`USER-PLUMED <PKG-USER-PLUMED>`
@@ -447,7 +447,7 @@ style name.  The :doc:`KOKKOS package <Speed_kokkos>` page gives
 details of what hardware and software is required on your system, and
 how to build and use this package.  Its styles can be invoked at run
 time via the "-sf kk" or "-suffix kk" :doc:`command-line switches <Run_options>`.  Also see the :ref:`GPU <PKG-GPU>`, :ref:`OPT <PKG-OPT>`,
-:ref:`USER-INTEL <PKG-USER-INTEL>`, and :ref:`USER-OMP <PKG-USER-OMP>` packages, which
+:ref:`USER-INTEL <PKG-USER-INTEL>`, and :ref:`OPENMP <PKG-OPENMP>` packages, which
 have styles optimized for CPUs, KNLs, and GPUs.
 
 You must have a C++14 compatible compiler to use this package.
@@ -802,7 +802,7 @@ CHARMM, and Morse potentials.  The styles have an "opt" suffix in
 their style name.  The :doc:`OPT package <Speed_opt>` page gives
 details of how to build and use this package.  Its styles can be
 invoked at run time via the "-sf opt" or "-suffix opt" :doc:`command-line switches <Run_options>`.  See also the :ref:`KOKKOS <PKG-KOKKOS>`,
-:ref:`USER-INTEL <PKG-USER-INTEL>`, and :ref:`USER-OMP <PKG-USER-OMP>` packages, which
+:ref:`USER-INTEL <PKG-USER-INTEL>`, and :ref:`OPENMP <PKG-OPENMP>` packages, which
 have styles optimized for CPU performance.
 
 **Authors:** James Fischer (High Performance Technologies), David Richie,
@@ -1642,7 +1642,7 @@ All of them have an "intel" in their style name.  The
 compilers are required on your system, and how to build and use this
 package.  Its styles can be invoked at run time via the "-sf intel" or
 "-suffix intel" :doc:`command-line switches <Run_options>`.  Also see
-the :ref:`KOKKOS <PKG-KOKKOS>`, :ref:`OPT <PKG-OPT>`, and :ref:`USER-OMP <PKG-USER-OMP>` packages,
+the :ref:`KOKKOS <PKG-KOKKOS>`, :ref:`OPT <PKG-OPT>`, and :ref:`OPENMP <PKG-OPENMP>` packages,
 which have styles optimized for CPUs and KNLs.
 
 You need to have an Intel compiler, version 14 or higher to take full
@@ -2021,9 +2021,9 @@ This package has :ref:`specific installation instructions <user-netcdf>` on the 
 
 ----------
 
-.. _PKG-USER-OMP:
+.. _PKG-OPENMP:
 
-USER-OMP package
+OPENMP package
 ----------------
 
 **Contents:**
@@ -2031,7 +2031,7 @@ USER-OMP package
 Hundreds of pair, fix, compute, bond, angle, dihedral, improper, and
 kspace styles which are altered to enable threading on many-core CPUs
 via OpenMP directives.  All of them have an "omp" in their style name.
-The :doc:`USER-OMP package <Speed_omp>` page gives details of what hardware
+The :doc:`OPENMP package <Speed_omp>` page gives details of what hardware
 and compilers are required on your system, and how to build and use
 this package.  Its styles can be invoked at run time via the "-sf omp"
 or "-suffix omp" :doc:`command-line switches <Run_options>`.  Also see
@@ -2046,7 +2046,7 @@ packages, which have styles optimized for CPUs.
    and the link flag "-fopenmp" (for GNU compilers, you have to look up
    the equivalent flags for other compilers) must be used to build LAMMPS.
    When using Intel compilers, also the "-restrict" flag is required.
-   The USER-OMP package can be compiled without enabling OpenMP; then
+   The OPENMP package can be compiled without enabling OpenMP; then
    all code will be compiled as serial and the only improvement over the
    regular styles are some data access optimization. These flags should
    be added to the CCFLAGS and LINKFLAGS lines of your Makefile.machine.
@@ -2057,16 +2057,17 @@ install/un-install the package and build LAMMPS in the usual manner:
 
 **Install:**
 
-This package has :ref:`specific installation instructions <user-omp>` on the :doc:`Build extras <Build_extras>` page.
+This package has :ref:`specific installation instructions <openmp>` on
+the :doc:`Build extras <Build_extras>` page.
 
 **Supporting info:**
 
-* src/USER-OMP: filenames -> commands
-* src/USER-OMP/README
+* src/OPENMP: filenames -> commands
+* src/OPENMP/README
 * :doc:`Accelerator packages <Speed_packages>`
-* :doc:`USER-OMP package <Speed_omp>`
-* :doc:`Section 2.6 -sf omp <Run_options>`
-* :doc:`Section 2.6 -pk omp <Run_options>`
+* :doc:`OPENMP package <Speed_omp>`
+* :doc:`Command line option -suffix/-sf omp <Run_options>`
+* :doc:`Command line option -package/-pk omp <Run_options>`
 * :doc:`package omp <package>`
 * Search the :doc:`commands <Commands_all>` pages (:doc:`fix <Commands_fix>`, :doc:`compute <Commands_compute>`,
   :doc:`pair <Commands_pair>`, :doc:`bond, angle, dihedral, improper <Commands_bond>`,

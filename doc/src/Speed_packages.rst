@@ -22,7 +22,7 @@ standard or user packages:
 +-----------------------------------------+-------------------------------------------------------+
 | :doc:`KOKKOS Package <Speed_kokkos>`    | for NVIDIA GPUs, Intel Xeon Phi, and OpenMP threading |
 +-----------------------------------------+-------------------------------------------------------+
-| :doc:`USER-OMP Package <Speed_omp>`     | for OpenMP threading and generic CPU optimizations    |
+| :doc:`OPENMP Package <Speed_omp>`     | for OpenMP threading and generic CPU optimizations    |
 +-----------------------------------------+-------------------------------------------------------+
 | :doc:`OPT Package <Speed_opt>`          | generic CPU optimizations                             |
 +-----------------------------------------+-------------------------------------------------------+
@@ -41,7 +41,7 @@ Inverting this list, LAMMPS currently has acceleration support for
 three kinds of hardware, via the listed packages:
 
 +-----------------+-----------------------------------------------------------------------------------------------------------------------------+
-| Many-core CPUs  | :doc:`USER-INTEL <Speed_intel>`, :doc:`KOKKOS <Speed_kokkos>`, :doc:`USER-OMP <Speed_omp>`, :doc:`OPT <Speed_opt>` packages |
+| Many-core CPUs  | :doc:`USER-INTEL <Speed_intel>`, :doc:`KOKKOS <Speed_kokkos>`, :doc:`OPENMP <Speed_omp>`, :doc:`OPT <Speed_opt>` packages |
 +-----------------+-----------------------------------------------------------------------------------------------------------------------------+
 | GPUs            | :doc:`GPU <Speed_gpu>`, :doc:`KOKKOS <Speed_kokkos>` packages                                                               |
 +-----------------+-----------------------------------------------------------------------------------------------------------------------------+
@@ -86,7 +86,7 @@ listed above:
 +--------------------------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | install the accelerator package                                                                                                | make yes-opt, make yes-user-intel, etc                               |
 +--------------------------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
-| add compile/link flags to Makefile.machine in src/MAKE                                                                         | only for USER-INTEL, KOKKOS, USER-OMP, OPT packages                  |
+| add compile/link flags to Makefile.machine in src/MAKE                                                                         | only for USER-INTEL, KOKKOS, OPENMP, OPT packages                  |
 +--------------------------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | re-build LAMMPS                                                                                                                | make machine                                                         |
 +--------------------------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
@@ -167,7 +167,7 @@ are in the individual accelerator sections.
   run using OpenMP on multicore CPUs, on an NVIDIA or AMD GPU, or on an
   Intel Xeon Phi in "native" mode.  The speed-up depends on a variety of
   factors, as discussed on the KOKKOS accelerator page.
-* Styles with an "omp" suffix are part of the USER-OMP package and allow
+* Styles with an "omp" suffix are part of the OPENMP package and allow
   a pair-style to be run in multi-threaded mode using OpenMP.  This can
   be useful on nodes with high-core counts when using less MPI processes
   than cores is advantageous, e.g. when running with PPPM so that FFTs

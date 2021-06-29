@@ -73,7 +73,7 @@ depending on your available hardware, as discussed on the :doc:`Speed packages <
 the same arguments and should produce the same results, except for
 round-off and precision issues.
 
-The accelerated style is part of the USER-OMP.  They are only enabled
+The accelerated style is part of the OPENMP.  They are only enabled
 if LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 You can specify the accelerated style explicitly in your input script

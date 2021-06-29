@@ -39,7 +39,7 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 
 static const char cite_compute_xrd_c[] =
-  "compute_xrd command:\n\n"
+  "compute_xrd command: doi:10.1088/0965-0393/21/5/055020\n\n"
   "@Article{Coleman13,\n"
   " author = {S. P. Coleman, D. E. Spearot, L. Capolungo},\n"
   " title = {Virtual diffraction analysis of Ni [010] symmetric tilt grain boundaries},\n"
@@ -75,7 +75,7 @@ ComputeXRD::ComputeXRD(LAMMPS *lmp, int narg, char **arg) :
   extarray = 0;
 
   // Store radiation wavelength
-  lambda = atof(arg[3]);
+  lambda = utils::numeric(FLERR,arg[3],false,lmp);
   if (lambda < 0)
     error->all(FLERR,"Compute SAED: Wavelength must be greater than zero");
 
@@ -109,33 +109,22 @@ ComputeXRD::ComputeXRD(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"2Theta") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal Compute XRD Command");
-      Min2Theta = atof(arg[iarg+1]) / 2;
-      Max2Theta = atof(arg[iarg+2]) / 2;
-      if (Max2Theta > MY_PI) {
-        Min2Theta = Min2Theta * MY_PI / 180;  // converting to radians if necessary
-        Max2Theta = Max2Theta * MY_PI / 180;
-        radflag = 0;
-      }
-      if (Min2Theta <= 0)
-        error->all(FLERR,"Minimum 2theta value must be greater than zero");
-      if (Max2Theta >= MY_PI )
-        error->all(FLERR,"Maximum 2theta value must be less than 180 degrees");
-      if (Max2Theta-Min2Theta <= 0)
-        error->all(FLERR,"Two-theta range must be greater than zero");
+      Min2Theta = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      Max2Theta = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       iarg += 3;
 
     } else if (strcmp(arg[iarg],"c") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal Compute XRD Command");
-      c[0] = atof(arg[iarg+1]);
-      c[1] = atof(arg[iarg+2]);
-      c[2] = atof(arg[iarg+3]);
+      c[0] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      c[1] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      c[2] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       if (c[0] < 0 || c[1] < 0 || c[2] < 0)
         error->all(FLERR,"Compute XRD: c's must be greater than 0");
       iarg += 4;
 
     } else if (strcmp(arg[iarg],"LP") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal Compute XRD Command");
-      LP = atof(arg[iarg+1]);
+      LP = utils::numeric(FLERR,arg[iarg+1],false,lmp);
 
       if (!(LP == 1 || LP == 0))
          error->all(FLERR,"Compute XRD: LP must have value of 0 or 1");
@@ -152,6 +141,20 @@ ComputeXRD::ComputeXRD(LAMMPS *lmp, int narg, char **arg) :
     } else error->all(FLERR,"Illegal Compute XRD Command");
   }
 
+  // error check and process min/max 2Theta values
+  Min2Theta /= 2.0;
+  Max2Theta /= 2.0;
+  if (Max2Theta > MY_PI) {
+    Min2Theta = Min2Theta * MY_PI / 180;  // converting to radians if necessary
+    Max2Theta = Max2Theta * MY_PI / 180;
+    radflag = 0;
+  }
+  if (Min2Theta <= 0)
+    error->all(FLERR,"Minimum 2Theta value must be greater than zero");
+  if (Max2Theta >= MY_PI )
+    error->all(FLERR,"Maximum 2Theta value must be less than 180 degrees");
+  if (Max2Theta-Min2Theta <= 0)
+    error->all(FLERR,"2Theta range must be greater than zero");
   Kmax = 2 * sin(Max2Theta) / lambda;
 
   // Calculating spacing between reciprocal lattice points
@@ -231,13 +234,10 @@ ComputeXRD::ComputeXRD(LAMMPS *lmp, int narg, char **arg) :
   size_array_rows = nRows;
   size_array_cols = 2;
 
-  if (me == 0) {
-    if (screen && echo) {
-      fprintf(screen,"-----\nCompute XRD id:%s, # of atoms:%d, # of relp:%d\n",id,natoms,nRows);
-      fprintf(screen,"Reciprocal point spacing in k1,k2,k3 = %g %g %g\n-----\n",
-              dK[0], dK[1], dK[2]);
-    }
-  }
+  if (me == 0 && echo)
+    utils::logmesg(lmp,"-----\nCompute XRD id:{}, # of atoms:{}, # of relp:{}\n"
+                   "Reciprocal point spacing in k1,k2,k3 = {:.8} {:.8} {:.8}\n-----\n",
+                   id,natoms,nRows,dK[0],dK[1],dK[2]);
 
   memory->create(array,size_array_rows,size_array_cols,"xrd:array");
   memory->create(store_tmp,3*size_array_rows,"xrd:store_tmp");
@@ -263,9 +263,7 @@ void ComputeXRD::init()
   double ang = 0.0;
 
   double convf = 360 / MY_PI;
-  if (radflag ==1) {
-  convf = 1;
-  }
+  if (radflag ==1) convf = 1;
 
   int n = 0;
   for (int m = 0; m < mmax; m++) {
@@ -300,10 +298,7 @@ void ComputeXRD::compute_array()
 {
   invoked_array = update->ntimestep;
 
-  if (me == 0 && echo) {
-      if (screen)
-        fprintf(screen,"-----\nComputing XRD intensities");
-  }
+  if (me == 0 && echo) utils::logmesg(lmp, "-----\nComputing XRD intensities");
 
   double t0 = MPI_Wtime();
 
@@ -339,19 +334,16 @@ void ComputeXRD::compute_array()
 
 // Setting up OMP
 #if defined(_OPENMP)
-  if (me == 0 && echo) {
-    if (screen)
-      fprintf(screen," using %d OMP threads\n",comm->nthreads);
-  }
+  if ((me == 0) && echo) utils::logmesg(lmp," using {} OMP threads\n",comm->nthreads);
 #endif
 
-  if (me == 0 && echo) {
-    if (screen) {
-      fprintf(screen,"\n");
-      if (LP == 1)
-        fprintf(screen,"Applying Lorentz-Polarization Factor During XRD Calculation 2\n");
-    }
+  if ((me == 0) && echo) {
+    utils::logmesg(lmp,"\n");
+
+    if (LP == 1)
+        utils::logmesg(lmp,"Applying Lorentz-Polarization Factor During XRD Calculation 2\n");
   }
+
   int m = 0;
   double frac = 0.1;
 
@@ -430,7 +422,7 @@ void ComputeXRD::compute_array()
 #endif
           {
             if (m == round(frac * size_array_rows)) {
-              if (me == 0 && screen) fprintf(screen," %0.0f%% -",frac*100);
+              if (me == 0) utils::logmesg(lmp," {:2.0f}% -",frac*100);
               frac += 0.1;
             }
             m++;
@@ -484,7 +476,7 @@ void ComputeXRD::compute_array()
 #endif
           {
             if (m == round(frac * size_array_rows)) {
-              if (me == 0 && screen) fprintf(screen," %0.0f%% -",frac*100 );
+              if (me == 0) utils::logmesg(lmp," {:2.0f}% -",frac*100);
               frac += 0.1;
             }
             m++;
@@ -509,10 +501,9 @@ void ComputeXRD::compute_array()
   // compute memory usage per processor
   double bytes = memory_usage();
 
-  if (me == 0 && echo) {
-    if (screen)
-      fprintf(screen," 100%% \nTime elapsed during compute_xrd = %0.2f sec using %0.2f Mbytes/processor\n-----\n", t2-t0, bytes/1024.0/1024.0);
-  }
+  if (me == 0 && echo)
+    utils::logmesg(lmp," 100% \nTime elapsed during compute_xrd = {:.2f} sec "
+                   "using {:.2f} Mbytes/processor\n-----\n", t2-t0, bytes/1024.0/1024.0);
 
   delete [] scratch;
   delete [] Fvec;
@@ -535,4 +526,3 @@ double ComputeXRD::memory_usage()
 
   return bytes;
 }
-

@@ -103,7 +103,7 @@ page gives those details.
    * :ref:`ML-QUIP <PKG-ML-QUIP>`
    * :ref:`ML-RANN <PKG-ML-RANN>`
    * :ref:`USER-REACTION <PKG-USER-REACTION>`
-   * :ref:`USER-REAXC <PKG-USER-REAXC>`
+   * :ref:`REAXFF <PKG-REAXFF>`
    * :ref:`USER-SCAFACOS <PKG-USER-SCAFACOS>`
    * :ref:`USER-SDPD <PKG-USER-SDPD>`
    * :ref:`MACHDYN <PKG-MACHDYN>`
@@ -2358,15 +2358,15 @@ molecules, and chiral-sensitive reactions.
 
 ----------
 
-.. _PKG-USER-REAXC:
+.. _PKG-REAXFF:
 
-USER-REAXC package
+REAXFF package
 ------------------
 
 **Contents:**
 
 A pair style which implements the ReaxFF potential in C/C++.  ReaxFF
-is a universal reactive force field.  See the src/USER-REAXC/README file
+is a universal reactive force field.  See the src/REAXFF/README file
 for more info on differences between the two packages.  Also two fixes
 for monitoring molecules as bonds are created and destroyed.
 
@@ -2374,8 +2374,8 @@ for monitoring molecules as bonds are created and destroyed.
 
 **Supporting info:**
 
-* src/USER-REAXC: filenames -> commands
-* src/USER-REAXC/README
+* src/REAXFF: filenames -> commands
+* src/REAXFF/README
 * :doc:`pair_style reax/c <pair_reaxc>`
 * :doc:`fix reax/c/bonds <fix_reaxc_bonds>`
 * :doc:`fix reax/c/species <fix_reaxc_species>`

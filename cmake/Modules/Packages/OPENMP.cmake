@@ -24,7 +24,7 @@
     list(APPEND OPENMP_SOURCES ${OPENMP_SOURCES_DIR}/fix_rigid_nh_omp.cpp)
   endif()
 
-  if(PKG_USER-REAXC)
+  if(PKG_REAXFF)
     list(APPEND OPENMP_SOURCES ${OPENMP_SOURCES_DIR}/reaxc_bond_orders_omp.cpp
                                  ${OPENMP_SOURCES_DIR}/reaxc_hydrogen_bonds_omp.cpp
                                  ${OPENMP_SOURCES_DIR}/reaxc_nonbonded_omp.cpp

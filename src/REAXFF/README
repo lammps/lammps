@@ -4,7 +4,7 @@ represent the contributions of chemical bonding to the potential
 energy.  It was originally developed by Adri van Duin and the Goddard
 group at CalTech.
 
-The USER-REAXC version of ReaxFF (pair_style reax/c), implemented in
+The REAXFF version of ReaxFF (pair_style reax/c), implemented in
 C, should give identical or very similar results to pair_style reax,
 which is a ReaxFF implementation on top of a Fortran library, a
 version of which library was originally authored by Adri van Duin.

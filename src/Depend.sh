@@ -145,7 +145,7 @@ if (test $1 = "USER-MISC") then
   depend USER-INTEL
 fi
 
-if (test $1 = "USER-REAXC") then
+if (test $1 = "REAXFF") then
   depend KOKKOS
   depend OPENMP
 fi

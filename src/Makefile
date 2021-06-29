@@ -57,7 +57,7 @@ PACKUSER = user-adios user-atc user-awpmd user-brownian user-bocs cg-dna \
 	   user-mdi meam user-mesodpd user-mesont user-mgpt user-misc \
 	   user-mofff user-molfile user-netcdf openmp user-phonon \
 	   ml-pace user-plumed user-ptm user-qmmm user-qtb ml-quip \
-	   ml-rann user-reaction user-reaxc user-scafacos machdyn user-smtbq \
+	   ml-rann user-reaction reaxff user-scafacos machdyn user-smtbq \
 	   user-sdpd user-sph user-tally user-uef user-vtk user-yaff
 
 PACKLIB = compress gpu kim kokkos latte message mpiio mscg poems python voronoi \

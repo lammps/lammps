@@ -29,7 +29,7 @@ The following folks deserve special recognition.  Many of the packages
 they have written are unique for an MD code and LAMMPS would not be as
 general-purpose as it is without their expertise and efforts.
 
-* Metin Aktulga (MSU), USER-REAXC package for C version of ReaxFF
+* Metin Aktulga (MSU), REAXFF package for C version of ReaxFF
 * Mike Brown (Intel), GPU and USER-INTEL packages
 * Colin Denniston (U Western Ontario), LATBOLTZ package
 * Georg Ganzenmuller (EMI), MACHDYN and USER-SPH packages

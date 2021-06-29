@@ -43,7 +43,7 @@ src/USER-PHONON/*     @lingtikong
 src/USER-PTM/*        @pmla
 src/OPENMP/*        @akohlmey
 src/USER-QMMM/*       @akohlmey
-src/USER-REAXC/*      @hasanmetin
+src/REAXFF/*      @hasanmetin
 src/USER-REACTION/*   @jrgissing
 src/USER-SCAFACOS/*   @rhalver
 src/USER-TALLY/*      @akohlmey

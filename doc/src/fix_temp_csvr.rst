@@ -176,9 +176,9 @@ These fixes are not invoked during :doc:`energy minimization <minimize>`.
 Restrictions
 """"""""""""
 
-These fixes are not compatible with :doc:`fix shake <fix_shake>`.
+Fix *temp/csld* is not compatible with :doc:`fix shake <fix_shake>`.
 
-The fix can be used with dynamic groups as defined by the
+These fixes can be used with dynamic groups as defined by the
 :doc:`group <group>` command.  Likewise it can be used with groups to
 which atoms are added or deleted over time, e.g. a deposition
 simulation.  However, the conservation properties of the thermostat

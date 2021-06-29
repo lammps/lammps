@@ -25,8 +25,8 @@ typedef Jacobi<double, double *, double **, double const *const *> Jacobi_v2;
 int SO3Math::jacobin(int n, double const *const *mat, double *eval, double **evec)
 {
   int *midx = new int[n];
-  double **M = new double*[n];
-  double **mat_cpy = new double*[n];
+  double **M = new double *[n];
+  double **mat_cpy = new double *[n];
 
   for (int i = 0; i < n; i++) {
     mat_cpy[i] = new double[n];
@@ -63,22 +63,26 @@ int SO3Math::invert_matrix(int n, double *A, double *Ainv)
 
   for (i = 0; i < n * n; i++) Atemp[i] = A[i];
 
-  if (LUPdecompose(n, dtol, Atemp, P) != 0) return 1;
+  int rv = 0;
+  if (LUPdecompose(n, dtol, Atemp, P) == 0) {
 
-  for (i = 0; i < n; i++) {
-    for (j = 0; j < n; j++) b[j] = 0.0;
+    for (i = 0; i < n; i++) {
+      for (j = 0; j < n; j++) b[j] = 0.0;
 
-    b[i] = 1.0;
-    LUPSolve(n, Atemp, b, P);
+      b[i] = 1.0;
+      LUPSolve(n, Atemp, b, P);
 
-    for (j = 0; j < n; j++) Ainv[j * n + i] = b[j];
+      for (j = 0; j < n; j++) Ainv[j * n + i] = b[j];
+    }
+  } else {
+    rv = 1;
   }
 
   delete[] P;
   delete[] b;
   delete[] Atemp;
 
-  return 0;
+  return rv;
 }
 
 int SO3Math::LUPdecompose(int n, double dtol, double *A, int *P)
@@ -96,7 +100,10 @@ int SO3Math::LUPdecompose(int n, double dtol, double *A, int *P)
       Atemp = fabs(A[i * n + j]);
       if (Atemp > maxA) maxA = Atemp;
     }
-    if (maxA < dtol) return 1;
+    if (maxA < dtol) {
+      delete[] normi;
+      return 1;
+    }
 
     normi[i] = 1.0 / maxA;
   }

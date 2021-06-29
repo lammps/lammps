@@ -180,14 +180,20 @@ void PairSNAP::compute(int eflag, int vflag)
 
       snaptr->compute_deidrj(fij);
 
-      f[i][0] += fij[0] * scale[itype][itype];
-      f[i][1] += fij[1] * scale[itype][itype];
-      f[i][2] += fij[2] * scale[itype][itype];
-      f[j][0] -= fij[0] * scale[itype][itype];
-      f[j][1] -= fij[1] * scale[itype][itype];
-      f[j][2] -= fij[2] * scale[itype][itype];
+      // scaling
+      fij[0] *= scale[itype][itype];
+      fij[1] *= scale[itype][itype];
+      fij[2] *= scale[itype][itype];
+      
+      f[i][0] += fij[0];
+      f[i][1] += fij[1];
+      f[i][2] += fij[2];
+      f[j][0] -= fij[0];
+      f[j][1] -= fij[1];
+      f[j][2] -= fij[2];
 
       // tally per-atom virial contribution
+
 
       if (vflag)
         ev_tally_xyz(i,j,nlocal,newton_pair,0.0,0.0,
@@ -203,7 +209,7 @@ void PairSNAP::compute(int eflag, int vflag)
       // evdwl = energy of atom I, sum over coeffs_k * Bi_k
 
       double* coeffi = coeffelem[ielem];
-      evdwl = coeffi[0]  * scale[itype][itype] ;
+      evdwl = coeffi[0] ;
       // snaptr->copy_bi2bvec();
 
       // E = beta.B + 0.5*B^t.alpha.B
@@ -211,7 +217,7 @@ void PairSNAP::compute(int eflag, int vflag)
       // linear contributions
 
       for (int icoeff = 0; icoeff < ncoeff; icoeff++)
-        evdwl += coeffi[icoeff+1]*bispectrum[ii][icoeff]  * scale[itype][itype];
+        evdwl += coeffi[icoeff+1]*bispectrum[ii][icoeff];
 
       // quadratic contributions
 
@@ -219,13 +225,14 @@ void PairSNAP::compute(int eflag, int vflag)
         int k = ncoeff+1;
         for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
           double bveci = bispectrum[ii][icoeff];
-          evdwl += 0.5*coeffi[k++]*bveci*bveci  * scale[itype][itype];
+          evdwl += 0.5*coeffi[k++]*bveci*bveci;
           for (int jcoeff = icoeff+1; jcoeff < ncoeff; jcoeff++) {
             double bvecj = bispectrum[ii][jcoeff];
-            evdwl += coeffi[k++]*bveci*bvecj  * scale[itype][itype];
+            evdwl += coeffi[k++]*bveci*bvecj;
           }
         }
       }
+      evdwl *= scale[itype][itype];
       ev_tally_full(i,2.0*evdwl,0.0,0.0,0.0,0.0,0.0);
     }
 

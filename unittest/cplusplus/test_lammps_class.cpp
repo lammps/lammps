@@ -137,11 +137,11 @@ TEST_F(LAMMPS_plain, TestStyles)
     found = lmp->match_style("atom", "dpd");
     EXPECT_STREQ(found, "DPD-REACT");
     found = lmp->match_style("atom", "edpd");
-    EXPECT_STREQ(found, "USER-MESODPD");
+    EXPECT_STREQ(found, "DPD-MESO");
     found = lmp->match_style("atom", "mdpd");
-    EXPECT_STREQ(found, "USER-MESODPD");
+    EXPECT_STREQ(found, "DPD-MESO");
     found = lmp->match_style("atom", "tdpd");
-    EXPECT_STREQ(found, "USER-MESODPD");
+    EXPECT_STREQ(found, "DPD-MESO");
     found = lmp->match_style("atom", "spin");
     EXPECT_STREQ(found, "SPIN");
     found = lmp->match_style("atom", "smd");

@@ -113,7 +113,7 @@ fi
 if (test $1 = "RIGID") then
   depend KOKKOS
   depend OPENMP
-  depend USER-SDPD
+  depend DPD-SMOOTH
 fi
 
 if (test $1 = "ML-SNAP") then

@@ -86,7 +86,7 @@ page gives those details.
    * :ref:`USER-MANIFOLD <PKG-USER-MANIFOLD>`
    * :ref:`USER-MDI <PKG-USER-MDI>`
    * :ref:`MEAM <PKG-MEAM>`
-   * :ref:`USER-MESODPD <PKG-USER-MESODPD>`
+   * :ref:`DPD-MESO <PKG-DPD-MESO>`
    * :ref:`USER-MESONT <PKG-USER-MESONT>`
    * :ref:`USER-MGPT <PKG-USER-MGPT>`
    * :ref:`USER-MISC <PKG-USER-MISC>`
@@ -105,7 +105,7 @@ page gives those details.
    * :ref:`USER-REACTION <PKG-USER-REACTION>`
    * :ref:`REAXFF <PKG-REAXFF>`
    * :ref:`USER-SCAFACOS <PKG-USER-SCAFACOS>`
-   * :ref:`USER-SDPD <PKG-USER-SDPD>`
+   * :ref:`DPD-SMOOTH <PKG-DPD-SMOOTH>`
    * :ref:`MACHDYN <PKG-MACHDYN>`
    * :ref:`USER-SMTBQ <PKG-USER-SMTBQ>`
    * :ref:`USER-SPH <PKG-USER-SPH>`
@@ -1828,9 +1828,9 @@ Sandia.
 
 ----------
 
-.. _PKG-USER-MESODPD:
+.. _PKG-DPD-MESO:
 
-USER-MESODPD package
+DPD-MESO package
 --------------------
 
 **Contents:**
@@ -1847,8 +1847,8 @@ algorithm.
 
 **Supporting info:**
 
-* src/USER-MESODPD: filenames -> commands
-* src/USER-MESODPD/README
+* src/DPD-MESO: filenames -> commands
+* src/DPD-MESO/README
 * :doc:`atom_style edpd <atom_style>`
 * :doc:`pair_style edpd <pair_mesodpd>`
 * :doc:`pair_style mdpd <pair_mesodpd>`
@@ -2418,9 +2418,9 @@ This package has :ref:`specific installation instructions <user-scafacos>` on th
 
 ----------
 
-.. _PKG-USER-SDPD:
+.. _PKG-DPD-SMOOTH:
 
-USER-SDPD package
+DPD-SMOOTH package
 -----------------
 
 **Contents:**
@@ -2437,8 +2437,8 @@ Sciences, Iran).
 
 **Supporting info:**
 
-* src/USER-SDPD: filenames -> commands
-* src/USER-SDPD/README
+* src/DPD-SMOOTH: filenames -> commands
+* src/DPD-SMOOTH/README
 * :doc:`pair_style sdpd/taitwater/isothermal <pair_sdpd_taitwater_isothermal>`
 * :doc:`fix meso/move <fix_meso_move>`
 * :doc:`fix rigid/meso <fix_rigid_meso>`

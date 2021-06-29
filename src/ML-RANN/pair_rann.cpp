@@ -62,7 +62,7 @@ DISTRIBUTION A. Approved for public release; distribution unlimited. OPSEC#4918
 using namespace LAMMPS_NS;
 
 static const char cite_user_rann_package[] =
-  "USER-RANN package:\n\n"
+  "ML-RANN package:\n\n"
   "@Article{Nitol2021,\n"
   " author = {Nitol, Mashroor S and Dickel, Doyl E and Barrett, Christopher D},\n"
   " title = {Artificial neural network potential for pure zinc},\n"

@@ -101,7 +101,7 @@ page gives those details.
    * :ref:`USER-QMMM <PKG-USER-QMMM>`
    * :ref:`USER-QTB <PKG-USER-QTB>`
    * :ref:`ML-QUIP <PKG-ML-QUIP>`
-   * :ref:`USER-RANN <PKG-USER-RANN>`
+   * :ref:`ML-RANN <PKG-ML-RANN>`
    * :ref:`USER-REACTION <PKG-USER-REACTION>`
    * :ref:`USER-REAXC <PKG-USER-REAXC>`
    * :ref:`USER-SCAFACOS <PKG-USER-SCAFACOS>`
@@ -2301,9 +2301,9 @@ This package has :ref:`specific installation instructions <ml-quip>` on the
 
 ----------
 
-.. _PKG-USER-RANN:
+.. _PKG-ML-RANN:
 
-USER-RANN package
+ML-RANN package
 -----------------
 
 **Contents:**
@@ -2320,7 +2320,7 @@ with contributions by Doyl Dickel, Mississippi State University.
 
 **Supporting info:**
 
-* src/USER-RANN: filenames -> commands
+* src/ML-RANN: filenames -> commands
 * :doc:`pair_style rann <pair_rann>`
 * examples/PACKAGES/rann
 

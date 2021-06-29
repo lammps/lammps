@@ -12,7 +12,7 @@ LAMMPS.  Currently, the package has the following features:
 
 See the file doc/USER/sph/SPH_LAMMPS_userguide.pdf to get started.
 
-There are example scripts for using this package in examples/USER/sph.
+There are example scripts for using this package in examples/PACKAGES/sph.
 
 The person who created this package is Georg Ganzenmuller at the
 Fraunhofer-Institute for High-Speed Dynamics, Ernst Mach Institute in

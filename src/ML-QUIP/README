@@ -6,5 +6,5 @@ Potential (GAP) models.
 See lib/quip/README for more information on how to build LAMMPS
 with this package.
 
-See examples/USER/quip for several test examples that run QUIP
+See examples/PACKAGES/quip for several test examples that run QUIP
 potentials.

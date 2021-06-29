@@ -86,7 +86,7 @@ or use -DPKG_ML-QUIP=yes when configuring LAMMPS for compilation with CMake.
 
 2.2) Build LAMMPS according to the instructions on the LAMMPS website.
 
-3) There are three example sets in examples/USER/quip:
+3) There are three example sets in examples/PACKAGES/quip:
 
 - a set of input files to compute the energy of an 8-atom cubic
   diamond cell of silicon with the Stillinger-Weber potential. Use

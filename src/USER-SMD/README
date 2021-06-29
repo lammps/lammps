@@ -19,7 +19,7 @@ from *.STL files.
 
 See the file doc/PDF/SMD_LAMMPS_userguide.pdf to get started.
 
-There are example scripts for using this package in examples/USER/smd.
+There are example scripts for using this package in examples/PACKAGES/smd.
 The person who created this package is Georg Ganzenmuller at the
 Fraunhofer-Institute for High-Speed Dynamics, Ernst Mach Institute in
 Germany (georg.ganzenmueller at emi.fhg.de).  Contact him directly if

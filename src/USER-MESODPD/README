@@ -43,7 +43,7 @@ started. At the bottom of the doc pages are many links to additional
 documentation contained in the doc/USER/meso directory.
 
 There are example scripts for using this package in
-examples/USER/meso.
+examples/PACKAGES/meso.
 
 The person who created this package is Zhen Li (zhen_li at brown.edu)
 at Division of Applied Mathematics, Brown University, USA. Contact him

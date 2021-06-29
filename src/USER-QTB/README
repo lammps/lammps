@@ -44,7 +44,7 @@ What command should I use regarding these two cases?
 
 Where can I find examples of these two commands?
         There are example scripts for using this package in
-        examples/USER/qtb, including one "fix qtb" and one
+        examples/PACKAGES/qtb, including one "fix qtb" and one
         "fix qbmsst" example for each of alpha quartz and
         methane. Running the alpha quartz example requires
         installation of the kspace package while the methane

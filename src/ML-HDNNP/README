@@ -5,7 +5,7 @@ neural network potentials[1] via an interface to the n2p2 library
 
 Please see the main documentation for the "pair_style hdnnp" command for further
 details on how the pair style is used. An example is provided in the
-"examples/USER/hdnnp" directory of LAMMPS.
+"examples/PACKAGES/hdnnp" directory of LAMMPS.
 
 The ML-HDNNP package requires the external library n2p2 which must be
 downloaded and compiled before starting the build process of LAMMPS. A

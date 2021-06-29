@@ -4,7 +4,7 @@ Wave Packet Molecular Dynamics (AWPMD) method.
 See the doc page for the pair_style awpmd/cut command to get started.
 
 There are example scripts for using this package in
-examples/USER/awpmd.
+examples/PACKAGES/awpmd.
 
 This package uses an external library in lib/awpmd which must be
 compiled before making LAMMPS.  See the lib/awpmd/README file and the

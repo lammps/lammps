@@ -4,7 +4,7 @@ simulations with soft-core pair potentials in LAMMPS.
 See the doc page for the fix adapt/fep command to get started.
 
 There are example scripts for using this package in
-examples/USER/fep.
+examples/PACKAGES/fep.
 
 There are auxiliary tools for using this package in tools/fep.
 

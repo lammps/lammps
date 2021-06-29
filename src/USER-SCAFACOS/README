@@ -19,7 +19,7 @@ Once you have successfully built LAMMPS with this package and the
 ScaFaCoS library, you can test it using an input file from the
 examples scafacos dir, e.g.:
 
-lmp_serial -in lammps/examples/USER/scafacos/in.scafacos.fmm
+lmp_serial -in lammps/examples/PACKAGES/scafacos/in.scafacos.fmm
 
 For questions about ScaFaCoS, please contact:
 r.halver@fz-juelich.de or g.sutmann@fz-juelich.de

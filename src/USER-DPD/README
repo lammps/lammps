@@ -27,7 +27,7 @@ dpd/conservative" and "pair dpd/fdt" and "pair dpd/fdt/energy"
 commands to get started.  At the bottom of the doc page are many links
 to additional documentation contained in the doc/USER/dpd directory.
 
-There are example scripts for using this package in examples/USER/dpd.
+There are example scripts for using this package in examples/PACKAGES/dpd.
 
 The primary people who created this package are James Larentzos
 (james.p.larentzos.civ at mail.mil), Timothy Mattox (Timothy.Mattox at

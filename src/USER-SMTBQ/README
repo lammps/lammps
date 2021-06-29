@@ -13,4 +13,4 @@ See the doc page for the pair_style smtbq command to get started.
 There are potential files for this potential in the potentials dir.
 
 There are example scripts for using this package in
-examples/USER/smtbq.
+examples/PACKAGES/smtbq.

@@ -13,7 +13,7 @@ See the file doc/drude_tutorial.html for getting started.
 
 There are auxiliary tools for using this package in tools/drude.
 
-There are example scripts for using this package in examples/USER/drude.
+There are example scripts for using this package in examples/PACKAGES/drude.
 
 The person who created this package is Alain Dequidt at the
 Chemistry Institute of Clermont-Ferrand, Clermont University, France

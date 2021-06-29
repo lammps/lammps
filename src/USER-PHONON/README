@@ -13,7 +13,7 @@ Use of this package requires building LAMMPS with FFT suppport, as
 described in doc/Section_start.html.
 
 There are example scripts for using commands in this package in
-examples/USER/phonon.
+examples/PACKAGES/phonon.
 
 There is an auxiliary post-processing tool in tools/phonon that will
 compute phonon frequencies and dispersion relations from the dynamical

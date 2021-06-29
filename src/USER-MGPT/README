@@ -17,7 +17,7 @@ See the doc page for the pair_style mgpt command for full details on
 using this package in LAMMPS. In particular, the user should note that
 the MGPT potentials are explicitly volume dependent, requiring special
 attention in their application.  Useful example scripts are given in
-the "examples/USER/mgpt" directory.  These scripts show the necessary
+the "examples/PACKAGES/mgpt" directory.  These scripts show the necessary
 steps to perform constant-volume calculations and simulations.  It is
 strongly recommended that the user work through and understand these
 examples before proceeding to more complex simulations.

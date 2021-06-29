@@ -60,7 +60,7 @@ numerous example scripts for PLUMED as well as citations to articles that dcomen
 implemented within PLUMED.
 
 There are also example scripts for using this package in the folder
-examples/USER/plumed, as well as on the GitHub page for PLUMED.
+examples/PACKAGES/plumed, as well as on the GitHub page for PLUMED.
 
 Please contact Gareth Tribello (gareth.tribello@gmail.com) for questions
 regarding this package.

@@ -25,7 +25,7 @@ See the doc pages for "pair_style buck6d/coul/gauss", "anlge_style class2",
 commands to get started. Also see the above mentioned website and
 literature for further documentation about the force field.
 
-There are example scripts for using this force field in examples/USER/mofff.
+There are example scripts for using this force field in examples/PACKAGES/mofff.
 
 The creators of this package are Hendrik Heenen (hendrik.heenen at mytum.de)
 and Rochus Schmid (rochus.schmid at rub.de). Contact them directly if you

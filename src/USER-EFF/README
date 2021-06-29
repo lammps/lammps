@@ -27,7 +27,7 @@ minimization and dynamics.
 See the doc page for the pair_style eff/cut command to get started.
 
 There are example scripts for using this package in
-examples/USER/eff.
+examples/PACKAGES/eff.
 
 There are auxiliary tools for using this package in tools/eff.
 

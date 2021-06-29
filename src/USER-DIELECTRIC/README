@@ -23,6 +23,6 @@ Molecular Dynamics simulation", Computer Physics Communications 241, 80--91 (201
 
 * Examples
 
-Example input scripts and data files can be found under examples/USER/dielectric:
+Example input scripts and data files can be found under examples/PACKAGES/dielectric:
 
 mpirun -np 8 ../../../src/lmp_mpi -in in.confined

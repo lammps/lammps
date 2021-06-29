@@ -67,7 +67,7 @@ Github issue page (https://github.com/CompPhysVienna/n2p2/issues).
 Testing a successful build of LAMMPS with ML-HDNNP
 ====================================================
 
-An example is provided in the LAMMPS directory "examples/USER/hdnnp" which runs
+An example is provided in the LAMMPS directory "examples/PACKAGES/hdnnp" which runs
 10 timesteps with 360 water molecules. The neural network potential is defined
 via files in the "hdnnp-data" subdirectory. Use the "in.hdnnp" LAMMPS script file
 to run the simulation. You should see a large output of the n2p2 library when

@@ -1,8 +1,9 @@
-This package implements 3 commands which can be used in a LAMMPS input
+This package implements 4 commands which can be used in a LAMMPS input
 script:
 
 pair_style lj/sdk
 pair_style lj/sdk/coul/long
+pair_style lj/sdk/coul/msm
 angle_style sdk
 
 These styles allow coarse grained MD simulations with the
@@ -13,7 +14,7 @@ lipids and charged amino acids.
 See the doc pages for these commands for details.
 
 There are example scripts for using this package in
-examples/USER/cgsdk
+examples/PACKAGES/cgsdk
 
 This is the second generation implementation reducing the the clutter
 of the previous version. For many systems with long range

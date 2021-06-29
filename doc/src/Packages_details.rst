@@ -70,8 +70,8 @@ page gives those details.
    * :ref:`USER-AWPMD <PKG-USER-AWPMD>`
    * :ref:`USER-BOCS <PKG-USER-BOCS>`
    * :ref:`USER-BROWNIAN <PKG-USER-BROWNIAN>`
-   * :ref:`USER-CGDNA <PKG-USER-CGDNA>`
-   * :ref:`USER-CGSDK <PKG-USER-CGSDK>`
+   * :ref:`CG-DNA <PKG-CG-DNA>`
+   * :ref:`CG-SDK <PKG-CG-SDK>`
    * :ref:`USER-COLVARS <PKG-USER-COLVARS>`
    * :ref:`USER-DIELECTRIC <PKG-USER-DIELECTRIC>`
    * :ref:`USER-DIFFRACTION <PKG-USER-DIFFRACTION>`
@@ -1291,9 +1291,9 @@ Example inputs are in the examples/PACKAGES/brownian folder.
 
 ----------
 
-.. _PKG-USER-CGDNA:
+.. _PKG-CG-DNA:
 
-USER-CGDNA package
+CG-DNA package
 ------------------
 
 **Contents:**
@@ -1307,8 +1307,8 @@ rigid-body integrators with improved stability.
 
 **Supporting info:**
 
-* src/USER-CGDNA: filenames -> commands
-* /src/USER-CGDNA/README
+* src/CG-DNA: filenames -> commands
+* /src/CG-DNA/README
 * :doc:`pair_style oxdna/\* <pair_oxdna>`
 * :doc:`pair_style oxdna2/\* <pair_oxdna2>`
 * :doc:`pair_style oxrna2/\* <pair_oxrna2>`
@@ -1319,9 +1319,9 @@ rigid-body integrators with improved stability.
 
 ----------
 
-.. _PKG-USER-CGSDK:
+.. _PKG-CG-SDK:
 
-USER-CGSDK package
+CG-SDK package
 ------------------
 
 **Contents:**
@@ -1335,8 +1335,8 @@ acids.
 
 **Supporting info:**
 
-* src/USER-CGSDK: filenames -> commands
-* src/USER-CGSDK/README
+* src/CG-SDK: filenames -> commands
+* src/CG-SDK/README
 * :doc:`pair_style lj/sdk/\* <pair_sdk>`
 * :doc:`angle_style sdk <angle_sdk>`
 * examples/PACKAGES/cgsdk

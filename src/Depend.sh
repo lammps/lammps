@@ -48,7 +48,7 @@ depend () {
 if (test $1 = "ASPHERE") then
   depend GPU
   depend USER-OMP
-  depend USER-CGDNA
+  depend CG-DNA
   depend USER-INTEL
 fi
 
@@ -121,7 +121,7 @@ if (test $1 = "ML-SNAP") then
   depend ML-IAP
 fi
 
-if (test $1 = "USER-CGSDK") then
+if (test $1 = "CG-SDK") then
   depend GPU
   depend KOKKOS
   depend USER-OMP

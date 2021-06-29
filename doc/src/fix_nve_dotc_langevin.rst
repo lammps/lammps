@@ -122,7 +122,7 @@ rotational to the translational friction coefficient.
 
 An example input file can be found in examples/PACKAGES/cgdna/examples/duplex2/.
 Further details of the implementation and stability of the integrators are contained in :ref:`(Henrich) <Henrich5>`.
-The preprint version of the article can be found `here <PDF/USER-CGDNA.pdf>`_.
+The preprint version of the article can be found `here <PDF/CG-DNA.pdf>`_.
 
 ----------
 
@@ -130,7 +130,7 @@ Restrictions
 """"""""""""
 
 These pair styles can only be used if LAMMPS was built with the
-:ref:`USER-CGDNA <PKG-USER-CGDNA>` package and the MOLECULE and ASPHERE package.
+:ref:`CG-DNA <PKG-CG-DNA>` package and the MOLECULE and ASPHERE package.
 See the :doc:`Build package <Build_package>` doc page for more info.
 
 Related commands

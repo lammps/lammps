@@ -40,13 +40,13 @@ gradient thermostats for rigid body dynamics", J. Chem. Phys. 142,
 144114 (2015).
 
 Example input and data files can be found in
-/examples/USER/cgdna/examples/oxDNA/, /oxDNA2/ and /oxRNA2/.
+examples/PACKAGES/cgdna/examples/oxDNA/, /oxDNA2/ and /oxRNA2/.
 Python setup tools which create single straight or helical DNA or RNA
 strands as well as DNA or RNA duplexes or arrays of duplexes can be
-found in /examples/USER/cgdna/util/. A technical report with more
+found in examples/PACKAGES/cgdna/util/. A technical report with more
 general information on the model, its implementation and performance
 as well as the structure of the data and input file can be found
-in /doc/src/PDF/USER-CGDNA.pdf.
+in doc/src/PDF/CG-DNA.pdf.
 
 IMPORTANT NOTE: This package can only be used if LAMMPS is compiled
 with the MOLECULE and ASPHERE packages.  These should be included in

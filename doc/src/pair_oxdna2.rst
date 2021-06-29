@@ -108,7 +108,7 @@ Please cite :ref:`(Henrich) <Henrich2>` in any publication that uses
 this implementation.  The article contains general information
 on the model, its implementation and performance as well as the structure of
 the data and input file. The preprint version of the article can be found
-`here <PDF/USER-CGDNA.pdf>`_.
+`here <PDF/CG-DNA.pdf>`_.
 Please cite also the relevant oxDNA2 publications
 :ref:`(Snodin) <Snodin2>` and :ref:`(Sulc) <Sulc2>`.
 
@@ -118,7 +118,7 @@ Restrictions
 """"""""""""
 
 These pair styles can only be used if LAMMPS was built with the
-USER-CGDNA package and the MOLECULE and ASPHERE package.  See the
+CG-DNA package and the MOLECULE and ASPHERE package.  See the
 :doc:`Build package <Build_package>` doc page for more info.
 
 Related commands

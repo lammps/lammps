@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Originally modified from USER-CGDNA/fix_nve_dotc_langevin.cpp.
+   Originally modified from CG-DNA/fix_nve_dotc_langevin.cpp.
 
    Contributing author: Sam Cameron (University of Bristol)
 ------------------------------------------------------------------------- */

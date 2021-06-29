@@ -13,13 +13,13 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(meam/c,PairMEAMC);
-PairStyle(meam,PairMEAMC);
+PairStyle(meam,PairMEAM);
+PairStyle(meam/c,PairMEAM);
 // clang-format on
 #else
 
-#ifndef LMP_PAIR_MEAMC_H
-#define LMP_PAIR_MEAMC_H
+#ifndef LMP_PAIR_MEAM_H
+#define LMP_PAIR_MEAM_H
 
 #include "pair.h"
 
@@ -27,10 +27,10 @@ PairStyle(meam,PairMEAMC);
 
 namespace LAMMPS_NS {
 
-class PairMEAMC : public Pair {
+class PairMEAM : public Pair {
  public:
-  PairMEAMC(class LAMMPS *);
-  ~PairMEAMC();
+  PairMEAM(class LAMMPS *);
+  ~PairMEAM();
   void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
@@ -56,8 +56,8 @@ class PairMEAMC : public Pair {
 
   void allocate();
   void read_files(const std::string &, const std::string &);
-  void read_global_meamc_file(const std::string &);
-  void read_user_meamc_file(const std::string &);
+  void read_global_meam_file(const std::string &);
+  void read_user_meam_file(const std::string &);
   void neigh_strip(int, int *, int *, int **);
 };
 

@@ -54,7 +54,7 @@ PACKAGE = asphere body class2 colloid compress coreshell dipole gpu \
 PACKUSER = user-adios user-atc user-awpmd user-brownian user-bocs cg-dna \
 	   cg-sdk user-colvars user-dielectric user-diffraction user-dpd user-drude \
 	   user-eff user-fep user-h5md ml-hdnnp user-intel user-lb user-manifold \
-	   user-mdi user-meamc user-mesodpd user-mesont user-mgpt user-misc \
+	   user-mdi meam user-mesodpd user-mesont user-mgpt user-misc \
 	   user-mofff user-molfile user-netcdf user-omp user-phonon \
 	   ml-pace user-plumed user-ptm user-qmmm user-qtb ml-quip \
 	   ml-rann user-reaction user-reaxc user-scafacos user-smd user-smtbq \

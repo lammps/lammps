@@ -1891,8 +1891,7 @@ mdi
 mdpd
 mDPD
 meam
-meamc
-MEAMC
+MEAM
 meamf
 meanDist
 mech

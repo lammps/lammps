@@ -32,7 +32,7 @@ src/ML-HDNNP/*      @singraber
 src/USER-INTEL/*      @wmbrownintel
 src/USER-MANIFOLD/*   @Pakketeretet2
 src/USER-MDI/*        @taylor-a-barnes
-src/USER-MEAMC/*      @martok
+src/MEAM/*      @martok
 src/USER-MESONT/*     @iafoss
 src/USER-MOFFF/*      @hheenen
 src/USER-MOLFILE/*    @akohlmey

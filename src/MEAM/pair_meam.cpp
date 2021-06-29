@@ -16,7 +16,7 @@
    Contributing author: Greg Wagner (SNL)
 ------------------------------------------------------------------------- */
 
-#include "pair_meamc.h"
+#include "pair_meam.h"
 
 #include "atom.h"
 #include "comm.h"
@@ -47,7 +47,7 @@ static const char *keywords[] = {
 
 /* ---------------------------------------------------------------------- */
 
-PairMEAMC::PairMEAMC(LAMMPS *lmp) : Pair(lmp)
+PairMEAM::PairMEAM(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 0;
   restartinfo = 0;
@@ -72,7 +72,7 @@ PairMEAMC::PairMEAMC(LAMMPS *lmp) : Pair(lmp)
    check if allocated, since class can be destructed when incomplete
 ------------------------------------------------------------------------- */
 
-PairMEAMC::~PairMEAMC()
+PairMEAM::~PairMEAM()
 {
   delete meam_inst;
 
@@ -85,7 +85,7 @@ PairMEAMC::~PairMEAMC()
 
 /* ---------------------------------------------------------------------- */
 
-void PairMEAMC::compute(int eflag, int vflag)
+void PairMEAM::compute(int eflag, int vflag)
 {
   int i,ii,n,inum_half,errorflag;
   int *ilist_half,*numneigh_half,**firstneigh_half;
@@ -173,7 +173,7 @@ void PairMEAMC::compute(int eflag, int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void PairMEAMC::allocate()
+void PairMEAM::allocate()
 {
   allocated = 1;
   int n = atom->ntypes;
@@ -189,7 +189,7 @@ void PairMEAMC::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairMEAMC::settings(int narg, char ** /*arg*/)
+void PairMEAM::settings(int narg, char ** /*arg*/)
 {
   if (narg != 0) error->all(FLERR,"Illegal pair_style command");
 }
@@ -198,7 +198,7 @@ void PairMEAMC::settings(int narg, char ** /*arg*/)
    set coeffs for one or more type pairs
 ------------------------------------------------------------------------- */
 
-void PairMEAMC::coeff(int narg, char **arg)
+void PairMEAM::coeff(int narg, char **arg)
 {
   int m,n;
 
@@ -309,7 +309,7 @@ void PairMEAMC::coeff(int narg, char **arg)
    init specific to this pair style
 ------------------------------------------------------------------------- */
 
-void PairMEAMC::init_style()
+void PairMEAM::init_style()
 {
   if (force->newton_pair == 0)
     error->all(FLERR,"Pair style MEAM requires newton pair on");
@@ -329,7 +329,7 @@ void PairMEAMC::init_style()
    half or full
 ------------------------------------------------------------------------- */
 
-void PairMEAMC::init_list(int id, NeighList *ptr)
+void PairMEAM::init_list(int id, NeighList *ptr)
 {
   if (id == 1) listfull = ptr;
   else if (id == 2) listhalf = ptr;
@@ -339,7 +339,7 @@ void PairMEAMC::init_list(int id, NeighList *ptr)
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
-double PairMEAMC::init_one(int i, int j)
+double PairMEAM::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) scale[i][j] = 1.0;
   scale[j][i] = scale[i][j];
@@ -348,16 +348,16 @@ double PairMEAMC::init_one(int i, int j)
 
 /* ---------------------------------------------------------------------- */
 
-void PairMEAMC::read_files(const std::string &globalfile,
+void PairMEAM::read_files(const std::string &globalfile,
                            const std::string &userfile)
 {
-  read_global_meamc_file(globalfile);
-  read_user_meamc_file(userfile);
+  read_global_meam_file(globalfile);
+  read_user_meam_file(userfile);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairMEAMC::read_global_meamc_file(const std::string &globalfile)
+void PairMEAM::read_global_meam_file(const std::string &globalfile)
 {
   // allocate parameter arrays
   std::vector<lattice_t> lat(nlibelements);
@@ -498,7 +498,7 @@ void PairMEAMC::read_global_meamc_file(const std::string &globalfile)
 
 /* ---------------------------------------------------------------------- */
 
-void PairMEAMC::read_user_meamc_file(const std::string &userfile)
+void PairMEAM::read_user_meam_file(const std::string &userfile)
 {
   // done if user param file is "NULL"
 
@@ -577,7 +577,7 @@ void PairMEAMC::read_user_meamc_file(const std::string &userfile)
 
 /* ---------------------------------------------------------------------- */
 
-int PairMEAMC::pack_forward_comm(int n, int *list, double *buf,
+int PairMEAM::pack_forward_comm(int n, int *list, double *buf,
                                 int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,k,m;
@@ -621,7 +621,7 @@ int PairMEAMC::pack_forward_comm(int n, int *list, double *buf,
 
 /* ---------------------------------------------------------------------- */
 
-void PairMEAMC::unpack_forward_comm(int n, int first, double *buf)
+void PairMEAM::unpack_forward_comm(int n, int first, double *buf)
 {
   int i,k,m,last;
 
@@ -662,7 +662,7 @@ void PairMEAMC::unpack_forward_comm(int n, int first, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-int PairMEAMC::pack_reverse_comm(int n, int first, double *buf)
+int PairMEAM::pack_reverse_comm(int n, int first, double *buf)
 {
   int i,k,m,last;
 
@@ -697,7 +697,7 @@ int PairMEAMC::pack_reverse_comm(int n, int first, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-void PairMEAMC::unpack_reverse_comm(int n, int *list, double *buf)
+void PairMEAM::unpack_reverse_comm(int n, int *list, double *buf)
 {
   int i,j,k,m;
 
@@ -732,7 +732,7 @@ void PairMEAMC::unpack_reverse_comm(int n, int *list, double *buf)
    memory usage of local atom-based arrays
 ------------------------------------------------------------------------- */
 
-double PairMEAMC::memory_usage()
+double PairMEAM::memory_usage()
 {
   double bytes = 11 * meam_inst->nmax * sizeof(double);
   bytes += (double)(3 + 6 + 10 + 3 + 3 + 3) * meam_inst->nmax * sizeof(double);
@@ -747,7 +747,7 @@ double PairMEAMC::memory_usage()
    done once per reneighbor so that neigh_f2c and neigh_c2f don't see them
 ------------------------------------------------------------------------- */
 
-void PairMEAMC::neigh_strip(int inum, int *ilist,
+void PairMEAM::neigh_strip(int inum, int *ilist,
                            int *numneigh, int **firstneigh)
 {
   int i,j,ii,jnum;
@@ -763,7 +763,7 @@ void PairMEAMC::neigh_strip(int inum, int *ilist,
 
 /* ---------------------------------------------------------------------- */
 
-void *PairMEAMC::extract(const char *str, int &dim)
+void *PairMEAM::extract(const char *str, int &dim)
 {
   dim = 2;
   if (strcmp(str,"scale") == 0) return (void *) scale;

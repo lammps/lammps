@@ -8,7 +8,7 @@ region		box block 0 20 0 20 0 20
 create_box	1 box
 create_atoms	1 box
 
-pair_style	meam/c
+pair_style	meam
 pair_coeff	* * library.meam Ni4 Ni.meam Ni4
 
 velocity	all create 1600.0 376847 loop geom

@@ -85,7 +85,7 @@ page gives those details.
    * :ref:`USER-LB <PKG-USER-LB>`
    * :ref:`USER-MANIFOLD <PKG-USER-MANIFOLD>`
    * :ref:`USER-MDI <PKG-USER-MDI>`
-   * :ref:`USER-MEAMC <PKG-USER-MEAMC>`
+   * :ref:`MEAM <PKG-MEAM>`
    * :ref:`USER-MESODPD <PKG-USER-MESODPD>`
    * :ref:`USER-MESONT <PKG-USER-MESONT>`
    * :ref:`USER-MGPT <PKG-USER-MGPT>`
@@ -1803,16 +1803,16 @@ other atomic or molecular simulation codes via the `MolSSI Driver Interface
 
 ----------
 
-.. _PKG-USER-MEAMC:
+.. _PKG-MEAM:
 
-USER-MEAMC package
+MEAM package
 ------------------
 
 **Contents:**
 
 A pair style for the modified embedded atom (MEAM) potential
 translated from the Fortran version in the (obsolete) MEAM package
-to plain C++. The USER-MEAMC fully replaces the MEAM package, which
+to plain C++. The MEAM fully replaces the MEAM package, which
 has been removed from LAMMPS after the 12 December 2018 version.
 
 **Author:** Sebastian Huetter, (Otto-von-Guericke University Magdeburg)
@@ -1821,10 +1821,10 @@ Sandia.
 
 **Supporting info:**
 
-* src/USER-MEAMC: filenames -> commands
-* src/USER-MEAMC/README
-* :doc:`pair_style meam/c <pair_meamc>`
-* examples/meamc
+* src/MEAM: filenames -> commands
+* src/MEAM/README
+* :doc:`pair_style meam <pair_meam>`
+* examples/meam
 
 ----------
 

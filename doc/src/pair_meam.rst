@@ -1,6 +1,6 @@
-.. index:: pair_style meam/c
+.. index:: pair_style meam
 
-pair_style meam/c command
+pair_style meam command
 =========================
 
 Syntax
@@ -8,14 +8,14 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   pair_style meam/c
+   pair_style meam
 
 Examples
 """"""""
 
 .. code-block:: LAMMPS
 
-   pair_style meam/c
+   pair_style meam
    pair_coeff * * ../potentials/library.meam Si ../potentials/si.meam Si
    pair_coeff * * ../potentials/library.meam Ni Al NULL Ni Al Ni Ni
 
@@ -28,13 +28,13 @@ Description
    as of November 2010; see description below of the mixture_ref_t
    parameter
 
-Style *meam/c* computes pairwise interactions for a variety of materials
+Style *meam* computes pairwise interactions for a variety of materials
 using modified embedded-atom method (MEAM) potentials
 :ref:`(Baskes) <Baskes>`.  Conceptually, it is an extension to the original
 :doc:`EAM potentials <pair_eam>` which adds angular forces.  It is
 thus suitable for modeling metals and alloys with fcc, bcc, hcp and
 diamond cubic structures, as well as covalently bonded materials like
-silicon and carbon. Style *meam/c* is a translation of the (now obsolete)
+silicon and carbon. Style *meam* is a translation of the (now obsolete)
 *meam* code from Fortran to C++. It is functionally equivalent to *meam*
 but more efficient, and thus *meam* has been removed from LAMMPS after
 the 12 December 2018 release.
@@ -383,7 +383,7 @@ This pair style can only be used via the *pair* keyword of the
 Restrictions
 """"""""""""
 
-The *meam/c* style is provided in the USER-MEAMC package. It is
+The *meam* style is provided in the MEAM package. It is
 only enabled if LAMMPS was built with that package.
 See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -391,7 +391,7 @@ The maximum number of elements, that can be read from the MEAM
 library file, is determined at compile time. The default is 5.
 If you need support for more elements, you have to change the
 define for the constant 'maxelt' at the beginning of the file
-src/USER-MEAMC/meam.h and update/recompile LAMMPS. There is no
+src/MEAM/meam.h and update/recompile LAMMPS. There is no
 limit on the number of atoms types.
 
 Related commands

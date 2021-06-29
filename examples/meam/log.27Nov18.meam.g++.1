@@ -13,7 +13,7 @@ read_data	data.meam
   reading atoms ...
   128 atoms
 
-pair_style	meam/c
+pair_style	meam
 pair_coeff	* * library.meam Si C SiC.meam Si C
 Reading potential file library.meam with DATE: 2012-06-29
 Reading potential file SiC.meam with DATE: 2007-06-11
@@ -41,12 +41,12 @@ Neighbor list info ...
   ghost atom cutoff = 4.3
   binsize = 2.15, bins = 6 6 6
   2 neighbor lists, perpetual/occasional/extra = 2 0 0
-  (1) pair meam/c, perpetual
+  (1) pair meam, perpetual
       attributes: full, newton on
       pair build: full/bin/atomonly
       stencil: full/bin/3d
       bin: standard
-  (2) pair meam/c, perpetual, half/full from (1)
+  (2) pair meam, perpetual, half/full from (1)
       attributes: half, newton on
       pair build: halffull/newton
       stencil: none

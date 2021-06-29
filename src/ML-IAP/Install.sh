@@ -29,7 +29,7 @@ action () {
 # enforce package dependency
 if (test $1 = 1 || test $1 = 2) then
   if (test ! -e ../sna.h) then
-     echo "Must install SNAP package to use MLIAP package"
+     echo "Must install SNAP package to use ML-IAP package"
      exit 1
   fi
 fi

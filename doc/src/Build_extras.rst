@@ -37,7 +37,7 @@ This is the list of packages that may require additional steps.
    * :ref:`KOKKOS <kokkos>`
    * :ref:`LATTE <latte>`
    * :ref:`MESSAGE <message>`
-   * :ref:`MLIAP <mliap>`
+   * :ref:`ML-IAP <mliap>`
    * :ref:`MSCG <mscg>`
    * :ref:`OPT <opt>`
    * :ref:`POEMS <poems>`
@@ -811,16 +811,17 @@ be installed on your system.
 
 .. _mliap:
 
-MLIAP package
+ML-IAP package
 ---------------------------
 
-Building the MLIAP package requires including the :ref:`SNAP <PKG-SNAP>`
-package.  There will be an error message if this requirement is not satisfied.
-Using the *mliappy* model also requires enabling Python support, which
-in turn requires the :ref:`PYTHON <PKG-PYTHON>`
-package **and** requires you have the `cython <https://cython.org>`_ software
-installed and with it a working ``cythonize`` command.  This feature requires
-compiling LAMMPS with Python version 3.6 or later.
+Building the ML-IAP package requires including the :ref:`SNAP
+<PKG-SNAP>` package.  There will be an error message if this requirement
+is not satisfied.  Using the *mliappy* model also requires enabling
+Python support, which in turn requires to include the :ref:`PYTHON
+<PKG-PYTHON>` package **and** requires to have the `cython
+<https://cython.org>`_ software installed and with it a working
+``cythonize`` command.  This feature requires compiling LAMMPS with
+Python version 3.6 or later.
 
 .. tabs::
 
@@ -834,9 +835,9 @@ compiling LAMMPS with Python version 3.6 or later.
       suitable Python version and the ``cythonize`` command and choose
       the default accordingly.  During the build procedure the provided
       .pyx file(s) will be automatically translated to C++ code and compiled.
-      Please do **not** run ``cythonize`` manually in the ``src/MLIAP`` folder,
+      Please do **not** run ``cythonize`` manually in the ``src/ML-IAP`` folder,
       as that can lead to compilation errors if Python support is not enabled.
-      If you did by accident, please remove the generated .cpp and .h files.
+      If you did it by accident, please remove the generated .cpp and .h files.
 
    .. tab:: Traditional make
 
@@ -845,15 +846,16 @@ compiling LAMMPS with Python version 3.6 or later.
       the ``cythonize`` command in case the corresponding .pyx file(s) were
       modified.  You may need to modify ``lib/python/Makefile.lammps``
       if the LAMMPS build fails.
-      To manually enforce building MLIAP with Python support enabled,
-      you can add
-      ``-DMLIAP_PYTHON`` to the ``LMP_INC`` variable in your machine makefile.
-      You may have to manually run the ``cythonize`` command on .pyx file(s)
-      in the ``src`` folder, if this is not automatically done during
-      installing the MLIAP package.  Please do **not** run ``cythonize``
-      in the ``src/MLIAP`` folder, as that can lead to compilation errors
-      if Python support is not enabled.
-      If you did by accident, please remove the generated .cpp and .h files.
+
+      To enable building the ML-IAP package with Python support enabled,
+      you need to add ``-DMLIAP_PYTHON`` to the ``LMP_INC`` variable in
+      your machine makefile.  You may have to manually run the
+      ``cythonize`` command on .pyx file(s) in the ``src`` folder, if
+      this is not automatically done during installing the ML-IAP
+      package.  Please do **not** run ``cythonize`` in the ``src/ML-IAP``
+      folder, as that can lead to compilation errors if Python support
+      is not enabled.  If you did this by accident, please remove the
+      generated .cpp and .h files.
 
 ----------
 

@@ -107,7 +107,7 @@ if (test $1 = "PERI") then
 fi
 
 if (test $1 = "PYTHON") then
-  depend MLIAP
+  depend ML-IAP
 fi
 
 if (test $1 = "RIGID") then
@@ -118,7 +118,7 @@ fi
 
 if (test $1 = "SNAP") then
   depend KOKKOS
-  depend MLIAP
+  depend ML-IAP
 fi
 
 if (test $1 = "USER-CGSDK") then

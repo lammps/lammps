@@ -44,7 +44,7 @@ page gives those details.
    * :ref:`MC <PKG-MC>`
    * :ref:`MESSAGE <PKG-MESSAGE>`
    * :ref:`MISC <PKG-MISC>`
-   * :ref:`MLIAP <PKG-MLIAP>`
+   * :ref:`ML-IAP <PKG-ML-IAP>`
    * :ref:`MOLECULE <PKG-MOLECULE>`
    * :ref:`MPIIO <PKG-MPIIO>`
    * :ref:`MSCG <PKG-MSCG>`
@@ -668,9 +668,9 @@ listing, "ls src/MISC", to see the list of commands.
 
 ----------
 
-.. _PKG-MLIAP:
+.. _PKG-ML-IAP:
 
-MLIAP package
+ML-IAP package
 -------------
 
 **Contents:**
@@ -689,8 +689,8 @@ must be installed.
 
 **Supporting info:**
 
-* src/MLIAP: filenames -> commands
-* src/MLIAP/README
+* src/ML-IAP: filenames -> commands
+* src/ML-IAP/README.md
 * :doc:`pair_style mliap <pair_mliap>`
 * :doc:`compute_style mliap <compute_mliap>`
 * examples/mliap (see README)

@@ -123,17 +123,14 @@ class lammps(object):
       lib_ext = ".dll"
       modpath = winpath
     else:
-      """ 
       import platform
-      if platform.system() == "Darwin": # this flags an error on MacOSX
+      if platform.system() == "Darwin":
         lib_ext = ".dylib"
       elif platform.system() == "Windows":
         lib_ext = ".dll"
       else:
         lib_ext = ".so"
-      """
-      lib_ext = ".so"
-
+      
     if not self.lib:
       if name:
         libpath = join(modpath,"liblammps_%s" % name + lib_ext)
@@ -1573,8 +1570,8 @@ class lammps(object):
     """Return a string with detailed information about any devices that are
     usable by the GPU package.
 
-    This is a wrapper around the :cpp:func:`lammps_get_gpu_device_info` 
-    function of the C-library interface. 
+    This is a wrapper around the :cpp:func:`lammps_get_gpu_device_info`
+    function of the C-library interface.
 
     :return: GPU device info string
     :rtype:  string

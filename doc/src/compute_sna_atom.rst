@@ -72,64 +72,66 @@ Description
 """""""""""
 
 Define a computation that calculates a set of quantities related to the
-bispectrum components of the atoms in a group. These computes are
-used primarily for calculating the dependence of energy, force, and
-stress components on the linear coefficients in the
-:doc:`snap pair_style <pair_snap>`, which is useful when training a
-SNAP potential to match target data.
+bispectrum components of the atoms in a group. These computes are used
+primarily for calculating the dependence of energy, force, and stress
+components on the linear coefficients in the :doc:`snap pair_style
+<pair_snap>`, which is useful when training a SNAP potential to match
+target data.
 
-Bispectrum components of an atom are order parameters characterizing
-the radial and angular distribution of neighbor atoms. The detailed
+Bispectrum components of an atom are order parameters characterizing the
+radial and angular distribution of neighbor atoms. The detailed
 mathematical definition is given in the paper by Thompson et
 al. :ref:`(Thompson) <Thompson20141>`
 
-The position of a neighbor atom *i'* relative to a central atom *i* is
-a point within the 3D ball of radius :math:`R_{ii'}` = *rcutfac* :math:`(R_i + R_i')`
+The position of a neighbor atom *i'* relative to a central atom *i* is a
+point within the 3D ball of radius :math:`R_{ii'}` = *rcutfac*
+:math:`(R_i + R_i')`
 
-Bartok et al. :ref:`(Bartok) <Bartok20101>`, proposed mapping this 3D ball
-onto the 3-sphere, the surface of the unit ball in a four-dimensional
-space.  The radial distance *r*  within *R_ii'* is mapped on to a third
-polar angle :math:`\theta_0` defined by,
+Bartok et al. :ref:`(Bartok) <Bartok20101>`, proposed mapping this 3D
+ball onto the 3-sphere, the surface of the unit ball in a
+four-dimensional space.  The radial distance *r* within *R_ii'* is
+mapped on to a third polar angle :math:`\theta_0` defined by,
 
 .. math::
 
   \theta_0 = {\sf rfac0} \frac{r-r_{min0}}{R_{ii'}-r_{min0}} \pi
 
 In this way, all possible neighbor positions are mapped on to a subset
-of the 3-sphere.  Points south of the latitude :math:`\theta_0` = *rfac0* :math:`\pi`
-are excluded.
+of the 3-sphere.  Points south of the latitude :math:`\theta_0` =
+*rfac0* :math:`\pi` are excluded.
 
 The natural basis for functions on the 3-sphere is formed by the
-representatives of *SU(2)*, the matrices :math:`U^j_{m,m'}(\theta, \phi, \theta_0)`.
-These functions are better known as :math:`D^j_{m,m'}`, the elements of the Wigner
-*D*\ -matrices :ref:`(Meremianin <Meremianin2006>`,
-:ref:`Varshalovich <Varshalovich1987>`, :ref:`Mason) <Mason2009>`
-The density of neighbors on the 3-sphere can be written as a sum of
-Dirac-delta functions, one for each neighbor, weighted by species and
-radial distance. Expanding this density function as a generalized
-Fourier series in the basis functions, we can write each Fourier
-coefficient as
+representatives of *SU(2)*, the matrices :math:`U^j_{m,m'}(\theta, \phi,
+\theta_0)`.  These functions are better known as :math:`D^j_{m,m'}`, the
+elements of the Wigner *D*\ -matrices :ref:`(Meremianin
+<Meremianin2006>`, :ref:`Varshalovich <Varshalovich1987>`, :ref:`Mason)
+<Mason2009>` The density of neighbors on the 3-sphere can be written as
+a sum of Dirac-delta functions, one for each neighbor, weighted by
+species and radial distance. Expanding this density function as a
+generalized Fourier series in the basis functions, we can write each
+Fourier coefficient as
 
 .. math::
 
   u^j_{m,m'} = U^j_{m,m'}(0,0,0) + \sum_{r_{ii'} < R_{ii'}}{f_c(r_{ii'}) w_{\mu_{i'}} U^j_{m,m'}(\theta_0,\theta,\phi)}
 
-The :math:`w_{\mu_{i'}}` neighbor weights are dimensionless numbers that depend on
-:math:`\mu_{i'}`, the SNAP element of atom *i'*, while the central atom is
-arbitrarily assigned a unit weight.  The function :math:`f_c(r)` ensures that
-the contribution of each neighbor atom goes smoothly to zero at
-:math:`R_{ii'}`:
+The :math:`w_{\mu_{i'}}` neighbor weights are dimensionless numbers that
+depend on :math:`\mu_{i'}`, the SNAP element of atom *i'*, while the
+central atom is arbitrarily assigned a unit weight.  The function
+:math:`f_c(r)` ensures that the contribution of each neighbor atom goes
+smoothly to zero at :math:`R_{ii'}`:
 
 .. math::
 
   f_c(r)   = & \frac{1}{2}(\cos(\pi \frac{r-r_{min0}}{R_{ii'}-r_{min0}}) + 1), r \leq R_{ii'} \\
            = & 0,  r > R_{ii'}
 
-The expansion coefficients :math:`u^j_{m,m'}` are complex-valued and they are
-not directly useful as descriptors, because they are not invariant
-under rotation of the polar coordinate frame. However, the following
-scalar triple products of expansion coefficients can be shown to be
-real-valued and invariant under rotation :ref:`(Bartok) <Bartok20101>`.
+The expansion coefficients :math:`u^j_{m,m'}` are complex-valued and
+they are not directly useful as descriptors, because they are not
+invariant under rotation of the polar coordinate frame. However, the
+following scalar triple products of expansion coefficients can be shown
+to be real-valued and invariant under rotation :ref:`(Bartok)
+<Bartok20101>`.
 
 .. math::
 
@@ -140,21 +142,20 @@ real-valued and invariant under rotation :ref:`(Bartok) <Bartok20101>`.
         {j_2} {m_2} {m'_2} \end{array}}
         u^{j_1}_{m_1,m'_1} u^{j_2}_{m_2,m'_2}
 
-The constants :math:`H^{jmm'}_{j_1 m_1 m_{1'},j_2 m_ 2m_{2'}}`
-are coupling coefficients,
-analogous to Clebsch-Gordan coefficients for rotations on the
-2-sphere. These invariants are the components of the bispectrum and
-these are the quantities calculated by the compute *sna/atom*\ . They
-characterize the strength of density correlations at three points on
-the 3-sphere. The j2=0 subset form the power spectrum, which
-characterizes the correlations of two points. The lowest-order
-components describe the coarsest features of the density function,
-while higher-order components reflect finer detail. Each bispectrum
-component contains terms that depend on the positions of up to 4
-atoms (3 neighbors and the central atom).
+The constants :math:`H^{jmm'}_{j_1 m_1 m_{1'},j_2 m_ 2m_{2'}}` are
+coupling coefficients, analogous to Clebsch-Gordan coefficients for
+rotations on the 2-sphere. These invariants are the components of the
+bispectrum and these are the quantities calculated by the compute
+*sna/atom*\ . They characterize the strength of density correlations at
+three points on the 3-sphere. The j2=0 subset form the power spectrum,
+which characterizes the correlations of two points. The lowest-order
+components describe the coarsest features of the density function, while
+higher-order components reflect finer detail. Each bispectrum component
+contains terms that depend on the positions of up to 4 atoms (3
+neighbors and the central atom).
 
-Compute *snad/atom* calculates the derivative of the bispectrum components
-summed separately for each LAMMPS atom type:
+Compute *snad/atom* calculates the derivative of the bispectrum
+components summed separately for each LAMMPS atom type:
 
 .. math::
 
@@ -180,16 +181,16 @@ section below on output for a detailed explanation.
 Compute *snap* calculates a global array containing information related
 to all three of the above per-atom computes *sna/atom*\ , *snad/atom*\ ,
 and *snav/atom*\ . The first row of the array contains the summation of
-*sna/atom* over all atoms, but broken out by type. The last six rows
-of the array contain the summation of *snav/atom* over all atoms, broken
-out by type. In between these are 3\*\ *N* rows containing the same values
-computed by *snad/atom* (these are already summed over all atoms and
-broken out by type). The element in the last column of each row contains
-the potential energy, force, or stress, according to the row.
+*sna/atom* over all atoms, but broken out by type. The last six rows of
+the array contain the summation of *snav/atom* over all atoms, broken
+out by type. In between these are 3\*\ *N* rows containing the same
+values computed by *snad/atom* (these are already summed over all atoms
+and broken out by type). The element in the last column of each row
+contains the potential energy, force, or stress, according to the row.
 These quantities correspond to the user-specified reference potential
-that must be subtracted from the target data when fitting SNAP.
-The potential energy calculation uses the built in compute *thermo_pe*.
-The stress calculation uses a compute called *snap_press* that is
+that must be subtracted from the target data when fitting SNAP.  The
+potential energy calculation uses the built in compute *thermo_pe*.  The
+stress calculation uses a compute called *snap_press* that is
 automatically created behind the scenes, according to the following
 command:
 
@@ -225,36 +226,32 @@ The keyword *switchflag* can be used to turn off the switching
 function :math:`f_c(r)`.
 
 The keyword *bzeroflag* determines whether or not *B0*\ , the bispectrum
-components of an atom with no neighbors, are subtracted from
-the calculated bispectrum components. This optional keyword
-normally only affects compute *sna/atom*\ . However, when
-*quadraticflag* is on, it also affects *snad/atom* and *snav/atom*\ .
+components of an atom with no neighbors, are subtracted from the
+calculated bispectrum components. This optional keyword normally only
+affects compute *sna/atom*\ . However, when *quadraticflag* is on, it
+also affects *snad/atom* and *snav/atom*\ .
 
-The keyword *quadraticflag* determines whether or not the
-quadratic combinations of bispectrum quantities are generated.
-These are formed by taking the outer product of the vector
-of bispectrum components with itself.
-See section below on output for a
-detailed explanation of the number of quadratic terms and the
-ordered in which they are listed.
+The keyword *quadraticflag* determines whether or not the quadratic
+combinations of bispectrum quantities are generated.  These are formed
+by taking the outer product of the vector of bispectrum components with
+itself.  See section below on output for a detailed explanation of the
+number of quadratic terms and the ordered in which they are listed.
 
-The keyword *chem* activates the explicit multi-element variant
-of the SNAP bispectrum components. The argument *nelements*
-specifies the number of SNAP elements that will be handled.
-This is followed by *elementlist*, a list of integers of
-length *ntypes*, with values in the range [0, *nelements* ),
-which maps each LAMMPS type to one of the SNAP elements.
-Note that multiple LAMMPS types can be mapped to the same element,
-and some elements may be mapped by no LAMMPS type. However, in typical
-use cases (training SNAP potentials) the mapping from LAMMPS types
-to elements is one-to-one.
+The keyword *chem* activates the explicit multi-element variant of the
+SNAP bispectrum components. The argument *nelements* specifies the
+number of SNAP elements that will be handled.  This is followed by
+*elementlist*, a list of integers of length *ntypes*, with values in the
+range [0, *nelements* ), which maps each LAMMPS type to one of the SNAP
+elements.  Note that multiple LAMMPS types can be mapped to the same
+element, and some elements may be mapped by no LAMMPS type. However, in
+typical use cases (training SNAP potentials) the mapping from LAMMPS
+types to elements is one-to-one.
 
 The explicit multi-element variant invoked by the *chem* keyword
-partitions the density of neighbors into partial densities
-for each chemical element.  This is described in detail in the
-paper by :ref:`Cusentino et al. <Cusentino2020>`
-The bispectrum components are indexed on
-ordered triplets of elements:
+partitions the density of neighbors into partial densities for each
+chemical element.  This is described in detail in the paper by
+:ref:`Cusentino et al. <Cusentino2020>` The bispectrum components are
+indexed on ordered triplets of elements:
 
 .. math::
 
@@ -272,17 +269,19 @@ of element :math:`\mu`
 
   u^{\mu}_{j,m,m'} =  w^{self}_{\mu_{i}\mu} U^{j,m,m'}(0,0,0) + \sum_{r_{ii'} < R_{ii'}}{\delta_{\mu\mu_{i'}}f_c(r_{ii'}) w_{\mu_{i'}} U^{j,m,m'}(\theta_0,\theta,\phi)}
 
-where :math:`w^{self}_{\mu_{i}\mu}` is the self-contribution, which is either 1 or 0
-(see keyword *wselfallflag* below), :math:`\delta_{\mu\mu_{i'}}` indicates
-that the sum is only over neighbor atoms of element :math:`\mu`,
-and all other quantities are the same as those appearing in the
-original equation for :math:`u^j_{m,m'}` given above.
+where :math:`w^{self}_{\mu_{i}\mu}` is the self-contribution, which is
+either 1 or 0 (see keyword *wselfallflag* below),
+:math:`\delta_{\mu\mu_{i'}}` indicates that the sum is only over
+neighbor atoms of element :math:`\mu`, and all other quantities are the
+same as those appearing in the original equation for :math:`u^j_{m,m'}`
+given above.
 
-The keyword *wselfallflag* defines the rule used for the self-contribution.
-If *wselfallflag* is on, then :math:`w^{self}_{\mu_{i}\mu}` = 1. If it is
-off then :math:`w^{self}_{\mu_{i}\mu}` = 0, except in the case
-of :math:`{\mu_{i}=\mu}`, when :math:`w^{self}_{\mu_{i}\mu}` = 1.
-When the *chem* keyword is not used, this keyword has no effect.
+The keyword *wselfallflag* defines the rule used for the
+self-contribution.  If *wselfallflag* is on, then
+:math:`w^{self}_{\mu_{i}\mu}` = 1. If it is off then
+:math:`w^{self}_{\mu_{i}\mu}` = 0, except in the case of
+:math:`{\mu_{i}=\mu}`, when :math:`w^{self}_{\mu_{i}\mu}` = 1.  When the
+*chem* keyword is not used, this keyword has no effect.
 
 The keyword *bnormflag* determines whether or not the bispectrum
 component :math:`B_{j_1,j_2,j}` is divided by a factor of :math:`2j+1`.
@@ -299,16 +298,16 @@ are not both set or not both unset.
 
 .. note::
 
-   If you have a bonded system, then the settings of
-   :doc:`special_bonds <special_bonds>` command can remove pairwise
-   interactions between atoms in the same bond, angle, or dihedral.  This
-   is the default setting for the :doc:`special_bonds <special_bonds>`
-   command, and means those pairwise interactions do not appear in the
-   neighbor list.  Because this fix uses the neighbor list, it also means
-   those pairs will not be included in the calculation.  One way to get
-   around this, is to write a dump file, and use the :doc:`rerun <rerun>`
-   command to compute the bispectrum components for snapshots in the dump
-   file.  The rerun script can use a :doc:`special_bonds <special_bonds>`
+   If you have a bonded system, then the settings of :doc:`special_bonds
+   <special_bonds>` command can remove pairwise interactions between
+   atoms in the same bond, angle, or dihedral.  This is the default
+   setting for the :doc:`special_bonds <special_bonds>` command, and
+   means those pairwise interactions do not appear in the neighbor list.
+   Because this fix uses the neighbor list, it also means those pairs
+   will not be included in the calculation.  One way to get around this,
+   is to write a dump file, and use the :doc:`rerun <rerun>` command to
+   compute the bispectrum components for snapshots in the dump file.
+   The rerun script can use a :doc:`special_bonds <special_bonds>`
    command that includes all pairs in the neighbor list.
 
 ----------
@@ -317,10 +316,10 @@ Output info
 """""""""""
 
 Compute *sna/atom* calculates a per-atom array, each column
-corresponding to a particular bispectrum component.  The total number
-of columns and the identity of the bispectrum component contained in
-each column depend of the value of *twojmax*\ , as
-described by the following piece of python code:
+corresponding to a particular bispectrum component.  The total number of
+columns and the identity of the bispectrum component contained in each
+column depend of the value of *twojmax*\ , as described by the following
+piece of python code:
 
 .. parsed-literal::
 
@@ -338,73 +337,72 @@ For even twojmax = 2(*m*\ -1), :math:`K = m(m+1)(2m+1)/6`, the *m*\ -th pyramida
    since all potentials use the value of 3, corresponding to the
    above set of bispectrum components.
 
-Compute *snad/atom* evaluates a per-atom array. The columns are
-arranged into *ntypes* blocks, listed in order of atom type *I*\ .  Each
-block contains three sub-blocks corresponding to the *x*\ , *y*\ , and *z*
+Compute *snad/atom* evaluates a per-atom array. The columns are arranged
+into *ntypes* blocks, listed in order of atom type *I*\ .  Each block
+contains three sub-blocks corresponding to the *x*\ , *y*\ , and *z*
 components of the atom position.  Each of these sub-blocks contains *K*
-columns for the *K* bispectrum components, the same as for compute *sna/atom*
+columns for the *K* bispectrum components, the same as for compute
+*sna/atom*
 
-Compute *snav/atom* evaluates a per-atom array. The columns are
-arranged into *ntypes* blocks, listed in order of atom type *I*\ .  Each
-block contains six sub-blocks corresponding to the *xx*\ , *yy*\ , *zz*\ ,
+Compute *snav/atom* evaluates a per-atom array. The columns are arranged
+into *ntypes* blocks, listed in order of atom type *I*\ .  Each block
+contains six sub-blocks corresponding to the *xx*\ , *yy*\ , *zz*\ ,
 *yz*\ , *xz*\ , and *xy* components of the virial tensor in Voigt
-notation.  Each of these sub-blocks contains *K*
-columns for the *K* bispectrum components, the same as for compute *sna/atom*
+notation.  Each of these sub-blocks contains *K* columns for the *K*
+bispectrum components, the same as for compute *sna/atom*
 
-Compute *snap* evaluates a global array.
-The columns are arranged into
-*ntypes* blocks, listed in order of atom type *I*\ . Each block
-contains one column for each bispectrum component, the same as for compute
-*sna/atom*\ . A final column contains the corresponding energy, force component
-on an atom, or virial stress component. The rows of the array appear
-in the following order:
+Compute *snap* evaluates a global array.  The columns are arranged into
+*ntypes* blocks, listed in order of atom type *I*\ . Each block contains
+one column for each bispectrum component, the same as for compute
+*sna/atom*\ . A final column contains the corresponding energy, force
+component on an atom, or virial stress component. The rows of the array
+appear in the following order:
 
 * 1 row: *sna/atom* quantities summed for all atoms of type *I*
 * 3\*\ *N* rows: *snad/atom* quantities, with derivatives w.r.t. x, y, and z coordinate of atom *i* appearing in consecutive rows. The atoms are sorted based on atom ID.
 * 6 rows: *snav/atom* quantities summed for all atoms of type *I*
 
-For example, if *K* =30 and ntypes=1, the number of columns in the per-atom
-arrays generated by *sna/atom*\ , *snad/atom*\ , and *snav/atom*
-are 30, 90, and 180, respectively. With *quadratic* value=1,
-the numbers of columns are 930, 2790, and 5580, respectively.
-The number of columns in the global array generated by *snap*
-are 31, and 931, respectively, while the number of rows is
-1+3\*\ *N*\ +6, where *N* is the total number of atoms.
+For example, if *K* =30 and ntypes=1, the number of columns in the
+per-atom arrays generated by *sna/atom*\ , *snad/atom*\ , and
+*snav/atom* are 30, 90, and 180, respectively. With *quadratic* value=1,
+the numbers of columns are 930, 2790, and 5580, respectively.  The
+number of columns in the global array generated by *snap* are 31, and
+931, respectively, while the number of rows is 1+3\*\ *N*\ +6, where *N*
+is the total number of atoms.
 
-If the *quadratic* keyword value is set to 1, then additional
-columns are generated, corresponding to
-the products of all distinct pairs of  bispectrum components. If the
-number of bispectrum components is *K*\ , then the number of distinct pairs
-is  *K*\ (\ *K*\ +1)/2.
-For compute *sna/atom* these columns are appended to existing *K* columns.
-The ordering of quadratic terms is upper-triangular,
-(1,1),(1,2)...(1,\ *K*\ ),(2,1)...(\ *K*\ -1,\ *K*\ -1),(\ *K*\ -1,\ *K*\ ),(\ *K*\ ,\ *K*\ ).
+If the *quadratic* keyword value is set to 1, then additional columns
+are generated, corresponding to the products of all distinct pairs of
+bispectrum components. If the number of bispectrum components is *K*\ ,
+then the number of distinct pairs is *K*\ (\ *K*\ +1)/2.  For compute
+*sna/atom* these columns are appended to existing *K* columns.  The
+ordering of quadratic terms is upper-triangular, (1,1),(1,2)...(1,\ *K*\
+),(2,1)...(\ *K*\ -1,\ *K*\ -1),(\ *K*\ -1,\ *K*\ ),(\ *K*\ ,\ *K*\ ).
 For computes *snad/atom* and *snav/atom* each set of *K*\ (\ *K*\ +1)/2
-additional columns is inserted directly after each of sub-block
-of linear terms i.e. linear and quadratic terms are contiguous.
-So the nesting order from inside to outside is bispectrum component,
-linear then quadratic, vector/tensor component, type.
+additional columns is inserted directly after each of sub-block of
+linear terms i.e. linear and quadratic terms are contiguous.  So the
+nesting order from inside to outside is bispectrum component, linear
+then quadratic, vector/tensor component, type.
 
-If the *chem* keyword is used, then the data is arranged into :math:`N_{elem}^3`
-sub-blocks, each sub-block corresponding to a particular chemical labeling
-:math:`\kappa\lambda\mu` with the last label changing fastest.
-Each sub-block contains *K* bispectrum components. For the purposes
-of handling contributions to force, virial, and quadratic combinations,
-these :math:`N_{elem}^3` sub-blocks are treated as a single block
-of :math:`K N_{elem}^3` columns.
+If the *chem* keyword is used, then the data is arranged into
+:math:`N_{elem}^3` sub-blocks, each sub-block corresponding to a
+particular chemical labeling :math:`\kappa\lambda\mu` with the last
+label changing fastest.  Each sub-block contains *K* bispectrum
+components. For the purposes of handling contributions to force, virial,
+and quadratic combinations, these :math:`N_{elem}^3` sub-blocks are
+treated as a single block of :math:`K N_{elem}^3` columns.
 
 These values can be accessed by any command that uses per-atom values
 from a compute as input.  See the :doc:`Howto output <Howto_output>` doc
 page for an overview of LAMMPS output options. To see how this command
-can be used within a Python workflow to train SNAP potentials,
-see the examples in `FitSNAP <https://github.com/FitSNAP/FitSNAP>`_.
+can be used within a Python workflow to train SNAP potentials, see the
+examples in `FitSNAP <https://github.com/FitSNAP/FitSNAP>`_.
 
 Restrictions
 """"""""""""
 
-These computes are part of the SNAP package.  They are only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>`
-doc page for more info.
+These computes are part of the ML-SNAP package.  They are only enabled
+if LAMMPS was built with that package.  See the :doc:`Build package
+<Build_package>` doc page for more info.
 
 Related commands
 """"""""""""""""

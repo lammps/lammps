@@ -1,4 +1,4 @@
-# if PYTHON package is included we may also include Python support in MLIAP
+# if PYTHON package is included we may also include Python support in ML-IAP
 set(MLIAP_ENABLE_PYTHON_DEFAULT OFF)
 if(PKG_PYTHON)
   find_package(Cythonize QUIET)
@@ -7,20 +7,20 @@ if(PKG_PYTHON)
   endif()
 endif()
 
-option(MLIAP_ENABLE_PYTHON "Build MLIAP package with Python support" ${MLIAP_ENABLE_PYTHON_DEFAULT})
+option(MLIAP_ENABLE_PYTHON "Build ML-IAP package with Python support" ${MLIAP_ENABLE_PYTHON_DEFAULT})
 
 if(MLIAP_ENABLE_PYTHON)
   find_package(Cythonize REQUIRED)
   if(NOT PKG_PYTHON)
-    message(FATAL_ERROR "Must enable PYTHON package for including Python support in MLIAP")
+    message(FATAL_ERROR "Must enable PYTHON package for including Python support in ML-IAP")
   endif()
   if(CMAKE_VERSION VERSION_LESS 3.12)
     if(PYTHONLIBS_VERSION_STRING VERSION_LESS 3.6)
-      message(FATAL_ERROR "Python support in MLIAP requires Python 3.6 or later")
+      message(FATAL_ERROR "Python support in ML-IAP requires Python 3.6 or later")
     endif()
   else()
     if(Python_VERSION VERSION_LESS 3.6)
-      message(FATAL_ERROR "Python support in MLIAP requires Python 3.6 or later")
+      message(FATAL_ERROR "Python support in ML-IAP requires Python 3.6 or later")
     endif()
   endif()
 

@@ -130,7 +130,7 @@ package can be compiled to include OpenMP threading.
 
 In addition, there are a few commands in LAMMPS that have native OpenMP
 support included as well.  These are commands in the ``MPIIO``,
-``SNAP``, ``USER-DIFFRACTION``, and ``USER-DPD`` packages.  In addition
+``ML-SNAP``, ``USER-DIFFRACTION``, and ``USER-DPD`` packages.  In addition
 some packages support OpenMP threading indirectly through the libraries
 they interface to: e.g. ``LATTE``, ``KSPACE``, and ``USER-COLVARS``.
 See the :doc:`Packages details <Packages_details>` page for more

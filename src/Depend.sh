@@ -116,7 +116,7 @@ if (test $1 = "RIGID") then
   depend USER-SDPD
 fi
 
-if (test $1 = "SNAP") then
+if (test $1 = "ML-SNAP") then
   depend KOKKOS
   depend ML-IAP
 fi

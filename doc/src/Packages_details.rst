@@ -57,7 +57,7 @@ page gives those details.
    * :ref:`REPLICA <PKG-REPLICA>`
    * :ref:`RIGID <PKG-RIGID>`
    * :ref:`SHOCK <PKG-SHOCK>`
-   * :ref:`SNAP <PKG-SNAP>`
+   * :ref:`ML-SNAP <PKG-ML-SNAP>`
    * :ref:`SPIN <PKG-SPIN>`
    * :ref:`SRD <PKG-SRD>`
    * :ref:`VORONOI <PKG-VORONOI>`
@@ -671,7 +671,7 @@ listing, "ls src/MISC", to see the list of commands.
 .. _PKG-ML-IAP:
 
 ML-IAP package
--------------
+--------------
 
 **Contents:**
 
@@ -679,7 +679,7 @@ A general interface for machine-learning interatomic potentials, including PyTor
 
 **Install:**
 
-To use this package, also the :ref:`SNAP package <PKG-SNAP>` package needs
+To use this package, also the :ref:`ML-SNAP package <PKG-ML-SNAP>` package needs
 to be installed.  To make the *mliappy* model available, also the
 :ref:`PYTHON package <PKG-PYTHON>` package needs to be installed, the version
 of Python must be 3.6 or later, and the `cython <https://cython.org/>`_ software
@@ -1038,10 +1038,10 @@ a material.
 
 ----------
 
-.. _PKG-SNAP:
+.. _PKG-ML-SNAP:
 
-SNAP package
-------------
+ML-SNAP package
+---------------
 
 **Contents:**
 
@@ -1054,7 +1054,7 @@ computes which analyze attributes of the potential.
 
 **Supporting info:**
 
-* src/SNAP: filenames -> commands
+* src/ML-SNAP: filenames -> commands
 * :doc:`pair_style snap <pair_snap>`
 * :doc:`compute sna/atom <compute_sna_atom>`
 * :doc:`compute snad/atom <compute_sna_atom>`

@@ -814,8 +814,8 @@ be installed on your system.
 ML-IAP package
 ---------------------------
 
-Building the ML-IAP package requires including the :ref:`SNAP
-<PKG-SNAP>` package.  There will be an error message if this requirement
+Building the ML-IAP package requires including the :ref:`ML-SNAP
+<PKG-ML-SNAP>` package.  There will be an error message if this requirement
 is not satisfied.  Using the *mliappy* model also requires enabling
 Python support, which in turn requires to include the :ref:`PYTHON
 <PKG-PYTHON>` package **and** requires to have the `cython

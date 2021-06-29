@@ -53,16 +53,11 @@ class PairTersoff : public Pair {
     double ZBLcut, ZBLexpscale;
     double c5, ca1, ca4;    // added for TersoffMOD
     double powern_del;
-<<<<<<< HEAD
     double c0;                   // added for TersoffMODC
     double powereta, Re;         //added for REBO1
     double spl_a,spl_b,spl_c,spl_s,spl_ra,spl_rb;
     std::string PxyFile;              // added for TersoffHG
     double (***PxyInterp)[4][4];
-
-=======
-    double c0;    // added for TersoffMODC
->>>>>>> upstream/master
   };
 
   Param *params;      // parameter set for an I-J-K interaction

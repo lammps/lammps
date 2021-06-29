@@ -166,7 +166,7 @@ hardware, as discussed on the :doc:`Speed packages <Speed_packages>` doc
 page.  The accelerated styles take the same arguments and should
 produce the same results, except for round-off and precision issues.
 
-These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
+These accelerated styles are part of the GPU, INTEL, KOKKOS,
 OPENMP and OPT packages, respectively.  They are only enabled if
 LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -174,7 +174,7 @@ You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
 :doc:`suffix <suffix>` command in your input script.
 
-When using the USER-INTEL package with this style, there is an
+When using the INTEL package with this style, there is an
 additional 5 to 10 percent performance improvement when the
 Stillinger-Weber parameters p and q are set to 4 and 0 respectively.
 These parameters are common for modeling silicon and water.

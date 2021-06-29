@@ -77,7 +77,7 @@ Restart, fix_modify, output, run start/stop, minimize info
 Restrictions
 """"""""""""
 
-These fixes are part of the USER-DIELECTRIC package.  It is only enabled
+These fixes are part of the DIELECTRIC package.  It is only enabled
 if LAMMPS was built with that package, which requires that also the
 KSPACE package is installed.  See the :doc:`Build package
 <Build_package>` doc page for more info.

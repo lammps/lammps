@@ -414,7 +414,7 @@ Restrictions
 """"""""""""
 
 The pair styles with soft core are only enabled if LAMMPS was built with the
-USER-FEP package. The *long* versions also require the KSPACE package to be
+FEP package. The *long* versions also require the KSPACE package to be
 installed. The soft *tip4p* versions also require the MOLECULE package to be
 installed. These styles are only enabled if LAMMPS was built with those
 packages.  See the :doc:`Build package <Build_package>` doc page for more

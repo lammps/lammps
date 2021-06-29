@@ -6344,8 +6344,8 @@ keyword to allow for additional bonds to be formed
    The GPU package must be installed via "make yes-gpu" before LAMMPS is
    built.
 
-*Package intel command without USER-INTEL package installed*
-   The USER-INTEL package must be installed via "make yes-user-intel"
+*Package intel command without INTEL package installed*
+   The INTEL package must be installed via "make yes-intel"
    before LAMMPS is built.
 
 *Package kokkos command without KOKKOS package enabled*
@@ -8064,7 +8064,7 @@ keyword to allow for additional bonds to be formed
 *Using suffix gpu without GPU package installed*
    Self-explanatory.
 
-*Using suffix intel without USER-INTEL package installed*
+*Using suffix intel without INTEL package installed*
    Self-explanatory.
 
 *Using suffix kk without KOKKOS package enabled*

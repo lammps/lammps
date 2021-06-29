@@ -21,7 +21,7 @@ and also an interface layer into the QM code similar to the one in QE.
 
 LAMMPS has support for two build systems, the traditional make based
 one and a newer one based on CMake.  You have to build LAMMPS as a
-library with the USER-QMMM package included and for that you need to
+library with the QMMM package included and for that you need to
 also build the libqmmm.a library in this folder.
 
 Below you will find some description of the steps needed in either case.
@@ -55,7 +55,7 @@ build configuration with CMake:
 
   mkdir build-qmmm
   cd build-qmmm
-  cmake -C ../cmake/presets/minimal.cmake -D PKG_USER-QMMM=yes \
+  cmake -C ../cmake/presets/minimal.cmake -D PKG_QMMM=yes \
            -D BUILD_LIB=yes -DBUILD_SHARED_LIBS=yes ../cmake
   make
   make install
@@ -139,7 +139,7 @@ this library exist.
 Step 2)
 
 Build a standalone LAMMPS executable as described in the LAMMPS 
-documentation and include the USER-QMMM package. This executable
+documentation and include the QMMM package. This executable
 is not functional for QM/MM, but it will usually be needed to
 run all MM calculations for equilibration and testing and also
 to confirm that the classical part of the code is set up correctly.
@@ -147,7 +147,7 @@ Also build a the LAMMPS library.  This can be a static library
 or a shared library.  For example for a static library with the
 minimum set of packages required for the examples here:
 
-  make yes-molecule yes-kspace yes-rigid yes-user-qmmm
+  make yes-molecule yes-kspace yes-rigid yes-qmmm
   make mpi
   make mode=lib mpi
 

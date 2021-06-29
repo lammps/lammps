@@ -1536,7 +1536,7 @@ class lammps(object):
     """
 
     result = {}
-    for p in ['GPU', 'KOKKOS', 'USER-INTEL', 'OPENMP']:
+    for p in ['GPU', 'KOKKOS', 'INTEL', 'OPENMP']:
       result[p] = {}
       c = 'api'
       result[p][c] = []

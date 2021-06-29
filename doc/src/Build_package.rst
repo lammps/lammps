@@ -33,13 +33,13 @@ packages:
 +--------------------------------------+--------------------------------------+------------------------------------+----------------------------------+--------------------------------+--------------------------------+
 | :ref:`COMPRESS <compress>`           | :ref:`GPU <gpu>`                     | :ref:`KIM <kim>`                   | :ref:`KOKKOS <kokkos>`           | :ref:`LATTE <latte>`           | :ref:`MESSAGE <message>`       |
 +--------------------------------------+--------------------------------------+------------------------------------+----------------------------------+--------------------------------+--------------------------------+
-| :ref:`MSCG <mscg>`                   | :ref:`OPT <opt>`                     | :ref:`POEMS <poems>`               | :ref:`PYTHON <python>`           | :ref:`VORONOI <voronoi>`       | :ref:`USER-ADIOS <user-adios>` |
+| :ref:`MSCG <mscg>`                   | :ref:`OPT <opt>`                     | :ref:`POEMS <poems>`               | :ref:`PYTHON <python>`           | :ref:`VORONOI <voronoi>`       | :ref:`ADIOS <adios>` |
 +--------------------------------------+--------------------------------------+------------------------------------+----------------------------------+--------------------------------+--------------------------------+
-| :ref:`USER-ATC <user-atc>`           | :ref:`USER-AWPMD <user-awpmd>`       | :ref:`USER-COLVARS <user-colvars>` | :ref:`USER-H5MD <user-h5md>`     | :ref:`ML-HDNNP <ml-hdnnp>` | :ref:`USER-INTEL <user-intel>` |
+| :ref:`ATC <atc>`           | :ref:`AWPMD <awpmd>`       | :ref:`COLVARS <colvars>` | :ref:`H5MD <h5md>`     | :ref:`ML-HDNNP <ml-hdnnp>` | :ref:`INTEL <intel>` |
 +--------------------------------------+--------------------------------------+------------------------------------+----------------------------------+--------------------------------+--------------------------------+
-| :ref:`USER-MOLFILE <user-molfile>`   | :ref:`USER-NETCDF <user-netcdf>`     | :ref:`ML-PACE <ml-pace>`       | :ref:`USER-PLUMED <user-plumed>` | :ref:`OPENMP <openmp>`     | :ref:`USER-QMMM <user-qmmm>`   |
+| :ref:`MOLFILE <molfile>`   | :ref:`NETCDF <netcdf>`     | :ref:`ML-PACE <ml-pace>`       | :ref:`PLUMED <plumed>` | :ref:`OPENMP <openmp>`     | :ref:`QMMM <qmmm>`   |
 +--------------------------------------+--------------------------------------+------------------------------------+----------------------------------+--------------------------------+--------------------------------+
-| :ref:`ML-QUIP <ml-quip>`         | :ref:`USER-SCAFACOS <user-scafacos>` | :ref:`MACHDYN <machdyn>`         | :ref:`USER-VTK <user-vtk>`       |                                |                                |
+| :ref:`ML-QUIP <ml-quip>`         | :ref:`SCAFACOS <scafacos>` | :ref:`MACHDYN <machdyn>`         | :ref:`VTK <vtk>`       |                                |                                |
 +--------------------------------------+--------------------------------------+------------------------------------+----------------------------------+--------------------------------+--------------------------------+
 
 The mechanism for including packages is simple but different for CMake
@@ -58,7 +58,7 @@ versus make.
       .. code-block:: csh
 
          -D PKG_MANYBODY=yes
-         -D PKG_USER-INTEL=yes
+         -D PKG_INTEL=yes
 
       All standard and user packages are included the same way.  Note
       that USER packages have a hyphen between USER and the rest of the
@@ -89,7 +89,7 @@ versus make.
       .. code-block:: bash
 
          make no-rigid
-         make yes-user-intel
+         make yes-intel
 
       All standard and user packages are included the same way.
 
@@ -225,7 +225,7 @@ package`` will list all the these commands.
    Installing or un-installing a package for the make based build process
    works by simply copying files back and forth between the main source
    directory src and the sub-directories with the package name (e.g.
-   src/KSPACE, src/USER-ATC), so that the files are included or excluded
+   src/KSPACE, src/ATC), so that the files are included or excluded
    when LAMMPS is built.  Only source files in the src folder will be
    compiled.
 

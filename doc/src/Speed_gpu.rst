@@ -150,7 +150,7 @@ hardware, which pair style is used, the number of atoms/GPU, and the
 precision used on the GPU (double, single, mixed). Using the GPU package
 in OpenCL mode on CPUs (which uses vectorization and multithreading) is
 usually resulting in inferior performance compared to using LAMMPS' native
-threading and vectorization support in the OPENMP and USER-INTEL packages.
+threading and vectorization support in the OPENMP and INTEL packages.
 
 See the `Benchmark page <https://www.lammps.org/bench.html>`_ of the
 LAMMPS web site for performance of the GPU package on various

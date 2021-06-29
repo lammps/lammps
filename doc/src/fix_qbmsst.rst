@@ -208,7 +208,7 @@ It is worth noting that the temp keyword for the :doc:`thermo_style
 Restrictions
 """"""""""""
 
-This fix style is part of the USER-QTB package.  It is only enabled if
+This fix style is part of the QTB package.  It is only enabled if
 LAMMPS was built with that package. See the :doc:`Build package
 <Build_package>` doc page for more info.
 

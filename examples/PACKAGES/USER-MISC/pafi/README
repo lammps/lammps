@@ -1,4 +1,4 @@
-Run an example constrained sample for USER-PAFI calculation
+Run an example constrained sample for PAFI calculation
 
 Author:
 Thomas Swinburne, CNRS / CINaM, Marseille
@@ -21,7 +21,7 @@ allowing the calculation of free energy barriers and minimum free energy paths.
 
 To compile:
 
-make yes-user-misc # for PAFI
+make yes-misc # for PAFI
 make yes-manybody # for EAM potential
 make machine # for binary (machine= e.g. mpi)
 

@@ -235,7 +235,7 @@ threads/task as Nt. The product of these two values should be N, i.e.
 
    To build with Kokkos support for Intel Xeon Phi co-processors
    such as Knight's Corner (KNC), your system must be configured to use
-   them in "native" mode, not "offload" mode like the USER-INTEL package
+   them in "native" mode, not "offload" mode like the INTEL package
    supports.
 
 Running on GPUs
@@ -401,8 +401,8 @@ Generally speaking, the following rules of thumb apply:
   significantly on the hardware in use and the simulated system and pair
   style.
 * When running on Intel hardware, KOKKOS is not as fast as
-  the USER-INTEL package, which is optimized for x86 hardware (not just
-  from Intel) and compilation with the Intel compilers.  The USER-INTEL
+  the INTEL package, which is optimized for x86 hardware (not just
+  from Intel) and compilation with the Intel compilers.  The INTEL
   package also can increase the vector length of vector instructions
   by switching to single or mixed precision mode.
 

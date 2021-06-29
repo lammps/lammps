@@ -49,7 +49,7 @@ if (test $1 = "ASPHERE") then
   depend GPU
   depend OPENMP
   depend CG-DNA
-  depend USER-INTEL
+  depend INTEL
 fi
 
 if (test $1 = "CLASS2") then
@@ -79,9 +79,9 @@ if (test $1 = "KSPACE") then
   depend KOKKOS
   depend OPT
   depend OPENMP
-  depend USER-INTEL
-  depend USER-PHONON
-  depend USER-FEP
+  depend INTEL
+  depend PHONON
+  depend FEP
 fi
 
 if (test $1 = "MANYBODY") then
@@ -97,9 +97,9 @@ if (test $1 = "MOLECULE") then
   depend GPU
   depend KOKKOS
   depend USER-MISC
-  depend USER-FEP
+  depend FEP
   depend OPENMP
-  depend USER-INTEL
+  depend INTEL
 fi
 
 if (test $1 = "PERI") then
@@ -131,18 +131,18 @@ if (test $1 = "DPD-REACT") then
   depend KOKKOS
 fi
 
-if (test $1 = "USER-DRUDE") then
+if (test $1 = "DRUDE") then
   depend OPENMP
 fi
 
-if (test $1 = "USER-FEP") then
+if (test $1 = "FEP") then
   depend OPENMP
 fi
 
 if (test $1 = "USER-MISC") then
   depend GPU
   depend OPENMP
-  depend USER-INTEL
+  depend INTEL
 fi
 
 if (test $1 = "REAXFF") then

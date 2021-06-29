@@ -18,7 +18,7 @@ standard or user packages:
 +-----------------------------------------+-------------------------------------------------------+
 | :doc:`GPU Package <Speed_gpu>`          | for GPUs via CUDA, OpenCL, or ROCm HIP                |
 +-----------------------------------------+-------------------------------------------------------+
-| :doc:`USER-INTEL Package <Speed_intel>` | for Intel CPUs and Intel Xeon Phi                     |
+| :doc:`INTEL Package <Speed_intel>` | for Intel CPUs and Intel Xeon Phi                     |
 +-----------------------------------------+-------------------------------------------------------+
 | :doc:`KOKKOS Package <Speed_kokkos>`    | for NVIDIA GPUs, Intel Xeon Phi, and OpenMP threading |
 +-----------------------------------------+-------------------------------------------------------+
@@ -41,11 +41,11 @@ Inverting this list, LAMMPS currently has acceleration support for
 three kinds of hardware, via the listed packages:
 
 +-----------------+-----------------------------------------------------------------------------------------------------------------------------+
-| Many-core CPUs  | :doc:`USER-INTEL <Speed_intel>`, :doc:`KOKKOS <Speed_kokkos>`, :doc:`OPENMP <Speed_omp>`, :doc:`OPT <Speed_opt>` packages |
+| Many-core CPUs  | :doc:`INTEL <Speed_intel>`, :doc:`KOKKOS <Speed_kokkos>`, :doc:`OPENMP <Speed_omp>`, :doc:`OPT <Speed_opt>` packages |
 +-----------------+-----------------------------------------------------------------------------------------------------------------------------+
 | GPUs            | :doc:`GPU <Speed_gpu>`, :doc:`KOKKOS <Speed_kokkos>` packages                                                               |
 +-----------------+-----------------------------------------------------------------------------------------------------------------------------+
-| Intel Phi/AVX   | :doc:`USER-INTEL <Speed_intel>`, :doc:`KOKKOS <Speed_kokkos>` packages                                                      |
+| Intel Phi/AVX   | :doc:`INTEL <Speed_intel>`, :doc:`KOKKOS <Speed_kokkos>` packages                                                      |
 +-----------------+-----------------------------------------------------------------------------------------------------------------------------+
 
 Which package is fastest for your hardware may depend on the size
@@ -84,9 +84,9 @@ listed above:
 +--------------------------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | build the accelerator library                                                                                                  | only for GPU package                                                 |
 +--------------------------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
-| install the accelerator package                                                                                                | make yes-opt, make yes-user-intel, etc                               |
+| install the accelerator package                                                                                                | make yes-opt, make yes-intel, etc                               |
 +--------------------------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
-| add compile/link flags to Makefile.machine in src/MAKE                                                                         | only for USER-INTEL, KOKKOS, OPENMP, OPT packages                  |
+| add compile/link flags to Makefile.machine in src/MAKE                                                                         | only for INTEL, KOKKOS, OPENMP, OPT packages                  |
 +--------------------------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | re-build LAMMPS                                                                                                                | make machine                                                         |
 +--------------------------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
@@ -116,15 +116,15 @@ script.
 
    With a few exceptions, you can build a single LAMMPS executable
    with all its accelerator packages installed.  Note however that the
-   USER-INTEL and KOKKOS packages require you to choose one of their
+   INTEL and KOKKOS packages require you to choose one of their
    hardware options when building for a specific platform.  I.e. CPU or
-   Phi option for the USER-INTEL package.  Or the OpenMP, Cuda, or Phi
+   Phi option for the INTEL package.  Or the OpenMP, Cuda, or Phi
    option for the KOKKOS package.
 
 These are the exceptions.  You cannot build a single executable with:
 
-* both the USER-INTEL Phi and KOKKOS Phi options
-* the USER-INTEL Phi or Kokkos Phi option, and the GPU package
+* both the INTEL Phi and KOKKOS Phi options
+* the INTEL Phi or Kokkos Phi option, and the GPU package
 
 See the examples/accelerate/README and make.list files for sample
 Make.py commands that build LAMMPS with any or all of the accelerator
@@ -156,7 +156,7 @@ are in the individual accelerator sections.
 * Styles with a "gpu" suffix are part of the GPU package and can be run
   on Intel, NVIDIA, or AMD GPUs.  The speed-up on a GPU depends on a
   variety of factors, discussed in the accelerator sections.
-* Styles with an "intel" suffix are part of the USER-INTEL
+* Styles with an "intel" suffix are part of the INTEL
   package. These styles support vectorized single and mixed precision
   calculations, in addition to full double precision.  In extreme cases,
   this can provide speedups over 3.5x on CPUs.  The package also

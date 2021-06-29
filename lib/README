@@ -15,7 +15,7 @@ one of the provided Makefiles to make it suitable for your machine.
 
 The libraries in this directory are the following:
 
-atc           atomistic-to-continuum methods, USER-ATC package
+atc           atomistic-to-continuum methods, ATC package
                 from Reese Jones, Jeremy Templeton, Jon Zimmerman (Sandia)
 awpmd         antisymmetrized wave packet molecular dynamics, AWPMD package
                 from Ilya Valuev (JIHT RAS)
@@ -33,11 +33,11 @@ kim           hooks to the KIM library, used by KIM package
                 from Ryan Elliott and Ellad Tadmor (U Minn)
 kokkos        Kokkos package for GPU and many-core acceleration
                 from Kokkos development team (Sandia)
-linalg        set of BLAS and LAPACK routines needed by USER-ATC package
+linalg        set of BLAS and LAPACK routines needed by ATC package
                 from Axel Kohlmeyer (Temple U)
 message       client/server communication library via MPI, sockets, files
                 from Steve Plimpton (Sandia)
-molfile       hooks to VMD molfile plugins, used by the USER-MOLFILE package
+molfile       hooks to VMD molfile plugins, used by the MOLFILE package
                 from Axel Kohlmeyer (Temple U) and the VMD development team
 mscg          hooks to the MSCG library, used by fix_mscg command
                 from Jacob Wagner and Greg Voth group (U Chicago)

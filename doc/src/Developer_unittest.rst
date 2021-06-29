@@ -405,7 +405,7 @@ compare with the reference and also start from the data file.  A final
 check will use multi-cutoff r-RESPA (if supported by the pair style) at
 a 1:1 split and compare to the Verlet results.  These sets of tests are
 run with multiple test fixtures for accelerated styles (OPT, OPENMP,
-USER-INTEL) and for the latter two with 4 OpenMP threads enabled.  For
+INTEL) and for the latter two with 4 OpenMP threads enabled.  For
 these tests the relative error (epsilon) is lowered by a common factor
 due to the additional numerical noise, but the tests are still comparing
 to the same reference data.

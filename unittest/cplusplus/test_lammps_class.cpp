@@ -133,7 +133,7 @@ TEST_F(LAMMPS_plain, TestStyles)
     found = lmp->match_style("atom", "spin");
     EXPECT_STREQ(found, "SPIN");
     found = lmp->match_style("atom", "wavepacket");
-    EXPECT_STREQ(found, "USER-AWPMD");
+    EXPECT_STREQ(found, "AWPMD");
     found = lmp->match_style("atom", "dpd");
     EXPECT_STREQ(found, "DPD-REACT");
     found = lmp->match_style("atom", "edpd");
@@ -147,7 +147,7 @@ TEST_F(LAMMPS_plain, TestStyles)
     found = lmp->match_style("atom", "smd");
     EXPECT_STREQ(found, "MACHDYN");
     found = lmp->match_style("atom", "sph");
-    EXPECT_STREQ(found, "USER-SPH");
+    EXPECT_STREQ(found, "SPH");
     found = lmp->match_style("atom", "i_don't_exist");
     EXPECT_STREQ(found, NULL);
 }

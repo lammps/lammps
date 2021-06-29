@@ -72,7 +72,7 @@ section below for examples where this has been done.
   small number of threads with increasing overhead as the number of threads
   per MPI rank grows. The KOKKOS/OpenMP kernels have less overhead in that
   case, but have lower performance with few threads.
-* The USER-INTEL package contains many options and settings for achieving
+* The INTEL package contains many options and settings for achieving
   additional performance on Intel hardware (CPU and accelerator cards), but
   to unlock this potential, an Intel compiler is required. The package code
   will compile with GNU gcc, but it will not be as efficient.
@@ -90,5 +90,5 @@ section below for examples where this has been done.
   both, NVIDIA and AMD GPUs well. On NVIDIA hardware, using CUDA is typically
   resulting in equal or better performance over OpenCL.
 * OpenCL in the GPU package does theoretically also support Intel CPUs or
-  Intel Xeon Phi, but the native support for those in KOKKOS (or USER-INTEL)
+  Intel Xeon Phi, but the native support for those in KOKKOS (or INTEL)
   is superior.

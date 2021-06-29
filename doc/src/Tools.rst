@@ -341,7 +341,7 @@ fep tool
 
 The tools/fep directory contains Python scripts useful for
 post-processing results from performing free-energy perturbation
-simulations using the USER-FEP package.
+simulations using the FEP package.
 
 The scripts were contributed by Agilio Padua (ENS de Lyon), agilio.padua at ens-lyon.fr.
 
@@ -861,7 +861,7 @@ phonon tool
 
 The phonon sub-directory contains a post-processing tool useful for
 analyzing the output of the :doc:`fix phonon <fix_phonon>` command in
-the USER-PHONON package.
+the PHONON package.
 
 See the README file for instruction on building the tool and what
 library it needs.  And see the examples/PACKAGES/phonon directory

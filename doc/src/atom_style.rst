@@ -319,7 +319,7 @@ styles take the same arguments and should produce the same results,
 except for round-off and precision issues.
 
 Note that other acceleration packages in LAMMPS, specifically the GPU,
-USER-INTEL, OPENMP, and OPT packages do not use accelerated atom
+INTEL, OPENMP, and OPT packages do not use accelerated atom
 styles.
 
 The accelerated styles are part of the KOKKOS package.  They are only
@@ -352,7 +352,7 @@ The *dipole* style is part of the DIPOLE package.
 
 The *peri* style is part of the PERI package for Peridynamics.
 
-The *electron* style is part of the USER-EFF package for :doc:`electronic force fields <pair_eff>`.
+The *electron* style is part of the EFF package for :doc:`electronic force fields <pair_eff>`.
 
 The *dpd* style is part of the DPD-REACT package for dissipative
 particle dynamics (DPD).
@@ -362,14 +362,14 @@ for energy-conserving dissipative particle dynamics (eDPD), many-body
 dissipative particle dynamics (mDPD), and transport dissipative particle
 dynamics (tDPD), respectively.
 
-The *sph* style is part of the USER-SPH package for smoothed particle
+The *sph* style is part of the SPH package for smoothed particle
 hydrodynamics (SPH).  See `this PDF guide <USER/sph/SPH_LAMMPS_userguide.pdf>`_ to using SPH in LAMMPS.
 
-The *mesont* style is part of the USER-MESONT package.
+The *mesont* style is part of the MESONT package.
 
 The *spin* style is part of the SPIN package.
 
-The *wavepacket* style is part of the USER-AWPMD package for the
+The *wavepacket* style is part of the AWPMD package for the
 :doc:`antisymmetrized wave packet MD method <pair_awpmd>`.
 
 Related commands

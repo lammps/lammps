@@ -51,28 +51,28 @@ PACKAGE = asphere body class2 colloid compress coreshell dipole gpu \
 	  ml-iap molecule mpiio mscg opt peri plugin poems \
 	  python qeq replica rigid shock ml-snap spin srd voronoi
 
-PACKUSER = user-adios user-atc user-awpmd user-brownian user-bocs cg-dna \
-	   cg-sdk user-colvars user-dielectric user-diffraction dpd-react user-drude \
-	   user-eff user-fep user-h5md ml-hdnnp user-intel latboltz user-manifold \
-	   user-mdi meam dpd-meso user-mesont user-mgpt user-misc \
-	   user-mofff user-molfile user-netcdf openmp user-phonon \
-	   ml-pace user-plumed user-ptm user-qmmm user-qtb ml-quip \
-	   ml-rann user-reaction reaxff user-scafacos machdyn user-smtbq \
-	   dpd-smooth user-sph user-tally user-uef user-vtk user-yaff
+PACKUSER = adios atc awpmd brownian bocs cg-dna \
+	   cg-sdk colvars dielectric diffraction dpd-react drude \
+	   eff fep h5md ml-hdnnp intel latboltz manifold \
+	   mdi meam dpd-meso mesont mgpt user-misc \
+	   mofff molfile netcdf openmp phonon \
+	   ml-pace plumed ptm qmmm qtb ml-quip \
+	   ml-rann reaction reaxff scafacos machdyn smtbq \
+	   dpd-smooth sph tally uef vtk yaff
 
 PACKLIB = compress gpu kim kokkos latte message mpiio mscg poems python voronoi \
-	  user-adios user-atc user-awpmd user-colvars user-h5md ml-hdnnp latboltz user-mdi \
-	  user-mesont user-molfile user-netcdf ml-pace user-plumed user-qmmm ml-quip \
-	  user-scafacos machdyn user-vtk
+	  adios atc awpmd colvars h5md ml-hdnnp latboltz mdi \
+	  mesont molfile netcdf ml-pace plumed qmmm ml-quip \
+	  scafacos machdyn vtk
 
 PACKSYS = compress mpiio python latboltz
 
-PACKINT = gpu kokkos message poems user-atc user-awpmd user-colvars user-mesont \
-	  user-mdi
+PACKINT = gpu kokkos message poems atc awpmd colvars mesont \
+	  mdi
 
 PACKEXT = kim latte mscg voronoi \
-	  user-adios user-h5md ml-hdnnp user-molfile user-netcdf ml-pace user-plumed \
-	  user-qmmm ml-quip user-scafacos machdyn user-vtk
+	  adios h5md ml-hdnnp molfile netcdf ml-pace plumed \
+	  qmmm ml-quip scafacos machdyn vtk
 
 PACKALL = $(PACKAGE) $(PACKUSER)
 
@@ -87,7 +87,7 @@ PACKUSERUC = $(call uppercase,$(PACKUSER))
 YESDIR = $(call uppercase,$(@:yes-%=%))
 NODIR  = $(call uppercase,$(@:no-%=%))
 LIBDIR = $(@:lib-%=%)
-LIBUSERDIR = $(@:lib-user-%=%)
+LIBUSERDIR = $(@:lib-%=%)
 
 # List of all targets
 
@@ -400,7 +400,7 @@ lib-%:
 	  echo "Installing lib $(@:lib-%=%)"; \
 	  ( cd ../lib/$(LIBDIR); $(PYTHON) Install.py $(args) ); \
 	elif [ -e ../lib/$(LIBUSERDIR)/Install.py ]; then \
-	  echo "Installing lib $(@:lib-user-%=%)"; \
+	  echo "Installing lib $(@:lib-%=%)"; \
 	  ( cd ../lib/$(LIBUSERDIR); $(PYTHON) Install.py $(args) ); \
 	else \
 	  echo "Install script for lib $(@:lib-%=%) does not exist"; \

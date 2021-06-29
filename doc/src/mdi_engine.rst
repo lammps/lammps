@@ -67,13 +67,13 @@ about these commands in the `MDI library documentation
 If these commands are not sufficient to support what a driver which
 you write needs, additional commands can be defined by simply using a
 new command name not in this list.  Code to support the new command
-needs to be added to the USER-MDI package within LAMMPS; see its
-src/USER-MDI/mdi_engine.cpp and fix_mdi_engine.cpp files.
+needs to be added to the MDI package within LAMMPS; see its
+src/MDI/mdi_engine.cpp and fix_mdi_engine.cpp files.
 
 Restrictions
 """"""""""""
 
-This command is part of the USER-MDI package.  It is only enabled if
+This command is part of the MDI package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package
 <Build_package>` doc page for more info.
 

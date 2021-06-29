@@ -22,33 +22,33 @@ src/MESSAGE/*         @sjplimp
 src/MLIAP/*           @athomps
 src/SNAP/*            @athomps
 src/SPIN/*            @julient31
-src/USER-BROWNIAN/*   @samueljmcameron
+src/BROWNIAN/*   @samueljmcameron
 src/CG-DNA/*      @ohenrich
 src/CG-SDK/*      @akohlmey
-src/USER-COLVARS/*    @giacomofiorin
-src/USER-DIELECTRIC/* @ndtrung81
-src/USER-FEP/*        @agiliopadua
+src/COLVARS/*    @giacomofiorin
+src/DIELECTRIC/* @ndtrung81
+src/FEP/*        @agiliopadua
 src/ML-HDNNP/*      @singraber
-src/USER-INTEL/*      @wmbrownintel
-src/USER-MANIFOLD/*   @Pakketeretet2
-src/USER-MDI/*        @taylor-a-barnes
+src/INTEL/*      @wmbrownintel
+src/MANIFOLD/*   @Pakketeretet2
+src/MDI/*        @taylor-a-barnes
 src/MEAM/*      @martok
-src/USER-MESONT/*     @iafoss
-src/USER-MOFFF/*      @hheenen
-src/USER-MOLFILE/*    @akohlmey
-src/USER-NETCDF/*     @pastewka
+src/MESONT/*     @iafoss
+src/MOFFF/*      @hheenen
+src/MOLFILE/*    @akohlmey
+src/NETCDF/*     @pastewka
 src/ML-PACE/*       @yury-lysogorskiy
-src/USER-PLUMED/*     @gtribello
-src/USER-PHONON/*     @lingtikong
-src/USER-PTM/*        @pmla
+src/PLUMED/*     @gtribello
+src/PHONON/*     @lingtikong
+src/PTM/*        @pmla
 src/OPENMP/*        @akohlmey
-src/USER-QMMM/*       @akohlmey
+src/QMMM/*       @akohlmey
 src/REAXFF/*      @hasanmetin
-src/USER-REACTION/*   @jrgissing
-src/USER-SCAFACOS/*   @rhalver
-src/USER-TALLY/*      @akohlmey
-src/USER-UEF/*        @danicholson
-src/USER-VTK/*        @rbberger
+src/REACTION/*   @jrgissing
+src/SCAFACOS/*   @rhalver
+src/TALLY/*      @akohlmey
+src/UEF/*        @danicholson
+src/VTK/*        @rbberger
 
 
 # individual files in packages
@@ -138,7 +138,7 @@ unittest/*            @akohlmey @rbberger
 
 # cmake
 cmake/*               @junghans @rbberger
-cmake/Modules/Packages/USER-COLVARS.cmake @junghans @rbberger @giacomofiorin
+cmake/Modules/Packages/COLVARS.cmake @junghans @rbberger @giacomofiorin
 cmake/Modules/Packages/KIM.cmake @junghans @rbberger @ellio167
 cmake/presets/*.cmake @akohlmey
 

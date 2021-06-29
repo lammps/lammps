@@ -65,54 +65,54 @@ page gives those details.
 .. table_from_list::
    :columns: 6
 
-   * :ref:`USER-ADIOS <PKG-USER-ADIOS>`
-   * :ref:`USER-ATC <PKG-USER-ATC>`
-   * :ref:`USER-AWPMD <PKG-USER-AWPMD>`
-   * :ref:`USER-BOCS <PKG-USER-BOCS>`
-   * :ref:`USER-BROWNIAN <PKG-USER-BROWNIAN>`
+   * :ref:`ADIOS <PKG-ADIOS>`
+   * :ref:`ATC <PKG-ATC>`
+   * :ref:`AWPMD <PKG-AWPMD>`
+   * :ref:`BOCS <PKG-BOCS>`
+   * :ref:`BROWNIAN <PKG-BROWNIAN>`
    * :ref:`CG-DNA <PKG-CG-DNA>`
    * :ref:`CG-SDK <PKG-CG-SDK>`
-   * :ref:`USER-COLVARS <PKG-USER-COLVARS>`
-   * :ref:`USER-DIELECTRIC <PKG-USER-DIELECTRIC>`
-   * :ref:`USER-DIFFRACTION <PKG-USER-DIFFRACTION>`
+   * :ref:`COLVARS <PKG-COLVARS>`
+   * :ref:`DIELECTRIC <PKG-DIELECTRIC>`
+   * :ref:`DIFFRACTION <PKG-DIFFRACTION>`
    * :ref:`DPD-REACT <PKG-DPD-REACT>`
-   * :ref:`USER-DRUDE <PKG-USER-DRUDE>`
-   * :ref:`USER-EFF <PKG-USER-EFF>`
-   * :ref:`USER-FEP <PKG-USER-FEP>`
-   * :ref:`USER-H5MD <PKG-USER-H5MD>`
+   * :ref:`DRUDE <PKG-DRUDE>`
+   * :ref:`EFF <PKG-EFF>`
+   * :ref:`FEP <PKG-FEP>`
+   * :ref:`H5MD <PKG-H5MD>`
    * :ref:`ML-HDNNP <PKG-ML-HDNNP>`
-   * :ref:`USER-INTEL <PKG-USER-INTEL>`
+   * :ref:`INTEL <PKG-INTEL>`
    * :ref:`LATBOLTZ <PKG-LATBOLTZ>`
-   * :ref:`USER-MANIFOLD <PKG-USER-MANIFOLD>`
-   * :ref:`USER-MDI <PKG-USER-MDI>`
+   * :ref:`MANIFOLD <PKG-MANIFOLD>`
+   * :ref:`MDI <PKG-MDI>`
    * :ref:`MEAM <PKG-MEAM>`
    * :ref:`DPD-MESO <PKG-DPD-MESO>`
-   * :ref:`USER-MESONT <PKG-USER-MESONT>`
-   * :ref:`USER-MGPT <PKG-USER-MGPT>`
+   * :ref:`MESONT <PKG-MESONT>`
+   * :ref:`MGPT <PKG-MGPT>`
    * :ref:`USER-MISC <PKG-USER-MISC>`
-   * :ref:`USER-MOFFF <PKG-USER-MOFFF>`
-   * :ref:`USER-MOLFILE <PKG-USER-MOLFILE>`
-   * :ref:`USER-NETCDF <PKG-USER-NETCDF>`
+   * :ref:`MOFFF <PKG-MOFFF>`
+   * :ref:`MOLFILE <PKG-MOLFILE>`
+   * :ref:`NETCDF <PKG-NETCDF>`
    * :ref:`OPENMP <PKG-OPENMP>`
    * :ref:`ML-PACE <PKG-ML-PACE>`
-   * :ref:`USER-PHONON <PKG-USER-PHONON>`
-   * :ref:`USER-PLUMED <PKG-USER-PLUMED>`
-   * :ref:`USER-PTM <PKG-USER-PTM>`
-   * :ref:`USER-QMMM <PKG-USER-QMMM>`
-   * :ref:`USER-QTB <PKG-USER-QTB>`
+   * :ref:`PHONON <PKG-PHONON>`
+   * :ref:`PLUMED <PKG-PLUMED>`
+   * :ref:`PTM <PKG-PTM>`
+   * :ref:`QMMM <PKG-QMMM>`
+   * :ref:`QTB <PKG-QTB>`
    * :ref:`ML-QUIP <PKG-ML-QUIP>`
    * :ref:`ML-RANN <PKG-ML-RANN>`
-   * :ref:`USER-REACTION <PKG-USER-REACTION>`
+   * :ref:`REACTION <PKG-REACTION>`
    * :ref:`REAXFF <PKG-REAXFF>`
-   * :ref:`USER-SCAFACOS <PKG-USER-SCAFACOS>`
+   * :ref:`SCAFACOS <PKG-SCAFACOS>`
    * :ref:`DPD-SMOOTH <PKG-DPD-SMOOTH>`
    * :ref:`MACHDYN <PKG-MACHDYN>`
-   * :ref:`USER-SMTBQ <PKG-USER-SMTBQ>`
-   * :ref:`USER-SPH <PKG-USER-SPH>`
-   * :ref:`USER-TALLY <PKG-USER-TALLY>`
-   * :ref:`USER-UEF <PKG-USER-UEF>`
-   * :ref:`USER-VTK <PKG-USER-VTK>`
-   * :ref:`USER-YAFF <PKG-USER-YAFF>`
+   * :ref:`SMTBQ <PKG-SMTBQ>`
+   * :ref:`SPH <PKG-SPH>`
+   * :ref:`TALLY <PKG-TALLY>`
+   * :ref:`UEF <PKG-UEF>`
+   * :ref:`VTK <PKG-VTK>`
+   * :ref:`YAFF <PKG-YAFF>`
 
 ----------
 
@@ -447,7 +447,7 @@ style name.  The :doc:`KOKKOS package <Speed_kokkos>` page gives
 details of what hardware and software is required on your system, and
 how to build and use this package.  Its styles can be invoked at run
 time via the "-sf kk" or "-suffix kk" :doc:`command-line switches <Run_options>`.  Also see the :ref:`GPU <PKG-GPU>`, :ref:`OPT <PKG-OPT>`,
-:ref:`USER-INTEL <PKG-USER-INTEL>`, and :ref:`OPENMP <PKG-OPENMP>` packages, which
+:ref:`INTEL <PKG-INTEL>`, and :ref:`OPENMP <PKG-OPENMP>` packages, which
 have styles optimized for CPUs, KNLs, and GPUs.
 
 You must have a C++14 compatible compiler to use this package.
@@ -802,7 +802,7 @@ CHARMM, and Morse potentials.  The styles have an "opt" suffix in
 their style name.  The :doc:`OPT package <Speed_opt>` page gives
 details of how to build and use this package.  Its styles can be
 invoked at run time via the "-sf opt" or "-suffix opt" :doc:`command-line switches <Run_options>`.  See also the :ref:`KOKKOS <PKG-KOKKOS>`,
-:ref:`USER-INTEL <PKG-USER-INTEL>`, and :ref:`OPENMP <PKG-OPENMP>` packages, which
+:ref:`INTEL <PKG-INTEL>`, and :ref:`OPENMP <PKG-OPENMP>` packages, which
 have styles optimized for CPU performance.
 
 **Authors:** James Fischer (High Performance Technologies), David Richie,
@@ -1154,9 +1154,9 @@ This package has :ref:`specific installation instructions <voronoi>` on the :doc
 
 ----------
 
-.. _PKG-USER-ADIOS:
+.. _PKG-ADIOS:
 
-USER-ADIOS package
+ADIOS package
 ------------------
 
 **Contents:**
@@ -1170,12 +1170,12 @@ commands to write and read data using the ADIOS library.
 
 **Install:**
 
-This package has :ref:`specific installation instructions <user-adios>` on the :doc:`Build extras <Build_extras>` page.
+This package has :ref:`specific installation instructions <adios>` on the :doc:`Build extras <Build_extras>` page.
 
 **Supporting info:**
 
-* src/USER-ADIOS: filenames -> commands
-* src/USER-ADIOS/README
+* src/ADIOS: filenames -> commands
+* src/ADIOS/README
 * examples/PACKAGES/adios
 * https://github.com/ornladios/ADIOS2
 * :doc:`dump atom/adios <dump_adios>`
@@ -1184,9 +1184,9 @@ This package has :ref:`specific installation instructions <user-adios>` on the :
 
 ----------
 
-.. _PKG-USER-ATC:
+.. _PKG-ATC:
 
-USER-ATC package
+ATC package
 ----------------
 
 **Contents:**
@@ -1199,21 +1199,21 @@ atomic information to continuum fields.
 
 **Install:**
 
-This package has :ref:`specific installation instructions <user-atc>` on the :doc:`Build extras <Build_extras>` page.
+This package has :ref:`specific installation instructions <atc>` on the :doc:`Build extras <Build_extras>` page.
 
 **Supporting info:**
 
-* src/USER-ATC: filenames -> commands
-* src/USER-ATC/README
+* src/ATC: filenames -> commands
+* src/ATC/README
 * :doc:`fix atc <fix_atc>`
 * examples/PACKAGES/atc
 * https://www.lammps.org/pictures.html#atc
 
 ----------
 
-.. _PKG-USER-AWPMD:
+.. _PKG-AWPMD:
 
-USER-AWPMD package
+AWPMD package
 ------------------
 
 **Contents:**
@@ -1227,20 +1227,20 @@ model.
 
 **Install:**
 
-This package has :ref:`specific installation instructions <user-awpmd>` on the :doc:`Build extras <Build_extras>` page.
+This package has :ref:`specific installation instructions <awpmd>` on the :doc:`Build extras <Build_extras>` page.
 
 **Supporting info:**
 
-* src/USER-AWPMD: filenames -> commands
-* src/USER-AWPMD/README
+* src/AWPMD: filenames -> commands
+* src/AWPMD/README
 * :doc:`pair_style awpmd/cut <pair_awpmd>`
 * examples/PACKAGES/awpmd
 
 ----------
 
-.. _PKG-USER-BOCS:
+.. _PKG-BOCS:
 
-USER-BOCS package
+BOCS package
 -----------------
 
 **Contents:**
@@ -1258,7 +1258,7 @@ Pennsylvania State University)
 
 **Supporting info:**
 
-The USER-BOCS user package for LAMMPS is part of the BOCS software package:
+The BOCS user package for LAMMPS is part of the BOCS software package:
 `https://github.com/noid-group/BOCS <https://github.com/noid-group/BOCS>`_
 
 See the following reference for information about the entire package:
@@ -1271,9 +1271,9 @@ Example inputs are in the examples/PACKAGES/bocs folder.
 
 ----------
 
-.. _PKG-USER-BROWNIAN:
+.. _PKG-BROWNIAN:
 
-USER-BROWNIAN package
+BROWNIAN package
 ---------------------
 
 **Contents:**
@@ -1344,9 +1344,9 @@ acids.
 
 ----------
 
-.. _PKG-USER-COLVARS:
+.. _PKG-COLVARS:
 
-USER-COLVARS package
+COLVARS package
 --------------------
 
 **Contents:**
@@ -1366,22 +1366,22 @@ the NAMD MD code, but with portability in mind.  Axel Kohlmeyer
 
 **Install:**
 
-This package has :ref:`specific installation instructions <user-colvars>` on the :doc:`Build extras <Build_extras>` page.
+This package has :ref:`specific installation instructions <colvars>` on the :doc:`Build extras <Build_extras>` page.
 
 **Supporting info:**
 
-* src/USER-COLVARS: filenames -> commands
+* src/COLVARS: filenames -> commands
 * `doc/PDF/colvars-refman-lammps.pdf <PDF/colvars-refman-lammps.pdf>`_
-* src/USER-COLVARS/README
+* src/COLVARS/README
 * lib/colvars/README
 * :doc:`fix colvars <fix_colvars>`
 * examples/PACKAGES/colvars
 
 ----------
 
-.. _PKG-USER-DIELECTRIC:
+.. _PKG-DIELECTRIC:
 
-USER-DIELECTRIC package
+DIELECTRIC package
 ------------------------
 
 **Contents:**
@@ -1395,16 +1395,16 @@ different dielectric constants.
 
 **Supporting info:**
 
-* src/USER-DIELECTRIC: filenames -> commands
+* src/DIELECTRIC: filenames -> commands
 * :doc:`compute efield/atom  <compute_efield_atom>`
 * TODO: add all styles
 * examples/PACKAGES/dielectric
 
 ----------
 
-.. _PKG-USER-DIFFRACTION:
+.. _PKG-DIFFRACTION:
 
-USER-DIFFRACTION package
+DIFFRACTION package
 ------------------------
 
 **Contents:**
@@ -1416,7 +1416,7 @@ intensities based on kinematic diffraction theory.
 
 **Supporting info:**
 
-* src/USER-DIFFRACTION: filenames -> commands
+* src/DIFFRACTION: filenames -> commands
 * :doc:`compute saed <compute_saed>`
 * :doc:`compute xrd <compute_xrd>`
 * :doc:`fix saed/vtk <fix_saed_vtk>`
@@ -1465,9 +1465,9 @@ Brennan (ARL).
 
 ----------
 
-.. _PKG-USER-DRUDE:
+.. _PKG-DRUDE:
 
-USER-DRUDE package
+DRUDE package
 ------------------
 
 **Contents:**
@@ -1482,11 +1482,11 @@ Devemy (CNRS), and Agilio Padua (ENS de Lyon).
 
 **Supporting info:**
 
-* src/USER-DRUDE: filenames -> commands
+* src/DRUDE: filenames -> commands
 * :doc:`Howto drude <Howto_drude>`
 * :doc:`Howto drude2 <Howto_drude2>`
 * :doc:`Howto polarizable <Howto_polarizable>`
-* src/USER-DRUDE/README
+* src/DRUDE/README
 * :doc:`fix drude <fix_drude>`
 * :doc:`fix drude/transform/\* <fix_drude_transform>`
 * :doc:`compute temp/drude <compute_temp_drude>`
@@ -1497,9 +1497,9 @@ Devemy (CNRS), and Agilio Padua (ENS de Lyon).
 
 ----------
 
-.. _PKG-USER-EFF:
+.. _PKG-EFF:
 
-USER-EFF package
+EFF package
 ----------------
 
 **Contents:**
@@ -1516,8 +1516,8 @@ tools/eff; see its README file.
 
 **Supporting info:**
 
-* src/USER-EFF: filenames -> commands
-* src/USER-EFF/README
+* src/EFF: filenames -> commands
+* src/EFF/README
 * :doc:`atom_style electron <atom_style>`
 * :doc:`fix nve/eff <fix_nve_eff>`
 * :doc:`fix nvt/eff <fix_nh_eff>`
@@ -1533,9 +1533,9 @@ tools/eff; see its README file.
 
 ----------
 
-.. _PKG-USER-FEP:
+.. _PKG-FEP:
 
-USER-FEP package
+FEP package
 ----------------
 
 **Contents:**
@@ -1549,8 +1549,8 @@ for using this package in tools/fep; see its README file.
 
 **Supporting info:**
 
-* src/USER-FEP: filenames -> commands
-* src/USER-FEP/README
+* src/FEP: filenames -> commands
+* src/FEP/README
 * :doc:`fix adapt/fep <fix_adapt_fep>`
 * :doc:`compute fep <compute_fep>`
 * :doc:`pair_style \*/soft <pair_fep_soft>`
@@ -1560,9 +1560,9 @@ for using this package in tools/fep; see its README file.
 
 ----------
 
-.. _PKG-USER-H5MD:
+.. _PKG-H5MD:
 
-USER-H5MD package
+H5MD package
 -----------------
 
 **Contents:**
@@ -1583,12 +1583,12 @@ H5MD format.
 
 **Install:**
 
-This package has :ref:`specific installation instructions <user-h5md>` on the :doc:`Build extras <Build_extras>` page.
+This package has :ref:`specific installation instructions <h5md>` on the :doc:`Build extras <Build_extras>` page.
 
 **Supporting info:**
 
-* src/USER-H5MD: filenames -> commands
-* src/USER-H5MD/README
+* src/H5MD: filenames -> commands
+* src/H5MD/README
 * lib/h5md/README
 * :doc:`dump h5md <dump_h5md>`
 
@@ -1628,9 +1628,9 @@ This package has :ref:`specific installation instructions <ml-hdnnp>` on the
 
 ----------
 
-.. _PKG-USER-INTEL:
+.. _PKG-INTEL:
 
-USER-INTEL package
+INTEL package
 ------------------
 
 **Contents:**
@@ -1638,7 +1638,7 @@ USER-INTEL package
 Dozens of pair, fix, bond, angle, dihedral, improper, and kspace
 styles which are optimized for Intel CPUs and KNLs (Knights Landing).
 All of them have an "intel" in their style name.  The
-:doc:`USER-INTEL package <Speed_intel>` page gives details of what hardware and
+:doc:`INTEL package <Speed_intel>` page gives details of what hardware and
 compilers are required on your system, and how to build and use this
 package.  Its styles can be invoked at run time via the "-sf intel" or
 "-suffix intel" :doc:`command-line switches <Run_options>`.  Also see
@@ -1651,27 +1651,27 @@ supported, performance will be sub-optimal.
 
 .. note::
 
-   the USER-INTEL package contains styles that require using the
+   the INTEL package contains styles that require using the
    -restrict flag, when compiling with Intel compilers.
 
 **Author:** Mike Brown (Intel).
 
 **Install:**
 
-This package has :ref:`specific installation instructions <user-intel>` on the :doc:`Build extras <Build_extras>` page.
+This package has :ref:`specific installation instructions <intel>` on the :doc:`Build extras <Build_extras>` page.
 
 **Supporting info:**
 
-* src/USER-INTEL: filenames -> commands
-* src/USER-INTEL/README
+* src/INTEL: filenames -> commands
+* src/INTEL/README
 * :doc:`Accelerator packages <Speed_packages>`
-* :doc:`USER-INTEL package <Speed_intel>`
+* :doc:`INTEL package <Speed_intel>`
 * :doc:`Section 2.6 -sf intel <Run_options>`
 * :doc:`Section 2.6 -pk intel <Run_options>`
 * :doc:`package intel <package>`
 * Search the :doc:`commands <Commands_all>` pages (:doc:`fix <Commands_fix>`, :doc:`compute <Commands_compute>`,
   :doc:`pair <Commands_pair>`, :doc:`bond, angle, dihedral, improper <Commands_bond>`, :doc:`kspace <Commands_kspace>`) for styles followed by (i)
-* src/USER-INTEL/TEST
+* src/INTEL/TEST
 * `Benchmarks page <https://www.lammps.org/bench.html>`_ of web site
 
 ----------
@@ -1700,9 +1700,9 @@ Ontario).
 
 ----------
 
-.. _PKG-USER-MGPT:
+.. _PKG-MGPT:
 
-USER-MGPT package
+MGPT package
 -----------------
 
 **Contents:**
@@ -1720,8 +1720,8 @@ matrix-MGPT algorithm due to Tomas Oppelstrup at LLNL.
 
 **Supporting info:**
 
-* src/USER-MGPT: filenames -> commands
-* src/USER-MGPT/README
+* src/MGPT: filenames -> commands
+* src/MGPT/README
 * :doc:`pair_style mgpt <pair_mgpt>`
 * examples/PACKAGES/mgpt
 
@@ -1750,9 +1750,9 @@ src/USER-MISC/README file.
 
 ----------
 
-.. _PKG-USER-MANIFOLD:
+.. _PKG-MANIFOLD:
 
-USER-MANIFOLD package
+MANIFOLD package
 ---------------------
 
 **Contents:**
@@ -1770,8 +1770,8 @@ Waltham, MA, USA)
 
 **Supporting info:**
 
-* src/USER-MANIFOLD: filenames -> commands
-* src/USER-MANIFOLD/README
+* src/MANIFOLD: filenames -> commands
+* src/MANIFOLD/README
 * :doc:`Howto manifold <Howto_manifold>`
 * :doc:`fix manifoldforce <fix_manifoldforce>`
 * :doc:`fix nve/manifold/rattle <fix_nve_manifold_rattle>`
@@ -1781,9 +1781,9 @@ Waltham, MA, USA)
 
 ----------
 
-.. _PKG-USER-MDI:
+.. _PKG-MDI:
 
-USER-MDI package
+MDI package
 ----------------
 
 **Contents:**
@@ -1796,7 +1796,7 @@ other atomic or molecular simulation codes via the `MolSSI Driver Interface
 
 **Supporting info:**
 
-* src/USER-MDI/README
+* src/MDI/README
 * :doc:`mdi/engine <mdi_engine>`
 * :doc:`fix mdi/engine <fix_mdi_engine>`
 * examples/PACKAGES/mdi
@@ -1859,14 +1859,14 @@ algorithm.
 
 ----------
 
-.. _PKG-USER-MESONT:
+.. _PKG-MESONT:
 
-USER-MESONT package
+MESONT package
 -------------------
 
 **Contents:**
 
-USER-MESONT is a LAMMPS package for simulation of nanomechanics of
+MESONT is a LAMMPS package for simulation of nanomechanics of
 nanotubes (NTs). The model is based on a coarse-grained representation
 of NTs as "flexible cylinders" consisting of a variable number of
 segments. Internal interactions within a NT and the van der Waals
@@ -1895,8 +1895,8 @@ Philipp Kloza (U Cambridge)
 
 **Supporting info:**
 
-* src/USER-MESONT: filenames -> commands
-* src/USER-MESONT/README
+* src/MESONT: filenames -> commands
+* src/MESONT/README
 * :doc:`atom_style mesont <atom_style>`
 * :doc:`pair_style mesont/tpm <pair_mesont_tpm>`
 * :doc:`compute mesont <compute_mesont>`
@@ -1906,9 +1906,9 @@ Philipp Kloza (U Cambridge)
 
 ----------
 
-.. _PKG-USER-MOFFF:
+.. _PKG-MOFFF:
 
-USER-MOFFF package
+MOFFF package
 ------------------
 
 **Contents:**
@@ -1929,8 +1929,8 @@ Rochus Schmid (Ruhr-University Bochum).
 
 **Supporting info:**
 
-* src/USER-MOFFF: filenames -> commands
-* src/USER-MOFFF/README
+* src/MOFFF: filenames -> commands
+* src/MOFFF/README
 * :doc:`pair_style buck6d/coul/gauss <pair_buck6d_coul_gauss>`
 * :doc:`angle_style class2 <angle_class2>`
 * :doc:`angle_style cosine/buck6d <angle_cosine_buck6d>`
@@ -1939,9 +1939,9 @@ Rochus Schmid (Ruhr-University Bochum).
 
 ----------
 
-.. _PKG-USER-MOLFILE:
+.. _PKG-MOLFILE:
 
-USER-MOLFILE package
+MOLFILE package
 --------------------
 
 **Contents:**
@@ -1970,20 +1970,20 @@ at
 
 **Install:**
 
-This package has :ref:`specific installation instructions <user-molfile>` on the :doc:`Build extras <Build_extras>` page.
+This package has :ref:`specific installation instructions <molfile>` on the :doc:`Build extras <Build_extras>` page.
 
 **Supporting info:**
 
-* src/USER-MOLFILE: filenames -> commands
-* src/USER-MOLFILE/README
+* src/MOLFILE: filenames -> commands
+* src/MOLFILE/README
 * lib/molfile/README
 * :doc:`dump molfile <dump_molfile>`
 
 ----------
 
-.. _PKG-USER-NETCDF:
+.. _PKG-NETCDF:
 
-USER-NETCDF package
+NETCDF package
 -------------------
 
 **Contents:**
@@ -2010,12 +2010,12 @@ tools:
 
 **Install:**
 
-This package has :ref:`specific installation instructions <user-netcdf>` on the :doc:`Build extras <Build_extras>` page.
+This package has :ref:`specific installation instructions <netcdf>` on the :doc:`Build extras <Build_extras>` page.
 
 **Supporting info:**
 
-* src/USER-NETCDF: filenames -> commands
-* src/USER-NETCDF/README
+* src/NETCDF: filenames -> commands
+* src/NETCDF/README
 * lib/netcdf/README
 * :doc:`dump netcdf <dump_netcdf>`
 
@@ -2035,7 +2035,7 @@ The :doc:`OPENMP package <Speed_omp>` page gives details of what hardware
 and compilers are required on your system, and how to build and use
 this package.  Its styles can be invoked at run time via the "-sf omp"
 or "-suffix omp" :doc:`command-line switches <Run_options>`.  Also see
-the :ref:`KOKKOS <PKG-KOKKOS>`, :ref:`OPT <PKG-OPT>`, and :ref:`USER-INTEL <PKG-USER-INTEL>`
+the :ref:`KOKKOS <PKG-KOKKOS>`, :ref:`OPT <PKG-OPT>`, and :ref:`INTEL <PKG-INTEL>`
 packages, which have styles optimized for CPUs.
 
 **Author:** Axel Kohlmeyer (Temple U).
@@ -2117,9 +2117,9 @@ This package has :ref:`specific installation instructions <ml-pace>` on the
 
 ----------
 
-.. _PKG-USER-PHONON:
+.. _PKG-PHONON:
 
-USER-PHONON package
+PHONON package
 -------------------
 
 **Contents:**
@@ -2136,8 +2136,8 @@ and Charlie Sievers (UC Davis) for "dynamical_matrix" and "third_order"
 
 **Supporting info:**
 
-* src/USER-PHONON: filenames -> commands
-* src/USER-PHONON/README
+* src/PHONON: filenames -> commands
+* src/PHONON/README
 * :doc:`fix phonon <fix_phonon>`
 * :doc:`dynamical_matrix <dynamical_matrix>`
 * :doc:`third_order <third_order>`
@@ -2145,9 +2145,9 @@ and Charlie Sievers (UC Davis) for "dynamical_matrix" and "third_order"
 
 ----------
 
-.. _PKG-USER-PLUMED:
+.. _PKG-PLUMED:
 
-USER-PLUMED package
+PLUMED package
 -------------------
 
 **Contents:**
@@ -2163,20 +2163,20 @@ and Gareth Tribello.
 
 **Install:**
 
-This package has :ref:`specific installation instructions <user-plumed>` on the :doc:`Build extras <Build_extras>` page.
+This package has :ref:`specific installation instructions <plumed>` on the :doc:`Build extras <Build_extras>` page.
 
 **Supporting info:**
 
-* src/USER-PLUMED/README
+* src/PLUMED/README
 * lib/plumed/README
 * :doc:`fix plumed <fix_plumed>`
 * examples/PACKAGES/plumed
 
 ----------
 
-.. _PKG-USER-PTM:
+.. _PKG-PTM:
 
-USER-PTM package
+PTM package
 ----------------
 
 **Contents:**
@@ -2189,16 +2189,16 @@ Matching methodology.
 
 **Supporting info:**
 
-* src/USER-PTM: filenames not starting with ptm\_ -> commands
-* src/USER-PTM: filenames starting with ptm\_ -> supporting code
-* src/USER-PTM/LICENSE
+* src/PTM: filenames not starting with ptm\_ -> commands
+* src/PTM: filenames starting with ptm\_ -> supporting code
+* src/PTM/LICENSE
 * :doc:`compute ptm/atom <compute_ptm_atom>`
 
 ----------
 
-.. _PKG-USER-QMMM:
+.. _PKG-QMMM:
 
-USER-QMMM package
+QMMM package
 -----------------
 
 **Contents:**
@@ -2227,13 +2227,13 @@ changes to LAMMPS itself.
 
 **Install:**
 
-This package has :ref:`specific installation instructions <user-qmmm>`
+This package has :ref:`specific installation instructions <qmmm>`
 on the :doc:`Build extras <Build_extras>` page.
 
 **Supporting info:**
 
-* src/USER-QMMM: filenames -> commands
-* src/USER-QMMM/README
+* src/QMMM: filenames -> commands
+* src/QMMM/README
 * lib/qmmm/README
 * :doc:`fix phonon <fix_phonon>`
 * lib/qmmm/example-ec/README
@@ -2241,9 +2241,9 @@ on the :doc:`Build extras <Build_extras>` page.
 
 ----------
 
-.. _PKG-USER-QTB:
+.. _PKG-QTB:
 
-USER-QTB package
+QTB package
 ----------------
 
 **Contents:**
@@ -2261,8 +2261,8 @@ simulation.
 
 **Supporting info:**
 
-* src/USER-QTB: filenames -> commands
-* src/USER-QTB/README
+* src/QTB: filenames -> commands
+* src/QTB/README
 * :doc:`fix qtb <fix_qtb>`
 * :doc:`fix qbmsst <fix_qbmsst>`
 * examples/PACKAGES/qtb
@@ -2327,9 +2327,9 @@ with contributions by Doyl Dickel, Mississippi State University.
 
 ----------
 
-.. _PKG-USER-REACTION:
+.. _PKG-REACTION:
 
-USER-REACTION package
+REACTION package
 ---------------------
 
 **Contents:**
@@ -2348,8 +2348,8 @@ molecules, and chiral-sensitive reactions.
 
 **Supporting info:**
 
-* src/USER-REACTION: filenames -> commands
-* src/USER-REACTION/README
+* src/REACTION: filenames -> commands
+* src/REACTION/README
 * :doc:`fix bond/react <fix_bond_react>`
 * examples/PACKAGES/reaction
 * `2017 LAMMPS Workshop <https://www.lammps.org/workshops/Aug17/pdf/gissinger.pdf>`_
@@ -2383,9 +2383,9 @@ for monitoring molecules as bonds are created and destroyed.
 
 ----------
 
-.. _PKG-USER-SCAFACOS:
+.. _PKG-SCAFACOS:
 
-USER-SCAFACOS package
+SCAFACOS package
 ---------------------
 
 **Contents:**
@@ -2406,12 +2406,12 @@ the Forschungszentrum Juelich.
 
 **Install:**
 
-This package has :ref:`specific installation instructions <user-scafacos>` on the :doc:`Build extras <Build_extras>` page.
+This package has :ref:`specific installation instructions <scafacos>` on the :doc:`Build extras <Build_extras>` page.
 
 **Supporting info:**
 
-* src/USER-SCAFACOS: filenames -> commands
-* src/USER-SCAFACOS/README
+* src/SCAFACOS: filenames -> commands
+* src/SCAFACOS/README
 * :doc:`kspace_style scafacos <kspace_style>`
 * :doc:`kspace_modify <kspace_modify>`
 * examples/PACKAGES/scafacos
@@ -2428,7 +2428,7 @@ DPD-SMOOTH package
 A pair style for smoothed dissipative particle dynamics (SDPD), which
 is an extension of smoothed particle hydrodynamics (SPH) to mesoscale
 where thermal fluctuations are important (see the
-:ref:`USER-SPH package <PKG-USER-SPH>`).
+:ref:`SPH package <PKG-SPH>`).
 Also two fixes for moving and rigid body integration of SPH/SDPD particles
 (particles of atom_style meso).
 
@@ -2456,7 +2456,7 @@ MACHDYN package
 An atom style, fixes, computes, and several pair styles which
 implements smoothed Mach dynamics (SMD) for solids, which is a model
 related to smoothed particle hydrodynamics (SPH) for liquids (see the
-:ref:`USER-SPH package <PKG-USER-SPH>`).
+:ref:`SPH package <PKG-SPH>`).
 
 This package solves solids mechanics problems via a state of the art
 stabilized meshless method with hourglass control.  It can specify
@@ -2484,9 +2484,9 @@ This package has :ref:`specific installation instructions <machdyn>` on the :doc
 
 ----------
 
-.. _PKG-USER-SMTBQ:
+.. _PKG-SMTBQ:
 
-USER-SMTBQ package
+SMTBQ package
 ------------------
 
 **Contents:**
@@ -2500,16 +2500,16 @@ Tetot (LAAS-CNRS, France).
 
 **Supporting info:**
 
-* src/USER-SMTBQ: filenames -> commands
-* src/USER-SMTBQ/README
+* src/SMTBQ: filenames -> commands
+* src/SMTBQ/README
 * :doc:`pair_style smtbq <pair_smtbq>`
 * examples/PACKAGES/smtbq
 
 ----------
 
-.. _PKG-USER-SPH:
+.. _PKG-SPH:
 
-USER-SPH package
+SPH package
 ----------------
 
 **Contents:**
@@ -2533,17 +2533,17 @@ Dynamics, Ernst Mach Institute, Germany).
 
 **Supporting info:**
 
-* src/USER-SPH: filenames -> commands
-* src/USER-SPH/README
+* src/SPH: filenames -> commands
+* src/SPH/README
 * doc/PDF/SPH_LAMMPS_userguide.pdf
 * examples/PACKAGES/sph
 * https://www.lammps.org/movies.html#sph
 
 ----------
 
-.. _PKG-USER-TALLY:
+.. _PKG-TALLY:
 
-USER-TALLY package
+TALLY package
 ------------------
 
 **Contents:**
@@ -2556,16 +2556,16 @@ stress, etc) about individual interactions.
 
 **Supporting info:**
 
-* src/USER-TALLY: filenames -> commands
-* src/USER-TALLY/README
+* src/TALLY: filenames -> commands
+* src/TALLY/README
 * :doc:`compute \*/tally <compute_tally>`
 * examples/PACKAGES/tally
 
 ----------
 
-.. _PKG-USER-UEF:
+.. _PKG-UEF:
 
-USER-UEF package
+UEF package
 ----------------
 
 **Contents:**
@@ -2578,8 +2578,8 @@ supporting compute styles and an output option.
 
 **Supporting info:**
 
-* src/USER-UEF: filenames -> commands
-* src/USER-UEF/README
+* src/UEF: filenames -> commands
+* src/UEF/README
 * :doc:`fix nvt/uef <fix_nh_uef>`
 * :doc:`fix npt/uef <fix_nh_uef>`
 * :doc:`compute pressure/uef <compute_pressure_uef>`
@@ -2589,9 +2589,9 @@ supporting compute styles and an output option.
 
 ----------
 
-.. _PKG-USER-VTK:
+.. _PKG-VTK:
 
-USER-VTK package
+VTK package
 ----------------
 
 **Contents:**
@@ -2611,20 +2611,20 @@ system.
 
 **Install:**
 
-This package has :ref:`specific installation instructions <user-vtk>` on the :doc:`Build extras <Build_extras>` page.
+This package has :ref:`specific installation instructions <vtk>` on the :doc:`Build extras <Build_extras>` page.
 
 **Supporting info:**
 
-* src/USER-VTK: filenames -> commands
-* src/USER-VTK/README
+* src/VTK: filenames -> commands
+* src/VTK/README
 * lib/vtk/README
 * :doc:`dump vtk <dump_vtk>`
 
 ----------
 
-.. _PKG-USER-YAFF:
+.. _PKG-YAFF:
 
-USER-YAFF package
+YAFF package
 -----------------
 
 **Contents:**
@@ -2646,7 +2646,7 @@ which discuss the `QuickFF <quickff_>`_ methodology.
 
 **Supporting info:**
 
-* src/USER-YAFF/README
+* src/YAFF/README
 * :doc:`angle_style cross <angle_cross>`
 * :doc:`angle_style mm3 <angle_mm3>`
 * :doc:`bond_style mm3 <bond_mm3>`

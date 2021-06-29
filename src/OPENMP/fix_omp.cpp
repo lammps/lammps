@@ -308,7 +308,7 @@ void FixOMP::set_neighbor_omp()
   const int nrequest = neighbor->nrequest;
 
   // flag *all* neighbor list requests as OPENMP threaded,
-  // but skip lists already flagged as USER-INTEL threaded
+  // but skip lists already flagged as INTEL threaded
   for (int i = 0; i < nrequest; ++i)
     if (! neighbor->requests[i]->intel)
       neighbor->requests[i]->omp = neigh_omp;

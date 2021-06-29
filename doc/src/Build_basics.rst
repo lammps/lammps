@@ -121,18 +121,18 @@ documentation to find out how to build and link with it.
 
 The majority of OpenMP (threading) support in LAMMPS is provided by the
 ``OPENMP`` package; see the :doc:`Speed_omp`
-page for details. The ``USER-INTEL`` package also includes OpenMP
+page for details. The ``INTEL`` package also includes OpenMP
 threading (it is compatible with ``OPENMP`` and will usually fall
-back on styles from that package, if a ``USER-INTEL`` does not exist)
+back on styles from that package, if a ``INTEL`` does not exist)
 and adds vectorization support when compiled with compatible compilers,
 in particular the Intel compilers on top of OpenMP. Also, the ``KOKKOS``
 package can be compiled to include OpenMP threading.
 
 In addition, there are a few commands in LAMMPS that have native OpenMP
 support included as well.  These are commands in the ``MPIIO``,
-``ML-SNAP``, ``USER-DIFFRACTION``, and ``DPD-REACT`` packages.  In addition
+``ML-SNAP``, ``DIFFRACTION``, and ``DPD-REACT`` packages.  In addition
 some packages support OpenMP threading indirectly through the libraries
-they interface to: e.g. ``LATTE``, ``KSPACE``, and ``USER-COLVARS``.
+they interface to: e.g. ``LATTE``, ``KSPACE``, and ``COLVARS``.
 See the :doc:`Packages details <Packages_details>` page for more
 info on these packages and the pages for their respective commands
 for OpenMP threading info.
@@ -176,7 +176,7 @@ performance.  Vendor provided compilers for a specific hardware can
 produce faster code than open-source compilers like the GNU compilers.
 On the most common x86 hardware most popular C++ compilers are quite
 similar in performance of C/C++ code at high optimization levels.  When
-using the ``USER-INTEL`` package, there is a distinct advantage in using
+using the ``INTEL`` package, there is a distinct advantage in using
 the `Intel C++ compiler <intel_>`_ due to much improved vectorization
 through SSE and AVX instructions on compatible hardware as the source
 code includes changes and Intel compiler specific directives to enable
@@ -326,8 +326,8 @@ LAMMPS.
 
             Makefile.opt                   # OPT package
             Makefile.omp                   # OPENMP package
-            Makefile.intel_cpu             # USER-INTEL package for CPUs
-            Makefile.intel_coprocessor     # USER-INTEL package for KNLs
+            Makefile.intel_cpu             # INTEL package for CPUs
+            Makefile.intel_coprocessor     # INTEL package for KNLs
             Makefile.gpu                   # GPU package
             Makefile.kokkos_cuda_mpi       # KOKKOS package for GPUs
             Makefile.kokkos_omp            # KOKKOS package for CPUs (OpenMP)

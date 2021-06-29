@@ -114,7 +114,7 @@ class Atom : protected Pointers {
 
   double **sp, **fm, **fm_long;
 
-  // USER_EFF and USER-AWPMD packages
+  // EFF and AWPMD packages
 
   int *spin;
   double *eradius, *ervel, *erforce;
@@ -129,7 +129,7 @@ class Atom : protected Pointers {
   double *dpdTheta;
   int nspecies_dpd;
 
-  // USER-MESO package
+  // MESO package
 
   double **cc, **cc_flux;           // cc = chemical concentration
   double *edpd_temp, *edpd_flux;    // temperature and heat flux
@@ -137,7 +137,7 @@ class Atom : protected Pointers {
   double *edpd_cv;    // heat capacity
   int cc_species;
 
-  // USER-MESONT package
+  // MESONT package
 
   double *length;
   int *buckling;
@@ -152,12 +152,12 @@ class Atom : protected Pointers {
   double *eff_plastic_strain_rate;
   double *damage;
 
-  // USER-SPH package
+  // SPH package
 
   double *rho, *drho, *esph, *desph, *cv;
   double **vest;
 
-  // USER-DIELECTRIC package
+  // DIELECTRIC package
 
   double *area,*ed,*em,*epsilon,*curvature,*q_unscaled;
 

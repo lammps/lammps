@@ -271,7 +271,7 @@ Restrictions
 """"""""""""
 
 These fixes are only available when LAMMPS was built with the
-USER-DRUDE package.  These fixes cannot be used with dynamic groups as
+DRUDE package.  These fixes cannot be used with dynamic groups as
 defined by the :doc:`group <group>` command.  These fixes cannot be
 used in 2D simulations.
 

@@ -122,7 +122,7 @@ recorded compilation commands information when typing `make iwyu`.
 A lot of code predates the application of the rules in this document
 and the rules themselves are a moving target.  So there are going to be
 significant chunks of code that do not fully comply.  This applies
-for example to the REAXFF, or the USER-ATC package.  The LAMMPS
+for example to the REAXFF, or the ATC package.  The LAMMPS
 developers are dedicated to make an effort to improve the compliance
 and welcome volunteers wanting to help with the process.
 

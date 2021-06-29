@@ -4327,7 +4327,7 @@ int lammps_config_package_name(int idx, char *buffer, int buf_size) {
 \verbatim embed:rst
 This function checks availability of compile time settings of included
 :doc:`accelerator packages <Speed_packages>` in LAMMPS.
-Supported packages names are "GPU", "KOKKOS", "USER-INTEL", and "OPENMP".
+Supported packages names are "GPU", "KOKKOS", "INTEL", and "OPENMP".
 Supported categories are "api" with possible settings "cuda", "hip", "phi",
 "pthreads", "opencl", "openmp", and "serial", and "precision" with
 possible settings "double", "mixed", and "single".  If the combination

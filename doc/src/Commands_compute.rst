@@ -16,7 +16,7 @@ Compute commands
 
 An alphabetic list of all LAMMPS :doc:`compute <compute>` commands.
 Some styles have accelerated versions.  This is indicated by
-additional letters in parenthesis: g = GPU, i = USER-INTEL, k =
+additional letters in parenthesis: g = GPU, i = INTEL, k =
 KOKKOS, o = OPENMP, t = OPT.
 
 .. table_from_list::

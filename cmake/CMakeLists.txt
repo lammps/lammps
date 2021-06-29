@@ -141,14 +141,14 @@ option(CMAKE_VERBOSE_MAKEFILE "Generate verbose Makefiles" OFF)
 set(STANDARD_PACKAGES ASPHERE BODY CLASS2 COLLOID COMPRESS DIPOLE
   GRANULAR KSPACE LATTE MANYBODY MC MESSAGE MISC ML-IAP MOLECULE PERI POEMS
   PLUGIN QEQ REPLICA RIGID SHOCK SPIN ML-SNAP SRD KIM PYTHON MSCG MPIIO VORONOI
-  USER-ADIOS USER-ATC USER-AWPMD USER-BOCS CG-DNA DPD-MESO CG-SDK
-  USER-COLVARS USER-DIELECTRIC USER-DIFFRACTION DPD-REACT USER-DRUDE USER-EFF USER-FEP
-  USER-H5MD ML-HDNNP LATBOLTZ USER-MANIFOLD USER-MDI MEAM USER-MESONT USER-MGPT
-  USER-MISC USER-MOFFF USER-MOLFILE USER-NETCDF USER-PHONON USER-PLUMED USER-PTM USER-QTB
-  ML-RANN USER-REACTION REAXFF USER-SCAFACOS DPD-SMOOTH MACHDYN USER-SMTBQ USER-SPH
-  USER-TALLY USER-UEF USER-VTK ML-QUIP USER-QMMM USER-YAFF ML-PACE USER-BROWNIAN)
+  ADIOS ATC AWPMD BOCS CG-DNA DPD-MESO CG-SDK
+  COLVARS DIELECTRIC DIFFRACTION DPD-REACT DRUDE EFF FEP
+  H5MD ML-HDNNP LATBOLTZ MANIFOLD MDI MEAM MESONT MGPT
+  USER-MISC MOFFF MOLFILE NETCDF PHONON PLUMED PTM QTB
+  ML-RANN REACTION REAXFF SCAFACOS DPD-SMOOTH MACHDYN SMTBQ SPH
+  TALLY UEF VTK ML-QUIP QMMM YAFF ML-PACE BROWNIAN)
 
-set(SUFFIX_PACKAGES CORESHELL GPU KOKKOS OPT USER-INTEL OPENMP)
+set(SUFFIX_PACKAGES CORESHELL GPU KOKKOS OPT INTEL OPENMP)
 
 foreach(PKG ${STANDARD_PACKAGES} ${SUFFIX_PACKAGES})
   option(PKG_${PKG} "Build ${PKG} Package" OFF)
@@ -159,7 +159,7 @@ endforeach()
 ######################################################
 target_include_directories(lammps PUBLIC $<BUILD_INTERFACE:${LAMMPS_SOURCE_DIR}>)
 
-if(PKG_USER-ADIOS)
+if(PKG_ADIOS)
   # The search for ADIOS2 must come before MPI because
   # it includes its own MPI search with the latest FindMPI.cmake
   # script that defines the MPI::MPI_C target
@@ -231,11 +231,11 @@ endif()
 # in an error instead of skipping over files
 pkg_depends(ML-IAP ML-SNAP)
 pkg_depends(MPIIO MPI)
-pkg_depends(USER-ATC MANYBODY)
+pkg_depends(ATC MANYBODY)
 pkg_depends(LATBOLTZ MPI)
-pkg_depends(USER-PHONON KSPACE)
-pkg_depends(USER-SCAFACOS MPI)
-pkg_depends(USER-DIELECTRIC KSPACE)
+pkg_depends(PHONON KSPACE)
+pkg_depends(SCAFACOS MPI)
+pkg_depends(DIELECTRIC KSPACE)
 
 # detect if we may enable OpenMP support by default
 set(BUILD_OMP_DEFAULT OFF)
@@ -271,7 +271,7 @@ if(BUILD_OMP)
   target_link_libraries(lammps PRIVATE OpenMP::OpenMP_CXX)
 endif()
 
-if(PKG_MSCG OR PKG_USER-ATC OR PKG_USER-AWPMD OR PKG_ML-QUIP OR PKG_LATTE)
+if(PKG_MSCG OR PKG_ATC OR PKG_AWPMD OR PKG_ML-QUIP OR PKG_LATTE)
   enable_language(C)
   find_package(LAPACK)
   find_package(BLAS)
@@ -350,8 +350,8 @@ else()
   set(CUDA_REQUEST_PIC)
 endif()
 
-foreach(PKG_WITH_INCL KSPACE PYTHON ML-IAP VORONOI USER-COLVARS ML-HDNNP USER-MDI USER-MOLFILE USER-NETCDF
-        USER-PLUMED USER-QMMM ML-QUIP USER-SCAFACOS MACHDYN USER-VTK KIM LATTE MESSAGE MSCG COMPRESS ML-PACE)
+foreach(PKG_WITH_INCL KSPACE PYTHON ML-IAP VORONOI COLVARS ML-HDNNP MDI MOLFILE NETCDF
+        PLUMED QMMM ML-QUIP SCAFACOS MACHDYN VTK KIM LATTE MESSAGE MSCG COMPRESS ML-PACE)
   if(PKG_${PKG_WITH_INCL})
     include(Packages/${PKG_WITH_INCL})
   endif()
@@ -444,9 +444,9 @@ endforeach()
 ##############################################
 # add lib sources of (simple) enabled packages
 ############################################
-foreach(SIMPLE_LIB POEMS USER-ATC USER-AWPMD USER-H5MD USER-MESONT)
+foreach(SIMPLE_LIB POEMS ATC AWPMD H5MD MESONT)
   if(PKG_${SIMPLE_LIB})
-    string(REGEX REPLACE "^USER-" "" PKG_LIB "${SIMPLE_LIB}")
+    string(REGEX REPLACE "^" "" PKG_LIB "${SIMPLE_LIB}")
     string(TOLOWER "${PKG_LIB}" PKG_LIB)
     if(PKG_LIB STREQUAL "mesont")
       enable_language(Fortran)
@@ -470,13 +470,13 @@ foreach(SIMPLE_LIB POEMS USER-ATC USER-AWPMD USER-H5MD USER-MESONT)
   endif()
 endforeach()
 
-if(PKG_USER-AWPMD)
+if(PKG_AWPMD)
   target_link_libraries(awpmd PRIVATE ${LAPACK_LIBRARIES})
 endif()
 
-if(PKG_USER-ATC)
+if(PKG_ATC)
   if(LAMMPS_SIZES STREQUAL "BIGBIG")
-    message(FATAL_ERROR "The USER-ATC Package is not compatible with -DLAMMPS_BIGBIG")
+    message(FATAL_ERROR "The ATC Package is not compatible with -DLAMMPS_BIGBIG")
   endif()
   target_link_libraries(atc PRIVATE ${LAPACK_LIBRARIES})
   if(BUILD_MPI)
@@ -488,15 +488,15 @@ if(PKG_USER-ATC)
   target_compile_definitions(atc PRIVATE -DLAMMPS_${LAMMPS_SIZES})
 endif()
 
-if(PKG_USER-H5MD)
-  include(Packages/USER-H5MD)
+if(PKG_H5MD)
+  include(Packages/H5MD)
 endif()
 
 ######################################################################
 # packages which selectively include variants based on enabled styles
 # e.g. accelerator packages
 ######################################################################
-foreach(PKG_WITH_INCL CORESHELL QEQ OPENMP DPD-SMOOTH KOKKOS OPT USER-INTEL GPU)
+foreach(PKG_WITH_INCL CORESHELL QEQ OPENMP DPD-SMOOTH KOKKOS OPT INTEL GPU)
   if(PKG_${PKG_WITH_INCL})
     include(Packages/${PKG_WITH_INCL})
   endif()

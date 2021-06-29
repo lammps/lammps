@@ -303,7 +303,7 @@ The values calculated by this compute are "extensive".
 Restrictions
 """"""""""""
 
-This compute is distributed as the USER-FEP package.  It is only
+This compute is distributed as the FEP package.  It is only
 enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 Related commands

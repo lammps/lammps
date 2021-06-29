@@ -667,7 +667,7 @@ all other fixes that use any group created by fix bond/react.
 Restrictions
 """"""""""""
 
-This fix is part of the USER-REACTION package.  It is only enabled if
+This fix is part of the REACTION package.  It is only enabled if
 LAMMPS was built with that package.  See the
 :doc:`Build package <Build_package>` doc page for more info.
 

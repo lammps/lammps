@@ -2,10 +2,10 @@ Tutorial for Thermalized Drude oscillators in LAMMPS
 ====================================================
 
 This tutorial explains how to use Drude oscillators in LAMMPS to
-simulate polarizable systems using the USER-DRUDE package. As an
+simulate polarizable systems using the DRUDE package. As an
 illustration, the input files for a simulation of 250 phenol molecules
 are documented. First of all, LAMMPS has to be compiled with the
-USER-DRUDE package activated. Then, the data file and input scripts
+DRUDE package activated. Then, the data file and input scripts
 have to be modified to include the Drude dipoles and how to handle
 them.
 
@@ -82,7 +82,7 @@ The data file is similar to a standard LAMMPS data file for
 to their DC should appear in the data file as normal atoms and bonds.
 
 You can use the *polarizer* tool (Python script distributed with the
-USER-DRUDE package) to convert a non-polarizable data file (here
+DRUDE package) to convert a non-polarizable data file (here
 *data.102494.lmp*\ ) to a polarizable data file (\ *data-p.lmp*\ )
 
 .. code-block:: bash

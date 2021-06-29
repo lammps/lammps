@@ -1,4 +1,4 @@
-# intel_cpu_mpich = USER-INTEL package, MPICH with compiler set to Intel icc
+# intel_cpu_mpich = INTEL package, MPICH with compiler set to Intel icc
 
 SHELL = /bin/sh
 

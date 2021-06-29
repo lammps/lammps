@@ -291,7 +291,7 @@ Restrictions
 """"""""""""
 
 These pair styles will only be enabled if LAMMPS is built with the
-USER-EFF package.  It will only be enabled if LAMMPS was built with
+EFF package.  It will only be enabled if LAMMPS was built with
 that package.  See the :doc:`Build package <Build_package>` doc page for
 more info.
 

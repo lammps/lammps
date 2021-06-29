@@ -169,7 +169,7 @@ packages in the src directory for examples. If you are uncertain, please ask.
 
 * If you want your contribution to be added as a user-contribution and
   it is several related features, it is probably best to make it a user
-  package directory with a name like USER-FOO.  In addition to your new
+  package directory with a name like FOO.  In addition to your new
   files, the directory should contain a README text file.  The README
   should contain your name and contact information and a brief
   description of what your new package does.  If your files depend on
@@ -177,7 +177,7 @@ packages in the src directory for examples. If you are uncertain, please ask.
   is a derived class from the other LAMMPS class), then an Install.sh
   file is also needed to check for those dependencies.  See other README
   and Install.sh files in other USER directories as examples.  Send us a
-  tarball of this USER-FOO directory.
+  tarball of this FOO directory.
 
 * Your new source files need to have the LAMMPS copyright, GPL notice,
   and your name and email address at the top, like other
@@ -212,7 +212,7 @@ packages in the src directory for examples. If you are uncertain, please ask.
   cite itself.  Citation labels must be unique across all .rst files.
   The "Restrictions" section of the doc page should indicate if your
   command is only available if LAMMPS is built with the appropriate
-  USER-MISC or USER-FOO package.  See other user package doc files for
+  USER-MISC or FOO package.  See other user package doc files for
   examples of how to do this.  Please run at least "make html" and "make
   spelling" and carefully inspect and proofread the resulting HTML
   format doc page before submitting your code.  Upon submission of a
@@ -234,7 +234,7 @@ packages in the src directory for examples. If you are uncertain, please ask.
 * If there is a paper of yours describing your feature (either the
   algorithm/science behind the feature itself, or its initial usage, or
   its implementation in LAMMPS), you can add the citation to the \*.cpp
-  source file.  See src/USER-EFF/atom_vec_electron.cpp for an example.
+  source file.  See src/EFF/atom_vec_electron.cpp for an example.
   A LaTeX citation is stored in a variable at the top of the file and
   a single line of code registering this variable is added to the
   constructor of the class.  If there is additional functionality (which

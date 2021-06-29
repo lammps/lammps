@@ -41,7 +41,7 @@ if not os.path.isdir(doc_dir):
 
 pkgdirs = glob(os.path.join(src_dir, '[A-Z][A-Z]*'))
 dirs = re.compile(".*/([0-9A-Z-]+)$")
-user = re.compile("USER-.*")
+user = re.compile(".*")
 
 stdpkg = []
 usrpkg = []
@@ -90,7 +90,7 @@ for p in stdpkg:
         counter += 1
         print(f"Standard package {p} missing in Packages_details.rst")
 
-matches = set(re.findall(':ref:`(USER-[A-Z0-9]+) <PKG-\\1>`', text, re.MULTILINE))
+matches = set(re.findall(':ref:`([A-Z0-9]+) <PKG-\\1>`', text, re.MULTILINE))
 for p in usrpkg:
     if not p in matches:
         counter +=1 

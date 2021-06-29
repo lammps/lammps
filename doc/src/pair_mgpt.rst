@@ -168,7 +168,7 @@ This pair style can only be used via the *pair* keyword of the
 Restrictions
 """"""""""""
 
-This pair style is part of the USER-MGPT package and is only enabled
+This pair style is part of the MGPT package and is only enabled
 if LAMMPS is built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 The MGPT potentials require the :doc:`newtion <newton>` setting to be

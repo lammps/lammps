@@ -1239,7 +1239,7 @@ bool Info::has_accelerator_feature(const std::string &package,
   }
 #endif
 #if defined(LMP_USER_INTEL)
-  if (package == "USER-INTEL") {
+  if (package == "INTEL") {
     if (category == "precision") {
       if (setting == "double") return true;
       else if (setting == "mixed") return true;
@@ -1476,14 +1476,14 @@ std::string Info::get_accelerator_info(const std::string &package)
     if (has_accelerator_feature("OPENMP","precision","double")) mesg += " double";
     mesg += "\n";
   }
-  if ((package.empty() || (package == "USER-INTEL")) && has_package("USER-INTEL")) {
-    mesg += "USER-INTEL package API:";
-    if (has_accelerator_feature("USER-INTEL","api","phi"))      mesg += " Phi";
-    if (has_accelerator_feature("USER-INTEL","api","openmp"))   mesg += " OpenMP";
-    mesg +=  "\nUSER-INTEL package precision:";
-    if (has_accelerator_feature("USER-INTEL","precision","single")) mesg += " single";
-    if (has_accelerator_feature("USER-INTEL","precision","mixed"))  mesg += " mixed";
-    if (has_accelerator_feature("USER-INTEL","precision","double")) mesg += " double";
+  if ((package.empty() || (package == "INTEL")) && has_package("INTEL")) {
+    mesg += "INTEL package API:";
+    if (has_accelerator_feature("INTEL","api","phi"))      mesg += " Phi";
+    if (has_accelerator_feature("INTEL","api","openmp"))   mesg += " OpenMP";
+    mesg +=  "\nINTEL package precision:";
+    if (has_accelerator_feature("INTEL","precision","single")) mesg += " single";
+    if (has_accelerator_feature("INTEL","precision","mixed"))  mesg += " mixed";
+    if (has_accelerator_feature("INTEL","precision","double")) mesg += " double";
     mesg += "\n";
   }
   return mesg;

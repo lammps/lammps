@@ -122,7 +122,7 @@ energy mentioned above.  The scalar value calculated by this fix is
 Restrictions
 """"""""""""
 
-This fix is part of the USER-COLVARS package.  It is only enabled if
+This fix is part of the COLVARS package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package
 <Build_package>` doc page for more info.
 

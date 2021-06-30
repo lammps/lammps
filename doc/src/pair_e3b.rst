@@ -111,7 +111,7 @@ If the neigh setting is too large, the pair style will use more memory than nece
 This pair style tallies a breakdown of the total E3B potential energy into sub-categories, which can be accessed via the :doc:`compute pair <compute_pair>` command as a vector of values of length 4.
 The 4 values correspond to the terms in the first equation above: the E2 term, the Ea term, the Eb term, and the Ec term.
 
-See the examples/PACKAGES/USER-MISC/e3b directory for a complete example script.
+See the examples/USER-MISC/e3b directory for a complete example script.
 
 ----------
 

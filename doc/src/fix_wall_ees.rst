@@ -117,7 +117,7 @@ ellipsoidal particles according to the EES potential introduced above.
 
 Other details of this command are the same as for the :doc:`fix
 wall/region <fix_wall_region>` command.  One may also find an example
-of using this fix in the examples/PACKAGES/USER-MISC/ees/ directory.
+of using this fix in the examples/USER-MISC/ees/ directory.
 
 ----------
 

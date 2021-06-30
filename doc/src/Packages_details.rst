@@ -1461,7 +1461,7 @@ Brennan (ARL).
 * :doc:`pair_style exp6/rx <pair_exp6_rx>`
 * :doc:`pair_style multi/lucy <pair_multi_lucy>`
 * :doc:`pair_style multi/lucy/rx <pair_multi_lucy_rx>`
-* examples/PACKAGES/dpd
+* examples/PACKAGES/dpd-react
 
 ----------
 
@@ -1746,7 +1746,7 @@ src/USER-MISC/README file.
 * src/USER-MISC: filenames -> commands
 * src/USER-MISC/README
 * one page per individual command listed in src/USER-MISC/README
-* examples/PACKAGES/USER-MISC
+* examples/USER-MISC
 
 ----------
 
@@ -2442,7 +2442,7 @@ Sciences, Iran).
 * :doc:`pair_style sdpd/taitwater/isothermal <pair_sdpd_taitwater_isothermal>`
 * :doc:`fix meso/move <fix_meso_move>`
 * :doc:`fix rigid/meso <fix_rigid_meso>`
-* examples/PACKAGES/sdpd
+* examples/PACKAGES/dpd-smooth
 
 ----------
 

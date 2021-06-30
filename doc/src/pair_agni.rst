@@ -63,7 +63,7 @@ to specify the path for the force field file.
 An AGNI force field is fully specified by the filename which contains the
 parameters of the force field, i.e., the reference training environments
 used to construct the machine learning force field. Example force field
-and input files are provided in the examples/PACKAGES/USER-MISC/agni directory.
+and input files are provided in the examples/USER-MISC/agni directory.
 
 ----------
 

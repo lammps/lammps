@@ -30,17 +30,37 @@ steps, as explained on the :doc:`Build extras <Build_extras>` page.
 These links take you to the extra instructions for those select
 packages:
 
-+--------------------------------------+--------------------------------------+------------------------------------+----------------------------------+--------------------------------+--------------------------------+
-| :ref:`COMPRESS <compress>`           | :ref:`GPU <gpu>`                     | :ref:`KIM <kim>`                   | :ref:`KOKKOS <kokkos>`           | :ref:`LATTE <latte>`           | :ref:`MESSAGE <message>`       |
-+--------------------------------------+--------------------------------------+------------------------------------+----------------------------------+--------------------------------+--------------------------------+
-| :ref:`MSCG <mscg>`                   | :ref:`OPT <opt>`                     | :ref:`POEMS <poems>`               | :ref:`PYTHON <python>`           | :ref:`VORONOI <voronoi>`       | :ref:`ADIOS <adios>`           |
-+--------------------------------------+--------------------------------------+------------------------------------+----------------------------------+--------------------------------+--------------------------------+
-| :ref:`ATC <atc>`                     | :ref:`AWPMD <awpmd>`                 | :ref:`COLVARS <colvars>`           | :ref:`H5MD <h5md>`               | :ref:`ML-HDNNP <ml-hdnnp>`     | :ref:`INTEL <intel>`           |
-+--------------------------------------+--------------------------------------+------------------------------------+----------------------------------+--------------------------------+--------------------------------+
-| :ref:`MOLFILE <molfile>`             | :ref:`NETCDF <netcdf>`               | :ref:`ML-PACE <ml-pace>`           | :ref:`PLUMED <plumed>`           | :ref:`OPENMP <openmp>`         | :ref:`QMMM <qmmm>`             |
-+--------------------------------------+--------------------------------------+------------------------------------+----------------------------------+--------------------------------+--------------------------------+
-| :ref:`ML-QUIP <ml-quip>`             | :ref:`SCAFACOS <scafacos>`           | :ref:`MACHDYN <machdyn>`           | :ref:`VTK <vtk>`                 |                                |                                |
-+--------------------------------------+--------------------------------------+------------------------------------+----------------------------------+--------------------------------+--------------------------------+
+.. table_from_list::
+   :columns: 6
+
+   * :ref:`ADIOS <adios>`
+   * :ref:`ATC <atc>`
+   * :ref:`AWPMD <awpmd>`
+   * :ref:`COLVARS <colvars>`
+   * :ref:`COMPRESS <compress>`
+   * :ref:`GPU <gpu>`
+   * :ref:`H5MD <h5md>`
+   * :ref:`INTEL <intel>`
+   * :ref:`KIM <kim>`
+   * :ref:`KOKKOS <kokkos>`
+   * :ref:`LATTE <latte>`
+   * :ref:`MACHDYN <machdyn>`
+   * :ref:`MESSAGE <message>`
+   * :ref:`ML-HDNNP <ml-hdnnp>`
+   * :ref:`ML-PACE <ml-pace>`
+   * :ref:`ML-QUIP <ml-quip>`
+   * :ref:`MOLFILE <molfile>`
+   * :ref:`MSCG <mscg>`
+   * :ref:`NETCDF <netcdf>`
+   * :ref:`OPENMP <openmp>`
+   * :ref:`OPT <opt>`
+   * :ref:`PLUMED <plumed>`
+   * :ref:`POEMS <poems>`
+   * :ref:`PYTHON <python>`
+   * :ref:`QMMM <qmmm>`
+   * :ref:`SCAFACOS <scafacos>`
+   * :ref:`VORONOI <voronoi>`
+   * :ref:`VTK <vtk>`
 
 The mechanism for including packages is simple but different for CMake
 versus make.

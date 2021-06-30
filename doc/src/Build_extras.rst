@@ -1056,7 +1056,7 @@ binary package provided by your operating system.
 
 ----------
 
-.. _user-adios:
+.. _adios:
 
 ADIOS package
 -----------------------------------
@@ -1097,7 +1097,7 @@ systems.
 
 ----------
 
-.. _user-atc:
+.. _atc:
 
 ATC package
 -------------------------------
@@ -1151,7 +1151,7 @@ The ATC package requires the MANYBODY package also be installed.
 
 ----------
 
-.. _user-awpmd:
+.. _awpmd:
 
 AWPMD package
 ------------------
@@ -1202,7 +1202,7 @@ AWPMD package
 
 ----------
 
-.. _user-colvars:
+.. _colvars:
 
 COLVARS package
 ---------------------------------------
@@ -1301,7 +1301,7 @@ at: `https://github.com/ICAMS/lammps-user-pace/ <https://github.com/ICAMS/lammps
 
 ----------
 
-.. _user-plumed:
+.. _plumed:
 
 PLUMED package
 -------------------------------------
@@ -1431,7 +1431,7 @@ LAMMPS build.
 
 ----------
 
-.. _user-h5md:
+.. _h5md:
 
 H5MD package
 ---------------------------------
@@ -1600,7 +1600,7 @@ TBB and MKL.
 
 ----------
 
-.. _user-mdi:
+.. _mdi:
 
 MDI package
 -----------------------------
@@ -1629,7 +1629,7 @@ MDI package
 
 ----------
 
-.. _user-mesont:
+.. _mesont:
 
 MESONT package
 -------------------------
@@ -1671,7 +1671,7 @@ they will be downloaded the first time this package is installed.
 
 ----------
 
-.. _user-molfile:
+.. _molfile:
 
 MOLFILE package
 ---------------------------------------
@@ -1709,7 +1709,7 @@ MOLFILE package
 
 ----------
 
-.. _user-netcdf:
+.. _netcdf:
 
 NETCDF package
 -------------------------------------
@@ -1773,7 +1773,7 @@ OPENMP package
 
 ----------
 
-.. _user-qmmm:
+.. _qmmm:
 
 QMMM package
 ---------------------------------
@@ -1883,7 +1883,7 @@ to be downloaded and configured.  See step 1 and step 1.1 in the
 
 ----------
 
-.. _user-scafacos:
+.. _scafacos:
 
 SCAFACOS package
 -----------------------------------------
@@ -1974,7 +1974,7 @@ Eigen3 is a template library, so you do not need to build it.
 
 ----------
 
-.. _user-vtk:
+.. _vtk:
 
 VTK package
 -------------------------------

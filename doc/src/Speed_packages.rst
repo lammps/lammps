@@ -12,17 +12,16 @@ All of these commands are in packages provided with LAMMPS.  An
 overview of packages is give on the :doc:`Packages <Packages>` doc
 pages.
 
-These are the accelerator packages currently in LAMMPS, either as
-standard or user packages:
+These are the accelerator packages currently in LAMMPS:
 
 +-----------------------------------------+-------------------------------------------------------+
 | :doc:`GPU Package <Speed_gpu>`          | for GPUs via CUDA, OpenCL, or ROCm HIP                |
 +-----------------------------------------+-------------------------------------------------------+
-| :doc:`INTEL Package <Speed_intel>` | for Intel CPUs and Intel Xeon Phi                     |
+| :doc:`INTEL Package <Speed_intel>`      | for Intel CPUs and Intel Xeon Phi                     |
 +-----------------------------------------+-------------------------------------------------------+
 | :doc:`KOKKOS Package <Speed_kokkos>`    | for NVIDIA GPUs, Intel Xeon Phi, and OpenMP threading |
 +-----------------------------------------+-------------------------------------------------------+
-| :doc:`OPENMP Package <Speed_omp>`     | for OpenMP threading and generic CPU optimizations    |
+| :doc:`OPENMP Package <Speed_omp>`       | for OpenMP threading and generic CPU optimizations    |
 +-----------------------------------------+-------------------------------------------------------+
 | :doc:`OPT Package <Speed_opt>`          | generic CPU optimizations                             |
 +-----------------------------------------+-------------------------------------------------------+
@@ -41,11 +40,11 @@ Inverting this list, LAMMPS currently has acceleration support for
 three kinds of hardware, via the listed packages:
 
 +-----------------+-----------------------------------------------------------------------------------------------------------------------------+
-| Many-core CPUs  | :doc:`INTEL <Speed_intel>`, :doc:`KOKKOS <Speed_kokkos>`, :doc:`OPENMP <Speed_omp>`, :doc:`OPT <Speed_opt>` packages |
+| Many-core CPUs  | :doc:`INTEL <Speed_intel>`, :doc:`KOKKOS <Speed_kokkos>`, :doc:`OPENMP <Speed_omp>`, :doc:`OPT <Speed_opt>` packages        |
 +-----------------+-----------------------------------------------------------------------------------------------------------------------------+
 | GPUs            | :doc:`GPU <Speed_gpu>`, :doc:`KOKKOS <Speed_kokkos>` packages                                                               |
 +-----------------+-----------------------------------------------------------------------------------------------------------------------------+
-| Intel Phi/AVX   | :doc:`INTEL <Speed_intel>`, :doc:`KOKKOS <Speed_kokkos>` packages                                                      |
+| Intel Phi/AVX   | :doc:`INTEL <Speed_intel>`, :doc:`KOKKOS <Speed_kokkos>` packages                                                           |
 +-----------------+-----------------------------------------------------------------------------------------------------------------------------+
 
 Which package is fastest for your hardware may depend on the size
@@ -84,9 +83,9 @@ listed above:
 +--------------------------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | build the accelerator library                                                                                                  | only for GPU package                                                 |
 +--------------------------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
-| install the accelerator package                                                                                                | make yes-opt, make yes-intel, etc                               |
+| install the accelerator package                                                                                                | make yes-opt, make yes-intel, etc                                    |
 +--------------------------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
-| add compile/link flags to Makefile.machine in src/MAKE                                                                         | only for INTEL, KOKKOS, OPENMP, OPT packages                  |
+| add compile/link flags to Makefile.machine in src/MAKE                                                                         | only for INTEL, KOKKOS, OPENMP, OPT packages                         |
 +--------------------------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | re-build LAMMPS                                                                                                                | make machine                                                         |
 +--------------------------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+

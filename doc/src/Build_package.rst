@@ -33,13 +33,13 @@ packages:
 +--------------------------------------+--------------------------------------+------------------------------------+----------------------------------+--------------------------------+--------------------------------+
 | :ref:`COMPRESS <compress>`           | :ref:`GPU <gpu>`                     | :ref:`KIM <kim>`                   | :ref:`KOKKOS <kokkos>`           | :ref:`LATTE <latte>`           | :ref:`MESSAGE <message>`       |
 +--------------------------------------+--------------------------------------+------------------------------------+----------------------------------+--------------------------------+--------------------------------+
-| :ref:`MSCG <mscg>`                   | :ref:`OPT <opt>`                     | :ref:`POEMS <poems>`               | :ref:`PYTHON <python>`           | :ref:`VORONOI <voronoi>`       | :ref:`ADIOS <adios>` |
+| :ref:`MSCG <mscg>`                   | :ref:`OPT <opt>`                     | :ref:`POEMS <poems>`               | :ref:`PYTHON <python>`           | :ref:`VORONOI <voronoi>`       | :ref:`ADIOS <adios>`           |
 +--------------------------------------+--------------------------------------+------------------------------------+----------------------------------+--------------------------------+--------------------------------+
-| :ref:`ATC <atc>`           | :ref:`AWPMD <awpmd>`       | :ref:`COLVARS <colvars>` | :ref:`H5MD <h5md>`     | :ref:`ML-HDNNP <ml-hdnnp>` | :ref:`INTEL <intel>` |
+| :ref:`ATC <atc>`                     | :ref:`AWPMD <awpmd>`                 | :ref:`COLVARS <colvars>`           | :ref:`H5MD <h5md>`               | :ref:`ML-HDNNP <ml-hdnnp>`     | :ref:`INTEL <intel>`           |
 +--------------------------------------+--------------------------------------+------------------------------------+----------------------------------+--------------------------------+--------------------------------+
-| :ref:`MOLFILE <molfile>`   | :ref:`NETCDF <netcdf>`     | :ref:`ML-PACE <ml-pace>`       | :ref:`PLUMED <plumed>` | :ref:`OPENMP <openmp>`     | :ref:`QMMM <qmmm>`   |
+| :ref:`MOLFILE <molfile>`             | :ref:`NETCDF <netcdf>`               | :ref:`ML-PACE <ml-pace>`           | :ref:`PLUMED <plumed>`           | :ref:`OPENMP <openmp>`         | :ref:`QMMM <qmmm>`             |
 +--------------------------------------+--------------------------------------+------------------------------------+----------------------------------+--------------------------------+--------------------------------+
-| :ref:`ML-QUIP <ml-quip>`         | :ref:`SCAFACOS <scafacos>` | :ref:`MACHDYN <machdyn>`         | :ref:`VTK <vtk>`       |                                |                                |
+| :ref:`ML-QUIP <ml-quip>`             | :ref:`SCAFACOS <scafacos>`           | :ref:`MACHDYN <machdyn>`           | :ref:`VTK <vtk>`                 |                                |                                |
 +--------------------------------------+--------------------------------------+------------------------------------+----------------------------------+--------------------------------+--------------------------------+
 
 The mechanism for including packages is simple but different for CMake
@@ -60,12 +60,8 @@ versus make.
          -D PKG_MANYBODY=yes
          -D PKG_INTEL=yes
 
-      All standard and user packages are included the same way.  Note
-      that USER packages have a hyphen between USER and the rest of the
-      package name, not an underscore.
-
-      See the shortcut section below for how to install many packages at
-      once with CMake.
+      All packages are included the same way.  See the shortcut section
+      below for how to install many packages at once with CMake.
 
       .. note::
 
@@ -91,10 +87,8 @@ versus make.
          make no-rigid
          make yes-intel
 
-      All standard and user packages are included the same way.
-
-      See the shortcut section below for how to install many packages at
-      once with make.
+      All packages are included the same way.  See the shortcut section
+      below for how to install many packages at once with make.
 
       .. note::
 
@@ -208,10 +202,6 @@ These commands install/un-install sets of packages:
 
     make yes-all                        # install all packages
     make no-all                         # uninstall all packages
-    make yes-standard or make yes-std   # install standard packages
-    make no-standard or make no-std     # uninstall standard packages
-    make yes-user                       # install user packages
-    make no-user                        # uninstall user packages
     make yes-lib                        # install packages that require extra libraries
     make no-lib                         # uninstall packages that require extra libraries
     make yes-ext                        # install packages that require external libraries

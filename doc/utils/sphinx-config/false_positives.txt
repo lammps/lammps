@@ -1325,6 +1325,7 @@ hyperradius
 hyperspherical
 hysteretic
 hz
+IAP
 Ibanez
 iatom
 ibar
@@ -1647,6 +1648,8 @@ larentzos
 Larentzos
 Laroche
 lars
+LATBOLTZ
+latboltz
 latencies
 Latour
 latourr
@@ -1797,6 +1800,8 @@ Lysogorskiy
 Lyulin
 lz
 Maaravi
+MACHDYN
+machdyn
 Mackay
 Mackrodt
 Macromolecules
@@ -2734,7 +2739,7 @@ README
 realtime
 reamin
 reax
-REAXC
+REAXFF
 ReaxFF
 rebo
 recursing

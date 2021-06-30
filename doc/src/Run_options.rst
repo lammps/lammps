@@ -10,7 +10,7 @@ letter abbreviation can be used:
 * :ref:`-i or -in <file>`
 * :ref:`-k or -kokkos <run-kokkos>`
 * :ref:`-l or -log <log>`
-* :ref:`-mdi <mdi>`
+* :ref:`-mdi <mdi_flags>`
 * :ref:`-m or -mpicolor <mpicolor>`
 * :ref:`-c or -cite <cite>`
 * :ref:`-nc or -nocite <nocite>`
@@ -197,7 +197,7 @@ Option -plog will override the name of the partition log files file.N.
 
 ----------
 
-.. _mdi:
+.. _mdi_flags:
 
 **-mdi 'multiple flags'**
 

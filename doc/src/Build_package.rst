@@ -258,10 +258,10 @@ currently installed, without listing the status of packages that are
 not installed.
 
 Type ``make package-update`` or ``make pu`` to overwrite src files with
-files from the package sub-directories if the package is installed.
-It should be used after a :doc:`patch has been applied <Install_patch>`,
-since patches only update the files in the package sub-directory, but
-not the src files.
+files from the package sub-directories if the package is installed.  It
+should be used after the checkout has been :doc:`updated or changed
+withy git <Install_git>`, this will only update the files in the package
+sub-directories, but not the copies in the src folder.
 
 Type ``make package-overwrite`` to overwrite files in the package
 sub-directories with src files.

@@ -50,7 +50,6 @@ endif
 PACKAGE = \
 	adios \
 	asphere \
-	atc \
 	awpmd \
 	bocs \
 	body \
@@ -62,7 +61,6 @@ PACKAGE = \
 	colvars \
 	compress \
 	coreshell \
-	dielectric \
 	diffraction \
 	dipole \
 	dpd-meso \
@@ -91,7 +89,6 @@ PACKAGE = \
 	mgpt \
 	misc \
 	ml-hdnnp \
-	ml-iap \
 	ml-pace \
 	ml-quip \
 	ml-rann \
@@ -105,7 +102,6 @@ PACKAGE = \
 	openmp \
 	opt \
 	peri \
-	phonon \
 	plugin \
 	plumed \
 	poems \
@@ -129,7 +125,14 @@ PACKAGE = \
 	user-misc \
 	voronoi \
 	vtk \
-	yaff
+	yaff \
+	atc \
+	dielectric \
+	ml-iap \
+	phonon
+
+# NOTE: the last four packages must remain at the end since
+# they depend on other packages to be installed first.
 
 PACKMIN = kspace manybody molecule rigid
 
@@ -143,7 +146,6 @@ PACKMOST = \
 	class2 \
 	colloid \
 	coreshell \
-	dielectric \
 	diffraction \
 	dipole \
 	dpd-meso \
@@ -158,14 +160,12 @@ PACKMOST = \
 	mc \
 	meam \
 	misc \
-	ml-iap \
 	ml-snap \
 	mofff \
 	molecule \
 	openmp \
 	opt \
 	peri \
-	phonon \
 	plugin \
 	poems \
 	qeq \
@@ -179,7 +179,13 @@ PACKMOST = \
 	srd \
 	uef \
 	user-misc \
-	yaff
+	yaff \
+	dielectric \
+	ml-iap \
+	phonon
+
+# NOTE: the last three packages must remain at the end since
+# they depend on other packages to be installed first.
 
 PACKLIB = \
 	compress \

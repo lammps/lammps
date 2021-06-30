@@ -75,6 +75,7 @@ fi
 
 if (test $1 = "KSPACE") then
   depend CORESHELL
+  depend DIELECTRIC
   depend GPU
   depend KOKKOS
   depend OPT
@@ -85,6 +86,7 @@ if (test $1 = "KSPACE") then
 fi
 
 if (test $1 = "MANYBODY") then
+  depend ATC
   depend GPU
   depend KOKKOS
   depend OPT

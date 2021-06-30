@@ -69,6 +69,7 @@ GPU_AWARE_UNKNOWN
 
 using namespace LAMMPS_NS;
 
+Kokkos::InitArguments KokkosLMP::args{-1, -1, -1, false};
 int KokkosLMP::is_finalized = 0;
 
 /* ---------------------------------------------------------------------- */
@@ -157,6 +158,10 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
     } else if (strcmp(arg[iarg],"t") == 0 ||
                strcmp(arg[iarg],"threads") == 0) {
       nthreads = atoi(arg[iarg+1]);
+
+      if (nthreads <= 0)
+        error->all(FLERR,"Invalid number of threads requested for Kokkos: must be 1 or greater");
+
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"n") == 0 ||
@@ -184,7 +189,13 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
                          "than the OpenMP backend");
 #endif
 
-  Kokkos::InitArguments args;
+  // cannot change Kokkos library parameters after first initalization
+
+  if (args.num_threads != -1)
+    if (args.num_threads != nthreads || args.num_numa != numa || args.device_id != device)
+      if (me == 0)
+        error->warning(FLERR,"Kokkos package already initalized, cannot reinitialize with different parameters");
+
   args.num_threads = nthreads;
   args.num_numa = numa;
   args.device_id = device;

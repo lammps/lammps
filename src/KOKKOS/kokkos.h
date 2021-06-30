@@ -50,6 +50,7 @@ class KokkosLMP : protected Pointers {
   double binsize;
 
   static int is_finalized;
+  static Kokkos::InitArguments args;
 
   KokkosLMP(class LAMMPS *, int, char **);
   ~KokkosLMP();
@@ -88,13 +89,21 @@ because MPI library not recognized
 
 The local MPI rank was not found in one of four supported environment variables.
 
+E: Invalid number of threads requested for Kokkos: must be 1 or greater
+
+Self-explanatory.
+
 E: GPUs are requested but Kokkos has not been compiled for CUDA
 
 Recompile Kokkos with CUDA support to use GPUs.
 
-E: Kokkos has been compiled for CUDA but no GPUs are requested
+E: Kokkos has been compiled for CUDA, HIP, or SYCL but no GPUs are requested
 
-One or more GPUs must be used when Kokkos is compiled for CUDA.
+One or more GPUs must be used when Kokkos is compiled for CUDA/HIP/SYCL.
+
+W: Kokkos package already initalized, cannot reinitialize with different parameters
+
+Self-explanatory.
 
 E: Illegal ... command
 

@@ -71,6 +71,7 @@ using namespace LAMMPS_NS;
 
 Kokkos::InitArguments KokkosLMP::args{-1, -1, -1, false};
 int KokkosLMP::is_finalized = 0;
+int KokkosLMP::init_ngpus = 0;
 
 /* ---------------------------------------------------------------------- */
 
@@ -172,7 +173,23 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
     } else error->all(FLERR,"Invalid Kokkos command-line args");
   }
 
-  // initialize Kokkos
+  // Initialize Kokkos. However, we cannot change any
+  // Kokkos library parameters after the first initalization
+
+  if (args.num_threads != -1) {
+    if (args.num_threads != nthreads || args.num_numa != numa || args.device_id != device)
+      if (me == 0)
+        error->warning(FLERR,"Kokkos package already initalized, cannot reinitialize with different parameters");
+    nthreads = args.num_threads;
+    numa = args.num_numa;
+    device = args.device_id;
+    ngpus = init_ngpus;
+  } else {
+    args.num_threads = nthreads;
+    args.num_numa = numa;
+    args.device_id = device;
+    init_ngpus = ngpus;
+  }
 
   if (me == 0)
     utils::logmesg(lmp, "  will use up to {} GPU(s) per node\n",ngpus);
@@ -188,17 +205,6 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
                          "(i.e. Makefile.kokkos_mpi_only) gives better performance "
                          "than the OpenMP backend");
 #endif
-
-  // cannot change Kokkos library parameters after first initalization
-
-  if (args.num_threads != -1)
-    if (args.num_threads != nthreads || args.num_numa != numa || args.device_id != device)
-      if (me == 0)
-        error->warning(FLERR,"Kokkos package already initalized, cannot reinitialize with different parameters");
-
-  args.num_threads = nthreads;
-  args.num_numa = numa;
-  args.device_id = device;
 
   KokkosLMP::initialize(args,error);
 

@@ -444,9 +444,8 @@ endforeach()
 ##############################################
 # add lib sources of (simple) enabled packages
 ############################################
-foreach(SIMPLE_LIB POEMS ATC AWPMD H5MD MESONT)
-  if(PKG_${SIMPLE_LIB})
-    string(REGEX REPLACE "^" "" PKG_LIB "${SIMPLE_LIB}")
+foreach(PKG_LIB POEMS ATC AWPMD H5MD MESONT)
+  if(PKG_${PKG_LIB})
     string(TOLOWER "${PKG_LIB}" PKG_LIB)
     if(PKG_LIB STREQUAL "mesont")
       enable_language(Fortran)

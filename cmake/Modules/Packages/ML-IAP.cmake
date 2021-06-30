@@ -25,7 +25,7 @@ if(MLIAP_ENABLE_PYTHON)
   endif()
 
   set(MLIAP_BINARY_DIR ${CMAKE_BINARY_DIR}/cython)
-  set(MLIAP_CYTHON_SRC ${LAMMPS_SOURCE_DIR}/MLIAP/mliap_model_python_couple.pyx)
+  set(MLIAP_CYTHON_SRC ${LAMMPS_SOURCE_DIR}/ML-IAP/mliap_model_python_couple.pyx)
   get_filename_component(MLIAP_CYTHON_BASE ${MLIAP_CYTHON_SRC} NAME_WE)
   file(MAKE_DIRECTORY ${MLIAP_BINARY_DIR})
   add_custom_command(OUTPUT  ${MLIAP_BINARY_DIR}/${MLIAP_CYTHON_BASE}.cpp ${MLIAP_BINARY_DIR}/${MLIAP_CYTHON_BASE}.h

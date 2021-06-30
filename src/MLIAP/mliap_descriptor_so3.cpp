@@ -221,7 +221,7 @@ void MLIAPDescriptorSO3::compute_descriptors(class MLIAPData *data)
 
 void MLIAPDescriptorSO3::compute_forces(class MLIAPData *data)
 {
-  int npairs = 0;
+  bigint npairs = 0;
   for (int ii = 0; ii < data->nlistatoms; ii++) npairs += data->numneighs[ii];
 
   so3ptr->spectrum_dxdr(data->nlistatoms, data->numneighs, data->jelems, wjelem, data->rij, nmax,

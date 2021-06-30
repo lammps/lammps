@@ -38,7 +38,7 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 
 static const char cite_compute_saed_c[] =
-  "compute_saed command:\n\n"
+  "compute_saed command: doi:10.1088/0965-0393/21/5/055020\n\n"
   "@Article{Coleman13,\n"
   " author = {S. P. Coleman, D. E. Spearot, L. Capolungo},\n"
   " title = {Virtual diffraction analysis of Ni [010] symmetric tilt grain boundaries},\n"
@@ -74,7 +74,7 @@ ComputeSAED::ComputeSAED(LAMMPS *lmp, int narg, char **arg) :
   extvector = 0;
 
   // Store radiation wavelength
-  lambda = atof(arg[3]);
+  lambda = utils::numeric(FLERR,arg[3],false,lmp);
   if (lambda < 0)
     error->all(FLERR,"Compute SAED: Wavelength must be greater than zero");
 
@@ -109,30 +109,30 @@ ComputeSAED::ComputeSAED(LAMMPS *lmp, int narg, char **arg) :
 
     if (strcmp(arg[iarg],"Kmax") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal Compute SAED Command");
-      Kmax = atof(arg[iarg+1]);
+      Kmax = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (Kmax / 2 < 0 || Kmax / 2 > 6)
         error->all(FLERR,"Compute SAED: |K|max/2 must be between 0 and 6 ");
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"Zone") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal Compute SAED Command");
-      Zone[0] = atof(arg[iarg+1]);
-      Zone[1] = atof(arg[iarg+2]);
-      Zone[2] = atof(arg[iarg+3]);
+      Zone[0] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      Zone[1] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      Zone[2] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       iarg += 4;
 
     } else if (strcmp(arg[iarg],"c") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal Compute SAED Command");
-      c[0] = atof(arg[iarg+1]);
-      c[1] = atof(arg[iarg+2]);
-      c[2] = atof(arg[iarg+3]);
+      c[0] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      c[1] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      c[2] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       if (c[0] < 0 || c[1] < 0 || c[2] < 0)
         error->all(FLERR,"Compute SAED: dKs must be greater than 0");
       iarg += 4;
 
     } else if (strcmp(arg[iarg],"dR_Ewald") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal Compute SAED Command");
-      dR_Ewald = atof(arg[iarg+1]);
+      dR_Ewald = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (dR_Ewald < 0)
         error->all(FLERR,"Compute SAED: dR_Ewald slice must be greater than 0");
       iarg += 2;
@@ -170,6 +170,7 @@ ComputeSAED::ComputeSAED(LAMMPS *lmp, int narg, char **arg) :
     double *prd;
     double ave_inv = 0.0;
     prd = domain->prd;
+
     if (periodicity[0]) {
       prd_inv[0] = 1 / prd[0];
       ave_inv += prd_inv[0];
@@ -203,18 +204,18 @@ ComputeSAED::ComputeSAED(LAMMPS *lmp, int narg, char **arg) :
     }
   }
 
-  // Find reprical spacing and integer dimensions
+  // Find reciprocal spacing and integer dimensions
   for (int i=0; i<3; i++) {
     dK[i] = prd_inv[i]*c[i];
     Knmax[i] = ceil(Kmax / dK[i]);
   }
 
-  // Finding the intersection of the reciprical space and Ewald sphere
+  // Finding the intersection of the reciprocal space and Ewald sphere
   int n = 0;
   double dinv2, r2, EmdR2, EpdR2;
   double K[3];
 
-  // Zone flag to capture entire recrocal space volume
+  // Zone flag to capture entire reciprocal space volume
   if ((Zone[0] == 0) && (Zone[1] == 0) && (Zone[2] == 0)) {
     for (int k = -Knmax[2]; k <= Knmax[2]; k++) {
       for (int j = -Knmax[1]; j <= Knmax[1]; j++) {
@@ -250,13 +251,10 @@ ComputeSAED::ComputeSAED(LAMMPS *lmp, int narg, char **arg) :
     }
   }
 
-  if (me == 0) {
-    if (screen && echo) {
-      fprintf(screen,"-----\nCompute SAED id:%s, # of atoms:%d, # of relp:%d\n",id,natoms,n);
-      fprintf(screen,"Reciprocal point spacing in k1,k2,k3 = %g %g %g\n-----\n",
-              dK[0], dK[1], dK[2]);
-    }
-  }
+  if (me == 0 && echo)
+    utils::logmesg(lmp,"-----\nCompute SAED id:{}, # of atoms:{}, # of relp:{}\n"
+                   "Reciprocal point spacing in k1,k2,k3 = {:.8} {:.8} {:.8}\n-----\n",
+                   id,natoms,n,dK[0],dK[1],dK[2]);
 
   nRows = n;
   size_vector = n;
@@ -347,10 +345,8 @@ void ComputeSAED::compute_vector()
 {
   invoked_vector = update->ntimestep;
 
-  if (me == 0 && echo) {
-      if (screen)
-        fprintf(screen,"-----\nComputing SAED intensities");
-  }
+  if (me == 0 && echo)
+    utils::logmesg(lmp,"-----\nComputing SAED intensities");
 
   double t0 = MPI_Wtime();
   double *Fvec = new double[2*nRows]; // Strct factor (real & imaginary)
@@ -406,16 +402,10 @@ void ComputeSAED::compute_vector()
 
   // Setting up OMP
 #if defined(_OPENMP)
-  if (me == 0 && echo) {
-    if (screen)
-      fprintf(screen," using %d OMP threads\n",comm->nthreads);
-  }
+  if (me == 0 && echo) utils::logmesg(lmp," using {}OMP threads\n",comm->nthreads);
 #endif
 
-  if (me == 0 && echo) {
-    if (screen)
-      fprintf(screen,"\n");
-  }
+  if (me == 0 && echo) utils::logmesg(lmp,"\n");
 
   int m = 0;
   double frac = 0.1;
@@ -482,7 +472,7 @@ void ComputeSAED::compute_vector()
 #endif
         {
           if (m == round(frac * nRows)) {
-            if (me == 0 && screen) fprintf(screen," %0.0f%% -",frac*100);
+            if (me == 0) utils::logmesg(lmp," {:2.0f}% -",frac*100);
             frac += 0.1;
           }
           m++;
@@ -506,10 +496,9 @@ void ComputeSAED::compute_vector()
   // compute memory usage per processor
   double bytes = memory_usage();
 
-  if (me == 0 && echo) {
-    if (screen)
-      fprintf(screen," 100%% \nTime elapsed during compute_saed = %0.2f sec using %0.2f Mbytes/processor\n-----\n", t2-t0,  bytes/1024.0/1024.0);
-  }
+  if (me == 0 && echo)
+    utils::logmesg(lmp," 100% \nTime elapsed during compute_saed = {:.2f} sec "
+                   "using {:.2f} Mbytes/processor\n-----\n", t2-t0, bytes/1024.0/1024.0);
 
   delete [] xlocal;
   delete [] typelocal;

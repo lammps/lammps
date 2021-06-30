@@ -222,6 +222,10 @@ These commands install/un-install sets of packages:
 
     make yes-all                        # install all packages
     make no-all                         # uninstall all packages
+    make yes-minimal                    # install all few commonly used pgks in src
+    make no-minimal                     # remove all commonly used pkgs from src dir
+    make yes-most                       # install all many pgks w/o libs in src
+    make no-most                        # remove all many pkgs w/o libs from src dir
     make yes-lib                        # install packages that require extra libraries
     make no-lib                         # uninstall packages that require extra libraries
     make yes-ext                        # install packages that require external libraries
@@ -242,8 +246,7 @@ package`` will list all the these commands.
 The following make commands help manage files that exist in both the
 src directory and in package sub-directories.  You do not normally
 need to use these commands unless you are editing LAMMPS files or are
-:doc:`installing a patch <Install_patch>` downloaded from the LAMMPS web
-site.
+updating LAMMPS via git.
 
 Type ``make package-status`` or ``make ps`` to show which packages are
 currently installed.  For those that are installed, it will list any

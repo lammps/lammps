@@ -37,8 +37,9 @@ endif
 
 # Package variables
 
-# PACKAGE    = standard packages
-# PACKUSER   = user packagse
+# PACKAGE    = all packages
+# PACKMIN    = a few core packages
+# PACKMOST   = most packages that do not require additional libs
 # PACKLIB    = all packages that require an additional lib
 #              should be PACKSYS + PACKINT + PACKEXT
 # PACKSYS    = subset that reqiure a common system library
@@ -46,35 +47,192 @@ endif
 # PACKINT    = subset that require an internal (provided) library
 # PACKEXT    = subset that require an external (downloaded) library
 
-PACKAGE = asphere body class2 colloid compress coreshell dipole gpu \
-	  granular kim kokkos kspace latte manybody mc message misc \
-	  ml-iap molecule mpiio mscg opt peri plugin poems \
-	  python qeq replica rigid shock ml-snap spin srd voronoi
+PACKAGE = \
+	adios \
+	asphere \
+	atc \
+	awpmd \
+	bocs \
+	body \
+	brownian \
+	cg-dna \
+	cg-sdk\
+	class2 \
+	colloid \
+	colvars \
+	compress \
+	coreshell \
+	dielectric \
+	diffraction \
+	dipole \
+	dpd-meso \
+	dpd-react \
+	dpd-smooth \
+	drude \
+	eff \
+	fep \
+	gpu \
+	granular \
+	h5md \
+	intel \
+	kim \
+	kokkos \
+	kspace \
+	latboltz \
+	latte \
+	machdyn \
+	manifold \
+	manybody \
+	mc \
+	mdi \
+	meam \
+	mesont \
+	message \
+	mgpt \
+	misc \
+	ml-hdnnp \
+	ml-iap \
+	ml-pace \
+	ml-quip \
+	ml-rann \
+	ml-snap \
+	mofff \
+	molecule \
+	molfile \
+	mpiio \
+	mscg \
+	netcdf \
+	openmp \
+	opt \
+	peri \
+	phonon \
+	plugin \
+	plumed \
+	poems \
+	ptm \
+	python \
+	qeq \
+	qmmm \
+	qtb \
+	reaction \
+	reaxff \
+	replica \
+	rigid \
+	scafacos \
+	shock \
+	smtbq \
+	sph \
+	spin \
+	srd \
+	tally \
+	uef \
+	user-misc \
+	voronoi \
+	vtk \
+	yaff
 
-PACKUSER = adios atc awpmd brownian bocs cg-dna \
-	   cg-sdk colvars dielectric diffraction dpd-react drude \
-	   eff fep h5md ml-hdnnp intel latboltz manifold \
-	   mdi meam dpd-meso mesont mgpt user-misc \
-	   mofff molfile netcdf openmp phonon \
-	   ml-pace plumed ptm qmmm qtb ml-quip \
-	   ml-rann reaction reaxff scafacos machdyn smtbq \
-	   dpd-smooth sph tally uef vtk yaff
+PACKMIN = kspace manybody molecule rigid
 
-PACKLIB = compress gpu kim kokkos latte message mpiio mscg poems python voronoi \
-	  adios atc awpmd colvars h5md ml-hdnnp latboltz mdi \
-	  mesont molfile netcdf ml-pace plumed qmmm ml-quip \
-	  scafacos machdyn vtk
+PACKMOST = \
+	asphere \
+	bocs \
+	body \
+	brownian \
+	cg-dna \
+	cg-sdk \
+	class2 \
+	colloid \
+	coreshell \
+	dielectric \
+	diffraction \
+	dipole \
+	dpd-meso \
+	dpd-react \
+	dpd-smooth \
+	drude \
+	eff \
+	fep \
+	granular \
+	kspace \
+	manybody \
+	mc \
+	meam \
+	misc \
+	ml-iap \
+	ml-snap \
+	mofff \
+	molecule \
+	openmp \
+	opt \
+	peri \
+	phonon \
+	plugin \
+	poems \
+	qeq \
+	reaction \
+	reaxff \
+	replica \
+	rigid \
+	shock \
+	sph \
+	spin \
+	srd \
+	uef \
+	user-misc \
+	yaff
 
-PACKSYS = compress mpiio python latboltz
+PACKLIB = \
+	compress \
+	gpu \
+	kim \
+	kokkos \
+	latte \
+	message \
+	mpiio \
+	mscg \
+	poems \
+	python \
+	voronoi \
+	adios \
+	atc \
+	awpmd \
+	colvars \
+	h5md \
+	ml-hdnnp \
+	latboltz \
+	mdi \
+	mesont \
+	molfile \
+	netcdf \
+	ml-pace \
+	plumed \
+	qmmm \
+	ml-quip \
+	scafacos \
+	machdyn \
+	vtk
 
-PACKINT = gpu kokkos message poems atc awpmd colvars mesont \
-	  mdi
+PACKSYS = compress latboltz mpiio python
 
-PACKEXT = kim latte mscg voronoi \
-	  adios h5md ml-hdnnp molfile netcdf ml-pace plumed \
-	  qmmm ml-quip scafacos machdyn vtk
+PACKINT = atc awpmd colvars gpu kokkos mesont message poems
 
-PACKALL = $(PACKAGE) $(PACKUSER)
+PACKEXT = \
+	adios \
+	h5md \
+	kim \
+	latte \
+	machdyn \
+	ml-hdnnp \
+	ml-pace \
+	ml-quip \
+	molfile \
+	mscg \
+	netcdf \
+	plumed \
+	qmmm \
+	scafacos \
+	voronoi \
+	vtk \
 
 # Helper GNU make function for conversion to upper case without using shell commands
 uppercase_TABLE:=a,A b,B c,C d,D e,E f,F g,G h,H i,I j,J k,K l,L m,M n,N o,O p,P q,Q r,R s,S t,T u,U v,V w,W x,X y,Y z,Z
@@ -314,14 +472,14 @@ package:
 	@echo 'make package-installed (pi)  list of installed packages'
 	@echo 'make yes-package             install a single pgk in src dir'
 	@echo 'make no-package              remove a single pkg from src dir'
+	@echo 'make yes-minimal             install all few commonly used pgks in src'
+	@echo 'make no-minimal              remove all commonly used pkgs from src dir'
+	@echo 'make yes-most                install all many pgks w/o libs in src'
+	@echo 'make no-most                 remove all many pkgs w/o libs from src dir'
 	@echo 'make yes-all                 install all pgks in src dir'
 	@echo 'make no-all                  remove all pkgs from src dir'
-	@echo 'make yes-standard (yes-std)  install all standard pkgs'
-	@echo 'make no-standard (no-std)    remove all standard pkgs'
-	@echo 'make yes-user                install all user pkgs'
-	@echo 'make no-user                 remove all user pkgs'
-	@echo 'make yes-lib       install all pkgs with libs (included or ext)'
-	@echo 'make no-lib        remove all pkgs with libs (included or ext)'
+	@echo 'make yes-lib                 install all pkgs with libs (included or ext)'
+	@echo 'make no-lib                  remove all pkgs with libs (included or ext)'
 	@echo 'make yes-ext                 install all pkgs with external libs'
 	@echo 'make no-ext                  remove all pkgs with external libs'
 	@echo ''
@@ -332,22 +490,34 @@ package:
 	@echo 'make lib-package      build and/or download a package library'
 
 yes-all:
-	@for p in $(PACKALL); do $(MAKE) yes-$$p; done
-
-no-all:
-	@for p in $(PACKALL); do $(MAKE) no-$$p; done
-
-yes-standard yes-std:
 	@for p in $(PACKAGE); do $(MAKE) yes-$$p; done
 
-no-standard no-std:
+no-all:
 	@for p in $(PACKAGE); do $(MAKE) no-$$p; done
 
+yes-standard yes-std:
+	@echo 'There are no more "standard" or "user" packages in LAMMPS'
+
+no-standard no-std:
+	@echo 'There are no more "standard" or "user" packages in LAMMPS'
+
 yes-user:
-	@for p in $(PACKUSER); do $(MAKE) yes-$$p; done
+	@echo 'There are no more "standard" or "user" packages in LAMMPS'
 
 no-user:
-	@for p in $(PACKUSER); do $(MAKE) no-$$p; done
+	@echo 'There are no more "standard" or "user" packages in LAMMPS'
+
+yes-minimal:
+	@for p in $(PACKMIN); do $(MAKE) yes-$$p; done
+
+no-minimal:
+	@for p in $(PACKMIN); do $(MAKE) no-$$p; done
+
+yes-most:
+	@for p in $(PACKMOST); do $(MAKE) yes-$$p; done
+
+no-most:
+	@for p in $(PACKMOST); do $(MAKE) no-$$p; done
 
 yes-lib:
 	@for p in $(PACKLIB); do $(MAKE) yes-$$p; done

@@ -300,15 +300,15 @@ void PairOxrna2Stk::compute(int eflag, int vflag)
     qb=bonus[ellipsoid[b]].quat;
     MathExtra::q_to_exyz(qb,bx,by,bz);
 
-    // vector COM b - 3'-stacking site b
-    rb_cst[0] = d_cst_x_3p*bx[0] + d_cst_y_3p*by[0];
-    rb_cst[1] = d_cst_x_3p*bx[1] + d_cst_y_3p*by[1];
-    rb_cst[2] = d_cst_x_3p*bx[2] + d_cst_y_3p*by[2];
-
     // vector COM a - 5'-stacking site a
     ra_cst[0] = d_cst_x_5p*ax[0] + d_cst_y_5p*ay[0];
     ra_cst[1] = d_cst_x_5p*ax[1] + d_cst_y_5p*ay[1];
     ra_cst[2] = d_cst_x_5p*ax[2] + d_cst_y_5p*ay[2];
+
+    // vector COM b - 3'-stacking site b
+    rb_cst[0] = d_cst_x_3p*bx[0] + d_cst_y_3p*by[0];
+    rb_cst[1] = d_cst_x_3p*bx[1] + d_cst_y_3p*by[1];
+    rb_cst[2] = d_cst_x_3p*bx[2] + d_cst_y_3p*by[2];
 
     // vector 5'-stacking site a to 3'-stacking site b
     delr_st[0] = x[b][0] + rb_cst[0] - x[a][0] - ra_cst[0];
@@ -373,13 +373,13 @@ void PairOxrna2Stk::compute(int eflag, int vflag)
     if (cost6p < -1.0) cost6p = -1.0;
     theta6p = acos(cost6p);
 
-    aux3p[0] = d3p_x * bx[0] + d3p_y * by[0] + d3p_z * bz[0];
-    aux3p[1] = d3p_x * bx[1] + d3p_y * by[1] + d3p_z * bz[1];
-    aux3p[2] = d3p_x * bx[2] + d3p_y * by[2] + d3p_z * bz[2];
-
     aux5p[0] = d5p_x * ax[0] + d5p_y * ay[0] + d5p_z * az[0];
     aux5p[1] = d5p_x * ax[1] + d5p_y * ay[1] + d5p_z * az[1];
     aux5p[2] = d5p_x * ax[2] + d5p_y * ay[2] + d5p_z * az[2];
+
+    aux3p[0] = d3p_x * bx[0] + d3p_y * by[0] + d3p_z * bz[0];
+    aux3p[1] = d3p_x * bx[1] + d3p_y * by[1] + d3p_z * bz[1];
+    aux3p[2] = d3p_x * bx[2] + d3p_y * by[2] + d3p_z * bz[2];
 
     cost9 = MathExtra::dot3(delr_ss_norm,aux3p);
     if (cost9 >  1.0) cost9 =  1.0;
@@ -492,16 +492,6 @@ void PairOxrna2Stk::compute(int eflag, int vflag)
     }
 
     // increment forces and torques
-
-    if (newton_bond || b < nlocal) {
-
-      f[b][0] += delf[0];
-      f[b][1] += delf[1];
-      f[b][2] += delf[2];
-
-      MathExtra::cross3(rb_cst,delf,deltb);
-
-    }
     if (newton_bond || a < nlocal) {
 
       f[a][0] -= delf[0];
@@ -511,19 +501,28 @@ void PairOxrna2Stk::compute(int eflag, int vflag)
       MathExtra::cross3(ra_cst,delf,delta);
 
     }
-
     if (newton_bond || b < nlocal) {
 
-      torque[b][0] += deltb[0];
-      torque[b][1] += deltb[1];
-      torque[b][2] += deltb[2];
+      f[b][0] += delf[0];
+      f[b][1] += delf[1];
+      f[b][2] += delf[2];
+
+      MathExtra::cross3(rb_cst,delf,deltb);
 
     }
+
     if (newton_bond || a < nlocal) {
 
       torque[a][0] -= delta[0];
       torque[a][1] -= delta[1];
       torque[a][2] -= delta[2];
+
+    }
+    if (newton_bond || b < nlocal) {
+
+      torque[b][0] += deltb[0];
+      torque[b][1] += deltb[1];
+      torque[b][2] += deltb[2];
 
     }
 
@@ -599,16 +598,6 @@ void PairOxrna2Stk::compute(int eflag, int vflag)
     }
 
     // increment forces and torques
-
-    if (newton_bond || b < nlocal) {
-
-      f[b][0] += delf[0];
-      f[b][1] += delf[1];
-      f[b][2] += delf[2];
-
-      MathExtra::cross3(rb_cs,delf,deltb);
-
-    }
     if (newton_bond || a < nlocal) {
 
       f[a][0] -= delf[0];
@@ -618,19 +607,28 @@ void PairOxrna2Stk::compute(int eflag, int vflag)
       MathExtra::cross3(ra_cs,delf,delta);
 
     }
-
     if (newton_bond || b < nlocal) {
 
-      torque[b][0] += deltb[0];
-      torque[b][1] += deltb[1];
-      torque[b][2] += deltb[2];
+      f[b][0] += delf[0];
+      f[b][1] += delf[1];
+      f[b][2] += delf[2];
+
+      MathExtra::cross3(rb_cs,delf,deltb);
 
     }
+
     if (newton_bond || a < nlocal) {
 
       torque[a][0] -= delta[0];
       torque[a][1] -= delta[1];
       torque[a][2] -= delta[2];
+
+    }
+    if (newton_bond || b < nlocal) {
+
+      torque[b][0] += deltb[0];
+      torque[b][1] += deltb[1];
+      torque[b][2] += deltb[2];
 
     }
 
@@ -720,18 +718,18 @@ void PairOxrna2Stk::compute(int eflag, int vflag)
     }
 
     // increment torques
-    if (newton_bond || b < nlocal) {
-
-      torque[b][0] += deltb[0];
-      torque[b][1] += deltb[1];
-      torque[b][2] += deltb[2];
-
-    }
     if (newton_bond || a < nlocal) {
 
       torque[a][0] -= delta[0];
       torque[a][1] -= delta[1];
       torque[a][2] -= delta[2];
+
+    }
+    if (newton_bond || b < nlocal) {
+
+      torque[b][0] += deltb[0];
+      torque[b][1] += deltb[1];
+      torque[b][2] += deltb[2];
 
     }
 

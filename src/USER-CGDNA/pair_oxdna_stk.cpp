@@ -32,8 +32,6 @@
 #include "atom_vec_oxdna.h"
 #include "math_extra.h"
 
-#include "update.h"
-
 using namespace LAMMPS_NS;
 using namespace MFOxdna;
 

@@ -28,14 +28,13 @@ namespace LAMMPS_NS {
 class AtomVecOxdna : public AtomVec {
  public:
   AtomVecOxdna(class LAMMPS *);
-  ~AtomVecOxdna();
+  ~AtomVecOxdna() {}
 
   void grow_pointers();
   virtual void data_bonds_post(int, char *, tagint);
 
  private:
   tagint **id5p;
-
 };
 
 }    // namespace LAMMPS_NS

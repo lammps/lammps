@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -13,6 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "atom_vec_oxdna.h"
+
 #include "atom.h"
 #include "comm.h"
 
@@ -24,7 +24,6 @@ AtomVecOxdna::AtomVecOxdna(LAMMPS *lmp) : AtomVec(lmp)
   molecular = Atom::MOLECULAR;
   bonds_allow = 1;
   mass_type = PER_TYPE;
-
   atom->molecule_flag = 1;
 
   // strings with peratom variables to include in each AtomVec method
@@ -46,13 +45,6 @@ AtomVecOxdna::AtomVecOxdna(LAMMPS *lmp) : AtomVec(lmp)
   fields_data_vel = (char *) "id v";
 
   setup_fields();
-
-}
-
-/* ---------------------------------------------------------------------- */
-AtomVecOxdna::~AtomVecOxdna()
-{
-
 }
 
 /* ----------------------------------------------------------------------
@@ -63,7 +55,6 @@ AtomVecOxdna::~AtomVecOxdna()
 void AtomVecOxdna::grow_pointers()
 {
   id5p = atom->id5p;
-
 }
 
 /* ----------------------------------------------------------------------
@@ -74,29 +65,26 @@ void AtomVecOxdna::grow_pointers()
 void AtomVecOxdna::data_bonds_post(int n, char *buf, tagint id_offset)
 {
 
- int m,tmp,itype,rv;
-  tagint atom1,atom2;
+  int m, tmp, itype, rv;
+  tagint atom1, atom2;
   char *next;
 
   tagint **id5p = atom->id5p;
 
-  if (comm->me == 0) utils::logmesg(lmp,"Setting oxDNA 3'->5' bond directionality ...\n");
+  if (comm->me == 0) utils::logmesg(lmp, "Setting oxDNA 3'->5' bond directionality ...\n");
 
   for (int i = 0; i < n; i++) {
 
-    next = strchr(buf,'\n');
+    next = strchr(buf, '\n');
     *next = '\0';
-    rv = sscanf(buf,"%d %d " TAGINT_FORMAT " " TAGINT_FORMAT,
-                &tmp,&itype,&atom1,&atom2);
+    rv = sscanf(buf, "%d %d " TAGINT_FORMAT " " TAGINT_FORMAT, &tmp, &itype, &atom1, &atom2);
 
     if (id_offset) {
       atom1 += id_offset;
       atom2 += id_offset;
     }
 
-    if ((m = atom->map(atom1)) >= 0) {
-        id5p[m][0] = atom2;
-    }
+    if ((m = atom->map(atom1)) >= 0) id5p[m][0] = atom2;
 
     buf = next + 1;
   }

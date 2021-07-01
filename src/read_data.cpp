@@ -88,13 +88,10 @@ ReadData::ReadData(LAMMPS *lmp) : Command(lmp)
   nbodies = 0;
   avec_body = (AtomVecBody *) atom->style_match("body");
 
-  if (atom->style_match("oxdna")) {
+  if (atom->style_match("oxdna"))
     avec = (AtomVec *) atom->style_match("oxdna");
-  }
-  else {
+  else
     avec = atom->avec;
-  }
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1345,8 +1342,7 @@ void ReadData::bonds(int firstpass)
     if (eof) error->all(FLERR,"Unexpected end of data file");
     strcpy(buffer_post,buffer);
     atom->data_bonds(nchunk,buffer,count,id_offset,boffset);
-    if (firstpass) {}
-    else {avec->data_bonds_post(nchunk,buffer_post,id_offset);}
+    if (!firstpass) avec->data_bonds_post(nchunk,buffer_post,id_offset);
     nread += nchunk;
   }
 

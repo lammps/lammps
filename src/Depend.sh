@@ -68,6 +68,10 @@ if (test $1 = "DIPOLE") then
   depend OPENMP
 fi
 
+if (test $1 = "DPD-BASIC") then
+  depend GPU
+fi
+
 if (test $1 = "GRANULAR") then
   depend KOKKOS
   depend OPENMP

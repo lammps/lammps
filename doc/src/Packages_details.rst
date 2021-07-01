@@ -43,6 +43,7 @@ page gives those details.
    * :ref:`DIELECTRIC <PKG-DIELECTRIC>`
    * :ref:`DIFFRACTION <PKG-DIFFRACTION>`
    * :ref:`DIPOLE <PKG-DIPOLE>`
+   * :ref:`DPD-BASIC <PKG-DPD-BASIC>`
    * :ref:`DPD-MESO <PKG-DPD-MESO>`
    * :ref:`DPD-REACT <PKG-DPD-REACT>`
    * :ref:`DPD-SMOOTH <PKG-DPD-SMOOTH>`
@@ -557,6 +558,29 @@ short-range or long-range interactions.
 * :doc:`pair_style lj/cut/dipole/long <pair_dipole>`
 * :doc:`pair_style lj/long/dipole/long <pair_dipole>`
 * examples/dipole
+
+----------
+
+.. _PKG-DPD-BASIC:
+
+DPD-BASIC package
+--------------------
+
+**Contents:**
+
+Pair styles for the basic dissipative particle dynamics (DPD) method
+and DPD thermostatting.
+
+**Author:** Kurt Smith (U Pittsburgh), Martin Svoboda, Martin Lisal (ICPF and UJEP)
+
+**Supporting info:**
+
+* src/DPD-BASIC: filenames -> commands
+* :doc:`pair_style dpd <pair_dpd>`
+* :doc:`pair_style dpd/tstat <pair_dpd>`
+* :doc:`pair_style dpd/ext <pair_dpd_ext>`
+* :doc:`pair_style dpd/ext/tstat <pair_dpd_ext>`
+* examples/PACKAGES/dpd-basic
 
 ----------
 

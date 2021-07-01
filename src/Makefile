@@ -63,6 +63,7 @@ PACKAGE = \
 	coreshell \
 	diffraction \
 	dipole \
+	dpd-basic \
 	dpd-meso \
 	dpd-react \
 	dpd-smooth \
@@ -148,6 +149,7 @@ PACKMOST = \
 	coreshell \
 	diffraction \
 	dipole \
+	dpd-basic \
 	dpd-meso \
 	dpd-react \
 	dpd-smooth \

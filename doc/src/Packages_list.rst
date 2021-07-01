@@ -113,6 +113,11 @@ whether an extra library is needed to build and use the package:
      - :doc:`pair_style lj/.../dipole <pair_dipole>`
      - dipole
      - no
+   * - :ref:`DPD-BASIC <PKG-DPD-BASIC>`
+     - basic DPD models
+     - :doc:`pair_styles dpd dpd/tstat <pair_dpd>` :doc:`dpd/ext dpd/ext/tstat <pair_dpd_ext>`
+     - PACKAGES/dpd-basic
+     - no
    * - :ref:`DPD-MESO <PKG-DPD-MESO>`
      - mesoscale DPD models
      - :doc:`pair_style edpd <pair_mesodpd>`

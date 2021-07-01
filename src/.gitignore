@@ -1429,6 +1429,10 @@
 /pair_thole.h
 /pair_buck_mdf.cpp
 /pair_buck_mdf.h
+/pair_dpd.cpp
+/pair_dpd.h
+/pair_dpd_tstat.cpp
+/pair_dpd_tstat.h
 /pair_dpd_ext.cpp
 /pair_dpd_ext.h
 /pair_dpd_ext_tstat.cpp

@@ -10,7 +10,7 @@ Syntax
 
    atom_style style args
 
-* style = *angle* or *atomic* or *body* or *bond* or *charge* or *dipole* or  *dpd* or *edpd* or *electron* or *ellipsoid* or *full* or *line* or *mdpd* or *molecular* or *peri* or *smd* or *sph* or *sphere* or *spin* or *tdpd* or *tri* or *template* or *hybrid*
+* style = *angle* or *atomic* or *body* or *bond* or *charge* or *dipole* or  *dpd* or *edpd* or *electron* or *ellipsoid* or *full* or *line* or *mdpd* or *molecular* or *oxdna* or *peri* or *smd* or *sph* or *sphere* or *spin* or *tdpd* or *tri* or *template* or *hybrid*
 
   .. parsed-literal::
 
@@ -110,6 +110,8 @@ quantities.
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *molecular*  | bonds, angles, dihedrals, impropers                 | uncharged molecules                  |
 +--------------+-----------------------------------------------------+--------------------------------------+
+| *oxdna*      | nucleotide polarity                                 | coarse-grained DNA and RNA models    |
++--------------+-----------------------------------------------------+--------------------------------------+
 | *peri*       | mass, volume                                        | mesoscopic Peridynamic models        |
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *smd*        | volume, kernel diameter, contact radius, mass       | solid and fluid SPH particles        |
@@ -192,6 +194,12 @@ position, which is represented by the eradius = electron size.
 
 For the *peri* style, the particles are spherical and each stores a
 per-particle mass and volume.
+
+The *oxdna* style is for coarse-grained nucleotides and stores the 
+3'-to-5' polarity of the nucleotide strand, which is set through 
+the bond topology in the data file. The first (second) atom in a 
+bond definition is understood to point towards the 3'-end (5'-end)
+of the strand. Note that this style is part of the USER-CGDNA package.
 
 The *dpd* style is for dissipative particle dynamics (DPD) particles.
 Note that it is part of the USER-DPD package, and is not for use with
@@ -351,6 +359,8 @@ The *body* style is part of the BODY package.
 The *dipole* style is part of the DIPOLE package.
 
 The *peri* style is part of the PERI package for Peridynamics.
+
+The *oxdna* style is part of the USER-CGDNA package for coarse-grained simulation of DNA and RNA.
 
 The *electron* style is part of the USER-EFF package for :doc:`electronic force fields <pair_eff>`.
 

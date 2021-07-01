@@ -72,7 +72,7 @@ between two individual nucleotides can be established.
 
 /******************************************************************************/
 
-/examples/oxRNA2/duplex4
+/examples/oxRNA2/duplex2
 
 This example uses the duplex2 with the oxRNA2 force field instead of oxDNA or 
 oxDNA2 force field. Sequence-dependent stacking and hydrogen-bonding 

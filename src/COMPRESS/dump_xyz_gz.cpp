@@ -100,7 +100,10 @@ void DumpXYZGZ::write_header(bigint ndump)
 {
   if (me == 0) {
     std::string header = fmt::format("{}\n", ndump);
-    header += fmt::format("Atoms. Timestep: {}\n", update->ntimestep);
+    if (time_flag)
+      header += fmt::format("Atoms. Timestep: {} Time: {:.6f}\n", update->ntimestep, update->atime);
+    else
+      header += fmt::format("Atoms. Timestep: {}\n", update->ntimestep);
     writer.write(header.c_str(), header.length());
   }
 }

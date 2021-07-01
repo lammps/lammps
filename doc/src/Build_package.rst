@@ -167,7 +167,7 @@ one of them as a starting point and customize it to your needs.
 
 .. code-block:: bash
 
-    cmake -C ../cmake/presets/minimal.cmake  [OPTIONS] ../cmake  # enable just a few core packages
+    cmake -C ../cmake/presets/basic.cmake    [OPTIONS] ../cmake  # enable just a few core packages
     cmake -C ../cmake/presets/most.cmake     [OPTIONS] ../cmake  # enable most packages
     cmake -C ../cmake/presets/download.cmake [OPTIONS] ../cmake  # enable packages which download sources or potential files
     cmake -C ../cmake/presets/nolib.cmake    [OPTIONS] ../cmake  # disable packages that do require extra libraries or tools
@@ -222,10 +222,10 @@ These commands install/un-install sets of packages:
 
     make yes-all                        # install all packages
     make no-all                         # uninstall all packages
-    make yes-minimal                    # install all few commonly used pgks in src
-    make no-minimal                     # remove all commonly used pkgs from src dir
-    make yes-most                       # install all many pgks w/o libs in src
-    make no-most                        # remove all many pkgs w/o libs from src dir
+    make yes-basic                      # install a few commonly used packages'
+    make no-basic                       # remove a few commonly used packages'
+    make yes-most                       # install most packages w/o libs'
+    make no-most                        # remove most packages w/o libs'
     make yes-lib                        # install packages that require extra libraries
     make no-lib                         # uninstall packages that require extra libraries
     make yes-ext                        # install packages that require external libraries

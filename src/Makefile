@@ -38,7 +38,7 @@ endif
 # Package variables
 
 # PACKAGE    = all packages
-# PACKMIN    = a few core packages
+# PACKBASIC  = a few core packages
 # PACKMOST   = most packages that do not require additional libs
 # PACKLIB    = all packages that require an additional lib
 #              should be PACKSYS + PACKINT + PACKEXT
@@ -134,7 +134,7 @@ PACKAGE = \
 # NOTE: the last four packages must remain at the end since
 # they depend on other packages to be installed first.
 
-PACKMIN = kspace manybody molecule rigid
+PACKBASIC = kspace manybody molecule rigid
 
 PACKMOST = \
 	asphere \
@@ -270,10 +270,10 @@ help:
 	@echo 'make no-package              remove a single pkg from src dir'
 	@echo 'make yes-all                 install all pgks in src dir'
 	@echo 'make no-all                  remove all pkgs from src dir'
-	@echo 'make yes-standard (yes-std)  install all standard pkgs'
-	@echo 'make no-standard (no-std)    remove all standard pkgs'
-	@echo 'make yes-user                install all user pkgs'
-	@echo 'make no-user                 remove all user pkgs'
+	@echo 'make yes-basic               install a few commonly used pgks'
+	@echo 'make no-basic                remove a few commonly used pkgs'
+	@echo 'make yes-most                install most pgks w/o libs'
+	@echo 'make no-most                 remove most pgks w/o libs'
 	@echo 'make yes-lib       install all pkgs with libs (included or ext)'
 	@echo 'make no-lib        remove all pkgs with libs (included or ext)'
 	@echo 'make yes-ext                 install all pkgs with external libs'
@@ -478,10 +478,10 @@ package:
 	@echo 'make package-installed (pi)  list of installed packages'
 	@echo 'make yes-package             install a single pgk in src dir'
 	@echo 'make no-package              remove a single pkg from src dir'
-	@echo 'make yes-minimal             install all few commonly used pgks in src'
-	@echo 'make no-minimal              remove all commonly used pkgs from src dir'
-	@echo 'make yes-most                install all many pgks w/o libs in src'
-	@echo 'make no-most                 remove all many pkgs w/o libs from src dir'
+	@echo 'make yes-basic               install a few commonly used pgks in src'
+	@echo 'make no-basic                remove a few commonly used pkgs from src dir'
+	@echo 'make yes-most                install most pgks w/o libs in src'
+	@echo 'make no-most                 remove most pkgs w/o libs from src dir'
 	@echo 'make yes-all                 install all pgks in src dir'
 	@echo 'make no-all                  remove all pkgs from src dir'
 	@echo 'make yes-lib                 install all pkgs with libs (included or ext)'
@@ -513,11 +513,11 @@ yes-user:
 no-user:
 	@echo 'There are no more "standard" or "user" packages in LAMMPS'
 
-yes-minimal:
-	@for p in $(PACKMIN); do $(MAKE) yes-$$p; done
+yes-basic:
+	@for p in $(PACKBASIC); do $(MAKE) yes-$$p; done
 
-no-minimal:
-	@for p in $(PACKMIN); do $(MAKE) no-$$p; done
+no-basic:
+	@for p in $(PACKBASIC); do $(MAKE) no-$$p; done
 
 yes-most:
 	@for p in $(PACKMOST); do $(MAKE) yes-$$p; done

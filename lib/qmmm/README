@@ -55,7 +55,7 @@ build configuration with CMake:
 
   mkdir build-qmmm
   cd build-qmmm
-  cmake -C ../cmake/presets/minimal.cmake -D PKG_QMMM=yes \
+  cmake -C ../cmake/presets/basic.cmake -D PKG_QMMM=yes \
            -D BUILD_LIB=yes -DBUILD_SHARED_LIBS=yes ../cmake
   make
   make install

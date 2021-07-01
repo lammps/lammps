@@ -622,7 +622,7 @@ This list was last updated for version 3.4.1 of the Kokkos library.
 
          mkdir build-kokkos-cuda
          cd build-kokkos-cuda
-         cmake -C ../cmake/presets/minimal.cmake -C ../cmake/presets/kokkos-cuda.cmake ../cmake
+         cmake -C ../cmake/presets/basic.cmake -C ../cmake/presets/kokkos-cuda.cmake ../cmake
          cmake --build .
 
    .. tab:: Basic traditional make settings:
@@ -1805,7 +1805,7 @@ verified to work in February 2020 with Quantum Espresso versions 6.3 to
 
       .. code-block:: bash
 
-         cmake -C ../cmake/presets/minimal.cmake -D PKG_QMMM=yes \
+         cmake -C ../cmake/presets/basic.cmake -D PKG_QMMM=yes \
              -D BUILD_LIB=yes -DBUILD_SHARED_LIBS=yes ../cmake
 
       After completing the LAMMPS build and also configuring and

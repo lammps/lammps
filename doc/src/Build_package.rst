@@ -140,7 +140,7 @@ other files dependent on that package are also excluded.
 
 .. note::
 
-   By default no package is installed.  Prior to August 2018, however,
+   By default no packages are installed.  Prior to August 2018, however,
    if you downloaded a tarball, 3 packages (KSPACE, MANYBODY, MOLECULE)
    were pre-installed via the traditional make procedure in the ``src``
    directory.  That is no longer the case, so that CMake will build

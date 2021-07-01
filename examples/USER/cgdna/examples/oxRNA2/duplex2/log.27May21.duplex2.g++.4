@@ -1147,21 +1147,21 @@ Step Temp E_pair E_mol TotEng Press Volume
 999000  ekin = 4.19727358251374 |  erot = 2.80290566938844 | epot = -12.1949422901934 | etot = -5.19476303829117
 1000000  ekin = 4.24225110597538 |  erot = 2.80478190355328 | epot = -12.2417960486515 | etot = -5.19476303912285
  1000000   0.18854449  -0.82312825  0.058015994  -0.49997156 6.1323266e-05        64000 
-Loop time of 21.1156 on 4 procs for 1000000 steps with 16 atoms
+Loop time of 23.0415 on 4 procs for 1000000 steps with 16 atoms
 
-Performance: 40917.691 tau/day, 47358.439 timesteps/s
-99.6% CPU use with 4 MPI tasks x no OpenMP threads
+Performance: 37497.566 tau/day, 43399.961 timesteps/s
+99.4% CPU use with 4 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 9.946      | 12.401     | 14.837     |  55.7 | 58.73
-Bond    | 0.33287    | 0.44234    | 0.61078    |  15.4 |  2.09
-Neigh   | 0.010151   | 0.010204   | 0.010256   |   0.0 |  0.05
-Comm    | 2.2454     | 2.5674     | 2.8798     |  14.2 | 12.16
-Output  | 0.099802   | 0.10407    | 0.11257    |   1.6 |  0.49
-Modify  | 0.75192    | 0.86655    | 0.98342    |  12.2 |  4.10
-Other   |            | 4.724      |            |       | 22.37
+Pair    | 10.984     | 13.589     | 15.802     |  56.0 | 58.97
+Bond    | 0.35763    | 0.46536    | 0.61593    |  13.8 |  2.02
+Neigh   | 0.012716   | 0.012837   | 0.012973   |   0.1 |  0.06
+Comm    | 2.5451     | 2.6681     | 2.7515     |   4.7 | 11.58
+Output  | 0.10831    | 0.11477    | 0.12937    |   2.5 |  0.50
+Modify  | 0.78456    | 0.91266    | 1.0452     |  12.3 |  3.96
+Other   |            | 5.279      |            |       | 22.91
 
 Nlocal:        4.00000 ave           4 max           4 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -1179,4 +1179,4 @@ Dangerous builds = 0
 write_data last_config.${number}.* nocoeff
 write_data last_config.2.* nocoeff
 System init for write_data ...
-Total wall time: 0:00:21
+Total wall time: 0:00:23

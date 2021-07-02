@@ -67,4 +67,11 @@ elif (test $1 = 0) then
   fi
   rm -f ../mliap_model_python_couple.cpp ../mliap_model_python_couple.h
   sed -i -e '/^include.*python.*mliap_python.*$/d' ../Makefile.package.settings
+
+elif (test $1 = 2) then
+  if (test "$(type cythonize 2> /dev/null)" != "" && test -e ../python_impl.cpp) then
+    cythonize -3 ../mliap_model_python_couple.pyx
+  else
+    rm -f ../mliap_model_python_couple.cpp ../mliap_model_python_couple.h
+  fi
 fi

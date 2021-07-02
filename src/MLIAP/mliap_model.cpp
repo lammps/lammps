@@ -32,7 +32,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-MLIAPModel::MLIAPModel(LAMMPS *lmp, char *) : Pointers(lmp)
+MLIAPModel::MLIAPModel(LAMMPS *lmp, char *) : Pointers(lmp), coeffelem(nullptr)
 {
   nparams = 0;
   nelements = 0;
@@ -44,6 +44,7 @@ MLIAPModel::MLIAPModel(LAMMPS *lmp, char *) : Pointers(lmp)
 
 MLIAPModel::~MLIAPModel()
 {
+  memory->destroy(coeffelem);
 }
 
 /* ----------------------------------------------------------------------
@@ -77,15 +78,7 @@ void MLIAPModel::set_ndescriptors(int ndescriptors_in)
 
 MLIAPModelSimple::MLIAPModelSimple(LAMMPS *lmp, char *coefffilename) : MLIAPModel(lmp, coefffilename)
 {
-  coeffelem = nullptr;
   if (coefffilename) read_coeffs(coefffilename);
-}
-
-/* ---------------------------------------------------------------------- */
-
-MLIAPModelSimple::~MLIAPModelSimple()
-{
-  memory->destroy(coeffelem);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -143,6 +136,7 @@ void MLIAPModelSimple::read_coeffs(char *coefffilename)
 
   // set up coeff lists
 
+  memory->destroy(coeffelem);
   memory->create(coeffelem,nelements,nparams,"mliap_snap_model:coeffelem");
 
   // Loop over nelements blocks in the coefficient file

@@ -1856,6 +1856,7 @@ Matous
 matplotlib
 Matsubara
 Matteo
+Matteson
 Mattice
 Mattox
 Mattson
@@ -2675,6 +2676,7 @@ qoverride
 qqr
 qqrd
 qtb
+Quadfel
 quadratically
 quadrupolar
 Quant
@@ -2856,6 +2858,7 @@ Rossky
 rosybrown
 rotationally
 Rotenberg
+Rothenburg
 Rovigatti
 royalblue
 rozero
@@ -3620,6 +3623,7 @@ xz
 xzhou
 yaff
 yaml
+Yanxon
 YAFF
 Yamada
 Yaser
@@ -3692,6 +3696,7 @@ PowerShell
 filesystems
 fingerprintconstants
 fingerprintsperelement
+Zagaceta
 zincblende
 Zstandard
 Zstd

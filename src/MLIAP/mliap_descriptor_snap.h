@@ -21,7 +21,7 @@ namespace LAMMPS_NS {
 class MLIAPDescriptorSNAP : public MLIAPDescriptor {
  public:
   MLIAPDescriptorSNAP(LAMMPS *, char *);
-  ~MLIAPDescriptorSNAP();
+  virtual ~MLIAPDescriptorSNAP();
   virtual void compute_descriptors(class MLIAPData *);
   virtual void compute_forces(class MLIAPData *);
   virtual void compute_force_gradients(class MLIAPData *);
@@ -37,8 +37,6 @@ class MLIAPDescriptorSNAP : public MLIAPDescriptor {
   inline int equal(double *x, double *y);
   inline double dist2(double *x, double *y);
 
-  double *radelem;    // element radii
-  double *wjelem;     // elements weights
   int twojmax, switchflag, bzeroflag;
   int chemflag, bnormflag, wselfallflag;
   double rfac0, rmin0;

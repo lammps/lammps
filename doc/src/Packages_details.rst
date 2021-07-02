@@ -352,6 +352,7 @@ potentials.
 
 * src/GRANULAR: filenames -> commands
 * :doc:`Howto granular <Howto_granular>`
+* :doc:`compute fabric <compute_fabric>`
 * :doc:`fix pour <fix_pour>`
 * :doc:`fix wall/gran <fix_wall_gran>`
 * :doc:`pair_style gran/hooke <pair_gran>`
@@ -1379,77 +1380,6 @@ This package has :ref:`specific installation instructions <user-colvars>` on the
 
 ----------
 
-.. _PKG-USER-PACE:
-
-USER-PACE package
--------------------
-
-**Contents:**
-
-A pair style for the Atomic Cluster Expansion potential (ACE).
-ACE is a methodology for deriving a highly accurate classical potential
-fit to a large archive of quantum mechanical (DFT) data. The USER-PACE
-package provides an efficient implementation for running simulations
-with ACE potentials.
-
-**Authors:**
-
-This package was written by Yury Lysogorskiy^1,
-Cas van der Oord^2, Anton Bochkarev^1,
-Sarath Menon^1, Matteo Rinaldi^1, Thomas Hammerschmidt^1, Matous Mrovec^1,
-Aidan Thompson^3, Gabor Csanyi^2, Christoph Ortner^4, Ralf Drautz^1.
-
- ^1: Ruhr-University Bochum, Bochum, Germany
-
- ^2: University of Cambridge, Cambridge, United Kingdom
-
- ^3: Sandia National Laboratories, Albuquerque, New Mexico, USA
-
- ^4: University of British Columbia, Vancouver, BC, Canada
-
-**Install:**
-
-This package has :ref:`specific installation instructions <user-pace>` on the :doc:`Build extras <Build_extras>` page.
-
-**Supporting info:**
-
-* src/USER-PACE: filenames -> commands
-* :doc:`pair_style pace <pair_pace>`
-* examples/USER/pace
-
-----------
-
-.. _PKG-USER-PLUMED:
-
-USER-PLUMED package
--------------------
-
-**Contents:**
-
-The fix plumed command allows you to use the PLUMED free energy plugin
-for molecular dynamics to analyze and bias your LAMMPS trajectory on
-the fly.  The PLUMED library is called from within the LAMMPS input
-script by using the :doc:`fix plumed <fix_plumed>` command.
-
-**Authors:** The :ref:`PLUMED library <PLUMED>` is written and maintained by
-Massimilliano Bonomi, Giovanni Bussi, Carlo Camiloni and Gareth
-Tribello.
-
-.. _PLUMED: https://www.plumed.org
-
-**Install:**
-
-This package has :ref:`specific installation instructions <user-plumed>` on the :doc:`Build extras <Build_extras>` page.
-
-**Supporting info:**
-
-* src/USER-PLUMED/README
-* lib/plumed/README
-* :doc:`fix plumed <fix_plumed>`
-* examples/USER/plumed
-
-----------
-
 .. _PKG-USER-DIELECTRIC:
 
 USER-DIELECTRIC package
@@ -2145,6 +2075,46 @@ This package has :ref:`specific installation instructions <user-omp>` on the :do
 
 ----------
 
+.. _PKG-USER-PACE:
+
+USER-PACE package
+-------------------
+
+**Contents:**
+
+A pair style for the Atomic Cluster Expansion potential (ACE).
+ACE is a methodology for deriving a highly accurate classical potential
+fit to a large archive of quantum mechanical (DFT) data. The USER-PACE
+package provides an efficient implementation for running simulations
+with ACE potentials.
+
+**Authors:**
+
+This package was written by Yury Lysogorskiy^1,
+Cas van der Oord^2, Anton Bochkarev^1,
+Sarath Menon^1, Matteo Rinaldi^1, Thomas Hammerschmidt^1, Matous Mrovec^1,
+Aidan Thompson^3, Gabor Csanyi^2, Christoph Ortner^4, Ralf Drautz^1.
+
+ ^1: Ruhr-University Bochum, Bochum, Germany
+
+ ^2: University of Cambridge, Cambridge, United Kingdom
+
+ ^3: Sandia National Laboratories, Albuquerque, New Mexico, USA
+
+ ^4: University of British Columbia, Vancouver, BC, Canada
+
+**Install:**
+
+This package has :ref:`specific installation instructions <user-pace>` on the :doc:`Build extras <Build_extras>` page.
+
+**Supporting info:**
+
+* src/USER-PACE: filenames -> commands
+* :doc:`pair_style pace <pair_pace>`
+* examples/USER/pace
+
+----------
+
 .. _PKG-USER-PHONON:
 
 USER-PHONON package
@@ -2170,6 +2140,35 @@ and Charlie Sievers (UC Davis) for "dynamical_matrix" and "third_order"
 * :doc:`dynamical_matrix <dynamical_matrix>`
 * :doc:`third_order <third_order>`
 * examples/USER/phonon
+
+----------
+
+.. _PKG-USER-PLUMED:
+
+USER-PLUMED package
+-------------------
+
+**Contents:**
+
+The fix plumed command allows you to use the PLUMED free energy plugin
+for molecular dynamics to analyze and bias your LAMMPS trajectory on
+the fly.  The PLUMED library is called from within the LAMMPS input
+script by using the :doc:`fix plumed <fix_plumed>` command.
+
+**Authors:** The `PLUMED library <https://www.plumed.org>`_ is written
+and maintained by Massimilliano Bonomi, Giovanni Bussi, Carlo Camiloni,
+and Gareth Tribello.
+
+**Install:**
+
+This package has :ref:`specific installation instructions <user-plumed>` on the :doc:`Build extras <Build_extras>` page.
+
+**Supporting info:**
+
+* src/USER-PLUMED/README
+* lib/plumed/README
+* :doc:`fix plumed <fix_plumed>`
+* examples/USER/plumed
 
 ----------
 

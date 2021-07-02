@@ -75,7 +75,7 @@ PairLJLongCoulLongDielectric::~PairLJLongCoulLongDielectric()
 
 void PairLJLongCoulLongDielectric::init_style()
 {
-  PairLJLongCoulLongDielectric::init_style();
+  PairLJLongCoulLong::init_style();
 
   avec = (AtomVecDielectric *) atom->style_match("dielectric");
   if (!avec) error->all(FLERR, "Pair lj/long/coul/long/dielectric requires atom style dielectric");
@@ -91,7 +91,7 @@ void PairLJLongCoulLongDielectric::init_style()
 
 void PairLJLongCoulLongDielectric::compute(int eflag, int vflag)
 {
-  double evdwl, ecoul, fpair;
+  double evdwl, ecoul;
   evdwl = ecoul = 0.0;
   ev_init(eflag, vflag);
 
@@ -104,7 +104,7 @@ void PairLJLongCoulLongDielectric::compute(int eflag, int vflag)
   }
 
   double **x = atom->x, *x0 = x[0];
-  double **f = atom->f, *f0 = f[0], *fi = f0;
+  double **f = atom->f;
   double *q = atom->q;
   double *eps = avec->epsilon;
   double **norm = avec->mu;
@@ -117,34 +117,34 @@ void PairLJLongCoulLongDielectric::compute(int eflag, int vflag)
   int newton_pair = force->newton_pair;
   double qqrd2e = force->qqrd2e;
 
-  int i, ii, j, jj, inum, jnum, itype, jtype, itable;
+  int i, j, itype, jtype, itable;
   double qtmp, etmp, xtmp, ytmp, ztmp, delx, dely, delz;
   int order1 = ewald_order & (1 << 1), order6 = ewald_order & (1 << 6);
-  int *ineigh, *ineighn, *jneigh, *jneighn, typei, typej, ni;
-  double qi = 0.0, qri = 0.0;
+  int *ineigh, *ineighn, *jneigh, *jneighn, ni;
   double fpair_i, fpair_j;
   double fraction, table;
-  double *cutsqi, *cut_ljsqi, *lj1i, *lj2i, *lj3i, *lj4i, *offseti;
+  double *cut_ljsqi, *lj1i, *lj2i, *lj3i, *lj4i, *offseti;
   double grij, expm2, prefactor, t, erfc, prefactorE, efield_i, epot_i;
   double r, rsq, r2inv, force_coul, force_lj, factor_coul, factor_lj;
   double g2 = g_ewald_6 * g_ewald_6, g6 = g2 * g2 * g2, g8 = g6 * g2;
-  double xi[3], d[3];
+  double xi[3];
 
   ineighn = (ineigh = list->ilist) + list->inum;
 
   for (; ineigh < ineighn; ++ineigh) {    // loop over my atoms
     i = *ineigh;
-    fi = f0 + 3 * i;
     qtmp = q[i];
+    xtmp = x[i][0];
+    ytmp = x[i][1];
+    ztmp = x[i][2];
+    etmp = eps[i];
 
-    if (order1) qri = (qi = q[i]) * qqrd2e;    // initialize constants
-    offseti = offset[typei = type[i]];
-    lj1i = lj1[typei];
-    lj2i = lj2[typei];
-    lj3i = lj3[typei];
-    lj4i = lj4[typei];
-    cutsqi = cutsq[typei];
-    cut_ljsqi = cut_ljsq[typei];
+    offseti = offset[itype = type[i]];
+    lj1i = lj1[itype];
+    lj2i = lj2[itype];
+    lj3i = lj3[itype];
+    lj4i = lj4[itype];
+    cut_ljsqi = cut_ljsq[itype];
     memcpy(xi, x0 + (i + (i << 1)), 3 * sizeof(double));
     jneighn = (jneigh = list->firstneigh[i]) + list->numneigh[i];
 
@@ -174,7 +174,7 @@ void PairLJLongCoulLongDielectric::compute(int eflag, int vflag)
       rsq = delx * delx + dely * dely + delz * delz;
       jtype = type[j];
 
-      if (rsq >= cutsq[typei][typej]) continue;
+      if (rsq >= cutsq[itype][jtype]) continue;
 
       r2inv = 1.0 / rsq;
       r = sqrt(rsq);
@@ -216,22 +216,22 @@ void PairLJLongCoulLongDielectric::compute(int eflag, int vflag)
       } else
         epot_i = efield_i = force_coul = ecoul = 0.0;
 
-      if (rsq < cut_ljsqi[typej]) {                          // lj
+      if (rsq < cut_ljsqi[jtype]) {                          // lj
         if (order6) {                                        // long-range lj
           if (!ndisptablebits || rsq <= tabinnerdispsq) {    // series real space
             double rn = r2inv * r2inv * r2inv;
             double x2 = g2 * rsq, a2 = 1.0 / x2;
-            x2 = a2 * exp(-x2) * lj4i[typej];
+            x2 = a2 * exp(-x2) * lj4i[jtype];
             if (ni == 0) {
-              force_lj = (rn *= rn) * lj1i[typej] -
+              force_lj = (rn *= rn) * lj1i[jtype] -
                   g8 * (((6.0 * a2 + 6.0) * a2 + 3.0) * a2 + 1.0) * x2 * rsq;
-              if (eflag) evdwl = rn * lj3i[typej] - g6 * ((a2 + 1.0) * a2 + 0.5) * x2;
+              if (eflag) evdwl = rn * lj3i[jtype] - g6 * ((a2 + 1.0) * a2 + 0.5) * x2;
             } else {    // special case
               double f = special_lj[ni], t = rn * (1.0 - f);
-              force_lj = f * (rn *= rn) * lj1i[typej] -
-                  g8 * (((6.0 * a2 + 6.0) * a2 + 3.0) * a2 + 1.0) * x2 * rsq + t * lj2i[typej];
+              force_lj = f * (rn *= rn) * lj1i[jtype] -
+                  g8 * (((6.0 * a2 + 6.0) * a2 + 3.0) * a2 + 1.0) * x2 * rsq + t * lj2i[jtype];
               if (eflag)
-                evdwl = f * rn * lj3i[typej] - g6 * ((a2 + 1.0) * a2 + 0.5) * x2 + t * lj4i[typej];
+                evdwl = f * rn * lj3i[jtype] - g6 * ((a2 + 1.0) * a2 + 0.5) * x2 + t * lj4i[jtype];
             }
           } else {    // table real space
             union_int_float_t disp_t;
@@ -240,39 +240,36 @@ void PairLJLongCoulLongDielectric::compute(int eflag, int vflag)
             double f_disp = (rsq - rdisptable[disp_k]) * drdisptable[disp_k];
             double rn = r2inv * r2inv * r2inv;
             if (ni == 0) {
-              force_lj = (rn *= rn) * lj1i[typej] -
-                  (fdisptable[disp_k] + f_disp * dfdisptable[disp_k]) * lj4i[typej];
+              force_lj = (rn *= rn) * lj1i[jtype] -
+                  (fdisptable[disp_k] + f_disp * dfdisptable[disp_k]) * lj4i[jtype];
               if (eflag)
-                evdwl = rn * lj3i[typej] -
-                    (edisptable[disp_k] + f_disp * dedisptable[disp_k]) * lj4i[typej];
+                evdwl = rn * lj3i[jtype] -
+                    (edisptable[disp_k] + f_disp * dedisptable[disp_k]) * lj4i[jtype];
             } else {    // special case
               double f = special_lj[ni], t = rn * (1.0 - f);
-              force_lj = f * (rn *= rn) * lj1i[typej] -
-                  (fdisptable[disp_k] + f_disp * dfdisptable[disp_k]) * lj4i[typej] +
-                  t * lj2i[typej];
+              force_lj = f * (rn *= rn) * lj1i[jtype] -
+                  (fdisptable[disp_k] + f_disp * dfdisptable[disp_k]) * lj4i[jtype] +
+                  t * lj2i[jtype];
               if (eflag)
-                evdwl = f * rn * lj3i[typej] -
-                    (edisptable[disp_k] + f_disp * dedisptable[disp_k]) * lj4i[typej] +
-                    t * lj4i[typej];
+                evdwl = f * rn * lj3i[jtype] -
+                    (edisptable[disp_k] + f_disp * dedisptable[disp_k]) * lj4i[jtype] +
+                    t * lj4i[jtype];
             }
           }
         } else {    // cut lj
           double rn = r2inv * r2inv * r2inv;
           if (ni == 0) {
-            force_lj = rn * (rn * lj1i[typej] - lj2i[typej]);
-            if (eflag) evdwl = rn * (rn * lj3i[typej] - lj4i[typej]) - offseti[typej];
+            force_lj = rn * (rn * lj1i[jtype] - lj2i[jtype]);
+            if (eflag) evdwl = rn * (rn * lj3i[jtype] - lj4i[jtype]) - offseti[jtype];
           } else {    // special case
             double f = special_lj[ni];
-            force_lj = f * rn * (rn * lj1i[typej] - lj2i[typej]);
-            if (eflag) evdwl = f * (rn * (rn * lj3i[typej] - lj4i[typej]) - offseti[typej]);
+            force_lj = f * rn * (rn * lj1i[jtype] - lj2i[jtype]);
+            if (eflag) evdwl = f * (rn * (rn * lj3i[jtype] - lj4i[jtype]) - offseti[jtype]);
           }
         }
-      }
+      } else force_lj = evdwl = 0.0;
 
-      else
-        force_lj = evdwl = 0.0;
-
-      fpair = (force_coul * etmp + force_lj) * r2inv;
+      fpair_i = (force_coul * etmp + force_lj) * r2inv;
       f[i][0] += delx * fpair_i;
       f[i][1] += dely * fpair_i;
       f[i][2] += delz * fpair_i;

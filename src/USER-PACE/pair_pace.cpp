@@ -50,6 +50,8 @@ Copyright 2021 Yury Lysogorskiy^1, Cas van der Oord^2, Anton Bochkarev^1,
 
 namespace LAMMPS_NS {
   struct ACEImpl {
+    ACEImpl() : basis_set(nullptr), ace(nullptr){}
+    ~ACEImpl() {delete basis_set; delete ace;}
     ACECTildeBasisSet *basis_set;
     ACERecursiveEvaluator *ace;
   };
@@ -93,8 +95,6 @@ PairPACE::PairPACE(LAMMPS *lmp) : Pair(lmp) {
   manybody_flag = 1;
 
   aceimpl = new ACEImpl;
-  aceimpl->ace = nullptr;
-  aceimpl->basis_set = nullptr;
   recursive = false;
 
   scale = nullptr;
@@ -107,8 +107,6 @@ PairPACE::PairPACE(LAMMPS *lmp) : Pair(lmp) {
 PairPACE::~PairPACE() {
   if (copymode) return;
 
-  delete aceimpl->basis_set;
-  delete aceimpl->ace;
   delete aceimpl;
 
   if (allocated) {
@@ -297,6 +295,7 @@ void PairPACE::coeff(int narg, char **arg) {
   char **elemtypes = &arg[3];
 
   //load potential file
+  delete aceimpl->basis_set;
   aceimpl->basis_set = new ACECTildeBasisSet();
   if (comm->me == 0)
     utils::logmesg(lmp,"Loading {}\n", potential_file_name);
@@ -316,6 +315,7 @@ void PairPACE::coeff(int narg, char **arg) {
   // map[i] = which element the Ith atom type is, -1 if not mapped
   // map[0] is not used
 
+  delete aceimpl->ace;
   aceimpl->ace = new ACERecursiveEvaluator();
   aceimpl->ace->set_recursive(recursive);
   aceimpl->ace->element_type_mapping.init(atom->ntypes + 1);

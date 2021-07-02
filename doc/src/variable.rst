@@ -574,7 +574,7 @@ division and the modulo operator "%" are next; addition and
 subtraction are next; the 4 relational operators "<", "<=", ">", and
 ">=" are next; the two remaining relational operators "==" and "!="
 are next; then the logical AND operator "&&"; and finally the logical
-OR operator "\|\|" and logical XOR (exclusive or) operator "\|\^" have the
+OR operator "||" and logical XOR (exclusive or) operator "\|^" have the
 lowest precedence.  Parenthesis can be used to group one or more
 portions of a formula and/or enforce a different order of evaluation
 than what would occur with the default precedence.

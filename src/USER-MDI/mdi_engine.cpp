@@ -43,7 +43,7 @@ using namespace LAMMPS_NS;
    when EXIT command is received, mdi/engine command exits
 ---------------------------------------------------------------------- */
 
-void MDIEngine::command(int narg, char **arg)
+void MDIEngine::command(int narg, char ** /*arg*/)
 {
   // list of nodes and commands that a MDI-compliant MD code should support
 
@@ -223,10 +223,7 @@ void MDIEngine::command(int narg, char **arg)
       break;
 
     } else
-      error->all(FLERR,
-                 fmt::format("MDI node exited with "
-                             "invalid command: {}",
-                             command));
+      error->all(FLERR, "MDI node exited with invalid command: {}", command);
   }
 
   // remove mdi/engine fix that mdi/engine instantiated
@@ -298,9 +295,6 @@ char *MDIEngine::mdi_md()
 
 char *MDIEngine::mdi_optg()
 {
-  // initialize an energy minization
-
-  Minimize *minimizer = new Minimize(lmp);
 
   // setup the minimizer in a way that ensures optimization
   // will continue until MDI driver exits
@@ -346,9 +340,6 @@ char *MDIEngine::mdi_optg()
 
   if (strcmp(command, "@DEFAULT") == 0 || strcmp(command, "EXIT") == 0) return command;
 
-  error->all(FLERR,
-             fmt::format("MDI reached end of OPTG simulation "
-                         "with invalid command: {}",
-                         command));
+  error->all(FLERR,"MDI reached end of OPTG simulation with invalid command: {}", command);
   return nullptr;
 }

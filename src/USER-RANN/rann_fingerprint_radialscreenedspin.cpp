@@ -182,11 +182,10 @@ void Fingerprint_radialscreenedspin::compute_fingerprint(double * features,doubl
     int nelements = pair->nelements;
     int res = pair->res;
     int i,j,jj,itype,jtype,l,kk;
-    double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
-    int *ilist,*jlist,*numneigh,**firstneigh;
+    double delx,dely,delz,rsq;
+    int *ilist;
     PairRANN::Simulation *sim = &pair->sims[sid];
     int count=0;
-    double **x = sim->x;
     int *type = sim->type;
     ilist = sim->ilist;
     double cutmax = pair->cutmax;

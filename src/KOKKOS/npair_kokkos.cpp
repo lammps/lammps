@@ -610,7 +610,9 @@ void NeighborKokkosExecute<DeviceType>::build_ItemGPU(typename Kokkos::TeamPolic
 
   if (test) return;
 #else
-  dev.team_barrier();
+  int not_done = (i >= 0 && i <= nlocal);
+  dev.team_reduce(Kokkos::Max<int>(not_done));
+  if(not_done == 0) return;
 #endif
 
   if (i >= 0 && i < nlocal) {
@@ -1053,13 +1055,14 @@ void NeighborKokkosExecute<DeviceType>::build_ItemSizeGPU(typename Kokkos::TeamP
       other_x[MY_II + 4 * atoms_per_bin] = radi;
     }
     other_id[MY_II] = i;
-    // FIXME_SYCL
 #ifndef KOKKOS_ENABLE_SYCL
     int test = (__syncthreads_count(i >= 0 && i <= nlocal) == 0);
 
     if (test) return;
 #else
-    dev.team_barrier();
+    int not_done = (i >= 0 && i <= nlocal);
+    dev.team_reduce(Kokkos::Max<int>(not_done));
+    if(not_done == 0) return;
 #endif
 
     if (i >= 0 && i < nlocal) {

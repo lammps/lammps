@@ -94,6 +94,7 @@ void lammps_close(void *handle);
 
 void lammps_mpi_init();
 void lammps_mpi_finalize();
+void lammps_kokkos_finalize();
 
 /* ----------------------------------------------------------------------
  * Library functions to process commands

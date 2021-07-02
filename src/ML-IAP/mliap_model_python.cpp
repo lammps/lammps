@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -18,70 +17,69 @@
 
 #ifdef MLIAP_PYTHON
 
-#include <Python.h>
 #include "mliap_model_python.h"
+
+#include "error.h"
+#include "lmppython.h"
+#include "mliap_data.h"
 #include "mliap_model_python_couple.h"
 #include "pair_mliap.h"
-#include "mliap_data.h"
-#include "error.h"
-#include "utils.h"
-#include "lmppython.h"
 #include "python_compat.h"
+#include "utils.h"
 
+#include <Python.h>
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-MLIAPModelPython::MLIAPModelPython(LAMMPS* lmp, char* coefffilename) :
-  MLIAPModel(lmp, coefffilename)
+MLIAPModelPython::MLIAPModelPython(LAMMPS *lmp, char *coefffilename) :
+    MLIAPModel(lmp, coefffilename)
 {
   model_loaded = 0;
   python->init();
   PyGILState_STATE gstate = PyGILState_Ensure();
 
-  PyObject * pyMain = PyImport_AddModule("__main__");
+  PyObject *pyMain = PyImport_AddModule("__main__");
 
   if (!pyMain) {
     PyGILState_Release(gstate);
-    error->all(FLERR,"Could not initialize embedded Python");
+    error->all(FLERR, "Could not initialize embedded Python");
   }
 
-  PyObject* coupling_module = PyImport_ImportModule("mliap_model_python_couple");
+  PyObject *coupling_module = PyImport_ImportModule("mliap_model_python_couple");
 
   if (!coupling_module) {
     PyErr_Print();
     PyErr_Clear();
     PyGILState_Release(gstate);
-    error->all(FLERR,"Loading MLIAPPY coupling module failure.");
+    error->all(FLERR, "Loading MLIAPPY coupling module failure.");
   }
   // Recipe from lammps/src/pair_python.cpp :
   // add current directory to PYTHONPATH
-  PyObject * py_path = PySys_GetObject((char *)"path");
+  PyObject *py_path = PySys_GetObject((char *) "path");
   PyList_Append(py_path, PY_STRING_FROM_STRING("."));
 
   // if LAMMPS_POTENTIALS environment variable is set, add it to PYTHONPATH as well
-  const char * potentials_path = getenv("LAMMPS_POTENTIALS");
-  if (potentials_path != NULL) {
-    PyList_Append(py_path, PY_STRING_FROM_STRING(potentials_path));
-  }
+  const char *potentials_path = getenv("LAMMPS_POTENTIALS");
+  if (potentials_path != NULL) { PyList_Append(py_path, PY_STRING_FROM_STRING(potentials_path)); }
   PyGILState_Release(gstate);
 
   if (coefffilename) read_coeffs(coefffilename);
 
-  nonlinearflag=1;
+  nonlinearflag = 1;
 }
 
 /* ---------------------------------------------------------------------- */
 
-MLIAPModelPython::~MLIAPModelPython() {
+MLIAPModelPython::~MLIAPModelPython()
+{
   MLIAPPY_unload_model(this);
 }
 
 /* ----------------------------------------------------------------------
    get number of parameters
    ---------------------------------------------------------------------- */
-
 
 int MLIAPModelPython::get_nparams()
 {
@@ -97,15 +95,14 @@ void MLIAPModelPython::read_coeffs(char *fname)
     PyErr_Print();
     PyErr_Clear();
     PyGILState_Release(gstate);
-    error->all(FLERR,"Loading python model failure.");
+    error->all(FLERR, "Loading python model failure.");
   }
   PyGILState_Release(gstate);
 
   if (loaded) {
     this->connect_param_counts();
-  }
-  else {
-    utils::logmesg(lmp,"Loading python model deferred.\n");
+  } else {
+    utils::logmesg(lmp, "Loading python model deferred.\n");
   }
 }
 
@@ -121,14 +118,12 @@ void MLIAPModelPython::connect_param_counts()
     PyErr_Print();
     PyErr_Clear();
     PyGILState_Release(gstate);
-    error->all(FLERR,"Loading python model failure.");
+    error->all(FLERR, "Loading python model failure.");
   }
   PyGILState_Release(gstate);
   model_loaded = 1;
-  utils::logmesg(lmp,"Loading python model complete.\n");
-
+  utils::logmesg(lmp, "Loading python model complete.\n");
 }
-
 
 /* ----------------------------------------------------------------------
    Calculate model gradients w.r.t descriptors
@@ -137,9 +132,7 @@ void MLIAPModelPython::connect_param_counts()
 
 void MLIAPModelPython::compute_gradients(MLIAPData *data)
 {
-  if (not model_loaded) {
-    error->all(FLERR,"Model not loaded.");
-  }
+  if (not model_loaded) { error->all(FLERR, "Model not loaded."); }
 
   PyGILState_STATE gstate = PyGILState_Ensure();
   MLIAPPY_compute_gradients(this, data);
@@ -147,10 +140,9 @@ void MLIAPModelPython::compute_gradients(MLIAPData *data)
     PyErr_Print();
     PyErr_Clear();
     PyGILState_Release(gstate);
-    error->all(FLERR,"Running python model failure.");
+    error->all(FLERR, "Running python model failure.");
   }
   PyGILState_Release(gstate);
-
 }
 
 /* ----------------------------------------------------------------------
@@ -170,7 +162,7 @@ void MLIAPModelPython::compute_gradients(MLIAPData *data)
 
 void MLIAPModelPython::compute_gradgrads(class MLIAPData *)
 {
-  error->all(FLERR,"compute_gradgrads not implemented");
+  error->all(FLERR, "compute_gradgrads not implemented");
 }
 
 /* ----------------------------------------------------------------------
@@ -180,7 +172,7 @@ void MLIAPModelPython::compute_gradgrads(class MLIAPData *)
 
 void MLIAPModelPython::compute_force_gradients(class MLIAPData *)
 {
-  error->all(FLERR,"compute_force_gradients not implemented");
+  error->all(FLERR, "compute_force_gradients not implemented");
 }
 
 /* ----------------------------------------------------------------------
@@ -192,7 +184,6 @@ int MLIAPModelPython::get_gamma_nnz(class MLIAPData *)
   // todo: get_gamma_nnz
   return 0;
 }
-
 
 double MLIAPModelPython::memory_usage()
 {

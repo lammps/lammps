@@ -83,9 +83,8 @@ FixSpringSelf::FixSpringSelf(LAMMPS *lmp, int narg, char **arg) :
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    //if (mask[i] & groupbit) domain->unmap(x[i],image[i],xoriginal[i]);
-    //else 
-    xoriginal[i][0] = xoriginal[i][1] = xoriginal[i][2] = 0.0;
+    if (mask[i] & groupbit) domain->unmap(x[i],image[i],xoriginal[i]);
+    else xoriginal[i][0] = xoriginal[i][1] = xoriginal[i][2] = 0.0;
   }
 
   espring = 0.0;
@@ -177,7 +176,6 @@ void FixSpringSelf::post_force(int /*vflag*/)
       espring += k * (dx*dx + dy*dy + dz*dz);
     }
 
-  fprintf(stdout, "xoriginal=%.6e. dx=%.6e, k=%.3e, f=%.6e.\n", xoriginal[0][0], dx, k, f[0][0]);
   espring *= 0.5;
 }
 

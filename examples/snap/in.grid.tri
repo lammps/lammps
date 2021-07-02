@@ -1,5 +1,15 @@
 # Demonstrate bispectrum computes
 
+# This triclinic cell has 6 times the volume of a single bcc cube
+# and contains 12 atoms.  It is a 3x2x1 supercell
+# with each unit cell containing 2 atoms and the
+# reduced lattice vectors are [1 0 0], [1 1 0], and [1 1 1].
+# The grid is listed in x-fastest order
+# CORRECTNESS: thermo output for c_mygrid[*][7] should contain
+# the same 2 values that appear in c_mygrid[*][7] for in.grid,
+# 7.0663376 and 13.808803, corresponding to atom and insterstitial sites,
+# respectively, and with occurrences 12 and 36, respectively.
+
 # Initialize simulation
 
 variable nsteps index 0
@@ -11,13 +21,17 @@ variable ngridx equal 3*${ngrid}
 variable ngridy equal 2*${ngrid}
 variable ngridz equal 1*${ngrid}
 
+variable nrepx equal 1*${nrep}
+variable nrepy equal 1*${nrep}
+variable nrepz equal 1*${nrep}
+
 units		metal
 
 # generate the box and atom positions using a BCC lattice
 
-variable nx equal ${nrep}
-variable ny equal ${nrep}
-variable nz equal ${nrep}
+variable nx equal ${nrepx}
+variable ny equal ${nrepy}
+variable nz equal ${nrepz}
 
 boundary	p p p
 
@@ -78,7 +92,7 @@ thermo_style	custom step temp ke pe vol &
  		c_mygrid[70][7] c_mygrid[71][7] c_mygrid[72][7] c_mygrid[73][7] c_mygrid[74][7] c_mygrid[75][7] c_mygrid[76][7] c_mygrid[77][7] c_mygrid[78][7] c_mygrid[79][7] &
  		c_mygrid[80][7] c_mygrid[81][7] c_mygrid[82][7] c_mygrid[83][7] c_mygrid[84][7] c_mygrid[85][7] c_mygrid[86][7] c_mygrid[87][7] c_mygrid[88][7] c_mygrid[89][7] &
  		c_mygrid[90][7] c_mygrid[91][7] c_mygrid[92][7] c_mygrid[93][7] c_mygrid[94][7] c_mygrid[95][7] c_mygrid[96][7] c_mygrid[97][7] c_mygrid[98][7] c_mygrid[99][7] &
-		c_mygrid[101][7] c_mygrid[102][7] c_mygrid[103][7] c_mygrid[104][7] c_mygrid[105][7] c_mygrid[106][7] c_mygrid[107][7] c_mygrid[108][7] c_mygrid[109][7] &
+		c_mygrid[100][7] c_mygrid[101][7] c_mygrid[102][7] c_mygrid[103][7] c_mygrid[104][7] c_mygrid[105][7] c_mygrid[106][7] c_mygrid[107][7] c_mygrid[108][7] c_mygrid[109][7] &
 		c_mygrid[110][7] c_mygrid[111][7] c_mygrid[112][7] c_mygrid[113][7] c_mygrid[114][7] c_mygrid[115][7] c_mygrid[116][7] c_mygrid[117][7] c_mygrid[118][7] c_mygrid[119][7] &
  		c_mygrid[120][7] c_mygrid[121][7] c_mygrid[122][7] c_mygrid[123][7] c_mygrid[124][7] c_mygrid[125][7] c_mygrid[126][7] c_mygrid[127][7] c_mygrid[128][7] c_mygrid[129][7] &
  		c_mygrid[130][7] c_mygrid[131][7] c_mygrid[132][7] c_mygrid[133][7] c_mygrid[134][7] c_mygrid[135][7] c_mygrid[136][7] c_mygrid[137][7] c_mygrid[138][7] c_mygrid[139][7] &
@@ -88,7 +102,7 @@ thermo_style	custom step temp ke pe vol &
  		c_mygrid[170][7] c_mygrid[171][7] c_mygrid[172][7] c_mygrid[173][7] c_mygrid[174][7] c_mygrid[175][7] c_mygrid[176][7] c_mygrid[177][7] c_mygrid[178][7] c_mygrid[179][7] &
  		c_mygrid[180][7] c_mygrid[181][7] c_mygrid[182][7] c_mygrid[183][7] c_mygrid[184][7] c_mygrid[185][7] c_mygrid[186][7] c_mygrid[187][7] c_mygrid[188][7] c_mygrid[189][7] &
  		c_mygrid[190][7] c_mygrid[191][7] c_mygrid[192][7] c_mygrid[193][7] c_mygrid[194][7] c_mygrid[195][7] c_mygrid[196][7] c_mygrid[197][7] c_mygrid[198][7] c_mygrid[199][7] &
-		c_mygrid[201][7] c_mygrid[202][7] c_mygrid[203][7] c_mygrid[204][7] c_mygrid[205][7] c_mygrid[206][7] c_mygrid[207][7] c_mygrid[208][7] c_mygrid[209][7] &
+		c_mygrid[200][7] c_mygrid[201][7] c_mygrid[202][7] c_mygrid[203][7] c_mygrid[204][7] c_mygrid[205][7] c_mygrid[206][7] c_mygrid[207][7] c_mygrid[208][7] c_mygrid[209][7] &
 		c_mygrid[210][7] c_mygrid[211][7] c_mygrid[212][7] c_mygrid[213][7] c_mygrid[214][7] c_mygrid[215][7] c_mygrid[216][7] c_mygrid[217][7] c_mygrid[218][7] c_mygrid[219][7] &
  		c_mygrid[220][7] c_mygrid[221][7] c_mygrid[222][7] c_mygrid[223][7] c_mygrid[224][7] c_mygrid[225][7] c_mygrid[226][7] c_mygrid[227][7] c_mygrid[228][7] c_mygrid[229][7] &
  		c_mygrid[230][7] c_mygrid[231][7] c_mygrid[232][7] c_mygrid[233][7] c_mygrid[234][7] c_mygrid[235][7] c_mygrid[236][7] c_mygrid[237][7] c_mygrid[238][7] c_mygrid[239][7] &
@@ -98,7 +112,7 @@ thermo_style	custom step temp ke pe vol &
  		c_mygrid[270][7] c_mygrid[271][7] c_mygrid[272][7] c_mygrid[273][7] c_mygrid[274][7] c_mygrid[275][7] c_mygrid[276][7] c_mygrid[277][7] c_mygrid[278][7] c_mygrid[279][7] &
  		c_mygrid[280][7] c_mygrid[281][7] c_mygrid[282][7] c_mygrid[283][7] c_mygrid[284][7] c_mygrid[285][7] c_mygrid[286][7] c_mygrid[287][7] c_mygrid[288][7] c_mygrid[289][7] &
  		c_mygrid[290][7] c_mygrid[291][7] c_mygrid[292][7] c_mygrid[293][7] c_mygrid[294][7] c_mygrid[295][7] c_mygrid[296][7] c_mygrid[297][7] c_mygrid[298][7] c_mygrid[299][7] &
-		c_mygrid[301][7] c_mygrid[302][7] c_mygrid[303][7] c_mygrid[304][7] c_mygrid[305][7] c_mygrid[306][7] c_mygrid[307][7] c_mygrid[308][7] c_mygrid[309][7] &
+		c_mygrid[300][7] c_mygrid[301][7] c_mygrid[302][7] c_mygrid[303][7] c_mygrid[304][7] c_mygrid[305][7] c_mygrid[306][7] c_mygrid[307][7] c_mygrid[308][7] c_mygrid[309][7] &
 		c_mygrid[310][7] c_mygrid[311][7] c_mygrid[312][7] c_mygrid[313][7] c_mygrid[314][7] c_mygrid[315][7] c_mygrid[316][7] c_mygrid[317][7] c_mygrid[318][7] c_mygrid[319][7] &
  		c_mygrid[320][7] c_mygrid[321][7] c_mygrid[322][7] c_mygrid[323][7] c_mygrid[324][7] c_mygrid[325][7] c_mygrid[326][7] c_mygrid[327][7] c_mygrid[328][7] c_mygrid[329][7] &
  		c_mygrid[330][7] c_mygrid[331][7] c_mygrid[332][7] c_mygrid[333][7] c_mygrid[334][7] c_mygrid[335][7] c_mygrid[336][7] c_mygrid[337][7] c_mygrid[338][7] c_mygrid[339][7] &

@@ -206,6 +206,7 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` doc
 * :doc:`erotate/sphere <compute_erotate_sphere>` - rotational energy of spherical particles
 * :doc:`erotate/sphere/atom <compute_erotate_sphere_atom>` - rotational energy for each spherical particle
 * :doc:`event/displace <compute_event_displace>` - detect event on atom displacement
+* :doc:`fabric <compute_fabric>` - calculates fabric tensors from pair interactions
 * :doc:`fep <compute_fep>` -
 * :doc:`force/tally <compute_tally>` -
 * :doc:`fragment/atom <compute_cluster_atom>` - fragment ID for each atom

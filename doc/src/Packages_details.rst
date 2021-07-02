@@ -352,6 +352,7 @@ potentials.
 
 * src/GRANULAR: filenames -> commands
 * :doc:`Howto granular <Howto_granular>`
+* :doc:`compute fabric <compute_fabric>`
 * :doc:`fix pour <fix_pour>`
 * :doc:`fix wall/gran <fix_wall_gran>`
 * :doc:`pair_style gran/hooke <pair_gran>`

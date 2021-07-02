@@ -30,11 +30,14 @@ class ComputeGrid : public Compute {
   double memory_usage();
 
  protected:
-  int nx, ny, nz;                      // grid dimensions
-  int ngrid;                           // number of grid points
+  int nx, ny, nz;                      // global grid dimensions
+  int nxlo, nxhi, nylo, nyhi, nzlo, nzhi; // local grid bounds, inclusive
+  int ngrid;                           // number of global grid points
+  int ngridlocal;                      // number of local grid points
   int nvalues;                         // number of values per grid point
   double **grid;                       // global grid
   double **gridall;                    // global grid summed over procs
+  double ****gridlocal;                // local grid
   int triclinic;                       // triclinic flag
   double *boxlo, *prd;                 // box info (units real/ortho or reduced/tri)
   double *sublo, *subhi;               // subdomain info (units real/ortho or reduced/tri)
@@ -43,12 +46,14 @@ class ComputeGrid : public Compute {
   int nargbase;                        // number of base class args 
   double cutmax;                       // largest cutoff distance
   int size_array_cols_base;            // number of columns used for coords, etc.
-  int *grid_local;                     // local flag for each grid point
+  int *local_flags;                    // local flag for each grid point
   void allocate();
   void grid2x(int, double*);           // convert grid point to coord
-  void assign_grid_coords();           // assign coords for grid
-  void assign_grid_local();            // set local flag for each grid point
-  int check_grid_local(int);           // check if grid point is local
+  void assign_coords();                // assign coords for grid
+  void assign_local_flags();           // set local flag for each grid point
+  int check_local(int);                // check if grid point is local
+  void set_grid_global();              // set global grid
+  void set_grid_local();               // set bounds for local grid
  private:
 };
 

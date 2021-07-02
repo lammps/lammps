@@ -182,65 +182,74 @@ void ComputeSNAGrid::compute_array()
   
   snaptr->grow_rij(ntotal);
 
-  printf("ngrid = %d\n",ngrid);
-  for (int igrid = 0; igrid < ngrid; igrid++) {
-    if (!grid_local[igrid]) continue;
-    const double xtmp = grid[igrid][0];
-    const double ytmp = grid[igrid][1];
-    const double ztmp = grid[igrid][2];
+  for (int iz = nzlo; iz <= nzhi; iz++)
+    for (int iy = nylo; iy <= nyhi; iy++)
+      for (int ix = nxlo; ix <= nxhi; ix++) {
+	const int igrid = iz*(nx*ny) + iy*nx + ix;
+	const double xtmp = grid[igrid][0];
+	const double ytmp = grid[igrid][1];
+	const double ztmp = grid[igrid][2];
 
-    // rij[][3] = displacements between atom I and those neighbors
-    // inside = indices of neighbors of I within cutoff
-    // typej = types of neighbors of I within cutoff
+	// rij[][3] = displacements between atom I and those neighbors
+	// inside = indices of neighbors of I within cutoff
+	// typej = types of neighbors of I within cutoff
 
-    int ninside = 0;
-    for (int j = 0; j < ntotal; j++) {
+	int ninside = 0;
+	for (int j = 0; j < ntotal; j++) {
 
-      // check that j is in compute group
+	  // check that j is in compute group
 
-      if (!(mask[j] & groupbit)) continue;
+	  if (!(mask[j] & groupbit)) continue;
 
-      const double delx = xtmp - x[j][0];
-      const double dely = ytmp - x[j][1];
-      const double delz = ztmp - x[j][2];
-      const double rsq = delx*delx + dely*dely + delz*delz;
-      int jtype = type[j];
-      if (rsq < cutsq[jtype][jtype] && rsq>1e-20) {
-	//        printf("ninside = %d\n",ninside);
-        snaptr->rij[ninside][0] = delx;
-        snaptr->rij[ninside][1] = dely;
-        snaptr->rij[ninside][2] = delz;
-        snaptr->inside[ninside] = j;
-        snaptr->wj[ninside] = wjelem[jtype];
-        snaptr->rcutij[ninside] = 2.0*radelem[jtype]*rcutfac;
-        ninside++;
-      }
-    }
+	  const double delx = xtmp - x[j][0];
+	  const double dely = ytmp - x[j][1];
+	  const double delz = ztmp - x[j][2];
+	  const double rsq = delx*delx + dely*dely + delz*delz;
+	  int jtype = type[j];
+	  if (rsq < cutsq[jtype][jtype] && rsq>1e-20) {
+	    snaptr->rij[ninside][0] = delx;
+	    snaptr->rij[ninside][1] = dely;
+	    snaptr->rij[ninside][2] = delz;
+	    snaptr->inside[ninside] = j;
+	    snaptr->wj[ninside] = wjelem[jtype];
+	    snaptr->rcutij[ninside] = 2.0*radelem[jtype]*rcutfac;
+	    ninside++;
+	  }
+	}
 
-    snaptr->compute_ui(ninside);
-    snaptr->compute_zi();
-    snaptr->compute_bi();
-    for (int icoeff = 0; icoeff < ncoeff; icoeff++)
-      grid[igrid][size_array_cols_base+icoeff] = snaptr->blist[icoeff];
-    //    printf("igrid = %d %g %g %g %d B0 = %g\n",igrid,xtmp,ytmp,ztmp,ninside,sna[igrid][size_array_cols_base+0]);
-    if (quadraticflag) {
-      int ncount = ncoeff;
-      for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
-        double bi = snaptr->blist[icoeff];
+	snaptr->compute_ui(ninside);
+	snaptr->compute_zi();
+	snaptr->compute_bi();
+	for (int icoeff = 0; icoeff < ncoeff; icoeff++)
+	  gridlocal[size_array_cols_base+icoeff][iz][iy][ix] = snaptr->blist[icoeff];
+	if (quadraticflag) {
+	  int ncount = ncoeff;
+	  for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
+	    double bi = snaptr->blist[icoeff];
 
-        // diagonal element of quadratic matrix
+	    // diagonal element of quadratic matrix
 
-        grid[igrid][size_array_cols_base+ncount++] = 0.5*bi*bi;
+	    gridlocal[size_array_cols_base+ncount++][iz][iy][ix] = 0.5*bi*bi;
 
         // upper-triangular elements of quadratic matrix
 
         for (int jcoeff = icoeff+1; jcoeff < ncoeff; jcoeff++)
-          grid[igrid][size_array_cols_base+ncount++] = bi*snaptr->blist[jcoeff];
+          gridlocal[size_array_cols_base+ncount++][iz][iy][ix] = bi*snaptr->blist[jcoeff];
       }
     }
   }
+
+  for (int iz = nzlo; iz <= nzhi; iz++)
+    for (int iy = nylo; iy <= nyhi; iy++)
+      for (int ix = nxlo; ix <= nxhi; ix++) {
+	const int igrid = iz*(nx*ny) + iy*nx + ix;
+	for (int j = 0; j < nvalues; j++)
+	  grid[igrid][size_array_cols_base + j] = gridlocal[size_array_cols_base + j][iz][iy][ix];
+      }
   MPI_Allreduce(&grid[0][0],&gridall[0][0],ngrid*size_array_cols,MPI_DOUBLE,MPI_SUM,world);
+
 }
+
 
 /* ----------------------------------------------------------------------
    memory usage

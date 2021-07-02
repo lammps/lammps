@@ -21,13 +21,14 @@
 #include "force.h"
 #include "memory.h"
 #include "error.h"
+#include "comm.h"
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
 ComputeGrid::ComputeGrid(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), grid(NULL), grid_local(NULL)
+  Compute(lmp, narg, arg), grid(NULL), local_flags(NULL), gridlocal(NULL)
 {
   if (narg < 6) error->all(FLERR,"Illegal compute grid command");
 
@@ -59,7 +60,8 @@ ComputeGrid::ComputeGrid(LAMMPS *lmp, int narg, char **arg) :
 ComputeGrid::~ComputeGrid()
 {
   memory->destroy(grid);
-  memory->destroy(grid_local);
+  memory->destroy(local_flags);
+  memory->destroy4d_offset(gridlocal,nzlo,nylo,nxlo);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -72,7 +74,118 @@ void ComputeGrid::init()
 
 void ComputeGrid::setup()
 {
- 
+
+  set_grid_global();
+  set_grid_local();
+  allocate();
+  assign_coords();
+  assign_local_flags();
+}
+
+/* ----------------------------------------------------------------------
+   convert global array index to box coords
+------------------------------------------------------------------------- */
+
+void ComputeGrid::grid2x(int igrid, double *x)
+{
+  int iz = igrid / (nx*ny);
+  igrid -= iz * (nx*ny);
+  int iy = igrid / nx;
+  igrid -= iy * nx;
+  int ix = igrid;
+
+  x[0] = ix*delx;
+  x[1] = iy*dely;
+  x[2] = iz*delz;
+
+  if (triclinic) domain->lamda2x(x, x);
+
+}
+
+/* ----------------------------------------------------------------------
+   check if grid point is local
+------------------------------------------------------------------------- */
+
+int ComputeGrid::check_local(int igrid)
+{
+  double x[3];
+
+  int iz = igrid / (nx*ny);
+  igrid -= iz * (nx*ny);
+  int iy = igrid / nx;
+  igrid -= iy * nx;
+  int ix = igrid;
+
+  x[0] = ix*delx;
+  x[1] = iy*dely;
+  x[2] = iz*delz;
+
+  int islocal = 
+    x[0] >= sublo[0] && x[0] < subhi[0] &&
+    x[1] >= sublo[1] && x[1] < subhi[1] &&
+    x[2] >= sublo[2] && x[2] < subhi[2];
+
+  return islocal;
+}
+
+/* ----------------------------------------------------------------------
+   copy coords to global array
+------------------------------------------------------------------------- */
+
+void ComputeGrid::assign_coords()
+{
+  double x[3];
+  for (int igrid = 0; igrid < ngrid; igrid++) {
+    grid2x(igrid,x);
+    grid[igrid][0] = x[0];
+    grid[igrid][1] = x[1];
+    grid[igrid][2] = x[2];
+  }
+}
+
+/* ----------------------------------------------------------------------
+   copy coords to global array
+------------------------------------------------------------------------- */
+
+void ComputeGrid::assign_local_flags()
+{
+  double x[3];
+  for (int igrid = 0; igrid < ngrid; igrid++) {
+    if (check_local(igrid))
+      local_flags[igrid] = 1;
+    else {
+      local_flags[igrid] = 0;
+      memset(grid[igrid],0,size_array_cols);
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   free and reallocate arrays
+------------------------------------------------------------------------- */
+
+void ComputeGrid::allocate()
+{
+  // allocate arrays
+
+  memory->destroy(grid);
+  memory->destroy(local_flags);
+  memory->destroy4d_offset(gridlocal,nzlo,nylo,nxlo);
+  memory->create(grid,size_array_rows,size_array_cols,"grid:grid");
+  memory->create(gridall,size_array_rows,size_array_cols,"grid:gridall");
+  memory->create(local_flags,size_array_rows,"grid:local_flags");
+  memory->create4d_offset(gridlocal,size_array_cols,nzlo,nzhi,nylo,nyhi,
+                          nxlo,nxhi,"grid:gridlocal");
+  array = gridall;
+}
+
+
+/* ----------------------------------------------------------------------
+   set global grid
+------------------------------------------------------------------------- */
+
+void ComputeGrid::set_grid_global()
+{
  // calculate grid layout
 
   triclinic = domain->triclinic;
@@ -100,105 +213,31 @@ void ComputeGrid::setup()
   delx = 1.0/delxinv;
   dely = 1.0/delyinv;
   delz = 1.0/delzinv;
-
-  allocate();
-  assign_grid_coords();
-  assign_grid_local();
 }
 
 /* ----------------------------------------------------------------------
-   convert global array index to box coords
+   set local subset of grid that I own
+   n xyz lo/hi = 3d brick that I own (inclusive)
 ------------------------------------------------------------------------- */
 
-void ComputeGrid::grid2x(int igrid, double *x)
+void ComputeGrid::set_grid_local()
 {
-  int iz = igrid / (nx*ny);
-  igrid -= iz * (nx*ny);
-  int iy = igrid / nx;
-  igrid -= iy * nx;
-  int ix = igrid;
+  // global indices of grid range from 0 to N-1
+  // nlo,nhi = lower/upper limits of the 3d sub-brick of
+  //   global grid that I own without ghost cells
 
-  x[0] = ix*delx;
-  x[1] = iy*dely;
-  x[2] = iz*delz;
+  nxlo = static_cast<int> (comm->xsplit[comm->myloc[0]] * nx);
+  nxhi = static_cast<int> (comm->xsplit[comm->myloc[0]+1] * nx) - 1;
 
-  if (triclinic) domain->lamda2x(x, x);
+  nylo = static_cast<int> (comm->ysplit[comm->myloc[1]] * ny);
+  nyhi = static_cast<int> (comm->ysplit[comm->myloc[1]+1] * ny) - 1;
 
+  nzlo = static_cast<int> (comm->zsplit[comm->myloc[2]] * nz);
+  nzhi = static_cast<int> (comm->zsplit[comm->myloc[2]+1] * nz) - 1;
+
+  ngridlocal = (nxhi - nxlo + 1) * (nyhi - nylo + 1) * (nzhi - nzlo + 1);
 }
 
-/* ----------------------------------------------------------------------
-   check if grid point is local
-------------------------------------------------------------------------- */
-
-int ComputeGrid::check_grid_local(int igrid)
-{
-  double x[3];
-
-  int iz = igrid / (nx*ny);
-  igrid -= iz * (nx*ny);
-  int iy = igrid / nx;
-  igrid -= iy * nx;
-  int ix = igrid;
-
-  x[0] = ix*delx;
-  x[1] = iy*dely;
-  x[2] = iz*delz;
-
-  int islocal = 
-    x[0] >= sublo[0] && x[0] < subhi[0] &&
-    x[1] >= sublo[1] && x[1] < subhi[1] &&
-    x[2] >= sublo[2] && x[2] < subhi[2];
-
-  return islocal;
-}
-
-/* ----------------------------------------------------------------------
-   copy coords to global array
-------------------------------------------------------------------------- */
-
-void ComputeGrid::assign_grid_coords()
-{
-  double x[3];
-  for (int igrid = 0; igrid < ngrid; igrid++) {
-    grid2x(igrid,x);
-    grid[igrid][0] = x[0];
-    grid[igrid][1] = x[1];
-    grid[igrid][2] = x[2];
-  }
-}
-
-/* ----------------------------------------------------------------------
-   copy coords to global array
-------------------------------------------------------------------------- */
-
-void ComputeGrid::assign_grid_local()
-{
-  double x[3];
-  for (int igrid = 0; igrid < ngrid; igrid++) {
-    if (check_grid_local(igrid))
-      grid_local[igrid] = 1;
-    else {
-      grid_local[igrid] = 0;
-      memset(grid[igrid],0,size_array_cols);
-    }
-  }
-}
-
-/* ----------------------------------------------------------------------
-   free and reallocate arrays
-------------------------------------------------------------------------- */
-
-void ComputeGrid::allocate()
-{
-  // grow global array if necessary
-
-  memory->destroy(grid);
-  memory->destroy(grid_local);
-  memory->create(grid,size_array_rows,size_array_cols,"grid:grid");
-  memory->create(gridall,size_array_rows,size_array_cols,"grid:gridall");
-  memory->create(grid_local,size_array_rows,"grid:grid_local");
-  array = gridall;
-}
 /* ----------------------------------------------------------------------
    memory usage of local data
 ------------------------------------------------------------------------- */
@@ -207,6 +246,7 @@ double ComputeGrid::memory_usage()
 {
   double nbytes = size_array_rows*size_array_cols * 
     sizeof(double);                             // grid
-  nbytes += size_array_rows*sizeof(int); // grid_local
+  nbytes += size_array_rows*sizeof(int); // local_flags
+  nbytes += size_array_cols*ngridlocal*sizeof(double); // gridlocal
   return nbytes;
 }

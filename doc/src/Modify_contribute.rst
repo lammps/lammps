@@ -49,13 +49,11 @@ with gzip.  Please only use gzip compression, as this works well and is
 available on all platforms.
 
 If the new features/files are broadly useful we may add them as core
-files to LAMMPS or as part of a :doc:`standard package <Packages_standard>`.  Else we will add them as a
-user-contributed file or :doc:`user package <Packages_user>`.  Examples
-of user packages are in src sub-directories that start with USER.  The
+files to LAMMPS or as part of a :doc:`package <Packages_list>`.  The
 USER-MISC package is simply a collection of (mostly) unrelated single
-files, which is the simplest way to have your contribution quickly
-added to the LAMMPS distribution.  All the standard and user packages
-are listed and described on the :doc:`Packages details <Packages_details>` doc page.
+files, which is the simplest way to have your contribution quickly added
+to the LAMMPS distribution.  All packages are listed and described
+on the :doc:`Packages details <Packages_details>` doc page.
 
 Note that by providing us files to release, you are agreeing to make
 them open-source, i.e. we can release them under the terms of the GPL
@@ -65,27 +63,19 @@ on request only and with files that are authorized for that kind of
 distribution removed (e.g. interface to FFTW).  See the
 :doc:`LAMMPS license <Intro_opensource>` doc page for details.
 
-With user packages and files, all we are really providing (aside from
-the fame and fortune that accompanies having your name in the source
-code and on the `Authors page <https://www.lammps.org/authors.html>`_
-of the `LAMMPS WWW site <lws_>`_), is a means for you to distribute your
-work to the LAMMPS user community, and a mechanism for others to
-easily try out your new feature.  This may help you find bugs or make
-contact with new collaborators.  Note that you're also implicitly
-agreeing to support your code which means answer questions, fix bugs,
-and maintain it if LAMMPS changes in some way that breaks it (an
-unusual event).
-
 .. note::
 
-   If you prefer to actively develop and support your add-on
-   feature yourself, then you may wish to make it available for download
-   from your own website, as a user package that LAMMPS users can add to
-   their copy of LAMMPS.  See the `Offsite LAMMPS packages and tools <https://www.lammps.org/offsite.html>`_ page of the LAMMPS web
-   site for examples of groups that do this.  We are happy to advertise
-   your package and web site from that page.  Simply email the
-   `developers <https://www.lammps.org/authors.html>`_ with info about
-   your package and we will post it there.
+   If you prefer to actively develop and support your add-on feature
+   yourself, then you may wish to make it available for download from
+   your own website, as a user package that LAMMPS users can add to
+   their copy of LAMMPS.  See the `Offsite LAMMPS packages and tools
+   <https://www.lammps.org/offsite.html>`_ page of the LAMMPS web site
+   for examples of groups that do this.  We are happy to advertise your
+   package and web site from that page.  Simply email the `developers
+   <https://www.lammps.org/authors.html>`_ with info about your package
+   and we will post it there.  We recommend to name external packages
+   USER-\<name\> so they can be easily distinguished from bundled packages
+   that do not have the USER- prefix.
 
 .. _lws: https://www.lammps.org
 
@@ -167,17 +157,20 @@ packages in the src directory for examples. If you are uncertain, please ask.
   2 source files.  You can do this multiple times if you wish to
   contribute several individual features.
 
-* If you want your contribution to be added as a user-contribution and
-  it is several related features, it is probably best to make it a user
-  package directory with a name like USER-FOO.  In addition to your new
-  files, the directory should contain a README text file.  The README
-  should contain your name and contact information and a brief
+* If you want your contribution to be added and it has several related
+  features or is dependent on an external or bundled library, it is best
+  to make it a package directory with a name like FOO.  In addition to
+  your new files, the directory should contain a README text file.  The
+  README should contain your name and contact information and a brief
   description of what your new package does.  If your files depend on
   other LAMMPS style files also being installed (e.g. because your file
   is a derived class from the other LAMMPS class), then an Install.sh
   file is also needed to check for those dependencies.  See other README
-  and Install.sh files in other USER directories as examples.  Send us a
-  tarball of this USER-FOO directory.
+  and Install.sh files in other directories as examples.  Submit a pull
+  request on GitHub or send us a tarball of this FOO directory.  Pull
+  requests are strongly encouraged since the greatly reduce the effort
+  to integrate a contribution and simplify the process of adjusting the
+  contributed code to cleanly integrate into the LAMMPS distribution.
 
 * Your new source files need to have the LAMMPS copyright, GPL notice,
   and your name and email address at the top, like other
@@ -190,21 +183,21 @@ packages in the src directory for examples. If you are uncertain, please ask.
   code.
 
 * You **must** also create a **documentation** file for each new command
-  or style you are adding to LAMMPS. For simplicity and convenience, the
-  documentation of groups of closely related commands or styles may be
-  combined into a single file.  This will be one file for a single-file
-  feature.  For a package, it might be several files.  These are text
-  files with a .rst extension using the `reStructuredText <rst_>`_
-  markup language, that are then converted to HTML and PDF using the
-  `Sphinx <sphinx_>`_ documentation generator tool.  Running Sphinx with
-  the included configuration requires Python 3.x.  Configuration
-  settings and custom extensions for this conversion are included in the
-  source distribution, and missing python packages will be transparently
-  downloaded into a virtual environment via pip. Thus, if your local
-  system is missing required packages, you need access to the
-  internet. The translation can be as simple as doing "make html pdf" in
-  the doc folder.  As appropriate, the text files can include inline
-  mathematical expression or figures (see doc/JPG for examples).
+  or style you are adding to LAMMPS.  For simplicity and convenience,
+  the documentation of groups of closely related commands or styles may
+  be combined into a single file.  This will be one file for a
+  single-file feature.  For a package, it might be several files.  These
+  are text files with a .rst extension using the `reStructuredText
+  <rst_>`_ markup language, that are then converted to HTML and PDF
+  using the `Sphinx <sphinx_>`_ documentation generator tool.  Running
+  Sphinx with the included configuration requires Python 3.x.
+  Configuration settings and custom extensions for this conversion are
+  included in the source distribution, and missing python packages will
+  be transparently downloaded into a virtual environment via pip. Thus,
+  if your local system is missing required packages, you need access to
+  the internet. The translation can be as simple as doing "make html
+  pdf" in the doc folder.  As appropriate, the text files can include
+  inline mathematical expression or figures (see doc/JPG for examples).
   Additional PDF files with further details (see doc/PDF for examples)
   may also be included.  The doc page should also include literature
   citations as appropriate; see the bottom of doc/fix_nh.rst for
@@ -212,21 +205,21 @@ packages in the src directory for examples. If you are uncertain, please ask.
   cite itself.  Citation labels must be unique across all .rst files.
   The "Restrictions" section of the doc page should indicate if your
   command is only available if LAMMPS is built with the appropriate
-  USER-MISC or USER-FOO package.  See other user package doc files for
-  examples of how to do this.  Please run at least "make html" and "make
-  spelling" and carefully inspect and proofread the resulting HTML
-  format doc page before submitting your code.  Upon submission of a
-  pull request, checks for error free completion of the HTML and PDF
-  build will be performed and also a spell check, a check for correct
-  anchors and labels, and a check for completeness of references all
-  styles in their corresponding tables and lists is run.  In case the
-  spell check reports false positives they can be added to the file
+  USER-MISC or FOO package.  See other package doc files for examples of
+  how to do this.  Please run at least "make html" and "make spelling"
+  and carefully inspect and proofread the resulting HTML format doc page
+  before submitting your code.  Upon submission of a pull request,
+  checks for error free completion of the HTML and PDF build will be
+  performed and also a spell check, a check for correct anchors and
+  labels, and a check for completeness of references all styles in their
+  corresponding tables and lists is run.  In case the spell check
+  reports false positives they can be added to the file
   doc/utils/sphinx-config/false_positives.txt
 
 * For a new package (or even a single command) you should include one or
   more example scripts demonstrating its use.  These should run in no
   more than a couple minutes, even on a single processor, and not require
-  large data files as input.  See directories under examples/USER for
+  large data files as input.  See directories under examples/PACKAGES for
   examples of input scripts other users provided for their packages.
   These example inputs are also required for validating memory accesses
   and testing for memory leaks with valgrind
@@ -234,7 +227,7 @@ packages in the src directory for examples. If you are uncertain, please ask.
 * If there is a paper of yours describing your feature (either the
   algorithm/science behind the feature itself, or its initial usage, or
   its implementation in LAMMPS), you can add the citation to the \*.cpp
-  source file.  See src/USER-EFF/atom_vec_electron.cpp for an example.
+  source file.  See src/EFF/atom_vec_electron.cpp for an example.
   A LaTeX citation is stored in a variable at the top of the file and
   a single line of code registering this variable is added to the
   constructor of the class.  If there is additional functionality (which

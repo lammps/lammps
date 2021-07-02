@@ -246,7 +246,7 @@ class Pair : protected Pointers {
     float f;
   } union_int_float_t;
 
-  // Accessor for the user-intel package to determine virial calc for hybrid
+  // Accessor for the INTEL package to determine virial calc for hybrid
 
   inline int fdotr_is_set() const { return vflag_fdotr; }
 

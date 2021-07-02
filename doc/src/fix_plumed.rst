@@ -44,7 +44,7 @@ in the PLUMED source code.  The PLUMED library development is hosted at
 A detailed discussion of the code can be found in :ref:`(PLUMED) <PLUMED>`.
 
 There is an example input for using this package with LAMMPS in the
-examples/USER/plumed directory.
+examples/PACKAGES/plumed directory.
 
 ----------
 
@@ -113,7 +113,7 @@ are native to PLUMED.
 Restrictions
 """"""""""""
 
-This fix is part of the USER-PLUMED package.  It is only enabled if
+This fix is part of the PLUMED package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package
 <Build_package>` doc page for more info.
 

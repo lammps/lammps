@@ -923,7 +923,7 @@ again:
     }
 
     // if 2nd keyword (after pair) is compute/tally:
-    // set flag to register USER-TALLY computes accordingly
+    // set flag to register TALLY computes accordingly
 
     if (iarg < narg && strcmp(arg[iarg],"compute/tally") == 0) {
       if (narg < iarg+2)

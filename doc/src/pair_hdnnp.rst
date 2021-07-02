@@ -188,7 +188,7 @@ keywords.
 Restrictions
 """"""""""""
 
-This pair style is part of the USER-HDNNP package.  It is only enabled if LAMMPS
+This pair style is part of the ML-HDNNP package.  It is only enabled if LAMMPS
 was built with that package.  See the :doc:`Build package <Build_package>` doc
 page for more info.
 

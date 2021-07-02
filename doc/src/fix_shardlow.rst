@@ -49,7 +49,7 @@ under isobaric conditions can be specified by using fix shardlow, fix
 *nph* and pair_style *dpd/fdt*\ .  DPD under isoenthalpic conditions can
 be specified by using fix shardlow, fix *nph* and pair_style
 *dpd/fdt/energy*\ .  Examples of each DPD variant are provided in the
-examples/USER/dpd directory.
+examples/PACKAGES/dpd-react directory.
 
 ----------
 
@@ -60,7 +60,7 @@ examples/USER/dpd directory.
 Restrictions
 """"""""""""
 
-This command is part of the USER-DPD package.  It is only enabled if
+This command is part of the DPD-REACT package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 This fix is currently limited to orthogonal simulation cell

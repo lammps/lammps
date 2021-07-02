@@ -38,7 +38,7 @@ NBinStandard::NBinStandard(LAMMPS *lmp) : NBin(lmp) {}
 void NBinStandard::bin_atoms_setup(int nall)
 {
   // binhead = per-bin vector, mbins in length
-  // add 1 bin for USER-INTEL package
+  // add 1 bin for INTEL package
 
   if (mbins > maxbin) {
     maxbin = mbins;

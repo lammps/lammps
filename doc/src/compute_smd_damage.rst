@@ -40,7 +40,7 @@ The per-particle values are dimensionless an in the range of zero to one.
 Restrictions
 """"""""""""
 
-This compute is part of the USER-SMD package.  It is only enabled if
+This compute is part of the MACHDYN package.  It is only enabled if
 LAMMPS was built with that package.  See the "Build
 
 Related commands

@@ -1,4 +1,4 @@
-# Demonstrate bispectrum computes
+# Demonstrate bispectrum computes for triclinic cell
 
 # This triclinic cell has 6 times the volume of a single bcc cube
 # and contains 12 atoms.  It is a 3x2x1 supercell

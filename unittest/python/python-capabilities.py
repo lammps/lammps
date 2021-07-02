@@ -165,6 +165,13 @@ class PythonCapabilities(unittest.TestCase):
             if self.cmake_cache['GPU_PREC'].lower() == 'single':
                  self.assertIn('single',settings['GPU']['precision'])
 
+        if self.cmake_cache['PKG_KOKKOS']:
+            if self.cmake_cache['Kokkos_ENABLE_OPENMP']:
+                self.assertIn('openmp',settings['KOKKOS']['api'])
+            if self.cmake_cache['Kokkos_ENABLE_SERIAL']:
+                self.assertIn('serial',settings['KOKKOS']['api'])
+            self.assertIn('double',settings['KOKKOS']['precision'])
+
     def test_gpu_device(self):
 
         info = self.lmp.get_gpu_device_info()

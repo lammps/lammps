@@ -460,10 +460,16 @@ class lammps(object):
   # -------------------------------------------------------------------------
 
   def finalize(self):
-    """Shut down the MPI communication through the library interface by calling :cpp:func:`lammps_finalize`.
+    """Shut down the MPI communication and Kokkos environment (if active) through the
+       library interface by  calling :cpp:func:`lammps_mpi_finalize` and
+       :cpp:func:`lammps_kokkos_finalize`.
+
+       You cannot create or use any LAMMPS instances after this function is called
+       unless LAMMPS was compiled without MPI and without Kokkos support.
     """
     self.close()
-    self.lib.lammps_finalize()
+    self.lib.lammps_kokkos_finalize()
+    self.lib.lammps_mpi_finalize()
 
   # -------------------------------------------------------------------------
 

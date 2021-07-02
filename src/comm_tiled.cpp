@@ -56,6 +56,7 @@ CommTiled::CommTiled(LAMMPS *lmp) : Comm(lmp)
   rcbinfo = nullptr;
   cutghostmulti = nullptr;
   cutghostmultiold = nullptr;
+  comm_style = (const char *)"tiled";
   init_buffers();
 }
 

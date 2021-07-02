@@ -63,6 +63,7 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
   ncollections_cutoff = 0;
   ghost_velocity = 0;
 
+  comm_style = NULL;
   user_procgrid[0] = user_procgrid[1] = user_procgrid[2] = 0;
   coregrid[0] = coregrid[1] = coregrid[2] = 1;
   gridflag = ONELEVEL;
@@ -160,6 +161,8 @@ void Comm::copy_arrays(Comm *oldcomm)
     memory->create(cutusermultiold,atom->ntypes+1,"comm:cutusermultiold");
     memcpy(cutusermultiold,oldcomm->cutusermultiold,atom->ntypes+1);
   }
+  maxexchange_atom = oldcomm->maxexchange_atom;
+  maxexchange_fix = oldcomm->maxexchange_fix;
 
   if (customfile)
     customfile = utils::strdup(oldcomm->customfile);
@@ -1316,4 +1319,24 @@ void Comm::rendezvous_stats(int n, int nout, int nrvous, int nrvous_out,
                         1.0*size_comm_max/mbytes,1.0*size_comm_min/mbytes);
     utils::logmesg(lmp,mesg);
   }
+}
+
+/* ----------------------------------------------------------------------
+   called by other classes to increase maxexchange atom
+------------------------------------------------------------------------- */
+
+void Comm::increase_max_atom(int size){
+  if(size>maxexchange_atom) maxexchange_atom = size;
+  maxexchange = maxexchange_atom + maxexchange_fix;
+  bufextra = maxexchange + BUFEXTRA;
+}
+
+/* ----------------------------------------------------------------------
+   called by other classes to increase maxexchange fix
+------------------------------------------------------------------------- */
+
+void Comm::increase_max_fix(int size){
+  if(size>maxexchange_fix) maxexchange_fix = size;
+  maxexchange = maxexchange_atom + maxexchange_fix;
+  bufextra = maxexchange + BUFEXTRA;
 }

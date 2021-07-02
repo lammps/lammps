@@ -160,9 +160,11 @@ class Fix : protected Pointers {
   virtual void restart(char *) {}
 
   virtual void grow_arrays(int) {}
+  virtual void shrink_arrays(int) {}
   virtual void copy_arrays(int, int, int) {}
   virtual void set_arrays(int) {}
   virtual void update_arrays(int, int) {}
+  virtual void clear_arrays(int, size_t) {}
   virtual void set_molecule(int, tagint, int, double *, double *, double *);
   virtual void clear_bonus() {}
 

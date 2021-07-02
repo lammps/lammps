@@ -92,14 +92,15 @@ enum {COMPUTES=1<<0,
       REGION_STYLES=1<<23,
       DUMP_STYLES=1<<24,
       COMMAND_STYLES=1<<25,
-      ACCELERATOR=1<<26,
+      COMM_STYLES=1<<26,
+      ACCELERATOR=1<<27,
       ALL=~0};
 
 static const int STYLES = ATOM_STYLES | INTEGRATE_STYLES | MINIMIZE_STYLES
                         | PAIR_STYLES | BOND_STYLES | ANGLE_STYLES
                         | DIHEDRAL_STYLES | IMPROPER_STYLES | KSPACE_STYLES
                         | FIX_STYLES | COMPUTE_STYLES | REGION_STYLES
-                        | DUMP_STYLES | COMMAND_STYLES;
+                        | DUMP_STYLES | COMMAND_STYLES | COMM_STYLES;
 }
 
 using namespace LAMMPS_NS;
@@ -356,7 +357,7 @@ void Info::command(int narg, char **arg)
 
     fmt::print(out,"Comm style = {},  Comm layout = {}\n"
                "Communicate velocities for ghost atoms = {}\n",
-               commstyles[comm->style], commlayout[comm->layout],
+               comm->comm_style, commlayout[comm->layout],
                comm->ghost_velocity ? "yes" : "no");
 
     if (domain->box_exist) {
@@ -681,6 +682,7 @@ void Info::available_styles(FILE * out, int flags)
   fputs("\nStyles information:\n",out);
 
   if (flags & ATOM_STYLES)      atom_styles(out);
+  if (flags & COMM_STYLES)      comm_styles(out);
   if (flags & INTEGRATE_STYLES) integrate_styles(out);
   if (flags & MINIMIZE_STYLES)  minimize_styles(out);
   if (flags & PAIR_STYLES)      pair_styles(out);
@@ -794,6 +796,12 @@ void Info::command_styles(FILE *out)
   fputs("\n\n\n",out);
 }
 
+void Info::comm_styles(FILE * out)
+{
+  fprintf(out, "\nComm styles :\n");
+  print_columns(out, input->comm_map);
+  fprintf(out, "\n\n\n");
+}
 
 /* ---------------------------------------------------------------------- */
 

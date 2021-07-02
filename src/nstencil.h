@@ -34,6 +34,7 @@ class NStencil : protected Pointers {
   int ***stencil_multi;         // list of bin offsets in each multi stencil
   int **maxstencil_multi;       // max stencil size for each multi stencil
   int maxcollections;           // size of multi arrays
+  int post_create_flag;         // 1 if child stencil class implements post create methods
 
   int sx, sy, sz;            // extent of stencil in each dim
   int **stencil_sx_multi;    // analogs for each multi stencil
@@ -55,6 +56,8 @@ class NStencil : protected Pointers {
   double memory_usage();
 
   virtual void create() = 0;
+  virtual void post_create() {}
+  virtual void post_create_setup() {}
 
   inline int get_maxstencil() { return maxstencil; }
 

@@ -53,6 +53,7 @@ CommBrick::CommBrick(LAMMPS *lmp) :
   style = 0;
   layout = Comm::LAYOUT_UNIFORM;
   pbc_flag = nullptr;
+  comm_style = (const char*) "brick";
   init_buffers();
 }
 
@@ -91,9 +92,9 @@ CommBrick::CommBrick(LAMMPS * /*lmp*/, Comm *oldcomm) : Comm(*oldcomm)
 {
   if (oldcomm->layout == Comm::LAYOUT_TILED)
     error->all(FLERR,"Cannot change to comm_style brick from tiled layout");
-
   style = 0;
   layout = oldcomm->layout;
+  comm_style = (const char*) "brick";
   Comm::copy_arrays(oldcomm);
   init_buffers();
 }

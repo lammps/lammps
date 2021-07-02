@@ -32,6 +32,17 @@ Commands
    displace_atoms
    dump
    dump_adios
+   dump_cac_atom
+   dump_cac_atom_flux
+   dump_cac_initial_nodes
+   dump_cac_kinetic
+   dump_cac_nodal_positions
+   dump_cac_nodal_displacements
+   dump_cac_nodal_flux
+   dump_cac_nodal_velocities
+   dump_cac_nodal_virial
+   dump_cac_nodal_forces
+   dump_cac_xyz
    dump_cfg_uef
    dump_h5md
    dump_image
@@ -43,6 +54,7 @@ Commands
    echo
    fix
    fix_modify
+   full_quad_interface
    group
    group2ndx
    hyper
@@ -51,6 +63,7 @@ Commands
    improper_style
    include
    info
+   interface_quadrature
    jump
    kim_commands
    kspace_modify
@@ -92,6 +105,7 @@ Commands
    rerun
    reset_atom_ids
    reset_mol_ids
+   reset_initial_nodes
    reset_timestep
    restart
    run

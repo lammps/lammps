@@ -43,9 +43,10 @@ class NeighRequest : protected Pointers {
   // half/full setting, determines which neighbors appear in list
   // one flag is 1, other is 0
 
-  int half;    // half neigh list (set by default)
-  int full;    // full neigh list
-
+  int half;              // half neigh list (set by default)
+  int full;              // full neigh list
+  int cac;               // CAC style neighbor list
+  
   // attribute flags, all are 0 by default
 
   int occasional;    // how often list is built

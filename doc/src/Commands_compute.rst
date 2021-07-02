@@ -36,6 +36,10 @@ KOKKOS, o = USER-OMP, t = OPT.
    * :doc:`centroid/stress/atom <compute_stress_atom>`
    * :doc:`chunk/atom <compute_chunk_atom>`
    * :doc:`chunk/spread/atom <compute_chunk_spread_atom>`
+   * :doc:`cac/nodal/temp <compute_cac_nodal_temp>`
+   * :doc:`cac/ke <compute_cac_ke>`
+   * :doc:`cac/ke/atom <compute_cac_ke_atom>`
+   * :doc:`cac/quad/count <compute_cac_quad_count>`
    * :doc:`cluster/atom <compute_cluster_atom>`
    * :doc:`cna/atom <compute_cna_atom>`
    * :doc:`cnp/atom <compute_cnp_atom>`

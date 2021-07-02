@@ -37,6 +37,7 @@ NeighRequest::NeighRequest(LAMMPS *lmp) : Pointers(lmp)
 
   half = 1;
   full = 0;
+  cac = 0;
 
   // attribute flags, multiple can be set to 1
   // default is every reneighboring, not occasional
@@ -199,7 +200,8 @@ void NeighRequest::copy_request(NeighRequest *other, int skipflag)
 
   half = other->half;
   full = other->full;
-
+  cac = other->cac;
+  
   occasional = other->occasional;
   newton = other->newton;
   ghost = other->ghost;

@@ -122,6 +122,33 @@ class Atom : protected Pointers {
   double **cs, **csforce, **vforce;
   int *etag;
 
+  //USER-CAC package
+   
+  int nodes_per_element, maxpoly, words_per_node; //maximum number of nodes and atoms per unit cell per element in model
+	// followed by number of words per node in a data file and the number of pure atoms in the CAC model
+
+  double **node_charges, ****nodal_positions, ****nodal_velocities, ****nodal_forces, ****nodal_fluxes,
+	  ****nodal_gradients, ****initial_nodal_positions, **eboxes, **foreign_eboxes,
+    ****nodal_virial, ***inner_quad_lists_ucell, ***outer_quad_lists_ucell, ***add_quad_lists_ucell, **quadrature_point_data,
+    **interior_scales, cut_add, box_center[3], box_size[3];
+
+  int *poly_count, **node_types,  *element_type, max_quad_per_element,
+	  **element_scale, *nodes_per_element_list, bin_foreign, CAC_comm_flag, 
+    initial_size, neboxes, local_neboxes, nforeign_eboxes, *ebox_ref, **list_container,
+    neigh_weight_flag, **neighbor_weights, quadrature_node_count, *e2quad_index,
+    ***inner_quad_lists_index, *inner_quad_lists_counts, ***outer_quad_lists_index, ***add_quad_lists_index,
+    *outer_quad_lists_counts, *add_quad_lists_counts, quadrature_point_max, quadrature_poly_max, *quadrature_counts, **surface_counts,
+    max_neigh_outer_init, max_neigh_inner_init, *inner_quad_neigh_maxes, *outer_quad_neigh_maxes, *add_quad_neigh_maxes, interface_quadrature;
+
+  int one_layer_flag, weight_count,CAC_pair_flag, element_type_count,
+    outer_neigh_flag, ghost_quad_flag, sector_flag, full_quad_flag, cac_flux_flag, flux_compute;
+  double max_search_range;              //currently used by comm style to determine communication overlap range
+  char **element_names;                 //stores names for element types
+  double *min_x, *min_v, *min_f;        //used by CAC min styles
+  int dense_count;                      //used when minimizing with CAC styles
+  int CAC_virial;                       //1 if the virial calculation is requested; 0 otherwise.
+  class NPairCAC *npair_cac;            //invoked by some CAC pair styles to allocate quadrature point level arrays
+
   // USER-DPD package
 
   double *uCond, *uMech, *uChem, *uCGnew, *uCG;
@@ -187,6 +214,10 @@ class Atom : protected Pointers {
 
   int sp_flag;
 
+  // USER-CAC package
+
+  int CAC_flag;
+
   // USER-SMD package
 
   int x0_flag;
@@ -243,10 +274,9 @@ class Atom : protected Pointers {
 
   // callback ptrs for atom arrays managed by fix classes
 
-  int nextra_grow, nextra_restart, nextra_border;    // # of callbacks of each type
-  int *extra_grow, *extra_restart, *extra_border;    // index of fix to callback to
-  int nextra_grow_max, nextra_restart_max;           // size of callback lists
-  int nextra_border_max;
+  int nextra_grow, nextra_restart, nextra_border, nextra_clear;  // # of callbacks of each type
+  int *extra_grow, *extra_restart, *extra_border, *extra_clear;  // index of fix to callback to
+  int nextra_grow_max, nextra_restart_max, nextra_border_max, nextra_clear_max;  // size of callback lists
   int nextra_store;
 
   int map_style;                    // style of atom map: 0=none, 1=array, 2=hash
@@ -306,8 +336,9 @@ class Atom : protected Pointers {
   void data_angles(int, char *, int *, tagint, int);
   void data_dihedrals(int, char *, int *, tagint, int);
   void data_impropers(int, char *, int *, tagint, int);
-  void data_bonus(int, char *, AtomVec *, tagint);
-  void data_bodies(int, char *, AtomVec *, tagint);
+  void data_bonus(int, char *, class AtomVec *, tagint);
+  void data_bodies(int, char *, class AtomVec *, tagint);
+  void data_CAC(int, char *, tagint, int, int, double *);
   void data_fix_compute_variable(int, int);
 
   virtual void allocate_type_arrays();
@@ -572,6 +603,38 @@ E: Too many atom sorting bins
 
 This is likely due to an immense simulation box that has blown up
 to a large size.
+
+E: Incorrect element header line format in data file
+
+USER-CAC package error. One of your element inputs has the
+wrong format for its header line. See the documentation for 
+format and syntax and check your data file.
+
+E: Incorrect element header line format in data file
+
+USER-CAC package error. One of your element inputs has the
+wrong format for its header line. See the documentation for 
+format and syntax and check your data file.
+
+E: Incorrect node line format for this CAC atom style
+
+USER-CAC package error. One of your element inputs has the
+wrong format for its node lines. Specifically the number of
+entries is incorrect for some reason; perhaps the atom substyle
+is not the correct one for your data file or you missed lines
+for the previously read element.
+
+E: poly_count less than one in data file
+
+Self-explanatory. USER-CAC package related.
+
+E: negative element scale in data file
+
+Self-explanatory. USER-CAC package related.
+
+E: element type not yet defined, add definition in define_elements function of atom_vec_CAC.cpp style
+
+Self-explanatory. Contact the author for help if encountering issues in defining new elements.
 
 U: Cannot set mass for this atom style
 

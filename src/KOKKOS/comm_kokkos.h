@@ -12,6 +12,12 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#ifdef COMM_CLASS
+
+CommStyle(brick/kk,CommKokkos)
+
+#else
+
 #ifndef LMP_COMM_KOKKOS_H
 #define LMP_COMM_KOKKOS_H
 
@@ -34,7 +40,9 @@ class CommKokkos : public CommBrick {
   bool reverse_comm_on_host;
 
   CommKokkos(class LAMMPS *);
+  CommKokkos(class LAMMPS *, class Comm *); 
   ~CommKokkos();
+
   void init();
 
   void forward_comm(int dummy = 0);    // forward comm of atom coords
@@ -94,6 +102,7 @@ class CommKokkos : public CommBrick {
 
 }
 
+#endif
 #endif
 
 /* ERROR/WARNING messages:

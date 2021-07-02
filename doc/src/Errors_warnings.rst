@@ -104,6 +104,9 @@ Doc page with :doc:`ERROR messages <Errors_messages>`
 *Cannot include log terms without 1/r terms; setting flagHI to 1.*
    Self-explanatory.
 
+*Cannot use cac styles with newton on; newton being turned off*
+   Self-explanatory.
+
 *Charges are set, but coulombic solver is not used*
    Self-explanatory.
 
@@ -434,6 +437,10 @@ This will most likely cause errors in kinetic fluctuations.
 *Molecule template for fix shake has multiple molecules*
    The fix shake command will only recognize molecules of a single
    type, i.e. the first molecule in the template.
+
+*More than one compute cac/quad/count*
+   It is redundant to define more than one of these computes given
+   their use in tandem with fix balance to load balance models.
 
 *More than one compute centro/atom*
    It is not efficient to use compute centro/atom more than once.

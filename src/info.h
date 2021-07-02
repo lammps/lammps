@@ -77,6 +77,7 @@ class Info : public Command {
   void region_styles(FILE *out);
   void dump_styles(FILE *out);
   void command_styles(FILE *out);
+  void comm_styles(FILE * out);
 };
 
 }    // namespace LAMMPS_NS

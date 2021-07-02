@@ -27,6 +27,7 @@ class Comm : protected Pointers {
   enum { LAYOUT_UNIFORM, LAYOUT_NONUNIFORM, LAYOUT_TILED };
   int mode;    // 0 = single cutoff, 1 = multi-collection cutoff, 2 = multiold-type cutoff
   enum { SINGLE, MULTI, MULTIOLD };
+  const char *comm_style;       //name of the comm style
 
   int me, nprocs;               // proc info
   int ghost_velocity;           // 1 if ghost atoms have velocity, 0 if not
@@ -60,6 +61,9 @@ class Comm : protected Pointers {
   double rcbcutfrac;       // fractional RCB cut by this proc
   int rcbcutdim;           // dimension of RCB cut
 
+  class NBin *bin_pointer;                //used to invoke possible binning for comm substyles
+  class NStencil *stencil_pointer;        //used for possible binning in comm substyle
+
   // methods
 
   Comm(class LAMMPS *);
@@ -80,7 +84,7 @@ class Comm : protected Pointers {
   virtual void exchange() = 0;                     // move atoms to new procs
   virtual void borders() = 0;                      // setup list of atoms to comm
 
-  // forward/reverse comm from a Pair, Fix, Compute, Dump
+  // forward/reverse comm from a Pair, Fix, Compute, Dump, NPair
 
   virtual void forward_comm_pair(class Pair *) = 0;
   virtual void reverse_comm_pair(class Pair *) = 0;
@@ -91,6 +95,8 @@ class Comm : protected Pointers {
   virtual void reverse_comm_compute(class Compute *) = 0;
   virtual void forward_comm_dump(class Dump *) = 0;
   virtual void reverse_comm_dump(class Dump *) = 0;
+  virtual void forward_comm_npair(class NPair *, int size){}
+  virtual void reverse_comm_npair(class Npair *, int size){}
 
   // forward comm of an array
   // exchange of info on neigh stencil
@@ -118,6 +124,10 @@ class Comm : protected Pointers {
 
   // extract data useful to other classes
   virtual void *extract(const char *, int &) { return nullptr; }
+
+  //called to increase the size of bufextra by altering maxexchange variables
+  void increase_max_atom(int);
+  void increase_max_fix(int);
 
  protected:
   int bordergroup;    // only communicate this group in borders

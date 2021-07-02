@@ -40,8 +40,6 @@ Thumbs.db
 .lammps_history
 
 #cmake
-/example
-/doc
 /build*
 /CMakeCache.txt
 /CMakeFiles/

@@ -31,9 +31,7 @@ where
 * epsilon = the local epsilon value at the vertex or at the ion.
   For real charges, epsilon is the medium dielectric constant, 
   and q is the real (unscaled) charges.
-  For interface particles:
-    + if q is zero (zero surface charges), epsilon is set to be 1.0;
-    + if q is nonzero (charged surfaces), epsilon is set to be em
+  For interface particles, epsilon is set to be em
     (the mean dielectric value above).
 
 * area_per_patch: the surface area of the patch (element).

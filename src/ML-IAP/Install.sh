@@ -34,11 +34,14 @@ if (test $1 = 1 || test $1 = 2) then
   fi
 fi
 
-# all package files with no dependencies
+# all package C++ files with no dependencies
 
-for file in *.cpp *.h *.pyx; do
+for file in *.cpp *.h; do
   test -f ${file} && action $file
 done
+
+# Install cython pyx file only if also Python is available
+action mliap_model_python_couple.pyx python_impl.cpp
 
 # edit 2 Makefile.package files to include/exclude package info
 

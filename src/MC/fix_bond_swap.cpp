@@ -148,7 +148,8 @@ void FixBondSwap::init()
     error->all(FLERR,"Pair style does not support fix bond/swap");
 
   if (force->angle == nullptr && atom->nangles > 0 && comm->me == 0)
-    error->warning(FLERR,"Fix bond/swap will ignore defined angles");
+    error->warning(FLERR,"Fix bond/swap will not preserve correct angle "
+                   "topology because no angle_style is defined");
 
   if (force->dihedral || force->improper)
     error->all(FLERR,"Fix bond/swap cannot use dihedral or improper styles");
@@ -255,12 +256,18 @@ void FixBondSwap::post_integrate()
   }
 
   // examine ntest of my eligible atoms for potential swaps
-  // atom i is randomly selected via atom list
-  // look at all j neighbors of atom i
-  // atom j must be on-processor (j < nlocal)
-  // atom j must be in fix group
-  // i and j must be same distance from chain end (mol[i] = mol[j])
-  // NOTE: must use extra parens in if test on mask[j] & groupbit
+  // atom I is randomly selected via atom list
+  // look at all J neighbors of atom I
+  // J must be on-processor (J < nlocal)
+  // I,J must be in fix group
+  // I,J must have same molecule IDs
+  //   use case 1:
+  //     if user defines mol IDs appropriately for linear chains,
+  //     this will mean they are same distance from (either) chain end
+  //   use case 2:
+  //     if user defines a unique mol ID for desired bond sites (on any chain)
+  //     and defines the fix group for these sites,
+  //     this will mean they are eligible bond sites
 
   int ntest = static_cast<int> (fraction * neligible);
   int accept = 0;
@@ -277,23 +284,28 @@ void FixBondSwap::post_integrate()
       if ((mask[j] & groupbit) == 0) continue;
       if (molecule[i] != molecule[j]) continue;
 
-      // look at all bond partners of atoms i and j
-      // use num_bond for this, not special list, so also find bondtypes
-      // inext,jnext = bonded atoms
+      // loop over all bond partners of atoms I and J
+      // use num_bond for this, not special list, so also have bondtypes
+      // inext,jnext = atoms bonded to I,J
       // inext,jnext must be on-processor (inext,jnext < nlocal)
-      // inext,jnext must be same dist from chain end (mol[inext] = mol[jnext])
-      // since swaps may occur between two ends of a single chain, insure
-      //   the 4 atoms are unique (no duplicates): inext != jnext, inext != j
+      // inext,jnext must be in fix group
+      // inext,jnext must have same molecule IDs
+      //   for use case 1 (above): this insures chain length is preserved
+      //   for use case 2: always satisfied b/c fix group = bond-able atoms
+      // 4 atoms must be unique (no duplicates): inext != jnext, inext != j
+      //   already know i != inext, j != jnext
       // all 4 old and new bonds must have length < cutoff
 
       for (ibond = 0; ibond < num_bond[i]; ibond++) {
         inext = atom->map(bond_atom[i][ibond]);
         if (inext >= nlocal || inext < 0) continue;
+        if ((mask[inext] & groupbit) == 0) continue;
         ibondtype = bond_type[i][ibond];
 
         for (jbond = 0; jbond < num_bond[j]; jbond++) {
           jnext = atom->map(bond_atom[j][jbond]);
           if (jnext >= nlocal || jnext < 0) continue;
+          if ((mask[jnext] & groupbit) == 0) continue;
           jbondtype = bond_type[j][jbond];
 
           if (molecule[inext] != molecule[jnext]) continue;
@@ -306,7 +318,7 @@ void FixBondSwap::post_integrate()
           // if angles are enabled:
           // find other atoms i,inext,j,jnext are in angles with
           //   and angletypes: i/j angletype, i/j nextangletype
-          // use num_angle for this, not special list, so also find angletypes
+          // use num_angle for this, not special list, so also have angletypes
           // 4 atoms consecutively along 1st chain: iprev,i,inext,ilast
           // 4 atoms consecutively along 2nd chain: jprev,j,jnext,jlast
           // prev or last atom can be non-existent at end of chain

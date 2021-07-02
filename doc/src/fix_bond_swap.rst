@@ -65,14 +65,19 @@ monomers for this timestep.  Choosing a small *fraction* value can
 reduce the likelihood of a reverse swap occurring soon after an
 initial swap.
 
-For each monomer A1, its neighbors are examined to find a possible B1
-monomer.  Both A1 and B1 must be in the fix group, their separation
-must be less than the specified *cutoff*\ , and the molecule IDs of A1
-and B1 must be the same (see below).  If a suitable partner is found,
-the energy change due to swapping the 2 bonds is computed.  This
-includes changes in pairwise, bond, and angle energies due to the
-altered connectivity of the 2 chains.  Dihedral and improper
-interactions are not allowed to be defined when this fix is used.
+NOTE: is cutoff applied to all new bonds?
+
+For each monomer A1, its neighbors are looped over as B1 monomers.
+All bond partners of both A1 and B1 are also looped over.  For a pair
+of A1-A2 and B1-B2 bonds to be eligible for swapping, these criteria
+must be met.  All 4 monomers must be in the fix group.  The separation
+between A1 and B1 must be less than the specified *cutoff*\ .  And the
+molecule IDs of A1 and B1 must be the same (see below).  If an
+eligible B1 partner is found, the energy change due to swapping the 2
+bonds is computed.  This includes changes in pairwise, bond, and angle
+energies due to the altered connectivity of the 2 chains.  Dihedral
+and improper interactions are not allowed to be defined when this fix
+is used.
 
 If the energy decreases due to the swap operation, the bond swap is
 accepted.  If the energy increases it is accepted with probability

@@ -29,9 +29,18 @@ Examples
 
 .. code-block:: LAMMPS
 
-   fix 2 all polarize/bem/gmres 5 0.0001
+   fix 2 interface polarize/bem/gmres 5 0.0001
    fix 1 interface polarize/bem/icc 1 0.0001
-   fix 3 all polarize/functional 1 0.001
+   fix 3 interface polarize/functional 1 0.001
+
+
+Used in input scripts:
+
+   .. parsed-literal::
+
+      examples/USER/dielectric/in.confined
+      examples/USER/dielectric/in.nopbc
+   
 
 Description
 """""""""""

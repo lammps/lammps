@@ -120,6 +120,12 @@ Examples
    kspace style scafacos fmm 1.0e-4
    kspace_style none
 
+Used in input scripts:
+
+   .. parsed-literal::
+
+      examples/peptide/in.peptide
+
 Description
 """""""""""
 

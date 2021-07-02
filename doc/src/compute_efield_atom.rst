@@ -21,6 +21,13 @@ Examples
    compute 1 all efield/atom
    compute 1 all efield/atom pair yes kspace no
 
+Used in input scripts:
+
+   .. parsed-literal::
+
+      examples/USER/dielectric/in.confined
+      examples/USER/dielectric/in.nopbc
+
 Description
 """""""""""
 

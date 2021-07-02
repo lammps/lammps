@@ -1437,6 +1437,8 @@ listing, "ls src/MISC", to see the list of commands.
 * src/MISC: filenames -> commands
 * :doc:`compute ti <compute_ti>`
 * :doc:`fix evaporate <fix_evaporate>`
+* :doc:`fix imd <fix_imd>`
+* :doc:`fix oneway <fix_oneway>`
 * :doc:`fix orient/fcc <fix_orient>`
 * :doc:`fix ttm <fix_ttm>`
 * :doc:`fix thermal/conductivity <fix_thermal_conductivity>`

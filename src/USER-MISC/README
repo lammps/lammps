@@ -60,7 +60,6 @@ fix filter/corotate, Lukas Fath (KIT), lukas.fath at kit.edu, 15 Mar 2017
 fix flow/gauss, Joel Eaves (CU Boulder), Joel.Eaves@Colorado.edu, 23 Aug 2016
 fix gle, Michele Ceriotti (EPFL Lausanne), michele.ceriotti at gmail.com, 24 Nov 2014
 fix grem, David Stelter, dstelter@bu.edu, 22 Nov 16
-fix imd, Axel Kohlmeyer, akohlmey at gmail.com, 9 Nov 2009
 fix ipi, Michele Ceriotti (EPFL Lausanne), michele.ceriotti at gmail.com, 24 Nov 2014
 fix momentum/chunk, Jiang Xiao (Hong Kong Polytechnic University), polyu-xiao.jiang at connect.polyu.hk, 19 Aug 2020
 fix npt/cauchy, R. E. Miller (Carleton University), F. Pavia and S. Pattamatta, 12 Jan 2020

@@ -91,6 +91,8 @@ Syntax
          accuracy = desired relative error in forces
        *pppm/dielectric* value = accuracy
          accuracy = desired relative error in forces
+       *pppm/disp/dielectric* value = accuracy
+         accuracy = desired relative error in forces
        *msm* value = accuracy
          accuracy = desired relative error in forces
        *msm/cg* value = accuracy (smallq)

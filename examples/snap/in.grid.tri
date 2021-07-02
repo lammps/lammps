@@ -1,6 +1,7 @@
 # Demonstrate bispectrum computes for triclinic cell
 
-# This triclinic cell has 6 times the volume of a single bcc cube
+# This triclinic cell has 6 times the volume of the single
+# unit cell used by in.grid
 # and contains 12 atoms.  It is a 3x2x1 supercell
 # with each unit cell containing 2 atoms and the
 # reduced lattice vectors are [1 0 0], [1 1 0], and [1 1 1].

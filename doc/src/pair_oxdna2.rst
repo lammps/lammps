@@ -103,9 +103,9 @@ and  :ref:`(Ouldridge) <Ouldridge2>` for a detailed description of the oxDNA2 fo
 .. note::
 
    These pair styles have to be used with the *atom_style hybrid bond ellipsoid oxdna*
-   (see documentation of :doc:`atom_style <atom_style>`). The *atom_style oxdna* 
-   stores the 3'-to-5' polarity of the nucleotide strand, which is set through 
-   the bond topology in the data file. The first (second) atom in a bond definition 
+   (see documentation of :doc:`atom_style <atom_style>`). The *atom_style oxdna*
+   stores the 3'-to-5' polarity of the nucleotide strand, which is set through
+   the bond topology in the data file. The first (second) atom in a bond definition
    is understood to point towards the 3'-end (5'-end) of the strand.
 
 Example input and data files for DNA duplexes can be found in examples/USER/cgdna/examples/oxDNA/ and /oxDNA2/.

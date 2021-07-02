@@ -59,7 +59,7 @@ void AtomVecOxdna::grow_pointers()
 
 /* ----------------------------------------------------------------------
    process bond information as per data file
-   store 5' partner to inform 3'->5' bond directionality 
+   store 5' partner to inform 3'->5' bond directionality
 ------------------------------------------------------------------------- */
 
 void AtomVecOxdna::data_bonds_post(int n, char *buf, tagint id_offset)

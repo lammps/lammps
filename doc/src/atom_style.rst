@@ -195,9 +195,9 @@ position, which is represented by the eradius = electron size.
 For the *peri* style, the particles are spherical and each stores a
 per-particle mass and volume.
 
-The *oxdna* style is for coarse-grained nucleotides and stores the 
-3'-to-5' polarity of the nucleotide strand, which is set through 
-the bond topology in the data file. The first (second) atom in a 
+The *oxdna* style is for coarse-grained nucleotides and stores the
+3'-to-5' polarity of the nucleotide strand, which is set through
+the bond topology in the data file. The first (second) atom in a
 bond definition is understood to point towards the 3'-end (5'-end)
 of the strand. Note that this style is part of the USER-CGDNA package.
 

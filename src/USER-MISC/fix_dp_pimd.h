@@ -13,21 +13,21 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(pimd4,FixPIMD4)
+FixStyle(dp_pimd,FixDPPimd)
 
 #else
 
-#ifndef FIX_PIMD4_H
-#define FIX_PIMD4_H
+#ifndef FIX_DP_PIMD_H
+#define FIX_DP_PIMD_H
 
 #include "fix.h"
 
 namespace LAMMPS_NS {
 
-class FixPIMD4 : public Fix {
+class FixDPPimd : public Fix {
  public:
-  FixPIMD4(class LAMMPS *, int, char **);
-  virtual ~FixPIMD4();
+  FixDPPimd(class LAMMPS *, int, char **);
+  virtual ~FixDPPimd();
 
   int setmask();
 

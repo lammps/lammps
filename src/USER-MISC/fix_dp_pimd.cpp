@@ -12,16 +12,14 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Package      FixPIMD4
-   Purpose      Quantum Path Integral Algorithm for Quantum Chemistry
-   Copyright    Voth Group @ University of Chicago
-   Authors      Chris Knight & Yuxing Peng (yuxing at uchicago.edu)
+   Package      FixDPPimd
+   Purpose      A Path Integral Molecular Dynamics Package developed by DeepModeling community
+   Authors      Yifan Li (mail_liyifan@163.com, yifanl@princeton.edu)
 
-   Updated      Oct-01-2011
-   Version      1.0
+   Updated      Jul-02-2021
 ------------------------------------------------------------------------- */
 
-#include "fix_pimd4.h"
+#include "fix_dp_pimd.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstring>
@@ -57,7 +55,7 @@ enum{MSTI, SCTI};
 
 /* ---------------------------------------------------------------------- */
 
-FixPIMD4::FixPIMD4(LAMMPS *lmp, int narg, char **arg) : 
+FixDPPimd::FixDPPimd(LAMMPS *lmp, int narg, char **arg) : 
   Fix(lmp, narg, arg),
   random(nullptr), c_pe(nullptr), c_press(nullptr)
 {
@@ -300,7 +298,7 @@ FixPIMD4::FixPIMD4(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-FixPIMD4::~FixPIMD4()
+FixDPPimd::~FixDPPimd()
 {
   delete _omega_k;
   delete baoab_c, baoab_s;
@@ -318,7 +316,7 @@ FixPIMD4::~FixPIMD4()
 
 /* ---------------------------------------------------------------------- */
 
-int FixPIMD4::setmask()
+int FixDPPimd::setmask()
 {
   int mask = 0;
   //mask |= PRE_EXCHANGE;
@@ -333,7 +331,7 @@ int FixPIMD4::setmask()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMD4::end_of_step()
+void FixDPPimd::end_of_step()
 {
   compute_totke();
   compute_vir();
@@ -358,7 +356,7 @@ void FixPIMD4::end_of_step()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMD4::init()
+void FixDPPimd::init()
 {
   if (atom->map_style == 0)
     error->all(FLERR,"Fix pimd requires an atom map, see atom_modify");
@@ -455,8 +453,8 @@ void FixPIMD4::init()
   if(universe->me==0) fprintf(screen, "Fix pimd successfully initialized!\n");
 }
 
-void FixPIMD4::setup_pre_force(int vflag)
-//void FixPIMD4::setup_pre_exchange()
+void FixDPPimd::setup_pre_force(int vflag)
+//void FixDPPimd::setup_pre_exchange()
 {
   //atom->x[0][0] = 0.0;
   //atom->x[0][1] = 0.0;
@@ -514,7 +512,7 @@ void FixPIMD4::setup_pre_force(int vflag)
   // if(universe->me==0)  printf("Fix pimd successfully initialized!\n");
 }
 
-void FixPIMD4::setup(int vflag)
+void FixDPPimd::setup(int vflag)
 {
     if(method==NMPIMD)
     {
@@ -541,7 +539,7 @@ void FixPIMD4::setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMD4::initial_integrate(int /*vflag*/)
+void FixDPPimd::initial_integrate(int /*vflag*/)
 {
     //if(method==NMPIMD)
     //{
@@ -600,7 +598,7 @@ void FixPIMD4::initial_integrate(int /*vflag*/)
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMD4::post_integrate()
+void FixDPPimd::post_integrate()
 {
   if(integrator==baoab)
   {
@@ -675,7 +673,7 @@ void FixPIMD4::post_integrate()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMD4::final_integrate()
+void FixDPPimd::final_integrate()
 {
   //fprintf(stdout, "starting final_i, image=%d, x=%.6e.\n", atom->image[0], atom->x[0][0]);
   if(integrator==baoab)
@@ -693,7 +691,7 @@ void FixPIMD4::final_integrate()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMD4::post_force(int /*flag*/)
+void FixDPPimd::post_force(int /*flag*/)
 {
   // unmap the atom coordinates and image flags so that the ring polymer is not wrapped
   int nlocal = atom->nlocal;
@@ -744,7 +742,7 @@ void FixPIMD4::post_force(int /*flag*/)
    Langevin thermostat, BAOAB integrator
 ------------------------------------------------------------------------- */
 
-void FixPIMD4::baoab_init()
+void FixDPPimd::baoab_init()
 {
   //fprintf(stdout, "baoab_temp=%.2f.\n", baoab_temp);
   double KT = force->boltz * baoab_temp;
@@ -828,7 +826,7 @@ void FixPIMD4::baoab_init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMD4::b_step()
+void FixDPPimd::b_step()
 {
   // if(universe->iworld==0) printf("start of b_step, %.6e.\n", atom->x[0][0]);
   //fprintf(stdout, "step=%ld, starting b_step, iworld = %d, x=%.8e, v=%.8e, f=%.8e, dtf=%.6e.\n", update->ntimestep, universe->iworld, atom->x[0][0], atom->v[0][0], atom->f[0][0],dtf);
@@ -856,7 +854,7 @@ void FixPIMD4::b_step()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMD4::qc_step(){
+void FixDPPimd::qc_step(){
   int nlocal = atom->nlocal;
   double **x = atom->x;
   double **v = atom->v;
@@ -909,7 +907,7 @@ void FixPIMD4::qc_step(){
   }
   //MPI_Barrier(universe->uworld);
 }
-void FixPIMD4::a_step(){
+void FixDPPimd::a_step(){
   int n = atom->nlocal;
   double **x = atom->x;
   double **v = atom->v;
@@ -950,7 +948,7 @@ void FixPIMD4::a_step(){
 }
 
 /* ---------------------------------------------------------------------- */
-void FixPIMD4::svr_step(MPI_Comm which)
+void FixDPPimd::svr_step(MPI_Comm which)
 {
   int nlocal = atom->nlocal;
   int *type = atom->type;
@@ -1002,7 +1000,7 @@ void FixPIMD4::svr_step(MPI_Comm which)
 
 }
 
-void FixPIMD4::press_v_step()
+void FixDPPimd::press_v_step()
 {
   int nlocal = atom->nlocal;
   double **f = atom->f;
@@ -1025,7 +1023,7 @@ void FixPIMD4::press_v_step()
   MPI_Bcast(&vw, 1, MPI_DOUBLE, 0, universe->uworld);
 }
 
-//void FixPIMD4::press_x_step()
+//void FixDPPimd::press_x_step()
 //{
 //  double **x = atom->x;
 //  double **v = atom->v;
@@ -1064,13 +1062,13 @@ void FixPIMD4::press_v_step()
 //  //vol_ *= expq * expq * expq;
 //}
 
-void FixPIMD4::press_o_step()
+void FixDPPimd::press_o_step()
 {
   r1 = random->gaussian();
   vw = c1 * vw + c2 * sqrt(1. / W / beta_np) * r1;
 }
 
-void FixPIMD4::o_step()
+void FixDPPimd::o_step()
 {
   int nlocal = atom->nlocal;
   int *type = atom->type;
@@ -1122,12 +1120,12 @@ void FixPIMD4::o_step()
    Normal Mode PIMD
 ------------------------------------------------------------------------- */
 
-void FixPIMD4::nmpimd_init()
+void FixDPPimd::nmpimd_init()
 {
   memory->create(M_x2xp, np, np, "fix_feynman:M_x2xp");
   memory->create(M_xp2x, np, np, "fix_feynman:M_xp2x");
 
-  lam = (double*) memory->smalloc(sizeof(double)*np, "FixPIMD4::lam");
+  lam = (double*) memory->smalloc(sizeof(double)*np, "FixDPPimd::lam");
 
   // Set up  eigenvalues
 
@@ -1183,7 +1181,7 @@ void FixPIMD4::nmpimd_init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMD4::nmpimd_fill(double **ptr)
+void FixDPPimd::nmpimd_fill(double **ptr)
 {
   comm_ptr = ptr;
   comm->forward_comm_fix(this);
@@ -1191,7 +1189,7 @@ void FixPIMD4::nmpimd_fill(double **ptr)
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMD4::nmpimd_transform(double** src, double** des, double *vector)
+void FixDPPimd::nmpimd_transform(double** src, double** des, double *vector)
 {
   int n = atom->nlocal;
   int m = 0;
@@ -1211,7 +1209,7 @@ void FixPIMD4::nmpimd_transform(double** src, double** des, double *vector)
    Comm operations
 ------------------------------------------------------------------------- */
 
-void FixPIMD4::comm_init()
+void FixDPPimd::comm_init()
 {
   if(size_plan)
   {
@@ -1298,7 +1296,7 @@ void FixPIMD4::comm_init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMD4::comm_exec(double **ptr)
+void FixDPPimd::comm_exec(double **ptr)
 {
   int nlocal = atom->nlocal;
 
@@ -1306,10 +1304,10 @@ void FixPIMD4::comm_exec(double **ptr)
   {
     max_nlocal = nlocal+200;
     int size = sizeof(double) * max_nlocal * 3;
-    buf_recv = (double*) memory->srealloc(buf_recv, size, "FixPIMD4:x_recv");
+    buf_recv = (double*) memory->srealloc(buf_recv, size, "FixDPPimd:x_recv");
 
     for(int i=0; i<np; i++)
-      buf_beads[i] = (double*) memory->srealloc(buf_beads[i], size, "FixPIMD4:x_beads[i]");
+      buf_beads[i] = (double*) memory->srealloc(buf_beads[i], size, "FixDPPimd:x_beads[i]");
   }
 
   // copy local positions
@@ -1332,8 +1330,8 @@ void FixPIMD4::comm_exec(double **ptr)
     if(nsend > max_nsend)
     {
       max_nsend = nsend+200;
-      tag_send = (tagint*) memory->srealloc(tag_send, sizeof(tagint)*max_nsend, "FixPIMD4:tag_send");
-      buf_send = (double*) memory->srealloc(buf_send, sizeof(double)*max_nsend*3, "FixPIMD4:x_send");
+      tag_send = (tagint*) memory->srealloc(tag_send, sizeof(tagint)*max_nsend, "FixDPPimd:tag_send");
+      buf_send = (double*) memory->srealloc(buf_send, sizeof(double)*max_nsend*3, "FixDPPimd:x_send");
     }
 
     // send tags
@@ -1380,17 +1378,17 @@ void FixPIMD4::comm_exec(double **ptr)
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMD4::comm_coords()
+void FixDPPimd::comm_coords()
 {
   int nlocal = atom->nlocal;
 
   // assign memory for arrays
   int size_coords = sizeof(double) * nlocal * 3;
   int size_tags;// = sizeof(tagint) * nlocal;
-  coords_recv = (double*) memory->srealloc(coords_recv, size_coords, "FixPIMD4:coords_recv");
+  coords_recv = (double*) memory->srealloc(coords_recv, size_coords, "FixDPPimd:coords_recv");
   for(int i=0; i<np; i++)
   {
-    coords[i] = (double*) memory->srealloc(coords[i], size_coords, "FixPIMD4:coords[i]");
+    coords[i] = (double*) memory->srealloc(coords[i], size_coords, "FixDPPimd:coords[i]");
   }
   
   // copy local positions and tags
@@ -1414,8 +1412,8 @@ void FixPIMD4::comm_coords()
     size_coords = sizeof(double) * nsend * 3;
     size_tags = sizeof(tagint) * nsend;
 
-    coords_send = (double*) memory->srealloc(coords_send, size_coords, "FixPIMD4:coords_send");
-    tags_send = (tagint*) memory->srealloc(tags_send, size_tags, "FixPIMD4:tags_send");
+    coords_send = (double*) memory->srealloc(coords_send, size_coords, "FixDPPimd:coords_send");
+    tags_send = (tagint*) memory->srealloc(tags_send, size_tags, "FixDPPimd:tags_send");
 
     MPI_Sendrecv(atom->tag, nlocal, MPI_LMP_TAGINT, proc_send, 0,
                  tags_send, nsend, MPI_LMP_TAGINT, proc_recv, 0,
@@ -1451,17 +1449,17 @@ void FixPIMD4::comm_coords()
   }
 }
 
-void FixPIMD4::comm_forces()
+void FixDPPimd::comm_forces()
 {
   int nlocal = atom->nlocal;
 
   // assign memory for arrays
   int size_forces = sizeof(double) * nlocal * 3;
   int size_tags;// = sizeof(tagint) * nlocal;
-  forces_recv = (double*) memory->srealloc(forces_recv, size_forces, "FixPIMD4:forces_recv");
+  forces_recv = (double*) memory->srealloc(forces_recv, size_forces, "FixDPPimd:forces_recv");
   for(int i=0; i<np; i++)
   {
-    forces[i] = (double*) memory->srealloc(forces[i], size_forces, "FixPIMD4:forces[i]");
+    forces[i] = (double*) memory->srealloc(forces[i], size_forces, "FixDPPimd:forces[i]");
   }
   
   // copy local positions and tags
@@ -1485,8 +1483,8 @@ void FixPIMD4::comm_forces()
     size_forces = sizeof(double) * nsend * 3;
     size_tags = sizeof(tagint) * nsend;
 
-    forces_send = (double*) memory->srealloc(forces_send, size_forces, "FixPIMD4:forces_send");
-    tags_send = (tagint*) memory->srealloc(tags_send, size_tags, "FixPIMD4:tags_send");
+    forces_send = (double*) memory->srealloc(forces_send, size_forces, "FixDPPimd:forces_send");
+    tags_send = (tagint*) memory->srealloc(tags_send, size_tags, "FixDPPimd:tags_send");
 
     MPI_Sendrecv(atom->tag, nlocal, MPI_LMP_TAGINT, proc_send, 0,
                  tags_send, nsend, MPI_LMP_TAGINT, proc_recv, 0,
@@ -1524,10 +1522,10 @@ void FixPIMD4::comm_forces()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMD4::compute_xc()
+void FixDPPimd::compute_xc()
 {
   int nlocal = atom->nlocal;
-  xc = (double*) memory->srealloc(xc, sizeof(double) * nlocal * 3, "FixPIMD4:xc");
+  xc = (double*) memory->srealloc(xc, sizeof(double) * nlocal * 3, "FixDPPimd:xc");
   for(int i=0; i<nlocal; i++)
   {
     xc[3*i] = xc[3*i+1] = xc[3*i+2] = 0.0;
@@ -1543,10 +1541,10 @@ void FixPIMD4::compute_xc()
   } 
 }
 
-void FixPIMD4::compute_fc()
+void FixDPPimd::compute_fc()
 {
   int nlocal = atom->nlocal;
-  fc = (double*) memory->srealloc(fc, sizeof(double) * nlocal * 3, "FixPIMD4:fc");
+  fc = (double*) memory->srealloc(fc, sizeof(double) * nlocal * 3, "FixDPPimd:fc");
   for(int i=0; i<nlocal; i++)
   {
     fc[3*i] = fc[3*i+1] = fc[3*i+2] = 0.0;
@@ -1562,7 +1560,7 @@ void FixPIMD4::compute_fc()
   } 
 }
 
-void FixPIMD4::compute_vir_()
+void FixDPPimd::compute_vir_()
 {
   int nlocal = atom->nlocal;
   xf = vir_ = xcf = centroid_vir = 0.0;
@@ -1578,7 +1576,7 @@ void FixPIMD4::compute_vir_()
   MPI_Allreduce(&xcf, &centroid_vir, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
 }
 
-void FixPIMD4::compute_vir()
+void FixDPPimd::compute_vir()
 {
   double volume = domain->xprd * domain->yprd * domain->zprd;
   c_press->compute_vector();
@@ -1614,12 +1612,12 @@ void FixPIMD4::compute_vir()
 }
 /* ---------------------------------------------------------------------- */
 
-void FixPIMD4::compute_xscaled()
+void FixDPPimd::compute_xscaled()
 {
   int nlocal = atom->nlocal;
   for(int i=0; i<np; i++)
   {
-    x_scaled[i] = (double*) memory->srealloc(x_scaled[i], sizeof(double) * nlocal * 3, "FixPIMD4:x_scaled[i]");
+    x_scaled[i] = (double*) memory->srealloc(x_scaled[i], sizeof(double) * nlocal * 3, "FixDPPimd:x_scaled[i]");
   }
   for(int i=0; i<np; i++)
   {
@@ -1637,7 +1635,7 @@ void FixPIMD4::compute_xscaled()
    Compute centroid-virial kinetic energy estimator
 ------------------------------------------------------------------------- */
 
-void FixPIMD4::compute_t_vir()
+void FixDPPimd::compute_t_vir()
 {
   t_vir = -0.5 / np * vir_;
   t_cv = 1.5 * atom->natoms * force->boltz * temp - 0.5 / np * centroid_vir;
@@ -1647,26 +1645,26 @@ void FixPIMD4::compute_t_vir()
    Compute primitive kinetic energy estimator
 ------------------------------------------------------------------------- */
 
-void FixPIMD4::compute_t_prim()
+void FixDPPimd::compute_t_prim()
 {
   // fprintf(stdout, "in compute_t_prim, me = %d, N = %d, np = %d, force->boltz = %2.8f, temp = %2.8f, total_spring_energy = %2.8e.\n", universe->me, atom->natoms, np, force->boltz, temp, total_spring_energy);
   t_prim = 1.5 * atom->natoms * np * force->boltz * temp - total_spring_energy;
 }
 
-void FixPIMD4::compute_p_prim()
+void FixDPPimd::compute_p_prim()
 {
   //p_prim = atom->natoms * force->boltz * temp * inv_volume - 1.0 / 1.5 * inv_volume * total_spring_energy;
   //p_prim = atom->natoms * force->boltz * temp * inv_volume - 1.0 / 1.5 * inv_volume * total_spring_energy + 1.0 / 3 / np * inv_volume * vir;
   p_prim = atom->natoms * np * force->boltz * temp * inv_volume - 1.0 / 1.5 * inv_volume * total_spring_energy;
 }
 
-void FixPIMD4::compute_p_cv()
+void FixDPPimd::compute_p_cv()
 {
   //p_cv = 2. / 3.  * inv_volume / np * totke - 1. / 3. / np * inv_volume * centroid_vir; 
   //p_cv = 1. / 3.  * inv_volume  * (2. * centroid_ke - 1. * centroid_vir + 1. * vir) / force->nktv2p / np; 
 }
 
-void FixPIMD4::compute_p_vir()
+void FixDPPimd::compute_p_vir()
 {
   //inv_volume = 1. / (domain->xprd * domain->yprd * domain->zprd);
   //inv_volume = 1. / vol_;
@@ -1675,7 +1673,7 @@ void FixPIMD4::compute_p_vir()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMD4::compute_totke()
+void FixDPPimd::compute_totke()
 {
   double kine = 0.0;
   totke = 0.0;
@@ -1699,7 +1697,7 @@ void FixPIMD4::compute_totke()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMD4::compute_pote()
+void FixDPPimd::compute_pote()
 {
   double pot_energy_partition = 0.0;
   pote = 0.0;
@@ -1714,7 +1712,7 @@ void FixPIMD4::compute_pote()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMD4::compute_spring_energy()
+void FixDPPimd::compute_spring_energy()
 {
   spring_energy = 0.0;
 
@@ -1764,14 +1762,14 @@ void FixPIMD4::compute_spring_energy()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMD4::compute_tote()
+void FixDPPimd::compute_tote()
 {
   // tote = totke + hope;
   tote = totke + pote + total_spring_energy;
   //printf("totke=%f.\n", totke);
 }
 
-void FixPIMD4::compute_totenthalpy()
+void FixDPPimd::compute_totenthalpy()
 {
   double volume = domain->xprd * domain->yprd * domain->zprd;
   totenthalpy = tote + 0.5*W*vw*vw + Pext * volume - Vcoeff/beta_np * log(volume);
@@ -1782,7 +1780,7 @@ void FixPIMD4::compute_totenthalpy()
 
 /* ---------------------------------------------------------------------- */
 
-double FixPIMD4::compute_vector(int n)
+double FixDPPimd::compute_vector(int n)
 {
   //if(n==0) { return totke; }
   if(n==0) { return ke_bead; }
@@ -1809,7 +1807,7 @@ double FixPIMD4::compute_vector(int n)
   return 0.0;
 }
 
-double FixPIMD4::compute_scalar()
+double FixDPPimd::compute_scalar()
 {
   return vol_;
 }

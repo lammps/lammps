@@ -124,7 +124,7 @@ class Atom : protected Pointers {
 
   // USER-CGDNA package
 
-  tagint **id5p;
+  tagint *id5p;
 
   // USER-DPD package
 

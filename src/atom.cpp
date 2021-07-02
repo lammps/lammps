@@ -478,7 +478,7 @@ void Atom::peratom_create()
 
   // USER-CGDNA package
 
-  add_peratom("id5p",&id5p,tagintsize,1);
+  add_peratom("id5p",&id5p,tagintsize,0);
 
   // USER-DPD package
 

@@ -262,7 +262,7 @@ void PairOxrna2Stk::compute(int eflag, int vflag)
   int **bondlist = neighbor->bondlist;
   int nbondlist = neighbor->nbondlist;
 
-  tagint **id5p = atom->id5p;
+  tagint *id5p = atom->id5p;
 
   AtomVecEllipsoid *avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
   AtomVecEllipsoid::Bonus *bonus = avec->bonus;
@@ -285,7 +285,7 @@ void PairOxrna2Stk::compute(int eflag, int vflag)
     b = bondlist[in][1];
 
     // directionality test: a -> b is 3' -> 5'
-    if(atom->tag[b] != id5p[a][0]) {
+    if(atom->tag[b] != id5p[a]) {
 
       btemp = b;
       b = a;
@@ -1014,7 +1014,7 @@ void PairOxrna2Stk::coeff(int narg, char **arg)
 ------------------------------------------------------------------------- */
 
 void PairOxrna2Stk::init_style()
-{
+{ 
   if (!atom->style_match("oxdna")) {
     error->all(FLERR,"Must use 'atom_style hybrid bond ellipsoid oxdna' with pair style oxdna/stk, oxdna2/stk or oxrna2/stk");
   }

@@ -245,7 +245,7 @@ void PairOxdnaStk::compute(int eflag, int vflag)
   int **bondlist = neighbor->bondlist;
   int nbondlist = neighbor->nbondlist;
 
-  tagint **id5p = atom->id5p;
+  tagint *id5p = atom->id5p;
 
   AtomVecEllipsoid *avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
   AtomVecEllipsoid::Bonus *bonus = avec->bonus;
@@ -268,7 +268,7 @@ void PairOxdnaStk::compute(int eflag, int vflag)
     b = bondlist[in][1];
 
     // directionality test: a -> b is 3' -> 5'
-    if(atom->tag[b] != id5p[a][0]) {
+    if(atom->tag[b] != id5p[a]) {
 
       btemp = b;
       b = a;

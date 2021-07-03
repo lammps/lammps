@@ -9,6 +9,7 @@
 .. index:: kspace_style pppm/gpu
 .. index:: kspace_style pppm/intel
 .. index:: kspace_style pppm/cg
+.. index:: kspace_style pppm/dielectric
 .. index:: kspace_style pppm/dipole
 .. index:: kspace_style pppm/dipole/spin
 .. index:: kspace_style pppm/disp
@@ -16,7 +17,7 @@
 .. index:: kspace_style pppm/disp/tip4p
 .. index:: kspace_style pppm/disp/tip4p/omp
 .. index:: kspace_style pppm/disp/intel
-.. index:: kspace_style pppm/dielectric
+.. index:: kspace_style pppm/disp/dielectric
 .. index:: kspace_style pppm/cg/omp
 .. index:: kspace_style pppm/stagger
 .. index:: kspace_style pppm/tip4p
@@ -38,7 +39,7 @@ Syntax
 
    kspace_style style value
 
-* style = *none* or *ewald* or *ewald/dipole* or *ewald/dipole/spin* or *ewald/disp* or *ewald/omp* or *pppm* or *pppm/cg* or *pppm/disp* or *pppm/tip4p* or *pppm/stagger* or *pppm/disp/tip4p* or *pppm/gpu* or *pppm/intel* or *pppm/disp/intel* or *pppm/kk* or *pppm/omp* or *pppm/cg/omp* or *pppm/disp/tip4p/omp* or *pppm/tip4p/omp* or *pppm/dielectic* or *msm* or *msm/cg* or *msm/omp* or *msm/cg/omp* or *msm/dielectric* or *scafacos*
+* style = *none* or *ewald* or *ewald/dipole* or *ewald/dipole/spin* or *ewald/disp* or *ewald/omp* or *pppm* or *pppm/cg* or *pppm/disp* or *pppm/tip4p* or *pppm/stagger* or *pppm/disp/tip4p* or *pppm/gpu* or *pppm/intel* or *pppm/disp/intel* or *pppm/kk* or *pppm/omp* or *pppm/cg/omp* or *pppm/disp/tip4p/omp* or *pppm/tip4p/omp* or *pppm/dielectic* or *pppm/disp/dielectric* or *msm* or *msm/cg* or *msm/omp* or *msm/cg/omp* or *msm/dielectric* or *scafacos*
 
   .. parsed-literal::
 

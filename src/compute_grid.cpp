@@ -74,7 +74,6 @@ void ComputeGrid::init()
 
 void ComputeGrid::setup()
 {
-
   set_grid_global();
   set_grid_local();
   allocate();
@@ -149,7 +148,6 @@ void ComputeGrid::assign_coords()
 
 void ComputeGrid::assign_local_flags()
 {
-  double x[3];
   for (int igrid = 0; igrid < ngrid; igrid++) {
     if (check_local(igrid))
       local_flags[igrid] = 1;

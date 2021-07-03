@@ -75,7 +75,7 @@ Description
 All these pair styles are derived from the corresponding pair styles
 without the *dielectric*\ suffix. In addition to computing atom forces
 and energies, these pair styles compute the electrical field vector
-at each atom, which are to be used in the :doc:`fix polarize <fix polarize>` commands.
+at each atom, which are to be used in the :doc:`fix polarize <fix_polarize>` commands.
 
 These pair styles should be used with :doc:`atom_style dielectric <atom_style>`,
 which uses atom charges rescaled by their local dielectric constant.
@@ -116,7 +116,7 @@ LAMMPS was built with that package.  See the :doc:`Build package <Build_package>
 Related commands
 """"""""""""""""
 
-:doc:`pair_coeff <pair_coeff>`, :doc:`fix polarize <fix polarize>`, :doc:`read_data <read_data>`
+:doc:`pair_coeff <pair_coeff>`, :doc:`fix polarize <fix_polarize>`, :doc:`read_data <read_data>`
 
 Default
 """""""

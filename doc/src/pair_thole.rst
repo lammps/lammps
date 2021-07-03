@@ -42,7 +42,7 @@ Examples
 
    pair_style lj/cut/thole/long 2.6 12.0
 
-Example input scripts available: examples/USER/drude
+Example input scripts available: examples/PACKAGES/drude
 
 Description
 """""""""""
@@ -155,7 +155,7 @@ are defined using
 Restrictions
 """"""""""""
 
-These pair styles are part of the USER-DRUDE package. They are only
+These pair styles are part of the DRUDE package. They are only
 enabled if LAMMPS was built with that package. See the :doc:`Build package <Build_package>` doc page for more info.
 
 This pair_style should currently not be used with the :doc:`charmm dihedral style <dihedral_charmm>` if the latter has non-zero 1-4 weighting

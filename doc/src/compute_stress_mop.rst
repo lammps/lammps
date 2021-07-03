@@ -87,7 +87,7 @@ and stress_dir,z.
 
 The values are in pressure :doc:`units <units>`.
 
-The values produced by this compute can be accessed by various :doc:`output commands <Howto_output>`. For instance, the results can be written to a file using the :doc:`fix ave/time <fix_ave_time>` command. Please see the example in the examples/USER/mop folder.
+The values produced by this compute can be accessed by various :doc:`output commands <Howto_output>`. For instance, the results can be written to a file using the :doc:`fix ave/time <fix_ave_time>` command. Please see the example in the examples/PACKAGES/mop folder.
 
 Restrictions
 """"""""""""

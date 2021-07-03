@@ -67,7 +67,7 @@ Post-processing tools
    * :ref:`amber2lmp <amber>`
    * :ref:`binary2txt <binary>`
    * :ref:`ch2lmp <charmm>`
-   * :ref:`colvars <colvars>`
+   * :ref:`colvars <colvars_tools>`
    * :ref:`eff <eff>`
    * :ref:`fep <fep>`
    * :ref:`lmp2arc <arc>`
@@ -214,7 +214,7 @@ tool and the specific name of the program used (e.g. ``ninja-v1.10`` or
 
 ----------
 
-.. _colvars:
+.. _colvars_tools:
 
 colvars tools
 ---------------------------
@@ -341,7 +341,7 @@ fep tool
 
 The tools/fep directory contains Python scripts useful for
 post-processing results from performing free-energy perturbation
-simulations using the USER-FEP package.
+simulations using the FEP package.
 
 The scripts were contributed by Agilio Padua (ENS de Lyon), agilio.padua at ens-lyon.fr.
 
@@ -861,10 +861,10 @@ phonon tool
 
 The phonon sub-directory contains a post-processing tool useful for
 analyzing the output of the :doc:`fix phonon <fix_phonon>` command in
-the USER-PHONON package.
+the PHONON package.
 
 See the README file for instruction on building the tool and what
-library it needs.  And see the examples/USER/phonon directory
+library it needs.  And see the examples/PACKAGES/phonon directory
 for example problems that can be post-processed with this tool.
 
 This tool was written by Ling-Ti Kong at Shanghai Jiao Tong
@@ -968,13 +968,13 @@ smd tool
 
 The smd sub-directory contains a C++ file dump2vtk_tris.cpp and
 Makefile which can be compiled and used to convert triangle output
-files created by the Smooth-Mach Dynamics (USER-SMD) package into a
+files created by the Smooth-Mach Dynamics (MACHDYN) package into a
 VTK-compatible unstructured grid file.  It could then be read in and
 visualized by VTK.
 
 See the header of dump2vtk.cpp for more details.
 
-This tool was written by the USER-SMD package author, Georg
+This tool was written by the MACHDYN package author, Georg
 Ganzenmuller at the Fraunhofer-Institute for High-Speed Dynamics,
 Ernst Mach Institute in Germany (georg.ganzenmueller at emi.fhg.de).
 

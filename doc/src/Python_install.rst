@@ -69,7 +69,7 @@ this.
          cd build
 
          # configure LAMMPS compilation
-         cmake -C ../cmake/presets/minimal.cmake -D BUILD_SHARED_LIBS=on \
+         cmake -C ../cmake/presets/basic.cmake -D BUILD_SHARED_LIBS=on \
                -D LAMMPS_EXCEPTIONS=on -D PKG_PYTHON=on ../cmake
 
          # compile LAMMPS

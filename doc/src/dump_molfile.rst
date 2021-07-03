@@ -92,12 +92,12 @@ determine the sequence of timesteps on which dump files are written.
 Restrictions
 """"""""""""
 
-The *molfile* dump style is part of the USER-MOLFILE package.  It is
+The *molfile* dump style is part of the MOLFILE package.  It is
 only enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 Molfile plugins provide a consistent programming interface to read and
 write file formats commonly used in molecular simulations. The
-USER-MOLFILE package only provides the interface code, not the plugins.
+MOLFILE package only provides the interface code, not the plugins.
 These can be obtained from a VMD installation which has to match the
 platform that you are using to compile LAMMPS for. By adding plugins
 to VMD, support for new file formats can be added to LAMMPS (or VMD

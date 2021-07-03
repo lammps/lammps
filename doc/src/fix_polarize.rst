@@ -49,7 +49,7 @@ These fixes compute induced charges at the interface between two
 impermeable media with different dielectric constants.
 
 There are some example scripts for using this fix
-with LAMMPS in the examples/USER/dielectric directory.
+with LAMMPS in the examples/PACKAGES/dielectric directory.
 
 ----------
 
@@ -86,7 +86,7 @@ Restart, fix_modify, output, run start/stop, minimize info
 Restrictions
 """"""""""""
 
-These fixes are part of the USER-DIELECTRIC package.  It is only enabled
+These fixes are part of the DIELECTRIC package.  It is only enabled
 if LAMMPS was built with that package, which requires that also the
 KSPACE package is installed.  See the :doc:`Build package
 <Build_package>` doc page for more info.

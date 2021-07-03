@@ -1,5 +1,5 @@
 The Makefile.lammps file in this directory is used when building
-LAMMPS with its USER-VTK package installed.  The file has several
+LAMMPS with its VTK package installed.  The file has several
 settings needed to compile and link LAMMPS with the VTK library.  You
 should choose a Makefile.lammps.* file compatible with your system and
 your version of VTK, and copy it to Makefile.lammps before building
@@ -23,7 +23,7 @@ vtk_SYSINC refers to the include directory of the installed VTK library
 vtk_SYSLIB refers to the libraries needed to link to from an
 application (LAMMPS in this case) to "embed" VTK in the
 application. VTK consists of multiple shared libraries which are
-needed when using the USER-VTK package.
+needed when using the VTK package.
 
 vtk_SYSPATH = refers to the path (e.g. -L/usr/local/lib) where the VTK
 library can be found.  You may not need this setting if the path is

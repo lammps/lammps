@@ -135,7 +135,7 @@ to be specified in an input script that reads a restart file.
 Restrictions
 """"""""""""
 
-These styles are part of the USER-MOFFF package.  They are only
+These styles are part of the MOFFF package.  They are only
 enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 Related commands

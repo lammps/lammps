@@ -192,11 +192,11 @@ This pair style can only be used via the *pair* keyword of the
 Restrictions
 """"""""""""
 
-This pair style is part of the MLIAP package.  It is only enabled if
+This pair style is part of the ML-IAP package.  It is only enabled if
 LAMMPS was built with that package. In addition, building LAMMPS with
-the MLIAP package requires building LAMMPS with the SNAP package.  The
-*mliappy* model requires building LAMMPS with the PYTHON package.  See
-the :doc:`Build package <Build_package>` doc page for more info.
+the ML-IAP package requires building LAMMPS with the ML-SNAP package.
+The *mliappy* model requires building LAMMPS with the PYTHON package.
+See the :doc:`Build package <Build_package>` doc page for more info.
 
 
 Related commands

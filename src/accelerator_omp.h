@@ -15,7 +15,7 @@
 
 #ifdef LMP_USER_OMP
 
-// true interface to USER-OMP
+// true interface to OPENMP
 
 // provide a DomainOMP class with some overrides for Domain
 #include "domain.h"

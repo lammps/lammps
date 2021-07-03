@@ -22,7 +22,7 @@ find_library(N2P2_LIBNNPIF NAMES nnpif HINTS "${N2P2_DIR}/lib")
 #
 # target_compile_definitions(lammps PRIVATE -DN2P2_NO_SF_GROUPS)
 #
-# to "lib/lammps-extra.cmake" which is then included by USER-HDNNP.cmake.
+# to "lib/lammps-extra.cmake" which is then included by ML-HDNNP.cmake.
 find_file(N2P2_CMAKE_EXTRA NAMES lammps-extra.cmake HINTS "${N2P2_DIR}/lib")
 
 find_package_handle_standard_args(N2P2 DEFAULT_MSG

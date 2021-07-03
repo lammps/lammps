@@ -31,7 +31,7 @@ that are not possible with existing input script commands.
    applies to the core LAMMPS code and less so on add-on packages,
    especially when those packages require additional code in the *lib*
    folder, interface LAMMPS to Fortran libraries, or the code uses
-   static variables (like the USER-COLVARS package).
+   static variables (like the COLVARS package).
 
    Another major issue to deal with is to correctly handle MPI.
    Creating a LAMMPS instance requires passing an MPI communicator, or

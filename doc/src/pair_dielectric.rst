@@ -36,11 +36,6 @@ pair_style lj/long/coul/long/dielectric command
 Syntax
 """"""
 
-TODO FIX the rest of the file
-
-Syntax
-""""""
-
 .. code-block:: LAMMPS
 
    pair_style style args
@@ -71,8 +66,8 @@ Used in input scripts:
 
    .. parsed-literal::
 
-      examples/USER/dielectric/in.confined
-      examples/USER/dielectric/in.nopbc
+      examples/PACKAGES/dielectric/in.confined
+      examples/PACKAGES/dielectric/in.nopbc
 
 Description
 """""""""""
@@ -115,7 +110,7 @@ This pair style can only be used via the *pair* keyword of the
 Restrictions
 """"""""""""
 
-These styles are part of the USER-DIELECTRIC package.  They are only enabled if
+These styles are part of the DIELECTRIC package.  They are only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 Related commands

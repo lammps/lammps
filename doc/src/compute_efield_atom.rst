@@ -25,8 +25,8 @@ Used in input scripts:
 
    .. parsed-literal::
 
-      examples/USER/dielectric/in.confined
-      examples/USER/dielectric/in.nopbc
+      examples/PACKAGES/dielectric/in.confined
+      examples/PACKAGES/dielectric/in.nopbc
 
 Description
 """""""""""

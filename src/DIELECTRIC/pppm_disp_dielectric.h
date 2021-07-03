@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef KSPACE_CLASS
-
-KSpaceStyle(pppm/disp/dielectric,PPPMDispDielectric)
-
+// clang-format off
+KSpaceStyle(pppm/disp/dielectric,PPPMDispDielectric);
+// clang-format on
 #else
 
 #ifndef LMP_PPPM_DISP_DIELECTRIC_H
@@ -33,20 +33,20 @@ class PPPMDispDielectric : public PPPMDisp {
   void qsum_qsq();
   void slabcorr(int);
 
-  double** efield;
-  double* phi;
-  int potflag;   // 1/0 if per-atom electrostatic potential phi is needed
+  double **efield;
+  double *phi;
+  int potflag;    // 1/0 if per-atom electrostatic potential phi is needed
 
  protected:
   virtual void fieldforce_c_ik();
   virtual void fieldforce_c_ad();
   virtual void fieldforce_c_peratom();
 
-  class AtomVecDielectric* avec;
+  class AtomVecDielectric *avec;
   int mu_flag;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

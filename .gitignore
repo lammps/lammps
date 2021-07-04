@@ -46,3 +46,5 @@ Thumbs.db
 /Makefile
 /cmake_install.cmake
 /lmp
+
+myBuild.sh

@@ -160,7 +160,7 @@ void AngleFourierSimpleApprox::eval()
 
     th = fastAcos(c);
     nth = N[type]*fastAcos(c);
-    cn = cos(nth);
+    cn = fastCos(nth);
     term = k[type]*(1.0+C[type]*cn);
 
     if (EFLAG) eangle = term;
@@ -212,7 +212,7 @@ void AngleFourierSimpleApprox::eval()
       f[i3].z += f3[2];
     }
 
-    if (EVFLAG) ev_tally(this,i1,i2,i3,nlocal,NEWTON_BOND,eangle,f1,f3,
+    if (EVFLAG) ev_tally(i1,i2,i3,nlocal,NEWTON_BOND,eangle,f1,f3,
                              delx1,dely1,delz1,delx2,dely2,delz2);
   }
 }

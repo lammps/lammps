@@ -30,6 +30,10 @@ using namespace LAMMPS_NS;
 #define SMALL 0.001
 #define TWO_PI 2.*M_PI
 
+
+typedef struct { double x,y,z; } dbl3_t;
+typedef struct { int a,b,c,t;  } int4_t;
+
 /* ---------------------------------------------------------------------- */
 
 AngleFourierSimpleApprox::AngleFourierSimpleApprox(class LAMMPS *lmp)

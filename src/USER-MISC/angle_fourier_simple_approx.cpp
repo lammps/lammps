@@ -119,7 +119,7 @@ void AngleFourierSimpleApprox::eval()
   int nanglelist = neighbor->nanglelist;
 
   const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
-  dbl3_t * _noalias const f = (dbl3_t *) thr->get_f()[0];
+  dbl3_t * _noalias const f = (dbl3_t *) atom->f[0];
   const int4_t * _noalias const anglelist = (int4_t *) neighbor->anglelist[0];
   const int nlocal = atom->nlocal;
   eangle = 0.0;

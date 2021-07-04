@@ -28,6 +28,7 @@
 using namespace LAMMPS_NS;
 
 #define SMALL 0.001
+#define TWO_PI 2.*M_PI
 
 /* ---------------------------------------------------------------------- */
 
@@ -45,22 +46,24 @@ AngleFourierSimpleApprox::AngleFourierSimpleApprox(class LAMMPS *lmp)
  * Source: https://stackoverflow.com/a/28050328/3909202
  */
 double AngleFourierSimpleApprox::fastCos(double x) {
-  constexpr double tp = 1./(2.*M_PI);
-    x *= tp;
-    x -= .25 + std::floor(x + .25);
-    x *= 16. * (std::abs(x) - .5);
-    x += .225 * x * (std::abs(x) - 1.);
-    return x;
+  constexpr double tp = 1./(TWO_PI);
+  // TODO: check if range map is necessary
+  double x_wrapped = x - TWO_PI * floor(x * tp);
+    x_wrapped *= tp;
+    x_wrapped -= .25 + std::floor(x_wrapped + .25);
+    x_wrapped *= 16. * (std::abs(x_wrapped) - .5);
+    x_wrapped += .225 * x_wrapped * (std::abs(x_wrapped) - 1.);
+    return x_wrapped;
 }
 
 /* ---------------------------------------------------------------------- */
 
 /**
  * Approximation of acos 
- * Returns the arccosine of a in the range [0,pi], expecting a to be in the range [-1,+1]. 
+ * Returns the arccosine of x in the range [0,pi], expecting x to be in the range [-1,+1]. 
  * Absolute error <= 6.7e-5
+ * Range mapping not necessary as C++ standard library would throw domain error
  * Source: https://developer.download.nvidia.com/cg/acos.html
- * TODO: adjust range
  */
 double AngleFourierSimpleApprox::fastAcos(double x) {
   double negate = double(x < 0);

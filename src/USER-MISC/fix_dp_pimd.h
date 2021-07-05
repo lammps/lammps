@@ -32,7 +32,7 @@ class FixDPPimd : public Fix {
   int setmask();
 
   void init();
-  void setup_pre_force(int);
+  //void setup_pre_force(int);
   //void setup_pre_exchange();
   void setup(int);
   void post_force(int);

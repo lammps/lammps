@@ -453,72 +453,13 @@ void FixDPPimd::init()
   if(universe->me==0) fprintf(screen, "Fix pimd successfully initialized!\n");
 }
 
-void FixDPPimd::setup_pre_force(int vflag)
-//void FixDPPimd::setup_pre_exchange()
-{
-  //atom->x[0][0] = 0.0;
-  //atom->x[0][1] = 0.0;
-  //atom->x[0][2] = 0.0;
-  double *boxlo = domain->boxlo;
-  double *boxhi = domain->boxhi;
-  //fprintf(stdout, "%.8e, %.8e, %.8e, %.8e, %.8e, %.8e\n", boxlo[0], boxlo[1], boxlo[2], boxhi[0], boxhi[1], boxhi[2]);
-  //char xdim[8], ydim[8], zdim[8];
-  //double xdimd, ydimd, zdimd;
-  //sprintf(xdim, "%.3f", domain->xprd);
-  //sprintf(ydim, "%.3f", domain->yprd);
-  //sprintf(zdim, "%.3f", domain->zprd);
-  //xdimd = (double)(atof(xdim));
-  //ydimd = (double)(atof(ydim));
-  //zdimd = (double)(atof(zdim));
-  // fprintf(stdout, "%.8e, %.8e, %.8e, %.8e, %.8e, %.8e\n", boxlo[0], boxlo[1], boxlo[2], boxhi[0], boxhi[1], boxhi[2]);
-  // fprintf(stdout, "%.8e, %.8e, %.8e.\n", xdimd, ydimd, zdimd);
-  boxlo[0] = -0.5 * domain->xprd;
-  boxlo[1] = -0.5 * domain->yprd;
-  boxlo[2] = -0.5 * domain->zprd;
-  boxhi[0] = -boxlo[0];
-  boxhi[1] = -boxlo[1];
-  boxhi[2] = -boxlo[2];
-  domain->xy = domain->yz = domain->xz = 0.0;
-  //fprintf(stdout, "%.8e, %.8e, %.8e, %.8e, %.8e, %.8e\n", boxlo[0], boxlo[1], boxlo[2], boxhi[0], boxhi[1], boxhi[2]);
-  //fprintf(stdout, "%.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f\n", boxlo[0], boxlo[1], boxlo[2], boxhi[0], boxhi[1], boxhi[2], domain->xy, domain->xz, domain->yz);
-
-  domain->set_initial_box();
-  domain->reset_box();
-  domain->box_change=1;
-
-
-  char x_tmp[20];
-  int nlocal = atom->nlocal;
-  for(int i=0; i<nlocal; i++)
-  {
-    for(int j=0; j<3; j++)
-    {
-      sprintf(x_tmp, "%.4f", atom->x[i][j]);
-      atom->x[i][j] = (double)(atof(x_tmp));
-      //fprintf(stdout, "%s %.8e\n", x_tmp, atom->x[i][j]);
-      //x_tmp = "\0";
-    }
-  }  
-  int triclinic = domain->triclinic;
-  if (triclinic) domain->x2lamda(atom->nlocal);
-  domain->pbc();
-  domain->reset_box();
-  comm->setup();
-  if (neighbor->style) neighbor->setup_bins();
-  comm->exchange();
-  comm->borders();
-  if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
-  neighbor->build(1);
-  // if(universe->me==0)  printf("Fix pimd successfully initialized!\n");
-}
-
 void FixDPPimd::setup(int vflag)
 {
     if(method==NMPIMD)
     {
       nmpimd_fill(atom->v);
       comm_exec(atom->v);
-      //nmpimd_transform(buf_beads, atom->v, M_x2xp[universe->iworld]);
+      nmpimd_transform(buf_beads, atom->v, M_x2xp[universe->iworld]);
     }
   if(universe->me==0 && screen) fprintf(screen,"Setting up Path-Integral ...\n");
   if(universe->me==0) printf("Setting up Path-Integral ...\n");
@@ -579,7 +520,7 @@ void FixDPPimd::initial_integrate(int /*vflag*/)
       //nmpimd_fill(x_unwrap);
       //comm_exec(x_unwrap);
       //fprintf(stdout, "%.6f, %.6f, %.6f, %.6f\n", buf_beads[0][0], buf_beads[0][3], buf_beads[1][0], buf_beads[1][3]);
-      //nmpimd_transform(buf_beads, atom->x, M_x2xp[universe->iworld]);
+      nmpimd_transform(buf_beads, atom->x, M_x2xp[universe->iworld]);
       // printf("transformed\n");
     }
     //fprintf(stdout, "after x2xp, x0=%.6e.\n", atom->x[0][0]);
@@ -648,7 +589,7 @@ void FixDPPimd::post_integrate()
     {
       nmpimd_fill(atom->x);
       comm_exec(atom->x);
-      //nmpimd_transform(buf_beads, atom->x, M_xp2x[universe->iworld]);
+      nmpimd_transform(buf_beads, atom->x, M_xp2x[universe->iworld]);
     }
   //printf("after xp2x, x=%.6e, v=%.6e, f=%.6e, dtf=%.6e, dtv=%.6e.\n", atom->x[0][0], atom->v[0][0], atom->f[0][0], dtf, dtv);
 
@@ -731,7 +672,7 @@ void FixDPPimd::post_force(int /*flag*/)
   {
     nmpimd_fill(atom->f);
     comm_exec(atom->f);
-    //nmpimd_transform(buf_beads, atom->f, M_x2xp[universe->iworld]);
+    nmpimd_transform(buf_beads, atom->f, M_x2xp[universe->iworld]);
   }
   // if(universe->iworld==0) printf("after f2fp, %.6e, %.6e, %.6e, %.6e, %.6e, %.6e, %.6e, %.6e, %.6e, %.6e.\n", atom->x[0][0], atom->v[0][0], atom->f[0][0], mass[atom->type[0]], dtf, dtv, dtf, _omega_np, baoab_c, baoab_s);
   c_pe->addstep(update->ntimestep+1); 

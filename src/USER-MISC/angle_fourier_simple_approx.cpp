@@ -22,13 +22,11 @@
 #include "comm.h"
 #include "force.h"
 #include "neighbor.h"
+#include "math_const.h"
 
-
-#include "suffix.h"
 using namespace LAMMPS_NS;
 
 #define SMALL 0.001
-#define TWO_PI 2.*M_PI
 
 
 typedef struct { double x,y,z; } dbl3_t;
@@ -39,7 +37,7 @@ typedef struct { int a,b,c,t;  } int4_t;
 AngleFourierSimpleApprox::AngleFourierSimpleApprox(class LAMMPS *lmp)
   : AngleFourierSimple(lmp)
 {
-  suffix_flag |= Suffix::OMP;
+  
 }
 
 /* ---------------------------------------------------------------------- */
@@ -49,14 +47,14 @@ AngleFourierSimpleApprox::AngleFourierSimpleApprox(class LAMMPS *lmp)
  * maximum error is about 0.00109 for the range -pi to pi
  * Source: https://stackoverflow.com/a/28050328/3909202
  */
-double AngleFourierSimpleApprox::fastCos(double x) {
-  constexpr double tp = 1./(TWO_PI);
+double static fastCos(double x) {
+  constexpr double inv2pi = 1./(MathConst::MY_2PI);
   // TODO: check if range map is necessary
-  double x_wrapped = x - TWO_PI * floor(x * tp);
-    x_wrapped *= tp;
-    x_wrapped -= .25 + std::floor(x_wrapped + .25);
-    x_wrapped *= 16. * (std::abs(x_wrapped) - .5);
-    x_wrapped += .225 * x_wrapped * (std::abs(x_wrapped) - 1.);
+  double x_wrapped = x - MathConst::MY_2PI * floor(x * inv2pi);
+    x_wrapped *= inv2pi;
+    x_wrapped -= 0.25 + floor(x_wrapped + 0.25);
+    x_wrapped *= 16.0 * (abs(x_wrapped) - 0.5);
+    x_wrapped += 0.225 * x_wrapped * (abs(x_wrapped) - 1.0);
     return x_wrapped;
 }
 
@@ -69,9 +67,9 @@ double AngleFourierSimpleApprox::fastCos(double x) {
  * Range mapping not necessary as C++ standard library would throw domain error
  * Source: https://developer.download.nvidia.com/cg/acos.html
  */
-double AngleFourierSimpleApprox::fastAcos(double x) {
+double static fastAcos(double x) {
   double negate = double(x < 0);
-  x = abs(x);
+  x = fabs(x);
   double ret = -0.0187293;
   ret = ret * x;
   // TODO: verify that fpas are used here
@@ -175,7 +173,7 @@ void AngleFourierSimpleApprox::eval()
         sgn = 1.0;
       } else {
         term = 1.0 + c;
-        sgn = ( fmodf((float)(N[type]),2.0) == 0.0f )?-1.0:1.0;
+        sgn = ( fmod((double)(N[type]),2.0) == 0.0 )?-1.0:1.0;
       }
       a = N[type]+N[type]*(1.0-N[type]*N[type])*term/3.0;
       a = k[type]*C[type]*N[type]*(sgn)*a;

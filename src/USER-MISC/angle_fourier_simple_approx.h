@@ -37,8 +37,6 @@ class AngleFourierSimpleApprox : public AngleFourierSimple {
  private:
   template <int EVFLAG, int EFLAG, int NEWTON_BOND>
   void eval();
-  double fastCos(double);
-  double fastAcos(double);
 };
 
 }    // namespace LAMMPS_NS

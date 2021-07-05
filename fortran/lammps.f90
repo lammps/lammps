@@ -76,16 +76,14 @@ MODULE LIBLAMMPS
         TYPE(c_ptr), VALUE :: handle
       END SUBROUTINE lammps_close
 
-      SUBROUTINE lammps_mpi_init(handle) BIND(C, name='lammps_mpi_init')
-        IMPORT :: c_ptr
-        TYPE(c_ptr), VALUE :: handle
+      SUBROUTINE lammps_mpi_init() BIND(C, name='lammps_mpi_init')
       END SUBROUTINE lammps_mpi_init
 
-      SUBROUTINE lammps_mpi_finalize(handle) &
-          BIND(C, name='lammps_mpi_finalize')
-        IMPORT :: c_ptr
-        TYPE(c_ptr), VALUE :: handle
+      SUBROUTINE lammps_mpi_finalize() BIND(C, name='lammps_mpi_finalize')
       END SUBROUTINE lammps_mpi_finalize
+
+      SUBROUTINE lammps_kokkos_finalize() BIND(C, name='lammps_kokkos_finalize')
+      END SUBROUTINE lammps_kokkos_finalize
 
       SUBROUTINE lammps_file(handle,filename) BIND(C, name='lammps_file')
         IMPORT :: c_ptr
@@ -188,7 +186,8 @@ CONTAINS
 
     IF (PRESENT(finalize)) THEN
         IF (finalize) THEN
-            CALL lammps_mpi_finalize(self%handle)
+            CALL lammps_kokkos_finalize()
+            CALL lammps_mpi_finalize()
         END IF
     END IF
   END SUBROUTINE lmp_close

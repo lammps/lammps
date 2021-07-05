@@ -66,7 +66,7 @@ processors be on the order of the number of desired replicas. A
 100-replica simulation would require at least 100 processors (1 per
 world at minimum). If many replicas are needed on a small number of
 processors, multi-replica runs can be run outside of LAMMPS.  An
-example of this can be found in examples/USER/misc/grem and has no
+example of this can be found in examples/USER-MISC/grem and has no
 limit on the number of replicas per processor. However, this is very
 inefficient and error prone and should be avoided if possible.
 

@@ -124,7 +124,7 @@ the examples. For the last argument in the command, you should put
 XXXX_press, where XXXX is the ID given to the fix bocs command (in the
 example, the ID of the fix bocs command is 1 ).
 
-This fix is part of the USER-BOCS package.  It is only enabled if
+This fix is part of the BOCS package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 Further information

@@ -89,7 +89,7 @@ the simulation.
 Restrictions
 """"""""""""
 
-This compute is part of the USER-EFF package.  It is only enabled if
+This compute is part of the EFF package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 Related commands

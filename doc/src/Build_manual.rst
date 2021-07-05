@@ -204,7 +204,7 @@ be multiple tests run automatically:
 
   .. parsed-literal::
 
-     Found 33 standard and 41 user packages
+     Found 74 packages
      Standard package NEWPACKAGE missing in Packages_standard.rst
      Standard package NEWPACKAGE missing in Packages_details.rst
 

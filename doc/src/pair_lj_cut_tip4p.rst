@@ -164,7 +164,7 @@ the pair_style command.
 ----------
 
 A version of these styles with a soft core, *lj/cut/tip4p/long/soft*\ , suitable
-for use in free energy calculations, is part of the USER-FEP package and
+for use in free energy calculations, is part of the FEP package and
 is documented with the :doc:`pair_style */soft <pair_fep_soft>`
 styles.
 

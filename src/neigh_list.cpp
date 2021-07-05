@@ -84,7 +84,7 @@ NeighList::NeighList(LAMMPS *lmp) : Pointers(lmp)
   kk2cpu = 0;
   execution_space = Host;
 
-  // USER-DPD package
+  // DPD-REACT package
 
   np = nullptr;
 

@@ -52,7 +52,7 @@ latencies for slow communication links. This feature has only been
 tested under linux.
 
 There are example scripts for using this package with LAMMPS in
-examples/USER/imd. Additional examples and a driver for use with the
+examples/PACKAGES/imd. Additional examples and a driver for use with the
 Novint Falcon game controller as haptic device can be found at:
 http://sites.google.com/site/akohlmey/software/vrpn-icms.
 
@@ -149,7 +149,7 @@ fix is not invoked during :doc:`energy minimization <minimize>`.
 Restrictions
 """"""""""""
 
-This fix is part of the USER-MISC package.  It is only enabled if
+This fix is part of the MISC package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 When used in combination with VMD, a topology or coordinate file has

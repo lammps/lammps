@@ -332,7 +332,7 @@ This pair style can only be used via the *pair* keyword of the
 Restrictions
 """"""""""""
 
-This pair style is part of the USER-REAXC package.  It is only enabled
+This pair style is part of the REAXFF package.  It is only enabled
 if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 The ReaxFF potential files provided with LAMMPS in the potentials

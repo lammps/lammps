@@ -48,7 +48,7 @@ Restrictions
 """"""""""""
 
 This improper style can only be used if LAMMPS was built with the
-USER-YAFF package.  See the :doc:`Build package <Build_package>` doc
+YAFF package.  See the :doc:`Build package <Build_package>` doc
 page for more info.
 
 Related commands

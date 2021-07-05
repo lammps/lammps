@@ -101,3 +101,15 @@ void AtomVecOxdna::data_bonds_post(int n, char *buf, tagint id_offset)
     buf = next + 1;
   }
 }
+
+/* ----------------------------------------------------------------------
+   process bond information as per data file
+   store 5' partner to inform 3'->5' bond directionality 
+------------------------------------------------------------------------- */
+
+void AtomVecOxdna::data_bonds_post2(int m, int num_bond, tagint atom1, tagint atom2, tagint id_offset)
+{
+
+printf("CALLED FROM ATOM_VEC_OXDNA\n");
+
+}

@@ -130,6 +130,7 @@ class AtomVec : protected Pointers {
   virtual void data_body(int, int, int, int *, double *) {}
 
   virtual void data_bonds_post(int, char *, tagint) {}
+  virtual void data_bonds_post2(int, int , tagint, tagint, tagint) {}
 
   virtual void pack_data(double **);
   virtual void write_data(FILE *, int, double **);

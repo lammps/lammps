@@ -28,6 +28,8 @@ action () {
 
 # list of files with dependcies
 
+action  atom_vec_oxdna.cpp atom_vec.h
+action  atom_vec_oxdna.h atom_vec.h
 action  bond_oxdna_fene.cpp bond_fene.h
 action  bond_oxdna2_fene.cpp bond_fene.h
 action  bond_oxrna2_fene.cpp bond_fene.h

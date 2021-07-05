@@ -70,8 +70,8 @@
 
 /meam*.h
 /meam*.cpp
-/pair_meam.cpp
-/pair_meam.h
+/pair_meamc.cpp
+/pair_meamc.h
 
 /compute_mliap.cpp
 /compute_mliap.h
@@ -314,6 +314,8 @@
 /atom_vec_granular.h
 /atom_vec_molecular.cpp
 /atom_vec_molecular.h
+/atom_vec_oxdna.cpp
+/atom_vec_oxdna.h
 /atom_vec_peri.cpp
 /atom_vec_peri.h
 /atom_vec_template.cpp
@@ -386,8 +388,6 @@
 /compute_erotate_rigid.h
 /compute_event_displace.cpp
 /compute_event_displace.h
-/compute_fabric.cpp
-/compute_fabric.h
 /compute_fep.cpp
 /compute_fep.h
 /compute_force_tally.cpp
@@ -1431,10 +1431,6 @@
 /pair_thole.h
 /pair_buck_mdf.cpp
 /pair_buck_mdf.h
-/pair_dpd.cpp
-/pair_dpd.h
-/pair_dpd_tstat.cpp
-/pair_dpd_tstat.h
 /pair_dpd_ext.cpp
 /pair_dpd_ext.h
 /pair_dpd_ext_tstat.cpp

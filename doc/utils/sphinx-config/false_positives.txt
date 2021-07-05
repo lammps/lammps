@@ -1325,7 +1325,6 @@ hyperradius
 hyperspherical
 hysteretic
 hz
-IAP
 Ibanez
 iatom
 ibar
@@ -1648,8 +1647,6 @@ larentzos
 Larentzos
 Laroche
 lars
-LATBOLTZ
-latboltz
 latencies
 Latour
 latourr
@@ -1800,8 +1797,6 @@ Lysogorskiy
 Lyulin
 lz
 Maaravi
-MACHDYN
-machdyn
 Mackay
 Mackrodt
 Macromolecules
@@ -1896,7 +1891,8 @@ mdi
 mdpd
 mDPD
 meam
-MEAM
+meamc
+MEAMC
 meamf
 meanDist
 mech
@@ -2323,6 +2319,7 @@ Ntriples
 Ntype
 ntypes
 Ntypes
+nucleotide
 nucleotides
 nullptr
 num
@@ -2680,7 +2677,6 @@ qoverride
 qqr
 qqrd
 qtb
-Quadfel
 quadratically
 quadrupolar
 Quant
@@ -2740,7 +2736,7 @@ README
 realtime
 reamin
 reax
-REAXFF
+REAXC
 ReaxFF
 rebo
 recursing
@@ -2862,7 +2858,6 @@ Rossky
 rosybrown
 rotationally
 Rotenberg
-Rothenburg
 Rovigatti
 royalblue
 rozero

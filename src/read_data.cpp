@@ -71,6 +71,7 @@ ReadData::ReadData(LAMMPS *lmp) : Command(lmp)
   keyword = new char[MAXLINE];
   style = new char[MAXLINE];
   buffer = new char[CHUNK*MAXLINE];
+  buffer_post = new char[CHUNK*MAXLINE];
   ncoeffarg = maxcoeffarg = 0;
   coeffarg = nullptr;
   fp = nullptr;
@@ -86,6 +87,11 @@ ReadData::ReadData(LAMMPS *lmp) : Command(lmp)
   avec_tri = (AtomVecTri *) atom->style_match("tri");
   nbodies = 0;
   avec_body = (AtomVecBody *) atom->style_match("body");
+
+  if (atom->style_match("oxdna"))
+    avec = (AtomVec *) atom->style_match("oxdna");
+  else
+    avec = atom->avec;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -96,6 +102,7 @@ ReadData::~ReadData()
   delete [] keyword;
   delete [] style;
   delete [] buffer;
+  delete [] buffer_post;
   memory->sfree(coeffarg);
 
   for (int i = 0; i < nfix; i++) {
@@ -1333,7 +1340,9 @@ void ReadData::bonds(int firstpass)
     nchunk = MIN(nbonds-nread,CHUNK);
     eof = utils::read_lines_from_file(fp,nchunk,MAXLINE,buffer,me,world);
     if (eof) error->all(FLERR,"Unexpected end of data file");
+    strcpy(buffer_post,buffer);
     atom->data_bonds(nchunk,buffer,count,id_offset,boffset);
+    if (!firstpass) avec->data_bonds_post(nchunk,buffer_post,id_offset);
     nread += nchunk;
   }
 

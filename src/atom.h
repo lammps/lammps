@@ -114,7 +114,7 @@ class Atom : protected Pointers {
 
   double **sp, **fm, **fm_long;
 
-  // EFF and AWPMD packages
+  // USER_EFF and USER-AWPMD packages
 
   int *spin;
   double *eradius, *ervel, *erforce;
@@ -122,14 +122,18 @@ class Atom : protected Pointers {
   double **cs, **csforce, **vforce;
   int *etag;
 
-  // DPD-REACT package
+  // USER-CGDNA package
+
+  tagint *id5p;
+
+  // USER-DPD package
 
   double *uCond, *uMech, *uChem, *uCGnew, *uCG;
   double *duChem;
   double *dpdTheta;
   int nspecies_dpd;
 
-  // MESO package
+  // USER-MESO package
 
   double **cc, **cc_flux;           // cc = chemical concentration
   double *edpd_temp, *edpd_flux;    // temperature and heat flux
@@ -137,13 +141,13 @@ class Atom : protected Pointers {
   double *edpd_cv;    // heat capacity
   int cc_species;
 
-  // MESONT package
+  // USER-MESONT package
 
   double *length;
   int *buckling;
   tagint **bond_nt;
 
-  // MACHDYN package
+  // USER-SMD package
 
   double *contact_radius;
   double **smd_data_9;
@@ -152,12 +156,12 @@ class Atom : protected Pointers {
   double *eff_plastic_strain_rate;
   double *damage;
 
-  // SPH package
+  // USER-SPH package
 
   double *rho, *drho, *esph, *desph, *cv;
   double **vest;
 
-  // DIELECTRIC package
+  // USER-DIELECTRIC package
 
   double *area,*ed,*em,*epsilon,*curvature,*q_unscaled;
 
@@ -187,7 +191,7 @@ class Atom : protected Pointers {
 
   int sp_flag;
 
-  // MACHDYN package
+  // USER-SMD package
 
   int x0_flag;
   int smd_flag, damage_flag;

@@ -29,7 +29,7 @@ atom in a group, i.e. a Smooth-Particle Hydrodynamics density.
 The SPH density is the mass density of an SPH particle, calculated by
 kernel function interpolation using "pair style sph/rhosum".
 
-See `this PDF guide <USER/sph/SPH_LAMMPS_userguide.pdf>`_ to using SPH in
+See `this PDF guide <PDF/SPH_LAMMPS_userguide.pdf>`_ to using SPH in
 LAMMPS.
 
 The value of the SPH density will be 0.0 for atoms not in the

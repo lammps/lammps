@@ -363,7 +363,7 @@ dissipative particle dynamics (mDPD), and transport dissipative particle
 dynamics (tDPD), respectively.
 
 The *sph* style is part of the SPH package for smoothed particle
-hydrodynamics (SPH).  See `this PDF guide <USER/sph/SPH_LAMMPS_userguide.pdf>`_ to using SPH in LAMMPS.
+hydrodynamics (SPH).  See `this PDF guide <PDF/SPH_LAMMPS_userguide.pdf>`_ to using SPH in LAMMPS.
 
 The *mesont* style is part of the MESONT package.
 

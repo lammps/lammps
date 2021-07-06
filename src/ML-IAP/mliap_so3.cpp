@@ -705,7 +705,7 @@ void MLIAP_SO3::get_sbes_array(int nlocal, int *numneighs, double **rij, int lma
   bigint ipair = 0;
   bigint gindex;
   int findex = m_Nmax * (m_lmax + 1);
-  int mindex = m_lmax + 1;
+  const bigint mindex = m_lmax + 1;
 
   for (int ii = 0; ii < nlocal; ii++) {
 
@@ -721,10 +721,10 @@ void MLIAP_SO3::get_sbes_array(int nlocal, int *numneighs, double **rij, int lma
       if (ri < SMALL) continue;
 
       pfac2 = pfac1 * ri;
-
       gindex = (ipair - 1) * findex;
 
       for (i = 1; i < m_Nmax + 1; i++) {
+        const bigint i1mindex = (bigint) (i - 1) * mindex;
 
         x = cos((2 * i - 1) * pfac3);
         xi = pfac4 * (x + 1);
@@ -733,28 +733,27 @@ void MLIAP_SO3::get_sbes_array(int nlocal, int *numneighs, double **rij, int lma
         sa = sinh(rb) / rb;
         sb = (cosh(rb) - sa) / rb;
 
-        m_sbes_array[gindex + (i - 1) * mindex + 0] = sa;
-        m_sbes_array[gindex + (i - 1) * mindex + 1] = sb;
+        m_sbes_array[gindex + i1mindex + 0] = sa;
+        m_sbes_array[gindex + i1mindex + 1] = sb;
 
         for (j = 2; j < lmax + 1; j++)
-          m_sbes_array[gindex + (i - 1) * mindex + j] =
-              m_sbes_array[gindex + (i - 1) * mindex + j - 2] -
-              (2 * j - 1) / rb * m_sbes_array[gindex + (i - 1) * mindex + j - 1];
+          m_sbes_array[gindex + i1mindex + j] = m_sbes_array[gindex + i1mindex + j - 2] -
+              (2 * j - 1) / rb * m_sbes_array[gindex + i1mindex + j - 1];
 
-        exts = m_sbes_array[gindex + (i - 1) * mindex + j - 2] -
-            (2 * j - 1) / rb * m_sbes_array[gindex + (i - 1) * mindex + j - 1];
+        exts = m_sbes_array[gindex + i1mindex + j - 2] -
+            (2 * j - 1) / rb * m_sbes_array[gindex + i1mindex + j - 1];
 
-        m_sbes_darray[gindex + (i - 1) * mindex + 0] = sb;
+        m_sbes_darray[gindex + i1mindex + 0] = sb;
 
         for (j = 1; j < lmax; j++)
-          m_sbes_darray[gindex + (i - 1) * mindex + j] = xi *
-              (j * m_sbes_array[gindex + (i - 1) * mindex + j - 1] +
-               (j + 1) * m_sbes_array[gindex + (i - 1) * mindex + j + 1]) /
+          m_sbes_darray[gindex + i1mindex + j] = xi *
+              (j * m_sbes_array[gindex + i1mindex + j - 1] +
+               (j + 1) * m_sbes_array[gindex + i1mindex + j + 1]) /
               (2 * j + 1);
 
-        m_sbes_darray[gindex + (i - 1) * mindex + j] = xi *
-            (j * m_sbes_array[gindex + (i - 1) * mindex + j - 1] + (j + 1) * exts) / (2 * j + 1);
-        m_sbes_darray[gindex + (i - 1) * mindex + 0] = xi * sb;
+        m_sbes_darray[gindex + i1mindex + j] =
+            xi * (j * m_sbes_array[gindex + i1mindex + j - 1] + (j + 1) * exts) / (2 * j + 1);
+        m_sbes_darray[gindex + i1mindex + 0] = xi * sb;
       }
     }
   }
@@ -797,14 +796,14 @@ void MLIAP_SO3::get_rip_array(int nlocal, int *numneighs, double **rij, int nmax
           integrald = 0.0;
           for (i = 0; i < m_Nmax; i++) {
             integral += m_g_array[(n - 1) * m_Nmax + i] *
-                m_sbes_array[(ipair - 1) * m_Nmax * (m_lmax + 1) + i * (m_lmax + 1) + l];
+                m_sbes_array[(ipair - 1) * m_Nmax * (m_lmax + 1) + (bigint) i * (m_lmax + 1) + l];
             integrald += m_g_array[(n - 1) * m_Nmax + i] *
-                m_sbes_darray[(ipair - 1) * m_Nmax * (m_lmax + 1) + i * (m_lmax + 1) + l];
+                m_sbes_darray[(ipair - 1) * m_Nmax * (m_lmax + 1) + (bigint) i * (m_lmax + 1) + l];
           }
 
-          m_rip_array[(ipair - 1) * m_nmax * (m_lmax + 1) + (n - 1) * (m_lmax + 1) + l] =
+          m_rip_array[(ipair - 1) * m_nmax * (m_lmax + 1) + (bigint) (n - 1) * (m_lmax + 1) + l] =
               integral * expfac;
-          m_rip_darray[(ipair - 1) * m_nmax * (m_lmax + 1) + (n - 1) * (m_lmax + 1) + l] =
+          m_rip_darray[(ipair - 1) * m_nmax * (m_lmax + 1) + (bigint) (n - 1) * (m_lmax + 1) + l] =
               integrald * expfac;
         }
     }
@@ -904,7 +903,7 @@ void MLIAP_SO3::spectrum(int nlocal, int *numneighs, int *jelems, double *wjelem
       for (int n = 1; n < nmax + 1; n++) {
         int i = 0;
         for (int l = 0; l < lmax + 1; l++) {
-          r_int = m_rip_array[gindex + (n - 1) * (m_lmax + 1) + l];
+          r_int = m_rip_array[gindex + (bigint) (n - 1) * (m_lmax + 1) + l];
 
           for (int m = -l; m < l + 1; m++) {
 
@@ -1005,7 +1004,7 @@ void MLIAP_SO3::spectrum_dxdr(int nlocal, int *numneighs, int *jelems, double *w
 
   for (int ii = 0; ii < nlocal; ii++) {
 
-    totali = nmax * m_numYlms;
+    totali = (bigint) nmax * m_numYlms;
     for (bigint ti = 0; ti < totali; ti++) {
       m_clisttot_r[ti] = 0.0;
       m_clisttot_i[ti] = 0.0;
@@ -1024,7 +1023,7 @@ void MLIAP_SO3::spectrum_dxdr(int nlocal, int *numneighs, int *jelems, double *w
       r = sqrt(x * x + y * y + z * z);
 
       if (r < SMALL) continue;
-      totali = nmax * m_numYlms;
+      totali = (bigint) nmax * m_numYlms;
 
       for (bigint ti = 0; ti < totali; ti++) {
         m_clist_r[ti] = 0.0;
@@ -1044,7 +1043,7 @@ void MLIAP_SO3::spectrum_dxdr(int nlocal, int *numneighs, int *jelems, double *w
       for (int n = 1; n < nmax + 1; n++) {
         int i = 0;
         for (int l = 0; l < lmax + 1; l++) {
-          r_int = m_rip_array[gindex + (n - 1) * (m_lmax + 1) + l];
+          r_int = m_rip_array[gindex + (bigint) (n - 1) * (m_lmax + 1) + l];
 
           for (int m = -l; m < l + 1; m++) {
 
@@ -1057,7 +1056,7 @@ void MLIAP_SO3::spectrum_dxdr(int nlocal, int *numneighs, int *jelems, double *w
         }
       }
 
-      totali = nmax * m_numYlms;
+      totali = (bigint) nmax * m_numYlms;
       for (bigint tn = 0; tn < totali; tn++) {
         m_clist_r[tn] = m_clist_r[tn] * double(weight);
         m_clist_i[tn] = m_clist_i[tn] * double(weight);
@@ -1174,9 +1173,10 @@ void MLIAP_SO3::spectrum_dxdr(int nlocal, int *numneighs, int *jelems, double *w
         for (int n = 1; n < nmax + 1; n++) {
           int i = 0;
           for (int l = 0; l < lmax + 1; l++) {
-            r_int = m_rip_array[(idpair - 1) * m_nmax * (m_lmax + 1) + (n - 1) * (m_lmax + 1) + l];
-            r_int_temp =
-                m_rip_darray[(idpair - 1) * m_nmax * (m_lmax + 1) + (n - 1) * (m_lmax + 1) + l];
+            r_int = m_rip_array[(idpair - 1) * m_nmax * (m_lmax + 1) +
+                                (bigint) (n - 1) * (m_lmax + 1) + l];
+            r_int_temp = m_rip_darray[(idpair - 1) * m_nmax * (m_lmax + 1) +
+                                      (bigint) (n - 1) * (m_lmax + 1) + l];
 
             for (int ii = 0; ii < 3; ii++) dr_int[ii] = r_int_temp * 2.0 * alpha * rvec[ii] / r;
 

@@ -78,6 +78,7 @@ if (test $1 = "GRANULAR") then
 fi
 
 if (test $1 = "KSPACE") then
+  depend CG-SDK
   depend CORESHELL
   depend DIELECTRIC
   depend GPU

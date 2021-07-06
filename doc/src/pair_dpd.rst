@@ -154,14 +154,14 @@ These pair styles do not support the :doc:`pair_modify <pair_modify>`
 tail option for adding long-range tail corrections to energy and
 pressure.
 
-These pair styles writes their information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do not need
-to be specified in an input script that reads a restart file.  Note
-that the user-specified random number seed is stored in the restart
-file, so when a simulation is restarted, each processor will
-re-initialize its random number generator the same way it did
-initially.  This means the random forces will be random, but will not
-be the same as they would have been if the original simulation had
-continued past the restart time.
+These pair styles write their information to :doc:`binary restart files
+<restart>`, so pair_style and pair_coeff commands do not need to be
+specified in an input script that reads a restart file.  Note that the
+user-specified random number seed is stored in the restart file, so when
+a simulation is restarted, each processor will re-initialize its random
+number generator the same way it did initially.  This means the random
+forces will be random, but will not be the same as they would have been
+if the original simulation had continued past the restart time.
 
 These pair styles can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  They do not support the
@@ -177,22 +177,26 @@ this.
 Restrictions
 """"""""""""
 
+These styles are part of the DPD-BASIC package.  They are only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package
+<Build_package>` doc page for more info.
+
 The default frequency for rebuilding neighbor lists is every 10 steps
 (see the :doc:`neigh_modify <neigh_modify>` command). This may be too
-infrequent for style *dpd* simulations since particles move rapidly
-and can overlap by large amounts.  If this setting yields a non-zero
-number of "dangerous" reneighborings (printed at the end of a
-simulation), you should experiment with forcing reneighboring more
-often and see if system energies/trajectories change.
+infrequent for style *dpd* simulations since particles move rapidly and
+can overlap by large amounts.  If this setting yields a non-zero number
+of "dangerous" reneighborings (printed at the end of a simulation), you
+should experiment with forcing reneighboring more often and see if
+system energies/trajectories change.
 
-These pair styles requires you to use the :doc:`comm_modify vel yes <comm_modify>` command so that velocities are stored by ghost
-atoms.
+These pair styles requires you to use the :doc:`comm_modify vel yes
+<comm_modify>` command so that velocities are stored by ghost atoms.
 
 These pair styles will not restart exactly when using the
 :doc:`read_restart <read_restart>` command, though they should provide
-statistically similar results.  This is because the forces they
-compute depend on atom velocities.  See the
-:doc:`read_restart <read_restart>` command for more details.
+statistically similar results.  This is because the forces they compute
+depend on atom velocities.  See the :doc:`read_restart <read_restart>`
+command for more details.
 
 Related commands
 """"""""""""""""

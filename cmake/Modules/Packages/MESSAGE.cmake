@@ -1,4 +1,4 @@
-if(LAMMPS_SIZES STREQUAL BIGBIG)
+if(LAMMPS_SIZES STREQUAL "BIGBIG")
   message(FATAL_ERROR "The MESSAGE Package is not compatible with -DLAMMPS_BIGBIG")
 endif()
 option(MESSAGE_ZMQ "Use ZeroMQ in MESSAGE package" OFF)

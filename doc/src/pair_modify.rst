@@ -256,7 +256,7 @@ and *coul* settings to different values.
 .. note::
 
    The *special* keyword is not compatible with pair styles from the
-   GPU or the USER-INTEL package and attempting to use it will cause
+   GPU or the INTEL package and attempting to use it will cause
    an error.
 
 .. note::
@@ -289,7 +289,7 @@ Restrictions
 You cannot use *shift* yes with *tail* yes, since those are
 conflicting options.  You cannot use *tail* yes with 2d simulations.
 You cannot use *special* with pair styles from the GPU or
-USER-INTEL package.
+INTEL package.
 
 Related commands
 """"""""""""""""

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -150,11 +151,9 @@ void PairBornCoulLongGPU::compute(int eflag, int vflag)
 void PairBornCoulLongGPU::init_style()
 {
   if (!atom->q_flag)
-    error->all(FLERR,
-      "Pair style born/coul/long/gpu requires atom attribute q");
+    error->all(FLERR, "Pair style born/coul/long/gpu requires atom attribute q");
   if (force->newton_pair)
-    error->all(FLERR,
-       "Cannot use newton pair with born/coul/long/gpu pair style");
+    error->all(FLERR, "Pair style born/coul/long/gpu requires newton pair off");
 
   // Repeat cutsq calculation because done after call to init_style
   double maxcut = -1.0;

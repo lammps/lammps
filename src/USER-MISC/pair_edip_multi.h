@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(edip/multi,PairEDIPMulti)
-
+// clang-format off
+PairStyle(edip/multi,PairEDIPMulti);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_EDIP_MULTI_H
@@ -36,25 +36,25 @@ class PairEDIPMulti : public Pair {
 
  protected:
   struct Param {
-    double A, B;                // coefficients for pair interaction I-J
-    double cutoffA;             // cut-off distance for pair interaction I-J
-    double cutoffC;             // lower cut-off distance for calculating Z_I
-    double alpha;               // coefficient for calculating Z_I
-    double beta;                // attractive term for pair I-J
-    double sigma;               // cut-off coefficient for pair I-J
-    double rho;                 // pair I-J
-    double gamma;               // coefficient for three-body interaction I-J-K
-    double eta, lambda;         // coefficients for function h(l,Z)
-    double mu, Q0;              // coefficients for function Q(Z)
-    double u1, u2, u3, u4;      // coefficients for function tau(Z)
+    double A, B;              // coefficients for pair interaction I-J
+    double cutoffA;           // cut-off distance for pair interaction I-J
+    double cutoffC;           // lower cut-off distance for calculating Z_I
+    double alpha;             // coefficient for calculating Z_I
+    double beta;              // attractive term for pair I-J
+    double sigma;             // cut-off coefficient for pair I-J
+    double rho;               // pair I-J
+    double gamma;             // coefficient for three-body interaction I-J-K
+    double eta, lambda;       // coefficients for function h(l,Z)
+    double mu, Q0;            // coefficients for function Q(Z)
+    double u1, u2, u3, u4;    // coefficients for function tau(Z)
     double cutsq;
-    int ielement,jelement,kelement;
+    int ielement, jelement, kelement;
   };
 
   double *preForceCoord;
 
-  double cutmax;                // max cutoff for all elements
-  Param *params;                // parameter set for an I-J-K interaction
+  double cutmax;    // max cutoff for all elements
+  Param *params;    // parameter set for an I-J-K interaction
 
   void allocate();
   void allocatePreLoops(void);
@@ -71,7 +71,7 @@ class PairEDIPMulti : public Pair {
   void edip_fcut3(double, Param *, double &, double &);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

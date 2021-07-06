@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -393,7 +394,7 @@ void FixShakeKokkos<DeviceType>::post_force(int vflag)
   Kokkos::deep_copy(h_error_flag,d_error_flag);
 
   if (h_error_flag() == 2)
-    error->warning(FLERR,"Shake determinant < 0.0",0);
+    error->warning(FLERR,"Shake determinant < 0.0");
   else if (h_error_flag() == 3)
     error->one(FLERR,"Shake determinant = 0.0");
 

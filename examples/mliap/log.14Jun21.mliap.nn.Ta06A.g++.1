@@ -1,0 +1,156 @@
+LAMMPS (27 May 2021)
+# Demonstrate MLIAP interface to linear SNAP potential
+
+# Initialize simulation
+
+variable nsteps index 100
+variable nrep equal 4
+variable a equal 3.316
+units           metal
+
+# generate the box and atom positions using a BCC lattice
+
+variable nx equal ${nrep}
+variable nx equal 4
+variable ny equal ${nrep}
+variable ny equal 4
+variable nz equal ${nrep}
+variable nz equal 4
+
+boundary        p p p
+
+lattice         bcc $a
+lattice         bcc 3.316
+Lattice spacing in x,y,z = 3.3160000 3.3160000 3.3160000
+region          box block 0 ${nx} 0 ${ny} 0 ${nz}
+region          box block 0 4 0 ${ny} 0 ${nz}
+region          box block 0 4 0 4 0 ${nz}
+region          box block 0 4 0 4 0 4
+create_box      1 box
+Created orthogonal box = (0.0000000 0.0000000 0.0000000) to (13.264000 13.264000 13.264000)
+  1 by 1 by 1 MPI processor grid
+create_atoms    1 box
+Created 128 atoms
+  create_atoms CPU = 0.000 seconds
+
+mass 1 180.88
+
+# choose potential
+
+include Ta06A.nn.mliap
+# DATE: 2014-09-05 UNITS: metal CONTRIBUTOR: Aidan Thompson athomps@sandia.gov CITATION: Thompson, Swiler, Trott, Foiles and Tucker, arxiv.org, 1409.3880 (2014)
+
+# Definition of SNAP potential Ta_Cand06A
+# Assumes 1 LAMMPS atom type
+
+variable zblcutinner equal 4
+variable zblcutouter equal 4.8
+variable zblz equal 73
+
+# Specify hybrid with SNAP, ZBL
+
+pair_style hybrid/overlay zbl ${zblcutinner} ${zblcutouter} mliap model nn Ta06A.nn.mliap.model descriptor sna Ta06A.mliap.descriptor
+pair_style hybrid/overlay zbl 4 ${zblcutouter} mliap model nn Ta06A.nn.mliap.model descriptor sna Ta06A.mliap.descriptor
+pair_style hybrid/overlay zbl 4 4.8 mliap model nn Ta06A.nn.mliap.model descriptor sna Ta06A.mliap.descriptor
+Reading potential file Ta06A.nn.mliap.model with DATE: 2021-03-03
+Reading potential file Ta06A.mliap.descriptor with DATE: 2014-09-05
+SNAP keyword rcutfac 4.67637 
+SNAP keyword twojmax 6 
+SNAP keyword nelems 1 
+SNAP keyword elems Ta 
+SNAP keyword radelems 0.5 
+SNAP keyword welems 1 
+SNAP keyword rfac0 0.99363 
+SNAP keyword rmin0 0 
+SNAP keyword bzeroflag 0 
+pair_coeff 1 1 zbl ${zblz} ${zblz}
+pair_coeff 1 1 zbl 73 ${zblz}
+pair_coeff 1 1 zbl 73 73
+pair_coeff * * mliap Ta
+
+
+# Setup output
+
+compute  eatom all pe/atom
+compute  energy all reduce sum c_eatom
+
+compute  satom all stress/atom NULL
+compute  str all reduce sum c_satom[1] c_satom[2] c_satom[3]
+variable press equal (c_str[1]+c_str[2]+c_str[3])/(3*vol)
+
+thermo_style    custom step temp epair c_energy etotal press v_press
+thermo          10
+thermo_modify norm yes
+
+# Set up NVE run
+
+timestep 0.5e-3
+neighbor 1.0 bin
+neigh_modify once no every 1 delay 0 check yes
+
+# Run MD
+
+velocity all create 300.0 4928459 loop geom
+fix 1 all nve
+run             ${nsteps}
+run             100
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 5.8
+  ghost atom cutoff = 5.8
+  binsize = 2.9, bins = 5 5 5
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair zbl, perpetual, half/full from (2)
+      attributes: half, newton on
+      pair build: halffull/newton
+      stencil: none
+      bin: none
+  (2) pair mliap, perpetual
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 18.15 | 18.15 | 18.15 Mbytes
+Step Temp E_pair c_energy TotEng Press v_press 
+       0          300    -11.85157    -11.85157   -11.813095    2717.1661   -2717.1661 
+      10    296.01467   -11.851059   -11.851059   -11.813095    2697.4796   -2697.4796 
+      20    284.53666   -11.849587   -11.849587   -11.813095    2289.1527   -2289.1527 
+      30    266.51577   -11.847275   -11.847275   -11.813095    1851.7131   -1851.7131 
+      40    243.05007   -11.844266   -11.844266   -11.813095     1570.684    -1570.684 
+      50    215.51032   -11.840734   -11.840734   -11.813094    1468.1899   -1468.1899 
+      60    185.48331   -11.836883   -11.836883   -11.813094    1524.8757   -1524.8757 
+      70     154.6736   -11.832931   -11.832931   -11.813094    1698.3351   -1698.3351 
+      80    124.79303   -11.829099   -11.829099   -11.813094    1947.0715   -1947.0715 
+      90    97.448054   -11.825592   -11.825592   -11.813094    2231.9563   -2231.9563 
+     100    74.035418   -11.822589   -11.822589   -11.813094    2515.8526   -2515.8526 
+Loop time of 1.46158 on 1 procs for 100 steps with 128 atoms
+
+Performance: 2.956 ns/day, 8.120 hours/ns, 68.419 timesteps/s
+99.9% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 1.4607     | 1.4607     | 1.4607     |   0.0 | 99.94
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.00028086 | 0.00028086 | 0.00028086 |   0.0 |  0.02
+Output  | 0.00035334 | 0.00035334 | 0.00035334 |   0.0 |  0.02
+Modify  | 0.00011992 | 0.00011992 | 0.00011992 |   0.0 |  0.01
+Other   |            | 0.0001502  |            |       |  0.01
+
+Nlocal:        128.000 ave         128 max         128 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:        727.000 ave         727 max         727 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:        3712.00 ave        3712 max        3712 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:      7424.00 ave        7424 max        7424 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 7424
+Ave neighs/atom = 58.000000
+Neighbor list builds = 0
+Dangerous builds = 0
+
+Total wall time: 0:00:01

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(gayberne,PairGayBerne)
-
+// clang-format off
+PairStyle(gayberne,PairGayBerne);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_GAYBERNE_H
@@ -41,38 +41,35 @@ class PairGayBerne : public Pair {
   void write_data_all(FILE *);
 
  protected:
-  enum{SPHERE_SPHERE,SPHERE_ELLIPSE,ELLIPSE_SPHERE,ELLIPSE_ELLIPSE};
+  enum { SPHERE_SPHERE, SPHERE_ELLIPSE, ELLIPSE_SPHERE, ELLIPSE_ELLIPSE };
 
   double cut_global;
   double **cut;
 
-  double gamma,upsilon,mu;   // Gay-Berne parameters
-  double **shape1;           // per-type radii in x, y and z
-  double **shape2;           // per-type radii in x, y and z SQUARED
-  double *lshape;            // precalculation based on the shape
-  double **well;             // well depth scaling along each axis ^ -1.0/mu
-  double **epsilon,**sigma;  // epsilon and sigma values for atom-type pairs
+  double gamma, upsilon, mu;    // Gay-Berne parameters
+  double **shape1;              // per-type radii in x, y and z
+  double **shape2;              // per-type radii in x, y and z SQUARED
+  double *lshape;               // precalculation based on the shape
+  double **well;                // well depth scaling along each axis ^ -1.0/mu
+  double **epsilon, **sigma;    // epsilon and sigma values for atom-type pairs
 
   int **form;
-  double **lj1,**lj2,**lj3,**lj4;
+  double **lj1, **lj2, **lj3, **lj4;
   double **offset;
   int *setwell;
   class AtomVecEllipsoid *avec;
 
   void allocate();
-  double gayberne_analytic(const int i, const int j, double a1[3][3],
-                           double a2[3][3], double b1[3][3], double b2[3][3],
-                           double g1[3][3], double g2[3][3], double *r12,
-                           const double rsq, double *fforce, double *ttor,
+  double gayberne_analytic(const int i, const int j, double a1[3][3], double a2[3][3],
+                           double b1[3][3], double b2[3][3], double g1[3][3], double g2[3][3],
+                           double *r12, const double rsq, double *fforce, double *ttor,
                            double *rtor);
-  double gayberne_lj(const int i, const int j, double a1[3][3],
-                     double b1[3][3],double g1[3][3],double *r12,
-                     const double rsq, double *fforce, double *ttor);
-  void compute_eta_torque(double m[3][3], double m2[3][3],
-                          double *s, double ans[3][3]);
+  double gayberne_lj(const int i, const int j, double a1[3][3], double b1[3][3], double g1[3][3],
+                     double *r12, const double rsq, double *fforce, double *ttor);
+  void compute_eta_torque(double m[3][3], double m2[3][3], double *s, double ans[3][3]);
 };
 
-}
+}    // namespace LAMMPS_NS
 #endif
 #endif
 

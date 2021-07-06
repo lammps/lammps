@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -19,7 +19,8 @@
 namespace LAMMPS_NS {
 
 class Variable : protected Pointers {
- friend class Info;
+  friend class Info;
+
  public:
   Variable(class LAMMPS *);
   ~Variable();
@@ -50,58 +51,74 @@ class Variable : protected Pointers {
   double evaluate_boolean(char *);
 
  public:
-  int nvar;                // # of defined variables
-  char **names;            // name of each variable
+  int nvar;        // # of defined variables
+  char **names;    // name of each variable
 
   // must match "varstyles" array in info.cpp
-  enum{INDEX,LOOP,WORLD,UNIVERSE,ULOOP,STRING,GETENV,
-     SCALARFILE,ATOMFILE,FORMAT,EQUAL,ATOM,VECTOR,PYTHON,INTERNAL};
+  enum {
+    INDEX,
+    LOOP,
+    WORLD,
+    UNIVERSE,
+    ULOOP,
+    STRING,
+    GETENV,
+    SCALARFILE,
+    ATOMFILE,
+    FORMAT,
+    EQUAL,
+    ATOM,
+    VECTOR,
+    PYTHON,
+    INTERNAL
+  };
 
  private:
   int me;
-  int maxvar;              // max # of variables following lists can hold
-  int *style;              // style of each variable
-  int *num;                // # of values for each variable
-  int *which;              // next available value for each variable
-  int *pad;                // 1 = pad loop/uloop variables with 0s, 0 = no pad
-  class VarReader **reader;   // variable that reads from file
-  char ***data;            // str value of each variable's values
-  double *dvalue;          // single numeric value for internal variables
+  int maxvar;                  // max # of variables following lists can hold
+  int *style;                  // style of each variable
+  int *num;                    // # of values for each variable
+  int *which;                  // next available value for each variable
+  int *pad;                    // 1 = pad loop/uloop variables with 0s, 0 = no pad
+  class VarReader **reader;    // variable that reads from file
+  char ***data;                // str value of each variable's values
+  double *dvalue;              // single numeric value for internal variables
 
   struct VecVar {
-    int n,nmax;
+    int n, nmax;
     bigint currentstep;
     double *values;
   };
   VecVar *vecs;
 
-  int *eval_in_progress;       // flag if evaluation of variable is in progress
-  int treetype;                // ATOM or VECTOR flag for formula evaluation
+  int *eval_in_progress;    // flag if evaluation of variable is in progress
+  int treetype;             // ATOM or VECTOR flag for formula evaluation
 
-  class RanMars *randomequal;   // random number generator for equal-style vars
-  class RanMars *randomatom;    // random number generator for atom-style vars
+  class RanMars *randomequal;    // random number generator for equal-style vars
+  class RanMars *randomatom;     // random number generator for atom-style vars
 
-  int precedence[18];      // precedence level of math operators
-                           // set length to include up to XOR in enum
+  int precedence[18];    // precedence level of math operators
+                         // set length to include up to XOR in enum
 
-  struct Tree {            // parse tree for atom-style or vector-style vars
-    double value;          // single scalar
-    double *array;         // per-atom or per-type list of doubles
-    int *iarray;           // per-atom list of ints
-    bigint *barray;        // per-atom list of bigints
-    int type;              // operation, see enum{} in variable.cpp
-    int nvector;           // length of array for vector-style variable
-    int nstride;           // stride between atoms if array is a 2d array
-    int selfalloc;         // 1 if array is allocated here, else 0
-    int ivalue1,ivalue2;   // extra values needed for gmask,rmask,grmask
-    int nextra;            // # of additional args beyond first 2
-    Tree *first,*second;   // ptrs further down tree for first 2 args
-    Tree **extra;          // ptrs further down tree for nextra args
+  struct Tree {              // parse tree for atom-style or vector-style vars
+    double value;            // single scalar
+    double *array;           // per-atom or per-type list of doubles
+    int *iarray;             // per-atom list of ints
+    bigint *barray;          // per-atom list of bigints
+    int type;                // operation, see enum{} in variable.cpp
+    int nvector;             // length of array for vector-style variable
+    int nstride;             // stride between atoms if array is a 2d array
+    int selfalloc;           // 1 if array is allocated here, else 0
+    int ivalue1, ivalue2;    // extra values needed for gmask,rmask,grmask
+    int nextra;              // # of additional args beyond first 2
+    Tree *first, *second;    // ptrs further down tree for first 2 args
+    Tree **extra;            // ptrs further down tree for nextra args
 
     Tree() :
-      array(nullptr), iarray(nullptr), barray(nullptr),
-      selfalloc(0), ivalue1(0), ivalue2(0), nextra(0),
-      first(nullptr), second(nullptr), extra(nullptr) {}
+        array(nullptr), iarray(nullptr), barray(nullptr), selfalloc(0), ivalue1(0), ivalue2(0),
+        nextra(0), first(nullptr), second(nullptr), extra(nullptr)
+    {
+    }
   };
 
   int compute_python(int);
@@ -115,21 +132,16 @@ class Variable : protected Pointers {
   int compare_tree_vector(int, int);
   void free_tree(Tree *);
   int find_matching_paren(char *, int, char *&, int);
-  int math_function(char *, char *, Tree **, Tree **,
-                    int &, double *, int &, int);
-  int group_function(char *, char *, Tree **, Tree **,
-                     int &, double *, int &, int);
+  int math_function(char *, char *, Tree **, Tree **, int &, double *, int &, int);
+  int group_function(char *, char *, Tree **, Tree **, int &, double *, int &, int);
   int region_function(char *, int);
-  int special_function(char *, char *, Tree **, Tree **,
-                       int &, double *, int &, int);
-  void peratom2global(int, char *, double *, int, tagint,
-                      Tree **, Tree **, int &, double *, int &);
+  int special_function(char *, char *, Tree **, Tree **, int &, double *, int &, int);
+  void peratom2global(int, char *, double *, int, tagint, Tree **, Tree **, int &, double *, int &);
   int is_atom_vector(char *);
   void atom_vector(char *, Tree **, Tree **, int &);
   int parse_args(char *, char **);
   char *find_next_comma(char *);
-  void print_var_error(const std::string &, int, const std::string &,
-                       int, int global=1);
+  void print_var_error(const std::string &, int, const std::string &, int, int global = 1);
   void print_tree(Tree *, int);
 };
 
@@ -144,12 +156,12 @@ class VarReader : protected Pointers {
   int read_peratom();
 
  private:
-  int me,style;
+  int me, style;
   FILE *fp;
   char *buffer;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 

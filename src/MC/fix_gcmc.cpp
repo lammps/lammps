@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -2314,7 +2315,7 @@ double FixGCMC::energy_full()
   // unlike Verlet, not performing a reverse_comm() or forces here
   // b/c GCMC does not care about forces
   // don't think it will mess up energy due to any post_force() fixes
-  // but Modify::pre_reverse() is needed for USER-INTEL
+  // but Modify::pre_reverse() is needed for INTEL
 
   if (modify->n_pre_reverse) modify->pre_reverse(eflag,vflag);
   if (modify->n_post_force) modify->post_force(vflag);

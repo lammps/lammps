@@ -91,7 +91,7 @@ Both the scalar and vector values calculated by this compute are
 Restrictions
 """"""""""""
 
-This compute is part of the USER-TALLY package.  It is only enabled if
+This compute is part of the TALLY package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 Not all pair styles can be evaluated in a pairwise mode as required by

@@ -135,7 +135,7 @@ These pair styles can only be used via the *pair* keyword of the
 Restrictions
 """"""""""""
 
-These styles are part of the USER-YAFF package.  They are only enabled
+These styles are part of the YAFF package.  They are only enabled
 if LAMMPS was built with that package.  See the :doc:`Build package
 <Build_package>` doc page for more info.
 

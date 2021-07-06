@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(viscosity/cos,ComputeViscosityCos)
-
+// clang-format off
+ComputeStyle(viscosity/cos,ComputeViscosityCos);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_VISCOSITY_COS_H
@@ -52,7 +52,7 @@ class ComputeViscosityCos : public Compute {
   void calc_V();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

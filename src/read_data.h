@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMMAND_CLASS
-
-CommandStyle(read_data,ReadData)
-
+// clang-format off
+CommandStyle(read_data,ReadData);
+// clang-format on
 #else
 
 #ifndef LMP_READ_DATA_H
@@ -31,20 +31,20 @@ class ReadData : public Command {
   void command(int, char **);
 
  private:
-  int me,compressed;
-  char *line,*keyword,*buffer,*style;
+  int me, compressed;
+  char *line, *keyword, *buffer, *style;
   FILE *fp;
   char **coeffarg;
-  int ncoeffarg,maxcoeffarg;
-  char argoffset1[8],argoffset2[8];
+  int ncoeffarg, maxcoeffarg;
+  char argoffset1[8], argoffset2[8];
 
   bigint id_offset, mol_offset;
 
   int nlocal_previous;
   bigint natoms;
-  bigint nbonds,nangles,ndihedrals,nimpropers;
+  bigint nbonds, nangles, ndihedrals, nimpropers;
   int ntypes;
-  int nbondtypes,nangletypes,ndihedraltypes,nimpropertypes;
+  int nbondtypes, nangletypes, ndihedraltypes, nimpropertypes;
 
   bigint nellipsoids;
   class AtomVecEllipsoid *avec_ellipsoid;
@@ -57,18 +57,18 @@ class ReadData : public Command {
 
   // box info
 
-  double boxlo[3],boxhi[3];
-  double xy,xz,yz;
+  double boxlo[3], boxhi[3];
+  double xy, xz, yz;
   int triclinic;
 
   // optional args
 
-  int addflag,offsetflag,shiftflag,coeffflag;
+  int addflag, offsetflag, shiftflag, coeffflag;
   tagint addvalue;
-  int toffset,boffset,aoffset,doffset,ioffset;
+  int toffset, boffset, aoffset, doffset, ioffset;
   double shift[3];
-  int extra_atom_types,extra_bond_types,extra_angle_types;
-  int extra_dihedral_types,extra_improper_types;
+  int extra_atom_types, extra_bond_types, extra_angle_types;
+  int extra_dihedral_types, extra_improper_types;
   int groupbit;
 
   int nfix;
@@ -110,7 +110,7 @@ class ReadData : public Command {
   void fix(int, char *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

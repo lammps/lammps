@@ -112,7 +112,7 @@ For atoms that are not within the compute group-ID, all values are set to zero.
 Restrictions
 """"""""""""
 
-This fix is part of the USER-PTM package.  It is only enabled if
+This fix is part of the PTM package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 Related commands

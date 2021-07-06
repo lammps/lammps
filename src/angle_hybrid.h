@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ANGLE_CLASS
-
-AngleStyle(hybrid,AngleHybrid)
-
+// clang-format off
+AngleStyle(hybrid,AngleHybrid);
+// clang-format on
 #else
 
 #ifndef LMP_ANGLE_HYBRID_H
@@ -26,9 +26,9 @@ namespace LAMMPS_NS {
 
 class AngleHybrid : public Angle {
  public:
-  int nstyles;                  // # of different angle styles
-  Angle **styles;               // class list for each Angle style
-  char **keywords;              // keyword for each Angle style
+  int nstyles;        // # of different angle styles
+  Angle **styles;     // class list for each Angle style
+  char **keywords;    // keyword for each Angle style
 
   AngleHybrid(class LAMMPS *);
   ~AngleHybrid();
@@ -43,16 +43,16 @@ class AngleHybrid : public Angle {
   double memory_usage();
 
  private:
-  int *map;                     // which style each angle type points to
+  int *map;    // which style each angle type points to
 
-  int *nanglelist;              // # of angles in sub-style anglelists
-  int *maxangle;                // max # of angles sub-style lists can store
-  int ***anglelist;             // anglelist for each sub-style
+  int *nanglelist;     // # of angles in sub-style anglelists
+  int *maxangle;       // max # of angles sub-style lists can store
+  int ***anglelist;    // anglelist for each sub-style
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

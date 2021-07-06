@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -1470,8 +1471,8 @@ int AtomVec::pack_restart(int i, double *buf)
           buf[m++] = array[i][mm];
       } else {
         double **array = *((double ***) pdata);
-        collength = mexchange.collength[nn];
-        plength = mexchange.plength[nn];
+        collength = mrestart.collength[nn];
+        plength = mrestart.plength[nn];
         if (collength) ncols = (*((int ***) plength))[i][collength-1];
         else ncols = (*((int **) plength))[i];
         for (mm = 0; mm < ncols; mm++)
@@ -1487,8 +1488,8 @@ int AtomVec::pack_restart(int i, double *buf)
           buf[m++] = ubuf(array[i][mm]).d;
       } else {
         int **array = *((int ***) pdata);
-        collength = mexchange.collength[nn];
-        plength = mexchange.plength[nn];
+        collength = mrestart.collength[nn];
+        plength = mrestart.plength[nn];
         if (collength) ncols = (*((int ***) plength))[i][collength-1];
         else ncols = (*((int **) plength))[i];
         for (mm = 0; mm < ncols; mm++)
@@ -1504,8 +1505,8 @@ int AtomVec::pack_restart(int i, double *buf)
           buf[m++] = ubuf(array[i][mm]).d;
       } else {
         bigint **array = *((bigint ***) pdata);
-        collength = mexchange.collength[nn];
-        plength = mexchange.plength[nn];
+        collength = mrestart.collength[nn];
+        plength = mrestart.plength[nn];
         if (collength) ncols = (*((int ***) plength))[i][collength-1];
         else ncols = (*((int **) plength))[i];
         for (mm = 0; mm < ncols; mm++)
@@ -1571,8 +1572,8 @@ int AtomVec::unpack_restart(double *buf)
           array[nlocal][mm] = buf[m++];
       } else {
         double **array = *((double ***) pdata);
-        collength = mexchange.collength[nn];
-        plength = mexchange.plength[nn];
+        collength = mrestart.collength[nn];
+        plength = mrestart.plength[nn];
         if (collength) ncols = (*((int ***) plength))[nlocal][collength-1];
         else ncols = (*((int **) plength))[nlocal];
         for (mm = 0; mm < ncols; mm++)
@@ -1588,8 +1589,8 @@ int AtomVec::unpack_restart(double *buf)
             array[nlocal][mm] = (int) ubuf(buf[m++]).i;
       } else {
         int **array = *((int ***) pdata);
-        collength = mexchange.collength[nn];
-        plength = mexchange.plength[nn];
+        collength = mrestart.collength[nn];
+        plength = mrestart.plength[nn];
         if (collength) ncols = (*((int ***) plength))[nlocal][collength-1];
         else ncols = (*((int **) plength))[nlocal];
         for (mm = 0; mm < ncols; mm++)
@@ -1605,8 +1606,8 @@ int AtomVec::unpack_restart(double *buf)
           array[nlocal][mm] = (bigint) ubuf(buf[m++]).i;
       } else {
         bigint **array = *((bigint ***) pdata);
-        collength = mexchange.collength[nn];
-        plength = mexchange.plength[nn];
+        collength = mrestart.collength[nn];
+        plength = mrestart.plength[nn];
         if (collength) ncols = (*((int ***) plength))[nlocal][collength-1];
         else ncols = (*((int **) plength))[nlocal];
         for (mm = 0; mm < ncols; mm++)

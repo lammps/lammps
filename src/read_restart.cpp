@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -694,9 +695,8 @@ void ReadRestart::header()
     } else if (flag == NPROCS) {
       nprocs_file = read_int();
       if (nprocs_file != comm->nprocs && me == 0)
-        error->warning(FLERR,fmt::format("Restart file used different # of "
-                                         "processors: {} vs. {}",nprocs_file,
-                                         comm->nprocs));
+        error->warning(FLERR,"Restart file used different # of processors: "
+                       "{} vs. {}",nprocs_file,comm->nprocs);
 
     // don't set procgrid, warn if different
 

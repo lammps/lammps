@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -1109,7 +1110,7 @@ int Modify::find_fix_by_style(const char *style)
    check for fix associated with package name in compiled list
    return 1 if found else 0
    used to determine whether LAMMPS was built with
-     GPU, USER-INTEL, USER-OMP packages, which have their own fixes
+     GPU, INTEL, OPENMP packages, which have their own fixes
 ------------------------------------------------------------------------- */
 
 int Modify::check_package(const char *package_fix_name)

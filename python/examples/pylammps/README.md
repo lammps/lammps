@@ -4,7 +4,7 @@ This folder contains examples showcasing the usage of the PyLammps Python
 interface and Jupyter notebooks. To use this you will need LAMMPS compiled as
 a shared library and the LAMMPS Python package installed.
 
-An extensive guide on how to achieve this is documented in the [LAMMPS manual](https://lammps.sandia.gov/doc/Python_install.html). There is also a [PyLammps tutorial](https://lammps.sandia.gov/doc/Howto_pylammps.html).
+An extensive guide on how to achieve this is documented in the [LAMMPS manual](https://docs.lammps.org/Python_install.html). There is also a [PyLammps tutorial](https://docs.lammps.org/Howto_pylammps.html).
 
 The following will show one way of creating a Python virtual environment
 which has both LAMMPS and its Python package installed:
@@ -51,7 +51,7 @@ which has both LAMMPS and its Python package installed:
 6. Configure LAMMPS compilation (CMake)
 
    ```shell
-   (myenv)$ cmake -C ../cmake/presets/minimal.cmake \
+   (myenv)$ cmake -C ../cmake/presets/basic.cmake \
                   -D BUILD_SHARED_LIBS=on \
                   -D LAMMPS_EXCEPTIONS=on -D PKG_PYTHON=on \
                   -D CMAKE_INSTALL_PREFIX=$VIRTUAL_ENV \

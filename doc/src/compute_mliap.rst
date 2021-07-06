@@ -56,21 +56,22 @@ and it is also straightforward to add new descriptor styles.
 The compute *mliap* command must be followed by two keywords
 *model* and *descriptor* in either order.
 
-The *model* keyword is followed by the model style (*linear*, *quadratic* or *mliappy*).
-The *mliappy* model is only available
-if lammps is built with MLIAPPY package.
+The *model* keyword is followed by the model style (*linear*,
+*quadratic* or *mliappy*).  The *mliappy* model is only available if
+LAMMPS is built with the *mliappy* python module. There are
+:ref:`specific installation instructions <mliap>` for that.
 
-The *descriptor* keyword is followed by a descriptor style, and additional arguments.
-The compute currently supports just one descriptor style, but it is
-is straightforward to add new descriptor styles.
-The SNAP descriptor style *sna* is the same as that used by :doc:`pair_style snap <pair_snap>`,
-including the linear, quadratic, and chem variants.
-A single additional argument specifies the descriptor filename
-containing the parameters and setting used by the SNAP descriptor.
-The descriptor filename usually ends in the *.mliap.descriptor* extension.
-The format of this file is identical to the descriptor file in the
-:doc:`pair_style mliap <pair_mliap>`, and is described in detail
-there.
+The *descriptor* keyword is followed by a descriptor style, and
+additional arguments.  The compute currently supports two descriptor
+styles *sna* and *so3*, but it is is straightforward to add additional
+descriptor styles.  The SNAP descriptor style *sna* is the same as that
+used by :doc:`pair_style snap <pair_snap>`, including the linear,
+quadratic, and chem variants.  A single additional argument specifies
+the descriptor filename containing the parameters and setting used by
+the SNAP descriptor.  The descriptor filename usually ends in the
+*.mliap.descriptor* extension.  The format of this file is identical to
+the descriptor file in the :doc:`pair_style mliap <pair_mliap>`, and is
+described in detail there.
 
 .. note::
 
@@ -164,11 +165,12 @@ potentials, see the examples in `FitSNAP <https://github.com/FitSNAP/FitSNAP>`_.
 Restrictions
 """"""""""""
 
-This compute is part of the MLIAP package.  It is only enabled if LAMMPS
-was built with that package. In addition, building LAMMPS with the MLIAP package
-requires building LAMMPS with the SNAP package.
-The *mliappy* model requires building LAMMPS with the PYTHON package.
-See the :doc:`Build package <Build_package>` doc page for more info.
+This compute is part of the ML-IAP package.  It is only enabled if
+LAMMPS was built with that package. In addition, building LAMMPS with
+the ML-IAP package requires building LAMMPS with the ML-SNAP package.
+The *mliappy* model also requires building LAMMPS with the PYTHON
+package.  See the :doc:`Build package <Build_package>` doc page for more
+info.
 
 Related commands
 """"""""""""""""

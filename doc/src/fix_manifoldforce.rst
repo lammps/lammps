@@ -48,7 +48,7 @@ the :doc:`run <run>` command.  This fix is invoked during :doc:`energy minimizat
 Restrictions
 """"""""""""
 
-This fix is part of the USER-MANIFOLD package. It is only enabled if
+This fix is part of the MANIFOLD package. It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 Only use this with *min_style hftn* or *min_style quickmin*. If not,

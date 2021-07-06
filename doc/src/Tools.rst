@@ -6,15 +6,15 @@ molecular dynamics computations.  Additional pre- and post-processing
 steps are often necessary to setup and analyze a simulation.  A list
 of such tools can be found on the `LAMMPS webpage <lws_>`_ at these links:
 
-* `Pre/Post processing <https://lammps.sandia.gov/prepost.html>`_
-* `Offsite LAMMPS packages & tools <https://lammps.sandia.gov/offsite.html>`_
+* `Pre/Post processing <https://www.lammps.org/prepost.html>`_
+* `Offsite LAMMPS packages & tools <https://www.lammps.org/offsite.html>`_
 * `Pizza.py toolkit <pizza_>`_
 
 The last link for `Pizza.py <pizza_>`_ is a Python-based tool developed at
 Sandia which provides tools for doing setup, analysis, plotting, and
 visualization for LAMMPS simulations.
 
-.. _lws: https://lammps.sandia.gov
+.. _lws: https://www.lammps.org
 .. _pizza: https://pizza.sandia.gov
 .. _python: https://www.python.org
 
@@ -67,7 +67,7 @@ Post-processing tools
    * :ref:`amber2lmp <amber>`
    * :ref:`binary2txt <binary>`
    * :ref:`ch2lmp <charmm>`
-   * :ref:`colvars <colvars>`
+   * :ref:`colvars <colvars_tools>`
    * :ref:`eff <eff>`
    * :ref:`fep <fep>`
    * :ref:`lmp2arc <arc>`
@@ -214,7 +214,7 @@ tool and the specific name of the program used (e.g. ``ninja-v1.10`` or
 
 ----------
 
-.. _colvars:
+.. _colvars_tools:
 
 colvars tools
 ---------------------------
@@ -341,7 +341,7 @@ fep tool
 
 The tools/fep directory contains Python scripts useful for
 post-processing results from performing free-energy perturbation
-simulations using the USER-FEP package.
+simulations using the FEP package.
 
 The scripts were contributed by Agilio Padua (ENS de Lyon), agilio.padua at ens-lyon.fr.
 
@@ -861,10 +861,10 @@ phonon tool
 
 The phonon sub-directory contains a post-processing tool useful for
 analyzing the output of the :doc:`fix phonon <fix_phonon>` command in
-the USER-PHONON package.
+the PHONON package.
 
 See the README file for instruction on building the tool and what
-library it needs.  And see the examples/USER/phonon directory
+library it needs.  And see the examples/PACKAGES/phonon directory
 for example problems that can be post-processed with this tool.
 
 This tool was written by Ling-Ti Kong at Shanghai Jiao Tong
@@ -968,13 +968,13 @@ smd tool
 
 The smd sub-directory contains a C++ file dump2vtk_tris.cpp and
 Makefile which can be compiled and used to convert triangle output
-files created by the Smooth-Mach Dynamics (USER-SMD) package into a
+files created by the Smooth-Mach Dynamics (MACHDYN) package into a
 VTK-compatible unstructured grid file.  It could then be read in and
 visualized by VTK.
 
 See the header of dump2vtk.cpp for more details.
 
-This tool was written by the USER-SMD package author, Georg
+This tool was written by the MACHDYN package author, Georg
 Ganzenmuller at the Fraunhofer-Institute for High-Speed Dynamics,
 Ernst Mach Institute in Germany (georg.ganzenmueller at emi.fhg.de).
 

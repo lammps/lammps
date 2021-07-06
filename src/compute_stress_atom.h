@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(stress/atom,ComputeStressAtom)
-
+// clang-format off
+ComputeStyle(stress/atom,ComputeStressAtom);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_STRESS_ATOM_H
@@ -35,8 +35,8 @@ class ComputeStressAtom : public Compute {
   double memory_usage();
 
  private:
-  int keflag,pairflag,bondflag,angleflag,dihedralflag,improperflag;
-  int kspaceflag,fixflag,biasflag;
+  int keflag, pairflag, bondflag, angleflag, dihedralflag, improperflag;
+  int kspaceflag, fixflag, biasflag;
   Compute *temperature;
   char *id_temp;
 
@@ -44,7 +44,7 @@ class ComputeStressAtom : public Compute {
   double **stress;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

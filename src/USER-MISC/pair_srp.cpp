@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -20,7 +21,7 @@ soft non-bonded potentials are used, such as DPD polymer chains.
 
 See the doc page for pair_style srp command for usage instructions.
 
-There is an example script for this package in examples/USER/srp.
+There is an example script for this package in examples/PACKAGES/srp.
 
 Please contact Timothy Sirk for questions (tim.sirk@us.army.mil).
 ------------------------------------------------------------------------- */

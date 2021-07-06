@@ -28,6 +28,28 @@ variable VERBOSE set to 1:
 
 ----------
 
+.. _clang-tidy:
+
+Enable static code analysis with clang-tidy
+-------------------------------------------
+
+The `clang-tidy tool <https://clang.llvm.org/extra/clang-tidy/>`_ is a
+static code analysis tool to diagnose (and potentially fix) typical
+programming errors or coding style violations.  It has a modular framework
+of tests that can be adjusted to help identifying problems before they
+become bugs and also assist in modernizing large code bases (like LAMMPS).
+It can be enabled for all C++ code with the following CMake flag
+
+.. code-block:: bash
+
+   -D ENABLE_CLANG_TIDY=value    # value = no (default) or yes
+
+With this flag enabled all source files will be processed twice, first to
+be compiled and then to be analyzed. Please note that the analysis can be
+significantly more time consuming than the compilation itself.
+
+----------
+
 .. _iwyu_processing:
 
 Report missing and unneeded '#include' statements
@@ -288,7 +310,7 @@ and working.
      parameter needs to be adjusted. Typically a value around 1.0e-13
      can be used, but it may need to be as large as 1.0e-8 in some
      cases.
-   - The tests for pair styles from OPT, USER-OMP and USER-INTEL are
+   - The tests for pair styles from OPT, OPENMP and INTEL are
      performed with automatically rescaled epsilon to account for
      additional loss of precision from code optimizations and different
      summation orders.
@@ -323,7 +345,7 @@ and compared.  If the fix is a thermostat and thus the internal property
 ``t_target`` can be extracted, then this is compared to the reference
 data.  The tests are repeated with the respa run style.
 
-If the fix has a multi-threaded version in the USER-OMP package, then
+If the fix has a multi-threaded version in the OPENMP package, then
 the entire set of tests is repeated for that version as well.
 
 For this to work, some additional conditions have to be met by the
@@ -447,12 +469,24 @@ The following options are available.
 
 .. code-block:: bash
 
-   make check-whitespace    # generate coverage report in HTML format
-   make fix-whitespace      # generate coverage report in XML format
-   make check-permissions   # delete folder with HTML format coverage report
-   make fix-permissions     # delete all collected coverage data and HTML output
+   make check-whitespace    # search for files with whitespace issues
+   make fix-whitespace      # correct whitespace issues in files
+   make check-homepage      # search for files with old LAMMPS homepage URLs
+   make fix-homepage        # correct LAMMPS homepage URLs in files
+   make check-permissions   # search for files with permissions issues
+   make fix-permissions     # correct permissions issues in files
 
-For the code in the ``unittest`` tree we are using the `clang-format`
-tool (Clang version 8.0 or later is required). If available, the source
-code files in the ``unittest`` tree can be updated to conform to the
-formatting settings using ``make format-tests``.
+For the code in the ``unittest`` and ``src`` trees we are transitioning
+to use the `clang-format` tool to assist with having a consistent source
+code style.  The `clang-format` command bundled with Clang version 8.0
+or later is required.  The configuration is in files ``.clang-format``
+in the respective folders.  Since the modifications from `clang-format`
+can be significant and - especially for "legacy style code" - also is
+not always improving readability, a large number of files currently have
+a ``// clang-format off`` at the top, which will disable the processing.
+Over time, files will be refactored and updated to that `clang-format`
+may be applied to them (at least in part).
+
+If `clang-format` is available, the source code files in the ``unittest``
+tree can be updated to conform to the formatting settings using
+``make format-tests`` and the files in ``src`` with ``make format-src``.

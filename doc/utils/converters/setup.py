@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='LAMMPS Documentation Utilities',
-      version='2.0.0',
+      version='2.0.1',
       description='Utilities to convert existing LAMMPS documentation text files into ReStructured Text',
       url='https://github.com/rbberger/lammps-doc-utils',
       author='Richard Berger',
@@ -11,8 +11,6 @@ setup(name='LAMMPS Documentation Utilities',
       test_suite='nose.collector',
       tests_require=['nose'],
       entry_points = {
-          "console_scripts": ['txt2html = lammpsdoc.txt2html:main',
-                              'txt2rst  = lammpsdoc.txt2rst:main',
-                              'rst_anchor_check = lammpsdoc.rst_anchor_check:main ']
+          "console_scripts": ['rst_anchor_check = lammpsdoc.rst_anchor_check:main ']
       },
 )

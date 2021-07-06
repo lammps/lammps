@@ -15,6 +15,8 @@ This section documents the following functions:
 - :cpp:func:`lammps_config_package_count`
 - :cpp:func:`lammps_config_package_name`
 - :cpp:func:`lammps_config_accelerator`
+- :cpp:func:`lammps_has_gpu_device`
+- :cpp:func:`lammps_gpu_device_info`
 - :cpp:func:`lammps_has_style`
 - :cpp:func:`lammps_style_count`
 - :cpp:func:`lammps_style_name`
@@ -128,6 +130,16 @@ approach.
 -----------------------
 
 .. doxygenfunction:: lammps_config_accelerator
+   :project: progguide
+
+-----------------------
+
+.. doxygenfunction:: lammps_has_gpu_device
+   :project: progguide
+
+-----------------------
+
+.. doxygenfunction:: lammps_get_gpu_device_info
    :project: progguide
 
 -----------------------

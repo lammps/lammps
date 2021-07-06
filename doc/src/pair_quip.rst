@@ -55,7 +55,7 @@ appropriate initialization strings are also advised. The list of
 atomic numbers must be matched to the LAMMPS atom types specified in
 the LAMMPS data file or elsewhere.
 
-Two examples input scripts are provided in the examples/USER/quip
+Two examples input scripts are provided in the examples/PACKAGES/quip
 directory.
 
 Mixing, shift, table, tail correction, restart, rRESPA info
@@ -75,7 +75,7 @@ This pair style can only be used via the *pair* keyword of the
 Restrictions
 """"""""""""
 
-This pair style is part of the USER-QUIP package.  It is only enabled
+This pair style is part of the ML-QUIP package.  It is only enabled
 if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 QUIP potentials are parameterized in electron-volts and Angstroms and

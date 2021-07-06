@@ -1,6 +1,7 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -275,8 +276,8 @@ TextFileReader *PotentialFileReader::open_potential(const std::string &path) {
       }
     }
     if (unit_convert != utils::NOCONVERT)
-      lmp->error->warning(FLERR, fmt::format("Converting {} in {} units to {} "
-                                             "units", filetype, units, unit_style));
+      lmp->error->warning(FLERR, "Converting {} in {} units to {} units",
+                          filetype, units, unit_style);
     return new TextFileReader(filepath, filetype);
   }
   return nullptr;

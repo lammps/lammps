@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -213,11 +214,10 @@ void EwaldDisp::init()
     error->all(FLERR,"Cannot (yet) use 'electron' units with dipoles");
 
   if (qsqsum == 0.0 && bsbsum == 0.0 && M2 == 0.0)
-      error->all(FLERR,"Cannot use Ewald/disp solver "
-                 "on system with no charge, dipole, or LJ particles");
+      error->all(FLERR,"Cannot use Ewald/disp solver on system without "
+                 "charged, dipole, or LJ particles");
   if (fabs(qsum) > SMALL && comm->me == 0)
-    error->warning(FLERR,fmt::format("System is not charge neutral, "
-                                     "net charge = {:.8g}",qsum));
+    error->warning(FLERR,"System is not charge neutral, net charge = {:.8g}",qsum);
 
   if (!function[1] && !function[2]) dispersionflag = 0;
   if (!function[3]) dipoleflag = 0;

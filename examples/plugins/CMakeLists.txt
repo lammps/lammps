@@ -44,7 +44,7 @@ include(LAMMPSInterfaceCXX)
 # building the plugins
 
 add_library(morse2plugin MODULE morse2plugin.cpp pair_morse2.cpp pair_morse2_omp.cpp)
-target_include_directories(morse2plugin PRIVATE "${LAMMPS_HEADER_DIR}/USER-OMP")
+target_include_directories(morse2plugin PRIVATE "${LAMMPS_HEADER_DIR}/OPENMP")
 target_link_libraries(morse2plugin PRIVATE lammps)
 
 add_library(nve2plugin MODULE nve2plugin.cpp fix_nve2.cpp)

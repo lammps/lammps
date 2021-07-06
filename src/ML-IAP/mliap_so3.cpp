@@ -740,7 +740,7 @@ void MLIAP_SO3::get_sbes_array(int nlocal, int *numneighs, double **rij, int lma
           m_sbes_array[gindex + i1mindex + j] = m_sbes_array[gindex + i1mindex + j - 2] -
               (2 * j - 1) / rb * m_sbes_array[gindex + i1mindex + j - 1];
 
-        exts = m_sbes_array[gindex + (i - 1) * mindex + j - 2] -
+        exts = m_sbes_array[gindex + i1mindex + j - 2] -
             (2 * j - 1) / rb * m_sbes_array[gindex + i1mindex + j - 1];
 
         m_sbes_darray[gindex + i1mindex + 0] = sb;
@@ -751,7 +751,7 @@ void MLIAP_SO3::get_sbes_array(int nlocal, int *numneighs, double **rij, int lma
                (j + 1) * m_sbes_array[gindex + i1mindex + j + 1]) /
               (2 * j + 1);
 
-        m_sbes_darray[gindex + (i - 1) * mindex + j] =
+        m_sbes_darray[gindex + i1mindex + j] =
             xi * (j * m_sbes_array[gindex + i1mindex + j - 1] + (j + 1) * exts) / (2 * j + 1);
         m_sbes_darray[gindex + i1mindex + 0] = xi * sb;
       }

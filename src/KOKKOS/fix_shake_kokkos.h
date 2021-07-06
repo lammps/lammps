@@ -187,8 +187,6 @@ class FixShakeKokkos : public FixShake, public KokkosBase {
 
   DAT::tdual_int_1d k_map_array;
 
-  typedef Kokkos::UnorderedMap<tagint,int,LMPDeviceType> hash_type;
-  typedef Kokkos::DualView<hash_type, LMPDeviceType::array_layout, LMPDeviceType> dual_hash_type;
   dual_hash_type k_map_hash;
 
   KOKKOS_INLINE_FUNCTION

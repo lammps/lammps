@@ -23,6 +23,7 @@
 #include <impl/Kokkos_Timer.hpp>
 #include <Kokkos_Vectorization.hpp>
 #include <Kokkos_ScatterView.hpp>
+#include <Kokkos_UnorderedMap.hpp>
 
 enum{FULL=1u,HALFTHREAD=2u,HALF=4u};
 
@@ -551,6 +552,20 @@ typedef int T_INT;
 
 // LAMMPS types
 
+typedef Kokkos::UnorderedMap<LAMMPS_NS::tagint,int,LMPDeviceType> hash_type;
+typedef hash_type::HostMirror host_hash_type;
+
+struct dual_hash_type {
+  hash_type d_view;
+  host_hash_type h_view;
+
+  template<class DeviceType>
+  std::enable_if_t<std::is_same<DeviceType,LMPDeviceType>::value,hash_type> view() {return d_view;}
+  template<class DeviceType>
+  std::enable_if_t<!std::is_same<DeviceType,LMPDeviceType>::value,host_hash_type> view() {return h_view;}
+
+};
+
 template <class DeviceType>
 struct ArrayTypes;
 
@@ -837,6 +852,8 @@ typedef tdual_neighbors_2d::t_dev_um t_neighbors_2d_um;
 typedef tdual_neighbors_2d::t_dev_const_um t_neighbors_2d_const_um;
 typedef tdual_neighbors_2d::t_dev_const_randomread t_neighbors_2d_randomread;
 
+typedef hash_type t_hash;
+
 };
 
 #ifdef LMP_KOKKOS_GPU
@@ -1097,6 +1114,8 @@ typedef tdual_neighbors_2d::t_host_const t_neighbors_2d_const;
 typedef tdual_neighbors_2d::t_host_um t_neighbors_2d_um;
 typedef tdual_neighbors_2d::t_host_const_um t_neighbors_2d_const_um;
 typedef tdual_neighbors_2d::t_host_const_randomread t_neighbors_2d_randomread;
+
+typedef host_hash_type t_hash;
 
 };
 #endif

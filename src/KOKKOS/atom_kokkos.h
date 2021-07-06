@@ -14,7 +14,6 @@
 
 #include "atom.h"               // IWYU pragma: export
 #include "kokkos_type.h"
-#include <Kokkos_UnorderedMap.hpp>
 
 #ifndef LMP_ATOM_KOKKOS_H
 #define LMP_ATOM_KOKKOS_H
@@ -71,25 +70,22 @@ class AtomKokkos : public Atom {
   ~AtomKokkos();
 
   void map_init(int check = 1);
-  void map_clear();
   void map_set();
   void map_delete();
 
   DAT::tdual_int_1d k_sametag;
   DAT::tdual_int_1d k_map_array;
   DAT::tdual_int_scalar k_error_flag;
-
-  typedef Kokkos::UnorderedMap<tagint,int,LMPDeviceType> hash_type;
-  typedef Kokkos::DualView<hash_type, LMPDeviceType::array_layout, LMPDeviceType> dual_hash_type;
-  typedef dual_hash_type::t_host::data_type host_hash_type;
   dual_hash_type k_map_hash;
+  hash_type d_map_hash;
+  host_hash_type h_map_hash;
 
   template<class DeviceType>
   KOKKOS_INLINE_FUNCTION
   static int map_find_hash_kokkos(tagint global, dual_hash_type k_map_hash)
   {
     int local = -1;
-    auto d_map_hash = k_map_hash.view<DeviceType>()();
+    auto d_map_hash = k_map_hash.view<DeviceType>();
     auto index = d_map_hash.find(global);
     if (d_map_hash.valid_at(index))
       local = d_map_hash.value_at(index);

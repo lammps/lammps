@@ -1241,7 +1241,6 @@ void NeighBondKokkos<DeviceType>::update_class_variables()
     k_map_array.template sync<DeviceType>();
   } else if (map_style == Atom::MAP_HASH) {
     k_map_hash = atomKK->k_map_hash;
-    k_map_hash.template sync<DeviceType>();  
   }
 }
 

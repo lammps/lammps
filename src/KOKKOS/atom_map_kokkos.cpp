@@ -13,8 +13,11 @@
 ------------------------------------------------------------------------- */
 
 #include "atom_kokkos.h"
+#include "neighbor_kokkos.h"
 #include "comm.h"
 #include "error.h"
+#include "modify.h"
+#include "fix.h"
 #include "memory_kokkos.h"
 #include "atom_masks.h"
 
@@ -61,8 +64,6 @@ void AtomKokkos::map_init(int check)
       map_free = 0;
       for (int i = 0; i < map_nhash; i++) map_hash[i].next = i+1;
       if (map_nhash > 0) map_hash[map_nhash-1].next = -1;
-
-      k_map_hash.h_view().clear();
     }
 
   // recreating: delete old map and create new one for array or hash
@@ -106,34 +107,9 @@ void AtomKokkos::map_init(int check)
       for (int i = 0; i < map_nhash; i++) map_hash[i].next = i+1;
       map_hash[map_nhash-1].next = -1;
 
-      k_map_hash = dual_hash_type("atom:map_hash");
-      k_map_hash.h_view() = host_hash_type(map_nhash);
+      h_map_hash = host_hash_type(map_nhash);
     }
   }
-
-  if (map_style == Atom::MAP_ARRAY)
-    k_map_array.modify_host();
-  else if (map_style == Atom::MAP_HASH)
-    k_map_hash.modify_host();
-}
-
-/* ----------------------------------------------------------------------
-   clear global -> local map for all of my own and ghost atoms
-   for hash table option:
-     global ID may not be in table if image atom was already cleared
-------------------------------------------------------------------------- */
-
-void AtomKokkos::map_clear()
-{
-  Atom::map_clear();
-
-  if (map_style == MAP_ARRAY) {
-    k_map_array.modify_host();
-  } else {
-    k_map_hash.h_view().clear();
-    k_map_hash.modify_host();
-  }
-  k_sametag.modify_host();
 }
 
 /* ----------------------------------------------------------------------
@@ -225,8 +201,7 @@ void AtomKokkos::map_set()
 
     // Copy to Kokkos hash
 
-    k_map_hash.h_view().clear();
-    auto h_map_hash = k_map_hash.h_view();
+    h_map_hash.clear();
 
     for (int i = nall-1; i >= 0 ; i--) {
 
@@ -252,13 +227,24 @@ void AtomKokkos::map_set()
     }
   }
 
-  k_sametag.modify_host();
-  if (map_style == Atom::MAP_ARRAY)
-    k_map_array.modify_host();
-  else if (map_style == Atom::MAP_HASH)
-    k_map_hash.modify_host();
-}
+  // check if fix shake or neigh bond needs a device hash
 
+  int device_hash_flag = 0;
+
+  auto neighborKK = (NeighborKokkos*) neighbor;
+  if (neighborKK->device_flag) device_hash_flag = 1;
+
+  for (int n = 0; n < modify->nfix; n++)
+    if (utils::strmatch(modify->fix[n]->style,"^shake"))
+      if (modify->fix[n]->execution_space == Device)
+          device_hash_flag = 1;
+
+  if (device_hash_flag)
+    Kokkos::deep_copy(d_map_hash,h_map_hash);
+
+  k_map_hash.h_view = h_map_hash;
+  k_map_hash.d_view = d_map_hash;
+}
 
 /* ----------------------------------------------------------------------
    free the array or hash table for global to local mapping
@@ -268,20 +254,14 @@ void AtomKokkos::map_delete()
 {
   memoryKK->destroy_kokkos(k_sametag,sametag);
   sametag = nullptr;
-  max_same = 0;
 
   if (map_style == MAP_ARRAY) {
     memoryKK->destroy_kokkos(k_map_array,map_array);
     map_array = nullptr;
   } else {
-    if (map_nhash) {
-      delete [] map_bucket;
-      delete [] map_hash;
-      map_bucket = nullptr;
-      map_hash = nullptr;
-      k_map_hash = dual_hash_type();
-    }
-    map_nhash = map_nbucket = 0;
+    h_map_hash = host_hash_type();
+    d_map_hash = hash_type();
   }
-}
 
+  Atom::map_delete();
+}

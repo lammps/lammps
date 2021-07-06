@@ -207,7 +207,6 @@ void FixShakeKokkos<DeviceType>::pre_neighbor()
     k_map_array.template sync<DeviceType>();
   } else if (map_style == Atom::MAP_HASH) {
     k_map_hash = atomKK->k_map_hash;
-    k_map_hash.template sync<DeviceType>();
   }
 
   k_shake_flag.sync<DeviceType>();
@@ -231,7 +230,6 @@ void FixShakeKokkos<DeviceType>::pre_neighbor()
     k_map_array.template sync<DeviceType>();
   } else if (map_style == Atom::MAP_HASH) {
     k_map_hash = atomKK->k_map_hash;
-    k_map_hash.template sync<DeviceType>();
   }
 
   // build list of SHAKE clusters I compute
@@ -320,7 +318,6 @@ void FixShakeKokkos<DeviceType>::post_force(int vflag)
     k_map_array.template sync<DeviceType>();
   } else if (map_style == Atom::MAP_HASH) {
     k_map_hash = atomKK->k_map_hash;
-    k_map_hash.template sync<DeviceType>();
   }
 
   if (d_rmass.data())

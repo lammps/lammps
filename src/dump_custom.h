@@ -33,7 +33,6 @@ class DumpCustom : public Dump {
   const int FORMAT_REVISION = 0x0002;
   const int ENDIAN = 0x0001;
 
-
  protected:
   int nevery;        // dump frequency for output
   int iregion;       // -1 if no region, else which region

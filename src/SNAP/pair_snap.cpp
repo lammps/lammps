@@ -65,7 +65,6 @@ PairSNAP::~PairSNAP()
   memory->destroy(beta);
   memory->destroy(bispectrum);
 
-
   delete snaptr;
 
   if (allocated) {
@@ -180,20 +179,14 @@ void PairSNAP::compute(int eflag, int vflag)
 
       snaptr->compute_deidrj(fij);
 
-      // scaling
-      fij[0] *= scale[itype][itype];
-      fij[1] *= scale[itype][itype];
-      fij[2] *= scale[itype][itype];
-      
-      f[i][0] += fij[0];
-      f[i][1] += fij[1];
-      f[i][2] += fij[2];
-      f[j][0] -= fij[0];
-      f[j][1] -= fij[1];
-      f[j][2] -= fij[2];
+      f[i][0] += fij[0] * scale[itype][itype];
+      f[i][1] += fij[1] * scale[itype][itype];
+      f[i][2] += fij[2] * scale[itype][itype];
+      f[j][0] -= fij[0] * scale[itype][itype];
+      f[j][1] -= fij[1] * scale[itype][itype];
+      f[j][2] -= fij[2] * scale[itype][itype];
 
       // tally per-atom virial contribution
-
 
       if (vflag)
         ev_tally_xyz(i,j,nlocal,newton_pair,0.0,0.0,
@@ -209,7 +202,7 @@ void PairSNAP::compute(int eflag, int vflag)
       // evdwl = energy of atom I, sum over coeffs_k * Bi_k
 
       double* coeffi = coeffelem[ielem];
-      evdwl = coeffi[0] ;
+      evdwl = coeffi[0];
       // snaptr->copy_bi2bvec();
 
       // E = beta.B + 0.5*B^t.alpha.B
@@ -257,18 +250,18 @@ void PairSNAP::compute_beta()
     double* coeffi = coeffelem[ielem];
 
     for (int icoeff = 0; icoeff < ncoeff; icoeff++)
-      beta[ii][icoeff] = coeffi[icoeff+1] ;
+      beta[ii][icoeff] = coeffi[icoeff+1];
 
     if (quadraticflag) {
       int k = ncoeff+1;
       for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
         double bveci = bispectrum[ii][icoeff];
-        beta[ii][icoeff] += coeffi[k] * bveci ;
+        beta[ii][icoeff] += coeffi[k]*bveci;
         k++;
         for (int jcoeff = icoeff+1; jcoeff < ncoeff; jcoeff++) {
           double bvecj = bispectrum[ii][jcoeff];
-          beta[ii][icoeff] += coeffi[k] * bvecj ;
-          beta[ii][jcoeff] += coeffi[k] * bveci ;
+          beta[ii][icoeff] += coeffi[k]*bvecj;
+          beta[ii][jcoeff] += coeffi[k]*bveci;
           k++;
         }
       }
@@ -385,7 +378,6 @@ void PairSNAP::settings(int narg, char ** /* arg */)
 void PairSNAP::coeff(int narg, char **arg)
 {
   if (!allocated) allocate();
-
   if (narg != 4 + atom->ntypes) error->all(FLERR,"Incorrect args for pair coefficients");
 
   map_element2type(narg-4,arg+4);
@@ -393,8 +385,6 @@ void PairSNAP::coeff(int narg, char **arg)
   // read snapcoeff and snapparam files
 
   read_files(arg[2],arg[3]);
-
-
 
   if (!quadraticflag)
     ncoeff = ncoeffall - 1;
@@ -740,7 +730,6 @@ double PairSNAP::memory_usage()
 
   return bytes;
 }
-
 
 void *PairSNAP::extract(const char *str, int &dim)
 {

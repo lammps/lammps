@@ -165,6 +165,7 @@ void PairSNAP::compute(int eflag, int vflag)
     // for neighbors of I within cutoff:
     // compute Fij = dEi/dRj = -dEi/dRi
     // add to Fi, subtract from Fj
+    // scaling is that for type I
 
     snaptr->compute_yi(beta[ii]);
 

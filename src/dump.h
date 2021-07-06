@@ -142,7 +142,7 @@ class Dump : protected Pointers {
   int maxpbc;
 
   int vartime_flag;          // 1 if time-dependent dumping is supported
-  double last_time;          // last time a time-dependent dump was written
+  double next_time;          // next time a time-dependent dump will be written
 
   class Irregular *irregular;
 

@@ -148,7 +148,7 @@ Dump::Dump(LAMMPS *lmp, int /*narg*/, char **arg) : Pointers(lmp)
 
   vartime_flag = 0;
   vtime = -1;
-  last_time = 0.0;
+  next_time = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1134,7 +1134,9 @@ void Dump::modify_params(int narg, char **arg)
       }
       vtime = utils::numeric(FLERR, arg[iarg+1],false,lmp);
       if (vtime <= 0) error->all(FLERR,"Illegal dump_modify command");
-      last_time = vtime;
+      next_time = 0;
+      while (update->atime >= next_time)
+        next_time += vtime;
       //resetting the frequency of the dump to 1 
       int idump;
       for (idump = 0; idump < output->ndump; idump++)
@@ -1202,9 +1204,9 @@ bool Dump::is_writing()
 {
   if (vtime <= 0) //always write if it is not a time-based dump
     return true;
-  if (update->atime >= last_time) {
-    while (update->atime >= last_time)
-      last_time += vtime;
+  if (update->atime >= next_time) {
+    while (update->atime >= next_time)
+      next_time += vtime;
     return true;
   }
   return false;
@@ -1218,7 +1220,7 @@ int Dump::is_consuming_computes()
 {
   if (vtime <= 0)
     return clearstep;
-  if (clearstep && (update->atime+update->dt > last_time))
+  if (clearstep && (update->atime+update->dt > next_time))
     return true;
   return false;
 }
@@ -1231,7 +1233,7 @@ bool Dump::should_clear_computes()
 {
   if (vtime <= 0)
     return clearstep;
-  if (clearstep && (update->atime > last_time))
+  if (clearstep && (update->atime > next_time))
     return true;
   return false;
 }

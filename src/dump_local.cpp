@@ -118,6 +118,8 @@ DumpLocal::DumpLocal(LAMMPS *lmp, int narg, char **arg) :
     for (int i = 0; i < nfield; i++) delete [] earg[i];
     memory->sfree(earg);
   }
+
+  vartime_flag = 1;
 }
 
 /* ---------------------------------------------------------------------- */

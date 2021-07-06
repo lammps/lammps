@@ -197,6 +197,7 @@ DumpNetCDFMPIIO::DumpNetCDFMPIIO(LAMMPS *lmp, int narg, char **arg) :
   thermovar = nullptr;
 
   framei = 0;
+  vartime_flag = 0;
 }
 
 /* ---------------------------------------------------------------------- */

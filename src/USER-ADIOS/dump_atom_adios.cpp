@@ -67,6 +67,8 @@ DumpAtomADIOS::DumpAtomADIOS(LAMMPS *lmp, int narg, char **arg)
                  e.what());
         error->one(FLERR, str);
     }
+
+    vartime_flag = 0;
 }
 
 /* ---------------------------------------------------------------------- */

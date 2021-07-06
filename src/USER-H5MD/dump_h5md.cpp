@@ -207,6 +207,8 @@ DumpH5MD::DumpH5MD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
 
   openfile();
   ntotal = 0;
+
+  vartime_flag = 0;
 }
 
 /* ---------------------------------------------------------------------- */

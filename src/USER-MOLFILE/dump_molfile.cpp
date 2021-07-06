@@ -111,6 +111,8 @@ DumpMolfile::DumpMolfile(LAMMPS *lmp, int narg, char **arg)
       fprintf(logfile,"Dump '%s' uses molfile plugin: %s\n",
               id,mf->get_plugin_name());
   }
+
+  vartime_flag = 1;
 }
 
 /* ---------------------------------------------------------------------- */

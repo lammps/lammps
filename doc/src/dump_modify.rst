@@ -679,6 +679,8 @@ contain two extra lines before the "ITEM: TIMESTEP" entry:
    ITEM: TIME
    \<elapsed time\>
 
+This keyword is also implemented for dump `xyz`, `xyz/gz`, and `xyz/zstd`.
+The information about time is appened to the comment line of each frame.
 This will output the current elapsed simulation time in current
 time units equivalent to the :doc:`thermo keyword <thermo_style>` *time*\ .
 This is to simplify post-processing of trajectories using a variable time

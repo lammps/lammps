@@ -179,12 +179,12 @@ void PairSNAP::compute(int eflag, int vflag)
 
       snaptr->compute_deidrj(fij);
 
-      f[i][0] += fij[0] * scale[itype][itype];
-      f[i][1] += fij[1] * scale[itype][itype];
-      f[i][2] += fij[2] * scale[itype][itype];
-      f[j][0] -= fij[0] * scale[itype][itype];
-      f[j][1] -= fij[1] * scale[itype][itype];
-      f[j][2] -= fij[2] * scale[itype][itype];
+      f[i][0] += fij[0]*scale[itype][itype];
+      f[i][1] += fij[1]*scale[itype][itype];
+      f[i][2] += fij[2]*scale[itype][itype];
+      f[j][0] -= fij[0]*scale[itype][itype];
+      f[j][1] -= fij[1]*scale[itype][itype];
+      f[j][2] -= fij[2]*scale[itype][itype];
 
       // tally per-atom virial contribution
 

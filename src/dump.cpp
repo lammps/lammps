@@ -1137,7 +1137,7 @@ void Dump::modify_params(int narg, char **arg)
       next_time = 0;
       while (update->atime >= next_time)
         next_time += vtime;
-      //resetting the frequency of the dump to 1 
+      //resetting the frequency of the dump to 1
       int idump;
       for (idump = 0; idump < output->ndump; idump++)
         if (strcmp(id,output->dump[idump]->id) == 0) break;
@@ -1213,7 +1213,7 @@ bool Dump::is_writing()
 }
 
 /* ----------------------------------------------------------------------
-   Checks whether computes should be prepared at a given time 
+   Checks whether computes should be prepared at a given time
 ------------------------------------------------------------------------- */
 
 int Dump::is_consuming_computes()
@@ -1226,7 +1226,7 @@ int Dump::is_consuming_computes()
 }
 
 /* ----------------------------------------------------------------------
-   Checks whether computes should be cleared at a given time 
+   Checks whether computes should be cleared at a given time
 ------------------------------------------------------------------------- */
 
 bool Dump::should_clear_computes()

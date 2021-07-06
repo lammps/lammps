@@ -716,11 +716,11 @@ box size stored with the snapshot.
 
 ----------
 
-The *vtime* keyword only applies to the dump *atom*, *cfg*, *custom*, 
+The *vtime* keyword only applies to the dump *atom*, *cfg*, *custom*,
 *image*, *local*, *molfile*, *movie*, and *xyz* (and their versions included
-in COMPRESS and MPIIO packages). If this keyword is used, the dump will be 
-written every *M* time units instead of *N* timesteps. The *N* parameter 
-will be ignored. 
+in COMPRESS and MPIIO packages). If this keyword is used, the dump will be
+written every *M* time units instead of *N* timesteps. The *N* parameter
+will be ignored.
 
 ----------
 

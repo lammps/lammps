@@ -51,6 +51,11 @@ lmpinstalledpkgs.h
 lmpgitversion.h
 mliap_model_python_couple.cpp
 mliap_model_python_couple.h
+# moved to DPD-BASIC package on 1 July 2021
+pair_dpd.cpp
+pair_dpd.h
+pair_dpd_tstat.cpp
+pair_dpd_tstat.h
 # removed on 14 May 2021
 nstencil_half_bin_2d_newton_ssa.cpp
 nstencil_half_bin_2d_newton_ssa.h

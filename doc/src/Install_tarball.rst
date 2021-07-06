@@ -47,15 +47,3 @@ release.
 
 .. _git: https://github.com/lammps/lammps/releases
 
-----------
-
-If you download a current LAMMPS tarball, one way to stay current as
-new patch tarballs are released, is to download a patch file which you
-can apply to your local directory to update it for each new patch
-release.  (Or of course you could just download the newest tarball
-periodically.)
-
-The patch files are posted on the `bug and feature page <bug_>`_ of the
-website, along with a list of changed files and details about what is
-in the new patch release.  Instructions for applying a patch file are
-on the :doc:`Install patch <Install_patch>` page.

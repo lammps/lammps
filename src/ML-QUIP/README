@@ -1,0 +1,10 @@
+This package provides the pair_style quip command. This pair style
+provides an interface to the QUIP/libAtoms library, which includes a
+variety of interatomic potentials, including Gaussian Approximation
+Potential (GAP) models.
+
+See lib/quip/README for more information on how to build LAMMPS
+with this package.
+
+See examples/PACKAGES/quip for several test examples that run QUIP
+potentials.

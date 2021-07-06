@@ -1,4 +1,4 @@
-The USER-HDNNP package requires access to pre-compiled libraries of the n2p2
+The ML-HDNNP package requires access to pre-compiled libraries of the n2p2
 package (https://github.com/CompPhysVienna/n2p2). More precisely, the n2p2 core
 library ("libnnp"), the interface library ("libnnpif"), some headers and extra
 build helper files are needed. These files will be created automatically during
@@ -6,7 +6,7 @@ the n2p2 build process.
 
 This file gives some basic instructions on how to compile n2p2 manually. How to
 integrate it then in the LAMMPS build process or how to use the automatic
-download and build option is described in detail on the USER-HDNNP build
+download and build option is described in detail on the ML-HDNNP build
 instructions page of the LAMMPS documentation.
 
 IMPORTANT: The n2p2 version must be "v2.1.4" or higher.
@@ -25,7 +25,7 @@ After downloading n2p2, change to the "src" directory and simply execute
 
     make libnnpif
 
-which should create the following files needed by the USER-HDNNP package:
+which should create the following files needed by the ML-HDNNP package:
 
     * "n2p2/lib/libnnp.a"
     * "n2p2/lib/libnnpif.a"
@@ -48,7 +48,7 @@ also available (e.g. "makefile.intel") and can be activated by supplying the
 Please make sure that your compiler settings for n2p2 and LAMMPS are compatible
 (avoid mixing different compilers).
 
-If you want to build a serial version of LAMMPS with USER-HDNNP package n2p2 must
+If you want to build a serial version of LAMMPS with ML-HDNNP package n2p2 must
 also be built with MPI disabled. This can be achieved with a preprocessor flag
 (-DN2P2_NO_MPI) which is (among others) prepared, but commented out, in the
 provided compiler-specific settings makefiles. For example, if you use the GNU
@@ -64,10 +64,10 @@ For more information about the n2p2 build process please visit
 https://compphysvienna.github.io/n2p2/topics/build.html or ask questions on the
 Github issue page (https://github.com/CompPhysVienna/n2p2/issues).
 
-Testing a successful build of LAMMPS with USER-HDNNP
+Testing a successful build of LAMMPS with ML-HDNNP
 ====================================================
 
-An example is provided in the LAMMPS directory "examples/USER/hdnnp" which runs
+An example is provided in the LAMMPS directory "examples/PACKAGES/hdnnp" which runs
 10 timesteps with 360 water molecules. The neural network potential is defined
 via files in the "hdnnp-data" subdirectory. Use the "in.hdnnp" LAMMPS script file
 to run the simulation. You should see a large output of the n2p2 library when

@@ -87,7 +87,7 @@ AtomKokkos::~AtomKokkos()
   memoryKK->destroy_kokkos(k_fm, fm);
   memoryKK->destroy_kokkos(k_fm_long, fm_long);
 
-  // USER-DPD package
+  // DPD-REACT package
   memoryKK->destroy_kokkos(k_uCond,uCond);
   memoryKK->destroy_kokkos(k_uMech,uMech);
   memoryKK->destroy_kokkos(k_uChem,uChem);

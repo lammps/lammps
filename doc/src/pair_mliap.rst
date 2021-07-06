@@ -133,7 +133,7 @@ Currently two descriptor styles are available: *sna* and *so3*.
   *.mliap.descriptor* extension.
 
 - *so3* indicated the power spectrum component descriptors. A single additional
-argument specifies the descriptor filename containing the parameters and setting.
+  argument specifies the descriptor filename containing the parameters and setting.
 
 The SNAP descriptor file closely follows the format of the
 :doc:`pair_style snap <pair_snap>` parameter file.  The file can contain
@@ -154,7 +154,7 @@ the elements are listed must be consistent for all three keywords.
 The SO3 descriptor file is similar to the SNAP descriptor except that it
 contains a few more arguments (e.g., *nmax* and *alpha*). The preparation
 of SO3 descriptor and model files can be done with the
-`*Pyxtal_FF*<https://github.com/qzhu2017/PyXtal_FF>`_ package.
+`Pyxtal_FF <https://github.com/qzhu2017/PyXtal_FF>`_ package.
 
 See the :doc:`pair_coeff <pair_coeff>` doc page for alternate ways
 to specify the path for these *model* and *descriptor* files.
@@ -192,11 +192,11 @@ This pair style can only be used via the *pair* keyword of the
 Restrictions
 """"""""""""
 
-This pair style is part of the MLIAP package.  It is only enabled if
+This pair style is part of the ML-IAP package.  It is only enabled if
 LAMMPS was built with that package. In addition, building LAMMPS with
-the MLIAP package requires building LAMMPS with the SNAP package.  The
-*mliappy* model requires building LAMMPS with the PYTHON package.  See
-the :doc:`Build package <Build_package>` doc page for more info.
+the ML-IAP package requires building LAMMPS with the ML-SNAP package.
+The *mliappy* model requires building LAMMPS with the PYTHON package.
+See the :doc:`Build package <Build_package>` doc page for more info.
 
 
 Related commands

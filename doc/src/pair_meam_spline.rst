@@ -151,7 +151,7 @@ info.
 Related commands
 """"""""""""""""
 
-:doc:`pair_coeff <pair_coeff>`, :doc:`pair_style meam/c <pair_meamc>`
+:doc:`pair_coeff <pair_coeff>`, :doc:`pair_style meam <pair_meam>`
 
 Default
 """""""

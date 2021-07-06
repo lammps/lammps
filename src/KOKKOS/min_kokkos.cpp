@@ -348,7 +348,7 @@ void MinKokkos::setup_minimal(int flag)
 void MinKokkos::run(int n)
 {
   if (nextra_atom)
-    error->all(FLERR,"Cannot yet use extra atom DOFs (e.g. USER-AWPMD and USER-EFF packages) "
+    error->all(FLERR,"Cannot yet use extra atom DOFs (e.g. AWPMD and EFF packages) "
      "with Kokkos minimize");
 
   // minimizer iterations

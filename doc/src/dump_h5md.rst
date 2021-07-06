@@ -106,7 +106,7 @@ The position data is stored wrapped (box boundaries not enforced, see
 note above).  Only orthogonal domains are currently supported. This is
 a limitation of the present dump h5md command and not of H5MD itself.
 
-The *h5md* dump style is part of the USER-H5MD package. It is only
+The *h5md* dump style is part of the H5MD package. It is only
 enabled if LAMMPS was built with that package. See the :doc:`Build package <Build_package>` doc page for more info. It also requires
 (i) building the ch5md library provided with LAMMPS (See the :doc:`Build package <Build_package>` doc page for more info.) and (ii) having
 the `HDF5 <HDF5-ws_>`_ library installed (C bindings are sufficient) on

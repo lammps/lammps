@@ -152,7 +152,7 @@ The following example illustrates the placement of this command in the input scr
    The :doc:`fix_modify energy yes <fix_modify>` command must also be specified if a fix is to contribute potential energy to this command.
 
 An example input script that uses this compute is included in
-examples/USER/hma/ along with corresponding LAMMPS output showing that the HMA
+examples/PACKAGES/hma/ along with corresponding LAMMPS output showing that the HMA
 properties fluctuate less than the corresponding conventional properties.
 
 Output info

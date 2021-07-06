@@ -190,7 +190,7 @@ void NeighBondKokkos<DeviceType>::init_topology_kk() {
 
 /* ----------------------------------------------------------------------
    build all topology neighbor lists every few timesteps
-   normally built with pair lists, but USER-CUDA separates them
+   normally built with pair lists, but CUDA separates them
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>

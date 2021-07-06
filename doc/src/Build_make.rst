@@ -117,10 +117,10 @@ settings may become outdated:
 
    make mac             # build serial LAMMPS on a Mac
    make mac_mpi         # build parallel LAMMPS on a Mac
-   make intel_cpu       # build with the USER-INTEL package optimized for CPUs
-   make knl             # build with the USER-INTEL package optimized for KNLs
+   make intel_cpu       # build with the INTEL package optimized for CPUs
+   make knl             # build with the INTEL package optimized for KNLs
    make opt             # build with the OPT package optimized for CPUs
-   make omp             # build with the USER-OMP package optimized for OpenMP
+   make omp             # build with the OPENMP package optimized for OpenMP
    make kokkos_omp      # build with the KOKKOS package for OpenMP
    make kokkos_cuda_mpi # build with the KOKKOS package for GPUs
    make kokkos_phi      # build with the KOKKOS package for KNLs

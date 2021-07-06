@@ -574,7 +574,7 @@ division and the modulo operator "%" are next; addition and
 subtraction are next; the 4 relational operators "<", "<=", ">", and
 ">=" are next; the two remaining relational operators "==" and "!="
 are next; then the logical AND operator "&&"; and finally the logical
-OR operator "\|\|" and logical XOR (exclusive or) operator "\|\^" have the
+OR operator "||" and logical XOR (exclusive or) operator "\|^" have the
 lowest precedence.  Parenthesis can be used to group one or more
 portions of a formula and/or enforce a different order of evaluation
 than what would occur with the default precedence.
@@ -943,7 +943,7 @@ features or LAMMPS, *respa* allows to check whether the inner/middle/outer
 mode of r-RESPA is supported. In the various style categories,
 the checking is also done using suffix flags, if available and enabled.
 
-Example 1: disable use of suffix for pppm when using GPU package (i.e. run it on the CPU concurrently to running the pair style on the GPU), but do use the suffix otherwise (e.g. with USER-OMP).
+Example 1: disable use of suffix for pppm when using GPU package (i.e. run it on the CPU concurrently to running the pair style on the GPU), but do use the suffix otherwise (e.g. with OPENMP).
 
 .. code-block:: LAMMPS
 

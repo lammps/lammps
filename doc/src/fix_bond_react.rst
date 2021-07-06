@@ -69,7 +69,7 @@ Syntax
 Examples
 """"""""
 
-For unabridged example scripts and files, see examples/USER/reaction.
+For unabridged example scripts and files, see examples/PACKAGES/reaction.
 
 .. code-block:: LAMMPS
 
@@ -159,7 +159,7 @@ constant-topology parts of your system separately. The dynamic group
 contains only atoms not involved in a reaction at a given timestep,
 and therefore should be used by a subsequent system-wide time
 integrator such as nvt, npt, or nve, as shown in the second example
-above (full examples can be found at examples/USER/reaction). The time
+above (full examples can be found at examples/PACKAGES/reaction). The time
 integration command should be placed after the fix bond/react command
 due to the internal dynamic grouping performed by fix bond/react.
 
@@ -667,7 +667,7 @@ all other fixes that use any group created by fix bond/react.
 Restrictions
 """"""""""""
 
-This fix is part of the USER-REACTION package.  It is only enabled if
+This fix is part of the REACTION package.  It is only enabled if
 LAMMPS was built with that package.  See the
 :doc:`Build package <Build_package>` doc page for more info.
 

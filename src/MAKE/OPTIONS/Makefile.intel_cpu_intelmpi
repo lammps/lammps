@@ -1,4 +1,4 @@
-# intel_cpu_intelmpi = USER-INTEL package, Intel MPI, MKL FFT
+# intel_cpu_intelmpi = INTEL package, Intel MPI, MKL FFT
 
 SHELL = /bin/sh
 

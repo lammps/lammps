@@ -9,6 +9,7 @@ This section documents the following functions:
 - :cpp:func:`lammps_close`
 - :cpp:func:`lammps_mpi_init`
 - :cpp:func:`lammps_mpi_finalize`
+- :cpp:func:`lammps_kokkos_finalize`
 
 --------------------
 

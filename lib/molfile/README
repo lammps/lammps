@@ -1,6 +1,6 @@
 This directory has a Makefile.lammps file with settings that allows
 LAMMPS to dynamically link to the VMD molfile library.  This is
-required to use the USER-MOLFILE package and its interface to the dump
+required to use the MOLFILE package and its interface to the dump
 and write_dump commands in a LAMMPS input script.
 
 More information about the VMD molfile plugins can be found at

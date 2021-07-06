@@ -378,7 +378,7 @@ The activation functions are computed as follows:
 Restrictions
 """"""""""""
 
-Pair style *rann* is part of the USER-RANN package.  It is only enabled if LAMMPS was built with that
+Pair style *rann* is part of the ML-RANN package.  It is only enabled if LAMMPS was built with that
 package.  Additionally, if any spin fingerprint styles are used LAMMPS must be built with the SPIN
 package as well.
 

@@ -298,9 +298,9 @@ be cloned from the git-repository
 "git://github.com/scafacos/scafacos.git".
 
 In order to use this KSpace style, you must download and build the
-ScaFaCoS library, then build LAMMPS with the USER-SCAFACOS package
+ScaFaCoS library, then build LAMMPS with the SCAFACOS package
 installed package which links LAMMPS to the ScaFaCoS library.
-See details on :ref:`this page <USER-SCAFACOS>`.
+See details on :ref:`this page <SCAFACOS>`.
 
 .. note::
 
@@ -420,8 +420,8 @@ The *pppm/kk* style performs charge assignment and force interpolation
 calculations, along with the FFTs themselves, on the GPU or (optionally) threaded
 on the CPU when using OpenMP and FFTW3.
 
-These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
-USER-OMP, and OPT packages respectively.  They are only enabled if
+These accelerated styles are part of the GPU, INTEL, KOKKOS,
+OPENMP, and OPT packages respectively.  They are only enabled if
 LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
@@ -446,7 +446,7 @@ only enabled if LAMMPS was built with that package.  See the :doc:`Build
 package <Build_package>` doc page for more info.
 
 The *msm/dielectric* and *pppm/dielectric* kspace styles are part of the
-USER-DIELECTRIC package. They are only enabled if LAMMPS was built with
+DIELECTRIC package. They are only enabled if LAMMPS was built with
 that package **and** the KSPACE package.  See the :doc:`Build package
 <Build_package>` doc page for more info.
 
@@ -460,7 +460,7 @@ dimensions.  The only exception is if the slab option is set with
 must be periodic and the z dimension must be non-periodic.
 
 The scafacos KSpace style will only be enabled if LAMMPS is built with
-the USER-SCAFACOS package.  See the :doc:`Build package <Build_package>`
+the SCAFACOS package.  See the :doc:`Build package <Build_package>`
 doc page for more info.
 
 The use of ScaFaCos in LAMMPS does not yet support molecular charged

@@ -267,9 +267,9 @@ counter += check_style('Commands_fix.rst', doc_dir, ":doc:`(.+) <fix.+>`",
 counter += check_style('fix.rst', doc_dir, ":doc:`(.+) <fix.+>` -",
                        fix,'Fix',skip=('python', 'NEIGH_HISTORY/omp'),suffix=False)
 counter += check_style('Commands_pair.rst', doc_dir, ":doc:`(.+) <pair.+>`",
-                       pair,'Pair',skip=('meam','lj/sf'),suffix=True)
+                       pair,'Pair',skip=('meam/c','lj/sf'),suffix=True)
 counter += check_style('pair_style.rst', doc_dir, ":doc:`(.+) <pair.+>` -",
-                       pair,'Pair',skip=('meam','lj/sf'),suffix=False)
+                       pair,'Pair',skip=('meam/c','lj/sf'),suffix=False)
 counter += check_style('Commands_bond.rst', doc_dir, ":doc:`(.+) <bond.+>`",
                        bond,'Bond',suffix=True)
 counter += check_style('bond_style.rst', doc_dir, ":doc:`(.+) <bond.+>` -",
@@ -301,7 +301,7 @@ counter += check_style_index("bond_style", bond, index["bond_style"])
 counter += check_style_index("dihedral_style", dihedral, index["dihedral_style"])
 counter += check_style_index("improper_style", improper, index["improper_style"])
 counter += check_style_index("kspace_style", kspace, index["kspace_style"])
-counter += check_style_index("pair_style", pair, index["pair_style"], skip=['meam', 'lj/sf'])
+counter += check_style_index("pair_style", pair, index["pair_style"], skip=['meam/c', 'lj/sf'])
 
 if counter:
     print(f"Found {counter} issue(s) with style index")

@@ -57,7 +57,7 @@ Examples
    fix 1 all adapt/fep 10 atom diameter 1 v_size
 
 
-Example input scripts available: examples/USER/fep
+Example input scripts available: examples/PACKAGES/fep
 
 Description
 """""""""""

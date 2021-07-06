@@ -146,7 +146,7 @@ Restrictions
 """"""""""""
 
 The "fix reax/c/species" currently only works with :doc:`pair_style reax/c <pair_reaxc>` and it requires that the :doc:`pair_style reax/c <pair_reaxc>` be invoked.  This fix is part of the
-USER-REAXC package.  It is only enabled if LAMMPS was built with that
+REAXFF package.  It is only enabled if LAMMPS was built with that
 package.  See the :doc:`Build package <Build_package>` doc page for more
 info.
 

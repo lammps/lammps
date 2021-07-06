@@ -43,7 +43,7 @@ used to study crystal-liquid interfaces and determine melting
 temperatures :ref:`(Pedersen) <Pedersen>`.
 
 An example of using the interface pinning method is located in the
-*examples/USER/misc/rhok* directory.
+*examples/USER-MISC/rhok* directory.
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""

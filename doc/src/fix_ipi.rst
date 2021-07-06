@@ -36,7 +36,7 @@ following publication :ref:`(IPI-CPC) <IPICPC>`.
 A version of the i-PI package, containing only files needed for use
 with LAMMPS, is provided in the tools/i-pi directory.  See the
 tools/i-pi/manual.pdf for an introduction to i-PI.  The
-examples/USER/i-pi directory contains example scripts for using i-PI
+examples/PACKAGES/i-pi directory contains example scripts for using i-PI
 with LAMMPS.
 
 In brief, the path integral molecular dynamics is performed by the

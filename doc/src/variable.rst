@@ -943,7 +943,7 @@ features or LAMMPS, *respa* allows to check whether the inner/middle/outer
 mode of r-RESPA is supported. In the various style categories,
 the checking is also done using suffix flags, if available and enabled.
 
-Example 1: disable use of suffix for pppm when using GPU package (i.e. run it on the CPU concurrently to running the pair style on the GPU), but do use the suffix otherwise (e.g. with USER-OMP).
+Example 1: disable use of suffix for pppm when using GPU package (i.e. run it on the CPU concurrently to running the pair style on the GPU), but do use the suffix otherwise (e.g. with OPENMP).
 
 .. code-block:: LAMMPS
 

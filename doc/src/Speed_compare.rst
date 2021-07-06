@@ -67,12 +67,12 @@ section below for examples where this has been done.
   pair style - on the CPU. This can often be easily achieved with placing
   a *suffix off* command before and a *suffix on* command after the
   *kspace_style pppm* command.
-* The KOKKOS/OpenMP and USER-OMP package have different thread management
-  strategies, which should result in USER-OMP being more efficient for a
+* The KOKKOS/OpenMP and OPENMP package have different thread management
+  strategies, which should result in OPENMP being more efficient for a
   small number of threads with increasing overhead as the number of threads
   per MPI rank grows. The KOKKOS/OpenMP kernels have less overhead in that
   case, but have lower performance with few threads.
-* The USER-INTEL package contains many options and settings for achieving
+* The INTEL package contains many options and settings for achieving
   additional performance on Intel hardware (CPU and accelerator cards), but
   to unlock this potential, an Intel compiler is required. The package code
   will compile with GNU gcc, but it will not be as efficient.
@@ -90,5 +90,5 @@ section below for examples where this has been done.
   both, NVIDIA and AMD GPUs well. On NVIDIA hardware, using CUDA is typically
   resulting in equal or better performance over OpenCL.
 * OpenCL in the GPU package does theoretically also support Intel CPUs or
-  Intel Xeon Phi, but the native support for those in KOKKOS (or USER-INTEL)
+  Intel Xeon Phi, but the native support for those in KOKKOS (or INTEL)
   is superior.

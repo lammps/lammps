@@ -73,7 +73,7 @@ pressure correction is discussed and described in :ref:`(Strong)
 <Strong>`.
 
 For a complete example including the considerations discussed
-above, see the examples/USER/flow_gauss directory.
+above, see the examples/PACKAGES/flow_gauss directory.
 
 .. note::
 

@@ -959,7 +959,7 @@ void Pair::ev_setup(int eflag, int vflag, int alloc)
     }
   }
 
-  // run ev_setup option for USER-TALLY computes
+  // run ev_setup option for TALLY computes
 
   if (num_tally_compute > 0) {
     for (int k=0; k < num_tally_compute; ++k) {

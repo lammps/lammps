@@ -20,7 +20,7 @@ Examples
 
    compute TDRUDE all temp/drude
 
-Example input scripts available: examples/USER/drude
+Example input scripts available: examples/PACKAGES/drude
 
 Description
 """""""""""

@@ -18,7 +18,6 @@ need the source code.
 
    Install_tarball
    Install_git
-   Install_patch
 
 These are the files and sub-directories in the LAMMPS distribution:
 
@@ -26,6 +25,8 @@ These are the files and sub-directories in the LAMMPS distribution:
 | README     | Short description of the LAMMPS package   |
 +------------+-------------------------------------------+
 | LICENSE    | GNU General Public License (GPL)          |
++------------+-------------------------------------------+
+| SECURITY.md| Security Policy for the LAMMPS package    |
 +------------+-------------------------------------------+
 | bench      | benchmark problems                        |
 +------------+-------------------------------------------+

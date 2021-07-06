@@ -233,7 +233,7 @@ since its computations are performed pairwise), nor granular pair
 styles with pairwise forces which are not aligned with the vector
 between the pair of particles.  All bond styles are supported.  All
 angle, dihedral, improper styles are supported with the exception of
-USER-INTEL and KOKKOS variants of specific styles.  It also does not
+INTEL and KOKKOS variants of specific styles.  It also does not
 support models with long-range Coulombic or dispersion forces,
 i.e. the kspace_style command in LAMMPS.  It also does not support the
 following fixes which add rigid-body constraints: :doc:`fix shake

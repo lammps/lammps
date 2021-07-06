@@ -89,8 +89,8 @@ corresponding coefficients have been set. This can be very helpful
 to debug error messages like "All pair coeffs are not set".
 
 The *accelerator* category prints out information about compile time
-settings of included accelerator support for the GPU, KOKKOS, USER-INTEL,
-and USER-OMP packages.
+settings of included accelerator support for the GPU, KOKKOS, INTEL,
+and OPENMP packages.
 
 The *styles* category prints the list of styles available in the
 current LAMMPS binary. It supports one of the following options

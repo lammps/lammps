@@ -41,7 +41,7 @@ approach each other. Usually, *scale_factor* =1.0.
 Mixing, shift, table, tail correction, restart, rRESPA info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-No mixing is performed automatically.  Currently, no part of USER-SMD
+No mixing is performed automatically.  Currently, no part of MACHDYN
 supports restarting nor minimization.  rRESPA does not apply to this
 pair style.
 
@@ -50,7 +50,7 @@ pair style.
 Restrictions
 """"""""""""
 
-This fix is part of the USER-SMD package.  It is only enabled if
+This fix is part of the MACHDYN package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 Related commands

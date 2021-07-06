@@ -26,7 +26,7 @@ Description
 
 Define a computation that calculates the electric field at each atom in a group.
 The compute should only enabled with pair and kspace styles that are provided
-by the USER-DIELECTRIC package because only these styles compute the per-atom
+by the DIELECTRIC package because only these styles compute the per-atom
 electric field at every time step.
 
 The electric field is a 3-component vector.  The value of the electric field
@@ -52,7 +52,7 @@ The per-atom vector values will be in electric field :doc:`units <units>`.
 
 Restrictions
 """"""""""""
-This compute is part of the USER-DIELECTRIC package. It is only enabled if
+This compute is part of the DIELECTRIC package. It is only enabled if
 LAMMPS was built with that package.
 
 Related commands

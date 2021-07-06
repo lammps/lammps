@@ -353,12 +353,10 @@ void PairSNAP::allocate()
 {
   allocated = 1;
   int n = atom->ntypes;
-
   memory->create(setflag,n+1,n+1,"pair:setflag");
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
   memory->create(scale,n+1,n+1,"pair:scale");
   map = new int[n+1];
-
 }
 
 /* ----------------------------------------------------------------------

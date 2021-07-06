@@ -1130,7 +1130,7 @@ void Dump::modify_params(int narg, char **arg)
     } else if (strcmp(arg[iarg],"vtime") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
       if (vartime_flag == 0) {
-        error->all(FLERR,"Time-dependent dump writing is not supported");
+        error->all(FLERR,"Cannot use dump_modify vtime for this dump style");
       }
       vtime = utils::numeric(FLERR, arg[iarg+1],false,lmp);
       if (vtime <= 0) error->all(FLERR,"Illegal dump_modify command");
@@ -1142,7 +1142,7 @@ void Dump::modify_params(int narg, char **arg)
       for (idump = 0; idump < output->ndump; idump++)
         if (strcmp(id,output->dump[idump]->id) == 0) break;
       output->every_dump[idump] = 1;
-      if (me == 0) error->warning(FLERR, "Switching to a time-based dump.");
+      if (me == 0) error->warning(FLERR, "Switching to a time-based dump");
       iarg += 2;
     } else {
       int n = modify_param(narg-iarg,&arg[iarg]);

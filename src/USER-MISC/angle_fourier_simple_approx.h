@@ -24,8 +24,8 @@ AngleStyle(fourier/simple/approx,AngleFourierSimpleApprox);
 #ifndef LMP_ANGLE_FOURIER_SIMPLE_APPROX_H
 #define LMP_ANGLE_FOURIER_SIMPLE_APPROX_H
 
-#include "angle_fourier_simple.h"
 #include "math_const.h"
+#include "angle_fourier_simple.h"
 
 namespace LAMMPS_NS {
 
@@ -43,8 +43,8 @@ static double fastCos(double x)
   double x_wrapped = x - MathConst::MY_2PI * floor(x * inv2pi);
   x_wrapped *= inv2pi;
   x_wrapped -= 0.25 + floor(x_wrapped + 0.25);
-  x_wrapped *= 16.0 * (abs(x_wrapped) - 0.5);
-  x_wrapped += 0.225 * x_wrapped * (abs(x_wrapped) - 1.0);
+  x_wrapped *= 16.0 * (fabs(x_wrapped) - 0.5);
+  x_wrapped += 0.225 * x_wrapped * (fabs(x_wrapped) - 1.0);
   return x_wrapped;
 }
 
@@ -61,17 +61,14 @@ static double fastAcos(double x)
 {
   double negate = double(x < 0);
   x = fabs(x);
-  double ret = -0.0187293;
-  ret = ret * x;
-  // TODO: verify that fpas are used here
-  ret = ret + 0.0742610;
-  ret = ret * x;
-  ret = ret - 0.2121144;
-  ret = ret * x;
-  ret = ret + 1.5707288;
-  ret = ret * sqrt(1.0 - x);
-  ret = ret - 2 * negate * ret;
-  return negate * 3.14159265358979 + ret;
+  // fmas are used here only if I use -ffast-math
+  // tested compiler: clang version 12.0.0, Target: x86_64-apple-darwin20.5.0
+  double ret = -0.0187293 * x + 0.0742610;
+  double ret2 = ret * x - 0.2121144;
+  double ret3 = ret2 * x + 1.5707288;
+  double ret4 = ret3 * sqrt(1.0 - x);
+  double ret5 = ret4 * (1 - 2 * negate);
+  return negate * 3.14159265358979 + ret4;
 }
 
 // static double fastCos(double);

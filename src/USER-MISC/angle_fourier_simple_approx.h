@@ -68,7 +68,7 @@ static double fastAcos(double x)
   double ret3 = ret2 * x + 1.5707288;
   double ret4 = ret3 * sqrt(1.0 - x);
   double ret5 = ret4 * (1 - 2 * negate);
-  return negate * 3.14159265358979 + ret4;
+  return negate * 3.14159265358979 + ret5;
 }
 
 // static double fastCos(double);

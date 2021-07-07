@@ -33,8 +33,10 @@ OPT.
    * :doc:`pppm/cg (o) <kspace_style>`
    * :doc:`pppm/dipole <kspace_style>`
    * :doc:`pppm/dipole/spin <kspace_style>`
+   * :doc:`pppm/dielectric <kspace_style>`
    * :doc:`pppm/disp (io) <kspace_style>`
    * :doc:`pppm/disp/tip4p (o) <kspace_style>`
+   * :doc:`pppm/disp/dielectric <kspace_style>`
    * :doc:`pppm/stagger <kspace_style>`
    * :doc:`pppm/tip4p (o) <kspace_style>`
    * :doc:`pppm/dielectric <kspace_style>`

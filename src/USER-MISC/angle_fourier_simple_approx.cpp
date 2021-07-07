@@ -49,18 +49,18 @@ void AngleFourierSimpleApprox::compute(int eflag, int vflag)
   const int nall = atom->nlocal + atom->nghost;
   const int inum = neighbor->nanglelist;
 
-      if (evflag) {
-        if (eflag) {
-          if (force->newton_bond) eval<1,1,1>();
-          else eval<1,1,0>();
-        } else {
-          if (force->newton_bond) eval<1,0,1>();
-          else eval<1,0,0>();
-        }
-      } else {
-        if (force->newton_bond) eval<0,0,1>();
-        else eval<0,0,0>();
-      }
+  if (evflag) {
+    if (eflag) {
+      if (force->newton_bond) eval<1,1,1>();
+      else eval<1,1,0>();
+    } else {
+      if (force->newton_bond) eval<1,0,1>();
+      else eval<1,0,0>();
+    }
+  } else {
+    if (force->newton_bond) eval<0,0,1>();
+    else eval<0,0,0>();
+  }
 }
 
 template <int EVFLAG, int EFLAG, int NEWTON_BOND>

@@ -1,7 +1,7 @@
 ---
 lammps_version: 10 Feb 2021
 date_generated: Fri Feb 26 23:09:24 2021
-epsilon: 2.5e-8
+epsilon: 6.76e-5
 prerequisites: ! |
   atom full
   angle fourier/simple/approx

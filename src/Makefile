@@ -74,6 +74,7 @@ PACKAGE = \
 	granular \
 	h5md \
 	intel \
+	interlayer \
 	kim \
 	kokkos \
 	kspace \
@@ -157,6 +158,7 @@ PACKMOST = \
 	eff \
 	fep \
 	granular \
+	interlayer \
 	kspace \
 	manybody \
 	mc \
@@ -186,7 +188,7 @@ PACKMOST = \
 	ml-iap \
 	phonon
 
-# NOTE: the last three packages must remain at the end since
+# NOTE ^^^^^: the last three packages must remain at the end since
 # they depend on other packages to be installed first.
 
 PACKLIB = \

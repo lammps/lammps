@@ -54,6 +54,7 @@ page gives those details.
    * :ref:`GRANULAR <PKG-GRANULAR>`
    * :ref:`H5MD <PKG-H5MD>`
    * :ref:`INTEL <PKG-INTEL>`
+   * :ref:`INTERLAYER <PKG-INTERLAYER>`
    * :ref:`KIM <PKG-KIM>`
    * :ref:`KOKKOS <PKG-KOKKOS>`
    * :ref:`KSPACE <PKG-KSPACE>`
@@ -930,6 +931,24 @@ This package has :ref:`specific installation instructions <intel>` on the :doc:`
   :doc:`pair <Commands_pair>`, :doc:`bond, angle, dihedral, improper <Commands_bond>`, :doc:`kspace <Commands_kspace>`) for styles followed by (i)
 * src/INTEL/TEST
 * `Benchmarks page <https://www.lammps.org/bench.html>`_ of web site
+
+----------
+
+.. _PKG-INTERLAYER:
+
+INTERLAYER package
+------------------
+
+**Contents:**
+
+A collection of pair styles specifically to be used for modeling layered
+materials, most commonly graphene sheets (or equivalents).
+
+**Supporting info:**
+
+* src/INTERLAYER: filenames -> commands
+* :doc:`Pair style <Commands_pair>` page
+* examples/PACKAGES/interlayer
 
 ----------
 

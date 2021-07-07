@@ -35,7 +35,7 @@ speed of sound.
 This pair style also computes Monaghan's artificial viscosity to
 prevent particles from interpenetrating :ref:`(Monaghan) <Monaghan>`.
 
-See `this PDF guide <USER/sph/SPH_LAMMPS_userguide.pdf>`_ to using SPH in
+See `this PDF guide <PDF/SPH_LAMMPS_userguide.pdf>`_ to using SPH in
 LAMMPS.
 
 The following coefficients must be defined for each pair of atoms

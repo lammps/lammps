@@ -441,7 +441,7 @@ command.  These keywords do not allow use of an atom-style variable.
 
 Keywords *sph/e*\ , *sph/cv*\ , and *sph/rho* set the energy, heat
 capacity, and density of smoothed particle hydrodynamics (SPH)
-particles.  See `this PDF guide <USER/sph/SPH_LAMMPS_userguide.pdf>`_
+particles.  See `this PDF guide <PDF/SPH_LAMMPS_userguide.pdf>`_
 to using SPH in LAMMPS.
 
 Keyword *smd/mass/density* sets the mass of all selected particles,

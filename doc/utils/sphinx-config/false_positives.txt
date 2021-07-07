@@ -2404,6 +2404,7 @@ orthorhombic
 Ortner
 oso
 Otype
+Ouadfel
 Ouldridge
 outfile
 outmost
@@ -3150,6 +3151,7 @@ Suter
 Sutmann
 Suzen
 svn
+Svoboda
 sw
 Swegat
 swiggle

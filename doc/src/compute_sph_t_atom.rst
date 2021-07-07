@@ -34,7 +34,7 @@ particles, i.e. a Smooth-Particle Hydrodynamics particle.
 
     T_{int} = E_{int} / C_{V,int}
 
-See `this PDF guide <USER/sph/SPH_LAMMPS_userguide.pdf>`_ to using SPH in
+See `this PDF guide <PDF/SPH_LAMMPS_userguide.pdf>`_ to using SPH in
 LAMMPS.
 
 The value of the internal energy will be 0.0 for atoms not in the

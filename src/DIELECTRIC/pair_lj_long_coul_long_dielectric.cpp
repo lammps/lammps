@@ -53,9 +53,9 @@ using namespace MathExtra;
 PairLJLongCoulLongDielectric::PairLJLongCoulLongDielectric(LAMMPS *lmp) : PairLJLongCoulLong(lmp)
 {
   respa_enable = 0;
-  cut_respa = NULL;
-  efield = NULL;
-  epot = NULL;
+  cut_respa = nullptr;
+  efield = nullptr;
+  epot = nullptr;
   nmax = 0;
 }
 

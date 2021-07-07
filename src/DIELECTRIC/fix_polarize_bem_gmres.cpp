@@ -431,7 +431,7 @@ void FixPolarizeBEMGMRES::gmres_solve(double *x, double *r)
 
     // fill up h with zero
 
-    memset(h, 0, (mr + 1) * mr * sizeof(double));
+    memset(h, 0, (size_t)(mr + 1) * mr * sizeof(double));
 
     // the inner loop k = 1..(n-1)
     // build up the k-th Krylov space,
@@ -756,11 +756,11 @@ double FixPolarizeBEMGMRES::memory_usage()
   bytes += atom->nmax * sizeof(double);       // q_backup
   bytes += mr * sizeof(double);               // c
   bytes += (mr + 1) * sizeof(double);         // g
-  bytes += (mr + 1) * mr * sizeof(double);    // h
+  bytes += (double) (mr + 1) * mr * sizeof(double);    // h
   bytes += mat_dim * sizeof(double);          // r
-  bytes += mr * (mr + 1) * sizeof(double);    // s
+  bytes += (double) mr * (mr + 1) * sizeof(double);    // s
   bytes += mat_dim * sizeof(double);          // v
-  bytes += (mr + 1) * mr * sizeof(double);    // y
+  bytes += (double) (mr + 1) * mr * sizeof(double);    // y
   return bytes;
 }
 

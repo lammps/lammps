@@ -29,7 +29,7 @@ needed to time-integrate SPH systems where particles carry internal
 variables such as internal energy.  SPH stands for Smoothed Particle
 Hydrodynamics.
 
-See `this PDF guide <USER/sph/SPH_LAMMPS_userguide.pdf>`_ to using SPH in
+See `this PDF guide <PDF/SPH_LAMMPS_userguide.pdf>`_ to using SPH in
 LAMMPS.
 
 Restart, fix_modify, output, run start/stop, minimize info

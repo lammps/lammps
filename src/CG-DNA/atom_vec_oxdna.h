@@ -20,7 +20,6 @@ AtomStyle(oxdna,AtomVecOxdna);
 #ifndef LMP_ATOM_VEC_OXDNA_H
 #define LMP_ATOM_VEC_OXDNA_H
 
-#include "atom.h"
 #include "atom_vec.h"
 
 namespace LAMMPS_NS {
@@ -33,6 +32,7 @@ class AtomVecOxdna : public AtomVec {
   void grow_pointers();
   virtual void data_bonds_post(int, char *, tagint);
   virtual void data_bonds_post2(int, int, tagint, tagint, tagint);
+  void data_atom_post(int);
 
  private:
   tagint *id5p;

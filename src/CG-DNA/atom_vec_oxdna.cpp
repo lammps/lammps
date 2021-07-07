@@ -63,7 +63,16 @@ AtomVecOxdna::~AtomVecOxdna()
 void AtomVecOxdna::grow_pointers()
 {
   id5p = atom->id5p;
+}
 
+/* ----------------------------------------------------------------------
+   initialize atom quantity
+------------------------------------------------------------------------- */
+
+void AtomVecOxdna::data_atom_post(int ilocal)
+{
+  tagint *id5p = atom->id5p;
+  id5p[ilocal] = -1;
 }
 
 /* ----------------------------------------------------------------------

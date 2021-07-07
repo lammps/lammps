@@ -42,49 +42,6 @@ AngleFourierSimpleApprox::AngleFourierSimpleApprox(class LAMMPS *lmp)
 
 /* ---------------------------------------------------------------------- */
 
-/**
- * Approximation of cos
- * maximum error is about 0.00109 for the range -pi to pi
- * Source: https://stackoverflow.com/a/28050328/3909202
- */
-double static fastCos(double x) {
-  constexpr double inv2pi = 1./(MathConst::MY_2PI);
-  // TODO: check if range map is necessary
-  double x_wrapped = x - MathConst::MY_2PI * floor(x * inv2pi);
-    x_wrapped *= inv2pi;
-    x_wrapped -= 0.25 + floor(x_wrapped + 0.25);
-    x_wrapped *= 16.0 * (abs(x_wrapped) - 0.5);
-    x_wrapped += 0.225 * x_wrapped * (abs(x_wrapped) - 1.0);
-    return x_wrapped;
-}
-
-/* ---------------------------------------------------------------------- */
-
-/**
- * Approximation of acos 
- * Returns the arccosine of x in the range [0,pi], expecting x to be in the range [-1,+1]. 
- * Absolute error <= 6.7e-5
- * Range mapping not necessary as C++ standard library would throw domain error
- * Source: https://developer.download.nvidia.com/cg/acos.html
- */
-double static fastAcos(double x) {
-  double negate = double(x < 0);
-  x = fabs(x);
-  double ret = -0.0187293;
-  ret = ret * x;
-  // TODO: verify that fpas are used here
-  ret = ret + 0.0742610;
-  ret = ret * x;
-  ret = ret - 0.2121144;
-  ret = ret * x;
-  ret = ret + 1.5707288;
-  ret = ret * sqrt(1.0-x); 
-  ret = ret - 2 * negate * ret;
-  return negate * 3.14159265358979 + ret;
-}
-
-/* ---------------------------------------------------------------------- */
-
 void AngleFourierSimpleApprox::compute(int eflag, int vflag)
 {
   ev_init(eflag,vflag);

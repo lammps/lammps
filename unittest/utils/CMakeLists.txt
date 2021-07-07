@@ -19,6 +19,10 @@ add_executable(test_fmtlib test_fmtlib.cpp)
 target_link_libraries(test_fmtlib PRIVATE lammps GTest::GMockMain GTest::GMock GTest::GTest)
 add_test(FmtLib test_fmtlib)
 
+add_executable(test_cos_approx test_cos_approx.cpp)
+target_link_libraries(test_cos_approx PRIVATE lammps GTest::GMockMain GTest::GMock GTest::GTest)
+add_test(TrigApprox test_cos_approx)
+
 add_executable(test_math_eigen_impl test_math_eigen_impl.cpp)
 target_include_directories(test_math_eigen_impl PRIVATE ${LAMMPS_SOURCE_DIR})
 add_test(MathEigen test_math_eigen_impl 10 5)

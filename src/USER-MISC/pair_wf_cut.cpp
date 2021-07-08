@@ -15,6 +15,7 @@
 /* ----------------------------------------------------------------------
    Contributing Author: Xipeng Wang, Simon Ramirez-Hinestrosa
 ------------------------------------------------------------------------- */
+
 #include "pair_wf_cut.h"
 
 #include "atom.h"
@@ -391,5 +392,5 @@ void *PairWFCut::extract(const char *str, int &dim)
   if (strcmp(str,"sigma") == 0) return (void *) sigma;
   if (strcmp(str,"nu") == 0) return (void *) nu;
   if (strcmp(str,"mu") == 0) return (void *) mu;
-  return NULL;
+  return nullptr;
 }

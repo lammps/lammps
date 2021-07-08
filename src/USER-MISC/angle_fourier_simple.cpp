@@ -106,12 +106,12 @@ void AngleFourierSimple::compute(int eflag, int vflag)
     c /= r1*r2;
 
     if (c > 1.0) c = 1.0;
-    if (c < -1.0) c = -1.0;
+    else if (c < -1.0) c = -1.0;
 
     // force & energy
 
     th = acos(c);
-    nth = N[type]*acos(c);
+    nth = N[type]*th;
     cn = cos(nth);
     term = k[type]*(1.0+C[type]*cn);
 

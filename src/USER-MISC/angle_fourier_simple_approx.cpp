@@ -46,9 +46,6 @@ void AngleFourierSimpleApprox::compute(int eflag, int vflag)
 {
   ev_init(eflag,vflag);
 
-  const int nall = atom->nlocal + atom->nghost;
-  const int inum = neighbor->nanglelist;
-
   if (evflag) {
     if (eflag) {
       if (force->newton_bond) eval<1,1,1>();
@@ -66,11 +63,12 @@ void AngleFourierSimpleApprox::compute(int eflag, int vflag)
 template <int EVFLAG, int EFLAG, int NEWTON_BOND>
 void AngleFourierSimpleApprox::eval()
 {
-  int i1,i2,i3,n,type;
+  //int i1,i2,i3,n,type;
   double delx1,dely1,delz1,delx2,dely2,delz2;
   double eangle,f1[3],f3[3];
   double term,sgn;
-  double rsq1,rsq2,r1,r2,c,cn,th,nth,a,a11,a12,a22;
+  double rsq1,rsq2,r1,r2,c,cn,a,a11,a12,a22;
+  float th,nth;
   int nanglelist = neighbor->nanglelist;
 
   const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
@@ -79,11 +77,11 @@ void AngleFourierSimpleApprox::eval()
   const int nlocal = atom->nlocal;
   eangle = 0.0;
 
-  for (n = 0; n < nanglelist; n++) {
-    i1 = anglelist[n].a;
-    i2 = anglelist[n].b;
-    i3 = anglelist[n].c;
-    type = anglelist[n].t;
+  for (int n = 0; n < nanglelist; n++) {
+    const int i1 = anglelist[n].a;
+    const int i2 = anglelist[n].b;
+    const int i3 = anglelist[n].c;
+    const int type = anglelist[n].t;
 
     // 1st bond
 
@@ -109,12 +107,12 @@ void AngleFourierSimpleApprox::eval()
     c /= r1*r2;
 
     if (c > 1.0) c = 1.0;
-    if (c < -1.0) c = -1.0;
+    else if (c < -1.0) c = -1.0;
 
     // force & energy
 
     th = fastAcos(c);
-    nth = N[type]*fastAcos(c);
+    nth = (float)N[type]*th;
     cn = cos(nth);//fastCos(nth);
     term = k[type]*(1.0+C[type]*cn);
 
@@ -123,7 +121,7 @@ void AngleFourierSimpleApprox::eval()
     // handle sin(n th)/sin(th) singulatiries
 
     if (fabs(c)-1.0 > 0.0001) {
-      a = k[type]*C[type]*N[type]*sin(nth)/sin(th);
+      a = k[type]*C[type]*N[type]*((double)fastSin(nth))/((double)fastSin(th));
     } else {
       if (c >= 0.0) {
         term = 1.0 - c;

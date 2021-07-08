@@ -24,28 +24,60 @@ AngleStyle(fourier/simple/approx,AngleFourierSimpleApprox);
 #ifndef LMP_ANGLE_FOURIER_SIMPLE_APPROX_H
 #define LMP_ANGLE_FOURIER_SIMPLE_APPROX_H
 
-#include "math_const.h"
 #include "angle_fourier_simple.h"
+#include "math_const.h"
 
 namespace LAMMPS_NS {
 
 /* ---------------------------------------------------------------------- */
 
+#define ONE_OVER_PI 0.318309886183790671538035357
+#define ONE_OVER_PI_SQUARE 0.1013211836423377714440499
+#define ONE_OVER_PI_CUBED 0.03225153443319948918450346
+#define TWO_PI_INVERSE 0.1591549430918953357690176
+
 /**
- * Approximation of cos
- * maximum error is about 0.00109 for the range -pi to pi
- * Source: https://stackoverflow.com/a/28050328/3909202
+ * Approximation of sine (resp. cosine) on [0, pi/2]
  */
-static double fastCos(double x)
+static float hill(float x)
 {
-  constexpr double inv2pi = 1. / (MathConst::MY_2PI);
-  // TODO: check if range map is necessary
-  double x_wrapped = x - MathConst::MY_2PI * floor(x * inv2pi);
-  x_wrapped *= inv2pi;
-  x_wrapped -= 0.25 + floor(x_wrapped + 0.25);
-  x_wrapped *= 16.0 * (fabs(x_wrapped) - 0.5);
-  x_wrapped += 0.225 * x_wrapped * (fabs(x_wrapped) - 1.0);
-  return x_wrapped;
+  // const float a0 = 1.0f;
+  // const float a2 = 2.0f * ONE_OVER_PI - 12.0f * ONE_OVER_PI_SQUARE;
+  // const float a3 = 16.0f * ONE_OVER_PI_CUBED - 4.0f * ONE_OVER_PI_SQUARE;
+
+  // FMA supported (if -ffast-math) Horner scheme for a0 + a2 * xx + a3 * xxx:
+  // x*a3 + a2
+  const float ret1 = x * 0.1107398163618407411 - 0.5792344313404719142525289;
+  const float xx = x * x;
+
+  return 1.0f + xx * ret1;    // a0 + a2 * xx + a3 * xxx;
+}
+
+/**
+ * Approximation of sine
+ * @source http://allenchou.net/2014/02/game-math-faster-sine-cosine-with-polynomial-curves/
+ */
+static float fastSin(float x)
+{
+  // wrap x within [0, TWO_PI)
+  const float a = x * TWO_PI_INVERSE;
+  x -= static_cast<int>(a) * MathConst::MY_2PI;
+  if (x < 0.0f) x += MathConst::MY_2PI;
+
+  // 4 pieces of hills
+  if (x < MathConst::MY_PI2)
+    return hill(MathConst::MY_PI2 - x);
+  else if (x < MathConst::MY_PI)
+    return hill(x - MathConst::MY_PI2);
+  else if (x < 3.0f * MathConst::MY_PI2)
+    return -hill(3.0f * MathConst::MY_PI2 - x);
+  else
+    return -hill(x - 3.0f * MathConst::MY_PI2);
+}
+
+static float fastCos(float x)
+{
+  return fastSin(x + MathConst::MY_PI2);
 }
 
 /* ---------------------------------------------------------------------- */

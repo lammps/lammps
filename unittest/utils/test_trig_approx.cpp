@@ -21,21 +21,23 @@ using ::testing::Eq;
 
 TEST(afs_approx, cos)
 {
-    float angles[] = {0.0, 1.0, 0.25, 0.33, 0.5, -0.5, -3.245, -10, 1000};
+    float angles[] = {0.0,  -0.0,   1.0,     0.25, 0.33, 3.245, 0.5,
+                      -0.5, -3.245, 3.03819, 6.1,  -10,  1000};
 
-    for (size_t i = 0; i < 9; i++) {
+    for (size_t i = 0; i < 13; i++) {
         float refValue = cosf(angles[i]);
-        EXPECT_NEAR(refValue, fastCos(angles[i]), 1e-5);
+        EXPECT_NEAR(refValue, fastCos(angles[i]), 3.0e-5);
     }
 }
 
 TEST(afs_approx, sin)
 {
-    float angles[] = {0.0, 1.0, 0.25, 0.33, 0.5, -0.5, -3.245, -10, 1000};
+    float angles[] = {0.0,  -0.0,   1.0,     0.25, 0.33, 3.245, 0.5,
+                      -0.5, -3.245, 3.03819, 6.1,  -10,  1000};
 
-    for (size_t i = 0; i < 9; i++) {
+    for (size_t i = 0; i < 13; i++) {
         double refValue = sin(angles[i]);
-        EXPECT_NEAR(refValue, fastSin(angles[i]), 1e-5);
+        EXPECT_NEAR(refValue, fastSin(angles[i]), 3.0e-5);
     }
 }
 

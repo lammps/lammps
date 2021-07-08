@@ -113,7 +113,7 @@ void AngleFourierSimpleApprox::eval()
 
     th = fastAcos(c);
     nth = (float)N[type]*th;
-    cn = cos(nth);//fastCos(nth);
+    cn = fastCos(nth);
     term = k[type]*(1.0+C[type]*cn);
 
     if (EFLAG) eangle = term;

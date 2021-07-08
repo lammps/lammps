@@ -26,6 +26,7 @@ AngleStyle(fourier/simple/approx,AngleFourierSimpleApprox);
 
 #include "angle_fourier_simple.h"
 #include "math_const.h"
+#include <cassert>
 
 namespace LAMMPS_NS {
 
@@ -37,47 +38,81 @@ namespace LAMMPS_NS {
 #define TWO_PI_INVERSE 0.1591549430918953357690176
 
 /**
- * Approximation of sine (resp. cosine) on [0, pi/2]
+ * Approximation of sine. |x*e(x)|≤2e-9
+ * @source M. Abramowitz and I. A. Stegun, Eds., Handbook of mathematical functions: with formulas, graphs, and mathematical tables, p. 43
  */
-static float hill(float x)
+static float sinePolynomial(float x)
 {
-  // const float a0 = 1.0f;
-  // const float a2 = 2.0f * ONE_OVER_PI - 12.0f * ONE_OVER_PI_SQUARE;
-  // const float a3 = 16.0f * ONE_OVER_PI_CUBED - 4.0f * ONE_OVER_PI_SQUARE;
+  const float x2 = x * x;
 
-  // FMA supported (if -ffast-math) Horner scheme for a0 + a2 * xx + a3 * xxx:
-  // x*a3 + a2
-  const float ret1 = x * 0.1107398163618407411 - 0.5792344313404719142525289;
-  const float xx = x * x;
-
-  return 1.0f + xx * ret1;    // a0 + a2 * xx + a3 * xxx;
+  const float term1 = x2 * -0.0000000239 + 0.0000027526;
+  const float term2 = x2 * term1 - 0.0001984090;
+  const float term3 = x2 * term2 + 0.00833333315;
+  const float term4 = x2 * term3 - 0.16666666664;
+  return x * (1 + x2 * term4);
 }
 
 /**
  * Approximation of sine
- * @source http://allenchou.net/2014/02/game-math-faster-sine-cosine-with-polynomial-curves/
+ * @source M. Abramowitz and I. A. Stegun, Eds., Handbook of mathematical functions: with formulas, graphs, and mathematical tables, p. 43
  */
-static float fastSin(float x)
+static float fastSin(float a)
 {
   // wrap x within [0, TWO_PI)
-  const float a = x * TWO_PI_INVERSE;
-  x -= static_cast<int>(a) * MathConst::MY_2PI;
-  if (x < 0.0f) x += MathConst::MY_2PI;
+  // const float a = x * TWO_PI_INVERSE;
+  // x -= static_cast<int>(a) * MathConst::MY_2PI;
+  // if (x < 0.0f) x += MathConst::MY_2PI;
+  const float x = fmodf(MathConst::MY_2PI + fmodf(a, MathConst::MY_2PI), MathConst::MY_2PI);
+  // assert(x >= 0);
+  // assert(x < MathConst::MY_2PI);
 
-  // 4 pieces of hills
+  // 4 pieces of hills: wrap x within [0, pi/2]
   if (x < MathConst::MY_PI2)
-    return hill(MathConst::MY_PI2 - x);
+    return sinePolynomial(x);
   else if (x < MathConst::MY_PI)
-    return hill(x - MathConst::MY_PI2);
+    return sinePolynomial(MathConst::MY_PI - x);
   else if (x < 3.0f * MathConst::MY_PI2)
-    return -hill(3.0f * MathConst::MY_PI2 - x);
+    return -sinePolynomial(x - MathConst::MY_PI);
   else
-    return -hill(x - 3.0f * MathConst::MY_PI2);
+    return -sinePolynomial(MathConst::MY_2PI - x);
 }
 
-static float fastCos(float x)
+/**
+ * Approximation of cosine. |e(x)|≤2e-9
+ * @source M. Abramowitz and I. A. Stegun, Eds., Handbook of mathematical functions: with formulas, graphs, and mathematical tables, p. 43
+ */
+static float cosinePolynomial(float x)
 {
-  return fastSin(x + MathConst::MY_PI2);
+  const float x2 = x * x;
+
+  const float term1 = x2 * -0.0000002605 + 0.0000247609;
+  const float term2 = x2 * term1 - 0.0013888397;
+  const float term3 = x2 * term2 + 0.0416666418;
+  const float term4 = x2 * term3 - 0.4999999963;
+  return 1.0 + x2 * term4;
+}
+
+/**
+ * Approximation of cosine
+ * @source M. Abramowitz and I. A. Stegun, Eds., Handbook of mathematical functions: with formulas, graphs, and mathematical tables, p. 43
+ */
+static float fastCos(float a)
+{
+  // wrap x within [0, TWO_PI)
+  // const float a = x * TWO_PI_INVERSE;
+  // x -= static_cast<int>(a) * MathConst::MY_2PI;
+  // if (x < 0.0f) x += MathConst::MY_2PI;
+  const float x = fmodf(MathConst::MY_2PI + fmodf(a, MathConst::MY_2PI), MathConst::MY_2PI);
+
+  // 4 pieces of hills: wrap x within [0, pi/2]
+  if (x < MathConst::MY_PI2)
+    return cosinePolynomial(x);
+  else if (x < MathConst::MY_PI)
+    return -cosinePolynomial(MathConst::MY_PI - x);
+  else if (x < 3.0f * MathConst::MY_PI2)
+    return -cosinePolynomial(x - MathConst::MY_PI);
+  else
+    return cosinePolynomial(MathConst::MY_2PI - x);
 }
 
 /* ---------------------------------------------------------------------- */

@@ -67,7 +67,7 @@ class AtomKokkos : public Atom {
 
 
   AtomKokkos(class LAMMPS *);
-  ~AtomKokkos();
+  virtual ~AtomKokkos();
 
   void map_init(int check = 1);
   void map_set();

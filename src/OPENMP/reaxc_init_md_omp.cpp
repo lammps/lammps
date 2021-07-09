@@ -111,7 +111,7 @@ int Init_ListsOMP(reax_system *system, control_params *control,
   free(hb_top);
   free(bond_top);
 
-  return SUCCESS;
+  return REAXC_SUCCES;
 }
 
 /* ---------------------------------------------------------------------- */

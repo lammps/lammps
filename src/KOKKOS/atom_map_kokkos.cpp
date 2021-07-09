@@ -110,6 +110,10 @@ void AtomKokkos::map_init(int check)
       h_map_hash = host_hash_type(map_nhash);
     }
   }
+
+  k_sametag.modify_host();
+  if (map_style == Atom::MAP_ARRAY) 
+    k_map_array.modify_host();
 }
 
 /* ----------------------------------------------------------------------
@@ -227,23 +231,29 @@ void AtomKokkos::map_set()
     }
   }
 
-  // check if fix shake or neigh bond needs a device hash
+  k_sametag.modify_host();
+  if (map_style == Atom::MAP_ARRAY)
+    k_map_array.modify_host();
+  else if (map_style == Atom::MAP_ARRAY) {
 
-  int device_hash_flag = 0;
+    // check if fix shake or neigh bond needs a device hash
 
-  auto neighborKK = (NeighborKokkos*) neighbor;
-  if (neighborKK->device_flag) device_hash_flag = 1;
+    int device_hash_flag = 0;
 
-  for (int n = 0; n < modify->nfix; n++)
-    if (utils::strmatch(modify->fix[n]->style,"^shake"))
-      if (modify->fix[n]->execution_space == Device)
-          device_hash_flag = 1;
+    auto neighborKK = (NeighborKokkos*) neighbor;
+    if (neighborKK->device_flag) device_hash_flag = 1;
 
-  if (device_hash_flag)
-    Kokkos::deep_copy(d_map_hash,h_map_hash);
+    for (int n = 0; n < modify->nfix; n++)
+      if (utils::strmatch(modify->fix[n]->style,"^shake"))
+	if (modify->fix[n]->execution_space == Device)
+	    device_hash_flag = 1;
 
-  k_map_hash.h_view = h_map_hash;
-  k_map_hash.d_view = d_map_hash;
+    if (device_hash_flag)
+      Kokkos::deep_copy(d_map_hash,h_map_hash);
+
+    k_map_hash.h_view = h_map_hash;
+    k_map_hash.d_view = d_map_hash;
+  }
 }
 
 /* ----------------------------------------------------------------------

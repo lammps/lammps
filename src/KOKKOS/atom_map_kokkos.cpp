@@ -112,7 +112,7 @@ void AtomKokkos::map_init(int check)
   }
 
   k_sametag.modify_host();
-  if (map_style == Atom::MAP_ARRAY) 
+  if (map_style == Atom::MAP_ARRAY)
     k_map_array.modify_host();
 }
 

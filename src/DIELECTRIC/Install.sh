@@ -31,7 +31,7 @@ action () {
 
 if (test $1 = 1) then
   if (test ! -e ../pppm.cpp) then
-    echo "Must install KSPACE package with DIELECTRIC"
+    echo "Must install KSPACE package with DIELECTRIC package"
     exit 1
   fi
 fi

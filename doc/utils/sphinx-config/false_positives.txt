@@ -2407,6 +2407,7 @@ orthorhombic
 Ortner
 oso
 Otype
+Ouadfel
 Ouldridge
 outfile
 outmost
@@ -2680,7 +2681,6 @@ qoverride
 qqr
 qqrd
 qtb
-Quadfel
 quadratically
 quadrupolar
 Quant
@@ -3155,6 +3155,7 @@ Suter
 Sutmann
 Suzen
 svn
+Svoboda
 sw
 Swegat
 swiggle

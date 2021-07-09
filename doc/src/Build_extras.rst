@@ -74,7 +74,8 @@ To build with this package you must have the `zlib compression library
 <https://zlib.net>`_ available on your system to build dump styles with
 a '/gz' suffix.  There are also styles using the
 `Zstandard <https://facebook.github.io/zstd/>`_ library which have a
-'/zstd' suffix.
+'/zstd' suffix.  The zstd library version must be at least 1.4.  Older
+versions use an incompatible API and thus LAMMPS will fail to compile.
 
 .. tabs::
 

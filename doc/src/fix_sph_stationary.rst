@@ -29,7 +29,7 @@ This fix is needed for SPH simulations to correctly time-integrate
 fixed boundary particles which constrain a fluid to a given region in
 space.  SPH stands for Smoothed Particle Hydrodynamics.
 
-See `this PDF guide <USER/sph/SPH_LAMMPS_userguide.pdf>`_ to using SPH in
+See `this PDF guide <PDF/SPH_LAMMPS_userguide.pdf>`_ to using SPH in
 LAMMPS.
 
 Restart, fix_modify, output, run start/stop, minimize info

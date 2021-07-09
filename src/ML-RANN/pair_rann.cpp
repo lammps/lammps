@@ -81,8 +81,8 @@ PairRANN::PairRANN(LAMMPS *lmp) : Pair(lmp)
   manybody_flag = 1;
   allocated = 0;
   nelements = -1;
-  elements = NULL;
-  mass = NULL;
+  elements = nullptr;
+  mass = nullptr;
 
   // set comm size needed by this Pair
   // comm unused for now.
@@ -304,7 +304,7 @@ void PairRANN::read_file(char *filename)
   while (eof == 0) {
     ptr=fgets(linetemp,longline,fp);
     linenum++;
-    if (ptr == NULL) {
+    if (ptr == nullptr) {
       if (check_potential()) {
         error->one(FLERR,"Invalid syntax in potential file, values are inconsistent or missing");
       }
@@ -345,7 +345,7 @@ void PairRANN::read_file(char *filename)
         strtemp=utils::trim_comment(linetemp);
         linenum++;
     }
-    if (ptr == NULL) {
+    if (ptr == nullptr) {
       if (check_potential()) {
         error->one(FLERR,"Invalid syntax in potential file, values are inconsistent or missing");
       }
@@ -532,7 +532,7 @@ void PairRANN::read_weight(std::vector<std::string> line,std::vector<std::string
         (*linenum)++;
         Tokenizer values1 = Tokenizer(linetemp,": ,\t_\n");
         line1 = values1.as_vector();
-        if (ptr==NULL)error->one(filename,*linenum,"unexpected end of potential file!");
+        if (ptr==nullptr)error->one(filename,*linenum,"unexpected end of potential file!");
         nwords = line1.size();
         if (nwords != net[l].dimensions[i])error->one(filename,*linenum,"invalid weights per line");
         for (k=0;k<net[l].dimensions[i];k++) {
@@ -575,7 +575,7 @@ void PairRANN::read_activation_functions(std::vector<std::string> line,std::vect
   for (l=0;l<nelements;l++) {
     if (line[1].compare(elements[l])==0) {
       if (net[l].layers==0)error->one(filename,linenum-1,"networklayers must be defined before activation functions.");
-      i = strtol(line[2].c_str(),NULL,10);
+      i = strtol(line[2].c_str(),nullptr,10);
       if (i>=net[l].layers || i<0)error->one(filename,linenum-1,"invalid activation layer");
       delete activation[l][i];
       activation[l][i]=create_activation(line1[0].c_str());
@@ -1232,10 +1232,8 @@ RANN::Fingerprint *PairRANN::create_fingerprint(const char *style)
   else if (strcmp(style,"bondspin")==0) {
           return new RANN::Fingerprint_bondspin(this);
   }
-  char str[128];
-  sprintf(str,"Unknown fingerprint style %s",style);
-  error->one(FLERR,str);
-  return NULL;
+  error->one(FLERR,"Unknown fingerprint style {}",style);
+  return nullptr;
 }
 
 
@@ -1247,9 +1245,7 @@ RANN::Activation *PairRANN::create_activation(const char *style)
   else if (strcmp(style,"sigI")==0) {
           return new RANN::Activation_sigI(this);
   }
-  char str[128];
-  sprintf(str,"Unknown activation style %s",style);
-  error->one(FLERR,str);
-  return NULL;
+  error->one(FLERR,"Unknown activation style {}",style);
+  return nullptr;
 }
 

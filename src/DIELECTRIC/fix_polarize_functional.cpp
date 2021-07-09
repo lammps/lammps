@@ -37,6 +37,7 @@
 #include "kspace.h"
 #include "math_const.h"
 #include "math_extra.h"
+#include "math_special.h"
 #include "memory.h"
 #include "modify.h"
 #include "msm_dielectric.h"
@@ -60,6 +61,7 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathExtra;
 using namespace MathConst;
+using namespace MathSpecial;
 
 enum { REAL2SCALED = 0, SCALED2REAL = 1 };
 
@@ -589,21 +591,21 @@ void FixPolarizeFunctional::set_arrays(int i)
 double FixPolarizeFunctional::memory_usage()
 {
   double bytes = 0;
-  bytes += num_induced_charges * num_induced_charges * sizeof(double);    // inverse_matrix
-  bytes += num_induced_charges * num_induced_charges * sizeof(double);    // Rww
-  bytes += num_induced_charges * num_induced_charges * sizeof(double);    // G1ww
-  bytes += num_induced_charges * num_induced_charges * sizeof(double);    // ndotGww
-  bytes += num_induced_charges * num_induced_charges * sizeof(double);    // G2ww
-  bytes += num_induced_charges * num_induced_charges * sizeof(double);    // G3ww
-  bytes += num_induced_charges * sizeof(double);                          // qiRqwVector
-  bytes += num_induced_charges * sizeof(double);                          // sum2G2wq
-  bytes += num_induced_charges * sizeof(double);                          // sum1G2qw
-  bytes += num_induced_charges * sizeof(double);                          // sum1G1qw_epsilon
-  bytes += num_induced_charges * sizeof(double);                          // sum2ndotGwq_epsilon
-  bytes += num_ions * num_induced_charges * sizeof(double);               // G1qw_real
-  bytes += nmax * sizeof(int);                                            // induced_charge_idx
-  bytes += nmax * sizeof(int);                                            // ion_idx
-  bytes += num_induced_charges * sizeof(double);                          // induced_charges
+  bytes += square(num_induced_charges) * sizeof(double);            // inverse_matrix
+  bytes += square(num_induced_charges) * sizeof(double);            // Rww
+  bytes += square(num_induced_charges) * sizeof(double);            // G1ww
+  bytes += square(num_induced_charges) * sizeof(double);            // ndotGww
+  bytes += square(num_induced_charges) * sizeof(double);            // G2ww
+  bytes += square(num_induced_charges) * sizeof(double);            // G3ww
+  bytes += num_induced_charges * sizeof(double);                    // qiRqwVector
+  bytes += num_induced_charges * sizeof(double);                    // sum2G2wq
+  bytes += num_induced_charges * sizeof(double);                    // sum1G2qw
+  bytes += num_induced_charges * sizeof(double);                    // sum1G1qw_epsilon
+  bytes += num_induced_charges * sizeof(double);                    // sum2ndotGwq_epsilon
+  bytes += (double)num_ions * num_induced_charges * sizeof(double); // G1qw_real
+  bytes += nmax * sizeof(int);                                      // induced_charge_idx
+  bytes += nmax * sizeof(int);                                      // ion_idx
+  bytes += num_induced_charges * sizeof(double);                    // induced_charges
   return bytes;
 }
 
@@ -1115,9 +1117,6 @@ void FixPolarizeFunctional::calculate_grad_greens_ewald(double *vec, double dx, 
 void FixPolarizeFunctional::calculate_matrix_multiply_vector(double **matrix, double *in_vec,
                                                              double *out_vec, int M)
 {
-#if defined(OPENMP)
-#pragma parallel omp for
-#endif
   for (int k = 0; k < M; ++k) {
     double temp = 0.0;
     for (int l = 0; l < M; ++l) { temp += matrix[k][l] * in_vec[l]; }

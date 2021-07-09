@@ -99,7 +99,7 @@ invoked by the :doc:`minimize <minimize>` command.
 Restrictions
 """"""""""""
 
-This fix is part of the USER-MISC package.  It is only enabled if
+This fix is part of the MISC package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package
 <Build_package>` doc page for more info.
 

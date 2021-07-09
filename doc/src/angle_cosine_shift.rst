@@ -53,7 +53,7 @@ Restrictions
 """"""""""""
 
 This angle style can only be used if LAMMPS was built with the
-USER-MISC package.
+MOLECULE package.
 
 Related commands
 """"""""""""""""

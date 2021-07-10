@@ -79,7 +79,7 @@ AtomKokkos::~AtomKokkos()
   memoryKK->destroy_kokkos(k_improper_atom3, improper_atom3);
   memoryKK->destroy_kokkos(k_improper_atom4, improper_atom4);
 
-  map_delete();
+  AtomKokkos::map_delete();
 
   // SPIN package
 

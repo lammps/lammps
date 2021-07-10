@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -13,13 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #include "atom_kokkos.h"
-#include "neighbor_kokkos.h"
+
+#include "atom_masks.h"
 #include "comm.h"
 #include "error.h"
-#include "modify.h"
 #include "fix.h"
 #include "memory_kokkos.h"
-#include "atom_masks.h"
+#include "modify.h"
+#include "neighbor_kokkos.h"
 
 #include <cmath>
 
@@ -48,8 +48,10 @@ void AtomKokkos::map_init(int check)
   int recreate = 0;
   if (check) recreate = map_style_set();
 
-  if (map_style == MAP_ARRAY && map_tag_max > map_maxarray) recreate = 1;
-  else if (map_style == MAP_HASH && nlocal+nghost > map_nhash) recreate = 1;
+  if (map_style == MAP_ARRAY && map_tag_max > map_maxarray)
+    recreate = 1;
+  else if (map_style == MAP_HASH && nlocal + nghost > map_nhash)
+    recreate = 1;
 
   // if not recreating:
   // for array, initialize current map_tag_max values
@@ -62,18 +64,18 @@ void AtomKokkos::map_init(int check)
       for (int i = 0; i < map_nbucket; i++) map_bucket[i] = -1;
       map_nused = 0;
       map_free = 0;
-      for (int i = 0; i < map_nhash; i++) map_hash[i].next = i+1;
-      if (map_nhash > 0) map_hash[map_nhash-1].next = -1;
+      for (int i = 0; i < map_nhash; i++) map_hash[i].next = i + 1;
+      if (map_nhash > 0) map_hash[map_nhash - 1].next = -1;
     }
 
-  // recreating: delete old map and create new one for array or hash
+    // recreating: delete old map and create new one for array or hash
 
   } else {
     map_delete();
 
     if (map_style == MAP_ARRAY) {
       map_maxarray = map_tag_max;
-      memoryKK->create_kokkos(k_map_array,map_array,map_maxarray+1,"atom:map_array");
+      memoryKK->create_kokkos(k_map_array, map_array, map_maxarray + 1, "atom:map_array");
       for (int i = 0; i <= map_tag_max; i++) map_array[i] = -1;
 
     } else {
@@ -83,10 +85,10 @@ void AtomKokkos::map_init(int check)
       // multiply by 2, require at least 1000
       // doubling means hash table will need to be re-init only rarely
 
-      int nper = static_cast<int> (natoms/comm->nprocs);
-      map_nhash = MAX(nper,nmax);
+      int nper = static_cast<int>(natoms / comm->nprocs);
+      map_nhash = MAX(nper, nmax);
       map_nhash *= 2;
-      map_nhash = MAX(map_nhash,1000);
+      map_nhash = MAX(map_nhash, 1000);
 
       // map_nbucket = prime just larger than map_nhash
       // next_prime() should be fast enough,
@@ -104,16 +106,15 @@ void AtomKokkos::map_init(int check)
       map_hash = new HashElem[map_nhash];
       map_nused = 0;
       map_free = 0;
-      for (int i = 0; i < map_nhash; i++) map_hash[i].next = i+1;
-      map_hash[map_nhash-1].next = -1;
+      for (int i = 0; i < map_nhash; i++) map_hash[i].next = i + 1;
+      map_hash[map_nhash - 1].next = -1;
 
       h_map_hash = host_hash_type(map_nhash);
     }
   }
 
   k_sametag.modify_host();
-  if (map_style == Atom::MAP_ARRAY)
-    k_map_array.modify_host();
+  if (map_style == Atom::MAP_ARRAY) k_map_array.modify_host();
 }
 
 /* ----------------------------------------------------------------------
@@ -130,11 +131,10 @@ void AtomKokkos::map_set()
 {
   int nall = nlocal + nghost;
 
-  atomKK->sync(Host,TAG_MASK);
+  atomKK->sync(Host, TAG_MASK);
 
   k_sametag.sync_host();
-  if (map_style == Atom::MAP_ARRAY)
-    k_map_array.sync_host();
+  if (map_style == Atom::MAP_ARRAY) k_map_array.sync_host();
 
   if (map_style == MAP_ARRAY) {
 
@@ -143,11 +143,11 @@ void AtomKokkos::map_set()
 
     if (nall > max_same) {
       max_same = nall + EXTRA;
-      memoryKK->destroy_kokkos(k_sametag,sametag);
-      memoryKK->create_kokkos(k_sametag,sametag,max_same,"atom:sametag");
+      memoryKK->destroy_kokkos(k_sametag, sametag);
+      memoryKK->create_kokkos(k_sametag, sametag, max_same, "atom:sametag");
     }
 
-    for (int i = nall-1; i >= 0 ; i--) {
+    for (int i = nall - 1; i >= 0; i--) {
       sametag[i] = map_array[tag[i]];
       map_array[tag[i]] = i;
     }
@@ -162,14 +162,14 @@ void AtomKokkos::map_set()
     if (nall > map_nhash) map_init(0);
     if (nall > max_same) {
       max_same = nall + EXTRA;
-      memoryKK->destroy_kokkos(k_sametag,sametag);
-      memoryKK->create_kokkos(k_sametag,sametag,max_same,"atom:sametag");
+      memoryKK->destroy_kokkos(k_sametag, sametag);
+      memoryKK->create_kokkos(k_sametag, sametag, max_same, "atom:sametag");
     }
 
-    int previous,ibucket,index;
+    int previous, ibucket, index;
     tagint global;
 
-    for (int i = nall-1; i >= 0 ; i--) {
+    for (int i = nall - 1; i >= 0; i--) {
       sametag[i] = map_find_hash(tag[i]);
 
       // search for key
@@ -195,8 +195,10 @@ void AtomKokkos::map_set()
 
       index = map_free;
       map_free = map_hash[map_free].next;
-      if (previous == -1) map_bucket[ibucket] = index;
-      else map_hash[previous].next = index;
+      if (previous == -1)
+        map_bucket[ibucket] = index;
+      else
+        map_hash[previous].next = index;
       map_hash[index].global = global;
       map_hash[index].local = i;
       map_hash[index].next = -1;
@@ -207,7 +209,7 @@ void AtomKokkos::map_set()
 
     h_map_hash.clear();
 
-    for (int i = nall-1; i >= 0 ; i--) {
+    for (int i = nall - 1; i >= 0; i--) {
 
       // search for key
       // if don't find it, done
@@ -225,9 +227,8 @@ void AtomKokkos::map_set()
 
       int local = map_hash[index].local;
 
-      auto insert_result = h_map_hash.insert(global,local);
-      if (insert_result.failed())
-        error->one(FLERR, "Kokkos::UnorderedMap insertion failed");
+      auto insert_result = h_map_hash.insert(global, local);
+      if (insert_result.failed()) error->one(FLERR, "Kokkos::UnorderedMap insertion failed");
     }
   }
 
@@ -240,16 +241,14 @@ void AtomKokkos::map_set()
 
     int device_hash_flag = 0;
 
-    auto neighborKK = (NeighborKokkos*) neighbor;
+    auto neighborKK = (NeighborKokkos *) neighbor;
     if (neighborKK->device_flag) device_hash_flag = 1;
 
     for (int n = 0; n < modify->nfix; n++)
-      if (utils::strmatch(modify->fix[n]->style,"^shake"))
-	if (modify->fix[n]->execution_space == Device)
-	    device_hash_flag = 1;
+      if (utils::strmatch(modify->fix[n]->style, "^shake"))
+        if (modify->fix[n]->execution_space == Device) device_hash_flag = 1;
 
-    if (device_hash_flag)
-      Kokkos::deep_copy(d_map_hash,h_map_hash);
+    if (device_hash_flag) Kokkos::deep_copy(d_map_hash, h_map_hash);
 
     k_map_hash.h_view = h_map_hash;
     k_map_hash.d_view = d_map_hash;
@@ -262,11 +261,11 @@ void AtomKokkos::map_set()
 
 void AtomKokkos::map_delete()
 {
-  memoryKK->destroy_kokkos(k_sametag,sametag);
+  memoryKK->destroy_kokkos(k_sametag, sametag);
   sametag = nullptr;
 
   if (map_style == MAP_ARRAY) {
-    memoryKK->destroy_kokkos(k_map_array,map_array);
+    memoryKK->destroy_kokkos(k_map_array, map_array);
     map_array = nullptr;
   } else {
     h_map_hash = host_hash_type();

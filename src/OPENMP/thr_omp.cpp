@@ -725,18 +725,27 @@ void ThrOMP::ev_tally4_thr(Pair * const pair, const int i, const int j,
     }
   }
 
-  if (pair->vflag_atom) {
-    v[0] = 0.25 * (drim[0]*fi[0] + drjm[0]*fj[0] + drkm[0]*fk[0]);
-    v[1] = 0.25 * (drim[1]*fi[1] + drjm[1]*fj[1] + drkm[1]*fk[1]);
-    v[2] = 0.25 * (drim[2]*fi[2] + drjm[2]*fj[2] + drkm[2]*fk[2]);
-    v[3] = 0.25 * (drim[0]*fi[1] + drjm[0]*fj[1] + drkm[0]*fk[1]);
-    v[4] = 0.25 * (drim[0]*fi[2] + drjm[0]*fj[2] + drkm[0]*fk[2]);
-    v[5] = 0.25 * (drim[1]*fi[2] + drjm[1]*fj[2] + drkm[1]*fk[2]);
+  if (pair->vflag_either) {
+    v[0] = (drim[0]*fi[0] + drjm[0]*fj[0] + drkm[0]*fk[0]);
+    v[1] = (drim[1]*fi[1] + drjm[1]*fj[1] + drkm[1]*fk[1]);
+    v[2] = (drim[2]*fi[2] + drjm[2]*fj[2] + drkm[2]*fk[2]);
+    v[3] = (drim[0]*fi[1] + drjm[0]*fj[1] + drkm[0]*fk[1]);
+    v[4] = (drim[0]*fi[2] + drjm[0]*fj[2] + drkm[0]*fk[2]);
+    v[5] = (drim[1]*fi[2] + drjm[1]*fj[2] + drkm[1]*fk[2]);
+    if (pair->vflag_global) v_tally(thr->virial_pair,v);
 
-    v_tally(thr->vatom_pair[i],v);
-    v_tally(thr->vatom_pair[j],v);
-    v_tally(thr->vatom_pair[k],v);
-    v_tally(thr->vatom_pair[m],v);
+    if (pair->vflag_atom) {
+      v[0] *= 0.25;
+      v[1] *= 0.25;
+      v[2] *= 0.25;
+      v[3] *= 0.25;
+      v[4] *= 0.25;
+      v[5] *= 0.25;
+      v_tally(thr->vatom_pair[i],v);
+      v_tally(thr->vatom_pair[j],v);
+      v_tally(thr->vatom_pair[k],v);
+      v_tally(thr->vatom_pair[m],v);
+    }
   }
 }
 

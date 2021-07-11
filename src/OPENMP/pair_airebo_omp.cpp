@@ -598,8 +598,8 @@ void PairAIREBOOMP::FLJ_thr(int ifrom, int ito, int evflag, int eflag,
           f[atomk][1] -= fi[1] + fj[1];
           f[atomk][2] -= fi[2] + fj[2];
 
-          if (vflag_atom)
-            v_tally3_thr(atomi,atomj,atomk,fi,fj,delikS,deljkS,thr);
+          if (vflag_either)
+            v_tally3_thr(this,atomi,atomj,atomk,fi,fj,delikS,deljkS,thr);
 
         } else if (npath == 4) {
           fpair1 = dC*dwikS*wkmS*wmjS / rikS;
@@ -1197,10 +1197,10 @@ double PairAIREBOOMP::bondorder_thr(int i, int j, double rij[3], double rijmag,
       f[atomj][0] += fj[0]; f[atomj][1] += fj[1]; f[atomj][2] += fj[2];
       f[atomk][0] += fk[0]; f[atomk][1] += fk[1]; f[atomk][2] += fk[2];
 
-      if (vflag_atom) {
+      if (vflag_either) {
         rji[0] = -rij[0]; rji[1] = -rij[1]; rji[2] = -rij[2];
         rki[0] = -rik[0]; rki[1] = -rik[1]; rki[2] = -rik[2];
-        v_tally3_thr(atomi,atomj,atomk,fj,fk,rji,rki,thr);
+        v_tally3_thr(this,atomi,atomj,atomk,fj,fk,rji,rki,thr);
       }
     }
   }
@@ -1342,9 +1342,9 @@ double PairAIREBOOMP::bondorder_thr(int i, int j, double rij[3], double rijmag,
       f[atomj][0] += fj[0]; f[atomj][1] += fj[1]; f[atomj][2] += fj[2];
       f[atoml][0] += fl[0]; f[atoml][1] += fl[1]; f[atoml][2] += fl[2];
 
-      if (vflag_atom) {
+      if (vflag_either) {
         rlj[0] = -rjl[0]; rlj[1] = -rjl[1]; rlj[2] = -rjl[2];
-        v_tally3_thr(atomi,atomj,atoml,fi,fl,rij,rlj,thr);
+        v_tally3_thr(this,atomi,atomj,atoml,fi,fl,rij,rlj,thr);
       }
     }
   }
@@ -2196,10 +2196,10 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double /* rij_mod */[3], dou
         f[atomj][0] += fj[0]; f[atomj][1] += fj[1]; f[atomj][2] += fj[2];
         f[atomk][0] += fk[0]; f[atomk][1] += fk[1]; f[atomk][2] += fk[2];
 
-        if (vflag_atom) {
+        if (vflag_either) {
           rji[0] = -rij[0]; rji[1] = -rij[1]; rji[2] = -rij[2];
           rki[0] = -rik[0]; rki[1] = -rik[1]; rki[2] = -rik[2];
-          v_tally3_thr(atomi,atomj,atomk,fj,fk,rji,rki,thr);
+          v_tally3_thr(this,atomi,atomj,atomk,fj,fk,rji,rki,thr);
         }
       }
     }
@@ -2300,9 +2300,9 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double /* rij_mod */[3], dou
         f[atomj][0] += fj[0]; f[atomj][1] += fj[1]; f[atomj][2] += fj[2];
         f[atoml][0] += fl[0]; f[atoml][1] += fl[1]; f[atoml][2] += fl[2];
 
-        if (vflag_atom) {
+        if (vflag_either) {
           rlj[0] = -rjl[0]; rlj[1] = -rjl[1]; rlj[2] = -rjl[2];
-          v_tally3_thr(atomi,atomj,atoml,fi,fl,rij,rlj,thr);
+          v_tally3_thr(this,atomi,atomj,atoml,fi,fl,rij,rlj,thr);
         }
       }
     }

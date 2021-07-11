@@ -70,10 +70,10 @@ void PairCombOMP::compute(int eflag, int vflag)
 
     if (evflag) {
       if (eflag) {
-        if (vflag_atom) eval<1,1,1>(ifrom, ito, thr);
+        if (vflag_either) eval<1,1,1>(ifrom, ito, thr);
         else eval<1,1,0>(ifrom, ito, thr);
       } else {
-        if (vflag_atom) eval<1,0,1>(ifrom, ito, thr);
+        if (vflag_either) eval<1,0,1>(ifrom, ito, thr);
         else eval<1,0,0>(ifrom, ito, thr);
       }
     } else eval<0,0,0>(ifrom, ito, thr);
@@ -83,7 +83,7 @@ void PairCombOMP::compute(int eflag, int vflag)
   } // end of omp parallel region
 }
 
-template <int EVFLAG, int EFLAG, int VFLAG_ATOM>
+template <int EVFLAG, int EFLAG, int VFLAG_EITHER>
 void PairCombOMP::eval(int iifrom, int iito, ThrData * const thr)
 {
   int i,j,k,ii,jj,kk,jnum,iparam_i;
@@ -365,7 +365,7 @@ void PairCombOMP::eval(int iifrom, int iito, ThrData * const thr)
         if (EVFLAG)
           ev_tally_thr(this,i,j,nlocal,/* newton_pair */ 1,
                        elp_ij,0.0,0.0,0.0,0.0,0.0, thr);
-        if (VFLAG_ATOM) v_tally3_thr(i,j,k,fj,fk,delr1,delr2,thr);
+        if (VFLAG_EITHER) v_tally3_thr(this,i,j,k,fj,fk,delr1,delr2,thr);
       }
       f[j][0] += fjxtmp;
       f[j][1] += fjytmp;

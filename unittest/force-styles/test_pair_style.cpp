@@ -740,13 +740,13 @@ TEST(PairStyle, omp)
     EXPECT_FP_LE_WITH_EPS((pair->eng_vdwl + pair->eng_coul), energy, epsilon);
     if (print_stats) std::cerr << "run_energy  stats, newton on: " << stats << std::endl;
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    cleanup_lammps(lmp, test_config);
-    lmp = init_lammps(argc, argv, test_config, false);
-    if (!verbose) ::testing::internal::GetCapturedStdout();
-
     // skip over these tests if newton pair is forced to be on
     if (lmp->force->newton_pair == 0) {
+
+        if (!verbose) ::testing::internal::CaptureStdout();
+        cleanup_lammps(lmp, test_config);
+        lmp = init_lammps(argc, argv, test_config, false);
+        if (!verbose) ::testing::internal::GetCapturedStdout();
 
         f   = lmp->atom->f;
         tag = lmp->atom->tag;
@@ -983,7 +983,7 @@ TEST(PairStyle, intel)
     int argc    = sizeof(args) / sizeof(char *);
 
     ::testing::internal::CaptureStdout();
-    LAMMPS *lmp = init_lammps(argc, argv, test_config);
+    LAMMPS *lmp = init_lammps(argc, argv, test_config, true);
 
     std::string output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
@@ -1089,9 +1089,9 @@ TEST(PairStyle, intel)
     EXPECT_FP_LE_WITH_EPS((pair->eng_vdwl + pair->eng_coul), energy, epsilon);
     if (print_stats) std::cerr << "run_energy  stats:" << stats << std::endl;
 
-    // pair style sw requires newton on, but that also requires fdotr for /intel
+    // pair styles sw and tersoff require newton on, but that also requires fdotr for /intel
     std::cerr << "pair style : " << test_config.pair_style << "\n";
-    if (test_config.pair_style != "sw") {
+    if ((test_config.pair_style != "sw") && (test_config.pair_style != "tersoff")) {
 
         if (!verbose) ::testing::internal::CaptureStdout();
         restart_lammps(lmp, test_config, true, false);

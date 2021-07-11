@@ -145,13 +145,10 @@ void PairTersoffTable::compute(int eflag, int vflag)
     jlist = firstneigh[i];
     jnum = numneigh[i];
 
-    if (jnum > leadingDimensionInteractionList) {
-      char errmsg[256];
-      sprintf(errmsg,"Too many neighbors for interaction list: %d vs %d.\n"
-              "Check your system or increase 'leadingDimensionInteractionList'",
-              jnum, leadingDimensionInteractionList);
-      error->one(FLERR,errmsg);
-    }
+    if (jnum > leadingDimensionInteractionList)
+      error->one(FLERR,"Too many neighbors for interaction list: {} vs {}.\n"
+                 "Check your system or increase 'leadingDimensionInteractionList'",
+                 jnum, leadingDimensionInteractionList);
 
     // Pre-calculate gteta and cutoff function
     for (int neighbor_j = 0; neighbor_j < jnum; neighbor_j++) {
@@ -434,10 +431,7 @@ void PairTersoffTable::compute(int eflag, int vflag)
         fytmp += f_ij[1] + f_ik[1];
         fztmp += f_ij[2] + f_ik[2];
 
-        // potential energy
-        evdwl = 0.0;
-
-        if (evflag) ev_tally3(i,j,k,evdwl,0.0,f_ij,f_ik,dr_ij,dr_ik);
+        if (vflag_either) v_tally3(i,j,k,f_ij,f_ik,dr_ij,dr_ik);
       }
 
       // second loop over neighbors of atom i except j, forces and virial only - part 2/2
@@ -499,11 +493,7 @@ void PairTersoffTable::compute(int eflag, int vflag)
         fytmp += f_ij[1] + f_ik[1];
         fztmp += f_ij[2] + f_ik[2];
 
-        // potential energy
-        evdwl = 0.0;
-
-        if (evflag) ev_tally3(i,j,k,evdwl,0.0,f_ij,f_ik,dr_ij,dr_ik);
-
+        if (vflag_either) v_tally3(i,j,k,f_ij,f_ik,dr_ij,dr_ik);
       }
     } // loop on J
     f[i][0] += fxtmp;
@@ -755,7 +745,7 @@ void PairTersoffTable::coeff(int narg, char **arg)
 void PairTersoffTable::init_style()
 {
   if (force->newton_pair == 0)
-    error->all(FLERR,"Pair style Tersoff requires newton pair on");
+    error->all(FLERR,"Pair style tersoff/table requires newton pair on");
 
   // need a full neighbor list
 
@@ -888,9 +878,8 @@ void PairTersoffTable::read_file(char *file)
   MPI_Bcast(&nparams, 1, MPI_INT, 0, world);
   MPI_Bcast(&maxparam, 1, MPI_INT, 0, world);
 
-  if (comm->me != 0) {
+  if (comm->me != 0)
     params = (Param *) memory->srealloc(params,maxparam*sizeof(Param), "pair:params");
-  }
 
   MPI_Bcast(params, maxparam*sizeof(Param), MPI_BYTE, 0, world);
 }

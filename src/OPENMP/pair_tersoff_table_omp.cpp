@@ -494,7 +494,6 @@ void PairTersoffTableOMP::eval(int iifrom, int iito, ThrData * const thr)
         fztmp += f_ij[2] + f_ik[2];
 
         if (VFLAG_EITHER) v_tally3_thr(this,i,j,k,f_ij,f_ik,dr_ij,dr_ik,thr);
-
       }
     } // loop on J
     f[i].x += fxtmp;

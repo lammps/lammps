@@ -1089,12 +1089,14 @@ TEST(PairStyle, intel)
     EXPECT_FP_LE_WITH_EPS((pair->eng_vdwl + pair->eng_coul), energy, epsilon);
     if (print_stats) std::cerr << "run_energy  stats:" << stats << std::endl;
 
-    // pair styles sw and tersoff require newton on, but that also requires fdotr for /intel
-    std::cerr << "pair style : " << test_config.pair_style << "\n";
-    if ((test_config.pair_style != "sw") && (test_config.pair_style != "tersoff")) {
+    // pair styles sw and tersoff and airebo INTEL package variants require newton on,
+    // but that also requires fdotr for /intel
+    if ((test_config.pair_style != "sw") && (test_config.pair_style != "tersoff")
+        && (test_config.pair_style != "rebo") && (test_config.pair_style != "airebo")
+        && (test_config.pair_style != "airebo/morse")) {
 
         if (!verbose) ::testing::internal::CaptureStdout();
-        restart_lammps(lmp, test_config, true, false);
+        restart_lammps(lmp, test_config, true, true);
         if (!verbose) ::testing::internal::GetCapturedStdout();
         f   = lmp->atom->f;
         tag = lmp->atom->tag;

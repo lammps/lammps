@@ -1465,20 +1465,31 @@ void ThrOMP::ev_tally_thr(Improper * const imprp, const int i1, const int i2,
    fpair is magnitude of force on atom I
 ------------------------------------------------------------------------- */
 
-void ThrOMP::v_tally2_thr(const int i, const int j, const double fpair,
+void ThrOMP::v_tally2_thr(Pair *const pair, const int i, const int j, const double fpair,
                           const double * const drij, ThrData * const thr)
 {
   double v[6];
 
-  v[0] = 0.5 * drij[0]*drij[0]*fpair;
-  v[1] = 0.5 * drij[1]*drij[1]*fpair;
-  v[2] = 0.5 * drij[2]*drij[2]*fpair;
-  v[3] = 0.5 * drij[0]*drij[1]*fpair;
-  v[4] = 0.5 * drij[0]*drij[2]*fpair;
-  v[5] = 0.5 * drij[1]*drij[2]*fpair;
+  v[0] = drij[0]*drij[0]*fpair;
+  v[1] = drij[1]*drij[1]*fpair;
+  v[2] = drij[2]*drij[2]*fpair;
+  v[3] = drij[0]*drij[1]*fpair;
+  v[4] = drij[0]*drij[2]*fpair;
+  v[5] = drij[1]*drij[2]*fpair;
 
-  v_tally(thr->vatom_pair[i],v);
-  v_tally(thr->vatom_pair[j],v);
+  if (pair->vflag_global) v_tally(thr->virial_pair,v);
+
+  if (pair->vflag_atom) {
+    v[0] *= 0.5;
+    v[1] *= 0.5;
+    v[2] *= 0.5;
+    v[3] *= 0.5;
+    v[4] *= 0.5;
+    v[5] *= 0.5;
+
+    v_tally(thr->vatom_pair[i],v);
+    v_tally(thr->vatom_pair[j],v);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1486,7 +1497,7 @@ void ThrOMP::v_tally2_thr(const int i, const int j, const double fpair,
    called by AIREBO and Tersoff potential, newton_pair is always on
 ------------------------------------------------------------------------- */
 
-void ThrOMP::v_tally3_thr(Pair *pair, const int i, const int j, const int k,
+void ThrOMP::v_tally3_thr(Pair *const pair, const int i, const int j, const int k,
                           const double * const fi, const double * const fj,
                           const double * const drik, const double * const drjk,
                           ThrData * const thr)
@@ -1521,7 +1532,7 @@ void ThrOMP::v_tally3_thr(Pair *pair, const int i, const int j, const int k,
    called by AIREBO potential, newton_pair is always on
 ------------------------------------------------------------------------- */
 
-void ThrOMP::v_tally4_thr(const int i, const int j, const int k, const int m,
+void ThrOMP::v_tally4_thr(Pair *const pair, const int i, const int j, const int k, const int m,
                           const double * const fi, const double * const fj,
                           const double * const fk, const double * const drim,
                           const double * const drjm, const double * const drkm,
@@ -1529,17 +1540,26 @@ void ThrOMP::v_tally4_thr(const int i, const int j, const int k, const int m,
 {
   double v[6];
 
-  v[0] = 0.25 * (drim[0]*fi[0] + drjm[0]*fj[0] + drkm[0]*fk[0]);
-  v[1] = 0.25 * (drim[1]*fi[1] + drjm[1]*fj[1] + drkm[1]*fk[1]);
-  v[2] = 0.25 * (drim[2]*fi[2] + drjm[2]*fj[2] + drkm[2]*fk[2]);
-  v[3] = 0.25 * (drim[0]*fi[1] + drjm[0]*fj[1] + drkm[0]*fk[1]);
-  v[4] = 0.25 * (drim[0]*fi[2] + drjm[0]*fj[2] + drkm[0]*fk[2]);
-  v[5] = 0.25 * (drim[1]*fi[2] + drjm[1]*fj[2] + drkm[1]*fk[2]);
+  v[0] = (drim[0]*fi[0] + drjm[0]*fj[0] + drkm[0]*fk[0]);
+  v[1] = (drim[1]*fi[1] + drjm[1]*fj[1] + drkm[1]*fk[1]);
+  v[2] = (drim[2]*fi[2] + drjm[2]*fj[2] + drkm[2]*fk[2]);
+  v[3] = (drim[0]*fi[1] + drjm[0]*fj[1] + drkm[0]*fk[1]);
+  v[4] = (drim[0]*fi[2] + drjm[0]*fj[2] + drkm[0]*fk[2]);
+  v[5] = (drim[1]*fi[2] + drjm[1]*fj[2] + drkm[1]*fk[2]);
+  if (pair->vflag_global) v_tally(thr->virial_pair,v);
 
-  v_tally(thr->vatom_pair[i],v);
-  v_tally(thr->vatom_pair[j],v);
-  v_tally(thr->vatom_pair[k],v);
-  v_tally(thr->vatom_pair[m],v);
+  if (pair->vflag_atom) {
+    v[0] *= 0.25;
+    v[1] *= 0.25;
+    v[2] *= 0.25;
+    v[3] *= 0.25;
+    v[4] *= 0.25;
+    v[5] *= 0.25;
+    v_tally(thr->vatom_pair[i],v);
+    v_tally(thr->vatom_pair[j],v);
+    v_tally(thr->vatom_pair[k],v);
+    v_tally(thr->vatom_pair[m],v);
+  }
 }
 
 /* ---------------------------------------------------------------------- */

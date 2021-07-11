@@ -6,15 +6,15 @@ molecular dynamics computations.  Additional pre- and post-processing
 steps are often necessary to setup and analyze a simulation.  A list
 of such tools can be found on the `LAMMPS webpage <lws_>`_ at these links:
 
-* `Pre/Post processing <https://lammps.sandia.gov/prepost.html>`_
-* `Offsite LAMMPS packages & tools <https://lammps.sandia.gov/offsite.html>`_
+* `Pre/Post processing <https://www.lammps.org/prepost.html>`_
+* `Offsite LAMMPS packages & tools <https://www.lammps.org/offsite.html>`_
 * `Pizza.py toolkit <pizza_>`_
 
 The last link for `Pizza.py <pizza_>`_ is a Python-based tool developed at
 Sandia which provides tools for doing setup, analysis, plotting, and
 visualization for LAMMPS simulations.
 
-.. _lws: https://lammps.sandia.gov
+.. _lws: https://www.lammps.org
 .. _pizza: https://pizza.sandia.gov
 .. _python: https://www.python.org
 
@@ -67,7 +67,7 @@ Post-processing tools
    * :ref:`amber2lmp <amber>`
    * :ref:`binary2txt <binary>`
    * :ref:`ch2lmp <charmm>`
-   * :ref:`colvars <colvars>`
+   * :ref:`colvars <colvars_tools>`
    * :ref:`eff <eff>`
    * :ref:`fep <fep>`
    * :ref:`lmp2arc <arc>`
@@ -94,6 +94,7 @@ Miscellaneous tools
    * :ref:`kate <kate>`
    * :ref:`LAMMPS shell <lammps_shell>`
    * :ref:`LAMMPS magic patterns for file(1) <magic>`
+   * :ref:`Offline build tool <offline>`
    * :ref:`singularity <singularity_tool>`
    * :ref:`SWIG interface <swig>`
    * :ref:`vim <vim>`
@@ -213,7 +214,7 @@ tool and the specific name of the program used (e.g. ``ninja-v1.10`` or
 
 ----------
 
-.. _colvars:
+.. _colvars_tools:
 
 colvars tools
 ---------------------------
@@ -340,7 +341,7 @@ fep tool
 
 The tools/fep directory contains Python scripts useful for
 post-processing results from performing free-energy perturbation
-simulations using the USER-FEP package.
+simulations using the FEP package.
 
 The scripts were contributed by Agilio Padua (ENS de Lyon), agilio.padua at ens-lyon.fr.
 
@@ -756,6 +757,103 @@ See the README file in the tools/msi2lmp folder for more information.
 
 ----------
 
+.. _offline:
+
+Scripts for building LAMMPS when offline
+----------------------------------------
+
+In some situations it might be necessary to build LAMMPS on a system
+without direct internet access. The scripts in ``tools/offline`` folder
+allow you to pre-load external dependencies for both the documentation
+build and for building LAMMPS with CMake.
+
+It does so by
+
+ #. downloading necessary ``pip`` packages,
+ #. cloning ``git`` repositories
+ #. downloading tarballs
+
+to a designated cache folder.
+
+As of April 2021, all of these downloads make up around 600MB. By
+default, the offline scripts will download everything into the
+``$HOME/.cache/lammps`` folder, but this can be changed by setting the
+``LAMMPS_CACHING_DIR`` environment variable.
+
+Once the caches have been initialized, they can be used for building the
+LAMMPS documentation or compiling LAMMPS using CMake on an offline
+system.
+
+The ``use_caches.sh`` script must be sourced into the current shell
+to initialize the offline build environment. Note that it must use
+the same ``LAMMPS_CACHING_DIR``. This script does the following:
+
+ #. Set up environment variables that modify the behavior of both,
+    ``pip`` and ``git``
+ #. Start a simple local HTTP server using Python to host files for CMake
+
+Afterwards, it will print out instruction on how to modify the CMake
+command line to make sure it uses the local HTTP server.
+
+To undo the environment changes and shutdown the local HTTP server,
+run the ``deactivate_caches`` command.
+
+Examples
+^^^^^^^^
+
+For all of the examples below, you first need to create the cache, which
+requires an internet connection.
+
+.. code-block:: bash
+
+   ./tools/offline/init_caches.sh
+
+Afterwards, you can disconnect or copy the contents of the
+``LAMMPS_CACHING_DIR`` folder to an offline system.
+
+Documentation Build
+^^^^^^^^^^^^^^^^^^^
+
+The documentation build will create a new virtual environment that
+typically first installs dependencies from ``pip``. With the offline
+environment loaded, these installations will instead grab the necessary
+packages from your local cache.
+
+.. code-block:: bash
+
+   # if LAMMPS_CACHING_DIR is different from default, make sure to set it first
+   # export LAMMPS_CACHING_DIR=path/to/folder
+   source tools/offline/use_caches.sh
+   cd doc/
+   make html
+
+   deactivate_caches
+
+CMake Build
+^^^^^^^^^^^
+
+When compiling certain packages with external dependencies, the CMake
+build system will download necessary files or sources from the web. For
+more flexibility the CMake configuration allows users to specify the URL
+of each of these dependencies.  What the ``init_caches.sh`` script does
+is create a CMake "preset" file, which sets the URLs for all of the known
+dependencies and redirects the download to the local cache.
+
+.. code-block:: bash
+
+   # if LAMMPS_CACHING_DIR is different from default, make sure to set it first
+   # export LAMMPS_CACHING_DIR=path/to/folder
+   source tools/offline/use_caches.sh
+
+   mkdir build
+   cd build
+   cmake -D LAMMPS_DOWNLOADS_URL=${HTTP_CACHE_URL} -C "${LAMMPS_HTTP_CACHE_CONFIG}" -C ../cmake/presets/most.cmake ../cmake
+   make -j 8
+
+   deactivate_caches
+
+----------
+
 .. _phonon:
 
 phonon tool
@@ -763,10 +861,10 @@ phonon tool
 
 The phonon sub-directory contains a post-processing tool useful for
 analyzing the output of the :doc:`fix phonon <fix_phonon>` command in
-the USER-PHONON package.
+the PHONON package.
 
 See the README file for instruction on building the tool and what
-library it needs.  And see the examples/USER/phonon directory
+library it needs.  And see the examples/PACKAGES/phonon directory
 for example problems that can be post-processed with this tool.
 
 This tool was written by Ling-Ti Kong at Shanghai Jiao Tong
@@ -870,13 +968,13 @@ smd tool
 
 The smd sub-directory contains a C++ file dump2vtk_tris.cpp and
 Makefile which can be compiled and used to convert triangle output
-files created by the Smooth-Mach Dynamics (USER-SMD) package into a
+files created by the Smooth-Mach Dynamics (MACHDYN) package into a
 VTK-compatible unstructured grid file.  It could then be read in and
 visualized by VTK.
 
 See the header of dump2vtk.cpp for more details.
 
-This tool was written by the USER-SMD package author, Georg
+This tool was written by the MACHDYN package author, Georg
 Ganzenmuller at the Fraunhofer-Institute for High-Speed Dynamics,
 Ernst Mach Institute in Germany (georg.ganzenmueller at emi.fhg.de).
 

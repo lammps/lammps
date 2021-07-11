@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(vashishta/table,PairVashishtaTable)
-
+// clang-format off
+PairStyle(vashishta/table,PairVashishtaTable);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_VASHISHITA_TABLE_H
@@ -36,15 +36,15 @@ class PairVashishtaTable : public PairVashishta {
   int ntable;
   double deltaR2;
   double oneOverDeltaR2;
-  double ***forceTable;         // table of forces per element pair
-  double ***potentialTable;     // table of potential energies
+  double ***forceTable;        // table of forces per element pair
+  double ***potentialTable;    // table of potential energies
 
   void twobody_table(const Param &, double, double &, int, double &);
   void setup_params();
   void create_tables();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

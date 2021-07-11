@@ -56,6 +56,9 @@ Examples
    fix 1 all adapt/fep 1 pair lj/cut epsilon * * v_scale1 coul/cut scale 3 3 v_scale2 scale yes reset yes
    fix 1 all adapt/fep 10 atom diameter 1 v_size
 
+
+Example input scripts available: examples/PACKAGES/fep
+
 Description
 """""""""""
 
@@ -170,9 +173,11 @@ styles and their energy formulas for the meaning of these parameters:
 +------------------------------------------------------------------------------+-------------------------+------------+
 | :doc:`nm/cut/coul/cut, nm/cut/coul/long <pair_nm>`                           | e0,r0,nn,mm             | type pairs |
 +------------------------------------------------------------------------------+-------------------------+------------+
-| :doc:`ufm <pair_ufm>`                                                        | epsilon,sigma,scale     | type pairs |
+| :doc:`snap <pair_snap>`                                                      | scale                   | type pairs |
 +------------------------------------------------------------------------------+-------------------------+------------+
 | :doc:`soft <pair_soft>`                                                      | a                       | type pairs |
++------------------------------------------------------------------------------+-------------------------+------------+
+| :doc:`ufm <pair_ufm>`                                                        | epsilon,sigma,scale     | type pairs |
 +------------------------------------------------------------------------------+-------------------------+------------+
 
 .. note::

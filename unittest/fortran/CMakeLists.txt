@@ -6,7 +6,13 @@ endif()
 
 include(CheckLanguage)
 check_language(Fortran)
+if(NOT CMAKE_Fortran_COMPILER_ID)
+  message(STATUS "Skipping Tests for the LAMMPS Fortran Module: cannot identify Fortran compiler")
+  return()
+endif()
+
 if(CMAKE_Fortran_COMPILER)
+  enable_language(C)
   enable_language(Fortran)
   get_filename_component(LAMMPS_FORTRAN_MODULE ${LAMMPS_SOURCE_DIR}/../fortran/lammps.f90 ABSOLUTE)
   if(BUILD_MPI)

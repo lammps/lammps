@@ -139,7 +139,7 @@ of the :doc:`run <run>` command.  These fixes are not invoked during
 Restrictions
 """"""""""""
 
-This fix is part of the USER-LB package.  It is only enabled if LAMMPS
+This fix is part of the LATBOLTZ package.  It is only enabled if LAMMPS
 was built with that package.  See the :doc:`Build package
 <Build_package>` doc page for more info.
 

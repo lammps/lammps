@@ -116,7 +116,7 @@ for details.
 Restrictions
 """"""""""""
 
-This fix is part of the USER-EFF package.  It is only enabled if
+This fix is part of the EFF package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 Other restriction discussed on the doc page for the :doc:`fix nvt, npt, and nph <fix_nh>` commands also apply.

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -534,8 +535,8 @@ void Variable::set(int narg, char **arg)
   if (replaceflag) return;
 
   if (!utils::is_id(arg[0]))
-    error->all(FLERR,fmt::format("Variable name '{}' must have only alphanu"
-                                 "meric characters or underscores",arg[0]));
+    error->all(FLERR,"Variable name '{}' must have only alphanu"
+                                 "meric characters or underscores",arg[0]);
   names[nvar] = utils::strdup(arg[0]);
   nvar++;
 }
@@ -606,8 +607,8 @@ int Variable::next(int narg, char **arg)
   for (int iarg = 0; iarg < narg; iarg++) {
     ivar = find(arg[iarg]);
     if (ivar < 0)
-      error->all(FLERR,fmt::format("Invalid variable '{}' in next command",
-                                   arg[iarg]));
+      error->all(FLERR,"Invalid variable '{}' in next command",
+                                   arg[iarg]);
     if (style[ivar] == ULOOP && style[find(arg[0])] == UNIVERSE) continue;
     else if (style[ivar] == UNIVERSE && style[find(arg[0])] == ULOOP) continue;
     else if (style[ivar] != style[find(arg[0])])
@@ -925,8 +926,8 @@ char *Variable::retrieve(const char *name)
   } else if (style[ivar] == PYTHON) {
     int ifunc = python->variable_match(data[ivar][0],name,0);
     if (ifunc < 0)
-      error->all(FLERR,fmt::format("Python variable {} does not match "
-                                   "Python function {}", name, data[ivar][0]));
+      error->all(FLERR,"Python variable {} does not match "
+                                   "Python function {}", name, data[ivar][0]);
     python->invoke_function(ifunc,data[ivar][1]);
     str = data[ivar][1];
     // if Python func returns a string longer than VALUELENGTH
@@ -5050,8 +5051,8 @@ VarReader::VarReader(LAMMPS *lmp, char *name, char *file, int flag) :
   if (me == 0) {
     fp = fopen(file,"r");
     if (fp == nullptr)
-      error->one(FLERR,fmt::format("Cannot open file variable file {}: {}",
-                                   file, utils::getsyserror()));
+      error->one(FLERR,"Cannot open file variable file {}: {}",
+                                   file, utils::getsyserror());
   }
 
   // if atomfile-style variable, must store per-atom values read from file
@@ -5188,12 +5189,12 @@ int VarReader::read_peratom()
         tag = words.next_bigint();
         value = words.next_double();
       } catch (TokenizerException &e) {
-        error->all(FLERR,fmt::format("Invalid atomfile line '{}': {}",
-                                     buf,e.what()));
+        error->all(FLERR,"Invalid atomfile line '{}': {}",
+                                     buf,e.what());
       }
       if ((tag <= 0) || (tag > map_tag_max))
-        error->all(FLERR,fmt::format("Invalid atom ID {} in variable "
-                                     "file", tag));
+        error->all(FLERR,"Invalid atom ID {} in variable "
+                                     "file", tag);
       if ((m = atom->map(tag)) >= 0) vstore[m] = value;
       buf = next + 1;
     }

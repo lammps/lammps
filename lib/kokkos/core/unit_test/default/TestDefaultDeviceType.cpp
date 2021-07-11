@@ -45,7 +45,7 @@
 #include <gtest/gtest.h>
 
 #include <Kokkos_Core.hpp>
-#include <default/TestDefaultDeviceType_Category.hpp>
+#include <TestDefaultDeviceType_Category.hpp>
 #include <TestHalfConversion.hpp>
 #include <TestHalfOperators.hpp>
 

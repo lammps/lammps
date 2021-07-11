@@ -182,6 +182,8 @@ Examples
    pair_coeff * * 100.0 2.0 1.5 1.0
    pair_coeff 1 1 100.0 2.0 1.5 1.0 3.0
 
+Example input scripts available: examples/PACKAGES/fep
+
 Description
 """""""""""
 
@@ -311,7 +313,7 @@ the second coefficient.
    electrostatic terms (kspace) are correct. It is not necessary to use
    soft-core Coulomb potentials if the van der Waals site is present during the
    free-energy route, thus avoiding overlap of the charges. Examples are
-   provided in the LAMMPS source directory tree, under examples/USER/fep.
+   provided in the LAMMPS source directory tree, under examples/PACKAGES/fep.
 
 .. note::
 
@@ -412,7 +414,7 @@ Restrictions
 """"""""""""
 
 The pair styles with soft core are only enabled if LAMMPS was built with the
-USER-FEP package. The *long* versions also require the KSPACE package to be
+FEP package. The *long* versions also require the KSPACE package to be
 installed. The soft *tip4p* versions also require the MOLECULE package to be
 installed. These styles are only enabled if LAMMPS was built with those
 packages.  See the :doc:`Build package <Build_package>` doc page for more

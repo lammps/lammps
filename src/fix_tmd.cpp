@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -74,8 +75,8 @@ nfileevery(0), fp(nullptr), xf(nullptr), xold(nullptr)
     if (me == 0) {
       fp = fopen(arg[6],"w");
       if (fp == nullptr)
-        error->one(FLERR,fmt::format("Cannot open fix tmd file {}: {}",
-                                     arg[6], utils::getsyserror()));
+        error->one(FLERR,"Cannot open fix tmd file {}: {}",
+                                     arg[6], utils::getsyserror());
       fprintf(fp,"%s %s\n","# Step rho_target rho_old gamma_back",
               "gamma_forward lambda work_lambda work_analytical");
     }
@@ -540,8 +541,8 @@ void FixTMD::open(char *file)
   }
 
   if (fp == nullptr)
-    error->one(FLERR,fmt::format("Cannot open file {}: {}",
-                                 file, utils::getsyserror()));
+    error->one(FLERR,"Cannot open file {}: {}",
+                                 file, utils::getsyserror());
 }
 
 /* ---------------------------------------------------------------------- */

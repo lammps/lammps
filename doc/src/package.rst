@@ -130,8 +130,8 @@ Description
 
 This command invokes package-specific settings for the various
 accelerator packages available in LAMMPS.  Currently the following
-packages use settings from this command: GPU, USER-INTEL, KOKKOS, and
-USER-OMP.
+packages use settings from this command: GPU, INTEL, KOKKOS, and
+OPENMP.
 
 If this command is specified in an input script, it must be near the
 top of the script, before the simulation box has been defined.  This
@@ -152,7 +152,7 @@ accelerator settings.
 The KOKKOS package requires a "-k on" :doc:`command-line switch <Run_options>` respectively, which invokes a "package
 kokkos" command with default settings.
 
-For the GPU, USER-INTEL, and USER-OMP packages, if a "-sf gpu" or "-sf
+For the GPU, INTEL, and OPENMP packages, if a "-sf gpu" or "-sf
 intel" or "-sf omp" :doc:`command-line switch <Run_options>` is used to
 auto-append accelerator suffixes to various styles in the input
 script, then those switches also invoke a "package gpu", "package
@@ -289,7 +289,7 @@ threads allocated for each MPI task. This setting controls OpenMP
 parallelism only for routines run on the CPUs. For more details on
 setting the number of OpenMP threads, see the discussion of the
 *Nthreads* setting on this doc page for the "package omp" command.
-The meaning of *Nthreads* is exactly the same for the GPU, USER-INTEL,
+The meaning of *Nthreads* is exactly the same for the GPU, INTEL,
 and GPU packages.
 
 The *platform* keyword is only used with OpenCL to specify the ID for
@@ -333,7 +333,7 @@ specify additional flags for the runtime build.
 ----------
 
 The *intel* style invokes settings associated with the use of the
-USER-INTEL package.  All of its settings, except the *omp* and *mode*
+INTEL package.  All of its settings, except the *omp* and *mode*
 keywords, are ignored if LAMMPS was not built with Xeon Phi
 co-processor support.  All of its settings, including the *omp* and
 *mode* keyword are applicable if LAMMPS was built with co-processor
@@ -351,12 +351,12 @@ threads allocated for each MPI task. This setting controls OpenMP
 parallelism only for routines run on the CPUs. For more details on
 setting the number of OpenMP threads, see the discussion of the
 *Nthreads* setting on this doc page for the "package omp" command.
-The meaning of *Nthreads* is exactly the same for the GPU, USER-INTEL,
+The meaning of *Nthreads* is exactly the same for the GPU, INTEL,
 and GPU packages.
 
 The *mode* keyword determines the precision mode to use for
 computing pair style forces, either on the CPU or on the co-processor,
-when using a USER-INTEL supported :doc:`pair style <pair_style>`.  It
+when using a INTEL supported :doc:`pair style <pair_style>`.  It
 can take a value of *single*\ , *mixed* which is the default, or
 *double*\ .  *Single* means single precision is used for the entire
 force calculation.  *Mixed* means forces between a pair of atoms are
@@ -376,7 +376,7 @@ Simultaneous Multithreading (SMT) such as Hyper-Threading (HT) on Intel
 processors. In this mode, one additional thread is generated per MPI
 process. LAMMPS will generate a warning in the case that more threads
 are used than available in SMT hardware on a node. If the PPPM solver
-from the USER-INTEL package is not used, then the LRT setting is
+from the INTEL package is not used, then the LRT setting is
 ignored and no extra threads are generated. Enabling LRT will replace
 the :doc:`run_style <run_style>` with the *verlet/lrt/intel* style that
 is identical to the default *verlet* style aside from supporting the
@@ -556,7 +556,7 @@ result in better performance for certain configurations and system sizes.
 ----------
 
 The *omp* style invokes settings associated with the use of the
-USER-OMP package.
+OPENMP package.
 
 The *Nthreads* argument sets the number of OpenMP threads allocated for
 each MPI task.  For example, if your system has nodes with dual
@@ -595,12 +595,12 @@ for OpenMPI.  Check your MPI documentation for additional details.
 What combination of threads and MPI tasks gives the best performance
 is difficult to predict and can depend on many components of your
 input.  Not all features of LAMMPS support OpenMP threading via the
-USER-OMP package and the parallel efficiency can be very different,
+OPENMP package and the parallel efficiency can be very different,
 too.
 
 .. note::
 
-   If you build LAMMPS with the GPU, USER-INTEL, and / or USER-OMP
+   If you build LAMMPS with the GPU, INTEL, and / or OPENMP
    packages, be aware these packages all allow setting of the *Nthreads*
    value via their package commands, but there is only a single global
    *Nthreads* value used by OpenMP.  Thus if multiple package commands are
@@ -642,14 +642,14 @@ with the GPU package.  See the :doc:`Build package <Build_package>` doc
 page for more info.
 
 The intel style of this command can only be invoked if LAMMPS was
-built with the USER-INTEL package.  See the :doc:`Build package <Build_package>` doc page for more info.
+built with the INTEL package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 The kk style of this command can only be invoked if LAMMPS was built
 with the KOKKOS package.  See the :doc:`Build package <Build_package>`
 doc page for more info.
 
 The omp style of this command can only be invoked if LAMMPS was built
-with the USER-OMP package.  See the :doc:`Build package <Build_package>`
+with the OPENMP package.  See the :doc:`Build package <Build_package>`
 doc page for more info.
 
 Related commands
@@ -667,7 +667,7 @@ automatically if the "-sf gpu" :doc:`command-line switch <Run_options>`
 is used.  If it is not used, you must invoke the package gpu command
 in your input script or via the "-pk gpu" :doc:`command-line switch <Run_options>`.
 
-For the USER-INTEL package, the default is Nphi = 1 and the option
+For the INTEL package, the default is Nphi = 1 and the option
 defaults are omp = 0, mode = mixed, lrt = no, balance = -1, tpc = 4,
 tptask = 240.  The default ghost option is determined by the pair
 style being used.  This value is output to the screen in the offload

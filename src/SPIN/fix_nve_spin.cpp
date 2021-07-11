@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -175,6 +176,7 @@ void FixNVESpin::init()
 
   // loop 1: obtain # of Pairs, and # of Pair/Spin styles
 
+  npairspin = 0;
   PairHybrid *hybrid = (PairHybrid *)force->pair_match("^hybrid",0);
   if (force->pair_match("^spin",0,0)) {        // only one Pair/Spin style
     pair = force->pair_match("^spin",0,0);
@@ -231,6 +233,7 @@ void FixNVESpin::init()
   // loop 1: obtain # of fix precession/spin styles
 
   int iforce;
+  nprecspin = 0;
   for (iforce = 0; iforce < modify->nfix; iforce++) {
     if (utils::strmatch(modify->fix[iforce]->style,"^precession/spin")) {
       nprecspin++;
@@ -263,6 +266,7 @@ void FixNVESpin::init()
 
   // loop 1: obtain # of fix langevin/spin styles
 
+  nlangspin = 0;
   for (iforce = 0; iforce < modify->nfix; iforce++) {
     if (utils::strmatch(modify->fix[iforce]->style,"^langevin/spin")) {
       nlangspin++;

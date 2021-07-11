@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(GPU,FixGPU)
-
+// clang-format off
+FixStyle(GPU,FixGPU);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_GPU_H
@@ -37,8 +37,8 @@ class FixGPU : public Fix {
   void post_force_respa(int, int, int);
   double memory_usage();
 
-  double binsize(const double subx, const double suby,
-                 const double subz, const int nlocal, const double cut);
+  double binsize(const double subx, const double suby, const double subz, const int nlocal,
+                 const double cut);
 
  private:
   int _gpu_mode;
@@ -47,7 +47,7 @@ class FixGPU : public Fix {
   double _binsize;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

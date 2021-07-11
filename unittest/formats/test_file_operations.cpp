@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,6 +15,7 @@
 #include "../testing/utils.h"
 #include "atom.h"
 #include "domain.h"
+#include "error.h"
 #include "info.h"
 #include "input.h"
 #include "lammps.h"
@@ -51,12 +52,25 @@ protected:
         ASSERT_TRUE(out.good());
         out << "one line\ntwo_lines\n\nno newline";
         out.close();
+
+        out.open("file_with_long_lines_test.txt", std::ios_base::out | std::ios_base::binary);
+        ASSERT_TRUE(out.good());
+        out << "zero ##########################################################"
+            "##################################################################"
+            "##################################################################"
+            "############################################################\n";
+        out << "one line\ntwo_lines\n\n";
+        for (int i = 0; i < 100; ++i) out << "one two ";
+        out << "\nthree\nfour five #";
+        for (int i = 0; i < 1000; ++i) out << '#';
+        out.close();
     }
 
     void TearDown() override
     {
         LAMMPSTest::TearDown();
         remove("safe_file_read_test.txt");
+        remove("file_with_long_lines_test.txt");
     }
 };
 
@@ -97,6 +111,68 @@ TEST_F(FileOperationsTest, safe_fgets)
 }
 
 #define MAX_BUF_SIZE 128
+TEST_F(FileOperationsTest, fgets_trunc)
+{
+    char buf[MAX_BUF_SIZE];
+    char *ptr;
+
+    FILE *fp = fopen("safe_file_read_test.txt", "rb");
+    ASSERT_NE(fp, nullptr);
+
+    memset(buf, 0, MAX_BUF_SIZE);
+    ptr = utils::fgets_trunc(buf, MAX_BUF_SIZE, fp);
+    ASSERT_THAT(buf, StrEq("one line\n"));
+    ASSERT_NE(ptr,nullptr);
+
+    memset(buf, 0, MAX_BUF_SIZE);
+    ptr = utils::fgets_trunc(buf, MAX_BUF_SIZE, fp);
+    ASSERT_THAT(buf, StrEq("two_lines\n"));
+    ASSERT_NE(ptr,nullptr);
+
+    memset(buf, 0, MAX_BUF_SIZE);
+    ptr = utils::fgets_trunc(buf, MAX_BUF_SIZE, fp);
+    ASSERT_THAT(buf, StrEq("\n"));
+    ASSERT_NE(ptr,nullptr);
+
+    memset(buf, 0, MAX_BUF_SIZE);
+    ptr = utils::fgets_trunc(buf, 4, fp);
+    ASSERT_THAT(buf, StrEq("no\n"));
+    ASSERT_NE(ptr,nullptr);
+
+    ptr = utils::fgets_trunc(buf, MAX_BUF_SIZE, fp);
+    ASSERT_EQ(ptr,nullptr);
+    fclose(fp);
+
+    fp = fopen("file_with_long_lines_test.txt", "r");
+    ASSERT_NE(fp,nullptr);
+
+    memset(buf, 0, MAX_BUF_SIZE);
+    ptr = utils::fgets_trunc(buf, MAX_BUF_SIZE, fp);
+    ASSERT_NE(ptr,nullptr);
+    ASSERT_THAT(buf, StrEq("zero ##########################################################"
+                           "###############################################################\n"));
+
+    ptr = utils::fgets_trunc(buf, MAX_BUF_SIZE, fp);
+    ASSERT_THAT(buf, StrEq("one line\n"));
+    ASSERT_NE(ptr,nullptr);
+
+    ptr = utils::fgets_trunc(buf, MAX_BUF_SIZE, fp);
+    ASSERT_THAT(buf, StrEq("two_lines\n"));
+    ASSERT_NE(ptr,nullptr);
+
+    ptr = utils::fgets_trunc(buf, MAX_BUF_SIZE, fp);
+    ASSERT_THAT(buf, StrEq("\n"));
+    ASSERT_NE(ptr,nullptr);
+
+    ptr = utils::fgets_trunc(buf, MAX_BUF_SIZE, fp);
+    ASSERT_NE(ptr,nullptr);
+    ASSERT_THAT(buf, StrEq("one two one two one two one two one two one two one two one two "
+                           "one two one two one two one two one two one two one two one tw\n"));
+
+    fclose(fp);
+}
+
+#define MAX_BUF_SIZE 128
 TEST_F(FileOperationsTest, safe_fread)
 {
     char buf[MAX_BUF_SIZE];
@@ -127,7 +203,7 @@ TEST_F(FileOperationsTest, safe_fread)
 
 TEST_F(FileOperationsTest, read_lines_from_file)
 {
-    char *buf = new char[MAX_BUF_SIZE];
+    char *buf      = new char[MAX_BUF_SIZE];
     FILE *fp       = nullptr;
     MPI_Comm world = MPI_COMM_WORLD;
     int me, rv;
@@ -158,7 +234,7 @@ TEST_F(FileOperationsTest, read_lines_from_file)
 
 TEST_F(FileOperationsTest, logmesg)
 {
-    char buf[8];
+    char buf[64];
     BEGIN_HIDE_OUTPUT();
     command("echo none");
     END_HIDE_OUTPUT();
@@ -166,15 +242,62 @@ TEST_F(FileOperationsTest, logmesg)
     utils::logmesg(lmp, "one\n");
     command("log test_logmesg.log");
     utils::logmesg(lmp, "two\n");
+    utils::logmesg(lmp, "three={}\n", 3);
+    utils::logmesg(lmp, "four {}\n");
+    utils::logmesg(lmp, "five\n", 5);
     command("log none");
     std::string out = END_CAPTURE_OUTPUT();
-    memset(buf, 0, 8);
+    memset(buf, 0, 64);
     FILE *fp = fopen("test_logmesg.log", "r");
-    fread(buf, 1, 8, fp);
+    fread(buf, 1, 64, fp);
     fclose(fp);
-    ASSERT_THAT(out, StrEq("one\ntwo\n"));
-    ASSERT_THAT(buf, StrEq("two\n"));
+    ASSERT_THAT(out, StrEq("one\ntwo\nthree=3\nargument not found\nfive\n"));
+    ASSERT_THAT(buf, StrEq("two\nthree=3\nargument not found\nfive\n"));
     remove("test_logmesg.log");
+}
+
+TEST_F(FileOperationsTest, error_message_warn)
+{
+    char buf[64];
+    BEGIN_HIDE_OUTPUT();
+    command("echo none");
+    command("log test_error_warn.log");
+    END_HIDE_OUTPUT();
+    BEGIN_CAPTURE_OUTPUT();
+    lmp->error->message("testme.cpp", 10, "message me");
+    lmp->error->warning("testme.cpp", 100, "warn me");
+    command("log none");
+    std::string out = END_CAPTURE_OUTPUT();
+    memset(buf, 0, 64);
+    FILE *fp = fopen("test_error_warn.log", "r");
+    fread(buf, 1, 64, fp);
+    fclose(fp);
+    auto msg = StrEq("message me (testme.cpp:10)\n"
+                     "WARNING: warn me (testme.cpp:100)\n");
+    ASSERT_THAT(out, msg);
+    ASSERT_THAT(buf, msg);
+    remove("test_error_warn.log");
+}
+
+TEST_F(FileOperationsTest, error_all_one)
+{
+    char buf[64];
+    BEGIN_HIDE_OUTPUT();
+    command("echo none");
+    command("log none");
+    END_HIDE_OUTPUT();
+    TEST_FAILURE(".*ERROR: exit \\(testme.cpp:10\\).*",
+                 lmp->error->all("testme.cpp", 10, "exit"););
+    TEST_FAILURE(".*ERROR: exit too \\(testme.cpp:10\\).*",
+                 lmp->error->all("testme.cpp", 10, "exit {}", "too"););
+    TEST_FAILURE(".*ERROR: argument not found \\(testme.cpp:10\\).*",
+                 lmp->error->all("testme.cpp", 10, "exit {} {}", "too"););
+    TEST_FAILURE(".*ERROR on proc 0: exit \\(testme.cpp:10\\).*",
+                 lmp->error->one("testme.cpp", 10, "exit"););
+    TEST_FAILURE(".*ERROR on proc 0: exit too \\(testme.cpp:10\\).*",
+                 lmp->error->one("testme.cpp", 10, "exit {}", "too"););
+    TEST_FAILURE(".*ERROR on proc 0: argument not found \\(testme.cpp:10\\).*",
+                 lmp->error->one("testme.cpp", 10, "exit {} {}", "too"););
 }
 
 TEST_F(FileOperationsTest, write_restart)

@@ -1,0 +1,25 @@
+This package provides a kspace style which is a wrapper for the
+ScaFaCoS long-range Coulomb solver library. The library provides
+a selection of different long-range Coulomb solvers, which can be
+used to calculate the Coloumic forces between charged particles.
+More information about the ScaFaCoS library can be found on this
+web site: http://scafacos.de. ScaFaCoS was designed and implemented
+by a consortium of German universities (Bonn, Chemnitz, Stuttgart,
+Wuppertal and others) and the Juelich Supercomputing Centre
+(Forschungszentrum Juelich).
+
+The use of the scafacos kspace requires the download and installation
+of the library on the system. This can be done in lib/scafacos or
+elsewhere in your system. Details of the download and build process
+for ScaFaCoS are given in the lib/scafacos/README file and it can also
+be done via the make lib-user-scafacos command from the LAMMPS
+source directory.
+
+Once you have successfully built LAMMPS with this package and the
+ScaFaCoS library, you can test it using an input file from the
+examples scafacos dir, e.g.:
+
+lmp_serial -in lammps/examples/PACKAGES/scafacos/in.scafacos.fmm
+
+For questions about ScaFaCoS, please contact:
+r.halver@fz-juelich.de or g.sutmann@fz-juelich.de

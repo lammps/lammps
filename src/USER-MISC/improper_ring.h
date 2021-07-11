@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef IMPROPER_CLASS
-
-ImproperStyle(ring,ImproperRing)
-
+// clang-format off
+ImproperStyle(ring,ImproperRing);
+// clang-format on
 #else
 
 #ifndef LMP_IMPROPER_RING_H
@@ -35,12 +35,12 @@ class ImproperRing : public Improper {
   void write_data(FILE *);
 
  protected:
-  double *k,*chi;
+  double *k, *chi;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

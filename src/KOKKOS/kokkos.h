@@ -1,6 +1,7 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -48,8 +49,14 @@ class KokkosLMP : protected Pointers {
   int newtonflag;
   double binsize;
 
+  static int is_finalized;
+  static Kokkos::InitArguments args;
+  static int init_ngpus;
+
   KokkosLMP(class LAMMPS *, int, char **);
   ~KokkosLMP();
+  static void initialize(Kokkos::InitArguments, Error *);
+  static void finalize();
   void accelerator(int, char **);
   int neigh_count(int);
 
@@ -83,13 +90,21 @@ because MPI library not recognized
 
 The local MPI rank was not found in one of four supported environment variables.
 
+E: Invalid number of threads requested for Kokkos: must be 1 or greater
+
+Self-explanatory.
+
 E: GPUs are requested but Kokkos has not been compiled for CUDA
 
 Recompile Kokkos with CUDA support to use GPUs.
 
-E: Kokkos has been compiled for CUDA but no GPUs are requested
+E: Kokkos has been compiled for CUDA, HIP, or SYCL but no GPUs are requested
 
-One or more GPUs must be used when Kokkos is compiled for CUDA.
+One or more GPUs must be used when Kokkos is compiled for CUDA/HIP/SYCL.
+
+W: Kokkos package already initalized, cannot reinitialize with different parameters
+
+Self-explanatory.
 
 E: Illegal ... command
 

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -634,7 +634,7 @@ TEST(PairStyle, plain)
 
 TEST(PairStyle, omp)
 {
-    if (!LAMMPS::is_installed_pkg("USER-OMP")) GTEST_SKIP();
+    if (!LAMMPS::is_installed_pkg("OPENMP")) GTEST_SKIP();
     if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
 
     const char *args[] = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite",
@@ -668,7 +668,7 @@ TEST(PairStyle, omp)
     const int nlocal = lmp->atom->nlocal;
     ASSERT_EQ(lmp->atom->natoms, nlocal);
 
-    // relax error a bit for USER-OMP package
+    // relax error a bit for OPENMP package
     double epsilon = 5.0 * test_config.epsilon;
     // relax test precision when using pppm and single precision FFTs
 #if defined(FFT_SINGLE)
@@ -846,6 +846,7 @@ TEST(PairStyle, omp)
 TEST(PairStyle, gpu)
 {
     if (!LAMMPS::is_installed_pkg("GPU")) GTEST_SKIP();
+    if (!Info::has_gpu_device()) GTEST_SKIP();
     if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
 
     const char *args_neigh[]   = {"PairStyle", "-log",    "none", "-echo",
@@ -968,7 +969,7 @@ TEST(PairStyle, gpu)
 
 TEST(PairStyle, intel)
 {
-    if (!LAMMPS::is_installed_pkg("USER-INTEL")) GTEST_SKIP();
+    if (!LAMMPS::is_installed_pkg("INTEL")) GTEST_SKIP();
     if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
 
     const char *args[] = {"PairStyle", "-log",  "none", "-echo", "screen", "-nocite",
@@ -996,7 +997,7 @@ TEST(PairStyle, intel)
         GTEST_SKIP();
     }
 
-    // relax error a bit for USER-INTEL package
+    // relax error a bit for INTEL package
     double epsilon = 7.5 * test_config.epsilon;
     // relax test precision when using pppm and single precision FFTs
 #if defined(FFT_SINGLE)
@@ -1082,7 +1083,7 @@ TEST(PairStyle, intel)
     EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.run_vdwl, epsilon);
     EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.run_coul, epsilon);
 
-    // rebo family of pair styles will have a large error in per-atom energy for USER-INTEL
+    // rebo family of pair styles will have a large error in per-atom energy for INTEL
     if (test_config.pair_style.find("rebo") != std::string::npos) epsilon *= 100000.0;
 
     EXPECT_FP_LE_WITH_EPS((pair->eng_vdwl + pair->eng_coul), energy, epsilon);

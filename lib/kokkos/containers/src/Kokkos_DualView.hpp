@@ -91,6 +91,25 @@ namespace Kokkos {
  *     behavior.  Please see the documentation of Kokkos::View for
  *     examples.  The default suffices for most users.
  */
+
+namespace Impl {
+
+#ifdef KOKKOS_ENABLE_CUDA
+
+inline const Kokkos::Cuda& get_cuda_space(const Kokkos::Cuda& in) { return in; }
+
+inline const Kokkos::Cuda& get_cuda_space() {
+  return *Kokkos::Impl::cuda_get_deep_copy_space();
+}
+
+template <typename NonCudaExecSpace>
+inline const Kokkos::Cuda& get_cuda_space(const NonCudaExecSpace&) {
+  return get_cuda_space();
+}
+
+#endif  // KOKKOS_ENABLE_CUDA
+
+}  // namespace Impl
 template <class DataType, class Arg1Type = void, class Arg2Type = void,
           class Arg3Type = void>
 class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
@@ -295,6 +314,53 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
           "DualView constructed with incompatible views");
     }
   }
+  // does the DualView have only one device
+  struct impl_dualview_is_single_device {
+    enum : bool {
+      value = std::is_same<typename t_dev::device_type,
+                           typename t_host::device_type>::value
+    };
+  };
+
+  // does the given device match the device of t_dev?
+  template <typename Device>
+  struct impl_device_matches_tdev_device {
+    enum : bool {
+      value = std::is_same<typename t_dev::device_type, Device>::value
+    };
+  };
+  // does the given device match the device of t_host?
+  template <typename Device>
+  struct impl_device_matches_thost_device {
+    enum : bool {
+      value = std::is_same<typename t_host::device_type, Device>::value
+    };
+  };
+
+  // does the given device match the execution space of t_host?
+  template <typename Device>
+  struct impl_device_matches_thost_exec {
+    enum : bool {
+      value = std::is_same<typename t_host::execution_space, Device>::value
+    };
+  };
+
+  // does the given device match the execution space of t_dev?
+  template <typename Device>
+  struct impl_device_matches_tdev_exec {
+    enum : bool {
+      value = std::is_same<typename t_dev::execution_space, Device>::value
+    };
+  };
+
+  // does the given device's memory space match the memory space of t_dev?
+  template <typename Device>
+  struct impl_device_matches_tdev_memory_space {
+    enum : bool {
+      value = std::is_same<typename t_dev::memory_space,
+                           typename Device::memory_space>::value
+    };
+  };
 
   //@}
   //! \name Methods for synchronizing, marking as modified, and getting Views.
@@ -302,7 +368,7 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
 
   /// \brief Return a View on a specific device \c Device.
   ///
-  /// Please don't be afraid of the if_c expression in the return
+  /// Please don't be afraid of the nested if_c expressions in the return
   /// value's type.  That just tells the method what the return type
   /// should be: t_dev if the \c Device template parameter matches
   /// this DualView's device type, else t_host.
@@ -323,10 +389,17 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
   ///   typename dual_view_type::t_host hostView = DV.view<host_device_type> ();
   /// \endcode
   template <class Device>
-  KOKKOS_INLINE_FUNCTION const typename Impl::if_c<
-      std::is_same<typename t_dev::memory_space,
-                   typename Device::memory_space>::value,
-      t_dev, t_host>::type&
+  KOKKOS_INLINE_FUNCTION const typename std::conditional_t<
+      impl_device_matches_tdev_device<Device>::value, t_dev,
+      typename std::conditional_t<
+          impl_device_matches_thost_device<Device>::value, t_host,
+          typename std::conditional_t<
+              impl_device_matches_thost_exec<Device>::value, t_host,
+              typename std::conditional_t<
+                  impl_device_matches_tdev_exec<Device>::value, t_dev,
+                  typename std::conditional_t<
+                      impl_device_matches_tdev_memory_space<Device>::value,
+                      t_dev, t_host> > > > >
   view() const {
     constexpr bool device_is_memspace =
         std::is_same<Device, typename Device::memory_space>::value;
@@ -463,6 +536,7 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
           true);
     }
   }
+
   /// \brief Update data on device or host only if data in the other
   ///   space has been marked as modified.
   ///
@@ -480,12 +554,9 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
   ///   the data in either View.  You must manually mark modified data
   ///   as modified, by calling the modify() method with the
   ///   appropriate template parameter.
-  template <class Device>
-  void sync(const typename std::enable_if<
-                (std::is_same<typename traits::data_type,
-                              typename traits::non_const_data_type>::value) ||
-                    (std::is_same<Device, int>::value),
-                int>::type& = 0) {
+  // deliberately passing args by cref as they're used multiple times
+  template <class Device, class... Args>
+  void sync_impl(std::true_type, Args const&... args) {
     if (modified_flags.data() == nullptr) return;
 
     int dev = get_device_side<Device>();
@@ -497,12 +568,12 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
                          Kokkos::CudaUVMSpace>::value) {
           if (d_view.data() == h_view.data())
             Kokkos::Impl::cuda_prefetch_pointer(
-                Kokkos::Cuda(), d_view.data(),
+                Impl::get_cuda_space(args...), d_view.data(),
                 sizeof(typename t_dev::value_type) * d_view.span(), true);
         }
 #endif
 
-        deep_copy(d_view, h_view);
+        deep_copy(args..., d_view, h_view);
         modified_flags(0) = modified_flags(1) = 0;
         impl_report_device_sync();
       }
@@ -514,12 +585,12 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
                          Kokkos::CudaUVMSpace>::value) {
           if (d_view.data() == h_view.data())
             Kokkos::Impl::cuda_prefetch_pointer(
-                Kokkos::Cuda(), d_view.data(),
+                Impl::get_cuda_space(args...), d_view.data(),
                 sizeof(typename t_dev::value_type) * d_view.span(), false);
         }
 #endif
 
-        deep_copy(h_view, d_view);
+        deep_copy(args..., h_view, d_view);
         modified_flags(0) = modified_flags(1) = 0;
         impl_report_host_sync();
       }
@@ -533,10 +604,26 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
 
   template <class Device>
   void sync(const typename std::enable_if<
-                (!std::is_same<typename traits::data_type,
-                               typename traits::non_const_data_type>::value) ||
+                (std::is_same<typename traits::data_type,
+                              typename traits::non_const_data_type>::value) ||
                     (std::is_same<Device, int>::value),
                 int>::type& = 0) {
+    sync_impl<Device>(std::true_type{});
+  }
+
+  template <class Device, class ExecutionSpace>
+  void sync(const ExecutionSpace& exec,
+            const typename std::enable_if<
+                (std::is_same<typename traits::data_type,
+                              typename traits::non_const_data_type>::value) ||
+                    (std::is_same<Device, int>::value),
+                int>::type& = 0) {
+    sync_impl<Device>(std::true_type{}, exec);
+  }
+
+  // deliberately passing args by cref as they're used multiple times
+  template <class Device, class... Args>
+  void sync_impl(std::false_type, Args const&...) {
     if (modified_flags.data() == nullptr) return;
 
     int dev = get_device_side<Device>();
@@ -557,7 +644,27 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
     }
   }
 
-  void sync_host() {
+  template <class Device>
+  void sync(const typename std::enable_if<
+                (!std::is_same<typename traits::data_type,
+                               typename traits::non_const_data_type>::value) ||
+                    (std::is_same<Device, int>::value),
+                int>::type& = 0) {
+    sync_impl<Device>(std::false_type{});
+  }
+  template <class Device, class ExecutionSpace>
+  void sync(const ExecutionSpace& exec,
+            const typename std::enable_if<
+                (!std::is_same<typename traits::data_type,
+                               typename traits::non_const_data_type>::value) ||
+                    (std::is_same<Device, int>::value),
+                int>::type& = 0) {
+    sync_impl<Device>(std::false_type{}, exec);
+  }
+
+  // deliberately passing args by cref as they're used multiple times
+  template <typename... Args>
+  void sync_host_impl(Args const&... args) {
     if (!std::is_same<typename traits::data_type,
                       typename traits::non_const_data_type>::value)
       Impl::throw_runtime_exception(
@@ -569,18 +676,26 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
                        Kokkos::CudaUVMSpace>::value) {
         if (d_view.data() == h_view.data())
           Kokkos::Impl::cuda_prefetch_pointer(
-              Kokkos::Cuda(), d_view.data(),
+              Impl::get_cuda_space(args...), d_view.data(),
               sizeof(typename t_dev::value_type) * d_view.span(), false);
       }
 #endif
 
-      deep_copy(h_view, d_view);
+      deep_copy(args..., h_view, d_view);
       modified_flags(1) = modified_flags(0) = 0;
       impl_report_host_sync();
     }
   }
 
-  void sync_device() {
+  template <class ExecSpace>
+  void sync_host(const ExecSpace& exec) {
+    sync_host_impl(exec);
+  }
+  void sync_host() { sync_host_impl(); }
+
+  // deliberately passing args by cref as they're used multiple times
+  template <typename... Args>
+  void sync_device_impl(Args const&... args) {
     if (!std::is_same<typename traits::data_type,
                       typename traits::non_const_data_type>::value)
       Impl::throw_runtime_exception(
@@ -592,16 +707,22 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
                        Kokkos::CudaUVMSpace>::value) {
         if (d_view.data() == h_view.data())
           Kokkos::Impl::cuda_prefetch_pointer(
-              Kokkos::Cuda(), d_view.data(),
+              Impl::get_cuda_space(args...), d_view.data(),
               sizeof(typename t_dev::value_type) * d_view.span(), true);
       }
 #endif
 
-      deep_copy(d_view, h_view);
+      deep_copy(args..., d_view, h_view);
       modified_flags(1) = modified_flags(0) = 0;
       impl_report_device_sync();
     }
   }
+
+  template <class ExecSpace>
+  void sync_device(const ExecSpace& exec) {
+    sync_device_impl(exec);
+  }
+  void sync_device() { sync_device_impl(); }
 
   template <class Device>
   bool need_sync() const {
@@ -658,6 +779,7 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
   template <class Device>
   void modify() {
     if (modified_flags.data() == nullptr) return;
+    if (impl_dualview_is_single_device::value) return;
     int dev = get_device_side<Device>();
 
     if (dev == 1) {  // if Device is the same as DualView's device type
@@ -690,6 +812,7 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
   }
 
   inline void modify_host() {
+    if (impl_dualview_is_single_device::value) return;
     if (modified_flags.data() != nullptr) {
       modified_flags(0) =
           (modified_flags(1) > modified_flags(0) ? modified_flags(1)
@@ -710,6 +833,7 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
   }
 
   inline void modify_device() {
+    if (impl_dualview_is_single_device::value) return;
     if (modified_flags.data() != nullptr) {
       modified_flags(1) =
           (modified_flags(1) > modified_flags(0) ? modified_flags(1)

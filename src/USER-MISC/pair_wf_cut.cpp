@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -14,6 +15,7 @@
 /* ----------------------------------------------------------------------
    Contributing Author: Xipeng Wang, Simon Ramirez-Hinestrosa
 ------------------------------------------------------------------------- */
+
 #include "pair_wf_cut.h"
 
 #include "atom.h"
@@ -390,5 +392,5 @@ void *PairWFCut::extract(const char *str, int &dim)
   if (strcmp(str,"sigma") == 0) return (void *) sigma;
   if (strcmp(str,"nu") == 0) return (void *) nu;
   if (strcmp(str,"mu") == 0) return (void *) mu;
-  return NULL;
+  return nullptr;
 }

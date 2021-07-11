@@ -21,7 +21,7 @@ Syntax
   .. parsed-literal::
 
      keyword = *pH*, *pKa*, *pKb*, *pIp*, *pIm*, *pKs*, *acid_type*, *base_type*, *lunit_nm*, *temp*, *tempfixid*, *nevery*, *nmc*, *xrd*, *seed*, *tag*, *group*, *onlysalt*, *pmcmoves*
-     *pH* value = pH of the solution
+     *pH* value = pH of the solution (can be specified as an equal-style variable)
      *pKa* value = acid dissociation constant
      *pKb* value = base dissociation constant
      *pIp* value = chemical potential of free cations

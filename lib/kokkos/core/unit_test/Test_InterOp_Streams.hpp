@@ -46,12 +46,14 @@
 
 namespace Test {
 
+#ifndef KOKKOS_ENABLE_SYCL
 __global__ void offset_streams(int* p) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
   if (idx < 100) {
     p[idx] += idx;
   }
 }
+#endif
 
 template <typename MemorySpace>
 struct FunctorRange {

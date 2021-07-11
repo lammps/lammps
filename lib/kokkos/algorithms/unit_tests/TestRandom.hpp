@@ -109,6 +109,16 @@ struct RandomProperties {
   }
 };
 
+// FIXME_OPENMPTARGET: Need this for OpenMPTarget because contra to the standard
+// llvm requires the binary operator defined not just the +=
+KOKKOS_INLINE_FUNCTION
+RandomProperties operator+(const RandomProperties& org,
+                           const RandomProperties& add) {
+  RandomProperties val = org;
+  val += add;
+  return val;
+}
+
 template <class GeneratorPool, class Scalar>
 struct test_random_functor {
   using rnd_type = typename GeneratorPool::generator_type;
@@ -491,6 +501,34 @@ void test_random(unsigned int num_draws) {
 }
 }  // namespace Impl
 
+template <typename ExecutionSpace>
+void test_random_xorshift64() {
+#if defined(KOKKOS_ENABLE_SYCL) || defined(KOKKOS_ENABLE_CUDA) || \
+    defined(KOKKOS_ENABLE_HIP)
+  const int num_draws = 132141141;
+#else  // SERIAL, HPX, OPENMP
+  const int num_draws = 10240000;
+#endif
+  Impl::test_random<Kokkos::Random_XorShift64_Pool<ExecutionSpace>>(num_draws);
+  Impl::test_random<Kokkos::Random_XorShift64_Pool<
+      Kokkos::Device<ExecutionSpace, typename ExecutionSpace::memory_space>>>(
+      num_draws);
+}
+
+template <typename ExecutionSpace>
+void test_random_xorshift1024() {
+#if defined(KOKKOS_ENABLE_SYCL) || defined(KOKKOS_ENABLE_CUDA) || \
+    defined(KOKKOS_ENABLE_HIP)
+  const int num_draws = 52428813;
+#else  // SERIAL, HPX, OPENMP
+  const int num_draws = 10130144;
+#endif
+  Impl::test_random<Kokkos::Random_XorShift1024_Pool<ExecutionSpace>>(
+      num_draws);
+  Impl::test_random<Kokkos::Random_XorShift1024_Pool<
+      Kokkos::Device<ExecutionSpace, typename ExecutionSpace::memory_space>>>(
+      num_draws);
+}
 }  // namespace Test
 
 #endif  // KOKKOS_TEST_UNORDERED_MAP_HPP

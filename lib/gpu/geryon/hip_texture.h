@@ -128,12 +128,12 @@ class UCL_Const {
 				    _cq));
   }
   /// Get device ptr associated with object
-  inline const void* begin() const { return &_global; }
+  inline const hipDeviceptr_t * begin() const { return &_global; }
   inline void clear() {}
 
  private:
   hipStream_t _cq;
-  void* _global;
+  hipDeviceptr_t _global;
   size_t _global_bytes;
   friend class UCL_Kernel;
 };

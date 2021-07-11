@@ -98,8 +98,6 @@ TEST(TEST_CATEGORY, view_remap) {
 
   Kokkos::fence();
   // Kokkos::deep_copy( diff, input ); // Throw with incompatible shape.
-  // FIXME_SYCL requires MDRange policy
-#ifndef KOKKOS_ENABLE_SYCL
   Kokkos::deep_copy(output, input);
   Kokkos::fence();
 
@@ -112,7 +110,6 @@ TEST(TEST_CATEGORY, view_remap) {
           ++value;
           ASSERT_EQ(value, ((int)output(i0, i1, i2, i3)));
         }
-#endif
 }
 
 TEST(TEST_CATEGORY, view_mirror_nonconst) {

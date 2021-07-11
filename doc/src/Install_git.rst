@@ -78,7 +78,7 @@ this is as follows.
    $ git checkout tagID
 
 Stable versions and what tagID to use for a particular stable version
-are discussed on `this page <https://lammps.sandia.gov/bug.html#version>`_.
+are discussed on `this page <https://www.lammps.org/bug.html#version>`_.
 Note that this command will print some warnings, because in order to get
 back to the latest revision and to be able to update with ``git pull``
 again, you will need to do ``git checkout unstable`` (or
@@ -120,8 +120,11 @@ changed.  How to do this depends on the build system you are using.
          $ make package-update    # sync package files with src files
          $ make foo               # re-build for your machine (mpi, serial, etc)
 
-      Just as described on the :doc:`Apply patch <Install_patch>` page,
-      after a patch has been installed.
+      to enforce consistency of the source between the src folder
+      and package directories.  This is OK to do even if you don't
+      use any packages. The "make purge" command removes any deprecated
+      src files if they were removed by the patch from a package
+      sub-directory.
 
       .. warning::
 

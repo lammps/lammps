@@ -1,6 +1,7 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
- https://lammps.sandia.gov/, Sandia National Laboratories
+ https://www.lammps.org/, Sandia National Laboratories
  Steve Plimpton, sjplimp@sandia.gov
 
  Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -136,7 +137,7 @@ void PairUFMGPU::init_style()
 //  cut_respa = nullptr;
 
   if (force->newton_pair)
-    error->all(FLERR,"Cannot use newton pair with ufm/gpu pair style");
+    error->all(FLERR,"Pair style ufm/gpu requires newton pair off");
 
   // Repeat cutsq calculation because done after call to init_style
   double maxcut = -1.0;

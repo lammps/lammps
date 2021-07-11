@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(tri/lj,PairTriLJ)
-
+// clang-format off
+PairStyle(tri/lj,PairTriLJ);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_TRI_LJ_H
@@ -37,26 +37,26 @@ class PairTriLJ : public Pair {
  protected:
   double cut_global;
   double **cut;
-  double **epsilon,**sigma;
-  double **lj1,**lj2,**lj3,**lj4;
+  double **epsilon, **sigma;
+  double **lj1, **lj2, **lj3, **lj4;
   class AtomVecTri *avec;
 
   struct Discrete {
-    double dx,dy,dz;
+    double dx, dy, dz;
     double sigma;
   };
-  Discrete *discrete;           // list of all discretes for all lines
-  int ndiscrete;                // number of discretes in list
-  int dmax;                     // allocated size of discrete list
-  int *dnum;                    // number of discretes per line, 0 if uninit
-  int *dfirst;                  // index of first discrete per each line
-  int nmax;                     // allocated size of dnum,dfirst vectors
+  Discrete *discrete;    // list of all discretes for all lines
+  int ndiscrete;         // number of discretes in list
+  int dmax;              // allocated size of discrete list
+  int *dnum;             // number of discretes per line, 0 if uninit
+  int *dfirst;           // index of first discrete per each line
+  int nmax;              // allocated size of dnum,dfirst vectors
 
   void allocate();
   void discretize(int, double, double *, double *, double *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

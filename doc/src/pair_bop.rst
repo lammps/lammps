@@ -385,7 +385,12 @@ enabled if LAMMPS was built with that package.  See the :doc:`Build package <Bui
 These pair potentials require the :doc:`newtion <newton>` setting to be
 "on" for pair interactions.
 
-The CdTe.bop and GaAs.bop potential files provided with LAMMPS (see the
+Pair style bop is not compatible with being used as a sub-style with
+doc:`hybrid pair styles <pair_hybrid>`. Pair style bop is also not
+compatible with :doc:`multi-cutoff neighbor lists <neighbor>` or
+:doc:`multi-cutoff communitcation <comm_modify>`.
+
+The .bop.table potential files provided with LAMMPS (see the
 potentials directory) are parameterized for metal :doc:`units <units>`.
 You can use the BOP potential with any LAMMPS units, but you would need
 to create your own BOP potential file with coefficients listed in the

@@ -14,6 +14,5 @@ LAMMPS build process.
 .. toctree::
    :maxdepth: 1
 
-   Packages_standard
-   Packages_user
+   Packages_list
    Packages_details

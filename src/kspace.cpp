@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -336,7 +337,7 @@ double KSpace::estimate_table_accuracy(double q2_over_sqrt, double spr)
   int nctb = force->pair->ncoultablebits;
   if (comm->me == 0) {
     if (nctb)
-      error->message(FLERR,fmt::format("  using {}-bit tables for long-range coulomb",nctb));
+      error->message(FLERR,"  using {}-bit tables for long-range coulomb",nctb);
     else
       error->message(FLERR,"  using polynomial approximation for long-range coulomb");
   }

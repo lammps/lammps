@@ -15,18 +15,16 @@
 #ifdef PAIR_CLASS
 // clang-format off
 // Currently the Intel compilers are required for this pair style.
-// For convenience, we are mapping the style to the base class.
-
 #ifdef __INTEL_COMPILER
 PairStyle(tersoff/intel,PairTersoffIntel);
-#else
-PairStyle(tersoff/intel,PairTersoff);
 #endif
 // clang-format on
 #else
 
 #ifndef LMP_PAIR_TERSOFF_INTEL_H
 #define LMP_PAIR_TERSOFF_INTEL_H
+
+#ifdef __INTEL_COMPILER
 
 #include "pair.h"
 #include "fix_intel.h"
@@ -40,7 +38,6 @@ class PairTersoffIntel : public PairTersoff {
   virtual void compute(int, int);
   void init_style();
 
-#ifdef __INTEL_COMPILER
  protected:
   typedef struct { float x,y,z; int w; } sng4_t;
 
@@ -95,10 +92,10 @@ class PairTersoffIntel : public PairTersoff {
   template <class flt_t, class acc_t>
   void pack_force_const(ForceConst<flt_t> &fc,
                         IntelBuffers<flt_t, acc_t> *buffers);
-#endif // __INTEL_COMPILER
 };
 
 }
+#endif // __INTEL_COMPILER
 
 #endif
 #endif

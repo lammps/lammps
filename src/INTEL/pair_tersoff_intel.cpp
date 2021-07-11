@@ -33,7 +33,6 @@
 using namespace LAMMPS_NS;
 
 // Currently the Intel compiler is required for this pair style.
-// For convenience, the style is mapped to the base class for other compilers
 #ifdef __INTEL_COMPILER
 
 #ifdef _LMP_INTEL_OFFLOAD

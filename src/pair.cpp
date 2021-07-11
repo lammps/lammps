@@ -1529,12 +1529,23 @@ void Pair::v_tally3(int i, int j, int k,
   v[4] = THIRD * (drik[0]*fi[2] + drjk[0]*fj[2]);
   v[5] = THIRD * (drik[1]*fi[2] + drjk[1]*fj[2]);
 
-  vatom[i][0] += v[0]; vatom[i][1] += v[1]; vatom[i][2] += v[2];
-  vatom[i][3] += v[3]; vatom[i][4] += v[4]; vatom[i][5] += v[5];
-  vatom[j][0] += v[0]; vatom[j][1] += v[1]; vatom[j][2] += v[2];
-  vatom[j][3] += v[3]; vatom[j][4] += v[4]; vatom[j][5] += v[5];
-  vatom[k][0] += v[0]; vatom[k][1] += v[1]; vatom[k][2] += v[2];
-  vatom[k][3] += v[3]; vatom[k][4] += v[4]; vatom[k][5] += v[5];
+  if (vflag_global) {
+      virial[0] += 3.0*v[0];
+      virial[1] += 3.0*v[1];
+      virial[2] += 3.0*v[2];
+      virial[3] += 3.0*v[3];
+      virial[4] += 3.0*v[4];
+      virial[5] += 3.0*v[5];
+  }
+
+  if (vflag_atom) {
+    vatom[i][0] += v[0]; vatom[i][1] += v[1]; vatom[i][2] += v[2];
+    vatom[i][3] += v[3]; vatom[i][4] += v[4]; vatom[i][5] += v[5];
+    vatom[j][0] += v[0]; vatom[j][1] += v[1]; vatom[j][2] += v[2];
+    vatom[j][3] += v[3]; vatom[j][4] += v[4]; vatom[j][5] += v[5];
+    vatom[k][0] += v[0]; vatom[k][1] += v[1]; vatom[k][2] += v[2];
+    vatom[k][3] += v[3]; vatom[k][4] += v[4]; vatom[k][5] += v[5];
+  }
 }
 
 /* ----------------------------------------------------------------------

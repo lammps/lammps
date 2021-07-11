@@ -138,6 +138,8 @@ class ThrOMP {
   void ev_tally3_thr(Pair *const, const int, const int, const int, const double, const double,
                      const double *const, const double *const, const double *const,
                      const double *const, ThrData *const);
+  void v_tally3_thr(Pair *const, const int, const int, const int, const double *const,
+                    const double *const, const double *const, const double *const, ThrData *const);
   void ev_tally4_thr(Pair *const, const int, const int, const int, const int, const double,
                      const double *const, const double *const, const double *const,
                      const double *const, const double *const, const double *const, ThrData *const);
@@ -170,8 +172,6 @@ class ThrOMP {
 
   // style independent versions
   void v_tally2_thr(const int, const int, const double, const double *const, ThrData *const);
-  void v_tally3_thr(const int, const int, const int, const double *const, const double *const,
-                    const double *const, const double *const, ThrData *const);
   void v_tally4_thr(const int, const int, const int, const int, const double *const,
                     const double *const, const double *const, const double *const,
                     const double *const, const double *const, ThrData *const);

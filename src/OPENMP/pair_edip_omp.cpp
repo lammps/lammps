@@ -438,7 +438,7 @@ void PairEDIPOMP::eval(int iifrom, int iito, ThrData * const thr)
 
           evdwl = (exp3B_ij * exp3B_ik * potentia3B_factor);
 
-          if (evflag) ev_tally3_thr(this,i,j,k,evdwl,0.0,f_ij,f_ik,dr_ij,dr_ik,thr);
+          if (EVFLAG) ev_tally3_thr(this,i,j,k,evdwl,0.0,f_ij,f_ik,dr_ij,dr_ik,thr);
       }
     }
 
@@ -468,11 +468,8 @@ void PairEDIPOMP::eval(int iifrom, int iito, ThrData * const thr)
         f[j].y += f_ij[1];
         f[j].z += f_ij[2];
 
-        // potential energy
-
-        evdwl = 0.0;
-        if (EVFLAG) ev_tally_thr(this,i, j, nlocal, /* newton_pair */ 1, 0.0, 0.0,
-                                 forceModCoord_ij, dr_ij[0], dr_ij[1], dr_ij[2],thr);
+        if (EVFLAG) ev_tally_thr(this, i, j, nlocal, /* newton_pair */ 1, 0.0, 0.0,
+                                 -forceModCoord_ij, dr_ij[0], dr_ij[1], dr_ij[2],thr);
     }
   }
 }

@@ -14,7 +14,14 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
+// Currently the Intel compilers are required for this pair style.
+// For convenience, we are mapping the style to the base class.
+
+#ifdef __INTEL_COMPILER
 PairStyle(tersoff/intel,PairTersoffIntel);
+#else
+PairStyle(tersoff/intel,PairTersoff);
+#endif
 // clang-format on
 #else
 

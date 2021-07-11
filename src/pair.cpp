@@ -1514,7 +1514,7 @@ void Pair::v_tally2(int i, int j, double fpair, double *drij)
     virial[4] += v[4];
     virial[5] += v[5];
   }
-  
+
   if (vflag_atom) {
     v[0] *= 0.5;
     v[1] *= 0.5;
@@ -1522,7 +1522,6 @@ void Pair::v_tally2(int i, int j, double fpair, double *drij)
     v[3] *= 0.5;
     v[4] *= 0.5;
     v[5] *= 0.5;
-
     vatom[i][0] += v[0]; vatom[i][1] += v[1]; vatom[i][2] += v[2];
     vatom[i][3] += v[3]; vatom[i][4] += v[4]; vatom[i][5] += v[5];
     vatom[j][0] += v[0]; vatom[j][1] += v[1]; vatom[j][2] += v[2];
@@ -1606,7 +1605,6 @@ void Pair::v_tally4(int i, int j, int k, int m,
     v[3] *= 0.25;
     v[4] *= 0.25;
     v[5] *= 0.25;
-
     vatom[i][0] += v[0]; vatom[i][1] += v[1]; vatom[i][2] += v[2];
     vatom[i][3] += v[3]; vatom[i][4] += v[4]; vatom[i][5] += v[5];
     vatom[j][0] += v[0]; vatom[j][1] += v[1]; vatom[j][2] += v[2];

@@ -1476,7 +1476,6 @@ void ThrOMP::v_tally2_thr(Pair *const pair, const int i, const int j, const doub
   v[3] = drij[0]*drij[1]*fpair;
   v[4] = drij[0]*drij[2]*fpair;
   v[5] = drij[1]*drij[2]*fpair;
-
   if (pair->vflag_global) v_tally(thr->virial_pair,v);
 
   if (pair->vflag_atom) {
@@ -1486,7 +1485,6 @@ void ThrOMP::v_tally2_thr(Pair *const pair, const int i, const int j, const doub
     v[3] *= 0.5;
     v[4] *= 0.5;
     v[5] *= 0.5;
-
     v_tally(thr->vatom_pair[i],v);
     v_tally(thr->vatom_pair[j],v);
   }
@@ -1510,7 +1508,6 @@ void ThrOMP::v_tally3_thr(Pair *const pair, const int i, const int j, const int 
   v[3] = (drik[0]*fi[1] + drjk[0]*fj[1]);
   v[4] = (drik[0]*fi[2] + drjk[0]*fj[2]);
   v[5] = (drik[1]*fi[2] + drjk[1]*fj[2]);
-
   if (pair->vflag_global) v_tally(thr->virial_pair,v);
 
   if (pair->vflag_atom) {
@@ -1520,7 +1517,6 @@ void ThrOMP::v_tally3_thr(Pair *const pair, const int i, const int j, const int 
     v[3] *= THIRD;
     v[4] *= THIRD;
     v[5] *= THIRD;
- 
     v_tally(thr->vatom_pair[i],v);
     v_tally(thr->vatom_pair[j],v);
     v_tally(thr->vatom_pair[k],v);

@@ -76,10 +76,10 @@ class PairLCBOP : public Pair {
   void FSR(int, int);
   void FLR(int, int);
 
-  void FNij(int, int, double, double **, int);
-  void FMij(int, int, double, double **, int);
-  double bondorder(int, int, double *, double, double, double **, int);
-  double b(int, int, double *, double, double, double **, int);
+  void FNij(int, int, double, double **);
+  void FMij(int, int, double, double **);
+  double bondorder(int, int, double *, double, double, double **);
+  double b(int, int, double *, double, double, double **);
 
   double gSpline(double, double *);
   double hSpline(double, double *);

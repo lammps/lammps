@@ -410,7 +410,7 @@ void PairExTeP::compute(int eflag, int vflag)
         f[k][1] += fk[1];
         f[k][2] += fk[2];
 
-        if (vflag_atom) v_tally3(i,j,k,fj,fk,delr1,delr2);
+        if (vflag_either) v_tally3(i,j,k,fj,fk,delr1,delr2);
       }
     }
   }

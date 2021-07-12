@@ -4,7 +4,7 @@
 angle_style fourier/simple command
 ==================================
 
-Accelerator Variants: *fourier/simple/omp*
+Accelerator Variants: *fourier/simple/omp*, *fourier/simple/approx*
 
 Syntax
 """"""
@@ -44,6 +44,9 @@ or :doc:`read_restart <read_restart>` commands:
 .. include:: accel_styles.rst
 
 ----------
+
+The style fourier/simple/approx uses a polynomial approximation of the arccosine function, 
+making the style ca. twice as fast as the non-approximative.
 
 Restrictions
 """"""""""""

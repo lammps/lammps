@@ -69,7 +69,7 @@ void AngleFourierSimpleApprox::eval()
   double eangle,f1[3],f3[3];
   double term,sgn;
   double rsq1,rsq2,r1,r2,c,cn,a,a11,a12,a22;
-  double th,nth;
+  double theta,ntheta;
   int nanglelist = neighbor->nanglelist;
 
   const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
@@ -78,7 +78,6 @@ void AngleFourierSimpleApprox::eval()
   const int nlocal = atom->nlocal;
   eangle = 0.0;
 
-#pragma omp simd
   for (int n = 0; n < nanglelist; n++) {
     const int i1 = anglelist[n].a;
     const int i2 = anglelist[n].b;
@@ -113,9 +112,9 @@ void AngleFourierSimpleApprox::eval()
 
     // force & energy
 
-    th = fastAcos(c);
-    nth = (double)N[type]*th;
-    cn = std::cos(nth);
+    theta = fastAcos(c);
+    ntheta = (double)N[type]*theta;
+    cn = std::cos(ntheta);
     term = k[type]*(1.0+C[type]*cn);
 
     if (EFLAG) eangle = term;
@@ -123,7 +122,7 @@ void AngleFourierSimpleApprox::eval()
     // handle sin(n th)/sin(th) singulatiries
 
     if (fabs(c)-1.0 > 0.0001) {
-      a = k[type]*C[type]*N[type]*(std::sin(nth))/(std::sin(th));
+      a = k[type]*C[type]*N[type]*(std::sin(ntheta))/(std::sin(theta));
     } else {
       if (c >= 0.0) {
         term = 1.0 - c;

@@ -96,12 +96,12 @@ class PairAIREBO : public Pair {
   double Tf[5][5][10], Tdfdx[5][5][10], Tdfdy[5][5][10], Tdfdz[5][5][10];
 
   void REBO_neigh();
-  void FREBO(int, int);
-  void FLJ(int, int);
-  void TORSION(int, int);
+  void FREBO(int);
+  void FLJ(int);
+  void TORSION(int);
 
-  double bondorder(int, int, double *, double, double, double **, int);
-  double bondorderLJ(int, int, double *, double, double, double *, double, double **, int);
+  double bondorder(int, int, double *, double, double, double **);
+  double bondorderLJ(int, int, double *, double, double, double *, double, double **);
 
   double gSpline(double, double, int, double *, double *);
   double PijSpline(double, double, int, int, double *);

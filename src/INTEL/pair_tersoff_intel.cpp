@@ -16,11 +16,8 @@
    Contributing author: Markus Höhnerbach (RWTH)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-
-#include <cstring>
 #include "pair_tersoff_intel.h"
+
 #include "atom.h"
 #include "neighbor.h"
 #include "neigh_list.h"
@@ -30,30 +27,13 @@
 #include "memory.h"
 #include "error.h"
 
-// Currently Intel compiler is required for this pair style.
-// For convenience, base class routines are called if not using Intel compiler.
-#ifndef __INTEL_COMPILER
+#include <cmath>
+#include <cstring>
+
 using namespace LAMMPS_NS;
 
-PairTersoffIntel::PairTersoffIntel(LAMMPS *lmp) : PairTersoff(lmp)
-{
-}
-
-void PairTersoffIntel::compute(int eflag, int vflag)
-{
-  PairTersoff::compute(eflag, vflag);
-}
-
-void PairTersoffIntel::init_style()
-{
-  if (comm->me == 0) {
-    error->warning(FLERR, "Tersoff/intel currently requires intel compiler. "
-                   "Using MANYBODY version.");
-  }
-  PairTersoff::init_style();
-}
-
-#else
+// Currently the Intel compiler is required for this pair style.
+#ifdef __INTEL_COMPILER
 
 #ifdef _LMP_INTEL_OFFLOAD
 #pragma offload_attribute(push,target(mic))
@@ -111,6 +91,8 @@ void PairTersoffIntel::compute(int eflag, int vflag,
   ev_init(eflag,vflag);
   if (vflag_atom)
     error->all(FLERR,"INTEL package does not support per-atom stress");
+  if (vflag && !vflag_fdotr)
+    error->all(FLERR,"INTEL package does not support pair_modify nofdotr");
 
   const int inum = list->inum;
   const int nthreads = comm->nthreads;
@@ -1439,4 +1421,4 @@ void IntelKernelTersoff<flt_t,acc_t,mic, pack_i>::attractive_vector(
 #pragma offload_attribute(pop)
 #endif
 
-#endif
+#endif // __INTEL_COMPILER

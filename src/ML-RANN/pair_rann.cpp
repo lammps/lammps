@@ -701,15 +701,22 @@ bool PairRANN::check_potential() {
 
 void PairRANN::compute(int eflag, int vflag)
 {
-    //perform force/energy computation_
+  //perform force/energy computation_
   if (dospin) {
     if (strcmp(update->unit_style,"metal") != 0)
       error->one(FLERR,"Spin pair styles require metal units");
     if (!atom->sp_flag)
         error->one(FLERR,"Spin pair styles requires atom/spin style");
   }
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = vflag_atom = 0;
+  ev_init(eflag,vflag);
+
+  // only global virial via fdotr is supported by this pair style
+
+  if (vflag_atom)
+    error->all(FLERR,"Pair style rann does not support computing per-atom stress");
+  if (vflag && !vflag_fdotr)
+    error->all(FLERR,"Pair style rann does not support 'pair_modify nofdotr'");
+
   int ii,i,j;
   int nn = 0;
   sims = new Simulation[1];
@@ -724,13 +731,11 @@ void PairRANN::compute(int eflag, int vflag)
     sims->s = atom->sp;
   }
   int itype,f,jnum,len;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = eflag_global = eflag_atom = 0;
   if (eflag_global) {eng_vdwl=0;eng_coul=0;}
   double energy=0;
   double **force = atom->f;
   double **fm = atom->fm;
-  double **virial = vatom;
+
   //loop over atoms
   for (ii=0;ii<sims->inum;ii++) {
       i = sims->ilist[ii];
@@ -800,12 +805,8 @@ void PairRANN::compute(int eflag, int vflag)
           sx[j]=sy[j]=sz[j]=0;
         }
       }
-      if (doscreen) {
-        screen(ii,0,jnum-1);
-      }
-      if (allscreen) {
-        screen_neighbor_list(&jnum);
-      }
+      if (doscreen) screening(ii,0,jnum-1);
+      if (allscreen) screen_neighbor_list(&jnum);
       //do fingerprints for atom type
       len = fingerprintperelement[itype];
       for (j=0;j<len;j++) {
@@ -825,10 +826,9 @@ void PairRANN::compute(int eflag, int vflag)
       }
       //run fingerprints through network
       if (dospin) {
-        propagateforwardspin(&energy,force,fm,virial,ii,jnum);
-      }
-      else {
-        propagateforward(&energy,force,virial,ii,jnum);
+        propagateforwardspin(&energy,force,fm,ii,jnum);
+      } else {
+        propagateforward(&energy,force,ii,jnum);
       }
   }
   if (vflag_fdotr) virial_fdotr_compute();
@@ -905,7 +905,7 @@ void PairRANN::screen_neighbor_list(int *jnum) {
 }
 
 
-void PairRANN::screen(int ii,int sid,int jnum)
+void PairRANN::screening(int ii,int sid,int jnum)
 {
   //see Baskes, Materials Chemistry and Physics 50 (1997) 152-1.58
   int i,jj,kk,itype,jtype,ktype;
@@ -999,7 +999,7 @@ void PairRANN::screen(int ii,int sid,int jnum)
 
 
 //Called by getproperties. Propagate features and dfeatures through network. Updates force and energy
-void PairRANN::propagateforward(double * energy,double **force,double ** /*virial*/, int ii,int jnum) {
+void PairRANN::propagateforward(double *energy,double **force,int ii,int jnum) {
   int i,j,k,jj,j1,itype,i1;
   int *ilist;
   ilist = listfull->ilist;
@@ -1026,8 +1026,8 @@ void PairRANN::propagateforward(double * energy,double **force,double ** /*viria
       sum[j] = activation[itype][i]->activation_function(sum[j]);
       if (i==L-1) {
         energy[j] = sum[j];
-        if (eflag_atom)eatom[i1]=sum[j];
-        if (eflag_global) {eng_vdwl +=sum[j];}
+        if (eflag_atom) eatom[i1]=sum[j];
+        if (eflag_global) eng_vdwl +=sum[j];
       }
       //force propagation
       for (jj=0;jj<jnum;jj++) {
@@ -1076,7 +1076,7 @@ void PairRANN::propagateforward(double * energy,double **force,double ** /*viria
 }
 
 //Called by getproperties. Propagate features and dfeatures through network. Updates force and energy
-void PairRANN::propagateforwardspin(double * energy,double **force,double **fm,double ** /*virial*/, int ii,int jnum) {
+void PairRANN::propagateforwardspin(double * energy,double **force,double **fm,int ii,int jnum) {
   int i,j,k,jj,j1,itype,i1;
   int *ilist;
   ilist = listfull->ilist;
@@ -1103,8 +1103,8 @@ void PairRANN::propagateforwardspin(double * energy,double **force,double **fm,d
       sum[j] = activation[itype][i]->activation_function(sum[j]);
       if (i==L-1) {
         energy[j] = sum[j];
-        if (eflag_atom)eatom[i1]=sum[j];
-        if (eflag_global) {eng_vdwl +=sum[j];}
+        if (eflag_atom) eatom[i1]=sum[j];
+        if (eflag_global) eng_vdwl +=sum[j];
       }
       //force propagation
       for (jj=0;jj<jnum;jj++) {
@@ -1173,12 +1173,10 @@ void PairRANN::propagateforwardspin(double * energy,double **force,double **fm,d
   }
 }
 
-
 void PairRANN::init_list(int /*which*/, NeighList *ptr)
 {
   listfull = ptr;
 }
-
 
 void PairRANN::init_style()
 {

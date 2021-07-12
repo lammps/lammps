@@ -382,6 +382,8 @@ Pair style *rann* is part of the ML-RANN package.  It is only enabled if LAMMPS 
 package.  Additionally, if any spin fingerprint styles are used LAMMPS must be built with the SPIN
 package as well.
 
+Pair style *rann* does not support computing per-atom stress or using :doc:`pair_modify nofdotr <pair_modify>`.
+
 Defaults
 """"""""""""
 

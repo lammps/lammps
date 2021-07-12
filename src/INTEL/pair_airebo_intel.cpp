@@ -180,12 +180,10 @@ PairAIREBOIntel::~PairAIREBOIntel()
 void PairAIREBOIntel::init_style()
 {
   PairAIREBO::init_style();
-  neighbor->requests[neighbor->nrequest-1]->intel = 1;
+  neighbor->find_request(this)->intel = 1;
 
-  const int nrequest = neighbor->nrequest;
-  for (int i = 0; i < nrequest; ++i)
-    if (neighbor->requests[i]->skip)
-      error->all(FLERR, "Cannot yet use airebo/intel with hybrid.");
+  if (utils::strmatch(force->pair_style,"^hybrid"))
+    error->all(FLERR, "Cannot yet use airebo/intel with hybrid.");
 
   int ifix = modify->find_fix("package_intel");
   if (ifix < 0)
@@ -294,6 +292,8 @@ void PairAIREBOIntel::compute(
   ev_init(eflag,vflag);
   if (vflag_atom)
     error->all(FLERR,"INTEL package does not support per-atom stress");
+  if (vflag && !vflag_fdotr)
+    error->all(FLERR,"INTEL package does not support pair_modify nofdotr");
 
   pvector[0] = pvector[1] = pvector[2] = 0.0;
 

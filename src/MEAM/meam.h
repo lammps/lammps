@@ -294,10 +294,10 @@ class MEAM {
   void meam_dens_final(int nlocal, int eflag_either, int eflag_global, int eflag_atom,
                        double *eng_vdwl, double *eatom, int ntype, int *type, int *fmap,
                        double **scale, int &errorflag);
-  void meam_force(int i, int eflag_either, int eflag_global, int eflag_atom, int vflag_atom,
+  void meam_force(int i, int eflag_global, int eflag_atom, int vflag_global, int vflag_atom,
                   double *eng_vdwl, double *eatom, int ntype, int *type, int *fmap, double **scale,
                   double **x, int numneigh, int *firstneigh, int numneigh_full,
-                  int *firstneigh_full, int fnoffset, double **f, double **vatom);
+                  int *firstneigh_full, int fnoffset, double **f, double **vatom, double *virial);
 };
 
 // Functions we need for compat

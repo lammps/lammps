@@ -235,7 +235,7 @@ void AtomKokkos::map_set()
   k_sametag.modify_host();
   if (map_style == Atom::MAP_ARRAY)
     k_map_array.modify_host();
-  else if (map_style == Atom::MAP_ARRAY) {
+  else if (map_style == Atom::MAP_HASH) {
 
     // check if fix shake or neigh bond needs a device hash
 

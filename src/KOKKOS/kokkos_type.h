@@ -562,7 +562,7 @@ struct dual_hash_type {
   template<class DeviceType>
   std::enable_if_t<std::is_same<DeviceType,LMPDeviceType>::value,hash_type> view() {return d_view;}
   template<class DeviceType>
-  std::enable_if_t<!std::is_same<DeviceType,LMPDeviceType>::value,host_hash_type> view() {return h_view;}
+  std::enable_if_t<!std::is_same<DeviceType,LMPHostType>::value,host_hash_type> view() {return h_view;}
 
 };
 

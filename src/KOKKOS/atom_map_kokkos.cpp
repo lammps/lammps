@@ -109,7 +109,10 @@ void AtomKokkos::map_init(int check)
       for (int i = 0; i < map_nhash; i++) map_hash[i].next = i + 1;
       map_hash[map_nhash - 1].next = -1;
 
-      h_map_hash = host_hash_type(map_nhash);
+      // use "view" template method to avoid unnecessary deep_copy
+
+      auto h_map_hash = k_map_hash.view<LMPHostType>();
+      h_map_hash = decltype(h_map_hash)(map_nhash);
     }
   }
 
@@ -207,6 +210,9 @@ void AtomKokkos::map_set()
 
     // Copy to Kokkos hash
 
+    // use "view" template method to avoid unnecessary deep_copy
+
+    auto h_map_hash = k_map_hash.view<LMPHostType>();
     h_map_hash.clear();
 
     for (int i = nall - 1; i >= 0; i--) {
@@ -237,6 +243,11 @@ void AtomKokkos::map_set()
     k_map_array.modify_host();
   else if (map_style == Atom::MAP_HASH) {
 
+    // use "view" template method to avoid unnecessary deep_copy
+
+    auto h_map_hash = k_map_hash.view<LMPHostType>();
+    auto d_map_hash = k_map_hash.view<LMPDeviceType>();
+
     // check if fix shake or neigh bond needs a device hash
 
     int device_hash_flag = 0;
@@ -248,10 +259,7 @@ void AtomKokkos::map_set()
       if (utils::strmatch(modify->fix[n]->style, "^shake"))
         if (modify->fix[n]->execution_space == Device) device_hash_flag = 1;
 
-    if (device_hash_flag) Kokkos::deep_copy(d_map_hash, h_map_hash);
-
-    k_map_hash.h_view = h_map_hash;
-    k_map_hash.d_view = d_map_hash;
+    if (device_hash_flag) Kokkos::deep_copy(d_map_hash,h_map_hash);
   }
 }
 
@@ -268,8 +276,8 @@ void AtomKokkos::map_delete()
     memoryKK->destroy_kokkos(k_map_array, map_array);
     map_array = nullptr;
   } else {
-    h_map_hash = host_hash_type();
-    d_map_hash = hash_type();
+    k_map_hash.h_view = host_hash_type();
+    k_map_hash.d_view = hash_type();
   }
 
   Atom::map_delete();

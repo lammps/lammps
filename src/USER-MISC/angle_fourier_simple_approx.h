@@ -57,7 +57,7 @@ static float sinePolynomial(float x)
  * Approximation of sine
  * @source M. Abramowitz and I. A. Stegun, Eds., Handbook of mathematical functions: with formulas, graphs, and mathematical tables, p. 43
  */
-static float fastSin(float a)
+static float fastSin(float x)
 {
   // wrap x within [0, TWO_PI)
   const float a = x * TWO_PI_INVERSE;
@@ -96,13 +96,13 @@ static float cosinePolynomial(float x)
  * Approximation of cosine
  * @source M. Abramowitz and I. A. Stegun, Eds., Handbook of mathematical functions: with formulas, graphs, and mathematical tables, p. 43
  */
-static float fastCos(float a)
+static float fastCos(float x)
 {
   // wrap x within [0, TWO_PI)
-  // const float a = x * TWO_PI_INVERSE;
-  // x -= static_cast<int>(a) * MathConst::MY_2PI;
-  // if (x < 0.0f) x += MathConst::MY_2PI;
-  const float x = fmodf(MathConst::MY_2PI + fmodf(a, MathConst::MY_2PI), MathConst::MY_2PI);
+  const float a = x * TWO_PI_INVERSE;
+  x -= static_cast<int>(a) * MathConst::MY_2PI;
+  if (x < 0.0f) x += MathConst::MY_2PI;
+  // const float x = fmodf(MathConst::MY_2PI + fmodf(a, MathConst::MY_2PI), MathConst::MY_2PI);
 
   // 4 pieces of hills: wrap x within [0, pi/2]
   if (x < MathConst::MY_PI2)

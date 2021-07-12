@@ -77,8 +77,6 @@ class AtomKokkos : public Atom {
   DAT::tdual_int_1d k_map_array;
   DAT::tdual_int_scalar k_error_flag;
   dual_hash_type k_map_hash;
-  hash_type d_map_hash;
-  host_hash_type h_map_hash;
 
   template<class DeviceType>
   KOKKOS_INLINE_FUNCTION

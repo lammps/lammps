@@ -68,8 +68,8 @@ void AngleFourierSimpleApprox::eval()
   double delx1,dely1,delz1,delx2,dely2,delz2;
   double eangle,f1[3],f3[3];
   double term,sgn;
-  double rsq1,rsq2,r1,r2,a,a11,a12,a22;
-  double th,nth,c,cn,sn;
+  double rsq1,rsq2,r1,r2,c,cn,a,a11,a12,a22;
+  double th,nth;
   int nanglelist = neighbor->nanglelist;
 
   const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
@@ -78,6 +78,7 @@ void AngleFourierSimpleApprox::eval()
   const int nlocal = atom->nlocal;
   eangle = 0.0;
 
+#pragma omp simd
   for (int n = 0; n < nanglelist; n++) {
     const int i1 = anglelist[n].a;
     const int i2 = anglelist[n].b;
@@ -113,10 +114,8 @@ void AngleFourierSimpleApprox::eval()
     // force & energy
 
     th = fastAcos(c);
-    nth = (float)N[type]*th;
-    // Combined call to sin & cos. Gets optimized by compiler where possibly to simultaneous call.
-    cn = cos(nth);
-    sn = sin(nth);
+    nth = (double)N[type]*th;
+    cn = std::cos(nth);
     term = k[type]*(1.0+C[type]*cn);
 
     if (EFLAG) eangle = term;
@@ -124,7 +123,7 @@ void AngleFourierSimpleApprox::eval()
     // handle sin(n th)/sin(th) singulatiries
 
     if (fabs(c)-1.0 > 0.0001) {
-      a = k[type]*C[type]*N[type]*(sn)/(sin(th));
+      a = k[type]*C[type]*N[type]*(std::sin(nth))/(std::sin(th));
     } else {
       if (c >= 0.0) {
         term = 1.0 - c;

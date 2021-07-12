@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -157,13 +158,14 @@ void ReadDump::command(int narg, char **arg)
   domain->print_box("  ");
 
   if (me == 0)
-    utils::logmesg(lmp, fmt::format("  {} atoms before read\n",natoms_prev)
-                   + fmt::format("  {} atoms in snapshot\n",nsnap_all)
-                   + fmt::format("  {} atoms purged\n",npurge_all)
-                   + fmt::format("  {} atoms replaced\n",nreplace_all)
-                   + fmt::format("  {} atoms trimmed\n",ntrim_all)
-                   + fmt::format("  {} atoms added\n",nadd_all)
-                   + fmt::format("  {} atoms after read\n",atom->natoms));
+    utils::logmesg(lmp,"  {} atoms before read\n"
+                   "  {} atoms in snapshot\n"
+                   "  {} atoms purged\n"
+                   "  {} atoms replaced\n"
+                   "  {} atoms trimmed\n"
+                   "  {} atoms added\n"
+                   "  {} atoms after read\n",natoms_prev,nsnap_all,
+                   npurge_all,nreplace_all,ntrim_all,nadd_all,atom->natoms);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -231,20 +233,21 @@ void ReadDump::setup_reader(int narg, char **arg)
   // create Nreader reader classes per reader
   // match readerstyle to options in style_reader.h
 
-  if (0) return;        // dummy line to enable else-if macro expansion
+  if (0) {
+    return;        // dummy line to enable else-if macro expansion
 
 #define READER_CLASS
 #define ReaderStyle(key,Class) \
-  else if (strcmp(readerstyle,#key) == 0) { \
-    for (int i = 0; i < nreader; i++) \
+  } else if (strcmp(readerstyle,#key) == 0) { \
+    for (int i = 0; i < nreader; i++) { \
       readers[i] = new Class(lmp); \
-  }
+    }
 #include "style_reader.h"       // IWYU pragma: keep
 #undef READER_CLASS
 
   // unrecognized style
 
-  else error->all(FLERR,utils::check_packages_for_style("reader",readerstyle,lmp));
+  } else error->all(FLERR,utils::check_packages_for_style("reader",readerstyle,lmp));
 
   if (utils::strmatch(readerstyle,"^adios")) {
       // everyone is a reader with adios
@@ -818,9 +821,9 @@ void ReadDump::process_atoms()
 
   int nlocal = atom->nlocal;
   memory->create(updateflag,nlocal,"read_dump:updateflag");
-  for (int i = 0; i < nlocal; i++) updateflag[i] = 0;
+  for (i = 0; i < nlocal; i++) updateflag[i] = 0;
   memory->create(newflag,nnew,"read_dump:newflag");
-  for (int i = 0; i < nnew; i++) newflag[i] = 1;
+  for (i = 0; i < nnew; i++) newflag[i] = 1;
 
   // loop over new atoms
 
@@ -918,7 +921,7 @@ void ReadDump::process_atoms()
   if (trimflag) {
     AtomVec *avec = atom->avec;
 
-    int i = 0;
+    i = 0;
     while (i < nlocal) {
       if (!updateflag[i]) {
         avec->copy(nlocal-1,i,1);

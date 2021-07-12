@@ -1,4 +1,4 @@
-# intel_cpu_openmpi = USER-INTEL package, OpenMPI with compiler set to Intel icc
+# intel_cpu_openmpi = INTEL package, OpenMPI with compiler set to Intel icc
 
 SHELL = /bin/sh
 

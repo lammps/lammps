@@ -74,7 +74,7 @@ Syntax
 
   .. parsed-literal::
 
-           USER-EFF and USER-AWPMD package per-atom properties:
+           EFF and AWPMD package per-atom properties:
            spin = electron spin
            eradius = electron radius
            ervel = electron radial velocity
@@ -82,7 +82,7 @@ Syntax
 
   .. parsed-literal::
 
-           USER-SPH package per-atom properties:
+           SPH package per-atom properties:
            rho = density of SPH particles
            drho = change in density
            e = energy

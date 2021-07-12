@@ -42,5 +42,5 @@
 //@HEADER
 */
 
-#include <cuda/TestCudaUVM_Category.hpp>
+#include <TestCudaUVM_Category.hpp>
 #include <TestViewAPI_d.hpp>

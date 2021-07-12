@@ -414,18 +414,105 @@ TEST(TEST_CATEGORY, complex_special_funtions) {
 TEST(TEST_CATEGORY, complex_io) { testComplexIO(); }
 
 TEST(TEST_CATEGORY, complex_trivially_copyable) {
-  using RealType = double;
-
   // Kokkos::complex<RealType> is trivially copyable when RealType is
   // trivially copyable
   // Simply disable the check for IBM's XL compiler since we can't reliably
   // check for a version that defines relevant functions.
 #if !defined(__ibmxl__)
+  using RealType = double;
   // clang claims compatibility with gcc 4.2.1 but all versions tested know
   // about std::is_trivially_copyable.
   ASSERT_TRUE(std::is_trivially_copyable<Kokkos::complex<RealType>>::value ||
               !std::is_trivially_copyable<RealType>::value);
 #endif
+}
+
+template <class ExecSpace>
+struct TestBugPowAndLogComplex {
+  Kokkos::View<Kokkos::complex<double> *, ExecSpace> d_pow;
+  Kokkos::View<Kokkos::complex<double> *, ExecSpace> d_log;
+  TestBugPowAndLogComplex() : d_pow("pow", 2), d_log("log", 2) { test(); }
+  void test() {
+    Kokkos::parallel_for(Kokkos::RangePolicy<ExecSpace>(0, 1), *this);
+    auto h_pow =
+        Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), d_pow);
+    ASSERT_FLOAT_EQ(h_pow(0).real(), 18);
+    ASSERT_FLOAT_EQ(h_pow(0).imag(), 26);
+    ASSERT_FLOAT_EQ(h_pow(1).real(), -18);
+    ASSERT_FLOAT_EQ(h_pow(1).imag(), 26);
+    auto h_log =
+        Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), d_log);
+    ASSERT_FLOAT_EQ(h_log(0).real(), 1.151292546497023);
+    ASSERT_FLOAT_EQ(h_log(0).imag(), 0.3217505543966422);
+    ASSERT_FLOAT_EQ(h_log(1).real(), 1.151292546497023);
+    ASSERT_FLOAT_EQ(h_log(1).imag(), 2.819842099193151);
+  }
+  KOKKOS_FUNCTION void operator()(int) const {
+    d_pow(0) = Kokkos::pow(Kokkos::complex<double>(+3., 1.), 3.);
+    d_pow(1) = Kokkos::pow(Kokkos::complex<double>(-3., 1.), 3.);
+    d_log(0) = Kokkos::log(Kokkos::complex<double>(+3., 1.));
+    d_log(1) = Kokkos::log(Kokkos::complex<double>(-3., 1.));
+  }
+};
+
+TEST(TEST_CATEGORY, complex_issue_3865) {
+  TestBugPowAndLogComplex<TEST_EXECSPACE>();
+}
+
+TEST(TEST_CATEGORY, complex_issue_3867) {
+  ASSERT_EQ(Kokkos::pow(Kokkos::complex<double>(2., 1.), 3.),
+            Kokkos::pow(Kokkos::complex<double>(2., 1.), 3));
+  ASSERT_EQ(
+      Kokkos::pow(Kokkos::complex<double>(2., 1.), 3.),
+      Kokkos::pow(Kokkos::complex<double>(2., 1.), Kokkos::complex<double>(3)));
+
+  auto x = Kokkos::pow(Kokkos::complex<double>(2, 1),
+                       Kokkos::complex<double>(-3, 4));
+  auto y = Kokkos::complex<double>(
+      std::pow(std::complex<double>(2, 1), std::complex<double>(-3, 4)));
+  ASSERT_FLOAT_EQ(x.real(), y.real());
+  ASSERT_FLOAT_EQ(x.imag(), y.imag());
+
+#define CHECK_POW_COMPLEX_PROMOTION(ARGTYPE1, ARGTYPE2, RETURNTYPE)         \
+  static_assert(                                                            \
+      std::is_same<RETURNTYPE,                                              \
+                   decltype(Kokkos::pow(std::declval<ARGTYPE1>(),           \
+                                        std::declval<ARGTYPE2>()))>::value, \
+      "");                                                                  \
+  static_assert(                                                            \
+      std::is_same<RETURNTYPE,                                              \
+                   decltype(Kokkos::pow(std::declval<ARGTYPE2>(),           \
+                                        std::declval<ARGTYPE1>()))>::value, \
+      "");
+
+  CHECK_POW_COMPLEX_PROMOTION(Kokkos::complex<long double>, long double,
+                              Kokkos::complex<long double>);
+  CHECK_POW_COMPLEX_PROMOTION(Kokkos::complex<long double>, double,
+                              Kokkos::complex<long double>);
+  CHECK_POW_COMPLEX_PROMOTION(Kokkos::complex<long double>, float,
+                              Kokkos::complex<long double>);
+  CHECK_POW_COMPLEX_PROMOTION(Kokkos::complex<long double>, int,
+                              Kokkos::complex<long double>);
+
+  CHECK_POW_COMPLEX_PROMOTION(Kokkos::complex<double>, long double,
+                              Kokkos::complex<long double>);
+  CHECK_POW_COMPLEX_PROMOTION(Kokkos::complex<double>, double,
+                              Kokkos::complex<double>);
+  CHECK_POW_COMPLEX_PROMOTION(Kokkos::complex<double>, float,
+                              Kokkos::complex<double>);
+  CHECK_POW_COMPLEX_PROMOTION(Kokkos::complex<double>, int,
+                              Kokkos::complex<double>);
+
+  CHECK_POW_COMPLEX_PROMOTION(Kokkos::complex<float>, long double,
+                              Kokkos::complex<long double>);
+  CHECK_POW_COMPLEX_PROMOTION(Kokkos::complex<float>, double,
+                              Kokkos::complex<double>);
+  CHECK_POW_COMPLEX_PROMOTION(Kokkos::complex<float>, float,
+                              Kokkos::complex<float>);
+  CHECK_POW_COMPLEX_PROMOTION(Kokkos::complex<float>, int,
+                              Kokkos::complex<double>);
+
+#undef CHECK_POW_COMPLEX_PROMOTION
 }
 
 }  // namespace Test

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(ave/chunk,FixAveChunk)
-
+// clang-format off
+FixStyle(ave/chunk,FixAveChunk);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_AVE_CHUNK_H
@@ -32,31 +32,31 @@ class FixAveChunk : public Fix {
   void init();
   void setup(int);
   void end_of_step();
-  double compute_array(int,int);
+  double compute_array(int, int);
   double memory_usage();
 
  private:
   int nvalues;
-  int nrepeat,nfreq,irepeat;
-  int normflag,scaleflag,overwrite,biasflag,colextra;
-  bigint nvalid,nvalid_last;
-  double adof,cdof;
-  char *format,*format_user;
-  char *tstring,*sstring,*id_bias;
-  int *which,*argindex,*value2index;
+  int nrepeat, nfreq, irepeat;
+  int normflag, scaleflag, overwrite, biasflag, colextra;
+  bigint nvalid, nvalid_last;
+  double adof, cdof;
+  char *format, *format_user;
+  char *tstring, *sstring, *id_bias;
+  int *which, *argindex, *value2index;
   char **ids;
-  class Compute *tbias;     // ptr to additional bias compute
+  class Compute *tbias;    // ptr to additional bias compute
   FILE *fp;
 
-  int densityflag;        // 1 if density/number or density/mass requested
-  int volflag;            // SCALAR/VECTOR for density normalization by volume
+  int densityflag;    // 1 if density/number or density/mass requested
+  int volflag;        // SCALAR/VECTOR for density normalization by volume
   double chunk_volume_scalar;
   double *chunk_volume_vec;
 
-  int ave,nwindow;
-  int normcount,iwindow,window_limit;
+  int ave, nwindow;
+  int normcount, iwindow, window_limit;
 
-  int nchunk,maxchunk;
+  int nchunk, maxchunk;
   char *idchunk;
   class ComputeChunkAtom *cchunk;
   int lockforever;
@@ -69,16 +69,16 @@ class FixAveChunk : public Fix {
   // one,many,sum vecs/arrays are used with a single Nfreq epoch
   // total,list vecs/arrays are used across epochs
 
-  double *count_one,*count_many,*count_sum;
-  double **values_one,**values_many,**values_sum;
-  double *count_total,**count_list;
-  double **values_total,***values_list;
+  double *count_one, *count_many, *count_sum;
+  double **values_one, **values_many, **values_sum;
+  double *count_total, **count_list;
+  double **values_total, ***values_list;
 
   void allocate();
   bigint nextvalid();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

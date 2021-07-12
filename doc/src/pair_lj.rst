@@ -73,7 +73,7 @@ LJ cutoff specified in the pair_style command are used.
 ----------
 
 A version of these styles with a soft core, *lj/cut/soft*\ , suitable
-for use in free energy calculations, is part of the USER-FEP package and
+for use in free energy calculations, is part of the FEP package and
 is documented with the :doc:`pair_style */soft <pair_fep_soft>`
 styles.
 

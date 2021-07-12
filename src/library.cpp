@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -18,6 +19,7 @@
 #include "library.h"
 #include <mpi.h>
 
+#include "accelerator_kokkos.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "comm.h"
@@ -332,8 +334,8 @@ The MPI standard requires that any MPI application calls
 do any MPI calls, MPI is still initialized internally to avoid errors
 accessing any MPI functions.  This function should then be called right
 before exiting the program to wait until all (parallel) tasks are
-completed and then MPI is cleanly shut down.  After this function no
-more MPI calls may be made.
+completed and then MPI is cleanly shut down.  After calling this
+function no more MPI calls may be made.
 
 .. versionadded:: 18Sep2020
 
@@ -350,6 +352,28 @@ void lammps_mpi_finalize()
       MPI_Finalize();
     }
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+/** Shut down the Kokkos library environment.
+ *
+\verbatim embed:rst
+
+The Kokkos library may only be initialized once during the execution of
+a process.  This is done automatically the first time Kokkos
+functionality is used.  This requires that the Kokkos environment
+must be explicitly shut down after any LAMMPS instance using it is
+closed (to release associated resources).
+After calling this function no Kokkos functionality may be used.
+
+.. versionadded:: TBD
+
+\endverbatim */
+
+void lammps_kokkos_finalize()
+{
+  KokkosLMP::finalize();
 }
 
 // ----------------------------------------------------------------------
@@ -673,7 +697,8 @@ void lammps_extract_box(void *handle, double *boxlo, double *boxhi,
 
 This function sets the simulation box dimensions (upper and lower bounds
 and tilt factors) from the provided data and then re-initializes the box
-information and all derived settings.
+information and all derived settings. It may only be called before atoms
+are created.
 
 \endverbatim
  *
@@ -692,12 +717,16 @@ void lammps_reset_box(void *handle, double *boxlo, double *boxhi,
 
   BEGIN_CAPTURE
   {
-    // error if box does not exist
-    if ((lmp->domain->box_exist == 0)
-        && (lmp->comm->me == 0)) {
-      lmp->error->warning(FLERR,"Calling lammps_reset_box without a box");
+    if (lmp->atom->natoms > 0)
+      lmp->error->all(FLERR,"Calling lammps_reset_box not supported when atoms exist");
+
+    // warn and do nothing if no box exists
+    if (lmp->domain->box_exist == 0) {
+      if (lmp->comm->me == 0)
+        lmp->error->warning(FLERR,"Ignoring call to lammps_reset_box without a box");
       return;
     }
+
     domain->boxlo[0] = boxlo[0];
     domain->boxlo[1] = boxlo[1];
     domain->boxlo[2] = boxlo[2];
@@ -1952,8 +1981,9 @@ void *lammps_extract_variable(void *handle, const char *name, const char *group)
     }
   }
   END_CAPTURE
-
+#if defined(LAMMPS_EXCEPTIONS)
   return nullptr;
+#endif
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2207,7 +2237,6 @@ void lammps_gather_atoms_concat(void *handle, char *name, int type, int count, v
                        MPI_INT,lmp->world);
 
       } else if (imgunpack) {
-        int *copy;
         lmp->memory->create(copy,count*nlocal,"lib/gather:copy");
         offset = 0;
         for (i = 0; i < nlocal; i++) {
@@ -3057,7 +3086,6 @@ void lammps_gather_concat(void *handle, char *name, int type, int count, void *d
                        MPI_INT,lmp->world);
 
       } else if (imgunpack) {
-        int *copy;
         lmp->memory->create(copy,count*nlocal,"lib/gather:copy");
         offset = 0;
         for (i = 0; i < nlocal; i++) {
@@ -4112,8 +4140,10 @@ int lammps_version(void *handle)
 The :cpp:func:`lammps_get_os_info` function can be used to retrieve
 detailed information about the hosting operating system and
 compiler/runtime.
+
 A suitable buffer for a C-style string has to be provided and its length.
-If the assembled text will be truncated to not overflow this buffer.
+The assembled text will be truncated to not overflow this buffer. The
+string is typically a few hundred bytes long.
 
 .. versionadded:: 9Oct2020
 
@@ -4320,7 +4350,7 @@ int lammps_config_package_name(int idx, char *buffer, int buf_size) {
 \verbatim embed:rst
 This function checks availability of compile time settings of included
 :doc:`accelerator packages <Speed_packages>` in LAMMPS.
-Supported packages names are "GPU", "KOKKOS", "USER-INTEL", and "USER-OMP".
+Supported packages names are "GPU", "KOKKOS", "INTEL", and "OPENMP".
 Supported categories are "api" with possible settings "cuda", "hip", "phi",
 "pthreads", "opencl", "openmp", and "serial", and "precision" with
 possible settings "double", "mixed", and "single".  If the combination
@@ -4338,6 +4368,60 @@ int lammps_config_accelerator(const char *package,
                               const char *setting)
 {
   return Info::has_accelerator_feature(package,category,setting) ? 1 : 0;
+}
+
+/** Check for presence of a viable GPU package device
+ *
+\verbatim embed:rst
+
+The :cpp:func:`lammps_has_gpu_device` function checks at runtime if
+an accelerator device is present that can be used with the
+:doc:`GPU package <Speed_gpu>`. If at least one suitable device is
+present the function will return 1, otherwise 0.
+
+More detailed information about the available device or devices can
+be obtained by calling the
+:cpp:func:`lammps_get_gpu_device_info` function.
+
+.. versionadded:: 14May2021
+
+\endverbatim
+ *
+ * \return  1 if viable device is available, 0 if not.  */
+
+int lammps_has_gpu_device()
+{
+  return Info::has_gpu_device() ? 1: 0;
+}
+
+/** Get GPU package device information
+ *
+\verbatim embed:rst
+
+The :cpp:func:`lammps_get_gpu_device_info` function can be used to retrieve
+detailed information about any accelerator devices that are viable for use
+with the :doc:`GPU package <Speed_gpu>`.  It will produce a string that is
+equivalent to the output of the ``nvc_get_device`` or ``ocl_get_device`` or
+``hip_get_device`` tools that are compiled alongside LAMMPS if the GPU
+package is enabled.
+
+A suitable buffer for a C-style string has to be provided and its length.
+The assembled text will be truncated to not overflow this buffer.  This
+string can be several kilobytes long, if multiple devices are present.
+
+.. versionadded:: 14May2021
+
+\endverbatim
+ *
+ * \param  buffer    string buffer to copy the information to
+ * \param  buf_size  size of the provided string buffer */
+
+void lammps_get_gpu_device_info(char *buffer, int buf_size)
+{
+  if (buf_size <= 0) return;
+  buffer[0] = buffer[buf_size-1] = '\0';
+  std::string devinfo = Info::get_gpu_device_info();
+  strncpy(buffer, devinfo.c_str(), buf_size-1);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -4734,13 +4818,13 @@ void lammps_set_fix_external_callback(void *handle, char *id, FixExternalFnPtr c
   {
     int ifix = lmp->modify->find_fix(id);
     if (ifix < 0)
-      lmp->error->all(FLERR,fmt::format("Cannot find fix with ID '{}'!", id));
+      lmp->error->all(FLERR,"Cannot find fix with ID '{}'!", id);
 
     Fix *fix = lmp->modify->fix[ifix];
 
     if (strcmp("external",fix->style) != 0)
-      lmp->error->all(FLERR,fmt::format("Fix '{}' is not of style "
-                                        "external!", id));
+      lmp->error->all(FLERR,"Fix '{}' is not of style "
+                                        "external!", id);
 
     FixExternal * fext = (FixExternal*) fix;
     fext->set_callback(callback, caller);
@@ -4758,12 +4842,12 @@ void lammps_fix_external_set_energy_global(void *handle, char *id,
   {
     int ifix = lmp->modify->find_fix(id);
     if (ifix < 0)
-      lmp->error->all(FLERR,fmt::format("Can not find fix with ID '{}'!", id));
+      lmp->error->all(FLERR,"Can not find fix with ID '{}'!", id);
 
     Fix *fix = lmp->modify->fix[ifix];
 
     if (strcmp("external",fix->style) != 0)
-      lmp->error->all(FLERR,fmt::format("Fix '{}' is not of style external!", id));
+      lmp->error->all(FLERR,"Fix '{}' is not of style external!", id);
 
     FixExternal * fext = (FixExternal*) fix;
     fext->set_energy_global(energy);
@@ -4781,12 +4865,12 @@ void lammps_fix_external_set_virial_global(void *handle, char *id,
   {
     int ifix = lmp->modify->find_fix(id);
     if (ifix < 0)
-      lmp->error->all(FLERR,fmt::format("Can not find fix with ID '{}'!", id));
+      lmp->error->all(FLERR,"Can not find fix with ID '{}'!", id);
 
     Fix *fix = lmp->modify->fix[ifix];
 
     if (strcmp("external",fix->style) != 0)
-      lmp->error->all(FLERR,fmt::format("Fix '{}' is not of style external!", id));
+      lmp->error->all(FLERR,"Fix '{}' is not of style external!", id);
 
     FixExternal * fext = (FixExternal*) fix;
     fext->set_virial_global(virial);

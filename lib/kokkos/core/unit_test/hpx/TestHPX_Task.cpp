@@ -43,5 +43,5 @@
 //@HEADER
 */
 
-#include <hpx/TestHPX_Category.hpp>
+#include <TestHPX_Category.hpp>
 #include <TestTaskScheduler.hpp>

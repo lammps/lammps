@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,10 +12,10 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(eam/cd,PairEAMCD_OneSite)
-PairStyle(eam/cd/old,PairEAMCD_TwoSite)
-
+// clang-format off
+PairStyle(eam/cd,PairEAMCD_OneSite);
+PairStyle(eam/cd/old,PairEAMCD_TwoSite);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_EAM_CD_H
@@ -25,11 +25,10 @@ PairStyle(eam/cd/old,PairEAMCD_TwoSite)
 
 namespace LAMMPS_NS {
 
-class PairEAMCD : public PairEAMAlloy
-{
-public:
+class PairEAMCD : public PairEAMAlloy {
+ public:
   /// Constructor.
-  PairEAMCD(class LAMMPS*, int cdeamVersion);
+  PairEAMCD(class LAMMPS *, int cdeamVersion);
 
   /// Destructor.
   virtual ~PairEAMCD();
@@ -52,26 +51,24 @@ public:
   void *extract(const char *, int &) { return nullptr; }
 
   /// Parses the coefficients of the h polynomial from the end of the EAM file.
-  void read_h_coeff(char* filename);
+  void read_h_coeff(char *filename);
 
  public:
   // The public interface exposed by this potential class.
 
   // Evaluates the h(x) polynomial for a given local concentration x.
-  inline double evalH(double x) const {
+  inline double evalH(double x) const
+  {
     double v = 0.0;
-    for (int i = nhcoeff-1; i >= 1; i--) {
-      v = (v + hcoeff[i]) * x;
-    }
+    for (int i = nhcoeff - 1; i >= 1; i--) { v = (v + hcoeff[i]) * x; }
     return v + hcoeff[0];
   };
 
   // Calculates the derivative of the h(x) polynomial.
-  inline double evalHprime(double x) const {
+  inline double evalHprime(double x) const
+  {
     double v = 0.0;
-    for (int i = nhcoeff-1; i >= 2; i--) {
-      v = (v + (double)i * hcoeff[i]) * x;
-    }
+    for (int i = nhcoeff - 1; i >= 2; i--) { v = (v + (double) i * hcoeff[i]) * x; }
     return v + hcoeff[1];
   };
 
@@ -107,7 +104,6 @@ public:
   int speciesB;
 
  protected:
-
   // Evaluation functions:
 
   // This structure specifies an entry in one of the EAM spline tables
@@ -118,81 +114,93 @@ public:
   } EAMTableIndex;
 
   // Converts a radius value to an index value to be used in a spline table lookup.
-  inline EAMTableIndex radiusToTableIndex(double r) const {
+  inline EAMTableIndex radiusToTableIndex(double r) const
+  {
     EAMTableIndex index;
-    index.p = r*rdr + 1.0;
+    index.p = r * rdr + 1.0;
     index.m = static_cast<int>(index.p);
-    index.m = index.m <= (nr-1) ? index.m : (nr-1);
+    index.m = index.m <= (nr - 1) ? index.m : (nr - 1);
     index.p -= index.m;
     index.p = index.p <= 1.0 ? index.p : 1.0;
     return index;
   };
 
   // Converts a density value to an index value to be used in a spline table lookup.
-  inline EAMTableIndex rhoToTableIndex(double rho) const {
+  inline EAMTableIndex rhoToTableIndex(double rho) const
+  {
     EAMTableIndex index;
-    index.p = rho*rdrho + 1.0;
+    index.p = rho * rdrho + 1.0;
     index.m = static_cast<int>(index.p);
-    index.m = index.m <= (nrho-1) ? index.m : (nrho-1);
+    index.m = index.m <= (nrho - 1) ? index.m : (nrho - 1);
     index.p -= index.m;
     index.p = index.p <= 1.0 ? index.p : 1.0;
     return index;
   };
 
   // Computes the derivative of rho(r)
-  inline double RhoPrimeOfR(const EAMTableIndex& index, int itype, int jtype) const {
-    const double* coeff = rhor_spline[type2rhor[itype][jtype]][index.m];
-    return (coeff[0]*index.p + coeff[1])*index.p + coeff[2];
+  inline double RhoPrimeOfR(const EAMTableIndex &index, int itype, int jtype) const
+  {
+    const double *coeff = rhor_spline[type2rhor[itype][jtype]][index.m];
+    return (coeff[0] * index.p + coeff[1]) * index.p + coeff[2];
   };
 
   // Computes rho(r)
-  inline double RhoOfR(const EAMTableIndex& index, int itype, int jtype) const {
-    const double* coeff = rhor_spline[type2rhor[itype][jtype]][index.m];
-    return ((coeff[3]*index.p + coeff[4])*index.p + coeff[5])*index.p + coeff[6];
+  inline double RhoOfR(const EAMTableIndex &index, int itype, int jtype) const
+  {
+    const double *coeff = rhor_spline[type2rhor[itype][jtype]][index.m];
+    return ((coeff[3] * index.p + coeff[4]) * index.p + coeff[5]) * index.p + coeff[6];
   };
 
   // Computes the derivative of F(rho)
-  inline double FPrimeOfRho(const EAMTableIndex& index, int itype) const {
-    const double* coeff = frho_spline[type2frho[itype]][index.m];
-    return (coeff[0]*index.p + coeff[1])*index.p + coeff[2];
+  inline double FPrimeOfRho(const EAMTableIndex &index, int itype) const
+  {
+    const double *coeff = frho_spline[type2frho[itype]][index.m];
+    return (coeff[0] * index.p + coeff[1]) * index.p + coeff[2];
   };
 
   // Computes F(rho)
-  inline double FofRho(const EAMTableIndex& index, int itype) const {
-    const double* coeff = frho_spline[type2frho[itype]][index.m];
-    return ((coeff[3]*index.p + coeff[4])*index.p + coeff[5])*index.p + coeff[6];
+  inline double FofRho(const EAMTableIndex &index, int itype) const
+  {
+    const double *coeff = frho_spline[type2frho[itype]][index.m];
+    return ((coeff[3] * index.p + coeff[4]) * index.p + coeff[5]) * index.p + coeff[6];
   };
 
   // Computes the derivative of z2(r)
-  inline double Z2PrimeOfR(const EAMTableIndex& index, int itype, int jtype) const {
-    const double* coeff = z2r_spline[type2z2r[itype][jtype]][index.m];
-    return (coeff[0]*index.p + coeff[1])*index.p + coeff[2];
+  inline double Z2PrimeOfR(const EAMTableIndex &index, int itype, int jtype) const
+  {
+    const double *coeff = z2r_spline[type2z2r[itype][jtype]][index.m];
+    return (coeff[0] * index.p + coeff[1]) * index.p + coeff[2];
   };
 
   // Computes z2(r)
-  inline double Z2OfR(const EAMTableIndex& index, int itype, int jtype) const {
-    const double* coeff = z2r_spline[type2z2r[itype][jtype]][index.m];
-    return ((coeff[3]*index.p + coeff[4])*index.p + coeff[5])*index.p + coeff[6];
+  inline double Z2OfR(const EAMTableIndex &index, int itype, int jtype) const
+  {
+    const double *coeff = z2r_spline[type2z2r[itype][jtype]][index.m];
+    return ((coeff[3] * index.p + coeff[4]) * index.p + coeff[5]) * index.p + coeff[6];
   };
 
   // Computes pair potential V_ij(r).
-  inline double PhiOfR(const EAMTableIndex& index, int itype, int jtype, const double oneOverR) const {
+  inline double PhiOfR(const EAMTableIndex &index, int itype, int jtype,
+                       const double oneOverR) const
+  {
     // phi = pair potential energy
     // z2 = phi * r
-    const double* coeff = z2r_spline[type2z2r[itype][jtype]][index.m];
-    const double z2 = ((coeff[3]*index.p + coeff[4])*index.p + coeff[5])*index.p + coeff[6];
+    const double *coeff = z2r_spline[type2z2r[itype][jtype]][index.m];
+    const double z2 = ((coeff[3] * index.p + coeff[4]) * index.p + coeff[5]) * index.p + coeff[6];
     return z2 * oneOverR;
   };
 
   // Computes pair potential V_ij(r) and its derivative.
-  inline double PhiOfR(const EAMTableIndex& index, int itype, int jtype, const double oneOverR, double& phid) const {
+  inline double PhiOfR(const EAMTableIndex &index, int itype, int jtype, const double oneOverR,
+                       double &phid) const
+  {
     // phi = pair potential energy
     // phip = phi'
     // z2 = phi * r
     // z2p = (phi * r)' = (phi' r) + phi
-    const double* coeff = z2r_spline[type2z2r[itype][jtype]][index.m];
-    const double z2p = (coeff[0]*index.p + coeff[1])*index.p + coeff[2];
-    const double z2 = ((coeff[3]*index.p + coeff[4])*index.p + coeff[5])*index.p + coeff[6];
+    const double *coeff = z2r_spline[type2z2r[itype][jtype]][index.m];
+    const double z2p = (coeff[0] * index.p + coeff[1]) * index.p + coeff[2];
+    const double z2 = ((coeff[3] * index.p + coeff[4]) * index.p + coeff[5]) * index.p + coeff[6];
     const double phi = z2 * oneOverR;
     phid = z2p * oneOverR - phi * oneOverR;
     return phi;
@@ -201,7 +209,7 @@ public:
   // Parameters
 
   // h() polynomial function coefficients
-  double* hcoeff;
+  double *hcoeff;
   // The number of coefficients in the polynomial.
   int nhcoeff;
 
@@ -211,22 +219,20 @@ public:
 };
 
 /// The one-site concentration formulation of CD-EAM.
- class PairEAMCD_OneSite : public PairEAMCD
-   {
-   public:
-     /// Constructor.
-     PairEAMCD_OneSite(class LAMMPS* lmp) : PairEAM(lmp), PairEAMCD(lmp, 1) {}
-   };
+class PairEAMCD_OneSite : public PairEAMCD {
+ public:
+  /// Constructor.
+  PairEAMCD_OneSite(class LAMMPS *lmp) : PairEAM(lmp), PairEAMCD(lmp, 1) {}
+};
 
- /// The two-site concentration formulation of CD-EAM.
- class PairEAMCD_TwoSite : public PairEAMCD
-   {
-   public:
-     /// Constructor.
-     PairEAMCD_TwoSite(class LAMMPS* lmp) : PairEAM(lmp), PairEAMCD(lmp, 2) {}
-   };
+/// The two-site concentration formulation of CD-EAM.
+class PairEAMCD_TwoSite : public PairEAMCD {
+ public:
+  /// Constructor.
+  PairEAMCD_TwoSite(class LAMMPS *lmp) : PairEAM(lmp), PairEAMCD(lmp, 2) {}
+};
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -66,7 +66,7 @@ specified geometric :doc:`region <region>` in order to have its velocity set by 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-Currently, no part of USER-SMD supports restarting nor minimization
+Currently, no part of MACHDYN supports restarting nor minimization
 None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.
 
@@ -81,7 +81,7 @@ the :doc:`run <run>` command.
 Restrictions
 """"""""""""
 
-This fix is part of the USER-SMD package.  It is only enabled if
+This fix is part of the MACHDYN package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 Related commands

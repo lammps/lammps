@@ -1,0 +1,75 @@
+The ML-HDNNP package requires access to pre-compiled libraries of the n2p2
+package (https://github.com/CompPhysVienna/n2p2). More precisely, the n2p2 core
+library ("libnnp"), the interface library ("libnnpif"), some headers and extra
+build helper files are needed. These files will be created automatically during
+the n2p2 build process.
+
+This file gives some basic instructions on how to compile n2p2 manually. How to
+integrate it then in the LAMMPS build process or how to use the automatic
+download and build option is described in detail on the ML-HDNNP build
+instructions page of the LAMMPS documentation.
+
+IMPORTANT: The n2p2 version must be "v2.1.4" or higher.
+
+Basic build instructions for n2p2
+=================================
+
+The n2p2 software package comes with lots of useful tools for creating and
+applying high-dimensional neural network potentials (HDNNPs). In order to use
+n2p2 together with LAMMPS only some parts of the n2p2 code need to be compiled.
+As an example, everything related to HDNNP training is not required and would
+only add unwanted library dependencies. Hence, the build infrastructure of n2p2
+is designed to allow a separate build of the LAMMPS interface.
+
+After downloading n2p2, change to the "src" directory and simply execute
+
+    make libnnpif
+
+which should create the following files needed by the ML-HDNNP package:
+
+    * "n2p2/lib/libnnp.a"
+    * "n2p2/lib/libnnpif.a"
+    * "n2p2/lib/lammps-extra.cmake"
+    * "n2p2/lib/Makefile.lammps-extra"
+    * "n2p2/include/InterfaceLammps.h" and many other header files.
+
+If you prefer dynamically linked libraries use
+
+    make MODE=shared libnnpif
+
+instead (by default MODE=static) which will create *.so versions of the
+libraries. By default, n2p2 uses the GNU C++ compiler and the corresponding
+settings can be found in "n2p2/src/makefile.gnu". Other makefile presets are
+also available (e.g. "makefile.intel") and can be activated by supplying the
+"COMP" argument:
+
+    make COMP=intel libnnpif
+
+Please make sure that your compiler settings for n2p2 and LAMMPS are compatible
+(avoid mixing different compilers).
+
+If you want to build a serial version of LAMMPS with ML-HDNNP package n2p2 must
+also be built with MPI disabled. This can be achieved with a preprocessor flag
+(-DN2P2_NO_MPI) which is (among others) prepared, but commented out, in the
+provided compiler-specific settings makefiles. For example, if you use the GNU
+compiler simply remove the comment character '#' in front of the corresponding
+line (around line 49) in "makefile.gnu". It should then look like this:
+
+    PROJECT_OPTIONS+= -DN2P2_NO_MPI
+
+After compiling n2p2 with this flag turned on you can build a serial LAMMPS
+version with "-D BUILD_MPI=off" (CMake) or "make serial" (traditional).
+
+For more information about the n2p2 build process please visit
+https://compphysvienna.github.io/n2p2/topics/build.html or ask questions on the
+Github issue page (https://github.com/CompPhysVienna/n2p2/issues).
+
+Testing a successful build of LAMMPS with ML-HDNNP
+====================================================
+
+An example is provided in the LAMMPS directory "examples/PACKAGES/hdnnp" which runs
+10 timesteps with 360 water molecules. The neural network potential is defined
+via files in the "hdnnp-data" subdirectory. Use the "in.hdnnp" LAMMPS script file
+to run the simulation. You should see a large output of the n2p2 library when
+the pair style "hdnnp" is initialized, followed by the LAMMPS per-timestep
+output.

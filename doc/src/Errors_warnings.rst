@@ -14,10 +14,6 @@ generated.  For example, a message like this:
 means that line #187 in the file src/domain.cpp generated the error.
 Looking in the source code may help you figure out what went wrong.
 
-Note that warning messages from :doc:`user-contributed packages <Packages_user>` are not listed here.  If such a warning
-occurs and is not self-explanatory, you will need to look in the source
-code or contact the author of the package.
-
 Doc page with :doc:`ERROR messages <Errors_messages>`
 
 ----------
@@ -529,7 +525,7 @@ This will most likely cause errors in kinetic fluctuations.
 
 *OMP_NUM_THREADS environment is not set.*
    This environment variable must be set appropriately to use the
-   USER-OMP package.
+   OPENMP package.
 
 *One or more atoms are time integrated more than once*
    This is probably an error since you typically do not want to

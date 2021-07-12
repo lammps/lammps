@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -30,6 +31,7 @@
 #include "neighbor.h"
 #include "suffix.h"
 #include "update.h"
+#include "fmt/chrono.h"
 
 #include <cfloat>    // IWYU pragma: keep
 #include <climits>   // IWYU pragma: keep
@@ -63,6 +65,7 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   one_coeff = 0;
   no_virial_fdotr_compute = 0;
   writedata = 0;
+  finitecutflag = 0;
   ghostneigh = 0;
   unit_convert_flag = utils::NOCONVERT;
 
@@ -956,7 +959,7 @@ void Pair::ev_setup(int eflag, int vflag, int alloc)
     }
   }
 
-  // run ev_setup option for USER-TALLY computes
+  // run ev_setup option for TALLY computes
 
   if (num_tally_compute > 0) {
     for (int k=0; k < num_tally_compute; ++k) {
@@ -1360,22 +1363,40 @@ void Pair::ev_tally4(int i, int j, int k, int m, double evdwl,
     }
   }
 
-  if (vflag_atom) {
-    v[0] = 0.25 * (drim[0]*fi[0] + drjm[0]*fj[0] + drkm[0]*fk[0]);
-    v[1] = 0.25 * (drim[1]*fi[1] + drjm[1]*fj[1] + drkm[1]*fk[1]);
-    v[2] = 0.25 * (drim[2]*fi[2] + drjm[2]*fj[2] + drkm[2]*fk[2]);
-    v[3] = 0.25 * (drim[0]*fi[1] + drjm[0]*fj[1] + drkm[0]*fk[1]);
-    v[4] = 0.25 * (drim[0]*fi[2] + drjm[0]*fj[2] + drkm[0]*fk[2]);
-    v[5] = 0.25 * (drim[1]*fi[2] + drjm[1]*fj[2] + drkm[1]*fk[2]);
+  if (vflag_either) {
+    v[0] = (drim[0]*fi[0] + drjm[0]*fj[0] + drkm[0]*fk[0]);
+    v[1] = (drim[1]*fi[1] + drjm[1]*fj[1] + drkm[1]*fk[1]);
+    v[2] = (drim[2]*fi[2] + drjm[2]*fj[2] + drkm[2]*fk[2]);
+    v[3] = (drim[0]*fi[1] + drjm[0]*fj[1] + drkm[0]*fk[1]);
+    v[4] = (drim[0]*fi[2] + drjm[0]*fj[2] + drkm[0]*fk[2]);
+    v[5] = (drim[1]*fi[2] + drjm[1]*fj[2] + drkm[1]*fk[2]);
 
-    vatom[i][0] += v[0]; vatom[i][1] += v[1]; vatom[i][2] += v[2];
-    vatom[i][3] += v[3]; vatom[i][4] += v[4]; vatom[i][5] += v[5];
-    vatom[j][0] += v[0]; vatom[j][1] += v[1]; vatom[j][2] += v[2];
-    vatom[j][3] += v[3]; vatom[j][4] += v[4]; vatom[j][5] += v[5];
-    vatom[k][0] += v[0]; vatom[k][1] += v[1]; vatom[k][2] += v[2];
-    vatom[k][3] += v[3]; vatom[k][4] += v[4]; vatom[k][5] += v[5];
-    vatom[m][0] += v[0]; vatom[m][1] += v[1]; vatom[m][2] += v[2];
-    vatom[m][3] += v[3]; vatom[m][4] += v[4]; vatom[m][5] += v[5];
+    if (vflag_global) {
+      virial[0] += v[0];
+      virial[1] += v[1];
+      virial[2] += v[2];
+      virial[3] += v[3];
+      virial[4] += v[4];
+      virial[5] += v[5];
+    }
+
+    if (vflag_atom) {
+      v[0] *= 0.25;
+      v[1] *= 0.25;
+      v[2] *= 0.25;
+      v[3] *= 0.25;
+      v[4] *= 0.25;
+      v[5] *= 0.25;
+
+      vatom[i][0] += v[0]; vatom[i][1] += v[1]; vatom[i][2] += v[2];
+      vatom[i][3] += v[3]; vatom[i][4] += v[4]; vatom[i][5] += v[5];
+      vatom[j][0] += v[0]; vatom[j][1] += v[1]; vatom[j][2] += v[2];
+      vatom[j][3] += v[3]; vatom[j][4] += v[4]; vatom[j][5] += v[5];
+      vatom[k][0] += v[0]; vatom[k][1] += v[1]; vatom[k][2] += v[2];
+      vatom[k][3] += v[3]; vatom[k][4] += v[4]; vatom[k][5] += v[5];
+      vatom[m][0] += v[0]; vatom[m][1] += v[1]; vatom[m][2] += v[2];
+      vatom[m][3] += v[3]; vatom[m][4] += v[4]; vatom[m][5] += v[5];
+    }
   }
 }
 
@@ -1496,17 +1517,34 @@ void Pair::v_tally2(int i, int j, double fpair, double *drij)
 {
   double v[6];
 
-  v[0] = 0.5 * drij[0]*drij[0]*fpair;
-  v[1] = 0.5 * drij[1]*drij[1]*fpair;
-  v[2] = 0.5 * drij[2]*drij[2]*fpair;
-  v[3] = 0.5 * drij[0]*drij[1]*fpair;
-  v[4] = 0.5 * drij[0]*drij[2]*fpair;
-  v[5] = 0.5 * drij[1]*drij[2]*fpair;
+  v[0] = drij[0]*drij[0]*fpair;
+  v[1] = drij[1]*drij[1]*fpair;
+  v[2] = drij[2]*drij[2]*fpair;
+  v[3] = drij[0]*drij[1]*fpair;
+  v[4] = drij[0]*drij[2]*fpair;
+  v[5] = drij[1]*drij[2]*fpair;
 
-  vatom[i][0] += v[0]; vatom[i][1] += v[1]; vatom[i][2] += v[2];
-  vatom[i][3] += v[3]; vatom[i][4] += v[4]; vatom[i][5] += v[5];
-  vatom[j][0] += v[0]; vatom[j][1] += v[1]; vatom[j][2] += v[2];
-  vatom[j][3] += v[3]; vatom[j][4] += v[4]; vatom[j][5] += v[5];
+  if (vflag_global) {
+    virial[0] += v[0];
+    virial[1] += v[1];
+    virial[2] += v[2];
+    virial[3] += v[3];
+    virial[4] += v[4];
+    virial[5] += v[5];
+  }
+
+  if (vflag_atom) {
+    v[0] *= 0.5;
+    v[1] *= 0.5;
+    v[2] *= 0.5;
+    v[3] *= 0.5;
+    v[4] *= 0.5;
+    v[5] *= 0.5;
+    vatom[i][0] += v[0]; vatom[i][1] += v[1]; vatom[i][2] += v[2];
+    vatom[i][3] += v[3]; vatom[i][4] += v[4]; vatom[i][5] += v[5];
+    vatom[j][0] += v[0]; vatom[j][1] += v[1]; vatom[j][2] += v[2];
+    vatom[j][3] += v[3]; vatom[j][4] += v[4]; vatom[j][5] += v[5];
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1514,24 +1552,40 @@ void Pair::v_tally2(int i, int j, double fpair, double *drij)
    called by AIREBO and Tersoff potential, newton_pair is always on
 ------------------------------------------------------------------------- */
 
-void Pair::v_tally3(int i, int j, int k,
-                    double *fi, double *fj, double *drik, double *drjk)
+void Pair::v_tally3(int i, int j, int k, double *fi, double *fj, double *drik, double *drjk)
 {
   double v[6];
 
-  v[0] = THIRD * (drik[0]*fi[0] + drjk[0]*fj[0]);
-  v[1] = THIRD * (drik[1]*fi[1] + drjk[1]*fj[1]);
-  v[2] = THIRD * (drik[2]*fi[2] + drjk[2]*fj[2]);
-  v[3] = THIRD * (drik[0]*fi[1] + drjk[0]*fj[1]);
-  v[4] = THIRD * (drik[0]*fi[2] + drjk[0]*fj[2]);
-  v[5] = THIRD * (drik[1]*fi[2] + drjk[1]*fj[2]);
+  v[0] = (drik[0]*fi[0] + drjk[0]*fj[0]);
+  v[1] = (drik[1]*fi[1] + drjk[1]*fj[1]);
+  v[2] = (drik[2]*fi[2] + drjk[2]*fj[2]);
+  v[3] = (drik[0]*fi[1] + drjk[0]*fj[1]);
+  v[4] = (drik[0]*fi[2] + drjk[0]*fj[2]);
+  v[5] = (drik[1]*fi[2] + drjk[1]*fj[2]);
 
-  vatom[i][0] += v[0]; vatom[i][1] += v[1]; vatom[i][2] += v[2];
-  vatom[i][3] += v[3]; vatom[i][4] += v[4]; vatom[i][5] += v[5];
-  vatom[j][0] += v[0]; vatom[j][1] += v[1]; vatom[j][2] += v[2];
-  vatom[j][3] += v[3]; vatom[j][4] += v[4]; vatom[j][5] += v[5];
-  vatom[k][0] += v[0]; vatom[k][1] += v[1]; vatom[k][2] += v[2];
-  vatom[k][3] += v[3]; vatom[k][4] += v[4]; vatom[k][5] += v[5];
+  if (vflag_global) {
+      virial[0] += v[0];
+      virial[1] += v[1];
+      virial[2] += v[2];
+      virial[3] += v[3];
+      virial[4] += v[4];
+      virial[5] += v[5];
+  }
+
+  if (vflag_atom) {
+    v[0] *= THIRD;
+    v[1] *= THIRD;
+    v[2] *= THIRD;
+    v[3] *= THIRD;
+    v[4] *= THIRD;
+    v[5] *= THIRD;
+    vatom[i][0] += v[0]; vatom[i][1] += v[1]; vatom[i][2] += v[2];
+    vatom[i][3] += v[3]; vatom[i][4] += v[4]; vatom[i][5] += v[5];
+    vatom[j][0] += v[0]; vatom[j][1] += v[1]; vatom[j][2] += v[2];
+    vatom[j][3] += v[3]; vatom[j][4] += v[4]; vatom[j][5] += v[5];
+    vatom[k][0] += v[0]; vatom[k][1] += v[1]; vatom[k][2] += v[2];
+    vatom[k][3] += v[3]; vatom[k][4] += v[4]; vatom[k][5] += v[5];
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1545,21 +1599,38 @@ void Pair::v_tally4(int i, int j, int k, int m,
 {
   double v[6];
 
-  v[0] = 0.25 * (drim[0]*fi[0] + drjm[0]*fj[0] + drkm[0]*fk[0]);
-  v[1] = 0.25 * (drim[1]*fi[1] + drjm[1]*fj[1] + drkm[1]*fk[1]);
-  v[2] = 0.25 * (drim[2]*fi[2] + drjm[2]*fj[2] + drkm[2]*fk[2]);
-  v[3] = 0.25 * (drim[0]*fi[1] + drjm[0]*fj[1] + drkm[0]*fk[1]);
-  v[4] = 0.25 * (drim[0]*fi[2] + drjm[0]*fj[2] + drkm[0]*fk[2]);
-  v[5] = 0.25 * (drim[1]*fi[2] + drjm[1]*fj[2] + drkm[1]*fk[2]);
+  v[0] = (drim[0]*fi[0] + drjm[0]*fj[0] + drkm[0]*fk[0]);
+  v[1] = (drim[1]*fi[1] + drjm[1]*fj[1] + drkm[1]*fk[1]);
+  v[2] = (drim[2]*fi[2] + drjm[2]*fj[2] + drkm[2]*fk[2]);
+  v[3] = (drim[0]*fi[1] + drjm[0]*fj[1] + drkm[0]*fk[1]);
+  v[4] = (drim[0]*fi[2] + drjm[0]*fj[2] + drkm[0]*fk[2]);
+  v[5] = (drim[1]*fi[2] + drjm[1]*fj[2] + drkm[1]*fk[2]);
 
-  vatom[i][0] += v[0]; vatom[i][1] += v[1]; vatom[i][2] += v[2];
-  vatom[i][3] += v[3]; vatom[i][4] += v[4]; vatom[i][5] += v[5];
-  vatom[j][0] += v[0]; vatom[j][1] += v[1]; vatom[j][2] += v[2];
-  vatom[j][3] += v[3]; vatom[j][4] += v[4]; vatom[j][5] += v[5];
-  vatom[k][0] += v[0]; vatom[k][1] += v[1]; vatom[k][2] += v[2];
-  vatom[k][3] += v[3]; vatom[k][4] += v[4]; vatom[k][5] += v[5];
-  vatom[m][0] += v[0]; vatom[m][1] += v[1]; vatom[m][2] += v[2];
-  vatom[m][3] += v[3]; vatom[m][4] += v[4]; vatom[m][5] += v[5];
+  if (vflag_global) {
+      virial[0] += v[0];
+      virial[1] += v[1];
+      virial[2] += v[2];
+      virial[3] += v[3];
+      virial[4] += v[4];
+      virial[5] += v[5];
+  }
+
+  if (vflag_atom) {
+    v[0] *= 0.25;
+    v[1] *= 0.25;
+    v[2] *= 0.25;
+    v[3] *= 0.25;
+    v[4] *= 0.25;
+    v[5] *= 0.25;
+    vatom[i][0] += v[0]; vatom[i][1] += v[1]; vatom[i][2] += v[2];
+    vatom[i][3] += v[3]; vatom[i][4] += v[4]; vatom[i][5] += v[5];
+    vatom[j][0] += v[0]; vatom[j][1] += v[1]; vatom[j][2] += v[2];
+    vatom[j][3] += v[3]; vatom[j][4] += v[4]; vatom[j][5] += v[5];
+    vatom[k][0] += v[0]; vatom[k][1] += v[1]; vatom[k][2] += v[2];
+    vatom[k][3] += v[3]; vatom[k][4] += v[4]; vatom[k][5] += v[5];
+    vatom[m][0] += v[0]; vatom[m][1] += v[1]; vatom[m][2] += v[2];
+    vatom[m][3] += v[3]; vatom[m][4] += v[4]; vatom[m][5] += v[5];
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1729,27 +1800,26 @@ void Pair::write_file(int narg, char **arg)
     if (utils::file_is_readable(table_file)) {
       std::string units = utils::get_potential_units(table_file,"table");
       if (!units.empty() && (units != update->unit_style)) {
-        error->one(FLERR,fmt::format("Trying to append to a table file "
+        error->one(FLERR,"Trying to append to a table file "
                                      "with UNITS: {} while units are {}",
-                                     units, update->unit_style));
+                                     units, update->unit_style);
       }
       std::string date = utils::get_potential_date(table_file,"table");
-      utils::logmesg(lmp,fmt::format("Appending to table file {} with "
-                                     "DATE: {}\n", table_file, date));
+      utils::logmesg(lmp,"Appending to table file {} with DATE: {}\n",
+                     table_file, date);
       fp = fopen(table_file.c_str(),"a");
     } else {
-      char datebuf[16];
       time_t tv = time(nullptr);
-      strftime(datebuf,15,"%Y-%m-%d",localtime(&tv));
-      utils::logmesg(lmp,fmt::format("Creating table file {} with "
-                                     "DATE: {}\n", table_file, datebuf));
+      std::tm current_date = fmt::localtime(tv);
+      utils::logmesg(lmp,"Creating table file {} with DATE: {:%Y-%m-%d}\n",
+                     table_file, current_date);
       fp = fopen(table_file.c_str(),"w");
-      if (fp) fmt::print(fp,"# DATE: {} UNITS: {} Created by pair_write\n",
-                         datebuf, update->unit_style);
+      if (fp) fmt::print(fp,"# DATE: {:%Y-%m-%d} UNITS: {} Created by pair_write\n",
+                         current_date, update->unit_style);
     }
     if (fp == nullptr)
-      error->one(FLERR,fmt::format("Cannot open pair_write file {}: {}",
-                                   table_file, utils::getsyserror()));
+      error->one(FLERR,"Cannot open pair_write file {}: {}",
+                                   table_file, utils::getsyserror());
     fprintf(fp,"# Pair potential %s for atom types %d %d: i,r,energy,force\n",
             force->pair_style,itype,jtype);
     if (style == RLINEAR)

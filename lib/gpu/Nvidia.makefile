@@ -30,7 +30,7 @@ $(OBJ_DIR):
 
 # Compilers and linkers
 
-CUDA  = $(NVCC) $(CUDA_INCLUDE) $(CUDA_OPTS) -Icudpp_mini $(CUDA_ARCH) \
+CUDA  = $(NVCC) $(CUDA_INCLUDE) $(CUDA_OPTS) $(CUDA_ARCH) \
              $(CUDA_PRECISION)
 CUDR  = $(CUDR_CPP) $(CUDR_OPTS) $(CUDA_PRECISION) $(CUDA_INCLUDE) \
          $(CUDPP_OPT)
@@ -46,7 +46,6 @@ $(OBJ_DIR)/pppm_f.cubin: lal_pppm.cu lal_precision.h lal_preprocessor.h \
 
 $(OBJ_DIR)/pppm_f_cubin.h: $(OBJ_DIR)/pppm_f.cubin
 	$(BIN2C) -c -n pppm_f $(OBJ_DIR)/pppm_f.cubin > $(OBJ_DIR)/pppm_f_cubin.h
-	rm $(OBJ_DIR)/pppm_f.cubin
 
 $(OBJ_DIR)/pppm_d.cubin: lal_pppm.cu lal_precision.h lal_preprocessor.h \
                          lal_pre_cuda_hip.h
@@ -54,12 +53,10 @@ $(OBJ_DIR)/pppm_d.cubin: lal_pppm.cu lal_precision.h lal_preprocessor.h \
 
 $(OBJ_DIR)/pppm_d_cubin.h: $(OBJ_DIR)/pppm_d.cubin
 	$(BIN2C) -c -n pppm_d $(OBJ_DIR)/pppm_d.cubin > $(OBJ_DIR)/pppm_d_cubin.h
-	rm $(OBJ_DIR)/pppm_d.cubin
 
 $(OBJ_DIR)/%_cubin.h: lal_%.cu  $(ALL_H)
 	$(CUDA) --fatbin -DNV_KERNEL -o $(OBJ_DIR)/$*.cubin $(OBJ_DIR)/lal_$*.cu
 	$(BIN2C) -c -n $* $(OBJ_DIR)/$*.cubin > $@
-	@rm $(OBJ_DIR)/$*.cubin
 
 # host code compilation
 

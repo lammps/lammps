@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -253,8 +254,8 @@ void ResetIDs::command(int narg, char **arg)
   int all;
   MPI_Allreduce(&badcount,&all,1,MPI_INT,MPI_SUM,world);
   if (all)
-    error->all(FLERR,fmt::format("Reset_ids missing {} bond topology atom IDs - "
-                                 "use comm_modify cutoff",all));
+    error->all(FLERR,"Reset_ids missing {} bond topology atom IDs - "
+                                 "use comm_modify cutoff",all);
 
   // reset IDs and atom map for owned atoms
 

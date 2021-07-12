@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -393,7 +394,7 @@ void PairComb::compute(int eflag, int vflag)
 
         if (evflag)
           ev_tally(i,j,nlocal,newton_pair,elp_ij,0.0,0.0,0.0,0.0,0.0);
-        if (vflag_atom) v_tally3(i,j,k,fj,fk,delr1,delr2);
+        if (vflag_either) v_tally3(i,j,k,fj,fk,delr1,delr2);
 
       }
     }

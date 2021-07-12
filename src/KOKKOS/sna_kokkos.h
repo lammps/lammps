@@ -1,6 +1,7 @@
+// clang-format off
 /* -*- c++ -*- -------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -22,6 +23,10 @@
 #include <ctime>
 #include <Kokkos_Core.hpp>
 #include "kokkos_type.h"
+
+#ifdef __SYCL_DEVICE_ONLY__
+#include <CL/sycl.hpp>
+#endif
 
 namespace LAMMPS_NS {
 
@@ -164,9 +169,21 @@ inline
   void compute_s_dsfac(const real_type, const real_type, real_type&, real_type&); // compute_cayley_klein
 
   static KOKKOS_FORCEINLINE_FUNCTION
-  void sincos_wrapper(double x, double* sin_, double *cos_) { sincos(x, sin_, cos_); }
+  void sincos_wrapper(double x, double* sin_, double *cos_) {
+#ifdef __SYCL_DEVICE_ONLY__
+    *sin_ = sycl::sincos(x, cos_);
+#else
+    sincos(x, sin_, cos_);
+#endif
+  }
   static KOKKOS_FORCEINLINE_FUNCTION
-  void sincos_wrapper(float x, float* sin_, float *cos_) { sincosf(x, sin_, cos_); }
+  void sincos_wrapper(float x, float* sin_, float *cos_) {
+#ifdef __SYCL_DEVICE_ONLY__
+    *sin_ = sycl::sincos(x, cos_);
+#else
+    sincosf(x, sin_, cos_);
+#endif
+  }
 
 #ifdef TIMING_INFO
   double* timers;

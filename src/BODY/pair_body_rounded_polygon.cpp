@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -570,8 +571,8 @@ void PairBodyRoundedPolygon::body2space(int i)
   }
 
   if ((body_num_edges > 0) && (edge_ends == nullptr))
-    error->one(FLERR,fmt::format("Inconsistent edge data for body of atom {}",
-                                 atom->tag[i]));
+    error->one(FLERR,"Inconsistent edge data for body of atom {}",
+                                 atom->tag[i]);
 
   for (int m = 0; m < body_num_edges; m++) {
     edge[nedge][0] = static_cast<int>(edge_ends[2*m+0]);

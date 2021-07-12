@@ -31,6 +31,11 @@ endif()
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Need -restrict with Intel compilers
+if((CMAKE_CXX_COMPILER_ID STREQUAL "Intel") OR (CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM"))
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -restrict")
+endif()
+
 # bail out on windows
 if(CMAKE_SYSTEM_NAME STREQUAL Windows)
   message(FATAL_ERROR "LAMMPS plugins are currently not supported on Windows")
@@ -44,7 +49,7 @@ include(LAMMPSInterfaceCXX)
 # building the plugins
 
 add_library(morse2plugin MODULE morse2plugin.cpp pair_morse2.cpp pair_morse2_omp.cpp)
-target_include_directories(morse2plugin PRIVATE "${LAMMPS_HEADER_DIR}/USER-OMP")
+target_include_directories(morse2plugin PRIVATE "${LAMMPS_HEADER_DIR}/OPENMP")
 target_link_libraries(morse2plugin PRIVATE lammps)
 
 add_library(nve2plugin MODULE nve2plugin.cpp fix_nve2.cpp)

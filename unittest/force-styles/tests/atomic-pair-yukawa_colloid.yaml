@@ -1,8 +1,7 @@
 ---
 lammps_version: 10 Feb 2021
 date_generated: Fri Feb 26 23:09:10 2021
-epsilon: 5e-14
-skip_tests: single
+epsilon: 2e-13
 prerequisites: ! |
   atom sphere
   pair yukawa/colloid

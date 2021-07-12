@@ -100,7 +100,7 @@ adjusted independently and simultaneously by this command.
 This fix can be used to perform non-equilibrium MD (NEMD) simulations
 of a continuously strained system.  See the :doc:`fix nvt/sllod <fix_nvt_sllod>` and :doc:`compute temp/deform <compute_temp_deform>` commands for more details.  Note
 that simulation of a continuously extended system (extensional flow)
-can be modeled using the :ref:`USER-UEF package <PKG-USER-UEF>` and its :doc:`fix commands <fix_nh_uef>`.
+can be modeled using the :ref:`UEF package <PKG-UEF>` and its :doc:`fix commands <fix_nh_uef>`.
 
 For the *x*\ , *y*\ , *z* parameters, the associated dimension cannot be
 shrink-wrapped.  For the *xy*\ , *yz*\ , *xz* parameters, the associated

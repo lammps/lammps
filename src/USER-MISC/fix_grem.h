@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(grem,FixGrem)
-
+// clang-format off
+FixStyle(grem,FixGrem);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_GREM_H
@@ -35,18 +35,18 @@ class FixGrem : public Fix {
   void post_force(int);
   void *extract(const char *, int &);
   double compute_scalar();
-  double scale_grem,lambda,eta,h0;
+  double scale_grem, lambda, eta, h0;
   int pressflag;
 
  private:
-  double tbath,pressref;
+  double tbath, pressref;
 
  protected:
-  char *id_temp,*id_press,*id_ke,*id_pe,*id_nh;
-  class Compute *temperature,*pressure,*ke,*pe;
+  char *id_temp, *id_press, *id_ke, *id_pe, *id_nh;
+  class Compute *temperature, *pressure, *ke, *pe;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

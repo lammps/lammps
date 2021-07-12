@@ -36,21 +36,21 @@ The specified style can be *gpu*\ , *intel*\ , *kk*\ , *omp*\ , *opt* or
 *hybrid*\ . These refer to optional packages that LAMMPS can be built
 with, as described on the :doc:`Build package <Build_package>` doc page.
 The "gpu" style corresponds to the GPU package, the "intel" style to
-the USER-INTEL package, the "kk" style to the KOKKOS package, the
-"omp" style to the USER-OMP package, and the "opt" style to the OPT
+the INTEL package, the "kk" style to the KOKKOS package, the
+"omp" style to the OPENMP package, and the "opt" style to the OPT
 package.
 
 These are the variants these packages provide:
 
 * GPU = a handful of pair styles and the PPPM kspace_style, optimized to
   run on one or more GPUs or multicore CPU/GPU nodes
-* USER-INTEL = a collection of pair styles and neighbor routines
+* INTEL = a collection of pair styles and neighbor routines
   optimized to run in single, mixed, or double precision on CPUs and
   Intel(R) Xeon Phi(TM) co-processors.
 * KOKKOS = a collection of atom, pair, and fix styles optimized to run
   using the Kokkos library on various kinds of hardware, including GPUs
   via CUDA and many-core chips via OpenMP or threading.
-* USER-OMP = a collection of pair, bond, angle, dihedral, improper,
+* OPENMP = a collection of pair, bond, angle, dihedral, improper,
   kspace, compute, and fix styles with support for OpenMP
   multi-threading
 * OPT = a handful of pair styles, cache-optimized for faster CPU
@@ -74,9 +74,9 @@ created.
 For "hybrid", two packages are specified. The first is used whenever
 available. If a style with the first suffix is not available, the style
 with the suffix for the second package will be used if available. For
-example, "hybrid intel omp" will use styles from the USER-INTEL package
-as a first choice and styles from the USER-OMP package as a second choice
-if no USER-INTEL variant is available.
+example, "hybrid intel omp" will use styles from the INTEL package
+as a first choice and styles from the OPENMP package as a second choice
+if no INTEL variant is available.
 
 If the specified style is *off*\ , then any previously specified suffix
 is temporarily disabled, whether it was specified by a command-line

@@ -91,15 +91,15 @@ for a detailed description of the oxDNA force field.
    or :doc:`fix nve/dotc/langevin <fix_nve_dotc_langevin>`
    the temperature coefficients have to be matched to the one used in the fix.
 
-Example input and data files for DNA duplexes can be found in examples/USER/cgdna/examples/oxDNA/ and /oxDNA2/.
+Example input and data files for DNA duplexes can be found in examples/PACKAGES/cgdna/examples/oxDNA/ and /oxDNA2/.
 A simple python setup tool which creates single straight or helical DNA strands,
-DNA duplexes or arrays of DNA duplexes can be found in examples/USER/cgdna/util/.
+DNA duplexes or arrays of DNA duplexes can be found in examples/PACKAGES/cgdna/util/.
 
 Please cite :ref:`(Henrich) <Henrich1>` in any publication that uses
 this implementation.  The article contains general information
 on the model, its implementation and performance as well as the structure of
 the data and input file. The preprint version of the article can be found
-`here <PDF/USER-CGDNA.pdf>`_.
+`here <PDF/CG-DNA.pdf>`_.
 Please cite also the relevant oxDNA publications
 :ref:`(Ouldridge) <Ouldridge1>`,
 :ref:`(Ouldridge-DPhil) <Ouldridge-DPhil1>`
@@ -111,7 +111,7 @@ Restrictions
 """"""""""""
 
 These pair styles can only be used if LAMMPS was built with the
-USER-CGDNA package and the MOLECULE and ASPHERE package.  See the
+CG-DNA package and the MOLECULE and ASPHERE package.  See the
 :doc:`Build package <Build_package>` doc page for more info.
 
 Related commands

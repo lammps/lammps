@@ -29,7 +29,6 @@ pre_commands: ! |
   velocity all create 100 4534624 loop geom
 post_commands: ! |
   fix qeq all qeq/reax 1 0.0 8.0 1.0e-20 reax/c
-  pair_modify nofdotr
 input_file: in.empty
 pair_style: reax/c NULL checkqeq yes
 pair_coeff: ! |

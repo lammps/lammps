@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMMAND_CLASS
-
-CommandStyle(read_restart,ReadRestart)
-
+// clang-format off
+CommandStyle(read_restart,ReadRestart);
+// clang-format on
 #else
 
 #ifndef LMP_READ_RESTART_H
@@ -30,21 +30,21 @@ class ReadRestart : public Command {
   void command(int, char **);
 
  private:
-  int me,nprocs;
+  int me, nprocs;
   FILE *fp;
 
-  int multiproc;             // 0 = restart file is a single file
-                             // 1 = restart file is parallel (multiple files)
-  int multiproc_file;        // # of parallel files in restart
-  int nprocs_file;           // total # of procs that wrote restart file
-  int revision;              // revision number of the restart file format
+  int multiproc;         // 0 = restart file is a single file
+                         // 1 = restart file is parallel (multiple files)
+  int multiproc_file;    // # of parallel files in restart
+  int nprocs_file;       // total # of procs that wrote restart file
+  int revision;          // revision number of the restart file format
 
   // MPI-IO values
 
-  int mpiioflag;               // 1 for MPIIO output, else 0
-  class RestartMPIIO *mpiio;   // MPIIO for restart file input
+  int mpiioflag;                // 1 for MPIIO output, else 0
+  class RestartMPIIO *mpiio;    // MPIIO for restart file input
   bigint assignedChunkSize;
-  MPI_Offset assignedChunkOffset,headerOffset;
+  MPI_Offset assignedChunkOffset, headerOffset;
 
   void file_search(char *, char *);
   void header();
@@ -65,7 +65,7 @@ class ReadRestart : public Command {
   void read_double_vec(int, double *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

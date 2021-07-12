@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -308,7 +309,7 @@ void ComputeOrientOrderAtom::compute_peratom()
       // if not nnn neighbors, order parameter = 0;
 
       if ((ncount == 0) || (ncount < nnn)) {
-        for (int jj = 0; jj < ncol; jj++)
+        for (jj = 0; jj < ncol; jj++)
           qn[jj] = 0.0;
         continue;
       }

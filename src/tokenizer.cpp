@@ -1,6 +1,7 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -66,6 +67,28 @@ Tokenizer::Tokenizer(Tokenizer && rhs) :
     text(std::move(rhs.text)), separators(std::move(rhs.separators)), ntokens(rhs.ntokens)
 {
     reset();
+}
+
+Tokenizer& Tokenizer::operator=(const Tokenizer& other)
+{
+    Tokenizer tmp(other);
+    swap(tmp);
+    return *this;
+}
+
+Tokenizer& Tokenizer::operator=(Tokenizer&& other)
+{
+    Tokenizer tmp(std::move(other));
+    swap(tmp);
+    return *this;
+}
+
+void Tokenizer::swap(Tokenizer& other)
+{
+    std::swap(text, other.text);
+    std::swap(separators, other.separators);
+    std::swap(start, other.start);
+    std::swap(ntokens, other.ntokens);
 }
 
 /*! Re-position the tokenizer state to the first word,
@@ -179,6 +202,25 @@ ValueTokenizer::ValueTokenizer(const ValueTokenizer &rhs) : tokens(rhs.tokens) {
 }
 
 ValueTokenizer::ValueTokenizer(ValueTokenizer &&rhs) : tokens(std::move(rhs.tokens)) {
+}
+
+ValueTokenizer& ValueTokenizer::operator=(const ValueTokenizer& other)
+{
+    ValueTokenizer tmp(other);
+    swap(tmp);
+    return *this;
+}
+
+ValueTokenizer& ValueTokenizer::operator=(ValueTokenizer&& other)
+{
+    ValueTokenizer tmp(std::move(other));
+    swap(tmp);
+    return *this;
+}
+
+void ValueTokenizer::swap(ValueTokenizer& other)
+{
+    std::swap(tokens, other.tokens);
 }
 
 /*! Indicate whether more tokens are available

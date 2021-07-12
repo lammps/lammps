@@ -1,6 +1,7 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -41,7 +42,7 @@ using namespace LAMMPS_NS;
  * \param  filetype  Description of file type for error messages */
 
 TextFileReader::TextFileReader(const std::string &filename, const std::string &filetype)
-  : filetype(filetype), ignore_comments(true)
+  : filetype(filetype), closefp(true), ignore_comments(true)
 {
   fp = fopen(filename.c_str(), "r");
 
@@ -54,11 +55,22 @@ TextFileReader::TextFileReader(const std::string &filename, const std::string &f
 /**
  * \overload
  *
+\verbatim embed:rst
+
+This function is useful in combination with :cpp:func:`utils::open_potential`.
+
+.. note::
+
+   The FILE pointer is not closed in the destructor, but will be advanced
+   when reading from it.
+
+\endverbatim
+ *
  * \param  fp        File descriptor of the already opened file
  * \param  filetype  Description of file type for error messages */
 
 TextFileReader::TextFileReader(FILE *fp, const std::string &filetype)
-  : filetype(filetype), fp(fp), ignore_comments(true)
+  : filetype(filetype), closefp(false), fp(fp), ignore_comments(true)
 {
   if (fp == nullptr) throw FileReaderException("Invalid file descriptor");
 }
@@ -66,7 +78,7 @@ TextFileReader::TextFileReader(FILE *fp, const std::string &filetype)
 /** Closes the file */
 
 TextFileReader::~TextFileReader() {
-  fclose(fp);
+  if (closefp) fclose(fp);
 }
 
 /** Read the next line and ignore it */
@@ -112,7 +124,7 @@ char *TextFileReader::next_line(int nparams) {
   if (nwords > 0) n = strlen(line);
 
   while (nwords == 0 || nwords < nparams) {
-    char *ptr = fgets(&line[n], MAXLINE - n, fp);
+    ptr = fgets(&line[n], MAXLINE - n, fp);
 
     if (ptr == nullptr) {
       // EOF

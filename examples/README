@@ -5,7 +5,8 @@ problems you can run with LAMMPS.
 
 lower-case directories = simple test problems for LAMMPS and its packages
 upper-case directories = more complex problems
-USER directory with its own sub-directories = tests for USER packages
+PACKAGES directory with its own sub-directories = tests for specific packages
+USER-MISC directory with its own sub-directories = tests for commands in USER-MISC package
 
 Each is discussed below.
 
@@ -37,7 +38,7 @@ produce dump snapshots of the running simulation in any of 3 formats.
 
 If you uncomment the dump command in the input script, a text dump
 file will be produced, which can be animated by various visualization
-programs (see http://lammps.sandia.gov/viz.html) such as Ovito, VMD,
+programs (see https://www.lammps.org/viz.html) such as Ovito, VMD,
 or AtomEye.
 
 If you uncomment the dump image command in the input script, and
@@ -170,6 +171,12 @@ The MC directory has an example script for using LAMMPS as an
 energy-evaluation engine in a iterative Monte Carlo energy-relaxation
 loop.
 
+The PACKAGES directory contains subdirectories of example scripts for
+individual packages. Most of those are contributed by the corresponding
+package developers. See the README files in those directories
+for more info.  See the doc/html/Build_package.html file for more info
+about installing and building packages.
+
 The TIP4P directory has an example for testing forces computed on a
 GPU.
 
@@ -179,10 +186,11 @@ lj, real, and metal.  So that you can see how to scale/unscale input
 and output values read/written by LAMMPS to verify you are performing
 the same simulation in different unit systems.
 
-The USER directory contains subdirectories of user-provided example
-scripts for ser packages.  See the README files in those directories
+The USER-MISC directory contains subdirectories of example scripts for
+individual commands in the USER-MISC package. Most of those are contributed
+by the corresponding developers. See the README files in those directories
 for more info.  See the doc/html/Build_package.html file for more info
-about installing and building user packages.
+about installing and building packages.
 
 The VISCOSITY directory has example scripts for computing the
 viscosity of a LJ liquid using 4 different methods.  See the

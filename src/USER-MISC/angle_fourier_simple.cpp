@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -18,21 +18,21 @@
 
 #include "angle_fourier_simple.h"
 
-#include <cmath>
 #include "atom.h"
-#include "neighbor.h"
-#include "domain.h"
 #include "comm.h"
+#include "domain.h"
+#include "error.h"
 #include "force.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
+#include "neighbor.h"
 
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-#define SMALL 0.001
+#define SMALL 0.0001
 
 /* ---------------------------------------------------------------------- */
 
@@ -59,14 +59,14 @@ AngleFourierSimple::~AngleFourierSimple()
 
 void AngleFourierSimple::compute(int eflag, int vflag)
 {
-  int i1,i2,i3,n,type;
-  double delx1,dely1,delz1,delx2,dely2,delz2;
-  double eangle,f1[3],f3[3];
-  double term,sgn;
-  double rsq1,rsq2,r1,r2,c,cn,th,nth,a,a11,a12,a22;
+  int i1, i2, i3, n, type;
+  double delx1, dely1, delz1, delx2, dely2, delz2;
+  double eangle, f1[3], f3[3];
+  double term, sgn;
+  double rsq1, rsq2, r1, r2, c, cn, th, nth, a, a11, a12, a22;
 
   eangle = 0.0;
-  ev_init(eflag,vflag);
+  ev_init(eflag, vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -87,7 +87,7 @@ void AngleFourierSimple::compute(int eflag, int vflag)
     dely1 = x[i1][1] - x[i2][1];
     delz1 = x[i1][2] - x[i2][2];
 
-    rsq1 = delx1*delx1 + dely1*dely1 + delz1*delz1;
+    rsq1 = delx1 * delx1 + dely1 * dely1 + delz1 * delz1;
     r1 = sqrt(rsq1);
 
     // 2nd bond
@@ -96,13 +96,13 @@ void AngleFourierSimple::compute(int eflag, int vflag)
     dely2 = x[i3][1] - x[i2][1];
     delz2 = x[i3][2] - x[i2][2];
 
-    rsq2 = delx2*delx2 + dely2*dely2 + delz2*delz2;
+    rsq2 = delx2 * delx2 + dely2 * dely2 + delz2 * delz2;
     r2 = sqrt(rsq2);
 
     // angle (cos and sin)
 
-    c = delx1*delx2 + dely1*dely2 + delz1*delz2;
-    c /= r1*r2;
+    c = delx1 * delx2 + dely1 * dely2 + delz1 * delz2;
+    c /= r1 * r2;
 
     if (c > 1.0) c = 1.0;
     if (c < -1.0) c = -1.0;
@@ -110,38 +110,38 @@ void AngleFourierSimple::compute(int eflag, int vflag)
     // force & energy
 
     th = acos(c);
-    nth = N[type]*acos(c);
+    nth = N[type] * acos(c);
     cn = cos(nth);
-    term = k[type]*(1.0+C[type]*cn);
+    term = k[type] * (1.0 + C[type] * cn);
 
     if (eflag) eangle = term;
 
     // handle sin(n th)/sin(th) singulatiries
 
-    if (fabs(c)-1.0 > 0.0001) {
-      a = k[type]*C[type]*N[type]*sin(nth)/sin(th);
+    if (fabs(c) - 1.0 > SMALL) {
+      a = k[type] * C[type] * N[type] * sin(nth) / sin(th);
     } else {
       if (c >= 0.0) {
         term = 1.0 - c;
         sgn = 1.0;
       } else {
         term = 1.0 + c;
-        sgn = ( fmodf((float)(N[type]),2.0) == 0.0f )?-1.0:1.0;
+        sgn = (fmod(N[type], 2.0) == 0.0) ? -1.0 : 1.0;
       }
-      a = N[type]+N[type]*(1.0-N[type]*N[type])*term/3.0;
-      a = k[type]*C[type]*N[type]*(double)(sgn)*a;
+      a = N[type] + N[type] * (1.0 - N[type] * N[type]) * term / 3.0;
+      a = k[type] * C[type] * N[type] * sgn * a;
     }
 
-    a11 = a*c / rsq1;
-    a12 = -a / (r1*r2);
-    a22 = a*c / rsq2;
+    a11 = a * c / rsq1;
+    a12 = -a / (r1 * r2);
+    a22 = a * c / rsq2;
 
-    f1[0] = a11*delx1 + a12*delx2;
-    f1[1] = a11*dely1 + a12*dely2;
-    f1[2] = a11*delz1 + a12*delz2;
-    f3[0] = a22*delx2 + a12*delx1;
-    f3[1] = a22*dely2 + a12*dely1;
-    f3[2] = a22*delz2 + a12*delz1;
+    f1[0] = a11 * delx1 + a12 * delx2;
+    f1[1] = a11 * dely1 + a12 * dely2;
+    f1[2] = a11 * delz1 + a12 * delz2;
+    f3[0] = a22 * delx2 + a12 * delx1;
+    f3[1] = a22 * dely2 + a12 * dely1;
+    f3[2] = a22 * delz2 + a12 * delz1;
 
     // apply force to each of 3 atoms
 
@@ -163,8 +163,9 @@ void AngleFourierSimple::compute(int eflag, int vflag)
       f[i3][2] += f3[2];
     }
 
-    if (evflag) ev_tally(i1,i2,i3,nlocal,newton_bond,eangle,f1,f3,
-                         delx1,dely1,delz1,delx2,dely2,delz2);
+    if (evflag)
+      ev_tally(i1, i2, i3, nlocal, newton_bond, eangle, f1, f3, delx1, dely1, delz1, delx2, dely2,
+               delz2);
   }
 }
 
@@ -175,11 +176,11 @@ void AngleFourierSimple::allocate()
   allocated = 1;
   int n = atom->nangletypes;
 
-  memory->create(k,n+1,"angle:k");
-  memory->create(C,n+1,"angle:C");
-  memory->create(N,n+1,"angle:N");
+  memory->create(k, n + 1, "angle:k");
+  memory->create(C, n + 1, "angle:C");
+  memory->create(N, n + 1, "angle:N");
 
-  memory->create(setflag,n+1,"angle:setflag");
+  memory->create(setflag, n + 1, "angle:setflag");
   for (int i = 1; i <= n; i++) setflag[i] = 0;
 }
 
@@ -189,15 +190,15 @@ void AngleFourierSimple::allocate()
 
 void AngleFourierSimple::coeff(int narg, char **arg)
 {
-  if (narg != 4) error->all(FLERR,"Incorrect args for angle coefficients");
+  if (narg != 4) error->all(FLERR, "Incorrect args for angle coefficients");
   if (!allocated) allocate();
 
-  int ilo,ihi;
-  utils::bounds(FLERR,arg[0],1,atom->nangletypes,ilo,ihi,error);
+  int ilo, ihi;
+  utils::bounds(FLERR, arg[0], 1, atom->nangletypes, ilo, ihi, error);
 
-  double k_one = utils::numeric(FLERR,arg[1],false,lmp);
-  double C_one = utils::numeric(FLERR,arg[2],false,lmp);
-  double N_one = utils::numeric(FLERR,arg[3],false,lmp);
+  double k_one = utils::numeric(FLERR, arg[1], false, lmp);
+  double C_one = utils::numeric(FLERR, arg[2], false, lmp);
+  double N_one = utils::numeric(FLERR, arg[3], false, lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -208,14 +209,14 @@ void AngleFourierSimple::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for angle coefficients");
+  if (count == 0) error->all(FLERR, "Incorrect args for angle coefficients");
 }
 
 /* ---------------------------------------------------------------------- */
 
 double AngleFourierSimple::equilibrium_angle(int i)
 {
-  return (MY_PI/N[i]);
+  return (MY_PI / N[i]);
 }
 
 /* ----------------------------------------------------------------------
@@ -224,9 +225,9 @@ double AngleFourierSimple::equilibrium_angle(int i)
 
 void AngleFourierSimple::write_restart(FILE *fp)
 {
-  fwrite(&k[1],sizeof(double),atom->nangletypes,fp);
-  fwrite(&C[1],sizeof(double),atom->nangletypes,fp);
-  fwrite(&N[1],sizeof(double),atom->nangletypes,fp);
+  fwrite(&k[1], sizeof(double), atom->nangletypes, fp);
+  fwrite(&C[1], sizeof(double), atom->nangletypes, fp);
+  fwrite(&N[1], sizeof(double), atom->nangletypes, fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -238,13 +239,13 @@ void AngleFourierSimple::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    utils::sfread(FLERR,&k[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
-    utils::sfread(FLERR,&C[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
-    utils::sfread(FLERR,&N[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+    utils::sfread(FLERR, &k[1], sizeof(double), atom->nangletypes, fp, nullptr, error);
+    utils::sfread(FLERR, &C[1], sizeof(double), atom->nangletypes, fp, nullptr, error);
+    utils::sfread(FLERR, &N[1], sizeof(double), atom->nangletypes, fp, nullptr, error);
   }
-  MPI_Bcast(&k[1],atom->nangletypes,MPI_DOUBLE,0,world);
-  MPI_Bcast(&C[1],atom->nangletypes,MPI_DOUBLE,0,world);
-  MPI_Bcast(&N[1],atom->nangletypes,MPI_DOUBLE,0,world);
+  MPI_Bcast(&k[1], atom->nangletypes, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&C[1], atom->nangletypes, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&N[1], atom->nangletypes, MPI_DOUBLE, 0, world);
 
   for (int i = 1; i <= atom->nangletypes; i++) setflag[i] = 1;
 }
@@ -255,8 +256,7 @@ void AngleFourierSimple::read_restart(FILE *fp)
 
 void AngleFourierSimple::write_data(FILE *fp)
 {
-  for (int i = 1; i <= atom->nangletypes; i++)
-    fprintf(fp,"%d %g %g %g\n",i,k[i],C[i],N[i]);
+  for (int i = 1; i <= atom->nangletypes; i++) fprintf(fp, "%d %g %g %g\n", i, k[i], C[i], N[i]);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -268,21 +268,21 @@ double AngleFourierSimple::single(int type, int i1, int i2, int i3)
   double delx1 = x[i1][0] - x[i2][0];
   double dely1 = x[i1][1] - x[i2][1];
   double delz1 = x[i1][2] - x[i2][2];
-  domain->minimum_image(delx1,dely1,delz1);
-  double r1 = sqrt(delx1*delx1 + dely1*dely1 + delz1*delz1);
+  domain->minimum_image(delx1, dely1, delz1);
+  double r1 = sqrt(delx1 * delx1 + dely1 * dely1 + delz1 * delz1);
 
   double delx2 = x[i3][0] - x[i2][0];
   double dely2 = x[i3][1] - x[i2][1];
   double delz2 = x[i3][2] - x[i2][2];
-  domain->minimum_image(delx2,dely2,delz2);
-  double r2 = sqrt(delx2*delx2 + dely2*dely2 + delz2*delz2);
+  domain->minimum_image(delx2, dely2, delz2);
+  double r2 = sqrt(delx2 * delx2 + dely2 * dely2 + delz2 * delz2);
 
-  double c = delx1*delx2 + dely1*dely2 + delz1*delz2;
-  c /= r1*r2;
+  double c = delx1 * delx2 + dely1 * dely2 + delz1 * delz2;
+  c /= r1 * r2;
   if (c > 1.0) c = 1.0;
   if (c < -1.0) c = -1.0;
-  double cn = cos(N[type]*acos(c));
+  double cn = cos(N[type] * acos(c));
 
-  double eng = k[type]*(1.0+C[type]*cn);
+  double eng = k[type] * (1.0 + C[type] * cn);
   return eng;
 }

@@ -150,24 +150,6 @@ class OpenMPTargetSpaceInitializer : public ExecSpaceInitializerBase {
 /*--------------------------------------------------------------------------*/
 /*--------------------------------------------------------------------------*/
 
-namespace Kokkos {
-namespace Impl {
-
-template <>
-struct VerifyExecutionCanAccessMemorySpace<
-    Kokkos::Experimental::OpenMPTarget::memory_space,
-    Kokkos::Experimental::OpenMPTarget::scratch_memory_space> {
-  enum : bool { value = true };
-  inline static void verify(void) {}
-  inline static void verify(const void*) {}
-};
-
-}  // namespace Impl
-}  // namespace Kokkos
-
-/*--------------------------------------------------------------------------*/
-/*--------------------------------------------------------------------------*/
-
 #include <OpenMPTarget/Kokkos_OpenMPTarget_Exec.hpp>
 #include <OpenMPTarget/Kokkos_OpenMPTarget_Parallel.hpp>
 #include <OpenMPTarget/Kokkos_OpenMPTarget_Parallel_MDRange.hpp>

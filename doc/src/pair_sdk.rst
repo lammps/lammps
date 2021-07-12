@@ -148,7 +148,7 @@ the use of the *inner*\ , *middle*\ , and *outer* keywords of the :doc:`run_styl
 Restrictions
 """"""""""""
 
-All of the lj/sdk pair styles are part of the USER-CGSDK package.  The
+All of the lj/sdk pair styles are part of the CG-SDK package.  The
 *lj/sdk/coul/long* style also requires the KSPACE package to be built
 (which is enabled by default).  They are only enabled if LAMMPS was
 built with that package.  See the :doc:`Build package <Build_package>`

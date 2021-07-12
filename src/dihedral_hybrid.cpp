@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -177,9 +178,9 @@ void DihedralHybrid::settings(int narg, char **arg)
   // delete old lists, since cannot just change settings
 
   if (nstyles) {
-    for (int i = 0; i < nstyles; i++) delete styles[i];
+    for (i = 0; i < nstyles; i++) delete styles[i];
     delete [] styles;
-    for (int i = 0; i < nstyles; i++) delete [] keywords[i];
+    for (i = 0; i < nstyles; i++) delete [] keywords[i];
     delete [] keywords;
   }
 
@@ -188,7 +189,7 @@ void DihedralHybrid::settings(int narg, char **arg)
     memory->destroy(map);
     delete [] ndihedrallist;
     delete [] maxdihedral;
-    for (int i = 0; i < nstyles; i++)
+    for (i = 0; i < nstyles; i++)
       memory->destroy(dihedrallist[i]);
     delete [] dihedrallist;
   }

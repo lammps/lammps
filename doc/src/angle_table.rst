@@ -69,7 +69,6 @@ parenthesized comments):
    HAM                           (keyword is the first text on line)
    N 181 FP 0 0 EQ 90.0          (N, FP, EQ parameters)
                                  (blank line)
-   N 181 FP 0 0                  (N, FP parameters)
    1 0.0 200.5 2.5               (index, angle, energy, derivative)
    2 1.0 198.0 2.5
    ...

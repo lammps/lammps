@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -19,6 +20,7 @@
 #include "comm.h"
 #include "update.h"
 #include "error.h"
+#include "memory.h"
 
 using namespace LAMMPS_NS;
 
@@ -28,6 +30,33 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 NBinStandard::NBinStandard(LAMMPS *lmp) : NBin(lmp) {}
+
+/* ----------------------------------------------------------------------
+   setup for bin_atoms()
+------------------------------------------------------------------------- */
+
+void NBinStandard::bin_atoms_setup(int nall)
+{
+  // binhead = per-bin vector, mbins in length
+  // add 1 bin for INTEL package
+
+  if (mbins > maxbin) {
+    maxbin = mbins;
+    memory->destroy(binhead);
+    memory->create(binhead,maxbin,"neigh:binhead");
+  }
+
+  // bins and atom2bin = per-atom vectors
+  // for both local and ghost atoms
+
+  if (nall > maxatom) {
+    maxatom = nall;
+    memory->destroy(bins);
+    memory->create(bins,maxatom,"neigh:bins");
+    memory->destroy(atom2bin);
+    memory->create(atom2bin,maxatom,"neigh:atom2bin");
+  }
+}
 
 /* ----------------------------------------------------------------------
    setup neighbor binning geometry
@@ -87,7 +116,7 @@ void NBinStandard::setup_bins(int style)
 
   // optimal bin size is roughly 1/2 the cutoff
   // for BIN style, binsize = 1/2 of max neighbor cutoff
-  // for MULTI style, binsize = 1/2 of min neighbor cutoff
+  // for MULTI_OLD style, binsize = 1/2 of min neighbor cutoff
   // special case of all cutoffs = 0.0, binsize = box size
 
   double binsize_optimal;
@@ -229,4 +258,14 @@ void NBinStandard::bin_atoms()
       binhead[ibin] = i;
     }
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+double NBinStandard::memory_usage()
+{
+  double bytes = 0;
+  bytes += (double)maxbin*sizeof(int);
+  bytes += (double)2*maxatom*sizeof(int);
+  return bytes;
 }

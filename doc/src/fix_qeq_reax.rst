@@ -108,12 +108,12 @@ This fix is invoked during :doc:`energy minimization <minimize>`.
 Restrictions
 """"""""""""
 
-Fix *qeq/reax* is part of the USER-REAXC package.  It is only enabled if
-LAMMPS was built with this package.  See the :doc:`Build package
+This fix is part of the REAXFF package.  It is only enabled if
+LAMMPS was built with that package. See the :doc:`Build package
 <Build_package>` doc page for more info.
 
 This fix does not correctly handle interactions involving multiple
-periodic images of the same atom. Hence, it should not be used for
+periodic images of the same atom.  Hence, it should not be used for
 periodic cell dimensions less than 10 angstroms.
 
 Related commands

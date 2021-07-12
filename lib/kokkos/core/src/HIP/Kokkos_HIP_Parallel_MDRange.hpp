@@ -49,6 +49,7 @@
 #include <HIP/Kokkos_HIP_KernelLaunch.hpp>
 #include <HIP/Kokkos_HIP_ReduceScan.hpp>
 #include <KokkosExp_MDRangePolicy.hpp>
+#include <impl/KokkosExp_IterateTileGPU.hpp>
 #include <Kokkos_Parallel.hpp>
 
 namespace Kokkos {
@@ -72,7 +73,7 @@ class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>,
   ParallelFor& operator=(ParallelFor const&) = delete;
 
  public:
-  inline __device__ void operator()(void) const {
+  inline __device__ void operator()() const {
     Kokkos::Impl::DeviceIterateTile<Policy::rank, Policy, FunctorType,
                                     typename Policy::work_tag>(m_policy,
                                                                m_functor)
@@ -175,6 +176,25 @@ class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>,
 
   ParallelFor(FunctorType const& arg_functor, Policy const& arg_policy)
       : m_functor(arg_functor), m_policy(arg_policy) {}
+
+  template <typename Policy, typename Functor>
+  static int max_tile_size_product(const Policy& pol, const Functor&) {
+    using closure_type =
+        ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>,
+                    Kokkos::Experimental::HIP>;
+    hipFuncAttributes attr = Kokkos::Experimental::Impl::HIPParallelLaunch<
+        closure_type, LaunchBounds>::get_hip_func_attributes();
+    auto const& prop = pol.space().hip_device_prop();
+    // Limits due to registers/SM, MDRange doesn't have
+    // shared memory constraints
+    int const regs_per_sm        = prop.regsPerMultiprocessor;
+    int const regs_per_thread    = attr.numRegs;
+    int const max_threads_per_sm = regs_per_sm / regs_per_thread;
+    return std::min(
+        max_threads_per_sm,
+        static_cast<int>(
+            Kokkos::Experimental::Impl::HIPTraits::MaxThreadsPerBlock));
+  }
 };
 
 // ParallelReduce
@@ -231,7 +251,7 @@ class ParallelReduce<FunctorType, Kokkos::MDRangePolicy<Traits...>, ReducerType,
     DeviceIteratePattern(m_policy, m_functor, update).exec_range();
   }
 
-  inline __device__ void operator()(void) const {
+  inline __device__ void operator()() const {
     const integral_nonzero_constant<size_type, ValueTraits::StaticValueSize /
                                                    sizeof(size_type)>
         word_count(ValueTraits::value_size(
@@ -291,13 +311,19 @@ class ParallelReduce<FunctorType, Kokkos::MDRangePolicy<Traits...>, ReducerType,
         ::Kokkos::Experimental::Impl::HIPTraits::MaxThreadsPerBlock;
     int shmem_size = ::Kokkos::Impl::hip_single_inter_block_reduce_scan_shmem<
         false, FunctorType, WorkTag>(f, n);
+    using closure_type = Impl::ParallelReduce<FunctorType, Policy, ReducerType>;
+    hipFuncAttributes attr = ::Kokkos::Experimental::Impl::HIPParallelLaunch<
+        closure_type, LaunchBounds>::get_hip_func_attributes();
     while (
         (n &&
          (m_policy.space().impl_internal_space_instance()->m_maxShmemPerBlock <
           shmem_size)) ||
-        (n > static_cast<unsigned>(
-                 ::Kokkos::Experimental::Impl::hip_get_max_block_size<
-                     ParallelReduce, LaunchBounds>(f, 1, shmem_size, 0)))) {
+        (n >
+         static_cast<unsigned>(
+             ::Kokkos::Experimental::Impl::hip_get_max_block_size<FunctorType,
+                                                                  LaunchBounds>(
+                 m_policy.space().impl_internal_space_instance(), attr, f, 1,
+                 shmem_size, 0)))) {
       n >>= 1;
       shmem_size = ::Kokkos::Impl::hip_single_inter_block_reduce_scan_shmem<
           false, FunctorType, WorkTag>(f, n);
@@ -391,6 +417,23 @@ class ParallelReduce<FunctorType, Kokkos::MDRangePolicy<Traits...>, ReducerType,
                                   memory_space>::accessible),
         m_scratch_space(nullptr),
         m_scratch_flags(nullptr) {}
+  template <typename Policy, typename Functor>
+  static int max_tile_size_product(const Policy& pol, const Functor&) {
+    using closure_type =
+        ParallelReduce<FunctorType, Kokkos::MDRangePolicy<Traits...>,
+                       ReducerType, Kokkos::Experimental::HIP>;
+    hipFuncAttributes attr = Kokkos::Experimental::Impl::HIPParallelLaunch<
+        closure_type, LaunchBounds>::get_hip_func_attributes();
+    auto const& prop = pol.space().hip_device_prop();
+    // Limits due do registers/SM
+    int const regs_per_sm        = prop.regsPerMultiprocessor;
+    int const regs_per_thread    = attr.numRegs;
+    int const max_threads_per_sm = regs_per_sm / regs_per_thread;
+    return std::min(
+        max_threads_per_sm,
+        static_cast<int>(
+            Kokkos::Experimental::Impl::HIPTraits::MaxThreadsPerBlock));
+  }
 };
 }  // namespace Impl
 }  // namespace Kokkos

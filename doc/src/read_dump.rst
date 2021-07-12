@@ -121,7 +121,7 @@ formatted dump files.  These formats take no additional values.
 
 The *molfile* format supports reading data through using the `VMD <vmd_>`_
 molfile plugin interface. This dump reader format is only available,
-if the USER-MOLFILE package has been installed when compiling
+if the MOLFILE package has been installed when compiling
 LAMMPS.
 
 The *molfile* format takes one or two additional values.  The *style*
@@ -188,7 +188,7 @@ you must set the *box* flag to *no*\ .  See details below.
 For the *molfile* format, reading simulation box information is
 typically supported, but the location of the simulation box origin is
 lost and no explicit information about periodicity or
-orthogonal/triclinic box shape is available.  The USER-MOLFILE package
+orthogonal/triclinic box shape is available.  The MOLFILE package
 makes a best effort to guess based on heuristics, but this may not
 always work perfectly.
 
@@ -376,12 +376,12 @@ To read gzipped dump files, you must compile LAMMPS with the
 -DLAMMPS_GZIP option.  See the :doc:`Build settings <Build_settings>`
 doc page for details.
 
-The *molfile* dump file formats are part of the USER-MOLFILE package.
+The *molfile* dump file formats are part of the MOLFILE package.
 They are only enabled if LAMMPS was built with that packages.  See the
 :doc:`Build package <Build_package>` doc page for more info.
 
 To write and read adios .bp files, you must compile LAMMPS with the
-:ref:`USER-ADIOS <PKG-USER-ADIOS>` package.
+:ref:`ADIOS <PKG-ADIOS>` package.
 
 Related commands
 """"""""""""""""

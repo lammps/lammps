@@ -1,4 +1,4 @@
-The USER-MSCG package adds a fix mscg command, which carries out
+The MSCG package adds a fix mscg command, which carries out
 multi-scale coarse-graining for the parameterization of coarse-grained
 (CG) interactions.
 

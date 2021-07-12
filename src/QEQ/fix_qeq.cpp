@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -415,10 +416,9 @@ int FixQEq::CG(double *b, double *x)
   }
 
   if ((comm->me == 0) && maxwarn && (loop >= maxiter))
-    error->warning(FLERR,fmt::format("Fix qeq CG convergence failed ({}) "
-                                     "after {} iterations at step {}",
-                                     sqrt(sig_new)/b_norm,loop,
-                                     update->ntimestep));
+    error->warning(FLERR,"Fix qeq CG convergence failed ({}) after {} "
+                   "iterations at step {}",sqrt(sig_new)/b_norm,loop,
+                   update->ntimestep);
   return loop;
 }
 

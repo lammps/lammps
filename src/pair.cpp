@@ -1490,7 +1490,7 @@ void Pair::ev_tally_tip4p(int key, int *list, double *v,
    tally virial into global or per-atom accumulators
    called by ReaxFF potential, newton_pair is always on
    fi is magnitude of force on atom i, deli is the direction
-   note that the other atom (j) is not updated, due to newton on 
+   note that the other atom (j) is not updated, due to newton on
 ------------------------------------------------------------------------- */
 
 void Pair::v_tally2_newton(int i, double *fi, double *deli)

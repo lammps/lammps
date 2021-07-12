@@ -356,7 +356,7 @@ namespace ReaxFF {
 
                   /* tally virial */
                   if (system->pair_ptr->vflag_either) {
-                    
+
                     /* Acquire vectors */
                     rvec_ScaledSum(delij, 1., system->my_atoms[i].x, -1., system->my_atoms[j].x);
                     rvec_ScaledSum(delkj, 1., system->my_atoms[k].x, -1., system->my_atoms[j].x);

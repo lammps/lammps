@@ -114,7 +114,9 @@ void AngleFourierSimpleApprox::eval()
 
     th = fastAcos(c);
     nth = (float)N[type]*th;
-    [cn, sn] = sincos(nth);
+    // Combined call to sin & cos. Gets optimized by compiler where possibly to simultaneous call.
+    cn = cos(nth);
+    sn = sin(nth);
     term = k[type]*(1.0+C[type]*cn);
 
     if (EFLAG) eangle = term;

@@ -118,14 +118,6 @@ static float fastCos(float x)
 /* ---------------------------------------------------------------------- */
 
 /**
- * Combined call to sin & cos. Gets optimized by compiler where possibly to simultaneous call.
- * More stable/portable than <math.h>'s call, it seems.
- */
-std::pair<double,double> sincos(double arg) { return { std::sin(arg), std::cos(arg) }; }
-
-/* ---------------------------------------------------------------------- */
-
-/**
  * Approximation of acos 
  * Returns the arccosine of x in the range [0,pi], expecting x to be in the range [-1,+1]. 
  * Absolute error <= 6.7e-5

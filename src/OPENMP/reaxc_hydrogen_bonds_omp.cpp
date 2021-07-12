@@ -43,7 +43,7 @@ namespace ReaxFF {
   /* ---------------------------------------------------------------------- */
 
   void Hydrogen_BondsOMP(reax_system *system, control_params *control,
-                          simulation_data *data, storage *workspace, reax_list **lists)
+                         simulation_data *data, storage *workspace, reax_list **lists)
   {
 
     const int nthreads = control->nthreads;
@@ -58,11 +58,10 @@ namespace ReaxFF {
       int  hblist[MAX_BONDS];
       int  itr, top;
       int  num_hb_intrs = 0;
-      ivec rel_jk;
       double r_jk, theta, cos_theta, sin_xhz4, cos_xhz1, sin_theta2;
       double e_hb, e_hb_thr = 0.0, exp_hb2, exp_hb3, CEhb1, CEhb2, CEhb3;
       rvec dcos_theta_di, dcos_theta_dj, dcos_theta_dk;
-      rvec dvec_jk, force;
+      rvec dvec_jk;
       hbond_parameters *hbp;
       bond_order_data *bo_ij;
       bond_data *pbond_ij;
@@ -119,7 +118,7 @@ namespace ReaxFF {
             bo_ij = &(pbond_ij->bo_data);
 
             if (system->reax_param.sbp[type_i].p_hbond == 2 &&
-                 bo_ij->BO >= HB_THRESHOLD)
+                bo_ij->BO >= HB_THRESHOLD)
               hblist[top++] = pi;
           }
 
@@ -145,11 +144,11 @@ namespace ReaxFF {
                 ++num_hb_intrs;
 
                 Calculate_Theta(pbond_ij->dvec, pbond_ij->d, dvec_jk, r_jk,
-                                 &theta, &cos_theta);
+                                &theta, &cos_theta);
                 /* the derivative of cos(theta) */
                 Calculate_dCos_ThetaOMP(pbond_ij->dvec, pbond_ij->d, dvec_jk, r_jk,
-                                         &dcos_theta_di, &dcos_theta_dj,
-                                         &dcos_theta_dk);
+                                        &dcos_theta_di, &dcos_theta_dj,
+                                        &dcos_theta_dk);
 
                 /* hydrogen bond energy*/
                 sin_theta2 = sin(theta/2.0);
@@ -158,7 +157,7 @@ namespace ReaxFF {
                 cos_xhz1 = (1.0 - cos_theta);
                 exp_hb2 = exp(-hbp->p_hb2 * bo_ij->BO);
                 exp_hb3 = exp(-hbp->p_hb3 * (hbp->r0_hb / r_jk +
-                                               r_jk / hbp->r0_hb - 2.0));
+                                             r_jk / hbp->r0_hb - 2.0));
 
                 e_hb_thr += e_hb = hbp->p_hb1 * (1.0 - exp_hb2) * exp_hb3 * sin_xhz4;
 
@@ -170,51 +169,28 @@ namespace ReaxFF {
                 /* hydrogen bond forces */
                 bo_ij->Cdbo += CEhb1; // dbo term
 
-                if (control->virial == 0) {
-                  // dcos terms
-                  rvec_ScaledAdd(workspace->forceReduction[reductionOffset+i], +CEhb2, dcos_theta_di);
-                  rvec_ScaledAdd(workspace->forceReduction[reductionOffset+j], +CEhb2, dcos_theta_dj);
-                  rvec_ScaledAdd(workspace->forceReduction[reductionOffset+k], +CEhb2, dcos_theta_dk);
-                  // dr terms
-                  rvec_ScaledAdd(workspace->forceReduction[reductionOffset+j], -CEhb3/r_jk, dvec_jk);
-                  rvec_ScaledAdd(workspace->forceReduction[reductionOffset+k], +CEhb3/r_jk, dvec_jk);
-                }
-                else {
-                  /* for pressure coupling, terms that are not related to bond order
-                     derivatives are added directly into pressure vector/tensor */
-                  rvec_Scale(force, +CEhb2, dcos_theta_di); // dcos terms
-                  rvec_Add(workspace->forceReduction[reductionOffset+i], force);
-
-
-                  rvec_ScaledAdd(workspace->forceReduction[reductionOffset+j], +CEhb2, dcos_theta_dj);
-
-                  ivec_Scale(rel_jk, hbond_list[pk].scl, nbr_jk->rel_box);
-                  rvec_Scale(force, +CEhb2, dcos_theta_dk);
-                  rvec_Add(workspace->forceReduction[reductionOffset+k], force);
-                  // dr terms
-                  rvec_ScaledAdd(workspace->forceReduction[reductionOffset+j],-CEhb3/r_jk, dvec_jk);
-
-                  rvec_Scale(force, CEhb3/r_jk, dvec_jk);
-                  rvec_Add(workspace->forceReduction[reductionOffset+k], force);
-                }
+                // dcos terms
+                rvec_ScaledAdd(workspace->forceReduction[reductionOffset+i], +CEhb2, dcos_theta_di);
+                rvec_ScaledAdd(workspace->forceReduction[reductionOffset+j], +CEhb2, dcos_theta_dj);
+                rvec_ScaledAdd(workspace->forceReduction[reductionOffset+k], +CEhb2, dcos_theta_dk);
+                // dr terms
+                rvec_ScaledAdd(workspace->forceReduction[reductionOffset+j], -CEhb3/r_jk, dvec_jk);
+                rvec_ScaledAdd(workspace->forceReduction[reductionOffset+k], +CEhb3/r_jk, dvec_jk);
 
                 /* tally into per-atom virials */
-                if (system->pair_ptr->vflag_atom || system->pair_ptr->evflag) {
-                  rvec_ScaledSum(delij, 1., system->my_atoms[j].x,
-                                  -1., system->my_atoms[i].x);
-                  rvec_ScaledSum(delkj, 1., system->my_atoms[j].x,
-                                  -1., system->my_atoms[k].x);
+                if (system->pair_ptr->vflag_either || system->pair_ptr->eflag_either) {
+                  rvec_ScaledSum(delij, 1., system->my_atoms[j].x, -1., system->my_atoms[i].x);
+                  rvec_ScaledSum(delkj, 1., system->my_atoms[j].x, -1., system->my_atoms[k].x);
 
                   rvec_Scale(fi_tmp, CEhb2, dcos_theta_di);
                   rvec_Scale(fk_tmp, CEhb2, dcos_theta_dk);
                   rvec_ScaledAdd(fk_tmp, CEhb3/r_jk, dvec_jk);
 
-                  pair_reax_ptr->ev_tally3_thr_proxy(system->pair_ptr,i,j,k,e_hb,0.0,fi_tmp,fk_tmp,delij,delkj,thr);
+                  pair_reax_ptr->ev_tally3_thr_proxy(i,j,k,e_hb,0.0,fi_tmp,fk_tmp,delij,delkj,thr);
                 }
               }
             }
           }
-
         }
       }
 #if defined(_OPENMP)

@@ -464,9 +464,6 @@ void PairReaxC::compute(int eflag, int vflag)
   evdwl = ecoul = 0.0;
   ev_init(eflag,vflag);
 
-  if (vflag_global) api->control->virial = 1;
-  else api->control->virial = 0;
-
   api->system->n = atom->nlocal; // my atoms
   api->system->N = atom->nlocal + atom->nghost; // mine + ghosts
   api->system->bigN = static_cast<int> (atom->natoms);  // all atoms in the system

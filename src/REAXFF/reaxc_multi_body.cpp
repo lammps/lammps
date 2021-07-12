@@ -93,8 +93,8 @@ namespace ReaxFF {
     if (numbonds > 0 || control->enobondsflag)
       workspace->CdDelta[i] += CElp;  // lp - 1st term
 
-    /* tally into per-atom energy */
-    if (system->pair_ptr->evflag)
+    /* tally energy into global or per-atom energy accumulators */
+    if (system->pair_ptr->eflag_either)
       system->pair_ptr->ev_tally(i,i,system->n,1,e_lp,0.0,0.0,0.0,0.0,0.0);
 
     /* correction for C2 */
@@ -119,8 +119,8 @@ namespace ReaxFF {
             bo_ij->Cdbo += deahu2dbo;
             workspace->CdDelta[i] += deahu2dsbo;
 
-            /* tally into per-atom energy */
-            if (system->pair_ptr->evflag)
+            /* tally energy into global or per-atom energy accumulators */
+            if (system->pair_ptr->eflag_either)
               system->pair_ptr->ev_tally(i,j,system->n,1,e_lph,0.0,0.0,0.0,0.0,0.0);
 
           }
@@ -202,8 +202,8 @@ namespace ReaxFF {
     CEunder4 = CEunder1 * (dfvl*workspace->Delta_lp_temp[i]) *
       p_ovun4 * exp_ovun1 * SQR(inv_exp_ovun1) + CEunder2;
 
-    /* tally into per-atom energy */
-    if (system->pair_ptr->evflag) {
+    /* tally energy into global or per-atom energy accumulators */
+    if (system->pair_ptr->eflag_either) {
       eng_tmp = e_ov;
       if (numbonds > 0 || control->enobondsflag)
         eng_tmp += e_un;

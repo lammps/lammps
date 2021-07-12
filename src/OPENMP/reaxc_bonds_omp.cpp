@@ -121,8 +121,8 @@ namespace ReaxFF {
             -twbp->De_pp * bo_ij->BO_pi2;
 
           /* tally into per-atom energy */
-          if (system->pair_ptr->evflag)
-            pair_reax_ptr->ev_tally_thr_proxy(system->pair_ptr, i, j, natoms, 1,
+          if (system->pair_ptr->eflag_either)
+            pair_reax_ptr->ev_tally_thr_proxy( i, j, natoms, 1,
                                               ebond, 0.0, 0.0, 0.0, 0.0, 0.0, thr);
 
           /* calculate derivatives of Bond Orders */
@@ -152,8 +152,8 @@ namespace ReaxFF {
                 (gp3*exphub1 + 25.0*gp4*exphuov*hulpov*(exphua1+exphub1));
 
               /* tally into per-atom energy */
-              if (system->pair_ptr->evflag)
-                pair_reax_ptr->ev_tally_thr_proxy(system->pair_ptr, i, j, natoms, 1,
+              if (system->pair_ptr->eflag_either)
+                pair_reax_ptr->ev_tally_thr_proxy( i, j, natoms, 1,
                                                   estriph, 0.0, 0.0, 0.0, 0.0, 0.0, thr);
 
               bo_ij->Cdbo += decobdbo;

@@ -118,8 +118,8 @@ namespace ReaxFF {
         if (numbonds > 0) workspace->CdDelta[i] += CElp;  // lp - 1st term
 
         /* tally into per-atom energy */
-        if (system->pair_ptr->evflag)
-          pair_reax_ptr->ev_tally_thr_proxy(system->pair_ptr, i, i, system->n, 1,
+        if (system->pair_ptr->eflag_either)
+          pair_reax_ptr->ev_tally_thr_proxy( i, i, system->n, 1,
                                             e_lp, 0.0, 0.0, 0.0, 0.0, 0.0, thr);
 
         /* correction for C2 */
@@ -145,8 +145,8 @@ namespace ReaxFF {
                 workspace->CdDelta[i] += deahu2dsbo;
 
                 /* tally into per-atom energy */
-                if (system->pair_ptr->evflag)
-                  pair_reax_ptr->ev_tally_thr_proxy(system->pair_ptr, i, j, system->n, 1,
+                if (system->pair_ptr->eflag_either)
+                  pair_reax_ptr->ev_tally_thr_proxy( i, j, system->n, 1,
                                                     e_lph, 0.0, 0.0, 0.0, 0.0, 0.0, thr);
               }
             }
@@ -229,10 +229,10 @@ namespace ReaxFF {
           p_ovun4 * exp_ovun1 * SQR(inv_exp_ovun1) + CEunder2;
 
         /* tally into per-atom energy */
-        if (system->pair_ptr->evflag) {
+        if (system->pair_ptr->eflag_either) {
           eng_tmp = e_ov;
           if (numbonds > 0) eng_tmp+= e_un;
-          pair_reax_ptr->ev_tally_thr_proxy(system->pair_ptr, i, i, system->n, 1,
+          pair_reax_ptr->ev_tally_thr_proxy( i, i, system->n, 1,
                                             eng_tmp, 0.0, 0.0, 0.0, 0.0, 0.0, thr);
         }
 

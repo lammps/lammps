@@ -54,7 +54,6 @@ namespace ReaxFF
                  single_body_parameters *, single_body_parameters *,
                  two_body_parameters *);
   extern void Add_dBond_to_Forces(reax_system*, int, int, storage*, reax_list**);
-  extern void Add_dBond_to_Forces_NPT(int, int, storage*, reax_list**);
 
   // bonds
 
@@ -78,8 +77,8 @@ namespace ReaxFF
 
   // hydrogen bonds
 
-  extern void Hydrogen_Bonds(reax_system *, control_params *,
-                             simulation_data *, storage *, reax_list **);
+  extern void Hydrogen_Bonds(reax_system *, simulation_data *, storage *, reax_list **);
+
   // init md
 
   extern void Init_System(reax_system *, control_params *);

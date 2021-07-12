@@ -32,8 +32,7 @@
 #include <cmath>
 
 namespace ReaxFF {
-  void Bonds(reax_system *system, simulation_data *data,
-             storage *workspace, reax_list **lists)
+  void Bonds(reax_system *system, simulation_data *data, storage *workspace, reax_list **lists)
   {
     int i, j, pj, natoms;
     int start_i, end_i;
@@ -94,8 +93,8 @@ namespace ReaxFF {
           -twbp->De_p * bo_ij->BO_pi
           -twbp->De_pp * bo_ij->BO_pi2;
 
-        /* tally into per-atom energy */
-        if (system->pair_ptr->evflag)
+        /* tally energy into global or per-atom energy accumulators */
+        if (system->pair_ptr->eflag_either)
           system->pair_ptr->ev_tally(i,j,natoms,1,ebond,0.0,0.0,0.0,0.0,0.0);
 
         /* calculate derivatives of Bond Orders */
@@ -124,8 +123,8 @@ namespace ReaxFF {
             decobdboub = -gp10 * exphu * hulpov *
               (gp3*exphub1 + 25.0*gp4*exphuov*hulpov*(exphua1+exphub1));
 
-            /* tally into per-atom energy */
-            if (system->pair_ptr->evflag)
+            /* tally energy into global or per-atom energy accumulators */
+            if (system->pair_ptr->eflag_either)
               system->pair_ptr->ev_tally(i,j,natoms,1,estriph,0.0,0.0,0.0,0.0,0.0);
 
             bo_ij->Cdbo += decobdbo;

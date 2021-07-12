@@ -64,7 +64,6 @@ namespace ReaxFF {
       double e_ele, e_vdW, e_core;
       const double SMALL = 0.0001;
       double e_lg, de_lg, r_ij5, r_ij6, re6;
-      rvec temp;
       two_body_parameters *twbp;
       far_neighbor_data *nbr_pj;
 
@@ -203,23 +202,14 @@ namespace ReaxFF {
               rvec_ScaledSum(delij, 1., system->my_atoms[i].x,
                               -1., system->my_atoms[j].x);
               f_tmp = -(CEvd + CEclmb);
-              pair_reax_ptr->ev_tally_thr_proxy(system->pair_ptr, i, j, natoms,
+              pair_reax_ptr->ev_tally_thr_proxy( i, j, natoms,
                                                 1, pe_vdw, e_ele, f_tmp,
                                                 delij[0], delij[1], delij[2], thr);
             }
 
-            if (control->virial == 0) {
-              rvec_ScaledAdd(workspace->f[i], -(CEvd + CEclmb), nbr_pj->dvec);
-              rvec_ScaledAdd(workspace->forceReduction[reductionOffset+j],
-                              +(CEvd + CEclmb), nbr_pj->dvec);
-            } else { /* NPT, iNPT or sNPT */
-              /* for pressure coupling, terms not related to bond order
-                 derivatives are added directly into pressure vector/tensor */
-
-              rvec_Scale(temp, CEvd + CEclmb, nbr_pj->dvec);
-              rvec_ScaledAdd(workspace->f[reductionOffset+i], -1., temp);
-              rvec_Add(workspace->forceReduction[reductionOffset+j], temp);
-            }
+            rvec_ScaledAdd(workspace->f[i], -(CEvd + CEclmb), nbr_pj->dvec);
+            rvec_ScaledAdd(workspace->forceReduction[reductionOffset+j],
+                           +(CEvd + CEclmb), nbr_pj->dvec);
           }
         }
       }
@@ -257,7 +247,6 @@ namespace ReaxFF {
       double e_vdW, e_ele;
       double CEvd, CEclmb;
       double f_tmp, delij[3];
-      rvec temp;
       far_neighbor_data *nbr_pj;
       LR_lookup_table *t;
 
@@ -332,26 +321,17 @@ namespace ReaxFF {
             CEclmb *= system->my_atoms[i].q * system->my_atoms[j].q;
 
             /* tally into per-atom energy */
-            if (system->pair_ptr->evflag || system->pair_ptr->vflag_atom) {
+            if (system->pair_ptr->evflag) {
               rvec_ScaledSum(delij, 1., system->my_atoms[i].x,
                               -1., system->my_atoms[j].x);
               f_tmp = -(CEvd + CEclmb);
-              pair_reax_ptr->ev_tally_thr_proxy(system->pair_ptr, i, j, natoms, 1, e_vdW, e_ele,
+              pair_reax_ptr->ev_tally_thr_proxy( i, j, natoms, 1, e_vdW, e_ele,
                                                 f_tmp, delij[0], delij[1], delij[2], thr);
             }
 
-            if (control->virial == 0) {
-              rvec_ScaledAdd(workspace->f[i], -(CEvd + CEclmb), nbr_pj->dvec);
-              rvec_ScaledAdd(workspace->forceReduction[froffset+j],
-                              +(CEvd + CEclmb), nbr_pj->dvec);
-            } else { // NPT, iNPT or sNPT
-              /* for pressure coupling, terms not related to bond order derivatives
-                 are added directly into pressure vector/tensor */
-              rvec_Scale(temp, CEvd + CEclmb, nbr_pj->dvec);
-
-              rvec_ScaledAdd(workspace->f[i], -1., temp);
-              rvec_Add(workspace->forceReduction[froffset+j], temp);
-            }
+            rvec_ScaledAdd(workspace->f[i], -(CEvd + CEclmb), nbr_pj->dvec);
+            rvec_ScaledAdd(workspace->forceReduction[froffset+j],
+                           +(CEvd + CEclmb), nbr_pj->dvec);
           }
         }
       }

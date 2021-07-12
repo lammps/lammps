@@ -240,7 +240,6 @@ namespace ReaxFF
     double thb_cutsq;
 
     int tabulate;
-    int  virial;
 
     int lgflag;
     int enobondsflag;

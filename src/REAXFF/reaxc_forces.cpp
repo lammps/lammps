@@ -47,7 +47,7 @@ namespace ReaxFF {
     Valence_Angles(system, control, data, workspace, lists);
     Torsion_Angles(system, control, data, workspace, lists);
     if (control->hbond_cut > 0)
-      Hydrogen_Bonds(system, control, data, workspace, lists);
+      Hydrogen_Bonds(system, data, workspace, lists);
   }
 
   static void Compute_NonBonded_Forces(reax_system *system,
@@ -64,21 +64,15 @@ namespace ReaxFF {
       Tabulated_vdW_Coulomb_Energy(system, control, data, workspace, lists);
   }
 
-  static void Compute_Total_Force(reax_system *system, control_params *control,
-                                  storage *workspace, reax_list **lists)
+  static void Compute_Total_Force(reax_system *system, storage *workspace, reax_list **lists)
   {
     int i, pj;
     reax_list *bonds = (*lists) + BONDS;
 
     for (i = 0; i < system->N; ++i)
       for (pj = Start_Index(i, bonds); pj < End_Index(i, bonds); ++pj)
-        if (i < bonds->select.bond_list[pj].nbr) {
-          if (control->virial == 0)
+        if (i < bonds->select.bond_list[pj].nbr)
             Add_dBond_to_Forces(system, i, pj, workspace, lists);
-          else
-            Add_dBond_to_Forces_NPT(i, pj, workspace, lists);
-        }
-
   }
 
   static void Validate_Lists(reax_system *system, reax_list **lists,
@@ -387,6 +381,6 @@ namespace ReaxFF {
     Compute_NonBonded_Forces(system, control, data, workspace, lists);
 
     /*********** total force ***************/
-    Compute_Total_Force(system, control, workspace, lists);
+    Compute_Total_Force(system, workspace, lists);
   }
 }

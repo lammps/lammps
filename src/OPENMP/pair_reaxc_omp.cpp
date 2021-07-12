@@ -233,9 +233,6 @@ void PairReaxCOMP::compute(int eflag, int vflag)
   evdwl = ecoul = 0.0;
   ev_init(eflag,vflag);
 
-  if (vflag_global) api->control->virial = 1;
-  else api->control->virial = 0;
-
   if (vflag_atom)
      error->all(FLERR,"Pair style reax/c/omp does not support "
                 "computing per-atom stress");

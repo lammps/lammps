@@ -47,8 +47,8 @@ namespace ReaxFF {
                                  (system->reax_param.sbp[type_i].eta / 2.) * SQR(q));
       data->my_en.e_pol += en_tmp;
 
-      /* tally into per-atom energy */
-      if (system->pair_ptr->evflag)
+      /* tally energy into global or per-atom energy accumulators */
+      if (system->pair_ptr->eflag_either)
         system->pair_ptr->ev_tally(i,i,system->n,1,0.0,en_tmp,0.0,0.0,0.0,0.0);
     }
   }
@@ -67,7 +67,6 @@ namespace ReaxFF {
     double dr3gamij_1, dr3gamij_3;
     double e_ele, e_vdW, e_core, SMALL = 0.0001;
     double e_lg, de_lg, r_ij5, r_ij6, re6;
-    rvec temp;
     two_body_parameters *twbp;
     far_neighbor_data *nbr_pj;
     reax_list *far_nbrs;
@@ -193,7 +192,7 @@ namespace ReaxFF {
             (dTap -  Tap * r_ij / dr3gamij_1) / dr3gamij_3;
 
           /* tally into per-atom energy */
-          if (system->pair_ptr->evflag || system->pair_ptr->vflag_atom) {
+          if (system->pair_ptr->evflag) {
             pe_vdw = Tap * (e_vdW + e_core + e_lg);
             rvec_ScaledSum(delij, 1., system->my_atoms[i].x,
                             -1., system->my_atoms[j].x);
@@ -202,15 +201,8 @@ namespace ReaxFF {
                                        f_tmp,delij[0],delij[1],delij[2]);
           }
 
-          if (control->virial == 0) {
-            rvec_ScaledAdd(workspace->f[i], -(CEvd + CEclmb), nbr_pj->dvec);
-            rvec_ScaledAdd(workspace->f[j], +(CEvd + CEclmb), nbr_pj->dvec);
-          } else { /* NPT, iNPT or sNPT */
-            rvec_Scale(temp, CEvd + CEclmb, nbr_pj->dvec);
-
-            rvec_ScaledAdd(workspace->f[i], -1., temp);
-            rvec_Add(workspace->f[j], temp);
-          }
+          rvec_ScaledAdd(workspace->f[i], -(CEvd + CEclmb), nbr_pj->dvec);
+          rvec_ScaledAdd(workspace->f[j], +(CEvd + CEclmb), nbr_pj->dvec);
         }
       }
     }
@@ -231,7 +223,6 @@ namespace ReaxFF {
     double CEvd, CEclmb, SMALL = 0.0001;
     double f_tmp, delij[3];
 
-    rvec temp;
     far_neighbor_data *nbr_pj;
     reax_list *far_nbrs;
     LR_lookup_table *t;
@@ -301,7 +292,7 @@ namespace ReaxFF {
           CEclmb *= system->my_atoms[i].q * system->my_atoms[j].q;
 
           /* tally into per-atom energy */
-          if (system->pair_ptr->evflag || system->pair_ptr->vflag_atom) {
+          if (system->pair_ptr->evflag) {
             rvec_ScaledSum(delij, 1., system->my_atoms[i].x,
                             -1., system->my_atoms[j].x);
             f_tmp = -(CEvd + CEclmb);
@@ -309,15 +300,8 @@ namespace ReaxFF {
                                        f_tmp,delij[0],delij[1],delij[2]);
           }
 
-          if (control->virial == 0) {
-            rvec_ScaledAdd(workspace->f[i], -(CEvd + CEclmb), nbr_pj->dvec);
-            rvec_ScaledAdd(workspace->f[j], +(CEvd + CEclmb), nbr_pj->dvec);
-          } else { // NPT, iNPT or sNPT
-            rvec_Scale(temp, CEvd + CEclmb, nbr_pj->dvec);
-
-            rvec_ScaledAdd(workspace->f[i], -1., temp);
-            rvec_Add(workspace->f[j], temp);
-          }
+          rvec_ScaledAdd(workspace->f[i], -(CEvd + CEclmb), nbr_pj->dvec);
+          rvec_ScaledAdd(workspace->f[j], +(CEvd + CEclmb), nbr_pj->dvec);
         }
       }
     }

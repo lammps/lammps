@@ -144,8 +144,6 @@ namespace ReaxFF {
     double CEconj4, CEconj5, CEconj6;
     double e_tor, e_con;
     rvec dvec_li;
-    rvec force;
-    ivec rel_box_jl;
     four_body_header *fbh;
     four_body_parameters *fbp;
     bond_data *pbond_ij, *pbond_jk, *pbond_kl;
@@ -351,81 +349,29 @@ namespace ReaxFF {
                     bo_jk->Cdbo += (CEtors5 + CEconj2);
                     bo_kl->Cdbo += (CEtors6 + CEconj3);
 
-                    if (control->virial == 0) {
-                      /* dcos_theta_ijk */
-                      rvec_ScaledAdd(workspace->f[i],
-                                      CEtors7 + CEconj4, p_ijk->dcos_dk);
-                      rvec_ScaledAdd(workspace->f[j],
-                                      CEtors7 + CEconj4, p_ijk->dcos_dj);
-                      rvec_ScaledAdd(workspace->f[k],
-                                      CEtors7 + CEconj4, p_ijk->dcos_di);
+                    /* dcos_theta_ijk */
+                    rvec_ScaledAdd(workspace->f[i], CEtors7 + CEconj4, p_ijk->dcos_dk);
+                    rvec_ScaledAdd(workspace->f[j], CEtors7 + CEconj4, p_ijk->dcos_dj);
+                    rvec_ScaledAdd(workspace->f[k], CEtors7 + CEconj4, p_ijk->dcos_di);
 
-                      /* dcos_theta_jkl */
-                      rvec_ScaledAdd(workspace->f[j],
-                                      CEtors8 + CEconj5, p_jkl->dcos_di);
-                      rvec_ScaledAdd(workspace->f[k],
-                                      CEtors8 + CEconj5, p_jkl->dcos_dj);
-                      rvec_ScaledAdd(workspace->f[l],
-                                      CEtors8 + CEconj5, p_jkl->dcos_dk);
+                    /* dcos_theta_jkl */
+                    rvec_ScaledAdd(workspace->f[j], CEtors8 + CEconj5, p_jkl->dcos_di);
+                    rvec_ScaledAdd(workspace->f[k], CEtors8 + CEconj5, p_jkl->dcos_dj);
+                    rvec_ScaledAdd(workspace->f[l], CEtors8 + CEconj5, p_jkl->dcos_dk);
 
-                      /* dcos_omega */
-                      rvec_ScaledAdd(workspace->f[i],
-                                      CEtors9 + CEconj6, dcos_omega_di);
-                      rvec_ScaledAdd(workspace->f[j],
-                                      CEtors9 + CEconj6, dcos_omega_dj);
-                      rvec_ScaledAdd(workspace->f[k],
-                                      CEtors9 + CEconj6, dcos_omega_dk);
-                      rvec_ScaledAdd(workspace->f[l],
-                                      CEtors9 + CEconj6, dcos_omega_dl);
-                    }
-                    else {
-                      ivec_Sum(rel_box_jl, pbond_jk->rel_box, pbond_kl->rel_box);
-
-                      /* dcos_theta_ijk */
-                      rvec_Scale(force, CEtors7 + CEconj4, p_ijk->dcos_dk);
-                      rvec_Add(workspace->f[i], force);
-
-                      rvec_ScaledAdd(workspace->f[j],
-                                      CEtors7 + CEconj4, p_ijk->dcos_dj);
-
-                      rvec_Scale(force, CEtors7 + CEconj4, p_ijk->dcos_di);
-                      rvec_Add(workspace->f[k], force);
-
-                      /* dcos_theta_jkl */
-                      rvec_ScaledAdd(workspace->f[j],
-                                      CEtors8 + CEconj5, p_jkl->dcos_di);
-
-                      rvec_Scale(force, CEtors8 + CEconj5, p_jkl->dcos_dj);
-                      rvec_Add(workspace->f[k], force);
-
-                      rvec_Scale(force, CEtors8 + CEconj5, p_jkl->dcos_dk);
-                      rvec_Add(workspace->f[l], force);
-
-
-                      /* dcos_omega */
-                      rvec_Scale(force, CEtors9 + CEconj6, dcos_omega_di);
-                      rvec_Add(workspace->f[i], force);
-
-                      rvec_ScaledAdd(workspace->f[j],
-                                      CEtors9 + CEconj6, dcos_omega_dj);
-
-                      rvec_Scale(force, CEtors9 + CEconj6, dcos_omega_dk);
-                      rvec_Add(workspace->f[k], force);
-
-                      rvec_Scale(force, CEtors9 + CEconj6, dcos_omega_dl);
-                      rvec_Add(workspace->f[l], force);
-                    }
+                    /* dcos_omega */
+                    rvec_ScaledAdd(workspace->f[i], CEtors9 + CEconj6, dcos_omega_di);
+                    rvec_ScaledAdd(workspace->f[j], CEtors9 + CEconj6, dcos_omega_dj);
+                    rvec_ScaledAdd(workspace->f[k], CEtors9 + CEconj6, dcos_omega_dk);
+                    rvec_ScaledAdd(workspace->f[l], CEtors9 + CEconj6, dcos_omega_dl);
 
                     /* tally into per-atom virials */
-                    if (system->pair_ptr->vflag_atom || system->pair_ptr->evflag) {
+                    if (system->pair_ptr->evflag) {
 
                       // acquire vectors
-                      rvec_ScaledSum(delil, 1., system->my_atoms[l].x,
-                                      -1., system->my_atoms[i].x);
-                      rvec_ScaledSum(deljl, 1., system->my_atoms[l].x,
-                                      -1., system->my_atoms[j].x);
-                      rvec_ScaledSum(delkl, 1., system->my_atoms[l].x,
-                                      -1., system->my_atoms[k].x);
+                      rvec_ScaledSum(delil, 1., system->my_atoms[l].x, -1., system->my_atoms[i].x);
+                      rvec_ScaledSum(deljl, 1., system->my_atoms[l].x, -1., system->my_atoms[j].x);
+                      rvec_ScaledSum(delkl, 1., system->my_atoms[l].x, -1., system->my_atoms[k].x);
                       // dcos_theta_ijk
                       rvec_Scale(fi_tmp, CEtors7 + CEconj4, p_ijk->dcos_dk);
                       rvec_Scale(fj_tmp, CEtors7 + CEconj4, p_ijk->dcos_dj);
@@ -442,9 +388,9 @@ namespace ReaxFF {
 
                       // tally
                       eng_tmp = e_tor + e_con;
-                      if (system->pair_ptr->evflag)
+                      if (system->pair_ptr->eflag_either)
                         system->pair_ptr->ev_tally(j,k,natoms,1,eng_tmp,0.0,0.0,0.0,0.0,0.0);
-                      if (system->pair_ptr->vflag_atom)
+                      if (system->pair_ptr->vflag_either)
                         system->pair_ptr->v_tally4(i,j,k,l,fi_tmp,fj_tmp,fk_tmp,delil,deljl,delkl);
                     }
                   } // pl check ends

@@ -67,9 +67,8 @@ namespace ReaxFF {
   }
 
 
-  void Valence_Angles(reax_system *system, control_params *control,
-                       simulation_data *data, storage *workspace,
-                       reax_list **lists)
+  void Valence_Angles(reax_system *system, control_params *control, simulation_data *data,
+                      storage *workspace, reax_list **lists)
   {
     int i, j, pi, k, pk, t;
     int type_i, type_j, type_k;
@@ -92,7 +91,6 @@ namespace ReaxFF {
     double f7_ij, f7_jk, f8_Dj, f9_Dj;
     double Ctheta_0, theta_0, theta_00, theta, cos_theta, sin_theta;
     double BOA_ij, BOA_jk;
-    rvec force;
 
     // Tallying variables
     double eng_tmp, fi_tmp[3], fj_tmp[3], fk_tmp[3];
@@ -114,7 +112,7 @@ namespace ReaxFF {
     num_thb_intrs = 0;
 
 
-    for (j = 0; j < system->N; ++j) {         // Ray: the first one with system->N
+    for (j = 0; j < system->N; ++j) {
       type_j = system->my_atoms[j].type;
       if (type_j < 0) continue;
       start_j = Start_Index(j, bonds);
@@ -217,7 +215,6 @@ namespace ReaxFF {
               sin_theta = 1.0e-5;
 
             ++num_thb_intrs;
-
 
             if ((j < system->n) && (BOA_jk > 0.0) &&
                 (bo_ij->BO > control->thb_cut) &&
@@ -347,39 +344,26 @@ namespace ReaxFF {
                     bo_jt->Cdbopi2 += CEval5;
                   }
 
-                  if (control->virial == 0) {
-                    rvec_ScaledAdd(workspace->f[i], CEval8, p_ijk->dcos_di);
-                    rvec_ScaledAdd(workspace->f[j], CEval8, p_ijk->dcos_dj);
-                    rvec_ScaledAdd(workspace->f[k], CEval8, p_ijk->dcos_dk);
-                  } else {
-                    rvec_Scale(force, CEval8, p_ijk->dcos_di);
-                    rvec_Add(workspace->f[i], force);
+                  rvec_ScaledAdd(workspace->f[i], CEval8, p_ijk->dcos_di);
+                  rvec_ScaledAdd(workspace->f[j], CEval8, p_ijk->dcos_dj);
+                  rvec_ScaledAdd(workspace->f[k], CEval8, p_ijk->dcos_dk);
 
-                    rvec_ScaledAdd(workspace->f[j], CEval8, p_ijk->dcos_dj);
-
-                    rvec_Scale(force, CEval8, p_ijk->dcos_dk);
-                    rvec_Add(workspace->f[k], force);
+                  /* tally energy */
+                  if (system->pair_ptr->eflag_either) {
+                    eng_tmp = e_ang + e_pen + e_coa;
+                    system->pair_ptr->ev_tally(j,j,system->N,1,eng_tmp,0.0,0.0,0.0,0.0,0.0);
                   }
 
-                  /* tally into per-atom virials */
-                  if (system->pair_ptr->vflag_atom || system->pair_ptr->evflag) {
-
+                  /* tally virial */
+                  if (system->pair_ptr->vflag_either) {
+                    
                     /* Acquire vectors */
-                    rvec_ScaledSum(delij, 1., system->my_atoms[i].x,
-                                    -1., system->my_atoms[j].x);
-                    rvec_ScaledSum(delkj, 1., system->my_atoms[k].x,
-                                    -1., system->my_atoms[j].x);
-
+                    rvec_ScaledSum(delij, 1., system->my_atoms[i].x, -1., system->my_atoms[j].x);
+                    rvec_ScaledSum(delkj, 1., system->my_atoms[k].x, -1., system->my_atoms[j].x);
                     rvec_Scale(fi_tmp, -CEval8, p_ijk->dcos_di);
                     rvec_Scale(fj_tmp, -CEval8, p_ijk->dcos_dj);
                     rvec_Scale(fk_tmp, -CEval8, p_ijk->dcos_dk);
-
-                    eng_tmp = e_ang + e_pen + e_coa;
-
-                    if (system->pair_ptr->evflag)
-                      system->pair_ptr->ev_tally(j,j,system->N,1,eng_tmp,0.0,0.0,0.0,0.0,0.0);
-                    if (system->pair_ptr->vflag_atom)
-                      system->pair_ptr->v_tally3(i,j,k,fi_tmp,fk_tmp,delij,delkj);
+                    system->pair_ptr->v_tally3(i,j,k,fi_tmp,fk_tmp,delij,delkj);
                   }
                 }
               }

@@ -32,9 +32,7 @@
 #include "pair.h"
 
 namespace ReaxFF {
-  void Hydrogen_Bonds(reax_system *system, control_params *control,
-                      simulation_data *data, storage *workspace,
-                      reax_list **lists)
+  void Hydrogen_Bonds(reax_system *system, simulation_data *data, storage *workspace, reax_list **lists)
   {
     int  i, j, k, pi, pk;
     int  type_i, type_j, type_k;
@@ -42,11 +40,10 @@ namespace ReaxFF {
     int  hblist[MAX_BONDS];
     int  itr, top;
     int  num_hb_intrs = 0;
-    ivec rel_jk;
     double r_jk, theta, cos_theta, sin_xhz4, cos_xhz1, sin_theta2;
     double e_hb, exp_hb2, exp_hb3, CEhb1, CEhb2, CEhb3;
     rvec dcos_theta_di, dcos_theta_dj, dcos_theta_dk;
-    rvec dvec_jk, force;
+    rvec dvec_jk;
     hbond_parameters *hbp;
     bond_order_data *bo_ij;
     bond_data *pbond_ij;
@@ -134,34 +131,16 @@ namespace ReaxFF {
               /* hydrogen bond forces */
               bo_ij->Cdbo += CEhb1; // dbo term
 
-              if (control->virial == 0) {
-                // dcos terms
-                rvec_ScaledAdd(workspace->f[i], +CEhb2, dcos_theta_di);
-                rvec_ScaledAdd(workspace->f[j], +CEhb2, dcos_theta_dj);
-                rvec_ScaledAdd(workspace->f[k], +CEhb2, dcos_theta_dk);
-                // dr terms
-                rvec_ScaledAdd(workspace->f[j], -CEhb3/r_jk, dvec_jk);
-                rvec_ScaledAdd(workspace->f[k], +CEhb3/r_jk, dvec_jk);
-              }
-              else {
-                rvec_Scale(force, +CEhb2, dcos_theta_di); // dcos terms
-                rvec_Add(workspace->f[i], force);
-
-                rvec_ScaledAdd(workspace->f[j], +CEhb2, dcos_theta_dj);
-
-                ivec_Scale(rel_jk, hbond_list[pk].scl, nbr_jk->rel_box);
-                rvec_Scale(force, +CEhb2, dcos_theta_dk);
-                rvec_Add(workspace->f[k], force);
-
-                // dr terms
-                rvec_ScaledAdd(workspace->f[j], -CEhb3/r_jk, dvec_jk);
-
-                rvec_Scale(force, CEhb3/r_jk, dvec_jk);
-                rvec_Add(workspace->f[k], force);
-              }
+              // dcos terms
+              rvec_ScaledAdd(workspace->f[i], +CEhb2, dcos_theta_di);
+              rvec_ScaledAdd(workspace->f[j], +CEhb2, dcos_theta_dj);
+              rvec_ScaledAdd(workspace->f[k], +CEhb2, dcos_theta_dk);
+              // dr terms
+              rvec_ScaledAdd(workspace->f[j], -CEhb3/r_jk, dvec_jk);
+              rvec_ScaledAdd(workspace->f[k], +CEhb3/r_jk, dvec_jk);
 
               /* tally into per-atom virials */
-              if (system->pair_ptr->vflag_atom || system->pair_ptr->evflag) {
+              if (system->pair_ptr->evflag) {
                 rvec_ScaledSum(delij, 1., system->my_atoms[j].x,
                                 -1., system->my_atoms[i].x);
                 rvec_ScaledSum(delkj, 1., system->my_atoms[j].x,

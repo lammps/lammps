@@ -119,33 +119,16 @@ namespace ReaxFF {
         }
       }
 
-      if (control->virial == 0) {
-
 #if defined(_OPENMP)
 #pragma omp for schedule(dynamic,50)
 #endif
-        for (i = 0; i < system->N; ++i) {
-          const int startj = Start_Index(i, bonds);
-          const int endj  = End_Index(i, bonds);
-          for (pj = startj; pj < endj; ++pj)
-            if (i < bonds->select.bond_list[pj].nbr)
-              Add_dBond_to_ForcesOMP(system, i, pj, workspace, lists);
-        }
-
-      } else {
-
-#if defined(_OPENMP)
-#pragma omp for schedule(dynamic,50)
-#endif
-        for (i = 0; i < system->N; ++i) {
-          const int startj = Start_Index(i, bonds);
-          const int endj  = End_Index(i, bonds);
-          for (pj = startj; pj < endj; ++pj)
-            if (i < bonds->select.bond_list[pj].nbr)
-              Add_dBond_to_Forces_NPTOMP(system, i, pj, workspace, lists);
-        }
-
-      } // if (virial == 0)
+      for (i = 0; i < system->N; ++i) {
+        const int startj = Start_Index(i, bonds);
+        const int endj  = End_Index(i, bonds);
+        for (pj = startj; pj < endj; ++pj)
+          if (i < bonds->select.bond_list[pj].nbr)
+            Add_dBond_to_ForcesOMP(system, i, pj, workspace, lists);
+      }
 
       pair_reax_ptr->reduce_thr_proxy(system->pair_ptr, 0, 1, thr);
 

@@ -140,7 +140,6 @@ namespace ReaxFF {
       double f7_ij, f7_jk, f8_Dj, f9_Dj;
       double Ctheta_0, theta_0, theta_00, theta, cos_theta, sin_theta;
       double BOA_ij, BOA_jk;
-      rvec force;
 
       // Tallying variables
       double eng_tmp, fi_tmp[3], fj_tmp[3], fk_tmp[3];
@@ -519,26 +518,12 @@ namespace ReaxFF {
                       bo_jt->Cdbopi2 += CEval5;
                     }
 
-                    if (control->virial == 0) {
-                      rvec_ScaledAdd(workspace->f[j], CEval8, p_ijk->dcos_dj);
-                      rvec_ScaledAdd(workspace->forceReduction[reductionOffset+i],
-                                     CEval8, p_ijk->dcos_di);
-                      rvec_ScaledAdd(workspace->forceReduction[reductionOffset+k],
-                                     CEval8, p_ijk->dcos_dk);
-                    } else {
-                      /* terms not related to bond order derivatives are
-                         added directly into forces and pressure vector/tensor */
-                      rvec_Scale(force, CEval8, p_ijk->dcos_di);
-                      rvec_Add(workspace->forceReduction[reductionOffset+i], force);
-
-                      rvec_ScaledAdd(workspace->f[j], CEval8, p_ijk->dcos_dj);
-
-                      rvec_Scale(force, CEval8, p_ijk->dcos_dk);
-                      rvec_Add(workspace->forceReduction[reductionOffset+k], force);
-                    }
+                    rvec_ScaledAdd(workspace->f[j], CEval8, p_ijk->dcos_dj);
+                    rvec_ScaledAdd(workspace->forceReduction[reductionOffset+i], CEval8, p_ijk->dcos_di);
+                    rvec_ScaledAdd(workspace->forceReduction[reductionOffset+k], CEval8, p_ijk->dcos_dk);
 
                     /* tally into per-atom virials */
-                    if (system->pair_ptr->vflag_atom || system->pair_ptr->evflag) {
+                    if (system->pair_ptr->evflag) {
 
                       /* Acquire vectors */
                       rvec_ScaledSum(delij, 1., system->my_atoms[i].x,
@@ -552,12 +537,11 @@ namespace ReaxFF {
 
                       eng_tmp = e_ang + e_pen + e_coa;
 
-                      if (system->pair_ptr->evflag)
-                        pair_reax_ptr->ev_tally_thr_proxy(system->pair_ptr, j, j, system->N, 1,
+                      if (system->pair_ptr->eflag_either)
+                        pair_reax_ptr->ev_tally_thr_proxy( j, j, system->N, 1,
                                                           eng_tmp, 0.0, 0.0, 0.0, 0.0, 0.0, thr);
-                      if (system->pair_ptr->vflag_atom)
-                        // NEED TO MAKE AN OMP VERSION OF THIS CALL!
-                        system->pair_ptr->v_tally3(i, j, k, fi_tmp, fk_tmp, delij, delkj);
+                      if (system->pair_ptr->vflag_either)
+                        pair_reax_ptr->v_tally3_thr_proxy(i, j, k, fi_tmp, fk_tmp, delij, delkj, thr);
                     }
 
                   } // if (p_val1>0.001)

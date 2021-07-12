@@ -71,7 +71,6 @@ namespace ReaxFF {
     /* assign default values */
     control->nthreads = 1;
     control->tabulate = 0;
-    control->virial = 0;
     control->bond_cut = 5.0;
     control->bg_cut = 0.3;
     control->thb_cut = 0.001;

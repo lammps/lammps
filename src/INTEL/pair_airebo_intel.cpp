@@ -292,6 +292,8 @@ void PairAIREBOIntel::compute(
   ev_init(eflag,vflag);
   if (vflag_atom)
     error->all(FLERR,"INTEL package does not support per-atom stress");
+  if (vflag && !vflag_fdotr)
+    error->all(FLERR,"INTEL package does not support pair_modify nofdotr");
 
   pvector[0] = pvector[1] = pvector[2] = 0.0;
 

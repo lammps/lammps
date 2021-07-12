@@ -97,6 +97,8 @@ void PairSWIntel::compute(int eflag, int vflag,
   ev_init(eflag, vflag);
   if (vflag_atom)
     error->all(FLERR,"INTEL package does not support per-atom stress");
+  if (vflag && !vflag_fdotr)
+    error->all(FLERR,"INTEL package does not support pair_modify nofdotr");
 
   const int inum = list->inum;
   const int nthreads = comm->nthreads;

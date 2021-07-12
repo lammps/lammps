@@ -252,8 +252,8 @@ void FixShakeKokkos<DeviceType>::pre_neighbor()
      LAMMPS_LAMBDA(const int& i) {
       if (d_shake_flag[i]) {
         if (d_shake_flag[i] == 2) {
-          const int atom1 = map_kokkos(d_shake_atom(i,0),map_style,k_map_array,k_map_hash);
-          const int atom2 = map_kokkos(d_shake_atom(i,1),map_style,k_map_array,k_map_hash);
+          const int atom1 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(i,0),map_style,k_map_array,k_map_hash);
+          const int atom2 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(i,1),map_style,k_map_array,k_map_hash);
           if (atom1 == -1 || atom2 == -1) {
             d_error_flag() = 1;
           }
@@ -262,9 +262,9 @@ void FixShakeKokkos<DeviceType>::pre_neighbor()
             d_list[nlist] = i;
           }
         } else if (d_shake_flag[i] % 2 == 1) {
-          const int atom1 = map_kokkos(d_shake_atom(i,0),map_style,k_map_array,k_map_hash);
-          const int atom2 = map_kokkos(d_shake_atom(i,1),map_style,k_map_array,k_map_hash);
-          const int atom3 = map_kokkos(d_shake_atom(i,2),map_style,k_map_array,k_map_hash);
+          const int atom1 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(i,0),map_style,k_map_array,k_map_hash);
+          const int atom2 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(i,1),map_style,k_map_array,k_map_hash);
+          const int atom3 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(i,2),map_style,k_map_array,k_map_hash);
           if (atom1 == -1 || atom2 == -1 || atom3 == -1)
             d_error_flag() = 1;
           if (i <= atom1 && i <= atom2 && i <= atom3) {
@@ -272,10 +272,10 @@ void FixShakeKokkos<DeviceType>::pre_neighbor()
             d_list[nlist] = i;
           }
         } else {
-          const int atom1 = map_kokkos(d_shake_atom(i,0),map_style,k_map_array,k_map_hash);
-          const int atom2 = map_kokkos(d_shake_atom(i,1),map_style,k_map_array,k_map_hash);
-          const int atom3 = map_kokkos(d_shake_atom(i,2),map_style,k_map_array,k_map_hash);
-          const int atom4 = map_kokkos(d_shake_atom(i,3),map_style,k_map_array,k_map_hash);
+          const int atom1 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(i,0),map_style,k_map_array,k_map_hash);
+          const int atom2 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(i,1),map_style,k_map_array,k_map_hash);
+          const int atom3 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(i,2),map_style,k_map_array,k_map_hash);
+          const int atom4 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(i,3),map_style,k_map_array,k_map_hash);
           if (atom1 == -1 || atom2 == -1 || atom3 == -1 || atom4 == -1)
             d_error_flag() = 1;
           if (i <= atom1 && i <= atom2 && i <= atom3 && i <= atom4) {
@@ -599,8 +599,8 @@ void FixShakeKokkos<DeviceType>::shake(int m, EV_FLOAT& ev) const
 
   // local atom IDs and constraint distances
 
-  int i0 = map_kokkos(d_shake_atom(m,0),map_style,k_map_array,k_map_hash);
-  int i1 = map_kokkos(d_shake_atom(m,1),map_style,k_map_array,k_map_hash);
+  int i0 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(m,0),map_style,k_map_array,k_map_hash);
+  int i1 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(m,1),map_style,k_map_array,k_map_hash);
   double bond1 = d_bond_distance[d_shake_type(m,0)];
 
   // r01 = distance vec between atoms, with PBC
@@ -710,9 +710,9 @@ void FixShakeKokkos<DeviceType>::shake3(int m, EV_FLOAT& ev) const
 
   // local atom IDs and constraint distances
 
-  int i0 = map_kokkos(d_shake_atom(m,0),map_style,k_map_array,k_map_hash);
-  int i1 = map_kokkos(d_shake_atom(m,1),map_style,k_map_array,k_map_hash);
-  int i2 = map_kokkos(d_shake_atom(m,2),map_style,k_map_array,k_map_hash);
+  int i0 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(m,0),map_style,k_map_array,k_map_hash);
+  int i1 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(m,1),map_style,k_map_array,k_map_hash);
+  int i2 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(m,2),map_style,k_map_array,k_map_hash);
   double bond1 = d_bond_distance[d_shake_type(m,0)];
   double bond2 = d_bond_distance[d_shake_type(m,1)];
 
@@ -893,10 +893,10 @@ void FixShakeKokkos<DeviceType>::shake4(int m, EV_FLOAT& ev) const
 
   // local atom IDs and constraint distances
 
-  int i0 = map_kokkos(d_shake_atom(m,0),map_style,k_map_array,k_map_hash);
-  int i1 = map_kokkos(d_shake_atom(m,1),map_style,k_map_array,k_map_hash);
-  int i2 = map_kokkos(d_shake_atom(m,2),map_style,k_map_array,k_map_hash);
-  int i3 = map_kokkos(d_shake_atom(m,3),map_style,k_map_array,k_map_hash);
+  int i0 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(m,0),map_style,k_map_array,k_map_hash);
+  int i1 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(m,1),map_style,k_map_array,k_map_hash);
+  int i2 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(m,2),map_style,k_map_array,k_map_hash);
+  int i3 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(m,3),map_style,k_map_array,k_map_hash);
   double bond1 = d_bond_distance[d_shake_type(m,0)];
   double bond2 = d_bond_distance[d_shake_type(m,1)];
   double bond3 = d_bond_distance[d_shake_type(m,2)];
@@ -1155,9 +1155,9 @@ void FixShakeKokkos<DeviceType>::shake3angle(int m, EV_FLOAT& ev) const
 
   // local atom IDs and constraint distances
 
-  int i0 = map_kokkos(d_shake_atom(m,0),map_style,k_map_array,k_map_hash);
-  int i1 = map_kokkos(d_shake_atom(m,1),map_style,k_map_array,k_map_hash);
-  int i2 = map_kokkos(d_shake_atom(m,2),map_style,k_map_array,k_map_hash);
+  int i0 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(m,0),map_style,k_map_array,k_map_hash);
+  int i1 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(m,1),map_style,k_map_array,k_map_hash);
+  int i2 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(m,2),map_style,k_map_array,k_map_hash);
   double bond1 = d_bond_distance[d_shake_type(m,0)];
   double bond2 = d_bond_distance[d_shake_type(m,1)];
   double bond12 = d_angle_distance[d_shake_type(m,2)];
@@ -1914,24 +1914,6 @@ void FixShakeKokkos<DeviceType>::minimum_image_once(double *delta) const
       }
     }
   }
-}
-
-/* ---------------------------------------------------------------------- */
-
-// functions for global to local ID mapping
-// map lookup function inlined for efficiency
-// return -1 if no map defined
-
-template<class DeviceType>
-KOKKOS_INLINE_FUNCTION
-int FixShakeKokkos<DeviceType>::map_kokkos(tagint global, int map_style, DAT::tdual_int_1d k_map_array, dual_hash_type k_map_hash)
-{
-  if (map_style == 1)
-    return k_map_array.view<DeviceType>()(global);
-  else if (map_style == 2)
-    return AtomKokkos::map_find_hash_kokkos<DeviceType>(global,k_map_hash);
-  else
-    return -1;
 }
 
 /* ---------------------------------------------------------------------- */

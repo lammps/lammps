@@ -78,9 +78,24 @@ class AtomKokkos : public Atom {
   DAT::tdual_int_scalar k_error_flag;
   dual_hash_type k_map_hash;
 
+  // map lookup function inlined for efficiency
+  // return -1 if no map defined
+
   template<class DeviceType>
   KOKKOS_INLINE_FUNCTION
-  static int map_find_hash_kokkos(tagint global, dual_hash_type k_map_hash)
+  static int map_kokkos(tagint global, int map_style, DAT::tdual_int_1d k_map_array, dual_hash_type k_map_hash)
+  {
+    if (map_style == 1)
+      return k_map_array.view<DeviceType>()(global);
+    else if (map_style == 2)
+      return AtomKokkos::map_find_hash_kokkos<DeviceType>(global,k_map_hash);
+    else
+      return -1;
+  }
+
+  template<class DeviceType>
+  KOKKOS_INLINE_FUNCTION
+  static int map_find_hash_kokkos(tagint global, dual_hash_type &k_map_hash)
   {
     int local = -1;
     auto d_map_hash = k_map_hash.view<DeviceType>();

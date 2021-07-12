@@ -184,13 +184,8 @@ class FixShakeKokkos : public FixShake, public KokkosBase {
   int **shake_type_tmp;
 
   int map_style;
-
   DAT::tdual_int_1d k_map_array;
-
   dual_hash_type k_map_hash;
-
-  KOKKOS_INLINE_FUNCTION
-  static int map_kokkos(tagint, int, DAT::tdual_int_1d, dual_hash_type);
 
   // copied from Domain
 

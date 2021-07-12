@@ -111,8 +111,9 @@ void AtomKokkos::map_init(int check)
 
       // use "view" template method to avoid unnecessary deep_copy
 
-      auto h_map_hash = k_map_hash.view<LMPHostType>();
+      auto h_map_hash = k_map_hash.view<LMPHostType>(); // get type
       h_map_hash = decltype(h_map_hash)(map_nhash);
+      k_map_hash.view<LMPHostType>() = h_map_hash;
     }
   }
 

@@ -197,8 +197,6 @@ template<class DeviceType>
 void NeighBondKokkos<DeviceType>::build_topology_kk()
 {
   atomKK->sync(execution_space, X_MASK | TAG_MASK);
-  int nall = atom->nlocal + atom->nghost;
-  int nmax = atom->nmax;
 
   nlocal = atom->nlocal;
   x = atomKK->k_x.view<DeviceType>();
@@ -283,7 +281,7 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void NeighBondKokkos<DeviceType>::operator()(TagNeighBondBondAll, const int &i, int &nmissing) const {
   for (int m = 0; m < num_bond[i]; m++) {
-    int atom1 = map_kokkos(bond_atom(i,m));
+    int atom1 = AtomKokkos::map_kokkos<DeviceType>(bond_atom(i,m),map_style,k_map_array,k_map_hash);
     if (atom1 == -1) {
       nmissing++;
       if (lostbond == Thermo::ERROR) return;
@@ -371,7 +369,7 @@ KOKKOS_INLINE_FUNCTION
 void NeighBondKokkos<DeviceType>::operator()(TagNeighBondBondPartial, const int &i, int &nmissing) const {
   for (int m = 0; m < num_bond[i]; m++) {
     if (bond_type(i,m) <= 0) continue;
-    int atom1 = map_kokkos(bond_atom(i,m));
+    int atom1 = AtomKokkos::map_kokkos<DeviceType>(bond_atom(i,m),map_style,k_map_array,k_map_hash);
     if (atom1 == -1) {
       nmissing++;
       if (lostbond == Thermo::ERROR) return;
@@ -483,9 +481,9 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void NeighBondKokkos<DeviceType>::operator()(TagNeighBondAngleAll, const int &i, int &nmissing) const {
   for (int m = 0; m < num_angle[i]; m++) {
-    int atom1 = map_kokkos(angle_atom1(i,m));
-    int atom2 = map_kokkos(angle_atom2(i,m));
-    int atom3 = map_kokkos(angle_atom3(i,m));
+    int atom1 = AtomKokkos::map_kokkos<DeviceType>(angle_atom1(i,m),map_style,k_map_array,k_map_hash);
+    int atom2 = AtomKokkos::map_kokkos<DeviceType>(angle_atom2(i,m),map_style,k_map_array,k_map_hash);
+    int atom3 = AtomKokkos::map_kokkos<DeviceType>(angle_atom3(i,m),map_style,k_map_array,k_map_hash);
     if (atom1 == -1 || atom2 == -1 || atom3 == -1) {
       nmissing++;
       if (lostbond == Thermo::ERROR) return;
@@ -578,9 +576,9 @@ KOKKOS_INLINE_FUNCTION
 void NeighBondKokkos<DeviceType>::operator()(TagNeighBondAnglePartial, const int &i, int &nmissing) const {
   for (int m = 0; m < num_angle[i]; m++) {
     if (angle_type(i,m) <= 0) continue;
-    int atom1 = map_kokkos(angle_atom1(i,m));
-    int atom2 = map_kokkos(angle_atom2(i,m));
-    int atom3 = map_kokkos(angle_atom3(i,m));
+    int atom1 = AtomKokkos::map_kokkos<DeviceType>(angle_atom1(i,m),map_style,k_map_array,k_map_hash);
+    int atom2 = AtomKokkos::map_kokkos<DeviceType>(angle_atom2(i,m),map_style,k_map_array,k_map_hash);
+    int atom3 = AtomKokkos::map_kokkos<DeviceType>(angle_atom3(i,m),map_style,k_map_array,k_map_hash);
     if (atom1 == -1 || atom2 == -1 || atom3 == -1) {
       nmissing++;
       if (lostbond == Thermo::ERROR) return;
@@ -710,10 +708,10 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void NeighBondKokkos<DeviceType>::operator()(TagNeighBondDihedralAll, const int &i, int &nmissing) const {
   for (int m = 0; m < num_dihedral[i]; m++) {
-    int atom1 = map_kokkos(dihedral_atom1(i,m));
-    int atom2 = map_kokkos(dihedral_atom2(i,m));
-    int atom3 = map_kokkos(dihedral_atom3(i,m));
-    int atom4 = map_kokkos(dihedral_atom4(i,m));
+    int atom1 = AtomKokkos::map_kokkos<DeviceType>(dihedral_atom1(i,m),map_style,k_map_array,k_map_hash);
+    int atom2 = AtomKokkos::map_kokkos<DeviceType>(dihedral_atom2(i,m),map_style,k_map_array,k_map_hash);
+    int atom3 = AtomKokkos::map_kokkos<DeviceType>(dihedral_atom3(i,m),map_style,k_map_array,k_map_hash);
+    int atom4 = AtomKokkos::map_kokkos<DeviceType>(dihedral_atom4(i,m),map_style,k_map_array,k_map_hash);
     if (atom1 == -1 || atom2 == -1 || atom3 == -1 || atom4 == -1) {
       nmissing++;
       if (lostbond == Thermo::ERROR) return;
@@ -810,10 +808,10 @@ KOKKOS_INLINE_FUNCTION
 void NeighBondKokkos<DeviceType>::operator()(TagNeighBondDihedralPartial, const int &i, int &nmissing) const {
   for (int m = 0; m < num_dihedral[i]; m++) {
     if (dihedral_type(i,m) <= 0) continue;
-    int atom1 = map_kokkos(dihedral_atom1(i,m));
-    int atom2 = map_kokkos(dihedral_atom2(i,m));
-    int atom3 = map_kokkos(dihedral_atom3(i,m));
-    int atom4 = map_kokkos(dihedral_atom4(i,m));
+    int atom1 = AtomKokkos::map_kokkos<DeviceType>(dihedral_atom1(i,m),map_style,k_map_array,k_map_hash);
+    int atom2 = AtomKokkos::map_kokkos<DeviceType>(dihedral_atom2(i,m),map_style,k_map_array,k_map_hash);
+    int atom3 = AtomKokkos::map_kokkos<DeviceType>(dihedral_atom3(i,m),map_style,k_map_array,k_map_hash);
+    int atom4 = AtomKokkos::map_kokkos<DeviceType>(dihedral_atom4(i,m),map_style,k_map_array,k_map_hash);
     if (atom1 == -1 || atom2 == -1 || atom3 == -1 || atom4 == -1) {
       nmissing++;
       if (lostbond == Thermo::ERROR) return;
@@ -964,10 +962,10 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void NeighBondKokkos<DeviceType>::operator()(TagNeighBondImproperAll, const int &i, int &nmissing) const {
   for (int m = 0; m < num_improper[i]; m++) {
-    int atom1 = map_kokkos(improper_atom1(i,m));
-    int atom2 = map_kokkos(improper_atom2(i,m));
-    int atom3 = map_kokkos(improper_atom3(i,m));
-    int atom4 = map_kokkos(improper_atom4(i,m));
+    int atom1 = AtomKokkos::map_kokkos<DeviceType>(improper_atom1(i,m),map_style,k_map_array,k_map_hash);
+    int atom2 = AtomKokkos::map_kokkos<DeviceType>(improper_atom2(i,m),map_style,k_map_array,k_map_hash);
+    int atom3 = AtomKokkos::map_kokkos<DeviceType>(improper_atom3(i,m),map_style,k_map_array,k_map_hash);
+    int atom4 = AtomKokkos::map_kokkos<DeviceType>(improper_atom4(i,m),map_style,k_map_array,k_map_hash);
     if (atom1 == -1 || atom2 == -1 || atom3 == -1 || atom4 == -1) {
       nmissing++;
       if (lostbond == Thermo::ERROR) return;
@@ -1064,10 +1062,10 @@ KOKKOS_INLINE_FUNCTION
 void NeighBondKokkos<DeviceType>::operator()(TagNeighBondImproperPartial, const int &i, int &nmissing) const {
   for (int m = 0; m < num_improper[i]; m++) {
     if (improper_type(i,m) <= 0) continue;
-    int atom1 = map_kokkos(improper_atom1(i,m));
-    int atom2 = map_kokkos(improper_atom2(i,m));
-    int atom3 = map_kokkos(improper_atom3(i,m));
-    int atom4 = map_kokkos(improper_atom4(i,m));
+    int atom1 = AtomKokkos::map_kokkos<DeviceType>(improper_atom1(i,m),map_style,k_map_array,k_map_hash);
+    int atom2 = AtomKokkos::map_kokkos<DeviceType>(improper_atom2(i,m),map_style,k_map_array,k_map_hash);
+    int atom3 = AtomKokkos::map_kokkos<DeviceType>(improper_atom3(i,m),map_style,k_map_array,k_map_hash);
+    int atom4 = AtomKokkos::map_kokkos<DeviceType>(improper_atom4(i,m),map_style,k_map_array,k_map_hash);
     if (atom1 == -1 || atom2 == -1 || atom3 == -1 || atom4 == -1) {
       nmissing++;
       if (lostbond == Thermo::ERROR) return;
@@ -1187,24 +1185,6 @@ void NeighBondKokkos<DeviceType>::minimum_image(X_FLOAT &dx, X_FLOAT &dy, X_FLOA
       }
     }
   }
-}
-
-/* ---------------------------------------------------------------------- */
-
-// functions for global to local ID mapping
-// map lookup function inlined for efficiency
-// return -1 if no map defined
-
-template<class DeviceType>
-KOKKOS_INLINE_FUNCTION
-int NeighBondKokkos<DeviceType>::map_kokkos(tagint global) const
-{
-  if (map_style == 1)
-    return k_map_array.view<DeviceType>()(global);
-  else if (map_style == 2)
-    return AtomKokkos::map_find_hash_kokkos<DeviceType>(global,k_map_hash);
-  else
-    return -1;
 }
 
 /* ---------------------------------------------------------------------- */

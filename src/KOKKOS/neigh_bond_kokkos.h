@@ -83,16 +83,10 @@ class NeighBondKokkos : protected Pointers  {
 
  private:
   int map_style;
-
   DAT::tdual_int_1d k_sametag;
   typename AT::t_int_1d d_sametag;
-
   DAT::tdual_int_1d k_map_array;
-
   dual_hash_type k_map_hash;
-
-  KOKKOS_INLINE_FUNCTION
-  int map_kokkos(tagint) const;
 
   typename AT::t_int_2d v_bondlist;
   typename AT::t_int_2d v_anglelist;

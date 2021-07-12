@@ -14,6 +14,7 @@
 
 /* ----------------------------------------------------------------------
    Contributing author: Tim Bernhard (ETHZ)
+   [ based on angle_fourier_simple_omp.cpp Axel Kohlmeyer (Temple U)]
 ------------------------------------------------------------------------- */
 
 #include "angle_fourier_simple_approx.h"
@@ -67,8 +68,8 @@ void AngleFourierSimpleApprox::eval()
   double delx1,dely1,delz1,delx2,dely2,delz2;
   double eangle,f1[3],f3[3];
   double term,sgn;
-  double rsq1,rsq2,r1,r2,c,cn,a,a11,a12,a22;
-  float th,nth;
+  double rsq1,rsq2,r1,r2,a,a11,a12,a22;
+  double th,nth,c,cn,sn;
   int nanglelist = neighbor->nanglelist;
 
   const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
@@ -113,7 +114,7 @@ void AngleFourierSimpleApprox::eval()
 
     th = fastAcos(c);
     nth = (float)N[type]*th;
-    cn = fastCos(nth);
+    [cn, sn] = sincos(nth);
     term = k[type]*(1.0+C[type]*cn);
 
     if (EFLAG) eangle = term;
@@ -121,7 +122,7 @@ void AngleFourierSimpleApprox::eval()
     // handle sin(n th)/sin(th) singulatiries
 
     if (fabs(c)-1.0 > 0.0001) {
-      a = k[type]*C[type]*N[type]*((double)fastSin(nth))/((double)fastSin(th));
+      a = k[type]*C[type]*N[type]*(sn)/(sin(th));
     } else {
       if (c >= 0.0) {
         term = 1.0 - c;

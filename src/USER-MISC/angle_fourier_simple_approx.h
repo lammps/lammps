@@ -13,6 +13,7 @@
 
 /* ----------------------------------------------------------------------
    Contributing author: Tim Bernhard (ETHZ)
+   [ based on angle_fourier_simple_omp.cpp Axel Kohlmeyer (Temple U)]
 ------------------------------------------------------------------------- */
 
 #ifdef ANGLE_CLASS
@@ -59,10 +60,9 @@ static float sinePolynomial(float x)
 static float fastSin(float a)
 {
   // wrap x within [0, TWO_PI)
-  // const float a = x * TWO_PI_INVERSE;
-  // x -= static_cast<int>(a) * MathConst::MY_2PI;
-  // if (x < 0.0f) x += MathConst::MY_2PI;
-  const float x = fmodf(MathConst::MY_2PI + fmodf(a, MathConst::MY_2PI), MathConst::MY_2PI);
+  const float a = x * TWO_PI_INVERSE;
+  x -= static_cast<int>(a) * MathConst::MY_2PI;
+  if (x < 0.0f) x += MathConst::MY_2PI;
   // assert(x >= 0);
   // assert(x < MathConst::MY_2PI);
 
@@ -114,6 +114,14 @@ static float fastCos(float a)
   else
     return cosinePolynomial(MathConst::MY_2PI - x);
 }
+
+/* ---------------------------------------------------------------------- */
+
+/**
+ * Combined call to sin & cos. Gets optimized by compiler where possibly to simultaneous call.
+ * More stable/portable than <math.h>'s call, it seems.
+ */
+std::pair<double,double> sincos(double arg) { return { std::sin(arg), std::cos(arg) }; }
 
 /* ---------------------------------------------------------------------- */
 

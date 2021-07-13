@@ -354,6 +354,7 @@ void PairExTeP::compute(int eflag, int vflag)
         f[k][0] -= fc_prefac_ik * delr2[0];
         f[k][1] -= fc_prefac_ik * delr2[1];
         f[k][2] -= fc_prefac_ik * delr2[2];
+        if (vflag_either) v_tally2(i,k,-fc_prefac_ik,delr2);
         if (itype != ktype) {
           fc_prefac_ik = dFc_dNdij * fc_prefac_ik_0;
           f[i][0] += fc_prefac_ik * delr2[0];
@@ -362,6 +363,7 @@ void PairExTeP::compute(int eflag, int vflag)
           f[k][0] -= fc_prefac_ik * delr2[0];
           f[k][1] -= fc_prefac_ik * delr2[1];
           f[k][2] -= fc_prefac_ik * delr2[2];
+          if (vflag_either) v_tally2(i,k,-fc_prefac_ik,delr2);
         }
         /* END F_IJ (2) */
 
@@ -410,7 +412,7 @@ void PairExTeP::compute(int eflag, int vflag)
         f[k][1] += fk[1];
         f[k][2] += fk[2];
 
-        if (vflag_atom) v_tally3(i,j,k,fj,fk,delr1,delr2);
+        if (vflag_either) v_tally3(i,j,k,fj,fk,delr1,delr2);
       }
     }
   }

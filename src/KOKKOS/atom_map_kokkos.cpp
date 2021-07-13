@@ -260,7 +260,10 @@ void AtomKokkos::map_set()
       if (utils::strmatch(modify->fix[n]->style, "^shake"))
         if (modify->fix[n]->execution_space == Device) device_hash_flag = 1;
 
-    if (device_hash_flag) Kokkos::deep_copy(d_map_hash,h_map_hash);
+    if (device_hash_flag) {
+      Kokkos::deep_copy(d_map_hash,h_map_hash);
+      k_map_hash.view<LMPDeviceType>() = d_map_hash;
+    }
   }
 }
 

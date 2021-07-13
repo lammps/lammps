@@ -45,7 +45,7 @@ enum{FULL=1u,HALFTHREAD=2u,HALF=4u};
 static constexpr LAMMPS_NS::bigint LMP_KOKKOS_AV_DELTA = 10;
 
 namespace Kokkos {
-  auto NoInit = [](std::string const& label) {
+  static auto NoInit = [](std::string const& label) {
     return Kokkos::view_alloc(Kokkos::WithoutInitializing, label);
   };
 }

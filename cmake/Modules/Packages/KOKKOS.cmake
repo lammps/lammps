@@ -79,6 +79,7 @@ target_compile_definitions(lammps PRIVATE -DLMP_KOKKOS)
 set(KOKKOS_PKG_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/KOKKOS)
 set(KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/atom_kokkos.cpp
+                       ${KOKKOS_PKG_SOURCES_DIR}/atom_map_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/atom_vec_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/comm_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/comm_tiled_kokkos.cpp

@@ -78,7 +78,7 @@ int Init_Output_Files( reax_system *system, control_params *control,
     }
   }
 
-  return SUCCESS;
+  return REAXC_SUCCESS;
 }
 
 
@@ -101,7 +101,7 @@ int Close_Output_Files( reax_system *system, control_params * /* control */,
     }
   }
 
-  return SUCCESS;
+  return REAXC_SUCCESS;
 }
 
 

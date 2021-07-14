@@ -194,7 +194,7 @@ void ComputeFabric::compute_vector()
   int i, j, ii, jj, inum, jnum, itype, jtype;
   tagint itag, jtag;
   double xtmp, ytmp, ztmp, delx, dely, delz;
-  double r, rinv, rsq, radsum, eng, fpair;
+  double r, rinv, rsq, radsum, fpair;
 
   double nx, ny, nz;
   double ncinv, denom, fn, ft, prefactor;

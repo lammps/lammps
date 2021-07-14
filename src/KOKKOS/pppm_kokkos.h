@@ -141,7 +141,7 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
   void operator()(TagPPPM_setup4, const int&) const;
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagPPPM_setup_triclinic1, const int&) const;
+  void operator()(TagPPPM_setup_triclinic1, const int&, const int&, const int&) const;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPPPM_setup_triclinic2, const int&) const;
@@ -623,3 +623,4 @@ accuracy.  This error should not occur for typical problems.  Please
 send an email to the developers.
 
 */
+

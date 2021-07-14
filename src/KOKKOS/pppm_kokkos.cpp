@@ -455,7 +455,6 @@ void PPPMKokkos<DeviceType>::operator()(TagPPPM_setup4, const int &n) const
 template<class DeviceType>
 void PPPMKokkos<DeviceType>::setup_triclinic()
 {
-  int i,j,k,n;
   double *prd;
 
   // volume-dependent factors
@@ -480,13 +479,9 @@ void PPPMKokkos<DeviceType>::setup_triclinic()
   delzinv = nz_pppm;
   delvolinv = delxinv*delyinv*delzinv/volume;
 
-  // merge three outer loops into one for better threading
-  numz_fft = nzhi_fft-nzlo_fft + 1;
-  numy_fft = nyhi_fft-nylo_fft + 1;
-  numx_fft = nxhi_fft-nxlo_fft + 1;
-  const int inum_fft = numx_fft*numy_fft*numz_fft;
   copymode = 1;
-  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_setup_triclinic1>(0,inum_fft),*this);
+  Kokkos::parallel_for(Kokkos::MDRangePolicy<Kokkos::Rank<3>, DeviceType, TagPPPM_setup_triclinic1>\
+      ({nzlo_fft, nylo_fft, nxlo_fft}, {nzhi_fft+1, nyhi_fft+1, nxhi_fft+1}),*this);
   copymode = 0;
 
   // virial coefficients
@@ -500,14 +495,14 @@ void PPPMKokkos<DeviceType>::setup_triclinic()
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void PPPMKokkos<DeviceType>::operator()(TagPPPM_setup_triclinic1, const int &n) const
+void PPPMKokkos<DeviceType>::operator()(TagPPPM_setup_triclinic1, const int &k, const int &j, const int& i) const
 {
-  const int k = n/(numy_fft*numx_fft);
-  const int j = (n - k*numy_fft*numx_fft) / numx_fft;
-  const int i = n - k*numy_fft*numx_fft - j*numx_fft;
   double per_k = k - nz_pppm*(2*k/nz_pppm);
   double per_j = j - ny_pppm*(2*j/ny_pppm);
   double per_i = i - nx_pppm*(2*i/nx_pppm);
+  // n corresponds to the "number" of this iteration if we were to execute the loop monotonically and in serial
+  int n = (nxhi_fft - nxlo_fft + 1)*(nyhi_fft - nylo_fft + 1)*(k - nzlo_fft)+
+          (nxhi_fft - nxlo_fft + 1)*(j - nylo_fft) + (i - nxlo_fft);
 
   double unitk_lamda[3];
   unitk_lamda[0] = 2.0*MY_PI*per_i;
@@ -1244,7 +1239,7 @@ void PPPMKokkos<DeviceType>::compute_gf_ik()
   numz_fft = nzhi_fft-nzlo_fft + 1;
   numy_fft = nyhi_fft-nylo_fft + 1;
   numx_fft = nxhi_fft-nxlo_fft + 1;
-  const int inum_fft = numz_fft*numy_fft*numx_fft;
+  const int inum_fft = numx_fft*numy_fft*numz_fft;
 
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_compute_gf_ik>(0,inum_fft),*this);
@@ -1883,75 +1878,11 @@ void PPPMKokkos<DeviceType>::operator()(TagPPPM_poisson_ik10, const int &ii) con
 template<class DeviceType>
 void PPPMKokkos<DeviceType>::poisson_ik_triclinic()
 {
-/**************************************************
-  int i,j,k,n;
-
   // compute gradients of V(r) in each of 3 dims by transforming ik*V(k)
   // FFT leaves data in 3d brick decomposition
   // copy it into inner portion of vdx,vdy,vdz arrays
 
   // x direction gradient
-
-  n = 0;
-  for (i = 0; i < nfft; i++) { // parallel_for1
-    d_work2[n] = -d_fkx[i]*d_work1[n+1];
-    d_work2[n+1] = d_fkx[i]*d_work1[n];
-    n += 2;
-  }
-
-  fft2->compute(d_work2,d_work2,FFT3dKokkos<DeviceType>::BACKWARD);
-
-  n = 0;
-  for (k = nzlo_in-nzlo_out; k <= nzhi_in-nzlo_out; k++) // parallel_for2
-
-
-  // y direction gradient
-
-  n = 0;
-  for (i = 0; i < nfft; i++) { // parallel_for3
-    d_work2[n] = -d_fky[i]*d_work1[n+1];
-    d_work2[n+1] = d_fky[i]*d_work1[n];
-    n += 2;
-  }
-
-  fft2->compute(d_work2,d_work2,FFT3dKokkos<DeviceType>::BACKWARD);
-
-  n = 0;
-  for (k = nzlo_in-nzlo_out; k <= nzhi_in-nzlo_out; k++) // parallel_for4
-    for (j = nylo_in-nylo_out; j <= nyhi_in-nylo_out; j++)
-      for (i = nxlo_in-nxlo_out; i <= nxhi_in-nxlo_out; i++) {
-        d_vdy_brick(k,j,i) = d_work2[n];
-        n += 2;
-      }
-
-  // z direction gradient
-
-  n = 0;
-  for (i = 0; i < nfft; i++) { // parallel_for5
-    d_work2[n] = -d_fkz[i]*d_work1[n+1];
-    d_work2[n+1] = d_fkz[i]*d_work1[n];
-    n += 2;
-  }
-
-  fft2->compute(d_work2,d_work2,FFT3dKokkos<DeviceType>::BACKWARD);
-
-  n = 0;
-  for (k = nzlo_in-nzlo_out; k <= nzhi_in-nzlo_out; k++) // parallel_for6
-******************************/
-  int i,j,k,n;
-
-  // compute gradients of V(r) in each of 3 dims by transforming ik*V(k)
-  // FFT leaves data in 3d brick decomposition
-  // copy it into inner portion of vdx,vdy,vdz arrays
-
-  // x direction gradient
-
-  //n = 0;
-  //for (i = 0; i < nfft; i++) {
-  //  d_work2[n] = -d_fkx[i]*d_work1[n+1];
-  //  d_work2[n+1] = d_fkx[i]*d_work1[n];
-  //  n += 2;
-  //}
 
   // merge three outer loops into one for better threading
 
@@ -1971,26 +1902,11 @@ void PPPMKokkos<DeviceType>::poisson_ik_triclinic()
 
   fft2->compute(d_work2,d_work2,FFT3dKokkos<DeviceType>::BACKWARD);
 
-  //n = 0;
-  //for (k = nzlo_in; k <= nzhi_in; k++)
-  //  for (j = nylo_in; j <= nyhi_in; j++)
-  //    for (i = nxlo_in; i <= nxhi_in; i++) {
-  //      d_vdx_brick(k,j,i) = d_work2[n];
-  //      n += 2;
-  //    }
-
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_ik_triclinic2>(0,inum_inout),*this);
   copymode = 0;
 
   // y direction gradient
-
-  //n = 0;
-  //for (i = 0; i < nfft; i++) {
-  //  d_work2[n] = -d_fky[i]*d_work1[n+1];
-  //  d_work2[n+1] = d_fky[i]*d_work1[n];
-  //  n += 2;
-  //}
 
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_ik_triclinic3>(0,nfft),*this);
@@ -1998,40 +1914,17 @@ void PPPMKokkos<DeviceType>::poisson_ik_triclinic()
 
   fft2->compute(d_work2,d_work2,FFT3dKokkos<DeviceType>::BACKWARD);
 
-  //n = 0;
-  //for (k = nzlo_in; k <= nzhi_in; k++)
-  //  for (j = nylo_in; j <= nyhi_in; j++)
-  //    for (i = nxlo_in; i <= nxhi_in; i++) {
-  //      d_vdy_brick(k,j,i) = d_work2[n];
-  //      n += 2;
-  //    }
-
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_ik_triclinic4>(0,inum_inout),*this);
   copymode = 0;
 
   // z direction gradient
 
-  //n = 0;
-  //for (i = 0; i < nfft; i++) {
-  //  d_work2[n] = -d_fkz[i]*d_work1[n+1];
-  //  d_work2[n+1] = d_fkz[i]*d_work1[n];
-  //  n += 2;
-  //}
-
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_ik_triclinic5>(0,nfft),*this);
   copymode = 0;
 
   fft2->compute(d_work2,d_work2,FFT3dKokkos<DeviceType>::BACKWARD);
-
-  //n = 0;
-  //for (k = nzlo_in; k <= nzhi_in; k++)
-  //  for (j = nylo_in; j <= nyhi_in; j++)
-  //    for (i = nxlo_in; i <= nxhi_in; i++) {
-  //      d_vdz_brick(k,j,i) = d_work2[n];
-  //      n += 2;
-  //    }
 
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_ik_triclinic6>(0,inum_inout),*this);
@@ -3040,3 +2933,4 @@ template class PPPMKokkos<LMPDeviceType>;
 template class PPPMKokkos<LMPHostType>;
 #endif
 }
+

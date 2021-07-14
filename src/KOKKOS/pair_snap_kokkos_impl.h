@@ -86,6 +86,11 @@ PairSNAPKokkos<DeviceType, real_type, vector_length>::~PairSNAPKokkos()
 template<class DeviceType, typename real_type, int vector_length>
 void PairSNAPKokkos<DeviceType, real_type, vector_length>::init_style()
 {
+  if (host_flag) {
+     PairSNAP::init_style();
+    return;
+  }
+
   if (force->newton_pair == 0)
     error->all(FLERR,"Pair style SNAP requires newton pair on");
 
@@ -133,6 +138,13 @@ struct FindMaxNumNeighs {
 template<class DeviceType, typename real_type, int vector_length>
 void PairSNAPKokkos<DeviceType, real_type, vector_length>::compute(int eflag_in, int vflag_in)
 {
+  if (host_flag) {
+    atomKK->sync(Host,X_MASK|TYPE_MASK);
+    PairSNAP::compute(eflag_in,vflag_in);
+    atomKK->modified(Host,F_MASK);
+    return;
+  }
+
   eflag = eflag_in;
   vflag = vflag_in;
 

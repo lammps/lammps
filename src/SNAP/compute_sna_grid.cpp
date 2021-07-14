@@ -231,10 +231,10 @@ void ComputeSNAGrid::compute_array()
 
 	    gridlocal[size_array_cols_base+ncount++][iz][iy][ix] = 0.5*bi*bi;
 
-        // upper-triangular elements of quadratic matrix
+	    // upper-triangular elements of quadratic matrix
 
-        for (int jcoeff = icoeff+1; jcoeff < ncoeff; jcoeff++)
-          gridlocal[size_array_cols_base+ncount++][iz][iy][ix] = bi*snaptr->blist[jcoeff];
+	    for (int jcoeff = icoeff+1; jcoeff < ncoeff; jcoeff++)
+	      gridlocal[size_array_cols_base+ncount++][iz][iy][ix] = bi*snaptr->blist[jcoeff];
       }
     }
   }

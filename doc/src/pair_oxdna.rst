@@ -91,6 +91,14 @@ for a detailed description of the oxDNA force field.
    or :doc:`fix nve/dotc/langevin <fix_nve_dotc_langevin>`
    the temperature coefficients have to be matched to the one used in the fix.
 
+.. note::
+
+   These pair styles have to be used with the *atom_style hybrid bond ellipsoid oxdna*
+   (see documentation of :doc:`atom_style <atom_style>`). The *atom_style oxdna*
+   stores the 3'-to-5' polarity of the nucleotide strand, which is set through
+   the bond topology in the data file. The first (second) atom in a bond definition
+   is understood to point towards the 3'-end (5'-end) of the strand.
+
 Example input and data files for DNA duplexes can be found in examples/PACKAGES/cgdna/examples/oxDNA/ and /oxDNA2/.
 A simple python setup tool which creates single straight or helical DNA strands,
 DNA duplexes or arrays of DNA duplexes can be found in examples/PACKAGES/cgdna/util/.
@@ -120,7 +128,7 @@ Related commands
 :doc:`bond_style oxdna/fene <bond_oxdna>`, :doc:`pair_coeff <pair_coeff>`,
 :doc:`bond_style oxdna2/fene <bond_oxdna>`, :doc:`pair_style oxdna2/excv <pair_oxdna2>`,
 :doc:`bond_style oxrna2/fene <bond_oxdna>`, :doc:`pair_style oxrna2/excv <pair_oxrna2>`,
-:doc:`fix nve/dotc/langevin <fix_nve_dotc_langevin>`
+:doc:`atom_style oxdna <atom_style>`, :doc:`fix nve/dotc/langevin <fix_nve_dotc_langevin>`
 
 Default
 """""""

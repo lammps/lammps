@@ -199,10 +199,10 @@ The *oxdna* style is for coarse-grained nucleotides and stores the
 3'-to-5' polarity of the nucleotide strand, which is set through
 the bond topology in the data file. The first (second) atom in a
 bond definition is understood to point towards the 3'-end (5'-end)
-of the strand. Note that this style is part of the USER-CGDNA package.
+of the strand. Note that this style is part of the CG-DNA package.
 
 The *dpd* style is for dissipative particle dynamics (DPD) particles.
-Note that it is part of the USER-DPD package, and is not for use with
+Note that it is part of the DPD-REACT package, and is not for use with
 the :doc:`pair_style dpd or dpd/stat <pair_dpd>` commands, which can
 simply use atom_style atomic.  Atom_style dpd extends DPD particle
 properties with internal temperature (dpdTheta), internal conductive
@@ -327,14 +327,16 @@ styles take the same arguments and should produce the same results,
 except for round-off and precision issues.
 
 Note that other acceleration packages in LAMMPS, specifically the GPU,
-USER-INTEL, USER-OMP, and OPT packages do not use accelerated atom
+INTEL, OPENMP, and OPT packages do not use accelerated atom
 styles.
 
 The accelerated styles are part of the KOKKOS package.  They are only
-enabled if LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` doc page for more info.
+enabled if LAMMPS was built with those packages.  See the :doc:`Build
+package <Build_package>` doc page for more info.
 
 You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
+by including their suffix, or you can use the :doc:`-suffix command-line
+switch <Run_options>` when you invoke LAMMPS, or you can use the
 :doc:`suffix <suffix>` command in your input script.
 
 See the :doc:`Speed packages <Speed_packages>` doc page for more
@@ -347,7 +349,8 @@ This command cannot be used after the simulation box is defined by a
 :doc:`read_data <read_data>` or :doc:`create_box <create_box>` command.
 
 Many of the styles listed above are only enabled if LAMMPS was built
-with a specific package, as listed below.  See the :doc:`Build package <Build_package>` doc page for more info.
+with a specific package, as listed below.  See the :doc:`Build package
+<Build_package>` doc page for more info.
 
 The *angle*\ , *bond*\ , *full*\ , *molecular*\ , and *template* styles are
 part of the MOLECULE package.
@@ -360,14 +363,14 @@ The *dipole* style is part of the DIPOLE package.
 
 The *peri* style is part of the PERI package for Peridynamics.
 
-The *oxdna* style is part of the USER-CGDNA package for coarse-grained simulation of DNA and RNA.
+The *oxdna* style is part of the CG-DNA package for coarse-grained simulation of DNA and RNA.
 
-The *electron* style is part of the USER-EFF package for :doc:`electronic force fields <pair_eff>`.
+The *electron* style is part of the EFF package for :doc:`electronic force fields <pair_eff>`.
 
-The *dpd* style is part of the USER-DPD package for dissipative
+The *dpd* style is part of the DPD-REACT package for dissipative
 particle dynamics (DPD).
 
-The *edpd*\ , *mdpd*\ , and *tdpd* styles are part of the USER-MESODPD package
+The *edpd*\ , *mdpd*\ , and *tdpd* styles are part of the DPD-MESO package
 for energy-conserving dissipative particle dynamics (eDPD), many-body
 dissipative particle dynamics (mDPD), and transport dissipative particle
 dynamics (tDPD), respectively.
@@ -375,11 +378,11 @@ dynamics (tDPD), respectively.
 The *sph* style is part of the SPH package for smoothed particle
 hydrodynamics (SPH).  See `this PDF guide <PDF/SPH_LAMMPS_userguide.pdf>`_ to using SPH in LAMMPS.
 
-The *mesont* style is part of the USER-MESONT package.
+The *mesont* style is part of the MESONT package.
 
 The *spin* style is part of the SPIN package.
 
-The *wavepacket* style is part of the USER-AWPMD package for the
+The *wavepacket* style is part of the AWPMD package for the
 :doc:`antisymmetrized wave packet MD method <pair_awpmd>`.
 
 Related commands

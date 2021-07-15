@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -13,6 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "atom_vec_oxdna.h"
+
 #include "atom.h"
 #include "comm.h"
 
@@ -46,14 +46,10 @@ AtomVecOxdna::AtomVecOxdna(LAMMPS *lmp) : AtomVec(lmp)
   fields_data_vel = (char *) "id v";
 
   setup_fields();
-
 }
 
 /* ---------------------------------------------------------------------- */
-AtomVecOxdna::~AtomVecOxdna()
-{
-
-}
+AtomVecOxdna::~AtomVecOxdna() {}
 
 /* ----------------------------------------------------------------------
    set local copies of all grow ptrs used by this class, except defaults
@@ -80,8 +76,8 @@ void AtomVecOxdna::data_atom_post(int ilocal)
    store 5' partner to inform 3'->5' bond directionality
 ------------------------------------------------------------------------- */
 
-void AtomVecOxdna::data_bonds_post(int m, int num_bond, tagint atom1,
-                                       tagint atom2, tagint id_offset)
+void AtomVecOxdna::data_bonds_post(int m, int num_bond, tagint atom1, tagint atom2,
+                                   tagint id_offset)
 {
   int n;
   tagint *id5p = atom->id5p;
@@ -91,7 +87,5 @@ void AtomVecOxdna::data_bonds_post(int m, int num_bond, tagint atom1,
     atom2 += id_offset;
   }
 
-  if ((n = atom->map(atom1)) >= 0) {
-      id5p[n] = atom2;
-  }
+  if ((n = atom->map(atom1)) >= 0) { id5p[n] = atom2; }
 }

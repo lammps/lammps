@@ -17,20 +17,20 @@
 
 #include "pair_oxdna_stk.h"
 
+#include "atom.h"
+#include "atom_vec_ellipsoid.h"
+#include "atom_vec_oxdna.h"
+#include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "math_extra.h"
+#include "memory.h"
+#include "mf_oxdna.h"
+#include "neighbor.h"
+
 #include <cmath>
 #include <cstring>
 #include <utility>
-#include "mf_oxdna.h"
-#include "atom.h"
-#include "comm.h"
-#include "force.h"
-#include "neighbor.h"
-#include "memory.h"
-#include "error.h"
-
-#include "atom_vec_ellipsoid.h"
-#include "atom_vec_oxdna.h"
-#include "math_extra.h"
 
 using namespace LAMMPS_NS;
 using namespace MFOxdna;

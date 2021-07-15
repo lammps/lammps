@@ -17,20 +17,22 @@
 
 #include "pair_e3b.h"
 
+#include "atom.h"
+#include "citeme.h"
+#include "comm.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "neigh_list.h"
+#include "neighbor.h"
+#include "update.h"
+
 #include <cmath>
 #include <cstring>
 #include <algorithm>
-
-#include "atom.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "force.h"
-#include "comm.h"
-#include "memory.h"
-#include "error.h"
-#include "update.h"
-#include "domain.h"
-#include "citeme.h"
+#include <iostream>
+#include <limits>
 
 //these are defined here to avoid confusing hardcoded indices, but
 //they do not allow flexibility. If they are changed the code will break
@@ -396,10 +398,6 @@ void PairE3B::coeff(int narg, char **arg)
   if (narg < 4)
     error->all(FLERR,"There must be at least one keyword given to pair_coeff");
 
-  // ensure I,J args are * *
-  if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
-    error->all(FLERR,"Incorrect args for pair coefficients");
-
  // clear setflag since coeff() called once with I,J = * *
   int n = atom->ntypes;
   for (int i = 1; i <= n; i++)
@@ -411,7 +409,6 @@ void PairE3B::coeff(int narg, char **arg)
   //parse keyword/value pairs
   double bondL=0.0; //OH bond length
   bool repeatFlag=false;
-  int presetFlag;
 
   //clear parameters
   e2=ea=eb=ec=k3=k2=NAN;
@@ -443,13 +440,9 @@ void PairE3B::coeff(int narg, char **arg)
     else if (checkKeyword(keyword,"neigh",1,narg-iarg))
       pairPerAtom=utils::inumeric(FLERR,arg[iarg++],false,lmp);
     else if (checkKeyword(keyword,"preset",1,narg-iarg)) {
-      presetFlag=utils::inumeric(FLERR,arg[iarg++],false,lmp);
+      int presetFlag=utils::inumeric(FLERR,arg[iarg++],false,lmp);
       presetParam(presetFlag,repeatFlag,bondL);
-    } else {
-      char str[256];
-      snprintf(str,256,"Keyword %s is unknown",keyword);
-      error->all(FLERR,str);
-    }
+    } else error->all(FLERR,"Keyword {} is unknown",keyword);
   }
 
   checkInputs(bondL);
@@ -528,10 +521,8 @@ static const char cite_E3B3[] =
   "}\n\n";
 
 void PairE3B::presetParam(const int flag,bool &repeatFlag,double &bondL) {
-  if (repeatFlag) {
-    error->all(FLERR,
-               "Cannot request two different sets of preset parameters");
-  }
+  if (repeatFlag)
+    error->all(FLERR,"Cannot request two different sets of preset parameters");
   repeatFlag=true;
 
   if (!std::isnan(ea) || !std::isnan(eb) || !std::isnan(ec) ||
@@ -552,18 +543,14 @@ void PairE3B::presetParam(const int flag,bool &repeatFlag,double &bondL) {
   } else if (strcmp(update->unit_style,"cgs") == 0) {
     econv=1.660578e-14;
     lconv=1e-8;
-  } else {
-    char str[256];
-    snprintf(str,256,
-             "Pre-defined E3B parameters have not been set for %s units.",
+  } else error->all(FLERR, "Pre-defined E3B parameters have not been set for {} units.",
              update->unit_style);
-      error->all(FLERR,str);
-  }
 
   //here parameters are defined in kJ/mol and A
   //they will be converted to the lammps units after
   if (flag==2008) {
-    error->all(FLERR,"\"preset 2008\" is not yet supported, because this would require distinct k3 coefficients, use \"preset 2011\" or \"preset 2015\"");
+    error->all(FLERR,"\"preset 2008\" is not yet supported, because this would require distinct k3 coefficients, "
+               "use \"preset 2011\" or \"preset 2015\"");
     if (lmp->citeme) lmp->citeme->add(cite_E3B1);
     ea  = 4699.6;
     eb  =-2152.9;
@@ -630,11 +617,7 @@ double PairE3B::init_one(int i, int j)
 
 bool PairE3B::checkKeyword(const char *thiskey,const char *test,const int nVal, const int nRem) {
   if (strcmp(thiskey,test) == 0) {
-    if (nRem<nVal) {
-      char str[256];
-      snprintf(str,256,"Too few arguments to \"%s\" keyword.",test);
-      error->all(FLERR,str);
-    }
+    if (nRem<nVal) error->all(FLERR,"Too few arguments to '{}' keyword.",test);
     return true;
   }
   return false;

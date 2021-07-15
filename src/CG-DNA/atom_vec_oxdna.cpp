@@ -77,7 +77,7 @@ void AtomVecOxdna::data_atom_post(int ilocal)
 
 /* ----------------------------------------------------------------------
    process bond information as per data file
-   store 5' partner to inform 3'->5' bond directionality 
+   store 5' partner to inform 3'->5' bond directionality
 ------------------------------------------------------------------------- */
 
 void AtomVecOxdna::data_bonds_post(int m, int num_bond, tagint atom1,

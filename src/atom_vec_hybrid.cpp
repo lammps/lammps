@@ -444,7 +444,7 @@ void AtomVecHybrid::data_atom_post(int ilocal)
 ------------------------------------------------------------------------- */
 void AtomVecHybrid::data_bonds_post(int m, int num_bond, tagint atom1,
                                         tagint atom2, tagint id_offset)
-{                     
+{
   for (int k = 0; k < nstyles; k++)
     styles[k]->data_bonds_post(m, num_bond, atom1, atom2, id_offset);
 }

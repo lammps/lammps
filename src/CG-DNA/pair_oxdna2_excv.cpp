@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -19,34 +18,19 @@
 
 using namespace LAMMPS_NS;
 
-/* ---------------------------------------------------------------------- */
-
-PairOxdna2Excv::PairOxdna2Excv(LAMMPS *lmp) : PairOxdnaExcv(lmp)
-{
-
-}
-
-/* ---------------------------------------------------------------------- */
-
-PairOxdna2Excv::~PairOxdna2Excv()
-{
-
-}
-
 /* ----------------------------------------------------------------------
     compute vector COM-excluded volume interaction sites in oxDNA2
 ------------------------------------------------------------------------- */
-void PairOxdna2Excv::compute_interaction_sites(double e1[3], double e2[3],
-    double /*e3*/[3], double rs[3], double rb[3])
+void PairOxdna2Excv::compute_interaction_sites(double e1[3], double e2[3], double /*e3*/[3],
+                                               double rs[3], double rb[3])
 {
-  double d_cs_x=-0.34, d_cs_y=+0.3408, d_cb=+0.4;
+  double d_cs_x = -0.34, d_cs_y = +0.3408, d_cb = +0.4;
 
-  rs[0] = d_cs_x*e1[0] + d_cs_y*e2[0];
-  rs[1] = d_cs_x*e1[1] + d_cs_y*e2[1];
-  rs[2] = d_cs_x*e1[2] + d_cs_y*e2[2];
+  rs[0] = d_cs_x * e1[0] + d_cs_y * e2[0];
+  rs[1] = d_cs_x * e1[1] + d_cs_y * e2[1];
+  rs[2] = d_cs_x * e1[2] + d_cs_y * e2[2];
 
-  rb[0] = d_cb*e1[0];
-  rb[1] = d_cb*e1[1];
-  rb[2] = d_cb*e1[2];
-
+  rb[0] = d_cb * e1[0];
+  rb[1] = d_cb * e1[1];
+  rb[2] = d_cb * e1[2];
 }

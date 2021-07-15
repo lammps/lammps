@@ -122,6 +122,10 @@ class Atom : protected Pointers {
   double **cs, **csforce, **vforce;
   int *etag;
 
+  // CG-DNA package
+
+  tagint *id5p;
+
   // DPD-REACT package
 
   double *uCond, *uMech, *uChem, *uCGnew, *uCG;

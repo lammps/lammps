@@ -30,6 +30,7 @@
 #include "neighbor_kokkos.h"
 #include "kokkos.h"
 #include "sna.h"
+#include "comm.h"
 
 #define MAXLINE 1024
 #define MAXWORD 3
@@ -87,7 +88,12 @@ template<class DeviceType, typename real_type, int vector_length>
 void PairSNAPKokkos<DeviceType, real_type, vector_length>::init_style()
 {
   if (host_flag) {
-     PairSNAP::init_style();
+    if (lmp->kokkos->nthreads > 1)
+      if (comm->me == 0)
+        utils::logmesg(lmp,"Pair style snap/kk currently only runs on a single "
+                           "CPU thread, even if more threads are requested\n");
+
+    PairSNAP::init_style();
     return;
   }
 

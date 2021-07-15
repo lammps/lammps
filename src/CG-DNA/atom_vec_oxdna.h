@@ -30,8 +30,8 @@ class AtomVecOxdna : public AtomVec {
   ~AtomVecOxdna();
 
   void grow_pointers();
-  virtual void data_bonds_post(int, int, tagint, tagint, tagint);
   void data_atom_post(int);
+  void data_bonds_post(int, int, tagint, tagint, tagint);
 
  private:
   tagint *id5p;

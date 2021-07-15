@@ -1288,7 +1288,7 @@ void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset,
         bond_type[m][num_bond[m]] = itype;
         bond_atom[m][num_bond[m]] = atom2;
         num_bond[m]++;
-        avec->data_bonds_post2(m, num_bond[m], atom1, atom2, id_offset);
+        avec->data_bonds_post(m, num_bond[m], atom1, atom2, id_offset);
       }
     }
     if (newton_bond == 0) {
@@ -1298,6 +1298,7 @@ void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset,
           bond_type[m][num_bond[m]] = itype;
           bond_atom[m][num_bond[m]] = atom1;
           num_bond[m]++;
+          avec->data_bonds_post(m, num_bond[m], atom1, atom2, id_offset);
         }
       }
     }

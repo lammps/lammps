@@ -1342,7 +1342,6 @@ void ReadData::bonds(int firstpass)
     if (eof) error->all(FLERR,"Unexpected end of data file");
     strcpy(buffer_post,buffer);
     atom->data_bonds(nchunk,buffer,count,id_offset,boffset);
-    if (!firstpass) avec->data_bonds_post(nchunk,buffer_post,id_offset);
     nread += nchunk;
   }
 

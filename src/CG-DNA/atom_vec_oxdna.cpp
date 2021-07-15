@@ -66,7 +66,7 @@ void AtomVecOxdna::grow_pointers()
 }
 
 /* ----------------------------------------------------------------------
-   initialize atom quantity
+   initialize atom quantity 5' partner
 ------------------------------------------------------------------------- */
 
 void AtomVecOxdna::data_atom_post(int ilocal)
@@ -80,45 +80,17 @@ void AtomVecOxdna::data_atom_post(int ilocal)
    store 5' partner to inform 3'->5' bond directionality 
 ------------------------------------------------------------------------- */
 
-void AtomVecOxdna::data_bonds_post(int n, char *buf, tagint id_offset)
+void AtomVecOxdna::data_bonds_post(int m, int num_bond, tagint atom1,
+                                       tagint atom2, tagint id_offset)
 {
-
- int m,tmp,itype,rv;
-  tagint atom1,atom2;
-  char *next;
-
   tagint *id5p = atom->id5p;
 
-  if (comm->me == 0) utils::logmesg(lmp,"Setting oxDNA 3'->5' bond directionality ...\n");
-
-  for (int i = 0; i < n; i++) {
-
-    next = strchr(buf,'\n');
-    *next = '\0';
-    rv = sscanf(buf,"%d %d " TAGINT_FORMAT " " TAGINT_FORMAT,
-                &tmp,&itype,&atom1,&atom2);
-
-    if (id_offset) {
-      atom1 += id_offset;
-      atom2 += id_offset;
-    }
-
-    if ((m = atom->map(atom1)) >= 0) {
-        id5p[m] = atom2;
-    }
-
-    buf = next + 1;
+  if (id_offset) {
+    atom1 += id_offset;
+    atom2 += id_offset;
   }
-}
 
-/* ----------------------------------------------------------------------
-   process bond information as per data file
-   store 5' partner to inform 3'->5' bond directionality 
-------------------------------------------------------------------------- */
-
-void AtomVecOxdna::data_bonds_post2(int m, int num_bond, tagint atom1, tagint atom2, tagint id_offset)
-{
-
-printf("CALLED FROM ATOM_VEC_OXDNA\n");
-
+  if ((m = atom->map(atom1)) >= 0) {
+      id5p[m] = atom2;
+  }
 }

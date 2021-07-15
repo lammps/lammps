@@ -66,7 +66,7 @@ int PreAllocate_Space( reax_system *system, control_params * /*control*/,
   LMP_UNUSED_PARAM(workspace);
 #endif
 
-  return SUCCESS;
+  return REAXC_SUCCESS;
 }
 
 
@@ -78,7 +78,7 @@ int Allocate_System( reax_system *system, int /*local_cap*/, int total_cap,
   system->my_atoms = (reax_atom*)
     realloc( system->my_atoms, total_cap*sizeof(reax_atom) );
 
-  return SUCCESS;
+  return REAXC_SUCCESS;
 }
 
 
@@ -315,7 +315,7 @@ int Allocate_Workspace( reax_system * /*system*/, control_params * control,
   LMP_UNUSED_PARAM(control);
 #endif
 
-  return SUCCESS;
+  return REAXC_SUCCESS;
 }
 
 
@@ -392,7 +392,7 @@ static int Reallocate_Bonds_List( reax_system *system, reax_list *bonds,
         (double*) smalloc(system->error_ptr, sizeof(double)*nthreads, "CdboReduction");
 #endif
 
-  return SUCCESS;
+  return REAXC_SUCCESS;
 }
 
 
@@ -426,7 +426,7 @@ void ReAllocate( reax_system *system, control_params *control,
   if (Nflag) {
     /* system */
     ret = Allocate_System( system, system->local_cap, system->total_cap, msg );
-    if (ret != SUCCESS) {
+    if (ret != REAXC_SUCCESS) {
       char errmsg[256];
       snprintf(errmsg, 256, "Not enough space for atom_list: total_cap=%d", system->total_cap);
       system->error_ptr->one(FLERR, errmsg);
@@ -436,7 +436,7 @@ void ReAllocate( reax_system *system, control_params *control,
     DeAllocate_Workspace( control, workspace );
     ret = Allocate_Workspace( system, control, workspace, system->local_cap,
                               system->total_cap, msg );
-    if (ret != SUCCESS) {
+    if (ret != REAXC_SUCCESS) {
       char errmsg[256];
       snprintf(errmsg, 256, "Not enough space for workspace: local_cap=%d total_cap=%d", system->local_cap, system->total_cap);
       system->error_ptr->one(FLERR, errmsg);

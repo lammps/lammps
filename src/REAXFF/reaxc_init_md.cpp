@@ -67,7 +67,7 @@ int Init_System(reax_system *system, control_params *control, char * /*msg*/)
     }
   system->Hcap = (int)(MAX(system->numH * saferzone, mincap));
 
-  return SUCCESS;
+  return REAXC_SUCCESS;
 }
 
 
@@ -83,7 +83,7 @@ int Init_Simulation_Data(reax_system *system, control_params *control,
 
   data->step = data->prev_steps = 0;
 
-  return SUCCESS;
+  return REAXC_SUCCESS;
 }
 
 void Init_Taper(control_params *control,  storage *workspace)
@@ -134,7 +134,7 @@ int Init_Workspace(reax_system *system, control_params *control,
 
   ret = Allocate_Workspace(system, control, workspace,
                             system->local_cap, system->total_cap, msg);
-  if (ret != SUCCESS)
+  if (ret != REAXC_SUCCESS)
     return ret;
 
   memset(&(workspace->realloc), 0, sizeof(reallocate_data));
@@ -143,7 +143,7 @@ int Init_Workspace(reax_system *system, control_params *control,
   /* Initialize the Taper function */
   Init_Taper(control, workspace);
 
-  return SUCCESS;
+  return REAXC_SUCCESS;
 }
 
 
@@ -156,7 +156,7 @@ int Init_MPI_Datatypes(reax_system *system, storage * /*workspace*/,
   mpi_data->world = comm;
   MPI_Comm_size(comm, &(system->wsize));
 
-  return SUCCESS;
+  return REAXC_SUCCESS;
 }
 
 int  Init_Lists(reax_system *system, control_params *control,
@@ -216,7 +216,7 @@ int  Init_Lists(reax_system *system, control_params *control,
   free(hb_top);
   free(bond_top);
 
-  return SUCCESS;
+  return REAXC_SUCCESS;
 }
 
 void Initialize(reax_system *system, control_params *control,

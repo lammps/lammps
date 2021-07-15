@@ -82,6 +82,8 @@ void PairEAMIntel::compute(int eflag, int vflag,
   ev_init(eflag, vflag);
   if (vflag_atom)
     error->all(FLERR,"INTEL package does not support per-atom stress");
+  if (vflag && !vflag_fdotr)
+    error->all(FLERR,"INTEL package does not support pair_modify nofdotr");
 
   const int inum = list->inum;
   const int nthreads = comm->nthreads;
@@ -638,11 +640,13 @@ void PairEAMIntel::eval(const int offload, const int vflag,
 void PairEAMIntel::init_style()
 {
   PairEAM::init_style();
+  auto request = neighbor->find_request(this);
+
   if (force->newton_pair == 0) {
-    neighbor->requests[neighbor->nrequest-1]->half = 0;
-    neighbor->requests[neighbor->nrequest-1]->full = 1;
+    request->half = 0;
+    request->full = 1;
   }
-  neighbor->requests[neighbor->nrequest-1]->intel = 1;
+  request->intel = 1;
 
   int ifix = modify->find_fix("package_intel");
   if (ifix < 0)

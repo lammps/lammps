@@ -16,25 +16,25 @@
    Contributing author: Rodrigo Canales (RWTH Aachen University)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-
-#include <cstring>
 #include "pair_buck_coul_cut_intel.h"
+
 #include "atom.h"
 #include "comm.h"
+#include "error.h"
+#include "force.h"
 #include "force.h"
 #include "group.h"
 #include "kspace.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
-#include "suffix.h"
-#include "force.h"
 #include "modify.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "suffix.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -77,6 +77,8 @@ void PairBuckCoulCutIntel::compute(int eflag, int vflag,
   ev_init(eflag,vflag);
   if (vflag_atom)
     error->all(FLERR,"INTEL package does not support per-atom stress");
+  if (vflag && !vflag_fdotr)
+    error->all(FLERR,"INTEL package does not support pair_modify nofdotr");
 
   const int inum = list->inum;
   const int nthreads = comm->nthreads;
@@ -403,11 +405,12 @@ void PairBuckCoulCutIntel::eval(const int offload, const int vflag,
 void PairBuckCoulCutIntel::init_style()
 {
   PairBuckCoulCut::init_style();
+  auto request = neighbor->find_request(this);
   if (force->newton_pair == 0) {
-    neighbor->requests[neighbor->nrequest-1]->half = 0;
-    neighbor->requests[neighbor->nrequest-1]->full = 1;
+    request->half = 0;
+    request->full = 1;
   }
-  neighbor->requests[neighbor->nrequest-1]->intel = 1;
+  request->intel = 1;
 
   int ifix = modify->find_fix("package_intel");
   if (ifix < 0)

@@ -60,20 +60,20 @@ void PairTersoffMODOMP::compute(int eflag, int vflag)
     if (shift_flag) {
       if (evflag) {
         if (eflag) {
-          if (vflag_atom) eval<1,1,1,1>(ifrom, ito, thr);
+          if (vflag_either) eval<1,1,1,1>(ifrom, ito, thr);
           else eval<1,1,1,0>(ifrom, ito, thr);
         } else {
-          if (vflag_atom) eval<1,1,0,1>(ifrom, ito, thr);
+          if (vflag_either) eval<1,1,0,1>(ifrom, ito, thr);
           else eval<1,1,0,0>(ifrom, ito, thr);
         }
       } else eval<1,0,0,0>(ifrom, ito, thr);
     } else {
       if (evflag) {
         if (eflag) {
-          if (vflag_atom) eval<0,1,1,1>(ifrom, ito, thr);
+          if (vflag_either) eval<0,1,1,1>(ifrom, ito, thr);
           else eval<0,1,1,0>(ifrom, ito, thr);
         } else {
-          if (vflag_atom) eval<0,1,0,1>(ifrom, ito, thr);
+          if (vflag_either) eval<0,1,0,1>(ifrom, ito, thr);
           else eval<0,1,0,0>(ifrom, ito, thr);
         }
       } else eval<0,0,0,0>(ifrom, ito, thr);
@@ -84,7 +84,7 @@ void PairTersoffMODOMP::compute(int eflag, int vflag)
   } // end of omp parallel region
 }
 
-template <int SHIFT_FLAG, int EVFLAG, int EFLAG, int VFLAG_ATOM>
+template <int SHIFT_FLAG, int EVFLAG, int EFLAG, int VFLAG_EITHER>
 void PairTersoffMODOMP::eval(int iifrom, int iito, ThrData * const thr)
 {
   int i,j,k,ii,jj,kk,jnum;
@@ -282,7 +282,7 @@ void PairTersoffMODOMP::eval(int iifrom, int iito, ThrData * const thr)
         f[k].y += fk[1];
         f[k].z += fk[2];
 
-        if (VFLAG_ATOM) v_tally3_thr(i,j,k,fj,fk,delr1,delr2,thr);
+        if (VFLAG_EITHER) v_tally3_thr(this,i,j,k,fj,fk,delr1,delr2,thr);
       }
       f[j].x += fjxtmp;
       f[j].y += fjytmp;

@@ -31,6 +31,11 @@ endif()
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Need -restrict with Intel compilers
+if((CMAKE_CXX_COMPILER_ID STREQUAL "Intel") OR (CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM"))
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -restrict")
+endif()
+
 # bail out on windows
 if(CMAKE_SYSTEM_NAME STREQUAL Windows)
   message(FATAL_ERROR "LAMMPS plugins are currently not supported on Windows")

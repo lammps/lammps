@@ -1,7 +1,7 @@
 ---
 lammps_version: 8 Apr 2021
 date_generated: Wed May  5 11:50:15 2021
-epsilon: 1e-14
+epsilon: 2e-13
 prerequisites: ! |
   pair bop
 pre_commands: ! |

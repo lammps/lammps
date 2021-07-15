@@ -251,10 +251,8 @@ void PairBOP::compute(int eflag, int vflag)
       f[j][1] -= ftmp2;
       f[j][2] -= ftmp3;
       dE = pl_ij.rep - 2.0*pl_ij.betaS*sigB_0 - 2.0*pl_ij.betaP*piB_0;
-      if (evflag) {
-        ev_tally(i,j,nlocal,newton_pair, dE, 0.0, dpr1,
-                 pl_ij.dis[0],pl_ij.dis[1],pl_ij.dis[2]);
-      }
+      if (evflag) ev_tally(i,j,nlocal,newton_pair, dE, 0.0, -dpr1,
+                           pl_ij.dis[0],pl_ij.dis[1],pl_ij.dis[2]);
     }
     nlisti = BOP_total2[i];
     for (jj = 0; jj < nlisti; jj++) {
@@ -274,10 +272,8 @@ void PairBOP::compute(int eflag, int vflag)
       f[j][1] -= ftmp2;
       f[j][2] -= ftmp3;
       dE = -p2_ij.rep;
-      if (evflag) {
-        ev_tally(i,j,nlocal,newton_pair, dE, 0.0, dpr2,
-                 p2_ij.dis[0],p2_ij.dis[1],p2_ij.dis[2]);
-      }
+      if (evflag) ev_tally(i,j,nlocal,newton_pair, dE, 0.0, -dpr2,
+                           p2_ij.dis[0],p2_ij.dis[1],p2_ij.dis[2]);
     }
   }
   if (vflag_fdotr) virial_fdotr_compute();
@@ -1142,10 +1138,8 @@ double PairBOP::SigmaBo(int itmp, int jtmp)
         f[bt_i][n] -= ftmp[n];
         f[bt_j][n] += ftmp[n];
       }
-      if (evflag) {
-        ev_tally_xyz(bt_i,bt_j,nlocal,newton_pair,0.0,0.0,
-                     ftmp[0],ftmp[1],ftmp[2],xtmp[0],xtmp[1],xtmp[2]);
-      }
+      if (evflag) ev_tally_xyz(bt_i,bt_j,nlocal,newton_pair,0.0,0.0,
+                               -ftmp[0],-ftmp[1],-ftmp[2],xtmp[0],xtmp[1],xtmp[2]);
     } else {
       for (int n = 0; n < 3; n++) {
         bt_sg[loop].dSigB[n] = dsigB*part2*bt_sg[loop].dSigB1[n] -
@@ -1157,10 +1151,8 @@ double PairBOP::SigmaBo(int itmp, int jtmp)
         f[bt_i][n] -= ftmp[n];
         f[bt_j][n] += ftmp[n];
       }
-      if (evflag) {
-        ev_tally_xyz(bt_i,bt_j,nlocal,newton_pair,0.0,0.0,
-                     ftmp[0],ftmp[1],ftmp[2],xtmp[0],xtmp[1],xtmp[2]);
-      }
+      if (evflag) ev_tally_xyz(bt_i,bt_j,nlocal,newton_pair,0.0,0.0,
+                               -ftmp[0],-ftmp[1],-ftmp[2],xtmp[0],xtmp[1],xtmp[2]);
     }
   }
   return(sigB);
@@ -1841,10 +1833,8 @@ double PairBOP::PiBo(int itmp, int jtmp)
       f[bt_i][n] -= ftmp[n];
       f[bt_j][n] += ftmp[n];
     }
-    if (evflag) {
-      ev_tally_xyz(bt_i,bt_j,nlocal,newton_pair,0.0,0.0,ftmp[0],ftmp[1],
-                   ftmp[2],xtmp[0],xtmp[1],xtmp[2]);
-    }
+    if (evflag) ev_tally_xyz(bt_i,bt_j,nlocal,newton_pair,0.0,0.0,
+                             -ftmp[0],-ftmp[1],-ftmp[2],xtmp[0],xtmp[1],xtmp[2]);
   }
   return(piB);
 }

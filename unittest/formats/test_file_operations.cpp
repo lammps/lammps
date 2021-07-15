@@ -208,11 +208,11 @@ TEST_F(FileOperationsTest, read_lines_from_file)
     MPI_Comm world = MPI_COMM_WORLD;
     int me, rv;
     memset(buf, 0, MAX_BUF_SIZE);
+    MPI_Comm_rank(world, &me);
 
     rv = utils::read_lines_from_file(nullptr, 1, MAX_BUF_SIZE, buf, me, world);
     ASSERT_EQ(rv, 1);
 
-    MPI_Comm_rank(world, &me);
     if (me == 0) {
         fp = fopen("safe_file_read_test.txt", "r");
         ASSERT_NE(fp, nullptr);

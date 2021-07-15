@@ -30,6 +30,7 @@
 #include "neighbor_kokkos.h"
 #include "kokkos.h"
 #include "sna.h"
+#include "comm.h"
 
 #define MAXLINE 1024
 #define MAXWORD 3
@@ -86,6 +87,16 @@ PairSNAPKokkos<DeviceType, real_type, vector_length>::~PairSNAPKokkos()
 template<class DeviceType, typename real_type, int vector_length>
 void PairSNAPKokkos<DeviceType, real_type, vector_length>::init_style()
 {
+  if (host_flag) {
+    if (lmp->kokkos->nthreads > 1)
+      if (comm->me == 0)
+        utils::logmesg(lmp,"Pair style snap/kk currently only runs on a single "
+                           "CPU thread, even if more threads are requested\n");
+
+    PairSNAP::init_style();
+    return;
+  }
+
   if (force->newton_pair == 0)
     error->all(FLERR,"Pair style SNAP requires newton pair on");
 
@@ -133,6 +144,13 @@ struct FindMaxNumNeighs {
 template<class DeviceType, typename real_type, int vector_length>
 void PairSNAPKokkos<DeviceType, real_type, vector_length>::compute(int eflag_in, int vflag_in)
 {
+  if (host_flag) {
+    atomKK->sync(Host,X_MASK|TYPE_MASK);
+    PairSNAP::compute(eflag_in,vflag_in);
+    atomKK->modified(Host,F_MASK);
+    return;
+  }
+
   eflag = eflag_in;
   vflag = vflag_in;
 

@@ -32,7 +32,7 @@ class ReadData : public Command {
 
  private:
   int me, compressed;
-  char *line, *keyword, *buffer, *buffer_post, *style;
+  char *line, *keyword, *buffer, *style;
   FILE *fp;
   char **coeffarg;
   int ncoeffarg, maxcoeffarg;
@@ -54,7 +54,6 @@ class ReadData : public Command {
   class AtomVecTri *avec_tri;
   bigint nbodies;
   class AtomVecBody *avec_body;
-  class AtomVec *avec;
 
   // box info
 

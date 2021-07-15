@@ -161,7 +161,7 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
 
   sp = fm = fm_long = nullptr;
 
-  // USER-EFF and USER-AWPMD packages
+  // EFF and AWPMD packages
 
   spin = nullptr;
   eradius = ervel = erforce = nullptr;
@@ -169,27 +169,27 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   cs = csforce = vforce = nullptr;
   etag = nullptr;
 
-  // USER-CGDNA package
+  // CG-DNA package
 
   id5p = nullptr;
 
-  // USER-DPD package
+  // DPD-REACT package
 
   uCond = uMech = uChem = uCG = uCGnew = nullptr;
   duChem = dpdTheta = nullptr;
 
-  // USER-MESO package
+  // MESO package
 
   cc = cc_flux = nullptr;
   edpd_temp = edpd_flux = edpd_cv = nullptr;
 
-  // USER-MESONT package
+  // MESONT package
 
   length = nullptr;
   buckling = nullptr;
   bond_nt = nullptr;
 
-  // USER-SMD package
+  // MACHDYN package
 
   contact_radius = nullptr;
   smd_data_9 = nullptr;
@@ -198,12 +198,12 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   eff_plastic_strain_rate = nullptr;
   damage = nullptr;
 
-  // USER-SPH package
+  // SPH package
 
   rho = drho = esph = desph = cv = nullptr;
   vest = nullptr;
 
-  // USER-DIELECTRIC package
+  // DIELECTRIC package
 
   area = ed = em = epsilon = curvature = q_unscaled = nullptr;
 
@@ -461,14 +461,14 @@ void Atom::peratom_create()
   add_peratom("fm",&fm,DOUBLE,3,1);
   add_peratom("fm_long",&fm_long,DOUBLE,3,1);
 
-  // USER-EFF package
+  // EFF package
 
   add_peratom("spin",&spin,INT,0);
   add_peratom("eradius",&eradius,DOUBLE,0);
   add_peratom("ervel",&ervel,DOUBLE,0);
   add_peratom("erforce",&erforce,DOUBLE,0,1);     // set per-thread flag
 
-  // USER-AWPMD package
+  // AWPMD package
 
   add_peratom("cs",&cs,DOUBLE,2);
   add_peratom("csforce",&csforce,DOUBLE,2);
@@ -476,11 +476,11 @@ void Atom::peratom_create()
   add_peratom("ervelforce",&ervelforce,DOUBLE,0);
   add_peratom("etag",&etag,INT,0);
 
-  // USER-CGDNA package
+  // CG-DNA package
 
   add_peratom("id5p",&id5p,tagintsize,0);
 
-  // USER-DPD package
+  // DPD-REACT package
 
   add_peratom("dpdTheta",&dpdTheta,DOUBLE,0);
   add_peratom("uCond",&uCond,DOUBLE,0);
@@ -490,7 +490,7 @@ void Atom::peratom_create()
   add_peratom("uCGnew",&uCGnew,DOUBLE,0);
   add_peratom("duChem",&duChem,DOUBLE,0);
 
-  // USER-MESO package
+  // MESO package
 
   add_peratom("edpd_cv",&edpd_cv,DOUBLE,0);
   add_peratom("edpd_temp",&edpd_temp,DOUBLE,0);
@@ -499,13 +499,13 @@ void Atom::peratom_create()
   add_peratom("cc",&cc,DOUBLE,1);
   add_peratom("cc_flux",&cc_flux,DOUBLE,1,1);         // set per-thread flag
 
-  // USER-MESONT package
+  // MESONT package
 
   add_peratom("length",&length,DOUBLE,0);
   add_peratom("buckling",&buckling,INT,0);
   add_peratom("bond_nt",&bond_nt,tagintsize,2);
 
-  // USER-SPH package
+  // SPH package
 
   add_peratom("rho",&rho,DOUBLE,0);
   add_peratom("drho",&drho,DOUBLE,0,1);               // set per-thread flag
@@ -514,7 +514,7 @@ void Atom::peratom_create()
   add_peratom("vest",&vest,DOUBLE,3);
   add_peratom("cv",&cv,DOUBLE,0);
 
-  // USER-SMD package
+  // MACHDYN package
 
   add_peratom("contact_radius",&contact_radius,DOUBLE,0);
   add_peratom("smd_data_9",&smd_data_9,DOUBLE,1);
@@ -523,7 +523,7 @@ void Atom::peratom_create()
   add_peratom("eff_plastic_strain_rate",&eff_plastic_strain_rate,DOUBLE,0);
   add_peratom("damage",&damage,DOUBLE,0);
 
-  // USER-DIELECTRIC package
+  // DIELECTRIC package
 
   add_peratom("area",&area,DOUBLE,0);
   add_peratom("ed",&ed,DOUBLE,0);
@@ -1302,7 +1302,6 @@ void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset,
         }
       }
     }
-
     buf = next + 1;
   }
 }
@@ -2657,7 +2656,7 @@ void *Atom::extract(const char *name)
   if (strcmp(name,"cv") == 0) return (void *) cv;
   if (strcmp(name,"vest") == 0) return (void *) vest;
 
-  // USER-MESONT package
+  // MESONT package
   if (strcmp(name,"length") == 0) return (void *) length;
   if (strcmp(name,"buckling") == 0) return (void *) buckling;
   if (strcmp(name,"bond_nt") == 0) return (void *) bond_nt;
@@ -2674,7 +2673,7 @@ void *Atom::extract(const char *name)
   if (strcmp(name,"dpdTheta") == 0) return (void *) dpdTheta;
   if (strcmp(name,"edpd_temp") == 0) return (void *) edpd_temp;
 
-  // USER-DIELECTRIC
+  // DIELECTRIC
   if (strcmp(name,"area") == 0) return (void *) area;
   if (strcmp(name,"ed") == 0) return (void *) ed;
   if (strcmp(name,"em") == 0) return (void *) em;
@@ -2750,7 +2749,7 @@ int Atom::extract_datatype(const char *name)
   if (strcmp(name,"cv") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"vest") == 0) return LAMMPS_DOUBLE_2D;
 
-  // USER-MESONT package
+  // MESONT package
   if (strcmp(name,"length") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"buckling") == 0) return LAMMPS_INT;
   if (strcmp(name,"bond_nt") == 0) return  LAMMPS_TAGINT_2D;
@@ -2765,7 +2764,7 @@ int Atom::extract_datatype(const char *name)
   if (strcmp(name,"dpdTheta") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"edpd_temp") == 0) return LAMMPS_DOUBLE;
 
-  // USER-DIELECTRIC
+  // DIELECTRIC
   if (strcmp(name,"area") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"ed") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"em") == 0) return LAMMPS_DOUBLE;

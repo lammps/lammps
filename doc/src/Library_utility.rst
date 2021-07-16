@@ -33,7 +33,7 @@ where such memory buffers were allocated that require the use of
 
 -----------------------
 
-.. doxygenfunction:: lammps_set_fix_external_callback(void *, char *, FixExternalFnPtr, void*)
+.. doxygenfunction:: lammps_set_fix_external_callback(void *, const char *, FixExternalFnPtr, void*)
    :project: progguide
 
 -----------------------

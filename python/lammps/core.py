@@ -295,9 +295,13 @@ class lammps(object):
 
     self.lib.lammps_extract_variable.argtypes = [c_void_p, c_char_p, c_char_p]
 
-    # TODO: NOT IMPLEMENTED IN PYTHON WRAPPER
-    self.lib.lammps_fix_external_set_energy_global = [c_void_p, c_char_p, c_double]
-    self.lib.lammps_fix_external_set_virial_global = [c_void_p, c_char_p, POINTER(c_double)]
+    self.lib.lammps_fix_external_get_force.argtypes = [c_void_p, c_char_p]
+    self.lib.lammps_fix_external_get_force.restype = POINTER(POINTER(c_double))
+
+    self.lib.lammps_fix_external_set_energy_global.argtypes = [c_void_p, c_char_p, c_double]
+    self.lib.lammps_fix_external_set_virial_global.argtypes = [c_void_p, c_char_p, POINTER(c_double)]
+    self.lib.lammps_fix_external_set_energy_peratom.argtypes = [c_void_p, c_char_p, POINTER(c_double)]
+    self.lib.lammps_fix_external_set_virial_peratom.argtypes = [c_void_p, c_char_p, POINTER(POINTER(c_double))]
 
     # detect if Python is using a version of mpi4py that can pass communicators
     # only needed if LAMMPS has been compiled with MPI support.
@@ -1725,7 +1729,33 @@ class lammps(object):
 
   # -------------------------------------------------------------------------
 
-  def set_fix_external_callback(self, fix_name, callback, caller=None):
+  def set_fix_external_callback(self, fix_id, callback, caller=None):
+    """Set the callback function for a fix external instance with a given fix ID.
+
+    Optionally also set a reference to the calling object.
+
+    This is a wrapper around the :cpp:func:`lammps_set_fix_external_callback` function
+    of the C-library interface.  However this is set up to call a Python function with
+    the following arguments.
+
+    .. code-block: python
+
+       def func(object, ntimestep, nlocal, tag, x, f):
+
+    - object is the value of the "caller" argument
+    - ntimestep is the current timestep
+    - nlocal is the number of local atoms on the current MPI process
+    - tag is a 1d NumPy array of integers representing the atom IDs of the local atoms
+    - x is a 2d NumPy array of floating point numbers of the coordinates of the local atoms
+    - f is a 2d NumPy array of floating point numbers of the forces on the local atoms that will be added
+
+    :param fix_id:  Fix-ID of a fix external instance
+    :type: string
+    :param callback: Python function that will be called from fix external
+    :type: function
+    :param caller: reference to some object passed to the callback function
+    :type: object, optional
+    """
     import numpy as np
 
     def callback_wrapper(caller, ntimestep, nlocal, tag_ptr, x_ptr, fext_ptr):
@@ -1737,10 +1767,27 @@ class lammps(object):
     cFunc   = self.FIX_EXTERNAL_CALLBACK_FUNC(callback_wrapper)
     cCaller = caller
 
-    self.callback[fix_name] = { 'function': cFunc, 'caller': caller }
+    self.callback[fix_id] = { 'function': cFunc, 'caller': caller }
     with ExceptionCheck(self):
-      self.lib.lammps_set_fix_external_callback(self.lmp, fix_name.encode(), cFunc, cCaller)
+      self.lib.lammps_set_fix_external_callback(self.lmp, fix_id.encode(), cFunc, cCaller)
 
+  # -------------------------------------------------------------------------
+
+  def fix_external_get_force(self, fix_id):
+    """Get access to that array with per-atom forces of a fix external instance with a given fix ID.
+
+    This is a wrapper around the :cpp:func:`lammps_fix_external_get_force` function
+    of the C-library interface.
+
+    :param fix_id:  Fix-ID of a fix external instance
+    :type: string
+    :return: requested data
+    :rtype: ctypes.POINTER(ctypes.POINTER(ctypes.double))
+    """
+
+    with ExceptionCheck(self):
+      return self.lib.lammps_fix_external_get_force(self.lmp, fix_id.encode())
+    return None
 
   # -------------------------------------------------------------------------
 

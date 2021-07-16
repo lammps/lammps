@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -30,9 +29,6 @@
 
 #include <cmath>
 #include <cstring>
-#include <algorithm>
-#include <iostream>
-#include <limits>
 
 //these are defined here to avoid confusing hardcoded indices, but
 //they do not allow flexibility. If they are changed the code will break
@@ -40,6 +36,8 @@
 #define NUMH 2  //number of hydrogen atoms per water molecule
 #define NUMO 2  //number of oxygen atoms per pair of water molecules
 #define BOND_DELTA 1.01   //buffer for OH bonds that aren't perfectly rigid
+
+static constexpr double NOT_SET=1.024e300;
 
 using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
@@ -411,7 +409,7 @@ void PairE3B::coeff(int narg, char **arg)
   bool repeatFlag=false;
 
   //clear parameters
-  e2=ea=eb=ec=k3=k2=NAN;
+  e2=ea=eb=ec=k3=k2=NOT_SET;
   rs=rc3=rc2=0.0;
 
   int iarg = 2; //beginning of keyword/value pairs
@@ -448,7 +446,7 @@ void PairE3B::coeff(int narg, char **arg)
   checkInputs(bondL);
 
   //cutmax for neighbor listing
-  cutmax = std::max(rc2,rc3);
+  cutmax = MAX(rc2,rc3);
   rc2sq  = rc2*rc2;
   rc3sq  = rc3*rc3;
   rc3deltaSq = (rc3+bondL)*(rc3+bondL);
@@ -525,8 +523,8 @@ void PairE3B::presetParam(const int flag,bool &repeatFlag,double &bondL) {
     error->all(FLERR,"Cannot request two different sets of preset parameters");
   repeatFlag=true;
 
-  if (!std::isnan(ea) || !std::isnan(eb) || !std::isnan(ec) ||
-      !std::isnan(e2) || !std::isnan(k3) || !std::isnan(k2) ||
+  if (ea!=NOT_SET || eb!=NOT_SET || ec!=NOT_SET ||
+      e2!=NOT_SET || k3!=NOT_SET || k2!=NOT_SET ||
       bondL!=0.0 || rs!=0.0 || rc3!=0.0 || rc2!=0.0 )
     error->all(FLERR,"Preset keyword will overwrite another keyword setting");
 
@@ -648,17 +646,17 @@ void PairE3B::checkInputs(const double &bondL) {
     error->all(FLERR,"Rc3 keyword missing");
   if (bondL==0.0)
     error->all(FLERR,"bondL keyword missing");
-  if (std::isnan(ea))
+  if (ea==NOT_SET)
     error->all(FLERR,"Ea keyword missing");
-  if (std::isnan(eb))
+  if (eb==NOT_SET)
     error->all(FLERR,"Eb keyword missing");
-  if (std::isnan(ec))
+  if (ec==NOT_SET)
     error->all(FLERR,"Ec keyword missing");
-  if (std::isnan(k3))
+  if (k3==NOT_SET)
     error->all(FLERR,"K3 keyword missing");
-  if (std::isnan(e2))
+  if (e2==NOT_SET)
     error->all(FLERR,"E2 keyword missing");
-  if (std::isnan(k2))
+  if (k2==NOT_SET)
     error->all(FLERR,"K2 keyword missing");
 
   //now test that values are within acceptable ranges

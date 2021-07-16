@@ -28,8 +28,11 @@ static void callback_one(void *handle, step_t timestep, int nlocal, tag_t *, dou
 {
     for (int i = 0; i < nlocal; ++i)
         f[i][0] = f[i][1] = f[i][2] = (double)timestep;
-    lammps_fix_external_set_energy_global(handle, "ext", 1.0);
-    double v[6] = {1.0,1.0,1.0,0.0,0.0,0.0 };
+    if (timestep < 10)
+        lammps_fix_external_set_energy_global(handle, "ext", 0.0);
+    else
+        lammps_fix_external_set_energy_global(handle, "ext", 1.0);
+    double v[6] = {1.0, 1.0, 1.0, 0.0, 0.0, 0.0};
     lammps_fix_external_set_virial_global(handle, "ext", v);
 }
 }
@@ -65,10 +68,10 @@ TEST(lammps_external, callback)
     ::testing::internal::CaptureStdout();
     lammps_set_fix_external_callback(handle, "ext", &callback_one, handle);
     lammps_command(handle, "run 10 post no");
-    double temp = lammps_get_thermo(handle, "temp");
-    double pe = lammps_get_thermo(handle, "pe");
+    double temp  = lammps_get_thermo(handle, "temp");
+    double pe    = lammps_get_thermo(handle, "pe");
     double press = lammps_get_thermo(handle, "press");
-    output      = ::testing::internal::GetCapturedStdout();
+    output       = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
     EXPECT_DOUBLE_EQ(temp, 1.0 / 30.0);
     EXPECT_DOUBLE_EQ(pe, 1.0 / 8.0);

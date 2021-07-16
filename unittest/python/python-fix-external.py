@@ -8,6 +8,10 @@ def callback_one(lmp, ntimestep, nlocal, tag, x, f):
         f[i][0] = float(ntimestep)
         f[i][1] = float(ntimestep)
         f[i][2] = float(ntimestep)
+    if ntimestep < 10:
+        lmp.fix_external_set_energy_global("ext",0.5)
+    else:
+        lmp.fix_external_set_energy_global("ext",1.0)
 
 class PythonExternal(unittest.TestCase):
     def testExternalCallback(self):
@@ -35,6 +39,7 @@ class PythonExternal(unittest.TestCase):
         lmp.set_fix_external_callback("ext",callback_one,lmp)
         lmp.command("run 10 post no")
         self.assertAlmostEqual(lmp.get_thermo("temp"),1.0/30.0,14)
+        self.assertAlmostEqual(lmp.get_thermo("pe"),1.0/8.0,14)
 
     def testExternalArray(self):
         """Test fix external from Python with pf/array"""

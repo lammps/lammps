@@ -1791,6 +1791,23 @@ class lammps(object):
 
   # -------------------------------------------------------------------------
 
+  def fix_external_set_energy_global(self, fix_id, eng):
+    """Get access to that array with per-atom forces of a fix external instance with a given fix ID.
+
+    This is a wrapper around the :cpp:func:`lammps_fix_external_get_force` function
+    of the C-library interface.
+
+    :param fix_id:  Fix-ID of a fix external instance
+    :type: string
+    :param eng:     potential energy to be added by fix external
+    :type: float
+    """
+
+    with ExceptionCheck(self):
+      return self.lib.lammps_fix_external_set_energy_global(self.lmp, fix_id.encode(), eng)
+
+  # -------------------------------------------------------------------------
+
   def get_neighlist(self, idx):
     """Returns an instance of :class:`NeighList` which wraps access to the neighbor list with the given index
 

@@ -110,22 +110,30 @@ PairRANN::~PairRANN()
       for (int j=0;j<net[i].layers-1;j++) {
         delete [] net[i].Weights[j];
         delete [] net[i].Biases[j];
+        delete activation[i][j];
       }
-      delete [] net[i].dimensions;
+      delete [] activation[i];
       delete [] net[i].Weights;
       delete [] net[i].Biases;
+      delete [] weightdefined[i];
+      delete [] biasdefined[i];
     }
+    delete [] net[i].dimensions;
   }
   delete [] net;
   delete [] map;
   for (int i=0;i<nelementsp;i++) {
     if (fingerprintlength[i]>0) {
+      for (int j=0;j<fingerprintperelement[i];j++) {
+        delete fingerprints[i][j];
+      }
       delete [] fingerprints[i];
-      delete [] activation[i];
     }
   }
   delete [] fingerprints;
   delete [] activation;
+  delete [] weightdefined;
+  delete [] biasdefined;
   delete [] fingerprintcount;
   delete [] fingerprintperelement;
   delete [] fingerprintlength;
@@ -173,6 +181,8 @@ PairRANN::~PairRANN()
     memory->destroy(dssumy);
     memory->destroy(dssumz);
   }
+  memory->destroy(setflag);
+  memory->destroy(cutsq);
 }
 
 void PairRANN::allocate(const std::vector<std::string> &elementwords)
@@ -305,6 +315,7 @@ void PairRANN::read_file(char *filename)
     ptr=fgets(linetemp,longline,fp);
     linenum++;
     if (ptr == nullptr) {
+      fclose(fp);
       if (check_potential()) {
         error->one(FLERR,"Invalid syntax in potential file, values are inconsistent or missing");
       }
@@ -478,10 +489,8 @@ void PairRANN::read_network_layers(std::vector<std::string> line,std::vector<std
       net[i].dimensions = new int [net[i].layers];
       net[i].Weights = new double * [net[i].layers-1];
       net[i].Biases = new double * [net[i].layers-1];
-      net[i].activations = new int [net[i].layers-1];
       for (j=0;j<net[i].layers;j++) {
         net[i].dimensions[j]=0;
-        if (j<net[i].layers-1)net[i].activations[j]=-1;
         weightdefined[i][j] = false;
         biasdefined[i][j] = false;
       }
@@ -547,7 +556,7 @@ void PairRANN::read_weight(std::vector<std::string> line,std::vector<std::string
 
 void PairRANN::read_bias(std::vector<std::string> line,std::vector<std::string> line1,FILE* fp,char *filename,int *linenum) {
   int i,j,l;
-  char linetemp[MAXLINE];
+  char linetemp[MAXLINE],*ptr;
   for (l=0;l<nelements;l++) {
     if (line[1].compare(elements[l])==0) {
       if (net[l].layers==0)error->one(filename,*linenum-1,"networklayers must be defined before biases.");
@@ -558,7 +567,8 @@ void PairRANN::read_bias(std::vector<std::string> line,std::vector<std::string> 
       net[l].Biases[i] = new double [net[l].dimensions[i+1]];
       net[l].Biases[i][0] = utils::numeric(filename,*linenum,line1[0].c_str(),1,lmp);
       for (j=1;j<net[l].dimensions[i+1];j++) {
-        fgets(linetemp,MAXLINE,fp);
+        ptr=fgets(linetemp,MAXLINE,fp);
+        if (ptr==nullptr)error->one(filename,*linenum,"unexpected end of potential file!");
         (*linenum)++;
         Tokenizer values1 = Tokenizer(linetemp,": ,\t_\n");
         line1 = values1.as_vector();
@@ -832,6 +842,7 @@ void PairRANN::compute(int eflag, int vflag)
       }
   }
   if (vflag_fdotr) virial_fdotr_compute();
+  delete [] sims;
 }
 
 void PairRANN::cull_neighbor_list(int* jnum,int i,int sn) {

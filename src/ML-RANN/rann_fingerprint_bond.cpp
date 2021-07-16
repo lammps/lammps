@@ -282,6 +282,7 @@ void Fingerprint_bond::generate_coefficients() {      //calculates multinomial c
       coeff[p1][p] = pair->factorial(p)/pair->factorial(coeffx[p1][p])/pair->factorial(coeffy[p1][p])/pair->factorial(coeffz[p1][p]);
     }
   }
+  delete [] M;
 }
 
 

@@ -285,6 +285,7 @@ void Fingerprint_bondscreenedspin::generate_coefficients() {      //calculates m
       coeff[p1][p] = pair->factorial(p)/pair->factorial(coeffx[p1][p])/pair->factorial(coeffy[p1][p])/pair->factorial(coeffz[p1][p]);
     }
   }
+  delete [] M;
 }
 
 

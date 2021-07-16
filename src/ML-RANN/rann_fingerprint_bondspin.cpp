@@ -283,6 +283,7 @@ void Fingerprint_bondspin::generate_coefficients() {      //calculates multinomi
       coeff[p1][p] = pair->factorial(p)/pair->factorial(coeffx[p1][p])/pair->factorial(coeffy[p1][p])/pair->factorial(coeffz[p1][p]);
     }
   }
+  delete [] M;
 }
 
 

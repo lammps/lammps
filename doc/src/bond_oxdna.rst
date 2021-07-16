@@ -84,6 +84,14 @@ commands:
    the bond topology in the data file. The first (second) atom in a bond definition
    is understood to point towards the 3'-end (5'-end) of the strand.
 
+.. warning::
+
+   LAMMPS has per se no concept of bond directionality. This means the bond definition
+   (i.e. the sequence of atom IDs) in data files produced with :doc:`write_data <write_data>` 
+   can be different from the one provided in your initial data file. If this is the case,
+   then the correct 3' to 5' polarity needs to be restored before using the data file.
+   This limitation does not apply to binary restart files produced with 
+   :doc:`write_restart <write_restart>`.
 
 Example input and data files for DNA and RNA duplexes can be found in
 examples/PACKAGES/cgdna/examples/oxDNA/ , /oxDNA2/ and /oxRNA2/.  A simple python

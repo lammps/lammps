@@ -238,7 +238,7 @@ void FixExternal::set_virial_peratom(double **caller_virial)
 
 void FixExternal::set_vector_length(int n)
 {
-  delete [] caller_vector;
+  delete[] caller_vector;
 
   vector_flag = 1;
   size_vector = n;
@@ -341,4 +341,17 @@ void FixExternal::set_callback(FnPtr caller_callback, void *caller_ptr)
 {
   callback = caller_callback;
   ptr_caller = caller_ptr;
+}
+
+/* ----------------------------------------------------------------------
+   get access to internal data structures
+------------------------------------------------------------------------- */
+
+void *FixExternal::extract(const char *str, int &dim)
+{
+  if (strcmp(str, "fexternal") == 0) {
+    dim = 2;
+    return (void *) fexternal;
+  }
+  return nullptr;
 }

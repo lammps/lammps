@@ -4804,15 +4804,38 @@ void lammps_decode_image_flags(imageint image, int *flags)
   flags[2] = (image >> IMG2BITS) - IMGMAX;
 }
 
-/* ----------------------------------------------------------------------
-   find fix external with given ID and set the callback function
-   and caller pointer
-------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
 
-void lammps_set_fix_external_callback(void *handle, char *id, FixExternalFnPtr callback_ptr, void * caller)
+/** Set the callback function for a fix external instance with given ID.
+    Optionally also set the pointer to the calling object.
+\verbatim embed:rst
+
+Fix :doc:`external <fix_external>` allows programs that are running LAMMPS through
+its library interface to modify certain LAMMPS properties on specific
+timesteps, similar to the way other fixes do.
+
+This function sets the callback function which has to have C language
+bindings with the prototype:
+
+.. code-block:: c
+
+   void func(void *ptr, bigint timestep, int nlocal, tagint *ids, double **x, double **fexternal);
+
+Please see the documentation for :doc:`fix external <fix_external>` for
+more information about how to use the fix and how to couple it with an
+external code.
+
+\endverbatim
+ *
+ * \param  handle   pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param  id       fix ID of fix external instance
+ * \param  funcptr  pointer to callback function
+ * \param  ptr      pointer to object in calling code, passed to callback function as first argument */
+
+void lammps_set_fix_external_callback(void *handle, char *id, FixExternalFnPtr funcptr, void *ptr)
 {
   LAMMPS *lmp = (LAMMPS *) handle;
-  FixExternal::FnPtr callback = (FixExternal::FnPtr) callback_ptr;
+  FixExternal::FnPtr callback = (FixExternal::FnPtr) funcptr;
 
   BEGIN_CAPTURE
   {
@@ -4823,18 +4846,16 @@ void lammps_set_fix_external_callback(void *handle, char *id, FixExternalFnPtr c
     Fix *fix = lmp->modify->fix[ifix];
 
     if (strcmp("external",fix->style) != 0)
-      lmp->error->all(FLERR,"Fix '{}' is not of style "
-                                        "external!", id);
+      lmp->error->all(FLERR,"Fix '{}' is not of style 'external'", id);
 
-    FixExternal * fext = (FixExternal*) fix;
-    fext->set_callback(callback, caller);
+    FixExternal *fext = (FixExternal *) fix;
+    fext->set_callback(callback, ptr);
   }
   END_CAPTURE
 }
 
 /* set global energy contribution from fix external */
-void lammps_fix_external_set_energy_global(void *handle, char *id,
-                                           double energy)
+void lammps_fix_external_set_energy_global(void *handle, char *id, double energy)
 {
   LAMMPS *lmp = (LAMMPS *) handle;
 
@@ -4849,7 +4870,7 @@ void lammps_fix_external_set_energy_global(void *handle, char *id,
     if (strcmp("external",fix->style) != 0)
       lmp->error->all(FLERR,"Fix '{}' is not of style external!", id);
 
-    FixExternal * fext = (FixExternal*) fix;
+    FixExternal *fext = (FixExternal*) fix;
     fext->set_energy_global(energy);
   }
   END_CAPTURE

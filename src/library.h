@@ -226,7 +226,7 @@ void lammps_decode_image_flags(int64_t image, int *flags);
 
 #if defined(LAMMPS_BIGBIG)
 typedef void (*FixExternalFnPtr)(void *, int64_t, int, int64_t *, double **, double **);
-void lammps_set_fix_external_callback(void *, char *, FixExternalFnPtr, void *);
+void lammps_set_fix_external_callback(void *handle, char *id, FixExternalFnPtr funcptr, void *ptr);
 #elif defined(LAMMPS_SMALLBIG)
 typedef void (*FixExternalFnPtr)(void *, int64_t, int, int *, double **, double **);
 void lammps_set_fix_external_callback(void *, char *, FixExternalFnPtr, void *);

@@ -254,7 +254,7 @@ void FixExternal::set_vector_length(int n)
 
 void FixExternal::set_vector(int index, double value)
 {
-  if (index >= size_vector)
+  if (index > size_vector)
     error->all(FLERR,"Invalid set_vector index in fix external");
   caller_vector[index-1] = value;
 }

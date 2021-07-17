@@ -100,45 +100,45 @@ PairRANN::PairRANN(LAMMPS *lmp) : Pair(lmp)
 PairRANN::~PairRANN()
 {
   //clear memory
-  delete [] mass;
+  delete[] mass;
   for (int i=0;i<nelements;i++) {delete [] elements[i];}
-  delete [] elements;
+  delete[] elements;
   for (int i=0;i<nelementsp;i++) {delete [] elementsp[i];}
-  delete [] elementsp;
+  delete[] elementsp;
   for (int i=0;i<=nelements;i++) {
     if (net[i].layers>0) {
       for (int j=0;j<net[i].layers-1;j++) {
-        delete [] net[i].Weights[j];
-        delete [] net[i].Biases[j];
+        delete[] net[i].Weights[j];
+        delete[] net[i].Biases[j];
         delete activation[i][j];
       }
-      delete [] activation[i];
-      delete [] net[i].Weights;
-      delete [] net[i].Biases;
-      delete [] weightdefined[i];
-      delete [] biasdefined[i];
+      delete[] activation[i];
+      delete[] net[i].Weights;
+      delete[] net[i].Biases;
+      delete[] weightdefined[i];
+      delete[] biasdefined[i];
     }
-    delete [] net[i].dimensions;
+    delete[] net[i].dimensions;
   }
-  delete [] net;
-  delete [] map;
+  delete[] net;
+  delete[] map;
   for (int i=0;i<nelementsp;i++) {
     if (fingerprintlength[i]>0) {
       for (int j=0;j<fingerprintperelement[i];j++) {
         delete fingerprints[i][j];
       }
-      delete [] fingerprints[i];
+      delete[] fingerprints[i];
     }
   }
-  delete [] fingerprints;
-  delete [] activation;
-  delete [] weightdefined;
-  delete [] biasdefined;
-  delete [] fingerprintcount;
-  delete [] fingerprintperelement;
-  delete [] fingerprintlength;
-  delete [] screening_min;
-  delete [] screening_max;
+  delete[] fingerprints;
+  delete[] activation;
+  delete[] weightdefined;
+  delete[] biasdefined;
+  delete[] fingerprintcount;
+  delete[] fingerprintperelement;
+  delete[] fingerprintlength;
+  delete[] screening_min;
+  delete[] screening_max;
   memory->destroy(xn);
   memory->destroy(yn);
   memory->destroy(zn);
@@ -207,10 +207,10 @@ void PairRANN::allocate(const std::vector<std::string> &elementwords)
   activation = new RANN::Activation**[nelementsp];
   fingerprints = new RANN::Fingerprint**[nelementsp];
   fingerprintlength = new int[nelementsp];
-  fingerprintperelement = new int [nelementsp];
+  fingerprintperelement = new int[nelementsp];
   fingerprintcount = new int[nelementsp];
-  screening_min = new double [nelements*nelements*nelements];
-  screening_max = new double [nelements*nelements*nelements];
+  screening_min = new double[nelements*nelements*nelements];
+  screening_max = new double[nelements*nelements*nelements];
   for (i=0;i<nelements;i++) {
     for (int j =0;j<nelements;j++) {
       for (int k=0;k<nelements;k++) {
@@ -243,7 +243,7 @@ void PairRANN::settings(int narg, char ** /*arg*/)
 void PairRANN::coeff(int narg, char **arg)
 {
   int i,j;
-  map = new int [atom->ntypes+1];
+  map = new int[atom->ntypes+1];
   if (narg != 3 + atom->ntypes) error->one(FLERR,"Incorrect args for pair coefficients");
   if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0) error->one(FLERR,"Incorrect args for pair coefficients");
   nelements = -1;
@@ -483,10 +483,10 @@ void PairRANN::read_network_layers(std::vector<std::string> line,std::vector<std
     if (line[1].compare(elements[i])==0) {
       net[i].layers = utils::inumeric(filename,linenum,line1[0].c_str(),1,lmp);
       if (net[i].layers < 1)error->one(filename,linenum,"invalid number of network layers");
-      delete [] net[i].dimensions;
+      delete[] net[i].dimensions;
       weightdefined[i] = new bool [net[i].layers];
       biasdefined[i] = new bool [net[i].layers];
-      net[i].dimensions = new int [net[i].layers];
+      net[i].dimensions = new int[net[i].layers];
       net[i].Weights = new double * [net[i].layers-1];
       net[i].Biases = new double * [net[i].layers-1];
       for (j=0;j<net[i].layers;j++) {
@@ -529,7 +529,7 @@ void PairRANN::read_weight(std::vector<std::string> line,std::vector<std::string
       i=utils::inumeric(filename,*linenum,line[2].c_str(),1,lmp);
       if (i>=net[l].layers || i<0)error->one(filename,*linenum-1,"invalid weight layer");
       if (net[l].dimensions[i]==0 || net[l].dimensions[i+1]==0) error->one(filename,*linenum-1,"network layer sizes must be defined before corresponding weight");
-      net[l].Weights[i] = new double [net[l].dimensions[i]*net[l].dimensions[i+1]];
+      net[l].Weights[i] = new double[net[l].dimensions[i]*net[l].dimensions[i+1]];
       weightdefined[l][i] = true;
       nwords = line1.size();
       if (nwords != net[l].dimensions[i])error->one(filename,*linenum,"invalid weights per line");
@@ -564,7 +564,7 @@ void PairRANN::read_bias(std::vector<std::string> line,std::vector<std::string> 
       if (i>=net[l].layers || i<0)error->one(filename,*linenum-1,"invalid bias layer");
       if (net[l].dimensions[i]==0) error->one(filename,*linenum-1,"network layer sizes must be defined before corresponding bias");
       biasdefined[l][i] = true;
-      net[l].Biases[i] = new double [net[l].dimensions[i+1]];
+      net[l].Biases[i] = new double[net[l].dimensions[i+1]];
       net[l].Biases[i][0] = utils::numeric(filename,*linenum,line1[0].c_str(),1,lmp);
       for (j=1;j<net[l].dimensions[i+1];j++) {
         ptr=fgets(linetemp,MAXLINE,fp);
@@ -842,7 +842,7 @@ void PairRANN::compute(int eflag, int vflag)
       }
   }
   if (vflag_fdotr) virial_fdotr_compute();
-  delete [] sims;
+  delete[] sims;
 }
 
 void PairRANN::cull_neighbor_list(int* jnum,int i,int sn) {

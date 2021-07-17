@@ -1795,19 +1795,37 @@ class lammps(object):
   # -------------------------------------------------------------------------
 
   def fix_external_set_energy_global(self, fix_id, eng):
-    """Get access to that array with per-atom forces of a fix external instance with a given fix ID.
+    """Set the global energy contribution for a fix external instance with the given ID.
 
-    This is a wrapper around the :cpp:func:`lammps_fix_external_get_force` function
+    This is a wrapper around the :cpp:func:`lammps_fix_external_set_energy_global` function
     of the C-library interface.
 
     :param fix_id:  Fix-ID of a fix external instance
     :type: string
-    :param eng:     potential energy to be added by fix external
+    :param eng:     potential energy value to be added by fix external
     :type: float
     """
 
     with ExceptionCheck(self):
       return self.lib.lammps_fix_external_set_energy_global(self.lmp, fix_id.encode(), eng)
+
+  # -------------------------------------------------------------------------
+
+  def fix_external_set_virial_global(self, fix_id, virial):
+    """Set the global virial contribution for a fix external instance with the given ID.
+
+    This is a wrapper around the :cpp:func:`lammps_fix_external_set_virial_global` function
+    of the C-library interface.
+
+    :param fix_id:  Fix-ID of a fix external instance
+    :type: string
+    :param eng:     list of 6 floating point numbers with the virial to be added by fix external
+    :type: float
+    """
+
+    cvirial = (6*c_double)(*virial)
+    with ExceptionCheck(self):
+      return self.lib.lammps_fix_external_set_virial_global(self.lmp, fix_id.encode(), cvirial)
 
   # -------------------------------------------------------------------------
   def fix_external_set_vector_length(self, fix_id, length):

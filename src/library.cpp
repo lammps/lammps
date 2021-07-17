@@ -5103,7 +5103,7 @@ void lammps_fix_external_set_vector_length(void *handle, const char *id, int len
   END_CAPTURE
 }
 
-/** Store global vector for a fix external instance with the given ID.
+/** Store a global vector value for a fix external instance with the given ID.
 
 \verbatim embed:rst
 

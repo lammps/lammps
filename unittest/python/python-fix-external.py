@@ -4,6 +4,8 @@ from lammps import lammps, LMP_STYLE_GLOBAL, LMP_TYPE_VECTOR
 
 # add timestep dependent force
 def callback_one(lmp, ntimestep, nlocal, tag, x, f):
+    virial = [1.0, 1.0, 1.0, 0.0, 0.0, 0.0]
+    lmp.fix_external_set_virial_global("ext",virial)
     for i in range(nlocal):
         f[i][0] = float(ntimestep)
         f[i][1] = float(ntimestep)
@@ -49,6 +51,7 @@ class PythonExternal(unittest.TestCase):
         lmp.command("run 10 post no")
         self.assertAlmostEqual(lmp.get_thermo("temp"),1.0/30.0,14)
         self.assertAlmostEqual(lmp.get_thermo("pe"),1.0/8.0,14)
+        self.assertAlmostEqual(lmp.get_thermo("press"),0.15416666666666667,14)
         val = 0.0
         for i in range(0,6):
             val += lmp.extract_fix("ext",LMP_STYLE_GLOBAL,LMP_TYPE_VECTOR,nrow=i)

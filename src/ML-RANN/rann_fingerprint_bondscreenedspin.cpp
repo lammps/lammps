@@ -158,6 +158,7 @@ void Fingerprint_bondscreenedspin::init(int *i,int _id) {
   rc = 0;
   mlength = 0;
   kmax = 0;
+  delete[] alpha_k;
   alpha_k = new double [1];
   alpha_k[0]=-1;
   empty = false;

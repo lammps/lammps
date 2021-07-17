@@ -303,6 +303,9 @@ class lammps(object):
     self.lib.lammps_fix_external_set_energy_peratom.argtypes = [c_void_p, c_char_p, POINTER(c_double)]
     self.lib.lammps_fix_external_set_virial_peratom.argtypes = [c_void_p, c_char_p, POINTER(POINTER(c_double))]
 
+    self.lib.lammps_fix_external_set_vector_length.argtypes = [c_void_p, c_char_p, c_int]
+    self.lib.lammps_fix_external_set_vector.argtypes = [c_void_p, c_char_p, c_int, c_double]
+
     # detect if Python is using a version of mpi4py that can pass communicators
     # only needed if LAMMPS has been compiled with MPI support.
     self.has_mpi4py = False
@@ -1805,6 +1808,40 @@ class lammps(object):
 
     with ExceptionCheck(self):
       return self.lib.lammps_fix_external_set_energy_global(self.lmp, fix_id.encode(), eng)
+
+  # -------------------------------------------------------------------------
+  def fix_external_set_vector_length(self, fix_id, length):
+    """Set the vector length for a global vector stored with fix external for analysis
+
+    This is a wrapper around the :cpp:func:`lammps_fix_external_set_vector_length` function
+    of the C-library interface.
+
+    :param fix_id:  Fix-ID of a fix external instance
+    :type: string
+    :param length:  length of the global vector
+    :type: int
+    """
+
+    with ExceptionCheck(self):
+      return self.lib.lammps_fix_external_set_vector_length(self.lmp, fix_id.encode(), length)
+
+  # -------------------------------------------------------------------------
+  def fix_external_set_vector(self, fix_id, idx, val):
+    """Store a global vector value for a fix external instance with the given ID.
+
+    This is a wrapper around the :cpp:func:`lammps_fix_external_set_vector` function
+    of the C-library interface.
+
+    :param fix_id:  Fix-ID of a fix external instance
+    :type: string
+    :param idx:     1-based index of the value in the global vector
+    :type: int
+    :param val:     value to be stored in the global vector
+    :type: float
+    """
+
+    with ExceptionCheck(self):
+      return self.lib.lammps_fix_external_set_vector(self.lmp, fix_id.encode(), idx, val)
 
   # -------------------------------------------------------------------------
 

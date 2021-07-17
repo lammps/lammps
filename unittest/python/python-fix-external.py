@@ -1,6 +1,6 @@
 import sys,os,unittest
 from ctypes import *
-from lammps import lammps
+from lammps import lammps, LMP_STYLE_GLOBAL, LMP_TYPE_VECTOR
 
 # add timestep dependent force
 def callback_one(lmp, ntimestep, nlocal, tag, x, f):
@@ -9,9 +9,15 @@ def callback_one(lmp, ntimestep, nlocal, tag, x, f):
         f[i][1] = float(ntimestep)
         f[i][2] = float(ntimestep)
     if ntimestep < 10:
-        lmp.fix_external_set_energy_global("ext",0.5)
+        lmp.fix_external_set_energy_global("ext", 0.5)
+        lmp.fix_external_set_vector("ext", 1, ntimestep)
+        lmp.fix_external_set_vector("ext", 3, 1.0)
+        lmp.fix_external_set_vector("ext", 4, -0.25)
     else:
-        lmp.fix_external_set_energy_global("ext",1.0)
+        lmp.fix_external_set_energy_global("ext", 1.0)
+        lmp.fix_external_set_vector("ext", 2, ntimestep)
+        lmp.fix_external_set_vector("ext", 5, -1.0)
+        lmp.fix_external_set_vector("ext", 6, 0.25)
 
 class PythonExternal(unittest.TestCase):
     def testExternalCallback(self):
@@ -31,15 +37,22 @@ class PythonExternal(unittest.TestCase):
                         pair_style zero 0.1
                         pair_coeff 1 1
                         velocity all set 0.1 0.0 -0.1
+                        thermo_style custom step temp pe ke etotal press
                         thermo 5
                         fix 1 all nve
                         fix ext all external pf/callback 5 1
+                        fix_modify ext energy yes virial yes
 """
         lmp.commands_string(basic_system)
+        lmp.fix_external_set_vector_length("ext",6);
         lmp.set_fix_external_callback("ext",callback_one,lmp)
         lmp.command("run 10 post no")
         self.assertAlmostEqual(lmp.get_thermo("temp"),1.0/30.0,14)
         self.assertAlmostEqual(lmp.get_thermo("pe"),1.0/8.0,14)
+        val = 0.0
+        for i in range(0,6):
+            val += lmp.extract_fix("ext",LMP_STYLE_GLOBAL,LMP_TYPE_VECTOR,nrow=i)
+        self.assertAlmostEqual(val,15.0,14)
 
     def testExternalArray(self):
         """Test fix external from Python with pf/array"""

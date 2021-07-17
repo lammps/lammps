@@ -4821,7 +4821,7 @@ mode. The function has to have C language bindings with the prototype:
 
    void func(void *ptr, bigint timestep, int nlocal, tagint *ids, double **x, double **fexternal);
 
-This is an alternative to the array mechanism set up by :cpp:func:`lammps_fix_external_set_force`.
+This is an alternative to the array mechanism set up by :cpp:func:`lammps_fix_external_get_force`.
 
 Please see the documentation for :doc:`fix external <fix_external>` for
 more information about how to use the fix and how to couple it with an
@@ -4913,7 +4913,7 @@ double **lammps_fix_external_get_force(void *handle, const char *id)
 \verbatim embed:rst
 
 This is a companion function to :cpp:func:`lammps_set_fix_external_callback` and
-:cpp:func:`lammps_fix_external_set_force` to also set the contribution
+:cpp:func:`lammps_fix_external_get_force` to also set the contribution
 to the global energy from the external code.
 
 Please see the documentation for :doc:`fix external <fix_external>` for
@@ -4952,7 +4952,7 @@ void lammps_fix_external_set_energy_global(void *handle, const char *id, double 
 \verbatim embed:rst
 
 This is a companion function to :cpp:func:`lammps_set_fix_external_callback` and
-:cpp:func:`lammps_fix_external_set_force` to also set the contribution
+:cpp:func:`lammps_fix_external_get_force` to also set the contribution
 to the global virial from the external code.
 
 Please see the documentation for :doc:`fix external <fix_external>` for
@@ -4991,7 +4991,7 @@ void lammps_fix_external_set_virial_global(void *handle, const char *id, double 
 \verbatim embed:rst
 
 This is a companion function to :cpp:func:`lammps_set_fix_external_callback` and
-:cpp:func:`lammps_fix_external_set_force` to also set the contribution
+:cpp:func:`lammps_fix_external_get_force` to also set the contribution
 to the per-atom energy from the external code.
 
 Please see the documentation for :doc:`fix external <fix_external>` for
@@ -5030,7 +5030,7 @@ void lammps_fix_external_set_energy_peratom(void *handle, const char *id, double
 \verbatim embed:rst
 
 This is a companion function to :cpp:func:`lammps_set_fix_external_callback` and
-:cpp:func:`lammps_fix_external_set_force` to also set the contribution
+:cpp:func:`lammps_fix_external_get_force` to also set the contribution
 to the per-atom virial from the external code.
 
 Please see the documentation for :doc:`fix external <fix_external>` for
@@ -5060,6 +5060,86 @@ void lammps_fix_external_set_virial_peratom(void *handle, const char *id, double
 
     FixExternal * fext = (FixExternal*) fix;
     fext->set_virial_peratom(virial);
+  }
+  END_CAPTURE
+}
+
+/** Set the vector length for a global vector stored with fix external for analysis
+
+\verbatim embed:rst
+
+This is a companion function to :cpp:func:`lammps_set_fix_external_callback` and
+:cpp:func:`lammps_fix_external_get_force` to set the length of a global vector of
+properties that will be stored with the fix via :cpp:func:`lammps_fix_external_set_vector`.
+
+Please see the documentation for :doc:`fix external <fix_external>` for
+more information about how to use the fix and how to couple it with an
+external code.
+
+\endverbatim
+ *
+ * \param  handle   pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param  id       fix ID of fix external instance
+ * \param  len      length of the global vector to be stored with the fix */
+
+void lammps_fix_external_set_vector_length(void *handle, const char *id, int len)
+{
+  LAMMPS *lmp = (LAMMPS *) handle;
+
+  BEGIN_CAPTURE
+  {
+    int ifix = lmp->modify->find_fix(id);
+    if (ifix < 0)
+      lmp->error->all(FLERR,"Can not find fix with ID '{}'!", id);
+
+    Fix *fix = lmp->modify->fix[ifix];
+
+    if (strcmp("external",fix->style) != 0)
+      lmp->error->all(FLERR,"Fix '{}' is not of style external!", id);
+
+    FixExternal *fext = (FixExternal*) fix;
+    fext->set_vector_length(len);
+  }
+  END_CAPTURE
+}
+
+/** Store global vector for a fix external instance with the given ID.
+
+\verbatim embed:rst
+
+This is a companion function to :cpp:func:`lammps_set_fix_external_callback` and
+:cpp:func:`lammps_fix_external_get_force` to set the values of a global vector of
+properties that will be stored with the fix. The length of the vector
+must be set beforehand with :cpp:func:`lammps_fix_external_set_vector_length`.
+
+Please see the documentation for :doc:`fix external <fix_external>` for
+more information about how to use the fix and how to couple it with an
+external code.
+
+\endverbatim
+ *
+ * \param  handle   pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param  id       fix ID of fix external instance
+ * \param  idx      1 based index of in global vector
+ * \param  val      value to be stored in global vector */
+
+void lammps_fix_external_set_vector(void *handle, const char *id, int idx, double val)
+{
+  LAMMPS *lmp = (LAMMPS *) handle;
+
+  BEGIN_CAPTURE
+  {
+    int ifix = lmp->modify->find_fix(id);
+    if (ifix < 0)
+      lmp->error->all(FLERR,"Can not find fix with ID '{}'!", id);
+
+    Fix *fix = lmp->modify->fix[ifix];
+
+    if (strcmp("external",fix->style) != 0)
+      lmp->error->all(FLERR,"Fix '{}' is not of style external!", id);
+
+    FixExternal * fext = (FixExternal*) fix;
+    fext->set_vector(idx, val);
   }
   END_CAPTURE
 }

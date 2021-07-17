@@ -240,7 +240,7 @@ void lammps_fix_external_set_energy_peratom(void *handle, const char *id, double
 void lammps_fix_external_set_virial_global(void *handle, const char *id, double *virial);
 void lammps_fix_external_set_virial_peratom(void *handle, const char *id, double **virial);
 void lammps_fix_external_set_vector_length(void *handle, const char *id, int len);
-void lammps_fix_external_set_virial_peratom(void *handle, const char *id, double **val);
+void lammps_fix_external_set_vector(void *handle, const char *id, int idx, double val);
 
 void lammps_free(void *ptr);
 

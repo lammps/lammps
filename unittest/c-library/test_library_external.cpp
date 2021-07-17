@@ -28,12 +28,20 @@ static void callback_one(void *handle, step_t timestep, int nlocal, tag_t *, dou
 {
     for (int i = 0; i < nlocal; ++i)
         f[i][0] = f[i][1] = f[i][2] = (double)timestep;
-    if (timestep < 10)
-        lammps_fix_external_set_energy_global(handle, "ext", 0.0);
-    else
-        lammps_fix_external_set_energy_global(handle, "ext", 1.0);
+
     double v[6] = {1.0, 1.0, 1.0, 0.0, 0.0, 0.0};
     lammps_fix_external_set_virial_global(handle, "ext", v);
+    if (timestep < 10) {
+        lammps_fix_external_set_energy_global(handle, "ext", 0.5);
+        lammps_fix_external_set_vector(handle, "ext", 1, timestep);
+        lammps_fix_external_set_vector(handle, "ext", 3, 1.0);
+        lammps_fix_external_set_vector(handle, "ext", 4, -0.25);
+    } else {
+        lammps_fix_external_set_energy_global(handle, "ext", 1.0);
+        lammps_fix_external_set_vector(handle, "ext", 2, timestep);
+        lammps_fix_external_set_vector(handle, "ext", 5, -1.0);
+        lammps_fix_external_set_vector(handle, "ext", 6, 0.25);
+    }
 }
 }
 
@@ -57,11 +65,12 @@ TEST(lammps_external, callback)
                                    "pair_style zero 0.1\n"
                                    "pair_coeff 1 1\n"
                                    "velocity all set 0.1 0.0 -0.1\n"
-                                   "thermo 5\n"
                                    "fix 1 all nve\n"
                                    "fix ext all external pf/callback 5 1\n"
+                                   "thermo_style custom step temp pe ke etotal press\n"
+                                   "thermo 5\n"
                                    "fix_modify ext energy yes virial yes\n");
-
+    lammps_fix_external_set_vector_length(handle, "ext", 6);
     output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
 
@@ -71,11 +80,19 @@ TEST(lammps_external, callback)
     double temp  = lammps_get_thermo(handle, "temp");
     double pe    = lammps_get_thermo(handle, "pe");
     double press = lammps_get_thermo(handle, "press");
-    output       = ::testing::internal::GetCapturedStdout();
+    double val   = 0.0;
+    double *valp;
+    for (int i = 0; i < 6; ++i) {
+        valp = (double *)lammps_extract_fix(handle, "ext", LMP_STYLE_GLOBAL, LMP_TYPE_VECTOR, i, 0);
+        val += *valp;
+        lammps_free(valp);
+    }
+    output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
     EXPECT_DOUBLE_EQ(temp, 1.0 / 30.0);
     EXPECT_DOUBLE_EQ(pe, 1.0 / 8.0);
     EXPECT_DOUBLE_EQ(press, 0.15416666666666667);
+    EXPECT_DOUBLE_EQ(val, 15);
 
     ::testing::internal::CaptureStdout();
     lammps_close(handle);

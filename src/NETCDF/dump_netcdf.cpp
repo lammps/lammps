@@ -44,9 +44,6 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-enum{THERMO_INT,THERMO_FLOAT,THERMO_BIGINT}; // same as in thermo.cpp
-enum{DUMP_INT,DUMP_DOUBLE,DUMP_STRING,DUMP_BIGINT}; // same as in DumpCFG
-
 static const char NC_FRAME_STR[]         = "frame";
 static const char NC_SPATIAL_STR[]       = "spatial";
 static const char NC_VOIGT_STR[]         = "Voigt";
@@ -60,8 +57,8 @@ static const char NC_CELL_ORIGIN_STR[]   = "cell_origin";
 static const char NC_CELL_LENGTHS_STR[]  = "cell_lengths";
 static const char NC_CELL_ANGLES_STR[]   = "cell_angles";
 
-const char NC_UNITS_STR[]         = "units";
-const char NC_SCALE_FACTOR_STR[]  = "scale_factor";
+static const char NC_UNITS_STR[]         = "units";
+static const char NC_SCALE_FACTOR_STR[]  = "scale_factor";
 
 static constexpr int THIS_IS_A_FIX      = -1;
 static constexpr int THIS_IS_A_COMPUTE  = -2;
@@ -400,9 +397,9 @@ void DumpNetCDF::openfile()
         nc_type xtype;
 
         // Type mangling
-        if (vtype[perat[i].field[0]] == DUMP_INT) {
+        if (vtype[perat[i].field[0]] == Dump::INT) {
           xtype = NC_INT;
-        } else if (vtype[perat[i].field[0]] == DUMP_BIGINT) {
+        } else if (vtype[perat[i].field[0]] == Dump::BIGINT) {
           xtype = NC_INT64;
         } else {
           if (double_precision)
@@ -435,13 +432,13 @@ void DumpNetCDF::openfile()
       if (thermo) {
         Thermo *th = output->thermo;
         for (int i = 0; i < th->nfield; i++) {
-          if (th->vtype[i] == THERMO_FLOAT) {
+          if (th->vtype[i] == Thermo::FLOAT) {
             NCERRX( nc_def_var(ncid, th->keyword[i], NC_DOUBLE, 1, dims,
                                &thermovar[i]), th->keyword[i] );
-          } else if (th->vtype[i] == THERMO_INT) {
+          } else if (th->vtype[i] == Thermo::INT) {
             NCERRX( nc_def_var(ncid, th->keyword[i], NC_INT, 1, dims,
                                &thermovar[i]), th->keyword[i] );
-          } else if (th->vtype[i] == THERMO_BIGINT) {
+          } else if (th->vtype[i] == Thermo::BIGINT) {
 #if defined(LAMMPS_SMALLBIG) || defined(LAMMPS_BIGBIG)
             NCERRX( nc_def_var(ncid, th->keyword[i], NC_INT64, 1, dims,
                                &thermovar[i]), th->keyword[i] );
@@ -454,77 +451,50 @@ void DumpNetCDF::openfile()
       }
 
       // attributes
-      NCERR( nc_put_att_text(ncid, NC_GLOBAL, "Conventions",
-                 5, "AMBER") );
-      NCERR( nc_put_att_text(ncid, NC_GLOBAL, "ConventionVersion",
-                 3, "1.0") );
+      NCERR( nc_put_att_text(ncid, NC_GLOBAL, "Conventions",5, "AMBER") );
+      NCERR( nc_put_att_text(ncid, NC_GLOBAL, "ConventionVersion",3, "1.0") );
 
-      NCERR( nc_put_att_text(ncid, NC_GLOBAL, "program",
-                 6, "LAMMPS") );
-      NCERR( nc_put_att_text(ncid, NC_GLOBAL, "programVersion",
-                 strlen(lmp->version), lmp->version) );
+      NCERR( nc_put_att_text(ncid, NC_GLOBAL, "program",6, "LAMMPS") );
+      NCERR( nc_put_att_text(ncid, NC_GLOBAL, "programVersion",strlen(lmp->version), lmp->version) );
 
       // units
       if (!strcmp(update->unit_style, "lj")) {
-        NCERR( nc_put_att_text(ncid, time_var, NC_UNITS_STR,
-                               2, "lj") );
-        NCERR( nc_put_att_text(ncid, cell_origin_var, NC_UNITS_STR,
-                               2, "lj") );
-        NCERR( nc_put_att_text(ncid, cell_lengths_var, NC_UNITS_STR,
-                               2, "lj") );
+        NCERR( nc_put_att_text(ncid, time_var, NC_UNITS_STR,2, "lj") );
+        NCERR( nc_put_att_text(ncid, cell_origin_var, NC_UNITS_STR,2, "lj") );
+        NCERR( nc_put_att_text(ncid, cell_lengths_var, NC_UNITS_STR,2, "lj") );
       } else if (!strcmp(update->unit_style, "real")) {
-        NCERR( nc_put_att_text(ncid, time_var, NC_UNITS_STR,
-                               11, "femtosecond") );
-        NCERR( nc_put_att_text(ncid, cell_origin_var, NC_UNITS_STR,
-                               8, "Angstrom") );
-        NCERR( nc_put_att_text(ncid, cell_lengths_var, NC_UNITS_STR,
-                               8, "Angstrom") );
+        NCERR( nc_put_att_text(ncid, time_var, NC_UNITS_STR,11, "femtosecond") );
+        NCERR( nc_put_att_text(ncid, cell_origin_var, NC_UNITS_STR,8, "Angstrom") );
+        NCERR( nc_put_att_text(ncid, cell_lengths_var, NC_UNITS_STR,8, "Angstrom") );
       } else if (!strcmp(update->unit_style, "metal")) {
-        NCERR( nc_put_att_text(ncid, time_var, NC_UNITS_STR,
-                               10, "picosecond") );
-        NCERR( nc_put_att_text(ncid, cell_origin_var, NC_UNITS_STR,
-                               8, "Angstrom") );
-        NCERR( nc_put_att_text(ncid, cell_lengths_var, NC_UNITS_STR,
-                               8, "Angstrom") );
+        NCERR( nc_put_att_text(ncid, time_var, NC_UNITS_STR,10, "picosecond") );
+        NCERR( nc_put_att_text(ncid, cell_origin_var, NC_UNITS_STR,8, "Angstrom") );
+        NCERR( nc_put_att_text(ncid, cell_lengths_var, NC_UNITS_STR,8, "Angstrom") );
       } else if (!strcmp(update->unit_style, "si")) {
-        NCERR( nc_put_att_text(ncid, time_var, NC_UNITS_STR,
-                               6, "second") );
-        NCERR( nc_put_att_text(ncid, cell_origin_var, NC_UNITS_STR,
-                               5, "meter") );
-        NCERR( nc_put_att_text(ncid, cell_lengths_var, NC_UNITS_STR,
-                               5, "meter") );
+        NCERR( nc_put_att_text(ncid, time_var, NC_UNITS_STR,6, "second") );
+        NCERR( nc_put_att_text(ncid, cell_origin_var, NC_UNITS_STR,5, "meter") );
+        NCERR( nc_put_att_text(ncid, cell_lengths_var, NC_UNITS_STR,5, "meter") );
       } else if (!strcmp(update->unit_style, "cgs")) {
-        NCERR( nc_put_att_text(ncid, time_var, NC_UNITS_STR,
-                               6, "second") );
-        NCERR( nc_put_att_text(ncid, cell_origin_var, NC_UNITS_STR,
-                               10, "centimeter") );
-        NCERR( nc_put_att_text(ncid, cell_lengths_var, NC_UNITS_STR,
-                               10, "centimeter") );
+        NCERR( nc_put_att_text(ncid, time_var, NC_UNITS_STR,6, "second") );
+        NCERR( nc_put_att_text(ncid, cell_origin_var, NC_UNITS_STR,10, "centimeter") );
+        NCERR( nc_put_att_text(ncid, cell_lengths_var, NC_UNITS_STR,10, "centimeter") );
       } else if (!strcmp(update->unit_style, "electron")) {
-        NCERR( nc_put_att_text(ncid, time_var, NC_UNITS_STR,
-                               11, "femtosecond") );
-        NCERR( nc_put_att_text(ncid, cell_origin_var, NC_UNITS_STR,
-                               4, "Bohr") );
-        NCERR( nc_put_att_text(ncid, cell_lengths_var, NC_UNITS_STR,
-                               4, "Bohr") );
+        NCERR( nc_put_att_text(ncid, time_var, NC_UNITS_STR,11, "femtosecond") );
+        NCERR( nc_put_att_text(ncid, cell_origin_var, NC_UNITS_STR,4, "Bohr") );
+        NCERR( nc_put_att_text(ncid, cell_lengths_var, NC_UNITS_STR,4, "Bohr") );
       } else {
         char errstr[1024];
-        sprintf(errstr, "Unsupported unit style '%s'", update->unit_style);
-        error->all(FLERR,errstr);
+        error->all(FLERR,"Unsupported unit style '{}", update->unit_style);
       }
 
-      NCERR( nc_put_att_text(ncid, cell_angles_var, NC_UNITS_STR,
-                             6, "degree") );
+      NCERR( nc_put_att_text(ncid, cell_angles_var, NC_UNITS_STR,6, "degree") );
 
       d[0] = update->dt;
-      NCERR( nc_put_att_double(ncid, time_var, NC_SCALE_FACTOR_STR,
-                               NC_DOUBLE, 1, d) );
+      NCERR( nc_put_att_double(ncid, time_var, NC_SCALE_FACTOR_STR,NC_DOUBLE, 1, d) );
       d[0] = 1.0;
-      NCERR( nc_put_att_double(ncid, cell_origin_var, NC_SCALE_FACTOR_STR,
-                               NC_DOUBLE, 1, d) );
+      NCERR( nc_put_att_double(ncid, cell_origin_var, NC_SCALE_FACTOR_STR,NC_DOUBLE, 1, d) );
       d[0] = 1.0;
-      NCERR( nc_put_att_double(ncid, cell_lengths_var, NC_SCALE_FACTOR_STR,
-                               NC_DOUBLE, 1, d) );
+      NCERR( nc_put_att_double(ncid, cell_lengths_var, NC_SCALE_FACTOR_STR,NC_DOUBLE, 1, d) );
 
       /*
        * Finished with definition
@@ -663,14 +633,14 @@ void DumpNetCDF::write()
     for (int i = 0; i < th->nfield; i++) {
       th->call_vfunc(i);
       if (filewriter) {
-        if (th->vtype[i] == THERMO_FLOAT) {
+        if (th->vtype[i] == Thermo::FLOAT) {
           NCERRX( nc_put_var1_double(ncid, thermovar[i], start,
                                      &th->dvalue),
                   th->keyword[i] );
-        } else if (th->vtype[i] == THERMO_INT) {
+        } else if (th->vtype[i] == Thermo::INT) {
           NCERRX( nc_put_var1_int(ncid, thermovar[i], start, &th->ivalue),
                   th->keyword[i] );
-        } else if (th->vtype[i] == THERMO_BIGINT) {
+        } else if (th->vtype[i] == Thermo::BIGINT) {
           NCERRX( nc_put_var1_bigint(ncid, thermovar[i], start, &th->bivalue),
                   th->keyword[i] );
         }
@@ -799,7 +769,7 @@ void DumpNetCDF::write_data(int n, double *mybuf)
   for (int i = 0; i < n_perat; i++) {
     int iaux = perat[i].field[0];
 
-    if (vtype[iaux] == DUMP_INT || vtype[iaux] == DUMP_BIGINT) {
+    if (vtype[iaux] == Dump::INT || vtype[iaux] == Dump::BIGINT) {
       // integers
       if (perat[i].dims > 1) {
 
@@ -807,11 +777,11 @@ void DumpNetCDF::write_data(int n, double *mybuf)
           iaux = perat[i].field[idim];
 
           if (iaux >= 0) {
-            if (vtype[iaux] == DUMP_INT) {
+            if (vtype[iaux] == Dump::INT) {
               for (int j = 0; j < n; j++, iaux+=size_one) {
                 int_buffer[j] = static_cast<int>(mybuf[iaux]);
               }
-            } else { // DUMP_BIGINT
+            } else { // Dump::BIGINT
               for (int j = 0; j < n; j++, iaux+=size_one) {
                 int_buffer[j] = static_cast<bigint>(mybuf[iaux]);
               }
@@ -821,22 +791,19 @@ void DumpNetCDF::write_data(int n, double *mybuf)
 
             if (perat[i].constant) {
               if (perat[i].ndumped < ntotalgr) {
-                NCERR( nc_put_vars_bigint(ncid, perat[i].var,
-                                          start+1, count+1, stride+1,
-                                          int_buffer) );
+                NCERR( nc_put_vars_bigint(ncid, perat[i].var,start+1, count+1, stride+1,int_buffer) );
                 perat[i].ndumped += n;
               }
             } else
-              NCERR( nc_put_vars_bigint(ncid, perat[i].var, start, count, stride,
-                                        int_buffer) );
+              NCERR( nc_put_vars_bigint(ncid, perat[i].var, start, count, stride,int_buffer) );
           }
         }
       } else {
-        if (vtype[iaux] == DUMP_INT) {
+        if (vtype[iaux] == Dump::INT) {
           for (int j = 0; j < n; j++, iaux+=size_one) {
               int_buffer[j] = static_cast<int>(mybuf[iaux]);
           }
-        } else { // DUMP_BIGINT
+        } else { // Dump::BIGINT
           for (int j = 0; j < n; j++, iaux+=size_one) {
               int_buffer[j] = static_cast<bigint>(mybuf[iaux]);
           }
@@ -844,13 +811,11 @@ void DumpNetCDF::write_data(int n, double *mybuf)
 
         if (perat[i].constant) {
           if (perat[i].ndumped < ntotalgr) {
-            NCERR( nc_put_vara_bigint(ncid, perat[i].var, start+1, count+1,
-                                      int_buffer) );
+            NCERR( nc_put_vara_bigint(ncid, perat[i].var, start+1, count+1,int_buffer) );
             perat[i].ndumped += n;
           }
         } else
-          NCERR( nc_put_vara_bigint(ncid, perat[i].var, start, count,
-                                    int_buffer) );
+          NCERR( nc_put_vara_bigint(ncid, perat[i].var, start, count,int_buffer) );
       }
     } else {
       // doubles

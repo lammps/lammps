@@ -196,7 +196,7 @@ DumpNetCDF::~DumpNetCDF()
   closefile();
 
   delete[] perat;
-  if (thermovar)  delete[] thermovar;
+  if (thermovar) delete[] thermovar;
 
   if (int_buffer) memory->sfree(int_buffer);
   if (double_buffer) memory->sfree(double_buffer);
@@ -213,8 +213,7 @@ void DumpNetCDF::openfile()
     char *ptr = strchr(filestar,'*');
     *ptr = '\0';
     if (padflag == 0)
-      sprintf(filecurrent,"%s" BIGINT_FORMAT "%s",
-              filestar,update->ntimestep,ptr+1);
+      sprintf(filecurrent,"%s" BIGINT_FORMAT "%s", filestar,update->ntimestep,ptr+1);
     else {
       char bif[8],pad[16];
       strcpy(bif,BIGINT_FORMAT);
@@ -276,8 +275,7 @@ void DumpNetCDF::openfile()
       // Fixme! Perform checks if dimensions and variables conform with
       // data structure standard.
       if (not utils::file_is_readable(filecurrent))
-        error->all(FLERR, "cannot append to non-existent file {}",
-                                      filecurrent);
+        error->all(FLERR, "cannot append to non-existent file {}",filecurrent);
 
       if (singlefile_opened) return;
       singlefile_opened = 1;
@@ -303,8 +301,7 @@ void DumpNetCDF::openfile()
             sprintf(dimstr, "vec%i", dims);
           }
           if (dims != 1) {
-            NCERRX( nc_inq_dimid(ncid, dimstr, &vector_dim[dims]),
-                    dimstr );
+            NCERRX( nc_inq_dimid(ncid, dimstr, &vector_dim[dims]), dimstr );
           }
         }
       }
@@ -458,40 +455,39 @@ void DumpNetCDF::openfile()
       }
 
       // attributes
-      NCERR( nc_put_att_text(ncid, NC_GLOBAL, "Conventions",5, "AMBER") );
-      NCERR( nc_put_att_text(ncid, NC_GLOBAL, "ConventionVersion",3, "1.0") );
+      NCERR( nc_put_att_text(ncid, NC_GLOBAL, "Conventions", 5, "AMBER") );
+      NCERR( nc_put_att_text(ncid, NC_GLOBAL, "ConventionVersion", 3, "1.0") );
 
-      NCERR( nc_put_att_text(ncid, NC_GLOBAL, "program",6, "LAMMPS") );
+      NCERR( nc_put_att_text(ncid, NC_GLOBAL, "program", 6, "LAMMPS") );
       NCERR( nc_put_att_text(ncid, NC_GLOBAL, "programVersion",strlen(lmp->version), lmp->version) );
 
       // units
       if (!strcmp(update->unit_style, "lj")) {
-        NCERR( nc_put_att_text(ncid, time_var, NC_UNITS_STR,2, "lj") );
-        NCERR( nc_put_att_text(ncid, cell_origin_var, NC_UNITS_STR,2, "lj") );
-        NCERR( nc_put_att_text(ncid, cell_lengths_var, NC_UNITS_STR,2, "lj") );
+        NCERR( nc_put_att_text(ncid, time_var, NC_UNITS_STR, 2, "lj") );
+        NCERR( nc_put_att_text(ncid, cell_origin_var, NC_UNITS_STR, 2, "lj") );
+        NCERR( nc_put_att_text(ncid, cell_lengths_var, NC_UNITS_STR, 2, "lj") );
       } else if (!strcmp(update->unit_style, "real")) {
-        NCERR( nc_put_att_text(ncid, time_var, NC_UNITS_STR,11, "femtosecond") );
-        NCERR( nc_put_att_text(ncid, cell_origin_var, NC_UNITS_STR,8, "Angstrom") );
-        NCERR( nc_put_att_text(ncid, cell_lengths_var, NC_UNITS_STR,8, "Angstrom") );
+        NCERR( nc_put_att_text(ncid, time_var, NC_UNITS_STR, 11, "femtosecond") );
+        NCERR( nc_put_att_text(ncid, cell_origin_var, NC_UNITS_STR, 8, "Angstrom") );
+        NCERR( nc_put_att_text(ncid, cell_lengths_var, NC_UNITS_STR, 8, "Angstrom") );
       } else if (!strcmp(update->unit_style, "metal")) {
-        NCERR( nc_put_att_text(ncid, time_var, NC_UNITS_STR,10, "picosecond") );
-        NCERR( nc_put_att_text(ncid, cell_origin_var, NC_UNITS_STR,8, "Angstrom") );
-        NCERR( nc_put_att_text(ncid, cell_lengths_var, NC_UNITS_STR,8, "Angstrom") );
+        NCERR( nc_put_att_text(ncid, time_var, NC_UNITS_STR, 10, "picosecond") );
+        NCERR( nc_put_att_text(ncid, cell_origin_var, NC_UNITS_STR, 8, "Angstrom") );
+        NCERR( nc_put_att_text(ncid, cell_lengths_var, NC_UNITS_STR, 8, "Angstrom") );
       } else if (!strcmp(update->unit_style, "si")) {
-        NCERR( nc_put_att_text(ncid, time_var, NC_UNITS_STR,6, "second") );
-        NCERR( nc_put_att_text(ncid, cell_origin_var, NC_UNITS_STR,5, "meter") );
-        NCERR( nc_put_att_text(ncid, cell_lengths_var, NC_UNITS_STR,5, "meter") );
+        NCERR( nc_put_att_text(ncid, time_var, NC_UNITS_STR, 6, "second") );
+        NCERR( nc_put_att_text(ncid, cell_origin_var, NC_UNITS_STR, 5, "meter") );
+        NCERR( nc_put_att_text(ncid, cell_lengths_var, NC_UNITS_STR, 5, "meter") );
       } else if (!strcmp(update->unit_style, "cgs")) {
-        NCERR( nc_put_att_text(ncid, time_var, NC_UNITS_STR,6, "second") );
-        NCERR( nc_put_att_text(ncid, cell_origin_var, NC_UNITS_STR,10, "centimeter") );
-        NCERR( nc_put_att_text(ncid, cell_lengths_var, NC_UNITS_STR,10, "centimeter") );
+        NCERR( nc_put_att_text(ncid, time_var, NC_UNITS_STR, 6, "second") );
+        NCERR( nc_put_att_text(ncid, cell_origin_var, NC_UNITS_STR, 10, "centimeter") );
+        NCERR( nc_put_att_text(ncid, cell_lengths_var, NC_UNITS_STR, 10, "centimeter") );
       } else if (!strcmp(update->unit_style, "electron")) {
-        NCERR( nc_put_att_text(ncid, time_var, NC_UNITS_STR,11, "femtosecond") );
-        NCERR( nc_put_att_text(ncid, cell_origin_var, NC_UNITS_STR,4, "Bohr") );
-        NCERR( nc_put_att_text(ncid, cell_lengths_var, NC_UNITS_STR,4, "Bohr") );
+        NCERR( nc_put_att_text(ncid, time_var, NC_UNITS_STR, 11, "femtosecond") );
+        NCERR( nc_put_att_text(ncid, cell_origin_var, NC_UNITS_STR, 4, "Bohr") );
+        NCERR( nc_put_att_text(ncid, cell_lengths_var, NC_UNITS_STR, 4, "Bohr") );
       } else {
-        char errstr[1024];
-        error->all(FLERR,"Unsupported unit style '{}", update->unit_style);
+        error->all(FLERR,"Unsupported unit style: {}", update->unit_style);
       }
 
       NCERR( nc_put_att_text(ncid, cell_angles_var, NC_UNITS_STR,6, "degree") );
@@ -722,12 +718,9 @@ void DumpNetCDF::write_header(bigint n)
     count[0] = 1;
     count[1] = 3;
     NCERR( nc_put_var1_double(ncid, time_var, start, &time) );
-    NCERR( nc_put_vara_double(ncid, cell_origin_var, start, count,
-                              cell_origin) );
-    NCERR( nc_put_vara_double(ncid, cell_lengths_var, start, count,
-                              cell_lengths) );
-    NCERR( nc_put_vara_double(ncid, cell_angles_var, start, count,
-                              cell_angles) );
+    NCERR( nc_put_vara_double(ncid, cell_origin_var, start, count, cell_origin) );
+    NCERR( nc_put_vara_double(ncid, cell_lengths_var, start, count, cell_lengths) );
+    NCERR( nc_put_vara_double(ncid, cell_angles_var, start, count, cell_angles) );
   }
 
   ndata = n;

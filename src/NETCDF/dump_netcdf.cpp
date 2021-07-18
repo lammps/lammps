@@ -147,6 +147,9 @@ DumpNetCDF::DumpNetCDF(LAMMPS *lmp, int narg, char **arg) :
         mangled = mangled.substr(0,found);
         ndims = THIS_IS_A_FIX;
       }
+    } else if (utils::strmatch(mangled, "^v_")) {
+      idim = 0;
+      ndims = THIS_IS_A_VARIABLE;
     }
 
     // find mangled name
@@ -257,6 +260,8 @@ void DumpNetCDF::openfile()
       perat[i].dims = fix[j]->size_peratom_cols;
       if (perat[i].dims > DUMP_NC_MAX_DIMS)
         error->all(FLERR,"perat[i].dims > DUMP_NC_MAX_DIMS");
+    } else if (perat[i].dims == THIS_IS_A_VARIABLE) {
+      error->all(FLERR,"Dump netcdf currently does not support dumping variables");
     }
   }
 
@@ -401,6 +406,8 @@ void DumpNetCDF::openfile()
           xtype = NC_INT;
         } else if (vtype[perat[i].field[0]] == Dump::BIGINT) {
           xtype = NC_INT64;
+        } else if (vtype[perat[i].field[0]] == Dump::STRING) {
+          error->all(FLERR,"Dump netcdf currently does not support dumping string properties");
         } else {
           if (double_precision)
             xtype = NC_DOUBLE;

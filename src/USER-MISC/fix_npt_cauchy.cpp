@@ -671,6 +671,7 @@ int FixNPTCauchy::setmask()
   mask |= INITIAL_INTEGRATE;
   mask |= FINAL_INTEGRATE;
   mask |= INITIAL_INTEGRATE_RESPA;
+  mask |= PRE_FORCE_RESPA;
   mask |= FINAL_INTEGRATE_RESPA;
   if (pre_exchange_flag) mask |= PRE_EXCHANGE;
   return mask;
@@ -1032,7 +1033,12 @@ void FixNPTCauchy::initial_integrate_respa(int /*vflag*/, int ilevel, int /*iloo
     nve_x();
     if (pstat_flag) remap();
   }
+}
 
+/* ---------------------------------------------------------------------- */
+
+void FixNPTCauchy::pre_force_respa(int /*vflag*/, int ilevel, int /*iloop*/)
+{
   // if barostat, redo KSpace coeffs at outermost level,
   // since volume has changed
 

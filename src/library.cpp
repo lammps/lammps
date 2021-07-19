@@ -4914,7 +4914,9 @@ double **lammps_fix_external_get_force(void *handle, const char *id)
 
 This is a companion function to :cpp:func:`lammps_set_fix_external_callback` and
 :cpp:func:`lammps_fix_external_get_force` to also set the contribution
-to the global energy from the external code.
+to the global energy from the external code. The value of the *eng*
+argument will be stored in the fix and applied on the current and all
+following timesteps until changed.
 
 Please see the documentation for :doc:`fix external <fix_external>` for
 more information about how to use the fix and how to couple it with an
@@ -4951,9 +4953,11 @@ void lammps_fix_external_set_energy_global(void *handle, const char *id, double 
 
 \verbatim embed:rst
 
-This is a companion function to :cpp:func:`lammps_set_fix_external_callback` and
-:cpp:func:`lammps_fix_external_get_force` to also set the contribution
-to the global virial from the external code.
+This is a companion function to :cpp:func:`lammps_set_fix_external_callback`
+to set the contribution to the global virial from the external code
+as part of the callback function.  For this to work, the handle to the
+LAMMPS object must be passed as the *ptr* argument when registering the
+callback function.
 
 Please see the documentation for :doc:`fix external <fix_external>` for
 more information about how to use the fix and how to couple it with an
@@ -4990,9 +4994,12 @@ void lammps_fix_external_set_virial_global(void *handle, const char *id, double 
 
 \verbatim embed:rst
 
-This is a companion function to :cpp:func:`lammps_set_fix_external_callback` and
-:cpp:func:`lammps_fix_external_get_force` to also set the contribution
-to the per-atom energy from the external code.
+This is a companion function to :cpp:func:`lammps_set_fix_external_callback`
+to set the per-atom energy contribution due to the fix from the external code
+as part of the callback function.  For this to work, the handle to the
+LAMMPS object must be passed as the *ptr* argument when registering the
+callback function.  No check is made whether the sum of the
+contributions are consistent with any global added energy.
 
 Please see the documentation for :doc:`fix external <fix_external>` for
 more information about how to use the fix and how to couple it with an
@@ -5029,9 +5036,12 @@ void lammps_fix_external_set_energy_peratom(void *handle, const char *id, double
 
 \verbatim embed:rst
 
-This is a companion function to :cpp:func:`lammps_set_fix_external_callback` and
-:cpp:func:`lammps_fix_external_get_force` to also set the contribution
-to the per-atom virial from the external code.
+This is a companion function to :cpp:func:`lammps_set_fix_external_callback`
+to set the per-atom virial contribution due to the fix from the external code
+as part of the callback function.  For this to work, the handle to the
+LAMMPS object must be passed as the *ptr* argument when registering the
+callback function.  No check is made whether the sum of the
+contributions are consistent with any globally added virial components.
 
 Please see the documentation for :doc:`fix external <fix_external>` for
 more information about how to use the fix and how to couple it with an

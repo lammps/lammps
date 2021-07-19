@@ -1100,7 +1100,12 @@ void FixBocs::initial_integrate_respa(int /*vflag*/, int ilevel, int /*iloop*/)
     nve_x();
     if (pstat_flag) remap();
   }
+}
 
+/* ---------------------------------------------------------------------- */
+
+void FixBocs::pre_force_respa(int /*vflag*/, int ilevel, int /*iloop*/)
+{
   // if barostat, redo KSpace coeffs at outermost level,
   // since volume has changed
 

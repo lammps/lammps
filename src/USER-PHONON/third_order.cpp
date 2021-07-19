@@ -439,7 +439,7 @@ void ThirdOrder::writeMatrix(double *dynmat, bigint i, int a, bigint j, int b)
           square(dynmat[k*3+1])+
           square(dynmat[k*3+2]);
         if (norm > 1.0e-16)
-          fmt::print(fp,"{} {} {} {} {} {:.8f} {.8f} {.8f}\n",
+          fmt::print(fp,"{} {} {} {} {} {:.8f} {:.8f} {:.8f}\n",
                      i+1, a + 1, j+1, b + 1, k+1,
                      dynmat[k*3] * conversion,
                      dynmat[k*3+1] * conversion,
@@ -451,7 +451,7 @@ void ThirdOrder::writeMatrix(double *dynmat, bigint i, int a, bigint j, int b)
           square(dynmat[k*3+1])+
           square(dynmat[k*3+2]);
         if (norm > 1.0e-16)
-          fmt::print(fp, "{} {} {} {} {} {:.8f} {.8f} {.8f}\n",
+          fmt::print(fp, "{} {} {} {} {} {:.8f} {:.8f} {:.8f}\n",
                      i+1, a + 1, j+1, b + 1, groupmap[k]+1,
                      dynmat[k*3] * conversion,
                      dynmat[k*3+1] * conversion,

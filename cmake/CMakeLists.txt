@@ -306,6 +306,8 @@ pkg_depends(LATBOLTZ MPI)
 pkg_depends(PHONON KSPACE)
 pkg_depends(SCAFACOS MPI)
 pkg_depends(DIELECTRIC KSPACE)
+pkg_depends(CG-DNA MOLECULE)
+pkg_depends(CG-DNA ASPHERE)
 
 # detect if we may enable OpenMP support by default
 set(BUILD_OMP_DEFAULT OFF)

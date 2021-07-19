@@ -21,20 +21,6 @@
 
 using namespace LAMMPS_NS;
 
-/* ---------------------------------------------------------------------- */
-
-PairOxrna2Excv::PairOxrna2Excv(LAMMPS *lmp) : PairOxdnaExcv(lmp)
-{
-
-}
-
-/* ---------------------------------------------------------------------- */
-
-PairOxrna2Excv::~PairOxrna2Excv()
-{
-
-}
-
 /* ----------------------------------------------------------------------
     compute vector COM-excluded volume interaction sites in oxRNA2
 ------------------------------------------------------------------------- */

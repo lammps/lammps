@@ -95,7 +95,7 @@ int Make_List(int n, int num_intrs, int type, reax_list *l )
     l->error_ptr->one(FLERR,errmsg);
   }
 
-  return SUCCESS;
+  return REAXC_SUCCESS;
 }
 
 

@@ -52,7 +52,7 @@
 /*_dielectric.cpp
 /*_dielectric.h
 /compute_efield_atom.cpp
-/compute_efield_atom.j
+/compute_efield_atom.h
 
 /superpose3d.h
 
@@ -314,6 +314,8 @@
 /atom_vec_granular.h
 /atom_vec_molecular.cpp
 /atom_vec_molecular.h
+/atom_vec_oxdna.cpp
+/atom_vec_oxdna.h
 /atom_vec_peri.cpp
 /atom_vec_peri.h
 /atom_vec_template.cpp

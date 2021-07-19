@@ -312,6 +312,11 @@ rigid-body integrators with improved stability.
 
 **Author:** Oliver Henrich (University of Strathclyde, Glasgow).
 
+**Install:**
+
+The CG-DNA package requires that also the `MOLECULE <PKG-MOLECULE>`_ and
+`ASPHERE <PKG-ASPHERE>`_ packages are installed.
+
 **Supporting info:**
 
 * src/CG-DNA: filenames -> commands

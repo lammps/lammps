@@ -15,6 +15,8 @@
 
 #include "atom.h"
 #include "comm.h"
+#include "error.h"
+#include "force.h"
 
 using namespace LAMMPS_NS;
 
@@ -46,6 +48,11 @@ AtomVecOxdna::AtomVecOxdna(LAMMPS *lmp) : AtomVec(lmp)
   fields_data_vel = (char *) "id v";
 
   setup_fields();
+
+  if(!force->newton_bond) {
+    error->warning(FLERR,"Write_data command requires newton_bond on to preserve 3'->5' bond polarity");
+  } 
+
 }
 
 /* ---------------------------------------------------------------------- */

@@ -8,7 +8,7 @@ units lj
 
 dimension 3
 
-newton off
+newton on
 
 boundary  p p p
 
@@ -68,5 +68,5 @@ dump_modify out format line "%d %d %d  %22.15le %22.15le %22.15le  %d %d %d  %22
 
 run 100000
 
-#write_data last_config.${number}.* nocoeff
+write_data last_config.${number}.* nocoeff
 #write_restart last_config.${number}.*

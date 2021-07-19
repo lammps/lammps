@@ -30,17 +30,17 @@ class PairMorse : public Pair {
   virtual ~PairMorse();
   virtual void compute(int, int);
 
-  void settings(int, char **);
-  void coeff(int, char **);
-  double init_one(int, int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *);
-  void write_data(FILE *);
-  void write_data_all(FILE *);
-  double single(int, int, int, int, double, double, double, double &);
-  void *extract(const char *, int &);
+  virtual void settings(int, char **);
+  virtual void coeff(int, char **);
+  virtual double init_one(int, int);
+  virtual void write_restart(FILE *);
+  virtual void read_restart(FILE *);
+  virtual void write_restart_settings(FILE *);
+  virtual void read_restart_settings(FILE *);
+  virtual void write_data(FILE *);
+  virtual void write_data_all(FILE *);
+  virtual double single(int, int, int, int, double, double, double, double &);
+  virtual void *extract(const char *, int &);
 
  protected:
   double cut_global;

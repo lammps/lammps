@@ -306,7 +306,7 @@ void PairEAMIntel::eval(const int offload, const int vflag,
         acc_t rhoi = (acc_t)0.0;
         int ej = 0;
         #if defined(LMP_SIMD_COMPILER)
-        #pragma vector aligned nog2s
+        #pragma vector aligned
         #pragma ivdep
         #endif
         for (int jj = 0; jj < jnum; jj++) {
@@ -325,7 +325,7 @@ void PairEAMIntel::eval(const int offload, const int vflag,
         }
 
         #if defined(LMP_SIMD_COMPILER)
-        #pragma vector aligned nog2s
+        #pragma vector aligned
         #pragma simd reduction(+:rhoi)
         #endif
         for (int jj = 0; jj < ej; jj++) {
@@ -412,7 +412,7 @@ void PairEAMIntel::eval(const int offload, const int vflag,
       if (EFLAG) tevdwl = (acc_t)0.0;
 
       #if defined(LMP_SIMD_COMPILER)
-      #pragma vector aligned nog2s
+      #pragma vector aligned
       #pragma simd reduction(+:tevdwl)
       #endif
       for (int ii = iifrom; ii < iito; ++ii) {
@@ -486,7 +486,7 @@ void PairEAMIntel::eval(const int offload, const int vflag,
 
         int ej = 0;
         #if defined(LMP_SIMD_COMPILER)
-        #pragma vector aligned nog2s
+        #pragma vector aligned
         #pragma ivdep
         #endif
         for (int jj = 0; jj < jnum; jj++) {
@@ -508,7 +508,7 @@ void PairEAMIntel::eval(const int offload, const int vflag,
         }
 
         #if defined(LMP_SIMD_COMPILER)
-        #pragma vector aligned nog2s
+        #pragma vector aligned
         #pragma simd reduction(+:fxtmp, fytmp, fztmp, fwtmp, sevdwl, \
                                  sv0, sv1, sv2, sv3, sv4, sv5)
         #endif

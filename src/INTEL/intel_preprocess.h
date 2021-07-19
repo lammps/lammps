@@ -16,6 +16,11 @@
    Contributing author: W. Michael Brown (Intel)
 ------------------------------------------------------------------------- */
 
+#ifdef __INTEL_LLVM_COMPILER
+#define __INTEL_COMPILER __INTEL_LLVM_COMPILER
+#define __INTEL_COMPILER_BUILD_DATE __INTEL_LLVM_COMPILER
+#endif
+
 #ifdef __INTEL_COMPILER
 #define LMP_SIMD_COMPILER
 #if (__INTEL_COMPILER_BUILD_DATE > 20160720)

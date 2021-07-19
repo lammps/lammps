@@ -2332,7 +2332,7 @@ static void aut_rebo_neigh(KernelArgsAIREBOT<flt_t,acc_t> * ka) {
     int n_skin = 0;
 
     int lowest_idx;
-    #pragma unroll(4)
+    //#pragma unroll(4)
     for (lowest_idx = 0; lowest_idx < jnum; lowest_idx += fvec::VL) {
       bvec j_mask = bvec::full();
       if (lowest_idx + fvec::VL > jnum) j_mask = bvec::only(jnum - lowest_idx);

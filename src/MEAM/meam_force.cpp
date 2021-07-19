@@ -21,12 +21,15 @@
 using namespace LAMMPS_NS;
 
 void
-MEAM::meam_force(int i, int eflag_either, int eflag_global, int eflag_atom, int vflag_atom, double* eng_vdwl,
-                 double* eatom, int /*ntype*/, int* type, int* fmap, double** scale, double** x, int numneigh, int* firstneigh,
-                 int numneigh_full, int* firstneigh_full, int fnoffset, double** f, double** vatom)
+MEAM::meam_force(int i, int eflag_global, int eflag_atom, int vflag_global, int vflag_atom,
+                 double* eng_vdwl, double* eatom, int /*ntype*/, int* type, int* fmap,
+                 double** scale, double** x, int numneigh, int* firstneigh, int numneigh_full,
+                 int* firstneigh_full, int fnoffset, double** f, double** vatom, double *virial)
 {
   int j, jn, k, kn, kk, m, n, p, q;
   int nv2, nv3, elti, eltj, eltk, ind;
+  int eflag_either = eflag_atom || eflag_global;
+  int vflag_either = vflag_atom || vflag_global;
   double xitmp, yitmp, zitmp, delij[3], rij2, rij, rij3;
   double v[6], fi[3], fj[3];
   double third, sixth;
@@ -414,7 +417,7 @@ MEAM::meam_force(int i, int eflag_either, int eflag_global, int eflag_atom, int 
 
         //     Tabulate per-atom virial as symmetrized stress tensor
 
-        if (vflag_atom != 0) {
+        if (vflag_either) {
           fi[0] = delij[0] * force + dUdrijm[0];
           fi[1] = delij[1] * force + dUdrijm[1];
           fi[2] = delij[2] * force + dUdrijm[2];
@@ -425,9 +428,16 @@ MEAM::meam_force(int i, int eflag_either, int eflag_global, int eflag_atom, int 
           v[4] = -0.25 * (delij[0] * fi[2] + delij[2] * fi[0]);
           v[5] = -0.25 * (delij[1] * fi[2] + delij[2] * fi[1]);
 
-          for (m = 0; m < 6; m++) {
-            vatom[i][m] = vatom[i][m] + v[m];
-            vatom[j][m] = vatom[j][m] + v[m];
+          if (vflag_global) {
+            for (m = 0; m < 6; m++) {
+              virial[m] += 2.0*v[m];
+            }
+          }
+          if (vflag_atom) {
+            for (m = 0; m < 6; m++) {
+              vatom[i][m] += v[m];
+              vatom[j][m] += v[m];
+            }
           }
         }
 
@@ -499,7 +509,7 @@ MEAM::meam_force(int i, int eflag_either, int eflag_global, int eflag_atom, int 
 
               //     Tabulate per-atom virial as symmetrized stress tensor
 
-              if (vflag_atom != 0) {
+              if (vflag_either) {
                 fi[0] = force1 * dxik;
                 fi[1] = force1 * dyik;
                 fi[2] = force1 * dzik;
@@ -513,10 +523,18 @@ MEAM::meam_force(int i, int eflag_either, int eflag_global, int eflag_atom, int 
                 v[4] = -sixth * (dxik * fi[2] + dxjk * fj[2] + dzik * fi[0] + dzjk * fj[0]);
                 v[5] = -sixth * (dyik * fi[2] + dyjk * fj[2] + dzik * fi[1] + dzjk * fj[1]);
 
-                for (m = 0; m < 6; m++) {
-                  vatom[i][m] = vatom[i][m] + v[m];
-                  vatom[j][m] = vatom[j][m] + v[m];
-                  vatom[k][m] = vatom[k][m] + v[m];
+                if (vflag_global) {
+                  for (m = 0; m < 6; m++) {
+                    virial[m] += 3.0*v[m];
+                  }
+                }
+
+                if (vflag_atom) {
+                  for (m = 0; m < 6; m++) {
+                    vatom[i][m] += v[m];
+                    vatom[j][m] += v[m];
+                    vatom[k][m] += v[m];
+                  }
                 }
               }
             }

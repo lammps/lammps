@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -48,12 +47,4 @@ PairOxrna2Hbond::PairOxrna2Hbond(LAMMPS *lmp) : PairOxdnaHbond(lmp)
   alpha_hb[3][1] = 1.00000;
   alpha_hb[3][2] = 0.58655;
   alpha_hb[3][3] = 1.00000;
-
-}
-
-/* ---------------------------------------------------------------------- */
-
-PairOxrna2Hbond::~PairOxrna2Hbond()
-{
-
 }

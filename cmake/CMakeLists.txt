@@ -77,7 +77,7 @@ check_for_autogen_files(${LAMMPS_SOURCE_DIR})
 include(CheckIncludeFileCXX)
 
 # set required compiler flags and compiler/CPU arch specific optimizations
-if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
+if((CMAKE_CXX_COMPILER_ID STREQUAL "Intel") OR (CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM"))
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -restrict")
   if(CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 17.3 OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 17.4)
     set(CMAKE_TUNE_DEFAULT "-xCOMMON-AVX512")
@@ -305,6 +305,8 @@ pkg_depends(LATBOLTZ MPI)
 pkg_depends(PHONON KSPACE)
 pkg_depends(SCAFACOS MPI)
 pkg_depends(DIELECTRIC KSPACE)
+pkg_depends(CG-DNA MOLECULE)
+pkg_depends(CG-DNA ASPHERE)
 
 # detect if we may enable OpenMP support by default
 set(BUILD_OMP_DEFAULT OFF)

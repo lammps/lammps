@@ -48,7 +48,7 @@ int Reallocate_Output_Buffer( LAMMPS_NS::Error *error_ptr, output_controls *out_
     error_ptr->one(FLERR,errmsg);
   }
 
-  return SUCCESS;
+  return REAXC_SUCCESS;
 }
 
 
@@ -259,7 +259,7 @@ int Write_Header( reax_system *system, control_params *control,
   if (system->my_rank == MASTER_NODE)
     fprintf( out_control->strj, "%s", out_control->buffer );
 
-  return SUCCESS;
+  return REAXC_SUCCESS;
 }
 
 
@@ -311,7 +311,7 @@ int Write_Init_Desc( reax_system *system, control_params * /*control*/,
     fprintf( out_control->strj, "%s", out_control->buffer );
   }
 
-  return SUCCESS;
+  return REAXC_SUCCESS;
 }
 
 
@@ -355,7 +355,7 @@ int Init_Traj( reax_system *system, control_params *control,
   Write_Header( system, control, out_control, mpi_data );
   Write_Init_Desc( system, control, out_control, mpi_data );
 
-  return SUCCESS;
+  return REAXC_SUCCESS;
 }
 
 
@@ -480,7 +480,7 @@ int Write_Frame_Header( reax_system *system, control_params *control,
   if (system->my_rank == MASTER_NODE)
     fprintf( out_control->strj, "%s", out_control->buffer );
 
-  return SUCCESS;
+  return REAXC_SUCCESS;
 }
 
 
@@ -557,7 +557,7 @@ int Write_Atoms( reax_system *system, control_params * /*control*/,
     fprintf( out_control->strj, "%s", out_control->buffer );
   }
 
-  return SUCCESS;
+  return REAXC_SUCCESS;
 }
 
 
@@ -646,7 +646,7 @@ int Write_Bonds(reax_system *system, control_params *control, reax_list *bonds,
     fprintf( out_control->strj, "%s", out_control->buffer );
   }
 
-  return SUCCESS;
+  return REAXC_SUCCESS;
 }
 
 
@@ -741,7 +741,7 @@ int Write_Angles( reax_system *system, control_params *control,
     fprintf( out_control->strj, "%s", out_control->buffer );
   }
 
-  return SUCCESS;
+  return REAXC_SUCCESS;
 }
 
 
@@ -761,7 +761,7 @@ int Append_Frame( reax_system *system, control_params *control,
     Write_Angles( system, control, (*lists + BONDS), (*lists + THREE_BODIES),
                   out_control, mpi_data );
 
-  return SUCCESS;
+  return REAXC_SUCCESS;
 }
 
 
@@ -773,5 +773,5 @@ int End_Traj( int my_rank, output_controls *out_control )
   free( out_control->buffer );
   free( out_control->line );
 
-  return SUCCESS;
+  return REAXC_SUCCESS;
 }

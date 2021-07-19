@@ -158,7 +158,7 @@ void run_lammps(LAMMPS *lmp)
     command("run 4 post no");
 }
 
-void restart_lammps(LAMMPS *lmp, const TestConfig &cfg)
+void restart_lammps(LAMMPS *lmp, const TestConfig &cfg, bool nofdotr = false, bool newton = true)
 {
     // utility lambda to improve readability
     auto command = [&](const std::string &line) {
@@ -166,6 +166,10 @@ void restart_lammps(LAMMPS *lmp, const TestConfig &cfg)
     };
 
     command("clear");
+    if (newton)
+        command("newton on");
+    else
+        command("newton off");
     command("read_restart " + cfg.basename + ".restart");
 
     if (!lmp->force->pair) {
@@ -180,6 +184,7 @@ void restart_lammps(LAMMPS *lmp, const TestConfig &cfg)
     for (auto &post_command : cfg.post_commands) {
         command(post_command);
     }
+    if (nofdotr) command("pair_modify nofdotr");
 
     command("run 0 post no");
 }
@@ -518,6 +523,41 @@ TEST(PairStyle, plain)
     EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.init_coul, epsilon);
     if (print_stats) std::cerr << "restart_energy stats:" << stats << std::endl;
 
+    // pair style rann does not support pair_modify nofdotr
+    // temporarily disable testing pair style reax/c until we merge the other fixes
+    if ((test_config.pair_style != "rann") && !(test_config.pair_style.find("reax") != std::string::npos)) {
+        if (!verbose) ::testing::internal::CaptureStdout();
+        restart_lammps(lmp, test_config, true);
+        if (!verbose) ::testing::internal::GetCapturedStdout();
+
+        f   = lmp->atom->f;
+        tag = lmp->atom->tag;
+        stats.reset();
+        ASSERT_EQ(nlocal + 1, f_ref.size());
+        for (int i = 0; i < nlocal; ++i) {
+            EXPECT_FP_LE_WITH_EPS(f[i][0], f_ref[tag[i]].x, epsilon);
+            EXPECT_FP_LE_WITH_EPS(f[i][1], f_ref[tag[i]].y, epsilon);
+            EXPECT_FP_LE_WITH_EPS(f[i][2], f_ref[tag[i]].z, epsilon);
+        }
+        if (print_stats) std::cerr << "nofdotr_forces stats:" << stats << std::endl;
+
+        pair   = lmp->force->pair;
+        stress = pair->virial;
+        stats.reset();
+        EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, epsilon);
+        EXPECT_FP_LE_WITH_EPS(stress[1], test_config.init_stress.yy, epsilon);
+        EXPECT_FP_LE_WITH_EPS(stress[2], test_config.init_stress.zz, epsilon);
+        EXPECT_FP_LE_WITH_EPS(stress[3], test_config.init_stress.xy, epsilon);
+        EXPECT_FP_LE_WITH_EPS(stress[4], test_config.init_stress.xz, epsilon);
+        EXPECT_FP_LE_WITH_EPS(stress[5], test_config.init_stress.yz, epsilon);
+        if (print_stats) std::cerr << "nofdotr_stress stats:" << stats << std::endl;
+
+        stats.reset();
+        EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.init_vdwl, epsilon);
+        EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.init_coul, epsilon);
+        if (print_stats) std::cerr << "nofdotr_energy stats:" << stats << std::endl;
+    }
+
     if (!verbose) ::testing::internal::CaptureStdout();
     data_lammps(lmp, test_config);
     if (!verbose) ::testing::internal::GetCapturedStdout();
@@ -704,13 +744,13 @@ TEST(PairStyle, omp)
     EXPECT_FP_LE_WITH_EPS((pair->eng_vdwl + pair->eng_coul), energy, epsilon);
     if (print_stats) std::cerr << "run_energy  stats, newton on: " << stats << std::endl;
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    cleanup_lammps(lmp, test_config);
-    lmp = init_lammps(argc, argv, test_config, false);
-    if (!verbose) ::testing::internal::GetCapturedStdout();
-
     // skip over these tests if newton pair is forced to be on
     if (lmp->force->newton_pair == 0) {
+
+        if (!verbose) ::testing::internal::CaptureStdout();
+        cleanup_lammps(lmp, test_config);
+        lmp = init_lammps(argc, argv, test_config, false);
+        if (!verbose) ::testing::internal::GetCapturedStdout();
 
         f   = lmp->atom->f;
         tag = lmp->atom->tag;
@@ -770,6 +810,38 @@ TEST(PairStyle, omp)
         EXPECT_FP_LE_WITH_EPS((pair->eng_vdwl + pair->eng_coul), energy, epsilon);
         if (print_stats) std::cerr << "run_energy  stats, newton off:" << stats << std::endl;
     }
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    restart_lammps(lmp, test_config, true);
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    f   = lmp->atom->f;
+    tag = lmp->atom->tag;
+    stats.reset();
+    ASSERT_EQ(nlocal + 1, f_ref.size());
+    for (int i = 0; i < nlocal; ++i) {
+        EXPECT_FP_LE_WITH_EPS(f[i][0], f_ref[tag[i]].x, 5 * epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][1], f_ref[tag[i]].y, 5 * epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][2], f_ref[tag[i]].z, 5 * epsilon);
+    }
+    if (print_stats) std::cerr << "nofdotr_forces stats:" << stats << std::endl;
+
+    pair   = lmp->force->pair;
+    stress = pair->virial;
+    stats.reset();
+    EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, 10 * epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[1], test_config.init_stress.yy, 10 * epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[2], test_config.init_stress.zz, 10 * epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[3], test_config.init_stress.xy, 10 * epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[4], test_config.init_stress.xz, 10 * epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[5], test_config.init_stress.yz, 10 * epsilon);
+    if (print_stats) std::cerr << "nofdotr_stress stats:" << stats << std::endl;
+
+    stats.reset();
+    EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.init_vdwl, 5 * epsilon);
+    EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.init_coul, 5 * epsilon);
+    if (print_stats) std::cerr << "nofdotr_energy stats:" << stats << std::endl;
+
     if (!verbose) ::testing::internal::CaptureStdout();
     cleanup_lammps(lmp, test_config);
     if (!verbose) ::testing::internal::GetCapturedStdout();
@@ -781,8 +853,10 @@ TEST(PairStyle, gpu)
     if (!Info::has_gpu_device()) GTEST_SKIP();
     if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
 
-    const char *args_neigh[] = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite", "-sf", "gpu"};
-    const char *args_noneigh[] = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite", "-sf", "gpu", "-pk", "gpu", "0", "neigh", "no"};
+    const char *args_neigh[]   = {"PairStyle", "-log",    "none", "-echo",
+                                "screen",    "-nocite", "-sf",  "gpu"};
+    const char *args_noneigh[] = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite", "-sf",
+                                  "gpu",       "-pk",  "gpu",  "0",     "neigh",  "no"};
 
     char **argv = (char **)args_neigh;
     int argc    = sizeof(args_neigh) / sizeof(char *);
@@ -790,7 +864,7 @@ TEST(PairStyle, gpu)
     // cannot use GPU neighbor list with hybrid pair style (yet)
     if (test_config.pair_style.substr(0, 6) == "hybrid") {
         argv = (char **)args_noneigh;
-        argc    = sizeof(args_noneigh) / sizeof(char *);
+        argc = sizeof(args_noneigh) / sizeof(char *);
     }
 
     ::testing::internal::CaptureStdout();
@@ -817,14 +891,17 @@ TEST(PairStyle, gpu)
 
     // relax error for GPU package depending on precision setting
     double epsilon = test_config.epsilon;
-    if (Info::has_accelerator_feature("GPU","precision","double"))
+    if (Info::has_accelerator_feature("GPU", "precision", "double"))
         epsilon *= 7.5;
-    else if (Info::has_accelerator_feature("GPU","precision","mixed"))
+    else if (Info::has_accelerator_feature("GPU", "precision", "mixed"))
         epsilon *= 5.0e8;
-    else epsilon *= 1.0e10;
-    // relax test precision when using pppm and single precision FFTs, but only when also running with double precision
+    else
+        epsilon *= 1.0e10;
+        // relax test precision when using pppm and single precision FFTs, but only when also
+        // running with double precision
 #if defined(FFT_SINGLE)
-    if (lmp->force->kspace && lmp->force->kspace->compute_flag && Info::has_accelerator_feature("GPU","precision","double"))
+    if (lmp->force->kspace && lmp->force->kspace->compute_flag &&
+        Info::has_accelerator_feature("GPU", "precision", "double"))
         if (utils::strmatch(lmp->force->kspace_style, "^pppm")) epsilon *= 2.0e8;
 #endif
     const std::vector<coord_t> &f_ref = test_config.init_forces;
@@ -910,7 +987,7 @@ TEST(PairStyle, intel)
     int argc    = sizeof(args) / sizeof(char *);
 
     ::testing::internal::CaptureStdout();
-    LAMMPS *lmp = init_lammps(argc, argv, test_config);
+    LAMMPS *lmp = init_lammps(argc, argv, test_config, true);
 
     std::string output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
@@ -1123,6 +1200,37 @@ TEST(PairStyle, opt)
     EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.run_coul, epsilon);
     EXPECT_FP_LE_WITH_EPS((pair->eng_vdwl + pair->eng_coul), energy, epsilon);
     if (print_stats) std::cerr << "run_energy  stats:" << stats << std::endl;
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    restart_lammps(lmp, test_config, true);
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    f   = lmp->atom->f;
+    tag = lmp->atom->tag;
+    stats.reset();
+    ASSERT_EQ(nlocal + 1, f_ref.size());
+    for (int i = 0; i < nlocal; ++i) {
+        EXPECT_FP_LE_WITH_EPS(f[i][0], f_ref[tag[i]].x, 5 * epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][1], f_ref[tag[i]].y, 5 * epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][2], f_ref[tag[i]].z, 5 * epsilon);
+    }
+    if (print_stats) std::cerr << "nofdotr_forces stats:" << stats << std::endl;
+
+    pair   = lmp->force->pair;
+    stress = pair->virial;
+    stats.reset();
+    EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, 10 * epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[1], test_config.init_stress.yy, 10 * epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[2], test_config.init_stress.zz, 10 * epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[3], test_config.init_stress.xy, 10 * epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[4], test_config.init_stress.xz, 10 * epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[5], test_config.init_stress.yz, 10 * epsilon);
+    if (print_stats) std::cerr << "nofdotr_stress stats:" << stats << std::endl;
+
+    stats.reset();
+    EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.init_vdwl, 5 * epsilon);
+    EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.init_coul, 5 * epsilon);
+    if (print_stats) std::cerr << "nofdotr_energy stats:" << stats << std::endl;
 
     if (!verbose) ::testing::internal::CaptureStdout();
     cleanup_lammps(lmp, test_config);

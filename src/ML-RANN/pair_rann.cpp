@@ -75,29 +75,90 @@ static const char cite_user_rann_package[] =
 
 PairRANN::PairRANN(LAMMPS *lmp) : Pair(lmp)
 {
+  //initialize ints and bools
   single_enable = 0;
   restartinfo = 0;
   one_coeff = 1;
   manybody_flag = 1;
   allocated = 0;
   nelements = -1;
-  elements = nullptr;
-  mass = nullptr;
-
-  // set comm size needed by this Pair
-  // comm unused for now.
-
-  comm_forward = 38;
-  comm_reverse = 30;
+  nelementsp = -1;
+  comm_forward = 0;
+  comm_reverse = 0;
   res = 10000;
   cutmax = 0;
-  //at least one of the following will change during fingerprint definition:
+  dospin = false;
+  memguess = 0;
+  nmax1 = 0;
+  nmax2 = 0;
+  fmax = 0;
+  fnmax = 0;
+  //at least one of the following two flags will change during fingerprint definition:
   doscreen = false;
   allscreen = true;
-  dospin = false;
+
+  //null init for arrays with sizes not yet determined.
+  elements = nullptr;
+  mass = nullptr;
+  elementsp = nullptr;
+  map  = nullptr;
+  fingerprintcount = nullptr;
+  fingerprintlength = nullptr;
+  fingerprintperelement = nullptr;
+  screening_min = nullptr;
+  screening_max = nullptr;
+  weightdefined = nullptr;
+  biasdefined = nullptr;
+  xn = nullptr;
+  yn = nullptr;
+  zn = nullptr;
+  Sik = nullptr;
+  dSikx = nullptr;
+  dSiky = nullptr;
+  dSikz = nullptr;
+  dSijkx = nullptr;
+  dSijky = nullptr;
+  dSijkz = nullptr;
+  sx = nullptr;
+  sy = nullptr;
+  sz = nullptr;
+  dSijkxc = nullptr;
+  dSijkyc = nullptr;
+  dSijkzc = nullptr;
+  dfeaturesx = nullptr;
+  dfeaturesy = nullptr;
+  dfeaturesz = nullptr;
+  features = nullptr;
+  layer = nullptr;
+  sum = nullptr;
+  sum1 = nullptr;
+  dlayerx = nullptr;
+  dlayery = nullptr;
+  dlayerz = nullptr;
+  dlayersumx = nullptr;
+  dlayersumy = nullptr;
+  dlayersumz = nullptr;
+  dsx = nullptr;
+  dsy = nullptr;
+  dsz = nullptr;
+  dssumx = nullptr;
+  dssumy = nullptr;
+  dssumz = nullptr;
+  tn = nullptr;
+  jl = nullptr;
+  Bij = nullptr;
+  sims = nullptr;
+  net = nullptr;
+  activation = nullptr;
+  fingerprints = nullptr;
 }
 
 PairRANN::~PairRANN()
+{
+  deallocate();
+}
+
+void PairRANN::deallocate()
 {
   //clear memory
   delete[] mass;
@@ -157,30 +218,26 @@ PairRANN::~PairRANN()
   memory->destroy(dlayersumx);
   memory->destroy(dlayersumy);
   memory->destroy(dlayersumz);
-  if (doscreen) {
-    memory->destroy(Sik);
-    memory->destroy(Bij);
-    memory->destroy(dSikx);
-    memory->destroy(dSiky);
-    memory->destroy(dSikz);
-    memory->destroy(dSijkx);
-    memory->destroy(dSijky);
-    memory->destroy(dSijkz);
-    memory->destroy(dSijkxc);
-    memory->destroy(dSijkyc);
-    memory->destroy(dSijkzc);
-  }
-  if (dospin) {
-    memory->destroy(sx);
-    memory->destroy(sy);
-    memory->destroy(sz);
-    memory->destroy(dsx);
-    memory->destroy(dsy);
-    memory->destroy(dsz);
-    memory->destroy(dssumx);
-    memory->destroy(dssumy);
-    memory->destroy(dssumz);
-  }
+  memory->destroy(Sik);
+  memory->destroy(Bij);
+  memory->destroy(dSikx);
+  memory->destroy(dSiky);
+  memory->destroy(dSikz);
+  memory->destroy(dSijkx);
+  memory->destroy(dSijky);
+  memory->destroy(dSijkz);
+  memory->destroy(dSijkxc);
+  memory->destroy(dSijkyc);
+  memory->destroy(dSijkzc);
+  memory->destroy(sx);
+  memory->destroy(sy);
+  memory->destroy(sz);
+  memory->destroy(dsx);
+  memory->destroy(dsy);
+  memory->destroy(dsz);
+  memory->destroy(dssumx);
+  memory->destroy(dssumy);
+  memory->destroy(dssumz);
   memory->destroy(setflag);
   memory->destroy(cutsq);
 }
@@ -243,6 +300,7 @@ void PairRANN::settings(int narg, char ** /*arg*/)
 void PairRANN::coeff(int narg, char **arg)
 {
   int i,j;
+  deallocate();//clear allocation from any previous coeff
   map = new int[atom->ntypes+1];
   if (narg != 3 + atom->ntypes) error->one(FLERR,"Incorrect args for pair coefficients");
   if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0) error->one(FLERR,"Incorrect args for pair coefficients");
@@ -294,7 +352,7 @@ void PairRANN::read_file(char *filename)
   FILE *fp;
   int eof = 0;
   std::string line,line1;
-  int longline = 4096;
+  const int longline = 4096;
   int linenum;
   char linetemp[longline];
   std::string strtemp;
@@ -405,12 +463,12 @@ void PairRANN::read_fpe(std::vector<std::string> line,std::vector<std::string> l
 }
 
 void PairRANN::read_fingerprints(std::vector<std::string> line,std::vector<std::string> line1,char *filename,int linenum) {
-  int nwords1,nwords,i,j,k,i1;
+  int nwords1,nwords,i,j,k,i1,*atomtypes;
   bool found;
   nwords1 = line1.size();
   nwords = line.size();
   if (nelements == -1)error->one(filename,linenum-1,"atom types must be defined before fingerprints in potential file.");
-  int atomtypes[nwords-1];
+  atomtypes = new int[nwords-1];
   for (i=1;i<nwords;i++) {
     found = false;
     for (j=0;j<nelementsp;j++) {
@@ -435,15 +493,16 @@ void PairRANN::read_fingerprints(std::vector<std::string> line,std::vector<std::
     fingerprints[i][i1]->init(atomtypes,utils::inumeric(filename,linenum,line1[k++].c_str(),1,lmp));
     fingerprintcount[i]++;
   }
+  delete[] atomtypes;
 }
 
 void PairRANN::read_fingerprint_constants(std::vector<std::string> line,std::vector<std::string> line1,char *filename,int linenum) {
-  int i,j,k,i1;
+  int i,j,k,i1,*atomtypes;
   bool found;
   int nwords = line.size();
   if (nelements == -1)error->one(filename,linenum-1,"atom types must be defined before fingerprints in potential file.");
   int n_body_type = nwords-4;
-  int atomtypes[n_body_type];
+  atomtypes = new int[n_body_type];
   for (i=1;i<=n_body_type;i++) {
     found = false;
     for (j=0;j<nelementsp;j++) {
@@ -474,6 +533,7 @@ void PairRANN::read_fingerprint_constants(std::vector<std::string> line,std::vec
   }
   if (!found) {error->one(filename,linenum-1,"cannot define constants for unknown fingerprint");}
   fingerprints[i][i1]->fullydefined=fingerprints[i][i1]->parse_values(line[nwords-1],line1);
+  delete[] atomtypes;
 }
 
 void PairRANN::read_network_layers(std::vector<std::string> line,std::vector<std::string> line1,char *filename,int linenum) {
@@ -521,7 +581,7 @@ void PairRANN::read_layer_size(std::vector<std::string> line,std::vector<std::st
 void PairRANN::read_weight(std::vector<std::string> line,std::vector<std::string> line1,FILE* fp,char *filename,int *linenum) {
   int i,j,k,l,nwords;
   char *ptr;
-  int longline = 4096;
+  const int longline = 4096;
   char linetemp [longline];
   for (l=0;l<nelements;l++) {
     if (line[1].compare(elements[l])==0) {
@@ -596,13 +656,13 @@ void PairRANN::read_activation_functions(std::vector<std::string> line,std::vect
 }
 
 void PairRANN::read_screening(std::vector<std::string> line,std::vector<std::string> line1,char *filename,int linenum) {
-  int i,j,k;
+  int i,j,k,*atomtypes;
   bool found;
   int nwords = line.size();
   if (nelements == -1)error->one(filename,linenum-1,"atom types must be defined before fingerprints in potential file.");
   if (nwords!=5)error->one(filename,linenum-1,"invalid screening command");
   int n_body_type = 3;
-  int atomtypes[n_body_type];
+  atomtypes = new int[n_body_type];
   for (i=1;i<=n_body_type;i++) {
     found = false;
     for (j=0;j<nelementsp;j++) {
@@ -625,6 +685,7 @@ void PairRANN::read_screening(std::vector<std::string> line,std::vector<std::str
     screening_max[index] = utils::numeric(filename,linenum,line1[0].c_str(),1,lmp);
   }
   else error->one(filename,linenum-1,"unrecognized screening keyword");
+  delete[] atomtypes;
 }
 
 //Called after finishing reading the potential file to make sure it is complete. True is bad.

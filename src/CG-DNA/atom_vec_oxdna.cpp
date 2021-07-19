@@ -50,7 +50,7 @@ AtomVecOxdna::AtomVecOxdna(LAMMPS *lmp) : AtomVec(lmp)
   setup_fields();
 
   if(!force->newton_bond) {
-    error->warning(FLERR,"Write_data command requires newton_bond on to preserve 3'->5' bond polarity");
+    error->warning(FLERR,"Write_data command requires newton on to preserve 3'->5' bond polarity");
   } 
 
 }

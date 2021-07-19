@@ -4,8 +4,7 @@ from lammps import lammps, LMP_STYLE_GLOBAL, LMP_TYPE_VECTOR
 
 # add timestep dependent force
 def callback_one(lmp, ntimestep, nlocal, tag, x, f):
-    virial = [1.0, 1.0, 1.0, 0.0, 0.0, 0.0]
-    lmp.fix_external_set_virial_global("ext",virial)
+    lmp.fix_external_set_virial_global("ext",[1.0, 1.0, 1.0, 0.0, 0.0, 0.0])
     for i in range(nlocal):
         f[i][0] = float(ntimestep)
         f[i][1] = float(ntimestep)
@@ -74,9 +73,10 @@ class PythonExternal(unittest.TestCase):
                         pair_style zero 0.1
                         pair_coeff 1 1
                         velocity all set 0.1 0.0 -0.1
-                        thermo 5
                         fix 1 all nve
                         fix ext all external pf/array 1
+                        thermo_style custom step temp pe ke
+                        thermo 5
 """
         lmp.commands_string(basic_system)
         force = lmp.fix_external_get_force("ext");
@@ -85,9 +85,11 @@ class PythonExternal(unittest.TestCase):
             force[i][0] = 0.0
             force[i][1] = 0.0
             force[i][2] = 0.0
+        lmp.fix_external_set_energy_global("ext", 0.5)
             
         lmp.command("run 5 post no")
         self.assertAlmostEqual(lmp.get_thermo("temp"),4.0/525.0,14)
+        self.assertAlmostEqual(lmp.get_thermo("pe"),1.0/16.0,14)
 
         force = lmp.fix_external_get_force("ext");
         nlocal = lmp.extract_setting("nlocal");
@@ -95,8 +97,10 @@ class PythonExternal(unittest.TestCase):
             force[i][0] = 6.0
             force[i][1] = 6.0
             force[i][2] = 6.0
+        lmp.fix_external_set_energy_global("ext", 1.0)
         lmp.command("run 5 post no")
         self.assertAlmostEqual(lmp.get_thermo("temp"),1.0/30.0,14)
+        self.assertAlmostEqual(lmp.get_thermo("pe"),1.0/8.0,14)
 
 ##############################
 if __name__ == "__main__":

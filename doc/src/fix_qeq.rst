@@ -129,10 +129,10 @@ entries per line are required.
 
 The fix qeq styles will print a warning if the charges are not
 equilibrated within *tolerance* by *maxiter* steps, unless the
-*warn* keyword is used with "no" as argument. This latter option
+*warn* keyword is used with "no" as argument.  This latter option
 may be useful for testing and benchmarking purposes, as it allows
 to use a fixed number of QEq iterations when *tolerance* is set
-to a small enough value to alway reach the *maxiter* limit. Turning
+to a small enough value to always reach the *maxiter* limit.  Turning
 off warnings will avoid the excessive output in that case.
 
 The *qeq/point* style describes partial charges on atoms as point

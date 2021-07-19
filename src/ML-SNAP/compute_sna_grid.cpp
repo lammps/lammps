@@ -13,8 +13,6 @@
 
 #include "compute_grid.h"
 #include "compute_sna_grid.h"
-#include <cstring>
-#include <cstdlib>
 #include "sna.h"
 #include "atom.h"
 #include "update.h"
@@ -27,17 +25,20 @@
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
+#include "tokenizer.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
 ComputeSNAGrid::ComputeSNAGrid(LAMMPS *lmp, int narg, char **arg) :
-  ComputeGrid(lmp, narg, arg), cutsq(NULL), sna(NULL),
-  radelem(NULL), wjelem(NULL)
+  ComputeGrid(lmp, narg, arg), cutsq(nullptr),
+  radelem(nullptr), wjelem(nullptr)
 {
-  double rmin0, rfac0;
-  int twojmax, switchflag, bzeroflag;
-  radelem = NULL;
-  wjelem = NULL;
+
+  double rfac0, rmin0;
+  int twojmax, switchflag, bzeroflag, bnormflag, wselfallflag;
 
   // skip over arguments used by base class
   // so that argument positions are identical to 
@@ -57,10 +58,14 @@ ComputeSNAGrid::ComputeSNAGrid(LAMMPS *lmp, int narg, char **arg) :
   switchflag = 1;
   bzeroflag = 1;
   quadraticflag = 0;
+  chemflag = 0;
+  bnormflag = 0;
+  wselfallflag = 0;
+  nelements = 1;
+  
+  // process required arguments
 
-  // offset by 1 to match up with types
-
-  memory->create(radelem,ntypes+1,"sna/grid:radelem");
+  memory->create(radelem,ntypes+1,"sna/grid:radelem"); // offset by 1 to match up with types
   memory->create(wjelem,ntypes+1,"sna/grid:wjelem");
 
   rcutfac = atof(arg[3]);
@@ -112,12 +117,36 @@ ComputeSNAGrid::ComputeSNAGrid(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Illegal compute sna/grid command");
       quadraticflag = atoi(arg[iarg+1]);
       iarg += 2;
+    } else if (strcmp(arg[iarg],"chem") == 0) {
+      if (iarg+2 > narg)
+        error->all(FLERR,"Illegal compute sna/grid command");
+      chemflag = 1;
+      memory->create(map,ntypes+1,"compute_sna_grid:map");
+      nelements = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      for (int i = 0; i < ntypes; i++) {
+        int jelem = utils::inumeric(FLERR,arg[iarg+2+i],false,lmp);
+        if (jelem < 0 || jelem >= nelements)
+          error->all(FLERR,"Illegal compute sna/grid command");
+        map[i+1] = jelem;
+      }
+      iarg += 2+ntypes;
+    } else if (strcmp(arg[iarg],"bnormflag") == 0) {
+      if (iarg+2 > narg)
+        error->all(FLERR,"Illegal compute sna/grid command");
+      bnormflag = atoi(arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"wselfallflag") == 0) {
+      if (iarg+2 > narg)
+        error->all(FLERR,"Illegal compute sna/grid command");
+      wselfallflag = atoi(arg[iarg+1]);
+      iarg += 2;
     } else error->all(FLERR,"Illegal compute sna/grid command");
 
   }
 
-  snaptr = new SNA(lmp,rfac0,twojmax,
-                   rmin0,switchflag,bzeroflag);
+  snaptr = new SNA(lmp, rfac0, twojmax,
+                   rmin0, switchflag, bzeroflag,
+                   chemflag, bnormflag, wselfallflag, nelements);
 
   ncoeff = snaptr->ncoeff;
   nvalues = ncoeff;
@@ -130,18 +159,19 @@ ComputeSNAGrid::ComputeSNAGrid(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeSNAGrid::~ComputeSNAGrid()
 {
-  memory->destroy(sna);
   memory->destroy(radelem);
   memory->destroy(wjelem);
   memory->destroy(cutsq);
   delete snaptr;
+
+  if (chemflag) memory->destroy(map);
 }
 
 /* ---------------------------------------------------------------------- */
 
 void ComputeSNAGrid::init()
 {
-  if (force->pair == NULL)
+  if (force->pair == nullptr)
     error->all(FLERR,"Compute sna/grid requires a pair style be defined");
 
   if (cutmax > force->pair->cutforce)
@@ -170,12 +200,28 @@ void ComputeSNAGrid::compute_array()
 {
   invoked_array = update->ntimestep;
 
-  int * const type = atom->type;
+  // invoke full neighbor list (will copy or build if necessary)
+
+  //  neighbor->build_one(list);
+
+  int mynxlo = static_cast<int> (comm->xsplit[comm->myloc[0]] * nx);
+  int mynxhi = static_cast<int> (comm->xsplit[comm->myloc[0]+1] * nx) - 1;
+
+  int mynylo = static_cast<int> (comm->ysplit[comm->myloc[1]] * ny);
+  int mynyhi = static_cast<int> (comm->ysplit[comm->myloc[1]+1] * ny) - 1;
+
+  int mynzlo = static_cast<int> (comm->zsplit[comm->myloc[2]] * nz);
+  int mynzhi = static_cast<int> (comm->zsplit[comm->myloc[2]+1] * nz) - 1;
+
+  int myngridlocal = (nxhi - nxlo + 1) * (nyhi - nylo + 1) * (nzhi - nzlo + 1);
+
+  printf("me = %d n = %d x %d %d y %d %d z %d %d \n", comm->me, myngridlocal, mynxlo, mynxhi, mynylo, mynyhi, mynzlo, mynzhi);
 
   // compute sna for each gridpoint
 
   double** const x = atom->x;
   const int* const mask = atom->mask;
+  int * const type = atom->type;
   const int ntotal = atom->nlocal + atom->nghost;
 
   // insure rij, inside, and typej are of size jnum
@@ -189,6 +235,14 @@ void ComputeSNAGrid::compute_array()
 	const double xtmp = grid[igrid][0];
 	const double ytmp = grid[igrid][1];
 	const double ztmp = grid[igrid][2];
+
+	// currently, all grid points are type 1
+	
+	const int itype = 1;
+	int ielem = 0;
+	if (chemflag)
+	  ielem = map[itype];
+	const double radi = radelem[itype];
 
 	// rij[][3] = displacements between atom I and those neighbors
 	// inside = indices of neighbors of I within cutoff
@@ -206,6 +260,9 @@ void ComputeSNAGrid::compute_array()
 	  const double delz = ztmp - x[j][2];
 	  const double rsq = delx*delx + dely*dely + delz*delz;
 	  int jtype = type[j];
+	  int jelem = 0;
+	  if (chemflag)
+	    jelem = map[jtype];
 	  if (rsq < cutsq[jtype][jtype] && rsq>1e-20) {
 	    snaptr->rij[ninside][0] = delx;
 	    snaptr->rij[ninside][1] = dely;
@@ -213,32 +270,33 @@ void ComputeSNAGrid::compute_array()
 	    snaptr->inside[ninside] = j;
 	    snaptr->wj[ninside] = wjelem[jtype];
 	    snaptr->rcutij[ninside] = 2.0*radelem[jtype]*rcutfac;
+	    snaptr->element[ninside] = jelem; // element index for multi-element snap
 	    ninside++;
 	  }
 	}
 
-	snaptr->compute_ui(ninside);
+	snaptr->compute_ui(ninside, ielem);
 	snaptr->compute_zi();
-	snaptr->compute_bi();
+	snaptr->compute_bi(ielem);
+
+      // linear contributions
+
 	for (int icoeff = 0; icoeff < ncoeff; icoeff++)
 	  gridlocal[size_array_cols_base+icoeff][iz][iy][ix] = snaptr->blist[icoeff];
+	
+	// quadratic contributions
+
 	if (quadraticflag) {
 	  int ncount = ncoeff;
 	  for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
-	    double bi = snaptr->blist[icoeff];
-
-	    // diagonal element of quadratic matrix
-
-	    gridlocal[size_array_cols_base+ncount++][iz][iy][ix] = 0.5*bi*bi;
-
-	    // upper-triangular elements of quadratic matrix
-
+	    double bveci = snaptr->blist[icoeff];
+	    gridlocal[size_array_cols_base+ncount++][iz][iy][ix] = 0.5*bveci*bveci;
 	    for (int jcoeff = icoeff+1; jcoeff < ncoeff; jcoeff++)
-	      gridlocal[size_array_cols_base+ncount++][iz][iy][ix] = bi*snaptr->blist[jcoeff];
+	      gridlocal[size_array_cols_base+ncount++][iz][iy][ix] = bveci*snaptr->blist[jcoeff];
+	  }
+	}
       }
-    }
-  }
-
+  
   for (int iz = nzlo; iz <= nzhi; iz++)
     for (int iy = nylo; iy <= nyhi; iy++)
       for (int ix = nxlo; ix <= nxhi; ix++) {
@@ -257,7 +315,9 @@ void ComputeSNAGrid::compute_array()
 
 double ComputeSNAGrid::memory_usage()
 {
-  double nbytes = snaptr->memory_usage();                        // SNA object
+  double nbytes = snaptr->memory_usage();    // SNA object
+  int n = atom->ntypes+1;
+  nbytes += (double)n*sizeof(int);            // map
 
   return nbytes;
 }

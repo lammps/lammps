@@ -41,9 +41,9 @@ ComputeGrid::ComputeGrid(LAMMPS *lmp, int narg, char **arg) :
   int iarg = iarg0;
   if (strcmp(arg[iarg],"grid") == 0) {
     if (iarg+4 > narg) error->all(FLERR,"Illegal compute grid command");
-    nx = force->inumeric(FLERR,arg[iarg+1]);
-    ny = force->inumeric(FLERR,arg[iarg+2]);
-    nz = force->inumeric(FLERR,arg[iarg+3]);
+    nx = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+    ny = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
+    nz = utils::inumeric(FLERR,arg[iarg+3],false,lmp);
     if (nx <= 0 || ny <= 0 || nz <= 0)
       error->all(FLERR,"All grid dimensions must be positive");
     iarg += 4;

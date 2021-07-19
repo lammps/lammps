@@ -35,11 +35,13 @@ class ComputeSNAGrid : public ComputeGrid {
  private:
   int ncoeff;
   double **cutsq;
-  double **sna;
   double rcutfac;
   double *radelem;
   double *wjelem;
-  class SNA* snaptr;
+  int *map;    // map types to [0,nelements)
+  int nelements, chemflag;
+  class SNA *snaptr;
+  double cutmax;
   int quadraticflag;
 };
 

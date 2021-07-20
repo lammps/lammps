@@ -651,12 +651,12 @@ class avec16pd {
     return a >> 8;
   }
   VEC_INLINE static __m512i get_ivec_hi(__m512i a) {
-    return _mm512_permute4f128_epi32(a, _MM_PERM_BADC);
+    return _mm512_shuffle_i32x4(a, a, 0x4E);
   }
 public:
   VEC_INLINE avec16pd(const FVEC_NAME &a) {
     lo_ = _mm512_cvtpslo_pd(a.val_);
-    hi_ = _mm512_cvtpslo_pd(_mm512_permute4f128_ps(a.val_, _MM_PERM_BADC));
+    hi_ = _mm512_cvtpslo_pd(_mm512_shuffle_f32x4(a.val_, a.val_, 0x4E));
   }
   VEC_INLINE static avec16pd undefined() {
     return avec16pd(_mm512_undefined_pd(), _mm512_undefined_pd());

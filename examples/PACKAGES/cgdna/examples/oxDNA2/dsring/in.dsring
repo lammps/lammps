@@ -1,4 +1,4 @@
-variable number	equal 3
+variable number	equal 5
 variable ofreq	equal 1000
 variable efreq	equal 1000
 variable T      equal 0.1
@@ -19,9 +19,9 @@ atom_modify sort 0 1.0
 neighbor 2.0 bin
 neigh_modify every 1 delay 0 check yes
 
-read_data data.duplex3
+read_data data.dsring
 
-set atom * mass 1.0
+set atom * mass 3.1575
 
 group all type 1 4
 
@@ -66,7 +66,7 @@ dump out all custom ${ofreq} out.${number}.lammpstrj id mol type x y z ix iy iz 
 dump_modify out sort id
 dump_modify out format line "%d %d %d  %22.15le %22.15le %22.15le  %d %d %d  %22.15le %22.15le %22.15le  %22.15le %22.15le %22.15le %22.15le  %22.15le %22.15le %22.15le"
 
-run 1000000
+run 100000
 
 write_data last_config.${number}.* nocoeff
 #write_restart last_config.${number}.*

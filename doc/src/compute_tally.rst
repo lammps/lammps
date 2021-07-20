@@ -164,9 +164,9 @@ vector (the 6 elements of stress tensor contributions from the
 individual atom). As in :doc:`compute heat/flux <compute_heat_flux>`,
 compute *heat/flux/tally* calculates a global vector of length 6,
 where the first 3 components are the :math:`x`, :math:`y`, :math:`z`
-components of the full heat flux vector,
+components of the full heat flow vector,
 and the next 3 components are the corresponding components
-of just the convective portion of the flux, i.e. the
+of just the convective portion of the flow, i.e. the
 first term in the equation for :math:`\mathbf{Q}`.
 Compute *heat/flux/virial/tally* calculates a global scalar (heat flow)
 and a per atom 3-element vector

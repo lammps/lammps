@@ -597,6 +597,10 @@ void PairHybrid::init_style()
     }
   }
 
+  // check beyond contact (set during pair coeff) before init style
+  for (istyle = 0; istyle < nstyles; istyle++)
+    if (styles[istyle]->beyond_contact) beyond_contact = 1;
+
   // each sub-style makes its neighbor list request(s)
 
   for (istyle = 0; istyle < nstyles; istyle++) styles[istyle]->init_style();

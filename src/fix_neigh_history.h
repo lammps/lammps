@@ -28,6 +28,7 @@ class FixNeighHistory : public Fix {
  public:
   int nlocal_neigh;       // nlocal at last time neigh list was built
   int nall_neigh;         // ditto for nlocal+nghost
+  int use_bit_flag;       // flag whether this fix uses the extra bit in the nlist
   int **firstflag;        // ptr to each atom's neighbor flsg
   double **firstvalue;    // ptr to each atom's values
   class Pair *pair;       // ptr to pair style that uses neighbor history

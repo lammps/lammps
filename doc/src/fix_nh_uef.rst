@@ -199,7 +199,7 @@ The fix is not invoked during :doc:`energy minimization <minimize>`.
 Restrictions
 """"""""""""
 
-This fix is part of the USER-UEF package. It is only enabled if LAMMPS
+This fix is part of the UEF package. It is only enabled if LAMMPS
 was built with that package. See the :doc:`Build package <Build_package>` doc page for more info.
 
 Due to requirements of the boundary conditions, when the *strain*

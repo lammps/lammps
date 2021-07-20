@@ -451,6 +451,11 @@ When using fix gcmc in combination with fix shake or fix rigid,
 only GCMC exchange moves are supported, so the argument
 *M* must be zero.
 
+When using fix gcmc in combination with fix rigid, deletion
+of the last remaining molecule is not allowed for technical reasons,
+and so the molecule count will never drop below 1, regardless of the
+specified chemical potential.
+
 Note that very lengthy simulations involving insertions/deletions of
 billions of gas molecules may run out of atom or molecule IDs and
 trigger an error, so it is better to run multiple shorter-duration

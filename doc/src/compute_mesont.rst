@@ -43,7 +43,7 @@ The computed values are provided in energy :doc:`units <units>`.
 
 Restrictions
 """"""""""""
-These computes are part of the USER-MESONT package. They are only enabled if
+These computes are part of the MESONT package. They are only enabled if
 LAMMPS is built with that package. See the :doc:`Build package <Build_package>`
 doc page for more info. In addition, :doc:`mesont pair_style <pair_style>`
 must be used.

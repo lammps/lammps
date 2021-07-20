@@ -137,7 +137,7 @@ TEST(lammps_open_no_mpi, no_screen)
 
 TEST(lammps_open_no_mpi, with_omp)
 {
-    if (!LAMMPS_NS::LAMMPS::is_installed_pkg("USER-OMP")) GTEST_SKIP();
+    if (!LAMMPS_NS::LAMMPS::is_installed_pkg("OPENMP")) GTEST_SKIP();
     const char *args[] = {"liblammps", "-pk", "omp",  "2",    "neigh",  "no",
                           "-sf",       "omp", "-log", "none", "-nocite"};
     char **argv        = (char **)args;

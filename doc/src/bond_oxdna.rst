@@ -76,17 +76,26 @@ commands:
    The coefficients in the above example have to be kept fixed and cannot
    be changed without reparameterizing the entire model.
 
+.. note::
+
+   This bond style has to be used with the *atom_style hybrid bond ellipsoid oxdna*
+   (see documentation of :doc:`atom_style <atom_style>`). The *atom_style oxdna*
+   stores the 3'-to-5' polarity of the nucleotide strand, which is set through
+   the bond topology in the data file. The first (second) atom in a bond definition
+   is understood to point towards the 3'-end (5'-end) of the strand.
+
+
 Example input and data files for DNA and RNA duplexes can be found in
-examples/USER/cgdna/examples/oxDNA/ , /oxDNA2/ and /oxRNA2/.  A simple python
+examples/PACKAGES/cgdna/examples/oxDNA/ , /oxDNA2/ and /oxRNA2/.  A simple python
 setup tool which creates single straight or helical DNA strands, DNA/RNA
 duplexes or arrays of DNA/RNA duplexes can be found in
-examples/USER/cgdna/util/.
+examples/PACKAGES/cgdna/util/.
 
 Please cite :ref:`(Henrich) <Henrich0>` in any publication that uses
 this implementation.  The article contains general information
 on the model, its implementation and performance as well as the structure of
 the data and input file. The preprint version of the article can be found
-`here <PDF/USER-CGDNA.pdf>`_.
+`here <PDF/CG-DNA.pdf>`_.
 Please cite also the relevant oxDNA/oxRNA publications. These are
 :ref:`(Ouldridge) <Ouldridge0>` and
 :ref:`(Ouldridge-DPhil) <Ouldridge-DPhil0>` for oxDNA,
@@ -101,14 +110,14 @@ Restrictions
 """"""""""""
 
 This bond style can only be used if LAMMPS was built with the
-USER-CGDNA package and the MOLECULE and ASPHERE package.  See the
+CG-DNA package and the MOLECULE and ASPHERE package.  See the
 :doc:`Build package <Build_package>` doc page for more info.
 
 Related commands
 """"""""""""""""
 
 :doc:`pair_style oxdna/excv <pair_oxdna>`, :doc:`pair_style oxdna2/excv <pair_oxdna2>`, :doc:`pair_style oxrna2/excv <pair_oxrna2>`,
-:doc:`bond_coeff <bond_coeff>`, :doc:`fix nve/dotc/langevin <fix_nve_dotc_langevin>`
+:doc:`bond_coeff <bond_coeff>`, :doc:`atom_style oxdna <atom_style>`, :doc:`fix nve/dotc/langevin <fix_nve_dotc_langevin>`
 
 Default
 """""""

@@ -344,7 +344,7 @@ This fix is not invoked during :doc:`energy minimization <minimize>`.
 Restrictions
 """"""""""""
 
-This fix is part of the USER-SDPD package and also depends on the RIGID
+This fix is part of the DPD-SMOOTH package and also depends on the RIGID
 package.  It is only enabled if LAMMPS was built with both packages. See
 the :doc:`Build package <Build_package>` doc page for more info.
 

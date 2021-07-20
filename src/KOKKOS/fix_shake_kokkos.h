@@ -26,6 +26,7 @@ FixStyle(shake/kk/host,FixShakeKokkos<LMPHostType>);
 #include "fix_shake.h"
 #include "kokkos_type.h"
 #include "kokkos_base.h"
+#include <Kokkos_UnorderedMap.hpp>
 
 namespace LAMMPS_NS {
 
@@ -172,9 +173,6 @@ class FixShakeKokkos : public FixShake, public KokkosBase {
   KOKKOS_INLINE_FUNCTION
   void v_tally(EV_FLOAT&, int, int *, double, double *) const;
 
-  DAT::tdual_int_1d k_map_array;
-  typename AT::t_int_1d_randomread map_array;
-
   int iswap;
   int first;
   typename AT::t_int_2d d_sendlist;
@@ -184,6 +182,10 @@ class FixShakeKokkos : public FixShake, public KokkosBase {
   int *shake_flag_tmp;
   tagint **shake_atom_tmp;
   int **shake_type_tmp;
+
+  int map_style;
+  DAT::tdual_int_1d k_map_array;
+  dual_hash_type k_map_hash;
 
   // copied from Domain
 

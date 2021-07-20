@@ -16,9 +16,6 @@ pair_style tersoff/table command
 
 Accelerator Variants: *tersoff/table/omp*
 
-pair_style tersoff/shift command
-================================
-
 Syntax
 """"""
 
@@ -308,6 +305,9 @@ for pair interactions.
 The *shift* keyword is not supported by the *tersoff/gpu*,
 *tersoff/intel*, *tersoff/kk*, *tersoff/table* or *tersoff/table/omp*
 variants.
+
+The *tersoff/intel* pair style is only available when compiling LAMMPS
+with the Intel compilers.
 
 The Tersoff potential files provided with LAMMPS (see the potentials
 directory) are parameterized for :doc:`"metal" units <units>`.  In addition

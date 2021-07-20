@@ -19,6 +19,7 @@
 #include "library.h"
 #include <mpi.h>
 
+#include "accelerator_kokkos.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "comm.h"
@@ -333,8 +334,8 @@ The MPI standard requires that any MPI application calls
 do any MPI calls, MPI is still initialized internally to avoid errors
 accessing any MPI functions.  This function should then be called right
 before exiting the program to wait until all (parallel) tasks are
-completed and then MPI is cleanly shut down.  After this function no
-more MPI calls may be made.
+completed and then MPI is cleanly shut down.  After calling this
+function no more MPI calls may be made.
 
 .. versionadded:: 18Sep2020
 
@@ -351,6 +352,28 @@ void lammps_mpi_finalize()
       MPI_Finalize();
     }
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+/** Shut down the Kokkos library environment.
+ *
+\verbatim embed:rst
+
+The Kokkos library may only be initialized once during the execution of
+a process.  This is done automatically the first time Kokkos
+functionality is used.  This requires that the Kokkos environment
+must be explicitly shut down after any LAMMPS instance using it is
+closed (to release associated resources).
+After calling this function no Kokkos functionality may be used.
+
+.. versionadded:: TBD
+
+\endverbatim */
+
+void lammps_kokkos_finalize()
+{
+  KokkosLMP::finalize();
 }
 
 // ----------------------------------------------------------------------
@@ -4327,7 +4350,7 @@ int lammps_config_package_name(int idx, char *buffer, int buf_size) {
 \verbatim embed:rst
 This function checks availability of compile time settings of included
 :doc:`accelerator packages <Speed_packages>` in LAMMPS.
-Supported packages names are "GPU", "KOKKOS", "USER-INTEL", and "USER-OMP".
+Supported packages names are "GPU", "KOKKOS", "INTEL", and "OPENMP".
 Supported categories are "api" with possible settings "cuda", "hip", "phi",
 "pthreads", "opencl", "openmp", and "serial", and "precision" with
 possible settings "double", "mixed", and "single".  If the combination

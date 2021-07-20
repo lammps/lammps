@@ -47,6 +47,13 @@
 /pair_pace.cpp
 /pair_pace.h
 
+/fix_polarize*.cpp
+/fix_polarize*.h
+/*_dielectric.cpp
+/*_dielectric.h
+/compute_efield_atom.cpp
+/compute_efield_atom.h
+
 /superpose3d.h
 
 /kokkos.cpp
@@ -63,8 +70,8 @@
 
 /meam*.h
 /meam*.cpp
-/pair_meamc.cpp
-/pair_meamc.h
+/pair_meam.cpp
+/pair_meam.h
 
 /compute_mliap.cpp
 /compute_mliap.h
@@ -307,6 +314,8 @@
 /atom_vec_granular.h
 /atom_vec_molecular.cpp
 /atom_vec_molecular.h
+/atom_vec_oxdna.cpp
+/atom_vec_oxdna.h
 /atom_vec_peri.cpp
 /atom_vec_peri.h
 /atom_vec_template.cpp
@@ -379,6 +388,8 @@
 /compute_erotate_rigid.h
 /compute_event_displace.cpp
 /compute_event_displace.h
+/compute_fabric.cpp
+/compute_fabric.h
 /compute_fep.cpp
 /compute_fep.h
 /compute_force_tally.cpp
@@ -1426,6 +1437,10 @@
 /pair_thole.h
 /pair_buck_mdf.cpp
 /pair_buck_mdf.h
+/pair_dpd.cpp
+/pair_dpd.h
+/pair_dpd_tstat.cpp
+/pair_dpd_tstat.h
 /pair_dpd_ext.cpp
 /pair_dpd_ext.h
 /pair_dpd_ext_tstat.cpp

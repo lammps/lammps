@@ -16,7 +16,8 @@
 
 #include "error.h"
 
-#if defined(LMP_USER_INTEL) && defined(__INTEL_COMPILER)
+#if defined(LMP_USER_INTEL) && \
+  ((defined(__INTEL_COMPILER) || defined(__INTEL_LLVM_COMPILER)))
 #ifndef LMP_INTEL_NO_TBB
 #define LMP_USE_TBB_ALLOCATOR
 #include "tbb/scalable_allocator.h"
@@ -81,7 +82,7 @@ void *Memory::srealloc(void *ptr, bigint nbytes, const char *name)
 #if defined(LMP_USE_TBB_ALLOCATOR)
   ptr = scalable_aligned_realloc(ptr, nbytes, LAMMPS_MEMALIGN);
 #elif defined(LMP_INTEL_NO_TBB) && defined(LAMMPS_MEMALIGN) && \
-      defined(__INTEL_COMPILER)
+  (defined(__INTEL_COMPILER) || defined(__INTEL_LLVM_COMPILER))
 
   ptr = realloc(ptr, nbytes);
   uintptr_t offset = ((uintptr_t)(const void *)(ptr)) % LAMMPS_MEMALIGN;

@@ -55,6 +55,10 @@
 #include <cstring>
 #include <map>
 
+#if !defined(_WIN32)
+#include <unistd.h>             // for isatty()
+#endif
+
 #include "lmpinstalledpkgs.h"
 #include "lmpgitversion.h"
 
@@ -839,19 +843,19 @@ void LAMMPS::post_create()
 
   // suffix will always be set if suffix_enable = 1
   // check that KOKKOS package classes were instantiated
-  // check that GPU, INTEL, USER-OMP fixes were compiled with LAMMPS
+  // check that GPU, INTEL, OPENMP fixes were compiled with LAMMPS
 
   if (suffix_enable) {
 
     if (strcmp(suffix,"gpu") == 0 && !modify->check_package("GPU"))
       error->all(FLERR,"Using suffix gpu without GPU package installed");
     if (strcmp(suffix,"intel") == 0 && !modify->check_package("INTEL"))
-      error->all(FLERR,"Using suffix intel without USER-INTEL package installed");
+      error->all(FLERR,"Using suffix intel without INTEL package installed");
     if (strcmp(suffix,"kk") == 0 &&
         (kokkos == nullptr || kokkos->kokkos_exists == 0))
       error->all(FLERR,"Using suffix kk without KOKKOS package enabled");
     if (strcmp(suffix,"omp") == 0 && !modify->check_package("OMP"))
-      error->all(FLERR,"Using suffix omp without USER-OMP package installed");
+      error->all(FLERR,"Using suffix omp without OPENMP package installed");
 
     if (strcmp(suffix,"gpu") == 0) input->one("package gpu 0");
     if (strcmp(suffix,"intel") == 0) input->one("package intel 1");
@@ -1114,12 +1118,24 @@ void _noopt LAMMPS::help()
   FILE *fp = screen;
   const char *pager = nullptr;
 
-  // if output is "stdout", use a pipe to a pager for paged output.
+  // if output is a console, use a pipe to a pager for paged output.
   // this will avoid the most important help text to rush past the
   // user. scrollback buffers are often not large enough. this is most
   // beneficial to windows users, who are not used to command line.
 
-  if (fp == stdout) {
+#if defined(_WIN32)
+  int use_pager = _isatty(fileno(fp));
+#else
+  int use_pager = isatty(fileno(fp));
+#endif
+
+  // cannot use this with OpenMPI since its console is non-functional
+
+#if defined(OPEN_MPI)
+  use_pager = 0;
+#endif
+
+  if (use_pager) {
     pager = getenv("PAGER");
     if (pager == nullptr) pager = "more";
 #if defined(_WIN32)
@@ -1130,7 +1146,7 @@ void _noopt LAMMPS::help()
 
     // reset to original state, if pipe command failed
     if (fp == nullptr) {
-      fp = stdout;
+      fp = screen;
       pager = nullptr;
     }
   }

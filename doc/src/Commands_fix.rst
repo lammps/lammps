@@ -16,7 +16,7 @@ Fix commands
 
 An alphabetic list of all LAMMPS :doc:`fix <fix>` commands.  Some styles
 have accelerated versions.  This is indicated by additional letters in
-parenthesis: g = GPU, i = USER-INTEL, k = KOKKOS, o = USER-OMP, t =
+parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t =
 OPT.
 
 .. table_from_list::
@@ -163,6 +163,9 @@ OPT.
    * :doc:`planeforce <fix_planeforce>`
    * :doc:`plumed <fix_plumed>`
    * :doc:`poems <fix_poems>`
+   * :doc:`polarize/bem/gmres <fix_polarize>`
+   * :doc:`polarize/bem/icc <fix_polarize>`
+   * :doc:`polarize/functional <fix_polarize>`
    * :doc:`pour <fix_pour>`
    * :doc:`precession/spin <fix_precession_spin>`
    * :doc:`press/berendsen <fix_press_berendsen>`

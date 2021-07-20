@@ -28,7 +28,7 @@ epsilon and sigma are set to unity.  This pair style also computes
 Monaghan's artificial viscosity to prevent particles from
 interpenetrating :ref:`(Monaghan) <Monoghan>`.
 
-See `this PDF guide <USER/sph/SPH_LAMMPS_userguide.pdf>`_ to using SPH in
+See `this PDF guide <PDF/SPH_LAMMPS_userguide.pdf>`_ to using SPH in
 LAMMPS.
 
 The following coefficients must be defined for each pair of atoms
@@ -61,7 +61,7 @@ Restrictions
 As noted above, the Lennard-Jones parameters epsilon and sigma are set
 to unity.
 
-This pair style is part of the USER-SPH package.  It is only enabled
+This pair style is part of the SPH package.  It is only enabled
 if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 Related commands

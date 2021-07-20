@@ -37,31 +37,31 @@ This is the list of packages that may require additional steps.
    * :ref:`KOKKOS <kokkos>`
    * :ref:`LATTE <latte>`
    * :ref:`MESSAGE <message>`
-   * :ref:`MLIAP <mliap>`
+   * :ref:`ML-IAP <mliap>`
    * :ref:`MSCG <mscg>`
    * :ref:`OPT <opt>`
    * :ref:`POEMS <poems>`
    * :ref:`PYTHON <python>`
    * :ref:`VORONOI <voronoi>`
-   * :ref:`USER-ADIOS <user-adios>`
-   * :ref:`USER-ATC <user-atc>`
-   * :ref:`USER-AWPMD <user-awpmd>`
-   * :ref:`USER-COLVARS <user-colvars>`
-   * :ref:`USER-H5MD <user-h5md>`
-   * :ref:`USER-HDNNP <user-hdnnp>`
-   * :ref:`USER-INTEL <user-intel>`
-   * :ref:`USER-MDI <user-mdi>`
-   * :ref:`USER-MESONT <user-mesont>`
-   * :ref:`USER-MOLFILE <user-molfile>`
-   * :ref:`USER-NETCDF <user-netcdf>`
-   * :ref:`USER-PACE <user-pace>`
-   * :ref:`USER-PLUMED <user-plumed>`
-   * :ref:`USER-OMP <user-omp>`
-   * :ref:`USER-QMMM <user-qmmm>`
-   * :ref:`USER-QUIP <user-quip>`
-   * :ref:`USER-SCAFACOS <user-scafacos>`
-   * :ref:`USER-SMD <user-smd>`
-   * :ref:`USER-VTK <user-vtk>`
+   * :ref:`ADIOS <adios>`
+   * :ref:`ATC <atc>`
+   * :ref:`AWPMD <awpmd>`
+   * :ref:`COLVARS <colvars>`
+   * :ref:`H5MD <h5md>`
+   * :ref:`ML-HDNNP <ml-hdnnp>`
+   * :ref:`INTEL <intel>`
+   * :ref:`MDI <mdi>`
+   * :ref:`MESONT <mesont>`
+   * :ref:`MOLFILE <molfile>`
+   * :ref:`NETCDF <netcdf>`
+   * :ref:`ML-PACE <ml-pace>`
+   * :ref:`PLUMED <plumed>`
+   * :ref:`OPENMP <openmp>`
+   * :ref:`QMMM <qmmm>`
+   * :ref:`ML-QUIP <ml-quip>`
+   * :ref:`SCAFACOS <scafacos>`
+   * :ref:`MACHDYN <machdyn>`
+   * :ref:`VTK <vtk>`
 
 ----------
 
@@ -74,7 +74,8 @@ To build with this package you must have the `zlib compression library
 <https://zlib.net>`_ available on your system to build dump styles with
 a '/gz' suffix.  There are also styles using the
 `Zstandard <https://facebook.github.io/zstd/>`_ library which have a
-'/zstd' suffix.
+'/zstd' suffix.  The zstd library version must be at least 1.4.  Older
+versions use an incompatible API and thus LAMMPS will fail to compile.
 
 .. tabs::
 
@@ -622,7 +623,7 @@ This list was last updated for version 3.4.1 of the Kokkos library.
 
          mkdir build-kokkos-cuda
          cd build-kokkos-cuda
-         cmake -C ../cmake/presets/minimal.cmake -C ../cmake/presets/kokkos-cuda.cmake ../cmake
+         cmake -C ../cmake/presets/basic.cmake -C ../cmake/presets/kokkos-cuda.cmake ../cmake
          cmake --build .
 
    .. tab:: Basic traditional make settings:
@@ -811,16 +812,17 @@ be installed on your system.
 
 .. _mliap:
 
-MLIAP package
+ML-IAP package
 ---------------------------
 
-Building the MLIAP package requires including the :ref:`SNAP <PKG-SNAP>`
-package.  There will be an error message if this requirement is not satisfied.
-Using the *mliappy* model also requires enabling Python support, which
-in turn requires the :ref:`PYTHON <PKG-PYTHON>`
-package **and** requires you have the `cython <https://cython.org>`_ software
-installed and with it a working ``cythonize`` command.  This feature requires
-compiling LAMMPS with Python version 3.6 or later.
+Building the ML-IAP package requires including the :ref:`ML-SNAP
+<PKG-ML-SNAP>` package.  There will be an error message if this requirement
+is not satisfied.  Using the *mliappy* model also requires enabling
+Python support, which in turn requires to include the :ref:`PYTHON
+<PKG-PYTHON>` package **and** requires to have the `cython
+<https://cython.org>`_ software installed and with it a working
+``cythonize`` command.  This feature requires compiling LAMMPS with
+Python version 3.6 or later.
 
 .. tabs::
 
@@ -834,9 +836,9 @@ compiling LAMMPS with Python version 3.6 or later.
       suitable Python version and the ``cythonize`` command and choose
       the default accordingly.  During the build procedure the provided
       .pyx file(s) will be automatically translated to C++ code and compiled.
-      Please do **not** run ``cythonize`` manually in the ``src/MLIAP`` folder,
+      Please do **not** run ``cythonize`` manually in the ``src/ML-IAP`` folder,
       as that can lead to compilation errors if Python support is not enabled.
-      If you did by accident, please remove the generated .cpp and .h files.
+      If you did it by accident, please remove the generated .cpp and .h files.
 
    .. tab:: Traditional make
 
@@ -845,15 +847,16 @@ compiling LAMMPS with Python version 3.6 or later.
       the ``cythonize`` command in case the corresponding .pyx file(s) were
       modified.  You may need to modify ``lib/python/Makefile.lammps``
       if the LAMMPS build fails.
-      To manually enforce building MLIAP with Python support enabled,
-      you can add
-      ``-DMLIAP_PYTHON`` to the ``LMP_INC`` variable in your machine makefile.
-      You may have to manually run the ``cythonize`` command on .pyx file(s)
-      in the ``src`` folder, if this is not automatically done during
-      installing the MLIAP package.  Please do **not** run ``cythonize``
-      in the ``src/MLIAP`` folder, as that can lead to compilation errors
-      if Python support is not enabled.
-      If you did by accident, please remove the generated .cpp and .h files.
+
+      To enable building the ML-IAP package with Python support enabled,
+      you need to add ``-DMLIAP_PYTHON`` to the ``LMP_INC`` variable in
+      your machine makefile.  You may have to manually run the
+      ``cythonize`` command on .pyx file(s) in the ``src`` folder, if
+      this is not automatically done during installing the ML-IAP
+      package.  Please do **not** run ``cythonize`` in the ``src/ML-IAP``
+      folder, as that can lead to compilation errors if Python support
+      is not enabled.  If you did this by accident, please remove the
+      generated .cpp and .h files.
 
 ----------
 
@@ -1054,12 +1057,12 @@ binary package provided by your operating system.
 
 ----------
 
-.. _user-adios:
+.. _adios:
 
-USER-ADIOS package
+ADIOS package
 -----------------------------------
 
-The USER-ADIOS package requires the `ADIOS I/O library
+The ADIOS package requires the `ADIOS I/O library
 <https://github.com/ornladios/ADIOS2>`_, version 2.3.1 or newer. Make
 sure that you have ADIOS built either with or without MPI to match if
 you build LAMMPS with or without MPI.  ADIOS compilation settings for
@@ -1075,38 +1078,38 @@ systems.
       .. code-block:: bash
 
          -D ADIOS2_DIR=path        # path is where ADIOS 2.x is installed
-         -D PKG_USER-ADIOS=yes
+         -D PKG_ADIOS=yes
 
    .. tab:: Traditional make
 
-      Turn on the USER-ADIOS package before building LAMMPS. If the
+      Turn on the ADIOS package before building LAMMPS. If the
       ADIOS 2.x software is installed in PATH, there is nothing else to
       do:
 
       .. code-block:: bash
 
-         $ make yes-user-adios
+         $ make yes-adios
 
       otherwise, set ADIOS2_DIR environment variable when turning on the package:
 
       .. code-block:: bash
 
-         $ ADIOS2_DIR=path make yes-user-adios   # path is where ADIOS 2.x is installed
+         $ ADIOS2_DIR=path make yes-adios   # path is where ADIOS 2.x is installed
 
 ----------
 
-.. _user-atc:
+.. _atc:
 
-USER-ATC package
+ATC package
 -------------------------------
 
-The USER-ATC package requires the MANYBODY package also be installed.
+The ATC package requires the MANYBODY package also be installed.
 
 .. tabs::
 
    .. tab:: CMake build
 
-      No additional settings are needed besides ``-D PKG_USER-ATC=yes``
+      No additional settings are needed besides ``-D PKG_ATC=yes``
       and ``-D PKG_MANYBODY=yes``.
 
    .. tab:: Traditional make
@@ -1149,16 +1152,16 @@ The USER-ATC package requires the MANYBODY package also be installed.
 
 ----------
 
-.. _user-awpmd:
+.. _awpmd:
 
-USER-AWPMD package
+AWPMD package
 ------------------
 
 .. tabs::
 
    .. tab:: CMake build
 
-      No additional settings are needed besides ``-D PKG_USER-AQPMD=yes``.
+      No additional settings are needed besides ``-D PKG_AQPMD=yes``.
 
    .. tab:: Traditional make
 
@@ -1200,9 +1203,9 @@ USER-AWPMD package
 
 ----------
 
-.. _user-colvars:
+.. _colvars:
 
-USER-COLVARS package
+COLVARS package
 ---------------------------------------
 
 This package includes the `Colvars library
@@ -1216,7 +1219,7 @@ be built for the most part with all major versions of the C++ language.
 
       This is the recommended build procedure for using Colvars in
       LAMMPS. No additional settings are normally needed besides
-      ``-D PKG_USER-COLVARS=yes``.
+      ``-D PKG_COLVARS=yes``.
 
    .. tab:: Traditional make
 
@@ -1259,9 +1262,9 @@ be built for the most part with all major versions of the C++ language.
 
 ----------
 
-.. _user-pace:
+.. _ml-pace:
 
-USER-PACE package
+ML-PACE package
 -----------------------------
 
 This package requires a library that can be downloaded and built
@@ -1274,8 +1277,8 @@ at: `https://github.com/ICAMS/lammps-user-pace/ <https://github.com/ICAMS/lammps
    .. tab:: CMake build
 
       By default the library will be downloaded from the git repository
-      and built automatically when the USER-PACE package is enabled with
-      ``-D PKG_USER-PACE=yes``.  The location for the sources may be
+      and built automatically when the ML-PACE package is enabled with
+      ``-D PKG_ML-PACE=yes``.  The location for the sources may be
       customized by setting the variable ``PACELIB_URL`` when
       configuring with CMake (e.g. to use a local archive on machines
       without internet access).  Since CMake checks the validity of the
@@ -1286,7 +1289,7 @@ at: `https://github.com/ICAMS/lammps-user-pace/ <https://github.com/ICAMS/lammps
 
    .. tab:: Traditional make
 
-      You can download and build the USER-PACE library
+      You can download and build the ML-PACE library
       in one step from the ``lammps/src`` dir, using these commands,
       which invoke the ``lib/pace/Install.py`` script.
 
@@ -1299,9 +1302,9 @@ at: `https://github.com/ICAMS/lammps-user-pace/ <https://github.com/ICAMS/lammps
 
 ----------
 
-.. _user-plumed:
+.. _plumed:
 
-USER-PLUMED package
+PLUMED package
 -------------------------------------
 
 .. _plumedinstall: https://plumed.github.io/doc-master/user-doc/html/_installation.html
@@ -1309,7 +1312,7 @@ USER-PLUMED package
 Before building LAMMPS with this package, you must first build PLUMED.
 PLUMED can be built as part of the LAMMPS build or installed separately
 from LAMMPS using the generic `PLUMED installation instructions <plumedinstall_>`_.
-The USER-PLUMED package has been tested to work with Plumed versions
+The PLUMED package has been tested to work with Plumed versions
 2.4.x, 2.5.x, and 2.6.x and will error out, when trying to run calculations
 with a different version of the Plumed kernel.
 
@@ -1345,7 +1348,7 @@ LAMMPS build.
 
    .. tab:: CMake build
 
-      When the ``-D PKG_USER-PLUMED=yes`` flag is included in the cmake
+      When the ``-D PKG_PLUMED=yes`` flag is included in the cmake
       command you must ensure that GSL is installed in locations that
       are specified in your environment.  There are then two additional
       variables that control the manner in which PLUMED is obtained and
@@ -1378,7 +1381,7 @@ LAMMPS build.
 
    .. tab:: Traditional make
 
-      PLUMED needs to be installed before the USER-PLUMED package is
+      PLUMED needs to be installed before the PLUMED package is
       installed so that LAMMPS can find the right settings when
       compiling and linking the LAMMPS executable.  You can either
       download and build PLUMED inside the LAMMPS plumed library folder
@@ -1403,12 +1406,12 @@ LAMMPS build.
       build to use. A new file ``lib/plumed/Makefile.lammps`` is also
       created with settings suitable for LAMMPS to compile and link
       PLUMED using the desired linkage mode. After this step is
-      completed, you can install the USER-PLUMED package and compile
+      completed, you can install the PLUMED package and compile
       LAMMPS in the usual manner:
 
       .. code-block:: bash
 
-         $ make yes-user-plumed
+         $ make yes-plumed
          $ make machine
 
       Once this compilation completes you should be able to run LAMMPS
@@ -1423,15 +1426,15 @@ LAMMPS build.
 
       If you want to change the linkage mode, you have to re-run "make
       lib-plumed" with the desired settings **and** do a re-install if
-      the USER-PLUMED package with "make yes-user-plumed" to update the
+      the PLUMED package with "make yes-plumed" to update the
       required makefile settings with the changes in the lib/plumed
       folder.
 
 ----------
 
-.. _user-h5md:
+.. _h5md:
 
-USER-H5MD package
+H5MD package
 ---------------------------------
 
 To build with this package you must have the HDF5 software package
@@ -1442,7 +1445,7 @@ the HDF5 library.
 
    .. tab:: CMake build
 
-      No additional settings are needed besides ``-D PKG_USER-H5MD=yes``.
+      No additional settings are needed besides ``-D PKG_H5MD=yes``.
 
       This should auto-detect the H5MD library on your system.  Several
       advanced CMake H5MD options exist if you need to specify where it
@@ -1474,13 +1477,13 @@ the HDF5 library.
 
 ----------
 
-.. _user-hdnnp:
+.. _ml-hdnnp:
 
-USER-HDNNP package
----------------------------------
+ML-HDNNP package
+----------------
 
-To build with the USER-HDNNP package it is required to download and build the
-external `n2p2 <https://github.com/CompPhysVienna/n2p2>`__ library ``v2.1.4``
+To build with the ML-HDNNP package it is required to download and build the
+external `n2p2 <https://github.com/CompPhysVienna/n2p2>`_ library ``v2.1.4``
 (or higher). The LAMMPS build process offers an automatic download and
 compilation of *n2p2* or allows you to choose the installation directory of
 *n2p2* manually. Please see the boxes below for the CMake and traditional build
@@ -1490,7 +1493,7 @@ In case of a manual installation of *n2p2* you only need to build the *n2p2* cor
 library ``libnnp`` and interface library ``libnnpif``. When using GCC it should
 suffice to execute ``make libnnpif`` in the *n2p2* ``src`` directory. For more
 details please see ``lib/hdnnp/README`` and the `n2p2 build documentation
-<https://compphysvienna.github.io/n2p2/topics/build.html>`__.
+<https://compphysvienna.github.io/n2p2/topics/build.html>`_.
 
 .. tabs::
 
@@ -1528,24 +1531,24 @@ details please see ``lib/hdnnp/README`` and the `n2p2 build documentation
 
 ----------
 
-.. _user-intel:
+.. _intel:
 
-USER-INTEL package
+INTEL package
 -----------------------------------
 
 To build with this package, you must choose which hardware you want to
 build for, either x86 CPUs or Intel KNLs in offload mode.  You should
-also typically :ref:`install the USER-OMP package <user-omp>`, as it can be
-used in tandem with the USER-INTEL package to good effect, as explained
+also typically :ref:`install the OPENMP package <openmp>`, as it can be
+used in tandem with the INTEL package to good effect, as explained
 on the :doc:`Speed_intel` page.
 
 When using Intel compilers version 16.0 or later is required.  You can
 also use the GNU or Clang compilers and they will provide performance
-improvements over regular styles and USER-OMP styles, but less so than
+improvements over regular styles and OPENMP styles, but less so than
 with the Intel compilers.  Please also note, that some compilers have
 been found to apply memory alignment constraints incompletely or
 incorrectly and thus can cause segmentation faults in otherwise correct
-code when using features from the USER-INTEL package.
+code when using features from the INTEL package.
 
 
 .. tabs::
@@ -1562,7 +1565,7 @@ code when using features from the USER-INTEL package.
       Choose which hardware to compile for in Makefile.machine via the
       following settings.  See ``src/MAKE/OPTIONS/Makefile.intel_cpu*``
       and ``Makefile.knl`` files for examples. and
-      ``src/USER-INTEL/README`` for additional information.
+      ``src/INTEL/README`` for additional information.
 
       For CPUs:
 
@@ -1598,9 +1601,9 @@ TBB and MKL.
 
 ----------
 
-.. _user-mdi:
+.. _mdi:
 
-USER-MDI package
+MDI package
 -----------------------------
 
 .. tabs::
@@ -1627,9 +1630,9 @@ USER-MDI package
 
 ----------
 
-.. _user-mesont:
+.. _mesont:
 
-USER-MESONT package
+MESONT package
 -------------------------
 
 This package includes a library written in Fortran 90 in the
@@ -1642,7 +1645,7 @@ they will be downloaded the first time this package is installed.
 
    .. tab:: CMake build
 
-      No additional settings are needed besides ``-D PKG_USER-MESONT=yes``
+      No additional settings are needed besides ``-D PKG_MESONT=yes``
 
    .. tab:: Traditional make
 
@@ -1669,9 +1672,9 @@ they will be downloaded the first time this package is installed.
 
 ----------
 
-.. _user-molfile:
+.. _molfile:
 
-USER-MOLFILE package
+MOLFILE package
 ---------------------------------------
 
 .. tabs::
@@ -1681,9 +1684,9 @@ USER-MOLFILE package
       .. code-block:: bash
 
          -D MOLFILE_INCLUDE_DIR=path   # (optional) path where VMD molfile plugin headers are installed
-         -D PKG_USER-MOLFILE=yes
+         -D PKG_MOLFILE=yes
 
-      Using ``-D PKG_USER-MOLFILE=yes`` enables the package, and setting
+      Using ``-D PKG_MOLFILE=yes`` enables the package, and setting
       ``-D MOLFILE_INCLUDE_DIR`` allows to provide a custom location for
       the molfile plugin header files. These should match the ABI of the
       plugin files used, and thus one typically sets them to include
@@ -1707,9 +1710,9 @@ USER-MOLFILE package
 
 ----------
 
-.. _user-netcdf:
+.. _netcdf:
 
-USER-NETCDF package
+NETCDF package
 -------------------------------------
 
 To build with this package you must have the NetCDF library installed
@@ -1719,7 +1722,7 @@ on your system.
 
    .. tab:: CMake build
 
-      No additional settings are needed besides ``-D PKG_USER-NETCDF=yes``.
+      No additional settings are needed besides ``-D PKG_NETCDF=yes``.
 
       This should auto-detect the NETCDF library if it is installed on
       your system at standard locations.  Several advanced CMake NETCDF
@@ -1738,9 +1741,9 @@ on your system.
 
 ----------
 
-.. _user-omp:
+.. _openmp:
 
-USER-OMP package
+OPENMP package
 -------------------------------
 
 .. tabs::
@@ -1748,13 +1751,13 @@ USER-OMP package
    .. tab:: CMake build
 
       No additional settings are required besides ``-D
-      PKG_USER-OMP=yes``.  If CMake detects OpenMP compiler support, the
-      USER-OMP code will be compiled with multi-threading support
+      PKG_OPENMP=yes``.  If CMake detects OpenMP compiler support, the
+      OPENMP code will be compiled with multi-threading support
       enabled, otherwise as optimized serial code.
 
    .. tab:: Traditional make
 
-      To enable multi-threading support in the USER-OMP package (and
+      To enable multi-threading support in the OPENMP package (and
       other styles supporting OpenMP) the following compile and link
       flags must be added to your Makefile.machine file.  See
       ``src/MAKE/OPTIONS/Makefile.omp`` for an example.
@@ -1771,12 +1774,12 @@ USER-OMP package
 
 ----------
 
-.. _user-qmmm:
+.. _qmmm:
 
-USER-QMMM package
+QMMM package
 ---------------------------------
 
-For using LAMMPS to do QM/MM simulations via the USER-QMMM package you
+For using LAMMPS to do QM/MM simulations via the QMMM package you
 need to build LAMMPS as a library.  A LAMMPS executable with :doc:`fix
 qmmm <fix_qmmm>` included can be built, but will not be able to do a
 QM/MM simulation on as such.  You must also build a QM code - currently
@@ -1799,11 +1802,11 @@ verified to work in February 2020 with Quantum Espresso versions 6.3 to
       libqmmm.a) are not included in the static LAMMPS library and
       (currently) not installed, while their code is included in the
       shared LAMMPS library.  Thus a typical command line to configure
-      building LAMMPS for USER-QMMM would be:
+      building LAMMPS for QMMM would be:
 
       .. code-block:: bash
 
-         cmake -C ../cmake/presets/minimal.cmake -D PKG_USER-QMMM=yes \
+         cmake -C ../cmake/presets/basic.cmake -D PKG_QMMM=yes \
              -D BUILD_LIB=yes -DBUILD_SHARED_LIBS=yes ../cmake
 
       After completing the LAMMPS build and also configuring and
@@ -1846,9 +1849,9 @@ verified to work in February 2020 with Quantum Espresso versions 6.3 to
 
 ----------
 
-.. _user-quip:
+.. _ml-quip:
 
-USER-QUIP package
+ML-QUIP package
 ---------------------------------
 
 To build with this package, you must download and build the QUIP
@@ -1866,7 +1869,7 @@ to be downloaded and configured.  See step 1 and step 1.1 in the
          -D QUIP_LIBRARY=path     # path to libquip.a (only needed if a custom location)
 
       CMake will **not** download and build the QUIP library.  But once you have
-      done that, a CMake build of LAMMPS with ``-D PKG_USER-QUIP=yes`` should
+      done that, a CMake build of LAMMPS with ``-D PKG_ML-QUIP=yes`` should
       work.  Set the ``QUIP_LIBRARY`` variable if CMake cannot find the QUIP library.
 
    .. tab:: Traditional make
@@ -1881,9 +1884,9 @@ to be downloaded and configured.  See step 1 and step 1.1 in the
 
 ----------
 
-.. _user-scafacos:
+.. _scafacos:
 
-USER-SCAFACOS package
+SCAFACOS package
 -----------------------------------------
 
 To build with this package, you must download and build the
@@ -1928,9 +1931,9 @@ To build with this package, you must download and build the
 
 ----------
 
-.. _user-smd:
+.. _machdyn:
 
-USER-SMD package
+MACHDYN package
 -------------------------------
 
 To build with this package, you must download the Eigen3 library.
@@ -1972,9 +1975,9 @@ Eigen3 is a template library, so you do not need to build it.
 
 ----------
 
-.. _user-vtk:
+.. _vtk:
 
-USER-VTK package
+VTK package
 -------------------------------
 
 To build with this package you must have the VTK library installed on
@@ -1984,7 +1987,7 @@ your system.
 
    .. tab:: CMake build
 
-      No additional settings are needed besides ``-D PKG_USER-VTK=yes``.
+      No additional settings are needed besides ``-D PKG_VTK=yes``.
 
       This should auto-detect the VTK library if it is installed on your
       system at standard locations.  Several advanced VTK options exist

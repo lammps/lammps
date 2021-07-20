@@ -226,7 +226,7 @@ void NeighborKokkos::operator()(TagNeighborCheckDistance<DeviceType>, const int 
 /* ----------------------------------------------------------------------
    build perpetuals neighbor lists
    called at setup and every few timesteps during run or minimization
-   topology lists also built if topoflag = 1, USER-CUDA calls with topoflag = 0
+   topology lists also built if topoflag = 1, CUDA calls with topoflag = 0
 ------------------------------------------------------------------------- */
 
 
@@ -377,7 +377,7 @@ void NeighborKokkos::init_topology() {
 
 /* ----------------------------------------------------------------------
    build all topology neighbor lists every few timesteps
-   normally built with pair lists, but USER-CUDA separates them
+   normally built with pair lists, but CUDA separates them
 ------------------------------------------------------------------------- */
 
 void NeighborKokkos::build_topology() {

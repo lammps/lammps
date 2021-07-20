@@ -238,7 +238,7 @@ Example scripts
 """""""""""""""
 
 There are example scripts for using all these pair styles in
-examples/USER/meso.  The example for an eDPD simulation models heat
+examples/PACKAGES/mesodpd.  The example for an eDPD simulation models heat
 conduction with source terms analog of periodic Poiseuille flow
 problem. The setup follows Fig.12 in :ref:`(Li2014_JCP) <Li2014_JCP>`. The
 output of the short eDPD simulation (about 2 minutes on a single core)
@@ -299,7 +299,7 @@ Restrictions
 """"""""""""
 
 The pair styles *edpd*\ , *mdpd*\ , *mdpd/rhosum* and *tdpd* are part of
-the USER-MESODPD package. It is only enabled if LAMMPS was built with
+the DPD-MESO package. It is only enabled if LAMMPS was built with
 that package.  See the :doc:`Build package <Build_package>` doc page for
 more info.
 

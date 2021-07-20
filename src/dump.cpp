@@ -84,6 +84,7 @@ Dump::Dump(LAMMPS *lmp, int /*narg*/, char **arg) : Pointers(lmp)
   unit_flag = 0;
   unit_count = 0;
   delay_flag = 0;
+  write_header_flag = 1;
 
   maxfiles = -1;
   numfiles = 0;
@@ -378,7 +379,7 @@ void Dump::write()
   if (multiproc)
     MPI_Allreduce(&bnme,&nheader,1,MPI_LMP_BIGINT,MPI_SUM,clustercomm);
 
-  if (filewriter) write_header(nheader);
+  if (filewriter && write_header_flag) write_header(nheader);
 
   // insure buf is sized for packing and communicating
   // use nmax to insure filewriter proc can receive info from others
@@ -930,6 +931,13 @@ void Dump::modify_params(int narg, char **arg)
       delaystep = utils::bnumeric(FLERR,arg[iarg+1],false,lmp);
       if (delaystep >= 0) delay_flag = 1;
       else delay_flag = 0;
+      iarg += 2;
+
+    } else if (strcmp(arg[iarg],"header") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
+      if (strcmp(arg[iarg+1],"yes") == 0) write_header_flag = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) write_header_flag = 0;
+      else error->all(FLERR,"Illegal dump_modify command");
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"every") == 0) {

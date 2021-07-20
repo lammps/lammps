@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -28,6 +27,7 @@
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "neighbor.h"
+#include "potential_file_reader.h"
 #include "update.h"
 
 #include <cmath>
@@ -45,7 +45,7 @@ PairQUIP::PairQUIP(LAMMPS *lmp) : Pair(lmp)
   no_virial_fdotr_compute = 1;
   manybody_flag = 1;
   centroidstressflag = CENTROID_NOTAVAIL;
-
+  unit_convert_flag = utils::NOCONVERT;
   map = nullptr;
   quip_potential = nullptr;
   quip_file = nullptr;
@@ -257,12 +257,13 @@ void PairQUIP::coeff(int narg, char **arg)
     error->all(FLERR,"Number of arguments {} is not correct, "
                                  "it should be {}", narg, 4+n);
 
-  // ensure I,J args are * *
+  if (comm->me == 0) {
+    PotentialFileReader reader(lmp,arg[2],"QUIP",unit_convert_flag);
+    auto comment = reader.next_string();
+  }
 
-  if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
-    error->all(FLERR,"Incorrect args for pair coefficients");
-
-  quip_file = utils::strdup(arg[2]);
+  // use expanded file name, including LAMMPS_POTENTIALS search path
+  quip_file = utils::strdup(utils::get_potential_file_path(arg[2]));
   quip_string = utils::strdup(arg[3]);
   n_quip_file = strlen(quip_file);
   n_quip_string = strlen(quip_string);

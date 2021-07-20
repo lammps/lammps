@@ -53,6 +53,7 @@ if(DOWNLOAD_QUIP)
     PATCH_COMMAND cp ${CMAKE_BINARY_DIR}/quip.config <SOURCE_DIR>/arch/Makefile.lammps
     CONFIGURE_COMMAND env QUIP_ARCH=lammps make config
     BUILD_COMMAND env QUIP_ARCH=lammps make libquip
+    INSTALL_COMMAND ""
     BUILD_IN_SOURCE YES
     BUILD_BYPRODUCTS <SOURCE_DIR>/build/lammps/libquip.a
   )

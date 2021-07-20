@@ -72,6 +72,7 @@ KOKKOS, o = OPENMP, t = OPT.
    * :doc:`gyration/shape/chunk <compute_gyration_shape_chunk>`
    * :doc:`heat/flux <compute_heat_flux>`
    * :doc:`heat/flux/tally <compute_tally>`
+   * :doc:`heat/flux/virial/tally <compute_tally>`
    * :doc:`hexorder/atom <compute_hexorder_atom>`
    * :doc:`hma <compute_hma>`
    * :doc:`improper <compute_improper>`

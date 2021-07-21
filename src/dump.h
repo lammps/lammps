@@ -31,6 +31,8 @@ class Dump : protected Pointers {
   int comm_forward;    // size of forward communication (0 if none)
   int comm_reverse;    // size of reverse communication (0 if none)
 
+  double vtime;              // time frequency for time-dependent dumps
+
 #if defined(LMP_QSORT)
   // static variable across all Dump objects
   static Dump *dumpptr;    // holds a ptr to Dump currently being used
@@ -48,6 +50,10 @@ class Dump : protected Pointers {
 
   void modify_params(int, char **);
   virtual double memory_usage();
+
+  bool is_writing();
+  int is_consuming_computes();
+  bool should_clear_computes();
 
  protected:
   int me, nprocs;    // proc info
@@ -136,6 +142,9 @@ class Dump : protected Pointers {
   double **xpbc, **vpbc;
   imageint *imagepbc;
   int maxpbc;
+
+  int vartime_flag;          // 1 if time-dependent dumping is supported
+  double next_time;          // next time a time-dependent dump will be written
 
   class Irregular *irregular;
 

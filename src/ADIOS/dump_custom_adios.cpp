@@ -151,6 +151,8 @@ DumpCustomADIOS::DumpCustomADIOS(LAMMPS *lmp, int narg, char **arg)
         internal->columnNames.push_back(earg[i]);
         // if (screen) fprintf(screen, "earg[%d] = '%s'\n", i, earg[i]);
     }
+
+    vartime_flag = 0;
 }
 
 /* ---------------------------------------------------------------------- */

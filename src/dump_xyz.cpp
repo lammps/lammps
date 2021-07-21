@@ -45,6 +45,8 @@ DumpXYZ::DumpXYZ(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg),
 
   ntypes = atom->ntypes;
   typenames = nullptr;
+
+  vartime_flag = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -129,7 +131,10 @@ void DumpXYZ::write_header(bigint n)
 {
   if (me == 0) {
     fprintf(fp,BIGINT_FORMAT "\n",n);
-    fprintf(fp,"Atoms. Timestep: " BIGINT_FORMAT "\n",update->ntimestep);
+    if (time_flag)
+      fprintf(fp,"Atoms. Timestep: " BIGINT_FORMAT " Time: %f\n",update->ntimestep, update->atime);
+    else
+      fprintf(fp,"Atoms. Timestep: " BIGINT_FORMAT "\n",update->ntimestep);
   }
 }
 

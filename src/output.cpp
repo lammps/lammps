@@ -164,7 +164,8 @@ void Output::setup(int memflag)
   // perform dump at start of run only if:
   //   current timestep is multiple of every and last dump not >= this step
   //   this is first run after dump created and firstflag is set
-  //   note that variable freq will not write unless triggered by firstflag
+  //   note that variable freq and time-dependent dumps
+  //   will not write unless triggered by firstflag
   // set next_dump to multiple of every or variable value
   // set next_dump_any to smallest next_dump
   // wrap dumps that invoke computes and variable eval with clear/add
@@ -182,6 +183,9 @@ void Output::setup(int memflag)
       if (every_dump[idump] && ntimestep % every_dump[idump] == 0 &&
           last_dump[idump] != ntimestep) writeflag = 1;
       if (last_dump[idump] < 0 && dump[idump]->first_flag == 1) writeflag = 1;
+
+      if (dump[idump]->vtime > 0 && dump[idump]->first_flag == 0)
+          writeflag = 0;
 
       if (writeflag) {
         dump[idump]->write();
@@ -284,15 +288,28 @@ void Output::write(bigint ntimestep)
   // next_dump does not force output on last step of run
   // wrap dumps that invoke computes or eval of variable with clear/add
 
+  int prepare_computes;
+  bool clear_computes;
+  bool trigger_output;
+
   if (next_dump_any == ntimestep) {
     for (int idump = 0; idump < ndump; idump++) {
       if (next_dump[idump] == ntimestep) {
-        if (dump[idump]->clearstep || every_dump[idump] == 0)
+
+        if (dump[idump]->vtime > 0) update->update_time();
+        //the order is important
+        clear_computes = dump[idump]->should_clear_computes();
+        trigger_output = dump[idump]->is_writing();
+        prepare_computes = dump[idump]->is_consuming_computes();
+
+        if (clear_computes || every_dump[idump] == 0)
           modify->clearstep_compute();
-        if (last_dump[idump] != ntimestep) {
+/*Checks whether to write*/
+        if (trigger_output && last_dump[idump] != ntimestep) {
           dump[idump]->write();
           last_dump[idump] = ntimestep;
         }
+/*Find next timestep for output*/
         if (every_dump[idump]) next_dump[idump] += every_dump[idump];
         else {
           bigint nextdump = static_cast<bigint>
@@ -301,7 +318,8 @@ void Output::write(bigint ntimestep)
             error->all(FLERR,"Dump every variable returned a bad timestep");
           next_dump[idump] = nextdump;
         }
-        if (dump[idump]->clearstep || every_dump[idump] == 0)
+/*END*/
+        if (prepare_computes || every_dump[idump] == 0)
           modify->addstep_compute(next_dump[idump]);
       }
       if (idump) next_dump_any = MIN(next_dump_any,next_dump[idump]);

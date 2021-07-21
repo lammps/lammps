@@ -106,7 +106,7 @@ The following example demonstrates the difference:
    # Has LeftLiquid and RightWall groups along x direction.
 
    # Heat flux over the solid-liquid interface
-   compute hflow_hfvt LeftLiquid heat/flux/virial/tally RightWall
+   compute hflow_hfvt RightWall heat/flux/virial/tally LeftLiquid
    variable hflux_hfvt equal c_hflow_hfvt/(ly*lz)
 
    # x component of approximate heat flux vector inside the liquid region,
@@ -131,7 +131,7 @@ The following example demonstrates the difference:
    variable press_ft equal c_rforce_ft/(ly*lz)
    #
    compute rforce_hfvt all reduce sum c_hflow_hfvt[1]
-   variable press_hfvt equal -c_rforce_hfvt/(ly*lz)
+   variable press_hfvt equal c_rforce_hfvt/(ly*lz)
 
 ----------
 

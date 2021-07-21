@@ -64,6 +64,7 @@ class FixExternal : public Fix {
   FnPtr callback;
   void *ptr_caller;
   double user_energy;
+  double user_virial[6];
   double *caller_vector;
 };
 

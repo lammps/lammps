@@ -80,7 +80,7 @@ FixExternal::~FixExternal()
   atom->delete_callback(id,Atom::GROW);
 
   memory->destroy(fexternal);
-  delete [] caller_vector;
+  delete[] caller_vector;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -163,6 +163,12 @@ void FixExternal::post_force(int vflag)
         f[i][1] += fexternal[i][1];
         f[i][2] += fexternal[i][2];
       }
+
+    // add contribution to global virial from previously stored value
+
+    if (vflag_global)
+      for (int i = 0; i < 6; ++i)
+        virial[i] = user_virial[i];
   }
 }
 
@@ -196,10 +202,8 @@ void FixExternal::set_energy_global(double caller_energy)
 
 void FixExternal::set_virial_global(double *caller_virial)
 {
-  if (!vflag_global) return;
-
   for (int i = 0; i < 6; i++)
-    virial[i] = caller_virial[i];
+    user_virial[i] = caller_virial[i];
 }
 
 /* ----------------------------------------------------------------------

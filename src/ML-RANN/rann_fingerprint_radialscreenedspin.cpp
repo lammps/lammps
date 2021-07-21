@@ -40,13 +40,13 @@ Fingerprint_radialscreenedspin::Fingerprint_radialscreenedspin(PairRANN *_pair) 
   dr = 0;
   re = 0;
   rc = 0;
-  alpha = new double [1];
+  alpha = new double[1];
   alpha[0] = -1;
   nmax = 0;
   omin = 0;
   id = -1;
   style = "radialscreenedspin";
-  atomtypes = new int [n_body_type];
+  atomtypes = new int[n_body_type];
   empty = true;
   fullydefined = false;
   _pair->doscreen = true;
@@ -57,11 +57,11 @@ Fingerprint_radialscreenedspin::Fingerprint_radialscreenedspin(PairRANN *_pair) 
 
 Fingerprint_radialscreenedspin::~Fingerprint_radialscreenedspin()
 {
-  delete [] atomtypes;
-  delete [] radialtable;
-  delete [] alpha;
-  delete [] dfctable;
-  delete [] rinvsqrttable;
+  delete[] atomtypes;
+  delete[] radialtable;
+  delete[] alpha;
+  delete[] dfctable;
+  delete[] rinvsqrttable;
 }
 
 bool Fingerprint_radialscreenedspin::parse_values(std::string constant,std::vector<std::string> line1) {
@@ -74,8 +74,8 @@ bool Fingerprint_radialscreenedspin::parse_values(std::string constant,std::vect
     rc = strtod(line1[0].c_str(),NULL);
   }
   else if (constant.compare("alpha")==0) {
-    delete [] alpha;
-    alpha = new double [nwords];
+    delete[] alpha;
+    alpha = new double[nwords];
     for (l=0;l<nwords;l++) {
       alpha[l]=strtod(line1[l].c_str(),NULL);
     }
@@ -152,8 +152,8 @@ void Fingerprint_radialscreenedspin::allocate()
   int buf = 5;
   int res = pair->res;
   double cutmax = pair->cutmax;
-  radialtable = new double [(res+buf)*get_length()];
-  dfctable = new double [res+buf];
+  radialtable = new double[(res+buf)*get_length()];
+  dfctable = new double[res+buf];
   for (k=0;k<(res+buf);k++) {
     r1 = cutmax*cutmax*(double)(k)/(double)(res);
     for (m=0;m<=(nmax-omin);m++) {

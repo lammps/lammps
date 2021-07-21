@@ -29,12 +29,13 @@ class AngleDipole : public Angle {
   AngleDipole(class LAMMPS *);
   virtual ~AngleDipole();
   virtual void compute(int, int);
-  void coeff(int, char **);
-  double equilibrium_angle(int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_data(FILE *);
-  double single(int, int, int, int);
+  virtual void init_style();
+  virtual void coeff(int, char **);
+  virtual double equilibrium_angle(int);
+  virtual void write_restart(FILE *);
+  virtual void read_restart(FILE *);
+  virtual void write_data(FILE *);
+  virtual double single(int, int, int, int);
 
  protected:
   double *k, *gamma0;

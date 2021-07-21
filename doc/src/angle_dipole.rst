@@ -88,7 +88,7 @@ Restrictions
 """"""""""""
 
 This angle style can only be used if LAMMPS was built with the
-USER-MISC package.  See the :doc:`Build package <Build_package>` doc
+DIPOLE package.  See the :doc:`Build package <Build_package>` doc
 page for more info.
 
 .. note::
@@ -106,7 +106,9 @@ page for more info.
 The :doc:`newton <newton>` command for intramolecular interactions must be "on"
 (which is the default except when using some accelerator packages).
 
-This angle style should not be used with SHAKE.
+.. note::
+
+  This angle style should **NOT** be used with fix shake.
 
 Related commands
 """"""""""""""""

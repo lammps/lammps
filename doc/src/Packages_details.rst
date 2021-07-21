@@ -54,6 +54,7 @@ page gives those details.
    * :ref:`GRANULAR <PKG-GRANULAR>`
    * :ref:`H5MD <PKG-H5MD>`
    * :ref:`INTEL <PKG-INTEL>`
+   * :ref:`INTERLAYER <PKG-INTERLAYER>`
    * :ref:`KIM <PKG-KIM>`
    * :ref:`KOKKOS <PKG-KOKKOS>`
    * :ref:`KSPACE <PKG-KSPACE>`
@@ -562,6 +563,7 @@ short-range or long-range interactions.
 * :doc:`pair_style lj/cut/dipole/cut <pair_dipole>`
 * :doc:`pair_style lj/cut/dipole/long <pair_dipole>`
 * :doc:`pair_style lj/long/dipole/long <pair_dipole>`
+* :doc: `angle_style dipole <angle_dipole>`
 * examples/dipole
 
 ----------
@@ -935,6 +937,24 @@ This package has :ref:`specific installation instructions <intel>` on the :doc:`
   :doc:`pair <Commands_pair>`, :doc:`bond, angle, dihedral, improper <Commands_bond>`, :doc:`kspace <Commands_kspace>`) for styles followed by (i)
 * src/INTEL/TEST
 * `Benchmarks page <https://www.lammps.org/bench.html>`_ of web site
+
+----------
+
+.. _PKG-INTERLAYER:
+
+INTERLAYER package
+------------------
+
+**Contents:**
+
+A collection of pair styles specifically to be used for modeling layered
+materials, most commonly graphene sheets (or equivalents).
+
+**Supporting info:**
+
+* src/INTERLAYER: filenames -> commands
+* :doc:`Pair style <Commands_pair>` page
+* examples/PACKAGES/interlayer
 
 ----------
 
@@ -1440,7 +1460,9 @@ listing, "ls src/MISC", to see the list of commands.
 **Supporting info:**
 
 * src/MISC: filenames -> commands
+* :doc:`bond_style special <bond_special>`
 * :doc:`compute ti <compute_ti>`
+* :doc:`fix deposit <fix_deposit>`
 * :doc:`fix evaporate <fix_evaporate>`
 * :doc:`fix imd <fix_imd>`
 * :doc:`fix oneway <fix_oneway>`
@@ -1448,6 +1470,7 @@ listing, "ls src/MISC", to see the list of commands.
 * :doc:`fix ttm <fix_ttm>`
 * :doc:`fix thermal/conductivity <fix_thermal_conductivity>`
 * :doc:`fix viscosity <fix_viscosity>`
+* :doc:`pair_style list <pair_list>`
 * examples/KAPPA
 * examples/VISCOSITY
 * https://www.lammps.org/pictures.html#ttm
@@ -2305,10 +2328,13 @@ another set.
 * :doc:`prd <prd>`
 * :doc:`tad <tad>`
 * :doc:`temper <temper>`,
+* :doc:`temper/npt <temper_npt>`,
+* :doc:`temper/grem <temper_grem>`,
 * :doc:`run_style verlet/split <run_style>`
 * examples/neb
 * examples/prd
 * examples/tad
+* examples/PACKAGES/grem
 
 ----------
 

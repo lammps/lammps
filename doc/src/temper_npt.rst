@@ -51,7 +51,7 @@ on how the parallel tempering is handled in general.
 Restrictions
 """"""""""""
 
-This command can only be used if LAMMPS was built with the USER-MISC
+This command can only be used if LAMMPS was built with the REPLICA
 package.  See the :doc:`Build package <Build_package>` doc page for more
 info.
 

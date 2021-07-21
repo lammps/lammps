@@ -142,7 +142,7 @@ styles in LAMMPS, an atom I will not interact with multiple images of
 atom J (assuming the images are within the cutoff distance), but only
 with the nearest image.
 
-This style is part of the USER-MISC package. It is only enabled if
+This style is part of the MISC package. It is only enabled if
 LAMMPS is build with that package. See the :doc:`Build package <Build_package>` doc page on for more info.
 
 Related commands

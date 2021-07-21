@@ -119,14 +119,15 @@ that reads a restart file.
 Restrictions
 """"""""""""
 
-This fix is part of the USER-MISC package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+This pair style is part of the USER-MISCt package.  It is only enabled
+if LAMMPS was built with that package.  See the :doc:`Build package
+<Build_package>` doc page for more info.
 
-This pair potential requires the newton setting to be *on* for pair
+This pair style requires the newton setting to be *on* for pair
 interactions.
 
 The CH.KC potential file provided with LAMMPS (see the potentials
-folder) are parameterized for metal units.  You can use this potential
+folder) is parameterized for metal units.  You can use this pair style
 with any LAMMPS units, but you would need to create your own custom
 CC.KC potential file with all coefficients converted to the appropriate
 units.

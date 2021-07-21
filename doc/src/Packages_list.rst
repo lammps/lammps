@@ -168,6 +168,11 @@ whether an extra library is needed to build and use the package:
      - :doc:`Speed intel <Speed_intel>`
      - `Benchmarks <https://www.lammps.org/bench.html>`_
      - no
+   * - :ref:`INTERLAYER <PKG-INTERLAYER>`
+     - Inter-layer pair potentials
+     - :doc:`several pair styles <Commands_pair>`
+     - PACKAGES/interlayer
+     - no
    * - :ref:`KIM <PKG-KIM>`
      - OpenKIM wrapper
      - :doc:`pair_style kim <pair_kim>`

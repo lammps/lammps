@@ -57,6 +57,8 @@ class FixExternal : public Fix {
   typedef void (*FnPtr)(void *, bigint, int, tagint *, double **, double **);
   void set_callback(FnPtr, void *);
 
+  void *extract(const char *, int &);
+
  private:
   int mode, ncall, napply, eflag_caller;
   FnPtr callback;

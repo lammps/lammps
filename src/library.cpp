@@ -4804,15 +4804,40 @@ void lammps_decode_image_flags(imageint image, int *flags)
   flags[2] = (image >> IMG2BITS) - IMGMAX;
 }
 
-/* ----------------------------------------------------------------------
-   find fix external with given ID and set the callback function
-   and caller pointer
-------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
 
-void lammps_set_fix_external_callback(void *handle, char *id, FixExternalFnPtr callback_ptr, void * caller)
+/** Set the callback function for a fix external instance with the given ID.
+    Optionally also set the pointer to the calling object.
+\verbatim embed:rst
+
+Fix :doc:`external <fix_external>` allows programs that are running LAMMPS through
+its library interface to modify certain LAMMPS properties on specific
+timesteps, similar to the way other fixes do.
+
+This function sets the callback function for use with the "pf/callback"
+mode. The function has to have C language bindings with the prototype:
+
+.. code-block:: c
+
+   void func(void *ptr, bigint timestep, int nlocal, tagint *ids, double **x, double **fexternal);
+
+This is an alternative to the array mechanism set up by :cpp:func:`lammps_fix_external_get_force`.
+
+Please see the documentation for :doc:`fix external <fix_external>` for
+more information about how to use the fix and how to couple it with an
+external code.
+
+\endverbatim
+ *
+ * \param  handle   pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param  id       fix ID of fix external instance
+ * \param  funcptr  pointer to callback function
+ * \param  ptr      pointer to object in calling code, passed to callback function as first argument */
+
+void lammps_set_fix_external_callback(void *handle, const char *id, FixExternalFnPtr funcptr, void *ptr)
 {
   LAMMPS *lmp = (LAMMPS *) handle;
-  FixExternal::FnPtr callback = (FixExternal::FnPtr) callback_ptr;
+  FixExternal::FnPtr callback = (FixExternal::FnPtr) funcptr;
 
   BEGIN_CAPTURE
   {
@@ -4823,18 +4848,87 @@ void lammps_set_fix_external_callback(void *handle, char *id, FixExternalFnPtr c
     Fix *fix = lmp->modify->fix[ifix];
 
     if (strcmp("external",fix->style) != 0)
-      lmp->error->all(FLERR,"Fix '{}' is not of style "
-                                        "external!", id);
+      lmp->error->all(FLERR,"Fix '{}' is not of style 'external'", id);
 
-    FixExternal * fext = (FixExternal*) fix;
-    fext->set_callback(callback, caller);
+    FixExternal *fext = (FixExternal *) fix;
+    fext->set_callback(callback, ptr);
   }
   END_CAPTURE
 }
 
-/* set global energy contribution from fix external */
-void lammps_fix_external_set_energy_global(void *handle, char *id,
-                                           double energy)
+/** Get pointer to the force array storage in a fix external instance with the given ID.
+
+\verbatim embed:rst
+
+Fix :doc:`external <fix_external>` allows programs that are running LAMMPS through
+its library interface to add or modify certain LAMMPS properties on specific
+timesteps, similar to the way other fixes do.
+
+This function provides access to the per-atom force storage in the fix
+to be added to the individual atoms when using the "pf/array" mode. The
+*fexternal* array can be accessed similar to the "native" per-atom
+*arrays accessible via the :cpp:func:`lammps_extract_atom` function.
+Because the underlying data structures can change as atoms migrate
+between MPI processes, this function should be always called immediately
+before the forces are going to be set.
+
+This is an alternative to the callback mechanism set up by
+:cpp:func:`lammps_set_fix_external_callback` with out using the callback
+mechanism to call out to the external program.
+
+Please see the documentation for :doc:`fix external <fix_external>` for
+more information about how to use the fix and how to couple it with an
+external code.
+
+\endverbatim
+ *
+ * \param  handle     pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param  id         fix ID of fix external instance
+ * \return            a pointer to the per-atom force array allocated by the fix */
+
+double **lammps_fix_external_get_force(void *handle, const char *id)
+{
+  LAMMPS *lmp = (LAMMPS *) handle;
+  double **fexternal = nullptr;
+
+  BEGIN_CAPTURE
+  {
+    int ifix = lmp->modify->find_fix(id);
+    if (ifix < 0)
+      lmp->error->all(FLERR,"Can not find fix with ID '{}'!", id);
+
+    Fix *fix = lmp->modify->fix[ifix];
+
+    if (strcmp("external",fix->style) != 0)
+      lmp->error->all(FLERR,"Fix '{}' is not of style external!", id);
+
+    fexternal = (double **)fix->extract("fexternal",ifix);
+  }
+  END_CAPTURE
+  return fexternal;
+}
+
+/** Set the global energy contribution for a fix external instance with the given ID.
+
+\verbatim embed:rst
+
+This is a companion function to :cpp:func:`lammps_set_fix_external_callback` and
+:cpp:func:`lammps_fix_external_get_force` to also set the contribution
+to the global energy from the external code. The value of the *eng*
+argument will be stored in the fix and applied on the current and all
+following timesteps until changed.
+
+Please see the documentation for :doc:`fix external <fix_external>` for
+more information about how to use the fix and how to couple it with an
+external code.
+
+\endverbatim
+ *
+ * \param  handle   pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param  id       fix ID of fix external instance
+ * \param  eng      energy to be added to the global energy */
+
+void lammps_fix_external_set_energy_global(void *handle, const char *id, double eng)
 {
   LAMMPS *lmp = (LAMMPS *) handle;
 
@@ -4849,15 +4943,33 @@ void lammps_fix_external_set_energy_global(void *handle, char *id,
     if (strcmp("external",fix->style) != 0)
       lmp->error->all(FLERR,"Fix '{}' is not of style external!", id);
 
-    FixExternal * fext = (FixExternal*) fix;
-    fext->set_energy_global(energy);
+    FixExternal *fext = (FixExternal*) fix;
+    fext->set_energy_global(eng);
   }
   END_CAPTURE
 }
 
-/* set global virial contribution from fix external */
-void lammps_fix_external_set_virial_global(void *handle, char *id,
-                                           double *virial)
+/** Set the global virial contribution for a fix external instance with the given ID.
+
+\verbatim embed:rst
+
+This is a companion function to :cpp:func:`lammps_set_fix_external_callback`
+to set the contribution to the global virial from the external code
+as part of the callback function.  For this to work, the handle to the
+LAMMPS object must be passed as the *ptr* argument when registering the
+callback function.
+
+Please see the documentation for :doc:`fix external <fix_external>` for
+more information about how to use the fix and how to couple it with an
+external code.
+
+\endverbatim
+ *
+ * \param  handle   pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param  id       fix ID of fix external instance
+ * \param  virial   the 6 global stress tensor components to be added to the global virial */
+
+void lammps_fix_external_set_virial_global(void *handle, const char *id, double *virial)
 {
   LAMMPS *lmp = (LAMMPS *) handle;
 
@@ -4874,6 +4986,170 @@ void lammps_fix_external_set_virial_global(void *handle, char *id,
 
     FixExternal * fext = (FixExternal*) fix;
     fext->set_virial_global(virial);
+  }
+  END_CAPTURE
+}
+
+/** Set the per-atom energy contribution for a fix external instance with the given ID.
+
+\verbatim embed:rst
+
+This is a companion function to :cpp:func:`lammps_set_fix_external_callback`
+to set the per-atom energy contribution due to the fix from the external code
+as part of the callback function.  For this to work, the handle to the
+LAMMPS object must be passed as the *ptr* argument when registering the
+callback function.  No check is made whether the sum of the
+contributions are consistent with any global added energy.
+
+Please see the documentation for :doc:`fix external <fix_external>` for
+more information about how to use the fix and how to couple it with an
+external code.
+
+\endverbatim
+ *
+ * \param  handle   pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param  id       fix ID of fix external instance
+ * \param  eng      energy to be added to the per-atom energy */
+
+void lammps_fix_external_set_energy_peratom(void *handle, const char *id, double *eng)
+{
+  LAMMPS *lmp = (LAMMPS *) handle;
+
+  BEGIN_CAPTURE
+  {
+    int ifix = lmp->modify->find_fix(id);
+    if (ifix < 0)
+      lmp->error->all(FLERR,"Can not find fix with ID '{}'!", id);
+
+    Fix *fix = lmp->modify->fix[ifix];
+
+    if (strcmp("external",fix->style) != 0)
+      lmp->error->all(FLERR,"Fix '{}' is not of style external!", id);
+
+    FixExternal *fext = (FixExternal*) fix;
+    fext->set_energy_peratom(eng);
+  }
+  END_CAPTURE
+}
+
+/** Set the per-atom virial contribution for a fix external instance with the given ID.
+
+\verbatim embed:rst
+
+This is a companion function to :cpp:func:`lammps_set_fix_external_callback`
+to set the per-atom virial contribution due to the fix from the external code
+as part of the callback function.  For this to work, the handle to the
+LAMMPS object must be passed as the *ptr* argument when registering the
+callback function.  No check is made whether the sum of the
+contributions are consistent with any globally added virial components.
+
+Please see the documentation for :doc:`fix external <fix_external>` for
+more information about how to use the fix and how to couple it with an
+external code.
+
+\endverbatim
+ *
+ * \param  handle   pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param  id       fix ID of fix external instance
+ * \param  virial   the 6 per-atom stress tensor components to be added to the per-atom virial */
+
+void lammps_fix_external_set_virial_peratom(void *handle, const char *id, double **virial)
+{
+  LAMMPS *lmp = (LAMMPS *) handle;
+
+  BEGIN_CAPTURE
+  {
+    int ifix = lmp->modify->find_fix(id);
+    if (ifix < 0)
+      lmp->error->all(FLERR,"Can not find fix with ID '{}'!", id);
+
+    Fix *fix = lmp->modify->fix[ifix];
+
+    if (strcmp("external",fix->style) != 0)
+      lmp->error->all(FLERR,"Fix '{}' is not of style external!", id);
+
+    FixExternal * fext = (FixExternal*) fix;
+    fext->set_virial_peratom(virial);
+  }
+  END_CAPTURE
+}
+
+/** Set the vector length for a global vector stored with fix external for analysis
+
+\verbatim embed:rst
+
+This is a companion function to :cpp:func:`lammps_set_fix_external_callback` and
+:cpp:func:`lammps_fix_external_get_force` to set the length of a global vector of
+properties that will be stored with the fix via :cpp:func:`lammps_fix_external_set_vector`.
+
+Please see the documentation for :doc:`fix external <fix_external>` for
+more information about how to use the fix and how to couple it with an
+external code.
+
+\endverbatim
+ *
+ * \param  handle   pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param  id       fix ID of fix external instance
+ * \param  len      length of the global vector to be stored with the fix */
+
+void lammps_fix_external_set_vector_length(void *handle, const char *id, int len)
+{
+  LAMMPS *lmp = (LAMMPS *) handle;
+
+  BEGIN_CAPTURE
+  {
+    int ifix = lmp->modify->find_fix(id);
+    if (ifix < 0)
+      lmp->error->all(FLERR,"Can not find fix with ID '{}'!", id);
+
+    Fix *fix = lmp->modify->fix[ifix];
+
+    if (strcmp("external",fix->style) != 0)
+      lmp->error->all(FLERR,"Fix '{}' is not of style external!", id);
+
+    FixExternal *fext = (FixExternal*) fix;
+    fext->set_vector_length(len);
+  }
+  END_CAPTURE
+}
+
+/** Store a global vector value for a fix external instance with the given ID.
+
+\verbatim embed:rst
+
+This is a companion function to :cpp:func:`lammps_set_fix_external_callback` and
+:cpp:func:`lammps_fix_external_get_force` to set the values of a global vector of
+properties that will be stored with the fix. The length of the vector
+must be set beforehand with :cpp:func:`lammps_fix_external_set_vector_length`.
+
+Please see the documentation for :doc:`fix external <fix_external>` for
+more information about how to use the fix and how to couple it with an
+external code.
+
+\endverbatim
+ *
+ * \param  handle   pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param  id       fix ID of fix external instance
+ * \param  idx      1 based index of in global vector
+ * \param  val      value to be stored in global vector */
+
+void lammps_fix_external_set_vector(void *handle, const char *id, int idx, double val)
+{
+  LAMMPS *lmp = (LAMMPS *) handle;
+
+  BEGIN_CAPTURE
+  {
+    int ifix = lmp->modify->find_fix(id);
+    if (ifix < 0)
+      lmp->error->all(FLERR,"Can not find fix with ID '{}'!", id);
+
+    Fix *fix = lmp->modify->fix[ifix];
+
+    if (strcmp("external",fix->style) != 0)
+      lmp->error->all(FLERR,"Fix '{}' is not of style external!", id);
+
+    FixExternal * fext = (FixExternal*) fix;
+    fext->set_vector(idx, val);
   }
   END_CAPTURE
 }

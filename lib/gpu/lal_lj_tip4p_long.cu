@@ -150,7 +150,8 @@ __kernel void k_lj_tip4p_long_distrib(const __global numtyp4 *restrict x_,
           engv[inum*engv_iter + i] += vM.z * (acctyp)0.5 * alpha;
         }
       }
-    } else {
+    }
+    if (itype == typeO) {
       fM = ansO[i];
       int iH1 = hneigh[i*4  ];
       int iH2 = hneigh[i*4+1];
@@ -212,7 +213,8 @@ __kernel void k_lj_tip4p_reneigh(const __global numtyp4 *restrict x_,
         hneigh[i*4+1] = iH2;
         hneigh[i*4+2] = -1;
       }
-    } else {
+    }
+    if (itype == typeH) {
       if (hneigh[i*4+2] != -1) {
         int iI, iH;
         iI = atom_mapping(map,tag[i] - 1);
@@ -316,12 +318,13 @@ __kernel void k_lj_tip4p_long(const __global numtyp4 *restrict x_,
     int non_local_oxy = 0;
     int iH1, iH2, iO;
 
-    if(itype == typeO) {
+    if (itype == typeO) {
       iO  = i;
       iH1 = hneigh[i*4  ];
       iH2 = hneigh[i*4+1];
       x1 = m[iO];
-    } else {
+    }
+    if (itype == typeH) {
       iO  = hneigh[i *4  ];
       iH1 = hneigh[iO*4  ];
       iH2 = hneigh[iO*4+1];
@@ -400,16 +403,16 @@ __kernel void k_lj_tip4p_long(const __global numtyp4 *restrict x_,
           prefactor *= qqrd2e*qtmp/r;
           numtyp force_coul = r2inv*prefactor * (_erfc + EWALD_F*grij*expm2 - factor_coul);
 
-          if (itype == typeH) {
-            f.x += delx * force_coul;
-            f.y += dely * force_coul;
-            f.z += delz * force_coul;
-            f.w += 0;
-          } else {
+          if (itype == typeO) {
             fO.x += delx * force_coul;
             fO.y += dely * force_coul;
             fO.z += delz * force_coul;
             fO.w += 0;
+          } else {
+            f.x += delx * force_coul;
+            f.y += dely * force_coul;
+            f.z += delz * force_coul;
+            f.w += 0;
           }
           if (EVFLAG && eflag) {
             e_coul += prefactor*(_erfc-factor_coul);
@@ -419,15 +422,33 @@ __kernel void k_lj_tip4p_long(const __global numtyp4 *restrict x_,
             fd.x = delx*force_coul;
             fd.y = dely*force_coul;
             fd.z = delz*force_coul;
-            if (itype == typeH) {
-              if (jtype == typeH) {
-                virial[0] += delx*fd.x;
-                virial[1] += dely*fd.y;
-                virial[2] += delz*fd.z;
-                virial[3] += delx*fd.y;
-                virial[4] += delx*fd.z;
-                virial[5] += dely*fd.z;
-              } else {
+            if (itype == typeO) {
+              numtyp cO = 1 - alpha, cH = 0.5*alpha;
+              numtyp4 vdi, vdj;
+              numtyp4 xH1; fetch4(xH1,iH1,pos_tex);
+              numtyp4 xH2; fetch4(xH2,iH2,pos_tex);
+              numtyp4 xO; fetch4(xO,iO,pos_tex);
+              vdi.x = xO.x*cO + xH1.x*cH + xH2.x*cH;
+              vdi.y = xO.y*cO + xH1.y*cH + xH2.y*cH;
+              vdi.z = xO.z*cO + xH1.z*cH + xH2.z*cH;
+              //vdi.w = vdi.w;
+              if (jtype == typeO) {
+                numtyp4 xjH1; fetch4(xjH1,jH1,pos_tex);
+                numtyp4 xjH2; fetch4(xjH2,jH2,pos_tex);
+                numtyp4 xjO; fetch4(xjO,jO,pos_tex);
+                vdj.x = xjO.x*cO + xjH1.x*cH + xjH2.x*cH;
+                vdj.y = xjO.y*cO + xjH1.y*cH + xjH2.y*cH;
+                vdj.z = xjO.z*cO + xjH1.z*cH + xjH2.z*cH;
+                //vdj.w = vdj.w;
+              } else vdj = jx;
+              vO[0] += 0.5*(vdi.x - vdj.x)*fd.x;
+              vO[1] += 0.5*(vdi.y - vdj.y)*fd.y;
+              vO[2] += 0.5*(vdi.z - vdj.z)*fd.z;
+              vO[3] += 0.5*(vdi.x - vdj.x)*fd.y;
+              vO[4] += 0.5*(vdi.x - vdj.x)*fd.z;
+              vO[5] += 0.5*(vdi.y - vdj.y)*fd.z;
+            } else {
+              if (jtype == typeO) {
                 numtyp cO = 1 - alpha, cH = 0.5*alpha;
                 numtyp4 vdj;
                 numtyp4 xjH1; fetch4(xjH1,jH1,pos_tex);
@@ -443,32 +464,14 @@ __kernel void k_lj_tip4p_long(const __global numtyp4 *restrict x_,
                 virial[3] += (ix.x - vdj.x)*fd.y;
                 virial[4] += (ix.x - vdj.x)*fd.z;
                 virial[5] += (ix.y - vdj.y)*fd.z;
+              } else {
+                virial[0] += delx*fd.x;
+                virial[1] += dely*fd.y;
+                virial[2] += delz*fd.z;
+                virial[3] += delx*fd.y;
+                virial[4] += delx*fd.z;
+                virial[5] += dely*fd.z;
               }
-            } else {
-              numtyp cO = 1 - alpha, cH = 0.5*alpha;
-              numtyp4 vdi, vdj;
-              numtyp4 xH1; fetch4(xH1,iH1,pos_tex);
-              numtyp4 xH2; fetch4(xH2,iH2,pos_tex);
-              numtyp4 xO; fetch4(xO,iO,pos_tex);
-              vdi.x = xO.x*cO + xH1.x*cH + xH2.x*cH;
-              vdi.y = xO.y*cO + xH1.y*cH + xH2.y*cH;
-              vdi.z = xO.z*cO + xH1.z*cH + xH2.z*cH;
-              //vdi.w = vdi.w;
-              if (jtype != typeH) {
-                numtyp4 xjH1; fetch4(xjH1,jH1,pos_tex);
-                numtyp4 xjH2; fetch4(xjH2,jH2,pos_tex);
-                numtyp4 xjO; fetch4(xjO,jO,pos_tex);
-                vdj.x = xjO.x*cO + xjH1.x*cH + xjH2.x*cH;
-                vdj.y = xjO.y*cO + xjH1.y*cH + xjH2.y*cH;
-                vdj.z = xjO.z*cO + xjH1.z*cH + xjH2.z*cH;
-                //vdj.w = vdj.w;
-              } else vdj = jx;
-              vO[0] += 0.5*(vdi.x - vdj.x)*fd.x;
-              vO[1] += 0.5*(vdi.y - vdj.y)*fd.y;
-              vO[2] += 0.5*(vdi.z - vdj.z)*fd.z;
-              vO[3] += 0.5*(vdi.x - vdj.x)*fd.y;
-              vO[4] += 0.5*(vdi.x - vdj.x)*fd.z;
-              vO[5] += 0.5*(vdi.y - vdj.y)*fd.z;
             }
           }
         }
@@ -633,7 +636,7 @@ __kernel void k_lj_tip4p_long_fast(const __global numtyp4 *restrict x_,
   }
 
   __syncthreads();
-  if (ii<inum) {
+   if (ii<inum) {
     int i, numj, nbor, nbor_end;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
         n_stride,nbor_end,nbor);
@@ -646,12 +649,13 @@ __kernel void k_lj_tip4p_long_fast(const __global numtyp4 *restrict x_,
     int non_local_oxy = 0;
     int iH1, iH2, iO;
 
-    if(itype == typeO) {
+    if (itype == typeO) {
       iO  = i;
       iH1 = hneigh[i*4  ];
       iH2 = hneigh[i*4+1];
       x1 = m[iO];
-    } else {
+    }
+    if (itype == typeH) {
       iO  = hneigh[i *4  ];
       iH1 = hneigh[iO*4  ];
       iH2 = hneigh[iO*4+1];
@@ -730,16 +734,16 @@ __kernel void k_lj_tip4p_long_fast(const __global numtyp4 *restrict x_,
           prefactor *= qqrd2e*qtmp/r;
           numtyp force_coul = r2inv*prefactor * (_erfc + EWALD_F*grij*expm2 - factor_coul);
 
-          if (itype == typeH) {
-            f.x += delx * force_coul;
-            f.y += dely * force_coul;
-            f.z += delz * force_coul;
-            f.w += 0;
-          } else {
+          if (itype == typeO) {
             fO.x += delx * force_coul;
             fO.y += dely * force_coul;
             fO.z += delz * force_coul;
             fO.w += 0;
+          } else {
+            f.x += delx * force_coul;
+            f.y += dely * force_coul;
+            f.z += delz * force_coul;
+            f.w += 0;
           }
           if (EVFLAG && eflag) {
             e_coul += prefactor*(_erfc-factor_coul);
@@ -749,15 +753,33 @@ __kernel void k_lj_tip4p_long_fast(const __global numtyp4 *restrict x_,
             fd.x = delx*force_coul;
             fd.y = dely*force_coul;
             fd.z = delz*force_coul;
-            if (itype == typeH) {
-              if (jtype == typeH) {
-                virial[0] += delx*fd.x;
-                virial[1] += dely*fd.y;
-                virial[2] += delz*fd.z;
-                virial[3] += delx*fd.y;
-                virial[4] += delx*fd.z;
-                virial[5] += dely*fd.z;
-              } else {
+            if (itype == typeO) {
+              numtyp cO = 1 - alpha, cH = 0.5*alpha;
+              numtyp4 vdi, vdj;
+              numtyp4 xH1; fetch4(xH1,iH1,pos_tex);
+              numtyp4 xH2; fetch4(xH2,iH2,pos_tex);
+              numtyp4 xO; fetch4(xO,iO,pos_tex);
+              vdi.x = xO.x*cO + xH1.x*cH + xH2.x*cH;
+              vdi.y = xO.y*cO + xH1.y*cH + xH2.y*cH;
+              vdi.z = xO.z*cO + xH1.z*cH + xH2.z*cH;
+              //vdi.w = vdi.w;
+              if (jtype == typeO) {
+                numtyp4 xjH1; fetch4(xjH1,jH1,pos_tex);
+                numtyp4 xjH2; fetch4(xjH2,jH2,pos_tex);
+                numtyp4 xjO; fetch4(xjO,jO,pos_tex);
+                vdj.x = xjO.x*cO + xjH1.x*cH + xjH2.x*cH;
+                vdj.y = xjO.y*cO + xjH1.y*cH + xjH2.y*cH;
+                vdj.z = xjO.z*cO + xjH1.z*cH + xjH2.z*cH;
+                //vdj.w = vdj.w;
+              } else vdj = jx;
+              vO[0] += 0.5*(vdi.x - vdj.x)*fd.x;
+              vO[1] += 0.5*(vdi.y - vdj.y)*fd.y;
+              vO[2] += 0.5*(vdi.z - vdj.z)*fd.z;
+              vO[3] += 0.5*(vdi.x - vdj.x)*fd.y;
+              vO[4] += 0.5*(vdi.x - vdj.x)*fd.z;
+              vO[5] += 0.5*(vdi.y - vdj.y)*fd.z;
+            } else {
+              if (jtype == typeO) {
                 numtyp cO = 1 - alpha, cH = 0.5*alpha;
                 numtyp4 vdj;
                 numtyp4 xjH1; fetch4(xjH1,jH1,pos_tex);
@@ -773,32 +795,14 @@ __kernel void k_lj_tip4p_long_fast(const __global numtyp4 *restrict x_,
                 virial[3] += (ix.x - vdj.x)*fd.y;
                 virial[4] += (ix.x - vdj.x)*fd.z;
                 virial[5] += (ix.y - vdj.y)*fd.z;
+              } else {
+                virial[0] += delx*fd.x;
+                virial[1] += dely*fd.y;
+                virial[2] += delz*fd.z;
+                virial[3] += delx*fd.y;
+                virial[4] += delx*fd.z;
+                virial[5] += dely*fd.z;
               }
-            } else {
-              numtyp cO = 1 - alpha, cH = 0.5*alpha;
-              numtyp4 vdi, vdj;
-              numtyp4 xH1; fetch4(xH1,iH1,pos_tex);
-              numtyp4 xH2; fetch4(xH2,iH2,pos_tex);
-              numtyp4 xO; fetch4(xO,iO,pos_tex);
-              vdi.x = xO.x*cO + xH1.x*cH + xH2.x*cH;
-              vdi.y = xO.y*cO + xH1.y*cH + xH2.y*cH;
-              vdi.z = xO.z*cO + xH1.z*cH + xH2.z*cH;
-              //vdi.w = vdi.w;
-              if (jtype != typeH) {
-                numtyp4 xjH1; fetch4(xjH1,jH1,pos_tex);
-                numtyp4 xjH2; fetch4(xjH2,jH2,pos_tex);
-                numtyp4 xjO; fetch4(xjO,jO,pos_tex);
-                vdj.x = xjO.x*cO + xjH1.x*cH + xjH2.x*cH;
-                vdj.y = xjO.y*cO + xjH1.y*cH + xjH2.y*cH;
-                vdj.z = xjO.z*cO + xjH1.z*cH + xjH2.z*cH;
-                //vdj.w = vdj.w;
-              } else vdj = jx;
-              vO[0] += 0.5*(vdi.x - vdj.x)*fd.x;
-              vO[1] += 0.5*(vdi.y - vdj.y)*fd.y;
-              vO[2] += 0.5*(vdi.z - vdj.z)*fd.z;
-              vO[3] += 0.5*(vdi.x - vdj.x)*fd.y;
-              vO[4] += 0.5*(vdi.x - vdj.x)*fd.z;
-              vO[5] += 0.5*(vdi.y - vdj.y)*fd.z;
             }
           }
         }

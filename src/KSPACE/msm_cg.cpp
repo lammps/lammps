@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,9 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include "msm_cg.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
 #include "gridcomm.h"
 #include "domain.h"
@@ -26,8 +25,9 @@
 #include "force.h"
 #include "neighbor.h"
 #include "memory.h"
-#include "utils.h"
-#include "fmt/format.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -133,11 +133,10 @@ void MSMCG::compute(int eflag, int vflag)
                    / static_cast<double>(atom->natoms);
 
     if (me == 0)
-      utils::logmesg(lmp,fmt::format("  MSM/cg optimization cutoff: {:.8}\n"
-                                     "  Total charged atoms: {:.1f}%\n"
-                                     "  Min/max charged atoms/proc: {:.1f}%"
-                                     " {:.1f}%\n",smallq,
-                                     charged_frac,charged_fmin,charged_fmax));
+      utils::logmesg(lmp,"  MSM/cg optimization cutoff: {:.8}\n"
+                     "  Total charged atoms: {:.1f}%\n"
+                     "  Min/max charged atoms/proc: {:.1f}% {:.1f}%\n",
+                     smallq,charged_frac,charged_fmin,charged_fmax);
   }
 
   // only need to rebuild this list after a neighbor list update
@@ -162,16 +161,16 @@ void MSMCG::compute(int eflag, int vflag)
 
   current_level = 0;
   gcall->reverse_comm_kspace(this,1,sizeof(double),REVERSE_RHO,
-			     gcall_buf1,gcall_buf2,MPI_DOUBLE);
+                             gcall_buf1,gcall_buf2,MPI_DOUBLE);
 
   // forward communicate charge density values to fill ghost grid points
   // compute direct sum interaction and then restrict to coarser grid
 
-  for (int n=0; n<=levels-2; n++) {
+  for (n=0; n<=levels-2; n++) {
     if (!active_flag[n]) continue;
     current_level = n;
     gc[n]->forward_comm_kspace(this,1,sizeof(double),FORWARD_RHO,
-			       gc_buf1[n],gc_buf2[n],MPI_DOUBLE);
+                               gc_buf1[n],gc_buf2[n],MPI_DOUBLE);
     direct(n);
     restriction(n);
   }
@@ -183,16 +182,16 @@ void MSMCG::compute(int eflag, int vflag)
     if (domain->nonperiodic) {
       current_level = levels-1;
       gc[levels-1]->
-	forward_comm_kspace(this,1,sizeof(double),FORWARD_RHO,
-			    gc_buf1[levels-1],gc_buf2[levels-1],MPI_DOUBLE);
+        forward_comm_kspace(this,1,sizeof(double),FORWARD_RHO,
+                            gc_buf1[levels-1],gc_buf2[levels-1],MPI_DOUBLE);
       direct_top(levels-1);
       gc[levels-1]->
-	reverse_comm_kspace(this,1,sizeof(double),REVERSE_AD,
-			    gc_buf1[levels-1],gc_buf2[levels-1],MPI_DOUBLE);
+        reverse_comm_kspace(this,1,sizeof(double),REVERSE_AD,
+                            gc_buf1[levels-1],gc_buf2[levels-1],MPI_DOUBLE);
       if (vflag_atom)
-	gc[levels-1]->
-	  reverse_comm_kspace(this,6,sizeof(double),REVERSE_AD_PERATOM,
-			      gc_buf1[levels-1],gc_buf2[levels-1],MPI_DOUBLE);
+        gc[levels-1]->
+          reverse_comm_kspace(this,6,sizeof(double),REVERSE_AD_PERATOM,
+                              gc_buf1[levels-1],gc_buf2[levels-1],MPI_DOUBLE);
 
     } else {
       // Here using MPI_Allreduce is cheaper than using commgrid
@@ -201,28 +200,28 @@ void MSMCG::compute(int eflag, int vflag)
       grid_swap_reverse(levels-1,egrid[levels-1]);
       current_level = levels-1;
       if (vflag_atom)
-	gc[levels-1]->
-	  reverse_comm_kspace(this,6,sizeof(double),REVERSE_AD_PERATOM,
-			      gc_buf1[levels-1],gc_buf2[levels-1],MPI_DOUBLE);
+        gc[levels-1]->
+          reverse_comm_kspace(this,6,sizeof(double),REVERSE_AD_PERATOM,
+                              gc_buf1[levels-1],gc_buf2[levels-1],MPI_DOUBLE);
     }
   }
 
   // prolongate energy/virial from coarser grid to finer grid
   // reverse communicate from ghost grid points to get full sum
 
-  for (int n=levels-2; n>=0; n--) {
+  for (n=levels-2; n>=0; n--) {
     if (!active_flag[n]) continue;
     prolongation(n);
 
     current_level = n;
     gc[n]->reverse_comm_kspace(this,1,sizeof(double),REVERSE_AD,
-			       gc_buf1[n],gc_buf2[n],MPI_DOUBLE);
+                               gc_buf1[n],gc_buf2[n],MPI_DOUBLE);
 
     // extra per-atom virial communication
 
     if (vflag_atom)
       gc[n]->reverse_comm_kspace(this,6,sizeof(double),REVERSE_AD_PERATOM,
-				 gc_buf1[n],gc_buf2[n],MPI_DOUBLE);
+                                 gc_buf1[n],gc_buf2[n],MPI_DOUBLE);
   }
 
   // all procs communicate E-field values
@@ -230,13 +229,13 @@ void MSMCG::compute(int eflag, int vflag)
 
   current_level = 0;
   gcall->forward_comm_kspace(this,1,sizeof(double),FORWARD_AD,
-			     gcall_buf1,gcall_buf2,MPI_DOUBLE);
+                             gcall_buf1,gcall_buf2,MPI_DOUBLE);
 
   // extra per-atom energy/virial communication
 
   if (vflag_atom)
     gcall->forward_comm_kspace(this,6,sizeof(double),FORWARD_AD_PERATOM,
-			       gcall_buf1,gcall_buf2,MPI_DOUBLE);
+                               gcall_buf1,gcall_buf2,MPI_DOUBLE);
 
   // calculate the force on my particles (interpolation)
 
@@ -546,6 +545,6 @@ void MSMCG::fieldforce_peratom()
 double MSMCG::memory_usage()
 {
   double bytes = MSM::memory_usage();
-  bytes += nmax * sizeof(int);
+  bytes += (double)nmax * sizeof(int);
   return bytes;
 }

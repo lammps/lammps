@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -84,13 +85,11 @@ void FixWallEES::wall_particle(int m, int which, double coord)
   double **f = atom->f;
   double **tor = atom->torque;
 
-
   avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
   AtomVecEllipsoid::Bonus *bonus = avec->bonus;
   int *ellipsoid = atom->ellipsoid;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-
 
   int dim = which / 2;
   int side = which % 2;
@@ -122,8 +121,8 @@ void FixWallEES::wall_particle(int m, int which, double coord)
       double* shape = bonus[ellipsoid[i]].shape;;
       MathExtra::quat_to_mat(bonus[ellipsoid[i]].quat,A);
       MathExtra::transpose_matvec(A,nhat,tempvec);
-      for(int k = 0; k<3; k++) tempvec[k] *= shape[k];
-      for(int k = 0; k<3 ; k++) sigman2 += tempvec[k]*tempvec[k];
+      for (int k = 0; k<3; k++) tempvec[k] *= shape[k];
+      for (int k = 0; k<3 ; k++) sigman2 += tempvec[k]*tempvec[k];
       sigman = sqrt(sigman2);
 
       if (delta <= sigman) {
@@ -149,7 +148,7 @@ void FixWallEES::wall_particle(int m, int which, double coord)
       double Lz[3][3] =  {{0,-1,0},{1,0,0},{0,0,0}};
 
 
-      for(int k = 0; k<3; k++) SAn[k] = tempvec[k];
+      for (int k = 0; k<3; k++) SAn[k] = tempvec[k];
 
       sigman3 = sigman2 * sigman;
       sigman4 = sigman2 * sigman2;
@@ -189,21 +188,21 @@ void FixWallEES::wall_particle(int m, int which, double coord)
 
       MathExtra::matvec(Lx,nhat,tempvec);
       MathExtra::transpose_matvec(A,tempvec,tempvec2);
-      for(int k = 0; k<3; k++) tempvec2[k] *= shape[k];
+      for (int k = 0; k<3; k++) tempvec2[k] *= shape[k];
       that[0] = MathExtra::dot3(SAn,tempvec2);
 
       MathExtra::matvec(Ly,nhat,tempvec);
       MathExtra::transpose_matvec(A,tempvec,tempvec2);
-      for(int k = 0; k<3; k++) tempvec2[k] *= shape[k];
+      for (int k = 0; k<3; k++) tempvec2[k] *= shape[k];
       that[1] = MathExtra::dot3(SAn,tempvec2);
 
       MathExtra::matvec(Lz,nhat,tempvec);
       MathExtra::transpose_matvec(A,tempvec,tempvec2);
-      for(int k = 0; k < 3; k++) tempvec2[k] *= shape[k];
+      for (int k = 0; k < 3; k++) tempvec2[k] *= shape[k];
       that[2] = MathExtra::dot3(SAn,tempvec2);
 
 
-      for(int j = 0; j<3 ; j++)
+      for (int j = 0; j<3 ; j++)
         tor[i][j] += twall * that[j];
 
     }

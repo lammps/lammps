@@ -5,11 +5,11 @@ Manifolds (surfaces)
 
 This doc page is not about a LAMMPS input script command, but about
 manifolds, which are generalized surfaces, as defined and used by the
-USER-MANIFOLD package, to track particle motion on the manifolds.  See
-the src/USER-MANIFOLD/README file for more details about the package
+MANIFOLD package, to track particle motion on the manifolds.  See
+the src/MANIFOLD/README file for more details about the package
 and its commands.
 
-Below is a list of currently supported manifolds by the USER-MANIFOLD
+Below is a list of currently supported manifolds by the MANIFOLD
 package, their parameters and a short description of them.  The
 parameters listed here are in the same order as they should be passed
 to the relevant fixes.

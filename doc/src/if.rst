@@ -26,7 +26,7 @@ Examples
    if "${steps} > 1000" then quit
    if "${myString} == a10" then quit
    if "$x <= $y" then "print X is smaller = $x" else "print Y is smaller = $y"
-   if "(${eng} > 0.0) \|\| ($n < 1000)" then &
+   if "(${eng} > 0.0) || ($n < 1000)" then &
      "timestep 0.005" &
    elif $n<10000 &
      "timestep 0.01" &
@@ -140,12 +140,12 @@ clarity, you must enclose the entire expression in quotes.
 
 An expression is built out of numbers (which start with a digit or
 period or minus sign) or strings (which start with a letter and can
-contain alphanumeric characters or underscores):
+contain alphanumeric characters, underscores, or forward slashes):
 
 .. parsed-literal::
 
-   0.2, 100, 1.0e20, -15.4, etc
-   InP, myString, a123, ab_23_cd, etc
+   0.2, 100, 1.0e20, -15.4, ...
+   InP, myString, a123, ab_23_cd, lj/cut, ...
 
 and Boolean operators:
 

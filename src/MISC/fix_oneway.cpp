@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -42,9 +43,7 @@ FixOneWay::FixOneWay(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   if (nevery < 1) error->all(FLERR,"Illegal fix oneway command");
 
-  int len = strlen(arg[4]);
-  regionstr = new char[len+1];
-  strcpy(regionstr,arg[4]);
+  regionstr = utils::strdup(arg[4]);
 
   if (strcmp(arg[5], "x") == 0) direction = X|PLUS;
   if (strcmp(arg[5], "X") == 0) direction = X|PLUS;

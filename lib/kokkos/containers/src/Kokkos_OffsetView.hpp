@@ -377,34 +377,20 @@ class OffsetView : public ViewTraits<DataType, Properties...> {
       std::is_same<typename traits::specialize, void>::value &&
       (is_layout_left || is_layout_right || is_layout_stride);
 
-  template <class Space, bool = Kokkos::Impl::MemorySpaceAccess<
-                             Space, typename traits::memory_space>::accessible>
-  struct verify_space {
-    KOKKOS_FORCEINLINE_FUNCTION static void check() {}
-  };
-
-  template <class Space>
-  struct verify_space<Space, false> {
-    KOKKOS_FORCEINLINE_FUNCTION static void check() {
-      Kokkos::abort(
-          "Kokkos::View ERROR: attempt to access inaccessible memory space");
-    };
-  };
-
 #if defined(KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK)
 
-#define KOKKOS_IMPL_OFFSETVIEW_OPERATOR_VERIFY(ARG)              \
-  OffsetView::template verify_space<                             \
-      Kokkos::Impl::ActiveExecutionMemorySpace>::check();        \
-  Kokkos::Experimental::Impl::offsetview_verify_operator_bounds< \
-      typename traits::memory_space>                             \
+#define KOKKOS_IMPL_OFFSETVIEW_OPERATOR_VERIFY(ARG)                    \
+  Kokkos::Impl::verify_space<Kokkos::Impl::ActiveExecutionMemorySpace, \
+                             typename traits::memory_space>::check();  \
+  Kokkos::Experimental::Impl::offsetview_verify_operator_bounds<       \
+      typename traits::memory_space>                                   \
       ARG;
 
 #else
 
-#define KOKKOS_IMPL_OFFSETVIEW_OPERATOR_VERIFY(ARG) \
-  OffsetView::template verify_space<                \
-      Kokkos::Impl::ActiveExecutionMemorySpace>::check();
+#define KOKKOS_IMPL_OFFSETVIEW_OPERATOR_VERIFY(ARG)                    \
+  Kokkos::Impl::verify_space<Kokkos::Impl::ActiveExecutionMemorySpace, \
+                             typename traits::memory_space>::check();
 
 #endif
  public:
@@ -1940,7 +1926,7 @@ create_mirror(
     const Kokkos::Experimental::OffsetView<T, P...>& src,
     typename std::enable_if<
         !std::is_same<typename Kokkos::ViewTraits<T, P...>::array_layout,
-                      Kokkos::LayoutStride>::value>::type* = 0) {
+                      Kokkos::LayoutStride>::value>::type* = nullptr) {
   using src_type = Experimental::OffsetView<T, P...>;
   using dst_type = typename src_type::HostMirror;
 
@@ -1960,7 +1946,7 @@ create_mirror(
     const Kokkos::Experimental::OffsetView<T, P...>& src,
     typename std::enable_if<
         std::is_same<typename Kokkos::ViewTraits<T, P...>::array_layout,
-                     Kokkos::LayoutStride>::value>::type* = 0) {
+                     Kokkos::LayoutStride>::value>::type* = nullptr) {
   using src_type = Experimental::OffsetView<T, P...>;
   using dst_type = typename src_type::HostMirror;
 
@@ -2028,7 +2014,7 @@ create_mirror_view(
           std::is_same<
               typename Kokkos::Experimental::OffsetView<T, P...>::data_type,
               typename Kokkos::Experimental::OffsetView<
-                  T, P...>::HostMirror::data_type>::value)>::type* = 0) {
+                  T, P...>::HostMirror::data_type>::value)>::type* = nullptr) {
   return Kokkos::create_mirror(src);
 }
 
@@ -2038,7 +2024,7 @@ typename Kokkos::Impl::MirrorOffsetViewType<Space, T, P...>::view_type
 create_mirror_view(const Space&,
                    const Kokkos::Experimental::OffsetView<T, P...>& src,
                    typename std::enable_if<Impl::MirrorOffsetViewType<
-                       Space, T, P...>::is_same_memspace>::type* = 0) {
+                       Space, T, P...>::is_same_memspace>::type* = nullptr) {
   return src;
 }
 
@@ -2048,7 +2034,7 @@ typename Kokkos::Impl::MirrorOffsetViewType<Space, T, P...>::view_type
 create_mirror_view(const Space&,
                    const Kokkos::Experimental::OffsetView<T, P...>& src,
                    typename std::enable_if<!Impl::MirrorOffsetViewType<
-                       Space, T, P...>::is_same_memspace>::type* = 0) {
+                       Space, T, P...>::is_same_memspace>::type* = nullptr) {
   return typename Kokkos::Impl::MirrorOffsetViewType<Space, T, P...>::view_type(
       src.label(), src.layout(),
       {src.begin(0), src.begin(1), src.begin(2), src.begin(3), src.begin(4),
@@ -2063,7 +2049,7 @@ create_mirror_view(const Space&,
 //                              , std::string const& name = ""
 //                                  , typename
 //                                  std::enable_if<Impl::MirrorViewType<Space,T,P
-//                                  ...>::is_same_memspace>::type* = 0 ) {
+//                                  ...>::is_same_memspace>::type* = nullptr) {
 //    (void)name;
 //    return src;
 //  }
@@ -2076,11 +2062,11 @@ create_mirror_view(const Space&,
 //                              , std::string const& name = ""
 //                                  , typename
 //                                  std::enable_if<!Impl::MirrorViewType<Space,T,P
-//                                  ...>::is_same_memspace>::type* = 0 ) {
+//                                  ...>::is_same_memspace>::type* = nullptr) {
 //    using Mirror = typename
 //    Kokkos::Experimental::Impl::MirrorViewType<Space,T,P ...>::view_type;
 //    std::string label = name.empty() ? src.label() : name;
-//    auto mirror = Mirror(ViewAllocateWithoutInitializing(label), src.layout(),
+//    auto mirror = Mirror(view_alloc(WithoutInitializing, label), src.layout(),
 //                         { src.begin(0), src.begin(1), src.begin(2),
 //                         src.begin(3), src.begin(4),
 //                             src.begin(5), src.begin(6), src.begin(7) });

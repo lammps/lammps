@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(ave/histo/weight,FixAveHistoWeight)
-
+// clang-format off
+FixStyle(ave/histo/weight,FixAveHistoWeight);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_AVE_HISTO_WEIGHT_H
@@ -36,7 +36,7 @@ class FixAveHistoWeight : public FixAveHisto {
   void bin_atoms_weights(double *, int, double *, int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -30,6 +31,7 @@ using namespace LAMMPS_NS;
 
 PairHybridKokkos::PairHybridKokkos(LAMMPS *lmp) : PairHybrid(lmp)
 {
+  kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
 
  // prevent overlapping host/device computation, which isn't
@@ -64,23 +66,23 @@ void PairHybridKokkos::compute(int eflag, int vflag)
   int i,j,m,n;
 
   // if no_virial_fdotr_compute is set and global component of
-  //   incoming vflag = 2, then
-  // reset vflag as if global component were 1
+  //   incoming vflag = VIRIAL_FDOTR, then
+  // reset vflag as if global component were VIRIAL_PAIR
   // necessary since one or more sub-styles cannot compute virial as F dot r
 
   int neighflag = lmp->kokkos->neighflag;
   if (neighflag == FULL) no_virial_fdotr_compute = 1;
 
-  if (no_virial_fdotr_compute && vflag % 4 == 2) vflag = 1 + vflag/4 * 4;
+  if (no_virial_fdotr_compute && vflag & VIRIAL_FDOTR) vflag = VIRIAL_PAIR | (vflag & ~VIRIAL_FDOTR);
 
   ev_init(eflag,vflag);
 
-  // check if global component of incoming vflag = 2
-  // if so, reset vflag passed to substyle as if it were 0
+  // check if global component of incoming vflag = VIRIAL_FDOTR
+  // if so, reset vflag passed to substyle as if it were VIRIAL_NONE
   // necessary so substyle will not invoke virial_fdotr_compute()
 
   int vflag_substyle;
-  if (vflag % 4 == 2) vflag_substyle = vflag/4 * 4;
+  if (vflag & VIRIAL_FDOTR) vflag_substyle = VIRIAL_NONE | (vflag & ~VIRIAL_FDOTR);
   else vflag_substyle = vflag;
 
   double *saved_special = save_special();
@@ -89,7 +91,7 @@ void PairHybridKokkos::compute(int eflag, int vflag)
 
   Respa *respa = nullptr;
   respaflag = 0;
-  if (strstr(update->integrate_style,"respa")) {
+  if (utils::strmatch(update->integrate_style,"^respa")) {
     respa = (Respa *) update->integrate;
     if (respa->nhybrid_styles > 0) respaflag = 1;
   }

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -148,7 +149,7 @@ bigint ReaderXYZ::read_header(double /*box*/[3][3], int &boxinfo, int &/*triclin
          (fieldtype[i] == Y) ||
          (fieldtype[i] == Z) ||
          (fieldtype[i] == ID) ||
-         (fieldtype[i] == TYPE) ) {
+         (fieldtype[i] == TYPE)) {
       fieldindex[i] = fieldtype[i];
     } else {
       fieldflag = 1;

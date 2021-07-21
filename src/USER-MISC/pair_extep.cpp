@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,25 +18,25 @@
 
 #include "pair_extep.h"
 
-#include <cmath>
-
-#include <cstring>
-#include <cctype>
 #include "atom.h"
-#include "neighbor.h"
+#include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "math_const.h"
+#include "math_extra.h"
+#include "memory.h"
+#include "my_page.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "my_page.h"
-#include "force.h"
-#include "comm.h"
-#include "memory.h"
-#include "error.h"
+#include "neighbor.h"
 
-
-#include "math_const.h"
+#include <cmath>
+#include <cstring>
+#include <cctype>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
+using namespace MathExtra;
 
 #define MAXLINE 1024
 #define DELTA 4
@@ -49,20 +50,16 @@ PairExTeP::PairExTeP(LAMMPS *lmp) : Pair(lmp)
   restartinfo = 0;
   one_coeff = 1;
   manybody_flag = 1;
+  centroidstressflag = CENTROID_NOTAVAIL;
   ghostneigh = 1;
 
-  nelements = 0;
-  elements = nullptr;
-  nparams = maxparam = 0;
   params = nullptr;
-  elem2param = nullptr;
 
   maxlocal = 0;
   SR_numneigh = nullptr;
   SR_firstneigh = nullptr;
   ipage = nullptr;
   pgsize = oneatom = 0;
-  map = nullptr;
 
   Nt = nullptr;
   Nd = nullptr;
@@ -74,11 +71,8 @@ PairExTeP::PairExTeP(LAMMPS *lmp) : Pair(lmp)
 
 PairExTeP::~PairExTeP()
 {
-  if (elements)
-    for (int i = 0; i < nelements; i++) delete [] elements[i];
-  delete [] elements;
   memory->destroy(params);
-  memory->destroy(elem2param);
+  memory->destroy(elem3param);
 
   memory->destroy(SR_numneigh);
   memory->sfree(SR_firstneigh);
@@ -90,7 +84,6 @@ PairExTeP::~PairExTeP()
     memory->destroy(setflag);
     memory->destroy(cutsq);
     memory->destroy(cutghost);
-    delete [] map;
   }
 }
 
@@ -158,7 +151,7 @@ void PairExTeP::SR_neigh()
       rsq = delx*delx + dely*dely + delz*delz;
 
       jtype=map[type[j]];
-      iparam_ij = elem2param[itype][jtype][jtype];
+      iparam_ij = elem3param[itype][jtype][jtype];
 
       if (rsq < params[iparam_ij].cutsq) {
         neighptr[n++] = j;
@@ -245,7 +238,7 @@ void PairExTeP::compute(int eflag, int vflag)
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
 
-      iparam_ij = elem2param[itype][jtype][jtype];
+      iparam_ij = elem3param[itype][jtype][jtype];
       if (rsq > params[iparam_ij].cutsq) continue;
 
       repulsive(&params[iparam_ij],rsq,fpair,eflag,evdwl);
@@ -269,7 +262,7 @@ void PairExTeP::compute(int eflag, int vflag)
       j &= NEIGHMASK;
       jtag = tag[j];
       jtype = map[type[j]];
-      iparam_ij = elem2param[itype][jtype][jtype];
+      iparam_ij = elem3param[itype][jtype][jtype];
 
       delr1[0] = x[j][0] - xtmp;
       delr1[1] = x[j][1] - ytmp;
@@ -336,7 +329,7 @@ void PairExTeP::compute(int eflag, int vflag)
         k = jlist[kk];
         k &= NEIGHMASK;
         ktype = map[type[k]];
-        iparam_ijk = elem2param[itype][jtype][ktype];
+        iparam_ijk = elem3param[itype][jtype][ktype];
 
         delr2[0] = x[k][0] - xtmp;
         delr2[1] = x[k][1] - ytmp;
@@ -351,7 +344,7 @@ void PairExTeP::compute(int eflag, int vflag)
         /* F_IJ (2) */
         // compute force components due to spline derivatives
         // uses only the part with FXY_x (FXY_y is done when i and j are inversed)
-        int iparam_ik = elem2param[itype][ktype][0];
+        int iparam_ik = elem3param[itype][ktype][0];
         double fc_ik_d = ters_fc_d(r2,&params[iparam_ik]);
         double fc_prefac_ik_0 = 1.0 * fc_ik_d * fa / r2;
         double fc_prefac_ik = dFc_dNtij * fc_prefac_ik_0;
@@ -361,7 +354,8 @@ void PairExTeP::compute(int eflag, int vflag)
         f[k][0] -= fc_prefac_ik * delr2[0];
         f[k][1] -= fc_prefac_ik * delr2[1];
         f[k][2] -= fc_prefac_ik * delr2[2];
-        if ( itype != ktype ) {
+        if (vflag_either) v_tally2(i,k,-fc_prefac_ik,delr2);
+        if (itype != ktype) {
           fc_prefac_ik = dFc_dNdij * fc_prefac_ik_0;
           f[i][0] += fc_prefac_ik * delr2[0];
           f[i][1] += fc_prefac_ik * delr2[1];
@@ -369,6 +363,7 @@ void PairExTeP::compute(int eflag, int vflag)
           f[k][0] -= fc_prefac_ik * delr2[0];
           f[k][1] -= fc_prefac_ik * delr2[1];
           f[k][2] -= fc_prefac_ik * delr2[2];
+          if (vflag_either) v_tally2(i,k,-fc_prefac_ik,delr2);
         }
         /* END F_IJ (2) */
 
@@ -395,7 +390,7 @@ void PairExTeP::compute(int eflag, int vflag)
         k = jlist[kk];
         k &= NEIGHMASK;
         ktype = map[type[k]];
-        iparam_ijk = elem2param[itype][jtype][ktype];
+        iparam_ijk = elem3param[itype][jtype][ktype];
 
         delr2[0] = x[k][0] - xtmp;
         delr2[1] = x[k][1] - ytmp;
@@ -417,7 +412,7 @@ void PairExTeP::compute(int eflag, int vflag)
         f[k][1] += fk[1];
         f[k][2] += fk[2];
 
-        if (vflag_atom) v_tally3(i,j,k,fj,fk,delr1,delr2);
+        if (vflag_either) v_tally3(i,j,k,fj,fk,delr1,delr2);
       }
     }
   }
@@ -454,71 +449,15 @@ void PairExTeP::settings(int narg, char **/*arg*/)
 
 void PairExTeP::coeff(int narg, char **arg)
 {
-  int i,j,n;
-
   if (!allocated) allocate();
 
-  if (narg != 3 + atom->ntypes)
-    error->all(FLERR,"Incorrect args for pair coefficients");
-
-  // insure I,J args are * *
-
-  if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
-    error->all(FLERR,"Incorrect args for pair coefficients");
-
-  // read args that map atom types to elements in potential file
-  // map[i] = which element the Ith atom type is, -1 if "NULL"
-  // nelements = # of unique elements
-  // elements = list of element names
-
-  if (elements) {
-    for (i = 0; i < nelements; i++) delete [] elements[i];
-    delete [] elements;
-  }
-  elements = new char*[atom->ntypes];
-  for (i = 0; i < atom->ntypes; i++) elements[i] = nullptr;
-
-  nelements = 0;
-  for (i = 3; i < narg; i++) {
-    if (strcmp(arg[i],"NULL") == 0) {
-      map[i-2] = -1;
-      continue;
-    }
-    for (j = 0; j < nelements; j++)
-      if (strcmp(arg[i],elements[j]) == 0) break;
-    map[i-2] = j;
-    if (j == nelements) {
-      n = strlen(arg[i]) + 1;
-      elements[j] = new char[n];
-      strcpy(elements[j],arg[i]);
-      nelements++;
-    }
-  }
+  map_element2type(narg-3,arg+3);
 
   // read potential file and initialize potential parameters
 
   read_file(arg[2]);
   spline_init();
   setup();
-
-  // clear setflag since coeff() called once with I,J = * *
-
-  n = atom->ntypes;
-  for (int i = 1; i <= n; i++)
-    for (int j = i; j <= n; j++)
-      setflag[i][j] = 0;
-
-  // set setflag i,j for type pairs where both are mapped to elements
-
-  int count = 0;
-  for (int i = 1; i <= n; i++)
-    for (int j = i; j <= n; j++)
-      if (map[i] >= 0 && map[j] >= 0) {
-        setflag[i][j] = 1;
-        count++;
-      }
-
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -817,12 +756,12 @@ void PairExTeP::setup()
 {
   int i,j,k,m,n;
 
-  // set elem2param for all element triplet combinations
+  // set elem3param for all element triplet combinations
   // must be a single exact match to lines read from file
   // do not allow for ACB in place of ABC
 
-  memory->destroy(elem2param);
-  memory->create(elem2param,nelements,nelements,nelements,"pair:elem2param");
+  memory->destroy(elem3param);
+  memory->create(elem3param,nelements,nelements,nelements,"pair:elem3param");
 
   for (i = 0; i < nelements; i++)
     for (j = 0; j < nelements; j++)
@@ -836,7 +775,7 @@ void PairExTeP::setup()
           }
         }
         if (n < 0) error->all(FLERR,"Potential file is missing an entry");
-        elem2param[i][j][k] = n;
+        elem3param[i][j][k] = n;
       }
 
   // compute parameter values derived from inputs
@@ -925,11 +864,11 @@ void PairExTeP::attractive(Param *param, double prefactor,
 
   rij = sqrt(rsqij);
   rijinv = 1.0/rij;
-  vec3_scale(rijinv,delrij,rij_hat);
+  scale3(rijinv,delrij,rij_hat);
 
   rik = sqrt(rsqik);
   rikinv = 1.0/rik;
-  vec3_scale(rikinv,delrik,rik_hat);
+  scale3(rikinv,delrik,rik_hat);
 
   ters_zetaterm_d(prefactor,rij_hat,rij,rik_hat,rik,fi,fj,fk,param);
 }
@@ -1031,7 +970,7 @@ void PairExTeP::ters_zetaterm_d(double prefactor,
     ex_delr_d = 3.0*pow(param->lam3,3.0) * pow(rij-rik,2.0)*ex_delr;
   else ex_delr_d = param->lam3 * ex_delr;
 
-  cos_theta = vec3_dot(rij_hat,rik_hat);
+  cos_theta = dot3(rij_hat,rik_hat);
   gijk = ters_gijk(cos_theta,param);
   gijk_d = ters_gijk_d(cos_theta,param);
   costheta_d(rij_hat,rij,rik_hat,rik,dcosdri,dcosdrj,dcosdrk);
@@ -1041,29 +980,29 @@ void PairExTeP::ters_zetaterm_d(double prefactor,
   // dri += fc*gijk_d*ex_delr*dcosdri;
   // dri += fc*gijk*ex_delr_d*(rik_hat - rij_hat);
 
-  vec3_scale(-dfc*gijk*ex_delr,rik_hat,dri);
-  vec3_scaleadd(fc*gijk_d*ex_delr,dcosdri,dri,dri);
-  vec3_scaleadd(fc*gijk*ex_delr_d,rik_hat,dri,dri);
-  vec3_scaleadd(-fc*gijk*ex_delr_d,rij_hat,dri,dri);
-  vec3_scale(prefactor,dri,dri);
+  scale3(-dfc*gijk*ex_delr,rik_hat,dri);
+  scaleadd3(fc*gijk_d*ex_delr,dcosdri,dri,dri);
+  scaleadd3(fc*gijk*ex_delr_d,rik_hat,dri,dri);
+  scaleadd3(-fc*gijk*ex_delr_d,rij_hat,dri,dri);
+  scale3(prefactor,dri);
 
   // compute the derivative wrt Rj
   // drj = fc*gijk_d*ex_delr*dcosdrj;
   // drj += fc*gijk*ex_delr_d*rij_hat;
 
-  vec3_scale(fc*gijk_d*ex_delr,dcosdrj,drj);
-  vec3_scaleadd(fc*gijk*ex_delr_d,rij_hat,drj,drj);
-  vec3_scale(prefactor,drj,drj);
+  scale3(fc*gijk_d*ex_delr,dcosdrj,drj);
+  scaleadd3(fc*gijk*ex_delr_d,rij_hat,drj,drj);
+  scale3(prefactor,drj);
 
   // compute the derivative wrt Rk
   // drk = dfc*gijk*ex_delr*rik_hat;
   // drk += fc*gijk_d*ex_delr*dcosdrk;
   // drk += -fc*gijk*ex_delr_d*rik_hat;
 
-  vec3_scale(dfc*gijk*ex_delr,rik_hat,drk);
-  vec3_scaleadd(fc*gijk_d*ex_delr,dcosdrk,drk,drk);
-  vec3_scaleadd(-fc*gijk*ex_delr_d,rik_hat,drk,drk);
-  vec3_scale(prefactor,drk,drk);
+  scale3(dfc*gijk*ex_delr,rik_hat,drk);
+  scaleadd3(fc*gijk_d*ex_delr,dcosdrk,drk,drk);
+  scaleadd3(-fc*gijk*ex_delr_d,rik_hat,drk,drk);
+  scale3(prefactor,drk);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1074,14 +1013,14 @@ void PairExTeP::costheta_d(double *rij_hat, double rij,
 {
   // first element is devative wrt Ri, second wrt Rj, third wrt Rk
 
-  double cos_theta = vec3_dot(rij_hat,rik_hat);
+  double cos_theta = dot3(rij_hat,rik_hat);
 
-  vec3_scaleadd(-cos_theta,rij_hat,rik_hat,drj);
-  vec3_scale(1.0/rij,drj,drj);
-  vec3_scaleadd(-cos_theta,rik_hat,rij_hat,drk);
-  vec3_scale(1.0/rik,drk,drk);
-  vec3_add(drj,drk,dri);
-  vec3_scale(-1.0,dri,dri);
+  scaleadd3(-cos_theta,rij_hat,rik_hat,drj);
+  scale3(1.0/rij,drj);
+  scaleadd3(-cos_theta,rik_hat,rij_hat,drk);
+  scale3(1.0/rik,drk);
+  add3(drj,drk,dri);
+  scale3(-1.0,dri);
 }
 
 
@@ -1093,8 +1032,8 @@ void PairExTeP::costheta_d(double *rij_hat, double rij,
 void PairExTeP::spline_init() {
   for ( int iel=0; iel<nelements; iel++) {
     for ( int jel=0; jel<nelements; jel++) {
-      for ( int N_ij=0; N_ij<4; N_ij++ ) {
-        for ( int N_ji=0; N_ji<4; N_ji++ ) {
+      for (int N_ij=0; N_ij<4; N_ij++) {
+        for (int N_ji=0; N_ji<4; N_ji++) {
           TF_corr_param &f = F_corr_param[iel][jel][N_ij][N_ji];
 
           // corner points for each spline function
@@ -1162,7 +1101,7 @@ double PairExTeP::envelop_function(double x, double y, double *func_der) {
   return func_val;
 }
 
-double PairExTeP::F_corr(int iel, int jel, double Ndij, double Ndji, double *dFN_x, double *dFN_y ) {
+double PairExTeP::F_corr(int iel, int jel, double Ndij, double Ndji, double *dFN_x, double *dFN_y) {
 
   // compute F_XY
 

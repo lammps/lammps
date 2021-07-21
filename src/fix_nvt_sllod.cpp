@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
+   https://www.lammps.org/
    Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,17 +17,18 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_nvt_sllod.h"
-#include <cstring>
-#include "math_extra.h"
+
 #include "atom.h"
+#include "compute.h"
 #include "domain.h"
-#include "group.h"
-#include "modify.h"
+#include "error.h"
 #include "fix.h"
 #include "fix_deform.h"
-#include "compute.h"
-#include "error.h"
+#include "group.h"
+#include "math_extra.h"
+#include "modify.h"
 
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -49,12 +51,9 @@ FixNVTSllod::FixNVTSllod(LAMMPS *lmp, int narg, char **arg) :
   // create a new compute temp style
   // id = fix-ID + temp
 
-  std::string cmd = id + std::string("_temp");
-  id_temp = new char[cmd.size()+1];
-  strcpy(id_temp,cmd.c_str());
-
-  cmd += fmt::format(" {} temp/deform",group->names[igroup]);
-  modify->add_compute(cmd);
+  id_temp = utils::strdup(std::string(id) + "_temp");
+  modify->add_compute(fmt::format("{} {} temp/deform",
+                                  id_temp,group->names[igroup]));
   tcomputeflag = 1;
 }
 

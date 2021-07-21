@@ -18,7 +18,7 @@ Bond_style potentials
 
 All LAMMPS :doc:`bond_style <bond_style>` commands.  Some styles have
 accelerated versions.  This is indicated by additional letters in
-parenthesis: g = GPU, i = USER-INTEL, k = KOKKOS, o = USER-OMP, t =
+parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t =
 OPT.
 
 .. table_from_list::
@@ -35,6 +35,7 @@ OPT.
    * :doc:`class2 (ko) <bond_class2>`
    * :doc:`fene (iko) <bond_fene>`
    * :doc:`fene/expand (o) <bond_fene_expand>`
+   * :doc:`gaussian <bond_gaussian>`
    * :doc:`gromos (o) <bond_gromos>`
    * :doc:`harmonic (iko) <bond_harmonic>`
    * :doc:`harmonic/shift (o) <bond_harmonic_shift>`
@@ -56,7 +57,7 @@ Angle_style potentials
 
 All LAMMPS :doc:`angle_style <angle_style>` commands.  Some styles have
 accelerated versions.  This is indicated by additional letters in
-parenthesis: g = GPU, i = USER-INTEL, k = KOKKOS, o = USER-OMP, t =
+parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t =
 OPT.
 
 .. table_from_list::
@@ -84,6 +85,7 @@ OPT.
    * :doc:`dipole (o) <angle_dipole>`
    * :doc:`fourier (o) <angle_fourier>`
    * :doc:`fourier/simple (o) <angle_fourier_simple>`
+   * :doc:`gaussian <angle_gaussian>` - multicentered Gaussian-based angle potential
    * :doc:`harmonic (iko) <angle_harmonic>`
    * :doc:`mm3 <angle_mm3>`
    * :doc:`quartic (o) <angle_quartic>`
@@ -97,7 +99,7 @@ Dihedral_style potentials
 
 All LAMMPS :doc:`dihedral_style <dihedral_style>` commands.  Some styles
 have accelerated versions.  This is indicated by additional letters in
-parenthesis: g = GPU, i = USER-INTEL, k = KOKKOS, o = USER-OMP, t =
+parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t =
 OPT.
 
 .. table_from_list::
@@ -124,7 +126,7 @@ OPT.
    * :doc:`quadratic (o) <dihedral_quadratic>`
    * :doc:`spherical <dihedral_spherical>`
    * :doc:`table (o) <dihedral_table>`
-   * :doc:`table/cut <dihedral_table_cut>`
+   * :doc:`table/cut <dihedral_table>`
 
 .. _improper:
 
@@ -133,7 +135,7 @@ Improper_style potentials
 
 All LAMMPS :doc:`improper_style <improper_style>` commands.  Some styles
 have accelerated versions.  This is indicated by additional letters in
-parenthesis: g = GPU, i = USER-INTEL, k = KOKKOS, o = USER-OMP, t =
+parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t =
 OPT.
 
 .. table_from_list::

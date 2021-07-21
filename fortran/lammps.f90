@@ -1,6 +1,6 @@
 ! -------------------------------------------------------------------------
 !   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-!   http://lammps.sandia.gov, Sandia National Laboratories
+!   https://www.lammps.org/ Sandia National Laboratories
 !   Steve Plimpton, sjplimp@sandia.gov
 !
 !   Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,8 +16,8 @@
 ! and library.h using the ISO_C_BINDING module of the Fortran compiler.
 !
 ! Based on the LAMMPS Fortran 2003 module contributed by:
-!   Karl D. Hammond <karlh@ugcs.caltech.edu>
-!   University of Tennessee, Knoxville (USA), 2012
+!   Karl D. Hammond <hammondkd@missouri.edu>
+!   University of Missouri, 2012-2020
 !
 ! The Fortran module tries to follow the API of the C-library interface
 ! closely, but like the Python wrapper it employs an object oriented
@@ -30,7 +30,7 @@
 MODULE LIBLAMMPS
 
   USE, INTRINSIC :: ISO_C_BINDING, ONLY: c_ptr, c_null_ptr, c_loc, &
-      c_int, c_char, c_null_char, c_double
+      c_int, c_char, c_null_char, c_double, c_size_t, c_f_pointer
 
   IMPLICIT NONE
   PRIVATE
@@ -76,16 +76,14 @@ MODULE LIBLAMMPS
         TYPE(c_ptr), VALUE :: handle
       END SUBROUTINE lammps_close
 
-      SUBROUTINE lammps_mpi_init(handle) BIND(C, name='lammps_mpi_init')
-        IMPORT :: c_ptr
-        TYPE(c_ptr), VALUE :: handle
+      SUBROUTINE lammps_mpi_init() BIND(C, name='lammps_mpi_init')
       END SUBROUTINE lammps_mpi_init
 
-      SUBROUTINE lammps_mpi_finalize(handle) &
-          BIND(C, name='lammps_mpi_finalize')
-        IMPORT :: c_ptr
-        TYPE(c_ptr), VALUE :: handle
+      SUBROUTINE lammps_mpi_finalize() BIND(C, name='lammps_mpi_finalize')
       END SUBROUTINE lammps_mpi_finalize
+
+      SUBROUTINE lammps_kokkos_finalize() BIND(C, name='lammps_kokkos_finalize')
+      END SUBROUTINE lammps_kokkos_finalize
 
       SUBROUTINE lammps_file(handle,filename) BIND(C, name='lammps_file')
         IMPORT :: c_ptr
@@ -113,6 +111,12 @@ MODULE LIBLAMMPS
         TYPE(c_ptr), VALUE :: handle
         TYPE(c_ptr), VALUE :: str
       END SUBROUTINE lammps_commands_string
+
+      FUNCTION lammps_malloc(size) BIND(C, name='malloc')
+        IMPORT :: c_ptr, c_size_t
+        INTEGER(c_size_t), value :: size
+        TYPE(c_ptr) :: lammps_malloc
+      END FUNCTION lammps_malloc
 
       SUBROUTINE lammps_free(ptr) BIND(C, name='lammps_free')
         IMPORT :: c_ptr
@@ -182,7 +186,8 @@ CONTAINS
 
     IF (PRESENT(finalize)) THEN
         IF (finalize) THEN
-            CALL lammps_mpi_finalize(self%handle)
+            CALL lammps_kokkos_finalize()
+            CALL lammps_mpi_finalize()
         END IF
     END IF
   END SUBROUTINE lmp_close
@@ -267,14 +272,14 @@ CONTAINS
     CHARACTER (len=*), INTENT(in)           :: f_string
     CHARACTER (len=1, kind=c_char), POINTER :: c_string(:)
     TYPE(c_ptr) :: ptr
-    INTEGER :: i, n
+    INTEGER(c_size_t) :: i, n
 
     n = LEN_TRIM(f_string)
-    ALLOCATE(c_string(n+1))
+    ptr = lammps_malloc(n+1)
+    CALL C_F_POINTER(ptr,c_string,[1])
     DO i=1,n
         c_string(i) = f_string(i:i)
     END DO
     c_string(n+1) = c_null_char
-    ptr = c_loc(c_string(1))
   END FUNCTION f2c_string
 END MODULE LIBLAMMPS

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -46,8 +47,8 @@ Modify::Modify(LAMMPS *lmp) : Pointers(lmp)
   n_initial_integrate = n_post_integrate = 0;
   n_pre_exchange = n_pre_neighbor = n_post_neighbor = 0;
   n_pre_force = n_pre_reverse = n_post_force = 0;
-  n_final_integrate = n_end_of_step = n_thermo_energy = 0;
-  n_thermo_energy_atom = 0;
+  n_final_integrate = n_end_of_step = 0;
+  n_energy_couple = n_energy_global = n_energy_atom = 0;
   n_initial_integrate_respa = n_post_integrate_respa = 0;
   n_pre_force_respa = n_post_force_respa = n_final_integrate_respa = 0;
   n_min_pre_exchange = n_min_pre_force = n_min_pre_reverse = 0;
@@ -60,7 +61,7 @@ Modify::Modify(LAMMPS *lmp) : Pointers(lmp)
   list_pre_exchange = list_pre_neighbor = list_post_neighbor = nullptr;
   list_pre_force = list_pre_reverse = list_post_force = nullptr;
   list_final_integrate = list_end_of_step = nullptr;
-  list_thermo_energy = list_thermo_energy_atom = nullptr;
+  list_energy_couple = list_energy_global = list_energy_atom = nullptr;
   list_initial_integrate_respa = list_post_integrate_respa = nullptr;
   list_pre_force_respa = list_post_force_respa = nullptr;
   list_final_integrate_respa = nullptr;
@@ -137,8 +138,9 @@ Modify::~Modify()
   delete [] list_post_force;
   delete [] list_final_integrate;
   delete [] list_end_of_step;
-  delete [] list_thermo_energy;
-  delete [] list_thermo_energy_atom;
+  delete [] list_energy_couple;
+  delete [] list_energy_global;
+  delete [] list_energy_atom;
   delete [] list_initial_integrate_respa;
   delete [] list_post_integrate_respa;
   delete [] list_pre_force_respa;
@@ -218,8 +220,9 @@ void Modify::init()
   list_init(POST_FORCE,n_post_force,list_post_force);
   list_init(FINAL_INTEGRATE,n_final_integrate,list_final_integrate);
   list_init_end_of_step(END_OF_STEP,n_end_of_step,list_end_of_step);
-  list_init_thermo_energy(THERMO_ENERGY,n_thermo_energy,list_thermo_energy);
-  list_init_thermo_energy_atom(n_thermo_energy_atom,list_thermo_energy_atom);
+  list_init_energy_couple(n_energy_couple,list_energy_couple);
+  list_init_energy_global(n_energy_global,list_energy_global);
+  list_init_energy_atom(n_energy_atom,list_energy_atom);
 
   list_init(INITIAL_INTEGRATE_RESPA,
             n_initial_integrate_respa,list_initial_integrate_respa);
@@ -248,14 +251,14 @@ void Modify::init()
 
   for (i = 0; i < nfix; i++)
     if (!fix[i]->dynamic_group_allow && group->dynamic[fix[i]->igroup])
-      error->all(FLERR,fmt::format("Fix {} does not allow use with a "
-                                   "dynamic group",fix[i]->id));
+      error->all(FLERR,"Fix {} does not allow use with a "
+                                   "dynamic group",fix[i]->id);
 
   for (i = 0; i < ncompute; i++)
     if (!compute[i]->dynamic_group_allow &&
         group->dynamic[compute[i]->igroup])
-      error->all(FLERR,fmt::format("Compute {} does not allow use with a "
-                                   "dynamic group",compute[i]->id));
+      error->all(FLERR,"Compute {} does not allow use with a "
+                                   "dynamic group",compute[i]->id);
 
   // warn if any particle is time integrated more than once
 
@@ -486,31 +489,45 @@ void Modify::end_of_step()
 }
 
 /* ----------------------------------------------------------------------
-   thermo energy call, only for relevant fixes
-   called by Thermo class
-   compute_scalar() is fix call to return energy
+   coupling energy call, only for relevant fixes
+   each thermostsat fix returns this via compute_scalar()
+   ecouple = cumulative energy added to reservoir by thermostatting
 ------------------------------------------------------------------------- */
 
-double Modify::thermo_energy()
+double Modify::energy_couple()
 {
   double energy = 0.0;
-  for (int i = 0; i < n_thermo_energy; i++)
-    energy += fix[list_thermo_energy[i]]->compute_scalar();
+  for (int i = 0; i < n_energy_couple; i++)
+    energy += fix[list_energy_couple[i]]->compute_scalar();
   return energy;
 }
 
 /* ----------------------------------------------------------------------
-   per-atom thermo energy call, only for relevant fixes
+   global energy call, only for relevant fixes
+   they return energy via compute_scalar()
+   called by compute pe
+------------------------------------------------------------------------- */
+
+double Modify::energy_global()
+{
+  double energy = 0.0;
+  for (int i = 0; i < n_energy_global; i++)
+    energy += fix[list_energy_global[i]]->compute_scalar();
+  return energy;
+}
+
+/* ----------------------------------------------------------------------
+   peratom energy call, only for relevant fixes
    called by compute pe/atom
 ------------------------------------------------------------------------- */
 
-void Modify::thermo_energy_atom(int nlocal, double *energy)
+void Modify::energy_atom(int nlocal, double *energy)
 {
   int i,j;
   double *eatom;
 
-  for (i = 0; i < n_thermo_energy_atom; i++) {
-    eatom = fix[list_thermo_energy_atom[i]]->eatom;
+  for (i = 0; i < n_energy_atom; i++) {
+    eatom = fix[list_energy_atom[i]]->eatom;
     if (!eatom) continue;
     for (j = 0; j < nlocal; j++) energy[j] += eatom[j];
   }
@@ -909,9 +926,9 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
       used_restart_global[i] = 1;
       fix[ifix]->restart_reset = 1;
       if (comm->me == 0)
-        utils::logmesg(lmp,fmt::format("Resetting global fix info from restart file:\n"
-                                       "  fix style: {}, fix ID: {}\n",
-                                       fix[ifix]->style,fix[ifix]->id));
+        utils::logmesg(lmp,"Resetting global fix info from restart file:\n"
+                       "  fix style: {}, fix ID: {}\n",
+                       fix[ifix]->style,fix[ifix]->id);
     }
 
   // check if Fix is in restart_peratom list
@@ -925,9 +942,9 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
         fix[ifix]->unpack_restart(j,index_restart_peratom[i]);
       fix[ifix]->restart_reset = 1;
       if (comm->me == 0)
-        utils::logmesg(lmp,fmt::format("Resetting peratom fix info from restart file:\n"
-                                       "  fix style: {}, fix ID: {}\n",
-                                       fix[ifix]->style,fix[ifix]->id));
+        utils::logmesg(lmp,"Resetting peratom fix info from restart file:\n"
+                       "  fix style: {}, fix ID: {}\n",
+                       fix[ifix]->style,fix[ifix]->id);
     }
 
   // increment nfix (if new)
@@ -948,13 +965,12 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
 void Modify::add_fix(const std::string &fixcmd, int trysuffix)
 {
   auto args = utils::split_words(fixcmd);
-  char **newarg = new char*[args.size()];
-  int i=0;
+  std::vector<char *> newarg(args.size());
+  int i = 0;
   for (const auto &arg : args) {
     newarg[i++] = (char *)arg.c_str();
   }
-  add_fix(args.size(),newarg,trysuffix);
-  delete[] newarg;
+  add_fix(args.size(),newarg.data(),trysuffix);
 }
 
 
@@ -979,23 +995,36 @@ void Modify::replace_fix(const char *replaceID,
   if (jfix >= 0) error->all(FLERR,"Replace_fix ID is already in use");
 
   delete [] fix[ifix]->id;
-  int n = strlen(arg[0]) + 1;
-  fix[ifix]->id = new char[n];
-  strcpy(fix[ifix]->id,arg[0]);
+  fix[ifix]->id = utils::strdup(arg[0]);
 
   int jgroup = group->find(arg[1]);
   if (jgroup == -1) error->all(FLERR,"Could not find replace_fix group ID");
   fix[ifix]->igroup = jgroup;
 
   delete [] fix[ifix]->style;
-  n = strlen(arg[2]) + 1;
-  fix[ifix]->style = new char[n];
-  strcpy(fix[ifix]->style,arg[2]);
+  fix[ifix]->style = utils::strdup(arg[2]);
 
   // invoke add_fix
   // it will find and overwrite the replaceID fix
 
   add_fix(narg,arg,trysuffix);
+}
+
+/* ----------------------------------------------------------------------
+   convenience function to allow replacing a fix from a single string
+------------------------------------------------------------------------- */
+
+void Modify::replace_fix(const std::string &oldfix,
+                         const std::string &fixcmd, int trysuffix)
+{
+  auto args = utils::split_words(fixcmd);
+  char **newarg = new char*[args.size()];
+  int i=0;
+  for (const auto &arg : args) {
+    newarg[i++] = (char *)arg.c_str();
+  }
+  replace_fix(oldfix.c_str(),args.size(),newarg,trysuffix);
+  delete[] newarg;
 }
 
 /* ----------------------------------------------------------------------
@@ -1040,10 +1069,12 @@ void Modify::delete_fix(const std::string &id)
 
 void Modify::delete_fix(int ifix)
 {
-  if (fix[ifix]) delete fix[ifix];
-  atom->update_callback(ifix);
+  if ((ifix < 0) || (ifix >= nfix)) return;
 
-  // move other Fixes and fmask down in list one slot
+  // delete instance and move other Fixes and fmask down in list one slot
+
+  delete fix[ifix];
+  atom->update_callback(ifix);
 
   for (int i = ifix+1; i < nfix; i++) fix[i-1] = fix[i];
   for (int i = ifix+1; i < nfix; i++) fmask[i-1] = fmask[i];
@@ -1070,18 +1101,16 @@ int Modify::find_fix(const std::string &id)
 
 int Modify::find_fix_by_style(const char *style)
 {
-  int ifix;
-  for (ifix = 0; ifix < nfix; ifix++)
-    if (utils::strmatch(fix[ifix]->style,style)) break;
-  if (ifix == nfix) return -1;
-  return ifix;
+  for (int ifix = 0; ifix < nfix; ifix++)
+    if (utils::strmatch(fix[ifix]->style,style)) return ifix;
+  return -1;
 }
 
 /* ----------------------------------------------------------------------
    check for fix associated with package name in compiled list
    return 1 if found else 0
    used to determine whether LAMMPS was built with
-     GPU, USER-INTEL, USER-OMP packages, which have their own fixes
+     GPU, INTEL, OPENMP packages, which have their own fixes
 ------------------------------------------------------------------------- */
 
 int Modify::check_package(const char *package_fix_name)
@@ -1193,7 +1222,7 @@ void Modify::add_compute(int narg, char **arg, int trysuffix)
 
   for (int icompute = 0; icompute < ncompute; icompute++)
     if (strcmp(arg[0],compute[icompute]->id) == 0)
-      error->all(FLERR,fmt::format("Reuse of compute ID '{}'",arg[0]));
+      error->all(FLERR,"Reuse of compute ID '{}'",arg[0]);
 
   // extend Compute list if necessary
 
@@ -1297,10 +1326,16 @@ void Modify::delete_compute(const std::string &id)
 {
   int icompute = find_compute(id);
   if (icompute < 0) error->all(FLERR,"Could not find compute ID to delete");
+  delete_compute(icompute);
+}
+
+void Modify::delete_compute(int icompute)
+{
+  if ((icompute < 0) || (icompute >= ncompute)) return;
+
+  // delete and move other Computes down in list one slot
+
   delete compute[icompute];
-
-  // move other Computes down in list one slot
-
   for (int i = icompute+1; i < ncompute; i++) compute[i-1] = compute[i];
   ncompute--;
 }
@@ -1312,9 +1347,21 @@ void Modify::delete_compute(const std::string &id)
 
 int Modify::find_compute(const std::string &id)
 {
-  if(id.empty()) return -1;
+  if (id.empty()) return -1;
   for (int icompute = 0; icompute < ncompute; icompute++)
     if (id == compute[icompute]->id) return icompute;
+  return -1;
+}
+
+/* ----------------------------------------------------------------------
+   find a compute by style
+   return index of compute or -1 if not found
+------------------------------------------------------------------------- */
+
+int Modify::find_compute_by_style(const char *style)
+{
+  for (int icompute = 0; icompute < ncompute; icompute++)
+    if (utils::strmatch(compute[icompute]->style,style)) return icompute;
   return -1;
 }
 
@@ -1328,7 +1375,7 @@ int Modify::find_compute(const std::string &id)
 void Modify::clearstep_compute()
 {
   for (int icompute = 0; icompute < ncompute; icompute++)
-    compute[icompute]->invoked_flag = 0;
+    compute[icompute]->invoked_flag = Compute::INVOKED_NONE;
 }
 
 /* ----------------------------------------------------------------------
@@ -1528,8 +1575,8 @@ void Modify::restart_deallocate(int flag)
         utils::logmesg(lmp,"Unused restart file global fix info:\n");
         for (i = 0; i < nfix_restart_global; i++) {
           if (used_restart_global[i]) continue;
-          utils::logmesg(lmp,fmt::format("  fix style: {}, fix ID: {}\n",
-                                         style_restart_global[i],id_restart_global[i]));
+          utils::logmesg(lmp,"  fix style: {}, fix ID: {}\n",
+                         style_restart_global[i],id_restart_global[i]);
         }
       }
     }
@@ -1556,8 +1603,8 @@ void Modify::restart_deallocate(int flag)
         utils::logmesg(lmp,"Unused restart file peratom fix info:\n");
         for (i = 0; i < nfix_restart_peratom; i++) {
           if (used_restart_peratom[i]) continue;
-          utils::logmesg(lmp,fmt::format("  fix style: {}, fix ID: {}\n",
-                                         style_restart_peratom[i],id_restart_peratom[i]));
+          utils::logmesg(lmp,"  fix style: {}, fix ID: {}\n",
+                         style_restart_peratom[i],id_restart_peratom[i]);
         }
       }
     }
@@ -1615,43 +1662,60 @@ void Modify::list_init_end_of_step(int mask, int &n, int *&list)
 }
 
 /* ----------------------------------------------------------------------
-   create list of fix indices for thermo energy fixes
-   only added to list if fix has THERMO_ENERGY mask set,
-   and its thermo_energy flag was set via fix_modify
+   create list of fix indices for fixes that compute reservoir coupling energy
+   only added to list if fix has ecouple_flag set
 ------------------------------------------------------------------------- */
 
-void Modify::list_init_thermo_energy(int mask, int &n, int *&list)
+void Modify::list_init_energy_couple(int &n, int *&list)
 {
   delete [] list;
 
   n = 0;
   for (int i = 0; i < nfix; i++)
-    if (fmask[i] & mask && fix[i]->thermo_energy) n++;
+    if (fix[i]->ecouple_flag) n++;
   list = new int[n];
 
   n = 0;
   for (int i = 0; i < nfix; i++)
-    if (fmask[i] & mask && fix[i]->thermo_energy) list[n++] = i;
+    if (fix[i]->ecouple_flag) list[n++] = i;
 }
 
 /* ----------------------------------------------------------------------
-   create list of fix indices for peratom thermo energy fixes
-   only added to list if fix has its peatom_flag set,
-   and its thermo_energy flag was set via fix_modify
+   create list of fix indices for fixes that compute global energy
+   only added to list if fix has energy_global_flag and thermo_energy set
 ------------------------------------------------------------------------- */
 
-void Modify::list_init_thermo_energy_atom(int &n, int *&list)
+void Modify::list_init_energy_global(int &n, int *&list)
 {
   delete [] list;
 
   n = 0;
   for (int i = 0; i < nfix; i++)
-    if (fix[i]->peatom_flag && fix[i]->thermo_energy) n++;
+    if (fix[i]->energy_global_flag && fix[i]->thermo_energy) n++;
   list = new int[n];
 
   n = 0;
   for (int i = 0; i < nfix; i++)
-    if (fix[i]->peatom_flag && fix[i]->thermo_energy) list[n++] = i;
+    if (fix[i]->energy_global_flag && fix[i]->thermo_energy) list[n++] = i;
+}
+
+/* ----------------------------------------------------------------------
+   create list of fix indices for fixes that compute peratom energy
+   only added to list if fix has energy_peratom_flag and thermo_energy set
+------------------------------------------------------------------------- */
+
+void Modify::list_init_energy_atom(int &n, int *&list)
+{
+  delete [] list;
+
+  n = 0;
+  for (int i = 0; i < nfix; i++)
+    if (fix[i]->energy_peratom_flag && fix[i]->thermo_energy) n++;
+  list = new int[n];
+
+  n = 0;
+  for (int i = 0; i < nfix; i++)
+    if (fix[i]->energy_peratom_flag && fix[i]->thermo_energy) list[n++] = i;
 }
 
 /* ----------------------------------------------------------------------
@@ -1680,8 +1744,8 @@ double Modify::memory_usage()
 {
   double bytes = 0;
   for (int i = 0; i < nfix; i++)
-    bytes += static_cast<bigint> (fix[i]->memory_usage());
+    bytes += fix[i]->memory_usage();
   for (int i = 0; i < ncompute; i++)
-    bytes += static_cast<bigint> (compute[i]->memory_usage());
+    bytes += compute[i]->memory_usage();
   return bytes;
 }

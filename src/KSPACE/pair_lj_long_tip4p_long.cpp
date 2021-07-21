@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -566,7 +567,7 @@ void PairLJLongTIP4PLong::compute_inner()
       rsq = delx*delx + dely*dely + delz*delz;
       jtype = type[j];
 
-      if (rsq < cut_ljsq[itype][jtype] && rsq < cut_out_off_sq ) {  // lj
+      if (rsq < cut_ljsq[itype][jtype] && rsq < cut_out_off_sq) {  // lj
         r2inv = 1.0/rsq;
         double rn = r2inv*r2inv*r2inv;
         if (ni == 0) forcelj = rn*(rn*lj1i[jtype]-lj2i[jtype]);
@@ -819,7 +820,7 @@ void PairLJLongTIP4PLong::compute_middle()
       rsq = delx*delx + dely*dely + delz*delz;
       jtype = type[j];
 
-      if (rsq < cut_ljsq[itype][jtype] && rsq >= cut_in_off_sq && rsq <= cut_out_off_sq ) {  // lj
+      if (rsq < cut_ljsq[itype][jtype] && rsq >= cut_in_off_sq && rsq <= cut_out_off_sq) {  // lj
         r2inv = 1.0/rsq;
         double rn = r2inv*r2inv*r2inv;
         if (ni == 0) forcelj = rn*(rn*lj1i[jtype]-lj2i[jtype]);
@@ -1636,8 +1637,8 @@ void *PairLJLongTIP4PLong::extract(const char *str, int &dim)
 
 double PairLJLongTIP4PLong::memory_usage()
 {
-  double bytes = maxeatom * sizeof(double);
-  bytes += maxvatom*6 * sizeof(double);
-  bytes += 2 * nmax * sizeof(double);
+  double bytes = (double)maxeatom * sizeof(double);
+  bytes += (double)maxvatom*6 * sizeof(double);
+  bytes += (double)2 * nmax * sizeof(double);
   return bytes;
 }

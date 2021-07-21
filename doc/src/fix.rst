@@ -182,6 +182,9 @@ accelerated styles exist.
 * :doc:`ave/time <fix_ave_time>` - compute/output global time-averaged quantities
 * :doc:`aveforce <fix_aveforce>` - add an averaged force to each atom
 * :doc:`balance <fix_balance>` - perform dynamic load-balancing
+* :doc:`brownian <fix_brownian>` - overdamped translational brownian motion
+* :doc:`brownian/asphere <fix_brownian>` - overdamped translational and rotational brownian motion for ellipsoids
+* :doc:`brownian/sphere <fix_brownian>` - overdamped translational and rotational brownian motion for spheres
 * :doc:`bocs <fix_bocs>` - NPT style time integration with pressure correction
 * :doc:`bond/break <fix_bond_break>` - break bonds on the fly
 * :doc:`bond/create <fix_bond_create>` - create bonds on the fly
@@ -189,6 +192,7 @@ accelerated styles exist.
 * :doc:`bond/react <fix_bond_react>` - apply topology changes to model reactions
 * :doc:`bond/swap <fix_bond_swap>` - Monte Carlo bond swapping
 * :doc:`box/relax <fix_box_relax>` - relax box size during energy minimization
+* :doc:`charge/regulation <fix_charge_regulation>` - Monte Carlo sampling of charge regulation
 * :doc:`client/md <fix_client_md>` - MD client for client/server simulations
 * :doc:`cmap <fix_cmap>` - enables CMAP cross-terms of the CHARMM force field
 * :doc:`colvars <fix_colvars>` - interface to the collective variables "Colvars" library
@@ -205,6 +209,7 @@ accelerated styles exist.
 * :doc:`efield <fix_efield>` - impose electric field on system
 * :doc:`ehex <fix_ehex>` - enhanced heat exchange algorithm
 * :doc:`electron/stopping <fix_electron_stopping>` - electronic stopping power as a friction force
+* :doc:`electron/stopping/fit <fix_electron_stopping>` - electronic stopping power as a friction force
 * :doc:`enforce2d <fix_enforce2d>` - zero out z-dimension velocity and force
 * :doc:`eos/cv <fix_eos_cv>` -
 * :doc:`eos/table <fix_eos_table>` -
@@ -239,6 +244,7 @@ accelerated styles exist.
 * :doc:`lb/viscous <fix_lb_viscous>` -
 * :doc:`lineforce <fix_lineforce>` - constrain atoms to move in a line
 * :doc:`manifoldforce <fix_manifoldforce>` - restrain atoms to a manifold during minimization
+* :doc:`mdi/engine <fix_mdi_engine>` - connect LAMMPS to external programs via the MolSSI Driver Interface (MDI)
 * :doc:`meso/move <fix_meso_move>` - move mesoscopic SPH/SDPD particles in a prescribed fashion
 * :doc:`momentum <fix_momentum>` - zero the linear and/or angular momentum of a group of atoms
 * :doc:`momentum/chunk <fix_momentum>` - zero the linear and/or angular momentum of a chunk of atoms
@@ -294,11 +300,15 @@ accelerated styles exist.
 * :doc:`orient/fcc <fix_orient>` - add grain boundary migration force for FCC
 * :doc:`orient/eco <fix_orient_eco>` - add generalized grain boundary migration force
 * :doc:`pafi <fix_pafi>` - constrained force averages on hyper-planes to compute free energies (PAFI)
+* :doc:`pair/tracker <fix_pair_tracker>` - track properties of pairwise interactions
 * :doc:`phonon <fix_phonon>` - calculate dynamical matrix from MD simulations
 * :doc:`pimd <fix_pimd>` - Feynman path integral molecular dynamics
 * :doc:`planeforce <fix_planeforce>` - constrain atoms to move in a plane
 * :doc:`plumed <fix_plumed>` - wrapper on PLUMED free energy library
 * :doc:`poems <fix_poems>` - constrain clusters of atoms to move as coupled rigid bodies
+* :doc:`polarize/bem/gmres <fix_polarize>` -
+* :doc:`polarize/bem/icc <fix_polarize>` -
+* :doc:`polarize/functional <fix_polarize>` -
 * :doc:`pour <fix_pour>` - pour new atoms/molecules into a granular simulation domain
 * :doc:`precession/spin <fix_precession_spin>` -
 * :doc:`press/berendsen <fix_press_berendsen>` - pressure control by Berendsen barostat
@@ -363,6 +373,8 @@ accelerated styles exist.
 * :doc:`temp/rescale <fix_temp_rescale>` - temperature control by velocity rescaling
 * :doc:`temp/rescale/eff <fix_temp_rescale_eff>` - temperature control by velocity rescaling in the electron force field model
 * :doc:`tfmc <fix_tfmc>` - perform force-bias Monte Carlo with time-stamped method
+* :doc:`tgnvt/drude <fix_tgnh_drude>` - NVT time integration for Drude polarizable model via temperature-grouped Nose-Hoover
+* :doc:`tgnpt/drude <fix_tgnh_drude>` - NPT time integration for Drude polarizable model via temperature-grouped Nose-Hoover
 * :doc:`thermal/conductivity <fix_thermal_conductivity>` - Muller-Plathe kinetic energy exchange for thermal conductivity calculation
 * :doc:`ti/spring <fix_ti_spring>` -
 * :doc:`tmd <fix_tmd>` - guide a group of atoms to a new configuration

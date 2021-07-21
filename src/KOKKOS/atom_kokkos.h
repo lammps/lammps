@@ -1,6 +1,7 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -54,14 +55,55 @@ class AtomKokkos : public Atom {
 
   DAT::tdual_float_2d k_dvector;
 
+  // SPIN package
 
-// USER-DPD package
+  DAT::tdual_float_1d_4 k_sp;
+  DAT::tdual_f_array k_fm;
+  DAT::tdual_f_array k_fm_long;
+
+// DPD-REACT package
   DAT::tdual_efloat_1d k_uCond, k_uMech, k_uChem, k_uCG, k_uCGnew,
                        k_rho,k_dpdTheta,k_duChem;
 
 
   AtomKokkos(class LAMMPS *);
-  ~AtomKokkos();
+  virtual ~AtomKokkos();
+
+  void map_init(int check = 1);
+  void map_set();
+  void map_delete();
+
+  DAT::tdual_int_1d k_sametag;
+  DAT::tdual_int_1d k_map_array;
+  DAT::tdual_int_scalar k_error_flag;
+  dual_hash_type k_map_hash;
+
+  // map lookup function inlined for efficiency
+  // return -1 if no map defined
+
+  template<class DeviceType>
+  KOKKOS_INLINE_FUNCTION
+  static int map_kokkos(tagint global, int map_style, DAT::tdual_int_1d k_map_array, dual_hash_type k_map_hash)
+  {
+    if (map_style == 1)
+      return k_map_array.view<DeviceType>()(global);
+    else if (map_style == 2)
+      return AtomKokkos::map_find_hash_kokkos<DeviceType>(global,k_map_hash);
+    else
+      return -1;
+  }
+
+  template<class DeviceType>
+  KOKKOS_INLINE_FUNCTION
+  static int map_find_hash_kokkos(tagint global, dual_hash_type &k_map_hash)
+  {
+    int local = -1;
+    auto d_map_hash = k_map_hash.view<DeviceType>();
+    auto index = d_map_hash.find(global);
+    if (d_map_hash.valid_at(index))
+      local = d_map_hash.value_at(index);
+    return local;
+  }
 
   virtual void allocate_type_arrays();
   void sync(const ExecutionSpace space, unsigned int mask);
@@ -83,16 +125,16 @@ struct SortFunctor {
   ViewType source;
   Kokkos::View<typename ViewType::non_const_data_type,typename ViewType::array_type,device_type> dest;
   IndexView index;
-  SortFunctor(ViewType src, typename std::enable_if<ViewType::dynamic_rank==1,IndexView>::type ind):source(src),index(ind){
+  SortFunctor(ViewType src, typename std::enable_if<ViewType::dynamic_rank==1,IndexView>::type ind):source(src),index(ind) {
     dest = Kokkos::View<typename ViewType::non_const_data_type,typename ViewType::array_type,device_type>("",src.extent(0));
   }
-  SortFunctor(ViewType src, typename std::enable_if<ViewType::dynamic_rank==2,IndexView>::type ind):source(src),index(ind){
+  SortFunctor(ViewType src, typename std::enable_if<ViewType::dynamic_rank==2,IndexView>::type ind):source(src),index(ind) {
     dest = Kokkos::View<typename ViewType::non_const_data_type,typename ViewType::array_type,device_type>("",src.extent(0),src.extent(1));
   }
-  SortFunctor(ViewType src, typename std::enable_if<ViewType::dynamic_rank==3,IndexView>::type ind):source(src),index(ind){
+  SortFunctor(ViewType src, typename std::enable_if<ViewType::dynamic_rank==3,IndexView>::type ind):source(src),index(ind) {
     dest = Kokkos::View<typename ViewType::non_const_data_type,typename ViewType::array_type,device_type>("",src.extent(0),src.extent(1),src.extent(2));
   }
-  SortFunctor(ViewType src, typename std::enable_if<ViewType::dynamic_rank==4,IndexView>::type ind):source(src),index(ind){
+  SortFunctor(ViewType src, typename std::enable_if<ViewType::dynamic_rank==4,IndexView>::type ind):source(src),index(ind) {
     dest = Kokkos::View<typename ViewType::non_const_data_type,typename ViewType::array_type,device_type>("",src.extent(0),src.extent(1),src.extent(2),src.extent(3));
   }
   KOKKOS_INLINE_FUNCTION
@@ -100,18 +142,18 @@ struct SortFunctor {
     dest(i) = source(index(i));
   }
   void operator()(const typename std::enable_if<ViewType::rank==2, int>::type& i) {
-    for(int j=0; j < (int)source.extent(1); j++)
+    for (int j=0; j < (int)source.extent(1); j++)
       dest(i,j) = source(index(i),j);
   }
   void operator()(const typename std::enable_if<ViewType::rank==3, int>::type& i) {
-    for(int j=0; j < (int)source.extent(1); j++)
-      for(int k=0; k < (int)source.extent(2); k++)
+    for (int j=0; j < (int)source.extent(1); j++)
+      for (int k=0; k < (int)source.extent(2); k++)
         dest(i,j,k) = source(index(i),j,k);
   }
   void operator()(const typename std::enable_if<ViewType::rank==4, int>::type& i) {
-    for(int j=0; j < (int)source.extent(1); j++)
-      for(int k=0; k < (int)source.extent(2); k++)
-        for(int l=0; l < (int)source.extent(3); l++)
+    for (int j=0; j < (int)source.extent(1); j++)
+      for (int k=0; k < (int)source.extent(2); k++)
+        for (int l=0; l < (int)source.extent(3); l++)
           dest(i,j,k,l) = source(index(i),j,k,l);
   }
 };

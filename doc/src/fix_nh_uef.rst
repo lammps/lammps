@@ -199,7 +199,7 @@ The fix is not invoked during :doc:`energy minimization <minimize>`.
 Restrictions
 """"""""""""
 
-This fix is part of the USER-UEF package. It is only enabled if LAMMPS
+This fix is part of the UEF package. It is only enabled if LAMMPS
 was built with that package. See the :doc:`Build package <Build_package>` doc page for more info.
 
 Due to requirements of the boundary conditions, when the *strain*
@@ -222,9 +222,9 @@ Default
 """""""
 
 The default keyword values specific to this fix are exy = xyz, strain
-= 0 0.  The remaining defaults are the same as for *fix
-npt*\ _fix_nh.html except tchain = 1.  The reason for this change is
-given in :doc:`fix nvt/sllod <fix_nvt_sllod>`.
+= 0 0.  The remaining defaults are the same as for :doc:`fix npt <fix_nh>`
+except tchain = 1.  The reason for this change is given in
+:doc:`fix nvt/sllod <fix_nvt_sllod>`.
 
 ----------
 

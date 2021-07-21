@@ -1,6 +1,7 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,11 +13,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(morse/kk,PairMorseKokkos<LMPDeviceType>)
-PairStyle(morse/kk/device,PairMorseKokkos<LMPDeviceType>)
-PairStyle(morse/kk/host,PairMorseKokkos<LMPHostType>)
-
+// clang-format off
+PairStyle(morse/kk,PairMorseKokkos<LMPDeviceType>);
+PairStyle(morse/kk/device,PairMorseKokkos<LMPDeviceType>);
+PairStyle(morse/kk/host,PairMorseKokkos<LMPHostType>);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_MORSE_KOKKOS_H
@@ -45,15 +46,13 @@ class PairMorseKokkos : public PairMorse {
 
   struct params_morse{
     KOKKOS_INLINE_FUNCTION
-    params_morse(){cutsq=0,d0=0;alpha=0;r0=0;offset=0;}
+    params_morse() {cutsq=0,d0=0;alpha=0;r0=0;offset=0;}
     KOKKOS_INLINE_FUNCTION
-    params_morse(int /*i*/){cutsq=0,d0=0;alpha=0;r0=0;offset=0;}
+    params_morse(int /*i*/) {cutsq=0,d0=0;alpha=0;r0=0;offset=0;}
     F_FLOAT cutsq,d0,alpha,r0,offset;
   };
 
  protected:
-  void cleanup_copy();
-
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
   F_FLOAT compute_fpair(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const;

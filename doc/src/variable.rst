@@ -65,8 +65,8 @@ Syntax
                            bound(group,dir,region), gyration(group,region), ke(group,reigon),
                            angmom(group,dim,region), torque(group,dim,region),
                            inertia(group,dimdim,region), omega(group,dim,region)
-         special functions = sum(x), min(x), max(x), ave(x), trap(x), slope(x), gmask(x), rmask(x), grmask(x,y), next(x)
-         feature functions = is_active(category,feature,exact), is_defined(category,id,exact)
+         special functions = sum(x), min(x), max(x), ave(x), trap(x), slope(x), gmask(x), rmask(x), grmask(x,y), next(x), is_file(name)
+         feature functions = is_available(category,feature), is_active(category,feature), is_defined(category,id)
          atom value = id[i], mass[i], type[i], mol[i], x[i], y[i], z[i], vx[i], vy[i], vz[i], fx[i], fy[i], fz[i], q[i]
          atom vector = id, mass, type, mol, x, y, z, vx, vy, vz, fx, fy, fz, q
          compute references = c_ID, c_ID[i], c_ID[i][j], C_ID, C_ID[i]
@@ -363,12 +363,14 @@ variable, as discussed below.
 
 The rules for formatting the file are as follows.  Each time a set of
 per-atom values is read, a non-blank line is searched for in the file.
-A comment character "#" can be used anywhere on a line; text starting
-with the comment character is stripped.  Blank lines are skipped.  The
-first "word" of a non-blank line, delimited by white-space, is read as
-the count N of per-atom lines to immediately follow.  N can be the
-total number of atoms in the system, or only a subset.  The next N
-lines have the following format
+The file is read line by line but only up to 254 characters are used.
+The rest are ignored.  A comment character "#" can be used anywhere
+on a line and all text following and the "#" character are ignored;
+text starting with the comment character is stripped.  Blank lines
+are skipped.  The first "word" of a non-blank line, delimited by
+white-space, is read as the count N of per-atom lines to immediately
+follow.  N can be the total number of atoms in the system, or only a
+subset.  The next N lines have the following format
 
 .. parsed-literal::
 
@@ -429,7 +431,7 @@ argument.  For *equal*\ -style variables the formula computes a scalar
 quantity, which becomes the value of the variable whenever it is
 evaluated.  For *vector*\ -style variables the formula must compute a
 vector of quantities, which becomes the value of the variable whenever
-it is evaluated.  The calculated vector can be on length one, but it
+it is evaluated.  The calculated vector can be of length one, but it
 cannot be a simple scalar value like that produced by an equal-style
 compute.  I.e. the formula for a vector-style variable must have at
 least one quantity in it that refers to a global vector produced by a
@@ -572,7 +574,7 @@ division and the modulo operator "%" are next; addition and
 subtraction are next; the 4 relational operators "<", "<=", ">", and
 ">=" are next; the two remaining relational operators "==" and "!="
 are next; then the logical AND operator "&&"; and finally the logical
-OR operator "\|\|" and logical XOR (exclusive or) operator "\|\^" have the
+OR operator "||" and logical XOR (exclusive or) operator "\|^" have the
 lowest precedence.  Parenthesis can be used to group one or more
 portions of a formula and/or enforce a different order of evaluation
 than what would occur with the default precedence.
@@ -821,6 +823,10 @@ Special Functions
 Special functions take specific kinds of arguments, meaning their
 arguments cannot be formulas themselves.
 
+The is_file(x) function is a test whether 'x' is a (readable) file
+and returns 1 in this case, otherwise it returns 0.  For that 'x'
+is taken as a literal string and must not have any blanks in it.
+
 The sum(x), min(x), max(x), ave(x), trap(x), and slope(x) functions
 each take 1 argument which is of the form "c_ID" or "c_ID[N]" or
 "f_ID" or "f_ID[N]" or "v_name".  The first two are computes and the
@@ -937,7 +943,7 @@ features or LAMMPS, *respa* allows to check whether the inner/middle/outer
 mode of r-RESPA is supported. In the various style categories,
 the checking is also done using suffix flags, if available and enabled.
 
-Example 1: disable use of suffix for pppm when using GPU package (i.e. run it on the CPU concurrently to running the pair style on the GPU), but do use the suffix otherwise (e.g. with USER-OMP).
+Example 1: disable use of suffix for pppm when using GPU package (i.e. run it on the CPU concurrently to running the pair style on the GPU), but do use the suffix otherwise (e.g. with OPENMP).
 
 .. code-block:: LAMMPS
 

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -117,7 +118,7 @@ void Irregular::migrate_atoms(int sortflag, int preassign, int *procassign)
   // exchange() doesn't need to clear ghosts b/c borders()
   //   is called right after and it clears ghosts and calls map_set()
 
-  if (map_style) atom->map_clear();
+  if (map_style != Atom::MAP_NONE) atom->map_clear();
   atom->nghost = 0;
   atom->avec->clear_bonus();
 
@@ -891,7 +892,6 @@ int Irregular::create_data_grouped(int n, int *procs, int sortflag)
     utils::merge_sort(order,nrecv_proc,(void *)proc_recv,compare_standalone);
 #endif
 
-    int j;
     for (i = 0; i < nrecv_proc; i++) {
       j = order[i];
       proc_recv_ordered[i] = proc_recv[j];
@@ -930,11 +930,11 @@ void Irregular::exchange_data(char *sendbuf, int nbytes, char *recvbuf)
 
   // post all receives, starting after self copies
 
-  bigint offset = num_self*(bigint)nbytes;
+  bigint offset = (bigint)num_self*(bigint)nbytes;
   for (int irecv = 0; irecv < nrecv_proc; irecv++) {
     MPI_Irecv(&recvbuf[offset],num_recv[irecv]*nbytes,MPI_CHAR,
               proc_recv[irecv],0,world,&request[irecv]);
-    offset += num_recv[irecv]*nbytes;
+    offset += (bigint)num_recv[irecv]*nbytes;
   }
 
   // reallocate buf for largest send if necessary
@@ -1054,11 +1054,11 @@ void Irregular::grow_recv(int n)
 double Irregular::memory_usage()
 {
   double bytes = 0;
-  bytes += maxsend*sizeof(double);   // buf_send
-  bytes += maxrecv*sizeof(double);   // buf_recv
-  bytes += maxdbuf*sizeof(double);   // dbuf
-  bytes += maxbuf;                   // buf
-  bytes += 2*maxlocal*sizeof(int);   // mproclist,msizes
-  bytes += 2*nprocs*sizeof(int);     // work1,work2
+  bytes += (double)maxsend*sizeof(double);   // buf_send
+  bytes += (double)maxrecv*sizeof(double);   // buf_recv
+  bytes += (double)maxdbuf*sizeof(double);   // dbuf
+  bytes += (double)maxbuf;                   // buf
+  bytes += (double)2*maxlocal*sizeof(int);   // mproclist,msizes
+  bytes += (double)2*nprocs*sizeof(int);     // work1,work2
   return bytes;
 }

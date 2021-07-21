@@ -38,16 +38,21 @@
   {% if favicon %}
     <link rel="shortcut icon" href="{{ pathto('_static/' + favicon, 1) }}"/>
   {% endif %}
-  {# CANONICAL URL #}
-  {% if theme_canonical_url %}
-    <link rel="canonical" href="{{ theme_canonical_url }}{{ pagename }}.html"/>
-  {% endif %}
+
+  {#- CANONICAL URL #}
+  {%- if pageurl %}
+    <link rel="canonical" href="{{ pageurl|e }}" />
+  {%- endif -%}
 
   {# JAVASCRIPTS #}
   {%- block scripts %}
   <!--[if lt IE 9]>
     <script src="{{ pathto('_static/js/html5shiv.min.js', 1) }}"></script>
   <![endif]-->
+
+  {# Keep modernizr in head - http://modernizr.com/docs/#installing #}
+  <script src="{{ pathto('_static/js/modernizr.min.js', 1) }}"></script>
+
   {%- if not embedded %}
   {# XXX Sphinx 1.8.0 made this an external js-file, quick fix until we refactor the template to inherert more blocks directly from sphinx #}
     {% if sphinx_version >= "1.8.0" %}
@@ -103,12 +108,6 @@
     {%- endif %}
   {%- endblock %}
   {%- block extrahead %} {% endblock %}
-
-  {# Keep modernizr in head - http://modernizr.com/docs/#installing #}
-  <script src="{{ pathto('_static/js/modernizr.min.js', 1) }}"></script>
-
-  {# for improved browser compatibility #}
-  <script src="{{ pathto('_static/polyfill.js', 1) }}"></script>
 </head>
 
 <body class="wy-body-for-nav">
@@ -136,14 +135,8 @@
           </a>
 
           {% if theme_display_version %}
-            {%- set nav_version = version %}
-            {% if READTHEDOCS and current_version %}
-              {%- set nav_version = current_version %}
-            {% endif %}
-            {% if nav_version %}
-              <div class="lammps_version">Version: <b>{{ nav_version }}</b></div>
+              <div class="lammps_version">Version: <b>{{ current_version }}</b></div>
               <div class="lammps_release">git info: {{ release }}</div>
-            {% endif %}
           {% endif %}
 
           {% include "searchbox.html" %}

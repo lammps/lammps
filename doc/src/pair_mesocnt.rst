@@ -77,8 +77,11 @@ boron nitride nanotubes.
 
 .. note::
 
-   LAMMPS comes with one *mesocnt* style potential file
-   where the default number of data points per table is 1001.
+   Because of their size, *mesocnt* style potential files
+   are not bundled with LAMMPS.   When compiling LAMMPS from
+   source code, the file ``C_10_10.mesocnt`` should be downloaded
+   transparently from `https://download.lammps.org/potentials/C_10_10.mesocnt <https://download.lammps.org/potentials/C_10_10.mesocnt>`_
+   This file has as number of data points per table 1001.
    This is sufficient for NVT simulations. For proper energy
    conservation, we recommend using a potential file where
    the resolution for Phi is at least 2001 data points.
@@ -119,7 +122,7 @@ This pair style can only be used via the *pair* keyword of the
 Restrictions
 """"""""""""
 
-This style is part of the USER-MESONT package.  It is only
+This style is part of the MESONT package.  It is only
 enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 This pair potential requires the :doc:`newton <newton>` setting to be

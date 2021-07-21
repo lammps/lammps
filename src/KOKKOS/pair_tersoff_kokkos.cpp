@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -28,6 +29,7 @@
 #include "memory_kokkos.h"
 #include "error.h"
 #include "atom_masks.h"
+#include "suffix.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -41,7 +43,9 @@ template<class DeviceType>
 PairTersoffKokkos<DeviceType>::PairTersoffKokkos(LAMMPS *lmp) : PairTersoff(lmp)
 {
   respa_enable = 0;
+  suffix_flag |= Suffix::KOKKOS;
 
+  kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | F_MASK | TYPE_MASK | ENERGY_MASK | VIRIAL_MASK;
@@ -122,7 +126,7 @@ void PairTersoffKokkos<DeviceType>::setup_params()
   for (i = 1; i <= n; i++)
     for (j = 1; j <= n; j++)
       for (k = 1; k <= n; k++) {
-        m = elem2param[map[i]][map[j]][map[k]];
+        m = elem3param[map[i]][map[j]][map[k]];
         k_params.h_view(i,j,k).powerm = params[m].powerm;
         k_params.h_view(i,j,k).gamma = params[m].gamma;
         k_params.h_view(i,j,k).lam3 = params[m].lam3;

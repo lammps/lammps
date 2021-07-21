@@ -29,6 +29,19 @@ do
       KOKKOS_DEVICES="${KOKKOS_DEVICES},Cuda"
       CUDA_PATH="${key#*=}"
       ;;
+    --with-hip)
+      KOKKOS_DEVICES="${KOKKOS_DEVICES},Hip"
+      HIP_PATH_HIPCC=$(command -v hipcc)
+      HIP_PATH=${HIP_PATH_HIPCC%/bin/hipcc}
+      ;;
+    # Catch this before '--with-hip*'
+    --with-hip-options*)
+      KOKKOS_HIP_OPT="${key#*=}"
+      ;;
+    --with-hip*)
+      KOKKOS_DEVICES="${KOKKOS_DEVICES},Hip"
+      HIP_PATH="${key#*=}"
+      ;;
     --with-openmp)
       KOKKOS_DEVICES="${KOKKOS_DEVICES},OpenMP"
       ;;
@@ -81,7 +94,7 @@ do
       ;;
     --compiler*)
       COMPILER="${key#*=}"
-      CNUM=$(command -v ${COMPILER} 2>&1 >/dev/null | grep "no ${COMPILER}" | wc -l)
+      CNUM=$(command -v ${COMPILER} 2>&1 >/dev/null | grep -c "no ${COMPILER}")
       if [ ${CNUM} -gt 0 ]; then
         echo "Invalid compiler by --compiler command: '${COMPILER}'"
         exit
@@ -90,7 +103,7 @@ do
         echo "Empty compiler specified by --compiler command."
         exit
       fi
-      CNUM=$(command -v ${COMPILER} | grep ${COMPILER} | wc -l)
+      CNUM=$(command -v ${COMPILER} | grep -c ${COMPILER})
       if [ ${CNUM} -eq 0 ]; then
         echo "Invalid compiler by --compiler command: '${COMPILER}'"
         exit
@@ -124,6 +137,7 @@ do
       echo "                 AMDAVX          = AMD CPU"
       echo "                 ZEN             = AMD Zen-Core CPU"
       echo "                 ZEN2            = AMD Zen2-Core CPU"
+      echo "                 ZEN3            = AMD Zen3-Core CPU"
       echo "               [ARM]"
       echo "                 ARMv80          = ARMv8.0 Compatible CPU"
       echo "                 ARMv81          = ARMv8.1 Compatible CPU"
@@ -161,9 +175,9 @@ do
       echo "--cxxflags=[FLAGS]            Overwrite CXXFLAGS for library build and test"
       echo "                                build.  This will still set certain required"
       echo "                                flags via KOKKOS_CXXFLAGS (such as -fopenmp,"
-      echo "                                --std=c++11, etc.)."
+      echo "                                -std=c++14, etc.)."
       echo "--cxxstandard=[FLAGS]         Overwrite KOKKOS_CXX_STANDARD for library build and test"
-      echo "                                c++11 (default), c++14, c++17, c++1y, c++1z, c++2a"
+      echo "                                c++14 (default), c++17, c++1y, c++1z, c++2a"
       echo "--ldflags=[FLAGS]             Overwrite LDFLAGS for library build and test"
       echo "                                build. This will still set certain required"
       echo "                                flags via KOKKOS_LDFLAGS (such as -fopenmp,"
@@ -221,6 +235,10 @@ elif
    [ ${#COMPILER} -eq 0 ] && [[ ${KOKKOS_DEVICES} =~ .*Cuda.* ]]; then
   COMPILER="${KOKKOS_PATH}/bin/nvcc_wrapper"
   KOKKOS_SETTINGS="${KOKKOS_SETTINGS} CXX=${COMPILER}"   
+elif
+   [ ${#COMPILER} -eq 0 ] && [[ ${KOKKOS_DEVICES} =~ .*Hip.* ]]; then
+  COMPILER=hipcc
+  KOKKOS_SETTINGS="${KOKKOS_SETTINGS} CXX=${COMPILER}"
 fi
 
 if [ ${#KOKKOS_DEVICES} -gt 0 ]; then
@@ -237,6 +255,10 @@ fi
 
 if [ ${#CUDA_PATH} -gt 0 ]; then
   KOKKOS_SETTINGS="${KOKKOS_SETTINGS} CUDA_PATH=${CUDA_PATH}"
+fi
+
+if [ ${#HIP_PATH} -gt 0 ]; then
+  KOKKOS_SETTINGS="${KOKKOS_SETTINGS} HIP_PATH=${HIP_PATH}"
 fi
 
 if [ ${#CXXFLAGS} -gt 0 ]; then

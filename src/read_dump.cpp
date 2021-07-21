@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -14,10 +15,6 @@
 /* ----------------------------------------------------------------------
    Contributing author: Timothy Sirk (ARL)
 ------------------------------------------------------------------------- */
-
-// lmptype.h must be first b/c this file uses MAXBIGINT and includes mpi.h
-// due to OpenMPI bug which sets INT64_MAX via its mpi.h
-//   before lmptype.h can set flags to insure it is done correctly
 
 #include "read_dump.h"
 
@@ -46,7 +43,7 @@ enum{NOADD,YESADD,KEEPADD};
 
 /* ---------------------------------------------------------------------- */
 
-ReadDump::ReadDump(LAMMPS *lmp) : Pointers(lmp)
+ReadDump::ReadDump(LAMMPS *lmp) : Command(lmp)
 {
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
@@ -64,9 +61,7 @@ ReadDump::ReadDump(LAMMPS *lmp) : Pointers(lmp)
   fields = nullptr;
   buf = nullptr;
 
-  int n = strlen("native") + 1;
-  readerstyle = new char[n];
-  strcpy(readerstyle,"native");
+  readerstyle = utils::strdup("native");
 
   nreader = 0;
   readers = nullptr;
@@ -163,13 +158,14 @@ void ReadDump::command(int narg, char **arg)
   domain->print_box("  ");
 
   if (me == 0)
-    utils::logmesg(lmp, fmt::format("  {} atoms before read\n",natoms_prev)
-                   + fmt::format("  {} atoms in snapshot\n",nsnap_all)
-                   + fmt::format("  {} atoms purged\n",npurge_all)
-                   + fmt::format("  {} atoms replaced\n",nreplace_all)
-                   + fmt::format("  {} atoms trimmed\n",ntrim_all)
-                   + fmt::format("  {} atoms added\n",nadd_all)
-                   + fmt::format("  {} atoms after read\n",atom->natoms));
+    utils::logmesg(lmp,"  {} atoms before read\n"
+                   "  {} atoms in snapshot\n"
+                   "  {} atoms purged\n"
+                   "  {} atoms replaced\n"
+                   "  {} atoms trimmed\n"
+                   "  {} atoms added\n"
+                   "  {} atoms after read\n",natoms_prev,nsnap_all,
+                   npurge_all,nreplace_all,ntrim_all,nadd_all,atom->natoms);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -182,9 +178,7 @@ void ReadDump::store_files(int nstr, char **str)
   // either all or none of files must have '%' wild-card
 
   for (int i = 0; i < nfile; i++) {
-    int n = strlen(str[i]) + 1;
-    files[i] = new char[n];
-    strcpy(files[i],str[i]);
+    files[i] = utils::strdup(str[i]);
 
     if (i == 0) {
       if (strchr(files[i],'%')) multiproc = 1;
@@ -231,24 +225,29 @@ void ReadDump::setup_reader(int narg, char **arg)
 
   readers = new Reader*[nreader];
   nsnapatoms = new bigint[nreader];
+  for (int i=0; i < nreader; ++i) {
+    readers[i] = nullptr;
+    nsnapatoms[i] = 0;
+  }
 
   // create Nreader reader classes per reader
   // match readerstyle to options in style_reader.h
 
-  if (0) return;        // dummy line to enable else-if macro expansion
+  if (0) {
+    return;        // dummy line to enable else-if macro expansion
 
 #define READER_CLASS
 #define ReaderStyle(key,Class) \
-  else if (strcmp(readerstyle,#key) == 0) { \
-    for (int i = 0; i < nreader; i++) \
+  } else if (strcmp(readerstyle,#key) == 0) { \
+    for (int i = 0; i < nreader; i++) { \
       readers[i] = new Class(lmp); \
-  }
+    }
 #include "style_reader.h"       // IWYU pragma: keep
 #undef READER_CLASS
 
   // unrecognized style
 
-  else error->all(FLERR,utils::check_packages_for_style("reader",readerstyle,lmp));
+  } else error->all(FLERR,utils::check_packages_for_style("reader",readerstyle,lmp));
 
   if (utils::strmatch(readerstyle,"^adios")) {
       // everyone is a reader with adios
@@ -822,9 +821,9 @@ void ReadDump::process_atoms()
 
   int nlocal = atom->nlocal;
   memory->create(updateflag,nlocal,"read_dump:updateflag");
-  for (int i = 0; i < nlocal; i++) updateflag[i] = 0;
+  for (i = 0; i < nlocal; i++) updateflag[i] = 0;
   memory->create(newflag,nnew,"read_dump:newflag");
-  for (int i = 0; i < nnew; i++) newflag[i] = 1;
+  for (i = 0; i < nnew; i++) newflag[i] = 1;
 
   // loop over new atoms
 
@@ -922,7 +921,7 @@ void ReadDump::process_atoms()
   if (trimflag) {
     AtomVec *avec = atom->avec;
 
-    int i = 0;
+    i = 0;
     while (i < nlocal) {
       if (!updateflag[i]) {
         avec->copy(nlocal-1,i,1);
@@ -1254,9 +1253,7 @@ int ReadDump::fields_and_keywords(int narg, char **arg)
       for (i = 0; i < nfield; i++)
         if (type == fieldtype[i]) break;
       if (i == nfield) error->all(FLERR,"Illegal read_dump command");
-      int n = strlen(arg[iarg+2]) + 1;
-      fieldlabel[i] = new char[n];
-      strcpy(fieldlabel[i],arg[iarg+2]);
+      fieldlabel[i] = utils::strdup(arg[iarg+2]);
       iarg += 3;
     } else if (strcmp(arg[iarg],"scaled") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_dump command");
@@ -1273,9 +1270,7 @@ int ReadDump::fields_and_keywords(int narg, char **arg)
     } else if (strcmp(arg[iarg],"format") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_dump command");
       delete [] readerstyle;
-      int n = strlen(arg[iarg+1]) + 1;
-      readerstyle = new char[n];
-      strcpy(readerstyle,arg[iarg+1]);
+      readerstyle = utils::strdup(arg[iarg+1]);
       iarg += 2;
       break;
     } else error->all(FLERR,"Illegal read_dump command");

@@ -26,6 +26,7 @@
 
 #include "nvd_device.h"
 #include <fstream>
+#include <cstdio>
 
 namespace ucl_cudadr {
 
@@ -77,7 +78,7 @@ class UCL_Program {
 
   /// Load a program from a string and compile with flags
   inline int load_string(const void *program, const char *flags="",
-                         std::string *log=nullptr) {
+                         std::string *log=nullptr, FILE* foutput=nullptr) {
     if (std::string(flags)=="BINARY")
       return load_binary((const char *)program);
     const unsigned int num_opts=2;
@@ -100,12 +101,22 @@ class UCL_Program {
 
     if (err != CUDA_SUCCESS) {
       #ifndef UCL_NO_EXIT
-      std::cerr << std::endl
+      std::cerr << std::endl << std::endl
                 << "----------------------------------------------------------\n"
                 << " UCL Error: Error compiling PTX Program...\n"
                 << "----------------------------------------------------------\n";
-      std::cerr << log << std::endl;
+      std::cerr << log << std::endl
+                << "----------------------------------------------------------\n\n";
       #endif
+      if (foutput != nullptr) {
+        fprintf(foutput,"\n\n");
+        fprintf(foutput, "----------------------------------------------------------\n");
+        fprintf(foutput, " UCL Error: Error compiling PTX Program...\n");
+        fprintf(foutput, "----------------------------------------------------------\n");
+        fprintf(foutput, "%s\n",log->c_str());
+        fprintf(foutput, "----------------------------------------------------------\n");
+        fprintf(foutput,"\n\n");
+      }
       return UCL_COMPILE_ERROR;
     }
 
@@ -139,11 +150,15 @@ class UCL_Program {
     return UCL_SUCCESS;
   }
 
+  /// Return the default command queue/stream associated with this data
+  inline command_queue & cq() { return _cq; }
+
   friend class UCL_Kernel;
  private:
   CUmodule _module;
   CUstream _cq;
   friend class UCL_Texture;
+  friend class UCL_Const;
 };
 
 /// Class for dealing with CUDA Driver kernels

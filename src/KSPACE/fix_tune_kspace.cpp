@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -151,10 +152,8 @@ void FixTuneKspace::pre_exchange()
   } else if (niter == 4) {
     store_old_kspace_settings();
     if (comm->me == 0)
-      utils::logmesg(lmp,fmt::format("ewald_time = {}\n"
-                                     "pppm_time = {}\n"
-                                     "msm_time = {}\n",
-                                     ewald_time, pppm_time, msm_time));
+      utils::logmesg(lmp,"ewald_time = {}\npppm_time = {}\nmsm_time = {}\n",
+                     ewald_time, pppm_time, msm_time);
     // switch to fastest one
     if (msm_time == 0.0) msm_time = 1.0e300;
     kspace_style = "ewald";
@@ -243,7 +242,7 @@ void FixTuneKspace::update_pair_style(const std::string &new_pair_style,
   force->pair->write_restart(p_pair_settings_file);
   rewind(p_pair_settings_file);
   if (comm->me == 0)
-    utils::logmesg(lmp,fmt::format("Creating new pair style: {}\n",new_pair_style));
+    utils::logmesg(lmp,"Creating new pair style: {}\n",new_pair_style);
 
   // delete old pair style and create new one
   force->create_pair(new_pair_style.c_str(),1);
@@ -254,8 +253,7 @@ void FixTuneKspace::update_pair_style(const std::string &new_pair_style,
   double *pcutoff = (double *) force->pair->extract("cut_coul",itmp);
   double current_cutoff = *pcutoff;
   if (comm->me == 0)
-    utils::logmesg(lmp,fmt::format("Coulomb cutoff for real space: {}\n",
-                                   current_cutoff));
+    utils::logmesg(lmp,"Coulomb cutoff for real space: {}\n",current_cutoff);
 
   // close temporary file
   fclose(p_pair_settings_file);
@@ -310,8 +308,7 @@ void FixTuneKspace::adjust_rcut(double time)
   double *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
   double current_cutoff = *p_cutoff;
   if (comm->me == 0)
-    utils::logmesg(lmp,fmt::format("Old Coulomb cutoff for real space: {}\n",
-                                   current_cutoff));
+    utils::logmesg(lmp,"Old Coulomb cutoff for real space: {}\n",current_cutoff);
 
   // use Brent's method from Numerical Recipes to find optimal real space cutoff
 
@@ -382,7 +379,7 @@ void FixTuneKspace::adjust_rcut(double time)
   double *new_cutoff = (double *) force->pair->extract("cut_coul",itmp);
   current_cutoff = *new_cutoff;
   if (comm->me == 0)
-    utils::logmesg(lmp,fmt::format("Adjusted Coulomb cutoff for real space: {}\n", current_cutoff));
+    utils::logmesg(lmp,"Adjusted Coulomb cutoff for real space: {}\n", current_cutoff);
 
   store_old_kspace_settings();
   update_pair_style(pair_style,pair_cut_coul);

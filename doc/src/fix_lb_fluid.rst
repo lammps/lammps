@@ -341,7 +341,7 @@ of this fix can be used with the *start/stop* keywords of the
 Restrictions
 """"""""""""
 
-This fix is part of the USER-LB package.  It is only enabled if LAMMPS
+This fix is part of the LATBOLTZ package.  It is only enabled if LAMMPS
 was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 This fix can only be used with an orthogonal simulation domain.

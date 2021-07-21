@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -39,12 +40,9 @@ RegIntersect::RegIntersect(LAMMPS *lmp, int narg, char **arg) :
   list = new int[n];
   nregion = 0;
 
-  int m,iregion;
   for (int iarg = 0; iarg < n; iarg++) {
-    m = strlen(arg[iarg+3]) + 1;
-    idsub[nregion] = new char[m];
-    strcpy(idsub[nregion],arg[iarg+3]);
-    iregion = domain->find_region(idsub[nregion]);
+    idsub[nregion] = utils::strdup(arg[iarg+3]);
+    int iregion = domain->find_region(idsub[nregion]);
     if (iregion == -1)
       error->all(FLERR,"Region intersect region ID does not exist");
     list[nregion++] = iregion;
@@ -123,9 +121,8 @@ void RegIntersect::init()
   // re-build list of sub-regions in case other regions were deleted
   // error if a sub-region was deleted
 
-  int iregion;
   for (int ilist = 0; ilist < nregion; ilist++) {
-    iregion = domain->find_region(idsub[ilist]);
+    int iregion = domain->find_region(idsub[ilist]);
     if (iregion == -1)
       error->all(FLERR,"Region union region ID does not exist");
     list[ilist] = iregion;
@@ -313,7 +310,7 @@ void RegIntersect::write_restart(FILE *fp)
   fwrite(style, 1, sizestyle, fp);
   fwrite(&nregion,sizeof(int),1,fp);
 
-  for (int ilist = 0; ilist < nregion; ilist++){
+  for (int ilist = 0; ilist < nregion; ilist++) {
     domain->regions[list[ilist]]->write_restart(fp);
   }
 }

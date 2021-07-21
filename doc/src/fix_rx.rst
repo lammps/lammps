@@ -90,10 +90,10 @@ accepted, *h* is increased by a proportional amount, and the next ODE step is be
 Otherwise, *h* is shrunk and the ODE step is repeated.
 
 Run-time diagnostics are available for the rkf45 ODE solver. The frequency
-(in time-steps) that diagnostics are reported is controlled by the last (optional)
+(in timesteps) that diagnostics are reported is controlled by the last (optional)
 12th argument. A negative frequency means that diagnostics are reported once at the
 end of each run. A positive value N means that the diagnostics are reported once
-per N time-steps.
+per N timesteps.
 
 The diagnostics report the average # of integrator steps and RHS function evaluations
 and run-time per ODE as well as the average/RMS/min/max per process. If the
@@ -206,7 +206,7 @@ read_data    data.dpd fix foo_SPECIES NULL Species
 Restrictions
 """"""""""""
 
-This command is part of the USER-DPD package.  It is only enabled if
+This command is part of the DPD-REACT package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 This command also requires use of the :doc:`atom_style dpd <atom_style>`

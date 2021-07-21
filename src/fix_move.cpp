@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,26 +13,28 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_move.h"
-#include <cstring>
-#include <cmath>
+
 #include "atom.h"
-#include "update.h"
-#include "modify.h"
-#include "force.h"
-#include "domain.h"
-#include "lattice.h"
-#include "comm.h"
-#include "respa.h"
-#include "input.h"
-#include "variable.h"
+#include "atom_vec_body.h"
 #include "atom_vec_ellipsoid.h"
 #include "atom_vec_line.h"
 #include "atom_vec_tri.h"
-#include "atom_vec_body.h"
+#include "comm.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
+#include "input.h"
+#include "lattice.h"
 #include "math_const.h"
 #include "math_extra.h"
 #include "memory.h"
-#include "error.h"
+#include "modify.h"
+#include "respa.h"
+#include "update.h"
+#include "variable.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -128,40 +131,28 @@ FixMove::FixMove(LAMMPS *lmp, int narg, char **arg) :
     iarg = 10;
     mstyle = VARIABLE;
     if (strcmp(arg[4],"NULL") == 0) xvarstr = nullptr;
-    else if (strstr(arg[4],"v_") == arg[4]) {
-      int n = strlen(&arg[4][2]) + 1;
-      xvarstr = new char[n];
-      strcpy(xvarstr,&arg[4][2]);
+    else if (utils::strmatch(arg[4],"^v_")) {
+      xvarstr = utils::strdup(arg[4]+2);
     } else error->all(FLERR,"Illegal fix move command");
     if (strcmp(arg[5],"NULL") == 0) yvarstr = nullptr;
-    else if (strstr(arg[5],"v_") == arg[5]) {
-      int n = strlen(&arg[5][2]) + 1;
-      yvarstr = new char[n];
-      strcpy(yvarstr,&arg[5][2]);
+    else if (utils::strmatch(arg[5],"^v_")) {
+      yvarstr = utils::strdup(arg[5]+2);
     } else error->all(FLERR,"Illegal fix move command");
     if (strcmp(arg[6],"NULL") == 0) zvarstr = nullptr;
-    else if (strstr(arg[6],"v_") == arg[6]) {
-      int n = strlen(&arg[6][2]) + 1;
-      zvarstr = new char[n];
-      strcpy(zvarstr,&arg[6][2]);
+    else if (utils::strmatch(arg[6],"^v_")) {
+      zvarstr = utils::strdup(arg[6]+2);
     } else error->all(FLERR,"Illegal fix move command");
     if (strcmp(arg[7],"NULL") == 0) vxvarstr = nullptr;
-    else if (strstr(arg[7],"v_") == arg[7]) {
-      int n = strlen(&arg[7][2]) + 1;
-      vxvarstr = new char[n];
-      strcpy(vxvarstr,&arg[7][2]);
+    else if (utils::strmatch(arg[7],"^v_")) {
+      vxvarstr = utils::strdup(arg[7]+2);
     } else error->all(FLERR,"Illegal fix move command");
     if (strcmp(arg[8],"NULL") == 0) vyvarstr = nullptr;
-    else if (strstr(arg[8],"v_") == arg[8]) {
-      int n = strlen(&arg[8][2]) + 1;
-      vyvarstr = new char[n];
-      strcpy(vyvarstr,&arg[8][2]);
+    else if (utils::strmatch(arg[8],"^v_")) {
+      vyvarstr = utils::strdup(arg[8]+2);
     } else error->all(FLERR,"Illegal fix move command");
     if (strcmp(arg[9],"NULL") == 0) vzvarstr = nullptr;
-    else if (strstr(arg[9],"v_") == arg[9]) {
-      int n = strlen(&arg[9][2]) + 1;
-      vzvarstr = new char[n];
-      strcpy(vzvarstr,&arg[9][2]);
+    else if (utils::strmatch(arg[9],"^v_")) {
+      vzvarstr = utils::strdup(arg[9]+2);
     } else error->all(FLERR,"Illegal fix move command");
 
   } else error->all(FLERR,"Illegal fix move command");
@@ -443,7 +434,7 @@ void FixMove::init()
   if (velocityflag) memory->create(velocity,maxatom,3,"move:velocity");
   else velocity = nullptr;
 
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 }
 
@@ -964,11 +955,11 @@ void FixMove::final_integrate_respa(int ilevel, int /*iloop*/)
 
 double FixMove::memory_usage()
 {
-  double bytes = atom->nmax*3 * sizeof(double);
-  if (theta_flag) bytes += atom->nmax * sizeof(double);
-  if (quat_flag) bytes += atom->nmax*4 * sizeof(double);
-  if (displaceflag) bytes += atom->nmax*3 * sizeof(double);
-  if (velocityflag) bytes += atom->nmax*3 * sizeof(double);
+  double bytes = (double)atom->nmax*3 * sizeof(double);
+  if (theta_flag) bytes += (double)atom->nmax * sizeof(double);
+  if (quat_flag) bytes += (double)atom->nmax*4 * sizeof(double);
+  if (displaceflag) bytes += (double)atom->nmax*3 * sizeof(double);
+  if (velocityflag) bytes += (double)atom->nmax*3 * sizeof(double);
   return bytes;
 }
 

@@ -146,11 +146,11 @@ int main(int argc, char* argv[]) {
   // Call a 'warmup' test with 1 repeat - this will initialize the corresponding
   // view appropriately for test and should obey first-touch etc Second call to
   // test is the one we actually care about and time
-  view_type_1d v_1(Kokkos::ViewAllocateWithoutInitializing("v_1"),
+  view_type_1d v_1(Kokkos::view_alloc(Kokkos::WithoutInitializing, "v_1"),
                    team_range * team_size);
-  view_type_2d v_2(Kokkos::ViewAllocateWithoutInitializing("v_2"),
+  view_type_2d v_2(Kokkos::view_alloc(Kokkos::WithoutInitializing, "v_2"),
                    team_range * team_size, thread_range);
-  view_type_3d v_3(Kokkos::ViewAllocateWithoutInitializing("v_3"),
+  view_type_3d v_3(Kokkos::view_alloc(Kokkos::WithoutInitializing, "v_3"),
                    team_range * team_size, thread_range, vector_range);
 
   double result_computed = 0.0;

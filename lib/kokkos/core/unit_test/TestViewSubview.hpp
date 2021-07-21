@@ -2133,6 +2133,51 @@ void test_unmanaged_subview_reset() {
 
 //----------------------------------------------------------------------------
 
+template <std::underlying_type_t<Kokkos::MemoryTraitsFlags> MTF>
+struct TestSubviewMemoryTraitsConstruction {
+  void operator()() const noexcept {
+    using view_type          = Kokkos::View<double*, Kokkos::HostSpace>;
+    using size_type          = view_type::size_type;
+    using memory_traits_type = Kokkos::MemoryTraits<MTF>;
+
+    view_type v("v", 7);
+    for (size_type i = 0; i != v.size(); ++i) v[i] = static_cast<double>(i);
+
+    std::pair<int, int> range(3, 5);
+    auto sv = Kokkos::subview<memory_traits_type>(v, range);
+
+    ASSERT_EQ(2u, sv.size());
+    EXPECT_EQ(3., sv[0]);
+    EXPECT_EQ(4., sv[1]);
+  }
+};
+
+inline void test_subview_memory_traits_construction() {
+  // Test all combinations of MemoryTraits:
+  // Unmanaged (1)
+  // RandomAccess (2)
+  // Atomic (4)
+  // Restricted (8)
+  TestSubviewMemoryTraitsConstruction<0>()();
+  TestSubviewMemoryTraitsConstruction<1>()();
+  TestSubviewMemoryTraitsConstruction<2>()();
+  TestSubviewMemoryTraitsConstruction<3>()();
+  TestSubviewMemoryTraitsConstruction<4>()();
+  TestSubviewMemoryTraitsConstruction<5>()();
+  TestSubviewMemoryTraitsConstruction<6>()();
+  TestSubviewMemoryTraitsConstruction<7>()();
+  TestSubviewMemoryTraitsConstruction<8>()();
+  TestSubviewMemoryTraitsConstruction<9>()();
+  TestSubviewMemoryTraitsConstruction<10>()();
+  TestSubviewMemoryTraitsConstruction<11>()();
+  TestSubviewMemoryTraitsConstruction<12>()();
+  TestSubviewMemoryTraitsConstruction<13>()();
+  TestSubviewMemoryTraitsConstruction<14>()();
+  TestSubviewMemoryTraitsConstruction<15>()();
+}
+
+//----------------------------------------------------------------------------
+
 template <class T>
 struct get_view_type;
 
@@ -2233,7 +2278,7 @@ struct TestSubviewStaticSizes {
            test_8 + test_9 + test_10 + test_11;
   }
 
-  TestSubviewStaticSizes() : a(Kokkos::view_alloc(), 20), b() {}
+  TestSubviewStaticSizes() : a(Kokkos::view_alloc("a"), 20), b("b") {}
 };
 
 template <class Space>

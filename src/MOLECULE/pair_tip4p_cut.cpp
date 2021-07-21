@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -264,7 +265,7 @@ void PairTIP4PCut::compute(int eflag, int vflag)
             f[iH2][1] += fH[1];
             f[iH2][2] += fH[2];
 
-            if(vflag) {
+            if (vflag) {
               xH1 = x[iH1];
               xH2 = x[iH2];
               v[0] = x[i][0]*fO[0] + xH1[0]*fH[0] + xH2[0]*fH[0];
@@ -550,8 +551,8 @@ void PairTIP4PCut::compute_newsite(double *xO,  double *xH1,
 
 double PairTIP4PCut::memory_usage()
 {
-  double bytes = maxeatom * sizeof(double);
-  bytes += maxvatom*6 * sizeof(double);
-  bytes += 2 * nmax * sizeof(double);
+  double bytes = (double)maxeatom * sizeof(double);
+  bytes += (double)maxvatom*6 * sizeof(double);
+  bytes += (double)2 * nmax * sizeof(double);
   return bytes;
 }

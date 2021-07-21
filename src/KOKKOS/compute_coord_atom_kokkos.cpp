@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -27,7 +28,6 @@
 
 using namespace LAMMPS_NS;
 
-#define INVOKED_PERATOM 8
 
 /* ---------------------------------------------------------------------- */
 
@@ -113,9 +113,9 @@ void ComputeCoordAtomKokkos<DeviceType>::compute_peratom()
   }
 
   if (cstyle == ORIENT) {
-    if (!(c_orientorder->invoked_flag & INVOKED_PERATOM)) {
+    if (!(c_orientorder->invoked_flag & Compute::INVOKED_PERATOM)) {
       c_orientorder->compute_peratom();
-      c_orientorder->invoked_flag |= INVOKED_PERATOM;
+      c_orientorder->invoked_flag |= Compute::INVOKED_PERATOM;
     }
     nqlist = c_orientorder->nqlist;
     normv = c_orientorder->array_atom;

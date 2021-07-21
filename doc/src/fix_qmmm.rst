@@ -54,7 +54,7 @@ fix is not invoked during :doc:`energy minimization <minimize>`.
 Restrictions
 """"""""""""
 
-This fix is part of the USER-QMMM package.  It is only enabled if
+This fix is part of the QMMM package.  It is only enabled if
 LAMMPS was built with that package. It also requires building a
 library provided with LAMMPS.  See the :doc:`Build package <Build_package>` doc page for more info.
 

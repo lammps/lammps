@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -39,12 +40,9 @@ idregion(nullptr), idvar(nullptr), idprop(nullptr)
   // dgroupbit = bitmask of dynamic group
   // group ID is last part of fix ID
 
-  int n = strlen(id) - strlen("GROUP_") + 1;
-  char *dgroup = new char[n];
-  strcpy(dgroup,&id[strlen("GROUP_")]);
-  gbit = group->bitmask[group->find(dgroup)];
-  gbitinverse = group->inversemask[group->find(dgroup)];
-  delete [] dgroup;
+  auto dgroupid = std::string(id).substr(strlen("GROUP_"));
+  gbit = group->bitmask[group->find(dgroupid)];
+  gbitinverse = group->inversemask[group->find(dgroupid)];
 
   // process optional args
 
@@ -61,9 +59,7 @@ idregion(nullptr), idvar(nullptr), idprop(nullptr)
         error->all(FLERR,"Region ID for group dynamic does not exist");
       regionflag = 1;
       delete [] idregion;
-      int n = strlen(arg[iarg+1]) + 1;
-      idregion = new char[n];
-      strcpy(idregion,arg[iarg+1]);
+      idregion = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"var") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal group command");
@@ -71,9 +67,7 @@ idregion(nullptr), idvar(nullptr), idprop(nullptr)
         error->all(FLERR,"Variable name for group dynamic does not exist");
       varflag = 1;
       delete [] idvar;
-      int n = strlen(arg[iarg+1]) + 1;
-      idvar = new char[n];
-      strcpy(idvar,arg[iarg+1]);
+      idvar = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"property") == 0) {
           if (iarg+2 > narg) error->all(FLERR,"Illegal group command");
@@ -81,9 +75,7 @@ idregion(nullptr), idvar(nullptr), idprop(nullptr)
         error->all(FLERR,"Per atom property for group dynamic does not exist");
       propflag = 1;
       delete [] idprop;
-      int n = strlen(arg[iarg+1]) + 1;
-      idprop = new char[n];
-      strcpy(idprop,arg[iarg+1]);
+      idprop = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"every") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal group command");
@@ -123,7 +115,7 @@ void FixGroup::init()
   if (group->dynamic[igroup])
     error->all(FLERR,"Group dynamic parent group cannot be dynamic");
 
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 
   // set current indices for region and variable

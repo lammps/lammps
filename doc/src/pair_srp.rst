@@ -49,7 +49,7 @@ acts between pairs of bonds. This potential is useful for preventing
 bonds from passing through one another when a soft non-bonded
 potential acts between beads in, for example, DPD polymer chains.  An
 example input script that uses this command is provided in
-examples/USER/srp.
+examples/PACKAGES/srp.
 
 Bonds of specified type *btype* interact with one another through a
 bond-pairwise potential, such that the force on bond *i* due to bond
@@ -124,7 +124,7 @@ at the cutoff distance :math:`r_c`.
 Mixing, shift, table, tail correction, restart, rRESPA info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-This pair styles does not support mixing.
+This pair style does not support mixing.
 
 This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift option for the energy of the pair interaction. Note that as

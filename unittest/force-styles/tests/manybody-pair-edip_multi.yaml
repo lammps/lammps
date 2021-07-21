@@ -1,7 +1,7 @@
 ---
-lammps_version: 24 Aug 2020
-date_generated: Tue Sep 15 09:44:29 202
-epsilon: 5e-14
+lammps_version: 10 Feb 2021
+date_generated: Fri Feb 26 23:09:15 2021
+epsilon: 7.5e-14
 prerequisites: ! |
   pair edip/multi
 pre_commands: ! |

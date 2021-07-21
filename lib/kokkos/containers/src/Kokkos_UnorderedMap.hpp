@@ -264,26 +264,24 @@ class UnorderedMap {
  private:
   enum : size_type { invalid_index = ~static_cast<size_type>(0) };
 
-  using impl_value_type =
-      typename Impl::if_c<is_set, int, declared_value_type>::type;
+  using impl_value_type = std::conditional_t<is_set, int, declared_value_type>;
 
-  using key_type_view = typename Impl::if_c<
+  using key_type_view = std::conditional_t<
       is_insertable_map, View<key_type *, device_type>,
-      View<const key_type *, device_type, MemoryTraits<RandomAccess> > >::type;
+      View<const key_type *, device_type, MemoryTraits<RandomAccess> > >;
 
-  using value_type_view =
-      typename Impl::if_c<is_insertable_map || is_modifiable_map,
-                          View<impl_value_type *, device_type>,
-                          View<const impl_value_type *, device_type,
-                               MemoryTraits<RandomAccess> > >::type;
+  using value_type_view = std::conditional_t<
+      is_insertable_map || is_modifiable_map,
+      View<impl_value_type *, device_type>,
+      View<const impl_value_type *, device_type, MemoryTraits<RandomAccess> > >;
 
-  using size_type_view = typename Impl::if_c<
+  using size_type_view = std::conditional_t<
       is_insertable_map, View<size_type *, device_type>,
-      View<const size_type *, device_type, MemoryTraits<RandomAccess> > >::type;
+      View<const size_type *, device_type, MemoryTraits<RandomAccess> > >;
 
   using bitset_type =
-      typename Impl::if_c<is_insertable_map, Bitset<execution_space>,
-                          ConstBitset<execution_space> >::type;
+      std::conditional_t<is_insertable_map, Bitset<execution_space>,
+                         ConstBitset<execution_space> >;
 
   enum { modified_idx = 0, erasable_idx = 1, failed_insert_idx = 2 };
   enum { num_scalars = 3 };
@@ -306,9 +304,9 @@ class UnorderedMap {
         m_equal_to(equal_to),
         m_size(),
         m_available_indexes(calculate_capacity(capacity_hint)),
-        m_hash_lists(ViewAllocateWithoutInitializing("UnorderedMap hash list"),
+        m_hash_lists(view_alloc(WithoutInitializing, "UnorderedMap hash list"),
                      Impl::find_hash_size(capacity())),
-        m_next_index(ViewAllocateWithoutInitializing("UnorderedMap next index"),
+        m_next_index(view_alloc(WithoutInitializing, "UnorderedMap next index"),
                      capacity() + 1)  // +1 so that the *_at functions can
                                       // always return a valid reference
         ,
@@ -540,7 +538,7 @@ class UnorderedMap {
           // Previously claimed an unused entry that was not inserted.
           // Release this unused entry immediately.
           if (!m_available_indexes.reset(new_index)) {
-            printf("Unable to free existing\n");
+            KOKKOS_IMPL_DO_NOT_USE_PRINTF("Unable to free existing\n");
           }
         }
 
@@ -656,8 +654,8 @@ class UnorderedMap {
   ///
   /// 'const value_type' via Cuda texture fetch must return by value.
   KOKKOS_FORCEINLINE_FUNCTION
-  typename Impl::if_c<(is_set || has_const_value), impl_value_type,
-                      impl_value_type &>::type
+  std::conditional_t<(is_set || has_const_value), impl_value_type,
+                     impl_value_type &>
   value_at(size_type i) const {
     return m_values[is_set ? 0 : (i < capacity() ? i : capacity())];
   }
@@ -729,16 +727,16 @@ class UnorderedMap {
       tmp.m_size              = src.size();
       tmp.m_available_indexes = bitset_type(src.capacity());
       tmp.m_hash_lists        = size_type_view(
-          ViewAllocateWithoutInitializing("UnorderedMap hash list"),
+          view_alloc(WithoutInitializing, "UnorderedMap hash list"),
           src.m_hash_lists.extent(0));
       tmp.m_next_index = size_type_view(
-          ViewAllocateWithoutInitializing("UnorderedMap next index"),
+          view_alloc(WithoutInitializing, "UnorderedMap next index"),
           src.m_next_index.extent(0));
       tmp.m_keys =
-          key_type_view(ViewAllocateWithoutInitializing("UnorderedMap keys"),
+          key_type_view(view_alloc(WithoutInitializing, "UnorderedMap keys"),
                         src.m_keys.extent(0));
       tmp.m_values = value_type_view(
-          ViewAllocateWithoutInitializing("UnorderedMap values"),
+          view_alloc(WithoutInitializing, "UnorderedMap values"),
           src.m_values.extent(0));
       tmp.m_scalars = scalars_view("UnorderedMap scalars");
 

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -53,6 +54,10 @@
 #include <cmath>
 #include <cstring>
 #include <map>
+
+#if !defined(_WIN32)
+#include <unistd.h>             // for isatty()
+#endif
 
 #include "lmpinstalledpkgs.h"
 #include "lmpgitversion.h"
@@ -129,13 +134,23 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
 
   init_pkg_lists();
 
-  // check if -mpi is first arg
+#if defined(LMP_PYTHON) && defined(_WIN32)
+  // if the LAMMPSHOME environment variable is set, it should point
+  // to the location of the LAMMPS installation tree where we bundle
+  // the matching Python installation for use with the PYTHON package.
+  // this is currently only used on Windows with the windows installer packages
+  const char *lmpenv = getenv("LAMMPSHOME");
+  if (lmpenv) {
+    _putenv(utils::strdup(fmt::format("PYTHONHOME={}",lmpenv)));
+  }
+#endif
+  // check if -mpicolor is first arg
   // if so, then 2 apps were launched with one mpirun command
   //   this means passed communicator (e.g. MPI_COMM_WORLD) is bigger than LAMMPS
   //     e.g. for client/server coupling with another code
   //     in the future LAMMPS might leverage this in other ways
   //   universe communicator needs to shrink to be just LAMMPS
-  // syntax: -mpi color
+  // syntax: -mpicolor color
   //   color = integer for this app, different than other app(s)
   // do the following:
   //   perform an MPI_Comm_split() to create a new LAMMPS-only subcomm
@@ -145,7 +160,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
   //   cscomm is used by CSLIB package to exchange messages w/ other app
 
   int iarg = 1;
-  if (narg-iarg >= 2 && (strcmp(arg[iarg],"-mpi") == 0 ||
+  if (narg-iarg >= 2 && (strcmp(arg[iarg],"-mpicolor") == 0 ||
                          strcmp(arg[iarg],"-m") == 0)) {
     int me,nprocs;
     MPI_Comm_rank(communicator,&me);
@@ -171,9 +186,12 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
   int restart2dump = 0;
   int restartremap = 0;
   int citeflag = 1;
+  int citescreen = CiteMe::TERSE;
+  int citelogfile = CiteMe::VERBOSE;
+  char *citefile = nullptr;
   int helpflag = 0;
 
-  suffix = suffix2 = nullptr;
+  suffix = suffix2 = suffixp = nullptr;
   suffix_enable = 0;
   if (arg) exename = arg[0];
   else exename = nullptr;
@@ -190,7 +208,35 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
   iarg = 1;
   while (iarg < narg) {
 
-    if (strcmp(arg[iarg],"-echo") == 0 ||
+    if (strcmp(arg[iarg],"-cite") == 0 ||
+               strcmp(arg[iarg],"-c") == 0) {
+      if (iarg+2 > narg)
+        error->universe_all(FLERR,"Invalid command-line argument");
+
+      if (strcmp(arg[iarg+1],"both") == 0) {
+        citescreen = CiteMe::VERBOSE;
+        citelogfile = CiteMe::VERBOSE;
+        citefile = nullptr;
+      } else if (strcmp(arg[iarg+1],"none") == 0) {
+        citescreen = CiteMe::TERSE;
+        citelogfile = CiteMe::TERSE;
+        citefile = nullptr;
+      } else if (strcmp(arg[iarg+1],"screen") == 0) {
+        citescreen = CiteMe::VERBOSE;
+        citelogfile = CiteMe::TERSE;
+        citefile = nullptr;
+      } else if (strcmp(arg[iarg+1],"log") == 0) {
+        citescreen = CiteMe::TERSE;
+        citelogfile = CiteMe::VERBOSE;
+        citefile = nullptr;
+      } else {
+        citescreen = CiteMe::TERSE;
+        citelogfile = CiteMe::TERSE;
+        citefile = arg[iarg+1];
+      }
+      iarg += 2;
+
+    } else if (strcmp(arg[iarg],"-echo") == 0 ||
                strcmp(arg[iarg],"-e") == 0) {
       if (iarg+2 > narg)
         error->universe_all(FLERR,"Invalid command-line argument");
@@ -456,10 +502,11 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
 
     if (universe->me == 0) {
       if (inflag == 0) infile = stdin;
+      else if (strcmp(arg[inflag], "none") == 0) infile = stdin;
       else infile = fopen(arg[inflag],"r");
       if (infile == nullptr)
-        error->one(FLERR,fmt::format("Cannot open input script {}: {}",
-                                     arg[inflag], utils::getsyserror()));
+        error->one(FLERR,"Cannot open input script {}: {}",
+                                     arg[inflag], utils::getsyserror());
     }
 
     if ((universe->me == 0) && !helpflag)
@@ -483,16 +530,16 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
           str = fmt::format("screen.{}",universe->iworld);
           screen = fopen(str.c_str(),"w");
           if (screen == nullptr)
-            error->one(FLERR,fmt::format("Cannot open screen file {}: {}",
-                                         str,utils::getsyserror()));
+            error->one(FLERR,"Cannot open screen file {}: {}",
+                                         str,utils::getsyserror());
         } else if (strcmp(arg[screenflag],"none") == 0) {
           screen = nullptr;
         } else {
           str = fmt::format("{}.{}",arg[screenflag],universe->iworld);
           screen = fopen(str.c_str(),"w");
           if (screen == nullptr)
-            error->one(FLERR,fmt::format("Cannot open screen file {}: {}",
-                                         arg[screenflag],utils::getsyserror()));
+            error->one(FLERR,"Cannot open screen file {}: {}",
+                                         arg[screenflag],utils::getsyserror());
         }
       } else if (strcmp(arg[partscreenflag],"none") == 0) {
         screen = nullptr;
@@ -500,8 +547,8 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
         str = fmt::format("{}.{}",arg[partscreenflag],universe->iworld);
         screen = fopen(str.c_str(),"w");
         if (screen == nullptr)
-          error->one(FLERR,fmt::format("Cannot open screen file {}: {}",
-                                       str,utils::getsyserror()));
+          error->one(FLERR,"Cannot open screen file {}: {}",
+                                       str,utils::getsyserror());
       }
 
       if (partlogflag == 0) {
@@ -509,16 +556,16 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
           str = fmt::format("log.lammps.{}",universe->iworld);
           logfile = fopen(str.c_str(),"w");
           if (logfile == nullptr)
-            error->one(FLERR,fmt::format("Cannot open logfile {}: {}",
-                                         str, utils::getsyserror()));
+            error->one(FLERR,"Cannot open logfile {}: {}",
+                                         str, utils::getsyserror());
         } else if (strcmp(arg[logflag],"none") == 0) {
           logfile = nullptr;
         } else {
           str = fmt::format("{}.{}",arg[logflag],universe->iworld);
           logfile = fopen(str.c_str(),"w");
           if (logfile == nullptr)
-            error->one(FLERR,fmt::format("Cannot open logfile {}: {}",
-                                         str, utils::getsyserror()));
+            error->one(FLERR,"Cannot open logfile {}: {}",
+                                         str, utils::getsyserror());
         }
       } else if (strcmp(arg[partlogflag],"none") == 0) {
         logfile = nullptr;
@@ -526,14 +573,16 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
         str = fmt::format("{}.{}",arg[partlogflag],universe->iworld);
         logfile = fopen(str.c_str(),"w");
         if (logfile == nullptr)
-          error->one(FLERR,fmt::format("Cannot open logfile {}: {}",
-                                       str, utils::getsyserror()));
+          error->one(FLERR,"Cannot open logfile {}: {}",
+                                       str, utils::getsyserror());
       }
 
-      infile = fopen(arg[inflag],"r");
-      if (infile == nullptr)
-        error->one(FLERR,fmt::format("Cannot open input script {}: {}",
-                                     arg[inflag], utils::getsyserror()));
+      if (strcmp(arg[inflag], "none") != 0) {
+        infile = fopen(arg[inflag],"r");
+        if (infile == nullptr)
+          error->one(FLERR,"Cannot open input script {}: {}",
+                                       arg[inflag], utils::getsyserror());
+      }
     }
 
     // screen and logfile messages for universe and world
@@ -602,7 +651,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
 
   // allocate CiteMe class if enabled
 
-  if (citeflag) citeme = new CiteMe(this);
+  if (citeflag) citeme = new CiteMe(this,citescreen,citelogfile,citefile);
   else citeme = nullptr;
 
   // allocate input class now that MPI is fully setup
@@ -666,8 +715,8 @@ LAMMPS::~LAMMPS()
 {
   const int me = comm->me;
 
-  destroy();
   delete citeme;
+  destroy();
 
   if (num_package) {
     for (int i = 0; i < num_package; i++) {
@@ -711,6 +760,7 @@ LAMMPS::~LAMMPS()
   delete kokkos;
   delete [] suffix;
   delete [] suffix2;
+  delete [] suffixp;
 
   // free the MPI comm created by -mpi command-line arg processed in constructor
   // it was passed to universe as if original universe world
@@ -793,26 +843,26 @@ void LAMMPS::post_create()
 
   // suffix will always be set if suffix_enable = 1
   // check that KOKKOS package classes were instantiated
-  // check that GPU, INTEL, USER-OMP fixes were compiled with LAMMPS
+  // check that GPU, INTEL, OPENMP fixes were compiled with LAMMPS
 
   if (suffix_enable) {
 
     if (strcmp(suffix,"gpu") == 0 && !modify->check_package("GPU"))
       error->all(FLERR,"Using suffix gpu without GPU package installed");
     if (strcmp(suffix,"intel") == 0 && !modify->check_package("INTEL"))
-      error->all(FLERR,"Using suffix intel without USER-INTEL package installed");
+      error->all(FLERR,"Using suffix intel without INTEL package installed");
     if (strcmp(suffix,"kk") == 0 &&
         (kokkos == nullptr || kokkos->kokkos_exists == 0))
       error->all(FLERR,"Using suffix kk without KOKKOS package enabled");
     if (strcmp(suffix,"omp") == 0 && !modify->check_package("OMP"))
-      error->all(FLERR,"Using suffix omp without USER-OMP package installed");
+      error->all(FLERR,"Using suffix omp without OPENMP package installed");
 
-    if (strcmp(suffix,"gpu") == 0) input->one("package gpu 1");
+    if (strcmp(suffix,"gpu") == 0) input->one("package gpu 0");
     if (strcmp(suffix,"intel") == 0) input->one("package intel 1");
     if (strcmp(suffix,"omp") == 0) input->one("package omp 0");
 
     if (suffix2) {
-      if (strcmp(suffix2,"gpu") == 0) input->one("package gpu 1");
+      if (strcmp(suffix2,"gpu") == 0) input->one("package gpu 0");
       if (strcmp(suffix2,"intel") == 0) input->one("package intel 1");
       if (strcmp(suffix2,"omp") == 0) input->one("package omp 0");
     }
@@ -1068,12 +1118,24 @@ void _noopt LAMMPS::help()
   FILE *fp = screen;
   const char *pager = nullptr;
 
-  // if output is "stdout", use a pipe to a pager for paged output.
+  // if output is a console, use a pipe to a pager for paged output.
   // this will avoid the most important help text to rush past the
   // user. scrollback buffers are often not large enough. this is most
   // beneficial to windows users, who are not used to command line.
 
-  if (fp == stdout) {
+#if defined(_WIN32)
+  int use_pager = _isatty(fileno(fp));
+#else
+  int use_pager = isatty(fileno(fp));
+#endif
+
+  // cannot use this with OpenMPI since its console is non-functional
+
+#if defined(OPEN_MPI)
+  use_pager = 0;
+#endif
+
+  if (use_pager) {
     pager = getenv("PAGER");
     if (pager == nullptr) pager = "more";
 #if defined(_WIN32)
@@ -1084,7 +1146,7 @@ void _noopt LAMMPS::help()
 
     // reset to original state, if pipe command failed
     if (fp == nullptr) {
-      fp = stdout;
+      fp = screen;
       pager = nullptr;
     }
   }
@@ -1103,11 +1165,13 @@ void _noopt LAMMPS::help()
           "List of command line options supported by this LAMMPS executable:\n\n"
           "-echo none/screen/log/both  : echoing of input script (-e)\n"
           "-help                       : print this help message (-h)\n"
-          "-in filename                : read input from file, not stdin (-i)\n"
+          "-in none/filename           : read input from file or stdin (default) (-i)\n"
           "-kokkos on/off ...          : turn KOKKOS mode on or off (-k)\n"
           "-log none/filename          : where to send log output (-l)\n"
+          "-mdi '<mdi flags>'          : pass flags to the MolSSI Driver Interface\n"
           "-mpicolor color             : which exe in a multi-exe mpirun cmd (-m)\n"
-          "-nocite                     : disable writing log.cite file (-nc)\n"
+          "-cite                       : select citation reminder style (-c)\n"
+          "-nocite                     : disable citation reminder (-nc)\n"
           "-package style ...          : invoke package command (-pk)\n"
           "-partition size1 size2 ...  : assign partition sizes (-p)\n"
           "-plog basename              : basename for partition logs (-pl)\n"
@@ -1289,6 +1353,10 @@ void LAMMPS::print_config(FILE *fp)
   int major,minor;
   std::string infobuf = Info::get_mpi_info(major,minor);
   fmt::print(fp,"MPI v{}.{}: {}\n\n",major,minor,infobuf);
+
+  fmt::print(fp,"Accelerator configuration:\n\n{}\n",
+             Info::get_accelerator_info());
+  fmt::print(fp,"GPU present: {}\n\n",Info::has_gpu_device() ? "yes" : "no");
 
   fputs("Active compile time flags:\n\n",fp);
   if (Info::has_gzip_support()) fputs("-DLAMMPS_GZIP\n",fp);

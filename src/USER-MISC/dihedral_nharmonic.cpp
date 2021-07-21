@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -38,6 +39,7 @@ using namespace LAMMPS_NS;
 DihedralNHarmonic::DihedralNHarmonic(LAMMPS *lmp) : Dihedral(lmp)
 {
   writedata = 1;
+  a = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -47,7 +49,7 @@ DihedralNHarmonic::~DihedralNHarmonic()
   if (allocated) {
     memory->destroy(setflag);
     for (int i = 1; i <= atom->ndihedraltypes; i++)
-      if ( a[i] ) delete [] a[i];
+      delete [] a[i];
     delete [] a;
     delete [] nterms;
   }
@@ -152,27 +154,8 @@ void DihedralNHarmonic::compute(int eflag, int vflag)
 
     // error check
 
-    if (c > 1.0 + TOLERANCE || c < (-1.0 - TOLERANCE)) {
-      int me;
-      MPI_Comm_rank(world,&me);
-      if (screen) {
-        char str[128];
-        sprintf(str,"Dihedral problem: %d " BIGINT_FORMAT " "
-                TAGINT_FORMAT " " TAGINT_FORMAT " "
-                TAGINT_FORMAT " " TAGINT_FORMAT,
-                me,update->ntimestep,
-                atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
-        error->warning(FLERR,str,0);
-        fprintf(screen,"  1st atom: %d %g %g %g\n",
-                me,x[i1][0],x[i1][1],x[i1][2]);
-        fprintf(screen,"  2nd atom: %d %g %g %g\n",
-                me,x[i2][0],x[i2][1],x[i2][2]);
-        fprintf(screen,"  3rd atom: %d %g %g %g\n",
-                me,x[i3][0],x[i3][1],x[i3][2]);
-        fprintf(screen,"  4th atom: %d %g %g %g\n",
-                me,x[i4][0],x[i4][1],x[i4][2]);
-      }
-    }
+    if (c > 1.0 + TOLERANCE || c < (-1.0 - TOLERANCE))
+      problem(FLERR, i1, i2, i3, i4);
 
     if (c > 1.0) c = 1.0;
     if (c < -1.0) c = -1.0;
@@ -181,15 +164,14 @@ void DihedralNHarmonic::compute(int eflag, int vflag)
     // p = sum (i=1,n) a_i * c**(i-1)
     // pd = dp/dc
 
-    c_ = c;
-    p = this->a[type][0];
-    pd = this->a[type][1];
-    for (int i = 1; i < nterms[type]-1; i++) {
-      p += c_ * this->a[type][i];
-      pd += c_ * static_cast<double>(i+1) * this->a[type][i+1];
+    c_ = 1.0;
+    p = a[type][0];
+    pd = 0.0;
+    for (int i = 1; i < nterms[type]; i++) {
+      pd += c_ * i * a[type][i];
       c_ *= c;
+      p += c_ * a[type][i];
     }
-    p += c_ * this->a[type][nterms[type]-1];
 
     if (eflag) edihedral = p;
 
@@ -263,7 +245,7 @@ void DihedralNHarmonic::allocate()
 
   nterms = new int[n+1];
   a = new double *[n+1];
-  for (int i = 1; i <= n; i++) a[i] = 0;
+  for (int i = 1; i <= n; i++) a[i] = nullptr;
 
   memory->create(setflag,n+1,"dihedral:setflag");
   for (int i = 1; i <= n; i++) setflag[i] = 0;
@@ -275,7 +257,7 @@ void DihedralNHarmonic::allocate()
 
 void DihedralNHarmonic::coeff(int narg, char **arg)
 {
-  if (narg < 4 ) error->all(FLERR,"Incorrect args for dihedral coefficients");
+  if (narg < 3) error->all(FLERR,"Incorrect args for dihedral coefficients");
 
   int n = utils::inumeric(FLERR,arg[1],false,lmp);
   if (narg != n + 2)
@@ -288,9 +270,10 @@ void DihedralNHarmonic::coeff(int narg, char **arg)
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
+    delete[] a[i];
     a[i] = new double [n];
     nterms[i] = n;
-    for (int j = 0; j < n; j++ ) {
+    for (int j = 0; j < n; j++) {
       a[i][j] = utils::numeric(FLERR,arg[2+j],false,lmp);
       setflag[i] = 1;
     }
@@ -307,7 +290,7 @@ void DihedralNHarmonic::coeff(int narg, char **arg)
 void DihedralNHarmonic::write_restart(FILE *fp)
 {
   fwrite(&nterms[1],sizeof(int),atom->ndihedraltypes,fp);
-  for(int i = 1; i <= atom->ndihedraltypes; i++)
+  for (int i = 1; i <= atom->ndihedraltypes; i++)
     fwrite(a[i],sizeof(double),nterms[i],fp);
 }
 
@@ -325,11 +308,11 @@ void DihedralNHarmonic::read_restart(FILE *fp)
   MPI_Bcast(&nterms[1],atom->ndihedraltypes,MPI_INT,0,world);
 
   // allocate
-  for(int i = 1; i <= atom->ndihedraltypes; i++)
+  for (int i = 1; i <= atom->ndihedraltypes; i++)
     a[i] = new double [nterms[i]];
 
   if (comm->me == 0) {
-    for(int i = 1; i <= atom->ndihedraltypes; i++)
+    for (int i = 1; i <= atom->ndihedraltypes; i++)
       utils::sfread(FLERR,a[i],sizeof(double),nterms[i],fp,nullptr,error);
   }
 

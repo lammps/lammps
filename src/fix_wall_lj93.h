@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(wall/lj93,FixWallLJ93)
-
+// clang-format off
+FixStyle(wall/lj93,FixWallLJ93);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_WALL_LJ93_H
@@ -31,10 +31,10 @@ class FixWallLJ93 : public FixWall {
   virtual void wall_particle(int, int, double);
 
  protected:
-  double coeff1[6],coeff2[6],coeff3[6],coeff4[6],offset[6];
+  double coeff1[6], coeff2[6], coeff3[6], coeff4[6], offset[6];
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

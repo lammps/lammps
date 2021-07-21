@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -40,25 +40,51 @@ using namespace LAMMPS_NS;
  * \param  filename  Name of file to be read
  * \param  filetype  Description of file type for error messages */
 
-TextFileReader::TextFileReader(const std::string &filename, const std::string &filetype)
-  : filename(filename), filetype(filetype), ignore_comments(true)
+TextFileReader::TextFileReader(const std::string &filename, const std::string &filetype) :
+    filetype(filetype), closefp(true), ignore_comments(true)
 {
   fp = fopen(filename.c_str(), "r");
 
   if (fp == nullptr) {
-    throw FileReaderException(fmt::format("cannot open {} file {}", filetype, filename));
+    throw FileReaderException(
+        fmt::format("cannot open {} file {}: {}", filetype, filename, utils::getsyserror()));
   }
+}
+
+/**
+ * \overload
+ *
+\verbatim embed:rst
+
+This function is useful in combination with :cpp:func:`utils::open_potential`.
+
+.. note::
+
+   The FILE pointer is not closed in the destructor, but will be advanced
+   when reading from it.
+
+\endverbatim
+ *
+ * \param  fp        File descriptor of the already opened file
+ * \param  filetype  Description of file type for error messages */
+
+TextFileReader::TextFileReader(FILE *fp, const std::string &filetype) :
+    filetype(filetype), closefp(false), fp(fp), ignore_comments(true)
+{
+  if (fp == nullptr) throw FileReaderException("Invalid file descriptor");
 }
 
 /** Closes the file */
 
-TextFileReader::~TextFileReader() {
-  fclose(fp);
+TextFileReader::~TextFileReader()
+{
+  if (closefp) fclose(fp);
 }
 
 /** Read the next line and ignore it */
 
-void TextFileReader::skip_line() {
+void TextFileReader::skip_line()
+{
   char *ptr = fgets(line, MAXLINE, fp);
   if (ptr == nullptr) {
     // EOF
@@ -80,7 +106,8 @@ void TextFileReader::skip_line() {
  * \param   nparams  Number of words that must be read. Default: 0
  * \return           String with the concatenated text */
 
-char *TextFileReader::next_line(int nparams) {
+char *TextFileReader::next_line(int nparams)
+{
   // concatenate lines until have nparams words
   int n = 0;
   int nwords = 0;
@@ -96,18 +123,16 @@ char *TextFileReader::next_line(int nparams) {
   if (ignore_comments && (ptr = strchr(line, '#'))) *ptr = '\0';
 
   nwords = utils::count_words(line);
+  if (nwords > 0) n = strlen(line);
 
-  if (nwords > 0) {
-    n = strlen(line);
-  }
-
-  while(nwords == 0 || nwords < nparams) {
-    char *ptr = fgets(&line[n], MAXLINE - n, fp);
+  while (nwords == 0 || nwords < nparams) {
+    ptr = fgets(&line[n], MAXLINE - n, fp);
 
     if (ptr == nullptr) {
       // EOF
       if (nwords > 0 && nwords < nparams) {
-        throw EOFException(fmt::format("Incorrect format in {} file! {}/{} parameters", filetype, nwords, nparams));
+        throw EOFException(fmt::format("Incorrect format in {} file! {}/{} parameters", filetype,
+                                       nwords, nparams));
       }
       return nullptr;
     }
@@ -118,9 +143,7 @@ char *TextFileReader::next_line(int nparams) {
     nwords += utils::count_words(&line[n]);
 
     // skip line if blank
-    if (nwords > 0) {
-      n = strlen(line);
-    }
+    if (nwords > 0) { n = strlen(line); }
   }
 
   return line;
@@ -135,7 +158,8 @@ char *TextFileReader::next_line(int nparams) {
  * \param  list  Pointer to array with suitable storage for *n* doubles
  * \param  n     Number of doubles to be read */
 
-void TextFileReader::next_dvector(double * list, int n) {
+void TextFileReader::next_dvector(double *list, int n)
+{
   int i = 0;
   while (i < n) {
     char *ptr = next_line();
@@ -143,14 +167,13 @@ void TextFileReader::next_dvector(double * list, int n) {
     if (ptr == nullptr) {
       // EOF
       if (i < n) {
-        throw FileReaderException(fmt::format("Incorrect format in {} file! {}/{} values", filetype, i, n));
+        throw FileReaderException(
+            fmt::format("Incorrect format in {} file! {}/{} values", filetype, i, n));
       }
     }
 
     ValueTokenizer values(line);
-    while(values.has_next()) {
-      list[i++] = values.next_double();
-    }
+    while (values.has_next()) { list[i++] = values.next_double(); }
   }
 }
 
@@ -164,6 +187,9 @@ void TextFileReader::next_dvector(double * list, int n) {
  * \param   separators  String with list of separators.
  * \return              ValueTokenizer object for read in text */
 
-ValueTokenizer TextFileReader::next_values(int nparams, const std::string & separators) {
-  return ValueTokenizer(next_line(nparams), separators);
+ValueTokenizer TextFileReader::next_values(int nparams, const std::string &separators)
+{
+  char *ptr = next_line(nparams);
+  if (ptr == nullptr) throw EOFException(fmt::format("Missing line in {} file!", filetype));
+  return ValueTokenizer(line, separators);
 }

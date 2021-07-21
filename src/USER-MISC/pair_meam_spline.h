@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(meam/spline,PairMEAMSpline)
-
+// clang-format off
+PairStyle(meam/spline,PairMEAMSpline);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_MEAM_SPLINE_H
@@ -37,28 +37,27 @@ namespace LAMMPS_NS {
 
 #define SPLINE_MEAM_SUPPORT_NON_GRID_SPLINES 0
 
-class PairMEAMSpline : public Pair
-{
-public:
+class PairMEAMSpline : public Pair {
+ public:
   PairMEAMSpline(class LAMMPS *);
   virtual ~PairMEAMSpline();
   virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
   void get_coeff(double *, double *);
-  double pair_density(int );
-  double three_body_density(int );
+  double pair_density(int);
+  double three_body_density(int);
   void init_style();
   void init_list(int, class NeighList *);
   double init_one(int, int);
 
   // helper functions for compute()
 
-  int ij_to_potl(const int itype, const int jtype, const int ntypes) const {
-    return  jtype - 1 + (itype-1)*ntypes - (itype-1)*itype/2;
+  int ij_to_potl(const int itype, const int jtype, const int ntypes) const
+  {
+    return jtype - 1 + (itype - 1) * ntypes - (itype - 1) * itype / 2;
   }
-  int i_to_potl(const int itype) const { return itype-1; }
-
+  int i_to_potl(const int itype) const { return itype - 1; }
 
   int pack_forward_comm(int, int *, double *, int, int *);
   void unpack_forward_comm(int, int, double *);
@@ -66,18 +65,15 @@ public:
   void unpack_reverse_comm(int, int *, double *);
   double memory_usage();
 
-protected:
-  char **elements;              // names of unique elements
-  int *map;                     // mapping from atom types to elements
-  int nelements;                // # of unique elements
-
+ protected:
   class SplineFunction {
-  public:
+   public:
     /// Default constructor.
     SplineFunction() : X(nullptr), Xs(nullptr), Y(nullptr), Y2(nullptr), Ydelta(nullptr), N(0) {}
 
     /// Destructor.
-    ~SplineFunction() {
+    ~SplineFunction()
+    {
       delete[] X;
       delete[] Xs;
       delete[] Y;
@@ -86,7 +82,8 @@ protected:
     }
 
     /// Initialization of spline function.
-    void init(int _N, double _deriv0, double _derivN) {
+    void init(int _N, double _deriv0, double _derivN)
+    {
       N = _N;
       deriv0 = _deriv0;
       derivN = _derivN;
@@ -103,97 +100,98 @@ protected:
     }
 
     /// Adds a knot to the spline.
-    void setKnot(int n, double x, double y) { X[n] = x; Y[n] = y; }
+    void setKnot(int n, double x, double y)
+    {
+      X[n] = x;
+      Y[n] = y;
+    }
 
     /// Returns the number of knots.
     int numKnots() const { return N; }
 
     /// Parses the spline knots from a text file.
-    void parse(FILE* fp, Error* error, bool isNewFormat);
+    void parse(FILE *fp, Error *error, bool isNewFormat);
 
     /// Calculates the second derivatives of the cubic spline.
-    void prepareSpline(Error* error);
+    void prepareSpline(Error *error);
 
     /// Evaluates the spline function at position x.
     inline double eval(double x) const
     {
       x -= xmin;
-      if(x <= 0.0) {  // Left extrapolation.
+      if (x <= 0.0) {    // Left extrapolation.
         return Y[0] + deriv0 * x;
-      }
-      else if(x >= xmax_shifted) {  // Right extrapolation.
-        return Y[N-1] + derivN * (x - xmax_shifted);
-      }
-      else {
+      } else if (x >= xmax_shifted) {    // Right extrapolation.
+        return Y[N - 1] + derivN * (x - xmax_shifted);
+      } else {
 #if SPLINE_MEAM_SUPPORT_NON_GRID_SPLINES
         // Do interval search.
         int klo = 0;
-        int khi = N-1;
-        while(khi - klo > 1) {
+        int khi = N - 1;
+        while (khi - klo > 1) {
           int k = (khi + klo) / 2;
-          if(Xs[k] > x) khi = k;
-          else klo = k;
+          if (Xs[k] > x)
+            khi = k;
+          else
+            klo = k;
         }
         double h = Xs[khi] - Xs[klo];
         // Do spline interpolation.
-        double a = (Xs[khi] - x)/h;
-        double b = 1.0 - a; // = (x - X[klo])/h
+        double a = (Xs[khi] - x) / h;
+        double b = 1.0 - a;    // = (x - X[klo])/h
         return a * Y[klo] + b * Y[khi] +
-          ((a*a*a - a) * Y2[klo] + (b*b*b - b) * Y2[khi])*(h*h)/6.0;
+            ((a * a * a - a) * Y2[klo] + (b * b * b - b) * Y2[khi]) * (h * h) / 6.0;
 #else
         // For a spline with regular grid, we directly calculate the interval X is in.
-        int klo = (int)(x*inv_h);
+        int klo = (int) (x * inv_h);
         int khi = klo + 1;
         double a = Xs[khi] - x;
         double b = h - a;
         return Y[khi] - a * Ydelta[klo] +
-          ((a*a - hsq) * a * Y2[klo] + (b*b - hsq) * b * Y2[khi]);
+            ((a * a - hsq) * a * Y2[klo] + (b * b - hsq) * b * Y2[khi]);
 #endif
       }
     }
 
     /// Evaluates the spline function and its first derivative at position x.
-    inline double eval(double x, double& deriv) const
+    inline double eval(double x, double &deriv) const
     {
       x -= xmin;
-      if(x <= 0.0) {  // Left extrapolation.
+      if (x <= 0.0) {    // Left extrapolation.
         deriv = deriv0;
         return Y[0] + deriv0 * x;
-      }
-      else if(x >= xmax_shifted) {  // Right extrapolation.
+      } else if (x >= xmax_shifted) {    // Right extrapolation.
         deriv = derivN;
-        return Y[N-1] + derivN * (x - xmax_shifted);
-      }
-      else {
+        return Y[N - 1] + derivN * (x - xmax_shifted);
+      } else {
 #if SPLINE_MEAM_SUPPORT_NON_GRID_SPLINES
         // Do interval search.
         int klo = 0;
-        int khi = N-1;
-        while(khi - klo > 1) {
+        int khi = N - 1;
+        while (khi - klo > 1) {
           int k = (khi + klo) / 2;
-          if(Xs[k] > x) khi = k;
-          else klo = k;
+          if (Xs[k] > x)
+            khi = k;
+          else
+            klo = k;
         }
         double h = Xs[khi] - Xs[klo];
         // Do spline interpolation.
-        double a = (Xs[khi] - x)/h;
-        double b = 1.0 - a; // = (x - X[klo])/h
+        double a = (Xs[khi] - x) / h;
+        double b = 1.0 - a;    // = (x - X[klo])/h
         deriv = (Y[khi] - Y[klo]) / h +
-          ((3.0*b*b - 1.0) * Y2[khi] -
-           (3.0*a*a - 1.0) * Y2[klo]) * h / 6.0;
+            ((3.0 * b * b - 1.0) * Y2[khi] - (3.0 * a * a - 1.0) * Y2[klo]) * h / 6.0;
         return a * Y[klo] + b * Y[khi] +
-          ((a*a*a - a) * Y2[klo] +
-           (b*b*b - b) * Y2[khi]) * (h*h) / 6.0;
+            ((a * a * a - a) * Y2[klo] + (b * b * b - b) * Y2[khi]) * (h * h) / 6.0;
 #else
         // For a spline with regular grid, we directly calculate the interval X is in.
-        int klo = (int)(x*inv_h);
+        int klo = (int) (x * inv_h);
         int khi = klo + 1;
         double a = Xs[khi] - x;
         double b = h - a;
-        deriv = Ydelta[klo] + ((3.0*b*b - hsq) * Y2[khi]
-                               - (3.0*a*a - hsq) * Y2[klo]);
+        deriv = Ydelta[klo] + ((3.0 * b * b - hsq) * Y2[khi] - (3.0 * a * a - hsq) * Y2[klo]);
         return Y[khi] - a * Ydelta[klo] +
-          ((a*a - hsq) * a * Y2[klo] + (b*b - hsq) * b * Y2[khi]);
+            ((a * a - hsq) * a * Y2[klo] + (b * b - hsq) * b * Y2[khi]);
 #endif
       }
     }
@@ -202,60 +200,63 @@ protected:
     double memory_usage() const { return sizeof(*this) + sizeof(X[0]) * N * 3; }
 
     /// Returns the cutoff radius of this function.
-    double cutoff() const { return X[N-1]; }
+    double cutoff() const { return X[N - 1]; }
 
     /// Writes a Gnuplot script that plots the spline function.
-    void writeGnuplot(const char* filename, const char* title = nullptr) const;
+    void writeGnuplot(const char *filename, const char *title = nullptr) const;
 
     /// Broadcasts the spline function parameters to all processors.
-    void communicate(MPI_Comm& world, int me);
+    void communicate(MPI_Comm &world, int me);
 
-  private:
-    double* X;       // Positions of spline knots
-    double* Xs;      // Shifted positions of spline knots
-    double* Y;       // Function values at spline knots
-    double* Y2;      // Second derivatives at spline knots
-    double* Ydelta;  // If this is a grid spline, Ydelta[i] = (Y[i+1]-Y[i])/h
-    int N;           // Number of spline knots
-    double deriv0;   // First derivative at knot 0
-    double derivN;   // First derivative at knot (N-1)
-    double xmin;     // The beginning of the interval on which the spline function is defined.
-    double xmax;     // The end of the interval on which the spline function is defined.
-    int isGridSpline;// Indicates that all spline knots are on a regular grid.
-    double h;        // The distance between knots if this is a grid spline with equidistant knots.
-    double hsq;      // The squared distance between knots if this is a grid spline with equidistant knots.
-    double inv_h;    // (1/h), used to avoid numerical errors in binnning for grid spline with equidistant knots.
-    double xmax_shifted; // The end of the spline interval after it has been shifted to begin at X=0.
+   private:
+    double *X;           // Positions of spline knots
+    double *Xs;          // Shifted positions of spline knots
+    double *Y;           // Function values at spline knots
+    double *Y2;          // Second derivatives at spline knots
+    double *Ydelta;      // If this is a grid spline, Ydelta[i] = (Y[i+1]-Y[i])/h
+    int N;               // Number of spline knots
+    double deriv0;       // First derivative at knot 0
+    double derivN;       // First derivative at knot (N-1)
+    double xmin;         // The beginning of the interval on which the spline function is defined.
+    double xmax;         // The end of the interval on which the spline function is defined.
+    int isGridSpline;    // Indicates that all spline knots are on a regular grid.
+    double h;    // The distance between knots if this is a grid spline with equidistant knots.
+    double
+        hsq;    // The squared distance between knots if this is a grid spline with equidistant knots.
+    double
+        inv_h;    // (1/h), used to avoid numerical errors in binnning for grid spline with equidistant knots.
+    double
+        xmax_shifted;    // The end of the spline interval after it has been shifted to begin at X=0.
   };
 
   /// Helper data structure for potential routine.
   struct MEAM2Body {
-    int tag;  // holds the index of the second atom (j)
+    int tag;    // holds the index of the second atom (j)
     double r;
     double f, fprime;
     double del[3];
   };
 
-  SplineFunction* phis; // Phi_i(r_ij)
-  SplineFunction* rhos; // Rho_ij(r_ij)
-  SplineFunction* fs;   // f_i(r_ij)
-  SplineFunction* Us;   // U_i(rho)
-  SplineFunction* gs;   // g_ij(cos_theta)
-  double* zero_atom_energies; // Shift embedding energy by this value to make it zero for a single atom in vacuum.
+  SplineFunction *phis;    // Phi_i(r_ij)
+  SplineFunction *rhos;    // Rho_ij(r_ij)
+  SplineFunction *fs;      // f_i(r_ij)
+  SplineFunction *Us;      // U_i(rho)
+  SplineFunction *gs;      // g_ij(cos_theta)
+  double *
+      zero_atom_energies;    // Shift embedding energy by this value to make it zero for a single atom in vacuum.
 
-  double cutoff;          // The cutoff radius
+  double cutoff;    // The cutoff radius
 
-  double* Uprime_values;  // Used for temporary storage of U'(rho) values
-  int nmax;               // Size of temporary array.
-  int maxNeighbors;       // The last maximum number of neighbors a single atoms has.
-  MEAM2Body* twoBodyInfo; // Temporary array.
+  double *Uprime_values;     // Used for temporary storage of U'(rho) values
+  int nmax;                  // Size of temporary array.
+  int maxNeighbors;          // The last maximum number of neighbors a single atoms has.
+  MEAM2Body *twoBodyInfo;    // Temporary array.
 
-  void read_file(const char* filename);
+  void read_file(const char *filename);
   void allocate();
-
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
@@ -301,5 +302,3 @@ protected:
  *
  * See file 'pair_spline_meam.cpp' for history of changes.
 ------------------------------------------------------------------------- */
-
-

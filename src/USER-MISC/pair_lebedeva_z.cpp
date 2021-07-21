@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -24,16 +25,15 @@
 
 #include "pair_lebedeva_z.h"
 
-#include <cmath>
-
-#include <cstring>
 #include "atom.h"
 #include "comm.h"
-#include "force.h"
-#include "neigh_list.h"
-#include "memory.h"
 #include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "neigh_list.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -48,12 +48,7 @@ PairLebedevaZ::PairLebedevaZ(LAMMPS *lmp) : Pair(lmp)
   restartinfo = 0;
 
   // initialize element to parameter maps
-  nelements = 0;
-  elements = nullptr;
-  nparams = maxparam = 0;
   params = nullptr;
-  elem2param = nullptr;
-  map = nullptr;
 
   // always compute energy offset
   offset_flag = 1;
@@ -70,12 +65,8 @@ PairLebedevaZ::~PairLebedevaZ()
     memory->destroy(offset);
   }
 
-  if (elements)
-    for (int i = 0; i < nelements; i++) delete [] elements[i];
-  delete [] elements;
   memory->destroy(params);
   memory->destroy(elem2param);
-  if (allocated) delete [] map;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -158,7 +149,7 @@ void PairLebedevaZ::compute(int eflag, int vflag)
           evdwl = Ulm - offset[itype][jtype];
         }
 
-        if (evflag){
+        if (evflag) {
           ev_tally_xyz(i,j,nlocal,newton_pair,evdwl,0,
                        -fxy,-fxy,-fz,delx,dely,delz);
         }
@@ -217,45 +208,13 @@ void PairLebedevaZ::settings(int narg, char **arg)
 
 void PairLebedevaZ::coeff(int narg, char **arg)
 {
-  int i,j,n;
-
-  if (narg != 3 + atom->ntypes)
-    error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
   utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
   utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  // read args that map atom types to elements in potential file
-  // map[i] = which element the Ith atom type is, -1 if "NULL"
-  // nelements = # of unique elements
-  // elements = list of element names
-
-  if (elements) {
-    for (i = 0; i < nelements; i++) delete [] elements[i];
-    delete [] elements;
-  }
-  elements = new char*[atom->ntypes];
-  for (i = 0; i < atom->ntypes; i++) elements[i] = nullptr;
-
-  nelements = 0;
-  for (i = 3; i < narg; i++) {
-    if (strcmp(arg[i],"NULL") == 0) {
-      map[i-2] = -1;
-      continue;
-    }
-    for (j = 0; j < nelements; j++)
-      if (strcmp(arg[i],elements[j]) == 0) break;
-    map[i-2] = j;
-    if (j == nelements) {
-      n = strlen(arg[i]) + 1;
-      elements[j] = new char[n];
-      strcpy(elements[j],arg[i]);
-      nelements++;
-    }
-  }
-
+  map_element2type(narg-3,arg+3,false);
   read_file(arg[2]);
 
   // set setflag only for i,j pairs where both are mapped to elements
@@ -421,7 +380,7 @@ void PairLebedevaZ::read_file(char *filename)
     params[nparams].z06 = pow(params[nparams].z0,6);
 
     nparams++;
-    if(nparams >= pow(atom->ntypes,3)) break;
+    if (nparams >= pow(atom->ntypes,3)) break;
   }
   memory->destroy(elem2param);
   memory->create(elem2param,nelements,nelements,"pair:elem2param");

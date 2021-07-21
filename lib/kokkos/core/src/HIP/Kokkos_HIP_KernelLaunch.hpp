@@ -49,9 +49,9 @@
 
 #if defined(__HIPCC__)
 
-#include <Kokkos_HIP_Space.hpp>
 #include <HIP/Kokkos_HIP_Error.hpp>
 #include <HIP/Kokkos_HIP_Instance.hpp>
+#include <Kokkos_HIP_Space.hpp>
 
 // Must use global variable on the device with HIP-Clang
 #ifdef __HIP__
@@ -64,7 +64,7 @@ namespace Kokkos {
 namespace Experimental {
 template <typename T>
 inline __device__ T *kokkos_impl_hip_shared_memory() {
-  extern __shared__ HIPSpace::size_type sh[];
+  HIP_DYNAMIC_SHARED(HIPSpace::size_type, sh);
   return (T *)sh;
 }
 }  // namespace Experimental
@@ -74,18 +74,17 @@ namespace Kokkos {
 namespace Experimental {
 namespace Impl {
 
-void *hip_resize_scratch_space(std::int64_t bytes, bool force_shrink = false);
-
 template <typename DriverType>
 __global__ static void hip_parallel_launch_constant_memory() {
-// cannot use global constants in HCC
-#ifdef __HCC__
-  __device__ __constant__ unsigned long kokkos_impl_hip_constant_memory_buffer
-      [Kokkos::Experimental::Impl::HIPTraits::ConstantMemoryUsage /
-       sizeof(unsigned long)];
-#endif
+  const DriverType &driver = *(reinterpret_cast<const DriverType *>(
+      kokkos_impl_hip_constant_memory_buffer));
+  driver();
+}
 
-  const DriverType *const driver = (reinterpret_cast<const DriverType *>(
+template <typename DriverType, unsigned int maxTperB, unsigned int minBperSM>
+__global__ __launch_bounds__(
+    maxTperB, minBperSM) static void hip_parallel_launch_constant_memory() {
+  const DriverType &driver = *(reinterpret_cast<const DriverType *>(
       kokkos_impl_hip_constant_memory_buffer));
 
   driver->operator()();
@@ -128,94 +127,97 @@ struct HIPDispatchProperties {
   HIPLaunchMechanism launch_mechanism = l;
 };
 
-template <class DriverType, class LaunchBounds = Kokkos::LaunchBounds<>,
+template <typename DriverType, typename LaunchBounds,
+          HIPLaunchMechanism LaunchMechanism>
+struct HIPParallelLaunchKernelFunc;
+
+template <typename DriverType, unsigned int MaxThreadsPerBlock,
+          unsigned int MinBlocksPerSM>
+struct HIPParallelLaunchKernelFunc<
+    DriverType, Kokkos::LaunchBounds<MaxThreadsPerBlock, MinBlocksPerSM>,
+    HIPLaunchMechanism::LocalMemory> {
+  static auto get_kernel_func() {
+    return hip_parallel_launch_local_memory<DriverType, MaxThreadsPerBlock,
+                                            MinBlocksPerSM>;
+  }
+};
+
+template <typename DriverType>
+struct HIPParallelLaunchKernelFunc<DriverType, Kokkos::LaunchBounds<0, 0>,
+                                   HIPLaunchMechanism::LocalMemory> {
+  static auto get_kernel_func() {
+    return hip_parallel_launch_local_memory<DriverType, 1024, 1>;
+  }
+};
+
+template <typename DriverType, typename LaunchBounds,
+          HIPLaunchMechanism LaunchMechanism>
+struct HIPParallelLaunchKernelInvoker;
+
+template <typename DriverType, typename LaunchBounds>
+struct HIPParallelLaunchKernelInvoker<DriverType, LaunchBounds,
+                                      HIPLaunchMechanism::LocalMemory>
+    : HIPParallelLaunchKernelFunc<DriverType, LaunchBounds,
+                                  HIPLaunchMechanism::LocalMemory> {
+  using base_t = HIPParallelLaunchKernelFunc<DriverType, LaunchBounds,
+                                             HIPLaunchMechanism::LocalMemory>;
+
+  static void invoke_kernel(DriverType const *driver, dim3 const &grid,
+                            dim3 const &block, int shmem,
+                            HIPInternal const *hip_instance) {
+    (base_t::get_kernel_func())<<<grid, block, shmem, hip_instance->m_stream>>>(
+        driver);
+  }
+};
+
+template <typename DriverType, typename LaunchBounds = Kokkos::LaunchBounds<>,
           HIPLaunchMechanism LaunchMechanism = HIPLaunchMechanism::LocalMemory>
 struct HIPParallelLaunch;
 
-template <class DriverType, unsigned int MaxThreadsPerBlock,
+template <typename DriverType, unsigned int MaxThreadsPerBlock,
           unsigned int MinBlocksPerSM>
 struct HIPParallelLaunch<
     DriverType, Kokkos::LaunchBounds<MaxThreadsPerBlock, MinBlocksPerSM>,
-    HIPLaunchMechanism::LocalMemory> {
-  inline HIPParallelLaunch(const DriverType &driver, const dim3 &grid,
-                           const dim3 &block, const int shmem,
-                           const HIPInternal *hip_instance,
-                           const bool /*prefer_shmem*/) {
+    HIPLaunchMechanism::LocalMemory>
+    : HIPParallelLaunchKernelInvoker<
+          DriverType, Kokkos::LaunchBounds<MaxThreadsPerBlock, MinBlocksPerSM>,
+          HIPLaunchMechanism::LocalMemory> {
+  using base_t = HIPParallelLaunchKernelInvoker<
+      DriverType, Kokkos::LaunchBounds<MaxThreadsPerBlock, MinBlocksPerSM>,
+      HIPLaunchMechanism::LocalMemory>;
+
+  HIPParallelLaunch(const DriverType &driver, const dim3 &grid,
+                    const dim3 &block, const int shmem,
+                    const HIPInternal *hip_instance,
+                    const bool /*prefer_shmem*/) {
     if ((grid.x != 0) && ((block.x * block.y * block.z) != 0)) {
       if (hip_instance->m_maxShmemPerBlock < shmem) {
         Kokkos::Impl::throw_runtime_exception(
             "HIPParallelLaunch FAILED: shared memory request is too large");
       }
 
-      // FIXME_HIP -- there is currently an error copying (some) structs
-      // by value to the device in HIP-Clang / VDI
-      // As a workaround, we can malloc the DriverType and explictly copy over.
-      // To remove once solved in HIP
-      DriverType *d_driver;
-      HIP_SAFE_CALL(hipMalloc(&d_driver, sizeof(DriverType)));
-      HIP_SAFE_CALL(hipMemcpyAsync(d_driver, &driver, sizeof(DriverType),
-                                   hipMemcpyHostToDevice,
-                                   hip_instance->m_stream));
-      hip_parallel_launch_local_memory<DriverType, MaxThreadsPerBlock,
-                                       MinBlocksPerSM>
-          <<<grid, block, shmem, hip_instance->m_stream>>>(d_driver);
-
-#if defined(KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK)
-      HIP_SAFE_CALL(hipGetLastError());
-      hip_instance->fence();
-#endif
-      HIP_SAFE_CALL(hipFree(d_driver));
-    }
-  }
-
-  static hipFuncAttributes get_hip_func_attributes() {
-    hipFuncAttributes attr;
-    hipFuncGetAttributes(
-        &attr,
-        reinterpret_cast<void const *>(
-            hip_parallel_launch_local_memory<DriverType, MaxThreadsPerBlock,
-                                             MinBlocksPerSM>));
-    return attr;
-  }
-};
-
-template <class DriverType>
-struct HIPParallelLaunch<DriverType, Kokkos::LaunchBounds<0, 0>,
-                         HIPLaunchMechanism::LocalMemory> {
-  inline HIPParallelLaunch(const DriverType &driver, const dim3 &grid,
-                           const dim3 &block, const int shmem,
-                           const HIPInternal *hip_instance,
-                           const bool /*prefer_shmem*/) {
-    if ((grid.x != 0) && ((block.x * block.y * block.z) != 0)) {
-      if (hip_instance->m_maxShmemPerBlock < shmem) {
-        Kokkos::Impl::throw_runtime_exception(std::string(
-            "HIPParallelLaunch FAILED: shared memory request is too large"));
-      }
+      KOKKOS_ENSURE_HIP_LOCK_ARRAYS_ON_DEVICE();
 
       // Invoke the driver function on the device
-
-      // FIXME_HIP -- see note about struct copy by value above
-      DriverType *d_driver;
-      HIP_SAFE_CALL(hipMalloc(&d_driver, sizeof(DriverType)));
-      HIP_SAFE_CALL(hipMemcpyAsync(d_driver, &driver, sizeof(DriverType),
-                                   hipMemcpyHostToDevice,
-                                   hip_instance->m_stream));
-      hip_parallel_launch_local_memory<DriverType, 1024, 1>
-          <<<grid, block, shmem, hip_instance->m_stream>>>(d_driver);
+      DriverType *d_driver = reinterpret_cast<DriverType *>(
+          hip_instance->get_next_driver(sizeof(DriverType)));
+      std::memcpy((void *)d_driver, (void *)&driver, sizeof(DriverType));
+      base_t::invoke_kernel(d_driver, grid, block, shmem, hip_instance);
 
 #if defined(KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK)
       HIP_SAFE_CALL(hipGetLastError());
       hip_instance->fence();
 #endif
-      HIP_SAFE_CALL(hipFree(d_driver));
     }
   }
 
   static hipFuncAttributes get_hip_func_attributes() {
-    hipFuncAttributes attr;
-    hipFuncGetAttributes(
-        &attr, reinterpret_cast<void *>(
-                   &hip_parallel_launch_local_memory<DriverType, 1024, 1>));
+    static hipFuncAttributes attr = []() {
+      hipFuncAttributes attr;
+      HIP_SAFE_CALL(hipFuncGetAttributes(
+          &attr, reinterpret_cast<void const *>(base_t::get_kernel_func())));
+      return attr;
+    }();
     return attr;
   }
 };

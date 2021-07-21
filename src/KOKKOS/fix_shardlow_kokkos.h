@@ -1,6 +1,7 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,11 +13,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(shardlow/kk,FixShardlowKokkos<LMPDeviceType>)
-FixStyle(shardlow/kk/device,FixShardlowKokkos<LMPDeviceType>)
-FixStyle(shardlow/kk/host,FixShardlowKokkos<LMPHostType>)
-
+// clang-format off
+FixStyle(shardlow/kk,FixShardlowKokkos<LMPDeviceType>);
+FixStyle(shardlow/kk/device,FixShardlowKokkos<LMPDeviceType>);
+FixStyle(shardlow/kk/host,FixShardlowKokkos<LMPHostType>);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_SHARDLOW_KOKKOS_H
@@ -62,9 +63,9 @@ class FixShardlowKokkos : public FixShardlow {
 
   struct params_ssa {
     KOKKOS_INLINE_FUNCTION
-    params_ssa(){cutinv=FLT_MAX;halfsigma=0;kappa=0;alpha=0;};
+    params_ssa() {cutinv=FLT_MAX;halfsigma=0;kappa=0;alpha=0;};
     KOKKOS_INLINE_FUNCTION
-    params_ssa(int /*i*/){cutinv=FLT_MAX;halfsigma=0;kappa=0;alpha=0;};
+    params_ssa(int /*i*/) {cutinv=FLT_MAX;halfsigma=0;kappa=0;alpha=0;};
     F_FLOAT cutinv,halfsigma,kappa,alpha;
   };
 

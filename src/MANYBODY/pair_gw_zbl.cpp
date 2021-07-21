@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -75,7 +76,7 @@ void PairGWZBL::read_file(char *file)
     int unit_convert = reader.get_unit_convert();
     double conversion_factor = utils::get_conversion_factor(utils::ENERGY,
                                                             unit_convert);
-    while((line = reader.next_line(NPARAMS_PER_LINE))) {
+    while ((line = reader.next_line(NPARAMS_PER_LINE))) {
       try {
         ValueTokenizer values(line);
 
@@ -138,7 +139,7 @@ void PairGWZBL::read_file(char *file)
           params[nparams].biga *= conversion_factor;
           params[nparams].bigb *= conversion_factor;
         }
-      } catch (TokenizerException & e) {
+      } catch (TokenizerException &e) {
         error->one(FLERR, e.what());
       }
 
@@ -165,7 +166,7 @@ void PairGWZBL::read_file(char *file)
   MPI_Bcast(&nparams, 1, MPI_INT, 0, world);
   MPI_Bcast(&maxparam, 1, MPI_INT, 0, world);
 
-  if(comm->me != 0) {
+  if (comm->me != 0) {
     params = (Param *) memory->srealloc(params,maxparam*sizeof(Param), "pair:params");
   }
 

@@ -14,10 +14,6 @@ For example, a message like this:
 means that line #78 in the file src/velocity.cpp generated the error.
 Looking in the source code may help you figure out what went wrong.
 
-Note that error messages from :doc:`user-contributed packages <Packages_user>` are not listed here.  If such an error
-occurs and is not self-explanatory, you will need to look in the source
-code or contact the author of the package.
-
 Doc page with :doc:`WARNING messages <Errors_warnings>`
 
 ----------
@@ -3005,9 +3001,6 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Dump image line requires atom style line*
    Self-explanatory.
 
-*Dump image persp option is not yet supported*
-   Self-explanatory.
-
 *Dump image requires one snapshot per file*
    Use a "\*" in the filename.
 
@@ -3874,7 +3867,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Fix orient/fcc found self twice*
    The neighbor lists used by fix orient/fcc are messed up.  If this
    error occurs, it is likely a bug, so send an email to the
-   `developers <https://lammps.sandia.gov/authors.html>`_.
+   `developers <https://www.lammps.org/authors.html>`_.
 
 *Fix peri neigh does not exist*
    Somehow a fix that the pair style defines has been deleted.
@@ -5108,9 +5101,6 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    The file produced by dump image cannot be binary and must
    be for a single processor.
 
-*Invalid dump image persp value*
-   Persp value must be >= 0.0.
-
 *Invalid dump image theta value*
    Theta must be between 0.0 and 180.0 inclusive.
 
@@ -5708,6 +5698,9 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Molecule file has dihedrals but no ndihedrals setting*
    Self-explanatory.
 
+*Molecule file has fragments but no nfragments setting*
+   Self-explanatory.
+
 *Molecule file has impropers but no nimpropers setting*
    Self-explanatory.
 
@@ -5715,6 +5708,9 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    Self-explanatory.
 
 *Molecule file has no Body Integers section*
+   Self-explanatory.
+
+*Molecule file has no Fragments section*
    Self-explanatory.
 
 *Molecule file has special flags but no bonds*
@@ -5899,7 +5895,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    other.
 
 *Must set number of threads via package omp command*
-   Because you are using the USER-OMP package, set the number of threads
+   Because you are using the OPENMP package, set the number of threads
    via its settings, not by the pair_style snap nthreads setting.
 
 *Must shrink-wrap piston boundary*
@@ -6344,16 +6340,16 @@ keyword to allow for additional bonds to be formed
    The GPU package must be installed via "make yes-gpu" before LAMMPS is
    built.
 
-*Package intel command without USER-INTEL package installed*
-   The USER-INTEL package must be installed via "make yes-user-intel"
+*Package intel command without INTEL package installed*
+   The INTEL package must be installed via "make yes-intel"
    before LAMMPS is built.
 
 *Package kokkos command without KOKKOS package enabled*
    The KOKKOS package must be installed via "make yes-kokkos" before
    LAMMPS is built, and the "-k on" must be used to enable the package.
 
-*Package omp command without USER-OMP package installed*
-   The USER-OMP package must be installed via "make yes-user-omp" before
+*Package omp command without OPENMP package installed*
+   The OPENMP package must be installed via "make yes-openmp" before
    LAMMPS is built.
 
 *Pair body requires atom style body*
@@ -8064,13 +8060,13 @@ keyword to allow for additional bonds to be formed
 *Using suffix gpu without GPU package installed*
    Self-explanatory.
 
-*Using suffix intel without USER-INTEL package installed*
+*Using suffix intel without INTEL package installed*
    Self-explanatory.
 
 *Using suffix kk without KOKKOS package enabled*
    Self-explanatory.
 
-*Using suffix omp without USER-OMP package installed*
+*Using suffix omp without OPENMP package installed*
    Self-explanatory.
 
 *Using update dipole flag requires atom attribute mu*
@@ -8108,9 +8104,6 @@ keyword to allow for additional bonds to be formed
    Only equal-style variables can be used.
 
 *Variable for dump image center is invalid style*
-   Must be an equal-style variable.
-
-*Variable for dump image persp is invalid style*
    Must be an equal-style variable.
 
 *Variable for dump image phi is invalid style*
@@ -8251,9 +8244,6 @@ keyword to allow for additional bonds to be formed
    Self-explanatory.
 
 *Variable name for dump image center does not exist*
-   Self-explanatory.
-
-*Variable name for dump image persp does not exist*
    Self-explanatory.
 
 *Variable name for dump image phi does not exist*

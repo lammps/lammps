@@ -58,6 +58,7 @@ From: ubuntu:18.04
         libnuma-dev \
         libpng-dev \
         libproj-dev \
+        libreadline-dev \
         libvtk6-dev \
         libyaml-dev \
         libzstd-dev \
@@ -93,7 +94,7 @@ From: ubuntu:18.04
     ###########################################################################
 
     export PATH=$PATH:/opt/rocm/bin:/opt/rocm/profiler/bin:/opt/rocm/opencl/bin/x86_64
-    git clone -b rocm-3.7.x https://github.com/ROCmSoftwarePlatform/hipCUB.git
+    git clone -b rocm-4.1.x https://github.com/ROCmSoftwarePlatform/hipCUB.git
     mkdir hipCUB/build
     cd hipCUB/build
     CXX=hipcc cmake -D BUILD_TEST=off ..
@@ -146,6 +147,21 @@ From: ubuntu:18.04
     # Customizations
     ###########################################################################
 
+    # create missing readline pkgconfig file
+    cat > /usr/lib/x86_64-linux-gnu/pkgconfig/readline.pc <<EOF
+prefix=/usr
+exec_prefix=/usr
+libdir=/usr/lib/x86_64-linux-gnu
+includedir=/usr/include
+
+Name: Readline
+Description: GNU Readline library for command line editing
+URL: http://tiswww.cwru.edu/php/chet/readline/rltop.html
+Version: 7.0
+Requires.private: tinfo
+Libs: -L\${libdir} -lreadline
+Cflags: -I\${includedir}/readline
+EOF
     # set custom prompt indicating the container name
     CUSTOM_PROMPT_ENV=/.singularity.d/env/99-zz_custom_prompt.sh
     cat >$CUSTOM_PROMPT_ENV <<EOF

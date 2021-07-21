@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -21,6 +22,7 @@
 #include "comm.h"
 #include "comm_brick.h"
 #include "comm_tiled.h"
+#include "command.h"
 #include "compute.h"
 #include "dihedral.h"
 #include "domain.h"
@@ -82,7 +84,7 @@ command line flags, holds the factory of commands and creates and
 initializes an instance of the Variable class.
 
 To execute a command, a specific class instance, derived from
-:cpp:class:`Pointers`, is created, then its ``command()`` member
+:cpp:class:`Command`, is created, then its ``command()`` member
 function executed, and finally the class instance is deleted.
 
 \endverbatim
@@ -106,6 +108,7 @@ Input::Input(LAMMPS *lmp, int argc, char **argv) : Pointers(lmp)
   label_active = 0;
   labelstr = nullptr;
   jump_skip = 0;
+  utf8_warn = true;
 
   if (me == 0) {
     nfile = 1;
@@ -160,9 +163,9 @@ Input::~Input()
   memory->sfree(line);
   memory->sfree(copy);
   memory->sfree(work);
-  if (labelstr) delete [] labelstr;
+  if (labelstr) delete[] labelstr;
   memory->sfree(arg);
-  delete [] infiles;
+  delete[] infiles;
   delete variable;
 
   delete command_map;
@@ -189,8 +192,15 @@ void Input::file()
     // if line ends in continuation char '&', concatenate next line
 
     if (me == 0) {
+
       m = 0;
       while (1) {
+
+        if (infile == nullptr) {
+          n = 0;
+          break;
+        }
+
         if (maxline-m < 2) reallocate(line,maxline,0);
 
         // end of file reached, so break
@@ -261,7 +271,7 @@ void Input::file()
     // execute the command
 
     if (execute_command() && line)
-      error->all(FLERR,fmt::format("Unknown command: {}",line));
+      error->all(FLERR,"Unknown command: {}",line);
   }
 }
 
@@ -293,8 +303,8 @@ void Input::file(const char *filename)
 
     infile = fopen(filename,"r");
     if (infile == nullptr)
-      error->one(FLERR,fmt::format("Cannot open input script {}: {}",
-                                   filename, utils::getsyserror()));
+      error->one(FLERR,"Cannot open input script {}: {}",
+                                   filename, utils::getsyserror());
 
     infiles[nfile++] = infile;
   }
@@ -350,7 +360,7 @@ char *Input::one(const std::string &single)
   // execute the command and return its name
 
   if (execute_command())
-    error->all(FLERR,fmt::format("Unknown command: {}",line));
+    error->all(FLERR,"Unknown command: {}",line);
 
   return command;
 }
@@ -412,6 +422,16 @@ void Input::parse()
       else if (quoteflag == 1 && *ptr == '\'') quoteflag = 0;
     }
     ptr++;
+  }
+
+  if (utils::has_utf8(copy)) {
+    std::string buf = utils::utf8_subst(copy);
+    strcpy(copy,buf.c_str());
+    if (utf8_warn && (comm->me == 0))
+      error->warning(FLERR,"Detected non-ASCII characters in input. "
+                     "Will try to continue by replacing with ASCII "
+                     "equivalents where known.");
+    utf8_warn = false;
   }
 
   // perform $ variable substitution (print changes)
@@ -594,8 +614,8 @@ void Input::substitute(char *&str, char *&str2, int &max, int &max2, int flag)
       }
 
       if (value == nullptr)
-        error->one(FLERR,fmt::format("Substitution for illegal "
-                                     "variable {}",var));
+        error->one(FLERR,"Substitution for illegal "
+                                     "variable {}",var);
 
       // check if storage in str2 needs to be expanded
       // re-initialize ptr and ptr2 to the point beyond the variable.
@@ -771,7 +791,9 @@ int Input::execute_command()
 
   if (command_map->find(command) != command_map->end()) {
     CommandCreator &command_creator = (*command_map)[command];
-    command_creator(lmp,narg,arg);
+    Command *cmd = command_creator(lmp);
+    cmd->command(narg,arg);
+    delete cmd;
     return 0;
   }
 
@@ -785,10 +807,9 @@ int Input::execute_command()
 ------------------------------------------------------------------------- */
 
 template <typename T>
-void Input::command_creator(LAMMPS *lmp, int narg, char **arg)
+Command *Input::command_creator(LAMMPS *lmp)
 {
-  T cmd(lmp);
-  cmd.command(narg,arg);
+  return new T(lmp);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -867,7 +888,7 @@ void Input::ifthenelse()
     char **commands = new char*[ncommands];
     ncommands = 0;
     for (int i = first; i <= last; i++) {
-      int n = strlen(arg[i]) + 1;
+      n = strlen(arg[i]) + 1;
       if (n == 1) error->all(FLERR,"Illegal if command");
       commands[ncommands] = new char[n];
       strcpy(commands[ncommands],arg[i]);
@@ -876,9 +897,9 @@ void Input::ifthenelse()
 
     for (int i = 0; i < ncommands; i++) {
       one(commands[i]);
-      delete [] commands[i];
+      delete[] commands[i];
     }
-    delete [] commands;
+    delete[] commands;
 
     return;
   }
@@ -920,7 +941,7 @@ void Input::ifthenelse()
     char **commands = new char*[ncommands];
     ncommands = 0;
     for (int i = first; i <= last; i++) {
-      int n = strlen(arg[i]) + 1;
+      n = strlen(arg[i]) + 1;
       if (n == 1) error->all(FLERR,"Illegal if command");
       commands[ncommands] = new char[n];
       strcpy(commands[ncommands],arg[i]);
@@ -931,9 +952,9 @@ void Input::ifthenelse()
 
     for (int i = 0; i < ncommands; i++) {
       one(commands[i]);
-      delete [] commands[i];
+      delete[] commands[i];
     }
-    delete [] commands;
+    delete[] commands;
 
     return;
   }
@@ -951,8 +972,8 @@ void Input::include()
 
     infile = fopen(arg[0],"r");
     if (infile == nullptr)
-      error->one(FLERR,fmt::format("Cannot open input script {}: {}",
-                                   arg[0], utils::getsyserror()));
+      error->one(FLERR,"Cannot open input script {}: {}",
+                                   arg[0], utils::getsyserror());
 
     infiles[nfile++] = infile;
   }
@@ -985,8 +1006,8 @@ void Input::jump()
       if (infile && infile != stdin) fclose(infile);
       infile = fopen(arg[0],"r");
       if (infile == nullptr)
-        error->one(FLERR,fmt::format("Cannot open input script {}: {}",
-                                     arg[0], utils::getsyserror()));
+        error->one(FLERR,"Cannot open input script {}: {}",
+                                     arg[0], utils::getsyserror());
 
       infiles[nfile-1] = infile;
     }
@@ -994,10 +1015,8 @@ void Input::jump()
 
   if (narg == 2) {
     label_active = 1;
-    if (labelstr) delete [] labelstr;
-    int n = strlen(arg[1]) + 1;
-    labelstr = new char[n];
-    strcpy(labelstr,arg[1]);
+    if (labelstr) delete[] labelstr;
+    labelstr = utils::strdup(arg[1]);
   }
 }
 
@@ -1029,8 +1048,8 @@ void Input::log()
       else logfile = fopen(arg[0],"w");
 
       if (logfile == nullptr)
-        error->one(FLERR,fmt::format("Cannot open logfile {}: {}",
-                                     arg[0], utils::getsyserror()));
+        error->one(FLERR,"Cannot open logfile {}: {}",
+                                     arg[0], utils::getsyserror());
 
     }
     if (universe->nworlds == 1) universe->ulogfile = logfile;
@@ -1058,22 +1077,20 @@ void Input::partition()
   int ilo,ihi;
   utils::bounds(FLERR,arg[1],1,universe->nworlds,ilo,ihi,error);
 
-  // copy original line to copy, since will use strtok() on it
-  // ptr = start of 4th word
+  // new command starts at the 3rd argument,
+  // which must not be another partition command
 
-  strcpy(copy,line);
-  char *ptr = strtok(copy," \t\n\r\f");
-  ptr = strtok(nullptr," \t\n\r\f");
-  ptr = strtok(nullptr," \t\n\r\f");
-  ptr += strlen(ptr) + 1;
-  ptr += strspn(ptr," \t\n\r\f");
+  if (strcmp(arg[2],"partition") == 0)
+    error->all(FLERR,"Illegal partition command");
+
+  char *cmd = strstr(line,arg[2]);
 
   // execute the remaining command line on requested partitions
 
   if (yesflag) {
-    if (universe->iworld+1 >= ilo && universe->iworld+1 <= ihi) one(ptr);
+    if (universe->iworld+1 >= ilo && universe->iworld+1 <= ihi) one(cmd);
   } else {
-    if (universe->iworld+1 < ilo || universe->iworld+1 > ihi) one(ptr);
+    if (universe->iworld+1 < ilo || universe->iworld+1 > ihi) one(cmd);
   }
 }
 
@@ -1107,8 +1124,8 @@ void Input::print()
         if (strcmp(arg[iarg],"file") == 0) fp = fopen(arg[iarg+1],"w");
         else fp = fopen(arg[iarg+1],"a");
         if (fp == nullptr)
-          error->one(FLERR,fmt::format("Cannot open print file {}: {}",
-                                       arg[iarg+1], utils::getsyserror()));
+          error->one(FLERR,"Cannot open print file {}: {}",
+                                       arg[iarg+1], utils::getsyserror());
       }
       iarg += 2;
     } else if (strcmp(arg[iarg],"screen") == 0) {
@@ -1180,7 +1197,7 @@ void Input::shell()
     if (me == 0 && err != 0) {
       char *message = shell_failed_message("cd",err);
       error->warning(FLERR,message);
-      delete [] message;
+      delete[] message;
     }
 
   } else if (strcmp(arg[0],"mkdir") == 0) {
@@ -1195,7 +1212,7 @@ void Input::shell()
         if (rv < 0) {
           char *message = shell_failed_message("mkdir",errno);
           error->warning(FLERR,message);
-          delete [] message;
+          delete[] message;
         }
       }
 
@@ -1206,7 +1223,7 @@ void Input::shell()
     if (me == 0 && err != 0) {
       char *message = shell_failed_message("mv",err);
       error->warning(FLERR,message);
-      delete [] message;
+      delete[] message;
     }
 
   } else if (strcmp(arg[0],"rm") == 0) {
@@ -1216,7 +1233,7 @@ void Input::shell()
         if (unlink(arg[i]) < 0) {
           char *message = shell_failed_message("rm",errno);
           error->warning(FLERR,message);
-          delete [] message;
+          delete[] message;
         }
       }
 
@@ -1227,26 +1244,34 @@ void Input::shell()
         if (rmdir(arg[i]) < 0) {
           char *message = shell_failed_message("rmdir",errno);
           error->warning(FLERR,message);
-          delete [] message;
+          delete[] message;
         }
       }
 
   } else if (strcmp(arg[0],"putenv") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal shell putenv command");
     for (int i = 1; i < narg; i++) {
-      char *ptr = strdup(arg[i]);
       rv = 0;
 #ifdef _WIN32
-      if (ptr != nullptr) rv = _putenv(ptr);
+      if (arg[i]) rv = _putenv(utils::strdup(arg[i]));
 #else
-      if (ptr != nullptr) rv = putenv(ptr);
+      if (arg[i]) {
+        std::string vardef(arg[i]);
+        auto found = vardef.find_first_of("=");
+        if (found == std::string::npos) {
+          rv = setenv(vardef.c_str(),"",1);
+        } else {
+          rv = setenv(vardef.substr(0,found).c_str(),
+                      vardef.substr(found+1).c_str(),1);
+        }
+      }
 #endif
       rv = (rv < 0) ? errno : 0;
       MPI_Reduce(&rv,&err,1,MPI_INT,MPI_MAX,0,world);
       if (me == 0 && err != 0) {
         char *message = shell_failed_message("putenv",err);
         error->warning(FLERR,message);
-        delete [] message;
+        delete[] message;
       }
     }
 
@@ -1658,7 +1683,7 @@ void Input::package()
   } else if (strcmp(arg[0],"omp") == 0) {
     if (!modify->check_package("OMP"))
       error->all(FLERR,
-                 "Package omp command without USER-OMP package installed");
+                 "Package omp command without OPENMP package installed");
 
     std::string fixcmd = "package_omp all OMP";
     for (int i = 1; i < narg; i++) fixcmd += std::string(" ") + arg[i];
@@ -1667,7 +1692,7 @@ void Input::package()
  } else if (strcmp(arg[0],"intel") == 0) {
     if (!modify->check_package("INTEL"))
       error->all(FLERR,
-                 "Package intel command without USER-INTEL package installed");
+                 "Package intel command without INTEL package installed");
 
     std::string fixcmd = "package_intel all INTEL";
     for (int i = 1; i < narg; i++) fixcmd += std::string(" ") + arg[i];
@@ -1684,6 +1709,9 @@ void Input::pair_coeff()
     error->all(FLERR,"Pair_coeff command before simulation box is defined");
   if (force->pair == nullptr)
     error->all(FLERR,"Pair_coeff command before pair_style is defined");
+  if ((narg < 2) || (force->pair->one_coeff && ((strcmp(arg[0],"*") != 0)
+                                               || (strcmp(arg[1],"*") != 0))))
+    error->all(FLERR,"Incorrect args for pair coefficients");
   force->pair->coeff(narg,arg);
 }
 
@@ -1709,7 +1737,10 @@ void Input::pair_style()
     int match = 0;
     if (style == force->pair_style) match = 1;
     if (!match && lmp->suffix_enable) {
-      if (lmp->suffix)
+      if (lmp->suffixp)
+        if (style + "/" + lmp->suffixp == force->pair_style) match = 1;
+
+      if (lmp->suffix && !lmp->suffixp)
         if (style + "/" + lmp->suffix == force->pair_style) match = 1;
 
       if (lmp->suffix2)
@@ -1816,23 +1847,17 @@ void Input::suffix()
   } else {
     lmp->suffix_enable = 1;
 
-    delete [] lmp->suffix;
-    delete [] lmp->suffix2;
+    delete[] lmp->suffix;
+    delete[] lmp->suffix2;
     lmp->suffix = lmp->suffix2 = nullptr;
 
     if (strcmp(arg[0],"hybrid") == 0) {
       if (narg != 3) error->all(FLERR,"Illegal suffix command");
-      int n = strlen(arg[1]) + 1;
-      lmp->suffix = new char[n];
-      strcpy(lmp->suffix,arg[1]);
-      n = strlen(arg[2]) + 1;
-      lmp->suffix2 = new char[n];
-      strcpy(lmp->suffix2,arg[2]);
+      lmp->suffix = utils::strdup(arg[1]);
+      lmp->suffix2 = utils::strdup(arg[2]);
     } else {
       if (narg != 1) error->all(FLERR,"Illegal suffix command");
-      int n = strlen(arg[0]) + 1;
-      lmp->suffix = new char[n];
-      strcpy(lmp->suffix,arg[0]);
+      lmp->suffix = utils::strdup(arg[0]);
     }
   }
 }

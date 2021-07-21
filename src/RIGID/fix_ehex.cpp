@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,7 +17,7 @@
 
    This source file implements the asymmetric version of the enhanced heat
    exchange (eHEX/a) algorithm. The paper is available for download on
-   arXiv: http://arxiv.org/pdf/1507.07081.pdf.
+   arXiv: https://arxiv.org/pdf/1507.07081.pdf.
 
    This file is based on fix_heat.cpp written by Paul Crozier (SNL)
    which implements the heat exchange (HEX) algorithm.
@@ -24,17 +25,19 @@
 
 #include "fix_ehex.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
 #include "domain.h"
-#include "region.h"
-#include "group.h"
-#include "force.h"
-#include "update.h"
-#include "modify.h"
-#include "memory.h"
 #include "error.h"
+#include "force.h"
+#include "group.h"
+#include "memory.h"
+#include "modify.h"
+#include "region.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
+
 #include "fix_shake.h"
 
 using namespace LAMMPS_NS;
@@ -91,9 +94,7 @@ FixEHEX::FixEHEX(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
       iregion = domain->find_region(arg[iarg+1]);
       if (iregion == -1)
         error->all(FLERR,"Region ID for fix ehex does not exist");
-      int n = strlen(arg[iarg+1]) + 1;
-      idregion = new char[n];
-      strcpy(idregion,arg[iarg+1]);
+      idregion = utils::strdup(arg[iarg+1]);
       iarg += 2;
     }
 
@@ -273,7 +274,7 @@ void FixEHEX::rescale() {
   vsub[1] = (scale-1.0) * vcm[1];
   vsub[2] = (scale-1.0) * vcm[2];
 
-  for (int i = 0; i < nlocal; i++){
+  for (int i = 0; i < nlocal; i++) {
 
     if (scalingmask[i]) {
 
@@ -309,7 +310,6 @@ double FixEHEX::compute_scalar()
   return scale;
 }
 
-
 /* ----------------------------------------------------------------------
    memory usage of local atom-based arrays
 ------------------------------------------------------------------------- */
@@ -317,7 +317,7 @@ double FixEHEX::compute_scalar()
 double FixEHEX::memory_usage()
 {
   double bytes = 0.0;
-  bytes += atom->nmax * sizeof(double);
+  bytes += (double)atom->nmax * sizeof(double);
   return bytes;
 }
 

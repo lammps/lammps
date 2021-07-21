@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
+   https://www.lammps.org/
    Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -45,9 +46,10 @@ PairSpinDipoleCut::PairSpinDipoleCut(LAMMPS *lmp) : PairSpin(lmp)
 
   hbar = force->hplanck/MY_2PI;                       // eV/(rad.THz)
   mub = 9.274e-4;                             // in A.Ang^2
-  mu_0 = 785.15;                              // in eV/Ang/A^2
+  // mu_0 = 785.15;                              // in eV/Ang/A^2
+  mu_0 = 784.15;                              // in eV/Ang/A^2
   mub2mu0 = mub * mub * mu_0 / (4.0*MY_PI);   // in eV.Ang^3
-  //mub2mu0 = mub * mub * mu_0 / (4.0*MY_PI);   // in eV
+  // mub2mu0 = mub * mub * mu_0 / (4.0*MY_PI);   // in eV
   mub2mu0hbinv = mub2mu0 / hbar;              // in rad.THz
 }
 
@@ -166,9 +168,8 @@ void PairSpinDipoleCut::compute(int eflag, int vflag)
   double rinv,r2inv,r3inv,rsq,local_cut2,evdwl,ecoul;
   double xi[3],rij[3],eij[3],spi[4],spj[4],fi[3],fmi[3];
 
+  ev_init(eflag,vflag);
   evdwl = ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
 
   int *type = atom->type;
   int nlocal = atom->nlocal;
@@ -232,36 +233,44 @@ void PairSpinDipoleCut::compute(int eflag, int vflag)
 
       local_cut2 = cut_spin_long[itype][jtype]*cut_spin_long[itype][jtype];
 
+      // compute dipolar interaction
+
       if (rsq < local_cut2) {
         r2inv = 1.0/rsq;
         r3inv = r2inv*rinv;
 
         compute_dipolar(i,j,eij,fmi,spi,spj,r3inv);
-        if (lattice_flag) compute_dipolar_mech(i,j,eij,fi,spi,spj,r2inv);
-      }
 
-      // force accumulation
+        if (lattice_flag)
+          compute_dipolar_mech(i,j,eij,fi,spi,spj,r2inv);
 
-      f[i][0] += fi[0];
-      f[i][1] += fi[1];
-      f[i][2] += fi[2];
-      fm[i][0] += fmi[0];
-      fm[i][1] += fmi[1];
-      fm[i][2] += fmi[2];
+        if (eflag) {
+          if (rsq <= local_cut2) {
+            evdwl -= (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
+            evdwl *= 0.5*hbar;
+            emag[i] += evdwl;
+          }
+        } else evdwl = 0.0;
 
-      if (eflag) {
-        if (rsq <= local_cut2) {
-          evdwl -= (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
-          evdwl *= 0.5*hbar;
-          emag[i] += evdwl;
+        f[i][0] += fi[0];
+        f[i][1] += fi[1];
+        f[i][2] += fi[2];
+        if (newton_pair || j < nlocal) {
+          f[j][0] -= fi[0];
+          f[j][1] -= fi[1];
+          f[j][2] -= fi[2];
         }
-      } else evdwl = 0.0;
+        fm[i][0] += fmi[0];
+        fm[i][1] += fmi[1];
+        fm[i][2] += fmi[2];
 
-      if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,
-          evdwl,ecoul,fi[0],fi[1],fi[2],rij[0],rij[1],rij[2]);
-
+        if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,
+            evdwl,ecoul,fi[0],fi[1],fi[2],rij[0],rij[1],rij[2]);
+      }
     }
   }
+
+  if (vflag_fdotr) virial_fdotr_compute();
 }
 
 /* ----------------------------------------------------------------------
@@ -379,7 +388,7 @@ void PairSpinDipoleCut::compute_dipolar(int /* i */, int /* j */, double eij[3],
 ------------------------------------------------------------------------- */
 
 void PairSpinDipoleCut::compute_dipolar_mech(int /* i */, int /* j */, double eij[3],
-    double fi[3], double spi[3], double spj[3], double r2inv)
+    double fi[3], double spi[4], double spj[4], double r2inv)
 {
   double sisj,sieij,sjeij;
   double gigjri4,bij,pre;
@@ -390,7 +399,7 @@ void PairSpinDipoleCut::compute_dipolar_mech(int /* i */, int /* j */, double ei
   sjeij = spj[0]*eij[0] + spj[1]*eij[1] + spj[2]*eij[2];
 
   bij = sisj - 5.0*sieij*sjeij;
-  pre = 3.0*mub2mu0*gigjri4;
+  pre = 0.5*3.0*mub2mu0*gigjri4;
 
   fi[0] -= pre * (eij[0] * bij + (sjeij*spi[0] + sieij*spj[0]));
   fi[1] -= pre * (eij[1] * bij + (sjeij*spi[1] + sieij*spj[1]));

@@ -1,6 +1,7 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,11 +13,11 @@
    ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(langevin/kk,FixLangevinKokkos<LMPDeviceType>)
-FixStyle(langevin/kk/device,FixLangevinKokkos<LMPDeviceType>)
-FixStyle(langevin/kk/host,FixLangevinKokkos<LMPHostType>)
-
+// clang-format off
+FixStyle(langevin/kk,FixLangevinKokkos<LMPDeviceType>);
+FixStyle(langevin/kk/device,FixLangevinKokkos<LMPDeviceType>);
+FixStyle(langevin/kk/host,FixLangevinKokkos<LMPHostType>);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_LANGEVIN_KOKKOS_H
@@ -36,7 +37,7 @@ namespace LAMMPS_NS {
       fx = fy = fz = 0.0;
     }
     KOKKOS_INLINE_FUNCTION
-    s_FSUM& operator+=(const s_FSUM &rhs){
+    s_FSUM& operator+=(const s_FSUM &rhs) {
       fx += rhs.fx;
       fy += rhs.fy;
       fz += rhs.fz;
@@ -175,7 +176,7 @@ namespace LAMMPS_NS {
 
     FixLangevinKokkosPostForceFunctor(FixLangevinKokkos<DeviceType>* c_ptr):
       c(*c_ptr) {}
-      ~FixLangevinKokkosPostForceFunctor(){c.cleanup_copy();}
+      ~FixLangevinKokkosPostForceFunctor() {c.cleanup_copy();}
 
       KOKKOS_INLINE_FUNCTION
       void operator()(const int i) const {

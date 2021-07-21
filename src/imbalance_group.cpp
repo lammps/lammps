@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -47,7 +48,7 @@ int ImbalanceGroup::options(int narg, char **arg)
   for (int i = 0; i < num; ++i) {
     id[i] = group->find(arg[2*i+1]);
     if (id[i] < 0)
-      error->all(FLERR,"Unknown group in balance weight command");
+      error->all(FLERR,"Unknown group in balance weight command: {}", arg[2*i+1]);
     factor[i] = utils::numeric(FLERR,arg[2*i+2],false,lmp);
     if (factor[i] <= 0.0) error->all(FLERR,"Illegal balance weight command");
   }

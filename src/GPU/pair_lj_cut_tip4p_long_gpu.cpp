@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,29 +16,23 @@
    Contributing author: Vsevolod Nikolskiy (HSE)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-
-#include <cstring>
 #include "pair_lj_cut_tip4p_long_gpu.h"
-#include "atom.h"
-#include "atom_vec.h"
-#include "comm.h"
-#include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "integrate.h"
-#include "memory.h"
-#include "error.h"
-#include "neigh_request.h"
-#include "universe.h"
-#include "update.h"
-#include "domain.h"
-#include "kspace.h"
+
 #include "angle.h"
+#include "atom.h"
 #include "bond.h"
+#include "comm.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
 #include "gpu_extra.h"
+#include "kspace.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
 #include "suffix.h"
+
+#include <cmath>
 
 #define EWALD_F   1.12837917
 #define EWALD_P   0.3275911
@@ -172,8 +167,9 @@ void PairLJCutTIP4PLongGPU::init_style()
   if (atom->tag_enable == 0)
     error->all(FLERR,"Pair style lj/cut/tip4p/long/gpu requires atom IDs");
   if (!atom->q_flag)
-    error->all(FLERR,
-               "Pair style lj/cut/tip4p/long/gpu requires atom attribute q");
+    error->all(FLERR, "Pair style lj/cut/tip4p/long/gpu requires atom attribute q");
+  if (force->newton_pair)
+    error->all(FLERR,"Pair style lj/cut/tip4p/long/gpu requires newton pair off");
   if (force->bond == nullptr)
     error->all(FLERR,"Must use a bond style with TIP4P potential");
   if (force->angle == nullptr)
@@ -210,7 +206,7 @@ void PairLJCutTIP4PLongGPU::init_style()
   if (ncoultablebits) init_tables(cut_coul,cut_respa);
 
   int maxspecial=0;
-  if (atom->molecular)
+  if (atom->molecular != Atom::ATOMIC)
     maxspecial=atom->maxspecial;
 
   // set alpha parameter
@@ -224,15 +220,17 @@ void PairLJCutTIP4PLongGPU::init_style()
     cell_size = (cut_coul+qdist+blen) + neighbor->skin;
   }
   if (comm->cutghostuser < cell_size) {
-    comm->cutghostuser = cell_size;
     if (comm->me == 0)
-      error->warning(FLERR,"Increasing communication cutoff for TIP4P GPU style");
+      error->warning(FLERR,"Increasing communication cutoff from {:.8} "
+                      "to {:.8} for TIP4P GPU style",comm->cutghostuser,cell_size);
+    comm->cutghostuser = cell_size;
   }
 
+  int mnf = 5e-2 * neighbor->oneatom;
   int success = ljtip4p_long_gpu_init(atom->ntypes+1, cutsq, lj1, lj2, lj3, lj4,
                              offset, force->special_lj, atom->nlocal,
                              typeH, typeO, alpha, qdist,
-                             atom->nlocal+atom->nghost, 300, maxspecial,
+                             atom->nlocal+atom->nghost, mnf, maxspecial,
                              cell_size, gpu_mode, screen, cut_ljsq,
                              cut_coulsq, cut_coulsqplus,
                              force->special_coul, force->qqrd2e,

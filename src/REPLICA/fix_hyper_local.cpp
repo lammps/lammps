@@ -1,6 +1,7 @@
+// clang-format off
  /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -30,7 +31,6 @@
 #include "math_extra.h"
 #include "memory.h"
 #include "error.h"
-
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -63,6 +63,7 @@ FixHyperLocal::FixHyperLocal(LAMMPS *lmp, int narg, char **arg) :
 
   hyperflag = 2;
   scalar_flag = 1;
+  energy_global_flag = 1;
   vector_flag = 1;
   size_vector = 26;
   //size_vector = 28;   // can add 2 for debugging
@@ -237,7 +238,6 @@ int FixHyperLocal::setmask()
   mask |= PRE_NEIGHBOR;
   mask |= PRE_REVERSE;
   mask |= MIN_PRE_NEIGHBOR;
-  mask |= THERMO_ENERGY;
   return mask;
 }
 
@@ -1731,17 +1731,17 @@ double FixHyperLocal::query(int i)
 
 double FixHyperLocal::memory_usage()
 {
-  double bytes = maxbond * sizeof(OneBond);       // blist
+  double bytes = (double)maxbond * sizeof(OneBond);       // blist
   bytes = maxbond * sizeof(double);               // per-bond bias coeffs
-  bytes += 3*maxlocal * sizeof(int);              // numbond,maxhalf,eligible
-  bytes += maxlocal * sizeof(double);             // maxhalfstrain
-  bytes += maxall * sizeof(int);                  // old2now
-  bytes += maxall * sizeof(tagint);               // tagold
-  bytes += 3*maxall * sizeof(double);             // xold
-  bytes += 2*maxall * sizeof(double);             // maxstrain,maxstrain_domain
-  if (checkbias) bytes += maxall * sizeof(tagint);  // biasflag
-  bytes += maxcoeff * sizeof(int);                // numcoeff
-  bytes += maxcoeff * sizeof(HyperOneCoeff *);         // clist
-  bytes += maxlocal*maxbondperatom * sizeof(HyperOneCoeff);  // cpage estimate
+  bytes += (double)3*maxlocal * sizeof(int);              // numbond,maxhalf,eligible
+  bytes += (double)maxlocal * sizeof(double);             // maxhalfstrain
+  bytes += (double)maxall * sizeof(int);                  // old2now
+  bytes += (double)maxall * sizeof(tagint);               // tagold
+  bytes += (double)3*maxall * sizeof(double);             // xold
+  bytes += (double)2*maxall * sizeof(double);             // maxstrain,maxstrain_domain
+  if (checkbias) bytes += (double)maxall * sizeof(tagint);  // biasflag
+  bytes += (double)maxcoeff * sizeof(int);                // numcoeff
+  bytes += (double)maxcoeff * sizeof(HyperOneCoeff *);         // clist
+  bytes += (double)maxlocal*maxbondperatom * sizeof(HyperOneCoeff);  // cpage estimate
   return bytes;
 }

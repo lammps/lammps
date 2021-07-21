@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -32,6 +33,7 @@ using namespace LAMMPS_NS;
 template<class DeviceType>
 PairGranHookeHistoryKokkos<DeviceType>::PairGranHookeHistoryKokkos(LAMMPS *lmp) : PairGranHookeHistory(lmp)
 {
+  kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | V_MASK | OMEGA_MASK | F_MASK | TORQUE_MASK | TYPE_MASK | MASK_MASK | ENERGY_MASK | VIRIAL_MASK | RMASS_MASK | RADIUS_MASK;
@@ -391,6 +393,7 @@ void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryC
 
     F_FLOAT damp = meff*gamman*vnnr*rsqinv;
     F_FLOAT ccel = kn*(radsum-r)*rinv - damp;
+    if(limit_damping && (ccel < 0.0)) ccel = 0.0;
 
     // relative velocities
 

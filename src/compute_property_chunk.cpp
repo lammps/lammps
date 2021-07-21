@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -33,11 +34,9 @@ ComputePropertyChunk::ComputePropertyChunk(LAMMPS *lmp, int narg, char **arg) :
 
   // ID of compute chunk/atom
 
-  int n = strlen(arg[3]) + 1;
-  idchunk = new char[n];
-  strcpy(idchunk,arg[3]);
+  idchunk = utils::strdup(arg[3]);
 
-  init();
+  ComputePropertyChunk::init();
 
   // parse values
 
@@ -256,7 +255,7 @@ void ComputePropertyChunk::allocate()
 double ComputePropertyChunk::memory_usage()
 {
   double bytes = (bigint) nchunk * nvalues * sizeof(double);
-  if (countflag) bytes += (bigint) nchunk * 2 * sizeof(int);
+  if (countflag) bytes += (double) nchunk * 2 * sizeof(int);
   return bytes;
 }
 

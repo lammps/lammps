@@ -296,6 +296,8 @@ Some common CMake variables
      - Description
    * - ``CMAKE_INSTALL_PREFIX``
      - root directory of install location for ``make install``  (default: ``$HOME/.local``)
+   * - ``LAMMPS_INSTALL_RPATH``
+     - set or remove runtime path setting from binaries for ``make install`` (default: ``off``)
    * - ``CMAKE_BUILD_TYPE``
      - controls compilation options:
        one of ``RelWithDebInfo`` (default), ``Release``, ``Debug``, ``MinSizeRel``
@@ -328,6 +330,8 @@ Some common LAMMPS specific variables
      - build LAMMPS with OpenMP support (default: ``on`` if compiler supports OpenMP fully, else ``off``)
    * - ``BUILD_TOOLS``
      - compile some additional executables from the ``tools`` folder (default: ``off``)
+   * - ``BUILD_LAMMPS_SHELL``
+     - compile the LAMMPS shell from the ``tools/lammps-shell`` folder (default: ``off``)
    * - ``BUILD_DOC``
      - include building the HTML format documentation for packaging/installing (default: ``off``)
    * - ``CMAKE_TUNE_FLAGS``
@@ -378,9 +382,9 @@ change some variables later with additional *-D* flags.  A few examples:
 
 .. code-block:: bash
 
-   cmake -C ../cmake/presets/minimal.cmake -D PKG_MISC=on ../cmake
+   cmake -C ../cmake/presets/basic.cmake -D PKG_MISC=on ../cmake
    cmake -C ../cmake/presets/clang.cmake -C ../cmake/presets/most.cmake ../cmake
-   cmake -C ../cmake/presets/minimal.cmake -D BUILD_MPI=off ../cmake
+   cmake -C ../cmake/presets/basic.cmake -D BUILD_MPI=off ../cmake
 
 The first command will install the packages ``KSPACE``, ``MANYBODY``,
 ``MOLECULE``, ``RIGID`` and ``MISC``; the first four from the preset
@@ -396,13 +400,21 @@ It is also possible to do this incrementally.
 
 .. code-block:: bash
 
-   cmake -C ../cmake/presets/minimal.cmake ../cmake
+   cmake -C ../cmake/presets/basic.cmake ../cmake
    cmake -D PKG_MISC=on .
 
-will achieve the same configuration like in the first example above.  In
-this scenario it is particularly convenient to do the second
+will achieve the same final configuration as in the first example above.
+In this scenario it is particularly convenient to do the second
 configuration step using either the text mode or graphical user
 interface (``ccmake`` or ``cmake-gui``).
+
+.. note::
+
+   Using a preset to select a compiler package (``clang.cmake``,
+   ``gcc.cmake``, ``intel.cmake``, ``oneapi.cmake``, or ``pgi.cmake``)
+   are an exception to the mechanism of updating the configuration incrementally,
+   as they will trigger a reset of cached internal CMake settings and thus
+   reset settings to their default values.
 
 Compilation and build targets
 -----------------------------

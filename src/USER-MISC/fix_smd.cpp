@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -58,7 +59,7 @@ FixSMD::FixSMD(LAMMPS *lmp, int narg, char **arg) :
   extvector = 1;
   respa_level_support = 1;
   ilevel_respa = 0;
-  virial_flag = 1;
+  virial_global_flag = virial_peratom_flag = 1;
 
   int argoffs=3;
   if (strcmp(arg[argoffs],"cvel") == 0) {
@@ -159,7 +160,7 @@ void FixSMD::init()
     zn = dz/r_old;
   }
 
-  if (strstr(update->integrate_style,"respa")) {
+  if (utils::strmatch(update->integrate_style,"^respa")) {
     ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
   }
@@ -169,7 +170,7 @@ void FixSMD::init()
 
 void FixSMD::setup(int vflag)
 {
-  if (strstr(update->integrate_style,"verlet"))
+  if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
     ((Respa *) update->integrate)->copy_flevel_f(ilevel_respa);
@@ -182,16 +183,15 @@ void FixSMD::setup(int vflag)
 
 void FixSMD::post_force(int vflag)
 {
-  // energy and virial setup
+  // virial setup
 
-  if (vflag) v_setup(vflag);
-  else evflag = 0;
+  v_init(vflag);
 
   if (styleflag & SMD_TETHER) smd_tether();
   else smd_couple();
 
   if (styleflag & SMD_CVEL) {
-    if (strstr(update->integrate_style,"verlet"))
+    if (utils::strmatch(update->integrate_style,"^verlet"))
       r_old += v_smd * update->dt;
     else
       r_old += v_smd * ((Respa *) update->integrate)->step[ilevel_respa];
@@ -206,7 +206,7 @@ void FixSMD::smd_tether()
   group->xcm(igroup,masstotal,xcm);
 
   double dt = update->dt;
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     dt = ((Respa *) update->integrate)->step[ilevel_respa];
 
   // fx,fy,fz = components of k * (r-r0)
@@ -223,7 +223,7 @@ void FixSMD::smd_tether()
   if (!zflag) dz = 0.0;
   r = sqrt(dx*dx + dy*dy + dz*dz);
   if (styleflag & SMD_CVEL) {
-    if(r > SMALL) {
+    if (r > SMALL) {
       dr = r - r0 - r_old;
       fx = k_smd*dx*dr/r;
       fy = k_smd*dy*dr/r;
@@ -276,7 +276,7 @@ void FixSMD::smd_tether()
           v[3] = -fx*massfrac*unwrap[1];
           v[4] = -fx*massfrac*unwrap[2];
           v[5] = -fy*massfrac*unwrap[2];
-          v_tally(i, v);
+          v_tally(i,v);
         }
       }
   } else {
@@ -297,7 +297,7 @@ void FixSMD::smd_tether()
           v[3] = -fx*massfrac*unwrap[1];
           v[4] = -fx*massfrac*unwrap[2];
           v[5] = -fy*massfrac*unwrap[2];
-          v_tally(i, v);
+          v_tally(i,v);
         }
       }
   }
@@ -312,7 +312,7 @@ void FixSMD::smd_couple()
   group->xcm(igroup2,masstotal2,xcm2);
 
   double dt = update->dt;
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     dt = ((Respa *) update->integrate)->step[ilevel_respa];
 
   // renormalize direction of spring

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -289,7 +290,7 @@ void ComputeBasalAtom::compute_peratom()
           }
           var5 = var6 = var7 = 0.0;
           //find standard deviations
-          for (j=0;j<count;j++){
+          for (j=0;j<count;j++) {
             var5 = var5 + x5[j]*x5[j]-2*x5[j]*xmean5+xmean5*xmean5+y5[j]*y5[j]-2*y5[j]*ymean5+ymean5*ymean5+z5[j]*z5[j]-2*z5[j]*zmean5+zmean5*zmean5;
             var6 = var6 + x6[j]*x6[j]-2*x6[j]*xmean6+xmean6*xmean6+y6[j]*y6[j]-2*y6[j]*ymean6+ymean6*ymean6+z6[j]*z6[j]-2*z6[j]*zmean6+zmean6*zmean6;
             var7 = var7 + x7[j]*x7[j]-2*x7[j]*xmean7+xmean7*xmean7+y7[j]*y7[j]-2*y7[j]*ymean7+ymean7*ymean7+z7[j]*z7[j]-2*z7[j]*zmean7+zmean7*zmean7;
@@ -306,7 +307,7 @@ void ComputeBasalAtom::compute_peratom()
           BPV[i][1] = 0;
           BPV[i][2] = 0;
           for (k=0;k<count;k++) {
-           if (value == 0){
+           if (value == 0) {
                BPV[i][0] = BPV[i][0]+x5[k];
                BPV[i][1] = BPV[i][1]+y5[k];
                BPV[i][2] = BPV[i][2]+z5[k];
@@ -387,7 +388,7 @@ void ComputeBasalAtom::compute_peratom()
                       zmean7 = zmean7/3;
                       var5 = var6 = var7 = 0;
                       //get standard deviations
-                      for (m=0;m<3;m++){
+                      for (m=0;m<3;m++) {
                             var5 = var5 + x5[m]*x5[m]-2*x5[m]*xmean5+xmean5*xmean5+y5[m]*y5[m]-2*y5[m]*ymean5+ymean5*ymean5+z5[m]*z5[m]-2*z5[m]*zmean5+zmean5*zmean5;
                             var6 = var6 + x6[m]*x6[m]-2*x6[m]*xmean6+xmean6*xmean6+y6[m]*y6[m]-2*y6[m]*ymean6+ymean6*ymean6+z6[m]*z6[m]-2*z6[m]*zmean6+zmean6*zmean6;
                             var7 = var7 + x7[m]*x7[m]-2*x7[m]*xmean7+xmean7*xmean7+y7[m]*y7[m]-2*y7[m]*ymean7+ymean7*ymean7+z7[m]*z7[m]-2*z7[m]*zmean7+zmean7*zmean7;
@@ -424,7 +425,7 @@ void ComputeBasalAtom::compute_peratom()
       //normalize BPV:
       double Mag = sqrt(BPV[i][0]*BPV[i][0] +
                         BPV[i][1]*BPV[i][1] + BPV[i][2]*BPV[i][2]);
-      if (Mag > 0){
+      if (Mag > 0) {
         BPV[i][0] = BPV[i][0]/Mag;
         BPV[i][1] = BPV[i][1]/Mag;
         BPV[i][2] = BPV[i][2]/Mag;

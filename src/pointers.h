@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -10,6 +10,7 @@
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
+// clang-format off
 
 // Pointers class contains ptrs to master copy of
 //   fundamental LAMMPS class ptrs stored in lammps.h
@@ -41,12 +42,26 @@ namespace LAMMPS_NS {
 
 // enum used for KOKKOS host/device flags
 
-enum ExecutionSpace{Host,Device};
+enum ExecutionSpace{ Host, Device };
 
 // global forward declarations
 
 template <class T> class MyPoolChunk;
 template <class T> class MyPage;
+
+/** \class LAMMPS_NS::Pointers
+ * \brief Base class for LAMMPS features
+ *
+ * The Pointers class contains references to many of the pointers
+ * and members of the LAMMPS_NS::LAMMPS class. Derived classes thus
+ * gain access to the constituent class instances in the LAMMPS
+ * composite class and thus to the core functionality of LAMMPS.
+ *
+ * This kind of construct is needed, since the LAMMPS constructor
+ * should only be run once per LAMMPS instance and thus classes
+ * cannot be derived from LAMMPS itself. The Pointers class
+ * constructor instead only initializes C++ references to component
+ * pointer in the LAMMPS class. */
 
 class Pointers {
  public:

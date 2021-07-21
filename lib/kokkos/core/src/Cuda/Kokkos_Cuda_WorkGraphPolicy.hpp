@@ -46,6 +46,7 @@
 #define KOKKOS_CUDA_WORKGRAPHPOLICY_HPP
 
 #include <Kokkos_Cuda.hpp>
+#include <Cuda/Kokkos_Cuda_KernelLaunch.hpp>
 
 namespace Kokkos {
 namespace Impl {
@@ -77,6 +78,8 @@ class ParallelFor<FunctorType, Kokkos::WorkGraphPolicy<Traits...>,
   }
 
  public:
+  Policy const& get_policy() const { return m_policy; }
+
   __device__ inline void operator()() const noexcept {
     if (0 == (threadIdx.y % 16)) {
       // Spin until COMPLETED_TOKEN.

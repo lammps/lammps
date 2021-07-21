@@ -1,5 +1,5 @@
 Overview of LAMMPS
-==================
+------------------
 
 LAMMPS is a classical molecular dynamics (MD) code that models
 ensembles of particles in a liquid, solid, or gaseous state.  It can
@@ -16,10 +16,10 @@ shared-memory boxes and distributed-memory clusters and
 supercomputers.
 
 .. _mpi: https://en.wikipedia.org/wiki/Message_Passing_Interface
-.. _lws: https://lammps.sandia.gov
+.. _lws: https://www.lammps.org
 
 LAMMPS is written in C++.  Earlier versions were written in F77 and
-F90.  See the `History page <https://lammps.sandia.gov/history.html>`_ of
+F90.  See the `History page <https://www.lammps.org/history.html>`_ of
 the website for details.  All versions can be downloaded from the
 `LAMMPS website <lws_>`_.
 

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(addtorque,FixAddTorque)
-
+// clang-format off
+FixStyle(addtorque,FixAddTorque);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_ADDTORQUE_H
@@ -39,16 +39,16 @@ class FixAddTorque : public Fix {
   double compute_vector(int);
 
  private:
-  double xvalue,yvalue,zvalue;
+  double xvalue, yvalue, zvalue;
   int varflag;
-  char *xstr,*ystr,*zstr;
-  int xvar,yvar,zvar,xstyle,ystyle,zstyle;
-  double foriginal[4],foriginal_all[4];
+  char *xstr, *ystr, *zstr;
+  int xvar, yvar, zvar, xstyle, ystyle, zstyle;
+  double foriginal[4], foriginal_all[4];
   int force_flag;
   int ilevel_respa;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

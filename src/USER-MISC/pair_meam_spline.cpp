@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -32,18 +33,18 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_meam_spline.h"
-#include <cmath>
 
-#include <cstring>
 #include "atom.h"
-#include "force.h"
 #include "comm.h"
-#include "neighbor.h"
+#include "error.h"
+#include "force.h"
+#include "memory.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "memory.h"
-#include "error.h"
+#include "neighbor.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -54,10 +55,6 @@ PairMEAMSpline::PairMEAMSpline(LAMMPS *lmp) : Pair(lmp)
   single_enable = 0;
   restartinfo = 0;
   one_coeff = 1;
-
-  nelements = 0;
-  elements = nullptr;
-  map = nullptr;
 
   Uprime_values = nullptr;
   nmax = 0;
@@ -80,14 +77,10 @@ PairMEAMSpline::PairMEAMSpline(LAMMPS *lmp) : Pair(lmp)
 
 PairMEAMSpline::~PairMEAMSpline()
 {
-  if (elements)
-    for (int i = 0; i < nelements; i++) delete [] elements[i];
-  delete [] elements;
-
   delete[] twoBodyInfo;
   memory->destroy(Uprime_values);
 
-  if(allocated) {
+  if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
 
@@ -98,8 +91,6 @@ PairMEAMSpline::~PairMEAMSpline()
     delete[] gs;
 
     delete[] zero_atom_energies;
-
-    delete [] map;
   }
 }
 
@@ -124,15 +115,15 @@ void PairMEAMSpline::compute(int eflag, int vflag)
   // Determine the maximum number of neighbors a single atom has
 
   int newMaxNeighbors = 0;
-  for(int ii = 0; ii < listfull->inum; ii++) {
+  for (int ii = 0; ii < listfull->inum; ii++) {
     int jnum = listfull->numneigh[listfull->ilist[ii]];
-    if(jnum > newMaxNeighbors)
+    if (jnum > newMaxNeighbors)
       newMaxNeighbors = jnum;
   }
 
   // Allocate array for temporary bond info
 
-  if(newMaxNeighbors > maxNeighbors) {
+  if (newMaxNeighbors > maxNeighbors) {
     maxNeighbors = newMaxNeighbors;
     delete[] twoBodyInfo;
     twoBodyInfo = new MEAM2Body[maxNeighbors];
@@ -141,7 +132,7 @@ void PairMEAMSpline::compute(int eflag, int vflag)
   // Sum three-body contributions to charge density and
   // the embedding energy
 
-  for(int ii = 0; ii < listfull->inum; ii++) {
+  for (int ii = 0; ii < listfull->inum; ii++) {
     int i = listfull->ilist[ii];
     int numBonds = 0;
 
@@ -151,7 +142,7 @@ void PairMEAMSpline::compute(int eflag, int vflag)
     const int ntypes = atom->ntypes;
     const int itype = atom->type[i];
 
-    for(int jj = 0; jj < listfull->numneigh[i]; jj++) {
+    for (int jj = 0; jj < listfull->numneigh[i]; jj++) {
       int j = listfull->firstneigh[i][jj];
       j &= NEIGHMASK;
 
@@ -160,7 +151,7 @@ void PairMEAMSpline::compute(int eflag, int vflag)
       double jdelz = x[j][2] - x[i][2];
       double rij_sq = jdelx*jdelx + jdely*jdely + jdelz*jdelz;
 
-      if(rij_sq < cutoff*cutoff) {
+      if (rij_sq < cutoff*cutoff) {
         double rij = sqrt(rij_sq);
         double partial_sum = 0;
         const int jtype = atom->type[j];
@@ -172,7 +163,7 @@ void PairMEAMSpline::compute(int eflag, int vflag)
         nextTwoBodyInfo->del[1] = jdely / rij;
         nextTwoBodyInfo->del[2] = jdelz / rij;
 
-        for(int kk = 0; kk < numBonds; kk++) {
+        for (int kk = 0; kk < numBonds; kk++) {
           const MEAM2Body& bondk = twoBodyInfo[kk];
           double cos_theta = (nextTwoBodyInfo->del[0]*bondk.del[0] +
                               nextTwoBodyInfo->del[1]*bondk.del[1] +
@@ -194,16 +185,16 @@ void PairMEAMSpline::compute(int eflag, int vflag)
       - zero_atom_energies[i_to_potl(itype)];
 
     Uprime_values[i] = Uprime_i;
-    if(eflag) {
-      if(eflag_global)
+    if (eflag) {
+      if (eflag_global)
         eng_vdwl += embeddingEnergy;
-      if(eflag_atom)
+      if (eflag_atom)
         eatom[i] += embeddingEnergy;
     }
 
     // Compute three-body contributions to force
     double forces_i[3] = {0, 0, 0};
-    for(int jj = 0; jj < numBonds; jj++) {
+    for (int jj = 0; jj < numBonds; jj++) {
       const MEAM2Body bondj = twoBodyInfo[jj];
       double rij = bondj.r;
       int j = bondj.tag;
@@ -215,7 +206,7 @@ void PairMEAMSpline::compute(int eflag, int vflag)
       const int jtype = atom->type[j];
 
       MEAM2Body const* bondk = twoBodyInfo;
-      for(int kk = 0; kk < jj; kk++, ++bondk) {
+      for (int kk = 0; kk < jj; kk++, ++bondk) {
         double rik = bondk->r;
 
         double cos_theta = (bondj.del[0]*bondk->del[0] +
@@ -256,7 +247,7 @@ void PairMEAMSpline::compute(int eflag, int vflag)
         forces[k][1] += fk[1];
         forces[k][2] += fk[2];
 
-        if(evflag) {
+        if (evflag) {
           double delta_ij[3];
           double delta_ik[3];
           delta_ij[0] = bondj.del[0] * rij;
@@ -287,11 +278,11 @@ void PairMEAMSpline::compute(int eflag, int vflag)
   comm->forward_comm_pair(this);
 
   // Compute two-body pair interactions
-  for(int ii = 0; ii < listhalf->inum; ii++) {
+  for (int ii = 0; ii < listhalf->inum; ii++) {
     int i = listhalf->ilist[ii];
     const int itype = atom->type[i];
 
-    for(int jj = 0; jj < listhalf->numneigh[i]; jj++) {
+    for (int jj = 0; jj < listhalf->numneigh[i]; jj++) {
       int j = listhalf->firstneigh[i][jj];
       j &= NEIGHMASK;
 
@@ -301,7 +292,7 @@ void PairMEAMSpline::compute(int eflag, int vflag)
       jdel[2] = x[j][2] - x[i][2];
       double rij_sq = jdel[0]*jdel[0] + jdel[1]*jdel[1] + jdel[2]*jdel[2];
 
-      if(rij_sq < cutoff*cutoff) {
+      if (rij_sq < cutoff*cutoff) {
         double rij = sqrt(rij_sq);
         const int jtype = atom->type[j];
 
@@ -330,7 +321,7 @@ void PairMEAMSpline::compute(int eflag, int vflag)
     }
   }
 
-  if(vflag_fdotr)
+  if (vflag_fdotr)
     virial_fdotr_compute();
 }
 
@@ -375,7 +366,7 @@ void PairMEAMSpline::allocate()
 
 void PairMEAMSpline::settings(int narg, char **/*arg*/)
 {
-  if(narg != 0) error->all(FLERR,"Illegal pair_style command");
+  if (narg != 0) error->all(FLERR,"Illegal pair_style command");
 }
 
 /* ----------------------------------------------------------------------
@@ -387,11 +378,6 @@ void PairMEAMSpline::coeff(int narg, char **arg)
   int i,j,n;
 
   if (narg != 3 + atom->ntypes)
-    error->all(FLERR,"Incorrect args for pair coefficients");
-
-  // insure I,J args are * *
-
-  if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
     error->all(FLERR,"Incorrect args for pair coefficients");
 
   // read potential file: also sets the number of elements.
@@ -457,9 +443,9 @@ void PairMEAMSpline::read_file(const char* filename)
 {
   int nmultichoose2; // = (n+1)*n/2;
 
-  if(comm->me == 0) {
+  if (comm->me == 0) {
     FILE *fp = utils::open_potential(filename,lmp,nullptr);
-    if(fp == nullptr) {
+    if (fp == nullptr) {
       char str[1024];
       snprintf(str,128,"Cannot open spline MEAM potential file %s", filename);
       error->one(FLERR,str);
@@ -568,18 +554,18 @@ void PairMEAMSpline::read_file(const char* filename)
   // Determine maximum cutoff radius of all relevant spline functions.
   cutoff = 0.0;
   for (int i = 0; i < nmultichoose2; i++)
-    if(phis[i].cutoff() > cutoff)
+    if (phis[i].cutoff() > cutoff)
       cutoff = phis[i].cutoff();
   for (int i = 0; i < nelements; i++)
-    if(rhos[i].cutoff() > cutoff)
+    if (rhos[i].cutoff() > cutoff)
       cutoff = rhos[i].cutoff();
   for (int i = 0; i < nelements; i++)
-    if(fs[i].cutoff() > cutoff)
+    if (fs[i].cutoff() > cutoff)
       cutoff = fs[i].cutoff();
 
   // Set LAMMPS pair interaction flags.
-  for(int i = 1; i <= atom->ntypes; i++) {
-    for(int j = 1; j <= atom->ntypes; j++) {
+  for (int i = 1; i <= atom->ntypes; i++) {
+    for (int j = 1; j <= atom->ntypes; j++) {
       // setflag[i][j] = 1;
       cutsq[i][j] = cutoff;
     }
@@ -592,7 +578,7 @@ void PairMEAMSpline::read_file(const char* filename)
 ------------------------------------------------------------------------- */
 void PairMEAMSpline::init_style()
 {
-  if(force->newton_pair == 0)
+  if (force->newton_pair == 0)
     error->all(FLERR,"Pair style meam/spline requires newton pair on");
 
   // Need both full and half neighbor list.
@@ -613,8 +599,8 @@ void PairMEAMSpline::init_style()
 ------------------------------------------------------------------------- */
 void PairMEAMSpline::init_list(int id, NeighList *ptr)
 {
-  if(id == 1) listfull = ptr;
-  else if(id == 2) listhalf = ptr;
+  if (id == 1) listfull = ptr;
+  else if (id == 2) listhalf = ptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -632,7 +618,7 @@ int PairMEAMSpline::pack_forward_comm(int n, int *list, double *buf,
 {
   int* list_iter = list;
   int* list_iter_end = list + n;
-  while(list_iter != list_iter_end)
+  while (list_iter != list_iter_end)
     *buf++ = Uprime_values[*list_iter++];
   return n;
 }
@@ -679,7 +665,7 @@ void PairMEAMSpline::SplineFunction::parse(FILE* fp, Error* error,
   // Parse number of spline knots.
   utils::sfgets(FLERR,line,MAXLINE,fp,nullptr,error);
   int n = atoi(line);
-  if(n < 2)
+  if (n < 2)
     error->one(FLERR,"Invalid number of spline knots in MEAM potential file");
 
   // Parse first derivatives at beginning and end of spline.
@@ -693,10 +679,10 @@ void PairMEAMSpline::SplineFunction::parse(FILE* fp, Error* error,
     utils::sfgets(FLERR,line,MAXLINE,fp,nullptr,error);
 
   // Parse knot coordinates.
-  for(int i=0; i<n; i++) {
+  for (int i=0; i<n; i++) {
     utils::sfgets(FLERR,line,MAXLINE,fp,nullptr,error);
     double x, y, y2;
-    if(sscanf(line, "%lg %lg %lg", &x, &y, &y2) != 3) {
+    if (sscanf(line, "%lg %lg %lg", &x, &y, &y2) != 3) {
       error->one(FLERR,"Invalid knot line in MEAM potential file");
     }
     setKnot(i, x, y);
@@ -718,36 +704,36 @@ void PairMEAMSpline::SplineFunction::prepareSpline(Error* error)
   double* u = new double[N];
   Y2[0] = -0.5;
   u[0] = (3.0/(X[1]-X[0])) * ((Y[1]-Y[0])/(X[1]-X[0]) - deriv0);
-  for(int i = 1; i <= N-2; i++) {
+  for (int i = 1; i <= N-2; i++) {
     double sig = (X[i]-X[i-1]) / (X[i+1]-X[i-1]);
     double p = sig * Y2[i-1] + 2.0;
     Y2[i] = (sig - 1.0) / p;
     u[i] = (Y[i+1]-Y[i]) / (X[i+1]-X[i]) - (Y[i]-Y[i-1])/(X[i]-X[i-1]);
     u[i] = (6.0 * u[i]/(X[i+1]-X[i-1]) - sig*u[i-1])/p;
 
-    if(fabs(h*i+xmin - X[i]) > 1e-8)
+    if (fabs(h*i+xmin - X[i]) > 1e-8)
       isGridSpline = false;
   }
 
   double qn = 0.5;
   double un = (3.0/(X[N-1]-X[N-2])) * (derivN - (Y[N-1]-Y[N-2])/(X[N-1]-X[N-2]));
   Y2[N-1] = (un - qn*u[N-2]) / (qn * Y2[N-2] + 1.0);
-  for(int k = N-2; k >= 0; k--) {
+  for (int k = N-2; k >= 0; k--) {
     Y2[k] = Y2[k] * Y2[k+1] + u[k];
   }
 
   delete[] u;
 
 #if !SPLINE_MEAM_SUPPORT_NON_GRID_SPLINES
-  if(!isGridSpline)
+  if (!isGridSpline)
     error->one(FLERR,"Support for MEAM potentials with non-uniform cubic splines has not been enabled in the MEAM potential code. Set SPLINE_MEAM_SUPPORT_NON_GRID_SPLINES in pair_spline_meam.h to 1 to enable it");
 #endif
 
   // Shift the spline to X=0 to speed up interpolation.
-  for(int i = 0; i < N; i++) {
+  for (int i = 0; i < N; i++) {
     Xs[i] = X[i] - xmin;
 #if !SPLINE_MEAM_SUPPORT_NON_GRID_SPLINES
-    if(i < N-1) Ydelta[i] = (Y[i+1]-Y[i])/h;
+    if (i < N-1) Ydelta[i] = (Y[i+1]-Y[i])/h;
     Y2[i] /= h*6.0;
 #endif
   }
@@ -768,7 +754,7 @@ void PairMEAMSpline::SplineFunction::communicate(MPI_Comm& world, int me)
   MPI_Bcast(&h, 1, MPI_DOUBLE, 0, world);
   MPI_Bcast(&hsq, 1, MPI_DOUBLE, 0, world);
   MPI_Bcast(&inv_h, 1, MPI_DOUBLE, 0, world);
-  if(me != 0) {
+  if (me != 0) {
     X = new double[N];
     Xs = new double[N];
     Y = new double[N];
@@ -790,18 +776,18 @@ void PairMEAMSpline::SplineFunction::writeGnuplot(const char* filename,
 {
   FILE* fp = fopen(filename, "w");
   fprintf(fp, "#!/usr/bin/env gnuplot\n");
-  if(title) fprintf(fp, "set title \"%s\"\n", title);
+  if (title) fprintf(fp, "set title \"%s\"\n", title);
   double tmin = X[0] - (X[N-1] - X[0]) * 0.05;
   double tmax = X[N-1] + (X[N-1] - X[0]) * 0.05;
   double delta = (tmax - tmin) / (N*200);
   fprintf(fp, "set xrange [%f:%f]\n", tmin, tmax);
   fprintf(fp, "plot '-' with lines notitle, '-' with points notitle pt 3 lc 3\n");
-  for(double x = tmin; x <= tmax+1e-8; x += delta) {
+  for (double x = tmin; x <= tmax+1e-8; x += delta) {
     double y = eval(x);
     fprintf(fp, "%f %f\n", x, y);
   }
   fprintf(fp, "e\n");
-  for(int i = 0; i < N; i++) {
+  for (int i = 0; i < N; i++) {
     fprintf(fp, "%f %f\n", X[i], Y[i]);
   }
   fprintf(fp, "e\n");

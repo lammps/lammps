@@ -31,9 +31,24 @@ NVCC = nvcc
 CUDA_ARCH = -arch=sm_50
 #CUDA_ARCH = -arch=sm_52
 
+# Pascal hardware
+#CUDA_ARCH = -arch=sm_60
+#CUDA_ARCH = -arch=sm_61
+
+# Volta hardware
+#CUDA_ARCH = -arch=sm_70
+
+# Turing hardware
+#CUDA_ARCH = -arch=sm_75
+
+# Ampere hardware
+#CUDA_ARCH = -arch=sm_80
+#CUDA_ARCH = -arch=sm_86
+
 CUDA_CODE = -gencode arch=compute_50,code=[sm_50,compute_50] -gencode arch=compute_52,code=[sm_52,compute_52] \
 	    -gencode arch=compute_60,code=[sm_60,compute_60] -gencode arch=compute_61,code=[sm_61,compute_61] \
-	    -gencode arch=compute_70,code=[sm_70,compute_70] -gencode arch=compute_75,code=[sm_75,compute_75]
+	    -gencode arch=compute_70,code=[sm_70,compute_70] -gencode arch=compute_75,code=[sm_75,compute_75] \
+	    -gencode arch=compute_80,code=[sm_80,compute_80] -gencode arch=compute_86,code=[sm_86,compute_86]
 
 CUDA_ARCH += $(CUDA_CODE)
 
@@ -51,9 +66,9 @@ CUDA_PRECISION = -D_SINGLE_DOUBLE
 
 CUDA_INCLUDE = -I$(CUDA_HOME)/include
 CUDA_LIB = -L$(CUDA_HOME)/lib64 -L$(CUDA_HOME)/lib64/stubs
-CUDA_OPTS = -DUNIX -O3 --use_fast_math $(LMP_INC) -Xcompiler "-fPIC -std=c++98"
+CUDA_OPTS = -DUNIX -O3 --use_fast_math $(LMP_INC) -Xcompiler -fPIC
 
-CUDR_CPP = mpicxx -DMPI_GERYON -DUCL_NO_EXIT -DMPICH_IGNORE_CXX_SEEK -DOMPI_SKIP_MPICXX=1 -fPIC
+CUDR_CPP = mpicxx -DMPI_GERYON -DUCL_NO_EXIT -DMPICH_IGNORE_CXX_SEEK -DOMPI_SKIP_MPICXX=1 -fPIC -std=c++11
 CUDR_OPTS = -O2 $(LMP_INC) # -xHost -no-prec-div -ansi-alias
 
 BIN_DIR = ./
@@ -62,7 +77,8 @@ LIB_DIR = ./
 AR = ar
 BSH = /bin/sh
 
-CUDPP_OPT = -DUSE_CUDPP -Icudpp_mini
+# GPU binning not recommended with modern GPUs
+CUDPP_OPT = #-DUSE_CUDPP -Icudpp_mini
 
 include Nvidia.makefile_multi
 

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -28,29 +28,29 @@ class Integrate : protected Pointers {
   virtual void run(int) = 0;
   virtual void cleanup() {}
   virtual void reset_dt() {}
-  virtual double memory_usage() {return 0;}
+  virtual double memory_usage() { return 0; }
 
  protected:
-  int eflag,vflag;                  // flags for energy/virial computation
-  int virial_style;                 // compute virial explicitly or implicitly
-  int external_force_clear;         // clear forces locally or externally
+  int eflag, vflag;            // flags for energy/virial computation
+  int virial_style;            // compute virial explicitly or implicitly
+  int external_force_clear;    // clear forces locally or externally
 
-  int nelist_global,nelist_atom;    // # of PE,virial computes to check
-  int nvlist_global,nvlist_atom,ncvlist_atom;
-  class Compute **elist_global;     // lists of PE,virial Computes
+  int nelist_global, nelist_atom;    // # of PE,virial computes to check
+  int nvlist_global, nvlist_atom, ncvlist_atom;
+  class Compute **elist_global;    // lists of PE,virial Computes
   class Compute **elist_atom;
   class Compute **vlist_global;
   class Compute **vlist_atom;
   class Compute **cvlist_atom;
 
-  int pair_compute_flag;            // 0 if pair->compute is skipped
-  int kspace_compute_flag;          // 0 if kspace->compute is skipped
+  int pair_compute_flag;      // 0 if pair->compute is skipped
+  int kspace_compute_flag;    // 0 if kspace->compute is skipped
 
   void ev_setup();
   void ev_set(bigint);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 

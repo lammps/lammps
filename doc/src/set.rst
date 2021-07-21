@@ -13,7 +13,16 @@ Syntax
 * style = *atom* or *type* or *mol* or *group* or *region*
 * ID = atom ID range or type range or mol ID range or group ID or region ID
 * one or more keyword/value pairs may be appended
-* keyword = *type* or *type/fraction* or *type/ratio* or *type/subset* or *mol* or *x* or *y* or *z* or           *charge* or *dipole* or *dipole/random* or *quat* or           *spin* or *spin/random* or *quat* or           *quat/random* or *diameter* or *shape* or           *length* or *tri* or *theta* or *theta/random* or           *angmom* or *omega* or           *mass* or *density* or *density/disc* or *volume* or *image* or           *bond* or *angle* or *dihedral* or *improper* or           *sph/e* or *sph/cv* or *sph/rho* or           *smd/contact/radius* or *smd/mass/density* or *dpd/theta* or           *edpd/temp* or *edpd/cv* or *cc* or *i_name* or *d_name*
+* keyword = *type* or *type/fraction* or *type/ratio* or *type/subset* or *mol*
+  or *x* or *y* or *z* or *vx* or *vy* or *vz*
+  or *charge* or *dipole* or *dipole/random* or *spin* or *spin/random*
+  or *quat* *quat/random* or *diameter* or *shape* or *length* or *tri*
+  or *theta* or *theta/random* or *angmom* or *omega* or *mass*
+  or *density* or *density/disc* or *volume* or *image*
+  or *bond* or *angle* or *dihedral* or *improper*
+  or *sph/e* or *sph/cv* or *sph/rho* or *smd/contact/radius* or *smd/mass/density*
+  or *dpd/theta* or *edpd/temp* or *edpd/cv* or *cc*
+  or *i_name* or *d_name*
 
   .. parsed-literal::
 
@@ -432,17 +441,17 @@ command.  These keywords do not allow use of an atom-style variable.
 
 Keywords *sph/e*\ , *sph/cv*\ , and *sph/rho* set the energy, heat
 capacity, and density of smoothed particle hydrodynamics (SPH)
-particles.  See `this PDF guide <USER/sph/SPH_LAMMPS_userguide.pdf>`_
+particles.  See `this PDF guide <PDF/SPH_LAMMPS_userguide.pdf>`_
 to using SPH in LAMMPS.
 
 Keyword *smd/mass/density* sets the mass of all selected particles,
 but it is only applicable to the Smooth Mach Dynamics package
-USER-SMD.  It assumes that the particle volume has already been
+MACHDYN.  It assumes that the particle volume has already been
 correctly set and calculates particle mass from the provided mass
 density value.
 
 Keyword *smd/contact/radius* only applies to simulations with the
-Smooth Mach Dynamics package USER-SMD.  Itsets an interaction radius
+Smooth Mach Dynamics package MACHDYN.  Itsets an interaction radius
 for computing short-range interactions, e.g. repulsive forces to
 prevent different individual physical bodies from penetrating each
 other. Note that the SPH smoothing kernel diameter used for computing
@@ -450,7 +459,7 @@ long range, nonlocal interactions, is set using the *diameter*
 keyword.
 
 Keyword *dpd/theta* sets the internal temperature of a DPD particle as
-defined by the USER-DPD package.  If the specified value is a number
+defined by the DPD-REACT package.  If the specified value is a number
 it must be >= 0.0.  If the specified value is NULL, then the kinetic
 temperature Tkin of each particle is computed as 3/2 k Tkin = KE = 1/2
 m v\^2 = 1/2 m (vx\*vx+vy\*vy+vz\*vz).  Each particle's internal
@@ -461,13 +470,13 @@ value >= 0.0, the internal temperature is set to that value.  If it is
 temperature is set to that value.
 
 Keywords *edpd/temp* and *edpd/cv* set the temperature and volumetric
-heat capacity of an eDPD particle as defined by the USER-MESODPD package.
+heat capacity of an eDPD particle as defined by the DPD-MESO package.
 Currently, only :doc:`atom_style edpd <atom_style>` defines particles
 with these attributes. The values for the temperature and heat
 capacity must be positive.
 
 Keyword *cc* sets the chemical concentration of a tDPD particle for a
-specified species as defined by the USER-MESODPD package. Currently, only
+specified species as defined by the DPD-MESO package. Currently, only
 :doc:`atom_style tdpd <atom_style>` defines particles with this
 attribute. An integer for "index" selects a chemical species (1 to
 Nspecies) where Nspecies is set by the atom_style command. The value

@@ -140,7 +140,7 @@ inline int cuda_deduce_block_size(bool early_termination,
       }
     }
 
-    if (early_termination && blocks_per_sm != 0) break;
+    if (early_termination && opt_block_size != 0) break;
   }
 
   return opt_block_size;
@@ -198,6 +198,40 @@ int cuda_get_opt_block_size(const CudaInternal* cuda_instance,
                                 LaunchBounds{});
 }
 
+// Assuming cudaFuncSetCacheConfig(MyKernel, cudaFuncCachePreferL1)
+// NOTE these number can be obtained several ways:
+// * One option is to download the CUDA Occupancy Calculator spreadsheet, select
+// "Compute Capability" first and check what is the smallest "Shared Memory
+// Size Config" that is available.  The "Shared Memory Per Multiprocessor" in
+// bytes is then to be found below in the summary.
+// * Another option would be to look for the information in the "Tuning
+// Guide(s)" of the CUDA Toolkit Documentation for each GPU architecture, in
+// the "Shared Memory" section (more tedious)
+inline size_t get_shmem_per_sm_prefer_l1(cudaDeviceProp const& properties) {
+  int const compute_capability = properties.major * 10 + properties.minor;
+  return [compute_capability]() {
+    switch (compute_capability) {
+      case 30:
+      case 32:
+      case 35: return 16;
+      case 37: return 80;
+      case 50:
+      case 53:
+      case 60:
+      case 62: return 64;
+      case 52:
+      case 61: return 96;
+      case 70:
+      case 80:
+      case 86: return 8;
+      case 75: return 32;
+      default:
+        Kokkos::Impl::throw_runtime_exception(
+            "Unknown device in cuda block size deduction");
+    }
+    return 0;
+  }() * 1024;
+}
 }  // namespace Impl
 }  // namespace Kokkos
 

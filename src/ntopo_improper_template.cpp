@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
-   LAMMPS - Large-scale Atomic/Molecular Massively Templatel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -80,13 +81,13 @@ void NTopoImproperTemplate::build()
       if (atom1 == -1 || atom2 == -1 || atom3 == -1 || atom4 == -1) {
         nmissing++;
         if (lostbond == Thermo::ERROR)
-          error->one(FLERR,fmt::format("Improper atoms {} {} {} {}"
+          error->one(FLERR,"Improper atoms {} {} {} {}"
                                        " missing on proc {} at step {}",
                                        improper_atom1[iatom][m]+tagprev,
                                        improper_atom2[iatom][m]+tagprev,
                                        improper_atom3[iatom][m]+tagprev,
                                        improper_atom4[iatom][m]+tagprev,
-                                       me,update->ntimestep));
+                                       me,update->ntimestep);
         continue;
       }
       atom1 = domain->closest_image(i,atom1);
@@ -115,6 +116,5 @@ void NTopoImproperTemplate::build()
   int all;
   MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
   if (all && (me == 0))
-    error->warning(FLERR,fmt::format("Improper atoms missing at step {}",
-                                     update->ntimestep));
+    error->warning(FLERR,"Improper atoms missing at step {}",update->ntimestep);
 }

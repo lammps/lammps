@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -53,32 +53,22 @@
    Designed for use with the kim-api-2.1.0 (and newer) package
 ------------------------------------------------------------------------- */
 
-#ifdef COMMAND_CLASS
-
-CommandStyle(kim_property, kimProperty)
-
-#else
-
 #ifndef LMP_KIM_PROPERTY_H
 #define LMP_KIM_PROPERTY_H
 
 #include "pointers.h"
 
-namespace LAMMPS_NS
-{
+namespace LAMMPS_NS {
 
-class kimProperty : protected Pointers
-{
-public:
-  kimProperty(class LAMMPS *lmp);
-
+class KimProperty : protected Pointers {
+ public:
+  KimProperty(class LAMMPS *lmp);
   void command(int, char **);
 };
 
-} // namespace LAMMPS_NS
+}    // namespace LAMMPS_NS
 
-#endif // LMP_KIM_PROPERTY_H
-#endif // COMMAND_CLASS
+#endif
 
 /* ERROR/WARNING messages:
 

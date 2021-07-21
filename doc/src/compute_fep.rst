@@ -48,6 +48,8 @@ Examples
    compute 1 all fep 298 pair lj/cut epsilon 1 * v_delta pair lj/cut sigma 1 * v_delta volume yes
    compute 1 all fep 300 atom charge 2 v_delta
 
+Example input scripts available: examples/PACKAGES/fep
+
 Description
 """""""""""
 
@@ -163,7 +165,7 @@ the meaning of these parameters:
 +------------------------------------------------------------------------------+-------------------------+------------+
 | :doc:`born <pair_born>`                                                      | a,b,c                   | type pairs |
 +------------------------------------------------------------------------------+-------------------------+------------+
-| :doc:`buck <pair_buck>`                                                      | a,c                     | type pairs |
+| :doc:`buck, buck/coul/cut, buck/coul/long, buck/coul/msm  <pair_buck>`       | a,c                     | type pairs |
 +------------------------------------------------------------------------------+-------------------------+------------+
 | :doc:`buck/mdf <pair_mdf>`                                                   | a,c                     | type pairs |
 +------------------------------------------------------------------------------+-------------------------+------------+
@@ -301,7 +303,7 @@ The values calculated by this compute are "extensive".
 Restrictions
 """"""""""""
 
-This compute is distributed as the USER-FEP package.  It is only
+This compute is distributed as the FEP package.  It is only
 enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 Related commands

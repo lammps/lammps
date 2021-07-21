@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -27,6 +28,7 @@
 #include "group.h"
 #include "memory.h"
 #include "error.h"
+#include "fmt/chrono.h"
 
 using namespace LAMMPS_NS;
 
@@ -97,16 +99,19 @@ void DumpDCD::init_style()
     error->all(FLERR,"Dump dcd requires sorting by atom ID");
 
   // check that dump frequency has not changed and is not a variable
+  // but only when not being called from the "write_dump" command.
 
-  int idump;
-  for (idump = 0; idump < output->ndump; idump++)
-    if (strcmp(id,output->dump[idump]->id) == 0) break;
-  if (output->every_dump[idump] == 0)
-    error->all(FLERR,"Cannot use variable every setting for dump dcd");
+  if (strcmp(id,"WRITE_DUMP") != 0) {
+    int idump;
+    for (idump = 0; idump < output->ndump; idump++)
+      if (strcmp(id,output->dump[idump]->id) == 0) break;
+    if (output->every_dump[idump] == 0)
+      error->all(FLERR,"Cannot use variable every setting for dump dcd");
 
-  if (nevery_save == 0) nevery_save = output->every_dump[idump];
-  else if (nevery_save != output->every_dump[idump])
-    error->all(FLERR,"Cannot change dump_modify every for dump dcd");
+    if (nevery_save == 0) nevery_save = output->every_dump[idump];
+    else if (nevery_save != output->every_dump[idump])
+      error->all(FLERR,"Cannot change dump_modify every for dump dcd");
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -306,8 +311,8 @@ void DumpDCD::write_dcd_header(const char *remarks)
   uint32_t out_integer;
   float out_float;
   char title_string[200];
-  time_t cur_time;
-  struct tm *tmbuf;
+  time_t t;
+  std::tm current_time;
 
   int ntimestep = update->ntimestep;
 
@@ -342,10 +347,11 @@ void DumpDCD::write_dcd_header(const char *remarks)
   strncpy(title_string,remarks,80);
   title_string[79] = '\0';
   fwrite(title_string,80,1,fp);
-  cur_time=time(nullptr);
-  tmbuf=localtime(&cur_time);
+  t = time(nullptr);
+  current_time = fmt::localtime(t);
+  std::string s = fmt::format("REMARKS Created {:%d %B,%Y at %H:%M}", current_time);
   memset(title_string,' ',81);
-  strftime(title_string,80,"REMARKS Created %d %B,%Y at %H:%M",tmbuf);
+  memcpy(title_string, s.c_str(), s.size());
   fwrite(title_string,80,1,fp);
   fwrite_int32(fp,164);
   fwrite_int32(fp,4);

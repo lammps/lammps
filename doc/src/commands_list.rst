@@ -59,6 +59,7 @@ Commands
    lattice
    log
    mass
+   mdi_engine
    message
    min_modify
    min_spin
@@ -77,6 +78,7 @@ Commands
    pair_style
    pair_write
    partition
+   plugin
    prd
    print
    processors

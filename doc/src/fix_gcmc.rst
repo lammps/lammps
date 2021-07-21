@@ -398,12 +398,13 @@ adds all inserted atoms of the specified type to the
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-This fix writes the state of the fix to :doc:`binary restart files <restart>`.  This includes information about the random
-number generator seed, the next timestep for MC exchanges,  the number
-of MC step attempts and successes etc.  See
-the :doc:`read_restart <read_restart>` command for info on how to
-re-specify a fix in an input script that reads a restart file, so that
-the operation of the fix continues in an uninterrupted fashion.
+This fix writes the state of the fix to :doc:`binary restart files
+<restart>`.  This includes information about the random number
+generator seed, the next timestep for MC exchanges, the number of MC
+step attempts and successes etc.  See the :doc:`read_restart
+<read_restart>` command for info on how to re-specify a fix in an
+input script that reads a restart file, so that the operation of the
+fix continues in an uninterrupted fashion.
 
 .. note::
 
@@ -411,8 +412,8 @@ the operation of the fix continues in an uninterrupted fashion.
    after reading the restart with :doc:`reset_timestep <reset_timestep>`.
    The fix will try to detect it and stop with an error.
 
-None of the :doc:`fix_modify <fix_modify>` options are relevant to this
-fix.
+None of the :doc:`fix_modify <fix_modify>` options are relevant to
+this fix.
 
 This fix computes a global vector of length 8, which can be accessed
 by various :doc:`output commands <Howto_output>`.  The vector values are
@@ -430,7 +431,8 @@ the following global cumulative quantities:
 The vector values calculated by this fix are "extensive".
 
 No parameter of this fix can be used with the *start/stop* keywords of
-the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minimization <minimize>`.
+the :doc:`run <run>` command.  This fix is not invoked during
+:doc:`energy minimization <minimize>`.
 
 Restrictions
 """"""""""""
@@ -448,6 +450,11 @@ well in parallel. Only usable for 3D simulations.
 When using fix gcmc in combination with fix shake or fix rigid,
 only GCMC exchange moves are supported, so the argument
 *M* must be zero.
+
+When using fix gcmc in combination with fix rigid, deletion
+of the last remaining molecule is not allowed for technical reasons,
+and so the molecule count will never drop below 1, regardless of the
+specified chemical potential.
 
 Note that very lengthy simulations involving insertions/deletions of
 billions of gas molecules may run out of atom or molecule IDs and

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -35,7 +36,6 @@
 #include "update.h"
 
 #include <cstring>
-
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -58,6 +58,9 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
   bordergroup = 0;
   cutghostuser = 0.0;
   cutusermulti = nullptr;
+  cutusermultiold = nullptr;
+  ncollections = 0;
+  ncollections_cutoff = 0;
   ghost_velocity = 0;
 
   user_procgrid[0] = user_procgrid[1] = user_procgrid[2] = 0;
@@ -76,6 +79,7 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
   grid2proc = nullptr;
   xsplit = ysplit = zsplit = nullptr;
   rcbnew = 0;
+  multi_reduce = 0;
 
   // use of OpenMP threads
   // query OpenMP for number of threads/process set by user at run-time
@@ -103,7 +107,7 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
   if (!lmp->kokkos) omp_set_num_threads(nthreads);
 
   if (me == 0)
-    utils::logmesg(lmp,fmt::format("  using {} OpenMP thread(s) per MPI task\n",nthreads));
+    utils::logmesg(lmp,"  using {} OpenMP thread(s) per MPI task\n",nthreads);
 #endif
 
 }
@@ -117,6 +121,7 @@ Comm::~Comm()
   memory->destroy(ysplit);
   memory->destroy(zsplit);
   memory->destroy(cutusermulti);
+  memory->destroy(cutusermultiold);
   delete [] customfile;
   delete [] outfile;
 }
@@ -144,21 +149,23 @@ void Comm::copy_arrays(Comm *oldcomm)
     memcpy(zsplit,oldcomm->zsplit,(procgrid[2]+1)*sizeof(double));
   }
 
+  ncollections = oldcomm->ncollections;
+  ncollections_cutoff = oldcomm->ncollections_cutoff;
   if (oldcomm->cutusermulti) {
-    memory->create(cutusermulti,atom->ntypes+1,"comm:cutusermulti");
-    memcpy(cutusermulti,oldcomm->cutusermulti,atom->ntypes+1);
+    memory->create(cutusermulti,ncollections_cutoff,"comm:cutusermulti");
+    memcpy(cutusermulti,oldcomm->cutusermulti,ncollections_cutoff);
   }
 
-  if (customfile) {
-    int n = strlen(oldcomm->customfile) + 1;
-    customfile = new char[n];
-    strcpy(customfile,oldcomm->customfile);
+  if (oldcomm->cutusermultiold) {
+    memory->create(cutusermultiold,atom->ntypes+1,"comm:cutusermultiold");
+    memcpy(cutusermultiold,oldcomm->cutusermultiold,atom->ntypes+1);
   }
-  if (outfile) {
-    int n = strlen(oldcomm->outfile) + 1;
-    outfile = new char[n];
-    strcpy(outfile,oldcomm->outfile);
-  }
+
+  if (customfile)
+    customfile = utils::strdup(oldcomm->customfile);
+
+  if (outfile)
+    outfile = utils::strdup(oldcomm->outfile);
 }
 
 /* ----------------------------------------------------------------------
@@ -240,6 +247,18 @@ void Comm::init()
   maxexchange_fix_dynamic = 0;
   for (int i = 0; i < nfix; i++)
     if (fix[i]->maxexchange_dynamic) maxexchange_fix_dynamic = 1;
+
+  if ((mode == Comm::MULTI) && (neighbor->style != Neighbor::MULTI))
+    error->all(FLERR,"Cannot use comm mode multi without multi-style neighbor lists");
+
+  if (multi_reduce) {
+    if (force->newton == 0)
+      error->all(FLERR,"Cannot use multi/reduce communication with Newton off");
+    if (neighbor->any_full())
+      error->all(FLERR,"Cannot use multi/reduce communication with a full neighbor list");
+    if (mode != Comm::MULTI)
+      error->all(FLERR,"Cannot use multi/reduce communication without mode multi");
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -275,13 +294,26 @@ void Comm::modify_params(int narg, char **arg)
       if (strcmp(arg[iarg+1],"single") == 0) {
         // need to reset cutghostuser when switching comm mode
         if (mode == Comm::MULTI) cutghostuser = 0.0;
+        if (mode == Comm::MULTIOLD) cutghostuser = 0.0;
         memory->destroy(cutusermulti);
-        cutusermulti = nullptr;
+        memory->destroy(cutusermultiold);
         mode = Comm::SINGLE;
       } else if (strcmp(arg[iarg+1],"multi") == 0) {
+        if (neighbor->style != Neighbor::MULTI)
+          error->all(FLERR,"Cannot use comm mode 'multi' without 'multi' style neighbor lists");
         // need to reset cutghostuser when switching comm mode
         if (mode == Comm::SINGLE) cutghostuser = 0.0;
+        if (mode == Comm::MULTIOLD) cutghostuser = 0.0;
+        memory->destroy(cutusermultiold);
         mode = Comm::MULTI;
+      } else if (strcmp(arg[iarg+1],"multi/old") == 0) {
+        if (neighbor->style == Neighbor::MULTI)
+          error->all(FLERR,"Cannot use comm mode 'multi/old' with 'multi' style neighbor lists");
+        // need to reset cutghostuser when switching comm mode
+        if (mode == Comm::SINGLE) cutghostuser = 0.0;
+        if (mode == Comm::MULTI) cutghostuser = 0.0;
+        memory->destroy(cutusermulti);
+        mode = Comm::MULTIOLD;
       } else error->all(FLERR,"Illegal comm_modify command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"group") == 0) {
@@ -296,8 +328,9 @@ void Comm::modify_params(int narg, char **arg)
     } else if (strcmp(arg[iarg],"cutoff") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal comm_modify command");
       if (mode == Comm::MULTI)
-        error->all(FLERR,
-                   "Use cutoff/multi keyword to set cutoff in multi mode");
+        error->all(FLERR, "Use cutoff/multi keyword to set cutoff in multi mode");
+      if (mode == Comm::MULTIOLD)
+        error->all(FLERR, "Use cutoff/multi/old keyword to set cutoff in multi mode");
       cutghostuser = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (cutghostuser < 0.0)
         error->all(FLERR,"Invalid cutoff in comm_modify command");
@@ -307,16 +340,45 @@ void Comm::modify_params(int narg, char **arg)
       double cut;
       if (mode == Comm::SINGLE)
         error->all(FLERR,"Use cutoff keyword to set cutoff in single mode");
+      if (mode == Comm::MULTIOLD)
+        error->all(FLERR,"Use cutoff/multi/old keyword to set cutoff in multi/old mode");
       if (domain->box_exist == 0)
-        error->all(FLERR,
-                   "Cannot set cutoff/multi before simulation box is defined");
+        error->all(FLERR, "Cannot set cutoff/multi before simulation box is defined");
+
+      // Check if # of collections has changed, if so erase any previously defined cutoffs
+      // Neighbor will reset ncollections if collections are redefined
+      if (! cutusermulti || ncollections_cutoff != neighbor->ncollections) {
+        ncollections_cutoff = neighbor->ncollections;
+        memory->destroy(cutusermulti);
+        memory->create(cutusermulti,ncollections_cutoff,"comm:cutusermulti");
+        for (i=0; i < ncollections_cutoff; ++i)
+          cutusermulti[i] = -1.0;
+      }
+      utils::bounds(FLERR,arg[iarg+1],1,ncollections_cutoff,nlo,nhi,error);
+      cut = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      cutghostuser = MAX(cutghostuser,cut);
+      if (cut < 0.0)
+        error->all(FLERR,"Invalid cutoff in comm_modify command");
+      // collections use 1-based indexing externally and 0-based indexing internally
+      for (i=nlo; i<=nhi; ++i)
+        cutusermulti[i-1] = cut;
+      iarg += 3;
+    }  else if (strcmp(arg[iarg],"cutoff/multi/old") == 0) {
+      int i,nlo,nhi;
+      double cut;
+      if (mode == Comm::SINGLE)
+        error->all(FLERR,"Use cutoff keyword to set cutoff in single mode");
+      if (mode == Comm::MULTI)
+        error->all(FLERR,"Use cutoff/multi keyword to set cutoff in multi mode");
+      if (domain->box_exist == 0)
+        error->all(FLERR, "Cannot set cutoff/multi before simulation box is defined");
       const int ntypes = atom->ntypes;
       if (iarg+3 > narg)
         error->all(FLERR,"Illegal comm_modify command");
-      if (cutusermulti == nullptr) {
-        memory->create(cutusermulti,ntypes+1,"comm:cutusermulti");
+      if (cutusermultiold == nullptr) {
+        memory->create(cutusermultiold,ntypes+1,"comm:cutusermultiold");
         for (i=0; i < ntypes+1; ++i)
-          cutusermulti[i] = -1.0;
+          cutusermultiold[i] = -1.0;
       }
       utils::bounds(FLERR,arg[iarg+1],1,ntypes,nlo,nhi,error);
       cut = utils::numeric(FLERR,arg[iarg+2],false,lmp);
@@ -324,8 +386,13 @@ void Comm::modify_params(int narg, char **arg)
       if (cut < 0.0)
         error->all(FLERR,"Invalid cutoff in comm_modify command");
       for (i=nlo; i<=nhi; ++i)
-        cutusermulti[i] = cut;
+        cutusermultiold[i] = cut;
       iarg += 3;
+    } else if (strcmp(arg[iarg],"reduce/multi") == 0) {
+      if (mode == Comm::SINGLE)
+        error->all(FLERR,"Use reduce/multi in mode multi only");
+      multi_reduce = 1;
+      iarg += 1;
     } else if (strcmp(arg[iarg],"vel") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal comm_modify command");
       if (strcmp(arg[iarg+1],"yes") == 0) ghost_velocity = 1;
@@ -391,9 +458,7 @@ void Comm::set_processors(int narg, char **arg)
         if (iarg+3 > narg) error->all(FLERR,"Illegal processors command");
         gridflag = CUSTOM;
         delete [] customfile;
-        int n = strlen(arg[iarg+2]) + 1;
-        customfile = new char[n];
-        strcpy(customfile,arg[iarg+2]);
+        customfile = utils::strdup(arg[iarg+2]);
         iarg += 1;
 
       } else error->all(FLERR,"Illegal processors command");
@@ -453,9 +518,7 @@ void Comm::set_processors(int narg, char **arg)
     } else if (strcmp(arg[iarg],"file") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal processors command");
       delete [] outfile;
-      int n = strlen(arg[iarg+1]) + 1;
-      outfile = new char[n];
-      strcpy(outfile,arg[iarg+1]);
+      outfile = utils::strdup(arg[iarg+1]);
       iarg += 2;
 
     } else error->all(FLERR,"Illegal processors command");
@@ -664,18 +727,23 @@ double Comm::get_comm_cutoff()
     maxcommcutoff = MAX(maxcommcutoff,maxbondcutoff);
   } else {
     if ((me == 0) && (maxbondcutoff > maxcommcutoff))
-      error->warning(FLERR,fmt::format("Communication cutoff {} is shorter "
-                                       "than a bond length based estimate of "
-                                       "{}. This may lead to errors.",
-                                       maxcommcutoff,maxbondcutoff));
+      error->warning(FLERR,"Communication cutoff {} is shorter than a bond "
+                     "length based estimate of {}. This may lead to errors.",
+                     maxcommcutoff,maxbondcutoff);
   }
 
   // print warning if neighborlist cutoff overrides user cutoff
 
   if ((me == 0) && (update->setupflag == 1)) {
     if ((cutghostuser > 0.0) && (maxcommcutoff > cutghostuser))
-      error->warning(FLERR,fmt::format("Communication cutoff adjusted to {}",
-                                       maxcommcutoff));
+      error->warning(FLERR,"Communication cutoff adjusted to {}",maxcommcutoff);
+  }
+
+  // Check maximum interval size for neighbor multi
+  if (neighbor->interval_collection_flag) {
+    for (int i = 0; i < neighbor->ncollections; i++){
+      maxcommcutoff = MAX(maxcommcutoff, neighbor->collection2cut[i]);
+    }
   }
 
   return maxcommcutoff;
@@ -979,7 +1047,7 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
 
     offsets[0] = 0;
     for (int i = 1; i < nprocs; i++)
-      offsets[i] = offsets[i-1] + insize*procs_a2a[i-1];
+      offsets[i] = offsets[i-1] + (bigint)insize*procs_a2a[i-1];
 
     bigint offset = 0;
     for (int i = 0; i < n; i++) {
@@ -989,7 +1057,8 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
       offset += insize;
     }
 
-    all2all1_bytes = nprocs*sizeof(int) + nprocs*sizeof(bigint) + n*insize;
+    all2all1_bytes = nprocs*sizeof(int) + nprocs*sizeof(bigint)
+                     + (bigint)n*insize;
 
   } else {
     procs_a2a = procs;
@@ -1085,7 +1154,7 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
 
     offsets[0] = 0;
     for (int i = 1; i < nprocs; i++)
-      offsets[i] = offsets[i-1] + outsize*procs_a2a[i-1];
+      offsets[i] = offsets[i-1] + (bigint)outsize*procs_a2a[i-1];
 
     bigint offset = 0;
     for (int i = 0; i < nrvous_out; i++) {
@@ -1096,7 +1165,7 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
     }
 
     all2all2_bytes = nprocs*sizeof(int) + nprocs*sizeof(bigint) +
-      nrvous_out*outsize;
+      (bigint)nrvous_out*outsize;
 
   } else {
     procs_a2a = procs_rvous;
@@ -1247,72 +1316,4 @@ void Comm::rendezvous_stats(int n, int nout, int nrvous, int nrvous_out,
                         1.0*size_comm_max/mbytes,1.0*size_comm_min/mbytes);
     utils::logmesg(lmp,mesg);
   }
-}
-
-/* ----------------------------------------------------------------------
-   proc 0 reads Nlines from file into buf and bcasts buf to all procs
-   caller allocates buf to max size needed
-   each line is terminated by newline, even if last line in file is not
-   return 0 if successful, 1 if get EOF error before read is complete
-------------------------------------------------------------------------- */
-
-int Comm::read_lines_from_file(FILE *fp, int nlines, int maxline, char *buf)
-{
-  int m;
-
-  if (me == 0) {
-    m = 0;
-    for (int i = 0; i < nlines; i++) {
-      if (!fgets(&buf[m],maxline,fp)) {
-        m = 0;
-        break;
-      }
-      m += strlen(&buf[m]);
-    }
-    if (m) {
-      if (buf[m-1] != '\n') strcpy(&buf[m++],"\n");
-      m++;
-    }
-  }
-
-  MPI_Bcast(&m,1,MPI_INT,0,world);
-  if (m == 0) return 1;
-  MPI_Bcast(buf,m,MPI_CHAR,0,world);
-  return 0;
-}
-
-/* ----------------------------------------------------------------------
-   proc 0 reads Nlines from file into buf and bcasts buf to all procs
-   caller allocates buf to max size needed
-   each line is terminated by newline, even if last line in file is not
-   return 0 if successful, 1 if get EOF error before read is complete
-------------------------------------------------------------------------- */
-
-int Comm::read_lines_from_file_universe(FILE *fp, int nlines, int maxline,
-                                        char *buf)
-{
-  int m;
-
-  int me_universe = universe->me;
-  MPI_Comm uworld = universe->uworld;
-
-  if (me_universe == 0) {
-    m = 0;
-    for (int i = 0; i < nlines; i++) {
-      if (!fgets(&buf[m],maxline,fp)) {
-        m = 0;
-        break;
-      }
-      m += strlen(&buf[m]);
-    }
-    if (m) {
-      if (buf[m-1] != '\n') strcpy(&buf[m++],"\n");
-      m++;
-    }
-  }
-
-  MPI_Bcast(&m,1,MPI_INT,0,uworld);
-  if (m == 0) return 1;
-  MPI_Bcast(buf,m,MPI_CHAR,0,uworld);
-  return 0;
 }

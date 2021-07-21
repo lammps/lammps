@@ -1,4 +1,4 @@
-# this example requires the LAMMPS Python package (lammps.py) to be installed
+# this example requires the LAMMPS Python package (python/lammps) to be installed
 # and LAMMPS to be loadable as shared library in LD_LIBRARY_PATH
 
 import lammps

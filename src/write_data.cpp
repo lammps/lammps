@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -29,7 +30,6 @@
 #include "output.h"
 #include "pair.h"
 #include "thermo.h"
-#include "universe.h"
 #include "update.h"
 
 #include <cstring>
@@ -41,7 +41,7 @@ enum{ELLIPSOID,LINE,TRIANGLE,BODY};   // also in AtomVecHybrid
 
 /* ---------------------------------------------------------------------- */
 
-WriteData::WriteData(LAMMPS *lmp) : Pointers(lmp)
+WriteData::WriteData(LAMMPS *lmp) : Command(lmp)
 {
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
@@ -176,8 +176,8 @@ void WriteData::write(const std::string &file)
   if (me == 0) {
     fp = fopen(file.c_str(),"w");
     if (fp == nullptr)
-      error->one(FLERR,fmt::format("Cannot open data file {}: {}",
-                                   file, utils::getsyserror()));
+      error->one(FLERR,"Cannot open data file {}: {}",
+                                   file, utils::getsyserror());
   }
 
   // proc 0 writes header, ntype-length arrays, force fields
@@ -233,7 +233,7 @@ void WriteData::header()
 
   fmt::print(fp,"{} atoms\n{} atom types\n",atom->natoms,atom->ntypes);
 
-  // do not write molecular topology info for atom_style template
+  // only write out number of types for atom style template
 
   if (atom->molecular == Atom::MOLECULAR) {
     if (atom->nbonds || atom->nbondtypes)
@@ -248,6 +248,13 @@ void WriteData::header()
     if (atom->nimpropers || atom->nimpropertypes)
       fmt::print(fp,"{} impropers\n{} improper types\n",
                  nimpropers,atom->nimpropertypes);
+  }
+
+  if (atom->molecular == Atom::TEMPLATE) {
+    if (atom->nbondtypes) fmt::print(fp,"{} bond types\n",atom->nbondtypes);
+    if (atom->nangletypes) fmt::print(fp,"{} angle types\n",atom->nangletypes);
+    if (atom->ndihedraltypes) fmt::print(fp,"{} dihedral types\n",atom->ndihedraltypes);
+    if (atom->nimpropertypes) fmt::print(fp,"{} improper types\n",atom->nimpropertypes);
   }
 
   // bonus info

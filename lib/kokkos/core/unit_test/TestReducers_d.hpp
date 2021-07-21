@@ -54,8 +54,14 @@ TEST(TEST_CATEGORY, reducers_complex_double) {
 TEST(TEST_CATEGORY, reducers_struct) {
   TestReducers<array_reduce<float, 1>, TEST_EXECSPACE>::test_sum(1031);
   TestReducers<array_reduce<float, 2>, TEST_EXECSPACE>::test_sum(1031);
-  TestReducers<array_reduce<float, 3>, TEST_EXECSPACE>::test_sum(1031);
   TestReducers<array_reduce<float, 4>, TEST_EXECSPACE>::test_sum(1031);
+  // FIXME_OPENMPTARGET - The size of data in array_reduce has to be a power of
+  // 2 for OPENMPTARGET backend in Release and RelWithDebInfo builds.
+#ifdef KOKKOS_ENABLE_OPENMPTARGET
+  TestReducers<array_reduce<float, 8>, TEST_EXECSPACE>::test_sum(1031);
+#else
+  TestReducers<array_reduce<float, 3>, TEST_EXECSPACE>::test_sum(1031);
   TestReducers<array_reduce<float, 7>, TEST_EXECSPACE>::test_sum(1031);
+#endif
 }
 }  // namespace Test

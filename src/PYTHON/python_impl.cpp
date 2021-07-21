@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -21,10 +22,19 @@
 #include "input.h"
 #include "memory.h"
 #include "python_compat.h"
+#include "python_utils.h"
 #include "variable.h"
 
 #include <cstring>
 #include <Python.h>  // IWYU pragma: export
+
+#ifdef MLIAP_PYTHON
+#include "mliap_model_python.h"
+// The above should somehow really be included in the next file.
+// We could get around this with cython --capi-reexport-cincludes
+// However, that exposes -too many- headers.
+#include "mliap_model_python_couple.h"
+#endif
 
 using namespace LAMMPS_NS;
 
@@ -48,45 +58,68 @@ PythonImpl::PythonImpl(LAMMPS *lmp) : Pointers(lmp)
   nfunc = 0;
   pfuncs = nullptr;
 
+#if PY_MAJOR_VERSION >= 3
+#ifndef Py_LIMITED_API
+  // check for PYTHONUNBUFFERED environment variable
+  const char * PYTHONUNBUFFERED = getenv("PYTHONUNBUFFERED");
+
+  if (PYTHONUNBUFFERED != nullptr && strcmp(PYTHONUNBUFFERED, "1") == 0) {
+    // Python Global configuration variable
+    // Force the stdout and stderr streams to be unbuffered.
+    Py_UnbufferedStdioFlag = 1;
+  }
+#endif
+#endif
+
   // one-time initialization of Python interpreter
   // pyMain stores pointer to main module
   external_interpreter = Py_IsInitialized();
 
-  Py_Initialize();
-  PyEval_InitThreads();
+#ifdef MLIAP_PYTHON
+  // Inform python intialization scheme of the mliappy module.
+  // This -must- happen before python is initialized.
+  int err = PyImport_AppendInittab("mliap_model_python_couple", PyInit_mliap_model_python_couple);
+  if (err) error->all(FLERR,"Could not register MLIAPPY embedded python module.");
+#endif
 
-  PyGILState_STATE gstate = PyGILState_Ensure();
+  Py_Initialize();
+
+  // only needed for Python 2.x and Python 3 < 3.7
+  // With Python 3.7 this function is now called by Py_Initialize()
+  // Deprecated since version 3.9, will be removed in version 3.11
+#if PY_MAJOR_VERSION < 3 || PY_MINOR_VERSION < 7
+  if (!PyEval_ThreadsInitialized()) {
+    PyEval_InitThreads();
+  }
+#endif
+
+  PyUtils::GIL lock;
 
   PyObject *pModule = PyImport_AddModule("__main__");
   if (!pModule) error->all(FLERR,"Could not initialize embedded Python");
 
   pyMain = (void *) pModule;
-  PyGILState_Release(gstate);
 }
 
 /* ---------------------------------------------------------------------- */
 
 PythonImpl::~PythonImpl()
 {
-  if(pyMain) {
+  if (pyMain) {
     // clean up
-    PyGILState_STATE gstate = PyGILState_Ensure();
+    PyUtils::GIL lock;
 
     for (int i = 0; i < nfunc; i++) {
       delete [] pfuncs[i].name;
       deallocate(i);
-      PyObject *pFunc = (PyObject *) pfuncs[i].pFunc;
-      Py_XDECREF(pFunc);
+      Py_CLEAR(pfuncs[i].pFunc);
     }
+  }
 
-    // shutdown Python interpreter
-
-    if (!external_interpreter) {
-      Py_Finalize();
-    }
-    else {
-      PyGILState_Release(gstate);
-    }
+  // shutdown Python interpreter
+  if (!external_interpreter) {
+    PyGILState_Ensure();
+    Py_Finalize();
   }
 
   memory->sfree(pfuncs);
@@ -162,9 +195,7 @@ void PythonImpl::command(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"format") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Invalid python command");
-      int n = strlen(arg[iarg+1]) + 1;
-      format = new char[n];
-      strcpy(format,arg[iarg+1]);
+      format = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"length") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Invalid python command");
@@ -174,9 +205,7 @@ void PythonImpl::command(int narg, char **arg)
     } else if (strcmp(arg[iarg],"file") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Invalid python command");
       delete[] pyfile;
-      int n = strlen(arg[iarg+1]) + 1;
-      pyfile = new char[n];
-      strcpy(pyfile,arg[iarg+1]);
+      pyfile = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"here") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Invalid python command");
@@ -196,7 +225,7 @@ void PythonImpl::command(int narg, char **arg)
 
   int ifunc = create_entry(arg[0]);
 
-  PyGILState_STATE gstate = PyGILState_Ensure();
+  PyUtils::GIL lock;
 
   // send Python code to Python interpreter
   // file: read the file via PyRun_SimpleFile()
@@ -207,14 +236,14 @@ void PythonImpl::command(int narg, char **arg)
     FILE *fp = fopen(pyfile,"r");
 
     if (fp == nullptr) {
-      PyGILState_Release(gstate);
+      PyUtils::Print_Errors();
       error->all(FLERR,"Could not open Python file");
     }
 
     int err = PyRun_SimpleFile(fp,pyfile);
 
     if (err) {
-      PyGILState_Release(gstate);
+      PyUtils::Print_Errors();
       error->all(FLERR,"Could not process Python file");
     }
 
@@ -223,7 +252,7 @@ void PythonImpl::command(int narg, char **arg)
     int err = PyRun_SimpleString(herestr);
 
     if (err) {
-      PyGILState_Release(gstate);
+      PyUtils::Print_Errors();
       error->all(FLERR,"Could not process Python string");
     }
   }
@@ -234,13 +263,15 @@ void PythonImpl::command(int narg, char **arg)
   PyObject *pFunc = PyObject_GetAttrString(pModule,pfuncs[ifunc].name);
 
   if (!pFunc) {
-    PyGILState_Release(gstate);
-    error->all(FLERR,"Could not find Python function");
+    PyUtils::Print_Errors();
+    error->all(FLERR,"Could not find Python function {}",
+                                 pfuncs[ifunc].name);
   }
 
   if (!PyCallable_Check(pFunc)) {
-    PyGILState_Release(gstate);
-    error->all(FLERR,"Python function is not callable");
+    PyUtils::Print_Errors();
+    error->all(FLERR,"Python function {} is not callable",
+                                 pfuncs[ifunc].name);
   }
 
   pfuncs[ifunc].pFunc = (void *) pFunc;
@@ -250,14 +281,13 @@ void PythonImpl::command(int narg, char **arg)
   delete [] istr;
   delete [] format;
   delete [] pyfile;
-  PyGILState_Release(gstate);
 }
 
 /* ------------------------------------------------------------------ */
 
 void PythonImpl::invoke_function(int ifunc, char *result)
 {
-  PyGILState_STATE gstate = PyGILState_Ensure();
+  PyUtils::GIL lock;
   PyObject *pValue;
   char *str;
 
@@ -269,7 +299,6 @@ void PythonImpl::invoke_function(int ifunc, char *result)
   PyObject *pArgs = PyTuple_New(ninput);
 
   if (!pArgs) {
-    PyGILState_Release(gstate);
     error->all(FLERR,"Could not create Python function arguments");
   }
 
@@ -280,7 +309,6 @@ void PythonImpl::invoke_function(int ifunc, char *result)
         str = input->variable->retrieve(pfuncs[ifunc].svalue[i]);
 
         if (!str) {
-          PyGILState_Release(gstate);
           error->all(FLERR,"Could not evaluate Python function input variable");
         }
 
@@ -293,7 +321,6 @@ void PythonImpl::invoke_function(int ifunc, char *result)
         str = input->variable->retrieve(pfuncs[ifunc].svalue[i]);
 
         if (!str) {
-          PyGILState_Release(gstate);
           error->all(FLERR,"Could not evaluate Python function input variable");
         }
 
@@ -305,7 +332,6 @@ void PythonImpl::invoke_function(int ifunc, char *result)
       if (pfuncs[ifunc].ivarflag[i]) {
         str = input->variable->retrieve(pfuncs[ifunc].svalue[i]);
         if (!str) {
-          PyGILState_Release(gstate);
           error->all(FLERR,"Could not evaluate Python function input variable");
         }
 
@@ -316,7 +342,6 @@ void PythonImpl::invoke_function(int ifunc, char *result)
     } else if (itype == PTR) {
       pValue = PY_VOID_POINTER(lmp);
     } else {
-      PyGILState_Release(gstate);
       error->all(FLERR,"Unsupported variable type");
     }
     PyTuple_SetItem(pArgs,i,pValue);
@@ -326,14 +351,12 @@ void PythonImpl::invoke_function(int ifunc, char *result)
   // error check with one() since only some procs may fail
 
   pValue = PyObject_CallObject(pFunc,pArgs);
+  Py_CLEAR(pArgs);
 
   if (!pValue) {
-    PyErr_Print();
-    PyGILState_Release(gstate);
+    PyUtils::Print_Errors();
     error->one(FLERR,"Python function evaluation failed");
   }
-
-  Py_DECREF(pArgs);
 
   // function returned a value
   // assign it to result string stored by python-style variable
@@ -351,10 +374,8 @@ void PythonImpl::invoke_function(int ifunc, char *result)
         strncpy(pfuncs[ifunc].longstr,pystr,pfuncs[ifunc].length_longstr);
       else strncpy(result,pystr,VALUELENGTH-1);
     }
-    Py_DECREF(pValue);
   }
-
-  PyGILState_Release(gstate);
+  Py_CLEAR(pValue);
 }
 
 /* ------------------------------------------------------------------ */
@@ -400,9 +421,7 @@ int PythonImpl::create_entry(char *name)
     nfunc++;
     pfuncs = (PyFunc *)
       memory->srealloc(pfuncs,nfunc*sizeof(struct PyFunc),"python:pfuncs");
-    int n = strlen(name) + 1;
-    pfuncs[ifunc].name = new char[n];
-    strcpy(pfuncs[ifunc].name,name);
+    pfuncs[ifunc].name = utils::strdup(name);
   } else deallocate(ifunc);
 
   pfuncs[ifunc].ninput = ninput;
@@ -426,38 +445,30 @@ int PythonImpl::create_entry(char *name)
     char type = format[i];
     if (type == 'i') {
       pfuncs[ifunc].itype[i] = INT;
-      if (strstr(istr[i],"v_") == istr[i]) {
+      if (utils::strmatch(istr[i],"^v_")) {
         pfuncs[ifunc].ivarflag[i] = 1;
-        int n = strlen(&istr[i][2]) + 1;
-        pfuncs[ifunc].svalue[i] = new char[n];
-        strcpy(pfuncs[ifunc].svalue[i],&istr[i][2]);
+        pfuncs[ifunc].svalue[i] = utils::strdup(istr[i]+2);
       } else {
         pfuncs[ifunc].ivarflag[i] = 0;
         pfuncs[ifunc].ivalue[i] = utils::inumeric(FLERR,istr[i],false,lmp);
       }
     } else if (type == 'f') {
       pfuncs[ifunc].itype[i] = DOUBLE;
-      if (strstr(istr[i],"v_") == istr[i]) {
+      if (utils::strmatch(istr[i],"^v_")) {
         pfuncs[ifunc].ivarflag[i] = 1;
-        int n = strlen(&istr[i][2]) + 1;
-        pfuncs[ifunc].svalue[i] = new char[n];
-        strcpy(pfuncs[ifunc].svalue[i],&istr[i][2]);
+        pfuncs[ifunc].svalue[i] = utils::strdup(istr[i]+2);
       } else {
         pfuncs[ifunc].ivarflag[i] = 0;
         pfuncs[ifunc].dvalue[i] = utils::numeric(FLERR,istr[i],false,lmp);
       }
     } else if (type == 's') {
       pfuncs[ifunc].itype[i] = STRING;
-      if (strstr(istr[i],"v_") == istr[i]) {
+      if (utils::strmatch(istr[i],"^v_")) {
         pfuncs[ifunc].ivarflag[i] = 1;
-        int n = strlen(&istr[i][2]) + 1;
-        pfuncs[ifunc].svalue[i] = new char[n];
-        strcpy(pfuncs[ifunc].svalue[i],&istr[i][2]);
+        pfuncs[ifunc].svalue[i] = utils::strdup(istr[i]+2);
       } else {
         pfuncs[ifunc].ivarflag[i] = 0;
-        int n = strlen(istr[i]) + 1;
-        pfuncs[ifunc].svalue[i] = new char[n];
-        strcpy(pfuncs[ifunc].svalue[i],istr[i]);
+        pfuncs[ifunc].svalue[i] = utils::strdup(istr[i]);
       }
     } else if (type == 'p') {
       pfuncs[ifunc].ivarflag[i] = 0;
@@ -486,12 +497,11 @@ int PythonImpl::create_entry(char *name)
                  "cannot be used unless output is a string");
     pfuncs[ifunc].length_longstr = length_longstr;
     pfuncs[ifunc].longstr = new char[length_longstr+1];
+    pfuncs[ifunc].longstr[length_longstr] = '\0';
   }
 
   if (strstr(ostr,"v_") != ostr) error->all(FLERR,"Invalid python command");
-  int n = strlen(&ostr[2]) + 1;
-  pfuncs[ifunc].ovarname = new char[n];
-  strcpy(pfuncs[ifunc].ovarname,&ostr[2]);
+  pfuncs[ifunc].ovarname = utils::strdup(ostr+2);
 
   return ifunc;
 }
@@ -500,11 +510,8 @@ int PythonImpl::create_entry(char *name)
 
 int PythonImpl::execute_string(char *cmd)
 {
-  PyGILState_STATE gstate = PyGILState_Ensure();
-  int err = PyRun_SimpleString(cmd);
-  PyGILState_Release(gstate);
-
-  return err;
+  PyUtils::GIL lock;
+  return PyRun_SimpleString(cmd);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -514,9 +521,8 @@ int PythonImpl::execute_file(char *fname)
   FILE *fp = fopen(fname,"r");
   if (fp == nullptr) return -1;
 
-  PyGILState_STATE gstate = PyGILState_Ensure();
+  PyUtils::GIL lock;
   int err = PyRun_SimpleFile(fp,fname);
-  PyGILState_Release(gstate);
 
   if (fp) fclose(fp);
   return err;

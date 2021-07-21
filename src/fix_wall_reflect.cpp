@@ -1,6 +1,7 @@
+// clang-format off
  /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -73,11 +74,9 @@ FixWallReflect::FixWallReflect(LAMMPS *lmp, int narg, char **arg) :
         int side = wallwhich[nwall] % 2;
         if (side == 0) coord0[nwall] = domain->boxlo[dim];
         else coord0[nwall] = domain->boxhi[dim];
-      } else if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
+      } else if (utils::strmatch(arg[iarg+1],"^v_")) {
         wallstyle[nwall] = VARIABLE;
-        int n = strlen(&arg[iarg+1][2]) + 1;
-        varstr[nwall] = new char[n];
-        strcpy(varstr[nwall],&arg[iarg+1][2]);
+        varstr[nwall] = utils::strdup(arg[iarg+1]+2);
       } else {
         wallstyle[nwall] = CONSTANT;
         coord0[nwall] = utils::numeric(FLERR,arg[iarg+1],false,lmp);

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -22,6 +23,7 @@
 #include "neighbor.h"
 #include "suffix.h"
 #include "update.h"
+#include "fmt/chrono.h"
 
 #include <ctime>
 
@@ -80,7 +82,16 @@ void Bond::init()
 
 /* ----------------------------------------------------------------------
    setup for energy, virial computation
-   see integrate::ev_set() for values of eflag (0-3) and vflag (0-6)
+   see integrate::ev_set() for bitwise settings of eflag/vflag
+   set the following flags, values are otherwise set to 0:
+     evflag       != 0 if any bits of eflag or vflag are set
+     eflag_global != 0 if ENERGY_GLOBAL bit of eflag set
+     eflag_atom   != 0 if ENERGY_ATOM bit of eflag set
+     eflag_either != 0 if eflag_global or eflag_atom is set
+     vflag_global != 0 if VIRIAL_PAIR or VIRIAL_FDOTR bit of vflag set
+     vflag_atom   != 0 if VIRIAL_ATOM or VIRIAL_CENTROID bit of vflag set
+                       two-body and centroid stress are identical for bonds
+     vflag_either != 0 if vflag_global or vflag_atom is set
 ------------------------------------------------------------------------- */
 
 void Bond::ev_setup(int eflag, int vflag, int alloc)
@@ -90,13 +101,12 @@ void Bond::ev_setup(int eflag, int vflag, int alloc)
   evflag = 1;
 
   eflag_either = eflag;
-  eflag_global = eflag % 2;
-  eflag_atom = eflag / 2;
+  eflag_global = eflag & ENERGY_GLOBAL;
+  eflag_atom = eflag & ENERGY_ATOM;
 
   vflag_either = vflag;
-  vflag_global = vflag % 4;
-  // per-atom virial and per-atom centroid virial are the same for bonds
-  vflag_atom = vflag / 4;
+  vflag_global = vflag & (VIRIAL_PAIR | VIRIAL_FDOTR);
+  vflag_atom = vflag & (VIRIAL_ATOM | VIRIAL_CENTROID);
 
   // reallocate per-atom arrays if necessary
 
@@ -266,27 +276,26 @@ void Bond::write_file(int narg, char **arg)
     if (utils::file_is_readable(table_file)) {
       std::string units = utils::get_potential_units(table_file,"table");
       if (!units.empty() && (units != update->unit_style)) {
-        error->one(FLERR,fmt::format("Trying to append to a table file "
+        error->one(FLERR,"Trying to append to a table file "
                                      "with UNITS: {} while units are {}",
-                                     units, update->unit_style));
+                                     units, update->unit_style);
       }
       std::string date = utils::get_potential_date(table_file,"table");
-      utils::logmesg(lmp,fmt::format("Appending to table file {} with "
-                                     "DATE: {}\n", table_file, date));
+      utils::logmesg(lmp,"Appending to table file {} with "
+                     "DATE: {}\n", table_file, date);
       fp = fopen(table_file.c_str(),"a");
     } else {
-      char datebuf[16];
       time_t tv = time(nullptr);
-      strftime(datebuf,15,"%Y-%m-%d",localtime(&tv));
-      utils::logmesg(lmp,fmt::format("Creating table file {} with "
-                                     "DATE: {}\n", table_file, datebuf));
+      std::tm current_date = fmt::localtime(tv);
+      utils::logmesg(lmp,"Creating table file {} with "
+                     "DATE: {:%Y-%m-%d}\n", table_file, current_date);
       fp = fopen(table_file.c_str(),"w");
-      if (fp) fmt::print(fp,"# DATE: {} UNITS: {} Created by bond_write\n",
-                         datebuf, update->unit_style);
+      if (fp) fmt::print(fp,"# DATE: {:%Y-%m-%d} UNITS: {} Created by bond_write\n",
+                         current_date, update->unit_style);
     }
     if (fp == nullptr)
-      error->one(FLERR,fmt::format("Cannot open bond_write file {}: {}",
-                                   arg[4], utils::getsyserror()));
+      error->one(FLERR,"Cannot open bond_write file {}: {}",
+                                   arg[4], utils::getsyserror());
   }
 
   // initialize potentials before evaluating bond potential
@@ -321,8 +330,8 @@ void Bond::write_file(int narg, char **arg)
 
 double Bond::memory_usage()
 {
-  double bytes = comm->nthreads*maxeatom * sizeof(double);
-  bytes += comm->nthreads*maxvatom*6 * sizeof(double);
+  double bytes = (double)comm->nthreads*maxeatom * sizeof(double);
+  bytes += (double)comm->nthreads*maxvatom*6 * sizeof(double);
   return bytes;
 }
 

@@ -487,26 +487,30 @@ compute temperature on a subset of atoms.
 .. note::
 
    If both the *temp* and *press* keywords are used in a single
-   thermo_modify command (or in two separate commands), then the order in
-   which the keywords are specified is important.  Note that a :doc:`pressure compute <compute_pressure>` defines its own temperature compute as
-   an argument when it is specified.  The *temp* keyword will override
-   this (for the pressure compute being used by fix npt), but only if the
-   *temp* keyword comes after the *press* keyword.  If the *temp* keyword
-   comes before the *press* keyword, then the new pressure compute
-   specified by the *press* keyword will be unaffected by the *temp*
-   setting.
+   thermo_modify command (or in two separate commands), then the order
+   in which the keywords are specified is important.  Note that a
+   :doc:`pressure compute <compute_pressure>` defines its own
+   temperature compute as an argument when it is specified.  The
+   *temp* keyword will override this (for the pressure compute being
+   used by fix npt), but only if the *temp* keyword comes after the
+   *press* keyword.  If the *temp* keyword comes before the *press*
+   keyword, then the new pressure compute specified by the *press*
+   keyword will be unaffected by the *temp* setting.
 
-The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
-fix to add the energy change induced by Nose/Hoover thermostatting
-and barostatting to the system's potential energy as part of
-:doc:`thermodynamic output <thermo_style>`.
+The cumulative energy change in the system imposed by this fix, due to
+thermostatting and/or barostatting, is included in the
+:doc:`thermodynamic output <thermo_style>` keywords *ecouple* and
+*econserve*.  See the :doc:`thermo_style <thermo_style>` doc page for
+details.
 
-This fix computes a global scalar and a global vector of quantities,
-which can be accessed by various :doc:`output commands <Howto_output>`.
-The scalar value calculated by this fix is "extensive"; the vector
+This fix computes a global scalar which can be accessed by various
+:doc:`output commands <Howto_output>`.  The scalar is the same
+cumulative energy change due to this fix described in the previous
+paragraph.  The scalar value calculated by this fix is "extensive".
+
+This fix also computes a global vector of quantities, which can be
+accessed by various :doc:`output commands <Howto_output>`.  Rhe vector
 values are "intensive".
-
-The scalar is the cumulative energy change due to the fix.
 
 The vector stores internal Nose/Hoover thermostat and barostat
 variables.  The number and meaning of the vector values depends on

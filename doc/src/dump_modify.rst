@@ -66,7 +66,7 @@ Syntax
        *unwrap* arg = *yes* or *no*
 
 * these keywords apply only to the *image* and *movie* :doc:`styles <dump_image>`
-* keyword = *acolor* or *adiam* or *amap* or *backcolor* or *bcolor* or *bdiam* or *boxcolor* or *color* or *bitrate* or *framerate*
+* keyword = *acolor* or *adiam* or *amap* or *backcolor* or *bcolor* or *bdiam* or *boxcolor* or *color* or *bitrate* or *framerate* or *header*
 
   .. parsed-literal::
 
@@ -113,6 +113,9 @@ Syntax
          rate = target bitrate for movie in kbps
        *framerate* arg = fps
          fps = frames per second for movie
+       *header* arg = *yes* or *no*
+         *yes* to write the header
+         *no* to not write the header
 
 * these keywords apply only to the */gz* and */zstd* dump styles
 * keyword = *compression_level*
@@ -308,9 +311,9 @@ performed with dump style *xtc*\ .
 
 ----------
 
-The *format* keyword can be used to change the default numeric format
-output by the text-based dump styles: *atom*\ , *custom*\ , *cfg*\ , and
-*xyz* styles, and their MPIIO variants.  Only the *line* or *none*
+The *format* keyword can be used to change the default numeric format output
+by the text-based dump styles: *atom*\ , *local*\ , *custom*\ , *cfg*\ , and
+*xyz* styles, and their MPIIO variants. Only the *line* or *none*
 options can be used with the *atom* and *xyz* styles.
 
 All the specified format strings are C-style formats, e.g. as used by
@@ -362,7 +365,7 @@ settings, reverting all values to their default format.
 
    compute     1 all property/local batom1 batom2
    dump        1 all local 100 tmp.bonds index c_1[1] c_1[2]
-   dump_modify 1 format "%d %0.0f %0.0f"
+   dump_modify 1 format line "%d %0.0f %0.0f"
 
 will output the two atom IDs for atoms in each bond as integers.  If
 the dump_modify command were omitted, they would appear as
@@ -974,6 +977,13 @@ frame rate.  To speed a movie up, you can do the inverse.  Using a
 frame rate higher than 24 is not recommended, as it will result in
 simply dropping the rendered images. It is more efficient to dump
 images less frequently.
+
+----------
+
+The *header* keyword toggles whether the dump file will include a header.
+Excluding a header will reduce the size of the dump file for fixes such as
+:doc:`fix pair/tracker <fix_pair_tracker>` which do not require the information
+typically written to the header.
 
 ----------
 

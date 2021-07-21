@@ -54,8 +54,10 @@
 
 #ifdef KOKKOS_ENABLE_OPENMPTARGET
 
+#include <OpenMPTarget/Kokkos_OpenMPTarget_Error.hpp>
 #include <Kokkos_HostSpace.hpp>
 #include <omp.h>
+
 /*--------------------------------------------------------------------------*/
 
 namespace Kokkos {
@@ -145,16 +147,21 @@ namespace Impl {
 
 template <>
 class SharedAllocationRecord<Kokkos::Experimental::OpenMPTargetSpace, void>
-    : public SharedAllocationRecord<void, void> {
+    : public HostInaccessibleSharedAllocationRecordCommon<
+          Kokkos::Experimental::OpenMPTargetSpace> {
  private:
+  friend class HostInaccessibleSharedAllocationRecordCommon<
+      Kokkos::Experimental::OpenMPTargetSpace>;
+  friend class SharedAllocationRecordCommon<
+      Kokkos::Experimental::OpenMPTargetSpace>;
   friend Kokkos::Experimental::OpenMPTargetSpace;
 
+  using base_t = HostInaccessibleSharedAllocationRecordCommon<
+      Kokkos::Experimental::OpenMPTargetSpace>;
   using RecordBase = SharedAllocationRecord<void, void>;
 
   SharedAllocationRecord(const SharedAllocationRecord&) = delete;
   SharedAllocationRecord& operator=(const SharedAllocationRecord&) = delete;
-
-  static void deallocate(RecordBase*);
 
   /**\brief  Root record for tracked allocations from this OpenMPTargetSpace
    * instance */
@@ -172,8 +179,6 @@ class SharedAllocationRecord<Kokkos::Experimental::OpenMPTargetSpace, void>
       const RecordBase::function_type arg_dealloc = &deallocate);
 
  public:
-  std::string get_label() const;
-
   KOKKOS_INLINE_FUNCTION static SharedAllocationRecord* allocate(
       const Kokkos::Experimental::OpenMPTargetSpace& arg_space,
       const std::string& arg_label, const size_t arg_alloc_size) {
@@ -183,24 +188,6 @@ class SharedAllocationRecord<Kokkos::Experimental::OpenMPTargetSpace, void>
     return nullptr;
 #endif
   }
-
-  /**\brief  Allocate tracked memory in the space */
-  static void* allocate_tracked(
-      const Kokkos::Experimental::OpenMPTargetSpace& arg_space,
-      const std::string& arg_label, const size_t arg_alloc_size);
-
-  /**\brief  Reallocate tracked memory in the space */
-  static void* reallocate_tracked(void* const arg_alloc_ptr,
-                                  const size_t arg_alloc_size);
-
-  /**\brief  Deallocate tracked memory in the space */
-  static void deallocate_tracked(void* const arg_alloc_ptr);
-
-  static SharedAllocationRecord* get_record(void* arg_alloc_ptr);
-
-  static void print_records(std::ostream&,
-                            const Kokkos::Experimental::OpenMPTargetSpace&,
-                            bool detail = false);
 };
 
 }  // namespace Impl
@@ -217,13 +204,20 @@ template <class ExecutionSpace>
 struct DeepCopy<Kokkos::Experimental::OpenMPTargetSpace,
                 Kokkos::Experimental::OpenMPTargetSpace, ExecutionSpace> {
   DeepCopy(void* dst, const void* src, size_t n) {
-    omp_target_memcpy(dst, const_cast<void*>(src), n, 0, 0,
-                      omp_get_default_device(), omp_get_default_device());
+    // In the Release and RelWithDebInfo builds, the size of the memcpy should
+    // be greater than zero to avoid error. omp_target_memcpy returns zero on
+    // success.
+    if (n > 0)
+      OMPT_SAFE_CALL(omp_target_memcpy(dst, const_cast<void*>(src), n, 0, 0,
+                                       omp_get_default_device(),
+                                       omp_get_default_device()));
   }
   DeepCopy(const ExecutionSpace& exec, void* dst, const void* src, size_t n) {
     exec.fence();
-    omp_target_memcpy(dst, const_cast<void*>(src), n, 0, 0,
-                      omp_get_default_device(), omp_get_default_device());
+    if (n > 0)
+      OMPT_SAFE_CALL(omp_target_memcpy(dst, const_cast<void*>(src), n, 0, 0,
+                                       omp_get_default_device(),
+                                       omp_get_default_device()));
   }
 };
 
@@ -231,13 +225,17 @@ template <class ExecutionSpace>
 struct DeepCopy<Kokkos::Experimental::OpenMPTargetSpace, HostSpace,
                 ExecutionSpace> {
   DeepCopy(void* dst, const void* src, size_t n) {
-    omp_target_memcpy(dst, const_cast<void*>(src), n, 0, 0,
-                      omp_get_default_device(), omp_get_initial_device());
+    if (n > 0)
+      OMPT_SAFE_CALL(omp_target_memcpy(dst, const_cast<void*>(src), n, 0, 0,
+                                       omp_get_default_device(),
+                                       omp_get_initial_device()));
   }
   DeepCopy(const ExecutionSpace& exec, void* dst, const void* src, size_t n) {
     exec.fence();
-    omp_target_memcpy(dst, const_cast<void*>(src), n, 0, 0,
-                      omp_get_default_device(), omp_get_initial_device());
+    if (n > 0)
+      OMPT_SAFE_CALL(omp_target_memcpy(dst, const_cast<void*>(src), n, 0, 0,
+                                       omp_get_default_device(),
+                                       omp_get_initial_device()));
   }
 };
 
@@ -245,22 +243,18 @@ template <class ExecutionSpace>
 struct DeepCopy<HostSpace, Kokkos::Experimental::OpenMPTargetSpace,
                 ExecutionSpace> {
   DeepCopy(void* dst, const void* src, size_t n) {
-    omp_target_memcpy(dst, const_cast<void*>(src), n, 0, 0,
-                      omp_get_initial_device(), omp_get_default_device());
+    if (n > 0)
+      OMPT_SAFE_CALL(omp_target_memcpy(dst, const_cast<void*>(src), n, 0, 0,
+                                       omp_get_initial_device(),
+                                       omp_get_default_device()));
   }
   DeepCopy(const ExecutionSpace& exec, void* dst, const void* src, size_t n) {
     exec.fence();
-    omp_target_memcpy(dst, const_cast<void*>(src), n, 0, 0,
-                      omp_get_initial_device(), omp_get_default_device());
+    if (n > 0)
+      OMPT_SAFE_CALL(omp_target_memcpy(dst, const_cast<void*>(src), n, 0, 0,
+                                       omp_get_initial_device(),
+                                       omp_get_default_device()));
   }
-};
-
-template <>
-struct VerifyExecutionCanAccessMemorySpace<
-    Kokkos::HostSpace, Kokkos::Experimental::OpenMPTargetSpace> {
-  enum { value = false };
-  inline static void verify(void) {}
-  inline static void verify(const void*) {}
 };
 
 }  // namespace Impl

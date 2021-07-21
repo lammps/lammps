@@ -1,0 +1,24 @@
+This package implements the REACTER protocol (reacter.org) as
+"fix bond/react." This fix allows for complex topology changes
+during a running MD simulation, when using classical force fields.
+Topology changes are defined in pre- and post-reaction molecule
+templates and can include creation and deletion of bonds, angles,
+dihedrals, impropers, atom types, bond types, angle types,
+dihedral types, improper types, and/or atomic charges.
+
+The REACTER protocol is a method for modeling chemical reactions in
+classical molecular dynamics simulations. It was developed to build
+physically-realistic initial configurations for amorphous or
+crosslinked materials. Any number of competing or reversible reaction
+pathways can be specified, and reacting sites can be stabilized. Other
+advanced options currently available include reaction constraints
+(e.g. angle and Arrhenius constraints), deletion of reaction
+byproducts or other small molecules, and chiral-sensitive reactions.
+
+The REACTER methodology is detailed in:
+    Gissinger et al., Polymer 128, 211-217 (2017)
+    https://doi.org/10.1016/j.polymer.2017.09.038
+
+This package was created by Jacob Gissinger
+(jacob.r.gissinger@gmail.com), while at the NASA Langley Research
+Center.

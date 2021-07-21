@@ -1,4 +1,5 @@
 .. index:: fix nve
+.. index:: fix nve/gpu
 .. index:: fix nve/intel
 .. index:: fix nve/kk
 .. index:: fix nve/omp
@@ -6,7 +7,7 @@
 fix nve command
 ===============
 
-Accelerator Variants: *nve/intel*, *nve/kk*, *nve/omp*
+Accelerator Variants: *nve/gpu*, *nve/intel*, *nve/kk*, *nve/omp*
 
 Syntax
 """"""
@@ -28,10 +29,11 @@ Examples
 Description
 """""""""""
 
-Perform constant NVE integration to update position and velocity for
-atoms in the group each timestep.  V is volume; E is energy.  This
-creates a system trajectory consistent with the microcanonical
-ensemble.
+Perform plain time integration to update position and velocity for
+atoms in the group each timestep.  This creates a system trajectory
+consistent with the microcanonical ensemble (NVE) provided there
+are (full) periodic boundary conditions and no other "manipulations"
+of the system (e.g. fixes that modify forces or velocities).
 
 ----------
 

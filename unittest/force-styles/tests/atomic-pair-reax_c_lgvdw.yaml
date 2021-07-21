@@ -1,7 +1,8 @@
 ---
-lammps_version: 24 Aug 2020
-date_generated: Tue Sep 15 09:44:25 202
-epsilon: 1e-10
+lammps_version: 10 Feb 2021
+date_generated: Fri Feb 26 23:09:06 2021
+epsilon: 2e-10
+skip_tests: omp
 prerequisites: ! |
   pair reax/c
   fix qeq/reax

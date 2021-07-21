@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -130,7 +131,7 @@ void FixRxKokkos<DeviceType>::init()
   bool eos_flag = false;
   for (int i = 0; i < modify->nfix; i++)
     if (utils::strmatch(modify->fix[i]->style,"^eos/table/rx")) eos_flag = true;
-  if(!eos_flag) error->all(FLERR,"fix rx requires fix eos/table/rx to be specified");
+  if (!eos_flag) error->all(FLERR,"fix rx requires fix eos/table/rx to be specified");
 
   if (update_kinetics_data)
     create_kinetics_data();
@@ -322,7 +323,7 @@ void FixRxKokkos<DeviceType>::k_rkf45_step (const int neq, const double h, Vecto
    // 1)
    k_rhs (0.0, y, f1, userData);
 
-   for (int k = 0; k < neq; k++){
+   for (int k = 0; k < neq; k++) {
       f1[k] *= h;
       ytmp[k] = y[k] + c21 * f1[k];
    }
@@ -330,7 +331,7 @@ void FixRxKokkos<DeviceType>::k_rkf45_step (const int neq, const double h, Vecto
    // 2)
    k_rhs(0.0, ytmp, f2, userData);
 
-   for (int k = 0; k < neq; k++){
+   for (int k = 0; k < neq; k++) {
       f2[k] *= h;
       ytmp[k] = y[k] + c31 * f1[k] + c32 * f2[k];
    }
@@ -417,7 +418,7 @@ int FixRxKokkos<DeviceType>::k_rkf45_h0 (const int neq, const double t, const do
    // compute ydot at t=t0
    k_rhs (t, y, ydot, userData);
 
-   while(1)
+   while (1)
    {
       // Estimate y'' with finite-difference ...
 
@@ -429,7 +430,7 @@ int FixRxKokkos<DeviceType>::k_rkf45_h0 (const int neq, const double t, const do
 
       // Compute WRMS norm of y''
       double yddnrm = 0.0;
-      for (int k = 0; k < neq; k++){
+      for (int k = 0; k < neq; k++) {
          double ydd = (ydot1[k] - ydot[k]) / hg;
          double wterr = ydd / (relTol * fabs( y[k] ) + absTol);
          yddnrm += wterr * wterr;
@@ -441,7 +442,7 @@ int FixRxKokkos<DeviceType>::k_rkf45_h0 (const int neq, const double t, const do
       //std::cout << "ydot " << ydot[neq-1] << std::endl;
 
       // should we accept this?
-      if (hnew_is_ok || iter == max_iters){
+      if (hnew_is_ok || iter == max_iters) {
          hnew = hg;
          //if (iter == max_iters)
          //   fprintf(stderr, "ERROR_HIN_MAX_ITERS\n");
@@ -455,11 +456,11 @@ int FixRxKokkos<DeviceType>::k_rkf45_h0 (const int neq, const double t, const do
       double hrat = hnew / hg;
 
       // Accept this value ... the bias factor should bring it within range.
-      if ( (hrat > 0.5) && (hrat < 2.0) )
+      if ((hrat > 0.5) && (hrat < 2.0))
          hnew_is_ok = true;
 
       // If y'' is still bad after a few iterations, just accept h and give up.
-      if ( (iter > 1) && hrat > 2.0 ) {
+      if ((iter > 1) && hrat > 2.0) {
          hnew = hg;
          hnew_is_ok = true;
       }
@@ -510,7 +511,7 @@ void FixRxKokkos<DeviceType>::k_rkf45(const int neq, const double t_stop, Vector
 
   double t = 0.0;
 
-  if (h < h_min){
+  if (h < h_min) {
     //fprintf(stderr,"hin not implemented yet\n");
     //exit(-1);
     nfe = k_rkf45_h0 (neq, t, t_stop, h_min, h_max, h, y, rwork, userData);
@@ -530,7 +531,7 @@ void FixRxKokkos<DeviceType>::k_rkf45(const int neq, const double t_stop, Vector
     // Estimate the solution error.
       // ... weighted 2-norm of the error.
       double err2 = 0.0;
-      for (int k = 0; k < neq; k++){
+      for (int k = 0; k < neq; k++) {
         const double wterr = eout[k] / (relTol * fabs( y[k] ) + absTol);
         err2 += wterr * wterr;
       }
@@ -538,7 +539,7 @@ void FixRxKokkos<DeviceType>::k_rkf45(const int neq, const double t_stop, Vector
     double err = fmax( uround, sqrt( err2 / double(nspecies) ));
 
     // Accept the solution?
-    if (err <= 1.0 || h <= h_min){
+    if (err <= 1.0 || h <= h_min) {
       t += h;
       nst++;
 
@@ -571,7 +572,7 @@ void FixRxKokkos<DeviceType>::k_rkf45(const int neq, const double t_stop, Vector
     nit++;
     nfe += 6;
 
-    if (maxIters && nit > maxIters){
+    if (maxIters && nit > maxIters) {
       //fprintf(stderr,"atom[%d] took too many iterations in rkf45 %d %e %e\n", id, nit, t, t_stop);
       counter.nFails ++;
       break;
@@ -643,7 +644,7 @@ void FixRxKokkos<DeviceType>::rkf45_step (const int neq, const double h, double 
    // 1)
    rhs (0.0, y, f1, v_param);
 
-   for (int k = 0; k < neq; k++){
+   for (int k = 0; k < neq; k++) {
       f1[k] *= h;
       ytmp[k] = y[k] + c21 * f1[k];
    }
@@ -651,7 +652,7 @@ void FixRxKokkos<DeviceType>::rkf45_step (const int neq, const double h, double 
    // 2)
    rhs(0.0, ytmp, f2, v_param);
 
-   for (int k = 0; k < neq; k++){
+   for (int k = 0; k < neq; k++) {
       f2[k] *= h;
       ytmp[k] = y[k] + c31 * f1[k] + c32 * f2[k];
    }
@@ -736,7 +737,7 @@ int FixRxKokkos<DeviceType>::rkf45_h0(const int neq, const double t, const doubl
    // compute ydot at t=t0
    rhs (t, y, ydot, v_params);
 
-   while(1)
+   while (1)
    {
       // Estimate y'' with finite-difference ...
 
@@ -748,7 +749,7 @@ int FixRxKokkos<DeviceType>::rkf45_h0(const int neq, const double t, const doubl
 
       // Compute WRMS norm of y''
       double yddnrm = 0.0;
-      for (int k = 0; k < neq; k++){
+      for (int k = 0; k < neq; k++) {
          double ydd = (ydot1[k] - ydot[k]) / hg;
          double wterr = ydd / (relTol * fabs( y[k] ) + absTol);
          yddnrm += wterr * wterr;
@@ -760,7 +761,7 @@ int FixRxKokkos<DeviceType>::rkf45_h0(const int neq, const double t, const doubl
       //std::cout << "ydot " << ydot[neq-1] << std::endl;
 
       // should we accept this?
-      if (hnew_is_ok || iter == max_iters){
+      if (hnew_is_ok || iter == max_iters) {
          hnew = hg;
          if (iter == max_iters)
             fprintf(stderr, "ERROR_HIN_MAX_ITERS\n");
@@ -774,11 +775,11 @@ int FixRxKokkos<DeviceType>::rkf45_h0(const int neq, const double t, const doubl
       double hrat = hnew / hg;
 
       // Accept this value ... the bias factor should bring it within range.
-      if ( (hrat > 0.5) && (hrat < 2.0) )
+      if ((hrat > 0.5) && (hrat < 2.0))
          hnew_is_ok = true;
 
       // If y'' is still bad after a few iterations, just accept h and give up.
-      if ( (iter > 1) && hrat > 2.0 ) {
+      if ((iter > 1) && hrat > 2.0) {
          hnew = hg;
          hnew_is_ok = true;
       }
@@ -827,7 +828,7 @@ void FixRxKokkos<DeviceType>::rkf45(const int neq, const double t_stop, double *
 
   double t = 0.0;
 
-  if (h < h_min){
+  if (h < h_min) {
     //fprintf(stderr,"hin not implemented yet\n");
     //exit(-1);
     nfe = rkf45_h0 (neq, t, t_stop, h_min, h_max, h, y, rwork, v_param);
@@ -836,7 +837,7 @@ void FixRxKokkos<DeviceType>::rkf45(const int neq, const double t_stop, double *
   //printf("t= %e t_stop= %e h= %e\n", t, t_stop, h);
 
   // Integrate until we reach the end time.
-  while (fabs(t - t_stop) > tround){
+  while (fabs(t - t_stop) > tround) {
     double *yout = rwork;
     double *eout = yout + neq;
 
@@ -846,7 +847,7 @@ void FixRxKokkos<DeviceType>::rkf45(const int neq, const double t_stop, double *
     // Estimate the solution error.
       // ... weighted 2-norm of the error.
       double err2 = 0.0;
-      for (int k = 0; k < neq; k++){
+      for (int k = 0; k < neq; k++) {
         const double wterr = eout[k] / (relTol * fabs( y[k] ) + absTol);
         err2 += wterr * wterr;
       }
@@ -854,7 +855,7 @@ void FixRxKokkos<DeviceType>::rkf45(const int neq, const double t_stop, double *
     double err = fmax( uround, sqrt( err2 / double(nspecies) ));
 
     // Accept the solution?
-    if (err <= 1.0 || h <= h_min){
+    if (err <= 1.0 || h <= h_min) {
       t += h;
       nst++;
 
@@ -887,7 +888,7 @@ void FixRxKokkos<DeviceType>::rkf45(const int neq, const double t_stop, double *
     nit++;
     nfe += 6;
 
-    if (maxIters && nit > maxIters){
+    if (maxIters && nit > maxIters) {
       //fprintf(stderr,"atom[%d] took too many iterations in rkf45 %d %e %e\n", id, nit, t, t_stop);
       counter.nFails ++;
       break;
@@ -928,14 +929,14 @@ int FixRxKokkos<DeviceType>::rhs_dense(double /*t*/, const double *y, double *dy
   //const double VDPD = domain->xprd * domain->yprd * domain->zprd / atom->natoms;
   //const int nspecies = atom->nspecies_dpd;
 
-  for(int ispecies=0; ispecies<nspecies; ispecies++)
+  for (int ispecies=0; ispecies<nspecies; ispecies++)
     dydt[ispecies] = 0.0;
 
   // Construct the reaction rate laws
-  for(int jrxn=0; jrxn<nreactions; jrxn++){
+  for (int jrxn=0; jrxn<nreactions; jrxn++) {
     double rxnRateLawForward = kFor[jrxn];
 
-    for(int ispecies=0; ispecies<nspecies; ispecies++){
+    for (int ispecies=0; ispecies<nspecies; ispecies++) {
       const double concentration = y[ispecies]/VDPD;
       rxnRateLawForward *= pow( concentration, d_kineticsData.stoichReactants(jrxn,ispecies) );
       //rxnRateLawForward *= pow(concentration,stoichReactants[jrxn][ispecies]);
@@ -944,8 +945,8 @@ int FixRxKokkos<DeviceType>::rhs_dense(double /*t*/, const double *y, double *dy
   }
 
   // Construct the reaction rates for each species
-  for(int ispecies=0; ispecies<nspecies; ispecies++)
-    for(int jrxn=0; jrxn<nreactions; jrxn++)
+  for (int ispecies=0; ispecies<nspecies; ispecies++)
+    for (int jrxn=0; jrxn<nreactions; jrxn++)
     {
       dydt[ispecies] += d_kineticsData.stoich(jrxn,ispecies) *VDPD*rxnRateLaw[jrxn];
       //dydt[ispecies] += stoich[jrxn][ispecies]*VDPD*rxnRateLaw[jrxn];
@@ -982,9 +983,9 @@ int FixRxKokkos<DeviceType>::rhs_sparse(double /*t*/, const double *y, double *d
    for (int i = 0; i < nreactions; ++i)
    {
       double rxnRateLawForward;
-      if (isIntegral(i)){
+      if (isIntegral(i)) {
          rxnRateLawForward = kFor[i] * powint( conc[ nuk(i,0) ], inu(i,0) );
-         for (int kk = 1; kk < maxReactants; ++kk){
+         for (int kk = 1; kk < maxReactants; ++kk) {
             const int k = nuk(i,kk);
             if (k == SparseKinetics_invalidIndex) break;
             //if (k != SparseKinetics_invalidIndex)
@@ -992,7 +993,7 @@ int FixRxKokkos<DeviceType>::rhs_sparse(double /*t*/, const double *y, double *d
          }
       } else {
          rxnRateLawForward = kFor[i] * pow( conc[ nuk(i,0) ], nu(i,0) );
-         for (int kk = 1; kk < maxReactants; ++kk){
+         for (int kk = 1; kk < maxReactants; ++kk) {
             const int k = nuk(i,kk);
             if (k == SparseKinetics_invalidIndex) break;
             //if (k != SparseKinetics_invalidIndex)
@@ -1008,10 +1009,10 @@ int FixRxKokkos<DeviceType>::rhs_sparse(double /*t*/, const double *y, double *d
    for (int k = 0; k < nspecies; ++k)
       dydt[k] = 0.0;
 
-   for (int i = 0; i < nreactions; ++i){
+   for (int i = 0; i < nreactions; ++i) {
       // Reactants ...
       dydt[ nuk(i,0) ] -= nu(i,0) * rxnRateLaw[i];
-      for (int kk = 1; kk < maxReactants; ++kk){
+      for (int kk = 1; kk < maxReactants; ++kk) {
          const int k = nuk(i,kk);
          if (k == SparseKinetics_invalidIndex) break;
          //if (k != SparseKinetics_invalidIndex)
@@ -1020,7 +1021,7 @@ int FixRxKokkos<DeviceType>::rhs_sparse(double /*t*/, const double *y, double *d
 
       // Products ...
       dydt[ nuk(i,maxReactants) ] += nu(i,maxReactants) * rxnRateLaw[i];
-      for (int kk = maxReactants+1; kk < maxSpecies; ++kk){
+      for (int kk = maxReactants+1; kk < maxSpecies; ++kk) {
          const int k = nuk(i,kk);
          if (k == SparseKinetics_invalidIndex) break;
          //if (k != SparseKinetics_invalidIndex)
@@ -1074,14 +1075,14 @@ int FixRxKokkos<DeviceType>::k_rhs_dense(double /*t*/, const VectorType& y, Vect
   //const double VDPD = domain->xprd * domain->yprd * domain->zprd / atom->natoms;
   //const int nspecies = atom->nspecies_dpd;
 
-  for(int ispecies=0; ispecies<nspecies; ispecies++)
+  for (int ispecies=0; ispecies<nspecies; ispecies++)
     dydt[ispecies] = 0.0;
 
   // Construct the reaction rate laws
-  for(int jrxn=0; jrxn<nreactions; jrxn++){
+  for (int jrxn=0; jrxn<nreactions; jrxn++) {
     double rxnRateLawForward = kFor[jrxn];
 
-    for(int ispecies=0; ispecies<nspecies; ispecies++){
+    for (int ispecies=0; ispecies<nspecies; ispecies++) {
       const double concentration = y[ispecies]/VDPD;
       rxnRateLawForward *= pow( concentration, d_kineticsData.stoichReactants(jrxn,ispecies) );
       //rxnRateLawForward *= pow(concentration,stoichReactants[jrxn][ispecies]);
@@ -1090,8 +1091,8 @@ int FixRxKokkos<DeviceType>::k_rhs_dense(double /*t*/, const VectorType& y, Vect
   }
 
   // Construct the reaction rates for each species
-  for(int ispecies=0; ispecies<nspecies; ispecies++)
-    for(int jrxn=0; jrxn<nreactions; jrxn++)
+  for (int ispecies=0; ispecies<nspecies; ispecies++)
+    for (int jrxn=0; jrxn<nreactions; jrxn++)
     {
       dydt[ispecies] += d_kineticsData.stoich(jrxn,ispecies) *VDPD*rxnRateLaw[jrxn];
       //dydt[ispecies] += stoich[jrxn][ispecies]*VDPD*rxnRateLaw[jrxn];
@@ -1129,9 +1130,9 @@ int FixRxKokkos<DeviceType>::k_rhs_sparse(double /*t*/, const VectorType& y, Vec
    for (int i = 0; i < nreactions; ++i)
    {
       double rxnRateLawForward;
-      if (isIntegral(i)){
+      if (isIntegral(i)) {
          rxnRateLawForward = kFor[i] * powint( conc[ nuk(i,0) ], inu(i,0) );
-         for (int kk = 1; kk < maxReactants; ++kk){
+         for (int kk = 1; kk < maxReactants; ++kk) {
             const int k = nuk(i,kk);
             if (k == SparseKinetics_invalidIndex) break;
             //if (k != SparseKinetics_invalidIndex)
@@ -1139,7 +1140,7 @@ int FixRxKokkos<DeviceType>::k_rhs_sparse(double /*t*/, const VectorType& y, Vec
          }
       } else {
          rxnRateLawForward = kFor[i] * pow( conc[ nuk(i,0) ], nu(i,0) );
-         for (int kk = 1; kk < maxReactants; ++kk){
+         for (int kk = 1; kk < maxReactants; ++kk) {
             const int k = nuk(i,kk);
             if (k == SparseKinetics_invalidIndex) break;
             //if (k != SparseKinetics_invalidIndex)
@@ -1155,10 +1156,10 @@ int FixRxKokkos<DeviceType>::k_rhs_sparse(double /*t*/, const VectorType& y, Vec
    for (int k = 0; k < nspecies; ++k)
       dydt[k] = 0.0;
 
-   for (int i = 0; i < nreactions; ++i){
+   for (int i = 0; i < nreactions; ++i) {
       // Reactants ...
       dydt[ nuk(i,0) ] -= nu(i,0) * rxnRateLaw[i];
-      for (int kk = 1; kk < maxReactants; ++kk){
+      for (int kk = 1; kk < maxReactants; ++kk) {
          const int k = nuk(i,kk);
          if (k == SparseKinetics_invalidIndex) break;
          //if (k != SparseKinetics_invalidIndex)
@@ -1167,7 +1168,7 @@ int FixRxKokkos<DeviceType>::k_rhs_sparse(double /*t*/, const VectorType& y, Vec
 
       // Products ...
       dydt[ nuk(i,maxReactants) ] += nu(i,maxReactants) * rxnRateLaw[i];
-      for (int kk = maxReactants+1; kk < maxSpecies; ++kk){
+      for (int kk = maxReactants+1; kk < maxSpecies; ++kk) {
          const int k = nuk(i,kk);
          if (k == SparseKinetics_invalidIndex) break;
          //if (k != SparseKinetics_invalidIndex)
@@ -1451,7 +1452,7 @@ void FixRxKokkos<DeviceType>::solve_reactions(const int /*vflag*/, const bool is
   {
     const int count = nlocal + (newton_pair ? nghost : 0);
 
-    if (count > k_dpdThetaLocal.template view<DeviceType>().extent(0)) {
+    if (count > (int) k_dpdThetaLocal.template view<DeviceType>().extent(0)) {
       memoryKK->destroy_kokkos (k_dpdThetaLocal, dpdThetaLocal);
       memoryKK->create_kokkos (k_dpdThetaLocal, dpdThetaLocal, count, "FixRxKokkos::dpdThetaLocal");
       this->d_dpdThetaLocal = k_dpdThetaLocal.template view<DeviceType>();
@@ -1686,7 +1687,7 @@ void FixRxKokkos<DeviceType>::solve_reactions(const int /*vflag*/, const bool is
   //                       getElapsedTime(timer_ODE, timer_stop), nlocal, TotalCounters.nFuncs, TotalCounters.nSteps);
 
   // Warn the user if a failure was detected in the ODE solver.
-  if (TotalCounters.nFails > 0){
+  if (TotalCounters.nFails > 0) {
     char sbuf[128];
     sprintf(sbuf,"in FixRX::pre_force, ODE solver failed for %d atoms.", TotalCounters.nFails);
     error->warning(FLERR, sbuf);
@@ -1752,7 +1753,7 @@ void FixRxKokkos<DeviceType>::odeDiagnostics(void)
   double min_per_proc[numCounters];
 
   // Compute counters per dpd time-step.
-  for (int i = 0; i < numCounters; ++i){
+  for (int i = 0; i < numCounters; ++i) {
     my_vals[i] = this->diagnosticCounter[i] / nTimes;
     //printf("my sum[%d] = %f %d\n", i, my_vals[i], comm->me);
   }
@@ -1767,7 +1768,7 @@ void FixRxKokkos<DeviceType>::odeDiagnostics(void)
   double avg_per_atom[numCounters], avg_per_proc[numCounters];
 
   // Averages per-ODE and per-proc per time-step.
-  for (int i = 0; i < numCounters; ++i){
+  for (int i = 0; i < numCounters; ++i) {
     avg_per_atom[i] = sums[i] / nODEs;
     avg_per_proc[i] = sums[i] / comm->nprocs;
   }
@@ -1775,7 +1776,7 @@ void FixRxKokkos<DeviceType>::odeDiagnostics(void)
   // Sum up the differences from each task.
   double sum_sq[2*numCounters];
   double my_sum_sq[2*numCounters];
-  for (int i = 0; i < numCounters; ++i){
+  for (int i = 0; i < numCounters; ++i) {
     double diff_i = my_vals[i] - avg_per_proc[i];
     my_sum_sq[i] = diff_i * diff_i;
   }
@@ -1835,7 +1836,7 @@ void FixRxKokkos<DeviceType>::odeDiagnostics(void)
   TimerType timer_stop = getTimeStamp();
   double time_local = getElapsedTime( timer_start, timer_stop );
 
-  if (comm->me == 0){
+  if (comm->me == 0) {
     char smesg[128];
 
 #define print_mesg(smesg) {\
@@ -1849,7 +1850,7 @@ void FixRxKokkos<DeviceType>::odeDiagnostics(void)
     print_mesg(smesg);
 
     // only valid for single time-step!
-    if (diagnosticFrequency == 1){
+    if (diagnosticFrequency == 1) {
       double rms_per_ODE[numCounters];
       for (int i = 0; i < numCounters; ++i)
         rms_per_ODE[i] = sqrt( sum_sq[i+numCounters] / nODEs );
@@ -1867,7 +1868,7 @@ void FixRxKokkos<DeviceType>::odeDiagnostics(void)
     sprintf(smesg, "         AVG per Proc : %-12.5g | %-12.5g | %-12.5g | %-12.5g", avg_per_proc[StepSum], avg_per_proc[FuncSum], avg_per_proc[TimeSum], avg_per_proc[AtomSum]);
     print_mesg(smesg);
 
-    if (comm->nprocs > 1){
+    if (comm->nprocs > 1) {
       double rms_per_proc[numCounters];
       for (int i = 0; i < numCounters; ++i)
         rms_per_proc[i] = sqrt( sum_sq[i] / comm->nprocs );
@@ -2206,7 +2207,7 @@ int FixRxKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *buf, in
   int m = 0;
   for (int ii = 0; ii < n; ii++) {
     const int jj = list[ii];
-    for(int ispecies = 0; ispecies < nspecies; ispecies++){
+    for (int ispecies = 0; ispecies < nspecies; ispecies++) {
       buf[m++] = h_dvector(ispecies,jj);
       buf[m++] = h_dvector(ispecies+nspecies,jj);
     }
@@ -2228,8 +2229,8 @@ void FixRxKokkos<DeviceType>::unpack_forward_comm(int n, int first, double *buf)
 
   const int last = first + n ;
   int m = 0;
-  for (int ii = first; ii < last; ii++){
-    for (int ispecies = 0; ispecies < nspecies; ispecies++){
+  for (int ii = first; ii < last; ii++) {
+    for (int ispecies = 0; ispecies < nspecies; ispecies++) {
       h_dvector(ispecies,ii) = buf[m++];
       h_dvector(ispecies+nspecies,ii) = buf[m++];
     }

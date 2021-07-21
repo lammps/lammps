@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -47,6 +48,7 @@ FixIndent::FixIndent(LAMMPS *lmp, int narg, char **arg) :
   scalar_flag = 1;
   vector_flag = 1;
   size_vector = 3;
+  energy_global_flag = 1;
   global_freq = 1;
   extscalar = 1;
   extvector = 1;
@@ -107,7 +109,6 @@ int FixIndent::setmask()
 {
   int mask = 0;
   mask |= POST_FORCE;
-  mask |= THERMO_ENERGY;
   mask |= POST_FORCE_RESPA;
   mask |= MIN_POST_FORCE;
   return mask;
@@ -153,7 +154,7 @@ void FixIndent::init()
       error->all(FLERR,"Variable for fix indent is not equal style");
   }
 
-  if (strstr(update->integrate_style,"respa")) {
+  if (utils::strmatch(update->integrate_style,"^respa")) {
     ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
   }
@@ -163,7 +164,7 @@ void FixIndent::init()
 
 void FixIndent::setup(int vflag)
 {
-  if (strstr(update->integrate_style,"verlet"))
+  if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
     ((Respa *) update->integrate)->copy_flevel_f(ilevel_respa);
@@ -417,25 +418,17 @@ void FixIndent::options(int narg, char **arg)
     if (strcmp(arg[iarg],"sphere") == 0) {
       if (iarg+5 > narg) error->all(FLERR,"Illegal fix indent command");
 
-      if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
-        int n = strlen(&arg[iarg+1][2]) + 1;
-        xstr = new char[n];
-        strcpy(xstr,&arg[iarg+1][2]);
+      if (utils::strmatch(arg[iarg+1],"^v_")) {
+        xstr = utils::strdup(arg[iarg+1]+2);
       } else xvalue = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-      if (strstr(arg[iarg+2],"v_") == arg[iarg+2]) {
-        int n = strlen(&arg[iarg+2][2]) + 1;
-        ystr = new char[n];
-        strcpy(ystr,&arg[iarg+2][2]);
+      if (utils::strmatch(arg[iarg+2],"^v_")) {
+        ystr = utils::strdup(arg[iarg+2]+2);
       } else yvalue = utils::numeric(FLERR,arg[iarg+2],false,lmp);
-      if (strstr(arg[iarg+3],"v_") == arg[iarg+3]) {
-        int n = strlen(&arg[iarg+3][2]) + 1;
-        zstr = new char[n];
-        strcpy(zstr,&arg[iarg+3][2]);
+      if (utils::strmatch(arg[iarg+3],"^v_")) {
+        zstr = utils::strdup(arg[iarg+3]+2);
       } else zvalue = utils::numeric(FLERR,arg[iarg+3],false,lmp);
-      if (strstr(arg[iarg+4],"v_") == arg[iarg+4]) {
-        int n = strlen(&arg[iarg+4][2]) + 1;
-        rstr = new char[n];
-        strcpy(rstr,&arg[iarg+4][2]);
+      if (utils::strmatch(arg[iarg+4],"^v_")) {
+        rstr = utils::strdup(arg[iarg+4]+2);
       } else rvalue = utils::numeric(FLERR,arg[iarg+4],false,lmp);
 
       istyle = SPHERE;
@@ -446,46 +439,32 @@ void FixIndent::options(int narg, char **arg)
 
       if (strcmp(arg[iarg+1],"x") == 0) {
         cdim = 0;
-        if (strstr(arg[iarg+2],"v_") == arg[iarg+2]) {
-          int n = strlen(&arg[iarg+2][2]) + 1;
-          ystr = new char[n];
-          strcpy(ystr,&arg[iarg+2][2]);
+        if (utils::strmatch(arg[iarg+2],"^v_")) {
+          ystr = utils::strdup(arg[iarg+2]+2);
         } else yvalue = utils::numeric(FLERR,arg[iarg+2],false,lmp);
-        if (strstr(arg[iarg+3],"v_") == arg[iarg+3]) {
-          int n = strlen(&arg[iarg+3][2]) + 1;
-          zstr = new char[n];
-          strcpy(zstr,&arg[iarg+3][2]);
+        if (utils::strmatch(arg[iarg+3],"^v_")) {
+          zstr = utils::strdup(arg[iarg+3]+2);
         } else zvalue = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       } else if (strcmp(arg[iarg+1],"y") == 0) {
         cdim = 1;
-        if (strstr(arg[iarg+2],"v_") == arg[iarg+2]) {
-          int n = strlen(&arg[iarg+2][2]) + 1;
-          xstr = new char[n];
-          strcpy(xstr,&arg[iarg+2][2]);
+        if (utils::strmatch(arg[iarg+2],"^v_")) {
+          xstr = utils::strdup(arg[iarg+2]+2);
         } else xvalue = utils::numeric(FLERR,arg[iarg+2],false,lmp);
-        if (strstr(arg[iarg+3],"v_") == arg[iarg+3]) {
-          int n = strlen(&arg[iarg+3][2]) + 1;
-          zstr = new char[n];
-          strcpy(zstr,&arg[iarg+3][2]);
+        if (utils::strmatch(arg[iarg+3],"^v_")) {
+          zstr = utils::strdup(arg[iarg+3]+2);
         } else zvalue = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       } else if (strcmp(arg[iarg+1],"z") == 0) {
         cdim = 2;
-        if (strstr(arg[iarg+2],"v_") == arg[iarg+2]) {
-          int n = strlen(&arg[iarg+2][2]) + 1;
-          xstr = new char[n];
-          strcpy(xstr,&arg[iarg+2][2]);
+        if (utils::strmatch(arg[iarg+2],"^v_")) {
+          xstr = utils::strdup(arg[iarg+2]+2);
         } else xvalue = utils::numeric(FLERR,arg[iarg+2],false,lmp);
-        if (strstr(arg[iarg+3],"v_") == arg[iarg+3]) {
-          int n = strlen(&arg[iarg+3][2]) + 1;
-          ystr = new char[n];
-          strcpy(ystr,&arg[iarg+3][2]);
+        if (utils::strmatch(arg[iarg+3],"^v_")) {
+          ystr = utils::strdup(arg[iarg+3]+2);
         } else yvalue = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       } else error->all(FLERR,"Illegal fix indent command");
 
-      if (strstr(arg[iarg+4],"v_") == arg[iarg+4]) {
-        int n = strlen(&arg[iarg+4][2]) + 1;
-        rstr = new char[n];
-        strcpy(rstr,&arg[iarg+4][2]);
+      if (utils::strmatch(arg[iarg+4],"^v_")) {
+        rstr = utils::strdup(arg[iarg+4]+2);
       } else rvalue = utils::numeric(FLERR,arg[iarg+4],false,lmp);
 
       istyle = CYLINDER;
@@ -498,10 +477,8 @@ void FixIndent::options(int narg, char **arg)
       else if (strcmp(arg[iarg+1],"z") == 0) cdim = 2;
       else error->all(FLERR,"Illegal fix indent command");
 
-      if (strstr(arg[iarg+2],"v_") == arg[iarg+2]) {
-        int n = strlen(&arg[iarg+2][2]) + 1;
-        pstr = new char[n];
-        strcpy(pstr,&arg[iarg+2][2]);
+      if (utils::strmatch(arg[iarg+2],"^v_")) {
+        pstr = utils::strdup(arg[iarg+2]+2);
       } else pvalue = utils::numeric(FLERR,arg[iarg+2],false,lmp);
 
       if (strcmp(arg[iarg+3],"lo") == 0) planeside = -1;

@@ -10,7 +10,9 @@ letter abbreviation can be used:
 * :ref:`-i or -in <file>`
 * :ref:`-k or -kokkos <run-kokkos>`
 * :ref:`-l or -log <log>`
+* :ref:`-mdi <mdi_flags>`
 * :ref:`-m or -mpicolor <mpicolor>`
+* :ref:`-c or -cite <cite>`
 * :ref:`-nc or -nocite <nocite>`
 * :ref:`-pk or -package <package>`
 * :ref:`-p or -partition <partition>`
@@ -62,15 +64,18 @@ used.
 
 **-in file**
 
-Specify a file to use as an input script.  This is an optional switch
-when running LAMMPS in one-partition mode.  If it is not specified,
-LAMMPS reads its script from standard input, typically from a script
-via I/O redirection; e.g. lmp_linux < in.run.  I/O redirection should
-also work in parallel, but if it does not (in the unlikely case that
-an MPI implementation does not support it), then use the -in flag.
+Specify a file to use as an input script.  This is an optional but
+recommended switch when running LAMMPS in one-partition mode.  If it
+is not specified, LAMMPS reads its script from standard input, typically
+from a script via I/O redirection; e.g. lmp_linux < in.run.
+With many MPI implementations I/O redirection also works in parallel,
+but using the -in flag will always work.
+
 Note that this is a required switch when running LAMMPS in
 multi-partition mode, since multiple processors cannot all read from
-stdin.
+stdin concurrently.  The file name may be "none" for starting
+multi-partition calculations without reading an initial input file
+from the library interface.
 
 ----------
 
@@ -84,7 +89,7 @@ in the :doc:`the KOKKOS package page <Speed_kokkos>`, this switch must be set to
 running with KOKKOS-enabled styles the package provides.  If the
 switch is not set (the default), LAMMPS will operate as if the KOKKOS
 package were not installed; i.e. you can run standard LAMMPS or with
-the GPU or USER-OMP packages, for testing or benchmarking purposes.
+the GPU or OPENMP packages, for testing or benchmarking purposes.
 
 Additional optional keyword/value pairs can be specified which
 determine how Kokkos will use the underlying hardware on your
@@ -192,9 +197,23 @@ Option -plog will override the name of the partition log files file.N.
 
 ----------
 
+.. _mdi_flags:
+
+**-mdi 'multiple flags'**
+
+This flag is only recognized and used when LAMMPS has support for the MolSSI
+Driver Interface (MDI) included as part of the :ref:`MDI <PKG-MDI>`
+package.  This flag is specific to the MDI library and controls how LAMMPS
+interacts with MDI.  There are usually multiple flags that have to follow it
+and those have to be placed in quotation marks.  For more information about
+how to launch LAMMPS in MDI client/server mode please refer to the
+:doc:`MDI Howto <Howto_mdi>`.
+
+----------
+
 .. _mpicolor:
 
-**-mpicolor** color
+**-mpicolor color**
 
 If used, this must be the first command-line argument after the LAMMPS
 executable name.  It is only used when LAMMPS is launched by an mpirun
@@ -217,14 +236,31 @@ links with from the lib/message directory.  See the
 
 ----------
 
+.. _cite:
+
+**-cite style** or **file name**
+
+Select how and where to output a reminder about citing contributions
+to the LAMMPS code that were used during the run. Available styles are
+"both", "none", "screen", or "log".  Any flag will be considered a file
+name to write the detailed citation info to.  Default is the "log" style
+where there is a short summary in the screen output and detailed citations
+in BibTeX format in the logfile.  The option "both" selects the detailed
+output for both, "none", the short output for both, and "screen" will
+write the detailed info to the screen and the short version to the log
+file.  If a dedicated citation info file is requested, the screen and
+log file output will be in the short format (same as with "none").
+
+See the :doc:`citation page <Intro_citing>` for more details on
+how to correctly reference and cite LAMMPS.
+
+----------
+
 .. _nocite:
 
 **-nocite**
 
-Disable writing the log.cite file which is normally written to list
-references for specific cite-able features used during a LAMMPS run.
-See the `citation page <https://lammps.sandia.gov/cite.html>`_ for more
-details.
+Disable generating a citation reminder (see above) at all.
 
 ----------
 
@@ -238,7 +274,7 @@ script.  For example "-package gpu 2" or "-pk gpu 2" is the same as
 :doc:`package gpu 2 <package>` in the input script.  The possible styles
 and args are documented on the :doc:`package <package>` doc page.  This
 switch can be used multiple times, e.g. to set options for the
-USER-INTEL and USER-OMP packages which can be used together.
+INTEL and OPENMP packages which can be used together.
 
 Along with the "-suffix" command-line switch, this is a convenient
 mechanism for invoking accelerator packages and their options without
@@ -296,7 +332,7 @@ command-line option.
 **-pscreen file**
 
 Specify the base name for the partition screen file, so partition N
-writes screen information to file.N. If file is none, then no
+writes screen information to file.N. If file is "none", then no
 partition screen files are created.  This overrides the filename
 specified in the -screen command-line option.  This option is useful
 when working with large numbers of partitions, allowing the partition
@@ -504,16 +540,16 @@ Use variants of various styles if they exist.  The specified style can
 be *gpu*\ , *intel*\ , *kk*\ , *omp*\ , *opt*\ , or *hybrid*\ .  These
 refer to optional packages that LAMMPS can be built with, as described
 in :doc:`Accelerate performance <Speed>`.  The "gpu" style corresponds to the
-GPU package, the "intel" style to the USER-INTEL package, the "kk"
+GPU package, the "intel" style to the INTEL package, the "kk"
 style to the KOKKOS package, the "opt" style to the OPT package, and
-the "omp" style to the USER-OMP package. The hybrid style is the only
+the "omp" style to the OPENMP package. The hybrid style is the only
 style that accepts arguments. It allows for two packages to be
 specified. The first package specified is the default and will be used
 if it is available. If no style is available for the first package,
 the style for the second package will be used if available. For
 example, "-suffix hybrid intel omp" will use styles from the
-USER-INTEL package if they are installed and available, but styles for
-the USER-OMP package otherwise.
+INTEL package if they are installed and available, but styles for
+the OPENMP package otherwise.
 
 Along with the "-package" command-line switch, this is a convenient
 mechanism for invoking accelerator packages and their options without
@@ -534,15 +570,15 @@ default GPU settings, as if the command "package gpu 1" were used at
 the top of your input script.  These settings can be changed by using
 the "-package gpu" command-line switch or the :doc:`package gpu <package>` command in your script.
 
-For the USER-INTEL package, using this command-line switch also
-invokes the default USER-INTEL settings, as if the command "package
+For the INTEL package, using this command-line switch also
+invokes the default INTEL settings, as if the command "package
 intel 1" were used at the top of your input script.  These settings
 can be changed by using the "-package intel" command-line switch or
 the :doc:`package intel <package>` command in your script. If the
-USER-OMP package is also installed, the hybrid style with "intel omp"
+OPENMP package is also installed, the hybrid style with "intel omp"
 arguments can be used to make the omp suffix a second choice, if a
-requested style is not available in the USER-INTEL package.  It will
-also invoke the default USER-OMP settings, as if the command "package
+requested style is not available in the INTEL package.  It will
+also invoke the default OPENMP settings, as if the command "package
 omp 0" were used at the top of your input script.  These settings can
 be changed by using the "-package omp" command-line switch or the
 :doc:`package omp <package>` command in your script.

@@ -3,6 +3,7 @@
 clear 
 units 		metal
 atom_style 	spin
+# atom_style 	spin/kk
 
 dimension 	3
 boundary 	p p p
@@ -21,16 +22,19 @@ mass		1 55.845
 set 		group all spin 2.2 0.0 0.0 1.0
 velocity 	all create 0 4928459 rot yes dist gaussian
 
-pair_style 	hybrid/overlay eam/alloy spin/exchange 3.5
+# pair_style 	hybrid/overlay eam/alloy spin/exchange 3.5
+pair_style 	hybrid/overlay eam/alloy spin/exchange 4.0 spin/neel 4.0
 pair_coeff 	* * eam/alloy Fe_Mishin2006.eam.alloy Fe
 pair_coeff 	* * spin/exchange exchange 3.4 0.1 0.2171 1.841
+pair_coeff 	* * spin/neel neel 4.0 0.02 0.0 1.841 0.0 0.0 1.0 
 
 neighbor 	0.1 bin
 neigh_modify 	every 10 check yes delay 20
 
 fix 		1 all precession/spin zeeman 0.0 0.0 0.0 1.0
-fix 		2 all langevin/spin 200.0 0.1 321
-fix 		3 all nve/spin lattice moving
+fix             2 all langevin 0.0 0.0 0.0 48279
+fix 		3 all langevin/spin 200.0 0.01 321
+fix 		4 all nve/spin lattice moving
 timestep	0.001
 
 # compute and output options

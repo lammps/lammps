@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -42,7 +43,7 @@ enum{MOVE,RAMP,RANDOM,ROTATE};
 
 /* ---------------------------------------------------------------------- */
 
-DisplaceAtoms::DisplaceAtoms(LAMMPS *lmp) : Pointers(lmp)
+DisplaceAtoms::DisplaceAtoms(LAMMPS *lmp) : Command(lmp)
 {
   mvec = nullptr;
 }
@@ -354,9 +355,8 @@ void DisplaceAtoms::command(int narg, char **arg)
   bigint nblocal = atom->nlocal;
   MPI_Allreduce(&nblocal,&natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
   if (natoms != atom->natoms && comm->me == 0)
-    error->warning(FLERR,fmt::format("Lost atoms via displace_atoms: "
-                                     "original {} current {}",
-                                     atom->natoms,natoms));
+    error->warning(FLERR,"Lost atoms via displace_atoms: original {} "
+                   "current {}",atom->natoms,natoms);
 }
 
 /* ----------------------------------------------------------------------

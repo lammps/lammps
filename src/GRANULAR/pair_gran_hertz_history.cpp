@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -181,6 +182,7 @@ void PairGranHertzHistory::compute(int eflag, int vflag)
         ccel = kn*(radsum-r)*rinv - damp;
         polyhertz = sqrt((radsum-r)*radi*radj / radsum);
         ccel *= polyhertz;
+        if (limit_damping && (ccel < 0.0)) ccel = 0.0;
 
         // relative velocities
 
@@ -277,7 +279,7 @@ void PairGranHertzHistory::compute(int eflag, int vflag)
 
 void PairGranHertzHistory::settings(int narg, char **arg)
 {
-  if (narg != 6) error->all(FLERR,"Illegal pair_style command");
+  if (narg != 6 && narg != 7) error->all(FLERR,"Illegal pair_style command");
 
   kn = utils::numeric(FLERR,arg[0],false,lmp);
   if (strcmp(arg[1],"NULL") == 0) kt = kn * 2.0/7.0;
@@ -294,6 +296,12 @@ void PairGranHertzHistory::settings(int narg, char **arg)
   if (kn < 0.0 || kt < 0.0 || gamman < 0.0 || gammat < 0.0 ||
       xmu < 0.0 || xmu > 10000.0 || dampflag < 0 || dampflag > 1)
     error->all(FLERR,"Illegal pair_style command");
+
+  limit_damping = 0;
+  if (narg == 7) {
+    if (strcmp(arg[6], "limit_damping") == 0) limit_damping = 1;
+    else error->all(FLERR,"Illegal pair_style command");
+  }
 
   // convert Kn and Kt from pressure units to force/distance^2
 
@@ -388,6 +396,7 @@ double PairGranHertzHistory::single(int i, int j, int /*itype*/, int /*jtype*/,
   ccel = kn*(radsum-r)*rinv - damp;
   polyhertz = sqrt((radsum-r)*radi*radj / radsum);
   ccel *= polyhertz;
+  if (limit_damping && (ccel < 0.0)) ccel = 0.0;
 
   // relative velocities
 

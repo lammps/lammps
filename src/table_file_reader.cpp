@@ -1,6 +1,7 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -33,7 +34,7 @@ TableFileReader::TableFileReader(LAMMPS *lmp,
 TableFileReader::~TableFileReader() {
 }
 
-char *TableFileReader::find_section_start(const std::string & keyword) {
+char *TableFileReader::find_section_start(const std::string &keyword) {
   char *line = nullptr;
   while ((line = reader->next_line())) {
     ValueTokenizer values(line);

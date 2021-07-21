@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -123,7 +124,7 @@ void ComputeBodyLocal::compute_local()
   int ncount = compute_body(0);
   if (ncount > nmax) reallocate(ncount);
   size_local_rows = ncount;
-  ncount = compute_body(1);
+  compute_body(1);
 }
 
 /* ----------------------------------------------------------------------
@@ -226,6 +227,6 @@ void ComputeBodyLocal::reallocate(int n)
 
 double ComputeBodyLocal::memory_usage()
 {
-  double bytes = nmax*nvalues * sizeof(double);
+  double bytes = (double)nmax*nvalues * sizeof(double);
   return bytes;
 }

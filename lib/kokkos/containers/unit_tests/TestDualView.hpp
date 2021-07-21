@@ -108,12 +108,14 @@ struct test_dualview_combinations {
     if (with_init) {
       a = ViewType("A", n, m);
     } else {
-      a = ViewType(Kokkos::ViewAllocateWithoutInitializing("A"), n, m);
+      a = ViewType(Kokkos::view_alloc(Kokkos::WithoutInitializing, "A"), n, m);
     }
     Kokkos::deep_copy(a.d_view, 1);
 
     a.template modify<typename ViewType::execution_space>();
     a.template sync<typename ViewType::host_mirror_space>();
+    a.template sync<typename ViewType::host_mirror_space>(
+        Kokkos::DefaultExecutionSpace{});
 
     a.h_view(5, 1) = 3;
     a.h_view(6, 1) = 4;
@@ -122,11 +124,15 @@ struct test_dualview_combinations {
     ViewType b = Kokkos::subview(a, std::pair<unsigned int, unsigned int>(6, 9),
                                  std::pair<unsigned int, unsigned int>(0, 1));
     a.template sync<typename ViewType::execution_space>();
+    a.template sync<typename ViewType::execution_space>(
+        Kokkos::DefaultExecutionSpace{});
     b.template modify<typename ViewType::execution_space>();
 
     Kokkos::deep_copy(b.d_view, 2);
 
     a.template sync<typename ViewType::host_mirror_space>();
+    a.template sync<typename ViewType::host_mirror_space>(
+        Kokkos::DefaultExecutionSpace{});
     Scalar count = 0;
     for (unsigned int i = 0; i < a.d_view.extent(0); i++)
       for (unsigned int j = 0; j < a.d_view.extent(1); j++)
@@ -180,6 +186,7 @@ struct test_dual_view_deep_copy {
     } else {
       a.modify_device();
       a.sync_host();
+      a.sync_host(Kokkos::DefaultExecutionSpace{});
     }
 
     // Check device view is initialized as expected
@@ -208,6 +215,7 @@ struct test_dual_view_deep_copy {
       b.template sync<typename ViewType::host_mirror_space>();
     } else {
       b.sync_host();
+      b.sync_host(Kokkos::DefaultExecutionSpace{});
     }
 
     // Perform same checks on b as done on a
@@ -302,6 +310,7 @@ struct test_dualview_resize {
     ASSERT_EQ(a.extent(1), m / factor);
 
     a.sync_device();
+    a.sync_device(Kokkos::DefaultExecutionSpace{});
 
     // Check device view is initialized as expected
     a_d_sum = 0;
@@ -429,6 +438,132 @@ TEST(TEST_CATEGORY, dualview_resize) {
   test_dualview_resize<int, TEST_EXECSPACE>();
 }
 
+namespace {
+/**
+ *
+ * The following tests are a response to
+ * https://github.com/kokkos/kokkos/issues/3850
+ * and
+ * https://github.com/kokkos/kokkos/pull/3857
+ *
+ * DualViews were returning incorrect view types and taking
+ * inappropriate actions based on the templated view methods.
+ *
+ * Specifically, template view methods were always returning
+ * a device view if the memory space was UVM and a Kokkos::Device was passed.
+ * Sync/modify methods completely broke down So these tests exist to make sure
+ * that we keep the semantics of UVM DualViews intact.
+ */
+// modify if we have other UVM enabled backends
+#ifdef KOKKOS_ENABLE_CUDA  // OR other UVM builds
+#define UVM_ENABLED_BUILD
+#endif
+
+#ifdef UVM_ENABLED_BUILD
+template <typename ExecSpace>
+struct UVMSpaceFor;
+#endif
+
+#ifdef KOKKOS_ENABLE_CUDA  // specific to CUDA
+template <>
+struct UVMSpaceFor<Kokkos::Cuda> {
+  using type = Kokkos::CudaUVMSpace;
+};
+#endif
+
+#ifdef UVM_ENABLED_BUILD
+template <>
+struct UVMSpaceFor<Kokkos::DefaultHostExecutionSpace> {
+  using type = typename UVMSpaceFor<Kokkos::DefaultExecutionSpace>::type;
+};
+#else
+template <typename ExecSpace>
+struct UVMSpaceFor {
+  using type = typename ExecSpace::memory_space;
+};
+#endif
+
+using ExecSpace  = Kokkos::DefaultExecutionSpace;
+using MemSpace   = typename UVMSpaceFor<Kokkos::DefaultExecutionSpace>::type;
+using DeviceType = Kokkos::Device<ExecSpace, MemSpace>;
+
+using DualViewType = Kokkos::DualView<double*, Kokkos::LayoutLeft, DeviceType>;
+using d_device     = DeviceType;
+using h_device     = Kokkos::Device<
+    Kokkos::DefaultHostExecutionSpace,
+    typename UVMSpaceFor<Kokkos::DefaultHostExecutionSpace>::type>;
+
+TEST(TEST_CATEGORY, dualview_device_correct_kokkos_device) {
+  DualViewType dv("myView", 100);
+  dv.clear_sync_state();
+  auto v_d      = dv.template view<d_device>();
+  using vdt     = decltype(v_d);
+  using vdt_d   = vdt::device_type;
+  using vdt_d_e = vdt_d::execution_space;
+  ASSERT_STREQ(vdt_d_e::name(), Kokkos::DefaultExecutionSpace::name());
+}
+TEST(TEST_CATEGORY, dualview_host_correct_kokkos_device) {
+  DualViewType dv("myView", 100);
+  dv.clear_sync_state();
+  auto v_h      = dv.template view<h_device>();
+  using vht     = decltype(v_h);
+  using vht_d   = vht::device_type;
+  using vht_d_e = vht_d::execution_space;
+  ASSERT_STREQ(vht_d_e::name(), Kokkos::DefaultHostExecutionSpace::name());
+}
+
+TEST(TEST_CATEGORY, dualview_host_modify_template_device_sync) {
+  DualViewType dv("myView", 100);
+  dv.clear_sync_state();
+  dv.modify_host();
+  dv.template sync<d_device>();
+  EXPECT_TRUE(!dv.need_sync_device());
+  EXPECT_TRUE(!dv.need_sync_host());
+  dv.clear_sync_state();
+}
+
+TEST(TEST_CATEGORY, dualview_host_modify_template_device_execspace_sync) {
+  DualViewType dv("myView", 100);
+  dv.clear_sync_state();
+  dv.modify_host();
+  dv.template sync<d_device::execution_space>();
+  EXPECT_TRUE(!dv.need_sync_device());
+  EXPECT_TRUE(!dv.need_sync_host());
+  dv.clear_sync_state();
+}
+
+TEST(TEST_CATEGORY, dualview_device_modify_template_host_sync) {
+  DualViewType dv("myView", 100);
+  dv.clear_sync_state();
+  dv.modify_device();
+  dv.template sync<h_device>();
+  EXPECT_TRUE(!dv.need_sync_device());
+  EXPECT_TRUE(!dv.need_sync_host());
+  dv.clear_sync_state();
+}
+TEST(TEST_CATEGORY, dualview_device_modify_template_host_execspace_sync) {
+  DualViewType dv("myView", 100);
+  dv.clear_sync_state();
+  dv.modify_device();
+  dv.template sync<h_device::execution_space>();
+  EXPECT_TRUE(!dv.need_sync_device());
+  EXPECT_TRUE(!dv.need_sync_host());
+  dv.clear_sync_state();
+}
+
+TEST(TEST_CATEGORY,
+     dualview_template_views_return_correct_executionspace_views) {
+  DualViewType dv("myView", 100);
+  dv.clear_sync_state();
+  using hvt = decltype(dv.view<typename Kokkos::DefaultHostExecutionSpace>());
+  using dvt = decltype(dv.view<typename Kokkos::DefaultExecutionSpace>());
+  ASSERT_STREQ(Kokkos::DefaultExecutionSpace::name(),
+               dvt::device_type::execution_space::name());
+  ASSERT_STREQ(Kokkos::DefaultHostExecutionSpace::name(),
+               hvt::device_type::execution_space::name());
+}
+
+}  // anonymous namespace
 }  // namespace Test
 
 #endif  // KOKKOS_TEST_DUALVIEW_HPP

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -40,7 +41,7 @@ using namespace FixConst;
  * Ceriotti, M., More, J., & Manolopoulos, D. E. (2014).
  * i-PI: A Python interface for ab initio path integral molecular dynamics simulations.
  * Computer Physics Communications, 185, 1019–1026. doi:10.1016/j.cpc.2013.10.027
- * And see [http://github.com/i-pi/i-pi] to download a version of i-PI
+ * And see [https://github.com/i-pi/i-pi] to download a version of i-PI
  ******************************************************************************************/
 
 // socket interface
@@ -155,7 +156,7 @@ static void readbuffer(int sockfd, char *data, int len, Error* error)
 
   n = nr = read(sockfd,data,len);
 
-  while (nr>0 && n<len ) {
+  while (nr>0 && n<len) {
     nr=read(sockfd,&data[n],len-n);
     n+=nr;
   }

@@ -42,7 +42,7 @@ too frequently or to have multiple compute/dump commands, each of
 which computes this quantity.
 
 An example input script that uses this compute is provided
-in examples/USER/misc/basal.
+in examples/USER-MISC/basal.
 
 Output info
 """""""""""

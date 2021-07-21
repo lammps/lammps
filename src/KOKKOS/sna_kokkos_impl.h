@@ -1,6 +1,7 @@
-/* ----------------------------------------------------------------------
+// clang-format off
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -25,16 +26,16 @@ namespace LAMMPS_NS {
 
 static const double MY_PI  = 3.14159265358979323846; // pi
 
-template<class DeviceType>
+template<class DeviceType, typename real_type, int vector_length>
 inline
-SNAKokkos<DeviceType>::SNAKokkos(double rfac0_in,
-         int twojmax_in, double rmin0_in, int switch_flag_in, int bzero_flag_in,
+SNAKokkos<DeviceType, real_type, vector_length>::SNAKokkos(real_type rfac0_in,
+         int twojmax_in, real_type rmin0_in, int switch_flag_in, int bzero_flag_in,
          int chem_flag_in, int bnorm_flag_in, int wselfall_flag_in, int nelements_in)
 {
   LAMMPS_NS::ExecutionSpace execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   host_flag = (execution_space == LAMMPS_NS::Host);
 
-  wself = 1.0;
+  wself = static_cast<real_type>(1.0);
 
   rfac0 = rfac0_in;
   rmin0 = rmin0_in;
@@ -54,6 +55,7 @@ SNAKokkos<DeviceType>::SNAKokkos(double rfac0_in,
   ncoeff = compute_ncoeff();
 
   nmax = 0;
+  natom = 0;
 
   build_indexlist();
 
@@ -63,11 +65,11 @@ SNAKokkos<DeviceType>::SNAKokkos(double rfac0_in,
   cglist = t_sna_1d("SNAKokkos::cglist",idxcg_max);
 
   if (bzero_flag) {
-    bzero = Kokkos::View<double*, Kokkos::LayoutRight, DeviceType>("sna:bzero",twojmax+1);
+    bzero = Kokkos::View<real_type*, Kokkos::LayoutRight, DeviceType>("sna:bzero",twojmax+1);
     auto h_bzero = Kokkos::create_mirror_view(bzero);
 
     double www = wself*wself*wself;
-    for(int j = 0; j <= twojmax; j++)
+    for (int j = 0; j <= twojmax; j++)
       if (bnorm_flag)
         h_bzero[j] = www;
       else
@@ -78,26 +80,26 @@ SNAKokkos<DeviceType>::SNAKokkos(double rfac0_in,
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<class DeviceType, typename real_type, int vector_length>
 KOKKOS_INLINE_FUNCTION
-SNAKokkos<DeviceType>::~SNAKokkos()
+SNAKokkos<DeviceType, real_type, vector_length>::~SNAKokkos()
 {
 }
 
-template<class DeviceType>
+template<class DeviceType, typename real_type, int vector_length>
 inline
-void SNAKokkos<DeviceType>::build_indexlist()
+void SNAKokkos<DeviceType, real_type, vector_length>::build_indexlist()
 {
   // index list for cglist
 
   int jdim = twojmax + 1;
-  idxcg_block = Kokkos::View<int***, DeviceType>("SNAKokkos::idxcg_block",jdim,jdim,jdim);
+  idxcg_block = Kokkos::View<int***, DeviceType>(Kokkos::NoInit("SNAKokkos::idxcg_block"),jdim,jdim,jdim);
   auto h_idxcg_block = Kokkos::create_mirror_view(idxcg_block);
 
   int idxcg_count = 0;
-  for(int j1 = 0; j1 <= twojmax; j1++)
-    for(int j2 = 0; j2 <= j1; j2++)
-      for(int j = j1 - j2; j <= MIN(twojmax, j1 + j2); j += 2) {
+  for (int j1 = 0; j1 <= twojmax; j1++)
+    for (int j2 = 0; j2 <= j1; j2++)
+      for (int j = j1 - j2; j <= MIN(twojmax, j1 + j2); j += 2) {
         h_idxcg_block(j1,j2,j) = idxcg_count;
         for (int m1 = 0; m1 <= j1; m1++)
           for (int m2 = 0; m2 <= j2; m2++)
@@ -109,44 +111,69 @@ void SNAKokkos<DeviceType>::build_indexlist()
   // index list for uarray
   // need to include both halves
 
-  idxu_block = Kokkos::View<int*, DeviceType>("SNAKokkos::idxu_block",jdim);
+  idxu_block = Kokkos::View<int*, DeviceType>(Kokkos::NoInit("SNAKokkos::idxu_block"),jdim);
   auto h_idxu_block = Kokkos::create_mirror_view(idxu_block);
 
   int idxu_count = 0;
 
-  for(int j = 0; j <= twojmax; j++) {
+  for (int j = 0; j <= twojmax; j++) {
     h_idxu_block[j] = idxu_count;
-    for(int mb = 0; mb <= j; mb++)
-      for(int ma = 0; ma <= j; ma++)
+    for (int mb = 0; mb <= j; mb++)
+      for (int ma = 0; ma <= j; ma++)
         idxu_count++;
   }
   idxu_max = idxu_count;
   Kokkos::deep_copy(idxu_block,h_idxu_block);
 
   // index list for half uarray
-  idxu_half_block = Kokkos::View<int*, DeviceType>("SNAKokkos::idxu_half_block",jdim);
+  idxu_half_block = Kokkos::View<int*, DeviceType>(Kokkos::NoInit("SNAKokkos::idxu_half_block"),jdim);
   auto h_idxu_half_block = Kokkos::create_mirror_view(idxu_half_block);
 
   int idxu_half_count = 0;
-  for(int j = 0; j <= twojmax; j++) {
+  for (int j = 0; j <= twojmax; j++) {
     h_idxu_half_block[j] = idxu_half_count;
-    for(int mb = 0; 2*mb <= j; mb++)
-      for(int ma = 0; ma <= j; ma++)
+    for (int mb = 0; 2*mb <= j; mb++)
+      for (int ma = 0; ma <= j; ma++)
         idxu_half_count++;
   }
   idxu_half_max = idxu_half_count;
   Kokkos::deep_copy(idxu_half_block, h_idxu_half_block);
 
+  // mapping between full and half indexing, encoding flipping
+  idxu_full_half = Kokkos::View<FullHalfMapper*, DeviceType>(Kokkos::NoInit("SNAKokkos::idxu_full_half"),idxu_max);
+  auto h_idxu_full_half = Kokkos::create_mirror_view(idxu_full_half);
+
+  idxu_count = 0;
+  for (int j = 0; j <= twojmax; j++) {
+    int jju_half = h_idxu_half_block[j];
+    for (int mb = 0; mb <= j; mb++) {
+      for (int ma = 0; ma <= j; ma++) {
+        FullHalfMapper mapper;
+        if (2*mb <= j) {
+          mapper.idxu_half = jju_half + mb * (j + 1) + ma;
+          mapper.flip_sign = 0;
+        } else {
+          mapper.idxu_half = jju_half + (j + 1 - mb) * (j + 1) - (ma + 1);
+          mapper.flip_sign = (((ma+mb)%2==0)?1:-1);
+        }
+        h_idxu_full_half[idxu_count] = mapper;
+        idxu_count++;
+      }
+    }
+  }
+
+  Kokkos::deep_copy(idxu_full_half, h_idxu_full_half);
+
   // index list for "cache" uarray
   // this is the GPU scratch memory requirements
   // applied the CPU structures
-  idxu_cache_block = Kokkos::View<int*, DeviceType>("SNAKokkos::idxu_cache_block",jdim);
+  idxu_cache_block = Kokkos::View<int*, DeviceType>(Kokkos::NoInit("SNAKokkos::idxu_cache_block"),jdim);
   auto h_idxu_cache_block = Kokkos::create_mirror_view(idxu_cache_block);
 
   int idxu_cache_count = 0;
-  for(int j = 0; j <= twojmax; j++) {
+  for (int j = 0; j <= twojmax; j++) {
     h_idxu_cache_block[j] = idxu_cache_count;
-    for(int mb = 0; mb < ((j+3)/2); mb++)
+    for (int mb = 0; mb < ((j+3)/2); mb++)
       for (int ma = 0; ma <= j; ma++)
         idxu_cache_count++;
   }
@@ -156,19 +183,19 @@ void SNAKokkos<DeviceType>::build_indexlist()
   // index list for beta and B
 
   int idxb_count = 0;
-  for(int j1 = 0; j1 <= twojmax; j1++)
-    for(int j2 = 0; j2 <= j1; j2++)
-      for(int j = j1 - j2; j <= MIN(twojmax, j1 + j2); j += 2)
+  for (int j1 = 0; j1 <= twojmax; j1++)
+    for (int j2 = 0; j2 <= j1; j2++)
+      for (int j = j1 - j2; j <= MIN(twojmax, j1 + j2); j += 2)
         if (j >= j1) idxb_count++;
 
   idxb_max = idxb_count;
-  idxb = Kokkos::View<int*[3], DeviceType>("SNAKokkos::idxb",idxb_max);
+  idxb = Kokkos::View<int*[3], DeviceType>(Kokkos::NoInit("SNAKokkos::idxb"),idxb_max);
   auto h_idxb = Kokkos::create_mirror_view(idxb);
 
   idxb_count = 0;
-  for(int j1 = 0; j1 <= twojmax; j1++)
-    for(int j2 = 0; j2 <= j1; j2++)
-      for(int j = j1 - j2; j <= MIN(twojmax, j1 + j2); j += 2)
+  for (int j1 = 0; j1 <= twojmax; j1++)
+    for (int j2 = 0; j2 <= j1; j2++)
+      for (int j = j1 - j2; j <= MIN(twojmax, j1 + j2); j += 2)
         if (j >= j1) {
           h_idxb(idxb_count,0) = j1;
           h_idxb(idxb_count,1) = j2;
@@ -179,13 +206,13 @@ void SNAKokkos<DeviceType>::build_indexlist()
 
   // reverse index list for beta and b
 
-  idxb_block = Kokkos::View<int***, DeviceType>("SNAKokkos::idxb_block",jdim,jdim,jdim);
+  idxb_block = Kokkos::View<int***, DeviceType>(Kokkos::NoInit("SNAKokkos::idxb_block"),jdim,jdim,jdim);
   auto h_idxb_block = Kokkos::create_mirror_view(idxb_block);
 
   idxb_count = 0;
-  for(int j1 = 0; j1 <= twojmax; j1++)
-    for(int j2 = 0; j2 <= j1; j2++)
-      for(int j = j1 - j2; j <= MIN(twojmax, j1 + j2); j += 2) {
+  for (int j1 = 0; j1 <= twojmax; j1++)
+    for (int j2 = 0; j2 <= j1; j2++)
+      for (int j = j1 - j2; j <= MIN(twojmax, j1 + j2); j += 2) {
         if (j >= j1) {
           h_idxb_block(j1,j2,j) = idxb_count;
           idxb_count++;
@@ -197,24 +224,24 @@ void SNAKokkos<DeviceType>::build_indexlist()
 
   int idxz_count = 0;
 
-  for(int j1 = 0; j1 <= twojmax; j1++)
-    for(int j2 = 0; j2 <= j1; j2++)
-      for(int j = j1 - j2; j <= MIN(twojmax, j1 + j2); j += 2)
+  for (int j1 = 0; j1 <= twojmax; j1++)
+    for (int j2 = 0; j2 <= j1; j2++)
+      for (int j = j1 - j2; j <= MIN(twojmax, j1 + j2); j += 2)
         for (int mb = 0; 2*mb <= j; mb++)
           for (int ma = 0; ma <= j; ma++)
             idxz_count++;
 
   idxz_max = idxz_count;
-  idxz = Kokkos::View<int*[10], DeviceType>("SNAKokkos::idxz",idxz_max);
+  idxz = Kokkos::View<int*[10], DeviceType>(Kokkos::NoInit("SNAKokkos::idxz"),idxz_max);
   auto h_idxz = Kokkos::create_mirror_view(idxz);
 
-  idxz_block = Kokkos::View<int***, DeviceType>("SNAKokkos::idxz_block", jdim,jdim,jdim);
+  idxz_block = Kokkos::View<int***, DeviceType>(Kokkos::NoInit("SNAKokkos::idxz_block"), jdim,jdim,jdim);
   auto h_idxz_block = Kokkos::create_mirror_view(idxz_block);
 
   idxz_count = 0;
-  for(int j1 = 0; j1 <= twojmax; j1++)
-    for(int j2 = 0; j2 <= j1; j2++)
-      for(int j = j1 - j2; j <= MIN(twojmax, j1 + j2); j += 2) {
+  for (int j1 = 0; j1 <= twojmax; j1++)
+    for (int j2 = 0; j2 <= j1; j2++)
+      for (int j = j1 - j2; j <= MIN(twojmax, j1 + j2); j += 2) {
         h_idxz_block(j1,j2,j) = idxz_count;
 
         // find right beta(ii,jjb) entry
@@ -249,53 +276,63 @@ void SNAKokkos<DeviceType>::build_indexlist()
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<class DeviceType, typename real_type, int vector_length>
 inline
-void SNAKokkos<DeviceType>::init()
+void SNAKokkos<DeviceType, real_type, vector_length>::init()
 {
   init_clebsch_gordan();
   init_rootpqarray();
 }
 
-template<class DeviceType>
+template<class DeviceType, typename real_type, int vector_length>
 inline
-void SNAKokkos<DeviceType>::grow_rij(int newnatom, int newnmax)
+void SNAKokkos<DeviceType, real_type, vector_length>::grow_rij(int newnatom, int newnmax)
 {
-  if(newnatom <= natom && newnmax <= nmax) return;
+  if (newnatom <= natom && newnmax <= nmax) return;
   natom = newnatom;
   nmax = newnmax;
 
+  rij = t_sna_3d(Kokkos::NoInit("sna:rij"),natom,nmax,3);
+  wj = t_sna_2d(Kokkos::NoInit("sna:wj"),natom,nmax);
+  rcutij = t_sna_2d(Kokkos::NoInit("sna:rcutij"),natom,nmax);
   inside = t_sna_2i(Kokkos::NoInit("sna:inside"),natom,nmax);
-  element = t_sna_2i(Kokkos::NoInit("sna:rcutij"),natom,nmax);
+  element = t_sna_2i(Kokkos::NoInit("sna:element"),natom,nmax);
   dedr = t_sna_3d(Kokkos::NoInit("sna:dedr"),natom,nmax,3);
 
 #ifdef LMP_KOKKOS_GPU
   if (!host_flag) {
+    const int natom_div = (natom + vector_length - 1) / vector_length;
 
-    cayleyklein = t_sna_2ckp(Kokkos::NoInit("sna:cayleyklein"), natom, nmax);
+    a_pack = t_sna_3c_ll(Kokkos::NoInit("sna:a_pack"),vector_length,nmax,natom_div);
+    b_pack = t_sna_3c_ll(Kokkos::NoInit("sna:b_pack"),vector_length,nmax,natom_div);
+    da_pack = t_sna_4c_ll(Kokkos::NoInit("sna:da_pack"),vector_length,nmax,natom_div,3);
+    db_pack = t_sna_4c_ll(Kokkos::NoInit("sna:db_pack"),vector_length,nmax,natom_div,3);
+    sfac_pack = t_sna_4d_ll(Kokkos::NoInit("sna:sfac_pack"),vector_length,nmax,natom_div,4);
     ulisttot = t_sna_3c_ll(Kokkos::NoInit("sna:ulisttot"),1,1,1); // dummy allocation
     ulisttot_full = t_sna_3c_ll(Kokkos::NoInit("sna:ulisttot"),1,1,1);
-    ulisttot_re = t_sna_3d_ll(Kokkos::NoInit("sna:ulisttot_re"),idxu_half_max,nelements,natom);
-    ulisttot_im = t_sna_3d_ll(Kokkos::NoInit("sna:ulisttot_im"),idxu_half_max,nelements,natom);
-    ulisttot_pack = t_sna_4c_ll(Kokkos::NoInit("sna:ulisttot_pack"),32,idxu_max,nelements,(natom+32-1)/32);
+    ulisttot_re_pack = t_sna_4d_ll(Kokkos::NoInit("sna:ulisttot_re_pack"),vector_length,idxu_half_max,nelements,natom_div);
+    ulisttot_im_pack = t_sna_4d_ll(Kokkos::NoInit("sna:ulisttot_im_pack"),vector_length,idxu_half_max,nelements,natom_div);
+    ulisttot_pack = t_sna_4c_ll(Kokkos::NoInit("sna:ulisttot_pack"),vector_length,idxu_max,nelements,natom_div);
     ulist = t_sna_3c_ll(Kokkos::NoInit("sna:ulist"),1,1,1);
     zlist = t_sna_3c_ll(Kokkos::NoInit("sna:zlist"),1,1,1);
-    zlist_pack = t_sna_4c_ll(Kokkos::NoInit("sna:zlist_pack"),32,idxz_max,ndoubles,(natom+32-1)/32);
+    zlist_pack = t_sna_4c_ll(Kokkos::NoInit("sna:zlist_pack"),vector_length,idxz_max,ndoubles,natom_div);
     blist = t_sna_3d_ll(Kokkos::NoInit("sna:blist"),idxb_max,ntriples,natom);
-    blist_pack = t_sna_4d_ll(Kokkos::NoInit("sna:blist_pack"),32,idxb_max,ntriples,(natom+32-1)/32);
-    ylist = t_sna_3c_ll(Kokkos::NoInit("sna:ylist"),idxu_half_max,nelements,natom);
-    ylist_pack_re = t_sna_4d_ll(Kokkos::NoInit("sna:ylist_pack_re"),32,idxu_half_max,nelements,(natom+32-1)/32);
-    ylist_pack_im = t_sna_4d_ll(Kokkos::NoInit("sna:ylist_pack_im"),32,idxu_half_max,nelements,(natom+32-1)/32);
+    blist_pack = t_sna_4d_ll(Kokkos::NoInit("sna:blist_pack"),vector_length,idxb_max,ntriples,natom_div);
+    ylist = t_sna_3c_ll(Kokkos::NoInit("sna:ylist"),1,1,1);
+    ylist_pack_re = t_sna_4d_ll(Kokkos::NoInit("sna:ylist_pack_re"),vector_length,idxu_half_max,nelements,natom_div);
+    ylist_pack_im = t_sna_4d_ll(Kokkos::NoInit("sna:ylist_pack_im"),vector_length,idxu_half_max,nelements,natom_div);
     dulist = t_sna_4c3_ll(Kokkos::NoInit("sna:dulist"),1,1,1);
   } else {
 #endif
-    rij = t_sna_3d(Kokkos::NoInit("sna:rij"),natom,nmax,3);
-    wj = t_sna_2d(Kokkos::NoInit("sna:wj"),natom,nmax);
-    rcutij = t_sna_2d(Kokkos::NoInit("sna:rcutij"),natom,nmax);
+    a_pack = t_sna_3c_ll(Kokkos::NoInit("sna:a_pack"),1,1,1);
+    b_pack = t_sna_3c_ll(Kokkos::NoInit("sna:b_pack"),1,1,1);
+    da_pack = t_sna_4c_ll(Kokkos::NoInit("sna:da_pack"),1,1,1,1);
+    db_pack = t_sna_4c_ll(Kokkos::NoInit("sna:db_pack"),1,1,1,1);
+    sfac_pack = t_sna_4d_ll(Kokkos::NoInit("sna:sfac_pack"),1,1,1,1);
     ulisttot = t_sna_3c_ll(Kokkos::NoInit("sna:ulisttot"),idxu_half_max,nelements,natom);
     ulisttot_full = t_sna_3c_ll(Kokkos::NoInit("sna:ulisttot_full"),idxu_max,nelements,natom);
-    ulisttot_re = t_sna_3d_ll(Kokkos::NoInit("sna:ulisttot_re"),1,1,1);
-    ulisttot_im = t_sna_3d_ll(Kokkos::NoInit("sna:ulisttot_im"),1,1,1);
+    ulisttot_re_pack = t_sna_4d_ll(Kokkos::NoInit("sna:ulisttot_re"),1,1,1,1);
+    ulisttot_im_pack = t_sna_4d_ll(Kokkos::NoInit("sna:ulisttot_im"),1,1,1,1);
     ulisttot_pack = t_sna_4c_ll(Kokkos::NoInit("sna:ulisttot_pack"),1,1,1,1);
     ulist = t_sna_3c_ll(Kokkos::NoInit("sna:ulist"),idxu_cache_max,natom,nmax);
     zlist = t_sna_3c_ll(Kokkos::NoInit("sna:zlist"),idxz_max,ndoubles,natom);
@@ -323,81 +360,85 @@ void SNAKokkos<DeviceType>::grow_rij(int newnatom, int newnmax)
    ComputeFusedDeidrj, which are one warp per atom-neighbor pair.
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<class DeviceType, typename real_type, int vector_length>
 KOKKOS_INLINE_FUNCTION
-void SNAKokkos<DeviceType>::compute_cayley_klein(const int& iatom, const int& jnbor, const double& x, const double& y,
-                                         const double& z, const double& rcut, const double& wj_local)
+void SNAKokkos<DeviceType, real_type, vector_length>::compute_cayley_klein(const int& iatom_mod, const int& jnbor, const int& iatom_div)
 {
-  //const double x = rij(iatom,jnbor,0);
-  //const double y = rij(iatom,jnbor,1);
-  //const double z = rij(iatom,jnbor,2);
-  const double rsq = x * x + y * y + z * z;
-  const double r = sqrt(rsq);
-  //const double rcut = rcutij(iatom, jnbor);
-  const double rscale0 = rfac0 * MY_PI / (rcut - rmin0);
-  const double theta0 = (r - rmin0) * rscale0;
-  double sn, cs;
-  sincos(theta0, &sn, &cs);
-  const double z0 = r * cs / sn;
-  const double dz0dr = z0 / r - (r*rscale0) * (rsq + z0 * z0) / rsq;
+  const int iatom = iatom_mod + vector_length * iatom_div;
+  const auto x = rij(iatom,jnbor,0);
+  const auto y = rij(iatom,jnbor,1);
+  const auto z = rij(iatom,jnbor,2);
+  const auto rsq = x * x + y * y + z * z;
+  const auto r = sqrt(rsq);
+  const auto rcut = rcutij(iatom, jnbor);
+  const auto rscale0 = rfac0 * static_cast<real_type>(MY_PI) / (rcut - rmin0);
+  const auto theta0 = (r - rmin0) * rscale0;
+  real_type sn, cs;
+  sincos_wrapper(theta0, &sn, &cs);
+  const real_type z0 = r * cs / sn;
+  const real_type dz0dr = z0 / r - (r*rscale0) * (rsq + z0 * z0) / rsq;
 
-  //const double wj_local = wj(iatom, jnbor);
-  double sfac, dsfac;
+  const auto wj_local = wj(iatom, jnbor);
+  real_type sfac, dsfac;
   compute_s_dsfac(r, rcut, sfac, dsfac);
   sfac *= wj_local;
   dsfac *= wj_local;
 
-  const double rinv = 1.0 / r;
-  const double ux = x * rinv;
-  const double uy = y * rinv;
-  const double uz = z * rinv;
+  const auto rinv = static_cast<real_type>(1.0) / r;
+  const auto ux = x * rinv;
+  const auto uy = y * rinv;
+  const auto uz = z * rinv;
 
-  const double r0inv = 1.0 / sqrt(r * r + z0 * z0);
+  const auto r0inv = static_cast<real_type>(1.0) / sqrt(r * r + z0 * z0);
 
-  const SNAcomplex a = { z0 * r0inv, -z * r0inv };
-  const SNAcomplex b = { r0inv * y, -r0inv * x };
+  const complex a = { z0 * r0inv, -z * r0inv };
+  const complex b = { r0inv * y, -r0inv * x };
 
-  const double dr0invdr = -r0inv * r0inv * r0inv * (r + z0 * dz0dr);
+  const auto dr0invdr = -r0inv * r0inv * r0inv * (r + z0 * dz0dr);
 
-  const double dr0invx = dr0invdr * ux;
-  const double dr0invy = dr0invdr * uy;
-  const double dr0invz = dr0invdr * uz;
+  const auto dr0invx = dr0invdr * ux;
+  const auto dr0invy = dr0invdr * uy;
+  const auto dr0invz = dr0invdr * uz;
 
-  const double dz0x = dz0dr * ux;
-  const double dz0y = dz0dr * uy;
-  const double dz0z = dz0dr * uz;
+  const auto dz0x = dz0dr * ux;
+  const auto dz0y = dz0dr * uy;
+  const auto dz0z = dz0dr * uz;
 
-  const SNAcomplex dax = { dz0x * r0inv + z0 * dr0invx, -z * dr0invx };
-  const SNAcomplex day = { dz0y * r0inv + z0 * dr0invy, -z * dr0invy };
-  const SNAcomplex daz = { dz0z * r0inv + z0 * dr0invz, -z * dr0invz - r0inv };
+  const complex dax = { dz0x * r0inv + z0 * dr0invx, -z * dr0invx };
+  const complex day = { dz0y * r0inv + z0 * dr0invy, -z * dr0invy };
+  const complex daz = { dz0z * r0inv + z0 * dr0invz, -z * dr0invz - r0inv };
 
-  const SNAcomplex dbx = { y * dr0invx, -x * dr0invx - r0inv };
-  const SNAcomplex dby = { y * dr0invy + r0inv, -x * dr0invy };
-  const SNAcomplex dbz = { y * dr0invz, -x * dr0invz };
+  const complex dbx = { y * dr0invx, -x * dr0invx - r0inv };
+  const complex dby = { y * dr0invy + r0inv, -x * dr0invy };
+  const complex dbz = { y * dr0invz, -x * dr0invz };
 
-  const double dsfacux = dsfac * ux;
-  const double dsfacuy = dsfac * uy;
-  const double dsfacuz = dsfac * uz;
+  const auto dsfacux = dsfac * ux;
+  const auto dsfacuy = dsfac * uy;
+  const auto dsfacuz = dsfac * uz;
 
-  CayleyKleinPack ckp{};
-  ckp.a = a;
-  ckp.b = b;
-  ckp.da[0] = dax;
-  ckp.db[0] = dbx;
-  ckp.da[1] = day;
-  ckp.db[1] = dby;
-  ckp.da[2] = daz;
-  ckp.db[2] = dbz;
-  ckp.sfac = sfac;
-  ckp.dsfacu[0] = dsfacux;
-  ckp.dsfacu[1] = dsfacuy;
-  ckp.dsfacu[2] = dsfacuz;
+  a_pack(iatom_mod,jnbor,iatom_div) = a;
+  b_pack(iatom_mod,jnbor,iatom_div) = b;
 
-  // Yes, this breaks the standard mantra of using SoA
-  // instead of AoS, but it's net fine because of the
-  // one warp per atom/neighbor pair for the recursive
-  // polynomials. There's good L1 reuse, anyway.
-  cayleyklein(iatom, jnbor) = ckp;
+  da_pack(iatom_mod,jnbor,iatom_div,0) = dax;
+  db_pack(iatom_mod,jnbor,iatom_div,0) = dbx;
+
+  da_pack(iatom_mod,jnbor,iatom_div,1) = day;
+  db_pack(iatom_mod,jnbor,iatom_div,1) = dby;
+
+  da_pack(iatom_mod,jnbor,iatom_div,2) = daz;
+  db_pack(iatom_mod,jnbor,iatom_div,2) = dbz;
+
+  sfac_pack(iatom_mod,jnbor,iatom_div,0) = sfac;
+  sfac_pack(iatom_mod,jnbor,iatom_div,1) = dsfacux;
+  sfac_pack(iatom_mod,jnbor,iatom_div,2) = dsfacuy;
+  sfac_pack(iatom_mod,jnbor,iatom_div,3) = dsfacuz;
+
+  // we need to explicitly zero `dedr` somewhere before hitting
+  // ComputeFusedDeidrj --- this is just a convenient place to do it.
+  dedr(iatom_mod + vector_length * iatom_div, jnbor, 0) = static_cast<real_type>(0.);
+  dedr(iatom_mod + vector_length * iatom_div, jnbor, 1) = static_cast<real_type>(0.);
+  dedr(iatom_mod + vector_length * iatom_div, jnbor, 2) = static_cast<real_type>(0.);
+
 }
 
 /* ----------------------------------------------------------------------
@@ -406,30 +447,28 @@ void SNAKokkos<DeviceType>::compute_cayley_klein(const int& iatom, const int& jn
    advantage of the symmetry of the Wigner U matrices.
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<class DeviceType, typename real_type, int vector_length>
 KOKKOS_INLINE_FUNCTION
-void SNAKokkos<DeviceType>::pre_ui(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, const int& iatom, const int& ielem)
+void SNAKokkos<DeviceType, real_type, vector_length>::pre_ui(const int& iatom_mod, const int& j, const int& ielem, const int& iatom_div)
 {
+
   for (int jelem = 0; jelem < nelements; jelem++) {
-    for (int j = 0; j <= twojmax; j++) {
-      const int jju_half = idxu_half_block(j);
+    int jju_half = idxu_half_block(j);
 
-      // Only diagonal elements get initialized
-      // Top half only: gets symmetrized by TransformUi
-      // for (int m = 0; m < (j+1)*(j/2+1); m++)
-      Kokkos::parallel_for(Kokkos::ThreadVectorRange(team, (j+1)*(j/2+1)),
-        [&] (const int m) {
+    // Only diagonal elements get initialized
+    // Top half only: gets symmetrized by TransformUi
 
-        const int jjup = jju_half + m;
+    for (int mb = 0; 2*mb <= j; mb++) {
+      for (int ma = 0; ma <= j; ma++) {
 
-        // if m is on the "diagonal", initialize it with the self energy.
-        // Otherwise zero it out
-        double re_part = 0.;
-        if (m % (j+2) == 0 && (!chem_flag || ielem == jelem || wselfall_flag)) { re_part = wself; }
+        real_type re_part = static_cast<real_type>(0.);
+        if (ma == mb && (!chem_flag || ielem == jelem || wselfall_flag)) { re_part = wself; }
 
-        ulisttot_re(jjup, jelem, iatom) = re_part;
-        ulisttot_im(jjup, jelem, iatom) = 0.;
-      });
+        ulisttot_re_pack(iatom_mod, jju_half, jelem, iatom_div) = re_part;
+        ulisttot_im_pack(iatom_mod, jju_half, jelem, iatom_div) = static_cast<real_type>(0.);
+
+        jju_half++;
+      }
     }
   }
 
@@ -440,9 +479,9 @@ void SNAKokkos<DeviceType>::pre_ui(const typename Kokkos::TeamPolicy<DeviceType>
    accumulating to the total. GPU only.
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<class DeviceType, typename real_type, int vector_length>
 KOKKOS_INLINE_FUNCTION
-void SNAKokkos<DeviceType>::compute_ui(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, const int iatom, const int jnbor)
+void SNAKokkos<DeviceType, real_type, vector_length>::compute_ui(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, const int iatom_mod, const int j_bend, const int jnbor, const int iatom_div)
 {
 
   // utot(j,ma,mb) = 0 for all j,ma,ma
@@ -452,119 +491,119 @@ void SNAKokkos<DeviceType>::compute_ui(const typename Kokkos::TeamPolicy<DeviceT
   //   utot(j,ma,mb) += u(r0;j,ma,mb) for all j,ma,mb
 
   // get shared memory offset
-  const int max_m_tile = (twojmax+1)*(twojmax/2+1);
+  // scratch size: 32 atoms * (twojmax+1) cached values, no double buffer
+  const int tile_size = vector_length * (twojmax + 1);
+
   const int team_rank = team.team_rank();
-  const int scratch_shift = team_rank * max_m_tile;
+  const int scratch_shift = team_rank * tile_size;
 
-  // shared memory double buffer
-  // Each level stores a (j+1) x ((j+3)/2) tile in preparation
-  // for the computation on the next level. This is the "cached"
-  // data layout, which also gets used on the CPU.
-  SNAcomplex* buf1 = (SNAcomplex*)team.team_shmem( ).get_shmem(team.team_size()*max_m_tile*sizeof(SNAcomplex), 0) + scratch_shift;
-  SNAcomplex* buf2 = (SNAcomplex*)team.team_shmem( ).get_shmem(team.team_size()*max_m_tile*sizeof(SNAcomplex), 0) + scratch_shift;
+  // extract and wrap
+  WignerWrapper<real_type, vector_length> ulist_wrapper((complex*)team.team_shmem().get_shmem(team.team_size() * tile_size * sizeof(complex), 0) + scratch_shift, iatom_mod);
 
-  // Each warp is accessing the same pack: take advantage of
-  // L1 reuse
-  const CayleyKleinPack& ckp = cayleyklein(iatom, jnbor);
 
-  const SNAcomplex a = ckp.a;
-  const SNAcomplex b = ckp.b;
-  const double sfac = ckp.sfac;
+  // load parameters
+  const auto a = a_pack(iatom_mod, jnbor, iatom_div);
+  const auto b = b_pack(iatom_mod, jnbor, iatom_div);
+  const auto sfac = sfac_pack(iatom_mod, jnbor, iatom_div, 0);
 
-  const int jelem = element(iatom, jnbor);
+  const int jelem = element(iatom_mod + vector_length * iatom_div, jnbor);
 
-  // VMK Section 4.8.2
+  // we need to "choose" when to bend
+  // this for loop is here for context --- we expose additional
+  // parallelism over this loop instead
+  //for (int j_bend = 0; j_bend <= twojmax; j_bend++) {
 
-  // All writes go to global memory and shared memory
-  // so we can avoid all global memory reads
-  Kokkos::single(Kokkos::PerThread(team), [=]() {
-    buf1[0] = {1.,0.};
-    Kokkos::atomic_add(&(ulisttot_re(0,jelem,iatom)), sfac);
-  });
+    // level 0 is just 1.
+    ulist_wrapper.set(0, complex::one());
 
-  for (int j = 1; j <= twojmax; j++) {
+    // j from before the bend, don't store, mb == 0
+    // this is "creeping up the side"
+    for (int j = 1; j <= j_bend; j++) {
 
-    const int jju = idxu_half_block[j];
+      constexpr int mb = 0; // intentional for readability, compiler should optimize this out
 
-    // fill in left side of matrix layer from previous layer
+      complex ulist_accum = complex::zero();
 
-    // Flatten loop over ma, mb
-    // for (int ma = 0; ma <= j; ma++)
-    const int n_ma = j+1;
-    // for (int mb = 0; 2*mb <= j; mb++)
-    const int n_mb = j/2+1;
+      int ma;
+      for (ma = 0; ma < j; ma++) {
 
-    const int total_iters = n_ma * n_mb;
+        // grab the cached value
+        const complex ulist_prev = ulist_wrapper.get(ma);
 
-    //for (int m = 0; m < total_iters; m++) {
-    Kokkos::parallel_for(Kokkos::ThreadVectorRange(team, total_iters),
-      [&] (const int m) {
+        // ulist_accum += rootpq * a.conj() * ulist_prev;
+        real_type rootpq = rootpqarray(j - ma, j - mb);
+        ulist_accum.re += rootpq * (a.re * ulist_prev.re + a.im * ulist_prev.im);
+        ulist_accum.im += rootpq * (a.re * ulist_prev.im - a.im * ulist_prev.re);
 
-      // ma fast, mb slow
-      // Equivalent to `int ma = m % n_ma; int mb = m / n_ma;` IF everything's positive.
-      const int mb = m / n_ma;
-      const int ma = m - mb * n_ma;
+        // store ulist_accum, we atomic accumulate values after the bend, so no atomic add here
+        ulist_wrapper.set(ma, ulist_accum);
 
-      // index into global memory array
-      const int jju_index = jju+m;
+        // next value
+        // ulist_accum = -rootpq * b.conj() * ulist_prev;
+        rootpq = rootpqarray(ma + 1, j - mb);
+        ulist_accum.re = -rootpq * (b.re * ulist_prev.re + b.im * ulist_prev.im);
+        ulist_accum.im = -rootpq * (b.re * ulist_prev.im - b.im * ulist_prev.re);
 
-      // index into shared memory buffer for this level
-      const int jju_shared_idx = m;
-
-      // index into shared memory buffer for next level
-      const int jjup_shared_idx = jju_shared_idx - mb;
-
-      SNAcomplex u_accum = {0., 0.};
-
-      // VMK recursion relation: grab contribution which is multiplied by b*
-      const double rootpq2 = -rootpqarray(ma, j - mb);
-      const SNAcomplex u_up2 = rootpq2*((ma > 0)?buf1[jjup_shared_idx-1]:SNAcomplex(0.,0.));
-
-      // u_accum += conj(b) * u_up2
-      caconjxpy(b, u_up2, u_accum);
-
-      // VMK recursion relation: grab contribution which is multiplied by a*
-      const double rootpq1 = rootpqarray(j - ma, j - mb);
-      const SNAcomplex u_up1 = rootpq1*((ma < j)?buf1[jjup_shared_idx]:SNAcomplex(0.,0.));
-
-      // u_accum += conj(a) * u_up1
-      caconjxpy(a, u_up1, u_accum);
-
-      // back up into shared memory for next iter
-      buf2[jju_shared_idx] = u_accum;
-
-      Kokkos::atomic_add(&(ulisttot_re(jju_index,jelem,iatom)), sfac * u_accum.re);
-      Kokkos::atomic_add(&(ulisttot_im(jju_index,jelem,iatom)), sfac * u_accum.im);
-
-      // copy left side to right side with inversion symmetry VMK 4.4(2)
-      // u[ma-j,mb-j] = (-1)^(ma-mb)*Conj([u[ma,mb))
-      // if j is even (-> physical j integer), last element maps to self, skip
-
-      const int sign_factor = (((ma+mb)%2==0)?1:-1);
-      const int jju_shared_flip = (j+1-mb)*(j+1)-(ma+1);
-
-      if (sign_factor == 1) {
-        u_accum.im = -u_accum.im;
-      } else {
-        u_accum.re = -u_accum.re;
       }
 
-      if (j%2==1 && mb+1==n_mb) {
-        buf2[jju_shared_flip] = u_accum;
+      ulist_wrapper.set(ma, ulist_accum);
+    }
+
+    // now we're after the bend, start storing but only up to the "half way point"
+    const int j_half_way = MIN(2 * j_bend, twojmax);
+
+    int mb = 1;
+    int j; //= j_bend + 1; // need this value below
+    for (j = j_bend + 1; j <= j_half_way; j++) {
+
+      const int jjup = idxu_half_block[j-1] + (mb - 1) * j;
+
+      complex ulist_accum = complex::zero();
+
+      int ma;
+      for (ma = 0; ma < j; ma++) {
+
+        // grab the cached value
+        const complex ulist_prev = ulist_wrapper.get(ma);
+
+        // atomic add the previous level here
+        Kokkos::atomic_add(&(ulisttot_re_pack(iatom_mod, jjup + ma, jelem, iatom_div)), ulist_prev.re * sfac);
+        Kokkos::atomic_add(&(ulisttot_im_pack(iatom_mod, jjup + ma, jelem, iatom_div)), ulist_prev.im * sfac);
+
+        // ulist_accum += rootpq * b * ulist_prev;
+        real_type rootpq = rootpqarray(j - ma, mb);
+        ulist_accum.re += rootpq * (b.re * ulist_prev.re - b.im * ulist_prev.im);
+        ulist_accum.im += rootpq * (b.re * ulist_prev.im + b.im * ulist_prev.re);
+
+        // store ulist_accum
+        ulist_wrapper.set(ma, ulist_accum);
+
+        // next value
+        // ulist_accum = rootpq * a * ulist_prev;
+        rootpq = rootpqarray(ma + 1, mb);
+        ulist_accum.re = rootpq * (a.re * ulist_prev.re - a.im * ulist_prev.im);
+        ulist_accum.im = rootpq * (a.re * ulist_prev.im + a.im * ulist_prev.re);
       }
 
-      // symmetric part of ulisttot is generated in TransformUi
+      ulist_wrapper.set(ma, ulist_accum);
 
-    });
-    // In CUDA backend,
-    // ThreadVectorRange has a __syncwarp (appropriately masked for
-    // vector lengths < 32) implict at the end
+      mb++;
+    }
 
-    // swap double buffers
-    auto tmp = buf1; buf1 = buf2; buf2 = tmp;
+    // atomic add the last level
+    const int jjup = idxu_half_block[j-1] + (mb - 1) * j;
+
+    for (int ma = 0; ma < j; ma++) {
+      const complex ulist_prev = ulist_wrapper.get(ma);
+
+      // atomic add the previous level here
+      Kokkos::atomic_add(&(ulisttot_re_pack(iatom_mod, jjup + ma, jelem, iatom_div)), ulist_prev.re * sfac);
+      Kokkos::atomic_add(&(ulisttot_im_pack(iatom_mod, jjup + ma, jelem, iatom_div)), ulist_prev.im * sfac);
+    }
+
+  //} // end of "reference" loop over j_bend
 
 
-  }
 }
 
 
@@ -574,9 +613,9 @@ void SNAKokkos<DeviceType>::compute_ui(const typename Kokkos::TeamPolicy<DeviceT
    divergence. GPU version
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<class DeviceType, typename real_type, int vector_length>
 KOKKOS_INLINE_FUNCTION
-void SNAKokkos<DeviceType>::compute_zi(const int& iatom_mod, const int& jjz, const int& iatom_div)
+void SNAKokkos<DeviceType, real_type, vector_length>::compute_zi(const int& iatom_mod, const int& jjz, const int& iatom_div)
 {
 
   const int j1 = idxz(jjz, 0);
@@ -589,14 +628,13 @@ void SNAKokkos<DeviceType>::compute_zi(const int& iatom_mod, const int& jjz, con
   const int na = idxz(jjz, 7);
   const int nb = idxz(jjz, 8);
 
-  const double* cgblock = cglist.data() + idxcg_block(j1, j2, j);
+  const real_type* cgblock = cglist.data() + idxcg_block(j1, j2, j);
 
   int idouble = 0;
 
   for (int elem1 = 0; elem1 < nelements; elem1++) {
     for (int elem2 = 0; elem2 < nelements; elem2++) {
-      double ztmp_r = 0.;
-      double ztmp_i = 0.;
+      complex ztmp = complex::zero();
 
       int jju1 = idxu_block[j1] + (j1+1)*mb1min;
       int jju2 = idxu_block[j2] + (j2+1)*mb2max;
@@ -605,7 +643,7 @@ void SNAKokkos<DeviceType>::compute_zi(const int& iatom_mod, const int& jjz, con
       #ifdef LMP_KK_DEVICE_COMPILE
       #pragma unroll
       #endif
-      for(int ib = 0; ib < nb; ib++) {
+      for (int ib = 0; ib < nb; ib++) {
 
         int ma1 = ma1min;
         int ma2 = ma2max;
@@ -614,13 +652,13 @@ void SNAKokkos<DeviceType>::compute_zi(const int& iatom_mod, const int& jjz, con
         #ifdef LMP_KK_DEVICE_COMPILE
         #pragma unroll
         #endif
-        for(int ia = 0; ia < na; ia++) {
-          const SNAcomplex utot1 = ulisttot_pack(iatom_mod, jju1+ma1, elem1, iatom_div);
-          const SNAcomplex utot2 = ulisttot_pack(iatom_mod, jju2+ma2, elem2, iatom_div);
+        for (int ia = 0; ia < na; ia++) {
+          const auto utot1 = ulisttot_pack(iatom_mod, jju1+ma1, elem1, iatom_div);
+          const auto utot2 = ulisttot_pack(iatom_mod, jju2+ma2, elem2, iatom_div);
           const auto cgcoeff_a = cgblock[icga];
           const auto cgcoeff_b = cgblock[icgb];
-          ztmp_r += cgcoeff_a * cgcoeff_b * (utot1.re * utot2.re - utot1.im * utot2.im);
-          ztmp_i += cgcoeff_a * cgcoeff_b * (utot1.re * utot2.im + utot1.im * utot2.re);
+          ztmp.re += cgcoeff_a * cgcoeff_b * (utot1.re * utot2.re - utot1.im * utot2.im);
+          ztmp.im += cgcoeff_a * cgcoeff_b * (utot1.re * utot2.im + utot1.im * utot2.re);
           ma1++;
           ma2--;
           icga += j2;
@@ -632,11 +670,11 @@ void SNAKokkos<DeviceType>::compute_zi(const int& iatom_mod, const int& jjz, con
       } // end loop over ib
 
       if (bnorm_flag) {
-        ztmp_r /= (j + 1);
-        ztmp_i /= (j + 1);
+        ztmp.re /= (j + 1);
+        ztmp.im /= (j + 1);
       }
 
-      zlist_pack(iatom_mod,jjz,idouble,iatom_div) = { ztmp_r, ztmp_i };
+      zlist_pack(iatom_mod,jjz,idouble,iatom_div) = ztmp;
 
       idouble++;
     }
@@ -649,9 +687,9 @@ void SNAKokkos<DeviceType>::compute_zi(const int& iatom_mod, const int& jjz, con
    divergence.
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<class DeviceType, typename real_type, int vector_length>
 KOKKOS_INLINE_FUNCTION
-void SNAKokkos<DeviceType>::compute_bi(const int& iatom_mod, const int& jjb, const int& iatom_div)
+void SNAKokkos<DeviceType, real_type, vector_length>::compute_bi(const int& iatom_mod, const int& jjb, const int& iatom_div)
 {
   // for j1 = 0,...,twojmax
   //   for j2 = 0,twojmax
@@ -678,8 +716,8 @@ void SNAKokkos<DeviceType>::compute_bi(const int& iatom_mod, const int& jjb, con
         double sumzu = 0.0;
         double sumzu_temp = 0.0;
 
-        for(int mb = 0; 2*mb < j; mb++) {
-          for(int ma = 0; ma <= j; ma++) {
+        for (int mb = 0; 2*mb < j; mb++) {
+          for (int ma = 0; ma <= j; ma++) {
             const int jju_index = jju+mb*(j+1)+ma;
             const int jjz_index = jjz+mb*(j+1)+ma;
             if (2*mb == j) return; // I think we can remove this?
@@ -695,7 +733,7 @@ void SNAKokkos<DeviceType>::compute_bi(const int& iatom_mod, const int& jjb, con
           sumzu_temp = 0.;
 
           const int mb = j/2;
-          for(int ma = 0; ma < mb; ma++) {
+          for (int ma = 0; ma < mb; ma++) {
             const int jju_index = jju+(mb-1)*(j+1)+(j+1)+ma;
             const int jjz_index = jjz+(mb-1)*(j+1)+(j+1)+ma;
 
@@ -712,10 +750,10 @@ void SNAKokkos<DeviceType>::compute_bi(const int& iatom_mod, const int& jjb, con
 
           const auto utot = ulisttot_pack(iatom_mod, jju_index, elem3, iatom_div);
           const auto zloc = zlist_pack(iatom_mod, jjz_index, idouble, iatom_div);
-          sumzu += 0.5 * (utot.re * zloc.re + utot.im * zloc.im);
+          sumzu += static_cast<real_type>(0.5) * (utot.re * zloc.re + utot.im * zloc.im);
         } // end if jeven
 
-        sumzu *= 2.0;
+        sumzu *= static_cast<real_type>(2.0);
         if (bzero_flag) {
           if (!wselfall_flag) {
             if (elem1 == elem2 && elem1 == elem3) {
@@ -742,12 +780,12 @@ void SNAKokkos<DeviceType>::compute_bi(const int& iatom_mod, const int& jjb, con
    divergence. GPU version.
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<class DeviceType, typename real_type, int vector_length>
 KOKKOS_INLINE_FUNCTION
-void SNAKokkos<DeviceType>::compute_yi(int iatom_mod, int jjz, int iatom_div,
- const Kokkos::View<F_FLOAT***, Kokkos::LayoutLeft, DeviceType> &beta_pack)
+void SNAKokkos<DeviceType, real_type, vector_length>::compute_yi(int iatom_mod, int jjz, int iatom_div,
+ const Kokkos::View<real_type***, Kokkos::LayoutLeft, DeviceType> &beta_pack)
 {
-  double betaj;
+  real_type betaj;
 
   const int j1 = idxz(jjz, 0);
   const int j2 = idxz(jjz, 1);
@@ -760,15 +798,15 @@ void SNAKokkos<DeviceType>::compute_yi(int iatom_mod, int jjz, int iatom_div,
   const int nb = idxz(jjz, 8);
   const int jju_half = idxz(jjz, 9);
 
-  const double *cgblock = cglist.data() + idxcg_block(j1,j2,j);
+  const real_type *cgblock = cglist.data() + idxcg_block(j1,j2,j);
   //int mb = (2 * (mb1min+mb2max) - j1 - j2 + j) / 2;
   //int ma = (2 * (ma1min+ma2max) - j1 - j2 + j) / 2;
 
   for (int elem1 = 0; elem1 < nelements; elem1++) {
     for (int elem2 = 0; elem2 < nelements; elem2++) {
 
-      double ztmp_r = 0.0;
-      double ztmp_i = 0.0;
+      real_type ztmp_r = 0.0;
+      real_type ztmp_i = 0.0;
 
       int jju1 = idxu_block[j1] + (j1 + 1) * mb1min;
       int jju2 = idxu_block[j2] + (j2 + 1) * mb2max;
@@ -787,8 +825,8 @@ void SNAKokkos<DeviceType>::compute_yi(int iatom_mod, int jjz, int iatom_div,
         #pragma unroll
         #endif
         for (int ia = 0; ia < na; ia++) {
-          const SNAcomplex utot1 = ulisttot_pack(iatom_mod,jju1+ma1,elem1,iatom_div);
-          const SNAcomplex utot2 = ulisttot_pack(iatom_mod,jju2+ma2,elem2,iatom_div);
+          const auto utot1 = ulisttot_pack(iatom_mod,jju1+ma1,elem1,iatom_div);
+          const auto utot2 = ulisttot_pack(iatom_mod,jju2+ma2,elem2,iatom_div);
           const auto cgcoeff_a = cgblock[icga];
           const auto cgcoeff_b = cgblock[icgb];
           ztmp_r += cgcoeff_a * cgcoeff_b * (utot1.re * utot2.re - utot1.im * utot2.im);
@@ -845,173 +883,228 @@ void SNAKokkos<DeviceType>::compute_yi(int iatom_mod, int jjz, int iatom_div,
 }
 
 /* ----------------------------------------------------------------------
+   compute Yi from Ui without storing Zi, looping over zlist indices.
+   AoSoA data layout to take advantage of coalescing, avoiding warp
+   divergence. GPU version.
+------------------------------------------------------------------------- */
+
+template<class DeviceType, typename real_type, int vector_length>
+KOKKOS_INLINE_FUNCTION
+void SNAKokkos<DeviceType, real_type, vector_length>::compute_yi_with_zlist(int iatom_mod, int jjz, int iatom_div,
+ const Kokkos::View<real_type***, Kokkos::LayoutLeft, DeviceType> &beta_pack)
+{
+  real_type betaj;
+  const int j1 = idxz(jjz, 0);
+  const int j2 = idxz(jjz, 1);
+  const int j = idxz(jjz, 2);
+  const int jju_half = idxz(jjz, 9);
+  int idouble = 0;
+  for (int elem1 = 0; elem1 < nelements; elem1++) {
+    for (int elem2 = 0; elem2 < nelements; elem2++) {
+      auto ztmp = zlist_pack(iatom_mod,jjz,idouble,iatom_div);
+      // apply to z(j1,j2,j,ma,mb) to unique element of y(j)
+      // find right y_list[jju] and beta(iatom,jjb) entries
+      // multiply and divide by j+1 factors
+      // account for multiplicity of 1, 2, or 3
+      // pick out right beta value
+      for (int elem3 = 0; elem3 < nelements; elem3++) {
+        if (j >= j1) {
+          const int jjb = idxb_block(j1, j2, j);
+          const auto itriple = ((elem1 * nelements + elem2) * nelements + elem3) * idxb_max + jjb;
+          if (j1 == j) {
+            if (j2 == j) betaj = 3 * beta_pack(iatom_mod, itriple, iatom_div);
+            else betaj = 2 * beta_pack(iatom_mod, itriple, iatom_div);
+          } else betaj = beta_pack(iatom_mod, itriple, iatom_div);
+        } else if (j >= j2) {
+          const int jjb = idxb_block(j, j2, j1);
+          const auto itriple = ((elem3 * nelements + elem2) * nelements + elem1) * idxb_max + jjb;
+          if (j2 == j) betaj = 2 * beta_pack(iatom_mod, itriple, iatom_div);
+          else betaj = beta_pack(iatom_mod, itriple, iatom_div);
+        } else {
+          const int jjb = idxb_block(j2, j, j1);
+          const auto itriple = ((elem2 * nelements + elem3) * nelements + elem1) * idxb_max + jjb;
+          betaj = beta_pack(iatom_mod, itriple, iatom_div);
+        }
+        if (!bnorm_flag && j1 > j)
+          betaj *= (j1 + 1) / (j + 1.0);
+        Kokkos::atomic_add(&(ylist_pack_re(iatom_mod, jju_half, elem3, iatom_div)), betaj*ztmp.re);
+        Kokkos::atomic_add(&(ylist_pack_im(iatom_mod, jju_half, elem3, iatom_div)), betaj*ztmp.im);
+      } // end loop over elem3
+      idouble++;
+    } // end loop over elem2
+  } // end loop over elem1
+}
+
+/* ----------------------------------------------------------------------
    Fused calculation of the derivative of Ui w.r.t. atom j
    and accumulation into dEidRj. GPU only.
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<class DeviceType, typename real_type, int vector_length>
+template<int dir>
 KOKKOS_INLINE_FUNCTION
-void SNAKokkos<DeviceType>::compute_fused_deidrj(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, const int iatom, const int jnbor)
+void SNAKokkos<DeviceType, real_type, vector_length>::compute_fused_deidrj(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, const int iatom_mod, const int j_bend, const int jnbor, const int iatom_div)
 {
   // get shared memory offset
-  const int max_m_tile = (twojmax+1)*(twojmax/2+1);
+  // scratch size: 32 atoms * (twojmax+1) cached values, no double buffer
+  const int tile_size = vector_length * (twojmax + 1);
+
   const int team_rank = team.team_rank();
-  const int scratch_shift = team_rank * max_m_tile;
-  const int jelem = element(iatom, jnbor);
+  const int scratch_shift = team_rank * tile_size;
 
-  // See notes on data layouts for shared memory caching
-  // in `compute_ui`.
+  // extract, wrap shared memory buffer
+  WignerWrapper<real_type, vector_length> ulist_wrapper((complex*)team.team_shmem().get_shmem(team.team_size() * tile_size * sizeof(complex), 0) + scratch_shift, iatom_mod);
+  WignerWrapper<real_type, vector_length> dulist_wrapper((complex*)team.team_shmem().get_shmem(team.team_size() * tile_size * sizeof(complex), 0) + scratch_shift, iatom_mod);
 
-  // double buffer for ulist
-  SNAcomplex* ulist_buf1 = (SNAcomplex*)team.team_shmem( ).get_shmem(team.team_size()*max_m_tile*sizeof(SNAcomplex), 0) + scratch_shift;
-  SNAcomplex* ulist_buf2 = (SNAcomplex*)team.team_shmem( ).get_shmem(team.team_size()*max_m_tile*sizeof(SNAcomplex), 0) + scratch_shift;
+  // load parameters
+  const auto a = a_pack(iatom_mod, jnbor, iatom_div);
+  const auto b = b_pack(iatom_mod, jnbor, iatom_div);
+  const auto da = da_pack(iatom_mod, jnbor, iatom_div, dir);
+  const auto db = db_pack(iatom_mod, jnbor, iatom_div, dir);
+  const auto sfac = sfac_pack(iatom_mod, jnbor, iatom_div, 0);
+  const auto dsfacu = sfac_pack(iatom_mod, jnbor, iatom_div, dir + 1); // dsfac * u
 
-  // double buffer for dulist
-  SNAcomplex* dulist_buf1 = (SNAcomplex*)team.team_shmem( ).get_shmem(team.team_size()*max_m_tile*sizeof(SNAcomplex), 0) + scratch_shift;
-  SNAcomplex* dulist_buf2 = (SNAcomplex*)team.team_shmem( ).get_shmem(team.team_size()*max_m_tile*sizeof(SNAcomplex), 0) + scratch_shift;
+  const int jelem = element(iatom_mod + vector_length * iatom_div, jnbor);
 
-  const CayleyKleinPack& ckp = cayleyklein(iatom, jnbor);
+  auto dedr_full_sum = static_cast<real_type>(0.);
 
-  const SNAcomplex a = ckp.a;
-  const SNAcomplex b = ckp.b;
-  const SNAcomplex da = ckp.da[dir];
-  const SNAcomplex db = ckp.db[dir];
-  const double sfac = ckp.sfac;
-  const double dsfacu = ckp.dsfacu[dir]; // dsfac * u
+  // we need to "choose" when to bend
+  // this for loop is here for context --- we expose additional
+  // parallelism over this loop instead
+  //for (int j_bend = 0; j_bend <= twojmax; j_bend++) {
 
-  // Accumulate the full contribution to dedr on the fly
-  const SNAcomplex y_local = ylist(0, jelem, iatom);
+    // level 0 is just 1, 0
+    ulist_wrapper.set(0, complex::one());
+    dulist_wrapper.set(0, complex::zero());
 
-  // Symmetry factor of 0.5 b/c 0 element is on diagonal for even j==0
-  double dedr_full_sum = 0.5 * dsfacu * y_local.re;
+    // j from before the bend, don't store, mb == 0
+    // this is "creeping up the side"
+    for (int j = 1; j <= j_bend; j++) {
 
-  // single has a warp barrier at the end
-  Kokkos::single(Kokkos::PerThread(team), [=]() {
+      constexpr int mb = 0; // intentional for readability, compiler should optimize this out
 
-    ulist_buf1[0] = {1., 0.};
-    dulist_buf1[0] = {0., 0.};
-  });
+      complex ulist_accum = complex::zero();
+      complex dulist_accum = complex::zero();
 
-  for (int j = 1; j <= twojmax; j++) {
-    int jju_half = idxu_half_block[j];
+      int ma;
+      for (ma = 0; ma < j; ma++) {
 
-    // flatten the loop over ma,mb
+        // grab the cached value
+        const complex ulist_prev = ulist_wrapper.get(ma);
+        const complex dulist_prev = dulist_wrapper.get(ma);
 
-    // for (int ma = 0; ma <= j; ma++)
-    const int n_ma = j+1;
-    // for (int mb = 0; 2*mb <= j; mb++)
-    const int n_mb = j/2+1;
+        // ulist_accum += rootpq * a.conj() * ulist_prev;
+        real_type rootpq = rootpqarray(j - ma, j - mb);
+        ulist_accum.re += rootpq * (a.re * ulist_prev.re + a.im * ulist_prev.im);
+        ulist_accum.im += rootpq * (a.re * ulist_prev.im - a.im * ulist_prev.re);
 
-    const int total_iters = n_ma * n_mb;
+        // product rule of above
+        dulist_accum.re += rootpq * (da.re * ulist_prev.re + da.im * ulist_prev.im + a.re * dulist_prev.re + a.im * dulist_prev.im);
+        dulist_accum.im += rootpq * (da.re * ulist_prev.im - da.im * ulist_prev.re + a.re * dulist_prev.im - a.im * dulist_prev.re);
 
-    double dedr_sum = 0.; // j-local sum
+        // store ulist_accum, we atomic accumulate values after the bend, so no atomic add here
+        ulist_wrapper.set(ma, ulist_accum);
+        dulist_wrapper.set(ma, dulist_accum);
 
-    //for (int m = 0; m < total_iters; m++) {
-    Kokkos::parallel_reduce(Kokkos::ThreadVectorRange(team, total_iters),
-      [&] (const int m, double& sum_tmp) {
+        // next value
+        // ulist_accum = -rootpq * b.conj() * ulist_prev;
+        rootpq = rootpqarray(ma + 1, j - mb);
+        ulist_accum.re = -rootpq * (b.re * ulist_prev.re + b.im * ulist_prev.im);
+        ulist_accum.im = -rootpq * (b.re * ulist_prev.im - b.im * ulist_prev.re);
 
-      // ma fast, mb slow
-      const int mb = m / n_ma;
-      const int ma = m - mb * n_ma;
+        // product rule of above
+        dulist_accum.re = -rootpq * (db.re * ulist_prev.re + db.im * ulist_prev.im + b.re * dulist_prev.re + b.im * dulist_prev.im);
+        dulist_accum.im = -rootpq * (db.re * ulist_prev.im - db.im * ulist_prev.re + b.re * dulist_prev.im - b.im * dulist_prev.re);
 
-      const int jju_half_index = jju_half+m;
+      }
 
-      // Load y_local, apply the symmetry scaling factor
-      // The "secret" of the shared memory optimization is it eliminates
-      // all global memory reads to duidrj in lieu of caching values in
-      // shared memory and otherwise always writing, making the kernel
-      // ultimately compute bound. We take advantage of that by adding
-      // some reads back in.
-      auto y_local = ylist(jju_half_index, jelem, iatom);
-      if (j % 2 == 0 && 2*mb == j) {
-        if (ma == mb) { y_local = 0.5*y_local; }
-        else if (ma > mb) { y_local = { 0., 0. }; } // can probably avoid this outright
+      ulist_wrapper.set(ma, ulist_accum);
+      dulist_wrapper.set(ma, dulist_accum);
+    }
+
+    // now we're after the bend, start storing but only up to the "half way point"
+    const int j_half_way = MIN(2 * j_bend, twojmax);
+
+    int mb = 1;
+    int j; //= j_bend + 1; // need this value below
+    for (j = j_bend + 1; j <= j_half_way; j++) {
+
+      const int jjup = idxu_half_block[j-1] + (mb - 1) * j;
+
+      complex ulist_accum = complex::zero();
+      complex dulist_accum = complex::zero();
+
+      int ma;
+      for (ma = 0; ma < j; ma++) {
+
+        // grab y_local early
+        // this will never be the last element of a row, no need to rescale.
+        auto y_local = complex(ylist_pack_re(iatom_mod, jjup + ma, jelem, iatom_div), ylist_pack_im(iatom_mod, jjup+ma, jelem, iatom_div));
+
+        // grab the cached value
+        const complex ulist_prev = ulist_wrapper.get(ma);
+        const complex dulist_prev = dulist_wrapper.get(ma);
+
+        // ulist_accum += rootpq * b * ulist_prev;
+        real_type rootpq = rootpqarray(j - ma, mb);
+        ulist_accum.re += rootpq * (b.re * ulist_prev.re - b.im * ulist_prev.im);
+        ulist_accum.im += rootpq * (b.re * ulist_prev.im + b.im * ulist_prev.re);
+
+        // product rule of above
+        dulist_accum.re += rootpq * (db.re * ulist_prev.re - db.im * ulist_prev.im + b.re * dulist_prev.re - b.im * dulist_prev.im);
+        dulist_accum.im += rootpq * (db.re * ulist_prev.im + db.im * ulist_prev.re + b.re * dulist_prev.im + b.im * dulist_prev.re);
+
+        // store ulist_accum
+        ulist_wrapper.set(ma, ulist_accum);
+        dulist_wrapper.set(ma, dulist_accum);
+
+        // Directly accumulate deidrj into sum_tmp
+        const complex du_prod = (dsfacu * ulist_prev) + (sfac * dulist_prev);
+        dedr_full_sum += du_prod.re * y_local.re + du_prod.im * y_local.im;
+
+        // next value
+        // ulist_accum = rootpq * a * ulist_prev;
+        rootpq = rootpqarray(ma + 1, mb);
+        ulist_accum.re = rootpq * (a.re * ulist_prev.re - a.im * ulist_prev.im);
+        ulist_accum.im = rootpq * (a.re * ulist_prev.im + a.im * ulist_prev.re);
+
+        // product rule of above
+        dulist_accum.re = rootpq * (da.re * ulist_prev.re - da.im * ulist_prev.im + a.re * dulist_prev.re - a.im * dulist_prev.im);
+        dulist_accum.im = rootpq * (da.re * ulist_prev.im + da.im * ulist_prev.re + a.re * dulist_prev.im + a.im * dulist_prev.re);
+
+      }
+
+      ulist_wrapper.set(ma, ulist_accum);
+      dulist_wrapper.set(ma, dulist_accum);
+
+      mb++;
+    }
+
+    // accumulate the last level
+    const int jjup = idxu_half_block[j-1] + (mb - 1) * j;
+
+    for (int ma = 0; ma < j; ma++) {
+      // grab y_local early
+      auto y_local = complex(ylist_pack_re(iatom_mod, jjup + ma, jelem, iatom_div), ylist_pack_im(iatom_mod, jjup+ma, jelem, iatom_div));
+      if (j % 2 == 1 && 2*(mb-1) == j-1) { // double check me...
+        if (ma == (mb-1)) { y_local = static_cast<real_type>(0.5)*y_local; }
+        else if (ma > (mb-1)) { y_local.re = static_cast<real_type>(0.); y_local.im = static_cast<real_type>(0.); } // can probably avoid this outright
         // else the ma < mb gets "double counted", cancelling the 0.5.
       }
 
-      // index into shared memory
-      const int jju_shared_idx = m;
-      const int jjup_shared_idx = jju_shared_idx - mb;
-
-      // Need to compute and accumulate both u and du (mayhaps, we could probably
-      // balance some read and compute by reading u each time).
-      SNAcomplex u_accum = { 0., 0. };
-      SNAcomplex du_accum = { 0., 0. };
-
-      const double rootpq2 = -rootpqarray(ma, j - mb);
-      const SNAcomplex u_up2 = rootpq2*((ma > 0) ? ulist_buf1[jjup_shared_idx-1]:SNAcomplex(0.,0.));
-
-      // u_accum += conj(b) * u_up2
-      caconjxpy(b, u_up2, u_accum);
-
-      const double rootpq1 = rootpqarray(j - ma, j - mb);
-      const SNAcomplex u_up1 = rootpq1*((ma < j) ? ulist_buf1[jjup_shared_idx]:SNAcomplex(0.,0.));
-
-      // u_accum += conj(a) * u_up1
-      caconjxpy(a, u_up1, u_accum);
-
-      // Next, spin up du_accum
-      const SNAcomplex du_up1 = rootpq1*((ma < j) ? dulist_buf1[jjup_shared_idx] : SNAcomplex(0.,0.));
-
-      // du_accum += conj(da) * u_up1 + conj(a) * du_up1
-      caconjxpy(da, u_up1, du_accum);
-      caconjxpy(a, du_up1, du_accum);
-
-      const SNAcomplex du_up2 = rootpq2*((ma > 0) ? dulist_buf1[jjup_shared_idx-1] : SNAcomplex(0.,0.));
-
-      // du_accum += conj(db) * u_up2 + conj(b) * du_up2
-      caconjxpy(db, u_up2, du_accum);
-      caconjxpy(b, du_up2, du_accum);
-
-      // Cache u_accum, du_accum to scratch memory.
-      ulist_buf2[jju_shared_idx] = u_accum;
-      dulist_buf2[jju_shared_idx] = du_accum;
+      const complex ulist_prev = ulist_wrapper.get(ma);
+      const complex dulist_prev = dulist_wrapper.get(ma);
 
       // Directly accumulate deidrj into sum_tmp
-      const SNAcomplex du_prod = (dsfacu * u_accum) + (sfac * du_accum);
-      sum_tmp += du_prod.re * y_local.re + du_prod.im * y_local.im;
+      const complex du_prod = (dsfacu * ulist_prev) + (sfac * dulist_prev);
+      dedr_full_sum += du_prod.re * y_local.re + du_prod.im * y_local.im;
 
-      // copy left side to right side with inversion symmetry VMK 4.4(2)
-      // u[ma-j][mb-j] = (-1)^(ma-mb)*Conj([u[ma][mb])
-      if (j%2==1 && mb+1==n_mb) {
-        int sign_factor = (((ma+mb)%2==0)?1:-1);
+    }
+  //} // end reference loop over j_bend
 
-        const int jju_shared_flip = (j+1-mb)*(j+1)-(ma+1);
+  // dedr gets zeroed out at the start of each iteration in compute_cayley_klein
+  Kokkos::atomic_add(&(dedr(iatom_mod + vector_length * iatom_div, jnbor, dir)), static_cast<real_type>(2.0) * dedr_full_sum);
 
-        if (sign_factor == 1) {
-          u_accum.im = -u_accum.im;
-          du_accum.im = -du_accum.im;
-        } else {
-          u_accum.re = -u_accum.re;
-          du_accum.re = -du_accum.re;
-        }
-
-        // We don't need the second half of the tile for the deidrj accumulation.
-        // That's taken care of by the symmetry factor above.
-        // We do need it for ortho polynomial generation, though
-        ulist_buf2[jju_shared_flip] = u_accum;
-        dulist_buf2[jju_shared_flip] = du_accum;
-      }
-
-    }, dedr_sum);
-
-    // swap buffers
-    auto tmp = ulist_buf1; ulist_buf1 = ulist_buf2; ulist_buf2 = tmp;
-    tmp = dulist_buf1; dulist_buf1 = dulist_buf2; dulist_buf2 = tmp;
-
-    // Accumulate dedr. This "should" be in a single, but
-    // a Kokkos::single call implies a warp sync, and we may
-    // as well avoid that. This does no harm as long as the
-    // final assignment is in a single block.
-    //Kokkos::single(Kokkos::PerThread(team), [=]() {
-    dedr_full_sum += dedr_sum;
-    //});
-  }
-
-  // Store the accumulated dedr.
-  Kokkos::single(Kokkos::PerThread(team), [&] () {
-    dedr(iatom,jnbor,dir) = dedr_full_sum*2.0;
-  });
 }
 
 
@@ -1025,13 +1118,13 @@ void SNAKokkos<DeviceType>::compute_fused_deidrj(const typename Kokkos::TeamPoli
    advantage of the symmetry of the Wigner U matrices.
  * ------------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<class DeviceType, typename real_type, int vector_length>
 KOKKOS_INLINE_FUNCTION
-void SNAKokkos<DeviceType>::pre_ui_cpu(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, const int& iatom, const int& ielem)
+void SNAKokkos<DeviceType, real_type, vector_length>::pre_ui_cpu(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, const int& iatom, const int& ielem)
 {
   for (int jelem = 0; jelem < nelements; jelem++) {
     for (int j = 0; j <= twojmax; j++) {
-      const int jju = idxu_half_block(j);
+      int jju = idxu_half_block(j); // removed "const" to work around GCC 7 bug
 
       // Only diagonal elements get initialized
       // for (int m = 0; m < (j+1)*(j/2+1); m++)
@@ -1042,8 +1135,8 @@ void SNAKokkos<DeviceType>::pre_ui_cpu(const typename Kokkos::TeamPolicy<DeviceT
 
         // if m is on the "diagonal", initialize it with the self energy.
         // Otherwise zero it out
-        SNAcomplex init = {0., 0.};
-        if (m % (j+2) == 0 && (!chem_flag || ielem == jelem || wselfall_flag)) { init = {wself, 0.0}; } //need to map iatom to element
+        complex init(static_cast<real_type>(0.),static_cast<real_type>(0.));
+        if (m % (j+2) == 0 && (!chem_flag || ielem == jelem || wselfall_flag)) { init.re = wself; } //need to map iatom to element
 
         ulisttot(jjup, jelem, iatom) = init;
       });
@@ -1059,11 +1152,11 @@ void SNAKokkos<DeviceType>::pre_ui_cpu(const typename Kokkos::TeamPolicy<DeviceT
    data layout comments.
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<class DeviceType, typename real_type, int vector_length>
 KOKKOS_INLINE_FUNCTION
-void SNAKokkos<DeviceType>::compute_ui_cpu(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int iatom, int jnbor)
+void SNAKokkos<DeviceType, real_type, vector_length>::compute_ui_cpu(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int iatom, int jnbor)
 {
-  double rsq, r, x, y, z, z0, theta0;
+  real_type rsq, r, x, y, z, z0, theta0;
 
   // utot(j,ma,mb) = 0 for all j,ma,ma
   // utot(j,ma,ma) = 1 for all j,ma
@@ -1089,9 +1182,9 @@ void SNAKokkos<DeviceType>::compute_ui_cpu(const typename Kokkos::TeamPolicy<Dev
    compute Zi by summing over products of Ui, CPU version
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<class DeviceType, typename real_type, int vector_length>
 KOKKOS_INLINE_FUNCTION
-void SNAKokkos<DeviceType>::compute_zi_cpu(const int& iter)
+void SNAKokkos<DeviceType, real_type, vector_length>::compute_zi_cpu(const int& iter)
 {
   const int iatom = iter / idxz_max;
   const int jjz = iter % idxz_max;
@@ -1106,27 +1199,27 @@ void SNAKokkos<DeviceType>::compute_zi_cpu(const int& iter)
   const int na = idxz(jjz, 7);
   const int nb = idxz(jjz, 8);
 
-  const double *cgblock = cglist.data() + idxcg_block(j1,j2,j);
+  const real_type *cgblock = cglist.data() + idxcg_block(j1,j2,j);
 
   int idouble = 0;
 
   for (int elem1 = 0; elem1 < nelements; elem1++) {
     for (int elem2 = 0; elem2 < nelements; elem2++) {
-      zlist(jjz, idouble, iatom).re = 0.0;
-      zlist(jjz, idouble, iatom).im = 0.0;
+      zlist(jjz, idouble, iatom).re = static_cast<real_type>(0.0);
+      zlist(jjz, idouble, iatom).im = static_cast<real_type>(0.0);
 
       int jju1 = idxu_block[j1] + (j1+1)*mb1min;
       int jju2 = idxu_block[j2] + (j2+1)*mb2max;
       int icgb = mb1min*(j2+1) + mb2max;
-      for(int ib = 0; ib < nb; ib++) {
+      for (int ib = 0; ib < nb; ib++) {
 
-        double suma1_r = 0.0;
-        double suma1_i = 0.0;
+        real_type suma1_r = static_cast<real_type>(0.0);
+        real_type suma1_i = static_cast<real_type>(0.0);
 
         int ma1 = ma1min;
         int ma2 = ma2max;
         int icga = ma1min * (j2 + 1) + ma2max;
-        for(int ia = 0; ia < na; ia++) {
+        for (int ia = 0; ia < na; ia++) {
           suma1_r += cgblock[icga] * (ulisttot_full(jju1+ma1, elem1, iatom).re * ulisttot_full(jju2+ma2, elem2, iatom).re -
                                       ulisttot_full(jju1+ma1, elem1, iatom).im * ulisttot_full(jju2+ma2, elem2, iatom).im);
           suma1_i += cgblock[icga] * (ulisttot_full(jju1+ma1, elem1, iatom).re * ulisttot_full(jju2+ma2, elem2, iatom).im +
@@ -1158,9 +1251,9 @@ void SNAKokkos<DeviceType>::compute_zi_cpu(const int& iter)
    compute Bi by summing conj(Ui)*Zi, CPU version
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<class DeviceType, typename real_type, int vector_length>
 KOKKOS_INLINE_FUNCTION
-void SNAKokkos<DeviceType>::compute_bi_cpu(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int iatom)
+void SNAKokkos<DeviceType, real_type, vector_length>::compute_bi_cpu(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int iatom)
 {
   // for j1 = 0,...,twojmax
   //   for j2 = 0,twojmax
@@ -1179,20 +1272,17 @@ void SNAKokkos<DeviceType>::compute_bi_cpu(const typename Kokkos::TeamPolicy<Dev
       for (int elem3 = 0; elem3 < nelements; elem3++) {
         Kokkos::parallel_for(Kokkos::TeamThreadRange(team,idxb_max),
           [&] (const int& jjb) {
-        //for(int jjb = 0; jjb < idxb_max; jjb++) {
           const int j1 = idxb(jjb, 0);
           const int j2 = idxb(jjb, 1);
-          const int j = idxb(jjb, 2);
+          int j = idxb(jjb, 2); // removed "const" to work around GCC 7 bug
 
           int jjz = idxz_block(j1, j2, j);
           int jju = idxu_block[j];
-          double sumzu = 0.0;
-          double sumzu_temp = 0.0;
+          real_type sumzu = static_cast<real_type>(0.0);
+          real_type sumzu_temp = static_cast<real_type>(0.0);
           const int bound = (j+2)/2;
           Kokkos::parallel_reduce(Kokkos::ThreadVectorRange(team,(j+1)*bound),
-              [&] (const int mbma, double& sum) {
-              //for(int mb = 0; 2*mb < j; mb++)
-                //for(int ma = 0; ma <= j; ma++) {
+              [&] (const int mbma, real_type& sum) {
               const int ma = mbma % (j + 1);
               const int mb = mbma / (j + 1);
               const int jju_index = jju + mb * (j + 1) + ma;
@@ -1207,10 +1297,9 @@ void SNAKokkos<DeviceType>::compute_bi_cpu(const typename Kokkos::TeamPolicy<Dev
           // For j even, special treatment for middle column
 
           if (j%2 == 0) {
-            const int mb = j/2;
+            int mb = j/2; // removed "const" to work around GCC 7 bug
             Kokkos::parallel_reduce(Kokkos::ThreadVectorRange(team, mb),
-                [&] (const int ma, double& sum) {
-            //for(int ma = 0; ma < mb; ma++) {
+                [&] (const int ma, real_type& sum) {
               const int jju_index = jju+(mb-1)*(j+1)+(j+1)+ma;
               const int jjz_index = jjz+(mb-1)*(j+1)+(j+1)+ma;
               sum +=
@@ -1222,17 +1311,17 @@ void SNAKokkos<DeviceType>::compute_bi_cpu(const typename Kokkos::TeamPolicy<Dev
             const int ma = mb;
             const int jju_index = jju+(mb-1)*(j+1)+(j+1)+ma;
             const int jjz_index = jjz+(mb-1)*(j+1)+(j+1)+ma;
-            sumzu += 0.5*
+            sumzu += static_cast<real_type>(0.5)*
               (ulisttot_full(jju_index, elem3, iatom).re * zlist(jjz_index, jalloy, iatom).re +
                ulisttot_full(jju_index, elem3, iatom).im * zlist(jjz_index, jalloy, iatom).im);
           } // end if jeven
 
           Kokkos::single(Kokkos::PerThread(team), [&] () {
-            sumzu *= 2.0;
+            sumzu *= static_cast<real_type>(2.0);
 
             // apply bzero shift
 
-            if (bzero_flag){
+            if (bzero_flag) {
               if (!wselfall_flag) {
                 if (elem1 == elem2 && elem1 == elem3) {
                   sumzu -= bzero[j];
@@ -1260,12 +1349,12 @@ void SNAKokkos<DeviceType>::compute_bi_cpu(const typename Kokkos::TeamPolicy<Dev
    CPU version
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<class DeviceType, typename real_type, int vector_length>
 KOKKOS_INLINE_FUNCTION
-void SNAKokkos<DeviceType>::compute_yi_cpu(int iter,
- const Kokkos::View<F_FLOAT**, DeviceType> &beta)
+void SNAKokkos<DeviceType, real_type, vector_length>::compute_yi_cpu(int iter,
+ const Kokkos::View<real_type**, DeviceType> &beta)
 {
-  double betaj;
+  real_type betaj;
   const int iatom = iter / idxz_max;
   const int jjz = iter % idxz_max;
 
@@ -1280,24 +1369,24 @@ void SNAKokkos<DeviceType>::compute_yi_cpu(int iter,
   const int nb = idxz(jjz, 8);
   const int jju_half = idxz(jjz, 9);
 
-  const double *cgblock = cglist.data() + idxcg_block(j1,j2,j);
+  const real_type *cgblock = cglist.data() + idxcg_block(j1,j2,j);
   //int mb = (2 * (mb1min+mb2max) - j1 - j2 + j) / 2;
   //int ma = (2 * (ma1min+ma2max) - j1 - j2 + j) / 2;
 
   for (int elem1 = 0; elem1 < nelements; elem1++) {
     for (int elem2 = 0; elem2 < nelements; elem2++) {
 
-      double ztmp_r = 0.0;
-      double ztmp_i = 0.0;
+      real_type ztmp_r = 0.0;
+      real_type ztmp_i = 0.0;
 
       int jju1 = idxu_block[j1] + (j1 + 1) * mb1min;
       int jju2 = idxu_block[j2] + (j2 + 1) * mb2max;
-      int icgb = mb1min * (j2 +1 ) + mb2max;
+      int icgb = mb1min * (j2 +1) + mb2max;
 
       for (int ib = 0; ib < nb; ib++) {
 
-        double suma1_r = 0.0;
-        double suma1_i = 0.0;
+        real_type suma1_r = 0.0;
+        real_type suma1_i = 0.0;
 
         int ma1 = ma1min;
         int ma2 = ma2max;
@@ -1368,22 +1457,21 @@ void SNAKokkos<DeviceType>::compute_yi_cpu(int iter,
    data layout
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<class DeviceType, typename real_type, int vector_length>
 KOKKOS_INLINE_FUNCTION
-void SNAKokkos<DeviceType>::compute_duidrj_cpu(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int iatom, int jnbor)
+void SNAKokkos<DeviceType, real_type, vector_length>::compute_duidrj_cpu(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int iatom, int jnbor)
 {
-  double rsq, r, x, y, z, z0, theta0, cs, sn;
-  double dz0dr;
+  real_type rsq, r, x, y, z, z0, theta0, cs, sn;
+  real_type dz0dr;
 
   x = rij(iatom,jnbor,0);
   y = rij(iatom,jnbor,1);
   z = rij(iatom,jnbor,2);
   rsq = x * x + y * y + z * z;
   r = sqrt(rsq);
-  double rscale0 = rfac0 * MY_PI / (rcutij(iatom,jnbor) - rmin0);
+  auto rscale0 = rfac0 * static_cast<real_type>(MY_PI) / (rcutij(iatom,jnbor) - rmin0);
   theta0 = (r - rmin0) * rscale0;
-  cs = cos(theta0);
-  sn = sin(theta0);
+  sincos_wrapper(theta0, &sn, &cs);
   z0 = r * cs / sn;
   dz0dr = z0 / r - (r*rscale0) * (rsq + z0 * z0) / rsq;
 
@@ -1400,21 +1488,20 @@ void SNAKokkos<DeviceType>::compute_duidrj_cpu(const typename Kokkos::TeamPolicy
 ------------------------------------------------------------------------- */
 
 
-template<class DeviceType>
+template<class DeviceType, typename real_type, int vector_length>
 KOKKOS_INLINE_FUNCTION
-void SNAKokkos<DeviceType>::compute_deidrj_cpu(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int iatom, int jnbor)
+void SNAKokkos<DeviceType, real_type, vector_length>::compute_deidrj_cpu(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int iatom, int jnbor)
 {
-  t_scalar3<double> final_sum;
+  t_scalar3<real_type> final_sum;
   const int jelem = element(iatom, jnbor);
 
-  //for(int j = 0; j <= twojmax; j++) {
   Kokkos::parallel_reduce(Kokkos::ThreadVectorRange(team,twojmax+1),
-      [&] (const int& j, t_scalar3<double>& sum_tmp) {
+      [&] (const int& j, t_scalar3<real_type>& sum_tmp) {
     int jju_half = idxu_half_block[j];
     int jju_cache = idxu_cache_block[j];
 
-    for(int mb = 0; 2*mb < j; mb++)
-      for(int ma = 0; ma <= j; ma++) {
+    for (int mb = 0; 2*mb < j; mb++)
+      for (int ma = 0; ma <= j; ma++) {
         sum_tmp.x += dulist(jju_cache,iatom,jnbor,0).re * ylist(jju_half,jelem,iatom).re +
                      dulist(jju_cache,iatom,jnbor,0).im * ylist(jju_half,jelem,iatom).im;
         sum_tmp.y += dulist(jju_cache,iatom,jnbor,1).re * ylist(jju_half,jelem,iatom).re +
@@ -1429,7 +1516,7 @@ void SNAKokkos<DeviceType>::compute_deidrj_cpu(const typename Kokkos::TeamPolicy
     if (j%2 == 0) {
 
       int mb = j/2;
-      for(int ma = 0; ma < mb; ma++) {
+      for (int ma = 0; ma < mb; ma++) {
         sum_tmp.x += dulist(jju_cache,iatom,jnbor,0).re * ylist(jju_half,jelem,iatom).re +
                      dulist(jju_cache,iatom,jnbor,0).im * ylist(jju_half,jelem,iatom).im;
         sum_tmp.y += dulist(jju_cache,iatom,jnbor,1).re * ylist(jju_half,jelem,iatom).re +
@@ -1467,12 +1554,12 @@ void SNAKokkos<DeviceType>::compute_deidrj_cpu(const typename Kokkos::TeamPolicy
    of the symmetry of the Wigner U matrices.
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<class DeviceType, typename real_type, int vector_length>
 KOKKOS_INLINE_FUNCTION
-void SNAKokkos<DeviceType>::add_uarraytot(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int iatom, int jnbor,
-                                          double r, double wj, double rcut, int jelem)
+void SNAKokkos<DeviceType, real_type, vector_length>::add_uarraytot(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int iatom, int jnbor,
+                                          const real_type& r, const real_type& wj, const real_type& rcut, int jelem)
 {
-  const double sfac = compute_sfac(r, rcut) * wj;
+  const auto sfac = compute_sfac(r, rcut) * wj;
 
   Kokkos::parallel_for(Kokkos::ThreadVectorRange(team,twojmax+1),
       [&] (const int& j) {
@@ -1497,19 +1584,18 @@ void SNAKokkos<DeviceType>::add_uarraytot(const typename Kokkos::TeamPolicy<Devi
    information stored between layers via scratch memory on the GPU path
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<class DeviceType, typename real_type, int vector_length>
 KOKKOS_INLINE_FUNCTION
-void SNAKokkos<DeviceType>::compute_uarray_cpu(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int iatom, int jnbor,
-                         double x, double y, double z,
-                         double z0, double r)
+void SNAKokkos<DeviceType, real_type, vector_length>::compute_uarray_cpu(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int iatom, int jnbor,
+                         const real_type& x, const real_type& y, const real_type& z, const real_type& z0, const real_type& r)
 {
-  double r0inv;
-  double a_r, b_r, a_i, b_i;
-  double rootpq;
+  real_type r0inv;
+  real_type a_r, b_r, a_i, b_i;
+  real_type rootpq;
 
   // compute Cayley-Klein parameters for unit quaternion
 
-  r0inv = 1.0 / sqrt(r * r + z0 * z0);
+  r0inv = static_cast<real_type>(1.0) / sqrt(r * r + z0 * z0);
   a_r = r0inv * z0;
   a_i = -r0inv * z;
   b_r = r0inv * y;
@@ -1521,8 +1607,8 @@ void SNAKokkos<DeviceType>::compute_uarray_cpu(const typename Kokkos::TeamPolicy
   ulist(0,iatom,jnbor).im = 0.0;
 
   for (int j = 1; j <= twojmax; j++) {
-    const int jju = idxu_cache_block[j];
-    const int jjup = idxu_cache_block[j-1];
+    int jju = idxu_cache_block[j]; // removed "const" to work around GCC 7 bug
+    int jjup = idxu_cache_block[j-1]; // removed "const" to work around GCC 7 bug
 
     // fill in left side of matrix layer from previous layer
 
@@ -1589,23 +1675,23 @@ void SNAKokkos<DeviceType>::compute_uarray_cpu(const typename Kokkos::TeamPolicy
    Uses same cached data layout of ulist
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<class DeviceType, typename real_type, int vector_length>
 KOKKOS_INLINE_FUNCTION
-void SNAKokkos<DeviceType>::compute_duarray_cpu(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int iatom, int jnbor,
-                          double x, double y, double z,
-                          double z0, double r, double dz0dr,
-                          double wj, double rcut)
+void SNAKokkos<DeviceType, real_type, vector_length>::compute_duarray_cpu(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int iatom, int jnbor,
+                          const real_type& x, const real_type& y, const real_type& z,
+                          const real_type& z0, const real_type& r, const real_type& dz0dr,
+                          const real_type& wj, const real_type& rcut)
 {
-double r0inv;
-  double a_r, a_i, b_r, b_i;
-  double da_r[3], da_i[3], db_r[3], db_i[3];
-  double dz0[3], dr0inv[3], dr0invdr;
-  double rootpq;
+  real_type r0inv;
+  real_type a_r, a_i, b_r, b_i;
+  real_type da_r[3], da_i[3], db_r[3], db_i[3];
+  real_type dz0[3], dr0inv[3], dr0invdr;
+  real_type rootpq;
 
-  double rinv = 1.0 / r;
-  double ux = x * rinv;
-  double uy = y * rinv;
-  double uz = z * rinv;
+  real_type rinv = 1.0 / r;
+  real_type ux = x * rinv;
+  real_type uy = y * rinv;
+  real_type uz = z * rinv;
 
   r0inv = 1.0 / sqrt(r * r + z0 * z0);
   a_r = z0 * r0inv;
@@ -1720,8 +1806,8 @@ double r0inv;
     });
   }
 
-  double sfac = compute_sfac(r, rcut);
-  double dsfac = compute_dsfac(r, rcut);
+  real_type sfac = compute_sfac(r, rcut);
+  real_type dsfac = compute_dsfac(r, rcut);
 
   sfac *= wj;
   dsfac *= wj;
@@ -1755,9 +1841,9 @@ double r0inv;
    factorial n, wrapper for precomputed table
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<class DeviceType, typename real_type, int vector_length>
 inline
-double SNAKokkos<DeviceType>::factorial(int n)
+double SNAKokkos<DeviceType, real_type, vector_length>::factorial(int n)
 {
   //if (n < 0 || n > nmaxfactorial) {
   //  char str[128];
@@ -1772,8 +1858,8 @@ double SNAKokkos<DeviceType>::factorial(int n)
    factorial n table, size SNA::nmaxfactorial+1
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-const double SNAKokkos<DeviceType>::nfac_table[] = {
+template<class DeviceType, typename real_type, int vector_length>
+const double SNAKokkos<DeviceType, real_type, vector_length>::nfac_table[] = {
   1,
   1,
   2,
@@ -1948,9 +2034,9 @@ const double SNAKokkos<DeviceType>::nfac_table[] = {
    the function delta given by VMK Eq. 8.2(1)
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<class DeviceType, typename real_type, int vector_length>
 inline
-double SNAKokkos<DeviceType>::deltacg(int j1, int j2, int j)
+double SNAKokkos<DeviceType, real_type, vector_length>::deltacg(int j1, int j2, int j)
 {
   double sfaccg = factorial((j1 + j2 + j) / 2 + 1);
   return sqrt(factorial((j1 + j2 - j) / 2) *
@@ -1963,9 +2049,9 @@ double SNAKokkos<DeviceType>::deltacg(int j1, int j2, int j)
    the quasi-binomial formula VMK 8.2.1(3)
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<class DeviceType, typename real_type, int vector_length>
 inline
-void SNAKokkos<DeviceType>::init_clebsch_gordan()
+void SNAKokkos<DeviceType, real_type, vector_length>::init_clebsch_gordan()
 {
   auto h_cglist = Kokkos::create_mirror_view(cglist);
 
@@ -1974,9 +2060,9 @@ void SNAKokkos<DeviceType>::init_clebsch_gordan()
   int ifac;
 
   int idxcg_count = 0;
-  for(int j1 = 0; j1 <= twojmax; j1++)
-    for(int j2 = 0; j2 <= j1; j2++)
-      for(int j = j1 - j2; j <= MIN(twojmax, j1 + j2); j += 2) {
+  for (int j1 = 0; j1 <= twojmax; j1++)
+    for (int j2 = 0; j2 <= j1; j2++)
+      for (int j = j1 - j2; j <= MIN(twojmax, j1 + j2); j += 2) {
         for (int m1 = 0; m1 <= j1; m1++) {
           aa2 = 2 * m1 - j1;
 
@@ -1987,7 +2073,7 @@ void SNAKokkos<DeviceType>::init_clebsch_gordan()
             bb2 = 2 * m2 - j2;
             m = (aa2 + bb2 + j) / 2;
 
-            if(m < 0 || m > j) {
+            if (m < 0 || m > j) {
               h_cglist[idxcg_count] = 0.0;
               idxcg_count++;
               continue;
@@ -2033,23 +2119,23 @@ void SNAKokkos<DeviceType>::init_clebsch_gordan()
    the p = 0, q = 0 entries are allocated and skipped for convenience.
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<class DeviceType, typename real_type, int vector_length>
 inline
-void SNAKokkos<DeviceType>::init_rootpqarray()
+void SNAKokkos<DeviceType, real_type, vector_length>::init_rootpqarray()
 {
   auto h_rootpqarray = Kokkos::create_mirror_view(rootpqarray);
   for (int p = 1; p <= twojmax; p++)
     for (int q = 1; q <= twojmax; q++)
-      h_rootpqarray(p,q) = sqrt(static_cast<double>(p)/q);
+      h_rootpqarray(p,q) = static_cast<real_type>(sqrt(static_cast<double>(p)/q));
   Kokkos::deep_copy(rootpqarray,h_rootpqarray);
 }
 
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<class DeviceType, typename real_type, int vector_length>
 inline
-int SNAKokkos<DeviceType>::compute_ncoeff()
+int SNAKokkos<DeviceType, real_type, vector_length>::compute_ncoeff()
 {
   int ncount;
 
@@ -2070,97 +2156,72 @@ int SNAKokkos<DeviceType>::compute_ncoeff()
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<class DeviceType, typename real_type, int vector_length>
 KOKKOS_INLINE_FUNCTION
-double SNAKokkos<DeviceType>::compute_sfac(double r, double rcut)
+real_type SNAKokkos<DeviceType, real_type, vector_length>::compute_sfac(real_type r, real_type rcut)
 {
-  if (switch_flag == 0) return 1.0;
+  constexpr real_type one = static_cast<real_type>(1.0);
+  constexpr real_type zero = static_cast<real_type>(0.0);
+  constexpr real_type onehalf = static_cast<real_type>(0.5);
+  if (switch_flag == 0) return one;
   if (switch_flag == 1) {
-    if(r <= rmin0) return 1.0;
-    else if(r > rcut) return 0.0;
+    if (r <= rmin0) return one;
+    else if (r > rcut) return zero;
     else {
-      double rcutfac = MY_PI / (rcut - rmin0);
-      return 0.5 * (cos((r - rmin0) * rcutfac) + 1.0);
+      auto rcutfac = static_cast<real_type>(MY_PI) / (rcut - rmin0);
+      return onehalf * (cos((r - rmin0) * rcutfac) + one);
     }
   }
-  return 0.0;
+  return zero;
 }
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<class DeviceType, typename real_type, int vector_length>
 KOKKOS_INLINE_FUNCTION
-double SNAKokkos<DeviceType>::compute_dsfac(double r, double rcut)
+real_type SNAKokkos<DeviceType, real_type, vector_length>::compute_dsfac(real_type r, real_type rcut)
 {
-  if (switch_flag == 0) return 0.0;
+  constexpr real_type zero = static_cast<real_type>(0.0);
+  constexpr real_type onehalf = static_cast<real_type>(0.5);
+  if (switch_flag == 0) return zero;
   if (switch_flag == 1) {
-    if(r <= rmin0) return 0.0;
-    else if(r > rcut) return 0.0;
+    if (r <= rmin0) return zero;
+    else if (r > rcut) return zero;
     else {
-      double rcutfac = MY_PI / (rcut - rmin0);
-      return -0.5 * sin((r - rmin0) * rcutfac) * rcutfac;
+      auto rcutfac = static_cast<real_type>(MY_PI) / (rcut - rmin0);
+      return -onehalf * sin((r - rmin0) * rcutfac) * rcutfac;
     }
   }
-  return 0.0;
+  return zero;
 }
 
-template<class DeviceType>
+template<class DeviceType, typename real_type, int vector_length>
 KOKKOS_INLINE_FUNCTION
-void SNAKokkos<DeviceType>::compute_s_dsfac(const double r, const double rcut, double& sfac, double& dsfac) {
-  if (switch_flag == 0) { sfac = 0.; dsfac = 0.; }
+void SNAKokkos<DeviceType, real_type, vector_length>::compute_s_dsfac(const real_type r, const real_type rcut, real_type& sfac, real_type& dsfac) {
+  constexpr real_type one = static_cast<real_type>(1.0);
+  constexpr real_type zero = static_cast<real_type>(0.0);
+  constexpr real_type onehalf = static_cast<real_type>(0.5);
+  if (switch_flag == 0) { sfac = zero; dsfac = zero; }
   else if (switch_flag == 1) {
-    if (r <= rmin0) { sfac = 1.0; dsfac = 0.0; }
-    else if (r > rcut) { sfac = 0.; dsfac = 0.; }
+    if (r <= rmin0) { sfac = one; dsfac = zero; }
+    else if (r > rcut) { sfac = zero; dsfac = zero; }
     else {
-      const double rcutfac = MY_PI / (rcut - rmin0);
-      double sn, cs;
-      sincos((r - rmin0) * rcutfac, &sn, &cs);
-      sfac = 0.5 * (cs + 1.0);
-      dsfac = -0.5 * sn * rcutfac;
+      const auto rcutfac = static_cast<real_type>(MY_PI) / (rcut - rmin0);
+      real_type sn, cs;
+      sincos_wrapper((r - rmin0) * rcutfac, &sn, &cs); // need to create a wrapper
+      sfac = onehalf * (cs + one);
+      dsfac = -onehalf * sn * rcutfac;
 
     }
-  } else { sfac = 0.; dsfac = 0.; }
-}
-
-/* ---------------------------------------------------------------------- */
-
-// efficient complex FMA (i.e., y += a x)
-template<class DeviceType>
-KOKKOS_FORCEINLINE_FUNCTION
-void SNAKokkos<DeviceType>::caxpy(const SNAcomplex& a, const SNAcomplex& x, SNAcomplex& y) {
-  y.re += a.re * x.re;
-  y.re -= a.im * x.im;
-  y.im += a.im * x.re;
-  y.im += a.re * x.im;
-}
-
-/* ---------------------------------------------------------------------- */
-
-// efficient complex FMA, conjugate of scalar (i.e.) y += (a.re - i a.im) x)
-template<class DeviceType>
-KOKKOS_FORCEINLINE_FUNCTION
-void SNAKokkos<DeviceType>::caconjxpy(const SNAcomplex& a, const SNAcomplex& x, SNAcomplex& y) {
-  y.re += a.re * x.re;
-  y.re += a.im * x.im;
-  y.im -= a.im * x.re;
-  y.im += a.re * x.im;
-}
-
-/* ---------------------------------------------------------------------- */
-
-// set direction of batched Duidrj
-template<class DeviceType>
-KOKKOS_FORCEINLINE_FUNCTION
-void SNAKokkos<DeviceType>::set_dir(int dir_) {
-  dir = dir_;
+  } else { sfac = zero; dsfac = zero; }
 }
 
 /* ----------------------------------------------------------------------
    memory usage of arrays
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-double SNAKokkos<DeviceType>::memory_usage()
+template<class DeviceType, typename real_type, int vector_length>
+double SNAKokkos<DeviceType, real_type, vector_length>::memory_usage()
 {
   int jdimpq = twojmax + 2;
   int jdim = twojmax + 1;
@@ -2168,45 +2229,53 @@ double SNAKokkos<DeviceType>::memory_usage()
 
   bytes = 0;
 
-  bytes += jdimpq*jdimpq * sizeof(double);               // pqarray
-  bytes += idxcg_max * sizeof(double);                   // cglist
+  bytes += jdimpq*jdimpq * sizeof(real_type);               // pqarray
+  bytes += idxcg_max * sizeof(real_type);                   // cglist
 
 #ifdef LMP_KOKKOS_GPU
   if (!host_flag) {
 
-    auto natom_pad = (natom+32-1)/32;
+    auto natom_pad = (natom+vector_length-1)/vector_length;
 
-    bytes += natom * idxu_half_max * nelements * sizeof(double);     // ulisttot_re
-    bytes += natom * idxu_half_max * nelements * sizeof(double);     // ulisttot_im
-    bytes += natom_pad * idxu_max * nelements * sizeof(double) * 2;  // ulisttot_pack
+    bytes += natom_pad * nmax * sizeof(real_type) * 2;     // a_pack
+    bytes += natom_pad * nmax * sizeof(real_type) * 2;     // b_pack
+    bytes += natom_pad * nmax * 3 * sizeof(real_type) * 2; // da_pack
+    bytes += natom_pad * nmax * 3 * sizeof(real_type) * 2; // db_pack
+    bytes += natom_pad * nmax * 4 * sizeof(real_type);     // sfac_pack
 
-    bytes += natom_pad * idxz_max * ndoubles * sizeof(double) * 2;   // zlist_pack
-    bytes += natom_pad * idxb_max * ntriples * sizeof(double);       // blist_pack
 
-    bytes += natom_pad * idxu_half_max * nelements * sizeof(double); // ylist_pack_re
-    bytes += natom_pad * idxu_half_max * nelements * sizeof(double); // ylist_pack_im
-    bytes += natom * idxu_half_max * nelements * sizeof(double) * 2; // ylist
+    bytes += natom_pad * idxu_half_max * nelements * sizeof(real_type);     // ulisttot_re_pack
+    bytes += natom_pad * idxu_half_max * nelements * sizeof(real_type);     // ulisttot_im_pack
+    bytes += natom_pad * idxu_max * nelements * sizeof(real_type) * 2;      // ulisttot_pack
+
+    bytes += natom_pad * idxz_max * ndoubles * sizeof(real_type) * 2;   // zlist_pack
+    bytes += natom_pad * idxb_max * ntriples * sizeof(real_type);       // blist_pack
+
+    bytes += natom_pad * idxu_half_max * nelements * sizeof(real_type); // ylist_pack_re
+    bytes += natom_pad * idxu_half_max * nelements * sizeof(real_type); // ylist_pack_im
   } else {
 #endif
 
-    bytes += natom * nmax * idxu_cache_max * sizeof(double) * 2;     // ulist
-    bytes += natom * idxu_half_max * nelements * sizeof(double) * 2; // ulisttot
+    bytes += natom * nmax * idxu_cache_max * sizeof(real_type) * 2;     // ulist
+    bytes += natom * idxu_half_max * nelements * sizeof(real_type) * 2; // ulisttot
+    bytes += natom * idxu_max * nelements * sizeof(real_type) * 2;      // ulisttot_full
 
-    bytes += natom * idxz_max * ndoubles * sizeof(double) * 2;       // zlist
-    bytes += natom * idxb_max * ntriples * sizeof(double);           // blist
+    bytes += natom * idxz_max * ndoubles * sizeof(real_type) * 2;       // zlist
+    bytes += natom * idxb_max * ntriples * sizeof(real_type);           // blist
 
-    bytes += natom * idxu_half_max * nelements * sizeof(double) * 2; // ylist
+    bytes += natom * idxu_half_max * nelements * sizeof(real_type) * 2; // ylist
 
-    bytes += natom * nmax * idxu_cache_max * 3 * sizeof(double) * 2; // dulist
+    bytes += natom * nmax * idxu_cache_max * 3 * sizeof(real_type) * 2; // dulist
 #ifdef LMP_KOKKOS_GPU
   }
 #endif
 
-  bytes += natom * nmax * 3 * sizeof(double);            // dedr
+  bytes += natom * nmax * 3 * sizeof(real_type);            // dedr
 
   bytes += jdim * jdim * jdim * sizeof(int);             // idxcg_block
   bytes += jdim * sizeof(int);                           // idxu_block
   bytes += jdim * sizeof(int);                           // idxu_half_block
+  bytes += idxu_max * sizeof(FullHalfMapper);            // idxu_full_half
   bytes += jdim * sizeof(int);                           // idxu_cache_block
   bytes += jdim * jdim * jdim * sizeof(int);             // idxz_block
   bytes += jdim * jdim * jdim * sizeof(int);             // idxb_block
@@ -2214,12 +2283,12 @@ double SNAKokkos<DeviceType>::memory_usage()
   bytes += idxz_max * 10 * sizeof(int);                  // idxz
   bytes += idxb_max * 3 * sizeof(int);                   // idxb
 
-  bytes += jdim * sizeof(double);                        // bzero
+  bytes += jdim * sizeof(real_type);                        // bzero
 
-  bytes += natom * nmax * 3 * sizeof(double);            // rij
-  bytes += natom * nmax * sizeof(int);                   // inside
-  bytes += natom * nmax * sizeof(double);                // wj
-  bytes += natom * nmax * sizeof(double);                // rcutij
+  bytes += natom * nmax * 3 * sizeof(real_type);            // rij
+  bytes += natom * nmax * sizeof(real_type);                // inside
+  bytes += natom * nmax * sizeof(real_type);                // wj
+  bytes += natom * nmax * sizeof(real_type);                // rcutij
 
   return bytes;
 }

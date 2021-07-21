@@ -162,7 +162,7 @@ Restrictions
 
 The *vtk* style does not support writing of gzipped dump files.
 
-The *vtk* dump style is part of the USER-VTK package. It is only
+The *vtk* dump style is part of the VTK package. It is only
 enabled if LAMMPS was built with that package. See the :doc:`Build package <Build_package>` doc page for more info.
 
 To use this dump style, you also must link to the VTK library.  See

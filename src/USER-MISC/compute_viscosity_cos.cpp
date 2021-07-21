@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -53,8 +54,10 @@ ComputeViscosityCos::ComputeViscosityCos(LAMMPS *lmp, int narg, char **arg) :
 /* ---------------------------------------------------------------------- */
 
 ComputeViscosityCos::~ComputeViscosityCos() {
-  if (!copymode)
+  if (!copymode) {
     delete[] vector;
+    delete[] extlist;
+  }
 }
 
 /* ---------------------------------------------------------------------- */

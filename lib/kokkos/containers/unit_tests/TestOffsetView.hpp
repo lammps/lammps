@@ -95,10 +95,6 @@ void test_offsetview_construction() {
   ASSERT_EQ(ov.extent(1), 5);
 
 #if defined(KOKKOS_ENABLE_CUDA_LAMBDA) || !defined(KOKKOS_ENABLE_CUDA)
-  const int ovmin0 = ov.begin(0);
-  const int ovend0 = ov.end(0);
-  const int ovmin1 = ov.begin(1);
-  const int ovend1 = ov.end(1);
   {
     Kokkos::Experimental::OffsetView<Scalar*, Device> offsetV1("OneDOffsetView",
                                                                range0);
@@ -133,6 +129,11 @@ void test_offsetview_construction() {
       }
     }
   }
+
+  const int ovmin0 = ov.begin(0);
+  const int ovend0 = ov.end(0);
+  const int ovmin1 = ov.begin(1);
+  const int ovend1 = ov.end(1);
 
   using range_type =
       Kokkos::MDRangePolicy<Device, Kokkos::Rank<2>, Kokkos::IndexType<int> >;

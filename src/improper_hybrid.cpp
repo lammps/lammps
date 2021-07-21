@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -185,9 +186,9 @@ void ImproperHybrid::settings(int narg, char **arg)
   // delete old lists, since cannot just change settings
 
   if (nstyles) {
-    for (int i = 0; i < nstyles; i++) delete styles[i];
+    for (i = 0; i < nstyles; i++) delete styles[i];
     delete [] styles;
-    for (int i = 0; i < nstyles; i++) delete [] keywords[i];
+    for (i = 0; i < nstyles; i++) delete [] keywords[i];
     delete [] keywords;
   }
 
@@ -196,7 +197,7 @@ void ImproperHybrid::settings(int narg, char **arg)
     memory->destroy(map);
     delete [] nimproperlist;
     delete [] maximproper;
-    for (int i = 0; i < nstyles; i++)
+    for (i = 0; i < nstyles; i++)
       memory->destroy(improperlist[i]);
     delete [] improperlist;
   }
@@ -350,10 +351,10 @@ void ImproperHybrid::read_restart(FILE *fp)
 
 double ImproperHybrid::memory_usage()
 {
-  double bytes = maxeatom * sizeof(double);
-  bytes += maxvatom*6 * sizeof(double);
-  bytes += maxcvatom*9 * sizeof(double);
-  for (int m = 0; m < nstyles; m++) bytes += maximproper[m]*5 * sizeof(int);
+  double bytes = (double)maxeatom * sizeof(double);
+  bytes += (double)maxvatom*6 * sizeof(double);
+  bytes += (double)maxcvatom*9 * sizeof(double);
+  for (int m = 0; m < nstyles; m++) bytes += (double)maximproper[m]*5 * sizeof(int);
   for (int m = 0; m < nstyles; m++)
     if (styles[m]) bytes += styles[m]->memory_usage();
   return bytes;

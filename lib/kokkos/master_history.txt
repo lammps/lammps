@@ -21,3 +21,7 @@ tag:  3.0.00     date: 01:31:2020    master: 2983b80d    release-candidate-3.0: 
 tag:  3.1.00     date: 04:14:2020    master: cd1b1d0a    develop: fd90af43
 tag:  3.1.01     date: 05:04:2020    master: 785d19f2    release: 2be028bc
 tag:  3.2.00     date: 08:19:2020    master: 3b2fdc7e    release: 5dc6d303
+tag:  3.3.00     date: 12:16:2020    master: 734f577a    release: 1535ba5c
+tag:  3.3.01     date: 01:06:2021    master: 6d65b5a3    release: 4d23839c
+tag:  3.4.00     date: 04:26:2021    master: 1fb0c284    release: 5d7738d6
+tag:  3.4.01     date: 05:20:2021    master: 4b97a22f    release: 410b15c8

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -52,7 +53,7 @@ enum{NONE,RATIO,SUBSET};
 
 /* ---------------------------------------------------------------------- */
 
-CreateAtoms::CreateAtoms(LAMMPS *lmp) : Pointers(lmp) {}
+CreateAtoms::CreateAtoms(LAMMPS *lmp) : Command(lmp), basistype(nullptr) {}
 
 /* ---------------------------------------------------------------------- */
 
@@ -446,7 +447,7 @@ void CreateAtoms::command(int narg, char **arg)
 
     // molcreate = # of molecules I created
 
-    int molcreate = (atom->nlocal - nlocal_previous) / onemol->natoms;
+    tagint molcreate = (atom->nlocal - nlocal_previous) / onemol->natoms;
 
     // increment total bonds,angles,etc
 
@@ -463,13 +464,13 @@ void CreateAtoms::command(int narg, char **arg)
     // moloffset = max molecule ID for all molecules owned by previous procs
     //             including molecules existing before this creation
 
-    tagint moloffset;
+    tagint moloffset = 0;
     if (molecule_flag) {
       tagint max = 0;
       for (int i = 0; i < nlocal_previous; i++) max = MAX(max,molecule[i]);
       tagint maxmol;
       MPI_Allreduce(&max,&maxmol,1,MPI_LMP_TAGINT,MPI_MAX,world);
-      MPI_Scan(&molcreate,&moloffset,1,MPI_INT,MPI_SUM,world);
+      MPI_Scan(&molcreate,&moloffset,1,MPI_LMP_TAGINT,MPI_SUM,world);
       moloffset = moloffset - molcreate + maxmol;
     }
 
@@ -573,7 +574,7 @@ void CreateAtoms::command(int narg, char **arg)
   delete ranmol;
   delete ranlatt;
 
-  if (domain->lattice) delete [] basistype;
+  delete [] basistype;
   delete [] vstr;
   delete [] xstr;
   delete [] ystr;
@@ -596,10 +597,9 @@ void CreateAtoms::command(int narg, char **arg)
 
   MPI_Barrier(world);
   if (me == 0)
-    utils::logmesg(lmp, fmt::format("Created {} atoms\n"
-                        "  create_atoms CPU = {:.3f} seconds\n",
-                        atom->natoms - natoms_previous,
-                        MPI_Wtime() - time1));
+    utils::logmesg(lmp,"Created {} atoms\n"
+                   "  create_atoms CPU = {:.3f} seconds\n",
+                   atom->natoms - natoms_previous, MPI_Wtime() - time1);
 }
 
 /* ----------------------------------------------------------------------

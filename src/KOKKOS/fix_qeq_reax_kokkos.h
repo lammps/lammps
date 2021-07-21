@@ -1,6 +1,7 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,11 +13,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(qeq/reax/kk,FixQEqReaxKokkos<LMPDeviceType>)
-FixStyle(qeq/reax/kk/device,FixQEqReaxKokkos<LMPDeviceType>)
-FixStyle(qeq/reax/kk/host,FixQEqReaxKokkos<LMPHostType>)
-
+// clang-format off
+FixStyle(qeq/reax/kk,FixQEqReaxKokkos<LMPDeviceType>);
+FixStyle(qeq/reax/kk/device,FixQEqReaxKokkos<LMPDeviceType>);
+FixStyle(qeq/reax/kk/host,FixQEqReaxKokkos<LMPHostType>);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_QEQ_REAX_KOKKOS_H
@@ -26,6 +27,7 @@ FixStyle(qeq/reax/kk/host,FixQEqReaxKokkos<LMPHostType>)
 #include "kokkos_type.h"
 #include "neigh_list.h"
 #include "neigh_list_kokkos.h"
+#include "kokkos_base.h"
 
 namespace LAMMPS_NS {
 
@@ -33,9 +35,11 @@ struct TagSparseMatvec1 {};
 struct TagSparseMatvec2 {};
 struct TagSparseMatvec3 {};
 struct TagZeroQGhosts{};
+struct TagFixQEqReaxPackForwardComm {};
+struct TagFixQEqReaxUnpackForwardComm {};
 
 template<class DeviceType>
-class FixQEqReaxKokkos : public FixQEqReax {
+class FixQEqReaxKokkos : public FixQEqReax, public KokkosBase {
  public:
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
@@ -136,14 +140,23 @@ class FixQEqReaxKokkos : public FixQEqReax {
   KOKKOS_INLINE_FUNCTION
   double calculate_H_k(const F_FLOAT &r, const F_FLOAT &shld) const;
 
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagFixQEqReaxPackForwardComm, const int&) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagFixQEqReaxUnpackForwardComm, const int&) const;
+
   struct params_qeq{
     KOKKOS_INLINE_FUNCTION
-    params_qeq(){chi=0;eta=0;gamma=0;};
+    params_qeq() {chi=0;eta=0;gamma=0;};
     KOKKOS_INLINE_FUNCTION
-    params_qeq(int /*i*/){chi=0;eta=0;gamma=0;};
+    params_qeq(int /*i*/) {chi=0;eta=0;gamma=0;};
     F_FLOAT chi, eta, gamma;
   };
 
+  int pack_forward_comm_fix_kokkos(int, DAT::tdual_int_2d, int, DAT::tdual_xfloat_1d&,
+                       int, int *);
+  void unpack_forward_comm_fix_kokkos(int, int, DAT::tdual_xfloat_1d&);
   virtual int pack_forward_comm(int, int *, double *, int, int *);
   virtual void unpack_forward_comm(int, int, double *);
   int pack_reverse_comm(int, int, double *);
@@ -203,6 +216,11 @@ class FixQEqReaxKokkos : public FixQEqReax {
   Kokkos::Experimental::ScatterView<F_FLOAT*, typename AT::t_ffloat_1d::array_layout, typename KKDevice<DeviceType>::value, Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated> dup_o;
   Kokkos::Experimental::ScatterView<F_FLOAT*, typename AT::t_ffloat_1d::array_layout, typename KKDevice<DeviceType>::value, Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated> ndup_o;
 
+  int iswap;
+  int first;
+  typename AT::t_int_2d d_sendlist;
+  typename AT::t_xfloat_1d_um d_buf;
+
   void init_shielding_k();
   void init_hist();
   void allocate_matrix();
@@ -215,11 +233,6 @@ class FixQEqReaxKokkos : public FixQEqReax {
   int nlocal,nall,nmax,newton_pair;
   int count, isuccess;
   double alpha, beta, delta, cutsq;
-
-  int iswap;
-  int first;
-  typename AT::t_int_2d d_sendlist;
-  typename AT::t_xfloat_1d_um v_buf;
 
   void grow_arrays(int);
   void copy_arrays(int, int, int);

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,25 +17,18 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_coul_cut_gpu.h"
-#include <cmath>
-#include <cstdio>
 
-#include <cstring>
 #include "atom.h"
-#include "atom_vec.h"
-#include "comm.h"
-#include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "integrate.h"
-#include "memory.h"
-#include "error.h"
-#include "neigh_request.h"
-#include "universe.h"
-#include "update.h"
 #include "domain.h"
+#include "error.h"
+#include "force.h"
 #include "gpu_extra.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
 #include "suffix.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -47,21 +41,21 @@ int coul_gpu_init(const int ntypes, double **host_scale, double **cutsq,
                   const double qqrd2e);
 void coul_gpu_reinit(const int ntypes, double **host_scale);
 void coul_gpu_clear();
-int ** coul_gpu_compute_n(const int ago, const int inum,
-                         const int nall, double **host_x, int *host_type,
-                         double *sublo, double *subhi, tagint *tag, int **nspecial,
-                         tagint **special, const bool eflag, const bool vflag,
-                         const bool eatom, const bool vatom, int &host_start,
-                         int **ilist, int **jnum, const double cpu_time,
-                         bool &success, double *host_q, double *boxlo,
-                         double *prd);
+int ** coul_gpu_compute_n(const int ago, const int inum, const int nall,
+                          double **host_x, int *host_type, double *sublo,
+                          double *subhi, tagint *tag, int **nspecial,
+                          tagint **special, const bool eflag, const bool vflag,
+                          const bool eatom, const bool vatom, int &host_start,
+                          int **ilist, int **jnum, const double cpu_time,
+                          bool &success, double *host_q, double *boxlo,
+                          double *prd);
 void coul_gpu_compute(const int ago, const int inum,
                       const int nall, double **host_x, int *host_type,
-                     int *ilist, int *numj, int **firstneigh,
-                     const bool eflag, const bool vflag, const bool eatom,
-                     const bool vatom, int &host_start, const double cpu_time,
-                     bool &success, double *host_q, const int nlocal,
-                     double *boxlo, double *prd);
+                      int *ilist, int *numj, int **firstneigh,
+                      const bool eflag, const bool vflag, const bool eatom,
+                      const bool vatom, int &host_start, const double cpu_time,
+                      bool &success, double *host_q, const int nlocal,
+                      double *boxlo, double *prd);
 double coul_gpu_bytes();
 
 /* ---------------------------------------------------------------------- */
@@ -144,7 +138,7 @@ void PairCoulCutGPU::init_style()
     error->all(FLERR,"Pair style coul/cut/gpu requires atom attribute q");
 
   if (force->newton_pair)
-    error->all(FLERR,"Cannot use newton pair with coul/cut/gpu pair style");
+    error->all(FLERR,"Pair style coul/cut/gpu requires newton pair off");
 
   // Repeat cutsq calculation because done after call to init_style
   double maxcut = -1.0;
@@ -164,11 +158,12 @@ void PairCoulCutGPU::init_style()
   double cell_size = sqrt(maxcut) + neighbor->skin;
 
   int maxspecial=0;
-  if (atom->molecular)
+  if (atom->molecular != Atom::ATOMIC)
     maxspecial=atom->maxspecial;
+  int mnf = 5e-2 * neighbor->oneatom;
   int success = coul_gpu_init(atom->ntypes+1, scale, cutsq,
                              force->special_coul, atom->nlocal,
-                             atom->nlocal+atom->nghost, 300, maxspecial,
+                             atom->nlocal+atom->nghost, mnf, maxspecial,
                              cell_size, gpu_mode, screen, force->qqrd2e);
   GPU_EXTRA::check_flag(success,error,world);
 

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -393,7 +394,7 @@ void RegPrism::find_nearest(double *x, double &xp, double &yp, double &zp)
     xproj[0] = x[0] - dot*face[iface][0];
     xproj[1] = x[1] - dot*face[iface][1];
     xproj[2] = x[2] - dot*face[iface][2];
-    if (inside_tri(xproj,corners[i],corners[j],corners[k],face[iface])){
+    if (inside_tri(xproj,corners[i],corners[j],corners[k],face[iface])) {
       distsq = closest(x,xproj,nearest,distsq);
     }
     else {

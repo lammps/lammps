@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,21 +17,23 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_deform.h"
-#include <cstring>
-#include <cmath>
+
 #include "atom.h"
-#include "update.h"
 #include "comm.h"
-#include "irregular.h"
 #include "domain.h"
-#include "lattice.h"
-#include "force.h"
-#include "modify.h"
-#include "math_const.h"
-#include "kspace.h"
-#include "input.h"
-#include "variable.h"
 #include "error.h"
+#include "force.h"
+#include "input.h"
+#include "irregular.h"
+#include "kspace.h"
+#include "lattice.h"
+#include "math_const.h"
+#include "modify.h"
+#include "update.h"
+#include "variable.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -126,12 +129,8 @@ rfix(nullptr), irregular(nullptr), set(nullptr)
           error->all(FLERR,"Illegal fix deform command");
         delete [] set[index].hstr;
         delete [] set[index].hratestr;
-        int n = strlen(&arg[iarg+2][2]) + 1;
-        set[index].hstr = new char[n];
-        strcpy(set[index].hstr,&arg[iarg+2][2]);
-        n = strlen(&arg[iarg+3][2]) + 1;
-        set[index].hratestr = new char[n];
-        strcpy(set[index].hratestr,&arg[iarg+3][2]);
+        set[index].hstr = utils::strdup(&arg[iarg+2][2]);
+        set[index].hratestr = utils::strdup(&arg[iarg+3][2]);
         iarg += 4;
       } else error->all(FLERR,"Illegal fix deform command");
 
@@ -188,12 +187,8 @@ rfix(nullptr), irregular(nullptr), set(nullptr)
           error->all(FLERR,"Illegal fix deform command");
         delete [] set[index].hstr;
         delete [] set[index].hratestr;
-        int n = strlen(&arg[iarg+2][2]) + 1;
-        set[index].hstr = new char[n];
-        strcpy(set[index].hstr,&arg[iarg+2][2]);
-        n = strlen(&arg[iarg+3][2]) + 1;
-        set[index].hratestr = new char[n];
-        strcpy(set[index].hratestr,&arg[iarg+3][2]);
+        set[index].hstr = utils::strdup(&arg[iarg+2][2]);
+        set[index].hratestr = utils::strdup(&arg[iarg+3][2]);
         iarg += 4;
       } else error->all(FLERR,"Illegal fix deform command");
 
@@ -362,7 +357,7 @@ rfix(nullptr), irregular(nullptr), set(nullptr)
 
 FixDeform::~FixDeform()
 {
-  if(set) {
+  if (set) {
     for (int i = 0; i < 6; i++) {
       delete [] set[i].hstr;
       delete [] set[i].hratestr;
@@ -722,7 +717,7 @@ void FixDeform::end_of_step()
   // set new box size for VOLUME dims that are linked to other dims
   // NOTE: still need to set h_rate for these dims
 
-  for (int i = 0; i < 3; i++) {
+  for (i = 0; i < 3; i++) {
     if (set[i].style != VOLUME) continue;
 
     if (set[i].substyle == ONE_FROM_ONE) {

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -14,9 +14,9 @@
    Joel.Eaves@Colorado.edu
    ------------------------------------------------------------------------- */
 #ifdef FIX_CLASS
-
-FixStyle(flow/gauss,FixFlowGauss)
-
+// clang-format off
+FixStyle(flow/gauss,FixFlowGauss);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_FLOWGAUSS_H
@@ -24,33 +24,32 @@ FixStyle(flow/gauss,FixFlowGauss)
 
 #include "fix.h"
 
-  namespace LAMMPS_NS {
+namespace LAMMPS_NS {
 
-    class FixFlowGauss : public Fix {
-    public:
-      FixFlowGauss(class LAMMPS *, int, char **);
-      int setmask();
-      void init();
-      void setup(int);
-      void post_force(int);
-      void post_force_respa(int, int, int);
-      double compute_scalar();
-      double compute_vector(int n);
+class FixFlowGauss : public Fix {
+ public:
+  FixFlowGauss(class LAMMPS *, int, char **);
+  int setmask();
+  void init();
+  void setup(int);
+  void post_force(int);
+  void post_force_respa(int, int, int);
+  double compute_scalar();
+  double compute_vector(int n);
 
-    protected:
-      int dimension;
-      bool flow[3];       //flag if each direction is conserved
-      double a_app[3];    //applied acceleration
-      double mTot;        //total mass of constrained group
-      double f_tot[3];    //total applied force
-      double pe_tot;      //total added energy
-      double dt;          //timestep
-      bool workflag;      //if calculate work done by fix
-      int ilevel_respa;
+ protected:
+  int dimension;
+  bool flow[3];       //flag if each direction is conserved
+  double a_app[3];    //applied acceleration
+  double mTot;        //total mass of constrained group
+  double f_tot[3];    //total applied force
+  double pe_tot;      //total added energy
+  double dt;          //timestep
+  bool workflag;      //if calculate work done by fix
+  int ilevel_respa;
+};
 
-    };
-
-  }
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

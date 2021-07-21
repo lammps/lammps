@@ -1132,6 +1132,7 @@ Germano
 gerolf
 Gerolf
 Gershgorin
+getter
 gettimeofday
 gewald
 Gezelter

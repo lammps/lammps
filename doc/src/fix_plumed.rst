@@ -41,7 +41,7 @@ and when PLUMED is used as a stand alone code for analysis.  The full
 `documentation for PLUMED <plumeddocs_>`_ is available online and included
 in the PLUMED source code.  The PLUMED library development is hosted at
 `https://github.com/plumed/plumed2 <https://github.com/plumed/plumed2>`_
-A detailed discussion of the code can be found in :ref:`(PLUMED) <PLUMED>`.
+A detailed discussion of the code can be found in :ref:`(Tribello) <Tribello>`.
 
 There is an example input for using this package with LAMMPS in the
 examples/PACKAGES/plumed directory.
@@ -132,9 +132,9 @@ The default options are plumedfile = NULL and outfile = NULL
 
 ----------
 
-.. _PLUMED:
+.. _Tribello:
 
-**(PLUMED)** G.A. Tribello, M. Bonomi, D. Branduardi, C. Camilloni and G. Bussi, Comp. Phys. Comm 185, 604 (2014)
+**(Tribello)** G.A. Tribello, M. Bonomi, D. Branduardi, C. Camilloni and G. Bussi, Comp. Phys. Comm 185, 604 (2014)
 
 .. _plumeddocs: https://www.plumed.org/doc.html
 

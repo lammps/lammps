@@ -4806,8 +4806,8 @@ void lammps_decode_image_flags(imageint image, int *flags)
 
 /* ---------------------------------------------------------------------- */
 
-/** Set the callback function for a fix external instance with the given ID.
-    Optionally also set the pointer to the calling object.
+/** Set up the callback function for a fix external instance with the given ID.
+
 \verbatim embed:rst
 
 Fix :doc:`external <fix_external>` allows programs that are running LAMMPS through
@@ -4821,7 +4821,15 @@ mode. The function has to have C language bindings with the prototype:
 
    void func(void *ptr, bigint timestep, int nlocal, tagint *ids, double **x, double **fexternal);
 
-This is an alternative to the array mechanism set up by :cpp:func:`lammps_fix_external_get_force`.
+The argument *ptr* to this function will be stored in fix external and
+the passed as the first argument calling the callback function `func()`.
+This would usually be a pointer to the LAMMPS instance, i.e. the same
+pointer as the *handle* argument.  This would be needed to call
+functions that set the global or per-atom energy or virial
+contributions.
+
+The callback mechanism is on of the two modes of fix external. The
+alternative is the array mode set up by :cpp:func:`lammps_fix_external_get_force`.
 
 Please see the documentation for :doc:`fix external <fix_external>` for
 more information about how to use the fix and how to couple it with an
@@ -4865,16 +4873,24 @@ its library interface to add or modify certain LAMMPS properties on specific
 timesteps, similar to the way other fixes do.
 
 This function provides access to the per-atom force storage in the fix
-to be added to the individual atoms when using the "pf/array" mode. The
-*fexternal* array can be accessed similar to the "native" per-atom
-*arrays accessible via the :cpp:func:`lammps_extract_atom` function.
-Because the underlying data structures can change as atoms migrate
-between MPI processes, this function should be always called immediately
-before the forces are going to be set.
+external instance to be added to the individual atoms when using the
+"pf/array" mode.  The *fexternal* array can be accessed similar to the
+"native" per-atom *arrays accessible via the
+:cpp:func:`lammps_extract_atom` function.  Please note that the array
+stores forces for *local* atoms, in the order determined by the neighbor
+list build. Because the underlying data structures can change as well as
+the order of atom as they migrate between MPI processes, this function
+should be always called immediately before the forces are going to be
+set to get an up-to-date pointer.  You can use
+e.g. :cpp:func:`lammps_get_natoms` to obtain the number of local atoms
+and thus the dimensions of the returned force array (``double force[nlocal][3]``).
 
-This is an alternative to the callback mechanism set up by
-:cpp:func:`lammps_set_fix_external_callback` with out using the callback
-mechanism to call out to the external program.
+This is an alternative to the callback mechanism in fix external set up by
+:cpp:func:`lammps_set_fix_external_callback`. The main difference is
+that this mechanism can be used when forces can be pre-computed and the
+control alternates between LAMMPS and the external command, while the
+callback mechanism can call the external code to compute the force when
+the fix is triggered and needs them.
 
 Please see the documentation for :doc:`fix external <fix_external>` for
 more information about how to use the fix and how to couple it with an
@@ -4914,9 +4930,11 @@ double **lammps_fix_external_get_force(void *handle, const char *id)
 
 This is a companion function to :cpp:func:`lammps_set_fix_external_callback` and
 :cpp:func:`lammps_fix_external_get_force` to also set the contribution
-to the global energy from the external code. The value of the *eng*
+to the global energy from the external code.  The value of the *eng*
 argument will be stored in the fix and applied on the current and all
-following timesteps until changed.
+following timesteps until changed by another call to this function.
+When running in parallel, the value is the per-MPI process contribution,
+not the total energy.
 
 Please see the documentation for :doc:`fix external <fix_external>` for
 more information about how to use the fix and how to couple it with an

@@ -15,6 +15,7 @@
 #include "fix_external.h"
 
 #include "atom.h"
+#include "comm.h"
 #include "error.h"
 #include "memory.h"
 #include "update.h"
@@ -185,10 +186,13 @@ void FixExternal::min_post_force(int vflag)
 
 /* ----------------------------------------------------------------------
    caller invokes this method to set its contribution to global energy
+   this is the *total* energy across all MPI ranks of the external code
+   and must be set for all MPI ranks.
    unlike other energy/virial set methods:
      do not just return if eflag_global is not set
      b/c input script could access this quantity via compute_scalar()
      even if eflag is not set on a particular timestep
+   this function is compatible with CALLBACK and ARRAY mode
 ------------------------------------------------------------------------- */
 
 void FixExternal::set_energy_global(double caller_energy)
@@ -197,22 +201,32 @@ void FixExternal::set_energy_global(double caller_energy)
 }
 
 /* ----------------------------------------------------------------------
-   caller invokes this method to set its contribution to global virial
+   caller invokes this method to set its contribution to the global virial
+   for all MPI ranks.  the virial value is the *total* contribution across
+   all MPI ranks of the external code and thus we need to divide by the
+   number of MPI ranks since the tallying code expects per MPI rank contributions.
+   this function is compatible with PF_CALLBACK and PF_ARRAY mode
 ------------------------------------------------------------------------- */
 
 void FixExternal::set_virial_global(double *caller_virial)
 {
+  const double npscale = 1.0/(double)comm->nprocs;
   for (int i = 0; i < 6; i++)
-    user_virial[i] = caller_virial[i];
+    user_virial[i] = npscale * caller_virial[i];
 }
 
 /* ----------------------------------------------------------------------
-   caller invokes this method to set its contribution to peratom energy
+   caller invokes this method to set its contribution to peratom energy.
+   this is applied to the *local* atoms only.
+   this function is compatible with PF_CALLBACK mode only since it tallies
+   its energy contributions directly into the accumulator arrays.
 ------------------------------------------------------------------------- */
 
 void FixExternal::set_energy_peratom(double *caller_energy)
 {
   if (!eflag_atom) return;
+  if ((mode == PF_ARRAY) && (comm->me == 0))
+    error->warning(FLERR,"Can only set energy/atom for fix external in pf/callback mode");
 
   int nlocal = atom->nlocal;
   for (int i = 0; i < nlocal; i++)
@@ -221,6 +235,9 @@ void FixExternal::set_energy_peratom(double *caller_energy)
 
 /* ----------------------------------------------------------------------
    caller invokes this method to set its contribution to peratom virial
+   this is applied to the *local* atoms only.
+   this function is compatible with PF_CALLBACK mode only since it tallies
+   its virial contributions directly into the accumulator arrays.
 ------------------------------------------------------------------------- */
 
 void FixExternal::set_virial_peratom(double **caller_virial)
@@ -228,6 +245,8 @@ void FixExternal::set_virial_peratom(double **caller_virial)
   int i,j;
 
   if (!vflag_atom) return;
+  if ((mode == PF_ARRAY) && (comm->me == 0))
+    error->warning(FLERR,"Can only set virial/atom for fix external in pf/callback mode");
 
   int nlocal = atom->nlocal;
   for (i = 0; i < nlocal; i++)
@@ -236,8 +255,8 @@ void FixExternal::set_virial_peratom(double **caller_virial)
 }
 
 /* ----------------------------------------------------------------------
-   caller invokes this method to set length of vector of values
-   assume all vector values are extensive, could make this an option
+   caller invokes this method to set length of global vector of values
+   assume all vector values are extensive.
 ------------------------------------------------------------------------- */
 
 void FixExternal::set_vector_length(int n)
@@ -252,14 +271,15 @@ void FixExternal::set_vector_length(int n)
 }
 
 /* ----------------------------------------------------------------------
-   caller invokes this method to set Index value in vector
-   index ranges from 1 to N inclusive
+   caller invokes this method to set value for item at "index" in vector
+   index is 1-based, thus index ranges from 1 to N inclusively.
+   Must be called from all MPI ranks.
 ------------------------------------------------------------------------- */
 
 void FixExternal::set_vector(int index, double value)
 {
   if (index > size_vector)
-    error->all(FLERR,"Invalid set_vector index in fix external");
+    error->all(FLERR,"Invalid set_vector index ({} of {}) in fix external",index,size_vector);
   caller_vector[index-1] = value;
 }
 
@@ -290,6 +310,7 @@ double FixExternal::compute_vector(int n)
 double FixExternal::memory_usage()
 {
   double bytes = 3*atom->nmax * sizeof(double);
+  bytes += 6*sizeof(double);
   return bytes;
 }
 

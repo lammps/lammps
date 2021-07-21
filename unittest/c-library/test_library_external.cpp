@@ -162,13 +162,17 @@ TEST(lammps_external, array)
     for (int i = 0; i < nlocal; ++i)
         force[i][0] = force[i][1] = force[i][2] = 0.0;
     lammps_fix_external_set_energy_global(handle, "ext", 0.5);
+    double v[6] = {0.5, 0.5, 0.5, 0.0, 0.0, 0.0};
+    lammps_fix_external_set_virial_global(handle, "ext", v);
     lammps_command(handle, "run 5 post no");
-    double temp = lammps_get_thermo(handle, "temp");
-    double pe   = lammps_get_thermo(handle, "pe");
-    output      = ::testing::internal::GetCapturedStdout();
+    double temp  = lammps_get_thermo(handle, "temp");
+    double pe    = lammps_get_thermo(handle, "pe");
+    double press = lammps_get_thermo(handle, "press");
+    output       = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
     EXPECT_DOUBLE_EQ(temp, 4.0 / 525.0);
     EXPECT_DOUBLE_EQ(pe, 1.0 / 16.0);
+    EXPECT_DOUBLE_EQ(press, 0.069166666666666668);
 
     ::testing::internal::CaptureStdout();
     nlocal = lammps_extract_setting(handle, "nlocal");
@@ -176,13 +180,18 @@ TEST(lammps_external, array)
     for (int i = 0; i < nlocal; ++i)
         force[i][0] = force[i][1] = force[i][2] = 6.0;
     lammps_fix_external_set_energy_global(handle, "ext", 1.0);
+    v[0] = v[1] = v[2] = 1.0;
+    v[3] = v[4] = v[5] = 0.0;
+    lammps_fix_external_set_virial_global(handle, "ext", v);
     lammps_command(handle, "run 5 post no");
     temp   = lammps_get_thermo(handle, "temp");
     pe     = lammps_get_thermo(handle, "pe");
+    press  = lammps_get_thermo(handle, "press");
     output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
     EXPECT_DOUBLE_EQ(temp, 1.0 / 30.0);
     EXPECT_DOUBLE_EQ(pe, 1.0 / 8.0);
+    EXPECT_DOUBLE_EQ(press, 0.15416666666666667);
 
     ::testing::internal::CaptureStdout();
     lammps_close(handle);

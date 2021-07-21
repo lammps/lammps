@@ -75,7 +75,8 @@ class PythonExternal(unittest.TestCase):
                         velocity all set 0.1 0.0 -0.1
                         fix 1 all nve
                         fix ext all external pf/array 1
-                        thermo_style custom step temp pe ke
+                        fix_modify ext energy yes virial yes
+                        thermo_style custom step temp pe ke press
                         thermo 5
 """
         lmp.commands_string(basic_system)
@@ -86,10 +87,12 @@ class PythonExternal(unittest.TestCase):
             force[i][1] = 0.0
             force[i][2] = 0.0
         lmp.fix_external_set_energy_global("ext", 0.5)
-            
+        lmp.fix_external_set_virial_global("ext",[0.5, 0.5, 0.5, 0.0, 0.0, 0.0])
+
         lmp.command("run 5 post no")
         self.assertAlmostEqual(lmp.get_thermo("temp"),4.0/525.0,14)
         self.assertAlmostEqual(lmp.get_thermo("pe"),1.0/16.0,14)
+        self.assertAlmostEqual(lmp.get_thermo("press"),0.06916666666666667,14)
 
         force = lmp.fix_external_get_force("ext");
         nlocal = lmp.extract_setting("nlocal");
@@ -98,9 +101,11 @@ class PythonExternal(unittest.TestCase):
             force[i][1] = 6.0
             force[i][2] = 6.0
         lmp.fix_external_set_energy_global("ext", 1.0)
+        lmp.fix_external_set_virial_global("ext",[1.0, 1.0, 1.0, 0.0, 0.0, 0.0])
         lmp.command("run 5 post no")
         self.assertAlmostEqual(lmp.get_thermo("temp"),1.0/30.0,14)
         self.assertAlmostEqual(lmp.get_thermo("pe"),1.0/8.0,14)
+        self.assertAlmostEqual(lmp.get_thermo("press"),0.15416666666666667,14)
 
 ##############################
 if __name__ == "__main__":

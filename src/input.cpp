@@ -31,6 +31,7 @@
 #include "group.h"
 #include "improper.h"
 #include "kspace.h"
+#include "label_map.h"
 #include "memory.h"
 #include "min.h"
 #include "modify.h"
@@ -672,6 +673,42 @@ void Input::substitute(char *&str, char *&str2, int &max, int &max2, int flag)
 }
 
 /* ----------------------------------------------------------------------
+   substitute type labels with numeric value
+   reallocate str to hold expanded version if necessary
+   return flag if new pointer, caller will need to delete []
+   if type is a valid numerical string (can include '*'), do not modify
+------------------------------------------------------------------------- */
+
+int Input::readtype(char *&str, int mode)
+{
+  int numflag = 1;
+  int n = strlen(str);
+  for (int i = 0; i < n; i++)
+    if (!isdigit(str[i]) && str[i] != '*') numflag = 0;
+  if (numflag) return 0;
+  if (!atom->labelmapflag) error->all(FLERR,fmt::format("Invalid type {}",str));
+
+  int type,max,max2;
+  std::string labelstr;
+  char typechar[256];
+
+  labelstr = str;
+  type = atom->find_label(labelstr,mode);
+  if (type == -1) error->all(FLERR,fmt::format("Invalid type {}",str));
+  sprintf(typechar,"%d",type);
+
+  max = strlen(str) + 1;
+  max2 = strlen(typechar) + 1;
+  if (max2 > max) {
+    str = new char[max2];
+    strcpy(str,typechar);
+    return 1;
+  } else strcpy(str,typechar);
+
+  return 0;
+}
+
+/* ----------------------------------------------------------------------
    return number of triple quotes in line
 ------------------------------------------------------------------------- */
 
@@ -751,6 +788,7 @@ int Input::execute_command()
   else if (!strcmp(command,"improper_style")) improper_style();
   else if (!strcmp(command,"kspace_modify")) kspace_modify();
   else if (!strcmp(command,"kspace_style")) kspace_style();
+  else if (!strcmp(command,"labelmap")) labelmap();
   else if (!strcmp(command,"lattice")) lattice();
   else if (!strcmp(command,"mass")) mass();
   else if (!strcmp(command,"min_modify")) min_modify();
@@ -1320,7 +1358,9 @@ void Input::angle_coeff()
     error->all(FLERR,"Angle_coeff command before angle_style is defined");
   if (atom->avec->angles_allow == 0)
     error->all(FLERR,"Angle_coeff command when no angles allowed");
+  int newflag = readtype(arg[0],Atom::ANGLE);
   force->angle->coeff(narg,arg);
+  if (newflag) delete [] arg[0];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1361,7 +1401,9 @@ void Input::bond_coeff()
     error->all(FLERR,"Bond_coeff command before bond_style is defined");
   if (atom->avec->bonds_allow == 0)
     error->all(FLERR,"Bond_coeff command when no bonds allowed");
+  int newflag = readtype(arg[0],Atom::BOND);
   force->bond->coeff(narg,arg);
+  if (newflag) delete [] arg[0];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1464,7 +1506,9 @@ void Input::dihedral_coeff()
     error->all(FLERR,"Dihedral_coeff command before dihedral_style is defined");
   if (atom->avec->dihedrals_allow == 0)
     error->all(FLERR,"Dihedral_coeff command when no dihedrals allowed");
+  int newflag = readtype(arg[0],Atom::DIHEDRAL);
   force->dihedral->coeff(narg,arg);
+  if (newflag) delete [] arg[0];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1541,7 +1585,9 @@ void Input::improper_coeff()
     error->all(FLERR,"Improper_coeff command before improper_style is defined");
   if (atom->avec->impropers_allow == 0)
     error->all(FLERR,"Improper_coeff command when no impropers allowed");
+  int newflag = readtype(arg[0],Atom::IMPROPER);
   force->improper->coeff(narg,arg);
+  if (newflag) delete [] arg[0];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1570,6 +1616,31 @@ void Input::kspace_style()
 {
   force->create_kspace(arg[0],1);
   if (force->kspace) force->kspace->settings(narg-1,&arg[1]);
+}
+/* ---------------------------------------------------------------------- */
+
+void Input::labelmap()
+{
+  if (narg < 2 || (narg % 2 == 0)) error->all(FLERR,"Illegal labelmap command");
+  if (domain->box_exist == 0)
+    error->all(FLERR,"Labelmap command before simulation box is defined");
+
+  if (!atom->labelmapflag) atom->add_label_map();
+
+  int ilmap = 0;
+  std::string mapid;
+  for (int i = 1; i < narg; i++) {
+    if (strcmp(arg[i],"map/assign") == 0) {
+      mapid = arg[i+1];
+      ilmap = atom->find_labelmap(mapid);
+      if (ilmap == -1) ilmap = atom->add_label_map(mapid);
+      if (narg > i+2) error->all(FLERR,"Illegal labelmap command");
+      narg = narg - 2;
+      break;
+    }
+    i++;
+  }
+  atom->lmaps[ilmap]->modify_lmap(narg,arg);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1710,9 +1781,32 @@ void Input::pair_coeff()
   if (force->pair == nullptr)
     error->all(FLERR,"Pair_coeff command before pair_style is defined");
   if ((narg < 2) || (force->pair->one_coeff && ((strcmp(arg[0],"*") != 0)
-                                               || (strcmp(arg[1],"*") != 0))))
+                                             || (strcmp(arg[1],"*") != 0))))
     error->all(FLERR,"Incorrect args for pair coefficients");
+  
+  int newflag0 = readtype(arg[0],Atom::ATOM);
+  int newflag1 = readtype(arg[1],Atom::ATOM);
+
+  // if arg[1] < arg[0], and neither contain a wildcard, reorder
+
+  int tmpflag,itype,jtype;
+  char *str;
+  if (strchr(arg[0],'*') == nullptr && strchr(arg[1],'*') == nullptr) {
+    itype = utils::numeric(FLERR,arg[0],false,lmp);
+    jtype = utils::numeric(FLERR,arg[1],false,lmp);
+    if (jtype < itype) {
+      str = arg[0];
+      arg[0] = arg[1];
+      arg[1] = str;
+      tmpflag = newflag0;
+      newflag0 = newflag1;
+      newflag1 = tmpflag;
+    }
+  }
+
   force->pair->coeff(narg,arg);
+  if (newflag0) delete [] arg[0];
+  if (newflag1) delete [] arg[1];
 }
 
 /* ---------------------------------------------------------------------- */

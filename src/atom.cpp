@@ -24,6 +24,7 @@
 #include "force.h"
 #include "group.h"
 #include "input.h"
+#include "label_map.h"
 #include "math_const.h"
 #include "memory.h"
 #include "modify.h"
@@ -215,6 +216,11 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   nmolecule = 0;
   molecules = nullptr;
 
+  // type labels
+
+  nlmap = 0;
+  lmaps = nullptr;
+
   // custom atom arrays
 
   nivector = ndvector = 0;
@@ -320,6 +326,11 @@ Atom::~Atom()
 
   for (int i = 0; i < nmolecule; i++) delete molecules[i];
   memory->sfree(molecules);
+
+  // delete label maps
+
+  for (int i = 0; i < nlmap; i++) delete lmaps[i];
+  memory->sfree(lmaps);
 
   // delete per-type arrays
 
@@ -622,6 +633,7 @@ void Atom::set_atomflag_defaults()
   // 3rd customization section: customize by adding new flag
   // identical list as 2nd customization in atom.h
 
+  labelmapflag = 0;
   sphere_flag = ellipsoid_flag = line_flag = tri_flag = body_flag = 0;
   peri_flag = electron_flag = 0;
   wavepacket_flag = sph_flag = 0;
@@ -1038,7 +1050,8 @@ void Atom::deallocate_topology()
 ------------------------------------------------------------------------- */
 
 void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
-                      int type_offset, int shiftflag, double *shift)
+                      int type_offset, int shiftflag, double *shift,
+                      int labelflag, int *ilabel)
 {
   int m,xptr,iptr;
   imageint imagedata;
@@ -1173,6 +1186,7 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
       avec->data_atom(xdata,imagedata,values);
       if (id_offset) tag[nlocal-1] += id_offset;
       if (mol_offset) molecule[nlocal-1] += mol_offset;
+      if (labelflag) type[nlocal-1] = ilabel[type[nlocal-1]-1];
       if (type_offset) {
         type[nlocal-1] += type_offset;
         if (type[nlocal-1] > ntypes)
@@ -1257,7 +1271,7 @@ void Atom::data_vels(int n, char *buf, tagint id_offset)
 ------------------------------------------------------------------------- */
 
 void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset,
-                      int type_offset)
+                      int type_offset, int labelflag, int *ilabel)
 {
   int m,tmp,itype,rv;
   tagint atom1,atom2;
@@ -1275,6 +1289,7 @@ void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset,
       atom1 += id_offset;
       atom2 += id_offset;
     }
+    if (labelflag) itype = ilabel[itype-1];
     itype += type_offset;
 
     if ((atom1 <= 0) || (atom1 > map_tag_max) ||
@@ -1314,7 +1329,7 @@ void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset,
 ------------------------------------------------------------------------- */
 
 void Atom::data_angles(int n, char *buf, int *count, tagint id_offset,
-                       int type_offset)
+                       int type_offset, int labelflag, int *ilabel)
 {
   int m,tmp,itype,rv;
   tagint atom1,atom2,atom3;
@@ -1333,6 +1348,7 @@ void Atom::data_angles(int n, char *buf, int *count, tagint id_offset,
       atom2 += id_offset;
       atom3 += id_offset;
     }
+    if (labelflag) itype = ilabel[itype-1];
     itype += type_offset;
 
     if ((atom1 <= 0) || (atom1 > map_tag_max) ||
@@ -1386,7 +1402,7 @@ void Atom::data_angles(int n, char *buf, int *count, tagint id_offset,
 ------------------------------------------------------------------------- */
 
 void Atom::data_dihedrals(int n, char *buf, int *count, tagint id_offset,
-                          int type_offset)
+                          int type_offset, int labelflag, int *ilabel)
 {
   int m,tmp,itype,rv;
   tagint atom1,atom2,atom3,atom4;
@@ -1407,6 +1423,7 @@ void Atom::data_dihedrals(int n, char *buf, int *count, tagint id_offset,
       atom3 += id_offset;
       atom4 += id_offset;
     }
+    if (labelflag) itype = ilabel[itype-1];
     itype += type_offset;
 
     if ((atom1 <= 0) || (atom1 > map_tag_max) ||
@@ -1477,7 +1494,7 @@ void Atom::data_dihedrals(int n, char *buf, int *count, tagint id_offset,
 ------------------------------------------------------------------------- */
 
 void Atom::data_impropers(int n, char *buf, int *count, tagint id_offset,
-                          int type_offset)
+                          int type_offset, int labelflag, int *ilabel)
 {
   int m,tmp,itype,rv;
   tagint atom1,atom2,atom3,atom4;
@@ -1498,6 +1515,7 @@ void Atom::data_impropers(int n, char *buf, int *count, tagint id_offset,
       atom3 += id_offset;
       atom4 += id_offset;
     }
+    if (labelflag) itype = ilabel[itype-1];
     itype += type_offset;
 
     if ((atom1 <= 0) || (atom1 > map_tag_max) ||
@@ -1745,7 +1763,8 @@ void Atom::allocate_type_arrays()
    type_offset may be used when reading multiple data files
 ------------------------------------------------------------------------- */
 
-void Atom::set_mass(const char *file, int line, const char *str, int type_offset)
+void Atom::set_mass(const char *file, int line, const char *str, int type_offset,
+                    int labelflag, int *ilabel)
 {
   if (mass == nullptr) error->all(file,line,"Cannot set mass for this atom style");
 
@@ -1753,6 +1772,7 @@ void Atom::set_mass(const char *file, int line, const char *str, int type_offset
   double mass_one;
   int n = sscanf(str,"%d %lg",&itype,&mass_one);
   if (n != 2) error->all(file,line,"Invalid mass line in data file");
+  if (labelflag) itype = ilabel[itype-1];
   itype += type_offset;
 
   if (itype < 1 || itype > ntypes)
@@ -2012,6 +2032,62 @@ void Atom::add_molecule_atom(Molecule *onemol, int iatom,
     for (int i = 0; i < n; i++)
       special[ilocal][i] = onemol->special[iatom][i] + offset;
   }
+}
+
+/* ----------------------------------------------------------------------
+   allocate space for type label map
+------------------------------------------------------------------------- */
+
+int Atom::add_label_map(std::string mapID)
+{
+  labelmapflag = 1;
+  lmaps = (LabelMap **)
+    memory->srealloc(lmaps,(nlmap+1)*sizeof(LabelMap *),
+                     "atom::lmaps");
+  lmaps[nlmap] = new LabelMap(lmp);
+  lmaps[nlmap]->id = mapID;
+  lmaps[nlmap]->natomtypes = ntypes;
+  lmaps[nlmap]->nbondtypes = nbondtypes;
+  lmaps[nlmap]->nangletypes = nangletypes;
+  lmaps[nlmap]->ndihedraltypes = ndihedraltypes;
+  lmaps[nlmap]->nimpropertypes = nimpropertypes;
+  lmaps[nlmap]->allocate_type_labels();
+  nlmap++;
+  return nlmap - 1;
+}
+
+/* ----------------------------------------------------------------------
+   find label, first parsing prefix for label map-ID
+   return -1 if does not exist
+------------------------------------------------------------------------- */
+
+int Atom::find_label(std::string label, int mode)
+{
+  int ilmap = 0;
+
+  // check for auxiliary map prefix
+
+  int pos = label.find("::");
+  if (pos != std::string::npos) {
+    ilmap = find_labelmap(label.substr(0,pos));
+    if (ilmap == -1) return -1;
+    label = label.substr(pos+2);
+  }
+
+  return lmaps[ilmap]->find(label,mode);
+}
+
+/* ----------------------------------------------------------------------
+   find first label map in set with ID
+   return -1 if does not exist
+------------------------------------------------------------------------- */
+
+int Atom::find_labelmap(std::string id)
+{
+  int ilmap;
+  for (ilmap = 0; ilmap < nlmap; ilmap++)
+    if (id == lmaps[ilmap]->id) return ilmap;
+  return -1;
 }
 
 /* ----------------------------------------------------------------------
@@ -2802,4 +2878,3 @@ double Atom::memory_usage()
 
   return bytes;
 }
-

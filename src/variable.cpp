@@ -2064,7 +2064,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
       } else {
 
         // ----------------
-        // math or group or special function
+        // math or group or special or labelmap function
         // ----------------
 
         if (str[i] == '(') {
@@ -2078,7 +2078,9 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
                                   argstack,nargstack,ivar));
           else if (special_function(word,contents,tree,treestack,ntreestack,
                                     argstack,nargstack,ivar));
-          else print_var_error(FLERR,fmt::format("Invalid math/group/special "
+          else if (labelmap_function(word,contents,tree,treestack,ntreestack,
+                                     argstack,nargstack,ivar));
+          else print_var_error(FLERR,fmt::format("Invalid math/group/special/labelmap "
                                                  "function '{}()'in variable "
                                                  "formula", word),ivar);
           delete [] contents;
@@ -4522,6 +4524,69 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
   // delete stored args
 
   for (int i = 0; i < narg; i++) delete [] args[i];
+
+  return 1;
+}
+
+/* ----------------------------------------------------------------------
+   process a type label function in formula
+   push result (numeric type) onto tree or arg stack
+   word = interaction type
+   contents = str between parentheses (one type label)
+   return 0 if not a match, 1 if successfully processed
+   customize by adding a label map function:
+     label(typelabel),blabel(typelabel),alabel(typelabel),
+     dlabel(typelabel),ilabel(typelabel)
+------------------------------------------------------------------------- */
+
+int Variable::labelmap_function(char *word, char *contents, Tree **tree,
+                                Tree **treestack, int &ntreestack,
+                                double *argstack, int &nargstack, int ivar)
+{
+  // word not a match to any label map function
+
+  if (strcmp(word,"label") && strcmp(word,"blabel") &&
+      strcmp(word,"alabel") && strcmp(word,"dlabel") &&
+      strcmp(word,"ilabel"))
+    return 0;
+
+  if (!atom->labelmapflag)
+    print_var_error(FLERR,"Invalid type label in "
+                    "variable formula",ivar);
+
+  int value;
+  std::string typestr = contents;
+
+  if (strcmp(word,"label") == 0) {
+    value = atom->find_label(typestr,Atom::ATOM);
+
+  } else if (strcmp(word,"blabel") == 0) {
+    value = atom->find_label(typestr,Atom::BOND);
+
+  } else if (strcmp(word,"alabel") == 0) {
+    value = atom->find_label(typestr,Atom::ANGLE);
+
+  } else if (strcmp(word,"dlabel") == 0) {
+    value = atom->find_label(typestr,Atom::DIHEDRAL);
+
+  } else if (strcmp(word,"ilabel") == 0) {
+    value = atom->find_label(typestr,Atom::IMPROPER);
+  }
+
+  if (value == -1)
+    print_var_error(FLERR,"Invalid type label in "
+                    "variable formula",ivar);
+
+  // save value in tree or on argstack
+
+  if (tree) {
+    Tree *newtree = new Tree();
+    newtree->type = VALUE;
+    newtree->value = value;
+    newtree->first = newtree->second = nullptr;
+    newtree->nextra = 0;
+    treestack[ntreestack++] = newtree;
+  } else argstack[nargstack++] = value;
 
   return 1;
 }

@@ -475,6 +475,7 @@ These are the section keywords for the body of the file.
 
 * *Atoms, Velocities, Masses, Ellipsoids, Lines, Triangles, Bodies* = atom-property sections
 * *Bonds, Angles, Dihedrals, Impropers* = molecular topology sections
+* *Atom Type Labels, Bond Type Labels, Angle Type Labels, Dihedral Type Labels, Improper Type Labels* = type label map
 * *Pair Coeffs, PairIJ Coeffs, Bond Coeffs, Angle Coeffs, Dihedral Coeffs,    Improper Coeffs* = force field sections
 * *BondBond Coeffs, BondAngle Coeffs, MiddleBondTorsion Coeffs,    EndBondTorsion Coeffs, AngleTorsion Coeffs, AngleAngleTorsion Coeffs,    BondBond13 Coeffs, AngleAngle Coeffs* = class 2 force field sections
 
@@ -531,6 +532,24 @@ angle style.  See the :doc:`angle_style <angle_style>` and
 :doc:`angle_coeff <angle_coeff>` commands for details.  Coefficients can
 also be set via the :doc:`angle_coeff <angle_coeff>` command in the
 input script.
+
+----------
+
+*Angle Type Labels* section:
+
+* one line per angle type
+* line syntax: ID label
+
+  .. parsed-literal::
+
+       ID = angle type (1-N)
+       label = alphanumeric type label
+
+See the *Atom Type Labels* section for more details about how angle
+types are interpreted when reading one or more data files that contain
+angle type label sections.  See the :doc:`labelmap <labelmap>` command
+for a discussion about how to format angle type labels and use type
+label maps.
 
 ----------
 
@@ -592,6 +611,41 @@ integers (1, not 1.0).
 
        ID = dihedral type (1-N)
        coeffs = list of coeffs (see :doc:`dihedral_coeff <dihedral_coeff>`)
+
+----------
+
+*Atom Type Labels* section:
+
+* one line per atom type
+* line syntax: ID label
+
+  .. parsed-literal::
+
+       ID = numeric atom type (1-N)
+       label = alphanumeric type label
+
+Type labels can be used to make data files more general, by defining
+atom, bond, etc. types in terms of user-provided strings instead of
+numbers.  If a type label section exists for a given interaction
+(atom, bond, angle, dihedral or improper), then all types must be
+assigned a type label for that interaction.  Type label sections must
+come before any section that utilizes that type.  The numeric types
+listed in the *Atoms*, *Bonds*, etc. section are first converted into
+their corresponding type label before being read into LAMMPS; type
+labels cannot be directly substituted for numeric types used in data
+files.  Data files assign all types to the default label map; if the
+type label does not already exist, the type label is created as a new
+type and assigned to the default label map.  The corresponding
+interaction coefficients listed in the data file are associated to
+this type.  There must be enough space in the per-type data
+arrays to create new types; see the *extra/atom/types* keyword for how
+to reserve extra space for new types, e.g., when reading multiple data
+files.  Note that, in this case, the numeric-to-label mapping within a
+data file does not necessary correspond to that of the simulation;
+once the default label map is fully defined, the :doc:`write_data <write_data>`
+command can be used to print out the default label map at a given
+point in a simulation.  See the :doc:`labelmap <labelmap>` command for
+more discussion on how to use type label maps.
 
 ----------
 
@@ -920,6 +974,24 @@ script.
 
 ----------
 
+*Bond Type Labels* section:
+
+* one line per bond type
+* line syntax: ID label
+
+  .. parsed-literal::
+
+       ID = bond type (1-N)
+       label = alphanumeric type label
+
+See the *Atom Type Labels* section for more details about how bond
+types are interpreted when reading one or more data files that contain
+bond type label sections.  See the :doc:`labelmap <labelmap>` command
+for a discussion about how to format bond type labels and use type
+label maps.
+
+----------
+
 *BondAngle Coeffs* section:
 
 * one line per angle type
@@ -999,6 +1071,24 @@ dihedral style.  See the :doc:`dihedral_style <dihedral_style>` and
 :doc:`dihedral_coeff <dihedral_coeff>` commands for details.
 Coefficients can also be set via the
 :doc:`dihedral_coeff <dihedral_coeff>` command in the input script.
+
+----------
+
+*Dihedral Type Labels* section:
+
+* one line per dihedral type
+* line syntax: ID label
+
+  .. parsed-literal::
+
+       ID = dihedral type (1-N)
+       label = alphanumeric type label
+
+See the *Atom Type Labels* section for more details about how dihedral
+types are interpreted when reading one or more data files that contain
+dihedral type label sections.  See the :doc:`labelmap <labelmap>`
+command for a discussion about how to format dihedral type labels and
+use type label maps.
 
 ----------
 
@@ -1100,6 +1190,24 @@ improper style.  See the :doc:`improper_style <improper_style>` and
 :doc:`improper_coeff <improper_coeff>` commands for details.
 Coefficients can also be set via the
 :doc:`improper_coeff <improper_coeff>` command in the input script.
+
+----------
+
+*Improper Type Labels* section:
+
+* one line per improper type
+* line syntax: ID label
+
+  .. parsed-literal::
+
+       ID = improper type (1-N)
+       label = alphanumeric type label
+
+See the *Atom Type Labels* section for more details about how improper
+types are interpreted when reading one or more data files that contain
+improper type label sections.  See the :doc:`labelmap <labelmap>`
+command for a discussion about how to format improper type labels and
+use type label maps.
 
 ----------
 

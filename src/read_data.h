@@ -55,6 +55,10 @@ class ReadData : public Command {
   bigint nbodies;
   class AtomVecBody *avec_body;
 
+  // type labels
+
+  class LabelMap *lmap;
+
   // box info
 
   double boxlo[3], boxhi[3];
@@ -63,7 +67,8 @@ class ReadData : public Command {
 
   // optional args
 
-  int addflag, offsetflag, shiftflag, coeffflag;
+  int addflag, offsetflag, shiftflag, coeffflag, settypeflag;
+  int tlabelflag, blabelflag, alabelflag, dlabelflag, ilabelflag;
   tagint addvalue;
   int toffset, boffset, aoffset, doffset, ioffset;
   double shift[3];
@@ -84,7 +89,7 @@ class ReadData : public Command {
   void header(int);
   void parse_keyword(int);
   void skip_lines(bigint);
-  void parse_coeffs(char *, const char *, int, int, int);
+  void parse_coeffs(char *, const char *, int, int, int, int, int *);
   int style_match(const char *, const char *);
 
   void atoms();
@@ -106,6 +111,7 @@ class ReadData : public Command {
   void anglecoeffs(int);
   void dihedralcoeffs(int);
   void impropercoeffs(int);
+  void typelabels(std::vector<std::string> &, int, int);
 
   void fix(int, char *);
 };
@@ -259,6 +265,11 @@ E: Must read Atoms before Bodies
 
 The Atoms section of a data file must come before a Bodies section.
 
+E: Must read Type Labels before any section involving types
+
+All Type Labels sections of a data file must come before any
+section that uses per-type values (Masses, Coeffs, etc.).
+
 E: Must define pair_style before Pair Coeffs
 
 Must use a pair_style command before reading a data file that defines
@@ -396,6 +407,26 @@ E: Must define improper_style before AngleAngle Coeffs
 
 Must use an improper_style command before reading a data file that
 defines AngleAngle Coeffs.
+
+E: Must read Atom Type Labels before Atoms
+
+An Atom Type Labels section of a data file must come before the Atoms section.
+
+E: Must read Bond Type Labels before Bonds
+
+A Bond Type Labels section of a data file must come before the Bonds section.
+
+E: Must read Angle Type Labels before Angles
+
+An Angle Type Labels section of a data file must come before the Angles section.
+
+E: Must read Dihedral Type Labels before Dihedrals
+
+An Dihedral Type Labels section of a data file must come before the Dihedrals section.
+
+E: Must read Improper Type Labels before Impropers
+
+An Improper Type Labels section of a data file must come before the Impropers section.
 
 E: Unknown identifier in data file: %s
 

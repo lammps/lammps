@@ -40,6 +40,7 @@ class Input : protected Pointers {
   void substitute(char *&, char *&, int &, int &, int);
   // substitute for variables in a string
   void write_echo(const std::string &);    // send text to active echo file pointers
+  int readtype(char *&, int);              // substitute type label with numeric type
 
  protected:
   char *command;      // ptr to current command
@@ -116,6 +117,7 @@ class Input : protected Pointers {
   void improper_style();
   void kspace_modify();
   void kspace_style();
+  void labelmap();
   void lattice();
   void mass();
   void min_modify();

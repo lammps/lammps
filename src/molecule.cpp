@@ -729,6 +729,7 @@ void Molecule::coords(char *line)
 
 void Molecule::types(char *line)
 {
+  std::string typestr;
   for (int i = 0; i < natoms; i++) count[i] = 0;
   try {
     for (int i = 0; i < natoms; i++) {
@@ -743,7 +744,12 @@ void Molecule::types(char *line)
       if (iatom < 0 || iatom >= natoms)
         error->all(FLERR,"Invalid atom index in Types section of molecule file");
       count[iatom]++;
-      type[iatom] = values.next_int();
+      typestr = values.next_string();
+      if (!isdigit(typestr[0])) {
+        if (!atom->labelmapflag) error->one(FLERR,"Invalid Types section in molecule file");
+        type[iatom] = atom->find_label(typestr,Atom::ATOM);
+        if (type[iatom] == -1) error->one(FLERR,"Invalid Types section in molecule file");
+      } else type[iatom] = utils::inumeric(FLERR,typestr.c_str(),false,lmp);
       type[iatom] += toffset;
     }
   } catch (TokenizerException &e) {
@@ -958,6 +964,7 @@ void Molecule::bonds(int flag, char *line)
 {
   int itype;
   tagint m,atom1,atom2;
+  std::string typestr;
   int newton_bond = force->newton_bond;
 
   if (flag == 0)
@@ -974,7 +981,12 @@ void Molecule::bonds(int flag, char *line)
         error->all(FLERR,"Invalid line in Bonds section of "
                                      "molecule file: {}",line);
       values.next_int();
-      itype = values.next_int();
+      typestr = values.next_string();
+      if (!isdigit(typestr[0])) {
+        if (!atom->labelmapflag) error->one(FLERR,"Invalid Bonds section in molecule file");
+        itype = atom->find_label(typestr,Atom::BOND);
+        if (itype == -1) error->one(FLERR,"Invalid Bonds section in molecule file");
+      } else itype = utils::inumeric(FLERR,typestr.c_str(),false,lmp);
       atom1 = values.next_tagint();
       atom2 = values.next_tagint();
     } catch (TokenizerException &e) {
@@ -1028,6 +1040,7 @@ void Molecule::angles(int flag, char *line)
 {
   int itype;
   tagint m,atom1,atom2,atom3;
+  std::string typestr;
   int newton_bond = force->newton_bond;
 
   if (flag == 0)
@@ -1044,7 +1057,12 @@ void Molecule::angles(int flag, char *line)
         error->all(FLERR,"Invalid line in Angles section of "
                                      "molecule file: {}",line);
       values.next_int();
-      itype = values.next_int();
+      typestr = values.next_string();
+      if (!isdigit(typestr[0])) {
+        if (!atom->labelmapflag) error->one(FLERR,"Invalid Angles section in molecule file");
+        itype = atom->find_label(typestr,Atom::ANGLE);
+        if (itype == -1) error->one(FLERR,"Invalid Angles section in molecule file");
+      } else itype = utils::inumeric(FLERR,typestr.c_str(),false,lmp);
       atom1 = values.next_tagint();
       atom2 = values.next_tagint();
       atom3 = values.next_tagint();
@@ -1114,6 +1132,7 @@ void Molecule::dihedrals(int flag, char *line)
 {
   int itype;
   tagint m,atom1,atom2,atom3,atom4;
+  std::string typestr;
   int newton_bond = force->newton_bond;
 
   if (flag == 0)
@@ -1131,7 +1150,12 @@ void Molecule::dihedrals(int flag, char *line)
                                      "molecule file: {}",line);
 
       values.next_int();
-      itype = values.next_int();
+      typestr = values.next_string();
+      if (!isdigit(typestr[0])) {
+        if (!atom->labelmapflag) error->one(FLERR,"Invalid Dihedrals section in molecule file");
+        itype = atom->find_label(typestr,Atom::DIHEDRAL);
+        if (itype == -1) error->one(FLERR,"Invalid Dihedrals section in molecule file");
+      } else itype = utils::inumeric(FLERR,typestr.c_str(),false,lmp);
       atom1 = values.next_tagint();
       atom2 = values.next_tagint();
       atom3 = values.next_tagint();
@@ -1216,6 +1240,7 @@ void Molecule::impropers(int flag, char *line)
 {
   int itype;
   tagint m,atom1,atom2,atom3,atom4;
+  std::string typestr;
   int newton_bond = force->newton_bond;
 
   if (flag == 0)
@@ -1232,7 +1257,12 @@ void Molecule::impropers(int flag, char *line)
                 error->all(FLERR,"Invalid line in Impropers section of "
                                      "molecule file: {}",line);
       values.next_int();
-      itype = values.next_int();
+      typestr = values.next_string();
+      if (!isdigit(typestr[0])) {
+        if (!atom->labelmapflag) error->one(FLERR,"Invalid Impropers section in molecule file");
+        itype = atom->find_label(typestr,Atom::IMPROPER);
+        if (itype == -1) error->one(FLERR,"Invalid Impropers section in molecule file");
+      } else itype = utils::inumeric(FLERR,typestr.c_str(),false,lmp);
       atom1 = values.next_tagint();
       atom2 = values.next_tagint();
       atom3 = values.next_tagint();

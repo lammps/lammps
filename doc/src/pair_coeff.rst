@@ -10,7 +10,7 @@ Syntax
 
    pair_coeff I J args
 
-* I,J = atom types (see asterisk form below)
+* I,J = numeric atom types (see asterisk form below), or type labels
 * args = coefficients for one or more pairs of atom types
 
 Examples
@@ -34,20 +34,22 @@ atom types.  The number and meaning of the coefficients depends on the
 pair style.  Pair coefficients can also be set in the data file read
 by the :doc:`read_data <read_data>` command or in a restart file.
 
-I and J can be specified in one of two ways.  Explicit numeric values
-can be used for each, as in the first example above.  I <= J is
-required.  LAMMPS sets the coefficients for the symmetric J,I
-interaction to the same values.
+I and J can be specified in one of several ways.  Explicit numeric
+values can be used for each, as in the first example above.  Or, one
+or both of the types in the I,J pair may be a :doc:`type label <labelmap>`.
+LAMMPS sets the coefficients for the symmetric J,I interaction to the
+same values.
 
-A wildcard asterisk can be used in place of or in conjunction with the
-I,J arguments to set the coefficients for multiple pairs of atom
-types.  This takes the form "\*" or "\*n" or "n\*" or "m\*n".  If N = the
-number of atom types, then an asterisk with no numeric values means all
-types from 1 to N.  A leading asterisk means all types from 1 to n
-(inclusive).  A trailing asterisk means all types from n to N
-(inclusive).  A middle asterisk means all types from m to n
-(inclusive).  Note that only type pairs with I <= J are considered; if
-asterisks imply type pairs where J < I, they are ignored.
+For numeric values only, a wildcard asterisk can be used in place of
+or in conjunction with the I,J arguments to set the coefficients for
+multiple pairs of atom types.  This takes the form "\*" or "\*n" or
+"n\*" or "m\*n".  If N = the number of atom types, then an asterisk
+with no numeric values means all types from 1 to N.  A leading
+asterisk means all types from 1 to n (inclusive).  A trailing asterisk
+means all types from n to N (inclusive).  A middle asterisk means all
+types from m to n (inclusive).  Note that only type pairs with I <= J
+are considered; if asterisks imply type pairs where J < I, they are
+ignored.
 
 Note that a pair_coeff command can override a previous setting for the
 same I,J pair.  For example, these commands set the coeffs for all I,J

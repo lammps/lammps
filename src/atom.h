@@ -32,6 +32,7 @@ class Atom : protected Pointers {
   enum { DOUBLE, INT, BIGINT };
   enum { GROW = 0, RESTART = 1, BORDER = 2 };
   enum { ATOMIC = 0, MOLECULAR = 1, TEMPLATE = 2 };
+  enum { ATOM = 0, BOND = 1, ANGLE = 2, DIHEDRAL = 3, IMPROPER = 4 };
   enum { MAP_NONE = 0, MAP_ARRAY = 1, MAP_HASH = 2, MAP_YES = 3 };
 
   // atom counts
@@ -174,6 +175,7 @@ class Atom : protected Pointers {
   // most are existence flags for per-atom vectors and arrays
   // 1 if variable is used, 0 if not
 
+  int labelmapflag;
   int sphere_flag, ellipsoid_flag, line_flag, tri_flag, body_flag;
   int peri_flag, electron_flag;
   int wavepacket_flag, sph_flag;
@@ -235,6 +237,11 @@ class Atom : protected Pointers {
 
   int nmolecule;
   class Molecule **molecules;
+
+  // type label maps
+
+  int nlmap;
+  class LabelMap **lmaps;
 
   // extra peratom info in restart file destined for fix & diag
 
@@ -304,18 +311,19 @@ class Atom : protected Pointers {
 
   void deallocate_topology();
 
-  void data_atoms(int, char *, tagint, tagint, int, int, double *);
+  void data_atoms(int, char *, tagint, tagint, int, int, double *,
+                  int, int *);
   void data_vels(int, char *, tagint);
-  void data_bonds(int, char *, int *, tagint, int);
-  void data_angles(int, char *, int *, tagint, int);
-  void data_dihedrals(int, char *, int *, tagint, int);
-  void data_impropers(int, char *, int *, tagint, int);
+  void data_bonds(int, char *, int *, tagint, int, int, int *);
+  void data_angles(int, char *, int *, tagint, int, int, int *);
+  void data_dihedrals(int, char *, int *, tagint, int, int, int *);
+  void data_impropers(int, char *, int *, tagint, int, int, int *);
   void data_bonus(int, char *, AtomVec *, tagint);
   void data_bodies(int, char *, AtomVec *, tagint);
   void data_fix_compute_variable(int, int);
 
   virtual void allocate_type_arrays();
-  void set_mass(const char *, int, const char *, int);
+  void set_mass(const char *, int, const char *, int, int, int *);
   void set_mass(const char *, int, int, double);
   void set_mass(const char *, int, int, char **);
   void set_mass(double *);
@@ -327,6 +335,10 @@ class Atom : protected Pointers {
   void add_molecule(int, char **);
   int find_molecule(char *);
   void add_molecule_atom(class Molecule *, int, int, tagint);
+
+  int add_label_map(std::string mapID = "");
+  int find_label(std::string, int);
+  int find_labelmap(std::string);
 
   void first_reorder();
   virtual void sort();

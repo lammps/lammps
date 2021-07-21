@@ -66,6 +66,7 @@ Syntax
                            angmom(group,dim,region), torque(group,dim,region),
                            inertia(group,dimdim,region), omega(group,dim,region)
          special functions = sum(x), min(x), max(x), ave(x), trap(x), slope(x), gmask(x), rmask(x), grmask(x,y), next(x), is_file(name)
+         labelmap functions = label(typelabel), blabel(typelabel), alabel(typelabel), dlabel(typelabel), ilabel(typelabel)
          feature functions = is_available(category,feature), is_active(category,feature), is_defined(category,id)
          atom value = id[i], mass[i], type[i], mol[i], x[i], y[i], z[i], vx[i], vy[i], vz[i], fx[i], fy[i], fz[i], q[i]
          atom vector = id, mass, type, mol, x, y, z, vx, vy, vz, fx, fy, fz, q
@@ -482,6 +483,8 @@ references, and references to other variables.
 | Region functions   | count(ID,IDR), mass(ID,IDR), charge(ID,IDR),      xcm(ID,dim,IDR), vcm(ID,dim,IDR), fcm(ID,dim,IDR),      bound(ID,dir,IDR), gyration(ID,IDR), ke(ID,IDR),      angmom(ID,dim,IDR), torque(ID,dim,IDR),      inertia(ID,dimdim,IDR), omega(ID,dim,IDR)                                                                                                    |
 +--------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Special functions  | sum(x), min(x), max(x), ave(x), trap(x),      slope(x), gmask(x), rmask(x), grmask(x,y), next(x)                                                                                                                                                                                                                                                          |
++--------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Labelmap functions | label(typelabel), blabel(typelabel), alabel(typelabel), dlabel(typelabel), ilabel(typelabel)                                                                                                                                                                                                                                                              |
 +--------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Atom values        | id[i], mass[i], type[i], mol[i], x[i], y[i], z[i],              vx[i], vy[i], vz[i], fx[i], fy[i], fz[i], q[i]                                                                                                                                                                                                                                            |
 +--------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
@@ -904,6 +907,19 @@ returned the first time the next() function is invoked.  If next() is
 invoked more times than there are lines or sets of lines in the file,
 the variable is deleted, similar to how the :doc:`next <next>` command
 operates.
+
+----------
+
+Labelmap Functions
+-----------------
+
+Labelmap functions convert type labels into numeric types, using label
+maps created by the :doc:`labelmap <labelmap>` or :doc:`read_data <read_data>`
+commands.  Their argument must be a valid type label, and they return
+the corresponding integer numeric type.  The argument for the *label()*\ ,
+*blabel()*\ , *alabel()*\ , *dlabel()*\ , and *ilabel()* functions,
+must be an atom, bond, angle, dihedral, or improper type label,
+respectively.
 
 ----------
 

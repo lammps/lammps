@@ -25,6 +25,7 @@
 #include "fix.h"
 #include "force.h"
 #include "improper.h"
+#include "label_map.h"
 #include "memory.h"
 #include "modify.h"
 #include "output.h"
@@ -71,6 +72,7 @@ void WriteData::command(int narg, char **arg)
   pairflag = II;
   coeffflag = 1;
   fixflag = 1;
+  lmapflag = 1;
   int noinit = 0;
 
   int iarg = 1;
@@ -89,6 +91,9 @@ void WriteData::command(int narg, char **arg)
       iarg++;
     } else if (strcmp(arg[iarg],"nofix") == 0) {
       fixflag = 0;
+      iarg++;
+    } else if (strcmp(arg[iarg],"nolabelmap") == 0) {
+      lmapflag = 0;
       iarg++;
     } else error->all(FLERR,"Illegal write_data command");
   }
@@ -181,9 +186,11 @@ void WriteData::write(const std::string &file)
   }
 
   // proc 0 writes header, ntype-length arrays, force fields
+  // label map must come before coeffs
 
   if (me == 0) {
     header();
+    if (lmapflag && atom->labelmapflag) atom->lmaps[0]->write_data(fp);
     type_arrays();
     if (coeffflag) force_fields();
   }

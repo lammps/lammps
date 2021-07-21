@@ -12,75 +12,33 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-// clang-format off
-FixStyle(pour,FixPour);
-// clang-format on
+
+FixStyle(pour/opt,FixPourOpt)
+
 #else
 
-#ifndef LMP_FIX_POUR_H
-#define LMP_FIX_POUR_H
+#ifndef LMP_FIX_POUR_OPT_H
+#define LMP_FIX_POUR_OPT_H
 
-#include "fix.h"
-#include "near_list.h"
+#include "fix_pour.h"
+#include "cell_list.h"
 
 namespace LAMMPS_NS {
 
-class FixPour : public Fix {
- public:
-  FixPour(class LAMMPS *, int, char **);
-  ~FixPour();
-  int setmask();
-  void init();
-  void setup_pre_exchange();
-  void pre_exchange();
-  void reset_dt();
-  void *extract(const char *, int &);
+class FixPourOpt : public FixPour {
+  CellList clist;
+  DistributedCellList dist_clist;
 
- protected:
-  virtual void init_near_lists(int nnew, INearList*&, IDistributedNearList*&);
+public:
+  FixPourOpt(class LAMMPS *, int, char **);
+  ~FixPourOpt();
+
+protected:
+  virtual void init_near_lists(int, INearList*&, IDistributedNearList*&);
   virtual void cleanup_near_lists(INearList*&, IDistributedNearList*&);
-
-  int ninsert, ntype, seed;
-  int iregion, mode, idnext, dstyle, npoly, rigidflag, shakeflag;
-  int ignoreflag, ignoreline, ignoretri;
-  double radius_one, radius_max;
-  double radius_lo, radius_hi;
-  double *radius_poly, *frac_poly;
-  double density_lo, density_hi;
-  double volfrac;
-  int maxattempt;
-  int region_style;
-  double rate;
-  double vxlo, vxhi, vylo, vyhi, vy, vz;
-  double xlo, xhi, ylo, yhi, zlo, zhi;
-  double xc, yc, rc;
-  double grav;
-  char *idrigid, *idshake;
-
-  class Molecule **onemols;
-  int nmol, natom_max;
-  double molradius_max;
-  double *molfrac;
-  double **coords;
-  imageint *imageflags;
-  class Fix *fixrigid, *fixshake;
-  double oneradius;
-
-  int nfreq, ninserted, nper;
-  bigint nfirst;
-  double lo_current, hi_current;
-  tagint maxtag_all, maxmol_all;
-  class RanPark *random, *random2;
-
-  void find_maxid();
-  int overlap(int);
-  bool outside(int, double, double, double);
-  void xyz_random(double, double *);
-  double radius_sample();
-  void options(int, char **);
 };
 
-}    // namespace LAMMPS_NS
+}
 
 #endif
 #endif

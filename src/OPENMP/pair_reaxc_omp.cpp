@@ -233,10 +233,6 @@ void PairReaxCOMP::compute(int eflag, int vflag)
   evdwl = ecoul = 0.0;
   ev_init(eflag,vflag);
 
-  if (vflag_atom)
-     error->all(FLERR,"Pair style reax/c/omp does not support "
-                "computing per-atom stress");
-
   api->system->n = atom->nlocal; // my atoms
   api->system->N = atom->nlocal + atom->nghost; // mine + ghosts
   api->system->bigN = static_cast<int> (atom->natoms);  // all atoms in the system

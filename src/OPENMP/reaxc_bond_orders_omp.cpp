@@ -37,8 +37,8 @@
 using namespace LAMMPS_NS;
 
 namespace ReaxFF {
-  void Add_dBond_to_ForcesOMP(reax_system *system, int i, int pj,
-                              storage *workspace, reax_list **lists) {
+  void Add_dBond_to_ForcesOMP(reax_system *system, int i, int pj, storage *workspace, reax_list **lists)
+  {
     reax_list *bonds = (*lists) + BONDS;
     bond_data *nbr_j, *nbr_k;
     bond_order_data *bo_ij, *bo_ji;
@@ -94,12 +94,10 @@ namespace ReaxFF {
     rvec_Add(workspace->forceReduction[reductionOffset+i],temp);
 
     if (system->pair_ptr->vflag_either) {
-      rvec_Scale(fi_tmp, -1.0, temp);
+      rvec_Scale(fi_tmp, -0.5, temp);
       rvec_ScaledSum(delij, 1., system->my_atoms[i].x,-1., system->my_atoms[j].x);
 
-      pair_reax_ptr->ev_tally_xyz_thr_proxy(i,j,system->N,0,0,0,
-                                            fi_tmp[0],fi_tmp[1],fi_tmp[2],
-                                            delij[0],delij[1],delij[2],thr);
+      pair_reax_ptr->v_tally2_newton_thr_proxy(i,fi_tmp,delij,thr);
     }
 
     c = -(coef.C1dbo + coef.C1dDelta + coef.C2dbopi + coef.C2dbopi2);
@@ -115,12 +113,9 @@ namespace ReaxFF {
     rvec_Add(workspace->forceReduction[reductionOffset+j],temp);
 
     if (system->pair_ptr->vflag_either) {
-      rvec_Scale(fj_tmp, -1.0, temp);
+      rvec_Scale(fj_tmp, -0.5, temp);
       rvec_ScaledSum(delji, 1., system->my_atoms[j].x,-1., system->my_atoms[i].x);
-
-      pair_reax_ptr->ev_tally_xyz_thr_proxy(j,i,system->N,0,0,0,
-                                            fj_tmp[0],fj_tmp[1],fj_tmp[2],
-                                            delji[0],delji[1],delji[2],thr);
+      pair_reax_ptr->v_tally2_newton_thr_proxy(j,fj_tmp,delji,thr);
     }
 
     // forces on k: i neighbor
@@ -134,17 +129,11 @@ namespace ReaxFF {
       rvec_Add(workspace->forceReduction[reductionOffset+k],temp);
 
       if (system->pair_ptr->vflag_either) {
-        rvec_Scale(fk_tmp, -1.0, temp);
+        rvec_Scale(fk_tmp, -0.5, temp);
         rvec_ScaledSum(delki,1.,system->my_atoms[k].x,-1.,system->my_atoms[i].x);
-
-        pair_reax_ptr->ev_tally_xyz_thr_proxy(k,i,system->N,0,0,0,
-                                              fk_tmp[0],fk_tmp[1],fk_tmp[2],
-                                              delki[0],delki[1],delki[2],thr);
+        pair_reax_ptr->v_tally2_newton_thr_proxy(k,fk_tmp,delki,thr);
         rvec_ScaledSum(delkj,1.,system->my_atoms[k].x,-1.,system->my_atoms[j].x);
-
-        pair_reax_ptr->ev_tally_xyz_thr_proxy(k,j,system->N,0,0,0,
-                                              fk_tmp[0],fk_tmp[1],fk_tmp[2],
-                                              delkj[0],delkj[1],delkj[2],thr);
+        pair_reax_ptr->v_tally2_newton_thr_proxy(k,fk_tmp,delkj,thr);
       }
     }
 
@@ -159,18 +148,11 @@ namespace ReaxFF {
       rvec_Add(workspace->forceReduction[reductionOffset+k],temp);
 
       if (system->pair_ptr->vflag_either) {
-        rvec_Scale(fk_tmp, -1.0, temp);
+        rvec_Scale(fk_tmp, -0.5, temp);
         rvec_ScaledSum(delki,1.,system->my_atoms[k].x,-1.,system->my_atoms[i].x);
-
-        pair_reax_ptr->ev_tally_xyz_thr_proxy(k,i,system->N,0,0,0,
-                                              fk_tmp[0],fk_tmp[1],fk_tmp[2],
-                                              delki[0],delki[1],delki[2],thr);
-
+        pair_reax_ptr->v_tally2_newton_thr_proxy(k,fk_tmp,delki,thr);
         rvec_ScaledSum(delkj,1.,system->my_atoms[k].x,-1.,system->my_atoms[j].x);
-
-        pair_reax_ptr->ev_tally_xyz_thr_proxy(k,j,system->N,0,0,0,
-                                              fk_tmp[0],fk_tmp[1],fk_tmp[2],
-                                              delkj[0],delkj[1],delkj[2],thr);
+        pair_reax_ptr->v_tally2_newton_thr_proxy(k,fk_tmp,delkj,thr);
       }
     }
   }

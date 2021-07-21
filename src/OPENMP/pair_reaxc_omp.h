@@ -76,6 +76,12 @@ class PairReaxCOMP : public PairReaxC, public ThrOMP {
     ev_tally3_thr(this, i, j, k, evdwl, ecoul, fj, fk, drji, drki, thrparm);
   }
 
+  inline void v_tally2_newton_thr_proxy(const int i, const double *const fi,
+                                        const double *const deli, ThrData *const thrparm)
+  {
+    v_tally2_newton_thr(this, i, fi, deli, thrparm);
+  }
+
   inline void v_tally3_thr_proxy(const int i, const int j, const int k, const double *const fi,
                                  const double *const fk, const double *const drij,
                                  const double *const drkj, ThrData *const thrparm)

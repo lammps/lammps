@@ -50,35 +50,37 @@ namespace ReaxFF {
     bo_ij = &(nbr_j->bo_data);
     bo_ji = &(bonds->select.bond_list[nbr_j->sym_index].bo_data);
 
-    coef.C1dbo = bo_ij->C1dbo * (bo_ij->Cdbo + bo_ji->Cdbo);
-    coef.C2dbo = bo_ij->C2dbo * (bo_ij->Cdbo + bo_ji->Cdbo);
-    coef.C3dbo = bo_ij->C3dbo * (bo_ij->Cdbo + bo_ji->Cdbo);
+    double c = bo_ij->Cdbo + bo_ji->Cdbo;
+    coef.C1dbo = bo_ij->C1dbo * c;
+    coef.C2dbo = bo_ij->C2dbo * c;
+    coef.C3dbo = bo_ij->C3dbo * c;
 
-    coef.C1dbopi = bo_ij->C1dbopi * (bo_ij->Cdbopi + bo_ji->Cdbopi);
-    coef.C2dbopi = bo_ij->C2dbopi * (bo_ij->Cdbopi + bo_ji->Cdbopi);
-    coef.C3dbopi = bo_ij->C3dbopi * (bo_ij->Cdbopi + bo_ji->Cdbopi);
-    coef.C4dbopi = bo_ij->C4dbopi * (bo_ij->Cdbopi + bo_ji->Cdbopi);
+    c = bo_ij->Cdbopi + bo_ji->Cdbopi;
+    coef.C1dbopi = bo_ij->C1dbopi * c;
+    coef.C2dbopi = bo_ij->C2dbopi * c;
+    coef.C3dbopi = bo_ij->C3dbopi * c;
+    coef.C4dbopi = bo_ij->C4dbopi * c;
 
-    coef.C1dbopi2 = bo_ij->C1dbopi2 * (bo_ij->Cdbopi2 + bo_ji->Cdbopi2);
-    coef.C2dbopi2 = bo_ij->C2dbopi2 * (bo_ij->Cdbopi2 + bo_ji->Cdbopi2);
-    coef.C3dbopi2 = bo_ij->C3dbopi2 * (bo_ij->Cdbopi2 + bo_ji->Cdbopi2);
-    coef.C4dbopi2 = bo_ij->C4dbopi2 * (bo_ij->Cdbopi2 + bo_ji->Cdbopi2);
+    c = bo_ij->Cdbopi2 + bo_ji->Cdbopi2;
+    coef.C1dbopi2 = bo_ij->C1dbopi2 * c;
+    coef.C2dbopi2 = bo_ij->C2dbopi2 * c;
+    coef.C3dbopi2 = bo_ij->C3dbopi2 * c;
+    coef.C4dbopi2 = bo_ij->C4dbopi2 * c;
 
-    coef.C1dDelta = bo_ij->C1dbo * (workspace->CdDelta[i]+workspace->CdDelta[j]);
-    coef.C2dDelta = bo_ij->C2dbo * (workspace->CdDelta[i]+workspace->CdDelta[j]);
-    coef.C3dDelta = bo_ij->C3dbo * (workspace->CdDelta[i]+workspace->CdDelta[j]);
+    c = workspace->CdDelta[i] + workspace->CdDelta[j];
+    coef.C1dDelta = bo_ij->C1dbo * c;
+    coef.C2dDelta = bo_ij->C2dbo * c;
+    coef.C3dDelta = bo_ij->C3dbo * c;
 
-    // forces on i
-    rvec_Scale(          temp, coef.C1dbo,    bo_ij->dBOp);
-    rvec_ScaledAdd(temp, coef.C2dbo,    workspace->dDeltap_self[i]);
-    rvec_ScaledAdd(temp, coef.C1dDelta, bo_ij->dBOp);
-    rvec_ScaledAdd(temp, coef.C2dDelta, workspace->dDeltap_self[i]);
+    c = (coef.C1dbo + coef.C1dDelta + coef.C2dbopi + coef.C2dbopi2);
+    rvec_Scale(    temp, c,    bo_ij->dBOp);
+
+    c = (coef.C2dbo + coef.C2dDelta + coef.C3dbopi + coef.C3dbopi2);
+    rvec_ScaledAdd(temp, c,    workspace->dDeltap_self[i]);
+
     rvec_ScaledAdd(temp, coef.C1dbopi,  bo_ij->dln_BOp_pi);
-    rvec_ScaledAdd(temp, coef.C2dbopi,  bo_ij->dBOp);
-    rvec_ScaledAdd(temp, coef.C3dbopi,  workspace->dDeltap_self[i]);
     rvec_ScaledAdd(temp, coef.C1dbopi2, bo_ij->dln_BOp_pi2);
-    rvec_ScaledAdd(temp, coef.C2dbopi2, bo_ij->dBOp);
-    rvec_ScaledAdd(temp, coef.C3dbopi2, workspace->dDeltap_self[i]);
+
     rvec_Add(workspace->f[i], temp);
 
     if (system->pair_ptr->vflag_either) {
@@ -87,17 +89,15 @@ namespace ReaxFF {
       system->pair_ptr->v_tally2_newton(i,fi_tmp,delij);
     }
 
-    // forces on j
-    rvec_Scale(          temp, -coef.C1dbo,    bo_ij->dBOp);
-    rvec_ScaledAdd(temp,  coef.C3dbo,    workspace->dDeltap_self[j]);
-    rvec_ScaledAdd(temp, -coef.C1dDelta, bo_ij->dBOp);
-    rvec_ScaledAdd(temp,  coef.C3dDelta, workspace->dDeltap_self[j]);
+    c = -(coef.C1dbo + coef.C1dDelta + coef.C2dbopi + coef.C2dbopi2);
+    rvec_Scale(    temp, c,    bo_ij->dBOp);
+
+    c = (coef.C3dbo + coef.C3dDelta + coef.C4dbopi + coef.C4dbopi2);
+    rvec_ScaledAdd(temp,  c,    workspace->dDeltap_self[j]);
+
     rvec_ScaledAdd(temp, -coef.C1dbopi,  bo_ij->dln_BOp_pi);
-    rvec_ScaledAdd(temp, -coef.C2dbopi,  bo_ij->dBOp);
-    rvec_ScaledAdd(temp,  coef.C4dbopi,  workspace->dDeltap_self[j]);
     rvec_ScaledAdd(temp, -coef.C1dbopi2, bo_ij->dln_BOp_pi2);
-    rvec_ScaledAdd(temp, -coef.C2dbopi2, bo_ij->dBOp);
-    rvec_ScaledAdd(temp,  coef.C4dbopi2, workspace->dDeltap_self[j]);
+
     rvec_Add(workspace->f[j], temp);
 
     if (system->pair_ptr->vflag_either) {
@@ -111,10 +111,9 @@ namespace ReaxFF {
       nbr_k = &(bonds->select.bond_list[pk]);
       k = nbr_k->nbr;
 
-      rvec_Scale(    temp, -coef.C2dbo,    nbr_k->bo_data.dBOp);
-      rvec_ScaledAdd(temp, -coef.C2dDelta, nbr_k->bo_data.dBOp);
-      rvec_ScaledAdd(temp, -coef.C3dbopi,  nbr_k->bo_data.dBOp);
-      rvec_ScaledAdd(temp, -coef.C3dbopi2, nbr_k->bo_data.dBOp);
+      const double c = -(coef.C2dbo + coef.C2dDelta + coef.C3dbopi + coef.C3dbopi2);
+      rvec_Scale(temp, c, nbr_k->bo_data.dBOp);
+
       rvec_Add(workspace->f[k], temp);
 
       if (system->pair_ptr->vflag_either) {
@@ -131,10 +130,9 @@ namespace ReaxFF {
       nbr_k = &(bonds->select.bond_list[pk]);
       k = nbr_k->nbr;
 
-      rvec_Scale(    temp, -coef.C3dbo,    nbr_k->bo_data.dBOp);
-      rvec_ScaledAdd(temp, -coef.C3dDelta, nbr_k->bo_data.dBOp);
-      rvec_ScaledAdd(temp, -coef.C4dbopi,  nbr_k->bo_data.dBOp);
-      rvec_ScaledAdd(temp, -coef.C4dbopi2, nbr_k->bo_data.dBOp);
+      const double c = -(coef.C3dbo + coef.C3dDelta + coef.C4dbopi + coef.C4dbopi2);
+      rvec_Scale(temp, c, nbr_k->bo_data.dBOp);
+
       rvec_Add(workspace->f[k], temp);
 
       if (system->pair_ptr->vflag_either) {
@@ -152,14 +150,14 @@ namespace ReaxFF {
           single_body_parameters *sbp_i, single_body_parameters *sbp_j,
           two_body_parameters *twbp) {
     int j, btop_j;
-    double r2, C12, C34, C56;
+    double rr2, C12, C34, C56;
     double Cln_BOp_s, Cln_BOp_pi, Cln_BOp_pi2;
     double BO, BO_s, BO_pi, BO_pi2;
     bond_data *ibond, *jbond;
     bond_order_data *bo_ij, *bo_ji;
 
     j = nbr_pj->nbr;
-    r2 = SQR(nbr_pj->d);
+    rr2 = 1.0 / SQR(nbr_pj->d);
 
     if (sbp_i->r_s > 0.0 && sbp_j->r_s > 0.0) {
       C12 = twbp->p_bo1 * pow(nbr_pj->d / twbp->r_s, twbp->p_bo2);
@@ -207,9 +205,9 @@ namespace ReaxFF {
       bo_ji->BO_pi2 = bo_ij->BO_pi2 = BO_pi2;
 
       /* Bond Order page2-3, derivative of total bond order prime */
-      Cln_BOp_s = twbp->p_bo2 * C12 / r2;
-      Cln_BOp_pi = twbp->p_bo4 * C34 / r2;
-      Cln_BOp_pi2 = twbp->p_bo6 * C56 / r2;
+      Cln_BOp_s = twbp->p_bo2 * C12 * rr2;
+      Cln_BOp_pi = twbp->p_bo4 * C34 * rr2;
+      Cln_BOp_pi2 = twbp->p_bo6 * C56 * rr2;
 
       /* Only dln_BOp_xx wrt. dr_i is stored here, note that
          dln_BOp_xx/dr_i = -dln_BOp_xx/dr_j and all others are 0 */

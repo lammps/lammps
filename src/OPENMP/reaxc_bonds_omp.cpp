@@ -1,14 +1,12 @@
 // clang-format off
 /*----------------------------------------------------------------------
   PuReMD - Purdue ReaxFF Molecular Dynamics Program
-  Website: https://www.cs.purdue.edu/puremd
 
   Copyright (2010) Purdue University
-
-  Contributing authors:
-  H. M. Aktulga, J. Fogarty, S. Pandit, A. Grama
-  Corresponding author:
-  Hasan Metin Aktulga, Michigan State University, hma@cse.msu.edu
+  Hasan Metin Aktulga, hmaktulga@lbl.gov
+  Joseph Fogarty, jcfogart@mail.usf.edu
+  Sagar Pandit, pandit@usf.edu
+  Ananth Y Grama, ayg@cs.purdue.edu
 
   Please cite the related publication:
   H. M. Aktulga, J. C. Fogarty, S. A. Pandit, A. Y. Grama,
@@ -122,8 +120,7 @@ namespace ReaxFF {
 
           /* tally into per-atom energy */
           if (system->pair_ptr->eflag_either)
-            pair_reax_ptr->ev_tally_thr_proxy( i, j, natoms, 1,
-                                              ebond, 0.0, 0.0, 0.0, 0.0, 0.0, thr);
+            pair_reax_ptr->ev_tally_thr_proxy(i,j,natoms,1,ebond,0.0,0.0,0.0,0.0,0.0,thr);
 
           /* calculate derivatives of Bond Orders */
           bo_ij->Cdbo += CEbo;
@@ -153,8 +150,7 @@ namespace ReaxFF {
 
               /* tally into per-atom energy */
               if (system->pair_ptr->eflag_either)
-                pair_reax_ptr->ev_tally_thr_proxy( i, j, natoms, 1,
-                                                  estriph, 0.0, 0.0, 0.0, 0.0, 0.0, thr);
+                pair_reax_ptr->ev_tally_thr_proxy(i,j,natoms,1,estriph,0.0,0.0,0.0,0.0,0.0,thr);
 
               bo_ij->Cdbo += decobdbo;
               workspace->CdDelta[i] += decobdboua;

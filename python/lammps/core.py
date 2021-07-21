@@ -220,6 +220,11 @@ class lammps(object):
     self.lib.lammps_scatter_subset.argtypes = \
       [c_void_p,c_char_p,c_int,c_int,c_int,POINTER(c_int),c_void_p]
     self.lib.lammps_scatter_subset.restype = None
+    
+    
+    self.lib.lammps_gather_bonds.argtypes = \
+      [c_void_p,c_void_p]
+    self.lib.lammps_gather_bonds.restype = self.c_tagint
 
 
     self.lib.lammps_find_pair_neighlist.argtypes = [c_void_p, c_char_p, c_int, c_int, c_int]
@@ -1405,6 +1410,20 @@ class lammps(object):
     with ExceptionCheck(self):
       return self.lib.lammps_create_atoms(self.lmp, n, id_lmp, type_lmp, x_lmp, v_lmp, img_lmp, se_lmp)
 
+  # -------------------------------------------------------------------------
+  
+  # return vector of bonds gathered across procs
+  # count should be 3
+
+  def gather_bonds(self):
+    # converting nbonds from a bigint in library to an int in python is OK
+    # b/c since version 2.5 every number that exceeds the limits of 32 bit 
+    # is automatically converted to a bignum (see PEP 237).
+    nbonds = int(self.get_thermo('bonds'))
+    data = ((3*nbonds)*self.c_tagint)()
+    self.lib.lammps_gather_bonds(self.lmp,data)
+    return data  
+  
   # -------------------------------------------------------------------------
 
   @property

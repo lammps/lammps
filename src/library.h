@@ -160,6 +160,8 @@ void lammps_scatter(void *handle, char *name, int type, int count, void *data);
 void lammps_scatter_subset(void *handle, char *name, int type, int count, int ndata, int *ids,
                            void *data);
 
+void lammps_gather_bonds(void *handle, void *data);
+
 #if !defined(LAMMPS_BIGBIG)
 int lammps_create_atoms(void *handle, int n, const int *id, const int *type, const double *x,
                         const double *v, const int *image, int bexpand);

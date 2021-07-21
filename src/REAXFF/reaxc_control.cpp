@@ -25,367 +25,102 @@
   <https://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
-#include "reaxc_control.h"
-#include <cstdlib>
-#include <cstring>
-#include "reaxc_defs.h"
-#include "reaxc_tool_box.h"
+#include "reaxff_api.h"
 
 #include "error.h"
+#include "utils.h"
+#include "text_file_reader.h"
 
-char Read_Control_File( char *control_file, control_params* control,
-                        output_controls *out_control )
-{
-  FILE *fp;
-  char *s, **tmp;
-  int   i,ival;
-  double  val;
+#include <cstring>
+#include <exception>
+#include <string>
+#include <unordered_set>
 
-  /* open control file */
-  if ((fp = fopen( control_file, "r" ) ) == nullptr) {
-    control->error_ptr->all(FLERR, "The control file cannot be opened");
-  }
+using LAMMPS_NS::utils::getsyserror;
+using LAMMPS_NS::utils::sfgets;
+using LAMMPS_NS::utils::logmesg;
+using LAMMPS_NS::ValueTokenizer;
 
-  /* assign default values */
-  strcpy( control->sim_name, "simulate" );
-  control->ensemble        = NVE;
-  control->nsteps          = 0;
-  control->dt              = 0.25;
-  control->nprocs          = 1;
-  control->nthreads        = 1;
-  control->procs_by_dim[0] = 1;
-  control->procs_by_dim[1] = 1;
-  control->procs_by_dim[2] = 1;
-  control->geo_format = 1;
+namespace ReaxFF {
+  static std::unordered_set<std::string> inactive_keywords = {
+    "ensemble_type", "nsteps", "dt", "proc_by_dim", "random_vel",
+    "restart_format", "restart_freq", "reposition_atoms",
+    "restrict_bonds", "remove_CoM_vel", "debug_level", "reneighbor",
+    "vlist_buffer", "ghost_cutoff", "qeq_freq", "q_err", "ilu_refactor",
+    "ilu_droptol", "temp_init", "temp_final", "t_mass", "t_mode", "t_rate",
+    "t_freq", "pressure", "p_mass", "pt_mass", "compress", "press_mode",
+    "geo_format", "traj_compress", "traj_method", "molecular_analysis",
+    "ignore", "dipole_anal", "freq_dipole_anal", "diffusion_coef",
+    "freq_diffusion_coef", "restrict_type", "traj_title", "simulation_name",
+    "energy_update_freq", "atom_info", "atom_velocities", "atom_forces",
+    "bond_info", "angle_info" };
 
-  control->restart          = 0;
-  out_control->restart_format = WRITE_BINARY;
-  out_control->restart_freq = 0;
-  control->reposition_atoms = 0;
-  control->restrict_bonds   = 0;
-  control->remove_CoM_vel   = 25;
-  out_control->debug_level  = 0;
-  out_control->energy_update_freq = 0;
+  class parser_error : public std::exception {
+    std::string message;
+  public:
+    parser_error(const std::string &mesg) { message = mesg; }
+    const char *what() const noexcept { return message.c_str(); }
+  };
 
-  control->reneighbor = 1;
-  control->vlist_cut = control->nonb_cut;
-  control->bond_cut = 5.0;
-  control->bg_cut = 0.3;
-  control->thb_cut = 0.001;
-  control->thb_cutsq = 0.00001;
-  control->hbond_cut = 7.5;
+  // NOTE: this function is run on MPI rank 0 only
 
-  control->tabulate = 0;
+  void Read_Control_File(const char *control_file, control_params *control)
+  {
+    auto error = control->error_ptr;
 
-  control->qeq_freq = 1;
-  control->q_err = 1e-6;
-  control->refactor = 100;
-  control->droptol = 1e-2;;
+    /* assign default values */
+    control->nthreads = 1;
+    control->tabulate = 0;
+    control->bond_cut = 5.0;
+    control->bg_cut = 0.3;
+    control->thb_cut = 0.001;
+    control->thb_cutsq = 0.00001;
+    control->hbond_cut = 7.5;
 
-  control->T_init = 0.;
-  control->T_final = 300.;
-  control->Tau_T = 500.0;
-  control->T_mode = 0;
-  control->T_rate = 1.;
-  control->T_freq = 1.;
+    /* read control parameters file */
+    try {
+      LAMMPS_NS::TextFileReader reader(control_file, "ReaxFF control");
+      reader.ignore_comments = false;
 
-  control->P[0] = control->P[1] = control->P[2] = 0.000101325;
-  control->Tau_P[0] = control->Tau_P[1] = control->Tau_P[2] = 500.0;
-  control->Tau_PT[0] = control->Tau_PT[1] = control->Tau_PT[2] = 500.0;
-  control->compressibility = 1.0;
-  control->press_mode = 0;
-  control->virial = 0;
+      while (1) {
+        auto values = reader.next_values(0);
 
-  out_control->write_steps = 0;
-  out_control->traj_compress = 0;
-  out_control->traj_method = REG_TRAJ;
-  strcpy( out_control->traj_title, "default_title" );
-  out_control->atom_info = 0;
-  out_control->bond_info = 0;
-  out_control->angle_info = 0;
+        // empty line
+        if (values.count() == 0) continue;
 
-  control->molecular_analysis = 0;
-  control->dipole_anal = 0;
-  control->freq_dipole_anal = 0;
-  control->diffusion_coef = 0;
-  control->freq_diffusion_coef = 0;
-  control->restrict_type = 0;
+        auto keyword = values.next_string();
 
-  /* memory allocations */
-  s = (char*) malloc(sizeof(char)*MAX_LINE);
-  tmp = (char**) malloc(sizeof(char*)*MAX_TOKENS);
-  for (i=0; i < MAX_TOKENS; i++)
-    tmp[i] = (char*) malloc(sizeof(char)*MAX_LINE);
+        if (!values.has_next())
+          throw parser_error(fmt::format("No value(s) for control parameter: {}\n",keyword));
 
-  /* read control parameters file */
-  while (!feof(fp)) {
-    fgets( s, MAX_LINE, fp );
-    Tokenize( s, &tmp );
-
-    if (strcmp(tmp[0], "simulation_name") == 0) {
-      strcpy( control->sim_name, tmp[1] );
-    }
-    else if (strcmp(tmp[0], "ensemble_type") == 0) {
-      ival = atoi(tmp[1]);
-      control->ensemble = ival;
-      if (ival == iNPT || ival ==sNPT || ival == NPT)
-        control->virial = 1;
-    }
-    else if (strcmp(tmp[0], "nsteps") == 0) {
-      ival = atoi(tmp[1]);
-      control->nsteps = ival;
-    }
-    else if ( strcmp(tmp[0], "dt") == 0) {
-      val = atof(tmp[1]);
-      control->dt = val * 1.e-3;  // convert dt from fs to ps!
-    }
-    else if (strcmp(tmp[0], "proc_by_dim") == 0) {
-      ival = atoi(tmp[1]);
-      control->procs_by_dim[0] = ival;
-      ival = atoi(tmp[2]);
-      control->procs_by_dim[1] = ival;
-      ival = atoi(tmp[3]);
-      control->procs_by_dim[2] = ival;
-
-      control->nprocs = control->procs_by_dim[0]*control->procs_by_dim[1]*
-        control->procs_by_dim[2];
-    }
-    else if (strcmp(tmp[0], "random_vel") == 0) {
-      ival = atoi(tmp[1]);
-      control->random_vel = ival;
-    }
-    else if (strcmp(tmp[0], "restart_format") == 0) {
-      ival = atoi(tmp[1]);
-      out_control->restart_format = ival;
-    }
-    else if (strcmp(tmp[0], "restart_freq") == 0) {
-      ival = atoi(tmp[1]);
-      out_control->restart_freq = ival;
-    }
-    else if (strcmp(tmp[0], "reposition_atoms") == 0) {
-      ival = atoi(tmp[1]);
-      control->reposition_atoms = ival;
-    }
-    else if (strcmp(tmp[0], "restrict_bonds") == 0) {
-      ival = atoi( tmp[1] );
-      control->restrict_bonds = ival;
-    }
-    else if (strcmp(tmp[0], "remove_CoM_vel") == 0) {
-      ival = atoi(tmp[1]);
-      control->remove_CoM_vel = ival;
-    }
-    else if (strcmp(tmp[0], "debug_level") == 0) {
-      ival = atoi(tmp[1]);
-      out_control->debug_level = ival;
-    }
-    else if (strcmp(tmp[0], "energy_update_freq") == 0) {
-      ival = atoi(tmp[1]);
-      out_control->energy_update_freq = ival;
-    }
-    else if (strcmp(tmp[0], "reneighbor") == 0) {
-      ival = atoi( tmp[1] );
-      control->reneighbor = ival;
-    }
-    else if (strcmp(tmp[0], "vlist_buffer") == 0) {
-      val = atof(tmp[1]);
-      control->vlist_cut= val + control->nonb_cut;
-    }
-    else if (strcmp(tmp[0], "nbrhood_cutoff") == 0) {
-      val = atof(tmp[1]);
-      control->bond_cut = val;
-    }
-    else if (strcmp(tmp[0], "bond_graph_cutoff") == 0) {
-      val = atof(tmp[1]);
-      control->bg_cut = val;
-    }
-    else if (strcmp(tmp[0], "thb_cutoff") == 0) {
-      val = atof(tmp[1]);
-      control->thb_cut = val;
-    }
-    else if (strcmp(tmp[0], "thb_cutoff_sq") == 0) {
-      val = atof(tmp[1]);
-      control->thb_cutsq = val;
-    }
-    else if (strcmp(tmp[0], "hbond_cutoff") == 0) {
-      val = atof( tmp[1] );
-      control->hbond_cut = val;
-    }
-    else if (strcmp(tmp[0], "ghost_cutoff") == 0) {
-      val = atof(tmp[1]);
-      control->user_ghost_cut = val;
-    }
-    else if (strcmp(tmp[0], "tabulate_long_range") == 0) {
-      ival = atoi( tmp[1] );
-      control->tabulate = ival;
-    }
-    else if (strcmp(tmp[0], "qeq_freq") == 0) {
-      ival = atoi( tmp[1] );
-      control->qeq_freq = ival;
-    }
-    else if (strcmp(tmp[0], "q_err") == 0) {
-      val = atof( tmp[1] );
-      control->q_err = val;
-    }
-    else if (strcmp(tmp[0], "ilu_refactor") == 0) {
-      ival = atoi( tmp[1] );
-      control->refactor = ival;
-    }
-    else if (strcmp(tmp[0], "ilu_droptol") == 0) {
-      val = atof( tmp[1] );
-      control->droptol = val;
-    }
-    else if (strcmp(tmp[0], "temp_init") == 0) {
-      val = atof(tmp[1]);
-      control->T_init = val;
-
-      if (control->T_init < 0.1)
-        control->T_init = 0.1;
-    }
-    else if (strcmp(tmp[0], "temp_final") == 0) {
-      val = atof(tmp[1]);
-      control->T_final = val;
-
-      if (control->T_final < 0.1)
-        control->T_final = 0.1;
-    }
-    else if (strcmp(tmp[0], "t_mass") == 0) {
-      val = atof(tmp[1]);
-      control->Tau_T = val * 1.e-3;    // convert t_mass from fs to ps
-    }
-    else if (strcmp(tmp[0], "t_mode") == 0) {
-      ival = atoi(tmp[1]);
-      control->T_mode = ival;
-    }
-    else if (strcmp(tmp[0], "t_rate") == 0) {
-      val = atof(tmp[1]);
-      control->T_rate = val;
-    }
-    else if (strcmp(tmp[0], "t_freq") == 0) {
-      val = atof(tmp[1]);
-      control->T_freq = val;
-    }
-    else if (strcmp(tmp[0], "pressure") == 0) {
-      if (control->ensemble == iNPT) {
-        control->P[0] = control->P[1] = control->P[2] = atof(tmp[1]);
+        if (inactive_keywords.find(keyword) != inactive_keywords.end()) {
+          error->warning(FLERR,fmt::format("Ignoring inactive control "
+                                           "parameter: {}",keyword));
+        } else if (keyword == "nbrhood_cutoff") {
+          control->bond_cut = values.next_double();
+        } else if (keyword == "bond_graph_cutoff") {
+          control->bg_cut = values.next_double();
+        } else if (keyword == "thb_cutoff") {
+          control->thb_cut = values.next_double();
+        } else if (keyword == "thb_cutoff_sq") {
+          control->thb_cutsq = values.next_double();
+        } else if (keyword == "hbond_cutoff") {
+          control->hbond_cut = values.next_double();
+        } else if (keyword == "tabulate_long_range") {
+          control->tabulate = values.next_int();
+        } else if (keyword == "write_freq") {
+          if (values.next_int() > 0)
+            error->warning(FLERR,"Support for writing native trajectories has "
+                           "been removed after LAMMPS version 8 April 2021");
+        } else {
+          throw parser_error(fmt::format("Unknown parameter {} in "
+                                         "control file", keyword));
+        }
       }
-      else if (control->ensemble == sNPT) {
-        control->P[0] = atof(tmp[1]);
-        control->P[1] = atof(tmp[2]);
-        control->P[2] = atof(tmp[3]);
-      }
-    }
-    else if (strcmp(tmp[0], "p_mass") == 0) {
-      // convert p_mass from fs to ps
-      if (control->ensemble == iNPT) {
-        control->Tau_P[0] = control->Tau_P[1] = control->Tau_P[2] =
-          atof(tmp[1]) * 1.e-3;
-      }
-      else if (control->ensemble == sNPT) {
-        control->Tau_P[0] = atof(tmp[1]) * 1.e-3;
-        control->Tau_P[1] = atof(tmp[2]) * 1.e-3;
-        control->Tau_P[2] = atof(tmp[3]) * 1.e-3;
-      }
-    }
-    else if (strcmp(tmp[0], "pt_mass") == 0) {
-      val = atof(tmp[1]);
-      control->Tau_PT[0] = control->Tau_PT[1] = control->Tau_PT[2] =
-        val * 1.e-3;  // convert pt_mass from fs to ps
-    }
-    else if (strcmp(tmp[0], "compress") == 0) {
-      val = atof(tmp[1]);
-      control->compressibility = val;
-    }
-    else if (strcmp(tmp[0], "press_mode") == 0) {
-      ival = atoi(tmp[1]);
-      control->press_mode = ival;
-    }
-    else if (strcmp(tmp[0], "geo_format") == 0) {
-      ival = atoi( tmp[1] );
-      control->geo_format = ival;
-    }
-    else if (strcmp(tmp[0], "write_freq") == 0) {
-      ival = atoi(tmp[1]);
-      out_control->write_steps = ival;
-    }
-    else if (strcmp(tmp[0], "traj_compress") == 0) {
-      ival = atoi(tmp[1]);
-      out_control->traj_compress = ival;
-    }
-    else if (strcmp(tmp[0], "traj_method") == 0) {
-      ival = atoi(tmp[1]);
-      out_control->traj_method = ival;
-    }
-    else if (strcmp(tmp[0], "traj_title") == 0) {
-      strcpy( out_control->traj_title, tmp[1] );
-    }
-    else if (strcmp(tmp[0], "atom_info") == 0) {
-      ival = atoi(tmp[1]);
-      out_control->atom_info += ival * 4;
-    }
-    else if (strcmp(tmp[0], "atom_velocities") == 0) {
-      ival = atoi(tmp[1]);
-      out_control->atom_info += ival * 2;
-    }
-    else if (strcmp(tmp[0], "atom_forces") == 0) {
-      ival = atoi(tmp[1]);
-      out_control->atom_info += ival * 1;
-    }
-    else if (strcmp(tmp[0], "bond_info") == 0) {
-      ival = atoi(tmp[1]);
-      out_control->bond_info = ival;
-    }
-    else if (strcmp(tmp[0], "angle_info") == 0) {
-      ival = atoi(tmp[1]);
-      out_control->angle_info = ival;
-    }
-    else if (strcmp(tmp[0], "molecular_analysis") == 0) {
-      ival = atoi(tmp[1]);
-      control->molecular_analysis = ival;
-    }
-    else if (strcmp(tmp[0], "ignore") == 0) {
-      control->num_ignored = atoi(tmp[1]);
-      for (i = 0; i < control->num_ignored; ++i)
-        control->ignore[atoi(tmp[i+2])] = 1;
-    }
-    else if (strcmp(tmp[0], "dipole_anal") == 0) {
-      ival = atoi(tmp[1]);
-      control->dipole_anal = ival;
-    }
-    else if (strcmp(tmp[0], "freq_dipole_anal") == 0) {
-      ival = atoi(tmp[1]);
-      control->freq_dipole_anal = ival;
-    }
-    else if (strcmp(tmp[0], "diffusion_coef") == 0) {
-      ival = atoi(tmp[1]);
-      control->diffusion_coef = ival;
-    }
-    else if (strcmp(tmp[0], "freq_diffusion_coef") == 0) {
-      ival = atoi(tmp[1]);
-      control->freq_diffusion_coef = ival;
-    }
-    else if (strcmp(tmp[0], "restrict_type") == 0) {
-      ival = atoi(tmp[1]);
-      control->restrict_type = ival;
-    }
-    else {
-      char errmsg[128];
-      snprintf(errmsg,128,"Unknown parameter %s in the control file", tmp[0]);
-      control->error_ptr->all(FLERR, errmsg);
+    } catch (LAMMPS_NS::EOFException &) {
+      ; // catch and ignore
+    } catch (std::exception &e) {
+      error->one(FLERR, e.what());
     }
   }
-
-  /* determine target T */
-  if (control->T_mode == 0)
-    control->T = control->T_final;
-  else control->T = control->T_init;
-
-  /* free memory allocations at the top */
-  for (i = 0; i < MAX_TOKENS; i++)
-    free( tmp[i] );
-  free( tmp );
-  free( s );
-
-  fclose(fp);
-
-  return REAXC_SUCCESS;
 }

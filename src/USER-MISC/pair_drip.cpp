@@ -366,10 +366,7 @@ void PairDRIP::compute(int eflag, int vflag)
         f[j][0] += fj[0];
         f[j][1] += fj[1];
         f[j][2] += fj[2];
-
-        // multiply 2 since v_tally has a 0.5 coeff
-        fj[0] *= 2; fj[1] *= 2; fj[2] *= 2;
-        if (vflag_atom) v_tally(j, fj, x[j]);
+        if (vflag_either) v_tally2_newton(j, fj, x[j]);
 
       }
     }  //loop over jj
@@ -377,10 +374,7 @@ void PairDRIP::compute(int eflag, int vflag)
     f[i][0] += fi[0];
     f[i][1] += fi[1];
     f[i][2] += fi[2];
-
-    // multiply 2 since v_tally has a 0.5 coeff
-    fi[0] *= 2; fi[1] *= 2; fi[2] *= 2;
-    if (vflag_atom) v_tally(i, fi, x[i]);
+    if (vflag_either) v_tally2_newton(i, fi, x[i]);
 
   }  // loop over ii
 
@@ -529,22 +523,13 @@ double PairDRIP::calc_repulsive(int const i, int const j, Param& p,
     f[nbj3][k] += fnbj3[k];
   }
 
-  if (vflag_atom) {
-    // multiply since v_tally has a 0.5 coeff
-    for (int k = 0; k < DIM; k++) {
-      fnbi1[k] *= 2;
-      fnbi2[k] *= 2;
-      fnbi3[k] *= 2;
-      fnbj1[k] *= 2;
-      fnbj2[k] *= 2;
-      fnbj3[k] *= 2;
-    }
-    v_tally(nbi1, fnbi1, x[nbi1]);
-    v_tally(nbi2, fnbi2, x[nbi2]);
-    v_tally(nbi3, fnbi3, x[nbi3]);
-    v_tally(nbj1, fnbj1, x[nbj1]);
-    v_tally(nbj2, fnbj2, x[nbj2]);
-    v_tally(nbj3, fnbj3, x[nbj3]);
+  if (vflag_either) {
+    v_tally2_newton(nbi1, fnbi1, x[nbi1]);
+    v_tally2_newton(nbi2, fnbi2, x[nbi2]);
+    v_tally2_newton(nbi3, fnbi3, x[nbi3]);
+    v_tally2_newton(nbj1, fnbj1, x[nbj1]);
+    v_tally2_newton(nbj2, fnbj2, x[nbj2]);
+    v_tally2_newton(nbj3, fnbj3, x[nbj3]);
   }
 
   return phi;

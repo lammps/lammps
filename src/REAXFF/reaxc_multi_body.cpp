@@ -25,17 +25,18 @@
   <https://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
-#include "reaxc_multi_body.h"
+#include "reaxff_api.h"
+
+#include "pair.h"
+
 #include <cmath>
 #include <cstring>
-#include "pair.h"
-#include "reaxc_defs.h"
-#include "reaxc_list.h"
 
-void Atom_Energy( reax_system *system, control_params *control,
-                  simulation_data *data, storage *workspace, reax_list **lists,
-                  output_controls * /*out_control*/ )
-{
+namespace ReaxFF {
+
+  void Atom_Energy(reax_system *system, control_params *control,
+                   simulation_data *data, storage *workspace, reax_list **lists)
+  {
   int i, j, pj, type_i, type_j;
   double Delta_lpcorr, dfvl;
   double e_lp, expvd2, inv_expvd2, dElp, CElp, DlpVi;
@@ -68,12 +69,12 @@ void Atom_Energy( reax_system *system, control_params *control,
     /* set the parameter pointer */
     type_i = system->my_atoms[i].type;
     if (type_i < 0) continue;
-    sbp_i = &(system->reax_param.sbp[ type_i ]);
+    sbp_i = &(system->reax_param.sbp[type_i]);
 
     /* lone-pair Energy */
     p_lp2 = sbp_i->p_lp2;
-    expvd2 = exp( -75 * workspace->Delta_lp[i] );
-    inv_expvd2 = 1. / (1. + expvd2 );
+    expvd2 = exp(-75 * workspace->Delta_lp[i]);
+    inv_expvd2 = 1. / (1. + expvd2);
 
     numbonds = 0;
     e_lp = 0.0;
@@ -92,8 +93,8 @@ void Atom_Energy( reax_system *system, control_params *control,
     if (numbonds > 0 || control->enobondsflag)
       workspace->CdDelta[i] += CElp;  // lp - 1st term
 
-    /* tally into per-atom energy */
-    if (system->pair_ptr->evflag)
+    /* tally energy into global or per-atom energy accumulators */
+    if (system->pair_ptr->eflag_either)
       system->pair_ptr->ev_tally(i,i,system->n,1,e_lp,0.0,0.0,0.0,0.0,0.0);
 
     /* correction for C2 */
@@ -103,9 +104,9 @@ void Atom_Energy( reax_system *system, control_params *control,
         type_j = system->my_atoms[j].type;
         if (type_j < 0) continue;
 
-        if (!strcmp( system->reax_param.sbp[type_j].name, "C" )) {
-          twbp = &( system->reax_param.tbp[type_i][type_j]);
-          bo_ij = &( bonds->select.bond_list[pj].bo_data );
+        if (!strcmp(system->reax_param.sbp[type_j].name, "C")) {
+          twbp = &(system->reax_param.tbp[type_i][type_j]);
+          bo_ij = &(bonds->select.bond_list[pj].bo_data);
           Di = workspace->Delta[i];
           vov3 = bo_ij->BO - Di - 0.040*pow(Di, 4.);
 
@@ -118,8 +119,8 @@ void Atom_Energy( reax_system *system, control_params *control,
             bo_ij->Cdbo += deahu2dbo;
             workspace->CdDelta[i] += deahu2dsbo;
 
-            /* tally into per-atom energy */
-            if (system->pair_ptr->evflag)
+            /* tally energy into global or per-atom energy accumulators */
+            if (system->pair_ptr->eflag_either)
               system->pair_ptr->ev_tally(i,j,system->n,1,e_lph,0.0,0.0,0.0,0.0,0.0);
 
           }
@@ -127,11 +128,10 @@ void Atom_Energy( reax_system *system, control_params *control,
       }
   }
 
-
   for (i = 0; i < system->n; ++i) {
     type_i = system->my_atoms[i].type;
     if (type_i < 0) continue;
-    sbp_i = &(system->reax_param.sbp[ type_i ]);
+    sbp_i = &(system->reax_param.sbp[type_i]);
 
     /* over-coordination energy */
     if (sbp_i->mass > 21.0)
@@ -145,20 +145,20 @@ void Atom_Energy( reax_system *system, control_params *control,
         type_j = system->my_atoms[j].type;
         if (type_j < 0) continue;
         bo_ij = &(bonds->select.bond_list[pj].bo_data);
-        twbp = &(system->reax_param.tbp[ type_i ][ type_j ]);
+        twbp = &(system->reax_param.tbp[type_i][type_j]);
 
         sum_ovun1 += twbp->p_ovun1 * twbp->De_s * bo_ij->BO;
         sum_ovun2 += (workspace->Delta[j] - dfvl*workspace->Delta_lp_temp[j])*
-          ( bo_ij->BO_pi + bo_ij->BO_pi2 );
+          (bo_ij->BO_pi + bo_ij->BO_pi2);
 
       }
 
-    exp_ovun1 = p_ovun3 * exp( p_ovun4 * sum_ovun2 );
+    exp_ovun1 = p_ovun3 * exp(p_ovun4 * sum_ovun2);
     inv_exp_ovun1 = 1.0 / (1 + exp_ovun1);
     Delta_lpcorr  = workspace->Delta[i] -
       (dfvl * workspace->Delta_lp_temp[i]) * inv_exp_ovun1;
 
-    exp_ovun2 = exp( p_ovun2 * Delta_lpcorr );
+    exp_ovun2 = exp(p_ovun2 * Delta_lpcorr);
     inv_exp_ovun2 = 1.0 / (1.0 + exp_ovun2);
 
     DlpVi = 1.0 / (Delta_lpcorr + sbp_i->valency + 1e-8);
@@ -167,9 +167,9 @@ void Atom_Energy( reax_system *system, control_params *control,
     data->my_en.e_ov += e_ov = sum_ovun1 * CEover1;
 
     CEover2 = sum_ovun1 * DlpVi * inv_exp_ovun2 *
-      (1.0 - Delta_lpcorr * ( DlpVi + p_ovun2 * exp_ovun2 * inv_exp_ovun2 ));
+      (1.0 - Delta_lpcorr * (DlpVi + p_ovun2 * exp_ovun2 * inv_exp_ovun2));
 
-    CEover3 = CEover2 * (1.0 - dfvl * workspace->dDelta_lp[i] * inv_exp_ovun1 );
+    CEover3 = CEover2 * (1.0 - dfvl * workspace->dDelta_lp[i] * inv_exp_ovun1);
 
     CEover4 = CEover2 * (dfvl * workspace->Delta_lp_temp[i]) *
       p_ovun4 * exp_ovun1 * SQR(inv_exp_ovun1);
@@ -180,7 +180,7 @@ void Atom_Energy( reax_system *system, control_params *control,
     p_ovun5 = sbp_i->p_ovun5;
 
     exp_ovun2n = 1.0 / exp_ovun2;
-    exp_ovun6 = exp( p_ovun6 * Delta_lpcorr );
+    exp_ovun6 = exp(p_ovun6 * Delta_lpcorr);
     exp_ovun8 = p_ovun7 * exp(p_ovun8 * sum_ovun2);
     inv_exp_ovun2n = 1.0 / (1.0 + exp_ovun2n);
     inv_exp_ovun8 = 1.0 / (1.0 + exp_ovun8);
@@ -195,15 +195,15 @@ void Atom_Energy( reax_system *system, control_params *control,
         -p_ovun5 * (1.0 - exp_ovun6) * inv_exp_ovun2n * inv_exp_ovun8;
 
     CEunder1 = inv_exp_ovun2n *
-      ( p_ovun5 * p_ovun6 * exp_ovun6 * inv_exp_ovun8 +
-        p_ovun2 * e_un * exp_ovun2n );
+      (p_ovun5 * p_ovun6 * exp_ovun6 * inv_exp_ovun8 +
+        p_ovun2 * e_un * exp_ovun2n);
     CEunder2 = -e_un * p_ovun8 * exp_ovun8 * inv_exp_ovun8;
     CEunder3 = CEunder1 * (1.0 - dfvl*workspace->dDelta_lp[i]*inv_exp_ovun1);
     CEunder4 = CEunder1 * (dfvl*workspace->Delta_lp_temp[i]) *
       p_ovun4 * exp_ovun1 * SQR(inv_exp_ovun1) + CEunder2;
 
-    /* tally into per-atom energy */
-    if (system->pair_ptr->evflag) {
+    /* tally energy into global or per-atom energy accumulators */
+    if (system->pair_ptr->eflag_either) {
       eng_tmp = e_ov;
       if (numbonds > 0 || control->enobondsflag)
         eng_tmp += e_un;
@@ -219,9 +219,8 @@ void Atom_Energy( reax_system *system, control_params *control,
       pbond = &(bonds->select.bond_list[pj]);
       j = pbond->nbr;
       bo_ij = &(pbond->bo_data);
-      twbp  = &(system->reax_param.tbp[ system->my_atoms[i].type ]
+      twbp  = &(system->reax_param.tbp[system->my_atoms[i].type]
                 [system->my_atoms[pbond->nbr].type]);
-
 
       bo_ij->Cdbo += CEover1 * twbp->p_ovun1 * twbp->De_s;// OvCoor-1st
       workspace->CdDelta[j] += CEover4 * (1.0 - dfvl*workspace->dDelta_lp[j]) *
@@ -231,15 +230,13 @@ void Atom_Energy( reax_system *system, control_params *control,
       bo_ij->Cdbopi2 += CEover4 *
         (workspace->Delta[j] - dfvl*workspace->Delta_lp_temp[j]);  // OvCoor-3b
 
-
       workspace->CdDelta[j] += CEunder4 * (1.0 - dfvl*workspace->dDelta_lp[j]) *
         (bo_ij->BO_pi + bo_ij->BO_pi2);   // UnCoor - 2a
       bo_ij->Cdbopi += CEunder4 *
         (workspace->Delta[j] - dfvl*workspace->Delta_lp_temp[j]);  // UnCoor-2b
       bo_ij->Cdbopi2 += CEunder4 *
         (workspace->Delta[j] - dfvl*workspace->Delta_lp_temp[j]);  // UnCoor-2b
-
     }
-
   }
+}
 }

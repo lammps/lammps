@@ -18,20 +18,21 @@
 
 #include "fix_reaxc_bonds.h"
 
-#include <cstring>
 #include "atom.h"
-#include "update.h"
-#include "pair_reaxc.h"
-#include "neigh_list.h"
+#include "error.h"
 #include "force.h"
 #include "memory.h"
-#include "error.h"
-#include "reaxc_list.h"
-#include "reaxc_types.h"
-#include "reaxc_defs.h"
+#include "neigh_list.h"
+#include "update.h"
+
+#include "pair_reaxc.h"
+#include "reaxff_api.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
+using namespace ReaxFF;
 
 /* ---------------------------------------------------------------------- */
 
@@ -47,30 +48,27 @@ FixReaxCBonds::FixReaxCBonds(LAMMPS *lmp, int narg, char **arg) :
 
   nevery = utils::inumeric(FLERR,arg[3],false,lmp);
 
-  if (nevery <= 0 )
+  if (nevery <= 0)
     error->all(FLERR,"Illegal fix reax/c/bonds command");
 
   if (me == 0) {
     char *suffix = strrchr(arg[4],'.');
     if (suffix && strcmp(suffix,".gz") == 0) {
 #ifdef LAMMPS_GZIP
-      char gzip[128];
-      snprintf(gzip,128,"gzip -6 > %s",arg[4]);
+      auto gzip = fmt::format("gzip -6 > {}",arg[4]);
 #ifdef _WIN32
-      fp = _popen(gzip,"wb");
+      fp = _popen(gzip.c_str(),"wb");
 #else
-      fp = popen(gzip,"w");
+      fp = popen(gzip.c_str(),"w");
 #endif
 #else
       error->one(FLERR,"Cannot open gzipped file");
 #endif
     } else fp = fopen(arg[4],"w");
 
-    if (fp == nullptr) {
-      char str[128];
-      snprintf(str,128,"Cannot open fix reax/c/bonds file %s",arg[4]);
-      error->one(FLERR,str);
-    }
+    if (!fp)
+      error->one(FLERR,fmt::format("Cannot open fix reax/c/bonds file {}: "
+                                   "{}",arg[4],utils::getsyserror()));
   }
 
   if (atom->tag_consecutive() == 0)
@@ -188,7 +186,7 @@ void FixReaxCBonds::FindBond(struct _reax_list * /*lists*/, int &numbonds)
   inum = reaxc->list->inum;
   ilist = reaxc->list->ilist;
   bond_data *bo_ij;
-  bo_cut = reaxc->control->bg_cut;
+  bo_cut = reaxc->api->control->bg_cut;
 
   tagint *tag = atom->tag;
 
@@ -196,8 +194,8 @@ void FixReaxCBonds::FindBond(struct _reax_list * /*lists*/, int &numbonds)
     i = ilist[ii];
     nj = 0;
 
-    for (pj = Start_Index(i, reaxc->lists); pj < End_Index(i, reaxc->lists); ++pj) {
-      bo_ij = &( reaxc->lists->select.bond_list[pj] );
+    for (pj = Start_Index(i, reaxc->api->lists); pj < End_Index(i, reaxc->api->lists); ++pj) {
+      bo_ij = &(reaxc->api->lists->select.bond_list[pj]);
       j = bo_ij->nbr;
       jtag = tag[j];
       bo_tmp = bo_ij->bo_data.BO;
@@ -225,8 +223,8 @@ void FixReaxCBonds::PassBuffer(double *buf, int &nbuf_local)
   for (i = 0; i < nlocal; i++) {
     buf[j-1] = atom->tag[i];
     buf[j+0] = atom->type[i];
-    buf[j+1] = reaxc->workspace->total_bond_order[i];
-    buf[j+2] = reaxc->workspace->nlp[i];
+    buf[j+1] = reaxc->api->workspace->total_bond_order[i];
+    buf[j+2] = reaxc->api->workspace->nlp[i];
     buf[j+3] = atom->q[i];
     buf[j+4] = numneigh[i];
     numbonds = nint(buf[j+4]);
@@ -236,7 +234,7 @@ void FixReaxCBonds::PassBuffer(double *buf, int &nbuf_local)
     }
     j += (5+numbonds);
 
-    if (atom->molecule == nullptr ) buf[j] = 0.0;
+    if (atom->molecule == nullptr) buf[j] = 0.0;
     else buf[j] = atom->molecule[i];
     j ++;
 
@@ -260,7 +258,7 @@ void FixReaxCBonds::RecvBuffer(double *buf, int nbuf, int nbuf_local,
   bigint ntimestep = update->ntimestep;
   double sbotmp, nlptmp, avqtmp, abotmp;
 
-  double cutof3 = reaxc->control->bg_cut;
+  double cutof3 = reaxc->api->control->bg_cut;
   MPI_Request irequest, irequest2;
 
   if (me == 0) {

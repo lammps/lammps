@@ -35,6 +35,8 @@ class FixQEq : public Fix {
   void pre_force_respa(int, int, int);
   void min_pre_force(int);
 
+  virtual double compute_scalar();
+
   // derived child classes must provide these functions
 
   virtual void init() = 0;
@@ -65,6 +67,7 @@ class FixQEq : public Fix {
   double Tap[8];               // Taper function
   double tolerance;            // tolerance for the norm of the rel residual in CG
   int maxiter;                 // maximum number of QEq iterations
+  int maxwarn;                 // print warning when max iterations was reached
   double cutoff, cutoff_sq;    // neighbor cutoff
 
   double *chi, *eta, *gamma, *zeta, *zcore;    // qeq parameters

@@ -2,7 +2,7 @@
 lammps_version: 10 Feb 2021
 date_generated: Fri Feb 26 23:08:44 2021
 epsilon: 5e-14
-skip_tests: gpu intel
+skip_tests: gpu intel single
 prerequisites: ! |
   atom full
   pair dpd/tstat

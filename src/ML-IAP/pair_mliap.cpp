@@ -264,8 +264,7 @@ void PairMLIAP::e_tally(MLIAPData* data)
    add virial contribution into global and per-atom accumulators
 ------------------------------------------------------------------------- */
 
-void PairMLIAP::v_tally(int i, int j,
-                        double *fij, double *rij)
+void PairMLIAP::v_tally(int i, int j, double *fij, double *rij)
 {
   double v[6];
 

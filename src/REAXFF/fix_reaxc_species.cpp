@@ -29,12 +29,12 @@
 #include "modify.h"
 #include "neigh_list.h"
 #include "neighbor.h"
-#include "pair_reaxc.h"
 #include "update.h"
 
-#include <cstring>
+#include "pair_reaxc.h"
+#include "reaxff_defs.h"
 
-#include "reaxc_defs.h"
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -109,23 +109,20 @@ FixReaxCSpecies::FixReaxCSpecies(LAMMPS *lmp, int narg, char **arg) :
     char *suffix = strrchr(arg[6],'.');
     if (suffix && strcmp(suffix,".gz") == 0) {
 #ifdef LAMMPS_GZIP
-      char gzip[128];
-      sprintf(gzip,"gzip -6 > %s",arg[6]);
+      auto gzip = fmt::format("gzip -6 > {}",arg[6]);
 #ifdef _WIN32
-      fp = _popen(gzip,"wb");
+      fp = _popen(gzip.c_str(),"wb");
 #else
-      fp = popen(gzip,"w");
+      fp = popen(gzip.c_str(),"w");
 #endif
 #else
       error->one(FLERR,"Cannot open gzipped file");
 #endif
     } else fp = fopen(arg[6],"w");
 
-    if (fp == nullptr) {
-      char str[128];
-      snprintf(str,128,"Cannot open fix reax/c/species file %s",arg[6]);
-      error->one(FLERR,str);
-    }
+    if (!fp)
+      error->one(FLERR,fmt::format("Cannot open fix reax/c/species file {}: "
+                                   "{}",arg[6],utils::getsyserror()));
   }
 
   x0 = nullptr;

@@ -32,7 +32,11 @@ PairStyle(reax/c,PairReaxC);
 #define LMP_PAIR_REAXC_H
 
 #include "pair.h"
-#include "reaxc_types.h"
+
+namespace ReaxFF {
+  struct API;
+  struct far_neighbor_data;
+}
 
 namespace LAMMPS_NS {
 
@@ -50,17 +54,10 @@ class PairReaxC : public Pair {
   int **tmpid;
   double **tmpbo,**tmpr;
 
-  control_params *control;
-  reax_system *system;
-  output_controls *out_control;
-  simulation_data *data;
-  storage *workspace;
-  reax_list *lists;
-  mpi_datatypes *mpi_data;
+  ReaxFF::API *api;
+  typedef double rvec[3];
 
-  bigint ngroup;
-
- protected:
+protected:
   char *fix_id;
   double cutmax;
   class FixReaxC *fix_reax;
@@ -76,7 +73,7 @@ class PairReaxC : public Pair {
   void create_fix();
   void write_reax_atoms();
   void get_distance(rvec, rvec, double *, rvec *);
-  void set_far_nbr(far_neighbor_data *, int, double, rvec);
+  void set_far_nbr(ReaxFF::far_neighbor_data *, int, double, rvec);
   int estimate_reax_lists();
   int write_reax_lists();
   void read_reax_forces(int);
@@ -84,7 +81,6 @@ class PairReaxC : public Pair {
   int nmax;
   void FindBond();
   double memory_usage();
-
 };
 
 }

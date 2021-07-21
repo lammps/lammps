@@ -53,11 +53,11 @@ class FixQEqReax : public Fix {
   void min_setup_pre_force(int);
   void min_pre_force(int);
 
-  int matvecs;
-  double qeq_time;
+  virtual double compute_scalar();
 
  protected:
   int nevery,reaxflag;
+  int matvecs;
   int nn, NN, m_fill;
   int n_cap, nmax, m_cap;
   int pack_flag;
@@ -72,8 +72,6 @@ class FixQEqReax : public Fix {
 
   double *chi,*eta,*gamma;  // qeq parameters
   double **shld;
-
-  bigint ngroup;
 
   // fictitious charges
 
@@ -96,13 +94,7 @@ class FixQEqReax : public Fix {
 
   //CG storage
   double *p, *q, *r, *d;
-  int imax;
-
-  //GMRES storage
-  //double *g,*y;
-  //double **v;
-  //double **h;
-  //double *hc, *hs;
+  int imax, maxwarn;
 
   char *pertype_option;  // argument to determine how per-type info is obtained
   virtual void pertype_parameters(char*);
@@ -122,7 +114,6 @@ class FixQEqReax : public Fix {
   virtual void calculate_Q();
 
   virtual int CG(double*,double*);
-  //int GMRES(double*,double*);
   virtual void sparse_matvec(sparse_matrix*,double*,double*);
 
   virtual int pack_forward_comm(int, int *, double *, int, int *);
@@ -135,9 +126,9 @@ class FixQEqReax : public Fix {
   virtual int pack_exchange(int, double *);
   virtual int unpack_exchange(int, double *);
 
-  virtual double parallel_norm( double*, int );
-  virtual double parallel_dot( double*, double*, int );
-  virtual double parallel_vector_acc( double*, int );
+  virtual double parallel_norm(double*, int);
+  virtual double parallel_dot(double*, double*, int);
+  virtual double parallel_vector_acc(double*, int);
 
   virtual void vector_sum(double*,double,double*,double,double*,int);
   virtual void vector_add(double*, double, double*,int);

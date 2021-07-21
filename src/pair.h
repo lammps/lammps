@@ -28,6 +28,8 @@ class Pair : protected Pointers {
   friend class FixGPU;
   friend class FixIntel;
   friend class FixOMP;
+  friend class FixQEq;
+  friend class PairHybrid;
   friend class ThrOMP;
   friend class Info;
 
@@ -135,9 +137,9 @@ class Pair : protected Pointers {
 
   // need to be public, so can be called by pair_style reaxc
 
-  void v_tally(int, double *, double *);
   void ev_tally(int, int, int, int, double, double, double, double, double, double);
   void ev_tally3(int, int, int, double, double, double *, double *, double *, double *);
+  void v_tally2_newton(int, double *, double *);
   void v_tally3(int, int, int, double *, double *, double *, double *);
   void v_tally4(int, int, int, int, double *, double *, double *, double *, double *, double *);
   void ev_tally_xyz(int, int, int, int, double, double, double, double, double, double, double,

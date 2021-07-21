@@ -1,3 +1,4 @@
+<!-- UNITS: metal DATE: 2015-02-24 CITATION: Stillinger and Weber, Phys. Rev. B  31 p 5262 (1984), extended for other elements.  Ge and Si-Ge from Ethier and Lewis '92 -->
 <SW_params n_types="3" label="PRB_31_plus_H_Ge">
 <comment> Stillinger and Weber, Phys. Rev. B  31 p 5262 (1984), extended for other elements.  Ge and Si-Ge from Ethier and Lewis '92 </comment>
 <per_type_data type="1" atomic_num="1" />

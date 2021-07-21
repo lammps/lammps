@@ -194,7 +194,7 @@ void ComputeFabric::compute_vector()
   int i, j, ii, jj, inum, jnum, itype, jtype;
   tagint itag, jtag;
   double xtmp, ytmp, ztmp, delx, dely, delz;
-  double r, rinv, rsq, radsum, eng, fpair;
+  double r, rinv, rsq, radsum, fpair;
 
   double nx, ny, nz;
   double ncinv, denom, fn, ft, prefactor;
@@ -374,7 +374,7 @@ void ComputeFabric::compute_vector()
           if (rsq >= radsum * radsum) continue;
         }
 
-        if (fn_flag || ft_flag) eng = pair->single(i, j, itype, jtype, rsq, 1.0, 1.0, fpair);
+        if (fn_flag || ft_flag) pair->single(i, j, itype, jtype, rsq, 1.0, 1.0, fpair);
 
         r = sqrt(rsq);
         rinv = 1.0 / r;

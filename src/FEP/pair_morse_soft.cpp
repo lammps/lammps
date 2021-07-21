@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -14,8 +13,6 @@
 
 #include "pair_morse_soft.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -24,6 +21,8 @@
 #include "math_special.h"
 #include "error.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathSpecial;
@@ -165,7 +164,6 @@ void PairMorseSoft::allocate()
   PairMorse::allocate();
   int n = atom->ntypes;
   memory->create(lambda,n+1,n+1,"pair:lambda");
-
 }
 
 /* ----------------------------------------------------------------------
@@ -344,6 +342,7 @@ void PairMorseSoft::write_restart_settings(FILE *fp)
   fwrite(&shift_range,sizeof(double),1,fp);
   fwrite(&cut_global,sizeof(double),1,fp);
   fwrite(&offset_flag,sizeof(int),1,fp);
+  fwrite(&mix_flag,sizeof(int),1,fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -358,11 +357,13 @@ void PairMorseSoft::read_restart_settings(FILE *fp)
     utils::sfread(FLERR,&shift_range,sizeof(double),1,fp,nullptr,error);
     utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,nullptr,error);
     utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
   }
   MPI_Bcast(&nlambda,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&shift_range,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
+  MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
 }
 
 
@@ -385,8 +386,8 @@ void PairMorseSoft::write_data_all(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
     for (int j = i; j <= atom->ntypes; j++)
-      fprintf(fp,"%d %g %g %g %g\n",i,d0[i][j],alpha[i][j],r0[i][j],
-              lambda[i][j]);
+      fprintf(fp,"%d %d %g %g %g %g %g\n",i,j,d0[i][j],alpha[i][j],r0[i][j],
+              lambda[i][j],cut[i][j]);
 }
 
 /* ---------------------------------------------------------------------- */

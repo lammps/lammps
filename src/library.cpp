@@ -5189,7 +5189,7 @@ is assumed to be extensive.
 
    The index in the *idx* parameter is 1-based, i.e. the first element
    is set with idx = 1 and the last element of the vector with idx = N,
-   where N is the value of the *len* parameter of the call to 
+   where N is the value of the *len* parameter of the call to
    :cpp:func:`lammps_fix_external_set_vector_length`.
 
 Please see the documentation for :doc:`fix external <fix_external>` for

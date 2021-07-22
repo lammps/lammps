@@ -32,6 +32,13 @@ def callback_one(lmp, ntimestep, nlocal, tag, x, f):
     lmp.fix_external_set_energy_peratom("ext",eatom)
     lmp.fix_external_set_virial_peratom("ext",vatom)
 
+    #import numpy as np
+    #eng = np.array(eatom)
+    #vir = np.array(vatom)
+
+    #lmp.numpy.fix_external_set_energy_peratom("ext",eng)
+    #lmp.numpy.fix_external_set_virial_peratom("ext",vir)  # not yet implemented
+
 class PythonExternal(unittest.TestCase):
     def testExternalCallback(self):
         """Test fix external from Python with pf/callback"""

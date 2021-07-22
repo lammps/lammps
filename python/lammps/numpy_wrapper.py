@@ -266,7 +266,50 @@ class numpy_wrapper:
     value = self.lmp.fix_external_get_force(fix_id)
     return self.darray(value,nlocal,3)
 
-  # -------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
+
+  def fix_external_set_energy_peratom(self, fix_id, eatom):
+    """Set the per-atom energy contribution for a fix external instance with the given ID.
+
+    This function is an alternative to
+    :py:meth:`lammps.fix_external_set_energy_peratom() <lammps.lammps.fix_external_set_energy_peratom()>`
+    method.  It behaves the same as the original method, but accepts a NumPy array
+    instead of a list as argument.
+
+    :param fix_id:  Fix-ID of a fix external instance
+    :type: string
+    :param eatom:   per-atom potential energy
+    :type: numpy.array
+    """
+    import numpy as np
+    nlocal = self.lmp.extract_setting('nlocal')
+    c_double_p = POINTER(c_double)
+    value = eatom.astype(np.double)
+    return self.lmp.lib.lammps_fix_external_set_energy_peratom(self.lmp.lmp, fix_id.encode(),
+                                                               value.ctypes.data_as(c_double_p))
+
+    # -------------------------------------------------------------------------
+
+  def fix_external_set_virial_peratom(self, fix_id, vatom):
+    """Set the per-atom virial contribution for a fix external instance with the given ID.
+
+    This function is an alternative to
+    :py:meth:`lammps.fix_external_set_virial_peratom() <lammps.lammps.fix_external_set_virial_peratom()>`
+    method.  It behaves the same as the original method, but accepts a NumPy array
+    instead of a list as argument.
+
+    .. note::
+
+       This function is not yet implemented.
+
+    :param fix_id:  Fix-ID of a fix external instance
+    :type: string
+    :param eatom:   per-atom potential energy
+    :type: numpy.array
+    """
+    raise Exception('fix_external_set_virial_peratom() not yet implemented for NumPy arrays')
+
+    # -------------------------------------------------------------------------
 
   def get_neighlist(self, idx):
     """Returns an instance of :class:`NumPyNeighList` which wraps access to the neighbor list with the given index

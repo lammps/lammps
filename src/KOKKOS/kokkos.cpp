@@ -293,9 +293,14 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
           error->warning(FLERR,"MVAPICH2 'MV2_USE_CUDA' environment variable is not set. Disabling GPU-aware MPI");
     // pure MPICH or some unsupported MPICH derivative
 #elif defined(MPICH) && !defined(MVAPICH2_VERSION)
-      if (me == 0)
-        error->warning(FLERR,"Detected MPICH. Disabling GPU-aware MPI");
+      char* str;
       gpu_aware_flag = 0;
+      if ((str = getenv("MPICH_GPU_SUPPORT_ENABLED")))
+        if ((strcmp(str,"1") == 0))
+          gpu_aware_flag = 1;
+
+      if (!gpu_aware_flag && me == 0)
+        error->warning(FLERR,"Detected MPICH. Disabling GPU-aware MPI");
 #else
   if (me == 0)
     error->warning(FLERR,"Kokkos with CUDA, HIP, or SYCL assumes CUDA-aware MPI is available,"

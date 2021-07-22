@@ -58,6 +58,7 @@
 #include <omp.h>
 #endif
 
+#include "omp_compat.h"
 #include "suffix.h"
 using namespace LAMMPS_NS;
 using namespace ReaxFF;
@@ -236,7 +237,21 @@ void PairReaxFFOMP::compute(int eflag, int vflag)
   api->system->n = atom->nlocal; // my atoms
   api->system->N = atom->nlocal + atom->nghost; // mine + ghosts
   api->system->bigN = static_cast<int> (atom->natoms);  // all atoms in the system
+  const int nall = api->system->N;
 
+#if defined(_OPENMP)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(eflag,vflag)
+#endif
+  {
+#if defined(_OPENMP)
+     int tid = omp_get_thread_num();
+#else
+     int tid = 0;
+#endif
+     ThrData *thr = fix->get_thr(tid);
+     thr->timer(Timer::START);
+     ev_setup_thr(eflag, vflag, api->system->N, eatom, vatom, nullptr, thr);
+  }
   // setup data structures
 
   setup();
@@ -252,6 +267,27 @@ void PairReaxFFOMP::compute(int eflag, int vflag)
 
   Compute_ForcesOMP(api->system,api->control,api->data,api->workspace,&api->lists);
   read_reax_forces(vflag);
+
+  const int nthreads = comm->nthreads;
+#if defined(_OPENMP)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(vflag)
+#endif
+  {
+#if defined(_OPENMP)
+     int tid = omp_get_thread_num();
+#else
+     int tid = 0;
+#endif
+     ThrData *thr = fix->get_thr(tid);
+     thr->timer(Timer::PAIR);
+
+     // the pair style reduces energy and forces directly. so only reduce virial/
+     // per-atom virial and per-atom centroid virial are the same for two-body
+     // many-body pair styles not yet implemented
+      if (vflag & (VIRIAL_ATOM | VIRIAL_CENTROID)) {
+        data_reduce_thr(&(vatom[0][0]), nall , nthreads, 6, tid);
+      }
+  }
 
 #if defined(_OPENMP)
 #pragma omp parallel for schedule(static)

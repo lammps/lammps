@@ -724,14 +724,14 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // Polarization (self)
   if (neighflag == HALF) {
     if (evflag)
-      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxFFomputePolar<HALF,1> >(0,inum),*this,ev);
+      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxFFComputePolar<HALF,1> >(0,inum),*this,ev);
     else
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxFFomputePolar<HALF,0> >(0,inum),*this);
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxFFComputePolar<HALF,0> >(0,inum),*this);
   } else { //if (neighflag == HALFTHREAD) {
     if (evflag)
-      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxFFomputePolar<HALFTHREAD,1> >(0,inum),*this,ev);
+      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxFFComputePolar<HALFTHREAD,1> >(0,inum),*this,ev);
     else
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxFFomputePolar<HALFTHREAD,0> >(0,inum),*this);
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxFFComputePolar<HALFTHREAD,0> >(0,inum),*this);
   }
   ev_all += ev;
   pvector[13] = ev.ecoul;
@@ -740,26 +740,26 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (api->control->tabulate) {
     if (neighflag == HALF) {
       if (evflag)
-        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxFFomputeTabulatedLJCoulomb<HALF,1> >(0,inum),*this,ev);
+        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxFFComputeTabulatedLJCoulomb<HALF,1> >(0,inum),*this,ev);
       else
-        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxFFomputeTabulatedLJCoulomb<HALF,0> >(0,inum),*this);
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxFFComputeTabulatedLJCoulomb<HALF,0> >(0,inum),*this);
     } else if (neighflag == HALFTHREAD) {
       if (evflag)
-        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxFFomputeTabulatedLJCoulomb<HALFTHREAD,1> >(0,inum),*this,ev);
+        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxFFComputeTabulatedLJCoulomb<HALFTHREAD,1> >(0,inum),*this,ev);
       else
-        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxFFomputeTabulatedLJCoulomb<HALFTHREAD,0> >(0,inum),*this);
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxFFComputeTabulatedLJCoulomb<HALFTHREAD,0> >(0,inum),*this);
     }
   } else {
     if (neighflag == HALF) {
       if (evflag)
-        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxFFomputeLJCoulomb<HALF,1> >(0,inum),*this,ev);
+        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxFFComputeLJCoulomb<HALF,1> >(0,inum),*this,ev);
       else
-        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxFFomputeLJCoulomb<HALF,0> >(0,inum),*this);
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxFFComputeLJCoulomb<HALF,0> >(0,inum),*this);
     } else if (neighflag == HALFTHREAD) {
       if (evflag)
-        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxFFomputeLJCoulomb<HALFTHREAD,1> >(0,inum),*this,ev);
+        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxFFComputeLJCoulomb<HALFTHREAD,1> >(0,inum),*this,ev);
       else
-        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxFFomputeLJCoulomb<HALFTHREAD,0> >(0,inum),*this);
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxFFComputeLJCoulomb<HALFTHREAD,0> >(0,inum),*this);
     }
   }
   ev_all += ev;
@@ -853,34 +853,34 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // Bond energy
   if (neighflag == HALF) {
     if (evflag)
-      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxFFomputeBond1<HALF,1> >(0,inum),*this,ev);
+      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxFFComputeBond1<HALF,1> >(0,inum),*this,ev);
     else
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxFFomputeBond1<HALF,0> >(0,inum),*this);
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxFFComputeBond1<HALF,0> >(0,inum),*this);
     ev_all += ev;
     pvector[0] = ev.evdwl;
   } else { //if (neighflag == HALFTHREAD) {
     if (evflag)
-      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxFFomputeBond1<HALFTHREAD,1> >(0,inum),*this,ev);
+      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxFFComputeBond1<HALFTHREAD,1> >(0,inum),*this,ev);
     else
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxFFomputeBond1<HALFTHREAD,0> >(0,inum),*this);
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxFFComputeBond1<HALFTHREAD,0> >(0,inum),*this);
     ev_all += ev;
     pvector[0] = ev.evdwl;
   }
 
   // Multi-body corrections
   if (neighflag == HALF) {
-    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxFFomputeMulti1<HALF,0> >(0,inum),*this);
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxFFComputeMulti1<HALF,0> >(0,inum),*this);
     if (evflag)
-      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxFFomputeMulti2<HALF,1> >(0,inum),*this,ev);
+      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxFFComputeMulti2<HALF,1> >(0,inum),*this,ev);
     else
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxFFomputeMulti2<HALF,0> >(0,inum),*this);
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxFFComputeMulti2<HALF,0> >(0,inum),*this);
     ev_all += ev;
   } else { //if (neighflag == HALFTHREAD) {
-    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxFFomputeMulti1<HALFTHREAD,0> >(0,inum),*this);
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxFFComputeMulti1<HALFTHREAD,0> >(0,inum),*this);
     if (evflag)
-      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxFFomputeMulti2<HALFTHREAD,1> >(0,inum),*this,ev);
+      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxFFComputeMulti2<HALFTHREAD,1> >(0,inum),*this,ev);
     else
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxFFomputeMulti2<HALFTHREAD,0> >(0,inum),*this);
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxFFComputeMulti2<HALFTHREAD,0> >(0,inum),*this);
     ev_all += ev;
   }
   pvector[2] = ev.ereax[0];
@@ -891,15 +891,15 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // Angular
   if (neighflag == HALF) {
     if (evflag)
-      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxFFomputeAngular<HALF,1> >(0,inum),*this,ev);
+      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxFFComputeAngular<HALF,1> >(0,inum),*this,ev);
     else
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxFFomputeAngular<HALF,0> >(0,inum),*this);
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxFFComputeAngular<HALF,0> >(0,inum),*this);
     ev_all += ev;
   } else { //if (neighflag == HALFTHREAD) {
     if (evflag)
-      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxFFomputeAngular<HALFTHREAD,1> >(0,inum),*this,ev);
+      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxFFComputeAngular<HALFTHREAD,1> >(0,inum),*this,ev);
     else
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxFFomputeAngular<HALFTHREAD,0> >(0,inum),*this);
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxFFComputeAngular<HALFTHREAD,0> >(0,inum),*this);
     ev_all += ev;
   }
   pvector[4] = ev.ereax[3];
@@ -910,15 +910,15 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // Torsion
   if (neighflag == HALF) {
     if (evflag)
-      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxFFomputeTorsion<HALF,1> >(0,inum),*this,ev);
+      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxFFComputeTorsion<HALF,1> >(0,inum),*this,ev);
     else
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxFFomputeTorsion<HALF,0> >(0,inum),*this);
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxFFComputeTorsion<HALF,0> >(0,inum),*this);
     ev_all += ev;
   } else { //if (neighflag == HALFTHREAD) {
     if (evflag)
-      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxFFomputeTorsion<HALFTHREAD,1> >(0,inum),*this,ev);
+      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxFFComputeTorsion<HALFTHREAD,1> >(0,inum),*this,ev);
     else
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxFFomputeTorsion<HALFTHREAD,0> >(0,inum),*this);
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxFFComputeTorsion<HALFTHREAD,0> >(0,inum),*this);
     ev_all += ev;
   }
   pvector[8] = ev.ereax[6];
@@ -929,15 +929,15 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (cut_hbsq > 0.0) {
     if (neighflag == HALF) {
       if (evflag)
-        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxFFomputeHydrogen<HALF,1> >(0,inum),*this,ev);
+        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxFFComputeHydrogen<HALF,1> >(0,inum),*this,ev);
       else
-        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxFFomputeHydrogen<HALF,0> >(0,inum),*this);
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxFFComputeHydrogen<HALF,0> >(0,inum),*this);
       ev_all += ev;
     } else { //if (neighflag == HALFTHREAD) {
       if (evflag)
-        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxFFomputeHydrogen<HALFTHREAD,1> >(0,inum),*this,ev);
+        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxFFComputeHydrogen<HALFTHREAD,1> >(0,inum),*this,ev);
       else
-        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxFFomputeHydrogen<HALFTHREAD,0> >(0,inum),*this);
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxFFComputeHydrogen<HALFTHREAD,0> >(0,inum),*this);
       ev_all += ev;
     }
   }
@@ -969,9 +969,9 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     //}
 
     if (evflag)
-      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxFFomputeBond2<HALF,1> >(0,ignum),*this,ev);
+      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxFFComputeBond2<HALF,1> >(0,ignum),*this,ev);
     else
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxFFomputeBond2<HALF,0> >(0,ignum),*this);
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxFFComputeBond2<HALF,0> >(0,ignum),*this);
     ev_all += ev;
     pvector[0] += ev.evdwl;
   } else { //if (neighflag == HALFTHREAD) {
@@ -985,9 +985,9 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     //}
 
     if (evflag)
-      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxFFomputeBond2<HALFTHREAD,1> >(0,ignum),*this,ev);
+      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, PairReaxFFComputeBond2<HALFTHREAD,1> >(0,ignum),*this,ev);
     else
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxFFomputeBond2<HALFTHREAD,0> >(0,ignum),*this);
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxFFComputeBond2<HALFTHREAD,0> >(0,ignum),*this);
     ev_all += ev;
     pvector[0] += ev.evdwl;
   }
@@ -1049,7 +1049,7 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFomputePolar<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT_REAX& ev) const {
+void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFComputePolar<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT_REAX& ev) const {
 
   const int i = d_ilist[ii];
   const int itype = type(i);
@@ -1067,9 +1067,9 @@ void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFomputePolar<NEIGHFLAG,EV
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFomputePolar<NEIGHFLAG,EVFLAG>, const int &ii) const {
+void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFComputePolar<NEIGHFLAG,EVFLAG>, const int &ii) const {
   EV_FLOAT_REAX ev;
-  this->template operator()<NEIGHFLAG,EVFLAG>(PairReaxFFomputePolar<NEIGHFLAG,EVFLAG>(), ii, ev);
+  this->template operator()<NEIGHFLAG,EVFLAG>(PairReaxFFComputePolar<NEIGHFLAG,EVFLAG>(), ii, ev);
 
 }
 
@@ -1078,7 +1078,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFomputePolar<NEIGHFLAG,EV
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFomputeLJCoulomb<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT_REAX& ev) const {
+void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFComputeLJCoulomb<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT_REAX& ev) const {
 
   // The f array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
 
@@ -1220,9 +1220,9 @@ void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFomputeLJCoulomb<NEIGHFLA
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFomputeLJCoulomb<NEIGHFLAG,EVFLAG>, const int &ii) const {
+void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFComputeLJCoulomb<NEIGHFLAG,EVFLAG>, const int &ii) const {
   EV_FLOAT_REAX ev;
-  this->template operator()<NEIGHFLAG,EVFLAG>(PairReaxFFomputeLJCoulomb<NEIGHFLAG,EVFLAG>(), ii, ev);
+  this->template operator()<NEIGHFLAG,EVFLAG>(PairReaxFFComputeLJCoulomb<NEIGHFLAG,EVFLAG>(), ii, ev);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1230,7 +1230,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFomputeLJCoulomb<NEIGHFLA
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFomputeTabulatedLJCoulomb<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT_REAX& ev) const {
+void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFComputeTabulatedLJCoulomb<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT_REAX& ev) const {
 
   // The f array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
 
@@ -1327,9 +1327,9 @@ void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFomputeTabulatedLJCoulomb
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFomputeTabulatedLJCoulomb<NEIGHFLAG,EVFLAG>, const int &ii) const {
+void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFComputeTabulatedLJCoulomb<NEIGHFLAG,EVFLAG>, const int &ii) const {
   EV_FLOAT_REAX ev;
-  this->template operator()<NEIGHFLAG,EVFLAG>(PairReaxFFomputeTabulatedLJCoulomb<NEIGHFLAG,EVFLAG>(), ii, ev);
+  this->template operator()<NEIGHFLAG,EVFLAG>(PairReaxFFComputeTabulatedLJCoulomb<NEIGHFLAG,EVFLAG>(), ii, ev);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1989,7 +1989,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(PairReaxBondOrder3, const int &ii)
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFomputeMulti1<NEIGHFLAG,EVFLAG>, const int &ii) const {
+void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFComputeMulti1<NEIGHFLAG,EVFLAG>, const int &ii) const {
 
   const int i = d_ilist[ii];
   const int itype = type(i);
@@ -2023,7 +2023,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFomputeMulti1<NEIGHFLAG,E
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFomputeMulti2<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT_REAX& ev) const {
+void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFComputeMulti2<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT_REAX& ev) const {
 
   auto v_CdDelta = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_CdDelta),decltype(ndup_CdDelta)>::get(dup_CdDelta,ndup_CdDelta);
   auto a_CdDelta = v_CdDelta.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
@@ -2164,9 +2164,9 @@ void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFomputeMulti2<NEIGHFLAG,E
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFomputeMulti2<NEIGHFLAG,EVFLAG>, const int &ii) const {
+void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFComputeMulti2<NEIGHFLAG,EVFLAG>, const int &ii) const {
   EV_FLOAT_REAX ev;
-  this->template operator()<NEIGHFLAG,EVFLAG>(PairReaxFFomputeMulti2<NEIGHFLAG,EVFLAG>(), ii, ev);
+  this->template operator()<NEIGHFLAG,EVFLAG>(PairReaxFFComputeMulti2<NEIGHFLAG,EVFLAG>(), ii, ev);
 
 }
 
@@ -2175,7 +2175,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFomputeMulti2<NEIGHFLAG,E
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFomputeAngular<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT_REAX& ev) const {
+void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFComputeAngular<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT_REAX& ev) const {
 
   auto v_f = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
   auto a_f = v_f.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
@@ -2476,9 +2476,9 @@ void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFomputeAngular<NEIGHFLAG,
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFomputeAngular<NEIGHFLAG,EVFLAG>, const int &ii) const {
+void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFComputeAngular<NEIGHFLAG,EVFLAG>, const int &ii) const {
   EV_FLOAT_REAX ev;
-  this->template operator()<NEIGHFLAG,EVFLAG>(PairReaxFFomputeAngular<NEIGHFLAG,EVFLAG>(), ii, ev);
+  this->template operator()<NEIGHFLAG,EVFLAG>(PairReaxFFComputeAngular<NEIGHFLAG,EVFLAG>(), ii, ev);
 
 }
 
@@ -2487,7 +2487,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFomputeAngular<NEIGHFLAG,
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFomputeTorsion<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT_REAX& ev) const {
+void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFComputeTorsion<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT_REAX& ev) const {
 
   auto v_f = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
   auto a_f = v_f.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
@@ -2851,9 +2851,9 @@ void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFomputeTorsion<NEIGHFLAG,
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFomputeTorsion<NEIGHFLAG,EVFLAG>, const int &ii) const {
+void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFComputeTorsion<NEIGHFLAG,EVFLAG>, const int &ii) const {
   EV_FLOAT_REAX ev;
-  this->template operator()<NEIGHFLAG,EVFLAG>(PairReaxFFomputeTorsion<NEIGHFLAG,EVFLAG>(), ii, ev);
+  this->template operator()<NEIGHFLAG,EVFLAG>(PairReaxFFComputeTorsion<NEIGHFLAG,EVFLAG>(), ii, ev);
 
 }
 
@@ -2862,7 +2862,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFomputeTorsion<NEIGHFLAG,
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFomputeHydrogen<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT_REAX& ev) const {
+void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFComputeHydrogen<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT_REAX& ev) const {
 
   auto v_f = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
   auto a_f = v_f.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
@@ -2998,9 +2998,9 @@ void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFomputeHydrogen<NEIGHFLAG
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFomputeHydrogen<NEIGHFLAG,EVFLAG>, const int &ii) const {
+void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFComputeHydrogen<NEIGHFLAG,EVFLAG>, const int &ii) const {
   EV_FLOAT_REAX ev;
-  this->template operator()<NEIGHFLAG,EVFLAG>(PairReaxFFomputeHydrogen<NEIGHFLAG,EVFLAG>(), ii, ev);
+  this->template operator()<NEIGHFLAG,EVFLAG>(PairReaxFFComputeHydrogen<NEIGHFLAG,EVFLAG>(), ii, ev);
 
 }
 
@@ -3061,7 +3061,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(PairReaxUpdateBond<NEIGHFLAG>, con
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFomputeBond1<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT_REAX& ev) const {
+void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFComputeBond1<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT_REAX& ev) const {
 
   auto v_f = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
 
@@ -3168,9 +3168,9 @@ void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFomputeBond1<NEIGHFLAG,EV
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFomputeBond1<NEIGHFLAG,EVFLAG>, const int &ii) const {
+void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFComputeBond1<NEIGHFLAG,EVFLAG>, const int &ii) const {
   EV_FLOAT_REAX ev;
-  this->template operator()<NEIGHFLAG,EVFLAG>(PairReaxFFomputeBond1<NEIGHFLAG,EVFLAG>(), ii, ev);
+  this->template operator()<NEIGHFLAG,EVFLAG>(PairReaxFFComputeBond1<NEIGHFLAG,EVFLAG>(), ii, ev);
 
 }
 
@@ -3179,7 +3179,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFomputeBond1<NEIGHFLAG,EV
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFomputeBond2<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT_REAX& ev) const {
+void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFComputeBond2<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT_REAX& ev) const {
 
   auto v_f = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
   auto a_f = v_f.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
@@ -3369,9 +3369,9 @@ void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFomputeBond2<NEIGHFLAG,EV
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFomputeBond2<NEIGHFLAG,EVFLAG>, const int &ii) const {
+void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFComputeBond2<NEIGHFLAG,EVFLAG>, const int &ii) const {
   EV_FLOAT_REAX ev;
-  this->template operator()<NEIGHFLAG,EVFLAG>(PairReaxFFomputeBond2<NEIGHFLAG,EVFLAG>(), ii, ev);
+  this->template operator()<NEIGHFLAG,EVFLAG>(PairReaxFFComputeBond2<NEIGHFLAG,EVFLAG>(), ii, ev);
 
 }
 

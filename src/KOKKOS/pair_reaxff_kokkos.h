@@ -56,13 +56,13 @@ struct LR_lookup_table_kk
 };
 
 template<int NEIGHFLAG, int EVFLAG>
-struct PairReaxFFomputePolar{};
+struct PairReaxFFComputePolar{};
 
 template<int NEIGHFLAG, int EVFLAG>
-struct PairReaxFFomputeLJCoulomb{};
+struct PairReaxFFComputeLJCoulomb{};
 
 template<int NEIGHFLAG, int EVFLAG>
-struct PairReaxFFomputeTabulatedLJCoulomb{};
+struct PairReaxFFComputeTabulatedLJCoulomb{};
 
 struct PairReaxBuildListsFull{};
 
@@ -85,25 +85,25 @@ template<int NEIGHFLAG>
 struct PairReaxUpdateBond{};
 
 template<int NEIGHFLAG, int EVFLAG>
-struct PairReaxFFomputeBond1{};
+struct PairReaxFFComputeBond1{};
 
 template<int NEIGHFLAG, int EVFLAG>
-struct PairReaxFFomputeBond2{};
+struct PairReaxFFComputeBond2{};
 
 template<int NEIGHFLAG, int EVFLAG>
-struct PairReaxFFomputeMulti1{};
+struct PairReaxFFComputeMulti1{};
 
 template<int NEIGHFLAG, int EVFLAG>
-struct PairReaxFFomputeMulti2{};
+struct PairReaxFFComputeMulti2{};
 
 template<int NEIGHFLAG, int EVFLAG>
-struct PairReaxFFomputeAngular{};
+struct PairReaxFFComputeAngular{};
 
 template<int NEIGHFLAG, int EVFLAG>
-struct PairReaxFFomputeTorsion{};
+struct PairReaxFFComputeTorsion{};
 
 template<int NEIGHFLAG, int EVFLAG>
-struct PairReaxFFomputeHydrogen{};
+struct PairReaxFFComputeHydrogen{};
 
 struct PairReaxFindBondZero{};
 
@@ -134,27 +134,27 @@ class PairReaxFFKokkos : public PairReaxFF {
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(PairReaxFFomputePolar<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT_REAX&) const;
+  void operator()(PairReaxFFComputePolar<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT_REAX&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(PairReaxFFomputePolar<NEIGHFLAG,EVFLAG>, const int&) const;
+  void operator()(PairReaxFFComputePolar<NEIGHFLAG,EVFLAG>, const int&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(PairReaxFFomputeLJCoulomb<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT_REAX&) const;
+  void operator()(PairReaxFFComputeLJCoulomb<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT_REAX&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(PairReaxFFomputeLJCoulomb<NEIGHFLAG,EVFLAG>, const int&) const;
+  void operator()(PairReaxFFComputeLJCoulomb<NEIGHFLAG,EVFLAG>, const int&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(PairReaxFFomputeTabulatedLJCoulomb<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT_REAX&) const;
+  void operator()(PairReaxFFComputeTabulatedLJCoulomb<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT_REAX&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(PairReaxFFomputeTabulatedLJCoulomb<NEIGHFLAG,EVFLAG>, const int&) const;
+  void operator()(PairReaxFFComputeTabulatedLJCoulomb<NEIGHFLAG,EVFLAG>, const int&) const;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(PairReaxBuildListsFull, const int&) const;
@@ -187,55 +187,55 @@ class PairReaxFFKokkos : public PairReaxFF {
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(PairReaxFFomputeBond1<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT_REAX&) const;
+  void operator()(PairReaxFFComputeBond1<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT_REAX&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(PairReaxFFomputeBond1<NEIGHFLAG,EVFLAG>, const int&) const;
+  void operator()(PairReaxFFComputeBond1<NEIGHFLAG,EVFLAG>, const int&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(PairReaxFFomputeBond2<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT_REAX&) const;
+  void operator()(PairReaxFFComputeBond2<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT_REAX&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(PairReaxFFomputeBond2<NEIGHFLAG,EVFLAG>, const int&) const;
+  void operator()(PairReaxFFComputeBond2<NEIGHFLAG,EVFLAG>, const int&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(PairReaxFFomputeMulti1<NEIGHFLAG,EVFLAG>, const int&) const;
+  void operator()(PairReaxFFComputeMulti1<NEIGHFLAG,EVFLAG>, const int&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(PairReaxFFomputeMulti2<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT_REAX&) const;
+  void operator()(PairReaxFFComputeMulti2<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT_REAX&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(PairReaxFFomputeMulti2<NEIGHFLAG,EVFLAG>, const int&) const;
+  void operator()(PairReaxFFComputeMulti2<NEIGHFLAG,EVFLAG>, const int&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(PairReaxFFomputeAngular<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT_REAX&) const;
+  void operator()(PairReaxFFComputeAngular<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT_REAX&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(PairReaxFFomputeAngular<NEIGHFLAG,EVFLAG>, const int&) const;
+  void operator()(PairReaxFFComputeAngular<NEIGHFLAG,EVFLAG>, const int&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(PairReaxFFomputeTorsion<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT_REAX&) const;
+  void operator()(PairReaxFFComputeTorsion<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT_REAX&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(PairReaxFFomputeTorsion<NEIGHFLAG,EVFLAG>, const int&) const;
+  void operator()(PairReaxFFComputeTorsion<NEIGHFLAG,EVFLAG>, const int&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(PairReaxFFomputeHydrogen<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT_REAX&) const;
+  void operator()(PairReaxFFComputeHydrogen<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT_REAX&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(PairReaxFFomputeHydrogen<NEIGHFLAG,EVFLAG>, const int&) const;
+  void operator()(PairReaxFFComputeHydrogen<NEIGHFLAG,EVFLAG>, const int&) const;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(PairReaxFindBondZero, const int&) const;

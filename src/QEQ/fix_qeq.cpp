@@ -126,7 +126,7 @@ FixQEq::FixQEq(LAMMPS *lmp, int narg, char **arg) :
 
   if (strcmp(arg[7],"coul/streitz") == 0) {
     streitz_flag = 1;
-  } else if (strcmp(arg[7],"reax/c") == 0) {
+  } else if (utils::strmatch(arg[7],"^reax..") == 0) {
     reax_flag = 1;
   } else {
     read_file(arg[7]);

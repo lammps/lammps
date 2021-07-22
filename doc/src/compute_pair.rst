@@ -24,7 +24,7 @@ Examples
    compute 1 all pair gauss
    compute 1 all pair lj/cut/coul/cut ecoul
    compute 1 all pair tersoff 2 epair
-   compute 1 all pair reax/c
+   compute 1 all pair reaxff
 
 Description
 """""""""""
@@ -64,7 +64,8 @@ is stored as a global scalar.
    :doc:`pair_modify <pair_modify>` command.
 
 Some pair styles tally additional quantities, e.g. a breakdown of
-potential energy into 14 components is tallied by the :doc:`pair_style reax/c <pair_reaxc>` command.  These values (1 or more)
+potential energy into 14 components is tallied by the
+:doc:`pair_style reaxff <pair_reaxff>` command.  These values (1 or more)
 are stored as a global vector by this compute.  See the doc page for
 :doc:`individual pair styles <pair_style>` for info on these values.
 

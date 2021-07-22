@@ -50,8 +50,8 @@
 #define DANGER_ZONE     0.90
 #define LOOSE_ZONE      0.75
 
-#define MAXREAXBOND 24 /* used in fix_reaxc_bonds.cpp and pair_reaxc.cpp */
-#define MAXSPECBOND 24 /* used in fix_reaxc_species.cpp and pair_reaxc.cpp */
+#define MAXREAXBOND 24 /* used in fix_reaxff_bonds.cpp and pair_reaxff.cpp */
+#define MAXSPECBOND 24 /* used in fix_reaxff_species.cpp and pair_reaxff.cpp */
 
 #define REAX_MAX_3BODY_PARAM    5
 #define REAX_MAX_4BODY_PARAM    5

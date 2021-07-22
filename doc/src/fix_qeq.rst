@@ -32,7 +32,7 @@ Syntax
 * cutoff = global cutoff for charge-charge interactions (distance unit)
 * tolerance = precision to which charges will be equilibrated
 * maxiter = maximum iterations to perform charge equilibration
-* qfile = a filename with QEq parameters or *coul/streitz* or *reax/c*
+* qfile = a filename with QEq parameters or *coul/streitz* or *reaxff*
 * zero or more keyword/value pairs may be appended
 * keyword = *alpha* or *qdamp* or *qstep* or *warn*
 
@@ -91,11 +91,11 @@ on the current atom configuration), then remove the fix via the
 
    The :doc:`fix qeq/comb <fix_qeq_comb>` command must still be used to
    perform charge equilibration with the :doc:`COMB potential
-   <pair_comb>`.  The :doc:`fix qeq/reax <fix_qeq_reax>` command can be
+   <pair_comb>`.  The :doc:`fix qeq/reaxff <fix_qeq_reaxff>` command can be
    used to perform charge equilibration with the :doc:`ReaxFF force
-   field <pair_reaxc>`, although fix qeq/shielded yields the same
-   results as fix qeq/reax if *Nevery*\ , *cutoff*\ , and *tolerance*
-   are the same.  Eventually the fix qeq/reax command will be
+   field <pair_reaxff>`, although fix qeq/shielded yields the same
+   results as fix qeq/reaxff if *Nevery*\ , *cutoff*\ , and *tolerance*
+   are the same.  Eventually the fix qeq/reaxff command will be
    deprecated.
 
 The QEq method minimizes the electrostatic energy of the system (or
@@ -150,11 +150,11 @@ interaction between a pair of charged particles.  Interaction through
 the shielded Coulomb is given by equation (13) of the :ref:`ReaxFF force
 field <vanDuin>` paper.  The shielding accounts for charge overlap
 between charged particles at small separation.  This style is the same
-as :doc:`fix qeq/reax <fix_qeq_reax>`, and can be used with
-:doc:`pair_style reax/c <pair_reaxc>`.  Only the *chi*\ , *eta*\ , and
+as :doc:`fix qeq/reaxff <fix_qeq_reaxff>`, and can be used with
+:doc:`pair_style reaxff <pair_reaxff>`.  Only the *chi*\ , *eta*\ , and
 *gamma* parameters from the *qfile* file are used. When using the string
-*reax/c* as filename, these parameters are extracted directly from an
-active *reax/c* pair style.  This style solves partial charges on atoms
+*reaxff* as filename, these parameters are extracted directly from an
+active *reaxff* pair style.  This style solves partial charges on atoms
 via the matrix inversion method.  A tolerance of 1.0e-6 is usually a
 good number.
 
@@ -235,7 +235,7 @@ The qeq fixes are not compatible with the GPU and USER-INTEL packages.
 Related commands
 """"""""""""""""
 
-:doc:`fix qeq/reax <fix_qeq_reax>`, :doc:`fix qeq/comb <fix_qeq_comb>`
+:doc:`fix qeq/reaxff <fix_qeq_reaxff>`, :doc:`fix qeq/comb <fix_qeq_comb>`
 
 Default
 """""""

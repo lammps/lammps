@@ -448,7 +448,8 @@ does not require atomic operations in the calculation of pair forces. For
 that reason, *full* is the default setting for GPUs. However, when
 running on CPUs, a *half* neighbor list is the default because it are
 often faster, just as it is for non-accelerated pair styles. Similarly,
-the *neigh/qeq* keyword determines how neighbor lists are built for :doc:`fix qeq/reax/kk <fix_qeq_reax>`.
+the *neigh/qeq* keyword determines how neighbor lists are built for
+:doc:`fix qeq/reaxff/kk <fix_qeq_reaxff>`.
 
 If the *neigh/thread* keyword is set to *off*\ , then the KOKKOS package
 threads only over atoms. However, for small systems, this may not expose

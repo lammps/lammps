@@ -1,7 +1,7 @@
-LAMMPS (8 Apr 2021)
+LAMMPS (2 Jul 2021)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
   using 1 OpenMP thread(s) per MPI task
 # ReaxFF potential for RDX system
-# this run is equivalent to reax/in.reax.rdx
 
 units           real
 
@@ -14,20 +14,20 @@ Reading data file ...
   21 atoms
   read_data CPU = 0.001 seconds
 
-pair_style      reax/c control.reax_c.rdx
-WARNING: Ignoring inactive control parameter: simulation_name (src/USER-REAXC/reaxc_control.cpp:97)
-WARNING: Ignoring inactive control parameter: energy_update_freq (src/USER-REAXC/reaxc_control.cpp:97)
-WARNING: Support for writing native trajectories has been removed after LAMMPS version 8 April 2021 (src/USER-REAXC/reaxc_control.cpp:113)
-WARNING: Ignoring inactive control parameter: traj_title (src/USER-REAXC/reaxc_control.cpp:97)
-WARNING: Ignoring inactive control parameter: atom_info (src/USER-REAXC/reaxc_control.cpp:97)
-WARNING: Ignoring inactive control parameter: atom_forces (src/USER-REAXC/reaxc_control.cpp:97)
-WARNING: Ignoring inactive control parameter: atom_velocities (src/USER-REAXC/reaxc_control.cpp:97)
-WARNING: Ignoring inactive control parameter: bond_info (src/USER-REAXC/reaxc_control.cpp:97)
-WARNING: Ignoring inactive control parameter: angle_info (src/USER-REAXC/reaxc_control.cpp:97)
+pair_style      reaxff control.reax_c.rdx
+WARNING: Ignoring inactive control parameter: simulation_name (src/REAXFF/reaxff_control.cpp:97)
+WARNING: Ignoring inactive control parameter: energy_update_freq (src/REAXFF/reaxff_control.cpp:97)
+WARNING: Support for writing native trajectories has been removed after LAMMPS version 8 April 2021 (src/REAXFF/reaxff_control.cpp:113)
+WARNING: Ignoring inactive control parameter: traj_title (src/REAXFF/reaxff_control.cpp:97)
+WARNING: Ignoring inactive control parameter: atom_info (src/REAXFF/reaxff_control.cpp:97)
+WARNING: Ignoring inactive control parameter: atom_forces (src/REAXFF/reaxff_control.cpp:97)
+WARNING: Ignoring inactive control parameter: atom_velocities (src/REAXFF/reaxff_control.cpp:97)
+WARNING: Ignoring inactive control parameter: bond_info (src/REAXFF/reaxff_control.cpp:97)
+WARNING: Ignoring inactive control parameter: angle_info (src/REAXFF/reaxff_control.cpp:97)
 pair_coeff      * * ffield.reax C H O N
 Reading potential file ffield.reax with DATE: 2010-02-19
 
-compute reax all pair reax/c
+compute reax all pair reaxff
 
 variable eb      equal c_reax[1]
 variable ea      equal c_reax[2]
@@ -48,7 +48,7 @@ neighbor        2.5 bin
 neigh_modify    every 10 delay 0 check no
 
 fix             1 all nve
-fix             2 all qeq/reax 1 0.0 10.0 1.0e-6 reax/c
+fix             2 all qeq/reaxff 1 0.0 10.0 1.0e-6 reaxff
 
 variable nqeq   equal f_2
 
@@ -57,7 +57,7 @@ thermo_style    custom step temp epair etotal press                 v_eb v_ea v_
 
 timestep        1.0
 
-#dump           1 all atom 10 dump.reaxc.rdx
+#dump           1 all atom 10 dump.reaxff.rdx
 
 #dump           2 all image 25 image.*.jpg type type #               axes yes 0.8 0.02 view 60 -30
 #dump_modify    2 pad 3
@@ -71,7 +71,7 @@ CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
 
 Your simulation uses code contributions which should be cited:
 
-- pair reax/c command:
+- pair reaxff command:
 
 @Article{Aktulga12,
  author = {H. M. Aktulga, J. C. Fogarty, S. A. Pandit, A. Y. Grama},
@@ -82,7 +82,7 @@ Your simulation uses code contributions which should be cited:
  pages =   {245--259}
 }
 
-- fix qeq/reax command:
+- fix qeq/reaxff command:
 
 @Article{Aktulga12,
  author = {H. M. Aktulga, J. C. Fogarty, S. A. Pandit, A. Y. Grama},
@@ -102,12 +102,12 @@ Neighbor list info ...
   ghost atom cutoff = 12.5
   binsize = 6.25, bins = 3 3 3
   2 neighbor lists, perpetual/occasional/extra = 2 0 0
-  (1) pair reax/c, perpetual
+  (1) pair reaxff, perpetual
       attributes: half, newton off, ghost
       pair build: half/bin/newtoff/ghost
-      stencil: half/ghost/bin/3d/newtoff
+      stencil: full/ghost/bin/3d
       bin: standard
-  (2) fix qeq/reax, perpetual, copy from (1)
+  (2) fix qeq/reaxff, perpetual, copy from (1)
       attributes: half, newton off, ghost
       pair build: copy
       stencil: none
@@ -123,22 +123,22 @@ Step Temp E_pair TotEng Press v_eb v_ea v_elp v_emol v_ev v_epen v_ecoa v_ehb v_
       60    1167.7852   -1971.8429    -1902.224   -3482.7305    -2705.863    -17.12171   0.22749077            0    44.507654    7.8560745   -74.788955            0    16.256483   -4.6046431     835.8304   -188.33691            0    114.19413           10 
       70    1439.9966   -1989.3024   -1903.4553    23845.651   -2890.7895    31.958845   0.26671721            0    85.758695    3.1803544   -71.002903            0    24.357134    -10.31131    905.86775   -175.38471            0    106.79648           10 
       80    502.39438   -1930.7544   -1900.8035   -20356.316   -2703.8115   -18.662467   0.11286011            0    99.804201    2.0329024   -76.171317            0    19.237028   -6.2786907    826.47451   -166.03125            0    92.539398            9 
-      90    749.08499   -1946.9838   -1902.3262     17798.51   -2863.7576    42.068716    0.2433807            0    96.181613   0.96184888   -69.955448            0    24.615302   -11.582765    903.68818   -190.13843            0    120.69141           11 
+      90    749.08499   -1946.9838   -1902.3262     17798.51   -2863.7576    42.068717    0.2433807            0    96.181613   0.96184887   -69.955448            0    24.615302   -11.582765    903.68818   -190.13843            0    120.69141           11 
      100    1109.6968   -1968.5874   -1902.4315   -4490.1018   -2755.8965   -7.1231014   0.21757699            0    61.806018    7.0827673   -75.645345            0    20.114997   -6.2371964     863.5635   -198.56976            0    122.09961         10.5 
-Loop time of 0.618477 on 1 procs for 100 steps with 21 atoms
+Loop time of 0.231802 on 1 procs for 100 steps with 21 atoms
 
-Performance: 13.970 ns/day, 1.718 hours/ns, 161.687 timesteps/s
-99.9% CPU use with 1 MPI tasks x 1 OpenMP threads
+Performance: 37.273 ns/day, 0.644 hours/ns, 431.402 timesteps/s
+99.2% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.52329    | 0.52329    | 0.52329    |   0.0 | 84.61
-Neigh   | 0.03397    | 0.03397    | 0.03397    |   0.0 |  5.49
-Comm    | 0.0017006  | 0.0017006  | 0.0017006  |   0.0 |  0.27
-Output  | 0.00060892 | 0.00060892 | 0.00060892 |   0.0 |  0.10
-Modify  | 0.058764   | 0.058764   | 0.058764   |   0.0 |  9.50
-Other   |            | 0.0001407  |            |       |  0.02
+Pair    | 0.20857    | 0.20857    | 0.20857    |   0.0 | 89.98
+Neigh   | 0.010489   | 0.010489   | 0.010489   |   0.0 |  4.52
+Comm    | 0.00059632 | 0.00059632 | 0.00059632 |   0.0 |  0.26
+Output  | 0.00067498 | 0.00067498 | 0.00067498 |   0.0 |  0.29
+Modify  | 0.011161   | 0.011161   | 0.011161   |   0.0 |  4.82
+Other   |            | 0.000307   |            |       |  0.13
 
 Nlocal:        21.0000 ave          21 max          21 min
 Histogram: 1 0 0 0 0 0 0 0 0 0

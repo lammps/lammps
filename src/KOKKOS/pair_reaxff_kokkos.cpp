@@ -138,8 +138,8 @@ template<class DeviceType>
 void PairReaxFFKokkos<DeviceType>::init_style()
 {
   PairReaxFF::init_style();
-  if (fix_reax) modify->delete_fix(fix_id); // not needed in the Kokkos version
-  fix_reax = nullptr;
+  if (fix_reaxff) modify->delete_fix(fix_id); // not needed in the Kokkos version
+  fix_reaxff = nullptr;
 
   // irequest = neigh request made by parent class
 

@@ -3,7 +3,7 @@ lammps_version: 2 Jul 2021
 date_generated: Wed Jul 21 15:49:48 2021
 epsilon: 5e-13
 prerequisites: ! |
-  pair reax/c
+  pair reaxff
 pre_commands: ! |
   echo screen
   variable newton_pair delete
@@ -24,7 +24,7 @@ pre_commands: ! |
   velocity all create 100 4534624 loop geom
 post_commands: ! ""
 input_file: in.empty
-pair_style: reax/c NULL checkqeq no
+pair_style: reaxff NULL checkqeq no
 pair_coeff: ! |
   * * ffield.reax.mattsson C C
 extract: ! ""

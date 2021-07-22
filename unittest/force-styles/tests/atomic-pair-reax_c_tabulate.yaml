@@ -3,8 +3,8 @@ lammps_version: 2 Jul 2021
 date_generated: Wed Jul 21 15:49:50 2021
 epsilon: 1e-12
 prerequisites: ! |
-  pair reax/c
-  fix qeq/reax
+  pair reaxff
+  fix qeq/reaxff
 pre_commands: ! |
   echo screen
   shell cp ${input_dir}/reaxff.control reaxff-1.control
@@ -28,9 +28,9 @@ pre_commands: ! |
   set type 3 charge -0.01
   velocity all create 100 4534624 loop geom
 post_commands: ! |
-  fix qeq all qeq/reax 1 0.0 8.0 1.0e-20 reax/c
+  fix qeq all qeq/reaxff 1 0.0 8.0 1.0e-20 reaxff
 input_file: in.empty
-pair_style: reax/c reaxff-1.control checkqeq yes
+pair_style: reaxff reaxff-1.control checkqeq yes
 pair_coeff: ! |
   * * ffield.reax.mattsson H C O
 extract: ! ""

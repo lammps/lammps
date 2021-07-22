@@ -1787,7 +1787,7 @@ void PairExp6rxKokkos<DeviceType>::read_file(char *file)
     while ((words[nwords++] = strtok(nullptr," \t\n\r\f"))) continue;
 
     for (ispecies = 0; ispecies < nspecies; ispecies++)
-      if (strcmp(words[0],&atom->dname[ispecies][0]) == 0) break;
+      if (strcmp(words[0],&atom->dvname[ispecies][0]) == 0) break;
     if (ispecies == nspecies) continue;
 
     // load up parameter settings and error check their values
@@ -1801,9 +1801,9 @@ void PairExp6rxKokkos<DeviceType>::read_file(char *file)
 
     params[nparams].ispecies = ispecies;
 
-    n = strlen(&atom->dname[ispecies][0]) + 1;
+    n = strlen(&atom->dvname[ispecies][0]) + 1;
     params[nparams].name = new char[n];
-    strcpy(params[nparams].name,&atom->dname[ispecies][0]);
+    strcpy(params[nparams].name,&atom->dvname[ispecies][0]);
 
     n = strlen(words[1]) + 1;
     params[nparams].potential = new char[n];

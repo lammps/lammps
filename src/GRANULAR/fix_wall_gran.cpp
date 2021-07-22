@@ -1193,7 +1193,7 @@ void FixWallGran::granular(double rsq, double dx, double dy, double dz,
     knfac = E; //Hooke
     a = sqrt(dR);
     Fne = knfac*delta;
-    if (normal_model != HOOKE) {
+    if (normal_model != NORMAL_HOOKE) {
       Fne *= a;
       knfac *= a;
     }

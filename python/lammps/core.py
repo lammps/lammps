@@ -1749,8 +1749,8 @@ class lammps(object):
     - ntimestep is the current timestep
     - nlocal is the number of local atoms on the current MPI process
     - tag is a 1d NumPy array of integers representing the atom IDs of the local atoms
-    - x is a 2d NumPy array of floating point numbers of the coordinates of the local atoms
-    - f is a 2d NumPy array of floating point numbers of the forces on the local atoms that will be added
+    - x is a 2d NumPy array of doubles of the coordinates of the local atoms
+    - f is a 2d NumPy array of doubles of the forces on the local atoms that will be added
 
     :param fix_id:  Fix-ID of a fix external instance
     :type: string
@@ -1777,7 +1777,7 @@ class lammps(object):
   # -------------------------------------------------------------------------
 
   def fix_external_get_force(self, fix_id):
-    """Get access to that array with per-atom forces of a fix external instance with a given fix ID.
+    """Get access to the array with per-atom forces of a fix external instance with a given fix ID.
 
     This is a wrapper around the :cpp:func:`lammps_fix_external_get_force` function
     of the C-library interface.
@@ -1826,6 +1826,52 @@ class lammps(object):
     cvirial = (6*c_double)(*virial)
     with ExceptionCheck(self):
       return self.lib.lammps_fix_external_set_virial_global(self.lmp, fix_id.encode(), cvirial)
+
+  # -------------------------------------------------------------------------
+
+  def fix_external_set_energy_peratom(self, fix_id, eatom):
+    """Set the global energy contribution for a fix external instance with the given ID.
+
+    This is a wrapper around the :cpp:func:`lammps_fix_external_set_energy_peratom` function
+    of the C-library interface.
+
+    :param fix_id:  Fix-ID of a fix external instance
+    :type: string
+    :param eatom:   list of potential energy values for local atoms to be added by fix external
+    :type: float
+    """
+
+    nlocal = self.extract_setting('nlocal')
+    ceatom = (nlocal*c_double)(*eatom)
+    with ExceptionCheck(self):
+      return self.lib.lammps_fix_external_set_energy_peratom(self.lmp, fix_id.encode(), ceatom)
+
+  # -------------------------------------------------------------------------
+
+  def fix_external_set_virial_peratom(self, fix_id, virial):
+    """Set the global virial contribution for a fix external instance with the given ID.
+
+    This is a wrapper around the :cpp:func:`lammps_fix_external_set_virial_peratom` function
+    of the C-library interface.
+
+    :param fix_id:  Fix-ID of a fix external instance
+    :type: string
+    :param eng:     list of natoms lists with 6 floating point numbers to be added by fix external
+    :type: float
+    """
+
+    # copy virial data to C compatible buffer
+    nlocal = self.extract_setting('nlocal')
+    vbuf = (c_double * 6)
+    vptr = POINTER(c_double)
+    cvirial = (vptr * nlocal)()
+    for i in range(nlocal):
+        cvirial[i] = vbuf()
+        for j in range(6):
+          cvirial[i][j] = virial[i][j]
+
+    with ExceptionCheck(self):
+      return self.lib.lammps_fix_external_set_virial_peratom(self.lmp, fix_id.encode(), cvirial)
 
   # -------------------------------------------------------------------------
   def fix_external_set_vector_length(self, fix_id, length):

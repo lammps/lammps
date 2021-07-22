@@ -246,6 +246,26 @@ class numpy_wrapper:
       return np.ctypeslib.as_array(value)
     return value
 
+    # -------------------------------------------------------------------------
+
+  def fix_external_get_force(self, fix_id):
+    """Get access to the array with per-atom forces of a fix external instance with a given fix ID.
+
+    This function is a wrapper around the
+    :py:meth:`lammps.fix_external_get_force() <lammps.lammps.fix_external_get_force()>`
+    method.  It behaves the same as the original method, but returns a NumPy array instead
+    of a ``ctypes`` pointer.
+
+    :param fix_id:  Fix-ID of a fix external instance
+    :type: string
+    :return: requested data
+    :rtype: numpy.array
+    """
+    import numpy as np
+    nlocal = self.lmp.extract_setting('nlocal')
+    value = self.lmp.fix_external_get_force(fix_id)
+    return self.darray(value,nlocal,3)
+
   # -------------------------------------------------------------------------
 
   def get_neighlist(self, idx):

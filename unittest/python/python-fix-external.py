@@ -20,6 +20,18 @@ def callback_one(lmp, ntimestep, nlocal, tag, x, f):
         lmp.fix_external_set_vector("ext", 5, -1.0)
         lmp.fix_external_set_vector("ext", 6, 0.25)
 
+    eatom = [0.0,0.1,0.2,0.3,0.4,0.5,0.6,0.7]
+    vatom = [ [0.1,0.0,0.0,0.0,0.0,0.0],
+              [0.0,0.2,0.0,0.0,0.0,0.0],
+              [0.0,0.0,0.3,0.0,0.0,0.0],
+              [0.0,0.0,0.0,0.4,0.0,0.0],
+              [0.0,0.0,0.0,0.0,0.5,0.0],
+              [0.0,0.0,0.0,0.0,0.0,0.6],
+              [0.0,0.0,0.0,0.0,-7.0,0.0],
+              [0.0,-8.0,0.0,0.0,0.0,0.0] ]
+    lmp.fix_external_set_energy_peratom("ext",eatom)
+    lmp.fix_external_set_virial_peratom("ext",vatom)
+
 class PythonExternal(unittest.TestCase):
     def testExternalCallback(self):
         """Test fix external from Python with pf/callback"""
@@ -42,6 +54,10 @@ class PythonExternal(unittest.TestCase):
                         thermo 5
                         fix 1 all nve
                         fix ext all external pf/callback 5 1
+                        compute eatm all pe/atom fix
+                        compute vatm all stress/atom NULL fix
+                        compute sum all reduce sum c_eatm c_vatm[*]
+                        thermo_style custom step temp pe ke etotal press c_sum[*]
                         fix_modify ext energy yes virial yes
 """
         lmp.commands_string(basic_system)
@@ -51,6 +67,14 @@ class PythonExternal(unittest.TestCase):
         self.assertAlmostEqual(lmp.get_thermo("temp"),1.0/30.0,14)
         self.assertAlmostEqual(lmp.get_thermo("pe"),1.0/8.0,14)
         self.assertAlmostEqual(lmp.get_thermo("press"),0.15416666666666667,14)
+        reduce = lmp.extract_compute("sum", LMP_STYLE_GLOBAL, LMP_TYPE_VECTOR)
+        self.assertAlmostEqual(reduce[0],2.8,14)
+        self.assertAlmostEqual(reduce[1],-0.1,14)
+        self.assertAlmostEqual(reduce[2],7.8,14)
+        self.assertAlmostEqual(reduce[3],-0.3,14)
+        self.assertAlmostEqual(reduce[4],-0.4,14)
+        self.assertAlmostEqual(reduce[5],6.5,14)
+        self.assertAlmostEqual(reduce[6],-0.6,14)
         val = 0.0
         for i in range(0,6):
             val += lmp.extract_fix("ext",LMP_STYLE_GLOBAL,LMP_TYPE_VECTOR,nrow=i)
@@ -58,6 +82,12 @@ class PythonExternal(unittest.TestCase):
 
     def testExternalArray(self):
         """Test fix external from Python with pf/array"""
+
+        try:
+            import numpy
+            NUMPY_INSTALLED = True
+        except ImportError:
+            NUMPY_INSTALLED = False
 
         machine=None
         if 'LAMMPS_MACHINE_NAME' in os.environ:
@@ -93,6 +123,11 @@ class PythonExternal(unittest.TestCase):
         self.assertAlmostEqual(lmp.get_thermo("temp"),4.0/525.0,14)
         self.assertAlmostEqual(lmp.get_thermo("pe"),1.0/16.0,14)
         self.assertAlmostEqual(lmp.get_thermo("press"),0.06916666666666667,14)
+        if NUMPY_INSTALLED:
+            npforce = lmp.numpy.fix_external_get_force("ext")
+            self.assertEqual(len(npforce),8)
+            self.assertEqual(len(npforce[0]),3)
+            self.assertEqual(npforce[1][1],0.0)
 
         force = lmp.fix_external_get_force("ext");
         nlocal = lmp.extract_setting("nlocal");
@@ -106,8 +141,12 @@ class PythonExternal(unittest.TestCase):
         self.assertAlmostEqual(lmp.get_thermo("temp"),1.0/30.0,14)
         self.assertAlmostEqual(lmp.get_thermo("pe"),1.0/8.0,14)
         self.assertAlmostEqual(lmp.get_thermo("press"),0.15416666666666667,14)
+        if NUMPY_INSTALLED:
+            npforce = lmp.numpy.fix_external_get_force("ext")
+            self.assertEqual(npforce[0][0],6.0)
+            self.assertEqual(npforce[3][1],6.0)
+            self.assertEqual(npforce[7][2],6.0)
 
 ##############################
 if __name__ == "__main__":
     unittest.main()
-

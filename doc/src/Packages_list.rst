@@ -375,7 +375,7 @@ whether an extra library is needed to build and use the package:
      - no
    * - :ref:`REAXFF <PKG-REAXFF>`
      - ReaxFF potential (C/C++)
-     - :doc:`pair_style reaxc <pair_reaxc>`
+     - :doc:`pair_style reaxff <pair_reaxff>`
      - reax
      - no
    * - :ref:`REPLICA <PKG-REPLICA>`

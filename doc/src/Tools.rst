@@ -76,7 +76,6 @@ Post-processing tools
    * :ref:`phonon <phonon>`
    * :ref:`pymol_asphere <pymol>`
    * :ref:`python <pythontools>`
-   * :ref:`reax <reax_tool>`
    * :ref:`replica <replica>`
    * :ref:`smd <smd>`
    * :ref:`spin <spin>`
@@ -944,20 +943,6 @@ the README.md file for further details. Try out the peptide example provided.
 
 This tool was written by (and is maintained by) Tanmoy Sanyal,
 while at the Shell lab at UC Santa Barbara. (tanmoy dot 7989 at gmail.com)
-
-----------
-
-.. _reax_tool:
-
-reax tool
---------------------------
-
-The reax sub-directory contains stand-alone codes that can
-post-process the output of the :doc:`fix reax/c/bonds <fix_reaxc_bonds>`
-command from a LAMMPS simulation using :doc:`ReaxFF <pair_reaxc>`.  See
-the README.txt file for more info.
-
-These tools were written by Aidan Thompson at Sandia.
 
 ----------
 

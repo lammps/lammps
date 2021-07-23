@@ -37,10 +37,12 @@ done
 
 for file in *_omp.h; do
   test $file = thr_omp.h && continue
+  test $file = reaxff_omp.h && continue
   dep=${file%_omp.h}.h
   action $file $dep
 done
 
+action reaxff_omp.h reaxff_api.h
 action thr_omp.h
 action thr_omp.cpp
 action thr_data.h

@@ -374,7 +374,7 @@ in the context of NVT dynamics.
    has been reached.
 
 With some pair_styles, such as :doc:`Buckingham <pair_buck>`,
-:doc:`Born-Mayer-Huggins <pair_born>` and :doc:`ReaxFF <pair_reaxc>`, two
+:doc:`Born-Mayer-Huggins <pair_born>` and :doc:`ReaxFF <pair_reaxff>`, two
 atoms placed close to each other may have an arbitrary large, negative
 potential energy due to the functional form of the potential.  While
 these unphysical configurations are inaccessible to typical dynamical

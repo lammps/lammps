@@ -38,7 +38,15 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 FixQEqPoint::FixQEqPoint(LAMMPS *lmp, int narg, char **arg) :
-  FixQEq(lmp, narg, arg) {}
+  FixQEq(lmp, narg, arg) {
+  if (narg == 10) {
+    if (strcmp(arg[8],"warn") == 0) {
+      if (strcmp(arg[9],"no") == 0) maxwarn = 0;
+      else if (strcmp(arg[9],"yes") == 0) maxwarn = 1;
+      else error->all(FLERR,"Illegal fix qeq/point command");
+    } else error->all(FLERR,"Illegal fix qeq/point command");
+  } else if (narg > 8) error->all(FLERR,"Illegal fix qeq/point command");
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -80,6 +88,7 @@ void FixQEqPoint::pre_force(int /*vflag*/)
   init_matvec();
   matvecs = CG(b_s, s);         // CG on s - parallel
   matvecs += CG(b_t, t);        // CG on t - parallel
+  matvecs /= 2;
   calculate_Q();
 
   if (force->kspace) force->kspace->qsum_qsq();
@@ -100,18 +109,18 @@ void FixQEqPoint::init_matvec()
   for (ii = 0; ii < inum; ++ii) {
     i = ilist[ii];
     if (atom->mask[i] & groupbit) {
-      Hdia_inv[i] = 1. / eta[ atom->type[i] ];
-      b_s[i]      = -( chi[atom->type[i]] + chizj[i] );
+      Hdia_inv[i] = 1. / eta[atom->type[i]];
+      b_s[i]      = -(chi[atom->type[i]] + chizj[i]);
       b_t[i]      = -1.0;
-      t[i] = t_hist[i][2] + 3 * ( t_hist[i][0] - t_hist[i][1] );
+      t[i] = t_hist[i][2] + 3 * (t_hist[i][0] - t_hist[i][1]);
       s[i] = 4*(s_hist[i][0]+s_hist[i][2])-(6*s_hist[i][1]+s_hist[i][3]);
     }
   }
 
   pack_flag = 2;
-  comm->forward_comm_fix(this); //Dist_vector( s );
+  comm->forward_comm_fix(this); //Dist_vector(s);
   pack_flag = 3;
-  comm->forward_comm_fix(this); //Dist_vector( t );
+  comm->forward_comm_fix(this); //Dist_vector(t);
 }
 
 /* ---------------------------------------------------------------------- */

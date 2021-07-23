@@ -1842,6 +1842,8 @@ class lammps(object):
     """
 
     nlocal = self.extract_setting('nlocal')
+    if len(eatom) < nlocal:
+      raise Exception('per-atom energy list length must be at least nlocal')
     ceatom = (nlocal*c_double)(*eatom)
     with ExceptionCheck(self):
       return self.lib.lammps_fix_external_set_energy_peratom(self.lmp, fix_id.encode(), ceatom)
@@ -1862,6 +1864,10 @@ class lammps(object):
 
     # copy virial data to C compatible buffer
     nlocal = self.extract_setting('nlocal')
+    if len(vatom) < nlocal:
+      raise Exception('per-atom virial first dimension must be at least nlocal')
+    if len(vatom[0]) != 6:
+      raise Exception('per-atom virial second dimension must be 6')
     vbuf = (c_double * 6)
     vptr = POINTER(c_double)
     c_virial = (vptr * nlocal)()

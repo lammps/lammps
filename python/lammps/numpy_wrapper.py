@@ -283,6 +283,9 @@ class numpy_wrapper:
     """
     import numpy as np
     nlocal = self.lmp.extract_setting('nlocal')
+    if len(eatom) < nlocal:
+      raise Exception('per-atom energy dimension must be at least nlocal')
+
     c_double_p = POINTER(c_double)
     value = eatom.astype(np.double)
     return self.lmp.lib.lammps_fix_external_set_energy_peratom(self.lmp.lmp, fix_id.encode(),
@@ -307,7 +310,13 @@ class numpy_wrapper:
     :param eatom:   per-atom potential energy
     :type: numpy.array
     """
-    raise Exception('fix_external_set_virial_peratom() not yet implemented for NumPy arrays')
+    import numpy as np
+    nlocal = self.lmp.extract_setting('nlocal')
+    if len(vatom) < nlocal:
+      raise Exception('per-atom virial first dimension must be at least nlocal')
+    if len(vatom[0]) != 6:
+      raise Exception('per-atom virial second dimension must be 6')
+
 
     # -------------------------------------------------------------------------
 

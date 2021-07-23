@@ -546,7 +546,7 @@ void lammps_commands_string(void *handle, const char *str)
   }
   END_CAPTURE
 
-  delete [] copy;
+  delete[] copy;
 }
 
 // -----------------------------------------------------------------------

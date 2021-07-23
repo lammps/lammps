@@ -136,6 +136,7 @@ namespace LAMMPS_NS {
    private:
     //new functions
     void allocate(const std::vector<std::string> &);//called after reading element list, but before reading the rest of the potential
+    void deallocate();
     void read_file(char *);//read potential file
     void read_atom_types(std::vector<std::string>,char*,int);
     void read_fpe(std::vector<std::string>,std::vector<std::string>,char*,int);//fingerprints per element. Count total fingerprints defined for each 1st element in element combinations

@@ -299,7 +299,7 @@ accelerated styles exist.
 * :doc:`python <pair_python>` -
 * :doc:`quip <pair_quip>` -
 * :doc:`rann <pair_rann>` -
-* :doc:`reax/c <pair_reaxc>` - ReaxFF potential in C
+* :doc:`reaxff <pair_reaxff>` - ReaxFF potential
 * :doc:`rebo <pair_airebo>` - second generation REBO potential of Brenner
 * :doc:`resquared <pair_resquared>` - Everaers RE-Squared ellipsoidal potential
 * :doc:`sdpd/taitwater/isothermal <pair_sdpd_taitwater_isothermal>` - smoothed dissipative particle dynamics for water at isothermal conditions
@@ -338,6 +338,7 @@ accelerated styles exist.
 * :doc:`tip4p/cut <pair_coul>` - Coulomb for TIP4P water w/out LJ
 * :doc:`tip4p/long <pair_coul>` - long-range Coulomb for TIP4P water w/out LJ
 * :doc:`tip4p/long/soft <pair_fep_soft>` -
+* :doc:`tracker <pair_tracker>` - monitor information about pairwise interactions
 * :doc:`tri/lj <pair_tri_lj>` - LJ potential between triangles
 * :doc:`ufm <pair_ufm>` -
 * :doc:`vashishta <pair_vashishta>` - Vashishta 2-body and 3-body potential

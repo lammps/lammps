@@ -349,11 +349,11 @@ void PairTersoffIntel::eval(const int offload, const int vflag,
           lmp_intel::vector_traits<lmp_intel::mode>::support_integer_and_gather_ops;
         bool use_scalar = VL < 4;
         if (use_scalar) {
-          IntelKernelTersoff<flt_t,acc_t,lmp_intel::NONE,false>::kernel<EFLAG>(ARGS);
+          IntelKernelTersoff<flt_t,acc_t,lmp_intel::NONE,false>::template kernel<EFLAG>(ARGS);
         } else if (pack_i) {
-          IntelKernelTersoff<flt_t,acc_t,lmp_intel::mode,true >::kernel<EFLAG>(ARGS);
+          IntelKernelTersoff<flt_t,acc_t,lmp_intel::mode,true >::template kernel<EFLAG>(ARGS);
         } else {
-          IntelKernelTersoff<flt_t,acc_t,lmp_intel::mode,false>::kernel<EFLAG>(ARGS);
+          IntelKernelTersoff<flt_t,acc_t,lmp_intel::mode,false>::template kernel<EFLAG>(ARGS);
         }
         if (EFLAG) oevdwl += sevdwl;
       }
@@ -673,7 +673,8 @@ void IntelKernelTersoff<flt_t, acc_t, mic, pack_i>::kernel_step(
   fvec vrijsq = vdx_ij * vdx_ij + vdy_ij *  vdy_ij + vdz_ij * vdz_ij;
   fvec vrij = sqrt(vrijsq);
   ivec vis_orig = v::int_load_vl(is);
-  ivec vnumneigh_i = v::int_gather<4>(v_i0, vmask, vis_orig, numneigh);
+  ivec vnumneigh_i = v::template int_gather<4>(v_i0, vmask, vis_orig,
+                                               numneigh);
   ivec vc_idx_ij = v::int_mullo(v_i4floats, vw_j + v::int_mullo(v_i_ntypes, vw_i));
 
   fvec vzeta = v::zero();
@@ -700,14 +701,16 @@ void IntelKernelTersoff<flt_t, acc_t, mic, pack_i>::kernel_step(
     while (! v::mask_testz(vactive_mask) && cache_idx < N_CACHE) {
       bvec vnew_mask = vactive_mask & ~ veff_old_mask;
       vks = v::int_mullo(v_i4floats, v_i_NEIGHMASK &
-          v::int_gather<4>(vks, vactive_mask, vkks + vcnumneigh_i, firstneigh));
+                         (v::template int_gather<4>(vks, vactive_mask,
+                                                    vkks + vcnumneigh_i,
+                                                    firstneigh)));
       v::gather_x(vks, vnew_mask, x, &vx_k, &vy_k, &vz_k, &vw_k);
       fvec vdx_ik = (vx_k - vx_i);
       fvec vdy_ik = (vy_k - vy_i);
       fvec vdz_ik = (vz_k - vz_i);
       fvec vrsq = vdx_ik * vdx_ik + vdy_ik *  vdy_ik + vdz_ik * vdz_ik;
       ivec vc_idx = v::int_mullo(v_i4floats, vw_k) + v::int_mullo(v_i_ntypes, vc_idx_ij);
-      vcutsq = v::gather<4>(vcutsq, vnew_mask, vc_idx, c_inner);
+      vcutsq = v::template gather<4>(vcutsq, vnew_mask, vc_idx, c_inner);
       bvec vcutoff_mask = v::cmplt(vrsq, vcutsq);
       bvec vsame_mask = v::int_cmpneq(vjs, vks);
       bvec veff_mask = vcutoff_mask & vsame_mask & vactive_mask;
@@ -751,14 +754,16 @@ void IntelKernelTersoff<flt_t, acc_t, mic, pack_i>::kernel_step(
     while (! v::mask_testz(vactive_mask)) {
       bvec vnew_mask = vactive_mask & ~ veff_old_mask;
       vks = v::int_mullo(v_i4floats, v_i_NEIGHMASK &
-          v::int_gather<4>(vks, vactive_mask, vkks + vcnumneigh_i, firstneigh));
+                         (v::template int_gather<4>(vks, vactive_mask,
+                                                    vkks + vcnumneigh_i,
+                                                    firstneigh)));
       v::gather_x(vks, vnew_mask, x, &vx_k, &vy_k, &vz_k, &vw_k);
       fvec vdx_ik = (vx_k - vx_i);
       fvec vdy_ik = (vy_k - vy_i);
       fvec vdz_ik = (vz_k - vz_i);
       fvec vrsq = vdx_ik * vdx_ik + vdy_ik *  vdy_ik + vdz_ik * vdz_ik;
       ivec vc_idx = v::int_mullo(v_i4floats, vw_k) + v::int_mullo(v_i_ntypes, vc_idx_ij);
-      vcutsq = v::gather<4>(vcutsq, vnew_mask, vc_idx, c_inner);
+      vcutsq = v::template gather<4>(vcutsq, vnew_mask, vc_idx, c_inner);
       bvec vcutoff_mask = v::cmplt(vrsq, vcutsq);
       bvec vsame_mask = v::int_cmpneq(vjs, vks);
       bvec veff_mask = vcutoff_mask & vsame_mask & vactive_mask;
@@ -818,14 +823,16 @@ void IntelKernelTersoff<flt_t, acc_t, mic, pack_i>::kernel_step(
     while (! v::mask_testz(vactive_mask)) {
       bvec vnew_mask = vactive_mask & ~ veff_old_mask;
       vks = v::int_mullo(v_i4floats, v_i_NEIGHMASK &
-          v::int_gather<4>(vks, vactive_mask, vkks + vcnumneigh_i, firstneigh));
+                         (v::template int_gather<4>(vks, vactive_mask,
+                                                    vkks + vcnumneigh_i,
+                                                    firstneigh)));
       v::gather_x(vks, vnew_mask, x, &vx_k, &vy_k, &vz_k, &vw_k);
       fvec vdx_ik = vx_k - vx_i;
       fvec vdy_ik = vy_k - vy_i;
       fvec vdz_ik = vz_k - vz_i;
       fvec vrsq = vdx_ik * vdx_ik + vdy_ik *  vdy_ik + vdz_ik * vdz_ik;
       ivec vc_idx = v::int_mullo(v_i4floats, vw_k) + v::int_mullo(v_i_ntypes, vc_idx_ij);
-      vcutsq = v::gather<4>(vcutsq, vnew_mask, vc_idx, c_inner);
+      vcutsq = v::template gather<4>(vcutsq, vnew_mask, vc_idx, c_inner);
       bvec vcutoff_mask = v::cmplt(vrsq, vcutsq);
       bvec vsame_mask = v::int_cmpneq(vjs, vks);
       bvec veff_mask = vcutoff_mask & vsame_mask & vactive_mask;
@@ -973,7 +980,7 @@ void IntelKernelTersoff<flt_t,acc_t,mic, pack_i>::kernel_step_const_i(
     fvec vdy_ik = vy_k - vy_i;
     fvec vdz_ik = vz_k - vz_i;
     fvec vrsq = vdx_ik * vdx_ik + vdy_ik * vdy_ik + vdz_ik * vdz_ik;
-    fvec vcutsq = v::gather<4>(v::zero(), vmask, vc_idx_j_ntypes, &c_inner[ntypes * ntypes * w_i + w_k]);
+    fvec vcutsq = v::template gather<4>(v::zero(), vmask, vc_idx_j_ntypes, &c_inner[ntypes * ntypes * w_i + w_k]);
     bvec vcutoff_mask = v::cmplt(vrsq, vcutsq);
     bvec vsame_mask = v::int_cmpneq(vjs, ivec(static_cast<int>(4 * sizeof(typename v::fscal) * k)));
     bvec veff_mask = vcutoff_mask & vsame_mask & vmask;
@@ -1017,7 +1024,7 @@ void IntelKernelTersoff<flt_t,acc_t,mic, pack_i>::kernel_step_const_i(
     fvec vdy_ik = vy_k - vy_i;
     fvec vdz_ik = vz_k - vz_i;
     fvec vrsq = vdx_ik * vdx_ik + vdy_ik * vdy_ik + vdz_ik * vdz_ik;
-    fvec vcutsq = v::gather<4>(v::zero(), vmask, vc_idx_j_ntypes, &c_inner[ntypes * ntypes * w_i + w_k]);
+    fvec vcutsq = v::template gather<4>(v::zero(), vmask, vc_idx_j_ntypes, &c_inner[ntypes * ntypes * w_i + w_k]);
     bvec vcutoff_mask = v::cmplt(vrsq, vcutsq);
     bvec vsame_mask = v::int_cmpneq(vjs, ivec(static_cast<int>(4 * sizeof(typename v::fscal) * k)));
     bvec veff_mask = vcutoff_mask & vsame_mask & vmask;
@@ -1064,7 +1071,7 @@ void IntelKernelTersoff<flt_t,acc_t,mic, pack_i>::kernel_step_const_i(
     fvec vdy_ik = vy_k - vy_i;
     fvec vdz_ik = vz_k - vz_i;
     fvec vrsq = vdx_ik * vdx_ik + vdy_ik * vdy_ik + vdz_ik * vdz_ik;
-    fvec vcutsq = v::gather<4>(v::zero(), vmask, vc_idx_j_ntypes, &c_inner[ntypes * ntypes * w_i + w_k].cutsq);
+    fvec vcutsq = v::template gather<4>(v::zero(), vmask, vc_idx_j_ntypes, &c_inner[ntypes * ntypes * w_i + w_k].cutsq);
     bvec vcutoff_mask = v::cmplt(vrsq, vcutsq);
     bvec vsame_mask = v::int_cmpneq(vjs, ivec(static_cast<int>(4 * sizeof(typename v::fscal) * k)));
     bvec veff_mask = vcutoff_mask & vsame_mask & vmask;
@@ -1210,7 +1217,7 @@ void IntelKernelTersoff<flt_t,acc_t,mic, pack_i>::kernel(
 
 
 template<class flt_t, class acc_t, lmp_intel::CalculationMode mic, bool pack_i>
-IntelKernelTersoff<flt_t,acc_t,mic,pack_i>::fvec IntelKernelTersoff<flt_t, acc_t, mic, pack_i>::zeta_vector(
+typename IntelKernelTersoff<flt_t,acc_t,mic,pack_i>::fvec IntelKernelTersoff<flt_t, acc_t, mic, pack_i>::zeta_vector(
     const c_inner_t * param,
     ivec xjw, bvec mask,
     fvec vrij, fvec rsq2,
@@ -1336,6 +1343,8 @@ void IntelKernelTersoff<flt_t, acc_t, mic, pack_i>::force_zeta_vector(
   }
 }
 
+#define BCF lmp_intel::vector_routines<flt_t, acc_t, mic>
+
 template<class flt_t, class acc_t, lmp_intel::CalculationMode mic, bool pack_i>
 template<bool ZETA>
 void IntelKernelTersoff<flt_t,acc_t,mic, pack_i>::attractive_vector(
@@ -1375,7 +1384,7 @@ void IntelKernelTersoff<flt_t,acc_t,mic, pack_i>::attractive_vector(
   fvec varg3 = varg1 * varg1 * varg1;
   bvec mask_ex = v::cmpeq(vppowermint, fvec(3.));
   fvec varg  = v::blend(mask_ex, varg1, varg3);
-  fvec vex_delr = min(fvec(1.e30), exp(varg));
+  fvec vex_delr = BCF::min(fvec(1.e30), exp(varg));
   fvec vex_delr_d_factor = v::blend(mask_ex, v_1_0, fvec(3.0) * varg1 * varg1);
   fvec vex_delr_d = vplam3 * vex_delr_d_factor * vex_delr;
   bvec vmask_need_sine = v::cmpnle(vrik, vpbigr - vpbigd) & mask;
@@ -1395,12 +1404,12 @@ void IntelKernelTersoff<flt_t,acc_t,mic, pack_i>::attractive_vector(
   if (ZETA) *zeta = vfc * vgijk * vex_delr;
 
   fvec vminus_costheta = - vcostheta;
-  fvec vdcosdrjx = vrijinv * fmadd(vminus_costheta, vrij_hatx, rik_hatx);
-  fvec vdcosdrjy = vrijinv * fmadd(vminus_costheta, vrij_haty, rik_haty);
-  fvec vdcosdrjz = vrijinv * fmadd(vminus_costheta, vrij_hatz, rik_hatz);
-  fvec vdcosdrkx = rikinv * fmadd(vminus_costheta, rik_hatx, vrij_hatx);
-  fvec vdcosdrky = rikinv * fmadd(vminus_costheta, rik_haty, vrij_haty);
-  fvec vdcosdrkz = rikinv * fmadd(vminus_costheta, rik_hatz, vrij_hatz);
+  fvec vdcosdrjx = vrijinv * BCF::fmadd(vminus_costheta, vrij_hatx, rik_hatx);
+  fvec vdcosdrjy = vrijinv * BCF::fmadd(vminus_costheta, vrij_haty, rik_haty);
+  fvec vdcosdrjz = vrijinv * BCF::fmadd(vminus_costheta, vrij_hatz, rik_hatz);
+  fvec vdcosdrkx = rikinv * BCF::fmadd(vminus_costheta, rik_hatx, vrij_hatx);
+  fvec vdcosdrky = rikinv * BCF::fmadd(vminus_costheta, rik_haty, vrij_haty);
+  fvec vdcosdrkz = rikinv * BCF::fmadd(vminus_costheta, rik_hatz, vrij_hatz);
   fvec vdcosdrix = -(vdcosdrjx + vdcosdrkx);
   fvec vdcosdriy = -(vdcosdrjy + vdcosdrky);
   fvec vdcosdriz = -(vdcosdrjz + vdcosdrkz);

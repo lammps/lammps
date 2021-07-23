@@ -300,6 +300,7 @@ accelerated styles exist.
 * :doc:`orient/fcc <fix_orient>` - add grain boundary migration force for FCC
 * :doc:`orient/eco <fix_orient_eco>` - add generalized grain boundary migration force
 * :doc:`pafi <fix_pafi>` - constrained force averages on hyper-planes to compute free energies (PAFI)
+* :doc:`pair/tracker <fix_pair_tracker>` - track properties of pairwise interactions
 * :doc:`phonon <fix_phonon>` - calculate dynamical matrix from MD simulations
 * :doc:`pimd <fix_pimd>` - Feynman path integral molecular dynamics
 * :doc:`planeforce <fix_planeforce>` - constrain atoms to move in a plane
@@ -321,14 +322,14 @@ accelerated styles exist.
 * :doc:`qeq/dynamic <fix_qeq>` - charge equilibration via dynamic method
 * :doc:`qeq/fire <fix_qeq>` - charge equilibration via FIRE minimizer
 * :doc:`qeq/point <fix_qeq>` - charge equilibration via point method
-* :doc:`qeq/reax <fix_qeq_reax>` - charge equilibration for ReaxFF potential
+* :doc:`qeq/reaxff <fix_qeq_reaxff>` - charge equilibration for ReaxFF potential
 * :doc:`qeq/shielded <fix_qeq>` - charge equilibration via shielded method
 * :doc:`qeq/slater <fix_qeq>` - charge equilibration via Slater method
 * :doc:`qmmm <fix_qmmm>` - functionality to enable a quantum mechanics/molecular mechanics coupling
 * :doc:`qtb <fix_qtb>` - implement quantum thermal bath scheme
 * :doc:`rattle <fix_shake>` - RATTLE constraints on bonds and/or angles
-* :doc:`reax/c/bonds <fix_reaxc_bonds>` - write out ReaxFF bond information
-* :doc:`reax/c/species <fix_reaxc_species>` - write out ReaxFF molecule information
+* :doc:`reaxff/bonds <fix_reaxff_bonds>` - write out ReaxFF bond information
+* :doc:`reaxff/species <fix_reaxff_species>` - write out ReaxFF molecule information
 * :doc:`recenter <fix_recenter>` - constrain the center-of-mass position of a group of atoms
 * :doc:`restrain <fix_restrain>` - constrain a bond, angle, dihedral
 * :doc:`rhok <fix_rhok>` - add bias potential for long-range ordered systems

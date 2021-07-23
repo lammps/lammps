@@ -46,5 +46,6 @@ Thumbs.db
 /CMakeFiles/
 /Testing
 /Makefile
+/Testing
 /cmake_install.cmake
 /lmp

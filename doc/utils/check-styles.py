@@ -254,40 +254,27 @@ for command_type, entries in index.items():
 
 print("Total number of style index entries:", total_index)
 
+skip_fix = ('python', 'NEIGH_HISTORY/omp','qeq/reax','reax/c/bonds','reax/c/species')
+skip_pair = ('meam/c','lj/sf','reax/c')
+
 counter = 0
 
-counter += check_style('Commands_all.rst', doc_dir, ":doc:`(.+) <.+>`",
-                       command,'Command',suffix=False)
-counter += check_style('Commands_compute.rst', doc_dir, ":doc:`(.+) <compute.+>`",
-                       compute,'Compute',suffix=True)
-counter += check_style('compute.rst', doc_dir, ":doc:`(.+) <compute.+>` -",
-                       compute,'Compute',suffix=False)
-counter += check_style('Commands_fix.rst', doc_dir, ":doc:`(.+) <fix.+>`",
-                       fix,'Fix',skip=('python', 'NEIGH_HISTORY/omp'),suffix=True)
-counter += check_style('fix.rst', doc_dir, ":doc:`(.+) <fix.+>` -",
-                       fix,'Fix',skip=('python', 'NEIGH_HISTORY/omp'),suffix=False)
-counter += check_style('Commands_pair.rst', doc_dir, ":doc:`(.+) <pair.+>`",
-                       pair,'Pair',skip=('meam/c','lj/sf'),suffix=True)
-counter += check_style('pair_style.rst', doc_dir, ":doc:`(.+) <pair.+>` -",
-                       pair,'Pair',skip=('meam/c','lj/sf'),suffix=False)
-counter += check_style('Commands_bond.rst', doc_dir, ":doc:`(.+) <bond.+>`",
-                       bond,'Bond',suffix=True)
-counter += check_style('bond_style.rst', doc_dir, ":doc:`(.+) <bond.+>` -",
-                       bond,'Bond',suffix=False)
-counter += check_style('Commands_bond.rst', doc_dir, ":doc:`(.+) <angle.+>`",
-                       angle,'Angle',suffix=True)
-counter += check_style('angle_style.rst', doc_dir, ":doc:`(.+) <angle.+>` -",
-                       angle,'Angle',suffix=False)
-counter += check_style('Commands_bond.rst', doc_dir, ":doc:`(.+) <dihedral.+>`",
-                       dihedral,'Dihedral',suffix=True)
-counter += check_style('dihedral_style.rst', doc_dir, ":doc:`(.+) <dihedral.+>` -",
-                       dihedral,'Dihedral',suffix=False)
-counter += check_style('Commands_bond.rst', doc_dir, ":doc:`(.+) <improper.+>`",
-                       improper,'Improper',suffix=True)
-counter += check_style('improper_style.rst', doc_dir, ":doc:`(.+) <improper.+>` -",
-                       improper,'Improper',suffix=False)
-counter += check_style('Commands_kspace.rst', doc_dir, ":doc:`(.+) <kspace_style>`",
-                       kspace,'KSpace',suffix=True)
+counter += check_style('Commands_all.rst', doc_dir, ":doc:`(.+) <.+>`",command,'Command',suffix=False)
+counter += check_style('Commands_compute.rst', doc_dir, ":doc:`(.+) <compute.+>`",compute,'Compute',suffix=True)
+counter += check_style('compute.rst', doc_dir, ":doc:`(.+) <compute.+>` -",compute,'Compute',suffix=False)
+counter += check_style('Commands_fix.rst', doc_dir, ":doc:`(.+) <fix.+>`",fix,'Fix',skip=skip_fix,suffix=True)
+counter += check_style('fix.rst', doc_dir, ":doc:`(.+) <fix.+>` -",fix,'Fix',skip=skip_fix,suffix=False)
+counter += check_style('Commands_pair.rst', doc_dir, ":doc:`(.+) <pair.+>`",pair,'Pair',skip=skip_pair,suffix=True)
+counter += check_style('pair_style.rst', doc_dir, ":doc:`(.+) <pair.+>` -",pair,'Pair',skip=skip_pair,suffix=False)
+counter += check_style('Commands_bond.rst', doc_dir, ":doc:`(.+) <bond.+>`",bond,'Bond',suffix=True)
+counter += check_style('bond_style.rst', doc_dir, ":doc:`(.+) <bond.+>` -",bond,'Bond',suffix=False)
+counter += check_style('Commands_bond.rst', doc_dir, ":doc:`(.+) <angle.+>`",angle,'Angle',suffix=True)
+counter += check_style('angle_style.rst', doc_dir, ":doc:`(.+) <angle.+>` -",angle,'Angle',suffix=False)
+counter += check_style('Commands_bond.rst', doc_dir, ":doc:`(.+) <dihedral.+>`",dihedral,'Dihedral',suffix=True)
+counter += check_style('dihedral_style.rst', doc_dir, ":doc:`(.+) <dihedral.+>` -",dihedral,'Dihedral',suffix=False)
+counter += check_style('Commands_bond.rst', doc_dir, ":doc:`(.+) <improper.+>`",improper,'Improper',suffix=True)
+counter += check_style('improper_style.rst', doc_dir, ":doc:`(.+) <improper.+>` -",improper,'Improper',suffix=False)
+counter += check_style('Commands_kspace.rst', doc_dir, ":doc:`(.+) <kspace_style>`",kspace,'KSpace',suffix=True)
 
 if counter:
     print(f"Found {counter} issue(s) with style lists")
@@ -295,13 +282,13 @@ if counter:
 counter = 0
 
 counter += check_style_index("compute", compute, index["compute"])
-counter += check_style_index("fix", fix, index["fix"], skip=['python'])
+counter += check_style_index("fix", fix, index["fix"], skip=['python','qeq/reax','reax/c/bonds','reax/c/species'])
 counter += check_style_index("angle_style", angle, index["angle_style"])
 counter += check_style_index("bond_style", bond, index["bond_style"])
 counter += check_style_index("dihedral_style", dihedral, index["dihedral_style"])
 counter += check_style_index("improper_style", improper, index["improper_style"])
 counter += check_style_index("kspace_style", kspace, index["kspace_style"])
-counter += check_style_index("pair_style", pair, index["pair_style"], skip=['meam/c', 'lj/sf'])
+counter += check_style_index("pair_style", pair, index["pair_style"], skip=['meam/c', 'lj/sf','reax/c'])
 
 if counter:
     print(f"Found {counter} issue(s) with style index")

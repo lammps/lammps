@@ -73,6 +73,9 @@ NETCDF package.  They are only enabled if LAMMPS was built with
 that package. See the :doc:`Build package <Build_package>` doc page for
 more info.
 
+The *netcdf* and *netcdf/mpiio* dump styles currently cannot dump
+string properties or properties from variables.
+
 ----------
 
 Related commands

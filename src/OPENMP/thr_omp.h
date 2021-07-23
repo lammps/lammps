@@ -135,8 +135,8 @@ class ThrOMP {
   void ev_tally_xyz_full_thr(Pair *const, const int, const double, const double, const double,
                              const double, const double, const double, const double, const double,
                              ThrData *const);
-  void v_tally2_thr(Pair *const, const int, const int, const double, const double *const,
-                    ThrData *const);
+  void v_tally2_thr(Pair *const, const int, const int, const double, const double *const, ThrData *const);
+  void v_tally2_newton_thr(Pair *const, const int, const double *const, const double *const, ThrData *const);
   void ev_tally3_thr(Pair *const, const int, const int, const int, const double, const double,
                      const double *const, const double *const, const double *const,
                      const double *const, ThrData *const);

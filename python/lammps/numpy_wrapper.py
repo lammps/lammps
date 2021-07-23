@@ -17,7 +17,7 @@
 ################################################################################
 
 import warnings
-from ctypes import POINTER, c_double, c_int, c_int32, c_int64, cast
+from ctypes import POINTER, c_void_p, c_char_p, c_double, c_int, c_int32, c_int64, cast
 
 
 from .constants import *                # lgtm [py/polluting-import]
@@ -301,10 +301,6 @@ class numpy_wrapper:
     method.  It behaves the same as the original method, but accepts a NumPy array
     instead of a list as argument.
 
-    .. note::
-
-       This function is not yet implemented.
-
     :param fix_id:  Fix-ID of a fix external instance
     :type: string
     :param eatom:   per-atom potential energy
@@ -317,6 +313,16 @@ class numpy_wrapper:
     if len(vatom[0]) != 6:
       raise Exception('per-atom virial second dimension must be 6')
 
+    c_double_pp = np.ctypeslib.ndpointer(dtype=np.uintp, ndim=1, flags='C')
+
+    # recast numpy array to be compatible with library interface
+    value = (vatom.__array_interface__['data'][0]
+                   + np.arange(vatom.shape[0])*vatom.strides[0]).astype(np.uintp)
+
+    # change prototype to our custom type
+    self.lmp.lib.lammps_fix_external_set_virial_peratom.argtypes = [ c_void_p, c_char_p, c_double_pp ]
+
+    self.lmp.lib.lammps_fix_external_set_virial_peratom(self.lmp.lmp, fix_id.encode(), value)
 
     # -------------------------------------------------------------------------
 

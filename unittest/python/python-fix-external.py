@@ -2,6 +2,12 @@ import sys,os,unittest
 from ctypes import *
 from lammps import lammps, LMP_STYLE_GLOBAL, LMP_TYPE_VECTOR
 
+try:
+    import numpy
+    NUMPY_INSTALLED = True
+except ImportError:
+    NUMPY_INSTALLED = False
+
 # add timestep dependent force
 def callback_one(lmp, ntimestep, nlocal, tag, x, f):
     lmp.fix_external_set_virial_global("ext",[1.0, 1.0, 1.0, 0.0, 0.0, 0.0])
@@ -29,17 +35,21 @@ def callback_one(lmp, ntimestep, nlocal, tag, x, f):
               [0.0,0.0,0.0,0.0,0.0,0.6],
               [0.0,0.0,0.0,0.0,-7.0,0.0],
               [0.0,-8.0,0.0,0.0,0.0,0.0] ]
-    lmp.fix_external_set_energy_peratom("ext",eatom)
-    lmp.fix_external_set_virial_peratom("ext",vatom)
+    if ntimestep < 5:
+        lmp.fix_external_set_energy_peratom("ext",eatom)
+        lmp.fix_external_set_virial_peratom("ext",vatom)
+    else:
+        import numpy as np
+        eng = np.array(eatom)
+        vir = np.array(vatom)
 
-    #import numpy as np
-    #eng = np.array(eatom)
-    #vir = np.array(vatom)
+        lmp.numpy.fix_external_set_energy_peratom("ext",eng)
+        lmp.numpy.fix_external_set_virial_peratom("ext",vir)
 
-    #lmp.numpy.fix_external_set_energy_peratom("ext",eng)
-    #lmp.numpy.fix_external_set_virial_peratom("ext",vir)  # not yet implemented
+    # ------------------------------------------------------------------------
 
 class PythonExternal(unittest.TestCase):
+    @unittest.skipIf(not NUMPY_INSTALLED, "NumPy is not available")
     def testExternalCallback(self):
         """Test fix external from Python with pf/callback"""
 
@@ -70,10 +80,23 @@ class PythonExternal(unittest.TestCase):
         lmp.commands_string(basic_system)
         lmp.fix_external_set_vector_length("ext",6);
         lmp.set_fix_external_callback("ext",callback_one,lmp)
+
+        # check setting per-atom data with python lists
+        lmp.command("run 0 post no")
+        reduce = lmp.extract_compute("sum", LMP_STYLE_GLOBAL, LMP_TYPE_VECTOR)
+        self.assertAlmostEqual(reduce[0],2.8,14)
+        self.assertAlmostEqual(reduce[1],-0.1,14)
+        self.assertAlmostEqual(reduce[2],7.8,14)
+        self.assertAlmostEqual(reduce[3],-0.3,14)
+        self.assertAlmostEqual(reduce[4],-0.4,14)
+        self.assertAlmostEqual(reduce[5],6.5,14)
+        self.assertAlmostEqual(reduce[6],-0.6,14)
+
         lmp.command("run 10 post no")
         self.assertAlmostEqual(lmp.get_thermo("temp"),1.0/30.0,14)
         self.assertAlmostEqual(lmp.get_thermo("pe"),1.0/8.0,14)
         self.assertAlmostEqual(lmp.get_thermo("press"),0.15416666666666667,14)
+        # check setting per-atom data numpy arrays
         reduce = lmp.extract_compute("sum", LMP_STYLE_GLOBAL, LMP_TYPE_VECTOR)
         self.assertAlmostEqual(reduce[0],2.8,14)
         self.assertAlmostEqual(reduce[1],-0.1,14)
@@ -89,12 +112,6 @@ class PythonExternal(unittest.TestCase):
 
     def testExternalArray(self):
         """Test fix external from Python with pf/array"""
-
-        try:
-            import numpy
-            NUMPY_INSTALLED = True
-        except ImportError:
-            NUMPY_INSTALLED = False
 
         machine=None
         if 'LAMMPS_MACHINE_NAME' in os.environ:

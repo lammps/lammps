@@ -246,7 +246,7 @@ void FixPairTracker::reallocate(int n)
 
 double FixPairTracker::memory_usage()
 {
-  double bytes = nmax * nvalues * sizeof(double);
+  double bytes = nmax * (double) nvalues * sizeof(double);
   bytes += nmax * 2 * sizeof(int);
   return bytes;
 }

@@ -2274,10 +2274,10 @@ for monitoring molecules as bonds are created and destroyed.
 
 * src/REAXFF: filenames -> commands
 * src/REAXFF/README
-* :doc:`pair_style reax/c <pair_reaxc>`
-* :doc:`fix reax/c/bonds <fix_reaxc_bonds>`
-* :doc:`fix reax/c/species <fix_reaxc_species>`
-* examples/reax
+* :doc:`pair_style reaxff <pair_reaxff>`
+* :doc:`fix reaxff/bonds <fix_reaxff_bonds>`
+* :doc:`fix reaxff/species <fix_reaxff_species>`
+* examples/reaxff
 
 ----------
 

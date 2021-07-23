@@ -299,7 +299,7 @@ accelerated styles exist.
 * :doc:`python <pair_python>` -
 * :doc:`quip <pair_quip>` -
 * :doc:`rann <pair_rann>` -
-* :doc:`reax/c <pair_reaxc>` - ReaxFF potential in C
+* :doc:`reaxff <pair_reaxff>` - ReaxFF potential
 * :doc:`rebo <pair_airebo>` - second generation REBO potential of Brenner
 * :doc:`resquared <pair_resquared>` - Everaers RE-Squared ellipsoidal potential
 * :doc:`sdpd/taitwater/isothermal <pair_sdpd_taitwater_isothermal>` - smoothed dissipative particle dynamics for water at isothermal conditions

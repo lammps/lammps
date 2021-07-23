@@ -54,6 +54,12 @@ FixQEqDynamic::FixQEqDynamic(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix qeq/dynamic command");
       qstep = atof(arg[iarg+1]);
       iarg += 2;
+    } else if (strcmp(arg[iarg],"warn") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix qeq/dynamic command");
+      if (strcmp(arg[iarg+1],"no") == 0) maxwarn = 0;
+      else if (strcmp(arg[iarg+1],"yes") == 0) maxwarn = 1;
+      else error->all(FLERR,"Illegal fix qeq/dynamic command");
+      iarg += 2;
     } else error->all(FLERR,"Illegal fix qeq/dynamic command");
   }
 }
@@ -146,7 +152,7 @@ void FixQEqDynamic::pre_force(int /*vflag*/)
     MPI_Allreduce(&enegmax,&enegmaxall,1,MPI_DOUBLE,MPI_MAX,world);
     enegmax = enegmaxall;
 
-    if (enegchk <= tolerance && enegmax <= 100.0*tolerance) break;
+    if ((enegchk <= tolerance) && (enegmax <= 100.0*tolerance)) break;
 
     for (ii = 0; ii < inum; ii++) {
       i = ilist[ii];
@@ -154,8 +160,9 @@ void FixQEqDynamic::pre_force(int /*vflag*/)
         q1[i] += qf[i]*dtq2 - qdamp*q1[i];
     }
   }
+  matvecs = iloop;
 
-  if ((comm->me == 0) && (iloop >= maxiter))
+  if ((comm->me == 0) && maxwarn && (iloop >= maxiter))
       error->warning(FLERR,"Charges did not converge at step {}: {}",
                      update->ntimestep,enegchk);
 
@@ -260,7 +267,7 @@ void FixQEqDynamic::unpack_forward_comm(int n, int first, double *buf)
 
   if (pack_flag == 1)
     for (m = 0, i = first; m < n; m++, i++) atom->q[i] = buf[m];
-  else if ( pack_flag == 2)
+  else if (pack_flag == 2)
     for (m = 0, i = first; m < n; m++, i++) qf[i] = buf[m];
 }
 

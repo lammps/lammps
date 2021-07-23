@@ -524,8 +524,7 @@ TEST(PairStyle, plain)
     if (print_stats) std::cerr << "restart_energy stats:" << stats << std::endl;
 
     // pair style rann does not support pair_modify nofdotr
-    // temporarily disable testing pair style reax/c until we merge the other fixes
-    if ((test_config.pair_style != "rann") && !(test_config.pair_style.find("reax") != std::string::npos)) {
+    if (test_config.pair_style != "rann") {
         if (!verbose) ::testing::internal::CaptureStdout();
         restart_lammps(lmp, test_config, true);
         if (!verbose) ::testing::internal::GetCapturedStdout();
@@ -1291,21 +1290,6 @@ TEST(PairStyle, single)
 
     if (!pair->compute_flag) {
         std::cerr << "Pair style disabled" << std::endl;
-        if (!verbose) ::testing::internal::CaptureStdout();
-        cleanup_lammps(lmp, test_config);
-        if (!verbose) ::testing::internal::GetCapturedStdout();
-        GTEST_SKIP();
-    }
-
-    // The single function in EAM is different from what we assume
-    // here, therefore we have to skip testing those pair styles.
-    // Pair styles colloid  and yukawa/colloid are also not compatible with this single tester
-    if ((test_config.pair_style.substr(0, 7) == "colloid") ||
-        (test_config.pair_style.substr(0, 14) == "yukawa/colloid") ||
-        (test_config.pair_style.substr(0, 3) == "dpd") ||
-        (test_config.pair_style.substr(0, 3) == "eam") ||
-        ((test_config.pair_style.substr(0, 6) == "hybrid") &&
-         (test_config.pair_style.find("eam") != std::string::npos))) {
         if (!verbose) ::testing::internal::CaptureStdout();
         cleanup_lammps(lmp, test_config);
         if (!verbose) ::testing::internal::GetCapturedStdout();

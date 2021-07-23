@@ -372,9 +372,9 @@ the *kim interactions* command executes the following LAMMPS input commands:
 
 .. code-block:: LAMMPS
 
-   pair_style reax/c lmp_control safezone 2.0 mincap 100
+   pair_style reaxff lmp_control safezone 2.0 mincap 100
    pair_coeff * * ffield.reax.rdx C H N O
-   fix reaxqeq all qeq/reax 1 0.0 10.0 1.0e-6 param.qeq
+   fix reaxqeq all qeq/reaxff 1 0.0 10.0 1.0e-6 param.qeq
 
 .. note::
 

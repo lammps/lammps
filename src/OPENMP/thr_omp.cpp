@@ -1501,6 +1501,28 @@ void ThrOMP::v_tally2_thr(Pair *const pair, const int i, const int j, const doub
 
 /* ----------------------------------------------------------------------
    tally virial into per-atom accumulators
+   called by RexaFF potential, newton_pair is always on
+   fi is magnitude of force on atom i, deli is the direction
+   note that the other atom (j) is not updated, due to newton on
+------------------------------------------------------------------------- */
+
+void ThrOMP::v_tally2_newton_thr(Pair *const pair, const int i, const double * const fi,
+                                 const double * const deli, ThrData * const thr)
+{
+  double v[6];
+
+  v[0] = deli[0]*fi[0];
+  v[1] = deli[1]*fi[1];
+  v[2] = deli[2]*fi[2];
+  v[3] = deli[0]*fi[1];
+  v[4] = deli[0]*fi[2];
+  v[5] = deli[1]*fi[2];
+  if (pair->vflag_global) v_tally(thr->virial_pair,v);
+  if (pair->vflag_atom) v_tally(thr->vatom_pair[i],v);
+}
+
+/* ----------------------------------------------------------------------
+   tally virial into per-atom accumulators
    called by AIREBO and Tersoff potential, newton_pair is always on
 ------------------------------------------------------------------------- */
 

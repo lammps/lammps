@@ -2,6 +2,7 @@
 lammps_version: 8 Apr 2021
 date_generated: Mon Apr 19 08:49:08 2021
 epsilon: 5e-12
+skip_tests: single
 prerequisites: ! |
   pair eam/fs
 pre_commands: ! ""

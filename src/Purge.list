@@ -97,11 +97,6 @@ reaxc_reset_tools.cpp
 reaxc_tool_box.cpp
 reaxc_torsion_angles.cpp
 reaxc_valence_angles.cpp
-# moved to DPD-BASIC package on 1 July 2021
-pair_dpd.cpp
-pair_dpd.h
-pair_dpd_tstat.cpp
-pair_dpd_tstat.h
 # removed on 14 May 2021
 nstencil_half_bin_2d_newton_ssa.cpp
 nstencil_half_bin_2d_newton_ssa.h
@@ -170,8 +165,6 @@ pair_reax.h
 pair_reax_fortran.h
 fix_reax_bonds.cpp
 fix_reax_bonds.h
-pair_meam.cpp
-pair_meam.h
 # removed on 27 September 2018
 pair_nb3b_harmonic_omp.h
 pair_nb3b_harmonic_omp.cpp

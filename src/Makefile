@@ -55,7 +55,7 @@ PACKAGE = \
 	body \
 	brownian \
 	cg-dna \
-	cg-sdk\
+	cg-sdk \
 	class2 \
 	colloid \
 	colvars \
@@ -69,6 +69,11 @@ PACKAGE = \
 	dpd-smooth \
 	drude \
 	eff \
+	extra-compute \
+	extra-dump \
+	extra-fix \
+	extra-molecule \
+	extra-pair \
 	fep \
 	gpu \
 	granular \
@@ -103,6 +108,7 @@ PACKAGE = \
 	netcdf \
 	openmp \
 	opt \
+	orient \
 	peri \
 	plugin \
 	plumed \
@@ -124,7 +130,6 @@ PACKAGE = \
 	srd \
 	tally \
 	uef \
-	user-misc \
 	voronoi \
 	vtk \
 	yaff \
@@ -156,6 +161,11 @@ PACKMOST = \
 	dpd-smooth \
 	drude \
 	eff \
+	extra-compute \
+	extra-dump \
+	extra-fix \
+	extra-molecule \
+	extra-pair \
 	fep \
 	granular \
 	interlayer \
@@ -169,6 +179,7 @@ PACKMOST = \
 	molecule \
 	openmp \
 	opt \
+	orient \
 	peri \
 	plugin \
 	poems \
@@ -182,7 +193,6 @@ PACKMOST = \
 	spin \
 	srd \
 	uef \
-	user-misc \
 	yaff \
 	dielectric \
 	ml-iap \

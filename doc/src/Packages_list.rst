@@ -143,6 +143,31 @@ whether an extra library is needed to build and use the package:
      - :doc:`pair_style eff/cut <pair_eff>`
      - PACKAGES/eff
      - no
+   * - :ref:`EXTRA-COMPUTE <PKG-EXTRA-COMPUTE>`
+     - additional compute styles
+     - :doc:`compute <compute>`
+     - n/a
+     - no
+   * - :ref:`EXTRA-DUMP <PKG-EXTRA-DUMP>`
+     - additional dump styles
+     - :doc:`dump <dump>`
+     - n/a
+     - no
+   * - :ref:`EXTRA-FIX <PKG-EXTRA-FIX>`
+     - additional fix styles
+     - :doc:`fix <fix>`
+     - n/a
+     - no
+   * - :ref:`EXTRA-MOLECULE <PKG-EXTRA-MOLECULE>`
+     - additional molecular styles
+     - :doc:`molecular styles <Commands_bond>`
+     - n/a
+     - no
+   * - :ref:`EXTRA-PAIR <PKG-EXTRA-PAIR>`
+     - additional pair styles
+     - :doc:`pair_style <pair_style>`
+     - n/a
+     - no
    * - :ref:`FEP <PKG-FEP>`
      - free energy perturbation
      - :doc:`compute fep <compute_fep>`
@@ -318,6 +343,11 @@ whether an extra library is needed to build and use the package:
      - :doc:`Speed opt <Speed_opt>`
      - `Benchmarks <https://www.lammps.org/bench.html>`_
      - no
+   * - :ref:`ORIENT <PKG-ORIENT>`
+     - fixes for orientation depended forces
+     - :doc:`fix orient/* <fix_orient>`
+     - PACKAGES/orient_eco
+     - no
    * - :ref:`PERI <PKG-PERI>`
      - Peridynamics models
      - :doc:`pair_style peri <pair_peri>`
@@ -427,11 +457,6 @@ whether an extra library is needed to build and use the package:
      - extensional flow
      - :doc:`fix nvt/uef <fix_nh_uef>`
      - PACKAGES/uef
-     - no
-   * - :ref:`USER-MISC <PKG-USER-MISC>`
-     - single-file contributions
-     - USER-MISC/README
-     - USER-MISC
      - no
    * - :ref:`VORONOI <PKG-VORONOI>`
      - Voronoi tesselation

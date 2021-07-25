@@ -63,7 +63,7 @@ to specify the path for the force field file.
 An AGNI force field is fully specified by the filename which contains the
 parameters of the force field, i.e., the reference training environments
 used to construct the machine learning force field. Example force field
-and input files are provided in the examples/USER-MISC/agni directory.
+and input files are provided in the examples/PACKAGES/agni directory.
 
 ----------
 
@@ -112,7 +112,7 @@ It should work with damped dynamics based minimizers like *fire* or
 *quickmin*\ .  However, one can access the energy via thermodynamic
 integration of the forces as discussed in
 :ref:`(Botu3) <Botu2016construct>`.  This pair style is part of the
-USER-MISC package. It is only enabled if LAMMPS was built with that
+MISC package. It is only enabled if LAMMPS was built with that
 package. See the :doc:`Build package <Build_package>` doc page for more
 info.
 

@@ -144,7 +144,7 @@ for pair interactions.
 
 This pair style does not support mapping multiple atom types to the same element.
 
-This pair style is only enabled if LAMMPS was built with the USER-MISC
+This pair style is only enabled if LAMMPS was built with the MANYBODY
 package.  See the :doc:`Build package <Build_package>` doc page for more
 info.
 

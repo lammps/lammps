@@ -325,15 +325,12 @@ This pair style can only be used via the *pair* keyword of the
 Restrictions
 """"""""""""
 
-The *lj/cut/dipole/cut*\ , *lj/cut/dipole/long*\ , and
-*lj/long/dipole/long* styles are part of the DIPOLE package.  They are
-only enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+The *lj/cut/dipole/cut*\ , *lj/cut/dipole/long*\ , *lj/long/dipole/long*,
+and lj/sf/dipole/sf* styles are part of the DIPOLE package.  They are only
+enabled if LAMMPS was built with that package.  See the
+:doc:`Build package <Build_package>` doc page for more info.
 
-The *lj/sf/dipole/sf* style is part of the USER-MISC package.  It is
-only enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
-
-Using dipole pair styles with *electron* :doc:`units <units>` is not
-currently supported.
+Using dipole pair styles with *electron* :doc:`units <units>` is not currently supported.
 
 Related commands
 """"""""""""""""

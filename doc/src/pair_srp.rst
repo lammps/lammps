@@ -150,7 +150,7 @@ This pair style can only be used via the *pair* keyword of the
 Restrictions
 """"""""""""
 
-This pair style is part of the USER-MISC package. It is only enabled
+This pair style is part of the MISC package. It is only enabled
 if LAMMPS was built with that package. See the Making LAMMPS section
 for more info.
 

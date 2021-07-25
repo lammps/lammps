@@ -111,7 +111,7 @@ If the neigh setting is too large, the pair style will use more memory than nece
 This pair style tallies a breakdown of the total E3B potential energy into sub-categories, which can be accessed via the :doc:`compute pair <compute_pair>` command as a vector of values of length 4.
 The 4 values correspond to the terms in the first equation above: the E2 term, the Ea term, the Eb term, and the Ec term.
 
-See the examples/USER-MISC/e3b directory for a complete example script.
+See the examples/PACKAGES/e3b directory for a complete example script.
 
 ----------
 
@@ -132,7 +132,7 @@ This pair style is incompatible with :doc:`respa <run_style>`.
 Restrictions
 """"""""""""
 
-This pair style is part of the USER-MISC package.  It is only enabled
+This pair style is part of the EXTRA-PAIR package.  It is only enabled
 if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 This pair style requires the :doc:`newton <newton>` setting to be "on"

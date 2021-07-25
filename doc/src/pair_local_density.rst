@@ -220,8 +220,9 @@ an input script that reads a restart file.
 Restrictions
 """"""""""""
 
-The local/density pair style is a part of the USER-MISC package. It is only
-enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+The local/density pair style is a part of the MANYBODY package. It is
+only enabled if LAMMPS was built with that package.  See the
+:doc:`Build package <Build_package>` doc page for more info.
 
 Related commands
 """"""""""""""""

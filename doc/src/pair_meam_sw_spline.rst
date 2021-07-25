@@ -94,7 +94,7 @@ potentials.
    systems in the future.
 
 Example input scripts that use this pair style are provided
-in the examples/USER-MISC/meam_sw_spline directory.
+in the examples/PACKAGES/meam_sw_spline directory.
 
 ----------
 
@@ -124,7 +124,7 @@ Restrictions
 This pair style requires the :doc:`newton <newton>` setting to be "on"
 for pair interactions.
 
-This pair style is only enabled if LAMMPS was built with the USER-MISC
+This pair style is only enabled if LAMMPS was built with the MANYBODY
 package.  See the :doc:`Build package <Build_package>` doc page for more
 info.
 

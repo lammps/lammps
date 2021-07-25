@@ -150,7 +150,7 @@ Restrictions
 """"""""""""
 
 This pair style can only be used if LAMMPS was built with the
-USER-MISC package.  See the :doc:`Build package <Build_package>` doc
+MANYBODY package.  See the :doc:`Build package <Build_package>` doc
 page for more info.
 
 This pair style requires the :doc:`newton <newton>` setting to be "on"

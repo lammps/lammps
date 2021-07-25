@@ -207,13 +207,11 @@ Uppercase directories
 +------------+--------------------------------------------------------------------------------------------------+
 | MC         | using LAMMPS in a Monte Carlo mode to relax the energy of a system                               |
 +------------+--------------------------------------------------------------------------------------------------+
-| PACKAGES   | examples for specific packages and contributed commands in USER-MISC                             |
+| PACKAGES   | examples for specific packages and contributed commands                                          |
 +------------+--------------------------------------------------------------------------------------------------+
 | SPIN       | examples for features of the SPIN package                                                        |
 +------------+--------------------------------------------------------------------------------------------------+
 | UNITS      | examples that run the same simulation in lj, real, metal units                                   |
-+------------+--------------------------------------------------------------------------------------------------+
-| USER-MISC  | examples for commands in the USER-MISC packages                                                  |
 +------------+--------------------------------------------------------------------------------------------------+
 | VISCOSITY  | compute viscosity via several methods                                                            |
 +------------+--------------------------------------------------------------------------------------------------+
@@ -227,8 +225,5 @@ illustrate how to use the command(s) provided in those packages.  Many
 of the sub-directories have their own README files which give further
 instructions.  See the :doc:`Packages_details <Packages_details>` doc
 page for more info on specific packages.
-
-Similarly the USER-MISC directory has sub-directories for examples
-corresponding to individual commands or styles in the USER-MISC package.
 
 .. _openkim: https://openkim.org

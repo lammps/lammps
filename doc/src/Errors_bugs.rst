@@ -17,8 +17,9 @@ the steps outlined below:
    if your issue has already been reported and if it is still open.
  * Check the `GitHub Pull Requests page <https://github.com/lammps/lammps/pulls>`_
    to see if there is already a fix for your bug pending.
- * Check the `mailing list archives <https://www.lammps.org/mail.html>`_
-   to see if the issue has been discussed before.
+ * Check the `mailing list archives <https://www.lammps.org/mail.html>`_ or
+   the `LAMMPS forum <https://www.lammps.org/forum.html>`_ to see if the
+   issue has been discussed before.
 
 If none of these steps yields any useful information, please file a new
 bug report on the `GitHub Issue page <https://github.com/lammps/lammps/issues>`_.

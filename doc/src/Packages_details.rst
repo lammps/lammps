@@ -2781,6 +2781,3 @@ which discuss the `QuickFF <quickff_>`_ methodology.
 * :doc:`pair_style mm3/switch3/coulgauss/long <pair_lj_switch3_coulgauss_long>`
 * :doc:`pair_style lj/switch3/coulgauss/long <pair_lj_switch3_coulgauss_long>`
 * examples/PACKAGES/yaff
-
-----------
-

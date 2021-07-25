@@ -137,7 +137,7 @@ The 7-th element of vector value will be in velocity :doc:`units <units>`.
 Restrictions
 """"""""""""
 
-This command is only available when LAMMPS was built with the USER-MISC package.
+This command is only available when LAMMPS was built with the MISC package.
 Since this compute depends on :doc:`fix accelerate/cos <fix_accelerate_cos>` which can
 only work for 3d systems, it cannot be used for 2d systems.
 

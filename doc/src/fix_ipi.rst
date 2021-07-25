@@ -84,10 +84,11 @@ coordinates are transferred. However, one could use this strategy to
 define an external potential acting on the atoms that are moved by
 i-PI.
 
-This fix is part of the USER-MISC package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.  Because of the
-use of UNIX domain sockets, this fix will only work in a UNIX
-environment.
+This fix is part of the MISC package.  It is only enabled if
+LAMMPS was built with that package.  See the
+:doc:`Build package <Build_package>` doc page for more info.
+Because of the use of UNIX domain sockets, this fix will only
+work in a UNIX environment.
 
 Related commands
 """"""""""""""""

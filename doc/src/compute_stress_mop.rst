@@ -92,7 +92,7 @@ The values produced by this compute can be accessed by various :doc:`output comm
 Restrictions
 """"""""""""
 
-These styles are part of the USER-MISC package. They are only enabled if
+These styles are part of the EXTRA-COMPUTE package. They are only enabled if
 LAMMPS is built with that package. See the :doc:`Build package <Build_package>`
 doc page on for more info.
 

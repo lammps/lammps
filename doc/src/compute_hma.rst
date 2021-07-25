@@ -169,7 +169,7 @@ scalar value will be in energy :doc:`units <units>`.
 Restrictions
 """"""""""""
 
-This compute is part of the USER-MISC package.  It is enabled only
+This compute is part of the EXTRA-COMPUTE package.  It is enabled only
 if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 Usage restricted to canonical (NVT) ensemble simulation only.

@@ -40,7 +40,7 @@ This parameter is computed using the following formula from
 
 .. math::
 
-   Q_{i} = \frac{1}{n_i}\sum_{j = 1}^{n_i} | \sum_{k = 1}^{n_{ij}}  \vec{R}_{ik} + \vec{R}_{jk} |^2
+   Q_{i} = \frac{1}{n_i}\sum_{j = 1}^{n_i} \left | \sum_{k = 1}^{n_{ij}}  \vec{R}_{ik} + \vec{R}_{jk} \right | ^{2}
 
 where the index *j* goes over the :math:`n_i` nearest neighbors of atom
 *i*\ , and the index *k* goes over the :math:`n_{ij}` common nearest neighbors
@@ -110,7 +110,7 @@ values:
 Restrictions
 """"""""""""
 
-This compute is part of the USER-MISC package.  It is only enabled if
+This compute is part of the EXTRA-COMPUTE package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 Related commands

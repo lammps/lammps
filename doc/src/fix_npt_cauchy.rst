@@ -554,7 +554,7 @@ This fix is not invoked during :doc:`energy minimization <minimize>`.
 Restrictions
 """"""""""""
 
-This fix is part of the USER-MISC package.  It is only enabled if
+This fix is part of the EXTRA-FIX package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 *X*\ , *y*\ , *z* cannot be barostatted if the associated dimension is not

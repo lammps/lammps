@@ -117,7 +117,7 @@ ellipsoidal particles according to the EES potential introduced above.
 
 Other details of this command are the same as for the :doc:`fix
 wall/region <fix_wall_region>` command.  One may also find an example
-of using this fix in the examples/USER-MISC/ees/ directory.
+of using this fix in the examples/PACKAGES/ees/ directory.
 
 ----------
 
@@ -160,7 +160,7 @@ minimization, invoked by the :doc:`minimize <minimize>` command.
 Restrictions
 """"""""""""
 
-These fixes are part of the USER-MISC package.  They are only enabled
+These fixes are part of the EXTRA-FIX package.  They are only enabled
 if LAMMPS was built with that package.  See the :doc:`Build package
 <Build_package>` doc page for more info.
 

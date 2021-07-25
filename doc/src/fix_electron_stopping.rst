@@ -153,7 +153,7 @@ atoms moving above some minimum cutoff velocity (i.e., kinetic energy).
 These coefficients can be determined by fitting a quadratic polynomial to
 electronic stopping data predicted by, for example, SRIM or TD-DFT. Multiple
 'Ecut c1 c2' values can be provided for multi-species simulations in the order
-of the atom types. There is an examples/USER-MISC/electron_stopping/ directory,
+of the atom types. There is an examples/PACKAGES/electron_stopping/ directory,
 which illustrates uses of this command. Details of this implementation are
 further described in :ref:`Stewart2018 <Stewart2018>` and :ref:`Lee2020 <Lee2020>`.
 
@@ -175,7 +175,7 @@ on this fix.
 Restrictions
 """"""""""""
 
-This pair style is part of the USER-MISC package. It is only enabled if
+This pair style is part of the EXTRA-FIX package. It is only enabled if
 LAMMPS was built with that package. See the :doc:`Build package <Build_package>`
 doc page for more info.
 

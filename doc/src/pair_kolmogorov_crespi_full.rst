@@ -119,7 +119,7 @@ that reads a restart file.
 Restrictions
 """"""""""""
 
-This pair style is part of the USER-MISCt package.  It is only enabled
+This pair style is part of the INTERLAYER package.  It is only enabled
 if LAMMPS was built with that package.  See the :doc:`Build package
 <Build_package>` doc page for more info.
 

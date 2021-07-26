@@ -84,6 +84,13 @@ commands:
    the bond topology in the data file. The first (second) atom in a bond definition
    is understood to point towards the 3'-end (5'-end) of the strand.
 
+.. warning::
+
+   If data files are produced with :doc:`write_data <write_data>`, then the
+   :doc:`newton <newton>` command should be set to *newton on* or *newton off on*.
+   Otherwise the data files will not have the same 3'-to-5' polarity as the
+   initial data file. This limitation does not apply to binary restart files
+   produced with :doc:`write_restart <write_restart>`.
 
 Example input and data files for DNA and RNA duplexes can be found in
 examples/PACKAGES/cgdna/examples/oxDNA/ , /oxDNA2/ and /oxRNA2/.  A simple python

@@ -62,7 +62,7 @@ namespace utils {
    *
    *  \param lmp    pointer to LAMMPS class instance
    *  \param format format string of message to be printed
-   *  \param ...    arguments to format string */
+   *  \param args   arguments to format string */
 
   template <typename S, typename... Args> void logmesg(LAMMPS *lmp, const S &format, Args &&...args)
   {

@@ -18,53 +18,52 @@
 
 #if defined(LMP_HAS_NETCDF)
 
-#include <cstring>
-#include <netcdf.h>
 #include "dump_netcdf.h"
+
 #include "atom.h"
 #include "comm.h"
 #include "compute.h"
 #include "domain.h"
 #include "error.h"
 #include "fix.h"
+#include "force.h"
 #include "group.h"
 #include "input.h"
 #include "math_const.h"
 #include "memory.h"
 #include "modify.h"
-#include "update.h"
-#include "universe.h"
-#include "variable.h"
-#include "force.h"
 #include "output.h"
 #include "thermo.h"
+#include "universe.h"
+#include "update.h"
+#include "variable.h"
+
+#include <cstring>
+#include <netcdf.h>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-enum{THERMO_INT,THERMO_FLOAT,THERMO_BIGINT}; // same as in thermo.cpp
-enum{DUMP_INT,DUMP_DOUBLE,DUMP_STRING,DUMP_BIGINT}; // same as in DumpCFG
+static const char NC_FRAME_STR[]         = "frame";
+static const char NC_SPATIAL_STR[]       = "spatial";
+static const char NC_VOIGT_STR[]         = "Voigt";
+static const char NC_ATOM_STR[]          = "atom";
+static const char NC_CELL_SPATIAL_STR[]  = "cell_spatial";
+static const char NC_CELL_ANGULAR_STR[]  = "cell_angular";
+static const char NC_LABEL_STR[]         = "label";
 
-const char NC_FRAME_STR[]         = "frame";
-const char NC_SPATIAL_STR[]       = "spatial";
-const char NC_VOIGT_STR[]         = "Voigt";
-const char NC_ATOM_STR[]          = "atom";
-const char NC_CELL_SPATIAL_STR[]  = "cell_spatial";
-const char NC_CELL_ANGULAR_STR[]  = "cell_angular";
-const char NC_LABEL_STR[]         = "label";
+static const char NC_TIME_STR[]          = "time";
+static const char NC_CELL_ORIGIN_STR[]   = "cell_origin";
+static const char NC_CELL_LENGTHS_STR[]  = "cell_lengths";
+static const char NC_CELL_ANGLES_STR[]   = "cell_angles";
 
-const char NC_TIME_STR[]          = "time";
-const char NC_CELL_ORIGIN_STR[]   = "cell_origin";
-const char NC_CELL_LENGTHS_STR[]  = "cell_lengths";
-const char NC_CELL_ANGLES_STR[]   = "cell_angles";
+static const char NC_UNITS_STR[]         = "units";
+static const char NC_SCALE_FACTOR_STR[]  = "scale_factor";
 
-const char NC_UNITS_STR[]         = "units";
-const char NC_SCALE_FACTOR_STR[]  = "scale_factor";
-
-const int THIS_IS_A_FIX      = -1;
-const int THIS_IS_A_COMPUTE  = -2;
-const int THIS_IS_A_VARIABLE = -3;
-const int THIS_IS_A_BIGINT   = -4;
+static constexpr int THIS_IS_A_FIX      = -1;
+static constexpr int THIS_IS_A_COMPUTE  = -2;
+static constexpr int THIS_IS_A_VARIABLE = -3;
+static constexpr int THIS_IS_A_BIGINT   = -4;
 
 /* ---------------------------------------------------------------------- */
 
@@ -98,78 +97,65 @@ DumpNetCDF::DumpNetCDF(LAMMPS *lmp, int narg, char **arg) :
   }
 
   n_perat = 0;
-  for (int iarg = 5; iarg < narg; iarg++) {
-    int i = iarg-5;
+  for (int i = 0; i < nfield; i++) {
     int idim = 0;
     int ndims = 1;
-    char mangled[1024];
+    std::string mangled = earg[i];
     bool constant = false;
-
-    strcpy(mangled, arg[iarg]);
 
     // name mangling
     // in the AMBER specification
-    if (!strcmp(mangled, "x") || !strcmp(mangled, "y") ||
-        !strcmp(mangled, "z")) {
+    if ((mangled == "x") || (mangled == "y") || (mangled == "z")) {
       idim = mangled[0] - 'x';
       ndims = 3;
-      strcpy(mangled, "coordinates");
-    }
-    else if (!strcmp(mangled, "vx") || !strcmp(mangled, "vy") ||
-             !strcmp(mangled, "vz")) {
+      mangled = "coordinates";
+    } else if ((mangled == "vx") || (mangled == "vy") || (mangled == "vz")) {
       idim = mangled[1] - 'x';
       ndims = 3;
-      strcpy(mangled, "velocities");
-    }
-    else if (!strcmp(mangled, "xs") || !strcmp(mangled, "ys") ||
-             !strcmp(mangled, "zs")) {
+      mangled = "velocities";
+    } else if ((mangled == "xs") || (mangled == "ys") || (mangled == "zs")) {
       idim = mangled[0] - 'x';
       ndims = 3;
-      strcpy(mangled, "scaled_coordinates");
-    }
-    else if (!strcmp(mangled, "xu") || !strcmp(mangled, "yu") ||
-             !strcmp(mangled, "zu")) {
+      mangled = "scaled_coordinates";
+    } else if ((mangled == "xu") || (mangled == "yu") || (mangled == "zu")) {
       idim = mangled[0] - 'x';
       ndims = 3;
-      strcpy(mangled, "unwrapped_coordinates");
-    }
-    else if (!strcmp(mangled, "fx") || !strcmp(mangled, "fy") ||
-             !strcmp(mangled, "fz")) {
+      mangled = "unwrapped_coordinates";
+    } else if ((mangled == "fx") || (mangled == "fy") || (mangled == "fz")) {
       idim = mangled[1] - 'x';
       ndims = 3;
-      strcpy(mangled, "forces");
-    }
-    else if (!strcmp(mangled, "mux") || !strcmp(mangled, "muy") ||
-             !strcmp(mangled, "muz")) {
+      mangled = "forces";
+    } else if ((mangled == "mux") || (mangled == "muy") || (mangled == "muz")) {
       idim = mangled[2] - 'x';
       ndims = 3;
-      strcpy(mangled, "mu");
-    }
-    else if (!strncmp(mangled, "c_", 2)) {
-      char *ptr = strchr(mangled, '[');
-      if (ptr) {
-        if (mangled[strlen(mangled)-1] != ']')
+      mangled = "mu";
+    } else if (utils::strmatch(mangled, "^c_")) {
+      std::size_t found = mangled.find('[');
+      if (found != std::string::npos) {
+        if (mangled.find(']',found) == std::string::npos)
           error->all(FLERR,"Missing ']' in dump command");
-        *ptr = '\0';
-        idim = ptr[1] - '1';
+        idim = mangled[found+1] - '1';
+        mangled = mangled.substr(0,found);
         ndims = THIS_IS_A_COMPUTE;
       }
-    }
-    else if (!strncmp(mangled, "f_", 2)) {
-      char *ptr = strchr(mangled, '[');
-      if (ptr) {
-        if (mangled[strlen(mangled)-1] != ']')
+    } else if (utils::strmatch(mangled, "^f_")) {
+      std::size_t found = mangled.find('[');
+      if (found != std::string::npos) {
+        if (mangled.find(']',found) == std::string::npos)
           error->all(FLERR,"Missing ']' in dump command");
-        *ptr = '\0';
-        idim = ptr[1] - '1';
+        idim = mangled[found+1] - '1';
+        mangled = mangled.substr(0,found);
         ndims = THIS_IS_A_FIX;
       }
+    } else if (utils::strmatch(mangled, "^v_")) {
+      idim = 0;
+      ndims = THIS_IS_A_VARIABLE;
     }
 
     // find mangled name
     int inc = -1;
     for (int j = 0; j < n_perat && inc < 0; j++) {
-      if (!strcmp(perat[j].name, mangled)) {
+      if (mangled == perat[j].name) {
         inc = j;
       }
     }
@@ -182,7 +168,7 @@ DumpNetCDF::DumpNetCDF(LAMMPS *lmp, int narg, char **arg) :
       for (int j = 0; j < DUMP_NC_MAX_DIMS; j++) {
         perat[inc].field[j] = -1;
       }
-      strncpy(perat[inc].name, mangled, NC_FIELD_NAME_MAX);
+      strncpy(perat[inc].name, mangled.c_str(), NC_FIELD_NAME_MAX);
       n_perat++;
     }
 
@@ -209,8 +195,8 @@ DumpNetCDF::~DumpNetCDF()
 {
   closefile();
 
-  delete [] perat;
-  if (thermovar)  delete [] thermovar;
+  delete[] perat;
+  if (thermovar) delete[] thermovar;
 
   if (int_buffer) memory->sfree(int_buffer);
   if (double_buffer) memory->sfree(double_buffer);
@@ -227,8 +213,7 @@ void DumpNetCDF::openfile()
     char *ptr = strchr(filestar,'*');
     *ptr = '\0';
     if (padflag == 0)
-      sprintf(filecurrent,"%s" BIGINT_FORMAT "%s",
-              filestar,update->ntimestep,ptr+1);
+      sprintf(filecurrent,"%s" BIGINT_FORMAT "%s", filestar,update->ntimestep,ptr+1);
     else {
       char bif[8],pad[16];
       strcpy(bif,BIGINT_FORMAT);
@@ -239,7 +224,7 @@ void DumpNetCDF::openfile()
   }
 
   if (thermo && !singlefile_opened) {
-    if (thermovar)  delete [] thermovar;
+    if (thermovar)  delete[] thermovar;
     thermovar = new int[output->thermo->nfield];
   }
 
@@ -260,8 +245,7 @@ void DumpNetCDF::openfile()
       perat[i].dims = compute[j]->size_peratom_cols;
       if (perat[i].dims > DUMP_NC_MAX_DIMS)
         error->all(FLERR,"perat[i].dims > DUMP_NC_MAX_DIMS");
-    }
-    else if (perat[i].dims == THIS_IS_A_FIX) {
+    } else if (perat[i].dims == THIS_IS_A_FIX) {
       int j = -1;
       for (int k = 0; k < DUMP_NC_MAX_DIMS; k++) {
         if (perat[i].field[k] >= 0) {
@@ -275,6 +259,8 @@ void DumpNetCDF::openfile()
       perat[i].dims = fix[j]->size_peratom_cols;
       if (perat[i].dims > DUMP_NC_MAX_DIMS)
         error->all(FLERR,"perat[i].dims > DUMP_NC_MAX_DIMS");
+    } else if (perat[i].dims == THIS_IS_A_VARIABLE) {
+      error->all(FLERR,"Dump netcdf currently does not support dumping variables");
     }
   }
 
@@ -289,8 +275,7 @@ void DumpNetCDF::openfile()
       // Fixme! Perform checks if dimensions and variables conform with
       // data structure standard.
       if (not utils::file_is_readable(filecurrent))
-        error->all(FLERR, "cannot append to non-existent file {}",
-                                      filecurrent);
+        error->all(FLERR, "cannot append to non-existent file {}",filecurrent);
 
       if (singlefile_opened) return;
       singlefile_opened = 1;
@@ -300,10 +285,8 @@ void DumpNetCDF::openfile()
       // dimensions
       NCERRX( nc_inq_dimid(ncid, NC_FRAME_STR, &frame_dim), NC_FRAME_STR );
       NCERRX( nc_inq_dimid(ncid, NC_ATOM_STR, &atom_dim), NC_ATOM_STR );
-      NCERRX( nc_inq_dimid(ncid, NC_CELL_SPATIAL_STR, &cell_spatial_dim),
-          NC_CELL_SPATIAL_STR );
-      NCERRX( nc_inq_dimid(ncid, NC_CELL_ANGULAR_STR, &cell_angular_dim),
-          NC_CELL_ANGULAR_STR );
+      NCERRX( nc_inq_dimid(ncid, NC_CELL_SPATIAL_STR, &cell_spatial_dim), NC_CELL_SPATIAL_STR );
+      NCERRX( nc_inq_dimid(ncid, NC_CELL_ANGULAR_STR, &cell_angular_dim), NC_CELL_ANGULAR_STR );
       NCERRX( nc_inq_dimid(ncid, NC_LABEL_STR, &label_dim), NC_LABEL_STR );
 
       for (int i = 0; i < n_perat; i++) {
@@ -312,47 +295,36 @@ void DumpNetCDF::openfile()
           char dimstr[1024];
           if (dims == 3) {
             strcpy(dimstr, NC_SPATIAL_STR);
-          }
-          else if (dims == 6) {
+          } else if (dims == 6) {
             strcpy(dimstr, NC_VOIGT_STR);
-          }
-          else {
+          } else {
             sprintf(dimstr, "vec%i", dims);
           }
           if (dims != 1) {
-            NCERRX( nc_inq_dimid(ncid, dimstr, &vector_dim[dims]),
-                    dimstr );
+            NCERRX( nc_inq_dimid(ncid, dimstr, &vector_dim[dims]), dimstr );
           }
         }
       }
 
       // default variables
-      NCERRX( nc_inq_varid(ncid, NC_SPATIAL_STR, &spatial_var),
-          NC_SPATIAL_STR );
-      NCERRX( nc_inq_varid(ncid, NC_CELL_SPATIAL_STR, &cell_spatial_var),
-          NC_CELL_SPATIAL_STR);
-      NCERRX( nc_inq_varid(ncid, NC_CELL_ANGULAR_STR, &cell_angular_var),
-          NC_CELL_ANGULAR_STR);
+      NCERRX( nc_inq_varid(ncid, NC_SPATIAL_STR, &spatial_var), NC_SPATIAL_STR );
+      NCERRX( nc_inq_varid(ncid, NC_CELL_SPATIAL_STR, &cell_spatial_var), NC_CELL_SPATIAL_STR);
+      NCERRX( nc_inq_varid(ncid, NC_CELL_ANGULAR_STR, &cell_angular_var), NC_CELL_ANGULAR_STR);
 
       NCERRX( nc_inq_varid(ncid, NC_TIME_STR, &time_var), NC_TIME_STR );
-      NCERRX( nc_inq_varid(ncid, NC_CELL_ORIGIN_STR, &cell_origin_var),
-          NC_CELL_ORIGIN_STR );
-      NCERRX( nc_inq_varid(ncid, NC_CELL_LENGTHS_STR, &cell_lengths_var),
-          NC_CELL_LENGTHS_STR);
-      NCERRX( nc_inq_varid(ncid, NC_CELL_ANGLES_STR, &cell_angles_var),
-          NC_CELL_ANGLES_STR);
+      NCERRX( nc_inq_varid(ncid, NC_CELL_ORIGIN_STR, &cell_origin_var), NC_CELL_ORIGIN_STR );
+      NCERRX( nc_inq_varid(ncid, NC_CELL_LENGTHS_STR, &cell_lengths_var), NC_CELL_LENGTHS_STR);
+      NCERRX( nc_inq_varid(ncid, NC_CELL_ANGLES_STR, &cell_angles_var), NC_CELL_ANGLES_STR);
 
       for (int i = 0; i < n_perat; i++) {
-        NCERRX( nc_inq_varid(ncid, perat[i].name, &perat[i].var),
-                perat[i].name );
+        NCERRX( nc_inq_varid(ncid, perat[i].name, &perat[i].var), perat[i].name );
       }
 
       // perframe variables
       if (thermo) {
         Thermo *th = output->thermo;
         for (int i = 0; i < th->nfield; i++) {
-          NCERRX( nc_inq_varid(ncid, th->keyword[i], &thermovar[i]),
-                  th->keyword[i] );
+          NCERRX( nc_inq_varid(ncid, th->keyword[i], &thermovar[i]), th->keyword[i] );
         }
       }
 
@@ -374,79 +346,65 @@ void DumpNetCDF::openfile()
       if (singlefile_opened) return;
       singlefile_opened = 1;
 
-      NCERRX( nc_create(filecurrent, NC_64BIT_DATA, &ncid),
-              filecurrent );
+      NCERRX( nc_create(filecurrent, NC_64BIT_DATA, &ncid), filecurrent );
 
       // dimensions
-      NCERRX( nc_def_dim(ncid, NC_FRAME_STR, NC_UNLIMITED, &frame_dim),
-          NC_FRAME_STR );
-      NCERRX( nc_def_dim(ncid, NC_ATOM_STR, ntotalgr, &atom_dim),
-          NC_ATOM_STR );
-      NCERRX( nc_def_dim(ncid, NC_CELL_SPATIAL_STR, 3, &cell_spatial_dim),
-          NC_CELL_SPATIAL_STR );
-      NCERRX( nc_def_dim(ncid, NC_CELL_ANGULAR_STR, 3, &cell_angular_dim),
-          NC_CELL_ANGULAR_STR );
-      NCERRX( nc_def_dim(ncid, NC_LABEL_STR, 10, &label_dim),
-          NC_LABEL_STR );
+      NCERRX( nc_def_dim(ncid, NC_FRAME_STR, NC_UNLIMITED, &frame_dim), NC_FRAME_STR );
+      NCERRX( nc_def_dim(ncid, NC_ATOM_STR, ntotalgr, &atom_dim), NC_ATOM_STR );
+      NCERRX( nc_def_dim(ncid, NC_CELL_SPATIAL_STR, 3, &cell_spatial_dim), NC_CELL_SPATIAL_STR );
+      NCERRX( nc_def_dim(ncid, NC_CELL_ANGULAR_STR, 3, &cell_angular_dim), NC_CELL_ANGULAR_STR );
+      NCERRX( nc_def_dim(ncid, NC_LABEL_STR, 10, &label_dim), NC_LABEL_STR );
 
       for (int i = 0; i < n_perat; i++) {
-        int dims = perat[i].dims;
-        if (vector_dim[dims] < 0) {
+        int dim = perat[i].dims;
+        if (vector_dim[dim] < 0) {
           char dimstr[1024];
-          if (dims == 3) {
+          if (dim == 3) {
             strcpy(dimstr, NC_SPATIAL_STR);
-          }
-          else if (dims == 6) {
+          } else if (dim == 6) {
             strcpy(dimstr, NC_VOIGT_STR);
+          } else {
+            sprintf(dimstr, "vec%i", dim);
           }
-          else {
-            sprintf(dimstr, "vec%i", dims);
-          }
-          if (dims != 1) {
-            NCERRX( nc_def_dim(ncid, dimstr, dims, &vector_dim[dims]),
-                    dimstr );
+          if (dim != 1) {
+            NCERRX( nc_def_dim(ncid, dimstr, dim, &vector_dim[dim]), dimstr );
           }
         }
       }
 
       // default variables
-      dims[0] = vector_dim[3];
-      NCERRX( nc_def_var(ncid, NC_SPATIAL_STR, NC_CHAR, 1, dims, &spatial_var),
-          NC_SPATIAL_STR );
-      NCERRX( nc_def_var(ncid, NC_CELL_SPATIAL_STR, NC_CHAR, 1, dims,
-             &cell_spatial_var), NC_CELL_SPATIAL_STR );
-      dims[0] = vector_dim[3];
+      dims[0] = 0;
+      NCERRX( nc_def_var(ncid, NC_SPATIAL_STR, NC_CHAR, 1, dims, &spatial_var), NC_SPATIAL_STR );
+      NCERRX( nc_def_var(ncid, NC_CELL_SPATIAL_STR, NC_CHAR, 1, dims, &cell_spatial_var), NC_CELL_SPATIAL_STR );
+      dims[0] = 0;
       dims[1] = label_dim;
-      NCERRX( nc_def_var(ncid, NC_CELL_ANGULAR_STR, NC_CHAR, 2, dims,
-             &cell_angular_var), NC_CELL_ANGULAR_STR );
+      NCERRX( nc_def_var(ncid, NC_CELL_ANGULAR_STR, NC_CHAR, 2, dims, &cell_angular_var), NC_CELL_ANGULAR_STR );
 
       dims[0] = frame_dim;
-      NCERRX( nc_def_var(ncid, NC_TIME_STR, NC_DOUBLE, 1, dims, &time_var),
-          NC_TIME_STR);
+      NCERRX( nc_def_var(ncid, NC_TIME_STR, NC_DOUBLE, 1, dims, &time_var), NC_TIME_STR);
       dims[0] = frame_dim;
       dims[1] = cell_spatial_dim;
-      NCERRX( nc_def_var(ncid, NC_CELL_ORIGIN_STR, NC_DOUBLE, 2, dims,
-             &cell_origin_var), NC_CELL_ORIGIN_STR );
-      NCERRX( nc_def_var(ncid, NC_CELL_LENGTHS_STR, NC_DOUBLE, 2, dims,
-             &cell_lengths_var), NC_CELL_LENGTHS_STR );
+      NCERRX( nc_def_var(ncid, NC_CELL_ORIGIN_STR, NC_DOUBLE, 2, dims, &cell_origin_var), NC_CELL_ORIGIN_STR );
+      NCERRX( nc_def_var(ncid, NC_CELL_LENGTHS_STR, NC_DOUBLE, 2, dims, &cell_lengths_var), NC_CELL_LENGTHS_STR );
       dims[0] = frame_dim;
       dims[1] = cell_angular_dim;
-      NCERRX( nc_def_var(ncid, NC_CELL_ANGLES_STR, NC_DOUBLE, 2, dims,
-             &cell_angles_var), NC_CELL_ANGLES_STR );
+      NCERRX( nc_def_var(ncid, NC_CELL_ANGLES_STR, NC_DOUBLE, 2, dims, &cell_angles_var), NC_CELL_ANGLES_STR );
 
       // variables specified in the input file
       dims[0] = frame_dim;
       dims[1] = atom_dim;
-      dims[2] = vector_dim[3];
+      dims[2] = 0;
 
       for (int i = 0; i < n_perat; i++) {
         nc_type xtype;
 
         // Type mangling
-        if (vtype[perat[i].field[0]] == DUMP_INT) {
+        if (vtype[perat[i].field[0]] == Dump::INT) {
           xtype = NC_INT;
-        } else if (vtype[perat[i].field[0]] == DUMP_BIGINT) {
+        } else if (vtype[perat[i].field[0]] == Dump::BIGINT) {
           xtype = NC_INT64;
+        } else if (vtype[perat[i].field[0]] == Dump::STRING) {
+          error->all(FLERR,"Dump netcdf currently does not support dumping string properties");
         } else {
           if (double_precision)
             xtype = NC_DOUBLE;
@@ -457,26 +415,19 @@ void DumpNetCDF::openfile()
         if (perat[i].constant) {
           // this quantity will only be written once
           if (perat[i].dims == 1) {
-            NCERRX( nc_def_var(ncid, perat[i].name, xtype, 1, dims+1,
-                               &perat[i].var), perat[i].name );
-          }
-          else {
+            NCERRX( nc_def_var(ncid, perat[i].name, xtype, 1, dims+1, &perat[i].var), perat[i].name );
+          } else {
             // this is a vector
             dims[1] = vector_dim[perat[i].dims];
-            NCERRX( nc_def_var(ncid, perat[i].name, xtype, 2, dims+1,
-                               &perat[i].var), perat[i].name );
+            NCERRX( nc_def_var(ncid, perat[i].name, xtype, 2, dims+1, &perat[i].var), perat[i].name );
           }
-        }
-        else {
+        } else {
           if (perat[i].dims == 1) {
-            NCERRX( nc_def_var(ncid, perat[i].name, xtype, 2, dims,
-                   &perat[i].var), perat[i].name );
-          }
-          else {
+            NCERRX( nc_def_var(ncid, perat[i].name, xtype, 2, dims, &perat[i].var), perat[i].name );
+          } else {
             // this is a vector
             dims[2] = vector_dim[perat[i].dims];
-            NCERRX( nc_def_var(ncid, perat[i].name, xtype, 3, dims,
-                               &perat[i].var), perat[i].name );
+            NCERRX( nc_def_var(ncid, perat[i].name, xtype, 3, dims, &perat[i].var), perat[i].name );
           }
         }
       }
@@ -485,15 +436,13 @@ void DumpNetCDF::openfile()
       if (thermo) {
         Thermo *th = output->thermo;
         for (int i = 0; i < th->nfield; i++) {
-          if (th->vtype[i] == THERMO_FLOAT) {
+          if (th->vtype[i] == Thermo::FLOAT) {
             NCERRX( nc_def_var(ncid, th->keyword[i], NC_DOUBLE, 1, dims,
                                &thermovar[i]), th->keyword[i] );
-          }
-          else if (th->vtype[i] == THERMO_INT) {
+          } else if (th->vtype[i] == Thermo::INT) {
             NCERRX( nc_def_var(ncid, th->keyword[i], NC_INT, 1, dims,
                                &thermovar[i]), th->keyword[i] );
-          }
-          else if (th->vtype[i] == THERMO_BIGINT) {
+          } else if (th->vtype[i] == Thermo::BIGINT) {
 #if defined(LAMMPS_SMALLBIG) || defined(LAMMPS_BIGBIG)
             NCERRX( nc_def_var(ncid, th->keyword[i], NC_INT64, 1, dims,
                                &thermovar[i]), th->keyword[i] );
@@ -506,83 +455,49 @@ void DumpNetCDF::openfile()
       }
 
       // attributes
-      NCERR( nc_put_att_text(ncid, NC_GLOBAL, "Conventions",
-                 5, "AMBER") );
-      NCERR( nc_put_att_text(ncid, NC_GLOBAL, "ConventionVersion",
-                 3, "1.0") );
+      NCERR( nc_put_att_text(ncid, NC_GLOBAL, "Conventions", 5, "AMBER") );
+      NCERR( nc_put_att_text(ncid, NC_GLOBAL, "ConventionVersion", 3, "1.0") );
 
-      NCERR( nc_put_att_text(ncid, NC_GLOBAL, "program",
-                 6, "LAMMPS") );
-      NCERR( nc_put_att_text(ncid, NC_GLOBAL, "programVersion",
-                 strlen(lmp->version), lmp->version) );
+      NCERR( nc_put_att_text(ncid, NC_GLOBAL, "program", 6, "LAMMPS") );
+      NCERR( nc_put_att_text(ncid, NC_GLOBAL, "programVersion",strlen(lmp->version), lmp->version) );
 
       // units
       if (!strcmp(update->unit_style, "lj")) {
-        NCERR( nc_put_att_text(ncid, time_var, NC_UNITS_STR,
-                               2, "lj") );
-        NCERR( nc_put_att_text(ncid, cell_origin_var, NC_UNITS_STR,
-                               2, "lj") );
-        NCERR( nc_put_att_text(ncid, cell_lengths_var, NC_UNITS_STR,
-                               2, "lj") );
-      }
-      else if (!strcmp(update->unit_style, "real")) {
-        NCERR( nc_put_att_text(ncid, time_var, NC_UNITS_STR,
-                               11, "femtosecond") );
-        NCERR( nc_put_att_text(ncid, cell_origin_var, NC_UNITS_STR,
-                               8, "Angstrom") );
-        NCERR( nc_put_att_text(ncid, cell_lengths_var, NC_UNITS_STR,
-                               8, "Angstrom") );
-      }
-      else if (!strcmp(update->unit_style, "metal")) {
-        NCERR( nc_put_att_text(ncid, time_var, NC_UNITS_STR,
-                               10, "picosecond") );
-        NCERR( nc_put_att_text(ncid, cell_origin_var, NC_UNITS_STR,
-                               8, "Angstrom") );
-        NCERR( nc_put_att_text(ncid, cell_lengths_var, NC_UNITS_STR,
-                               8, "Angstrom") );
-      }
-      else if (!strcmp(update->unit_style, "si")) {
-        NCERR( nc_put_att_text(ncid, time_var, NC_UNITS_STR,
-                               6, "second") );
-        NCERR( nc_put_att_text(ncid, cell_origin_var, NC_UNITS_STR,
-                               5, "meter") );
-        NCERR( nc_put_att_text(ncid, cell_lengths_var, NC_UNITS_STR,
-                               5, "meter") );
-      }
-      else if (!strcmp(update->unit_style, "cgs")) {
-        NCERR( nc_put_att_text(ncid, time_var, NC_UNITS_STR,
-                               6, "second") );
-        NCERR( nc_put_att_text(ncid, cell_origin_var, NC_UNITS_STR,
-                               10, "centimeter") );
-        NCERR( nc_put_att_text(ncid, cell_lengths_var, NC_UNITS_STR,
-                               10, "centimeter") );
-      }
-      else if (!strcmp(update->unit_style, "electron")) {
-        NCERR( nc_put_att_text(ncid, time_var, NC_UNITS_STR,
-                               11, "femtosecond") );
-        NCERR( nc_put_att_text(ncid, cell_origin_var, NC_UNITS_STR,
-                               4, "Bohr") );
-        NCERR( nc_put_att_text(ncid, cell_lengths_var, NC_UNITS_STR,
-                               4, "Bohr") );
-      }
-      else {
-        char errstr[1024];
-        sprintf(errstr, "Unsupported unit style '%s'", update->unit_style);
-        error->all(FLERR,errstr);
+        NCERR( nc_put_att_text(ncid, time_var, NC_UNITS_STR, 2, "lj") );
+        NCERR( nc_put_att_text(ncid, cell_origin_var, NC_UNITS_STR, 2, "lj") );
+        NCERR( nc_put_att_text(ncid, cell_lengths_var, NC_UNITS_STR, 2, "lj") );
+      } else if (!strcmp(update->unit_style, "real")) {
+        NCERR( nc_put_att_text(ncid, time_var, NC_UNITS_STR, 11, "femtosecond") );
+        NCERR( nc_put_att_text(ncid, cell_origin_var, NC_UNITS_STR, 8, "Angstrom") );
+        NCERR( nc_put_att_text(ncid, cell_lengths_var, NC_UNITS_STR, 8, "Angstrom") );
+      } else if (!strcmp(update->unit_style, "metal")) {
+        NCERR( nc_put_att_text(ncid, time_var, NC_UNITS_STR, 10, "picosecond") );
+        NCERR( nc_put_att_text(ncid, cell_origin_var, NC_UNITS_STR, 8, "Angstrom") );
+        NCERR( nc_put_att_text(ncid, cell_lengths_var, NC_UNITS_STR, 8, "Angstrom") );
+      } else if (!strcmp(update->unit_style, "si")) {
+        NCERR( nc_put_att_text(ncid, time_var, NC_UNITS_STR, 6, "second") );
+        NCERR( nc_put_att_text(ncid, cell_origin_var, NC_UNITS_STR, 5, "meter") );
+        NCERR( nc_put_att_text(ncid, cell_lengths_var, NC_UNITS_STR, 5, "meter") );
+      } else if (!strcmp(update->unit_style, "cgs")) {
+        NCERR( nc_put_att_text(ncid, time_var, NC_UNITS_STR, 6, "second") );
+        NCERR( nc_put_att_text(ncid, cell_origin_var, NC_UNITS_STR, 10, "centimeter") );
+        NCERR( nc_put_att_text(ncid, cell_lengths_var, NC_UNITS_STR, 10, "centimeter") );
+      } else if (!strcmp(update->unit_style, "electron")) {
+        NCERR( nc_put_att_text(ncid, time_var, NC_UNITS_STR, 11, "femtosecond") );
+        NCERR( nc_put_att_text(ncid, cell_origin_var, NC_UNITS_STR, 4, "Bohr") );
+        NCERR( nc_put_att_text(ncid, cell_lengths_var, NC_UNITS_STR, 4, "Bohr") );
+      } else {
+        error->all(FLERR,"Unsupported unit style: {}", update->unit_style);
       }
 
-      NCERR( nc_put_att_text(ncid, cell_angles_var, NC_UNITS_STR,
-                             6, "degree") );
+      NCERR( nc_put_att_text(ncid, cell_angles_var, NC_UNITS_STR,6, "degree") );
 
       d[0] = update->dt;
-      NCERR( nc_put_att_double(ncid, time_var, NC_SCALE_FACTOR_STR,
-                               NC_DOUBLE, 1, d) );
+      NCERR( nc_put_att_double(ncid, time_var, NC_SCALE_FACTOR_STR,NC_DOUBLE, 1, d) );
       d[0] = 1.0;
-      NCERR( nc_put_att_double(ncid, cell_origin_var, NC_SCALE_FACTOR_STR,
-                               NC_DOUBLE, 1, d) );
+      NCERR( nc_put_att_double(ncid, cell_origin_var, NC_SCALE_FACTOR_STR,NC_DOUBLE, 1, d) );
       d[0] = 1.0;
-      NCERR( nc_put_att_double(ncid, cell_lengths_var, NC_SCALE_FACTOR_STR,
-                               NC_DOUBLE, 1, d) );
+      NCERR( nc_put_att_double(ncid, cell_lengths_var, NC_SCALE_FACTOR_STR,NC_DOUBLE, 1, d) );
 
       /*
        * Finished with definition
@@ -721,16 +636,14 @@ void DumpNetCDF::write()
     for (int i = 0; i < th->nfield; i++) {
       th->call_vfunc(i);
       if (filewriter) {
-        if (th->vtype[i] == THERMO_FLOAT) {
+        if (th->vtype[i] == Thermo::FLOAT) {
           NCERRX( nc_put_var1_double(ncid, thermovar[i], start,
                                      &th->dvalue),
                   th->keyword[i] );
-        }
-        else if (th->vtype[i] == THERMO_INT) {
+        } else if (th->vtype[i] == Thermo::INT) {
           NCERRX( nc_put_var1_int(ncid, thermovar[i], start, &th->ivalue),
                   th->keyword[i] );
-        }
-        else if (th->vtype[i] == THERMO_BIGINT) {
+        } else if (th->vtype[i] == Thermo::BIGINT) {
           NCERRX( nc_put_var1_bigint(ncid, thermovar[i], start, &th->bivalue),
                   th->keyword[i] );
         }
@@ -773,8 +686,7 @@ void DumpNetCDF::write_header(bigint n)
       cell_angles[0] = 90;
       cell_angles[1] = 90;
       cell_angles[2] = 90;
-    }
-    else {
+    } else {
       double cosalpha, cosbeta, cosgamma;
       double *h = domain->h;
 
@@ -806,12 +718,9 @@ void DumpNetCDF::write_header(bigint n)
     count[0] = 1;
     count[1] = 3;
     NCERR( nc_put_var1_double(ncid, time_var, start, &time) );
-    NCERR( nc_put_vara_double(ncid, cell_origin_var, start, count,
-                              cell_origin) );
-    NCERR( nc_put_vara_double(ncid, cell_lengths_var, start, count,
-                              cell_lengths) );
-    NCERR( nc_put_vara_double(ncid, cell_angles_var, start, count,
-                              cell_angles) );
+    NCERR( nc_put_vara_double(ncid, cell_origin_var, start, count, cell_origin) );
+    NCERR( nc_put_vara_double(ncid, cell_lengths_var, start, count, cell_lengths) );
+    NCERR( nc_put_vara_double(ncid, cell_angles_var, start, count, cell_angles) );
   }
 
   ndata = n;
@@ -860,7 +769,7 @@ void DumpNetCDF::write_data(int n, double *mybuf)
   for (int i = 0; i < n_perat; i++) {
     int iaux = perat[i].field[0];
 
-    if (vtype[iaux] == DUMP_INT || vtype[iaux] == DUMP_BIGINT) {
+    if (vtype[iaux] == Dump::INT || vtype[iaux] == Dump::BIGINT) {
       // integers
       if (perat[i].dims > 1) {
 
@@ -868,12 +777,11 @@ void DumpNetCDF::write_data(int n, double *mybuf)
           iaux = perat[i].field[idim];
 
           if (iaux >= 0) {
-            if (vtype[iaux] == DUMP_INT) {
+            if (vtype[iaux] == Dump::INT) {
               for (int j = 0; j < n; j++, iaux+=size_one) {
                 int_buffer[j] = static_cast<int>(mybuf[iaux]);
               }
-            }
-            else { // DUMP_BIGINT
+            } else { // Dump::BIGINT
               for (int j = 0; j < n; j++, iaux+=size_one) {
                 int_buffer[j] = static_cast<bigint>(mybuf[iaux]);
               }
@@ -883,25 +791,19 @@ void DumpNetCDF::write_data(int n, double *mybuf)
 
             if (perat[i].constant) {
               if (perat[i].ndumped < ntotalgr) {
-                NCERR( nc_put_vars_bigint(ncid, perat[i].var,
-                                          start+1, count+1, stride+1,
-                                          int_buffer) );
+                NCERR( nc_put_vars_bigint(ncid, perat[i].var,start+1, count+1, stride+1,int_buffer) );
                 perat[i].ndumped += n;
               }
-            }
-            else
-              NCERR( nc_put_vars_bigint(ncid, perat[i].var, start, count, stride,
-                                        int_buffer) );
+            } else
+              NCERR( nc_put_vars_bigint(ncid, perat[i].var, start, count, stride,int_buffer) );
           }
         }
-      }
-      else {
-        if (vtype[iaux] == DUMP_INT) {
+      } else {
+        if (vtype[iaux] == Dump::INT) {
           for (int j = 0; j < n; j++, iaux+=size_one) {
               int_buffer[j] = static_cast<int>(mybuf[iaux]);
           }
-        }
-        else { // DUMP_BIGINT
+        } else { // Dump::BIGINT
           for (int j = 0; j < n; j++, iaux+=size_one) {
               int_buffer[j] = static_cast<bigint>(mybuf[iaux]);
           }
@@ -909,17 +811,13 @@ void DumpNetCDF::write_data(int n, double *mybuf)
 
         if (perat[i].constant) {
           if (perat[i].ndumped < ntotalgr) {
-            NCERR( nc_put_vara_bigint(ncid, perat[i].var, start+1, count+1,
-                                      int_buffer) );
+            NCERR( nc_put_vara_bigint(ncid, perat[i].var, start+1, count+1,int_buffer) );
             perat[i].ndumped += n;
           }
-        }
-        else
-          NCERR( nc_put_vara_bigint(ncid, perat[i].var, start, count,
-                                    int_buffer) );
+        } else
+          NCERR( nc_put_vara_bigint(ncid, perat[i].var, start, count,int_buffer) );
       }
-    }
-    else {
+    } else {
       // doubles
       if (perat[i].dims > 1) {
 
@@ -940,14 +838,12 @@ void DumpNetCDF::write_data(int n, double *mybuf)
                                             double_buffer) );
                   perat[i].ndumped += n;
               }
-            }
-            else
+            } else
               NCERR( nc_put_vars_double(ncid, perat[i].var, start, count,
                                         stride, double_buffer) );
           }
         }
-      }
-      else {
+      } else {
         for (int j = 0; j < n; j++, iaux+=size_one) {
             double_buffer[j] = mybuf[iaux];
         }
@@ -958,8 +854,7 @@ void DumpNetCDF::write_data(int n, double *mybuf)
                                       double_buffer) );
             perat[i].ndumped += n;
           }
-        }
-        else
+        } else
           NCERR( nc_put_vara_double(ncid, perat[i].var, start, count,
                                     double_buffer) );
       }
@@ -980,15 +875,12 @@ int DumpNetCDF::modify_param(int narg, char **arg)
       error->all(FLERR,"expected 'yes' or 'no' after 'double' keyword.");
     if (strcmp(arg[iarg],"yes") == 0) {
       double_precision = true;
-    }
-    else if (strcmp(arg[iarg],"no") == 0) {
+    } else if (strcmp(arg[iarg],"no") == 0) {
       double_precision = false;
-    }
-    else error->all(FLERR,"expected 'yes' or 'no' after 'double' keyword.");
+    } else error->all(FLERR,"expected 'yes' or 'no' after 'double' keyword.");
     iarg++;
     return 2;
-  }
-  else if (strcmp(arg[iarg],"at") == 0) {
+  } else if (strcmp(arg[iarg],"at") == 0) {
     iarg++;
     if (iarg >= narg)
       error->all(FLERR,"expected additional arg after 'at' keyword.");
@@ -997,18 +889,15 @@ int DumpNetCDF::modify_param(int narg, char **arg)
     else if (framei < 0) framei--;
     iarg++;
     return 2;
-  }
-  else if (strcmp(arg[iarg],"thermo") == 0) {
+  } else if (strcmp(arg[iarg],"thermo") == 0) {
     iarg++;
     if (iarg >= narg)
       error->all(FLERR,"expected 'yes' or 'no' after 'thermo' keyword.");
     if (strcmp(arg[iarg],"yes") == 0) {
       thermo = true;
-    }
-    else if (strcmp(arg[iarg],"no") == 0) {
+    } else if (strcmp(arg[iarg],"no") == 0) {
       thermo = false;
-    }
-    else error->all(FLERR,"expected 'yes' or 'no' after 'thermo' keyword.");
+    } else error->all(FLERR,"expected 'yes' or 'no' after 'thermo' keyword.");
     iarg++;
     return 2;
   } else return 0;
@@ -1019,16 +908,10 @@ int DumpNetCDF::modify_param(int narg, char **arg)
 void DumpNetCDF::ncerr(int err, const char *descr, int line)
 {
   if (err != NC_NOERR) {
-    char errstr[1024];
-    if (descr) {
-      sprintf(errstr, "NetCDF failed with error '%s' (while accessing '%s') "
-          " in line %i of %s.", nc_strerror(err), descr, line, __FILE__);
-    }
-    else {
-      sprintf(errstr, "NetCDF failed with error '%s' in line %i of %s.",
-          nc_strerror(err), line, __FILE__);
-    }
-    error->one(FLERR,errstr);
+    if (descr) error->one(FLERR,"NetCDF failed with error '{}' (while accessing '{}') "
+                          " in line {} of {}.", nc_strerror(err), descr, line, __FILE__);
+    else error->one(FLERR,"NetCDF failed with error '{}' in line {} of {}.",
+                    nc_strerror(err), line, __FILE__);
   }
 }
 

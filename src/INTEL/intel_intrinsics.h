@@ -385,7 +385,7 @@ struct vector_ops<float, KNC> {
       *r3 = gather<4>(*r3, mask, idxs, reinterpret_cast<const char *>(base) + 12);
     }
     // Additional routines needed for the implementation of mixed precision
-    static fvec cvtdown(const vector_ops<double,KNC>::fvec &lo, 
+    static fvec cvtdown(const vector_ops<double,KNC>::fvec &lo,
                         const vector_ops<double,KNC>::fvec &hi) {
       __m512 t1 = _mm512_cvtpd_pslo(lo);
       __m512 t2 = _mm512_cvtpd_pslo(hi);

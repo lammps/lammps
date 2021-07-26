@@ -610,8 +610,8 @@ void WriteRestart::file_layout(int send_size)
 
 void WriteRestart::magic_string()
 {
-  std::string magic = MAGIC_STRING;
-  fwrite(magic.c_str(),sizeof(char),magic.size()+1,fp);
+  const char magic[] = MAGIC_STRING;
+  fwrite(magic,sizeof(char),strlen(magic)+1,fp);
 }
 
 /* ---------------------------------------------------------------------- */

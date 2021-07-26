@@ -2686,6 +2686,113 @@ void lammps_scatter_atoms_subset(void *handle, char *name, int type, int count,
   END_CAPTURE
 }
 
+/** Gather type and constituent atom info for all bonds
+ *
+\verbatim embed:rst
+
+This function copies the list of all bonds into a buffer provided by
+the calling code. The buffer will be filled with bond type, bond atom 1,
+bond atom 2 for each bond. Thus the buffer has to be allocated to the
+dimension of 3 times the **total** number of bonds times the size of
+the LAMMPS "tagint" type, which is either 4 or 8 bytes depending on
+ whether they are stored in 32-bit or 64-bit integers, respectively.
+This size depends on the compile time settings used when compiling
+the LAMMPS library and can be queried by calling
+ :cpp:func:`lammps_extract_setting()` with the keyword "tagint".
+
+When running in parallel, the data buffer must be allocated on **all**
+MPI ranks and will be filled with the information for **all** bonds
+in the system.
+
+Below is a brief C code demonstrating accessing this collected bond information.
+
+.. code-block:: c
+
+   #include <stdio.h>
+   #include <stdlib.h>
+   #include <inttypes.h>
+   #include "library.h"
+
+   int main(int argc, char **argv)
+   {
+       int tagintsize;
+       int64_t i, nbonds;
+       void *handle, *bonds;
+
+       handle = lammps_open_no_mpi(0, NULL, NULL);
+       lammps_file(handle, "in.some_input");
+
+       tagintsize = lammps_extract_setting(handle, "tagint");
+       if (tagintsize == 4)
+           nbonds = *(int32_t *)lammps_extract_global(handle, "nbonds");
+        else
+           nbonds = *(int64_t *)lammps_extract_global(handle, "nbonds");
+       bonds = malloc(nbonds * 3 * tagintsize);
+
+       lammps_gather_bonds(handle, bonds);
+
+       if (lammps_extract_setting(handle, "world_rank") == 0) {
+           if (tagintsize == 4) {
+               int32_t *bonds_real = (int32_t *)bonds;
+               for (i = 0; i < nbonds; ++i) {
+                   printf("bond % 4ld: type = %d, atoms: % 4d  % 4d\n",i,
+                          bonds_real[3*i], bonds_real[3*i+1], bonds_real[3*i+2]);
+               }
+           } else {
+               int64_t *bonds_real = (int64_t *)bonds;
+               for (i = 0; i < nbonds; ++i) {
+                   printf("bond % 4ld: type = %ld, atoms: % 4ld  % 4ld\n",i,
+                          bonds_real[3*i], bonds_real[3*i+1], bonds_real[3*i+2]);
+               }
+           }
+       }
+
+       lammps_close(handle);
+       lammps_mpi_finalize();
+       free(bonds);
+       return 0;
+   }
+
+\endverbatim
+ *
+ * \param  handle  pointer to a previously created LAMMPS instance
+ * \param  data    pointer to data to copy the result to */
+
+void lammps_gather_bonds(void *handle, void *data)
+{
+  LAMMPS *lmp = (LAMMPS *)handle;
+  BEGIN_CAPTURE {
+    void *val = lammps_extract_global(handle,"nbonds");
+    bigint nbonds = *(bigint *)val;
+
+    // no bonds
+    if (nbonds == 0) return;
+
+    // count per MPI rank bonds, determine offsets and allocate local buffers
+    int localbonds = lmp->atom->avec->pack_bond(nullptr);
+    int nprocs = lmp->comm->nprocs;
+    int *bufsizes = new int[nprocs];
+    int *bufoffsets = new int[nprocs];
+    MPI_Allgather(&localbonds, 1, MPI_INT, bufsizes, 1, MPI_INT, lmp->world);
+    bufoffsets[0] = 0;
+    bufsizes[0] *= 3;           // 3 items per bond: type, atom1, atom2
+    for (int i = 1; i < nprocs; ++i) {
+      bufoffsets[i] = bufoffsets[i-1] + bufsizes[i-1];
+      bufsizes[i] *= 3;         // 3 items per bond: type, atom1, atom2
+    }
+
+    tagint **bonds;
+    lmp->memory->create(bonds, localbonds, 3, "library:gather_bonds:localbonds");
+    lmp->atom->avec->pack_bond(bonds);
+    MPI_Allgatherv(&bonds[0][0], 3*localbonds, MPI_LMP_TAGINT, data, bufsizes,
+                   bufoffsets, MPI_LMP_TAGINT, lmp->world);
+    lmp->memory->destroy(bonds);
+    delete[] bufsizes;
+    delete[] bufoffsets;
+  }
+  END_CAPTURE
+}
+
 /* ----------------------------------------------------------------------
   Contributing author: Thomas Swinburne (CNRS & CINaM, Marseille, France)
   gather the named atom-based entity for all atoms

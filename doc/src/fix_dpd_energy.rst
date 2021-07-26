@@ -32,7 +32,7 @@ the group at each timestep.  It must be used in conjunction with a
 deterministic integrator (e.g. :doc:`fix nve <fix_nve>`) that updates
 the particle positions and velocities.
 
-For fix *dpd/energy*\ , the particle internal temperature is related to
+For fix *dpd/energy*, the particle internal temperature is related to
 the particle internal energy through a mesoparticle equation of state.
 An additional fix must be specified that defines the equation of state
 for each particle, e.g. :doc:`fix eos/cv <fix_eos_cv>`.
@@ -41,9 +41,9 @@ This fix must be used with the :doc:`pair_style dpd/fdt/energy <pair_style>` com
 
 Note that numerous variants of DPD can be specified by choosing an
 appropriate combination of the integrator and :doc:`pair_style dpd/fdt/energy <pair_style>` command.  DPD under isoenergetic conditions
-can be specified by using fix *dpd/energy*\ , fix *nve* and pair_style
+can be specified by using fix *dpd/energy*, fix *nve* and pair_style
 *dpd/fdt/energy*\ .  DPD under isoenthalpic conditions can
-be specified by using fix *dpd/energy*\ , fix *nph* and pair_style
+be specified by using fix *dpd/energy*, fix *nph* and pair_style
 *dpd/fdt/energy*\ .  Examples of each DPD variant are provided in the
 examples/PACKAGES/dpd-react directory.
 
@@ -57,7 +57,7 @@ Restrictions
 """"""""""""
 
 This command is part of the DPD-REACT package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 This fix must be used with an additional fix that specifies time
 integration, e.g. :doc:`fix nve <fix_nve>`.

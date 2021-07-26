@@ -99,7 +99,7 @@ the array is the number of recorded, lost interactions.  If a single input is
 specified, a local vector is produced.  If two or more inputs are
 specified, a local array is produced where the number of columns = the
 number of inputs.  The vector or array can be accessed by any command
-that uses local values from a compute as input.  See the :doc:`Howto output <Howto_output>` doc page for an overview of LAMMPS output
+that uses local values from a compute as input.  See the :doc:`Howto output <Howto_output>` page for an overview of LAMMPS output
 options.
 
 The vector or array values will be doubles that correspond to the
@@ -111,7 +111,7 @@ Restrictions
 Must be used in conjunction with :doc:`pair style tracker <pair_tracker>`.
 
 This fix is part of the MISC package.  It is only enabled if LAMMPS
-was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

@@ -45,8 +45,8 @@ Description
 Compute *stress/mop* and compute *stress/mop/profile* define computations that
 calculate components of the local stress tensor using the method of
 planes :ref:`(Todd) <mop-todd>`.  Specifically in compute *stress/mop* calculates 3
-components are computed in directions *dir*\ ,\ *x*\ ; *dir*\ ,\ *y*\ ; and
-*dir*\ ,\ *z*\ ; where *dir* is the direction normal to the plane, while
+components are computed in directions *dir*,\ *x*\ ; *dir*,\ *y*\ ; and
+*dir*,\ *z*\ ; where *dir* is the direction normal to the plane, while
 in compute *stress/mop/profile* the profile of the stress is computed.
 
 Contrary to methods based on histograms of atomic stress (i.e. using

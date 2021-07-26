@@ -92,7 +92,7 @@ its velocity and :math:`S_e` is the stopping power of the ion.
    atomic subsystems with the two-temperature model (:doc:`fix_ttm <fix_ttm>`).
 
 At low velocities the electronic stopping is negligible. The electronic
-friction is not applied to atoms whose kinetic energy is smaller than *Ecut*\ ,
+friction is not applied to atoms whose kinetic energy is smaller than *Ecut*,
 or smaller than the lowest energy value given in the table in *file*\ .
 Electronic stopping should be applied only when a projectile reaches bulk
 material. This fix scans neighbor list and excludes atoms with fewer than
@@ -133,7 +133,7 @@ For example:
    750      100      150
 
 If an atom which would have electronic stopping applied to it has a
-kinetic energy higher than the largest energy given in *file*\ , LAMMPS
+kinetic energy higher than the largest energy given in *file*, LAMMPS
 will exit with an error message.
 
 The stopping power depends on the energy of the ion and the target

@@ -40,7 +40,7 @@ command.  The *id* and *map* keywords must be specified before a
 simulation box is defined; other keywords can be specified any time.
 
 The *id* keyword determines whether non-zero atom IDs can be assigned
-to each atom.  If the value is *yes*\ , which is the default, IDs are
+to each atom.  If the value is *yes*, which is the default, IDs are
 assigned, whether you use the :doc:`create atoms <create_atoms>` or
 :doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands to initialize atoms.  If the value is *no* the IDs for all

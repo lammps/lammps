@@ -48,7 +48,7 @@ discussed there in greater detail.
 
 Instead of temperature, this command performs replica exchanges in
 lambda as per the generalized ensemble enforced by :doc:`fix grem
-<fix_grem>`.  The desired lambda is specified by *lambda*\ , which is
+<fix_grem>`.  The desired lambda is specified by *lambda*, which is
 typically a variable previously set in the input script, so that each
 partition is assigned a different temperature.  See the :doc:`variable
 <variable>` command for more details.  For example:

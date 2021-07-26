@@ -83,7 +83,7 @@ general any combination of pair potentials can be used together in to
 produce an interaction that is not encoded in any single pair_style
 file, e.g. adding Coulombic forces between granular particles.
 
-If the *hybrid/scaled* style is used instead of *hybrid/overlay*\ ,
+If the *hybrid/scaled* style is used instead of *hybrid/overlay*,
 contributions from sub-styles are weighted by their scale factors, which
 may be fractional or even negative.  Furthermore the scale factors may
 be variables that may change during a simulation.  This enables
@@ -288,7 +288,7 @@ command can be used to selectively turn off processing of
 the compute tally styles, for example, if those pair styles
 (e.g. many-body styles) do not support this feature.
 
-See the :doc:`pair_modify <pair_modify>` doc page for details on
+See the :doc:`pair_modify <pair_modify>` page for details on
 the specific syntax, requirements and restrictions.
 
 ----------
@@ -375,7 +375,7 @@ coefficients to 0.0.
 
 ----------
 
-Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
+Styles with a *gpu*, *intel*, *kk*, *omp*, or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
 They have been optimized to run faster, depending on your available
 hardware, as discussed on the :doc:`Speed packages <Speed_packages>` doc
@@ -391,13 +391,13 @@ exist. Otherwise the non-accelerated version will be used.
 The individual accelerated sub-styles are part of the GPU, KOKKOS,
 INTEL, OPENMP, and OPT packages, respectively.  They are only
 enabled if LAMMPS was built with those packages.  See the :doc:`Build
-package <Build_package>` doc page for more info.
+package <Build_package>` page for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
 :doc:`suffix <suffix>` command in your input script.
 
-See the :doc:`Speed packages <Speed_packages>` doc page for more
+See the :doc:`Speed packages <Speed_packages>` page for more
 instructions on how to use the accelerated styles effectively.
 
 ----------
@@ -422,7 +422,7 @@ generated, even if the sub-styles support mixing, and I,J pair
 coefficients must be explicitly defined.
 
 See the :doc:`pair_modify <pair_modify>` command for
-details of mixing rules.  See the See the doc page for the sub-style to
+details of mixing rules.  See the See the page for the sub-style to
 see if allows for mixing.
 
 The hybrid pair styles supports the :doc:`pair_modify <pair_modify>`
@@ -439,7 +439,7 @@ style *hybrid/scaled* also the names of any variables used as scale
 factors are restored, but not the variables themselves, so those may
 need to be redefined when continuing from a restart.
 
-These pair styles support the use of the *inner*\ , *middle*\ , and
+These pair styles support the use of the *inner*, *middle*, and
 *outer* keywords of the :doc:`run_style respa <run_style>` command, if
 their sub-styles do.
 

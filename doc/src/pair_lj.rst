@@ -72,7 +72,7 @@ LJ cutoff specified in the pair_style command are used.
 
 ----------
 
-A version of these styles with a soft core, *lj/cut/soft*\ , suitable
+A version of these styles with a soft core, *lj/cut/soft*, suitable
 for use in free energy calculations, is part of the FEP package and
 is documented with the :doc:`pair_style */soft <pair_fep_soft>`
 styles.
@@ -104,7 +104,7 @@ All of the *lj/cut* pair styles write their information to :doc:`binary restart 
 not need to be specified in an input script that reads a restart file.
 
 The *lj/cut* pair styles support the use of the
-*inner*\ , *middle*\ , and *outer* keywords of the :doc:`run_style respa <run_style>` command, meaning the pairwise forces can be
+*inner*, *middle*, and *outer* keywords of the :doc:`run_style respa <run_style>` command, meaning the pairwise forces can be
 partitioned by distance at different levels of the rRESPA hierarchy.
 The other styles only support the *pair* keyword of run_style respa.
 See the :doc:`run_style <run_style>` command for details.

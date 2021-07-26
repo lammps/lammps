@@ -68,7 +68,7 @@ above.
    If a command itself requires a quoted argument (e.g. a
    :doc:`print <print>` command), then double and single quotes can be used
    and nested in the usual manner, as in the examples above and below.
-   The :doc:`Commands parse <Commands_parse>` doc page has more details on
+   The :doc:`Commands parse <Commands_parse>` page has more details on
    using quotes in arguments.  Only one of level of nesting is allowed,
    but that should be sufficient for most use cases.
 

@@ -114,8 +114,8 @@ with the LD expressed as
 
    \rho_i = \sum_{j \neq i} b_\beta \varphi(r_{ij})
 
-where :math:`\alpha` gives the type of atom *i*\ , :math:`\beta` the
-type of atom *j*\ , and the coefficients *a* and *b* filter for atom
+where :math:`\alpha` gives the type of atom *i*, :math:`\beta` the
+type of atom *j*, and the coefficients *a* and *b* filter for atom
 types as specified by the user. *a* is called the central atom filter as
 it determines to which atoms the potential applies; :math:`a_{\alpha} =
 1` if the LD potential applies to atom type :math:`\alpha` else zero. On the
@@ -222,7 +222,7 @@ Restrictions
 
 The local/density pair style is a part of the MANYBODY package. It is
 only enabled if LAMMPS was built with that package.  See the
-:doc:`Build package <Build_package>` doc page for more info.
+:doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

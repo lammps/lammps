@@ -161,7 +161,7 @@ script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 ----------
 
@@ -169,7 +169,7 @@ Restrictions
 """"""""""""
 
 This pair style is part of the MGPT package and is only enabled
-if LAMMPS is built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+if LAMMPS is built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 The MGPT potentials require the :doc:`newtion <newton>` setting to be
 "on" for pair style interactions.

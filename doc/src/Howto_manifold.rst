@@ -3,7 +3,7 @@ Manifolds (surfaces)
 
 **Overview:**
 
-This doc page is not about a LAMMPS input script command, but about
+This page is not about a LAMMPS input script command, but about
 manifolds, which are generalized surfaces, as defined and used by the
 MANIFOLD package, to track particle motion on the manifolds.  See
 the src/MANIFOLD/README file for more details about the package

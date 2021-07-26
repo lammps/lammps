@@ -87,15 +87,15 @@ chemical formula, total charge, and center-of-mass xyz positions of
 this molecule.  The xyz positions are in fractional coordinates
 relative to the box dimensions.
 
-For the keyword *position*\ , the *filepos* is the name of the output
+For the keyword *position*, the *filepos* is the name of the output
 file.  It can contain the wildcard character "\*".  If the "\*"
-character appears in *filepos*\ , then one file per snapshot is written
+character appears in *filepos*, then one file per snapshot is written
 at *posfreq* and the "\*" character is replaced with the timestep
 value.  For example, AuO.pos.\* becomes AuO.pos.0, AuO.pos.1000, etc.
 
 ----------
 
-The *Nevery*\ , *Nrepeat*\ , and *Nfreq* arguments specify on what
+The *Nevery*, *Nrepeat*, and *Nfreq* arguments specify on what
 timesteps the bond-order values are sampled to get the average bond
 order.  The species analysis is performed using the average bond-order
 on timesteps that are a multiple of *Nfreq*\ .  The average is over
@@ -148,7 +148,7 @@ Restrictions
 
 The "fix reaxff/species" requires that :doc:`pair_style reaxff <pair_reaxff>` is used.
 This fix is part of the REAXFF package.  It is only enabled if LAMMPS was built with that
-package.  See the :doc:`Build package <Build_package>` doc page for more info.
+package.  See the :doc:`Build package <Build_package>` page for more info.
 
 To write gzipped species files, you must compile LAMMPS with the -DLAMMPS_GZIP option.
 

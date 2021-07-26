@@ -71,7 +71,7 @@ to be the internal chemical energy (uChem).
 
 The fourth argument specifies the type of scaling that will be used
 to scale the EXP-6 parameters as reactions occur.  Currently, there
-are three scaling options:  *exponent*\ , *polynomial* and *none*\ .
+are three scaling options:  *exponent*, *polynomial* and *none*\ .
 
 Exponent scaling requires two additional arguments for scaling
 the :math:`R_m` and :math:`\epsilon` parameters, respectively.  The scaling factor
@@ -179,7 +179,7 @@ Restrictions
 """"""""""""
 
 This command is part of the DPD-REACT package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

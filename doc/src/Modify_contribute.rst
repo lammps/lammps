@@ -62,7 +62,7 @@ them open-source, i.e. we can release them under the terms of the GPL
 a LGPL (version 2.1) distribution that we make available to developers
 on request only and with files that are authorized for that kind of
 distribution removed (e.g. interface to FFTW).  See the
-:doc:`LAMMPS license <Intro_opensource>` doc page for details.
+:doc:`LAMMPS license <Intro_opensource>` page for details.
 
 .. note::
 
@@ -80,7 +80,7 @@ distribution removed (e.g. interface to FFTW).  See the
 
 .. _lws: https://www.lammps.org
 
-The previous sections of this doc page describe how to add new "style"
+The previous sections of this page describe how to add new "style"
 files of various kinds to LAMMPS.  Packages are simply collections of
 one or more new class files which are invoked as a new style within a
 LAMMPS input script.  If designed correctly, these additions typically
@@ -107,7 +107,7 @@ packages in the src directory for examples. If you are uncertain, please ask.
   your contribution(s) to be added to main LAMMPS code or one of its
   standard packages, it needs to be written in a style compatible with
   other LAMMPS source files. This means: 2-character indentation per
-  level, **no tabs**\ , no lines over 100 characters. I/O is done via
+  level, **no tabs**, no lines over 100 characters. I/O is done via
   the C-style stdio library (mixing of stdio and iostreams is generally
   discouraged), class header files should not import any system headers
   outside of <cstdio>, STL containers should be avoided in headers,
@@ -203,11 +203,11 @@ packages in the src directory for examples. If you are uncertain, please ask.
   pdf" in the doc folder.  As appropriate, the text files can include
   inline mathematical expression or figures (see doc/JPG for examples).
   Additional PDF files with further details (see doc/PDF for examples)
-  may also be included.  The doc page should also include literature
+  may also be included.  The page should also include literature
   citations as appropriate; see the bottom of doc/fix_nh.rst for
   examples and the earlier part of the same file for how to format the
   cite itself.  Citation labels must be unique across all .rst files.
-  The "Restrictions" section of the doc page should indicate if your
+  The "Restrictions" section of the page should indicate if your
   command is only available if LAMMPS is built with the appropriate
   FOO package.  See other package doc files for examples of
   how to do this.  Please run at least "make html" and "make spelling"

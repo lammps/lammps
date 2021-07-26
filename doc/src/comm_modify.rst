@@ -80,7 +80,7 @@ with the *multi* neighbor style. The *multi/old* communication mode is comparabl
 with both the *multi* and *multi/old* neighbor styles.
 
 The *cutoff* keyword allows you to extend the ghost cutoff distance
-for communication mode *single*\ , which is the distance from the borders
+for communication mode *single*, which is the distance from the borders
 of a processor's sub-domain at which ghost atoms are acquired from other
 processors.  By default the ghost cutoff = neighbor cutoff = pairwise
 force cutoff + neighbor skin.  See the :doc:`neighbor <neighbor>` command
@@ -96,7 +96,7 @@ style present and no *comm_modify cutoff* command used. Otherwise a
 warning is printed, if this bond based estimate is larger than the
 communication cutoff used.
 
-The *cutoff/multi* option is equivalent to *cutoff*\ , but applies to
+The *cutoff/multi* option is equivalent to *cutoff*, but applies to
 communication mode *multi* instead. Since the communication cutoffs are
 determined per atom collections, a collection specifier is needed and
 cutoff for one or multiple collections can be extended. Also ranges of
@@ -132,9 +132,9 @@ different processors, or when the interaction straddles a periodic
 boundary.
 
 The appropriate ghost cutoff depends on the :doc:`newton bond <newton>`
-setting.  For newton bond *off*\ , the distance needs to be the furthest
+setting.  For newton bond *off*, the distance needs to be the furthest
 distance between any two atoms in the bond, angle, etc.  E.g. the
-distance between 1-4 atoms in a dihedral.  For newton bond *on*\ , the
+distance between 1-4 atoms in a dihedral.  For newton bond *on*, the
 distance between the central atom in the bond, angle, etc and any
 other atom is sufficient.  E.g. the distance between 2-4 atoms in a
 dihedral.
@@ -173,7 +173,7 @@ The *vel* keyword enables velocity information to be communicated with
 ghost particles.  Depending on the :doc:`atom_style <atom_style>`,
 velocity info includes the translational velocity, angular velocity,
 and angular momentum of a particle.  If the *vel* option is set to
-*yes*\ , then ghost atoms store these quantities; if *no* then they do
+*yes*, then ghost atoms store these quantities; if *no* then they do
 not.  The *yes* setting is needed by some pair styles which require
 the velocity state of both the I and J particles to compute a pairwise
 I,J interaction, as well as by some compute and fix commands.

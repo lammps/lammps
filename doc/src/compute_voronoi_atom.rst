@@ -134,7 +134,7 @@ Voronoi cell. The 3 columns are the atom ID of the atom that owns the
 cell, the atom ID of the atom in the neighboring cell (or zero if the
 face is external), and the area of the face.  The array can be
 accessed by any command that uses local values from a compute as
-input.  See the :doc:`Howto output <Howto_output>` doc page for an
+input.  See the :doc:`Howto output <Howto_output>` page for an
 overview of LAMMPS output options. More specifically, the array can be
 accessed by a :doc:`dump local <dump>` command to write a file
 containing all the Voronoi neighbors in a system:
@@ -196,7 +196,7 @@ columns. In regular dynamic tessellation mode the first column is the
 Voronoi volume, the second is the neighbor count, as described above
 (read above for the output data in case the *occupation* keyword is
 specified).  These values can be accessed by any command that uses
-per-atom values from a compute as input.  See the :doc:`Howto output <Howto_output>` doc page for an overview of LAMMPS output
+per-atom values from a compute as input.  See the :doc:`Howto output <Howto_output>` page for an overview of LAMMPS output
 options. If the *peratom* keyword is set to "no", the per-atom array
 is still created, but it is not accessible.
 
@@ -216,7 +216,7 @@ Voronoi cell.
    quantity.  This effect can be eliminated by using the *peratom*
    keyword to turn off the production of the per-atom quantities.  For
    the default value *yes* both quantities are produced.  For the value
-   *no*\ , only the local array is produced.
+   *no*, only the local array is produced.
 
 The Voronoi cell volume will be in distance :doc:`units <units>` cubed.
 The Voronoi face area will be in distance :doc:`units <units>` squared.
@@ -225,7 +225,7 @@ Restrictions
 """"""""""""
 
 This compute is part of the VORONOI package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 It also requires you have a copy of the Voro++ library built and
 installed on your system.  See instructions on obtaining and

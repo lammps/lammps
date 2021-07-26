@@ -44,7 +44,7 @@ that the exponential part of :math:`V_{ij}` (first term) decays sufficiently fas
 This shift is achieved by the last term in the equation for :math:`V_{ij}` above.
 
 The parameter file (e.g. CC.Lebedeva), is intended for use with metal
-:doc:`units <units>`, with energies in meV. An additional parameter, *S*\ ,
+:doc:`units <units>`, with energies in meV. An additional parameter, *S*,
 is available to facilitate scaling of energies.
 
 This potential must be used in combination with hybrid/overlay.
@@ -55,7 +55,7 @@ Restrictions
 
 This pair style is part of the INTERLAYER package.  It is only enabled
 if LAMMPS was built with that package.  See the :doc:`Build package
-<Build_package>` doc page for more info.
+<Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

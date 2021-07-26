@@ -67,7 +67,7 @@ where N is the number of LAMMPS atom types:
 * filename
 * N element names = mapping of spline-based MEAM+SW elements to atom types
 
-See the :doc:`pair_coeff <pair_coeff>` doc page for alternate ways
+See the :doc:`pair_coeff <pair_coeff>` page for alternate ways
 to specify the path for the potential file.
 
 As an example, imagine the Ti.meam.sw.spline file has values for Ti.
@@ -114,7 +114,7 @@ and pair_coeff commands in an input script that reads a restart file.
 
 The *meam/sw/spline* pair style can only be used via the *pair*
 keyword of the :doc:`run_style respa <run_style>` command.  They do not
-support the *inner*\ , *middle*\ , *outer* keywords.
+support the *inner*, *middle*, *outer* keywords.
 
 ----------
 
@@ -125,7 +125,7 @@ This pair style requires the :doc:`newton <newton>` setting to be "on"
 for pair interactions.
 
 This pair style is only enabled if LAMMPS was built with the MANYBODY
-package.  See the :doc:`Build package <Build_package>` doc page for more
+package.  See the :doc:`Build package <Build_package>` page for more
 info.
 
 Related commands

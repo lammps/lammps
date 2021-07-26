@@ -39,7 +39,7 @@ Examples
 Description
 """""""""""
 
-The *oxdna/fene* , *oxdna2/fene* and *oxrna2/fene* bond styles use the potential
+The *oxdna/fene*, *oxdna2/fene*, and *oxrna2/fene* bond styles use the potential
 
 .. math::
 
@@ -118,7 +118,7 @@ Restrictions
 
 This bond style can only be used if LAMMPS was built with the
 CG-DNA package and the MOLECULE and ASPHERE package.  See the
-:doc:`Build package <Build_package>` doc page for more info.
+:doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

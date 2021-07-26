@@ -222,7 +222,7 @@ once.  You should normally only list dimensions where you expect there
 to be a density variation in the particles.
 
 Balancing proceeds by adjusting the cutting planes in each of the
-dimensions listed in *dimstr*\ , one dimension at a time.  For a single
+dimensions listed in *dimstr*, one dimension at a time.  For a single
 dimension, the balancing operation (described below) is iterated on up
 to *Niter* times.  After each dimension finishes, the imbalance factor
 is re-computed, and the balancing operation halts if the *stopthresh*

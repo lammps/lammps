@@ -119,7 +119,7 @@ Restrictions
 
 This pair style is part of the INTERLAYER package. It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package
-<Build_package>` doc page for more info.
+<Build_package>` page for more info.
 
 This pair style requires the :doc:`newton <newton>` setting to be "on" for
 pair interactions.

@@ -32,7 +32,7 @@ See `this PDF guide <PDF/SMD_LAMMPS_userguide.pdf>`_ to use Smooth Mach Dynamics
 
 This compute calculates a per-particle vector, which can be accessed
 by any command that uses per-particle values from a compute as input.
-See the :doc:`Howto output <Howto_output>` doc page for an overview of
+See the :doc:`Howto output <Howto_output>` page for an overview of
 LAMMPS output options.
 
 The per-particle values are dimensionless an in the range of zero to one.

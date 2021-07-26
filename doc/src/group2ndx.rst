@@ -58,7 +58,7 @@ This command requires that atoms have atom IDs, since this is the
 information that is written to the index file.
 
 These commands are part of the COLVARS package.  They are only
-enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

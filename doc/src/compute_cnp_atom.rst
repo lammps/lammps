@@ -43,7 +43,7 @@ This parameter is computed using the following formula from
    Q_{i} = \frac{1}{n_i}\sum_{j = 1}^{n_i} \left | \sum_{k = 1}^{n_{ij}}  \vec{R}_{ik} + \vec{R}_{jk} \right | ^{2}
 
 where the index *j* goes over the :math:`n_i` nearest neighbors of atom
-*i*\ , and the index *k* goes over the :math:`n_{ij}` common nearest neighbors
+*i*, and the index *k* goes over the :math:`n_{ij}` common nearest neighbors
 between atom *i* and atom *j*\ . :math:`\vec{R}_{ik}` and
 :math:`\vec{R}_{jk}` are the vectors connecting atom *k* to atoms *i*
 and *j*\ .  The quantity in the double sum is computed
@@ -91,7 +91,7 @@ Output info
 
 This compute calculates a per-atom vector, which can be accessed by
 any command that uses per-atom values from a compute as input.  See
-the :doc:`Howto output <Howto_output>` doc page for an overview of
+the :doc:`Howto output <Howto_output>` page for an overview of
 LAMMPS output options.
 
 The per-atom vector values will be real positive numbers. Some typical CNP
@@ -111,7 +111,7 @@ Restrictions
 """"""""""""
 
 This compute is part of the EXTRA-COMPUTE package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

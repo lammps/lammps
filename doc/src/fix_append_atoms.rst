@@ -31,7 +31,7 @@ Syntax
          seed = random number seed for langevin kicks
          extent = extent of thermostatted region (distance units)
        *random* args = xmax ymax zmax seed
-         *xmax*\ , *ymax*\ , *zmax* = maximum displacement in particular direction (distance units)
+         *xmax*, *ymax*, *zmax* = maximum displacement in particular direction (distance units)
          *seed* = random number seed for random displacement
        *units* value = *lattice* or *box*
          *lattice* = the wall position is defined in lattice units
@@ -99,7 +99,7 @@ Restrictions
 """"""""""""
 
 This fix style is part of the SHOCK package.  It is only enabled if
-LAMMPS was built with that package. See the :doc:`Build package <Build_package>` doc page for more info.
+LAMMPS was built with that package. See the :doc:`Build package <Build_package>` page for more info.
 
 The boundary on which atoms are added with append/atoms must be
 shrink/minimum.  The opposite boundary may be any boundary type other

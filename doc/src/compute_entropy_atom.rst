@@ -67,7 +67,7 @@ is a parameter to control the smoothing.
 The input parameters are *sigma* the smoothing parameter :math:`\sigma`,
 and the *cutoff* for the calculation of g(r).
 
-If the keyword *avg* has the setting *yes*\ , then this compute also
+If the keyword *avg* has the setting *yes*, then this compute also
 averages the parameter over the neighbors  of atom i according to:
 
 .. math::
@@ -114,7 +114,7 @@ Output info
 
 By default, this compute calculates the pair entropy value for each
 atom as a per-atom vector, which can be accessed by any command that
-uses per-atom values from a compute as input.  See the :doc:`Howto output <Howto_output>` doc page for an overview of LAMMPS output
+uses per-atom values from a compute as input.  See the :doc:`Howto output <Howto_output>` page for an overview of LAMMPS output
 options.
 
 The pair entropy values have units of the Boltzmann constant. They are
@@ -125,7 +125,7 @@ Restrictions
 """"""""""""
 
 This compute is part of the EXTRA-COMPUTE package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

@@ -324,7 +324,7 @@ Restrictions
 
 Fix *ttm* and *ttm/mod* are part of the EXTRA-FIX package. They are
 only enabled if LAMMPS was built with that package.
-See the :doc:`Build package <Build_package>` doc page for more info.
+See the :doc:`Build package <Build_package>` page for more info.
 
 These fixes can only be used for 3d simulations and orthogonal
 simulation boxes.  You must also use periodic

@@ -67,7 +67,7 @@ initial swap.
 
 For each monomer A1, its neighbors are examined to find a possible B1
 monomer.  Both A1 and B1 must be in the fix group, their separation
-must be less than the specified *cutoff*\ , and the molecule IDs of A1
+must be less than the specified *cutoff*, and the molecule IDs of A1
 and B1 must be the same (see below).  If a suitable partner is found,
 the energy change due to swapping the 2 bonds is computed.  This
 includes changes in pairwise, bond, and angle energies due to the
@@ -117,7 +117,7 @@ ends of a chain swap with each other.
 
 This fix computes a temperature each time it is invoked for use by the
 Boltzmann criterion.  To do this, the fix creates its own compute of
-style *temp*\ , as if this command had been issued:
+style *temp*, as if this command had been issued:
 
 .. code-block:: LAMMPS
 

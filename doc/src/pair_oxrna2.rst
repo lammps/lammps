@@ -73,8 +73,8 @@ Description
 
 The *oxrna2* pair styles compute the pairwise-additive parts of the oxDNA force field
 for coarse-grained modelling of DNA. The effective interaction between the nucleotides consists of potentials for the
-excluded volume interaction *oxrna2/excv*\ , the stacking *oxrna2/stk*\ , cross-stacking *oxrna2/xstk*
-and coaxial stacking interaction *oxrna2/coaxstk*\ , electrostatic Debye-Hueckel interaction *oxrna2/dh*
+excluded volume interaction *oxrna2/excv*, the stacking *oxrna2/stk*, cross-stacking *oxrna2/xstk*
+and coaxial stacking interaction *oxrna2/coaxstk*, electrostatic Debye-Hueckel interaction *oxrna2/dh*
 as well as the hydrogen-bonding interaction *oxrna2/hbond* between complementary pairs of nucleotides on
 opposite strands. Average sequence or sequence-dependent stacking and base-pairing strengths
 are supported :ref:`(Sulc2) <Sulc32>`. Quasi-unique base-pairing between nucleotides can be achieved by using
@@ -128,7 +128,7 @@ Restrictions
 
 These pair styles can only be used if LAMMPS was built with the
 CG-DNA package and the MOLECULE and ASPHERE package.  See the
-:doc:`Build package <Build_package>` doc page for more info.
+:doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

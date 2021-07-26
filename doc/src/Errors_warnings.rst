@@ -213,7 +213,7 @@ Doc page with :doc:`ERROR messages <Errors_messages>`
    in unexpected behavior.
 
 *Fix bond/swap will ignore defined angles*
-   See the doc page for fix bond/swap for more info on this
+   See the page for fix bond/swap for more info on this
    restriction.
 
 *Fix deposit near setting < possible overlap separation %g*

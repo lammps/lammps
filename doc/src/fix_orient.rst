@@ -179,7 +179,7 @@ Restrictions
 
 These fixes are part of the ORIENT package.  They are only enabled if LAMMPS
 was built with that package.  See the :doc:`Build package
-<Build_package>` doc page for more info.
+<Build_package>` page for more info.
 
 These fixes should only be used with fcc or bcc lattices.
 

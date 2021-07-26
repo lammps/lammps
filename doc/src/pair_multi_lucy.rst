@@ -11,7 +11,7 @@ Syntax
    pair_style multi/lucy style N keyword ...
 
 * style = *lookup* or *linear* = method of interpolation
-* N = use N values in *lookup*\ , *linear* tables
+* N = use N values in *lookup*, *linear* tables
 
 Examples
 """"""""
@@ -186,7 +186,7 @@ commands do need to be specified in the restart input script.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 ----------
 
@@ -194,7 +194,7 @@ Restrictions
 """"""""""""
 
 This command is part of the DPD-REACT package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

@@ -570,10 +570,10 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    See the region prism command for details.
 
 *Can only use -plog with multiple partitions*
-   Self-explanatory.  See doc page discussion of command-line switches.
+   Self-explanatory.  See page discussion of command-line switches.
 
 *Can only use -pscreen with multiple partitions*
-   Self-explanatory.  See doc page discussion of command-line switches.
+   Self-explanatory.  See page discussion of command-line switches.
 
 *Can only use Kokkos supported regions with Kokkos package*
    Self-explanatory.
@@ -1154,7 +1154,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    Self-explanatory.
 
 *Cannot use -reorder after -partition*
-   Self-explanatory.  See doc page discussion of command-line switches.
+   Self-explanatory.  See page discussion of command-line switches.
 
 *Cannot use Ewald with 2d simulation*
    The kspace style ewald cannot be used in 2d simulations.  You can use
@@ -2347,14 +2347,14 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Compute used in variable between runs is not current*
    Computes cannot be invoked by a variable in between runs.  Thus they
    must have been evaluated on the last timestep of the previous run in
-   order for their value(s) to be accessed.  See the doc page for the
+   order for their value(s) to be accessed.  See the page for the
    variable command for more info.
 
 *Compute used in variable thermo keyword between runs is not current*
    Some thermo keywords rely on a compute to calculate their value(s).
    Computes cannot be invoked by a variable in between runs.  Thus they
    must have been evaluated on the last timestep of the previous run in
-   order for their value(s) to be accessed.  See the doc page for the
+   order for their value(s) to be accessed.  See the page for the
    variable command for more info.
 
 *Compute vcm/chunk does not use chunk/atom compute*
@@ -3126,7 +3126,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Energy was not tallied on needed timestep*
    You are using a thermo keyword that requires potentials to
    have tallied energy, but they did not on this timestep.  See the
-   variable doc page for ideas on how to make this work.
+   variable page for ideas on how to make this work.
 
 *Epsilon or sigma reference not set by pair style in PPPMDisp*
    Self-explanatory.
@@ -4535,10 +4535,10 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    particles.
 
 *Incorrect # of floating-point values in Bodies section of data file*
-   See doc page for body style.
+   See page for body style.
 
 *Incorrect # of integer values in Bodies section of data file*
-   See doc page for body style.
+   See page for body style.
 
 *Incorrect %s format in data file*
    A section of the data file being read by fix property/atom does
@@ -4573,7 +4573,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    The number of fields per line is not what expected.
 
 *Incorrect bonus data format in data file*
-   See the read_data doc page for a description of how various kinds of
+   See the read_data page for a description of how various kinds of
    bonus data must be formatted for certain atom styles.
 
 *Incorrect boundaries with slab Ewald*
@@ -4641,7 +4641,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    Incorrect number of words per line in the potential file.
 
 *Incorrect integer value in Bodies section of data file*
-   See doc page for body style.
+   See page for body style.
 
 *Incorrect multiplicity arg for dihedral coefficients*
    Self-explanatory.  Check the input script or data file.
@@ -5996,7 +5996,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    Self-explanatory.
 
 *Needed bonus data not in data file*
-   Some atom styles require bonus data.  See the read_data doc page for
+   Some atom styles require bonus data.  See the read_data page for
    details.
 
 *Needed molecular topology not in data file*
@@ -6198,7 +6198,7 @@ keyword to allow for additional bonds to be formed
 
 *One or more atom IDs is too big*
    The limit on atom IDs is set by the SMALLBIG, BIGBIG, SMALLSMALL
-   setting in your LAMMPS build.  See the :doc:`Build settings <Build_settings>` doc page for more info.
+   setting in your LAMMPS build.  See the :doc:`Build settings <Build_settings>` page for more info.
 
 *One or more atom IDs is zero*
    Either all atoms IDs must be zero or none of them.
@@ -6593,7 +6593,7 @@ keyword to allow for additional bonds to be formed
 
 *Pair style bop requires comm ghost cutoff at least 3x larger than %g*
    Use the communicate ghost command to set this.  See the pair bop
-   doc page for more details.
+   page for more details.
 
 *Pair style born/coul/long requires atom attribute q*
    An atom style that defines this attribute must be used.
@@ -6913,7 +6913,7 @@ keyword to allow for additional bonds to be formed
 *Per-atom energy was not tallied on needed timestep*
    You are using a thermo keyword that requires potentials to
    have tallied energy, but they did not on this timestep.  See the
-   variable doc page for ideas on how to make this work.
+   variable page for ideas on how to make this work.
 
 *Per-atom fix in equal-style variable formula*
    Equal-style variables cannot use per-atom quantities.
@@ -6921,7 +6921,7 @@ keyword to allow for additional bonds to be formed
 *Per-atom virial was not tallied on needed timestep*
    You are using a thermo keyword that requires potentials to have
    tallied the virial, but they did not on this timestep.  See the
-   variable doc page for ideas on how to make this work.
+   variable page for ideas on how to make this work.
 
 *Per-processor system is too big*
    The number of owned atoms plus ghost atoms on a single
@@ -8408,7 +8408,7 @@ keyword to allow for additional bonds to be formed
 *Virial was not tallied on needed timestep*
    You are using a thermo keyword that requires potentials to
    have tallied the virial, but they did not on this timestep.  See the
-   variable doc page for ideas on how to make this work.
+   variable page for ideas on how to make this work.
 
 *Voro++ error: narea and neigh have a different size*
    This error is returned by the Voro++ library.

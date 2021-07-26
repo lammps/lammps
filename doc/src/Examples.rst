@@ -174,10 +174,10 @@ web site.
 If you uncomment the :doc:`dump image <dump_image>` line(s) in the input
 script a series of JPG images will be produced by the run (assuming
 you built LAMMPS with JPG support; see the
-:doc:`Build_settings <Build_settings>` doc page for details).  These can
+:doc:`Build_settings <Build_settings>` page for details).  These can
 be viewed individually or turned into a movie or animated by tools
 like ImageMagick or QuickTime or various Windows-based tools.  See the
-:doc:`dump image <dump_image>` doc page for more details.  E.g. this
+:doc:`dump image <dump_image>` page for more details.  E.g. this
 Imagemagick command would create a GIF file suitable for viewing in a
 browser.
 

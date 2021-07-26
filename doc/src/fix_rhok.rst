@@ -72,7 +72,7 @@ Restrictions
 
 This fix is part of the EXTRA-FIX package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package
-<Build_package>` doc page for more info.
+<Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

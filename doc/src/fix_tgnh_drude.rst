@@ -139,7 +139,7 @@ The parameter *Tdrude* is the desired temperature for Drude motion at each times
 Similar to *Tdamp*, the *Tdamp_drude* parameter determines the relaxation speed for Drude motion.
 Fix group are the only ones whose velocities and positions are updated
 by the velocity/position update portion of the integration.
-Other thermostat-related keywords are *tchain*\  and *tloop*\ ,
+Other thermostat-related keywords are *tchain*\  and *tloop*,
 which are detailed in :doc:`fix nvt <fix_nh>`.
 
 .. note::
@@ -158,13 +158,13 @@ which are detailed in :doc:`fix nvt <fix_nh>`.
 ----------
 
 The barostat parameters for fix style *tgnpt/drude* is specified
-using one or more of the *iso*\ , *aniso*\ , *tri*\ , *x*\ , *y*\ , *z*\ , *xy*\ ,
-*xz*\ , *yz*\ , and *couple* keywords.  These keywords give you the
+using one or more of the *iso*, *aniso*, *tri*, *x*, *y*, *z*, *xy*,
+*xz*, *yz*, and *couple* keywords.  These keywords give you the
 ability to specify all 6 components of an external stress tensor, and
 to couple various of these components together so that the dimensions
 they represent are varied together during a constant-pressure
-simulation. Other barostat-related keywords are *pchain*\ , *mtk*\ , *ploop*\ ,
-*nreset*\ , *scalexy*\ , *scaleyz*\ , *scalexz*\ , *flip*\ and *fixedpoint*.
+simulation. Other barostat-related keywords are *pchain*, *mtk*, *ploop*,
+*nreset*, *scalexy*, *scaleyz*, *scalexz*, *flip*\ and *fixedpoint*.
 The meaning of barostat parameters are detailed in :doc:`fix npt <fix_nh>`.
 
 Regardless of what atoms are in the fix group (the only atoms which
@@ -244,7 +244,7 @@ compute temperature on a subset of atoms.
 The cumulative energy change in the system imposed by these fixes, due
 to thermostatting and/or barostatting, are included in the
 :doc:`thermodynamic output <thermo_style>` keywords *ecouple* and
-*econserve*.  See the :doc:`thermo_style <thermo_style>` doc page for
+*econserve*.  See the :doc:`thermo_style <thermo_style>` page for
 details.
 
 These fixes compute a global scalar which can be accessed by various
@@ -275,8 +275,8 @@ DRUDE package.  These fixes cannot be used with dynamic groups as
 defined by the :doc:`group <group>` command.  These fixes cannot be
 used in 2D simulations.
 
-*X*\ , *y*\ , *z* cannot be barostatted if the associated dimension is not
-periodic.  *Xy*\ , *xz*\ , and *yz* can only be barostatted if the
+*X*, *y*, *z* cannot be barostatted if the associated dimension is not
+periodic.  *Xy*, *xz*, and *yz* can only be barostatted if the
 simulation domain is triclinic and the second dimension in the keyword
 (\ *y* dimension in *xy*\ ) is periodic.  The :doc:`create_box <create_box>`,
 :doc:`read data <read_data>`, and :doc:`read_restart <read_restart>`
@@ -288,10 +288,10 @@ For the *temp* keyword, the final *Tstop* cannot be 0.0 since it would
 make the external T = 0.0 at some timestep during the simulation which
 is not allowed in the Nose/Hoover formulation.
 
-The *scaleyz yes*\ , *scalexz yes*\ , and *scalexy yes* options
+The *scaleyz yes*, *scalexz yes*, and *scalexy yes* options
 can only be used if the second dimension in the keyword is periodic,
 and if the tilt factor is not coupled to the barostat via keywords
-*tri*\ , *yz*\ , *xz*\ , and *xy*\ .
+*tri*, *yz*, *xz*, and *xy*\ .
 
 Related commands
 """"""""""""""""

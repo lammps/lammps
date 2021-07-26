@@ -56,7 +56,7 @@ If the *com* option is set to *yes* then the effect of any drift in
 the center-of-mass of the group of atoms is subtracted out before the
 displacement of each atom is calculated.
 
-See the :doc:`compute msd <compute_msd>` doc page for further important
+See the :doc:`compute msd <compute_msd>` page for further important
 NOTEs, which also apply to this compute.
 
 Output info
@@ -74,8 +74,8 @@ the third is dimensionless.
 Restrictions
 """"""""""""
 
-This compute is part of the MISC package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+This compute is part of the EXTRA-COMPUTE package.  It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

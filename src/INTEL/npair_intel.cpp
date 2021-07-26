@@ -344,14 +344,22 @@ void NPairIntel::bin_newton(const int offload, NeighList *list,
             const int bstart = binhead[ibin + binstart[k]];
             const int bend = binhead[ibin + binend[k]];
             #if defined(LMP_SIMD_COMPILER)
+#if defined(USE_OMP_SIMD)
+            #pragma omp simd
+#else
             #pragma simd
+#endif
             #endif
             for (int jj = bstart; jj < bend; jj++)
               tj[ncount++] = binpacked[jj];
           }
           #if defined(LMP_SIMD_COMPILER)
-          #pragma vector aligned
+#if defined(USE_OMP_SIMD)
+          #pragma omp simd
+#else
           #pragma simd
+#endif
+          #pragma vector aligned
           #endif
           for (int u = 0; u < ncount; u++) {
             const int j = tj[u];
@@ -375,7 +383,11 @@ void NPairIntel::bin_newton(const int offload, NeighList *list,
             const int bstart = binhead[ibin];
             const int bend = binhead[ibin + 1];
             #if defined(LMP_SIMD_COMPILER)
+#if defined(USE_OMP_SIMD)
+            #pragma omp simd
+#else
             #pragma simd
+#endif
             #endif
             for (int jj = bstart; jj < bend; jj++) {
               const int j = binpacked[jj];
@@ -533,12 +545,16 @@ void NPairIntel::bin_newton(const int offload, NeighList *list,
 
           n = pack_offset;
           #if defined(LMP_SIMD_COMPILER)
-          #pragma vector aligned
           #ifdef LMP_INTEL_NBOR_COMPAT
           #pragma ivdep
           #else
+#if defined(USE_OMP_SIMD)
+          #pragma omp simd
+#else
           #pragma simd
+#endif
           #endif
+          #pragma vector aligned
           #endif
           for (int u = n; u < alln; u++) {
             int which;
@@ -566,12 +582,16 @@ void NPairIntel::bin_newton(const int offload, NeighList *list,
             n2 = pack_offset + maxnbors;
 
             #if defined(LMP_SIMD_COMPILER)
-            #pragma vector aligned
             #ifdef LMP_INTEL_NBOR_COMPAT
             #pragma ivdep
             #else
+#if defined(USE_OMP_SIMD)
+            #pragma omp simd
+#else
             #pragma simd
+#endif
             #endif
+            #pragma vector aligned
             #endif
             for (int u = n2; u < alln; u++) {
               int which;
@@ -737,8 +757,14 @@ void NPairIntel::bin_newton(const int offload, NeighList *list,
           int jnum = numneigh[i];
           if (!THREE) IP_PRE_neighbor_pad(jnum, offload);
           #if __INTEL_COMPILER+0 > 1499
+#if defined(USE_OMP_SIMD)
+          #pragma omp simd reduction(max:vlmax,vgmax) \
+            reduction(min:vlmin, vgmin)
+#else
+          #pragma simd reduction(max:vlmax,vgmax) \
+            reduction(min:vlmin, vgmin)
+#endif
           #pragma vector aligned
-          #pragma simd reduction(max:vlmax,vgmax) reduction(min:vlmin, vgmin)
           #endif
           for (int jj = 0; jj < jnum; jj++) {
             const int j = jlist[jj] & NEIGHMASK;
@@ -782,8 +808,12 @@ void NPairIntel::bin_newton(const int offload, NeighList *list,
           int jnum = numneigh[i];
           if (!THREE) IP_PRE_neighbor_pad(jnum, offload);
           int jj = 0;
-          #pragma vector aligned
+#if defined(USE_OMP_SIMD)
+          #pragma omp simd
+#else
           #pragma simd
+#endif
+          #pragma vector aligned
           for (jj = 0; jj < jnum; jj++) {
             const int which = jlist[jj] >> SBBITS & 3;
             const int j = jlist[jj] & NEIGHMASK;

@@ -449,9 +449,14 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
         __assume(packed_j % INTEL_MIC_VECTOR_WIDTH == 0);
         #endif
         #if defined(LMP_SIMD_COMPILER)
+#if defined(USE_OMP_SIMD)
+        #pragma omp simd reduction(+:fxtmp,fytmp,fztmp,fwtmp,t1tmp,t2tmp, \
+                                   t3tmp,sevdwl,sv0,sv1,sv2,sv3,sv4,sv5)
+#else
+        #pragma simd reduction(+:fxtmp,fytmp,fztmp,fwtmp,t1tmp,t2tmp, \
+                               t3tmp,sevdwl,sv0,sv1,sv2,sv3,sv4,sv5)
+#endif
         #pragma vector aligned
-        #pragma simd reduction(+:fxtmp,fytmp,fztmp,fwtmp,t1tmp,t2tmp,t3tmp, \
-                                 sevdwl,sv0,sv1,sv2,sv3,sv4,sv5)
         #endif
         for (int jj = 0; jj < packed_j; jj++) {
           flt_t a2_0, a2_1, a2_2, a2_3, a2_4, a2_5, a2_6, a2_7, a2_8;
@@ -806,8 +811,12 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
         acc_t *f_scalar2 = f_scalar + fst4;
         for (int t = 1; t < nthreads; t++) {
           #if defined(LMP_SIMD_COMPILER)
-          #pragma vector aligned
+#if defined(USE_OMP_SIMD)
+          #pragma omp simd
+#else
           #pragma simd
+#endif
+          #pragma vector aligned
           #endif
           for (int n = iifrom * 8; n < sto; n++)
             f_scalar[n] += f_scalar2[n];

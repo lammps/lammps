@@ -289,9 +289,14 @@ void PairDPDIntel::eval(const int offload, const int vflag,
         }
 
         #if defined(LMP_SIMD_COMPILER)
-        #pragma vector aligned
+#if defined(USE_OMP_SIMD)
+        #pragma omp simd reduction(+:fxtmp, fytmp, fztmp, fwtmp, sevdwl, \
+                                   sv0, sv1, sv2, sv3, sv4, sv5)
+#else
         #pragma simd reduction(+:fxtmp, fytmp, fztmp, fwtmp, sevdwl, \
-                                 sv0, sv1, sv2, sv3, sv4, sv5)
+                               sv0, sv1, sv2, sv3, sv4, sv5)
+#endif
+        #pragma vector aligned
         #endif
         for (int jj = 0; jj < jnum; jj++) {
           flt_t forcelj, evdwl;

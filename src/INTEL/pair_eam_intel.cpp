@@ -327,8 +327,12 @@ void PairEAMIntel::eval(const int offload, const int vflag,
         }
 
         #if defined(LMP_SIMD_COMPILER)
-        #pragma vector aligned
+#if defined(USE_OMP_SIMD)
+        #pragma omp simd reduction(+:rhoi)
+#else
         #pragma simd reduction(+:rhoi)
+#endif
+        #pragma vector aligned
         #endif
         for (int jj = 0; jj < ej; jj++) {
           int jtype;
@@ -369,23 +373,35 @@ void PairEAMIntel::eval(const int offload, const int vflag,
           const int rcount = nall;
           if (nthreads == 2) {
             double *trho2 = rho + nmax;
-            #pragma vector aligned
+#if defined(USE_OMP_SIMD)
+            #pragma omp simd
+#else
             #pragma simd
+#endif
+            #pragma vector aligned
             for (int n = 0; n < rcount; n++)
               rho[n] += trho2[n];
           } else if (nthreads == 4) {
             double *trho2 = rho + nmax;
             double *trho3 = trho2 + nmax;
             double *trho4 = trho3 + nmax;
-            #pragma vector aligned
+#if defined(USE_OMP_SIMD)
+            #pragma omp simd
+#else
             #pragma simd
+#endif
+            #pragma vector aligned
             for (int n = 0; n < rcount; n++)
               rho[n] += trho2[n] + trho3[n] + trho4[n];
           } else {
             double *trhon = rho + nmax;
             for (int t = 1; t < nthreads; t++) {
-              #pragma vector aligned
+#if defined(USE_OMP_SIMD)
+              #pragma omp simd
+#else
               #pragma simd
+#endif
+              #pragma vector aligned
               for (int n = 0; n < rcount; n++)
                 rho[n] += trhon[n];
               trhon += nmax;
@@ -414,8 +430,12 @@ void PairEAMIntel::eval(const int offload, const int vflag,
       if (EFLAG) tevdwl = (acc_t)0.0;
 
       #if defined(LMP_SIMD_COMPILER)
-      #pragma vector aligned
+#if defined(USE_OMP_SIMD)
+      #pragma omp simd reduction(+:tevdwl)
+#else
       #pragma simd reduction(+:tevdwl)
+#endif
+      #pragma vector aligned
       #endif
       for (int ii = iifrom; ii < iito; ++ii) {
         const int i = ilist[ii];
@@ -510,9 +530,14 @@ void PairEAMIntel::eval(const int offload, const int vflag,
         }
 
         #if defined(LMP_SIMD_COMPILER)
-        #pragma vector aligned
+#if defined(USE_OMP_SIMD)
+        #pragma omp simd reduction(+:fxtmp, fytmp, fztmp, fwtmp, sevdwl, \
+                                   sv0, sv1, sv2, sv3, sv4, sv5)
+#else
         #pragma simd reduction(+:fxtmp, fytmp, fztmp, fwtmp, sevdwl, \
-                                 sv0, sv1, sv2, sv3, sv4, sv5)
+                               sv0, sv1, sv2, sv3, sv4, sv5)
+#endif
+        #pragma vector aligned
         #endif
         for (int jj = 0; jj < ej; jj++) {
           int jtype;

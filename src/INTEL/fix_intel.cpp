@@ -635,19 +635,31 @@ void FixIntel::reduce_results(acc_t * _noalias const f_scalar)
     if (_nthreads == 4) {
       acc_t *f_scalar3 = f_scalar2 + f_stride4;
       acc_t *f_scalar4 = f_scalar3 + f_stride4;
-      _use_simd_pragma("vector aligned")
-      _use_simd_pragma("simd")
+      #if defined(USE_OMP_SIMD)
+      #pragma omp simd aligned(f_scalar,f_scalar2,f_scalar3,f_scalar4:64)
+      #elif defined(LMP_SIMD_COMPILER)
+      #pragma vector aligned
+      #pragma simd
+      #endif
       for (int n = 0; n < o_range; n++)
         f_scalar[n] += f_scalar2[n] + f_scalar3[n] + f_scalar4[n];
     } else if (_nthreads == 2) {
-      _use_simd_pragma("vector aligned")
-      _use_simd_pragma("simd")
+      #if defined(USE_OMP_SIMD)
+      #pragma omp simd aligned(f_scalar,f_scalar2:64)
+      #elif defined(LMP_SIMD_COMPILER)
+      #pragma vector aligned
+      #pragma simd
+      #endif
       for (int n = 0; n < o_range; n++)
         f_scalar[n] += f_scalar2[n];
     } else {
       acc_t *f_scalar3 = f_scalar2 + f_stride4;
-      _use_simd_pragma("vector aligned")
-      _use_simd_pragma("simd")
+      #if defined(USE_OMP_SIMD)
+      #pragma omp simd aligned(f_scalar,f_scalar2,f_scalar3:64)
+      #elif defined(LMP_SIMD_COMPILER)
+      #pragma vector aligned
+      #pragma simd
+      #endif
       for (int n = 0; n < o_range; n++)
         f_scalar[n] += f_scalar2[n] + f_scalar3[n];
     }
@@ -662,8 +674,12 @@ void FixIntel::reduce_results(acc_t * _noalias const f_scalar)
 
       acc_t *f_scalar2 = f_scalar + f_stride4;
       for (int t = 1; t < _nthreads; t++) {
-        _use_simd_pragma("vector aligned")
-        _use_simd_pragma("simd")
+        #if defined(USE_OMP_SIMD)
+        #pragma omp simd aligned(f_scalar,f_scalar2:64)
+        #elif defined(LMP_SIMD_COMPILER)
+        #pragma vector aligned
+        #pragma simd
+        #endif
         for (int n = iifrom; n < iito; n++)
           f_scalar[n] += f_scalar2[n];
         f_scalar2 += f_stride4;

@@ -162,7 +162,11 @@ void AngleCharmmIntel::eval(const int vflag,
     if (VFLAG && vflag) {
       sv0 = sv1 = sv2 = sv3 = sv4 = sv5 = (acc_t)0.0;
     }
+#if defined(USE_OMP_SIMD)
+    #pragma omp simd reduction(+:seangle, sv0, sv1, sv2, sv3, sv4, sv5)
+#else
     #pragma simd reduction(+:seangle, sv0, sv1, sv2, sv3, sv4, sv5)
+#endif
     for (int n = nfrom; n < nto; n ++) {
     #else
     for (int n = nfrom; n < nto; n += npl) {
@@ -246,7 +250,11 @@ void AngleCharmmIntel::eval(const int vflag,
       // apply force to each of 3 atoms
 
       #ifdef LMP_INTEL_USE_SIMDOFF
+#if defined(USE_OMP_SIMD)
+      #pragma omp ordered simd
+#else
       #pragma simdoff
+#endif
       #endif
       {
         if (NEWTON_BOND || i1 < nlocal) {

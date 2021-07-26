@@ -371,8 +371,12 @@ void PairSWIntel::eval(const int offload, const int vflag,
         }
 
         #if defined(LMP_SIMD_COMPILER)
-        #pragma vector aligned
+#if defined(USE_OMP_SIMD)
+        #pragma omp simd reduction(+:fxtmp, fytmp, fztmp, fwtmp, sevdwl)
+#else
         #pragma simd reduction(+:fxtmp, fytmp, fztmp, fwtmp, sevdwl)
+#endif
+        #pragma vector aligned
         #endif
         for (int jj = 0; jj < ejnum_pad; jj++) {
           acc_t fjxtmp, fjytmp, fjztmp, fjtmp;

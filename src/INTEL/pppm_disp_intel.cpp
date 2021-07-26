@@ -770,8 +770,12 @@ void PPPMDispIntel::particle_map(double delx, double dely, double delz,
     IP_PRE_omp_range_id_align(iifrom, iito, tid, nlocal, nthr, sizeof(ATOM_T));
 
     #if defined(LMP_SIMD_COMPILER)
-    #pragma vector aligned
+#if defined(USE_OMP_SIMD)
+    #pragma omp simd reduction(+:flag)
+#else
     #pragma simd reduction(+:flag)
+#endif
+    #pragma vector aligned
     #endif
     for (int i = iifrom; i < iito; i++) {
 
@@ -876,7 +880,11 @@ void PPPMDispIntel::make_rho_c(IntelBuffers<flt_t,acc_t> * /*buffers*/)
         dz = dz*half_rho_scale + half_rho_scale_plus;
         int idz = dz;
         #if defined(LMP_SIMD_COMPILER)
+#if defined(USE_OMP_SIMD)
+        #pragma omp simd
+#else
         #pragma simd
+#endif
         #endif
         for (int k = 0; k < INTEL_P3M_ALIGNED_MAXORDER; k++) {
           rho[0][k] = rho_lookup[idx][k];
@@ -885,7 +893,11 @@ void PPPMDispIntel::make_rho_c(IntelBuffers<flt_t,acc_t> * /*buffers*/)
         }
       } else {
         #if defined(LMP_SIMD_COMPILER)
+#if defined(USE_OMP_SIMD)
+        #pragma omp simd
+#else
         #pragma simd
+#endif
         #endif
         for (int k = nlower; k <= nupper; k++) {
           FFT_SCALAR r1,r2,r3;
@@ -917,8 +929,12 @@ void PPPMDispIntel::make_rho_c(IntelBuffers<flt_t,acc_t> * /*buffers*/)
           int mzy = m*nix + mz;
           FFT_SCALAR x0 = y0*rho[1][m];
           #if defined(LMP_SIMD_COMPILER)
-          #pragma loop_count min(2), max(INTEL_P3M_ALIGNED_MAXORDER), avg(7)
+#if defined(USE_OMP_SIMD)
+          #pragma omp simd
+#else
           #pragma simd
+#endif
+          #pragma loop_count min(2), max(INTEL_P3M_ALIGNED_MAXORDER), avg(7)
           #endif
           for (int l = 0; l < order; l++) {
             int mzyx = l + mzy;
@@ -939,7 +955,11 @@ void PPPMDispIntel::make_rho_c(IntelBuffers<flt_t,acc_t> * /*buffers*/)
     IP_PRE_omp_range_id(ifrom, ito, tid, ngrid, nthr);
 
     #if defined(LMP_SIMD_COMPILER)
+#if defined(USE_OMP_SIMD)
+    #pragma omp simd
+#else
     #pragma simd
+#endif
     #endif
     for (int i = ifrom; i < ito; i++) {
       for (int j = 1; j < nthr; j++) {
@@ -1025,7 +1045,11 @@ void PPPMDispIntel::make_rho_g(IntelBuffers<flt_t,acc_t> * /*buffers*/)
         dz = dz*half_rho_scale + half_rho_scale_plus;
         int idz = dz;
         #if defined(LMP_SIMD_COMPILER)
+#if defined(USE_OMP_SIMD)
+        #pragma omp simd
+#else
         #pragma simd
+#endif
         #endif
         for (int k = 0; k < INTEL_P3M_ALIGNED_MAXORDER; k++) {
           rho[0][k] = rho6_lookup[idx][k];
@@ -1034,7 +1058,11 @@ void PPPMDispIntel::make_rho_g(IntelBuffers<flt_t,acc_t> * /*buffers*/)
         }
       } else {
         #if defined(LMP_SIMD_COMPILER)
+#if defined(USE_OMP_SIMD)
+        #pragma omp simd
+#else
         #pragma simd
+#endif
         #endif
         for (int k = nlower_6; k <= nupper_6; k++) {
           FFT_SCALAR r1,r2,r3;
@@ -1067,8 +1095,12 @@ void PPPMDispIntel::make_rho_g(IntelBuffers<flt_t,acc_t> * /*buffers*/)
           int mzy = m*nix + mz;
           FFT_SCALAR x0 = y0*rho[1][m];
           #if defined(LMP_SIMD_COMPILER)
-          #pragma loop_count min(2), max(INTEL_P3M_ALIGNED_MAXORDER), avg(7)
+#if defined(USE_OMP_SIMD)
+          #pragma omp simd
+#else
           #pragma simd
+#endif
+          #pragma loop_count min(2), max(INTEL_P3M_ALIGNED_MAXORDER), avg(7)
           #endif
           for (int l = 0; l < order; l++) {
             int mzyx = l + mzy;
@@ -1089,7 +1121,11 @@ void PPPMDispIntel::make_rho_g(IntelBuffers<flt_t,acc_t> * /*buffers*/)
     IP_PRE_omp_range_id(ifrom, ito, tid, ngrid_6, nthr);
 
     #if defined(LMP_SIMD_COMPILER)
+#if defined(USE_OMP_SIMD)
+    #pragma omp simd
+#else
     #pragma simd
+#endif
     #endif
     for (int i = ifrom; i < ito; i++) {
       for (int j = 1; j < nthr; j++) {
@@ -1173,7 +1209,11 @@ void PPPMDispIntel::make_rho_a(IntelBuffers<flt_t,acc_t> * /*buffers*/)
         dz = dz*half_rho_scale + half_rho_scale_plus;
         int idz = dz;
         #if defined(LMP_SIMD_COMPILER)
+#if defined(USE_OMP_SIMD)
+        #pragma omp simd
+#else
         #pragma simd
+#endif
         #endif
         for (int k = 0; k < INTEL_P3M_ALIGNED_MAXORDER; k++) {
           rho[0][k] = rho6_lookup[idx][k];
@@ -1182,7 +1222,11 @@ void PPPMDispIntel::make_rho_a(IntelBuffers<flt_t,acc_t> * /*buffers*/)
         }
       } else {
         #if defined(LMP_SIMD_COMPILER)
+#if defined(USE_OMP_SIMD)
+        #pragma omp simd
+#else
         #pragma simd
+#endif
         #endif
         for (int k = nlower_6; k <= nupper_6; k++) {
           FFT_SCALAR r1,r2,r3;
@@ -1215,8 +1259,12 @@ void PPPMDispIntel::make_rho_a(IntelBuffers<flt_t,acc_t> * /*buffers*/)
           int my = m + nysum;
           FFT_SCALAR x0 = y0*rho[1][m];
           #if defined(LMP_SIMD_COMPILER)
-          #pragma loop_count min(2), max(INTEL_P3M_ALIGNED_MAXORDER), avg(7)
+#if defined(USE_OMP_SIMD)
+          #pragma omp simd
+#else
           #pragma simd
+#endif
+          #pragma loop_count min(2), max(INTEL_P3M_ALIGNED_MAXORDER), avg(7)
           #endif
           for (int l = 0; l < order; l++) {
             int mx = l + nxsum;
@@ -1307,7 +1355,11 @@ void PPPMDispIntel::make_rho_none(IntelBuffers<flt_t,acc_t> * /*buffers*/)
         dz = dz*half_rho_scale + half_rho_scale_plus;
         int idz = dz;
         #if defined(LMP_SIMD_COMPILER)
+#if defined(USE_OMP_SIMD)
+        #pragma omp simd
+#else
         #pragma simd
+#endif
         #endif
         for (int k = 0; k < INTEL_P3M_ALIGNED_MAXORDER; k++) {
           rho[0][k] = rho6_lookup[idx][k];
@@ -1316,7 +1368,11 @@ void PPPMDispIntel::make_rho_none(IntelBuffers<flt_t,acc_t> * /*buffers*/)
         }
       } else {
         #if defined(LMP_SIMD_COMPILER)
+#if defined(USE_OMP_SIMD)
+        #pragma omp simd
+#else
         #pragma simd
+#endif
         #endif
         for (int k = nlower_6; k <= nupper_6; k++) {
           FFT_SCALAR r1,r2,r3;
@@ -1349,8 +1405,12 @@ void PPPMDispIntel::make_rho_none(IntelBuffers<flt_t,acc_t> * /*buffers*/)
           int mzy = m*nix + mz;
           FFT_SCALAR x0 = y0*rho[1][m];
           #if defined(LMP_SIMD_COMPILER)
-          #pragma loop_count min(2), max(INTEL_P3M_ALIGNED_MAXORDER), avg(7)
+#if defined(USE_OMP_SIMD)
+          #pragma omp simd
+#else
           #pragma simd
+#endif
+          #pragma loop_count min(2), max(INTEL_P3M_ALIGNED_MAXORDER), avg(7)
           #endif
           for (int l = 0; l < order; l++) {
             int mzyx = l + mzy;
@@ -1373,7 +1433,11 @@ void PPPMDispIntel::make_rho_none(IntelBuffers<flt_t,acc_t> * /*buffers*/)
     IP_PRE_omp_range_id(ifrom, ito, tid, ngrid_6*nsplit, nthr);
 
     #if defined(LMP_SIMD_COMPILER)
+#if defined(USE_OMP_SIMD)
+    #pragma omp simd
+#else
     #pragma simd
+#endif
     #endif
     for (int i = ifrom; i < ito; i++) {
       for (int j = 1; j < nthr; j++) {
@@ -1454,7 +1518,11 @@ void PPPMDispIntel::fieldforce_c_ik(IntelBuffers<flt_t,acc_t> * /*buffers*/)
         dz = dz*half_rho_scale + half_rho_scale_plus;
         int idz = dz;
         #if defined(LMP_SIMD_COMPILER)
+#if defined(USE_OMP_SIMD)
+        #pragma omp simd
+#else
         #pragma simd
+#endif
         #endif
         for (int k = 0; k < INTEL_P3M_ALIGNED_MAXORDER; k++) {
           rho0[k] = rho_lookup[idx][k];
@@ -1463,7 +1531,11 @@ void PPPMDispIntel::fieldforce_c_ik(IntelBuffers<flt_t,acc_t> * /*buffers*/)
         }
       } else {
         #if defined(LMP_SIMD_COMPILER)
+#if defined(USE_OMP_SIMD)
+        #pragma omp simd
+#else
         #pragma simd
+#endif
         #endif
         for (int k = nlower; k <= nupper; k++) {
           FFT_SCALAR r1 = rho_coeff[order-1][k];
@@ -1498,8 +1570,12 @@ void PPPMDispIntel::fieldforce_c_ik(IntelBuffers<flt_t,acc_t> * /*buffers*/)
           int my = m+nysum;
           FFT_SCALAR y0 = z0*rho1[m];
           #if defined(LMP_SIMD_COMPILER)
-          #pragma loop_count min(2), max(INTEL_P3M_ALIGNED_MAXORDER), avg(7)
+#if defined(USE_OMP_SIMD)
+          #pragma omp simd
+#else
           #pragma simd
+#endif
+          #pragma loop_count min(2), max(INTEL_P3M_ALIGNED_MAXORDER), avg(7)
           #endif
           for (int l = 0; l < order; l++) {
             int mx = l+nxsum;
@@ -1624,7 +1700,11 @@ void PPPMDispIntel::fieldforce_c_ad(IntelBuffers<flt_t,acc_t> * /*buffers*/)
         int idz = dz;
 
         #if defined(LMP_SIMD_COMPILER)
+#if defined(USE_OMP_SIMD)
+        #pragma omp simd
+#else
         #pragma simd
+#endif
         #endif
         for (int k = 0; k < INTEL_P3M_ALIGNED_MAXORDER; k++) {
           rho[0][k] = rho_lookup[idx][k];
@@ -1636,7 +1716,11 @@ void PPPMDispIntel::fieldforce_c_ad(IntelBuffers<flt_t,acc_t> * /*buffers*/)
         }
       } else {
         #if defined(LMP_SIMD_COMPILER)
+#if defined(USE_OMP_SIMD)
+        #pragma omp simd
+#else
         #pragma simd
+#endif
         #endif
         for (int k = nlower; k <= nupper; k++) {
           FFT_SCALAR r1,r2,r3,dr1,dr2,dr3;
@@ -1680,8 +1764,12 @@ void PPPMDispIntel::fieldforce_c_ad(IntelBuffers<flt_t,acc_t> * /*buffers*/)
           FFT_SCALAR eky_p = drho[1][m] * rho[2][n];
           FFT_SCALAR ekz_p = rho[1][m] * drho[2][n];
           #if defined(LMP_SIMD_COMPILER)
-          #pragma loop_count min(2), max(INTEL_P3M_ALIGNED_MAXORDER), avg(7)
+#if defined(USE_OMP_SIMD)
+          #pragma omp simd
+#else
           #pragma simd
+#endif
+          #pragma loop_count min(2), max(INTEL_P3M_ALIGNED_MAXORDER), avg(7)
           #endif
           for (int l = 0; l < order; l++) {
             int mx = l + nxsum;
@@ -1702,7 +1790,11 @@ void PPPMDispIntel::fieldforce_c_ad(IntelBuffers<flt_t,acc_t> * /*buffers*/)
       }
     }
     #if defined(LMP_SIMD_COMPILER)
+#if defined(USE_OMP_SIMD)
+    #pragma omp simd
+#else
     #pragma simd
+#endif
     #endif
     for (int i = ifrom; i < ito; i++) {
       particle_ekx[i] *= hx_inv;
@@ -1802,7 +1894,11 @@ void PPPMDispIntel::fieldforce_g_ik(IntelBuffers<flt_t,acc_t> * /*buffers*/)
         dz = dz*half_rho_scale + half_rho_scale_plus;
         int idz = dz;
         #if defined(LMP_SIMD_COMPILER)
+#if defined(USE_OMP_SIMD)
+        #pragma omp simd
+#else
         #pragma simd
+#endif
         #endif
         for (int k = 0; k < INTEL_P3M_ALIGNED_MAXORDER; k++) {
           rho0[k] = rho6_lookup[idx][k];
@@ -1811,7 +1907,11 @@ void PPPMDispIntel::fieldforce_g_ik(IntelBuffers<flt_t,acc_t> * /*buffers*/)
         }
       } else {
         #if defined(LMP_SIMD_COMPILER)
+#if defined(USE_OMP_SIMD)
+        #pragma omp simd
+#else
         #pragma simd
+#endif
         #endif
         for (int k = nlower_6; k <= nupper_6; k++) {
           FFT_SCALAR r1 = rho_coeff_6[order_6-1][k];
@@ -1846,8 +1946,12 @@ void PPPMDispIntel::fieldforce_g_ik(IntelBuffers<flt_t,acc_t> * /*buffers*/)
           int my = m+nysum;
           FFT_SCALAR y0 = z0*rho1[m];
           #if defined(LMP_SIMD_COMPILER)
-          #pragma loop_count min(2), max(INTEL_P3M_ALIGNED_MAXORDER), avg(7)
+#if defined(USE_OMP_SIMD)
+          #pragma omp simd
+#else
           #pragma simd
+#endif
+          #pragma loop_count min(2), max(INTEL_P3M_ALIGNED_MAXORDER), avg(7)
           #endif
           for (int l = 0; l < order; l++) {
             int mx = l+nxsum;
@@ -1967,7 +2071,11 @@ void PPPMDispIntel::fieldforce_g_ad(IntelBuffers<flt_t,acc_t> * /*buffers*/)
         int idz = dz;
 
         #if defined(LMP_SIMD_COMPILER)
+#if defined(USE_OMP_SIMD)
+        #pragma omp simd
+#else
         #pragma simd
+#endif
         #endif
         for (int k = 0; k < INTEL_P3M_ALIGNED_MAXORDER; k++) {
           rho[0][k] = rho6_lookup[idx][k];
@@ -1979,7 +2087,11 @@ void PPPMDispIntel::fieldforce_g_ad(IntelBuffers<flt_t,acc_t> * /*buffers*/)
         }
       } else {
         #if defined(LMP_SIMD_COMPILER)
+#if defined(USE_OMP_SIMD)
+        #pragma omp simd
+#else
         #pragma simd
+#endif
         #endif
         for (int k = nlower_6; k <= nupper_6; k++) {
           FFT_SCALAR r1,r2,r3,dr1,dr2,dr3;
@@ -2023,8 +2135,12 @@ void PPPMDispIntel::fieldforce_g_ad(IntelBuffers<flt_t,acc_t> * /*buffers*/)
           FFT_SCALAR eky_p = drho[1][m] * rho[2][n];
           FFT_SCALAR ekz_p = rho[1][m] * drho[2][n];
           #if defined(LMP_SIMD_COMPILER)
-          #pragma loop_count min(2), max(INTEL_P3M_ALIGNED_MAXORDER), avg(7)
+#if defined(USE_OMP_SIMD)
+          #pragma omp simd
+#else
           #pragma simd
+#endif
+          #pragma loop_count min(2), max(INTEL_P3M_ALIGNED_MAXORDER), avg(7)
           #endif
           for (int l = 0; l < order; l++) {
             int mx = l + nxsum;
@@ -2045,7 +2161,11 @@ void PPPMDispIntel::fieldforce_g_ad(IntelBuffers<flt_t,acc_t> * /*buffers*/)
       }
     }
     #if defined(LMP_SIMD_COMPILER)
+#if defined(USE_OMP_SIMD)
+    #pragma omp simd
+#else
     #pragma simd
+#endif
     #endif
     for (int i = ifrom; i < ito; i++) {
       particle_ekx[i] *= hx_inv;
@@ -2143,7 +2263,11 @@ void PPPMDispIntel::fieldforce_a_ik(IntelBuffers<flt_t,acc_t> * /*buffers*/)
         dz = dz*half_rho_scale + half_rho_scale_plus;
         int idz = dz;
         #if defined(LMP_SIMD_COMPILER)
+#if defined(USE_OMP_SIMD)
+        #pragma omp simd
+#else
         #pragma simd
+#endif
         #endif
         for (int k = 0; k < INTEL_P3M_ALIGNED_MAXORDER; k++) {
           rho0[k] = rho6_lookup[idx][k];
@@ -2152,7 +2276,11 @@ void PPPMDispIntel::fieldforce_a_ik(IntelBuffers<flt_t,acc_t> * /*buffers*/)
         }
       } else {
         #if defined(LMP_SIMD_COMPILER)
+#if defined(USE_OMP_SIMD)
+        #pragma omp simd
+#else
         #pragma simd
+#endif
         #endif
         for (int k = nlower_6; k <= nupper_6; k++) {
           FFT_SCALAR r1 = rho_coeff_6[order_6-1][k];
@@ -2206,8 +2334,12 @@ void PPPMDispIntel::fieldforce_a_ik(IntelBuffers<flt_t,acc_t> * /*buffers*/)
           int my = m+nysum;
           FFT_SCALAR y0 = z0*rho1[m];
           #if defined(LMP_SIMD_COMPILER)
-          #pragma loop_count min(2), max(INTEL_P3M_ALIGNED_MAXORDER), avg(7)
+#if defined(USE_OMP_SIMD)
+          #pragma omp simd
+#else
           #pragma simd
+#endif
+          #pragma loop_count min(2), max(INTEL_P3M_ALIGNED_MAXORDER), avg(7)
           #endif
           for (int l = 0; l < order; l++) {
             int mx = l+nxsum;
@@ -2398,7 +2530,11 @@ void PPPMDispIntel::fieldforce_a_ad(IntelBuffers<flt_t,acc_t> * /*buffers*/)
         int idz = dz;
 
         #if defined(LMP_SIMD_COMPILER)
+#if defined(USE_OMP_SIMD)
+        #pragma omp simd
+#else
         #pragma simd
+#endif
         #endif
         for (int k = 0; k < INTEL_P3M_ALIGNED_MAXORDER; k++) {
           rho[0][k] = rho6_lookup[idx][k];
@@ -2410,7 +2546,11 @@ void PPPMDispIntel::fieldforce_a_ad(IntelBuffers<flt_t,acc_t> * /*buffers*/)
         }
       } else {
         #if defined(LMP_SIMD_COMPILER)
+#if defined(USE_OMP_SIMD)
+        #pragma omp simd
+#else
         #pragma simd
+#endif
         #endif
         for (int k = nlower_6; k <= nupper_6; k++) {
           FFT_SCALAR r1,r2,r3,dr1,dr2,dr3;
@@ -2479,8 +2619,12 @@ void PPPMDispIntel::fieldforce_a_ad(IntelBuffers<flt_t,acc_t> * /*buffers*/)
           FFT_SCALAR eky_p = drho[1][m] * rho[2][n];
           FFT_SCALAR ekz_p = rho[1][m] * drho[2][n];
           #if defined(LMP_SIMD_COMPILER)
-          #pragma loop_count min(2), max(INTEL_P3M_ALIGNED_MAXORDER), avg(7)
+#if defined(USE_OMP_SIMD)
+          #pragma omp simd
+#else
           #pragma simd
+#endif
+          #pragma loop_count min(2), max(INTEL_P3M_ALIGNED_MAXORDER), avg(7)
           #endif
           for (int l = 0; l < order; l++) {
             int mx = l + nxsum;
@@ -2541,7 +2685,11 @@ void PPPMDispIntel::fieldforce_a_ad(IntelBuffers<flt_t,acc_t> * /*buffers*/)
       }
     }
     #if defined(LMP_SIMD_COMPILER)
+#if defined(USE_OMP_SIMD)
+    #pragma omp simd
+#else
     #pragma simd
+#endif
     #endif
     for (int i = ifrom; i < ito; i++) {
       particle_ekx0[i] *= hx_inv;
@@ -2671,7 +2819,11 @@ void PPPMDispIntel::fieldforce_none_ik(IntelBuffers<flt_t,acc_t> * /*buffers*/)
         dz = dz*half_rho_scale + half_rho_scale_plus;
         int idz = dz;
         #if defined(LMP_SIMD_COMPILER)
+#if defined(USE_OMP_SIMD)
+        #pragma omp simd
+#else
         #pragma simd
+#endif
         #endif
         for (int k = 0; k < INTEL_P3M_ALIGNED_MAXORDER; k++) {
           rho0[k] = rho6_lookup[idx][k];
@@ -2680,7 +2832,11 @@ void PPPMDispIntel::fieldforce_none_ik(IntelBuffers<flt_t,acc_t> * /*buffers*/)
         }
       } else {
         #if defined(LMP_SIMD_COMPILER)
+#if defined(USE_OMP_SIMD)
+        #pragma omp simd
+#else
         #pragma simd
+#endif
         #endif
         for (int k = nlower_6; k <= nupper_6; k++) {
           FFT_SCALAR r1 = rho_coeff_6[order_6-1][k];
@@ -2721,8 +2877,12 @@ void PPPMDispIntel::fieldforce_none_ik(IntelBuffers<flt_t,acc_t> * /*buffers*/)
             int my = m+nysum;
             FFT_SCALAR y0 = z0*rho1[m];
             #if defined(LMP_SIMD_COMPILER)
-            #pragma loop_count min(2), max(INTEL_P3M_ALIGNED_MAXORDER), avg(7)
+#if defined(USE_OMP_SIMD)
+            #pragma omp simd
+#else
             #pragma simd
+#endif
+            #pragma loop_count min(2), max(INTEL_P3M_ALIGNED_MAXORDER), avg(7)
             #endif
             for (int l = 0; l < order; l++) {
               int mx = l+nxsum;
@@ -2848,7 +3008,11 @@ void PPPMDispIntel::fieldforce_none_ad(IntelBuffers<flt_t,acc_t> * /*buffers*/)
         int idz = dz;
 
         #if defined(LMP_SIMD_COMPILER)
+#if defined(USE_OMP_SIMD)
+        #pragma omp simd
+#else
         #pragma simd
+#endif
         #endif
         for (int k = 0; k < INTEL_P3M_ALIGNED_MAXORDER; k++) {
           rho[0][k] = rho6_lookup[idx][k];
@@ -2860,7 +3024,11 @@ void PPPMDispIntel::fieldforce_none_ad(IntelBuffers<flt_t,acc_t> * /*buffers*/)
         }
       } else {
         #if defined(LMP_SIMD_COMPILER)
+#if defined(USE_OMP_SIMD)
+        #pragma omp simd
+#else
         #pragma simd
+#endif
         #endif
         for (int k = nlower_6; k <= nupper_6; k++) {
           FFT_SCALAR r1,r2,r3,dr1,dr2,dr3;
@@ -2909,8 +3077,12 @@ void PPPMDispIntel::fieldforce_none_ad(IntelBuffers<flt_t,acc_t> * /*buffers*/)
             FFT_SCALAR eky_p = drho[1][m] * rho[2][n];
             FFT_SCALAR ekz_p = rho[1][m] * drho[2][n];
             #if defined(LMP_SIMD_COMPILER)
-            #pragma loop_count min(2), max(INTEL_P3M_ALIGNED_MAXORDER), avg(7)
+#if defined(USE_OMP_SIMD)
+            #pragma omp simd
+#else
             #pragma simd
+#endif
+            #pragma loop_count min(2), max(INTEL_P3M_ALIGNED_MAXORDER), avg(7)
             #endif
             for (int l = 0; l < order; l++) {
               int mx = l + nxsum;
@@ -2992,7 +3164,11 @@ void PPPMDispIntel::precompute_rho()
     for (int i = 0; i < rho_points; i++) {
       FFT_SCALAR dx = -1. + 1./half_rho_scale * (FFT_SCALAR)i;
       #if defined(LMP_SIMD_COMPILER)
+#if defined(USE_OMP_SIMD)
+      #pragma omp simd
+#else
       #pragma simd
+#endif
       #endif
       for (int k=nlower; k<=nupper;k++) {
         FFT_SCALAR r1 = ZEROF;
@@ -3006,7 +3182,11 @@ void PPPMDispIntel::precompute_rho()
       }
       if (differentiation_flag == 1) {
         #if defined(LMP_SIMD_COMPILER)
+#if defined(USE_OMP_SIMD)
+        #pragma omp simd
+#else
         #pragma simd
+#endif
         #endif
         for (int k=nlower; k<=nupper;k++) {
           FFT_SCALAR r1 = ZEROF;
@@ -3026,7 +3206,11 @@ void PPPMDispIntel::precompute_rho()
     for (int i = 0; i < rho_points; i++) {
       FFT_SCALAR dx = -1. + 1./half_rho_scale * (FFT_SCALAR)i;
       #if defined(LMP_SIMD_COMPILER)
+#if defined(USE_OMP_SIMD)
+      #pragma omp simd
+#else
       #pragma simd
+#endif
       #endif
       for (int k=nlower_6; k<=nupper_6;k++) {
         FFT_SCALAR r1 = ZEROF;
@@ -3040,7 +3224,11 @@ void PPPMDispIntel::precompute_rho()
       }
       if (differentiation_flag == 1) {
         #if defined(LMP_SIMD_COMPILER)
+#if defined(USE_OMP_SIMD)
+        #pragma omp simd
+#else
         #pragma simd
+#endif
         #endif
         for (int k=nlower_6; k<=nupper_6;k++) {
           FFT_SCALAR r1 = ZEROF;

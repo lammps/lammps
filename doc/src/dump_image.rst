@@ -590,8 +590,8 @@ Play the movie:
      % mplayer foo.mpg
      % ffplay bar.avi
 
-* c) Use the `Pizza.py <https://pizza.sandia.gov>`_
-  `animate tool <https://pizza.sandia.gov/doc/animate.html>`_,
+* c) Use the `Pizza.py <https://lammps.github.io/pizza>`_
+  `animate tool <https://lammps.github.io/pizza/doc/animate.html>`_,
   which works directly on a series of image files.
 
   .. code-block:: python

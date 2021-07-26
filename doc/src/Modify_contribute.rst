@@ -181,7 +181,7 @@ packages in the src directory for examples. If you are uncertain, please ask.
   and your name and email address at the top, like other
   user-contributed LAMMPS source files.  They need to create a class
   that is inside the LAMMPS namespace.  To simplify maintenance, we
-  may ask to adjust the progamming style and formatting style to closer
+  may ask to adjust the programming style and formatting style to closer
   match the rest of LAMMPS.  We bundle a clang-format configuration file
   that can help with adjusting the formatting, although this is not a
   strict requirement.

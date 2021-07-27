@@ -1,4 +1,4 @@
-// unit tests creating LAMMPS instances via the library interface
+// unit tests for interfacing with fix external via the library interface
 
 #include "library.h"
 

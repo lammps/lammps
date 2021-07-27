@@ -390,7 +390,7 @@ void VerletKokkos::run(int n)
       if (n_post_neighbor) {
         modify->post_neighbor();
         timer->stamp(Timer::MODIFY);
-      timer->stamp(Timer::NEIGH);
+      }
     }
 
     // force computations

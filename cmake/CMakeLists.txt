@@ -244,15 +244,16 @@ if(PKG_ADIOS)
 endif()
 
 if(NOT CMAKE_CROSSCOMPILING)
-  set(MPI_CXX_SKIP_MPICXX TRUE)
   find_package(MPI QUIET)
   option(BUILD_MPI "Build MPI version" ${MPI_FOUND})
 else()
-  set(MPI_CXX_SKIP_MPICXX TRUE)
   option(BUILD_MPI "Build MPI version" OFF)
 endif()
 
 if(BUILD_MPI)
+  # do not include the (obsolete) MPI C++ bindings which makes
+  # for leaner object files and avoids namespace conflicts
+  set(MPI_CXX_SKIP_MPICXX TRUE)
   # We use a non-standard procedure to cross-compile with MPI on Windows
   if((CMAKE_SYSTEM_NAME STREQUAL "Windows") AND CMAKE_CROSSCOMPILING)
     include(MPI4WIN)
@@ -368,6 +369,8 @@ if(PKG_MSCG OR PKG_ATC OR PKG_AWPMD OR PKG_ML-QUIP OR PKG_LATTE)
   endif()
 endif()
 
+# tweak jpeg library names to avoid linker errors with MinGW cross-compilation
+set(JPEG_NAMES libjpeg libjpeg-62)
 find_package(JPEG QUIET)
 option(WITH_JPEG "Enable JPEG support" ${JPEG_FOUND})
 if(WITH_JPEG)

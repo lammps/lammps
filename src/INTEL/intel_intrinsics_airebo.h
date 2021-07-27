@@ -623,7 +623,7 @@ public:
   ) {
     assert(scale == sizeof(FVEC_SCAL_T));
 #   if FVEC_LEN==8
-    FVEC_SUFFIX(_mm512_mask_i32scatter_)(mem, mask.val_, 
+    FVEC_SUFFIX(_mm512_mask_i32scatter_)(mem, mask.val_,
                                          _mm512_castsi512_si256(idx.val_),
                                          a.val_, sizeof(FVEC_SCAL_T));
 #   else
@@ -668,7 +668,7 @@ public:
       const double * mem, const int scale
   ) {
     assert(scale == sizeof(double));
-    __m512d lo = _mm512_mask_i32gather_pd(src.lo_, mask.val_, 
+    __m512d lo = _mm512_mask_i32gather_pd(src.lo_, mask.val_,
                                           _mm512_castsi512_si256(idx.val_),
                                           mem, sizeof(double));
     __m512d hi = _mm512_mask_i32gather_pd(src.hi_, get_bvec_hi(mask.val_),

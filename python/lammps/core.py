@@ -201,6 +201,9 @@ class lammps(object):
       [c_void_p,c_char_p,c_int,c_int,c_int,POINTER(c_int),c_void_p]
     self.lib.lammps_scatter_atoms_subset.restype = None
 
+    self.lib.lammps_gather_bonds.argtypes = [c_void_p,c_void_p]
+    self.lib.lammps_gather_bonds.restype = None
+
     self.lib.lammps_gather.argtypes = \
       [c_void_p,c_char_p,c_int,c_int,c_void_p]
     self.lib.lammps_gather.restype = None
@@ -1205,6 +1208,32 @@ class lammps(object):
     if name: name = name.encode()
     with ExceptionCheck(self):
       self.lib.lammps_scatter_atoms_subset(self.lmp,name,dtype,count,ndata,ids,data)
+
+
+  # -------------------------------------------------------------------------
+
+  def gather_bonds(self):
+    """Retrieve global list of bonds
+
+    This is a wrapper around the :cpp:func:`lammps_gather_bonds`
+    function of the C-library interface.
+
+    This function returns a tuple with the number of bonds and a
+    flat list of ctypes integer values with the bond type, bond atom1,
+    bond atom2 for each bond.
+
+    .. versionadded:: 28Jul2021
+
+    :return: a tuple with the number of bonds and a list of c_int or c_long
+    :rtype: (int, 3*nbonds*c_tagint)
+    """
+    nbonds = self.extract_global("nbonds")
+    with ExceptionCheck(self):
+        data = ((3*nbonds)*self.c_tagint)()
+        self.lib.lammps_gather_bonds(self.lmp,data)
+        return nbonds,data
+
+  # -------------------------------------------------------------------------
 
   # return vector of atom/compute/fix properties gathered across procs
   # 3 variants to match src/library.cpp

@@ -2695,14 +2695,16 @@ the calling code. The buffer will be filled with bond type, bond atom 1,
 bond atom 2 for each bond. Thus the buffer has to be allocated to the
 dimension of 3 times the **total** number of bonds times the size of
 the LAMMPS "tagint" type, which is either 4 or 8 bytes depending on
- whether they are stored in 32-bit or 64-bit integers, respectively.
+whether they are stored in 32-bit or 64-bit integers, respectively.
 This size depends on the compile time settings used when compiling
 the LAMMPS library and can be queried by calling
- :cpp:func:`lammps_extract_setting()` with the keyword "tagint".
+:cpp:func:`lammps_extract_setting()` with the keyword "tagint".
 
 When running in parallel, the data buffer must be allocated on **all**
 MPI ranks and will be filled with the information for **all** bonds
 in the system.
+
+.. versionadded:: 28Jul2021
 
 Below is a brief C code demonstrating accessing this collected bond information.
 

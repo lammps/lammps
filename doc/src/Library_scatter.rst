@@ -56,6 +56,7 @@ It documents the following functions:
    :project: progguide
 
 -----------------------
+
 .. doxygenfunction:: lammps_gather
    :project: progguide
 

@@ -1781,6 +1781,8 @@ class lammps(object):
     - x is a 2d NumPy array of doubles of the coordinates of the local atoms
     - f is a 2d NumPy array of doubles of the forces on the local atoms that will be added
 
+    .. versionchanged:: 28Jul2021
+
     :param fix_id:  Fix-ID of a fix external instance
     :type: string
     :param callback: Python function that will be called from fix external
@@ -1811,6 +1813,8 @@ class lammps(object):
     This is a wrapper around the :cpp:func:`lammps_fix_external_get_force` function
     of the C-library interface.
 
+    .. versionadded:: 28Jul2021
+
     :param fix_id:  Fix-ID of a fix external instance
     :type: string
     :return: requested data
@@ -1829,6 +1833,8 @@ class lammps(object):
     This is a wrapper around the :cpp:func:`lammps_fix_external_set_energy_global` function
     of the C-library interface.
 
+    .. versionadded:: 28Jul2021
+
     :param fix_id:  Fix-ID of a fix external instance
     :type: string
     :param eng:     potential energy value to be added by fix external
@@ -1845,6 +1851,8 @@ class lammps(object):
 
     This is a wrapper around the :cpp:func:`lammps_fix_external_set_virial_global` function
     of the C-library interface.
+
+    .. versionadded:: 28Jul2021
 
     :param fix_id:  Fix-ID of a fix external instance
     :type: string
@@ -1863,6 +1871,8 @@ class lammps(object):
 
     This is a wrapper around the :cpp:func:`lammps_fix_external_set_energy_peratom` function
     of the C-library interface.
+
+    .. versionadded:: 28Jul2021
 
     :param fix_id:  Fix-ID of a fix external instance
     :type: string
@@ -1884,6 +1894,8 @@ class lammps(object):
 
     This is a wrapper around the :cpp:func:`lammps_fix_external_set_virial_peratom` function
     of the C-library interface.
+
+    .. versionadded:: 28Jul2021
 
     :param fix_id:  Fix-ID of a fix external instance
     :type: string
@@ -1915,6 +1927,8 @@ class lammps(object):
     This is a wrapper around the :cpp:func:`lammps_fix_external_set_vector_length` function
     of the C-library interface.
 
+    .. versionadded:: 28Jul2021
+
     :param fix_id:  Fix-ID of a fix external instance
     :type: string
     :param length:  length of the global vector
@@ -1930,6 +1944,8 @@ class lammps(object):
 
     This is a wrapper around the :cpp:func:`lammps_fix_external_set_vector` function
     of the C-library interface.
+
+    .. versionadded:: 28Jul2021
 
     :param fix_id:  Fix-ID of a fix external instance
     :type: string

@@ -367,7 +367,7 @@ must be explicitly shut down after any LAMMPS instance using it is
 closed (to release associated resources).
 After calling this function no Kokkos functionality may be used.
 
-.. versionadded:: TBD
+.. versionadded:: 2Jul2021
 
 \endverbatim */
 
@@ -4945,6 +4945,8 @@ Please see the documentation for :doc:`fix external <fix_external>` for
 more information about how to use the fix and how to couple it with an
 external code.
 
+.. versionchanged:: 28Jul2021
+
 \endverbatim
  *
  * \param  handle   pointer to a previously created LAMMPS instance cast to ``void *``.
@@ -5008,6 +5010,8 @@ Please see the documentation for :doc:`fix external <fix_external>` for
 more information about how to use the fix and how to couple it with an
 external code.
 
+.. versionadded:: 28Jul2021
+
 \endverbatim
  *
  * \param  handle     pointer to a previously created LAMMPS instance cast to ``void *``.
@@ -5055,6 +5059,8 @@ variables.
 Please see the documentation for :doc:`fix external <fix_external>` for
 more information about how to use the fix and how to couple it with an
 external code.
+
+.. versionadded:: 28Jul2021
 
 \endverbatim
  *
@@ -5105,6 +5111,8 @@ Please see the documentation for :doc:`fix external <fix_external>` for
 more information about how to use the fix and how to couple it with an
 external code.
 
+.. versionadded:: 28Jul2021
+
 \endverbatim
  *
  * \param  handle   pointer to a previously created LAMMPS instance cast to ``void *``.
@@ -5153,6 +5161,8 @@ callback function.
 Please see the documentation for :doc:`fix external <fix_external>` for
 more information about how to use the fix and how to couple it with an
 external code.
+
+.. versionadded:: 28Jul2021
 
 \endverbatim
  *
@@ -5206,6 +5216,8 @@ Please see the documentation for :doc:`fix external <fix_external>` for
 more information about how to use the fix and how to couple it with an
 external code.
 
+.. versionadded:: 28Jul2021
+
 \endverbatim
  *
  * \param  handle   pointer to a previously created LAMMPS instance cast to ``void *``.
@@ -5250,6 +5262,8 @@ processes and with the same length parameter.
 Please see the documentation for :doc:`fix external <fix_external>` for
 more information about how to use the fix and how to couple it with an
 external code.
+
+.. versionadded:: 28Jul2021
 
 \endverbatim
  *
@@ -5304,6 +5318,8 @@ is assumed to be extensive.
 Please see the documentation for :doc:`fix external <fix_external>` for
 more information about how to use the fix and how to couple it with an
 external code.
+
+.. versionadded:: 28Jul2021
 
 \endverbatim
  *

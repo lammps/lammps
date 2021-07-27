@@ -274,6 +274,8 @@ class numpy_wrapper:
     method.  It behaves the same as the original method, but returns a NumPy array instead
     of a ``ctypes`` pointer.
 
+    .. versionchanged:: 28Jul2021
+
     :param fix_id:  Fix-ID of a fix external instance
     :type: string
     :return: requested data
@@ -293,6 +295,8 @@ class numpy_wrapper:
     :py:meth:`lammps.fix_external_set_energy_peratom() <lammps.lammps.fix_external_set_energy_peratom()>`
     method.  It behaves the same as the original method, but accepts a NumPy array
     instead of a list as argument.
+
+    .. versionadded:: 28Jul2021
 
     :param fix_id:  Fix-ID of a fix external instance
     :type: string
@@ -318,6 +322,8 @@ class numpy_wrapper:
     :py:meth:`lammps.fix_external_set_virial_peratom() <lammps.lammps.fix_external_set_virial_peratom()>`
     method.  It behaves the same as the original method, but accepts a NumPy array
     instead of a list as argument.
+
+    .. versionadded:: 28Jul2021
 
     :param fix_id:  Fix-ID of a fix external instance
     :type: string

@@ -152,6 +152,8 @@ void lammps_scatter_atoms(void *handle, char *name, int type, int count, void *d
 void lammps_scatter_atoms_subset(void *handle, char *name, int type, int count, int ndata, int *ids,
                                  void *data);
 
+void lammps_gather_bonds(void *handle, void *data);
+
 void lammps_gather(void *handle, char *name, int type, int count, void *data);
 void lammps_gather_concat(void *handle, char *name, int type, int count, void *data);
 void lammps_gather_subset(void *handle, char *name, int type, int count, int ndata, int *ids,

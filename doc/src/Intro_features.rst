@@ -24,11 +24,15 @@ General features
 ^^^^^^^^^^^^^^^^
 
 * runs on a single processor or in parallel
-* distributed-memory message-passing parallelism (MPI)
-* spatial-decomposition of simulation domain for parallelism
-* open-source distribution
-* highly portable C++
-* optional libraries used: MPI and single-processor FFT
+* distributed memory message-passing parallelism (MPI)
+* shared memory multi-threading parallelism (OpenMP)
+* spatial decomposition of simulation domain for MPI parallelism
+* particle decomposition inside of spatial decomposition for OpenMP parallelism
+* GPLv2 licensed open-source distribution
+* highly portable C++-11
+* modular code with most functionality in optional packages
+* only depends on MPI library for basic parallel functionality
+* other libraries are optional and only required for specific packages
 * GPU (CUDA and OpenCL), Intel Xeon Phi, and OpenMP support for many code features
 * easy to extend with new features and functionality
 * runs from an input script
@@ -68,9 +72,9 @@ Interatomic potentials (force fields)
 :doc:`improper style <improper_style>`, :doc:`kspace style <kspace_style>`
 commands)
 
-* pairwise potentials: Lennard-Jones, Buckingham, Morse, Born-Mayer-Huggins,     Yukawa, soft, class 2 (COMPASS), hydrogen bond, tabulated
+* pairwise potentials: Lennard-Jones, Buckingham, Morse, Born-Mayer-Huggins, Yukawa, soft, class 2 (COMPASS), hydrogen bond, tabulated
 * charged pairwise potentials: Coulombic, point-dipole
-* many-body potentials: EAM, Finnis/Sinclair EAM, modified EAM (MEAM),     embedded ion method (EIM), EDIP, ADP, Stillinger-Weber, Tersoff,     REBO, AIREBO, ReaxFF, COMB, SNAP, Streitz-Mintmire, 3-body polymorphic
+* many-body potentials: EAM, Finnis/Sinclair EAM, modified EAM (MEAM), embedded ion method (EIM), EDIP, ADP, Stillinger-Weber, Tersoff, REBO, AIREBO, ReaxFF, COMB, SNAP, Streitz-Mintmire, 3-body polymorphic
 * long-range interactions for charge, point-dipoles, and LJ dispersion:     Ewald, Wolf, PPPM (similar to particle-mesh Ewald)
 * polarization models: :doc:`QEq <fix_qeq>`,     :doc:`core/shell model <Howto_coreshell>`,     :doc:`Drude dipole model <Howto_drude>`
 * charge equilibration (QEq via dynamic, point, shielded, Slater methods)
@@ -170,9 +174,12 @@ Multi-replica models
 ^^^^^^^^^^^^^^^^^^^^
 
 * :doc:`nudged elastic band <neb>`
+* :doc:`hyperdynamics <hyper>`
 * :doc:`parallel replica dynamics <prd>`
 * :doc:`temperature accelerated dynamics <tad>`
 * :doc:`parallel tempering <temper>`
+* :doc:`path-integral MD <fix_pimd>`
+* multi-walker collective variables with :doc:`Colvars <fix_colvars>` and :doc:`Plumed <fix_plumed>`
 
 .. _prepost:
 
@@ -187,7 +194,7 @@ Pre- and post-processing
   plotting, and visualization for LAMMPS simulations.  Pizza.py is
   written in `Python <python_>`_ and is available for download from `the Pizza.py WWW site <pizza_>`_.
 
-.. _pizza: https://pizza.sandia.gov
+.. _pizza: https://lammps.github.io/pizza
 
 .. _python: http://www.python.org
 

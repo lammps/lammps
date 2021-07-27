@@ -119,8 +119,7 @@ The per-atom vector values will be an ID > 0, as explained above.
 Restrictions
 """"""""""""
 
-These computes are part of the EXTRA-COMPUTE package.  They are only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
+none
 
 Related commands
 """"""""""""""""

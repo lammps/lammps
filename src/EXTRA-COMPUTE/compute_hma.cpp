@@ -116,7 +116,7 @@ ComputeHMA::ComputeHMA(LAMMPS *lmp, int narg, char **arg) :
   computeU = computeP = computeCv = -1;
   returnAnharmonic = 0;
   size_vector = 0;
-  memory->create(extlist, 3, "hma:extlist");
+  extlist = new int[3];
   for (int iarg=4; iarg<narg; iarg++) {
     if (!strcmp(arg[iarg], "u")) {
       if (computeU>-1) continue;
@@ -145,20 +145,11 @@ ComputeHMA::ComputeHMA(LAMMPS *lmp, int narg, char **arg) :
     }
   }
 
-  if (size_vector == 0) {
-    error->all(FLERR,"Illegal compute hma command");
-  }
-  if (size_vector<3) {
-    memory->grow(extlist, size_vector, "hma:extlist");
-  }
-  memory->create(vector, size_vector, "hma:vector");
+  if (size_vector == 0) error->all(FLERR,"Illegal compute hma command");
+  vector = new double[size_vector];
 
-  if (computeU>-1 || computeCv>-1) {
-    peflag = 1;
-  }
-  if (computeP>-1) {
-    pressflag = 1;
-  }
+  if (computeU>-1 || computeCv>-1) peflag = 1;
+  if (computeP>-1) pressflag = 1;
 
   nmax = 0;
 }
@@ -170,10 +161,11 @@ ComputeHMA::~ComputeHMA()
   // check nfix in case all fixes have already been deleted
   if (modify->nfix) modify->delete_fix(id_fix);
 
-  delete [] id_fix;
-  delete [] id_temp;
-  memory->destroy(extlist);
-  memory->destroy(vector);
+  delete[] id_fix;
+  delete[] id_temp;
+  delete[] extlist;
+  delete[] vector;
+
   memory->destroy(deltaR);
 }
 

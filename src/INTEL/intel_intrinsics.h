@@ -127,7 +127,8 @@ struct vector_ops<double, KNC> {
     }
     template<int scale>
     static fvec gather(const fvec &from, bvec mask, const ivec &idx, const void *base) {
-      return _mm512_mask_i32logather_pd(from, mask, idx, base, scale);
+      return _mm512_mask_i32gather_pd(from, mask, _mm512_castsi512_si256(idx),
+                                      base, scale);
     }
     static fvec blend(const bvec &mask, const fvec &a, const fvec &b) {
       return _mm512_mask_blend_pd(mask, a, b);

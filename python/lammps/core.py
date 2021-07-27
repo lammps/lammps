@@ -1823,7 +1823,6 @@ class lammps(object):
 
     with ExceptionCheck(self):
       return self.lib.lammps_fix_external_get_force(self.lmp, fix_id.encode())
-    return None
 
   # -------------------------------------------------------------------------
 

@@ -68,8 +68,9 @@ void PairLJCutIntel::compute(int eflag, int vflag,
   ev_init(eflag, vflag);
   if (vflag_atom)
     error->all(FLERR,"INTEL package does not support per-atom stress");
-  if (vflag && !vflag_fdotr)
-    error->all(FLERR,"INTEL package does not support pair_modify nofdotr");
+  if (vflag && !vflag_fdotr && force->newton_pair)
+    error->all(FLERR,"INTEL package does not support pair_modify nofdotr "
+               "with newton on");
 
   const int inum = list->inum;
   const int nthreads = comm->nthreads;
@@ -241,9 +242,15 @@ void PairLJCutIntel::eval(const int offload, const int vflag,
           if (vflag == VIRIAL_PAIR) sv0 = sv1 = sv2 = sv3 = sv4 = sv5 = (acc_t)0;
 
         #if defined(LMP_SIMD_COMPILER)
-        #pragma vector aligned
+#if defined(USE_OMP_SIMD)
+        #pragma omp simd reduction(+:fxtmp, fytmp, fztmp, fwtmp, sevdwl, \
+                                   sv0, sv1, sv2, sv3, sv4, sv5)         \
+          aligned(jlist,x,ljc12oi,special_lj,f,lj34i:64)
+#else
         #pragma simd reduction(+:fxtmp, fytmp, fztmp, fwtmp, sevdwl, \
                                sv0, sv1, sv2, sv3, sv4, sv5)
+        #pragma vector aligned
+#endif
         #endif
         for (int jj = 0; jj < jnum; jj++) {
           flt_t forcelj, evdwl;

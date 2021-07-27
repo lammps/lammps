@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -15,25 +14,23 @@
 #include "compute_pe_mol_tally.h"
 
 #include "atom.h"
+#include "comm.h"
+#include "error.h"
+#include "force.h"
 #include "group.h"
 #include "pair.h"
 #include "update.h"
-#include "error.h"
-#include "force.h"
-#include "comm.h"
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ComputePEMolTally::ComputePEMolTally(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+ComputePEMolTally::ComputePEMolTally(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, narg, arg)
 {
-  if (narg < 4) error->all(FLERR,"Illegal compute pe/mol/tally command");
+  if (narg < 4) error->all(FLERR, "Illegal compute pe/mol/tally command");
 
   igroup2 = group->find(arg[3]);
-  if (igroup2 == -1)
-    error->all(FLERR,"Could not find compute pe/mol/tally second group ID");
+  if (igroup2 == -1) error->all(FLERR, "Could not find compute pe/mol/tally second group ID");
   groupbit2 = group->bitmask[igroup2];
 
   vector_flag = 1;
@@ -42,7 +39,7 @@ ComputePEMolTally::ComputePEMolTally(LAMMPS *lmp, int narg, char **arg) :
   dynamic_group_allow = 0;
 
   extvector = 1;
-  peflag = 1;                   // we need Pair::ev_tally() to be run
+  peflag = 1;    // we need Pair::ev_tally() to be run
 
   did_setup = invoked_vector = -1;
   vector = new double[size_vector];
@@ -61,20 +58,18 @@ ComputePEMolTally::~ComputePEMolTally()
 void ComputePEMolTally::init()
 {
   if (force->pair == nullptr)
-    error->all(FLERR,"Trying to use compute pe/mol/tally without pair style");
+    error->all(FLERR, "Trying to use compute pe/mol/tally without pair style");
   else
     force->pair->add_tally_callback(this);
 
-  if (atom->molecule_flag == 0)
-    error->all(FLERR,"Compute pe/mol/tally requires molecule IDs");
+  if (atom->molecule_flag == 0) error->all(FLERR, "Compute pe/mol/tally requires molecule IDs");
 
   if (comm->me == 0) {
     if (force->pair->single_enable == 0 || force->pair->manybody_flag)
-      error->warning(FLERR,"Compute pe/mol/tally used with incompatible pair style");
+      error->warning(FLERR, "Compute pe/mol/tally used with incompatible pair style");
 
-    if (force->bond || force->angle || force->dihedral
-                    || force->improper || force->kspace)
-      error->warning(FLERR,"Compute pe/mol/tally only called from pair style");
+    if (force->bond || force->angle || force->dihedral || force->improper || force->kspace)
+      error->warning(FLERR, "Compute pe/mol/tally only called from pair style");
   }
   did_setup = -1;
 }
@@ -93,29 +88,33 @@ void ComputePEMolTally::pair_setup_callback(int, int)
 }
 
 /* ---------------------------------------------------------------------- */
-void ComputePEMolTally::pair_tally_callback(int i, int j, int nlocal, int newton,
-                                         double evdwl, double ecoul, double,
-                                         double, double, double)
+void ComputePEMolTally::pair_tally_callback(int i, int j, int nlocal, int newton, double evdwl,
+                                            double ecoul, double, double, double, double)
 {
-  const int * const mask = atom->mask;
-  const tagint * const molid = atom->molecule;
+  const int *const mask = atom->mask;
+  const tagint *const molid = atom->molecule;
 
-  if ( ((mask[i] & groupbit) && (mask[j] & groupbit2))
-     || ((mask[i] & groupbit2) && (mask[j] & groupbit))) {
+  if (((mask[i] & groupbit) && (mask[j] & groupbit2)) ||
+      ((mask[i] & groupbit2) && (mask[j] & groupbit))) {
 
-    evdwl *= 0.5; ecoul *= 0.5;
+    evdwl *= 0.5;
+    ecoul *= 0.5;
     if (newton || i < nlocal) {
       if (molid[i] == molid[j]) {
-        etotal[0] += evdwl; etotal[1] += ecoul;
+        etotal[0] += evdwl;
+        etotal[1] += ecoul;
       } else {
-        etotal[2] += evdwl; etotal[3] += ecoul;
+        etotal[2] += evdwl;
+        etotal[3] += ecoul;
       }
     }
     if (newton || j < nlocal) {
       if (molid[i] == molid[j]) {
-        etotal[0] += evdwl; etotal[1] += ecoul;
+        etotal[0] += evdwl;
+        etotal[1] += ecoul;
       } else {
-        etotal[2] += evdwl; etotal[3] += ecoul;
+        etotal[2] += evdwl;
+        etotal[3] += ecoul;
       }
     }
   }
@@ -127,10 +126,9 @@ void ComputePEMolTally::compute_vector()
 {
   invoked_vector = update->ntimestep;
   if ((did_setup != invoked_vector) || (update->eflag_global != invoked_vector))
-    error->all(FLERR,"Energy was not tallied on needed timestep");
+    error->all(FLERR, "Energy was not tallied on needed timestep");
 
   // sum accumulated energies across procs
 
-  MPI_Allreduce(etotal,vector,size_vector,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(etotal, vector, size_vector, MPI_DOUBLE, MPI_SUM, world);
 }
-

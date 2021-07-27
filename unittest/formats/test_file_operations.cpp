@@ -281,7 +281,6 @@ TEST_F(FileOperationsTest, error_message_warn)
 
 TEST_F(FileOperationsTest, error_all_one)
 {
-    char buf[64];
     BEGIN_HIDE_OUTPUT();
     command("echo none");
     command("log none");

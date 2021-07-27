@@ -68,8 +68,12 @@ void FixNVEIntel::initial_integrate(int /*vflag*/)
   if (igroup == 0 && atom->ntypes == 1 && !atom->rmass) {
     const double dtfm = dtf / atom->mass[1];
     #if defined(LMP_SIMD_COMPILER)
-    #pragma vector aligned
+#if defined(USE_OMP_SIMD)
+    #pragma omp simd
+#else
     #pragma simd
+#endif
+    #pragma vector aligned
     #endif
     for (int i = 0; i < _nlocal3; i++) {
       v[i] += dtfm * f[i];
@@ -78,8 +82,12 @@ void FixNVEIntel::initial_integrate(int /*vflag*/)
   } else if (igroup == 0) {
     if (neighbor->ago == 0) reset_dt();
     #if defined(LMP_SIMD_COMPILER)
-    #pragma vector aligned
+#if defined(USE_OMP_SIMD)
+    #pragma omp simd
+#else
     #pragma simd
+#endif
+    #pragma vector aligned
     #endif
     for (int i = 0; i < _nlocal3; i++) {
       v[i] += _dtfm[i] * f[i];
@@ -88,8 +96,12 @@ void FixNVEIntel::initial_integrate(int /*vflag*/)
   } else {
     if (neighbor->ago == 0) reset_dt();
     #if defined(LMP_SIMD_COMPILER)
-    #pragma vector aligned
+#if defined(USE_OMP_SIMD)
+    #pragma omp simd
+#else
     #pragma simd
+#endif
+    #pragma vector aligned
     #endif
     for (int i = 0; i < _nlocal3; i++) {
       if (_dtfm[i] != 0.0) {
@@ -112,16 +124,24 @@ void FixNVEIntel::final_integrate()
     _nlocal3 = 3 * atom->nlocal;
     const double dtfm = dtf / atom->mass[1];
     #if defined(LMP_SIMD_COMPILER)
-    #pragma vector aligned
+#if defined(USE_OMP_SIMD)
+    #pragma omp simd
+#else
     #pragma simd
+#endif
+    #pragma vector aligned
     #endif
     for (int i = 0; i < _nlocal3; i++)
       v[i] += dtfm * f[i];
   } else if (igroup == 0) {
     if (neighbor->ago == 0) reset_dt();
     #if defined(LMP_SIMD_COMPILER)
-    #pragma vector aligned
+#if defined(USE_OMP_SIMD)
+    #pragma omp simd
+#else
     #pragma simd
+#endif
+    #pragma vector aligned
     #endif
     for (int i = 0; i < _nlocal3; i++) {
       v[i] += _dtfm[i] * f[i];
@@ -129,8 +149,12 @@ void FixNVEIntel::final_integrate()
   } else {
     if (neighbor->ago == 0) reset_dt();
     #if defined(LMP_SIMD_COMPILER)
-    #pragma vector aligned
+#if defined(USE_OMP_SIMD)
+    #pragma omp simd
+#else
     #pragma simd
+#endif
+    #pragma vector aligned
     #endif
     for (int i = 0; i < _nlocal3; i++)
       v[i] += _dtfm[i] * f[i];

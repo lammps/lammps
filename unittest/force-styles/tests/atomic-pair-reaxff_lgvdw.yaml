@@ -1,7 +1,7 @@
 ---
 lammps_version: 2 Jul 2021
 date_generated: Wed Jul 21 15:49:47 2021
-epsilon: 1e-12
+epsilon: 3e-12
 prerequisites: ! |
   pair reaxff
   fix qeq/reaxff

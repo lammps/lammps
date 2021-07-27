@@ -324,7 +324,11 @@ void NPairFullBinGhostIntel::fbi(const int offload, NeighList * list,
               const int bstart = binhead[ibin + binstart[k]];
               const int bend = binhead[ibin + binend[k]];
               #if defined(LMP_SIMD_COMPILER)
+#if defined(USE_OMP_SIMD)
+              #pragma omp simd
+#else
               #pragma simd
+#endif
               #endif
               for (int jj = bstart; jj < bend; jj++)
                 tj[ncount++] = binpacked[jj];
@@ -345,15 +349,23 @@ void NPairFullBinGhostIntel::fbi(const int offload, NeighList * list,
               const int bstart = binhead[ibin + stencil[k]];
               const int bend = binhead[ibin + stencil[k] + 1];
               #if defined(LMP_SIMD_COMPILER)
+#if defined(USE_OMP_SIMD)
+              #pragma omp simd
+#else
               #pragma simd
+#endif
               #endif
               for (int jj = bstart; jj < bend; jj++)
                 tj[ncount++] = binpacked[jj];
             }
           } // if i < nlocal
           #if defined(LMP_SIMD_COMPILER)
-          #pragma vector aligned
+#if defined(USE_OMP_SIMD)
+          #pragma omp simd
+#else
           #pragma simd
+#endif
+          #pragma vector aligned
           #endif
           for (int u = 0; u < ncount; u++) {
             const int j = tj[u];
@@ -425,12 +437,16 @@ void NPairFullBinGhostIntel::fbi(const int offload, NeighList * list,
           int alln = n;
           n = 0;
           #if defined(LMP_SIMD_COMPILER)
-          #pragma vector aligned
           #ifdef LMP_INTEL_NBOR_COMPAT
           #pragma ivdep
           #else
+#if defined(USE_OMP_SIMD)
+          #pragma omp simd
+#else
           #pragma simd
+#endif
           #endif
+          #pragma vector aligned
           #endif
           for (int u = 0; u < alln; u++) {
             int which;
@@ -454,12 +470,16 @@ void NPairFullBinGhostIntel::fbi(const int offload, NeighList * list,
           alln = n2;
           n2 = maxnbors * 2;
           #if defined(LMP_SIMD_COMPILER)
-          #pragma vector aligned
           #ifdef LMP_INTEL_NBOR_COMPAT
           #pragma ivdep
           #else
+#if defined(USE_OMP_SIMD)
+          #pragma omp simd
+#else
           #pragma simd
+#endif
           #endif
+          #pragma vector aligned
           #endif
           for (int u = n2; u < alln; u++) {
             int which;

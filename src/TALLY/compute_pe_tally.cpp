@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -15,26 +14,24 @@
 #include "compute_pe_tally.h"
 
 #include "atom.h"
-#include "group.h"
-#include "pair.h"
-#include "update.h"
-#include "memory.h"
+#include "comm.h"
 #include "error.h"
 #include "force.h"
-#include "comm.h"
+#include "group.h"
+#include "memory.h"
+#include "pair.h"
+#include "update.h"
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ComputePETally::ComputePETally(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+ComputePETally::ComputePETally(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, narg, arg)
 {
-  if (narg < 4) error->all(FLERR,"Illegal compute pe/tally command");
+  if (narg < 4) error->all(FLERR, "Illegal compute pe/tally command");
 
   igroup2 = group->find(arg[3]);
-  if (igroup2 == -1)
-    error->all(FLERR,"Could not find compute pe/tally second group ID");
+  if (igroup2 == -1) error->all(FLERR, "Could not find compute pe/tally second group ID");
   groupbit2 = group->bitmask[igroup2];
 
   scalar_flag = 1;
@@ -45,7 +42,7 @@ ComputePETally::ComputePETally(LAMMPS *lmp, int narg, char **arg) :
 
   comm_reverse = size_peratom_cols = 2;
   extscalar = 1;
-  peflag = 1;                   // we need Pair::ev_tally() to be run
+  peflag = 1;    // we need Pair::ev_tally() to be run
 
   did_setup = invoked_peratom = invoked_scalar = -1;
   nmax = -1;
@@ -67,17 +64,16 @@ ComputePETally::~ComputePETally()
 void ComputePETally::init()
 {
   if (force->pair == nullptr)
-    error->all(FLERR,"Trying to use compute pe/tally without a pair style");
+    error->all(FLERR, "Trying to use compute pe/tally without a pair style");
   else
     force->pair->add_tally_callback(this);
 
   if (comm->me == 0) {
     if (force->pair->single_enable == 0 || force->pair->manybody_flag)
-      error->warning(FLERR,"Compute pe/tally used with incompatible pair style");
+      error->warning(FLERR, "Compute pe/tally used with incompatible pair style");
 
-    if (force->bond || force->angle || force->dihedral
-                    || force->improper || force->kspace)
-      error->warning(FLERR,"Compute pe/tally only called from pair style");
+    if (force->bond || force->angle || force->dihedral || force->improper || force->kspace)
+      error->warning(FLERR, "Compute pe/tally only called from pair style");
   }
   did_setup = -1;
 }
@@ -98,14 +94,13 @@ void ComputePETally::pair_setup_callback(int, int)
   if (atom->nmax > nmax) {
     memory->destroy(eatom);
     nmax = atom->nmax;
-    memory->create(eatom,nmax,size_peratom_cols,"pe/tally:eatom");
+    memory->create(eatom, nmax, size_peratom_cols, "pe/tally:eatom");
     array_atom = eatom;
   }
 
   // clear storage
 
-  for (int i=0; i < ntotal; ++i)
-    eatom[i][0] = eatom[i][1] = 0.0;
+  for (int i = 0; i < ntotal; ++i) eatom[i][0] = eatom[i][1] = 0.0;
 
   vector[0] = etotal[0] = vector[1] = etotal[1] = 0.0;
 
@@ -113,23 +108,27 @@ void ComputePETally::pair_setup_callback(int, int)
 }
 
 /* ---------------------------------------------------------------------- */
-void ComputePETally::pair_tally_callback(int i, int j, int nlocal, int newton,
-                                         double evdwl, double ecoul, double,
-                                         double, double, double)
+void ComputePETally::pair_tally_callback(int i, int j, int nlocal, int newton, double evdwl,
+                                         double ecoul, double, double, double, double)
 {
-  const int * const mask = atom->mask;
+  const int *const mask = atom->mask;
 
-  if ( ((mask[i] & groupbit) && (mask[j] & groupbit2))
-       || ((mask[i] & groupbit2) && (mask[j] & groupbit))) {
+  if (((mask[i] & groupbit) && (mask[j] & groupbit2)) ||
+      ((mask[i] & groupbit2) && (mask[j] & groupbit))) {
 
-    evdwl *= 0.5; ecoul *= 0.5;
+    evdwl *= 0.5;
+    ecoul *= 0.5;
     if (newton || i < nlocal) {
-      etotal[0] += evdwl; eatom[i][0] += evdwl;
-      etotal[1] += ecoul; eatom[i][1] += ecoul;
+      etotal[0] += evdwl;
+      eatom[i][0] += evdwl;
+      etotal[1] += ecoul;
+      eatom[i][1] += ecoul;
     }
     if (newton || j < nlocal) {
-      etotal[0] += evdwl; eatom[j][0] += evdwl;
-      etotal[1] += ecoul; eatom[j][1] += ecoul;
+      etotal[0] += evdwl;
+      eatom[j][0] += evdwl;
+      etotal[1] += ecoul;
+      eatom[j][1] += ecoul;
     }
   }
 }
@@ -138,7 +137,7 @@ void ComputePETally::pair_tally_callback(int i, int j, int nlocal, int newton,
 
 int ComputePETally::pack_reverse_comm(int n, int first, double *buf)
 {
-  int i,m,last;
+  int i, m, last;
 
   m = 0;
   last = first + n;
@@ -153,7 +152,7 @@ int ComputePETally::pack_reverse_comm(int n, int first, double *buf)
 
 void ComputePETally::unpack_reverse_comm(int n, int *list, double *buf)
 {
-  int i,j,m;
+  int i, j, m;
 
   m = 0;
   for (i = 0; i < n; i++) {
@@ -168,15 +167,14 @@ void ComputePETally::unpack_reverse_comm(int n, int *list, double *buf)
 double ComputePETally::compute_scalar()
 {
   invoked_scalar = update->ntimestep;
-  if ((did_setup != invoked_scalar)
-      || (update->eflag_global != invoked_scalar))
-    error->all(FLERR,"Energy was not tallied on needed timestep");
+  if ((did_setup != invoked_scalar) || (update->eflag_global != invoked_scalar))
+    error->all(FLERR, "Energy was not tallied on needed timestep");
 
   // sum accumulated energies across procs
 
-  MPI_Allreduce(etotal,vector,size_peratom_cols,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(etotal, vector, size_peratom_cols, MPI_DOUBLE, MPI_SUM, world);
 
-  scalar = vector[0]+vector[1];
+  scalar = vector[0] + vector[1];
   return scalar;
 }
 
@@ -185,9 +183,8 @@ double ComputePETally::compute_scalar()
 void ComputePETally::compute_peratom()
 {
   invoked_peratom = update->ntimestep;
-  if ((did_setup != invoked_peratom)
-      || (update->eflag_global != invoked_peratom))
-    error->all(FLERR,"Energy was not tallied on needed timestep");
+  if ((did_setup != invoked_peratom) || (update->eflag_global != invoked_peratom))
+    error->all(FLERR, "Energy was not tallied on needed timestep");
 
   // collect contributions from ghost atoms
 
@@ -196,8 +193,7 @@ void ComputePETally::compute_peratom()
 
     // clear out ghost atom data after it has been collected to local atoms
     const int nall = atom->nlocal + atom->nghost;
-    for (int i = atom->nlocal; i < nall; ++i)
-      eatom[i][0] = eatom[i][1] = 0.0;
+    for (int i = atom->nlocal; i < nall; ++i) eatom[i][0] = eatom[i][1] = 0.0;
   }
 }
 
@@ -207,7 +203,6 @@ void ComputePETally::compute_peratom()
 
 double ComputePETally::memory_usage()
 {
-  double bytes = (nmax < 0) ? 0 : nmax*size_peratom_cols * sizeof(double);
+  double bytes = (nmax < 0) ? 0 : nmax * (double)size_peratom_cols * sizeof(double);
   return bytes;
 }
-

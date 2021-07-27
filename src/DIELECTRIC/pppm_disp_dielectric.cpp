@@ -647,7 +647,6 @@ void PPPMDispDielectric::fieldforce_c_ad()
 
     // convert E-field to force and substract self forces
     const double qfactor = qqrd2e * scale;
-    double qtmp = eps[i]*q[i];
 
     s1 = x[i][0]*hx_inv;
     s2 = x[i][1]*hy_inv;
@@ -751,7 +750,7 @@ void PPPMDispDielectric::fieldforce_c_peratom()
    extended to non-neutral systems (J. Chem. Phys. 131, 094107).
 ------------------------------------------------------------------------- */
 
-void PPPMDispDielectric::slabcorr(int eflag)
+void PPPMDispDielectric::slabcorr(int /*eflag*/)
 {
   // compute local contribution to global dipole moment
 

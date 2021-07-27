@@ -99,8 +99,12 @@ void FixNHIntel::remap()
 
   if (allremap) {
     #if defined(LMP_SIMD_COMPILER)
-    #pragma vector aligned
+#if defined(USE_OMP_SIMD)
+    #pragma omp simd
+#else
     #pragma simd
+#endif
+    #pragma vector aligned
     #endif
     for (int i = 0; i < nlocal; i++) {
       const double d0 = x[i].x - b0;
@@ -112,8 +116,12 @@ void FixNHIntel::remap()
     }
   } else {
     #if defined(LMP_SIMD_COMPILER)
-    #pragma vector aligned
+#if defined(USE_OMP_SIMD)
+    #pragma omp simd
+#else
     #pragma simd
+#endif
+    #pragma vector aligned
     #endif
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & dilate_group_bit) {
@@ -278,8 +286,12 @@ void FixNHIntel::remap()
 
   if (allremap) {
     #if defined(LMP_SIMD_COMPILER)
-    #pragma vector aligned
+#if defined(USE_OMP_SIMD)
+    #pragma omp simd
+#else
     #pragma simd
+#endif
+    #pragma vector aligned
     #endif
     for (int i = 0; i < nlocal; i++) {
       x[i].x = h0*x[i].x + h5*x[i].y + h4*x[i].z + nb0;
@@ -288,8 +300,12 @@ void FixNHIntel::remap()
     }
   } else {
     #if defined(LMP_SIMD_COMPILER)
-    #pragma vector aligned
+#if defined(USE_OMP_SIMD)
+    #pragma omp simd
+#else
     #pragma simd
+#endif
+    #pragma vector aligned
     #endif
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & dilate_group_bit) {
@@ -415,8 +431,12 @@ void FixNHIntel::nh_v_press()
 
   if (igroup == 0) {
     #if defined(LMP_SIMD_COMPILER)
-    #pragma vector aligned
+#if defined(USE_OMP_SIMD)
+    #pragma omp simd
+#else
     #pragma simd
+#endif
+    #pragma vector aligned
     #endif
     for (int i = 0; i < nlocal; i++) {
       v[i].x *= f0;
@@ -425,8 +445,12 @@ void FixNHIntel::nh_v_press()
     }
   } else {
     #if defined(LMP_SIMD_COMPILER)
-    #pragma vector aligned
+#if defined(USE_OMP_SIMD)
+    #pragma omp simd
+#else
     #pragma simd
+#endif
+    #pragma vector aligned
     #endif
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
@@ -448,8 +472,12 @@ void FixNHIntel::nve_v()
   double * _noalias const v = atom->v[0];
   const double * _noalias const f = atom->f[0];
   #if defined(LMP_SIMD_COMPILER)
-  #pragma vector aligned
+#if defined(USE_OMP_SIMD)
+  #pragma omp simd
+#else
   #pragma simd
+#endif
+  #pragma vector aligned
   #endif
   for (int i = 0; i < _nlocal3; i++)
     v[i] += _dtfm[i] * f[i];
@@ -468,15 +496,23 @@ void FixNHIntel::nve_x()
 
   if (igroup == 0) {
     #if defined(LMP_SIMD_COMPILER)
-    #pragma vector aligned
+#if defined(USE_OMP_SIMD)
+    #pragma omp simd
+#else
     #pragma simd
+#endif
+    #pragma vector aligned
     #endif
     for (int i = 0; i < _nlocal3; i++)
       x[i] += dtv * v[i];
   } else {
     #if defined(LMP_SIMD_COMPILER)
-    #pragma vector aligned
+#if defined(USE_OMP_SIMD)
+    #pragma omp simd
+#else
     #pragma simd
+#endif
+    #pragma vector aligned
     #endif
     for (int i = 0; i < _nlocal3; i++) {
       if (_dtfm[i] != 0.0)
@@ -500,15 +536,23 @@ void FixNHIntel::nh_v_temp()
 
   if (igroup == 0) {
     #if defined(LMP_SIMD_COMPILER)
-    #pragma vector aligned
+#if defined(USE_OMP_SIMD)
+    #pragma omp simd
+#else
     #pragma simd
+#endif
+    #pragma vector aligned
     #endif
     for (int i = 0; i < _nlocal3; i++)
         v[i] *= factor_eta;
   } else {
     #if defined(LMP_SIMD_COMPILER)
-    #pragma vector aligned
+#if defined(USE_OMP_SIMD)
+    #pragma omp simd
+#else
     #pragma simd
+#endif
+    #pragma vector aligned
     #endif
     for (int i = 0; i < _nlocal3; i++) {
       if (_dtfm[i] != 0.0)

@@ -89,7 +89,7 @@ first stage) is changed to:
 
 .. parsed-literal::
 
-   Fi = -Grad(V) + 2 (Grad(V) dot T') T'
+   Fi = -Grad(V) + 2 (Grad(V) dot T') T' + Fnudge_perp
 
 and the relaxation procedure is continued to a new converged MEP.
 

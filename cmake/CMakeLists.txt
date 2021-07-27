@@ -312,6 +312,7 @@ pkg_depends(LATBOLTZ MPI)
 pkg_depends(PHONON KSPACE)
 pkg_depends(SCAFACOS MPI)
 pkg_depends(DIELECTRIC KSPACE)
+pkg_depends(DIELECTRIC EXTRA-PAIR)
 pkg_depends(CG-DNA MOLECULE)
 pkg_depends(CG-DNA ASPHERE)
 

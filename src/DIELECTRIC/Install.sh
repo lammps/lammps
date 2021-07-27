@@ -34,6 +34,10 @@ if (test $1 = 1) then
     echo "Must install KSPACE package with DIELECTRIC package"
     exit 1
   fi
+  if (test ! -e ../pair_lj_cut_coul_debye.cpp) then
+    echo "Must install EXTRA-PAIR package with DIELECTRIC package"
+    exit 1
+  fi
 fi
 
 for file in *.cpp *.h; do

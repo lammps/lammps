@@ -36,7 +36,7 @@ Output info
 
 These computes calculate per-node (per-atom) vectors, which can be accessed by
 any command that uses per-atom values from a compute as input, and global
-scalars. See the :doc:`Howto output <Howto_output>` doc page for an overview of
+scalars. See the :doc:`Howto output <Howto_output>` page for an overview of
 LAMMPS output options.
 
 The computed values are provided in energy :doc:`units <units>`.

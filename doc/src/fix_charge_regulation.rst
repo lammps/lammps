@@ -227,7 +227,7 @@ Restrictions
 
 This fix is part of the MC package. It is only enabled if LAMMPS
 was built with that package.  See the :doc:`Build package
-<Build_package>` doc page for more info.
+<Build_package>` page for more info.
 
 The :doc:`atom_style <atom_style>`, used must contain the charge
 property, for example, the style could be *charge* or *full*. Only

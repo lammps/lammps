@@ -16,7 +16,7 @@ Syntax
   .. parsed-literal::
 
      parameter = *x* or *y* or *z* or *xy* or *xz* or *yz* or *boundary* or *ortho* or *triclinic* or *set* or *remap*
-       *x*\ , *y*\ , *z* args = style value(s)
+       *x*, *y*, *z* args = style value(s)
          style = *final* or *delta* or *scale* or *volume*
            *final* values = lo hi
              lo hi = box boundaries after displacement (distance units)
@@ -25,14 +25,14 @@ Syntax
            *scale* values = factor
              factor = multiplicative factor for change in box length after displacement
            *volume* value = none = adjust this dim to preserve volume of system
-       *xy*\ , *xz*\ , *yz* args = style value
+       *xy*, *xz*, *yz* args = style value
          style = *final* or *delta*
            *final* value = tilt
              tilt = tilt factor after displacement (distance units)
            *delta* value = dtilt
              dtilt = change in tilt factor after displacement (distance units)
        *boundary* args = x y z
-         x,y,z = *p* or *s* or *f* or *m*\ , one or two letters
+         x,y,z = *p* or *s* or *f* or *m*, one or two letters
          *p* is periodic
          *f* is non-periodic and fixed
          *s* is non-periodic and shrink-wrapped
@@ -82,7 +82,7 @@ The :doc:`create_box <create_box>`, :doc:`read data <read_data>`, and
 simulation box is orthogonal or triclinic and their doc pages explain
 the meaning of the xy,xz,yz tilt factors.
 
-See the :doc:`Howto triclinic <Howto_triclinic>` doc page for a
+See the :doc:`Howto triclinic <Howto_triclinic>` page for a
 geometric description of triclinic boxes, as defined by LAMMPS, and
 how to transform these parameters to and from other commonly used
 triclinic representations.
@@ -179,18 +179,18 @@ new owning processors.
 
 ----------
 
-For the *x*\ , *y*\ , and *z* parameters, this is the meaning of their
+For the *x*, *y*, and *z* parameters, this is the meaning of their
 styles and values.
 
-For style *final*\ , the final lo and hi box boundaries of a dimension
+For style *final*, the final lo and hi box boundaries of a dimension
 are specified.  The values can be in lattice or box distance units.
 See the discussion of the units keyword below.
 
-For style *delta*\ , plus or minus changes in the lo/hi box boundaries
+For style *delta*, plus or minus changes in the lo/hi box boundaries
 of a dimension are specified.  The values can be in lattice or box
 distance units.  See the discussion of the units keyword below.
 
-For style *scale*\ , a multiplicative factor to apply to the box length
+For style *scale*, a multiplicative factor to apply to the box length
 of a dimension is specified.  For example, if the initial box length
 is 10, and the factor is 1.1, then the final box length will be 11.  A
 factor less than 1.0 means compression.
@@ -199,7 +199,7 @@ The *volume* style changes the specified dimension in such a way that
 the overall box volume remains constant with respect to the operation
 performed by the preceding keyword.  The *volume* style can only be
 used following a keyword that changed the volume, which is any of the
-*x*\ , *y*\ , *z* keywords.  If the preceding keyword "key" had a *volume*
+*x*, *y*, *z* keywords.  If the preceding keyword "key" had a *volume*
 style, then both it and the current keyword apply to the keyword
 preceding "key".  I.e. this sequence of keywords is allowed:
 
@@ -249,15 +249,15 @@ compressed around its mid point.
 
 ----------
 
-For the *xy*\ , *xz*\ , and *yz* parameters, this is the meaning of their
+For the *xy*, *xz*, and *yz* parameters, this is the meaning of their
 styles and values.  Note that changing the tilt factors of a triclinic
 box does not change its volume.
 
-For style *final*\ , the final tilt factor is specified.  The value
+For style *final*, the final tilt factor is specified.  The value
 can be in lattice or box distance units.  See the discussion of the
 units keyword below.
 
-For style *delta*\ , a plus or minus change in the tilt factor is
+For style *delta*, a plus or minus change in the tilt factor is
 specified.  The value can be in lattice or box distance units.  See
 the discussion of the units keyword below.
 
@@ -281,10 +281,10 @@ and upper face of the box.  Two letters assigns the first style to the
 lower face and the second style to the upper face.
 
 The style *p* means the box is periodic; the other styles mean
-non-periodic. For style *f*\ , the position of the face is fixed.  For
-style *s*\ , the position of the face is set so as to encompass the
+non-periodic. For style *f*, the position of the face is fixed.  For
+style *s*, the position of the face is set so as to encompass the
 atoms in that dimension (shrink-wrapping), no matter how far they
-move.  For style *m*\ , shrink-wrapping occurs, but is bounded by the
+move.  For style *m*, shrink-wrapping occurs, but is bounded by the
 current box edge in that dimension, so that the box will become no
 smaller.  See the :doc:`boundary <boundary>` command for more
 explanation of these style options.

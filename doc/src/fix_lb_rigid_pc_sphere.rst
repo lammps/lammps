@@ -141,7 +141,7 @@ Restrictions
 
 This fix is part of the LATBOLTZ package.  It is only enabled if LAMMPS
 was built with that package.  See the :doc:`Build package
-<Build_package>` doc page for more info.
+<Build_package>` page for more info.
 
 Can only be used if a lattice-Boltzmann fluid has been created via the
 :doc:`fix lb/fluid <fix_lb_fluid>` command, and must come after this

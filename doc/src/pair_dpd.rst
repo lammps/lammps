@@ -57,7 +57,7 @@ Nose Hoover as implemented by :doc:`fix nvt <fix_nh>`.  To use
 *dpd/tstat* as a thermostat for another pair style, use the :doc:`pair_style hybrid/overlay <pair_hybrid>` command to compute both the desired
 pair interaction and the thermostat for each pair of particles.
 
-For style *dpd*\ , the force on atom I due to atom J is given as a sum
+For style *dpd*, the force on atom I due to atom J is given as a sum
 of 3 terms
 
 .. math::
@@ -79,18 +79,18 @@ is set equal to :math:`\sqrt{2 k_B T \gamma}`, where :math:`k_B` is the
 Boltzmann constant and T is the temperature parameter in the pair_style
 command.
 
-For style *dpd/tstat*\ , the force on atom I due to atom J is the same
+For style *dpd/tstat*, the force on atom I due to atom J is the same
 as the above equation, except that the conservative Fc term is
 dropped.  Also, during the run, T is set each timestep to a ramped
 value from Tstart to Tstop.
 
-For style *dpd*\ , the pairwise energy associated with style *dpd* is
+For style *dpd*, the pairwise energy associated with style *dpd* is
 only due to the conservative force term Fc, and is shifted to be zero
 at the cutoff distance Rc.  The pairwise virial is calculated using
 all 3 terms.  For style *dpd/tstat* there is no pairwise energy, but
 the last two terms of the formula make a contribution to the virial.
 
-For style *dpd*\ , the following coefficients must be defined for each
+For style *dpd*, the following coefficients must be defined for each
 pair of atoms types via the :doc:`pair_coeff <pair_coeff>` command as in
 the examples above, or in the data file or restart files read by the
 :doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
@@ -105,7 +105,7 @@ cutoff is used.  Note that sigma is set equal to sqrt(2 T gamma),
 where T is the temperature set by the :doc:`pair_style <pair_style>`
 command so it does not need to be specified.
 
-For style *dpd/tstat*\ , the coefficients defined for each pair of
+For style *dpd/tstat*, the coefficients defined for each pair of
 atoms types via the :doc:`pair_coeff <pair_coeff>` command is the same,
 except that A is not included.
 
@@ -165,7 +165,7 @@ if the original simulation had continued past the restart time.
 
 These pair styles can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  They do not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 The *dpd/tstat* style can ramp its target temperature over multiple
 runs, using the *start* and *stop* keywords of the :doc:`run <run>`
@@ -179,7 +179,7 @@ Restrictions
 
 These styles are part of the DPD-BASIC package.  They are only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package
-<Build_package>` doc page for more info.
+<Build_package>` page for more info.
 
 The default frequency for rebuilding neighbor lists is every 10 steps
 (see the :doc:`neigh_modify <neigh_modify>` command). This may be too

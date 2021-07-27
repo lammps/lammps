@@ -147,7 +147,7 @@ The second coefficient, rho, must be greater than zero.
 The last coefficient is optional.  If not specified, the global A,C,D
 cutoff specified in the pair_style command is used.
 
-For *born/coul/long*\ , *born/coul/wolf* and *born/coul/dsf* no
+For *born/coul/long*, *born/coul/wolf* and *born/coul/dsf* no
 Coulombic cutoff can be specified for an individual I,J type pair.
 All type pairs use the same global Coulombic cutoff specified in the
 pair_style command.
@@ -179,8 +179,8 @@ Thess styles writes thei information to binary :doc:`restart <restart>`
 files, so pair_style and pair_coeff commands do not need to be
 specified in an input script that reads a restart file.
 
-These styles can only be used via the *pair* keyword of the :doc:`run_style respa <run_style>` command.  They do not support the *inner*\ ,
-*middle*\ , *outer* keywords.
+These styles can only be used via the *pair* keyword of the :doc:`run_style respa <run_style>` command.  They do not support the *inner*,
+*middle*, *outer* keywords.
 
 ----------
 
@@ -188,7 +188,13 @@ Restrictions
 """"""""""""
 
 The *born/coul/long* style is part of the KSPACE package.  It is only
-enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+enabled if LAMMPS was built with that package.  See the
+:doc:`Build package <Build_package>` page for more info.
+
+The *born/coul/dsf* and *born/coul/wolf* pair styles are part of the
+EXTRA-PAIR package.  They are only enabled if LAMMPS was built with
+that package.  See the :doc:`Build package <Build_package>` page
+for more info.
 
 Related commands
 """"""""""""""""

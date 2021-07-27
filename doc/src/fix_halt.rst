@@ -54,7 +54,7 @@ dynamics or minimization iterations, as specified by the :doc:`run
 The specified group-ID is ignored by this fix.
 
 The specified *attribute* can be one of the options listed above, namely
-*bondmax*, *tlimit*\ , *diskfree*\ , or an :doc:`equal-style variable
+*bondmax*, *tlimit*, *diskfree*, or an :doc:`equal-style variable
 <variable>` referenced as *v_name*, where "name" is the name of a
 variable that has been defined previously in the input script.
 
@@ -138,16 +138,16 @@ The specified *avalue* must be a numeric value.
 ----------
 
 The optional *error* keyword determines how the current run is halted.
-If its value is *hard*\ , then LAMMPS will stop with an error message.
+If its value is *hard*, then LAMMPS will stop with an error message.
 
-If its value is *soft*\ , LAMMPS will exit the current run, but continue
+If its value is *soft*, LAMMPS will exit the current run, but continue
 to execute subsequent commands in the input script.  However,
 additional :doc:`run <run>` or :doc:`minimize <minimize>` commands will be
 skipped.  For example, this allows a script to output the current
 state of the system, e.g. via a :doc:`write_dump <write_dump>` or
 :doc:`write_restart <write_restart>` command.
 
-If its value is *continue*\ , the behavior is the same as for *soft*\ ,
+If its value is *continue*, the behavior is the same as for *soft*,
 except subsequent :doc:`run <run>` or :doc:`minimize <minimize>` commands
 are executed.  This allows your script to remedy the condition that
 triggered the halt, if necessary.  Note that you may wish use the

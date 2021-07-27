@@ -57,7 +57,7 @@ with their neighbors.  It requires some parameters for each atom type.
 If the *params* setting above is the word "reaxff", then these are
 extracted from the :doc:`pair_style reaxff <pair_reaxff>` command and
 the ReaxFF force field file it reads in.  If a file name is specified
-for *params*\ , then the parameters are taken from the specified file
+for *params*, then the parameters are taken from the specified file
 and the file must contain one line for each atom type.  The latter
 form must be used when performing QeQ with a non-ReaxFF potential.
 Each line should be formatted as follows:
@@ -110,7 +110,7 @@ Restrictions
 
 This fix is part of the REAXFF package.  It is only enabled if
 LAMMPS was built with that package. See the :doc:`Build package
-<Build_package>` doc page for more info.
+<Build_package>` page for more info.
 
 This fix does not correctly handle interactions involving multiple
 periodic images of the same atom.  Hence, it should not be used for

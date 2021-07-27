@@ -138,7 +138,7 @@ code, `latgen <http://code.google.com/p/latgen>`_, can be employed to
 generate the compatible map file for various crystals.
 
 In case one simulates a non-periodic system, where the whole simulation
-box is treated as a unit cell, one can set *map_file* as *GAMMA*\ , so
+box is treated as a unit cell, one can set *map_file* as *GAMMA*, so
 that the mapping info will be generated internally and a file is not
 needed. In this case, the dynamical matrix at only the gamma-point
 will/can be evaluated. Please keep in mind that fix-phonon is designed
@@ -182,9 +182,9 @@ temperature of the system should not exceed the melting temperature to
 keep the system in its solid state.
 
 This fix is part of the PHONON package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
-This fix requires LAMMPS be built with an FFT library.  See the :doc:`Build settings <Build_settings>` doc page for details.
+This fix requires LAMMPS be built with an FFT library.  See the :doc:`Build settings <Build_settings>` page for details.
 
 Related commands
 """"""""""""""""
@@ -204,19 +204,19 @@ the :doc:`dimension <dimension>` command, and nasr = 20.
 
 **(Campana)** C. Campana and
 M. H. Muser, *Practical Green's function approach to the
-simulation of elastic semi-infinite solids*\ , `Phys. Rev. B [74], 075420 (2006) <https://doi.org/10.1103/PhysRevB.74.075420>`_
+simulation of elastic semi-infinite solids*, `Phys. Rev. B [74], 075420 (2006) <https://doi.org/10.1103/PhysRevB.74.075420>`_
 
 .. _Kong:
 
 **(Kong)** L.T. Kong, G. Bartels, C. Campana,
 C. Denniston, and Martin H. Muser, *Implementation of Green's
-function molecular dynamics: An extension to LAMMPS*\ , `Computer Physics Communications [180](6):1004-1010 (2009). <https://doi.org/10.1016/j.cpc.2008.12.035>`_
+function molecular dynamics: An extension to LAMMPS*, `Computer Physics Communications [180](6):1004-1010 (2009). <https://doi.org/10.1016/j.cpc.2008.12.035>`_
 
 L.T. Kong, C. Denniston, and Martin H. Muser,
 *An improved version of the Green's function molecular dynamics
-method*\ , `Computer Physics Communications [182](2):540-541 (2011). <https://doi.org/10.1016/j.cpc.2010.10.006>`_
+method*, `Computer Physics Communications [182](2):540-541 (2011). <https://doi.org/10.1016/j.cpc.2010.10.006>`_
 
 .. _Kong2011:
 
 **(Kong2011)** L.T. Kong, *Phonon dispersion measured directly from
-molecular dynamics simulations*\ , `Computer Physics Communications [182](10):2201-2207, (2011). <https://doi.org/10.1016/j.cpc.2011.04.019>`_
+molecular dynamics simulations*, `Computer Physics Communications [182](10):2201-2207, (2011). <https://doi.org/10.1016/j.cpc.2011.04.019>`_

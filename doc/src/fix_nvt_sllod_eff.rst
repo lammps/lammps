@@ -70,7 +70,7 @@ Restrictions
 """"""""""""
 
 This fix is part of the EFF package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 This fix works best without Nose-Hoover chain thermostats, i.e. using
 tchain = 1.  Setting tchain to larger values can result in poor

@@ -60,7 +60,7 @@ are
 6. kinetic energy of the dipoles (energy units)
 
 These values can be used by any command that uses global scalar or
-vector values from a compute as input.  See the :doc:`Howto output <Howto_output>` doc page for an overview of LAMMPS output
+vector values from a compute as input.  See the :doc:`Howto output <Howto_output>` page for an overview of LAMMPS output
 options.
 
 Both the scalar value and the first two values of the vector

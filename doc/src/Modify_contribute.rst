@@ -25,13 +25,16 @@ the work of others (and possibly get scooped by them) or have your work
 duplicated by others.
 
 For informal communication with (some of) the LAMMPS developers you may
-ask to join the `LAMMPS developers on Slack <https://lammps.slack.com>`_.
-This slack work space is by invitation only. Thus for access, please
-send an e-mail to ``slack@lammps.org`` explaining what part of LAMMPS
-you are working on.  Only discussions related to LAMMPS development are
-tolerated, so this is **NOT** for people that look for help with compiling,
-installing, or using LAMMPS. Please contact the `lammps-users mailing
-list <https://www.lammps.org/mail.html>`_ for those purposes instead.
+ask to join the `LAMMPS developers on Slack
+<https://lammps.slack.com>`_.  This slack work space is by invitation
+only. Thus for access, please send an e-mail to ``slack@lammps.org``
+explaining what part of LAMMPS you are working on.  Only discussions
+related to LAMMPS development are tolerated, so this is **NOT** for
+people that look for help with compiling, installing, or using
+LAMMPS. Please contact the
+`lammps-users mailing list <https://www.lammps.org/mail.html>`_ or the
+`LAMMPS forum <https://www.lammps.org/forum.html>`_ for those purposes
+instead.
 
 How quickly your contribution will be integrated depends largely on how
 much effort it will cause to integrate and test it, how many and what
@@ -49,11 +52,9 @@ with gzip.  Please only use gzip compression, as this works well and is
 available on all platforms.
 
 If the new features/files are broadly useful we may add them as core
-files to LAMMPS or as part of a :doc:`package <Packages_list>`.  The
-USER-MISC package is simply a collection of (mostly) unrelated single
-files, which is the simplest way to have your contribution quickly added
-to the LAMMPS distribution.  All packages are listed and described
-on the :doc:`Packages details <Packages_details>` doc page.
+files to LAMMPS or as part of a :doc:`package <Packages_list>`.  All
+packages are listed and described on the :doc:`Packages details
+<Packages_details>` doc page.
 
 Note that by providing us files to release, you are agreeing to make
 them open-source, i.e. we can release them under the terms of the GPL
@@ -61,7 +62,7 @@ them open-source, i.e. we can release them under the terms of the GPL
 a LGPL (version 2.1) distribution that we make available to developers
 on request only and with files that are authorized for that kind of
 distribution removed (e.g. interface to FFTW).  See the
-:doc:`LAMMPS license <Intro_opensource>` doc page for details.
+:doc:`LAMMPS license <Intro_opensource>` page for details.
 
 .. note::
 
@@ -79,7 +80,7 @@ distribution removed (e.g. interface to FFTW).  See the
 
 .. _lws: https://www.lammps.org
 
-The previous sections of this doc page describe how to add new "style"
+The previous sections of this page describe how to add new "style"
 files of various kinds to LAMMPS.  Packages are simply collections of
 one or more new class files which are invoked as a new style within a
 LAMMPS input script.  If designed correctly, these additions typically
@@ -92,7 +93,7 @@ trivial change is making a parent-class method "virtual" when you derive
 a new child class from it.
 
 Here is a checklist of steps you need to follow to submit a single file
-or user package for our consideration.  Following these steps will save
+or package for our consideration.  Following these steps will save
 both you and us time. Please have a look at the existing files in
 packages in the src directory for examples. If you are uncertain, please ask.
 
@@ -106,7 +107,7 @@ packages in the src directory for examples. If you are uncertain, please ask.
   your contribution(s) to be added to main LAMMPS code or one of its
   standard packages, it needs to be written in a style compatible with
   other LAMMPS source files. This means: 2-character indentation per
-  level, **no tabs**\ , no lines over 100 characters. I/O is done via
+  level, **no tabs**, no lines over 100 characters. I/O is done via
   the C-style stdio library (mixing of stdio and iostreams is generally
   discouraged), class header files should not import any system headers
   outside of <cstdio>, STL containers should be avoided in headers,
@@ -150,37 +151,40 @@ packages in the src directory for examples. If you are uncertain, please ask.
   You may also use ``// clang-format on/off`` throughout your file
   to protect sections of the file from being reformatted.
 
-* If you want your contribution to be added as a user-contributed
-  feature, and it's a single file (actually a \*.cpp and \*.h file) it can
-  rapidly be added to the USER-MISC directory.  Send us the one-line
-  entry to add to the USER-MISC/README file in that dir, along with the
-  2 source files.  You can do this multiple times if you wish to
-  contribute several individual features.
+* Please review the list of :doc:`available Packages <Packages_details>`
+  to see if your contribution could be added to be added to one of them.
+  It should fit into the general purposed of that package.  If it does not
+  fit well, it can be added to one of the EXTRA- packages or the MISC package.
 
-* If you want your contribution to be added and it has several related
-  features or is dependent on an external or bundled library, it is best
-  to make it a package directory with a name like FOO.  In addition to
-  your new files, the directory should contain a README text file.  The
-  README should contain your name and contact information and a brief
-  description of what your new package does.  If your files depend on
-  other LAMMPS style files also being installed (e.g. because your file
-  is a derived class from the other LAMMPS class), then an Install.sh
-  file is also needed to check for those dependencies.  See other README
-  and Install.sh files in other directories as examples.  Submit a pull
-  request on GitHub or send us a tarball of this FOO directory.  Pull
-  requests are strongly encouraged since the greatly reduce the effort
-  to integrate a contribution and simplify the process of adjusting the
-  contributed code to cleanly integrate into the LAMMPS distribution.
+* If your contribution has several related features that are not covered
+  by one of the existing packages or is dependent on a library (bundled
+  or external), it is best to make it a package directory with a name
+  like FOO.  In addition to your new files, the directory should contain
+  a README text file.  The README should contain your name and contact
+  information and a brief description of what your new package does.  If
+  your files depend on other LAMMPS style files also being installed
+  (e.g. because your file is a derived class from the other LAMMPS
+  class), then an Install.sh file is also needed to check for those
+  dependencies and modifications to src/Depend.sh to trigger the checks.
+  See other README and Install.sh files in other directories as examples.
+  Similarly for CMake support changes need to be made to cmake/CMakeLists.txt,
+  the files in cmake/presets, and possibly a file to cmake/Modules/Packages/
+  added.  Please check out how this is handled for existing packages and
+  ask the LAMMPS developers if you need assistance.  Please submit a pull
+  request on GitHub or send us a tarball of this FOO directory and all
+  modified files.  Pull requests are strongly encouraged since they greatly
+  reduce the effort required to integrate a contribution and simplify the
+  process of adjusting the contributed code to cleanly fit into the
+  LAMMPS distribution.
 
 * Your new source files need to have the LAMMPS copyright, GPL notice,
   and your name and email address at the top, like other
   user-contributed LAMMPS source files.  They need to create a class
-  that is inside the LAMMPS namespace.  If the file is for one of the
-  USER packages, including USER-MISC, then we are not as picky about the
-  coding style (see above).  I.e. the files do not need to be in the
-  same stylistic format and syntax as other LAMMPS files, though that
-  would be nice for developers as well as users who try to read your
-  code.
+  that is inside the LAMMPS namespace.  To simplify maintenance, we
+  may ask to adjust the programming style and formatting style to closer
+  match the rest of LAMMPS.  We bundle a clang-format configuration file
+  that can help with adjusting the formatting, although this is not a
+  strict requirement.
 
 * You **must** also create a **documentation** file for each new command
   or style you are adding to LAMMPS.  For simplicity and convenience,
@@ -199,13 +203,13 @@ packages in the src directory for examples. If you are uncertain, please ask.
   pdf" in the doc folder.  As appropriate, the text files can include
   inline mathematical expression or figures (see doc/JPG for examples).
   Additional PDF files with further details (see doc/PDF for examples)
-  may also be included.  The doc page should also include literature
+  may also be included.  The page should also include literature
   citations as appropriate; see the bottom of doc/fix_nh.rst for
   examples and the earlier part of the same file for how to format the
   cite itself.  Citation labels must be unique across all .rst files.
-  The "Restrictions" section of the doc page should indicate if your
+  The "Restrictions" section of the page should indicate if your
   command is only available if LAMMPS is built with the appropriate
-  USER-MISC or FOO package.  See other package doc files for examples of
+  FOO package.  See other package doc files for examples of
   how to do this.  Please run at least "make html" and "make spelling"
   and carefully inspect and proofread the resulting HTML format doc page
   before submitting your code.  Upon submission of a pull request,

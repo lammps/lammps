@@ -140,7 +140,7 @@ control file.  Note: Force field files are different for the original
 or lg corrected pair styles, using the wrong ffield file generates an
 error.
 
-Using the optional keyword *enobonds* with the value *yes*\ , the energy
+Using the optional keyword *enobonds* with the value *yes*, the energy
 of atoms with no bonds (i.e. isolated atoms) is included in the total
 potential energy and the per-atom energy of that atom.  If the value
 *no* is specified then the energy of atoms with no bonds is set to
@@ -148,7 +148,7 @@ zero.  The latter behavior is usual not desired, as it causes
 discontinuities in the potential energy when the bonding of an atom
 drops to zero.
 
-Optional keywords *safezone*\ , *mincap*\ , and *minhbonds* are used
+Optional keywords *safezone*, *mincap*, and *minhbonds* are used
 for allocating reaxff arrays.  Increasing these values can avoid memory
 problems, such as segmentation faults and bondchk failed errors, that
 could occur under certain conditions. These keywords are not used by
@@ -327,7 +327,7 @@ script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 ----------
 
@@ -340,7 +340,7 @@ Restrictions
 
 This pair style is part of the REAXFF package.  It is only enabled
 if LAMMPS was built with that package.
-See the :doc:`Build package <Build_package>` doc page for more info.
+See the :doc:`Build package <Build_package>` page for more info.
 
 The ReaxFF potential files provided with LAMMPS in the potentials
 directory are parameterized for *real* :doc:`units <units>`.  You can use

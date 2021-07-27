@@ -220,7 +220,7 @@ ignored if the *global* or *local* keywords are used, since those
 options choose a z-coordinate for insertion independently.
 
 The vx, vy, and vz components of velocity for the inserted particle
-are set using the values specified for the *vx*\ , *vy*\ , and *vz*
+are set using the values specified for the *vx*, *vy*, and *vz*
 keywords.  Note that normally, new particles should be a assigned a
 negative vertical velocity so that they move towards the surface.  For
 molecules, the same velocity is given to every particle (no rotation
@@ -295,9 +295,6 @@ of this fix can be used with the *start/stop* keywords of the
 
 Restrictions
 """"""""""""
-
-This fix is part of the MISC package.  It is only enabled if LAMMPS
-was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 The specified insertion region cannot be a "dynamic" region, as
 defined by the :doc:`region <region>` command.

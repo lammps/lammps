@@ -49,7 +49,7 @@ style, use the :doc:`pair_style hybrid/overlay <pair_hybrid>` command to
 compute both the desired pair interaction and the thermostat for each
 pair of particles.
 
-For the style *dpd/ext*\ , the force on atom I due to atom J is given as
+For the style *dpd/ext*, the force on atom I due to atom J is given as
 a sum of 3 terms
 
 .. math::
@@ -78,12 +78,12 @@ unit matrix, :math:`\sigma_{\alpha} = \sqrt{2 k T \gamma_{\alpha}}`,
 where :math:`k` is the Boltzmann constant and :math:`T` is the
 temperature in the pair\_style command.
 
-For the style *dpd/ext/tstat*\ , the force on atom I due to atom J is
+For the style *dpd/ext/tstat*, the force on atom I due to atom J is
 the same as the above equation, except that the conservative
 :math:`\mathbf{f}^C` term is dropped. Also, during the run, T is set
 each timestep to a ramped value from Tstart to Tstop.
 
-For the style *dpd/ext*\ , the pairwise energy associated with style
+For the style *dpd/ext*, the pairwise energy associated with style
 *dpd/ext* is only due to the conservative force term
 :math:`\mathbf{f}^C`, and is shifted to be zero at the cutoff distance
 :math:`r_c`. The pairwise virial is calculated using all three
@@ -95,7 +95,7 @@ same as the above equation, except that the conservative
 :math:`\mathbf{f}^C` term is dropped.  Also, during the run, T is set
 each timestep to a ramped value from Tstart to Tstop.
 
-For the style *dpd/ext*\ , the pairwise energy associated with style
+For the style *dpd/ext*, the pairwise energy associated with style
 *dpd/ext* is only due to the conservative force term
 :math:`\mathbf{f}^C`, and is shifted to be zero at the cutoff distance
 :math:`r_c`. The pairwise virial is calculated using all three
@@ -157,7 +157,7 @@ energy and pressure.
 
 The pair styles can only be used via the pair keyword of the
 :doc:`run_style respa <run_style>` command. They do not support the
-*inner*\ , *middle*\ , and *outer*\ keywords.
+*inner*, *middle*, and *outer*\ keywords.
 
 The style *dpd/ext/tstat* can ramp its target temperature over multiple
 runs, using the start and stop keywords of the :doc:`run <run>`
@@ -171,7 +171,7 @@ Restrictions
 
 These styles are part of the DPD-BASIC package.  They are only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package
-<Build_package>` doc page for more info.
+<Build_package>` page for more info.
 
 The default frequency for rebuilding neighbor lists is every 10 steps
 (see the :doc:`neigh_modify <neigh_modify>` command). This may be too

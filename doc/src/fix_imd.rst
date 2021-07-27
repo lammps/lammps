@@ -78,7 +78,7 @@ fixes would be active at the same time, each needs to use a different
 port number.
 
 The *nowait* keyword controls the behavior of the fix when no IMD
-client is connected. With the default setting of *off*\ , LAMMPS will
+client is connected. With the default setting of *off*, LAMMPS will
 wait until a connection is made before continuing with the
 execution. Setting *nowait* to *on* will have the LAMMPS code be ready
 to connect to a client, but continue with the simulation. This can for
@@ -150,7 +150,7 @@ Restrictions
 """"""""""""
 
 This fix is part of the MISC package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 When used in combination with VMD, a topology or coordinate file has
 to be loaded, which matches (in number and ordering of atoms) the

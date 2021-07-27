@@ -408,7 +408,7 @@ relative RMS error.
 
 ----------
 
-Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
+Styles with a *gpu*, *intel*, *kk*, *omp*, or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
 They have been optimized to run faster, depending on your available
 hardware, as discussed on the :doc:`Speed packages <Speed_packages>` doc
@@ -431,9 +431,9 @@ on the CPU when using OpenMP and FFTW3.
 
 These accelerated styles are part of the GPU, INTEL, KOKKOS,
 OPENMP, and OPT packages respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` doc page for more info.
+LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` page for more info.
 
-See the :doc:`Speed packages <Speed_packages>` doc page for more
+See the :doc:`Speed packages <Speed_packages>` page for more
 instructions on how to use the accelerated styles effectively.
 
 ----------
@@ -445,19 +445,19 @@ Note that the long-range electrostatic solvers in LAMMPS assume conducting
 metal (tinfoil) boundary conditions for both charge and dipole
 interactions. Vacuum boundary conditions are not currently supported.
 
-The *ewald/disp*\ , *ewald*\ , *pppm*\ , and *msm* styles support
+The *ewald/disp*, *ewald*, *pppm*, and *msm* styles support
 non-orthogonal (triclinic symmetry) simulation boxes. However,
 triclinic simulation cells may not yet be supported by all suffix
 versions of these styles.
 
 Most of the base kspace styles are part of the KSPACE package.  They are
 only enabled if LAMMPS was built with that package.  See the :doc:`Build
-package <Build_package>` doc page for more info.
+package <Build_package>` page for more info.
 
 The *msm/dielectric* and *pppm/dielectric* kspace styles are part of the
 DIELECTRIC package. They are only enabled if LAMMPS was built with
 that package **and** the KSPACE package.  See the :doc:`Build package
-<Build_package>` doc page for more info.
+<Build_package>` page for more info.
 
 For MSM, a simulation must be 3d and one can use any combination of
 periodic, non-periodic, or shrink-wrapped boundaries (specified using

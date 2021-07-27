@@ -49,7 +49,7 @@ command's documentation for the formula it computes.
 COMPASS is a general force field for atomistic simulation of common
 organic molecules, inorganic small molecules, and polymers which was
 developed using ab initio and empirical parameterization techniques.
-See the :doc:`Tools <Tools>` doc page for the msi2lmp tool for creating
+See the :doc:`Tools <Tools>` page for the msi2lmp tool for creating
 LAMMPS template input and data files from BIOVIA's Materials Studio
 files.  Please note that the msi2lmp tool is very old and largely
 unmaintained, so it does not support all features of Materials Studio

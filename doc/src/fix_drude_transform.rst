@@ -152,7 +152,7 @@ temperatures of cores and Drude particles, in center-of-mass and
 relative coordinates, are calculated using :doc:`compute temp/drude <compute_temp_drude>`
 
 In addition, if you want to use a barostat to simulate a system at
-constant pressure, only one of the Nose-Hoover fixes must be *npt*\ ,
+constant pressure, only one of the Nose-Hoover fixes must be *npt*,
 the other one should be *nvt*\ . You must add a *compute temp/com* and a
 *fix_modify* command so that the temperature of the *npt* fix be just
 that of its group (the Drude cores) but the pressure be the overall

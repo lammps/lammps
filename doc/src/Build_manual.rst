@@ -204,9 +204,9 @@ be multiple tests run automatically:
 
   .. parsed-literal::
 
-     Found 74 packages
-     Standard package NEWPACKAGE missing in Packages_standard.rst
-     Standard package NEWPACKAGE missing in Packages_details.rst
+     Found 88 packages
+     Package NEWPACKAGE missing in Packages_list.rst
+     Package NEWPACKAGE missing in Packages_details.rst
 
 - A test that only standard, printable ASCII text characters are used.
   This runs the command ``env LC_ALL=C grep -n '[^ -~]' src/*.rst`` and

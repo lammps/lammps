@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -18,16 +17,16 @@
 
 #include "angle_dipole.h"
 
-#include <cmath>
 #include "atom.h"
-#include "neighbor.h"
-#include "domain.h"
 #include "comm.h"
+#include "domain.h"
+#include "error.h"
 #include "force.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
+#include "neighbor.h"
 
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -55,16 +54,16 @@ AngleDipole::~AngleDipole()
 
 void AngleDipole::compute(int eflag, int vflag)
 {
-  int iRef,iDip,iDummy,n,type;
-  double delx,dely,delz;
-  double eangle,tangle,fi[3],fj[3];
-  double r,cosGamma,deltaGamma,kdg,rmu;
+  int iRef, iDip, iDummy, n, type;
+  double delx, dely, delz;
+  double eangle, tangle, fi[3], fj[3];
+  double r, cosGamma, deltaGamma, kdg, rmu;
 
   eangle = 0.0;
-  ev_init(eflag,vflag);
+  ev_init(eflag, vflag);
 
-  double **x = atom->x; // position vector
-  double **mu = atom->mu; // point-dipole components and moment magnitude
+  double **x = atom->x;      // position vector
+  double **mu = atom->mu;    // point-dipole components and moment magnitude
   double **torque = atom->torque;
   int **anglelist = neighbor->anglelist;
   int nanglelist = neighbor->nanglelist;
@@ -75,45 +74,44 @@ void AngleDipole::compute(int eflag, int vflag)
   double delTx, delTy, delTz;
   double fx, fy, fz, fmod, fmod_sqrtff;
 
-  if (!newton_bond)
-    error->all(FLERR,"'newton' flag for bonded interactions must be 'on'");
+  if (!newton_bond) error->all(FLERR, "'newton' flag for bonded interactions must be 'on'");
 
   for (n = 0; n < nanglelist; n++) {
-    iDip = anglelist[n][0]; // dipole whose orientation is to be restrained
-    iRef = anglelist[n][1]; // reference atom toward which dipole will point
-    iDummy = anglelist[n][2]; // dummy atom - irrelevant to the interaction
+    iDip = anglelist[n][0];      // dipole whose orientation is to be restrained
+    iRef = anglelist[n][1];      // reference atom toward which dipole will point
+    iDummy = anglelist[n][2];    // dummy atom - irrelevant to the interaction
     type = anglelist[n][3];
 
     delx = x[iRef][0] - x[iDip][0];
     dely = x[iRef][1] - x[iDip][1];
     delz = x[iRef][2] - x[iDip][2];
 
-    r = sqrt(delx*delx + dely*dely + delz*delz);
+    r = sqrt(delx * delx + dely * dely + delz * delz);
 
     rmu = r * mu[iDip][3];
-    cosGamma = (mu[iDip][0]*delx+mu[iDip][1]*dely+mu[iDip][2]*delz) / rmu;
+    cosGamma = (mu[iDip][0] * delx + mu[iDip][1] * dely + mu[iDip][2] * delz) / rmu;
     deltaGamma = cosGamma - cos(gamma0[type]);
     kdg = k[type] * deltaGamma;
 
-    if (eflag) eangle = kdg * deltaGamma; // energy
+    if (eflag) eangle = kdg * deltaGamma;    // energy
 
     tangle = 2.0 * kdg / rmu;
 
-    delTx = tangle * (dely*mu[iDip][2] - delz*mu[iDip][1]);
-    delTy = tangle * (delz*mu[iDip][0] - delx*mu[iDip][2]);
-    delTz = tangle * (delx*mu[iDip][1] - dely*mu[iDip][0]);
+    delTx = tangle * (dely * mu[iDip][2] - delz * mu[iDip][1]);
+    delTy = tangle * (delz * mu[iDip][0] - delx * mu[iDip][2]);
+    delTz = tangle * (delx * mu[iDip][1] - dely * mu[iDip][0]);
 
     torque[iDip][0] += delTx;
     torque[iDip][1] += delTy;
     torque[iDip][2] += delTz;
 
     // Force couple that counterbalances dipolar torque
-    fx = dely*delTz - delz*delTy; // direction (fi): - r x (-T)
-    fy = delz*delTx - delx*delTz;
-    fz = delx*delTy - dely*delTx;
+    fx = dely * delTz - delz * delTy;    // direction (fi): - r x (-T)
+    fy = delz * delTx - delx * delTz;
+    fz = delx * delTy - dely * delTx;
 
-    fmod = sqrt(delTx*delTx + delTy*delTy + delTz*delTz) / r; // magnitude
-    fmod_sqrtff = fmod / sqrt(fx*fx + fy*fy + fz*fz);
+    fmod = sqrt(delTx * delTx + delTy * delTy + delTz * delTz) / r;    // magnitude
+    fmod_sqrtff = fmod / sqrt(fx * fx + fy * fy + fz * fz);
 
     fi[0] = fx * fmod_sqrtff;
     fi[1] = fy * fmod_sqrtff;
@@ -131,9 +129,9 @@ void AngleDipole::compute(int eflag, int vflag)
     f[iRef][1] += fi[1];
     f[iRef][2] += fi[2];
 
-    if (evflag) // virial = rij.fi = 0 (fj = -fi & fk = 0)
-      ev_tally(iRef,iDip,iDummy,nlocal,newton_bond,eangle,fj,fi,
-               0.0,0.0,0.0,0.0,0.0,0.0);
+    if (evflag)    // virial = rij.fi = 0 (fj = -fi & fk = 0)
+      ev_tally(iRef, iDip, iDummy, nlocal, newton_bond, eangle, fj, fi, 0.0, 0.0, 0.0, 0.0, 0.0,
+               0.0);
   }
 }
 
@@ -144,10 +142,10 @@ void AngleDipole::allocate()
   allocated = 1;
   int n = atom->nangletypes;
 
-  memory->create(k,n+1,"angle:k");
-  memory->create(gamma0,n+1,"angle:gamma0");
+  memory->create(k, n + 1, "angle:k");
+  memory->create(gamma0, n + 1, "angle:gamma0");
 
-  memory->create(setflag,n+1,"angle:setflag");
+  memory->create(setflag, n + 1, "angle:setflag");
   for (int i = 1; i <= n; i++) setflag[i] = 0;
 }
 
@@ -157,26 +155,36 @@ void AngleDipole::allocate()
 
 void AngleDipole::coeff(int narg, char **arg)
 {
-  if (narg != 3) error->all(FLERR,"Incorrect args for angle coefficients");
+  if (narg != 3) error->all(FLERR, "Incorrect args for angle coefficients");
   if (!allocated) allocate();
 
-  int ilo,ihi;
-  utils::bounds(FLERR,arg[0],1,atom->nangletypes,ilo,ihi,error);
+  int ilo, ihi;
+  utils::bounds(FLERR, arg[0], 1, atom->nangletypes, ilo, ihi, error);
 
-  double k_one = utils::numeric(FLERR,arg[1],false,lmp);
-  double gamma0_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double k_one = utils::numeric(FLERR, arg[1], false, lmp);
+  double gamma0_one = utils::numeric(FLERR, arg[2], false, lmp);
 
   // convert gamma0 from degrees to radians
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
     k[i] = k_one;
-    gamma0[i] = gamma0_one/180.0 * MY_PI;
+    gamma0[i] = gamma0_one / 180.0 * MY_PI;
     setflag[i] = 1;
     count++;
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for angle coefficients");
+  if (count == 0) error->all(FLERR, "Incorrect args for angle coefficients");
+}
+
+/* ----------------------------------------------------------------------
+   set coeffs for one or more types
+------------------------------------------------------------------------- */
+
+void AngleDipole::init_style()
+{
+  if (!atom->mu_flag || !atom->torque_flag)
+    error->all(FLERR,"Angle style dipole requires atom attributes mu and torque");
 }
 
 /* ----------------------------------------------------------------------
@@ -194,8 +202,8 @@ double AngleDipole::equilibrium_angle(int i)
 
 void AngleDipole::write_restart(FILE *fp)
 {
-  fwrite(&k[1],sizeof(double),atom->nangletypes,fp);
-  fwrite(&gamma0[1],sizeof(double),atom->nangletypes,fp);
+  fwrite(&k[1], sizeof(double), atom->nangletypes, fp);
+  fwrite(&gamma0[1], sizeof(double), atom->nangletypes, fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -207,11 +215,11 @@ void AngleDipole::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    utils::sfread(FLERR,&k[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
-    utils::sfread(FLERR,&gamma0[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+    utils::sfread(FLERR, &k[1], sizeof(double), atom->nangletypes, fp, nullptr, error);
+    utils::sfread(FLERR, &gamma0[1], sizeof(double), atom->nangletypes, fp, nullptr, error);
   }
-  MPI_Bcast(&k[1],atom->nangletypes,MPI_DOUBLE,0,world);
-  MPI_Bcast(&gamma0[1],atom->nangletypes,MPI_DOUBLE,0,world);
+  MPI_Bcast(&k[1], atom->nangletypes, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&gamma0[1], atom->nangletypes, MPI_DOUBLE, 0, world);
 
   for (int i = 1; i <= atom->nangletypes; i++) setflag[i] = 1;
 }
@@ -222,8 +230,7 @@ void AngleDipole::read_restart(FILE *fp)
 
 void AngleDipole::write_data(FILE *fp)
 {
-  for (int i = 1; i <= atom->nangletypes; i++)
-    fprintf(fp,"%d %g %g\n",i,k[i],gamma0[i]);
+  for (int i = 1; i <= atom->nangletypes; i++) fprintf(fp, "%d %g %g\n", i, k[i], gamma0[i]);
 }
 
 /* ----------------------------------------------------------------------
@@ -232,20 +239,20 @@ void AngleDipole::write_data(FILE *fp)
 
 double AngleDipole::single(int type, int iRef, int iDip, int /*iDummy*/)
 {
-  double **x = atom->x; // position vector
-  double **mu = atom->mu; // point-dipole components and moment magnitude
+  double **x = atom->x;      // position vector
+  double **mu = atom->mu;    // point-dipole components and moment magnitude
 
   double delx = x[iRef][0] - x[iDip][0];
   double dely = x[iRef][1] - x[iDip][1];
   double delz = x[iRef][2] - x[iDip][2];
 
-  domain->minimum_image(delx,dely,delz);
+  domain->minimum_image(delx, dely, delz);
 
-  double r = sqrt(delx*delx + dely*dely + delz*delz);
+  double r = sqrt(delx * delx + dely * dely + delz * delz);
   double rmu = r * mu[iDip][3];
-  double cosGamma = (mu[iDip][0]*delx+mu[iDip][1]*dely+mu[iDip][2]*delz) / rmu;
+  double cosGamma = (mu[iDip][0] * delx + mu[iDip][1] * dely + mu[iDip][2] * delz) / rmu;
   double deltaGamma = cosGamma - cos(gamma0[type]);
   double kdg = k[type] * deltaGamma;
 
-  return kdg * deltaGamma; // energy
+  return kdg * deltaGamma;    // energy
 }

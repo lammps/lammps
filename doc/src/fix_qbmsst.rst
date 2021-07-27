@@ -100,10 +100,10 @@ command :doc:`fix qtb <fix_qtb>` at constant temperature *T_init* could
 be used before applying this command to introduce self-consistent
 quantum nuclear effects into the initial state.
 
-The parameters *q*\ , *mu*\ , *e0*\ , *p0*\ , *v0* and *tscale* are described
-in the command :doc:`fix msst <fix_msst>`. The values of *e0*\ , *p0*\ , or
+The parameters *q*, *mu*, *e0*, *p0*, *v0* and *tscale* are described
+in the command :doc:`fix msst <fix_msst>`. The values of *e0*, *p0*, or
 *v0* will be calculated on the first step if not specified.  The
-parameter of *damp*\ , *f_max*, and *N_f* are described in the command
+parameter of *damp*, *f_max*, and *N_f* are described in the command
 :doc:`fix qtb <fix_qtb>`.
 
 The *fix qbmsst* command couples the shock system to a quantum thermal
@@ -152,8 +152,8 @@ Because the state of the random number generator is not written to
 "exactly" in an uninterrupted fashion. However, in a statistical
 sense, a restarted simulation should produce similar behaviors of the
 system as if it is not interrupted.  To achieve such a restart, one
-should write explicitly the same value for *q*\ , *mu*\ , *damp*\ ,
-*f_max*, *N_f*, *eta*\ , and *beta* and set *tscale* = 0 if the system
+should write explicitly the same value for *q*, *mu*, *damp*,
+*f_max*, *N_f*, *eta*, and *beta* and set *tscale* = 0 if the system
 is compressed during the first run.
 
 The cumulative energy change in the system imposed by this fix is
@@ -177,7 +177,7 @@ integration of the dynamic equations.
 The global vector contains five values in the following order.  The
 vector values output by this fix are "intensive".
 
-[\ *dhugoniot*\ , *drayleigh*\ , *lagrangian_speed*, *lagrangian_position*,
+[\ *dhugoniot*, *drayleigh*, *lagrangian_speed*, *lagrangian_position*,
 *quantum_temperature*]
 
 1. *dhugoniot* is the departure from the Hugoniot (temperature units).
@@ -210,7 +210,7 @@ Restrictions
 
 This fix style is part of the QTB package.  It is only enabled if
 LAMMPS was built with that package. See the :doc:`Build package
-<Build_package>` doc page for more info.
+<Build_package>` page for more info.
 
 All cell dimensions must be periodic. This fix can not be used with a
 triclinic cell.  The QBMSST fix has been tested only for the group-ID

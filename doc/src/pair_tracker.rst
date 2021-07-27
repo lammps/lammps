@@ -84,7 +84,7 @@ This pair style is currently incompatible with granular pair styles that extend
 beyond the contact (e.g. JKR and DMT).
 
 This fix is part of the MISC package.  It is only enabled if LAMMPS
-was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

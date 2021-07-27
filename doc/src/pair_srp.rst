@@ -91,7 +91,7 @@ is used.
 .. note::
 
    Pair style srp considers each bond of type *btype* to be a
-   fictitious "particle" of type *bptype*\ , where *bptype* is either the
+   fictitious "particle" of type *bptype*, where *bptype* is either the
    largest atom type in the system, or the type set by the *bptype* flag.
    Any actual existing particles with this atom type will be deleted at
    the beginning of a run. This means you must specify the number of
@@ -108,7 +108,7 @@ is used.
 
 The optional *exclude* keyword determines if forces are computed
 between first neighbor (directly connected) bonds.  For a setting of
-*no*\ , first neighbor forces are computed; for *yes* they are not
+*no*, first neighbor forces are computed; for *yes* they are not
 computed. A setting of *no* cannot be used with the *min* option for
 distance calculation because the minimum distance between directly
 connected bonds is zero.
@@ -143,14 +143,14 @@ specified in the input script when reading a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 ----------
 
 Restrictions
 """"""""""""
 
-This pair style is part of the USER-MISC package. It is only enabled
+This pair style is part of the MISC package. It is only enabled
 if LAMMPS was built with that package. See the Making LAMMPS section
 for more info.
 

@@ -124,7 +124,7 @@ This compute calculates a global scalar (the pressure) and a global
 vector of length 6 (pressure tensor), which can be accessed by indices
 1-6.  These values can be used by any command that uses global scalar
 or vector values from a compute as input.  See the :doc:`Howto output
-<Howto_output>` doc page for an overview of LAMMPS output options.
+<Howto_output>` page for an overview of LAMMPS output options.
 
 The ordering of values in the symmetric pressure tensor is as follows:
 pxx, pyy, pzz, pxy, pxz, pyz.

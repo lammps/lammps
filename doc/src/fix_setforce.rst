@@ -54,8 +54,8 @@ Any of the fx,fy,fz values can be specified as NULL which means do not
 alter the force component in that dimension.
 
 Any of the 3 quantities defining the force components can be specified
-as an equal-style or atom-style :doc:`variable <variable>`, namely *fx*\ ,
-*fy*\ , *fz*\ .  If the value is a variable, it should be specified as
+as an equal-style or atom-style :doc:`variable <variable>`, namely *fx*,
+*fy*, *fz*\ .  If the value is a variable, it should be specified as
 v_name, where name is the variable name.  In this case, the variable
 will be evaluated each timestep, and its value used to determine the
 force component.
@@ -89,7 +89,7 @@ precession vectors instead of the forces.
 
 ----------
 
-Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
+Styles with a *gpu*, *intel*, *kk*, *omp*, or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
 They have been optimized to run faster, depending on your available
 hardware, as discussed on the :doc:`Speed packages <Speed_packages>` doc
@@ -101,13 +101,13 @@ region must be used. See the region :doc:`region <region>` command for
 more information.
 
 These accelerated styles are part of the r Kokkos package.  They are
-only enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+only enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
 :doc:`suffix <suffix>` command in your input script.
 
-See the :doc:`Speed packages <Speed_packages>` doc page for more
+See the :doc:`Speed packages <Speed_packages>` page for more
 instructions on how to use the accelerated styles effectively.
 
 ----------

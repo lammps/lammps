@@ -66,7 +66,7 @@ The *types* keyword is required. At least two atom types must be
 specified.
 
 The *ke* keyword can be set to *no* to turn off kinetic energy
-conservation for swaps. The default is *yes*\ , which means that swapped
+conservation for swaps. The default is *yes*, which means that swapped
 atoms have their velocities scaled by the ratio of the masses of the
 swapped atom types. This ensures that the kinetic energy of each atom
 is the same after the swap as it was before the swap, even though the
@@ -75,12 +75,12 @@ atom masses have changed.
 The *semi-grand* keyword can be set to *yes* to switch to the
 semi-grand canonical ensemble as discussed in :ref:`(Sadigh) <Sadigh>`. This
 means that the total number of each particle type does not need to be
-conserved. The default is *no*\ , which means that the only kind of swap
+conserved. The default is *no*, which means that the only kind of swap
 allowed exchanges an atom of one type with an atom of a different
 given type. In other words, the relative mole fractions of the swapped
 atoms remains constant. Whereas in the semi-grand canonical ensemble,
 the composition of the system can change. Note that when using
-*semi-grand*\ , atoms in the fix group whose type is not listed
+*semi-grand*, atoms in the fix group whose type is not listed
 in the *types* keyword are ineligible for attempted
 conversion. An attempt is made to switch
 the selected atom (if eligible) to one of the other listed types
@@ -111,7 +111,7 @@ If not using *semi-grand* this fix checks to ensure all atoms of the
 given types have the same atomic charge. LAMMPS does not enforce this
 in general, but it is needed for this fix to simplify the
 swapping procedure. Successful swaps will swap the atom type and charge
-of the swapped atoms. Conversely, when using *semi-grand*\ , it is assumed that all the atom
+of the swapped atoms. Conversely, when using *semi-grand*, it is assumed that all the atom
 types involved in switches have the same charge. Otherwise, charge
 would not be conserved. As a consequence, no checks on atomic charges are
 performed, and successful switches update the atom type but not the

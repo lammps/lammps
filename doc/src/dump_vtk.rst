@@ -70,7 +70,7 @@ determine the kind of output.
    of which owns a subset of the atoms.
 
 For the *vtk* style, sorting is off by default. See the
-:doc:`dump_modify <dump_modify>` doc page for details.
+:doc:`dump_modify <dump_modify>` page for details.
 
 ----------
 
@@ -88,7 +88,7 @@ hexahedrons in either legacy .vtk or .vtu XML format.
 Style *vtk* allows you to specify a list of atom attributes to be
 written to the dump file for each atom.  The list of possible attributes
 is the same as for the :doc:`dump_style custom <dump>` command; see
-its doc page for a listing and an explanation of each attribute.
+its page for a listing and an explanation of each attribute.
 
 .. note::
 
@@ -163,7 +163,7 @@ Restrictions
 The *vtk* style does not support writing of gzipped dump files.
 
 The *vtk* dump style is part of the VTK package. It is only
-enabled if LAMMPS was built with that package. See the :doc:`Build package <Build_package>` doc page for more info.
+enabled if LAMMPS was built with that package. See the :doc:`Build package <Build_package>` page for more info.
 
 To use this dump style, you also must link to the VTK library.  See
 the info in lib/vtk/README and insure the Makefile.lammps file in that

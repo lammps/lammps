@@ -114,7 +114,7 @@ closer to the MEP and read them in.
 
 ----------
 
-For a *file-style* setting of *final*\ , a filename is specified which
+For a *file-style* setting of *final*, a filename is specified which
 contains atomic and spin coordinates for zero or more atoms, in the
 format described below.
 For each atom that appears in the file, the new coordinates are
@@ -168,12 +168,12 @@ opposite directions, an arbitrary rotation vector belonging to
 the plane perpendicular to initial and final spins is chosen.
 In this case, a warning message is displayed.
 
-For a *file-style* setting of *each*\ , a filename is specified which is
+For a *file-style* setting of *each*, a filename is specified which is
 assumed to be unique to each replica.
 See the :doc:`neb <neb>` documentation page for more information about this
 option.
 
-For a *file-style* setting of *none*\ , no filename is specified.  Each
+For a *file-style* setting of *none*, no filename is specified.  Each
 replica is assumed to already be in its initial configuration at the
 time the neb command is issued.  This allows each replica to define
 its own configuration by reading a replica-specific data or restart or
@@ -196,14 +196,14 @@ that a long calculation can be restarted if needed.
 A NEB calculation proceeds in two stages, each of which is a
 minimization procedure.  To enable
 this, you must first define a
-:doc:`min_style <min_style>`, using either the *spin*\ ,
-*spin/cg*\ , or *spin/lbfgs* style (see
+:doc:`min_style <min_style>`, using either the *spin*,
+*spin/cg*, or *spin/lbfgs* style (see
 :doc:`min_spin <min_spin>` for more information).
 The other styles cannot be used, since they relax the lattice
 degrees of freedom instead of the spins.
 
 The minimizer tolerances for energy and force are set by *etol* and
-*ttol*\ , the same as for the :doc:`minimize <minimize>` command.
+*ttol*, the same as for the :doc:`minimize <minimize>` command.
 
 A non-zero *etol* means that the GNEB calculation will terminate if the
 energy criterion is met by every replica.  The energies being compared

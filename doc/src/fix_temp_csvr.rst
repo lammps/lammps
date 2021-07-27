@@ -85,7 +85,7 @@ time.  Thus it is easy to specify a time-dependent temperature.
    normally be used on atoms that also have their temperature controlled
    by another fix - e.g. by :doc:`fix nvt <fix_nh>` or :doc:`fix langevin <fix_langevin>` commands.
 
-See the :doc:`Howto thermostat <Howto_thermostat>` doc page for a
+See the :doc:`Howto thermostat <Howto_thermostat>` page for a
 discussion of different ways to compute temperature and perform
 thermostatting.
 
@@ -177,6 +177,9 @@ Restrictions
 """"""""""""
 
 Fix *temp/csld* is not compatible with :doc:`fix shake <fix_shake>`.
+
+These fixes are part of the EXTRA-FIX package.  They are only enabled if LAMMPS
+was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 These fixes can be used with dynamic groups as defined by the
 :doc:`group <group>` command.  Likewise it can be used with groups to

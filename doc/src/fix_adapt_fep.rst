@@ -84,13 +84,13 @@ variable that is time-dependent.
 
 Depending on the value of the *reset* keyword, attributes changed by
 this fix will or will not be reset back to their original values at
-the end of a simulation.  Even if *reset* is specified as *yes*\ , a
+the end of a simulation.  Even if *reset* is specified as *yes*, a
 restart file written during a simulation will contain the modified
 settings.
 
-If the *scale* keyword is set to *no*\ , then the value the parameter is
+If the *scale* keyword is set to *no*, then the value the parameter is
 set to will be whatever the variable generates.  If the *scale*
-keyword is set to *yes*\ , then the value of the altered parameter will
+keyword is set to *yes*, then the value of the altered parameter will
 be the initial value of that parameter multiplied by whatever the
 variable generates.  I.e. the variable is now a "scale factor" applied
 in (presumably) a time-varying fashion to the parameter.  Internally,
@@ -98,7 +98,7 @@ the parameters themselves are actually altered; make sure you use the
 *reset yes* option if you want the parameters to be restored to their
 initial values after the run.
 
-If the *after* keyword is set to *yes*\ , then the parameters are
+If the *after* keyword is set to *yes*, then the parameters are
 changed one timestep after the multiple of N. In this manner, if a fix
 such as "fix ave/time" is used to calculate averages at every N
 timesteps, all the contributions to the average will be obtained with

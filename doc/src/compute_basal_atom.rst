@@ -42,7 +42,7 @@ too frequently or to have multiple compute/dump commands, each of
 which computes this quantity.
 
 An example input script that uses this compute is provided
-in examples/USER-MISC/basal.
+in examples/PACKAGES/basal.
 
 Output info
 """""""""""
@@ -58,8 +58,8 @@ components of a unit vector.
 Restrictions
 """"""""""""
 
-This compute is part of the USER-MISC package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+This compute is part of the EXTRA-COMPUTE package.  It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 The output of this compute will be meaningless unless the atoms are on
 (or near) hcp lattice sites, since the calculation assumes a

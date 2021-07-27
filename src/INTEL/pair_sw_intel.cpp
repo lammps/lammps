@@ -97,8 +97,9 @@ void PairSWIntel::compute(int eflag, int vflag,
   ev_init(eflag, vflag);
   if (vflag_atom)
     error->all(FLERR,"INTEL package does not support per-atom stress");
-  if (vflag && !vflag_fdotr)
-    error->all(FLERR,"INTEL package does not support pair_modify nofdotr");
+  if (vflag && !vflag_fdotr && force->newton_pair)
+    error->all(FLERR,"INTEL package does not support pair_modify nofdotr "
+               "with newton on");
 
   const int inum = list->inum;
   const int nthreads = comm->nthreads;
@@ -371,8 +372,12 @@ void PairSWIntel::eval(const int offload, const int vflag,
         }
 
         #if defined(LMP_SIMD_COMPILER)
-        #pragma vector aligned
+#if defined(USE_OMP_SIMD)
+        #pragma omp simd reduction(+:fxtmp, fytmp, fztmp, fwtmp, sevdwl)
+#else
         #pragma simd reduction(+:fxtmp, fytmp, fztmp, fwtmp, sevdwl)
+#endif
+        #pragma vector aligned
         #endif
         for (int jj = 0; jj < ejnum_pad; jj++) {
           acc_t fjxtmp, fjytmp, fjztmp, fjtmp;

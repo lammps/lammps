@@ -144,7 +144,7 @@ void VerletKokkos::setup(int flag)
   }
   else if (force->pair) force->pair->compute_dummy(eflag,vflag);
 
-  if (atomKK->molecular != Atomic::ATOMIC) {
+  if (atomKK->molecular != Atom::ATOMIC) {
     if (force->bond) {
       atomKK->sync(force->bond->execution_space,force->bond->datamask_read);
       force->bond->compute(eflag,vflag);

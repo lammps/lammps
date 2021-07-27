@@ -363,6 +363,8 @@ if(PKG_MSCG OR PKG_ATC OR PKG_AWPMD OR PKG_ML-QUIP OR PKG_LATTE)
   endif()
 endif()
 
+# tweak jpeg library names to avoid linker errors with MinGW cross-compilation
+set(JPEG_NAMES libjpeg libjpeg-62)
 find_package(JPEG QUIET)
 option(WITH_JPEG "Enable JPEG support" ${JPEG_FOUND})
 if(WITH_JPEG)

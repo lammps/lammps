@@ -31,7 +31,7 @@ Description
 Write out the bond information computed by the ReaxFF potential specified
 by :doc:`pair_style reaxff <pair_reaxff>` in the exact same format as the
 original stand-alone ReaxFF code of Adri van Duin.  The bond information
-is written to *filename* on timesteps that are multiples of *Nevery*\ ,
+is written to *filename* on timesteps that are multiples of *Nevery*,
 including timestep 0.  For time-averaged chemical species analysis,
 please see the :doc:`fix reaxff/species <fix_reaxff_species>` command.
 
@@ -78,7 +78,7 @@ Restrictions
 
 The fix reaxff/bonds command requires that the :doc:`pair_style reaxff <pair_reaxff>` is invoked.  This fix is part of the
 REAXFF package.  It is only enabled if LAMMPS was built with that
-package.  See the :doc:`Build package <Build_package>` doc page for more
+package.  See the :doc:`Build package <Build_package>` page for more
 info.
 
 To write gzipped bond files, you must compile LAMMPS with the

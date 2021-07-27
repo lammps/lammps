@@ -71,7 +71,7 @@ by AMD.
 
 **Building LAMMPS with the GPU package:**
 
-See the :ref:`Build extras <gpu>` doc page for
+See the :ref:`Build extras <gpu>` page for
 instructions.
 
 **Run with the GPU package from the command line:**
@@ -118,7 +118,7 @@ automatic selection of the number of GPUs to use.
 Using the "-pk" switch explicitly allows for setting of the number of
 GPUs/node to use and additional options.  Its syntax is the same as
 the "package gpu" command.  See the :doc:`package <package>`
-command doc page for details, including the default values used for
+command page for details, including the default values used for
 all its options if it is not specified.
 
 Note that the default for the :doc:`package gpu <package>` command is to
@@ -182,7 +182,7 @@ deterministic results.
   calculations can be dynamically balanced across the CPU cores and
   GPUs.  GPU-specific settings can be made which can be optimized
   for different hardware.  See the :doc:`package <package>` command
-  doc page for details.
+  page for details.
 * As described by the :doc:`package gpu <package>` command, GPU
   accelerated pair styles can perform computations asynchronously with
   CPU computations. The "Pair" time reported by LAMMPS will be the

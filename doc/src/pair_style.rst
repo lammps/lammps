@@ -358,7 +358,7 @@ This command must be used before any coefficients are set by the
 :doc:`read_restart <read_restart>` commands.
 
 Some pair styles are part of specific packages.  They are only enabled
-if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.  The doc pages for
+if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.  The doc pages for
 individual pair potentials tell if it is part of a package.
 
 Related commands

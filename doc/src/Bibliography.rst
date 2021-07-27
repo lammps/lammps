@@ -191,7 +191,7 @@ Bibliography
    A.\  Calhoun, M. Pavese, G. Voth, Chem Phys Letters, 262, 415 (1996).
 
 **(Campana)**
-   C.\  Campana and M. H. Muser, *Practical Green's function approach to the simulation of elastic semi-infinite solids*\ , `Phys. Rev. B [74], 075420 (2006) <https://doi.org/10.1103/PhysRevB.74.075420>`_
+   C.\  Campana and M. H. Muser, *Practical Green's function approach to the simulation of elastic semi-infinite solids*, `Phys. Rev. B [74], 075420 (2006) <https://doi.org/10.1103/PhysRevB.74.075420>`_
 
 **(Cao1)**
    J.\  Cao and B. Berne, J Chem Phys, 99, 2902 (1993).
@@ -767,7 +767,7 @@ Bibliography
    Morris, Fox, Zhu, J Comp Physics, 136, 214-226 (1997).
 
 **(Moustafa)**
-   Sabry G. Moustafa, Andrew J. Schultz, and David A. Kofke, *Very fast averaging of thermal properties of crystals by molecular simulation*\ , `Phys. Rev. E [92], 043303 (2015) <https://link.aps.org/doi/10.1103/PhysRevE.92.043303>`_
+   Sabry G. Moustafa, Andrew J. Schultz, and David A. Kofke, *Very fast averaging of thermal properties of crystals by molecular simulation*, `Phys. Rev. E [92], 043303 (2015) <https://link.aps.org/doi/10.1103/PhysRevE.92.043303>`_
 
 **(Muller-Plathe1)**
    Muller-Plathe, J Chem Phys, 106, 6082 (1997).

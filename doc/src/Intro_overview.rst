@@ -25,7 +25,7 @@ the website for details.  All versions can be downloaded from the
 
 LAMMPS is designed to be easy to modify or extend with new
 capabilities, such as new force fields, atom types, boundary
-conditions, or diagnostics.  See the :doc:`Modify <Modify>` doc page for
+conditions, or diagnostics.  See the :doc:`Modify <Modify>` page for
 more details.
 
 In the most general sense, LAMMPS integrates Newton's equations of

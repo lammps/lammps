@@ -49,11 +49,17 @@ page gives those details.
    * :ref:`DPD-SMOOTH <PKG-DPD-SMOOTH>`
    * :ref:`DRUDE <PKG-DRUDE>`
    * :ref:`EFF <PKG-EFF>`
+   * :ref:`EXTRA-COMPUTE <PKG-EXTRA-COMPUTE>`
+   * :ref:`EXTRA-DUMP <PKG-EXTRA-DUMP>`
+   * :ref:`EXTRA-FIX <PKG-EXTRA-FIX>`
+   * :ref:`EXTRA-MOLECULE <PKG-EXTRA-MOLECULE>`
+   * :ref:`EXTRA-PAIR <PKG-EXTRA-PAIR>`
    * :ref:`FEP <PKG-FEP>`
    * :ref:`GPU <PKG-GPU>`
    * :ref:`GRANULAR <PKG-GRANULAR>`
    * :ref:`H5MD <PKG-H5MD>`
    * :ref:`INTEL <PKG-INTEL>`
+   * :ref:`INTERLAYER <PKG-INTERLAYER>`
    * :ref:`KIM <PKG-KIM>`
    * :ref:`KOKKOS <PKG-KOKKOS>`
    * :ref:`KSPACE <PKG-KSPACE>`
@@ -83,6 +89,7 @@ page gives those details.
    * :ref:`NETCDF <PKG-NETCDF>`
    * :ref:`OPENMP <PKG-OPENMP>`
    * :ref:`OPT <PKG-OPT>`
+   * :ref:`ORIENT <PKG-ORIENT>`
    * :ref:`PERI <PKG-PERI>`
    * :ref:`PHONON <PKG-PHONON>`
    * :ref:`PLUGIN <PKG-PLUGIN>`
@@ -108,7 +115,6 @@ page gives those details.
    * :ref:`VORONOI <PKG-VORONOI>`
    * :ref:`VTK <PKG-VTK>`
    * :ref:`YAFF <PKG-YAFF>`
-   * :ref:`USER-MISC <PKG-USER-MISC>`
 
 ----------
 
@@ -562,6 +568,7 @@ short-range or long-range interactions.
 * :doc:`pair_style lj/cut/dipole/cut <pair_dipole>`
 * :doc:`pair_style lj/cut/dipole/long <pair_dipole>`
 * :doc:`pair_style lj/long/dipole/long <pair_dipole>`
+* :doc: `angle_style dipole <angle_dipole>`
 * examples/dipole
 
 ----------
@@ -755,6 +762,86 @@ tools/eff; see its README file.
 * tools/eff
 * https://www.lammps.org/movies.html#eff
 
+-------------------
+
+.. _PKG-EXTRA-COMPUTE:
+
+EXTRA-COMPUTE package
+---------------------
+
+**Contents:**
+
+Additional compute styles that are less commonly used.
+
+**Supporting info:**
+
+* src/EXTRA-COMPUTE: filenames -> commands
+* :doc:`compute <compute>`
+
+----------
+
+.. _PKG-EXTRA-DUMP:
+
+EXTRA-DUMP package
+------------------
+
+**Contents:**
+
+Additional dump styles that are less commonly used.
+
+**Supporting info:**
+
+* src/EXTRA-DUMP: filenames -> commands
+* :doc:`dump <dump>`
+
+----------
+
+.. _PKG-EXTRA-FIX:
+
+EXTRA-FIX package
+-----------------
+
+**Contents:**
+
+Additional fix styles that are less commonly used.
+
+**Supporting info:**
+
+* src/EXTRA-FIX: filenames -> commands
+* :doc:`fix <fix>`
+
+----------
+
+.. _PKG-EXTRA-MOLECULE:
+
+EXTRA-MOLECULE package
+----------------------
+
+**Contents:**
+
+Additional bond, angle, dihedral, and improper styles that are less commonly used.
+
+**Supporting info:**
+
+* src/EXTRA-MOLECULE: filenames -> commands
+* :doc:`molecular styles <Commands_bond>`
+
+----------
+
+.. _PKG-EXTRA-PAIR:
+
+EXTRA-PAIR package
+------------------
+
+**Contents:**
+
+Additional pair styles that are less commonly used.
+
+**Supporting info:**
+
+* src/EXTRA-PAIR: filenames -> commands
+* :doc:`pair_style <pair_style>`
+
 ----------
 
 .. _PKG-FEP:
@@ -935,6 +1022,24 @@ This package has :ref:`specific installation instructions <intel>` on the :doc:`
   :doc:`pair <Commands_pair>`, :doc:`bond, angle, dihedral, improper <Commands_bond>`, :doc:`kspace <Commands_kspace>`) for styles followed by (i)
 * src/INTEL/TEST
 * `Benchmarks page <https://www.lammps.org/bench.html>`_ of web site
+
+----------
+
+.. _PKG-INTERLAYER:
+
+INTERLAYER package
+------------------
+
+**Contents:**
+
+A collection of pair styles specifically to be used for modeling layered
+materials, most commonly graphene sheets (or equivalents).
+
+**Supporting info:**
+
+* src/INTERLAYER: filenames -> commands
+* :doc:`Pair style <Commands_pair>` page
+* examples/PACKAGES/interlayer
 
 ----------
 
@@ -1428,7 +1533,7 @@ MISC package
 
 **Contents:**
 
-A variety of compute, fix, pair, dump styles with specialized
+A variety of compute, fix, pair, bond styles with specialized
 capabilities that don't align with other packages.  Do a directory
 listing, "ls src/MISC", to see the list of commands.
 
@@ -1440,18 +1545,16 @@ listing, "ls src/MISC", to see the list of commands.
 **Supporting info:**
 
 * src/MISC: filenames -> commands
-* :doc:`compute ti <compute_ti>`
-* :doc:`fix evaporate <fix_evaporate>`
+* :doc:`bond_style special <bond_special>`
+* :doc:`compute viscosity/cos <compute_viscosity_cos>`
+* :doc:`fix accelerate/cos <fix_accelerate_cos>`
 * :doc:`fix imd <fix_imd>`
-* :doc:`fix oneway <fix_oneway>`
-* :doc:`fix orient/fcc <fix_orient>`
-* :doc:`fix ttm <fix_ttm>`
-* :doc:`fix thermal/conductivity <fix_thermal_conductivity>`
-* :doc:`fix viscosity <fix_viscosity>`
-* examples/KAPPA
-* examples/VISCOSITY
-* https://www.lammps.org/pictures.html#ttm
-* https://www.lammps.org/movies.html#evaporation
+* :doc:`fix ipi <fix_ipi>`
+* :doc:`pair_style agni <pair_agni>`
+* :doc:`pair_style list <pair_list>`
+* :doc:`pair_style srp <pair_srp>`
+* :doc:`pair_style tracker <pair_tracker>`
+* :doc:`fix pair/tracker <fix_pair_tracker>`
 
 ----------
 
@@ -1936,6 +2039,23 @@ This package has :ref:`specific installation instructions <opt>` on the :doc:`Bu
 * Search the :doc:`pair style <Commands_pair>` page for styles followed by (t)
 * `Benchmarks page <https://www.lammps.org/bench.html>`_ of web site
 
+.. _PKG-ORIENT:
+
+ORIENT package
+--------------
+
+**Contents:**
+
+A few fixes that apply orientation dependent forces for studying
+grain boundary migration.
+
+**Supporting info:**
+
+* src/ORIENT: filenames -> commands
+* :doc:`fix orient/bcc <fix_orient>`
+* :doc:`fix orient/fcc <fix_orient>`
+* :doc:`fix orient/eco <fix_orient_eco>`
+
 ----------
 
 .. _PKG-PERI:
@@ -2305,10 +2425,13 @@ another set.
 * :doc:`prd <prd>`
 * :doc:`tad <tad>`
 * :doc:`temper <temper>`,
+* :doc:`temper/npt <temper_npt>`,
+* :doc:`temper/grem <temper_grem>`,
 * :doc:`run_style verlet/split <run_style>`
 * examples/neb
 * examples/prd
 * examples/tad
+* examples/PACKAGES/grem
 
 ----------
 
@@ -2658,26 +2781,3 @@ which discuss the `QuickFF <quickff_>`_ methodology.
 * :doc:`pair_style mm3/switch3/coulgauss/long <pair_lj_switch3_coulgauss_long>`
 * :doc:`pair_style lj/switch3/coulgauss/long <pair_lj_switch3_coulgauss_long>`
 * examples/PACKAGES/yaff
-
-----------
-
-.. _PKG-USER-MISC:
-
-USER-MISC package
------------------
-
-**Contents:**
-
-A potpourri of (mostly) unrelated features contributed to LAMMPS by
-users.  Each feature is a single fix, compute, pair, bond, angle,
-dihedral, improper, or command style.
-
-**Authors:** The author for each style in the package is listed in the
-src/USER-MISC/README file.
-
-**Supporting info:**
-
-* src/USER-MISC: filenames -> commands
-* src/USER-MISC/README
-* one page per individual command listed in src/USER-MISC/README
-* examples/USER-MISC

@@ -82,7 +82,7 @@ as sigma.
 Note that not all pair styles support mixing and some mix options
 are not available for certain pair styles. Also, there are additional
 restrictions when using :doc:`pair style hybrid or hybrid/overlay <pair_hybrid>`.
-See the doc page for individual pair styles for those restrictions.  Note also that the
+See the page for individual pair styles for those restrictions.  Note also that the
 :doc:`pair_coeff <pair_coeff>` command also can be used to directly set
 coefficients for a specific I != J pairing, in which case no mixing is
 performed.
@@ -117,7 +117,7 @@ option.
 
 The *table* and *table/disp* keywords apply to pair styles with a
 long-range Coulombic term or long-range dispersion term respectively;
-see the doc page for individual styles to see which potentials support
+see the page for individual styles to see which potentials support
 these options.  If N is non-zero, a table of length 2\^N is
 pre-computed for forces and energies, which can shrink their
 computational cost by up to a factor of 2.  The table is indexed via a
@@ -149,11 +149,11 @@ pairwise interactions are computed via table lookup for simulations
 with "real" units, but some close pairs may be computed directly
 (non-table) for simulations with "lj" units.
 
-When the *tail* keyword is set to *yes*\ , certain pair styles will
+When the *tail* keyword is set to *yes*, certain pair styles will
 add a long-range VanderWaals tail "correction" to the energy and
 pressure.  These corrections are bookkeeping terms which do not affect
 dynamics, unless a constant-pressure simulation is being performed.
-See the doc page for individual styles to see which support this
+See the page for individual styles to see which support this
 option.  These corrections are included in the calculation and
 printing of thermodynamic quantities (see the :doc:`thermo_style
 <thermo_style>` command).  Their effect will also be included in

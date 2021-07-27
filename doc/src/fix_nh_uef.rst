@@ -16,7 +16,7 @@ Syntax
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * style_name = *nvt/uef* or *npt/uef*
-* *Tstart*\ , *Tstop*\ , and *Tdamp* are documented in the :doc:`fix npt <fix_nh>` command
+* *Tstart*, *Tstop*, and *Tdamp* are documented in the :doc:`fix npt <fix_nh>` command
 * *edot_x* and *edot_y* are the strain rates in the x and y directions (1/(time units))
 * one or more keyword/value pairs may be appended
 
@@ -27,7 +27,7 @@ Syntax
          sets the external dimensions used to calculate the scalar pressure
        *strain* values = e_x e_y = initial strain
          usually not needed, but may be needed to resume a run with a data file.
-       *iso*\ , *x*\ , *y*\ , *z*\ , *tchain*\ , *pchain*\ , *tloop*\ , *ploop*\ , *mtk* keywords
+       *iso*, *x*, *y*, *z*, *tchain*, *pchain*, *tloop*, *ploop*, *mtk* keywords
          documented by the :doc:`fix npt <fix_nh>` command
 
 Examples
@@ -111,7 +111,7 @@ pressure using this fix. The first method involves using the *ext*
 keyword along with the *iso* pressure style. With this method, the
 pressure is controlled by scaling the simulation box isotropically to
 achieve the average pressure only in the directions specified by
-*ext*\ .  For example, if the *ext* value is set to *xy*\ , the average
+*ext*\ .  For example, if the *ext* value is set to *xy*, the average
 pressure (Pxx+Pyy)/2 will be controlled.
 
 This example command will control the total hydrostatic pressure under
@@ -130,7 +130,7 @@ drawing with uniaxial tension:
    fix f2 all npt/uef temp 0.7 0.7 0.5 iso 1 1 5 erate -0.5 -0.5 ext xy
 
 The second method for pressure control involves setting the normal
-stresses using the *x*\ , *y* , and/or *z* keywords. When using this
+stresses using the *x*, *y*, and/or *z* keywords. When using this
 method, the same pressure must be specified via *Pstart* and *Pstop*
 for all dimensions controlled. Any choice of pressure conditions that
 would cause LAMMPS to compute a deviatoric stress are not permissible
@@ -200,7 +200,7 @@ Restrictions
 """"""""""""
 
 This fix is part of the UEF package. It is only enabled if LAMMPS
-was built with that package. See the :doc:`Build package <Build_package>` doc page for more info.
+was built with that package. See the :doc:`Build package <Build_package>` page for more info.
 
 Due to requirements of the boundary conditions, when the *strain*
 keyword is set to zero (or unset), the initial simulation box must be

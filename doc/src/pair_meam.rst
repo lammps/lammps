@@ -79,7 +79,7 @@ command, where N is the number of LAMMPS atom types:
 * MEAM parameter file
 * N element names = mapping of MEAM elements to atom types
 
-See the :doc:`pair_coeff <pair_coeff>` doc page for alternate ways
+See the :doc:`pair_coeff <pair_coeff>` page for alternate ways
 to specify the path for the potential files.
 
 As an example, the potentials/library.meam file has generic MEAM
@@ -376,7 +376,7 @@ script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 ----------
 
@@ -385,7 +385,7 @@ Restrictions
 
 The *meam* style is provided in the MEAM package. It is
 only enabled if LAMMPS was built with that package.
-See the :doc:`Build package <Build_package>` doc page for more info.
+See the :doc:`Build package <Build_package>` page for more info.
 
 The maximum number of elements, that can be read from the MEAM
 library file, is determined at compile time. The default is 5.

@@ -13,7 +13,7 @@ Syntax
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * dipole/chunk = style name of this compute command
 * chunkID = ID of :doc:`compute chunk/atom <compute_chunk_atom>` command
-* charge-correction = *mass* or *geometry*\ , use COM or geometric center for charged chunk correction (optional)
+* charge-correction = *mass* or *geometry*, use COM or geometric center for charged chunk correction (optional)
 
 Examples
 """"""""
@@ -84,7 +84,7 @@ chunk/atom <compute_chunk_atom>` command.  The number of columns = 4 for
 the x,y,z dipole vector components and the total dipole of each
 chunk. These values can be accessed by any command that uses global
 array values from a compute as input.  See the :doc:`Howto output
-<Howto_output>` doc page for an overview of LAMMPS output options.
+<Howto_output>` page for an overview of LAMMPS output options.
 
 The array values are "intensive".  The array values will be in
 dipole units, i.e. charge units times distance :doc:`units <units>`.

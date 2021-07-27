@@ -90,7 +90,7 @@ unless small spacing parameters <0.05 Angstrom\^(-1) are implemented.
 Meshes with manual spacing do not require a periodic boundary.
 
 The limits of the reciprocal lattice mesh are determined by the use of
-the *Kmax*\ , *Zone*\ , and *dR_Ewald* parameters.  The rectilinear mesh
+the *Kmax*, *Zone*, and *dR_Ewald* parameters.  The rectilinear mesh
 created about the origin of reciprocal space is terminated at the
 boundary of a sphere of radius *Kmax* centered at the origin.  If
 *Zone* parameters z1=z2=z3=0 are used, diffraction intensities are
@@ -246,7 +246,7 @@ Restrictions
 """"""""""""
 
 This compute is part of the DIFFRACTION package.  It is only
-enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 The compute_saed command does not work for triclinic cells.
 

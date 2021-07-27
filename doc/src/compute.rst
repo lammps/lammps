@@ -35,7 +35,7 @@ information about a previous state of the system.  Defining a compute
 does not perform a computation.  Instead computes are invoked by other
 LAMMPS commands as needed, e.g. to calculate a temperature needed for
 a thermostat fix or to generate thermodynamic or dump file output.
-See the :doc:`Howto output <Howto_output>` doc page for a summary of
+See the :doc:`Howto output <Howto_output>` page for a summary of
 various LAMMPS output options, many of which involve computes.
 
 The ID of a compute can only contain alphanumeric characters and
@@ -59,7 +59,7 @@ style produce global quantities.
 Note that a single compute can produce either global or per-atom or
 local quantities, but not both global and per-atom.  It can produce
 local quantities in tandem with global or per-atom quantities.  The
-compute doc page will explain.
+compute page will explain.
 
 Global, per-atom, and local quantities each come in three kinds: a
 single scalar value, a vector of values, or a 2d array of values.  The
@@ -119,7 +119,7 @@ values by the number of atoms in the system, depending on the
 "thermo_modify norm" setting.  It will not normalize intensive values.
 If a compute value is accessed in another way, e.g. by a
 :doc:`variable <variable>`, you may want to know whether it is an
-intensive or extensive value.  See the doc page for individual
+intensive or extensive value.  See the page for individual
 computes for further info.
 
 ----------
@@ -153,19 +153,19 @@ via the :doc:`compute_modify <compute_modify>` command.
 Computes can be deleted with the :doc:`uncompute <uncompute>` command.
 
 Code for new computes can be added to LAMMPS; see the
-:doc:`Modify <Modify>` doc page for details.  The results of their
+:doc:`Modify <Modify>` page for details.  The results of their
 calculations accessed in the various ways described above.
 
 ----------
 
-Each compute style has its own doc page which describes its arguments
+Each compute style has its own page which describes its arguments
 and what it does.  Here is an alphabetic list of compute styles
 available in LAMMPS.  They are also listed in more compact form on the
 :doc:`Commands compute <Commands_compute>` doc page.
 
 There are also additional accelerated compute styles included in the
 LAMMPS distribution for faster performance on CPUs, GPUs, and KNLs.
-The individual style names on the :doc:`Commands compute <Commands_compute>` doc page are followed by one or more of
+The individual style names on the :doc:`Commands compute <Commands_compute>` page are followed by one or more of
 (g,i,k,o,t) to indicate which accelerated styles exist.
 
 * :doc:`ackland/atom <compute_ackland_atom>` - determines the local lattice structure based on the Ackland formulation

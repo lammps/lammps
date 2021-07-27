@@ -20,7 +20,8 @@ available online are listed below.
 * `Glossary of terms relevant to LAMMPS <https://www.lammps.org/glossary.html>`_
 * `LAMMPS highlights with images <https://www.lammps.org/pictures.html>`_
 * `LAMMPS highlights with movies <https://www.lammps.org/movies.html>`_
-* `Mail list <https://www.lammps.org/mail.html>`_
+* `Mailing list <https://www.lammps.org/mail.html>`_
+* `LAMMPS forum <https://www.lammps.org/forum.html>`_
 * `Workshops <https://www.lammps.org/workshops.html>`_
 * `Tutorials <https://www.lammps.org/tutorials.html>`_
 

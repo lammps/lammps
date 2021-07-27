@@ -115,7 +115,7 @@ body.
 All temperatures specified in the velocity command are in temperature
 units; see the :doc:`units <units>` command.  The units of velocities and
 coordinates depend on whether the *units* keyword is set to *box* or
-*lattice*\ , as discussed below.
+*lattice*, as discussed below.
 
 For all styles, no atoms are assigned z-component velocities if the
 simulation is 2d; see the :doc:`dimension <dimension>` command.
@@ -161,12 +161,12 @@ appropriate fix command must be specified before the velocity command
 is issued.
 
 The *bias* keyword with a *yes* setting is used by *create* and
-*scale*\ , but only if the *temp* keyword is also used to specify a
+*scale*, but only if the *temp* keyword is also used to specify a
 :doc:`compute <compute>` that calculates temperature in a desired way.
 If the temperature compute also calculates a velocity bias, the
 bias is subtracted from atom velocities before the *create* and
 *scale* operations are performed.  After the operations, the bias is
-added back to the atom velocities.  See the :doc:`Howto thermostat <Howto_thermostat>` doc page for more discussion of
+added back to the atom velocities.  See the :doc:`Howto thermostat <Howto_thermostat>` page for more discussion of
 temperature computes with biases.  Note that the velocity bias is only
 applied to atoms in the temperature compute specified with the *temp*
 keyword.

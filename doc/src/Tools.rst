@@ -363,7 +363,7 @@ michele.ceriotti at gmail.com, to interface to a variety of molecular
 dynamics codes.
 
 See the tools/i-pi/manual.pdf file for an overview of i-PI, and the
-:doc:`fix ipi <fix_ipi>` doc page for further details on running PIMD
+:doc:`fix ipi <fix_ipi>` page for further details on running PIMD
 calculations with LAMMPS.
 
 ----------

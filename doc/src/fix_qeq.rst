@@ -94,7 +94,7 @@ on the current atom configuration), then remove the fix via the
    <pair_comb>`.  The :doc:`fix qeq/reaxff <fix_qeq_reaxff>` command can be
    used to perform charge equilibration with the :doc:`ReaxFF force
    field <pair_reaxff>`, although fix qeq/shielded yields the same
-   results as fix qeq/reaxff if *Nevery*\ , *cutoff*\ , and *tolerance*
+   results as fix qeq/reaxff if *Nevery*, *cutoff*, and *tolerance*
    are the same.  Eventually the fix qeq/reaxff command will be
    deprecated.
 
@@ -151,7 +151,7 @@ the shielded Coulomb is given by equation (13) of the :ref:`ReaxFF force
 field <vanDuin>` paper.  The shielding accounts for charge overlap
 between charged particles at small separation.  This style is the same
 as :doc:`fix qeq/reaxff <fix_qeq_reaxff>`, and can be used with
-:doc:`pair_style reaxff <pair_reaxff>`.  Only the *chi*\ , *eta*\ , and
+:doc:`pair_style reaxff <pair_reaxff>`.  Only the *chi*, *eta*, and
 *gamma* parameters from the *qfile* file are used. When using the string
 *reaxff* as filename, these parameters are extracted directly from an
 active *reaxff* pair style.  This style solves partial charges on atoms
@@ -163,7 +163,7 @@ charge densities centered around atoms via the Slater 1\ *s* orbital, so
 that the interaction between a pair of charged particles is the product
 of two Slater 1\ *s* orbitals.  The expression for the Slater 1\ *s*
 orbital is given under equation (6) of the :ref:`Streitz-Mintmire
-<Streitz1>` paper.  Only the *chi*\ , *eta*\ , *zeta*\ , and *qcore*
+<Streitz1>` paper.  Only the *chi*, *eta*, *zeta*, and *qcore*
 parameters from the *qfile* file are used. When using the string
 *coul/streitz* as filename, these parameters are extracted directly from
 an active *coul/streitz* pair style.  This style solves partial charges
@@ -186,16 +186,16 @@ minimization algorithm to solve for equilibrium charges.  Keyword
 *qdamp* can be used to change the damping factor, while keyword *qstep*
 can be used to change the time step size.
 
-Note that *qeq/point*\ , *qeq/shielded*\ , and *qeq/slater* describe
+Note that *qeq/point*, *qeq/shielded*, and *qeq/slater* describe
 different charge models, whereas the matrix inversion method and the
 extended Lagrangian method (\ *qeq/dynamic* and *qeq/fire*\ ) are
 different solvers.
 
-Note that *qeq/point*\ , *qeq/dynamic* and *qeq/fire* styles all
+Note that *qeq/point*, *qeq/dynamic* and *qeq/fire* styles all
 describe charges as point charges that interact through 1/r
 relationship, but solve partial charges on atoms using different
 solvers.  These three styles should yield comparable results if the QEq
-parameters and *Nevery*\ , *cutoff*\ , and *tolerance* are the same.
+parameters and *Nevery*, *cutoff*, and *tolerance* are the same.
 Style *qeq/point* is typically faster, *qeq/dynamic* scales better on
 larger sizes, and *qeq/fire* is faster than *qeq/dynamic*\ .
 
@@ -228,7 +228,7 @@ Restrictions
 
 These fixes are part of the QEQ package.  They are only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package
-<Build_package>` doc page for more info.
+<Build_package>` page for more info.
 
 The qeq fixes are not compatible with the GPU and USER-INTEL packages.
 

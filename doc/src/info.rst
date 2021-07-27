@@ -10,9 +10,9 @@ Syntax
 
    info args
 
-* args = one or more of the following keywords: *out*\ , *all*\ , *system*\ , *memory*\ , *communication*\ , *computes*\ , *dumps*\ , *fixes*\ , *groups*\ , *regions*\ , *variables*\ , *coeffs*\ , *styles*\ , *time*\ , *accelerator*\ , or *configuration*
-* *out* values = *screen*\ , *log*\ , *append* filename, *overwrite* filename
-* *styles* values = *all*\ , *angle*\ , *atom*\ , *bond*\ , *compute*\ , *command*\ , *dump*\ , *dihedral*\ , *fix*\ , *improper*\ , *integrate*\ , *kspace*\ , *minimize*\ , *pair*\ , *region*
+* args = one or more of the following keywords: *out*, *all*, *system*, *memory*, *communication*, *computes*, *dumps*, *fixes*, *groups*, *regions*, *variables*, *coeffs*, *styles*, *time*, *accelerator*, or *configuration*
+* *out* values = *screen*, *log*, *append* filename, *overwrite* filename
+* *styles* values = *all*, *angle*, *atom*, *bond*, *compute*, *command*, *dump*, *dihedral*, *fix*, *improper*, *integrate*, *kspace*, *minimize*, *pair*, *region*
 
 Examples
 """"""""

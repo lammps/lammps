@@ -12,7 +12,7 @@ Syntax
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * dipole = style name of this compute command
-* charge-correction = *mass* or *geometry*\ , use COM or geometric center for charged chunk correction (optional)
+* charge-correction = *mass* or *geometry*, use COM or geometric center for charged chunk correction (optional)
 
 Examples
 """"""""
@@ -51,7 +51,7 @@ Output info
 
 This compute calculations a global scalar containing the magnitude of
 the computed dipole moment and a global vector of length 3 with the
-dipole vector.  See the :doc:`Howto output <Howto_output>` doc page for
+dipole vector.  See the :doc:`Howto output <Howto_output>` page for
 an overview of LAMMPS output options.
 
 The computed values are "intensive".  The array values will be in

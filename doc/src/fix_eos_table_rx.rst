@@ -48,9 +48,9 @@ computed according to the following relation:
    U_{i} = \displaystyle\sum_{j=1}^{m} c_{i,j}(u_{j} + \Delta H_{f,j}) + \frac{3k_{b}T}{2} + Nk_{b}T \\
 
 where *m* is the number of species, :math:`c_{i,j}` is the
-concentration of species *j* in particle *i*\ , :math:`u_j` is the
+concentration of species *j* in particle *i*, :math:`u_j` is the
 internal energy of species j, :math:`\Delta H_{f,j} is the heat of
-formation of species *j*\ , N is the number of molecules represented
+formation of species *j*, N is the number of molecules represented
 by the coarse-grained particle, :math:`k_b` is the Boltzmann constant,
 and *T* is the temperature of the system.  Additionally, it is
 possible to modify the concentration-dependent particle internal
@@ -178,7 +178,7 @@ Restrictions
 """"""""""""
 
 This command is part of the DPD-REACT package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 This command also requires use of the :doc:`atom_style dpd <atom_style>`
 command.

@@ -103,7 +103,7 @@ Quick Start for Experienced Users
 """""""""""""""""""""""""""""""""
 
 LAMMPS should be built with the INTEL package installed.
-Simulations should be run with 1 MPI task per physical *core*\ ,
+Simulations should be run with 1 MPI task per physical *core*,
 not *hardware thread*\ .
 
 * Edit src/MAKE/OPTIONS/Makefile.intel_cpu_intelmpi as necessary.
@@ -205,7 +205,7 @@ this information can normally be obtained with:
 Building LAMMPS with the INTEL package
 """""""""""""""""""""""""""""""""""""""""""
 
-See the :ref:`Build extras <intel>` doc page for
+See the :ref:`Build extras <intel>` page for
 instructions.  Some additional details are covered here.
 
 For building with make, several example Makefiles for building with

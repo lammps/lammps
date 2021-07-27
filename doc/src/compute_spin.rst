@@ -65,7 +65,7 @@ Restrictions
 """"""""""""
 
 The *spin* compute is part of the SPIN package.  This compute is only
-enabled if LAMMPS was built with this package.  See the :doc:`Build package <Build_package>` doc page for more info.  The atom_style
+enabled if LAMMPS was built with this package.  See the :doc:`Build package <Build_package>` page for more info.  The atom_style
 has to be "spin" for this compute to be valid.
 
 **Related commands:**

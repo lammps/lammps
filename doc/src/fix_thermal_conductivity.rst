@@ -129,9 +129,6 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 Restrictions
 """"""""""""
 
-This fix is part of the MISC package.  It is only enabled if LAMMPS
-was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
-
 Swaps conserve both momentum and kinetic energy, even if the masses of
 the swapped atoms are not equal.  Thus you should not need to
 thermostat the system.  If you do use a thermostat, you may want to

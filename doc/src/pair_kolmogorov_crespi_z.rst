@@ -48,7 +48,7 @@ each layer should have a separate atom type and interactions should only
 be computed between atom types of neighboring layers.
 
 The parameter file (e.g. CC.KC), is intended for use with metal
-:doc:`units <units>`, with energies in meV. An additional parameter, *S*\ ,
+:doc:`units <units>`, with energies in meV. An additional parameter, *S*,
 is available to facilitate scaling of energies in accordance with
 :ref:`(vanWijk) <vanWijk>`.
 
@@ -58,8 +58,9 @@ Other interactions can be set to zero using pair_style *none*\ .
 Restrictions
 """"""""""""
 
-This fix is part of the USER-MISC package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+This fix is part of the INTERLAYER package.  It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package
+<Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

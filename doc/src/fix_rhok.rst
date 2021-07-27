@@ -43,7 +43,7 @@ used to study crystal-liquid interfaces and determine melting
 temperatures :ref:`(Pedersen) <Pedersen>`.
 
 An example of using the interface pinning method is located in the
-*examples/USER-MISC/rhok* directory.
+*examples/PACKAGES/rhok* directory.
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -70,9 +70,9 @@ This fix is not invoked during :doc:`energy minimization <minimize>`.
 Restrictions
 """"""""""""
 
-This fix is part of the USER-MISC package.  It is only enabled if
+This fix is part of the EXTRA-FIX package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package
-<Build_package>` doc page for more info.
+<Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

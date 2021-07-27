@@ -13,7 +13,7 @@ by several popular visualization tools. The :doc:`dump image <dump_image>` and :
 output internally rendered images and convert a sequence of them to a
 movie during the MD run.  Several programs included with LAMMPS as
 auxiliary tools can convert between LAMMPS format files and other
-formats.  See the :doc:`Tools <Tools>` doc page for details.
+formats.  See the :doc:`Tools <Tools>` page for details.
 
 A Python-based toolkit distributed by our group can read native LAMMPS
 dump files, including custom dump files with additional columns of

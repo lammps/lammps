@@ -185,7 +185,7 @@ needed.
 The *radius* keyword scales the effective size of big particles.  If
 big particles will overlap as they undergo dynamics, then this keyword
 can be used to scale down their effective collision radius by an
-amount *rfactor*\ , so that SRD particle will only collide with one big
+amount *rfactor*, so that SRD particle will only collide with one big
 particle at a time.  For example, in a Lennard-Jones system at a
 temperature of 1.0 (in reduced LJ units), the minimum separation
 between two big particles is as small as about 0.88 sigma.  Thus an
@@ -267,15 +267,15 @@ vector.  The specified random number *shiftseed* is used to generate
 these vectors.  This operation sufficiently randomizes which SRD
 particles are in the same bin, even if :math:`lambda` is small.
 
-If the *shift* flag is set to *no*\ , then no shifting is performed, but
+If the *shift* flag is set to *no*, then no shifting is performed, but
 bin data will be communicated if bins overlap processor boundaries.  An
 error will be generated if :math:`\lambda < 0.6` of the SRD bin size.
-If the *shift* flag is set to *possible*\ , then shifting is performed
+If the *shift* flag is set to *possible*, then shifting is performed
 only if :math:`\lambda < 0.6` of the SRD bin size.  A warning is
 generated to let you know this is occurring.  If the *shift* flag is set
 to *yes* then shifting is performed regardless of the magnitude of
 :math:`\lambda`.  Note that the *shiftseed* is not used if the *shift*
-flag is set to *no*\ , but must still be specified.
+flag is set to *no*, but must still be specified.
 
 Note that shifting of SRD coordinates requires extra communication,
 hence it should not normally be enabled unless required.

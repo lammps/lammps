@@ -362,7 +362,7 @@ have to be enabled to be included into a LAMMPS executable.  Packages
 are enabled through setting variables of the kind ``PKG_<NAME>`` to
 ``on`` and disabled by setting them to ``off`` (or using ``yes``,
 ``no``, ``1``, ``0`` correspondingly).  ``<NAME>`` has to be replaced by
-the name of the package, e.g. ``MOLECULE`` or ``USER-MISC``.
+the name of the package, e.g. ``MOLECULE`` or ``EXTRA-PAIR``.
 
 
 Using presets

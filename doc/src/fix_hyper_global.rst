@@ -46,7 +46,7 @@ This can lead to a dramatic speed-up in the rate at which events
 occurs, without altering their relative frequencies, thus leading to
 an overall increase in the elapsed real time of the simulation as
 compared to running for the same number of timesteps with normal MD.
-See the :doc:`hyper <hyper>` doc page for a more general discussion of
+See the :doc:`hyper <hyper>` page for a more general discussion of
 hyperdynamics and citations that explain both GHD and LHD.
 
 The equations and logic used by this fix and described here to perform
@@ -56,8 +56,8 @@ Fichthorn as described in :ref:`(Miron) <Mironghd>`.  In LAMMPS we use a
 simplified version of bond-boost GHD where a single bond in the system
 is biased at any one timestep.
 
-Bonds are defined between each pair of atoms *ij*\ , whose :math:`R^0_{ij}`
-distance is less than *cutbond*\ , when the system is in a quenched state
+Bonds are defined between each pair of atoms *ij*, whose :math:`R^0_{ij}`
+distance is less than *cutbond*, when the system is in a quenched state
 (minimum) energy.  Note that these are not "bonds" in a covalent
 sense.  A bond is simply any pair of atoms that meet the distance
 criterion.  *Cutbond* is an argument to this fix; it is discussed
@@ -70,7 +70,7 @@ The current strain of bond *ij* (when running dynamics) is defined as
 
    E_{ij} = \frac{R_{ij} - R^0_{ij}}{R^0_{ij}}
 
-where :math:`R_{ij}` is the current distance between atoms *i* and *j*\ ,
+where :math:`R_{ij}` is the current distance between atoms *i* and *j*,
 and :math:`R^0_{ij}` is the equilibrium distance in the quenched state.
 
 The bias energy :math:`V_{ij}` of any bond between atoms *i* and *j*
@@ -136,7 +136,7 @@ Note that in GHD, the boost factor varies from timestep to timestep.
 Likewise, which bond has :math:`E^{max}` strain and thus which pair of
 atoms the bias potential is added to, will also vary from timestep to timestep.
 This is in contrast to local hyperdynamics (LHD) where the boost
-factor is an input parameter; see the :doc:`fix hyper/local <fix_hyper_local>` doc page for details.
+factor is an input parameter; see the :doc:`fix hyper/local <fix_hyper_local>` page for details.
 
 ----------
 
@@ -192,7 +192,7 @@ beta term in the exponential factor that determines how much boost is
 achieved as a function of the bias potential.
 
 In general, the lower the value of *Tequil* and the higher the value
-of *Vmax*\ , the more time boost will be achievable by the GHD
+of *Vmax*, the more time boost will be achievable by the GHD
 algorithm.
 
 ----------
@@ -264,7 +264,7 @@ Restrictions
 """"""""""""
 
 This command can only be used if LAMMPS was built with the REPLICA
-package.  See the :doc:`Build package <Build_package>` doc page for more
+package.  See the :doc:`Build package <Build_package>` page for more
 info.
 
 Related commands

@@ -66,7 +66,7 @@ its size is changing every step.
 
 The *atom/adios* and *custom/adios* dump styles are part of the ADIOS
 package.  They are only enabled if LAMMPS was built with that package.
-See the :doc:`Build package <Build_package>` doc page for more info.
+See the :doc:`Build package <Build_package>` page for more info.
 
 ----------
 

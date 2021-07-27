@@ -67,7 +67,7 @@ produce an executable compatible with a specific hardware.
 Building LAMMPS with the KOKKOS package
 """""""""""""""""""""""""""""""""""""""
 
-See the :ref:`Build extras <kokkos>` doc page for instructions.
+See the :ref:`Build extras <kokkos>` page for instructions.
 
 Running LAMMPS with the KOKKOS package
 """"""""""""""""""""""""""""""""""""""
@@ -217,7 +217,7 @@ threads/task as Nt. The product of these two values should be N, i.e.
    be best for many-body potentials. For simpler pair-wise potentials, it
    may be faster to use a "full" neighbor list with Newton flag to "off".
    Use the "-pk kokkos" :doc:`command-line switch <Run_options>` to change
-   the default :doc:`package kokkos <package>` options. See its doc page for
+   the default :doc:`package kokkos <package>` options. See its page for
    details and default settings. Experimenting with its options can provide
    a speed-up for specific calculations. For example:
 
@@ -279,7 +279,7 @@ one or more nodes, each with two GPUs:
    setting the neighbor binsize equal to twice the CPU default value will
    give speedup, which is the default when running on GPUs. Use the "-pk
    kokkos" :doc:`command-line switch <Run_options>` to change the default
-   :doc:`package kokkos <package>` options. See its doc page for details and
+   :doc:`package kokkos <package>` options. See its page for details and
    default settings. Experimenting with its options can provide a speed-up
    for specific calculations. For example:
 

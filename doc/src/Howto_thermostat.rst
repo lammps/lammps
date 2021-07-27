@@ -28,7 +28,7 @@ can be invoked via the *dpd/tstat* pair style:
 :doc:`Fix nvt <fix_nh>` only thermostats the translational velocity of
 particles.  :doc:`Fix nvt/sllod <fix_nvt_sllod>` also does this, except
 that it subtracts out a velocity bias due to a deforming box and
-integrates the SLLOD equations of motion.  See the :doc:`Howto nemd <Howto_nemd>` doc page for further details.  :doc:`Fix nvt/sphere <fix_nvt_sphere>` and :doc:`fix nvt/asphere <fix_nvt_asphere>` thermostat not only translation
+integrates the SLLOD equations of motion.  See the :doc:`Howto nemd <Howto_nemd>` page for further details.  :doc:`Fix nvt/sphere <fix_nvt_sphere>` and :doc:`fix nvt/asphere <fix_nvt_asphere>` thermostat not only translation
 velocities but also rotational velocities for spherical and aspherical
 particles.
 
@@ -88,7 +88,7 @@ Below is a list of some custom temperature computes that can be used like that:
 
 Thermodynamic output, which can be setup via the
 :doc:`thermo_style <thermo_style>` command, often includes temperature
-values.  As explained on the doc page for the
+values.  As explained on the page for the
 :doc:`thermo_style <thermo_style>` command, the default temperature is
 setup by the thermo command itself.  It is NOT the temperature
 associated with any thermostatting fix you have defined or with any

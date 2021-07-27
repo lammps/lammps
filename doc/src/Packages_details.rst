@@ -189,6 +189,7 @@ atomic information to continuum fields.
 **Install:**
 
 This package has :ref:`specific installation instructions <atc>` on the :doc:`Build extras <Build_extras>` page.
+The ATC package requires that also the `MANYBODY <PKG-MANYBODY>`_ package is installed.
 
 **Supporting info:**
 
@@ -517,6 +518,11 @@ An atom style, multiple pair styles, several fixes, Kspace styles and a
 compute for simulating systems using boundary element solvers for
 computing the induced charges at the interface between two media with
 different dielectric constants.
+
+**Install:**
+
+To use this package, also the :ref:`KSPACE <PKG-KSPACE>` and
+:ref:`EXTRA-PAIR <PKG-EXTRA-PAIR>` packages need to be installed.
 
 **Author:** Trung Nguyen and Monica Olvera de la Cruz (Northwestern U)
 
@@ -1210,6 +1216,10 @@ can be used to model MD particles influenced by hydrodynamic forces.
 **Authors:** Frances Mackay and Colin Denniston (University of Western
 Ontario).
 
+**Install:**
+
+The LATBOLTZ package requires that LAMMPS is build in :ref:`MPI parallel mode <serial>`.
+
 **Supporting info:**
 
 * src/LATBOLTZ: filenames -> commands
@@ -1603,9 +1613,9 @@ A general interface for machine-learning interatomic potentials, including PyTor
 
 **Install:**
 
-To use this package, also the :ref:`ML-SNAP package <PKG-ML-SNAP>` package needs
+To use this package, also the :ref:`ML-SNAP <PKG-ML-SNAP>` package needs
 to be installed.  To make the *mliappy* model available, also the
-:ref:`PYTHON package <PKG-PYTHON>` package needs to be installed, the version
+:ref:`PYTHON <PKG-PYTHON>` package needs to be installed, the version
 of Python must be 3.6 or later, and the `cython <https://cython.org/>`_ software
 must be installed.
 
@@ -1870,6 +1880,10 @@ MPIIO library.  It adds :doc:`dump styles <dump>` with a "mpiio" in
 their style name.  Restart files with an ".mpiio" suffix are also
 written and read in parallel.
 
+**Install:**
+
+The MPIIO package requires that LAMMPS is build in :ref:`MPI parallel mode <serial>`.
+
 **Supporting info:**
 
 * src/MPIIO: filenames -> commands
@@ -2102,6 +2116,12 @@ relations, directly from molecular dynamics simulations.
 And a :doc:`dynamical_matrix <dynamical_matrix>` as well as a
 :doc:`third_order <third_order>` command to compute the dynamical matrix
 and third order tensor from finite differences.
+
+**Install:**
+
+The PHONON package requires that also the `KSPACE <PKG-KSPACE>`_
+package is installed.
+
 
 **Authors:** Ling-Ti Kong (Shanghai Jiao Tong University) for "fix phonon"
 and Charlie Sievers (UC Davis) for "dynamical_matrix" and "third_order"
@@ -2486,6 +2506,7 @@ the Forschungszentrum Juelich.
 **Install:**
 
 This package has :ref:`specific installation instructions <scafacos>` on the :doc:`Build extras <Build_extras>` page.
+The SCAFACOS package requires that LAMMPS is build in :ref:`MPI parallel mode <serial>`.
 
 **Supporting info:**
 

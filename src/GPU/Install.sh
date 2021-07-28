@@ -47,8 +47,8 @@ action pair_born_coul_long_gpu.cpp pair_born_coul_long.cpp
 action pair_born_coul_long_gpu.h pair_born_coul_long.cpp
 action pair_born_coul_long_cs_gpu.cpp pair_born_coul_long_cs.cpp
 action pair_born_coul_long_cs_gpu.h pair_born_coul_long_cs.cpp
-action pair_born_coul_wolf_gpu.cpp
-action pair_born_coul_wolf_gpu.h
+action pair_born_coul_wolf_gpu.cpp pair_born_coul_wolf.cpp
+action pair_born_coul_wolf_gpu.h pair_born_coul_wolf.h
 action pair_born_coul_wolf_cs_gpu.cpp pair_born_coul_wolf_cs.cpp
 action pair_born_coul_wolf_cs_gpu.h pair_born_coul_wolf_cs.cpp
 action pair_born_gpu.cpp

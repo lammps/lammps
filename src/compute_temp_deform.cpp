@@ -56,8 +56,11 @@ ComputeTempDeform::ComputeTempDeform(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeTempDeform::~ComputeTempDeform()
 {
-  memory->destroy(vbiasall);
-  delete [] vector;
+  if (!copymode)
+  {
+    memory->destroy(vbiasall);
+    delete [] vector;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -69,7 +72,7 @@ void ComputeTempDeform::init()
   // check fix deform remap settings
 
   for (i = 0; i < modify->nfix; i++)
-    if (strcmp(modify->fix[i]->style,"deform") == 0) {
+    if (strncmp(modify->fix[i]->style,"deform", 6) == 0) {
       if (((FixDeform *) modify->fix[i])->remapflag == Domain::X_REMAP &&
           comm->me == 0)
         error->warning(FLERR,"Using compute temp/deform with inconsistent "

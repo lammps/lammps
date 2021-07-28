@@ -14,30 +14,35 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(temp/kk,ComputeTempKokkos<LMPDeviceType>);
-ComputeStyle(temp/kk/device,ComputeTempKokkos<LMPDeviceType>);
-ComputeStyle(temp/kk/host,ComputeTempKokkos<LMPHostType>);
+ComputeStyle(temp/deform/kk,ComputeTempDeformKokkos<LMPDeviceType>);
+ComputeStyle(temp/deform/kk/device,ComputeTempDeformKokkos<LMPDeviceType>);
+ComputeStyle(temp/deform/kk/host,ComputeTempDeformKokkos<LMPHostType>);
 // clang-format on
 #else
 
-#ifndef LMP_COMPUTE_TEMP_KOKKOS_H
-#define LMP_COMPUTE_TEMP_KOKKOS_H
+#ifndef LMP_COMPUTE_TEMP_DEFORM_KOKKOS_H
+#define LMP_COMPUTE_TEMP_DEFORM_KOKKOS_H
 
-#include "compute_temp.h"
+#include "compute_temp_deform.h"
 #include "kokkos_type.h"
+#include "domain_kokkos.h"
+#include "kokkos_few.h"
 
 namespace LAMMPS_NS {
 
 template<int RMASS>
-struct TagComputeTempScalar{};
+struct TagComputeTempDeformScalar{};
 
 template<int RMASS>
-struct TagComputeTempVector{};
+struct TagComputeTempDeformVector{};
+
+struct TagComputeTempDeformRemoveBias{};
+
+struct TagComputeTempDeformRestoreBias{};
 
 template<class DeviceType>
-class ComputeTempKokkos : public ComputeTemp {
+class ComputeTempDeformKokkos: public ComputeTempDeform {
  public:
-
   struct s_CTEMP {
     double t0, t1, t2, t3, t4, t5;
     KOKKOS_INLINE_FUNCTION
@@ -67,30 +72,45 @@ class ComputeTempKokkos : public ComputeTemp {
   };
 
   typedef s_CTEMP CTEMP;
-  typedef DeviceType device_type;
   typedef CTEMP value_type;
+  typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
 
-  ComputeTempKokkos(class LAMMPS *, int, char **);
-  virtual ~ComputeTempKokkos() {};
+  ComputeTempDeformKokkos(class LAMMPS *, int, char **);
+  ~ComputeTempDeformKokkos();
   double compute_scalar();
   void compute_vector();
+  void remove_bias_all();
+  void restore_bias_all();
 
   template<int RMASS>
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagComputeTempScalar<RMASS>, const int&, CTEMP&) const;
+  void operator()(TagComputeTempDeformScalar<RMASS>, const int&, CTEMP&) const;
 
   template<int RMASS>
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagComputeTempVector<RMASS>, const int&, CTEMP&) const;
+  void operator()(TagComputeTempDeformVector<RMASS>, const int&, CTEMP&) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagComputeTempDeformRemoveBias, const int &i) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagComputeTempDeformRestoreBias, const int &i) const;
 
  protected:
-  typename ArrayTypes<DeviceType>::t_v_array_randomread v;
+  typename ArrayTypes<DeviceType>::t_x_array_randomread x;
+  typename ArrayTypes<DeviceType>::t_v_array v;
+  typename ArrayTypes<DeviceType>::t_v_array vbiasall;
   typename ArrayTypes<DeviceType>::t_float_1d_randomread rmass;
   typename ArrayTypes<DeviceType>::t_float_1d_randomread mass;
   typename ArrayTypes<DeviceType>::t_int_1d_randomread type;
   typename ArrayTypes<DeviceType>::t_int_1d_randomread mask;
-};
+
+  class DomainKokkos *domainKK;
+
+  Few<double, 6> h_rate, h_ratelo;
+
+  };
 
 }
 

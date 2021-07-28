@@ -338,7 +338,7 @@ enum {TIME_PACK, TIME_HOST_NEIGHBOR, TIME_HOST_PAIR, TIME_OFFLOAD_NEIGHBOR,
 #endif
 
 // TO BE DEPRECATED
-#ifndef USE_OMP_SIMD 
+#ifndef USE_OMP_SIMD
 
 #define IP_PRE_fdotr_acc_force_l5(lf, lt, minlocal, nthreads, f_start,  \
                                   f_stride, pos, ov0, ov1, ov2,         \

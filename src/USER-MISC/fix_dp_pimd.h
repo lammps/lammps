@@ -134,7 +134,8 @@ class FixDPPimd : public Fix {
 
   class RanMars *random;
   int seed=975481;
-  FILE *frand;
+  //FILE *frand;
+  FILE *Fv, *Fx;
 
   void baoab_init();
   // void baoab_update_v();

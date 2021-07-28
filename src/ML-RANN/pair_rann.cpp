@@ -61,7 +61,7 @@ DISTRIBUTION A. Approved for public release; distribution unlimited. OPSEC#4918
 
 using namespace LAMMPS_NS;
 
-static const char cite_user_rann_package[] =
+static const char cite_ml_rann_package[] =
   "ML-RANN package:\n\n"
   "@Article{Nitol2021,\n"
   " author = {Nitol, Mashroor S and Dickel, Doyl E and Barrett, Christopher D},\n"
@@ -75,6 +75,8 @@ static const char cite_user_rann_package[] =
 
 PairRANN::PairRANN(LAMMPS *lmp) : Pair(lmp)
 {
+  lmp->citeme->add(cite_ml_rann_package);
+
   //initialize ints and bools
   single_enable = 0;
   restartinfo = 0;
@@ -353,7 +355,7 @@ void PairRANN::read_file(char *filename)
   int eof = 0;
   std::string line,line1;
   const int longline = 4096;
-  int linenum;
+  int linenum=0;
   char linetemp[longline];
   std::string strtemp;
   char *ptr;

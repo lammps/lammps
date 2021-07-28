@@ -32,6 +32,7 @@ DISTRIBUTION A. Approved for public release; distribution unlimited. OPSEC#4918
 #include "pair_rann.h"
 
 #include "atom.h"
+#include "citeme.h"
 #include "comm.h"
 #include "error.h"
 #include "force.h"

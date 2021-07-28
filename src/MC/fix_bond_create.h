@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(bond/create,FixBondCreate)
-
+// clang-format off
+FixStyle(bond/create,FixBondCreate);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_BOND_CREATE_H
@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class FixBondCreate : public Fix {
  public:
   FixBondCreate(class LAMMPS *, int, char **);
-  ~FixBondCreate();
+  virtual ~FixBondCreate();
   int setmask();
   void init();
   void init_list(int, class NeighList *);
@@ -46,25 +46,28 @@ class FixBondCreate : public Fix {
   double compute_vector(int);
   double memory_usage();
 
- private:
+ protected:
   int me;
-  int iatomtype,jatomtype;
-  int btype,seed;
-  int imaxbond,jmaxbond;
-  int inewtype,jnewtype;
-  double cutsq,fraction;
-  int atype,dtype,itype;
-  int angleflag,dihedralflag,improperflag;
+  int iatomtype, jatomtype;
+  int btype, seed;
+  int imaxbond, jmaxbond;
+  int inewtype, jnewtype;
+  int constrainflag, constrainpass;
+  double amin, amax;
+  double cutsq, fraction;
+  int atype, dtype, itype;
+  int angleflag, dihedralflag, improperflag;
+
   int overflow;
   tagint lastcheck;
 
   int *bondcount;
-  int createcount,createcounttotal;
+  int createcount, createcounttotal;
   int nmax;
-  tagint *partner,*finalpartner;
-  double *distsq,*probability;
+  tagint *partner, *finalpartner;
+  double *distsq, *probability;
 
-  int ncreate,maxcreate;
+  int ncreate, maxcreate;
   tagint **created;
 
   tagint *copy;
@@ -72,9 +75,9 @@ class FixBondCreate : public Fix {
   class RanMars *random;
   class NeighList *list;
 
-  int countflag,commflag;
+  int countflag, commflag;
   int nlevels_respa;
-  int nangles,ndihedrals,nimpropers;
+  int nangles, ndihedrals, nimpropers;
 
   void check_ghosts();
   void update_topology();
@@ -84,13 +87,15 @@ class FixBondCreate : public Fix {
   void create_impropers(int);
   int dedup(int, int, tagint *);
 
+  virtual int constrain(int, int, double, double) { return 1; }
+
   // DEBUG
 
   void print_bb();
   void print_copy(const char *, tagint, int, int, int, int *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
@@ -169,5 +174,12 @@ E: Special list size exceeded in fix bond/create
 See the read_data command for info on setting the "extra special per
 atom" header value to allow for additional special values to be
 stored.
+
+W: Fix bond/create is used multiple times or with fix bond/break - may not work as expected
+
+When using fix bond/create multiple times or in combination with
+fix bond/break, the individual fix instances do not share information
+about changes they made at the same time step and thus it may result
+in unexpected behavior.
 
 */

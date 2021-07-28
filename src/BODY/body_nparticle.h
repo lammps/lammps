@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,16 +12,16 @@
 ------------------------------------------------------------------------- */
 
 #ifdef BODY_CLASS
-
-BodyStyle(nparticle,BodyNparticle)
-
+// clang-format off
+BodyStyle(nparticle,BodyNparticle);
+// clang-format on
 #else
 
 #ifndef LMP_BODY_NPARTICLE_H
 #define LMP_BODY_NPARTICLE_H
 
-#include "body.h"
 #include "atom_vec_body.h"
+#include "body.h"
 
 namespace LAMMPS_NS {
 
@@ -35,6 +35,8 @@ class BodyNparticle : public Body {
   int pack_border_body(struct AtomVecBody::Bonus *, double *);
   int unpack_border_body(struct AtomVecBody::Bonus *, double *);
   void data_body(int, int, int, int *, double *);
+  int pack_data_body(tagint, int, double *);
+  int write_data_body(FILE *, double *);
   double radius_body(int, int, int *, double *);
 
   int noutrow(int);
@@ -47,7 +49,7 @@ class BodyNparticle : public Body {
   double **imdata;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

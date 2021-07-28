@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,19 +17,20 @@
 ------------------------------------------------------------------------- */
 
 #include "ewald_dipole.h"
-#include <mpi.h>
-#include <cstring>
-#include <cmath>
+
 #include "atom.h"
 #include "comm.h"
-#include "force.h"
-#include "pair.h"
 #include "domain.h"
+#include "error.h"
+#include "force.h"
 #include "math_const.h"
 #include "math_special.h"
 #include "memory.h"
-#include "error.h"
+#include "pair.h"
 #include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -39,12 +41,12 @@ using namespace MathSpecial;
 /* ---------------------------------------------------------------------- */
 
 EwaldDipole::EwaldDipole(LAMMPS *lmp) : Ewald(lmp),
-  tk(NULL), vc(NULL)
+  tk(nullptr), vc(nullptr)
 {
   ewaldflag = dipoleflag = 1;
   group_group_enable = 0;
-  tk = NULL;
-  vc = NULL;
+  tk = nullptr;
+  vc = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -63,27 +65,24 @@ EwaldDipole::~EwaldDipole()
 
 void EwaldDipole::init()
 {
-  if (comm->me == 0) {
-    if (screen) fprintf(screen,"EwaldDipole initialization ...\n");
-    if (logfile) fprintf(logfile,"EwaldDipole initialization ...\n");
-  }
+  if (comm->me == 0) utils::logmesg(lmp,"EwaldDipole initialization ...\n");
 
   // error check
-  
+
   dipoleflag = atom->mu?1:0;
   qsum_qsq(0); // q[i] might not be declared ?
 
   if (dipoleflag && q2)
     error->all(FLERR,"Cannot (yet) use charges with Kspace style EwaldDipole");
 
-  triclinic_check();
-  
   // no triclinic ewald dipole (yet)
-  
+
+  triclinic_check();
+
   triclinic = domain->triclinic;
   if (triclinic)
     error->all(FLERR,"Cannot (yet) use EwaldDipole with triclinic box");
-  
+
   if (domain->dimension == 2)
     error->all(FLERR,"Cannot use EwaldDipole with 2d simulation");
 
@@ -91,7 +90,7 @@ void EwaldDipole::init()
 
   if (dipoleflag && strcmp(update->unit_style,"electron") == 0)
     error->all(FLERR,"Cannot (yet) use 'electron' units with dipoles");
-  
+
   if (slabflag == 0 && domain->nonperiodic > 0)
     error->all(FLERR,"Cannot use nonperiodic boundaries with EwaldDipole");
   if (slabflag) {
@@ -99,6 +98,10 @@ void EwaldDipole::init()
         domain->boundary[2][0] != 1 || domain->boundary[2][1] != 1)
       error->all(FLERR,"Incorrect boundaries with slab EwaldDipole");
   }
+
+  // compute two charge force
+
+  two_charge();
 
   // extract short-range Coulombic cutoff from pair style
 
@@ -110,7 +113,7 @@ void EwaldDipole::init()
 
   int itmp;
   double *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
-  if (p_cutoff == NULL)
+  if (p_cutoff == nullptr)
     error->all(FLERR,"KSpace style is incompatible with Pair style");
   double cutoff = *p_cutoff;
 
@@ -154,20 +157,20 @@ void EwaldDipole::init()
   if (!gewaldflag) {
     if (accuracy <= 0.0)
       error->all(FLERR,"KSpace accuracy must be > 0");
-    
+
     // initial guess with old method
-    
+
     g_ewald = accuracy*sqrt(natoms*cutoff*xprd*yprd*zprd) / (2.0*mu2);
     if (g_ewald >= 1.0) g_ewald = (1.35 - 0.15*log(accuracy))/cutoff;
     else g_ewald = sqrt(-log(g_ewald)) / cutoff;
-    
+
     // try Newton solver
 
     double g_ewald_new =
       NewtonSolve(g_ewald,cutoff,natoms,xprd*yprd*zprd,mu2);
     if (g_ewald_new > 0.0) g_ewald = g_ewald_new;
     else error->warning(FLERR,"Ewald/disp Newton solver failed, "
-                        "using old method to estimate g_ewald");  
+                        "using old method to estimate g_ewald");
   }
 
   // setup EwaldDipole coefficients so can print stats
@@ -188,28 +191,16 @@ void EwaldDipole::init()
   // stats
 
   if (comm->me == 0) {
-    if (screen) {
-      fprintf(screen,"  G vector (1/distance) = %g\n",g_ewald);
-      fprintf(screen,"  estimated absolute RMS force accuracy = %g\n",
-              estimated_accuracy);
-      fprintf(screen,"  estimated relative force accuracy = %g\n",
-              estimated_accuracy/two_charge_force);
-      fprintf(screen,"  KSpace vectors: actual max1d max3d = %d %d %d\n",
-              kcount,kmax,kmax3d);
-      fprintf(screen,"                  kxmax kymax kzmax  = %d %d %d\n",
-              kxmax,kymax,kzmax);
-    }
-    if (logfile) {
-      fprintf(logfile,"  G vector (1/distance) = %g\n",g_ewald);
-      fprintf(logfile,"  estimated absolute RMS force accuracy = %g\n",
-              estimated_accuracy);
-      fprintf(logfile,"  estimated relative force accuracy = %g\n",
-              estimated_accuracy/two_charge_force);
-      fprintf(logfile,"  KSpace vectors: actual max1d max3d = %d %d %d\n",
-              kcount,kmax,kmax3d);
-      fprintf(logfile,"                  kxmax kymax kzmax  = %d %d %d\n",
-              kxmax,kymax,kzmax);
-    }
+    std::string mesg = fmt::format("  G vector (1/distance) = {:.8g}\n",g_ewald);
+    mesg += fmt::format("  estimated absolute RMS force accuracy = {:.8g}\n",
+                       estimated_accuracy);
+    mesg += fmt::format("  estimated relative force accuracy = {:.8g}\n",
+                       estimated_accuracy/two_charge_force);
+    mesg += fmt::format("  KSpace vectors: actual max1d max3d = {} {} {}\n",
+                        kcount,kmax,kmax3d);
+    mesg += fmt::format("                  kxmax kymax kzmax  = {} {} {}\n",
+                        kxmax,kymax,kzmax);
+    utils::logmesg(lmp,mesg);
   }
 }
 
@@ -246,7 +237,7 @@ void EwaldDipole::setup()
     double err;
     kxmax = 1;
     kymax = 1;
-    kzmax = 1;	
+    kzmax = 1;
 
     // set kmax in 3 directions to respect accuracy
 
@@ -340,7 +331,7 @@ double EwaldDipole::rms_dipole(int km, double prd, bigint natoms)
   if (natoms == 0) natoms = 1;   // avoid division by zero
 
   // error from eq.(46), Wang et al., JCP 115, 6351 (2001)
-  
+
   double value = 8*MY_PI*mu2*g_ewald/volume *
     sqrt(2*MY_PI*km*km*km/(15.0*natoms)) *
     exp(-MY_PI*MY_PI*km*km/(g_ewald*g_ewald*prd*prd));
@@ -428,7 +419,7 @@ void EwaldDipole::compute(int eflag, int vflag)
     for (i = 0; i < nlocal; i++) {
 
       for (j = 0; j<6; j++) vcik[j] = 0.0;
-      
+
       // re-evaluating mu dot k
       mudotk = mu[i][0]*kx*unitk[0] + mu[i][1]*ky*unitk[1] + mu[i][2]*kz*unitk[2];
 
@@ -461,15 +452,15 @@ void EwaldDipole::compute(int eflag, int vflag)
       vc[k][3] += vcik[3] = -(partial_peratom * mu[i][0] * eg[k][1]);
       vc[k][4] += vcik[4] = -(partial_peratom * mu[i][0] * eg[k][2]);
       vc[k][5] += vcik[5] = -(partial_peratom * mu[i][1] * eg[k][2]);
-      
-      // taking re-part of struct_fact x exp(i*k*ri) 
+
+      // taking re-part of struct_fact x exp(i*k*ri)
       // (for per-atom energy and virial calc.)
 
       if (evflag_atom) {
         if (eflag_atom) eatom[i] += mudotk*ug[k]*partial_peratom;
         if (vflag_atom)
           for (j = 0; j < 6; j++)
-	    vatom[i][j] += (ug[k]*mudotk*vg[k][j]*partial_peratom - vcik[j]);
+            vatom[i][j] += (ug[k]*mudotk*vg[k][j]*partial_peratom - vcik[j]);
       }
     }
   }
@@ -489,7 +480,7 @@ void EwaldDipole::compute(int eflag, int vflag)
 
   // sum global energy across Kspace vevs and add in volume-dependent term
   // taking the re-part of struct_fact_i x struct_fact_j
-  // substracting self energy and scaling
+  // subtracting self energy and scaling
 
   if (eflag_global) {
     for (k = 0; k < kcount; k++) {
@@ -518,7 +509,7 @@ void EwaldDipole::compute(int eflag, int vflag)
     if (eflag_atom) {
       for (i = 0; i < nlocal; i++) {
         eatom[i] -= (mu[i][0]*mu[i][0] + mu[i][1]*mu[i][1] + mu[i][2]*mu[i][2])
-	  *2.0*g3/3.0/MY_PIS;
+          *2.0*g3/3.0/MY_PIS;
         eatom[i] *= muscale;
       }
     }
@@ -556,7 +547,7 @@ void EwaldDipole::eik_dot_r()
   // loop on n kpoints and nlocal atoms
 
   // (k,0,0), (0,l,0), (0,0,m)
-  
+
   // loop 1: k=1, l=1, m=1
   // define first val. of cos and sin
 
@@ -596,7 +587,7 @@ void EwaldDipole::eik_dot_r()
             cs[m-1][ic][i]*sn[1][ic][i];
           cs[-m][ic][i] = cs[m][ic][i];
           sn[-m][ic][i] = -sn[m][ic][i];
-	  mudotk = (mu[i][ic]*m*unitk[ic]);
+          mudotk = (mu[i][ic]*m*unitk[ic]);
           cstr1 += mudotk*cs[m][ic][i];
           sstr1 += mudotk*sn[m][ic][i];
         }
@@ -617,19 +608,19 @@ void EwaldDipole::eik_dot_r()
         cstr2 = 0.0;
         sstr2 = 0.0;
         for (i = 0; i < nlocal; i++) {
-	  mux = mu[i][0];
-	  muy = mu[i][1];
+          mux = mu[i][0];
+          muy = mu[i][1];
 
-	  // dir 1: (k,l,0)
-	  mudotk = (mux*k*unitk[0] + muy*l*unitk[1]);
+          // dir 1: (k,l,0)
+          mudotk = (mux*k*unitk[0] + muy*l*unitk[1]);
           cstr1 += mudotk*(cs[k][0][i]*cs[l][1][i]-sn[k][0][i]*sn[l][1][i]);
           sstr1 += mudotk*(sn[k][0][i]*cs[l][1][i]+cs[k][0][i]*sn[l][1][i]);
-	  
-	  // dir 2: (k,-l,0)
-	  mudotk = (mux*k*unitk[0] - muy*l*unitk[1]);
+
+          // dir 2: (k,-l,0)
+          mudotk = (mux*k*unitk[0] - muy*l*unitk[1]);
           cstr2 += mudotk*(cs[k][0][i]*cs[l][1][i]+sn[k][0][i]*sn[l][1][i]);
           sstr2 += mudotk*(sn[k][0][i]*cs[l][1][i]-cs[k][0][i]*sn[l][1][i]);
-	}
+        }
         sfacrl[n] = cstr1;
         sfacim[n++] = sstr1;
         sfacrl[n] = cstr2;
@@ -649,16 +640,16 @@ void EwaldDipole::eik_dot_r()
         cstr2 = 0.0;
         sstr2 = 0.0;
         for (i = 0; i < nlocal; i++) {
-	  muy = mu[i][1];
-	  muz = mu[i][2];
+          muy = mu[i][1];
+          muz = mu[i][2];
 
-	  // dir 1: (0,l,m)
-      	  mudotk = (muy*l*unitk[1] + muz*m*unitk[2]); 
+          // dir 1: (0,l,m)
+          mudotk = (muy*l*unitk[1] + muz*m*unitk[2]);
           cstr1 += mudotk*(cs[l][1][i]*cs[m][2][i] - sn[l][1][i]*sn[m][2][i]);
           sstr1 += mudotk*(sn[l][1][i]*cs[m][2][i] + cs[l][1][i]*sn[m][2][i]);
-	  
-	  // dir 2: (0,l,-m)
-	  mudotk = (muy*l*unitk[1] - muz*m*unitk[2]); 
+
+          // dir 2: (0,l,-m)
+          mudotk = (muy*l*unitk[1] - muz*m*unitk[2]);
           cstr2 += mudotk*(cs[l][1][i]*cs[m][2][i]+sn[l][1][i]*sn[m][2][i]);
           sstr2 += mudotk*(sn[l][1][i]*cs[m][2][i]-cs[l][1][i]*sn[m][2][i]);
         }
@@ -681,16 +672,16 @@ void EwaldDipole::eik_dot_r()
         cstr2 = 0.0;
         sstr2 = 0.0;
         for (i = 0; i < nlocal; i++) {
-      	  mux = mu[i][0];
-	  muz = mu[i][2];
+          mux = mu[i][0];
+          muz = mu[i][2];
 
-	  // dir 1: (k,0,m)
-	  mudotk = (mux*k*unitk[0] + muz*m*unitk[2]); 
+          // dir 1: (k,0,m)
+          mudotk = (mux*k*unitk[0] + muz*m*unitk[2]);
           cstr1 += mudotk*(cs[k][0][i]*cs[m][2][i]-sn[k][0][i]*sn[m][2][i]);
           sstr1 += mudotk*(sn[k][0][i]*cs[m][2][i]+cs[k][0][i]*sn[m][2][i]);
-	  
-	  // dir 2: (k,0,-m)
-	  mudotk = (mux*k*unitk[0] - muz*m*unitk[2]); 
+
+          // dir 2: (k,0,-m)
+          mudotk = (mux*k*unitk[0] - muz*m*unitk[2]);
           cstr2 += mudotk*(cs[k][0][i]*cs[m][2][i]+sn[k][0][i]*sn[m][2][i]);
           sstr2 += mudotk*(sn[k][0][i]*cs[m][2][i]-cs[k][0][i]*sn[m][2][i]);
         }
@@ -719,33 +710,33 @@ void EwaldDipole::eik_dot_r()
           cstr4 = 0.0;
           sstr4 = 0.0;
           for (i = 0; i < nlocal; i++) {
-      	    mux = mu[i][0];
-	    muy = mu[i][1];
-	    muz = mu[i][2];
+            mux = mu[i][0];
+            muy = mu[i][1];
+            muz = mu[i][2];
 
-	    // dir 1: (k,l,m)
-	    mudotk = (mux*k*unitk[0] + muy*l*unitk[1] + muz*m*unitk[2]); 
+            // dir 1: (k,l,m)
+            mudotk = (mux*k*unitk[0] + muy*l*unitk[1] + muz*m*unitk[2]);
             clpm = cs[l][1][i]*cs[m][2][i] - sn[l][1][i]*sn[m][2][i];
             slpm = sn[l][1][i]*cs[m][2][i] + cs[l][1][i]*sn[m][2][i];
             cstr1 += mudotk*(cs[k][0][i]*clpm - sn[k][0][i]*slpm);
             sstr1 += mudotk*(sn[k][0][i]*clpm + cs[k][0][i]*slpm);
 
-	    // dir 2: (k,-l,m)
-	    mudotk = (mux*k*unitk[0] - muy*l*unitk[1] + muz*m*unitk[2]); 
+            // dir 2: (k,-l,m)
+            mudotk = (mux*k*unitk[0] - muy*l*unitk[1] + muz*m*unitk[2]);
             clpm = cs[l][1][i]*cs[m][2][i] + sn[l][1][i]*sn[m][2][i];
             slpm = -sn[l][1][i]*cs[m][2][i] + cs[l][1][i]*sn[m][2][i];
             cstr2 += mudotk*(cs[k][0][i]*clpm - sn[k][0][i]*slpm);
             sstr2 += mudotk*(sn[k][0][i]*clpm + cs[k][0][i]*slpm);
 
-	    // dir 3: (k,l,-m)
-	    mudotk = (mux*k*unitk[0] + muy*l*unitk[1] - muz*m*unitk[2]); 
+            // dir 3: (k,l,-m)
+            mudotk = (mux*k*unitk[0] + muy*l*unitk[1] - muz*m*unitk[2]);
             clpm = cs[l][1][i]*cs[m][2][i] + sn[l][1][i]*sn[m][2][i];
             slpm = sn[l][1][i]*cs[m][2][i] - cs[l][1][i]*sn[m][2][i];
             cstr3 += mudotk*(cs[k][0][i]*clpm - sn[k][0][i]*slpm);
             sstr3 += mudotk*(sn[k][0][i]*clpm + cs[k][0][i]*slpm);
 
-	    // dir 4: (k,-l,-m)
-	    mudotk = (mux*k*unitk[0] - muy*l*unitk[1] - muz*m*unitk[2]); 
+            // dir 4: (k,-l,-m)
+            mudotk = (mux*k*unitk[0] - muy*l*unitk[1] - muz*m*unitk[2]);
             clpm = cs[l][1][i]*cs[m][2][i] - sn[l][1][i]*sn[m][2][i];
             slpm = -sn[l][1][i]*cs[m][2][i] - cs[l][1][i]*sn[m][2][i];
             cstr4 += mudotk*(cs[k][0][i]*clpm - sn[k][0][i]*slpm);
@@ -816,7 +807,6 @@ void EwaldDipole::slabcorr()
 
   if (atom->torque) {
     double ffact = qscale * (-4.0*MY_PI/volume);
-    double **mu = atom->mu;
     double **torque = atom->torque;
     for (int i = 0; i < nlocal; i++) {
       torque[i][0] += ffact * dipole_all * mu[i][1];

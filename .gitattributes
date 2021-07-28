@@ -1,0 +1,5 @@
+.gitattributes export-ignore
+.gitignore export-ignore
+.github export-ignore
+.lgtm.yml export-ignore
+SECURITY.md export-ignore

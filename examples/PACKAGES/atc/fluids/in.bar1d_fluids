@@ -1,0 +1,98 @@
+#AtC Thermal Coupling
+# This benchmark tests heat conducting into and out of the MD region.  The
+# temperature is initially 20 everywhere and the left boundary BC is fixed at
+# 40.# The result should show heat diffusing through the FEM to the MD and back
+# out # to the FEM on the right.  Insufficient time is captured to reach the
+# linear # steady state, but heat crossing both boundaries should be observed.
+log bar1d_fluids.log
+units		real
+atom_style	atomic
+# create domain
+#lattice	type reduced density rho* = 4*(sigma/a)^3, where N=4 for fcc, s = 3.405 A (Wagner) and a = 5.25 A (Ashcroft & Mermin, p. 70)
+# NOTE following 3 lines added for restart
+boundary        f p p
+pair_style      lj/cut 13.5
+read_data       temp.init
+#read_restart	post_eq.dat
+lattice         fcc 5.405 origin 0.25 0.25 0.25
+# create atoms, NOTE commented out for restart
+#region		mdRegion block -7 7 -3 3 -3 3
+#boundary	f p p
+#create_box	2 mdRegion
+#create_atoms	1 region mdRegion
+#mass		* 39.95
+# specify interal/ghost atoms
+#region		mdInternal block -6 6 -3 3 -3 3
+#region		mdGhost block -6 6 -3 3 -3 3 side out
+#create_atoms    1 region mdGhost
+#lattice         fcc 6.5 origin 0.25 0.25 0.25
+#create_atoms	2 region mdInternal
+group		internal type 2
+group		ghost type 1
+# velocities have Vcm = 0, NOTE next four lines commented out for restart
+#velocity	internal create 100. 87287 mom yes loop geom
+#pair_style	lj/cut 13.5
+##pair_coeff	1 1 0.010323166 3.405 13.5
+#pair_coeff  	* * .238 3.405 13.5
+neighbor	5. bin
+neigh_modify	every 10 delay 0 check no
+#write_restart	tinit.dat
+#               ID  group atc PhysicsType ParameterFile
+lattice         fcc 5.405 origin 0.25 0.25 0.25
+region		atcRegion block -6.25 6.25 -3 3 -3 3
+fix             AtC internal   atc thermal     Ar_thermal.mat
+#               ID  part keywords    nx ny nz region    periodicity
+fix_modify      AtC mesh create 6 1  1   atcRegion f p p
+fix_modify      AtC time_integration fractional_step
+fix_modify	AtC atom_element_map eulerian 10 # NOTE this introduces a minor amount of time integration error tracking the atomic temperature
+fix_modify      AtC  internal_quadrature off
+#fix_modify	AtC  mass_matrix fe
+# fix a temperature
+fix_modify     	AtC  fix temperature all 100.
+# add nodesets
+#               ID  mesh create_nodeset tag xmin xmax ymin ymax zmin zmax
+fix_modify      AtC mesh create_nodeset lbc -6.3 -6.2   -INF  INF   -INF  INF
+fix_modify      AtC mesh create_nodeset rbc  6.2  6.3   -INF  INF   -INF  INF
+#fix_modify      AtC  fix temperature lbc 120.
+#fix_modify      AtC  fix temperature rbc 100.
+#used for restarting
+#fix_modify	AtC  consistent_fe_initialization on
+#fix_modify     AtC  initial temperature all 100.
+# turn on thermostat
+fix_modify	AtC control  thermal rescale 10
+# equilibrate MD field
+variable xdof equal 3*count(ghost)
+compute_modify thermo_temp extra ${xdof}
+thermo_style custom step cpu etotal pe f_AtC[1] temp f_AtC[2]
+thermo_modify  format 1 %6i format 2 %7.2g
+#fix_modify      AtC  output bar1d_fluids_eqFE 200 text binary
+#dump            D1 all atom 200 dump_eq.bar1d
+timestep	2
+thermo		200
+run 		2000
+#write_restart	post_eq.dat
+# change thermostat to hoover
+reset_timestep 0
+fix_modify	AtC  reset_time
+fix_modify      AtC  unfix temperature all
+variable deltaT equal 2.*2000.
+fix_modify      AtC  fix temperature lbc temporal_ramp 100. 120. ${deltaT}
+#fix_modify	AtC  fix temperature lbc 100.
+fix_modify      AtC  fix temperature rbc 100.
+fix_modify      AtC control thermal flux no_boundary
+fix_modify	AtC control tolerance 1.e-14
+fix_modify	AtC control localized_lambda on
+fix_modify      AtC  filter type exponential
+fix_modify      AtC  filter scale 1000.0
+fix_modify      AtC  filter on
+# output commands
+fix_modify      AtC  output bar1d_fluidsFE 100 text
+#undump          D1
+#dump		D2 all atom 200 dump.bar1d
+#dump		D2 all custom 200 dump.bar1d id type xs ys zs vx vy vz
+# set-up non-equilibrium IC
+thermo		100
+run 		2000
+# run non-equilibrium condition
+fix_modify	AtC  fix temperature lbc 120.
+run		4000

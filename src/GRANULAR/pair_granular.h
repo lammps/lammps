@@ -1,6 +1,6 @@
-/* ----------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(granular,PairGranular)
-
+// clang-format off
+PairStyle(granular,PairGranular);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_GRANULAR_H
@@ -40,6 +40,8 @@ class PairGranular : public Pair {
   int pack_forward_comm(int, int *, double *, int, int *);
   void unpack_forward_comm(int, int, double *);
   double memory_usage();
+  double atom2cut(int);
+  double radii2cut(double, double);
 
  protected:
   double dt;
@@ -47,20 +49,21 @@ class PairGranular : public Pair {
   int use_history;
 
   int neighprev;
-  double *onerad_dynamic,*onerad_frozen;
-  double *maxrad_dynamic,*maxrad_frozen;
+  double *onerad_dynamic, *onerad_frozen;
+  double *maxrad_dynamic, *maxrad_frozen;
   double **cut;
 
+  class FixDummy *fix_dummy;
   class FixNeighHistory *fix_history;
 
   // storage of rigid body masses for use in granular interactions
 
-  class Fix *fix_rigid;    // ptr to rigid body fix, NULL if none
+  class Fix *fix_rigid;    // ptr to rigid body fix, null pointer if none
   double *mass_rigid;      // rigid mass for owned+ghost atoms
   int nmax;                // allocated size of mass_rigid
 
   void allocate();
-  void transfer_history(double*, double*);
+  void transfer_history(double *, double *);
 
  private:
   int size_history;
@@ -69,6 +72,7 @@ class PairGranular : public Pair {
   // model choices
   int **normal_model, **damping_model;
   int **tangential_model, **roll_model, **twist_model;
+  int **limit_damping;
 
   // history flags
   int normal_history, tangential_history, roll_history, twist_history;
@@ -98,7 +102,7 @@ class PairGranular : public Pair {
   double pulloff_distance(double, double, int, int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
@@ -111,4 +115,4 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
- */
+*/

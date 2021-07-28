@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -93,7 +94,7 @@ void PairCoulWolfCS::compute(int eflag, int vflag)
 
       if (rsq < cut_coulsq) {
         rsq += EPSILON;
-        // Add EPISLON for case: r = 0; Interaction must be removed
+        // Add EPSILON for case: r = 0; Interaction must be removed
         // by special bond
         r = sqrt(rsq);
         prefactor = qqrd2e*qtmp*q[j]/r;
@@ -128,8 +129,3 @@ void PairCoulWolfCS::compute(int eflag, int vflag)
   if (vflag_fdotr) virial_fdotr_compute();
 }
 
-/* NOTES
-Using erfc and expmsq provided by math_special.h
-
-See: http://lammps.sandia.gov/threads/msg61934.html
-*/

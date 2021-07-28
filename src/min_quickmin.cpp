@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,15 +13,16 @@
 ------------------------------------------------------------------------- */
 
 #include "min_quickmin.h"
-#include <mpi.h>
-#include <cmath>
-#include "universe.h"
+
 #include "atom.h"
 #include "error.h"
 #include "force.h"
-#include "update.h"
 #include "output.h"
 #include "timer.h"
+#include "universe.h"
+#include "update.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -215,10 +217,11 @@ int MinQuickMin::iterate(int maxiter)
     // force tolerance criterion
     // sync across replicas if running multi-replica minimization
 
+    fdotf = 0.0;
     if (update->ftol > 0.0) {
-      if (normstyle == MAX) fdotf = fnorm_max();     // max force norm
-      else if (normstyle == INF) fdotf = fnorm_inf(); // inf force norm
-      else if (normstyle == TWO) fdotf = fnorm_sqr(); // Euclidean force 2-norm
+      if (normstyle == MAX) fdotf = fnorm_max();       // max force norm
+      else if (normstyle == INF) fdotf = fnorm_inf();  // inf force norm
+      else if (normstyle == TWO) fdotf = fnorm_sqr();  // Euclidean force 2-norm
       else error->all(FLERR,"Illegal min_modify command");
       if (update->multireplica == 0) {
         if (fdotf < update->ftol*update->ftol) return FTOL;

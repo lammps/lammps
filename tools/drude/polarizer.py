@@ -41,7 +41,7 @@ new bonds to the data file.
 It will also generate some commands to be included in the LAMMPS input script,
 which are related to the topology and force field, namely fix drude,
 pair_style and pair_coeff commands. For information on thermostating please
-read the documentation of the USER-DRUDE package.
+read the documentation of the DRUDE package.
 
 This tool can also be used to revert a Drude-polarized data file to a
 non-polarizable one.
@@ -438,14 +438,6 @@ class Data(object):
             bond['j'] = int(tok[3])
             bond['note'] = ''.join([s + ' ' for s in tok[4:]]).strip()
             self.bonds.append(bond)
-
-        if 'Velocities' in self.sections:
-            for line in self.sections['Velocities']:
-                tok = line.split()
-                atom = self.idmap[int(tok[0])]
-                atom['vx'] = float(tok[1])
-                atom['vy'] = float(tok[2])
-                atom['vz'] = float(tok[3])
 
 
     def depolarize(self, drude):

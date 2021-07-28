@@ -1,0 +1,18 @@
+configuration {
+  step          100
+  dt 2.000000e+00
+  version 2020-07-07
+}
+
+colvar {
+  name one
+  x  1.00387423506482e+01
+}
+
+restraint {
+  configuration {
+    step 100
+    name h_pot
+  }
+}
+

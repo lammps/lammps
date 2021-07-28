@@ -1,0 +1,17 @@
+IF (NOT TARGET Kokkos::kokkos)
+  # Compute the installation prefix relative to this file.
+  get_filename_component(KOKKOS_IMPORT_PREFIX "${CMAKE_CURRENT_LIST_FILE}" PATH)
+  get_filename_component(KOKKOS_IMPORT_PREFIX "${KOKKOS_IMPORT_PREFIX}" PATH)
+  get_filename_component(KOKKOS_IMPORT_PREFIX "${KOKKOS_IMPORT_PREFIX}" PATH)
+  get_filename_component(KOKKOS_IMPORT_PREFIX "${KOKKOS_IMPORT_PREFIX}" PATH)
+  if(KOKKOS_IMPORT_PREFIX STREQUAL "/")
+    set(KOKKOS_IMPORT_PREFIX "")
+  endif()
+  add_library(Kokkos::kokkos INTERFACE IMPORTED)
+  set_target_properties(Kokkos::kokkos PROPERTIES
+    INTERFACE_LINK_LIBRARIES "@Kokkos_LIBRARIES@;@KOKKOS_LINK_OPTIONS@"
+    INTERFACE_COMPILE_FEATURES "@KOKKOS_CXX_STANDARD_FEATURE@"
+    INTERFACE_COMPILE_OPTIONS "@KOKKOS_ALL_COMPILE_OPTIONS@"
+    INTERFACE_INCLUDE_DIRECTORIES "${KOKKOS_IMPORT_PREFIX}/include"
+  )
+ENDIF()

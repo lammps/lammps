@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,12 +13,13 @@
 ------------------------------------------------------------------------- */
 
 #include "min_cg.h"
-#include <mpi.h>
-#include <cmath>
+
 #include "error.h"
-#include "update.h"
 #include "output.h"
 #include "timer.h"
+#include "update.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -36,7 +38,7 @@ MinCG::MinCG(LAMMPS *lmp) : MinLineSearch(lmp) {}
 int MinCG::iterate(int maxiter)
 {
   int i,m,n,fail,ntimestep;
-  double beta,gg,dot[2],dotall[2],fmax;
+  double beta,gg,dot[2],dotall[2],fdotf;
   double *fatom,*gatom,*hatom;
 
   // nlimit = max # of CG iterations before restarting
@@ -91,7 +93,7 @@ int MinCG::iterate(int maxiter)
       dot[0] += fvec[i]*fvec[i];
       dot[1] += fvec[i]*g[i];
     }
-    
+
     if (nextra_atom)
       for (m = 0; m < nextra_atom; m++) {
         fatom = fextra_atom[m];
@@ -100,7 +102,6 @@ int MinCG::iterate(int maxiter)
         for (i = 0; i < n; i++) {
           dot[0] += fatom[i]*fatom[i];
           dot[1] += fatom[i]*gatom[i];
-	  fmax = MAX(fmax,fatom[i]*fatom[i]);
         }
       }
     MPI_Allreduce(dot,dotall,2,MPI_DOUBLE,MPI_SUM,world);
@@ -110,16 +111,14 @@ int MinCG::iterate(int maxiter)
         dotall[1] += fextra[i]*gextra[i];
       }
 
-    fmax = 0.0;
-    if (normstyle == MAX) {		// max force norm
-      fmax = fnorm_max();
-      if (fmax < update->ftol*update->ftol) return FTOL;
-    } else if (normstyle == INF) {	// infinite force norm
-      fmax = fnorm_inf();
-      if (fmax < update->ftol*update->ftol) return FTOL;
-    } else if (normstyle == TWO) {	// Euclidean force 2-norm
-      if (dotall[0] < update->ftol*update->ftol) return FTOL;
-    } else error->all(FLERR,"Illegal min_modify command"); 
+    fdotf = 0.0;
+    if (update->ftol > 0.0) {
+      if (normstyle == MAX) fdotf = fnorm_max();        // max force norm
+      else if (normstyle == INF) fdotf = fnorm_inf();   // infinite force norm
+      else if (normstyle == TWO) fdotf = dotall[0];     // same as fnorm_sqr(), Euclidean force 2-norm
+      else error->all(FLERR,"Illegal min_modify command");
+      if (fdotf < update->ftol*update->ftol) return FTOL;
+    }
 
     // update new search direction h from new f = -Grad(x) and old g
     // this is Polak-Ribieri formulation

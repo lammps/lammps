@@ -1,0 +1,112 @@
+
+####################################################################################################
+#
+# TLSPH example: Two rubber rings impact each other.
+#
+# unit system: GPa / mm / ms
+#
+####################################################################################################
+
+####################################################################################################
+# MATERIAL PARAMETERS
+####################################################################################################
+variable        rho equal 1 # initial mass density
+variable        E equal 1.0 # Young's modulus
+variable        nu equal 0.3 # Poisson ratio
+variable        sigma_yield equal 0.051 # plastic yield stress
+variable        contact_stiffness equal 0.2 # contact stress for contact force between rings
+variable        q1 equal 0.06 # standard artificial viscosity linear coefficient
+variable        q2 equal 0.0  # standard artificial viscosity quadratic coefficient
+variable        hg equal 10.0 # hourglass control coefficient
+variable        cp equal 1.0 # heat capacity of material -- not used here
+
+####################################################################################################
+# INITIALIZE LAMMPS
+####################################################################################################
+dimension       3
+units           si
+boundary        sm sm sm # simulation box boundaries
+atom_style      smd
+atom_modify     map array
+comm_modify     vel yes
+neigh_modify    every 10 delay 0 check yes # re-build neighbor list every 10 steps
+newton          off
+
+####################################################################################################
+# READ GEOMETRY
+####################################################################################################
+read_data       washer_hex_adjusted.data # read geometry of one rubber ring from file
+replicate       2 1 1
+region          right block 12.2 EDGE EDGE EDGE EDGE EDGE units box
+group           right region right
+group           left subtract all right
+set             group left type 1
+set             group right type 2
+group           tlsph union left right
+
+####################################################################################################
+# DISCRETIZATION PARAMETERS
+####################################################################################################
+variable        l0 equal 0.3 # we need to set a length scale for the neighbor list skin
+variable        skin equal 4.0*${l0} # Verlet list range
+neighbor        ${skin} bin
+set             group all smd/contact/radius 1.0
+
+
+####################################################################################################
+# DEFINE INITIAL VELOCITY BOUNDARY CONDITIONS
+####################################################################################################
+variable        vel equal 100.0 # initial velocity
+velocity        left set  ${vel} 0 0 sum no units box
+velocity        right set -${vel} 0 0 sum no units box
+
+####################################################################################################
+# INTERACTION PHYSICS / MATERIAL MODEL
+# One rubber ring is linear elastic, the other rubber ring is elastic-ideal plastic.
+# Contact forces between both rubber rings are used to realize physical contact.
+####################################################################################################
+pair_style      hybrid/overlay smd/tlsph smd/hertz 1.0 # activate Total-Lagrangian SPH
+pair_coeff      1 1 smd/tlsph *COMMON ${rho} ${E} ${nu} ${q1} ${q2} ${hg} ${cp} &
+                *STRENGTH_LINEAR &
+                *EOS_LINEAR &
+                *END
+pair_coeff      2 2 smd/tlsph *COMMON ${rho} ${E} ${nu} ${q1} ${q2} ${hg} ${cp} &
+                *STRENGTH_LINEAR_PLASTIC ${sigma_yield} 0.0 &
+                *EOS_LINEAR &
+                *END
+pair_coeff      1 1 smd/hertz ${contact_stiffness}
+pair_coeff      2 2 smd/hertz ${contact_stiffness}
+pair_coeff      1 2 smd/hertz ${contact_stiffness}
+
+####################################################################################################
+# TIME INTEGRATION
+####################################################################################################
+fix             dtfix tlsph smd/adjust_dt 0.1 # dynamically adjust time increment every step
+fix             integration_fix tlsph smd/integrate_tlsph
+
+####################################################################################################
+# SPECIFY TRAJECTORY OUTPUT
+####################################################################################################
+variable        dumpFreq equal 30
+compute         S all smd/tlsph/stress # Cauchy stress tensor
+compute         nn all smd/tlsph/num/neighs # number of neighbors for each particle
+compute         cr all smd/contact/radius
+compute         p all smd/plastic/strain
+compute         eint all smd/internal/energy
+compute         alleint all reduce sum c_eint
+variable        etot equal c_alleint+ke+pe
+
+dump            dump_id all custom ${dumpFreq} dump.LAMMPS id type x y z vx vy vz &
+                c_S[1] c_S[2] c_S[3] c_S[4] c_S[5] c_S[6] c_S[7] c_nn c_cr proc c_p radius
+dump_modify     dump_id first yes
+
+####################################################################################################
+# STATUS OUTPUT
+####################################################################################################
+thermo          100
+thermo_style    custom step dt f_dtfix ke pe c_alleint v_etot
+
+####################################################################################################
+# PERFORM INITIAL LOAD BALANCING AND RUN SIMULATION
+####################################################################################################
+run             5000

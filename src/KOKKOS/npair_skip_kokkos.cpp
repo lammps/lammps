@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,11 +13,11 @@
 ------------------------------------------------------------------------- */
 
 #include "npair_skip_kokkos.h"
-#include "neigh_list_kokkos.h"
+
 #include "atom_kokkos.h"
-#include "atom_vec.h"
-#include "error.h"
 #include "atom_masks.h"
+#include "atom_vec.h"
+#include "neigh_list_kokkos.h"
 
 using namespace LAMMPS_NS;
 
@@ -147,7 +148,7 @@ void NPairSkipKokkos<DeviceType>::operator()(TagNPairSkipCountLocal, const int &
 
 namespace LAMMPS_NS {
 template class NPairSkipKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class NPairSkipKokkos<LMPHostType>;
 #endif
 }

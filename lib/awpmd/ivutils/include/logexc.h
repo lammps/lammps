@@ -42,7 +42,7 @@ enum vbLEVELS{
 /// by default all exceptions have vblFATAL level
 template<class exc_t>
 struct log_exception_traits{
-  /// exeption level according to the vbLEVELS
+  /// exception level according to the vbLEVELS
   static int level(const exc_t & /* signal */){ return vblFATAL; } 
   /// the string name of exception category
   static string name(const exc_t & /* signal */){ return typeid(exc_t).name();}
@@ -59,7 +59,7 @@ struct log_exception_traits{
 /// integer exceptions have the level equal to their value
 template<>
 struct log_exception_traits<int>{
-  /// exeption level according to the vbLEVELS
+  /// exception level according to the vbLEVELS
   static int level(const int &signal){ return signal; } 
   /// the string name of exception category
   static string name(const int &signal){ 
@@ -129,7 +129,7 @@ public:
   
   message_logger(const string &descriptor_="", int out_level=vblALLBAD|vblMESS1, 
                  int stop_level=vblFATAL, int throw_exceptions=0, int use_globally=0)
-    :descriptor(descriptor_),prev(NULL),next(NULL){
+    :descriptor(descriptor_),prev(nullptr),next(nullptr){
     set_throw(throw_exceptions);
     set_levels(out_level,stop_level);
     extra_levels(0,0);
@@ -157,8 +157,8 @@ public:
         return -1; 
       glogp=prev;
       if(glogp)
-        glogp->next=NULL;
-      prev=NULL;
+        glogp->next=nullptr;
+      prev=nullptr;
     }
     return 1;
   }
@@ -244,7 +244,7 @@ public:
                   FILE *out=stdout, FILE *err=stderr, 
                   int out_level=vblALLBAD|vblMESS1,int stop_level=vblFATAL,
                   int use_globally=0)
-                  : message_logger(descriptor_,out_level,stop_level,throw_exceptions,use_globally),fout(NULL), ferr(NULL){
+                  : message_logger(descriptor_,out_level,stop_level,throw_exceptions,use_globally),fout(nullptr), ferr(nullptr){
     set_out(out);
     set_err(err);
   }
@@ -273,7 +273,7 @@ public:
 };
 
 /// format a string 
-const char *fmt(const char *format,...);
+const char *logfmt(const char *format,...);
 
 /// macros with common usage
 #define LOGFATAL(code,text,lineinfo) ((lineinfo) ? ::message(vblFATAL,(code)," %s at %s:%d",(text),__FILE__,__LINE__) : \
@@ -294,7 +294,7 @@ const char *fmt(const char *format,...);
 /// this may be used to inherit exceptions
 /// where level and name are defined whithin a class
 struct log_exception {
-   /// exeption level according to the vbLEVELS
+   /// exception level according to the vbLEVELS
   static int level(const log_exception &signal){ return vblFATAL; } 
   /// the string name of exception category
   static string name(const log_exception &signal){ return "undefined exception";}

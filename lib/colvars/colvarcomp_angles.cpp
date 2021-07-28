@@ -2,7 +2,7 @@
 
 // This file is part of the Collective Variables module (Colvars).
 // The original version of Colvars and its updates are located at:
-// https://github.com/colvars/colvars
+// https://github.com/Colvars/colvars
 // Please update all Colvars source files before making any changes.
 // If you wish to distribute your changes, please submit them to the
 // Colvars repository at GitHub.
@@ -16,6 +16,8 @@ colvar::angle::angle(std::string const &conf)
   : cvc(conf)
 {
   function_type = "angle";
+  init_as_angle();
+
   provide(f_cvc_inv_gradient);
   provide(f_cvc_Jacobian);
   enable(f_cvc_com_based);
@@ -25,8 +27,6 @@ colvar::angle::angle(std::string const &conf)
   group3 = parse_group(conf, "group3");
 
   init_total_force_params(conf);
-
-  x.type(colvarvalue::type_scalar);
 }
 
 
@@ -35,6 +35,8 @@ colvar::angle::angle(cvm::atom const &a1,
                      cvm::atom const &a3)
 {
   function_type = "angle";
+  init_as_angle();
+
   provide(f_cvc_inv_gradient);
   provide(f_cvc_Jacobian);
   enable(f_cvc_com_based);
@@ -45,15 +47,6 @@ colvar::angle::angle(cvm::atom const &a1,
   register_atom_group(group1);
   register_atom_group(group2);
   register_atom_group(group3);
-
-  x.type(colvarvalue::type_scalar);
-}
-
-
-colvar::angle::angle()
-{
-  function_type = "angle";
-  x.type(colvarvalue::type_scalar);
 }
 
 
@@ -148,13 +141,13 @@ colvar::dipole_angle::dipole_angle(std::string const &conf)
   : cvc(conf)
 {
   function_type = "dipole_angle";
+  init_as_angle();
+
   group1 = parse_group(conf, "group1");
   group2 = parse_group(conf, "group2");
   group3 = parse_group(conf, "group3");
 
   init_total_force_params(conf);
-
-  x.type(colvarvalue::type_scalar);
 }
 
 
@@ -178,6 +171,7 @@ colvar::dipole_angle::dipole_angle(cvm::atom const &a1,
 colvar::dipole_angle::dipole_angle()
 {
   function_type = "dipole_angle";
+  init_as_angle();
   x.type(colvarvalue::type_scalar);
 }
 
@@ -259,7 +253,7 @@ colvar::dihedral::dihedral(std::string const &conf)
 {
   function_type = "dihedral";
   period = 360.0;
-  b_periodic = true;
+  enable(f_cvc_periodic);
   provide(f_cvc_inv_gradient);
   provide(f_cvc_Jacobian);
   enable(f_cvc_com_based);
@@ -285,7 +279,7 @@ colvar::dihedral::dihedral(cvm::atom const &a1,
 
   function_type = "dihedral";
   period = 360.0;
-  b_periodic = true;
+  enable(f_cvc_periodic);
   provide(f_cvc_inv_gradient);
   provide(f_cvc_Jacobian);
   enable(f_cvc_com_based);
@@ -312,7 +306,7 @@ colvar::dihedral::dihedral()
 {
   function_type = "dihedral";
   period = 360.0;
-  b_periodic = true;
+  enable(f_cvc_periodic);
   provide(f_cvc_inv_gradient);
   provide(f_cvc_Jacobian);
   x.type(colvarvalue::type_scalar);

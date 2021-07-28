@@ -11,9 +11,9 @@
 //
 //    begin                :
 //    email                : brownw@ornl.gov
-// ***************************************************************************/
+// ***************************************************************************
 
-#ifdef NV_KERNEL
+#if defined(NV_KERNEL) || defined(USE_HIP)
 #include "lal_ellipsoid_extra.h"
 #endif
 
@@ -100,29 +100,27 @@ __kernel void k_gayberne(const __global numtyp4 *restrict x_,
   atom_info(t_per_atom,ii,tid,offset);
 
   __local numtyp sp_lj[4];
+  int n_stride;
+  local_allocate_store_ellipse();
+
   sp_lj[0]=gum[3];
   sp_lj[1]=gum[4];
   sp_lj[2]=gum[5];
   sp_lj[3]=gum[6];
 
-  acctyp energy=(acctyp)0;
-  acctyp4 f;
-  f.x=(acctyp)0;
-  f.y=(acctyp)0;
-  f.z=(acctyp)0;
-  acctyp4 tor;
-  tor.x=(acctyp)0;
-  tor.y=(acctyp)0;
-  tor.z=(acctyp)0;
-  acctyp virial[6];
-  for (int i=0; i<6; i++)
-    virial[i]=(acctyp)0;
+  acctyp4 f, tor;
+  f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
+  tor.x=(acctyp)0; tor.y=(acctyp)0; tor.z=(acctyp)0;
+  acctyp energy, virial[6];
+  if (EVFLAG) {
+    energy=(acctyp)0;
+    for (int i=0; i<6; i++) virial[i]=(acctyp)0;
+  }
 
   if (ii<inum) {
     int nbor, nbor_end;
     int i, numj;
-    __local int n_stride;
-    nbor_info_e(dev_nbor,stride,t_per_atom,ii,offset,i,numj,
+    nbor_info_p(dev_nbor,stride,t_per_atom,ii,offset,i,numj,
                 n_stride,nbor_end,nbor);
 
     numtyp4 ix; fetch4(ix,i,pos_tex);
@@ -316,17 +314,16 @@ __kernel void k_gayberne(const __global numtyp4 *restrict x_,
         numtyp tempv[3];
         gpu_row_times3(iota,b1,tempv);
         gpu_cross3(tempv,iota,tchi);
-        temp1 = (numtyp)-4.0*ir*ir;
-        tchi[0] *= temp1;
-        tchi[1] *= temp1;
-        tchi[2] *= temp1;
+        tchi[0] *= temp2;
+        tchi[1] *= temp2;
+        tchi[2] *= temp2;
       }
 
       numtyp temp2 = factor_lj*eta*chi;
-      if (eflag>0)
+      if (EVFLAG && eflag)
         energy+=u_r*temp2;
       numtyp temp1 = -eta*u_r*factor_lj;
-      if (vflag>0) {
+      if (EVFLAG && vflag) {
         r12[0]*=-r;
         r12[1]*=-r;
         r12[2]*=-r;
@@ -357,8 +354,8 @@ __kernel void k_gayberne(const __global numtyp4 *restrict x_,
       tor.z+=temp1*tchi[2]+temp2*teta[2]+temp3*tUr[2];
 
     } // for nbor
-    store_answers_t(f,tor,energy,virial,ii,astride,tid,t_per_atom,offset,eflag,
-                    vflag,ans,engv);
   } // if ii
+  store_answers_t(f,tor,energy,virial,ii,astride,tid,t_per_atom,offset,eflag,
+                  vflag,ans,engv,inum);
 }
 

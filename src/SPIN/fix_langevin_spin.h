@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(langevin/spin,FixLangevinSpin)
-
+// clang-format off
+FixStyle(langevin/spin,FixLangevinSpin);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_LANGEVIN_SPIN_H
@@ -26,34 +26,30 @@ namespace LAMMPS_NS {
 
 class FixLangevinSpin : public Fix {
  public:
+  int tdamp_flag, temp_flag;    // damping and temperature flags
+
   FixLangevinSpin(class LAMMPS *, int, char **);
   virtual ~FixLangevinSpin();
   int setmask();
   void init();
   void setup(int);
-  void post_force_respa(int, int, int);
-  void add_tdamping(double spi[3], double fmi[3]);	// add transverse damping
-  void add_temperature(double fmi[3]);			// add temperature
-  int tdamp_flag, ldamp_flag, temp_flag;		// damping and temperature flags
+  void add_tdamping(double *, double *);    // add transverse damping
+  void add_temperature(double[3]);
+  void compute_single_langevin(int, double *, double *);
 
  protected:
-  double *spi, *fmi;
-  double alpha_t;		// transverse mag. damping
-  double dts;        		// magnetic timestep
-  double temp;       		// spin bath temperature
-  double D,sigma;    		// bath intensity var.
-  double gil_factor; 		// gilbert's prefactor
-
-  char *id_temp;
-  class Compute *temperature;
+  double alpha_t;       // transverse mag. damping
+  double dts;           // magnetic timestep
+  double temp;          // spin bath temperature
+  double D, sigma;      // bath intensity var.
+  double gil_factor;    // gilbert's prefactor
 
   int nlevels_respa;
-  class RanPark *random;
+  class RanMars *random;
   int seed;
-
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

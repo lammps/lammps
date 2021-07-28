@@ -2,10 +2,11 @@
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 2.0
-//              Copyright (2014) Sandia Corporation
+//                        Kokkos v. 3.0
+//       Copyright (2020) National Technology & Engineering
+//               Solutions of Sandia, LLC (NTESS).
 //
-// Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
+// Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -23,10 +24,10 @@
 // contributors may be used to endorse or promote products derived from
 // this software without specific prior written permission.
 //
-// THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
+// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
 // CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 // EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 // PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -41,8 +42,7 @@
 //@HEADER
 */
 
-
-#include <Kokkos_Macros.hpp>
+#include <Kokkos_Core.hpp>
 
 #ifdef KOKKOS_ENABLE_HPX
 #include <Kokkos_HPX.hpp>
@@ -53,9 +53,12 @@ namespace Kokkos {
 namespace Experimental {
 
 bool HPX::m_hpx_initialized = false;
-Kokkos::Impl::thread_buffer HPX::m_buffer;
+std::atomic<uint32_t> HPX::m_next_instance_id{1};
 #if defined(KOKKOS_ENABLE_HPX_ASYNC_DISPATCH)
-hpx::future<void> HPX::m_future = hpx::make_ready_future<void>();
+std::atomic<uint32_t> HPX::m_active_parallel_region_count{0};
+HPX::instance_data HPX::m_global_instance_data;
+#else
+Kokkos::Impl::thread_buffer HPX::m_global_buffer;
 #endif
 
 int HPX::concurrency() {
@@ -76,15 +79,18 @@ void HPX::impl_initialize(int thread_count) {
   if (rt == nullptr) {
     std::vector<std::string> config = {
         "hpx.os_threads=" + std::to_string(thread_count),
-#ifdef KOKKOS_DEBUG
+#ifdef KOKKOS_ENABLE_DEBUG
         "--hpx:attach-debugger=exception",
 #endif
     };
-    int argc_hpx = 1;
-    char name[] = "kokkos_hpx";
+    int argc_hpx     = 1;
+    char name[]      = "kokkos_hpx";
     char *argv_hpx[] = {name, nullptr};
     hpx::start(nullptr, argc_hpx, argv_hpx, config);
 
+#if HPX_VERSION_FULL < 0x010400
+    // This has been fixed in HPX 1.4.0.
+    //
     // NOTE: Wait for runtime to start. hpx::start returns as soon as
     // possible, meaning some operations are not allowed immediately
     // after hpx::start. Notably, hpx::stop needs state_running. This
@@ -94,6 +100,7 @@ void HPX::impl_initialize(int thread_count) {
     rt = hpx::get_runtime_ptr();
     hpx::util::yield_while(
         [rt]() { return rt->get_state() < hpx::state_running; });
+#endif
 
     m_hpx_initialized = true;
   }
@@ -103,12 +110,12 @@ void HPX::impl_initialize() {
   hpx::runtime *rt = hpx::get_runtime_ptr();
   if (rt == nullptr) {
     std::vector<std::string> config = {
-#ifdef KOKKOS_DEBUG
+#ifdef KOKKOS_ENABLE_DEBUG
         "--hpx:attach-debugger=exception",
 #endif
     };
-    int argc_hpx = 1;
-    char name[] = "kokkos_hpx";
+    int argc_hpx     = 1;
+    char name[]      = "kokkos_hpx";
     char *argv_hpx[] = {name, nullptr};
     hpx::start(nullptr, argc_hpx, argv_hpx, config);
 
@@ -138,15 +145,66 @@ void HPX::impl_finalize() {
       hpx::apply([]() { hpx::finalize(); });
       hpx::stop();
     } else {
-      Kokkos::abort("Kokkos::Experimental::HPX::impl_finalize: Kokkos started "
-                    "HPX but something else already stopped HPX\n");
+      Kokkos::abort(
+          "Kokkos::Experimental::HPX::impl_finalize: Kokkos started "
+          "HPX but something else already stopped HPX\n");
     }
   }
 }
 
-} // namespace Experimental
-} // namespace Kokkos
+}  // namespace Experimental
+
+namespace Impl {
+
+int g_hpx_space_factory_initialized =
+    initialize_space_factory<HPXSpaceInitializer>("060_HPX");
+
+void HPXSpaceInitializer::initialize(const InitArguments &args) {
+  const int num_threads = args.num_threads;
+
+  if (std::is_same<Kokkos::Experimental::HPX,
+                   Kokkos::DefaultExecutionSpace>::value ||
+      std::is_same<Kokkos::Experimental::HPX,
+                   Kokkos::HostSpace::execution_space>::value) {
+    if (num_threads > 0) {
+      Kokkos::Experimental::HPX::impl_initialize(num_threads);
+    } else {
+      Kokkos::Experimental::HPX::impl_initialize();
+    }
+    // std::cout << "Kokkos::initialize() fyi: HPX enabled and initialized" <<
+    // std::endl ;
+  } else {
+    // std::cout << "Kokkos::initialize() fyi: HPX enabled but not initialized"
+    // << std::endl ;
+  }
+}
+
+void HPXSpaceInitializer::finalize(const bool all_spaces) {
+  if (std::is_same<Kokkos::Experimental::HPX,
+                   Kokkos::DefaultExecutionSpace>::value ||
+      std::is_same<Kokkos::Experimental::HPX,
+                   Kokkos::HostSpace::execution_space>::value ||
+      all_spaces) {
+    if (Kokkos::Experimental::HPX::impl_is_initialized())
+      Kokkos::Experimental::HPX::impl_finalize();
+  }
+}
+
+void HPXSpaceInitializer::fence() { Kokkos::Experimental::HPX().fence(); }
+
+void HPXSpaceInitializer::print_configuration(std::ostream &msg,
+                                              const bool detail) {
+  msg << "HPX Execution Space:" << std::endl;
+  msg << "  KOKKOS_ENABLE_HPX: ";
+  msg << "yes" << std::endl;
+
+  msg << "\nHPX Runtime Configuration:" << std::endl;
+  Kokkos::Experimental::HPX::print_configuration(msg, detail);
+}
+
+}  // namespace Impl
+}  // namespace Kokkos
 
 #else
 void KOKKOS_CORE_SRC_IMPL_HPX_PREVENT_LINK_ERROR() {}
-#endif //#ifdef KOKKOS_ENABLE_HPX
+#endif  //#ifdef KOKKOS_ENABLE_HPX

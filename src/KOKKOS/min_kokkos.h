@@ -1,6 +1,7 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -29,6 +30,7 @@ class MinKokkos : public Min {
   void run(int);
   double fnorm_sqr();
   double fnorm_inf();
+  double fnorm_max();
 
   virtual void init_style() {}
   virtual void setup_style() = 0;

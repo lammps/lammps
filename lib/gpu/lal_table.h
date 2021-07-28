@@ -32,7 +32,7 @@ class Table : public BaseAtomic<numtyp, acctyp> {
     * \param gpu_split fraction of particles handled by device
     *
     * Returns:
-    * -  0 if successfull
+    * -  0 if successful
     * - -1 if fix gpu not found
     * - -3 if there is an out of memory error
     * - -4 if the GPU library was not compiled for GPU
@@ -56,9 +56,10 @@ class Table : public BaseAtomic<numtyp, acctyp> {
   double host_memory_usage() const;
 
   // ------------------------- DEVICE KERNELS -------------------------
-  UCL_Kernel k_pair_linear, k_pair_linear_fast;
-  UCL_Kernel k_pair_spline, k_pair_spline_fast;
-  UCL_Kernel k_pair_bitmap, k_pair_bitmap_fast;
+  UCL_Kernel k_pair_linear, k_pair_linear_fast, k_pair_linear_noev;
+  UCL_Kernel k_pair_spline, k_pair_spline_fast, k_pair_spline_noev;
+  UCL_Kernel k_pair_bitmap, k_pair_bitmap_fast, k_pair_bitmap_noev;
+  UCL_Kernel *k_pair_linear_sel, *k_pair_spline_sel, *k_pair_bitmap_sel;
 
   // --------------------------- TYPE DATA --------------------------
 
@@ -90,7 +91,7 @@ class Table : public BaseAtomic<numtyp, acctyp> {
  private:
   bool _allocated, _compiled_styles;
 
-  void loop(const bool _eflag, const bool _vflag);
+  int loop(const int eflag, const int vflag);
 };
 
 }

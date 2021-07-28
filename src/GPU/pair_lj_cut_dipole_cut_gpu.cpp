@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,24 +17,20 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_lj_cut_dipole_cut_gpu.h"
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
+
 #include "atom.h"
-#include "atom_vec.h"
-#include "comm.h"
-#include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "integrate.h"
-#include "memory.h"
-#include "error.h"
-#include "neigh_request.h"
-#include "universe.h"
-#include "update.h"
 #include "domain.h"
+#include "error.h"
+#include "force.h"
 #include "gpu_extra.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "suffix.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -73,6 +70,7 @@ PairLJCutDipoleCutGPU::PairLJCutDipoleCutGPU(LAMMPS *lmp) : PairLJCutDipoleCut(l
   respa_enable = 0;
   reinitflag = 0;
   cpu_time = 0.0;
+  suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
 
@@ -97,9 +95,20 @@ void PairLJCutDipoleCutGPU::compute(int eflag, int vflag)
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
   if (gpu_mode != GPU_FORCE) {
+    double sublo[3],subhi[3];
+    if (domain->triclinic == 0) {
+      sublo[0] = domain->sublo[0];
+      sublo[1] = domain->sublo[1];
+      sublo[2] = domain->sublo[2];
+      subhi[0] = domain->subhi[0];
+      subhi[1] = domain->subhi[1];
+      subhi[2] = domain->subhi[2];
+    } else {
+      domain->bbox(domain->sublo_lamda,domain->subhi_lamda,sublo,subhi);
+    }
     inum = atom->nlocal;
     firstneigh = dpl_gpu_compute_n(neighbor->ago, inum, nall, atom->x,
-                                   atom->type, domain->sublo, domain->subhi,
+                                   atom->type, sublo, subhi,
                                    atom->tag, atom->nspecial, atom->special,
                                    eflag, vflag, eflag_atom, vflag_atom,
                                    host_start, &ilist, &numneigh, cpu_time,
@@ -135,7 +144,7 @@ void PairLJCutDipoleCutGPU::init_style()
     error->all(FLERR,"Pair dipole/cut/gpu requires atom attributes q, mu, torque");
 
   if (force->newton_pair)
-    error->all(FLERR,"Cannot use newton pair with dipole/cut/gpu pair style");
+    error->all(FLERR,"Pair style dipole/cut/gpu requires newton pair off");
 
   if (strcmp(update->unit_style,"electron") == 0)
     error->all(FLERR,"Cannot (yet) use 'electron' units with dipoles");
@@ -158,11 +167,12 @@ void PairLJCutDipoleCutGPU::init_style()
   double cell_size = sqrt(maxcut) + neighbor->skin;
 
   int maxspecial=0;
-  if (atom->molecular)
+  if (atom->molecular != Atom::ATOMIC)
     maxspecial=atom->maxspecial;
+  int mnf = 5e-2 * neighbor->oneatom;
   int success = dpl_gpu_init(atom->ntypes+1, cutsq, lj1, lj2, lj3, lj4,
                              offset, force->special_lj, atom->nlocal,
-                             atom->nlocal+atom->nghost, 300, maxspecial,
+                             atom->nlocal+atom->nghost, mnf, maxspecial,
                              cell_size, gpu_mode, screen, cut_ljsq, cut_coulsq,
                              force->special_coul, force->qqrd2e);
   GPU_EXTRA::check_flag(success,error,world);

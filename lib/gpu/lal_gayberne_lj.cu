@@ -11,10 +11,17 @@
 //
 //    begin                :
 //    email                : brownw@ornl.gov
-// ***************************************************************************/
+// ***************************************************************************
 
-#ifdef NV_KERNEL
+#if defined(NV_KERNEL) || defined(USE_HIP)
 #include "lal_ellipsoid_extra.h"
+#endif
+
+#if (SHUFFLE_AVAIL == 0)
+#define local_allocate_store_ellipse_lj local_allocate_store_ellipse
+#else
+#define local_allocate_store_ellipse_lj()                                   \
+    __local acctyp red_acc[7][BLOCK_ELLIPSE / SIMD_SIZE];
 #endif
 
 __kernel void k_gayberne_sphere_ellipsoid(const __global numtyp4 *restrict x_,
@@ -38,25 +45,26 @@ __kernel void k_gayberne_sphere_ellipsoid(const __global numtyp4 *restrict x_,
   ii+=start;
 
   __local numtyp sp_lj[4];
+  int n_stride;
+  local_allocate_store_ellipse_lj();
+
   sp_lj[0]=gum[3];
   sp_lj[1]=gum[4];
   sp_lj[2]=gum[5];
   sp_lj[3]=gum[6];
 
-  acctyp energy=(acctyp)0;
   acctyp4 f;
-  f.x=(acctyp)0;
-  f.y=(acctyp)0;
-  f.z=(acctyp)0;
-  acctyp virial[6];
-  for (int i=0; i<6; i++)
-    virial[i]=(acctyp)0;
+  f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
+  acctyp energy, virial[6];
+  if (EVFLAG) {
+    energy=(acctyp)0;
+    for (int i=0; i<6; i++) virial[i]=(acctyp)0;
+  }
 
   if (ii<inum) {
     int nbor, nbor_end;
     int i, numj;
-    __local int n_stride;
-    nbor_info_e(dev_nbor,stride,t_per_atom,ii,offset,i,numj,
+    nbor_info_p(dev_nbor,stride,t_per_atom,ii,offset,i,numj,
                 n_stride,nbor_end,nbor);
 
     numtyp4 ix; fetch4(ix,i,pos_tex);
@@ -214,10 +222,10 @@ __kernel void k_gayberne_sphere_ellipsoid(const __global numtyp4 *restrict x_,
       }
 
       numtyp temp2 = factor_lj*eta*chi;
-      if (eflag>0)
+      if (EVFLAG && eflag)
         energy+=u_r*temp2;
       numtyp temp1 = -eta*u_r*factor_lj;
-      if (vflag>0) {
+      if (EVFLAG && vflag) {
         r12[0]*=-1;
         r12[1]*=-1;
         r12[2]*=-1;
@@ -239,9 +247,9 @@ __kernel void k_gayberne_sphere_ellipsoid(const __global numtyp4 *restrict x_,
         f.z+=temp1*dchi[2]-temp2*dUr[2];
       }
     } // for nbor
-    store_answers(f,energy,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
-                  ans,engv);
   } // if ii
+  store_answers(f,energy,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
+                ans,engv);
 }
 
 __kernel void k_gayberne_lj(const __global numtyp4 *restrict x_,
@@ -261,26 +269,27 @@ __kernel void k_gayberne_lj(const __global numtyp4 *restrict x_,
   ii+=start;
 
   __local numtyp sp_lj[4];
+  int n_stride;
+  local_allocate_store_ellipse();
+
   sp_lj[0]=gum[3];
   sp_lj[1]=gum[4];
   sp_lj[2]=gum[5];
   sp_lj[3]=gum[6];
 
-  acctyp energy=(acctyp)0;
   acctyp4 f;
-  f.x=(acctyp)0;
-  f.y=(acctyp)0;
-  f.z=(acctyp)0;
-  acctyp virial[6];
-  for (int i=0; i<6; i++)
-    virial[i]=(acctyp)0;
+  f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
+  acctyp energy, virial[6];
+  if (EVFLAG) {
+    energy=(acctyp)0;
+    for (int i=0; i<6; i++) virial[i]=(acctyp)0;
+  }
 
   if (ii<inum) {
     int nbor, nbor_end;
     int i, numj;
-    __local int n_stride;
-    nbor_info_e(dev_ij,stride,t_per_atom,ii,offset,i,numj,
-                n_stride,nbor_end,nbor);
+    nbor_info_e_ss(dev_ij,stride,t_per_atom,ii,offset,i,numj,
+                   n_stride,nbor_end,nbor);
 
     numtyp4 ix; fetch4(ix,i,pos_tex);
     int itype=ix.w;
@@ -312,11 +321,11 @@ __kernel void k_gayberne_lj(const __global numtyp4 *restrict x_,
         f.y+=dely*force;
         f.z+=delz*force;
 
-        if (eflag>0) {
+        if (EVFLAG && eflag) {
           numtyp e=r6inv*(lj3[ii].x*r6inv-lj3[ii].y);
           energy+=factor_lj*(e-lj3[ii].z);
         }
-        if (vflag>0) {
+        if (EVFLAG && vflag) {
           virial[0] += delx*delx*force;
           virial[1] += dely*dely*force;
           virial[2] += delz*delz*force;
@@ -327,9 +336,9 @@ __kernel void k_gayberne_lj(const __global numtyp4 *restrict x_,
       }
 
     } // for nbor
-    acc_answers(f,energy,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
-                ans,engv);
   } // if ii
+  acc_answers(f,energy,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
+              ans,engv);
 }
 
 __kernel void k_gayberne_lj_fast(const __global numtyp4 *restrict x_,
@@ -351,31 +360,32 @@ __kernel void k_gayberne_lj_fast(const __global numtyp4 *restrict x_,
   __local numtyp sp_lj[4];
   __local numtyp4 lj1[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
   __local numtyp4 lj3[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
+  int n_stride;
+  local_allocate_store_ellipse();
+
   if (tid<4)
     sp_lj[tid]=gum[tid+3];
   if (tid<MAX_SHARED_TYPES*MAX_SHARED_TYPES) {
     lj1[tid]=lj1_in[tid];
-    if (eflag>0)
+    if (EVFLAG && eflag)
       lj3[tid]=lj3_in[tid];
   }
 
-  acctyp energy=(acctyp)0;
   acctyp4 f;
-  f.x=(acctyp)0;
-  f.y=(acctyp)0;
-  f.z=(acctyp)0;
-  acctyp virial[6];
-  for (int i=0; i<6; i++)
-    virial[i]=(acctyp)0;
+  f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
+  acctyp energy, virial[6];
+  if (EVFLAG) {
+    energy=(acctyp)0;
+    for (int i=0; i<6; i++) virial[i]=(acctyp)0;
+  }
 
   __syncthreads();
 
   if (ii<inum) {
     int nbor, nbor_end;
     int i, numj;
-    __local int n_stride;
-    nbor_info_e(dev_ij,stride,t_per_atom,ii,offset,i,numj,
-                n_stride,nbor_end,nbor);
+    nbor_info_e_ss(dev_ij,stride,t_per_atom,ii,offset,i,numj,
+                   n_stride,nbor_end,nbor);
 
     numtyp4 ix; fetch4(ix,i,pos_tex);
     int iw=ix.w;
@@ -406,11 +416,11 @@ __kernel void k_gayberne_lj_fast(const __global numtyp4 *restrict x_,
         f.y+=dely*force;
         f.z+=delz*force;
 
-        if (eflag>0) {
+        if (EVFLAG && eflag) {
           numtyp e=r6inv*(lj3[mtype].x*r6inv-lj3[mtype].y);
           energy+=factor_lj*(e-lj3[mtype].z);
         }
-        if (vflag>0) {
+        if (EVFLAG && vflag) {
           virial[0] += delx*delx*force;
           virial[1] += dely*dely*force;
           virial[2] += delz*delz*force;
@@ -421,8 +431,8 @@ __kernel void k_gayberne_lj_fast(const __global numtyp4 *restrict x_,
       }
 
     } // for nbor
-    acc_answers(f,energy,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
-                ans,engv);
   } // if ii
+  acc_answers(f,energy,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
+              ans,engv);
 }
 

@@ -151,7 +151,7 @@ namespace ATC {
   VelocityRescaleCombined::VelocityRescaleCombined(AtomicRegulator * kinetostat) :
     VelocityGlc(kinetostat),
     velocity_(atc_->field(VELOCITY)),
-    thermostatCorrection_(NULL)
+    thermostatCorrection_(nullptr)
   {
     // do nothing
   }
@@ -188,7 +188,7 @@ namespace ATC {
   //--------------------------------------------------------
   ThermostatRescaleCombined::ThermostatRescaleCombined(AtomicRegulator * thermostat) :
     ThermostatRescale(thermostat),
-    kinetostatCorrection_(NULL)
+    kinetostatCorrection_(nullptr)
   {
     // do nothing
   }
@@ -226,14 +226,14 @@ namespace ATC {
   KinetoThermostatRescale::KinetoThermostatRescale(AtomicRegulator * kinetoThermostat,
                                                    int couplingMaxIterations) :
     KinetoThermostatShapeFunction(kinetoThermostat,couplingMaxIterations),
-    atomVelocities_(NULL),
+    atomVelocities_(nullptr),
     nodalVelocities_(atc_->field(VELOCITY)),
-    lambdaMomentum_(NULL),
-    lambdaEnergy_(NULL),
-    atomicFluctuatingVelocityRescaled_(NULL),
-    atomicStreamingVelocity_(NULL),
-    thermostat_(NULL),
-    kinetostat_(NULL)
+    lambdaMomentum_(nullptr),
+    lambdaEnergy_(nullptr),
+    atomicFluctuatingVelocityRescaled_(nullptr),
+    atomicStreamingVelocity_(nullptr),
+    thermostat_(nullptr),
+    kinetostat_(nullptr)
   {
     thermostat_ = this->construct_rescale_thermostat();
     kinetostat_ = new VelocityRescaleCombined(kinetoThermostat);
@@ -389,7 +389,7 @@ namespace ATC {
   //--------------------------------------------------------
   ThermostatRescaleMixedKePeCombined::ThermostatRescaleMixedKePeCombined(AtomicRegulator * thermostat) :
     ThermostatRescaleMixedKePe(thermostat),
-    kinetostatCorrection_(NULL)
+    kinetostatCorrection_(nullptr)
   {
     // do nothing
   }
@@ -458,21 +458,21 @@ namespace ATC {
     velocity_(atc_->field(VELOCITY)),
     temperature_(atc_->field(TEMPERATURE)),
     timeFilter_(atomicRegulator_->time_filter()),
-    nodalAtomicLambdaForce_(NULL),
-    lambdaForceFiltered_(NULL),
-    nodalAtomicLambdaPower_(NULL),
-    lambdaPowerFiltered_(NULL),
-    atomRegulatorForces_(NULL),
-    atomThermostatForces_(NULL),
-    atomMasses_(NULL),
-    atomVelocities_(NULL),
+    nodalAtomicLambdaForce_(nullptr),
+    lambdaForceFiltered_(nullptr),
+    nodalAtomicLambdaPower_(nullptr),
+    lambdaPowerFiltered_(nullptr),
+    atomRegulatorForces_(nullptr),
+    atomThermostatForces_(nullptr),
+    atomMasses_(nullptr),
+    atomVelocities_(nullptr),
     isFirstTimestep_(true),
-    nodalAtomicMomentum_(NULL),
-    nodalAtomicEnergy_(NULL),
-    atomPredictedVelocities_(NULL),
-    nodalAtomicPredictedMomentum_(NULL),
-    nodalAtomicPredictedEnergy_(NULL),
-    firstHalfAtomForces_(NULL),
+    nodalAtomicMomentum_(nullptr),
+    nodalAtomicEnergy_(nullptr),
+    atomPredictedVelocities_(nullptr),
+    nodalAtomicPredictedMomentum_(nullptr),
+    nodalAtomicPredictedEnergy_(nullptr),
+    firstHalfAtomForces_(nullptr),
     dtFactor_(0.)
   {
     // construct/obtain data corresponding to stage 3 of ATC_Method::initialize

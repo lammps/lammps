@@ -441,10 +441,10 @@ namespace ATC {
     virtual void set_lammps_to_quantity() const {};
 
     /** gets appropriate pointer for lammps data */
-    virtual T * lammps_scalar() const {return NULL;};
+    virtual T * lammps_scalar() const {return nullptr;};
 
     /** gets appropriate pointer for lammps data */
-    virtual T ** lammps_vector() const {return NULL;};
+    virtual T ** lammps_vector() const {return nullptr;};
 
   private:
 
@@ -1452,10 +1452,10 @@ namespace ATC {
     virtual void set_quantity_to_lammps() const {};
 
     /** gets appropriate data for lammps pointer */
-    virtual T ** lammps_vector() const {return NULL;};
+    virtual T ** lammps_vector() const {return nullptr;};
 
     /** gets appropriate data for lammps pointer to column indices */
-    virtual int ** lammps_column_indices() const {return NULL;};
+    virtual int ** lammps_column_indices() const {return nullptr;};
 
   private:
 

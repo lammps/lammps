@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -350,25 +351,60 @@ void ModifyKokkos::end_of_step()
 }
 
 /* ----------------------------------------------------------------------
-   thermo energy call, only for relevant fixes
-   called by Thermo class
-   compute_scalar() is fix call to return energy
+   coupling energy call, only for relevant fixes
+   each thermostsat fix returns this via compute_scalar()
+   ecouple = cumulative energy added to reservoir by thermostatting
 ------------------------------------------------------------------------- */
 
-double ModifyKokkos::thermo_energy()
+double ModifyKokkos::energy_couple()
 {
   double energy = 0.0;
-  for (int i = 0; i < n_thermo_energy; i++) {
-    atomKK->sync(fix[list_thermo_energy[i]]->execution_space,
-                 fix[list_thermo_energy[i]]->datamask_read);
+  for (int i = 0; i < n_energy_couple; i++) {
     int prev_auto_sync = lmp->kokkos->auto_sync;
-    if (!fix[list_thermo_energy[i]]->kokkosable) lmp->kokkos->auto_sync = 1;
-    energy += fix[list_thermo_energy[i]]->compute_scalar();
+    if (!fix[list_energy_couple[i]]->kokkosable) lmp->kokkos->auto_sync = 1;
+    energy += fix[list_energy_couple[i]]->compute_scalar();
     lmp->kokkos->auto_sync = prev_auto_sync;
-    atomKK->modified(fix[list_thermo_energy[i]]->execution_space,
-                     fix[list_thermo_energy[i]]->datamask_modify);
+    atomKK->modified(fix[list_energy_couple[i]]->execution_space,
+                     fix[list_energy_couple[i]]->datamask_modify);
   }
   return energy;
+}
+
+/* ----------------------------------------------------------------------
+   global energy call, only for relevant fixes
+   they return energy via compute_scalar()
+   called by compute pe
+------------------------------------------------------------------------- */
+
+double ModifyKokkos::energy_global()
+{
+  double energy = 0.0;
+  for (int i = 0; i < n_energy_global; i++) {
+    int prev_auto_sync = lmp->kokkos->auto_sync;
+    if (!fix[list_energy_global[i]]->kokkosable) lmp->kokkos->auto_sync = 1;
+    energy += fix[list_energy_global[i]]->compute_scalar();
+    lmp->kokkos->auto_sync = prev_auto_sync;
+    atomKK->modified(fix[list_energy_global[i]]->execution_space,
+                     fix[list_energy_global[i]]->datamask_modify);
+  }
+  return energy;
+}
+
+/* ----------------------------------------------------------------------
+   peratom energy call, only for relevant fixes
+   called by compute pe/atom
+------------------------------------------------------------------------- */
+
+void ModifyKokkos::energy_atom(int nlocal, double *energy)
+{
+  int i,j;
+  double *eatom;
+
+  for (i = 0; i < n_energy_atom; i++) {
+    eatom = fix[list_energy_atom[i]]->eatom;
+    if (!eatom) continue;
+    for (j = 0; j < nlocal; j++) energy[j] += eatom[j];
+  }
 }
 
 /* ----------------------------------------------------------------------

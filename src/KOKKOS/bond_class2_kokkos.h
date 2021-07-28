@@ -1,6 +1,7 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,11 +13,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef BOND_CLASS
-
-BondStyle(class2/kk,BondClass2Kokkos<LMPDeviceType>)
-BondStyle(class2/kk/device,BondClass2Kokkos<LMPDeviceType>)
-BondStyle(class2/kk/host,BondClass2Kokkos<LMPHostType>)
-
+// clang-format off
+BondStyle(class2/kk,BondClass2Kokkos<LMPDeviceType>);
+BondStyle(class2/kk/device,BondClass2Kokkos<LMPDeviceType>);
+BondStyle(class2/kk/host,BondClass2Kokkos<LMPHostType>);
+// clang-format on
 #else
 
 #ifndef LMP_BOND_CLASS2_KOKKOS_H
@@ -63,13 +64,13 @@ class BondClass2Kokkos : public BondClass2 {
   class NeighborKokkos *neighborKK;
 
   typename AT::t_x_array_randomread x;
-  typename Kokkos::View<double*[3],typename AT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<Kokkos::Atomic> > f;
+  typename Kokkos::View<double*[3],typename AT::t_f_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic> > f;
   typename AT::t_int_2d bondlist;
 
   Kokkos::DualView<E_FLOAT*,Kokkos::LayoutRight,DeviceType> k_eatom;
   Kokkos::DualView<F_FLOAT*[6],Kokkos::LayoutRight,DeviceType> k_vatom;
-  Kokkos::View<E_FLOAT*,Kokkos::LayoutRight,DeviceType,Kokkos::MemoryTraits<Kokkos::Atomic> > d_eatom;
-  Kokkos::View<F_FLOAT*[6],Kokkos::LayoutRight,DeviceType,Kokkos::MemoryTraits<Kokkos::Atomic> > d_vatom;
+  Kokkos::View<E_FLOAT*,Kokkos::LayoutRight,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic> > d_eatom;
+  Kokkos::View<F_FLOAT*[6],Kokkos::LayoutRight,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic> > d_vatom;
 
   int nlocal,newton_bond;
   int eflag,vflag;

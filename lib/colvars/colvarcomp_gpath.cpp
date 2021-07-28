@@ -2,7 +2,7 @@
 
 // This file is part of the Collective Variables module (Colvars).
 // The original version of Colvars and its updates are located at:
-// https://github.com/colvars/colvars
+// https://github.com/Colvars/colvars
 // Please update all Colvars source files before making any changes.
 // If you wish to distribute your changes, please submit them to the
 // Colvars repository at GitHub.
@@ -18,10 +18,6 @@
 #include "colvarparse.h"
 #include "colvar.h"
 #include "colvarcomp.h"
-
-namespace GeometricPathCV {
-void init_string_cv_map(std::map<std::string, std::function<colvar::cvc* (const std::string& conf)>>& string_cv_map);
-}
 
 bool compareColvarComponent(colvar::cvc *i, colvar::cvc *j)
 {
@@ -119,9 +115,10 @@ colvar::CartesianBasedPath::~CartesianBasedPath() {
             (*it_comp_atoms) = nullptr;
         }
     }
+    atom_groups.clear();
 }
 
-void colvar::CartesianBasedPath::computeReferenceDistance(std::vector<cvm::real>& result) {
+void colvar::CartesianBasedPath::computeDistanceToReferenceFrames(std::vector<cvm::real>& result) {
     for (size_t i_frame = 0; i_frame < reference_frames.size(); ++i_frame) {
         cvm::real frame_rmsd = 0.0;
         for (size_t i_atom = 0; i_atom < atoms->size(); ++i_atom) {
@@ -147,13 +144,16 @@ colvar::gspath::gspath(std::string const &conf): CartesianBasedPath(conf) {
     } else {
         cvm::log(std::string("Geometric path s(σ) will use the neighbouring frame to compute s_(m+1)\n"));
     }
+    if (total_reference_frames < 2) {
+        cvm::error("Error: you have specified " + cvm::to_str(total_reference_frames) + " reference frames, but gspath requires at least 2 frames.\n");
+    }
     GeometricPathCV::GeometricPathBase<cvm::atom_pos, cvm::real, GeometricPathCV::path_sz::S>::initialize(atoms->size(), cvm::atom_pos(), total_reference_frames, use_second_closest_frame, use_third_closest_frame);
     cvm::log(std::string("Geometric pathCV(s) is initialized.\n"));
     cvm::log(std::string("Geometric pathCV(s) loaded ") + cvm::to_str(reference_frames.size()) + std::string(" frames.\n"));
 }
 
-void colvar::gspath::updateReferenceDistances() {
-    computeReferenceDistance(frame_distances);
+void colvar::gspath::updateDistanceToReferenceFrames() {
+    computeDistanceToReferenceFrames(frame_distances);
 }
 
 void colvar::gspath::prepareVectors() {
@@ -290,14 +290,17 @@ colvar::gzpath::gzpath(std::string const &conf): CartesianBasedPath(conf) {
     if (b_use_z_square == true) {
         cvm::log(std::string("Geometric path z(σ) will use the square of distance from current frame to path compute z\n"));
     }
+    if (total_reference_frames < 2) {
+        cvm::error("Error: you have specified " + cvm::to_str(total_reference_frames) + " reference frames, but gzpath requires at least 2 frames.\n");
+    }
     GeometricPathCV::GeometricPathBase<cvm::atom_pos, cvm::real, GeometricPathCV::path_sz::Z>::initialize(atoms->size(), cvm::atom_pos(), total_reference_frames, use_second_closest_frame, use_third_closest_frame, b_use_z_square);
     // Logging
     cvm::log(std::string("Geometric pathCV(z) is initialized.\n"));
     cvm::log(std::string("Geometric pathCV(z) loaded ") + cvm::to_str(reference_frames.size()) + std::string(" frames.\n"));
 }
 
-void colvar::gzpath::updateReferenceDistances() {
-    computeReferenceDistance(frame_distances);
+void colvar::gzpath::updateDistanceToReferenceFrames() {
+    computeDistanceToReferenceFrames(frame_distances);
 }
 
 void colvar::gzpath::prepareVectors() {
@@ -399,9 +402,8 @@ void colvar::gzpath::apply_force(colvarvalue const &force) {
 }
 
 colvar::linearCombination::linearCombination(std::string const &conf): cvc(conf) {
-    GeometricPathCV::init_string_cv_map(string_cv_map);
     // Lookup all available sub-cvcs
-    for (auto it_cv_map = string_cv_map.begin(); it_cv_map != string_cv_map.end(); ++it_cv_map) {
+    for (auto it_cv_map = colvar::get_global_cvc_map().begin(); it_cv_map != colvar::get_global_cvc_map().end(); ++it_cv_map) {
         if (key_lookup(conf, it_cv_map->first.c_str())) {
             std::vector<std::string> sub_cvc_confs;
             get_key_string_multi_value(conf, it_cv_map->first.c_str(), sub_cvc_confs);
@@ -499,9 +501,8 @@ void colvar::linearCombination::apply_force(colvarvalue const &force) {
 }
 
 colvar::CVBasedPath::CVBasedPath(std::string const &conf): cvc(conf) {
-    GeometricPathCV::init_string_cv_map(string_cv_map);
     // Lookup all available sub-cvcs
-    for (auto it_cv_map = string_cv_map.begin(); it_cv_map != string_cv_map.end(); ++it_cv_map) {
+    for (auto it_cv_map = colvar::get_global_cvc_map().begin(); it_cv_map != colvar::get_global_cvc_map().end(); ++it_cv_map) {
         if (key_lookup(conf, it_cv_map->first.c_str())) {
             std::vector<std::string> sub_cvc_confs;
             get_key_string_multi_value(conf, it_cv_map->first.c_str(), sub_cvc_confs);
@@ -538,6 +539,7 @@ colvar::CVBasedPath::CVBasedPath(std::string const &conf): cvc(conf) {
         std::vector<std::string> fields;
         split_string(line, token, fields);
         size_t num_value_required = 0;
+        cvm::log(std::string("Reading reference frame ") + cvm::to_str(total_reference_frames + 1) + std::string("\n"));
         for (size_t i_cv = 0; i_cv < tmp_cv.size(); ++i_cv) {
             const size_t value_size = tmp_cv[i_cv].size();
             num_value_required += value_size;
@@ -545,10 +547,9 @@ colvar::CVBasedPath::CVBasedPath(std::string const &conf): cvc(conf) {
             if (num_value_required <= fields.size()) {
                 size_t start_index = num_value_required - value_size;
                 for (size_t i = start_index; i < num_value_required; ++i) {
-                    tmp_cv[i_cv][i] = std::atof(fields[i].c_str());
-                    cvm::log(fields[i] + std::string(" "));
+                    tmp_cv[i_cv][i - start_index] = std::atof(fields[i].c_str());
+                    cvm::log(cvm::to_str(tmp_cv[i_cv][i - start_index]));
                 }
-                cvm::log(std::string("\n"));
             } else {
                 cvm::error("Error: incorrect format of path file.\n");
             }
@@ -557,6 +558,9 @@ colvar::CVBasedPath::CVBasedPath(std::string const &conf): cvc(conf) {
             ref_cv.push_back(tmp_cv);
             ++total_reference_frames;
         }
+    }
+    if (total_reference_frames <= 1) {
+	cvm::error("Error: there is only 1 or 0 reference frame, which doesn't constitute a path.\n");
     }
     x.type(colvarvalue::type_scalar);
     use_explicit_gradients = true;
@@ -570,7 +574,7 @@ colvar::CVBasedPath::CVBasedPath(std::string const &conf): cvc(conf) {
     }
 }
 
-void colvar::CVBasedPath::computeReferenceDistance(std::vector<cvm::real>& result) {
+void colvar::CVBasedPath::computeDistanceToReferenceFrames(std::vector<cvm::real>& result) {
     for (size_t i_cv = 0; i_cv < cv.size(); ++i_cv) {
         cv[i_cv]->calc_value();
     }
@@ -593,6 +597,20 @@ void colvar::CVBasedPath::computeReferenceDistance(std::vector<cvm::real>& resul
     }
 }
 
+void colvar::CVBasedPath::computeDistanceBetweenReferenceFrames(std::vector<cvm::real>& result) const {
+    if (ref_cv.size() < 2) return;
+    for (size_t i_frame = 1; i_frame < ref_cv.size(); ++i_frame) {
+        cvm::real dist_ij = 0.0;
+        for (size_t i_cv = 0; i_cv < cv.size(); ++i_cv) {
+            colvarvalue ref_cv_value(ref_cv[i_frame][i_cv]);
+            colvarvalue prev_ref_cv_value(ref_cv[i_frame-1][i_cv]);
+            dist_ij += cv[i_cv]->dist2(ref_cv_value, prev_ref_cv_value);
+        }
+        dist_ij = cvm::sqrt(dist_ij);
+        result[i_frame-1] = dist_ij;
+    }
+}
+
 cvm::real colvar::CVBasedPath::getPolynomialFactorOfCVGradient(size_t i_cv) const {
     cvm::real factor_polynomial = 1.0;
     if (cv[i_cv]->value().type() == colvarvalue::type_scalar) {
@@ -607,6 +625,7 @@ colvar::CVBasedPath::~CVBasedPath() {
     for (auto it = cv.begin(); it != cv.end(); ++it) {
         delete (*it);
     }
+    atom_groups.clear();
 }
 
 colvar::gspathCV::gspathCV(std::string const &conf): CVBasedPath(conf) {
@@ -625,6 +644,9 @@ colvar::gspathCV::gspathCV(std::string const &conf): CVBasedPath(conf) {
     } else {
         cvm::log(std::string("Geometric path s(σ) will use the neighbouring frame to compute s_(m+1)\n"));
     }
+    if (total_reference_frames < 2) {
+        cvm::error("Error: you have specified " + cvm::to_str(total_reference_frames) + " reference frames, but gspathCV requires at least 2 frames.\n");
+    }
     GeometricPathCV::GeometricPathBase<colvarvalue, cvm::real, GeometricPathCV::path_sz::S>::initialize(cv.size(), ref_cv[0], total_reference_frames, use_second_closest_frame, use_third_closest_frame);
     x.type(colvarvalue::type_scalar);
     use_explicit_gradients = true;
@@ -641,8 +663,8 @@ colvar::gspathCV::gspathCV(std::string const &conf): CVBasedPath(conf) {
 
 colvar::gspathCV::~gspathCV() {}
 
-void colvar::gspathCV::updateReferenceDistances() {
-    computeReferenceDistance(frame_distances);
+void colvar::gspathCV::updateDistanceToReferenceFrames() {
+    computeDistanceToReferenceFrames(frame_distances);
 }
 
 void colvar::gspathCV::prepareVectors() {
@@ -766,6 +788,9 @@ colvar::gzpathCV::gzpathCV(std::string const &conf): CVBasedPath(conf) {
     if (b_use_z_square == true) {
         cvm::log(std::string("Geometric path z(σ) will use the square of distance from current frame to path compute z\n"));
     }
+    if (total_reference_frames < 2) {
+        cvm::error("Error: you have specified " + cvm::to_str(total_reference_frames) + " reference frames, but gzpathCV requires at least 2 frames.\n");
+    }
     GeometricPathCV::GeometricPathBase<colvarvalue, cvm::real, GeometricPathCV::path_sz::Z>::initialize(cv.size(), ref_cv[0], total_reference_frames, use_second_closest_frame, use_third_closest_frame, b_use_z_square);
     x.type(colvarvalue::type_scalar);
     use_explicit_gradients = true;
@@ -783,8 +808,8 @@ colvar::gzpathCV::gzpathCV(std::string const &conf): CVBasedPath(conf) {
 colvar::gzpathCV::~gzpathCV() {
 }
 
-void colvar::gzpathCV::updateReferenceDistances() {
-    computeReferenceDistance(frame_distances);
+void colvar::gzpathCV::updateDistanceToReferenceFrames() {
+    computeDistanceToReferenceFrames(frame_distances);
 }
 
 void colvar::gzpathCV::prepareVectors() {
@@ -876,35 +901,6 @@ void colvar::gzpathCV::apply_force(colvarvalue const &force) {
             cv[i_cv]->apply_force(cv_force);
         }
     }
-}
-
-void GeometricPathCV::init_string_cv_map(std::map<std::string, std::function<colvar::cvc* (const std::string& subcv_conf)>>& string_cv_map) {
-    string_cv_map["distance"]              = [](const std::string& conf){return new colvar::distance(conf);};
-    string_cv_map["dihedral"]              = [](const std::string& conf){return new colvar::dihedral(conf);};
-    string_cv_map["angle"]                 = [](const std::string& conf){return new colvar::angle(conf);};
-    string_cv_map["rmsd"]                  = [](const std::string& conf){return new colvar::rmsd(conf);};
-    string_cv_map["gyration"]              = [](const std::string& conf){return new colvar::gyration(conf);};
-    string_cv_map["inertia"]               = [](const std::string& conf){return new colvar::inertia(conf);};
-    string_cv_map["inertiaZ"]              = [](const std::string& conf){return new colvar::inertia_z(conf);};
-    string_cv_map["tilt"]                  = [](const std::string& conf){return new colvar::tilt(conf);};
-    string_cv_map["distanceZ"]             = [](const std::string& conf){return new colvar::distance_z(conf);};
-    string_cv_map["distanceXY"]            = [](const std::string& conf){return new colvar::distance_xy(conf);};
-    string_cv_map["polarTheta"]            = [](const std::string& conf){return new colvar::polar_theta(conf);};
-    string_cv_map["polarPhi"]              = [](const std::string& conf){return new colvar::polar_phi(conf);};
-    string_cv_map["distanceVec"]           = [](const std::string& conf){return new colvar::distance_vec(conf);};
-    string_cv_map["orientationAngle"]      = [](const std::string& conf){return new colvar::orientation_angle(conf);};
-    string_cv_map["distancePairs"]         = [](const std::string& conf){return new colvar::distance_pairs(conf);};
-    string_cv_map["dipoleMagnitude"]       = [](const std::string& conf){return new colvar::dipole_magnitude(conf);};
-    string_cv_map["coordNum"]              = [](const std::string& conf){return new colvar::coordnum(conf);};
-    string_cv_map["selfCoordNum"]          = [](const std::string& conf){return new colvar::selfcoordnum(conf);};
-    string_cv_map["dipoleAngle"]           = [](const std::string& conf){return new colvar::dipole_angle(conf);};
-    string_cv_map["orientation"]           = [](const std::string& conf){return new colvar::orientation(conf);};
-    string_cv_map["orientationProj"]       = [](const std::string& conf){return new colvar::orientation_proj(conf);};
-    string_cv_map["eigenvector"]           = [](const std::string& conf){return new colvar::eigenvector(conf);};
-    string_cv_map["cartesian"]             = [](const std::string& conf){return new colvar::cartesian(conf);};
-    string_cv_map["alpha"]                 = [](const std::string& conf){return new colvar::alpha_angles(conf);};
-    string_cv_map["dihedralPC"]            = [](const std::string& conf){return new colvar::dihedPC(conf);};
-    string_cv_map["linearCombination"]     = [](const std::string& conf){return new colvar::linearCombination(conf);};
 }
 
 #endif

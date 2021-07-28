@@ -170,7 +170,7 @@ int AWPMD::set_pbc(const Vector_3P pcell, int pbc_){
 int AWPMD::set_electrons(int s, int n, Vector_3P x, Vector_3P v, double* w, double* pw, double mass, double *q)
 {
   if(s < 0 || s > 1)
-    return LOGERR(-1,fmt("AWPMD.set_electrons: invaid s setting (%d)!",s),LINFO);
+    return LOGERR(-1,logfmt("AWPMD.set_electrons: invaid s setting (%d)!",s),LINFO);
 
   norm_matrix_state[s] = NORM_UNDEFINED;
   nwp[s]=ne[s]=n;
@@ -217,7 +217,7 @@ int  AWPMD::interaction_hartree(int flag, Vector_3P fi, Vector_3P fe_x,
    
   // 0. resizing the arrays if needed
   enum APPROX tmp=HARTREE;
-  swap(tmp,approx); // do not neeed large matrices
+  swap(tmp,approx); // do not need large matrices
   resize(flag);
   swap(tmp,approx);
   //1. clearing forces
@@ -363,20 +363,20 @@ int AWPMD::interaction(int flag, Vector_3P fi, Vector_3P fe_x,
     //3. inverting the overlap matrix
     int info=0;
     if(nes){
-      /*FILE *f1=fopen(fmt("matrO_%d.d",s),"wt");
+      /*FILE *f1=fopen(logfmt("matrO_%d.d",s),"wt");
       fileout(f1,Y[s],"%15g");
       fclose(f1);8*/
-      
+
       ZPPTRF("L",&nes,Y[s].arr,&info);
       // analyze return code here
       if(info<0)
-        return LOGERR(info,fmt("AWPMD.interacton: call to ZPTRF failed (exitcode %d)!",info),LINFO); 
+        return LOGERR(info,logfmt("AWPMD.interacton: call to ZPTRF failed (exitcode %d)!",info),LINFO); 
       ZPPTRI("L",&nes,Y[s].arr,&info);
       if(info<0)
-        return LOGERR(info,fmt("AWPMD.interacton: call to ZPTRI failed (exitcode %d)!",info),LINFO); 
+        return LOGERR(info,logfmt("AWPMD.interacton: call to ZPTRI failed (exitcode %d)!",info),LINFO); 
 
-      
-      /*f1=fopen(fmt("matrY_%d.d",s),"wt");
+
+      /*f1=fopen(logfmt("matrY_%d.d",s),"wt");
       fileout(f1,Y[s],"%15g");
       fclose(f1);*/
     }
@@ -758,7 +758,7 @@ void AWPMD::norm_factorize(int s) {
   int nes8 = ne[s]*8, info;
   DGETRF(&nes8, &nes8, Norm[s].arr, &nes8, &ipiv[0], &info);
   if(info < 0)
-    LOGERR(info,fmt("AWPMD.norm_factorize: call to DGETRF failed (exitcode %d)!",info),LINFO); 
+    LOGERR(info,logfmt("AWPMD.norm_factorize: call to DGETRF failed (exitcode %d)!",info),LINFO); 
 
   norm_matrix_state[s] = NORM_FACTORIZED;
 }
@@ -773,7 +773,7 @@ void AWPMD::norm_invert(int s) {
 
   DGETRI(&nes8, Norm[s].arr, &nes8, &ipiv[0], (double*)IDD.arr, &IDD_size, &info); // use IDD for work storage
   if(info < 0)
-    LOGERR(info,fmt("AWPMD.norm_invert: call to DGETRI failed (exitcode %d)!",info),LINFO); 
+    LOGERR(info,logfmt("AWPMD.norm_invert: call to DGETRI failed (exitcode %d)!",info),LINFO); 
 
   norm_matrix_state[s] = NORM_INVERTED;
 }
@@ -829,7 +829,7 @@ int AWPMD::step(double dt){
 //e gets current electronic coordinates
 int AWPMD::get_electrons(int spin, Vector_3P x, Vector_3P v, double* w, double* pw, double mass){
   if(spin<0 || spin >1)
-    return -1; // invalid spin: return LOGERR(-1,fmt("AWPMD.get_electrons: invaid spin setting (%d)!",spin),LINFO);
+    return -1; // invalid spin: return LOGERR(-1,logfmt("AWPMD.get_electrons: invaid spin setting (%d)!",spin),LINFO);
   if(mass<0)
     mass=me;
   for(int i=0;i<ni;i++){

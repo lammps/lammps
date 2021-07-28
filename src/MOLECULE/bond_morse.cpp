@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,15 +17,16 @@
 ------------------------------------------------------------------------- */
 
 #include "bond_morse.h"
-#include <mpi.h>
+
 #include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "neighbor.h"
 #include "comm.h"
 #include "force.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -125,11 +127,11 @@ void BondMorse::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nbondtypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->nbondtypes,ilo,ihi,error);
 
-  double d0_one = force->numeric(FLERR,arg[1]);
-  double alpha_one = force->numeric(FLERR,arg[2]);
-  double r0_one = force->numeric(FLERR,arg[3]);
+  double d0_one = utils::numeric(FLERR,arg[1],false,lmp);
+  double alpha_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double r0_one = utils::numeric(FLERR,arg[3],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -172,9 +174,9 @@ void BondMorse::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    utils::sfread(FLERR,&d0[1],sizeof(double),atom->nbondtypes,fp,NULL,error);
-    utils::sfread(FLERR,&alpha[1],sizeof(double),atom->nbondtypes,fp,NULL,error);
-    utils::sfread(FLERR,&r0[1],sizeof(double),atom->nbondtypes,fp,NULL,error);
+    utils::sfread(FLERR,&d0[1],sizeof(double),atom->nbondtypes,fp,nullptr,error);
+    utils::sfread(FLERR,&alpha[1],sizeof(double),atom->nbondtypes,fp,nullptr,error);
+    utils::sfread(FLERR,&r0[1],sizeof(double),atom->nbondtypes,fp,nullptr,error);
   }
   MPI_Bcast(&d0[1],atom->nbondtypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&alpha[1],atom->nbondtypes,MPI_DOUBLE,0,world);
@@ -204,4 +206,13 @@ double BondMorse::single(int type, double rsq, int /*i*/, int /*j*/,
   fforce = 0;
   if (r > 0.0) fforce = -2.0*d0[type]*alpha[type]*(1-ralpha)*ralpha/r;
   return d0[type]*(1-ralpha)*(1-ralpha);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void *BondMorse::extract(const char *str, int &dim)
+{
+  dim = 1;
+  if (strcmp(str,"r0")==0) return (void*) r0;
+  return nullptr;
 }

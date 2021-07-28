@@ -9,8 +9,10 @@
 *.d
 *.x
 *.exe
+*.sif
 *.dll
 *.pyc
+a.out
 __pycache__
 
 Obj_*
@@ -26,6 +28,7 @@ vgcore.*
 .vagrant
 \#*#
 .#*
+.vscode
 
 .DS_Store
 .DS_Store?
@@ -35,11 +38,14 @@ vgcore.*
 ehthumbs.db
 Thumbs.db
 .clang-format
+.lammps_history
 
 #cmake
 /build*
 /CMakeCache.txt
 /CMakeFiles/
+/Testing
 /Makefile
+/Testing
 /cmake_install.cmake
 /lmp

@@ -1,0 +1,58 @@
+# Example for running DPD-RX
+
+boundary        p p p
+units           metal  # ev, ps
+atom_style      dpd
+atom_modify     map array
+fix             4 all rx kinetics.dpdrx none dense lammps_rk4 1
+
+lattice         hcp 6.6520898 origin 0.0833333333333 0.25 0.25 orient z 1 0 0 orient x 0 1 0 orient y 0 0 1
+region          box block 0 6.0 0 6.0 0.0 6.0 units lattice
+create_box      2 box
+region          atoms block 0 6.0 0 6.0 0.0 6.0 units lattice
+create_atoms    1 region atoms
+
+comm_modify     mode single vel yes
+mass            * 222.12
+
+#Set concentrations
+set             atom * d_rdx 1.00
+set             atom * d_h2 0.0
+set             atom * d_no2 0.0
+set             atom * d_n2 0.0
+set             atom * d_hcn 0.0
+set             atom * d_no 0.0
+set             atom * d_h2o 0.0
+set             atom * d_co 0.0
+set             atom * d_co2 0.0
+
+#Set the kinetic temperature of the particles
+velocity	all create 2065.0 875661 dist gaussian
+
+#Set the internal temperature of the particles
+set             atom * dpd/theta 2065.00
+
+timestep        0.001
+
+pair_style      hybrid/overlay dpd/fdt/energy 16.00 234324 exp6/rx 16.00
+pair_coeff      * * dpd/fdt/energy 0.0 0.05 10.0 16.00
+pair_coeff      * * exp6/rx params.exp6 1fluid 1fluid exponent 1.0 1.0 16.00
+
+fix             1 all shardlow
+fix             2 all nve
+fix             3 all eos/table/rx linear table.eos 4001 KEYWORD thermo.dpdrx
+
+compute         dpdU all dpd
+compute         dpdUatom all dpd/atom
+compute         crdx all property/atom d_rdx
+
+variable        totEnergy equal pe+c_dpdU[1]+c_dpdU[2]+c_dpdU[3]
+
+thermo          1
+thermo_style    custom step temp press vol pe ke c_dpdU[1] c_dpdU[2] c_dpdU[3] v_totEnergy c_dpdU[4] 
+thermo_modify   format float %15.8f flush yes
+
+dump            2 all custom 1 dump.dpdrx id x y z vx vy vz c_dpdUatom[1] c_dpdUatom[2] c_dpdUatom[3] c_dpdUatom[4] c_crdx
+dump_modify     2 sort id
+
+run             10

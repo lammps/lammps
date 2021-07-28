@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,17 +17,21 @@
 ------------------------------------------------------------------------- */
 
 #include "improper_zero.h"
-#include <cstring>
+
 #include "atom.h"
-#include "force.h"
-#include "memory.h"
 #include "error.h"
+#include "memory.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ImproperZero::ImproperZero(LAMMPS *lmp) : Improper(lmp), coeffflag(1) {}
+ImproperZero::ImproperZero(LAMMPS *lmp) : Improper(lmp), coeffflag(1)
+{
+  writedata = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -80,7 +85,7 @@ void ImproperZero::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nimpropertypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->nimpropertypes,ilo,ihi,error);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

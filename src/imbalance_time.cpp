@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,11 +13,10 @@
 ------------------------------------------------------------------------- */
 
 #include "imbalance_time.h"
-#include <mpi.h>
+
 #include "atom.h"
-#include "force.h"
-#include "timer.h"
 #include "error.h"
+#include "timer.h"
 
 using namespace LAMMPS_NS;
 
@@ -31,7 +31,7 @@ ImbalanceTime::ImbalanceTime(LAMMPS *lmp) : Imbalance(lmp) {}
 int ImbalanceTime::options(int narg, char **arg)
 {
   if (narg < 1) error->all(FLERR,"Illegal balance weight command");
-  factor = force->numeric(FLERR,arg[0]);
+  factor = utils::numeric(FLERR,arg[0],false,lmp);
   if (factor <= 0.0) error->all(FLERR,"Illegal balance weight command");
   return 1;
 }
@@ -60,16 +60,19 @@ void ImbalanceTime::compute(double *weight)
   // cost = CPU time for relevant timers since last invocation
   // localwt = weight assigned to each owned atom
   // just return if no time yet tallied
+  // we 0.1 seconds as a minimum time to avoid computation of bogus
+  // load balancing weights due to limited timer resolution/precision
 
   double cost = -last;
   cost += timer->get_wall(Timer::PAIR);
   cost += timer->get_wall(Timer::NEIGH);
   cost += timer->get_wall(Timer::BOND);
   cost += timer->get_wall(Timer::KSPACE);
+  cost += 0.1;
 
   double maxcost;
   MPI_Allreduce(&cost,&maxcost,1,MPI_DOUBLE,MPI_MAX,world);
-  if (maxcost <= 0.0) return;
+  if (maxcost <= 0.1) return;
 
   int nlocal = atom->nlocal;
   double localwt = 0.0;
@@ -104,7 +107,7 @@ void ImbalanceTime::compute(double *weight)
 
 /* -------------------------------------------------------------------- */
 
-void ImbalanceTime::info(FILE *fp)
+std::string ImbalanceTime::info()
 {
-  fprintf(fp,"  time weight factor: %g\n",factor);
+  return fmt::format("  time weight factor: {}\n",factor);
 }

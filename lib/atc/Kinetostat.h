@@ -806,7 +806,7 @@ namespace ATC {
     /** change in restricted atomic FE momentum over a timestep */
     DENS_MAT deltaNodalAtomicMomentum_;
 
-    /** intial restricted atomic FE momentum used to compute change */
+    /** initial restricted atomic FE momentum used to compute change */
     DENS_MAT initialNodalAtomicMomentum_;
 
     /** filtered nodal atomic momentum */

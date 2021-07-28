@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -18,17 +19,17 @@
 ------------------------------------------------------------------------- */
 
 #include "min_spin.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
-#include "universe.h"
+
 #include "atom.h"
-#include "force.h"
-#include "update.h"
-#include "output.h"
-#include "timer.h"
 #include "error.h"
 #include "math_const.h"
+#include "output.h"
+#include "timer.h"
+#include "universe.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -78,12 +79,12 @@ int MinSpin::modify_param(int narg, char **arg)
 {
   if (strcmp(arg[0],"alpha_damp") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal min_modify command");
-    alpha_damp = force->numeric(FLERR,arg[1]);
+    alpha_damp = utils::numeric(FLERR,arg[1],false,lmp);
     return 2;
   }
   if (strcmp(arg[0],"discrete_factor") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal min_modify command");
-    discrete_factor = force->numeric(FLERR,arg[1]);
+    discrete_factor = utils::numeric(FLERR,arg[1],false,lmp);
     return 2;
   }
   return 0;
@@ -127,7 +128,7 @@ int MinSpin::iterate(int maxiter)
     ntimestep = ++update->ntimestep;
     niter++;
 
-    // optimize timestep accross processes / replicas
+    // optimize timestep across processes / replicas
     // need a force calculation for timestep optimization
 
     if (iter == 0) energy_force(0);
@@ -165,9 +166,9 @@ int MinSpin::iterate(int maxiter)
 
     fmdotfm = fmsq = 0.0;
     if (update->ftol > 0.0) {
-      if (normstyle == MAX) fmsq = max_torque();	// max torque norm
-      else if (normstyle == INF) fmsq = inf_torque();	// inf torque norm
-      else if (normstyle == TWO) fmsq = total_torque();	// Euclidean torque 2-norm
+      if (normstyle == MAX) fmsq = max_torque();        // max torque norm
+      else if (normstyle == INF) fmsq = inf_torque();   // inf torque norm
+      else if (normstyle == TWO) fmsq = total_torque(); // Euclidean torque 2-norm
       else error->all(FLERR,"Illegal min_modify command");
       fmdotfm = fmsq*fmsq;
       if (update->multireplica == 0) {

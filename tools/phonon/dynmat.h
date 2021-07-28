@@ -7,8 +7,6 @@
 #include "memory.h"
 #include "interpolate.h"
 
-using namespace std;
-
 class DynMat {
 public:
 
@@ -17,7 +15,7 @@ public:
 
   int nx, ny, nz, nucell;
   int sysdim, fftdim;
-  double eml2f;
+  double eml2f, eml2fc;
   char *funit;
 
   void getDMq(double *);
@@ -30,7 +28,9 @@ public:
   doublecomplex **DM_q;
 
   int flag_latinfo;
+  int npt, fftdim2;
   double Tmeasure, basevec[9], ibasevec[9];
+  double *M_inv_sqrt;
   double **basis;
   int *attyp;
 
@@ -40,14 +40,12 @@ private:
   Interpolate *interpolate;
   
   Memory *memory;
-  int npt, fftdim2;
 
   int nasr;
   void EnforceASR();
 
   char *binfile, *dmfile;
   double boltz, q[3];
-  double *M_inv_sqrt;
 
   doublecomplex **DM_all;
 
@@ -56,6 +54,8 @@ private:
   void GaussJordan(int, double *);
 
   void help();
+  void ShowInfo();
   void ShowVersion();
+  void Define_Conversion_Factor();
 };
 #endif

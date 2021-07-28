@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(aggregate/atom,ComputeAggregateAtom)
-
+// clang-format off
+ComputeStyle(aggregate/atom,ComputeAggregateAtom);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_AGGREGATE_ATOM_H
@@ -38,13 +38,13 @@ class ComputeAggregateAtom : public Compute {
   double memory_usage();
 
  private:
-  int nmax,commflag;
+  int nmax, commflag;
   double cutsq;
   class NeighList *list;
   double *aggregateID;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

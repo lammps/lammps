@@ -14,8 +14,9 @@ manual for information on building LAMMPS with external libraries.
 The settings in the Makefile.lammps file in that directory must be
 correct for LAMMPS to build correctly with this package installed.
 
-This package was developed primaritly by Christian Trott (Sandia) with
+This package was developed primarily by Christian Trott (Sandia) with
 contributions of various styles by others, including Sikandar Mashayak
-(UIUC).  The underlying Kokkos library was written primarily by Carter
-Edwards, Christian Trott, and Dan Sunderland (all Sandia).
+(UIUC).  It is now maintained by Stan Moore (Sandia).  The underlying
+Kokkos library was written primarily by Carter Edwards,
+ Christian Trott, and Dan Sunderland (all Sandia).
 

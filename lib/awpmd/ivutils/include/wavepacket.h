@@ -168,13 +168,13 @@ public:
     return imag(b) - real(b)*(imag(a)/real(a));
   }
 
-  ///\en Transforms derivatives of a function whith respect to WP parameters
+  ///\en Transforms derivatives of a function with respect to WP parameters
   ///    from internal into physical representation, i. e.:\n
   ///    from df/d{are,aim,b0re,b0im,b1re,b1im,b2re,b2im} (8 values accessed by input iterator d_it in the given order)\n
   ///    to   df/d{x0,x1,x2}, df/d{p0,p1,p2}, df/dw, df/dpw 
   ///    The supplied inputs (val) are modified by op: val=op(val,phys_der).
   ///    Use operation=eq_second for the supplied inputs to be replaced by new physical derivative values.
-  ///    The inpput and output locations may coinside, an internal buffer is used for transformation.
+  ///    The input and output locations may coinside, an internal buffer is used for transformation.
   template<template<class A> class operation, class d_it, class dfdx_it, class dfdp_it, class dfdw_it, class dfdpw_it>
   void int2phys_der(d_it dfdi_,dfdx_it dfdx, dfdp_it dfdp,  dfdw_it dfdw, dfdpw_it dfdpw, double h_p=h_plank) const {
     operation<double> op;

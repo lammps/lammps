@@ -1,0 +1,76 @@
+#===========================================================================#
+# System of 2 pairs of rigid particles moving towards one another.          #
+# At each timestep, the hydrodynamic force acting on one of these four      #
+# rigid particles is printed to the screen.                                 #
+#                                                                           #
+# Here, gamma (used in the calculation of the particle-fluid interaction    #
+#   force) is set by the user (gamma = 3.303 for this simulation...this     #
+#   value has been calibrated a priori through simulations of the drag      #
+#   force acting on a single particle of the same radius).                  # 
+#                                                                           #
+# Sample output from this run can be found in the file:                     #
+#   'fourspheres_velocity0d0001_setgamma.out'                               #
+#===========================================================================# 
+
+units          micro
+dimension      3
+boundary       p p p
+atom_style     atomic
+
+#----------------------------------------------------------------------------
+# Need a neighbor bin size smaller than the lattice-Boltzmann grid spacing
+#   to ensure that the particles belonging to a given processor remain inside
+#   that processors lattice-Boltzmann grid.
+# The arguments for neigh_modify have been set to "delay 0 every 1", again
+#   to ensure that the particles belonging to a given processor remain inside
+#   that processors lattice-Boltzmann grid.  However, these values can likely
+#   be somewhat increased without issue.  If a problem does arise (a particle
+#   is outside of its processors LB grid) an error message is printed and 
+#   the simulation is terminated.  
+#----------------------------------------------------------------------------
+neighbor       1.0 bin
+neigh_modify   delay 0 every 1 exclude type 1 1
+
+read_data      data.four
+
+#----------------------------------------------------------------------------
+# None of the particles interact with one another.
+#----------------------------------------------------------------------------
+pair_style	lj/cut 2.45
+pair_coeff	* * 0.0 0.0 2.45
+
+mass * 1.0
+timestep 4.0
+
+group sphere1 id <> 1 320
+group sphere2 id <> 321 640
+group sphere3 id <> 641 960
+group sphere4 id <> 961 1280 
+
+velocity sphere1 set 0.0 0.0001 0.0 units box
+velocity sphere2 set 0.0 -0.0001 0.0 units box
+velocity sphere3 set 0.0 0.0001 0.0 units box
+velocity sphere4 set 0.0 -0.0001 0.0 units box
+
+#---------------------------------------------------------------------------
+# Create a lattice-Boltzmann fluid covering the simulation domain.
+# All of the particles in the simulation apply a force to the fluid.
+# Use the LB integration scheme of Ollila et. al. (for stability reasons,
+#   this integration scheme should be used when a large user set value for 
+#   gamma is specified), a fluid density = 1.0, fluid viscosity = 1.0, value 
+#   for gamma=3.303, lattice spacing dx=4.0, and mass unit, dm=10.0.
+# Print the force and torque acting on one of the spherical colloidal objects
+#   to the screen at each timestep.
+#----------------------------------------------------------------------------
+fix	1 all lb/fluid 1 2 1.0 1.0 setGamma 3.303 dx 4.0 dm 10.0 calcforce 20 sphere1
+
+#---------------------------------------------------------------------------
+# For this simulation the colloidal particles move at a constant velocity
+#   through the fluid.  As such, we do not wish to apply the force from
+#   the fluid back onto these objects.  Therefore, we do not use any of the
+#   viscous_lb, rigid_pc_sphere, or pc fixes, and simply integrate the 
+#   particle motions using one of the built-in LAMMPS integrators.
+#---------------------------------------------------------------------------
+fix     2 all nve
+
+run	300000

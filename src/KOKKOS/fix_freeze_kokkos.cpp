@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -58,7 +59,7 @@ void FixFreezeKokkos<DeviceType>::setup(int vflag)
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixFreezeKokkos<DeviceType>::post_force(int vflag)
+void FixFreezeKokkos<DeviceType>::post_force(int /*vflag*/)
 {
   atomKK->sync(execution_space,datamask_read);
   atomKK->modified(execution_space,datamask_modify);
@@ -84,7 +85,7 @@ void FixFreezeKokkos<DeviceType>::post_force(int vflag)
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixFreezeKokkos<DeviceType>::post_force_respa(int vflag, int ilevel, int iloop)
+void FixFreezeKokkos<DeviceType>::post_force_respa(int vflag, int /*ilevel*/, int /*iloop*/)
 {
   post_force(vflag);
 }
@@ -102,6 +103,7 @@ double FixFreezeKokkos<DeviceType>::compute_vector(int n)
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
 void FixFreezeKokkos<DeviceType>::operator()(const int i, OriginalForce &original) const {
   if (mask[i] & groupbit) {
     original.values[0] += f(i,0);
@@ -118,7 +120,7 @@ void FixFreezeKokkos<DeviceType>::operator()(const int i, OriginalForce &origina
 
 namespace LAMMPS_NS {
 template class FixFreezeKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class FixFreezeKokkos<LMPHostType>;
 #endif
 }

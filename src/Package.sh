@@ -91,7 +91,7 @@ elif (test $2 = "diff") then
         echo "************************************************"
         echo "diff -u $1/$file src/$file "
         echo "************************************************"
-	diff -u $file  ../$file 
+        diff -u $file  ../$file
       fi
     done
   fi

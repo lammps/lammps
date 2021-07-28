@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,13 +13,14 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_gravity_kokkos.h"
-#include "atom_masks.h"
-#include "modify.h"
-#include "input.h"
-#include "variable.h"
-#include "update.h"
+
 #include "atom_kokkos.h"
+#include "atom_masks.h"
 #include "atom_vec.h"
+#include "input.h"
+#include "modify.h"
+#include "update.h"
+#include "variable.h"
 
 using namespace LAMMPS_NS;
 
@@ -41,7 +43,7 @@ FixGravityKokkos<DeviceType>::FixGravityKokkos(LAMMPS *lmp, int narg, char **arg
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixGravityKokkos<DeviceType>::post_force(int vflag)
+void FixGravityKokkos<DeviceType>::post_force(int /*vflag*/)
 {
   // update gravity due to variables
 
@@ -115,7 +117,7 @@ void FixGravityKokkos<DeviceType>::operator()(TagFixGravityMass, const int i, do
 
 namespace LAMMPS_NS {
 template class FixGravityKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class FixGravityKokkos<LMPHostType>;
 #endif
 }

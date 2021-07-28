@@ -3,7 +3,7 @@
 #
 # Copyright (2005) Sandia Corporation.  Under the terms of Contract
 # DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-# certain rights in this software.  This software is distributed under 
+# certain rights in this software.  This software is distributed under
 # the GNU General Public License.
 
 # for python3 compatibility
@@ -35,7 +35,7 @@ time = d.next()             	  read next snapshot from dump files
 d.map(1,"id",3,"x")               assign names to atom columns (1-N)
 
   not needed if dump file is self-describing
-  
+
 d.tselect.all()			  select all timesteps
 d.tselect.one(N)		  select only timestep N
 d.tselect.none()		  deselect all timesteps
@@ -227,7 +227,7 @@ class dump:
     for word in words: self.flist += glob.glob(word)
     if len(self.flist) == 0 and len(list) == 1:
       raise Exception("no dump file specified")
-    
+
     if len(list) == 1:
       self.increment = 0
       self.read_all()
@@ -270,12 +270,12 @@ class dump:
     self.tselect.all()
 
     # set default names for atom columns if file wasn't self-describing
-    
+
     if len(self.snaps) == 0:
       print("no column assignments made")
     elif len(self.names):
       print("assigned columns:",self.names2str())
-    elif self.snaps[0].atoms == None:
+    elif self.snaps[0].atoms is None:
       print("no column assignments made")
     elif len(self.snaps[0].atoms[0]) == 5:
       self.map(1,"id",2,"type",3,"x",4,"y",5,"z")
@@ -341,7 +341,7 @@ class dump:
   # return snapshot or 0 if failed
   # assign column names if not already done and file is self-describing
   # convert xs,xu to x
-  
+
   def read_snapshot(self,f):
     try:
       snap = Snap()
@@ -414,7 +414,7 @@ class dump:
 
   # --------------------------------------------------------------------
   # map atom column names
-  
+
   def map(self,*pairs):
     if len(pairs) % 2 != 0:
       raise Exception("dump map() requires pairs of mappings")
@@ -492,7 +492,7 @@ class dump:
     atoms[:,x] = snap.xlo + atoms[:,x]*xprd
     atoms[:,y] = snap.ylo + atoms[:,y]*yprd
     atoms[:,z] = snap.zlo + atoms[:,z]*zprd
-  
+
   # --------------------------------------------------------------------
   # wrap coords from outside box to inside
 
@@ -505,7 +505,7 @@ class dump:
     ix = self.names["ix"]
     iy = self.names["iy"]
     iz = self.names["iz"]
-    
+
     for snap in self.snaps:
       xprd = snap.xhi - snap.xlo
       yprd = snap.yhi - snap.ylo
@@ -527,7 +527,7 @@ class dump:
     ix = self.names["ix"]
     iy = self.names["iy"]
     iz = self.names["iz"]
-    
+
     for snap in self.snaps:
       xprd = snap.xhi - snap.xlo
       yprd = snap.yhi - snap.ylo
@@ -542,7 +542,7 @@ class dump:
 
   def owrap(self,other):
     print("Wrapping to other ...")
-    
+
     id = self.names["id"]
     x = self.names["x"]
     y = self.names["y"]
@@ -551,7 +551,7 @@ class dump:
     iy = self.names["iy"]
     iz = self.names["iz"]
     iother = self.names[other]
-    
+
     for snap in self.snaps:
       xprd = snap.xhi - snap.xlo
       yprd = snap.yhi - snap.ylo
@@ -568,7 +568,7 @@ class dump:
 
   # --------------------------------------------------------------------
   # convert column names assignment to a string, in column order
-  
+
   def names2str(self):
     ncol = len(self.snaps[0].atoms[0])
     pairs = self.names.items()
@@ -631,7 +631,7 @@ class dump:
         print(snap.ylo,snap.yhi,file=f)
         print(snap.zlo,snap.zhi,file=f)
         print("ITEM: ATOMS",namestr,file=f)
-      
+
       atoms = snap.atoms
       nvalues = len(atoms[0])
       for i in range(snap.natoms):
@@ -655,7 +655,7 @@ class dump:
       if not snap.tselect: continue
       print(snap.time,end='')
       sys.stdout.flush()
-      
+
       file = root + "." + str(snap.time)
       f = open(file,"w")
       print("ITEM: TIMESTEP",file=f)
@@ -667,7 +667,7 @@ class dump:
       print(snap.ylo,snap.yhi,file=f)
       print(snap.zlo,snap.zhi,file=f)
       print("ITEM: ATOMS",namestr,file=f)
-      
+
       atoms = snap.atoms
       nvalues = len(atoms[0])
       for i in range(snap.natoms):
@@ -709,7 +709,7 @@ class dump:
     lhs = list[0][1:]
     if not self.names.has_key(lhs):
       self.newcolumn(lhs)
-      
+
     for item in list:
       name = item[1:]
       column = self.names[name]
@@ -721,7 +721,7 @@ class dump:
       if not snap.tselect: continue
       for i in range(snap.natoms):
         if snap.aselect[i]: exec(ceq)
-          
+
   # --------------------------------------------------------------------
   # set a column value via an input vec for all selected snapshots/atoms
 
@@ -741,7 +741,7 @@ class dump:
         if snap.aselect[i]:
           atoms[i][icol] = vec[m]
           m += 1
-          
+
   # --------------------------------------------------------------------
   # clone value in col across selected timesteps for atoms with same ID
 
@@ -807,7 +807,7 @@ class dump:
       columns.append(self.names[name])
       values.append(self.nselect * [0])
     ncol = len(columns)
-    
+
     id = self.names["id"]
     m = 0
     for snap in self.snaps:
@@ -823,13 +823,13 @@ class dump:
 
     if len(list) == 1: return values[0]
     else: return values
-  
+
   # --------------------------------------------------------------------
   # extract vector(s) of values for selected atoms at chosen timestep
 
   def vecs(self,n,*list):
     snap = self.snaps[self.findtime(n)]
-    
+
     if len(list) == 0:
       raise Exception("no columns specified")
     columns = []
@@ -884,7 +884,7 @@ class dump:
         del self.snaps[i]
       else:
         i += 1
-  
+
   # --------------------------------------------------------------------
   # iterate over selected snapshots
 
@@ -896,11 +896,11 @@ class dump:
         self.iterate = i
         return i,self.snaps[i].time,1
     return 0,0,-1
-  
+
   # --------------------------------------------------------------------
   # return list of atoms to viz for snapshot isnap
   # augment with bonds, tris, lines if extra() was invoked
-  
+
   def viz(self,isnap):
     snap = self.snaps[isnap]
 
@@ -914,7 +914,7 @@ class dump:
 
     # create atom list needed by viz from id,type,x,y,z
     # need Numeric/Numpy mode here
-    
+
     atoms = []
     for i in range(snap.natoms):
       if not snap.aselect[i]: continue
@@ -948,12 +948,12 @@ class dump:
       elif self.triflag == 2:
         timetmp,boxtmp,atomstmp,bondstmp, \
         tris,linestmp = self.triobj.viz(time,1)
-        
+
     lines = []
     if self.lineflag: lines = self.linelist
 
     return time,box,atoms,bonds,tris,lines
-  
+
   # --------------------------------------------------------------------
 
   def findtime(self,n):
@@ -969,12 +969,12 @@ class dump:
     xhi = yhi = zhi = None
     for snap in self.snaps:
       if not snap.tselect: continue
-      if xlo == None or snap.xlo < xlo: xlo = snap.xlo
-      if xhi == None or snap.xhi > xhi: xhi = snap.xhi
-      if ylo == None or snap.ylo < ylo: ylo = snap.ylo
-      if yhi == None or snap.yhi > yhi: yhi = snap.yhi
-      if zlo == None or snap.zlo < zlo: zlo = snap.zlo
-      if zhi == None or snap.zhi > zhi: zhi = snap.zhi
+      if xlo is None or snap.xlo < xlo: xlo = snap.xlo
+      if xhi is None or snap.xhi > xhi: xhi = snap.xhi
+      if ylo is None or snap.ylo < ylo: ylo = snap.ylo
+      if yhi is None or snap.yhi > yhi: yhi = snap.yhi
+      if zlo is None or snap.zlo < zlo: zlo = snap.zlo
+      if zhi is None or snap.zhi > zhi: zhi = snap.zhi
     return [xlo,ylo,zlo,xhi,yhi,zhi]
 
   # --------------------------------------------------------------------
@@ -997,7 +997,7 @@ class dump:
   def extra(self,arg):
 
     # read bonds from bond dump file
-    
+
     if type(arg) is types.StringType:
       try:
         f = open(arg,'r')
@@ -1017,7 +1017,7 @@ class dump:
         f.close()
 
         # convert values to int and absolute value since can be negative types
-        
+
         if oldnumeric: bondlist = np.zeros((nbonds,4),np.Int)
         else: bondlist = np.zeros((nbonds,4),np.int)
         ints = [abs(int(value)) for value in words]
@@ -1032,9 +1032,9 @@ class dump:
           self.bondlist = bondlist
       except:
         raise Exception("could not read from bond dump file")
-      
+
     # request bonds from data object
-    
+
     elif type(arg) is types.InstanceType and ".data" in str(arg.__class__):
       try:
         bondlist = []
@@ -1050,7 +1050,7 @@ class dump:
         raise Exception("could not extract bonds from data object")
 
     # request tris/lines from cdata object
-    
+
     elif type(arg) is types.InstanceType and ".cdata" in str(arg.__class__):
       try:
         tmp,tmp,tmp,tmp,tris,lines = arg.viz(0)
@@ -1064,7 +1064,7 @@ class dump:
         raise Exception("could not extract tris/lines from cdata object")
 
     # request tris from mdump object
-    
+
     elif type(arg) is types.InstanceType and ".mdump" in str(arg.__class__):
       try:
         self.triflag = 2
@@ -1074,7 +1074,7 @@ class dump:
 
     else:
       raise Exception("unrecognized argument to dump.extra()")
-      
+
   # --------------------------------------------------------------------
 
   def compare_atom(self,a,b):
@@ -1083,7 +1083,7 @@ class dump:
     elif a[0] > b[0]:
       return 1
     else:
-      return 0  
+      return 0
 
 # --------------------------------------------------------------------
 # one snapshot
@@ -1098,7 +1098,7 @@ class tselect:
 
   def __init__(self,data):
     self.data = data
-    
+
   # --------------------------------------------------------------------
 
   def all(self):
@@ -1145,7 +1145,7 @@ class tselect:
       data.nselect -= 1
     data.aselect.all()
     print("%d snapshots selected out of %d" % (data.nselect,data.nsnaps))
-  
+
   # --------------------------------------------------------------------
 
   def test(self,teststr):
@@ -1191,7 +1191,7 @@ class aselect:
     data = self.data
 
     # replace all $var with snap.atoms references and compile test string
-    
+
     pattern = "\$\w*"
     list = re.findall(pattern,teststr)
     for item in list:

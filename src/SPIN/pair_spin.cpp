@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -22,26 +23,28 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_spin.h"
-#include <cstring>
+
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
-#include "fix.h"
+#include "fix_nve_spin.h"
 #include "force.h"
 #include "math_const.h"
+#include "memory.h"
 #include "modify.h"
-#include "neighbor.h"
 #include "neigh_request.h"
+#include "neighbor.h"
 #include "pair.h"
 #include "update.h"
-#include "fix_nve_spin.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairSpin::PairSpin(LAMMPS *lmp) : Pair(lmp)
+PairSpin::PairSpin(LAMMPS *lmp) : Pair(lmp), emag(nullptr)
 {
   hbar = force->hplanck/MY_2PI;
   single_enable = 0;
@@ -82,9 +85,14 @@ void PairSpin::init_style()
 
   bool have_fix = ((modify->find_fix_by_style("^nve/spin") != -1)
                    || (modify->find_fix_by_style("^neb/spin") != -1));
-  
+
   if (!have_fix && (comm->me == 0))
     error->warning(FLERR,"Using spin pair style without nve/spin or neb/spin");
+
+  // check if newton pair is on
+
+  if ((force->newton_pair == 0) && (comm->me == 0))
+    error->all(FLERR,"Pair style spin requires newton pair on");
 
   // need a full neighbor list
 
@@ -98,4 +106,8 @@ void PairSpin::init_style()
   if (ifix >=0)
     lattice_flag = ((FixNVESpin *) modify->fix[ifix])->lattice_flag;
 
+  // init. size of energy stacking lists
+
+  nlocal_max = atom->nlocal;
+  memory->grow(emag,nlocal_max,"pair/spin:emag");
 }

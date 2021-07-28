@@ -1,6 +1,7 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -25,6 +26,8 @@ class CommKokkos : public CommBrick {
 
   bool exchange_comm_classic;
   bool forward_comm_classic;
+  bool forward_pair_comm_classic;
+  bool forward_fix_comm_classic;
   bool reverse_comm_classic;
   bool exchange_comm_on_host;
   bool forward_comm_on_host;
@@ -51,6 +54,7 @@ class CommKokkos : public CommBrick {
   template<class DeviceType> void forward_comm_device(int dummy);
   template<class DeviceType> void reverse_comm_device();
   template<class DeviceType> void forward_comm_pair_device(Pair *pair);
+  template<class DeviceType> void forward_comm_fix_device(Fix *fix, int size=0);
   template<class DeviceType> void exchange_device();
   template<class DeviceType> void borders_device();
 
@@ -73,10 +77,11 @@ class CommKokkos : public CommBrick {
   DAT::tdual_int_1d k_sendnum_scan;
   int totalsend;
 
-  int max_buf_pair;
-  DAT::tdual_xfloat_1d k_buf_send_pair;
-  DAT::tdual_xfloat_1d k_buf_recv_pair;
+  int max_buf_pair,max_buf_fix;
+  DAT::tdual_xfloat_1d k_buf_send_pair, k_buf_send_fix;
+  DAT::tdual_xfloat_1d k_buf_recv_pair, k_buf_recv_fix;
   void grow_buf_pair(int);
+  void grow_buf_fix(int);
 
   void grow_send(int, int);
   void grow_recv(int);

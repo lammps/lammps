@@ -1,0 +1,6 @@
+image:
+  - Visual Studio 2019
+clone_folder: c:\projects\source
+build_script:
+- cmd: >-
+    cmake c:\projects\source -DKokkos_ENABLE_TESTS=ON -DCMAKE_CXX_FLAGS="/W0 /EHsc /d1reportClassLayoutChanges" -DCTEST_ARGS="-C Debug -V --output-on-failure" -DBUILD_NAME=MSVC-2019 -DBUILD_TYPE=Debug -DSITE=AppVeyor -DTARGET=install -P cmake/KokkosCI.cmake

@@ -1,0 +1,130 @@
+LAMMPS (24 Jul 2017)
+  using 1 OpenMP thread(s) per MPI task
+units metal
+atom_style full
+boundary p p p
+timestep 0.0001 # 0.1 fs
+
+read_data methane-box-8.data
+  orthogonal box = (-0.499095 -0.270629 0.131683) to (8.4109 8.63937 9.04168)
+  1 by 2 by 2 MPI processor grid
+  reading atoms ...
+  40 atoms
+  scanning bonds ...
+  4 = max bonds/atom
+  scanning angles ...
+  6 = max angles/atom
+  reading bonds ...
+  32 bonds
+  reading angles ...
+  48 angles
+  4 = max # of 1-2 neighbors
+  3 = max # of 1-3 neighbors
+  3 = max # of 1-4 neighbors
+  4 = max # of special neighbors
+
+# DISCLAIMER: This potential mixes parameters from methane and silane
+# potentials and is NOT intended to be a realistic representation of either
+# system.  It is meant to demonstrate the use of hybrid QUIP/LAMMPS potentials,
+# including the use of separate 'special_bonds' settings.
+
+pair_style hybrid/overlay lj/cut 8.0 quip
+
+# exclusion setting for quip; cannot be exactly 1.0 1.0 1.0,
+# since that would not flag 1-2, 1-3, and 1-4 pairs in lj/cut
+special_bonds lj/coul 0.999999999 0.999999999 0.999999999
+  4 = max # of 1-2 neighbors
+  3 = max # of 1-3 neighbors
+  3 = max # of 1-4 neighbors
+  4 = max # of special neighbors
+
+# Intermolecular: OPLS (JACS 118 (45), p. 11225 (1996))
+# Coulomb interactions omitted for simplicity
+pair_coeff 1 1 lj/cut 0.0028619844 3.5 # CT
+pair_coeff 2 2 lj/cut 0.0013009018 2.5 # HC
+pair_coeff 1 2 lj/cut 0.0019295487 2.95
+pair_modify shift no
+# change exclusion settings for lj/cut only: exclude bonded pairs
+pair_modify pair lj/cut special lj/coul 0.0 0.0 0.0
+
+# Intramolecular
+# Tell QUIP to pretend this is silane (which is covered by the parameter file)
+pair_coeff * * quip sw_example.xml "IP SW" 14 1
+bond_style none
+angle_style none
+
+fix 1 all nve
+
+# Include diagnostics that allow us to compare to a pure QUIP run
+compute equip all pair quip
+compute evdw all pair lj/cut
+compute vir all pressure NULL virial
+
+thermo_style custom step epair ke etotal temp press c_vir c_evdw c_equip
+thermo 1
+
+# dump 1 all custom 1 dump.molecular id type x y z fx fy fz
+# dump_modify 1 sort id
+
+run 10
+Neighbor list info ...
+  update every 1 steps, delay 10 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 10
+  ghost atom cutoff = 10
+  binsize = 5, bins = 2 2 2
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair lj/cut, perpetual, half/full from (2)
+      attributes: half, newton on
+      pair build: halffull/newton
+      stencil: none
+      bin: none
+  (2) pair quip, perpetual
+      attributes: full, newton on
+      pair build: full/bin
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 8.26 | 8.386 | 8.762 Mbytes
+Step E_pair KinEng TotEng Temp Press c_vir c_evdw c_equip 
+       0   -5.3530213            0   -5.3530213            0    518847.56    518847.56  -0.10904079   -5.2439805 
+       1   -5.9384459   0.58384822   -5.3545977    115.81657     517370.5    516488.87  -0.10783656   -5.8306093 
+       2    -7.669616    2.3104051   -5.3592109    458.30954    512986.36    509497.58  -0.10422283   -7.5653932 
+       3   -10.473314    5.1069211   -5.3663924    1013.0477    505833.04    498121.43 -0.098049469   -10.375264 
+       4   -14.234705     8.859182   -5.3755227    1757.3747    496127.44    482749.79 -0.089147485   -14.145557 
+       5   -18.806851    13.420941   -5.3859098      2662.28    484148.76    463882.72 -0.077305196   -18.729546 
+       6   -24.021727    18.625147   -5.3965797    3694.6259    470219.95    442095.39  -0.06194509   -23.959782 
+       7   -29.702647    24.295529   -5.4071176     4819.446    454683.57    417996.56 -0.042859727   -29.659787 
+       8    -35.67405    30.257258   -5.4167913    6002.0599    437887.03    392197.62 -0.019248651   -35.654801 
+       9   -41.771047    36.345757   -5.4252893    7209.8209    420163.51    365280.27 0.0096063065   -41.780653 
+      10   -47.845522    42.413161   -5.4323614    8413.3973    401821.91     337776.7  0.044743702   -47.890266 
+Loop time of 0.0506847 on 4 procs for 10 steps with 40 atoms
+
+Performance: 1.705 ns/day, 14.079 hours/ns, 197.298 timesteps/s
+94.4% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.04216    | 0.045656   | 0.049349   |   1.2 | 90.08
+Bond    | 1.9073e-06 | 2.4438e-06 | 2.861e-06  |   0.0 |  0.00
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.00068545 | 0.004438   | 0.0079191  |   3.9 |  8.76
+Output  | 0.00048304 | 0.00053334 | 0.00060964 |   0.0 |  1.05
+Modify  | 1.1444e-05 | 1.4424e-05 | 1.9312e-05 |   0.0 |  0.03
+Other   |            | 4.047e-05  |            |       |  0.08
+
+Nlocal:    10 ave 15 max 6 min
+Histogram: 1 0 0 1 1 0 0 0 0 1
+Nghost:    878 ave 948 max 812 min
+Histogram: 1 0 1 0 0 0 1 0 0 1
+Neighs:    1192 ave 1764 max 731 min
+Histogram: 1 0 0 1 1 0 0 0 0 1
+FullNghs:  2384 ave 3527 max 1439 min
+Histogram: 1 0 0 1 1 0 0 0 0 1
+
+Total # of neighbors = 9536
+Ave neighs/atom = 238.4
+Ave special neighs/atom = 4
+Neighbor list builds = 0
+Dangerous builds = 0
+Total wall time: 0:00:00

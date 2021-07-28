@@ -87,7 +87,7 @@ namespace ATC {
             break;
           }
           default:
-            throw ATC_Error("Uknown time integration type in ThermalTimeIntegrator::Initialize()");
+            throw ATC_Error("Unknown time integration type in ThermalTimeIntegrator::Initialize()");
         }
       }
       
@@ -102,7 +102,7 @@ namespace ATC {
             break;
           }
         default:
-          throw ATC_Error("Uknown time integration type in ThermalTimeIntegrator::Initialize()");
+          throw ATC_Error("Unknown time integration type in ThermalTimeIntegrator::Initialize()");
         }
       }
       else {
@@ -116,7 +116,7 @@ namespace ATC {
             break;
           }
         default:
-          throw ATC_Error("Uknown time integration type in ThermalTimeIntegrator::Initialize()");
+          throw ATC_Error("Unknown time integration type in ThermalTimeIntegrator::Initialize()");
         }
       }
     }
@@ -150,7 +150,7 @@ namespace ATC {
     temperatureRoc_(atc_->field_roc(TEMPERATURE)),
     temperature2Roc_(atc_->field_2roc(TEMPERATURE)),
     nodalAtomicTemperatureOut_(atc_->nodal_atomic_field(TEMPERATURE)),
-    nodalAtomicTemperature_(NULL),
+    nodalAtomicTemperature_(nullptr),
     temperatureRhs_(atc_->field_rhs(TEMPERATURE)),
     nodalAtomicPowerOut_(atc_->nodal_atomic_field_roc(TEMPERATURE))
   {
@@ -384,7 +384,7 @@ namespace ATC {
     nodalAtomicEnergyFiltered_(thermalTimeIntegrator->nodal_atomic_energy_filtered()),
     nodalAtomicPowerFiltered_(thermalTimeIntegrator->nodal_atomic_power_filtered()),
     atomicTemperatureDelta_(atc_->num_nodes(),1),
-    nodalAtomicEnergy_(NULL),
+    nodalAtomicEnergy_(nullptr),
     nodalAtomicEnergyOld_(atc_->num_nodes(),1),
     nodalAtomicTemperatureOld_(atc_->num_nodes(),1)
   {

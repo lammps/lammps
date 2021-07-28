@@ -15,7 +15,7 @@ else
 COLVARS_DEBUG_INCFLAGS = -DCOLVARS_DEBUG
 endif
 
-COLVARS_INCFLAGS = $(COLVARS_DEBUG_INCFLAGS) $(COLVARS_PYTHON_INCFLAGS)
+COLVARS_INCFLAGS = -DCOLVARS_LAMMPS $(COLVARS_DEBUG_INCFLAGS) $(COLVARS_PYTHON_INCFLAGS) -I../../src
 
 
 .SUFFIXES:
@@ -31,19 +31,28 @@ COLVARS_SRCS = \
         colvarbias_meta.cpp \
         colvarbias_restraint.cpp \
         colvarcomp_angles.cpp \
+        colvarcomp_apath.cpp \
         colvarcomp_coordnums.cpp \
         colvarcomp.cpp \
         colvarcomp_distances.cpp \
         colvarcomp_gpath.cpp \
         colvarcomp_protein.cpp \
         colvarcomp_rotations.cpp \
+        colvarcomp_volmaps.cpp \
         colvar.cpp \
         colvardeps.cpp \
         colvargrid.cpp \
         colvarmodule.cpp \
+        colvarparams.cpp \
         colvarparse.cpp \
         colvarproxy.cpp \
+        colvarproxy_replicas.cpp \
+        colvarproxy_tcl.cpp \
+        colvarproxy_volmaps.cpp \
         colvarscript.cpp \
+        colvarscript_commands.cpp \
+        colvarscript_commands_bias.cpp \
+        colvarscript_commands_colvar.cpp \
         colvartypes.cpp \
         colvarvalue.cpp
 
@@ -74,7 +83,7 @@ Makefile.deps: $(COLVARS_SRCS)
 	@echo > $@
 	@for src in $^ ; do \
 	  obj=`basename $$src .cpp`.o ; \
-	  $(CXX) -MM $(COLVARS_INCFLAGS)  $(LEPTON_INCFLAGS) \
+	  $(CXX) $(CXXFLAGS) -MM $(COLVARS_INCFLAGS)  $(LEPTON_INCFLAGS) \
 	    -MT '$$(COLVARS_OBJ_DIR)'$$obj $$src >> $@ ; \
 	  done
 

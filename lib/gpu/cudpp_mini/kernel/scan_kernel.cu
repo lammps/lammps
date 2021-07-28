@@ -46,7 +46,7 @@
   * the rows of \a d_blockSums (in elements) in \a blockSumRowPitch, and invoke
   * with a thread block grid with height greater than 1.  
   * 
-  * This function peforms one level of a recursive, multiblock scan.  At the 
+  * This function performs one level of a recursive, multiblock scan.  At the
   * app level, this function is called by cudppScan and cudppMultiScan and used 
   * in combination with vectorAddUniform4() to produce a complete scan.
   *

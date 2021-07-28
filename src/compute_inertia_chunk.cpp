@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,7 +13,7 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_inertia_chunk.h"
-#include <mpi.h>
+
 #include <cstring>
 #include "atom.h"
 #include "update.h"
@@ -28,8 +29,8 @@ using namespace LAMMPS_NS;
 
 ComputeInertiaChunk::ComputeInertiaChunk(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  idchunk(NULL), massproc(NULL), masstotal(NULL), com(NULL), comall(NULL),
-  inertia(NULL), inertiaall(NULL)
+  idchunk(nullptr), massproc(nullptr), masstotal(nullptr), com(nullptr), comall(nullptr),
+  inertia(nullptr), inertiaall(nullptr)
 {
   if (narg != 4) error->all(FLERR,"Illegal compute inertia/chunk command");
 
@@ -41,11 +42,9 @@ ComputeInertiaChunk::ComputeInertiaChunk(LAMMPS *lmp, int narg, char **arg) :
 
   // ID of compute chunk/atom
 
-  int n = strlen(arg[3]) + 1;
-  idchunk = new char[n];
-  strcpy(idchunk,arg[3]);
+  idchunk = utils::strdup(arg[3]);
 
-  init();
+  ComputeInertiaChunk::init();
 
   // chunk-based data
 
@@ -103,7 +102,7 @@ void ComputeInertiaChunk::compute_array()
 
   // zero local per-chunk values
 
-  for (int i = 0; i < nchunk; i++) {
+  for (i = 0; i < nchunk; i++) {
     massproc[i] = 0.0;
     com[i][0] = com[i][1] = com[i][2] = 0.0;
     for (j = 0; j < 6; j++) inertia[i][j] = 0.0;
@@ -119,7 +118,7 @@ void ComputeInertiaChunk::compute_array()
   double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
 
-  for (int i = 0; i < nlocal; i++)
+  for (i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       index = ichunk[i]-1;
       if (index < 0) continue;
@@ -135,7 +134,7 @@ void ComputeInertiaChunk::compute_array()
   MPI_Allreduce(massproc,masstotal,nchunk,MPI_DOUBLE,MPI_SUM,world);
   MPI_Allreduce(&com[0][0],&comall[0][0],3*nchunk,MPI_DOUBLE,MPI_SUM,world);
 
-  for (int i = 0; i < nchunk; i++) {
+  for (i = 0; i < nchunk; i++) {
     if (masstotal[i] > 0.0) {
       comall[i][0] /= masstotal[i];
       comall[i][1] /= masstotal[i];
@@ -253,7 +252,7 @@ void ComputeInertiaChunk::allocate()
 double ComputeInertiaChunk::memory_usage()
 {
   double bytes = (bigint) maxchunk * 2 * sizeof(double);
-  bytes += (bigint) maxchunk * 2*3 * sizeof(double);
-  bytes += (bigint) maxchunk * 2*6 * sizeof(double);
+  bytes += (double) maxchunk * 2*3 * sizeof(double);
+  bytes += (double) maxchunk * 2*6 * sizeof(double);
   return bytes;
 }

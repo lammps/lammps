@@ -5,14 +5,14 @@
 using namespace std;
 
 namespace ATC {
-Quadrature * Quadrature::myInstance_ = NULL;
+Quadrature * Quadrature::myInstance_ = nullptr;
 
 // -----------------------------------------------------------------
 //  instance()
 // -----------------------------------------------------------------
 Quadrature * Quadrature::instance()
 {
-  if (myInstance_ == NULL) {
+  if (myInstance_ == nullptr) {
     myInstance_ = new Quadrature();
   }
   return myInstance_;
@@ -24,7 +24,7 @@ Quadrature * Quadrature::instance()
 void Quadrature::Destroy()
 {
   if (myInstance_) delete myInstance_;
-  myInstance_ = NULL;
+  myInstance_ = nullptr;
 }
 
 

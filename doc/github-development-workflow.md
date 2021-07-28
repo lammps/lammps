@@ -25,10 +25,10 @@ In the interest of consistency, ONLY ONE of the core LAMMPS developers
 should doing the merging itself.  This is currently
 [@akohlmey](https://github.com/akohlmey) (Axel Kohlmeyer).
 If this assignment needs to be changed, it shall be done right after a
-stable release.  If the currently assigned developer cannot merge outstanding pull 
-requests in a timely manner, or in other extenuating circumstances, 
+stable release.  If the currently assigned developer cannot merge outstanding pull
+requests in a timely manner, or in other extenuating circumstances,
 other core LAMMPS developers with merge rights can merge pull requests,
-when necessary. 
+when necessary.
 
 ## Pull Requests
 
@@ -95,7 +95,7 @@ on the pull request discussion page on GitHub, so that other developers
 can later review the entire discussion after the fact and understand the
 rationale behind choices made.  Exceptions to this policy are technical
 discussions, that are centered on tools or policies themselves
-(git, github, c++) rather than on the content of the pull request.
+(git, GitHub, c++) rather than on the content of the pull request.
 
 ### Checklist for Pull Requests
 
@@ -104,14 +104,17 @@ Here are some items to check:
   * every new command or style should have documentation. The names of
   source files (c++ and manual) should follow the name of the style.
   (example: `src/fix_nve.cpp`, `src/fix_nve.h` for `fix nve` command,
-  implementing the class `FixNVE`, documented in `doc/src/fix_nve.txt`)
+  implementing the class `FixNVE`, documented in `doc/src/fix_nve.rst`)
   * all new style names should be lower case, the must be no dashes,
   blanks, or underscores separating words, only forward slashes.
   * new style docs should be added to the "overview" files in
-  `doc/src/Commands_*.txt`, `doc/src/{fixes,computes,pairs,bonds,...}.txt`
-  and `doc/src/lammps.book`
+  `doc/src/Commands_*.rst`, `doc/src/{fixes,computes,pairs,bonds,...}.rst`
   * check whether manual cleanly translates with `make html` and `make pdf`
+  * if documentation is (still) provided as a .txt file, convert to .rst
+  and remove the .txt file. For files in doc/txt the conversion is automatic.
+  * remove all .txt files in `doc/txt` that are out of sync with their .rst counterparts in `doc/src`
   * check spelling of manual with `make spelling` in doc folder
+  * check style tables and command lists with `make style_check`
   * new source files in packages should be added to `src/.gitignore`
   * removed or renamed files in packages should be added to `src/Purge.list`
   * C++ source files should use C++ style include files for accessing
@@ -133,15 +136,18 @@ Here are some items to check:
     * string.h -> cstring
     * time.h -> ctime
     * Do NOT replace (as they are C++-11): `inttypes.h` and `stdint.h`.
-  * Code should follow the C++-98 standard. C++-11 is only accepted
+  * Code must follow the C++-11 standard. C++98-only is no longer accepted
+  * Code should use `nullptr` instead of `NULL` where applicable.
   in individual special purpose packages
   * indentation is 2 spaces per level
-  * there should be NO tabs and no trailing whitespace
+  * there should be NO tabs and no trailing whitespace (review the "checkstyle" test on pull requests)
   * header files, especially of new styles, should not include any
   other headers, except the header with the base class or cstdio.
   Forward declarations should be used instead when possible.
   * iostreams should be avoided. LAMMPS uses stdio from the C-library.
   * use of STL in headers and class definitions should be avoided.
+  exception is <string>, but it won't need to be explicitly included
+  since pointers.h already includes it. so std::string can be used directly.
   * there MUST NOT be any "using namespace XXX;" statements in headers.
   * static class members should be avoided at all cost.
   * anything storing atom IDs should be using `tagint` and not `int`.
@@ -149,6 +155,8 @@ Here are some items to check:
   compiling LAMMPS with `-DLAMMPS_BIGBIG`.
   * when including both `lmptype.h` (and using defines or macros from it)
   and `mpi.h`, `lmptype.h` must be included first.
+  * see https://github.com/lammps/lammps/blob/master/doc/include-file-conventions.md
+  for general include file conventions and best practices
   * when pair styles are added, check if settings for flags like
   `single_enable`, `writedata`, `reinitflag`, `manybody_flag`
   and others are correctly set and supported.

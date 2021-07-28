@@ -2,10 +2,11 @@
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 2.0
-//              Copyright (2014) Sandia Corporation
+//                        Kokkos v. 3.0
+//       Copyright (2020) National Technology & Engineering
+//               Solutions of Sandia, LLC (NTESS).
 //
-// Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
+// Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -23,10 +24,10 @@
 // contributors may be used to endorse or promote products derived from
 // this software without specific prior written permission.
 //
-// THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
+// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
 // CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 // EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 // PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -50,23 +51,27 @@ namespace Kokkos {
 namespace Impl {
 
 struct PhysicalLayout {
-  enum LayoutType {Left,Right,Scalar,Error};
+  enum LayoutType { Left, Right, Scalar, Error };
   LayoutType layout_type;
   int rank;
-  long long int stride[9]; //distance between two neighboring elements in a given dimension
+  long long int stride[9];  // distance between two neighboring elements in a
+                            // given dimension
 
-  template< class T , class L , class D , class M >
-  PhysicalLayout( const View<T,L,D,M> & view )
-    : layout_type( is_same< typename View<T,L,D,M>::array_layout , LayoutLeft  >::value ? Left : (
-                   is_same< typename View<T,L,D,M>::array_layout , LayoutRight >::value ? Right : Error ))
-    , rank( view.Rank )
-    {
-      for(int i=0;i<9;i++) stride[i] = 0;
-      view.stride( stride );
-    }
+  template <class T, class L, class D, class M>
+  PhysicalLayout(const View<T, L, D, M>& view)
+      : layout_type(
+            is_same<typename View<T, L, D, M>::array_layout, LayoutLeft>::value
+                ? Left
+                : (is_same<typename View<T, L, D, M>::array_layout,
+                           LayoutRight>::value
+                       ? Right
+                       : Error)),
+        rank(view.Rank) {
+    for (int i = 0; i < 9; i++) stride[i] = 0;
+    view.stride(stride);
+  }
 };
 
-}
-}
+}  // namespace Impl
+}  // namespace Kokkos
 #endif
-

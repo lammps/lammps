@@ -39,3 +39,5 @@ fix_modify      2 energy yes
 
 thermo          10
 run             50
+
+message         quit

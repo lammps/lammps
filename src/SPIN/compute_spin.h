@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(spin,ComputeSpin)
-
+// clang-format off
+ComputeStyle(spin,ComputeSpin);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_SPIN_H
@@ -32,12 +32,26 @@ class ComputeSpin : public Compute {
   void compute_vector();
 
  private:
-  double kb,hbar;
+  int pair_spin_flag;          // magnetic pair flags
+  int long_spin_flag;          // magnetic long-range flag
+  int precession_spin_flag;    // magnetic precession flags
+
+  double kb, hbar;
+
+  // pointers to magnetic fixes
+
+  class FixPrecessionSpin *lockprecessionspin;
+
+  // pointers to magnetic pair styles
+
+  int npairs, npairspin;    // # of pairs, and # of spin pairs
+  class Pair *pair;
+  class PairSpin **spin_pairs;    // vector of spin pairs
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

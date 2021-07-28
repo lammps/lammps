@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,8 +13,9 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_msd_chunk.h"
-#include <mpi.h>
+
 #include <cstring>
+
 #include "atom.h"
 #include "group.h"
 #include "update.h"
@@ -24,13 +26,14 @@
 #include "memory.h"
 #include "error.h"
 
+
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
 ComputeMSDChunk::ComputeMSDChunk(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  idchunk(NULL), id_fix(NULL), massproc(NULL), masstotal(NULL), com(NULL), comall(NULL), msd(NULL)
+  idchunk(nullptr), id_fix(nullptr), massproc(nullptr), masstotal(nullptr), com(nullptr), comall(nullptr), msd(nullptr)
 {
   if (narg != 4) error->all(FLERR,"Illegal compute msd/chunk command");
 
@@ -42,12 +45,10 @@ ComputeMSDChunk::ComputeMSDChunk(LAMMPS *lmp, int narg, char **arg) :
 
   // ID of compute chunk/atom
 
-  int n = strlen(arg[3]) + 1;
-  idchunk = new char[n];
-  strcpy(idchunk,arg[3]);
+  idchunk = utils::strdup(arg[3]);
 
   firstflag = 1;
-  init();
+  ComputeMSDChunk::init();
 
   // create a new fix STORE style for reference positions
   // id = compute-ID + COMPUTE_STORE, fix group = compute group
@@ -56,21 +57,11 @@ ComputeMSDChunk::ComputeMSDChunk(LAMMPS *lmp, int narg, char **arg) :
   //   potentially re-populate the fix array (and change it to correct size)
   // otherwise size reset and init will be done in setup()
 
-  n = strlen(id) + strlen("_COMPUTE_STORE") + 1;
-  id_fix = new char[n];
-  strcpy(id_fix,id);
-  strcat(id_fix,"_COMPUTE_STORE");
-
-  char **newarg = new char*[6];
-  newarg[0] = id_fix;
-  newarg[1] = group->names[igroup];
-  newarg[2] = (char *) "STORE";
-  newarg[3] = (char *) "global";
-  newarg[4] = (char *) "1";
-  newarg[5] = (char *) "1";
-  modify->add_fix(6,newarg);
+  id_fix = utils::strdup(std::string(id) + "_COMPUTE_STORE");
+  std::string fixcmd = id_fix
+    + fmt::format(" {} STORE global 1 1",group->names[igroup]);
+  modify->add_fix(fixcmd);
   fix = (FixStore *) modify->fix[modify->nfix-1];
-  delete [] newarg;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -302,7 +293,7 @@ void ComputeMSDChunk::allocate()
 double ComputeMSDChunk::memory_usage()
 {
   double bytes = (bigint) nchunk * 2 * sizeof(double);
-  bytes += (bigint) nchunk * 2*3 * sizeof(double);
-  bytes += (bigint) nchunk * 4 * sizeof(double);
+  bytes += (double) nchunk * 2*3 * sizeof(double);
+  bytes += (double) nchunk * 4 * sizeof(double);
   return bytes;
 }

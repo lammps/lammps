@@ -112,7 +112,7 @@ FieldImplicitDirectEulerIntegrator::FieldImplicitDirectEulerIntegrator(
   const Array2D< bool > & rhsMask,  // copy 
   const double alpha
 ) : FieldEulerIntegrator(fieldName,physicsModel,feEngine,atc,rhsMask),
-  alpha_(alpha),solver_(NULL)
+  alpha_(alpha),solver_(nullptr)
 {
    rhsMask_(fieldName_,FLUX) = false; // handle laplacian term with stiffness
    const BC_SET & bcs = (atc_->prescribed_data_manager()->bcs(fieldName_))[0];

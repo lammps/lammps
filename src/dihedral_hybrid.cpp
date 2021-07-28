@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,7 +13,7 @@
 ------------------------------------------------------------------------- */
 
 #include "dihedral_hybrid.h"
-#include <mpi.h>
+
 #include <cstring>
 #include <cctype>
 #include "atom.h"
@@ -21,7 +22,7 @@
 #include "force.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -130,6 +131,14 @@ void DihedralHybrid::compute(int eflag, int vflag)
         for (j = 0; j < 6; j++)
           vatom[i][j] += vatom_substyle[i][j];
     }
+    if (cvflag_atom) {
+      n = atom->nlocal;
+      if (force->newton_bond) n += atom->nghost;
+      double **cvatom_substyle = styles[m]->cvatom;
+      for (i = 0; i < n; i++)
+        for (j = 0; j < 9; j++)
+          cvatom[i][j] += cvatom_substyle[i][j];
+    }
   }
 
   // restore ptrs to original dihedrallist
@@ -153,7 +162,7 @@ void DihedralHybrid::allocate()
   maxdihedral = new int[nstyles];
   dihedrallist = new int**[nstyles];
   for (int m = 0; m < nstyles; m++) maxdihedral[m] = 0;
-  for (int m = 0; m < nstyles; m++) dihedrallist[m] = NULL;
+  for (int m = 0; m < nstyles; m++) dihedrallist[m] = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -169,9 +178,9 @@ void DihedralHybrid::settings(int narg, char **arg)
   // delete old lists, since cannot just change settings
 
   if (nstyles) {
-    for (int i = 0; i < nstyles; i++) delete styles[i];
+    for (i = 0; i < nstyles; i++) delete styles[i];
     delete [] styles;
-    for (int i = 0; i < nstyles; i++) delete [] keywords[i];
+    for (i = 0; i < nstyles; i++) delete [] keywords[i];
     delete [] keywords;
   }
 
@@ -180,7 +189,7 @@ void DihedralHybrid::settings(int narg, char **arg)
     memory->destroy(map);
     delete [] ndihedrallist;
     delete [] maxdihedral;
-    for (int i = 0; i < nstyles; i++)
+    for (i = 0; i < nstyles; i++)
       memory->destroy(dihedrallist[i]);
     delete [] dihedrallist;
   }
@@ -247,7 +256,7 @@ void DihedralHybrid::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->ndihedraltypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->ndihedraltypes,ilo,ihi,error);
 
   // 2nd arg = dihedral sub-style name
   // allow for "none" or "skip" as valid sub-style name
@@ -321,7 +330,7 @@ void DihedralHybrid::write_restart(FILE *fp)
 void DihedralHybrid::read_restart(FILE *fp)
 {
   int me = comm->me;
-  if (me == 0) utils::sfread(FLERR,&nstyles,sizeof(int),1,fp,NULL,error);
+  if (me == 0) utils::sfread(FLERR,&nstyles,sizeof(int),1,fp,nullptr,error);
   MPI_Bcast(&nstyles,1,MPI_INT,0,world);
   styles = new Dihedral*[nstyles];
   keywords = new char*[nstyles];
@@ -330,10 +339,10 @@ void DihedralHybrid::read_restart(FILE *fp)
 
   int n,dummy;
   for (int m = 0; m < nstyles; m++) {
-    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,NULL,error);
+    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,nullptr,error);
     MPI_Bcast(&n,1,MPI_INT,0,world);
     keywords[m] = new char[n];
-    if (me == 0) utils::sfread(FLERR,keywords[m],sizeof(char),n,fp,NULL,error);
+    if (me == 0) utils::sfread(FLERR,keywords[m],sizeof(char),n,fp,nullptr,error);
     MPI_Bcast(keywords[m],n,MPI_CHAR,0,world);
     styles[m] = force->new_dihedral(keywords[m],0,dummy);
     styles[m]->read_restart_settings(fp);
@@ -346,9 +355,10 @@ void DihedralHybrid::read_restart(FILE *fp)
 
 double DihedralHybrid::memory_usage()
 {
-  double bytes = maxeatom * sizeof(double);
-  bytes += maxvatom*6 * sizeof(double);
-  for (int m = 0; m < nstyles; m++) bytes += maxdihedral[m]*5 * sizeof(int);
+  double bytes = (double)maxeatom * sizeof(double);
+  bytes += (double)maxvatom*6 * sizeof(double);
+  bytes += (double)maxcvatom*9 * sizeof(double);
+  for (int m = 0; m < nstyles; m++) bytes += (double)maxdihedral[m]*5 * sizeof(int);
   for (int m = 0; m < nstyles; m++)
     if (styles[m]) bytes += styles[m]->memory_usage();
   return bytes;

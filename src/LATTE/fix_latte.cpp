@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -49,7 +50,6 @@ extern "C" {
 // difficult to debug crashes or memory corruption.
 
 #define LATTE_ABIVERSION 20180622
-#define INVOKED_PERATOM 8
 
 /* ---------------------------------------------------------------------- */
 
@@ -70,24 +70,22 @@ FixLatte::FixLatte(LAMMPS *lmp, int narg, char **arg) :
   scalar_flag = 1;
   global_freq = 1;
   extscalar = 1;
-  virial_flag = 1;
-  thermo_virial = 1;
+  energy_global_flag = 1;
+  virial_global_flag = 1;
+  thermo_energy = thermo_virial = 1;
 
   // store ID of compute pe/atom used to generate Coulomb potential for LATTE
-  // NULL means LATTE will compute Coulombic potential
+  // null pointer means LATTE will compute Coulombic potential
 
   coulomb = 0;
-  id_pe = NULL;
+  id_pe = nullptr;
 
   if (strcmp(arg[3],"NULL") != 0) {
     coulomb = 1;
     error->all(FLERR,"Fix latte does not yet support a LAMMPS calculation "
                "of a Coulomb potential");
 
-    int n = strlen(arg[3]) + 1;
-    id_pe = new char[n];
-    strcpy(id_pe,arg[3]);
-
+    id_pe = utils::strdup(arg[3]);
     int ipe = modify->find_compute(id_pe);
     if (ipe < 0) error->all(FLERR,"Could not find fix latte compute ID");
     if (modify->compute[ipe]->peatomflag == 0)
@@ -97,8 +95,8 @@ FixLatte::FixLatte(LAMMPS *lmp, int narg, char **arg) :
   // initializations
 
   nmax = 0;
-  qpotential = NULL;
-  flatte = NULL;
+  qpotential = nullptr;
+  flatte = nullptr;
 
   latte_energy = 0.0;
 }
@@ -117,12 +115,9 @@ FixLatte::~FixLatte()
 int FixLatte::setmask()
 {
   int mask = 0;
-  //mask |= INITIAL_INTEGRATE;
-  //mask |= FINAL_INTEGRATE;
   mask |= PRE_REVERSE;
   mask |= POST_FORCE;
   mask |= MIN_POST_FORCE;
-  mask |= THERMO_ENERGY;
   return mask;
 }
 
@@ -136,7 +131,7 @@ void FixLatte::init()
     error->all(FLERR,"Fix latte requires 3d problem");
 
   if (coulomb) {
-    if (atom->q_flag == 0 || force->pair == NULL || force->kspace == NULL)
+    if (atom->q_flag == 0 || force->pair == nullptr || force->kspace == nullptr)
       error->all(FLERR,"Fix latte cannot compute Coulomb potential");
 
     int ipe = modify->find_compute(id_pe);
@@ -154,7 +149,7 @@ void FixLatte::init()
   // create qpotential & flatte if needed
   // for now, assume nlocal will never change
 
-  if (coulomb && qpotential == NULL) {
+  if (coulomb && qpotential == nullptr) {
     memory->create(qpotential,atom->nlocal,"latte:qpotential");
     memory->create(flatte,atom->nlocal,3,"latte:flatte");
   }
@@ -248,9 +243,9 @@ void FixLatte::post_force(int vflag)
   if (coulomb) {
     modify->clearstep_compute();
 
-    if (!(c_pe->invoked_flag & INVOKED_PERATOM)) {
+    if (!(c_pe->invoked_flag & Compute::INVOKED_PERATOM)) {
       c_pe->compute_peratom();
-      c_pe->invoked_flag |= INVOKED_PERATOM;
+      c_pe->invoked_flag |= Compute::INVOKED_PERATOM;
     }
 
     modify->addstep_compute(update->ntimestep+1);
@@ -267,9 +262,6 @@ void FixLatte::post_force(int vflag)
   // hardwire these unsupported flags for now
 
   int coulombflag = 0;
-  // pe_peratom = 0;
-  // virial_global = 1;              // set via vflag_global at some point
-  // virial_peratom = 0;
   neighflag = 0;
 
   // set flags used by LATTE
@@ -356,7 +348,7 @@ double FixLatte::compute_scalar()
 double FixLatte::memory_usage()
 {
   double bytes = 0.0;
-  if (coulomb) bytes += nmax * sizeof(double);
-  if (coulomb) bytes += nmax*3 * sizeof(double);
+  if (coulomb) bytes += (double)nmax * sizeof(double);
+  if (coulomb) bytes += (double)nmax*3 * sizeof(double);
   return bytes;
 }

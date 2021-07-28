@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,7 +18,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_lj_long_tip4p_long.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "angle.h"
@@ -30,7 +31,7 @@
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -52,8 +53,8 @@ PairLJLongTIP4PLong::PairLJLongTIP4PLong(LAMMPS *lmp) :
   respa_enable = 1;
 
   nmax = 0;
-  hneigh = NULL;
-  newsite = NULL;
+  hneigh = nullptr;
+  newsite = nullptr;
 
   // TIP4P cannot compute virial as F dot r
   // due to find_M() finding bonded H atoms which are not near O atom
@@ -566,7 +567,7 @@ void PairLJLongTIP4PLong::compute_inner()
       rsq = delx*delx + dely*dely + delz*delz;
       jtype = type[j];
 
-      if (rsq < cut_ljsq[itype][jtype] && rsq < cut_out_off_sq ) {  // lj
+      if (rsq < cut_ljsq[itype][jtype] && rsq < cut_out_off_sq) {  // lj
         r2inv = 1.0/rsq;
         double rn = r2inv*r2inv*r2inv;
         if (ni == 0) forcelj = rn*(rn*lj1i[jtype]-lj2i[jtype]);
@@ -819,7 +820,7 @@ void PairLJLongTIP4PLong::compute_middle()
       rsq = delx*delx + dely*dely + delz*delz;
       jtype = type[j];
 
-      if (rsq < cut_ljsq[itype][jtype] && rsq >= cut_in_off_sq && rsq <= cut_out_off_sq ) {  // lj
+      if (rsq < cut_ljsq[itype][jtype] && rsq >= cut_in_off_sq && rsq <= cut_out_off_sq) {  // lj
         r2inv = 1.0/rsq;
         double rn = r2inv*r2inv*r2inv;
         if (ni == 0) forcelj = rn*(rn*lj1i[jtype]-lj2i[jtype]);
@@ -1440,19 +1441,21 @@ void PairLJLongTIP4PLong::settings(int narg, char **arg)
   if (!comm->me && ewald_order==((1<<1)|(1<<6)))
     error->warning(FLERR,
                    "Using largest cutoff for pair_style lj/long/tip4p/long");
+  if (!((ewald_order^ewald_off) & (1<<6)))
+    dispersionflag = 0;
   if (!((ewald_order^ewald_off)&(1<<1)))
     error->all(FLERR,
                "Coulomb cut not supported in pair_style lj/long/tip4p/long");
-  typeO = force->inumeric(FLERR,arg[1]);
-  typeH = force->inumeric(FLERR,arg[2]);
-  typeB = force->inumeric(FLERR,arg[3]);
-  typeA = force->inumeric(FLERR,arg[4]);
-  qdist = force->numeric(FLERR,arg[5]);
+  typeO = utils::inumeric(FLERR,arg[1],false,lmp);
+  typeH = utils::inumeric(FLERR,arg[2],false,lmp);
+  typeB = utils::inumeric(FLERR,arg[3],false,lmp);
+  typeA = utils::inumeric(FLERR,arg[4],false,lmp);
+  qdist = utils::numeric(FLERR,arg[5],false,lmp);
 
 
-  cut_lj_global = force->numeric(FLERR,arg[6]);
+  cut_lj_global = utils::numeric(FLERR,arg[6],false,lmp);
   if (narg == 8) cut_coul = cut_lj_global;
-  else cut_coul = force->numeric(FLERR,arg[7]);
+  else cut_coul = utils::numeric(FLERR,arg[7],false,lmp);
 
 
   // reset cutoffs that have been explicitly set
@@ -1477,9 +1480,9 @@ void PairLJLongTIP4PLong::init_style()
     error->all(FLERR,"Pair style lj/long/tip4p/long requires newton pair on");
   if (!atom->q_flag)
     error->all(FLERR,"Pair style lj/long/tip4p/long requires atom attribute q");
-  if (force->bond == NULL)
+  if (force->bond == nullptr)
     error->all(FLERR,"Must use a bond style with TIP4P potential");
-  if (force->angle == NULL)
+  if (force->angle == nullptr)
     error->all(FLERR,"Must use an angle style with TIP4P potential");
 
   PairLJLongCoulLong::init_style();
@@ -1531,6 +1534,8 @@ void PairLJLongTIP4PLong::write_restart_settings(FILE *fp)
   fwrite(&mix_flag,sizeof(int),1,fp);
   fwrite(&ncoultablebits,sizeof(int),1,fp);
   fwrite(&tabinner,sizeof(double),1,fp);
+  fwrite(&ewald_order,sizeof(int),1,fp);
+  fwrite(&dispersionflag,sizeof(int),1,fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -1540,18 +1545,20 @@ void PairLJLongTIP4PLong::write_restart_settings(FILE *fp)
 void PairLJLongTIP4PLong::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    utils::sfread(FLERR,&typeO,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&typeH,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&typeB,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&typeA,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&qdist,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&typeO,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&typeH,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&typeB,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&typeA,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&qdist,sizeof(double),1,fp,nullptr,error);
 
-    utils::sfread(FLERR,&cut_lj_global,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&cut_coul,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&ncoultablebits,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&tabinner,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&cut_lj_global,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&cut_coul,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&ncoultablebits,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&tabinner,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&ewald_order,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&dispersionflag,sizeof(int),1,fp,nullptr,error);
   }
 
   MPI_Bcast(&typeO,1,MPI_INT,0,world);
@@ -1566,6 +1573,8 @@ void PairLJLongTIP4PLong::read_restart_settings(FILE *fp)
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
   MPI_Bcast(&ncoultablebits,1,MPI_INT,0,world);
   MPI_Bcast(&tabinner,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&ewald_order,1,MPI_INT,0,world);
+  MPI_Bcast(&dispersionflag,1,MPI_INT,0,world);
 }
 
 /* ----------------------------------------------------------------------
@@ -1603,14 +1612,14 @@ void *PairLJLongTIP4PLong::extract(const char *str, int &dim)
 
   const char *ids[] = {
     "B", "sigma", "epsilon", "ewald_order", "ewald_cut", "cut_coul",
-    "ewald_mix", "cut_LJ", NULL};
+    "ewald_mix", "cut_LJ", nullptr};
   void *ptrs[] = {
     lj4, sigma, epsilon, &ewald_order, &cut_coul, &cut_coul,
-    &mix_flag, &cut_lj_global, NULL};
+    &mix_flag, &cut_lj_global, nullptr};
   int i;
 
   i=0;
-  while (ids[i] != NULL) {
+  while (ids[i] != nullptr) {
     if (i <=2) dim = 2;
     else dim = 0;
 
@@ -1619,7 +1628,7 @@ void *PairLJLongTIP4PLong::extract(const char *str, int &dim)
 
     ++i;
   }
-  return NULL;
+  return nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -1628,8 +1637,8 @@ void *PairLJLongTIP4PLong::extract(const char *str, int &dim)
 
 double PairLJLongTIP4PLong::memory_usage()
 {
-  double bytes = maxeatom * sizeof(double);
-  bytes += maxvatom*6 * sizeof(double);
-  bytes += 2 * nmax * sizeof(double);
+  double bytes = (double)maxeatom * sizeof(double);
+  bytes += (double)maxvatom*6 * sizeof(double);
+  bytes += (double)2 * nmax * sizeof(double);
   return bytes;
 }

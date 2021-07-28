@@ -2,10 +2,11 @@
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 2.0
-//              Copyright (2014) Sandia Corporation
+//                        Kokkos v. 3.0
+//       Copyright (2020) National Technology & Engineering
+//               Solutions of Sandia, LLC (NTESS).
 //
-// Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
+// Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -23,10 +24,10 @@
 // contributors may be used to endorse or promote products derived from
 // this software without specific prior written permission.
 //
-// THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
+// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
 // CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 // EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 // PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -41,26 +42,35 @@
 //@HEADER
 */
 
-#include<TestAtomicOperations.hpp>
+#include <TestAtomicOperations.hpp>
 
 namespace Test {
-TEST_F( TEST_CATEGORY , atomic_operations_unsigned )
-{
-  const int start = 1; // Avoid zero for division.
-  const int end = 11;
-  for ( int i = start; i < end; ++i )
-  {
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< unsigned int, TEST_EXECSPACE >( start, end - i, 1 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< unsigned int, TEST_EXECSPACE >( start, end - i, 2 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< unsigned int, TEST_EXECSPACE >( start, end - i, 3 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< unsigned int, TEST_EXECSPACE >( start, end - i, 4 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< unsigned int, TEST_EXECSPACE >( start, end - i, 5 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< unsigned int, TEST_EXECSPACE >( start, end - i, 6 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< unsigned int, TEST_EXECSPACE >( start, end - i, 7 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< unsigned int, TEST_EXECSPACE >( start, end - i, 8 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< unsigned int, TEST_EXECSPACE >( start, end - i, 9 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< unsigned int, TEST_EXECSPACE >( start, end - i, 11 ) ) );
-    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType< unsigned int, TEST_EXECSPACE >( start, end - i, 12 ) ) );
+TEST(TEST_CATEGORY, atomic_operations_unsigned) {
+  const int start = 1;  // Avoid zero for division.
+  const int end   = 11;
+  for (int i = start; i < end; ++i) {
+    ASSERT_TRUE((TestAtomicOperations::AtomicOperationsTestIntegralType<
+                 unsigned int, TEST_EXECSPACE>(start, end - i, 1)));
+    ASSERT_TRUE((TestAtomicOperations::AtomicOperationsTestIntegralType<
+                 unsigned int, TEST_EXECSPACE>(start, end - i, 2)));
+    ASSERT_TRUE((TestAtomicOperations::AtomicOperationsTestIntegralType<
+                 unsigned int, TEST_EXECSPACE>(start, end - i, 3)));
+    ASSERT_TRUE((TestAtomicOperations::AtomicOperationsTestIntegralType<
+                 unsigned int, TEST_EXECSPACE>(start, end - i, 4)));
+    ASSERT_TRUE((TestAtomicOperations::AtomicOperationsTestIntegralType<
+                 unsigned int, TEST_EXECSPACE>(start, end - i, 5)));
+    ASSERT_TRUE((TestAtomicOperations::AtomicOperationsTestIntegralType<
+                 unsigned int, TEST_EXECSPACE>(start, end - i, 6)));
+    ASSERT_TRUE((TestAtomicOperations::AtomicOperationsTestIntegralType<
+                 unsigned int, TEST_EXECSPACE>(start, end - i, 7)));
+    ASSERT_TRUE((TestAtomicOperations::AtomicOperationsTestIntegralType<
+                 unsigned int, TEST_EXECSPACE>(start, end - i, 8)));
+    ASSERT_TRUE((TestAtomicOperations::AtomicOperationsTestIntegralType<
+                 unsigned int, TEST_EXECSPACE>(start, end - i, 9)));
+    ASSERT_TRUE((TestAtomicOperations::AtomicOperationsTestIntegralType<
+                 unsigned int, TEST_EXECSPACE>(start, end - i, 11)));
+    ASSERT_TRUE((TestAtomicOperations::AtomicOperationsTestIntegralType<
+                 unsigned int, TEST_EXECSPACE>(start, end - i, 12)));
   }
 }
-}
+}  // namespace Test

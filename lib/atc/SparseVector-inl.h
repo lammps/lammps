@@ -55,7 +55,7 @@ T dot(const SparseVector<T> &a, const SparseVector<T> &b)
   } 
   return v;
 }
-// Computes the product of a SparseMatrix tranpose with a SparseVector (M'*v).
+// Computes the product of a SparseMatrix transpose with a SparseVector (M'*v).
 template<class T>
 SparseVector<T> operator*(const SparseMatrix<T> &M, const SparseVector<T> &v)
 {
@@ -73,7 +73,7 @@ SparseVector<T> operator*(const SparseMatrix<T> &M, const SparseVector<T> &v)
   return y; 
 }
 
-// computes the product of a SparseMatrix tranpose with a SparseVector (M'*v).
+// computes the product of a SparseMatrix transpose with a SparseVector (M'*v).
 template<class T>
 SparseVector<T> operator*(const SparseVector<T> &v, const SparseMatrix<T> &M)
 {

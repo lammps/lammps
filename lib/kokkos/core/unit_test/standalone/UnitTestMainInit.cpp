@@ -2,10 +2,11 @@
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 2.0
-//              Copyright (2014) Sandia Corporation
+//                        Kokkos v. 3.0
+//       Copyright (2020) National Technology & Engineering
+//               Solutions of Sandia, LLC (NTESS).
 //
-// Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
+// Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -23,10 +24,10 @@
 // contributors may be used to endorse or promote products derived from
 // this software without specific prior written permission.
 //
-// THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
+// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
 // CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 // EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 // PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -46,33 +47,39 @@
 
 #include <Kokkos_Core.hpp>
 
-#ifdef KOKKOS_ENABLE_ROCM
-#include <rocm/TestROCm_Category.hpp>
-#endif
 #ifdef KOKKOS_ENABLE_CUDA
-#include <cuda/TestCuda_Category.hpp>
+#include <TestCuda_Category.hpp>
+#endif
+#ifdef KOKKOS_ENABLE_HIP
+#include <TestHIP_Category.hpp>
+#endif
+#ifdef KOKKOS_ENABLE_SYCL
+#include <TestSYCL_Category.hpp>
 #endif
 #ifdef KOKKOS_ENABLE_OPENMP
-#include <openmp/TestOpenMP_Category.hpp>
+#include <TestOpenMP_Category.hpp>
 #endif
 #ifdef KOKKOS_ENABLE_THREADS
-#include <threads/TestThreads_Category.hpp>
+#include <TestThreads_Category.hpp>
 #endif
 #ifdef KOKKOS_ENABLE_HPX
-#include <hpx/TestHPX_Category.hpp>
+#include <TestHPX_Category.hpp>
+#endif
+#ifdef KOKKOS_ENABLE_OPENMPTARGET
+#include <TestOpenMPTarget_Category.hpp>
 #endif
 #ifndef TEST_EXECSPACE
 #ifdef KOKKOS_ENABLE_SERIAL
-#include <serial/TestSerial_Category.hpp>
+#include <TestSerial_Category.hpp>
 #endif
-#endif 
-#include <TestReduceDeviceView.hpp>
+#endif
+#include <TestReducers_d.hpp>
 
-int main( int argc, char *argv[] ) {
-  Kokkos::initialize(argc,argv);
-  ::testing::InitGoogleTest( &argc, argv );
+int main(int argc, char *argv[]) {
+  Kokkos::initialize(argc, argv);
+  ::testing::InitGoogleTest(&argc, argv);
 
-  int result =  RUN_ALL_TESTS();
+  int result = RUN_ALL_TESTS();
   Kokkos::finalize();
   return result;
 }

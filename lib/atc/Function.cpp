@@ -1,5 +1,11 @@
-#ifndef _WIN32
+#if !defined(_WIN32)
+
+#if defined(__FreeBSD__) || defined(__DragonFly__) || defined(__OpenBSD__) || defined(__NetBSD__)
+#include <cstdlib>
+#else
 #include <alloca.h>
+#endif
+
 #endif
 #include "Function.h"
 #include "ATC_Error.h"
@@ -20,13 +26,13 @@ namespace ATC {
   //====================================================================
   //  UXT_Function_Mgr
   //====================================================================
-  UXT_Function_Mgr * UXT_Function_Mgr::myInstance_ = NULL;
+  UXT_Function_Mgr * UXT_Function_Mgr::myInstance_ = nullptr;
   // -----------------------------------------------------------------
   //  instance()
   // -----------------------------------------------------------------
   UXT_Function_Mgr * UXT_Function_Mgr::instance()
   {
-    if (myInstance_ == NULL) {
+    if (myInstance_ == nullptr) {
       myInstance_ = new UXT_Function_Mgr();
     }
     return myInstance_;
@@ -84,7 +90,7 @@ namespace ATC {
   {
     string tag = other->tag();
   
-    UXT_Function * returnFunction = NULL;
+    UXT_Function * returnFunction = nullptr;
     if (tag=="linear") {
       ScalarLinearFunction * other_cast = (ScalarLinearFunction*) other;
       returnFunction = new ScalarLinearFunction(*other_cast);
@@ -138,14 +144,14 @@ namespace ATC {
   //  XT_Function_Mgr
   //--------------------------------------------------------------------
   //--------------------------------------------------------------------
-XT_Function_Mgr * XT_Function_Mgr::myInstance_ = NULL;
+XT_Function_Mgr * XT_Function_Mgr::myInstance_ = nullptr;
 
 // -----------------------------------------------------------------
 //  instance()
 // -----------------------------------------------------------------
   XT_Function_Mgr * XT_Function_Mgr::instance()
   {
-    if (myInstance_ == NULL) {
+    if (myInstance_ == nullptr) {
       myInstance_ = new XT_Function_Mgr();
     }
     return myInstance_;
@@ -221,7 +227,7 @@ XT_Function_Mgr * XT_Function_Mgr::myInstance_ = NULL;
   {
     string tag = other->tag();
   
-    XT_Function * returnFunction = NULL;
+    XT_Function * returnFunction = nullptr;
     if (tag=="linear") {
       LinearFunction * other_cast = (LinearFunction*) other;
       returnFunction = new LinearFunction(*other_cast);

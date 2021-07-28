@@ -1,0 +1,32 @@
+atom_style  atomic
+lattice         fcc 1.0
+region    simRegion block -50 50  0 1 0 1
+boundary  f p p
+create_box  1 simRegion
+mass    1 39.95 # need to keep this
+atom_modify     sort 0 1
+
+lattice         fcc 5.405 origin 0.25 0.25 0.25
+region          atcRegion block -6.25 19.25 -3 3 -3 3
+fix             AtC all   atc shear     Ar_visc_no_atoms.mat
+#               ID  part keywords    nx ny nz region    periodicity
+fix_modify      AtC mesh create 12 1  1   atcRegion f p p
+# add nodesets
+#               ID  mesh create_nodeset tag xmin xmax ymin ymax zmin zmax
+fix_modify      AtC mesh create_nodeset rbc  19.2  19.3   -INF  INF   -INF  INF
+fix_modify	AtC mesh create_nodeset lbc -6.3 -6.2 -INF INF -INF INF
+fix_modify     AtC  fix velocity x all 0.
+fix_modify     AtC  initial velocity y all 0.
+fix_modify     AtC  fix velocity z all 0.
+
+# turn on kinetostat
+reset_timestep 0
+fix_modify      AtC  reset_time
+fix_modify      AtC  fix velocity y rbc 0.1
+fix_modify	AtC fix velocity y lbc 0.
+
+# output commands
+fix_modify      AtC  output shear_no_atomsFE 200 text binary
+# set-up non-equilibrium IC
+thermo          100
+run             5000

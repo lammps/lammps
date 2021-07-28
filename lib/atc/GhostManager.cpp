@@ -23,7 +23,7 @@ namespace ATC {
   //  Constructor
   //--------------------------------------------------------
   GhostManager::GhostManager(ATC_Method * atc) :
-    ghostModifier_(NULL),
+    ghostModifier_(nullptr),
     atc_(atc),
     boundaryDynamics_(NO_BOUNDARY_DYNAMICS),
     needReset_(true)
@@ -116,7 +116,7 @@ namespace ATC {
   {
     if (ghostModifier_) {
       delete ghostModifier_;
-      ghostModifier_ = NULL;
+      ghostModifier_ = nullptr;
     }
 
     if (!atc_->groupbit_ghost()) {
@@ -252,7 +252,7 @@ namespace ATC {
   //--------------------------------------------------------
   GhostModifier::GhostModifier(GhostManager * ghostManager) :
     ghostManager_(ghostManager),
-    atomTimeIntegrator_(NULL),
+    atomTimeIntegrator_(nullptr),
     integrateAtoms_(false)
   {
     // do nothing
@@ -321,9 +321,9 @@ namespace ATC {
   //--------------------------------------------------------
   GhostModifierPrescribed::GhostModifierPrescribed(GhostManager * ghostManager) :
     GhostModifier(ghostManager),
-    atomPositions_(NULL),
-    atomFeDisplacement_(NULL),
-    atomRefPositions_(NULL)
+    atomPositions_(nullptr),
+    atomFeDisplacement_(nullptr),
+    atomRefPositions_(nullptr)
   {
     // do nothing
   }
@@ -382,9 +382,9 @@ namespace ATC {
                                                            const vector<double> & gamma,
                                                            const vector<double> & mu) :
     GhostModifierPrescribed(ghostManager),
-    atomVelocities_(NULL),
-    atomFeVelocity_(NULL),
-    atomForces_(NULL),
+    atomVelocities_(nullptr),
+    atomFeVelocity_(nullptr),
+    atomForces_(nullptr),
     kappa_(kappa),
     gamma_(gamma),
     mu_(mu)
@@ -486,8 +486,8 @@ namespace ATC {
                                                                        const vector<double> & gamma,
                                                                        const vector<double> & mu) :
     GhostModifierDampedHarmonic(ghostManager,kappa,gamma,mu),
-    ghostToBoundaryDistance_(NULL),
-    layerId_(NULL)
+    ghostToBoundaryDistance_(nullptr),
+    layerId_(nullptr)
   {
    
     // do nothing
@@ -523,7 +523,7 @@ namespace ATC {
   {
      compute_distances();
      int nlayers = find_layers();
-     if (nlayers > ((int)gamma_.size())) throw ATC_Error("GhostModifierDampedHarmonicLayers::initialize not enough damping factors specfied " + to_string(gamma_.size()));
+     if (nlayers > ((int)gamma_.size())) throw ATC_Error("GhostModifierDampedHarmonicLayers::initialize not enough damping factors specified " + to_string(gamma_.size()));
   }
 
   //--------------------------------------------------------
@@ -731,8 +731,8 @@ namespace ATC {
     GhostModifier(ghostManager),
     lammpsInterface_(LammpsInterface::instance()),
     elementSet_((((ghostManager_->atc())->fe_engine())->fe_mesh())->elementset((ghostManager_->atc())->internal_element_set())),
-    atomElement_(NULL),
-    atomGhostElement_(NULL),
+    atomElement_(nullptr),
+    atomGhostElement_(nullptr),
     internalToAtom_((ghostManager_->atc())->internal_to_atom_map()),
     ghostToAtom_((ghostManager_->atc())->ghost_to_atom_map()),
     groupbit_((ghostManager_->atc())->groupbit()),

@@ -186,14 +186,14 @@ const double kMinScale_ = 10000.;
      ConcentrationRegulator::ConcentrationRegulatorParameters & p)
       : ConcentrationRegulatorMethod(concReg), 
         concentrationRegulator_(concReg),
-        interscaleManager_(NULL),
+        interscaleManager_(nullptr),
         lammpsInterface_(LammpsInterface::instance()),
-        list_(NULL),
+        list_(nullptr),
         targetConcentration_(p.value), 
         targetCount_(0), 
         elemset_(p.elemset),
-        p_(NULL),
-        randomNumberGenerator_(NULL), 
+        p_(nullptr),
+        randomNumberGenerator_(nullptr), 
         q0_(0),
         controlType_(p.type), 
         controlIndex_(0),
@@ -263,7 +263,7 @@ const double kMinScale_ = 10000.;
       volumes_(i) += volumes_(i-1);
     } 
 
-    // record orginal energetic properties
+    // record original energetic properties
     int ntypes = lammpsInterface_->ntypes();
     epsilon0_.reset(ntypes);
     p_ = lammpsInterface_->potential();

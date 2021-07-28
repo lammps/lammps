@@ -7,7 +7,7 @@ namespace ATC
     enum Interaction{PAIRWISE=1, EAM=2, THREE_BDY=4, ANGLE_BND=8};
     //! Booleans that enable types of terms the potential uses.
     struct Interactions {
-      //! Enables up to 3 interaction types.  (order independant)
+      //! Enables up to 3 interaction types.  (order independent)
       Interactions(int a=0, int b=0, int c=0);
       bool pairwise;      //!< Pairwise interaction terms exist.
       bool embedding;     //!< Embedding interaction terms (EAM) exist.

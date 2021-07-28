@@ -1,0 +1,49 @@
+# GitHub action to run static code analysis on C++ and Python code
+name: "CodeQL Code Analysis"
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+  analyze:
+    name: Analyze
+    if: ${{ github.repository == 'lammps/lammps' }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ['cpp', 'python']
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 2
+
+    - name: Setup Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v1
+      with:
+        languages: ${{ matrix.language }}
+        config-file: ./.github/codeql/${{ matrix.language }}.yml
+
+    - name: Create Build Environment
+      if: ${{ matrix.language == 'cpp' }}
+      run: mkdir build
+
+    - name: Building LAMMPS via CMake
+      if: ${{ matrix.language == 'cpp' }}
+      shell: bash
+      working-directory: build
+      run: |
+        cmake -C ../cmake/presets/most.cmake ../cmake
+        cmake --build . --parallel 2
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v1

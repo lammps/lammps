@@ -1472,10 +1472,10 @@ void FixRigidKokkos<DeviceType>::set_xv_kokkos()
                                             Kokkos::Experimental::ScatterNonDuplicated> ndup_vatom;
 
           // NEIGHFLAG always seems to be 2 (HALFTHREAD):
-          auto v_atom = ScatterViewHelper<NeedDup<HALFTHREAD,DeviceType>::value,
+          auto v_atom = ScatterViewHelper<typename NeedDup<HALFTHREAD,DeviceType>::value,
                                           decltype(dup_vatom),
                                           decltype(ndup_vatom)>::get(dup_vatom,ndup_vatom);
-          auto a_vatom = v_atom.template access<AtomicDup<HALFTHREAD,DeviceType>::value>();
+          auto a_vatom = v_atom.template access<typename AtomicDup<HALFTHREAD,DeviceType>::value>();
 
           a_vatom(i,0) += vr[0];
           a_vatom(i,1) += vr[1];
@@ -2043,10 +2043,10 @@ void FixRigidKokkos<DeviceType>::set_v_kokkos()
                                             DeviceType,Kokkos::Experimental::ScatterSum,
                                             Kokkos::Experimental::ScatterNonDuplicated> ndup_vatom;
 
-          auto v_atom = ScatterViewHelper<NeedDup<HALFTHREAD,DeviceType>::value,
+          auto v_atom = ScatterViewHelper<typename NeedDup<HALFTHREAD,DeviceType>::value,
                                           decltype(dup_vatom),
                                           decltype(ndup_vatom)>::get(dup_vatom,ndup_vatom);
-          auto a_vatom = v_atom.template access<AtomicDup<HALFTHREAD,DeviceType>::value>();
+          auto a_vatom = v_atom.template access<typename AtomicDup<HALFTHREAD,DeviceType>::value>();
 
           a_vatom(i,0) += vr[0];
           a_vatom(i,1) += vr[1];

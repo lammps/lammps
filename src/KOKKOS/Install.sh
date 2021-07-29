@@ -165,7 +165,6 @@ action improper_class2_kokkos.cpp improper_class2.cpp
 action improper_class2_kokkos.h improper_class2.h
 action improper_harmonic_kokkos.cpp improper_harmonic.cpp
 action improper_harmonic_kokkos.h improper_harmonic.h
-action kissfft_kokkos.cpp kissfft.h
 action kissfft_kokkos.h kissfft.h
 action kokkos.cpp
 action kokkos.h

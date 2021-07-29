@@ -17,25 +17,30 @@
 
 #include "bond_oxdna_fene.h"
 
-#include <cmath>
 #include "atom.h"
-#include "neighbor.h"
-#include "comm.h"
-#include "update.h"
-#include "force.h"
-#include "memory.h"
-#include "error.h"
-
 #include "atom_vec_ellipsoid.h"
+#include "comm.h"
+#include "error.h"
+#include "force.h"
 #include "math_extra.h"
+#include "memory.h"
+#include "neighbor.h"
+#include "update.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
-/* ---------------------------------------------------------------------- */
-
-BondOxdnaFene::BondOxdnaFene(LAMMPS *lmp) : Bond(lmp)
+/* ----------------------------------------------------------------------
+    compute vector COM-sugar-phosphate backbone interaction site in oxDNA
+------------------------------------------------------------------------- */
+static void compute_interaction_sites(const double e1[3], double r[3])
 {
+  constexpr double d_cs=-0.4;
 
+  r[0] = d_cs*e1[0];
+  r[1] = d_cs*e1[1];
+  r[2] = d_cs*e1[2];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -43,29 +48,13 @@ BondOxdnaFene::BondOxdnaFene(LAMMPS *lmp) : Bond(lmp)
 BondOxdnaFene::~BondOxdnaFene()
 {
   if (allocated) {
-
     memory->destroy(setflag);
     memory->destroy(k);
     memory->destroy(Delta);
     memory->destroy(r0);
-
   }
 }
 
-
-/* ----------------------------------------------------------------------
-    compute vector COM-sugar-phosphate backbone interaction site in oxDNA
-------------------------------------------------------------------------- */
-void BondOxdnaFene::compute_interaction_sites(double e1[3], double /*e2*/[3],
-  double /*e3*/[3], double r[3])
-{
-  double d_cs=-0.4;
-
-  r[0] = d_cs*e1[0];
-  r[1] = d_cs*e1[1];
-  r[2] = d_cs*e1[2];
-
-}
 
 /* ----------------------------------------------------------------------
    tally energy and virial into global and per-atom accumulators
@@ -198,8 +187,8 @@ void BondOxdnaFene::compute(int eflag, int vflag)
     MathExtra::q_to_exyz(qb,bx,by,bz);
 
     // vector COM-backbone site a and b
-    compute_interaction_sites(ax,ay,az,ra_cs);
-    compute_interaction_sites(bx,by,bz,rb_cs);
+    compute_interaction_sites(ax,ra_cs);
+    compute_interaction_sites(bx,rb_cs);
 
     // vector backbone site b to a
     delr[0] = x[a][0] + ra_cs[0] - x[b][0] - rb_cs[0];
@@ -218,11 +207,8 @@ void BondOxdnaFene::compute(int eflag, int vflag)
     // if r > 2*Delta something serious is wrong, abort
 
     if (rlogarg < 0.1) {
-      char str[128];
-      sprintf(str,"FENE bond too long: " BIGINT_FORMAT " "
-              TAGINT_FORMAT " " TAGINT_FORMAT " %g",
-              update->ntimestep,atom->tag[a],atom->tag[b],r);
-      error->warning(FLERR,str);
+      error->warning(FLERR,"FENE bond too long: {} {} {} {}",
+                     update->ntimestep,atom->tag[a],atom->tag[b],r);
       rlogarg = 0.1;
     }
 
@@ -398,10 +384,8 @@ double BondOxdnaFene::single(int type, double rsq, int /*i*/, int /*j*/,
   // if r > 2*Delta something serious is wrong, abort
 
   if (rlogarg < 0.1) {
-    char str[128];
-    sprintf(str,"FENE bond too long: " BIGINT_FORMAT " %g",
-            update->ntimestep,sqrt(rsq));
-    error->warning(FLERR,str);
+    error->warning(FLERR,"FENE bond too long: {} {:.8}",
+                   update->ntimestep,sqrt(rsq));
     rlogarg = 0.1;
   }
 

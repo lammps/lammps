@@ -28,24 +28,23 @@ Please contact Timothy Sirk for questions (tim.sirk@us.army.mil).
 
 #include "pair_srp.h"
 
-#include <cmath>
-
-#include <cstring>
 #include "atom.h"
+#include "citeme.h"
 #include "comm.h"
-#include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "memory.h"
-#include "error.h"
 #include "domain.h"
-#include "modify.h"
+#include "error.h"
 #include "fix.h"
 #include "fix_srp.h"
-#include "thermo.h"
+#include "force.h"
+#include "memory.h"
+#include "modify.h"
+#include "neigh_list.h"
+#include "neighbor.h"
 #include "output.h"
-#include "citeme.h"
+#include "thermo.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -79,26 +78,15 @@ PairSRP::PairSRP(LAMMPS *lmp) : Pair(lmp)
   nextra = 1;
   segment = nullptr;
 
-  // generate unique fix-id for this pair style instance
-
-  fix_id = strdup("XX_FIX_SRP");
-  fix_id[0] = '0' + srp_instance / 10;
-  fix_id[1] = '0' + srp_instance % 10;
-  ++srp_instance;
-
-  // create fix SRP instance here
+  // create fix SRP instance here with unique fix id
   // similar to granular pair styles with history,
   //   this should be early enough that FixSRP::pre_exchange()
   //   will be invoked before other fixes that migrate atoms
   //   this is checked for in FixSRP
 
-  char **fixarg = new char*[3];
-  fixarg[0] = fix_id;
-  fixarg[1] = (char *) "all";
-  fixarg[2] = (char *) "SRP";
-  modify->add_fix(3,fixarg);
+  modify->add_fix(fmt::format("{:02d}_FIX_SRP all SRP",srp_instance));
   f_srp = (FixSRP *) modify->fix[modify->nfix-1];
-  delete [] fixarg;
+  ++srp_instance;
 }
 
 /* ----------------------------------------------------------------------
@@ -468,10 +456,8 @@ void PairSRP::init_style()
   if (f_srp != (FixSRP *)modify->fix[ifix])
     error->all(FLERR,"Fix SRP has been changed unexpectedly");
 
-  if (comm->me == 0) {
-    if (screen) fprintf(screen,"Using type %d for bond particles\n",bptype);
-    if (logfile) fprintf(logfile,"Using type %d for bond particles\n",bptype);
-  }
+  if (comm->me == 0)
+    utils::logmesg(lmp,"Using type {} for bond particles\n",bptype);
 
   // set bond and bond particle types in fix srp
   // bonds of this type will be represented by bond particles

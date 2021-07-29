@@ -523,13 +523,9 @@ void FixPolarizeBEMGMRES::gmres_solve(double *x, double *r)
       rho = fabs(g[k]);
 
 #ifdef _POLARIZE_DEBUG
-      if (comm->me == 0) {
-        char message[256];
-        sprintf(message, "itr = %d: k = %d, norm(r) = %g norm(b) = %g", itr, k, rho, normb);
-        error->warning(FLERR, message);
-      }
+      if (comm->me == 0)
+        error->warning(FLERR,"itr = {}: k = {}, norm(r) = {} norm(b) = {}", itr, k, rho, normb);
 #endif
-
       if (rho <= rho_tol && rho <= tol_abs) break;
     }
 
@@ -560,11 +556,8 @@ void FixPolarizeBEMGMRES::gmres_solve(double *x, double *r)
     rho = sqrt(vec_dot(r, r, n));
 
 #ifdef _POLARIZE_DEBUG
-    if (comm->me == 0) {
-      char message[256];
-      sprintf(message, "itr = %d: norm(r) = %g norm(b) = %g", itr, rho, normb);
-      error->warning(FLERR, message);
-    }
+    if (comm->me == 0)
+      error->warning(FLERR, "itr = {}: norm(r) = {} norm(b) = {}", itr, rho, normb);
 #endif
 
     // Barros et al. suggested the condition: norm(r) < EPSILON norm(b)

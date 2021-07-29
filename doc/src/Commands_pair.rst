@@ -29,7 +29,7 @@ OPT.
    * :doc:`hybrid/scaled <pair_hybrid>`
    * :doc:`kim <pair_kim>`
    * :doc:`list <pair_list>`
-   *
+   * :doc:`tracker <pair_tracker>`
    *
    *
    *
@@ -273,7 +273,6 @@ OPT.
    * :doc:`tip4p/cut (o) <pair_coul>`
    * :doc:`tip4p/long (o) <pair_coul>`
    * :doc:`tip4p/long/soft (o) <pair_fep_soft>`
-   * :doc:`tracker <pair_tracker>`
    * :doc:`tri/lj <pair_tri_lj>`
    * :doc:`ufm (got) <pair_ufm>`
    * :doc:`vashishta (gko) <pair_vashishta>`

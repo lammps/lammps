@@ -204,11 +204,8 @@ void ComputeCNPAtom::compute_peratom()
 
   int nerrorall;
   MPI_Allreduce(&nerror,&nerrorall,1,MPI_INT,MPI_SUM,world);
-  if (nerrorall && comm->me == 0) {
-    char str[128];
-    sprintf(str,"Too many neighbors in CNP for %d atoms",nerrorall);
-    error->warning(FLERR,str);
-  }
+  if (nerrorall && comm->me == 0)
+    error->warning(FLERR,"Too many neighbors in CNP for {} atoms",nerrorall);
 
   // compute CNP value for each atom in group
   // only performed if # of nearest neighbors = 12 or 14 (fcc,hcp)
@@ -311,11 +308,8 @@ void ComputeCNPAtom::compute_peratom()
 
   // warning message
   MPI_Allreduce(&nerror,&nerrorall,1,MPI_INT,MPI_SUM,world);
-  if (nerrorall && comm->me == 0) {
-    char str[128];
-    sprintf(str,"Too many common neighbors in CNP %d times",nerrorall);
-    error->warning(FLERR,str);
-  }
+  if (nerrorall && comm->me == 0)
+    error->warning(FLERR,"Too many common neighbors in CNP {} times",nerrorall);
 }
 
 /* ----------------------------------------------------------------------

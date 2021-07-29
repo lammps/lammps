@@ -20,22 +20,21 @@
 
 #include "fix_ttm_mod.h"
 
+#include "atom.h"
+#include "citeme.h"
+#include "comm.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
+#include "math_const.h"
+#include "memory.h"
+#include "random_mars.h"
+#include "respa.h"
+#include "tokenizer.h"
+#include "update.h"
+
 #include <cmath>
 #include <cstring>
-#include "atom.h"
-#include "force.h"
-#include "update.h"
-#include "domain.h"
-#include "respa.h"
-#include "comm.h"
-#include "random_mars.h"
-#include "memory.h"
-#include "error.h"
-#include "citeme.h"
-#include "math_const.h"
-
-
-#include "tokenizer.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -104,11 +103,8 @@ FixTTMMod::FixTTMMod(LAMMPS *lmp, int narg, char **arg) :
     if (narg != 11) error->all(FLERR,"Illegal fix ttm/mod command");
     if (comm->me == 0) {
       fp = fopen(arg[10],"w");
-      if (fp == nullptr) {
-        char str[128];
-        snprintf(str,128,"Cannot open fix ttm/mod file %s",arg[10]);
-        error->one(FLERR,str);
-      }
+      if (fp == nullptr)
+        error->one(FLERR,"Cannot open fix ttm/mod file {}: {}",arg[10],utils::getsyserror());
     }
   }
 

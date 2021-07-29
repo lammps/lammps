@@ -19,17 +19,17 @@
 
 #include "fix_gle.h"
 
+#include "atom.h"
+#include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "random_mars.h"
+#include "respa.h"
+#include "update.h"
+
 #include <cmath>
 #include <cstring>
-
-#include "atom.h"
-#include "force.h"
-#include "update.h"
-#include "respa.h"
-#include "comm.h"
-#include "random_mars.h"
-#include "memory.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -225,13 +225,9 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
   char *fname = arg[7];
   if (comm->me == 0) {
     fgle = utils::open_potential(fname,lmp,nullptr);
-    if (fgle == nullptr) {
-      char str[128];
-      snprintf(str,128,"Cannot open A-matrix file %s",fname);
-      error->one(FLERR,str);
-    }
-    if (screen) fprintf(screen,"Reading A-matrix from %s\n", fname);
-    if (logfile) fprintf(logfile,"Reading A-matrix from %s\n", fname);
+    if (fgle == nullptr)
+      error->one(FLERR,"Cannot open A-matrix file {}: {}",fname, utils::getsyserror());
+    utils::logmesg(lmp,"Reading A-matrix from {}\n", fname);
   }
 
   // read each line of the file, skipping blank lines or leading '#'
@@ -295,15 +291,9 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
   } else {
     if (comm->me == 0) {
       fgle = utils::open_potential(fname,lmp,nullptr);
-      if (fgle == nullptr) {
-        char str[128];
-        snprintf(str,128,"Cannot open C-matrix file %s",fname);
-        error->one(FLERR,str);
-      }
-      if (screen)
-        fprintf(screen,"Reading C-matrix from %s\n", fname);
-      if (logfile)
-        fprintf(logfile,"Reading C-matrix from %s\n", fname);
+      if (fgle == nullptr)
+        error->one(FLERR,"Cannot open C-matrix file {}: {}",fname, utils::getsyserror());
+      utils::logmesg(lmp,"Reading C-matrix from {}\n", fname);
     }
 
     // read each line of the file, skipping blank lines or leading '#'

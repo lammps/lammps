@@ -34,8 +34,31 @@
 #include <mpi.h>
 #endif
 
+/* DLL symbol handling for Windows */
+#if defined(WIN32)
+#if defined(_LAMMPS_BUILD_LIB)
+#define _LAMMPS_DLL_FUNC __declspec(dllexport)
+#else
+#define _LAMMPS_DLL_FUNC __declspec(dllimport)
+#endif
+#else
+#define _LAMMPS_DLL_FUNC
+#endif
+
+#ifdef __cplusplus
+#define LAMMPS_EXPORT_API extern "C" _LAMMPS_DLL_FUNC
+#else
+#define LAMMPS_EXPORT_API extern _LAMMPS_DLL_FUNC
+#endif
+
 #if defined(LAMMPS_BIGBIG) || defined(LAMMPS_SMALLBIG)
 #include <inttypes.h> /* for int64_t */
+#endif
+
+/* Ifdefs to allow this file to be included in C and C++ programs */
+
+#ifdef __cplusplus
+extern "C" {
 #endif
 
 /** Data type constants for extracting data from atoms, computes and fixes
@@ -75,10 +98,8 @@ enum _LMP_TYPE_CONST {
   LMP_SIZE_COLS = 5    /*!< return number of columns */
 };
 
-/* Ifdefs to allow this file to be included in C and C++ programs */
-
 #ifdef __cplusplus
-extern "C" {
+}
 #endif
 
 /* ----------------------------------------------------------------------
@@ -86,175 +107,195 @@ extern "C" {
  * ---------------------------------------------------------------------- */
 
 #if defined(LAMMPS_LIB_MPI)
-void *lammps_open(int argc, char **argv, MPI_Comm comm, void **ptr);
+LAMMPS_EXPORT_API void *lammps_open(int argc, char **argv, MPI_Comm comm, void **ptr);
 #endif
-void *lammps_open_no_mpi(int argc, char **argv, void **ptr);
-void *lammps_open_fortran(int argc, char **argv, int f_comm);
-void lammps_close(void *handle);
+LAMMPS_EXPORT_API void *lammps_open_no_mpi(int argc, char **argv, void **ptr);
+LAMMPS_EXPORT_API void *lammps_open_fortran(int argc, char **argv, int f_comm);
+LAMMPS_EXPORT_API void lammps_close(void *handle);
 
-void lammps_mpi_init();
-void lammps_mpi_finalize();
-void lammps_kokkos_finalize();
+LAMMPS_EXPORT_API void lammps_mpi_init();
+LAMMPS_EXPORT_API void lammps_mpi_finalize();
+LAMMPS_EXPORT_API void lammps_kokkos_finalize();
 
 /* ----------------------------------------------------------------------
  * Library functions to process commands
  * ---------------------------------------------------------------------- */
 
-void lammps_file(void *handle, const char *file);
+LAMMPS_EXPORT_API void lammps_file(void *handle, const char *file);
 
-char *lammps_command(void *handle, const char *cmd);
-void lammps_commands_list(void *handle, int ncmd, const char **cmds);
-void lammps_commands_string(void *handle, const char *str);
+LAMMPS_EXPORT_API char *lammps_command(void *handle, const char *cmd);
+LAMMPS_EXPORT_API void lammps_commands_list(void *handle, int ncmd, const char **cmds);
+LAMMPS_EXPORT_API void lammps_commands_string(void *handle, const char *str);
 
 /* -----------------------------------------------------------------------
  * Library functions to extract info from LAMMPS or set data in LAMMPS
  * ----------------------------------------------------------------------- */
 
-double lammps_get_natoms(void *handle);
-double lammps_get_thermo(void *handle, const char *keyword);
+LAMMPS_EXPORT_API double lammps_get_natoms(void *handle);
+LAMMPS_EXPORT_API double lammps_get_thermo(void *handle, const char *keyword);
 
-void lammps_extract_box(void *handle, double *boxlo, double *boxhi, double *xy, double *yz,
-                        double *xz, int *pflags, int *boxflag);
-void lammps_reset_box(void *handle, double *boxlo, double *boxhi, double xy, double yz, double xz);
+LAMMPS_EXPORT_API void lammps_extract_box(void *handle, double *boxlo, double *boxhi, double *xy,
+                                          double *yz, double *xz, int *pflags, int *boxflag);
+LAMMPS_EXPORT_API void lammps_reset_box(void *handle, double *boxlo, double *boxhi, double xy,
+                                        double yz, double xz);
 
-void lammps_memory_usage(void *handle, double *meminfo);
-int lammps_get_mpi_comm(void *handle);
+LAMMPS_EXPORT_API void lammps_memory_usage(void *handle, double *meminfo);
+LAMMPS_EXPORT_API int lammps_get_mpi_comm(void *handle);
 
-int lammps_extract_setting(void *handle, const char *keyword);
-int lammps_extract_global_datatype(void *handle, const char *name);
-void *lammps_extract_global(void *handle, const char *name);
+LAMMPS_EXPORT_API int lammps_extract_setting(void *handle, const char *keyword);
+LAMMPS_EXPORT_API int lammps_extract_global_datatype(void *handle, const char *name);
+LAMMPS_EXPORT_API void *lammps_extract_global(void *handle, const char *name);
 
 /* ----------------------------------------------------------------------
  * Library functions to read or modify per-atom data in LAMMPS
  * ---------------------------------------------------------------------- */
 
-int lammps_extract_atom_datatype(void *handle, const char *name);
-void *lammps_extract_atom(void *handle, const char *name);
+LAMMPS_EXPORT_API int lammps_extract_atom_datatype(void *handle, const char *name);
+LAMMPS_EXPORT_API void *lammps_extract_atom(void *handle, const char *name);
 
 /* ----------------------------------------------------------------------
  * Library functions to access data from computes, fixes, variables in LAMMPS
  * ---------------------------------------------------------------------- */
 
-void *lammps_extract_compute(void *handle, const char *, int, int);
-void *lammps_extract_fix(void *handle, const char *, int, int, int, int);
-void *lammps_extract_variable(void *handle, const char *, const char *);
-int lammps_set_variable(void *, char *, char *);
+LAMMPS_EXPORT_API void *lammps_extract_compute(void *handle, const char *, int, int);
+LAMMPS_EXPORT_API void *lammps_extract_fix(void *handle, const char *, int, int, int, int);
+LAMMPS_EXPORT_API void *lammps_extract_variable(void *handle, const char *, const char *);
+LAMMPS_EXPORT_API int lammps_set_variable(void *, char *, char *);
 
 /* ----------------------------------------------------------------------
  * Library functions for scatter/gather operations of data
  * ---------------------------------------------------------------------- */
 
-void lammps_gather_atoms(void *handle, char *name, int type, int count, void *data);
-void lammps_gather_atoms_concat(void *handle, char *name, int type, int count, void *data);
-void lammps_gather_atoms_subset(void *handle, char *name, int type, int count, int ndata, int *ids,
-                                void *data);
-void lammps_scatter_atoms(void *handle, char *name, int type, int count, void *data);
-void lammps_scatter_atoms_subset(void *handle, char *name, int type, int count, int ndata, int *ids,
-                                 void *data);
+LAMMPS_EXPORT_API void lammps_gather_atoms(void *handle, char *name, int type, int count,
+                                           void *data);
+LAMMPS_EXPORT_API void lammps_gather_atoms_concat(void *handle, char *name, int type, int count,
+                                                  void *data);
+LAMMPS_EXPORT_API void lammps_gather_atoms_subset(void *handle, char *name, int type, int count,
+                                                  int ndata, int *ids, void *data);
+LAMMPS_EXPORT_API void lammps_scatter_atoms(void *handle, char *name, int type, int count,
+                                            void *data);
+LAMMPS_EXPORT_API void lammps_scatter_atoms_subset(void *handle, char *name, int type, int count,
+                                                   int ndata, int *ids, void *data);
 
-void lammps_gather_bonds(void *handle, void *data);
+LAMMPS_EXPORT_API void lammps_gather_bonds(void *handle, void *data);
 
-void lammps_gather(void *handle, char *name, int type, int count, void *data);
-void lammps_gather_concat(void *handle, char *name, int type, int count, void *data);
-void lammps_gather_subset(void *handle, char *name, int type, int count, int ndata, int *ids,
-                          void *data);
-void lammps_scatter(void *handle, char *name, int type, int count, void *data);
-void lammps_scatter_subset(void *handle, char *name, int type, int count, int ndata, int *ids,
-                           void *data);
+LAMMPS_EXPORT_API void lammps_gather(void *handle, char *name, int type, int count, void *data);
+LAMMPS_EXPORT_API void lammps_gather_concat(void *handle, char *name, int type, int count,
+                                            void *data);
+LAMMPS_EXPORT_API void lammps_gather_subset(void *handle, char *name, int type, int count,
+                                            int ndata, int *ids, void *data);
+LAMMPS_EXPORT_API void lammps_scatter(void *handle, char *name, int type, int count, void *data);
+LAMMPS_EXPORT_API void lammps_scatter_subset(void *handle, char *name, int type, int count,
+                                             int ndata, int *ids, void *data);
 
 #if !defined(LAMMPS_BIGBIG)
-int lammps_create_atoms(void *handle, int n, const int *id, const int *type, const double *x,
-                        const double *v, const int *image, int bexpand);
+LAMMPS_EXPORT_API int lammps_create_atoms(void *handle, int n, const int *id, const int *type,
+                                          const double *x, const double *v, const int *image,
+                                          int bexpand);
 #else
-int lammps_create_atoms(void *handle, int n, const int64_t *id, const int *type, const double *x,
-                        const double *v, const int64_t *image, int bexpand);
+LAMMPS_EXPORT_API int lammps_create_atoms(void *handle, int n, const int64_t *id, const int *type,
+                                          const double *x, const double *v, const int64_t *image,
+                                          int bexpand);
 #endif
 
 /* ----------------------------------------------------------------------
  * Library functions for accessing neighbor lists
  * ---------------------------------------------------------------------- */
 
-int lammps_find_pair_neighlist(void *handle, const char *style, int exact, int nsub, int request);
-int lammps_find_fix_neighlist(void *handle, const char *id, int request);
-int lammps_find_compute_neighlist(void *handle, const char *id, int request);
-int lammps_neighlist_num_elements(void *handle, int idx);
-void lammps_neighlist_element_neighbors(void *handle, int idx, int element, int *iatom,
-                                        int *numneigh, int **neighbors);
+LAMMPS_EXPORT_API int lammps_find_pair_neighlist(void *handle, const char *style, int exact,
+                                                 int nsub, int request);
+LAMMPS_EXPORT_API int lammps_find_fix_neighlist(void *handle, const char *id, int request);
+LAMMPS_EXPORT_API int lammps_find_compute_neighlist(void *handle, const char *id, int request);
+LAMMPS_EXPORT_API int lammps_neighlist_num_elements(void *handle, int idx);
+LAMMPS_EXPORT_API void lammps_neighlist_element_neighbors(void *handle, int idx, int element,
+                                                          int *iatom, int *numneigh,
+                                                          int **neighbors);
 
 /* ----------------------------------------------------------------------
  * Library functions for retrieving configuration information
  * ---------------------------------------------------------------------- */
 
-int lammps_version(void *handle);
-void lammps_get_os_info(char *buffer, int buf_size);
+LAMMPS_EXPORT_API int lammps_version(void *handle);
+LAMMPS_EXPORT_API void lammps_get_os_info(char *buffer, int buf_size);
 
-int lammps_config_has_mpi_support();
-int lammps_config_has_gzip_support();
-int lammps_config_has_png_support();
-int lammps_config_has_jpeg_support();
-int lammps_config_has_ffmpeg_support();
-int lammps_config_has_exceptions();
+LAMMPS_EXPORT_API int lammps_config_has_mpi_support();
+LAMMPS_EXPORT_API int lammps_config_has_gzip_support();
+LAMMPS_EXPORT_API int lammps_config_has_png_support();
+LAMMPS_EXPORT_API int lammps_config_has_jpeg_support();
+LAMMPS_EXPORT_API int lammps_config_has_ffmpeg_support();
+LAMMPS_EXPORT_API int lammps_config_has_exceptions();
 
-int lammps_config_has_package(const char *);
-int lammps_config_package_count();
-int lammps_config_package_name(int, char *, int);
+LAMMPS_EXPORT_API int lammps_config_has_package(const char *);
+LAMMPS_EXPORT_API int lammps_config_package_count();
+LAMMPS_EXPORT_API int lammps_config_package_name(int, char *, int);
 
-int lammps_config_accelerator(const char *, const char *, const char *);
-int lammps_has_gpu_device();
-void lammps_get_gpu_device_info(char *buffer, int buf_size);
+LAMMPS_EXPORT_API int lammps_config_accelerator(const char *, const char *, const char *);
+LAMMPS_EXPORT_API int lammps_has_gpu_device();
+LAMMPS_EXPORT_API void lammps_get_gpu_device_info(char *buffer, int buf_size);
 
-int lammps_has_style(void *, const char *, const char *);
-int lammps_style_count(void *, const char *);
-int lammps_style_name(void *, const char *, int, char *, int);
+LAMMPS_EXPORT_API int lammps_has_style(void *, const char *, const char *);
+LAMMPS_EXPORT_API int lammps_style_count(void *, const char *);
+LAMMPS_EXPORT_API int lammps_style_name(void *, const char *, int, char *, int);
 
-int lammps_has_id(void *, const char *, const char *);
-int lammps_id_count(void *, const char *);
-int lammps_id_name(void *, const char *, int, char *, int);
+LAMMPS_EXPORT_API int lammps_has_id(void *, const char *, const char *);
+LAMMPS_EXPORT_API int lammps_id_count(void *, const char *);
+LAMMPS_EXPORT_API int lammps_id_name(void *, const char *, int, char *, int);
 
-int lammps_plugin_count();
-int lammps_plugin_name(int, char *, char *, int);
+LAMMPS_EXPORT_API int lammps_plugin_count();
+LAMMPS_EXPORT_API int lammps_plugin_name(int, char *, char *, int);
 
 /* ----------------------------------------------------------------------
  * Utility functions
  * ---------------------------------------------------------------------- */
 
 #if !defined(LAMMPS_BIGBIG)
-int lammps_encode_image_flags(int ix, int iy, int iz);
-void lammps_decode_image_flags(int image, int *flags);
+LAMMPS_EXPORT_API int lammps_encode_image_flags(int ix, int iy, int iz);
+LAMMPS_EXPORT_API void lammps_decode_image_flags(int image, int *flags);
 #else
-int64_t lammps_encode_image_flags(int ix, int iy, int iz);
-void lammps_decode_image_flags(int64_t image, int *flags);
+LAMMPS_EXPORT_API int64_t lammps_encode_image_flags(int ix, int iy, int iz);
+LAMMPS_EXPORT_API void lammps_decode_image_flags(int64_t image, int *flags);
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #if defined(LAMMPS_BIGBIG)
 typedef void (*FixExternalFnPtr)(void *, int64_t, int, int64_t *, double **, double **);
-void lammps_set_fix_external_callback(void *handle, const char *id, FixExternalFnPtr funcptr, void *ptr);
 #elif defined(LAMMPS_SMALLBIG)
 typedef void (*FixExternalFnPtr)(void *, int64_t, int, int *, double **, double **);
-void lammps_set_fix_external_callback(void *, const char *, FixExternalFnPtr, void *);
 #else
 typedef void (*FixExternalFnPtr)(void *, int, int, int *, double **, double **);
-void lammps_set_fix_external_callback(void *, const char *, FixExternalFnPtr, void *);
 #endif
-double **lammps_fix_external_get_force(void *handle, const char *id);
-void lammps_fix_external_set_energy_global(void *handle, const char *id, double eng);
-void lammps_fix_external_set_energy_peratom(void *handle, const char *id, double *eng);
-void lammps_fix_external_set_virial_global(void *handle, const char *id, double *virial);
-void lammps_fix_external_set_virial_peratom(void *handle, const char *id, double **virial);
-void lammps_fix_external_set_vector_length(void *handle, const char *id, int len);
-void lammps_fix_external_set_vector(void *handle, const char *id, int idx, double val);
-
-void lammps_free(void *ptr);
-
-int lammps_is_running(void *handle);
-void lammps_force_timeout(void *handle);
-
-int lammps_has_error(void *handle);
-int lammps_get_last_error_message(void *handle, char *buffer, int buf_size);
-
 #ifdef __cplusplus
 }
 #endif
+
+LAMMPS_EXPORT_API void lammps_set_fix_external_callback(void *handle, const char *id,
+                                                        FixExternalFnPtr funcptr, void *ptr);
+LAMMPS_EXPORT_API void lammps_set_fix_external_callback(void *, const char *, FixExternalFnPtr,
+                                                        void *);
+LAMMPS_EXPORT_API void lammps_set_fix_external_callback(void *, const char *, FixExternalFnPtr,
+                                                        void *);
+LAMMPS_EXPORT_API double **lammps_fix_external_get_force(void *handle, const char *id);
+LAMMPS_EXPORT_API void lammps_fix_external_set_energy_global(void *handle, const char *id,
+                                                             double eng);
+LAMMPS_EXPORT_API void lammps_fix_external_set_energy_peratom(void *handle, const char *id,
+                                                              double *eng);
+LAMMPS_EXPORT_API void lammps_fix_external_set_virial_global(void *handle, const char *id,
+                                                             double *virial);
+LAMMPS_EXPORT_API void lammps_fix_external_set_virial_peratom(void *handle, const char *id,
+                                                              double **virial);
+LAMMPS_EXPORT_API void lammps_fix_external_set_vector_length(void *handle, const char *id, int len);
+LAMMPS_EXPORT_API void lammps_fix_external_set_vector(void *handle, const char *id, int idx,
+                                                      double val);
+
+LAMMPS_EXPORT_API void lammps_free(void *ptr);
+
+LAMMPS_EXPORT_API int lammps_is_running(void *handle);
+LAMMPS_EXPORT_API void lammps_force_timeout(void *handle);
+
+LAMMPS_EXPORT_API int lammps_has_error(void *handle);
+LAMMPS_EXPORT_API int lammps_get_last_error_message(void *handle, char *buffer, int buf_size);
 
 #endif /* LAMMPS_LIBRARY_H */
 

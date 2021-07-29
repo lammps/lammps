@@ -16,6 +16,7 @@
 // See the manual for detailed documentation.
 
 #define LAMMPS_LIB_MPI 1
+#define _LAMMPS_BUILD_LIB 1
 #include "library.h"
 #include <mpi.h>
 
@@ -52,6 +53,16 @@
 
 #include <cstring>
 #include <vector>
+
+#if defined(WIN32)
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+
+BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
+{
+  return TRUE;
+}
+#endif
 
 #if defined(LAMMPS_EXCEPTIONS)
 #include "exceptions.h"

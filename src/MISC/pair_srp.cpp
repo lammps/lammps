@@ -68,7 +68,7 @@ static int srp_instance = 0;
  set size of pair comms in constructor
  ---------------------------------------------------------------------- */
 
-PairSRP::PairSRP(LAMMPS *lmp) : Pair(lmp)
+PairSRP::PairSRP(LAMMPS *lmp) : Pair(lmp), fix_id(nullptr)
 {
   writedata = 1;
   single_enable = 0;
@@ -118,18 +118,16 @@ void PairSRP::allocate()
 
 PairSRP::~PairSRP()
 {
-    if (allocated)
-    {
-        memory->destroy(setflag);
-        memory->destroy(cutsq);
-        memory->destroy(cut);
-        memory->destroy(a0);
-        memory->destroy(segment);
-    }
+  if (allocated) {
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
+    memory->destroy(cut);
+    memory->destroy(a0);
+    memory->destroy(segment);
+  }
 
   // check nfix in case all fixes have already been deleted
-  if (modify->nfix) modify->delete_fix(fix_id);
-  free(fix_id);
+  if (modify->nfix) modify->delete_fix(f_srp->id);
 }
 
 /* ----------------------------------------------------------------------
@@ -412,33 +410,31 @@ void PairSRP::settings(int narg, char **arg)
 
 void PairSRP::coeff(int narg, char **arg)
 {
-    if (narg < 3 || narg > 4)
-        error->all(FLERR,"PairSRP: Incorrect args for pair coeff");
-    if (!allocated) allocate();
+  if (narg < 3 || narg > 4)
+    error->all(FLERR,"PairSRP: Incorrect args for pair coeff");
+  if (!allocated) allocate();
 
-    // set ij bond-bond cutoffs
-    int ilo, ihi, jlo, jhi;
-    utils::bounds(FLERR,arg[0], 1, bptype, ilo, ihi, error);
-    utils::bounds(FLERR,arg[1], 1, bptype, jlo, jhi, error);
+  // set ij bond-bond cutoffs
+  int ilo, ihi, jlo, jhi;
+  utils::bounds(FLERR,arg[0], 1, bptype, ilo, ihi, error);
+  utils::bounds(FLERR,arg[1], 1, bptype, jlo, jhi, error);
 
-    double a0_one = utils::numeric(FLERR,arg[2],false,lmp);
-    double cut_one = cut_global;
-    if (narg == 4)  cut_one = utils::numeric(FLERR,arg[3],false,lmp);
+  double a0_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double cut_one = cut_global;
+  if (narg == 4)  cut_one = utils::numeric(FLERR,arg[3],false,lmp);
 
-    int count = 0;
-    for (int i = ilo; i <= ihi; i++)
-    {
-        for (int j = MAX(jlo,i); j <= jhi; j++)
-        {
-            a0[i][j] = a0_one;
-            cut[i][j] = cut_one;
-            cutsq[i][j] = cut_one * cut_one;
-            setflag[i][j] = 1;
-            count++;
-        }
+  int count = 0;
+  for (int i = ilo; i <= ihi; i++) {
+    for (int j = MAX(jlo,i); j <= jhi; j++) {
+      a0[i][j] = a0_one;
+      cut[i][j] = cut_one;
+      cutsq[i][j] = cut_one * cut_one;
+      setflag[i][j] = 1;
+      count++;
     }
+  }
 
-    if (count == 0) error->warning(FLERR,"PairSRP: No pair coefficients were set");
+  if (count == 0) error->warning(FLERR,"PairSRP: No pair coefficients were set");
 }
 
 /* ----------------------------------------------------------------------
@@ -452,8 +448,7 @@ void PairSRP::init_style()
 
   // verify that fix SRP is still defined and has not been changed.
 
-  int ifix = modify->find_fix(fix_id);
-  if (f_srp != (FixSRP *)modify->fix[ifix])
+  if (strcmp(f_srp->style,"SRP") != 0)
     error->all(FLERR,"Fix SRP has been changed unexpectedly");
 
   if (comm->me == 0)

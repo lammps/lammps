@@ -449,10 +449,10 @@ int FixSRP::unpack_border(int n, int first, double *buf)
   int m = 0;
   last = first + n;
 
-      for (i = first; i < last; i++) {
-        array[i][0] = buf[m++];
-        array[i][1] = buf[m++];
-      }
+  for (i = first; i < last; i++) {
+    array[i][0] = buf[m++];
+    array[i][1] = buf[m++];
+  }
   return m;
 }
 

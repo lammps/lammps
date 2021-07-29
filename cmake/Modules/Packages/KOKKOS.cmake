@@ -97,6 +97,7 @@ set(KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/kokkos.cpp
 
 if(PKG_KSPACE)
   list(APPEND KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/fft3d_kokkos.cpp
+                                 ${KOKKOS_PKG_SOURCES_DIR}/kissfft_kokkos.cpp
                                  ${KOKKOS_PKG_SOURCES_DIR}/gridcomm_kokkos.cpp
                                  ${KOKKOS_PKG_SOURCES_DIR}/remap_kokkos.cpp)
   if(Kokkos_ENABLE_CUDA)

@@ -76,7 +76,7 @@ static const char cite_ml_rann_package[] =
 
 PairRANN::PairRANN(LAMMPS *lmp) : Pair(lmp)
 {
-  lmp->citeme->add(cite_ml_rann_package);
+  if (lmp->citeme) lmp->citeme->add(cite_ml_rann_package);
 
   //initialize ints and bools
   single_enable = 0;

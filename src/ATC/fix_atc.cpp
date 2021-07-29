@@ -702,7 +702,7 @@ void FixATC::write_restart(FILE * /* fp */) {
 
   char *args[2];
   args[0] = utils::strdup("write_restart");
-  args[1] = utils::strdup("sprintf(args[1],"ATC.restart");
+  args[1] = utils::strdup("ATC.restart");
 
   // Then call all objects I own to write their data
   if (comm->me == 0) {

@@ -46,7 +46,7 @@ class ReadRestart : public Command {
   bigint assignedChunkSize;
   MPI_Offset assignedChunkOffset, headerOffset;
 
-  void file_search(char *, char *);
+  std::string file_search(const std::string &);
   void header();
   void type_arrays();
   void force_fields();

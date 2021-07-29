@@ -80,7 +80,7 @@ void Scafacos::settings(int narg, char **arg)
 
 Scafacos::~Scafacos()
 {
-  delete [] method;
+  delete[] method;
 
   memory->destroy(xpbc);
   memory->destroy(epot);
@@ -95,16 +95,15 @@ Scafacos::~Scafacos()
 void Scafacos::init()
 {
   // error checks
-  if (screen && me == 0) fprintf(screen,
-                         "Setting up ScaFaCoS with solver %s ...\n",method);
-  if (logfile && me == 0) fprintf(logfile,
-                          "Setting up ScaFaCoS with solver %s ...\n",method);
+  if (me == 0) {
+    utils::logmesg(lmp,"Setting up ScaFaCoS with solver {} ...\n",method);
 
-  if ((strcmp(method,"p3m") == 0) && (me == 0))
-    error->warning(FLERR,"Virial computation for P3M not available");
+    if (strcmp(method,"p3m") == 0)
+      error->warning(FLERR,"Virial computation for P3M not available");
 
-  if ((strcmp(method,"ewald") == 0) && (me == 0))
-    error->warning(FLERR,"Virial computation for Ewald not available");
+    if (strcmp(method,"ewald") == 0)
+      error->warning(FLERR,"Virial computation for Ewald not available");
+  }
 
   if (!atom->q_flag)
     error->all(FLERR,"Kspace style requires atom attribute q");
@@ -119,8 +118,7 @@ void Scafacos::init()
     error->all(FLERR,"Scafacos atom count exceeds 2B");
 
   if (atom->molecular != Atom::ATOMIC)
-    error->all(FLERR,
-               "Cannot use Scafacos with molecular charged systems yet");
+    error->all(FLERR, "Cannot use Scafacos with molecular charged systems yet");
 
   FCSResult result;
 
@@ -358,15 +356,13 @@ int Scafacos::modify_param(int narg, char **arg)
   //     value1 = 0, 1
   //       0 -> homogenous system (default)
   //       1 -> inhomogenous system (more internal tuning is provided (sequential!))
-  if (strcmp(arg[1],"fmm_tuning") == 0)
-  {
-    if (screen && me == 0) fprintf(screen,
-                           "ScaFaCoS setting fmm inhomogen tuning ...\n");
-    if (logfile && me == 0) fprintf(logfile,
-                            "ScaFaCoS setting fmm inhomogen tuning ...\n");
+  if (strcmp(arg[1],"fmm_tuning") == 0) {
+    if (me == 0)
+      utils::logmesg(lmp, "ScaFaCoS setting fmm inhomogen tuning ...\n");
+
     if (narg < 3) error->all(FLERR,
                          "Illegal kspace_modify command (fmm_tuning)");
-    fmm_tuning_flag = atoi(arg[2]);
+    fmm_tuning_flag = utils::inumeric(FLERR, arg[2], false, tmp);
     return 3;
   }
 

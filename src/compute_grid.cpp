@@ -28,7 +28,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeGrid::ComputeGrid(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), grid(NULL), local_flags(NULL), gridlocal(NULL)
+  Compute(lmp, narg, arg), grid(nullptr), gridall(nullptr), local_flags(nullptr), gridlocal(nullptr)
 {
   if (narg < 6) error->all(FLERR,"Illegal compute grid command");
 
@@ -61,9 +61,12 @@ ComputeGrid::ComputeGrid(LAMMPS *lmp, int narg, char **arg) :
 ComputeGrid::~ComputeGrid()
 {
   memory->destroy(grid);
+  memory->destroy(gridall);
   memory->destroy(local_flags);
-  if (gridlocal_allocated)
+  if (gridlocal_allocated) {
+    gridlocal_allocated = 0;
     memory->destroy4d_offset(gridlocal,nzlo,nylo,nxlo);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -200,9 +203,14 @@ void ComputeGrid::allocate()
   // allocate arrays
 
   memory->destroy(grid);
+  memory->destroy(gridall);
   memory->destroy(local_flags);
-  if (gridlocal_allocated)
-    memory->destroy4d_offset(gridlocal,nzlo,nylo,nxlo);
+  if (gridlocal_allocated) {
+    gridlocal_allocated = 0;
+    // can't seem to do this without seg-fault
+    // memory->destroy4d_offset(gridlocal,nzlo,nylo,nxlo);
+  }
+
   memory->create(grid,size_array_rows,size_array_cols,"grid:grid");
   memory->create(gridall,size_array_rows,size_array_cols,"grid:gridall");
   memory->create(local_flags,size_array_rows,"grid:local_flags");
@@ -257,18 +265,48 @@ void ComputeGrid::set_grid_global()
 
 void ComputeGrid::set_grid_local()
 {
-  // global indices of grid range from 0 to N-1
-  // nlo,nhi = lower/upper limits of the 3d sub-brick of
-  //   global grid that I own without ghost cells
+  // nx,ny,nz = extent of global grid
+  // indices into the global grid range from 0 to N-1 in each dim
+  // if grid point is inside my sub-domain I own it,
+  //   this includes sub-domain lo boundary but excludes hi boundary
+  // ixyz lo/hi = inclusive lo/hi bounds of global grid sub-brick I own
+  // if proc owns no grid cells in a dim, then ilo > ihi
+  // if 2 procs share a boundary a grid point is exactly on,
+  //   the 2 equality if tests insure a consistent decision
+  //   as to which proc owns it
 
-  nxlo = static_cast<int> (comm->xsplit[comm->myloc[0]] * nx);
-  nxhi = static_cast<int> (comm->xsplit[comm->myloc[0]+1] * nx) - 1;
+  double xfraclo,xfrachi,yfraclo,yfrachi,zfraclo,zfrachi;
 
-  nylo = static_cast<int> (comm->ysplit[comm->myloc[1]] * ny);
-  nyhi = static_cast<int> (comm->ysplit[comm->myloc[1]+1] * ny) - 1;
+  if (comm->layout != Comm::LAYOUT_TILED) {
+    xfraclo = comm->xsplit[comm->myloc[0]];
+    xfrachi = comm->xsplit[comm->myloc[0]+1];
+    yfraclo = comm->ysplit[comm->myloc[1]];
+    yfrachi = comm->ysplit[comm->myloc[1]+1];
+    zfraclo = comm->zsplit[comm->myloc[2]];
+    zfrachi = comm->zsplit[comm->myloc[2]+1];
+  } else {
+    xfraclo = comm->mysplit[0][0];
+    xfrachi = comm->mysplit[0][1];
+    yfraclo = comm->mysplit[1][0];
+    yfrachi = comm->mysplit[1][1];
+    zfraclo = comm->mysplit[2][0];
+    zfrachi = comm->mysplit[2][1];
+  }
 
-  nzlo = static_cast<int> (comm->zsplit[comm->myloc[2]] * nz);
-  nzhi = static_cast<int> (comm->zsplit[comm->myloc[2]+1] * nz) - 1;
+  nxlo = static_cast<int> (xfraclo * nx);
+  if (1.0*nxlo != xfraclo*nx) nxlo++;
+  nxhi = static_cast<int> (xfrachi * nx);
+  if (1.0*nxhi == xfrachi*nx) nxhi--;
+
+  nylo = static_cast<int> (yfraclo * ny);
+  if (1.0*nylo != yfraclo*ny) nylo++;
+  nyhi = static_cast<int> (yfrachi * ny);
+  if (1.0*nyhi == yfrachi*ny) nyhi--;
+
+  nzlo = static_cast<int> (zfraclo * nz);
+  if (1.0*nzlo != zfraclo*nz) nzlo++;
+  nzhi = static_cast<int> (zfrachi * nz);
+  if (1.0*nzhi == zfrachi*nz) nzhi--;
 
   ngridlocal = (nxhi - nxlo + 1) * (nyhi - nylo + 1) * (nzhi - nzlo + 1);
 

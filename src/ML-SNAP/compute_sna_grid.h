@@ -29,12 +29,14 @@ class ComputeSNAGrid : public ComputeGrid {
   ComputeSNAGrid(class LAMMPS *, int, char **);
   ~ComputeSNAGrid();
   void init();
+  void init_list(int, class NeighList *);
   void compute_array();
   double memory_usage();
 
  private:
   int ncoeff;
   double **cutsq;
+  class NeighList *list;
   double rcutfac;
   double *radelem;
   double *wjelem;

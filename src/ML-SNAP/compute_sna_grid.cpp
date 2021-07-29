@@ -22,6 +22,7 @@
 #include "neigh_request.h"
 #include "force.h"
 #include "pair.h"
+#include "domain.h"
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
@@ -196,26 +197,31 @@ void ComputeSNAGrid::init()
 
 /* ---------------------------------------------------------------------- */
 
+void ComputeSNAGrid::init_list(int /*id*/, NeighList *ptr)
+{
+  list = ptr;
+}
+
+/* ---------------------------------------------------------------------- */
+
 void ComputeSNAGrid::compute_array()
 {
   invoked_array = update->ntimestep;
 
-  // invoke full neighbor list (will copy or build if necessary)
+  // // invoke full neighbor list (will copy or build if necessary)
 
-  //  neighbor->build_one(list);
+  // neighbor->build_one(list);
 
-  int mynxlo = static_cast<int> (comm->xsplit[comm->myloc[0]] * nx);
-  int mynxhi = static_cast<int> (comm->xsplit[comm->myloc[0]+1] * nx) - 1;
+  // int mynxlo = static_cast<int> (comm->xsplit[comm->myloc[0]] * nx);
+  // int mynxhi = static_cast<int> (comm->xsplit[comm->myloc[0]+1] * nx) - 1;
 
-  int mynylo = static_cast<int> (comm->ysplit[comm->myloc[1]] * ny);
-  int mynyhi = static_cast<int> (comm->ysplit[comm->myloc[1]+1] * ny) - 1;
+  // int mynylo = static_cast<int> (comm->ysplit[comm->myloc[1]] * ny);
+  // int mynyhi = static_cast<int> (comm->ysplit[comm->myloc[1]+1] * ny) - 1;
 
-  int mynzlo = static_cast<int> (comm->zsplit[comm->myloc[2]] * nz);
-  int mynzhi = static_cast<int> (comm->zsplit[comm->myloc[2]+1] * nz) - 1;
+  // int mynzlo = static_cast<int> (comm->zsplit[comm->myloc[2]] * nz);
+  // int mynzhi = static_cast<int> (comm->zsplit[comm->myloc[2]+1] * nz) - 1;
 
-  int myngridlocal = (nxhi - nxlo + 1) * (nyhi - nylo + 1) * (nzhi - nzlo + 1);
-
-  printf("me = %d n = %d x %d %d y %d %d z %d %d \n", comm->me, myngridlocal, mynxlo, mynxhi, mynylo, mynyhi, mynzlo, mynzhi);
+  // int myngridlocal = (nxhi - nxlo + 1) * (nyhi - nylo + 1) * (nzhi - nzlo + 1);
 
   // compute sna for each gridpoint
 
@@ -263,7 +269,7 @@ void ComputeSNAGrid::compute_array()
 	  int jelem = 0;
 	  if (chemflag)
 	    jelem = map[jtype];
-	  if (rsq < cutsq[jtype][jtype] && rsq>1e-20) {
+	  if (rsq < cutsq[jtype][jtype]) {
 	    snaptr->rij[ninside][0] = delx;
 	    snaptr->rij[ninside][1] = dely;
 	    snaptr->rij[ninside][2] = delz;

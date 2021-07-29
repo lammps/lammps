@@ -445,11 +445,8 @@ void PairMEAMSpline::read_file(const char* filename)
 
   if (comm->me == 0) {
     FILE *fp = utils::open_potential(filename,lmp,nullptr);
-    if (fp == nullptr) {
-      char str[1024];
-      snprintf(str,128,"Cannot open spline MEAM potential file %s", filename);
-      error->one(FLERR,str);
-    }
+    if (fp == nullptr)
+      error->one(FLERR,"Cannot open spline MEAM potential file {}: {}", filename,utils::getsyserror());
 
     // Skip first line of file. It's a comment.
     char line[MAXLINE];

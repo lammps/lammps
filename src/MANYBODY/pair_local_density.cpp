@@ -663,29 +663,25 @@ void PairLocalDensity::parse_file(char *filename) {
   char line[MAXLINE];
   double ratio, lc2, uc2, denom;
 
-
   if (me == 0) {
     fptr = fopen(filename, "r");
-    if (fptr == nullptr) {
-      char str[128];
-      sprintf(str,"Cannot open Local Density potential file %s",filename);
-      error->one(FLERR,str);
-    }
+    if (fptr == nullptr)
+      error->one(FLERR,"Cannot open Local Density potential file {}: {}",filename,utils::getsyserror());
   }
 
- double *ftmp; // tmp var to extract the complete 2D frho array from file
+  double *ftmp; // tmp var to extract the complete 2D frho array from file
 
- // broadcast number of LD potentials and number of (rho,frho) pairs
- if (me == 0) {
+  // broadcast number of LD potentials and number of (rho,frho) pairs
+  if (me == 0) {
 
-   // first 2 comment lines ignored
-   utils::sfgets(FLERR,line,MAXLINE,fptr,filename,error);
-   utils::sfgets(FLERR,line,MAXLINE,fptr,filename,error);
+    // first 2 comment lines ignored
+    utils::sfgets(FLERR,line,MAXLINE,fptr,filename,error);
+    utils::sfgets(FLERR,line,MAXLINE,fptr,filename,error);
 
-   // extract number of potentials and number of (frho, rho) points
-   utils::sfgets(FLERR,line,MAXLINE,fptr,filename,error);
-   sscanf(line, "%d %d", &nLD, &nrho);
-   utils::sfgets(FLERR,line,MAXLINE,fptr,filename,error);
+    // extract number of potentials and number of (frho, rho) points
+    utils::sfgets(FLERR,line,MAXLINE,fptr,filename,error);
+    sscanf(line, "%d %d", &nLD, &nrho);
+    utils::sfgets(FLERR,line,MAXLINE,fptr,filename,error);
   }
 
   MPI_Bcast(&nLD,1,MPI_INT,0,world);

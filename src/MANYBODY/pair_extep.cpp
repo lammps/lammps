@@ -529,11 +529,8 @@ void PairExTeP::read_file(char *file)
   FILE *fp;
   if (comm->me == 0) {
     fp = utils::open_potential(file,lmp,nullptr);
-    if (fp == nullptr) {
-      char str[128];
-      snprintf(str,128,"Cannot open ExTeP potential file %s",file);
-      error->one(FLERR,str);
-    }
+    if (fp == nullptr)
+      error->one(FLERR,"Cannot open ExTeP potential file {}: {}",file,utils::getsyserror());
   }
 
   // read each line out of file, skipping blank lines or leading '#'

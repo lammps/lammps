@@ -20,7 +20,7 @@ computes, fixes, or variables in LAMMPS using the :py:mod:`lammps` module.
       global vector or array, a single double value from the vector or array
       is returned, indexed by I (vector) or I and J (array).  I,J are
       zero-based indices.
-      See the :doc:`Howto output <Howto_output>` doc page for a discussion of
+      See the :doc:`Howto output <Howto_output>` page for a discussion of
       global, per-atom, and local data, and of scalar, vector, and array
       data types.  See the doc pages for individual :doc:`computes <compute>`
       and :doc:`fixes <fix>` for a description of what they calculate and

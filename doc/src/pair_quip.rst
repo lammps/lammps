@@ -42,7 +42,7 @@ number of LAMMPS atom types:
 * QUIP initialization string
 * N atomic numbers = mapping of QUIP elements to atom types
 
-See the :doc:`pair_coeff <pair_coeff>` doc page for alternate ways
+See the :doc:`pair_coeff <pair_coeff>` page for alternate ways
 to specify the path for the potential file.
 
 A QUIP potential is fully specified by the filename which contains the
@@ -70,13 +70,13 @@ script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 Restrictions
 """"""""""""
 
 This pair style is part of the ML-QUIP package.  It is only enabled
-if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 QUIP potentials are parameterized in electron-volts and Angstroms and
 therefore should be used with LAMMPS metal :doc:`units <units>`.

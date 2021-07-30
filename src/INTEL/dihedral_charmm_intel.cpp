@@ -181,9 +181,16 @@ void DihedralCharmmIntel::eval(const int vflag,
     }
 
     #if defined(LMP_SIMD_COMPILER_TEST)
-    #pragma vector aligned
+#if defined(USE_OMP_SIMD)
+    #pragma omp simd reduction(+:sedihedral, sevdwl, secoul, sv0, sv1, sv2, \
+                               sv3, sv4, sv5, spv0, spv1, spv2, spv3, spv4, \
+                               spv5)
+#else
     #pragma simd reduction(+:sedihedral, sevdwl, secoul, sv0, sv1, sv2, \
-                           sv3, sv4, sv5, spv0, spv1, spv2, spv3, spv4, spv5)
+                           sv3, sv4, sv5, spv0, spv1, spv2, spv3, spv4, \
+                           spv5)
+#endif
+    #pragma vector aligned
     for (int n = nfrom; n < nto; n++) {
     #endif
     for (int n = nfrom; n < nto; n += npl) {
@@ -329,7 +336,11 @@ void DihedralCharmmIntel::eval(const int vflag,
 
 
       #if defined(LMP_SIMD_COMPILER_TEST)
+#if defined(USE_OMP_SIMD)
+      #pragma omp ordered simd
+#else
       #pragma simdoff
+#endif
       #endif
       {
         if (NEWTON_BOND || i2 < nlocal) {
@@ -408,7 +419,11 @@ void DihedralCharmmIntel::eval(const int vflag,
 
       // apply force to each of 4 atoms
       #if defined(LMP_SIMD_COMPILER_TEST)
+#if defined(USE_OMP_SIMD)
+      #pragma omp ordered simd
+#else
       #pragma simdoff
+#endif
       #endif
       {
         if (NEWTON_BOND || i1 < nlocal) {

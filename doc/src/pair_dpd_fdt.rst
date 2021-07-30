@@ -77,7 +77,7 @@ following functional form:
 Note that alternative definitions of the weighting function exist, but
 would have to be implemented as a separate pair style command.
 
-For style *dpd/fdt*\ , the fluctuation-dissipation theorem defines :math:`\gamma`
+For style *dpd/fdt*, the fluctuation-dissipation theorem defines :math:`\gamma`
 to be set equal to :math:`\sigma^2/(2 T)`, where T is the set point
 temperature specified as a pair style parameter in the above examples.
 The following coefficients must be defined for each pair of atoms types
@@ -163,7 +163,7 @@ Restrictions
 """"""""""""
 
 These commands are part of the DPD-REACT package.  They are only
-enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Pair styles *dpd/fdt* and *dpd/fdt/energy* require use of the
 :doc:`comm_modify vel yes <comm_modify>` option so that velocities are

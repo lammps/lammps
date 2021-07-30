@@ -24,11 +24,11 @@ PairStyle(tersoff/intel,PairTersoffIntel);
 #ifndef LMP_PAIR_TERSOFF_INTEL_H
 #define LMP_PAIR_TERSOFF_INTEL_H
 
-#ifdef __INTEL_COMPILER
-
 #include "pair.h"
 #include "fix_intel.h"
 #include "pair_tersoff.h"
+
+#ifdef __INTEL_COMPILER
 
 namespace LAMMPS_NS {
 

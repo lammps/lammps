@@ -45,7 +45,7 @@ namespace utils {
    *
    *  \param text the text to be matched against the pattern
    *  \param pattern the search pattern, which may contain regexp markers
-   *  \return the string that matches the patters or an empty one */
+   *  \return the string that matches the pattern or an empty one */
 
   std::string strfind(const std::string &text, const std::string &pattern);
 
@@ -62,7 +62,7 @@ namespace utils {
    *
    *  \param lmp    pointer to LAMMPS class instance
    *  \param format format string of message to be printed
-   *  \param ...    arguments to format string */
+   *  \param args   arguments to format string */
 
   template <typename S, typename... Args> void logmesg(LAMMPS *lmp, const S &format, Args &&...args)
   {

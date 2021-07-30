@@ -68,7 +68,7 @@ FixMesoMove::FixMesoMove (LAMMPS *lmp, int narg, char **arg) :
 
   // parse args
 
-  int iarg;
+  int iarg = narg;
 
   if (strcmp(arg[3],"linear") == 0) {
     if (narg < 7) error->all(FLERR,"Illegal fix meso/move command");

@@ -23,6 +23,7 @@
 #include <impl/Kokkos_Timer.hpp>
 #include <Kokkos_Vectorization.hpp>
 #include <Kokkos_ScatterView.hpp>
+#include <Kokkos_UnorderedMap.hpp>
 
 enum{FULL=1u,HALFTHREAD=2u,HALF=4u};
 
@@ -552,6 +553,23 @@ typedef int T_INT;
 // ------------------------------------------------------------------------
 
 // LAMMPS types
+
+typedef Kokkos::UnorderedMap<LAMMPS_NS::tagint,int,LMPDeviceType> hash_type;
+typedef hash_type::HostMirror host_hash_type;
+
+struct dual_hash_type {
+  hash_type d_view;
+  host_hash_type h_view;
+
+  template<class DeviceType>
+  KOKKOS_INLINE_FUNCTION
+  std::enable_if_t<(std::is_same<DeviceType,LMPDeviceType>::value || Kokkos::SpaceAccessibility<LMPDeviceType::memory_space,LMPHostType::memory_space>::accessible),hash_type&> view() {return d_view;}
+
+  template<class DeviceType>
+  KOKKOS_INLINE_FUNCTION
+  std::enable_if_t<!(std::is_same<DeviceType,LMPDeviceType>::value || Kokkos::SpaceAccessibility<LMPDeviceType::memory_space,LMPHostType::memory_space>::accessible),host_hash_type&> view() {return h_view;}
+
+};
 
 template <class DeviceType>
 struct ArrayTypes;

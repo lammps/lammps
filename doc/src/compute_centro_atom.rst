@@ -76,7 +76,7 @@ positive parameter.  If the atom does not have :math:`N` neighbors
 (within the potential cutoff), then its centro-symmetry parameter is
 set to 0.0.
 
-If the keyword *axes* has the setting *yes*\ , then this compute also
+If the keyword *axes* has the setting *yes*, then this compute also
 estimates three symmetry axes for each atom's local neighborhood.  The
 first two of these are the vectors joining the two pairs of neighbor
 atoms with smallest contributions to the centrosymmetry parameter,
@@ -106,10 +106,10 @@ Output info
 
 By default, this compute calculates the centrosymmetry value for each
 atom as a per-atom vector, which can be accessed by any command that
-uses per-atom values from a compute as input.  See the :doc:`Howto output <Howto_output>` doc page for an overview of LAMMPS output
+uses per-atom values from a compute as input.  See the :doc:`Howto output <Howto_output>` page for an overview of LAMMPS output
 options.
 
-If the *axes* keyword setting is *yes*\ , then a per-atom array is
+If the *axes* keyword setting is *yes*, then a per-atom array is
 calculated. The first column is the centrosymmetry parameter.  The
 next three columns are the x, y, and z components of the first
 symmetry axis, followed by the second, and third symmetry axes in

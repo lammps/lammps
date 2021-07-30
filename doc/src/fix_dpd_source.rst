@@ -78,7 +78,7 @@ Restrictions
 """"""""""""
 
 This fix is part of the DPD-MESO package. It is only enabled if
-LAMMPS was built with that package. See the :doc:`Build package <Build_package>` doc page for more info.
+LAMMPS was built with that package. See the :doc:`Build package <Build_package>` page for more info.
 
 Fix *edpd/source* must be used with the :doc:`pair_style edpd <pair_mesodpd>` command.  Fix *tdpd/source* must be used with the
 :doc:`pair_style tdpd <pair_mesodpd>` command.

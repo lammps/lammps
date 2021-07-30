@@ -213,7 +213,7 @@ Doc page with :doc:`ERROR messages <Errors_messages>`
    in unexpected behavior.
 
 *Fix bond/swap will ignore defined angles*
-   See the doc page for fix bond/swap for more info on this
+   See the page for fix bond/swap for more info on this
    restriction.
 
 *Fix deposit near setting < possible overlap separation %g*
@@ -514,7 +514,7 @@ This will most likely cause errors in kinetic fluctuations.
    will integrate the body motion, but it would be more efficient to use
    fix rigid.
 
-*Not using real units with pair reax*
+*Not using real units with pair reaxff*
    This is most likely an error, unless you have created your own ReaxFF
    parameter file in a different set of units.
 
@@ -805,5 +805,3 @@ This will most likely cause errors in kinetic fluctuations.
 *Using pair tail corrections with pair_modify compute no*
    The tail corrections will thus not be computed.
 
-*pair style reax is now deprecated and will soon be retired. Users should switch to pair_style reax/c*
-   Self-explanatory.

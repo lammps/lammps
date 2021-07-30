@@ -21,7 +21,7 @@ Syntax
   .. parsed-literal::
 
      parameter = *x* or *y* or *z* or *xy* or *xz* or *yz*
-       *x*\ , *y*\ , *z* args = style value(s)
+       *x*, *y*, *z* args = style value(s)
          style = *final* or *delta* or *scale* or *vel* or *erate* or *trate* or *volume* or *wiggle* or *variable*
            *final* values = lo hi
              lo hi = box boundaries at end of run (distance units)
@@ -43,7 +43,7 @@ Syntax
            *variable* values = v_name1 v_name2
              v_name1 = variable with name1 for box length change as function of time
              v_name2 = variable with name2 for change rate as function of time
-       *xy*\ , *xz*\ , *yz* args = style value
+       *xy*, *xz*, *yz* args = style value
          style = *final* or *delta* or *vel* or *erate* or *trate* or *wiggle*
            *final* value = tilt
              tilt = tilt factor at end of run (distance units)
@@ -102,8 +102,8 @@ of a continuously strained system.  See the :doc:`fix nvt/sllod <fix_nvt_sllod>`
 that simulation of a continuously extended system (extensional flow)
 can be modeled using the :ref:`UEF package <PKG-UEF>` and its :doc:`fix commands <fix_nh_uef>`.
 
-For the *x*\ , *y*\ , *z* parameters, the associated dimension cannot be
-shrink-wrapped.  For the *xy*\ , *yz*\ , *xz* parameters, the associated
+For the *x*, *y*, *z* parameters, the associated dimension cannot be
+shrink-wrapped.  For the *xy*, *yz*, *xz* parameters, the associated
 second dimension cannot be shrink-wrapped.  Dimensions not varied by this
 command can be periodic or non-periodic.  Dimensions corresponding to
 unspecified parameters can also be controlled by a :doc:`fix npt <fix_nh>` or :doc:`fix nph <fix_nh>` command.
@@ -127,29 +127,29 @@ and final values.
 
 ----------
 
-For the *x*\ , *y*\ , and *z* parameters, this is the meaning of their
+For the *x*, *y*, and *z* parameters, this is the meaning of their
 styles and values.
 
-The *final*\ , *delta*\ , *scale*\ , *vel*\ , and *erate* styles all change
+The *final*, *delta*, *scale*, *vel*, and *erate* styles all change
 the specified dimension of the box via "constant displacement" which
 is effectively a "constant engineering strain rate".  This means the
 box dimension changes linearly with time from its initial to final
 value.
 
-For style *final*\ , the final lo and hi box boundaries of a dimension
+For style *final*, the final lo and hi box boundaries of a dimension
 are specified.  The values can be in lattice or box distance units.
 See the discussion of the units keyword below.
 
-For style *delta*\ , plus or minus changes in the lo/hi box boundaries
+For style *delta*, plus or minus changes in the lo/hi box boundaries
 of a dimension are specified.  The values can be in lattice or box
 distance units.  See the discussion of the units keyword below.
 
-For style *scale*\ , a multiplicative factor to apply to the box length
+For style *scale*, a multiplicative factor to apply to the box length
 of a dimension is specified.  For example, if the initial box length
 is 10, and the factor is 1.1, then the final box length will be 11.  A
 factor less than 1.0 means compression.
 
-For style *vel*\ , a velocity at which the box length changes is
+For style *vel*, a velocity at which the box length changes is
 specified in units of distance/time.  This is effectively a "constant
 engineering strain rate", where rate = V/L0 and L0 is the initial box
 length.  The distance can be in lattice or box distance units.  See
@@ -207,7 +207,7 @@ triple every picosecond.  R = ln(0.99) means the box length will
 shrink by 1% of its current length every picosecond.  Note that for a
 "true" rate the change is continuous and based on the current length,
 so running with R = ln(2) for 10 picoseconds does not expand the box
-length by a factor of 11 as it would with *erate*\ , but by a factor of
+length by a factor of 11 as it would with *erate*, but by a factor of
 1024 since the box length will double every picosecond.
 
 Note that to change the volume (or cross-sectional area) of the
@@ -288,30 +288,30 @@ assume that the current timestep = 0.
    variable rate equal "2*PI*v_A/v_Tp * cos(2*PI * step*dt/v_Tp)"
    fix 2 all deform 1 x variable v_displace v_rate remap v
 
-For the *scale*\ , *vel*\ , *erate*\ , *trate*\ , *volume*\ , *wiggle*\ , and
+For the *scale*, *vel*, *erate*, *trate*, *volume*, *wiggle*, and
 *variable* styles, the box length is expanded or compressed around its
 mid point.
 
 ----------
 
-For the *xy*\ , *xz*\ , and *yz* parameters, this is the meaning of their
+For the *xy*, *xz*, and *yz* parameters, this is the meaning of their
 styles and values.  Note that changing the tilt factors of a triclinic
 box does not change its volume.
 
-The *final*\ , *delta*\ , *vel*\ , and *erate* styles all change the shear
+The *final*, *delta*, *vel*, and *erate* styles all change the shear
 strain at a "constant engineering shear strain rate".  This means the
 tilt factor changes linearly with time from its initial to final
 value.
 
-For style *final*\ , the final tilt factor is specified.  The value
+For style *final*, the final tilt factor is specified.  The value
 can be in lattice or box distance units.  See the discussion of the
 units keyword below.
 
-For style *delta*\ , a plus or minus change in the tilt factor is
+For style *delta*, a plus or minus change in the tilt factor is
 specified.  The value can be in lattice or box distance units.  See
 the discussion of the units keyword below.
 
-For style *vel*\ , a velocity at which the tilt factor changes is
+For style *vel*, a velocity at which the tilt factor changes is
 specified in units of distance/time.  This is effectively an
 "engineering shear strain rate", where rate = V/L0 and L0 is the
 initial box length perpendicular to the direction of shear.  The
@@ -449,7 +449,7 @@ example), then configurations with tilt = ..., -15, -5, 5, 15, 25,
 ... are all equivalent.
 
 To obey this constraint and allow for large shear deformations to be
-applied via the *xy*\ , *xz*\ , or *yz* parameters, the following
+applied via the *xy*, *xz*, or *yz* parameters, the following
 algorithm is used.  If *prd* is the associated parallel box length (10
 in the example above), then if the tilt factor exceeds the accepted
 range of -5 to 5 during the simulation, then the box is flipped to the
@@ -476,13 +476,13 @@ Each time the box size or shape is changed, the *remap* keyword
 determines whether atom positions are remapped to the new box.  If
 *remap* is set to *x* (the default), atoms in the fix group are
 remapped; otherwise they are not.  Note that their velocities are not
-changed, just their positions are altered.  If *remap* is set to *v*\ ,
+changed, just their positions are altered.  If *remap* is set to *v*,
 then any atom in the fix group that crosses a periodic boundary will
 have a delta added to its velocity equal to the difference in
 velocities between the lo and hi boundaries.  Note that this velocity
 difference can include tilt components, e.g. a delta in the x velocity
 when an atom crosses the y periodic boundary.  If *remap* is set to
-*none*\ , then neither of these remappings take place.
+*none*, then neither of these remappings take place.
 
 Conceptually, setting *remap* to *x* forces the atoms to deform via an
 affine transformation that exactly matches the box deformation.  This
@@ -529,20 +529,20 @@ box without explicit remapping of their coordinates.
 .. note::
 
    If a :doc:`fix rigid <fix_rigid>` is defined for rigid bodies, and
-   *remap* is set to *x*\ , then the center-of-mass coordinates of rigid
+   *remap* is set to *x*, then the center-of-mass coordinates of rigid
    bodies will be remapped to the changing simulation box.  This will be
    done regardless of whether atoms in the rigid bodies are in the fix
    deform group or not.  The velocity of the centers of mass are not
-   remapped even if *remap* is set to *v*\ , since :doc:`fix nvt/sllod <fix_nvt_sllod>` does not currently do anything special
+   remapped even if *remap* is set to *v*, since :doc:`fix nvt/sllod <fix_nvt_sllod>` does not currently do anything special
    for rigid particles.  If you wish to perform a NEMD simulation of
    rigid particles, you can either thermostat them independently or
    include a background fluid and thermostat the fluid via :doc:`fix nvt/sllod <fix_nvt_sllod>`.
 
 The *flip* keyword allows the tilt factors for a triclinic box to
 exceed half the distance of the parallel box length, as discussed
-above.  If the *flip* value is set to *yes*\ , the bound is enforced by
+above.  If the *flip* value is set to *yes*, the bound is enforced by
 flipping the box when it is exceeded.  If the *flip* value is set to
-*no*\ , the tilt will continue to change without flipping.  Note that if
+*no*, the tilt will continue to change without flipping.  Note that if
 you apply large deformations, this means the box shape can tilt
 dramatically LAMMPS will run less efficiently, due to the large volume
 of communication needed to acquire ghost atoms around a processor's
@@ -557,8 +557,8 @@ in lattice spacings.  The :doc:`lattice <lattice>` command must have
 been previously used to define the lattice spacing.  Note that the
 units choice also affects the *vel* style parameters since it is
 defined in terms of distance/time.  Also note that the units keyword
-does not affect the *variable* style.  You should use the *xlat*\ ,
-*ylat*\ , *zlat* keywords of the :doc:`thermo_style <thermo_style>`
+does not affect the *variable* style.  You should use the *xlat*,
+*ylat*, *zlat* keywords of the :doc:`thermo_style <thermo_style>`
 command if you want to include lattice spacings in a variable formula.
 
 ----------

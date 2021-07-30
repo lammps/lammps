@@ -41,10 +41,10 @@ The first half of the command mimics a standard fix npt command:
 
    fix 1 all bocs temp Tstart Tstop Tcoupl cgiso Pstart Pstop Pdamp
 
-The two differences are replacing *npt* with *bocs*\ , and replacing
+The two differences are replacing *npt* with *bocs*, and replacing
 *iso*\ /\ *aniso*\ /\ *etc* with *cgiso*\ .
 The rest of the command details what form you would like to use for
-the pressure correction equation. The choices are: *analytic*\ , *linear_spline*,
+the pressure correction equation. The choices are: *analytic*, *linear_spline*,
 or *cubic_spline*.
 
 With either spline method, the only argument that needs to follow it
@@ -58,7 +58,7 @@ as a function of volume. The file must be formatted so each line has:
 Note both the COMMA and the SPACE separating the volume's
 value and its corresponding pressure correction. The volumes in the file
 must be uniformly spaced. Both the volumes and the pressure corrections
-should be provided in the proper units, e.g. if you are using *units real*\ ,
+should be provided in the proper units, e.g. if you are using *units real*,
 the volumes should all be in cubic angstroms, and the pressure corrections
 should all be in atmospheres. Furthermore, the table should start/end at a
 volume considerably smaller/larger than you expect your system to sample
@@ -72,7 +72,7 @@ With the *analytic* option, the arguments are as follows:
    ... analytic V_avg N_particles N_coeff Coeff_1 Coeff_2 ... Coeff_N
 
 Note that *V_avg* and *Coeff_i* should all be in the proper units, e.g. if you
-are using *units real*\ , *V_avg* should be in cubic angstroms, and the
+are using *units real*, *V_avg* should be in cubic angstroms, and the
 coefficients should all be in atmospheres \* cubic angstroms.
 
 ----------
@@ -125,7 +125,7 @@ XXXX_press, where XXXX is the ID given to the fix bocs command (in the
 example, the ID of the fix bocs command is 1 ).
 
 This fix is part of the BOCS package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Further information
 """""""""""""""""""

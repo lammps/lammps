@@ -15,7 +15,7 @@ Sandia which provides tools for doing setup, analysis, plotting, and
 visualization for LAMMPS simulations.
 
 .. _lws: https://www.lammps.org
-.. _pizza: https://pizza.sandia.gov
+.. _pizza: https://lammps.github.io/pizza
 .. _python: https://www.python.org
 
 Additional tools included in the LAMMPS distribution are described on
@@ -76,7 +76,6 @@ Post-processing tools
    * :ref:`phonon <phonon>`
    * :ref:`pymol_asphere <pymol>`
    * :ref:`python <pythontools>`
-   * :ref:`reax <reax_tool>`
    * :ref:`replica <replica>`
    * :ref:`smd <smd>`
    * :ref:`spin <spin>`
@@ -364,7 +363,7 @@ michele.ceriotti at gmail.com, to interface to a variety of molecular
 dynamics codes.
 
 See the tools/i-pi/manual.pdf file for an overview of i-PI, and the
-:doc:`fix ipi <fix_ipi>` doc page for further details on running PIMD
+:doc:`fix ipi <fix_ipi>` page for further details on running PIMD
 calculations with LAMMPS.
 
 ----------
@@ -944,20 +943,6 @@ the README.md file for further details. Try out the peptide example provided.
 
 This tool was written by (and is maintained by) Tanmoy Sanyal,
 while at the Shell lab at UC Santa Barbara. (tanmoy dot 7989 at gmail.com)
-
-----------
-
-.. _reax_tool:
-
-reax tool
---------------------------
-
-The reax sub-directory contains stand-alone codes that can
-post-process the output of the :doc:`fix reax/c/bonds <fix_reaxc_bonds>`
-command from a LAMMPS simulation using :doc:`ReaxFF <pair_reaxc>`.  See
-the README.txt file for more info.
-
-These tools were written by Aidan Thompson at Sandia.
 
 ----------
 

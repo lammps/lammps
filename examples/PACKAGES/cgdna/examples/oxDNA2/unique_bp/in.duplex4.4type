@@ -1,33 +1,35 @@
-variable number	equal 1
-variable ofreq	equal 10000
-variable efreq	equal 10000
+variable number	equal 4
+variable ofreq	equal 1000
+variable efreq	equal 1000
 
 variable ntype equal 4
 
 variable T equal 0.1
+variable rhos   equal 0.2
 
 units lj
 
 dimension 3
 
-newton off
+newton on
 
 boundary  p p p
 
-atom_style hybrid bond ellipsoid
+atom_style hybrid bond ellipsoid oxdna
 atom_modify sort 0 1.0
 
 # Pair interactions require lists of neighbours to be calculated
-neighbor 1.0 bin 
+neighbor 2.0 bin 
 neigh_modify every 10 delay 0 check yes
 
 read_data data.duplex4.4type
+
 mass * 3.1575           # sets per-type mass if not in data file
 set atom * mass 3.1575  # sets per-atom mass
 
 group all type 1 4
 
-# oxDNA bond interactions - FENE backbone
+# oxDNA2 bond interactions - FENE backbone
 bond_style oxdna2/fene 
 bond_coeff * 2.0 0.25 0.7564
 special_bonds lj 0 1 1
@@ -52,28 +54,19 @@ jump in.duplex4.4type loop
 
 pair_coeff * * oxdna2/xstk    47.5 0.575 0.675 0.495 0.655 2.25 0.791592653589793 0.58 1.7 1.0 0.68 1.7 1.0 0.68 1.5 0 0.65 1.7 0.875 0.68 1.7 0.875 0.68 
 pair_coeff * * oxdna2/coaxstk 58.5 0.4 0.6 0.22 0.58 2.0 2.891592653589793 0.65 1.3 0 0.8 0.9 0 0.95 0.9 0 0.95 40.0 3.116592653589793
-pair_coeff * * oxdna2/dh      ${T} 0.2 0.815
+pair_coeff * * oxdna2/dh      ${T} ${rhos} 0.815
 
 # Langevin dynamics
 fix 1 all nve/asphere
-fix 2 all langevin ${T} ${T} 25.0 457145 angmom 10
+fix 2 all langevin ${T} ${T} 2.5 457145 angmom 10
 
-timestep 1e-4
+timestep 1e-5
 
 #comm_style tiled
-#fix 3 all balance 10000 1.1 rcb
-comm_modify cutoff 2.5
-
-#compute mol all chunk/atom molecule
-#compute mychunk all vcm/chunk mol
-#fix 4 all ave/time 10000 1 10000 c_mychunk[1] c_mychunk[2] c_mychunk[3] file vcm.txt mode vector
-
-#dump pos all xyz ${ofreq} traj.${number}.xyz
+fix 3 all balance 1000 1.03 shift xyz 10 1.03
+comm_modify cutoff 3.8
 
 compute quat all property/atom quatw quati quatj quatk
-#dump quat all custom ${ofreq} quat.${number}.txt id c_quat[1] c_quat[2] c_quat[3] c_quat[4]
-#dump_modify quat sort id
-#dump_modify quat format line "%d  %13.6le  %13.6le  %13.6le  %13.6le"
 
 compute erot all erotate/asphere
 compute ekin all ke
@@ -84,14 +77,11 @@ variable epot equal c_epot
 variable etot equal c_erot+c_ekin+c_epot
 fix 5 all print ${efreq} "$(step)  ekin = ${ekin} |  erot = ${erot} | epot = ${epot} | etot = ${etot}" screen yes
 
-dump out all custom ${ofreq} out.${number}.txt id mol type x y z ix iy iz c_quat[1] c_quat[2] c_quat[3] c_quat[4]  vx vy vz 
+dump out all custom ${ofreq} out.${number}.lammpstrj id mol type x y z ix iy iz vx vy vz c_quat[1] c_quat[2] c_quat[3] c_quat[4] angmomx angmomy angmomz
 dump_modify out sort id
-dump_modify out format line "%d %d %d  %13.6le %13.6le %13.6le %d %d %d  %13.6le %13.6le %13.6le  %13.6le %13.6le %13.6le  %13.6le "
+dump_modify out format line "%d %d %d  %22.15le %22.15le %22.15le  %d %d %d  %22.15le %22.15le %22.15le  %22.15le %22.15le %22.15le %22.15le  %22.15le %22.15le %22.15le"
 
-#restart 10000 config0_restart config1_restart
+run 1000000
 
-run 100000
-
-#write_restart config.${number}.*
-
-
+write_data last_config.${number}.* nocoeff
+#write_restart last_config.${number}.*

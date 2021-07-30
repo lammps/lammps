@@ -292,8 +292,9 @@ void PairAIREBOIntel::compute(
   ev_init(eflag,vflag);
   if (vflag_atom)
     error->all(FLERR,"INTEL package does not support per-atom stress");
-  if (vflag && !vflag_fdotr)
-    error->all(FLERR,"INTEL package does not support pair_modify nofdotr");
+  if (vflag && !vflag_fdotr && force->newton_pair)
+    error->all(FLERR,"INTEL package does not support pair_modify nofdotr "
+               "with newton on");
 
   pvector[0] = pvector[1] = pvector[2] = 0.0;
 
@@ -2332,7 +2333,7 @@ static void aut_rebo_neigh(KernelArgsAIREBOT<flt_t,acc_t> * ka) {
     int n_skin = 0;
 
     int lowest_idx;
-    #pragma unroll(4)
+    //#pragma unroll(4)
     for (lowest_idx = 0; lowest_idx < jnum; lowest_idx += fvec::VL) {
       bvec j_mask = bvec::full();
       if (lowest_idx + fvec::VL > jnum) j_mask = bvec::only(jnum - lowest_idx);

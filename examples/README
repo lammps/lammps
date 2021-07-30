@@ -5,8 +5,7 @@ problems you can run with LAMMPS.
 
 lower-case directories = simple test problems for LAMMPS and its packages
 upper-case directories = more complex problems
-PACKAGES directory with its own sub-directories = tests for specific packages
-USER-MISC directory with its own sub-directories = tests for commands in USER-MISC package
+PACKAGES directory with its own sub-directories = tests for styles from specific packages
 
 Each is discussed below.
 
@@ -103,7 +102,7 @@ pour:     pouring of granular particles into a 3d box, then chute flow
 prd:      parallel replica dynamics of vacancy diffusion in bulk Si
 python:   use of PYTHON package to invoke Python code from input script
 qeq:      use of QEQ package for charge equilibration
-reax:     RDX and TATB and several other models using ReaxFF
+reaxff:   RDX and TATB and several other models using ReaxFF
 rerun:    use of rerun and read_dump commands
 rigid:    rigid bodies modeled as independent or coupled
 shear:    sideways shear applied to 2d solid, with and without a void
@@ -172,10 +171,12 @@ energy-evaluation engine in a iterative Monte Carlo energy-relaxation
 loop.
 
 The PACKAGES directory contains subdirectories of example scripts for
-individual packages. Most of those are contributed by the corresponding
-package developers. See the README files in those directories
-for more info.  See the doc/html/Build_package.html file for more info
-about installing and building packages.
+individual packages or additional individual styles. Most of those are
+contributed by the corresponding package or style developers.
+See the README files in those directories (if available) or the
+corresponding doc page in the manual for more info.  See the
+https://docs.lammps.org/Build_package.html page for more info about
+installing and building packages.
 
 The TIP4P directory has an example for testing forces computed on a
 GPU.
@@ -185,12 +186,6 @@ same Lennard-Jones liquid model, written in 3 different unit systems:
 lj, real, and metal.  So that you can see how to scale/unscale input
 and output values read/written by LAMMPS to verify you are performing
 the same simulation in different unit systems.
-
-The USER-MISC directory contains subdirectories of example scripts for
-individual commands in the USER-MISC package. Most of those are contributed
-by the corresponding developers. See the README files in those directories
-for more info.  See the doc/html/Build_package.html file for more info
-about installing and building packages.
 
 The VISCOSITY directory has example scripts for computing the
 viscosity of a LJ liquid using 4 different methods.  See the

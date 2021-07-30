@@ -29,7 +29,7 @@ OPT.
    * :doc:`hybrid/scaled <pair_hybrid>`
    * :doc:`kim <pair_kim>`
    * :doc:`list <pair_list>`
-   *
+   * :doc:`tracker <pair_tracker>`
    *
    *
    *
@@ -235,7 +235,7 @@ OPT.
    * :doc:`python <pair_python>`
    * :doc:`quip <pair_quip>`
    * :doc:`rann <pair_rann>`
-   * :doc:`reax/c (ko) <pair_reaxc>`
+   * :doc:`reaxff (ko) <pair_reaxff>`
    * :doc:`rebo (io) <pair_airebo>`
    * :doc:`resquared (go) <pair_resquared>`
    * :doc:`sdpd/taitwater/isothermal <pair_sdpd_taitwater_isothermal>`

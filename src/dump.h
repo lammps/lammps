@@ -79,6 +79,8 @@ class Dump : protected Pointers {
   int unit_flag;            // 1 if dump should contain unit information
   int unit_count;           // # of times the unit information was written
   int delay_flag;           // 1 if delay output until delaystep
+  int write_header_flag;    // 1 if write header, 0 if not
+
   bigint delaystep;
 
   int refreshflag;    // 1 if dump_modify refresh specified

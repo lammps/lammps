@@ -77,7 +77,7 @@ Style *vector* imposes an acceleration in the vector direction given
 by (x,y,z).  Only the direction of the vector is important; it's
 length is ignored.  For 2d systems, the *z* component is ignored.
 
-Any of the quantities *magnitude*\ , *angle*\ , *phi*\ , *theta*\ , *x*\ , *y*\ ,
+Any of the quantities *magnitude*, *angle*, *phi*, *theta*, *x*, *y*,
 *z* which define the gravitational magnitude and direction, can be
 specified as an equal-style :doc:`variable <variable>`.  If the value is
 a variable, it should be specified as v_name, where name is the

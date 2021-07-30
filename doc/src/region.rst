@@ -147,24 +147,24 @@ non-zero, then xlo and xhi cannot both be INF, nor can ylo and yhi.
    define the region so that its intersection with the 2d x-y plane of
    the simulation has the 2d geometric extent you want.
 
-For style *cone*\ , an axis-aligned cone is defined which is like a
+For style *cone*, an axis-aligned cone is defined which is like a
 *cylinder* except that two different radii (one at each end) can be
 defined.  Either of the radii (but not both) can be 0.0.
 
-For style *cone* and *cylinder*\ , the c1,c2 params are coordinates in
+For style *cone* and *cylinder*, the c1,c2 params are coordinates in
 the 2 other dimensions besides the cylinder axis dimension.  For dim =
 x, c1/c2 = y/z; for dim = y, c1/c2 = x/z; for dim = z, c1/c2 = x/y.
 Thus the third example above specifies a cylinder with its axis in the
 y-direction located at x = 2.0 and z = 3.0, with a radius of 5.0, and
 extending in the y-direction from -5.0 to the upper box boundary.
 
-For style *plane*\ , a plane is defined which contain the point
+For style *plane*, a plane is defined which contain the point
 (px,py,pz) and has a normal vector (nx,ny,nz).  The normal vector does
 not have to be of unit length.  The "inside" of the plane is the
 half-space in the direction of the normal vector; see the discussion
 of the *side* option below.
 
-For style *prism*\ , a parallelepiped is defined (it's too hard to spell
+For style *prism*, a parallelepiped is defined (it's too hard to spell
 parallelepiped in an input script!).  The parallelepiped has its
 "origin" at (xlo,ylo,zlo) and is defined by 3 edge vectors starting
 from the origin given by A = (xhi-xlo,0,0); B = (xy,yhi-ylo,0); C =
@@ -200,7 +200,7 @@ keywords for the simulation box parameters and timestep and elapsed
 time.  Thus it is easy to specify a time-dependent radius or have
 a time dependent position of the sphere or cylinder region.
 
-See the :doc:`Howto tricilinc <Howto_triclinic>` doc page for a
+See the :doc:`Howto tricilinc <Howto_triclinic>` page for a
 geometric description of triclinic boxes, as defined by LAMMPS, and
 how to transform these parameters to and from other commonly used
 triclinic representations.
@@ -239,25 +239,25 @@ A *lattice* value means the distance units are in lattice spacings.
 The :doc:`lattice <lattice>` command must have been previously used to
 define the lattice spacings which are used as follows:
 
-* For style *block*\ , the lattice spacing in dimension x is applied to
+* For style *block*, the lattice spacing in dimension x is applied to
   xlo and xhi, similarly the spacings in dimensions y,z are applied to
   ylo/yhi and zlo/zhi.
-* For style *cone*\ , the lattice spacing in argument *dim* is applied to
+* For style *cone*, the lattice spacing in argument *dim* is applied to
   lo and hi.  The spacings in the two radial dimensions are applied to
   c1 and c2.  The two cone radii are scaled by the lattice
   spacing in the dimension corresponding to c1.
-* For style *cylinder*\ , the lattice spacing in argument *dim* is applied
+* For style *cylinder*, the lattice spacing in argument *dim* is applied
   to lo and hi.  The spacings in the two radial dimensions are applied
   to c1 and c2.  The cylinder radius is scaled by the lattice
   spacing in the dimension corresponding to c1.
-* For style *plane*\ , the lattice spacing in dimension x is applied to
+* For style *plane*, the lattice spacing in dimension x is applied to
   px and nx, similarly the spacings in dimensions y,z are applied to
   py/ny and pz/nz.
-* For style *prism*\ , the lattice spacing in dimension x is applied to
+* For style *prism*, the lattice spacing in dimension x is applied to
   xlo and xhi, similarly for ylo/yhi and zlo/zhi.  The lattice spacing
   in dimension x is applied to xy and xz, and the spacing in dimension y
   to yz.
-* For style *sphere*\ , the lattice spacing in dimensions x,y,z are
+* For style *sphere*, the lattice spacing in dimensions x,y,z are
   applied to the sphere center x,y,z.  The spacing in dimension x is
   applied to the sphere radius.
 
@@ -311,7 +311,7 @@ angle is calculated, presumably as a function of time, by a variable
 specified as v_theta, where theta is the variable name.  The variable
 should generate its result in radians.  The direction of rotation for
 the region around the rotation axis is consistent with the right-hand
-rule: if your right-hand thumb points along *R*\ , then your fingers
+rule: if your right-hand thumb points along *R*, then your fingers
 wrap around the axis in the direction of rotation.
 
 The *move* and *rotate* keywords can be used together.  In this case,
@@ -341,25 +341,25 @@ sub-regions that use them.
 The indices specified as part of the *open* keyword have the following
 meanings:
 
-For style *block*\ , indices 1-6 correspond to the xlo, xhi, ylo, yhi,
+For style *block*, indices 1-6 correspond to the xlo, xhi, ylo, yhi,
 zlo, zhi surfaces of the block.  I.e. 1 is the yz plane at x = xlo, 2
 is the yz-plane at x = xhi, 3 is the xz plane at y = ylo, 4 is the xz
 plane at y = yhi, 5 is the xy plane at z = zlo, 6 is the xy plane at z
 = zhi).  In the second-to-last example above, the region is a box open
 at both xy planes.
 
-For style *prism*\ , values 1-6 have the same mapping as for style
-*block*\ .  I.e. in an untilted *prism*\ , *open* indices correspond to
+For style *prism*, values 1-6 have the same mapping as for style
+*block*\ .  I.e. in an untilted *prism*, *open* indices correspond to
 the xlo, xhi, ylo, yhi, zlo, zhi surfaces.
 
-For style *cylinder*\ , index 1 corresponds to the flat end cap at the
+For style *cylinder*, index 1 corresponds to the flat end cap at the
 low coordinate along the cylinder axis, index 2 corresponds to the
 high-coordinate flat end cap along the cylinder axis, and index 3 is
 the curved cylinder surface.  For example, a *cylinder* region with
 *open 1 open 2* keywords will be open at both ends (e.g. a section of
 pipe), regardless of the cylinder orientation.
 
-For style *cone*\ , the mapping is the same as for style *cylinder*\ .
+For style *cone*, the mapping is the same as for style *cylinder*\ .
 Index 1 is the low-coordinate flat end cap, index 2 is the
 high-coordinate flat end cap, and index 3 is the curved cone surface.
 In the last example above, a *cone* region is defined along the z-axis
@@ -371,7 +371,7 @@ sub-regions can be defined with the *open* keyword.
 
 ----------
 
-Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
+Styles with a *gpu*, *intel*, *kk*, *omp*, or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
 They have been optimized to run faster, depending on your available
 hardware, as discussed on the :doc:`Speed packages <Speed_packages>` doc
@@ -383,13 +383,13 @@ by Kokkos or no acceleration will occur. Currently, only *block* style
 regions are supported by Kokkos.
 
 These accelerated styles are part of the Kokkos package.  They are
-only enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+only enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
 :doc:`suffix <suffix>` command in your input script.
 
-See the :doc:`Speed packages <Speed_packages>` doc page for more
+See the :doc:`Speed packages <Speed_packages>` page for more
 instructions on how to use the accelerated styles effectively.
 
 ----------

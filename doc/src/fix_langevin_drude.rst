@@ -100,7 +100,7 @@ transform:
     f = \frac m {M'}\, F' + f'
 
 This fix also thermostats non-polarizable atoms in the group at
-temperature *Tcom*\ , as if they had a massless Drude partner.  The
+temperature *Tcom*, as if they had a massless Drude partner.  The
 Drude particles themselves need not be in the group. The center of
 mass and the dipole are thermostatted iff the core atom is in the
 group.
@@ -122,7 +122,7 @@ from them before thermostatting takes place; see the description below.
    Likewise, this fix should not normally be used on atoms that also have
    their temperature controlled by another fix - e.g. by :doc:`fix nvt <fix_nh>` or :doc:`fix temp/rescale <fix_temp_rescale>` commands.
 
-See the :doc:`Howto thermostat <Howto_thermostat>` doc page for a
+See the :doc:`Howto thermostat <Howto_thermostat>` page for a
 discussion of different ways to compute temperature and perform
 thermostatting.
 
@@ -207,7 +207,7 @@ thermostat on centers of mass. Because the random forces on different
 centers of mass are independent, they do not sum exactly to zero.  As
 a result, this fix applies a small random force to the entire system,
 and the momentum of the total center of mass of the system undergoes a
-slow random walk.  If the keyword *zero* is set to *yes*\ , the total
+slow random walk.  If the keyword *zero* is set to *yes*, the total
 random force on the centers of mass is set exactly to zero by
 subtracting off an equal part of it from each center of mass in the
 group. As a result, the total center of mass of a system with zero
@@ -239,7 +239,7 @@ Comments:
 * *zero yes* avoids a drift of the center of mass of
   the system, but is a bit slower.
 * Use two different random seeds to avoid unphysical correlations.
-* Temperature is controlled by the fix *langevin/drude*\ , so the
+* Temperature is controlled by the fix *langevin/drude*, so the
   time-integration fixes do not thermostat.  Don't forget to
   time-integrate both cores and Drude particles.
 * Pressure is time-integrated only once by using *nve* for Drude
@@ -251,7 +251,7 @@ Comments:
   fix *npt* and :doc:`fix drude/transform <fix_drude_transform>`, the
   *fix_modify* command is not required here, because the fix *nph*
   computes the global pressure even if its group is *ATOMS*\ . This is
-  what we want. If we thermostatted *ATOMS* using *npt*\ , the pressure
+  what we want. If we thermostatted *ATOMS* using *npt*, the pressure
   should be the global one, but the temperature should be only that of
   the cores. That's why the command *fix_modify* should be called in
   that case.

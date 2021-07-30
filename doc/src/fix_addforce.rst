@@ -48,8 +48,8 @@ atoms in a simulation, such as for a simulation of Poiseuille flow in
 a channel.
 
 Any of the 3 quantities defining the force components can be specified
-as an equal-style or atom-style :doc:`variable <variable>`, namely *fx*\ ,
-*fy*\ , *fz*\ .  If the value is a variable, it should be specified as
+as an equal-style or atom-style :doc:`variable <variable>`, namely *fx*,
+*fy*, *fz*\ .  If the value is a variable, it should be specified as
 v_name, where name is the variable name.  In this case, the variable
 will be evaluated each timestep, and its value(s) used to determine
 the force component.
@@ -98,7 +98,7 @@ one or more variables, and you are performing energy minimization via
 the "minimize" command.  The keyword specifies the name of an
 atom-style :doc:`variable <variable>` which is used to compute the
 energy of each atom as function of its position.  Like variables used
-for *fx*\ , *fy*\ , *fz*\ , the energy variable is specified as v_name,
+for *fx*, *fy*, *fz*, the energy variable is specified as v_name,
 where name is the variable name.
 
 Note that when the *energy* keyword is used during an energy

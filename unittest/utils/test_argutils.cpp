@@ -51,10 +51,10 @@ TEST(ArgInfo, compute0)
 
 TEST(ArgInfo, compute1)
 {
-    ArgInfo arg("c_1[5]", ArgInfo::COMPUTE);
+    ArgInfo arg("c_1[15]", ArgInfo::COMPUTE);
     ASSERT_EQ(arg.get_dim(), 1);
     ASSERT_EQ(arg.get_type(), ArgInfo::COMPUTE);
-    ASSERT_EQ(arg.get_index1(), 5);
+    ASSERT_EQ(arg.get_index1(), 15);
     ASSERT_EQ(arg.get_index2(), -1);
     ASSERT_THAT(arg.get_name(), StrEq("1"));
 }
@@ -66,6 +66,26 @@ TEST(ArgInfo, compute2)
     ASSERT_EQ(arg.get_type(), ArgInfo::COMPUTE);
     ASSERT_EQ(arg.get_index1(), 2);
     ASSERT_EQ(arg.get_index2(), 5);
+    ASSERT_THAT(arg.get_name(), StrEq("text"));
+}
+
+TEST(ArgInfo, compute3)
+{
+    ArgInfo arg("c_text[08123][51]", ArgInfo::COMPUTE | ArgInfo::FIX);
+    ASSERT_EQ(arg.get_dim(), 2);
+    ASSERT_EQ(arg.get_type(), ArgInfo::COMPUTE);
+    ASSERT_EQ(arg.get_index1(), 8123);
+    ASSERT_EQ(arg.get_index2(), 51);
+    ASSERT_THAT(arg.get_name(), StrEq("text"));
+}
+
+TEST(ArgInfo, compute4)
+{
+    ArgInfo arg("c_text[111][0125]", ArgInfo::COMPUTE | ArgInfo::FIX);
+    ASSERT_EQ(arg.get_dim(), 2);
+    ASSERT_EQ(arg.get_type(), ArgInfo::COMPUTE);
+    ASSERT_EQ(arg.get_index1(), 111);
+    ASSERT_EQ(arg.get_index2(), 125);
     ASSERT_THAT(arg.get_name(), StrEq("text"));
 }
 
@@ -96,6 +116,26 @@ TEST(ArgInfo, fix2)
     ASSERT_EQ(arg.get_type(), ArgInfo::FIX);
     ASSERT_EQ(arg.get_index1(), 2);
     ASSERT_EQ(arg.get_index2(), 5);
+    ASSERT_THAT(arg.get_name(), StrEq("text"));
+}
+
+TEST(ArgInfo, fix3)
+{
+    ArgInfo arg("f_text[1234][5]", ArgInfo::FIX);
+    ASSERT_EQ(arg.get_dim(), 2);
+    ASSERT_EQ(arg.get_type(), ArgInfo::FIX);
+    ASSERT_EQ(arg.get_index1(), 1234);
+    ASSERT_EQ(arg.get_index2(), 5);
+    ASSERT_THAT(arg.get_name(), StrEq("text"));
+}
+
+TEST(ArgInfo, fix4)
+{
+    ArgInfo arg("f_text[22][120]", ArgInfo::FIX);
+    ASSERT_EQ(arg.get_dim(), 2);
+    ASSERT_EQ(arg.get_type(), ArgInfo::FIX);
+    ASSERT_EQ(arg.get_index1(), 22);
+    ASSERT_EQ(arg.get_index2(), 120);
     ASSERT_THAT(arg.get_name(), StrEq("text"));
 }
 
@@ -169,19 +209,25 @@ TEST(ArgInfo, unsupported3)
 
 TEST(ArgInfo, no_bracket1)
 {
-    ArgInfo arg("v_text[2");
+    ArgInfo arg("v_text[22");
     ASSERT_EQ(arg.get_type(), ArgInfo::UNKNOWN);
 }
 
 TEST(ArgInfo, no_bracket2)
 {
-    ArgInfo arg("v_text[2][1");
+    ArgInfo arg("v_text[123][12");
     ASSERT_EQ(arg.get_type(), ArgInfo::UNKNOWN);
 }
 
 TEST(ArgInfo, no_bracket3)
 {
-    ArgInfo arg("v_text[2[1]");
+    ArgInfo arg("v_text[2[11]");
+    ASSERT_EQ(arg.get_type(), ArgInfo::UNKNOWN);
+}
+
+TEST(ArgInfo, no_bracket4)
+{
+    ArgInfo arg("v_text[25]021]");
     ASSERT_EQ(arg.get_type(), ArgInfo::UNKNOWN);
 }
 

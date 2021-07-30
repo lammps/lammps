@@ -85,7 +85,11 @@ struct vector_ops {};
 // Intrinsic routines for IMCI and AVX-512
 #if defined(__MIC__) || defined(__AVX512F__)
 // Integer vector class
+#ifdef __INTEL_LLVM_COMPILER
+#pragma pack(push,16)
+#else
 #pragma pack(push,64)
+#endif
 struct ivec32x16 {
   __m512i vec;
   ivec32x16() {}
@@ -113,7 +117,7 @@ struct vector_ops<double, KNC> {
     typedef double fscal;
     typedef F64vec8 fvec;
     typedef ivec32x16 ivec;
-    typedef __mmask bvec;
+    typedef __mmask16 bvec;
     typedef double farr[8] __attribute__((aligned(64)));
     typedef int iarr[16] __attribute__((aligned(64)));
     static fvec recip(const fvec &a) { return _mm512_recip_pd(a); }
@@ -123,7 +127,8 @@ struct vector_ops<double, KNC> {
     }
     template<int scale>
     static fvec gather(const fvec &from, bvec mask, const ivec &idx, const void *base) {
-      return _mm512_mask_i32logather_pd(from, mask, idx, base, scale);
+      return _mm512_mask_i32gather_pd(from, mask, _mm512_castsi512_si256(idx),
+                                      base, scale);
     }
     static fvec blend(const bvec &mask, const fvec &a, const fvec &b) {
       return _mm512_mask_blend_pd(mask, a, b);
@@ -250,7 +255,7 @@ struct vector_ops<float, KNC> {
     typedef float fscal;
     typedef F32vec16 fvec;
     typedef ivec32x16 ivec;
-    typedef __mmask bvec;
+    typedef __mmask16 bvec;
     typedef float farr[16] __attribute__((aligned(64)));
     typedef int iarr[16] __attribute__((aligned(64)));
     static const bvec full_mask = 0xFFFF;
@@ -380,16 +385,18 @@ struct vector_ops<float, KNC> {
       *r3 = gather<4>(*r3, mask, idxs, reinterpret_cast<const char *>(base) + 12);
     }
     // Additional routines needed for the implementation of mixed precision
-    static fvec cvtdown(const vector_ops<double,KNC>::fvec &lo, const vector_ops<double,KNC>::fvec &hi) {
+    static fvec cvtdown(const vector_ops<double,KNC>::fvec &lo,
+                        const vector_ops<double,KNC>::fvec &hi) {
       __m512 t1 = _mm512_cvtpd_pslo(lo);
       __m512 t2 = _mm512_cvtpd_pslo(hi);
-      return _mm512_mask_permute4f128_ps(t1, 0xFF00, t2, _MM_PERM_BADC);
+      return _mm512_mask_shuffle_f32x4(_mm512_undefined_ps(), 0xFF00, t2, t2,
+                                       0x4E);
     }
     static vector_ops<double,KNC>::fvec cvtup_lo(const fvec &a) {
       return _mm512_cvtpslo_pd(a);
     }
     static vector_ops<double,KNC>::fvec cvtup_hi(const fvec &a) {
-      return _mm512_cvtpslo_pd(_mm512_permute4f128_ps(a, _MM_PERM_BADC)); // permute DCBA -> BADC
+      return _mm512_cvtpslo_pd(_mm512_shuffle_f32x4(a, a, 0x4E));
     }
     static void mask_cvtup(const bvec &a, vector_ops<double,KNC>::bvec *blo, vector_ops<double,KNC>::bvec *bhi) {
       *blo = a & 0xFF;
@@ -1692,7 +1699,7 @@ struct vector_ops<flt_t, NONE> {
     typedef flt_t fscal;
     typedef flt_t fvec;
     typedef int ivec;
-    typedef bool bvec;
+    typedef int bvec;
     typedef flt_t farr[1];
     typedef int iarr[1];
     static fvec recip(const fvec &a) {

@@ -189,7 +189,7 @@ executed.
    override a corresponding index variable setting in the input script.
 
 There are two exceptions to this rule.  First, variables of style
-*string*\ , *getenv*\ , *internal*\ , *equal*\ , *vector*\ , *atom*\ , and
+*string*, *getenv*, *internal*, *equal*, *vector*, *atom*, and
 *python* ARE redefined each time the command is encountered.  This
 allows these style of variables to be redefined multiple times in an
 input script.  In a loop, this means the formula associated with an
@@ -204,14 +204,14 @@ the same thing.
 
 ----------
 
-The :doc:`Commands parse <Commands_parse>` doc page explains how
+The :doc:`Commands parse <Commands_parse>` page explains how
 occurrences of a variable name in an input script line are replaced by
 the variable's string.  The variable name can be referenced as $x if
 the name "x" is a single character, or as ${LoopVar} if the name
 "LoopVar" is one or more characters.
 
-As described below, for variable styles *index*\ , *loop*\ , *file*\ ,
-*universe*\ , and *uloop*\ , which string is assigned to a variable can be
+As described below, for variable styles *index*, *loop*, *file*,
+*universe*, and *uloop*, which string is assigned to a variable can be
 incremented via the :doc:`next <next>` command.  When there are no more
 strings to assign, the variable is exhausted and a flag is set that
 causes the next :doc:`jump <jump>` command encountered in the input
@@ -439,7 +439,7 @@ compute, fix, or other vector-style variable.  For *atom*\ -style
 variables the formula computes one quantity for each atom whenever it
 is evaluated.
 
-Note that *equal*\ , *vector*\ , and *atom* variables can produce
+Note that *equal*, *vector*, and *atom* variables can produce
 different values at different stages of the input script or at
 different times during a run.  For example, if an *equal* variable is
 used in a :doc:`fix print <fix_print>` command, different values could
@@ -451,7 +451,7 @@ of Variables".
 The next command cannot be used with *equal* or *vector* or *atom*
 style variables, since there is only one string.
 
-The formula for an *equal*\ , *vector*\ , or *atom* variable can contain a
+The formula for an *equal*, *vector*, or *atom* variable can contain a
 variety of quantities.  The syntax for each kind of quantity is
 simple, but multiple quantities can be nested and combined in various
 ways to build up formulas of arbitrary complexity.  For example, this
@@ -527,8 +527,8 @@ Numbers can contain digits, scientific notation
 (3.0e20,3.0e-20,3.0E20,3.0E-20), and leading minus signs.
 
 Constants are set at compile time and cannot be changed. *PI* will
-return the number 3.14159265358979323846; *on*\ , *true* or *yes* will
-return 1.0; *off*\ , *false* or *no* will return 0.0; *version* will
+return the number 3.14159265358979323846; *on*, *true* or *yes* will
+return 1.0; *off*, *false* or *no* will return 0.0; *version* will
 return a numeric version code of the current LAMMPS version (e.g.
 version 2 Sep 2015 will return the number 20150902). The corresponding
 value for newer versions of LAMMPS will be larger, for older versions
@@ -788,7 +788,7 @@ Group and Region Functions
 Group functions are specified as keywords followed by one or two
 parenthesized arguments.  The first argument *ID* is the group-ID.
 The *dim* argument, if it exists, is *x* or *y* or *z*\ .  The *dir*
-argument, if it exists, is *xmin*\ , *xmax*\ , *ymin*\ , *ymax*\ , *zmin*\ , or
+argument, if it exists, is *xmin*, *xmax*, *ymin*, *ymax*, *zmin*, or
 *zmax*\ .  The *dimdim* argument, if it exists, is *xx* or *yy* or *zz*
 or *xy* or *yz* or *xz*\ .
 
@@ -958,21 +958,21 @@ Example 2: use r-RESPA with inner/outer cutoff, if supported by pair style, othe
    timestep $(2.0*(1.0+2.0*is_active(pair,respa))
    if $(is_active(pair,respa)) then "run_style respa 4 3 2 2  improper 1 inner 2 5.5 7.0 outer 3 kspace 4" else "run_style respa 3 3 2  improper 1 pair 2 kspace 3"
 
-The *is_defined()* function allows to query categories like *compute*\ ,
-*dump*\ , *fix*\ , *group*\ , *region*\ , and *variable* whether an entry
+The *is_defined()* function allows to query categories like *compute*,
+*dump*, *fix*, *group*, *region*, and *variable* whether an entry
 with the provided name or id is defined.
 
 The *is_available(category,name)* function allows to query whether
 a specific optional feature is available, i.e. compiled in.
-This currently works for the following categories: *command*\ ,
-*compute*\ , *fix*\ , *pair_style* and *feature*\ . For all categories
+This currently works for the following categories: *command*,
+*compute*, *fix*, *pair_style* and *feature*\ . For all categories
 except *command* and *feature* also appending active suffixes is
 tried before reporting failure.
 
 The *feature* category is used to check the availability of compiled in
 features such as GZIP support, PNG support, JPEG support, FFMPEG support,
 and C++ exceptions for error handling. Corresponding values for name are
-*gzip*\ , *png*\ , *jpeg*\ , *ffmpeg* and *exceptions*\ .
+*gzip*, *png*, *jpeg*, *ffmpeg* and *exceptions*\ .
 
 This enables writing input scripts which only dump using a given format if
 the compiled binary supports it.
@@ -1025,7 +1025,7 @@ Compute References
 Compute references access quantities calculated by a
 :doc:`compute <compute>`.  The ID in the reference should be replaced by
 the ID of a compute defined elsewhere in the input script.  As
-discussed in the doc page for the :doc:`compute <compute>` command,
+discussed in the page for the :doc:`compute <compute>` command,
 computes can produce global, per-atom, or local values.  Only global
 and per-atom values can be used in a variable.  Computes can also
 produce a scalar, vector, or array.
@@ -1086,7 +1086,7 @@ Fix References
 
 Fix references access quantities calculated by a :doc:`fix <compute>`.
 The ID in the reference should be replaced by the ID of a fix defined
-elsewhere in the input script.  As discussed in the doc page for the
+elsewhere in the input script.  As discussed in the page for the
 :doc:`fix <fix>` command, fixes can produce global, per-atom, or local
 values.  Only global and per-atom values can be used in a variable.
 Fixes can also produce a scalar, vector, or array.  An equal-style
@@ -1198,7 +1198,7 @@ Immediate Evaluation of Variables
 
 If you want an equal-style variable to be evaluated immediately, it
 may be the case that you do not need to define a variable at all.  See
-the :doc:`Commands parse <Commands_parse>` doc page for info on how to
+the :doc:`Commands parse <Commands_parse>` page for info on how to
 use "immediate" variables in an input script, specified as $(formula)
 with parenthesis, where the formula has the same syntax as equal-style
 variables described on this page.  This effectively evaluates a

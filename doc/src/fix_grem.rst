@@ -66,7 +66,7 @@ processors be on the order of the number of desired replicas. A
 100-replica simulation would require at least 100 processors (1 per
 world at minimum). If many replicas are needed on a small number of
 processors, multi-replica runs can be run outside of LAMMPS.  An
-example of this can be found in examples/USER-MISC/grem and has no
+example of this can be found in examples/PACKAGES/grem and has no
 limit on the number of replicas per processor. However, this is very
 inefficient and error prone and should be avoided if possible.
 
@@ -100,8 +100,8 @@ fix is "intensive".
 Restrictions
 """"""""""""
 
-This fix is part of the USER-MISC package. It is only enabled if
-LAMMPS was built with that package. See the :doc:`Build package <Build_package>` doc page for more info.
+This fix is part of the REPLICA package. It is only enabled if
+LAMMPS was built with that package. See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

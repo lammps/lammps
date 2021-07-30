@@ -213,7 +213,7 @@ which can be accessed by indices 1-6 by any command that uses per-atom
 values from a compute as input.  Compute *centroid/stress/atom*
 produces a per-atom array with 9 columns, but otherwise can be used in
 an identical manner to compute *stress/atom*.  See the :doc:`Howto
-output <Howto_output>` doc page for an overview of LAMMPS output
+output <Howto_output>` page for an overview of LAMMPS output
 options.
 
 The ordering of the 6 columns for *stress/atom* is as follows: xx, yy,

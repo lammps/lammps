@@ -122,6 +122,10 @@ class Atom : protected Pointers {
   double **cs, **csforce, **vforce;
   int *etag;
 
+  // CG-DNA package
+
+  tagint *id5p;
+
   // DPD-REACT package
 
   double *uCond, *uMech, *uChem, *uCGnew, *uCG;
@@ -275,7 +279,7 @@ class Atom : protected Pointers {
   // functions
 
   Atom(class LAMMPS *);
-  ~Atom();
+  virtual ~Atom();
 
   void settings(class Atom *);
   void peratom_create();
@@ -364,12 +368,12 @@ class Atom : protected Pointers {
       return -1;
   };
 
-  void map_init(int check = 1);
-  void map_clear();
-  void map_set();
+  virtual void map_init(int check = 1);
+  virtual void map_clear();
+  virtual void map_set();
   void map_one(tagint, int);
   int map_style_set();
-  void map_delete();
+  virtual void map_delete();
   int map_find_hash(tagint);
 
  protected:

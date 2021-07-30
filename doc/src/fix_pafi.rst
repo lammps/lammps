@@ -45,7 +45,7 @@ projection is also calculated, whose time integral can be shown to be equal to
 the true free energy gradient along the minimum free energy path local to the reference pathway.
 A detailed discussion of the projection technique can be found in :ref:`(Swinburne) <Swinburne>`.
 
-This fix can be used with LAMMPS as demonstrated in examples/USER-MISC/pafi,
+This fix can be used with LAMMPS as demonstrated in examples/PACKAGES/pafi,
 though it is primarily intended to be coupled with the PAFI C++ code, developed
 at `https://github.com/tomswinburne/pafi <https://github.com/tomswinburne/pafi>`_,
 which distributes multiple LAMMPS workers in parallel to compute and collate
@@ -84,8 +84,8 @@ This fix produces a global vector each timestep which can be accessed by various
 Restrictions
 """"""""""""
 
-This fix is part of the USER-MISC package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+This fix is part of the EXTRA-FIX package.  It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 
 Default

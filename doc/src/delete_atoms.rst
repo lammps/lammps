@@ -52,9 +52,9 @@ Delete the specified atoms.  This command can be used to carve out
 voids from a block of material or to delete created atoms that are too
 close to each other (e.g. at a grain boundary).
 
-For style *group*\ , all atoms belonging to the group are deleted.
+For style *group*, all atoms belonging to the group are deleted.
 
-For style *region*\ , all atoms in the region volume are deleted.
+For style *region*, all atoms in the region volume are deleted.
 Additional atoms can be deleted if they are in a molecule for which
 one or more atoms were deleted within the region; see the *mol*
 keyword discussion below.
@@ -83,7 +83,7 @@ randomly.  There is no guarantee that the exact fraction of atoms will
 be deleted, or that the same atoms will be deleted when running on
 different numbers of processors.
 
-If the *compress* keyword is set to *yes*\ , then after atoms are
+If the *compress* keyword is set to *yes*, then after atoms are
 deleted, then atom IDs are re-assigned so that they run from 1 to the
 number of atoms in the system.  Note that this is not done for
 molecular systems (see the :doc:`atom_style <atom_style>` command),
@@ -117,7 +117,7 @@ atoms.  Note that simply deleting interactions due to dangling bonds
 (e.g. at a surface) may result in a inaccurate or invalid model for
 the remaining atoms.
 
-It the *mol* keyword is set to *yes*\ , then for every atom that is
+It the *mol* keyword is set to *yes*, then for every atom that is
 deleted, all other atoms in the same molecule (with the same molecule
 ID) will also be deleted.  This is not done for atoms with molecule ID
 = 0, since such an ID is assumed to flag isolated atoms that are not

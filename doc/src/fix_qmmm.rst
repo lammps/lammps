@@ -56,7 +56,7 @@ Restrictions
 
 This fix is part of the QMMM package.  It is only enabled if
 LAMMPS was built with that package. It also requires building a
-library provided with LAMMPS.  See the :doc:`Build package <Build_package>` doc page for more info.
+library provided with LAMMPS.  See the :doc:`Build package <Build_package>` page for more info.
 
 The fix is only functional when LAMMPS is built as a library and
 linked with a compatible QM program and a QM/MM front end into a QM/MM

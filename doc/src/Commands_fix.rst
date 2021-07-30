@@ -157,6 +157,7 @@ OPT.
    * :doc:`orient/fcc <fix_orient>`
    * :doc:`orient/eco <fix_orient_eco>`
    * :doc:`pafi <fix_pafi>`
+   * :doc:`pair/tracker <fix_pair_tracker>`
    * :doc:`phonon <fix_phonon>`
    * :doc:`pimd <fix_pimd>`
    * :doc:`planeforce <fix_planeforce>`
@@ -178,14 +179,14 @@ OPT.
    * :doc:`qeq/dynamic <fix_qeq>`
    * :doc:`qeq/fire <fix_qeq>`
    * :doc:`qeq/point <fix_qeq>`
-   * :doc:`qeq/reax (ko) <fix_qeq_reax>`
+   * :doc:`qeq/reaxff (ko) <fix_qeq_reaxff>`
    * :doc:`qeq/shielded <fix_qeq>`
    * :doc:`qeq/slater <fix_qeq>`
    * :doc:`qmmm <fix_qmmm>`
    * :doc:`qtb <fix_qtb>`
    * :doc:`rattle <fix_shake>`
-   * :doc:`reax/c/bonds (k) <fix_reaxc_bonds>`
-   * :doc:`reax/c/species (k) <fix_reaxc_species>`
+   * :doc:`reaxff/bonds (k) <fix_reaxff_bonds>`
+   * :doc:`reaxff/species (k) <fix_reaxff_species>`
    * :doc:`recenter <fix_recenter>`
    * :doc:`restrain <fix_restrain>`
    * :doc:`rhok <fix_rhok>`

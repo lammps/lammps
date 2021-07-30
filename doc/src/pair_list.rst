@@ -125,7 +125,7 @@ to be specified in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 ----------
 
@@ -142,8 +142,8 @@ styles in LAMMPS, an atom I will not interact with multiple images of
 atom J (assuming the images are within the cutoff distance), but only
 with the nearest image.
 
-This style is part of the USER-MISC package. It is only enabled if
-LAMMPS is build with that package. See the :doc:`Build package <Build_package>` doc page on for more info.
+This style is part of the MISC package. It is only enabled if
+LAMMPS is build with that package. See the :doc:`Build package <Build_package>` page on for more info.
 
 Related commands
 """"""""""""""""

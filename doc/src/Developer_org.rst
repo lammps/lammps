@@ -17,7 +17,7 @@ currently supports building with :doc:`conventional makefiles
 differ in how packages are enabled or disabled for inclusion into a
 LAMMPS binary so they cannot be mixed.  The source files for each
 package are in all-uppercase sub-directories of the ``src`` folder, for
-example ``src/MOLECULE`` or ``src/USER-MISC``.  The ``src/STUBS``
+example ``src/MOLECULE`` or ``src/EXTRA-MOLECULE``.  The ``src/STUBS``
 sub-directory is not a package but contains a dummy MPI library, that is
 used when building a serial version of the code. The ``src/MAKE``
 directory and its sub-directories contain makefiles with settings and

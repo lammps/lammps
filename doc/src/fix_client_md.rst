@@ -27,7 +27,7 @@ This fix style enables LAMMPS to run as a "client" code and
 communicate each timestep with a separate "server" code to perform an
 MD simulation together.
 
-The :doc:`Howto client/server <Howto_client_server>` doc page gives an
+The :doc:`Howto client/server <Howto_client_server>` page gives an
 overview of client/server coupling of LAMMPS with another code where
 one code is the "client" and sends request messages to a "server"
 code.  The server responds to each request with a reply message.  This
@@ -101,7 +101,7 @@ Restrictions
 
 This fix is part of the MESSAGE package.  It is only enabled if LAMMPS
 was built with that package.  See the :doc:`Build package
-<Build_package>` doc page for more info.
+<Build_package>` page for more info.
 
 A script that uses this command must also use the
 :doc:`message <message>` command to setup and shut down the messaging

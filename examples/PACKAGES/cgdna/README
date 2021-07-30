@@ -72,7 +72,15 @@ between two individual nucleotides can be established.
 
 /******************************************************************************/
 
-/examples/oxRNA2/duplex4
+/examples/oxDNA2/dsring:
+
+This example uses a dsDNA ring of 74 base pairs. The bonds which close the ring 
+are (in 3' to 5' direction) between nucleotide 74 and 1 and between nucleotide 
+148 and 75, respectively. 
+
+/******************************************************************************/
+
+/examples/oxRNA2/duplex2
 
 This example uses the duplex2 with the oxRNA2 force field instead of oxDNA or 
 oxDNA2 force field. Sequence-dependent stacking and hydrogen-bonding 

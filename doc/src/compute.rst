@@ -35,7 +35,7 @@ information about a previous state of the system.  Defining a compute
 does not perform a computation.  Instead computes are invoked by other
 LAMMPS commands as needed, e.g. to calculate a temperature needed for
 a thermostat fix or to generate thermodynamic or dump file output.
-See the :doc:`Howto output <Howto_output>` doc page for a summary of
+See the :doc:`Howto output <Howto_output>` page for a summary of
 various LAMMPS output options, many of which involve computes.
 
 The ID of a compute can only contain alphanumeric characters and
@@ -59,7 +59,7 @@ style produce global quantities.
 Note that a single compute can produce either global or per-atom or
 local quantities, but not both global and per-atom.  It can produce
 local quantities in tandem with global or per-atom quantities.  The
-compute doc page will explain.
+compute page will explain.
 
 Global, per-atom, and local quantities each come in three kinds: a
 single scalar value, a vector of values, or a 2d array of values.  The
@@ -119,7 +119,7 @@ values by the number of atoms in the system, depending on the
 "thermo_modify norm" setting.  It will not normalize intensive values.
 If a compute value is accessed in another way, e.g. by a
 :doc:`variable <variable>`, you may want to know whether it is an
-intensive or extensive value.  See the doc page for individual
+intensive or extensive value.  See the page for individual
 computes for further info.
 
 ----------
@@ -153,19 +153,19 @@ via the :doc:`compute_modify <compute_modify>` command.
 Computes can be deleted with the :doc:`uncompute <uncompute>` command.
 
 Code for new computes can be added to LAMMPS; see the
-:doc:`Modify <Modify>` doc page for details.  The results of their
+:doc:`Modify <Modify>` page for details.  The results of their
 calculations accessed in the various ways described above.
 
 ----------
 
-Each compute style has its own doc page which describes its arguments
+Each compute style has its own page which describes its arguments
 and what it does.  Here is an alphabetic list of compute styles
 available in LAMMPS.  They are also listed in more compact form on the
 :doc:`Commands compute <Commands_compute>` doc page.
 
 There are also additional accelerated compute styles included in the
 LAMMPS distribution for faster performance on CPUs, GPUs, and KNLs.
-The individual style names on the :doc:`Commands compute <Commands_compute>` doc page are followed by one or more of
+The individual style names on the :doc:`Commands compute <Commands_compute>` page are followed by one or more of
 (g,i,k,o,t) to indicate which accelerated styles exist.
 
 * :doc:`ackland/atom <compute_ackland_atom>` - determines the local lattice structure based on the Ackland formulation
@@ -208,7 +208,7 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` doc
 * :doc:`event/displace <compute_event_displace>` - detect event on atom displacement
 * :doc:`fabric <compute_fabric>` - calculates fabric tensors from pair interactions
 * :doc:`fep <compute_fep>` -
-* :doc:`force/tally <compute_tally>` -
+* :doc:`force/tally <compute_tally>` - force between two groups of atoms via the tally callback mechanism
 * :doc:`fragment/atom <compute_cluster_atom>` - fragment ID for each atom
 * :doc:`global/atom <compute_global_atom>` -
 * :doc:`group/group <compute_group_group>` - energy/force between two groups of atoms
@@ -217,7 +217,8 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` doc
 * :doc:`gyration/shape <compute_gyration_shape>` - shape parameters from gyration tensor
 * :doc:`gyration/shape/chunk <compute_gyration_shape_chunk>` - shape parameters from gyration tensor for each chunk
 * :doc:`heat/flux <compute_heat_flux>` - heat flux through a group of atoms
-* :doc:`heat/flux/tally <compute_tally>` -
+* :doc:`heat/flux/tally <compute_tally>` - heat flux through a group of atoms via the tally callback mechanism
+* :doc:`heat/flux/virial/tally <compute_tally>` - virial heat flux between two groups via the tally callback mechanism
 * :doc:`hexorder/atom <compute_hexorder_atom>` - bond orientational order parameter q6
 * :doc:`hma <compute_hma>` - harmonically mapped averaging for atomic crystals
 * :doc:`improper <compute_improper>` - energy of each improper sub-style
@@ -240,8 +241,8 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` doc
 * :doc:`pe <compute_pe>` - potential energy
 * :doc:`pe/atom <compute_pe_atom>` - potential energy for each atom
 * :doc:`mesont <compute_mesont>` - Nanotube bending,stretching, and intertube energies
-* :doc:`pe/mol/tally <compute_tally>` -
-* :doc:`pe/tally <compute_tally>` -
+* :doc:`pe/mol/tally <compute_tally>` - potential energy between two groups of atoms separated into intermolecular and intramolecular components via the tally callback mechanism
+* :doc:`pe/tally <compute_tally>` - potential energy between two groups of atoms via the tally callback mechanism
 * :doc:`plasticity/atom <compute_plasticity_atom>` - Peridynamic plasticity for each atom
 * :doc:`pressure <compute_pressure>` - total pressure and pressure tensor
 * :doc:`pressure/cylinder <compute_pressure_cylinder>` - pressure tensor in cylindrical coordinates
@@ -289,7 +290,7 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` doc
 * :doc:`stress/atom <compute_stress_atom>` - stress tensor for each atom
 * :doc:`stress/mop <compute_stress_mop>` - normal components of the local stress tensor using the method of planes
 * :doc:`stress/mop/profile <compute_stress_mop>` - profile of the normal components of the local stress tensor using the method of planes
-* :doc:`stress/tally <compute_tally>` -
+* :doc:`stress/tally <compute_tally>` - stress between two groups of atoms via the tally callback mechanism
 * :doc:`tdpd/cc/atom <compute_tdpd_cc_atom>` - per-atom chemical concentration of a specified species for each tDPD particle
 * :doc:`temp <compute_temp>` - temperature of group of atoms
 * :doc:`temp/asphere <compute_temp_asphere>` - temperature of aspherical particles

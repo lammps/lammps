@@ -156,7 +156,7 @@ contains a few more arguments (e.g., *nmax* and *alpha*). The preparation
 of SO3 descriptor and model files can be done with the
 `Pyxtal_FF <https://github.com/qzhu2017/PyXtal_FF>`_ package.
 
-See the :doc:`pair_coeff <pair_coeff>` doc page for alternate ways
+See the :doc:`pair_coeff <pair_coeff>` page for alternate ways
 to specify the path for these *model* and *descriptor* files.
 
 .. note::
@@ -185,7 +185,7 @@ that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 ----------
 
@@ -196,7 +196,7 @@ This pair style is part of the ML-IAP package.  It is only enabled if
 LAMMPS was built with that package. In addition, building LAMMPS with
 the ML-IAP package requires building LAMMPS with the ML-SNAP package.
 The *mliappy* model requires building LAMMPS with the PYTHON package.
-See the :doc:`Build package <Build_package>` doc page for more info.
+See the :doc:`Build package <Build_package>` page for more info.
 
 
 Related commands

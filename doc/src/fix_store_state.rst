@@ -94,7 +94,7 @@ steps.
 
 The list of possible attributes is the same as that used by the :doc:`dump custom <dump>` command, which describes their meaning.
 
-If the *com* keyword is set to *yes* then the *xu*\ , *yu*\ , and *zu*
+If the *com* keyword is set to *yes* then the *xu*, *yu*, and *zu*
 inputs store the position of each atom relative to the center-of-mass
 of the group of atoms, instead of storing the absolute position.
 

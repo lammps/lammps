@@ -97,8 +97,12 @@ void FixNVEAsphereIntel::initial_integrate(int /*vflag*/)
   dtq = 0.5 * dtv;
 
   #if defined(LMP_SIMD_COMPILER)
-  #pragma vector aligned
+#if defined(USE_OMP_SIMD)
+  #pragma omp simd
+#else
   #pragma simd
+#endif
+  #pragma vector aligned
   #endif
   for (int i = 0; i < _nlocal3; i++) {
     v[i] += _dtfm[i] * f[i];
@@ -108,8 +112,12 @@ void FixNVEAsphereIntel::initial_integrate(int /*vflag*/)
   // update angular momentum by 1/2 step
   if (igroup == 0) {
     #if defined(LMP_SIMD_COMPILER)
-    #pragma vector aligned
+#if defined(USE_OMP_SIMD)
+    #pragma omp simd
+#else
     #pragma simd
+#endif
+    #pragma vector aligned
     #endif
     for (int i = 0; i < nlocal; i++) {
       double *quat = bonus[ellipsoid[i]].quat;
@@ -118,8 +126,12 @@ void FixNVEAsphereIntel::initial_integrate(int /*vflag*/)
     }
   } else {
     #if defined(LMP_SIMD_COMPILER)
-    #pragma vector aligned
+#if defined(USE_OMP_SIMD)
+    #pragma omp simd
+#else
     #pragma simd
+#endif
+    #pragma vector aligned
     #endif
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
@@ -143,8 +155,12 @@ void FixNVEAsphereIntel::final_integrate()
   const double * _noalias const torque = atom->torque[0];
 
   #if defined(LMP_SIMD_COMPILER)
-  #pragma vector aligned
+#if defined(USE_OMP_SIMD)
+  #pragma omp simd
+#else
   #pragma simd
+#endif
+  #pragma vector aligned
   #endif
   for (int i = 0; i < _nlocal3; i++) {
     v[i] += _dtfm[i] * f[i];

@@ -59,7 +59,7 @@ Restrictions
 """"""""""""
 
 This fix is part of the GRANULAR package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 There can only be a single freeze fix defined.  This is because other
 the :doc:`granular pair styles <pair_gran>` treat frozen particles

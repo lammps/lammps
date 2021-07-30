@@ -54,7 +54,7 @@ same as specifying a 0.0 value, since that sets all forces to the same
 average value without adding in any additional force.
 
 Any of the 3 quantities defining the force components can be specified
-as an equal-style :doc:`variable <variable>`, namely *fx*\ , *fy*\ , *fz*\ .
+as an equal-style :doc:`variable <variable>`, namely *fx*, *fy*, *fz*\ .
 If the value is a variable, it should be specified as v_name, where
 name is the variable name.  In this case, the variable will be
 evaluated each timestep, and its value used to determine the average

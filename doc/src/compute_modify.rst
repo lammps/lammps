@@ -18,10 +18,10 @@ Syntax
 
        *extra/dof* value = N
          N = # of extra degrees of freedom to subtract
-       *extra* syntax is identical to *extra/dof*\ , will be disabled at some point
+       *extra* syntax is identical to *extra/dof*, will be disabled at some point
        *dynamic/dof* value = *yes* or *no*
          yes/no = do or do not re-compute the number of degrees of freedom (DOF) contributing to the temperature
-       *dynamic* syntax is identical to *dynamic/dof*\ , will be disabled at some point
+       *dynamic* syntax is identical to *dynamic/dof*, will be disabled at some point
 
 Examples
 """"""""

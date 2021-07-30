@@ -41,7 +41,7 @@ which can add or subtract heat from groups of atoms.
 
 The compute takes three arguments which are IDs of other
 :doc:`computes <compute>`.  One calculates per-atom kinetic energy
-(\ *ke-ID*\ ), one calculates per-atom potential energy (\ *pe-ID)*\ , and the
+(\ *ke-ID*\ ), one calculates per-atom potential energy (\ *pe-ID)*, and the
 third calculates per-atom stress (\ *stress-ID*\ ).
 
 .. note::
@@ -131,7 +131,7 @@ of just the convective portion of the flux, i.e. the
 first term in the equation for :math:`\mathbf{J}`.
 Each component can be
 accessed by indices 1-6. These values can be used by any command that
-uses global vector values from a compute as input.  See the :doc:`Howto output <Howto_output>` doc page for an overview of LAMMPS output
+uses global vector values from a compute as input.  See the :doc:`Howto output <Howto_output>` page for an overview of LAMMPS output
 options.
 
 The vector values calculated by this compute are "extensive", meaning

@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -18,30 +17,19 @@
 #include "bond_oxdna_fene.h"
 
 #include "atom.h"
-#include "atom_vec_ellipsoid.h"
-#include "comm.h"
-#include "error.h"
-#include "force.h"
-#include "math_extra.h"
-#include "memory.h"
 #include "neighbor.h"
+#include "comm.h"
 #include "update.h"
+#include "force.h"
+#include "memory.h"
+#include "error.h"
+
+#include "atom_vec_ellipsoid.h"
+#include "math_extra.h"
 
 #include <cmath>
 
 using namespace LAMMPS_NS;
-
-/* ----------------------------------------------------------------------
-    compute vector COM-sugar-phosphate backbone interaction site in oxDNA
-------------------------------------------------------------------------- */
-static void compute_interaction_sites(const double e1[3], double r[3])
-{
-  constexpr double d_cs=-0.4;
-
-  r[0] = d_cs*e1[0];
-  r[1] = d_cs*e1[1];
-  r[2] = d_cs*e1[2];
-}
 
 /* ---------------------------------------------------------------------- */
 
@@ -55,6 +43,19 @@ BondOxdnaFene::~BondOxdnaFene()
   }
 }
 
+
+/* ----------------------------------------------------------------------
+    compute vector COM-sugar-phosphate backbone interaction site in oxDNA
+------------------------------------------------------------------------- */
+void BondOxdnaFene::compute_interaction_sites(double e1[3], double /*e2*/[3],
+  double /*e3*/[3], double r[3]) const
+{
+  constexpr double d_cs=-0.4;
+
+  r[0] = d_cs*e1[0];
+  r[1] = d_cs*e1[1];
+  r[2] = d_cs*e1[2];
+}
 
 /* ----------------------------------------------------------------------
    tally energy and virial into global and per-atom accumulators
@@ -187,8 +188,8 @@ void BondOxdnaFene::compute(int eflag, int vflag)
     MathExtra::q_to_exyz(qb,bx,by,bz);
 
     // vector COM-backbone site a and b
-    compute_interaction_sites(ax,ra_cs);
-    compute_interaction_sites(bx,rb_cs);
+    compute_interaction_sites(ax,ay,az,ra_cs);
+    compute_interaction_sites(bx,by,bz,rb_cs);
 
     // vector backbone site b to a
     delr[0] = x[a][0] + ra_cs[0] - x[b][0] - rb_cs[0];

@@ -609,7 +609,6 @@ void PPPMDispDielectric::fieldforce_c_ad()
   double *q = atom->q;
   double **x = atom->x;
   double **f = atom->f;
-  double *eps = atom->epsilon;
   int nlocal = atom->nlocal;
 
   for (i = 0; i < nlocal; i++) {

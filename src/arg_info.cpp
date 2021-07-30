@@ -68,11 +68,11 @@ ArgInfo::ArgInfo(const std::string &arg, int allowed) : type(NONE), dim(0), inde
       } else
         has_idx2 = arg.size();
 
-      if (arg[has_idx2 - 1] != ']') {
+      if ((arg[has_idx2 - 1] != ']') || ((dim == 1) && (arg.find(']') != has_idx2 - 1))) {
         type = UNKNOWN;
       } else {
         try {
-          index1 = std::stoi(arg.substr(has_idx1 + 1, arg.size() - (has_idx2 + 2)));
+          index1 = std::stoi(arg.substr(has_idx1 + 1, arg.size() - (has_idx1 + 2)));
         } catch (std::invalid_argument &) {
           type = UNKNOWN;
         }

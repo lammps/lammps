@@ -255,7 +255,6 @@ void PairOxdnaStk::compute(int eflag, int vflag)
 
   double f1,f4t4,f4t5,f4t6,f5c1,f5c2;
   double df1,df4t4,df4t5,df4t6,df5c1,df5c2;
-  double tptofp;
 
   evdwl = 0.0;
   ev_init(eflag,vflag);

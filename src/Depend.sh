@@ -73,6 +73,8 @@ fi
 
 if (test $1 = "DPD-BASIC") then
   depend GPU
+  depend OPENMP
+  depend INTEL
 fi
 
 if (test $1 = "EXTRA-MOLECULE") then

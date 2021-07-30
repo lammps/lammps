@@ -269,7 +269,7 @@ void ComputeSNAGrid::compute_array()
 	  int jelem = 0;
 	  if (chemflag)
 	    jelem = map[jtype];
-	  if (rsq < cutsq[jtype][jtype]) {
+	  if (rsq < cutsq[jtype][jtype] && rsq > 1e-20) {
 	    snaptr->rij[ninside][0] = delx;
 	    snaptr->rij[ninside][1] = dely;
 	    snaptr->rij[ninside][2] = delz;

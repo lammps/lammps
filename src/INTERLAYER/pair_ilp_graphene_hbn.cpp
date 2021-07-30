@@ -202,11 +202,8 @@ void PairILPGrapheneHBN::read_file(char *filename)
   FILE *fp;
   if (comm->me == 0) {
     fp = utils::open_potential(filename,lmp,nullptr);
-    if (fp == nullptr) {
-      char str[128];
-      snprintf(str,128,"Cannot open ILP potential file %s",filename);
-      error->one(FLERR,str);
-    }
+    if (fp == nullptr)
+      error->one(FLERR,"Cannot open ILP potential file {}: {}",filename,utils::getsyserror());
   }
 
   // read each line out of file, skipping blank lines or leading '#'

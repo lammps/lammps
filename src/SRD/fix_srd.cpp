@@ -1277,6 +1277,7 @@ void FixSRD::collisions_single()
   double **v = atom->v;
   double **f = atom->f;
   double **torque = atom->torque;
+  tagint *tag = atom->tag;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
@@ -1329,29 +1330,23 @@ void FixSRD::collisions_single()
           }
 
 #ifdef SRD_DEBUG
-          if (update->ntimestep == SRD_DEBUG_TIMESTEP && atom->tag[i] == SRD_DEBUG_ATOMID)
+          if (update->ntimestep == SRD_DEBUG_TIMESTEP && tag[i] == SRD_DEBUG_ATOMID)
             print_collision(i, j, ibounce, t_remain, dt, xscoll, xbcoll, norm, type);
 #endif
 
           if (t_remain > dt) {
             ninside++;
             if (insideflag == INSIDE_ERROR || insideflag == INSIDE_WARN) {
-              char str[128];
-              if (type != WALL) {
-                sprintf(str,
-                        "SRD particle " TAGINT_FORMAT " started "
-                        "inside big particle " TAGINT_FORMAT " on step " BIGINT_FORMAT " bounce %d",
-                        atom->tag[i], atom->tag[j], update->ntimestep, ibounce + 1);
-                if (insideflag == INSIDE_ERROR) error->one(FLERR, str);
-                error->warning(FLERR, str);
-              } else {
-                sprintf(str,
-                        "SRD particle " TAGINT_FORMAT " started "
-                        "inside wall %d on step " BIGINT_FORMAT " bounce %d",
-                        atom->tag[i], j, update->ntimestep, ibounce + 1);
-                if (insideflag == INSIDE_ERROR) error->one(FLERR, str);
-                error->warning(FLERR, str);
-              }
+              std::string mesg;
+              if (type != WALL)
+                mesg = fmt::format("SRD particle {} started inside big particle {} on step {} "
+                                   " bounce {}", tag[i], tag[j], update->ntimestep, ibounce + 1);
+              else
+                mesg = fmt::format("SRD particle {} started inside wall {} on step {} "
+                                   "bounce {}", tag[i], j, update->ntimestep, ibounce + 1);
+
+              if (insideflag == INSIDE_ERROR) error->one(FLERR, mesg);
+              else error->warning(FLERR, mesg);
             }
             break;
           }
@@ -1435,6 +1430,7 @@ void FixSRD::collisions_multi()
   double **v = atom->v;
   double **f = atom->f;
   double **torque = atom->torque;
+  tagint *tag = atom->tag;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
@@ -1484,29 +1480,23 @@ void FixSRD::collisions_multi()
             t_remain = collision_wall_exact(x[i], j, v[i], xscoll, xbcoll, norm);
 
 #ifdef SRD_DEBUG
-          if (update->ntimestep == SRD_DEBUG_TIMESTEP && atom->tag[i] == SRD_DEBUG_ATOMID)
+          if (update->ntimestep == SRD_DEBUG_TIMESTEP && tag[i] == SRD_DEBUG_ATOMID)
             print_collision(i, j, ibounce, t_remain, dt, xscoll, xbcoll, norm, type);
 #endif
 
           if (t_remain > dt || t_remain < 0.0) {
             ninside++;
             if (insideflag == INSIDE_ERROR || insideflag == INSIDE_WARN) {
-              char str[128];
-              if (type != WALL) {
-                sprintf(str,
-                        "SRD particle " TAGINT_FORMAT " started "
-                        "inside big particle " TAGINT_FORMAT " on step " BIGINT_FORMAT " bounce %d",
-                        atom->tag[i], atom->tag[j], update->ntimestep, ibounce + 1);
-                if (insideflag == INSIDE_ERROR) error->one(FLERR, str);
-                error->warning(FLERR, str);
-              } else {
-                sprintf(str,
-                        "SRD particle " TAGINT_FORMAT " started "
-                        "inside wall %d on step " BIGINT_FORMAT " bounce %d",
-                        atom->tag[i], j, update->ntimestep, ibounce + 1);
-                if (insideflag == INSIDE_ERROR) error->one(FLERR, str);
-                error->warning(FLERR, str);
-              }
+              std::string mesg;
+              if (type != WALL)
+                mesg = fmt::format("SRD particle {} started inside big particle {} on step {} "
+                                   "bounce {}", tag[i], tag[j], update->ntimestep, ibounce + 1);
+              else
+                mesg = fmt::format("SRD particle {} started inside wall {} on step {} "
+                                   "bounce {}", tag[i], j, update->ntimestep, ibounce + 1);
+
+              if (insideflag == INSIDE_ERROR) error->one(FLERR, mesg);
+              error->warning(FLERR, mesg);
             }
             t_first = 0.0;
             break;

@@ -18,18 +18,19 @@
 
 #include "fix_ipi.h"
 
-#include <cstring>
 #include "atom.h"
-#include "force.h"
-#include "update.h"
+#include "comm.h"
+#include "compute.h"
+#include "domain.h"
 #include "error.h"
+#include "force.h"
+#include "irregular.h"
 #include "kspace.h"
 #include "modify.h"
-#include "compute.h"
-#include "comm.h"
 #include "neighbor.h"
-#include "irregular.h"
-#include "domain.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -83,15 +84,13 @@ static void open_socket(int &sockfd, int inet, int port, char* host,
 
     // fetches information on the host
     struct addrinfo hints, *res;
-    char service[256];
 
     memset(&hints, 0, sizeof(hints));
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_family = AF_UNSPEC;
     hints.ai_flags = AI_PASSIVE;
 
-    sprintf(service,"%d",port); // convert the port number to a string
-    ai_err = getaddrinfo(host, service, &hints, &res);
+    ai_err = getaddrinfo(host, std::to_string(port).c_str(), &hints, &res);
     if (ai_err!=0)
       error->one(FLERR,"Error fetching host data. Wrong host name?");
 

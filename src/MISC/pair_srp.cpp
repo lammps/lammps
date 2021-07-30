@@ -28,24 +28,23 @@ Please contact Timothy Sirk for questions (tim.sirk@us.army.mil).
 
 #include "pair_srp.h"
 
-#include <cmath>
-
-#include <cstring>
 #include "atom.h"
+#include "citeme.h"
 #include "comm.h"
-#include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "memory.h"
-#include "error.h"
 #include "domain.h"
-#include "modify.h"
+#include "error.h"
 #include "fix.h"
 #include "fix_srp.h"
-#include "thermo.h"
+#include "force.h"
+#include "memory.h"
+#include "modify.h"
+#include "neigh_list.h"
+#include "neighbor.h"
 #include "output.h"
-#include "citeme.h"
+#include "thermo.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -69,7 +68,7 @@ static int srp_instance = 0;
  set size of pair comms in constructor
  ---------------------------------------------------------------------- */
 
-PairSRP::PairSRP(LAMMPS *lmp) : Pair(lmp)
+PairSRP::PairSRP(LAMMPS *lmp) : Pair(lmp), fix_id(nullptr)
 {
   writedata = 1;
   single_enable = 0;
@@ -79,26 +78,15 @@ PairSRP::PairSRP(LAMMPS *lmp) : Pair(lmp)
   nextra = 1;
   segment = nullptr;
 
-  // generate unique fix-id for this pair style instance
-
-  fix_id = strdup("XX_FIX_SRP");
-  fix_id[0] = '0' + srp_instance / 10;
-  fix_id[1] = '0' + srp_instance % 10;
-  ++srp_instance;
-
-  // create fix SRP instance here
+  // create fix SRP instance here with unique fix id
   // similar to granular pair styles with history,
   //   this should be early enough that FixSRP::pre_exchange()
   //   will be invoked before other fixes that migrate atoms
   //   this is checked for in FixSRP
 
-  char **fixarg = new char*[3];
-  fixarg[0] = fix_id;
-  fixarg[1] = (char *) "all";
-  fixarg[2] = (char *) "SRP";
-  modify->add_fix(3,fixarg);
+  modify->add_fix(fmt::format("{:02d}_FIX_SRP all SRP",srp_instance));
   f_srp = (FixSRP *) modify->fix[modify->nfix-1];
-  delete [] fixarg;
+  ++srp_instance;
 }
 
 /* ----------------------------------------------------------------------
@@ -130,18 +118,16 @@ void PairSRP::allocate()
 
 PairSRP::~PairSRP()
 {
-    if (allocated)
-    {
-        memory->destroy(setflag);
-        memory->destroy(cutsq);
-        memory->destroy(cut);
-        memory->destroy(a0);
-        memory->destroy(segment);
-    }
+  if (allocated) {
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
+    memory->destroy(cut);
+    memory->destroy(a0);
+    memory->destroy(segment);
+  }
 
   // check nfix in case all fixes have already been deleted
-  if (modify->nfix) modify->delete_fix(fix_id);
-  free(fix_id);
+  if (modify->nfix) modify->delete_fix(f_srp->id);
 }
 
 /* ----------------------------------------------------------------------
@@ -424,33 +410,31 @@ void PairSRP::settings(int narg, char **arg)
 
 void PairSRP::coeff(int narg, char **arg)
 {
-    if (narg < 3 || narg > 4)
-        error->all(FLERR,"PairSRP: Incorrect args for pair coeff");
-    if (!allocated) allocate();
+  if (narg < 3 || narg > 4)
+    error->all(FLERR,"PairSRP: Incorrect args for pair coeff");
+  if (!allocated) allocate();
 
-    // set ij bond-bond cutoffs
-    int ilo, ihi, jlo, jhi;
-    utils::bounds(FLERR,arg[0], 1, bptype, ilo, ihi, error);
-    utils::bounds(FLERR,arg[1], 1, bptype, jlo, jhi, error);
+  // set ij bond-bond cutoffs
+  int ilo, ihi, jlo, jhi;
+  utils::bounds(FLERR,arg[0], 1, bptype, ilo, ihi, error);
+  utils::bounds(FLERR,arg[1], 1, bptype, jlo, jhi, error);
 
-    double a0_one = utils::numeric(FLERR,arg[2],false,lmp);
-    double cut_one = cut_global;
-    if (narg == 4)  cut_one = utils::numeric(FLERR,arg[3],false,lmp);
+  double a0_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double cut_one = cut_global;
+  if (narg == 4)  cut_one = utils::numeric(FLERR,arg[3],false,lmp);
 
-    int count = 0;
-    for (int i = ilo; i <= ihi; i++)
-    {
-        for (int j = MAX(jlo,i); j <= jhi; j++)
-        {
-            a0[i][j] = a0_one;
-            cut[i][j] = cut_one;
-            cutsq[i][j] = cut_one * cut_one;
-            setflag[i][j] = 1;
-            count++;
-        }
+  int count = 0;
+  for (int i = ilo; i <= ihi; i++) {
+    for (int j = MAX(jlo,i); j <= jhi; j++) {
+      a0[i][j] = a0_one;
+      cut[i][j] = cut_one;
+      cutsq[i][j] = cut_one * cut_one;
+      setflag[i][j] = 1;
+      count++;
     }
+  }
 
-    if (count == 0) error->warning(FLERR,"PairSRP: No pair coefficients were set");
+  if (count == 0) error->warning(FLERR,"PairSRP: No pair coefficients were set");
 }
 
 /* ----------------------------------------------------------------------
@@ -464,14 +448,11 @@ void PairSRP::init_style()
 
   // verify that fix SRP is still defined and has not been changed.
 
-  int ifix = modify->find_fix(fix_id);
-  if (f_srp != (FixSRP *)modify->fix[ifix])
+  if (strcmp(f_srp->style,"SRP") != 0)
     error->all(FLERR,"Fix SRP has been changed unexpectedly");
 
-  if (comm->me == 0) {
-    if (screen) fprintf(screen,"Using type %d for bond particles\n",bptype);
-    if (logfile) fprintf(logfile,"Using type %d for bond particles\n",bptype);
-  }
+  if (comm->me == 0)
+    utils::logmesg(lmp,"Using type {} for bond particles\n",bptype);
 
   // set bond and bond particle types in fix srp
   // bonds of this type will be represented by bond particles

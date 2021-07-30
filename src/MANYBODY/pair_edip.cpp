@@ -777,11 +777,8 @@ void PairEDIP::read_file(char *file)
   FILE *fp;
   if (comm->me == 0) {
     fp = utils::open_potential(file, lmp, nullptr);
-    if (fp == nullptr) {
-      char str[128];
-      snprintf(str, 128, "Cannot open EDIP potential file %s", file);
-      error->one(FLERR, str);
-    }
+    if (fp == nullptr)
+      error->one(FLERR,"Cannot open EDIP potential file {}: {}", file,utils::getsyserror());
   }
 
   // read each set of params from potential file

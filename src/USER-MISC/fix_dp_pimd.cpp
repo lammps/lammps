@@ -294,9 +294,6 @@ FixDPPimd::FixDPPimd(LAMMPS *lmp, int narg, char **arg) :
   //fname += std::to_string(universe->iworld);
   //fname += ".txt";
   //frand = fopen(fname.c_str(), "w");
-  //FILE *Fv;
-  Fv = fopen("vtraj.txt", "w");
-  Fx = fopen("xtraj.txt", "w");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -404,9 +401,6 @@ void FixDPPimd::init()
 
   if(universe->me==0)
     printf("Fix pimd -P/(beta^2 * hbar^2) = %20.7lE (kcal/mol/A^2)\n\n", fbond);
-  std::string out = "Initializing PIMD with "+fmt::format("{:d}", np)+" beads at "+fmt::format("{:.8e}", temp)+" temperature.\n";
-  out += "omega_P = "+fmt::format("{:8.16e}\n", sqrt(_fbond));
-  utils::logmesg(lmp, out);
 
   if(integrator==baoab)   
   {
@@ -457,6 +451,18 @@ void FixDPPimd::init()
   t_prim = t_vir = t_cv = p_prim = p_vir = p_cv = 0.0;
 
   if(universe->me==0) fprintf(screen, "Fix pimd successfully initialized!\n");
+}
+
+void FixDPPimd::setup_pre_exchange()
+{
+  int nlocal = atom->nlocal;
+  double **x = atom->x;
+  imageint *image = atom->image;
+  for(int i=0; i<nlocal; i++)
+  {
+    domain->unmap(x[i], image[i]);
+  }
+  
 }
 
 void FixDPPimd::setup(int vflag)
@@ -517,7 +523,7 @@ void FixDPPimd::initial_integrate(int /*vflag*/)
   imageint *image = atom->image;
   for(int i=0; i<nlocal; i++)
   {
-    domain->unmap(x[i], image[i]);
+    //domain->unmap(x[i], image[i]);
   }
   
   if(integrator==baoab)
@@ -563,7 +569,6 @@ void FixDPPimd::initial_integrate(int /*vflag*/)
 
 void FixDPPimd::post_integrate()
 {
-  tagint* tag = atom->tag;
   if(integrator==baoab)
   {
     if(ensemble==nvt || ensemble==npt)
@@ -623,8 +628,7 @@ void FixDPPimd::post_integrate()
   // remap the atom coordinates and image flags so that all the atoms are in the box and domain->pbc() does not change their coordinates
   for(int i=0; i<nlocal; i++)
   {
-    domain->remap(x[i], image[i]);
-    //domain->pbc();
+    //domain->remap(x[i], image[i]);
   }
 
   }
@@ -655,40 +659,16 @@ void FixDPPimd::final_integrate()
 }
 
 /* ---------------------------------------------------------------------- */
-void FixDPPimd::pre_force(int /*flag*/)
-{
-  int nlocal = atom->nlocal;
-  double **x = atom->x;
-  tagint *tag = atom->tag;
-  
-  fprintf(Fx, "TIMESTEP: %d\n", update->ntimestep);
-  fprintf(stdout, "nlocal = %d\n", nlocal);
-  for(int i=0; i<nlocal; i++)
-  {
-    fprintf(Fx, "%d %.16e %.16e %.16e\n", tag[i], x[i][0], x[i][1], x[i][2]);
-  }
-  fprintf(Fx, "\n");
-}
 
 void FixDPPimd::post_force(int /*flag*/)
 {
+  // unmap the atom coordinates and image flags so that the ring polymer is not wrapped
   int nlocal = atom->nlocal;
   double **x = atom->x;
   imageint *image = atom->image;
-  tagint *tag = atom->tag;
-
-  //fprintf(Fx, "TIMESTEP: %d\n", update->ntimestep);
-  //fprintf(stdout, "nlocal = %d\n", nlocal);
-  //for(int i=0; i<nlocal; i++)
-  //{
-  //  fprintf(Fx, "%d %.16e %.16e %.16e\n", tag[i], x[i][0], x[i][1], x[i][2]);
-  //}
-  //fprintf(Fx, "\n");
-
-  // unmap the atom coordinates and image flags so that the ring polymer is not wrapped
   for(int i=0; i<nlocal; i++)
   {
-    domain->unmap(x[i], image[i]);
+    //domain->unmap(x[i], image[i]);
   }
 
   inv_volume = 1.0 / (domain->xprd * domain->yprd * domain->zprd);
@@ -768,7 +748,6 @@ void FixDPPimd::baoab_init()
   c1 = exp(-gamma * update->dt); // tau is the damping time of the centroid mode.
   c2 = sqrt(1.0 - c1 * c1); // note that c1 and c2 here only works for the centroid mode.
 
-  if(ensemble == nvt || ensemble == npt){
   if(thermostat == PILE_L || thermostat == PILE_G)
   {
     std::string out = "\nInitializing PI Langevin equation thermostat...\n";
@@ -797,7 +776,7 @@ void FixDPPimd::baoab_init()
     out += "\n";
     utils::logmesg(lmp, out);
     //if(universe->iworld==0) fprintf(stdout, "PILE_L thermostat successfully initialized!\n");
-  }}
+  }
 
   //if(thermostat == PILE_L)
   //{
@@ -824,21 +803,14 @@ void FixDPPimd::b_step()
   int *type = atom->type;
   double **v = atom->v;
   double **f = atom->f;
-  tagint *tag = atom->tag;
 
-  fprintf(Fv, "TIMESTEP: %d\n", update->ntimestep);
   for(int i=0; i<n; i++)
   {
     double dtfm = dtf / mass[type[i]];
-    if(tag[i]==1) fprintf(stdout, "v: %.6e %.6e %.6e\n", v[i][0], v[i][1], v[i][2]);
     v[i][0] += dtfm * f[i][0];
     v[i][1] += dtfm * f[i][1];
     v[i][2] += dtfm * f[i][2];
-    if(tag[i]==1) fprintf(stdout, "f: %.6e %.6e %.6e\n", f[i][0], f[i][1], f[i][2]);
-    if(tag[i]==1) fprintf(stdout, "v: %.6e %.6e %.6e\n", v[i][0], v[i][1], v[i][2]);
-    fprintf(Fv, "%d %.16e %.16e %.16e %.16e %.16e %.16e %.16e\n", tag[i], dtfm, f[i][0], f[i][1], f[i][2], v[i][0], v[i][1], v[i][2]);
   }
-  fprintf(Fv, "\n");
 
   //double dtfm = dtf / mass[type[0]];
   //printf("before v_step, vw = %.6e.\n", vw);
@@ -847,12 +819,6 @@ void FixDPPimd::b_step()
   //if(pextflag) press_v_step();
   //printf("after v_step, vw = %.6e.\n", vw);
   //MPI_Barrier(universe->uworld);
-  //fprintf(Fv, "TIMESTEP: %d\n", update->ntimestep);
-  //for(int i=0; i<n; i++)
-  //{
-  //  fprintf(Fv, "%d %.6e %.6e %.6e\n", atom->tag[i], v[i][0], v[i][1], v[i][2]);
-  //}
-  //fprintf(Fv, "\n");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1691,7 +1657,6 @@ void FixDPPimd::compute_totke()
     }
   }
   MPI_Allreduce(&kine, &ke_bead, 1, MPI_DOUBLE, MPI_SUM, world);
-  //fprintf(stdout, "iworld = %d, kine = %.8e, ke_bead = %.8e.\n", universe->iworld, kine, ke_bead);
   ke_bead *= force->mvv2e;
   MPI_Allreduce(&kine, &totke, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
   totke *= force->mvv2e / np;

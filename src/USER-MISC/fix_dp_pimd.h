@@ -35,6 +35,7 @@ class FixDPPimd : public Fix {
   //void setup_pre_force(int);
   //void setup_pre_exchange();
   void setup(int);
+  void pre_force(int);
   void post_force(int);
   void initial_integrate(int);
   void post_integrate();

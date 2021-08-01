@@ -607,7 +607,7 @@ void FixDPPimd::post_integrate()
   // remap the atom coordinates and image flags so that all the atoms are in the box and domain->pbc() does not change their coordinates
   for(int i=0; i<nlocal; i++)
   {
-    //domain->remap(x[i], image[i]);
+    domain->remap(x[i], image[i]);
     //domain->pbc();
   }
 
@@ -639,6 +639,20 @@ void FixDPPimd::final_integrate()
 }
 
 /* ---------------------------------------------------------------------- */
+void FixDPPimd::pre_force(int /*flag*/)
+{
+  int nlocal = atom->nlocal;
+  double **x = atom->x;
+  tagint *tag = atom->tag;
+  
+  fprintf(Fx, "TIMESTEP: %d\n", update->ntimestep);
+  fprintf(stdout, "nlocal = %d\n", nlocal);
+  for(int i=0; i<nlocal; i++)
+  {
+    fprintf(Fx, "%d %.16e %.16e %.16e\n", tag[i], x[i][0], x[i][1], x[i][2]);
+  }
+  fprintf(Fx, "\n");
+}
 
 void FixDPPimd::post_force(int /*flag*/)
 {
@@ -647,13 +661,13 @@ void FixDPPimd::post_force(int /*flag*/)
   imageint *image = atom->image;
   tagint *tag = atom->tag;
 
-  fprintf(Fx, "TIMESTEP: %d\n", update->ntimestep);
-  fprintf(stdout, "nlocal = %d\n", nlocal);
-  for(int i=0; i<nlocal; i++)
-  {
-    fprintf(Fx, "%d %.16e %.16e %.16e\n", tag[i], x[i][0], x[i][1], x[i][2]);
-  }
-  fprintf(Fx, "\n");
+  //fprintf(Fx, "TIMESTEP: %d\n", update->ntimestep);
+  //fprintf(stdout, "nlocal = %d\n", nlocal);
+  //for(int i=0; i<nlocal; i++)
+  //{
+  //  fprintf(Fx, "%d %.16e %.16e %.16e\n", tag[i], x[i][0], x[i][1], x[i][2]);
+  //}
+  //fprintf(Fx, "\n");
 
   // unmap the atom coordinates and image flags so that the ring polymer is not wrapped
   for(int i=0; i<nlocal; i++)

@@ -461,9 +461,25 @@ void FixDPPimd::setup(int vflag)
       comm_exec(atom->v);
       nmpimd_transform(buf_beads, atom->v, M_x2xp[universe->iworld]);
     }
+
   if(universe->me==0 && screen) fprintf(screen,"Setting up Path-Integral ...\n");
   if(universe->me==0) printf("Setting up Path-Integral ...\n");
   post_force(vflag);
+    if(method==NMPIMD)
+    {
+      nmpimd_fill(atom->x);
+      comm_exec(atom->x);
+      nmpimd_transform(buf_beads, atom->x, M_x2xp[universe->iworld]);
+    }
+
+    compute_spring_energy();
+
+    if(method==NMPIMD)
+    {
+      nmpimd_fill(atom->x);
+      comm_exec(atom->x);
+      nmpimd_transform(buf_beads, atom->x, M_xp2x[universe->iworld]);
+    }
   //compute_p_vir();
   end_of_step();
   //fprintf(stdout, "virial=%.8e.\n", virial[0]+virial[4]+virial[8]);
@@ -1725,7 +1741,7 @@ double FixDPPimd::compute_vector(int n)
 {
   //if(n==0) { return totke; }
   if(n==0) { return ke_bead; }
-  if(n==1) { return spring_energy; }
+  if(n==1) { return total_spring_energy; }
   //if(n==1) { return atom->v[0][0]; }
   if(n==2) { return pote; }
   //if(n==2) { return atom->x[0][0]; }

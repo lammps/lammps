@@ -80,6 +80,8 @@ double ComputeTempDeformKokkos<DeviceType>::compute_scalar()
   /**************** EVK ****************/
   // Convert from box coords to lamda coords
   domainKK->x2lamda(nlocal);
+  h_rate = domainKK->h_rate;
+  h_ratelo = domainKK->h_ratelo;
   
   copymode = 1;
   if (atomKK->rmass)
@@ -108,8 +110,6 @@ template<int RMASS>
 KOKKOS_INLINE_FUNCTION
 void ComputeTempDeformKokkos<DeviceType>::operator()(TagComputeTempDeformScalar<RMASS>, const int &i, CTEMP& t_kk) const {
 
-  double *h_rate = domainKK->h_rate;
-  double *h_ratelo = domainKK->h_ratelo;
   double vstream[3],vthermal[3];
 
   vstream[0] = h_rate[0]*x(i,0) + h_rate[5]*x(i,1) + h_rate[4]*x(i,2) + h_ratelo[0];
@@ -154,6 +154,8 @@ void ComputeTempDeformKokkos<DeviceType>::compute_vector()
   /**************** EVK ****************/
   // Convert from box coords to lamda coords
   domainKK->x2lamda(nlocal);
+  h_rate = domainKK->h_rate;
+  h_ratelo = domainKK->h_ratelo;
 
   copymode = 1;
   if (atomKK->rmass)
@@ -182,8 +184,6 @@ template<int RMASS>
 KOKKOS_INLINE_FUNCTION
 void ComputeTempDeformKokkos<DeviceType>::operator()(TagComputeTempDeformVector<RMASS>, const int &i, CTEMP& t_kk) const {
 
-  double *h_rate = domainKK->h_rate;
-  double *h_ratelo = domainKK->h_ratelo;
   double vstream[3],vthermal[3];
 
   vstream[0] = h_rate[0]*x(i,0) + h_rate[5]*x(i,1) + h_rate[4]*x(i,2) + h_ratelo[0];

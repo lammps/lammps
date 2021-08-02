@@ -283,15 +283,19 @@ void ImproperHybrid::coeff(int narg, char **arg)
   utils::bounds(FLERR,arg[0],1,atom->nimpropertypes,ilo,ihi,error);
 
   // 2nd arg = improper sub-style name
-  // allow for "none" as valid sub-style name
+  // allow for "none" or "skip" as valid sub-style name
 
   int m;
   for (m = 0; m < nstyles; m++)
     if (strcmp(arg[1],keywords[m]) == 0) break;
 
   int none = 0;
+  int skip = 0;
   if (m == nstyles) {
     if (strcmp(arg[1],"none") == 0) none = 1;
+    else if (strcmp(arg[1],"skip") == 0) none = skip = 1;
+    else if (strcmp(arg[1],"aa") == 0)
+      error->all(FLERR,"AngleAngle coeff for hybrid improper has invalid format");
     else error->all(FLERR,"Improper coeff for hybrid has invalid style");
   }
 

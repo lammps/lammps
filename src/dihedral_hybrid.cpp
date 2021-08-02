@@ -286,6 +286,16 @@ void DihedralHybrid::coeff(int narg, char **arg)
   if (m == nstyles) {
     if (strcmp(arg[1],"none") == 0) none = 1;
     else if (strcmp(arg[1],"skip") == 0) none = skip = 1;
+    else if (strcmp(arg[1],"mbt") == 0)
+      error->all(FLERR,"MiddleBondTorsion coeff for hybrid dihedral has invalid format");
+    else if (strcmp(arg[1],"ebt") == 0)
+      error->all(FLERR,"EndBondTorsion coeff for hybrid dihedral has invalid format");
+    else if (strcmp(arg[1],"at") == 0)
+      error->all(FLERR,"AngleTorsion coeff for hybrid dihedral has invalid format");
+    else if (strcmp(arg[1],"aat") == 0)
+      error->all(FLERR,"AngleAngleTorsion coeff for hybrid dihedral has invalid format");
+    else if (strcmp(arg[1],"bb13") == 0)
+      error->all(FLERR,"BondBond13 coeff for hybrid dihedral has invalid format");
     else error->all(FLERR,"Dihedral coeff for hybrid has invalid style");
   }
 

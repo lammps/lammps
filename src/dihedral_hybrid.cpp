@@ -33,7 +33,11 @@ using namespace LAMMPS_NS;
 
 DihedralHybrid::DihedralHybrid(LAMMPS *lmp) : Dihedral(lmp)
 {
+  writedata = 0;
   nstyles = 0;
+  ndihedrallist = nullptr;
+  dihedrallist = nullptr;
+  maxdihedral = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -107,6 +111,18 @@ void DihedralHybrid::compute(int eflag, int vflag)
   // accumulate sub-style global/peratom energy/virial in hybrid
 
   ev_init(eflag,vflag);
+
+  // need to clear per-thread storage here, when using multiple threads
+  // with thread-enabled substyles to avoid uninitlialized data access.
+
+  const int nthreads = comm->nthreads;
+  if (comm->nthreads > 1) {
+    const bigint nall = atom->nlocal + atom->nghost;
+    if (eflag_atom)
+      memset(&eatom[0],0,nall*nthreads*sizeof(double));
+    if (vflag_atom)
+      memset(&vatom[0][0],0,6*nall*nthreads*sizeof(double));
+  }
 
   for (m = 0; m < nstyles; m++) {
     neighbor->ndihedrallist = ndihedrallist[m];

@@ -5122,7 +5122,7 @@ int VarReader::read_scalar(char *str)
       if (n == 1) continue;                 // skip if blank line
       break;
     }
-    memmove(str,ptr,n);                       // move trimmed string back
+    if (n > 0) memmove(str,ptr,n);                       // move trimmed string back
   }
   MPI_Bcast(&n,1,MPI_INT,0,world);
   if (n == 0) return 1;

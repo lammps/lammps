@@ -668,7 +668,7 @@ void FixDPPimd::post_force(int /*flag*/)
   imageint *image = atom->image;
   for(int i=0; i<nlocal; i++)
   {
-    //domain->unmap(x[i], image[i]);
+    domain->unmap(x[i], image[i]);
   }
 
   inv_volume = 1.0 / (domain->xprd * domain->yprd * domain->zprd);
@@ -1751,8 +1751,8 @@ void FixDPPimd::compute_totenthalpy()
 
 double FixDPPimd::compute_vector(int n)
 {
-  //if(n==0) { return totke; }
-  if(n==0) { return ke_bead; }
+  if(n==0) { return totke; }
+  //if(n==0) { return ke_bead; }
   if(n==1) { return total_spring_energy; }
   //if(n==1) { return atom->v[0][0]; }
   if(n==2) { return pote; }

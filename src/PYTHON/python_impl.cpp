@@ -138,7 +138,7 @@ void PythonImpl::command(int narg, char **arg)
     if (ifunc < 0) error->all(FLERR,"Python invoke of undefined function");
 
     char *str = nullptr;
-    if (noutput) {
+    if (pfuncs[ifunc].noutput) {
       str = input->variable->pythonstyle(pfuncs[ifunc].ovarname,
                                          pfuncs[ifunc].name);
       if (!str)

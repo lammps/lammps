@@ -569,7 +569,7 @@ void PairHybrid::init_style()
   // same style must not be used multiple times
 
   for (istyle = 0; istyle < nstyles; istyle++) {
-    bool is_gpu = (((PairHybrid *)styles[istyle])->suffix_flag & Suffix::GPU);
+    bool is_gpu = styles[istyle]->suffix_flag & Suffix::GPU;
     if (multiple[istyle] && is_gpu)
       error->all(FLERR,"GPU package styles must not be used multiple times");
   }

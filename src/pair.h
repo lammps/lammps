@@ -30,6 +30,7 @@ class Pair : protected Pointers {
   friend class FixOMP;
   friend class FixQEq;
   friend class PairHybrid;
+  friend class PairHybridScaled;
   friend class ThrOMP;
   friend class Info;
 

@@ -855,6 +855,13 @@ std::vector<std::string> utils::split_words(const std::string &text)
       if (c != '\'') ++len;
       c = *++buf;
 
+      // handle triple double quotation marks
+    } else if ((c == '"') && (buf[1] == '"') && (buf[2] == '"') && (buf[3] != '"')) {
+      len = 3;
+      add = 1;
+      buf += 3;
+      c = *buf;
+
       // handle double quote
     } else if (c == '"') {
       ++beg;

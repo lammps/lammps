@@ -195,7 +195,7 @@ FixDeposit::FixDeposit(LAMMPS *lmp, int narg, char **arg) :
 
   force_reneighbor = 1;
   next_reneighbor = update->ntimestep + 1;
-  nfirst = next_reneighbor;
+  nfirst = next_reneighbor-nfreq;
   ninserted = 0;
 }
 
@@ -288,8 +288,7 @@ void FixDeposit::init()
 
     double separation = MAX(2.0*maxradinsert,maxradall+maxradinsert);
     if (sqrt(nearsq) < separation && comm->me == 0)
-      error->warning(FLERR,"Fix deposit near setting < possible "
-                     "overlap separation {}",separation);
+      error->warning(FLERR,"Fix deposit near setting < possible overlap separation {}",separation);
   }
 }
 
@@ -297,7 +296,7 @@ void FixDeposit::init()
 
 void FixDeposit::setup_pre_exchange()
 {
-  if (ninserted < ninsert) next_reneighbor = update->ntimestep+1;
+  if (ninserted < ninsert) next_reneighbor = nfirst + ((update->ntimestep - nfirst)/nfreq)*nfreq + nfreq;
   else next_reneighbor = 0;
 }
 

@@ -47,12 +47,6 @@ enum{NONE,INT,DOUBLE,STRING,PTR};
 
 PythonImpl::PythonImpl(LAMMPS *lmp) : Pointers(lmp)
 {
-  ninput = noutput = 0;
-  istr = nullptr;
-  ostr = nullptr;
-  format = nullptr;
-  length_longstr = 0;
-
   // pfuncs stores interface info for each Python function
 
   nfunc = 0;
@@ -138,7 +132,7 @@ void PythonImpl::command(int narg, char **arg)
     if (ifunc < 0) error->all(FLERR,"Python invoke of undefined function");
 
     char *str = nullptr;
-    if (noutput) {
+    if (pfuncs[ifunc].noutput) {
       str = input->variable->pythonstyle(pfuncs[ifunc].ovarname,
                                          pfuncs[ifunc].name);
       if (!str)
@@ -168,11 +162,12 @@ void PythonImpl::command(int narg, char **arg)
 
   // parse optional args, invoke is not allowed in this mode
 
-  ninput = noutput = 0;
-  istr = nullptr;
-  ostr = nullptr;
-  format = nullptr;
-  length_longstr = 0;
+  int ninput = 0;
+  int noutput = 0;
+  char **istr = nullptr;
+  char *ostr = nullptr;
+  char *format = nullptr;
+  int length_longstr = 0;
   char *pyfile = nullptr;
   char *herestr = nullptr;
   int existflag = 0;
@@ -223,7 +218,7 @@ void PythonImpl::command(int narg, char **arg)
 
   // create or overwrite entry in pfuncs vector with name = arg[0]
 
-  int ifunc = create_entry(arg[0]);
+  int ifunc = create_entry(arg[0],ninput,noutput,length_longstr, istr, ostr, format);
 
   PyUtils::GIL lock;
 
@@ -409,7 +404,8 @@ char *PythonImpl::long_string(int ifunc)
 
 /* ------------------------------------------------------------------ */
 
-int PythonImpl::create_entry(char *name)
+int PythonImpl::create_entry(char *name, int ninput, int noutput, int length_longstr,
+                             char **istr, char *ostr, char *format)
 {
   // ifunc = index to entry by name in pfuncs vector, can be old or new
   // free old vectors if overwriting old pfunc

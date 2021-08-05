@@ -76,20 +76,19 @@ FixGrem::FixGrem(LAMMPS *lmp, int narg, char **arg) :
   // pass id_temp as 4th arg to pressure constructor
 
   id_press = utils::strdup(std::string(id) + "_press");
-  modify->add_compute(fmt::format("{} all PRESSURE/GREM {}",
-                                  id_press, id_temp));
+  modify->add_compute(fmt::format("{} all PRESSURE/GREM {} {}", id_press, id_temp, id));
 
   // create a new compute ke style
   // id = fix-ID + ke
 
   id_ke = utils::strdup(std::string(id) + "_ke");
-  modify->add_compute(fmt::format("{} all ke",id_temp));
+  modify->add_compute(fmt::format("{} all ke",id_ke));
 
   // create a new compute pe style
   // id = fix-ID + pe
 
   id_pe = utils::strdup(std::string(id) + "_pe");
-  modify->add_compute(fmt::format("{} all pe",id_temp));
+  modify->add_compute(fmt::format("{} all pe",id_pe));
 
   int ifix = modify->find_fix(id_nh);
   if (ifix < 0)

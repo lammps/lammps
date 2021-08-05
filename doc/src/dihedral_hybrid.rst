@@ -57,7 +57,7 @@ If *class2* is one of the dihedral hybrid styles, the same rule holds
 for specifying additional AngleTorsion (and EndBondTorsion, etc)
 coefficients either via the input script or in the data file.
 I.e. *class2* must be added to each line after the dihedral type.  For
-lines in the AngleTorsion (or EndBondTorsion, etc) section of the data
+lines in the AngleTorsion (or EndBondTorsion, etc) Coeffs section of the data
 file for dihedral types that are not *class2*, you must use an
 dihedral style of *skip* as a placeholder, e.g.
 

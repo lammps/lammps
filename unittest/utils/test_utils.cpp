@@ -120,6 +120,44 @@ TEST(Utils, split_words_simple)
     ASSERT_THAT(list[2], StrEq("three"));
 }
 
+TEST(Utils, split_words_leading_whitespace)
+{
+    auto list = utils::split_words("  one two three");
+    ASSERT_EQ(list.size(), 3);
+    ASSERT_THAT(list[0], StrEq("one"));
+    ASSERT_THAT(list[1], StrEq("two"));
+    ASSERT_THAT(list[2], StrEq("three"));
+}
+
+TEST(Utils, split_words_trailing_whitespace)
+{
+    auto list = utils::split_words("one two three  ");
+    ASSERT_EQ(list.size(), 3);
+    ASSERT_THAT(list[0], StrEq("one"));
+    ASSERT_THAT(list[1], StrEq("two"));
+    ASSERT_THAT(list[2], StrEq("three"));
+}
+
+TEST(Utils, split_words_heredoc)
+{
+    auto list = utils::split_words("one two three \"\"\"");
+    ASSERT_EQ(list.size(), 4);
+    ASSERT_THAT(list[0], StrEq("one"));
+    ASSERT_THAT(list[1], StrEq("two"));
+    ASSERT_THAT(list[2], StrEq("three"));
+    ASSERT_THAT(list[3], StrEq("\"\"\""));
+}
+
+TEST(Utils, split_words_heredoc_whitespace)
+{
+    auto list = utils::split_words("one two three \"\"\"   ");
+    ASSERT_EQ(list.size(), 4);
+    ASSERT_THAT(list[0], StrEq("one"));
+    ASSERT_THAT(list[1], StrEq("two"));
+    ASSERT_THAT(list[2], StrEq("three"));
+    ASSERT_THAT(list[3], StrEq("\"\"\""));
+}
+
 TEST(Utils, split_words_quoted)
 {
     auto list = utils::split_words("one 'two' \"three\"");

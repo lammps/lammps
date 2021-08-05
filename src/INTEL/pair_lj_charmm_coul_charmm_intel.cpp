@@ -559,6 +559,7 @@ void PairLJCharmmCoulCharmmIntel::pack_force_const(ForceConst<flt_t> &fc,
 template <class flt_t>
 void PairLJCharmmCoulCharmmIntel::ForceConst<flt_t>::set_ntypes(
   const int ntypes, Memory *memory, const int cop) {
+  if (memory != nullptr) _memory = memory;
   if (ntypes != _ntypes) {
     if (_ntypes > 0) {
       #ifdef _LMP_INTEL_OFFLOAD
@@ -579,8 +580,8 @@ void PairLJCharmmCoulCharmmIntel::ForceConst<flt_t>::set_ntypes(
     }
     if (ntypes > 0) {
       _cop = cop;
-      memory->create(cutsq,ntypes,ntypes,"fc.cutsq");
-      memory->create(lj,ntypes,ntypes,"fc.lj");
+      _memory->create(cutsq,ntypes,ntypes,"fc.cutsq");
+      _memory->create(lj,ntypes,ntypes,"fc.lj");
 
       #ifdef _LMP_INTEL_OFFLOAD
       flt_t * ospecial_lj = special_lj;
@@ -599,5 +600,4 @@ void PairLJCharmmCoulCharmmIntel::ForceConst<flt_t>::set_ntypes(
     }
   }
   _ntypes=ntypes;
-  _memory=memory;
 }

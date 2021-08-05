@@ -654,7 +654,8 @@ void PairLJCharmmCoulLongIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
                                                               const int ntable,
                                                               Memory *memory,
                                                               const int cop) {
-  if ((ntypes != _ntypes || ntable != _ntable)) {
+  if (memory != nullptr) _memory = memory;
+  if ((ntypes != _ntypes) || (ntable != _ntable)) {
     if (_ntypes > 0) {
       #ifdef _LMP_INTEL_OFFLOAD
       flt_t * ospecial_lj = special_lj;
@@ -688,13 +689,13 @@ void PairLJCharmmCoulLongIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
     }
     if (ntypes > 0) {
       _cop = cop;
-      memory->create(cutsq,ntypes,ntypes,"fc.cutsq");
-      memory->create(lj,ntypes,ntypes,"fc.lj");
-      memory->create(table,ntable,"pair:fc.table");
-      memory->create(etable,ntable,"pair:fc.etable");
-      memory->create(detable,ntable,"pair:fc.detable");
-      memory->create(ctable,ntable,"pair:fc.ctable");
-      memory->create(dctable,ntable,"pair:fc.dctable");
+      _memory->create(cutsq,ntypes,ntypes,"fc.cutsq");
+      _memory->create(lj,ntypes,ntypes,"fc.lj");
+      _memory->create(table,ntable,"pair:fc.table");
+      _memory->create(etable,ntable,"pair:fc.etable");
+      _memory->create(detable,ntable,"pair:fc.detable");
+      _memory->create(ctable,ntable,"pair:fc.ctable");
+      _memory->create(dctable,ntable,"pair:fc.dctable");
 
       #ifdef _LMP_INTEL_OFFLOAD
       flt_t * ospecial_lj = special_lj;
@@ -724,5 +725,4 @@ void PairLJCharmmCoulLongIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
   }
   _ntypes=ntypes;
   _ntable=ntable;
-  _memory=memory;
 }

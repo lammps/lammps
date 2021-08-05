@@ -121,6 +121,8 @@ private:
     } else {
       system_force[i] = colvars[i]->total_force().real_value
         - colvar_forces[i].real_value;
+        // If hideJacobian is active then total_force has an extra term of -fj
+        // which is the Jacobian-compensating force at the colvar level
     }
     if (cvm::debug())
       cvm::log("ABF System force calc: cv " + cvm::to_str(i) +

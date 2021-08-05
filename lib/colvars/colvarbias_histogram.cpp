@@ -129,14 +129,14 @@ int colvarbias_histogram::update()
     // output_prefix is unset during the constructor
     if (cvm::step_relative() == 0) {
       out_name = cvm::output_prefix() + "." + this->name + ".dat";
-      cvm::log("Histogram " + this->name + " will be written to file \"" + out_name + "\"");
+      cvm::log("Histogram " + this->name + " will be written to file \"" + out_name + "\"\n");
     }
   }
 
   if (out_name_dx.size() == 0) {
     if (cvm::step_relative() == 0) {
       out_name_dx = cvm::output_prefix() + "." + this->name + ".dx";
-      cvm::log("Histogram " + this->name + " will be written to file \"" + out_name_dx + "\"");
+      cvm::log("Histogram " + this->name + " will be written to file \"" + out_name_dx + "\"\n");
     }
   }
 

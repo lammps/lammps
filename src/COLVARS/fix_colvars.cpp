@@ -480,7 +480,7 @@ void FixColvars::one_time_init()
   memory->create(force_buf,3*num_coords,"colvars:force_buf");
 
   if (me == 0) {
-    std::vector<int> &tl = *(proxy->modify_atom_ids());
+    std::vector<int> const &tl = *(proxy->get_atom_ids());
     inthash_t *hashtable=new inthash_t;
     inthash_init(hashtable, num_coords);
     idmap = (void *)hashtable;
@@ -563,7 +563,7 @@ void FixColvars::setup(int vflag)
 
   if (me == 0) {
 
-    std::vector<int>           &id = *(proxy->modify_atom_ids());
+    std::vector<int>     const &id = *(proxy->get_atom_ids());
     std::vector<int>           &tp = *(proxy->modify_atom_types());
     std::vector<cvm::atom_pos> &cd = *(proxy->modify_atom_positions());
     std::vector<cvm::rvector>  &of = *(proxy->modify_atom_total_forces());
@@ -836,7 +836,7 @@ void FixColvars::post_force(int /*vflag*/)
 
   if (me == 0) {
 
-    std::vector<cvm::rvector> &fo = *(proxy->modify_atom_new_colvar_forces());
+    std::vector<cvm::rvector> &fo = *(proxy->modify_atom_applied_forces());
 
     double *fbuf = force_buf;
     for (int j=0; j < num_coords; ++j) {

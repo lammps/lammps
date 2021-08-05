@@ -504,7 +504,8 @@ void PairBuckCoulCutIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
                                                            const int ntable,
                                                            Memory *memory,
                                                            const int cop) {
-  if ((ntypes != _ntypes || ntable != _ntable)) {
+  if (memory != nullptr) _memory = memory;
+  if ((ntypes != _ntypes) || (ntable != _ntable)) {
     if (_ntypes > 0) {
       #ifdef _LMP_INTEL_OFFLOAD
       flt_t * ospecial_lj = special_lj;
@@ -526,13 +527,12 @@ void PairBuckCoulCutIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
       _memory->destroy(c_force);
       _memory->destroy(c_energy);
       _memory->destroy(c_cut);
-
     }
     if (ntypes > 0) {
       _cop = cop;
-      memory->create(c_force,ntypes,ntypes,"fc.c_force");
-      memory->create(c_energy,ntypes,ntypes,"fc.c_energy");
-      memory->create(c_cut,ntypes,ntypes,"fc.c_cut");
+      _memory->create(c_force,ntypes,ntypes,"fc.c_force");
+      _memory->create(c_energy,ntypes,ntypes,"fc.c_energy");
+      _memory->create(c_cut,ntypes,ntypes,"fc.c_cut");
 
 
       #ifdef _LMP_INTEL_OFFLOAD
@@ -558,5 +558,4 @@ void PairBuckCoulCutIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
   }
   _ntypes=ntypes;
   _ntable=ntable;
-  _memory=memory;
 }

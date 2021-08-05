@@ -781,7 +781,8 @@ void PairEAMIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
                                                  const int nr, const int nrho,
                                                  Memory *memory,
                                                  const int cop) {
-  if (ntypes != _ntypes || nr + 1 > _nr || nrho + 1 > _nrho) {
+  if (memory != nullptr) _memory = memory;
+  if ((ntypes != _ntypes) || (nr + 1 > _nr) || (nrho + 1 > _nrho)) {
     if (_ntypes > 0) {
       _memory->destroy(rhor_spline_f);
       _memory->destroy(rhor_spline_e);
@@ -794,18 +795,17 @@ void PairEAMIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
       _cop = cop;
       _nr = nr + 1;
       IP_PRE_edge_align(_nr, sizeof(flt_t));
-      memory->create(rhor_spline_f,ntypes*ntypes*_nr,"fc.rhor_spline_f");
-      memory->create(rhor_spline_e,ntypes*ntypes*_nr,"fc.rhor_spline_e");
-      memory->create(z2r_spline_t,ntypes*ntypes*_nr,"fc.z2r_spline_t");
+      _memory->create(rhor_spline_f,ntypes*ntypes*_nr,"fc.rhor_spline_f");
+      _memory->create(rhor_spline_e,ntypes*ntypes*_nr,"fc.rhor_spline_e");
+      _memory->create(z2r_spline_t,ntypes*ntypes*_nr,"fc.z2r_spline_t");
       _nrho = nrho + 1;
       IP_PRE_edge_align(_nrho, sizeof(flt_t));
-      memory->create(frho_spline_f,ntypes*_nrho,"fc.frho_spline_f");
-      memory->create(frho_spline_e,ntypes*_nrho,"fc.frho_spline_e");
-      memory->create(scale_f,ntypes,ntypes,"fc.scale_f");
+      _memory->create(frho_spline_f,ntypes*_nrho,"fc.frho_spline_f");
+      _memory->create(frho_spline_e,ntypes*_nrho,"fc.frho_spline_e");
+      _memory->create(scale_f,ntypes,ntypes,"fc.scale_f");
     }
   }
   _ntypes = ntypes;
-  _memory = memory;
 }
 
 /* ---------------------------------------------------------------------- */

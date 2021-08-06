@@ -148,8 +148,10 @@ void PairSWGPU::init_style()
 
   if (atom->tag_enable == 0)
     error->all(FLERR,"Pair style sw/gpu requires atom IDs");
+/*
   if (force->newton_pair != 0)
     error->all(FLERR,"Pair style sw/gpu requires newton pair off");
+*/
 
   double **c1, **c2, **c3, **c4, **c5, **c6;
   double **ncutsq, **ncut, **sigma, **powerp, **powerq, **sigma_gamma;

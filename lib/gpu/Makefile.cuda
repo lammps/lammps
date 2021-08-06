@@ -21,7 +21,7 @@ LMP_INC = -DLAMMPS_SMALLBIG
 # -D_DOUBLE_DOUBLE  # Double precision for all calculations
 # -D_SINGLE_DOUBLE  # Accumulation of forces, etc. in double
 
-CUDA_PRECISION = -D_SINGLE_DOUBLE
+CUDA_PRECISION = -D_DOUBLE_DOUBLE
 
 BIN_DIR = ./
 OBJ_DIR = ./

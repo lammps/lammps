@@ -168,8 +168,10 @@ void PairLJCutTIP4PLongGPU::init_style()
     error->all(FLERR,"Pair style lj/cut/tip4p/long/gpu requires atom IDs");
   if (!atom->q_flag)
     error->all(FLERR, "Pair style lj/cut/tip4p/long/gpu requires atom attribute q");
+/*
   if (force->newton_pair)
     error->all(FLERR,"Pair style lj/cut/tip4p/long/gpu requires newton pair off");
+*/
   if (force->bond == nullptr)
     error->all(FLERR,"Must use a bond style with TIP4P potential");
   if (force->angle == nullptr)

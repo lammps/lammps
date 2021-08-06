@@ -157,8 +157,10 @@ void PairBornCoulLongCSGPU::init_style()
 {
   if (!atom->q_flag)
     error->all(FLERR, "Pair style born/coul/long/cs/gpu requires atom attribute q");
+/*
   if (force->newton_pair)
     error->all(FLERR, "Pair style born/coul/long/cs/gpu requires newton pair off");
+*/
 
   // Repeat cutsq calculation because done after call to init_style
   double maxcut = -1.0;

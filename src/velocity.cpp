@@ -187,11 +187,11 @@ void Velocity::create(double t_desired, int seed)
   Compute *temperature_nobias = nullptr;
 
   if (temperature == nullptr || bias_flag) {
-    modify->add_compute(fmt::format("velocity_temp {} temp",group->names[igroup]));
+    auto newcompute = modify->add_compute(fmt::format("velocity_temp {} temp",group->names[igroup]));
     if (temperature == nullptr) {
-      temperature = modify->compute[modify->ncompute-1];
+      temperature = newcompute;
       tcreate_flag = 1;
-    } else temperature_nobias = modify->compute[modify->ncompute-1];
+    } else temperature_nobias = newcompute;
   }
 
   // initialize temperature computation(s)
@@ -575,8 +575,7 @@ void Velocity::scale(int /*narg*/, char **arg)
 
   int tflag = 0;
   if (temperature == nullptr) {
-    modify->add_compute(fmt::format("velocity_temp {} temp",group->names[igroup]));
-    temperature = modify->compute[modify->ncompute-1];
+    temperature = modify->add_compute(fmt::format("velocity_temp {} temp",group->names[igroup]));
     tflag = 1;
   }
 

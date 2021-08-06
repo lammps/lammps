@@ -103,7 +103,7 @@ void colvar::map_total::calc_value()
 {
   colvarproxy *proxy = cvm::main()->proxy;
   int flags = is_enabled(f_cvc_gradient) ? colvarproxy::volmap_flag_gradients :
-    colvarproxy::volmap_flag_gradients;
+    colvarproxy::volmap_flag_null;
 
   if (atoms != NULL) {
     // Compute the map inside Colvars

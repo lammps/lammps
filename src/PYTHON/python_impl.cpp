@@ -179,6 +179,7 @@ void PythonImpl::command(int narg, char **arg)
       ninput = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (ninput < 0) error->all(FLERR,"Invalid python command");
       iarg += 2;
+      delete[] istr;
       istr = new char*[ninput];
       if (iarg+ninput > narg) error->all(FLERR,"Invalid python command");
       for (int i = 0; i < ninput; i++) istr[i] = arg[iarg+i];
@@ -186,6 +187,7 @@ void PythonImpl::command(int narg, char **arg)
     } else if (strcmp(arg[iarg],"return") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Invalid python command");
       noutput = 1;
+      delete[] ostr;
       ostr = arg[iarg+1];
       iarg += 2;
     } else if (strcmp(arg[iarg],"format") == 0) {

@@ -50,7 +50,7 @@
 #ifndef LMP_INTEL_PREPROCESS_H
 #define LMP_INTEL_PREPROCESS_H
 
-// LAMMPS_MEMALIGN is set to 64 by default for -DLMP_USER_INTEL
+// LAMMPS_MEMALIGN is set to 64 by default for -DLMP_INTEL
 // so we only need to error out in case of a different alignment
 #if LAMMPS_MEMALIGN && (LAMMPS_MEMALIGN != 64)
 #error Please set -DLAMMPS_MEMALIGN=64 in CCFLAGS of your LAMMPS makefile for INTEL package

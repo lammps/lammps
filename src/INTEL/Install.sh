@@ -56,7 +56,7 @@ if (test $mode = 1) then
 
   if (test -e ../Makefile.package) then
     sed -i -e 's/[^ \t]*INTEL[^ \t]* //' ../Makefile.package
-    sed -i -e 's|^PKG_INC =[ \t]*|&-DLMP_USER_INTEL |' ../Makefile.package
+    sed -i -e 's|^PKG_INC =[ \t]*|&-DLMP_INTEL |' ../Makefile.package
   fi
 
 elif (test $mode = 0) then

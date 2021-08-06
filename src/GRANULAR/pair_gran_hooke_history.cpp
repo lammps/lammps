@@ -68,7 +68,7 @@ PairGranHookeHistory::PairGranHookeHistory(LAMMPS *lmp) : Pair(lmp)
   // this is so final order of Modify:fix will conform to input script
 
   fix_history = nullptr;
-  modify->add_fix("NEIGH_HISTORY_HH_DUMMY all DUMMY");
+  modify->add_fix("NEIGH_HISTORY_HH_DUMMY"+std::to_string(instance_me)+" all DUMMY");
   fix_dummy = (FixDummy *) modify->fix[modify->nfix-1];
 }
 
@@ -80,8 +80,8 @@ PairGranHookeHistory::~PairGranHookeHistory()
 
   delete [] svector;
 
-  if (!fix_history) modify->delete_fix("NEIGH_HISTORY_HH_DUMMY");
-  else modify->delete_fix("NEIGH_HISTORY_HH");
+  if (!fix_history) modify->delete_fix("NEIGH_HISTORY_HH_DUMMY"+std::to_string(instance_me));
+  else modify->delete_fix("NEIGH_HISTORY_HH"+std::to_string(instance_me));
 
   if (allocated) {
     memory->destroy(setflag);
@@ -436,10 +436,9 @@ void PairGranHookeHistory::init_style()
   // this is so its order in the fix list is preserved
 
   if (history && (fix_history == nullptr)) {
-    auto cmd = fmt::format("NEIGH_HISTORY_HH all NEIGH_HISTORY {}",
-                           size_history);
-    modify->replace_fix("NEIGH_HISTORY_HH_DUMMY",cmd,1);
-    int ifix = modify->find_fix("NEIGH_HISTORY_HH");
+    auto cmd = fmt::format("NEIGH_HISTORY_HH{} all NEIGH_HISTORY {}", instance_me, size_history);
+    modify->replace_fix("NEIGH_HISTORY_HH_DUMMY"+std::to_string(instance_me),cmd,1);
+    int ifix = modify->find_fix("NEIGH_HISTORY_HH"+std::to_string(instance_me));
     fix_history = (FixNeighHistory *) modify->fix[ifix];
     fix_history->pair = this;
   }
@@ -507,7 +506,7 @@ void PairGranHookeHistory::init_style()
   // set fix which stores history info
 
   if (history) {
-    int ifix = modify->find_fix("NEIGH_HISTORY_HH");
+    int ifix = modify->find_fix("NEIGH_HISTORY_HH"+std::to_string(instance_me));
     if (ifix < 0) error->all(FLERR,"Could not find pair fix neigh history ID");
     fix_history = (FixNeighHistory *) modify->fix[ifix];
   }

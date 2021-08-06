@@ -38,7 +38,7 @@
 #include <cmath>
 #include <cstring>
 
-#ifdef LMP_USER_INTEL
+#ifdef LMP_INTEL
 #include "neigh_request.h"
 #endif
 
@@ -2196,7 +2196,7 @@ void Atom::setup_sort_bins()
   bininvy = nbiny / (bboxhi[1]-bboxlo[1]);
   bininvz = nbinz / (bboxhi[2]-bboxlo[2]);
 
-#ifdef LMP_USER_INTEL
+#ifdef LMP_INTEL
   int intel_neigh = 0;
   if (neighbor->nrequest) {
     if (neighbor->requests[0]->intel) intel_neigh = 1;

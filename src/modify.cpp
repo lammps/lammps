@@ -985,7 +985,7 @@ void Modify::replace_fix(const char *replaceID,
                          int narg, char **arg, int trysuffix)
 {
   int ifix = find_fix(replaceID);
-  if (ifix < 0) error->all(FLERR,"Modify replace_fix ID could not be found");
+  if (ifix < 0) error->all(FLERR,"Modify replace_fix ID {} could not be found", replaceID);
 
   // change ID, igroup, style of fix being replaced to match new fix
   // requires some error checking on arguments for new fix

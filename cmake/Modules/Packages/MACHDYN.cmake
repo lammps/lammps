@@ -30,3 +30,8 @@ else()
   endif()
   target_link_libraries(lammps PRIVATE Eigen3::Eigen)
 endif()
+
+# PGI/Nvidia compiler internals collide with vector intrinsics support in Eigen3
+if((CMAKE_CXX_COMPILER_ID STREQUAL "PGI") OR (CMAKE_CXX_COMPILER_ID STREQUAL "NVHPC"))
+  target_compile_definitions(lammps PRIVATE -DEIGEN_DONT_VECTORIZE)
+endif()

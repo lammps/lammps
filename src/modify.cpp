@@ -1018,13 +1018,12 @@ void Modify::replace_fix(const std::string &oldfix,
                          const std::string &fixcmd, int trysuffix)
 {
   auto args = utils::split_words(fixcmd);
-  char **newarg = new char*[args.size()];
-  int i=0;
+  std::vector<char *> newarg(args.size());
+  int i = 0;
   for (const auto &arg : args) {
     newarg[i++] = (char *)arg.c_str();
   }
-  replace_fix(oldfix.c_str(),args.size(),newarg,trysuffix);
-  delete[] newarg;
+  replace_fix(oldfix.c_str(),args.size(),newarg.data(),trysuffix);
 }
 
 /* ----------------------------------------------------------------------
@@ -1279,13 +1278,12 @@ void Modify::add_compute(int narg, char **arg, int trysuffix)
 void Modify::add_compute(const std::string &computecmd, int trysuffix)
 {
   auto args = utils::split_words(computecmd);
-  char **newarg = new char*[args.size()];
+  std::vector<char *>newarg(args.size());
   int i=0;
   for (const auto &arg : args) {
     newarg[i++] = (char *)arg.c_str();
   }
-  add_compute(args.size(),newarg,trysuffix);
-  delete[] newarg;
+  add_compute(args.size(),newarg.data(),trysuffix);
 }
 
 

@@ -252,12 +252,9 @@ void FixAdapt::post_constructor()
   id_fix_chg = nullptr;
 
   if (diamflag && atom->radius_flag) {
-    std::string fixcmd = id + std::string("_FIX_STORE_DIAM");
-    id_fix_diam = utils::strdup(fixcmd);
-    fixcmd += fmt::format(" {} STORE peratom 1 1",group->names[igroup]);
-    modify->add_fix(fixcmd);
-    fix_diam = (FixStore *) modify->fix[modify->nfix-1];
-
+    id_fix_diam = utils::strdup(id + std::string("_FIX_STORE_DIAM"));
+    fix_diam = (FixStore *) modify->add_fix(fmt::format("{} {} STORE peratom 1 1",
+                                                        id_fix_diam,group->names[igroup]));
     if (fix_diam->restart_reset) fix_diam->restart_reset = 0;
     else {
       double *vec = fix_diam->vstore;
@@ -273,12 +270,9 @@ void FixAdapt::post_constructor()
   }
 
   if (chgflag && atom->q_flag) {
-    std::string fixcmd = id + std::string("_FIX_STORE_CHG");
-    id_fix_chg = utils::strdup(fixcmd);
-    fixcmd += fmt::format(" {} STORE peratom 1 1",group->names[igroup]);
-    modify->add_fix(fixcmd);
-    fix_chg = (FixStore *) modify->fix[modify->nfix-1];
-
+    id_fix_chg = utils::strdup(id + std::string("_FIX_STORE_CHG"));
+    fix_chg = (FixStore *) modify->add_fix(fmt::format("{} {} STORE peratom 1 1",
+                                                       id_fix_chg,group->names[igroup]));
     if (fix_chg->restart_reset) fix_chg->restart_reset = 0;
     else {
       double *vec = fix_chg->vstore;

@@ -37,7 +37,6 @@ using namespace FixConst;
 
 #define DELTA 4
 #define BIG 1.0e20
-#define NEXCEPT 7       // change when add to exceptions in add_fix()
 
 /* ---------------------------------------------------------------------- */
 

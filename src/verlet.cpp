@@ -68,8 +68,7 @@ void Verlet::init()
 
   // detect if fix omp is present for clearing force arrays
 
-  int ifix = modify->find_fix("package_omp");
-  if (ifix >= 0) external_force_clear = 1;
+  if (modify->get_fix_by_id("package_omp")) external_force_clear = 1;
 
   // set flags for arrays to clear in force_clear()
 

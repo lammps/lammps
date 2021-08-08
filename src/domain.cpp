@@ -140,19 +140,19 @@ void Domain::init()
 
   int box_change_x=0, box_change_y=0, box_change_z=0;
   int box_change_yz=0, box_change_xz=0, box_change_xy=0;
-  Fix **fixes = modify->fix;
+  const auto &fixes = modify->get_fix_list();
 
   if (nonperiodic == 2) box_change_size = 1;
-  for (int i = 0; i < modify->nfix; i++) {
-    if (fixes[i]->box_change & Fix::BOX_CHANGE_SIZE)   box_change_size = 1;
-    if (fixes[i]->box_change & Fix::BOX_CHANGE_SHAPE)  box_change_shape = 1;
-    if (fixes[i]->box_change & Fix::BOX_CHANGE_DOMAIN) box_change_domain = 1;
-    if (fixes[i]->box_change & Fix::BOX_CHANGE_X)      box_change_x++;
-    if (fixes[i]->box_change & Fix::BOX_CHANGE_Y)      box_change_y++;
-    if (fixes[i]->box_change & Fix::BOX_CHANGE_Z)      box_change_z++;
-    if (fixes[i]->box_change & Fix::BOX_CHANGE_YZ)     box_change_yz++;
-    if (fixes[i]->box_change & Fix::BOX_CHANGE_XZ)     box_change_xz++;
-    if (fixes[i]->box_change & Fix::BOX_CHANGE_XY)     box_change_xy++;
+  for (const auto &fix : fixes) {
+    if (fix->box_change & Fix::BOX_CHANGE_SIZE)   box_change_size = 1;
+    if (fix->box_change & Fix::BOX_CHANGE_SHAPE)  box_change_shape = 1;
+    if (fix->box_change & Fix::BOX_CHANGE_DOMAIN) box_change_domain = 1;
+    if (fix->box_change & Fix::BOX_CHANGE_X)      box_change_x++;
+    if (fix->box_change & Fix::BOX_CHANGE_Y)      box_change_y++;
+    if (fix->box_change & Fix::BOX_CHANGE_Z)      box_change_z++;
+    if (fix->box_change & Fix::BOX_CHANGE_YZ)     box_change_yz++;
+    if (fix->box_change & Fix::BOX_CHANGE_XZ)     box_change_xz++;
+    if (fix->box_change & Fix::BOX_CHANGE_XY)     box_change_xy++;
   }
 
   std::string mesg = "Must not have multiple fixes change box parameter ";
@@ -174,12 +174,12 @@ void Domain::init()
   // check for fix deform
 
   deform_flag = deform_vremap = deform_groupbit = 0;
-  for (int i = 0; i < modify->nfix; i++)
-    if (utils::strmatch(modify->fix[i]->style,"^deform")) {
+  for (const auto &fix : fixes)
+    if (utils::strmatch(fix->style,"^deform")) {
       deform_flag = 1;
-      if (((FixDeform *) modify->fix[i])->remapflag == Domain::V_REMAP) {
+      if (((FixDeform *) fix)->remapflag == Domain::V_REMAP) {
         deform_vremap = 1;
-        deform_groupbit = modify->fix[i]->groupbit;
+        deform_groupbit = fix->groupbit;
       }
     }
 

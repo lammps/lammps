@@ -1104,6 +1104,45 @@ int Modify::find_fix_by_style(const char *style)
 }
 
 /* ----------------------------------------------------------------------
+   look up pointer to Fix class by fix-ID
+   return null pointer if ID not found
+------------------------------------------------------------------------- */
+
+Fix *Modify::get_fix_by_id(const std::string &id) const
+{
+  if (id.empty()) return nullptr;
+  for (int ifix = 0; ifix < nfix; ifix++)
+    if (id == fix[ifix]->id) return fix[ifix];
+  return nullptr;
+}
+
+/* ----------------------------------------------------------------------
+   look up pointer to fixes by fix style name
+   return vector of matching pointers
+------------------------------------------------------------------------- */
+
+const std::vector<Fix *> Modify::get_fix_by_style(const std::string &style) const
+{
+  std::vector<Fix *> matches;
+  if (style.empty()) return matches;
+
+  for (int ifix = 0; ifix < nfix; ifix++)
+    if (utils::strmatch(fix[ifix]->style,style)) matches.push_back(fix[ifix]);
+
+  return matches;
+}
+
+/* ----------------------------------------------------------------------
+   return list of fixes as vector
+------------------------------------------------------------------------- */
+
+const std::vector<Fix *> &Modify::get_fix_list()
+{
+  fix_list = std::vector<Fix *>(fix, fix+nfix);
+  return fix_list;
+}
+
+/* ----------------------------------------------------------------------
    check for fix associated with package name in compiled list
    return 1 if found else 0
    used to determine whether LAMMPS was built with
@@ -1357,6 +1396,45 @@ int Modify::find_compute_by_style(const char *style)
   for (int icompute = 0; icompute < ncompute; icompute++)
     if (utils::strmatch(compute[icompute]->style,style)) return icompute;
   return -1;
+}
+
+/* ----------------------------------------------------------------------
+   look up pointer to Compute class by compute-ID
+   return null pointer if ID not found
+------------------------------------------------------------------------- */
+
+Compute *Modify::get_compute_by_id(const std::string &id) const
+{
+  if (id.empty()) return nullptr;
+  for (int icompute = 0; icompute < ncompute; icompute++)
+    if (id == compute[icompute]->id) return compute[icompute];
+  return nullptr;
+}
+
+/* ----------------------------------------------------------------------
+   look up pointer to compute by compute style name
+   return null pointer if style not used
+------------------------------------------------------------------------- */
+
+const std::vector<Compute *> Modify::get_compute_by_style(const std::string &style) const
+{
+  std::vector<Compute *> matches;
+  if (style.empty()) return matches;
+
+  for (int icompute = 0; icompute < ncompute; icompute++)
+    if (utils::strmatch(compute[icompute]->style,style)) matches.push_back(compute[icompute]);
+
+  return matches;
+}
+
+/* ----------------------------------------------------------------------
+   return vector with Computes
+------------------------------------------------------------------------- */
+
+const std::vector<Compute *> &Modify::get_compute_list()
+{
+  compute_list = std::vector<Compute *>(compute, compute+ncompute);
+  return compute_list;
 }
 
 /* ----------------------------------------------------------------------

@@ -121,8 +121,7 @@ void Min::init()
   // create fix needed for storing atom-based quantities
   // will delete it at end of run
 
-  modify->add_fix("MINIMIZE all MINIMIZE");
-  fix_minimize = (FixMinimize *) modify->fix[modify->nfix-1];
+  fix_minimize = (FixMinimize *) modify->add_fix("MINIMIZE all MINIMIZE");
 
   // clear out extra global and per-atom dof
   // will receive requests for new per-atom dof during pair init()

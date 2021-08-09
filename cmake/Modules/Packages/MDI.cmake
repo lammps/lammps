@@ -114,5 +114,5 @@ else()
   target_link_libraries(lmp PRIVATE ${mdi_LIBRARY})
 endif()
 
-target_compile_definitions(lammps PRIVATE -DLMP_USER_MDI)
-target_compile_definitions(lmp PRIVATE -DLMP_USER_MDI)
+target_compile_definitions(lammps PRIVATE -DLMP_MDI)
+target_compile_definitions(lmp PRIVATE -DLMP_MDI)

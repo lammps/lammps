@@ -3,7 +3,7 @@ if(NOT FOUND_IMMINTRIN)
   message(FATAL_ERROR "immintrin.h header not found, Intel package won't work without it")
 endif()
 
-target_compile_definitions(lammps PRIVATE -DLMP_USER_INTEL)
+target_compile_definitions(lammps PRIVATE -DLMP_INTEL)
 
 set(INTEL_ARCH "cpu" CACHE STRING "Architectures used by INTEL (cpu or knl)")
 set(INTEL_ARCH_VALUES cpu knl)

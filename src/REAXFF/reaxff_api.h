@@ -141,9 +141,9 @@ namespace ReaxFF
 
   // toolbox
 
-  extern void *scalloc(LAMMPS_NS::Error *, rc_bigint, rc_bigint, const char *);
-  extern void *smalloc(LAMMPS_NS::Error *, rc_bigint, const char *);
-  extern void sfree(LAMMPS_NS::Error *, void *, const char *);
+  extern void *scalloc(LAMMPS_NS::Error *, rc_bigint, rc_bigint, const std::string &);
+  extern void *smalloc(LAMMPS_NS::Error *, rc_bigint, const std::string &);
+  extern void sfree(LAMMPS_NS::Error *, void *, const std::string &);
 
   // torsion angles
 

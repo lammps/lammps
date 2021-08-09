@@ -37,7 +37,6 @@ using namespace FixConst;
 
 #define DELTA 4
 #define BIG 1.0e20
-#define NEXCEPT 7       // change when add to exceptions in add_fix()
 
 /* ---------------------------------------------------------------------- */
 
@@ -985,7 +984,7 @@ Fix *Modify::add_fix(const std::string &fixcmd, int trysuffix)
 Fix *Modify::replace_fix(const char *replaceID, int narg, char **arg, int trysuffix)
 {
   int ifix = find_fix(replaceID);
-  if (ifix < 0) error->all(FLERR,"Modify replace_fix ID could not be found");
+  if (ifix < 0) error->all(FLERR,"Modify replace_fix ID {} could not be found", replaceID);
 
   // change ID, igroup, style of fix being replaced to match new fix
   // requires some error checking on arguments for new fix

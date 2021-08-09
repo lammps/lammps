@@ -106,6 +106,7 @@ Length of read-in pair table is invalid
 E: Invalid pair table cutoff
 
 Cutoffs in pair_coeff command are not valid with read-in pair table.
+check if rlo < rcut < rhi and 0 < rcut.
 
 E: Bitmapped table in file does not match requested table
 

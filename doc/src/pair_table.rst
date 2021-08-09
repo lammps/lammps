@@ -186,6 +186,9 @@ computed; for "RSQ", squared distances uniformly spaced between
    very close to the new value (i.e. round-off difference), then you will
    be assigning energy/force values to a different distance, which is
    probably not what you want.  LAMMPS will warn if this is occurring.
+   While using the "R" option, the rcut defined in the :doc:`pair_coeff <pair_coeff>` 
+   should be rlo < rcut < rhi. LAMMPS will stop with an "Invalid pair table cutoff"
+   error if this happens.
 
 If used, the parameter "BITMAP" is also followed by 2 values *rlo* and
 *rhi*\ .  These values, along with the "N" value determine the ordering

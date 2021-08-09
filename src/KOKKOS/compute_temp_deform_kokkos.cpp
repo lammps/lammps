@@ -13,7 +13,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Emily Kahl (UQ)
+   Contributing authors: Emily Kahl (Uni. of QLD, e.kahl@uq.edu.au)
 ------------------------------------------------------------------------- */
 
 #include "compute_temp_deform_kokkos.h"
@@ -25,6 +25,7 @@
 #include "force.h"
 #include "update.h"
 #include "memory_kokkos.h"
+#include "domain_kokkos.h"
 
 #include <cstring>
 

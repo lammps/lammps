@@ -13,7 +13,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Emily Kahl (UQ, e.kahl@uq.edu.au)
+   Contributing authors: Emily Kahl (Uni. of QLD, e.kahl@uq.edu.au)
 ------------------------------------------------------------------------- */
 
 #include "fix_nvt_sllod_kokkos.h"

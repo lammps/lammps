@@ -25,7 +25,6 @@ ComputeStyle(temp/deform/kk/host,ComputeTempDeformKokkos<LMPHostType>);
 
 #include "compute_temp_deform.h"
 #include "kokkos_type.h"
-#include "domain_kokkos.h"
 #include "kokkos_few.h"
 
 namespace LAMMPS_NS {

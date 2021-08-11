@@ -479,9 +479,13 @@ void PPPMKokkos<DeviceType>::setup_triclinic()
   delzinv = nz_pppm;
   delvolinv = delxinv*delyinv*delzinv/volume;
 
+  numz_fft = nzhi_fft-nzlo_fft + 1;
+  numy_fft = nyhi_fft-nylo_fft + 1;
+  numx_fft = nxhi_fft-nxlo_fft + 1;
+  const int inum_fft = numz_fft*numy_fft*numx_fft;
+
   copymode = 1;
-  Kokkos::parallel_for(Kokkos::MDRangePolicy<Kokkos::Rank<3>, DeviceType, TagPPPM_setup_triclinic1>\
-      ({nzlo_fft, nylo_fft, nxlo_fft}, {nzhi_fft+1, nyhi_fft+1, nxhi_fft+1}),*this);
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_setup_triclinic1>(0,inum_fft),*this);
   copymode = 0;
 
   // virial coefficients
@@ -495,14 +499,18 @@ void PPPMKokkos<DeviceType>::setup_triclinic()
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void PPPMKokkos<DeviceType>::operator()(TagPPPM_setup_triclinic1, const int &k, const int &j, const int& i) const
+void PPPMKokkos<DeviceType>::operator()(TagPPPM_setup_triclinic1, const int &n) const
 {
+  int k = n/(numy_fft*numx_fft);
+  int j = (n - k*numy_fft*numx_fft) / numx_fft;
+  int i = n - k*numy_fft*numx_fft - j*numx_fft;
+  k += nzlo_fft;
+  j += nylo_fft;
+  i += nxlo_fft;
+
   double per_k = k - nz_pppm*(2*k/nz_pppm);
   double per_j = j - ny_pppm*(2*j/ny_pppm);
   double per_i = i - nx_pppm*(2*i/nx_pppm);
-  // n corresponds to the "number" of this iteration if we were to execute the loop monotonically and in serial
-  int n = (nxhi_fft - nxlo_fft + 1)*(nyhi_fft - nylo_fft + 1)*(k - nzlo_fft)+
-          (nxhi_fft - nxlo_fft + 1)*(j - nylo_fft) + (i - nxlo_fft);
 
   double unitk_lamda[3];
   unitk_lamda[0] = 2.0*MY_PI*per_i;

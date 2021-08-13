@@ -111,7 +111,8 @@ PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp)
 
 PairGranular::~PairGranular()
 {
-  delete [] svector;
+  delete[] svector;
+  delete[] history_transfer_factors;
 
   if (!fix_history) modify->delete_fix("NEIGH_HISTORY_GRANULAR_DUMMY");
   else modify->delete_fix("NEIGH_HISTORY_GRANULAR");

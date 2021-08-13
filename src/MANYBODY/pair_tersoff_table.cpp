@@ -91,7 +91,7 @@ PairTersoffTable::~PairTersoffTable()
     memory->destroy(cutsq);
   }
   deallocateGrids();
-  deallocatePreLoops();
+  PairTersoffTable::deallocatePreLoops();
 }
 
 /* ---------------------------------------------------------------------- */

@@ -141,15 +141,6 @@ void PairILPGrapheneHBN::settings(int narg, char **arg)
 
   cut_global = utils::numeric(FLERR,arg[0],false,lmp);
   if (narg == 2) tap_flag = utils::numeric(FLERR,arg[1],false,lmp);
-
-  // reset cutoffs that have been explicitly set
-
-  if (allocated) {
-    int i,j;
-    for (i = 1; i <= atom->ntypes; i++)
-      for (j = i; j <= atom->ntypes; j++)
-        if (setflag[i][j]) cut[i][j] = cut_global;
-  }
 }
 
 /* ----------------------------------------------------------------------
@@ -175,14 +166,14 @@ double PairILPGrapheneHBN::init_one(int i, int j)
   if (!offset_flag)
     error->all(FLERR,"Must use 'pair_modify shift yes' with this pair style");
 
-  if (offset_flag  && (cut[i][j] > 0.0)) {
+  if (offset_flag  && (cut_global > 0.0)) {
     int iparam_ij = elem2param[map[i]][map[j]];
     Param& p = params[iparam_ij];
-    offset[i][j] = -p.C6*pow(1.0/cut[i][j],6)/(1.0 + exp(-p.d*(cut[i][j]/p.seff - 1.0)));
+    offset[i][j] = -p.C6*pow(1.0/cut_global,6)/(1.0 + exp(-p.d*(cut_global/p.seff - 1.0)));
   } else offset[i][j] = 0.0;
   offset[j][i] = offset[i][j];
 
-  return cut[i][j];
+  return cut_global;
 }
 
 /* ----------------------------------------------------------------------

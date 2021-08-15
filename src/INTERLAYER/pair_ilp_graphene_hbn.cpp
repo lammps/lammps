@@ -107,6 +107,7 @@ PairILPGrapheneHBN::~PairILPGrapheneHBN()
 
   memory->destroy(elem2param);
   memory->destroy(cutILPsq);
+  memory->sfree(params);
 }
 
 /* ----------------------------------------------------------------------

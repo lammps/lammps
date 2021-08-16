@@ -136,10 +136,8 @@ void PairReaxFFOMP::init_style()
     error->warning(FLERR,"Total cutoff < 2*bond cutoff. May need to use an "
                    "increased neighbor list skin.");
 
-  if (fix_reaxff == nullptr) {
-    modify->add_fix(fmt::format("{} all REAXFF",fix_id));
-    fix_reaxff = (FixReaxFF *) modify->fix[modify->nfix-1];
-  }
+  if (fix_reaxff == nullptr)
+    fix_reaxff = (FixReaxFF *) modify->add_fix(fmt::format("{} all REAXFF",fix_id));
 
   api->control->nthreads = comm->nthreads;
 }

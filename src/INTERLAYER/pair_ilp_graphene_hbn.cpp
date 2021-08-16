@@ -33,6 +33,8 @@
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "neighbor.h"
+#include "potential_file_reader.h"
+#include "tokenizer.h"
 
 #include <cmath>
 #include <cstring>
@@ -183,138 +185,103 @@ double PairILPGrapheneHBN::init_one(int i, int j)
 
 void PairILPGrapheneHBN::read_file(char *filename)
 {
-  int params_per_line = 13;
-  char **words = new char*[params_per_line+1];
   memory->sfree(params);
   params = nullptr;
   nparams = maxparam = 0;
 
   // open file on proc 0
 
-  FILE *fp;
   if (comm->me == 0) {
-    fp = utils::open_potential(filename,lmp,nullptr);
-    if (fp == nullptr)
-      error->one(FLERR,"Cannot open ILP potential file {}: {}",filename,utils::getsyserror());
-  }
+    PotentialFileReader reader(lmp, filename, "ilp/graphene/hbn", unit_convert_flag);
+    char *line;
 
-  // read each line out of file, skipping blank lines or leading '#'
-  // store line of params if all 3 element tags are in element list
+    while ((line = reader.next_line(NPARAMS_PER_LINE))) {
 
-  int i,j,n,m,nwords,ielement,jelement;
-  char line[MAXLINE],*ptr;
-  int eof = 0;
+      try {
+        ValueTokenizer values(line);
 
-  while (1) {
-    if (comm->me == 0) {
-      ptr = fgets(line,MAXLINE,fp);
-      if (ptr == nullptr) {
-        eof = 1;
-        fclose(fp);
-      } else n = strlen(line) + 1;
-    }
-    MPI_Bcast(&eof,1,MPI_INT,0,world);
-    if (eof) break;
-    MPI_Bcast(&n,1,MPI_INT,0,world);
-    MPI_Bcast(line,n,MPI_CHAR,0,world);
+        std::string iname = values.next_string();
+        std::string jname = values.next_string();
 
-    // strip comment, skip line if blank
+        // ielement,jelement = 1st args
+        // if both args are in element list, then parse this line
+        // else skip to next entry in file
+        int ielement, jelement;
 
-    if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = utils::count_words(line);
-    if (nwords == 0) continue;
+        for (ielement = 0; ielement < nelements; ielement++)
+          if (iname == elements[ielement]) break;
+        if (ielement == nelements) continue;
+        for (jelement = 0; jelement < nelements; jelement++)
+          if (jname == elements[jelement]) break;
+        if (jelement == nelements) continue;
 
-    // concatenate additional lines until have params_per_line words
+        // expand storage, if needed
 
-    while (nwords < params_per_line) {
-      n = strlen(line);
-      if (comm->me == 0) {
-        ptr = fgets(&line[n],MAXLINE-n,fp);
-        if (ptr == nullptr) {
-          eof = 1;
-          fclose(fp);
-        } else n = strlen(line) + 1;
+        if (nparams == maxparam) {
+          maxparam += DELTA;
+          params = (Param *) memory->srealloc(params,maxparam*sizeof(Param), "pair:params");
+
+          // make certain all addional allocated storage is initialized
+          // to avoid false positives when checking with valgrind
+
+          memset(params + nparams, 0, DELTA*sizeof(Param));
+        }
+
+        // load up parameter settings and error check their values
+
+        params[nparams].ielement = ielement;
+        params[nparams].jelement = jelement;
+        params[nparams].z0       = values.next_double();
+        params[nparams].alpha    = values.next_double();
+        params[nparams].delta    = values.next_double();
+        params[nparams].epsilon  = values.next_double();
+        params[nparams].C        = values.next_double();
+        params[nparams].d        = values.next_double();
+        params[nparams].sR       = values.next_double();
+        params[nparams].reff     = values.next_double();
+        params[nparams].C6       = values.next_double();
+        // S provides a convenient scaling of all energies
+        params[nparams].S        = values.next_double();
+        params[nparams].rcut     = values.next_double();
+
+      } catch (TokenizerException &e) {
+        error->one(FLERR, e.what());
       }
-      MPI_Bcast(&eof,1,MPI_INT,0,world);
-      if (eof) break;
-      MPI_Bcast(&n,1,MPI_INT,0,world);
-      MPI_Bcast(line,n,MPI_CHAR,0,world);
-      if ((ptr = strchr(line,'#'))) *ptr = '\0';
-      nwords = utils::count_words(line);
+
+      // energies in meV further scaled by S
+      // S = 43.3634 meV = 1 kcal/mol
+      const double meV = 1e-3*params[nparams].S;
+      params[nparams].C *= meV;
+      params[nparams].C6 *= meV;
+      params[nparams].epsilon *= meV;
+
+      // precompute some quantities
+      params[nparams].delta2inv = pow(params[nparams].delta,-2.0);
+      params[nparams].lambda = params[nparams].alpha/params[nparams].z0;
+      params[nparams].seff = params[nparams].sR * params[nparams].reff;
+
+      nparams++;
     }
 
-    if (nwords != params_per_line)
-      error->all(FLERR,"Insufficient format in ILP potential file");
+    MPI_Bcast(&nparams, 1, MPI_INT, 0, world);
+    MPI_Bcast(&maxparam, 1, MPI_INT, 0, world);
 
-    // words = ptrs to all words in line
-
-    nwords = 0;
-    words[nwords++] = strtok(line," \t\n\r\f");
-    while ((words[nwords++] = strtok(nullptr," \t\n\r\f"))) continue;
-
-    // ielement,jelement = 1st args
-    // if these 2 args are in element list, then parse this line
-    // else skip to next line (continue)
-
-    for (ielement = 0; ielement < nelements; ielement++)
-      if (strcmp(words[0],elements[ielement]) == 0) break;
-    if (ielement == nelements) continue;
-    for (jelement = 0; jelement < nelements; jelement++)
-      if (strcmp(words[1],elements[jelement]) == 0) break;
-    if (jelement == nelements) continue;
-
-    // load up parameter settings and error check their values
-
-    if (nparams == maxparam) {
-      maxparam += DELTA;
-      params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
-                                          "pair:params");
-
-      // make certain all addional allocated storage is initialized
-      // to avoid false positives when checking with valgrind
-
-      memset(params + nparams, 0, DELTA*sizeof(Param));
+    if (comm->me != 0) {
+      params = (Param *) memory->srealloc(params,maxparam*sizeof(Param), "pair:params");
     }
 
-    params[nparams].ielement = ielement;
-    params[nparams].jelement = jelement;
-    params[nparams].z0       = atof(words[2]);
-    params[nparams].alpha    = atof(words[3]);
-    params[nparams].delta    = atof(words[4]);
-    params[nparams].epsilon  = atof(words[5]);
-    params[nparams].C        = atof(words[6]);
-    params[nparams].d        = atof(words[7]);
-    params[nparams].sR       = atof(words[8]);
-    params[nparams].reff     = atof(words[9]);
-    params[nparams].C6       = atof(words[10]);
-    // S provides a convenient scaling of all energies
-    params[nparams].S        = atof(words[11]);
-    params[nparams].rcut     = atof(words[12]);
-
-    // energies in meV further scaled by S
-    // S = 43.3634 meV = 1 kcal/mol
-    double meV = 1e-3*params[nparams].S;
-    params[nparams].C *= meV;
-    params[nparams].C6 *= meV;
-    params[nparams].epsilon *= meV;
-
-    // precompute some quantities
-    params[nparams].delta2inv = pow(params[nparams].delta,-2.0);
-    params[nparams].lambda = params[nparams].alpha/params[nparams].z0;
-    params[nparams].seff = params[nparams].sR * params[nparams].reff;
-
-    nparams++;
+    MPI_Bcast(params, maxparam*sizeof(Param), MPI_BYTE, 0, world);
   }
   memory->destroy(elem2param);
   memory->destroy(cutILPsq);
   memory->create(elem2param,nelements,nelements,"pair:elem2param");
   memory->create(cutILPsq,nelements,nelements,"pair:cutILPsq");
-  for (i = 0; i < nelements; i++) {
-    for (j = 0; j < nelements; j++) {
-      n = -1;
-      for (m = 0; m < nparams; m++) {
+  for (int i = 0; i < nelements; i++) {
+    for (int j = 0; j < nelements; j++) {
+      int n = -1;
+      for (int m = 0; m < nparams; m++) {
         if (i == params[m].ielement && j == params[m].jelement) {
-          if (n >= 0) error->all(FLERR,"Potential file has duplicate entry");
+          if (n >= 0) error->all(FLERR,"ILP Potential file has duplicate entry");
           n = m;
         }
       }
@@ -323,7 +290,6 @@ void PairILPGrapheneHBN::read_file(char *filename)
       cutILPsq[i][j] = params[n].rcut*params[n].rcut;
     }
   }
-  delete [] words;
 }
 
 /* ----------------------------------------------------------------------

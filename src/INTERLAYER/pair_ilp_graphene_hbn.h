@@ -40,6 +40,8 @@ class PairILPGrapheneHBN : public Pair {
   void calc_FvdW(int, int);
   double single(int, int, int, int, double, double, double, double &);
 
+  static constexpr int NPARAMS_PER_LINE = 13;
+
  protected:
   int me;
   int maxlocal;            // size of numneigh, firstneigh arrays

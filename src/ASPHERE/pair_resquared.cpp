@@ -505,10 +505,10 @@ void PairRESquared::precompute_i(const int i,RE2Vars &ws)
   MathExtra::rotation_generator_x(ws.A,ws.lA[0]);
   MathExtra::rotation_generator_y(ws.A,ws.lA[1]);
   MathExtra::rotation_generator_z(ws.A,ws.lA[2]);
-  for (int i=0; i<3; i++) {
-    MathExtra::times3(aTs,ws.lA[i],ws.lAtwo[i]);
-    MathExtra::transpose_times3(ws.lA[i],ws.sa,ws.lAsa[i]);
-    MathExtra::plus3(ws.lAsa[i],ws.lAtwo[i],ws.lAsa[i]);
+  for (int m=0; m<3; m++) {
+    MathExtra::times3(aTs,ws.lA[m],ws.lAtwo[m]);
+    MathExtra::transpose_times3(ws.lA[m],ws.sa,ws.lAsa[m]);
+    MathExtra::plus3(ws.lAsa[m],ws.lAtwo[m],ws.lAsa[m]);
   }
 }
 
@@ -724,10 +724,10 @@ double PairRESquared::resquared_analytic(const int i, const int j,
   dspr = 7.0/h12-1.0/hsec+stemp;
   pbsr = b_alpha*sigma[type[i]][type[j]]/hsec;
 
-  for (int i=0; i<3; i++) {
-    u[0] = -rhat[i]*rhat[0];
-    u[1] = -rhat[i]*rhat[1];
-    u[2] = -rhat[i]*rhat[2];
+  for (int m=0; m<3; m++) {
+    u[0] = -rhat[m]*rhat[0];
+    u[1] = -rhat[m]*rhat[1];
+    u[2] = -rhat[m]*rhat[2];
     u[i] += 1.0;
     u[0] /= rnorm;
     u[1] /= rnorm;
@@ -753,7 +753,7 @@ double PairRESquared::resquared_analytic(const int i, const int j,
     dh12 = rhat[i]+MathExtra::dot3(u,spr);
     dUa = pbsu*(eta*dchi+deta*chi)-dh12*dspu;
     dUr = pbsr*(eta*dchi+deta*chi)-dh12*dspr;
-    fforce[i]=dUr*Ur+dUa*Ua;
+    fforce[m]=dUr*Ur+dUa*Ua;
   }
 
   // torque on i
@@ -950,19 +950,19 @@ double PairRESquared::resquared_lj(const int i, const int j,
   dspr = 7.0/h12-1.0/hsec+stemp;
   pbsr = b_alpha*sigma[type[i]][type[j]]/hsec;
 
-  for (int i=0; i<3; i++) {
-    u[0] = -rhat[i]*rhat[0];
-    u[1] = -rhat[i]*rhat[1];
-    u[2] = -rhat[i]*rhat[2];
-    u[i] += 1.0;
+  for (int m=0; m<3; m++) {
+    u[0] = -rhat[m]*rhat[0];
+    u[1] = -rhat[m]*rhat[1];
+    u[2] = -rhat[m]*rhat[2];
+    u[m] += 1.0;
     u[0] /= rnorm;
     u[1] /= rnorm;
     u[2] /= rnorm;
     dchi = MathExtra::dot3(u,fourw);
-    dh12 = rhat[i]+MathExtra::dot3(u,spr);
+    dh12 = rhat[m]+MathExtra::dot3(u,spr);
     dUa = pbsu*dchi-dh12*dspu;
     dUr = pbsr*dchi-dh12*dspr;
-    fforce[i]=dUr*Ur+dUa*Ua;
+    fforce[m]=dUr*Ur+dUa*Ua;
   }
 
   // torque on i
@@ -970,17 +970,17 @@ double PairRESquared::resquared_lj(const int i, const int j,
   if (calc_torque) {
     MathExtra::vecmat(fourw,wi.aTe,fwae);
 
-    for (int i=0; i<3; i++) {
-      MathExtra::matvec(wi.lA[i],rhat,p);
+    for (int m=0; m<3; m++) {
+      MathExtra::matvec(wi.lA[m],rhat,p);
       double tempv[3];
-      MathExtra::matvec(wi.lA[i],w,tempv);
+      MathExtra::matvec(wi.lA[m],w,tempv);
       dchi = -MathExtra::dot3(fwae,tempv);
-      MathExtra::matvec(lAtwo[i],spr,tempv);
+      MathExtra::matvec(lAtwo[m],spr,tempv);
       dh12 = -MathExtra::dot3(s,tempv);
 
       dUa = pbsu*dchi-dh12*dspu;
       dUr = pbsr*dchi-dh12*dspr;
-      ttor[i] = -(dUa*Ua+dUr*Ur);
+      ttor[m] = -(dUa*Ua+dUr*Ur);
     }
   }
 

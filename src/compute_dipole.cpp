@@ -29,7 +29,7 @@ enum { MASSCENTER, GEOMCENTER };
 
 ComputeDipole::ComputeDipole(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, narg, arg)
 {
-  if (narg != 3) error->all(FLERR, "Illegal compute com command");
+  if ((narg < 3) || (narg > 4)) error->all(FLERR, "Illegal compute dipole command");
 
   scalar_flag = 1;
   vector_flag = 1;
@@ -39,10 +39,7 @@ ComputeDipole::ComputeDipole(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, n
 
   vector = new double[size_vector];
   vector[0] = vector[1] = vector[2] = 0.0;
-
   usecenter = MASSCENTER;
-
-  if ((narg != 3) && (narg != 4)) error->all(FLERR, "Illegal compute dipole command");
 
   if (narg == 4) {
     if (utils::strmatch(arg[3], "^geom"))

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -44,10 +45,6 @@ PairLJClass2CoulCutKokkos<DeviceType>::PairLJClass2CoulCutKokkos(LAMMPS *lmp):Pa
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | F_MASK | TYPE_MASK | Q_MASK | ENERGY_MASK | VIRIAL_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
-  cutsq = nullptr;
-  cut_ljsq = nullptr;
-  cut_coulsq = nullptr;
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -55,24 +52,15 @@ PairLJClass2CoulCutKokkos<DeviceType>::PairLJClass2CoulCutKokkos(LAMMPS *lmp):Pa
 template<class DeviceType>
 PairLJClass2CoulCutKokkos<DeviceType>::~PairLJClass2CoulCutKokkos()
 {
-  if (!copymode) {
-    memoryKK->destroy_kokkos(k_cutsq, cutsq);
-    memoryKK->destroy_kokkos(k_cut_ljsq, cut_ljsq);
-    memoryKK->destroy_kokkos(k_cut_coulsq, cut_coulsq);
+  if (copymode) return;
+
+  if (allocated) {
+    memoryKK->destroy_kokkos(k_eatom,eatom);
+    memoryKK->destroy_kokkos(k_vatom,vatom);
+    memoryKK->destroy_kokkos(k_cutsq,cutsq);
+    memoryKK->destroy_kokkos(k_cut_ljsq,cut_ljsq);
+    memoryKK->destroy_kokkos(k_cut_coulsq,cut_coulsq);
   }
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-void PairLJClass2CoulCutKokkos<DeviceType>::cleanup_copy() {
-  // WHY needed: this prevents parent copy from deallocating any arrays
-  allocated = 0;
-  cutsq = nullptr;
-  cut_ljsq = nullptr;
-  cut_coulsq = nullptr;
-  eatom = nullptr;
-  vatom = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -287,7 +275,7 @@ void PairLJClass2CoulCutKokkos<DeviceType>::init_style()
 
   // error if rRESPA with inner levels
 
-  if (update->whichflag == 1 && strstr(update->integrate_style,"respa")) {
+  if (update->whichflag == 1 && utils::strmatch(update->integrate_style,"^respa")) {
     int respa = 0;
     if (((Respa *) update->integrate)->level_inner >= 0) respa = 1;
     if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;

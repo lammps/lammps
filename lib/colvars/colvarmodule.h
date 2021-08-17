@@ -81,6 +81,12 @@ private:
 
 public:
 
+  /// Get the version string (YYYY-MM-DD format)
+  std::string version() const
+  {
+    return std::string(COLVARS_VERSION);
+  }
+
   /// Get the version number (higher = more recent)
   int version_number() const
   {
@@ -148,6 +154,12 @@ public:
   static inline real cos(real const &x)
   {
     return ::cos(static_cast<double>(x));
+  }
+
+  /// Reimplemented to work around MS compiler issues
+  static inline real asin(real const &x)
+  {
+    return ::asin(static_cast<double>(x));
   }
 
   /// Reimplemented to work around MS compiler issues
@@ -685,6 +697,9 @@ public:
   static rvector position_distance(atom_pos const &pos1,
                                    atom_pos const &pos2);
 
+  /// \brief Names of .ndx files that have been loaded
+  std::vector<std::string> index_file_names;
+
   /// \brief Names of groups from one or more Gromacs .ndx files
   std::vector<std::string> index_group_names;
 
@@ -758,7 +773,11 @@ protected:
   /// Write labels at the next iteration
   bool cv_traj_write_labels;
 
-private:
+  /// Version of the most recent state file read
+  std::string restart_version_str;
+
+  /// Integer version of the most recent state file read
+  int restart_version_int;
 
   /// Counter for the current depth in the object hierarchy (useg e.g. in output)
   size_t depth_s;
@@ -770,6 +789,18 @@ private:
   int xyz_reader_use_count;
 
 public:
+
+  /// Version of the most recent state file read
+  inline std::string restart_version() const
+  {
+    return restart_version_str;
+  }
+
+  /// Integer version of the most recent state file read
+  inline int restart_version_number() const
+  {
+    return restart_version_int;
+  }
 
   /// Get the current object depth in the hierarchy
   static size_t & depth();

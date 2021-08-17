@@ -38,10 +38,11 @@
   {% if favicon %}
     <link rel="shortcut icon" href="{{ pathto('_static/' + favicon, 1) }}"/>
   {% endif %}
-  {# CANONICAL URL #}
-  {% if theme_canonical_url %}
-    <link rel="canonical" href="{{ theme_canonical_url }}{{ pagename }}.html"/>
-  {% endif %}
+
+  {#- CANONICAL URL #}
+  {%- if pageurl %}
+    <link rel="canonical" href="{{ pageurl|e }}" />
+  {%- endif -%}
 
   {# JAVASCRIPTS #}
   {%- block scripts %}
@@ -134,14 +135,8 @@
           </a>
 
           {% if theme_display_version %}
-            {%- set nav_version = version %}
-            {% if READTHEDOCS and current_version %}
-              {%- set nav_version = current_version %}
-            {% endif %}
-            {% if nav_version %}
-              <div class="lammps_version">Version: <b>{{ nav_version }}</b></div>
+              <div class="lammps_version">Version: <b>{{ current_version }}</b></div>
               <div class="lammps_release">git info: {{ release }}</div>
-            {% endif %}
           {% endif %}
 
           {% include "searchbox.html" %}

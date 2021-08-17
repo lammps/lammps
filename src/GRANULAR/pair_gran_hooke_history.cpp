@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,22 +17,22 @@
 
 #include "pair_gran_hooke_history.h"
 
-#include <cmath>
-#include <cstring>
-
 #include "atom.h"
-#include "force.h"
-#include "update.h"
-#include "modify.h"
+#include "comm.h"
+#include "error.h"
 #include "fix.h"
 #include "fix_dummy.h"
 #include "fix_neigh_history.h"
-#include "comm.h"
-#include "neighbor.h"
+#include "force.h"
+#include "memory.h"
+#include "modify.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "memory.h"
-#include "error.h"
+#include "neighbor.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -43,6 +43,7 @@ PairGranHookeHistory::PairGranHookeHistory(LAMMPS *lmp) : Pair(lmp)
   single_enable = 1;
   no_virial_fdotr_compute = 1;
   centroidstressflag = CENTROID_NOTAVAIL;
+  finitecutflag = 1;
   history = 1;
   size_history = 3;
 
@@ -66,8 +67,8 @@ PairGranHookeHistory::PairGranHookeHistory(LAMMPS *lmp) : Pair(lmp)
   // this is so final order of Modify:fix will conform to input script
 
   fix_history = nullptr;
-  modify->add_fix("NEIGH_HISTORY_HH_DUMMY all DUMMY");
-  fix_dummy = (FixDummy *) modify->fix[modify->nfix-1];
+  fix_dummy = (FixDummy *) modify->add_fix("NEIGH_HISTORY_HH_DUMMY"
+                                           + std::to_string(instance_me) + " all DUMMY");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -78,8 +79,8 @@ PairGranHookeHistory::~PairGranHookeHistory()
 
   delete [] svector;
 
-  if (!fix_history) modify->delete_fix("NEIGH_HISTORY_HH_DUMMY");
-  else modify->delete_fix("NEIGH_HISTORY_HH");
+  if (!fix_history) modify->delete_fix("NEIGH_HISTORY_HH_DUMMY"+std::to_string(instance_me));
+  else modify->delete_fix("NEIGH_HISTORY_HH"+std::to_string(instance_me));
 
   if (allocated) {
     memory->destroy(setflag);
@@ -237,6 +238,7 @@ void PairGranHookeHistory::compute(int eflag, int vflag)
 
         damp = meff*gamman*vnnr*rsqinv;
         ccel = kn*(radsum-r)*rinv - damp;
+        if (limit_damping && (ccel < 0.0)) ccel = 0.0;
 
         // relative velocities
 
@@ -356,7 +358,7 @@ void PairGranHookeHistory::allocate()
 
 void PairGranHookeHistory::settings(int narg, char **arg)
 {
-  if (narg != 6) error->all(FLERR,"Illegal pair_style command");
+  if (narg != 6 && narg != 7) error->all(FLERR,"Illegal pair_style command");
 
   kn = utils::numeric(FLERR,arg[0],false,lmp);
   if (strcmp(arg[1],"NULL") == 0) kt = kn * 2.0/7.0;
@@ -369,6 +371,12 @@ void PairGranHookeHistory::settings(int narg, char **arg)
   xmu = utils::numeric(FLERR,arg[4],false,lmp);
   dampflag = utils::inumeric(FLERR,arg[5],false,lmp);
   if (dampflag == 0) gammat = 0.0;
+
+  limit_damping = 0;
+  if (narg == 7) {
+    if (strcmp(arg[6], "limit_damping") == 0) limit_damping = 1;
+    else error->all(FLERR,"Illegal pair_style command");
+  }
 
   if (kn < 0.0 || kt < 0.0 || gamman < 0.0 || gammat < 0.0 ||
       xmu < 0.0 || xmu > 10000.0 || dampflag < 0 || dampflag > 1)
@@ -426,29 +434,21 @@ void PairGranHookeHistory::init_style()
   // it replaces FixDummy, created in the constructor
   // this is so its order in the fix list is preserved
 
-  if (history && fix_history == nullptr) {
-    char dnumstr[16];
-    sprintf(dnumstr,"%d",size_history);
-    char **fixarg = new char*[4];
-    fixarg[0] = (char *) "NEIGH_HISTORY_HH";
-    fixarg[1] = (char *) "all";
-    fixarg[2] = (char *) "NEIGH_HISTORY";
-    fixarg[3] = dnumstr;
-    modify->replace_fix("NEIGH_HISTORY_HH_DUMMY",4,fixarg,1);
-    delete [] fixarg;
-    int ifix = modify->find_fix("NEIGH_HISTORY_HH");
-    fix_history = (FixNeighHistory *) modify->fix[ifix];
+  if (history && (fix_history == nullptr)) {
+    auto cmd = fmt::format("NEIGH_HISTORY_HH{} all NEIGH_HISTORY {}", instance_me, size_history);
+    fix_history = (FixNeighHistory *) modify->replace_fix("NEIGH_HISTORY_HH_DUMMY"
+                                                          + std::to_string(instance_me),cmd,1);
     fix_history->pair = this;
   }
 
   // check for FixFreeze and set freeze_group_bit
 
-  for (i = 0; i < modify->nfix; i++)
-    if (strcmp(modify->fix[i]->style,"freeze") == 0) break;
-  if (i < modify->nfix) freeze_group_bit = modify->fix[i]->groupbit;
-  else freeze_group_bit = 0;
+  int ifreeze = modify->find_fix_by_style("^freeze");
+  if (ifreeze < 0) freeze_group_bit = 0;
+  else freeze_group_bit = modify->fix[ifreeze]->groupbit;
 
   // check for FixRigid so can extract rigid body masses
+  // FIXME: this only catches the first rigid fix, there may be multiple.
 
   fix_rigid = nullptr;
   for (i = 0; i < modify->nfix; i++)
@@ -457,15 +457,8 @@ void PairGranHookeHistory::init_style()
 
   // check for FixPour and FixDeposit so can extract particle radii
 
-  int ipour;
-  for (ipour = 0; ipour < modify->nfix; ipour++)
-    if (strcmp(modify->fix[ipour]->style,"pour") == 0) break;
-  if (ipour == modify->nfix) ipour = -1;
-
-  int idep;
-  for (idep = 0; idep < modify->nfix; idep++)
-    if (strcmp(modify->fix[idep]->style,"deposit") == 0) break;
-  if (idep == modify->nfix) idep = -1;
+  int ipour = modify->find_fix_by_style("^pour");
+  int idep  = modify->find_fix_by_style("^deposit");
 
   // set maxrad_dynamic and maxrad_frozen for each type
   // include future FixPour and FixDeposit particles as dynamic
@@ -496,15 +489,13 @@ void PairGranHookeHistory::init_style()
     else
       onerad_dynamic[type[i]] = MAX(onerad_dynamic[type[i]],radius[i]);
 
-  MPI_Allreduce(&onerad_dynamic[1],&maxrad_dynamic[1],atom->ntypes,
-                MPI_DOUBLE,MPI_MAX,world);
-  MPI_Allreduce(&onerad_frozen[1],&maxrad_frozen[1],atom->ntypes,
-                MPI_DOUBLE,MPI_MAX,world);
+  MPI_Allreduce(&onerad_dynamic[1],&maxrad_dynamic[1],atom->ntypes,MPI_DOUBLE,MPI_MAX,world);
+  MPI_Allreduce(&onerad_frozen[1],&maxrad_frozen[1],atom->ntypes,MPI_DOUBLE,MPI_MAX,world);
 
   // set fix which stores history info
 
   if (history) {
-    int ifix = modify->find_fix("NEIGH_HISTORY_HH");
+    int ifix = modify->find_fix("NEIGH_HISTORY_HH"+std::to_string(instance_me));
     if (ifix < 0) error->all(FLERR,"Could not find pair fix neigh history ID");
     fix_history = (FixNeighHistory *) modify->fix[ifix];
   }
@@ -686,6 +677,7 @@ double PairGranHookeHistory::single(int i, int j, int /*itype*/, int /*jtype*/,
 
   damp = meff*gamman*vnnr*rsqinv;
   ccel = kn*(radsum-r)*rinv - damp;
+  if(limit_damping && (ccel < 0.0)) ccel = 0.0;
 
   // relative velocities
 
@@ -793,6 +785,26 @@ void PairGranHookeHistory::unpack_forward_comm(int n, int first, double *buf)
 
 double PairGranHookeHistory::memory_usage()
 {
-  double bytes = nmax * sizeof(double);
+  double bytes = (double)nmax * sizeof(double);
   return bytes;
+}
+
+/* ----------------------------------------------------------------------
+   self-interaction range of particle
+------------------------------------------------------------------------- */
+
+double PairGranHookeHistory::atom2cut(int i)
+{
+  double cut = atom->radius[i]*2;
+  return cut;
+}
+
+/* ----------------------------------------------------------------------
+   maximum interaction range for two finite particles
+------------------------------------------------------------------------- */
+
+double PairGranHookeHistory::radii2cut(double r1, double r2)
+{
+  double cut = r1+r2;
+  return cut;
 }

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -653,7 +654,8 @@ void FixShardlowKokkos<DeviceType>::initial_integrate(int /*vflag*/)
       atomKK->sync(execution_space,UCOND_MASK | UMECH_MASK);
       auto l_uCond = uCond;
       auto l_uMech = uMech;
-      Kokkos::parallel_for(Kokkos::RangePolicy<LMPDeviceType>(nlocal,nlocal+nghost), LAMMPS_LAMBDA (const int i) {
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(nlocal,nlocal+nghost),
+       LAMMPS_LAMBDA (const int i) {
         l_uCond(i) = 0.0;
         l_uMech(i) = 0.0;
       });
@@ -789,7 +791,7 @@ template<class DeviceType>
 double FixShardlowKokkos<DeviceType>::memory_usage()
 {
   double bytes = 0.0;
-  bytes += sizeof(double)*3*ghostmax; // v_t0[]
+  bytes += (double)sizeof(double)*3*ghostmax; // v_t0[]
   return bytes;
 }
 

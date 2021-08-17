@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -525,7 +526,7 @@ void GridComm::setup_regular(int &nbuf1, int &nbuf2)
     ngrid = MAX(ngrid,swap[i].npack);
     ngrid = MAX(ngrid,swap[i].nunpack);
   }
-  
+
   nbuf1 = nbuf2 = ngrid;
 }
 

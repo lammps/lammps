@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -13,6 +14,7 @@
 
 #include "fix_store_state.h"
 
+#include "arg_info.h"
 #include "atom.h"
 #include "compute.h"
 #include "update.h"
@@ -30,10 +32,6 @@
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
-
-enum{KEYWORD,COMPUTE,FIX,VARIABLE,IVEC,DVEC,IARRAY,DARRAY};
-
-#define INVOKED_PERATOM 8
 
 /* ---------------------------------------------------------------------- */
 
@@ -64,7 +62,7 @@ FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
 
   int iarg = 4;
   while (iarg < narg) {
-    which[nvalues] = KEYWORD;
+    which[nvalues] = ArgInfo::KEYWORD;
     ids[nvalues] = nullptr;
 
     if (strcmp(arg[iarg],"id") == 0) {
@@ -224,64 +222,26 @@ FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
                    "Fix store/state for atom property that isn't allocated");
       pack_choice[nvalues++] = &FixStoreState::pack_tqz;
 
-    } else if (strncmp(arg[iarg],"c_",2) == 0 ||
-               strncmp(arg[iarg],"f_",2) == 0 ||
-               strncmp(arg[iarg],"v_",2) == 0) {
-      cfv_any = 1;
-      if (arg[iarg][0] == 'c') which[nvalues] = COMPUTE;
-      else if (arg[iarg][0] == 'f') which[nvalues] = FIX;
-      else if (arg[iarg][0] == 'v') which[nvalues] = VARIABLE;
+    // custom per-atom array
+    // OLDSTYLE code
 
-      int n = strlen(arg[iarg]);
-      char *suffix = new char[n];
-      strcpy(suffix,&arg[iarg][2]);
-
-      char *ptr = strchr(suffix,'[');
-      if (ptr) {
-	if (which[nvalues] == VARIABLE)
-          error->all(FLERR,"Illegal fix store/state command");
-        if (suffix[strlen(suffix)-1] != ']')
-          error->all(FLERR,"Illegal fix store/state command");
-	suffix[strlen(suffix)-1] = '\0';
-        argindex[nvalues] = utils::inumeric(FLERR,ptr+1,true,lmp);
-        *ptr = '\0';
-      } else argindex[nvalues] = 0;
-      
-      n = strlen(suffix) + 1;
-      ids[nvalues] = new char[n];
-      strcpy(ids[nvalues],suffix);
-      nvalues++;
-      delete [] suffix;
-
-    } else if (strncmp(arg[iarg],"i_",2) == 0 ||
-               strncmp(arg[iarg],"d_",2) == 0 ||
-	       strncmp(arg[iarg],"i2_",3) == 0 ||
+    } else if (strncmp(arg[iarg],"i2_",3) == 0 ||
                strncmp(arg[iarg],"d2_",3) == 0) {
-      if (strncmp(arg[iarg],"i_",2) == 0) which[nvalues] = IVEC;
-      else if (strncmp(arg[iarg],"d_",2) == 0) which[nvalues] = DVEC;
-      else if (strncmp(arg[iarg],"i2_",3) == 0) which[nvalues] = IARRAY;
+      if (strncmp(arg[iarg],"i2_",3) == 0) which[nvalues] = IARRAY;
       else if (strncmp(arg[iarg],"d2_",3) == 0) which[nvalues] = DARRAY;
 
       int n = strlen(arg[iarg]);
       char *suffix = new char[n];
-      if (which[nvalues] == IVEC || which[nvalues] == DVEC)
-	strcpy(suffix,&arg[iarg][2]);
-      else strcpy(suffix,&arg[iarg][3]);
+      strcpy(suffix,&arg[iarg][3]);
 
       char *ptr = strchr(suffix,'[');
-      if (ptr) {
-	if (which[nvalues] == IVEC || which[nvalues] == DVEC)
-          error->all(FLERR,"Illegal fix store/state command");
-        if (suffix[strlen(suffix)-1] != ']')
-          error->all(FLERR,"Illegal fix store/state command");
-	suffix[strlen(suffix)-1] = '\0';
-        argindex[nvalues] = utils::inumeric(FLERR,ptr+1,true,lmp);
-        *ptr = '\0';
-      } else {
-	if (which[nvalues] == IARRAY || which[nvalues] == DARRAY)
-          error->all(FLERR,"Illegal fix store/state command");
-	argindex[nvalues] = 0;
-      }
+      if (!ptr) error->all(FLERR,"Illegal fix store/state command");
+
+      if (suffix[strlen(suffix)-1] != ']')
+        error->all(FLERR,"Illegal fix store/state command");
+      suffix[strlen(suffix)-1] = '\0';
+      argindex[nvalues] = utils::inumeric(FLERR,ptr+1,true,lmp);
+      *ptr = '\0';
 
       n = strlen(suffix) + 1;
       ids[nvalues] = new char[n];
@@ -289,7 +249,22 @@ FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
       nvalues++;
       delete [] suffix;
 
-    } else break;
+    // compute or fix or variable or custom per-atom vector or array
+    // NEWSTYLE code
+
+    } else {
+      ArgInfo argi(arg[iarg],ArgInfo::COMPUTE|ArgInfo::FIX|ArgInfo::VARIABLE
+                   |ArgInfo::DNAME|ArgInfo::INAME);
+
+      if (argi.get_type() == ArgInfo::NONE) break;
+      if ((argi.get_type() == ArgInfo::UNKNOWN) || (argi.get_dim() > 1))
+        error->all(FLERR,"Illegal fix store/state command");
+
+      which[nvalues] = argi.get_type();
+      argindex[nvalues] = argi.get_index1();
+      ids[nvalues] = argi.copy_name();
+      nvalues++;
+    }
 
     iarg++;
   }
@@ -310,9 +285,9 @@ FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
 
   // error check
 
-  for (int m = 0; m < nvalues; m++) {
-    if (which[m] == COMPUTE) {
-      int icompute = modify->find_compute(ids[m]);
+  for (int i = 0; i < nvalues; i++) {
+    if (which[i] == ArgInfo::COMPUTE) {
+      int icompute = modify->find_compute(ids[i]);
       if (icompute < 0)
         error->all(FLERR,"Compute ID for fix store/state does not exist");
       if (modify->compute[icompute]->peratom_flag == 0)
@@ -330,9 +305,9 @@ FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
           argindex[m] > modify->compute[icompute]->size_peratom_cols)
         error->all(FLERR,
                    "Fix store/state compute array is accessed out-of-range");
-      
-    } else if (which[m] == FIX) {
-      int ifix = modify->find_fix(ids[m]);
+
+    } else if (which[i] == ArgInfo::FIX) {
+      int ifix = modify->find_fix(ids[i]);
       if (ifix < 0)
         error->all(FLERR,
                    "Fix ID for fix store/state does not exist");
@@ -352,34 +327,37 @@ FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,
                    "Fix for fix store/state not computed at compatible time");
 
-    } else if (which[m] == VARIABLE) {
-      int ivariable = input->variable->find(ids[m]);
+    } else if (which[i] == ArgInfo::VARIABLE) {
+      int ivariable = input->variable->find(ids[i]);
       if (ivariable < 0)
         error->all(FLERR,"Variable name for fix store/state does not exist");
       if (input->variable->atomstyle(ivariable) == 0)
         error->all(FLERR,"Fix store/state variable is not atom-style variable");
-    
-    } else if (which[m] == IVEC) {
-      int icustom,flag,cols;
-      icustom = atom->find_custom(ids[m],flag,cols);
-      if ((icustom < 0) || flag || cols)
+
+    } else if (which[i] == ArgInfo::INAME) {
+      int icustom,iflag,cols;
+      icustom = atom->find_custom(ids[i],iflag,cols);
+      if ((icustom < 0) || iflag ||,cols)
         error->all(FLERR,
                    "Custom integer vector for fix store/state does not exist");
-    } else if (which[m] == DVEC) {
-      int icustom,flag,cols;
-      icustom = atom->find_custom(ids[m],flag,cols);
-      if ((icustom < 0) || !flag || cols)
+
+    } else if (which[i] == ArgInfo::DNAME) {
+      int icustom,iflag,cols;
+      icustom = atom->find_custom(ids[i],iflag,cols);
+      if ((icustom < 0) || iflag ||,cols)
         error->all(FLERR,
                    "Custom floating point vector for fix store/state does not exist");
-    } else if (which[m] == IARRAY) {
+
+    } else if (which[i] == ArgInfo::IARRAY) {
       int icustom,flag,cols;
-      icustom = atom->find_custom(ids[m],flag,cols);
+      icustom = atom->find_custom(ids[i],flag,cols);
       if ((icustom < 0) || flag || !cols)
         error->all(FLERR,
                    "Custom integer array for fix store/state does not exist");
-    } else if (which[m] == DARRAY) {
+
+    } else if (which[m] == Arginfo::DARRAY) {
       int icustom,flag,cols;
-      icustom = atom->find_custom(ids[m],flag,cols);
+      icustom = atom->find_custom(ids[i],flag,cols);
       if ((icustom < 0) || !flag || !cols)
         error->all(FLERR,
                    "Custom floating point array for fix store/state does not exist");
@@ -454,53 +432,54 @@ void FixStoreState::init()
   if (!firstflag && nevery == 0) return;
 
   for (int m = 0; m < nvalues; m++) {
-    if (which[m] == COMPUTE) {
+    if (which[m] == ArgInfo::COMPUTE) {
       int icompute = modify->find_compute(ids[m]);
       if (icompute < 0)
         error->all(FLERR,"Compute ID for fix store/state does not exist");
       value2index[m] = icompute;
 
-    } else if (which[m] == FIX) {
+    } else if (which[m] == ArgInfo::FIX) {
       int ifix = modify->find_fix(ids[m]);
       if (ifix < 0)
         error->all(FLERR,"Fix ID for fix store/state does not exist");
       value2index[m] = ifix;
 
-    } else if (which[m] == VARIABLE) {
+    } else if (which[m] == ArgInfo::VARIABLE) {
       int ivariable = input->variable->find(ids[m]);
       if (ivariable < 0)
         error->all(FLERR,"Variable name for fix store/state does not exist");
       value2index[m] = ivariable;
 
-    } else if (which[m] == IVEC) {
-      int icustom,flag,cols;
-      icustom = atom->find_custom(ids[m],flag,cols);
-      if (icustom < 0 || flag || cols)
+    } else if (which[m] == ArgInfo::IVEC) {
+      int icustom,iflag,cols;
+      icustom = atom->find_custom(ids[m],iflag,cols);
+      if ((icustom < 0) || iflag || cols)
         error->all(FLERR,
                    "Custom integer vector for fix store/state does not exist");
       value2index[m] = icustom;
-    } else if (which[m] == DVEC) {
-      int icustom,flag,cols;
-      icustom = atom->find_custom(ids[m],flag,cols);
-      if (icustom < 0 || !flag || cols)
+
+    } else if (which[m] == ArgInfo::DVEC) {
+    int icustom,iflag,cols;
+      icustom = atom->find_custom(ids[m],iflag,cols);
+      if ((icustom < 0) || iflag || cols)
         error->all(FLERR,
                    "Custom floating point vector for fix store/state does not exist");
       value2index[m] = icustom;
-    } else if (which[m] == IARRAY) {
-      int icustom,flag,cols;
-      icustom = atom->find_custom(ids[m],flag,cols);
-      if (icustom < 0 || flag || !cols)
+
+    } else if (which[m] == ArgInfo::IARRAY) {
+      int icustom,iflag,cols;
+      icustom = atom->find_custom(ids[m],iflag,cols);
+      if ((icustom < 0) || iflag || !cols)
         error->all(FLERR,
                    "Custom integer array for fix store/state does not exist");
       value2index[m] = icustom;
-    } else if (which[m] == DARRAY) {
-      int icustom,flag,cols;
-      icustom = atom->find_custom(ids[m],flag,cols);
-      if (icustom < 0 || !flag || !cols)
+
+    } else if (which[m] == ArgInfo::DARRAY) {
+    int icustom,iflag,cols;
+      icustom = atom->find_custom(ids[m],iflag,cols);
+      if ((icustom < 0) || iflag || !cols)
         error->all(FLERR,
-                   "Custom floating point array for fix store/state does not exist");
-      value2index[m] = icustom;
-    }
+                   "Custom floating point array for fix store/state does not exist");    value2index[m] = icustom;
   }
 }
 
@@ -542,7 +521,7 @@ void FixStoreState::end_of_step()
   else vbuf = nullptr;
 
   for (int m = 0; m < nvalues; m++) {
-    if (which[m] == KEYWORD && kflag) (this->*pack_choice[m])(m);
+    if (which[m] == ArgInfo::KEYWORD && kflag) (this->*pack_choice[m])(m);
 
     else if (cfv_flag) {
       n = value2index[m];
@@ -553,11 +532,11 @@ void FixStoreState::end_of_step()
 
       // invoke compute if not previously invoked
 
-      if (which[m] == COMPUTE) {
+      if (which[m] == ArgInfo::COMPUTE) {
         Compute *compute = modify->compute[n];
-        if (!(compute->invoked_flag & INVOKED_PERATOM)) {
+        if (!(compute->invoked_flag & Compute::INVOKED_PERATOM)) {
           compute->compute_peratom();
-          compute->invoked_flag |= INVOKED_PERATOM;
+          compute->invoked_flag |= Compute::INVOKED_PERATOM;
         }
 
         if (j == 0) {
@@ -573,7 +552,7 @@ void FixStoreState::end_of_step()
 
       // access fix fields, guaranteed to be ready
 
-      } else if (which[m] == FIX) {
+      } else if (which[m] == ArgInfo::FIX) {
         if (j == 0) {
           double *fix_vector = modify->fix[n]->vector_atom;
           for (i = 0; i < nlocal; i++)
@@ -590,28 +569,29 @@ void FixStoreState::end_of_step()
       } else if (which[m] == VARIABLE) {
         input->variable->compute_atom(n,igroup,&values[0][m],nvalues,0);
 
+
       // access custom atom property fields
 
-      } else if (which[m] == IVEC) {
+      } else if (which[m] == ArgInfo::IVEC) {
         int *ivector = atom->ivector[n];
         for (i = 0; i < nlocal; i++)
           if (mask[i] & groupbit) values[i][m] = ivector[i];
-      } else if (which[m] == DVEC) {
+
+      } else if (which[m] == ArgInfo::DVEC) {
         double *dvector = atom->dvector[n];
         for (i = 0; i < nlocal; i++)
           if (mask[i] & groupbit) values[i][m] = dvector[i];
-      } else if (which[m] == IARRAY) {
+
+      } else if (which[m] == ArgInfo::IARRAY) {
         int **iarray = atom->iarray[n];
 	int jm1 = j - 1;
         for (i = 0; i < nlocal; i++)
-          if (mask[i] & groupbit)
-	    values[i][m] = iarray[i][jm1];
-      } else if (which[m] == DARRAY) {
+          if (mask[i] & groupbit) values[i][m] = iarray[i][jm1];
+      } else if (which[m] == ArgInfo::DARRAY) {
         double **darray = atom->darray[n];
 	int jm1 = j - 1;
         for (i = 0; i < nlocal; i++)
-          if (mask[i] & groupbit)
-	    values[i][m] = darray[i][jm1];
+          if (mask[i] & groupbit) values[i][m] = darray[i][jm1];
       }
     }
   }
@@ -630,7 +610,7 @@ void FixStoreState::end_of_step()
 
 double FixStoreState::memory_usage()
 {
-  double bytes = atom->nmax*nvalues * sizeof(double);
+  double bytes = (double)atom->nmax*nvalues * sizeof(double);
   return bytes;
 }
 

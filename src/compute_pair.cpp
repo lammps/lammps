@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -13,12 +14,13 @@
 
 #include "compute_pair.h"
 
-#include <cstring>
-#include <cctype>
-#include "update.h"
+#include "error.h"
 #include "force.h"
 #include "pair.h"
-#include "error.h"
+#include "update.h"
+
+#include <cctype>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -37,10 +39,10 @@ ComputePair::ComputePair(LAMMPS *lmp, int narg, char **arg) :
   peflag = 1;
   timeflag = 1;
 
-  int n = strlen(arg[3]) + 1;
-  if (lmp->suffix) n += strlen(lmp->suffix) + 1;
-  pstyle = new char[n];
-  strcpy(pstyle,arg[3]);
+  // copy with suffix so we can later chop it off, if needed
+  if (lmp->suffix)
+    pstyle = utils::strdup(fmt::format("{}/{}",arg[3],lmp->suffix));
+  else pstyle = utils::strdup(arg[3]);
 
   int iarg = 4;
   nsub = 0;
@@ -67,8 +69,7 @@ ComputePair::ComputePair(LAMMPS *lmp, int narg, char **arg) :
 
   pair = force->pair_match(pstyle,1,nsub);
   if (!pair && lmp->suffix) {
-    strcat(pstyle,"/");
-    strcat(pstyle,lmp->suffix);
+    pstyle[strlen(pstyle) - strlen(lmp->suffix) - 1] = '\0';
     pair = force->pair_match(pstyle,1,nsub);
   }
 
@@ -89,9 +90,9 @@ ComputePair::ComputePair(LAMMPS *lmp, int narg, char **arg) :
 
 ComputePair::~ComputePair()
 {
-  delete [] pstyle;
-  delete [] one;
-  delete [] vector;
+  delete[] pstyle;
+  delete[] one;
+  delete[] vector;
 }
 
 /* ---------------------------------------------------------------------- */

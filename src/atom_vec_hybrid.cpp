@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -98,7 +99,7 @@ void AtomVecHybrid::process_args(int narg, char **arg)
   // call process_args() with set of args that are not atom style names
   // use known_style() to determine which args these are
 
-  int i,jarg,dummy;
+  int i,k,jarg,dummy;
 
   int iarg = 0;
   nstyles = 0;
@@ -109,8 +110,7 @@ void AtomVecHybrid::process_args(int narg, char **arg)
       if (strcmp(arg[iarg],keywords[i]) == 0)
         error->all(FLERR,"Atom style hybrid cannot use same atom style twice");
     styles[nstyles] = atom->new_avec(arg[iarg],1,dummy);
-    keywords[nstyles] = new char[strlen(arg[iarg])+1];
-    strcpy(keywords[nstyles],arg[iarg]);
+    keywords[nstyles] = utils::strdup(arg[iarg]);
     jarg = iarg + 1;
     while (jarg < narg && !known_style(arg[jarg])) jarg++;
     styles[nstyles]->process_args(jarg-iarg-1,&arg[iarg+1]);
@@ -124,7 +124,7 @@ void AtomVecHybrid::process_args(int narg, char **arg)
   molecular = Atom::ATOMIC;
   maxexchange = 0;
 
-  for (int k = 0; k < nstyles; k++) {
+  for (k = 0; k < nstyles; k++) {
     if ((styles[k]->molecular == Atom::MOLECULAR && molecular == Atom::TEMPLATE) ||
         (styles[k]->molecular == Atom::TEMPLATE && molecular == Atom::MOLECULAR))
       error->all(FLERR,
@@ -148,7 +148,7 @@ void AtomVecHybrid::process_args(int narg, char **arg)
   int mass_pertype = 0;
   int mass_peratom = 0;
 
-  for (int k = 0; k < nstyles; k++) {
+  for (k = 0; k < nstyles; k++) {
     if (styles[k]->mass_type == 0) mass_peratom = 1;
     if (styles[k]->mass_type == 1) mass_pertype = 1;
   }
@@ -160,14 +160,14 @@ void AtomVecHybrid::process_args(int narg, char **arg)
 
   // free allstyles created by build_styles()
 
-  for (int i = 0; i < nallstyles; i++) delete [] allstyles[i];
+  for (i = 0; i < nallstyles; i++) delete [] allstyles[i];
   delete [] allstyles;
 
   // set field strings from all substyles
 
   fieldstrings = new FieldStrings[nstyles];
 
-  for (int k = 0; k < nstyles; k++) {
+  for (k = 0; k < nstyles; k++) {
     fieldstrings[k].fstr = new char*[NFIELDSTRINGS];
     fieldstrings[k].fstr[0] = styles[k]->fields_grow;
     fieldstrings[k].fstr[1] = styles[k]->fields_copy;
@@ -227,7 +227,7 @@ void AtomVecHybrid::process_args(int narg, char **arg)
   // sum two sizes over contributions from each substyle with bonus data.
 
   nstyles_bonus = 0;
-  for (int k = 0; k < nstyles; k++)
+  for (k = 0; k < nstyles; k++)
     if (styles[k]->bonus_flag) nstyles_bonus++;
 
   if (nstyles_bonus) {
@@ -236,7 +236,7 @@ void AtomVecHybrid::process_args(int narg, char **arg)
     nstyles_bonus = 0;
     size_forward_bonus = 0;
     size_border_bonus = 0;
-    for (int k = 0; k < nstyles; k++) {
+    for (k = 0; k < nstyles; k++) {
       if (styles[k]->bonus_flag) {
         styles_bonus[nstyles_bonus++] = styles[k];
         size_forward_bonus += styles[k]->size_forward_bonus;
@@ -439,6 +439,17 @@ void AtomVecHybrid::data_atom_post(int ilocal)
 }
 
 /* ----------------------------------------------------------------------
+   modify what AtomVec::data_bonds() just unpacked
+   or initialize other bond quantities
+------------------------------------------------------------------------- */
+void AtomVecHybrid::data_bonds_post(int m, int num_bond, tagint atom1,
+                                        tagint atom2, tagint id_offset)
+{
+  for (int k = 0; k < nstyles; k++)
+    styles[k]->data_bonds_post(m, num_bond, atom1, atom2, id_offset);
+}
+
+/* ----------------------------------------------------------------------
    modify values for AtomVec::pack_data() to pack
 ------------------------------------------------------------------------- */
 
@@ -601,13 +612,10 @@ void AtomVecHybrid::build_styles()
 
   allstyles = new char*[nallstyles];
 
-  int n;
   nallstyles = 0;
 #define ATOM_CLASS
-#define AtomStyle(key,Class)                \
-  n = strlen(#key) + 1;                     \
-  allstyles[nallstyles] = new char[n];      \
-  strcpy(allstyles[nallstyles],#key);       \
+#define AtomStyle(key,Class)                   \
+  allstyles[nallstyles] = utils::strdup(#key); \
   nallstyles++;
 #include "style_atom.h"  // IWYU pragma: keep
 #undef AtomStyle

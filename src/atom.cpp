@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -34,10 +35,15 @@
 #include "library.h"
 
 #include <algorithm>
+#include <cmath>
 #include <cstring>
 
-#ifdef LMP_USER_INTEL
+#ifdef LMP_INTEL
 #include "neigh_request.h"
+#endif
+
+#ifdef LMP_GPU
+#include "fix_gpu.h"
 #endif
 
 using namespace LAMMPS_NS;
@@ -155,7 +161,7 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
 
   sp = fm = fm_long = nullptr;
 
-  // USER-EFF and USER-AWPMD packages
+  // EFF and AWPMD packages
 
   spin = nullptr;
   eradius = ervel = erforce = nullptr;
@@ -163,23 +169,27 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   cs = csforce = vforce = nullptr;
   etag = nullptr;
 
-  // USER-DPD package
+  // CG-DNA package
+
+  id5p = nullptr;
+
+  // DPD-REACT package
 
   uCond = uMech = uChem = uCG = uCGnew = nullptr;
   duChem = dpdTheta = nullptr;
 
-  // USER-MESO package
+  // MESO package
 
   cc = cc_flux = nullptr;
   edpd_temp = edpd_flux = edpd_cv = nullptr;
 
-  // USER-MESONT package
+  // MESONT package
 
   length = nullptr;
   buckling = nullptr;
   bond_nt = nullptr;
 
-  // USER-SMD package
+  // MACHDYN package
 
   contact_radius = nullptr;
   smd_data_9 = nullptr;
@@ -188,10 +198,14 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   eff_plastic_strain_rate = nullptr;
   damage = nullptr;
 
-  // USER-SPH package
+  // SPH package
 
   rho = drho = esph = desph = cv = nullptr;
   vest = nullptr;
+
+  // DIELECTRIC package
+
+  area = ed = em = epsilon = curvature = q_unscaled = nullptr;
 
   // end of customization section
   // --------------------------------------------------------------------
@@ -352,11 +366,8 @@ void Atom::settings(Atom *old)
   map_style = old->map_style;
   sortfreq = old->sortfreq;
   userbinsize = old->userbinsize;
-  if (old->firstgroupname) {
-    int n = strlen(old->firstgroupname) + 1;
-    firstgroupname = new char[n];
-    strcpy(firstgroupname,old->firstgroupname);
-  }
+  if (old->firstgroupname)
+    firstgroupname = utils::strdup(old->firstgroupname);
 }
 
 /* ----------------------------------------------------------------------
@@ -465,14 +476,14 @@ void Atom::peratom_create()
   add_peratom("fm",&fm,DOUBLE,3,1);
   add_peratom("fm_long",&fm_long,DOUBLE,3,1);
 
-  // USER-EFF package
+  // EFF package
 
   add_peratom("spin",&spin,INT,0);
   add_peratom("eradius",&eradius,DOUBLE,0);
   add_peratom("ervel",&ervel,DOUBLE,0);
   add_peratom("erforce",&erforce,DOUBLE,0,1);     // set per-thread flag
 
-  // USER-AWPMD package
+  // AWPMD package
 
   add_peratom("cs",&cs,DOUBLE,2);
   add_peratom("csforce",&csforce,DOUBLE,2);
@@ -480,7 +491,11 @@ void Atom::peratom_create()
   add_peratom("ervelforce",&ervelforce,DOUBLE,0);
   add_peratom("etag",&etag,INT,0);
 
-  // USER-DPD package
+  // CG-DNA package
+
+  add_peratom("id5p",&id5p,tagintsize,0);
+
+  // DPD-REACT package
 
   add_peratom("dpdTheta",&dpdTheta,DOUBLE,0);
   add_peratom("uCond",&uCond,DOUBLE,0);
@@ -490,7 +505,7 @@ void Atom::peratom_create()
   add_peratom("uCGnew",&uCGnew,DOUBLE,0);
   add_peratom("duChem",&duChem,DOUBLE,0);
 
-  // USER-MESO package
+  // MESO package
 
   add_peratom("edpd_cv",&edpd_cv,DOUBLE,0);
   add_peratom("edpd_temp",&edpd_temp,DOUBLE,0);
@@ -499,13 +514,13 @@ void Atom::peratom_create()
   add_peratom("cc",&cc,DOUBLE,1);
   add_peratom("cc_flux",&cc_flux,DOUBLE,1,1);         // set per-thread flag
 
-  // USER-MESONT package
+  // MESONT package
 
   add_peratom("length",&length,DOUBLE,0);
   add_peratom("buckling",&buckling,INT,0);
   add_peratom("bond_nt",&bond_nt,tagintsize,2);
 
-  // USER-SPH package
+  // SPH package
 
   add_peratom("rho",&rho,DOUBLE,0);
   add_peratom("drho",&drho,DOUBLE,0,1);               // set per-thread flag
@@ -514,7 +529,7 @@ void Atom::peratom_create()
   add_peratom("vest",&vest,DOUBLE,3);
   add_peratom("cv",&cv,DOUBLE,0);
 
-  // USER-SMD package
+  // MACHDYN package
 
   add_peratom("contact_radius",&contact_radius,DOUBLE,0);
   add_peratom("smd_data_9",&smd_data_9,DOUBLE,1);
@@ -522,6 +537,15 @@ void Atom::peratom_create()
   add_peratom("eff_plastic_strain",&eff_plastic_strain,DOUBLE,0);
   add_peratom("eff_plastic_strain_rate",&eff_plastic_strain_rate,DOUBLE,0);
   add_peratom("damage",&damage,DOUBLE,0);
+
+  // DIELECTRIC package
+
+  add_peratom("area",&area,DOUBLE,0);
+  add_peratom("ed",&ed,DOUBLE,0);
+  add_peratom("em",&em,DOUBLE,0);
+  add_peratom("epsilon",&epsilon,DOUBLE,0);
+  add_peratom("curvature",&curvature,DOUBLE,0);
+  add_peratom("q_unscaled",&q_unscaled,DOUBLE,0);
 
   // end of customization section
   // --------------------------------------------------------------------
@@ -543,9 +567,7 @@ void Atom::add_peratom(const char *name, void *address,
       memory->srealloc(peratom,maxperatom*sizeof(PerAtom),"atom:peratom");
   }
 
-  int n = strlen(name) + 1;
-  peratom[nperatom].name = new char[n];
-  strcpy(peratom[nperatom].name,name);
+  peratom[nperatom].name = utils::strdup(name);
   peratom[nperatom].address = address;
   peratom[nperatom].datatype = datatype;
   peratom[nperatom].cols = cols;
@@ -593,9 +615,7 @@ void Atom::add_peratom_vary(const char *name, void *address,
       memory->srealloc(peratom,maxperatom*sizeof(PerAtom),"atom:peratom");
   }
 
-  int n = strlen(name) + 1;
-  peratom[nperatom].name = new char[n];
-  strcpy(peratom[nperatom].name,name);
+  peratom[nperatom].name = utils::strdup(name);
   peratom[nperatom].address = address;
   peratom[nperatom].datatype = datatype;
   peratom[nperatom].cols = -1;
@@ -681,7 +701,7 @@ void Atom::create_avec(const std::string &style, int narg, char **arg, int trysu
   // map style will be reset to array vs hash to by map_init()
 
   molecular = avec->molecular;
-  if (molecular && tag_enable == 0)
+  if ((molecular != Atom::ATOMIC) && (tag_enable == 0))
     error->all(FLERR,"Atom IDs must be used for molecular systems");
   if (molecular != Atom::ATOMIC) map_style = MAP_YES;
 }
@@ -826,9 +846,7 @@ void Atom::modify_params(int narg, char **arg)
         delete [] firstgroupname;
         firstgroupname = nullptr;
       } else {
-        int n = strlen(arg[iarg+1]) + 1;
-        firstgroupname = new char[n];
-        strcpy(firstgroupname,arg[iarg+1]);
+        firstgroupname = utils::strdup(arg[iarg+1]);
         sortfreq = 0;
       }
       iarg += 2;
@@ -1125,13 +1143,13 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
 
-    values[0] = strtok(buf," \t\n\r\f");
-    if (values[0] == nullptr)
-      error->all(FLERR,"Incorrect atom format in data file");
-    for (m = 1; m < nwords; m++) {
-      values[m] = strtok(nullptr," \t\n\r\f");
-      if (values[m] == nullptr)
+    for (m = 0; m < nwords; m++) {
+      buf += strspn(buf," \t\n\r\f");
+      buf[strcspn(buf," \t\n\r\f")] = '\0';
+      if (strlen(buf) == 0)
         error->all(FLERR,"Incorrect atom format in data file");
+      values[m] = buf;
+      buf += strlen(buf)+1;
     }
 
     int imx = 0, imy = 0, imz = 0;
@@ -1228,9 +1246,12 @@ void Atom::data_vels(int n, char *buf, tagint id_offset)
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
 
-    values[0] = strtok(buf," \t\n\r\f");
-    for (j = 1; j < nwords; j++)
-      values[j] = strtok(nullptr," \t\n\r\f");
+    for (j = 0; j < nwords; j++) {
+      buf += strspn(buf," \t\n\r\f");
+      buf[strcspn(buf," \t\n\r\f")] = '\0';
+      values[j] = buf;
+      buf += strlen(buf)+1;
+    }
 
     tagdata = ATOTAGINT(values[0]) + id_offset;
     if (tagdata <= 0 || tagdata > map_tag_max)
@@ -1282,6 +1303,7 @@ void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset,
         bond_type[m][num_bond[m]] = itype;
         bond_atom[m][num_bond[m]] = atom2;
         num_bond[m]++;
+        avec->data_bonds_post(m, num_bond[m], atom1, atom2, id_offset);
       }
     }
     if (newton_bond == 0) {
@@ -1291,6 +1313,7 @@ void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset,
           bond_type[m][num_bond[m]] = itype;
           bond_atom[m][num_bond[m]] = atom1;
           num_bond[m]++;
+          avec->data_bonds_post(m, num_bond[m], atom1, atom2, id_offset);
         }
       }
     }
@@ -1580,9 +1603,12 @@ void Atom::data_bonus(int n, char *buf, AtomVec *avec_bonus, tagint id_offset)
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
 
-    values[0] = strtok(buf," \t\n\r\f");
-    for (j = 1; j < nwords; j++)
-      values[j] = strtok(nullptr," \t\n\r\f");
+    for (j = 0; j < nwords; j++) {
+      buf += strspn(buf," \t\n\r\f");
+      buf[strcspn(buf," \t\n\r\f")] = '\0';
+      values[j] = buf;
+      buf += strlen(buf)+1;
+    }
 
     tagdata = ATOTAGINT(values[0]) + id_offset;
     if (tagdata <= 0 || tagdata > map_tag_max)
@@ -1622,8 +1648,10 @@ void Atom::data_bodies(int n, char *buf, AtomVec *avec_body, tagint id_offset)
   // else skip values
 
   for (int i = 0; i < n; i++) {
-    if (i == 0) tagdata = ATOTAGINT(strtok(buf," \t\n\r\f")) + id_offset;
-    else tagdata = ATOTAGINT(strtok(nullptr," \t\n\r\f")) + id_offset;
+    buf += strspn(buf," \t\n\r\f");
+    buf[strcspn(buf," \t\n\r\f")] = '\0';
+    tagdata = utils::tnumeric(FLERR,buf,false,lmp) + id_offset;
+    buf += strlen(buf)+1;
 
     if (tagdata <= 0 || tagdata > map_tag_max)
       error->one(FLERR,"Invalid atom ID in Bodies section of data file");
@@ -1633,8 +1661,15 @@ void Atom::data_bodies(int n, char *buf, AtomVec *avec_body, tagint id_offset)
     else
       error->one(FLERR,"Duplicate atom ID in Bodies section of data file");
 
-    ninteger = utils::inumeric(FLERR,strtok(nullptr," \t\n\r\f"),false,lmp);
-    ndouble = utils::inumeric(FLERR,strtok(nullptr," \t\n\r\f"),false,lmp);
+    buf += strspn(buf," \t\n\r\f");
+    buf[strcspn(buf," \t\n\r\f")] = '\0';
+    ninteger = utils::inumeric(FLERR,buf,false,lmp);
+    buf += strlen(buf)+1;
+
+    buf += strspn(buf," \t\n\r\f");
+    buf[strcspn(buf," \t\n\r\f")] = '\0';
+    ndouble = utils::inumeric(FLERR,buf,false,lmp);
+    buf += strlen(buf)+1;
 
     if ((m = map(tagdata)) >= 0) {
       if (ninteger > maxint) {
@@ -1648,17 +1683,29 @@ void Atom::data_bodies(int n, char *buf, AtomVec *avec_body, tagint id_offset)
         dvalues = new double[maxdouble];
       }
 
-      for (j = 0; j < ninteger; j++)
-        ivalues[j] = utils::inumeric(FLERR,strtok(nullptr," \t\n\r\f"),false,lmp);
-      for (j = 0; j < ndouble; j++)
-        dvalues[j] = utils::numeric(FLERR,strtok(nullptr," \t\n\r\f"),false,lmp);
+      for (j = 0; j < ninteger; j++) {
+        buf += strspn(buf," \t\n\r\f");
+        buf[strcspn(buf," \t\n\r\f")] = '\0';
+        ivalues[j] = utils::inumeric(FLERR,buf,false,lmp);
+        buf += strlen(buf)+1;
+      }
+
+      for (j = 0; j < ndouble; j++) {
+        buf += strspn(buf," \t\n\r\f");
+        buf[strcspn(buf," \t\n\r\f")] = '\0';
+        dvalues[j] = utils::numeric(FLERR,buf,false,lmp);
+        buf += strlen(buf)+1;
+      }
 
       avec_body->data_body(m,ninteger,ndouble,ivalues,dvalues);
 
     } else {
       nvalues = ninteger + ndouble;    // number of values to skip
-      for (j = 0; j < nvalues; j++)
-        strtok(nullptr," \t\n\r\f");
+      for (j = 0; j < nvalues; j++) {
+        buf += strspn(buf," \t\n\r\f");
+        buf[strcspn(buf," \t\n\r\f")] = '\0';
+        buf += strlen(buf)+1;
+      }
     }
   }
 
@@ -1763,7 +1810,7 @@ void Atom::set_mass(const char *file, int line, int /*narg*/, char **arg)
   if (lo < 1 || hi > ntypes) error->all(file,line,"Invalid type for mass set");
 
   for (int itype = lo; itype <= hi; itype++) {
-    mass[itype] = atof(arg[1]);
+    mass[itype] = utils::numeric(FLERR,arg[1],false,lmp);
     mass_setflag[itype] = 1;
 
     if (mass[itype] <= 0.0) error->all(file,line,"Invalid mass value");
@@ -2164,7 +2211,7 @@ void Atom::setup_sort_bins()
   bininvy = nbiny / (bboxhi[1]-bboxlo[1]);
   bininvz = nbinz / (bboxhi[2]-bboxlo[2]);
 
-  #ifdef LMP_USER_INTEL
+#ifdef LMP_INTEL
   int intel_neigh = 0;
   if (neighbor->nrequest) {
     if (neighbor->requests[0]->intel) intel_neigh = 1;
@@ -2209,7 +2256,36 @@ void Atom::setup_sort_bins()
     bboxhi[1] = bboxlo[1] + static_cast<double>(nbiny) / bininvy;
     bboxhi[2] = bboxlo[2] + static_cast<double>(nbinz) / bininvz;
   }
-  #endif
+#endif
+
+#ifdef LMP_GPU
+  if (userbinsize == 0.0) {
+    int ifix = modify->find_fix("package_gpu");
+    if (ifix >= 0) {
+      const double subx = domain->subhi[0] - domain->sublo[0];
+      const double suby = domain->subhi[1] - domain->sublo[1];
+      const double subz = domain->subhi[2] - domain->sublo[2];
+
+      FixGPU *fix = static_cast<FixGPU *>(modify->fix[ifix]);
+      binsize = fix->binsize(subx, suby, subz, atom->nlocal,
+                             neighbor->cutneighmax);
+      bininv = 1.0 / binsize;
+
+      nbinx = static_cast<int> (ceil(subx * bininv));
+      nbiny = static_cast<int> (ceil(suby * bininv));
+      nbinz = static_cast<int> (ceil(subz * bininv));
+      if (domain->dimension == 2) nbinz = 1;
+
+      if (nbinx == 0) nbinx = 1;
+      if (nbiny == 0) nbiny = 1;
+      if (nbinz == 0) nbinz = 1;
+
+      bininvx = bininv;
+      bininvy = bininv;
+      bininvz = bininv;
+    }
+  }
+#endif
 
   if (1.0*nbinx*nbiny*nbinz > INT_MAX)
     error->one(FLERR,"Too many atom sorting bins");
@@ -2401,9 +2477,7 @@ int Atom::add_custom(const char *name, int flag, int cols)
     nivector++;
     ivname = (char **) memory->srealloc(ivname,nivector*sizeof(char *),
 					"atom:ivname");
-    int n = strlen(name) + 1;
-    ivname[index] = new char[n];
-    strcpy(ivname[index],name);
+    ivname[index] = utils::strdup(name);
     ivector = (int **) memory->srealloc(ivector,nivector*sizeof(int *),
                                         "atom:ivector");
     memory->create(ivector[index],nmax,"atom:ivector");
@@ -2413,9 +2487,7 @@ int Atom::add_custom(const char *name, int flag, int cols)
     ndvector++;
     dvname = (char **) memory->srealloc(dvname,ndvector*sizeof(char *),
 					"atom:dvname");
-    int n = strlen(name) + 1;
-    dvname[index] = new char[n];
-    strcpy(dvname[index],name);
+    dvname[index] = utils::strdup(name);
     dvector = (double **) memory->srealloc(dvector,ndvector*sizeof(double *),
                                            "atom:dvector");
     memory->create(dvector[index],nmax,"atom:dvector");
@@ -2425,9 +2497,7 @@ int Atom::add_custom(const char *name, int flag, int cols)
     niarray++;
     ianame = (char **) memory->srealloc(ianame,niarray*sizeof(char *),
 					"atom:ianame");
-    int n = strlen(name) + 1;
-    ianame[index] = new char[n];
-    strcpy(ianame[index],name);
+    ianame[index] = utils::strdup(name);
     iarray = (int ***) memory->srealloc(iarray,niarray*sizeof(int **),
 					"atom:iarray");
     memory->create(iarray[index],nmax,cols,"atom:iarray");
@@ -2440,9 +2510,7 @@ int Atom::add_custom(const char *name, int flag, int cols)
     ndarray++;
     daname = (char **) memory->srealloc(daname,ndarray*sizeof(char *),
 					"atom:daname");
-    int n = strlen(name) + 1;
-    daname[index] = new char[n];
-    strcpy(daname[index],name);
+    daname[index] = utils::strdup(name);
     darray = (double ***) memory->srealloc(darray,ndarray*sizeof(double **),
 					   "atom:darray");
     memory->create(darray[index],nmax,cols,"atom:darray");
@@ -2676,7 +2744,13 @@ void *Atom::extract(const char *name)
   if (strcmp(name,"cv") == 0) return (void *) cv;
   if (strcmp(name,"vest") == 0) return (void *) vest;
 
-  // USER-SMD package
+  // MESONT package
+
+  if (strcmp(name,"length") == 0) return (void *) length;
+  if (strcmp(name,"buckling") == 0) return (void *) buckling;
+  if (strcmp(name,"bond_nt") == 0) return (void *) bond_nt;
+
+  // MACHDYN package
 
   if (strcmp(name, "contact_radius") == 0) return (void *) contact_radius;
   if (strcmp(name, "smd_data_9") == 0) return (void *) smd_data_9;
@@ -2687,22 +2761,29 @@ void *Atom::extract(const char *name)
     return (void *) eff_plastic_strain_rate;
   if (strcmp(name, "damage") == 0) return (void *) damage;
 
-  // USER-DPD package
+  // DPD-REACT pakage
   
   if (strcmp(name,"dpdTheta") == 0) return (void *) dpdTheta;
 
-  // USER-MESO package
+  // DPD-MESO package
 
   if (strcmp(name,"edpd_temp") == 0) return (void *) edpd_temp;
 
-  // USER-MESONT package
-  
-  if (strcmp(name,"length") == 0) return (void *) length;
-  if (strcmp(name,"buckling") == 0) return (void *) buckling;
-  if (strcmp(name,"bond_nt") == 0) return (void *) bond_nt;
+  // DIELECTRIC package
+
+  if (strcmp(name,"area") == 0) return (void *) area;
+  if (strcmp(name,"ed") == 0) return (void *) ed;
+  if (strcmp(name,"em") == 0) return (void *) em;
+  if (strcmp(name,"epsilon") == 0) return (void *) epsilon;
+  if (strcmp(name,"curvature") == 0) return (void *) curvature;
+  if (strcmp(name,"q_unscaled") == 0) return (void *) q_unscaled;
+
+  // end of customization section
+  // --------------------------------------------------------------------
 
   // custom vectors and arrays
-  
+  // OLDSTYLE code
+
   if (strstr(name,"i_") == name || strstr(name,"d_") == name ||
       strstr(name,"i2_") == name || strstr(name,"d2_") == name) {
     int which = 0;
@@ -2723,9 +2804,6 @@ void *Atom::extract(const char *name)
     if (!which && array) return (void *) iarray[index];
     if (which && array) return (void *) darray[index];
   }
-
-  // end of customization section
-  // --------------------------------------------------------------------
 
   return nullptr;
 }
@@ -2791,8 +2869,14 @@ int Atom::extract_datatype(const char *name)
   if (strcmp(name,"cv") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"vest") == 0) return LAMMPS_DOUBLE_2D;
 
-  // USER-SMD package
-  
+  // MESONT package
+
+  if (strcmp(name,"length") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"buckling") == 0) return LAMMPS_INT;
+  if (strcmp(name,"bond_nt") == 0) return  LAMMPS_TAGINT_2D;
+
+  // MACHDYN package
+
   if (strcmp(name, "contact_radius") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name, "smd_data_9") == 0) return LAMMPS_DOUBLE_2D;
   if (strcmp(name, "smd_stress") == 0) return LAMMPS_DOUBLE_2D;
@@ -2800,21 +2884,28 @@ int Atom::extract_datatype(const char *name)
   if (strcmp(name, "eff_plastic_strain_rate") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name, "damage") == 0) return LAMMPS_DOUBLE;
 
-  // USER-DPD package
+  // DPD-REACT package
 
   if (strcmp(name,"dpdTheta") == 0) return LAMMPS_DOUBLE;
 
-  // USER-MESO package
+  // DPD-MESO package
 
   if (strcmp(name,"edpd_temp") == 0) return LAMMPS_DOUBLE;
 
-  // USER-MESONT package
+  // DIELECTRIC package
 
-  if (strcmp(name,"length") == 0) return LAMMPS_DOUBLE;
-  if (strcmp(name,"buckling") == 0) return LAMMPS_INT;
-  if (strcmp(name,"bond_nt") == 0) return  LAMMPS_TAGINT_2D;
+  if (strcmp(name,"area") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"ed") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"em") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"epsilon") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"curvature") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"q_unscaled") == 0) return LAMMPS_DOUBLE;
+
+  // end of customization section
+  // --------------------------------------------------------------------
 
   // custom vectors and arrays
+  // OLDSTYLE code
   
   if (strstr(name,"i_") == name || strstr(name,"d_") == name ||
       strstr(name,"i2_") == name || strstr(name,"d2_") == name) {
@@ -2834,9 +2925,6 @@ int Atom::extract_datatype(const char *name)
     if (which == 0) return LAMMPS_INT;
     else return LAMMPS_DOUBLE;
   }
-  
-  // end of customization section
-  // --------------------------------------------------------------------
 
   return -1;
 }
@@ -2851,12 +2939,12 @@ double Atom::memory_usage()
 {
   double bytes = avec->memory_usage();
 
-  bytes += max_same*sizeof(int);
+  bytes += (double)max_same*sizeof(int);
   if (map_style == MAP_ARRAY)
     bytes += memory->usage(map_array,map_maxarray);
   else if (map_style == MAP_HASH) {
-    bytes += map_nbucket*sizeof(int);
-    bytes += map_nhash*sizeof(HashElem);
+    bytes += (double)map_nbucket*sizeof(int);
+    bytes += (double)map_nhash*sizeof(HashElem);
   }
   if (maxnext) {
     bytes += memory->usage(next,maxnext);

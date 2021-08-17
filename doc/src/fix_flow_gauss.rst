@@ -55,20 +55,25 @@ momentum.
 GD applies an external fluctuating gravitational field that acts as a
 driving force to keep the system away from equilibrium. To maintain
 steady state, a profile-unbiased thermostat must be implemented to
-dissipate the heat that is added by the driving force. :doc:`Compute temp/profile <compute_temp_profile>` can be used to implement a
+dissipate the heat that is added by the driving force. :doc:`Compute
+temp/profile <compute_temp_profile>` can be used to implement a
 profile-unbiased thermostat.
 
 A common use of this fix is to compute a pressure drop across a pipe,
 pore, or membrane. The pressure profile can be computed in LAMMPS with
-:doc:`compute stress/atom <compute_stress_atom>` and :doc:`fix ave/chunk <fix_ave_chunk>`, or with the hardy method in :doc:`fix atc <fix_atc>`. Note that the simple :doc:`compute stress/atom <compute_stress_atom>` method is only accurate away
-from inhomogeneities in the fluid, such as fixed wall atoms. Further,
-the computed pressure profile must be corrected for the acceleration
+:doc:`compute stress/atom <compute_stress_atom>` and :doc:`fix
+ave/chunk <fix_ave_chunk>`, or with the hardy method in :doc:`fix atc
+<fix_atc>`. Note that the simple :doc:`compute stress/atom
+<compute_stress_atom>` method is only accurate away from
+inhomogeneities in the fluid, such as fixed wall atoms. Further, the
+computed pressure profile must be corrected for the acceleration
 applied by GD before computing a pressure drop or comparing it to
-other methods, such as the pump method :ref:`(Zhu) <Zhu>`. The pressure
-correction is discussed and described in :ref:`(Strong) <Strong>`.
+other methods, such as the pump method :ref:`(Zhu) <Zhu>`. The
+pressure correction is discussed and described in :ref:`(Strong)
+<Strong>`.
 
 For a complete example including the considerations discussed
-above, see the examples/USER/flow_gauss directory.
+above, see the examples/PACKAGES/flow_gauss directory.
 
 .. note::
 
@@ -76,7 +81,7 @@ above, see the examples/USER/flow_gauss directory.
    velocities of the group-ID atoms are coupled to the velocities of
    other atoms in the simulation, the flux will not be conserved. For
    example, in a simulation with fluid atoms and harmonically constrained
-   wall atoms, if a single thermostat is applied to group *all*\ , the
+   wall atoms, if a single thermostat is applied to group *all*, the
    fluid atom velocities will be coupled to the wall atom velocities, and
    the flux will not be conserved. This issue can be avoided by
    thermostatting the fluid and wall groups separately.
@@ -102,14 +107,15 @@ computed by the fix will return zero.
    of wall atoms fixed, such as :doc:`fix spring/self <fix_spring_self>`.
 
 If this fix is used in a simulation with the :doc:`rRESPA <run_style>`
-integrator, the applied acceleration must be computed and applied at the same
-rRESPA level as the interactions between the flowing fluid and the obstacle.
-The rRESPA level at which the acceleration is applied can be changed using
-the :doc:`fix_modify <fix_modify>` *respa* option discussed below. If the
-flowing fluid and the obstacle interact through multiple interactions that are
-computed at different rRESPA levels, then there must be a separate flow/gauss
-fix for each level. For example, if the flowing fluid and obstacle interact
-through pairwise and long-range Coulomb interactions, which are computed at
+integrator, the applied acceleration must be computed and applied at
+the same rRESPA level as the interactions between the flowing fluid
+and the obstacle.  The rRESPA level at which the acceleration is
+applied can be changed using the :doc:`fix_modify <fix_modify>`
+*respa* option discussed below. If the flowing fluid and the obstacle
+interact through multiple interactions that are computed at different
+rRESPA levels, then there must be a separate flow/gauss fix for each
+level. For example, if the flowing fluid and obstacle interact through
+pairwise and long-range Coulomb interactions, which are computed at
 rRESPA levels 3 and 4, respectively, then there must be two separate
 flow/gauss fixes, one that specifies *fix_modify respa 3* and one with
 *fix_modify respa 4*.
@@ -119,38 +125,49 @@ flow/gauss fixes, one that specifies *fix_modify respa 3* and one with
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-This fix is part of the USER-MISC package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+No information about this fix is written to :doc:`binary restart files
+<restart>`.
 
-No information about this fix is written to :doc:`binary restart files <restart>`.
-
-The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
-fix to subtract the work done from the
-system's potential energy as part of :doc:`thermodynamic output <thermo_style>`.
+The :doc:`fix_modify <fix_modify>` *energy* option is supported by
+this fix to add the potential energy added by the fix to the global
+potential energy of the system as part of :doc:`thermodynamic output
+<thermo_style>`.  The default setting for this fix is :doc:`fix_modify
+energy no <fix_modify>`.
 
 The :doc:`fix_modify <fix_modify>` *respa* option is supported by this
-fix. This allows the user to set at which level of the :doc:`rRESPA <run_style>`
-integrator the fix computes and adds the external acceleration. Default is the
-outermost level.
+fix. This allows the user to set at which level of the :doc:`rRESPA
+<run_style>` integrator the fix computes and adds the external
+acceleration. Default is the outermost level.
 
 This fix computes a global scalar and a global 3-vector of forces,
-which can be accessed by various :doc:`output commands <Howto_output>`.
-The scalar is the negative of the work done on the system, see above
-discussion.  The vector is the total force that this fix applied to
-the group of atoms on the current timestep.  The scalar and vector
-values calculated by this fix are "extensive".
+which can be accessed by various :doc:`output commands
+<Howto_output>`.  The scalar is the negative of the work done on the
+system, see the discussion above.  It is only calculated if the
+*energy* keyword is enabled or :doc:`fix_modify energy yes
+<fix_modify>` is set.
+
+The vector is the total force that this fix applied to the group of
+atoms on the current timestep.  The scalar and vector values
+calculated by this fix are "extensive".
 
 No parameter of this fix can be used with the *start/stop* keywords of
 the :doc:`run <run>` command.
 
+This fix is not invoked during :doc:`energy minimization <minimize>`.
+
 Restrictions
 """"""""""""
- none
+
+This fix is part of the EXTRA-FIX package.  It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package
+<Build_package>` page for more info.
 
 Related commands
 """"""""""""""""
 
-:doc:`fix addforce <fix_addforce>`, :doc:`compute temp/profile <compute_temp_profile>`, :doc:`velocity <velocity>`
+:doc:`fix addforce <fix_addforce>`,
+:doc:`compute temp/profile <compute_temp_profile>`,
+:doc:`velocity <velocity>`
 
 Default
 """""""

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -21,7 +22,6 @@
 #include "domain.h"
 #include "dump_cfg_zstd.h"
 #include "error.h"
-#include "file_writer.h"
 #include "update.h"
 
 #include <cstring>
@@ -46,7 +46,7 @@ DumpCFGZstd::~DumpCFGZstd()
 
 /* ----------------------------------------------------------------------
    generic opening of a dump file
-   ASCII or binary or zstdipped
+   ASCII or binary or compressed
    some derived classes override this function
 ------------------------------------------------------------------------- */
 
@@ -79,14 +79,14 @@ void DumpCFGZstd::openfile()
     *ptr = '*';
     if (maxfiles > 0) {
       if (numfiles < maxfiles) {
-        nameslist[numfiles] = new char[strlen(filecurrent)+1];
-        strcpy(nameslist[numfiles],filecurrent);
+        nameslist[numfiles] = utils::strdup(filecurrent);
         ++numfiles;
       } else {
-        remove(nameslist[fileidx]);
+        if (remove(nameslist[fileidx]) != 0) {
+          error->warning(FLERR, "Could not delete {}", nameslist[fileidx]);
+        }
         delete[] nameslist[fileidx];
-        nameslist[fileidx] = new char[strlen(filecurrent)+1];
-        strcpy(nameslist[fileidx],filecurrent);
+        nameslist[fileidx] = utils::strdup(filecurrent);
         fileidx = (fileidx + 1) % maxfiles;
       }
     }
@@ -149,7 +149,72 @@ void DumpCFGZstd::write_header(bigint n)
 
 void DumpCFGZstd::write_data(int n, double *mybuf)
 {
-  writer.write(mybuf, n);
+  if (buffer_flag) {
+    writer.write(mybuf, n);
+  } else {
+    constexpr size_t VBUFFER_SIZE = 256;
+    char vbuffer[VBUFFER_SIZE];
+    if (unwrapflag == 0) {
+      int m = 0;
+      for (int i = 0; i < n; i++) {
+        for (int j = 0; j < size_one; j++) {
+          int written = 0;
+          if (j == 0) {
+            written = snprintf(vbuffer, VBUFFER_SIZE, "%f \n", mybuf[m]);
+          } else if (j == 1) {
+            written = snprintf(vbuffer, VBUFFER_SIZE, "%s \n", typenames[(int) mybuf[m]]);
+          } else if (j >= 2) {
+            if (vtype[j] == Dump::INT)
+              written = snprintf(vbuffer, VBUFFER_SIZE, vformat[j], static_cast<int> (mybuf[m]));
+            else if (vtype[j] == Dump::DOUBLE)
+              written = snprintf(vbuffer, VBUFFER_SIZE, vformat[j], mybuf[m]);
+            else if (vtype[j] == Dump::STRING)
+              written = snprintf(vbuffer, VBUFFER_SIZE, vformat[j], typenames[(int) mybuf[m]]);
+            else if (vtype[j] == Dump::BIGINT)
+              written = snprintf(vbuffer, VBUFFER_SIZE, vformat[j], static_cast<bigint> (mybuf[m]));
+          }
+          if (written > 0) {
+            writer.write(vbuffer, written);
+          } else if (written < 0) {
+            error->one(FLERR, "Error while writing dump cfg/gz output");
+          }
+          m++;
+        }
+        writer.write("\n", 1);
+      }
+    } else if (unwrapflag == 1) {
+      int m = 0;
+      for (int i = 0; i < n; i++) {
+        for (int j = 0; j < size_one; j++) {
+          int written = 0;
+          if (j == 0) {
+            written = snprintf(vbuffer, VBUFFER_SIZE, "%f \n", mybuf[m]);
+          } else if (j == 1) {
+            written = snprintf(vbuffer, VBUFFER_SIZE, "%s \n", typenames[(int) mybuf[m]]);
+          } else if (j >= 2 && j <= 4) {
+            double unwrap_coord = (mybuf[m] - 0.5)/UNWRAPEXPAND + 0.5;
+            written = snprintf(vbuffer, VBUFFER_SIZE, vformat[j], unwrap_coord);
+          } else if (j >= 5) {
+            if (vtype[j] == Dump::INT)
+              written = snprintf(vbuffer, VBUFFER_SIZE, vformat[j], static_cast<int> (mybuf[m]));
+            else if (vtype[j] == Dump::DOUBLE)
+              written = snprintf(vbuffer, VBUFFER_SIZE, vformat[j], mybuf[m]);
+            else if (vtype[j] == Dump::STRING)
+              written = snprintf(vbuffer, VBUFFER_SIZE, vformat[j], typenames[(int) mybuf[m]]);
+            else if (vtype[j] == Dump::BIGINT)
+              written = snprintf(vbuffer, VBUFFER_SIZE, vformat[j], static_cast<bigint> (mybuf[m]));
+          }
+          if (written > 0) {
+            writer.write(vbuffer, written);
+          } else if (written < 0) {
+            error->one(FLERR, "Error while writing dump cfg/gz output");
+          }
+          m++;
+        }
+        writer.write("\n", 1);
+      }
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */

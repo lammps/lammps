@@ -1,0 +1,67 @@
+# Big colloid particles and small LJ particles
+
+units           lj
+atom_style      sphere
+dimension       2
+
+lattice         sq 0.1
+region          box block 0 60 0 60 -0.5 0.5
+create_box      5 box
+create_atoms 1 box
+
+#Roughly equally partition atoms between types 1-4
+set             group all type/fraction 2 0.500 23984
+set             group all type/fraction 3 0.333 43684
+set             group all type/fraction 4 0.250 87811
+
+# remove two spheres of small particles and add large particles in the voids
+region sphere1 sphere 60.0 60.0 0.0 30.0 units box
+region sphere2 sphere 130.0 130.0 0.0 30.0 units box
+delete_atoms  region sphere1
+delete_atoms  region sphere2
+create_atoms 5 single 60.0 60.0 0.0 units box
+create_atoms 5 single 130.0 130.0 0.0 units box
+
+set             type 1 mass 400
+set             type 2 mass 1
+
+velocity        all create 1.44 87287 loop geom
+
+# multi neighbor and comm for efficiency
+
+neighbor        1 multi #multi/old
+neigh_modify    delay 0 collection/type 2 1*4 5
+comm_modify     mode multi reduce/multi #multi/old
+
+# colloid potential
+
+pair_style      colloid 20.0
+pair_coeff      * * 144.0 1.0 0.0 0.0 3.0
+pair_coeff      1 5 75.4  1.0 0.0 20.0 14.0
+pair_coeff      2 5 75.4  1.0 0.0 20.0 14.0
+pair_coeff      3 5 75.4  1.0 0.0 20.0 14.0
+pair_coeff      4 5 75.4  1.0 0.0 20.0 14.0
+pair_coeff      5 5 39.5  1.0 20.0 20.0 30.0
+
+
+
+fix             1 all npt temp 2.0 2.0 1.0 iso 0.0 1.0 10.0 drag 1.0 &
+                mtk no pchain 0 tchain 1
+fix             2 all enforce2d
+
+#dump           1 all atom 1000 dump.colloid
+
+#dump           2 all image 1000 image.*.jpg type type &
+#               zoom 1.5 center d 0.5 0.5 0.5
+#dump_modify    2 pad 5 adiam 1 5.0 adiam 2 1.5
+
+#dump           3 all movie 1000 movie.mpg type type &
+#               zoom 1.5 center d 0.5 0.5 0.5
+#dump_modify    3 pad 5 adiam 1 5.0 adiam 2 1.5
+
+thermo_style    custom step temp epair etotal press vol
+thermo          100
+
+timestep        0.005
+
+run             2000

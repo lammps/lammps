@@ -1,0 +1,150 @@
+# /* ----------------------------------------------------------------------
+#  Generic Linux Makefile for CUDA
+#     - change CUDA_ARCH for your GPU
+# ------------------------------------------------------------------------- */
+
+# which file will be copied to Makefile.lammps
+
+EXTRAMAKE = Makefile.lammps.standard
+
+ifeq ($(CUDA_HOME),)
+CUDA_HOME = /usr/local/cuda
+endif
+
+# this setting should match LAMMPS Makefile
+# one of LAMMPS_SMALLBIG (default), LAMMPS_BIGBIG and LAMMPS_SMALLSMALL
+
+LMP_INC = -DLAMMPS_SMALLBIG
+
+# precision for GPU calculations
+# -D_SINGLE_SINGLE  # Single precision for all calculations
+# -D_DOUBLE_DOUBLE  # Double precision for all calculations
+# -D_SINGLE_DOUBLE  # Accumulation of forces, etc. in double
+
+CUDA_PRECISION = -D_SINGLE_DOUBLE
+
+BIN_DIR = ./
+OBJ_DIR = ./
+LIB_DIR = ./
+AR = ar
+BSH = /bin/sh
+
+CUDPP_OPT =
+CUDA_MPS  = -DCUDA_PROXY
+
+# device code compiler and settings
+
+NVCC = nvcc
+
+CUDA_ARCH = -gencode arch=compute_50,code=[sm_50,compute_50] -gencode arch=compute_52,code=[sm_52,compute_52] \
+	    -gencode arch=compute_60,code=[sm_60,compute_60] -gencode arch=compute_61,code=[sm_61,compute_61] \
+	    -gencode arch=compute_70,code=[sm_70,compute_70] -gencode arch=compute_75,code=[sm_75,compute_75] \
+	    -gencode arch=compute_80,code=[sm_80,compute_80] -gencode arch=compute_86,code=[sm_86,compute_86]
+CUDA_INCLUDE = -I$(CUDA_HOME)/include
+CUDA_LIB = -L$(CUDA_HOME)/lib64 -L$(CUDA_HOME)/lib64/stubs
+CUDA_OPTS = -DUNIX -O3 --use_fast_math $(LMP_INC) -Xcompiler -fPIC
+CUDA_LINK = $(CUDA_LIB) -lcudart
+CUDA  = $(NVCC) $(CUDA_INCLUDE) $(CUDA_OPTS) $(CUDA_ARCH) \
+             $(CUDA_PRECISION)
+
+BIN2C = $(CUDA_HOME)/bin/bin2c
+
+# host code compiler and settings
+
+CUDR_CPP = mpicxx -fopenmp -DMPI_GERYON -DUCL_NO_EXIT -DMPICH_IGNORE_CXX_SEEK -DOMPI_SKIP_MPICXX=1 -fPIC
+CUDR_OPTS = -O2 $(LMP_INC)
+CUDR  = $(CUDR_CPP) $(CUDR_OPTS) $(CUDA_PROXY) $(CUDA_PRECISION) $(CUDA_INCLUDE) \
+         $(CUDPP_OPT)
+
+# Headers for Geryon
+UCL_H  = $(wildcard ./geryon/ucl*.h)
+NVD_H  = $(wildcard ./geryon/nvd*.h) $(UCL_H) lal_preprocessor.h
+ALL_H  =  $(NVD_H) $(wildcard ./lal_*.h)
+
+# Source files
+SRCS := $(wildcard ./lal_*.cpp)
+OBJS := $(subst ./,$(OBJ_DIR)/,$(SRCS:%.cpp=%.o))
+CUS  := $(wildcard lal_*.cu)
+CUHS := $(filter-out pppm_cubin.h, $(CUS:lal_%.cu=%_cubin.h)) pppm_f_cubin.h pppm_d_cubin.h
+CUHS := $(addprefix $(OBJ_DIR)/, $(CUHS))
+
+ifdef CUDPP_OPT
+CUDPP = $(OBJ_DIR)/cudpp.o $(OBJ_DIR)/cudpp_plan.o \
+        $(OBJ_DIR)/cudpp_maximal_launch.o $(OBJ_DIR)/cudpp_plan_manager.o \
+        $(OBJ_DIR)/radixsort_app.cu_o $(OBJ_DIR)/scan_app.cu_o
+endif
+
+# targets
+
+GPU_LIB = $(LIB_DIR)/libgpu.a
+
+EXECS = $(BIN_DIR)/nvc_get_devices
+
+all: $(OBJ_DIR) $(CUHS) $(GPU_LIB) $(EXECS)
+
+$(OBJ_DIR):
+	mkdir -p $@
+
+# device code compilation
+
+$(OBJ_DIR)/pppm_f.cubin: lal_pppm.cu lal_precision.h lal_preprocessor.h
+	$(CUDA) --fatbin -DNV_KERNEL -Dgrdtyp=float -Dgrdtyp4=float4 -o $@ lal_pppm.cu
+
+$(OBJ_DIR)/pppm_f_cubin.h: $(OBJ_DIR)/pppm_f.cubin
+	$(BIN2C) -c -n pppm_f $(OBJ_DIR)/pppm_f.cubin > $(OBJ_DIR)/pppm_f_cubin.h
+
+$(OBJ_DIR)/pppm_d.cubin: lal_pppm.cu lal_precision.h lal_preprocessor.h
+	$(CUDA) --fatbin -DNV_KERNEL -Dgrdtyp=double -Dgrdtyp4=double4 -o $@ lal_pppm.cu
+
+$(OBJ_DIR)/pppm_d_cubin.h: $(OBJ_DIR)/pppm_d.cubin
+	$(BIN2C) -c -n pppm_d $(OBJ_DIR)/pppm_d.cubin > $(OBJ_DIR)/pppm_d_cubin.h
+
+$(OBJ_DIR)/%_cubin.h: lal_%.cu  $(ALL_H)
+	$(CUDA) --fatbin -DNV_KERNEL -o $(OBJ_DIR)/$*.cubin $(OBJ_DIR)/lal_$*.cu
+	$(BIN2C) -c -n $* $(OBJ_DIR)/$*.cubin > $@
+
+# host code compilation
+
+$(OBJ_DIR)/lal_%.o: lal_%.cpp $(CUHS) $(ALL_H)
+	$(CUDR) -o $@ -c $< -I$(OBJ_DIR)
+
+#ifdef CUDPP_OPT
+$(OBJ_DIR)/cudpp.o: cudpp_mini/cudpp.cpp
+	$(CUDR) -o $@ -c cudpp_mini/cudpp.cpp -Icudpp_mini
+
+$(OBJ_DIR)/cudpp_plan.o: cudpp_mini/cudpp_plan.cpp
+	$(CUDR) -o $@ -c cudpp_mini/cudpp_plan.cpp -Icudpp_mini
+
+$(OBJ_DIR)/cudpp_maximal_launch.o: cudpp_mini/cudpp_maximal_launch.cpp
+	$(CUDR) -o $@ -c cudpp_mini/cudpp_maximal_launch.cpp -Icudpp_mini
+
+$(OBJ_DIR)/cudpp_plan_manager.o: cudpp_mini/cudpp_plan_manager.cpp
+	$(CUDR) -o $@ -c cudpp_mini/cudpp_plan_manager.cpp -Icudpp_mini
+
+$(OBJ_DIR)/radixsort_app.cu_o: cudpp_mini/radixsort_app.cu
+	$(CUDA) -o $@ -c cudpp_mini/radixsort_app.cu
+
+$(OBJ_DIR)/scan_app.cu_o: cudpp_mini/scan_app.cu
+	$(CUDA) -o $@ -c cudpp_mini/scan_app.cu
+#endif
+
+# build libgpu.a
+
+$(GPU_LIB): $(OBJS) $(CUDPP)
+	$(AR) -crusv $(GPU_LIB) $(OBJS) $(CUDPP)
+	@cp $(EXTRAMAKE) Makefile.lammps
+ 
+# test app for querying device info
+
+$(BIN_DIR)/nvc_get_devices: ./geryon/ucl_get_devices.cpp $(NVD_H)
+	$(CUDR) -o $@ ./geryon/ucl_get_devices.cpp -DUCL_CUDADR $(CUDA_LIB) -lcuda 
+
+clean:
+	-rm -f $(EXECS) $(GPU_LIB) $(OBJS) $(CUDPP) $(CUHS) *.linkinfo
+
+veryclean: clean
+	-rm -rf *~ *.linkinfo
+
+cleanlib:
+	-rm -f $(EXECS) $(GPU_LIB) $(OBJS) $(CUHS) *.linkinfo
+

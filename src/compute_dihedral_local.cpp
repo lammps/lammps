@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -64,9 +65,7 @@ ComputeDihedralLocal::ComputeDihedralLocal(LAMMPS *lmp, int narg, char **arg) :
       bstyle[nvalues++] = PHI;
     } else if (strncmp(arg[iarg],"v_",2) == 0) {
       bstyle[nvalues++] = VARIABLE;
-      int n = strlen(arg[iarg]);
-      vstr[nvar] = new char[n];
-      strcpy(vstr[nvar],&arg[iarg][2]);
+      vstr[nvar] = utils::strdup(&arg[iarg][2]);
       nvar++;
     } else break;
   }
@@ -83,9 +82,7 @@ ComputeDihedralLocal::ComputeDihedralLocal(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Illegal compute dihedral/local command");
       if (strcmp(arg[iarg+1],"phi") == 0) {
         delete [] pstr;
-        int n = strlen(arg[iarg+2]) + 1;
-        pstr = new char[n];
-        strcpy(pstr,arg[iarg+2]);
+        pstr = utils::strdup(arg[iarg+2]);
       } else error->all(FLERR,"Illegal compute dihedral/local command");
       iarg += 3;
     } else error->all(FLERR,"Illegal compute dihedral/local command");
@@ -353,6 +350,6 @@ void ComputeDihedralLocal::reallocate(int n)
 
 double ComputeDihedralLocal::memory_usage()
 {
-  double bytes = nmax*nvalues * sizeof(double);
+  double bytes = (double)nmax*nvalues * sizeof(double);
   return bytes;
 }

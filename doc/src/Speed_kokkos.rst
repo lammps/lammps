@@ -26,6 +26,15 @@ task). These are Serial (MPI-only for CPUs and Intel Phi), OpenMP
 GPUs) and HIP (for AMD GPUs). You choose the mode at build time to
 produce an executable compatible with a specific hardware.
 
+.. admonition:: C++14 support
+   :class: note
+
+   Kokkos requires using a compiler that supports the c++14 standard. For
+   some compilers, it may be necessary to add a flag to enable c++14 support.
+   For example, the GNU compiler uses the -std=c++14 flag. For a list of
+   compilers that have been tested with the Kokkos library, see the Kokkos
+   `README <https://github.com/kokkos/kokkos/blob/master/README.md>`_.
+
 .. admonition:: NVIDIA CUDA support
    :class: note
 
@@ -58,7 +67,7 @@ produce an executable compatible with a specific hardware.
 Building LAMMPS with the KOKKOS package
 """""""""""""""""""""""""""""""""""""""
 
-See the :ref:`Build extras <kokkos>` doc page for instructions.
+See the :ref:`Build extras <kokkos>` page for instructions.
 
 Running LAMMPS with the KOKKOS package
 """"""""""""""""""""""""""""""""""""""
@@ -208,7 +217,7 @@ threads/task as Nt. The product of these two values should be N, i.e.
    be best for many-body potentials. For simpler pair-wise potentials, it
    may be faster to use a "full" neighbor list with Newton flag to "off".
    Use the "-pk kokkos" :doc:`command-line switch <Run_options>` to change
-   the default :doc:`package kokkos <package>` options. See its doc page for
+   the default :doc:`package kokkos <package>` options. See its page for
    details and default settings. Experimenting with its options can provide
    a speed-up for specific calculations. For example:
 
@@ -226,7 +235,7 @@ threads/task as Nt. The product of these two values should be N, i.e.
 
    To build with Kokkos support for Intel Xeon Phi co-processors
    such as Knight's Corner (KNC), your system must be configured to use
-   them in "native" mode, not "offload" mode like the USER-INTEL package
+   them in "native" mode, not "offload" mode like the INTEL package
    supports.
 
 Running on GPUs
@@ -270,7 +279,7 @@ one or more nodes, each with two GPUs:
    setting the neighbor binsize equal to twice the CPU default value will
    give speedup, which is the default when running on GPUs. Use the "-pk
    kokkos" :doc:`command-line switch <Run_options>` to change the default
-   :doc:`package kokkos <package>` options. See its doc page for details and
+   :doc:`package kokkos <package>` options. See its page for details and
    default settings. Experimenting with its options can provide a speed-up
    for specific calculations. For example:
 
@@ -381,10 +390,10 @@ Generally speaking, the following rules of thumb apply:
 * When running on CPUs only, with a single thread per MPI task,
   performance of a KOKKOS style is somewhere between the standard
   (un-accelerated) styles (MPI-only mode), and those provided by the
-  USER-OMP package. However the difference between all 3 is small (less
+  OPENMP package. However the difference between all 3 is small (less
   than 20%).
 * When running on CPUs only, with multiple threads per MPI task,
-  performance of a KOKKOS style is a bit slower than the USER-OMP
+  performance of a KOKKOS style is a bit slower than the OPENMP
   package.
 * When running large number of atoms per GPU, KOKKOS is typically faster
   than the GPU package when compiled for double precision. The benefit
@@ -392,12 +401,12 @@ Generally speaking, the following rules of thumb apply:
   significantly on the hardware in use and the simulated system and pair
   style.
 * When running on Intel hardware, KOKKOS is not as fast as
-  the USER-INTEL package, which is optimized for x86 hardware (not just
-  from Intel) and compilation with the Intel compilers.  The USER-INTEL
+  the INTEL package, which is optimized for x86 hardware (not just
+  from Intel) and compilation with the Intel compilers.  The INTEL
   package also can increase the vector length of vector instructions
   by switching to single or mixed precision mode.
 
-See the `Benchmark page <https://lammps.sandia.gov/bench.html>`_ of the
+See the `Benchmark page <https://www.lammps.org/bench.html>`_ of the
 LAMMPS web site for performance of the KOKKOS package on different
 hardware.
 

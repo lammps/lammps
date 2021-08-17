@@ -53,7 +53,7 @@ pressure typically allows the box to expand.
 ----------
 
 The external pressure tensor is specified using one or more of the
-*iso*\ , *aniso*\ , *tri*\ , *x*\ , *y*\ , *z*\ , *xy*\ , *xz*\ , *yz*\ , and *couple*
+*iso*, *aniso*, *tri*, *x*, *y*, *z*, *xy*, *xz*, *yz*, and *couple*
 keywords.  These keywords give you the ability to specify all 6
 components of an external stress tensor, and to couple various of
 these components together so that the dimensions they represent are
@@ -66,25 +66,25 @@ specify whether the simulation box is orthogonal or non-orthogonal
 (triclinic) and explain the meaning of the xy,xz,yz tilt factors.
 
 The target pressures *Ptarget* for each of the 6 components of the
-stress tensor can be specified independently via the *x*\ , *y*\ , *z*\ ,
-*xy*\ , *xz*\ , *yz* keywords, which correspond to the 6 simulation box
+stress tensor can be specified independently via the *x*, *y*, *z*,
+*xy*, *xz*, *yz* keywords, which correspond to the 6 simulation box
 dimensions.  For example, if the *y* keyword is used, the y-box length
 will change during the minimization.  If the *xy* keyword is used, the
 xy tilt factor will change.  A box dimension will not change if that
 component is not specified.
 
-Note that in order to use the *xy*\ , *xz*\ , or *yz* keywords, the
+Note that in order to use the *xy*, *xz*, or *yz* keywords, the
 simulation box must be triclinic, even if its initial tilt factors are
 0.0.
 
 When the size of the simulation box changes, all atoms are re-scaled
 to new positions, unless the keyword *dilate* is specified with a
-value of *partial*\ , in which case only the atoms in the fix group are
+value of *partial*, in which case only the atoms in the fix group are
 re-scaled.  This can be useful for leaving the coordinates of atoms in
 a solid substrate unchanged and controlling the pressure of a
 surrounding fluid.
 
-The *scaleyz*\ , *scalexz*\ , and *scalexy* keywords control whether or
+The *scaleyz*, *scalexz*, and *scalexy* keywords control whether or
 not the corresponding tilt factors are scaled with the associated box
 dimensions when relaxing triclinic periodic cells.  The default
 values *yes* will turn on scaling, which corresponds to adjusting the
@@ -99,7 +99,7 @@ The *fixedpoint* keyword specifies the fixed point for cell relaxation.
 By default, it is the center of the box.  Whatever point is
 chosen will not move during the simulation.  For example, if the lower
 periodic boundaries pass through (0,0,0), and this point is provided
-to *fixedpoint*\ , then the lower periodic boundaries will remain at
+to *fixedpoint*, then the lower periodic boundaries will remain at
 (0,0,0), while the upper periodic boundaries will move twice as
 far. In all cases, the particle positions at each iteration are
 unaffected by the chosen value, except that all particles are
@@ -107,7 +107,7 @@ displaced by the same amount, different on each iteration.
 
 .. note::
 
-   Applying an external pressure to tilt dimensions *xy*\ , *xz*\ , *yz*
+   Applying an external pressure to tilt dimensions *xy*, *xz*, *yz*
    can sometimes result in arbitrarily large values of the tilt factors,
    i.e. a dramatically deformed simulation box.  This typically indicates
    that there is something badly wrong with how the simulation was
@@ -149,7 +149,7 @@ simply ignored.
 
 ----------
 
-The *iso*\ , *aniso*\ , and *tri* keywords are simply shortcuts that are
+The *iso*, *aniso*, and *tri* keywords are simply shortcuts that are
 equivalent to specifying several other keywords together.
 
 The keyword *iso* means couple all 3 diagonal components together when
@@ -164,8 +164,8 @@ these 4 keywords:
    z Ptarget
    couple xyz
 
-The keyword *aniso* means *x*\ , *y*\ , and *z* dimensions are controlled
-independently using the *Pxx*\ , *Pyy*\ , and *Pzz* components of the
+The keyword *aniso* means *x*, *y*, and *z* dimensions are controlled
+independently using the *Pxx*, *Pyy*, and *Pzz* components of the
 stress tensor as the driving forces, and the specified scalar external
 pressure.  Using "aniso Ptarget" is the same as specifying these 4
 keywords:
@@ -177,7 +177,7 @@ keywords:
    z Ptarget
    couple none
 
-The keyword *tri* means *x*\ , *y*\ , *z*\ , *xy*\ , *xz*\ , and *yz* dimensions
+The keyword *tri* means *x*, *y*, *z*, *xy*, *xz*, and *yz* dimensions
 are controlled independently using their individual stress components
 as the driving forces, and the specified scalar pressure as the
 external normal stress.  Using "tri Ptarget" is the same as specifying
@@ -246,7 +246,7 @@ minimization steps, the reference dimensions are set to those of the
 current simulation domain. Note that resetting the reference
 dimensions changes the objective function and gradients, which
 sometimes causes the minimization to fail. This can be resolved by
-changing the value of *nreset*\ , or simply continuing the minimization
+changing the value of *nreset*, or simply continuing the minimization
 from a restart file.
 
 .. note::
@@ -362,8 +362,8 @@ Restrictions
 """"""""""""
 
 Only dimensions that are available can be adjusted by this fix.
-Non-periodic dimensions are not available.  *z*\ , *xz*\ , and *yz*\ , are
-not available for 2D simulations. *xy*\ , *xz*\ , and *yz* are only
+Non-periodic dimensions are not available.  *z*, *xz*, and *yz*, are
+not available for 2D simulations. *xy*, *xz*, and *yz* are only
 available if the simulation domain is non-orthogonal.  The
 :doc:`create_box <create_box>`, :doc:`read data <read_data>`, and
 :doc:`read_restart <read_restart>` commands specify whether the
@@ -371,10 +371,10 @@ simulation box is orthogonal or non-orthogonal (triclinic) and explain
 the meaning of the xy,xz,yz tilt factors.
 
 The *scaleyz yes* and *scalexz yes* keyword/value pairs can not be used
-for 2D simulations. *scaleyz yes*\ , *scalexz yes*\ , and *scalexy yes* options
+for 2D simulations. *scaleyz yes*, *scalexz yes*, and *scalexy yes* options
 can only be used if the second dimension in the keyword is periodic,
 and if the tilt factor is not coupled to the barostat via keywords
-*tri*\ , *yz*\ , *xz*\ , and *xy*\ .
+*tri*, *yz*, *xz*, and *xy*\ .
 
 Related commands
 """"""""""""""""

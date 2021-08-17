@@ -33,6 +33,13 @@ class PythonCapabilities(unittest.TestCase):
     def test_version(self):
         self.assertGreaterEqual(self.lmp.version(), 20200824)
 
+    def test_os_info(self):
+        import platform
+
+        system = platform.system()
+        osinfo = self.lmp.get_os_info()
+        self.assertEqual(osinfo.find(system),0)
+
     def test_has_gzip_support(self):
         self.assertEqual(self.lmp.has_gzip_support, self.cmake_cache['WITH_GZIP'])
 
@@ -122,6 +129,57 @@ class PythonCapabilities(unittest.TestCase):
         self.lmp.command('timer timeout off')
         self.lmp.command('run 10')
         self.assertEqual(self.lmp.extract_global('ntimestep'),20)
+
+    def test_accelerator_config(self):
+
+        settings = self.lmp.accelerator_config
+        if self.cmake_cache['PKG_OPENMP']:
+            if self.cmake_cache['BUILD_OMP']:
+                self.assertIn('openmp',settings['OPENMP']['api'])
+            else:
+                self.assertIn('serial',settings['OPENMP']['api'])
+            self.assertIn('double',settings['OPENMP']['precision'])
+
+        if self.cmake_cache['PKG_INTEL']:
+            if 'LMP_INTEL_OFFLOAD' in self.cmake_cache.keys():
+                self.assertIn('phi',settings['INTEL']['api'])
+            elif self.cmake_cache['BUILD_OMP']:
+                self.assertIn('openmp',settings['INTEL']['api'])
+            else:
+                self.assertIn('serial',settings['INTEL']['api'])
+            self.assertIn('double',settings['INTEL']['precision'])
+            self.assertIn('mixed',settings['INTEL']['precision'])
+            self.assertIn('single',settings['INTEL']['precision'])
+
+        if self.cmake_cache['PKG_GPU']:
+            if self.cmake_cache['GPU_API'].lower() == 'opencl':
+                 self.assertIn('opencl',settings['GPU']['api'])
+            if self.cmake_cache['GPU_API'].lower() == 'cuda':
+                 self.assertIn('cuda',settings['GPU']['api'])
+            if self.cmake_cache['GPU_API'].lower() == 'hip':
+                 self.assertIn('hip',settings['GPU']['api'])
+            if self.cmake_cache['GPU_PREC'].lower() == 'double':
+                 self.assertIn('double',settings['GPU']['precision'])
+            if self.cmake_cache['GPU_PREC'].lower() == 'mixed':
+                 self.assertIn('mixed',settings['GPU']['precision'])
+            if self.cmake_cache['GPU_PREC'].lower() == 'single':
+                 self.assertIn('single',settings['GPU']['precision'])
+
+        if self.cmake_cache['PKG_KOKKOS']:
+            if self.cmake_cache['Kokkos_ENABLE_OPENMP']:
+                self.assertIn('openmp',settings['KOKKOS']['api'])
+            if self.cmake_cache['Kokkos_ENABLE_SERIAL']:
+                self.assertIn('serial',settings['KOKKOS']['api'])
+            self.assertIn('double',settings['KOKKOS']['precision'])
+
+    def test_gpu_device(self):
+
+        info = self.lmp.get_gpu_device_info()
+        if self.lmp.has_gpu_device:
+            self.assertTrue(info)
+            self.assertGreaterEqual(info.find("Device"),0)
+        else:
+            self.assertFalse(info)
 
 if __name__ == "__main__":
     unittest.main()

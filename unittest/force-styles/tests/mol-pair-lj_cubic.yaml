@@ -1,7 +1,7 @@
 ---
 lammps_version: 30 Nov 2020
 date_generated: Fri Dec 18 22:30:42 202
-epsilon: 1e-13
+epsilon: 2e-13
 prerequisites: ! |
   atom full
   pair lj/cubic

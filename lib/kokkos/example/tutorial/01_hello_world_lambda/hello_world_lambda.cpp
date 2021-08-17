@@ -104,8 +104,13 @@ int main(int argc, char* argv[]) {
 #if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
   Kokkos::parallel_for(
       15, KOKKOS_LAMBDA(const int i) {
+  // FIXME_SYCL needs workaround for printf
+#ifndef __SYCL_DEVICE_ONLY__
         // printf works in a CUDA parallel kernel; std::ostream does not.
         printf("Hello from i = %i\n", i);
+#else
+	(void)i;
+#endif
       });
 #endif
   // You must call finalize() after you are done using Kokkos.

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -36,8 +37,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MAXLINE 1024
-
 /* ---------------------------------------------------------------------- */
 
 Force::Force(LAMMPS *lmp) : Pointers(lmp)
@@ -61,20 +60,12 @@ Force::Force(LAMMPS *lmp) : Pointers(lmp)
   improper = nullptr;
   kspace = nullptr;
 
-  char *str = (char *) "none";
-  int n = strlen(str) + 1;
-  pair_style = new char[n];
-  strcpy(pair_style,str);
-  bond_style = new char[n];
-  strcpy(bond_style,str);
-  angle_style = new char[n];
-  strcpy(angle_style,str);
-  dihedral_style = new char[n];
-  strcpy(dihedral_style,str);
-  improper_style = new char[n];
-  strcpy(improper_style,str);
-  kspace_style = new char[n];
-  strcpy(kspace_style,str);
+  pair_style = utils::strdup("none");
+  bond_style = utils::strdup("none");
+  angle_style = utils::strdup("none");
+  dihedral_style = utils::strdup("none");
+  improper_style = utils::strdup("none");
+  kspace_style = utils::strdup("none");
 
   pair_restart = nullptr;
   create_factories();
@@ -183,8 +174,8 @@ void Force::init()
   // check if pair style must be specified after restart
   if (pair_restart) {
     if (!pair)
-      error->all(FLERR,fmt::format("Must re-specify non-restarted pair style "
-                                   "({}) after read_restart", pair_restart));
+      error->all(FLERR,"Must re-specify non-restarted pair style "
+                                   "({}) after read_restart", pair_restart);
   }
 
   if (kspace) kspace->init();         // kspace must come before pair
@@ -458,7 +449,7 @@ Angle *Force::new_angle(const std::string &style, int trysuffix, int &sflag)
 
     if (lmp->suffix2) {
       sflag = 2;
-      std::string estyle = style + "/" + lmp->suffix;
+      std::string estyle = style + "/" + lmp->suffix2;
       if (angle_map->find(estyle) != angle_map->end()) {
         AngleCreator &angle_creator = (*angle_map)[estyle];
         return angle_creator(lmp);
@@ -688,7 +679,7 @@ KSpace *Force::new_kspace(const std::string &style, int trysuffix, int &sflag)
     }
 
     if (lmp->suffix2) {
-      sflag = 1;
+      sflag = 2;
       std::string estyle = style + "/" + lmp->suffix2;
       if (kspace_map->find(estyle) != kspace_map->end()) {
         KSpaceCreator &kspace_creator = (*kspace_map)[estyle];
@@ -849,11 +840,11 @@ void Force::set_special(int narg, char **arg)
 double Force::memory_usage()
 {
   double bytes = 0;
-  if (pair) bytes += static_cast<bigint> (pair->memory_usage());
-  if (bond) bytes += static_cast<bigint> (bond->memory_usage());
-  if (angle) bytes += static_cast<bigint> (angle->memory_usage());
-  if (dihedral) bytes += static_cast<bigint> (dihedral->memory_usage());
-  if (improper) bytes += static_cast<bigint> (improper->memory_usage());
-  if (kspace) bytes += static_cast<bigint> (kspace->memory_usage());
+  if (pair) bytes += pair->memory_usage();
+  if (bond) bytes += bond->memory_usage();
+  if (angle) bytes += angle->memory_usage();
+  if (dihedral) bytes += dihedral->memory_usage();
+  if (improper) bytes += improper->memory_usage();
+  if (kspace) bytes += kspace->memory_usage();
   return bytes;
 }

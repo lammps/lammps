@@ -83,7 +83,7 @@ value.
    be used on atoms that also have their temperature controlled by
    another fix - e.g. by :doc:`fix nvt <fix_nh>` or :doc:`fix langevin <fix_langevin>` commands.
 
-See the :doc:`Howto thermostat <Howto_thermostat>` doc page for a
+See the :doc:`Howto thermostat <Howto_thermostat>` page for a
 discussion of different ways to compute temperature and perform
 thermostatting.
 
@@ -100,13 +100,13 @@ ID of the new compute is the fix-ID + underscore + "temp", and the
 group for the new compute is the same as the fix group.
 
 Note that this is NOT the compute used by thermodynamic output (see
-the :doc:`thermo_style <thermo_style>` command) with ID = *thermo_temp*.
-This means you can change the attributes of this fix's temperature
-(e.g. its degrees-of-freedom) via the
-:doc:`compute_modify <compute_modify>` command or print this temperature
-during thermodynamic output via the :doc:`thermo_style custom <thermo_style>` command using the appropriate compute-ID.
-It also means that changing attributes of *thermo_temp* will have no
-effect on this fix.
+the :doc:`thermo_style <thermo_style>` command) with ID =
+*thermo_temp*.  This means you can change the attributes of this fix's
+temperature (e.g. its degrees-of-freedom) via the :doc:`compute_modify
+<compute_modify>` command or print this temperature during
+thermodynamic output via the :doc:`thermo_style custom <thermo_style>`
+command using the appropriate compute-ID.  It also means that changing
+attributes of *thermo_temp* will have no effect on this fix.
 
 Like other fixes that perform thermostatting, this fix can be used
 with :doc:`compute commands <compute>` that calculate a temperature
@@ -114,13 +114,14 @@ after removing a "bias" from the atom velocities.  E.g. removing the
 center-of-mass velocity from a group of atoms or only calculating
 temperature on the x-component of velocity or only calculating
 temperature for atoms in a geometric region.  This is not done by
-default, but only if the :doc:`fix_modify <fix_modify>` command is used
-to assign a temperature compute to this fix that includes such a bias
-term.  See the doc pages for individual :doc:`compute commands <compute>` to determine which ones include a bias.  In
-this case, the thermostat works in the following manner: the current
-temperature is calculated taking the bias into account, bias is
-removed from each atom, thermostatting is performed on the remaining
-thermal degrees of freedom, and the bias is added back in.
+default, but only if the :doc:`fix_modify <fix_modify>` command is
+used to assign a temperature compute to this fix that includes such a
+bias term.  See the doc pages for individual :doc:`compute commands
+<compute>` to determine which ones include a bias.  In this case, the
+thermostat works in the following manner: the current temperature is
+calculated taking the bias into account, bias is removed from each
+atom, thermostatting is performed on the remaining thermal degrees of
+freedom, and the bias is added back in.
 
 ----------
 
@@ -139,15 +140,15 @@ you have defined to this fix which will be used in its thermostatting
 procedure, as described above.  For consistency, the group used by
 this fix and by the compute should be the same.
 
-The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
-fix to add the energy change implied by a velocity rescaling to the
-system's potential energy as part of :doc:`thermodynamic output
-<thermo_style>`.
+The cumulative energy change in the system imposed by this fix is
+included in the :doc:`thermodynamic output <thermo_style>` keywords
+*ecouple* and *econserve*.  See the :doc:`thermo_style <thermo_style>`
+doc page for details.
 
 This fix computes a global scalar which can be accessed by various
-:doc:`output commands <Howto_output>`.  The scalar is the cumulative
-energy change due to this fix.  The scalar value calculated by this
-fix is "extensive".
+:doc:`output commands <Howto_output>`.  The scalar is the same
+cumulative energy change due to this fix described in the previous
+paragraph.  The scalar value calculated by this fix is "extensive".
 
 This fix can ramp its target temperature over multiple runs, using the
 *start* and *stop* keywords of the :doc:`run <run>` command.  See the

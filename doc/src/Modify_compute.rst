@@ -53,5 +53,5 @@ in two stages: the callback function is registered with the pair style
 and then called from the Pair::ev_tally() function, which is called for
 each pair after force and energy has been computed for this pair. Then
 the tallied values are retrieved with the standard compute_scalar or
-compute_vector or compute_peratom methods. The :doc:`compute styles in the USER-TALLY package <compute_tally>`
+compute_vector or compute_peratom methods. The :doc:`compute styles in the TALLY package <compute_tally>`
 provide *examples* for utilizing this mechanism.

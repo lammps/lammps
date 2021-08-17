@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(spin/magelec,PairSpinMagelec)
-
+// clang-format off
+PairStyle(spin/magelec,PairSpinMagelec);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_SPIN_MAGELEC_H
@@ -44,17 +44,17 @@ class PairSpinMagelec : public PairSpin {
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
 
-  double cut_spin_magelec_global;       // global me cutoff
+  double cut_spin_magelec_global;    // global me cutoff
 
  protected:
-  double **ME, **ME_mech;               // magelec coeff in eV
-  double **v_mex, **v_mey, **v_mez;     // magelec direction
-  double **cut_spin_magelec;            // magelec cutoff distance
+  double **ME, **ME_mech;              // magelec coeff in eV
+  double **v_mex, **v_mey, **v_mez;    // magelec direction
+  double **cut_spin_magelec;           // magelec cutoff distance
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

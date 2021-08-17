@@ -1,10 +1,11 @@
 .. index:: fix nve/asphere
+.. index:: fix nve/asphere/gpu
 .. index:: fix nve/asphere/intel
 
 fix nve/asphere command
 =======================
 
-Accelerator Variants: *nve/asphere/intel*
+Accelerator Variants: *nve/asphere/gpu*, *nve/asphere/intel*
 
 Syntax
 """"""
@@ -53,7 +54,7 @@ Restrictions
 """"""""""""
 
 This fix is part of the ASPHERE package.  It is only enabled if LAMMPS
-was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 This fix requires that atoms store torque and angular momentum and a
 quaternion as defined by the :doc:`atom_style ellipsoid <atom_style>`

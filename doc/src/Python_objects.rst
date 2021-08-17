@@ -20,7 +20,7 @@ computes, fixes, or variables in LAMMPS using the :py:mod:`lammps` module.
       global vector or array, a single double value from the vector or array
       is returned, indexed by I (vector) or I and J (array).  I,J are
       zero-based indices.
-      See the :doc:`Howto output <Howto_output>` doc page for a discussion of
+      See the :doc:`Howto output <Howto_output>` page for a discussion of
       global, per-atom, and local data, and of scalar, vector, and array
       data types.  See the doc pages for individual :doc:`computes <compute>`
       and :doc:`fixes <fix>` for a description of what they calculate and
@@ -36,9 +36,9 @@ computes, fixes, or variables in LAMMPS using the :py:mod:`lammps` module.
       Python subscripting. The values will be zero for atoms not in the
       specified group.
 
-      :py:meth:`lammps.numpy.extract_compute() <lammps.numpy_wrapper.extract_compute()>`,
-      :py:meth:`lammps.numpy.extract_fix() <lammps.numpy_wrapper.extract_fix()>`, and
-      :py:meth:`lammps.numpy.extract_variable() <lammps.numpy_wrapper.extract_variable()>` are
+      :py:meth:`lammps.numpy.extract_compute() <lammps.numpy_wrapper.numpy_wrapper.extract_compute()>`,
+      :py:meth:`lammps.numpy.extract_fix() <lammps.numpy_wrapper.numpy_wrapper.extract_fix()>`, and
+      :py:meth:`lammps.numpy.extract_variable() <lammps.numpy_wrapper.numpy_wrapper.extract_variable()>` are
       equivalent NumPy implementations that return NumPy arrays instead of ``ctypes`` pointers.
 
       The :py:meth:`lammps.set_variable() <lammps.lammps.set_variable()>` method sets an
@@ -54,9 +54,9 @@ computes, fixes, or variables in LAMMPS using the :py:mod:`lammps` module.
 
       **NumPy Methods**:
 
-      * :py:meth:`lammps.numpy.extract_compute() <lammps.numpy_wrapper.extract_compute()>`: extract value(s) from a compute, return arrays as numpy arrays
-      * :py:meth:`lammps.numpy.extract_fix() <lammps.numpy_wrapper.extract_fix()>`: extract value(s) from a fix, return arrays as numpy arrays
-      * :py:meth:`lammps.numpy.extract_variable() <lammps.numpy_wrapper.extract_variable()>`: extract value(s) from a variable, return arrays as numpy arrays
+      * :py:meth:`lammps.numpy.extract_compute() <lammps.numpy_wrapper.numpy_wrapper.extract_compute()>`: extract value(s) from a compute, return arrays as numpy arrays
+      * :py:meth:`lammps.numpy.extract_fix() <lammps.numpy_wrapper.numpy_wrapper.extract_fix()>`: extract value(s) from a fix, return arrays as numpy arrays
+      * :py:meth:`lammps.numpy.extract_variable() <lammps.numpy_wrapper.numpy_wrapper.extract_variable()>`: extract value(s) from a variable, return arrays as numpy arrays
 
 
    .. tab:: PyLammps/IPyLammps API

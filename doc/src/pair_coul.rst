@@ -10,6 +10,8 @@
 .. index:: pair_style coul/dsf/gpu
 .. index:: pair_style coul/dsf/kk
 .. index:: pair_style coul/dsf/omp
+.. index:: pair_style coul/cut/global
+.. index:: pair_style coul/cut/global/omp
 .. index:: pair_style coul/long
 .. index:: pair_style coul/long/omp
 .. index:: pair_style coul/long/kk
@@ -39,6 +41,11 @@ pair_style coul/dsf command
 ===========================
 
 Accelerator Variants: *coul/dsf/gpu*, *coul/dsf/kk*, *coul/dsf/omp*
+
+pair_style coul/cut/global command
+==================================
+
+Accelerator Variants: *coul/cut/omp*
 
 pair_style coul/long command
 ============================
@@ -76,8 +83,8 @@ Syntax
    pair_style coul/cut cutoff
    pair_style coul/debye kappa cutoff
    pair_style coul/dsf alpha cutoff
+   pair_style coul/cut/global cutoff
    pair_style coul/long cutoff
-   pair_style coul/long/gpu cutoff
    pair_style coul/wolf alpha cutoff
    pair_style coul/streitz cutoff keyword alpha
    pair_style tip4p/cut otype htype btype atype qdist cutoff
@@ -245,6 +252,11 @@ Streitz-Mintmire parameterization for the material being modeled.
 
 ----------
 
+Pair style *coul/cut/global* computes the same Coulombic interactions
+as style *coul/cut* except that it allows only a single global cutoff
+and thus makes it compatible for use in combination with long-range
+coulomb styles in :doc:`hybrid pair styles <pair_hybrid>`.
+
 Styles *coul/long* and *coul/msm* compute the same Coulombic
 interactions as style *coul/cut* except that an additional damping
 factor is applied so it can be used in conjunction with the
@@ -271,7 +283,7 @@ Coulombic solver (Ewald or PPPM).
    atom.  For example, if the atom ID of an O atom in a TIP4P water
    molecule is 500, then its 2 H atoms must have IDs 501 and 502.
 
-See the :doc:`Howto tip4p <Howto_tip4p>` doc page for more information
+See the :doc:`Howto tip4p <Howto_tip4p>` page for more information
 on how to use the TIP4P pair styles and lists of parameters to set.
 Note that the neighbor list cutoff for Coulomb interactions is
 effectively extended by a distance 2\*qdist when using the TIP4P pair
@@ -299,14 +311,14 @@ commands, or by mixing as described below:
 
 * cutoff (distance units)
 
-For *coul/cut* and *coul/debye*\ , the cutoff coefficient is optional.
+For *coul/cut* and *coul/debye* the cutoff coefficient is optional.
 If it is not used (as in some of the examples above), the default
 global value specified in the pair_style command is used.
 
-For *coul/long* and *coul/msm* no cutoff can be specified for an
-individual I,J type pair via the pair_coeff command.  All type pairs
-use the same global Coulomb cutoff specified in the pair_style
-command.
+For *coul/cut/global*, *coul/long* and *coul/msm* no cutoff can be
+specified for an individual I,J type pair via the pair_coeff command.
+All type pairs use the same global Coulomb cutoff specified in the
+pair_style command.
 
 ----------
 
@@ -337,17 +349,17 @@ to be specified in an input script that reads a restart file.
 
 These pair styles can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  They do not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 ----------
 
 Restrictions
 """"""""""""
 
-The *coul/long*\ , *coul/msm* and *tip4p/long* styles are part of the
-KSPACE package.  They are only enabled if LAMMPS was built with that
-package.  See the :doc:`Build package <Build_package>` doc page for more
-info.
+The *coul/cut/global*, *coul/long*, *coul/msm*, *coul/streitz*, and *tip4p/long* styles
+are part of the KSPACE package.  They are only enabled if LAMMPS was built
+with that package.  See the :doc:`Build package <Build_package>` doc page
+for more info.
 
 Related commands
 """"""""""""""""

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(STORE,FixStore)
-
+// clang-format off
+FixStyle(STORE,FixStore);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_STORE_H
@@ -26,10 +26,10 @@ namespace LAMMPS_NS {
 
 class FixStore : public Fix {
  public:
-  int nrow,ncol;         // size of global data array
-  int nvalues;           // number of per-atom values
-  double *vstore;        // vector storage for GLOBAL or PERATOM
-  double **astore;       // array storage for GLOBAL or PERATOM
+  int nrow, ncol;     // size of global data array
+  int nvalues;        // number of per-atom values
+  double *vstore;     // vector storage for GLOBAL or PERATOM
+  double **astore;    // array storage for GLOBAL or PERATOM
   int disable;        // 1 if operations (except grow) are currently disabled
 
   FixStore(class LAMMPS *, int, char **);
@@ -52,13 +52,13 @@ class FixStore : public Fix {
   double memory_usage();
 
  private:
-  int flavor;                   // GLOBAL or PERATOM
-  int vecflag;                  // 1 if ncol=1 or nvalues=1
+  int flavor;     // GLOBAL or PERATOM
+  int vecflag;    // 1 if ncol=1 or nvalues=1
 
-  double *rbuf;                 // restart buffer for GLOBAL vec/array
+  double *rbuf;    // restart buffer for GLOBAL vec/array
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -213,8 +213,13 @@ which can be accessed by indices 1-6 by any command that uses per-atom
 values from a compute as input.  Compute *centroid/stress/atom*
 produces a per-atom array with 9 columns, but otherwise can be used in
 an identical manner to compute *stress/atom*.  See the :doc:`Howto
-output <Howto_output>` doc page for an overview of LAMMPS output
+output <Howto_output>` page for an overview of LAMMPS output
 options.
+
+The ordering of the 6 columns for *stress/atom* is as follows: xx, yy,
+zz, xy, xz, yz.  The ordering of the 9 columns for
+*centroid/stress/atom* is as follows: xx, yy, zz, xy, xz, yz, yx, zx,
+zy.
 
 The per-atom array values will be in pressure\*volume :doc:`units
 <units>` as discussed above.
@@ -228,7 +233,7 @@ since its computations are performed pairwise), nor granular pair
 styles with pairwise forces which are not aligned with the vector
 between the pair of particles.  All bond styles are supported.  All
 angle, dihedral, improper styles are supported with the exception of
-USER-INTEL and KOKKOS variants of specific styles.  It also does not
+INTEL and KOKKOS variants of specific styles.  It also does not
 support models with long-range Coulombic or dispersion forces,
 i.e. the kspace_style command in LAMMPS.  It also does not support the
 following fixes which add rigid-body constraints: :doc:`fix shake

@@ -155,19 +155,6 @@ class HostThreadTeamData {
   }
 
   inline int pool_rendezvous() const noexcept {
-// not sure if the follow hack is still needed with the new barrier
-#if 0
-    static constexpr bool active_wait =
-#if defined(KOKKOS_COMPILER_IBM)
-      // If running on IBM POWER architecture the global
-      // level rendzvous should immediately yield when
-      // waiting for other threads in the pool to arrive.
-      false;
-#else
-      true;
-#endif
-#endif
-
     int* ptr = (int*)(m_pool_scratch + m_pool_rendezvous);
     HostBarrier::split_arrive(ptr, m_pool_size, m_pool_rendezvous_step);
     if (m_pool_rank != 0) {
@@ -826,14 +813,16 @@ ThreadVectorRange(
   return Impl::ThreadVectorRangeBoundariesStruct<iType, Member>(member, count);
 }
 
-template <typename iType, typename Member>
-KOKKOS_INLINE_FUNCTION Impl::ThreadVectorRangeBoundariesStruct<iType, Member>
+template <typename iType1, typename iType2, typename Member>
+KOKKOS_INLINE_FUNCTION Impl::ThreadVectorRangeBoundariesStruct<
+    typename std::common_type<iType1, iType2>::type, Member>
 ThreadVectorRange(
-    Member const& member, iType arg_begin, iType arg_end,
+    Member const& member, iType1 arg_begin, iType2 arg_end,
     typename std::enable_if<
         Impl::is_thread_team_member<Member>::value>::type const** = nullptr) {
+  using iType = typename std::common_type<iType1, iType2>::type;
   return Impl::ThreadVectorRangeBoundariesStruct<iType, Member>(
-      member, arg_begin, arg_end);
+      member, iType(arg_begin), iType(arg_end));
 }
 
 //----------------------------------------------------------------------------
@@ -1020,6 +1009,25 @@ parallel_scan(Impl::ThreadVectorRangeBoundariesStruct<iType, Member> const&
   for (iType i = loop_boundaries.start; i < loop_boundaries.end;
        i += loop_boundaries.increment) {
     closure(i, scan_val, true);
+  }
+}
+
+template <typename iType, class Lambda, typename ReducerType, typename Member>
+KOKKOS_INLINE_FUNCTION typename std::enable_if<
+    Kokkos::is_reducer<ReducerType>::value &&
+    Impl::is_host_thread_team_member<Member>::value>::type
+parallel_scan(const Impl::ThreadVectorRangeBoundariesStruct<iType, Member>&
+                  loop_boundaries,
+              const Lambda& lambda, const ReducerType& reducer) {
+  typename ReducerType::value_type scan_val;
+  reducer.init(scan_val);
+
+#ifdef KOKKOS_ENABLE_PRAGMA_IVDEP
+#pragma ivdep
+#endif
+  for (iType i = loop_boundaries.start; i < loop_boundaries.end;
+       i += loop_boundaries.increment) {
+    lambda(i, scan_val, true);
   }
 }
 

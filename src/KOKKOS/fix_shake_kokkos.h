@@ -1,6 +1,7 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,11 +13,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(shake/kk,FixShakeKokkos<LMPDeviceType>)
-FixStyle(shake/kk/device,FixShakeKokkos<LMPDeviceType>)
-FixStyle(shake/kk/host,FixShakeKokkos<LMPHostType>)
-
+// clang-format off
+FixStyle(shake/kk,FixShakeKokkos<LMPDeviceType>);
+FixStyle(shake/kk/device,FixShakeKokkos<LMPDeviceType>);
+FixStyle(shake/kk/host,FixShakeKokkos<LMPHostType>);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_SHAKE_KOKKOS_H
@@ -25,6 +26,7 @@ FixStyle(shake/kk/host,FixShakeKokkos<LMPHostType>)
 #include "fix_shake.h"
 #include "kokkos_type.h"
 #include "kokkos_base.h"
+#include <Kokkos_UnorderedMap.hpp>
 
 namespace LAMMPS_NS {
 
@@ -171,9 +173,6 @@ class FixShakeKokkos : public FixShake, public KokkosBase {
   KOKKOS_INLINE_FUNCTION
   void v_tally(EV_FLOAT&, int, int *, double, double *) const;
 
-  DAT::tdual_int_1d k_map_array;
-  typename AT::t_int_1d_randomread map_array;
-
   int iswap;
   int first;
   typename AT::t_int_2d d_sendlist;
@@ -183,6 +182,10 @@ class FixShakeKokkos : public FixShake, public KokkosBase {
   int *shake_flag_tmp;
   tagint **shake_atom_tmp;
   int **shake_type_tmp;
+
+  int map_style;
+  DAT::tdual_int_1d k_map_array;
+  dual_hash_type k_map_hash;
 
   // copied from Domain
 

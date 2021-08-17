@@ -1,6 +1,7 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -55,6 +56,19 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::copy_neighbor_info()
 
   newton_pair = force->newton_pair;
   k_cutneighsq = neighborKK->k_cutneighsq;
+
+  // overwrite per-type Neighbor cutoffs with custom value set by requestor
+  // only works for style = BIN (checked by Neighbor class)
+
+  if (cutoff_custom > 0.0) {
+    int n = atom->ntypes;
+    auto k_mycutneighsq = DAT::tdual_xfloat_2d("neigh:cutneighsq,",n+1,n+1);
+    for (int i = 1; i <= n; i++)
+      for (int j = 1; j <= n; j++)
+        k_mycutneighsq.h_view(i,j) = cutoff_custom * cutoff_custom;
+    k_cutneighsq = k_mycutneighsq;
+  }
+
   k_cutneighsq.modify<LMPHostType>();
 
   // exclusion info
@@ -189,7 +203,7 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::build(NeighList *list_)
   k_bins.sync<DeviceType>();
   k_atom2bin.sync<DeviceType>();
 
-  if (atom->molecular) {
+  if (atom->molecular != Atom::ATOMIC) {
     if (exclude)
       atomKK->sync(Device,X_MASK|RADIUS_MASK|TYPE_MASK|MASK_MASK|MOLECULE_MASK|TAG_MASK|SPECIAL_MASK);
     else
@@ -545,14 +559,11 @@ __device__ __forceinline__ int __syncthreads_count(int predicate) {
 
 #ifdef LMP_KOKKOS_GPU
 template<class DeviceType> template<int HalfNeigh,int Newton,int Tri>
-__device__ inline
-void NeighborKokkosExecute<DeviceType>::build_ItemCuda(typename Kokkos::TeamPolicy<DeviceType>::member_type dev) const
+LAMMPS_DEVICE_FUNCTION inline
+void NeighborKokkosExecute<DeviceType>::build_ItemGPU(typename Kokkos::TeamPolicy<DeviceType>::member_type dev,
+                                                      size_t sharedsize) const
 {
-#ifdef KOKKOS_ENABLE_HIP
-  HIP_DYNAMIC_SHARED(X_FLOAT, sharedmem);
-#else
-  extern __shared__ X_FLOAT sharedmem[];
-#endif
+  auto* sharedmem = static_cast<X_FLOAT *>(dev.team_shmem().get_shmem(sharedsize));
   /* loop over atoms in i's bin,
   */
   const int atoms_per_bin = c_bins.extent(1);
@@ -594,9 +605,15 @@ void NeighborKokkosExecute<DeviceType>::build_ItemCuda(typename Kokkos::TeamPoli
     other_x[MY_II + 3 * atoms_per_bin] = itype;
   }
   other_id[MY_II] = i;
+#ifndef KOKKOS_ENABLE_SYCL
   int test = (__syncthreads_count(i >= 0 && i <= nlocal) == 0);
 
   if (test) return;
+#else
+  int not_done = (i >= 0 && i <= nlocal);
+  dev.team_reduce(Kokkos::Max<int>(not_done));
+  if(not_done == 0) return;
+#endif
 
   if (i >= 0 && i < nlocal) {
     #pragma unroll 4
@@ -657,7 +674,7 @@ void NeighborKokkosExecute<DeviceType>::build_ItemCuda(typename Kokkos::TeamPoli
 
     }
   }
-  __syncthreads();
+  dev.team_barrier();
 
   const typename ArrayTypes<DeviceType>::t_int_1d_const_um stencil
     = d_stencil;
@@ -678,7 +695,7 @@ void NeighborKokkosExecute<DeviceType>::build_ItemCuda(typename Kokkos::TeamPoli
 
     other_id[MY_II] = j;
 
-    __syncthreads();
+    dev.team_barrier();
 
     if (i >= 0 && i < nlocal) {
       #pragma unroll 8
@@ -735,7 +752,7 @@ void NeighborKokkosExecute<DeviceType>::build_ItemCuda(typename Kokkos::TeamPoli
 
       }
     }
-    __syncthreads();
+    dev.team_barrier();
   }
 
   if (i >= 0 && i < nlocal) {
@@ -988,14 +1005,11 @@ void NeighborKokkosExecute<DeviceType>::
 
 #ifdef LMP_KOKKOS_GPU
 template<class DeviceType> template<int HalfNeigh,int Newton,int Tri>
-__device__ inline
-void NeighborKokkosExecute<DeviceType>::build_ItemSizeCuda(typename Kokkos::TeamPolicy<DeviceType>::member_type dev) const
+LAMMPS_DEVICE_FUNCTION inline
+void NeighborKokkosExecute<DeviceType>::build_ItemSizeGPU(typename Kokkos::TeamPolicy<DeviceType>::member_type dev,
+                                                          size_t sharedsize) const
 {
-#ifdef KOKKOS_ENABLE_HIP
-  HIP_DYNAMIC_SHARED(X_FLOAT, sharedmem);
-#else
-  extern __shared__ X_FLOAT sharedmem[];
-#endif
+  auto* sharedmem = static_cast<X_FLOAT *>(dev.team_shmem().get_shmem(sharedsize));
   /* loop over atoms in i's bin,
    */
   const int atoms_per_bin = c_bins.extent(1);
@@ -1041,9 +1055,15 @@ void NeighborKokkosExecute<DeviceType>::build_ItemSizeCuda(typename Kokkos::Team
       other_x[MY_II + 4 * atoms_per_bin] = radi;
     }
     other_id[MY_II] = i;
+#ifndef KOKKOS_ENABLE_SYCL
     int test = (__syncthreads_count(i >= 0 && i <= nlocal) == 0);
 
     if (test) return;
+#else
+    int not_done = (i >= 0 && i <= nlocal);
+    dev.team_reduce(Kokkos::Max<int>(not_done));
+    if(not_done == 0) return;
+#endif
 
     if (i >= 0 && i < nlocal) {
       #pragma unroll 4
@@ -1086,7 +1106,7 @@ void NeighborKokkosExecute<DeviceType>::build_ItemSizeCuda(typename Kokkos::Team
         }
       }
     }
-    __syncthreads();
+    dev.team_barrier();
 
     const typename ArrayTypes<DeviceType>::t_int_1d_const_um stencil
       = d_stencil;
@@ -1108,7 +1128,7 @@ void NeighborKokkosExecute<DeviceType>::build_ItemSizeCuda(typename Kokkos::Team
 
       other_id[MY_II] = j;
 
-      __syncthreads();
+      dev.team_barrier();
 
       if (i >= 0 && i < nlocal) {
         #pragma unroll 8
@@ -1147,7 +1167,7 @@ void NeighborKokkosExecute<DeviceType>::build_ItemSizeCuda(typename Kokkos::Team
           }
         }
       }
-      __syncthreads();
+      dev.team_barrier();
     }
 
     if (i >= 0 && i < nlocal) {

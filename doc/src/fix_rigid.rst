@@ -253,7 +253,7 @@ differences may accumulate to produce divergent trajectories.
    they effect any computation of per-atom forces or torques. If the
    keyword *reinit* is set to *yes* (the default), the rigid body data
    structures will be recreated at the beginning of each *run* command;
-   if the keyword *reinit* is set to *no*\ , the rigid body data structures
+   if the keyword *reinit* is set to *no*, the rigid body data structures
    will be built only at the very first *run* command and maintained for
    as long as the rigid fix is defined. For example, you might think you
    could displace the atoms in a body or add a large velocity to each atom
@@ -275,7 +275,7 @@ via several options.
 .. note::
 
    With the *rigid/small* styles, which require that *bodystyle* be
-   specified as *molecule* or *custom*\ , you can define a system that has
+   specified as *molecule* or *custom*, you can define a system that has
    no rigid bodies initially.  This is useful when you are using the
    *mol* keyword in conjunction with another fix that is adding rigid
    bodies on-the-fly as molecules, such as :doc:`fix deposit <fix_deposit>`
@@ -284,7 +284,7 @@ via several options.
 For bodystyle *single* the entire fix group of atoms is treated as one
 rigid body.  This option is only allowed for the *rigid* styles.
 
-For bodystyle *molecule*\ , atoms are grouped into rigid bodies by their
+For bodystyle *molecule*, atoms are grouped into rigid bodies by their
 respective molecule IDs: each set of atoms in the fix group with the
 same molecule ID is treated as a different rigid body.  This option is
 allowed for both the *rigid* and *rigid/small* styles.  Note that
@@ -389,7 +389,7 @@ body.
 
 ----------
 
-The *rigid*\ , *rigid/nve*\ , *rigid/small*\ , and *rigid/small/nve* styles
+The *rigid*, *rigid/nve*, *rigid/small*, and *rigid/small/nve* styles
 perform constant NVE time integration.  They are referred to below as
 the 4 NVE rigid styles.  The only difference is that the *rigid* and
 *rigid/small* styles use an integration technique based on Richardson
@@ -405,14 +405,14 @@ of the rigid bodies.  They are referred to below as the 2 NVT rigid
 styles.  The rigid-body algorithm used by *rigid/nvt* is described in
 the paper by :ref:`Kamberaj <Kamberaj>`.
 
-The *rigid/npt*\ , *rigid/nph*\ , *rigid/npt/small*\ , and *rigid/nph/small*
+The *rigid/npt*, *rigid/nph*, *rigid/npt/small*, and *rigid/nph/small*
 styles perform constant NPT or NPH integration using a Nose/Hoover
 barostat with chains.  They are referred to below as the 4 NPT and NPH
 rigid styles.  For the NPT case, the same Nose/Hoover thermostat is
 also used as with *rigid/nvt* and *rigid/nvt/small*\ .
 
-The barostat parameters are specified using one or more of the *iso*\ ,
-*aniso*\ , *x*\ , *y*\ , *z* and *couple* keywords.  These keywords give you
+The barostat parameters are specified using one or more of the *iso*,
+*aniso*, *x*, *y*, *z* and *couple* keywords.  These keywords give you
 the ability to specify 3 diagonal components of the external stress
 tensor, and to couple these components together so that the dimensions
 they represent are varied together during a constant-pressure
@@ -421,12 +421,12 @@ defined in :doc:`fix npt/nph <fix_nh>`
 
 .. note::
 
-   Currently the *rigid/npt*\ , *rigid/nph*\ , *rigid/npt/small*\ , and
+   Currently the *rigid/npt*, *rigid/nph*, *rigid/npt/small*, and
    *rigid/nph/small* styles do not support triclinic (non-orthogonal)
    boxes.
 
 The target pressures for each of the 6 components of the stress tensor
-can be specified independently via the *x*\ , *y*\ , *z* keywords, which
+can be specified independently via the *x*, *y*, *z* keywords, which
 correspond to the 3 simulation box dimensions.  For each component,
 the external pressure or tensor component at each timestep is a ramped
 value during the run from *Pstart* to *Pstop*\ . If a target pressure is
@@ -466,7 +466,7 @@ things: the instantaneous stress will be computed as an average of the
 corresponding diagonal components, and the coupled box dimensions will
 be changed together in lockstep, meaning coupled dimensions will be
 dilated or contracted by the same percentage every timestep.  The
-*Pstart*\ , *Pstop*\ , *Pdamp* parameters for any coupled dimensions must
+*Pstart*, *Pstop*, *Pdamp* parameters for any coupled dimensions must
 be identical.  *Couple xyz* can be used for a 2d simulation; the *z*
 dimension is simply ignored.
 
@@ -485,8 +485,8 @@ specifying these 4 keywords:
    z Pstart Pstop Pdamp
    couple xyz
 
-The keyword *aniso* means *x*\ , *y*\ , and *z* dimensions are controlled
-independently using the *Pxx*\ , *Pyy*\ , and *Pzz* components of the
+The keyword *aniso* means *x*, *y*, and *z* dimensions are controlled
+independently using the *Pxx*, *Pyy*, and *Pzz* components of the
 stress tensor as the driving forces, and the specified scalar external
 pressure.  Using "aniso Pstart Pstop Pdamp" is the same as specifying
 these 4 keywords:
@@ -518,8 +518,8 @@ discussed below.
 
 The *langevin* keyword applies a Langevin thermostat to the constant
 NVE time integration performed by any of the 4 NVE rigid styles:
-*rigid*\ , *rigid/nve*\ , *rigid/small*\ , *rigid/small/nve*\ .  It cannot be
-used with the 2 NVT rigid styles: *rigid/nvt*\ , *rigid/small/nvt*\ .  The
+*rigid*, *rigid/nve*, *rigid/small*, *rigid/small/nve*\ .  It cannot be
+used with the 2 NVT rigid styles: *rigid/nvt*, *rigid/small/nvt*\ .  The
 desired temperature at each timestep is a ramped value during the run
 from *Tstart* to *Tstop*\ .  The *Tdamp* parameter is specified in time
 units and determines how rapidly the temperature is relaxed.  For
@@ -532,7 +532,7 @@ The way that Langevin thermostatting operates is explained on the :doc:`fix lang
 damp the rotational motion without thermostatting, you can set
 *Tstart* and *Tstop* to 0.0, which means only the viscous drag term in
 the Langevin thermostat will be applied.  See the discussion on the
-:doc:`fix viscous <fix_viscous>` doc page for details.
+:doc:`fix viscous <fix_viscous>` page for details.
 
 .. note::
 
@@ -753,25 +753,17 @@ rigid/nvt.
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-No information about the 4 NVE rigid styles is written to :doc:`binary restart files <restart>`.  The exception is if the *infile* or
-*mol* keyword is used, in which case an auxiliary file is written out
-with rigid body information each time a restart file is written, as
+No information about the 4 NVE rigid styles is written to :doc:`binary
+restart files <restart>`.  The exception is if the *infile* or *mol*
+keyword is used, in which case an auxiliary file is written out with
+rigid body information each time a restart file is written, as
 explained above for the *infile* keyword.  For the 2 NVT rigid styles,
-the state of the Nose/Hoover thermostat is written to :doc:`binary restart files <restart>`.  Ditto for the 4 NPT and NPH rigid styles, and
-the state of the Nose/Hoover barostat.  See the
-:doc:`read_restart <read_restart>` command for info on how to re-specify
-a fix in an input script that reads a restart file, so that the
-operation of the fix continues in an uninterrupted fashion.
-
-The :doc:`fix_modify <fix_modify>` *energy* option is supported by the 6
-NVT, NPT, NPH rigid styles to add the energy change induced by the
-thermostatting to the system's potential energy as part of
-:doc:`thermodynamic output <thermo_style>`.
-
-The :doc:`fix_modify <fix_modify>` *virial* option is supported by this
-fix to add the contribution due to keeping the objects rigid to the
-system's virial as part of :doc:`thermodynamic output <thermo_style>`.
-The default is *virial yes*
+the state of the Nose/Hoover thermostat is written to :doc:`binary
+restart files <restart>`.  Ditto for the 4 NPT and NPH rigid styles,
+and the state of the Nose/Hoover barostat.  See the :doc:`read_restart
+<read_restart>` command for info on how to re-specify a fix in an
+input script that reads a restart file, so that the operation of the
+fix continues in an uninterrupted fashion.
 
 The :doc:`fix_modify <fix_modify>` *temp* and *press* options are
 supported by the 4 NPT and NPH rigid styles to change the computes
@@ -783,6 +775,12 @@ The :doc:`fix_modify <fix_modify>` *bodyforces* option is supported by
 all rigid styles to set whether per-body forces and torques are
 computed early or late in a timestep, i.e. at the post-force stage or
 at the final-integrate stage or the timestep, respectively.
+
+The cumulative energy change in the system imposed by the 6 NVT, NPT,
+NPH rigid fixes, via either thermostatting and/or barostatting, is
+included in the :doc:`thermodynamic output <thermo_style>` keywords
+*ecouple* and *econserve*.  See the :doc:`thermo_style <thermo_style>`
+doc page for details.
 
 The 2 NVE rigid fixes compute a global scalar which can be accessed by
 various :doc:`output commands <Howto_output>`.  The scalar value
@@ -799,13 +797,22 @@ are removed from this calculation, but only for the *rigid* and
 
 The 6 NVT, NPT, NPH rigid fixes compute a global scalar which can be
 accessed by various :doc:`output commands <Howto_output>`.  The scalar
-value calculated by these fixes is "extensive".  The scalar is the
-cumulative energy change due to the thermostatting and barostatting
-the fix performs.
+is the same cumulative energy change due to these fixes described
+above.  The scalar value calculated by this fix is "extensive".
+
+The :doc:`fix_modify <fix_modify>` *virial* option is supported by
+these fixes to add the contribution due to the added forces on atoms
+to both the global pressure and per-atom stress of the system via the
+:doc:`compute pressure <compute_pressure>` and :doc:`compute
+stress/atom <compute_stress_atom>` commands.  The former can be
+accessed by :doc:`thermodynamic output <thermo_style>`.  The default
+setting for this fix is :doc:`fix_modify virial yes <fix_modify>`.
 
 All of the *rigid* styles (not the *rigid/small* styles) compute a
-global array of values which can be accessed by various :doc:`output commands <Howto_output>`.  Similar information about the bodies
-defined by the *rigid/small* styles can be accessed via the :doc:`compute rigid/local <compute_rigid_local>` command.
+global array of values which can be accessed by various :doc:`output
+commands <Howto_output>`.  Similar information about the bodies
+defined by the *rigid/small* styles can be accessed via the
+:doc:`compute rigid/local <compute_rigid_local>` command.
 
 The number of rows in the array is equal to the number of rigid
 bodies.  The number of columns is 15.  Thus for each rigid body, 15
@@ -845,7 +852,7 @@ Restrictions
 """"""""""""
 
 These fixes are all part of the RIGID package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Assigning a temperature via the :doc:`velocity create <velocity>`
 command to a system with :doc:`rigid bodies <fix_rigid>` may not have

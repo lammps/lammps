@@ -67,8 +67,8 @@ calculations are also excluded. Note that this pressure compute outputs
 the configurational terms only; the kinetic contribution is not included
 and may be calculated from the number density output by P_kin=density\*k\*T.
 
-This compute is part of the USER-MISC package.  It is only enabled
-if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+This compute is part of the EXTRA-COMPUTE package.  It is only enabled
+if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

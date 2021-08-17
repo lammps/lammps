@@ -1,6 +1,7 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -19,7 +20,6 @@
 #include "utils.h"
 #include "fmt/format.h"
 
-#include <exception>
 #include <utility>
 
 using namespace LAMMPS_NS;
@@ -35,12 +35,14 @@ TokenizerException::TokenizerException(const std::string &msg, const std::string
 /** Class for splitting text into words
  *
  * This tokenizer will break down a string into sub-strings (i.e words)
- * separated by the given separator characters.
+ * separated by the given separator characters. If the string contains
+ * certain known UTF-8 characters they will be replaced by their ASCII
+ * equivalents processing the string.
  *
 \verbatim embed:rst
 
 *See also*
-   :cpp:class:`ValueTokenizer`, :cpp:func:`utils::split_words`
+   :cpp:class:`ValueTokenizer`, :cpp:func:`utils::split_words`, :cpp:func:`utils::utf8_subst`
 
 \endverbatim
  *
@@ -50,6 +52,8 @@ TokenizerException::TokenizerException(const std::string &msg, const std::string
 Tokenizer::Tokenizer(const std::string &str, const std::string &separators) :
     text(str), separators(separators), start(0), ntokens(std::string::npos)
 {
+    // replace known UTF-8 characters with ASCII equivalents
+    if (utils::has_utf8(text)) text = utils::utf8_subst(text);
     reset();
 }
 
@@ -63,6 +67,28 @@ Tokenizer::Tokenizer(Tokenizer && rhs) :
     text(std::move(rhs.text)), separators(std::move(rhs.separators)), ntokens(rhs.ntokens)
 {
     reset();
+}
+
+Tokenizer& Tokenizer::operator=(const Tokenizer& other)
+{
+    Tokenizer tmp(other);
+    swap(tmp);
+    return *this;
+}
+
+Tokenizer& Tokenizer::operator=(Tokenizer&& other)
+{
+    Tokenizer tmp(std::move(other));
+    swap(tmp);
+    return *this;
+}
+
+void Tokenizer::swap(Tokenizer& other)
+{
+    std::swap(text, other.text);
+    std::swap(separators, other.separators);
+    std::swap(start, other.start);
+    std::swap(ntokens, other.ntokens);
 }
 
 /*! Re-position the tokenizer state to the first word,
@@ -178,6 +204,25 @@ ValueTokenizer::ValueTokenizer(const ValueTokenizer &rhs) : tokens(rhs.tokens) {
 ValueTokenizer::ValueTokenizer(ValueTokenizer &&rhs) : tokens(std::move(rhs.tokens)) {
 }
 
+ValueTokenizer& ValueTokenizer::operator=(const ValueTokenizer& other)
+{
+    ValueTokenizer tmp(other);
+    swap(tmp);
+    return *this;
+}
+
+ValueTokenizer& ValueTokenizer::operator=(ValueTokenizer&& other)
+{
+    ValueTokenizer tmp(std::move(other));
+    swap(tmp);
+    return *this;
+}
+
+void ValueTokenizer::swap(ValueTokenizer& other)
+{
+    std::swap(tokens, other.tokens);
+}
+
 /*! Indicate whether more tokens are available
  *
  * \return   true if there are more tokens, false if not */
@@ -197,71 +242,51 @@ bool ValueTokenizer::contains(const std::string &value) const {
  *
  * \return   string with next token */
 std::string ValueTokenizer::next_string() {
-    if (has_next()) {
-        std::string value = tokens.next();
-        return value;
-    }
-    return "";
+    return tokens.next();
 }
 
 /*! Retrieve next token and convert to int
  *
  * \return   value of next token */
 int ValueTokenizer::next_int() {
-    if (has_next()) {
-        std::string current = tokens.next();
-        if (!utils::is_integer(current)) {
-            throw InvalidIntegerException(current);
-        }
-        int value = atoi(current.c_str());
-        return value;
+    std::string current = tokens.next();
+    if (!utils::is_integer(current)) {
+        throw InvalidIntegerException(current);
     }
-    return 0;
+    return atoi(current.c_str());
 }
 
 /*! Retrieve next token and convert to bigint
  *
  * \return   value of next token */
 bigint ValueTokenizer::next_bigint() {
-    if (has_next()) {
-        std::string current = tokens.next();
-        if (!utils::is_integer(current)) {
-            throw InvalidIntegerException(current);
-        }
-        bigint value = ATOBIGINT(current.c_str());
-        return value;
+    std::string current = tokens.next();
+    if (!utils::is_integer(current)) {
+        throw InvalidIntegerException(current);
     }
-    return 0;
+    return ATOBIGINT(current.c_str());
 }
 
 /*! Retrieve next token and convert to tagint
  *
  * \return   value of next token */
 tagint ValueTokenizer::next_tagint() {
-    if (has_next()) {
-        std::string current = tokens.next();
-        if (!utils::is_integer(current)) {
-            throw InvalidIntegerException(current);
-        }
-        tagint value = ATOTAGINT(current.c_str());
-        return value;
+    std::string current = tokens.next();
+    if (!utils::is_integer(current)) {
+        throw InvalidIntegerException(current);
     }
-    return 0;
+    return ATOTAGINT(current.c_str());
 }
 
 /*! Retrieve next token and convert to double
  *
  * \return   value of next token */
 double ValueTokenizer::next_double() {
-    if (has_next()) {
-        std::string current = tokens.next();
-        if (!utils::is_double(current)) {
-            throw InvalidFloatException(current);
-        }
-        double value = atof(current.c_str());
-        return value;
+    std::string current = tokens.next();
+    if (!utils::is_double(current)) {
+        throw InvalidFloatException(current);
     }
-    return 0.0;
+    return atof(current.c_str());
 }
 
 /*! Skip over a given number of tokens

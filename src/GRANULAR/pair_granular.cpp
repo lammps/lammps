@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -19,25 +20,24 @@
 
 #include "pair_granular.h"
 
-#include <cmath>
-#include <cstring>
-
 #include "atom.h"
-#include "force.h"
-#include "update.h"
-#include "modify.h"
+#include "comm.h"
+#include "error.h"
 #include "fix.h"
 #include "fix_dummy.h"
 #include "fix_neigh_history.h"
-#include "comm.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "memory.h"
-#include "error.h"
+#include "force.h"
 #include "math_const.h"
 #include "math_special.h"
+#include "memory.h"
+#include "modify.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "update.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -67,6 +67,7 @@ PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp)
   single_enable = 1;
   no_virial_fdotr_compute = 1;
   centroidstressflag = CENTROID_NOTAVAIL;
+  finitecutflag = 1;
 
   single_extra = 12;
   svector = new double[single_extra];
@@ -80,6 +81,8 @@ PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp)
   onerad_frozen = nullptr;
   maxrad_dynamic = nullptr;
   maxrad_frozen = nullptr;
+
+  limit_damping = nullptr;
 
   history_transfer_factors = nullptr;
 
@@ -99,8 +102,7 @@ PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp)
   // this is so final order of Modify:fix will conform to input script
 
   fix_history = nullptr;
-  modify->add_fix("NEIGH_HISTORY_GRANULAR_DUMMY all DUMMY");
-  fix_dummy = (FixDummy *) modify->fix[modify->nfix-1];
+  fix_dummy = (FixDummy *) modify->add_fix("NEIGH_HISTORY_GRANULAR_DUMMY all DUMMY");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -130,6 +132,7 @@ PairGranular::~PairGranular()
     memory->destroy(tangential_model);
     memory->destroy(roll_model);
     memory->destroy(twist_model);
+    memory->destroy(limit_damping);
 
     delete [] onerad_dynamic;
     delete [] onerad_frozen;
@@ -364,12 +367,13 @@ void PairGranular::compute(int eflag, int vflag)
           damp_normal = a*meff;
         } else if (damping_model[itype][jtype] == TSUJI) {
           damp_normal = sqrt(meff*knfac);
-        }
+        } else damp_normal = 0.0;
 
         damp_normal_prefactor = normal_coeffs[itype][jtype][1]*damp_normal;
         Fdamp = -damp_normal_prefactor*vnnr;
 
         Fntot = Fne + Fdamp;
+        if (limit_damping[itype][jtype] && (Fntot < 0.0)) Fntot = 0.0;
 
         //****************************************
         // tangential force, including history effects
@@ -446,9 +450,9 @@ void PairGranular::compute(int eflag, int vflag)
             if (tangential_model[itype][jtype] == TANGENTIAL_MINDLIN_FORCE ||
                 tangential_model[itype][jtype] ==
                 TANGENTIAL_MINDLIN_RESCALE_FORCE)
-              frameupdate = fabs(rsht) < EPSILON*Fscrit;
+              frameupdate = fabs(rsht) > EPSILON*Fscrit;
             else
-              frameupdate = fabs(rsht)*k_tangential < EPSILON*Fscrit;
+              frameupdate = fabs(rsht)*k_tangential > EPSILON*Fscrit;
             if (frameupdate) {
               shrmag = sqrt(history[0]*history[0] + history[1]*history[1] +
                                                history[2]*history[2]);
@@ -540,20 +544,17 @@ void PairGranular::compute(int eflag, int vflag)
           relrot1 = omega[i][0] - omega[j][0];
           relrot2 = omega[i][1] - omega[j][1];
           relrot3 = omega[i][2] - omega[j][2];
-          // rolling velocity,
-          // see eq. 31 of Wang et al, Particuology v 23, p 49 (2015)
-          // this is different from the Marshall papers,
-          // which use the Bagi/Kuhn formulation
-          // for rolling velocity (see Wang et al for why the latter is wrong)
-          // - 0.5*((radj-radi)/radsum)*vtr1;
-          // - 0.5*((radj-radi)/radsum)*vtr2;
-          // - 0.5*((radj-radi)/radsum)*vtr3;
         }
         //****************************************
         // rolling resistance
         //****************************************
 
         if (roll_model[itype][jtype] != ROLL_NONE) {
+          // rolling velocity,
+          // see eq. 31 of Wang et al, Particuology v 23, p 49 (2015)
+          // this is different from the Marshall papers,
+          // which use the Bagi/Kuhn formulation
+          // for rolling velocity (see Wang et al for why the latter is wrong)
           vrl1 = Reff*(relrot2*nz - relrot3*ny);
           vrl2 = Reff*(relrot3*nx - relrot1*nz);
           vrl3 = Reff*(relrot1*ny - relrot2*nx);
@@ -568,7 +569,7 @@ void PairGranular::compute(int eflag, int vflag)
 
           if (historyupdate) {
             rolldotn = history[rhist0]*nx + history[rhist1]*ny + history[rhist2]*nz;
-            frameupdate = fabs(rolldotn)*k_roll < EPSILON*Frcrit;
+            frameupdate = fabs(rolldotn)*k_roll > EPSILON*Frcrit;
             if (frameupdate) { // rotate into tangential plane
               rollmag = sqrt(history[rhist0]*history[rhist0] +
                             history[rhist1]*history[rhist1] +
@@ -740,6 +741,7 @@ void PairGranular::allocate()
   memory->create(tangential_model,n+1,n+1,"pair:tangential_model");
   memory->create(roll_model,n+1,n+1,"pair:roll_model");
   memory->create(twist_model,n+1,n+1,"pair:twist_model");
+  memory->create(limit_damping,n+1,n+1,"pair:limit_damping");
 
   onerad_dynamic = new double[n+1];
   onerad_frozen = new double[n+1];
@@ -793,6 +795,7 @@ void PairGranular::coeff(int narg, char **arg)
   roll_model_one = ROLL_NONE;
   twist_model_one = TWIST_NONE;
   damping_model_one = VISCOELASTIC;
+  int ld_flag = 0;
 
   int iarg = 2;
   while (iarg < narg) {
@@ -967,12 +970,15 @@ void PairGranular::coeff(int narg, char **arg)
         error->all(FLERR, "Illegal pair_coeff command, not enough parameters");
       cutoff_one = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
-    } else error->all(FLERR, "Illegal pair coeff command");
+    } else if (strcmp(arg[iarg], "limit_damping") == 0) {
+      ld_flag = 1;
+      iarg += 1;
+    } else error->all(FLERR, "Illegal pair_coeff command");
   }
 
   // error not to specify normal or tangential model
   if ((normal_model_one < 0) || (tangential_model_one < 0))
-    error->all(FLERR, "Illegal pair coeff command, "
+    error->all(FLERR, "Illegal pair_coeff command, "
                "must specify normal or tangential contact model");
 
   int count = 0;
@@ -983,6 +989,14 @@ void PairGranular::coeff(int narg, char **arg)
     damp = 1.2728-4.2783*cor+11.087*square(cor)-22.348*cube(cor)+
         27.467*powint(cor,4)-18.022*powint(cor,5)+4.8218*powint(cor,6);
   } else damp = normal_coeffs_one[1];
+
+  if (ld_flag && normal_model_one == JKR)
+    error->all(FLERR,"Illegal pair_coeff command, "
+        "Cannot limit damping with JKR model");
+
+  if (ld_flag && normal_model_one == DMT)
+    error->all(FLERR,"Illegal pair_coeff command, "
+        "Cannot limit damping with DMT model");
 
   for (int i = ilo; i <= ihi; i++) {
     for (int j = MAX(jlo,i); j <= jhi; j++) {
@@ -1026,10 +1040,13 @@ void PairGranular::coeff(int narg, char **arg)
 
       cutoff_type[i][j] = cutoff_type[j][i] = cutoff_one;
 
+      limit_damping[i][j] = limit_damping[j][i] = ld_flag;
+
       setflag[i][j] = 1;
       count++;
     }
   }
+
 
   if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
@@ -1103,21 +1120,21 @@ void PairGranular::init_style()
   // this is so its order in the fix list is preserved
 
   if (use_history && fix_history == nullptr) {
-    modify->replace_fix("NEIGH_HISTORY_GRANULAR_DUMMY","NEIGH_HISTORY_GRANULAR"
-                        " all NEIGH_HISTORY " + std::to_string(size_history),1);
-    int ifix = modify->find_fix("NEIGH_HISTORY_GRANULAR");
-    fix_history = (FixNeighHistory *) modify->fix[ifix];
+    fix_history = (FixNeighHistory *) modify->replace_fix("NEIGH_HISTORY_GRANULAR_DUMMY",
+                                                          "NEIGH_HISTORY_GRANULAR"
+                                                          " all NEIGH_HISTORY "
+                                                          + std::to_string(size_history),1);
     fix_history->pair = this;
   }
 
   // check for FixFreeze and set freeze_group_bit
 
-  for (i = 0; i < modify->nfix; i++)
-    if (strcmp(modify->fix[i]->style,"freeze") == 0) break;
-  if (i < modify->nfix) freeze_group_bit = modify->fix[i]->groupbit;
-  else freeze_group_bit = 0;
+  int ifix = modify->find_fix_by_style("^freeze");
+  if (ifix < 0) freeze_group_bit = 0;
+  else freeze_group_bit = modify->fix[ifix]->groupbit;
 
   // check for FixRigid so can extract rigid body masses
+  // FIXME: this only catches the first rigid fix, there may be multiple.
 
   fix_rigid = nullptr;
   for (i = 0; i < modify->nfix; i++)
@@ -1126,15 +1143,8 @@ void PairGranular::init_style()
 
   // check for FixPour and FixDeposit so can extract particle radii
 
-  int ipour;
-  for (ipour = 0; ipour < modify->nfix; ipour++)
-    if (strcmp(modify->fix[ipour]->style,"pour") == 0) break;
-  if (ipour == modify->nfix) ipour = -1;
-
-  int idep;
-  for (idep = 0; idep < modify->nfix; idep++)
-    if (strcmp(modify->fix[idep]->style,"deposit") == 0) break;
-  if (idep == modify->nfix) idep = -1;
+  int ipour = modify->find_fix_by_style("^pour");
+  int idep  = modify->find_fix_by_style("^deposit");
 
   // set maxrad_dynamic and maxrad_frozen for each type
   // include future FixPour and FixDeposit particles as dynamic
@@ -1168,10 +1178,8 @@ void PairGranular::init_style()
     }
   }
 
-  MPI_Allreduce(&onerad_dynamic[1],&maxrad_dynamic[1],atom->ntypes,
-                MPI_DOUBLE,MPI_MAX,world);
-  MPI_Allreduce(&onerad_frozen[1],&maxrad_frozen[1],atom->ntypes,
-                MPI_DOUBLE,MPI_MAX,world);
+  MPI_Allreduce(&onerad_dynamic[1],&maxrad_dynamic[1],atom->ntypes,MPI_DOUBLE,MPI_MAX,world);
+  MPI_Allreduce(&onerad_frozen[1],&maxrad_frozen[1],atom->ntypes,MPI_DOUBLE,MPI_MAX,world);
 
   // set fix which stores history info
 
@@ -1196,13 +1204,10 @@ double PairGranular::init_one(int i, int j)
         (tangential_model[i][i] != tangential_model[j][j]) ||
         (roll_model[i][i] != roll_model[j][j]) ||
         (twist_model[i][i] != twist_model[j][j])) {
-
-      char str[512];
-      sprintf(str,"Granular pair style functional forms are different, "
-              "cannot mix coefficients for types %d and %d. \n"
-              "This combination must be set explicitly "
-              "via pair_coeff command",i,j);
-      error->one(FLERR,str);
+      error->all(FLERR,"Granular pair style functional forms are different, "
+                 "cannot mix coefficients for types {} and {}. \n"
+                 "This combination must be set explicitly via a "
+                 "pair_coeff command",i,j);
     }
 
     if (normal_model[i][j] == HERTZ || normal_model[i][j] == HOOKE)
@@ -1303,6 +1308,7 @@ void PairGranular::write_restart(FILE *fp)
         fwrite(&tangential_model[i][j],sizeof(int),1,fp);
         fwrite(&roll_model[i][j],sizeof(int),1,fp);
         fwrite(&twist_model[i][j],sizeof(int),1,fp);
+        fwrite(&limit_damping[i][j],sizeof(int),1,fp);
         fwrite(normal_coeffs[i][j],sizeof(double),4,fp);
         fwrite(tangential_coeffs[i][j],sizeof(double),3,fp);
         fwrite(roll_coeffs[i][j],sizeof(double),3,fp);
@@ -1333,6 +1339,7 @@ void PairGranular::read_restart(FILE *fp)
           utils::sfread(FLERR,&tangential_model[i][j],sizeof(int),1,fp,nullptr,error);
           utils::sfread(FLERR,&roll_model[i][j],sizeof(int),1,fp,nullptr,error);
           utils::sfread(FLERR,&twist_model[i][j],sizeof(int),1,fp,nullptr,error);
+          utils::sfread(FLERR,&limit_damping[i][j],sizeof(int),1,fp,nullptr,error);
           utils::sfread(FLERR,normal_coeffs[i][j],sizeof(double),4,fp,nullptr,error);
           utils::sfread(FLERR,tangential_coeffs[i][j],sizeof(double),3,fp,nullptr,error);
           utils::sfread(FLERR,roll_coeffs[i][j],sizeof(double),3,fp,nullptr,error);
@@ -1344,6 +1351,7 @@ void PairGranular::read_restart(FILE *fp)
         MPI_Bcast(&tangential_model[i][j],1,MPI_INT,0,world);
         MPI_Bcast(&roll_model[i][j],1,MPI_INT,0,world);
         MPI_Bcast(&twist_model[i][j],1,MPI_INT,0,world);
+        MPI_Bcast(&limit_damping[i][j],1,MPI_INT,0,world);
         MPI_Bcast(normal_coeffs[i][j],4,MPI_DOUBLE,0,world);
         MPI_Bcast(tangential_coeffs[i][j],3,MPI_DOUBLE,0,world);
         MPI_Bcast(roll_coeffs[i][j],3,MPI_DOUBLE,0,world);
@@ -1529,6 +1537,7 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   Fdamp = -damp_normal_prefactor*vnnr;
 
   Fntot = Fne + Fdamp;
+  if (limit_damping[itype][jtype] && (Fntot < 0.0)) Fntot = 0.0;
 
   jnum = list->numneigh[i];
   jlist = list->firstneigh[i];
@@ -1759,7 +1768,7 @@ void PairGranular::unpack_forward_comm(int n, int first, double *buf)
 
 double PairGranular::memory_usage()
 {
-  double bytes = nmax * sizeof(double);
+  double bytes = (double)nmax * sizeof(double);
   return bytes;
 }
 
@@ -1818,4 +1827,51 @@ void PairGranular::transfer_history(double* source, double* target)
 {
   for (int i = 0; i < size_history; i++)
     target[i] = history_transfer_factors[i]*source[i];
+}
+
+/* ----------------------------------------------------------------------
+   self-interaction range of particle
+------------------------------------------------------------------------- */
+
+double PairGranular::atom2cut(int i)
+{
+  double cut;
+
+  cut = atom->radius[i]*2;
+  if(beyond_contact) {
+    int itype = atom->type[i];
+    if(normal_model[itype][itype] == JKR) {
+      cut += pulloff_distance(cut, cut, itype, itype);
+    }
+  }
+
+  return cut;
+}
+
+/* ----------------------------------------------------------------------
+   maximum interaction range for two finite particles
+------------------------------------------------------------------------- */
+
+double PairGranular::radii2cut(double r1, double r2)
+{
+  double cut = 0.0;
+
+  if(beyond_contact) {
+    int n = atom->ntypes;
+    double temp;
+
+    // Check all combinations of i and j to find theoretical maximum pull off distance
+    for(int i = 0; i < n; i++){
+      for(int j = 0; j < n; j++){
+        if(normal_model[i][j] == JKR) {
+          temp = pulloff_distance(r1, r2, i, j);
+          if(temp > cut) cut = temp;
+        }
+      }
+    }
+  }
+
+  cut += r1 + r2;
+
+  return cut;
 }

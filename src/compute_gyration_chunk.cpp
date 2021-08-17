@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -36,11 +37,9 @@ ComputeGyrationChunk::ComputeGyrationChunk(LAMMPS *lmp, int narg, char **arg) :
 
   // ID of compute chunk/atom
 
-  int n = strlen(arg[3]) + 1;
-  idchunk = new char[n];
-  strcpy(idchunk,arg[3]);
+  idchunk = utils::strdup(arg[3]);
 
-  init();
+  ComputeGyrationChunk::init();
 
   // optional args
 
@@ -141,7 +140,7 @@ void ComputeGyrationChunk::compute_vector()
 
   MPI_Allreduce(rg,rgall,nchunk,MPI_DOUBLE,MPI_SUM,world);
 
-  for (int i = 0; i < nchunk; i++)
+  for (i = 0; i < nchunk; i++)
     if (masstotal[i] > 0.0)
       rgall[i] = sqrt(rgall[i]/masstotal[i]);
 }
@@ -357,8 +356,8 @@ void ComputeGyrationChunk::allocate()
 double ComputeGyrationChunk::memory_usage()
 {
   double bytes = (bigint) maxchunk * 2 * sizeof(double);
-  bytes += (bigint) maxchunk * 2*3 * sizeof(double);
-  if (tensor) bytes += (bigint) maxchunk * 2*6 * sizeof(double);
-  else bytes += (bigint) maxchunk * 2 * sizeof(double);
+  bytes += (double) maxchunk * 2*3 * sizeof(double);
+  if (tensor) bytes += (double) maxchunk * 2*6 * sizeof(double);
+  else bytes += (double) maxchunk * 2 * sizeof(double);
   return bytes;
 }

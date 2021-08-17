@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,26 +17,19 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_lj_sdk_coul_long_gpu.h"
-#include <cmath>
-#include <cstdio>
 
-#include <cstring>
 #include "atom.h"
-#include "atom_vec.h"
-#include "comm.h"
-#include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "integrate.h"
-#include "memory.h"
-#include "error.h"
-#include "neigh_request.h"
-#include "universe.h"
-#include "update.h"
 #include "domain.h"
-#include "kspace.h"
+#include "error.h"
+#include "force.h"
 #include "gpu_extra.h"
+#include "kspace.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
 #include "suffix.h"
+
+#include <cmath>
 
 #define EWALD_F   1.12837917
 #define EWALD_P   0.3275911
@@ -163,7 +157,7 @@ void PairLJSDKCoulLongGPU::init_style()
   if (!atom->q_flag)
     error->all(FLERR,"Pair style lj/sdk/coul/long/gpu requires atom attribute q");
   if (force->newton_pair)
-    error->all(FLERR,"Cannot use newton pair with lj/sdk/coul/long/gpu pair style");
+    error->all(FLERR,"Pair style lj/sdk/coul/long/gpu requires newton pair off");
 
   // Repeat cutsq calculation because done after call to init_style
   double maxcut = -1.0;
@@ -195,11 +189,12 @@ void PairLJSDKCoulLongGPU::init_style()
   if (ncoultablebits) init_tables(cut_coul,nullptr);
 
   int maxspecial=0;
-  if (atom->molecular)
+  if (atom->molecular != Atom::ATOMIC)
     maxspecial=atom->maxspecial;
+  int mnf = 5e-2 * neighbor->oneatom;
   int success = sdkl_gpu_init(atom->ntypes+1, cutsq, lj_type, lj1, lj2, lj3,
                               lj4, offset, force->special_lj, atom->nlocal,
-                              atom->nlocal+atom->nghost, 300, maxspecial,
+                              atom->nlocal+atom->nghost, mnf, maxspecial,
                               cell_size, gpu_mode, screen, cut_ljsq,
                               cut_coulsq, force->special_coul,
                               force->qqrd2e, g_ewald);

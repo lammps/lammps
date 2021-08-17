@@ -69,7 +69,7 @@ this.
          cd build
 
          # configure LAMMPS compilation
-         cmake -C cmake/presets/minimal.cmake -D BUILD_SHARED_LIBS=on \
+         cmake -C ../cmake/presets/basic.cmake -D BUILD_SHARED_LIBS=on \
                -D LAMMPS_EXCEPTIONS=on -D PKG_PYTHON=on ../cmake
 
          # compile LAMMPS
@@ -97,10 +97,12 @@ this.
 
       For a system-wide installation you need to set
       ``CMAKE_INSTALL_PREFIX`` to a system folder like ``/usr`` (or
-      ``/usr/local``).  The installation step (**not** the
+      ``/usr/local``); the default is ``${HOME}/.local``.  The
+      installation step for a system folder installation (**not** the
       configuration/compilation) needs to be done with superuser
       privilege, e.g. by using ``sudo cmake --install .``.  The
-      installation folders will then by changed to:
+      installation folders will then be changed to (assuming ``/usr`` as
+      prefix):
 
       +------------------------+---------------------------------------------------------+-------------------------------------------------------------+
       | File                   | Location                                                | Notes                                                       |
@@ -374,14 +376,6 @@ make MPI calls directly from Python in your script, if you desire.
 
 We have tested this with `MPI for Python <https://mpi4py.readthedocs.io/>`_
 (aka mpi4py) and you will find installation instruction for it below.
-
-.. note::
-
-   Older LAMMPS versions were also tested with `PyPar <https://github.com/daleroberts/pypar>`_
-   but we can no longer test it, since it does not work with the Python
-   (3.x) versions on our test servers. Since there have been no updates
-   to PyPar visible in its repository since November 2016 we have to assume
-   it is no longer maintained.
 
 Installation of mpi4py (version 3.0.3 as of Sep 2020) can be done as
 follows:

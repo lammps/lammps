@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -38,7 +39,7 @@ enum{MANY,SBOND,SANGLE,SDIHEDRAL,SIMPROPER};
 
 /* ---------------------------------------------------------------------- */
 
-CreateBonds::CreateBonds(LAMMPS *lmp) : Pointers(lmp) {}
+CreateBonds::CreateBonds(LAMMPS *lmp) : Command(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
@@ -48,7 +49,7 @@ void CreateBonds::command(int narg, char **arg)
     error->all(FLERR,"Create_bonds command before simulation box is defined");
   if (atom->tag_enable == 0)
     error->all(FLERR,"Cannot use create_bonds unless atoms have IDs");
-  if (atom->molecular != 1)
+  if (atom->molecular != Atom::MOLECULAR)
     error->all(FLERR,"Cannot use create_bonds with non-molecular system");
 
   if (narg < 4) error->all(FLERR,"Illegal create_bonds command");
@@ -233,7 +234,7 @@ void CreateBonds::many()
   // build neighbor list this command needs based on earlier request
 
   NeighList *list = neighbor->lists[irequest];
-  neighbor->build_one(list);
+  neighbor->build_one(list,1);
 
   // loop over all neighs of each atom
   // compute distance between two atoms consistently on both procs
@@ -298,8 +299,8 @@ void CreateBonds::many()
 
       if (!newton_bond || tag[i] < tag[j]) {
         if (num_bond[i] == atom->bond_per_atom)
-          error->one(FLERR,fmt::format("New bond exceeded bonds per atom limit "
-                                       " of {} in create_bonds",atom->bond_per_atom));
+          error->one(FLERR,"New bond exceeded bonds per atom limit "
+                                       " of {} in create_bonds",atom->bond_per_atom);
         bond_type[i][num_bond[i]] = btype;
         bond_atom[i][num_bond[i]] = tag[j];
         num_bond[i]++;
@@ -310,7 +311,7 @@ void CreateBonds::many()
   // recount bonds
 
   bigint nbonds = 0;
-  for (int i = 0; i < nlocal; i++) nbonds += num_bond[i];
+  for (i = 0; i < nlocal; i++) nbonds += num_bond[i];
 
   MPI_Allreduce(&nbonds,&atom->nbonds,1,MPI_LMP_BIGINT,MPI_SUM,world);
   if (!force->newton_bond) atom->nbonds /= 2;
@@ -320,8 +321,8 @@ void CreateBonds::many()
   bigint nadd_bonds = atom->nbonds - nbonds_previous;
 
   if (comm->me == 0)
-    utils::logmesg(lmp,fmt::format("Added {} bonds, new total = {}\n",
-                                   nadd_bonds,atom->nbonds));
+    utils::logmesg(lmp,"Added {} bonds, new total = {}\n",
+                   nadd_bonds,atom->nbonds);
 }
 
 /* ---------------------------------------------------------------------- */

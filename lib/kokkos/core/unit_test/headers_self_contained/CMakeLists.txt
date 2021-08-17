@@ -1,6 +1,6 @@
 # Create tests that contain each header separately. We do not  run these tests
 # but we just try to compile them.
-if(NOT KOKKOS_HAS_TRILINOS)
+
 # Globbing all the header filenames to test for self-containment and presence of header guards
 SET(BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../")
 file(GLOB KOKKOS_CORE_HEADERS RELATIVE ${BASE_DIR}/core/src
@@ -17,4 +17,3 @@ foreach (_header ${KOKKOS_CORE_HEADERS} ${KOKKOS_CONTAINERS_HEADERS} ${KOKKOS_AL
   target_link_libraries(${header_test_name} PRIVATE Kokkos::kokkos)
   target_compile_definitions(${header_test_name} PRIVATE KOKKOS_HEADER_TEST_NAME=${_header})
 endforeach()
-endif()

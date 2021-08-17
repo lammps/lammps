@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -13,11 +14,13 @@
 
 #include "fix_property_atom.h"
 
-#include <cstring>
 #include "atom.h"
 #include "comm.h"
-#include "memory.h"
 #include "error.h"
+#include "memory.h"
+#include "tokenizer.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -85,21 +88,32 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
       values_peratom++;
       nvalue++;
       iarg++;
-    } else if (strstr(arg[iarg],"i_") == arg[iarg] ||
-	       strstr(arg[iarg],"d_") == arg[iarg]) {
-      int which = 0;
-      if (arg[iarg][0] == 'd') which = 1;
-      if (which == 0) style[nvalue] = IVEC;
-      else style[nvalue] = DVEC;
-      int tmp1,tmp2;
-      index[nvalue] = atom->find_custom(&arg[iarg][2],tmp1,tmp2);
+
+    // custom atom vector
+
+    } else if (utils::strmatch(arg[iarg],"^i_")) {
+      style[nvalue] = IVEC;
+      int tmp;
+      index[nvalue] = atom->find_custom(&arg[iarg][2],tmp);
       if (index[nvalue] >= 0)
         error->all(FLERR,"Fix property/atom vector name already exists");
-      cols[nvalue] = 0;
-      index[nvalue] = atom->add_custom(&arg[iarg][2],which,cols[nvalue]);
-      values_peratom++;
+      index[nvalue] = atom->add_custom(&arg[iarg][2],0);
+      nvalue++;
+      iarg++
+
+    } else if (utils::strmatch(arg[iarg],"^d_")) {
+      style[nvalue] = DVEC;
+      int tmp;
+      index[nvalue] = atom->find_custom(&arg[iarg][2],tmp);
+      if (index[nvalue] >= 0)
+        error->all(FLERR,"Fix property/atom vector name already exists");
+      index[nvalue] = atom->add_custom(&arg[iarg][2],1);
       nvalue++;
       iarg++;
+
+    // custom atom array
+    // OLDSTYLE code
+
     } else if (strstr(arg[iarg],"i2_") == arg[iarg] || 
 	       strstr(arg[iarg],"d2_") == arg[iarg]) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix property/atom command");
@@ -118,6 +132,9 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
       values_peratom += cols[nvalue];
       nvalue++;
       iarg += 2;
+
+    // no match
+
     } else break;
   }
 
@@ -151,9 +168,7 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
 
   // store current atom style
 
-  int n = strlen(atom->atom_style) + 1;
-  astyle = new char[n];
-  strcpy(astyle,atom->atom_style);
+  astyle = utils::strdup(atom->atom_style);
 
   // perform initial allocation of atom-based array
   // register with Atom class
@@ -246,71 +261,59 @@ void FixPropertyAtom::read_data_section(char *keyword, int n, char *buf,
     atom->map_set();
   }
 
-  next = strchr(buf,'\n');
-  *next = '\0';
-  int nwords = utils::trim_and_count_words(buf);
-  *next = '\n';
-
-  if (nwords != values_peratom+1)
-    error->all(FLERR,fmt::format("Incorrect {} format in data file",keyword));
-
-  char **values = new char*[nwords];
-
   // loop over lines of atom info
   // tokenize the line into values
-  // if I own atom tag, unpack its values
+  // if I own atom tag, assign its values
 
   tagint map_tag_max = atom->map_tag_max;
 
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
+    *next = '\0';
 
-    values[0] = strtok(buf," \t\n\r\f");
-    if (values[0] == nullptr)
-      error->all(FLERR,fmt::format("Too few lines in {} section of data file",keyword));
+    try {
+      ValueTokenizer values(buf);
+      if ((int)values.count() != nvalue+1)
+        error->all(FLERR,"Incorrect format in {} section "
+                                     "of data file: {}",keyword,buf);
 
-    int format_ok = 1;
-    for (j = 1; j < nwords; j++) {
-      values[j] = strtok(nullptr," \t\n\r\f");
-      if (values[j] == nullptr) format_ok = 0;
-    }
-    if (!format_ok)
-      error->all(FLERR,fmt::format("Incorrect {} format in data file",keyword));
+      itag = values.next_tagint() + id_offset;
+      if (itag <= 0 || itag > map_tag_max)
+        error->all(FLERR,"Invalid atom ID {} in {} section of "
+                                     "data file",itag, keyword);
 
-    itag = ATOTAGINT(values[0]) + id_offset;
-    if (itag <= 0 || itag > map_tag_max)
-      error->all(FLERR,fmt::format("Invalid atom ID {} in {} section of "
-                                   "data file",itag, keyword));
+      // assign words in line to per-atom vectors
 
-    // assign words in line to per-atom vectors
-    // iword = position in vector of words
-    
-    if ((m = atom->map(itag)) >= 0) {
-      iword = 1;
-      for (nv = 0; nv < nvalue; nv++) {
-        if (style[nv] == MOLECULE) atom->molecule[m] = ATOTAGINT(values[iword++]);
-        else if (style[nv] == CHARGE) atom->q[m] = atof(values[iword++]);
-        else if (style[nv] == RMASS) atom->rmass[m] = atof(values[iword++]);
-        else if (style[nv] == IVEC)
-          atom->ivector[index[nv]][m] = atoi(values[iword++]);
-        else if (style[nv] == DVEC)
-          atom->dvector[index[nv]][m] = atof(values[iword++]);
-        else if (style[nv] == IARRAY) {
-	  ncol = cols[nv];
-	  for (k = 0; k < ncol; k++)
-	    atom->iarray[index[nv]][m][k] = atoi(values[iword++]);
-        } else if (style[nv] == DARRAY) {
-	  ncol = cols[nv];
-	  for (k = 0; k < ncol; k++)
-	    atom->darray[index[nv]][m][k] = atof(values[iword++]);
-	}
+      if ((m = atom->map(itag)) >= 0) {
+        for (j = 0; j < nvalue; j++) {
+          if (style[j] == MOLECULE) {
+            atom->molecule[m] = values.next_tagint();
+          } else if (style[j] == CHARGE) {
+            atom->q[m] = values.next_double();
+          } else if (style[j] == RMASS) {
+            atom->rmass[m] = values.next_double();
+          } else if (style[j] == IVEC) {
+            atom->ivector[index[j]][m] = values.next_int();
+          } else if (style[j] == DVEC) {
+            atom->dvector[index[j]][m] = values.next_double();
+          // NOTE: Axel please check these lines of array code
+          } else if (style[j] == IARRAY) {
+            ncol = cols[j];
+            for (k = 0; k < ncol; k++)
+              atom->iarray[index[j]][m][k] = values.next_int();
+          } else if (style[j] == DARRAY) {
+            ncol = cols[j];
+            for (k = 0; k < ncol; k++)
+              atom->darray[index[j]][m][k] = values.next_double();
+          }
+        }
       }
+    } catch (TokenizerException &e) {
+      error->all(FLERR,"Invalid format in {} section of data "
+                                   "file '{}': {}",keyword, buf,e.what());
     }
-
     buf = next + 1;
   }
-
-  delete [] values;
 
   if (mapflag) {
     atom->map_delete();
@@ -398,8 +401,9 @@ void FixPropertyAtom::write_data_section_pack(int /*mth*/, double **buf)
 }
 
 /* ----------------------------------------------------------------------
-   write section keyword for Mth data section to file
-   use Molecules or Charges if that is only field, else use fix ID
+   write a Molecules or Charges section if that is only field
+   manages by this fix instance. Otherwise write everything
+   to the section labeled by the fix ID
    only called by proc 0
 ------------------------------------------------------------------------- */
 
@@ -407,7 +411,18 @@ void FixPropertyAtom::write_data_section_keyword(int /*mth*/, FILE *fp)
 {
   if (nvalue == 1 && style[0] == MOLECULE) fprintf(fp,"\nMolecules\n\n");
   else if (nvalue == 1 && style[0] == CHARGE) fprintf(fp,"\nCharges\n\n");
-  else fprintf(fp,"\n%s\n\n",id);
+  else {
+    fprintf(fp,"\n%s #",id);
+    // write column hint as comment
+    for (int i = 0; i < nvalue; ++i) {
+      if (style[i] == MOLECULE) fputs(" mol",fp);
+      else if (style[i] == CHARGE) fputs(" q",fp);
+      else if (style[i] == RMASS) fputs(" rmass",fp);
+      else if (style[i] == INTEGER) fprintf(fp," i_%s", atom->iname[index[i]]);
+      else if (style[i] == DOUBLE) fprintf(fp, " d_%s", atom->dname[index[i]]);
+    }
+    fputs("\n\n",fp);
+  }
 }
 
 /* ----------------------------------------------------------------------

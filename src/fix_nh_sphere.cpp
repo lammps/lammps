@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -22,7 +23,6 @@
 #include "error.h"
 #include "force.h"
 #include "math_extra.h"
-#include "math_vector.h"
 
 #include <cmath>
 #include <cstring>
@@ -146,8 +146,8 @@ void FixNHSphere::nve_x()
           }
     } else {
       // Integrate orientation following Dullweber-Leimkuhler-Maclachlan scheme
-      vector w, w_temp, a;
-      matrix Q, Q_temp, R;
+      double w[3], w_temp[3], a[3];
+      double Q[3][3], Q_temp[3][3], R[3][3];
       double scale,s2,inv_len_mu;
 
       for (int i = 0; i < nlocal; i++) {

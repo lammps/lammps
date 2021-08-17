@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,22 +18,22 @@
 
 #include "fix_qeq_fire.h"
 
-#include <cmath>
-
-#include <cstring>
 #include "atom.h"
 #include "comm.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "update.h"
+#include "error.h"
 #include "force.h"
 #include "group.h"
+#include "kspace.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
 #include "pair_comb.h"
 #include "pair_comb3.h"
-#include "kspace.h"
 #include "respa.h"
-#include "error.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -47,7 +48,7 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixQEqFire::FixQEqFire(LAMMPS *lmp, int narg, char **arg) :
-  FixQEq(lmp, narg, arg)
+  FixQEq(lmp, narg, arg), comb(nullptr), comb3(nullptr)
 {
   qdamp = 0.20;
   qstep = 0.20;
@@ -63,11 +64,14 @@ FixQEqFire::FixQEqFire(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix qeq/fire command");
       qstep = atof(arg[iarg+1]);
       iarg += 2;
+    } else if (strcmp(arg[iarg],"warn") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix qeq/fire command");
+      if (strcmp(arg[iarg+1],"no") == 0) maxwarn = 0;
+      else if (strcmp(arg[iarg+1],"yes") == 0) maxwarn = 1;
+      else error->all(FLERR,"Illegal fix qeq/fire command");
+      iarg += 2;
     } else error->all(FLERR,"Illegal fix qeq/fire command");
   }
-
-  comb = nullptr;
-  comb3 = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -91,12 +95,11 @@ void FixQEqFire::init()
       error->warning(FLERR,"Fix qeq/fire tolerance may be too small"
                     " for damped fires");
 
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 
-  comb = (PairComb *) force->pair_match("comb",1);
-  comb3 = (PairComb3 *) force->pair_match("comb3",1);
-
+  comb3 = (PairComb3 *) force->pair_match("^comb3",0);
+  if (!comb3) comb = (PairComb *) force->pair_match("^comb",0);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -217,15 +220,11 @@ void FixQEqFire::pre_force(int /*vflag*/)
 
     if (enegchk < tolerance) break;
   }
+  matvecs = iloop;
 
-  if (comm->me == 0) {
-    if (iloop == maxiter) {
-      char str[128];
-      sprintf(str,"Charges did not converge at step " BIGINT_FORMAT
-                  ": %lg",update->ntimestep,enegchk);
-      error->warning(FLERR,str);
-    }
-  }
+  if ((comm->me == 0) && maxwarn && (iloop >= maxiter))
+    error->warning(FLERR,"Charges did not converge at step {}: {}",
+                   update->ntimestep,enegchk);
 
   if (force->kspace) force->kspace->qsum_qsq();
 }
@@ -328,7 +327,7 @@ void FixQEqFire::unpack_forward_comm(int n, int first, double *buf)
 
   if (pack_flag == 1)
     for (m = 0, i = first; m < n; m++, i++) atom->q[i] = buf[m];
-  else if ( pack_flag == 2)
+  else if (pack_flag == 2)
     for (m = 0, i = first; m < n; m++, i++) qf[i] = buf[m];
 }
 

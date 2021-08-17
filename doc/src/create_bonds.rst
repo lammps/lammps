@@ -105,7 +105,7 @@ data file for a complex system of molecules.
 The *many* style will create bonds between pairs of atoms I,J where I
 is in one of the two specified groups, and J is in the other.  The two
 groups can be the same, e.g. group "all".  The created bonds will be
-of bond type *btype*\ , where *btype* must be a value between 1 and the
+of bond type *btype*, where *btype* must be a value between 1 and the
 number of bond types defined.
 
 For a bond to be created, an I,J pair of atoms must be a distance D
@@ -124,6 +124,16 @@ search for nearby atoms.  Pairs of atoms that are already bonded
 cannot appear in the neighbor list, to avoid creation of duplicate
 bonds.  The neighbor list for all atom type pairs must also extend to
 a distance that encompasses the *rmax* for new bonds to create.
+
+.. note::
+
+   If you want to create bonds between pairs of 1-3 or 1-4 atoms in
+   the current bond topology, then you need to use :doc:`special_bonds
+   lj 0 1 1 <special_bonds>` to insure those pairs appear in the
+   neighbor list.  They will not appear with the default special_bonds
+   settings which are zero for 1-2, 1-3, and 1-4 atoms.  1-3 or 1-4
+   atoms are those which are 2 hops or 3 hops apart in the bond
+   topology.
 
 An additional requirement for this style is that your system must be
 ready to perform a simulation.  This means, for example, that all
@@ -146,7 +156,7 @@ two atoms with IDs *batom1* and *batom2*\ .  *Btype* must be a value
 between 1 and the number of bond types defined.
 
 The *single/angle* style creates a single angle of type *atype*
-between three atoms with IDs *aatom1*\ , *aatom2*\ , and *aatom3*\ .  The
+between three atoms with IDs *aatom1*, *aatom2*, and *aatom3*\ .  The
 ordering of the atoms is the same as in the *Angles* section of a data
 file read by the :doc:`read_data <read_data>` command.  I.e. the 3 atoms are
 ordered linearly within the angle; the central atom is *aatom2*\ .
@@ -154,14 +164,14 @@ ordered linearly within the angle; the central atom is *aatom2*\ .
 defined.
 
 The *single/dihedral* style creates a single dihedral of type *dtype*
-between four atoms with IDs *datom1*\ , *datom2*\ , *datom3*\ , and *datom4*\ .  The
+between four atoms with IDs *datom1*, *datom2*, *datom3*, and *datom4*\ .  The
 ordering of the atoms is the same as in the *Dihedrals* section of a data file
 read by the :doc:`read_data <read_data>` command.  I.e. the 4 atoms are ordered
 linearly within the dihedral.  *dtype* must be a value between 1 and
 the number of dihedral types defined.
 
 The *single/improper* style creates a single improper of type *itype*
-between four atoms with IDs *iatom1*\ , *iatom2*\ , *iatom3*\ , and *iatom4*\ .  The
+between four atoms with IDs *iatom1*, *iatom2*, *iatom3*, and *iatom4*\ .  The
 ordering of the atoms is the same as in the *Impropers* section of a data file
 read by the :doc:`read_data <read_data>` command.  I.e. the 4 atoms are ordered
 linearly within the improper.  *itype* must be a value between 1 and

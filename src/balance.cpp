@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -51,7 +52,7 @@ enum{X,Y,Z};
 
 /* ---------------------------------------------------------------------- */
 
-Balance::Balance(LAMMPS *lmp) : Pointers(lmp)
+Balance::Balance(LAMMPS *lmp) : Command(lmp)
 {
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
@@ -371,9 +372,8 @@ void Balance::command(int narg, char **arg)
   bigint nblocal = atom->nlocal;
   MPI_Allreduce(&nblocal,&natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
   if (natoms != atom->natoms)
-    error->all(FLERR,fmt::format("Lost atoms via balance: "
-                                 "original {}  current {}",
-                                 atom->natoms,natoms).c_str());
+    error->all(FLERR,"Lost atoms via balance: original {}  current {}",
+               atom->natoms,natoms);
 
   // imbfinal = final imbalance
   // set disable = 1, so weights no longer migrate with atoms
@@ -458,7 +458,7 @@ void Balance::options(int iarg, int narg, char **arg)
         nopt = imb->options(narg-iarg,arg+iarg+2);
         imbalances[nimbalance++] = imb;
       } else {
-        error->all(FLERR,"Unknown (fix) balance weight method");
+        error->all(FLERR,"Unknown (fix) balance weight method: {}", arg[iarg+1]);
       }
       iarg += 2+nopt;
 
@@ -478,8 +478,8 @@ void Balance::options(int iarg, int narg, char **arg)
   if (outflag && comm->me == 0) {
     fp = fopen(arg[outarg],"w");
     if (fp == nullptr)
-      error->one(FLERR,fmt::format("Cannot open (fix) balance output file {}: {}",
-                                   arg[outarg], utils::getsyserror()));
+      error->one(FLERR,"Cannot open (fix) balance output file {}: {}",
+                                   arg[outarg], utils::getsyserror());
   }
 }
 
@@ -499,8 +499,7 @@ void Balance::weight_storage(char *prefix)
   int ifix = modify->find_fix(cmd);
   if (ifix < 1) {
     cmd += " all STORE peratom 0 1";
-    modify->add_fix(cmd);
-    fixstore = (FixStore *) modify->fix[modify->nfix-1];
+    fixstore = (FixStore *) modify->add_fix(cmd);
   } else fixstore = (FixStore *) modify->fix[ifix];
 
   // do not carry weights with atoms during normal atom migration
@@ -919,7 +918,7 @@ int Balance::shift()
     // do this with minimal adjustment to splits
 
     double close = (1.0+EPSNEIGH) * neighbor->skin / boxsize;
-    double delta,midpt,start,stop,lbound,ubound,spacing;
+    double midpt,start,stop,lbound,ubound,spacing;
 
     i = 0;
     while (i < np) {
@@ -1094,7 +1093,7 @@ int Balance::adjust(int n, double *split)
     }
 
   int change = 0;
-  for (int i = 1; i < n; i++)
+  for (i = 1; i < n; i++)
     if (sum[i] != target[i]) {
       change = 1;
       if (rho == 0) split[i] = 0.5 * (lo[i]+hi[i]);

@@ -1,6 +1,7 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,11 +13,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ATOM_CLASS
-
-AtomStyle(molecular/kk,AtomVecMolecularKokkos)
-AtomStyle(molecular/kk/device,AtomVecMolecularKokkos)
-AtomStyle(molecular/kk/host,AtomVecMolecularKokkos)
-
+// clang-format off
+AtomStyle(molecular/kk,AtomVecMolecularKokkos);
+AtomStyle(molecular/kk/device,AtomVecMolecularKokkos);
+AtomStyle(molecular/kk/host,AtomVecMolecularKokkos);
+// clang-format on
 #else
 
 #ifndef LMP_ATOM_VEC_MOLECULAR_KOKKOS_H

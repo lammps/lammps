@@ -1,0 +1,76 @@
+# created by fftool
+
+units real
+boundary p p p
+
+atom_style full
+bond_style harmonic
+angle_style harmonic
+
+special_bonds lj/coul 0.0 0.0 0.5
+
+# remove hybrid if not necessary
+pair_style lj/cut/coul/long 12.0 12.0
+pair_modify tail no
+kspace_style pppm 1.0e-5
+
+read_data data.lmp
+
+pair_coeff    1    1     0.000000     1.000000  # Hwh Hwh
+pair_coeff    1    2     0.000000     1.000000  # Hwh Owh
+pair_coeff    1    3     0.000000     1.000000  # Hwh Hw
+pair_coeff    1    4     0.000000     1.000000  # Hwh Ow
+pair_coeff    2    2     0.155425     3.165500  # Owh Owh
+pair_coeff    2    3     0.000000     1.000000  # Owh Hw
+pair_coeff    2    4     0.155425     3.165500  # Owh Ow
+pair_coeff    3    3     0.000000     1.000000  # Hw Hw
+pair_coeff    3    4     0.000000     1.000000  # Hw Ow
+pair_coeff    4    4     0.155425     3.165500  # Ow Ow
+
+# minimize 1.0e-4 1.0e-6 100 1000
+# reset_timestep 0
+
+fix SHAKE all shake 0.0001 20 0 b 1
+
+neighbor 2.0 bin
+# neigh_modify delay 0 every 1 check yes
+
+timestep 1.0
+
+variable TK equal 300.0
+variable PBAR equal 1.0
+
+velocity all create ${TK} 12345
+
+fix TPSTAT all npt temp ${TK} ${TK} 100 iso ${PBAR} ${PBAR} 1000
+
+thermo_style custom step cpu etotal ke pe evdwl ecoul elong temp press vol density
+thermo 5000
+
+run 100000
+
+reset_timestep 0
+
+variable lambda equal ramp(1.0,0.0)
+variable qH equal  0.4238*v_lambda
+variable qO equal -0.8476*v_lambda
+
+fix ADAPT all adapt/fep 100000 &
+  atom charge 1 v_qH &
+  atom charge 2 v_qO &
+  after yes
+
+thermo_style custom step etotal ke pe evdwl ecoul elong temp press density v_lambda v_qO v_qH
+
+variable dlambda equal -0.05
+variable dqH equal  0.4238*v_dlambda
+variable dqO equal -0.8476*v_dlambda
+
+compute FEP all fep ${TK} &
+  atom charge 1 v_dqH &
+  atom charge 2 v_dqO &
+  volume yes
+
+fix FEP all ave/time 20 4000 100000 c_FEP[*] file fep10-q.fep
+
+run 2000000

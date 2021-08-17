@@ -73,21 +73,24 @@
 #include <impl/Kokkos_Traits.hpp>
 
 //----------------------------------------------------------------------------
+
+// Need to fix this for pure clang on windows
 #if defined(_WIN32)
 #define KOKKOS_ENABLE_WINDOWS_ATOMICS
+
 #if defined(KOKKOS_ENABLE_CUDA)
 #define KOKKOS_ENABLE_CUDA_ATOMICS
+#if defined(KOKKOS_COMPILER_CLANG)
+#define KOKKOS_ENABLE_GNU_ATOMICS
 #endif
-#else
+#endif
+
+#else  // _WIN32
 #if defined(KOKKOS_ENABLE_CUDA)
 
 // Compiling NVIDIA device code, must use Cuda atomics:
 
 #define KOKKOS_ENABLE_CUDA_ATOMICS
-
-#elif defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_ROCM_GPU)
-
-#define KOKKOS_ENABLE_ROCM_ATOMICS
 
 #elif defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HIP_GPU) || \
     defined(KOKKOS_IMPL_ENABLE_OVERLOAD_HOST_DEVICE)
@@ -111,7 +114,7 @@
 #define KOKKOS_ENABLE_SERIAL_ATOMICS
 
 #elif defined(KOKKOS_COMPILER_GNU) || defined(KOKKOS_COMPILER_CLANG) || \
-    (defined(KOKKOS_COMPILER_NVCC))
+    (defined(KOKKOS_COMPILER_NVCC) || defined(KOKKOS_COMPILER_IBM))
 
 #define KOKKOS_ENABLE_GNU_ATOMICS
 
@@ -176,21 +179,11 @@ inline const char* atomic_query_version() {
 // Implements Strongly-typed analogs of C++ standard memory orders
 #include "impl/Kokkos_Atomic_Memory_Order.hpp"
 
-#if defined(KOKKOS_ENABLE_ROCM)
-namespace Kokkos {
-namespace Impl {
-extern KOKKOS_INLINE_FUNCTION bool lock_address_rocm_space(void* ptr);
-
-extern KOKKOS_INLINE_FUNCTION void unlock_address_rocm_space(void* ptr);
-}  // namespace Impl
-}  // namespace Kokkos
-#include <ROCm/Kokkos_ROCm_Atomic.hpp>
-#endif
 #if defined(KOKKOS_ENABLE_HIP)
 #include <HIP/Kokkos_HIP_Atomic.hpp>
 #endif
 
-#ifdef _WIN32
+#if defined(KOKKOS_ENABLE_WINDOWS_ATOMICS)
 #include "impl/Kokkos_Atomic_Windows.hpp"
 #endif
 //----------------------------------------------------------------------------

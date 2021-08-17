@@ -199,7 +199,7 @@ class CrsRowMapFromCounts {
  public:
   KOKKOS_INLINE_FUNCTION
   void operator()(index_type i, value_type& update, bool final_pass) const {
-    if (i < m_in.size()) {
+    if (i < static_cast<index_type>(m_in.size())) {
       update += m_in(i);
       if (final_pass) m_out(i + 1) = update;
     } else if (final_pass) {
@@ -287,7 +287,7 @@ void get_crs_transpose_counts(
 template <class OutRowMap, class InCounts>
 typename OutRowMap::value_type get_crs_row_map_from_counts(
     OutRowMap& out, InCounts const& in, std::string const& name) {
-  out = OutRowMap(ViewAllocateWithoutInitializing(name), in.size() + 1);
+  out = OutRowMap(view_alloc(WithoutInitializing, name), in.size() + 1);
   Kokkos::Impl::CrsRowMapFromCounts<InCounts, OutRowMap> functor(in, out);
   return functor.execute();
 }

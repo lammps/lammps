@@ -57,6 +57,7 @@
 #include <impl/Kokkos_Traits.hpp>
 #include <impl/Kokkos_Error.hpp>
 #include <impl/Kokkos_SharedAlloc.hpp>
+#include <impl/Kokkos_Tools.hpp>
 
 #include "impl/Kokkos_HostSpace_deepcopy.hpp"
 
@@ -94,7 +95,6 @@ void unlock_address_host_space(void* ptr);
 }  // namespace Kokkos
 
 namespace Kokkos {
-
 /// \class HostSpace
 /// \brief Memory management for host memory.
 ///
@@ -165,6 +165,21 @@ class HostSpace {
                   const size_t arg_alloc_size,
                   const size_t arg_logical_size = 0) const;
 
+ private:
+  template <class, class, class, class>
+  friend class Kokkos::Experimental::LogicalMemorySpace;
+
+  void* impl_allocate(const char* arg_label, const size_t arg_alloc_size,
+                      const size_t arg_logical_size = 0,
+                      const Kokkos::Tools::SpaceHandle =
+                          Kokkos::Tools::make_space_handle(name())) const;
+  void impl_deallocate(const char* arg_label, void* const arg_alloc_ptr,
+                       const size_t arg_alloc_size,
+                       const size_t arg_logical_size = 0,
+                       const Kokkos::Tools::SpaceHandle =
+                           Kokkos::Tools::make_space_handle(name())) const;
+
+ public:
   /**\brief Return Name of the MemorySpace */
   static constexpr const char* name() { return m_name; }
 
@@ -227,18 +242,18 @@ namespace Impl {
 
 template <>
 class SharedAllocationRecord<Kokkos::HostSpace, void>
-    : public SharedAllocationRecord<void, void> {
+    : public SharedAllocationRecordCommon<Kokkos::HostSpace> {
  private:
   friend Kokkos::HostSpace;
+  friend class SharedAllocationRecordCommon<Kokkos::HostSpace>;
 
+  using base_t     = SharedAllocationRecordCommon<Kokkos::HostSpace>;
   using RecordBase = SharedAllocationRecord<void, void>;
 
   SharedAllocationRecord(const SharedAllocationRecord&) = delete;
   SharedAllocationRecord& operator=(const SharedAllocationRecord&) = delete;
 
-  static void deallocate(RecordBase*);
-
-#ifdef KOKKOS_DEBUG
+#ifdef KOKKOS_ENABLE_DEBUG
   /**\brief  Root record for tracked allocations from this HostSpace instance */
   static RecordBase s_root_record;
 #endif
@@ -260,10 +275,6 @@ class SharedAllocationRecord<Kokkos::HostSpace, void>
       const RecordBase::function_type arg_dealloc = &deallocate);
 
  public:
-  inline std::string get_label() const {
-    return std::string(RecordBase::head()->m_label);
-  }
-
   KOKKOS_INLINE_FUNCTION static SharedAllocationRecord* allocate(
       const Kokkos::HostSpace& arg_space, const std::string& arg_label,
       const size_t arg_alloc_size) {
@@ -276,23 +287,6 @@ class SharedAllocationRecord<Kokkos::HostSpace, void>
     return (SharedAllocationRecord*)0;
 #endif
   }
-
-  /**\brief  Allocate tracked memory in the space */
-  static void* allocate_tracked(const Kokkos::HostSpace& arg_space,
-                                const std::string& arg_label,
-                                const size_t arg_alloc_size);
-
-  /**\brief  Reallocate tracked memory in the space */
-  static void* reallocate_tracked(void* const arg_alloc_ptr,
-                                  const size_t arg_alloc_size);
-
-  /**\brief  Deallocate tracked memory in the space */
-  static void deallocate_tracked(void* const arg_alloc_ptr);
-
-  static SharedAllocationRecord* get_record(void* arg_alloc_ptr);
-
-  static void print_records(std::ostream&, const Kokkos::HostSpace&,
-                            bool detail = false);
 };
 
 }  // namespace Impl

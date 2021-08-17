@@ -1,6 +1,6 @@
 # /* ----------------------------------------------------------------------
 #  Generic Linux Makefile for HIP
-#     - export HIP_PLATFORM=hcc (or nvcc) before execution
+#     - export HIP_PLATFORM=amd (or nvcc) before execution
 #     - change HIP_ARCH for your GPU
 # ------------------------------------------------------------------------- */
 
@@ -17,7 +17,7 @@ LMP_INC = -DLAMMPS_SMALLBIG
 HIP_PRECISION = -D_SINGLE_DOUBLE
 
 HIP_OPTS = -O3
-HIP_HOST_OPTS = -Wno-deprecated-declarations
+HIP_HOST_OPTS = -Wno-deprecated-declarations -fopenmp
 HIP_HOST_INCLUDE =
 
 # use device sort
@@ -39,6 +39,10 @@ HIP_PLATFORM=$(shell $(HIP_PATH)/bin/hipconfig --platform)
 HIP_COMPILER=$(shell $(HIP_PATH)/bin/hipconfig --compiler)
 
 ifeq (hcc,$(HIP_PLATFORM))
+	HIP_OPTS  += -ffast-math
+	# possible values: gfx803,gfx900,gfx906
+	HIP_ARCH = gfx906
+else ifeq (amd,$(HIP_PLATFORM))
 	HIP_OPTS  += -ffast-math
 	# possible values: gfx803,gfx900,gfx906
 	HIP_ARCH = gfx906

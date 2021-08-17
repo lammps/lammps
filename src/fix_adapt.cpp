@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,26 +13,26 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_adapt.h"
-#include <cstring>
+
 #include "atom.h"
 #include "bond.h"
 #include "domain.h"
-#include "update.h"
-#include "group.h"
-#include "modify.h"
-#include "force.h"
-#include "pair.h"
-#include "pair_hybrid.h"
-#include "kspace.h"
+#include "error.h"
 #include "fix_store.h"
+#include "force.h"
+#include "group.h"
 #include "input.h"
-#include "variable.h"
-#include "respa.h"
+#include "kspace.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
+#include "modify.h"
+#include "pair.h"
+#include "pair_hybrid.h"
+#include "respa.h"
+#include "update.h"
+#include "variable.h"
 
-
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -91,21 +92,15 @@ nadapt(0), id_fix_diam(nullptr), id_fix_chg(nullptr), adapt(nullptr)
     if (strcmp(arg[iarg],"pair") == 0) {
       if (iarg+6 > narg) error->all(FLERR,"Illegal fix adapt command");
       adapt[nadapt].which = PAIR;
-      int n = strlen(arg[iarg+1]) + 1;
-      adapt[nadapt].pstyle = new char[n];
-      strcpy(adapt[nadapt].pstyle,arg[iarg+1]);
-      n = strlen(arg[iarg+2]) + 1;
-      adapt[nadapt].pparam = new char[n];
       adapt[nadapt].pair = nullptr;
-      strcpy(adapt[nadapt].pparam,arg[iarg+2]);
+      adapt[nadapt].pstyle = utils::strdup(arg[iarg+1]);
+      adapt[nadapt].pparam = utils::strdup(arg[iarg+2]);
       utils::bounds(FLERR,arg[iarg+3],1,atom->ntypes,
                     adapt[nadapt].ilo,adapt[nadapt].ihi,error);
       utils::bounds(FLERR,arg[iarg+4],1,atom->ntypes,
                     adapt[nadapt].jlo,adapt[nadapt].jhi,error);
-      if (strstr(arg[iarg+5],"v_") == arg[iarg+5]) {
-        n = strlen(&arg[iarg+5][2]) + 1;
-        adapt[nadapt].var = new char[n];
-        strcpy(adapt[nadapt].var,&arg[iarg+5][2]);
+      if (utils::strmatch(arg[iarg+5],"^v_")) {
+        adapt[nadapt].var = utils::strdup(arg[iarg+5]+2);
       } else error->all(FLERR,"Illegal fix adapt command");
       nadapt++;
       iarg += 6;
@@ -113,19 +108,13 @@ nadapt(0), id_fix_diam(nullptr), id_fix_chg(nullptr), adapt(nullptr)
     } else if (strcmp(arg[iarg],"bond") == 0) {
       if (iarg+5 > narg) error->all(FLERR, "Illegal fix adapt command");
       adapt[nadapt].which = BOND;
-      int n = strlen(arg[iarg+1]) + 1;
-      adapt[nadapt].bstyle = new char[n];
-      strcpy(adapt[nadapt].bstyle,arg[iarg+1]);
-      n = strlen(arg[iarg+2]) + 1;
-      adapt[nadapt].bparam = new char[n];
       adapt[nadapt].bond = nullptr;
-      strcpy(adapt[nadapt].bparam,arg[iarg+2]);
+      adapt[nadapt].bstyle = utils::strdup(arg[iarg+1]);
+      adapt[nadapt].bparam = utils::strdup(arg[iarg+2]);
       utils::bounds(FLERR,arg[iarg+3],1,atom->nbondtypes,
                     adapt[nadapt].ilo,adapt[nadapt].ihi,error);
-      if (strstr(arg[iarg+4],"v_") == arg[iarg+4]) {
-        n = strlen(&arg[iarg+4][2]) + 1;
-        adapt[nadapt].var = new char[n];
-        strcpy(adapt[nadapt].var,&arg[iarg+4][2]);
+      if (utils::strmatch(arg[iarg+4],"^v_")) {
+        adapt[nadapt].var = utils::strdup(arg[iarg+4]+2);
       } else error->all(FLERR,"Illegal fix adapt command");
       nadapt++;
       iarg += 5;
@@ -133,10 +122,8 @@ nadapt(0), id_fix_diam(nullptr), id_fix_chg(nullptr), adapt(nullptr)
     } else if (strcmp(arg[iarg],"kspace") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix adapt command");
       adapt[nadapt].which = KSPACE;
-      if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
-        int n = strlen(&arg[iarg+1][2]) + 1;
-        adapt[nadapt].var = new char[n];
-        strcpy(adapt[nadapt].var,&arg[iarg+1][2]);
+      if (utils::strmatch(arg[iarg+1],"^v_")) {
+        adapt[nadapt].var = utils::strdup(arg[iarg+1]+2);
       } else error->all(FLERR,"Illegal fix adapt command");
       nadapt++;
       iarg += 2;
@@ -154,10 +141,8 @@ nadapt(0), id_fix_diam(nullptr), id_fix_chg(nullptr), adapt(nullptr)
         adapt[nadapt].aparam = CHARGE;
         chgflag = 1;
       } else error->all(FLERR,"Illegal fix adapt command");
-      if (strstr(arg[iarg+2],"v_") == arg[iarg+2]) {
-        int n = strlen(&arg[iarg+2][2]) + 1;
-        adapt[nadapt].var = new char[n];
-        strcpy(adapt[nadapt].var,&arg[iarg+2][2]);
+      if (utils::strmatch(arg[iarg+2],"^v_")) {
+        adapt[nadapt].var = utils::strdup(arg[iarg+2]+2);
       } else error->all(FLERR,"Illegal fix adapt command");
       nadapt++;
       iarg += 3;
@@ -267,13 +252,9 @@ void FixAdapt::post_constructor()
   id_fix_chg = nullptr;
 
   if (diamflag && atom->radius_flag) {
-    std::string fixcmd = id + std::string("_FIX_STORE_DIAM");
-    id_fix_diam = new char[fixcmd.size()+1];
-    strcpy(id_fix_diam,fixcmd.c_str());
-    fixcmd += fmt::format(" {} STORE peratom 1 1",group->names[igroup]);
-    modify->add_fix(fixcmd);
-    fix_diam = (FixStore *) modify->fix[modify->nfix-1];
-
+    id_fix_diam = utils::strdup(id + std::string("_FIX_STORE_DIAM"));
+    fix_diam = (FixStore *) modify->add_fix(fmt::format("{} {} STORE peratom 1 1",
+                                                        id_fix_diam,group->names[igroup]));
     if (fix_diam->restart_reset) fix_diam->restart_reset = 0;
     else {
       double *vec = fix_diam->vstore;
@@ -289,13 +270,9 @@ void FixAdapt::post_constructor()
   }
 
   if (chgflag && atom->q_flag) {
-    std::string fixcmd = id + std::string("_FIX_STORE_CHG");
-    id_fix_chg = new char[fixcmd.size()+1];
-    strcpy(id_fix_chg,fixcmd.c_str());
-    fixcmd += fmt::format(" {} STORE peratom 1 1",group->names[igroup]);
-    modify->add_fix(fixcmd);
-    fix_chg = (FixStore *) modify->fix[modify->nfix-1];
-
+    id_fix_chg = utils::strdup(id + std::string("_FIX_STORE_CHG"));
+    fix_chg = (FixStore *) modify->add_fix(fmt::format("{} {} STORE peratom 1 1",
+                                                       id_fix_chg,group->names[igroup]));
     if (fix_chg->restart_reset) fix_chg->restart_reset = 0;
     else {
       double *vec = fix_chg->vstore;
@@ -320,7 +297,7 @@ void FixAdapt::init()
   // allow a dynamic group only if ATOM attribute not used
 
   if (group->dynamic[igroup])
-    for (int i = 0; i < nadapt; i++)
+    for (i = 0; i < nadapt; i++)
       if (adapt[i].which == ATOM)
         error->all(FLERR,"Cannot use dynamic group with fix adapt atom");
 
@@ -346,10 +323,7 @@ void FixAdapt::init()
       //   strip it for pstyle arg to pair_match() and set nsub = N
       // this should work for appended suffixes as well
 
-      int n = strlen(ad->pstyle) + 1;
-      char *pstyle = new char[n];
-      strcpy(pstyle,ad->pstyle);
-
+      char *pstyle = utils::strdup(ad->pstyle);
       char *cptr;
       int nsub = 0;
       if ((cptr = strchr(pstyle,':'))) {
@@ -399,10 +373,7 @@ void FixAdapt::init()
       ad->bond = nullptr;
       anybond = 1;
 
-      int n = strlen(ad->bstyle) + 1;
-      char *bstyle = new char[n];
-      strcpy(bstyle,ad->bstyle);
-
+      char *bstyle = utils::strdup(ad->bstyle);
       if (lmp->suffix_enable) {
         int len = 2 + strlen(bstyle) + strlen(lmp->suffix);
         char *bsuffix = new char[len];
@@ -486,7 +457,7 @@ void FixAdapt::init()
     fix_chg = (FixStore *) modify->fix[ifix];
   }
 
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 }
 

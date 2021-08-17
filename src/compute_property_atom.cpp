@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,21 +13,22 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_property_atom.h"
-#include <cmath>
-#include <cstring>
-#include "math_extra.h"
+
 #include "atom.h"
 #include "atom_vec.h"
+#include "atom_vec_body.h"
 #include "atom_vec_ellipsoid.h"
 #include "atom_vec_line.h"
 #include "atom_vec_tri.h"
-#include "atom_vec_body.h"
-#include "update.h"
-#include "domain.h"
 #include "comm.h"
-#include "utils.h"
-#include "memory.h"
+#include "domain.h"
 #include "error.h"
+#include "math_extra.h"
+#include "memory.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -372,23 +374,39 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
                                  "atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_corner3z;
 
-    // custom per-atom vectors
-      
-    } else if (strstr(arg[iarg],"i_") == arg[iarg]) {
-      int flag,cols;
-      index[i] = atom->find_custom(&arg[iarg][2],flag,cols);
-      if (index[i] < 0 || flag || cols)
-        error->all(FLERR,"Compute property/atom custom vector does not exist");
+    } else if (strcmp(arg[iarg],"nbonds") == 0) {
+      if (!atom->molecule_flag)
+        error->all(FLERR,"Compute property/atom for "
+                   "atom property that isn't allocated");
+      pack_choice[i] = &ComputePropertyAtom::pack_nbonds;
+
+    } else if (strcmp(arg[iarg],"buckling") == 0) {
+      if (!atom->mesont_flag)
+        error->all(FLERR,"Compute property/atom for "
+                   "atom property that isn't allocated");
+      pack_choice[i] = &ComputePropertyAtom::pack_buckling;
+
+    // custom per-atom vector
+
+    } else if (utils::strmatch(arg[iarg],"^i_")) {
+      int flag,icol;
+      index[i] = atom->find_custom(&arg[iarg][2],flag,icol);
+      if (index[i] < 0 || flag || icol)
+        error->all(FLERR,"Compute property/atom integer "
+                   "vector does not exist");
       pack_choice[i] = &ComputePropertyAtom::pack_iname;
-    } else if (strstr(arg[iarg],"d_") == arg[iarg]) {
-      int flag,cols;
-      index[i] = atom->find_custom(&arg[iarg][2],flag,cols);
-      if (index[i] < 0 || !flag || cols)
-        error->all(FLERR,"Compute property/atom custom vector does not exist");
+    } else if (utils::strmatch(arg[iarg],"^d_")) {
+      int flag;
+      index[i] = atom->find_custom(&arg[iarg][2],flag,icol);
+      if (index[i] < 0 || flag || icol1)
+        error->all(FLERR,"Compute property/atom floating point "
+                   "vector does not exist");
       pack_choice[i] = &ComputePropertyAtom::pack_dname;
+    }
 
     // custom per-atom arrays, must include bracketed index
-      
+    // OLDSTYLE code
+
     } else if (strstr(arg[iarg],"i2_") == arg[iarg] || 
 	       strstr(arg[iarg],"d2_") == arg[iarg]) {
       int which = 0;
@@ -493,7 +511,7 @@ void ComputePropertyAtom::compute_peratom()
 
 double ComputePropertyAtom::memory_usage()
 {
-  double bytes = nmax*nvalues * sizeof(double);
+  double bytes = (double)nmax*nvalues * sizeof(double);
   return bytes;
 }
 

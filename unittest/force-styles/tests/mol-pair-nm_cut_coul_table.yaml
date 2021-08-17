@@ -1,7 +1,8 @@
 ---
-lammps_version: 24 Aug 2020
-date_generated: Tue Sep 15 09:44:20 202
+lammps_version: 10 Feb 2021
+date_generated: Fri Feb 26 23:08:56 2021
 epsilon: 5e-12
+skip_tests: gpu
 prerequisites: ! |
   atom full
   pair nm/cut/coul/long

@@ -144,16 +144,20 @@ writing the orientation files is given in :ref:`(Wicaksono2) <Wicaksono2>`
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-No information about this fix is written to :doc:`binary restart files <restart>`.
+No information about this fix is written to :doc:`binary restart files
+<restart>`.
 
-The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
-fix to add the potential energy of atom interactions with the grain
-boundary driving force to the system's potential energy as part of
-:doc:`thermodynamic output <thermo_style>`.
+The :doc:`fix_modify <fix_modify>` *energy* option is supported by
+this fix to add the potential energy of atom interactions with the
+grain boundary driving force to the global potential energy of the
+system as part of :doc:`thermodynamic output <thermo_style>`.  The
+default setting for this fix is :doc:`fix_modify energy no
+<fix_modify>`.
 
-The :doc:`fix_modify <fix_modify>` *respa* option is supported by these
-fixes. This allows to set at which level of the :doc:`r-RESPA <run_style>`
-integrator a fix is adding its forces. Default is the outermost level.
+The :doc:`fix_modify <fix_modify>` *respa* option is supported by
+these fixes. This allows to set at which level of the :doc:`r-RESPA
+<run_style>` integrator a fix is adding its forces. Default is the
+outermost level.
 
 This fix calculates a global scalar which can be accessed by various
 :doc:`output commands <Howto_output>`.  The scalar is the potential
@@ -166,15 +170,18 @@ order parameter Xi and normalized order parameter (0 to 1) for each
 atom.  The per-atom values can be accessed on any timestep.
 
 No parameter of this fix can be used with the *start/stop* keywords of
-the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minimization <minimize>`.
+the :doc:`run <run>` command.
+
+This fix is not invoked during :doc:`energy minimization <minimize>`.
 
 Restrictions
 """"""""""""
 
-This fix is part of the MISC package.  It is only enabled if LAMMPS
-was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+These fixes are part of the ORIENT package.  They are only enabled if LAMMPS
+was built with that package.  See the :doc:`Build package
+<Build_package>` page for more info.
 
-This fix should only be used with fcc or bcc lattices.
+These fixes should only be used with fcc or bcc lattices.
 
 Related commands
 """"""""""""""""

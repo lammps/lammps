@@ -424,6 +424,8 @@ INPUT                  = @LAMMPS_SOURCE_DIR@/utils.cpp                 \
                          @LAMMPS_SOURCE_DIR@/input.h                   \
                          @LAMMPS_SOURCE_DIR@/tokenizer.cpp             \
                          @LAMMPS_SOURCE_DIR@/tokenizer.h               \
+                         @LAMMPS_SOURCE_DIR@/arg_info.cpp              \
+                         @LAMMPS_SOURCE_DIR@/arg_info.h                \
                          @LAMMPS_SOURCE_DIR@/text_file_reader.cpp      \
                          @LAMMPS_SOURCE_DIR@/text_file_reader.h        \
                          @LAMMPS_SOURCE_DIR@/potential_file_reader.cpp \

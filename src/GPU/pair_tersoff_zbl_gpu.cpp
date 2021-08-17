@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,22 +17,17 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_tersoff_zbl_gpu.h"
-#include <cmath>
-#include <cstdio>
 
-#include <cstring>
 #include "atom.h"
-#include "neighbor.h"
-#include "neigh_request.h"
-#include "force.h"
 #include "comm.h"
-#include "memory.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "memory.h"
-#include "error.h"
 #include "domain.h"
+#include "error.h"
+#include "force.h"
 #include "gpu_extra.h"
+#include "memory.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
 #include "suffix.h"
 
 using namespace LAMMPS_NS;
@@ -41,7 +37,7 @@ using namespace LAMMPS_NS;
 int tersoff_zbl_gpu_init(const int ntypes, const int inum, const int nall,
                      const int max_nbors, const double cell_size, int &gpu_mode,
                      FILE *screen, int* host_map, const int nelements,
-                     int*** host_elem2param, const int nparams,
+                     int*** host_elem3param, const int nparams,
                      const double* ts_lam1, const double* ts_lam2,
                      const double* ts_lam3, const double* ts_powermint,
                      const double* ts_biga, const double* ts_bigb,
@@ -69,8 +65,6 @@ void tersoff_zbl_gpu_compute(const int ago, const int nlocal, const int nall,
                     const bool vflag, const bool eatom, const bool vatom,
                     int &host_start, const double cpu_time, bool &success);
 double tersoff_zbl_gpu_bytes();
-extern double lmp_gpu_forces(double **f, double **tor, double *eatom,
-                             double **vatom, double *virial, double &ecoul);
 
 /* ---------------------------------------------------------------------- */
 
@@ -225,10 +219,11 @@ void PairTersoffZBLGPU::init_style()
     _cutsq[i] = params[i].cutsq;
   }
 
+  int mnf = 5e-2 * neighbor->oneatom;
   int success = tersoff_zbl_gpu_init(atom->ntypes+1, atom->nlocal,
-                                 atom->nlocal+atom->nghost, 300,
+                                 atom->nlocal+atom->nghost, mnf,
                                  cell_size, gpu_mode, screen, map, nelements,
-                                 elem2param, nparams, lam1, lam2, lam3,
+                                 elem3param, nparams, lam1, lam2, lam3,
                                  powermint, biga, bigb, bigr, bigd,
                                  c1, c2, c3, c4, c, d, h, gamma,
                                  beta, powern, Z_i, Z_j, ZBLcut, ZBLexpscale,
@@ -266,7 +261,6 @@ void PairTersoffZBLGPU::init_style()
     neighbor->requests[irequest]->full = 1;
     neighbor->requests[irequest]->ghost = 1;
   }
-
   if (comm->cutghostuser < (2.0*cutmax + neighbor->skin)) {
     comm->cutghostuser = 2.0*cutmax + neighbor->skin;
     if (comm->me == 0)

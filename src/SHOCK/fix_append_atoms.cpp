@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -49,6 +50,7 @@ FixAppendAtoms::FixAppendAtoms(LAMMPS *lmp, int narg, char **arg) :
   scaleflag = 1;
   spatflag=0;
   spatialid = nullptr;
+  size = 0.0;
   xloflag = xhiflag = yloflag = yhiflag = zloflag = zhiflag = 0;
 
   tempflag = 0;
@@ -122,14 +124,8 @@ FixAppendAtoms::FixAppendAtoms(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,
                    "Bad fix ID in fix append/atoms command");
       spatflag = 1;
-      int n = strlen(arg[iarg+1]);
+      spatialid = utils::strdup(arg[iarg+1]+2);
       spatlead = utils::numeric(FLERR,arg[iarg+2],false,lmp);
-      char *suffix = new char[n];
-      strcpy(suffix,&arg[iarg+1][2]);
-      n = strlen(suffix) + 1;
-      spatialid = new char[n];
-      strcpy(spatialid,suffix);
-      delete [] suffix;
       iarg += 3;
     } else if (strcmp(arg[iarg],"basis") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix append/atoms command");

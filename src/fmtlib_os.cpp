@@ -1,3 +1,4 @@
+// clang-format off
 // Formatting library for C++ - optional OS-specific functionality
 //
 // Copyright (c) 2012 - 2016, Victor Zverovich

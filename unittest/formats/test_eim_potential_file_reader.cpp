@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -18,6 +18,7 @@
 #include "utils.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#include "../testing/core.h"
 
 #include <cstring>
 #include <mpi.h>
@@ -28,28 +29,23 @@ using utils::split_words;
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
 bool verbose = false;
 
-class EIMPotentialFileReaderTest : public ::testing::Test {
+class EIMPotentialFileReaderTest : public LAMMPSTest {
 protected:
-    LAMMPS *lmp;
     PairEIM::Setfl setfl;
     static const int nelements = 9;
 
     void SetUp() override
     {
-        const char *args[] = {
-            "PotentialFileReaderTest", "-log", "none", "-echo", "screen", "-nocite"};
-        char **argv = (char **)args;
-        int argc    = sizeof(args) / sizeof(char *);
-        if (!verbose) ::testing::internal::CaptureStdout();
-        lmp = new LAMMPS(argc, argv, MPI_COMM_WORLD);
-        lmp->input->one("units metal");
-        if (!verbose) ::testing::internal::GetCapturedStdout();
+        testbinary = "EIMPotentialFileReaderTest";
+        LAMMPSTest::SetUp();
         ASSERT_NE(lmp, nullptr);
+    
+        BEGIN_HIDE_OUTPUT();
+        command("units metal");
+        END_HIDE_OUTPUT();
 
         // check if the prerequisite eim pair style is available
-        Info *info = new Info(lmp);
         ASSERT_TRUE(info->has_style("pair", "eim"));
-        delete info;
 
         int npair        = nelements * (nelements + 1) / 2;
         setfl.ielement   = new int[nelements];
@@ -99,17 +95,15 @@ protected:
         delete[] setfl.rs;
         delete[] setfl.tp;
 
-        if (!verbose) ::testing::internal::CaptureStdout();
-        delete lmp;
-        if (!verbose) ::testing::internal::GetCapturedStdout();
+        LAMMPSTest::TearDown();
     }
 };
 
 TEST_F(EIMPotentialFileReaderTest, global_line)
 {
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     EIMPotentialFileReader reader(lmp, "ffield.eim");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
 
     reader.get_global(&setfl);
     ASSERT_DOUBLE_EQ(setfl.division, 2.0);
@@ -119,9 +113,9 @@ TEST_F(EIMPotentialFileReaderTest, global_line)
 
 TEST_F(EIMPotentialFileReaderTest, element_line_sequential)
 {
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     EIMPotentialFileReader reader(lmp, "ffield.eim");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
 
     reader.get_element(&setfl, 0, "Li");
     ASSERT_EQ(setfl.ielement[0], 3);
@@ -144,9 +138,9 @@ TEST_F(EIMPotentialFileReaderTest, element_line_sequential)
 
 TEST_F(EIMPotentialFileReaderTest, element_line_random)
 {
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     EIMPotentialFileReader reader(lmp, "ffield.eim");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
 
     reader.get_element(&setfl, 0, "Id");
     ASSERT_EQ(setfl.ielement[0], 53);
@@ -160,9 +154,9 @@ TEST_F(EIMPotentialFileReaderTest, element_line_random)
 
 TEST_F(EIMPotentialFileReaderTest, pair_line)
 {
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     EIMPotentialFileReader reader(lmp, "ffield.eim");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
 
     reader.get_pair(&setfl, 0, "Li", "Li");
     ASSERT_DOUBLE_EQ(setfl.rcutphiA[0], 6.0490e+00);
@@ -183,9 +177,9 @@ TEST_F(EIMPotentialFileReaderTest, pair_line)
 
 TEST_F(EIMPotentialFileReaderTest, pair_identical)
 {
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     EIMPotentialFileReader reader(lmp, "ffield.eim");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
 
     reader.get_pair(&setfl, 0, "Li", "Na");
     reader.get_pair(&setfl, 1, "Na", "Li");

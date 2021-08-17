@@ -1,6 +1,7 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -14,9 +15,8 @@
 #include "my_pool_chunk.h"
 
 #include <cstdlib>
-#include <cstdio>
 
-#if defined(LMP_USER_INTEL) && !defined(LAMMPS_MEMALIGN) && !defined(_WIN32)
+#if defined(LMP_INTEL) && !defined(LAMMPS_MEMALIGN) && !defined(_WIN32)
 #define LAMMPS_MEMALIGN 64
 #endif
 
@@ -174,9 +174,9 @@ template <class T>
 void MyPoolChunk<T>::allocate(int ibin) {
   int oldpage = npage;
   npage += pagedelta;
-  freelist = (int *) realloc(freelist,npage*chunkperpage*sizeof(int));
-  pages = (T **) realloc(pages,npage*sizeof(T *));
-  whichbin = (int *) realloc(whichbin,npage*sizeof(int));
+  freelist = (int *) realloc(freelist,sizeof(int)*npage*chunkperpage);
+  pages = (T **) realloc(pages,sizeof(T *)*npage);
+  whichbin = (int *) realloc(whichbin,sizeof(int)*npage);
   if (!freelist || !pages) {
     errorflag = 2;
     return;
@@ -189,11 +189,11 @@ void MyPoolChunk<T>::allocate(int ibin) {
 #if defined(LAMMPS_MEMALIGN)
     void *ptr;
     if (posix_memalign(&ptr, LAMMPS_MEMALIGN,
-                       chunkperpage*chunksize[ibin]*sizeof(T)))
+                       sizeof(T)*chunkperpage*chunksize[ibin]))
       errorflag = 2;
     pages[i] = (T *) ptr;
 #else
-    pages[i] = (T *) malloc(chunkperpage*chunksize[ibin]*sizeof(T));
+    pages[i] = (T *) malloc(sizeof(T)*chunkperpage*chunksize[ibin]);
     if (!pages[i]) errorflag = 2;
 #endif
   }
@@ -211,11 +211,11 @@ void MyPoolChunk<T>::allocate(int ibin) {
 
 template <class T>
 double MyPoolChunk<T>::size() const {
-  double bytes = npage*chunkperpage*sizeof(int);
-  bytes += npage*sizeof(T *);
-  bytes += npage*sizeof(int);
+  double bytes = (double)npage*chunkperpage*sizeof(int);
+  bytes += (double)npage*sizeof(T *);
+  bytes += (double)npage*sizeof(int);
   for (int i=0; i < npage; ++i)
-    bytes += chunkperpage*chunksize[i]*sizeof(T);
+    bytes += (double)chunkperpage*chunksize[i]*sizeof(T);
 
   return bytes;
 }

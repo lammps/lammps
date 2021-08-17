@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -112,7 +113,7 @@ void PairEAMOpt::eval()
   int ntypes2 = ntypes*ntypes;
 
   fast_alpha_t* _noalias fast_alpha =
-    (fast_alpha_t*) malloc(ntypes2*(nr+1)*sizeof(fast_alpha_t));
+    (fast_alpha_t*) malloc((size_t)ntypes2*(nr+1)*sizeof(fast_alpha_t));
   for (i = 0; i < ntypes; i++) for (j = 0; j < ntypes; j++) {
     fast_alpha_t* _noalias tab = &fast_alpha[i*ntypes*nr+j*nr];
     if (type2rhor[i+1][j+1] >= 0) {
@@ -135,7 +136,7 @@ void PairEAMOpt::eval()
   fast_alpha_t* _noalias tabeight = fast_alpha;
 
   fast_gamma_t* _noalias fast_gamma =
-    (fast_gamma_t*) malloc(ntypes2*(nr+1)*sizeof(fast_gamma_t));
+    (fast_gamma_t*) malloc((size_t)ntypes2*(nr+1)*sizeof(fast_gamma_t));
   for (i = 0; i < ntypes; i++) for (j = 0; j < ntypes; j++) {
     fast_gamma_t* _noalias tab = &fast_gamma[i*ntypes*nr+j*nr];
     if (type2rhor[i+1][j+1] >= 0) {

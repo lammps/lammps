@@ -1,6 +1,7 @@
-/* ----------------------------------------------------------------------
+// clang-format off
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -54,6 +55,7 @@ SNAKokkos<DeviceType, real_type, vector_length>::SNAKokkos(real_type rfac0_in,
   ncoeff = compute_ncoeff();
 
   nmax = 0;
+  natom = 0;
 
   build_indexlist();
 
@@ -290,8 +292,6 @@ void SNAKokkos<DeviceType, real_type, vector_length>::grow_rij(int newnatom, int
   natom = newnatom;
   nmax = newnmax;
 
-  int natom_div = (natom + vector_length - 1) / vector_length;
-
   rij = t_sna_3d(Kokkos::NoInit("sna:rij"),natom,nmax,3);
   wj = t_sna_2d(Kokkos::NoInit("sna:wj"),natom,nmax);
   rcutij = t_sna_2d(Kokkos::NoInit("sna:rcutij"),natom,nmax);
@@ -301,6 +301,8 @@ void SNAKokkos<DeviceType, real_type, vector_length>::grow_rij(int newnatom, int
 
 #ifdef LMP_KOKKOS_GPU
   if (!host_flag) {
+    const int natom_div = (natom + vector_length - 1) / vector_length;
+
     a_pack = t_sna_3c_ll(Kokkos::NoInit("sna:a_pack"),vector_length,nmax,natom_div);
     b_pack = t_sna_3c_ll(Kokkos::NoInit("sna:b_pack"),vector_length,nmax,natom_div);
     da_pack = t_sna_4c_ll(Kokkos::NoInit("sna:da_pack"),vector_length,nmax,natom_div,3);
@@ -518,15 +520,12 @@ void SNAKokkos<DeviceType, real_type, vector_length>::compute_ui(const typename 
     // this is "creeping up the side"
     for (int j = 1; j <= j_bend; j++) {
 
-      int jjup = idxu_half_block[j-1];
-
       constexpr int mb = 0; // intentional for readability, compiler should optimize this out
 
       complex ulist_accum = complex::zero();
 
       int ma;
       for (ma = 0; ma < j; ma++) {
-        const int jjup_index = idxu_half_block[j - 1] + mb * j + ma;
 
         // grab the cached value
         const complex ulist_prev = ulist_wrapper.get(ma);
@@ -884,11 +883,65 @@ void SNAKokkos<DeviceType, real_type, vector_length>::compute_yi(int iatom_mod, 
 }
 
 /* ----------------------------------------------------------------------
+   compute Yi from Ui without storing Zi, looping over zlist indices.
+   AoSoA data layout to take advantage of coalescing, avoiding warp
+   divergence. GPU version.
+------------------------------------------------------------------------- */
+
+template<class DeviceType, typename real_type, int vector_length>
+KOKKOS_INLINE_FUNCTION
+void SNAKokkos<DeviceType, real_type, vector_length>::compute_yi_with_zlist(int iatom_mod, int jjz, int iatom_div,
+ const Kokkos::View<real_type***, Kokkos::LayoutLeft, DeviceType> &beta_pack)
+{
+  real_type betaj;
+  const int j1 = idxz(jjz, 0);
+  const int j2 = idxz(jjz, 1);
+  const int j = idxz(jjz, 2);
+  const int jju_half = idxz(jjz, 9);
+  int idouble = 0;
+  for (int elem1 = 0; elem1 < nelements; elem1++) {
+    for (int elem2 = 0; elem2 < nelements; elem2++) {
+      auto ztmp = zlist_pack(iatom_mod,jjz,idouble,iatom_div);
+      // apply to z(j1,j2,j,ma,mb) to unique element of y(j)
+      // find right y_list[jju] and beta(iatom,jjb) entries
+      // multiply and divide by j+1 factors
+      // account for multiplicity of 1, 2, or 3
+      // pick out right beta value
+      for (int elem3 = 0; elem3 < nelements; elem3++) {
+        if (j >= j1) {
+          const int jjb = idxb_block(j1, j2, j);
+          const auto itriple = ((elem1 * nelements + elem2) * nelements + elem3) * idxb_max + jjb;
+          if (j1 == j) {
+            if (j2 == j) betaj = 3 * beta_pack(iatom_mod, itriple, iatom_div);
+            else betaj = 2 * beta_pack(iatom_mod, itriple, iatom_div);
+          } else betaj = beta_pack(iatom_mod, itriple, iatom_div);
+        } else if (j >= j2) {
+          const int jjb = idxb_block(j, j2, j1);
+          const auto itriple = ((elem3 * nelements + elem2) * nelements + elem1) * idxb_max + jjb;
+          if (j2 == j) betaj = 2 * beta_pack(iatom_mod, itriple, iatom_div);
+          else betaj = beta_pack(iatom_mod, itriple, iatom_div);
+        } else {
+          const int jjb = idxb_block(j2, j, j1);
+          const auto itriple = ((elem2 * nelements + elem3) * nelements + elem1) * idxb_max + jjb;
+          betaj = beta_pack(iatom_mod, itriple, iatom_div);
+        }
+        if (!bnorm_flag && j1 > j)
+          betaj *= (j1 + 1) / (j + 1.0);
+        Kokkos::atomic_add(&(ylist_pack_re(iatom_mod, jju_half, elem3, iatom_div)), betaj*ztmp.re);
+        Kokkos::atomic_add(&(ylist_pack_im(iatom_mod, jju_half, elem3, iatom_div)), betaj*ztmp.im);
+      } // end loop over elem3
+      idouble++;
+    } // end loop over elem2
+  } // end loop over elem1
+}
+
+/* ----------------------------------------------------------------------
    Fused calculation of the derivative of Ui w.r.t. atom j
    and accumulation into dEidRj. GPU only.
 ------------------------------------------------------------------------- */
 
 template<class DeviceType, typename real_type, int vector_length>
+template<int dir>
 KOKKOS_INLINE_FUNCTION
 void SNAKokkos<DeviceType, real_type, vector_length>::compute_fused_deidrj(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, const int iatom_mod, const int j_bend, const int jnbor, const int iatom_div)
 {
@@ -928,8 +981,6 @@ void SNAKokkos<DeviceType, real_type, vector_length>::compute_fused_deidrj(const
     // this is "creeping up the side"
     for (int j = 1; j <= j_bend; j++) {
 
-      int jjup = idxu_half_block[j-1];
-
       constexpr int mb = 0; // intentional for readability, compiler should optimize this out
 
       complex ulist_accum = complex::zero();
@@ -937,7 +988,6 @@ void SNAKokkos<DeviceType, real_type, vector_length>::compute_fused_deidrj(const
 
       int ma;
       for (ma = 0; ma < j; ma++) {
-        const int jjup_index = idxu_half_block[j - 1] + mb * j + ma;
 
         // grab the cached value
         const complex ulist_prev = ulist_wrapper.get(ma);
@@ -1074,7 +1124,7 @@ void SNAKokkos<DeviceType, real_type, vector_length>::pre_ui_cpu(const typename 
 {
   for (int jelem = 0; jelem < nelements; jelem++) {
     for (int j = 0; j <= twojmax; j++) {
-      const int jju = idxu_half_block(j);
+      int jju = idxu_half_block(j); // removed "const" to work around GCC 7 bug
 
       // Only diagonal elements get initialized
       // for (int m = 0; m < (j+1)*(j/2+1); m++)
@@ -1224,7 +1274,7 @@ void SNAKokkos<DeviceType, real_type, vector_length>::compute_bi_cpu(const typen
           [&] (const int& jjb) {
           const int j1 = idxb(jjb, 0);
           const int j2 = idxb(jjb, 1);
-          const int j = idxb(jjb, 2);
+          int j = idxb(jjb, 2); // removed "const" to work around GCC 7 bug
 
           int jjz = idxz_block(j1, j2, j);
           int jju = idxu_block[j];
@@ -1247,7 +1297,7 @@ void SNAKokkos<DeviceType, real_type, vector_length>::compute_bi_cpu(const typen
           // For j even, special treatment for middle column
 
           if (j%2 == 0) {
-            const int mb = j/2;
+            int mb = j/2; // removed "const" to work around GCC 7 bug
             Kokkos::parallel_reduce(Kokkos::ThreadVectorRange(team, mb),
                 [&] (const int ma, real_type& sum) {
               const int jju_index = jju+(mb-1)*(j+1)+(j+1)+ma;
@@ -1557,8 +1607,8 @@ void SNAKokkos<DeviceType, real_type, vector_length>::compute_uarray_cpu(const t
   ulist(0,iatom,jnbor).im = 0.0;
 
   for (int j = 1; j <= twojmax; j++) {
-    const int jju = idxu_cache_block[j];
-    const int jjup = idxu_cache_block[j-1];
+    int jju = idxu_cache_block[j]; // removed "const" to work around GCC 7 bug
+    int jjup = idxu_cache_block[j-1]; // removed "const" to work around GCC 7 bug
 
     // fill in left side of matrix layer from previous layer
 
@@ -2164,15 +2214,6 @@ void SNAKokkos<DeviceType, real_type, vector_length>::compute_s_dsfac(const real
 
     }
   } else { sfac = zero; dsfac = zero; }
-}
-
-/* ---------------------------------------------------------------------- */
-
-// set direction of batched Duidrj
-template<class DeviceType, typename real_type, int vector_length>
-KOKKOS_FORCEINLINE_FUNCTION
-void SNAKokkos<DeviceType, real_type, vector_length>::set_dir(int dir_) {
-  dir = dir_;
 }
 
 /* ----------------------------------------------------------------------

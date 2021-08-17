@@ -1,6 +1,6 @@
 # ----------------------------------------------------------------------
 #   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-#   http://lammps.sandia.gov, Sandia National Laboratories
+#   https://www.lammps.org/ Sandia National Laboratories
 #   Steve Plimpton, sjplimp@sandia.gov
 #
 #   Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -23,7 +23,6 @@ from __future__ import print_function
 import os
 import re
 import select
-import sys
 from collections import namedtuple
 
 from .core import lammps
@@ -41,7 +40,7 @@ class OutputCapture(object):
     os.dup2(self.stdout_pipe_write, self.stdout_fd)
     return self
 
-  def __exit__(self, type, value, tracebac):
+  def __exit__(self, exc_type, exc_value, traceback):
     os.dup2(self.stdout, self.stdout_fd)
     os.close(self.stdout)
     os.close(self.stdout_pipe_read)
@@ -131,6 +130,9 @@ class Atom(object):
   def __init__(self, pylammps_instance, index):
     self._pylmp = pylammps_instance
     self.index = index
+
+  def __dir__(self):
+    return [k for k in super().__dir__() if not k.startswith('_')]
 
   @property
   def id(self):
@@ -238,7 +240,8 @@ class Atom2D(Atom):
 
   @property
   def position(self):
-    """
+    """Access to coordinates of an atom
+
     :getter: Return position of atom
     :setter: Set position of atom
     :type: tuple (float, float)
@@ -253,7 +256,7 @@ class Atom2D(Atom):
 
   @property
   def velocity(self):
-    """
+    """Access to velocity of an atom
     :getter: Return velocity of atom
     :setter: Set velocity of atom
     :type: tuple (float, float)
@@ -268,8 +271,7 @@ class Atom2D(Atom):
 
   @property
   def force(self):
-    """
-    Return the total force acting on the atom
+    """Access to force of an atom
 
     :type: tuple (float, float)
     """
@@ -297,6 +299,9 @@ class variable_set:
 
     def __str__(self):
         return "{}({})".format(self._name, ','.join(["{}={}".format(k, self.__dict__[k]) for k in self.__dict__.keys() if not k.startswith('_')]))
+
+    def __dir__(self):
+        return [k for k in self.__dict__.keys() if not k.startswith('_')]
 
     def __repr__(self):
         return self.__str__()
@@ -329,7 +334,7 @@ def get_thermo_data(output):
 
         elif line.startswith("Loop time of "):
             in_run = False
-            columns = None
+            columns = []
             thermo_data = variable_set('ThermoData', current_run)
             r = {'thermo' : thermo_data }
             runs.append(namedtuple('Run', list(r.keys()))(*list(r.values())))
@@ -345,6 +350,7 @@ def get_thermo_data(output):
                     for i, col in enumerate(columns):
                         current_run[col].append(values[i])
                 except ValueError:
+                  # cannot convert. must be a non-thermo output. ignore.
                   pass
 
     return runs
@@ -400,7 +406,14 @@ class PyLammps(object):
       self.lmp = lammps(name=name,cmdargs=cmdargs,ptr=None,comm=comm)
     print("LAMMPS output is captured by PyLammps wrapper")
     self._cmd_history = []
+    self._enable_cmd_history = False
     self.runs = []
+
+  def __enter__(self):
+    return self
+
+  def __exit__(self, ex_type, ex_value, ex_traceback):
+    self.close()
 
   def __del__(self):
     if self.lmp: self.lmp.close()
@@ -434,6 +447,24 @@ class PyLammps(object):
     """
     self.lmp.file(file)
 
+  @property
+  def enable_cmd_history(self):
+    """
+    :getter: Return whether command history is saved
+    :setter: Set if command history should be saved
+    :type: bool
+    """
+    return self._enable_cmd_history
+
+  @enable_cmd_history.setter
+  def enable_cmd_history(self, value):
+    """
+    :getter: Return whether command history is saved
+    :setter: Set if command history should be saved
+    :type: bool
+    """
+    self._enable_cmd_history = (value == True)
+
   def write_script(self, filepath):
     """
     Write LAMMPS script file containing all commands executed up until now
@@ -445,18 +476,28 @@ class PyLammps(object):
       for cmd in self._cmd_history:
         print(cmd, file=f)
 
+  def clear_cmd_history(self):
+    """
+    Clear LAMMPS command history up to this point
+    """
+    self._cmd_history = []
+
   def command(self, cmd):
     """
     Execute LAMMPS command
 
-    All commands executed will be stored in a command history which can be
-    written to a file using :py:meth:`PyLammps.write_script()`
+    If :py:attr:`PyLammps.enable_cmd_history` is set to ``True``, commands executed
+    will be recorded. The entire command history can be written to a file using
+    :py:meth:`PyLammps.write_script()`. To clear the command history, use
+    :py:meth:`PyLammps.clear_cmd_history()`.
 
     :param cmd: command string that should be executed
     :type: cmd: string
     """
     self.lmp.command(cmd)
-    self._cmd_history.append(cmd)
+
+    if self.enable_cmd_history:
+      self._cmd_history.append(cmd)
 
   def run(self, *args, **kwargs):
     """

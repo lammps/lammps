@@ -50,7 +50,7 @@ spherical particles.
 
 These pair styles are designed to be used with either the :doc:`pair_style lubricate <pair_lubricate>` or :doc:`pair_style lubricateU <pair_lubricateU>` commands to provide thermostatting
 when dissipative lubrication forces are acting.  Thus the parameters
-*mu*\ , *flaglog*\ , *flagfld*\ , *cutinner*\ , and *cutoff* should be
+*mu*, *flaglog*, *flagfld*, *cutinner*, and *cutoff* should be
 specified consistent with the settings in the lubrication pair styles.
 For details, refer to either of the lubrication pair styles.
 
@@ -104,7 +104,7 @@ to be specified in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 ----------
 
@@ -112,7 +112,7 @@ Restrictions
 """"""""""""
 
 These styles are part of the COLLOID package.  They are only enabled
-if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Only spherical monodisperse particles are allowed for pair_style
 brownian.

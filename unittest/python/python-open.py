@@ -4,6 +4,7 @@ from lammps import lammps
 
 has_mpi=False
 has_mpi4py=False
+has_exceptions=False
 try:
     from mpi4py import __version__ as mpi4py_version
     # tested to work with mpi4py versions 2 and 3
@@ -36,7 +37,7 @@ class PythonOpen(unittest.TestCase):
         lmp=lammps(name=self.machine)
         self.assertIsNot(lmp.lmp,None)
         self.assertEqual(lmp.opened,1)
-        self.assertEqual(has_mpi4py,lmp.has_mpi4py)
+        self.assertEqual(has_mpi and has_mpi4py,lmp.has_mpi4py)
         self.assertEqual(has_mpi,lmp.has_mpi_support)
         lmp.close()
         self.assertIsNone(lmp.lmp,None)
@@ -48,6 +49,16 @@ class PythonOpen(unittest.TestCase):
                    cmdargs=['-nocite','-sf','opt','-log','none'])
         self.assertIsNot(lmp.lmp,None)
         self.assertEqual(lmp.opened,1)
+
+    def testContextManager(self):
+        """Automatically clean up LAMMPS instance"""
+        with lammps(name=self.machine) as lmp:
+            self.assertIsNot(lmp.lmp,None)
+            self.assertEqual(lmp.opened,1)
+            self.assertEqual(has_mpi and has_mpi4py,lmp.has_mpi4py)
+            self.assertEqual(has_mpi,lmp.has_mpi_support)
+        self.assertIsNone(lmp.lmp,None)
+        self.assertEqual(lmp.opened,0)
 
     @unittest.skipIf(not (has_mpi and has_mpi4py),"Skipping MPI test since LAMMPS is not parallel or mpi4py is not found")
     def testWithMPI(self):
@@ -77,7 +88,7 @@ class PythonOpen(unittest.TestCase):
         lmp.close()
 
     @unittest.skipIf(not has_exceptions,"Skipping death test since LAMMPS isn't compiled with exception support")
-    def testUnknownCommandInList(self):
+    def testUnknownCommandInString(self):
         lmp = lammps(name=self.machine)
 
         with self.assertRaisesRegex(Exception, "ERROR: Unknown command: write_paper"):

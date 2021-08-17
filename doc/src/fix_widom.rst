@@ -21,7 +21,7 @@ Syntax
 
   .. parsed-literal::
 
-     keyword = *mol*\ , *region*\ , *full_energy*, *charge*\ , *intra_energy*
+     keyword = *mol*, *region*, *full_energy*, *charge*, *intra_energy*
        *mol* value = template-ID
          template-ID = ID of molecule template specified in a separate :doc:`molecule <molecule>` command
        *region* value = region-ID
@@ -155,11 +155,11 @@ Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This fix writes the state of the fix to :doc:`binary restart files
-<restart>`.  This includes information about the random number generator
-seed, the next timestep for Widom insertions etc.  See the
-:doc:`read_restart <read_restart>` command for info on how to re-specify
-a fix in an input script that reads a restart file, so that the
-operation of the fix continues in an uninterrupted fashion.
+<restart>`.  This includes information about the random number
+generator seed, the next timestep for Widom insertions etc.  See the
+:doc:`read_restart <read_restart>` command for info on how to
+re-specify a fix in an input script that reads a restart file, so that
+the operation of the fix continues in an uninterrupted fashion.
 
 .. note::
 

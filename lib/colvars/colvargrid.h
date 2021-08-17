@@ -59,7 +59,7 @@ protected:
   {
     size_t addr = 0;
     for (size_t i = 0; i < nd; i++) {
-      addr += ix[i]*nxc[i];
+      addr += ix[i]*static_cast<size_t>(nxc[i]);
       if (cvm::debug()) {
         if (ix[i] >= nx[i]) {
           cvm::error("Error: exceeding bounds in colvar_grid.\n", BUG_ERROR);
@@ -100,6 +100,12 @@ public:
   inline size_t num_variables() const
   {
     return nd;
+  }
+
+  /// Return the numbers of points in all dimensions
+  inline std::vector<int> const &number_of_points_vec() const
+  {
+    return nx;
   }
 
   /// Return the number of points in the i-th direction, if provided, or
@@ -199,6 +205,7 @@ public:
   {
     nd = nt = 0;
     mult = 1;
+    has_parent_data = false;
     this->setup();
   }
 
@@ -222,9 +229,9 @@ public:
                                          hard_lower_boundaries(g.hard_lower_boundaries),
                                          hard_upper_boundaries(g.hard_upper_boundaries),
                                          widths(g.widths),
+                                         has_parent_data(false),
                                          has_data(false)
-  {
-  }
+  {}
 
   /// \brief Constructor from explicit grid sizes \param nx_i Number
   /// of grid points along each dimension \param t Initial value for
@@ -233,7 +240,7 @@ public:
   colvar_grid(std::vector<int> const &nx_i,
               T const &t = T(),
               size_t mult_i = 1)
-    : has_data(false)
+    : has_parent_data(false), has_data(false)
   {
     this->setup(nx_i, t, mult_i);
   }
@@ -245,7 +252,7 @@ public:
               T const &t = T(),
               size_t mult_i = 1,
               bool add_extra_bin = false)
-    : has_data(false)
+    : has_parent_data(false), has_data(false)
   {
     this->init_from_colvars(colvars, t, mult_i, add_extra_bin);
   }
@@ -1066,8 +1073,8 @@ public:
     std::vector<int>      nx_read;
     std::vector<int>      bin;
 
-    if ( cv.size() != nd ) {
-      cvm::error("Cannot read grid file: missing reference to colvars.");
+    if ( cv.size() > 0 && cv.size() != nd ) {
+      cvm::error("Cannot read grid file: number of variables in file differs from number referenced by grid.\n");
       return is;
     }
 
@@ -1525,6 +1532,9 @@ public:
   /// Constructor from a vector of colvars
   colvar_grid_gradient(std::vector<colvar *>  &colvars);
 
+  /// Constructor from a multicol file
+  colvar_grid_gradient(std::string &filename);
+
   /// \brief Get a vector with the binned value(s) indexed by ix, normalized if applicable
   inline void vector_value(std::vector<int> const &ix, std::vector<cvm::real> &v) const
   {
@@ -1658,10 +1668,13 @@ class integrate_potential : public colvar_grid_scalar
   {}
 
   /// Constructor from a vector of colvars + gradient grid
-  integrate_potential (std::vector<colvar *> &colvars, colvar_grid_gradient * gradients);
+  integrate_potential(std::vector<colvar *> &colvars, colvar_grid_gradient * gradients);
+
+  /// Constructor from a gradient grid (for processing grid files without a Colvars config)
+  integrate_potential(colvar_grid_gradient * gradients);
 
   /// \brief Calculate potential from divergence (in 2D); return number of steps
-  int integrate (const int itmax, const cvm::real & tol, cvm::real & err);
+  int integrate(const int itmax, const cvm::real & tol, cvm::real & err);
 
   /// \brief Update matrix containing divergence and boundary conditions
   /// based on new gradient point value, in neighboring bins

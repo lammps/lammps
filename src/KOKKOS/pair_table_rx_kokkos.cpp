@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -165,12 +166,12 @@ PairTableRXKokkos<DeviceType>::~PairTableRXKokkos()
   delete [] site1;
   delete [] site2;
 
-  memoryKK->destroy_kokkos(k_eatom,eatom);
-  memoryKK->destroy_kokkos(k_vatom,vatom);
-
   if (allocated) {
-    memoryKK->destroy_kokkos(d_table->cutsq, cutsq);
-    memoryKK->destroy_kokkos(d_table->tabindex, tabindex);
+    memoryKK->destroy_kokkos(k_eatom,eatom);
+    memoryKK->destroy_kokkos(k_vatom,vatom);
+    memory->destroy(setflag);
+    memoryKK->destroy_kokkos(d_table->cutsq,cutsq);
+    memoryKK->destroy_kokkos(d_table->tabindex,tabindex);
   }
 
   delete h_table;
@@ -572,8 +573,8 @@ static void compute_all_items(
                  typename KKDevice<DeviceType>::value,
                  Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_eatom) {
   if (eflag || vflag) {
-    Kokkos::parallel_reduce(inum,
-    LAMMPS_LAMBDA(int i, EV_FLOAT& energy_virial) {
+    Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType>(0,inum),
+     LAMMPS_LAMBDA(int i, EV_FLOAT& energy_virial) {
         energy_virial +=
           compute_item<DeviceType,NEIGHFLAG,STACKPARAMS,TABSTYLE,1,NEWTON_PAIR>(
             i, nlocal, d_ilist, d_neighbors, d_numneigh, x, type,
@@ -583,8 +584,8 @@ static void compute_all_items(
             vflag, vflag_global, vflag_atom, v_vatom, v_eatom);
     }, ev);
   } else {
-    Kokkos::parallel_for(inum,
-    LAMMPS_LAMBDA(int i) {
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,inum),
+     LAMMPS_LAMBDA(int i) {
         compute_item<DeviceType,NEIGHFLAG,STACKPARAMS,TABSTYLE,0,NEWTON_PAIR>(
             i, nlocal, d_ilist, d_neighbors, d_numneigh, x, type,
             mixWtSite1old, mixWtSite2old, mixWtSite1, mixWtSite2,
@@ -606,8 +607,8 @@ static void getAllMixingWeights(
     Kokkos::View<double*, DeviceType> const& mixWtSite2old,
     Kokkos::View<double*, DeviceType> const& mixWtSite1,
     Kokkos::View<double*, DeviceType> const& mixWtSite2) {
-  Kokkos::parallel_for(ntotal,
-  LAMMPS_LAMBDA(int i) {
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,ntotal),
+   LAMMPS_LAMBDA(int i) {
       getMixingWeights<DeviceType>(dvector,nspecies,isite1,isite2,fractionalWeighting,
         i, mixWtSite1old(i), mixWtSite2old(i), mixWtSite1(i), mixWtSite2(i));
   });
@@ -653,6 +654,8 @@ void PairTableRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
   auto newton_pair = force->newton_pair;
   d_cutsq = d_table->cutsq;
   // loop over neighbors of my atoms
+
+  copymode = 1;
 
   const int ntotal = atom->nlocal + atom->nghost;
   if (ntotal > (int)mixWtSite1.extent(0)) {
@@ -793,6 +796,8 @@ void PairTableRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
     k_vatom.template modify<DeviceType>();
     k_vatom.template sync<LMPHostType>();
   }
+
+  copymode = 0;
 }
 
 template<class DeviceType>
@@ -1040,25 +1045,19 @@ void PairTableRXKokkos<DeviceType>::coeff(int narg, char **arg)
 
   nspecies = atom->nspecies_dpd;
   if (nspecies==0) error->all(FLERR,"There are no rx species specified.");
-  int n;
-  n = strlen(arg[4]) + 1;
-  site1 = new char[n];
-  strcpy(site1,arg[4]);
+  site1 = utils::strdup(arg[4]);
 
   int ispecies;
-  for (ispecies = 0; ispecies < nspecies; ispecies++) {
+  for (ispecies = 0; ispecies < nspecies; ispecies++)
     if (strcmp(site1,&atom->dname[ispecies][0]) == 0) break;
-  }
+
   if (ispecies == nspecies && strcmp(site1,"1fluid") != 0)
     error->all(FLERR,"Site1 name not recognized in pair coefficients");
 
-  n = strlen(arg[5]) + 1;
-  site2 = new char[n];
-  strcpy(site2,arg[5]);
-
-  for (ispecies = 0; ispecies < nspecies; ispecies++) {
+  site2 = utils::strdup(arg[5]);
+  for (ispecies = 0; ispecies < nspecies; ispecies++)
     if (strcmp(site2,&atom->dname[ispecies][0]) == 0) break;
-  }
+
   if (ispecies == nspecies && strcmp(site2,"1fluid") != 0)
     error->all(FLERR,"Site2 name not recognized in pair coefficients");
 
@@ -1284,16 +1283,6 @@ void PairTableRXKokkos<DeviceType>::init_style()
   } else {
     error->all(FLERR,"Cannot use chosen neighbor list style with lj/cut/kk");
   }
-}
-
-template<class DeviceType>
-void PairTableRXKokkos<DeviceType>::cleanup_copy() {
-  // WHY needed: this prevents parent copy from deallocating any arrays
-  allocated = 0;
-  cutsq = nullptr;
-  eatom = nullptr;
-  vatom = nullptr;
-  h_table=nullptr; d_table=nullptr;
 }
 
 namespace LAMMPS_NS {

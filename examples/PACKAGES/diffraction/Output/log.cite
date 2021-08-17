@@ -1,0 +1,26 @@
+This LAMMPS simulation made specific use of work described in the
+following references.  See https://www.lammps.org/cite.html
+for details.
+
+compute_xrd command:
+
+@Article{Coleman13,
+ author = {S. P. Coleman, D. E. Spearot, L. Capolungo},
+ title = {Virtual diffraction analysis of Ni [010] symmetric tilt grain boundaries},
+ journal = {Modelling and Simulation in Materials Science and Engineering},
+ year =    2013,
+ volume =  21,
+ pages =   {055020}
+}
+
+compute_saed command:
+
+@Article{Coleman13,
+ author = {S. P. Coleman, D. E. Spearot, L. Capolungo},
+ title = {Virtual diffraction analysis of Ni [010] symmetric tilt grain boundaries},
+ journal = {Modelling and Simulation in Materials Science and Engineering},
+ year =    2013,
+ volume =  21,
+ pages =   {055020}
+}
+

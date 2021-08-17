@@ -26,7 +26,7 @@ Examples
    if "${steps} > 1000" then quit
    if "${myString} == a10" then quit
    if "$x <= $y" then "print X is smaller = $x" else "print Y is smaller = $y"
-   if "(${eng} > 0.0) \|\| ($n < 1000)" then &
+   if "(${eng} > 0.0) || ($n < 1000)" then &
      "timestep 0.005" &
    elif $n<10000 &
      "timestep 0.01" &
@@ -68,7 +68,7 @@ above.
    If a command itself requires a quoted argument (e.g. a
    :doc:`print <print>` command), then double and single quotes can be used
    and nested in the usual manner, as in the examples above and below.
-   The :doc:`Commands parse <Commands_parse>` doc page has more details on
+   The :doc:`Commands parse <Commands_parse>` page has more details on
    using quotes in arguments.  Only one of level of nesting is allowed,
    but that should be sufficient for most use cases.
 

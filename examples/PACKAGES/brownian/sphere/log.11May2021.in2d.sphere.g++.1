@@ -1,0 +1,126 @@
+LAMMPS (8 Apr 2021)
+  using 1 OpenMP thread(s) per MPI task
+##### overdamped dynamics of a sphere (with dipole attached to it) in 2D #####
+
+variable        rng string uniform
+variable        seed string 198098
+variable        temp string 1.0
+variable        gamma_t string 5.0
+variable        gamma_r string 0.7
+variable        params string ${rng}_${temp}_${gamma_r}_${gamma_t}
+variable        params string uniform_${temp}_${gamma_r}_${gamma_t}
+variable        params string uniform_1.0_${gamma_r}_${gamma_t}
+variable        params string uniform_1.0_0.7_${gamma_t}
+variable        params string uniform_1.0_0.7_5.0
+
+units           lj
+atom_style      hybrid dipole sphere
+WARNING: Atom style hybrid defines both, per-type and per-atom masses; both must be set, but only per-atom masses will be used (src/atom_vec_hybrid.cpp:156)
+dimension       2
+newton off
+
+lattice         sq 0.4
+Lattice spacing in x,y,z = 1.5811388 1.5811388 1.5811388
+region          box block -30 30 -30 30 -0.2 0.2
+create_box      1 box
+Created orthogonal box = (-47.434165 -47.434165 -0.31622777) to (47.434165 47.434165 0.31622777)
+  1 by 1 by 1 MPI processor grid
+create_atoms    1 box
+Created 3600 atoms
+  create_atoms CPU = 0.005 seconds
+mass            * 1.0
+set             type  * dipole/random ${seed} 1.0
+set             type  * dipole/random 198098 1.0
+Setting atom values ...
+  3600 settings made for dipole/random
+velocity        all create 1.0 1 loop geom
+
+neighbor        1.0 bin
+neigh_modify    every 1 delay 1 check yes
+
+pair_style none
+
+fix 1 all brownian/sphere ${temp} ${seed} rng ${rng} gamma_r ${gamma_r} gamma_t ${gamma_t}
+fix 1 all brownian/sphere 1.0 ${seed} rng ${rng} gamma_r ${gamma_r} gamma_t ${gamma_t}
+fix 1 all brownian/sphere 1.0 198098 rng ${rng} gamma_r ${gamma_r} gamma_t ${gamma_t}
+fix 1 all brownian/sphere 1.0 198098 rng uniform gamma_r ${gamma_r} gamma_t ${gamma_t}
+fix 1 all brownian/sphere 1.0 198098 rng uniform gamma_r 0.7 gamma_t ${gamma_t}
+fix 1 all brownian/sphere 1.0 198098 rng uniform gamma_r 0.7 gamma_t 5.0
+
+#initialisation for the main run
+
+# MSD
+compute         msd  all msd
+
+thermo_style    custom step ke pe c_msd[*]
+
+#dump            1 all custom 1000 dump_${params}_2d.lammpstrj id type #               x y z xu yu zu mux muy muz fx fy fz
+#dump_modify     1 first yes sort id
+
+timestep        0.00001
+thermo          100
+
+# main run
+run             3000
+WARNING: No pairwise cutoff or binsize set. Atom sorting therefore disabled. (src/atom.cpp:2141)
+WARNING: Communication cutoff is 0.0. No ghost atoms will be generated. Atoms may get lost. (src/comm_brick.cpp:167)
+Per MPI rank memory allocation (min/avg/max) = 4.664 | 4.664 | 4.664 Mbytes
+Step KinEng PotEng c_msd[1] c_msd[2] c_msd[3] c_msd[4] 
+       0   0.99972222            0            0            0            0            0 
+     100    20867.136            0 0.00040006704 0.00039570887            0 0.00079577592 
+     200    20835.491            0 0.00077560901 0.00080455484            0 0.0015801638 
+     300    20813.122            0 0.0011737739 0.0012172689            0 0.0023910428 
+     400    21137.397            0 0.0015587675 0.0016096093            0 0.0031683768 
+     500    21167.188            0 0.0019294105 0.0020251322            0 0.0039545428 
+     600    21345.908            0 0.0023105313 0.0024111742            0 0.0047217054 
+     700    21086.272            0 0.0027236116 0.0027846006            0 0.0055082122 
+     800    20840.906            0 0.0031505299 0.0031810732            0 0.0063316031 
+     900    20916.456            0 0.0035525852 0.0035981301            0 0.0071507153 
+    1000    20752.249            0 0.0039147929 0.0039791172            0 0.0078939101 
+    1100    20643.612            0 0.0042977921 0.0043701484            0 0.0086679405 
+    1200     21085.63            0 0.0045584242 0.0047475091            0 0.0093059332 
+    1300    20900.794            0 0.0049718803 0.0051481706            0  0.010120051 
+    1400    20980.731            0 0.0054234603 0.0054230724            0  0.010846533 
+    1500    20916.308            0 0.0058502946 0.0058114313            0  0.011661726 
+    1600    20949.786            0 0.0062258463  0.006208129            0  0.012433975 
+    1700    20531.205            0 0.0066276219  0.006595921            0  0.013223543 
+    1800    21418.472            0 0.0070077409  0.007030461            0  0.014038202 
+    1900    21291.928            0 0.0074052208 0.0074333041            0  0.014838525 
+    2000    20893.895            0 0.0077407477  0.007901402            0   0.01564215 
+    2100    21218.001            0 0.0080384756 0.0082611258            0  0.016299601 
+    2200    21116.189            0 0.0084325164  0.008617977            0  0.017050493 
+    2300     20718.83            0 0.0089455345 0.0091768161            0  0.018122351 
+    2400    20719.164            0 0.0093666455 0.0095272546            0    0.0188939 
+    2500    20991.382            0  0.009706795 0.0098256506            0  0.019532446 
+    2600     20515.74            0 0.0099247069  0.010329841            0  0.020254548 
+    2700     21001.55            0  0.010448354  0.010693502            0  0.021141855 
+    2800    21363.824            0  0.010990971  0.011142092            0  0.022133063 
+    2900    20497.025            0  0.011399704  0.011504868            0  0.022904573 
+    3000    20726.572            0  0.011785354   0.01187482            0  0.023660175 
+Loop time of 1.76023 on 1 procs for 3000 steps with 3600 atoms
+
+Performance: 1472.538 tau/day, 1704.326 timesteps/s
+99.9% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0          | 0          | 0          |   0.0 |  0.00
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.026518   | 0.026518   | 0.026518   |   0.0 |  1.51
+Output  | 0.0040107  | 0.0040107  | 0.0040107  |   0.0 |  0.23
+Modify  | 1.6194     | 1.6194     | 1.6194     |   0.0 | 92.00
+Other   |            | 0.1103     |            |       |  6.27
+
+Nlocal:        3600.00 ave        3600 max        3600 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:        121.000 ave         121 max         121 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:         0.00000 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 0
+Ave neighs/atom = 0.0000000
+Neighbor list builds = 0
+Dangerous builds = 0
+Total wall time: 0:00:01

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -51,9 +52,7 @@ ComputeStressAtom::ComputeStressAtom(LAMMPS *lmp, int narg, char **arg) :
 
   if (strcmp(arg[3],"NULL") == 0) id_temp = nullptr;
   else {
-    int n = strlen(arg[3]) + 1;
-    id_temp = new char[n];
-    strcpy(id_temp,arg[3]);
+    id_temp = utils::strdup(arg[3]);
 
     int icompute = modify->find_compute(id_temp);
     if (icompute < 0)
@@ -219,9 +218,11 @@ void ComputeStressAtom::compute_peratom()
   //   and fix ave/spatial uses a per-atom stress from this compute as input
 
   if (fixflag) {
-    for (int ifix = 0; ifix < modify->nfix; ifix++)
-      if (modify->fix[ifix]->virial_flag) {
-        double **vatom = modify->fix[ifix]->vatom;
+    Fix **fix = modify->fix;
+    int nfix = modify->nfix;
+    for (int ifix = 0; ifix < nfix; ifix++)
+      if (fix[ifix]->virial_peratom_flag && fix[ifix]->thermo_virial) {
+        double **vatom = fix[ifix]->vatom;
         if (vatom)
           for (i = 0; i < nlocal; i++)
             for (j = 0; j < 6; j++)
@@ -382,6 +383,6 @@ void ComputeStressAtom::unpack_reverse_comm(int n, int *list, double *buf)
 
 double ComputeStressAtom::memory_usage()
 {
-  double bytes = nmax*6 * sizeof(double);
+  double bytes = (double)nmax*6 * sizeof(double);
   return bytes;
 }

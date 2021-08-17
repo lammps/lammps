@@ -38,17 +38,18 @@ In addition there are DOIs for individual stable releases. Currently there are:
 Home page
 ^^^^^^^^^
 
-The LAMMPS website at `https://lammps.sandia.gov/ <https://lammps.sandia.gov>`_ is the canonical
-location for information about LAMMPS and more detailed lists of publications
-using LAMMPS and contributing features.
+The LAMMPS website at `https://www.lammps.org/
+<https://www.lammps.org>`_ is the canonical location for information
+about LAMMPS and its features.
 
 Citing contributions
 ^^^^^^^^^^^^^^^^^^^^
 
-LAMMPS has many features and uses previously published methods and
-algorithms or novel features. It also includes potential parameter
-filed for specific models.  You can look up relevant publications either
-in the LAMMPS output to the screen, the ``log.cite`` file (which is
-populated with references to relevant papers through embedding them into
-the source code) and in the documentation of the :doc:`corresponding commands
+LAMMPS has many features and that use either previously published
+methods and algorithms or novel features.  It also includes potential
+parameter filed for specific models.  Where available, a reminder about
+references for optional features used in a specific run is printed to
+the screen and log file.  Style and output location can be selected with
+the :ref:`-cite command-line switch <cite>`.  Additional references are
+given in the documentation of the :doc:`corresponding commands
 <Commands_all>` or in the :doc:`Howto tutorials <Howto>`.

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(vashishta,PairVashishta)
-
+// clang-format off
+PairStyle(vashishta,PairVashishta);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_VASHISHITA_H
@@ -37,37 +37,32 @@ class PairVashishta : public Pair {
   static constexpr int NPARAMS_PER_LINE = 17;
 
   struct Param {
-    double bigb,gamma,r0,bigc,costheta;
-    double bigh,eta,zi,zj;
-    double lambda1,bigd,mbigd,lambda4,bigw,cut;
-    double lam1inv,lam4inv,zizj,heta,big2b,big6w;
-    double rcinv,rc2inv,rc4inv,rc6inv,rceta;
-    double cutsq2,cutsq;
-    double lam1rc,lam4rc,vrcc2,vrcc3,vrc,dvrc,c0;
-    int ielement,jelement,kelement;
+    double bigb, gamma, r0, bigc, costheta;
+    double bigh, eta, zi, zj;
+    double lambda1, bigd, mbigd, lambda4, bigw, cut;
+    double lam1inv, lam4inv, zizj, heta, big2b, big6w;
+    double rcinv, rc2inv, rc4inv, rc6inv, rceta;
+    double cutsq2, cutsq;
+    double lam1rc, lam4rc, vrcc2, vrcc3, vrc, dvrc, c0;
+    int ielement, jelement, kelement;
   };
+
  protected:
-  double cutmax;                // max cutoff for all elements
-  int nelements;                // # of unique elements
-  char **elements;              // names of unique elements
-  int ***elem2param;            // mapping from element triplets to parameters
-  int *map;                     // mapping from atom types to elements
-  int nparams;                  // # of stored parameter sets
-  int maxparam;                 // max # of parameter sets
-  Param *params;                // parameter set for an I-J-K interaction
-  double r0max;                 // largest value of r0
-  int maxshort;                 // size of short neighbor list array
-  int *neighshort;              // short neighbor list array
+  double cutmax;      // max cutoff for all elements
+  Param *params;      // parameter set for an I-J-K interaction
+  double r0max;       // largest value of r0
+  int maxshort;       // size of short neighbor list array
+  int *neighshort;    // short neighbor list array
 
   void allocate();
   void read_file(char *);
   virtual void setup_params();
   void twobody(Param *, double, double &, int, double &);
-  void threebody(Param *, Param *, Param *, double, double, double *, double *,
-                 double *, double *, int, double &);
+  void threebody(Param *, Param *, Param *, double, double, double *, double *, double *, double *,
+                 int, double &);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

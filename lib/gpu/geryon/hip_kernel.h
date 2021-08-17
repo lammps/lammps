@@ -14,6 +14,7 @@
 #include <fstream>
 #include <string>
 #include <iostream>
+#include <cstdio>
 
 namespace ucl_hip {
 
@@ -64,15 +65,19 @@ class UCL_Program {
   }
 
   /// Load a program from a string and compile with flags
-  inline int load_string(const void *program, const char *flags="", std::string *log=nullptr) {
+  inline int load_string(const void *program, const char *flags="", std::string *log=nullptr, FILE* foutput=nullptr) {
     return _device_ptr->load_module(program, _module, log);
   }
+
+  /// Return the default command queue/stream associated with this data
+  inline hipStream_t & cq() { return _cq; }
 
   friend class UCL_Kernel;
  private:
   hipModule_t _module;
   hipStream_t _cq;
   friend class UCL_Texture;
+  friend class UCL_Const;
 };
 
 /// Class for dealing with CUDA Driver kernels

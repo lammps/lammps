@@ -1,0 +1,18 @@
+SHELL = /bin/sh
+
+# which file will be copied to Makefile.lammps
+
+EXTRAMAKE = Makefile.lammps.empty
+
+# ------ MAKE PROCEDURE ------
+
+lib: 	$(OBJ)
+	mkdir -p build
+	cd build; cmake -Dlibtype=SHARED -Dlanguage=CXX -D CMAKE_C_COMPILER=mpicc -D CMAKE_CXX_COMPILER=mpicxx ../MDI_Library; make
+	@cp $(EXTRAMAKE) Makefile.lammps
+
+# ------ CLEAN ------
+
+clean:
+	-rm *.o *.h $(LIB)
+	-rm -r build

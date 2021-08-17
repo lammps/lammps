@@ -5,7 +5,7 @@ problems you can run with LAMMPS.
 
 lower-case directories = simple test problems for LAMMPS and its packages
 upper-case directories = more complex problems
-USER directory with its own sub-directories = tests for USER packages
+PACKAGES directory with its own sub-directories = tests for styles from specific packages
 
 Each is discussed below.
 
@@ -37,7 +37,7 @@ produce dump snapshots of the running simulation in any of 3 formats.
 
 If you uncomment the dump command in the input script, a text dump
 file will be produced, which can be animated by various visualization
-programs (see http://lammps.sandia.gov/viz.html) such as Ovito, VMD,
+programs (see https://www.lammps.org/viz.html) such as Ovito, VMD,
 or AtomEye.
 
 If you uncomment the dump image command in the input script, and
@@ -102,7 +102,7 @@ pour:     pouring of granular particles into a 3d box, then chute flow
 prd:      parallel replica dynamics of vacancy diffusion in bulk Si
 python:   use of PYTHON package to invoke Python code from input script
 qeq:      use of QEQ package for charge equilibration
-reax:     RDX and TATB and several other models using ReaxFF
+reaxff:   RDX and TATB and several other models using ReaxFF
 rerun:    use of rerun and read_dump commands
 rigid:    rigid bodies modeled as independent or coupled
 shear:    sideways shear applied to 2d solid, with and without a void
@@ -112,7 +112,8 @@ steinhardt: Steinhardt-Nelson Q_l and W_l parameters usng orientorder/atom
 streitz:  Streitz-Mintmire potential for Al2O3
 tad:      temperature-accelerated dynamics of vacancy diffusion in bulk Si
 template: examples for using atom_style template and comparing to atom style molecular
-threebody: regression test input for a variety of manybody potentials
+tersoff:  regression test input for Tersoff variants
+threebody: regression test input for a variety of threebody potentials
 vashishta: models using the Vashishta potential
 voronoi:  Voronoi tesselation via compute voronoi/atom command
 wall:     use of reflective walls with different stochastic models
@@ -169,6 +170,14 @@ The MC directory has an example script for using LAMMPS as an
 energy-evaluation engine in a iterative Monte Carlo energy-relaxation
 loop.
 
+The PACKAGES directory contains subdirectories of example scripts for
+individual packages or additional individual styles. Most of those are
+contributed by the corresponding package or style developers.
+See the README files in those directories (if available) or the
+corresponding doc page in the manual for more info.  See the
+https://docs.lammps.org/Build_package.html page for more info about
+installing and building packages.
+
 The TIP4P directory has an example for testing forces computed on a
 GPU.
 
@@ -177,11 +186,6 @@ same Lennard-Jones liquid model, written in 3 different unit systems:
 lj, real, and metal.  So that you can see how to scale/unscale input
 and output values read/written by LAMMPS to verify you are performing
 the same simulation in different unit systems.
-
-The USER directory contains subdirectories of user-provided example
-scripts for ser packages.  See the README files in those directories
-for more info.  See the doc/html/Build_package.html file for more info
-about installing and building user packages.
 
 The VISCOSITY directory has example scripts for computing the
 viscosity of a LJ liquid using 4 different methods.  See the

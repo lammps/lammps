@@ -43,9 +43,9 @@ Syntax
          seed = random # seed (positive integer)
        *mol* value = molecule ID
          value can be an atom-style variable (see below)
-       *x*\ ,\ *y*\ ,\ *z* value = atom coordinate (distance units)
+       *x*,\ *y*,\ *z* value = atom coordinate (distance units)
          value can be an atom-style variable (see below)
-       *vx*\ ,\ *vy*\ ,\ *vz* value = atom velocity (velocity units)
+       *vx*,\ *vy*,\ *vz* value = atom velocity (velocity units)
          value can be an atom-style variable (see below)
        *charge* value = atomic charge (charge units)
          value can be an atom-style variable (see below)
@@ -182,12 +182,12 @@ style *type* selects all the atoms in a range of types.  The style
 In each of the range cases, the range can be specified as a single
 numeric value, or a wildcard asterisk can be used to specify a range
 of values.  This takes the form "\*" or "\*n" or "n\*" or "m\*n".  For
-example, for the style *type*\ , if N = the number of atom types, then
+example, for the style *type*, if N = the number of atom types, then
 an asterisk with no numeric values means all types from 1 to N.  A
 leading asterisk means all types from 1 to n (inclusive).  A trailing
 asterisk means all types from n to N (inclusive).  A middle asterisk
 means all types from m to n (inclusive).  For all the styles except
-*mol*\ , the lowest value for the wildcard is 1; for *mol* it is 0.
+*mol*, the lowest value for the wildcard is 1; for *mol* it is 0.
 
 The style *group* selects all the atoms in the specified group.  The
 style *region* selects all the atoms in the specified geometric
@@ -257,10 +257,10 @@ Keyword *mol* sets the molecule ID for all selected atoms.  The
 :doc:`atom style <atom_style>` being used must support the use of
 molecule IDs.
 
-Keywords *x*\ , *y*\ , *z*\ , and *charge* set the coordinates or
-charge of all selected atoms.  For *charge*\ , the :doc:`atom style
+Keywords *x*, *y*, *z*, and *charge* set the coordinates or
+charge of all selected atoms.  For *charge*, the :doc:`atom style
 <atom_style>` being used must support the use of atomic
-charge. Keywords *vx*\ , *vy*\ , and *vz* set the velocities of all
+charge. Keywords *vx*, *vy*, and *vz* set the velocities of all
 selected atoms.
 
 Keyword *dipole* uses the specified x,y,z values as components of a
@@ -310,7 +310,7 @@ the :doc:`atom_style <atom_style>` command.  Random numbers are used in
 such a way that the orientation of a particular atom is the same,
 regardless of how many processors are being used.  For 2d systems,
 only orientations in the xy plane are generated.  As with keyword
-*quat*\ , for ellipsoidal particles, the 3 shape values must be non-zero
+*quat*, for ellipsoidal particles, the 3 shape values must be non-zero
 for each particle set by this command.  This keyword does not allow
 use of an atom-style variable.
 
@@ -323,7 +323,7 @@ a density, e.g. via the :doc:`read_data <read_data>` command.
 
 Keyword *shape* sets the size and shape of the selected atoms.  The
 particles must be ellipsoids as defined by the :doc:`atom_style
-ellipsoid <atom_style>` command.  The *Sx*\ , *Sy*\ , *Sz* settings
+ellipsoid <atom_style>` command.  The *Sx*, *Sy*, *Sz* settings
 are the 3 diameters of the ellipsoid in each direction.  All 3 can be
 set to the same value, which means the ellipsoid is effectively a
 sphere.  They can also all be set to 0.0 which means the particle will
@@ -437,28 +437,28 @@ up analysis of the trajectories if a LAMMPS diagnostic or your own
 analysis relies on the image flags to unwrap a molecule which
 straddles the periodic box.
 
-Keywords *bond*\ , *angle*\ , *dihedral*\ , and *improper*\ , set the bond
+Keywords *bond*, *angle*, *dihedral*, and *improper*, set the bond
 type (angle type, etc) of all bonds (angles, etc) of selected atoms to
 the specified value from 1 to nbondtypes (nangletypes, etc).  All
 atoms in a particular bond (angle, etc) must be selected atoms in
 order for the change to be made.  The value of nbondtype (nangletypes,
-etc) was set by the *bond types* (\ *angle types*\ , etc) field in the
+etc) was set by the *bond types* (\ *angle types*, etc) field in the
 header of the data file read by the :doc:`read_data <read_data>`
 command.  These keywords do not allow use of an atom-style variable.
 
-Keywords *sph/e*\ , *sph/cv*\ , and *sph/rho* set the energy, heat
+Keywords *sph/e*, *sph/cv*, and *sph/rho* set the energy, heat
 capacity, and density of smoothed particle hydrodynamics (SPH)
-particles.  See `this PDF guide <USER/sph/SPH_LAMMPS_userguide.pdf>`_
+particles.  See `this PDF guide <PDF/SPH_LAMMPS_userguide.pdf>`_
 to using SPH in LAMMPS.
 
 Keyword *smd/mass/density* sets the mass of all selected particles,
 but it is only applicable to the Smooth Mach Dynamics package
-USER-SMD.  It assumes that the particle volume has already been
+MACHDYN.  It assumes that the particle volume has already been
 correctly set and calculates particle mass from the provided mass
 density value.
 
 Keyword *smd/contact/radius* only applies to simulations with the
-Smooth Mach Dynamics package USER-SMD.  Itsets an interaction radius
+Smooth Mach Dynamics package MACHDYN.  Itsets an interaction radius
 for computing short-range interactions, e.g. repulsive forces to
 prevent different individual physical bodies from penetrating each
 other. Note that the SPH smoothing kernel diameter used for computing
@@ -466,7 +466,7 @@ long range, nonlocal interactions, is set using the *diameter*
 keyword.
 
 Keyword *dpd/theta* sets the internal temperature of a DPD particle as
-defined by the USER-DPD package.  If the specified value is a number
+defined by the DPD-REACT package.  If the specified value is a number
 it must be >= 0.0.  If the specified value is NULL, then the kinetic
 temperature Tkin of each particle is computed as 3/2 k Tkin = KE = 1/2
 m v\^2 = 1/2 m (vx\*vx+vy\*vy+vz\*vz).  Each particle's internal
@@ -477,13 +477,13 @@ value >= 0.0, the internal temperature is set to that value.  If it is
 temperature is set to that value.
 
 Keywords *edpd/temp* and *edpd/cv* set the temperature and volumetric
-heat capacity of an eDPD particle as defined by the USER-MESODPD package.
+heat capacity of an eDPD particle as defined by the DPD-MESO package.
 Currently, only :doc:`atom_style edpd <atom_style>` defines particles
 with these attributes. The values for the temperature and heat
 capacity must be positive.
 
 Keyword *cc* sets the chemical concentration of a tDPD particle for a
-specified species as defined by the USER-MESODPD package. Currently, only
+specified species as defined by the DPD-MESO package. Currently, only
 :doc:`atom_style tdpd <atom_style>` defines particles with this
 attribute. An integer for "index" selects a chemical species (1 to
 Nspecies) where Nspecies is set by the atom_style command. The value

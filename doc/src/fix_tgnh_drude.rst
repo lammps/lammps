@@ -62,6 +62,8 @@ Examples
    fix 2 jello tgnpt/drude temp 300.0 300.0 100.0 1.0 20.0 tri 5.0 5.0 1000.0
    fix 2 ice tgnpt/drude temp 250.0 250.0 100.0 1.0 20.0 x 1.0 1.0 0.5 y 2.0 2.0 0.5 z 3.0 3.0 0.5 yz 0.1 0.1 0.5 xz 0.2 0.2 0.5 xy 0.3 0.3 0.5 nreset 1000
 
+Example input scripts available: examples/PACKAGES/drude
+
 Description
 """""""""""
 
@@ -137,7 +139,7 @@ The parameter *Tdrude* is the desired temperature for Drude motion at each times
 Similar to *Tdamp*, the *Tdamp_drude* parameter determines the relaxation speed for Drude motion.
 Fix group are the only ones whose velocities and positions are updated
 by the velocity/position update portion of the integration.
-Other thermostat-related keywords are *tchain*\  and *tloop*\ ,
+Other thermostat-related keywords are *tchain*\  and *tloop*,
 which are detailed in :doc:`fix nvt <fix_nh>`.
 
 .. note::
@@ -156,13 +158,13 @@ which are detailed in :doc:`fix nvt <fix_nh>`.
 ----------
 
 The barostat parameters for fix style *tgnpt/drude* is specified
-using one or more of the *iso*\ , *aniso*\ , *tri*\ , *x*\ , *y*\ , *z*\ , *xy*\ ,
-*xz*\ , *yz*\ , and *couple* keywords.  These keywords give you the
+using one or more of the *iso*, *aniso*, *tri*, *x*, *y*, *z*, *xy*,
+*xz*, *yz*, and *couple* keywords.  These keywords give you the
 ability to specify all 6 components of an external stress tensor, and
 to couple various of these components together so that the dimensions
 they represent are varied together during a constant-pressure
-simulation. Other barostat-related keywords are *pchain*\ , *mtk*\ , *ploop*\ ,
-*nreset*\ , *scalexy*\ , *scaleyz*\ , *scalexz*\ , *flip*\ and *fixedpoint*.
+simulation. Other barostat-related keywords are *pchain*, *mtk*, *ploop*,
+*nreset*, *scalexy*, *scaleyz*, *scalexz*, *flip*\ and *fixedpoint*.
 The meaning of barostat parameters are detailed in :doc:`fix npt <fix_nh>`.
 
 Regardless of what atoms are in the fix group (the only atoms which
@@ -218,10 +220,10 @@ a fix in an input script that reads a restart file, so that the
 operation of the fix continues in an uninterrupted fashion.
 
 The :doc:`fix_modify <fix_modify>` *temp* and *press* options are
-supported by these fixes.  You can use them to assign a
-:doc:`compute <compute>` you have defined to this fix which will be used
-in its thermostatting or barostatting procedure, as described above.
-If you do this, note that the kinetic energy derived from the compute
+supported by these fixes.  You can use them to assign a :doc:`compute
+<compute>` you have defined to this fix which will be used in its
+thermostatting or barostatting procedure, as described above.  If you
+do this, note that the kinetic energy derived from the compute
 temperature should be consistent with the virial term computed using
 all atoms for the pressure.  LAMMPS will warn you if you choose to
 compute temperature on a subset of atoms.
@@ -229,45 +231,52 @@ compute temperature on a subset of atoms.
 .. note::
 
    If both the *temp* and *press* keywords are used in a single
-   thermo_modify command (or in two separate commands), then the order in
-   which the keywords are specified is important.  Note that a :doc:`pressure compute <compute_pressure>` defines its own temperature compute as
-   an argument when it is specified.  The *temp* keyword will override
-   this (for the pressure compute being used by fix npt), but only if the
-   *temp* keyword comes after the *press* keyword.  If the *temp* keyword
-   comes before the *press* keyword, then the new pressure compute
-   specified by the *press* keyword will be unaffected by the *temp*
-   setting.
+   thermo_modify command (or in two separate commands), then the order
+   in which the keywords are specified is important.  Note that a
+   :doc:`pressure compute <compute_pressure>` defines its own
+   temperature compute as an argument when it is specified.  The
+   *temp* keyword will override this (for the pressure compute being
+   used by fix npt), but only if the *temp* keyword comes after the
+   *press* keyword.  If the *temp* keyword comes before the *press*
+   keyword, then the new pressure compute specified by the *press*
+   keyword will be unaffected by the *temp* setting.
 
-The :doc:`fix_modify <fix_modify>` *energy* option is supported by these
-fixes to add the energy change induced by Nose/Hoover thermostatting
-and barostatting to the system's potential energy as part of
-:doc:`thermodynamic output <thermo_style>`.
+The cumulative energy change in the system imposed by these fixes, due
+to thermostatting and/or barostatting, are included in the
+:doc:`thermodynamic output <thermo_style>` keywords *ecouple* and
+*econserve*.  See the :doc:`thermo_style <thermo_style>` page for
+details.
 
-These fixes compute a global scalar and a global vector of quantities,
-which can be accessed by various :doc:`output commands <Howto_output>`.
-The scalar value calculated by these fixes is "extensive"; the vector
-values are "intensive".
-The scalar is the cumulative energy change due to the fix.
-The vector stores the three temperatures :math:`T_\mathrm{M}`, :math:`T_\mathrm{R}` and :math:`T_\mathrm{D}`.
+These fixes compute a global scalar which can be accessed by various
+:doc:`output commands <Howto_output>`.  The scalar is the same
+cumulative energy change due to this fix described in the previous
+paragraph.  The scalar value calculated by this fix is "extensive".
+
+These fixes also compute a global vector of quantities, which can be
+accessed by various :doc:`output commands <Howto_output>`.  The vector
+values are "intensive".  The vector stores the three temperatures
+:math:`T_\mathrm{M}`, :math:`T_\mathrm{R}` and :math:`T_\mathrm{D}`.
 
 These fixes can ramp their external temperature and pressure over
-multiple runs, using the *start* and *stop* keywords of the
-:doc:`run <run>` command.  See the :doc:`run <run>` command for details of
-how to do this.
+multiple runs, using the *start* and *stop* keywords of the :doc:`run
+<run>` command.  See the :doc:`run <run>` command for details of how
+to do this.
 
-These fixes are not invoked during :doc:`energy minimization <minimize>`.
+These fixes are not invoked during :doc:`energy minimization
+<minimize>`.
 
 ----------
 
 Restrictions
 """"""""""""
 
-These fixes are only available when LAMMPS was built with the USER-DRUDE package.
-These fixes cannot be used with dynamic groups as defined by the :doc:`group <group>` command.
-These fixes cannot be used in 2D simulations.
+These fixes are only available when LAMMPS was built with the
+DRUDE package.  These fixes cannot be used with dynamic groups as
+defined by the :doc:`group <group>` command.  These fixes cannot be
+used in 2D simulations.
 
-*X*\ , *y*\ , *z* cannot be barostatted if the associated dimension is not
-periodic.  *Xy*\ , *xz*\ , and *yz* can only be barostatted if the
+*X*, *y*, *z* cannot be barostatted if the associated dimension is not
+periodic.  *Xy*, *xz*, and *yz* can only be barostatted if the
 simulation domain is triclinic and the second dimension in the keyword
 (\ *y* dimension in *xy*\ ) is periodic.  The :doc:`create_box <create_box>`,
 :doc:`read data <read_data>`, and :doc:`read_restart <read_restart>`
@@ -279,10 +288,10 @@ For the *temp* keyword, the final *Tstop* cannot be 0.0 since it would
 make the external T = 0.0 at some timestep during the simulation which
 is not allowed in the Nose/Hoover formulation.
 
-The *scaleyz yes*\ , *scalexz yes*\ , and *scalexy yes* options
+The *scaleyz yes*, *scalexz yes*, and *scalexy yes* options
 can only be used if the second dimension in the keyword is periodic,
 and if the tilt factor is not coupled to the barostat via keywords
-*tri*\ , *yz*\ , *xz*\ , and *xy*\ .
+*tri*, *yz*, *xz*, and *xy*\ .
 
 Related commands
 """"""""""""""""

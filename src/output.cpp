@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -14,18 +15,15 @@
 #include "output.h"
 #include "style_dump.h"         // IWYU pragma: keep
 
-#include "atom.h"
 #include "comm.h"
 #include "domain.h"
 #include "dump.h"
 #include "error.h"
-#include "force.h"
 #include "group.h"
 #include "info.h"
 #include "input.h"
 #include "memory.h"
 #include "modify.h"
-#include "neighbor.h"
 #include "thermo.h"
 #include "update.h"
 #include "variable.h"
@@ -664,10 +662,8 @@ void Output::set_thermo(int narg, char **arg)
   delete [] var_thermo;
   var_thermo = nullptr;
 
-  if (strstr(arg[0],"v_") == arg[0]) {
-    int n = strlen(&arg[0][2]) + 1;
-    var_thermo = new char[n];
-    strcpy(var_thermo,&arg[0][2]);
+  if (utils::strmatch(arg[0],"^v_")) {
+    var_thermo = utils::strdup(arg[0]+2);
   } else {
     thermo_every = utils::inumeric(FLERR,arg[0],false,lmp);
     if (thermo_every < 0) error->all(FLERR,"Illegal thermo command");
@@ -712,7 +708,7 @@ void Output::create_restart(int narg, char **arg)
   int every = 0;
   int varflag = 0;
 
-  if (strstr(arg[0],"v_") == arg[0]) varflag = 1;
+  if (utils::strmatch(arg[0],"^v_")) varflag = 1;
   else every = utils::inumeric(FLERR,arg[0],false,lmp);
 
   if (!varflag && every == 0) {
@@ -745,9 +741,7 @@ void Output::create_restart(int narg, char **arg)
 
     if (varflag) {
       delete [] var_restart_single;
-      int n = strlen(&arg[0][2]) + 1;
-      var_restart_single = new char[n];
-      strcpy(var_restart_single,&arg[0][2]);
+      var_restart_single = utils::strdup(arg[0]+2);
       restart_every_single = 0;
     } else restart_every_single = every;
 
@@ -763,21 +757,15 @@ void Output::create_restart(int narg, char **arg)
 
     if (varflag) {
       delete [] var_restart_double;
-      int n = strlen(&arg[0][2]) + 1;
-      var_restart_double = new char[n];
-      strcpy(var_restart_double,&arg[0][2]);
+      var_restart_double = utils::strdup(arg[0]+2);
       restart_every_double = 0;
     } else restart_every_double = every;
 
     delete [] restart2a;
     delete [] restart2b;
     restart_toggle = 0;
-    int n = strlen(arg[1]) + 3;
-    restart2a = new char[n];
-    strcpy(restart2a,arg[1]);
-    n = strlen(arg[2]) + 1;
-    restart2b = new char[n];
-    strcpy(restart2b,arg[2]);
+    restart2a = utils::strdup(arg[1]);
+    restart2b = utils::strdup(arg[2]);
   }
 
   // check for multiproc output and an MPI-IO filename
@@ -830,7 +818,6 @@ void Output::memory_usage()
   mbavg /= comm->nprocs;
 
   if (comm->me == 0)
-    utils::logmesg(lmp,fmt::format("Per MPI rank memory allocation (min/avg/"
-                                   "max) = {:.4} | {:.4} | {:.4} Mbytes\n",
-                                   mbmin,mbavg,mbmax));
+    utils::logmesg(lmp,"Per MPI rank memory allocation (min/avg/max) = "
+                   "{:.4} | {:.4} | {:.4} Mbytes\n",mbmin,mbavg,mbmax);
 }

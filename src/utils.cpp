@@ -176,20 +176,23 @@ char *utils::fgets_trunc(char *buf, int size, FILE *fp)
   char dummy[MAXDUMMY];
   char *ptr = fgets(buf, size, fp);
 
-  // EOF
+  // EOF?
   if (!ptr) return nullptr;
 
   int n = strlen(buf);
 
-  // line is shorter than buffer, append newline if needed,
-  if (n < size - 2) {
+  // check the string being read in:
+  // - if string is shorter than the buffer make sure it has a final newline and return
+  // - if string is exactly the size of the buffer and has a final newline return
+  // - otherwise truncate with final newline and read into dummy buffer until EOF or newline is found
+  if (n < size - 1) {
     if (buf[n - 1] != '\n') {
       buf[n] = '\n';
       buf[n + 1] = '\0';
     }
     return buf;
-
-    // line fits exactly. overwrite last but one character.
+  } else if (buf[n - 1] == '\n') {
+    return buf;
   } else
     buf[size - 2] = '\n';
 
@@ -202,15 +205,15 @@ char *utils::fgets_trunc(char *buf, int size, FILE *fp)
       n = 0;
   } while (n == MAXDUMMY - 1 && ptr[MAXDUMMY - 1] != '\n');
 
-  // return first chunk
+  // return truncated chunk
   return buf;
 }
 
-#define MAXPATHLENBUF 1024
 /* like fgets() but aborts with an error or EOF is encountered */
 void utils::sfgets(const char *srcname, int srcline, char *s, int size, FILE *fp,
                    const char *filename, Error *error)
 {
+  constexpr int MAXPATHLENBUF=1024;
   char *rv = fgets(s, size, fp);
   if (rv == nullptr) {    // something went wrong
     char buf[MAXPATHLENBUF];
@@ -239,6 +242,7 @@ void utils::sfgets(const char *srcname, int srcline, char *s, int size, FILE *fp
 void utils::sfread(const char *srcname, int srcline, void *s, size_t size, size_t num, FILE *fp,
                    const char *filename, Error *error)
 {
+  constexpr int MAXPATHLENBUF=1024;
   size_t rv = fread(s, size, num, fp);
   if (rv != num) {    // something went wrong
     char buf[MAXPATHLENBUF];
@@ -1026,11 +1030,6 @@ bool utils::file_is_readable(const std::string &path)
    search current directory and the LAMMPS_POTENTIALS directory if
    specified
 ------------------------------------------------------------------------- */
-#if defined(_WIN32)
-#define OS_PATH_VAR_SEP ";"
-#else
-#define OS_PATH_VAR_SEP ":"
-#endif
 
 std::string utils::get_potential_file_path(const std::string &path)
 {
@@ -1044,8 +1043,11 @@ std::string utils::get_potential_file_path(const std::string &path)
     const char *var = getenv("LAMMPS_POTENTIALS");
 
     if (var != nullptr) {
-      Tokenizer dirs(var, OS_PATH_VAR_SEP);
-
+#if defined(_WIN32)
+      Tokenizer dirs(var, ";");
+#else
+      Tokenizer dirs(var, ":");
+#endif
       while (dirs.has_next()) {
         auto pot = utils::path_basename(filepath);
         auto dir = dirs.next();
@@ -1057,7 +1059,6 @@ std::string utils::get_potential_file_path(const std::string &path)
   }
   return "";
 }
-#undef OS_PATH_VAR_SEP
 
 /* ----------------------------------------------------------------------
    read first line of potential file

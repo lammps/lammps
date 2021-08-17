@@ -131,28 +131,11 @@ void TAD::command(int narg, char **arg)
 
   // create FixEventTAD object to store last event
 
-  int narg2 = 3;
-  char **args = new char*[narg2];
-  args[0] = (char *) "tad_event";
-  args[1] = (char *) "all";
-  args[2] = (char *) "EVENT/TAD";
-  modify->add_fix(narg2,args);
-  fix_event = (FixEventTAD *) modify->fix[modify->nfix-1];
-  delete [] args;
+  fix_event = (FixEventTAD *) modify->add_fix("tad_event all EVENT/TAD");
 
   // create FixStore object to store revert state
 
-  narg2 = 6;
-  args = new char*[narg2];
-  args[0] = (char *) "tad_revert";
-  args[1] = (char *) "all";
-  args[2] = (char *) "STORE";
-  args[3] = (char *) "peratom";
-  args[4] = (char *) "0";
-  args[5] = (char *) "7";
-  modify->add_fix(narg2,args);
-  fix_revert = (FixStore *) modify->fix[modify->nfix-1];
-  delete [] args;
+  fix_revert = (FixStore *) modify->add_fix("tad_revert all STORE peratom 0 7");
 
   // create Finish for timing output
 
@@ -195,13 +178,10 @@ void TAD::command(int narg, char **arg)
 
   // set minimize style for quench
 
-  narg2 = 1;
-  args = new char*[narg2];
+  char *args[1];
   args[0] = min_style;
 
-  update->create_minimize(narg2,args,1);
-
-  delete [] args;
+  update->create_minimize(1,args,1);
 
   // init minimizer settings and minimizer itself
 
@@ -691,25 +671,13 @@ void TAD::perform_neb(int ievent)
 
   // create FixNEB object to support NEB
 
-  int narg2 = 4;
-  char **args = new char*[narg2];
-  args[0] = (char *) "neb";
-  args[1] = (char *) "all";
-  args[2] = (char *) "neb";
-  args[3] = (char *) "1.0";
-  modify->add_fix(narg2,args);
-  fix_neb = (Fix *) modify->fix[modify->nfix-1];
-  delete [] args;
+  fix_neb = (Fix *) modify->add_fix("neb all neb 1.0");
 
   // switch minimize style to quickmin for NEB
 
-  narg2 = 1;
-  args = new char*[narg2];
+  char *args[1];
   args[0] = min_style_neb;
-
-  update->create_minimize(narg2,args,1);
-
-  delete [] args;
+  update->create_minimize(1,args,1);
 
   // create NEB object
 
@@ -769,16 +737,11 @@ void TAD::perform_neb(int ievent)
 
   // switch minimize style back for quench
 
-  narg2 = 1;
-  args = new char*[narg2];
   args[0] = min_style;
-
-  update->create_minimize(narg2,args,1);
+  update->create_minimize(1,args,1);
 
   update->etol = etol;
   update->ftol = ftol;
-
-  delete [] args;
 
   // clean up
 
@@ -895,25 +858,14 @@ void TAD::delete_event_list() {
 
 void TAD::add_event()
 {
+  if (n_event_list == nmax_event_list)
+    grow_event_list(nmax_event_list+nmin_event_list);
 
   // create FixEventTAD object to store possible event
 
-  int narg = 3;
-  char **args = new char*[narg];
-
-  char str[128];
-  sprintf(str,"tad_event_%d",n_event_list);
-
-  args[0] = str;
-  args[1] = (char *) "all";
-  args[2] = (char *) "EVENT/TAD";
-  modify->add_fix(narg,args);
-
-  if (n_event_list == nmax_event_list)
-    grow_event_list(nmax_event_list+nmin_event_list);
-  n_event_list += 1;
-  int ievent = n_event_list-1;
-  fix_event_list[ievent] = (FixEventTAD *) modify->fix[modify->nfix-1];
+  int ievent = n_event_list++;
+  fix_event_list[ievent]
+    = (FixEventTAD *) modify->add_fix(fmt::format("tad_event_{} all EVENT/TAD", ievent));
 
   // store quenched state for new event
 
@@ -923,11 +875,6 @@ void TAD::add_event()
 
   fix_event->restore_state_quench();
   fix_event_list[ievent]->store_state_quench();
-
-  // string clean-up
-
-  delete [] args;
-
 }
 
 /* ----------------------------------------------------------------------

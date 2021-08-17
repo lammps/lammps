@@ -701,37 +701,25 @@ it will have the name 'i_limit_tags' and will be intitialized to 0 (not in group
 void FixBondReact::post_constructor()
 {
   // let's add the limit_tags per-atom property fix
-  std::string cmd = std::string("bond_react_props_internal");
-  id_fix2 = new char[cmd.size()+1];
-  strcpy(id_fix2,cmd.c_str());
-
-  int ifix = modify->find_fix(id_fix2);
-  if (ifix == -1) {
-    cmd += std::string(" all property/atom i_limit_tags i_react_tags ghost yes");
-    modify->add_fix(cmd);
-  }
+  id_fix2 = utils::strdup("bond_react_props_internal");
+  if (modify->find_fix(id_fix2) < 0)
+    modify->add_fix(std::string(id_fix2)+" all property/atom i_limit_tags i_react_tags ghost yes");
 
   // create master_group if not already existing
   // NOTE: limit_tags and react_tags automaticaly intitialized to zero (unless read from restart)
   group->find_or_create(master_group);
-  cmd = fmt::format("{} dynamic all property limit_tags",master_group);
+  std::string cmd = fmt::format("{} dynamic all property limit_tags",master_group);
   group->assign(cmd);
 
   if (stabilization_flag == 1) {
     int groupid = group->find(exclude_group);
     // create exclude_group if not already existing, or use as parent group if static
     if (groupid == -1 || group->dynamic[groupid] == 0) {
-      // create stabilization per-atom property
-      cmd = std::string("bond_react_stabilization_internal");
-      id_fix3 = new char[cmd.size()+1];
-      strcpy(id_fix3,cmd.c_str());
 
-      ifix = modify->find_fix(id_fix3);
-      if (ifix == -1) {
-        cmd += std::string(" all property/atom i_statted_tags ghost yes");
-        modify->add_fix(cmd);
-        fix3 = modify->fix[modify->nfix-1];
-      }
+      // create stabilization per-atom property
+      id_fix3 = utils::strdup("bond_react_stabilization_internal");
+      if (modify->find_fix(id_fix3) < 0)
+        fix3 = modify->add_fix(std::string(id_fix3) + " all property/atom i_statted_tags ghost yes");
 
       statted_id = utils::strdup("statted_tags");
 
@@ -770,7 +758,7 @@ void FixBondReact::post_constructor()
 
       // this returns names of corresponding property
       int unused;
-      char * idprop;
+      char *idprop;
       idprop = (char *) fix->extract("property",unused);
       if (idprop == nullptr)
         error->all(FLERR,"Exclude group must be a per-atom property group");
@@ -787,17 +775,10 @@ void FixBondReact::post_constructor()
 
 
     // let's create a new nve/limit fix to limit newly reacted atoms
-    cmd = std::string("bond_react_MASTER_nve_limit");
-    id_fix1 = new char[cmd.size()+1];
-    strcpy(id_fix1,cmd.c_str());
-
-    ifix = modify->find_fix(id_fix1);
-
-    if (ifix == -1) {
-      cmd += fmt::format(" {} nve/limit  {}",master_group,nve_limit_xmax);
-      modify->add_fix(cmd);
-      fix1 = modify->fix[modify->nfix-1];
-    }
+    id_fix1 = utils::strdup("bond_react_MASTER_nve_limit");
+    if (modify->find_fix(id_fix1) < 0)
+      fix1 = modify->add_fix(fmt::format("{} {} nve/limit  {}",
+                                         id_fix1,master_group,nve_limit_xmax));
   }
 }
 

@@ -1960,18 +1960,15 @@ int DumpCustom::modify_param(int narg, char **arg)
       thresh_last[nthresh] = -1;
     } else {
       thresh_fix = (FixStore **)
-        memory->srealloc(thresh_fix,(nthreshlast+1)*sizeof(FixStore *),
-                         "dump:thresh_fix");
+        memory->srealloc(thresh_fix,(nthreshlast+1)*sizeof(FixStore *),"dump:thresh_fix");
       thresh_fixID = (char **)
-        memory->srealloc(thresh_fixID,(nthreshlast+1)*sizeof(char *),
-                         "dump:thresh_fixID");
+        memory->srealloc(thresh_fixID,(nthreshlast+1)*sizeof(char *),"dump:thresh_fixID");
       memory->grow(thresh_first,(nthreshlast+1),"dump:thresh_first");
 
       std::string threshid = fmt::format("{}{}_DUMP_STORE",id,nthreshlast);
       thresh_fixID[nthreshlast] = utils::strdup(threshid);
-      modify->add_fix(fmt::format("{} {} STORE peratom 1 1",threshid,
-                                  group->names[igroup]));
-      thresh_fix[nthreshlast] = (FixStore *) modify->fix[modify->nfix-1];
+      threshid += fmt::format(" {} STORE peratom 1 1", group->names[igroup]);
+      thresh_fix[nthreshlast] = (FixStore *) modify->add_fix(threshid);
 
       thresh_last[nthreshlast] = nthreshlast;
       thresh_first[nthreshlast] = 1;

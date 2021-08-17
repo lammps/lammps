@@ -499,8 +499,7 @@ void Balance::weight_storage(char *prefix)
   int ifix = modify->find_fix(cmd);
   if (ifix < 1) {
     cmd += " all STORE peratom 0 1";
-    modify->add_fix(cmd);
-    fixstore = (FixStore *) modify->fix[modify->nfix-1];
+    fixstore = (FixStore *) modify->add_fix(cmd);
   } else fixstore = (FixStore *) modify->fix[ifix];
 
   // do not carry weights with atoms during normal atom migration

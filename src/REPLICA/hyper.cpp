@@ -101,8 +101,7 @@ void Hyper::command(int narg, char **arg)
 
   // create FixEventHyper class to store event and pre-quench states
 
-  modify->add_fix("hyper_event all EVENT/HYPER");
-  fix_event = (FixEventHyper *) modify->fix[modify->nfix-1];
+  fix_event = (FixEventHyper *) modify->add_fix("hyper_event all EVENT/HYPER");
 
   // create Finish for timing output
 

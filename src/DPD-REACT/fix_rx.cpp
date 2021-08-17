@@ -18,6 +18,7 @@
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
+#include "fix_property_atom.h"
 #include "force.h"
 #include "group.h"
 #include "math_special.h"
@@ -344,12 +345,9 @@ void FixRX::post_constructor()
   newcmd1 += " ghost yes";
   newcmd2 += " ghost yes";
 
-  modify->add_fix(newcmd1);
-  fix_species = (FixPropertyAtom *) modify->fix[modify->nfix-1];
-  restartFlag = modify->fix[modify->nfix-1]->restart_reset;
-
-  modify->add_fix(newcmd2);
-  fix_species_old = (FixPropertyAtom *) modify->fix[modify->nfix-1];
+  fix_species = (FixPropertyAtom *) modify->add_fix(newcmd1);
+  restartFlag = fix_species->restart_reset;
+  fix_species_old = (FixPropertyAtom *) modify->add_fix(newcmd2);
 
   if (nspecies==0) error->all(FLERR,"There are no rx species specified.");
 

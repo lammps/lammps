@@ -617,8 +617,7 @@ void PairExp6rx::coeff(int narg, char **arg)
 
     if (strcmp(site1,"1fluid") == 0)
       isite1 = oneFluidApproxParameter;
-    else
-      {
+    else {
         int isp;
         for (isp = 0; isp < nspecies; isp++)
           if (strcmp(site1, &atom->dvname[isp][0]) == 0) break;
@@ -631,8 +630,7 @@ void PairExp6rx::coeff(int narg, char **arg)
 
     if (strcmp(site2,"1fluid") == 0)
       isite2 = oneFluidApproxParameter;
-    else
-      {
+    else {
         int isp;
         for (isp = 0; isp < nspecies; isp++)
         if (strcmp(site2, &atom->dvname[isp][0]) == 0) break;
@@ -644,8 +642,7 @@ void PairExp6rx::coeff(int narg, char **arg)
       }
 
     // Set the interaction potential type to the enumerated type.
-    for (int iparam = 0; iparam < nparams; ++iparam)
-      {
+    for (int iparam = 0; iparam < nparams; ++iparam) {
         if (strcmp( params[iparam].potential, "exp6") == 0)
           params[iparam].potentialType = exp6PotentialType;
         else
@@ -663,7 +660,6 @@ void PairExp6rx::coeff(int narg, char **arg)
     scalingFlag = EXPONENT;
     exponentR = utils::numeric(FLERR,arg[6],false,lmp);
     exponentEpsilon = utils::numeric(FLERR,arg[7],false,lmp);
-    if (narg > 9) error->all(FLERR,"Incorrect args for pair coefficients");
     if (narg == 9) cut_one = utils::numeric(FLERR,arg[8],false,lmp);
   } else if (strcmp(arg[5],"polynomial") == 0) {
     scalingFlag = POLYNOMIAL;

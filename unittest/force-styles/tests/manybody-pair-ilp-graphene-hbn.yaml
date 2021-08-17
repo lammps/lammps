@@ -9,7 +9,6 @@ prerequisites: ! |
 pre_commands: ! |
   variable newton_pair delete
   variable newton_pair index on
-  comm_modify cutoff 16.0
 post_commands: ! ""
 input_file: in.bilayer
 pair_style: hybrid/overlay ilp/graphene/hbn 16.0 1

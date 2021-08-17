@@ -142,9 +142,7 @@ double PairDRIP::init_one(int i, int j)
   Param& p = params[iparam_ij];
 
   // max cutoff is the main cutoff plus the normal cutoff such that
-  double cutmax = p.rcut + p.ncut;
-
-  return cutmax;
+  return p.rcut + p.ncut;
 }
 
 /* ----------------------------------------------------------------------

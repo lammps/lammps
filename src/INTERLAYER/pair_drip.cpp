@@ -51,6 +51,7 @@ PairDRIP::PairDRIP(LAMMPS *lmp) : Pair(lmp)
   restartinfo = 0;
   manybody_flag = 1;
   centroidstressflag = CENTROID_NOTAVAIL;
+  unit_convert_flag = utils::get_supported_conversions(utils::ENERGY);
 
   params = nullptr;
   nearest3neigh = nullptr;
@@ -162,6 +163,11 @@ void PairDRIP::read_file(char *filename)
     PotentialFileReader reader(lmp, filename, "drip", unit_convert_flag);
     char *line;
 
+    // transparently convert units for supported conversions
+
+    int unit_convert = reader.get_unit_convert();
+    double conversion_factor = utils::get_conversion_factor(utils::ENERGY, unit_convert);
+
     while ((line = reader.next_line(NPARAMS_PER_LINE))) {
 
       try {
@@ -212,6 +218,15 @@ void PairDRIP::read_file(char *filename)
 
       } catch (TokenizerException &e) {
         error->one(FLERR, e.what());
+      }
+
+      if (unit_convert) {
+        params[nparams].C0 *= conversion_factor;
+        params[nparams].C2 *= conversion_factor;
+        params[nparams].C4 *= conversion_factor;
+        params[nparams].C  *= conversion_factor;
+        params[nparams].A  *= conversion_factor;
+        params[nparams].B  *= conversion_factor;
       }
 
       // convenient precomputations

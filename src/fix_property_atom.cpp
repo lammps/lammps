@@ -93,21 +93,21 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
 
     } else if (utils::strmatch(arg[iarg],"^i_")) {
       style[nvalue] = IVEC;
-      int tmp;
-      index[nvalue] = atom->find_custom(&arg[iarg][2],tmp);
+      int flag,cols;
+      index[nvalue] = atom->find_custom(&arg[iarg][2],flag,cols);
       if (index[nvalue] >= 0)
         error->all(FLERR,"Fix property/atom vector name already exists");
-      index[nvalue] = atom->add_custom(&arg[iarg][2],0);
+      index[nvalue] = atom->add_custom(&arg[iarg][2],0,0);
       nvalue++;
-      iarg++
+      iarg++;
 
     } else if (utils::strmatch(arg[iarg],"^d_")) {
       style[nvalue] = DVEC;
-      int tmp;
-      index[nvalue] = atom->find_custom(&arg[iarg][2],tmp);
+      int flag,ncols;
+      index[nvalue] = atom->find_custom(&arg[iarg][2],flag,ncols);
       if (index[nvalue] >= 0)
         error->all(FLERR,"Fix property/atom vector name already exists");
-      index[nvalue] = atom->add_custom(&arg[iarg][2],1);
+      index[nvalue] = atom->add_custom(&arg[iarg][2],1,0);
       nvalue++;
       iarg++;
 
@@ -121,8 +121,8 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
       if (arg[iarg][0] == 'd') which = 1;
       if (which == 0) style[nvalue] = IARRAY;
       else style[nvalue] = DARRAY;
-      int tmp1,tmp2;
-      index[nvalue] = atom->find_custom(&arg[iarg][3],tmp1,tmp2);
+      int flag,ncols;
+      index[nvalue] = atom->find_custom(&arg[iarg][3],flag,ncols);
       if (index[nvalue] >= 0)
         error->all(FLERR,"Fix property/atom array name already exists");
       cols[nvalue] = utils::inumeric(FLERR,arg[iarg+1],true,lmp);
@@ -418,8 +418,10 @@ void FixPropertyAtom::write_data_section_keyword(int /*mth*/, FILE *fp)
       if (style[i] == MOLECULE) fputs(" mol",fp);
       else if (style[i] == CHARGE) fputs(" q",fp);
       else if (style[i] == RMASS) fputs(" rmass",fp);
-      else if (style[i] == INTEGER) fprintf(fp," i_%s", atom->iname[index[i]]);
-      else if (style[i] == DOUBLE) fprintf(fp, " d_%s", atom->dname[index[i]]);
+      else if (style[i] == IVEC) fprintf(fp," i_%s", atom->ivname[index[i]]);
+      else if (style[i] == DVEC) fprintf(fp, " d_%s", atom->dvname[index[i]]);
+      else if (style[i] == IARRAY) fprintf(fp, " i_%s", atom->ianame[index[i]]);
+      else if (style[i] == DARRAY) fprintf(fp, " d_%s", atom->daname[index[i]]);
     }
     fputs("\n\n",fp);
   }

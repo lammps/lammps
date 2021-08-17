@@ -609,13 +609,12 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
 
     // only match custom array reference with a '*' wildcard
     // number range in the first pair of square brackets
-
     // OLDSTYLE code
 
     if (strncmp(arg[iarg],"i2_",3) == 0 || strncmp(arg[iarg],"d2_",3) == 0) {
-      ptr1 = strchr(arg[iarg],'[');
+      char *ptr1 = strchr(arg[iarg],'[');
       if (ptr1) {
-        ptr2 = strchr(ptr1,']');
+        char *ptr2 = strchr(ptr1,']');
         if (ptr2) {
           *ptr2 = '\0';
           if (strchr(ptr1,'*')) {

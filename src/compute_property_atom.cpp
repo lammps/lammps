@@ -380,29 +380,23 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
                    "atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_nbonds;
 
-    } else if (strcmp(arg[iarg],"buckling") == 0) {
-      if (!atom->mesont_flag)
-        error->all(FLERR,"Compute property/atom for "
-                   "atom property that isn't allocated");
-      pack_choice[i] = &ComputePropertyAtom::pack_buckling;
-
     // custom per-atom vector
 
     } else if (utils::strmatch(arg[iarg],"^i_")) {
-      int flag,icol;
-      index[i] = atom->find_custom(&arg[iarg][2],flag,icol);
-      if (index[i] < 0 || flag || icol)
+      int flag,cols;
+      index[i] = atom->find_custom(&arg[iarg][2],flag,cols);
+      if (index[i] < 0 || flag || cols)
         error->all(FLERR,"Compute property/atom integer "
                    "vector does not exist");
       pack_choice[i] = &ComputePropertyAtom::pack_iname;
+
     } else if (utils::strmatch(arg[iarg],"^d_")) {
-      int flag;
-      index[i] = atom->find_custom(&arg[iarg][2],flag,icol);
-      if (index[i] < 0 || flag || icol1)
+      int flag,cols;
+      index[i] = atom->find_custom(&arg[iarg][2],flag,cols);
+      if (index[i] < 0 || flag || cols)
         error->all(FLERR,"Compute property/atom floating point "
                    "vector does not exist");
       pack_choice[i] = &ComputePropertyAtom::pack_dname;
-    }
 
     // custom per-atom arrays, must include bracketed index
     // OLDSTYLE code
@@ -1203,21 +1197,6 @@ void ComputePropertyAtom::pack_fmz(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePropertyAtom::pack_nbonds(int n)
-{
-  int *num_bond = atom->num_bond;
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
-
-  for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = num_bond[i];
-    else buf[n] = 0.0;
-    n += nvalues;
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
 void ComputePropertyAtom::pack_radius(int n)
 {
   double *radius = atom->radius;
@@ -1847,6 +1826,21 @@ void ComputePropertyAtom::pack_corner3z(int n)
       MathExtra::matvec(p,bonus[tri[i]].c3,c);
       buf[n] = x[i][2] + c[2];
     } else buf[n] = 0.0;
+    n += nvalues;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputePropertyAtom::pack_nbonds(int n)
+{
+  int *num_bond = atom->num_bond;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) buf[n] = num_bond[i];
+    else buf[n] = 0.0;
     n += nvalues;
   }
 }

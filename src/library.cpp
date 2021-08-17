@@ -3127,7 +3127,7 @@ void lammps_gather_concat(void *handle, char *name, int type, int count, void *d
 
     // compute
     
-    if (vptr==nullptr && utils::strmatch(name,"^c_"))
+    if (vptr==nullptr && utils::strmatch(name,"^c_")) {
 
       fcid = lmp->modify->find_compute(&name[2]);
       if (fcid < 0) {
@@ -3156,7 +3156,7 @@ void lammps_gather_concat(void *handle, char *name, int type, int count, void *d
       else vptr = (void *) lmp->modify->compute[fcid]->array_atom;
     }
 
-    // custom fix property/atom vector or array
+    // custom per-atom vector or array
     // OLDSTYLE code
 
     if ((vptr==nullptr) &&

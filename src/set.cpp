@@ -576,9 +576,9 @@ void Set::command(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal set command");
       if (utils::strmatch(arg[iarg+1],"^v_")) varparse(arg[iarg+1],1);
       else ivalue = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
-      int flag;
-      index_custom = atom->find_custom(&arg[iarg][2],flag);
-      if (index_custom < 0 || flag != 0)
+      int flag,cols;
+      index_custom = atom->find_custom(&arg[iarg][2],flag,cols);
+      if (index_custom < 0 || flag || cols)
         error->all(FLERR,"Set command integer vector does not exist");
       set(IVEC);
       iarg += 2;
@@ -587,9 +587,9 @@ void Set::command(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal set command");
       if (utils::strmatch(arg[iarg+1],"^v_")) varparse(arg[iarg+1],1);
       else dvalue = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-      int flag;
-      index_custom = atom->find_custom(&arg[iarg][2],flag);
-      if (index_custom < 0 || flag != 1)
+      int flag,cols;
+      index_custom = atom->find_custom(&arg[iarg][2],flag,cols);
+      if (index_custom < 0 || flag || cols)
         error->all(FLERR,"Set command floating point vector does not exist");
       set(DVEC);
       iarg += 2;

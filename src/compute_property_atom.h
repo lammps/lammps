@@ -90,8 +90,6 @@ class ComputePropertyAtom : public Compute {
   void pack_fmy(int);
   void pack_fmz(int);
 
-  void pack_nbonds(int);
-
   void pack_radius(int);
   void pack_diameter(int);
   void pack_omegax(int);
@@ -128,6 +126,8 @@ class ComputePropertyAtom : public Compute {
   void pack_corner3x(int);
   void pack_corner3y(int);
   void pack_corner3z(int);
+
+  void pack_nbonds(int);
 
   void pack_iname(int);
   void pack_dname(int);

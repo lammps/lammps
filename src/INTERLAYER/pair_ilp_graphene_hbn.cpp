@@ -61,6 +61,9 @@ PairILPGrapheneHBN::PairILPGrapheneHBN(LAMMPS *lmp) : Pair(lmp)
 {
   restartinfo = 0;
   one_coeff = 1;
+  manybody_flag = 1;
+  centroidstressflag = CENTROID_NOTAVAIL;
+  unit_convert_flag = utils::get_supported_conversions(utils::ENERGY);
 
   if (lmp->citeme) lmp->citeme->add(cite_ilp);
 
@@ -84,7 +87,8 @@ PairILPGrapheneHBN::PairILPGrapheneHBN(LAMMPS *lmp) : Pair(lmp)
 
   // always compute energy offset
   offset_flag = 1;
-  // turn on the taper function
+
+  // turn on the taper function by default
   tap_flag = 1;
 }
 
@@ -195,6 +199,11 @@ void PairILPGrapheneHBN::read_file(char *filename)
     PotentialFileReader reader(lmp, filename, "ilp/graphene/hbn", unit_convert_flag);
     char *line;
 
+    // transparently convert units for supported conversions
+
+    int unit_convert = reader.get_unit_convert();
+    double conversion_factor = utils::get_conversion_factor(utils::ENERGY, unit_convert);
+
     while ((line = reader.next_line(NPARAMS_PER_LINE))) {
 
       try {
@@ -250,7 +259,10 @@ void PairILPGrapheneHBN::read_file(char *filename)
 
       // energies in meV further scaled by S
       // S = 43.3634 meV = 1 kcal/mol
+
       const double meV = 1e-3*params[nparams].S;
+      if (unit_convert) meV *= conversion_factor;
+
       params[nparams].C *= meV;
       params[nparams].C6 *= meV;
       params[nparams].epsilon *= meV;

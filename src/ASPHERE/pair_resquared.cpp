@@ -728,7 +728,7 @@ double PairRESquared::resquared_analytic(const int i, const int j,
     u[0] = -rhat[m]*rhat[0];
     u[1] = -rhat[m]*rhat[1];
     u[2] = -rhat[m]*rhat[2];
-    u[i] += 1.0;
+    u[m] += 1.0;
     u[0] /= rnorm;
     u[1] /= rnorm;
     u[2] /= rnorm;
@@ -750,7 +750,7 @@ double PairRESquared::resquared_analytic(const int i, const int j,
     deta -= ddH*tdH;
     deta -= dsigma1*teta1+dsigma2*teta2;
     dchi = MathExtra::dot3(u,fourw);
-    dh12 = rhat[i]+MathExtra::dot3(u,spr);
+    dh12 = rhat[m]+MathExtra::dot3(u,spr);
     dUa = pbsu*(eta*dchi+deta*chi)-dh12*dspu;
     dUr = pbsr*(eta*dchi+deta*chi)-dh12*dspr;
     fforce[m]=dUr*Ur+dUa*Ua;

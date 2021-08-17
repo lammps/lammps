@@ -31,6 +31,8 @@
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "neighbor.h"
+#include "potential_file_reader.h"
+#include "tokenizer.h"
 
 #include <cmath>
 #include <cstring>
@@ -94,11 +96,11 @@ void PairDRIP::init_style()
 void PairDRIP::allocate()
 {
   allocated = 1;
-  int n = atom->ntypes;
+  int n = atom->ntypes+1;
 
-  memory->create(setflag,n+1,n+1,"pair:setflag");
-  memory->create(cutsq,n+1,n+1,"pair:cutsq");
-  map = new int[n+1];
+  memory->create(setflag,n,n,"pair:setflag");
+  memory->create(cutsq,n,n,"pair:cutsq");
+  map = new int[n];
 }
 
 /* ----------------------------------------------------------------------
@@ -150,129 +152,92 @@ double PairDRIP::init_one(int i, int j)
 
 void PairDRIP::read_file(char *filename)
 {
-  int params_per_line = 15;
-  char **words = new char*[params_per_line+1];
   memory->sfree(params);
-  int nparams = 0;
-  int maxparam = 0;
+  params = nullptr;
+  nparams = maxparam = 0;
 
   // open file on proc 0
 
-  FILE *fp;
   if (comm->me == 0) {
-    fp = utils::open_potential(filename,lmp,nullptr);
-    if (fp == nullptr)
-      error->one(FLERR,"Cannot open DRIP potential file {}: {}",filename,utils::getsyserror());
-  }
+    PotentialFileReader reader(lmp, filename, "drip", unit_convert_flag);
+    char *line;
 
-  // read each line out of file, skipping blank lines or leading '#'
-  // store line of params if all 3 element tags are in element list
+    while ((line = reader.next_line(NPARAMS_PER_LINE))) {
 
-  int i,j,n,m,nwords,ielement,jelement;
-  char line[MAXLINE],*ptr;
-  int eof = 0;
+      try {
+        ValueTokenizer values(line);
 
-  while (1) {
-    if (comm->me == 0) {
-      ptr = fgets(line,MAXLINE,fp);
-      if (ptr == nullptr) {
-        eof = 1;
-        fclose(fp);
-      } else n = strlen(line) + 1;
-    }
-    MPI_Bcast(&eof,1,MPI_INT,0,world);
-    if (eof) break;
-    MPI_Bcast(&n,1,MPI_INT,0,world);
-    MPI_Bcast(line,n,MPI_CHAR,0,world);
+        std::string iname = values.next_string();
+        std::string jname = values.next_string();
 
-    // strip comment, skip line if blank
+        // ielement,jelement = 1st args
+        // if both args are in element list, then parse this line
+        // else skip to next entry in file
+        int ielement, jelement;
 
-    if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = utils::count_words(line);
-    if (nwords == 0) continue;
+        for (ielement = 0; ielement < nelements; ielement++)
+          if (iname == elements[ielement]) break;
+        if (ielement == nelements) continue;
+        for (jelement = 0; jelement < nelements; jelement++)
+          if (jname == elements[jelement]) break;
+        if (jelement == nelements) continue;
 
-    // concatenate additional lines until have params_per_line words
+        // expand storage, if needed
 
-    while (nwords < params_per_line) {
-      n = strlen(line);
-      if (comm->me == 0) {
-        ptr = fgets(&line[n],MAXLINE-n,fp);
-        if (ptr == nullptr) {
-          eof = 1;
-          fclose(fp);
-        } else n = strlen(line) + 1;
+        if (nparams == maxparam) {
+          maxparam += DELTA;
+          params = (Param *) memory->srealloc(params,maxparam*sizeof(Param), "pair:params");
+
+          // make certain all addional allocated storage is initialized
+          // to avoid false positives when checking with valgrind
+
+          memset(params + nparams, 0, DELTA*sizeof(Param));
+        }
+
+        params[nparams].ielement = ielement;
+        params[nparams].jelement = jelement;
+        params[nparams].C0       = values.next_double();
+        params[nparams].C2       = values.next_double();
+        params[nparams].C4       = values.next_double();
+        params[nparams].C        = values.next_double();
+        params[nparams].delta    = values.next_double();
+        params[nparams].lambda   = values.next_double();
+        params[nparams].A        = values.next_double();
+        params[nparams].z0       = values.next_double();
+        params[nparams].B        = values.next_double();
+        params[nparams].eta      = values.next_double();
+        params[nparams].rhocut   = values.next_double();
+        params[nparams].rcut     = values.next_double();
+        params[nparams].ncut     = values.next_double();
+
+      } catch (TokenizerException &e) {
+        error->one(FLERR, e.what());
       }
-      MPI_Bcast(&eof,1,MPI_INT,0,world);
-      if (eof) break;
-      MPI_Bcast(&n,1,MPI_INT,0,world);
-      MPI_Bcast(line,n,MPI_CHAR,0,world);
-      if ((ptr = strchr(line,'#'))) *ptr = '\0';
-      nwords = utils::count_words(line);
+
+      // convenient precomputations
+      params[nparams].rhocutsq = params[nparams].rhocut * params[nparams].rhocut;
+      params[nparams].rcutsq   = params[nparams].rcut * params[nparams].rcut;
+      params[nparams].ncutsq   = params[nparams].ncut * params[nparams].ncut;
+
+      nparams++;
     }
 
-    if (nwords != params_per_line)
-      error->all(FLERR,"Insufficient format in DRIP potential file");
+    MPI_Bcast(&nparams, 1, MPI_INT, 0, world);
+    MPI_Bcast(&maxparam, 1, MPI_INT, 0, world);
 
-    // words = ptrs to all words in line
-
-    nwords = 0;
-    words[nwords++] = strtok(line," \t\n\r\f");
-    while ((words[nwords++] = strtok(nullptr," \t\n\r\f"))) continue;
-
-    // ielement,jelement = 1st args
-    // if these 2 args are in element list, then parse this line
-    // else skip to next line (continue)
-
-    for (ielement = 0; ielement < nelements; ielement++)
-      if (strcmp(words[0],elements[ielement]) == 0) break;
-    if (ielement == nelements) continue;
-    for (jelement = 0; jelement < nelements; jelement++)
-      if (strcmp(words[1],elements[jelement]) == 0) break;
-    if (jelement == nelements) continue;
-
-    // load up parameter settings and error check their values
-
-    if (nparams == maxparam) {
-      maxparam += DELTA;
-      params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
-                                          "pair:params");
-
-      // make certain all addional allocated storage is initialized
-      // to avoid false positives when checking with valgrind
-
-      memset(params + nparams, 0, DELTA*sizeof(Param));
+    if (comm->me != 0) {
+      params = (Param *) memory->srealloc(params,maxparam*sizeof(Param), "pair:params");
     }
 
-    params[nparams].ielement = ielement;
-    params[nparams].jelement = jelement;
-    params[nparams].C0       = atof(words[2]);
-    params[nparams].C2       = atof(words[3]);
-    params[nparams].C4       = atof(words[4]);
-    params[nparams].C        = atof(words[5]);
-    params[nparams].delta    = atof(words[6]);
-    params[nparams].lambda   = atof(words[7]);
-    params[nparams].A        = atof(words[8]);
-    params[nparams].z0       = atof(words[9]);
-    params[nparams].B        = atof(words[10]);
-    params[nparams].eta      = atof(words[11]);
-    params[nparams].rhocut   = atof(words[12]);
-    params[nparams].rcut     = atof(words[13]);
-    params[nparams].ncut     = atof(words[14]);
-
-    // convenient precomputations
-    params[nparams].rhocutsq = params[nparams].rhocut * params[nparams].rhocut;
-    params[nparams].rcutsq   = params[nparams].rcut * params[nparams].rcut;
-    params[nparams].ncutsq   = params[nparams].ncut * params[nparams].ncut;
-
-    nparams++;
+    MPI_Bcast(params, maxparam*sizeof(Param), MPI_BYTE, 0, world);
   }
 
   memory->destroy(elem2param);
   memory->create(elem2param,nelements,nelements,"pair:elem2param");
-  for (i = 0; i < nelements; i++) {
-    for (j = 0; j < nelements; j++) {
-      n = -1;
-      for (m = 0; m < nparams; m++) {
+  for (int i = 0; i < nelements; i++) {
+    for (int j = 0; j < nelements; j++) {
+      int n = -1;
+      for (int m = 0; m < nparams; m++) {
         if (i == params[m].ielement && j == params[m].jelement) {
           if (n >= 0) error->all(FLERR,"Potential file has duplicate entry");
           n = m;
@@ -282,7 +247,6 @@ void PairDRIP::read_file(char *filename)
       elem2param[i][j] = n;
     }
   }
-  delete [] words;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -293,9 +257,9 @@ void PairDRIP::compute(int eflag, int vflag)
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,rsq;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
-  double ni[DIM];
-  double dni_dri[DIM][DIM], dni_drnb1[DIM][DIM];
-  double dni_drnb2[DIM][DIM], dni_drnb3[DIM][DIM];
+  double ni[3];
+  double dni_dri[3][3], dni_drnb1[3][3];
+  double dni_drnb2[3][3], dni_drnb3[3][3];
 
   ev_init(eflag,vflag);
 
@@ -327,7 +291,7 @@ void PairDRIP::compute(int eflag, int vflag)
     // normal and its derivatives w.r.t. atom i and its 3 nearest neighbors
     calc_normal(i, ni, dni_dri,dni_drnb1, dni_drnb2, dni_drnb3);
 
-    double fi[DIM] = {0., 0., 0.};
+    double fi[3] = {0., 0., 0.};
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
@@ -348,8 +312,8 @@ void PairDRIP::compute(int eflag, int vflag)
       // only include the interaction between different layers
       if (rsq < rcutsq && atom->molecule[i] != atom->molecule[j]) {
 
-        double fj[DIM] = {0., 0., 0.};
-        double rvec[DIM] = {delx, dely, delz};
+        double fj[3] = {0., 0., 0.};
+        double rvec[3] = {delx, dely, delz};
 
         double phi_attr = calc_attractive(p, rsq, rvec, fi, fj);
 
@@ -441,12 +405,12 @@ double PairDRIP::calc_repulsive(int const i, int const j, Param& p,
   int nbj2 = nearest3neigh[j][1];
   int nbj3 = nearest3neigh[j][2];
 
-  double fnbi1[DIM];
-  double fnbi2[DIM];
-  double fnbi3[DIM];
-  double fnbj1[DIM];
-  double fnbj2[DIM];
-  double fnbj3[DIM];
+  double fnbi1[3];
+  double fnbi2[3];
+  double fnbi3[3];
+  double fnbj1[3];
+  double fnbj2[3];
+  double fnbj3[3];
   V3 dgij_dri;
   V3 dgij_drj;
   V3 dgij_drk1;
@@ -490,7 +454,7 @@ double PairDRIP::calc_repulsive(int const i, int const j, Param& p,
   // total energy
   double phi = tp * V1 * V2;
 
-  for (int k = 0; k < DIM; k++) {
+  for (int k = 0; k < 3; k++) {
     // forces due to derivatives of tap and V1
     double tmp = HALF * (dtp * V1 + tp * dV1) * V2 * rvec[k] / r;
     fi[k] += tmp;
@@ -511,7 +475,7 @@ double PairDRIP::calc_repulsive(int const i, int const j, Param& p,
     fnbj3[k] = -HALF * tp * V1 * dgij_drl3[k];
   }
 
-  for (int k = 0; k < DIM; k++) {
+  for (int k = 0; k < 3; k++) {
     f[nbi1][k] += fnbi1[k];
     f[nbi2][k] += fnbi2[k];
     f[nbi3][k] += fnbi3[k];
@@ -650,8 +614,8 @@ void PairDRIP::calc_normal(int const i, double *const normal,
   int k3 = nearest3neigh[i][2];
 
   // normal does not depend on i, setting to zero
-  for (int j = 0; j < DIM; j++) {
-    for (int k = 0; k < DIM; k++) {
+  for (int j = 0; j < 3; j++) {
+    for (int k = 0; k < 3; k++) {
       dn_dri[j][k] = 0.0;
     }
   }
@@ -671,10 +635,10 @@ void PairDRIP::get_drhosqij(double const *rij, double const *ni,
 {
   int k;
   double ni_dot_rij = 0;
-  double dni_dri_dot_rij[DIM];
-  double dni_drn1_dot_rij[DIM];
-  double dni_drn2_dot_rij[DIM];
-  double dni_drn3_dot_rij[DIM];
+  double dni_dri_dot_rij[3];
+  double dni_drn1_dot_rij[3];
+  double dni_drn2_dot_rij[3];
+  double dni_drn3_dot_rij[3];
 
   ni_dot_rij = dot(ni, rij);
   mat_dot_vec(dni_dri, rij, dni_dri_dot_rij);
@@ -682,7 +646,7 @@ void PairDRIP::get_drhosqij(double const *rij, double const *ni,
   mat_dot_vec(dni_drn2, rij, dni_drn2_dot_rij);
   mat_dot_vec(dni_drn3, rij, dni_drn3_dot_rij);
 
-  for (k = 0; k < DIM; k++) {
+  for (k = 0; k < 3; k++) {
     drhosq_dri[k] = -2*rij[k] - 2 * ni_dot_rij * (-ni[k] + dni_dri_dot_rij[k]);
     drhosq_drj[k] = 2 * rij[k] - 2 * ni_dot_rij * ni[k];
     drhosq_drn1[k] = -2 * ni_dot_rij * dni_drn1_dot_rij[k];
@@ -736,14 +700,14 @@ double PairDRIP::dihedral(const int i, const int j, Param& p,
   // local vars
   double cos_kl[3][3];          // cos_omega_k1ijl1, cos_omega_k1ijl2 ...
   double d_dcos_kl[3][3];       // deriv of dihedral w.r.t to cos_omega_kijl
-  double dcos_kl[3][3][4][DIM]; // 4 indicates k, i, j, l. e.g. dcoskl[0][1][0]
+  double dcos_kl[3][3][4][3]; // 4 indicates k, i, j, l. e.g. dcoskl[0][1][0]
                                 // means dcos_omega_k1ijl2 / drk
 
 
   // if larger than cutoff of rho, return 0
   if (rhosq >= cut_rhosq) {
     d_drhosq = 0;
-    for (int dim = 0; dim < DIM; dim++) {
+    for (int dim = 0; dim < 3; dim++) {
       d_dri[dim] = 0;
       d_drj[dim] = 0;
       d_drk1[dim] = 0;
@@ -800,7 +764,7 @@ double PairDRIP::dihedral(const int i, const int j, Param& p,
   d_dcos_kl[2][2] = -D0 * epart3 * eta * cos_kl[2][0] * cos_kl[2][1];
 
   // initialization to be zero and later add values
-  for (int dim = 0; dim < DIM; dim++) {
+  for (int dim = 0; dim < 3; dim++) {
     d_drk1[dim] = 0.;
     d_drk2[dim] = 0.;
     d_drk3[dim] = 0.;
@@ -839,16 +803,16 @@ double PairDRIP::deriv_cos_omega(double const *rk, double const *ri,
     double const *rj, double const *rl, double *const dcos_drk,
     double *const dcos_dri, double *const dcos_drj, double *const dcos_drl)
 {
-  double ejik[DIM];
-  double eijl[DIM];
-  double tmp1[DIM];
-  double tmp2[DIM];
-  double dejik_dri[DIM][DIM];
-  double dejik_drj[DIM][DIM];
-  double dejik_drk[DIM][DIM];
-  double deijl_dri[DIM][DIM];
-  double deijl_drj[DIM][DIM];
-  double deijl_drl[DIM][DIM];
+  double ejik[3];
+  double eijl[3];
+  double tmp1[3];
+  double tmp2[3];
+  double dejik_dri[3][3];
+  double dejik_drj[3][3];
+  double dejik_drk[3][3];
+  double deijl_dri[3][3];
+  double deijl_drj[3][3];
+  double deijl_drl[3][3];
 
 
   // ejik and derivatives
@@ -857,9 +821,9 @@ double PairDRIP::deriv_cos_omega(double const *rk, double const *ri,
 
   // flip sign
   // deriv_cross computes rij cross rik, here we need rji cross rik
-  for (int m = 0; m < DIM; m++) {
+  for (int m = 0; m < 3; m++) {
     ejik[m] = -ejik[m];
-    for (int n = 0; n < DIM; n++) {
+    for (int n = 0; n < 3; n++) {
       dejik_dri[m][n] = -dejik_dri[m][n];
       dejik_drj[m][n] = -dejik_drj[m][n];
       dejik_drk[m][n] = -dejik_drk[m][n];
@@ -869,9 +833,9 @@ double PairDRIP::deriv_cos_omega(double const *rk, double const *ri,
   // eijl and derivatives
   deriv_cross(rj, ri, rl, eijl, deijl_drj, deijl_dri, deijl_drl);
   // flip sign
-  for (int m = 0; m < DIM; m++) {
+  for (int m = 0; m < 3; m++) {
     eijl[m] = -eijl[m];
-    for (int n = 0; n < DIM; n++) {
+    for (int n = 0; n < 3; n++) {
       deijl_drj[m][n] = -deijl_drj[m][n];
       deijl_dri[m][n] = -deijl_dri[m][n];
       deijl_drl[m][n] = -deijl_drl[m][n];
@@ -883,13 +847,13 @@ double PairDRIP::deriv_cos_omega(double const *rk, double const *ri,
   // dcos_dri
   mat_dot_vec(dejik_dri, eijl, tmp1);
   mat_dot_vec(deijl_dri, ejik, tmp2);
-  for (int m = 0; m < DIM; m++) {
+  for (int m = 0; m < 3; m++) {
     dcos_dri[m] = tmp1[m] + tmp2[m];
   }
   // dcos_drj
   mat_dot_vec(dejik_drj, eijl, tmp1);
   mat_dot_vec(deijl_drj, ejik, tmp2);
-  for (int m = 0; m < DIM; m++) {
+  for (int m = 0; m < 3; m++) {
     dcos_drj[m] = tmp1[m] + tmp2[m];
   }
   // dcos drl
@@ -952,9 +916,9 @@ void PairDRIP::deriv_cross(double const *rk, double const *rl,
     double const *rm, double *const cross,
     V3 *const dcross_drk, V3 *const dcross_drl, V3 *const dcross_drm)
 {
-  double x[DIM];
-  double y[DIM];
-  double p[DIM];
+  double x[3];
+  double y[3];
+  double p[3];
   double q;
   double q_cubic;
   double d_invq_d_x0;
@@ -968,7 +932,7 @@ void PairDRIP::deriv_cross(double const *rk, double const *rl,
 
 
   // get x = rkl and y = rkm
-  for (i = 0; i < DIM; i++) {
+  for (i = 0; i < 3; i++) {
     x[i] = rl[i] - rk[i];
     y[i] = rm[i] - rk[i];
   }
@@ -1022,8 +986,8 @@ void PairDRIP::deriv_cross(double const *rk, double const *rl,
   dcross_drm[2][2] = p[2] * d_invq_d_y2;
 
   // dcross/drk transposed
-  for (i = 0; i < DIM; i++) {
-    for (j = 0; j < DIM; j++) {
+  for (i = 0; i < 3; i++) {
+    for (j = 0; j < 3; j++) {
       dcross_drk[i][j] = -(dcross_drl[i][j] + dcross_drm[i][j]);
     }
   }

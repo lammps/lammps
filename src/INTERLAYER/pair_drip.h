@@ -33,8 +33,6 @@ PairStyle(drip, PairDRIP);
 
 namespace LAMMPS_NS {
 
-#define DIM 3
-typedef double V3[3];
 
 class PairDRIP : public Pair {
  public:
@@ -47,7 +45,10 @@ class PairDRIP : public Pair {
   double init_one(int, int);
   void init_style();
 
+  static constexpr int NPARAMS_PER_LINE = 15;
+
  protected:
+  typedef double V3[3];
   struct Param {
     int ielement, jelement;
     double C0, C2, C4, C, delta, lambda, A, z0, B, eta, rhocut, rcut, ncut;

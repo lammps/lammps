@@ -169,6 +169,16 @@ TEST(ArgInfo, variable2)
     ASSERT_THAT(arg.get_name(), StrEq("x"));
 }
 
+TEST(ArgInfo, variable3)
+{
+    ArgInfo arg("v_x[11][5]");
+    ASSERT_EQ(arg.get_dim(), 2);
+    ASSERT_EQ(arg.get_type(), ArgInfo::VARIABLE);
+    ASSERT_EQ(arg.get_index1(), 11);
+    ASSERT_EQ(arg.get_index2(), 5);
+    ASSERT_THAT(arg.get_name(), StrEq("x"));
+}
+
 TEST(ArgInfo, dname0)
 {
     ArgInfo arg("d_text", ArgInfo::DNAME);
@@ -179,6 +189,36 @@ TEST(ArgInfo, dname0)
     ASSERT_THAT(arg.get_name(), StrEq("text"));
 }
 
+TEST(ArgInfo, dname1)
+{
+    ArgInfo arg("d2_text", ArgInfo::DNAME | ArgInfo::INAME);
+    ASSERT_EQ(arg.get_dim(), 0);
+    ASSERT_EQ(arg.get_type(), ArgInfo::DNAME);
+    ASSERT_EQ(arg.get_index1(), 0);
+    ASSERT_EQ(arg.get_index2(), -1);
+    ASSERT_THAT(arg.get_name(), StrEq("text"));
+}
+
+TEST(ArgInfo, dname2)
+{
+    ArgInfo arg("d2_text[11]", ArgInfo::DNAME);
+    ASSERT_EQ(arg.get_dim(), 1);
+    ASSERT_EQ(arg.get_type(), ArgInfo::DNAME);
+    ASSERT_EQ(arg.get_index1(), 11);
+    ASSERT_EQ(arg.get_index2(), -1);
+    ASSERT_THAT(arg.get_name(), StrEq("text"));
+}
+
+TEST(ArgInfo, dname3)
+{
+    ArgInfo arg("d2_text[24][11]", ArgInfo::DNAME);
+    ASSERT_EQ(arg.get_dim(), 2);
+    ASSERT_EQ(arg.get_type(), ArgInfo::DNAME);
+    ASSERT_EQ(arg.get_index1(), 24);
+    ASSERT_EQ(arg.get_index2(), 11);
+    ASSERT_THAT(arg.get_name(), StrEq("text"));
+}
+
 TEST(ArgInfo, iname0)
 {
     ArgInfo arg("i_text", ArgInfo::INAME);
@@ -186,6 +226,36 @@ TEST(ArgInfo, iname0)
     ASSERT_EQ(arg.get_type(), ArgInfo::INAME);
     ASSERT_EQ(arg.get_index1(), 0);
     ASSERT_EQ(arg.get_index2(), -1);
+    ASSERT_THAT(arg.get_name(), StrEq("text"));
+}
+
+TEST(ArgInfo, iname1)
+{
+    ArgInfo arg("i2_text", ArgInfo::INAME);
+    ASSERT_EQ(arg.get_dim(), 0);
+    ASSERT_EQ(arg.get_type(), ArgInfo::INAME);
+    ASSERT_EQ(arg.get_index1(), 0);
+    ASSERT_EQ(arg.get_index2(), -1);
+    ASSERT_THAT(arg.get_name(), StrEq("text"));
+}
+
+TEST(ArgInfo, iname2)
+{
+    ArgInfo arg("i2_text[2]", ArgInfo::INAME | ArgInfo::DNAME);
+    ASSERT_EQ(arg.get_dim(), 1);
+    ASSERT_EQ(arg.get_type(), ArgInfo::INAME);
+    ASSERT_EQ(arg.get_index1(), 2);
+    ASSERT_EQ(arg.get_index2(), -1);
+    ASSERT_THAT(arg.get_name(), StrEq("text"));
+}
+
+TEST(ArgInfo, iname3)
+{
+    ArgInfo arg("i2_text[2][100]", ArgInfo::INAME | ArgInfo::DNAME);
+    ASSERT_EQ(arg.get_dim(), 2);
+    ASSERT_EQ(arg.get_type(), ArgInfo::INAME);
+    ASSERT_EQ(arg.get_index1(), 2);
+    ASSERT_EQ(arg.get_index2(), 100);
     ASSERT_THAT(arg.get_name(), StrEq("text"));
 }
 

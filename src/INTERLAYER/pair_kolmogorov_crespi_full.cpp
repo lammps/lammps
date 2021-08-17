@@ -257,7 +257,7 @@ void PairKolmogorovCrespiFull::read_file(char *filename)
 
       // energies in meV further scaled by S
 
-      const double meV = 1.0e-3*params[nparams].S;
+      double meV = 1.0e-3*params[nparams].S;
       if (unit_convert) meV *= conversion_factor;
 
       params[nparams].C *= meV;

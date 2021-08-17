@@ -260,7 +260,7 @@ void PairILPGrapheneHBN::read_file(char *filename)
       // energies in meV further scaled by S
       // S = 43.3634 meV = 1 kcal/mol
 
-      const double meV = 1e-3*params[nparams].S;
+      double meV = 1e-3*params[nparams].S;
       if (unit_convert) meV *= conversion_factor;
 
       params[nparams].C *= meV;

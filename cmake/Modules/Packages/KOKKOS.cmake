@@ -74,7 +74,7 @@ else()
   target_link_libraries(lammps PRIVATE kokkos)
   target_link_libraries(lmp PRIVATE kokkos)
 endif()
-target_compile_definitions(lammps PUBLIC -DLMP_KOKKOS)
+target_compile_definitions(lammps PUBLIC $<BUILD_INTERFACE:LMP_KOKKOS>)
 
 set(KOKKOS_PKG_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/KOKKOS)
 set(KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/kokkos.cpp

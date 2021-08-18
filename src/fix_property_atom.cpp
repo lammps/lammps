@@ -250,7 +250,7 @@ void FixPropertyAtom::init()
 void FixPropertyAtom::read_data_section(char *keyword, int n, char *buf,
                                         tagint id_offset)
 {
-  int j,k,m,iword,ncol,nv;
+  int j,k,m,ncol;
   tagint itag;
   char *next;
 

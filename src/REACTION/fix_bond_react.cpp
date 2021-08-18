@@ -2828,6 +2828,19 @@ void FixBondReact::update_everything()
         rxnID = local_mega_glove[0][i];
         // reactions already shuffled from dedup procedure, so can skip first N
         if (iskip[rxnID]++ < nlocalskips[rxnID]) continue;
+
+        // atoms inserted here for serial MPI_STUBS build only
+        if (create_atoms_flag[rxnID] == 1) {
+          onemol = atom->molecules[unreacted_mol[rxnID]];
+          twomol = atom->molecules[reacted_mol[rxnID]];
+          if (insert_atoms(local_mega_glove,i)) {
+            inserted_atoms_flag = 1;
+          } else { // create aborted
+            reaction_count_total[rxnID]--;
+            continue;
+          }
+        }
+
         for (int j = 0; j < max_natoms+1; j++)
           update_mega_glove[j][update_num_mega] = local_mega_glove[j][i];
         update_num_mega++;
@@ -2840,7 +2853,7 @@ void FixBondReact::update_everything()
 
         // we can insert atoms here, now that reactions are finalized
         // can't do it any earlier, due to skipped reactions (max_rxn)
-        // reactions that create atoms are always treated as 'global'
+        // for MPI build, reactions that create atoms are always treated as 'global'
         if (create_atoms_flag[rxnID] == 1) {
           onemol = atom->molecules[unreacted_mol[rxnID]];
           twomol = atom->molecules[reacted_mol[rxnID]];
@@ -2856,16 +2869,17 @@ void FixBondReact::update_everything()
           update_mega_glove[j][update_num_mega] = global_mega_glove[j][i];
         update_num_mega++;
       }
-      // if inserted atoms and global map exists, reset map now instead
-      //   of waiting for comm since other pre-exchange fixes may use it
-      // invoke map_init() b/c atom count has grown
-      // do this once after all atom insertions
-      if (inserted_atoms_flag == 1 && atom->map_style != Atom::MAP_NONE) {
-        atom->map_init();
-        atom->map_set();
-      }
     }
     delete [] iskip;
+
+    // if inserted atoms and global map exists, reset map now instead
+    //   of waiting for comm since other pre-exchange fixes may use it
+    // invoke map_init() b/c atom count has grown
+    // do this once after all atom insertions
+    if (inserted_atoms_flag == 1 && atom->map_style != Atom::MAP_NONE) {
+      atom->map_init();
+      atom->map_set();
+    }
 
     // mark to-delete atoms
     nlocal = atom->nlocal;

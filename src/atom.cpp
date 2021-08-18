@@ -2472,47 +2472,39 @@ int Atom::add_custom(const char *name, int flag, int cols)
 {
   int index;
 
-  if (flag == 0 && cols == 0) {
+  if ((flag == 0) && (cols == 0)) {
     index = nivector;
     nivector++;
-    ivname = (char **) memory->srealloc(ivname,nivector*sizeof(char *),
-					"atom:ivname");
+    ivname = (char **) memory->srealloc(ivname,nivector*sizeof(char *),"atom:ivname");
     ivname[index] = utils::strdup(name);
-    ivector = (int **) memory->srealloc(ivector,nivector*sizeof(int *),
-                                        "atom:ivector");
+    ivector = (int **) memory->srealloc(ivector,nivector*sizeof(int *),"atom:ivector");
     memory->create(ivector[index],nmax,"atom:ivector");
 
-  } else if (flag == 1 && cols == 0) {
+  } else if ((flag == 1) && (cols == 0)) {
     index = ndvector;
     ndvector++;
-    dvname = (char **) memory->srealloc(dvname,ndvector*sizeof(char *),
-					"atom:dvname");
+    dvname = (char **) memory->srealloc(dvname,ndvector*sizeof(char *),"atom:dvname");
     dvname[index] = utils::strdup(name);
-    dvector = (double **) memory->srealloc(dvector,ndvector*sizeof(double *),
-                                           "atom:dvector");
+    dvector = (double **) memory->srealloc(dvector,ndvector*sizeof(double *),"atom:dvector");
     memory->create(dvector[index],nmax,"atom:dvector");
 
-  } else if (flag == 0 && cols) {
+  } else if ((flag == 0) && (cols > 0)) {
     index = niarray;
     niarray++;
-    ianame = (char **) memory->srealloc(ianame,niarray*sizeof(char *),
-					"atom:ianame");
+    ianame = (char **) memory->srealloc(ianame,niarray*sizeof(char *),"atom:ianame");
     ianame[index] = utils::strdup(name);
-    iarray = (int ***) memory->srealloc(iarray,niarray*sizeof(int **),
-					"atom:iarray");
+    iarray = (int ***) memory->srealloc(iarray,niarray*sizeof(int **),"atom:iarray");
     memory->create(iarray[index],nmax,cols,"atom:iarray");
 
     icols = (int *) memory->srealloc(icols,niarray*sizeof(int),"atom:icols");
     icols[index] = cols;
 
-  } else if (flag == 1 && cols) {
+  } else if ((flag == 1) && (cols > 0)) {
     index = ndarray;
     ndarray++;
-    daname = (char **) memory->srealloc(daname,ndarray*sizeof(char *),
-					"atom:daname");
+    daname = (char **) memory->srealloc(daname,ndarray*sizeof(char *),"atom:daname");
     daname[index] = utils::strdup(name);
-    darray = (double ***) memory->srealloc(darray,ndarray*sizeof(double **),
-					   "atom:darray");
+    darray = (double ***) memory->srealloc(darray,ndarray*sizeof(double **),"atom:darray");
     memory->create(darray[index],nmax,cols,"atom:darray");
 
     dcols = (int *) memory->srealloc(dcols,ndarray*sizeof(int),"atom:dcols");

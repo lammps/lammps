@@ -36,7 +36,7 @@ class PairKolmogorovCrespiZ : public Pair {
 
   static constexpr int NPARAMS_PER_LINE = 11;
 
-protected:
+ protected:
   struct Param {
     double z0, C0, C2, C4, C, delta, lambda, A, S;
     double delta2inv, z06;

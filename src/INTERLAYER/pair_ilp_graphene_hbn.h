@@ -62,7 +62,6 @@ class PairILPGrapheneHBN : public Pair {
 
   double cut_global;
   double cut_normal;
-  double **cut;
   double **cutILPsq;    // mapping the cutoff from element pairs to parameters
   double **offset;
   double **normal;

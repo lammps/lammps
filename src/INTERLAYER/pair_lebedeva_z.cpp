@@ -252,7 +252,6 @@ double PairLebedevaZ::init_one(int i, int j)
 
 void PairLebedevaZ::read_file(char *filename)
 {
-  int params_per_line = 12;
   memory->sfree(params);
   params = nullptr;
   nparams = maxparam = 0;

@@ -17,8 +17,8 @@ PairStyle(kolmogorov/crespi/full,PairKolmogorovCrespiFull);
 // clang-format on
 #else
 
-#ifndef LMP_PAIR_KolmogorovCrespi_FULL_H
-#define LMP_PAIR_KolmogorovCrespi_FULL_H
+#ifndef LMP_PAIR_KOLMOGOROV_CRESPI_FULL_H
+#define LMP_PAIR_KOLMOGOROV_CRESPI_FULL_H
 
 #include "pair.h"
 
@@ -39,10 +39,10 @@ class PairKolmogorovCrespiFull : public Pair {
   void calc_FRep(int, int);
   void calc_FvdW(int, int);
   double single(int, int, int, int, double, double, double, double &);
+
   static constexpr int NPARAMS_PER_LINE = 12;
 
  protected:
-  int me;
   int maxlocal;           // size of numneigh, firstneigh arrays
   int pgsize;             // size of neighbor page
   int oneatom;            // max # of neighbors for one atom
@@ -61,7 +61,6 @@ class PairKolmogorovCrespiFull : public Pair {
 
   double cut_global;
   double cut_normal;
-  double **cut;
   double **cutKCsq;
   double **offset;
   double **normal;

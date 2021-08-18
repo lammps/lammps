@@ -14,6 +14,7 @@
 
 #include "set.h"
 
+#include "arg_info.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "atom_vec_body.h"
@@ -570,69 +571,64 @@ void Set::command(int narg, char **arg)
       set(DPDTHETA);
       iarg += 2;
 
-    // custom per-atom vector
+    } else {
 
-    } else if (utils::strmatch(arg[iarg],"^i_")) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal set command");
-      if (utils::strmatch(arg[iarg+1],"^v_")) varparse(arg[iarg+1],1);
-      else ivalue = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
-      int flag,cols;
-      index_custom = atom->find_custom(&arg[iarg][2],flag,cols);
-      if (index_custom < 0 || flag || cols)
-        error->all(FLERR,"Set command integer vector does not exist");
-      set(IVEC);
-      iarg += 2;
-
-    } else if (utils::strmatch(arg[iarg],"^d_")) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal set command");
-      if (utils::strmatch(arg[iarg+1],"^v_")) varparse(arg[iarg+1],1);
-      else dvalue = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-      int flag,cols;
-      index_custom = atom->find_custom(&arg[iarg][2],flag,cols);
-      if (index_custom < 0 || flag || cols)
-        error->all(FLERR,"Set command floating point vector does not exist");
-      set(DVEC);
-      iarg += 2;
-
-    // custom per-atom array, must include bracketed index
-    // OLDSTYLE code
-
-    } else if (strstr(arg[iarg],"i2_") == arg[iarg] ||
-	       strstr(arg[iarg],"d2_") == arg[iarg]) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal set command");
-      int which = 0;
-      if (arg[iarg][0] == 'd') which = 1;
-      if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) varparse(arg[iarg+1],1);
-      else if (!which) ivalue = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
-      else dvalue = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-
-      int n = strlen(arg[iarg]);
-      char *suffix = new char[n];
-      strcpy(suffix,&arg[iarg][3]);
-
-      char *ptr = strchr(suffix,'[');
-      if (ptr) {
-        if (suffix[strlen(suffix)-1] != ']')
-          error->all(FLERR,"Invalid attribute in set command");
-        icol_custom = atoi(ptr+1);
-        *ptr = '\0';
-      } else error->all(FLERR,"Set command per-atom custom array is not indexed");
+      // set custom per-atom vector or array or error out
 
       int flag,cols;
-      index_custom = atom->find_custom(suffix,flag,cols);
-      delete [] suffix;
+      ArgInfo argi(arg[iarg],ArgInfo::DNAME|ArgInfo::INAME);
+      const char *pname = argi.get_name();
+      if (iarg+2 > narg) error->all(FLERR,"Illegal set command");
+      index_custom = atom->find_custom(argi.get_name(),flag,cols);
+      if (index_custom < 0) error->all(FLERR,"Custom property {} does not exist",pname);
       
-      if ((!which && (index_custom < 0 || flag || !cols)) ||
-	  (which && (index_custom < 0 || !flag || !cols)))
-        error->all(FLERR,"Set command per-atom custom array does not exist");
-      if (icol_custom <= 0 || icol_custom > cols)
-        error->all(FLERR,"Set command per-atom custom array is accessed out-of-range");
+      switch (argi.get_type()) {
 
-      if (!which) set(IARRAY);
-      else set(DARRAY);
+      case ArgInfo::INAME:
+        if (utils::strmatch(arg[iarg+1],"^v_")) varparse(arg[iarg+1],1);
+        else ivalue = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+        if (flag != 0) error->all(FLERR,"Custom property {} is not integer",pname);
+
+        if (argi.get_dim() == 0) {
+          if (cols > 0)
+            error->all(FLERR,"Set command custom integer property {} is not a vector",pname);
+          set(IVEC);
+        } else if (argi.get_dim() == 1) {
+          if (cols == 0)
+            error->all(FLERR,"Set command custom integer property {} is not an array",pname);
+          icol_custom = argi.get_index1();
+          if (icol_custom <= 0 || icol_custom > cols)
+            error->all(FLERR,"Set command per-atom custom integer array {} is accessed "
+                       "out-of-range",pname);
+          set(IARRAY);
+        } else error->all(FLERR,"Illegal set command");
+        break;
+
+      case ArgInfo::DNAME:
+        if (utils::strmatch(arg[iarg+1],"^v_")) varparse(arg[iarg+1],1);
+        else dvalue = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+        if (flag != 1) error->all(FLERR,"Custom property {} is not floating-point",argi.get_name());
+
+        if (argi.get_dim() == 0) {
+          if (cols > 0)
+            error->all(FLERR,"Set command custom floating-point property is not a vector");
+          set(DVEC);
+        } else if (argi.get_dim() == 1) {
+          if (cols == 0)
+            error->all(FLERR,"Set command custom floating-point property is not an array");
+          icol_custom = argi.get_index1();
+          if (icol_custom <= 0 || icol_custom > cols)
+            error->all(FLERR,"Set command per-atom custom integer array is accessed out-of-range");
+          set(DARRAY);
+        } else error->all(FLERR,"Illegal set command");
+        break;
+
+      default:
+        error->all(FLERR,"Illegal set command");
+        break;
+      }
       iarg += 2;
-
-    } else error->all(FLERR,"Illegal set command");
+    }
 
     // statistics
     // for CC option, include species index
@@ -1007,7 +1003,7 @@ void Set::set(int keyword)
         (((imageint) (zbox + IMGMAX) & IMGMASK) << IMG2BITS);
     }
 
-    // set value for custom vector or array
+    // set value for custom property vector or array
 
     else if (keyword == IVEC) {
       atom->ivector[index_custom][i] = ivalue;

@@ -1046,7 +1046,7 @@ int DumpCustom::count()
         int iwhich = custom[field2index[i]];
         ptr = atom->dvector[iwhich];
 	nstride = 1;
-	
+
       } else if (thresh_array[ithresh] == IARRAY) {
         i = nfield + ithresh;
         int iwhich = custom[field2index[i]];
@@ -1979,12 +1979,12 @@ int DumpCustom::modify_param(int narg, char **arg)
                        "Dump custom property array is accessed out-of-range");
           thresh_array[nthresh] = DARRAY;
         }
-        
+
         field2index[nfield+nthresh] = add_custom(name,0);
         break;
 
       // custom per atom integer vector or array
-        
+
       case ArgInfo::INAME:
         n = atom->find_custom(name,flag,cols);
 
@@ -2017,7 +2017,7 @@ int DumpCustom::modify_param(int narg, char **arg)
     }
 
     // set operation type of threshold
-  
+
     if (strcmp(arg[2],"<") == 0) thresh_op[nthresh] = LT;
     else if (strcmp(arg[2],"<=") == 0) thresh_op[nthresh] = LE;
     else if (strcmp(arg[2],">") == 0) thresh_op[nthresh] = GT;
@@ -2026,11 +2026,11 @@ int DumpCustom::modify_param(int narg, char **arg)
     else if (strcmp(arg[2],"!=") == 0) thresh_op[nthresh] = NEQ;
     else if (strcmp(arg[2],"|^") == 0) thresh_op[nthresh] = XOR;
     else error->all(FLERR,"Invalid dump_modify thresh operator");
-  
+
     // set threshold value as number or special LAST keyword
     // create FixStore to hold LAST values, should work with restart
     // id = dump-ID + nthreshlast + DUMP_STORE, fix group = dump group
-  
+
     if (strcmp(arg[3],"LAST") != 0) {
       thresh_value[nthresh] = utils::numeric(FLERR,arg[3],false,lmp);
       thresh_last[nthresh] = -1;
@@ -2040,17 +2040,17 @@ int DumpCustom::modify_param(int narg, char **arg)
       thresh_fixID = (char **)
         memory->srealloc(thresh_fixID,(nthreshlast+1)*sizeof(char *),"dump:thresh_fixID");
       memory->grow(thresh_first,(nthreshlast+1),"dump:thresh_first");
-      
+
       std::string threshid = fmt::format("{}{}_DUMP_STORE",id,nthreshlast);
       thresh_fixID[nthreshlast] = utils::strdup(threshid);
       threshid += fmt::format(" {} STORE peratom 1 1", group->names[igroup]);
       thresh_fix[nthreshlast] = (FixStore *) modify->add_fix(threshid);
-      
+
       thresh_last[nthreshlast] = nthreshlast;
       thresh_first[nthreshlast] = 1;
       nthreshlast++;
     }
-    
+
     nthresh++;
     return 4;
   }
@@ -2137,7 +2137,7 @@ void DumpCustom::pack_custom(int n)
   int flag = custom_flag[field2index[n]];
   int iwhich = custom[field2index[n]];
   int index = argindex[n];
-  
+
   if (flag == IVEC) {
     int *ivector = atom->ivector[iwhich];
     for (int i = 0; i < nchoose; i++) {

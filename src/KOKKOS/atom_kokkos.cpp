@@ -272,7 +272,7 @@ int AtomKokkos::add_custom(const char *name, int flag, int cols)
     ivector = (int **) memory->srealloc(ivector,nivector*sizeof(int *),
                                         "atom:ivector");
     memory->create(ivector[index],nmax,"atom:ivector");
-    
+
   } else if (flag == 1 && cols == 0) {
     index = ndvector;
     ndvector++;
@@ -299,10 +299,10 @@ int AtomKokkos::add_custom(const char *name, int flag, int cols)
     iarray = (int ***) memory->srealloc(iarray,niarray*sizeof(int **),
 					"atom:iarray");
     memory->create(iarray[index],nmax,cols,"atom:iarray");
-    
+
     icols = (int *) memory->srealloc(icols,niarray*sizeof(int),"atom:icols");
     icols[index] = cols;
-    
+
   } else if (flag == 1 && cols) {
     index = ndarray;
     ndarray++;
@@ -318,7 +318,7 @@ int AtomKokkos::add_custom(const char *name, int flag, int cols)
     dcols = (int *) memory->srealloc(dcols,ndarray*sizeof(int),"atom:dcols");
     dcols[index] = cols;
   }
- 
+
   return index;
 }
 
@@ -335,7 +335,7 @@ void AtomKokkos::remove_custom(int index, int flag, int cols)
     ivector[index] = NULL;
     delete [] ivname[index];
     ivname[index] = NULL;
-    
+
   } else if (flag == 1 && cols == 0) {
     dvector[index] = NULL;
     delete [] dvname[index];
@@ -346,7 +346,7 @@ void AtomKokkos::remove_custom(int index, int flag, int cols)
     iarray[index] = NULL;
     delete [] ianame[index];
     ianame[index] = NULL;
-    
+
   } else if (flag == 1 && cols) {
     memory->destroy(darray[index]);
     darray[index] = NULL;

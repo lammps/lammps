@@ -61,7 +61,7 @@ idregion(nullptr), idvar(nullptr), idprop(nullptr)
       delete [] idregion;
       idregion = utils::strdup(arg[iarg+1]);
       iarg += 2;
-      
+
     } else if (strcmp(arg[iarg],"var") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal group command");
       if (input->variable->find(arg[iarg+1]) < 0)
@@ -70,19 +70,19 @@ idregion(nullptr), idvar(nullptr), idprop(nullptr)
       delete [] idvar;
       idvar = utils::strdup(arg[iarg+1]);
       iarg += 2;
-      
+
     } else if (strcmp(arg[iarg],"property") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal group command");
       int flag,cols;
       iprop = atom->find_custom(arg[iarg+1],flag,cols);
-      if (iprop < 1 || cols) 
+      if (iprop < 1 || cols)
         error->all(FLERR,"Custom per-atom vector for group dynamic "
 		   "does not exist");
       propflag = 1;
       delete [] idprop;
       idprop = utils::strdup(arg[iarg+1]);
       iarg += 2;
-      
+
     } else if (strcmp(arg[iarg],"every") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal group command");
       nevery = utils::inumeric(FLERR,arg[iarg+1],false,lmp);

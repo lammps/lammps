@@ -2625,8 +2625,8 @@ void FixBondReact::unlimit_bond()
   // let's now unlimit in terms of i_limit_tags
   // we just run through all nlocal, looking for > limit_duration
   // then we return i_limit_tag to 0 (which removes from dynamic group)
-  int flag,cols
-    int index1 = atom->find_custom("limit_tags",flag,cols);
+  int flag, cols;
+  int index1 = atom->find_custom("limit_tags",flag,cols);
   int *i_limit_tags = atom->ivector[index1];
 
   int *i_statted_tags;

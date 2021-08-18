@@ -1054,14 +1054,10 @@ void PairTableRXKokkos<DeviceType>::coeff(int narg, char **arg)
 
   if (ispecies == nspecies && strcmp(site1,"1fluid") != 0)
     error->all(FLERR,"Site1 name not recognized in pair coefficients");
+  site2 = utils::strdup(arg[5]);
 
-  n = strlen(arg[5]) + 1;
-  site2 = new char[n];
-  strcpy(site2,arg[5]);
-
-  for (ispecies = 0; ispecies < nspecies; ispecies++) {
+  for (ispecies = 0; ispecies < nspecies; ispecies++)
     if (strcmp(site2,&atom->dvname[ispecies][0]) == 0) break;
-  }
 
   if (ispecies == nspecies && strcmp(site2,"1fluid") != 0)
     error->all(FLERR,"Site2 name not recognized in pair coefficients");

@@ -92,8 +92,8 @@ Syntax
 
   .. parsed-literal::
 
-           USER-MESONT package per-atom properties:
-	   buckling = buckling flag used in mesoscopic simulation of nanotubes
+           MESONT package per-atom properties:
+           buckling = buckling flag used in mesoscopic simulation of nanotubes
 
 Examples
 """"""""
@@ -136,7 +136,7 @@ When that command is used specific names are given to each attribute
 which are the "name" portion of these attributes.  For arrays *i2_name*
 and *d2_name*, the column of the array must also be included following
 the name in brackets: e.g. d2_xyz[2], i2_mySpin[3].
- 
+
 The additional quantities only accessible via this command, and not
 directly via the :doc:`dump custom <dump>` command, are as follows.
 

@@ -14,6 +14,7 @@
 
 #include "compute_property_atom.h"
 
+#include "arg_info.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "atom_vec_body.h"
@@ -122,313 +123,263 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
 
     } else if (strcmp(arg[iarg],"q") == 0) {
       if (!atom->q_flag)
-        error->all(FLERR,"Compute property/atom for "
-                   "atom property that isn't allocated");
+        error->all(FLERR,"Compute property/atom for atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_q;
     } else if (strcmp(arg[iarg],"mux") == 0) {
       if (!atom->mu_flag)
-        error->all(FLERR,"Compute property/atom for "
-                   "atom property that isn't allocated");
+        error->all(FLERR,"Compute property/atom for atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_mux;
     } else if (strcmp(arg[iarg],"muy") == 0) {
       if (!atom->mu_flag)
-        error->all(FLERR,"Compute property/atom for "
-                   "atom property that isn't allocated");
+        error->all(FLERR,"Compute property/atom for atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_muy;
     } else if (strcmp(arg[iarg],"muz") == 0) {
       if (!atom->mu_flag)
-        error->all(FLERR,"Compute property/atom for "
-                   "atom property that isn't allocated");
+        error->all(FLERR,"Compute property/atom for atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_muz;
     } else if (strcmp(arg[iarg],"mu") == 0) {
       if (!atom->mu_flag)
-        error->all(FLERR,"Compute property/atom for "
-                   "atom property that isn't allocated");
+        error->all(FLERR,"Compute property/atom for atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_mu;
 
     // pack magnetic variables
-      
-    } else if (strcmp(arg[iarg],"spx") == 0) {          
+
+    } else if (strcmp(arg[iarg],"spx") == 0) {
       if (!atom->sp_flag)
-        error->all(FLERR,"Compute property/atom for "
-                   "atom property that isn't allocated");
+        error->all(FLERR,"Compute property/atom for atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_spx;
     } else if (strcmp(arg[iarg],"spy") == 0) {
       if (!atom->sp_flag)
-        error->all(FLERR,"Compute property/atom for "
-                   "atom property that isn't allocated");
+        error->all(FLERR,"Compute property/atom for atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_spy;
     } else if (strcmp(arg[iarg],"spz") == 0) {
       if (!atom->sp_flag)
-        error->all(FLERR,"Compute property/atom for "
-                   "atom property that isn't allocated");
+        error->all(FLERR,"Compute property/atom for atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_spz;
     } else if (strcmp(arg[iarg],"sp") == 0) {
       if (!atom->sp_flag)
-        error->all(FLERR,"Compute property/atom for "
-                   "atom property that isn't allocated");
+        error->all(FLERR,"Compute property/atom for atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_sp;
     } else if (strcmp(arg[iarg],"fmx") == 0) {
       if (!atom->sp_flag)
-        error->all(FLERR,"Compute property/atom for "
-                   "atom property that isn't allocated");
+        error->all(FLERR,"Compute property/atom for atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_fmx;
     } else if (strcmp(arg[iarg],"fmy") == 0) {
       if (!atom->sp_flag)
-        error->all(FLERR,"Compute property/atom for "
-                   "atom property that isn't allocated");
+        error->all(FLERR,"Compute property/atom for atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_fmy;
     } else if (strcmp(arg[iarg],"fmz") == 0) {
       if (!atom->sp_flag)
-        error->all(FLERR,"Compute property/atom for "
-                   "atom property that isn't allocated");
+        error->all(FLERR,"Compute property/atom for atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_fmz;
 
     // bond count
-      
+
     } else if (strcmp(arg[iarg],"nbonds") == 0) {
       if (!atom->molecule_flag)
-        error->all(FLERR,"Compute property/atom for "
-                   "atom property that isn't allocated");
+        error->all(FLERR,"Compute property/atom for atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_nbonds;
 
     // finite-size particles
-      
+
     } else if (strcmp(arg[iarg],"radius") == 0) {
       if (!atom->radius_flag)
-        error->all(FLERR,"Compute property/atom for "
-                   "atom property that isn't allocated");
+        error->all(FLERR,"Compute property/atom for atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_radius;
     } else if (strcmp(arg[iarg],"diameter") == 0) {
       if (!atom->radius_flag)
-        error->all(FLERR,"Compute property/atom for "
-                   "atom property that isn't allocated");
+        error->all(FLERR,"Compute property/atom for atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_diameter;
     } else if (strcmp(arg[iarg],"omegax") == 0) {
       if (!atom->omega_flag)
-        error->all(FLERR,"Compute property/atom for "
-                   "atom property that isn't allocated");
+        error->all(FLERR,"Compute property/atom for atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_omegax;
     } else if (strcmp(arg[iarg],"omegay") == 0) {
       if (!atom->omega_flag)
-        error->all(FLERR,"Compute property/atom for "
-                   "atom property that isn't allocated");
+        error->all(FLERR,"Compute property/atom for atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_omegay;
     } else if (strcmp(arg[iarg],"omegaz") == 0) {
       if (!atom->omega_flag)
-        error->all(FLERR,"Compute property/atom for "
-                   "atom property that isn't allocated");
+        error->all(FLERR,"Compute property/atom for atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_omegaz;
     } else if (strcmp(arg[iarg],"angmomx") == 0) {
       if (!atom->angmom_flag)
-        error->all(FLERR,"Compute property/atom for "
-                   "atom property that isn't allocated");
+        error->all(FLERR,"Compute property/atom for atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_angmomx;
     } else if (strcmp(arg[iarg],"angmomy") == 0) {
       if (!atom->angmom_flag)
-        error->all(FLERR,"Compute property/atom for "
-                   "atom property that isn't allocated");
+        error->all(FLERR,"Compute property/atom for atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_angmomy;
     } else if (strcmp(arg[iarg],"angmomz") == 0) {
       if (!atom->angmom_flag)
-        error->all(FLERR,"Compute property/atom for "
-                   "atom property that isn't allocated");
+        error->all(FLERR,"Compute property/atom for atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_angmomz;
 
     } else if (strcmp(arg[iarg],"shapex") == 0) {
       avec_ellipsoid = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
-      if (!avec_ellipsoid) error->all(FLERR,"Compute property/atom for "
-                                      "atom property that isn't allocated");
+      if (!avec_ellipsoid) error->all(FLERR,"Compute property/atom for atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_shapex;
     } else if (strcmp(arg[iarg],"shapey") == 0) {
       avec_ellipsoid = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
-      if (!avec_ellipsoid) error->all(FLERR,"Compute property/atom for "
-                                      "atom property that isn't allocated");
+      if (!avec_ellipsoid) error->all(FLERR,"Compute property/atom for atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_shapey;
     } else if (strcmp(arg[iarg],"shapez") == 0) {
       avec_ellipsoid = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
-      if (!avec_ellipsoid) error->all(FLERR,"Compute property/atom for "
-                                      "atom property that isn't allocated");
+      if (!avec_ellipsoid) error->all(FLERR,"Compute property/atom for atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_shapez;
 
     } else if (strcmp(arg[iarg],"quatw") == 0) {
       avec_ellipsoid = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
       avec_body = (AtomVecBody *) atom->style_match("body");
       if (!avec_ellipsoid && !avec_body)
-        error->all(FLERR,"Compute property/atom for "
-                   "atom property that isn't allocated");
+        error->all(FLERR,"Compute property/atom for atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_quatw;
     } else if (strcmp(arg[iarg],"quati") == 0) {
       avec_ellipsoid = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
       avec_body = (AtomVecBody *) atom->style_match("body");
       if (!avec_ellipsoid && !avec_body)
-        error->all(FLERR,"Compute property/atom for "
-                   "atom property that isn't allocated");
+        error->all(FLERR,"Compute property/atom for atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_quati;
     } else if (strcmp(arg[iarg],"quatj") == 0) {
       avec_ellipsoid = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
       avec_body = (AtomVecBody *) atom->style_match("body");
       if (!avec_ellipsoid && !avec_body)
-        error->all(FLERR,"Compute property/atom for "
-                   "atom property that isn't allocated");
+        error->all(FLERR,"Compute property/atom for atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_quatj;
     } else if (strcmp(arg[iarg],"quatk") == 0) {
       avec_ellipsoid = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
       avec_body = (AtomVecBody *) atom->style_match("body");
       if (!avec_ellipsoid && !avec_body)
-        error->all(FLERR,"Compute property/atom for "
-                   "atom property that isn't allocated");
+        error->all(FLERR,"Compute property/atom for atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_quatk;
 
     } else if (strcmp(arg[iarg],"tqx") == 0) {
       if (!atom->torque_flag)
-        error->all(FLERR,"Compute property/atom for "
-                   "atom property that isn't allocated");
+        error->all(FLERR,"Compute property/atom for atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_tqx;
     } else if (strcmp(arg[iarg],"tqy") == 0) {
       if (!atom->torque_flag)
-        error->all(FLERR,"Compute property/atom for "
-                   "atom property that isn't allocated");
+        error->all(FLERR,"Compute property/atom for atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_tqy;
     } else if (strcmp(arg[iarg],"tqz") == 0) {
       if (!atom->torque_flag)
-        error->all(FLERR,"Compute property/atom for "
-                   "atom property that isn't allocated");
+        error->all(FLERR,"Compute property/atom for atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_tqz;
 
     } else if (strcmp(arg[iarg],"end1x") == 0) {
       avec_line = (AtomVecLine *) atom->style_match("line");
-      if (!avec_line) error->all(FLERR,"Compute property/atom for "
-                                 "atom property that isn't allocated");
+      if (!avec_line) error->all(FLERR,"Compute property/atom for atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_end1x;
     } else if (strcmp(arg[iarg],"end1y") == 0) {
       avec_line = (AtomVecLine *) atom->style_match("line");
-      if (!avec_line) error->all(FLERR,"Compute property/atom for "
-                                 "atom property that isn't allocated");
+      if (!avec_line) error->all(FLERR,"Compute property/atom for atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_end1y;
     } else if (strcmp(arg[iarg],"end1z") == 0) {
       avec_line = (AtomVecLine *) atom->style_match("line");
-      if (!avec_line) error->all(FLERR,"Compute property/atom for "
-                                 "atom property that isn't allocated");
+      if (!avec_line) error->all(FLERR,"Compute property/atom for atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_end1z;
     } else if (strcmp(arg[iarg],"end2x") == 0) {
       avec_line = (AtomVecLine *) atom->style_match("line");
-      if (!avec_line) error->all(FLERR,"Compute property/atom for "
-                                 "atom property that isn't allocated");
+      if (!avec_line) error->all(FLERR,"Compute property/atom for atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_end2x;
     } else if (strcmp(arg[iarg],"end2y") == 0) {
       avec_line = (AtomVecLine *) atom->style_match("line");
-      if (!avec_line) error->all(FLERR,"Compute property/atom for "
-                                 "atom property that isn't allocated");
+      if (!avec_line) error->all(FLERR,"Compute property/atom for atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_end2y;
     } else if (strcmp(arg[iarg],"end2z") == 0) {
       avec_line = (AtomVecLine *) atom->style_match("line");
-      if (!avec_line) error->all(FLERR,"Compute property/atom for "
-                                 "atom property that isn't allocated");
+      if (!avec_line) error->all(FLERR,"Compute property/atom for atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_end2z;
 
     } else if (strcmp(arg[iarg],"corner1x") == 0) {
       avec_tri = (AtomVecTri *) atom->style_match("tri");
-      if (!avec_tri) error->all(FLERR,"Compute property/atom for "
-                                 "atom property that isn't allocated");
+      if (!avec_tri) error->all(FLERR,"Compute property/atom for atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_corner1x;
     } else if (strcmp(arg[iarg],"corner1y") == 0) {
       avec_tri = (AtomVecTri *) atom->style_match("tri");
-      if (!avec_tri) error->all(FLERR,"Compute property/atom for "
-                                 "atom property that isn't allocated");
+      if (!avec_tri) error->all(FLERR,"Compute property/atom for atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_corner1y;
     } else if (strcmp(arg[iarg],"corner1z") == 0) {
       avec_tri = (AtomVecTri *) atom->style_match("tri");
-      if (!avec_tri) error->all(FLERR,"Compute property/atom for "
-                                 "atom property that isn't allocated");
+      if (!avec_tri) error->all(FLERR,"Compute property/atom for atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_corner1z;
     } else if (strcmp(arg[iarg],"corner2x") == 0) {
       avec_tri = (AtomVecTri *) atom->style_match("tri");
-      if (!avec_tri) error->all(FLERR,"Compute property/atom for "
-                                 "atom property that isn't allocated");
+      if (!avec_tri) error->all(FLERR,"Compute property/atom for atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_corner2x;
 
     } else if (strcmp(arg[iarg],"corner2y") == 0) {
       avec_tri = (AtomVecTri *) atom->style_match("tri");
-      if (!avec_tri) error->all(FLERR,"Compute property/atom for "
-                                 "atom property that isn't allocated");
+      if (!avec_tri) error->all(FLERR,"Compute property/atom for atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_corner2y;
     } else if (strcmp(arg[iarg],"corner2z") == 0) {
       avec_tri = (AtomVecTri *) atom->style_match("tri");
-      if (!avec_tri) error->all(FLERR,"Compute property/atom for "
-                                 "atom property that isn't allocated");
+      if (!avec_tri) error->all(FLERR,"Compute property/atom for atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_corner2z;
     } else if (strcmp(arg[iarg],"corner3x") == 0) {
       avec_tri = (AtomVecTri *) atom->style_match("tri");
-      if (!avec_tri) error->all(FLERR,"Compute property/atom for "
-                                 "atom property that isn't allocated");
+      if (!avec_tri) error->all(FLERR,"Compute property/atom for atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_corner3x;
     } else if (strcmp(arg[iarg],"corner3y") == 0) {
       avec_tri = (AtomVecTri *) atom->style_match("tri");
-      if (!avec_tri) error->all(FLERR,"Compute property/atom for "
-                                 "atom property that isn't allocated");
+      if (!avec_tri) error->all(FLERR,"Compute property/atom for atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_corner3y;
     } else if (strcmp(arg[iarg],"corner3z") == 0) {
       avec_tri = (AtomVecTri *) atom->style_match("tri");
-      if (!avec_tri) error->all(FLERR,"Compute property/atom for "
-                                 "atom property that isn't allocated");
+      if (!avec_tri) error->all(FLERR,"Compute property/atom for atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_corner3z;
 
     } else if (strcmp(arg[iarg],"nbonds") == 0) {
       if (!atom->molecule_flag)
-        error->all(FLERR,"Compute property/atom for "
-                   "atom property that isn't allocated");
+        error->all(FLERR,"Compute property/atom for atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_nbonds;
 
-    // custom per-atom vector
+    // custom per-atom vector or array
 
-    } else if (utils::strmatch(arg[iarg],"^i_")) {
+    } else if (utils::strmatch(arg[iarg],"^[id]2?_")) {
       int flag,cols;
-      index[i] = atom->find_custom(&arg[iarg][2],flag,cols);
-      if (index[i] < 0 || flag || cols)
-        error->all(FLERR,"Compute property/atom integer "
-                   "vector does not exist");
-      pack_choice[i] = &ComputePropertyAtom::pack_iname;
+      ArgInfo argi(arg[iarg], ArgInfo::INAME| ArgInfo::DNAME);
+      const char *pname = argi.get_name();
 
-    } else if (utils::strmatch(arg[iarg],"^d_")) {
-      int flag,cols;
-      index[i] = atom->find_custom(&arg[iarg][2],flag,cols);
-      if (index[i] < 0 || flag || cols)
-        error->all(FLERR,"Compute property/atom floating point "
-                   "vector does not exist");
-      pack_choice[i] = &ComputePropertyAtom::pack_dname;
+      index[i] = atom->find_custom(pname,flag,cols);
+      if (index[i] < 0)
+        error->all(FLERR,"Compute property/atom property {} does not exist", pname);
 
-    // custom per-atom arrays, must include bracketed index
-    // OLDSTYLE code
+      // handle vectors
+      if ((cols == 0) && (arg[iarg][1] == '_')) {
+        if (argi.get_dim() != 0)
+          error->all(FLERR,"Compute property/atom custom vector {} is incorrectly indexed",pname);
 
-    } else if (strstr(arg[iarg],"i2_") == arg[iarg] || 
-	       strstr(arg[iarg],"d2_") == arg[iarg]) {
-      int which = 0;
-      if (arg[iarg][0] == 'd') which = 1;
-      
-      int n = strlen(arg[iarg]);
-      char *suffix = new char[n];
-      strcpy(suffix,&arg[iarg][3]);
+        if (arg[iarg][0] == 'i') {
+          if (argi.get_type() == ArgInfo::INAME)
+            pack_choice[i] = &ComputePropertyAtom::pack_iname;
+          else
+            error->all(FLERR,"Compute property/atom integer vector {} does not exist",pname);
+        } else if (arg[iarg][0] == 'd') {
+          if (argi.get_type() == ArgInfo::DNAME)
+            pack_choice[i] = &ComputePropertyAtom::pack_dname;
+          else
+            error->all(FLERR,"Compute property/atom floating-point vector {} does not exist",pname);
+        }
+      }
+      // handle arrays
+      else if ((cols > 0) && (arg[iarg][1] == '2')) {
+        if (argi.get_dim() != 1)
+          error->all(FLERR,"Compute property/atom custom array {} is not indexed",pname);
+        colindex[i] = argi.get_index1();
 
-      char *ptr = strchr(suffix,'[');
-      if (ptr) {
-        if (suffix[strlen(suffix)-1] != ']')
-          error->all(FLERR,"Invalid attribute in set command");
-	suffix[strlen(suffix)-1] = '\0';
-        colindex[i] = utils::inumeric(FLERR,ptr+1,true,lmp);
-        *ptr = '\0';
-      } else error->all(FLERR,"Compute property/atom custom array is not indexed");
-      
-      int flag,cols;
-      index[i] = atom->find_custom(suffix,flag,cols);
-      delete [] suffix;
-
-      if ((!which && (index[i] < 0 || flag || !cols)) ||
-	  (which && (index[i] < 0 || !flag || !cols)))
-        error->all(FLERR,"Compute property/atom custom array does not exist");
-
-      if (!which) pack_choice[i] = &ComputePropertyAtom::pack_i2name;
-      else pack_choice[i] = &ComputePropertyAtom::pack_d2name;
+        if (arg[iarg][0] == 'i') {
+          if (argi.get_type() == ArgInfo::INAME)
+            pack_choice[i] = &ComputePropertyAtom::pack_i2name;
+          else
+            error->all(FLERR,"Compute property/atom integer array {} does not exist",pname);
+        } else if (arg[iarg][0] == 'd') {
+          if (argi.get_type() == ArgInfo::DNAME)
+            pack_choice[i] = &ComputePropertyAtom::pack_d2name;
+          else
+            error->all(FLERR,"Compute property/atom floating-point array {} does not exist",pname);
+        }
+      } else error->all(FLERR,"Inconsistent request for custom property {}", pname);
 
     // anything else must be recognized by atom style
 

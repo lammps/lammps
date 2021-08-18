@@ -757,7 +757,7 @@ int DumpVTK::count()
         i = ATTRIBUTES + nfield + ithresh;
         iwhich = atom->find_custom(id_custom[field2index[i]],flag,cols);
         int *ivector = atom->ivector[iwhich];
-        for (i = 0; i < nlocal; i++) 
+        for (i = 0; i < nlocal; i++)
           dchoose[i] = ivector[i];
         ptr = dchoose;
         nstride = 1;
@@ -775,7 +775,7 @@ int DumpVTK::count()
         iwhich = atom->find_custom(id_custom[field2index[i]],flag,cols);
         int **iarray = atom->iarray[iwhich];
         int icol = argindex[i] - 1;
-        for (i = 0; i < nlocal; i++) 
+        for (i = 0; i < nlocal; i++)
           dchoose[i] = iarray[i][icol];
         ptr = dchoose;
         nstride = 1;
@@ -785,8 +785,8 @@ int DumpVTK::count()
         i = ATTRIBUTES + nfield + ithresh;
         iwhich = atom->find_custom(id_custom[field2index[i]],flag,cols)
         double **darray = atom->darray[iwhich];
-	ptr = &darray[0][argindex[i]-1];
-	nstride = atom->dcols[iwhich];
+        ptr = &darray[0][argindex[i]-1];
+        nstride = atom->dcols[iwhich];
       }
 
       // unselect atoms that don't meet threshold criterion
@@ -1827,7 +1827,7 @@ int DumpVTK::parse_fields(int narg, char **arg)
         field2index[ATTRIBUTES+i] = add_variable(argi.get_name());
         name[ATTRIBUTES+i] = arg[iarg];
         break;
- 
+
       // custom per-atom integer vector = i_ID
 
       case ArgInfo::INAME:

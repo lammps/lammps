@@ -785,8 +785,8 @@ int DumpVTK::count()
         i = ATTRIBUTES + nfield + ithresh;
         iwhich = atom->find_custom(id_custom[field2index[i]],flag,cols)
         double **darray = atom->darray[iwhich];
-	ptr = &darray[0][argindex[i]-1];
-	nstride = atom->dcols[iwhich];
+        ptr = &darray[0][argindex[i]-1];
+        nstride = atom->dcols[iwhich];
       }
 
       // unselect atoms that don't meet threshold criterion

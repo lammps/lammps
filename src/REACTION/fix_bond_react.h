@@ -214,7 +214,7 @@ class FixBondReact : public Fix {
     double par[MAXCONPAR];
     std::string str;
   };
-  Constraint **constraints;
+  std::vector<std::vector<Constraint>> constraints;
 
   // DEBUG
 

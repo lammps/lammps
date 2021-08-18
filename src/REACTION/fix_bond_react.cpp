@@ -232,7 +232,6 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   memory->create(molecule_keyword,nreacts,"bond/react:molecule_keyword");
   memory->create(nconstraints,nreacts,"bond/react:nconstraints");
   memory->create(constraintstr,nreacts,MAXLINE,"bond/react:constraintstr");
-  memory->create(constraints,0,nreacts,"bond/react:constraints");
   memory->create(var_flag,NUMVARVALS,nreacts,"bond/react:var_flag");
   memory->create(var_id,NUMVARVALS,nreacts,"bond/react:var_id");
   memory->create(iatomtype,nreacts,"bond/react:iatomtype");
@@ -617,7 +616,6 @@ FixBondReact::~FixBondReact()
   memory->destroy(stabilize_steps_flag);
   memory->destroy(custom_charges_fragid);
   memory->destroy(molecule_keyword);
-  memory->destroy(constraints);
   memory->destroy(nconstraints);
   memory->destroy(constraintstr);
   memory->destroy(create_atoms_flag);
@@ -3668,7 +3666,7 @@ void FixBondReact::read(int myrxn)
     else if (strstr(line,"constraints")) {
       sscanf(line,"%d",&nconstraints[myrxn]);
       if (maxnconstraints < nconstraints[myrxn]) maxnconstraints = nconstraints[myrxn];
-      memory->grow(constraints,maxnconstraints,nreacts,"bond/react:constraints");
+      constraints.resize(maxnconstraints, std::vector<Constraint>(nreacts));
     } else break;
   }
 

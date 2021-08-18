@@ -21,13 +21,11 @@
 #include "atom_kokkos.h"
 #include "atom_masks.h"
 #include "comm.h"
+#include "domain_kokkos.h"
 #include "error.h"
 #include "force.h"
-#include "update.h"
 #include "memory_kokkos.h"
-#include "domain_kokkos.h"
-
-#include <cstring>
+#include "update.h"
 
 using namespace LAMMPS_NS;
 

@@ -1,4 +1,3 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -19,13 +18,13 @@ ComputeStyle(temp/kk/device,ComputeTempKokkos<LMPDeviceType>);
 ComputeStyle(temp/kk/host,ComputeTempKokkos<LMPHostType>);
 // clang-format on
 #else
-
 #ifndef LMP_COMPUTE_TEMP_KOKKOS_H
 #define LMP_COMPUTE_TEMP_KOKKOS_H
 
 #include "compute_temp.h"
 #include "kokkos_type.h"
 
+// clang-format off
 namespace LAMMPS_NS {
 
 template<int RMASS>
@@ -72,7 +71,7 @@ class ComputeTempKokkos : public ComputeTemp {
   typedef ArrayTypes<DeviceType> AT;
 
   ComputeTempKokkos(class LAMMPS *, int, char **);
-  virtual ~ComputeTempKokkos() {};
+  virtual ~ComputeTempKokkos() {}
   double compute_scalar();
   void compute_vector();
 

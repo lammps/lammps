@@ -609,56 +609,54 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
             expandflag = 1;
           }
         }
-      }
-    }
 
-    // only match custom array reference with a '*' wildcard
-    // number range in the first pair of square brackets
+        // only match custom array reference with a '*' wildcard
+        // number range in the first pair of square brackets
 
-    if ((word[0] == 'i') || (word[0] == 'd')) {
-      int flag, cols;
-      int icustom = lmp->atom->find_custom(id.c_str(), flag, cols);
+      } else if ((word[0] == 'i') || (word[0] == 'd')) {
+        int flag, cols;
+        int icustom = lmp->atom->find_custom(id.c_str(), flag, cols);
 
-      if ((icustom >= 0) && (mode == 1) && (cols > 0)) {
+        if ((icustom >= 0) && (mode == 1) && (cols > 0)) {
 
-        // check for custom per-atom array
+          // check for custom per-atom array
 
-        if (((word[0] == 'i') && (flag == 0)) || ((word[0] == 'i') && (flag == 1))) {
-          nmax = cols;
-          expandflag = 1;
+          if (((word[0] == 'i') && (flag == 0)) || ((word[0] == 'd') && (flag == 1))) {
+            nmax = cols;
+            expandflag = 1;
+          }
         }
       }
-    }
 
-    // expansion will take place
+      // expansion will take place
 
-    if (expandflag) {
+      if (expandflag) {
 
-      // expand wild card string to nlo/nhi numbers
-      utils::bounds(file, line, wc, 1, nmax, nlo, nhi, lmp->error);
+        // expand wild card string to nlo/nhi numbers
+        utils::bounds(file, line, wc, 1, nmax, nlo, nhi, lmp->error);
 
-      if (newarg + nhi - nlo + 1 > maxarg) {
-        maxarg += nhi - nlo + 1;
-        earg = (char **) lmp->memory->srealloc(earg, maxarg * sizeof(char *), "input:earg");
-      }
+        if (newarg + nhi - nlo + 1 > maxarg) {
+          maxarg += nhi - nlo + 1;
+          earg = (char **) lmp->memory->srealloc(earg, maxarg * sizeof(char *), "input:earg");
+        }
 
-      for (int index = nlo; index <= nhi; index++) {
-        // assemble and duplicate expanded string
-        if (word[1] == '2')
-          earg[newarg] = utils::strdup(fmt::format("{}2_{}[{}]{}", word[0], id, index, tail));
-        else
-          earg[newarg] = utils::strdup(fmt::format("{}_{}[{}]{}", word[0], id, index, tail));
+        for (int index = nlo; index <= nhi; index++) {
+          // assemble and duplicate expanded string
+          if (word[1] == '2')
+            earg[newarg] = utils::strdup(fmt::format("{}2_{}[{}]{}", word[0], id, index, tail));
+          else
+            earg[newarg] = utils::strdup(fmt::format("{}_{}[{}]{}", word[0], id, index, tail));
+          newarg++;
+        }
+      } else {
+        // no expansion: duplicate original string
+        if (newarg == maxarg) {
+          maxarg++;
+          earg = (char **) lmp->memory->srealloc(earg, maxarg * sizeof(char *), "input:earg");
+        }
+        earg[newarg] = utils::strdup(word);
         newarg++;
       }
-
-    } else {
-      // no expansion: duplicate original string
-      if (newarg == maxarg) {
-        maxarg++;
-        earg = (char **) lmp->memory->srealloc(earg, maxarg * sizeof(char *), "input:earg");
-      }
-      earg[newarg] = utils::strdup(word);
-      newarg++;
     }
   }
 

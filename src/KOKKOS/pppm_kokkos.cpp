@@ -1326,7 +1326,7 @@ void PPPMKokkos<DeviceType>::compute_gf_ik_triclinic()
   nby = static_cast<int> (tmp[1]);
   nbz = static_cast<int> (tmp[2]);
 
-  // Update the local copy of the domain box tilt 
+  // Update the local copy of the domain box tilt
   h = Few<double, 6>(domain->h);
   h_inv = Few<double, 6>(domain->h_inv);
 
@@ -1342,58 +1342,58 @@ KOKKOS_INLINE_FUNCTION
 void PPPMKokkos<DeviceType>::operator()(TagPPPM_compute_gf_ik_triclinic, const int &m) const
 {
   int n = (m - nzlo_fft)*(nyhi_fft+1 - nylo_fft)*(nxhi_fft+1 - nxlo_fft);
-  
+
   const int mper = m - nz_pppm*(2*m/nz_pppm);
   const double snz = square(sin(MY_PI*mper/nz_pppm));
-  
+
   for (int l = nylo_fft; l <= nyhi_fft; l++) {
     const int lper = l - ny_pppm*(2*l/ny_pppm);
     const double sny = square(sin(MY_PI*lper/ny_pppm));
-  
+
     for (int k = nxlo_fft; k <= nxhi_fft; k++) {
       const int kper = k - nx_pppm*(2*k/nx_pppm);
       const double snx = square(sin(MY_PI*kper/nx_pppm));
-  
+
       double unitk_lamda[3];
       unitk_lamda[0] = 2.0*MY_PI*kper;
       unitk_lamda[1] = 2.0*MY_PI*lper;
       unitk_lamda[2] = 2.0*MY_PI*mper;
       x2lamdaT(&unitk_lamda[0],&unitk_lamda[0]);
-  
+
       const double sqk = square(unitk_lamda[0]) + square(unitk_lamda[1]) + square(unitk_lamda[2]);
-  
+
       if (sqk != 0.0) {
         const double numerator = 12.5663706/sqk;
         const double denominator = gf_denom(snx,sny,snz);
         double sum1 = 0.0;
-  
+
         for (int nx = -nbx; nx <= nbx; nx++) {
           const double argx = MY_PI*kper/nx_pppm + MY_PI*nx;
           const double wx = powsinxx(argx,twoorder);
-  
+
           for (int ny = -nby; ny <= nby; ny++) {
             const double argy = MY_PI*lper/ny_pppm + MY_PI*ny;
             const double wy = powsinxx(argy,twoorder);
-  
+
             for (int nz = -nbz; nz <= nbz; nz++) {
               const double argz = MY_PI*mper/nz_pppm + MY_PI*nz;
               const double wz = powsinxx(argz,twoorder);
-  
+
               double b[3];
               b[0] = 2.0*MY_PI*nx_pppm*nx;
               b[1] = 2.0*MY_PI*ny_pppm*ny;
               b[2] = 2.0*MY_PI*nz_pppm*nz;
               x2lamdaT(&b[0],&b[0]);
-  
+
               const double qx = unitk_lamda[0]+b[0];
               const double sx = exp(-0.25*square(qx/g_ewald));
-  
+
               const double qy = unitk_lamda[1]+b[1];
               const double sy = exp(-0.25*square(qy/g_ewald));
-  
+
               const double qz = unitk_lamda[2]+b[2];
               const double sz = exp(-0.25*square(qz/g_ewald));
-  
+
               const double dot1 = unitk_lamda[0]*qx + unitk_lamda[1]*qy + unitk_lamda[2]*qz;
               const double dot2 = qx*qx+qy*qy+qz*qz;
               sum1 += (dot1/dot2) * sx*sy*sz * wx*wy*wz;

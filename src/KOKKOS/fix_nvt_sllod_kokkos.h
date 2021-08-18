@@ -23,7 +23,6 @@ FixStyle(nvt/sllod/kk/host,FixNVTSllodKokkos<LMPHostType>);
 #define LMP_FIX_NVT_SLLOD_KOKKOS_H
 
 #include "fix_nh_kokkos.h"
-//#include "fix_nvt_sllod.h"
 #include "kokkos_type.h"
 #include "kokkos_few.h"
 
@@ -61,7 +60,7 @@ class FixNVTSllodKokkos : public FixNHKokkos<DeviceType> {
   typename ArrayTypes<DeviceType>::t_int_1d mask;
 
   Few<double, 6> d_h_two;
-  
+
   class DomainKokkos *domainKK;
   class AtomKokkos *atomKK;
 };

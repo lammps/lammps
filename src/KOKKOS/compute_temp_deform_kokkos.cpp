@@ -49,7 +49,7 @@ ComputeTempDeformKokkos<DeviceType>::ComputeTempDeformKokkos(LAMMPS *lmp, int na
 }
 
 template<class DeviceType>
-ComputeTempDeformKokkos<DeviceType>::~ComputeTempDeformKokkos() 
+ComputeTempDeformKokkos<DeviceType>::~ComputeTempDeformKokkos()
 {
 
 
@@ -78,12 +78,10 @@ double ComputeTempDeformKokkos<DeviceType>::compute_scalar()
   double t = 0.0;
   CTEMP t_kk;
 
-  /**************** EVK ****************/
-  // Convert from box coords to lamda coords
   domainKK->x2lamda(nlocal);
   h_rate = domainKK->h_rate;
   h_ratelo = domainKK->h_ratelo;
-  
+
   copymode = 1;
   if (atomKK->rmass)
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagComputeTempDeformScalar<1> >(0,nlocal),*this,t_kk);
@@ -91,11 +89,9 @@ double ComputeTempDeformKokkos<DeviceType>::compute_scalar()
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagComputeTempDeformScalar<0> >(0,nlocal),*this,t_kk);
   copymode = 0;
 
-  /**************** EVK ****************/
-  // Convert back to box coords
   domainKK->lamda2x(nlocal);
 
-  t = t_kk.t0; // could make this more efficient
+  t = t_kk.t0;
 
   MPI_Allreduce(&t,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
   if (dynamic) dof_compute();
@@ -152,8 +148,6 @@ void ComputeTempDeformKokkos<DeviceType>::compute_vector()
   for (i = 0; i < 6; i++) t[i] = 0.0;
   CTEMP t_kk;
 
-  /**************** EVK ****************/
-  // Convert from box coords to lamda coords
   domainKK->x2lamda(nlocal);
   h_rate = domainKK->h_rate;
   h_ratelo = domainKK->h_ratelo;
@@ -165,8 +159,6 @@ void ComputeTempDeformKokkos<DeviceType>::compute_vector()
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagComputeTempDeformVector<0> >(0,nlocal),*this,t_kk);
   copymode = 0;
 
-  /**************** EVK ****************/
-  // Convert back to box coords
   domainKK->lamda2x(nlocal);
 
   t[0] = t_kk.t0;
@@ -218,14 +210,10 @@ void ComputeTempDeformKokkos<DeviceType>::remove_bias_all()
   int nlocal = atom->nlocal;
 
   if (atom->nmax > maxbias) {
-    //memoryKK->destroy_kokkos(vbiasall);
     maxbias = atom->nmax;
-    //memoryKK->create_kokkos(vbiasall,maxbias,"temp/deform/kk:vbiasall");
     vbiasall = typename ArrayTypes<DeviceType>::t_v_array("temp/deform/kk:vbiasall", maxbias);
   }
 
-  /**************** EVK ****************/
-  // Convert from box coords to lamda coords
   domainKK->x2lamda(nlocal);
 
   h_rate = domain->h_rate;
@@ -235,8 +223,6 @@ void ComputeTempDeformKokkos<DeviceType>::remove_bias_all()
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagComputeTempDeformRemoveBias >(0,nlocal),*this);
   copymode = 0;
 
-  /**************** EVK ****************/
-  // Convert back to box coords
   domainKK->lamda2x(nlocal);
 }
 

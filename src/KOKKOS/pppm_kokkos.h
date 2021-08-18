@@ -317,22 +317,20 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
   int numx_out,numy_out,numz_out;
   int ix,iy,nlocal;
 
-  // Local copies of the domain box tilt etc. 
-  // TODO: Will need to put in a less
-  // hacky solution later, since this needs to be manually updated
+  // Local copies of the domain box tilt etc.
   Few<double,6> h, h_inv;
 
   KOKKOS_INLINE_FUNCTION
   void x2lamdaT(double* v, double* lamda) const
   {
-    double lamda_tmp[3];                                                         
-                                                                                
-    lamda_tmp[0] = h_inv[0]*v[0];                                                
-    lamda_tmp[1] = h_inv[5]*v[0] + h_inv[1]*v[1];                                
-    lamda_tmp[2] = h_inv[4]*v[0] + h_inv[3]*v[1] + h_inv[2]*v[2];                
-                                                                                
-    lamda[0] = lamda_tmp[0];                                                     
-    lamda[1] = lamda_tmp[1];                                                     
+    double lamda_tmp[3];
+
+    lamda_tmp[0] = h_inv[0]*v[0];
+    lamda_tmp[1] = h_inv[5]*v[0] + h_inv[1]*v[1];
+    lamda_tmp[2] = h_inv[4]*v[0] + h_inv[3]*v[1] + h_inv[2]*v[2];
+
+    lamda[0] = lamda_tmp[0];
+    lamda[1] = lamda_tmp[1];
     lamda[2] = lamda_tmp[2];
   }
 

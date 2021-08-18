@@ -44,7 +44,6 @@ template<class DeviceType>
 FixNVTSllodKokkos<DeviceType>::FixNVTSllodKokkos(LAMMPS *lmp, int narg, char **arg) :
   FixNHKokkos<DeviceType>(lmp, narg, arg)
 {
-  /************************ EVK *********************/
   atomKK = (AtomKokkos *) this->atom;
   this->kokkosable = 1;
   this->domainKK = (DomainKokkos *) this->domain;
@@ -55,7 +54,7 @@ FixNVTSllodKokkos<DeviceType>::FixNVTSllodKokkos(LAMMPS *lmp, int narg, char **a
     this->error->all(FLERR,"Pressure control can not be used with fix nvt/kk");
 
   if (this->mtchain_default_flag) this->mtchain = 1;
-    
+
   this->id_temp = utils::strdup(std::string(this->id)+"_temp");
   this->modify->add_compute(fmt::format("{} all temp/deform/kk",this->id_temp));
   this->tcomputeflag = 1;
@@ -78,7 +77,7 @@ void FixNVTSllodKokkos<DeviceType>::init()
   FixNHKokkos<DeviceType>::init();
 
   vdelu = typename ArrayTypes<DeviceType>::t_v_array("nvt/sllod/kk:vdelu", atomKK->nlocal);
-  
+
   if (!this->temperature->tempbias)
     this->error->all(FLERR,"Temperature for fix nvt/sllod does not have a bias");
 
@@ -112,8 +111,8 @@ void FixNVTSllodKokkos<DeviceType>::nh_v_temp()
   // for non temp/deform BIAS:
   //   calculate temperature since some computes require temp
   //   computed on current nlocal atoms to remove bias
-  
-  if (nondeformbias){ 
+
+  if (nondeformbias){
     atomKK->sync(this->temperature->execution_space,this->temperature->datamask_read);
     this->temperature->compute_scalar();
     atomKK->modified(this->temperature->execution_space,this->temperature->datamask_modify);
@@ -133,7 +132,7 @@ void FixNVTSllodKokkos<DeviceType>::nh_v_temp()
   this->copymode = 0;
 
   this->temperature->remove_bias_all();
-  
+
   this->copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixNVTSllod_temp2>(0,nlocal),*this);
   this->copymode = 0;

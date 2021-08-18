@@ -112,24 +112,29 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
       iarg++;
 
     // custom atom array
-    // OLDSTYLE code
 
-    } else if (strstr(arg[iarg],"i2_") == arg[iarg] ||
-	       strstr(arg[iarg],"d2_") == arg[iarg]) {
+    } else if (utils::strmatch(arg[iarg],"^[id]2_")) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix property/atom command");
-      int which = 0;
-      if (arg[iarg][0] == 'd') which = 1;
-      if (which == 0) style[nvalue] = IARRAY;
-      else style[nvalue] = DARRAY;
-      int flag,ncols;
-      index[nvalue] = atom->find_custom(&arg[iarg][3],flag,ncols);
-      if (index[nvalue] >= 0)
-        error->all(FLERR,"Fix property/atom array name already exists");
-      cols[nvalue] = utils::inumeric(FLERR,arg[iarg+1],true,lmp);
-      if (cols[nvalue] < 1)
-	error->all(FLERR,"Invalid array columns in fix property/atom");
-      index[nvalue] = atom->add_custom(&arg[iarg][3],which,cols[nvalue]);
-      values_peratom += cols[nvalue];
+
+      int which,flag,ncols;
+      which = atom->find_custom(&arg[iarg][3],flag,ncols);
+      if (which >= 0)
+        error->all(FLERR,"Fix property/atom array name {} already exists", &arg[iarg][3]);
+
+      ncols = utils::inumeric(FLERR,arg[iarg+1],true,lmp);
+      if (ncols < 1)
+        error->all(FLERR,"Invalid array columns number {} in fix property/atom", ncols);
+
+      if (arg[iarg][0] == 'i') {
+        which = 0;
+        style[nvalue] = IARRAY;
+      } else {
+        which = 1;
+        style[nvalue] = DARRAY;
+      }
+      index[nvalue] = atom->add_custom(&arg[iarg][3],which,ncols);
+      cols[nvalue] = ncols;
+      values_peratom += ncols;
       nvalue++;
       iarg += 2;
 
@@ -386,15 +391,15 @@ void FixPropertyAtom::write_data_section_pack(int /*mth*/, double **buf)
       int **iarray = atom->iarray[index[nv]];
       ncol = cols[nv];
       for (i = 0; i < nlocal; i++)
-	for (k = 0; k < ncol; k++)
-	  buf[i][icol+k] = ubuf(iarray[i][k]).d;
+        for (k = 0; k < ncol; k++)
+          buf[i][icol+k] = ubuf(iarray[i][k]).d;
       icol += ncol;
     } else if (style[nv] == DARRAY) {
       double **darray = atom->darray[index[nv]];
       ncol = cols[nv];
       for (i = 0; i < nlocal; i++)
-	for (k = 0; k < ncol; k++)
-	  buf[i][icol+k] = ubuf(darray[i][k]).d;
+        for (k = 0; k < ncol; k++)
+          buf[i][icol+k] = darray[i][k];
       icol += ncol;
     }
   }

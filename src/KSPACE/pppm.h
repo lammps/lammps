@@ -120,9 +120,6 @@ class PPPM : public KSpace {
   double qdist;        // distance from O site to negative charge
   double alpha;        // geometric factor
 
-  void carve_grid(int, int, int, double, 
-                  int &, int &, int &, int &, int &, int &);
-
   virtual void set_grid_global();
   void set_grid_local();
   void adjust_gewald();

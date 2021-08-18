@@ -24,6 +24,7 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "interlayer_taper.h"
 #include "math_special.h"
 #include "memory.h"
 #include "neigh_list.h"
@@ -32,6 +33,7 @@
 #include <cmath>
 
 using namespace LAMMPS_NS;
+using namespace InterLayer;
 
 /* ---------------------------------------------------------------------- */
 
@@ -257,7 +259,7 @@ double PairCoulShield::init_one(int i, int j)
     r3 = r * r * r;
     rarg = 1.0 / sigmae[i][j];
     th = r3 + MathSpecial::cube(rarg);
-    epsr = 1.0 / pow(th, 1.0/3.0);
+    epsr = 1.0 / pow(th, 1.0 / 3.0);
     offset[i][j] = qqrd2e * q[i] * q[j] * epsr;
   } else
     offset[i][j] = 0.0;
@@ -362,7 +364,7 @@ double PairCoulShield::single(int i, int j, int itype, int jtype, double rsq, do
   r3 = rsq * r;
   rarg = 1.0 / sigmae[itype][jtype];
   th = r3 + MathSpecial::cube(rarg);
-  epsr = 1.0 / pow(th, 1.0/3.0);
+  epsr = 1.0 / pow(th, 1.0 / 3.0);
   depsdr = epsr * epsr;
   depsdr *= depsdr;
   Vc = qqrd2e * q[i] * q[j] * epsr;

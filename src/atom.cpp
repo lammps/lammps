@@ -2481,7 +2481,7 @@ int Atom::add_custom(const char *name, int flag, int cols)
     ivector = (int **) memory->srealloc(ivector,nivector*sizeof(int *),
                                         "atom:ivector");
     memory->create(ivector[index],nmax,"atom:ivector");
-    
+
   } else if (flag == 1 && cols == 0) {
     index = ndvector;
     ndvector++;
@@ -2501,10 +2501,10 @@ int Atom::add_custom(const char *name, int flag, int cols)
     iarray = (int ***) memory->srealloc(iarray,niarray*sizeof(int **),
 					"atom:iarray");
     memory->create(iarray[index],nmax,cols,"atom:iarray");
-    
+
     icols = (int *) memory->srealloc(icols,niarray*sizeof(int),"atom:icols");
     icols[index] = cols;
-    
+
   } else if (flag == 1 && cols) {
     index = ndarray;
     ndarray++;
@@ -2518,7 +2518,7 @@ int Atom::add_custom(const char *name, int flag, int cols)
     dcols = (int *) memory->srealloc(dcols,ndarray*sizeof(int),"atom:dcols");
     dcols[index] = cols;
   }
-  
+
   return index;
 }
 
@@ -2542,7 +2542,7 @@ void Atom::remove_custom(int index, int flag, int cols)
     ivector[index] = NULL;
     delete [] ivname[index];
     ivname[index] = NULL;
-    
+
   } else if (flag == 1 && cols == 0) {
     memory->destroy(dvector[index]);
     dvector[index] = NULL;
@@ -2554,7 +2554,7 @@ void Atom::remove_custom(int index, int flag, int cols)
     iarray[index] = NULL;
     delete [] ianame[index];
     ianame[index] = NULL;
-    
+
   } else if (flag == 1 && cols) {
     memory->destroy(darray[index]);
     darray[index] = NULL;
@@ -2762,7 +2762,7 @@ void *Atom::extract(const char *name)
   if (strcmp(name, "damage") == 0) return (void *) damage;
 
   // DPD-REACT pakage
-  
+
   if (strcmp(name,"dpdTheta") == 0) return (void *) dpdTheta;
 
   // DPD-MESO package
@@ -2790,15 +2790,15 @@ void *Atom::extract(const char *name)
     if (name[0] == 'd') which = 1;
     int array = 0;
     if (name[1] == '2') array = 1;
-    
+
     int index,flag,cols;
     if (!array) index = find_custom(&name[2],flag,cols);
     else index = find_custom(&name[3],flag,cols);
-    
+
     if (index < 0) return NULL;
     if (which != flag) return NULL;
     if ((!array && cols) || (array && !cols)) return NULL;
-	
+
     if (!which && !array) return (void *) ivector[index];
     if (which && !array) return (void *) dvector[index];
     if (!which && array) return (void *) iarray[index];
@@ -2906,14 +2906,14 @@ int Atom::extract_datatype(const char *name)
 
   // custom vectors and arrays
   // OLDSTYLE code
-  
+
   if (strstr(name,"i_") == name || strstr(name,"d_") == name ||
       strstr(name,"i2_") == name || strstr(name,"d2_") == name) {
     int which = 0;
     if (name[0] == 'd') which = 1;
     int array = 0;
     if (name[1] == '2') array = 1;
-    
+
     int index,flag,cols;
     if (!array) index = find_custom(&name[2],flag,cols);
     else index = find_custom(&name[3],flag,cols);

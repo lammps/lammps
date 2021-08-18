@@ -2834,7 +2834,7 @@ void lammps_gather(void *handle, char *name, int type, int count, void *data)
     int i,j,offset,fcid,ltype,icol;
 
     // error if tags are not defined or not consecutive
-  
+
     int flag = 0;
     if (lmp->atom->tag_enable == 0 || lmp->atom->tag_consecutive() == 0)
       flag = 1;
@@ -2849,7 +2849,7 @@ void lammps_gather(void *handle, char *name, int type, int count, void *data)
     void *vptr = lmp->atom->extract(name);
 
     // fix
-    
+
     if (vptr==nullptr && utils::strmatch(name,"^f_")) {
 
       fcid = lmp->modify->find_fix(&name[2]);
@@ -2884,7 +2884,7 @@ void lammps_gather(void *handle, char *name, int type, int count, void *data)
     }
 
     // compute
-    
+
     if (vptr==nullptr && utils::strmatch(name,"^c_")) {
 
       fcid = lmp->modify->find_compute(&name[2]);
@@ -2913,7 +2913,7 @@ void lammps_gather(void *handle, char *name, int type, int count, void *data)
       if (count==1) vptr = (void *) lmp->modify->compute[fcid]->vector_atom;
       else vptr = (void *) lmp->modify->compute[fcid]->array_atom;
     }
-    
+
     // custom fix property/atom vector or array
     // OLDSTYLE code
 
@@ -2930,7 +2930,7 @@ void lammps_gather(void *handle, char *name, int type, int count, void *data)
           lmp->error->warning(FLERR,"lammps_gather: unknown property/atom id");
         return;
       }
-      
+
       if (ltype != type) {
         if (lmp->comm->me == 0)
           lmp->error->warning(FLERR,"lammps_gather: mismatch property/atom type");
@@ -2950,7 +2950,7 @@ void lammps_gather(void *handle, char *name, int type, int count, void *data)
       if (count == 1) {
 	if (ltype==0) vptr = (void *) lmp->atom->ivector[fcid];
 	else vptr = (void *) lmp->atom->dvector[fcid];
-      } else { 
+      } else {
 	if (ltype==0) vptr = (void *) lmp->atom->iarray[fcid];
 	else vptr = (void *) lmp->atom->darray[fcid];
       }
@@ -2963,11 +2963,11 @@ void lammps_gather(void *handle, char *name, int type, int count, void *data)
 	lmp->error->warning(FLERR,"lammps_gather: undefined property name");
       return;
     }
-    
+
     // copy = Natom length vector of per-atom values
     // use atom ID to insert each atom's values into copy
     // MPI_Allreduce with MPI_SUM to merge into data, ordered by atom ID
-	
+
     if (type==0) {
       int *vector = nullptr;
       int **array = nullptr;
@@ -3078,7 +3078,7 @@ void lammps_gather_concat(void *handle, char *name, int type, int count, void *d
     int i,offset,fcid,ltype,icol;
 
     // error if tags are not defined or not consecutive
-    
+
     int flag = 0;
     if (lmp->atom->tag_enable == 0) flag = 1;
     if (lmp->atom->natoms > MAXSMALLINT) flag = 1;
@@ -3126,7 +3126,7 @@ void lammps_gather_concat(void *handle, char *name, int type, int count, void *d
     }
 
     // compute
-    
+
     if (vptr==nullptr && utils::strmatch(name,"^c_")) {
 
       fcid = lmp->modify->find_compute(&name[2]);
@@ -3162,7 +3162,7 @@ void lammps_gather_concat(void *handle, char *name, int type, int count, void *d
     if ((vptr==nullptr) &&
 	((strstr(name,"d_") == name) || (strstr(name,"i_") == name) ||
 	 (strstr(name,"d2_") == name) || (strstr(name,"i2_") == name))) {
-      
+
       if ((strstr(name,"d_") == name) || (strstr(name,"i_") == name))
 	fcid = lmp->atom->find_custom(&name[2],ltype,icol);
       else fcid = lmp->atom->find_custom(&name[3],ltype,icol);
@@ -3173,7 +3173,7 @@ void lammps_gather_concat(void *handle, char *name, int type, int count, void *d
 			      "unknown property/atom id");
         return;
       }
-      
+
       if (ltype != type) {
         if (lmp->comm->me == 0)
           lmp->error->warning(FLERR,"lammps_gather_concat: "
@@ -3221,7 +3221,7 @@ void lammps_gather_concat(void *handle, char *name, int type, int count, void *d
     if (type == 0) {
       int *vector = nullptr;
       int **array = nullptr;
-      
+
       const int imgunpack = (count == 3) && (strcmp(name,"image") == 0);
 
       if ((count == 1) || imgunpack) vector = (int *) vptr;
@@ -3345,7 +3345,7 @@ void lammps_gather_subset(void *handle, char *name,
     tagint id;
 
     // error if tags are not defined or not consecutive
-    
+
     int flag = 0;
     if (lmp->atom->tag_enable == 0) flag = 1;
     if (lmp->atom->natoms > MAXSMALLINT) flag = 1;
@@ -3358,7 +3358,7 @@ void lammps_gather_subset(void *handle, char *name,
     void *vptr = lmp->atom->extract(name);
 
     // fix
-    
+
     if (vptr==nullptr && utils::strmatch(name,"^f_")) {
 
       fcid = lmp->modify->find_fix(&name[2]);
@@ -3391,7 +3391,7 @@ void lammps_gather_subset(void *handle, char *name,
     }
 
     // compute
-    
+
     if (vptr==nullptr && utils::strmatch(name,"^c_")) {
 
       fcid = lmp->modify->find_compute(&name[2]);
@@ -3438,7 +3438,7 @@ void lammps_gather_subset(void *handle, char *name,
                               "unknown property/atom id");
         return;
       }
-      
+
       if (ltype != type) {
         if (lmp->comm->me == 0)
           lmp->error->warning(FLERR,"lammps_gather_subset: "
@@ -3529,7 +3529,7 @@ void lammps_gather_subset(void *handle, char *name,
     } else {
       double *vector = nullptr;
       double **array = nullptr;
-      
+
       if (count == 1) vector = (double *) vptr;
       else array = (double **) vptr;
 
@@ -3619,7 +3619,7 @@ void lammps_scatter(void *handle, char *name, int type, int count, void *data)
     void *vptr = lmp->atom->extract(name);
 
     // fix
-    
+
     if (vptr==nullptr && utils::strmatch(name,"^f_")) {
 
       fcid = lmp->modify->find_fix(&name[2]);
@@ -3647,7 +3647,7 @@ void lammps_scatter(void *handle, char *name, int type, int count, void *data)
     }
 
     // compute
-    
+
     if (vptr==nullptr && utils::strmatch(name,"^c_")) {
 
       fcid = lmp->modify->find_compute(&name[2]);
@@ -3679,7 +3679,7 @@ void lammps_scatter(void *handle, char *name, int type, int count, void *data)
 
     // custom fix property/atom vector or array
     // OLDSTYLE code
-    
+
     if ((vptr == nullptr) &&
 	((strstr(name,"d_") == name) || (strstr(name,"i_") == name) ||
 	 (strstr(name,"d2_") == name) || (strstr(name,"i2_") == name))) {
@@ -3693,7 +3693,7 @@ void lammps_scatter(void *handle, char *name, int type, int count, void *data)
           lmp->error->warning(FLERR,"lammps_scatter: unknown property/atom id");
         return;
       }
-      
+
       if (ltype != type) {
         if (lmp->comm->me == 0)
           lmp->error->warning(FLERR,"lammps_scatter: mismatch property/atom type");
@@ -3713,7 +3713,7 @@ void lammps_scatter(void *handle, char *name, int type, int count, void *data)
       if (count == 1) {
 	if (ltype==0) vptr = (void *) lmp->atom->ivector[fcid];
 	else vptr = (void *) lmp->atom->dvector[fcid];
-      } else { 
+      } else {
 	if (ltype==0) vptr = (void *) lmp->atom->iarray[fcid];
 	else vptr = (void *) lmp->atom->darray[fcid];
       }
@@ -3843,7 +3843,7 @@ void lammps_scatter_subset(void *handle, char *name,int type, int count,
     void *vptr = lmp->atom->extract(name);
 
     // fix
-    
+
     if (vptr==nullptr && utils::strmatch(name,"^f_")) {
 
       fcid = lmp->modify->find_fix(&name[2]);
@@ -3903,7 +3903,7 @@ void lammps_scatter_subset(void *handle, char *name,int type, int count,
 
     // custom fix property/atom vector or array
     // OLDSTYLE code
-    
+
     if ((vptr == nullptr) &&
 	((strstr(name,"d_") == name) || (strstr(name,"i_") == name) ||
 	 (strstr(name,"d2_") == name) || (strstr(name,"i2_") == name))) {
@@ -3918,7 +3918,7 @@ void lammps_scatter_subset(void *handle, char *name,int type, int count,
                               "unknown property/atom id");
         return;
       }
-      
+
       if (ltype != type) {
         if (lmp->comm->me == 0)
           lmp->error->warning(FLERR,"lammps_scatter_subset: "
@@ -3939,7 +3939,7 @@ void lammps_scatter_subset(void *handle, char *name,int type, int count,
       if (count == 1) {
 	if (ltype==0) vptr = (void *) lmp->atom->ivector[fcid];
 	else vptr = (void *) lmp->atom->dvector[fcid];
-      } else { 
+      } else {
 	if (ltype==0) vptr = (void *) lmp->atom->iarray[fcid];
 	else vptr = (void *) lmp->atom->darray[fcid];
       }

@@ -293,7 +293,7 @@ FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
     } else if (which[i] == ArgInfo::DNAME) {
       int icustom,iflag,icol;
       icustom = atom->find_custom(ids[i],iflag,icol);
-      if (icustom < 0) 
+      if (icustom < 0)
         error->all(FLERR,"Custom vector/array for fix store/state does not exist");
       if (argindex[i] == 0) {
         if (!iflag || icol)
@@ -311,7 +311,7 @@ FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
     } else if (which[i] == ArgInfo::INAME) {
       int icustom,iflag,icol;
       icustom = atom->find_custom(ids[i],iflag,icol);
-      if (icustom < 0) 
+      if (icustom < 0)
         error->all(FLERR,"Custom vector/array for fix store/state does not exist");
       if (argindex[i] == 0) {
         if (iflag || icol)
@@ -417,7 +417,7 @@ void FixStoreState::init()
     } else if (which[m] == ArgInfo::INAME || which[m] == ArgInfo::DNAME) {
       int icustom,iflag,cols;
       icustom = atom->find_custom(ids[m],iflag,cols);
-      if (icustom < 0) 
+      if (icustom < 0)
         error->all(FLERR,"Custom vector/array for fix store/state does not exist");
       value2index[m] = icustom;
     }

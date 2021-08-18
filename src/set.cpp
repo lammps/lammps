@@ -581,7 +581,7 @@ void Set::command(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal set command");
       index_custom = atom->find_custom(argi.get_name(),flag,cols);
       if (index_custom < 0) error->all(FLERR,"Custom property {} does not exist",pname);
-      
+
       switch (argi.get_type()) {
 
       case ArgInfo::INAME:
@@ -1025,7 +1025,7 @@ void Set::set(int keyword)
   }
 
   // update bonus data numbers
-  
+
   if (keyword == SHAPE) {
     bigint nlocal_bonus = avec_ellipsoid->nlocal_bonus;
     MPI_Allreduce(&nlocal_bonus,&atom->nellipsoids,1,

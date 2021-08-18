@@ -147,8 +147,8 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
       pack_choice[i] = &ComputePropertyAtom::pack_mu;
 
     // pack magnetic variables
-      
-    } else if (strcmp(arg[iarg],"spx") == 0) {          
+
+    } else if (strcmp(arg[iarg],"spx") == 0) {
       if (!atom->sp_flag)
         error->all(FLERR,"Compute property/atom for "
                    "atom property that isn't allocated");
@@ -185,7 +185,7 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
       pack_choice[i] = &ComputePropertyAtom::pack_fmz;
 
     // bond count
-      
+
     } else if (strcmp(arg[iarg],"nbonds") == 0) {
       if (!atom->molecule_flag)
         error->all(FLERR,"Compute property/atom for "
@@ -193,7 +193,7 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
       pack_choice[i] = &ComputePropertyAtom::pack_nbonds;
 
     // finite-size particles
-      
+
     } else if (strcmp(arg[iarg],"radius") == 0) {
       if (!atom->radius_flag)
         error->all(FLERR,"Compute property/atom for "
@@ -401,11 +401,11 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
     // custom per-atom arrays, must include bracketed index
     // OLDSTYLE code
 
-    } else if (strstr(arg[iarg],"i2_") == arg[iarg] || 
+    } else if (strstr(arg[iarg],"i2_") == arg[iarg] ||
 	       strstr(arg[iarg],"d2_") == arg[iarg]) {
       int which = 0;
       if (arg[iarg][0] == 'd') which = 1;
-      
+
       int n = strlen(arg[iarg]);
       char *suffix = new char[n];
       strcpy(suffix,&arg[iarg][3]);
@@ -418,7 +418,7 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
         colindex[i] = utils::inumeric(FLERR,ptr+1,true,lmp);
         *ptr = '\0';
       } else error->all(FLERR,"Compute property/atom custom array is not indexed");
-      
+
       int flag,cols;
       index[i] = atom->find_custom(suffix,flag,cols);
       delete [] suffix;

@@ -109,7 +109,7 @@ class ComputePropertyAtom : public Compute {
   void pack_tqx(int);
   void pack_tqy(int);
   void pack_tqz(int);
-  
+
   void pack_end1x(int);
   void pack_end1y(int);
   void pack_end1z(int);

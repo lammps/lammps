@@ -50,7 +50,7 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
 
   nvalue = 0;
   values_peratom = 0;
-  
+
   while (iarg < narg) {
     if (strcmp(arg[iarg],"mol") == 0) {
       if (atom->molecule_flag)
@@ -114,7 +114,7 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
     // custom atom array
     // OLDSTYLE code
 
-    } else if (strstr(arg[iarg],"i2_") == arg[iarg] || 
+    } else if (strstr(arg[iarg],"i2_") == arg[iarg] ||
 	       strstr(arg[iarg],"d2_") == arg[iarg]) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix property/atom command");
       int which = 0;
@@ -539,7 +539,7 @@ void FixPropertyAtom::grow_arrays(int nmax)
 void FixPropertyAtom::copy_arrays(int i, int j, int /*delflag*/)
 {
   int k,ncol;
-  
+
   for (int nv = 0; nv < nvalue; nv++) {
     if (style[nv] == MOLECULE)
       atom->molecule[j] = atom->molecule[i];
@@ -697,15 +697,15 @@ int FixPropertyAtom::pack_exchange(int i, double *buf)
     else if (style[nv] == DVEC) buf[m++] = atom->dvector[index[nv]][i];
     else if (style[nv] == IARRAY) {
       ncol = cols[nv];
-      for (k = 0; k < ncol; k++) 
+      for (k = 0; k < ncol; k++)
 	buf[m++] = ubuf(atom->iarray[index[nv]][i][k]).d;
     } else if (style[nv] == DARRAY) {
       ncol = cols[nv];
-      for (k = 0; k < ncol; k++) 
+      for (k = 0; k < ncol; k++)
 	buf[m++] = atom->darray[index[nv]][i][k];
     }
   }
-  
+
   return m;
 }
 
@@ -731,15 +731,15 @@ int FixPropertyAtom::unpack_exchange(int nlocal, double *buf)
       atom->dvector[index[nv]][nlocal] = buf[m++];
     else if (style[nv] == IARRAY) {
       ncol = cols[nv];
-      for (k = 0; k < ncol; k++) 
+      for (k = 0; k < ncol; k++)
 	atom->iarray[index[nv]][nlocal][k] = (int) ubuf(buf[m++]).i;
     } else if (style[nv] == DARRAY) {
       ncol = cols[nv];
-      for (k = 0; k < ncol; k++) 
+      for (k = 0; k < ncol; k++)
 	atom->darray[index[nv]][nlocal][k] = buf[m++];
     }
   }
-  
+
   return m;
 }
 
@@ -750,9 +750,9 @@ int FixPropertyAtom::unpack_exchange(int nlocal, double *buf)
 int FixPropertyAtom::pack_restart(int i, double *buf)
 {
   int k,ncol;
-  
+
   // pack buf[0] this way because other fixes unpack it
-  
+
   buf[0] = values_peratom+1;
 
   int m = 1;

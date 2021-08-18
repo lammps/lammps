@@ -81,7 +81,7 @@ The :doc:`min_modify <min_modify>` command can be used to
 activate the line search procedure, and to modify the
 discretization factor *discrete_factor*.
 
-For more information about styles *spin/cg* and *spin/lbfgs*\ ,
+For more information about styles *spin/cg* and *spin/lbfgs*,
 see their implementation reported in :ref:`(Ivanov) <Ivanov1>`.
 
 .. note::

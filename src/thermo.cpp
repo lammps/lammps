@@ -73,7 +73,6 @@ using namespace MathConst;
 #define MULTI "etotal ke temp pe ebond eangle edihed eimp evdwl ecoul elong press"
 
 enum{ONELINE,MULTILINE};
-enum{INT,FLOAT,BIGINT};
 enum{SCALAR,VECTOR,ARRAY};
 
 

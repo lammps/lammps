@@ -322,10 +322,9 @@ of the :doc:`run <run>` command.  The fixes are not invoked during
 Restrictions
 """"""""""""
 
-Fix *ttm* is part of the MISC package. It is only enabled if LAMMPS
-was built with that package.  Fix *ttm/mod* is part of the USER-MISC
-package. It is only enabled if LAMMPS was built with that package.
-See the :doc:`Build package <Build_package>` doc page for more info.
+Fix *ttm* and *ttm/mod* are part of the EXTRA-FIX package. They are
+only enabled if LAMMPS was built with that package.
+See the :doc:`Build package <Build_package>` page for more info.
 
 These fixes can only be used for 3d simulations and orthogonal
 simulation boxes.  You must also use periodic

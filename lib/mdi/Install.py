@@ -28,7 +28,7 @@ specify -m and optionally -e, order does not matter
 Examples:
 
 make lib-poems args="-m serial" # build POEMS lib with same settings as in the serial Makefile in src
-make lib-colvars args="-m mpi"  # build USER-COLVARS lib with same settings as in the mpi Makefile in src
+make lib-colvars args="-m mpi"  # build COLVARS lib with same settings as in the mpi Makefile in src
 make lib-meam args="-m ifort"   # build MEAM lib with custom Makefile.ifort (using Intel Fortran)
 """
 

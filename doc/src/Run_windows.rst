@@ -11,7 +11,7 @@ To run a serial (non-MPI) executable, follow these steps:
   in.file is the name of your LAMMPS input script.
 
 Note that the serial executable includes support for multi-threading
-parallelization from the styles in the USER-OMP packages.  To run with
+parallelization from the styles in the OPENMP packages.  To run with
 4 threads, you can type this:
 
 .. code-block:: bash

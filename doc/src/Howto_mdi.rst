@@ -3,7 +3,7 @@ Using LAMMPS with the MDI library for code coupling
 
 .. note::
 
-  This Howto doc page will eventually replace the
+  This Howto page will eventually replace the
   :doc:`Howto client/server <Howto_client_server>` doc page.
 
 Client/server coupling of two codes is where one code is the "client"
@@ -120,7 +120,7 @@ input script will continue.  After finishing execution of the input
 script, the instance of LAMMPS will be destroyed.
 
 LAMMPS supports the full set of MD-appropriate engine commands defined
-by the MDI library.  See the :doc:`mdi/engine <mdi_engine>` doc page for
+by the MDI library.  See the :doc:`mdi/engine <mdi_engine>` page for
 a list of these.
 
 If those commands are not sufficient for a user-developed driver to use

@@ -16,7 +16,7 @@ KSpace solvers
 
 All LAMMPS :doc:`kspace_style <kspace_style>` solvers.  Some styles have
 accelerated versions.  This is indicated by additional letters in
-parenthesis: g = GPU, i = USER-INTEL, k = KOKKOS, o = USER-OMP, t =
+parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t =
 OPT.
 
 .. table_from_list::
@@ -33,8 +33,10 @@ OPT.
    * :doc:`pppm/cg (o) <kspace_style>`
    * :doc:`pppm/dipole <kspace_style>`
    * :doc:`pppm/dipole/spin <kspace_style>`
+   * :doc:`pppm/dielectric <kspace_style>`
    * :doc:`pppm/disp (io) <kspace_style>`
    * :doc:`pppm/disp/tip4p (o) <kspace_style>`
+   * :doc:`pppm/disp/dielectric <kspace_style>`
    * :doc:`pppm/stagger <kspace_style>`
    * :doc:`pppm/tip4p (o) <kspace_style>`
    * :doc:`pppm/dielectric <kspace_style>`

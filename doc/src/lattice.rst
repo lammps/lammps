@@ -30,7 +30,7 @@ Syntax
          i,j,k = integer lattice directions
        *spacing* values = dx dy dz
          dx,dy,dz = lattice spacings in the x,y,z box directions
-       *a1*\ ,\ *a2*\ ,\ *a3* values = x y z
+       *a1*,\ *a2*,\ *a3* values = x y z
          x,y,z = primitive vector components that define unit cell
        *basis* values = x y z
          x,y,z = fractional coords of a basis atom (0 <= x,y,z < 1)
@@ -102,7 +102,7 @@ default, a "lattice none 1.0" is defined, which means the lattice
 spacing is the same as one distance unit, as defined by the
 :doc:`units <units>` command.
 
-Lattices of style *sc*\ , *fcc*\ , *bcc*\ , and *diamond* are 3d lattices
+Lattices of style *sc*, *fcc*, *bcc*, and *diamond* are 3d lattices
 that define a cubic unit cell with edge length = 1.0.  This means a1 =
 1 0 0, a2 = 0 1 0, and a3 = 0 0 1.  Style *hcp* has a1 = 1 0 0, a2 = 0
 sqrt(3) 0, and a3 = 0 0 sqrt(8/3).  The placement of the basis atoms
@@ -147,14 +147,14 @@ lattice of the desired size and distance units in the simulation box.
 The meaning of the *scale* argument depends on the :doc:`units <units>`
 being used in your simulation.
 
-For all unit styles except *lj*\ , the scale argument is specified in
+For all unit styles except *lj*, the scale argument is specified in
 the distance units defined by the unit style.  For example, in *real*
 or *metal* units, if the unit cell is a unit cube with edge length
 1.0, specifying scale = 3.52 would create a cubic lattice with a
 spacing of 3.52 Angstroms.  In *cgs* units, the spacing would be 3.52
 cm.
 
-For unit style *lj*\ , the scale argument is the Lennard-Jones reduced
+For unit style *lj*, the scale argument is the Lennard-Jones reduced
 density, typically written as rho\*.  LAMMPS converts this value into
 the multiplicative factor via the formula "factor\^dim = rho/rho\*",
 where rho = N/V with V = the volume of the lattice unit cell and N =

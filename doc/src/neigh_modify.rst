@@ -75,13 +75,13 @@ pairwise neighbor lists.  Depending on what pair interactions and
 other commands are defined, a simulation may require one or more
 neighbor lists.
 
-The *every*\ , *delay*\ , *check*\ , and *once* options affect how often
+The *every*, *delay*, *check*, and *once* options affect how often
 lists are built as a simulation runs.  The *delay* setting means never
 build new lists until at least N steps after the previous build.  The
 *every* setting means build lists every M steps (after the delay has
-passed).  If the *check* setting is *no*\ , the lists are built on the
+passed).  If the *check* setting is *no*, the lists are built on the
 first step that satisfies the *delay* and *every* settings.  If the
-*check* setting is *yes*\ , then the *every* and *delay* settings
+*check* setting is *yes*, then the *every* and *delay* settings
 determine when a build may possibly be performed, but an actual build
 only occurs if some atom has moved more than half the skin distance
 (specified in the :doc:`neighbor <neighbor>` command) since the last
@@ -112,7 +112,7 @@ pairwise cutoff is so short that atoms that are part of the same
 interaction are not communicated as ghost atoms.  This is an unusual
 model (e.g. no pair interactions at all) and the problem can be fixed
 by use of the :doc:`comm_modify cutoff <comm_modify>` command.  Note
-that to save time, the default *cluster* setting is *no*\ , so that this
+that to save time, the default *cluster* setting is *no*, so that this
 check is not performed.
 
 The *include* option limits the building of pairwise neighbor lists to

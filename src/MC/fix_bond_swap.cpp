@@ -290,8 +290,9 @@ void FixBondSwap::post_integrate()
       // inext,jnext must be on-processor (inext,jnext < nlocal)
       // inext,jnext must be in fix group
       // inext,jnext must have same molecule IDs
-      //   for use case 1 (above): this insures chain length is preserved
-      //   for use case 2: always satisfied b/c fix group = bond-able atoms
+      //   in use cases above ...
+      //   for case 1: this insures chain length is preserved
+      //   for case 2: always satisfied b/c fix group = bond-able atoms
       // 4 atoms must be unique (no duplicates): inext != jnext, inext != j
       //   already know i != inext, j != jnext
       // all 4 old and new bonds must have length < cutoff
@@ -440,7 +441,7 @@ void FixBondSwap::post_integrate()
 
  done:
 
-  // trigger immediate reneighboring if any swaps occurred
+  // trigger immediate reneighboring if swaps occurred on one or more procs
 
   int accept_any;
   MPI_Allreduce(&accept,&accept_any,1,MPI_INT,MPI_SUM,world);

@@ -163,9 +163,9 @@ Input::~Input()
   memory->sfree(line);
   memory->sfree(copy);
   memory->sfree(work);
-  if (labelstr) delete [] labelstr;
+  if (labelstr) delete[] labelstr;
   memory->sfree(arg);
-  delete [] infiles;
+  delete[] infiles;
   delete variable;
 
   delete command_map;
@@ -897,9 +897,9 @@ void Input::ifthenelse()
 
     for (int i = 0; i < ncommands; i++) {
       one(commands[i]);
-      delete [] commands[i];
+      delete[] commands[i];
     }
-    delete [] commands;
+    delete[] commands;
 
     return;
   }
@@ -952,9 +952,9 @@ void Input::ifthenelse()
 
     for (int i = 0; i < ncommands; i++) {
       one(commands[i]);
-      delete [] commands[i];
+      delete[] commands[i];
     }
-    delete [] commands;
+    delete[] commands;
 
     return;
   }
@@ -1015,7 +1015,7 @@ void Input::jump()
 
   if (narg == 2) {
     label_active = 1;
-    if (labelstr) delete [] labelstr;
+    if (labelstr) delete[] labelstr;
     labelstr = utils::strdup(arg[1]);
   }
 }
@@ -1197,7 +1197,7 @@ void Input::shell()
     if (me == 0 && err != 0) {
       char *message = shell_failed_message("cd",err);
       error->warning(FLERR,message);
-      delete [] message;
+      delete[] message;
     }
 
   } else if (strcmp(arg[0],"mkdir") == 0) {
@@ -1212,7 +1212,7 @@ void Input::shell()
         if (rv < 0) {
           char *message = shell_failed_message("mkdir",errno);
           error->warning(FLERR,message);
-          delete [] message;
+          delete[] message;
         }
       }
 
@@ -1223,7 +1223,7 @@ void Input::shell()
     if (me == 0 && err != 0) {
       char *message = shell_failed_message("mv",err);
       error->warning(FLERR,message);
-      delete [] message;
+      delete[] message;
     }
 
   } else if (strcmp(arg[0],"rm") == 0) {
@@ -1233,7 +1233,7 @@ void Input::shell()
         if (unlink(arg[i]) < 0) {
           char *message = shell_failed_message("rm",errno);
           error->warning(FLERR,message);
-          delete [] message;
+          delete[] message;
         }
       }
 
@@ -1244,7 +1244,7 @@ void Input::shell()
         if (rmdir(arg[i]) < 0) {
           char *message = shell_failed_message("rmdir",errno);
           error->warning(FLERR,message);
-          delete [] message;
+          delete[] message;
         }
       }
 
@@ -1271,7 +1271,7 @@ void Input::shell()
       if (me == 0 && err != 0) {
         char *message = shell_failed_message("putenv",err);
         error->warning(FLERR,message);
-        delete [] message;
+        delete[] message;
       }
     }
 
@@ -1683,7 +1683,7 @@ void Input::package()
   } else if (strcmp(arg[0],"omp") == 0) {
     if (!modify->check_package("OMP"))
       error->all(FLERR,
-                 "Package omp command without USER-OMP package installed");
+                 "Package omp command without OPENMP package installed");
 
     std::string fixcmd = "package_omp all OMP";
     for (int i = 1; i < narg; i++) fixcmd += std::string(" ") + arg[i];
@@ -1692,7 +1692,7 @@ void Input::package()
  } else if (strcmp(arg[0],"intel") == 0) {
     if (!modify->check_package("INTEL"))
       error->all(FLERR,
-                 "Package intel command without USER-INTEL package installed");
+                 "Package intel command without INTEL package installed");
 
     std::string fixcmd = "package_intel all INTEL";
     for (int i = 1; i < narg; i++) fixcmd += std::string(" ") + arg[i];
@@ -1847,8 +1847,8 @@ void Input::suffix()
   } else {
     lmp->suffix_enable = 1;
 
-    delete [] lmp->suffix;
-    delete [] lmp->suffix2;
+    delete[] lmp->suffix;
+    delete[] lmp->suffix2;
     lmp->suffix = lmp->suffix2 = nullptr;
 
     if (strcmp(arg[0],"hybrid") == 0) {

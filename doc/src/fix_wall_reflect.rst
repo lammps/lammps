@@ -62,8 +62,8 @@ divides the corresponding timestep asymmetrically, energy conservation
 is only satisfied to O(dt), rather than to O(dt\^2) as it would be for
 velocity-Verlet integration without reflective walls.
 
-Up to 6 walls or faces can be specified in a single command: *xlo*\ ,
-*xhi*\ , *ylo*\ , *yhi*\ , *zlo*\ , *zhi*\ .  A *lo* face reflects particles
+Up to 6 walls or faces can be specified in a single command: *xlo*,
+*xhi*, *ylo*, *yhi*, *zlo*, *zhi*\ .  A *lo* face reflects particles
 that move to a coordinate less than the wall position, back in the
 *hi* direction.  A *hi* face reflects particles that move to a
 coordinate higher than the wall position, back in the *lo* direction.
@@ -117,7 +117,7 @@ in a time-dependent fashion using equal-style
 
 The *ramp(lo,hi)* function adjusts the wall position linearly from *lo* to
 *hi* over the course of a run.  The *vdisplace(c0,velocity)* function does
-something similar using the equation *position = c0 + velocity\*delta*\ ,
+something similar using the equation *position = c0 + velocity\*delta*,
 where *delta* is the elapsed time.
 
 The *swiggle(c0,A,period)* function causes the wall position to

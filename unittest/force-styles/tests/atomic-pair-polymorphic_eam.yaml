@@ -1,7 +1,7 @@
 ---
 lammps_version: 10 Feb 2021
 date_generated: Fri Feb 26 23:09:04 2021
-epsilon: 1e-14
+epsilon: 5e-14
 prerequisites: ! |
   pair polymorphic
 pre_commands: ! |

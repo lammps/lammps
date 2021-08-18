@@ -1230,7 +1230,7 @@ void FixGCMC::attempt_molecule_deletion()
 
   // work-around to avoid n=0 problem with fix rigid/nvt/small
 
-  if (ngas == natoms_per_molecule) return;
+  if (rigidflag && ngas == natoms_per_molecule) return;
 
   tagint deletion_molecule = pick_random_gas_molecule();
   if (deletion_molecule == -1) return;
@@ -1900,7 +1900,7 @@ void FixGCMC::attempt_molecule_deletion_full()
 
   // work-around to avoid n=0 problem with fix rigid/nvt/small
 
-  if (ngas == natoms_per_molecule) return;
+  if (rigidflag && ngas == natoms_per_molecule) return;
 
   tagint deletion_molecule = pick_random_gas_molecule();
   if (deletion_molecule == -1) return;
@@ -2315,7 +2315,7 @@ double FixGCMC::energy_full()
   // unlike Verlet, not performing a reverse_comm() or forces here
   // b/c GCMC does not care about forces
   // don't think it will mess up energy due to any post_force() fixes
-  // but Modify::pre_reverse() is needed for USER-INTEL
+  // but Modify::pre_reverse() is needed for INTEL
 
   if (modify->n_pre_reverse) modify->pre_reverse(eflag,vflag);
   if (modify->n_post_force) modify->post_force(vflag);

@@ -56,7 +56,7 @@ is read.  This fix will augment the set of properties with new custom
 ones. This can be useful in several scenarios.
 
 If the atom style does not define molecule IDs, per-atom charge,
-or per-atom mass, they can be added using the *mol*\ , *q* or *rmass*
+or per-atom mass, they can be added using the *mol*, *q* or *rmass*
 keywords.  This can be useful, e.g, to define "molecules" to use as
 rigid bodies with the :doc:`fix rigid <fix_rigid>` command, or just to
 carry around an extra flag with the atoms (stored as a molecule ID)
@@ -80,7 +80,7 @@ and second, it may define additional properties that are not needed
 such as bond lists, which has some overhead when there are no bonds.
 
 In the future, we may add additional per-atom properties similar to
-*mol*\ , *q* or *rmass*\ , which "turn-on" specific properties defined
+*mol*, *q* or *rmass*, which "turn-on" specific properties defined
 by some atom styles, so they can be used by atom styles that do not
 define them.
 
@@ -108,7 +108,7 @@ new properties are also defined for the ghost atoms.
 .. admonition:: Properties on ghost atoms
    :class: note
 
-   If you use this command with the *mol*\ , *q* or *rmass* vectors,
+   If you use this command with the *mol*, *q* or *rmass* vectors,
    then you most likely want to set *ghost* yes, since these properties
    are stored with ghost atoms if you use an :doc:`atom_style <atom_style>`
    that defines them, and many LAMMPS operations that use molecule IDs or

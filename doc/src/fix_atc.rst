@@ -253,7 +253,7 @@ miscellaneous *fix_modify* commands:
 * :doc:`fix_modify AtC remove_molecule <atc_remove_molecule>`
 
 Note: a set of example input files with the attendant material files
-are included in the ``examples/USER/atc`` folders.
+are included in the ``examples/PACKAGES/atc`` folders.
 
 Default
 """""""

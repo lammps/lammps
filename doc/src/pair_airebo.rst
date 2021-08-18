@@ -122,7 +122,7 @@ would be 10.2 Angstroms.
 
 By default, the longer-ranged interaction is smoothly switched off
 between 2.16 and 3.0 :math:`\sigma`. By specifying *cutoff_min* in addition
-to *cutoff*\ , the switching can be configured to take place between
+to *cutoff*, the switching can be configured to take place between
 *cutoff_min* and *cutoff*\ . *cutoff_min* can only be specified if all
 optional arguments are given.
 
@@ -131,7 +131,7 @@ various dihedral angle preferences in hydrocarbon configurations.
 
 ----------
 
-Only a single pair_coeff command is used with the *airebo*\ , *airebo*
+Only a single pair_coeff command is used with the *airebo*, *airebo*
 or *rebo* style which specifies an AIREBO, REBO, or AIREBO-M potential
 file with parameters for C and H.  Note that as of LAMMPS version
 15 May 2019 the *rebo* style in LAMMPS uses its own potential
@@ -142,7 +142,7 @@ where N is the number of LAMMPS atom types:
 * filename
 * :math:`N` element names = mapping of AIREBO elements to atom types
 
-See the :doc:`pair_coeff <pair_coeff>` doc page for alternate ways
+See the :doc:`pair_coeff <pair_coeff>` page for alternate ways
 to specify the path for the potential file.
 
 As an example, if your LAMMPS simulation has 4 atom types and you want
@@ -211,13 +211,13 @@ script that reads a restart file.
 
 These pair styles can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  They do not support the
-*inner* , *middle*, *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 Restrictions
 """"""""""""
 
 These pair styles are part of the MANYBODY package.  They are only
-enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 These pair potentials require the :doc:`newton <newton>` setting to be
 "on" for pair interactions.

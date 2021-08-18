@@ -798,7 +798,7 @@ void LAMMPS::create()
   else neighbor = new Neighbor(this);
 
   if (kokkos) domain = new DomainKokkos(this);
-#ifdef LMP_USER_OMP
+#ifdef LMP_OPENMP
   else domain = new DomainOMP(this);
 #else
   else domain = new Domain(this);
@@ -843,19 +843,19 @@ void LAMMPS::post_create()
 
   // suffix will always be set if suffix_enable = 1
   // check that KOKKOS package classes were instantiated
-  // check that GPU, INTEL, USER-OMP fixes were compiled with LAMMPS
+  // check that GPU, INTEL, OPENMP fixes were compiled with LAMMPS
 
   if (suffix_enable) {
 
     if (strcmp(suffix,"gpu") == 0 && !modify->check_package("GPU"))
       error->all(FLERR,"Using suffix gpu without GPU package installed");
     if (strcmp(suffix,"intel") == 0 && !modify->check_package("INTEL"))
-      error->all(FLERR,"Using suffix intel without USER-INTEL package installed");
+      error->all(FLERR,"Using suffix intel without INTEL package installed");
     if (strcmp(suffix,"kk") == 0 &&
         (kokkos == nullptr || kokkos->kokkos_exists == 0))
       error->all(FLERR,"Using suffix kk without KOKKOS package enabled");
     if (strcmp(suffix,"omp") == 0 && !modify->check_package("OMP"))
-      error->all(FLERR,"Using suffix omp without USER-OMP package installed");
+      error->all(FLERR,"Using suffix omp without OPENMP package installed");
 
     if (strcmp(suffix,"gpu") == 0) input->one("package gpu 0");
     if (strcmp(suffix,"intel") == 0) input->one("package intel 1");

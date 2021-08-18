@@ -70,7 +70,7 @@ Also see the explanation of the :doc:`-restart command-line switch <Run_options>
 file.
 
 This command can be used multiple times to add new atoms and their
-properties to an existing system by using the *add*\ , *offset*\ , and
+properties to an existing system by using the *add*, *offset*, and
 *shift* keywords.  See more details below, which includes the use case
 for the *extra* keywords.
 
@@ -105,7 +105,7 @@ other side of the fluid.  The third set of atoms could be rotated to
 an opposing direction using the :doc:`displace_atoms <displace_atoms>`
 command, after the third read_data command is used.
 
-The *add*\ , *offset*\ , *shift*\ , *extra*\ , and *group* keywords are
+The *add*, *offset*, *shift*, *extra*, and *group* keywords are
 useful in this context.
 
 If a simulation box does not yet exist, the *add* keyword cannot be
@@ -249,7 +249,7 @@ a fix that will be used to process a specific portion of the data
 file.  Any header line containing *header-string* and any section with
 a name containing *section-string* will be passed to the specified
 fix.  See the :doc:`fix property/atom <fix_property_atom>` command for
-an example of a fix that operates in this manner.  The doc page for
+an example of a fix that operates in this manner.  The page for
 the fix defines the syntax of the header line(s) and section(s) that
 it reads from the data file.  Note that the *header-string* can be
 specified as NULL, in which case no header lines are passed to the
@@ -332,7 +332,7 @@ example), then configurations with tilt = ..., -15, -5, 5, 15, 25,
 with tilt factors that exceed these limits, you can use the :doc:`box tilt <box>` command, with a setting of *large*\ ; a setting of
 *small* is the default.
 
-See the :doc:`Howto triclinic <Howto_triclinic>` doc page for a
+See the :doc:`Howto triclinic <Howto_triclinic>` page for a
 geometric description of triclinic boxes, as defined by LAMMPS, and
 how to transform these parameters to and from other commonly used
 triclinic representations.
@@ -460,9 +460,9 @@ are point particles.  See the discussion of ellipsoidflag and the
    For :doc:`atom_style template <atom_style>`, the molecular
    topology (bonds,angles,etc) is contained in the molecule templates
    read-in by the :doc:`molecule <molecule>` command.  This means you
-   cannot set the *bonds*\ , *angles*\ , etc header keywords in the data
-   file, nor can you define *Bonds*\ , *Angles*\ , etc sections as discussed
-   below.  You can set the *bond types*\ , *angle types*\ , etc header
+   cannot set the *bonds*, *angles*, etc header keywords in the data
+   file, nor can you define *Bonds*, *Angles*, etc sections as discussed
+   below.  You can set the *bond types*, *angle types*, etc header
    keywords, though it is not necessary.  If specified, they must match
    the maximum values defined in any of the template molecules.
 
@@ -491,7 +491,7 @@ For example, these lines:
    Pair Coeffs # lj/cut
 
 will check if the currently-defined :doc:`atom_style <atom_style>` is
-*sphere*\ , and the current :doc:`pair_style <pair_style>` is *lj/cut*\ .
+*sphere*, and the current :doc:`pair_style <pair_style>` is *lj/cut*\ .
 If not, LAMMPS will issue a warning to indicate that the data file
 section likely does not contain the correct number or type of
 parameters expected for the currently-defined style.
@@ -722,8 +722,8 @@ The ellipsoidflag, lineflag, triangleflag, and bodyflag determine
 whether the particle is a finite-size ellipsoid or line or triangle or
 body of finite size, or whether the particle is a point particle.
 Additional attributes must be defined for each ellipsoid, line,
-triangle, or body in the corresponding *Ellipsoids*\ , *Lines*\ ,
-*Triangles*\ , or *Bodies* section.
+triangle, or body in the corresponding *Ellipsoids*, *Lines*,
+*Triangles*, or *Bodies* section.
 
 The *template-index* and *template-atom* are only defined used by
 :doc:`atom_style template <atom_style>`.  In this case the
@@ -1051,7 +1051,7 @@ The 3 shape values specify the 3 diameters or aspect ratios of a
 finite-size ellipsoidal particle, when it is oriented along the 3
 coordinate axes.  They must all be non-zero values.
 
-The values *quatw*\ , *quati*\ , *quatj*\ , and *quatk* set the orientation
+The values *quatw*, *quati*, *quatj*, and *quatk* set the orientation
 of the atom as a quaternion (4-vector).  Note that the shape
 attributes specify the aspect ratios of an ellipsoidal particle, which
 is oriented by default with its x-axis along the simulation box's

@@ -85,19 +85,19 @@ variable that is time-dependent.
 
 Depending on the value of the *reset* keyword, attributes changed by
 this fix will or will not be reset back to their original values at
-the end of a simulation.  Even if *reset* is specified as *yes*\ , a
+the end of a simulation.  Even if *reset* is specified as *yes*, a
 restart file written during a simulation will contain the modified
 settings.
 
-If the *scale* keyword is set to *no*\ , which is the default, then
+If the *scale* keyword is set to *no*, which is the default, then
 the value of the altered parameter will be whatever the variable
-generates.  If the *scale* keyword is set to *yes*\ , then the value
+generates.  If the *scale* keyword is set to *yes*, then the value
 of the altered parameter will be the initial value of that parameter
 multiplied by whatever the variable generates.  I.e. the variable is
 now a "scale factor" applied in (presumably) a time-varying fashion to
 the parameter.
 
-Note that whether scale is *no* or *yes*\ , internally, the parameters
+Note that whether scale is *no* or *yes*, internally, the parameters
 themselves are actually altered by this fix.  Make sure you use the
 *reset yes* option if you want the parameters to be restored to their
 initial values after the run.
@@ -186,7 +186,9 @@ formulas for the meaning of these parameters:
 +------------------------------------------------------------------------------+--------------------------------------------------+-------------+
 | :doc:`nm/cut/coul/cut, nm/cut/coul/long <pair_nm>`                           | E0,R0,m,n,coulombic_cutoff                       | type pairs  |
 +------------------------------------------------------------------------------+--------------------------------------------------+-------------+
-| :doc:`reax/c <pair_reaxc>`                                                   | chi, eta, gamma                                  | type global |
+| :doc:`reaxff <pair_reaxff>`                                                  | chi, eta, gamma                                  | type global |
++------------------------------------------------------------------------------+--------------------------------------------------+-------------+
+| :doc:`snap <pair_snap>`                                                      | scale                                            | type pairs  |
 +------------------------------------------------------------------------------+--------------------------------------------------+-------------+
 | :doc:`spin/dmi <pair_spin_dmi>`                                              | coulombic_cutoff                                 | type global |
 +------------------------------------------------------------------------------+--------------------------------------------------+-------------+

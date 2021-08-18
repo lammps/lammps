@@ -14,6 +14,7 @@
 #include "lammps.h"
 
 #include "input.h"
+#include "accelerator_kokkos.h"
 #if defined(LAMMPS_EXCEPTIONS)
 #include "exceptions.h"
 #endif
@@ -30,7 +31,7 @@
 #endif
 
 // import MolSSI Driver Interface library
-#if defined(LMP_USER_MDI)
+#if defined(LMP_MDI)
 #include <mdi.h>
 #endif
 
@@ -46,7 +47,7 @@ int main(int argc, char **argv)
 
   MPI_Comm lammps_comm = MPI_COMM_WORLD;
 
-#if defined(LMP_USER_MDI)
+#if defined(LMP_MDI)
   // initialize MDI interface, if compiled in
 
   int mdi_flag;
@@ -77,13 +78,16 @@ int main(int argc, char **argv)
     lammps->input->file();
     delete lammps;
   } catch (LAMMPSAbortException &ae) {
+    KokkosLMP::finalize();
     MPI_Abort(ae.universe, 1);
   } catch (LAMMPSException &e) {
+    KokkosLMP::finalize();
     MPI_Barrier(lammps_comm);
     MPI_Finalize();
     exit(1);
   } catch (fmt::format_error &fe) {
     fprintf(stderr, "fmt::format_error: %s\n", fe.what());
+    KokkosLMP::finalize();
     MPI_Abort(MPI_COMM_WORLD, 1);
     exit(1);
   }
@@ -94,10 +98,12 @@ int main(int argc, char **argv)
     delete lammps;
   } catch (fmt::format_error &fe) {
     fprintf(stderr, "fmt::format_error: %s\n", fe.what());
+    KokkosLMP::finalize();
     MPI_Abort(MPI_COMM_WORLD, 1);
     exit(1);
   }
 #endif
+  KokkosLMP::finalize();
   MPI_Barrier(lammps_comm);
   MPI_Finalize();
 }

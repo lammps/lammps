@@ -39,7 +39,7 @@ Define a computation that calculates the total energy and force
 interaction between two groups of atoms: the compute group and the
 specified group2.  The two groups can be the same.
 
-If the *pair* keyword is set to *yes*\ , which is the default, then the
+If the *pair* keyword is set to *yes*, which is the default, then the
 the interaction energy will include a pair component which is defined
 as the pairwise energy between all pairs of atoms where one atom in
 the pair is in the first group and the other is in the second group.
@@ -60,7 +60,7 @@ force.  For the *inter* setting, the two atoms must be in different
 molecules.  For the *intra* setting, the two atoms must be in the same
 molecule.
 
-If the *kspace* keyword is set to *yes*\ , which is not the default, and
+If the *kspace* keyword is set to *yes*, which is not the default, and
 if a :doc:`kspace_style <kspace_style>` is defined, then the interaction
 energy will include a Kspace component which is the long-range
 Coulombic energy between all the atoms in the first group and all the
@@ -73,7 +73,7 @@ charge of the unit cell is zero.  However, one can assume the net
 charge of the system is neutralized by a uniform background plasma,
 and a correction to the system energy can be applied to reduce
 artifacts. For more information see :ref:`(Bogusz) <Bogusz>`.  If the
-*boundary* keyword is set to *yes*\ , which is the default, and *kspace*
+*boundary* keyword is set to *yes*, which is the default, and *kspace*
 contributions are included, then this energy correction term will be
 added to the total group-group energy.  This correction term does not
 affect the force calculation and will be zero if one or both of the
@@ -108,7 +108,7 @@ frequently.
    neighbor list.  Because this compute uses a neighbor list, it also
    means those pairs will not be included in the group/group interaction.
    This does not apply when using long-range coulomb interactions
-   (\ *coul/long*\ , *coul/msm*\ , *coul/wolf* or similar.  One way to get
+   (\ *coul/long*, *coul/msm*, *coul/wolf* or similar.  One way to get
    around this would be to set special_bond scaling factors to very tiny
    numbers that are not exactly zero (e.g. 1.0e-50). Another workaround
    is to write a dump file, and use the :doc:`rerun <rerun>` command to
@@ -134,7 +134,7 @@ Output info
 This compute calculates a global scalar (the energy) and a global
 vector of length 3 (force), which can be accessed by indices 1-3.
 These values can be used by any command that uses global scalar or
-vector values from a compute as input.  See the :doc:`Howto output <Howto_output>` doc page for an overview of LAMMPS output
+vector values from a compute as input.  See the :doc:`Howto output <Howto_output>` page for an overview of LAMMPS output
 options.
 
 Both the scalar and vector values calculated by this compute are

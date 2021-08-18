@@ -59,7 +59,7 @@ public:
   std::string units;
 
   /// \brief Request to set the units used internally by Colvars
-  virtual int set_unit_system(std::string const &units, bool check_only) = 0;
+  virtual int set_unit_system(std::string const &units, bool check_only);
 
   /// \brief Value of 1 Angstrom in the internal (front-end) Colvars unit for atomic coordinates
   /// * defaults to 0. in the base class; derived proxy classes must set it
@@ -68,7 +68,7 @@ public:
   cvm::real angstrom_value;
 
   /// \brief Value of 1 Angstrom in the backend's unit for atomic coordinates
-  virtual cvm::real backend_angstrom_value() = 0;
+  virtual cvm::real backend_angstrom_value();
 
   /// \brief Value of 1 kcal/mol in the internal Colvars unit for energy
   cvm::real kcal_mol_value;
@@ -77,6 +77,12 @@ public:
   inline cvm::real angstrom_to_internal(cvm::real l) const
   {
     return l * angstrom_value;
+  }
+
+  /// \brief Convert a length from internal to Angstrom
+  inline cvm::real internal_to_angstrom(cvm::real l) const
+  {
+    return l / angstrom_value;
   }
 
   // /// \brief Convert a length from back-end unit to internal
@@ -88,19 +94,19 @@ public:
   // }
 
   /// \brief Boltzmann constant in internal Colvars units
-  virtual cvm::real boltzmann() = 0;
+  virtual cvm::real boltzmann();
 
   /// \brief Target temperature of the simulation (K units)
-  virtual cvm::real temperature() = 0;
+  virtual cvm::real temperature();
 
   /// \brief Time step of the simulation (fs)
-  virtual cvm::real dt() = 0;
+  virtual cvm::real dt();
 
   /// \brief Pseudo-random number with Gaussian distribution
-  virtual cvm::real rand_gaussian(void) = 0;
+  virtual cvm::real rand_gaussian(void);
 
   /// Pass restraint energy value for current timestep to MD engine
-  virtual void add_energy(cvm::real energy) = 0;
+  virtual void add_energy(cvm::real energy);
 
   /// \brief Get the PBC-aware distance vector between two positions
   virtual cvm::rvector position_distance(cvm::atom_pos const &pos1,
@@ -125,6 +131,15 @@ public:
   /// Get the molecule ID when called in VMD; raise error otherwise
   /// \param molid Set this argument equal to the current VMD molid
   virtual int get_molid(int &molid);
+
+  /// Get value of alchemical lambda parameter from back-end (if available)
+  virtual int get_alch_lambda(cvm::real* lambda);
+
+  /// Set value of alchemical lambda parameter in back-end (if available)
+  virtual int set_alch_lambda(cvm::real* lambda);
+
+  /// Get energy derivative with respect to lambda (if available)
+  virtual int get_dE_dLambda(cvm::real* force);
 
 protected:
 
@@ -167,11 +182,11 @@ public:
 
   /// Prepare this atom for collective variables calculation, selecting it by
   /// numeric index (1-based)
-  virtual int init_atom(int atom_number) = 0;
+  virtual int init_atom(int atom_number);
 
   /// Check that this atom number is valid, but do not initialize the
   /// corresponding atom yet
-  virtual int check_atom_id(int atom_number) = 0;
+  virtual int check_atom_id(int atom_number);
 
   /// Select this atom for collective variables calculation, using name and
   /// residue number.  Not all programs support this: leave this function as
@@ -262,9 +277,14 @@ public:
     return cvm::rvector(0.0);
   }
 
-  inline std::vector<int> *modify_atom_ids()
+  inline std::vector<int> const *get_atom_ids() const
   {
     return &atoms_ids;
+  }
+
+  inline std::vector<cvm::real> const *get_atom_masses() const
+  {
+    return &atoms_masses;
   }
 
   inline std::vector<cvm::real> *modify_atom_masses()
@@ -274,6 +294,11 @@ public:
     return &atoms_masses;
   }
 
+  inline std::vector<cvm::real> const *get_atom_charges()
+  {
+    return &atoms_charges;
+  }
+
   inline std::vector<cvm::real> *modify_atom_charges()
   {
     // assume that we are requesting charges to change them
@@ -281,9 +306,19 @@ public:
     return &atoms_charges;
   }
 
+  inline std::vector<cvm::rvector> const *get_atom_positions() const
+  {
+    return &atoms_positions;
+  }
+
   inline std::vector<cvm::rvector> *modify_atom_positions()
   {
     return &atoms_positions;
+  }
+
+  inline std::vector<cvm::rvector> const *get_atom_total_forces() const
+  {
+    return &atoms_total_forces;
   }
 
   inline std::vector<cvm::rvector> *modify_atom_total_forces()
@@ -291,9 +326,38 @@ public:
     return &atoms_total_forces;
   }
 
-  inline std::vector<cvm::rvector> *modify_atom_new_colvar_forces()
+  inline std::vector<cvm::rvector> const *get_atom_applied_forces() const
   {
     return &atoms_new_colvar_forces;
+  }
+
+  inline std::vector<cvm::rvector> *modify_atom_applied_forces()
+  {
+    return &atoms_new_colvar_forces;
+  }
+
+  /// Compute the root-mean-square of the applied forces
+  void compute_rms_atoms_applied_force();
+
+  /// Compute the maximum norm among all applied forces
+  void compute_max_atoms_applied_force();
+
+  /// Get the root-mean-square of the applied forces
+  inline cvm::real rms_atoms_applied_force() const
+  {
+    return atoms_rms_applied_force_;
+  }
+
+  /// Get the maximum norm among all applied forces
+  inline cvm::real max_atoms_applied_force() const
+  {
+    return atoms_max_applied_force_;
+  }
+
+  /// Get the atom ID with the largest applied force
+  inline int max_atoms_applied_force_id() const
+  {
+    return atoms_max_applied_force_id_;
   }
 
   /// Record whether masses have been updated
@@ -325,6 +389,15 @@ protected:
   std::vector<cvm::rvector> atoms_total_forces;
   /// \brief Forces applied from colvars, to be communicated to the MD integrator
   std::vector<cvm::rvector> atoms_new_colvar_forces;
+
+  /// Root-mean-square of the applied forces
+  cvm::real atoms_rms_applied_force_;
+
+  /// Maximum norm among all applied forces
+  cvm::real atoms_max_applied_force_;
+
+  /// ID of the atom with the maximum norm among all applied forces
+  int atoms_max_applied_force_id_;
 
   /// Whether the masses and charges have been updated from the host code
   bool updated_masses_, updated_charges_;
@@ -404,6 +477,56 @@ public:
     return cvm::rvector(0.0);
   }
 
+  inline std::vector<int> const *get_atom_group_ids() const
+  {
+    return &atom_groups_ids;
+  }
+
+  inline std::vector<cvm::real> *modify_atom_group_masses()
+  {
+    // TODO updated_masses
+    return &atom_groups_masses;
+  }
+
+  inline std::vector<cvm::real> *modify_atom_group_charges()
+  {
+    // TODO updated masses
+    return &atom_groups_charges;
+  }
+
+  inline std::vector<cvm::rvector> *modify_atom_group_positions()
+  {
+    return &atom_groups_coms;
+  }
+
+  inline std::vector<cvm::rvector> *modify_atom_group_total_forces()
+  {
+    return &atom_groups_total_forces;
+  }
+
+  inline std::vector<cvm::rvector> *modify_atom_group_applied_forces()
+  {
+    return &atom_groups_new_colvar_forces;
+  }
+
+  /// Compute the root-mean-square of the applied forces
+  void compute_rms_atom_groups_applied_force();
+
+  /// Compute the maximum norm among all applied forces
+  void compute_max_atom_groups_applied_force();
+
+  /// Get the root-mean-square of the applied forces
+  inline cvm::real rms_atom_groups_applied_force() const
+  {
+    return atom_groups_rms_applied_force_;
+  }
+
+  /// Get the maximum norm among all applied forces
+  inline cvm::real max_atom_groups_applied_force() const
+  {
+    return atom_groups_max_applied_force_;
+  }
+
 protected:
 
   /// \brief Array of 0-based integers used to uniquely associate atom groups
@@ -421,6 +544,12 @@ protected:
   std::vector<cvm::rvector> atom_groups_total_forces;
   /// \brief Forces applied from colvars, to be communicated to the MD integrator
   std::vector<cvm::rvector> atom_groups_new_colvar_forces;
+
+  /// Root-mean-square of the applied group forces
+  cvm::real atom_groups_rms_applied_force_;
+
+  /// Maximum norm among all applied group forces
+  cvm::real atom_groups_max_applied_force_;
 
   /// Used by all init_atom_group() functions: create a slot for an atom group not requested yet
   int add_atom_group_slot(int atom_group_id);
@@ -518,12 +647,6 @@ public:
 
   /// Destructor
   virtual ~colvarproxy_script();
-
-  /// Convert a script object (Tcl or Python call argument) to a C string
-  virtual char const *script_obj_to_str(unsigned char *obj);
-
-  /// Convert a script object (Tcl or Python call argument) to a vector of strings
-  virtual std::vector<std::string> script_obj_to_str_vector(unsigned char *obj);
 
   /// Pointer to the scripting interface object
   /// (does not need to be allocated in a new interface)
@@ -706,11 +829,14 @@ public:
   /// \brief Update data based from the results of a module update (e.g. send forces)
   virtual int update_output();
 
+  /// Carry out operations needed before next step is run
+  int end_of_step();
+
   /// Print a message to the main log
-  virtual void log(std::string const &message) = 0;
+  virtual void log(std::string const &message);
 
   /// Print a message to the main log and/or let the host code know about it
-  virtual void error(std::string const &message) = 0;
+  virtual void error(std::string const &message);
 
   /// Record error message (used by VMD to collect them after a script call)
   void add_error_msg(std::string const &message);

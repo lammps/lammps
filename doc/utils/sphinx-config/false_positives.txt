@@ -448,6 +448,7 @@ clo
 Clovertown
 cmake
 CMake
+CMakeLists
 cmap
 Cmax
 cmd
@@ -1132,6 +1133,7 @@ Germano
 gerolf
 Gerolf
 Gershgorin
+getter
 gettimeofday
 gewald
 Gezelter
@@ -1325,6 +1327,7 @@ hyperradius
 hyperspherical
 hysteretic
 hz
+IAP
 Ibanez
 iatom
 ibar
@@ -1647,6 +1650,8 @@ larentzos
 Larentzos
 Laroche
 lars
+LATBOLTZ
+latboltz
 latencies
 Latour
 latourr
@@ -1797,6 +1802,8 @@ Lysogorskiy
 Lyulin
 lz
 Maaravi
+MACHDYN
+machdyn
 Mackay
 Mackrodt
 Macromolecules
@@ -1891,8 +1898,7 @@ mdi
 mdpd
 mDPD
 meam
-meamc
-MEAMC
+MEAM
 meamf
 meanDist
 mech
@@ -2319,6 +2325,7 @@ Ntriples
 Ntype
 ntypes
 Ntypes
+nucleotide
 nucleotides
 nullptr
 num
@@ -2403,6 +2410,7 @@ orthorhombic
 Ortner
 oso
 Otype
+Ouadfel
 Ouldridge
 outfile
 outmost
@@ -2735,8 +2743,9 @@ README
 realtime
 reamin
 reax
-REAXC
+REAXFF
 ReaxFF
+reaxff
 rebo
 recursing
 Ree
@@ -2857,6 +2866,7 @@ Rossky
 rosybrown
 rotationally
 Rotenberg
+Rothenburg
 Rovigatti
 royalblue
 rozero
@@ -3149,6 +3159,7 @@ Suter
 Sutmann
 Suzen
 svn
+Svoboda
 sw
 Swegat
 swiggle

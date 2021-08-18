@@ -2701,6 +2701,8 @@ void PPPMDisp::set_fft_parameters(int& nx_p, int& ny_p, int& nz_p,
                                   double& sft, double& sftone, int& ord)
 {
   // partition global grid across procs
+  // n xyz lo/hi i = lower/upper bounds of global grid this proc owns
+  // indices range from 0 to N-1 inclusive in each dim
 
   comm->partition_grid(nx_p,ny_p,nz_p,slab_volfactor,
                        nxlo_i,nxhi_i,nylo_i,nyhi_i,nzlo_i,nzhi_i);

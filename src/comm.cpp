@@ -833,15 +833,15 @@ int Comm::binary(double value, int n, double *vec)
 }
 
 /* ----------------------------------------------------------------------
-   partition a global regular grid into sub-grids matching proc sub-domains
+   partition a global regular grid into one brick-shaped sub-grid per proc
+   if grid point is inside my sub-domain I own it,
+     this includes sub-domain lo boundary but excludes hi boundary
    nx,ny,nz = extent of global grid
      indices into the global grid range from 0 to N-1 in each dim
    zfactor = 0.0 if the grid exactly covers the simulation box
    zfactor > 1.0 if the grid extends beyond the +z boundary by this factor
      used by 2d slab-mode PPPM 
      this effectively maps proc sub-grids to a smaller subset of the grid
-   if grid point is inside my sub-domain I own it,
-     this includes sub-domain lo boundary but excludes hi boundary
    nxyz lo/hi = inclusive lo/hi bounds of global grid sub-brick I own
    if proc owns no grid cells in a dim, then nlo > nhi
    special case: 2 procs share boundary which a grid point is exactly on

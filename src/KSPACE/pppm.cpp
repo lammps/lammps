@@ -1321,7 +1321,7 @@ double PPPM::final_accuracy()
 void PPPM::set_grid_local()
 {
   // partition global grid across procs
-  // nxyz lo/hi = lower/upper bounds of global grid this proc owns
+  // n xyz lo/hi in = lower/upper bounds of global grid this proc owns
   // indices range from 0 to N-1 inclusive in each dim
 
   comm->partition_grid(nx_pppm,ny_pppm,nz_pppm,slab_volfactor,

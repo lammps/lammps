@@ -28,6 +28,7 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "interlayer_taper.h"
 #include "memory.h"
 #include "my_page.h"
 #include "neigh_list.h"
@@ -40,6 +41,7 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
+using namespace InterLayer;
 
 #define MAXLINE 1024
 #define DELTA 4

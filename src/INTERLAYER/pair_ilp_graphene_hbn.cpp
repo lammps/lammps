@@ -35,11 +35,13 @@
 #include "neighbor.h"
 #include "potential_file_reader.h"
 #include "tokenizer.h"
+#include "interlayer_taper.h"
 
 #include <cmath>
 #include <cstring>
 
 using namespace LAMMPS_NS;
+using namespace InterLayer;
 
 #define MAXLINE 1024
 #define DELTA 4

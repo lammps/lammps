@@ -42,38 +42,46 @@ class Domain : protected Pointers {
   int tiltsmall;    // 1 if limit tilt, else 0
 
   // orthogonal box
+
   double xprd, yprd, zprd;                   // global box dimensions
   double xprd_half, yprd_half, zprd_half;    // half dimensions
   double prd[3];                             // array form of dimensions
   double prd_half[3];                        // array form of half dimensions
 
   // triclinic box
-  // xprd,xprd_half,prd,prd_half =
-  // same as if untilted
+  // xyzprd,xyzprd_half and prd,prd_half = same as if untilted
+
   double prd_lamda[3];         // lamda box = (1,1,1)
   double prd_half_lamda[3];    // lamda half box = (0.5,0.5,0.5)
 
-  double boxlo[3], boxhi[3];    // orthogonal box global bounds
+  // orthogonal box global bounds
+
+  double boxlo[3], boxhi[3];    
 
   // triclinic box
   // boxlo/hi = same as if untilted
+
   double boxlo_lamda[3], boxhi_lamda[3];    // lamda box = (0,1)
   double boxlo_bound[3], boxhi_bound[3];    // bounding box of tilted domain
   double corners[8][3];                     // 8 corner points
 
   // orthogonal box & triclinic box
+
   double minxlo, minxhi;    // minimum size of global box
   double minylo, minyhi;    // when shrink-wrapping
   double minzlo, minzhi;    // tri only possible for non-skew dims
 
   // orthogonal box
+
   double sublo[3], subhi[3];    // sub-box bounds on this proc
 
   // triclinic box
   // sublo/hi = undefined
+
   double sublo_lamda[3], subhi_lamda[3];    // bounds of subbox in lamda
 
   // triclinic box
+
   double xy, xz, yz;                // 3 tilt factors
   double h[6], h_inv[6];            // shape matrix in Voigt ordering
                                     // Voigt = xx,yy,zz,yz,xz,xy

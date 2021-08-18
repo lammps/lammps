@@ -1320,34 +1320,12 @@ double PPPM::final_accuracy()
 
 void PPPM::set_grid_local()
 {
-  // global indices of PPPM grid range from 0 to N-1
-  // nlo_in,nhi_in = lower/upper limits of the 3d sub-brick of
-  //   global PPPM grid that I own without ghost cells
-  // for slab PPPM, assign z grid as if it were not extended
-  // both non-tiled and tiled proc layouts use 0-1 fractional sumdomain info
+  // partition global grid across procs
+  // nxyz lo/hi = lower/upper bounds of global grid this proc owns
+  // indices range from 0 to N-1 inclusive in each dim
 
-  if (comm->layout != Comm::LAYOUT_TILED) {
-    nxlo_in = static_cast<int> (comm->xsplit[comm->myloc[0]] * nx_pppm);
-    nxhi_in = static_cast<int> (comm->xsplit[comm->myloc[0]+1] * nx_pppm) - 1;
-
-    nylo_in = static_cast<int> (comm->ysplit[comm->myloc[1]] * ny_pppm);
-    nyhi_in = static_cast<int> (comm->ysplit[comm->myloc[1]+1] * ny_pppm) - 1;
-
-    nzlo_in = static_cast<int>
-      (comm->zsplit[comm->myloc[2]] * nz_pppm/slab_volfactor);
-    nzhi_in = static_cast<int>
-      (comm->zsplit[comm->myloc[2]+1] * nz_pppm/slab_volfactor) - 1;
-
-  } else {
-    nxlo_in = static_cast<int> (comm->mysplit[0][0] * nx_pppm);
-    nxhi_in = static_cast<int> (comm->mysplit[0][1] * nx_pppm) - 1;
-
-    nylo_in = static_cast<int> (comm->mysplit[1][0] * ny_pppm);
-    nyhi_in = static_cast<int> (comm->mysplit[1][1] * ny_pppm) - 1;
-
-    nzlo_in = static_cast<int> (comm->mysplit[2][0] * nz_pppm/slab_volfactor);
-    nzhi_in = static_cast<int> (comm->mysplit[2][1] * nz_pppm/slab_volfactor) - 1;
-  }
+  comm->partition_grid(nx_pppm,ny_pppm,nz_pppm,slab_volfactor,
+                       nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in);
 
   // nlower,nupper = stencil size for mapping particles to PPPM grid
 
@@ -1367,7 +1345,7 @@ void PPPM::set_grid_local()
   // effectively nlo_in,nhi_in + ghost cells
   // nlo,nhi = index of global grid pt to "lower left" of smallest/largest
   //           position a particle in my box can be at
-  // dist[3] = particle position bound = subbox + skin/2.0 + qdist
+  // dist[3] = max particle position outside subbox = skin/2.0 + qdist
   //   qdist = offset due to TIP4P fictitious charge
   //   convert to triclinic if necessary
   // nlo_out,nhi_out = nlo,nhi + stencil size for particle mapping

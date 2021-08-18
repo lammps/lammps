@@ -1194,18 +1194,13 @@ void MSM::set_grid_local()
 
   for (int n=0; n<levels; n++) {
 
-    // global indices of MSM grid range from 0 to N-1
-    // nlo_in,nhi_in = lower/upper limits of the 3d sub-brick of
-    //   global MSM grid that I own without ghost cells
-
-    nxlo_in[n] = static_cast<int> (comm->xsplit[comm->myloc[0]] * nx_msm[n]);
-    nxhi_in[n] = static_cast<int> (comm->xsplit[comm->myloc[0]+1] * nx_msm[n]) - 1;
-
-    nylo_in[n] = static_cast<int> (comm->ysplit[comm->myloc[1]] * ny_msm[n]);
-    nyhi_in[n] = static_cast<int> (comm->ysplit[comm->myloc[1]+1] * ny_msm[n]) - 1;
-
-    nzlo_in[n] = static_cast<int> (comm->zsplit[comm->myloc[2]] * nz_msm[n]);
-    nzhi_in[n] = static_cast<int> (comm->zsplit[comm->myloc[2]+1] * nz_msm[n]) - 1;
+    // partition global grid across procs
+    // nxyz lo/hi = lower/upper bounds of global grid this proc owns
+    // indices range from 0 to N-1 inclusive in each dim
+    
+    comm->partition_grid(nx_msm[n],ny_msm[n],nz_msm[n],0.0,
+                         nxlo_in[n],nxhi_in[n],nylo_in[n],nyhi_in[n],
+                         nzlo_in[n],nzhi_in[n]);
 
     // nlower,nupper = stencil size for mapping (interpolating) particles to MSM grid
 

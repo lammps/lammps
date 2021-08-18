@@ -1,7 +1,6 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.org/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -14,9 +13,9 @@
 
 #ifdef KSPACE_CLASS
 // clang-format off
-KSpaceStyle(pppm/kk,PPPMKokkos<LMPDeviceType>)
-KSpaceStyle(pppm/kk/device,PPPMKokkos<LMPDeviceType>)
-KSpaceStyle(pppm/kk/host,PPPMKokkos<LMPHostType>)
+KSpaceStyle(pppm/kk,PPPMKokkos<LMPDeviceType>);
+KSpaceStyle(pppm/kk/device,PPPMKokkos<LMPDeviceType>);
+KSpaceStyle(pppm/kk/host,PPPMKokkos<LMPHostType>);
 // clang-format on
 #else
 
@@ -30,6 +29,8 @@ KSpaceStyle(pppm/kk/host,PPPMKokkos<LMPHostType>)
 #include "fftdata_kokkos.h"
 #include "kokkos_type.h"
 #include "kokkos_few.h"
+
+// clang-format off
 
 // fix up FFT defines for KOKKOS with CUDA
 

@@ -19,21 +19,19 @@
 #include "fix_nvt_sllod_kokkos.h"
 
 #include "atom.h"
+#include "atom.h"
+#include "atom_kokkos.h"
+#include "atom_masks.h"
 #include "compute.h"
 #include "domain.h"
 #include "error.h"
 #include "fix.h"
 #include "fix_deform_kokkos.h"
 #include "group.h"
-#include "math_extra.h"
-#include "modify.h"
-#include "atom_kokkos.h"
-#include "atom.h"
-#include "atom_masks.h"
 #include "kokkos_few.h"
+#include "math_extra.h"
 #include "memory_kokkos.h"
-
-#include <cstring>
+#include "modify.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -63,15 +61,6 @@ FixNVTSllodKokkos<DeviceType>::FixNVTSllodKokkos(LAMMPS *lmp, int narg, char **a
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-FixNVTSllodKokkos<DeviceType>::~FixNVTSllodKokkos()
-{
-
-
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
 void FixNVTSllodKokkos<DeviceType>::init()
 {
   FixNHKokkos<DeviceType>::init();
@@ -82,16 +71,15 @@ void FixNVTSllodKokkos<DeviceType>::init()
     this->error->all(FLERR,"Temperature for fix nvt/sllod does not have a bias");
 
   nondeformbias = 0;
-  if (strncmp(this->temperature->style,"temp/deform", 11) != 0) nondeformbias = 1;
+  if (utils::strmatch(this->temperature->style,"^temp/deform")) nondeformbias = 1;
 
   // check fix deform remap settings
 
   int i;
   for (i = 0; i < this->modify->nfix; i++)
-    if (strncmp(this->modify->fix[i]->style,"deform",6) == 0) {
+    if (utils::strmatch(this->modify->fix[i]->style,"^deform")) {
       if (((FixDeform *) this->modify->fix[i])->remapflag != Domain::V_REMAP)
-        this->error->all(FLERR,"Using fix nvt/sllod with inconsistent fix deform "
-                   "remap option");
+        this->error->all(FLERR,"Using fix nvt/sllod with inconsistent fix deform remap option");
       break;
     }
   if (i == this->modify->nfix)

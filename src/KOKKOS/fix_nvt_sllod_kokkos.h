@@ -23,9 +23,10 @@ FixStyle(nvt/sllod/kk/host,FixNVTSllodKokkos<LMPHostType>);
 #define LMP_FIX_NVT_SLLOD_KOKKOS_H
 
 #include "fix_nh_kokkos.h"
-#include "kokkos_type.h"
 #include "kokkos_few.h"
+#include "kokkos_type.h"
 
+// clang-format off
 namespace LAMMPS_NS {
 
 struct TagFixNVTSllod_temp1{};
@@ -35,7 +36,7 @@ template<class DeviceType>
 class FixNVTSllodKokkos : public FixNHKokkos<DeviceType> {
  public:
   FixNVTSllodKokkos(class LAMMPS *, int, char **);
-  ~FixNVTSllodKokkos();
+  ~FixNVTSllodKokkos() {}
   void init();
 
   KOKKOS_INLINE_FUNCTION

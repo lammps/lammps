@@ -14,6 +14,7 @@
 
 #include "compute_property_atom.h"
 
+#include "arg_info.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "atom_vec_body.h"
@@ -333,55 +334,52 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Compute property/atom for atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_nbonds;
 
-    // custom per-atom vector
+    // custom per-atom vector or array
 
-    } else if (utils::strmatch(arg[iarg],"^i_")) {
+    } else if (utils::strmatch(arg[iarg],"^[id]2?_")) {
       int flag,cols;
-      index[i] = atom->find_custom(&arg[iarg][2],flag,cols);
-      if (index[i] < 0 || flag || cols)
-        error->all(FLERR,"Compute property/atom integer "
-                   "vector does not exist");
-      pack_choice[i] = &ComputePropertyAtom::pack_iname;
+      ArgInfo argi(arg[iarg], ArgInfo::INAME| ArgInfo::DNAME);
+      const char *pname = argi.get_name();
 
-    } else if (utils::strmatch(arg[iarg],"^d_")) {
-      int flag,cols;
-      index[i] = atom->find_custom(&arg[iarg][2],flag,cols);
-      if (index[i] < 0 || flag || cols)
-        error->all(FLERR,"Compute property/atom floating point "
-                   "vector does not exist");
-      pack_choice[i] = &ComputePropertyAtom::pack_dname;
+      index[i] = atom->find_custom(pname,flag,cols);
+      if (index[i] < 0)
+        error->all(FLERR,"Compute property/atom property {} does not exist", pname);
 
-    // custom per-atom arrays, must include bracketed index
-    // OLDSTYLE code
+      // handle vectors
+      if ((cols == 0) && (arg[iarg][1] == '_')) {
+        if (argi.get_dim() != 0)
+          error->all(FLERR,"Compute property/atom custom vector {} is incorrectly indexed",pname);
 
-    } else if (strstr(arg[iarg],"i2_") == arg[iarg] ||
-	       strstr(arg[iarg],"d2_") == arg[iarg]) {
-      int which = 0;
-      if (arg[iarg][0] == 'd') which = 1;
+        if (arg[iarg][0] == 'i') {
+          if (argi.get_type() == ArgInfo::INAME)
+            pack_choice[i] = &ComputePropertyAtom::pack_iname;
+          else
+            error->all(FLERR,"Compute property/atom integer vector {} does not exist",pname);
+        } else if (arg[iarg][0] == 'd') {
+          if (argi.get_type() == ArgInfo::DNAME)
+            pack_choice[i] = &ComputePropertyAtom::pack_dname;
+          else
+            error->all(FLERR,"Compute property/atom floating-point vector {} does not exist",pname);
+        }
+      }
+      // handle arrays
+      else if ((cols > 0) && (arg[iarg][1] == '2')) {
+        if (argi.get_dim() != 1)
+          error->all(FLERR,"Compute property/atom custom array {} is not indexed",pname);
+        colindex[i] = argi.get_index1();
 
-      int n = strlen(arg[iarg]);
-      char *suffix = new char[n];
-      strcpy(suffix,&arg[iarg][3]);
-
-      char *ptr = strchr(suffix,'[');
-      if (ptr) {
-        if (suffix[strlen(suffix)-1] != ']')
-          error->all(FLERR,"Invalid attribute in set command");
-	suffix[strlen(suffix)-1] = '\0';
-        colindex[i] = utils::inumeric(FLERR,ptr+1,true,lmp);
-        *ptr = '\0';
-      } else error->all(FLERR,"Compute property/atom custom array is not indexed");
-
-      int flag,cols;
-      index[i] = atom->find_custom(suffix,flag,cols);
-      delete [] suffix;
-
-      if ((!which && (index[i] < 0 || flag || !cols)) ||
-	  (which && (index[i] < 0 || !flag || !cols)))
-        error->all(FLERR,"Compute property/atom custom array does not exist");
-
-      if (!which) pack_choice[i] = &ComputePropertyAtom::pack_i2name;
-      else pack_choice[i] = &ComputePropertyAtom::pack_d2name;
+        if (arg[iarg][0] == 'i') {
+          if (argi.get_type() == ArgInfo::INAME)
+            pack_choice[i] = &ComputePropertyAtom::pack_i2name;
+          else
+            error->all(FLERR,"Compute property/atom integer array {} does not exist",pname);
+        } else if (arg[iarg][0] == 'd') {
+          if (argi.get_type() == ArgInfo::DNAME)
+            pack_choice[i] = &ComputePropertyAtom::pack_d2name;
+          else
+            error->all(FLERR,"Compute property/atom floating-point array {} does not exist",pname);
+        }
+      } else error->all(FLERR,"Inconsistent request for custom property {}", pname);
 
     // anything else must be recognized by atom style
 

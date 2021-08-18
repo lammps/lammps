@@ -2774,13 +2774,10 @@ void *Atom::extract(const char *name)
   // --------------------------------------------------------------------
 
   // custom vectors and arrays
-  // OLDSTYLE code
 
-  if (strstr(name,"i_") == name || strstr(name,"d_") == name ||
-      strstr(name,"i2_") == name || strstr(name,"d2_") == name) {
-    int which = 0;
+  if (utils::strmatch(name,"^[id]2?_")) {
+    int which = 0, array = 0;
     if (name[0] == 'd') which = 1;
-    int array = 0;
     if (name[1] == '2') array = 1;
 
     int index,flag,cols;
@@ -2897,13 +2894,10 @@ int Atom::extract_datatype(const char *name)
   // --------------------------------------------------------------------
 
   // custom vectors and arrays
-  // OLDSTYLE code
 
-  if (strstr(name,"i_") == name || strstr(name,"d_") == name ||
-      strstr(name,"i2_") == name || strstr(name,"d2_") == name) {
-    int which = 0;
+  if (utils::strmatch(name,"^[id]2?_")) {
+    int which = 0, array = 0;
     if (name[0] == 'd') which = 1;
-    int array = 0;
     if (name[1] == '2') array = 1;
 
     int index,flag,cols;

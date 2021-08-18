@@ -2829,7 +2829,7 @@ void lammps_gather(void *handle, char *name, int type, int count, void *data)
   {
 #if defined(LAMMPS_BIGBIG)
     lmp->error->all(FLERR,"Library function lammps_gather"
-		    " not compatible with -DLAMMPS_BIGBIG");
+                    " not compatible with -DLAMMPS_BIGBIG");
 #else
     int i,j,offset,fcid,ltype,icol;
 
@@ -2915,14 +2915,10 @@ void lammps_gather(void *handle, char *name, int type, int count, void *data)
     }
 
     // custom fix property/atom vector or array
-    // OLDSTYLE code
 
-    if ((vptr == nullptr) &&
-	((strstr(name,"d_") == name) || (strstr(name,"i_") == name) ||
-	 (strstr(name,"d2_") == name) || (strstr(name,"i2_") == name))) {
+    if ((vptr == nullptr) && utils::strmatch(name,"^[id]2?_")) {
 
-      if ((strstr(name,"d_") == name) || (strstr(name,"i_") == name))
-	fcid = lmp->atom->find_custom(&name[2],ltype,icol);
+      if (utils::strmatch(name,"^[id]_")) fcid = lmp->atom->find_custom(&name[2],ltype,icol);
       else fcid = lmp->atom->find_custom(&name[3],ltype,icol);
 
       if (fcid < 0) {
@@ -2948,11 +2944,11 @@ void lammps_gather(void *handle, char *name, int type, int count, void *data)
       }
 
       if (count == 1) {
-	if (ltype==0) vptr = (void *) lmp->atom->ivector[fcid];
-	else vptr = (void *) lmp->atom->dvector[fcid];
+        if (ltype==0) vptr = (void *) lmp->atom->ivector[fcid];
+        else vptr = (void *) lmp->atom->dvector[fcid];
       } else {
-	if (ltype==0) vptr = (void *) lmp->atom->iarray[fcid];
-	else vptr = (void *) lmp->atom->darray[fcid];
+        if (ltype==0) vptr = (void *) lmp->atom->iarray[fcid];
+        else vptr = (void *) lmp->atom->darray[fcid];
       }
     }
 
@@ -2960,7 +2956,7 @@ void lammps_gather(void *handle, char *name, int type, int count, void *data)
 
     if (vptr == nullptr) {
       if (lmp->comm->me == 0)
-	lmp->error->warning(FLERR,"lammps_gather: undefined property name");
+        lmp->error->warning(FLERR,"lammps_gather: undefined property name");
       return;
     }
 
@@ -3104,20 +3100,17 @@ void lammps_gather_concat(void *handle, char *name, int type, int count, void *d
 
       if (lmp->modify->fix[fcid]->peratom_flag == 0) {
         if (lmp->comm->me == 0)
-          lmp->error->warning(FLERR,"lammps_gather_concat:"
-                              " fix does not return peratom data");
+          lmp->error->warning(FLERR,"lammps_gather_concat: fix does not return peratom data");
         return;
       }
       if (count>1 && lmp->modify->fix[fcid]->size_peratom_cols != count) {
         if (lmp->comm->me == 0)
-          lmp->error->warning(FLERR,"lammps_gather_concat:"
-                              " count != values peratom for fix");
+          lmp->error->warning(FLERR,"lammps_gather_concat: count != values peratom for fix");
         return;
       }
       if (lmp->update->ntimestep % lmp->modify->fix[fcid]->peratom_freq) {
         if (lmp->comm->me == 0)
-          lmp->error->all(FLERR,"lammps_gather_concat:"
-                          " fix not computed at compatible time");
+          lmp->error->all(FLERR,"lammps_gather_concat: fix not computed at compatible time");
         return;
       }
 
@@ -3138,14 +3131,12 @@ void lammps_gather_concat(void *handle, char *name, int type, int count, void *d
 
       if (lmp->modify->compute[fcid]->peratom_flag == 0) {
         if (lmp->comm->me == 0)
-          lmp->error->warning(FLERR,"lammps_gather_concat:"
-                              " compute does not return peratom data");
+          lmp->error->warning(FLERR,"lammps_gather_concat: compute does not return peratom data");
         return;
       }
       if (count>1 && lmp->modify->compute[fcid]->size_peratom_cols != count) {
         if (lmp->comm->me == 0)
-          lmp->error->warning(FLERR,"lammps_gather_concat:"
-                              " count != values peratom for compute");
+          lmp->error->warning(FLERR,"lammps_gather_concat: count != values peratom for compute");
         return;
       }
 
@@ -3157,48 +3148,40 @@ void lammps_gather_concat(void *handle, char *name, int type, int count, void *d
     }
 
     // custom per-atom vector or array
-    // OLDSTYLE code
 
-    if ((vptr==nullptr) &&
-	((strstr(name,"d_") == name) || (strstr(name,"i_") == name) ||
-	 (strstr(name,"d2_") == name) || (strstr(name,"i2_") == name))) {
+    if ((vptr==nullptr) && utils::strmatch(name,"^[id]2?_")) {
 
-      if ((strstr(name,"d_") == name) || (strstr(name,"i_") == name))
-	fcid = lmp->atom->find_custom(&name[2],ltype,icol);
+      if (utils::strmatch(name,"^[id]_")) fcid = lmp->atom->find_custom(&name[2],ltype,icol);
       else fcid = lmp->atom->find_custom(&name[3],ltype,icol);
 
       if (fcid < 0) {
         if (lmp->comm->me == 0)
-          lmp->error->warning(FLERR,"lammps_gather_concat: "
-			      "unknown property/atom id");
+          lmp->error->warning(FLERR,"lammps_gather_concat: unknown property/atom id");
         return;
       }
 
       if (ltype != type) {
         if (lmp->comm->me == 0)
-          lmp->error->warning(FLERR,"lammps_gather_concat: "
-			      "mismatch property/atom type");
+          lmp->error->warning(FLERR,"lammps_gather_concat: mismatch property/atom type");
         return;
       }
       if (count == 1 && icol != 0) {
         if (lmp->comm->me == 0)
-          lmp->error->warning(FLERR,"lammps_gather_concat: "
-			      "mismatch property/atom count");
+          lmp->error->warning(FLERR,"lammps_gather_concat: mismatch property/atom count");
         return;
       }
       if (count > 1 && icol != count) {
         if (lmp->comm->me == 0)
-          lmp->error->warning(FLERR,"lammps_gather_concat: "
-			      "mismatch property/atom count");
+          lmp->error->warning(FLERR,"lammps_gather_concat: mismatch property/atom count");
         return;
       }
 
       if (count == 1) {
-	if (ltype==0) vptr = (void *) lmp->atom->ivector[fcid];
-	else vptr = (void *) lmp->atom->dvector[fcid];
+        if (ltype==0) vptr = (void *) lmp->atom->ivector[fcid];
+        else vptr = (void *) lmp->atom->dvector[fcid];
       } else {
-	if (ltype==0) vptr = (void *) lmp->atom->iarray[fcid];
-	else vptr = (void *) lmp->atom->darray[fcid];
+        if (ltype==0) vptr = (void *) lmp->atom->iarray[fcid];
+        else vptr = (void *) lmp->atom->darray[fcid];
       }
     }
 
@@ -3206,7 +3189,7 @@ void lammps_gather_concat(void *handle, char *name, int type, int count, void *d
 
     if (vptr == nullptr) {
       if (lmp->comm->me == 0)
-	lmp->error->warning(FLERR,"lammps_gather_concat: undefined property name");
+        lmp->error->warning(FLERR,"lammps_gather_concat: undefined property name");
       return;
     }
 
@@ -3375,14 +3358,12 @@ void lammps_gather_subset(void *handle, char *name,
         return;
       }
       if (count>1 && lmp->modify->fix[fcid]->size_peratom_cols != count) {
-        lmp->error->warning(FLERR,"lammps_gather_subset:"
-			    " count != values peratom for fix");
+        lmp->error->warning(FLERR,"lammps_gather_subset: count != values peratom for fix");
         return;
       }
       if (lmp->update->ntimestep % lmp->modify->fix[fcid]->peratom_freq) {
         if (lmp->comm->me == 0)
-          lmp->error->all(FLERR,"lammps_gather_subset:"
-                          " fix not computed at compatible time");
+          lmp->error->all(FLERR,"lammps_gather_subset: fix not computed at compatible time");
         return;
       }
 
@@ -3403,14 +3384,12 @@ void lammps_gather_subset(void *handle, char *name,
 
       if (lmp->modify->compute[fcid]->peratom_flag == 0) {
         if (lmp->comm->me == 0)
-          lmp->error->warning(FLERR,"lammps_gather_subset:"
-                              " compute does not return peratom data");
+          lmp->error->warning(FLERR,"lammps_gather_subset: compute does not return peratom data");
         return;
       }
       if (count>1 && lmp->modify->compute[fcid]->size_peratom_cols != count) {
         if (lmp->comm->me == 0)
-          lmp->error->warning(FLERR,"lammps_gather_subset:"
-                              " count != values peratom for compute");
+          lmp->error->warning(FLERR,"lammps_gather_subset: count != values peratom for compute");
         return;
       }
 
@@ -3422,48 +3401,41 @@ void lammps_gather_subset(void *handle, char *name,
     }
 
     // custom fix property/atom vector or array
-    // OLDSTYLE code
 
-    if ((vptr == nullptr) &&
-	((strstr(name,"d_") == name) || (strstr(name,"i_") == name) ||
-	 (strstr(name,"d2_") == name) || (strstr(name,"i2_") == name))) {
+    if ((vptr == nullptr) && utils::strmatch(name,"^[id]2?_")) {
 
-      if ((strstr(name,"d_") == name) || (strstr(name,"i_") == name))
-	fcid = lmp->atom->find_custom(&name[2],ltype,icol);
+      if (utils::strmatch(name,"^[id]_"))
+        fcid = lmp->atom->find_custom(&name[2],ltype,icol);
       else fcid = lmp->atom->find_custom(&name[3],ltype,icol);
 
       if (fcid < 0) {
         if (lmp->comm->me == 0)
-          lmp->error->warning(FLERR,"lammps_gather_subset: "
-                              "unknown property/atom id");
+          lmp->error->warning(FLERR,"lammps_gather_subset: unknown property/atom id");
         return;
       }
 
       if (ltype != type) {
         if (lmp->comm->me == 0)
-          lmp->error->warning(FLERR,"lammps_gather_subset: "
-                              "mismatch property/atom type");
+          lmp->error->warning(FLERR,"lammps_gather_subset: mismatch property/atom type");
         return;
       }
       if (count == 1 && icol != 0) {
         if (lmp->comm->me == 0)
-          lmp->error->warning(FLERR,"lammps_gather_subset: "
-			      "mismatch property/atom count");
+          lmp->error->warning(FLERR,"lammps_gather_subset: mismatch property/atom count");
         return;
       }
       if (count > 1 && icol != count) {
         if (lmp->comm->me == 0)
-          lmp->error->warning(FLERR,"lammps_gather_subset: "
-			      "mismatch property/atom count");
+          lmp->error->warning(FLERR,"lammps_gather_subset: mismatch property/atom count");
         return;
       }
 
       if (count == 1) {
-	if (ltype==0) vptr = (void *) lmp->atom->ivector[fcid];
-	else vptr = (void *) lmp->atom->dvector[fcid];
+        if (ltype==0) vptr = (void *) lmp->atom->ivector[fcid];
+        else vptr = (void *) lmp->atom->dvector[fcid];
       } else {
-	if (ltype==0) vptr = (void *) lmp->atom->iarray[fcid];
-	else vptr = (void *) lmp->atom->darray[fcid];
+        if (ltype==0) vptr = (void *) lmp->atom->iarray[fcid];
+        else vptr = (void *) lmp->atom->darray[fcid];
       }
     }
 
@@ -3471,7 +3443,7 @@ void lammps_gather_subset(void *handle, char *name,
 
     if (vptr == nullptr) {
       if (lmp->comm->me == 0)
-	lmp->error->warning(FLERR,"lammps_gather_subset: undefined property name");
+        lmp->error->warning(FLERR,"lammps_gather_subset: undefined property name");
       return;
     }
 
@@ -3678,14 +3650,11 @@ void lammps_scatter(void *handle, char *name, int type, int count, void *data)
     }
 
     // custom fix property/atom vector or array
-    // OLDSTYLE code
 
-    if ((vptr == nullptr) &&
-	((strstr(name,"d_") == name) || (strstr(name,"i_") == name) ||
-	 (strstr(name,"d2_") == name) || (strstr(name,"i2_") == name))) {
+    if ((vptr == nullptr) && utils::strmatch(name,"^[id]2?_")) {
 
-      if ((strstr(name,"d_") == name) || (strstr(name,"i_") == name))
-	fcid = lmp->atom->find_custom(&name[2],ltype,icol);
+      if (utils::strmatch(name,"^[id]_"))
+        fcid = lmp->atom->find_custom(&name[2],ltype,icol);
       else fcid = lmp->atom->find_custom(&name[3],ltype,icol);
 
       if (fcid < 0) {
@@ -3711,11 +3680,11 @@ void lammps_scatter(void *handle, char *name, int type, int count, void *data)
       }
 
       if (count == 1) {
-	if (ltype==0) vptr = (void *) lmp->atom->ivector[fcid];
-	else vptr = (void *) lmp->atom->dvector[fcid];
+        if (ltype==0) vptr = (void *) lmp->atom->ivector[fcid];
+        else vptr = (void *) lmp->atom->dvector[fcid];
       } else {
-	if (ltype==0) vptr = (void *) lmp->atom->iarray[fcid];
-	else vptr = (void *) lmp->atom->darray[fcid];
+        if (ltype==0) vptr = (void *) lmp->atom->iarray[fcid];
+        else vptr = (void *) lmp->atom->darray[fcid];
       }
     }
 
@@ -3902,27 +3871,22 @@ void lammps_scatter_subset(void *handle, char *name,int type, int count,
     }
 
     // custom fix property/atom vector or array
-    // OLDSTYLE code
 
-    if ((vptr == nullptr) &&
-	((strstr(name,"d_") == name) || (strstr(name,"i_") == name) ||
-	 (strstr(name,"d2_") == name) || (strstr(name,"i2_") == name))) {
+    if ((vptr == nullptr) && utils::strmatch(name,"^[id]2?_")) {
 
-      if ((strstr(name,"d_") == name) || (strstr(name,"i_") == name))
-	fcid = lmp->atom->find_custom(&name[2],ltype,icol);
+      if (utils::strmatch(name,"^[id]_"))
+        fcid = lmp->atom->find_custom(&name[2],ltype,icol);
       else fcid = lmp->atom->find_custom(&name[3],ltype,icol);
 
       if (fcid < 0) {
         if (lmp->comm->me == 0)
-          lmp->error->warning(FLERR,"lammps_scatter_subset: "
-                              "unknown property/atom id");
+          lmp->error->warning(FLERR,"lammps_scatter_subset: unknown property/atom id");
         return;
       }
 
       if (ltype != type) {
         if (lmp->comm->me == 0)
-          lmp->error->warning(FLERR,"lammps_scatter_subset: "
-                              "mismatch property/atom type");
+          lmp->error->warning(FLERR,"lammps_scatter_subset: mismatch property/atom type");
         return;
       }
       if (count == 1 && icol != 0) {
@@ -3937,11 +3901,11 @@ void lammps_scatter_subset(void *handle, char *name,int type, int count,
       }
 
       if (count == 1) {
-	if (ltype==0) vptr = (void *) lmp->atom->ivector[fcid];
-	else vptr = (void *) lmp->atom->dvector[fcid];
+        if (ltype==0) vptr = (void *) lmp->atom->ivector[fcid];
+        else vptr = (void *) lmp->atom->dvector[fcid];
       } else {
-	if (ltype==0) vptr = (void *) lmp->atom->iarray[fcid];
-	else vptr = (void *) lmp->atom->darray[fcid];
+        if (ltype==0) vptr = (void *) lmp->atom->iarray[fcid];
+        else vptr = (void *) lmp->atom->darray[fcid];
       }
     }
 

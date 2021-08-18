@@ -151,14 +151,12 @@ class FixBondReact : public Fix {
   // for all mega_gloves and global_mega_glove: first row is the ID of bond/react
   tagint **local_mega_glove;      // consolidation local of reaction instances
   tagint **ghostly_mega_glove;    // consolidation nonlocal of reaction instances
-  tagint *
-      *global_mega_glove;    // consolidation (inter-processor) of gloves containing nonlocal atoms
+  tagint **global_mega_glove;    // consolidation (inter-processor) of gloves containing nonlocal atoms
   int *localsendlist;        // indicates ghosts of other procs
   int local_num_mega;        // num of local reaction instances
   int ghostly_num_mega;      // num of ghostly reaction instances
   int global_megasize;       // num of reaction instances in global_mega_glove
-  int *
-      pioneers;    // during Superimpose Algorithm, atoms which have been assigned, but whose first neighbors haven't
+  int *pioneers;    // during Superimpose Algorithm, atoms which have been assigned, but whose first neighbors haven't
   int glove_counter;    // used to determine when to terminate Superimpose Algorithm
 
   void read(int);

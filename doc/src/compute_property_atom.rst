@@ -92,8 +92,8 @@ Syntax
 
   .. parsed-literal::
 
-           USER-MESONT package per-atom properties:
-	   buckling = buckling flag used in mesoscopic simulation of nanotubes
+           MESONT package per-atom properties:
+           buckling = buckling flag used in mesoscopic simulation of nanotubes
 
 Examples
 """"""""

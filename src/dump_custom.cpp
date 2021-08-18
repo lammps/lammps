@@ -1554,6 +1554,8 @@ int DumpCustom::parse_fields(int narg, char **arg)
 
         n = atom->find_custom(name,flag,cols);
 
+        printf("NAME %s\n",name);
+
         if (n < 0)
           error->all(FLERR,"Could not find custom per-atom property ID: {}", name);
         if (argindex[iarg] == 0) {

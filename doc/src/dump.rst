@@ -569,10 +569,11 @@ Nprocs-1) that currently owns the atom.  *Procp1* is the proc ID+1,
 which can be convenient in place of a *type* attribute (1 to Ntypes)
 for coloring atoms in a visualization program.  *Type* is the atom
 type (1 to Ntypes).  *Element* is typically the chemical name of an
-element, which you must assign to each type via the :doc:`dump_modify element <dump_modify>` command.  More generally, it can be any
-string you wish to associated with an atom type.  *Mass* is the atom
-mass.  *Vx*, *vy*, *vz*, *fx*, *fy*, *fz*, and *q* are components of
-atom velocity and force and atomic charge.
+element, which you must assign to each type via the :doc:`dump_modify
+element <dump_modify>` command.  More generally, it can be any string
+you wish to associated with an atom type.  *Mass* is the atom mass.
+*Vx*, *vy*, *vz*, *fx*, *fy*, *fz*, and *q* are components of atom
+velocity and force and atomic charge.
 
 There are several options for outputting atom coordinates.  The *x*,
 *y*, *z* attributes write atom coordinates "unscaled", in the
@@ -646,11 +647,12 @@ above for how I can be specified with a wildcard asterisk to
 effectively specify multiple values.
 
 The *f_ID* and *f_ID[I]* attributes allow vector or array per-atom
-quantities calculated by a :doc:`fix <fix>` to be output.  The ID in the
-attribute should be replaced by the actual ID of the fix that has been
-defined previously in the input script.  The :doc:`fix ave/atom <fix_ave_atom>` command is one that calculates per-atom
-quantities.  Since it can time-average per-atom quantities produced by
-any :doc:`compute <compute>`, :doc:`fix <fix>`, or atom-style
+quantities calculated by a :doc:`fix <fix>` to be output.  The ID in
+the attribute should be replaced by the actual ID of the fix that has
+been defined previously in the input script.  The :doc:`fix ave/atom
+<fix_ave_atom>` command is one that calculates per-atom quantities.
+Since it can time-average per-atom quantities produced by any
+:doc:`compute <compute>`, :doc:`fix <fix>`, or atom-style
 :doc:`variable <variable>`, this allows those time-averaged results to
 be written to a dump file.
 
@@ -667,10 +669,10 @@ should be replaced by the actual name of the variable that has been
 defined previously in the input script.  Only an atom-style variable
 can be referenced, since it is the only style that generates per-atom
 values.  Variables of style *atom* can reference individual atom
-attributes, per-atom attributes, thermodynamic keywords, or
-invoke other computes, fixes, or variables when they are evaluated, so
-this is a very general means of creating quantities to output to a
-dump file.
+attributes, per-atom attributes, thermodynamic keywords, or invoke
+other computes, fixes, or variables when they are evaluated, so this
+is a very general means of creating quantities to output to a dump
+file.
 
 The *i_name*, *d_name*, *i2_name*, *d2_name* attributes refer to
 per-atom integer and floating-point vectors or arrays that have been
@@ -678,7 +680,10 @@ added via the :doc:`fix property/atom <fix_property_atom>` command.
 When that command is used specific names are given to each attribute
 which are the "name" portion of these keywords.  For arrays *i2_name*
 and *d2_name*, the column of the array must also be included following
-the name in brackets: e.g. d2_xyz[2], i2_mySpin[3].
+the name in brackets: e.g. d2_xyz[I], i2_mySpin[I], where I is in the
+range from 1-M, where M is the number of columns in the custom array.
+See the discussion above for how I can be specified with a wildcard
+asterisk to effectively specify multiple values.
 
 See the :doc:`Modify <Modify>` page for information on how to add
 new compute and fix styles to LAMMPS to calculate per-atom quantities

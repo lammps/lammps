@@ -97,6 +97,7 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Fix property/atom vector name already exists");
       index[nvalue] = atom->add_custom(&arg[iarg][2],0,0);
       cols[nvalue] = 0;
+      values_peratom++;
       nvalue++;
       iarg++;
 
@@ -108,6 +109,7 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Fix property/atom vector name already exists");
       index[nvalue] = atom->add_custom(&arg[iarg][2],1,0);
       cols[nvalue] = 0;
+      values_peratom++;
       nvalue++;
       iarg++;
 

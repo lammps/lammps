@@ -143,8 +143,6 @@ class Pair : protected Pointers {
   void v_tally2_newton(int, double *, double *);
   void v_tally3(int, int, int, double *, double *, double *, double *);
   void v_tally4(int, int, int, int, double *, double *, double *, double *, double *, double *);
-  void ev_tally_xyz(int, int, int, int, double, double, double, double, double, double, double,
-                    double);
 
   // general child-class methods
 
@@ -274,6 +272,8 @@ class Pair : protected Pointers {
   void ev_tally4(int, int, int, int, double, double *, double *, double *, double *, double *,
                  double *);
   void ev_tally_tip4p(int, int *, double *, double, double);
+  void ev_tally_xyz(int, int, int, int, double, double, double, double, double, double, double,
+                    double);
   void v_tally2(int, int, double, double *);
   void v_tally_tensor(int, int, int, int, double, double, double, double, double, double);
   void virial_fdotr_compute();

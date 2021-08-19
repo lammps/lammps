@@ -83,8 +83,12 @@ void PairCoulExclude::compute(int eflag, int vflag)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
+
+      // skip over all non-excluded pairs and subtract excluded coulomb
+
       if (sbmask(j) == 0) continue;
       factor_coul = special_coul[sbmask(j)] - 1.0;
+
       j &= NEIGHMASK;
 
       delx = xtmp - x[j][0];
@@ -283,7 +287,7 @@ double PairCoulExclude::single(int i, int j, int /*itype*/, int /*jtype*/,
 {
   double r2inv,rinv,forcecoul,phicoul;
 
-  factor_coul -= 1.0;
+  factor_coul -= 1.0; // we want to subtract the excluded coulomb
   r2inv = 1.0/rsq;
   rinv = sqrt(r2inv);
   forcecoul = force->qqrd2e * atom->q[i]*atom->q[j]*rinv;

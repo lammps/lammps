@@ -34,9 +34,9 @@ class PairLebedevaZ : public Pair {
   void coeff(int, char **);
   double init_one(int, int);
 
- protected:
-  int me;
+  static constexpr int NPARAMS_PER_LINE = 12;
 
+ protected:
   struct Param {
     double z0, A, B, C, alpha, D1, D2, lambda1, lambda2, S;
     double z02, z06;
@@ -45,7 +45,6 @@ class PairLebedevaZ : public Pair {
   Param *params;    // parameter set for I-J interactions
 
   double cut_global;
-  double **cut;
   double **offset;
   void read_file(char *);
   void allocate();

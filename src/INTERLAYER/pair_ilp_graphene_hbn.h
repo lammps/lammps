@@ -40,6 +40,8 @@ class PairILPGrapheneHBN : public Pair {
   void calc_FvdW(int, int);
   double single(int, int, int, int, double, double, double, double &);
 
+  static constexpr int NPARAMS_PER_LINE = 13;
+
  protected:
   int me;
   int maxlocal;            // size of numneigh, firstneigh arrays
@@ -60,7 +62,6 @@ class PairILPGrapheneHBN : public Pair {
 
   double cut_global;
   double cut_normal;
-  double **cut;
   double **cutILPsq;    // mapping the cutoff from element pairs to parameters
   double **offset;
   double **normal;
@@ -69,48 +70,6 @@ class PairILPGrapheneHBN : public Pair {
 
   void read_file(char *);
   void allocate();
-
-  /* ----Calculate the long-range cutoff term */
-  inline double calc_Tap(double r_ij, double Rcut)
-  {
-    double Tap, r;
-    double Tap_coeff[8] = {1.0, 0.0, 0.0, 0.0, -35.0, 84.0, -70.0, 20.0};
-
-    r = r_ij / Rcut;
-    if (r >= 1.0) {
-      Tap = 0.0;
-    } else {
-      Tap = Tap_coeff[7] * r + Tap_coeff[6];
-      Tap = Tap * r + Tap_coeff[5];
-      Tap = Tap * r + Tap_coeff[4];
-      Tap = Tap * r + Tap_coeff[3];
-      Tap = Tap * r + Tap_coeff[2];
-      Tap = Tap * r + Tap_coeff[1];
-      Tap = Tap * r + Tap_coeff[0];
-    }
-    return (Tap);
-  }
-
-  /* ----Calculate the derivatives of long-range cutoff term */
-  inline double calc_dTap(double r_ij, double Rcut)
-  {
-    double dTap, r;
-    double Tap_coeff[8] = {1.0, 0.0, 0.0, 0.0, -35.0, 84.0, -70.0, 20.0};
-
-    r = r_ij / Rcut;
-    if (r >= 1.0) {
-      dTap = 0.0;
-    } else {
-      dTap = 7.0 * Tap_coeff[7] * r + 6.0 * Tap_coeff[6];
-      dTap = dTap * r + 5.0 * Tap_coeff[5];
-      dTap = dTap * r + 4.0 * Tap_coeff[4];
-      dTap = dTap * r + 3.0 * Tap_coeff[3];
-      dTap = dTap * r + 2.0 * Tap_coeff[2];
-      dTap = dTap * r + Tap_coeff[1];
-      dTap = dTap / Rcut;
-    }
-    return (dTap);
-  }
 };
 
 }    // namespace LAMMPS_NS

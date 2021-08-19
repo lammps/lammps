@@ -107,7 +107,7 @@ class Comm : protected Pointers {
 
   // partition a global regular grid by proc sub-domains
 
-  void partition_grid(int, int, int, double, 
+  void partition_grid(int, int, int, double,
                       int &, int &, int &, int &, int &, int &);
 
   // memory usage

@@ -261,12 +261,12 @@ void FixBondSwap::post_integrate()
   // J must be on-processor (J < nlocal)
   // I,J must be in fix group
   // I,J must have same molecule IDs
-  //   use case 1:
+  //   use case 1 (see doc page):
   //     if user defines mol IDs appropriately for linear chains,
   //     this will mean they are same distance from (either) chain end
-  //   use case 2:
+  //   use case 2 (see doc page):
   //     if user defines a unique mol ID for desired bond sites (on any chain)
-  //     and defines the fix group for these sites,
+  //     and defines the fix group as these sites,
   //     this will mean they are eligible bond sites
 
   int ntest = static_cast<int> (fraction * neligible);

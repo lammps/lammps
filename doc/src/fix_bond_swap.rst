@@ -27,15 +27,15 @@ Examples
 Description
 """""""""""
 
-In a simulation of polymer chains, this command attempts to swap a
-pair of bonds, as illustrated below.  This is done via Monte Carlo
-rules using the Boltzmann acceptance criterion, typically with the
-goal of equilibrating the polymer system more quickly.  This fix is
-designed for use with idealized bead-spring polymer chains where each
-polymer is a linear chain of monomers, but LAMMPS does not check that
-is the case for your system.
+In a simulation of polymer chains this command attempts to swap a pair
+of bonds, as illustrated below.  This is done via Monte Carlo rules
+using the Boltzmann acceptance criterion, typically with the goal of
+equilibrating the polymer system more quickly.  This fix is designed
+for use with idealized bead-spring polymer chains where each polymer
+is a linear chain of monomers, but LAMMPS does not check that is the
+case for your system.
 
-Here are two use cases where this fix can be used effectively.
+Here are two use cases for this fix.
 
 The first use case is for swapping bonds on two different chains,
 effectively grafting the end of one chain onto the other chain and
@@ -62,22 +62,30 @@ undergone a dramatic conformational change.  This reference,
 effectiveness for this use case.
 
 The second use case is a collection of polymer chains with some
-fraction of their sites identified as "sticker" sites.
+fraction of their sites identified as "sticker" sites.  Initially each
+polymer chain is isolated from the others in a topological sense, and
+there is an intra-chain bond between every pair of sticker sites on
+the same chain.  Over time, bonds swap so that inter-moleculer sticker
+bonds are created.  This models a vitrification-style process whereby
+the polymer chains all become interconnected.  For this use case, if
+angles are defined they should not include sticker sites.
 
+----------
 
-The bond swapping operation is invoked every *Nevery* timesteps.  If
-any bond in the entire system is swapped, a re-build of the neighbor
-lists is triggered, since a swap alters the list of which neighbors
-are considered for pairwise interaction.  At each invocation, each
-processor considers a random specified *fraction* of its atoms as
-potential swapping monomers for this timestep.  Choosing a small
-*fraction* value can reduce the likelihood of a reverse swap occurring
-soon after an initial swap.
+The bond swapping operation is invoked once every *Nevery* timesteps.
+If any bond in the entire system is swapped, a re-build of the
+neighbor lists is triggered, since a swap alters the list of which
+neighbors are considered for pairwise interaction.  At each
+invocation, each processor considers a random specified *fraction* of
+its atoms as potential swapping monomers for this timestep.  Choosing
+a small *fraction* value can reduce the likelihood of a reverse swap
+occurring soon after an initial swap.
 
-For each monomer A1, its neighbors are looped over as B1 monomers.  An
-additional double loop of bond partners A2 of A1, and bond partners B2
-of B1 a is performed.  For each pair of A1-A2 and B1-B2 bonds to be
-eligible for swapping, the following 4 criteria must be met:
+For each monomer A1, its neighbors are looped over as B1 monomers.
+For each A1,B1 an additional double loop of bond partners A2 of A1,
+and bond partners B2 of B1 a is performed.  For each pair of A1-A2 and
+B1-B2 bonds to be eligible for swapping, the following 4 criteria must
+be met:
 
 (1) All 4 monomers must be in the fix group.
 
@@ -103,15 +111,22 @@ accepted.  If the energy increases it is accepted with probability
 exp(-delta/kT) where delta is the increase in energy, k is the
 Boltzmann constant, and T is the current temperature of the system.
 
-IMPORTANT: Whether the swap is accepted or rejected, no other swaps
-are attempted by this processor on this timestep.
+.. note::
+
+   IMPORTANT: Whether the swap is accepted or rejected, no other swaps
+   are attempted by this processor on this timestep.  No other
+   eliglble 4-tuples of atoms are considered.  This means that each
+   processor will perform either a single swap or none on timesteps
+   this fix is invoked.
 
 ----------
 
-The criterion for matching molecule IDs is how bond swaps performed by
-this fix conserve chain length.  To use this features you must setup
-the molecule IDs for your polymer chains in a certain way, typically
-in the data file, read by the :doc:`read_data <read_data>` command.
+The criterion for matching molecule IDs is how the first use case
+described above can be simulated while conserving chain lengths.  This
+is done by setting up the molecule IDs for the polymer chains in a
+specific way, typically in the data file, read by the :doc:`read_data
+<read_data>` command.  
+
 Consider a system of 6-mer chains.  You have 2 choices.  If the
 molecule IDs for monomers on each chain are set to 1,2,3,4,5,6 then
 swaps will conserve chain length.  For a particular monomer there will
@@ -139,6 +154,9 @@ ends of a chain swap with each other.
    command for a discussion of image flags.  This is not an issue for
    running dynamics, but can affect calculation of some diagnostic
    quantities or the printing of unwrapped coordinates to a dump file.
+
+For the second use case described above, the molecule IDs for all
+sticker sites should be the same.
 
 ----------
 

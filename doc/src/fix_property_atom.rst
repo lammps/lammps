@@ -61,7 +61,7 @@ ones. This can be useful in several scenarios.
 
 If the atom style does not define molecule IDs, per-atom charge, or
 per-atom mass, they can be added using the *mol*\ , *q* or *rmass*
-keywords.  This ciykd be useful to define "molecules" to use as rigid
+keywords.  This could be useful to define "molecules" to use as rigid
 bodies with the :doc:`fix rigid <fix_rigid>` command, or to carry
 around an extra flag with atoms (stored as a molecule ID) that can be
 used by various commands like :doc:`compute chunk/atom
@@ -150,7 +150,7 @@ Per-atom properties that are defined by the :doc:`atom style
 <atom_style>` are initialized when atoms are created, e.g. by the
 :doc:`read_data <read_data>` or :doc:`create_atoms <create_atoms>`
 commands.  The per-atom properties defined by this fix are not.  So
-you need to initialize them explicitly.  One way to do thisis
+you need to initialize them explicitly.  One way to do this is
 :doc:`read_data <read_data>` command, using its *fix* keyword and
 passing it the fix-ID of this fix.
 
@@ -178,7 +178,7 @@ would allow a data file to have a section like this:
 where N is the number of atoms, the first field on each line is the
 atom-ID, the next two are a molecule-ID and a floating point value
 that will be stored in a new property called "flag".  If a per-atom
-array was specified in the fix property/atom commmand then the *N*
+array was specified in the fix property/atom command then the *N*
 values for that array must be specified consecutively for that
 property on each line.  Note that the order of values on each line
 corresponds to the order of custom names in the fix property/atom
@@ -222,7 +222,7 @@ values.  This means that the values can be used accessed by fixes like
 :doc:`compute reduce <compute_reduce>`, or used in :doc:`atom-style
 variables <variable>`.
 
-For example, these commands will output both the instantanous and
+For example, these commands will output both the instantaneous and
 time-averaged values of two new properties to a custom dump file:
 
 .. code-block:: LAMMPS

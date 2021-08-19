@@ -139,6 +139,7 @@ accelerated styles exist.
 * :doc:`coul/debye <pair_coul>` - cutoff Coulomb potential with Debye screening
 * :doc:`coul/diel <pair_coul_diel>` - Coulomb potential with dielectric permittivity
 * :doc:`coul/dsf <pair_coul>` - Coulomb with damped-shifted-force model
+* :doc:`coul/exclude <pair_coul>` - subtract Coulomb potential for excluded pairs
 * :doc:`coul/long <pair_coul>` - long-range Coulomb potential
 * :doc:`coul/long/cs <pair_cs>` - long-range Coulomb potential and core/shell
 * :doc:`coul/long/dielectric <pair_dielectric>` -

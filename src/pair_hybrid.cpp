@@ -581,18 +581,17 @@ void PairHybrid::init_style()
       for (i = 1; i < 4; ++i) {
         if (((force->special_lj[i] == 0.0) || (force->special_lj[i] == 1.0))
             && (force->special_lj[i] != special_lj[istyle][i]))
-          error->all(FLERR,"Pair_modify special setting for pair hybrid "
-                     "incompatible with global special_bonds setting");
+          error->all(FLERR,"Pair_modify special lj 1-{} setting for pair hybrid substyle {} "
+                     "incompatible with global special_bonds setting", i+1, keywords[istyle]);
       }
     }
 
     if (special_coul[istyle]) {
       for (i = 1; i < 4; ++i) {
-        if (((force->special_coul[i] == 0.0)
-             || (force->special_coul[i] == 1.0))
+        if (((force->special_coul[i] == 0.0) || (force->special_coul[i] == 1.0))
             && (force->special_coul[i] != special_coul[istyle][i]))
-          error->all(FLERR,"Pair_modify special setting for pair hybrid "
-                     "incompatible with global special_bonds setting");
+          error->all(FLERR,"Pair_modify special coul 1-{} setting for pair hybrid substyle {} "
+                     "incompatible with global special_bonds setting", i+1, keywords[istyle]);
       }
     }
   }

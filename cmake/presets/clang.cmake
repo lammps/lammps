@@ -1,13 +1,18 @@
 # preset that will enable clang/clang++ with support for MPI and OpenMP (on Linux boxes)
 
+# prefer flang over gfortran, if available
+find_program(CLANG_FORTRAN NAMES flang gfortran f95)
+set(ENV{OMPI_FC} ${CLANG_FORTRAN})
+
 set(CMAKE_CXX_COMPILER "clang++" CACHE STRING "" FORCE)
 set(CMAKE_C_COMPILER "clang" CACHE STRING "" FORCE)
+set(CMAKE_Fortran_COMPILER ${CLANG_FORTRAN} CACHE STRING "" FORCE)
 set(CMAKE_CXX_FLAGS_DEBUG "-Wall -Wextra -g" CACHE STRING "" FORCE)
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-Wall -Wextra -g -O2 -DNDEBUG" CACHE STRING "" FORCE)
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG" CACHE STRING "" FORCE)
-set(CMAKE_Fortran_FLAGS_DEBUG "-Wall -Wextra -g" CACHE STRING "" FORCE)
-set(CMAKE_Fortran_FLAGS_RELWITHDEBINFO "-Wall -Wextra -g -O2 -DNDEBUG" CACHE STRING "" FORCE)
-set(CMAKE_Fortran_FLAGS_RELEASE "-O3 -DNDEBUG" CACHE STRING "" FORCE)
+set(CMAKE_Fortran_FLAGS_DEBUG "-Wall -Wextra -g -std=f95" CACHE STRING "" FORCE)
+set(CMAKE_Fortran_FLAGS_RELWITHDEBINFO "-Wall -Wextra -g -O2 -DNDEBUG -std=f95" CACHE STRING "" FORCE)
+set(CMAKE_Fortran_FLAGS_RELEASE "-O3 -DNDEBUG -std=f95" CACHE STRING "" FORCE)
 set(CMAKE_C_FLAGS_DEBUG "-Wall -Wextra -g" CACHE STRING "" FORCE)
 set(CMAKE_C_FLAGS_RELWITHDEBINFO "-Wall -Wextra -g -O2 -DNDEBUG" CACHE STRING "" FORCE)
 set(CMAKE_C_FLAGS_RELEASE "-O3 -DNDEBUG" CACHE STRING "" FORCE)

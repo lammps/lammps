@@ -113,7 +113,7 @@ Note that this is a static one-time assignment.  The atoms remain
 assigned (or not assigned) to the group even in they later move out of
 the region volume.
 
-The *type*\ , *id*\ , and *molecule* styles put all atoms with the
+The *type*, *id*, and *molecule* styles put all atoms with the
 specified atom types, atom IDs, or molecule IDs into the group.  These
 3 styles can use arguments specified in one of two formats.
 
@@ -181,7 +181,7 @@ pe/atom compute was actually invoked during the run.  Printing the
 thermodynamic info for compute 2 insures that this is the case, since
 it sums the pe/atom compute values (in the reduce compute) to output
 them to the screen.  See the "Variable Accuracy" section of the
-:doc:`variable <variable>` doc page for more details on insuring that
+:doc:`variable <variable>` page for more details on insuring that
 variables are current when they are evaluated between runs.
 
 The *include* style with its arg *molecule* adds atoms to a group that
@@ -236,7 +236,7 @@ per-atom property.  The per-atom property is evaluated and atoms whose
 values are 0.0 are removed from the dynamic group.
 
 The assignment of atoms to a dynamic group is done at the beginning of
-each run and on every timestep that is a multiple of *N*\ , which is the
+each run and on every timestep that is a multiple of *N*, which is the
 argument for the *every* keyword (N = 1 is the default).  For an
 energy minimization, via the :doc:`minimize <minimize>` command, an
 assignment is made at the beginning of the minimization, but not

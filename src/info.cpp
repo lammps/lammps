@@ -814,13 +814,13 @@ bool Info::is_active(const char *category, const char *name)
       return (lmp->kokkos && lmp->kokkos->kokkos_exists) ? true : false;
     } else if (strcmp(name,"omp") == 0) {
       return (modify->find_fix("package_omp") >= 0) ? true : false;
-    } else error->all(FLERR,"Unknown name for info package category");
+    } else error->all(FLERR,"Unknown name for info package category: {}", name);
 
   } else if (strcmp(category,"newton") == 0) {
     if (strcmp(name,"pair") == 0) return (force->newton_pair != 0);
     else if (strcmp(name,"bond") == 0) return (force->newton_bond != 0);
     else if (strcmp(name,"any") == 0) return (force->newton != 0);
-    else error->all(FLERR,"Unknown name for info newton category");
+    else error->all(FLERR,"Unknown name for info newton category: {}", name);
 
   } else if (strcmp(category,"pair") == 0) {
     if (force->pair == nullptr) return false;
@@ -829,7 +829,7 @@ bool Info::is_active(const char *category, const char *name)
     else if (strcmp(name,"manybody") == 0) return (force->pair->manybody_flag != 0);
     else if (strcmp(name,"tail") == 0) return (force->pair->tail_flag != 0);
     else if (strcmp(name,"shift") == 0) return (force->pair->offset_flag != 0);
-    else error->all(FLERR,"Unknown name for info pair category");
+    else error->all(FLERR,"Unknown name for info pair category: {}", name);
 
   } else if (strcmp(category,"comm_style") == 0) {
     style = commstyles[comm->style];
@@ -851,7 +851,7 @@ bool Info::is_active(const char *category, const char *name)
     style = force->improper_style;
   } else if (strcmp(category,"kspace_style") == 0) {
     style = force->kspace_style;
-  } else error->all(FLERR,"Unknown category for info is_active()");
+  } else error->all(FLERR,"Unknown category for info is_active(): {}", category);
 
   int match = 0;
   if (strcmp(style,name) == 0) match = 1;
@@ -893,7 +893,7 @@ bool Info::is_available(const char *category, const char *name)
     } else if (strcmp(name,"exceptions") == 0) {
       return has_exceptions();
     }
-  } else error->all(FLERR,"Unknown category for info is_available()");
+  } else error->all(FLERR,"Unknown category for info is_available(): {}", category);
 
   return false;
 }
@@ -952,7 +952,7 @@ bool Info::is_defined(const char *category, const char *name)
       if (strcmp(names[i],name) == 0)
         return true;
     }
-  } else error->all(FLERR,"Unknown category for info is_defined()");
+  } else error->all(FLERR,"Unknown category for info is_defined(): {}", category);
 
   return false;
 }
@@ -1222,8 +1222,8 @@ bool Info::has_accelerator_feature(const std::string &package,
     return lmp_gpu_config(category,setting);
   }
 #endif
-#if defined(LMP_USER_OMP)
-  if (package == "USER-OMP") {
+#if defined(LMP_OPENMP)
+  if (package == "OPENMP") {
     if (category == "precision") {
       if (setting == "double") return true;
       else return false;
@@ -1238,8 +1238,8 @@ bool Info::has_accelerator_feature(const std::string &package,
     }
   }
 #endif
-#if defined(LMP_USER_INTEL)
-  if (package == "USER-INTEL") {
+#if defined(LMP_INTEL)
+  if (package == "INTEL") {
     if (category == "precision") {
       if (setting == "double") return true;
       else if (setting == "mixed") return true;
@@ -1466,24 +1466,24 @@ std::string Info::get_accelerator_info(const std::string &package)
     if (has_accelerator_feature("KOKKOS","precision","double")) mesg += " double";
     mesg += "\n";
   }
-  if ((package.empty() || (package == "USER-OMP")) && has_package("USER-OMP")) {
-    mesg += "USER-OMP package API:";
-    if (has_accelerator_feature("USER-OMP","api","openmp"))   mesg += " OpenMP";
-    if (has_accelerator_feature("USER-OMP","api","serial"))   mesg += " Serial";
-    mesg +=  "\nUSER-OMP package precision:";
-    if (has_accelerator_feature("USER-OMP","precision","single")) mesg += " single";
-    if (has_accelerator_feature("USER-OMP","precision","mixed"))  mesg += " mixed";
-    if (has_accelerator_feature("USER-OMP","precision","double")) mesg += " double";
+  if ((package.empty() || (package == "OPENMP")) && has_package("OPENMP")) {
+    mesg += "OPENMP package API:";
+    if (has_accelerator_feature("OPENMP","api","openmp"))   mesg += " OpenMP";
+    if (has_accelerator_feature("OPENMP","api","serial"))   mesg += " Serial";
+    mesg +=  "\nOPENMP package precision:";
+    if (has_accelerator_feature("OPENMP","precision","single")) mesg += " single";
+    if (has_accelerator_feature("OPENMP","precision","mixed"))  mesg += " mixed";
+    if (has_accelerator_feature("OPENMP","precision","double")) mesg += " double";
     mesg += "\n";
   }
-  if ((package.empty() || (package == "USER-INTEL")) && has_package("USER-INTEL")) {
-    mesg += "USER-INTEL package API:";
-    if (has_accelerator_feature("USER-INTEL","api","phi"))      mesg += " Phi";
-    if (has_accelerator_feature("USER-INTEL","api","openmp"))   mesg += " OpenMP";
-    mesg +=  "\nUSER-INTEL package precision:";
-    if (has_accelerator_feature("USER-INTEL","precision","single")) mesg += " single";
-    if (has_accelerator_feature("USER-INTEL","precision","mixed"))  mesg += " mixed";
-    if (has_accelerator_feature("USER-INTEL","precision","double")) mesg += " double";
+  if ((package.empty() || (package == "INTEL")) && has_package("INTEL")) {
+    mesg += "INTEL package API:";
+    if (has_accelerator_feature("INTEL","api","phi"))      mesg += " Phi";
+    if (has_accelerator_feature("INTEL","api","openmp"))   mesg += " OpenMP";
+    mesg +=  "\nINTEL package precision:";
+    if (has_accelerator_feature("INTEL","precision","single")) mesg += " single";
+    if (has_accelerator_feature("INTEL","precision","mixed"))  mesg += " mixed";
+    if (has_accelerator_feature("INTEL","precision","double")) mesg += " double";
     mesg += "\n";
   }
   return mesg;

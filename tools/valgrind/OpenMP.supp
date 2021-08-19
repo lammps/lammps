@@ -49,26 +49,77 @@
    Memcheck:Leak
    match-leak-kinds: reachable
    fun:malloc
+   fun:strdup
    ...
-   fun:GOMP_parallel
+   obj:/usr/lib64/libomp.so
+   fun:omp_set_num_threads
    ...
+   fun:_ZN9LAMMPS_NS6LAMMPSC1EiPPci
 }
 {
    OpenMP_init_part5
-   Memcheck:Leak
-   match-leak-kinds: reachable
-   fun:malloc
+   Memcheck:Param
+   sched_setaffinity(mask)
+   fun:syscall
+   obj:/usr/lib64/libomp.so
    ...
-   obj:/usr/lib*/libgomp.so.1*
+   obj:/usr/lib64/libomp.so
    fun:omp_set_num_threads
    ...
+   fun:main
 }
 {
    OpenMP_init_part6
    Memcheck:Leak
-   match-leak-kinds: possible
-   fun:calloc
+   match-leak-kinds: reachable
+   fun:malloc
+   ...
+   fun:call_init
+   fun:call_init
+   fun:_dl_init
+   ...
+   obj:*
+}
+{
+   OpnMP_init_part7
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
    ...
    fun:GOMP_parallel
    ...
+   obj:*
+}
+{
+   OpnMP_init_part8
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   ...
+   fun:omp_set_num_threads
+   ...
+   obj:*
+}
+{
+   OpnMP_init_part9
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   ...
+   fun:pthread_create
+   ...
+   fun:GOMP_parallel
+   ...
+   obj:*
+}
+{
+   OpnMP_init_part10
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   ...
+   fun:call_init
+   fun:_dl_init
+   ...
+   obj:*
 }

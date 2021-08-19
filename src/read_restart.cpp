@@ -44,7 +44,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ReadRestart::ReadRestart(LAMMPS *lmp) : Command(lmp) {}
+ReadRestart::ReadRestart(LAMMPS *lmp) : Command(lmp), mpiio(nullptr) {}
 
 /* ---------------------------------------------------------------------- */
 
@@ -71,16 +71,18 @@ void ReadRestart::command(int narg, char **arg)
 
   // if filename contains "*", search dir for latest restart file
 
-  char *file = new char[strlen(arg[0]) + 16];
+  char *file;
   if (strchr(arg[0],'*')) {
-    int n;
+    int n=0;
     if (me == 0) {
-      file_search(arg[0],file);
-      n = strlen(file) + 1;
+      auto fn = file_search(arg[0]);
+      n = fn.size()+1;
+      file = utils::strdup(fn);
     }
     MPI_Bcast(&n,1,MPI_INT,0,world);
+    if (me != 0) file = new char[n];
     MPI_Bcast(file,n,MPI_CHAR,0,world);
-  } else strcpy(file,arg[0]);
+  } else file = utils::strdup(arg[0]);
 
   // check for multiproc files and an MPI-IO filename
 
@@ -90,14 +92,12 @@ void ReadRestart::command(int narg, char **arg)
   else mpiioflag = 0;
 
   if (multiproc && mpiioflag)
-    error->all(FLERR,
-               "Read restart MPI-IO input not allowed with % in filename");
+    error->all(FLERR,"Read restart MPI-IO input not allowed with % in filename");
 
   if (mpiioflag) {
     mpiio = new RestartMPIIO(lmp);
     if (!mpiio->mpiio_exists)
-      error->all(FLERR,"Reading from MPI-IO filename when "
-                 "MPIIO package is not installed");
+      error->all(FLERR,"Reading from MPI-IO filename when MPIIO package is not installed");
   }
 
   // open single restart file or base file for multiproc case
@@ -110,8 +110,7 @@ void ReadRestart::command(int narg, char **arg)
     }
     fp = fopen(hfile.c_str(),"rb");
     if (fp == nullptr)
-      error->one(FLERR,"Cannot open restart file {}: {}",
-                                   hfile, utils::getsyserror());
+      error->one(FLERR,"Cannot open restart file {}: {}", hfile, utils::getsyserror());
   }
 
   // read magic string, endian flag, format revision
@@ -336,8 +335,7 @@ void ReadRestart::command(int narg, char **arg)
       procfile.replace(procfile.find("%"),1,fmt::format("{}",icluster));
       fp = fopen(procfile.c_str(),"rb");
       if (fp == nullptr)
-        error->one(FLERR,"Cannot open restart file {}: {}",
-                                     procfile, utils::getsyserror());
+        error->one(FLERR,"Cannot open restart file {}: {}", procfile, utils::getsyserror());
     }
 
     int procsperfile;
@@ -401,7 +399,7 @@ void ReadRestart::command(int narg, char **arg)
 
   // clean-up memory
 
-  delete [] file;
+  delete[] file;
   memory->destroy(buf);
 
   // for multiproc or MPI-IO files:
@@ -525,8 +523,9 @@ void ReadRestart::command(int narg, char **arg)
   MPI_Barrier(world);
 
   if (comm->me == 0)
-    utils::logmesg(lmp,"  read_restart CPU = {:.3f} seconds\n",
-                   MPI_Wtime()-time1);
+    utils::logmesg(lmp,"  read_restart CPU = {:.3f} seconds\n",MPI_Wtime()-time1);
+
+  delete mpiio;
 }
 
 /* ----------------------------------------------------------------------
@@ -538,83 +537,45 @@ void ReadRestart::command(int narg, char **arg)
    only called by proc 0
 ------------------------------------------------------------------------- */
 
-void ReadRestart::file_search(char *inpfile, char *outfile)
+std::string ReadRestart::file_search(const std::string &inpfile)
 {
-  char *ptr;
-
   // separate inpfile into dir + filename
 
-  char *dirname = new char[strlen(inpfile) + 1];
-  char *filename = new char[strlen(inpfile) + 1];
-
-  if (strchr(inpfile,'/')) {
-    ptr = strrchr(inpfile,'/');
-    *ptr = '\0';
-    strcpy(dirname,inpfile);
-    strcpy(filename,ptr+1);
-    *ptr = '/';
-  } else {
-    strcpy(dirname,"./");
-    strcpy(filename,inpfile);
-  }
+  auto dirname = utils::path_dirname(inpfile);
+  auto filename = utils::path_basename(inpfile);
 
   // if filename contains "%" replace "%" with "base"
 
-  char *pattern = new char[strlen(filename) + 16];
+  auto pattern = filename;
+  auto loc = pattern.find('%');
+  if (loc != std::string::npos) pattern.replace(loc,1,"base");
 
-  if ((ptr = strchr(filename,'%'))) {
-    *ptr = '\0';
-    sprintf(pattern,"%s%s%s",filename,"base",ptr+1);
-    *ptr = '%';
-  } else strcpy(pattern,filename);
+  // scan all files in directory, searching for files that match regexp pattern
+  // maxnum = largest integer that matches "*"
 
-  // scan all files in directory, searching for files that match pattern
-  // maxnum = largest int that matches "*"
-
-  int n = strlen(pattern) + 16;
-  char *begin = new char[n];
-  char *middle = new char[n];
-  char *end = new char[n];
-
-  ptr = strchr(pattern,'*');
-  *ptr = '\0';
-  strcpy(begin,pattern);
-  strcpy(end,ptr+1);
-  int nbegin = strlen(begin);
   bigint maxnum = -1;
+  loc = pattern.find('*');
+  if (loc != std::string::npos) {
+    // convert pattern to equivalent regexp
+    pattern.replace(loc,1,"\\d+");
+    struct dirent *ep;
+    DIR *dp = opendir(dirname.c_str());
+    if (dp == nullptr)
+      error->one(FLERR,"Cannot open directory {} to search for restart file: {}",
+                 dirname, utils::getsyserror());
 
-  struct dirent *ep;
-  DIR *dp = opendir(dirname);
-  if (dp == nullptr)
-    error->one(FLERR,"Cannot open dir to search for restart file");
-  while ((ep = readdir(dp))) {
-    if (strstr(ep->d_name,begin) != ep->d_name) continue;
-    if ((ptr = strstr(&ep->d_name[nbegin],end)) == nullptr) continue;
-    if (strlen(end) == 0) ptr = ep->d_name + strlen(ep->d_name);
-    *ptr = '\0';
-    if ((int)strlen(&ep->d_name[nbegin]) < n) {
-      strcpy(middle,&ep->d_name[nbegin]);
-      if (ATOBIGINT(middle) > maxnum) maxnum = ATOBIGINT(middle);
+    while ((ep = readdir(dp))) {
+      std::string candidate(ep->d_name);
+      if (utils::strmatch(candidate,pattern)) {
+        bigint num = ATOBIGINT(utils::strfind(candidate.substr(loc),"\\d+").c_str());
+        if (num > maxnum) maxnum = num;
+      }
     }
+    closedir(dp);
+    if (maxnum < 0) error->one(FLERR,"Found no restart file matching pattern");
+    filename.replace(filename.find('*'),1,std::to_string(maxnum));
   }
-  closedir(dp);
-  if (maxnum < 0) error->one(FLERR,"Found no restart file matching pattern");
-
-  // create outfile with maxint substituted for "*"
-  // use original inpfile, not pattern, since need to retain "%" in filename
-
-  std::string newoutfile = inpfile;
-  newoutfile.replace(newoutfile.find("*"),1,fmt::format("{}",maxnum));
-  strcpy(outfile,newoutfile.c_str());
-
-  // clean up
-
-  delete [] dirname;
-  delete [] filename;
-  delete [] pattern;
-  delete [] begin;
-  delete [] middle;
-  delete [] end;
+  return utils::path_join(dirname,filename);
 }
 
 /* ----------------------------------------------------------------------
@@ -637,7 +598,7 @@ void ReadRestart::header()
       if (me == 0)
         utils::logmesg(lmp,"  restart file = {}, LAMMPS = {}\n",
                        version,lmp->version);
-      delete [] version;
+      delete[] version;
 
       // we have no forward compatibility, thus exit with error
 
@@ -676,7 +637,7 @@ void ReadRestart::header()
     } else if (flag == UNITS) {
       char *style = read_string();
       if (strcmp(style,update->unit_style) != 0) update->set_units(style);
-      delete [] style;
+      delete[] style;
 
     } else if (flag == NTIMESTEP) {
       update->ntimestep = read_bigint();
@@ -810,9 +771,9 @@ void ReadRestart::header()
       atom->create_avec(style,nargcopy,argcopy,1);
       if (comm->me ==0)
         utils::logmesg(lmp,"  restoring atom style {} from restart\n",style);
-      for (int i = 0; i < nargcopy; i++) delete [] argcopy[i];
-      delete [] argcopy;
-      delete [] style;
+      for (int i = 0; i < nargcopy; i++) delete[] argcopy[i];
+      delete[] argcopy;
+      delete[] style;
 
     } else if (flag == NATOMS) {
       atom->natoms = read_bigint();
@@ -927,7 +888,7 @@ void ReadRestart::type_arrays()
       double *mass = new double[atom->ntypes+1];
       read_double_vec(atom->ntypes,&mass[1]);
       atom->set_mass(mass);
-      delete [] mass;
+      delete[] mass;
 
     } else error->all(FLERR,
                       "Invalid flag in type arrays section of restart file");
@@ -948,7 +909,7 @@ void ReadRestart::force_fields()
     if (flag == PAIR) {
       style = read_string();
       force->create_pair(style,1);
-      delete [] style;
+      delete[] style;
       if (comm->me ==0)
         utils::logmesg(lmp,"  restoring pair style {} from restart\n",
                        force->pair_style);
@@ -964,7 +925,7 @@ void ReadRestart::force_fields()
     } else if (flag == BOND) {
       style = read_string();
       force->create_bond(style,1);
-      delete [] style;
+      delete[] style;
       if (comm->me ==0)
         utils::logmesg(lmp,"  restoring bond style {} from restart\n",
                        force->bond_style);
@@ -973,7 +934,7 @@ void ReadRestart::force_fields()
     } else if (flag == ANGLE) {
       style = read_string();
       force->create_angle(style,1);
-      delete [] style;
+      delete[] style;
       if (comm->me ==0)
         utils::logmesg(lmp,"  restoring angle style {} from restart\n",
                        force->angle_style);
@@ -982,7 +943,7 @@ void ReadRestart::force_fields()
     } else if (flag == DIHEDRAL) {
       style = read_string();
       force->create_dihedral(style,1);
-      delete [] style;
+      delete[] style;
       if (comm->me ==0)
         utils::logmesg(lmp,"  restoring dihedral style {} from restart\n",
                        force->dihedral_style);
@@ -991,7 +952,7 @@ void ReadRestart::force_fields()
     } else if (flag == IMPROPER) {
       style = read_string();
       force->create_improper(style,1);
-      delete [] style;
+      delete[] style;
       if (comm->me ==0)
         utils::logmesg(lmp,"  restoring improper style {} from restart\n",
                        force->improper_style);
@@ -1155,7 +1116,7 @@ void ReadRestart::magic_string()
   MPI_Bcast(str,n,MPI_CHAR,0,world);
   if (strcmp(str,MAGIC_STRING) != 0)
     error->all(FLERR,"Invalid LAMMPS restart file");
-  delete [] str;
+  delete[] str;
 }
 
 /* ----------------------------------------------------------------------
@@ -1202,7 +1163,7 @@ void ReadRestart::check_eof_magic()
   if (strcmp(str,MAGIC_STRING) != 0)
     error->all(FLERR,"Incomplete or corrupted LAMMPS restart file");
 
-  delete [] str;
+  delete[] str;
 }
 
 /* ----------------------------------------------------------------------

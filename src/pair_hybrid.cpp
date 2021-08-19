@@ -494,7 +494,7 @@ void PairHybrid::coeff(int narg, char **arg)
   int none = 0;
   if (m == nstyles) {
     if (strcmp(arg[2],"none") == 0) none = 1;
-    else error->all(FLERR,"Pair coeff for hybrid has invalid style");
+    else error->all(FLERR,"Pair coeff for hybrid has invalid style: {}",arg[2]);
   }
 
   // move 1st/2nd args to 2nd/3rd args
@@ -569,7 +569,7 @@ void PairHybrid::init_style()
   // same style must not be used multiple times
 
   for (istyle = 0; istyle < nstyles; istyle++) {
-    bool is_gpu = (((PairHybrid *)styles[istyle])->suffix_flag & Suffix::GPU);
+    bool is_gpu = styles[istyle]->suffix_flag & Suffix::GPU;
     if (multiple[istyle] && is_gpu)
       error->all(FLERR,"GPU package styles must not be used multiple times");
   }
@@ -596,6 +596,10 @@ void PairHybrid::init_style()
       }
     }
   }
+
+  // check beyond contact (set during pair coeff) before init style
+  for (istyle = 0; istyle < nstyles; istyle++)
+    if (styles[istyle]->beyond_contact) beyond_contact = 1;
 
   // each sub-style makes its neighbor list request(s)
 
@@ -896,7 +900,7 @@ void PairHybrid::modify_params(int narg, char **arg)
     int m;
     for (m = 0; m < nstyles; m++)
       if (strcmp(arg[1],keywords[m]) == 0) break;
-    if (m == nstyles) error->all(FLERR,"Unknown pair_modify hybrid sub-style");
+    if (m == nstyles) error->all(FLERR,"Unknown pair_modify hybrid sub-style: {}",arg[1]);
     int iarg = 2;
 
     if (multiple[m]) {
@@ -905,7 +909,7 @@ void PairHybrid::modify_params(int narg, char **arg)
       for (m = 0; m < nstyles; m++)
         if (strcmp(arg[1],keywords[m]) == 0 && multiflag == multiple[m]) break;
       if (m == nstyles)
-        error->all(FLERR,"Unknown pair_modify hybrid sub-style");
+        error->all(FLERR,"Unknown pair_modify hybrid sub-style: {}",arg[1]);
       iarg = 3;
     }
 
@@ -923,7 +927,7 @@ again:
     }
 
     // if 2nd keyword (after pair) is compute/tally:
-    // set flag to register USER-TALLY computes accordingly
+    // set flag to register TALLY computes accordingly
 
     if (iarg < narg && strcmp(arg[iarg],"compute/tally") == 0) {
       if (narg < iarg+2)
@@ -975,9 +979,7 @@ void PairHybrid::modify_special(int m, int /*narg*/, char **arg)
   special[2] = utils::numeric(FLERR,arg[2],false,lmp);
   special[3] = utils::numeric(FLERR,arg[3],false,lmp);
 
-  // have to cast to PairHybrid to work around C++ access restriction
-
-  if (((PairHybrid *)styles[m])->suffix_flag & (Suffix::INTEL|Suffix::GPU))
+  if (styles[m]->suffix_flag & (Suffix::INTEL|Suffix::GPU))
     error->all(FLERR,"Pair_modify special is not compatible with "
                      "suffix version of hybrid substyle");
 

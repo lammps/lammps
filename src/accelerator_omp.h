@@ -13,9 +13,9 @@
 
 // NOTE: this file is *supposed* to be included multiple times
 
-#ifdef LMP_USER_OMP
+#ifdef LMP_OPENMP
 
-// true interface to USER-OMP
+// true interface to OPENMP
 
 // provide a DomainOMP class with some overrides for Domain
 #include "domain.h"
@@ -41,4 +41,4 @@ class DomainOMP : public Domain {
 
 #endif /* LMP_DOMAIN_OMP_H */
 
-#endif /* !LMP_USER_OMP */
+#endif /* !LMP_OPENMP */

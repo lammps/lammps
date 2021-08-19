@@ -69,6 +69,10 @@ GPU_AWARE_UNKNOWN
 
 using namespace LAMMPS_NS;
 
+Kokkos::InitArguments KokkosLMP::args{-1, -1, -1, false};
+int KokkosLMP::is_finalized = 0;
+int KokkosLMP::init_ngpus = 0;
+
 /* ---------------------------------------------------------------------- */
 
 KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
@@ -155,6 +159,10 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
     } else if (strcmp(arg[iarg],"t") == 0 ||
                strcmp(arg[iarg],"threads") == 0) {
       nthreads = atoi(arg[iarg+1]);
+
+      if (nthreads <= 0)
+        error->all(FLERR,"Invalid number of threads requested for Kokkos: must be 1 or greater");
+
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"n") == 0 ||
@@ -165,12 +173,26 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
     } else error->all(FLERR,"Invalid Kokkos command-line args");
   }
 
-  // initialize Kokkos
+  // Initialize Kokkos. However, we cannot change any
+  // Kokkos library parameters after the first initalization
 
-  if (me == 0) {
-    if (screen) fprintf(screen,"  will use up to %d GPU(s) per node\n",ngpus);
-    if (logfile) fprintf(logfile,"  will use up to %d GPU(s) per node\n",ngpus);
+  if (args.num_threads != -1) {
+    if (args.num_threads != nthreads || args.num_numa != numa || args.device_id != device)
+      if (me == 0)
+        error->warning(FLERR,"Kokkos package already initalized, cannot reinitialize with different parameters");
+    nthreads = args.num_threads;
+    numa = args.num_numa;
+    device = args.device_id;
+    ngpus = init_ngpus;
+  } else {
+    args.num_threads = nthreads;
+    args.num_numa = numa;
+    args.device_id = device;
+    init_ngpus = ngpus;
   }
+
+  if (me == 0)
+    utils::logmesg(lmp, "  will use up to {} GPU(s) per node\n",ngpus);
 
 #ifdef LMP_KOKKOS_GPU
   if (ngpus <= 0)
@@ -184,12 +206,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
                          "than the OpenMP backend");
 #endif
 
-  Kokkos::InitArguments args;
-  args.num_threads = nthreads;
-  args.num_numa = numa;
-  args.device_id = device;
-
-  Kokkos::initialize(args);
+  KokkosLMP::initialize(args,error);
 
   // default settings for package kokkos command
 
@@ -276,9 +293,14 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
           error->warning(FLERR,"MVAPICH2 'MV2_USE_CUDA' environment variable is not set. Disabling GPU-aware MPI");
     // pure MPICH or some unsupported MPICH derivative
 #elif defined(MPICH) && !defined(MVAPICH2_VERSION)
-      if (me == 0)
-        error->warning(FLERR,"Detected MPICH. Disabling GPU-aware MPI");
+      char* str;
       gpu_aware_flag = 0;
+      if ((str = getenv("MPICH_GPU_SUPPORT_ENABLED")))
+        if ((strcmp(str,"1") == 0))
+          gpu_aware_flag = 1;
+
+      if (!gpu_aware_flag && me == 0)
+        error->warning(FLERR,"Detected MPICH. Disabling GPU-aware MPI");
 #else
   if (me == 0)
     error->warning(FLERR,"Kokkos with CUDA, HIP, or SYCL assumes CUDA-aware MPI is available,"
@@ -299,9 +321,27 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
 KokkosLMP::~KokkosLMP()
 {
-  // finalize Kokkos
 
-  Kokkos::finalize();
+}
+
+/* ---------------------------------------------------------------------- */
+
+void KokkosLMP::initialize(Kokkos::InitArguments args, Error *error)
+{
+  if (!Kokkos::is_initialized()) {
+    if (is_finalized)
+      error->all(FLERR,"Kokkos package already finalized, cannot re-initialize");
+    Kokkos::initialize(args);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void KokkosLMP::finalize()
+{
+  if (Kokkos::is_initialized() && !is_finalized)
+    Kokkos::finalize();
+  is_finalized = 1;
 }
 
 /* ----------------------------------------------------------------------

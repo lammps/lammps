@@ -44,7 +44,7 @@ These Makefiles derive from src/MAKE/Makefile.mpi with added settings
 to illustrate how they can be added to any Makefile.
 
 Makefile.big           use of -DLAMMPS_BIGBIG setting
-Makefile.fastmgpt      optimzations for USER-MGPT package
+Makefile.fastmgpt      optimzations for MGPT package
 Makefile.fftw          FFTW support for long-range Coulombics (PPPM)
 Makefile.jpeg          JPEG support for dump image
 Makefile.png           PNG support for dump image
@@ -63,14 +63,14 @@ the compiler wrapped by mpicxx.  Setting this requires a different
 syntax for different MPIs.
 
 Makefile.opt                 OPT package, using default MPI
-Makefile.omp                 USER-OMP package, using default MPI
+Makefile.omp                 OPENMP package, using default MPI
 Makefile.gpu                 GPU package, using default MPI
 
-Makefile.intel_cpu_intelmpi  USER-INTEL package for CPU with Intel MPI
-Makefile.intel_cpu_mpich     USER-INTEL package for CPU with MPICH
-Makefile.intel_cpu_openmpi   USER-INTEL package for CPU with OpenMPI
-Makefile.intel_coprocessor   USER-INTEL package with Xeon Phi support
-Makefile.knl                 USER-INTEL package with KNL support
+Makefile.intel_cpu_intelmpi  INTEL package for CPU with Intel MPI
+Makefile.intel_cpu_mpich     INTEL package for CPU with MPICH
+Makefile.intel_cpu_openmpi   INTEL package for CPU with OpenMPI
+Makefile.intel_coprocessor   INTEL package with Xeon Phi support
+Makefile.knl                 INTEL package with KNL support
 
 Makefile.kokkos_cuda_mpich   KOKKOS package with GPU support for MPICH
 Makefile.kokkos_cuda_openmpi KOKKOS package with GPU support for OpenMPI

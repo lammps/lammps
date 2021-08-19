@@ -39,13 +39,13 @@ def activate_mliappy(lmp):
         # End Importlib magic to find the embedded python module
 
     except Exception as ee:
-        raise ImportError("Could not load MLIAP python coupling module.") from ee
+        raise ImportError("Could not load ML-IAP python coupling module.") from ee
 
 def load_model(model):
     try:
         import mliap_model_python_couple
     except ImportError as ie:
-        raise ImportError("MLIAP python module must be activated before loading\n"
+        raise ImportError("ML-IAP python module must be activated before loading\n"
                           "the pair style. Call lammps.mliap.activate_mliappy(lmp)."
                           ) from ie
     mliap_model_python_couple.load_from_python(model)

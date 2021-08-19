@@ -1,7 +1,7 @@
 ---
 lammps_version: 10 Feb 2021
 date_generated: Fri Feb 26 23:08:45 2021
-epsilon: 2e-13
+epsilon: 2.5e-13
 prerequisites: ! |
   atom full
   pair lj/charmm/coul/charmm/implicit

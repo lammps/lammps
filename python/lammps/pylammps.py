@@ -240,7 +240,8 @@ class Atom2D(Atom):
 
   @property
   def position(self):
-    """
+    """Access to coordinates of an atom
+
     :getter: Return position of atom
     :setter: Set position of atom
     :type: tuple (float, float)
@@ -255,7 +256,7 @@ class Atom2D(Atom):
 
   @property
   def velocity(self):
-    """
+    """Access to velocity of an atom
     :getter: Return velocity of atom
     :setter: Set velocity of atom
     :type: tuple (float, float)
@@ -270,8 +271,7 @@ class Atom2D(Atom):
 
   @property
   def force(self):
-    """
-    Return the total force acting on the atom
+    """Access to force of an atom
 
     :type: tuple (float, float)
     """

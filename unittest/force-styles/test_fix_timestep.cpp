@@ -696,7 +696,7 @@ TEST(FixTimestep, plain)
 
 TEST(FixTimestep, omp)
 {
-    if (!LAMMPS::is_installed_pkg("USER-OMP")) GTEST_SKIP();
+    if (!LAMMPS::is_installed_pkg("OPENMP")) GTEST_SKIP();
     if (!LAMMPS::is_installed_pkg("MOLECULE")) GTEST_SKIP();
     if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
 

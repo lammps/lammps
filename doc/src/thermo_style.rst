@@ -117,7 +117,7 @@ thermodynamic timestep.  Note that the keywords c_ID, f_ID, v_name are
 references to :doc:`computes <compute>`, :doc:`fixes <fix>`, and
 equal-style :doc:`variables <variable>` that have been defined elsewhere
 in the input script or can even be new styles which users have added
-to LAMMPS.  See the :doc:`Modify <Modify>` doc page for details on the
+to LAMMPS.  See the :doc:`Modify <Modify>` page for details on the
 latter.  Thus the *custom* style provides a flexible means of
 outputting essentially any desired quantity as a simulation proceeds.
 
@@ -218,16 +218,16 @@ to see which ones contribute and whether their default
 A long-range tail correction *etail* for the van der Waals pairwise
 energy will be non-zero only if the :doc:`pair_modify tail
 <pair_modify>` option is turned on.  The *etail* contribution is
-included in *evdwl*\ , *epair*\ , *pe*\ , and *etotal*\ , and the
+included in *evdwl*, *epair*, *pe*, and *etotal*, and the
 corresponding tail correction to the pressure is included in *press*
-and *pxx*\ , *pyy*\ , etc.
+and *pxx*, *pyy*, etc.
 
 ----------
 
 Here is more information on other keywords whose meaning may not be
 clear:
 
-The *step*\ , *elapsed*\ , and *elaplong* keywords refer to timestep
+The *step*, *elapsed*, and *elaplong* keywords refer to timestep
 count.  *Step* is the current timestep, or iteration count when a
 :doc:`minimization <minimize>` is being performed.  *Elapsed* is the
 number of timesteps elapsed since the beginning of this run.
@@ -318,13 +318,13 @@ to reduce the delay factor to insure no force interactions are missed
 by atoms moving beyond the neighbor skin distance before a rebuild
 takes place.
 
-The keywords *cella*\ , *cellb*\ , *cellc*\ , *cellalpha*\ ,
-*cellbeta*\ , *cellgamma*\ , correspond to the usual crystallographic
+The keywords *cella*, *cellb*, *cellc*, *cellalpha*,
+*cellbeta*, *cellgamma*, correspond to the usual crystallographic
 quantities that define the periodic unit cell of a crystal.  See the
-:doc:`Howto triclinic <Howto_triclinic>` doc page for a geometric
+:doc:`Howto triclinic <Howto_triclinic>` page for a geometric
 description of triclinic periodic cells, including a precise
 definition of these quantities in terms of the internal LAMMPS cell
-dimensions *lx*\ , *ly*\ , *lz*\ , *yz*\ , *xz*\ , *xy*\ .
+dimensions *lx*, *ly*, *lz*, *yz*, *xz*, *xy*\ .
 
 ----------
 

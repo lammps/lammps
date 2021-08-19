@@ -281,6 +281,6 @@ UNDOCUMENTED
 U: OMP_NUM_THREADS environment is not set.
 
 This environment variable must be set appropriately to use the
-USER-OMP package.
+OPENMP package.
 
 */

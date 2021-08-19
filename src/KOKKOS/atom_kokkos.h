@@ -61,13 +61,49 @@ class AtomKokkos : public Atom {
   DAT::tdual_f_array k_fm;
   DAT::tdual_f_array k_fm_long;
 
-// USER-DPD package
+// DPD-REACT package
   DAT::tdual_efloat_1d k_uCond, k_uMech, k_uChem, k_uCG, k_uCGnew,
                        k_rho,k_dpdTheta,k_duChem;
 
 
   AtomKokkos(class LAMMPS *);
-  ~AtomKokkos();
+  virtual ~AtomKokkos();
+
+  void map_init(int check = 1);
+  void map_set();
+  void map_delete();
+
+  DAT::tdual_int_1d k_sametag;
+  DAT::tdual_int_1d k_map_array;
+  DAT::tdual_int_scalar k_error_flag;
+  dual_hash_type k_map_hash;
+
+  // map lookup function inlined for efficiency
+  // return -1 if no map defined
+
+  template<class DeviceType>
+  KOKKOS_INLINE_FUNCTION
+  static int map_kokkos(tagint global, int map_style, DAT::tdual_int_1d k_map_array, dual_hash_type k_map_hash)
+  {
+    if (map_style == 1)
+      return k_map_array.view<DeviceType>()(global);
+    else if (map_style == 2)
+      return AtomKokkos::map_find_hash_kokkos<DeviceType>(global,k_map_hash);
+    else
+      return -1;
+  }
+
+  template<class DeviceType>
+  KOKKOS_INLINE_FUNCTION
+  static int map_find_hash_kokkos(tagint global, dual_hash_type &k_map_hash)
+  {
+    int local = -1;
+    auto d_map_hash = k_map_hash.view<DeviceType>();
+    auto index = d_map_hash.find(global);
+    if (d_map_hash.valid_at(index))
+      local = d_map_hash.value_at(index);
+    return local;
+  }
 
   virtual void allocate_type_arrays();
   void sync(const ExecutionSpace space, unsigned int mask);

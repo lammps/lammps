@@ -73,7 +73,7 @@ remaining 5 columns are the atom IDs of the atoms in the two 4-atom
 dihedrals that overlap to create the CMAP 5-body interaction.  Note
 that the "crossterm" and "CMAP" keywords for the header and body
 sections match those specified in the read_data command following the
-data file name; see the :doc:`read_data <read_data>` doc page for
+data file name; see the :doc:`read_data <read_data>` page for
 more details.
 
 A data file containing CMAP cross-terms can be generated from a PDB
@@ -147,7 +147,7 @@ To function as expected this fix command must be issued *before* a
 :doc:`read_restart <read_restart>` command.
 
 This fix can only be used if LAMMPS was built with the MOLECULE
-package.  See the :doc:`Build package <Build_package>` doc page for more
+package.  See the :doc:`Build package <Build_package>` page for more
 info.
 
 Related commands

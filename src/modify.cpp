@@ -37,7 +37,6 @@ using namespace FixConst;
 
 #define DELTA 4
 #define BIG 1.0e20
-#define NEXCEPT 7       // change when add to exceptions in add_fix()
 
 /* ---------------------------------------------------------------------- */
 
@@ -803,7 +802,7 @@ int Modify::min_reset_ref()
    add a new fix or replace one with same ID
 ------------------------------------------------------------------------- */
 
-void Modify::add_fix(int narg, char **arg, int trysuffix)
+Fix *Modify::add_fix(int narg, char **arg, int trysuffix)
 {
   if (narg < 3) error->all(FLERR,"Illegal fix command");
 
@@ -956,13 +955,14 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
   if (newflag) nfix++;
   fmask[ifix] = fix[ifix]->setmask();
   fix[ifix]->post_constructor();
+  return fix[ifix];
 }
 
 /* ----------------------------------------------------------------------
    convenience function to allow adding a fix from a single string
 ------------------------------------------------------------------------- */
 
-void Modify::add_fix(const std::string &fixcmd, int trysuffix)
+Fix *Modify::add_fix(const std::string &fixcmd, int trysuffix)
 {
   auto args = utils::split_words(fixcmd);
   std::vector<char *> newarg(args.size());
@@ -970,7 +970,7 @@ void Modify::add_fix(const std::string &fixcmd, int trysuffix)
   for (const auto &arg : args) {
     newarg[i++] = (char *)arg.c_str();
   }
-  add_fix(args.size(),newarg.data(),trysuffix);
+  return add_fix(args.size(),newarg.data(),trysuffix);
 }
 
 
@@ -981,11 +981,10 @@ void Modify::add_fix(const std::string &fixcmd, int trysuffix)
         replace it later with the desired Fix instance
 ------------------------------------------------------------------------- */
 
-void Modify::replace_fix(const char *replaceID,
-                         int narg, char **arg, int trysuffix)
+Fix *Modify::replace_fix(const char *replaceID, int narg, char **arg, int trysuffix)
 {
   int ifix = find_fix(replaceID);
-  if (ifix < 0) error->all(FLERR,"Modify replace_fix ID could not be found");
+  if (ifix < 0) error->all(FLERR,"Modify replace_fix ID {} could not be found", replaceID);
 
   // change ID, igroup, style of fix being replaced to match new fix
   // requires some error checking on arguments for new fix
@@ -1007,24 +1006,22 @@ void Modify::replace_fix(const char *replaceID,
   // invoke add_fix
   // it will find and overwrite the replaceID fix
 
-  add_fix(narg,arg,trysuffix);
+  return add_fix(narg,arg,trysuffix);
 }
 
 /* ----------------------------------------------------------------------
    convenience function to allow replacing a fix from a single string
 ------------------------------------------------------------------------- */
 
-void Modify::replace_fix(const std::string &oldfix,
-                         const std::string &fixcmd, int trysuffix)
+Fix *Modify::replace_fix(const std::string &oldfix, const std::string &fixcmd, int trysuffix)
 {
   auto args = utils::split_words(fixcmd);
-  char **newarg = new char*[args.size()];
-  int i=0;
+  std::vector<char *> newarg(args.size());
+  int i = 0;
   for (const auto &arg : args) {
     newarg[i++] = (char *)arg.c_str();
   }
-  replace_fix(oldfix.c_str(),args.size(),newarg,trysuffix);
-  delete[] newarg;
+  return replace_fix(oldfix.c_str(),args.size(),newarg.data(),trysuffix);
 }
 
 /* ----------------------------------------------------------------------
@@ -1110,7 +1107,7 @@ int Modify::find_fix_by_style(const char *style)
    check for fix associated with package name in compiled list
    return 1 if found else 0
    used to determine whether LAMMPS was built with
-     GPU, USER-INTEL, USER-OMP packages, which have their own fixes
+     GPU, INTEL, OPENMP packages, which have their own fixes
 ------------------------------------------------------------------------- */
 
 int Modify::check_package(const char *package_fix_name)
@@ -1214,7 +1211,7 @@ int Modify::check_rigid_list_overlap(int *select)
    add a new compute
 ------------------------------------------------------------------------- */
 
-void Modify::add_compute(int narg, char **arg, int trysuffix)
+Compute *Modify::add_compute(int narg, char **arg, int trysuffix)
 {
   if (narg < 3) error->all(FLERR,"Illegal compute command");
 
@@ -1269,23 +1266,22 @@ void Modify::add_compute(int narg, char **arg, int trysuffix)
   if (compute[ncompute] == nullptr)
     error->all(FLERR,utils::check_packages_for_style("compute",arg[2],lmp));
 
-  ncompute++;
+  return compute[ncompute++];
 }
 
 /* ----------------------------------------------------------------------
    convenience function to allow adding a compute from a single string
 ------------------------------------------------------------------------- */
 
-void Modify::add_compute(const std::string &computecmd, int trysuffix)
+Compute *Modify::add_compute(const std::string &computecmd, int trysuffix)
 {
   auto args = utils::split_words(computecmd);
-  char **newarg = new char*[args.size()];
+  std::vector<char *>newarg(args.size());
   int i=0;
   for (const auto &arg : args) {
     newarg[i++] = (char *)arg.c_str();
   }
-  add_compute(args.size(),newarg,trysuffix);
-  delete[] newarg;
+  return add_compute(args.size(),newarg.data(),trysuffix);
 }
 
 

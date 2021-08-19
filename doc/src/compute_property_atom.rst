@@ -74,7 +74,7 @@ Syntax
 
   .. parsed-literal::
 
-           USER-EFF and USER-AWPMD package per-atom properties:
+           EFF and AWPMD package per-atom properties:
            spin = electron spin
            eradius = electron radius
            ervel = electron radial velocity
@@ -82,7 +82,7 @@ Syntax
 
   .. parsed-literal::
 
-           USER-SPH package per-atom properties:
+           SPH package per-atom properties:
            rho = density of SPH particles
            drho = change in density
            e = energy
@@ -130,25 +130,25 @@ quantities that are not defined for a particular particle in the group
 The additional quantities only accessible via this command, and not
 directly via the :doc:`dump custom <dump>` command, are as follows.
 
-*Shapex*\ , *shapey*\ , and *shapez* are defined for ellipsoidal particles
+*Shapex*, *shapey*, and *shapez* are defined for ellipsoidal particles
 and define the 3d shape of each particle.
 
-*Quatw*\ , *quati*\ , *quatj*\ , and *quatk* are defined for ellipsoidal
+*Quatw*, *quati*, *quatj*, and *quatk* are defined for ellipsoidal
 particles and body particles and store the 4-vector quaternion
 representing the orientation of each particle.  See the :doc:`set <set>`
 command for an explanation of the quaternion vector.
 
-*End1x*\ , *end1y*\ , *end1z*\ , *end2x*\ , *end2y*\ , *end2z*\ , are
+*End1x*, *end1y*, *end1z*, *end2x*, *end2y*, *end2z*, are
 defined for line segment particles and define the end points of each
 line segment.
 
-*Corner1x*\ , *corner1y*\ , *corner1z*\ , *corner2x*\ , *corner2y*\ ,
-*corner2z*\ , *corner3x*\ , *corner3y*\ , *corner3z*\ , are defined for
+*Corner1x*, *corner1y*, *corner1z*, *corner2x*, *corner2y*,
+*corner2z*, *corner3x*, *corner3y*, *corner3z*, are defined for
 triangular particles and define the corner points of each triangle.
 
 *Nbonds* is available for all molecular atom styles and refers to the
 number of explicit bonds assigned to an atom.  Note that if the
-:doc:`newton bond <newton>` command is set to *on*\ , which is the
+:doc:`newton bond <newton>` command is set to *on*, which is the
 default, then every bond in the system is assigned to only one of the
 two atoms in the bond.  Thus a bond between atoms I,J may be tallied
 for either atom I or atom J.  If :doc:`newton bond off <newton>` is
@@ -169,7 +169,7 @@ per-atom vector is produced.  If two or more inputs are specified, a
 per-atom array is produced where the number of columns = the number of
 inputs.  The vector or array can be accessed by any command that uses
 per-atom values from a compute as input.  See the :doc:`Howto output
-<Howto_output>` doc page for an overview of LAMMPS output options.
+<Howto_output>` page for an overview of LAMMPS output options.
 
 The vector or array values will be in whatever :doc:`units <units>` the
 corresponding attribute is in, e.g. velocity units for vx, charge

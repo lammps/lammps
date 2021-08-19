@@ -88,10 +88,10 @@ void PairTersoff::compute(int eflag, int vflag)
   if (shift_flag) {
     if (evflag) {
       if (eflag) {
-        if (vflag_atom) eval<1,1,1,1>();
+        if (vflag_either) eval<1,1,1,1>();
         else eval<1,1,1,0>();
       } else {
-        if (vflag_atom) eval<1,1,0,1>();
+        if (vflag_either) eval<1,1,0,1>();
         else eval<1,1,0,0>();
       }
     } else eval<1,0,0,0>();
@@ -100,17 +100,17 @@ void PairTersoff::compute(int eflag, int vflag)
 
     if (evflag) {
       if (eflag) {
-        if (vflag_atom) eval<0,1,1,1>();
+        if (vflag_either) eval<0,1,1,1>();
         else eval<0,1,1,0>();
       } else {
-        if (vflag_atom) eval<0,1,0,1>();
+        if (vflag_either) eval<0,1,0,1>();
         else eval<0,1,0,0>();
       }
     } else eval<0,0,0,0>();
   }
 }
 
-template <int SHIFT_FLAG, int EVFLAG, int EFLAG, int VFLAG_ATOM>
+template <int SHIFT_FLAG, int EVFLAG, int EFLAG, int VFLAG_EITHER>
 void PairTersoff::eval()
 {
   int i,j,k,ii,jj,kk,inum,jnum;
@@ -315,7 +315,7 @@ void PairTersoff::eval()
         f[k][1] += fk[1];
         f[k][2] += fk[2];
 
-        if (VFLAG_ATOM) v_tally3(i,j,k,fj,fk,delr1,delr2);
+        if (VFLAG_EITHER) v_tally3(i,j,k,fj,fk,delr1,delr2);
       }
       f[j][0] += fjxtmp;
       f[j][1] += fjytmp;

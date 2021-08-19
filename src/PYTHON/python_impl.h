@@ -35,9 +35,6 @@ class PythonImpl : protected Pointers, public PythonInterface {
   bool has_minimum_version(int major, int minor);
 
  private:
-  int ninput, noutput, length_longstr;
-  char **istr;
-  char *ostr, *format;
   void *pyMain;
 
   struct PyFunc {
@@ -57,7 +54,7 @@ class PythonImpl : protected Pointers, public PythonInterface {
   PyFunc *pfuncs;
   int nfunc;
 
-  int create_entry(char *);
+  int create_entry(char *, int, int, int, char **, char *, char *);
   void deallocate(int);
 };
 

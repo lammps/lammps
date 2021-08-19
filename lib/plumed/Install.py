@@ -53,6 +53,7 @@ checksums = { \
         '2.6.3' : 'a9f8028fd74528c2024781ea1fdefeee', \
         '2.7.0' : '95f29dd0c067577f11972ff90dfc7d12', \
         '2.7.1' : '4eac6a462ec84dfe0cec96c82421b8e8', \
+        '2.7.2' : 'cfa0b4dd90a81c25d3302e8d97bfeaea', \
         }
 
 # parse and process arguments

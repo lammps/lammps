@@ -458,7 +458,7 @@ void Balance::options(int iarg, int narg, char **arg)
         nopt = imb->options(narg-iarg,arg+iarg+2);
         imbalances[nimbalance++] = imb;
       } else {
-        error->all(FLERR,"Unknown (fix) balance weight method");
+        error->all(FLERR,"Unknown (fix) balance weight method: {}", arg[iarg+1]);
       }
       iarg += 2+nopt;
 
@@ -499,8 +499,7 @@ void Balance::weight_storage(char *prefix)
   int ifix = modify->find_fix(cmd);
   if (ifix < 1) {
     cmd += " all STORE peratom 0 1";
-    modify->add_fix(cmd);
-    fixstore = (FixStore *) modify->fix[modify->nfix-1];
+    fixstore = (FixStore *) modify->add_fix(cmd);
   } else fixstore = (FixStore *) modify->fix[ifix];
 
   // do not carry weights with atoms during normal atom migration

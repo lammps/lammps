@@ -134,7 +134,10 @@ compiled with.
 The :py:func:`lmp.close() <lammps.lammps.close()>` call is
 optional since the LAMMPS class instance will also be deleted
 automatically during the :py:class:`lammps <lammps.lammps>` class
-destructor.
+destructor.  Instead of :py:func:`lmp.close() <lammps.lammps.close()>`
+it is also possible to call :py:func:`lmp.finalize() <lammps.lammps.finalize()>`;
+this will destruct the LAMMPS instance, but also finalized and release
+the MPI and/or Kokkos environment if enabled and active.
 
 Note that you can create multiple LAMMPS objects in your Python
 script, and coordinate and run multiple simulations, e.g.

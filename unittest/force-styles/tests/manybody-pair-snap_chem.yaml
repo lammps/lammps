@@ -16,7 +16,8 @@ pair_coeff: ! |
   1*4 5*8 zbl 49 15
   5*8 5*8 zbl 15 15
   * * snap InP_JCPA2020.snapcoeff InP_JCPA2020.snapparam In In In In P P P P
-extract: ! ""
+extract: ! |
+  scale 2
 natoms: 64
 init_vdwl: -185.3871232982
 init_coul: 0

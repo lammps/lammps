@@ -187,11 +187,11 @@ void Velocity::create(double t_desired, int seed)
   Compute *temperature_nobias = nullptr;
 
   if (temperature == nullptr || bias_flag) {
-    modify->add_compute(fmt::format("velocity_temp {} temp",group->names[igroup]));
+    auto newcompute = modify->add_compute(fmt::format("velocity_temp {} temp",group->names[igroup]));
     if (temperature == nullptr) {
-      temperature = modify->compute[modify->ncompute-1];
+      temperature = newcompute;
       tcreate_flag = 1;
-    } else temperature_nobias = modify->compute[modify->ncompute-1];
+    } else temperature_nobias = newcompute;
   }
 
   // initialize temperature computation(s)
@@ -575,8 +575,7 @@ void Velocity::scale(int /*narg*/, char **arg)
 
   int tflag = 0;
   if (temperature == nullptr) {
-    modify->add_compute(fmt::format("velocity_temp {} temp",group->names[igroup]));
-    temperature = modify->compute[modify->ncompute-1];
+    temperature = modify->add_compute(fmt::format("velocity_temp {} temp",group->names[igroup]));
     tflag = 1;
   }
 
@@ -849,15 +848,11 @@ void Velocity::options(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"temp") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal velocity command");
-      int icompute;
-      for (icompute = 0; icompute < modify->ncompute; icompute++)
-        if (strcmp(arg[iarg+1],modify->compute[icompute]->id) == 0) break;
-      if (icompute == modify->ncompute)
-        error->all(FLERR,"Could not find velocity temperature ID");
+      int icompute = modify->find_compute(arg[iarg+1]);
+      if (icompute < 0) error->all(FLERR,"Could not find velocity temperature ID");
       temperature = modify->compute[icompute];
       if (temperature->tempflag == 0)
-        error->all(FLERR,
-                   "Velocity temperature ID does not compute temperature");
+        error->all(FLERR,"Velocity temperature ID does not compute temperature");
       iarg += 2;
     } else if (strcmp(arg[iarg],"bias") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal velocity command");

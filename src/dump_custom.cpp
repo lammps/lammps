@@ -1532,15 +1532,12 @@ int DumpCustom::parse_fields(int narg, char **arg)
           error->all(FLERR,"Could not find custom per-atom property ID: {}", name);
         if (argindex[iarg] == 0) {
           if (!flag || cols)
-            error->all(FLERR,
-                       "Property double vector for dump custom does not exist");
+            error->all(FLERR,"Property double vector for dump custom does not exist");
         } else {
           if (!flag || !cols)
-            error->all(FLERR,
-                       "Property double array for dump custom does not exist");
+            error->all(FLERR,"Property double array for dump custom does not exist");
           if (argindex[iarg] > atom->dcols[n])
-            error->all(FLERR,
-                       "Dump custom property array is accessed out-of-range");
+            error->all(FLERR,"Dump custom property array is accessed out-of-range");
         }
 
         field2index[iarg] = add_custom(name,1);

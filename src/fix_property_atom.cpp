@@ -66,8 +66,7 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
       iarg++;
     } else if (strcmp(arg[iarg],"q") == 0) {
       if (atom->q_flag)
-        error->all(FLERR,"Fix property/atom q when atom_style "
-                   "already has charge attribute");
+        error->all(FLERR,"Fix property/atom q when atom_style already has charge attribute");
       if (q_flag)
         error->all(FLERR,"Fix property/atom cannot specify q twice");
       style[nvalue] = CHARGE;
@@ -78,8 +77,7 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
       iarg++;
     } else if (strcmp(arg[iarg],"rmass") == 0) {
       if (atom->rmass_flag)
-        error->all(FLERR,"Fix property/atom rmass when atom_style "
-                   "already has rmass attribute");
+        error->all(FLERR,"Fix property/atom rmass when atom_style already has rmass attribute");
       if (rmass_flag)
         error->all(FLERR,"Fix property/atom cannot specify rmass twice");
       style[nvalue] = RMASS;

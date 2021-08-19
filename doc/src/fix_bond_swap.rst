@@ -68,7 +68,8 @@ there is an intra-chain bond between every pair of sticker sites on
 the same chain.  Over time, bonds swap so that inter-moleculer sticker
 bonds are created.  This models a vitrification-style process whereby
 the polymer chains all become interconnected.  For this use case, if
-angles are defined they should not include sticker sites.
+angles are defined they should not include bonds between sticker
+sites.
 
 ----------
 

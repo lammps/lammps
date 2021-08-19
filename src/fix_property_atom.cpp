@@ -93,11 +93,12 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
 
     } else if (utils::strmatch(arg[iarg],"^i_")) {
       style[nvalue] = IVEC;
-      int flag,cols;
-      index[nvalue] = atom->find_custom(&arg[iarg][2],flag,cols);
+      int flag,ncols;
+      index[nvalue] = atom->find_custom(&arg[iarg][2],flag,ncols);
       if (index[nvalue] >= 0)
         error->all(FLERR,"Fix property/atom vector name already exists");
       index[nvalue] = atom->add_custom(&arg[iarg][2],0,0);
+      cols[nvalue] = 0;
       nvalue++;
       iarg++;
 
@@ -108,6 +109,7 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
       if (index[nvalue] >= 0)
         error->all(FLERR,"Fix property/atom vector name already exists");
       index[nvalue] = atom->add_custom(&arg[iarg][2],1,0);
+      cols[nvalue] = 0;
       nvalue++;
       iarg++;
 

@@ -66,8 +66,7 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
       iarg++;
     } else if (strcmp(arg[iarg],"q") == 0) {
       if (atom->q_flag)
-        error->all(FLERR,"Fix property/atom q when atom_style "
-                   "already has charge attribute");
+        error->all(FLERR,"Fix property/atom q when atom_style already has charge attribute");
       if (q_flag)
         error->all(FLERR,"Fix property/atom cannot specify q twice");
       style[nvalue] = CHARGE;
@@ -78,8 +77,7 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
       iarg++;
     } else if (strcmp(arg[iarg],"rmass") == 0) {
       if (atom->rmass_flag)
-        error->all(FLERR,"Fix property/atom rmass when atom_style "
-                   "already has rmass attribute");
+        error->all(FLERR,"Fix property/atom rmass when atom_style already has rmass attribute");
       if (rmass_flag)
         error->all(FLERR,"Fix property/atom cannot specify rmass twice");
       style[nvalue] = RMASS;
@@ -93,11 +91,13 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
 
     } else if (utils::strmatch(arg[iarg],"^i_")) {
       style[nvalue] = IVEC;
-      int flag,cols;
-      index[nvalue] = atom->find_custom(&arg[iarg][2],flag,cols);
+      int flag,ncols;
+      index[nvalue] = atom->find_custom(&arg[iarg][2],flag,ncols);
       if (index[nvalue] >= 0)
         error->all(FLERR,"Fix property/atom vector name already exists");
       index[nvalue] = atom->add_custom(&arg[iarg][2],0,0);
+      cols[nvalue] = 0;
+      values_peratom++;
       nvalue++;
       iarg++;
 
@@ -108,6 +108,8 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
       if (index[nvalue] >= 0)
         error->all(FLERR,"Fix property/atom vector name already exists");
       index[nvalue] = atom->add_custom(&arg[iarg][2],1,0);
+      cols[nvalue] = 0;
+      values_peratom++;
       nvalue++;
       iarg++;
 
@@ -252,8 +254,7 @@ void FixPropertyAtom::init()
    id_offset is applied to first atomID field if multiple data files are read
 ------------------------------------------------------------------------- */
 
-void FixPropertyAtom::read_data_section(char *keyword, int n, char *buf,
-                                        tagint id_offset)
+void FixPropertyAtom::read_data_section(char *keyword, int n, char *buf, tagint id_offset)
 {
   int j,k,m,ncol;
   tagint itag;
@@ -278,14 +279,13 @@ void FixPropertyAtom::read_data_section(char *keyword, int n, char *buf,
 
     try {
       ValueTokenizer values(buf);
-      if ((int)values.count() != nvalue+1)
-        error->all(FLERR,"Incorrect format in {} section "
-                                     "of data file: {}",keyword,buf);
+      if ((int)values.count() != values_peratom+1)
+        error->all(FLERR,"Incorrect format in {} section of data file: {}"
+                   " expected {} and got {}",keyword,buf,values_peratom+1,values.count());
 
       itag = values.next_tagint() + id_offset;
       if (itag <= 0 || itag > map_tag_max)
-        error->all(FLERR,"Invalid atom ID {} in {} section of "
-                                     "data file",itag, keyword);
+        error->all(FLERR,"Invalid atom ID {} in {} section of data file",itag, keyword);
 
       // assign words in line to per-atom vectors
 
@@ -301,7 +301,6 @@ void FixPropertyAtom::read_data_section(char *keyword, int n, char *buf,
             atom->ivector[index[j]][m] = values.next_int();
           } else if (style[j] == DVEC) {
             atom->dvector[index[j]][m] = values.next_double();
-          // NOTE: Axel please check these lines of array code
           } else if (style[j] == IARRAY) {
             ncol = cols[j];
             for (k = 0; k < ncol; k++)
@@ -314,8 +313,7 @@ void FixPropertyAtom::read_data_section(char *keyword, int n, char *buf,
         }
       }
     } catch (TokenizerException &e) {
-      error->all(FLERR,"Invalid format in {} section of data "
-                                   "file '{}': {}",keyword, buf,e.what());
+      error->all(FLERR,"Invalid format in {} section of data file '{}': {}",keyword, buf,e.what());
     }
     buf = next + 1;
   }

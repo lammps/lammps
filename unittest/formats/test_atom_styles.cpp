@@ -4648,7 +4648,8 @@ TEST_F(AtomStyleTest, property_atom)
     command("pair_style zero 4.0");
     command("units real");
     command("atom_modify map array");
-    command("fix props all property/atom i_one d_two mol d_three q rmass ghost yes");
+    command("fix props all property/atom i_one d_two mol d_three q rmass "
+            "i2_four 2 d2_five 3 ghost yes");
     command("read_data test_atom_styles.data fix props NULL Properties");
     command("pair_coeff * *");
     END_HIDE_OUTPUT();
@@ -4737,7 +4738,8 @@ TEST_F(AtomStyleTest, property_atom)
     command("clear");
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("atomic"));
     command("read_restart test_atom_styles.restart");
-    command("fix props all property/atom i_one d_two mol d_three q rmass ghost yes");
+    command("fix props all property/atom i_one d_two mol d_three q rmass "
+            "i2_four 2 d2_five 3 ghost yes");
     END_HIDE_OUTPUT();
     expected.natoms           = 2;
     expected.nlocal           = 2;
@@ -4749,7 +4751,11 @@ TEST_F(AtomStyleTest, property_atom)
     expected.has_mass_setflag = true;
     expected.has_sametag      = true;
     expected.has_extra        = true;
-    expected.nextra_store     = 7;
+    expected.has_ivname         = true;
+    expected.has_dvname         = true;
+    expected.has_ianame         = true;
+    expected.has_daname         = true;
+    expected.nextra_store     = 12;
 
     ASSERT_ATOM_STATE_EQ(lmp->atom, expected);
     ASSERT_NE(lmp->atom->avec, nullptr);

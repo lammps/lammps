@@ -180,7 +180,9 @@ atom-ID, the next two are a molecule-ID and a floating point value
 that will be stored in a new property called "flag".  If a per-atom
 array was specified in the fix property/atom commmand then the *N*
 values for that array must be specified consecutively for that
-property on each line.
+property on each line.  Note that the order of values on each line
+corresponds to the order of custom names in the fix property/atom
+command.
 
 Note that the the lines of per-atom properties can be listed in any
 order.  Also note that all the per-atom properties specified by the
@@ -301,12 +303,14 @@ uninterrupted fashion.
 
 .. warning::
 
-   When reading data from a restart file, this fix command has to be specified
-   **exactly** the same way as before. LAMMPS will only check whether a
-   fix is of the same style and has the same fix ID and in case of a match
-   will then try to initialize the fix with the data stored in the binary
-   restart file.  If the fix property/atom command does not match exactly,
-   data can be corrupted or LAMMPS may crash.
+   When reading data from a restart file, this fix command has to be
+   specified **exactly** the same was in the input script that created
+   the restart file. LAMMPS will only check whether a fix is of the
+   same style and has the same fix ID and in case of a match will then
+   try to initialize the fix with the data stored in the binary
+   restart file.  If the names and associated date types in the new
+   fix property/atom command do not match the old one exactly, data
+   can be corrupted or LAMMPS may crash.
 
 None of the :doc:`fix_modify <fix_modify>` options are relevant to
 this fix.  No global or per-atom quantities are stored by this fix for

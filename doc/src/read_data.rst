@@ -66,8 +66,8 @@ simulation.  The file can be ASCII text or a gzipped text file
 (detected by a .gz suffix).  This is one of 3 ways to specify initial
 atom coordinates; see the :doc:`read_restart <read_restart>` and
 :doc:`create_atoms <create_atoms>` commands for alternative methods.
-Also see the explanation of the :doc:`-restart command-line switch <Run_options>` which can convert a restart file to a data
-file.
+Also see the explanation of the :doc:`-restart command-line switch
+<Run_options>` which can convert a restart file to a data file.
 
 This command can be used multiple times to add new atoms and their
 properties to an existing system by using the *add*, *offset*, and
@@ -246,22 +246,22 @@ appear in any order, with a few exceptions as noted below.
 
 The keyword *fix* can be used one or more times.  Each usage specifies
 a fix that will be used to process a specific portion of the data
-file.  Any header line containing *header-string* and any section with
-a name containing *section-string* will be passed to the specified
+file.  Any header line containing *header-string* and any section that
+is an exact match to *section-string* will be passed to the specified
 fix.  See the :doc:`fix property/atom <fix_property_atom>` command for
-an example of a fix that operates in this manner.  The page for
-the fix defines the syntax of the header line(s) and section(s) that
-it reads from the data file.  Note that the *header-string* can be
+an example of a fix that operates in this manner.  The doc page for
+the fix defines the syntax of the header line(s) and section that it
+reads from the data file.  Note that the *header-string* can be
 specified as NULL, in which case no header lines are passed to the
-fix.  This means that it can infer the length of its Section from
+fix.  This means the fix can infer the length of its Section from
 standard header settings, such as the number of atoms.
 
 The formatting of individual lines in the data file (indentation,
 spacing between words and numbers) is not important except that header
 and section keywords (e.g. atoms, xlo xhi, Masses, Bond Coeffs) must
-be capitalized as shown and can't have extra white-space between their
-words - e.g. two spaces or a tab between the 2 words in "xlo xhi" or
-the 2 words in "Bond Coeffs", is not valid.
+be capitalized as shown and cannot have extra white-space between
+their words - e.g. two spaces or a tab between the 2 words in "xlo
+xhi" or the 2 words in "Bond Coeffs", is not valid.
 
 ----------
 

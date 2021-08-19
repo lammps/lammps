@@ -656,9 +656,9 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
     }
   }
 
-  printf("NEWARG %d\n",newarg);
-  for (int i = 0; i < newarg; i++)
-    printf("  arg %d: %s\n",i,earg[i]);
+  //printf("NEWARG %d\n",newarg);
+  //for (int i = 0; i < newarg; i++)
+  //  printf("  arg %d: %s\n",i,earg[i]);
 
   return newarg;
 }

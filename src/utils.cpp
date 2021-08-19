@@ -627,36 +627,32 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
           }
         }
       }
+    }
 
-      // expansion will take place
+    // expansion will take place
 
-      if (expandflag) {
+    if (expandflag) {
 
-        // expand wild card string to nlo/nhi numbers
-        utils::bounds(file, line, wc, 1, nmax, nlo, nhi, lmp->error);
+      // expand wild card string to nlo/nhi numbers
+      utils::bounds(file, line, wc, 1, nmax, nlo, nhi, lmp->error);
 
-        if (newarg + nhi - nlo + 1 > maxarg) {
-          maxarg += nhi - nlo + 1;
-          earg = (char **) lmp->memory->srealloc(earg, maxarg * sizeof(char *), "input:earg");
-        }
+      if (newarg + nhi - nlo + 1 > maxarg) {
+        maxarg += nhi - nlo + 1;
+        earg = (char **) lmp->memory->srealloc(earg, maxarg * sizeof(char *), "input:earg");
+      }
 
-        for (int index = nlo; index <= nhi; index++) {
-          // assemble and duplicate expanded string
-          if (word[1] == '2')
-            earg[newarg] = utils::strdup(fmt::format("{}2_{}[{}]{}", word[0], id, index, tail));
-          else
-            earg[newarg] = utils::strdup(fmt::format("{}_{}[{}]{}", word[0], id, index, tail));
-          newarg++;
-        }
-      } else {
-        // no expansion: duplicate original string
-        if (newarg == maxarg) {
-          maxarg++;
-          earg = (char **) lmp->memory->srealloc(earg, maxarg * sizeof(char *), "input:earg");
-        }
-        earg[newarg] = utils::strdup(word);
+      for (int index = nlo; index <= nhi; index++) {
+        earg[newarg] = utils::strdup(fmt::format("{}2_{}[{}]{}", word[0], id, index, tail));
         newarg++;
       }
+    } else {
+      // no expansion: duplicate original string
+      if (newarg == maxarg) {
+        maxarg++;
+        earg = (char **) lmp->memory->srealloc(earg, maxarg * sizeof(char *), "input:earg");
+      }
+      earg[newarg] = utils::strdup(word);
+      newarg++;
     }
   }
 

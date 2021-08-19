@@ -81,7 +81,7 @@ Syntax
                                radius, diameter, omegax, omegay, omegaz,
                                angmomx, angmomy, angmomz, tqx, tqy, tqz,
                                c_ID, c_ID[I], f_ID, f_ID[I], v_name,
-			       i_name, d_name, i2_name[I], d2_name[I]
+                               i_name, d_name, i2_name[I], d2_name[I]
 
   .. parsed-literal::
 

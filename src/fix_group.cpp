@@ -75,7 +75,7 @@ idregion(nullptr), idvar(nullptr), idprop(nullptr)
       if (iarg+2 > narg) error->all(FLERR,"Illegal group command");
       int flag,cols;
       iprop = atom->find_custom(arg[iarg+1],flag,cols);
-      if (iprop < 1 || cols)
+      if (iprop < 0 || cols)
         error->all(FLERR,"Custom per-atom vector for group dynamic "
 		   "does not exist");
       propflag = 1;

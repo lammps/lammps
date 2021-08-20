@@ -53,7 +53,7 @@ PairTersoffTableOMP::PairTersoffTableOMP(LAMMPS *lmp) :
 PairTersoffTableOMP::~PairTersoffTableOMP()
 {
   if (allocated) {
-    deallocatePreLoops();
+    PairTersoffTableOMP::deallocatePreLoops();
   }
 }
 

@@ -1393,7 +1393,7 @@ class lammps(object):
       id_lmp = (self.c_tagint*n)()
       try:
         id_lmp[:] = id[0:n]
-      except:                           # lgtm [py/catch-base-exception]
+      except ValueError:
         return 0
     else:
       id_lmp = None
@@ -1401,21 +1401,21 @@ class lammps(object):
     type_lmp = (c_int*n)()
     try:
       type_lmp[:] = type[0:n]
-    except:                             # lgtm [py/catch-base-exception]
+    except ValueError:
       return 0
 
     three_n = 3*n
     x_lmp = (c_double*three_n)()
     try:
       x_lmp[:] = x[0:three_n]
-    except:                             # lgtm [py/catch-base-exception]
+    except ValueError:
       return 0
 
     if v:
       v_lmp = (c_double*(three_n))()
       try:
         v_lmp[:] = v[0:three_n]
-      except:                           # lgtm [py/catch-base-exception]
+      except ValueError:
         return 0
     else:
       v_lmp = None
@@ -1424,7 +1424,7 @@ class lammps(object):
       img_lmp = (self.c_imageint*n)()
       try:
         img_lmp[:] = image[0:n]
-      except:                           # lgtm [py/catch-base-exception]
+      except ValueError:
         return 0
     else:
       img_lmp = None

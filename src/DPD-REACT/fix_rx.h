@@ -136,7 +136,7 @@ class FixRX : public Fix {
   //!< ODE Solver diagnostics.
   void odeDiagnostics(void);
 
- private:
+ protected:
   char *kineticsFile;
   char *id_fix_species, *id_fix_species_old;
   class FixPropertyAtom *fix_species, *fix_species_old;

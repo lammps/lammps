@@ -13,17 +13,18 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_gran_hooke_history_kokkos.h"
-#include "kokkos.h"
+
 #include "atom_kokkos.h"
 #include "atom_masks.h"
-#include "memory_kokkos.h"
+#include "error.h"
+#include "fix_neigh_history_kokkos.h"
 #include "force.h"
-#include "neighbor.h"
+#include "kokkos.h"
+#include "memory_kokkos.h"
+#include "modify.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "error.h"
-#include "modify.h"
-#include "fix_neigh_history_kokkos.h"
+#include "neighbor.h"
 #include "update.h"
 
 using namespace LAMMPS_NS;
@@ -67,20 +68,13 @@ void PairGranHookeHistoryKokkos<DeviceType>::init_style()
   // this is so its order in the fix list is preserved
 
   if (history && fix_history == nullptr) {
-    char dnumstr[16];
-    sprintf(dnumstr,"%d",3);
-    char **fixarg = new char*[4];
-    fixarg[0] = (char *) "NEIGH_HISTORY_HH";
-    fixarg[1] = (char *) "all";
+    auto cmd = std::string("NEIGH_HISTORY_HH") + std::to_string(instance_me) + " all ";
     if (execution_space == Device)
-      fixarg[2] = (char *) "NEIGH_HISTORY/KK/DEVICE";
+      cmd += "NEIGH_HISTORY/KK/DEVICE 3";
     else
-      fixarg[2] = (char *) "NEIGH_HISTORY/KK/HOST";
-    fixarg[3] = dnumstr;
-    modify->replace_fix("NEIGH_HISTORY_HH_DUMMY",4,fixarg,1);
-    delete [] fixarg;
-    int ifix = modify->find_fix("NEIGH_HISTORY_HH");
-    fix_history = (FixNeighHistory *) modify->fix[ifix];
+      cmd += "NEIGH_HISTORY/KK/HOST 3";
+    fix_history = (FixNeighHistory *)
+      modify->replace_fix("NEIGH_HISTORY_HH_DUMMY"+std::to_string(instance_me),cmd,1);
     fix_history->pair = this;
     fix_historyKK = (FixNeighHistoryKokkos<DeviceType> *)fix_history;
   }

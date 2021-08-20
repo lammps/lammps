@@ -132,6 +132,7 @@ FixGLD::FixGLD(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR, "Illegal fix gld command");
       }
       if (strcmp(arg[iarg+1],"no") == 0) {
+        zeroflag = 0;
       } else if (strcmp(arg[iarg+1],"yes") == 0) {
         zeroflag = 1;
       } else {
@@ -144,6 +145,7 @@ FixGLD::FixGLD(LAMMPS *lmp, int narg, char **arg) :
           error->all(FLERR, "Illegal fix gld command");
        }
        if (strcmp(arg[iarg+1],"no") == 0) {
+         freezeflag = 0;
        } else if (strcmp(arg[iarg+1],"yes") == 0) {
          freezeflag = 1;
          for (int i = 0; i < atom->nlocal; i++) {

@@ -80,8 +80,8 @@ void NStencilFullMulti3d::create()
       for (k = -sz; k <= sz; k++)
         for (j = -sy; j <= sy; j++)
           for (i = -sx; i <= sx; i++)
-	        if (bin_distance_multi(i,j,k,bin_collection) < cutsq)
-	          stencil_multi[icollection][jcollection][ns++] =
+                if (bin_distance_multi(i,j,k,bin_collection) < cutsq)
+                  stencil_multi[icollection][jcollection][ns++] =
                       k*mbiny*mbinx + j*mbinx + i;
 
       nstencil_multi[icollection][jcollection] = ns;

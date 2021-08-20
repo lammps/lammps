@@ -1222,7 +1222,7 @@ bool Info::has_accelerator_feature(const std::string &package,
     return lmp_gpu_config(category,setting);
   }
 #endif
-#if defined(LMP_USER_OMP)
+#if defined(LMP_OPENMP)
   if (package == "OPENMP") {
     if (category == "precision") {
       if (setting == "double") return true;
@@ -1238,7 +1238,7 @@ bool Info::has_accelerator_feature(const std::string &package,
     }
   }
 #endif
-#if defined(LMP_USER_INTEL)
+#if defined(LMP_INTEL)
   if (package == "INTEL") {
     if (category == "precision") {
       if (setting == "double") return true;

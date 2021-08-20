@@ -309,113 +309,16 @@ void FixReaxFFSpecies::init()
 
   if (!setupflag) {
     // create a compute to store properties
-    create_compute();
+    modify->add_compute("SPECATOM all SPEC/ATOM q x y z vx vy vz abo01 abo02 abo03 abo04 "
+                        "abo05 abo06 abo07 abo08 abo09 abo10 abo11 abo12 abo13 abo14 "
+                        "abo15 abo16 abo17 abo18 abo19 abo20 abo21 abo22 abo23 abo24");
 
     // create a fix to point to fix_ave_atom for averaging stored properties
-    create_fix();
-
+    auto fixcmd = fmt::format("SPECBOND all ave/atom {} {} {}",tmparg[0],tmparg[1],tmparg[2]);
+    for (int i = 1; i < 32; ++i) fixcmd += " c_SPECATOM[" + std::to_string(i) + "]";
+    f_SPECBOND = (FixAveAtom *) modify->add_fix(fixcmd);
     setupflag = 1;
   }
-
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixReaxFFSpecies::create_compute()
-{
-  int narg;
-  char **args;
-
-  narg = 34;
-  args = new char*[narg];
-  args[0]  = (char *) "SPECATOM";
-  args[1]  = (char *) "all";
-  args[2]  = (char *) "SPEC/ATOM";
-  args[3]  = (char *) "q";
-  args[4]  = (char *) "x";
-  args[5]  = (char *) "y";
-  args[6]  = (char *) "z";
-  args[7]  = (char *) "vx";
-  args[8]  = (char *) "vy";
-  args[9]  = (char *) "vz";
-  args[10] = (char *) "abo01";
-  args[11] = (char *) "abo02";
-  args[12] = (char *) "abo03";
-  args[13] = (char *) "abo04";
-  args[14] = (char *) "abo05";
-  args[15] = (char *) "abo06";
-  args[16] = (char *) "abo07";
-  args[17] = (char *) "abo08";
-  args[18] = (char *) "abo09";
-  args[19] = (char *) "abo10";
-  args[20] = (char *) "abo11";
-  args[21] = (char *) "abo12";
-  args[22] = (char *) "abo13";
-  args[23] = (char *) "abo14";
-  args[24] = (char *) "abo15";
-  args[25] = (char *) "abo16";
-  args[26] = (char *) "abo17";
-  args[27] = (char *) "abo18";
-  args[28] = (char *) "abo19";
-  args[29] = (char *) "abo20";
-  args[30] = (char *) "abo21";
-  args[31] = (char *) "abo22";
-  args[32] = (char *) "abo23";
-  args[33] = (char *) "abo24";
-  modify->add_compute(narg,args);
-  delete [] args;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixReaxFFSpecies::create_fix()
-{
-  int narg;
-  char **args;
-
-  narg = 37;
-  args = new char*[narg];
-  args[0]  = (char *) "SPECBOND";
-  args[1]  = (char *) "all";
-  args[2]  = (char *) "ave/atom";
-  args[3]  = tmparg[0];
-  args[4]  = tmparg[1];
-  args[5]  = tmparg[2];
-  args[6]  = (char *) "c_SPECATOM[1]";   // q, array_atoms[i][0]
-  args[7]  = (char *) "c_SPECATOM[2]";   // x, 1
-  args[8]  = (char *) "c_SPECATOM[3]";   // y, 2
-  args[9]  = (char *) "c_SPECATOM[4]";   // z, 3
-  args[10] = (char *) "c_SPECATOM[5]";   // vx, 4
-  args[11] = (char *) "c_SPECATOM[6]";   // vy, 5
-  args[12] = (char *) "c_SPECATOM[7]";   // vz, 6
-  args[13] = (char *) "c_SPECATOM[8]";   // abo01, 7
-  args[14] = (char *) "c_SPECATOM[9]";
-  args[15] = (char *) "c_SPECATOM[10]";
-  args[16] = (char *) "c_SPECATOM[11]";
-  args[17] = (char *) "c_SPECATOM[12]";
-  args[18] = (char *) "c_SPECATOM[13]";
-  args[19] = (char *) "c_SPECATOM[14]";
-  args[20] = (char *) "c_SPECATOM[15]";
-  args[21] = (char *) "c_SPECATOM[16]";
-  args[22] = (char *) "c_SPECATOM[17]";
-  args[23] = (char *) "c_SPECATOM[18]";
-  args[24] = (char *) "c_SPECATOM[19]"; // abo12, 18
-  args[25] = (char *) "c_SPECATOM[20]";
-  args[26] = (char *) "c_SPECATOM[21]";
-  args[27] = (char *) "c_SPECATOM[22]";
-  args[28] = (char *) "c_SPECATOM[23]";
-  args[29] = (char *) "c_SPECATOM[24]";
-  args[30] = (char *) "c_SPECATOM[25]";
-  args[31] = (char *) "c_SPECATOM[26]";
-  args[32] = (char *) "c_SPECATOM[27]";
-  args[33] = (char *) "c_SPECATOM[28]";
-  args[34] = (char *) "c_SPECATOM[29]";
-  args[35] = (char *) "c_SPECATOM[30]";
-  args[36] = (char *) "c_SPECATOM[31]";
-  modify->add_fix(narg,args);
-  f_SPECBOND = (FixAveAtom *) modify->fix[modify->nfix-1];
-  delete [] args;
-
 }
 
 /* ---------------------------------------------------------------------- */

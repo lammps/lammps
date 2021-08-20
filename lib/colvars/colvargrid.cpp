@@ -166,6 +166,14 @@ colvar_grid_gradient::colvar_grid_gradient(std::string &filename)
   }
 
   is >> nd;
+
+  if (nd > 50) {
+    cvm::error("Error: excessive number of dimensions in file \""+
+               filename+"\".  Please ensure that the file is not corrupt.\n",
+               INPUT_ERROR);
+    return;
+  }
+
   mult = nd;
   std::vector<cvm::real> lower_in(nd), widths_in(nd);
   std::vector<int>       nx_in(nd);

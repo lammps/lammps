@@ -48,7 +48,6 @@ class FixTTMGrid : public FixTTM {
   int ngridout;
   int nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in;
   int nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out;
-  double shift;
   double delxinv,delyinv,delzinv;
 
   class GridComm *gc;

@@ -20,6 +20,8 @@ namespace LAMMPS_NS {
 
 class GridComm : protected Pointers {
  public:
+  enum { KSPACE = 0, FIX = 1};     // calling classes
+
   GridComm(class LAMMPS *, MPI_Comm, int, int, int, int, int, int, int, int, int, int, int, int,
            int, int, int);
   GridComm(class LAMMPS *, MPI_Comm, int, int, int, int, int, int, int, int, int, int, int, int,

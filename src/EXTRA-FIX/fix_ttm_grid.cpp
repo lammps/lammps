@@ -87,9 +87,9 @@ void FixTTMGrid::post_force(int /*vflag*/)
   int nlocal = atom->nlocal;
 
   double *boxlo = domain->boxlo;
-  double dxinv = nxnodes/domain->xprd;
-  double dyinv = nxnodes/domain->yprd;
-  double dzinv = nxnodes/domain->zprd;
+  double dxinv = nxgrid/domain->xprd;
+  double dyinv = nygrid/domain->yprd;
+  double dzinv = nzgrid/domain->zprd;
 
   // apply damping and thermostat to all atoms in fix group
 
@@ -145,25 +145,27 @@ void FixTTMGrid::end_of_step()
   int nlocal = atom->nlocal;
 
   double *boxlo = domain->boxlo;
-  double dxinv = nxnodes/domain->xprd;
-  double dyinv = nxnodes/domain->yprd;
-  double dzinv = nxnodes/domain->zprd;
+  double dxinv = nxgrid/domain->xprd;
+  double dyinv = nygrid/domain->yprd;
+  double dzinv = nzgrid/domain->zprd;
   double volgrid = 1.0 / (dxinv*dyinv*dzinv);
 
+  outflag = 0;
   memset(&net_energy_transfer[nzlo_out][nylo_out][nxlo_out],0,
          ngridout*sizeof(double));
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      ix = static_cast<int> ((x[i][0]-boxlo[0])*dxinv+shift) - OFFSET;
-      iy = static_cast<int> ((x[i][1]-boxlo[1])*dyinv+shift) - OFFSET;
-      iz = static_cast<int> ((x[i][2]-boxlo[2])*dzinv+shift) - OFFSET;
+      ix = static_cast<int> ((x[i][0]-boxlo[0])*dxinv + shift) - OFFSET;
+      iy = static_cast<int> ((x[i][1]-boxlo[1])*dyinv + shift) - OFFSET;
+      iz = static_cast<int> ((x[i][2]-boxlo[2])*dzinv + shift) - OFFSET;
       net_energy_transfer[iz][iy][ix] +=
         (flangevin[i][0]*v[i][0] + flangevin[i][1]*v[i][1] +
          flangevin[i][2]*v[i][2]);
     }
 
-  gc->reverse_comm(1,this,1,sizeof(double),0,gc_buf1,gc_buf2,MPI_DOUBLE);
+  gc->reverse_comm(GridComm::FIX,this,1,sizeof(double),0,
+                   gc_buf1,gc_buf2,MPI_DOUBLE);
 
   // num_inner_timesteps = # of inner steps (thermal solves)
   // required this MD step to maintain a stable explicit solve
@@ -186,8 +188,7 @@ void FixTTMGrid::end_of_step()
 
   // finite difference iterations to update T_electron
 
-  for (int ith_inner_timestep = 0; ith_inner_timestep < num_inner_timesteps;
-       ith_inner_timestep++) {
+  for (int istep = 0; istep < num_inner_timesteps; istep++) {
 
     memcpy(&T_electron_old[nzlo_out][nylo_out][nxlo_out],
            &T_electron[nzlo_out][nylo_out][nxlo_out],ngridout*sizeof(double));
@@ -229,7 +230,8 @@ void FixTTMGrid::end_of_step()
 
   // communicate new T_electron values to ghost grid points
 
-  gc->forward_comm(1,this,1,sizeof(double),0,gc_buf1,gc_buf2,MPI_DOUBLE);
+  gc->forward_comm(GridComm::FIX,this,1,sizeof(double),0,
+                   gc_buf1,gc_buf2,MPI_DOUBLE);
 
   // assign electron temperature to each atom for fix output
 
@@ -266,7 +268,7 @@ void FixTTMGrid::read_electron_temperatures(const char *filename)
  
   char **values = new char*[4];
   char *buffer = new char[CHUNK*MAXLINE];
-  bigint ntotal = (bigint) nxnodes * nynodes * nznodes;
+  bigint ntotal = (bigint) nxgrid * nygrid * nzgrid;
   bigint nread = 0;
   char *buf,*next;
 
@@ -301,8 +303,8 @@ void FixTTMGrid::read_electron_temperatures(const char *filename)
       iy = utils::inumeric(FLERR,values[1],false,lmp);
       iz = utils::inumeric(FLERR,values[2],false,lmp);
 
-      if (ix < 0 || ix >= nxnodes || iy < 0 || iy >= nynodes ||
-          iz < 0 || iz >= nznodes)
+      if (ix < 0 || ix >= nxgrid || iy < 0 || iy >= nygrid ||
+          iz < 0 || iz >= nzgrid)
         error->all(FLERR,"Fix ttm/grid invalid node index in input");
       
       if (ix >= nxlo_in && ix <= nxhi_in &&
@@ -342,7 +344,8 @@ void FixTTMGrid::read_electron_temperatures(const char *filename)
 
   // communicate new T_electron values to ghost grid points
 
-  gc->forward_comm(1,this,1,sizeof(double),0,gc_buf1,gc_buf2,MPI_DOUBLE);
+  gc->forward_comm(GridComm::FIX,this,1,sizeof(double),0,
+                   gc_buf1,gc_buf2,MPI_DOUBLE);
 }
 
 /* ----------------------------------------------------------------------
@@ -408,40 +411,40 @@ void FixTTMGrid::allocate_grid()
   //   global grid that I own without ghost cells
   // both non-tiled and tiled proc layouts use 0-1 fractional subdomain info
 
+  // NOTE: replace with comm->partition_grid()
+
   if (comm->layout != Comm::LAYOUT_TILED) {
-    nxlo_in = static_cast<int> (comm->xsplit[comm->myloc[0]] * nxnodes);
-    nxhi_in = static_cast<int> (comm->xsplit[comm->myloc[0]+1] * nxnodes) - 1;
+    nxlo_in = static_cast<int> (comm->xsplit[comm->myloc[0]] * nxgrid);
+    nxhi_in = static_cast<int> (comm->xsplit[comm->myloc[0]+1] * nxgrid) - 1;
 
-    nylo_in = static_cast<int> (comm->ysplit[comm->myloc[1]] * nynodes);
-    nyhi_in = static_cast<int> (comm->ysplit[comm->myloc[1]+1] * nynodes) - 1;
+    nylo_in = static_cast<int> (comm->ysplit[comm->myloc[1]] * nygrid);
+    nyhi_in = static_cast<int> (comm->ysplit[comm->myloc[1]+1] * nygrid) - 1;
 
-    nzlo_in = static_cast<int> (comm->zsplit[comm->myloc[2]] * nznodes);
-    nzhi_in = static_cast<int> (comm->zsplit[comm->myloc[2]+1] * nznodes) - 1;
+    nzlo_in = static_cast<int> (comm->zsplit[comm->myloc[2]] * nzgrid);
+    nzhi_in = static_cast<int> (comm->zsplit[comm->myloc[2]+1] * nzgrid) - 1;
 
   } else {
-    nxlo_in = static_cast<int> (comm->mysplit[0][0] * nxnodes);
-    nxhi_in = static_cast<int> (comm->mysplit[0][1] * nxnodes) - 1;
+    nxlo_in = static_cast<int> (comm->mysplit[0][0] * nxgrid);
+    nxhi_in = static_cast<int> (comm->mysplit[0][1] * nxgrid) - 1;
 
-    nylo_in = static_cast<int> (comm->mysplit[1][0] * nynodes);
-    nyhi_in = static_cast<int> (comm->mysplit[1][1] * nynodes) - 1;
+    nylo_in = static_cast<int> (comm->mysplit[1][0] * nygrid);
+    nyhi_in = static_cast<int> (comm->mysplit[1][1] * nygrid) - 1;
 
-    nzlo_in = static_cast<int> (comm->mysplit[1][0] * nznodes);
-    nzhi_in = static_cast<int> (comm->mysplit[1][1] * nznodes) - 1;
+    nzlo_in = static_cast<int> (comm->mysplit[1][0] * nzgrid);
+    nzhi_in = static_cast<int> (comm->mysplit[1][1] * nzgrid) - 1;
   }
 
   // nlo,nhi = min/max index of global grid pt my owned atoms can be mapped to
   // finite difference stencil requires extra grid pt around my owned grid pts
-  // max of these 2 quantities is the ghost cells needed in each di
+  // max of these 2 quantities is the ghost cells needed in each dim
   // nlo_out,nhi_out = nlo_in,nhi_in + ghost cells
 
   double *boxlo = domain->boxlo;
   double *sublo = domain->sublo;
   double *subhi = domain->subhi;
-  double dxinv = nxnodes/domain->xprd;
-  double dyinv = nxnodes/domain->yprd;
-  double dzinv = nxnodes/domain->zprd;
-
-  shift = OFFSET + 0.0;    // change this to 0.5 for nearest grid pt
+  double dxinv = nxgrid/domain->xprd;
+  double dyinv = nxgrid/domain->yprd;
+  double dzinv = nxgrid/domain->zprd;
 
   int nlo,nhi;
   double cuthalf = 0.5*neighbor->skin;
@@ -461,10 +464,14 @@ void FixTTMGrid::allocate_grid()
   nzlo_out = MIN(nlo,nzlo_in-1);
   nzhi_out = MAX(nhi,nzhi_in+1);
 
-  ngridout = (nxhi_out-nxlo_out+1) * (nyhi_out-nylo_out+1) * 
+  bigint totalmine;
+  totalmine = (bigint) (nxhi_out-nxlo_out+1) * (nyhi_out-nylo_out+1) * 
     (nzhi_out-nzlo_out+1);
+  if (totalmine > MAXSMALLINT)
+    error->one(FLERR,"Too many owned+ghost grid points in fix ttm");
+  ngridout = totalmine;
 
-  gc = new GridComm(lmp,world,nxnodes,nynodes,nznodes,
+  gc = new GridComm(lmp,world,nxgrid,nygrid,nzgrid,
                     nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
                     nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
 
@@ -531,7 +538,7 @@ void FixTTMGrid::write_restart(FILE *fp)
   int ix,iy,iz;
 
   double *rlist;
-  memory->create(rlist,nxnodes*nynodes*nznodes+1,"TTM:rlist");
+  memory->create(rlist,nxgrid*nygrid*nzgrid+1,"TTM:rlist");
 
   int n = 0;
   rlist[n++] = seed;
@@ -561,27 +568,30 @@ double FixTTMGrid::compute_vector(int n)
 {
   int ix,iy,iz;
 
-  double dx = domain->xprd/nxnodes;
-  double dy = domain->yprd/nynodes;
-  double dz = domain->zprd/nznodes;
-  double volgrid = dx*dy*dz;
+  if (outflag == 0) {
+    double dx = domain->xprd/nxgrid;
+    double dy = domain->yprd/nygrid;
+    double dz = domain->zprd/nzgrid;
+    double volgrid = dx*dy*dz;
 
-  double e_energy_me = 0.0;
-  double transfer_energy_me = 0.0;
+    double e_energy_me = 0.0;
+    double transfer_energy_me = 0.0;
 
-  for (iz = nzlo_in; iz <= nzhi_in; iz++)
-    for (iy = nylo_in; iy <= nyhi_in; iy++)
-      for (ix = nxlo_in; ix <= nxhi_in; ix++) {
-        e_energy_me +=
-          T_electron[iz][iy][ix]*electronic_specific_heat*
-          electronic_density*volgrid;
-        transfer_energy_me +=
-          net_energy_transfer[iz][iy][ix]*update->dt;
-      }
+    for (iz = nzlo_in; iz <= nzhi_in; iz++)
+      for (iy = nylo_in; iy <= nyhi_in; iy++)
+        for (ix = nxlo_in; ix <= nxhi_in; ix++) {
+          e_energy_me +=
+            T_electron[iz][iy][ix]*electronic_specific_heat*
+            electronic_density*volgrid;
+          transfer_energy_me +=
+            net_energy_transfer[iz][iy][ix]*update->dt;
+        }
 
-  double e_energy,transfer_energy;
-  MPI_Allreduce(&e_energy_me,&e_energy,1,MPI_DOUBLE,MPI_SUM,world);
-  MPI_Allreduce(&transfer_energy_me,&transfer_energy,1,MPI_DOUBLE,MPI_SUM,world);
+    MPI_Allreduce(&e_energy_me,&e_energy,1,MPI_DOUBLE,MPI_SUM,world);
+    MPI_Allreduce(&transfer_energy_me,&transfer_energy,1,MPI_DOUBLE,
+                  MPI_SUM,world);
+    outflag = 1;
+  }
 
   if (n == 0) return e_energy;
   if (n == 1) return transfer_energy;

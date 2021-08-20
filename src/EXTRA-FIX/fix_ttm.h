@@ -51,9 +51,12 @@ class FixTTM : public Fix {
  protected:
   int nlevels_respa;
   int seed;
-  int nxnodes, nynodes, nznodes;
-  bigint total_nnodes;
+  int nxgrid, nygrid, nzgrid;     // size of global grid
+  int ngridtotal;                 // total size of global grid
   int deallocate_flag;
+  int outflag;
+  double shift;
+  double e_energy,transfer_energy;
 
   class RanMars *random;
   char *infile;

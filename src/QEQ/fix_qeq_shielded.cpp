@@ -40,6 +40,13 @@ using namespace LAMMPS_NS;
 
 FixQEqShielded::FixQEqShielded(LAMMPS *lmp, int narg, char **arg) :
   FixQEq(lmp, narg, arg) {
+  if (narg == 10) {
+    if (strcmp(arg[8],"warn") == 0) {
+      if (strcmp(arg[9],"no") == 0) maxwarn = 0;
+      else if (strcmp(arg[9],"yes") == 0) maxwarn = 1;
+      else error->all(FLERR,"Illegal fix qeq/shielded command");
+    } else error->all(FLERR,"Illegal fix qeq/shielded command");
+  } else if (narg > 8) error->all(FLERR,"Illegal fix qeq/shielded command");
   if (reax_flag) extract_reax();
 }
 
@@ -79,15 +86,14 @@ void FixQEqShielded::init()
 
 void FixQEqShielded::extract_reax()
 {
-  Pair *pair = force->pair_match("^reax/c",0);
-  if (pair == nullptr) error->all(FLERR,"No pair reax/c for fix qeq/shielded");
+  Pair *pair = force->pair_match("^reax..",0);
+  if (pair == nullptr) error->all(FLERR,"No pair reaxff for fix qeq/shielded");
   int tmp;
   chi = (double *) pair->extract("chi",tmp);
   eta = (double *) pair->extract("eta",tmp);
   gamma = (double *) pair->extract("gamma",tmp);
   if (chi == nullptr || eta == nullptr || gamma == nullptr)
-    error->all(FLERR,
-        "Fix qeq/slater could not extract params from pair reax/c");
+    error->all(FLERR, "Fix qeq/shielded could not extract params from pair reaxff");
 }
 
 
@@ -101,7 +107,7 @@ void FixQEqShielded::init_shielding()
   int ntypes = atom->ntypes;
   for (i = 1; i <= ntypes; ++i)
     for (j = 1; j <= ntypes; ++j)
-      shld[i][j] = pow( gamma[i] * gamma[j], -1.5 );
+      shld[i][j] = pow(gamma[i] * gamma[j], -1.5);
 
   if (fabs(swa) > 0.01 && comm->me == 0)
     error->warning(FLERR,"Fix qeq has non-zero lower Taper radius cutoff");
@@ -110,7 +116,7 @@ void FixQEqShielded::init_shielding()
   else if (swb < 5 && comm->me == 0)
     error->warning(FLERR,"Fix qeq has very low Taper radius cutoff");
 
-  d7 = pow( swb - swa, 7 );
+  d7 = pow(swb - swa, 7);
   swa2 = swa*swa;
   swa3 = swa2*swa;
   swb2 = swb*swb;
@@ -119,12 +125,12 @@ void FixQEqShielded::init_shielding()
   Tap[7] =  20.0 / d7;
   Tap[6] = -70.0 * (swa + swb) / d7;
   Tap[5] =  84.0 * (swa2 + 3.0*swa*swb + swb2) / d7;
-  Tap[4] = -35.0 * (swa3 + 9.0*swa2*swb + 9.0*swa*swb2 + swb3 ) / d7;
-  Tap[3] = 140.0 * (swa3*swb + 3.0*swa2*swb2 + swa*swb3 ) / d7;
+  Tap[4] = -35.0 * (swa3 + 9.0*swa2*swb + 9.0*swa*swb2 + swb3) / d7;
+  Tap[3] = 140.0 * (swa3*swb + 3.0*swa2*swb2 + swa*swb3) / d7;
   Tap[2] =-210.0 * (swa3*swb2 + swa2*swb3) / d7;
   Tap[1] = 140.0 * swa3 * swb3 / d7;
   Tap[0] = (-35.0*swa3*swb2*swb2 + 21.0*swa2*swb3*swb2 -
-            7.0*swa*swb3*swb3 + swb3*swb3*swb ) / d7;
+            7.0*swa*swb3*swb3 + swb3*swb3*swb) / d7;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -143,6 +149,7 @@ void FixQEqShielded::pre_force(int /*vflag*/)
   init_matvec();
   matvecs = CG(b_s, s);         // CG on s - parallel
   matvecs += CG(b_t, t);        // CG on t - parallel
+  matvecs /= 2;
   calculate_Q();
 
   if (force->kspace) force->kspace->qsum_qsq();
@@ -163,18 +170,18 @@ void FixQEqShielded::init_matvec()
   for (ii = 0; ii < inum; ++ii) {
     i = ilist[ii];
     if (atom->mask[i] & groupbit) {
-      Hdia_inv[i] = 1. / eta[ atom->type[i] ];
-      b_s[i]      = -( chi[atom->type[i]] + chizj[i] );
+      Hdia_inv[i] = 1. / eta[atom->type[i]];
+      b_s[i]      = -(chi[atom->type[i]] + chizj[i]);
       b_t[i]      = -1.0;
-      t[i] = t_hist[i][2] + 3 * ( t_hist[i][0] - t_hist[i][1] );
+      t[i] = t_hist[i][2] + 3 * (t_hist[i][0] - t_hist[i][1]);
       s[i] = 4*(s_hist[i][0]+s_hist[i][2])-(6*s_hist[i][1]+s_hist[i][3]);
     }
   }
 
   pack_flag = 2;
-  comm->forward_comm_fix(this); //Dist_vector( s );
+  comm->forward_comm_fix(this); //Dist_vector(s);
   pack_flag = 3;
-  comm->forward_comm_fix(this); //Dist_vector( t );
+  comm->forward_comm_fix(this); //Dist_vector(t);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -217,7 +224,7 @@ void FixQEqShielded::compute_H()
         if (r_sqr <= cutoff_sq) {
           H.jlist[m_fill] = j;
           r = sqrt(r_sqr);
-          H.val[m_fill] = 0.5 * calculate_H( r, shld[type[i]][type[j]] );
+          H.val[m_fill] = 0.5 * calculate_H(r, shld[type[i]][type[j]]);
           m_fill++;
         }
       }
@@ -232,7 +239,7 @@ void FixQEqShielded::compute_H()
 
 /* ---------------------------------------------------------------------- */
 
-double FixQEqShielded::calculate_H( double r, double gamma )
+double FixQEqShielded::calculate_H(double r, double gamma)
 {
   double Taper, denom;
 

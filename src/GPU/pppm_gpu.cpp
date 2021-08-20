@@ -106,6 +106,8 @@ PPPMGPU::PPPMGPU(LAMMPS *lmp) : PPPM(lmp)
 PPPMGPU::~PPPMGPU()
 {
   PPPM_GPU_API(clear)(poisson_time);
+  destroy_3d_offset(density_brick_gpu,nzlo_out,nylo_out);
+  destroy_3d_offset(vd_brick,nzlo_out,nylo_out);
 }
 
 /* ----------------------------------------------------------------------

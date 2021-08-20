@@ -20,25 +20,24 @@
 
 #include "pair_granular.h"
 
-#include <cmath>
-#include <cstring>
-
 #include "atom.h"
-#include "force.h"
-#include "update.h"
-#include "modify.h"
+#include "comm.h"
+#include "error.h"
 #include "fix.h"
 #include "fix_dummy.h"
 #include "fix_neigh_history.h"
-#include "comm.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "memory.h"
-#include "error.h"
+#include "force.h"
 #include "math_const.h"
 #include "math_special.h"
+#include "memory.h"
+#include "modify.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "update.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -103,15 +102,15 @@ PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp)
   // this is so final order of Modify:fix will conform to input script
 
   fix_history = nullptr;
-  modify->add_fix("NEIGH_HISTORY_GRANULAR_DUMMY all DUMMY");
-  fix_dummy = (FixDummy *) modify->fix[modify->nfix-1];
+  fix_dummy = (FixDummy *) modify->add_fix("NEIGH_HISTORY_GRANULAR_DUMMY all DUMMY");
 }
 
 /* ---------------------------------------------------------------------- */
 
 PairGranular::~PairGranular()
 {
-  delete [] svector;
+  delete[] svector;
+  delete[] history_transfer_factors;
 
   if (!fix_history) modify->delete_fix("NEIGH_HISTORY_GRANULAR_DUMMY");
   else modify->delete_fix("NEIGH_HISTORY_GRANULAR");
@@ -1122,21 +1121,21 @@ void PairGranular::init_style()
   // this is so its order in the fix list is preserved
 
   if (use_history && fix_history == nullptr) {
-    modify->replace_fix("NEIGH_HISTORY_GRANULAR_DUMMY","NEIGH_HISTORY_GRANULAR"
-                        " all NEIGH_HISTORY " + std::to_string(size_history),1);
-    int ifix = modify->find_fix("NEIGH_HISTORY_GRANULAR");
-    fix_history = (FixNeighHistory *) modify->fix[ifix];
+    fix_history = (FixNeighHistory *) modify->replace_fix("NEIGH_HISTORY_GRANULAR_DUMMY",
+                                                          "NEIGH_HISTORY_GRANULAR"
+                                                          " all NEIGH_HISTORY "
+                                                          + std::to_string(size_history),1);
     fix_history->pair = this;
   }
 
   // check for FixFreeze and set freeze_group_bit
 
-  for (i = 0; i < modify->nfix; i++)
-    if (strcmp(modify->fix[i]->style,"freeze") == 0) break;
-  if (i < modify->nfix) freeze_group_bit = modify->fix[i]->groupbit;
-  else freeze_group_bit = 0;
+  int ifix = modify->find_fix_by_style("^freeze");
+  if (ifix < 0) freeze_group_bit = 0;
+  else freeze_group_bit = modify->fix[ifix]->groupbit;
 
   // check for FixRigid so can extract rigid body masses
+  // FIXME: this only catches the first rigid fix, there may be multiple.
 
   fix_rigid = nullptr;
   for (i = 0; i < modify->nfix; i++)
@@ -1145,15 +1144,8 @@ void PairGranular::init_style()
 
   // check for FixPour and FixDeposit so can extract particle radii
 
-  int ipour;
-  for (ipour = 0; ipour < modify->nfix; ipour++)
-    if (strcmp(modify->fix[ipour]->style,"pour") == 0) break;
-  if (ipour == modify->nfix) ipour = -1;
-
-  int idep;
-  for (idep = 0; idep < modify->nfix; idep++)
-    if (strcmp(modify->fix[idep]->style,"deposit") == 0) break;
-  if (idep == modify->nfix) idep = -1;
+  int ipour = modify->find_fix_by_style("^pour");
+  int idep  = modify->find_fix_by_style("^deposit");
 
   // set maxrad_dynamic and maxrad_frozen for each type
   // include future FixPour and FixDeposit particles as dynamic
@@ -1187,10 +1179,8 @@ void PairGranular::init_style()
     }
   }
 
-  MPI_Allreduce(&onerad_dynamic[1],&maxrad_dynamic[1],atom->ntypes,
-                MPI_DOUBLE,MPI_MAX,world);
-  MPI_Allreduce(&onerad_frozen[1],&maxrad_frozen[1],atom->ntypes,
-                MPI_DOUBLE,MPI_MAX,world);
+  MPI_Allreduce(&onerad_dynamic[1],&maxrad_dynamic[1],atom->ntypes,MPI_DOUBLE,MPI_MAX,world);
+  MPI_Allreduce(&onerad_frozen[1],&maxrad_frozen[1],atom->ntypes,MPI_DOUBLE,MPI_MAX,world);
 
   // set fix which stores history info
 

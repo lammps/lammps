@@ -24,18 +24,61 @@
 #include "colvarproxy.h"
 #include "colvarscript.h"
 #include "colvaratoms.h"
+#include "colvarmodule_utils.h"
 
 
 
 colvarproxy_system::colvarproxy_system()
 {
   angstrom_value = 0.0;
+  kcal_mol_value = 0.0;
+  boundaries_type = boundaries_unsupported;
   total_force_requested = false;
   reset_pbc_lattice();
 }
 
 
 colvarproxy_system::~colvarproxy_system() {}
+
+
+int colvarproxy_system::set_unit_system(std::string const & /* units */,
+                                        bool /* check_only */)
+{
+  return COLVARS_NOT_IMPLEMENTED;
+}
+
+
+cvm::real colvarproxy_system::backend_angstrom_value()
+{
+  return 1.0;
+}
+
+
+cvm::real colvarproxy_system::boltzmann()
+{
+  return 0.001987191;
+}
+
+
+cvm::real colvarproxy_system::temperature()
+{
+  // TODO define, document and implement a user method to set the value of this
+  return 300.0;
+}
+
+
+cvm::real colvarproxy_system::dt()
+{
+  // TODO define, document and implement a user method to set the value of this
+  return 1.0;
+}
+
+
+cvm::real colvarproxy_system::rand_gaussian()
+{
+  // TODO define, document and implement a user method to set the value of this
+  return 0.0;
+}
 
 
 void colvarproxy_system::add_energy(cvm::real /* energy */) {}
@@ -139,9 +182,31 @@ int colvarproxy_system::get_molid(int &)
 }
 
 
+int colvarproxy_system::get_alch_lambda(cvm::real* lambda)
+{
+  return cvm::error("Error in get_alch_lambda: alchemical lambda dynamics is not supported by this build.",
+    COLVARS_NOT_IMPLEMENTED);
+}
+
+
+int colvarproxy_system::set_alch_lambda(cvm::real* lambda)
+{
+  return cvm::error("Error in set_alch_lambda: alchemical lambda dynamics is not supported by this build.",
+    COLVARS_NOT_IMPLEMENTED);
+}
+
+
+int colvarproxy_system::get_dE_dLambda(cvm::real* force)
+{
+  return cvm::error("Error in get_dE_dLambda: alchemical lambda dynamics is not supported by this build.",
+    COLVARS_NOT_IMPLEMENTED);
+}
+
 
 colvarproxy_atoms::colvarproxy_atoms()
 {
+  atoms_rms_applied_force_ = atoms_max_applied_force_ = 0.0;
+  atoms_max_applied_force_id_ = -1;
   updated_masses_ = updated_charges_ = false;
 }
 
@@ -175,6 +240,18 @@ int colvarproxy_atoms::add_atom_slot(int atom_id)
   atoms_total_forces.push_back(cvm::rvector(0.0, 0.0, 0.0));
   atoms_new_colvar_forces.push_back(cvm::rvector(0.0, 0.0, 0.0));
   return (atoms_ids.size() - 1);
+}
+
+
+int colvarproxy_atoms::init_atom(int /* atom_number */)
+{
+  return COLVARS_NOT_IMPLEMENTED;
+}
+
+
+int colvarproxy_atoms::check_atom_id(int /* atom_number */)
+{
+  return COLVARS_NOT_IMPLEMENTED;
 }
 
 
@@ -232,8 +309,39 @@ int colvarproxy_atoms::load_coords(char const * /* filename */,
 }
 
 
+void colvarproxy_atoms::compute_rms_atoms_applied_force()
+{
+  atoms_rms_applied_force_ =
+    compute_norm2_stats<cvm::rvector, 0, false>(atoms_new_colvar_forces);
+}
 
-colvarproxy_atom_groups::colvarproxy_atom_groups() {}
+
+void colvarproxy_atoms::compute_max_atoms_applied_force()
+{
+  int minmax_index = -1;
+  size_t const n_atoms_ids = atoms_ids.size();
+  if ((n_atoms_ids > 0) && (n_atoms_ids == atoms_new_colvar_forces.size())) {
+    atoms_max_applied_force_ =
+      compute_norm2_stats<cvm::rvector, 1, true>(atoms_new_colvar_forces,
+                                                 &minmax_index);
+    if (minmax_index >= 0) {
+      atoms_max_applied_force_id_ = atoms_ids[minmax_index];
+    } else {
+      atoms_max_applied_force_id_ = -1;
+    }
+  } else {
+    atoms_max_applied_force_ =
+      compute_norm2_stats<cvm::rvector, 1, false>(atoms_new_colvar_forces);
+    atoms_max_applied_force_id_ = -1;
+  }
+}
+
+
+
+colvarproxy_atom_groups::colvarproxy_atom_groups()
+{
+  atom_groups_rms_applied_force_ = atom_groups_max_applied_force_ = 0.0;
+}
 
 
 colvarproxy_atom_groups::~colvarproxy_atom_groups()
@@ -293,6 +401,20 @@ void colvarproxy_atom_groups::clear_atom_group(int index)
   if (atom_groups_ncopies[index] > 0) {
     atom_groups_ncopies[index] -= 1;
   }
+}
+
+
+void colvarproxy_atom_groups::compute_rms_atom_groups_applied_force()
+{
+  atom_groups_rms_applied_force_ =
+    compute_norm2_stats<cvm::rvector, 0, false>(atom_groups_new_colvar_forces);
+}
+
+
+void colvarproxy_atom_groups::compute_max_atom_groups_applied_force()
+{
+  atom_groups_max_applied_force_ =
+    compute_norm2_stats<cvm::rvector, 1, false>(atom_groups_new_colvar_forces);
 }
 
 
@@ -464,26 +586,12 @@ int colvarproxy_smp::smp_unlock()
 colvarproxy_script::colvarproxy_script()
 {
   script = NULL;
+  force_script_defined = false;
+  have_scripts = false;
 }
 
 
 colvarproxy_script::~colvarproxy_script() {}
-
-
-char const *colvarproxy_script::script_obj_to_str(unsigned char *obj)
-{
-  cvm::error("Error: trying to print a script object without a scripting "
-             "language interface.\n", BUG_ERROR);
-  return reinterpret_cast<char *>(obj);
-}
-
-
-std::vector<std::string> colvarproxy_script::script_obj_to_str_vector(unsigned char * /* obj */)
-{
-  cvm::error("Error: trying to print a script object without a scripting "
-             "language interface.\n", BUG_ERROR);
-  return std::vector<std::string>();
-}
 
 
 int colvarproxy_script::run_force_callback()
@@ -512,6 +620,7 @@ int colvarproxy_script::run_colvar_gradient_callback(std::string const & /* name
 colvarproxy_io::colvarproxy_io()
 {
   input_buffer_ = NULL;
+  restart_frequency_engine = 0;
 }
 
 
@@ -660,6 +769,23 @@ int colvarproxy::update_output()
 }
 
 
+int colvarproxy::end_of_step()
+{
+  // Disable flags that Colvars doesn't need any more
+  updated_masses_ = updated_charges_ = false;
+
+  // Compute force statistics
+  compute_rms_atoms_applied_force();
+  compute_max_atoms_applied_force();
+  compute_rms_atom_groups_applied_force();
+  compute_max_atom_groups_applied_force();
+  compute_rms_volmaps_applied_force();
+  compute_max_volmaps_applied_force();
+
+  return COLVARS_OK;
+}
+
+
 int colvarproxy::post_run()
 {
   int error_code = COLVARS_OK;
@@ -669,6 +795,19 @@ int colvarproxy::post_run()
   }
   error_code |= flush_output_streams();
   return error_code;
+}
+
+
+void colvarproxy::log(std::string const &message)
+{
+  fprintf(stdout, "colvars: %s", message.c_str());
+}
+
+
+void colvarproxy::error(std::string const &message)
+{
+  // TODO handle errors?
+  colvarproxy::log(message);
 }
 
 

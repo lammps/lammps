@@ -70,7 +70,7 @@ This compute calculates a global vector of
 length 6, which can be accessed by indices 1-6. The first three values are the
 eigenvalues of the gyration tensor followed by the asphericity, the acylindricity
 and the relative shape anisotropy.  The computed values can be used by any command
-that uses global  vector values from a compute as input.  See the :doc:`Howto output <Howto_output>` doc page for an overview of LAMMPS output
+that uses global  vector values from a compute as input.  See the :doc:`Howto output <Howto_output>` page for an overview of LAMMPS output
 options.
 
 The vector values calculated by this compute are
@@ -80,8 +80,8 @@ distance\^2 :doc:`units <units>` while the sixth one is dimensionless.
 Restrictions
 """"""""""""
 
-This compute is part of the USER-MISC package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+This compute is part of the EXTRA-COMPUTE package.  It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

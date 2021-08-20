@@ -130,8 +130,8 @@ Description
 
 This command invokes package-specific settings for the various
 accelerator packages available in LAMMPS.  Currently the following
-packages use settings from this command: GPU, USER-INTEL, KOKKOS, and
-USER-OMP.
+packages use settings from this command: GPU, INTEL, KOKKOS, and
+OPENMP.
 
 If this command is specified in an input script, it must be near the
 top of the script, before the simulation box has been defined.  This
@@ -152,7 +152,7 @@ accelerator settings.
 The KOKKOS package requires a "-k on" :doc:`command-line switch <Run_options>` respectively, which invokes a "package
 kokkos" command with default settings.
 
-For the GPU, USER-INTEL, and USER-OMP packages, if a "-sf gpu" or "-sf
+For the GPU, INTEL, and OPENMP packages, if a "-sf gpu" or "-sf
 intel" or "-sf omp" :doc:`command-line switch <Run_options>` is used to
 auto-append accelerator suffixes to various styles in the input
 script, then those switches also invoke a "package gpu", "package
@@ -166,7 +166,7 @@ intel", or "package omp" command with default settings.
    set, either to default values or to specified settings.  I.e. settings
    from previous invocations do not persist across multiple invocations.
 
-See the :doc:`Speed packages <Speed_packages>` doc page for more details
+See the :doc:`Speed packages <Speed_packages>` page for more details
 about using the various accelerator packages for speeding up LAMMPS
 simulations.
 
@@ -192,8 +192,8 @@ Optional keyword/value pairs can also be specified.  Each has a
 default value as listed below.
 
 The *neigh* keyword specifies where neighbor lists for pair style
-computation will be built.  If *neigh* is *yes*\ , which is the default,
-neighbor list building is performed on the GPU.  If *neigh* is *no*\ ,
+computation will be built.  If *neigh* is *yes*, which is the default,
+neighbor list building is performed on the GPU.  If *neigh* is *no*,
 neighbor list building is performed on the CPU.  GPU neighbor list
 building currently cannot be used with a triclinic box.  GPU neighbor
 lists are not compatible with commands that are not GPU-enabled.  When
@@ -202,7 +202,7 @@ built on the CPU.  In these cases, it will typically be more efficient
 to only use CPU neighbor list builds.
 
 The *newton* keyword sets the Newton flags for pairwise (not bonded)
-interactions to *off* or *on*\ , the same as the :doc:`newton <newton>`
+interactions to *off* or *on*, the same as the :doc:`newton <newton>`
 command allows.  Currently, only an *off* value is allowed, since all
 the GPU package pair styles require this setting.  This means more
 computation is done, but less communication.  In the future a value of
@@ -288,8 +288,8 @@ The *Nthreads* value for the *omp* keyword sets the number of OpenMP
 threads allocated for each MPI task. This setting controls OpenMP
 parallelism only for routines run on the CPUs. For more details on
 setting the number of OpenMP threads, see the discussion of the
-*Nthreads* setting on this doc page for the "package omp" command.
-The meaning of *Nthreads* is exactly the same for the GPU, USER-INTEL,
+*Nthreads* setting on this page for the "package omp" command.
+The meaning of *Nthreads* is exactly the same for the GPU, INTEL,
 and GPU packages.
 
 The *platform* keyword is only used with OpenCL to specify the ID for
@@ -333,7 +333,7 @@ specify additional flags for the runtime build.
 ----------
 
 The *intel* style invokes settings associated with the use of the
-USER-INTEL package.  All of its settings, except the *omp* and *mode*
+INTEL package.  All of its settings, except the *omp* and *mode*
 keywords, are ignored if LAMMPS was not built with Xeon Phi
 co-processor support.  All of its settings, including the *omp* and
 *mode* keyword are applicable if LAMMPS was built with co-processor
@@ -350,14 +350,14 @@ The *Nthreads* value for the *omp* keyword sets the number of OpenMP
 threads allocated for each MPI task. This setting controls OpenMP
 parallelism only for routines run on the CPUs. For more details on
 setting the number of OpenMP threads, see the discussion of the
-*Nthreads* setting on this doc page for the "package omp" command.
-The meaning of *Nthreads* is exactly the same for the GPU, USER-INTEL,
+*Nthreads* setting on this page for the "package omp" command.
+The meaning of *Nthreads* is exactly the same for the GPU, INTEL,
 and GPU packages.
 
 The *mode* keyword determines the precision mode to use for
 computing pair style forces, either on the CPU or on the co-processor,
-when using a USER-INTEL supported :doc:`pair style <pair_style>`.  It
-can take a value of *single*\ , *mixed* which is the default, or
+when using a INTEL supported :doc:`pair style <pair_style>`.  It
+can take a value of *single*, *mixed* which is the default, or
 *double*\ .  *Single* means single precision is used for the entire
 force calculation.  *Mixed* means forces between a pair of atoms are
 computed in single precision, but accumulated and stored in double
@@ -376,7 +376,7 @@ Simultaneous Multithreading (SMT) such as Hyper-Threading (HT) on Intel
 processors. In this mode, one additional thread is generated per MPI
 process. LAMMPS will generate a warning in the case that more threads
 are used than available in SMT hardware on a node. If the PPPM solver
-from the USER-INTEL package is not used, then the LRT setting is
+from the INTEL package is not used, then the LRT setting is
 ignored and no extra threads are generated. Enabling LRT will replace
 the :doc:`run_style <run_style>` with the *verlet/lrt/intel* style that
 is identical to the default *verlet* style aside from supporting the
@@ -448,13 +448,14 @@ does not require atomic operations in the calculation of pair forces. For
 that reason, *full* is the default setting for GPUs. However, when
 running on CPUs, a *half* neighbor list is the default because it are
 often faster, just as it is for non-accelerated pair styles. Similarly,
-the *neigh/qeq* keyword determines how neighbor lists are built for :doc:`fix qeq/reax/kk <fix_qeq_reax>`.
+the *neigh/qeq* keyword determines how neighbor lists are built for
+:doc:`fix qeq/reaxff/kk <fix_qeq_reaxff>`.
 
-If the *neigh/thread* keyword is set to *off*\ , then the KOKKOS package
+If the *neigh/thread* keyword is set to *off*, then the KOKKOS package
 threads only over atoms. However, for small systems, this may not expose
-enough parallelism to keep a GPU busy. When this keyword is set to *on*\ ,
+enough parallelism to keep a GPU busy. When this keyword is set to *on*,
 the KOKKOS package threads over both atoms and neighbors of atoms. When
-using *neigh/thread* *on*\ , a full neighbor list must also be used. Using
+using *neigh/thread* *on*, a full neighbor list must also be used. Using
 *neigh/thread* *on* may be slower for large systems, so this this option
 is turned on by default only when there are 16K atoms or less owned by
 an MPI rank and when using a full neighbor list. Not all KOKKOS-enabled
@@ -463,7 +464,7 @@ simple pair-wise potentials such as Lennard-Jones do support threading
 over both atoms and neighbors.
 
 The *newton* keyword sets the Newton flags for pairwise and bonded
-interactions to *off* or *on*\ , the same as the :doc:`newton <newton>`
+interactions to *off* or *on*, the same as the :doc:`newton <newton>`
 command allows. The default for GPUs is *off* because this will almost
 always give better performance for the KOKKOS package. This means more
 computation is done, but less communication. However, when running on
@@ -530,7 +531,7 @@ performing the exchange pack/unpack on the host CPU can give speedup
 since it reduces the number of CUDA kernel launches.
 
 The *gpu/aware* keyword chooses whether GPU-aware MPI will be used. When
-this keyword is set to *on*\ , buffers in GPU memory are passed directly
+this keyword is set to *on*, buffers in GPU memory are passed directly
 through MPI send/receive calls. This reduces overhead of first copying
 the data to the host CPU. However GPU-aware MPI is not supported on all
 systems, which can lead to segmentation faults and would require using a
@@ -538,7 +539,7 @@ value of *off*\ . If LAMMPS can safely detect that GPU-aware MPI is not
 available (currently only possible with OpenMPI v2.0.0 or later), then
 the *gpu/aware* keyword is automatically set to *off* by default. When
 the *gpu/aware* keyword is set to *off* while any of the *comm*
-keywords are set to *device*\ , the value for these *comm* keywords will
+keywords are set to *device*, the value for these *comm* keywords will
 be automatically changed to *no*\ . This setting has no effect if not
 running on GPUs or if using only one MPI rank. GPU-aware MPI is available
 for OpenMPI 1.8 (or later versions), Mvapich2 1.9 (or later) when the
@@ -556,7 +557,7 @@ result in better performance for certain configurations and system sizes.
 ----------
 
 The *omp* style invokes settings associated with the use of the
-USER-OMP package.
+OPENMP package.
 
 The *Nthreads* argument sets the number of OpenMP threads allocated for
 each MPI task.  For example, if your system has nodes with dual
@@ -595,12 +596,12 @@ for OpenMPI.  Check your MPI documentation for additional details.
 What combination of threads and MPI tasks gives the best performance
 is difficult to predict and can depend on many components of your
 input.  Not all features of LAMMPS support OpenMP threading via the
-USER-OMP package and the parallel efficiency can be very different,
+OPENMP package and the parallel efficiency can be very different,
 too.
 
 .. note::
 
-   If you build LAMMPS with the GPU, USER-INTEL, and / or USER-OMP
+   If you build LAMMPS with the GPU, INTEL, and / or OPENMP
    packages, be aware these packages all allow setting of the *Nthreads*
    value via their package commands, but there is only a single global
    *Nthreads* value used by OpenMP.  Thus if multiple package commands are
@@ -642,14 +643,14 @@ with the GPU package.  See the :doc:`Build package <Build_package>` doc
 page for more info.
 
 The intel style of this command can only be invoked if LAMMPS was
-built with the USER-INTEL package.  See the :doc:`Build package <Build_package>` doc page for more info.
+built with the INTEL package.  See the :doc:`Build package <Build_package>` page for more info.
 
 The kk style of this command can only be invoked if LAMMPS was built
 with the KOKKOS package.  See the :doc:`Build package <Build_package>`
 doc page for more info.
 
 The omp style of this command can only be invoked if LAMMPS was built
-with the USER-OMP package.  See the :doc:`Build package <Build_package>`
+with the OPENMP package.  See the :doc:`Build package <Build_package>`
 doc page for more info.
 
 Related commands
@@ -667,7 +668,7 @@ automatically if the "-sf gpu" :doc:`command-line switch <Run_options>`
 is used.  If it is not used, you must invoke the package gpu command
 in your input script or via the "-pk gpu" :doc:`command-line switch <Run_options>`.
 
-For the USER-INTEL package, the default is Nphi = 1 and the option
+For the INTEL package, the default is Nphi = 1 and the option
 defaults are omp = 0, mode = mixed, lrt = no, balance = -1, tpc = 4,
 tptask = 240.  The default ghost option is determined by the pair
 style being used.  This value is output to the screen in the offload

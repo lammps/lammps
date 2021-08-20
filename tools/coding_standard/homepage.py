@@ -34,7 +34,7 @@ patterns:
 """
 
 def check_homepage(f):
-    pattern = re.compile(r'.*lammps.sandia.gov.*')
+    pattern = re.compile(r'.*lammps.sandia.gov.*')    # lgtm [py/incomplete-hostname-regexp]
     lineno = 1
     errors = set()
 
@@ -48,7 +48,7 @@ def check_homepage(f):
 def check_file(path):
     if path.find('homepage.py') >= 0: return { 'homepage_errors' : '' }
     encoding = 'UTF-8'
-    whitespace_errors = set()
+    homepage_errors = set()
     try:
         with open(path, 'r') as f:
             homepage_errors = check_homepage(f)

@@ -126,7 +126,7 @@ Restrictions
 
 This angle style can only be used if LAMMPS was built with the CLASS2
 package.  For the *class2/p6* style LAMMPS needs to be built with the
-USER-MOFFF package.  See the :doc:`Build package <Build_package>` doc
+MOFFF package.  See the :doc:`Build package <Build_package>` doc
 page for more info.
 
 Related commands

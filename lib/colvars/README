@@ -49,7 +49,7 @@ C++11-only features.
 ## How to build (CMake)
 
 This is the recommended build recipe: no additional settings are normally
-needed besides "-D PKG_USER-COLVARS=yes".
+needed besides "-D PKG_COLVARS=yes".
 
 Building and linking of Lepton (or other C++11-only features) is enabled
 automatically when compilation is carried out with C++11 support, and disabled

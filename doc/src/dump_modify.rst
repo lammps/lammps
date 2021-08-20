@@ -66,7 +66,7 @@ Syntax
        *unwrap* arg = *yes* or *no*
 
 * these keywords apply only to the *image* and *movie* :doc:`styles <dump_image>`
-* keyword = *acolor* or *adiam* or *amap* or *backcolor* or *bcolor* or *bdiam* or *boxcolor* or *color* or *bitrate* or *framerate*
+* keyword = *acolor* or *adiam* or *amap* or *backcolor* or *bcolor* or *bdiam* or *boxcolor* or *color* or *bitrate* or *framerate* or *header*
 
   .. parsed-literal::
 
@@ -113,6 +113,9 @@ Syntax
          rate = target bitrate for movie in kbps
        *framerate* arg = fps
          fps = frames per second for movie
+       *header* arg = *yes* or *no*
+         *yes* to write the header
+         *no* to not write the header
 
 * these keywords apply only to the */gz* and */zstd* dump styles
 * keyword = *compression_level*
@@ -149,8 +152,8 @@ Description
 Modify the parameters of a previously defined dump command.  Not all
 parameters are relevant to all dump styles.
 
-As explained on the :doc:`dump <dump>` doc page, the *atom/mpiio*\ ,
-*custom/mpiio*\ , and *xyz/mpiio* dump styles are identical in command
+As explained on the :doc:`dump <dump>` doc page, the *atom/mpiio*,
+*custom/mpiio*, and *xyz/mpiio* dump styles are identical in command
 syntax and in the format of the dump files they create, to the
 corresponding styles without "mpiio", except the single dump file they
 produce is written in parallel via the MPI-IO library.  Thus if a
@@ -167,9 +170,9 @@ description gives details.
 
 The *append* keyword applies to all dump styles except *cfg* and *xtc*
 and *dcd*\ .  It also applies only to text output files, not to binary
-or gzipped or image/movie files.  If specified as *yes*\ , then dump
+or gzipped or image/movie files.  If specified as *yes*, then dump
 snapshots are appended to the end of an existing dump file.  If
-specified as *no*\ , then a new dump file will be created which will
+specified as *no*, then a new dump file will be created which will
 overwrite an existing file with the same name.
 
 ----------
@@ -177,7 +180,7 @@ overwrite an existing file with the same name.
 The *at* keyword only applies to the *netcdf* dump style.  It can only
 be used if the *append yes* keyword is also used.  The *N* argument is
 the index of which frame to append to.  A negative value can be
-specified for *N*\ , which means a frame counted from the end of the
+specified for *N*, which means a frame counted from the end of the
 file.  The *at* keyword can only be used if the dump_modify command is
 before the first command that causes dump snapshots to be output,
 e.g. a :doc:`run <run>` or :doc:`minimize <minimize>` command.  Once the
@@ -185,13 +188,13 @@ dump file has been opened, this keyword has no further effect.
 
 ----------
 
-The *buffer* keyword applies only to dump styles *atom*\ , *cfg*\ ,
-*custom*\ , *local*\ , and *xyz*\ .  It also applies only to text output
-files, not to binary or gzipped files.  If specified as *yes*\ , which
+The *buffer* keyword applies only to dump styles *atom*, *cfg*,
+*custom*, *local*, and *xyz*\ .  It also applies only to text output
+files, not to binary or gzipped files.  If specified as *yes*, which
 is the default, then each processor writes its output into an internal
 text buffer, which is then sent to the processor(s) which perform file
 writes, and written by those processors(s) as one large chunk of text.
-If specified as *no*\ , each processor sends its per-atom data in binary
+If specified as *no*, each processor sends its per-atom data in binary
 format to the processor(s) which perform file wirtes, and those
 processor(s) format and write it line by line into the output file.
 
@@ -210,16 +213,16 @@ during an equilibration phase.
 
 ----------
 
-The *element* keyword applies only to the dump *cfg*\ , *xyz*\ , and
+The *element* keyword applies only to the dump *cfg*, *xyz*, and
 *image* styles.  It associates element names (e.g. H, C, Fe) with
 LAMMPS atom types.  See the list of element names at the bottom of
 this page.
 
-In the case of dump *cfg*\ , this allows the `AtomEye <atomeye_>`_
+In the case of dump *cfg*, this allows the `AtomEye <atomeye_>`_
 visualization package to read the dump file and render atoms with the
 appropriate size and color.
 
-In the case of dump *image*\ , the output images will follow the same
+In the case of dump *image*, the output images will follow the same
 `AtomEye <atomeye_>`_ convention.  An element name is specified for each
 atom type (1 to Ntype) in the simulation.  The same element name can
 be given to multiple atom types.
@@ -295,7 +298,7 @@ the very first timestep after the dump command is invoked.  This will
 always occur if the current timestep is a multiple of N, the frequency
 specified in the :doc:`dump <dump>` command, including timestep 0.  But
 if this is not the case, a dump snapshot will only be written if the
-setting of this keyword is *yes*\ .  If it is *no*\ , which is the
+setting of this keyword is *yes*\ .  If it is *no*, which is the
 default, then it will not be written.
 
 ----------
@@ -309,7 +312,7 @@ performed with dump style *xtc*\ .
 ----------
 
 The *format* keyword can be used to change the default numeric format output
-by the text-based dump styles: *atom*\ , *local*\ , *custom*\ , *cfg*\ , and
+by the text-based dump styles: *atom*, *local*, *custom*, *cfg*, and
 *xyz* styles, and their MPIIO variants. Only the *line* or *none*
 options can be used with the *atom* and *xyz* styles.
 
@@ -378,7 +381,7 @@ The *fileper* keyword is documented below with the *nfile* keyword.
 ----------
 
 The *image* keyword applies only to the dump *atom* style.  If the
-image value is *yes*\ , 3 flags are appended to each atom's coords which
+image value is *yes*, 3 flags are appended to each atom's coords which
 are the absolute box image of the atom in each dimension.  For
 example, an x image flag of -2 with a normalized coord of 0.5 means
 the atom is in the center of the box, but has passed through the box
@@ -420,7 +423,7 @@ files produced, even if you run for 1000s of steps.
 
 The *nfile* or *fileper* keywords can be used in conjunction with the
 "%" wildcard character in the specified dump file name, for all dump
-styles except the *dcd*\ , *image*\ , *movie*\ , *xtc*\ , and *xyz* styles
+styles except the *dcd*, *image*, *movie*, *xtc*, and *xyz* styles
 (for which "%" is not allowed).  As explained on the :doc:`dump <dump>`
 command doc page, the "%" character causes the dump file to be written
 in pieces, one piece for each of P processors.  By default P = the
@@ -458,7 +461,7 @@ slightly outside the simulation box.  This is because periodic
 boundary conditions are enforced only on timesteps when neighbor lists
 are rebuilt, which will not typically coincide with the timesteps dump
 snapshots are written.  If the setting of this keyword is set to
-*yes*\ , then all atoms will be remapped to the periodic box before the
+*yes*, then all atoms will be remapped to the periodic box before the
 snapshot is written, then restored to their original position.  If it
 is set to *no* they will not be.  The *no* setting is the default
 because it requires no extra computation.
@@ -472,8 +475,8 @@ nanometer accuracy, e.g. for N = 1000, the coordinates are written to
 
 ----------
 
-The *refresh* keyword only applies to the dump *custom*\ , *cfg*\ ,
-*image*\ , and *movie* styles.  It allows an "incremental" dump file to
+The *refresh* keyword only applies to the dump *custom*, *cfg*,
+*image*, and *movie* styles.  It allows an "incremental" dump file to
 be written, by refreshing a compute that is used as a threshold for
 determining which atoms are included in a dump snapshot.  The
 specified *c_ID* gives the ID of the compute.  It is prefixed by "c\_"
@@ -541,8 +544,8 @@ simply do nothing.
 
 ----------
 
-The *region* keyword only applies to the dump *custom*\ , *cfg*\ ,
-*image*\ , and *movie* styles.  If specified, only atoms in the region
+The *region* keyword only applies to the dump *custom*, *cfg*,
+*image*, and *movie* styles.  If specified, only atoms in the region
 will be written to the dump file or included in the image/movie.  Only
 one region can be applied as a filter (the last one specified).  See
 the :doc:`region <region>` command for more details.  Note that a region
@@ -587,7 +590,7 @@ order.
 
 The dump *local* style cannot be sorted by atom ID, since there are
 typically multiple lines of output per atom.  Some dump styles, such
-as *dcd* and *xtc*\ , require sorting by atom ID to format the output
+as *dcd* and *xtc*, require sorting by atom ID to format the output
 file correctly.  If multiple processors are writing the dump file, via
 the "%" wildcard in the dump filename, then sorting cannot be
 performed.
@@ -607,8 +610,8 @@ identical to the values specified by :doc:`thermo_style <thermo_style>`.
 
 ----------
 
-The *thresh* keyword only applies to the dump *custom*\ , *cfg*\ ,
-*image*\ , and *movie* styles.  Multiple thresholds can be specified.
+The *thresh* keyword only applies to the dump *custom*, *cfg*,
+*image*, and *movie* styles.  Multiple thresholds can be specified.
 Specifying *none* turns off all threshold criteria.  If thresholds are
 specified, only atoms whose attributes meet all the threshold criteria
 are written to the dump file or included in the image.  The possible
@@ -623,7 +626,7 @@ produce continuous numeric values or effective Boolean 0/1 values
 which may be useful for the comparison operator.  Boolean values can
 be generated by variable formulas that use comparison or Boolean math
 operators or special functions like gmask() and rmask() and grmask().
-See the :doc:`variable <variable>` command doc page for details.
+See the :doc:`variable <variable>` command page for details.
 
 The specified value must be a simple numeric value or the word LAST.
 If LAST is used, it refers to the value of the attribute the last time
@@ -667,9 +670,9 @@ threshold criterion is met.  Otherwise it is not met.
 
 ----------
 
-The *time* keyword only applies to the dump *atom*\ , *custom*\ , and
-*local* styles (and their COMPRESS package versions *atom/gz*\ ,
-*custom/gz* and *local/gz*\ ). If set to *yes*\ , each frame will will
+The *time* keyword only applies to the dump *atom*, *custom*, and
+*local* styles (and their COMPRESS package versions *atom/gz*,
+*custom/gz* and *local/gz*\ ). If set to *yes*, each frame will will
 contain two extra lines before the "ITEM: TIMESTEP" entry:
 
 .. parsed-literal::
@@ -685,9 +688,9 @@ The default setting is *no*\ .
 
 ----------
 
-The *units* keyword only applies to the dump *atom*\ , *custom*\ , and
-*local* styles (and their COMPRESS package versions *atom/gz*\ ,
-*custom/gz* and *local/gz*\ ). If set to *yes*\ , each individual dump
+The *units* keyword only applies to the dump *atom*, *custom*, and
+*local* styles (and their COMPRESS package versions *atom/gz*,
+*custom/gz* and *local/gz*\ ). If set to *yes*, each individual dump
 file will contain two extra lines at the very beginning with:
 
 .. parsed-literal::
@@ -703,7 +706,7 @@ The default setting is *no*\ .
 ----------
 
 The *unwrap* keyword only applies to the dump *dcd* and *xtc* styles.
-If set to *yes*\ , coordinates will be written "unwrapped" by the image
+If set to *yes*, coordinates will be written "unwrapped" by the image
 flags for each atom.  Unwrapped means that if the atom has passed through
 a periodic boundary one or more times, the value is printed for what
 the coordinate would be if it had not been wrapped back into the
@@ -720,7 +723,7 @@ images.  Some of the keywords only affect the :doc:`dump movie <dump_image>` sty
 ----------
 
 The *acolor* keyword can be used with the :doc:`dump image <dump_image>`
-command, when its atom color setting is *type*\ , to set the color that
+command, when its atom color setting is *type*, to set the color that
 atoms of each type will be drawn in the image.
 
 The specified *type* should be an integer from 1 to Ntypes = the
@@ -744,7 +747,7 @@ of the specified atom types.
 ----------
 
 The *adiam* keyword can be used with the :doc:`dump image <dump_image>`
-command, when its atom diameter setting is *type*\ , to set the size
+command, when its atom diameter setting is *type*, to set the size
 that atoms of each type will be drawn in the image.  The specified
 *type* should be an integer from 1 to Ntypes.  As with the *acolor*
 keyword, a wildcard asterisk can be used as part of the *type*
@@ -773,7 +776,7 @@ There are many possible options for the color map, enabled by the
 *amap* keyword.  Here are the details.
 
 The *lo* and *hi* settings determine the range of values allowed for
-the atom attribute.  If numeric values are used for *lo* and/or *hi*\ ,
+the atom attribute.  If numeric values are used for *lo* and/or *hi*,
 then values that are lower/higher than that value are set to the
 value.  I.e. the range is static.  If *lo* is specified as *min* or
 *hi* as *max* then the range is dynamic, and the lower and/or
@@ -844,7 +847,7 @@ for the color map.
 Here is how the entries are used to determine the color of an
 individual atom, given the value X of its atom attribute.  The entries
 are scanned from first to last.  The first time that *lo* <= X <=
-*hi*\ , X is assigned the color associated with that entry.  You can
+*hi*, X is assigned the color associated with that entry.  You can
 think of the last entry as assigning a default color (since it will
 always be matched by X), and the earlier entries as colors that
 override the default.  Also note that no interpolation of a color RGB
@@ -891,7 +894,7 @@ name defined by the dump_modify color option.
 ----------
 
 The *bcolor* keyword can be used with the :doc:`dump image <dump_image>`
-command, with its *bond* keyword, when its color setting is *type*\ , to
+command, with its *bond* keyword, when its color setting is *type*, to
 set the color that bonds of each type will be drawn in the image.
 
 The specified *type* should be an integer from 1 to Nbondtypes = the
@@ -915,7 +918,7 @@ of the specified bond types.
 ----------
 
 The *bdiam* keyword can be used with the :doc:`dump image <dump_image>`
-command, with its *bond* keyword, when its diam setting is *type*\ , to
+command, with its *bond* keyword, when its diam setting is *type*, to
 set the diameter that bonds of each type will be drawn in the image.
 The specified *type* should be an integer from 1 to Nbondtypes.  As
 with the *bcolor* keyword, a wildcard asterisk can be used as part of
@@ -977,6 +980,13 @@ images less frequently.
 
 ----------
 
+The *header* keyword toggles whether the dump file will include a header.
+Excluding a header will reduce the size of the dump file for fixes such as
+:doc:`fix pair/tracker <fix_pair_tracker>` which do not require the information
+typically written to the header.
+
+----------
+
 The COMPRESS package offers both GZ and Zstd compression variants of styles
 atom, custom, local, cfg, and xyz. When using these styles the compression
 level can be controlled by the :code:`compression_level` parameter. File names
@@ -1014,7 +1024,7 @@ Default
 The option defaults are
 
 * append = no
-* buffer = yes for dump styles *atom*\ , *custom*\ , *loca*\ , and *xyz*
+* buffer = yes for dump styles *atom*, *custom*, *loca*, and *xyz*
 * element = "C" for every atom type
 * every = whatever it was set to via the :doc:`dump <dump>` command
 * fileper = # of processors
@@ -1030,8 +1040,8 @@ The option defaults are
 * precision = 1000
 * region = none
 * scale = yes
-* sort = off for dump styles *atom*\ , *custom*\ , *cfg*\ , and *local*
-* sort = id for dump styles *dcd*\ , *xtc*\ , and *xyz*
+* sort = off for dump styles *atom*, *custom*, *cfg*, and *local*
+* sort = id for dump styles *dcd*, *xtc*, and *xyz*
 * thresh = none
 * units = no
 * unwrap = no

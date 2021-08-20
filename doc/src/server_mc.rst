@@ -27,7 +27,7 @@ expect messages from a separate "client" code that match the *mc*
 protocol for format and content explained below.  For each message
 LAMMPS receives it will send a message back to the client.
 
-The :doc:`Howto client/server <Howto_client_server>` doc page gives an
+The :doc:`Howto client/server <Howto_client_server>` page gives an
 overview of client/server coupling of LAMMPS with another code where
 one code is the "client" and sends request messages to a "server"
 code.  The server responds to each request with a reply message.  This
@@ -39,7 +39,7 @@ signals when it is done sending messages to LAMMPS, at which point the
 loop will exit, and the remainder of the LAMMPS script will be
 processed.
 
-The :doc:`server <server>` doc page gives other options for using LAMMPS
+The :doc:`server <server>` page gives other options for using LAMMPS
 See an example of how this command is used in
 examples/COUPLE/lammps_mc/in.server.
 
@@ -109,7 +109,7 @@ Restrictions
 """"""""""""
 
 This command is part of the MESSAGE package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 A script that uses this command must also use the
 :doc:`message <message>` command to setup the messaging protocol with

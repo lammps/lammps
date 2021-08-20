@@ -64,13 +64,14 @@ class NeighborKokkos : public Neighbor {
   DAT::tdual_int_2d k_dihedrallist;
   DAT::tdual_int_2d k_improperlist;
 
+  int device_flag;
+
  private:
 
   DAT::tdual_x_array x;
   DAT::tdual_x_array xhold;
 
   X_FLOAT deltasq;
-  int device_flag;
 
   void init_cutneighsq_kokkos(int);
   void create_kokkos_list(int);

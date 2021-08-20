@@ -53,7 +53,7 @@ Examples
 Description
 """""""""""
 
-The *lj/mdf*\ , *buck/mdf* and *lennard/mdf* compute the standard 12-6
+The *lj/mdf*, *buck/mdf* and *lennard/mdf* compute the standard 12-6
 Lennard-Jones and Buckingham potential with the addition of a taper
 function that ramps the energy and force smoothly to zero between an
 inner and outer cutoff.
@@ -62,7 +62,7 @@ inner and outer cutoff.
 
    E_{smooth}(r) = E(r)*f(r)
 
-The tapering, *f(r)*\ , is done by using the Mei, Davenport, Fernando
+The tapering, *f(r)*, is done by using the Mei, Davenport, Fernando
 function :ref:`(Mei) <Mei>`.
 
 .. math::
@@ -82,7 +82,7 @@ outer cutoff radius.
 
 ----------
 
-For the *lj/mdf* pair_style, the potential energy, *E(r)*\ , is the
+For the *lj/mdf* pair_style, the potential energy, *E(r)*, is the
 standard 12-6 Lennard-Jones written in the epsilon/sigma form:
 
 .. math::
@@ -104,7 +104,7 @@ described below:
 
 ----------
 
-For the *buck/mdf* pair_style, the potential energy, *E(r)*\ , is the
+For the *buck/mdf* pair_style, the potential energy, *E(r)*, is the
 standard Buckingham potential with three required coefficients.
 The two cutoffs can be omitted and default to the corresponding
 global values:
@@ -121,7 +121,7 @@ global values:
 
 ----------
 
-For the *lennard/mdf* pair_style, the potential energy, *E(r)*\ , is the
+For the *lennard/mdf* pair_style, the potential energy, *E(r)*, is the
 standard 12-6 Lennard-Jones written in the A/B form:
 
 .. math::
@@ -158,8 +158,8 @@ tail corrections to pressure and energy.
 These styles write their information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do not need
 to be specified in an input script that reads a restart file.
 
-These styles can only be used via the *pair* keyword of the :doc:`run_style respa <run_style>` command.  They do not support the *inner*\ ,
-*middle*\ , *outer* keywords.
+These styles can only be used via the *pair* keyword of the :doc:`run_style respa <run_style>` command.  They do not support the *inner*,
+*middle*, *outer* keywords.
 
 ----------
 
@@ -167,7 +167,7 @@ Restrictions
 """"""""""""
 
 These pair styles can only be used if LAMMPS was built with the
-USER-MISC package.  See the :doc:`Build package <Build_package>` doc
+EXTRA-PAIR package.  See the :doc:`Build package <Build_package>` doc
 page for more info.
 
 Related commands

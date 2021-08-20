@@ -36,14 +36,14 @@ Output info
 
 These computes calculate per-node (per-atom) vectors, which can be accessed by
 any command that uses per-atom values from a compute as input, and global
-scalars. See the :doc:`Howto output <Howto_output>` doc page for an overview of
+scalars. See the :doc:`Howto output <Howto_output>` page for an overview of
 LAMMPS output options.
 
 The computed values are provided in energy :doc:`units <units>`.
 
 Restrictions
 """"""""""""
-These computes are part of the USER-MESONT package. They are only enabled if
+These computes are part of the MESONT package. They are only enabled if
 LAMMPS is built with that package. See the :doc:`Build package <Build_package>`
 doc page for more info. In addition, :doc:`mesont pair_style <pair_style>`
 must be used.

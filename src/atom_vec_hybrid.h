@@ -55,6 +55,9 @@ class AtomVecHybrid : public AtomVec {
   void unpack_restart_init(int);
   void create_atom_post(int);
   void data_atom_post(int);
+
+  void data_bonds_post(int, int, tagint, tagint, tagint);
+
   void pack_data_pre(int);
   void pack_data_post(int);
 

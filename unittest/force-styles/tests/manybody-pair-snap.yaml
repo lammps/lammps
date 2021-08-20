@@ -14,7 +14,8 @@ pair_style: hybrid/overlay zbl 4.0 4.8 snap
 pair_coeff: ! |
   1*8 1*8 zbl 73 73
   * * snap Ta06A.snapcoeff Ta06A.snapparam Ta Ta Ta Ta Ta Ta Ta Ta
-extract: ! ""
+extract: ! |
+  scale 2
 natoms: 64
 init_vdwl: -473.569864629026
 init_coul: 0

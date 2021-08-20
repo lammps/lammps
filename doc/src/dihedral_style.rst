@@ -93,7 +93,7 @@ command.
 
 There are also additional accelerated pair styles included in the
 LAMMPS distribution for faster performance on CPUs, GPUs, and KNLs.
-The individual style names on the :ref:`Commands dihedral <dihedral>` doc page are followed by one or
+The individual style names on the :ref:`Commands dihedral <dihedral>` page are followed by one or
 more of (g,i,k,o,t) to indicate which accelerated styles exist.
 
 * :doc:`none <dihedral_none>` - turn off dihedral interactions
@@ -124,7 +124,7 @@ Dihedral styles can only be set for atom styles that allow dihedrals
 to be defined.
 
 Most dihedral styles are part of the MOLECULE package.  They are only
-enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.  The doc pages for
+enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.  The doc pages for
 individual dihedral potentials tell if it is part of a package.
 
 Related commands

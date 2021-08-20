@@ -42,7 +42,7 @@ command, which determines grad(Vstream) in the equation above.
 E.g. the derivative in the y-direction of the Vx component of fluid
 motion or grad(Vstream) = dVx/dy.  The Pxy off-diagonal component of
 the pressure or stress tensor, as calculated by the :doc:`compute pressure <compute_pressure>` command, can also be monitored, which
-is the J term in the equation above.  See the :doc:`Howto nemd <Howto_nemd>` doc page for details on NEMD simulations.
+is the J term in the equation above.  See the :doc:`Howto nemd <Howto_nemd>` page for details on NEMD simulations.
 
 The third method is to perform a reverse non-equilibrium MD simulation
 using the :doc:`fix viscosity <fix_viscosity>` command which implements

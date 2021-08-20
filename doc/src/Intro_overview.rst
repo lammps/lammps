@@ -18,14 +18,15 @@ supercomputers.
 .. _mpi: https://en.wikipedia.org/wiki/Message_Passing_Interface
 .. _lws: https://www.lammps.org
 
-LAMMPS is written in C++.  Earlier versions were written in F77 and
-F90.  See the `History page <https://www.lammps.org/history.html>`_ of
-the website for details.  All versions can be downloaded from the
-`LAMMPS website <lws_>`_.
+LAMMPS is written in C++ and requires a compiler that is at least
+compatible with the C++-11 standard.
+Earlier versions were written in F77 and F90.  See the `History page
+<https://www.lammps.org/history.html>`_ of the website for details.  All
+versions can be downloaded from the `LAMMPS website <lws_>`_.
 
 LAMMPS is designed to be easy to modify or extend with new
 capabilities, such as new force fields, atom types, boundary
-conditions, or diagnostics.  See the :doc:`Modify <Modify>` doc page for
+conditions, or diagnostics.  See the :doc:`Modify <Modify>` page for
 more details.
 
 In the most general sense, LAMMPS integrates Newton's equations of
@@ -41,8 +42,9 @@ short distances, so that the local density of particles never becomes
 too large.  This is in contrast to methods used for modeling plasma
 or gravitational bodies (e.g. galaxy formation).
 
-On parallel machines, LAMMPS uses spatial-decomposition techniques to
-partition the simulation domain into small sub-domains of equal
-computational cost, one of which is assigned to each processor.
-Processors communicate and store "ghost" atom information for atoms
-that border their sub-domain.
+On parallel machines, LAMMPS uses spatial-decomposition techniques with
+MPI parallelization to partition the simulation domain into small
+sub-domains of equal computational cost, one of which is assigned to
+each processor.  Processors communicate and store "ghost" atom
+information for atoms that border their sub-domain.  Multi-threading
+parallelization with with particle-decomposition can be used in addition.

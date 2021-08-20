@@ -1,4 +1,4 @@
-# intel_coprocessor = USER-INTEL package with Phi offload support, Intel MPI, MKL FFT
+# intel_coprocessor = INTEL package with Phi offload support, Intel MPI, MKL FFT
 
 SHELL = /bin/sh
 

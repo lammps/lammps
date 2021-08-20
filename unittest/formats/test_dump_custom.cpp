@@ -143,6 +143,8 @@ TEST_F(DumpCustomTest, compute_run0)
 
 TEST_F(DumpCustomTest, fix_run0)
 {
+    if (!info->has_style("fix", "numdiff")) GTEST_SKIP();
+
     BEGIN_HIDE_OUTPUT();
     command("fix numdiff all numdiff 1 0.0001");
     END_HIDE_OUTPUT();

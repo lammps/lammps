@@ -293,8 +293,7 @@ void PairPolymorphic::compute(int eflag, int vflag)
       f[j][1] -= dely*fpair;
       f[j][2] -= delz*fpair;
 
-      if (evflag) ev_tally(i,j,nlocal,newton_pair,
-                           evdwl,0.0,fpair,delx,dely,delz);
+      if (evflag) ev_tally(i,j,nlocal,newton_pair,evdwl,0.0,fpair,delx,dely,delz);
     }
 
     if (eta == 1) {
@@ -352,7 +351,7 @@ void PairPolymorphic::compute(int eflag, int vflag)
           f[k][1] -= delr2[1]*fpair;
           f[k][2] -= delr2[2]*fpair;
 
-          if (vflag_atom) v_tally2(i, k, -fpair, delr2);
+          if (vflag_either) v_tally2(i, k, -fpair, delr2);
         }
       }
 
@@ -419,8 +418,8 @@ void PairPolymorphic::compute(int eflag, int vflag)
         f[j][1] -= delr1[1]*fpair;
         f[j][2] -= delr1[2]*fpair;
 
-        if (evflag) ev_tally(i,j,nlocal,newton_pair,
-                             evdwl,0.0,-fpair,-delr1[0],-delr1[1],-delr1[2]);
+        if (evflag) ev_tally(i,j,nlocal,newton_pair,evdwl,0.0,
+                             -fpair,-delr1[0],-delr1[1],-delr1[2]);
 
         // attractive term via loop over k
 
@@ -451,7 +450,7 @@ void PairPolymorphic::compute(int eflag, int vflag)
           f[k][1] += fk[1];
           f[k][2] += fk[2];
 
-          if (vflag_atom) v_tally3(i,j,k,fj,fk,delr1,delr2);
+          if (vflag_either) v_tally3(i,j,k,fj,fk,delr1,delr2);
         }
       }
     }

@@ -182,7 +182,7 @@ Examples
    pair_coeff * * 100.0 2.0 1.5 1.0
    pair_coeff 1 1 100.0 2.0 1.5 1.0 3.0
 
-Example input scripts available: examples/USER/fep
+Example input scripts available: examples/PACKAGES/fep
 
 Description
 """""""""""
@@ -259,7 +259,7 @@ LJ and Coulombic cutoffs specified in the pair_style command are used.
 If only one cutoff is specified, it is used as the cutoff for both LJ
 and Coulombic interactions for this type pair.  If both coefficients
 are specified, they are used as the LJ and Coulombic cutoffs for this
-type pair.  You cannot specify 2 cutoffs for style *lj/cut/soft*\ ,
+type pair.  You cannot specify 2 cutoffs for style *lj/cut/soft*,
 since it has no Coulombic terms. For the *coul/cut/soft* and
 *coul/long/soft* only lambda and the optional cutoff2 are to be
 specified.
@@ -290,7 +290,7 @@ activation parameter lambda is introduced as an argument of the the
 :doc:`pair_coeff <pair_coeff>` command, after :math:`\epsilon` and
 :math:`\sigma` and before the optional cutoffs.
 
-The *coul/cut/soft*\ , *coul/long/soft* and *tip4p/long/soft* sub-styles are
+The *coul/cut/soft*, *coul/long/soft* and *tip4p/long/soft* sub-styles are
 designed to be combined with other pair potentials via the :doc:`pair_style
 hybrid/overlay <pair_hybrid>` command.  This is because they have no repulsive
 core.  Hence, if used by themselves, there will be no repulsion to keep two
@@ -304,7 +304,7 @@ the second coefficient.
 .. note::
 
    When using the soft-core Coulomb potentials with long-range solvers (\
-   *coul/long/soft*\ , *lj/cut/coul/long/soft*\ , etc.)  in a free energy
+   *coul/long/soft*, *lj/cut/coul/long/soft*, etc.)  in a free energy
    calculation in which sites holding electrostatic charges are being created or
    annihilated (using :doc:`fix adapt/fep <fix_adapt_fep>` and :doc:`compute fep
    <compute_fep>`) it is important to adapt both the :math:`\lambda` activation
@@ -313,7 +313,7 @@ the second coefficient.
    electrostatic terms (kspace) are correct. It is not necessary to use
    soft-core Coulomb potentials if the van der Waals site is present during the
    free-energy route, thus avoiding overlap of the charges. Examples are
-   provided in the LAMMPS source directory tree, under examples/USER/fep.
+   provided in the LAMMPS source directory tree, under examples/PACKAGES/fep.
 
 .. note::
 
@@ -414,10 +414,10 @@ Restrictions
 """"""""""""
 
 The pair styles with soft core are only enabled if LAMMPS was built with the
-USER-FEP package. The *long* versions also require the KSPACE package to be
+FEP package. The *long* versions also require the KSPACE package to be
 installed. The soft *tip4p* versions also require the MOLECULE package to be
 installed. These styles are only enabled if LAMMPS was built with those
-packages.  See the :doc:`Build package <Build_package>` doc page for more
+packages.  See the :doc:`Build package <Build_package>` page for more
 info.
 
 Related commands

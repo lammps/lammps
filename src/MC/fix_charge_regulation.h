@@ -61,9 +61,9 @@ class FixChargeRegulation : public Fix {
   double
       llength_unit_in_nm;    // LAMMPS unit of length in nm, needed since chemical potentials are in units of mol/l
   double pH, pKa, pKb, pKs, pI_plus,
-      pI_minus;    // chemical potentials and equilibrium constant in log10 base
+      pI_minus;          // chemical potentials and equilibrium constant in log10 base
   double c10pH, c10pKa, c10pKb, c10pOH, c10pI_plus,
-      c10pI_minus;    // 10 raised to chemical potential value, in units of concentration [mol/liter]
+      c10pI_minus;       // 10 raised to chemical potential value, in units of concentration [mol/liter]
   double pmcmoves[3];    // mc move attempt probability: acid, base, ion pair exchange
   double pmcc;           // mc move cumulative attempt probability
   int npart_xrd;         // # of particles (ions) within xrd
@@ -71,17 +71,17 @@ class FixChargeRegulation : public Fix {
   double vlocal_xrd;     // # local volume within xrd
   bool
       only_salt_flag;    // true if performing only salt insertion/deletion, no acid/base dissociation.
-  bool add_tags_flag;     // true if each inserted atom gets its unique atom tag
-  int groupbitall;        // group bitmask for inserted atoms
-  int ngroups;            // number of group-ids for inserted atoms
-  char **groupstrings;    // list of group-ids for inserted atoms
+  bool add_tags_flag;    // true if each inserted atom gets its unique atom tag
+  int groupbitall;       // group bitmask for inserted atoms
+  int ngroups;           // number of group-ids for inserted atoms
+  char **groupstrings;   // list of group-ids for inserted atoms
 
   // counters
   unsigned long int nacid_attempts, nacid_successes, nbase_attempts, nbase_successes,
       nsalt_attempts, nsalt_successes;
   int nacid_neutral, nacid_charged, nbase_neutral, nbase_charged, ncation,
-      nanion;     // particle type counts
-  int cr_nmax;    //  max number of local particles
+      nanion;            // particle type counts
+  int cr_nmax;           //  max number of local particles
   double reservoir_temperature;
   double beta, sigma, volume,
       volume_rx;            // inverse temperature, speed, total volume, reacting volume
@@ -97,8 +97,9 @@ class FixChargeRegulation : public Fix {
   int acid_type, cation_type, base_type, anion_type;    // reacting atom types
   int reaction_distance_flag;                           // radial reaction restriction flag
   double reaction_distance;    // max radial distance from acid/base for ion insertion
+  int pHvar, pHstyle;          // variable pH style
+  char *pHstr;                 // variable pH input parsing
 
-  class Pair *pair;
   class Compute *c_pe;               // energy compute pointer
   class RanPark *random_equal;       // random number generator
   class RanPark *random_unequal;     // random number generator

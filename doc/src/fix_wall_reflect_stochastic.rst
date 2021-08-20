@@ -66,25 +66,25 @@ particle is treated stochastically.  The randomness can come from many
 sources: thermal motion of the wall atoms, surface roughness, etc.
 Three stochastic reflection models are currently implemented.
 
-For rstyle *diffusive*\ , particles are reflected diffusively. Their
+For rstyle *diffusive*, particles are reflected diffusively. Their
 velocity distribution corresponds to an equilibrium distribution of
 particles at the wall temperature.  No accommodation coefficients
 are specified.
 
-For rstyle *maxwell*\ , particle reflection is Maxwellian which means
+For rstyle *maxwell*, particle reflection is Maxwellian which means
 partially diffusive and partially specular (:ref:`Maxwell <Maxwell>`).  A
 single accommodation coeff is specified which must be between 0.0 and
 1.0 inclusive.  It determines the fraction of the collision which is
 diffusive versus specular.  An accommodation coefficient of 1.0 is fully
 diffusive; a coefficient of 0.0 is fully specular.
 
-For rstyle *cll*\ , particle collisions are computed by the
+For rstyle *cll*, particle collisions are computed by the
 Cercignani/Lampis model.  See :ref:`CL <CL>` and :ref:`To <To>` for details.
 Three accommodations coefficient are specified.  Each must be between
 0.0 and 1.0 inclusive.  Two are velocity accommodation coefficients;
 one is a normal kinetic energy accommodation.  The normal coeff is the
 one corresponding to the normal of the wall itself.  For example if
-the wall is *ylo* or *yhi*\ , *accomx* and *accomz* are the tangential
+the wall is *ylo* or *yhi*, *accomx* and *accomz* are the tangential
 velocity accommodation coefficients, and *accomy* is the normal
 kinetic energy accommodation coefficient.
 
@@ -106,8 +106,8 @@ bodies such as those defined by the :doc:`fix rigid <fix_rigid>`
 command.  The wall velocity must lie on the same plane as the wall
 itself.
 
-This fix is part of the USER-MISC package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+This fix is part of the EXTRA-FIX package.  It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

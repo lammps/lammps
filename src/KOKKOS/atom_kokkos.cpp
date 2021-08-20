@@ -265,7 +265,7 @@ int AtomKokkos::add_custom(const char *name, int flag, int cols)
     index = nivector;
     nivector++;
     ivname = (char **) memory->srealloc(ivname,nivector*sizeof(char *),
-					"atom:ivname");
+                                        "atom:ivname");
     int n = strlen(name) + 1;
     ivname[index] = new char[n];
     strcpy(ivname[index],name);
@@ -277,7 +277,7 @@ int AtomKokkos::add_custom(const char *name, int flag, int cols)
     index = ndvector;
     ndvector++;
     dvname = (char **) memory->srealloc(dvname,ndvector*sizeof(char *),
-					"atom:dvname");
+                                        "atom:dvname");
     int n = strlen(name) + 1;
     dvname[index] = new char[n];
     strcpy(dvname[index],name);
@@ -292,12 +292,12 @@ int AtomKokkos::add_custom(const char *name, int flag, int cols)
     index = niarray;
     niarray++;
     ianame = (char **) memory->srealloc(ianame,niarray*sizeof(char *),
-					"atom:ianame");
+                                        "atom:ianame");
     int n = strlen(name) + 1;
     ianame[index] = new char[n];
     strcpy(ianame[index],name);
     iarray = (int ***) memory->srealloc(iarray,niarray*sizeof(int **),
-					"atom:iarray");
+                                        "atom:iarray");
     memory->create(iarray[index],nmax,cols,"atom:iarray");
 
     icols = (int *) memory->srealloc(icols,niarray*sizeof(int),"atom:icols");
@@ -307,12 +307,12 @@ int AtomKokkos::add_custom(const char *name, int flag, int cols)
     index = ndarray;
     ndarray++;
     daname = (char **) memory->srealloc(daname,ndarray*sizeof(char *),
-					"atom:daname");
+                                        "atom:daname");
     int n = strlen(name) + 1;
     daname[index] = new char[n];
     strcpy(daname[index],name);
     darray = (double ***) memory->srealloc(darray,ndarray*sizeof(double **),
-					   "atom:darray");
+                                           "atom:darray");
     memory->create(darray[index],nmax,cols,"atom:darray");
 
     dcols = (int *) memory->srealloc(dcols,ndarray*sizeof(int),"atom:dcols");

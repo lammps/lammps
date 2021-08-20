@@ -28,13 +28,14 @@ class PairHybrid : public Pair {
   friend class ComputeSpin;
   friend class FixGPU;
   friend class FixIntel;
-  friend class FixOMP;
   friend class FixNVESpin;
+  friend class FixOMP;
   friend class Force;
   friend class Info;
   friend class Neighbor;
-  friend class Respa;
   friend class PairDeprecated;
+  friend class Respa;
+  friend class Scafacos;
 
  public:
   PairHybrid(class LAMMPS *);

@@ -37,7 +37,7 @@ where :math:`\theta_0` is the equilibrium value of the angle and
 *lj/sdk* pair style between the atoms 1 and 3.  This angle potential is
 intended for coarse grained MD simulations with the CMM parameterization
 using the :doc:`pair_style lj/sdk <pair_sdk>`.  Relative to the
-pair_style *lj/sdk*\ , however, the energy is shifted by
+pair_style *lj/sdk*, however, the energy is shifted by
 :math:`\epsilon`, to avoid sudden jumps.  Note that the usual 1/2 factor
 is included in :math:`K`.
 
@@ -64,7 +64,7 @@ Restrictions
 """"""""""""
 
 This angle style can only be used if LAMMPS was built with the
-USER-CGSDK package.  See the :doc:`Build package <Build_package>` doc
+CG-SDK package.  See the :doc:`Build package <Build_package>` doc
 page for more info.
 
 Related commands

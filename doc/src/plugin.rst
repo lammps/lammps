@@ -62,7 +62,7 @@ Restrictions
 
 The *plugin* command is part of the PLUGIN package.  It is
 only enabled if LAMMPS was built with that package.
-See the :doc:`Build package <Build_package>` doc page for
+See the :doc:`Build package <Build_package>` page for
 more info. Plugins are not available on Windows.
 
 For the loading of plugins to work the LAMMPS library must be

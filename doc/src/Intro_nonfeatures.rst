@@ -32,7 +32,7 @@ Here are suggestions on how to perform these tasks:
   are simple programs that will build simple molecular systems, such as
   linear bead-spring polymer chains.  The moltemplate program is a true
   molecular builder that will generate complex molecular models.  See
-  the :doc:`Tools <Tools>` doc page for details on tools packaged with
+  the :doc:`Tools <Tools>` page for details on tools packaged with
   LAMMPS.  The `Pre/post processing page <http:/www.lammps.org/prepost.html>`_ of the LAMMPS website
   describes a variety of third party tools for this task.  Furthermore,
   some LAMMPS internal commands allow to reconstruct, or selectively add
@@ -49,7 +49,7 @@ Here are suggestions on how to perform these tasks:
 * **Simulation analysis:** If you want to perform analysis on-the-fly as
   your simulation runs, see the :doc:`compute <compute>` and
   :doc:`fix <fix>` doc pages, which list commands that can be used in a
-  LAMMPS input script.  Also see the :doc:`Modify <Modify>` doc page for
+  LAMMPS input script.  Also see the :doc:`Modify <Modify>` page for
   info on how to add your own analysis code or algorithms to LAMMPS.
   For post-processing, LAMMPS output such as :doc:`dump file snapshots <dump>` can be converted into formats used by other MD or
   post-processing codes.  To some degree, that conversion can be done
@@ -61,7 +61,7 @@ Here are suggestions on how to perform these tasks:
   LAMMPS will do these conversions.  Scripts provided in the
   tools/python directory can extract and massage data in dump files to
   make it easier to import into other programs.  See the
-  :doc:`Tools <Tools>` doc page for details on these various options.
+  :doc:`Tools <Tools>` page for details on these various options.
 * **Visualization:** LAMMPS can produce NETPBM, JPG or PNG snapshot images
   on-the-fly via its :doc:`dump image <dump_image>` command and pass
   them to an external program, `FFmpeg <https://www.ffmpeg.org>`_ to generate
@@ -71,13 +71,13 @@ Here are suggestions on how to perform these tasks:
   LAMMPS website for
   visualization packages that can process LAMMPS output data.
 * **Plotting:** See the next bullet about Pizza.py as well as the
-  :doc:`Python <Python_head>` doc page for examples of plotting LAMMPS
+  :doc:`Python <Python_head>` page for examples of plotting LAMMPS
   output.  Scripts provided with the *python* tool in the tools
   directory will extract and massage data in log and dump files to make
   it easier to analyze and plot.  See the :doc:`Tools <Tools>` doc page
   for more discussion of the various tools.
 * **Pizza.py:** Our group has also written a separate toolkit called
-  `Pizza.py <https://pizza.sandia.gov>`_ which can do certain kinds of
+  `Pizza.py <https://lammps.github.io/pizza>`_ which can do certain kinds of
   setup, analysis, plotting, and visualization (via OpenGL) for LAMMPS
   simulations.  It thus provides some functionality for several of the
   above bullets.  Pizza.py is written in `Python <http://www.python.org>`_

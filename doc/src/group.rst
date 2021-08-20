@@ -41,7 +41,7 @@ Syntax
          keyword = *region* or *var* or *every*
            *region* value = region-ID
            *var* value = name of variable
-           *property* value = name of per-atom property
+           *property* value = name of custom integer or floating point vector
            *every* value = N = update group every this many timesteps
        *static* = no args
 
@@ -113,7 +113,7 @@ Note that this is a static one-time assignment.  The atoms remain
 assigned (or not assigned) to the group even in they later move out of
 the region volume.
 
-The *type*\ , *id*\ , and *molecule* styles put all atoms with the
+The *type*, *id*, and *molecule* styles put all atoms with the
 specified atom types, atom IDs, or molecule IDs into the group.  These
 3 styles can use arguments specified in one of two formats.
 
@@ -181,7 +181,7 @@ pe/atom compute was actually invoked during the run.  Printing the
 thermodynamic info for compute 2 insures that this is the case, since
 it sums the pe/atom compute values (in the reduce compute) to output
 them to the screen.  See the "Variable Accuracy" section of the
-:doc:`variable <variable>` doc page for more details on insuring that
+:doc:`variable <variable>` page for more details on insuring that
 variables are current when they are evaluated between runs.
 
 The *include* style with its arg *molecule* adds atoms to a group that
@@ -226,18 +226,33 @@ simulation runs.  This is in contrast to static groups where atoms are
 permanently assigned to the group.  The way the assignment occurs is
 as follows.  Only atoms in the group specified as the parent group via
 the parent-ID are assigned to the dynamic group before the following
-conditions are applied.  If the *region* keyword is used, atoms not in
-the specified region are removed from the dynamic group.  If the *var*
-keyword is used, the variable name must be an atom-style or
-atomfile-style variable.  The variable is evaluated and atoms whose
-per-atom values are 0.0, are removed from the dynamic group. If the *property*
-keyword is used, the per-atom property name must be a previously defined
-per-atom property.  The per-atom property is evaluated and atoms whose
-values are 0.0 are removed from the dynamic group.
+conditions are applied.
+
+If the *region* keyword is used, atoms not in the specified region are
+removed from the dynamic group.
+
+If the *var* keyword is used, the variable name must be an atom-style
+or atomfile-style variable.  The variable is evaluated and atoms whose
+per-atom values are 0.0, are removed from the dynamic group.
+
+If the *property* keyword is used, the name refers to a custom integer
+or floating point per-atom vector defined via the :doc:`fix
+property/atom <fix_property_atom>` command.  This means the values in
+the vector can be read as part of a data file with the :doc:`read_data
+<read_data>` command or specified with the :doc:`set <set>` command.
+Or accessed and changed via the :doc:`library interface to LAMMPS
+<Howto_library>`, or by styles you add to LAMMPS (pair, fix, compute,
+etc) which access the custom vector and modify its values.  Which
+means the values can be modified between or during simulations.  Atoms
+whose values in the custom vector are zero are removed from the
+dynamic group.  Note that the name of the custom per-atom vector is
+specified just as *name*, not as *i_name* or *d_name* as it is for
+other commands that use different kinds of custom atom vectors or
+arrays as arguments.
 
 The assignment of atoms to a dynamic group is done at the beginning of
-each run and on every timestep that is a multiple of *N*\ , which is the
-argument for the *every* keyword (N = 1 is the default).  For an
+each run and on every timestep that is a multiple of *N*\ , which is
+the argument for the *every* keyword (N = 1 is the default).  For an
 energy minimization, via the :doc:`minimize <minimize>` command, an
 assignment is made at the beginning of the minimization, but not
 during the iterations of the minimizer.

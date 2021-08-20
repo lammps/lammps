@@ -50,7 +50,7 @@ Description
 Establish a messaging protocol between LAMMPS and another code for the
 purpose of client/server coupling.
 
-The :doc:`Howto client/server <Howto_client_server>` doc page gives an
+The :doc:`Howto client/server <Howto_client_server>` page gives an
 overview of client/server coupling of LAMMPS with another code where
 one code is the "client" and sends request messages to a "server"
 code.  The server responds to each request with a reply message.  This
@@ -73,10 +73,10 @@ are:
 * md = run dynamics with another code
 * mc = perform Monte Carlo moves with another code
 
-For protocol *md*\ , LAMMPS can be either a client or server.  See the
-:doc:`server md <server_md>` doc page for details on the protocol.
+For protocol *md*, LAMMPS can be either a client or server.  See the
+:doc:`server md <server_md>` page for details on the protocol.
 
-For protocol *mc*\ , LAMMPS can be the server.  See the :doc:`server mc <server_mc>` doc page for details on the protocol.
+For protocol *mc*, LAMMPS can be the server.  See the :doc:`server mc <server_mc>` page for details on the protocol.
 
 ----------
 
@@ -84,13 +84,13 @@ The *mode* argument specifies how messages are exchanged between the
 client and server codes.  Both codes must use the same mode and use
 consistent parameters.
 
-For mode *file*\ , the 2 codes communicate via binary files.  They must
+For mode *file*, the 2 codes communicate via binary files.  They must
 use the same filename, which is actually a file prefix.  Several files
 with that prefix will be created and deleted as a simulation runs.
 The filename can include a path.  Both codes must be able to access
 the path/file in a common filesystem.
 
-For mode *zmq*\ , the 2 codes communicate via a socket on the server
+For mode *zmq*, the 2 codes communicate via a socket on the server
 code's machine.  Support for socket messaging is provided by the
 open-source `ZeroMQ library <http://zeromq.org>`_, which must be
 installed on your system.  The client specifies an IP address (IPv4
@@ -130,7 +130,7 @@ what the client specifies.
    Additional explanation is needed here about how to use the *zmq*
    mode on a parallel machine, e.g. a cluster with many nodes.
 
-For mode *mpi/one*\ , the 2 codes communicate via MPI and are launched
+For mode *mpi/one*, the 2 codes communicate via MPI and are launched
 by the same mpirun command, e.g. with this syntax for OpenMPI:
 
 .. code-block:: bash
@@ -139,10 +139,10 @@ by the same mpirun command, e.g. with this syntax for OpenMPI:
    mpirun -np 2 othercode args : -np 4 lmp_mpi -mpicolor 1 -in in.server  # LAMMPS is server
 
 Note the use of the "-mpicolor color" command-line argument with
-LAMMPS.  See the :doc:`command-line args <Run_options>` doc page for
+LAMMPS.  See the :doc:`command-line args <Run_options>` page for
 further explanation.
 
-For mode *mpi/two*\ , the 2 codes communicate via MPI, but are launched
+For mode *mpi/two*, the 2 codes communicate via MPI, but are launched
 be 2 separate mpirun commands.  The specified *filename* argument is a
 file the 2 MPI processes will use to exchange info so that an MPI
 inter-communicator can be established to enable the 2 codes to send
@@ -191,7 +191,7 @@ Restrictions
 """"""""""""
 
 This command is part of the MESSAGE package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

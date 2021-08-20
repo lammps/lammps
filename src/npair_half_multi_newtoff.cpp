@@ -91,7 +91,7 @@ void NPairHalfMultiNewtoff::build(NeighList *list)
 
       // if same collection use own bin
       if (icollection == jcollection) jbin = ibin;
-	  else jbin = coord2bin(x[i], jcollection);
+          else jbin = coord2bin(x[i], jcollection);
 
       // loop over all atoms in other bins in stencil including self
       // only store pair if i < j
@@ -103,16 +103,16 @@ void NPairHalfMultiNewtoff::build(NeighList *list)
       ns = nstencil_multi[icollection][jcollection];
 
       for (k = 0; k < ns; k++) {
-	    js = binhead_multi[jcollection][jbin + s[k]];
-	    for (j = js; j >= 0; j = bins[j]) {
-	      if (j <= i) continue;
+            js = binhead_multi[jcollection][jbin + s[k]];
+            for (j = js; j >= 0; j = bins[j]) {
+              if (j <= i) continue;
 
           jtype = type[j];
           if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
 
-	      delx = xtmp - x[j][0];
-	      dely = ytmp - x[j][1];
-	      delz = ztmp - x[j][2];
+              delx = xtmp - x[j][0];
+              dely = ytmp - x[j][1];
+              delz = ztmp - x[j][2];
           rsq = delx*delx + dely*dely + delz*delz;
 
           if (rsq <= cutneighsq[itype][jtype]) {

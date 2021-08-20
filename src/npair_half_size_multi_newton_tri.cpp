@@ -78,7 +78,7 @@ void NPairHalfSizeMultiNewtonTri::build(NeighList *list)
 
       // if same collection use own bin
       if (icollection == jcollection) jbin = ibin;
-	  else jbin = coord2bin(x[i], jcollection);
+          else jbin = coord2bin(x[i], jcollection);
 
       // loop over all atoms in bins in stencil
       // stencil is empty if i larger than j
@@ -89,12 +89,12 @@ void NPairHalfSizeMultiNewtonTri::build(NeighList *list)
       //         (equal zyx and j <= i)
       // latter excludes self-self interaction but allows superposed atoms
 
-	  s = stencil_multi[icollection][jcollection];
-	  ns = nstencil_multi[icollection][jcollection];
+          s = stencil_multi[icollection][jcollection];
+          ns = nstencil_multi[icollection][jcollection];
 
-	  for (k = 0; k < ns; k++) {
-	    js = binhead_multi[jcollection][jbin + s[k]];
-	    for (j = js; j >= 0; j = bins[j]) {
+          for (k = 0; k < ns; k++) {
+            js = binhead_multi[jcollection][jbin + s[k]];
+            for (j = js; j >= 0; j = bins[j]) {
 
           // if same size (same collection), use half stencil
           if (cutcollectionsq[icollection][icollection] == cutcollectionsq[jcollection][jcollection]){
@@ -111,21 +111,21 @@ void NPairHalfSizeMultiNewtonTri::build(NeighList *list)
           jtype = type[j];
           if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
 
-	      delx = xtmp - x[j][0];
-	      dely = ytmp - x[j][1];
-	      delz = ztmp - x[j][2];
-	      rsq = delx*delx + dely*dely + delz*delz;
-	      radsum = radi + radius[j];
-	      cutdistsq = (radsum+skin) * (radsum+skin);
+              delx = xtmp - x[j][0];
+              dely = ytmp - x[j][1];
+              delz = ztmp - x[j][2];
+              rsq = delx*delx + dely*dely + delz*delz;
+              radsum = radi + radius[j];
+              cutdistsq = (radsum+skin) * (radsum+skin);
 
-	      if (rsq <= cutdistsq) {
-	        if (history && rsq < radsum*radsum)
-	  	    neighptr[n++] = j ^ mask_history;
-	        else
-	  	    neighptr[n++] = j;
-	      }
-	    }
-	  }
+              if (rsq <= cutdistsq) {
+                if (history && rsq < radsum*radsum)
+                    neighptr[n++] = j ^ mask_history;
+                else
+                    neighptr[n++] = j;
+              }
+            }
+          }
     }
 
     ilist[inum++] = i;

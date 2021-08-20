@@ -172,7 +172,7 @@ allows calculation of the global or per-chunk temperature using only
 the thermal temperature of atoms in each chunk after the translational
 kinetic energy components have been altered in a prescribed way,
 e.g. to remove a velocity profile.  It also applies to the calculation
-of the other per-chunk values, such as *kecom* or *internal*\ , which
+of the other per-chunk values, such as *kecom* or *internal*, which
 involve the center-of-mass velocity of each chunk, which is calculated
 after the velocity bias is removed from each atom.  Note that the
 temperature compute will apply its bias globally to the entire system,
@@ -207,7 +207,7 @@ Output info
 This compute calculates a global scalar (the temperature) and a global
 vector of length 6 (KE tensor), which can be accessed by indices 1-6.
 These values can be used by any command that uses global scalar or
-vector values from a compute as input.  See the :doc:`Howto output <Howto_output>` doc page for an overview of LAMMPS output
+vector values from a compute as input.  See the :doc:`Howto output <Howto_output>` page for an overview of LAMMPS output
 options.
 
 This compute also optionally calculates a global array, if one or more

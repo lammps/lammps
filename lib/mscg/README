@@ -51,7 +51,7 @@ When these steps are complete you can build LAMMPS with the MS-CG
 package installed:
 
 % cd lammps/src
-% make yes-USER-MSCG
+% make yes-MSCG
 % make g++ (or whatever target you wish)
 
 Note that if you download and unpack a new LAMMPS tarball, the

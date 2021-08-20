@@ -155,7 +155,7 @@ re-specified in the restart input script.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
-*inner* , *middle* , *outer* keywords.
+*inner*, *middle*, and *outer* keywords.
 
 ----------
 
@@ -163,7 +163,7 @@ Restrictions
 """"""""""""
 
 This pair style is part of the MANYBODY package.  It is only enabled
-if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

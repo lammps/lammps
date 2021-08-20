@@ -112,7 +112,7 @@ thermostatting takes place; see the description below.
    fix - e.g. by :doc:`fix nvt <fix_nh>` or :doc:`fix temp/rescale
    <fix_temp_rescale>` commands.
 
-See the :doc:`Howto thermostat <Howto_thermostat>` doc page for
+See the :doc:`Howto thermostat <Howto_thermostat>` page for
 a discussion of different ways to compute temperature and perform
 thermostatting.
 
@@ -239,7 +239,7 @@ thermostat. Because the random forces on different atoms are
 independent, they do not sum exactly to zero.  As a result, this fix
 applies a small random force to the entire system, and the
 center-of-mass of the system undergoes a slow random walk.  If the
-keyword *zero* is set to *yes*\ , the total random force is set exactly
+keyword *zero* is set to *yes*, the total random force is set exactly
 to zero by subtracting off an equal part of it from each atom in the
 group.  As a result, the center-of-mass of a system with zero initial
 momentum will not drift over time.
@@ -252,7 +252,7 @@ limit of the integrator), while still producing the correct Boltzmann
 distribution of atom positions.
 
 The current implementation provides the user with the option to output
-the velocity in one of two forms: *vfull* or *vhalf*\ , which replaces
+the velocity in one of two forms: *vfull* or *vhalf*, which replaces
 the outdated option *yes*\ . The *gjf* option *vfull* outputs the
 on-site velocity given in :ref:`Gronbech-Jensen/Farago
 <Gronbech-Jensen>`; this velocity is shown to be systematically lower
@@ -291,8 +291,8 @@ this fix and by the compute should be the same.
 
 The cumulative energy change in the system imposed by this fix is
 included in the :doc:`thermodynamic output <thermo_style>` keywords
-*ecouple* and *econserve*\ , but only if the *tally* keyword to set to
-*yes*\ .  See the :doc:`thermo_style <thermo_style>` doc page for
+*ecouple* and *econserve*, but only if the *tally* keyword to set to
+*yes*\ .  See the :doc:`thermo_style <thermo_style>` page for
 details.
 
 This fix computes a global scalar which can be accessed by various

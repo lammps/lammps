@@ -10,7 +10,7 @@ letter abbreviation can be used:
 * :ref:`-i or -in <file>`
 * :ref:`-k or -kokkos <run-kokkos>`
 * :ref:`-l or -log <log>`
-* :ref:`-mdi <mdi>`
+* :ref:`-mdi <mdi_flags>`
 * :ref:`-m or -mpicolor <mpicolor>`
 * :ref:`-c or -cite <cite>`
 * :ref:`-nc or -nocite <nocite>`
@@ -89,7 +89,7 @@ in the :doc:`the KOKKOS package page <Speed_kokkos>`, this switch must be set to
 running with KOKKOS-enabled styles the package provides.  If the
 switch is not set (the default), LAMMPS will operate as if the KOKKOS
 package were not installed; i.e. you can run standard LAMMPS or with
-the GPU or USER-OMP packages, for testing or benchmarking purposes.
+the GPU or OPENMP packages, for testing or benchmarking purposes.
 
 Additional optional keyword/value pairs can be specified which
 determine how Kokkos will use the underlying hardware on your
@@ -197,12 +197,12 @@ Option -plog will override the name of the partition log files file.N.
 
 ----------
 
-.. _mdi:
+.. _mdi_flags:
 
 **-mdi 'multiple flags'**
 
 This flag is only recognized and used when LAMMPS has support for the MolSSI
-Driver Interface (MDI) included as part of the :ref:`USER-MDI <PKG-USER-MDI>`
+Driver Interface (MDI) included as part of the :ref:`MDI <PKG-MDI>`
 package.  This flag is specific to the MDI library and controls how LAMMPS
 interacts with MDI.  There are usually multiple flags that have to follow it
 and those have to be placed in quotation marks.  For more information about
@@ -274,7 +274,7 @@ script.  For example "-package gpu 2" or "-pk gpu 2" is the same as
 :doc:`package gpu 2 <package>` in the input script.  The possible styles
 and args are documented on the :doc:`package <package>` doc page.  This
 switch can be used multiple times, e.g. to set options for the
-USER-INTEL and USER-OMP packages which can be used together.
+INTEL and OPENMP packages which can be used together.
 
 Along with the "-suffix" command-line switch, this is a convenient
 mechanism for invoking accelerator packages and their options without
@@ -365,7 +365,7 @@ to insure that a specific Kspace processor (in the second partition) is
 matched up with a specific set of processors in the first partition.
 See the :doc:`General tips <Speed_tips>` page for more details.
 
-If the keyword *nth* is used with a setting *N*\ , then it means every
+If the keyword *nth* is used with a setting *N*, then it means every
 Nth processor will be moved to the end of the ranking.  This is useful
 when using the :doc:`run_style verlet/split <run_style>` command with 2
 partitions via the -partition command-line switch.  The first set of
@@ -397,7 +397,7 @@ so that the processors in each partition will be
 See the "processors" command for how to insure processors from each
 partition could then be grouped optimally for quad-core nodes.
 
-If the keyword is *custom*\ , then a file that specifies a permutation
+If the keyword is *custom*, then a file that specifies a permutation
 of the processor ranks is also specified.  The format of the reorder
 file is as follows.  Any number of initial blank or comment lines
 (starting with a "#" character) can be present.  These should be
@@ -464,7 +464,7 @@ The syntax following restartfile (or remap), namely
    datafile keyword value ...
 
 is identical to the arguments of the :doc:`write_data <write_data>`
-command.  See its doc page for details.  This includes its
+command.  See its page for details.  This includes its
 optional keyword/value settings.
 
 ----------
@@ -505,11 +505,11 @@ The syntax following restartfile (or remap), namely
    group-ID dumpstyle dumpfile arg1 arg2 ...
 
 is identical to the arguments of the :doc:`write_dump <write_dump>`
-command.  See its doc page for details.  This includes what per-atom
+command.  See its page for details.  This includes what per-atom
 fields are written to the dump file and optional dump_modify settings,
 including ones that affect how parallel dump files are written, e.g.
 the *nfile* and *fileper* keywords.  See the
-:doc:`dump_modify <dump_modify>` doc page for details.
+:doc:`dump_modify <dump_modify>` page for details.
 
 ----------
 
@@ -537,19 +537,19 @@ partition screen files file.N.
 **-suffix style args**
 
 Use variants of various styles if they exist.  The specified style can
-be *gpu*\ , *intel*\ , *kk*\ , *omp*\ , *opt*\ , or *hybrid*\ .  These
+be *gpu*, *intel*, *kk*, *omp*, *opt*, or *hybrid*\ .  These
 refer to optional packages that LAMMPS can be built with, as described
 in :doc:`Accelerate performance <Speed>`.  The "gpu" style corresponds to the
-GPU package, the "intel" style to the USER-INTEL package, the "kk"
+GPU package, the "intel" style to the INTEL package, the "kk"
 style to the KOKKOS package, the "opt" style to the OPT package, and
-the "omp" style to the USER-OMP package. The hybrid style is the only
+the "omp" style to the OPENMP package. The hybrid style is the only
 style that accepts arguments. It allows for two packages to be
 specified. The first package specified is the default and will be used
 if it is available. If no style is available for the first package,
 the style for the second package will be used if available. For
 example, "-suffix hybrid intel omp" will use styles from the
-USER-INTEL package if they are installed and available, but styles for
-the USER-OMP package otherwise.
+INTEL package if they are installed and available, but styles for
+the OPENMP package otherwise.
 
 Along with the "-package" command-line switch, this is a convenient
 mechanism for invoking accelerator packages and their options without
@@ -570,15 +570,15 @@ default GPU settings, as if the command "package gpu 1" were used at
 the top of your input script.  These settings can be changed by using
 the "-package gpu" command-line switch or the :doc:`package gpu <package>` command in your script.
 
-For the USER-INTEL package, using this command-line switch also
-invokes the default USER-INTEL settings, as if the command "package
+For the INTEL package, using this command-line switch also
+invokes the default INTEL settings, as if the command "package
 intel 1" were used at the top of your input script.  These settings
 can be changed by using the "-package intel" command-line switch or
 the :doc:`package intel <package>` command in your script. If the
-USER-OMP package is also installed, the hybrid style with "intel omp"
+OPENMP package is also installed, the hybrid style with "intel omp"
 arguments can be used to make the omp suffix a second choice, if a
-requested style is not available in the USER-INTEL package.  It will
-also invoke the default USER-OMP settings, as if the command "package
+requested style is not available in the INTEL package.  It will
+also invoke the default OPENMP settings, as if the command "package
 omp 0" were used at the top of your input script.  These settings can
 be changed by using the "-package omp" command-line switch or the
 :doc:`package omp <package>` command in your script.

@@ -25,15 +25,26 @@
 #include "force.h"
 #include "memory.h"
 #include "neigh_list.h"
+#include "pair.h"
+#include "suffix.h"
+#include "text_file_reader.h"
 #include "update.h"
 
 #include <cmath>
 #include <cstring>
+#include <exception>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
 #define MAXLINE 1024
+
+class parser_error : public std::exception {
+  std::string message;
+public:
+  parser_error(const std::string &mesg) { message = mesg; }
+  const char *what() const noexcept { return message.c_str(); }
+};
 
 /* ---------------------------------------------------------------------- */
 
@@ -46,10 +57,15 @@ FixQEq::FixQEq(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 8) error->all(FLERR,"Illegal fix qeq command");
 
+  scalar_flag = 1;
+  extscalar = 0;
+
   nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   cutoff = utils::numeric(FLERR,arg[4],false,lmp);
   tolerance = utils::numeric(FLERR,arg[5],false,lmp);
   maxiter = utils::inumeric(FLERR,arg[6],false,lmp);
+  maxwarn = 1;
+  matvecs = 0;
 
   // check for sane arguments
   if ((nevery <= 0) || (cutoff <= 0.0) || (tolerance <= 0.0) || (maxiter <= 0))
@@ -105,17 +121,16 @@ FixQEq::FixQEq(LAMMPS *lmp, int narg, char **arg) :
   atom->add_callback(Atom::GROW);
 
   for (int i = 0; i < atom->nmax; i++)
-    for (int j = 0; j < nprev; ++j )
+    for (int j = 0; j < nprev; ++j)
       s_hist[i][j] = t_hist[i][j] = atom->q[i];
 
   if (strcmp(arg[7],"coul/streitz") == 0) {
     streitz_flag = 1;
-  } else if (strcmp(arg[7],"reax/c") == 0) {
+  } else if (utils::strmatch(arg[7],"^reax..")) {
     reax_flag = 1;
   } else {
     read_file(arg[7]);
   }
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -185,21 +200,21 @@ void FixQEq::deallocate_storage()
   memory->destroy(s);
   memory->destroy(t);
 
-  memory->destroy( Hdia_inv );
-  memory->destroy( b_s );
-  memory->destroy( b_t );
+  memory->destroy(Hdia_inv);
+  memory->destroy(b_s);
+  memory->destroy(b_t);
 
-  memory->destroy( p );
-  memory->destroy( q );
-  memory->destroy( r );
-  memory->destroy( d );
+  memory->destroy(p);
+  memory->destroy(q);
+  memory->destroy(r);
+  memory->destroy(d);
 
-  memory->destroy( chizj );
-  memory->destroy( qf );
-  memory->destroy( q1 );
-  memory->destroy( q2 );
+  memory->destroy(chizj);
+  memory->destroy(qf);
+  memory->destroy(q1);
+  memory->destroy(q2);
 
-  memory->destroy( qv );
+  memory->destroy(qv);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -225,7 +240,7 @@ void FixQEq::allocate_matrix()
   safezone = SAFE_ZONE;
 
   nlocal = atom->nlocal;
-  n_cap = MAX( (int)(nlocal * safezone), mincap );
+  n_cap = MAX((int)(nlocal * safezone), mincap);
   nall = atom->nlocal + atom->nghost;
 
   // determine the total space for the H matrix
@@ -239,7 +254,7 @@ void FixQEq::allocate_matrix()
     i = ilist[ii];
     m += numneigh[i];
   }
-  m_cap = MAX( (int)(m * safezone), mincap * MIN_NBRS );
+  m_cap = MAX((int)(m * safezone), mincap * MIN_NBRS);
 
   H.n = n_cap;
   H.m = m_cap;
@@ -253,10 +268,10 @@ void FixQEq::allocate_matrix()
 
 void FixQEq::deallocate_matrix()
 {
-  memory->destroy( H.firstnbr );
-  memory->destroy( H.numnbrs );
-  memory->destroy( H.jlist );
-  memory->destroy( H.val );
+  memory->destroy(H.firstnbr);
+  memory->destroy(H.numnbrs);
+  memory->destroy(H.jlist);
+  memory->destroy(H.val);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -265,6 +280,13 @@ void FixQEq::reallocate_matrix()
 {
   deallocate_matrix();
   allocate_matrix();
+}
+
+/* ---------------------------------------------------------------------- */
+
+double FixQEq::compute_scalar()
+{
+  return matvecs;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -280,6 +302,12 @@ void FixQEq::setup_pre_force(int vflag)
 {
   if (force->newton_pair == 0)
     error->all(FLERR,"QEQ with 'newton pair off' not supported");
+
+  if (force->pair) {
+    if (force->pair->suffix_flag & (Suffix::INTEL|Suffix::GPU))
+      error->all(FLERR,"QEQ is not compatiple with suffix version "
+                 "of pair style");
+  }
 
   deallocate_storage();
   allocate_storage();
@@ -338,7 +366,7 @@ void FixQEq::min_pre_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-int FixQEq::CG( double *b, double *x )
+int FixQEq::CG(double *b, double *x)
 {
   int  loop, i, ii, inum, *ilist;
   double tmp, alfa, beta, b_norm;
@@ -348,10 +376,10 @@ int FixQEq::CG( double *b, double *x )
   ilist = list->ilist;
 
   pack_flag = 1;
-  sparse_matvec( &H, x, q );
-  comm->reverse_comm_fix( this );
+  sparse_matvec(&H, x, q);
+  comm->reverse_comm_fix(this);
 
-  vector_sum( r , 1.,  b, -1., q, inum );
+  vector_sum(r , 1.,  b, -1., q, inum);
 
   for (ii = 0; ii < inum; ++ii) {
     i = ilist[ii];
@@ -360,19 +388,19 @@ int FixQEq::CG( double *b, double *x )
     else d[i] = 0.0;
   }
 
-  b_norm = parallel_norm( b, inum );
-  sig_new = parallel_dot( r, d, inum);
+  b_norm = parallel_norm(b, inum);
+  sig_new = parallel_dot(r, d, inum);
 
   for (loop = 1; loop < maxiter && sqrt(sig_new)/b_norm > tolerance; ++loop) {
     comm->forward_comm_fix(this);
-    sparse_matvec( &H, d, q );
+    sparse_matvec(&H, d, q);
     comm->reverse_comm_fix(this);
 
-    tmp = parallel_dot( d, q, inum);
+    tmp = parallel_dot(d, q, inum);
     alfa = sig_new / tmp;
 
-    vector_add( x, alfa, d, inum );
-    vector_add( r, -alfa, q, inum );
+    vector_add(x, alfa, d, inum);
+    vector_add(r, -alfa, q, inum);
 
     for (ii = 0; ii < inum; ++ii) {
       i = ilist[ii];
@@ -381,13 +409,13 @@ int FixQEq::CG( double *b, double *x )
     }
 
     sig_old = sig_new;
-    sig_new = parallel_dot( r, p, inum);
+    sig_new = parallel_dot(r, p, inum);
 
     beta = sig_new / sig_old;
-    vector_sum( d, 1., p, beta, d, inum );
+    vector_sum(d, 1., p, beta, d, inum);
   }
 
-  if ((comm->me == 0) && (loop >= maxiter))
+  if ((comm->me == 0) && maxwarn && (loop >= maxiter))
     error->warning(FLERR,"Fix qeq CG convergence failed ({}) after {} "
                    "iterations at step {}",sqrt(sig_new)/b_norm,loop,
                    update->ntimestep);
@@ -397,7 +425,7 @@ int FixQEq::CG( double *b, double *x )
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEq::sparse_matvec( sparse_matrix *A, double *x, double *b )
+void FixQEq::sparse_matvec(sparse_matrix *A, double *x, double *b)
 {
   int i, j, itr_j;
 
@@ -406,7 +434,7 @@ void FixQEq::sparse_matvec( sparse_matrix *A, double *x, double *b )
 
   for (i = 0; i < nlocal; ++i) {
     if (atom->mask[i] & groupbit)
-      b[i] = eta[ atom->type[i] ] * x[i];
+      b[i] = eta[atom->type[i]] * x[i];
   }
 
   for (i = nlocal; i < nall; ++i) {
@@ -416,7 +444,7 @@ void FixQEq::sparse_matvec( sparse_matrix *A, double *x, double *b )
 
   for (i = 0; i < nlocal; ++i) {
     if (atom->mask[i] & groupbit) {
-      for ( itr_j=A->firstnbr[i]; itr_j<A->firstnbr[i]+A->numnbrs[i]; itr_j++) {
+      for (itr_j=A->firstnbr[i]; itr_j<A->firstnbr[i]+A->numnbrs[i]; itr_j++) {
         j = A->jlist[itr_j];
         b[i] += A->val[itr_j] * x[j];
         b[j] += A->val[itr_j] * x[i];
@@ -438,8 +466,8 @@ void FixQEq::calculate_Q()
   inum = list->inum;
   ilist = list->ilist;
 
-  s_sum = parallel_vector_acc( s, inum );
-  t_sum = parallel_vector_acc( t, inum);
+  s_sum = parallel_vector_acc(s, inum);
+  t_sum = parallel_vector_acc(t, inum);
   u = s_sum / t_sum;
 
   for (ii = 0; ii < inum; ++ii) {
@@ -457,7 +485,7 @@ void FixQEq::calculate_Q()
   }
 
   pack_flag = 4;
-  comm->forward_comm_fix( this ); //Dist_vector( atom->q );
+  comm->forward_comm_fix(this); //Dist_vector(atom->q);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -488,11 +516,11 @@ void FixQEq::unpack_forward_comm(int n, int first, double *buf)
 
   if (pack_flag == 1)
     for (m = 0, i = first; m < n; m++, i++) d[i] = buf[m];
-  else if ( pack_flag == 2)
+  else if (pack_flag == 2)
     for (m = 0, i = first; m < n; m++, i++) s[i] = buf[m];
-  else if ( pack_flag == 3)
+  else if (pack_flag == 3)
     for (m = 0, i = first; m < n; m++, i++) t[i] = buf[m];
-  else if ( pack_flag == 4)
+  else if (pack_flag == 4)
     for (m = 0, i = first; m < n; m++, i++) atom->q[i] = buf[m];
 }
 
@@ -577,7 +605,7 @@ int FixQEq::unpack_exchange(int n, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-double FixQEq::parallel_norm( double *v, int n )
+double FixQEq::parallel_norm(double *v, int n)
 {
   int  i;
   double my_sum, norm_sqr;
@@ -595,14 +623,14 @@ double FixQEq::parallel_norm( double *v, int n )
       my_sum += v[i]*v[i];
   }
 
-  MPI_Allreduce( &my_sum, &norm_sqr, 1, MPI_DOUBLE, MPI_SUM, world );
+  MPI_Allreduce(&my_sum, &norm_sqr, 1, MPI_DOUBLE, MPI_SUM, world);
 
-  return sqrt( norm_sqr );
+  return sqrt(norm_sqr);
 }
 
 /* ---------------------------------------------------------------------- */
 
-double FixQEq::parallel_dot( double *v1, double *v2, int n)
+double FixQEq::parallel_dot(double *v1, double *v2, int n)
 {
   int  i;
   double my_dot, res;
@@ -620,14 +648,14 @@ double FixQEq::parallel_dot( double *v1, double *v2, int n)
       my_dot += v1[i] * v2[i];
   }
 
-  MPI_Allreduce( &my_dot, &res, 1, MPI_DOUBLE, MPI_SUM, world );
+  MPI_Allreduce(&my_dot, &res, 1, MPI_DOUBLE, MPI_SUM, world);
 
   return res;
 }
 
 /* ---------------------------------------------------------------------- */
 
-double FixQEq::parallel_vector_acc( double *v, int n )
+double FixQEq::parallel_vector_acc(double *v, int n)
 {
   int  i;
   double my_acc, res;
@@ -645,15 +673,15 @@ double FixQEq::parallel_vector_acc( double *v, int n )
       my_acc += v[i];
   }
 
-  MPI_Allreduce( &my_acc, &res, 1, MPI_DOUBLE, MPI_SUM, world );
+  MPI_Allreduce(&my_acc, &res, 1, MPI_DOUBLE, MPI_SUM, world);
 
   return res;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEq::vector_sum( double* dest, double c, double* v,
-                                double d, double* y, int k )
+void FixQEq::vector_sum(double* dest, double c, double* v,
+                                double d, double* y, int k)
 {
   int kk;
   int *ilist;
@@ -669,7 +697,7 @@ void FixQEq::vector_sum( double* dest, double c, double* v,
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEq::vector_add( double* dest, double c, double* v, int k )
+void FixQEq::vector_add(double* dest, double c, double* v, int k)
 {
   int kk;
   int *ilist;
@@ -687,13 +715,7 @@ void FixQEq::vector_add( double* dest, double c, double* v, int k )
 
 void FixQEq::read_file(char *file)
 {
-  int i;
-  int params_per_line = 6;
-  char **words = new char*[params_per_line+1];
-
-  int ntypes = atom->ntypes;
-  int *setflag = new int[ntypes+1];
-  for (i=0; i <= ntypes; ++i) setflag[i] = 0;
+  const int ntypes = atom->ntypes;
 
   memory->create(chi,ntypes+1,"qeq:chi");
   memory->create(eta,ntypes+1,"qeq:eta");
@@ -701,70 +723,66 @@ void FixQEq::read_file(char *file)
   memory->create(zeta,ntypes+1,"qeq:zeta");
   memory->create(zcore,ntypes+1,"qeq:zcore");
 
-  // open file on proc 0
-
-  FILE *fp;
-  if (comm->me == 0) {
-    fp = utils::open_potential(file,lmp,nullptr);
-    if (fp == nullptr)
-      error->one(FLERR,"Cannot open fix qeq parameter file {}: {}",
-                                   file,utils::getsyserror());
-  }
-
   // read each line out of file, skipping blank lines or leading '#'
   // store line of params if all 3 element tags are in element list
 
-  int n,nwords,eof,nlo,nhi;
-  char line[MAXLINE],*ptr;
-
-  eof = 0;
-
-  while (1) {
-    if (comm->me == 0) {
-      ptr = fgets(line,MAXLINE,fp);
-      if (ptr == nullptr) {
-        eof = 1;
-        fclose(fp);
-      } else n = strlen(line) + 1;
+  if (comm->me == 0) {
+    int *setflag = new int[ntypes+1];
+    for (int n=0; n <= ntypes; ++n) {
+      setflag[n] = 0;
+      chi[n] = eta[n] = gamma[n] = zeta[n] = zcore[n] = 0.0;
     }
-    MPI_Bcast(&eof,1,MPI_INT,0,world);
-    if (eof) break;
-    MPI_Bcast(&n,1,MPI_INT,0,world);
-    MPI_Bcast(line,n,MPI_CHAR,0,world);
 
-    // strip comment, skip line if blank
+    try {
+      int nlo,nhi;
+      double val;
 
-    if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = utils::count_words(line);
-    if (nwords == 0) continue;
+      FILE *fp = utils::open_potential(file,lmp,nullptr);
+      if (fp == nullptr)
+        throw parser_error(fmt::format("Cannot open fix qeq parameter file {}:"
+                                       " {}", file,utils::getsyserror()));
+      TextFileReader reader(fp, "qeq parameter");
 
-    // must have 6 parameters per line.
+      while (1) {
+        auto values = reader.next_values(0);
 
-    if (nwords < 6)
-      error->all(FLERR,"Invalid fix qeq parameter file");
+        if (values.count() == 0) continue;
+        if (values.count() < 6)
+          throw parser_error("Invalid qeq parameter file");
 
-    // words = ptrs to first 6 words in line
+        auto word = values.next_string();
+        utils::bounds(FLERR,word,1,ntypes,nlo,nhi,nullptr);
+        if ((nlo < 0) || (nhi < 0))
+          throw parser_error("Invalid atom type range");
 
-    for (n=0, words[n] = strtok(line," \t\n\r\f");
-         n < 6;
-         words[++n] = strtok(nullptr," \t\n\r\f"));
-
-    utils::bounds(FLERR,words[0],1,ntypes,nlo,nhi,error);
-    for (n=nlo; n <=nhi; ++n) {
-      chi[n]     = utils::numeric(FLERR,words[1],false,lmp);
-      eta[n]     = utils::numeric(FLERR,words[2],false,lmp);
-      gamma[n]   = utils::numeric(FLERR,words[3],false,lmp);
-      zeta[n]    = utils::numeric(FLERR,words[4],false,lmp);
-      zcore[n]   = utils::numeric(FLERR,words[5],false,lmp);
-      setflag[n] = 1;
+        val = values.next_double();
+        for (int n=nlo; n <= nhi; ++n) chi[n] = val;
+        val = values.next_double();
+        for (int n=nlo; n <= nhi; ++n) eta[n] = val;
+        val = values.next_double();
+        for (int n=nlo; n <= nhi; ++n) gamma[n] = val;
+        val = values.next_double();
+        for (int n=nlo; n <= nhi; ++n) zeta[n] = val;
+        val = values.next_double();
+        for (int n=nlo; n <= nhi; ++n) zcore[n] = val;
+        for (int n=nlo; n <= nhi; ++n) setflag[n] = 1;
+      }
+    } catch (EOFException &e) {
+      ; // catch and ignore to exit loop
+    } catch (std::exception &e) {
+      error->one(FLERR,e.what());
     }
+
+    for (int n=1; n <= ntypes; ++n)
+      if (setflag[n] == 0)
+        error->one(FLERR,fmt::format("Parameters for atom type {} missing in "
+                                     "qeq parameter file", n));
+    delete[] setflag;
   }
 
-  // check if all types are set
-  for (n=1; n <= ntypes; ++n)
-    if (setflag[n] == 0)
-      error->all(FLERR,"Invalid fix qeq parameter file");
-
-  delete [] words;
-  delete [] setflag;
+  MPI_Bcast(chi,ntypes+1,MPI_DOUBLE,0,world);
+  MPI_Bcast(eta,ntypes+1,MPI_DOUBLE,0,world);
+  MPI_Bcast(gamma,ntypes+1,MPI_DOUBLE,0,world);
+  MPI_Bcast(zeta,ntypes+1,MPI_DOUBLE,0,world);
+  MPI_Bcast(zcore,ntypes+1,MPI_DOUBLE,0,world);
 }

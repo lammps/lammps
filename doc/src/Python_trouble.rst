@@ -41,4 +41,4 @@ first importing from the ``lammps`` module:
    >>> CDLL("liblammps.so")
 
 If an error occurs, carefully go through the steps in :ref:`python_install_guides` and on the
-:doc:`Build_basics <Build_basics>` doc page about building a shared library.
+:doc:`Build_basics <Build_basics>` page about building a shared library.

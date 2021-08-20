@@ -22,7 +22,7 @@
 #include "MANYBODY/pair_tersoff_mod_c.h"
 #include "MANYBODY/pair_tersoff_zbl.h"
 #include "MANYBODY/pair_vashishta.h"
-#include "USER-MISC/pair_tersoff_table.h"
+#include "MANYBODY/pair_tersoff_table.h"
 #include "info.h"
 #include "input.h"
 #include "potential_file_reader.h"

@@ -1532,7 +1532,7 @@ void PPPMKokkos<DeviceType>::operator()(TagPPPM_make_rho_atomic, const int &i) c
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void PPPMKokkos<DeviceType>::operator() (TagPPPM_make_rho, typename Kokkos::TeamPolicy<DeviceType, TagPPPM_make_rho>::member_type dev) const {
-  // adapted from USER-OMP/pppm.cpp:
+  // adapted from OPENMP/pppm.cpp:
 
   // determine range of grid points handled by this thread
   int tid = dev.league_rank();

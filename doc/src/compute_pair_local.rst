@@ -20,7 +20,7 @@ Syntax
        *dist* = pairwise distance
        *eng* = pairwise energy
        *force* = pairwise force
-       *fx*\ ,\ *fy*\ ,\ *fz* = components of pairwise force
+       *fx*,\ *fy*,\ *fz* = components of pairwise force
        *pN* = pair style specific quantities for allowed N values
 
 * zero or more keyword/arg pairs may be appended
@@ -61,20 +61,20 @@ The value *eng* is the interaction energy for the pair of atoms.
 
 The value *force* is the force acting between the pair of atoms, which
 is positive for a repulsive force and negative for an attractive
-force.  The values *fx*\ , *fy*\ , and *fz* are the xyz components of
+force.  The values *fx*, *fy*, and *fz* are the xyz components of
 *force* on atom I.
 
 A pair style may define additional pairwise quantities which can be
-accessed as *p1* to *pN*\ , where N is defined by the pair style.  Most
+accessed as *p1* to *pN*, where N is defined by the pair style.  Most
 pair styles do not define any additional quantities, so N = 0.  An
 example of ones that do are the :doc:`granular pair styles <pair_gran>`
 which calculate the tangential force between two particles and return
 its components and magnitude acting on atom I for N = 1,2,3,4.  See
 individual pair styles for details.
 
-When using *pN* with pair style *hybrid*\ , the output will be the Nth
+When using *pN* with pair style *hybrid*, the output will be the Nth
 quantity from the sub-style that computes the pairwise interaction
-(based on atom types).  If that sub-style does not define a *pN*\ ,
+(based on atom types).  If that sub-style does not define a *pN*,
 the output will be 0.0.  The maximum allowed N is the maximum number
 of quantities provided by any sub-style.
 
@@ -90,12 +90,12 @@ is not computed for the specific pairwise interaction (based on
 atom types), then the output will be 0.0.
 
 The value *dist* will be in distance :doc:`units <units>`.  The value
-*eng* will be in energy :doc:`units <units>`.  The values *force*\ , *fx*\ ,
-*fy*\ , and *fz* will be in force :doc:`units <units>`.  The values *pN*
+*eng* will be in energy :doc:`units <units>`.  The values *force*, *fx*,
+*fy*, and *fz* will be in force :doc:`units <units>`.  The values *pN*
 will be in whatever units the pair style defines.
 
 The optional *cutoff* keyword determines how the force cutoff distance
-for an interaction is determined.  For the default setting of *type*\ ,
+for an interaction is determined.  For the default setting of *type*,
 the pairwise cutoff defined by the :doc:`pair_style <pair_style>`
 command for the types of the two atoms is used.  For the *radius*
 setting, the sum of the radii of the two particles is used as a
@@ -147,12 +147,12 @@ array is the number of pairs.  If a single keyword is specified, a
 local vector is produced.  If two or more keywords are specified, a
 local array is produced where the number of columns = the number of
 keywords.  The vector or array can be accessed by any command that
-uses local values from a compute as input.  See the :doc:`Howto output <Howto_output>` doc page for an overview of LAMMPS output
+uses local values from a compute as input.  See the :doc:`Howto output <Howto_output>` page for an overview of LAMMPS output
 options.
 
 The output for *dist* will be in distance :doc:`units <units>`.  The
 output for *eng* will be in energy :doc:`units <units>`.  The output for
-*force*\ , *fx*\ , *fy*\ , and *fz* will be in force :doc:`units <units>`.
+*force*, *fx*, *fy*, and *fz* will be in force :doc:`units <units>`.
 The output for *pN* will be in whatever units the pair style defines.
 
 Restrictions

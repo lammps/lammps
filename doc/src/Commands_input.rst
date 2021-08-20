@@ -50,6 +50,6 @@ values are not desired, the :doc:`processors <processors>` and
 tell LAMMPS how to map processors to the simulation box.
 
 Many input script errors are detected by LAMMPS and an ERROR or
-WARNING message is printed.  The :doc:`Errors <Errors>` doc page gives
+WARNING message is printed.  The :doc:`Errors <Errors>` page gives
 more information on what errors mean.  The documentation for each
 command lists restrictions on how the command can be used.

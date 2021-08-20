@@ -29,7 +29,7 @@ and data file, as well as quantities output to the screen, log file,
 and dump files.  Typically, this command is used at the very beginning
 of an input script.
 
-For all units except *lj*\ , LAMMPS uses physical constants from
+For all units except *lj*, LAMMPS uses physical constants from
 www.physics.nist.gov.  For the definition of Kcal in real units,
 LAMMPS uses the thermochemical calorie = 4.184 J.
 
@@ -60,7 +60,7 @@ automatic conversion has happened is printed to the screen.
 
 ----------
 
-For style *lj*\ , all quantities are unitless.  Without loss of
+For style *lj*, all quantities are unitless.  Without loss of
 generality, LAMMPS sets the fundamental quantities mass, :math:`\sigma`,
 :math:`\epsilon`, and the Boltzmann constant :math:`k_B = 1`.  The
 masses, distances, energies you specify are multiples of these
@@ -97,7 +97,7 @@ energy/atom.  Temperature is intensive since it is already normalized
 by the number of atoms, so it is output as-is.  This behavior can be
 changed via the :doc:`thermo_modify norm <thermo_modify>` command.
 
-For style *real*\ , these are the units:
+For style *real*, these are the units:
 
 * mass = grams/mole
 * distance = Angstroms
@@ -114,7 +114,7 @@ For style *real*\ , these are the units:
 * electric field = volts/Angstrom
 * density = gram/cm\^dim
 
-For style *metal*\ , these are the units:
+For style *metal*, these are the units:
 
 * mass = grams/mole
 * distance = Angstroms
@@ -131,7 +131,7 @@ For style *metal*\ , these are the units:
 * electric field = volts/Angstrom
 * density = gram/cm\^dim
 
-For style *si*\ , these are the units:
+For style *si*, these are the units:
 
 * mass = kilograms
 * distance = meters
@@ -148,7 +148,7 @@ For style *si*\ , these are the units:
 * electric field = volts/meter
 * density = kilograms/meter\^dim
 
-For style *cgs*\ , these are the units:
+For style *cgs*, these are the units:
 
 * mass = grams
 * distance = centimeters
@@ -165,7 +165,7 @@ For style *cgs*\ , these are the units:
 * electric field = statvolt/cm or dyne/esu
 * density = grams/cm\^dim
 
-For style *electron*\ , these are the units:
+For style *electron*, these are the units:
 
 * mass = atomic mass units
 * distance = Bohr
@@ -179,7 +179,7 @@ For style *electron*\ , these are the units:
 * dipole moment = Debye
 * electric field = volts/cm
 
-For style *micro*\ , these are the units:
+For style *micro*, these are the units:
 
 * mass = picograms
 * distance = micrometers
@@ -196,7 +196,7 @@ For style *micro*\ , these are the units:
 * electric field = volt/micrometer
 * density = picograms/micrometer\^dim
 
-For style *nano*\ , these are the units:
+For style *nano*, these are the units:
 
 * mass = attograms
 * distance = nanometers

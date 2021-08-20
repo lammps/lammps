@@ -100,18 +100,18 @@ class Modify : protected Pointers {
   virtual int min_dof();
   virtual int min_reset_ref();
 
-  void add_fix(int, char **, int trysuffix = 1);
-  void add_fix(const std::string &, int trysuffix = 1);
-  void replace_fix(const char *, int, char **, int trysuffix = 1);
-  void replace_fix(const std::string &, const std::string &, int trysuffix = 1);
+  Fix *add_fix(int, char **, int trysuffix = 1);
+  Fix *add_fix(const std::string &, int trysuffix = 1);
+  Fix *replace_fix(const char *, int, char **, int trysuffix = 1);
+  Fix *replace_fix(const std::string &, const std::string &, int trysuffix = 1);
   void modify_fix(int, char **);
   void delete_fix(const std::string &);
   void delete_fix(int);
   int find_fix(const std::string &);
   int find_fix_by_style(const char *);
 
-  void add_compute(int, char **, int trysuffix = 1);
-  void add_compute(const std::string &, int trysuffix = 1);
+  Compute *add_compute(int, char **, int trysuffix = 1);
+  Compute *add_compute(const std::string &, int trysuffix = 1);
   void modify_compute(int, char **);
   void delete_compute(const std::string &);
   void delete_compute(int);

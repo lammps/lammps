@@ -31,6 +31,7 @@
 #include "force.h"
 #include "group.h"
 #include "improper.h"
+#include "input.h"
 #include "kspace.h"
 #include "math_const.h"
 #include "math_special.h"
@@ -40,6 +41,7 @@
 #include "pair.h"
 #include "random_park.h"
 #include "update.h"
+#include "variable.h"
 
 #include <cmath>
 #include <cstring>
@@ -49,6 +51,8 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
 using namespace MathSpecial;
+
+enum{CONSTANT,EQUAL}; // parsing input variables
 
 // large energy value used to signal overlap
 #define MAXENERGYSIGNAL 1.0e100
@@ -60,8 +64,8 @@ using namespace MathSpecial;
 
 FixChargeRegulation::FixChargeRegulation(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  ngroups(0), groupstrings(nullptr), ptype_ID(nullptr),
-  random_equal(nullptr), random_unequal(nullptr),
+  ngroups(0), groupstrings(nullptr), ptype_ID(nullptr), pHstr(nullptr),
+  c_pe(nullptr), random_equal(nullptr), random_unequal(nullptr),
   idftemp(nullptr)
 {
 
@@ -130,6 +134,7 @@ FixChargeRegulation::~FixChargeRegulation() {
 
   delete random_equal;
   delete random_unequal;
+  delete[] pHstr;
   delete[] idftemp;
 
   if (group) {
@@ -150,6 +155,14 @@ void FixChargeRegulation::init() {
   int ipe = modify->find_compute("thermo_pe");
   c_pe = modify->compute[ipe];
 
+  if (pHstr) {
+    pHvar = input->variable->find(pHstr);
+    if (pHvar < 0)
+      error->all(FLERR,"Variable name for fix charge/regulation does not exist");
+    if (input->variable->equalstyle(pHvar)) pHstyle = EQUAL;
+    else error->all(FLERR,"Variable for fix charge/regulation is invalid style");
+
+  }
   if (atom->molecule_flag) {
 
     int flag = 0;
@@ -270,6 +283,9 @@ void FixChargeRegulation::pre_exchange() {
   }
   beta = 1.0 / (force->boltz * *target_temperature_tcp);
 
+  if (pHstyle == EQUAL)
+    pH = input->variable->compute_equal(pHvar);
+
   // pre-compute powers
   c10pH = pow(10.0,-pH); // dissociated ion (H+) activity
   c10pKa = pow(10.0,-pKa); // acid dissociation constant
@@ -378,6 +394,8 @@ void FixChargeRegulation::forward_acid() {
     factor = nacid_neutral * vlocal_xrd * c10pKa * c10pI_plus /
             (c10pH * (1 + nacid_charged) * (1 + npart_xrd2));
 
+    if (force->kspace) force->kspace->qsum_qsq();
+    if (force->pair->tail_flag) force->pair->reinit();
     double energy_after = energy_full();
 
     if (energy_after < MAXENERGYTEST &&
@@ -444,6 +462,8 @@ void FixChargeRegulation::backward_acid() {
       factor = (1 + nacid_neutral) * vlocal_xrd * c10pKa * c10pI_plus  /
               (c10pH * nacid_charged * npart_xrd);
 
+      if (force->kspace) force->kspace->qsum_qsq();
+      if (force->pair->tail_flag) force->pair->reinit();
       double energy_after = energy_full();
 
       if (energy_after < MAXENERGYTEST &&
@@ -467,6 +487,8 @@ void FixChargeRegulation::backward_acid() {
           atom->q[m2] = 1;
           atom->mask[m2] = mask_tmp;
         }
+        if (force->kspace) force->kspace->qsum_qsq();
+        if (force->pair->tail_flag) force->pair->reinit();
       }
     } else {
       if (m1 >= 0) {
@@ -511,6 +533,8 @@ void FixChargeRegulation::forward_base() {
              (c10pOH * (1 + nbase_charged) * (1 + npart_xrd2));
     m2 = insert_particle(anion_type, -1, reaction_distance, pos_all);
 
+    if (force->kspace) force->kspace->qsum_qsq();
+    if (force->pair->tail_flag) force->pair->reinit();
     double energy_after = energy_full();
     if (energy_after < MAXENERGYTEST &&
         random_equal->uniform() < factor * exp(beta * (energy_before - energy_after))) {
@@ -575,6 +599,8 @@ void FixChargeRegulation::backward_base() {
       factor = (1 + nbase_neutral) * vlocal_xrd * c10pKb * c10pI_minus /
               (c10pOH * nbase_charged * npart_xrd);
 
+      if (force->kspace) force->kspace->qsum_qsq();
+      if (force->pair->tail_flag) force->pair->reinit();
       double energy_after = energy_full();
 
       if (energy_after < MAXENERGYTEST &&
@@ -598,6 +624,8 @@ void FixChargeRegulation::backward_base() {
           atom->q[m2] = -1;
           atom->mask[m2] = mask_tmp;
         }
+        if (force->kspace) force->kspace->qsum_qsq();
+        if (force->pair->tail_flag) force->pair->reinit();
       }
     } else {
       if (m1 >= 0) {
@@ -672,6 +700,8 @@ void FixChargeRegulation::backward_ions() {
       }
       factor = volume_rx * volume_rx * c10pI_plus * c10pI_minus / (ncation * nanion);
 
+      if (force->kspace) force->kspace->qsum_qsq();
+      if (force->pair->tail_flag) force->pair->reinit();
       double energy_after = energy_full();
       if (energy_after < MAXENERGYTEST &&
           random_equal->uniform() < (1.0 / factor) * exp(beta * (energy_before - energy_after))) {
@@ -701,9 +731,6 @@ void FixChargeRegulation::backward_ions() {
             atom->nlocal--;
           }
         }
-        if (force->kspace) force->kspace->qsum_qsq();
-        if (force->pair->tail_flag) force->pair->reinit();
-
       } else {
         energy_stored = energy_before;
 
@@ -716,6 +743,8 @@ void FixChargeRegulation::backward_ions() {
           atom->q[m2] = -1;
           atom->mask[m2] = mask2_tmp;
         }
+        if (force->kspace) force->kspace->qsum_qsq();
+        if (force->pair->tail_flag) force->pair->reinit();
       }
     }
   }
@@ -750,6 +779,8 @@ void FixChargeRegulation::forward_ions_multival() {
     }
   }
 
+  if (force->kspace) force->kspace->qsum_qsq();
+  if (force->pair->tail_flag) force->pair->reinit();
   double energy_after = energy_full();
   if (energy_after < MAXENERGYTEST && random_equal->uniform() < factor * exp(beta * (energy_before - energy_after))) {
     energy_stored = energy_after;
@@ -845,6 +876,8 @@ void FixChargeRegulation::backward_ions_multival() {
 
   // attempt deletion
 
+  if (force->kspace) force->kspace->qsum_qsq();
+  if (force->pair->tail_flag) force->pair->reinit();
   double energy_after = energy_full();
   if (energy_after < MAXENERGYTEST &&
       random_equal->uniform() < (1.0 / factor) * exp(beta * (energy_before - energy_after))) {
@@ -880,8 +913,6 @@ void FixChargeRegulation::backward_ions_multival() {
       nanion -= salt_charge_ratio;
       ncation--;
     }
-    if (force->kspace) force->kspace->qsum_qsq();
-    if (force->pair->tail_flag) force->pair->reinit();
 
   } else {
     energy_stored = energy_before;
@@ -893,6 +924,8 @@ void FixChargeRegulation::backward_ions_multival() {
         atom->mask[mm[i]] = mask_tmp[i];
       }
     }
+    if (force->kspace) force->kspace->qsum_qsq();
+    if (force->pair->tail_flag) force->pair->reinit();
   }
 }
 
@@ -1251,7 +1284,12 @@ void FixChargeRegulation::options(int narg, char **arg) {
     } else if (strcmp(arg[iarg], "pH") == 0) {
       if (iarg + 2 > narg)
         error->all(FLERR, "Illegal fix charge/regulation command");
-      pH = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
+      if (strstr(arg[iarg + 1],"v_") == arg[iarg + 1]) {
+        pHstr = utils::strdup(&arg[iarg + 1][2]);
+      } else {
+        pH = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
+        pHstyle = CONSTANT;
+      }
       iarg += 2;
     } else if (strcmp(arg[iarg], "pIp") == 0) {
       if (iarg + 2 > narg)

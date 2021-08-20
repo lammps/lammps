@@ -152,7 +152,7 @@ information is provided about the line search and statistics on how
 many iterations and force-evaluations the minimizer required.
 Multiple force evaluations are typically done at each iteration to
 perform a 1d line minimization in the search direction.  See the
-:doc:`minimize <minimize>` doc page for more details.
+:doc:`minimize <minimize>` page for more details.
 
 ----------
 

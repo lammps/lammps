@@ -1,0 +1,28 @@
+The DIELECTRIC package provides several solvers for computing surface induced charges
+at the interface between two media with different dielectric constants:
+
+  * the boundary element solver using the GMRES algorithm (fix polarize/bem/gmres),
+  * the boundary element solver using the successive overelaxation algorithm (fix polarize/bem/icc),
+  * the direct optimization of an energy functional (fix polarize/functional).
+
+The interfaces can be immobile (for example, graphene layers in contact with water),
+or mobile (for example, dielectric colloids in a solvent).
+
+See the header of the source files for more details on the references of the methods.
+
+The DIELECTRIC package was created by Trung Nguyen while at Northwestern.
+Questions can be addressed to Trung Nguyen (ndactrung@gmail.com).
+
+* Citation
+
+Please cite the following paper if you use the code for your publications
+
+T. D. Nguyen, H. Li, D. Bagchi, F. J. Solis, M. Olvera de la Cruz,
+"Incorporating surface polarization effects into large-scale coarse-grained
+Molecular Dynamics simulation", Computer Physics Communications 241, 80--91 (2019).
+
+* Examples
+
+Example input scripts and data files can be found under examples/PACKAGES/dielectric:
+
+mpirun -np 8 ../../../src/lmp_mpi -in in.confined

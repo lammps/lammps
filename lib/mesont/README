@@ -1,4 +1,4 @@
-USER-MESONT is a LAMMPS package for simulation of nanomechanics of carbon 
+MESONT is a LAMMPS package for simulation of nanomechanics of carbon 
 nanotubes (CNTs). The model is based on a coarse-grained representation 
 of CNTs as "flexible cylinders" consisting of a variable number of 
 segments. Internal interactions within a CNT and the van der Waals 

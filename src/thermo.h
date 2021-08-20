@@ -31,6 +31,7 @@ class Thermo : protected Pointers {
   int lostbond;    // ditto for atoms in bonds
 
   enum { IGNORE, WARN, ERROR };
+  enum { INT, FLOAT, BIGINT };
 
   Thermo(class LAMMPS *, int, char **);
   ~Thermo();

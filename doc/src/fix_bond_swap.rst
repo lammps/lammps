@@ -99,7 +99,7 @@ eligible for swapping on this step.
 (3) The distances between 4 pairs of atoms -- (A1,A2), (B1,B2),
 (A1,B2), (B1,A2) -- must all be less thann the specified *cutoff*\ .
 
-(4) The molecule IDs of A1 and B1 must be the same (see below).  
+(4) The molecule IDs of A1 and B1 must be the same (see below).
 
 If an eligible B1 partner is found, the energy change due to swapping
 the 2 bonds is computed.  This includes changes in pairwise, bond, and
@@ -126,7 +126,7 @@ The criterion for matching molecule IDs is how the first use case
 described above can be simulated while conserving chain lengths.  This
 is done by setting up the molecule IDs for the polymer chains in a
 specific way, typically in the data file, read by the :doc:`read_data
-<read_data>` command.  
+<read_data>` command.
 
 Consider a system of 6-mer chains.  You have 2 choices.  If the
 molecule IDs for monomers on each chain are set to 1,2,3,4,5,6 then

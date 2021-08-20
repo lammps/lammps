@@ -478,6 +478,17 @@ TEST(Utils, strmatch_opt_char)
 {
     ASSERT_TRUE(utils::strmatch("rigid", "^r?igid"));
     ASSERT_TRUE(utils::strmatch("igid", "^r?igid"));
+    ASSERT_TRUE(utils::strmatch("c_name","^[cfvid]2?_name"));
+    ASSERT_TRUE(utils::strmatch("f_name","^[cfvid]2?_name"));
+    ASSERT_TRUE(utils::strmatch("v_name","^[cfvid]2?_name"));
+    ASSERT_TRUE(utils::strmatch("i_name","^[cfvid]2?_name"));
+    ASSERT_TRUE(utils::strmatch("d_name","^[cfvid]2?_name"));
+    ASSERT_TRUE(utils::strmatch("i2_name","^[cfvid]2?_name"));
+    ASSERT_TRUE(utils::strmatch("d2_name","^[cfvid]2?_name"));
+    ASSERT_FALSE(utils::strmatch("d2name","^[cfvid]2?_name"));
+    ASSERT_FALSE(utils::strmatch("i1_name","^[cfvid]2?_name"));
+    ASSERT_FALSE(utils::strmatch("V_name","^[cfvid]2?_name"));
+    ASSERT_FALSE(utils::strmatch("x_name","^[cfvid]2?_name"));
 }
 
 TEST(Utils, strmatch_dot)

@@ -221,12 +221,13 @@ class Atom : protected Pointers {
   PerAtom *peratom;
   int nperatom, maxperatom;
 
-  // custom arrays used by fix property/atom
+  // custom vectors and arrays used by fix property/atom
 
-  int **ivector;
-  double **dvector;
-  char **iname, **dname;
-  int nivector, ndvector;
+  int **ivector, ***iarray;
+  double **dvector, ***darray;
+  int *icols, *dcols;
+  char **ivname, **dvname, **ianame, **daname;
+  int nivector, ndvector, niarray, ndarray;
 
   // molecule templates
   // each template can be a set of consecutive molecules
@@ -335,9 +336,9 @@ class Atom : protected Pointers {
   void delete_callback(const char *, int);
   void update_callback(int);
 
-  int find_custom(const char *, int &);
-  virtual int add_custom(const char *, int);
-  virtual void remove_custom(int, int);
+  int find_custom(const char *, int &, int &);
+  virtual int add_custom(const char *, int, int);
+  virtual void remove_custom(int, int, int);
 
   virtual void sync_modify(ExecutionSpace, unsigned int, unsigned int) {}
 

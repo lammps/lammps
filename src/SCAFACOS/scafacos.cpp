@@ -23,6 +23,7 @@
 #include "error.h"
 #include "force.h"
 #include "memory.h"
+#include "pair_hybrid.h"
 
 #include <cstdlib>
 #include <cstring>
@@ -108,10 +109,26 @@ void Scafacos::init()
   if (domain->triclinic) error->all(FLERR, "Cannot use ScaFaCoS with triclinic domain yet");
 
   if (atom->natoms > INT_MAX && sizeof(int) != 8)
-    error->all(FLERR, "Scafacos atom count exceeds 2B");
+    error->all(FLERR, "ScaFaCoS atom count exceeds 2B");
 
-  if (atom->molecular != Atom::ATOMIC)
-    error->all(FLERR, "Cannot use Scafacos with molecular charged systems yet");
+  if ((atom->molecular != Atom::ATOMIC) && (atom->nbonds + atom->nangles + atom->ndihedrals) > 0) {
+    int flag = 0;
+    if ((force->special_coul[1] == 1.0) && (force->special_coul[2] == 1.0) &&
+        (force->special_coul[3] == 1.0))
+      ++flag;
+
+    PairHybrid *ph = reinterpret_cast<PairHybrid *>(force->pair_match("^hybrid", 0));
+    if (ph) {
+      for (int isub = 0; isub < ph->nstyles; ++isub)
+        if (force->pair_match("coul/exclude", 0, isub)) ++flag;
+    } else {
+      if (force->pair_match("coul/exclude", 0)) ++flag;
+    }
+    if (!flag)
+      error->all(FLERR,
+                 "Must use pair style coul/exclude or 'special_bonds coul 1.0 1.0 1.0'"
+                 "for molecular charged systems with ScaFaCos");
+  }
 
   FCSResult result;
 

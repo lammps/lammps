@@ -88,6 +88,9 @@ for header in headers:
                 style = m[1]
                 if upper.match(style):
                     continue
+                if style in ['reax/c', 'reax/c/omp', 'reax/c/kk',
+                        'reax/c/kk/device', 'reax/c/kk/host', 'meam/c']:
+                    continue
 
                 # detect, process, and flag suffix styles:
                 info = { 'kokkos':  0, 'gpu':     0, 'intel':   0, \

@@ -207,8 +207,11 @@ void ComputeGrid::allocate()
   memory->destroy(local_flags);
   if (gridlocal_allocated) {
     gridlocal_allocated = 0;
-    // can't seem to do this without seg-fault
+    // MEMORY LEAK!!
+    // can't seem to free this memory without seg-fault
+    // printf("Before allocate destroy4d, proc %d %p\n",comm->me,gridlocal);
     // memory->destroy4d_offset(gridlocal,nzlo,nylo,nxlo);
+    // printf("After allocate destroy4d, proc %d %p\n",comm->me,gridlocal);
   }
 
   memory->create(grid,size_array_rows,size_array_cols,"grid:grid");
@@ -310,7 +313,6 @@ void ComputeGrid::set_grid_local()
 
   ngridlocal = (nxhi - nxlo + 1) * (nyhi - nylo + 1) * (nzhi - nzlo + 1);
 
-  printf("me = %d n = %d x %d %d y %d %d z %d %d \n", comm->me, ngridlocal, nxlo, nxhi, nylo, nyhi, nzlo, nzhi);
 }
 
 /* ----------------------------------------------------------------------

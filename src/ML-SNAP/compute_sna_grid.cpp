@@ -37,7 +37,6 @@ ComputeSNAGrid::ComputeSNAGrid(LAMMPS *lmp, int narg, char **arg) :
   ComputeGrid(lmp, narg, arg), cutsq(nullptr),
   radelem(nullptr), wjelem(nullptr)
 {
-
   double rfac0, rmin0;
   int twojmax, switchflag, bzeroflag, bnormflag, wselfallflag;
 
@@ -208,21 +207,6 @@ void ComputeSNAGrid::compute_array()
 {
   invoked_array = update->ntimestep;
 
-  // // invoke full neighbor list (will copy or build if necessary)
-
-  // neighbor->build_one(list);
-
-  // int mynxlo = static_cast<int> (comm->xsplit[comm->myloc[0]] * nx);
-  // int mynxhi = static_cast<int> (comm->xsplit[comm->myloc[0]+1] * nx) - 1;
-
-  // int mynylo = static_cast<int> (comm->ysplit[comm->myloc[1]] * ny);
-  // int mynyhi = static_cast<int> (comm->ysplit[comm->myloc[1]+1] * ny) - 1;
-
-  // int mynzlo = static_cast<int> (comm->zsplit[comm->myloc[2]] * nz);
-  // int mynzhi = static_cast<int> (comm->zsplit[comm->myloc[2]+1] * nz) - 1;
-
-  // int myngridlocal = (nxhi - nxlo + 1) * (nyhi - nylo + 1) * (nzhi - nzlo + 1);
-
   // compute sna for each gridpoint
 
   double** const x = atom->x;
@@ -285,7 +269,7 @@ void ComputeSNAGrid::compute_array()
 	snaptr->compute_zi();
 	snaptr->compute_bi(ielem);
 
-      // linear contributions
+	// linear contributions
 
 	for (int icoeff = 0; icoeff < ncoeff; icoeff++)
 	  gridlocal[size_array_cols_base+icoeff][iz][iy][ix] = snaptr->blist[icoeff];
@@ -302,15 +286,16 @@ void ComputeSNAGrid::compute_array()
 	  }
 	}
       }
-  
+
   for (int iz = nzlo; iz <= nzhi; iz++)
     for (int iy = nylo; iy <= nyhi; iy++)
       for (int ix = nxlo; ix <= nxhi; ix++) {
-	const int igrid = iz*(nx*ny) + iy*nx + ix;
-	for (int j = 0; j < nvalues; j++)
-	  grid[igrid][size_array_cols_base + j] = gridlocal[size_array_cols_base + j][iz][iy][ix];
+  	const int igrid = iz*(nx*ny) + iy*nx + ix;
+  	for (int j = 0; j < nvalues; j++)
+  	  grid[igrid][size_array_cols_base + j] = gridlocal[size_array_cols_base + j][iz][iy][ix];
       }
   MPI_Allreduce(&grid[0][0],&gridall[0][0],ngrid*size_array_cols,MPI_DOUBLE,MPI_SUM,world);
+
 
 }
 

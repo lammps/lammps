@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -77,7 +76,6 @@ DihedralSpherical::~DihedralSpherical()
   }
 }
 
-
 static void norm3safe(double *v) {
   double inv_scale = sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]);
   double scale = 1.0;
@@ -87,7 +85,6 @@ static void norm3safe(double *v) {
   v[1] *= scale;
   v[2] *= scale;
 }
-
 
 // --------------------------------------------
 // ------- Calculate the dihedral angle -------
@@ -640,21 +637,21 @@ CalcGeneralizedForces(int type,
 void DihedralSpherical::allocate()
 {
   allocated = 1;
-  int n = atom->ndihedraltypes;
+  int n = atom->ndihedraltypes+1;
 
-  memory->create(nterms,n+1,"dihedral:nterms");
+  memory->create(nterms,n,"dihedral:nterms");
 
-  Ccoeff = new double * [n+1];
-  phi_mult = new double * [n+1];
-  phi_shift = new double * [n+1];
-  phi_offset = new double * [n+1];
-  theta1_mult = new double * [n+1];
-  theta1_shift = new double * [n+1];
-  theta1_offset = new double * [n+1];
-  theta2_mult = new double * [n+1];
-  theta2_shift = new double * [n+1];
-  theta2_offset = new double * [n+1];
-  for (int i = 1; i <= n; i++) {
+  Ccoeff = new double * [n];
+  phi_mult = new double * [n];
+  phi_shift = new double * [n];
+  phi_offset = new double * [n];
+  theta1_mult = new double * [n];
+  theta1_shift = new double * [n];
+  theta1_offset = new double * [n];
+  theta2_mult = new double * [n];
+  theta2_shift = new double * [n];
+  theta2_offset = new double * [n];
+  for (int i = 0; i < n; i++) {
     Ccoeff[i] = nullptr;
     phi_mult[i] = nullptr;
     phi_shift[i] = nullptr;
@@ -667,8 +664,8 @@ void DihedralSpherical::allocate()
     theta2_offset[i] = nullptr;
   }
 
-  memory->create(setflag,n+1,"dihedral:setflag");
-  for (int i = 1; i <= n; i++) setflag[i] = 0;
+  memory->create(setflag,n,"dihedral:setflag");
+  for (int i = 1; i < n; i++) setflag[i] = 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -694,6 +691,16 @@ void DihedralSpherical::coeff(int narg, char **arg)
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
     nterms[i] = nterms_one;
+    delete[] Ccoeff[i];
+    delete[] phi_mult[i];
+    delete[] phi_shift[i];
+    delete[] phi_offset[i];
+    delete[] theta1_mult[i];
+    delete[] theta1_shift[i];
+    delete[] theta1_offset[i];
+    delete[] theta2_mult[i];
+    delete[] theta2_shift[i];
+    delete[] theta2_offset[i];
     Ccoeff[i] = new double [nterms_one];
     phi_mult[i] = new double [nterms_one];
     phi_shift[i] = new double [nterms_one];
@@ -730,7 +737,6 @@ void DihedralSpherical::coeff(int narg, char **arg)
 
 void DihedralSpherical::write_restart(FILE *fp)
 {
-
   fwrite(&nterms[1],sizeof(int),atom->ndihedraltypes,fp);
   for (int i = 1; i <= atom->ndihedraltypes; i++) {
     fwrite(Ccoeff[i],sizeof(double),nterms[i],fp);
@@ -744,7 +750,6 @@ void DihedralSpherical::write_restart(FILE *fp)
     fwrite(theta2_shift[i],sizeof(double),nterms[i],fp);
     fwrite(theta2_offset[i],sizeof(double),nterms[i],fp);
   }
-
 }
 
 /* ----------------------------------------------------------------------
@@ -826,11 +831,6 @@ void DihedralSpherical::write_data(FILE *fp)
     fprintf(fp,"\n");
   }
 }
-
-
-
-
-
 
 // Not needed?
 // single() calculates the dihedral-angle energy of atoms i1, i2, i3, i4.

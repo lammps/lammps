@@ -40,6 +40,7 @@ class PairLJCutDipoleLong : public Pair {
   void read_restart(FILE *);
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
+  void *extract(const char *, int &);
 
  protected:
   double cut_lj_global;
@@ -49,7 +50,6 @@ class PairLJCutDipoleLong : public Pair {
   double **lj1, **lj2, **lj3, **lj4, **offset;
   double g_ewald;
   int ewald_order;
-  virtual void *extract(const char *, int &);
 
   void allocate();
 };

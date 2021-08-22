@@ -367,6 +367,8 @@ void PairLJLongDipoleLong::write_restart_settings(FILE *fp)
   fwrite(&offset_flag,sizeof(int),1,fp);
   fwrite(&mix_flag,sizeof(int),1,fp);
   fwrite(&ewald_order,sizeof(int),1,fp);
+  fwrite(&ewald_off,sizeof(int),1,fp);
+  fwrite(&dispersionflag,sizeof(int),1,fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -381,12 +383,16 @@ void PairLJLongDipoleLong::read_restart_settings(FILE *fp)
     utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,nullptr,error);
     utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
     utils::sfread(FLERR,&ewald_order,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&ewald_off,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&dispersionflag,sizeof(int),1,fp,nullptr,error);
   }
   MPI_Bcast(&cut_lj_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&cut_coul,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
   MPI_Bcast(&ewald_order,1,MPI_INT,0,world);
+  MPI_Bcast(&ewald_off,1,MPI_INT,0,world);
+  MPI_Bcast(&dispersionflag,1,MPI_INT,0,world);
 }
 
 /* ----------------------------------------------------------------------

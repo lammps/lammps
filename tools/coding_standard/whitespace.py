@@ -18,7 +18,13 @@ include:
     - doc/src/**
     - python
     - src/**
+    - lib/**
     - tools/coding_standard
+exclude:
+    - lib/colvars/Install.py
+    - lib/gpu/geryon/file_to_cstr.sh
+    - lib/kokkos
+    - src/Make.sh
 patterns:
     - "*.c"
     - "*.cmake"
@@ -47,10 +53,22 @@ def check_trailing_whitespace(f):
 
     return errors, last_line
 
+def check_tabs(f):
+    pattern = re.compile(r'[^\n]*\t+[^n]*\n$')
+    lineno = 1
+    errors = set()
+
+    for line in f:
+        if pattern.match(line):
+            errors.add(lineno)
+        lineno += 1
+    return errors
+
 def check_file(path):
     encoding = 'UTF-8'
     last_line = "\n"
     whitespace_errors = set()
+    tab_errors = set()
     try:
         with open(path, 'r') as f:
             whitespace_errors, last_line = check_trailing_whitespace(f)
@@ -62,7 +80,19 @@ def check_file(path):
         except Exception:
             encoding = 'unknown'
 
+    try:
+        with open(path, 'r') as f:
+            tab_errors = check_tabs(f)
+    except UnicodeDecodeError:
+        encoding = 'ISO-8859-1'
+        try:
+            with open(path, 'r', encoding=encoding) as f:
+                tab_errors = check_tabs(f)
+        except Exception:
+            encoding = 'unknown'
+
     return {
+        'tab_errors': tab_errors,
         'whitespace_errors': whitespace_errors,
         'encoding': encoding,
         'eof_error': not last_line.endswith('\n')
@@ -70,9 +100,15 @@ def check_file(path):
 
 def fix_file(path, check_result):
     newfile = path + ".modified"
+    tab_pat = re.compile(r'^([^\t]*)(\t+)(.*)$')
     with open(newfile, 'w', encoding='UTF-8') as out:
         with open(path, 'r', encoding=check_result['encoding']) as src:
             for line in src:
+                match = tab_pat.match(line)
+                if match:
+                    # compute number of blanks assuming 8 character tab setting
+                    num = 8*len(match.group(2))-len(match.group(1))%8
+                    line = match.group(1) + " "*num + match.group(3)
                 print(line.rstrip(), file=out)
     shutil.copymode(path, newfile)
     shutil.move(newfile, path)
@@ -85,6 +121,8 @@ def check_folder(directory, config, fix=False, verbose=False):
         for pattern in config['patterns']:
             path = os.path.join(directory, base_path, pattern)
             files += glob.glob(path, recursive=config['recursive'])
+    for exclude in config['exclude']:
+        files = [f for f in files if not f.startswith(os.path.join(directory,exclude))]
 
     for f in files:
         path = os.path.normpath(f)
@@ -98,6 +136,10 @@ def check_folder(directory, config, fix=False, verbose=False):
 
         for lineno in result['whitespace_errors']:
             print("[Error] Trailing whitespace @ {}:{}".format(path, lineno))
+            has_resolvable_errors = True
+
+        for lineno in result['tab_errors']:
+            print("[Error] Tab @ {}:{}".format(path, lineno))
             has_resolvable_errors = True
 
         if result['eof_error']:

@@ -33,7 +33,7 @@ void ParSparseMatrix<double>::MultMv(const Vector<double>& v,
 #ifdef DISABLE_PAR_HEURISTICS
   // Use much more lenient heuristics to exercise parallel code
   if (numProcs == 1 ||  _size < 300) {
-#else  
+#else
   // These are simple heuristics to perform multiplication in serial if
   //   parallel will be slower. They were determined experimentally.
   if ( numProcs == 1 ||
@@ -45,7 +45,7 @@ void ParSparseMatrix<double>::MultMv(const Vector<double>& v,
     SparseMatrix<double>::MultMv(v, c);
     return;
   }
- 
+
 
   SparseMatrix<double>::compress(*this);
   GCK(*this, v, this->nCols() != v.size(), "ParSparseMatrix * Vector")

@@ -16,7 +16,7 @@ namespace ATC {
 
   //--------------------------------------------------------
   //  Constructor
-  //-------------------------------------------------------- 
+  //--------------------------------------------------------
   ThermalTimeIntegrator::ThermalTimeIntegrator(ATC_Coupling * atc,
                                                TimeIntegrationType timeIntegrationType) :
     TimeIntegrator(atc, timeIntegrationType)
@@ -38,7 +38,7 @@ namespace ATC {
       \section syntax
       fix_modify AtC time_integration <descriptor> \n
       - descriptor (string) = time integration type  \n
-      
+
       various time integration methods for the finite elements\n
       \section description
       gear - atomic velocity update with 2nd order Verlet, nodal temperature update with 3rd or 4th order Gear, thermostats based on controlling power \n
@@ -50,7 +50,7 @@ namespace ATC {
       \section related
       see \ref man_fix_atc
       \section default
-      none 
+      none
     */
     if (strcmp(arg[argIndex],"gear")==0) {
       timeIntegrationType_ = GEAR;
@@ -90,12 +90,12 @@ namespace ATC {
             throw ATC_Error("Unknown time integration type in ThermalTimeIntegrator::Initialize()");
         }
       }
-      
+
       if (timeFilterManager_->filter_dynamics()) {
         switch (timeIntegrationType_) {
           case GEAR: {
             timeIntegrationMethod_ = new ThermalTimeIntegratorGearFiltered(this);
-            break; 
+            break;
           }
           case FRACTIONAL_STEP: {
             timeIntegrationMethod_ = new ThermalTimeIntegratorFractionalStepFiltered(this);
@@ -167,7 +167,7 @@ namespace ATC {
     nodalAtomicTemperature_ =
       (atc_->interscale_manager()).dense_matrix("NodalAtomicTemperature");
   }
-  
+
   //--------------------------------------------------------
   //--------------------------------------------------------
   //  Class ThermalIntegratorGear
@@ -193,9 +193,9 @@ namespace ATC {
   {
     ThermalIntegrationMethod::construct_transfers();
     InterscaleManager & interscaleManager = atc_->interscale_manager();
-        
+
     // add in power computation
-    DotTwiceKineticEnergy * dotTwiceKineticEnergy = 
+    DotTwiceKineticEnergy * dotTwiceKineticEnergy =
       new DotTwiceKineticEnergy(atc_);
     interscaleManager.add_per_atom_quantity(dotTwiceKineticEnergy,"DotTwiceKineticEnergy");
     nodalAtomicPower_ = new AtfShapeFunctionRestriction(atc_,
@@ -252,7 +252,7 @@ namespace ATC {
     timeFilter_->apply_post_step2(nodalAtomicPowerFiltered_.set_quantity(),
                                   myNodalAtomicPower,dt);
     temperatureRhs_ += myNodalAtomicPower;
-    
+
     // Finish updating temperature
     _temperatureResidual_.resize(atc_->num_nodes(),1);
     atc_->apply_inverse_mass_matrix(temperatureRhs_.quantity(),
@@ -260,7 +260,7 @@ namespace ATC {
                                     TEMPERATURE);
     _temperatureResidual_ -= temperatureRoc_.quantity();
     _temperatureResidual_ *= dt;
-    
+
     gear1_3_correct(temperature_.set_quantity(),
                     temperatureRoc_.set_quantity(),
                     temperature2Roc_.set_quantity(),
@@ -303,7 +303,7 @@ namespace ATC {
     temperature3Roc_(atc_->field_3roc(TEMPERATURE))
   {
     // do nothing
-    
+
     //      specifically if history data is required and we need another time filter object for the fields
   }
 
@@ -323,7 +323,7 @@ namespace ATC {
 
   //--------------------------------------------------------
   //  post_final_integrate1
-  //    first time integration computations 
+  //    first time integration computations
   //    after Verlet step 2
   //--------------------------------------------------------
   void ThermalTimeIntegratorGearFiltered::post_final_integrate1(double dt)
@@ -331,7 +331,7 @@ namespace ATC {
     DENS_MAT & myNodalAtomicPowerFiltered(nodalAtomicPowerFiltered_.set_quantity());
     timeFilter_->apply_post_step2(myNodalAtomicPowerFiltered,nodalAtomicPower_->quantity(),dt);
     temperatureRhs_ += myNodalAtomicPowerFiltered;
-    
+
     // Finish updating temperature
     _temperatureResidual_.resize(atc_->num_nodes(),1);
     atc_->apply_inverse_mass_matrix(temperatureRhs_.quantity(),
@@ -429,7 +429,7 @@ namespace ATC {
     if (!timeFilterManager->end_equilibrate()) {
       // implies an initial condition of the instantaneous atomic energy
       // for the corresponding filtered variable, consistent with the temperature
-      nodalAtomicEnergyFiltered_ = nodalAtomicEnergy_->quantity();  
+      nodalAtomicEnergyFiltered_ = nodalAtomicEnergy_->quantity();
       nodalAtomicPowerFiltered_.reset(atc_->num_nodes(),1);
     }
   }
@@ -457,7 +457,7 @@ namespace ATC {
     apply_gear_predictor(dt);
 
     // update filtered nodal atomic power
-    
+
     //      that way thermostat and integrator can be consistent
     timeFilter_->apply_pre_step1(nodalAtomicPowerFiltered_.set_quantity(),
                                  nodalAtomicPower_,dt);
@@ -472,16 +472,16 @@ namespace ATC {
   //--------------------------------------------------------
   void ThermalTimeIntegratorFractionalStep::pre_final_integrate1(double dt)
   {
-    
+
     //      before the new rhs is computed but after atomic velocity is updated
     //      to allow for general notions of temperature beyond kinetic.
     // compute change in restricted atomic energy
     nodalAtomicPower_ += nodalAtomicEnergy_->quantity();
-    
+
     // update FE temperature with change in temperature from MD
     compute_temperature_delta(nodalAtomicPower_,dt);
     temperature_ += atomicTemperatureDelta_.quantity();
-    
+
     // approximation to power for output
     nodalAtomicPower_ /= dt;
     timeFilter_->apply_post_step1(nodalAtomicPowerFiltered_.set_quantity(),

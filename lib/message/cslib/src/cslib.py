@@ -42,11 +42,11 @@ except:
 class CSlib:
 
   # instantiate CSlib thru its C-interface
-  
+
   def __init__(self,csflag,mode,ptr,comm):
 
     # load libcslib.so
-    
+
     try:
       if comm: self.lib = CDLL("libcsmpi.so",RTLD_GLOBAL)
       else: self.lib = CDLL("libcsnompi.so",RTLD_GLOBAL)
@@ -66,35 +66,35 @@ class CSlib:
 
     self.lib.cslib_send.argtypes = [c_void_p,c_int,c_int]
     self.lib.cslib_send.restype = None
-    
+
     self.lib.cslib_pack_int.argtypes = [c_void_p,c_int,c_int]
     self.lib.cslib_pack_int.restype = None
-    
+
     self.lib.cslib_pack_int64.argtypes = [c_void_p,c_int,c_longlong]
     self.lib.cslib_pack_int64.restype = None
-    
+
     self.lib.cslib_pack_float.argtypes = [c_void_p,c_int,c_float]
     self.lib.cslib_pack_float.restype = None
-    
+
     self.lib.cslib_pack_double.argtypes = [c_void_p,c_int,c_double]
     self.lib.cslib_pack_double.restype = None
-    
+
     self.lib.cslib_pack_string.argtypes = [c_void_p,c_int,c_char_p]
     self.lib.cslib_pack_string.restype = None
-    
+
     self.lib.cslib_pack.argtypes = [c_void_p,c_int,c_int,c_int,c_void_p]
     self.lib.cslib_pack.restype = None
-    
+
     self.lib.cslib_pack_parallel.argtypes = [c_void_p,c_int,c_int,c_int,
                                              POINTER(c_int),c_int,c_void_p]
     self.lib.cslib_pack_parallel.restype = None
-    
+
     self.lib.cslib_recv.argtypes = [c_void_p,POINTER(c_int),
                                     POINTER(POINTER(c_int)),
                                     POINTER(POINTER(c_int)),
                                     POINTER(POINTER(c_int))]
     self.lib.cslib_recv.restype = c_int
-    
+
     self.lib.cslib_unpack_int.argtypes = [c_void_p,c_int]
     self.lib.cslib_unpack_int.restype = c_int
 
@@ -128,7 +128,7 @@ class CSlib:
     # create an instance of CSlib with or w/out MPI communicator
 
     self.cs = c_void_p()
-    
+
     if not comm:
       self.lib.cslib_open(csflag,mode,ptr,None,byref(self.cs))
     elif not mpi4pyflag:
@@ -144,7 +144,7 @@ class CSlib:
       self.lib.cslib_open(csflag,mode,ptrcopy,comm_ptr,byref(self.cs))
 
   # destroy instance of CSlib
-  
+
   def __del__(self):
     if self.cs: self.lib.cslib_close(self.cs)
 
@@ -153,13 +153,13 @@ class CSlib:
     self.lib = None
 
   # send a message
-  
+
   def send(self,msgID,nfield):
     self.nfield = nfield
     self.lib.cslib_send(self.cs,msgID,nfield)
 
   # pack one field of message
-  
+
   def pack_int(self,id,value):
     self.lib.cslib_pack_int(self.cs,id,value)
 
@@ -185,24 +185,24 @@ class CSlib:
     self.lib.cslib_pack_parallel(self.cs,id,ftype,nlocal,cids,nper,cdata)
 
   # convert input data to a ctypes vector to pass to CSlib
-  
+
   def data_convert(self,ftype,flen,data):
-       
+
     # tflag = type of data
     # tflag = 1 if data is list or tuple
     # tflag = 2 if data is Numpy array
     # tflag = 3 if data is ctypes vector
     # same usage of tflag as in unpack function
-    
+
     txttype = str(type(data))
     if "numpy" in txttype: tflag = 2
     elif "c_" in txttype: tflag = 3
     else: tflag = 1
-    
+
     # create ctypes vector out of data to pass to lib
     # cdata = ctypes vector to return
     # NOTE: error check on ftype and tflag everywhere, also flen
-    
+
     if ftype == 1:
       if tflag == 1: cdata = (flen * c_int)(*data)
       elif tflag == 2: cdata = data.ctypes.data_as(POINTER(c_int))
@@ -223,7 +223,7 @@ class CSlib:
     return cdata
 
   # receive a message
-  
+
   def recv(self):
     self.lib.cslib_recv.restype = c_int
     nfield = c_int()
@@ -235,18 +235,18 @@ class CSlib:
 
     # copy returned C args to native Python int and lists
     # store them in class so unpack() methods can access the info
-    
+
     self.nfield = nfield = nfield.value
     self.fieldID = fieldID[:nfield]
     self.fieldtype = fieldtype[:nfield]
     self.fieldlen = fieldlen[:nfield]
-    
+
     return msgID,self.nfield,self.fieldID,self.fieldtype,self.fieldlen
 
   # unpack one field of message
   # tflag = type of data to return
   # 3 = ctypes vector is default, since no conversion required
-  
+
   def unpack_int(self,id):
     return self.lib.cslib_unpack_int(self.cs,id)
 
@@ -267,7 +267,7 @@ class CSlib:
 
     # reset data type of return so can morph by tflag
     # cannot do this for the generic c_void_p returned by CSlib
-    
+
     if self.fieldtype[index] == 1:
       self.lib.cslib_unpack.restype = POINTER(c_int)
     elif self.fieldtype[index] == 2:
@@ -287,7 +287,7 @@ class CSlib:
     # tflag = 3 to return data as ctypes vector
     # same usage of tflag as in pack functions
     # tflag = 2,3 should NOT perform a data copy
-    
+
     if tflag == 1:
       data = cdata[:self.fieldlen[index]]
     elif tflag == 2:
@@ -297,11 +297,11 @@ class CSlib:
       data = np.ctypeslib.as_array(cdata,shape=(self.fieldlen[index],))
     elif tflag == 3:
       data = cdata
-      
+
     return data
 
   # handle data array like pack() or unpack_parallel() ??
-  
+
   def unpack_data(self,id,tflag=3):
     index = self.fieldID.index(id)
 
@@ -312,14 +312,14 @@ class CSlib:
   #       as opposed to creating this cdata
   #       does that make any performance difference ?
   #       e.g. should we allow CSlib to populate an existing Numpy array's memory
-  
+
   def unpack_parallel(self,id,nlocal,ids,nper,tflag=3):
     cids = self.data_convert(1,nlocal,ids)
 
     # allocate memory for the returned data
     # pass cdata ptr to the memory to CSlib unpack_parallel()
     # this resets data type of last unpack_parallel() arg
-    
+
     index = self.fieldID.index(id)
     if self.fieldtype[index] == 1: cdata = (nper*nlocal * c_int)()
     elif self.fieldtype[index] == 2: cdata = (nlocal*nper * c_longlong)()
@@ -334,7 +334,7 @@ class CSlib:
     # tflag = 2 to return data as Numpy array
     # tflag = 3 to return data as ctypes vector
     # same usage of tflag as in pack functions
-    
+
     if tflag == 1:
       data = cdata[:nper*nlocal]
     elif tflag == 2:
@@ -353,10 +353,10 @@ class CSlib:
       data = np.ctypeslib.as_array(cdata,shape=(nlocal*nper,))
     elif tflag == 3:
       data = cdata
-      
+
     return data
 
   # extract a library value
-  
+
   def extract(self,flag):
    return self.lib.cslib_extract(self.cs,flag)

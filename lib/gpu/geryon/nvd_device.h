@@ -247,7 +247,7 @@ class UCL_Device {
   /// Get the maximum number of threads per block in dimension 'dim'
   inline size_t group_size_dim(const int i, const int dim)
     { return _properties[i].maxThreadsDim[dim]; }
-  
+
   /// Get the shared local memory size in bytes
   inline size_t slm_size() { return slm_size(_device); }
   /// Get the shared local memory size in bytes

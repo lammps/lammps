@@ -9,9 +9,9 @@ namespace ATC {
 class ATC_TransferPartitionOfUnity : public ATC_Transfer {
 
  public:
-  
+
   // constructor
-  ATC_TransferPartitionOfUnity(std::string groupName, 
+  ATC_TransferPartitionOfUnity(std::string groupName,
                                double **& perAtomArray,
                                LAMMPS_NS::Fix * thisFix,
                                std::string matParamFile = "none");
@@ -49,7 +49,7 @@ class ATC_TransferPartitionOfUnity : public ATC_Transfer {
   virtual void compute_dislocation_density(DENS_MAT & dislocation_density);
 
  private:
-  
+
   DENS_MAT variationVelocity_;
   DENS_MAT vbar_;
 };

@@ -43,6 +43,8 @@ compute b all sna/atom ${rcutfac} ${rfac0} ${twojmax} ${radelem} ${wj} rmin0 ${r
 
 compute bgrid all sna/grid grid ${ngridx} ${ngridy} ${ngridz} ${rcutfac} ${rfac0} ${twojmax} ${radelem} ${wj} rmin0 ${rmin0} bzeroflag ${bzero}	quadraticflag ${quad} switchflag ${switch}
 
+compute bgridlocal all sna/grid/local grid ${ngridx} ${ngridy} ${ngridz} ${rcutfac} ${rfac0} ${twojmax} ${radelem} ${wj} rmin0 ${rmin0} bzeroflag ${bzero}	quadraticflag ${quad} switchflag ${switch}
+
 # create dummy potential for neighbor list
 
 variable rcutneigh equal 2.0*${rcutfac}*${radelem}
@@ -55,6 +57,8 @@ thermo_style	custom step temp ke pe vol c_bgrid[1][1]
 thermo_modify norm yes
 
 dump mydump_b all custom 1000 dump_b id c_b[*]
+
+dump mydump_bgridlocal all local 1000 dump_bgridlocal index c_bgridlocal[1]
 
 # run
 

@@ -13,45 +13,60 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(coul/shield,PairCoulShield);
+PairStyle(coul/exclude,PairCoulExclude);
 // clang-format on
 #else
 
-#ifndef LMP_PAIR_COUL_SHIELD_H
-#define LMP_PAIR_COUL_SHIELD_H
+#ifndef LMP_PAIR_COUL_EXCLUDE_H
+#define LMP_PAIR_COUL_EXCLUDE_H
 
 #include "pair.h"
 
 namespace LAMMPS_NS {
 
-class PairCoulShield : public Pair {
+class PairCoulExclude : public Pair {
  public:
-  PairCoulShield(class LAMMPS *);
-  virtual ~PairCoulShield();
-
+  PairCoulExclude(class LAMMPS *);
+  virtual ~PairCoulExclude();
   virtual void compute(int, int);
-
   virtual void settings(int, char **);
   virtual void coeff(int, char **);
-  virtual void init_style();
-  virtual double init_one(int, int);
-  virtual void write_restart(FILE *);
-  virtual void read_restart(FILE *);
+  void init_style();
+  double init_one(int, int);
+  void write_restart(FILE *);
+  void read_restart(FILE *);
   virtual void write_restart_settings(FILE *);
   virtual void read_restart_settings(FILE *);
-
+  virtual void write_data(FILE *);
+  virtual void write_data_all(FILE *);
   virtual double single(int, int, int, int, double, double, double, double &);
+  virtual void *extract(const char *, int &);
 
  protected:
   double cut_global;
-  double **cut;
-  double **sigmae, **offset;
-  int tap_flag;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+E: Incorrect args for pair coefficients
+
+Self-explanatory.  Check the input script or data file.
+
+E: Pair style coul/cut requires atom attribute q
+
+The atom style defined does not have these attributes.
+
+*/

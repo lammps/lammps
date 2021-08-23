@@ -56,7 +56,7 @@ class Domain : protected Pointers {
 
   // orthogonal box global bounds
 
-  double boxlo[3], boxhi[3];    
+  double boxlo[3], boxhi[3];
 
   // triclinic box
   // boxlo/hi = same as if untilted

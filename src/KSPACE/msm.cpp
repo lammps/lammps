@@ -1198,7 +1198,7 @@ void MSM::set_grid_local()
     // partition global grid across procs
     // n xyz lo/hi in[] = lower/upper bounds of global grid this proc owns
     // indices range from 0 to N-1 inclusive in each dim
-    
+
     comm->partition_grid(nx_msm[n],ny_msm[n],nz_msm[n],0.0,
                          nxlo_in[n],nxhi_in[n],nylo_in[n],nyhi_in[n],
                          nzlo_in[n],nzhi_in[n]);

@@ -840,7 +840,7 @@ int Comm::binary(double value, int n, double *vec)
      indices into the global grid range from 0 to N-1 in each dim
    zfactor = 0.0 if the grid exactly covers the simulation box
    zfactor > 1.0 if the grid extends beyond the +z boundary by this factor
-     used by 2d slab-mode PPPM 
+     used by 2d slab-mode PPPM
      this effectively maps proc sub-grids to a smaller subset of the grid
    nxyz lo/hi = inclusive lo/hi bounds of global grid sub-brick I own
    if proc owns no grid cells in a dim, then nlo > nhi
@@ -849,7 +849,7 @@ int Comm::binary(double value, int n, double *vec)
 ------------------------------------------------------------------------- */
 
 void Comm::partition_grid(int nx, int ny, int nz, double zfactor,
-                          int &nxlo, int &nxhi, int &nylo, int &nyhi, 
+                          int &nxlo, int &nxhi, int &nylo, int &nyhi,
                           int &nzlo, int &nzhi)
 {
   double xfraclo,xfrachi,yfraclo,yfrachi,zfraclo,zfrachi;

@@ -492,6 +492,13 @@ check-homepage:
 fix-homepage:
 	$(PYTHON) ../tools/coding_standard/homepage.py .. -f
 
+format-src:
+	clang-format -i --style=file *.cpp *.h */*.cpp */*.h
+
+format-tests:
+	clang-format -i --style=file ../unittest/*/*.cpp ../unittest/*/*.h
+
+
 # Package management
 
 package:

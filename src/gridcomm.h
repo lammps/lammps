@@ -31,6 +31,7 @@ class GridComm : protected Pointers {
   int ghost_adjacent();
   void forward_comm(int, void *, int, int, int, void *, void *, MPI_Datatype);
   void reverse_comm(int, void *, int, int, int, void *, void *, MPI_Datatype);
+  void gather(int, void *, int, int, int, void *, MPI_Datatype);
 
  protected:
   int me, nprocs;

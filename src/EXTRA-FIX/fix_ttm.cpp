@@ -37,8 +37,11 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 
 #define MAXLINE 1024
-#define OFFSET 16384    // to avoid outside-of-box atoms being rounded incorrectly
-#define SHIFT 0.5       // 0.5 for nearest grid point, 0.0 for lower-left grid point
+//#define OFFSET 16384    // to avoid outside-of-box atoms being rounded incorrectly
+//#define SHIFT 0.5       // 0.5 for nearest grid point, 0.0 for lower-left grid point
+
+#define OFFSET 0    // to avoid outside-of-box atoms being rounded incorrectly
+#define SHIFT 0.0       // 0.5 for nearest grid point, 0.0 for lower-left grid point
 
 /* ---------------------------------------------------------------------- */
 
@@ -114,7 +117,6 @@ FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
   ngridtotal = totalgrid;
 
   // allocate per-atom flangevin and zero it
-  // NOTE: is init to zero necessary?
 
   flangevin = nullptr;
   grow_arrays(atom->nmax);
@@ -130,29 +132,9 @@ FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
   atom->add_callback(Atom::GROW);
   atom->add_callback(Atom::RESTART);
 
+  // determines which class deallocate_grid() is called from
+
   deallocate_flag = 0;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixTTM::post_constructor()
-{
-  // allocate 3d grid variables
-
-  allocate_grid();
-
-  // zero net_energy_transfer
-  // in case compute_vector accesses it on timestep 0
-
-  outflag = 0;
-  for (int ix = 0; ix < nxgrid; ix++)
-    for (int iy = 0; iy < nygrid; iy++)
-      for (int iz = 0; iz < nzgrid; iz++)
-        net_energy_transfer_all[ix][iy][iz] = 0;
-
-  // set initial electron temperatures from user input file
-
-  read_electron_temperatures(infile);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -169,6 +151,26 @@ FixTTM::~FixTTM()
   memory->destroy(flangevin);
 
   if (!deallocate_flag) deallocate_grid();
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixTTM::post_constructor()
+{
+  // allocate global grid on each proc
+  // needs to be done in post_contructor() beccause is virtual method
+
+  allocate_grid();
+
+  // zero net_energy_transfer
+  // in case compute_vector accesses it on timestep 0
+
+  outflag = 0;
+  memset(&net_energy_transfer[0][0][0],0,ngridtotal*sizeof(double));
+
+  // set initial electron temperatures from user input file
+
+  read_electron_temperatures(infile);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -269,10 +271,10 @@ void FixTTM::post_force(int /*vflag*/)
       if (iy >= nygrid) iy -= nygrid;
       if (iz >= nzgrid) iz -= nzgrid;
 
-      if (T_electron[ix][iy][iz] < 0)
+      if (T_electron[iz][iy][ix] < 0)
         error->all(FLERR,"Electronic temperature dropped below zero");
 
-      double tsqrt = sqrt(T_electron[ix][iy][iz]);
+      double tsqrt = sqrt(T_electron[iz][iy][ix]);
 
       gamma1 = gfactor1[type[i]];
       double vsq = v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2];
@@ -320,10 +322,10 @@ void FixTTM::end_of_step()
   int nlocal = atom->nlocal;
 
   outflag = 0;
-  for (ix = 0; ix < nxgrid; ix++)
+  for (iz = 0; iz < nzgrid; iz++)
     for (iy = 0; iy < nygrid; iy++)
-      for (iz = 0; iz < nzgrid; iz++)
-        net_energy_transfer[ix][iy][iz] = 0;
+      for (ix = 0; ix < nxgrid; ix++)
+        net_energy_transfer[iz][iy][ix] = 0;
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
@@ -339,7 +341,7 @@ void FixTTM::end_of_step()
       if (ix >= nxgrid) ix -= nxgrid;
       if (iy >= nygrid) iy -= nygrid;
       if (iz >= nzgrid) iz -= nzgrid;
-      net_energy_transfer[ix][iy][iz] +=
+      net_energy_transfer[iz][iy][ix] +=
         (flangevin[i][0]*v[i][0] + flangevin[i][1]*v[i][1] +
          flangevin[i][2]*v[i][2]);
     }
@@ -375,18 +377,18 @@ void FixTTM::end_of_step()
   // finite difference iterations to update T_electron
 
   for (int istep = 0; istep < num_inner_timesteps; istep++) {
-
-    for (ix = 0; ix < nxgrid; ix++)
+    
+    for (iz = 0; iz < nzgrid; iz++)
       for (iy = 0; iy < nygrid; iy++)
-        for (iz = 0; iz < nzgrid; iz++)
-          T_electron_old[ix][iy][iz] =
-            T_electron[ix][iy][iz];
+        for (ix = 0; ix < nxgrid; ix++)
+          T_electron_old[iz][iy][ix] =
+            T_electron[iz][iy][ix];
 
     // compute new electron T profile
 
-    for (ix = 0; ix < nxgrid; ix++)
+    for (iz = 0; iz < nzgrid; iz++)
       for (iy = 0; iy < nygrid; iy++)
-        for (iz = 0; iz < nzgrid; iz++) {
+        for (ix = 0; ix < nxgrid; ix++) {
           int right_xnode = ix + 1;
           int right_ynode = iy + 1;
           int right_znode = iz + 1;
@@ -400,22 +402,22 @@ void FixTTM::end_of_step()
           if (left_ynode == -1) left_ynode = nygrid - 1;
           if (left_znode == -1) left_znode = nzgrid - 1;
 
-          T_electron[ix][iy][iz] =
-            T_electron_old[ix][iy][iz] +
+          T_electron[iz][iy][ix] =
+            T_electron_old[iz][iy][ix] +
             inner_dt/(electronic_specific_heat*electronic_density) *
             (electronic_thermal_conductivity *
 
-             ((T_electron_old[right_xnode][iy][iz] +
-               T_electron_old[left_xnode][iy][iz] -
-               2*T_electron_old[ix][iy][iz])/dx/dx +
-              (T_electron_old[ix][right_ynode][iz] +
-               T_electron_old[ix][left_ynode][iz] -
-               2*T_electron_old[ix][iy][iz])/dy/dy +
-              (T_electron_old[ix][iy][right_znode] +
-               T_electron_old[ix][iy][left_znode] -
-               2*T_electron_old[ix][iy][iz])/dz/dz) -
-
-             (net_energy_transfer_all[ix][iy][iz])/del_vol);
+             ((T_electron_old[iz][iy][right_xnode] +
+               T_electron_old[iz][iy][left_xnode] -
+               2*T_electron_old[iz][iy][ix])/dx/dx +
+              (T_electron_old[iz][right_ynode][ix] +
+               T_electron_old[iz][left_ynode][ix] -
+               2*T_electron_old[iz][iy][ix])/dy/dy +
+              (T_electron_old[right_znode][iy][iz] +
+               T_electron_old[left_znode][iy][ix] -
+               2*T_electron_old[iz][iy][ix])/dz/dz) -
+             
+             (net_energy_transfer_all[iz][iy][ix])/del_vol);
         }
   }
 }
@@ -462,18 +464,18 @@ void FixTTM::read_electron_temperatures(const char *filename)
     if (T_tmp < 0.0)
       error->one(FLERR,"Fix ttm electron temperatures must be > 0.0");
 
-    T_electron[ix][iy][iz] = T_tmp;
-    T_initial_set[ix][iy][iz] = 1;
+    T_electron[iz][iy][ix] = T_tmp;
+    T_initial_set[iz][iy][ix] = 1;
   }
 
   fclose(fp);
 
   // check completeness of input data
 
-  for (int ix = 0; ix < nxgrid; ix++)
+  for (int iz = 0; iz < nzgrid; iz++)
     for (int iy = 0; iy < nygrid; iy++)
-      for (int iz = 0; iz < nzgrid; iz++)
-        if (T_initial_set[ix][iy][iz] == 0)
+      for (int ix = 0; ix < nxgrid; ix++)
+        if (T_initial_set[iz][iy][ix] == 0)
           error->one(FLERR,"Initial temperatures not all set in fix ttm");
 
   memory->destroy(T_initial_set);
@@ -494,7 +496,7 @@ void FixTTM::reset_dt()
 
 void FixTTM::grow_arrays(int ngrow)
 {
-  memory->grow(flangevin,ngrow,3,"TTM:flangevin");
+  memory->grow(flangevin,ngrow,3,"ttm:flangevin");
 }
 
 /* ----------------------------------------------------------------------
@@ -504,15 +506,20 @@ void FixTTM::grow_arrays(int ngrow)
 void FixTTM::write_restart(FILE *fp)
 {
   double *rlist;
-  memory->create(rlist,nxgrid*nygrid*nzgrid+1,"TTM:rlist");
+  memory->create(rlist,nxgrid*nygrid*nzgrid+4,"ttm:rlist");
 
   int n = 0;
+  rlist[n++] = nxgrid;
+  rlist[n++] = nygrid;
+  rlist[n++] = nzgrid;
   rlist[n++] = seed;
 
-  for (int ix = 0; ix < nxgrid; ix++)
+  // store global grid values
+
+  for (int iz = 0; iz < nzgrid; iz++)
     for (int iy = 0; iy < nygrid; iy++)
-      for (int iz = 0; iz < nzgrid; iz++)
-        rlist[n++] =  T_electron[ix][iy][iz];
+      for (int ix = 0; ix < nxgrid; ix++)
+        rlist[n++] =  T_electron[iz][iy][ix];
 
   if (comm->me == 0) {
     int size = n * sizeof(double);
@@ -532,18 +539,28 @@ void FixTTM::restart(char *buf)
   int n = 0;
   double *rlist = (double *) buf;
 
+  // check that restart grid size is same as current grid size
+
+  int nxgrid_old = static_cast<int> (rlist[n++]);
+  int nygrid_old = static_cast<int> (rlist[n++]);
+  int nzgrid_old = static_cast<int> (rlist[n++]);
+
+  if (nxgrid_old != nxgrid || nygrid_old != nygrid || nzgrid_old != nzgrid)
+    error->all(FLERR,"Must restart fix ttm with same grid size");
+
   // change RN seed from initial seed, to avoid same Langevin factors
-  // just increment by 1, since for RanMars that is new RN streamd
+  // just increment by 1, since for RanMars that is a new RN stream
 
   seed = static_cast<int> (rlist[n++]) + 1;
-
-  for (int ix = 0; ix < nxgrid; ix++)
-    for (int iy = 0; iy < nygrid; iy++)
-      for (int iz = 0; iz < nzgrid; iz++)
-        T_electron[ix][iy][iz] = rlist[n++];
-
   delete random;
   random = new RanMars(lmp,seed+comm->me);
+
+  // restore global grid values
+
+  for (int iz = 0; iz < nzgrid; iz++)
+    for (int iy = 0; iy < nygrid; iy++)
+      for (int ix = 0; ix < nxgrid; ix++)
+        T_electron[iz][iy][ix] = rlist[n++];
 }
 
 /* ----------------------------------------------------------------------
@@ -617,14 +634,14 @@ double FixTTM::compute_vector(int n)
     double dz = domain->zprd/nzgrid;
     double del_vol = dx*dy*dz;
 
-    for (ix = 0; ix < nxgrid; ix++)
+    for (iz = 0; iz < nzgrid; iz++)
       for (iy = 0; iy < nygrid; iy++)
-        for (iz = 0; iz < nzgrid; iz++) {
+        for (ix = 0; ix < nxgrid; ix++) {
           e_energy +=
-            T_electron[ix][iy][iz]*electronic_specific_heat*
+            T_electron[iz][iy][ix]*electronic_specific_heat*
             electronic_density*del_vol;
           transfer_energy +=
-            net_energy_transfer_all[ix][iy][iz]*update->dt;
+            net_energy_transfer_all[iz][iy][ix]*update->dt;
         }
 
     outflag = 1;
@@ -653,11 +670,11 @@ double FixTTM::memory_usage()
 
 void FixTTM::allocate_grid()
 {
-  memory->create(T_electron_old,nxgrid,nygrid,nzgrid,"ttm:T_electron_old");
-  memory->create(T_electron,nxgrid,nygrid,nzgrid,"ttm:T_electron");
-  memory->create(net_energy_transfer,nxgrid,nygrid,nzgrid,
+  memory->create(T_electron_old,nzgrid,nygrid,nxgrid,"ttm:T_electron_old");
+  memory->create(T_electron,nzgrid,nygrid,nxgrid,"ttm:T_electron");
+  memory->create(net_energy_transfer,nzgrid,nygrid,nxgrid,
                  "ttm:net_energy_transfer");
-  memory->create(net_energy_transfer_all,nxgrid,nygrid,nzgrid,
+  memory->create(net_energy_transfer_all,nzgrid,nygrid,nxgrid,
                  "ttm:net_energy_transfer_all");
 }
 

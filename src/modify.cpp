@@ -915,6 +915,18 @@ Fix *Modify::add_fix(int narg, char **arg, int trysuffix)
   if (fix[ifix] == nullptr)
     error->all(FLERR,utils::check_packages_for_style("fix",arg[2],lmp));
 
+  // increment nfix (if new)
+
+  if (newflag) nfix++;
+
+  // post_constructor() can call virtual methods in parent or child
+  //   which would otherwise not yet be visible in child class
+  // post_constructor() allows new fix to create other fixes
+  // nfix increment must come first so recursive call to add_fix within
+  //   post_constructor() will see updated nfix
+
+  fix[ifix]->post_constructor();
+
   // check if Fix is in restart_global list
   // if yes, pass state info to the Fix so it can reset itself
 
@@ -946,15 +958,12 @@ Fix *Modify::add_fix(int narg, char **arg, int trysuffix)
                        fix[ifix]->style,fix[ifix]->id);
     }
 
-  // increment nfix (if new)
   // set fix mask values
-  // post_constructor() allows new fix to create other fixes
-  // nfix increment comes first so that recursive call to add_fix within
-  //   post_constructor() will see updated nfix
 
-  if (newflag) nfix++;
   fmask[ifix] = fix[ifix]->setmask();
-  fix[ifix]->post_constructor();
+
+  // return pointer to fix
+
   return fix[ifix];
 }
 
@@ -972,7 +981,6 @@ Fix *Modify::add_fix(const std::string &fixcmd, int trysuffix)
   }
   return add_fix(args.size(),newarg.data(),trysuffix);
 }
-
 
 /* ----------------------------------------------------------------------
    replace replaceID fix with a new fix

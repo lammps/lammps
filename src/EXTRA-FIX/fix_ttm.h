@@ -30,7 +30,7 @@ class FixTTM : public Fix {
   virtual ~FixTTM();
   virtual void post_constructor();
   int setmask();
-  void init();
+  virtual void init();
   void setup(int);
   void post_force_setup(int);
   virtual void post_force(int);

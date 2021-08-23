@@ -29,6 +29,7 @@ class FixTTMGrid : public FixTTM {
   FixTTMGrid(class LAMMPS *, int, char **);
   ~FixTTMGrid();
   void post_constructor();
+  void init();
   void post_force(int);
   void end_of_step();
 
@@ -38,6 +39,8 @@ class FixTTMGrid : public FixTTM {
   void unpack_forward_grid(int, void *, int, int *);
   void pack_reverse_grid(int, void *, int, int *);
   void unpack_reverse_grid(int, void *, int, int *);
+  void pack_gather_grid(int, void *);
+  void unpack_gather_grid(int, void *, void *, int, int, int, int, int, int);
 
   void write_restart(FILE *);
   void restart(char *);
@@ -49,6 +52,7 @@ class FixTTMGrid : public FixTTM {
   int nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in;
   int nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out;
   double delxinv,delyinv,delzinv;
+  double skin_original;
 
   class GridComm *gc;
   int ngc_buf1,ngc_buf2;

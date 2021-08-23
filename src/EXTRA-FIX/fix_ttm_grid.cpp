@@ -43,7 +43,10 @@ static constexpr int CHUNK = 1024;
 /* ---------------------------------------------------------------------- */
 
 FixTTMGrid::FixTTMGrid(LAMMPS *lmp, int narg, char **arg) : 
-  FixTTM(lmp, narg, arg) {}
+  FixTTM(lmp, narg, arg)
+{
+  skin_original = neighbor->skin;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -57,19 +60,31 @@ FixTTMGrid::~FixTTMGrid()
 
 void FixTTMGrid::post_constructor()
 {
-  // allocate 3d grid variables
+  // allocate global grid on each proc
+  // needs to be done in post_contructor() beccause is virtual method
 
   allocate_grid();
 
   // zero net_energy_transfer
   // in case compute_vector accesses it on timestep 0
 
+  outflag = 0;
   memset(&net_energy_transfer[nzlo_out][nylo_out][nxlo_out],0,
          ngridout*sizeof(double));
 
   // set initial electron temperatures from user input file
 
   read_electron_temperatures(infile);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixTTMGrid::init()
+{
+  FixTTM::init();
+
+  if (neighbor->skin > skin_original)
+    error->all(FLERR,"Cannot extend neighbor skin after fix ttm/griddefined");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -232,10 +247,6 @@ void FixTTMGrid::end_of_step()
 
   gc->forward_comm(GridComm::FIX,this,1,sizeof(double),0,
                    gc_buf1,gc_buf2,MPI_DOUBLE);
-
-  // assign electron temperature to each atom for fix output
-
-
 }
 
 /* ----------------------------------------------------------------------
@@ -411,8 +422,6 @@ void FixTTMGrid::allocate_grid()
   //   global grid that I own without ghost cells
   // both non-tiled and tiled proc layouts use 0-1 fractional subdomain info
 
-  // NOTE: replace with comm->partition_grid()
-
   if (comm->layout != Comm::LAYOUT_TILED) {
     nxlo_in = static_cast<int> (comm->xsplit[comm->myloc[0]] * nxgrid);
     nxhi_in = static_cast<int> (comm->xsplit[comm->myloc[0]+1] * nxgrid) - 1;
@@ -481,11 +490,11 @@ void FixTTMGrid::allocate_grid()
   memory->create(gc_buf2,ngc_buf2,"ttm/grid:gc_buf2");
 
   memory->create3d_offset(T_electron_old,nzlo_out,nzhi_out,nylo_out,nyhi_out,
-                          nxlo_out,nxhi_out,"ttm:T_electron_old");
+                          nxlo_out,nxhi_out,"ttm/grid:T_electron_old");
   memory->create3d_offset(T_electron,nzlo_out,nzhi_out,nylo_out,nyhi_out,
-                          nxlo_out,nxhi_out,"ttm:T_electron");
+                          nxlo_out,nxhi_out,"ttm/grid:T_electron");
   memory->create3d_offset(net_energy_transfer,nzlo_out,nzhi_out,nylo_out,nyhi_out,
-                          nxlo_out,nxhi_out,"ttm:net_energy_transfer");
+                          nxlo_out,nxhi_out,"ttm/grid:net_energy_transfer");
 }
 
 /* ----------------------------------------------------------------------
@@ -504,32 +513,6 @@ void FixTTMGrid::deallocate_grid()
 }
 
 /* ----------------------------------------------------------------------
-   use state info from restart file to restart the Fix
-------------------------------------------------------------------------- */
-
-void FixTTMGrid::restart(char *buf)
-{
-  int ix,iy,iz;
-
-  int n = 0;
-  double *rlist = (double *) buf;
-
-  // the seed must be changed from the initial seed
-  // NOTE: 0.5 is whacky, could go to zero
-  // NOTE: maybe GridComm should provide a method to pack a grid with bounds
-
-  seed = static_cast<int> (0.5*rlist[n++]);
-
-  for (iz = nzlo_in; iz <= nzhi_in; iz++)
-    for (iy = nylo_in; iy <= nyhi_in; iy++)
-      for (ix = nxlo_in; ix <= nxhi_in; ix++)
-        T_electron[iz][iy][ix] = rlist[n++];
-
-  delete random;
-  random = new RanMars(lmp,seed+comm->me);
-}
-
-/* ----------------------------------------------------------------------
    pack entire state of Fix into one write
 ------------------------------------------------------------------------- */
 
@@ -538,12 +521,17 @@ void FixTTMGrid::write_restart(FILE *fp)
   int ix,iy,iz;
 
   double *rlist;
-  memory->create(rlist,nxgrid*nygrid*nzgrid+1,"TTM:rlist");
+  memory->create(rlist,nxgrid*nygrid*nzgrid+4,"ttm/grid:rlist");
 
   int n = 0;
+  rlist[n++] = nxgrid;
+  rlist[n++] = nygrid;
+  rlist[n++] = nzgrid;
   rlist[n++] = seed;
 
-  // NOTE: this is a parallel grid now, not a serial grid
+  // gather rest of rlist on proc 0 as global grid values
+
+  gc->gather(GridComm::FIX,this,1,sizeof(double),0,&rlist[4],MPI_DOUBLE);
 
   for (iz = nzlo_in; iz <= nzhi_in; iz++)
     for (iy = nylo_in; iy <= nyhi_in; iy++)
@@ -557,6 +545,86 @@ void FixTTMGrid::write_restart(FILE *fp)
   }
 
   memory->destroy(rlist);
+}
+
+/* ----------------------------------------------------------------------
+   use state info from restart file to restart the Fix
+------------------------------------------------------------------------- */
+
+void FixTTMGrid::restart(char *buf)
+{
+  int ix,iy,iz;
+
+  int n = 0;
+  double *rlist = (double *) buf;
+
+  // check that restart grid size is same as current grid size
+
+  int nxgrid_old = static_cast<int> (rlist[n++]);
+  int nygrid_old = static_cast<int> (rlist[n++]);
+  int nzgrid_old = static_cast<int> (rlist[n++]);
+
+  if (nxgrid_old != nxgrid || nygrid_old != nygrid || nzgrid_old != nzgrid)
+    error->all(FLERR,"Must restart fix ttm/grid with same grid size");
+
+  // change RN seed from initial seed, to avoid same Langevin factors
+  // just increment by 1, since for RanMars that is a new RN stream
+
+  seed = static_cast<int> (rlist[n++]) + 1;
+  delete random;
+  random = new RanMars(lmp,seed+comm->me);
+
+  // extract this proc's local grid values from global grid in rlist
+
+  int iglobal;
+
+  for (iz = nzlo_in; iz <= nzhi_in; iz++)
+    for (iy = nylo_in; iy <= nyhi_in; iy++)
+      for (ix = nxlo_in; ix <= nxhi_in; ix++) {
+        iglobal = nygrid*nxgrid*iz + nxgrid*iy + ix;
+        T_electron[iz][iy][ix] = rlist[n+iglobal];
+      }
+}
+
+/* ----------------------------------------------------------------------
+   pack values from local grid into buf
+------------------------------------------------------------------------- */
+
+void FixTTMGrid::pack_gather_grid(int which, void *vbuf)
+{
+  int ix,iy,iz;
+
+  double *buf = (double *) vbuf;
+
+  int m = 0;
+  for (iz = nzlo_in; iz <= nzhi_in; iz++)
+    for (iy = nylo_in; iy <= nyhi_in; iy++)
+      for (ix = nxlo_in; ix <= nxhi_in; ix++)
+        buf[m++] = T_electron[iz][iy][ix];
+}
+
+/* ----------------------------------------------------------------------
+   unpack values from buf into global gbuf based on their indices
+------------------------------------------------------------------------- */
+
+void FixTTMGrid::unpack_gather_grid(int which, void *vbuf, void *vgbuf,
+                                    int xlo, int xhi, int ylo, int yhi, 
+                                    int zlo, int zhi)
+{
+  int ix,iy,iz;
+
+  double *buf = (double *) vbuf;
+  double *gbuf = (double *) vgbuf;
+
+  int iglobal;
+  int ilocal = 0;
+
+  for (iz = zlo; iz <= zhi; iz++)
+    for (iy = ylo; iy <= yhi; iy++)
+      for (ix = xlo; ix <= xhi; ix++) {
+        iglobal = nygrid*nxgrid*iz + nxgrid*iy + ix;
+        gbuf[iglobal] = buf[ilocal++];
+      }
 }
 
 /* ----------------------------------------------------------------------
@@ -609,4 +677,3 @@ double FixTTMGrid::memory_usage()
   bytes += (double)3*ngridout * sizeof(double);
   return bytes;
 }
-

@@ -1126,6 +1126,81 @@ reverse_comm_tiled(T *ptr, int nper, int nbyte, int which,
 }
 
 /* ----------------------------------------------------------------------
+   gather global grid values to proc 0
+   proc 0 pings each proc for its contribution
+   pack/unpack operations are performed by caller via callbacks
+------------------------------------------------------------------------- */
+
+void GridComm::gather(int caller, void *ptr, int nper, int nbyte, int which,
+                      void *buf, MPI_Datatype datatype)
+{
+  int me = comm->me;
+  Fix *fptr = (Fix *) ptr;
+
+  // maxsize = max grid data owned by any proc
+
+  int mysize = (inxhi-inxlo+1) * (inyhi-inylo+1) * (inzhi-inzlo+1);
+  mysize *= nper;
+  int maxsize;
+  MPI_Allreduce(&mysize,&maxsize,1,MPI_INT,MPI_MAX,world);
+
+  // pack my data via callback to caller
+
+  char *mybuf;
+  if (me == 0) memory->create(mybuf,maxsize*nbyte,"GridComm:mybuf");
+  else memory->create(mybuf,mysize*nbyte,"GridComm:mybuf");
+  fptr->pack_gather_grid(which,mybuf);
+
+  // ping each proc for its data
+  // unpack into full buffer via callback to caller
+
+  int xlo,xhi,ylo,yhi,zlo,zhi,tmp;
+  int bounds[6];
+
+  if (me == 0) {
+    MPI_Status status;
+    MPI_Request request;
+
+    for (int iproc = 0; iproc < nprocs; iproc++) {
+      if (iproc) {
+        MPI_Irecv(mybuf,maxsize,datatype,iproc,0,world,&request);
+        MPI_Send(&tmp,0,MPI_INT,iproc,0,world);
+        MPI_Wait(&request,&status);
+        MPI_Recv(bounds,6,MPI_INT,iproc,0,world,&status);
+        xlo = bounds[0];
+        xhi = bounds[1];
+        ylo = bounds[2];
+        yhi = bounds[3];
+        zlo = bounds[4];
+        zhi = bounds[5];
+      } else {
+        xlo = inxlo;
+        xhi = inxhi;
+        ylo = inylo;
+        yhi = inyhi;
+        zlo = inzlo;
+        zhi = inzhi;
+      }
+
+      fptr->unpack_gather_grid(which,mybuf,buf,xlo,xhi,ylo,yhi,zlo,zhi);
+    }
+
+  } else {
+    MPI_Recv(&tmp,0,MPI_INT,0,0,world,MPI_STATUS_IGNORE);
+    MPI_Rsend(mybuf,mysize,datatype,0,0,world);
+    bounds[0] = inxlo;
+    bounds[1] = inxhi;
+    bounds[2] = inylo;
+    bounds[3] = inyhi;
+    bounds[4] = inzlo;
+    bounds[5] = inzhi;
+    MPI_Send(bounds,6,MPI_INT,0,0,world);
+  }
+
+  memory->destroy(mybuf);
+}
+
+/* ----------------------------------------------------------------------
    create swap stencil for grid own/ghost communication
    swaps covers all 3 dimensions and both directions
    swaps cover multiple iterations in a direction if need grid pts

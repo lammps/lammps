@@ -65,7 +65,7 @@ Output info
 
 This compute calculates a scalar quantity for each atom, which can be
 accessed by any command that uses per-atom computes as input.  See the
-:doc:`Howto output <Howto_output>` doc page for an overview of LAMMPS
+:doc:`Howto output <Howto_output>` page for an overview of LAMMPS
 output options.
 
 The per-atom vector values will be in energy :doc:`units <units>`.
@@ -74,7 +74,7 @@ Restrictions
 """"""""""""
 
 This compute is part of the EFF package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

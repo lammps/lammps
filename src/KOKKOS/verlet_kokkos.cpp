@@ -76,12 +76,12 @@ VerletKokkos::VerletKokkos(LAMMPS *lmp, int narg, char **arg) :
 void VerletKokkos::setup(int flag)
 {
   if (comm->me == 0 && screen) {
-    fprintf(screen,"Setting up Verlet run ...\n");
+    fputs("Setting up Verlet run ...\n",screen);
     if (flag) {
-      fprintf(screen,"  Unit style    : %s\n", update->unit_style);
-      fprintf(screen,"  Current step  : " BIGINT_FORMAT "\n",
-              update->ntimestep);
-      fprintf(screen,"  Time step     : %g\n", update->dt);
+      fmt::print(screen,"  Unit style    : {}\n"
+                        "  Current step  : {}\n"
+                        "  Time step     : {}\n",
+                 update->unit_style,update->ntimestep,update->dt);
       timer->print_timeout(screen);
     }
   }
@@ -132,6 +132,7 @@ void VerletKokkos::setup(int flag)
 
   // compute all forces
 
+  force->setup();
   ev_set(update->ntimestep);
   force_clear();
   modify->setup_pre_force(vflag);
@@ -140,11 +141,10 @@ void VerletKokkos::setup(int flag)
     atomKK->sync(force->pair->execution_space,force->pair->datamask_read);
     force->pair->compute(eflag,vflag);
     atomKK->modified(force->pair->execution_space,force->pair->datamask_modify);
-    timer->stamp(Timer::PAIR);
   }
   else if (force->pair) force->pair->compute_dummy(eflag,vflag);
 
-  if (atomKK->molecular) {
+  if (atomKK->molecular != Atom::ATOMIC) {
     if (force->bond) {
       atomKK->sync(force->bond->execution_space,force->bond->datamask_read);
       force->bond->compute(eflag,vflag);
@@ -165,7 +165,6 @@ void VerletKokkos::setup(int flag)
       force->improper->compute(eflag,vflag);
       atomKK->modified(force->improper->execution_space,force->improper->datamask_modify);
     }
-    timer->stamp(Timer::BOND);
   }
 
   if (force->kspace) {
@@ -174,9 +173,10 @@ void VerletKokkos::setup(int flag)
       atomKK->sync(force->kspace->execution_space,force->kspace->datamask_read);
       force->kspace->compute(eflag,vflag);
       atomKK->modified(force->kspace->execution_space,force->kspace->datamask_modify);
-      timer->stamp(Timer::KSPACE);
     } else force->kspace->compute_dummy(eflag,vflag);
   }
+
+  modify->setup_pre_reverse(eflag,vflag);
   if (force->newton) comm->reverse_comm();
 
   lmp->kokkos->auto_sync = 0;
@@ -244,11 +244,10 @@ void VerletKokkos::setup_minimal(int flag)
     atomKK->sync(force->pair->execution_space,force->pair->datamask_read);
     force->pair->compute(eflag,vflag);
     atomKK->modified(force->pair->execution_space,force->pair->datamask_modify);
-    timer->stamp(Timer::PAIR);
   }
   else if (force->pair) force->pair->compute_dummy(eflag,vflag);
 
-  if (atomKK->molecular) {
+  if (atomKK->molecular != Atom::ATOMIC) {
     if (force->bond) {
       atomKK->sync(force->bond->execution_space,force->bond->datamask_read);
       force->bond->compute(eflag,vflag);
@@ -269,7 +268,6 @@ void VerletKokkos::setup_minimal(int flag)
       force->improper->compute(eflag,vflag);
       atomKK->modified(force->improper->execution_space,force->improper->datamask_modify);
     }
-    timer->stamp(Timer::BOND);
   }
 
   if (force->kspace) {
@@ -278,10 +276,10 @@ void VerletKokkos::setup_minimal(int flag)
       atomKK->sync(force->kspace->execution_space,force->kspace->datamask_read);
       force->kspace->compute(eflag,vflag);
       atomKK->modified(force->kspace->execution_space,force->kspace->datamask_modify);
-      timer->stamp(Timer::KSPACE);
     } else force->kspace->compute_dummy(eflag,vflag);
   }
 
+  modify->setup_pre_reverse(eflag,vflag);
   if (force->newton) comm->reverse_comm();
 
   lmp->kokkos->auto_sync = 0;
@@ -302,6 +300,7 @@ void VerletKokkos::run(int n)
   int n_post_integrate = modify->n_post_integrate;
   int n_pre_exchange = modify->n_pre_exchange;
   int n_pre_neighbor = modify->n_pre_neighbor;
+  int n_post_neighbor = modify->n_post_neighbor;
   int n_pre_force = modify->n_pre_force;
   int n_pre_reverse = modify->n_pre_reverse;
   int n_post_force = modify->n_post_force;
@@ -320,11 +319,11 @@ void VerletKokkos::run(int n)
 
   timer->init_timeout();
   for (int i = 0; i < n; i++) {
-
     if (timer->check_timeout(i)) {
       update->nsteps = i;
       break;
     }
+
     ntimestep = ++update->ntimestep;
     ev_set(ntimestep);
 
@@ -388,6 +387,10 @@ void VerletKokkos::run(int n)
       }
       neighbor->build(1);
       timer->stamp(Timer::NEIGH);
+      if (n_post_neighbor) {
+        modify->post_neighbor();
+        timer->stamp(Timer::MODIFY);
+      }
     }
 
     // force computations
@@ -648,5 +651,3 @@ void VerletKokkos::force_clear()
     }
   }
 }
-
-

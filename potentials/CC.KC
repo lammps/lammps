@@ -1,8 +1,5 @@
-# Kolmogorov-Crespi Potential
+# DATE: 2017-02-28 UNITS: metal CONTRIBUTOR: Jaap Kroes jaapkroes@gmail.com CITATION: Kolmogorov, Crespi, Physical Review B 71, 235415 (2005)
+# Kolmogorov-Crespi Potential for pair style kolmogorov/crespi/z
 #
-# Cite as A.N. Kolmogorov & V. H. Crespi, 
-# Registry-dependent interlayer potential for graphitic systems
-# Physical Review B 71, 235415 (2005)
-# 
 #      z0     C0     C2      C4       C    delta  lambda      A     S
 C  C  3.34  15.71  12.29   4.933   3.030   0.578   3.629   10.238  1.0

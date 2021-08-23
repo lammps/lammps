@@ -175,7 +175,7 @@ Restrictions
 The *precession/spin* style is part of the SPIN package.  This style
 is only enabled if LAMMPS was built with this package, and if the
 atom_style "spin" was declared.  See the :doc:`Build package
-<Build_package>` doc page for more info.
+<Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

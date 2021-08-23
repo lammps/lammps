@@ -54,7 +54,7 @@ Except for *heat/flux/virial/tally*, the two groups can be the same.
 This is similar to :doc:`compute group/group <compute_group_group>`
 only that the data is
 accumulated directly during the non-bonded force computation. The
-computes *force/tally*\ , *pe/tally*\ , *stress/tally*\ , and
+computes *force/tally*, *pe/tally*, *stress/tally*, and
 *heat/flux/tally* are primarily provided as example how to program
 additional, more sophisticated computes using the tally callback
 mechanism. Compute *pe/mol/tally* is one such style, that can
@@ -106,7 +106,7 @@ The following example demonstrates the difference:
    # Has LeftLiquid and RightWall groups along x direction.
 
    # Heat flux over the solid-liquid interface
-   compute hflow_hfvt LeftLiquid heat/flux/virial/tally RightWall
+   compute hflow_hfvt RightWall heat/flux/virial/tally LeftLiquid
    variable hflux_hfvt equal c_hflow_hfvt/(ly*lz)
 
    # x component of approximate heat flux vector inside the liquid region,
@@ -131,7 +131,7 @@ The following example demonstrates the difference:
    variable press_ft equal c_rforce_ft/(ly*lz)
    #
    compute rforce_hfvt all reduce sum c_hflow_hfvt[1]
-   variable press_hfvt equal -c_rforce_hfvt/(ly*lz)
+   variable press_hfvt equal c_rforce_hfvt/(ly*lz)
 
 ----------
 
@@ -180,7 +180,7 @@ Restrictions
 """"""""""""
 
 This compute is part of the TALLY package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Not all pair styles can be evaluated in a pairwise mode as required by
 this compute.  For example, 3-body and other many-body potentials,

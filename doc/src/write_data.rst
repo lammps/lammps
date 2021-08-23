@@ -107,7 +107,7 @@ from :doc:`fix property/atom <fix_property_atom>`.
 
 The *pair* keyword lets you specify in what format the pair
 coefficient information is written into the data file.  If the value
-is specified as *ii*\ , then one line per atom type is written, to
+is specified as *ii*, then one line per atom type is written, to
 specify the coefficients for each of the I=J interactions.  This means
 that no cross-interactions for I != J will be specified in the data
 file and the pair style will apply its mixing rule, as documented on
@@ -116,7 +116,7 @@ behavior can be overridden in the input script after reading the data
 file, by specifying additional :doc:`pair_coeff <pair_coeff>` commands
 for any desired I,J pairs.
 
-If the value is specified as *ij*\ , then one line of coefficients is
+If the value is specified as *ij*, then one line of coefficients is
 written for all I,J pairs where I <= J.  These coefficients will
 include any specific settings made in the input script up to that
 point.  The presence of these I != J coefficients in the data file

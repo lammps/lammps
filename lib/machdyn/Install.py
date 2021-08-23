@@ -17,11 +17,12 @@ parser = ArgumentParser(prog='Install.py',
 
 # settings
 
-version = '3.3.7'
+version = '3.3.9'
 tarball = "eigen.tar.gz"
 
 # known checksums for different Eigen versions. used to validate the download.
 checksums = { \
+              '3.3.9' : '609286804b0f79be622ccf7f9ff2b660', \
               '3.3.7' : '9e30f67e8531477de4117506fe44669b' \
 }
 

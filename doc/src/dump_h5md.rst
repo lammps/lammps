@@ -32,7 +32,7 @@ Syntax
 Note that at least one element must be specified and image may only be
 present if position is specified first.
 
-For the elements *position*\ , *velocity*\ , *force* and *species*\ , a
+For the elements *position*, *velocity*, *force* and *species*, a
 sub-interval may be specified to write the data only every N_element
 iterations of the dump (i.e. every N\*N_element time steps). This is
 specified by this option directly following the element declaration:
@@ -66,7 +66,7 @@ another particle group must specify *create_group yes*.
 
 .. _h5md: http://nongnu.org/h5md/
 
-Each data element is written every N\*N_element steps. For *image*\ , no
+Each data element is written every N\*N_element steps. For *image*, no
 sub-interval is needed as it must be present at the same interval as
 *position*\ .  *image* must be given after *position* in any case.  The
 box information (edges in each dimension) is stored at the same
@@ -107,8 +107,8 @@ note above).  Only orthogonal domains are currently supported. This is
 a limitation of the present dump h5md command and not of H5MD itself.
 
 The *h5md* dump style is part of the H5MD package. It is only
-enabled if LAMMPS was built with that package. See the :doc:`Build package <Build_package>` doc page for more info. It also requires
-(i) building the ch5md library provided with LAMMPS (See the :doc:`Build package <Build_package>` doc page for more info.) and (ii) having
+enabled if LAMMPS was built with that package. See the :doc:`Build package <Build_package>` page for more info. It also requires
+(i) building the ch5md library provided with LAMMPS (See the :doc:`Build package <Build_package>` page for more info.) and (ii) having
 the `HDF5 <HDF5-ws_>`_ library installed (C bindings are sufficient) on
 your system.  The library ch5md is compiled with the h5cc wrapper
 provided by the HDF5 library.

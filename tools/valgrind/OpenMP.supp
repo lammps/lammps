@@ -112,3 +112,25 @@
    ...
    obj:*
 }
+{
+   OpnMP_init_part10
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   ...
+   fun:call_init
+   fun:_dl_init
+   ...
+   obj:*
+}
+{
+   OpnMP_init_part11
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   ...
+   fun:allocate_dtv
+   ...
+   fun:GOMP_parallel
+   obj:*
+}

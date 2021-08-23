@@ -107,7 +107,7 @@ i.e. within the outer cutoff specified for the pair style.  The
 :doc:`pair_style lj/charmmfsw/coul/long <pair_charmm>` commands.  Use
 the *charmm* style with the older :doc:`pair_style <pair_charmm>`
 commands that have just "charmm" in their style name.  See the
-discussion on the :doc:`CHARMM pair_style <pair_charmm>` doc page for
+discussion on the :doc:`CHARMM pair_style <pair_charmm>` page for
 details.
 
 Note that for AMBER force fields, which use pair styles with "lj/cut",

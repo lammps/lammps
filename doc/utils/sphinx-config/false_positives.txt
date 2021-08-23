@@ -448,6 +448,7 @@ clo
 Clovertown
 cmake
 CMake
+CMakeLists
 cmap
 Cmax
 cmd
@@ -530,6 +531,7 @@ covalently
 covariance
 cpp
 cpu
+cradius
 createatoms
 createAtoms
 CreateIDs
@@ -1597,6 +1599,7 @@ Kosovan
 Koster
 Kosztin
 Kp
+kradius
 Kraker
 Kraus
 Kremer
@@ -1992,6 +1995,7 @@ Mj
 mK
 mkdir
 mkv
+mlength
 mliap
 mliappy
 mlparks
@@ -2048,6 +2052,7 @@ mpiio
 mpirun
 mplayer
 mps
+mradius
 Mrovec
 Mryglod
 mscg
@@ -2106,6 +2111,7 @@ myIndex
 mylammps
 MyPool
 mysocket
+mySpin
 myTemp
 myVec
 na
@@ -2316,6 +2322,7 @@ nsub
 Nswap
 Nt
 Ntable
+nt
 ntheta
 nthreads
 ntimestep
@@ -2744,6 +2751,7 @@ reamin
 reax
 REAXFF
 ReaxFF
+reaxff
 rebo
 recursing
 Ree

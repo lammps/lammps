@@ -37,10 +37,12 @@ done
 
 for file in *_omp.h; do
   test $file = thr_omp.h && continue
+  test $file = reaxff_omp.h && continue
   dep=${file%_omp.h}.h
   action $file $dep
 done
 
+action reaxff_omp.h reaxff_api.h
 action thr_omp.h
 action thr_omp.cpp
 action thr_data.h
@@ -52,7 +54,7 @@ if (test $mode = 1) then
 
   if (test -e ../Makefile.package) then
     sed -i -e 's/[^ \t]*OMP[^ \t]* //' ../Makefile.package
-    sed -i -e 's|^PKG_INC =[ \t]*|&-DLMP_USER_OMP |' ../Makefile.package
+    sed -i -e 's|^PKG_INC =[ \t]*|&-DLMP_OPENMP |' ../Makefile.package
   fi
 
   # need to delete a bunch of dependency files because they
@@ -63,7 +65,7 @@ if (test $mode = 1) then
     rm -f ../Obj_*/$f
   done
 
-  # force rebuild of files with LMP_USER_OMP switch
+  # force rebuild of files with LMP_OPENMP switch
 
   touch ../accelerator_omp.h
 
@@ -81,7 +83,7 @@ elif (test $mode = 0) then
     rm -f ../Obj_*/$f
   done
 
-  # force rebuild of files with LMP_USER_OMP switch
+  # force rebuild of files with LMP_OPENMP switch
 
   touch ../accelerator_omp.h
 

@@ -14,12 +14,13 @@
 
 #include "compute_pair.h"
 
-#include <cstring>
-#include <cctype>
-#include "update.h"
+#include "error.h"
 #include "force.h"
 #include "pair.h"
-#include "error.h"
+#include "update.h"
+
+#include <cctype>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -89,9 +90,9 @@ ComputePair::ComputePair(LAMMPS *lmp, int narg, char **arg) :
 
 ComputePair::~ComputePair()
 {
-  delete [] pstyle;
-  delete [] one;
-  delete [] vector;
+  delete[] pstyle;
+  delete[] one;
+  delete[] vector;
 }
 
 /* ---------------------------------------------------------------------- */

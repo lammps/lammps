@@ -173,7 +173,7 @@ namespace ip_simd {
   }
 
   inline SIMD_double SIMD_gather(const double *p, const SIMD_int &i) {
-    return _mm512_i32logather_pd(i, p, _MM_SCALE_8);
+    return _mm512_i32gather_pd(_mm512_castsi512_si256(i), p, _MM_SCALE_8);
   }
 
   inline SIMD_int SIMD_gather(const SIMD_mask &m, const int *p,
@@ -190,8 +190,8 @@ namespace ip_simd {
 
   inline SIMD_double SIMD_gather(const SIMD_mask &m, const double *p,
                                  const SIMD_int &i) {
-    return _mm512_mask_i32logather_pd(_mm512_undefined_pd(), m, i, p,
-                                      _MM_SCALE_8);
+    return _mm512_mask_i32gather_pd(_mm512_undefined_pd(), m,
+                                    _mm512_castsi512_si256(i), p, _MM_SCALE_8);
   }
 
   template <typename T>
@@ -227,8 +227,8 @@ namespace ip_simd {
 
   inline SIMD_double SIMD_gatherz(const SIMD_mask &m, const double *p,
                                   const SIMD_int &i) {
-    return _mm512_mask_i32logather_pd( _mm512_set1_pd(0.0), m, i, p,
-                                      _MM_SCALE_8);
+    return _mm512_mask_i32gather_pd( _mm512_set1_pd(0.0), m,
+                                     _mm512_castsi512_si256(i),p, _MM_SCALE_8);
   }
 
   // ------- Store Operations
@@ -257,7 +257,8 @@ namespace ip_simd {
 
   inline void SIMD_scatter(const SIMD_mask &m, double *p,
                            const SIMD_int &i, const SIMD_double &vec) {
-    _mm512_mask_i32loscatter_pd(p, m, i, vec, _MM_SCALE_8);
+    _mm512_mask_i32scatter_pd(p, m, _mm512_castsi512_si256(i), vec,
+                              _MM_SCALE_8);
   }
 
   // ------- Arithmetic Operations
@@ -834,23 +835,29 @@ namespace ip_simd {
   inline void SIMD_atom_gather(const SIMD_mask &m, const double *atom,
                                const SIMD_int &i, SIMD_double &x,
                                SIMD_double &y, SIMD_double &z) {
-    x = _mm512_mask_i32logather_pd(_mm512_undefined_pd(), m, i, atom,
-                                   _MM_SCALE_2);
-    y = _mm512_mask_i32logather_pd(_mm512_undefined_pd(), m, i, atom+1,
-                                   _MM_SCALE_2);
-    z = _mm512_mask_i32logather_pd(_mm512_undefined_pd(), m, i, atom+2,
-                                   _MM_SCALE_2);
+    x = _mm512_mask_i32gather_pd(_mm512_undefined_pd(), m,
+                                 _mm512_castsi512_si256(i), atom,
+                                 _MM_SCALE_2);
+    y = _mm512_mask_i32gather_pd(_mm512_undefined_pd(), m,
+                                 _mm512_castsi512_si256(i), atom+1,
+                                 _MM_SCALE_2);
+    z = _mm512_mask_i32gather_pd(_mm512_undefined_pd(), m,
+                                 _mm512_castsi512_si256(i), atom+2,
+                                 _MM_SCALE_2);
   }
 
   inline void SIMD_atom_gather(const SIMD_mask &m, const double *atom,
                                const SIMD_int &i, SIMD_double &x,
                                SIMD_double &y, SIMD_double &z, SIMD_int &type) {
-    x = _mm512_mask_i32logather_pd(_mm512_undefined_pd(), m, i, atom,
-                                   _MM_SCALE_2);
-    y = _mm512_mask_i32logather_pd(_mm512_undefined_pd(), m, i, atom+1,
-                                   _MM_SCALE_2);
-    z = _mm512_mask_i32logather_pd(_mm512_undefined_pd(), m, i, atom+2,
-                                   _MM_SCALE_2);
+    x = _mm512_mask_i32gather_pd(_mm512_undefined_pd(), m,
+                                 _mm512_castsi512_si256(i), atom,
+                                 _MM_SCALE_2);
+    y = _mm512_mask_i32gather_pd(_mm512_undefined_pd(), m,
+                                 _mm512_castsi512_si256(i), atom+1,
+                                 _MM_SCALE_2);
+    z = _mm512_mask_i32gather_pd(_mm512_undefined_pd(), m,
+                                 _mm512_castsi512_si256(i), atom+2,
+                                 _MM_SCALE_2);
     type = _mm512_mask_i32gather_epi32(_mm512_undefined_epi32(), m, i, atom+3,
                                        _MM_SCALE_2);
   }
@@ -888,10 +895,12 @@ namespace ip_simd {
                                const SIMD_int &joffset, SIMD_double &eng) {
     SIMD_double jeng;
     SIMD_conflict_pi_reduce1(rmask, joffset, eng);
-    jeng = _mm512_mask_i32logather_pd(_mm512_undefined_pd(), rmask, joffset,
-                                      force, _MM_SCALE_2);
+    jeng = _mm512_mask_i32gather_pd(_mm512_undefined_pd(), rmask,
+                                    _mm512_castsi512_si256(joffset),
+                                    force, _MM_SCALE_2);
     jeng = jeng + eng;
-    _mm512_mask_i32loscatter_pd(force, rmask, joffset, jeng, _MM_SCALE_2);
+    _mm512_mask_i32scatter_pd(force, rmask, _mm512_castsi512_si256(joffset),
+                              jeng, _MM_SCALE_2);
   }
 
   inline void SIMD_jeng_update(const SIMD_mask &rmask, double *force,
@@ -899,20 +908,24 @@ namespace ip_simd {
     SIMD_double engd, jeng;
     engd = _mm512_cvtps_pd(_mm512_castps512_ps256(eng));
     SIMD_conflict_pi_reduce1(rmask, joffset, engd);
-    jeng = _mm512_mask_i32logather_pd(_mm512_undefined_pd(), rmask, joffset,
-                                      force, _MM_SCALE_2);
+    jeng = _mm512_mask_i32gather_pd(_mm512_undefined_pd(), rmask,
+                                    _mm512_castsi512_si256(joffset),
+                                    force, _MM_SCALE_2);
     jeng = jeng + engd;
-    _mm512_mask_i32loscatter_pd(force, rmask, joffset, jeng, _MM_SCALE_2);
+    _mm512_mask_i32scatter_pd(force, rmask, _mm512_castsi512_si256(joffset),
+                              jeng, _MM_SCALE_2);
 
     SIMD_mask rmask2 = rmask >> 8;
     engd = _mm512_cvtps_pd(_mm512_castps512_ps256(
                              _mm512_shuffle_f32x4(eng,eng,238)));
     SIMD_int joffset2 = _mm512_shuffle_i32x4(joffset, joffset, 238);
     SIMD_conflict_pi_reduce1(rmask2, joffset2, engd);
-    jeng = _mm512_mask_i32logather_pd(_mm512_undefined_pd(), rmask2, joffset2,
-                                      force, _MM_SCALE_2);
+    jeng = _mm512_mask_i32gather_pd(_mm512_undefined_pd(), rmask2,
+                                    _mm512_castsi512_si256(joffset2),
+                                    force, _MM_SCALE_2);
     jeng = jeng + engd;
-    _mm512_mask_i32loscatter_pd(force, rmask2, joffset2, jeng, _MM_SCALE_2);
+    _mm512_mask_i32scatter_pd(force, rmask2, _mm512_castsi512_si256(joffset2),
+                              jeng, _MM_SCALE_2);
   }
 
   inline void SIMD_jeng_update_hi(const SIMD_mask &mask, float *force,
@@ -926,10 +939,12 @@ namespace ip_simd {
 
     SIMD_double jeng;
     SIMD_conflict_pi_reduce1(rmask, joffset, eng);
-    jeng = _mm512_mask_i32logather_pd(_mm512_undefined_pd(), rmask, joffset,
-                                      force, _MM_SCALE_2);
+    jeng = _mm512_mask_i32gather_pd(_mm512_undefined_pd(), rmask,
+                                    _mm512_castsi512_si256(joffset),
+                                    force, _MM_SCALE_2);
     jeng = jeng + eng;
-    _mm512_mask_i32loscatter_pd(force, rmask, joffset, jeng, _MM_SCALE_2);
+    _mm512_mask_i32scatter_pd(force, rmask, _mm512_castsi512_si256(joffset),
+                              jeng, _MM_SCALE_2);
   }
 
   inline void SIMD_safe_jforce(const SIMD_mask &m, float *force,
@@ -956,18 +971,24 @@ namespace ip_simd {
                                SIMD_double &fy, SIMD_double &fz) {
     SIMD_conflict_pi_reduce3(m, i, fx, fy, fz);
     SIMD_double jfrc;
-    jfrc = _mm512_mask_i32logather_pd(_mm512_undefined_pd(), m, i, force,
-                                      _MM_SCALE_2);
+    jfrc = _mm512_mask_i32gather_pd(_mm512_undefined_pd(), m,
+                                    _mm512_castsi512_si256(i), force,
+                                    _MM_SCALE_2);
     jfrc = jfrc + fx;
-    _mm512_mask_i32loscatter_pd(force, m, i, jfrc, _MM_SCALE_2);
-    jfrc = _mm512_mask_i32logather_pd(_mm512_undefined_pd(), m, i, force + 1,
-                                      _MM_SCALE_2);
+    _mm512_mask_i32scatter_pd(force, m, _mm512_castsi512_si256(i), jfrc,
+                              _MM_SCALE_2);
+    jfrc = _mm512_mask_i32gather_pd(_mm512_undefined_pd(), m,
+                                    _mm512_castsi512_si256(i), force + 1,
+                                    _MM_SCALE_2);
     jfrc = jfrc + fy;
-    _mm512_mask_i32loscatter_pd(force+1, m, i, jfrc, _MM_SCALE_2);
-    jfrc = _mm512_mask_i32logather_pd(_mm512_undefined_pd(), m, i, force + 2,
-                                      _MM_SCALE_2);
+    _mm512_mask_i32scatter_pd(force+1, m, _mm512_castsi512_si256(i), jfrc,
+                              _MM_SCALE_2);
+    jfrc = _mm512_mask_i32gather_pd(_mm512_undefined_pd(), m,
+                                    _mm512_castsi512_si256(i), force + 2,
+                                    _MM_SCALE_2);
     jfrc = jfrc + fz;
-    _mm512_mask_i32loscatter_pd(force+2, m, i, jfrc, _MM_SCALE_2);
+    _mm512_mask_i32scatter_pd(force+2, m, _mm512_castsi512_si256(i), jfrc,
+                              _MM_SCALE_2);
   }
 
   inline void SIMD_safe_jforce(const SIMD_mask &rmask, double *force,
@@ -979,40 +1000,54 @@ namespace ip_simd {
     amzd = _mm512_cvtps_pd(_mm512_castps512_ps256(amz));
     SIMD_conflict_pi_reduce3(rmask, joffset, amxd, amyd, amzd);
     SIMD_double jfrc;
-    jfrc = _mm512_mask_i32logather_pd(_mm512_undefined_pd(), rmask, joffset,
-                                      force, _MM_SCALE_2);
+    jfrc = _mm512_mask_i32gather_pd(_mm512_undefined_pd(), rmask,
+                                    _mm512_castsi512_si256(joffset),
+                                    force, _MM_SCALE_2);
     jfrc = jfrc + amxd;
-    _mm512_mask_i32loscatter_pd(force, rmask, joffset, jfrc, _MM_SCALE_2);
-    jfrc = _mm512_mask_i32logather_pd(_mm512_undefined_pd(), rmask, joffset,
-                                      force + 1, _MM_SCALE_2);
+    _mm512_mask_i32scatter_pd(force, rmask, _mm512_castsi512_si256(joffset),
+                              jfrc, _MM_SCALE_2);
+    jfrc = _mm512_mask_i32gather_pd(_mm512_undefined_pd(), rmask,
+                                    _mm512_castsi512_si256(joffset),
+                                    force + 1, _MM_SCALE_2);
     jfrc = jfrc + amyd;
-    _mm512_mask_i32loscatter_pd(force+1, rmask, joffset, jfrc, _MM_SCALE_2);
-    jfrc = _mm512_mask_i32logather_pd(_mm512_undefined_pd(), rmask, joffset,
-                                      force + 2, _MM_SCALE_2);
+    _mm512_mask_i32scatter_pd(force+1, rmask, _mm512_castsi512_si256(joffset),
+                              jfrc, _MM_SCALE_2);
+    jfrc = _mm512_mask_i32gather_pd(_mm512_undefined_pd(), rmask,
+                                    _mm512_castsi512_si256(joffset),
+                                    force + 2, _MM_SCALE_2);
     jfrc = jfrc + amzd;
-    _mm512_mask_i32loscatter_pd(force+2, rmask, joffset, jfrc, _MM_SCALE_2);
+    _mm512_mask_i32scatter_pd(force+2, rmask, _mm512_castsi512_si256(joffset),
+                              jfrc, _MM_SCALE_2);
 
     SIMD_mask rmask2 = rmask >> 8;
     amxd = _mm512_cvtps_pd(_mm512_castps512_ps256(
-                                _mm512_shuffle_f32x4(amx,amx,238)));
+                                                  _mm512_shuffle_f32x4(amx,amx,238)));
     amyd = _mm512_cvtps_pd(_mm512_castps512_ps256(
-                                _mm512_shuffle_f32x4(amy,amy,238)));
+                                                  _mm512_shuffle_f32x4(amy,amy,238)));
     amzd = _mm512_cvtps_pd(_mm512_castps512_ps256(
-                                _mm512_shuffle_f32x4(amz,amz,238)));
+                                                  _mm512_shuffle_f32x4(amz,amz,238)));
     SIMD_int joffset2 = _mm512_shuffle_i32x4(joffset, joffset, 238);
     SIMD_conflict_pi_reduce3(rmask2, joffset2, amxd, amyd, amzd);
-    jfrc = _mm512_mask_i32logather_pd(_mm512_undefined_pd(), rmask2, joffset2,
-                                      force, _MM_SCALE_2);
+    jfrc = _mm512_mask_i32gather_pd(_mm512_undefined_pd(), rmask2,
+                                    _mm512_castsi512_si256(joffset2),
+                                    force, _MM_SCALE_2);
     jfrc = jfrc + amxd;
-    _mm512_mask_i32loscatter_pd(force, rmask2, joffset2, jfrc, _MM_SCALE_2);
-    jfrc = _mm512_mask_i32logather_pd(_mm512_undefined_pd(), rmask2, joffset2,
-                                      force + 1, _MM_SCALE_2);
+    _mm512_mask_i32scatter_pd(force, rmask2, _mm512_castsi512_si256(joffset2),
+                              jfrc, _MM_SCALE_2);
+    jfrc = _mm512_mask_i32gather_pd(_mm512_undefined_pd(), rmask2,
+                                    _mm512_castsi512_si256(joffset2),
+                                    force + 1, _MM_SCALE_2);
     jfrc = jfrc + amyd;
-    _mm512_mask_i32loscatter_pd(force+1, rmask2, joffset2, jfrc, _MM_SCALE_2);
-    jfrc = _mm512_mask_i32logather_pd(_mm512_undefined_pd(), rmask2, joffset2,
-                                      force + 2, _MM_SCALE_2);
+    _mm512_mask_i32scatter_pd(force+1, rmask2,
+                              _mm512_castsi512_si256(joffset2), jfrc,
+                              _MM_SCALE_2);
+    jfrc = _mm512_mask_i32gather_pd(_mm512_undefined_pd(), rmask2,
+                                    _mm512_castsi512_si256(joffset2),
+                                    force + 2, _MM_SCALE_2);
     jfrc = jfrc + amzd;
-    _mm512_mask_i32loscatter_pd(force+2, rmask2, joffset2, jfrc, _MM_SCALE_2);
+    _mm512_mask_i32scatter_pd(force+2, rmask2,
+                              _mm512_castsi512_si256(joffset2), jfrc,
+                              _MM_SCALE_2);
   }
 
   inline void SIMD_jforce_update(const SIMD_mask &m, float *force,
@@ -1064,18 +1099,24 @@ namespace ip_simd {
                                  const SIMD_int &i, const SIMD_double &fx,
                                  const SIMD_double &fy, const SIMD_double &fz)   {
     SIMD_double jfrc;
-    jfrc = _mm512_mask_i32logather_pd(_mm512_undefined_pd(), m, i, force,
-                                      _MM_SCALE_2);
+    jfrc = _mm512_mask_i32gather_pd(_mm512_undefined_pd(), m,
+                                    _mm512_castsi512_si256(i), force,
+                                    _MM_SCALE_2);
     jfrc = jfrc - fx;
-    _mm512_mask_i32loscatter_pd(force, m, i, jfrc, _MM_SCALE_2);
-    jfrc = _mm512_mask_i32logather_pd(_mm512_undefined_pd(), m, i, force + 1,
-                                      _MM_SCALE_2);
+    _mm512_mask_i32scatter_pd(force, m, _mm512_castsi512_si256(i), jfrc,
+                              _MM_SCALE_2);
+    jfrc = _mm512_mask_i32gather_pd(_mm512_undefined_pd(), m,
+                                    _mm512_castsi512_si256(i), force + 1,
+                                    _MM_SCALE_2);
     jfrc = jfrc - fy;
-    _mm512_mask_i32loscatter_pd(force+1, m, i, jfrc, _MM_SCALE_2);
-    jfrc = _mm512_mask_i32logather_pd(_mm512_undefined_pd(), m, i, force + 2,
-                                      _MM_SCALE_2);
+    _mm512_mask_i32scatter_pd(force+1, m, _mm512_castsi512_si256(i), jfrc,
+                              _MM_SCALE_2);
+    jfrc = _mm512_mask_i32gather_pd(_mm512_undefined_pd(), m,
+                                    _mm512_castsi512_si256(i), force + 2,
+                                    _MM_SCALE_2);
     jfrc = jfrc - fz;
-    _mm512_mask_i32loscatter_pd(force+2, m, i, jfrc, _MM_SCALE_2);
+    _mm512_mask_i32scatter_pd(force+2, m, _mm512_castsi512_si256(i), jfrc,
+                              _MM_SCALE_2);
   }
 
   inline void SIMD_jforce_update(const SIMD_mask &rmask,
@@ -1502,11 +1543,12 @@ namespace ip_simd {
       fwtmp = SIMD_add(fwtmp, hmask, fwtmp, hevdwl);
       fjtmp = SIMD_add(fjtmp, hmask, fjtmp, hevdwl);
       SIMD_conflict_pi_reduce1(hmask, k, hevdwl);
-      SIMD_double keng = _mm512_mask_i32logather_pd(_mm512_undefined_pd(),
-                                                    hmask, k, force + 3,
-                                                    _MM_SCALE_2);
+      SIMD_double keng = _mm512_mask_i32gather_pd(_mm512_undefined_pd(), hmask,
+                                                  _mm512_castsi512_si256(k),
+                                                  force + 3, _MM_SCALE_2);
       keng = keng + hevdwl;
-      _mm512_mask_i32loscatter_pd(force + 3, hmask, k, keng, _MM_SCALE_2);
+      _mm512_mask_i32scatter_pd(force + 3, hmask, _mm512_castsi512_si256(k),
+                                keng, _MM_SCALE_2);
     }
   }
 
@@ -1523,11 +1565,12 @@ namespace ip_simd {
       fwtmp = SIMD_add(fwtmp, hmask, fwtmp, hevdwl);
       fjtmp = SIMD_add(fjtmp, hmask, fjtmp, hevdwl);
       SIMD_conflict_pi_reduce1(hmask, k, hevdwl);
-      SIMD_double keng = _mm512_mask_i32logather_pd(_mm512_undefined_pd(),
-                                                    hmask, k, force + 3,
-                                                    _MM_SCALE_2);
+      SIMD_double keng = _mm512_mask_i32gather_pd(_mm512_undefined_pd(), hmask,
+                                                  _mm512_castsi512_si256(k),
+                                                  force + 3, _MM_SCALE_2);
       keng = keng + hevdwl;
-      _mm512_mask_i32loscatter_pd(force + 3, hmask, k, keng, _MM_SCALE_2);
+      _mm512_mask_i32scatter_pd(force + 3, hmask, _mm512_castsi512_si256(k),
+                                keng, _MM_SCALE_2);
     }
     SIMD_mask hmask2 = hmask >> 8;
     facradd = _mm512_cvtps_pd(_mm512_castps512_ps256(
@@ -1539,11 +1582,13 @@ namespace ip_simd {
       fjtmp2 = SIMD_add(fjtmp2, hmask2, fjtmp2, hevdwl);
       SIMD_int k2 = _mm512_shuffle_i32x4(k, k, 238);
       SIMD_conflict_pi_reduce1(hmask2, k2, hevdwl);
-      SIMD_double keng = _mm512_mask_i32logather_pd(_mm512_undefined_pd(),
-                                                    hmask2, k2, force + 3,
-                                                    _MM_SCALE_2);
+      SIMD_double keng = _mm512_mask_i32gather_pd(_mm512_undefined_pd(),
+                                                  hmask2,
+                                                  _mm512_castsi512_si256(k2),
+                                                  force + 3, _MM_SCALE_2);
       keng = keng + hevdwl;
-      _mm512_mask_i32loscatter_pd(force + 3, hmask2, k2, keng, _MM_SCALE_2);
+      _mm512_mask_i32scatter_pd(force + 3, hmask2, _mm512_castsi512_si256(k2),
+                                keng, _MM_SCALE_2);
     }
   }
 
@@ -1815,24 +1860,32 @@ namespace ip_simd {
                                  const int EFLAG, const int eatom,
                                  const SIMD_double &fwtmp) {
     SIMD_double jfrc;
-    jfrc = _mm512_mask_i32logather_pd(_mm512_undefined_pd(), m, i, force,
-                                      _MM_SCALE_2);
+    jfrc = _mm512_mask_i32gather_pd(_mm512_undefined_pd(), m,
+                                    _mm512_castsi512_si256(i), force,
+                                    _MM_SCALE_2);
     jfrc = jfrc + fx;
-    _mm512_mask_i32loscatter_pd(force, m, i, jfrc, _MM_SCALE_2);
-    jfrc = _mm512_mask_i32logather_pd(_mm512_undefined_pd(), m, i, force + 1,
-                                      _MM_SCALE_2);
+    _mm512_mask_i32scatter_pd(force, m, _mm512_castsi512_si256(i), jfrc,
+                              _MM_SCALE_2);
+    jfrc = _mm512_mask_i32gather_pd(_mm512_undefined_pd(), m,
+                                    _mm512_castsi512_si256(i), force + 1,
+                                    _MM_SCALE_2);
     jfrc = jfrc + fy;
-    _mm512_mask_i32loscatter_pd(force+1, m, i, jfrc, _MM_SCALE_2);
-    jfrc = _mm512_mask_i32logather_pd(_mm512_undefined_pd(), m, i, force + 2,
-                                      _MM_SCALE_2);
+    _mm512_mask_i32scatter_pd(force+1, m, _mm512_castsi512_si256(i), jfrc,
+                              _MM_SCALE_2);
+    jfrc = _mm512_mask_i32gather_pd(_mm512_undefined_pd(), m,
+                                    _mm512_castsi512_si256(i), force + 2,
+                                    _MM_SCALE_2);
     jfrc = jfrc + fz;
-    _mm512_mask_i32loscatter_pd(force+2, m, i, jfrc, _MM_SCALE_2);
+    _mm512_mask_i32scatter_pd(force+2, m, _mm512_castsi512_si256(i), jfrc,
+                              _MM_SCALE_2);
     if (EFLAG) {
       if (eatom) {
-        jfrc = _mm512_mask_i32logather_pd(_mm512_undefined_pd(), m, i,
-                                          force + 3, _MM_SCALE_2);
+        jfrc = _mm512_mask_i32gather_pd(_mm512_undefined_pd(), m,
+                                        _mm512_castsi512_si256(i),
+                                        force + 3, _MM_SCALE_2);
         jfrc = jfrc + fwtmp;
-        _mm512_mask_i32loscatter_pd(force+3, m, i, jfrc, _MM_SCALE_2);
+        _mm512_mask_i32scatter_pd(force+3, m, _mm512_castsi512_si256(i), jfrc,
+                                  _MM_SCALE_2);
       }
     }
   }

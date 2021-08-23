@@ -65,8 +65,8 @@ colvar::CartesianBasedPath::CartesianBasedPath(std::string const &conf): cvc(con
         cvm::atom_group* tmp_atoms = parse_group(conf, "atoms");
         if (!has_user_defined_fitting) {
             // Swipe from the rmsd class
-            tmp_atoms->b_center = true;
-            tmp_atoms->b_rotate = true;
+            tmp_atoms->enable(f_ag_center);
+            tmp_atoms->enable(f_ag_rotate);
             tmp_atoms->ref_pos = reference_frames[i_frame];
             tmp_atoms->center_ref_pos();
             tmp_atoms->enable(f_ag_fit_gradients);
@@ -87,8 +87,8 @@ colvar::CartesianBasedPath::CartesianBasedPath(std::string const &conf): cvc(con
             std::vector<cvm::atom_pos> reference_fitting_position(tmp_fitting_atoms->size());
             cvm::load_coords(reference_position_filename.c_str(), &reference_fitting_position, tmp_fitting_atoms, reference_column, reference_column_value);
             // setup the atom group for calculating
-            tmp_atoms->b_center = true;
-            tmp_atoms->b_rotate = true;
+            tmp_atoms->enable(f_ag_center);
+            tmp_atoms->enable(f_ag_rotate);
             tmp_atoms->b_user_defined_fit = true;
             tmp_atoms->disable(f_ag_scalable);
             tmp_atoms->disable(f_ag_scalable_com);

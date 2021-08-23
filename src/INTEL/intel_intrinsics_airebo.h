@@ -511,7 +511,8 @@ public:
                                      const int scale) {
     assert(scale == sizeof(FVEC_SCAL_T));
 #   if FVEC_LEN==8
-    return FVEC_SUFFIX(_mm512_i32logather_)(idx.val_, mem, sizeof(FVEC_SCAL_T));
+    return FVEC_SUFFIX(_mm512_i32gather_)(_mm512_castsi512_si256(idx.val_),
+                                          mem, sizeof(FVEC_SCAL_T));
 #   else
     return FVEC_SUFFIX(_mm512_i32gather_)(idx.val_, mem, sizeof(FVEC_SCAL_T));
 #   endif
@@ -522,8 +523,8 @@ public:
   ) {
     assert(scale == sizeof(FVEC_SCAL_T));
 #   if FVEC_LEN==8
-    return FVEC_SUFFIX(_mm512_mask_i32logather_)(src.val_, mask.val_, idx.val_,
-                       mem, sizeof(FVEC_SCAL_T));
+    return FVEC_SUFFIX(_mm512_mask_i32gather_)(src.val_, mask.val_,
+                _mm512_castsi512_si256(idx.val_), mem, sizeof(FVEC_SCAL_T));
 #   else
     return FVEC_SUFFIX(_mm512_mask_i32gather_)(src.val_, mask.val_, idx.val_,
                        mem, sizeof(FVEC_SCAL_T));
@@ -609,8 +610,8 @@ public:
   ) {
     assert(scale == sizeof(FVEC_SCAL_T));
 #   if FVEC_LEN==8
-    return FVEC_SUFFIX(_mm512_mask_i32logather_)(src.val_, mask.val_, idx.val_,
-                                                 mem, sizeof(FVEC_SCAL_T));
+    return FVEC_SUFFIX(_mm512_mask_i32gather_)(src.val_, mask.val_,
+              _mm512_castsi512_si256(idx.val_), mem, sizeof(FVEC_SCAL_T));
 #   else
     return FVEC_SUFFIX(_mm512_mask_i32gather_)(src.val_, mask.val_, idx.val_,
                                                mem, sizeof(FVEC_SCAL_T));
@@ -622,8 +623,9 @@ public:
   ) {
     assert(scale == sizeof(FVEC_SCAL_T));
 #   if FVEC_LEN==8
-    FVEC_SUFFIX(_mm512_mask_i32loscatter_)(mem, mask.val_, idx.val_, a.val_,
-                                           sizeof(FVEC_SCAL_T));
+    FVEC_SUFFIX(_mm512_mask_i32scatter_)(mem, mask.val_,
+                                         _mm512_castsi512_si256(idx.val_),
+                                         a.val_, sizeof(FVEC_SCAL_T));
 #   else
     FVEC_SUFFIX(_mm512_mask_i32scatter_)(mem, mask.val_, idx.val_, a.val_,
                                          sizeof(FVEC_SCAL_T));
@@ -666,11 +668,11 @@ public:
       const double * mem, const int scale
   ) {
     assert(scale == sizeof(double));
-    __m512d lo = _mm512_mask_i32logather_pd(src.lo_, mask.val_, idx.val_, mem,
-                                            sizeof(double));
-    __m512d hi = _mm512_mask_i32logather_pd(src.hi_, get_bvec_hi(mask.val_),
-                                            get_ivec_hi(idx.val_), mem,
-                                            sizeof(double));
+    __m512d lo = _mm512_mask_i32gather_pd(src.lo_, mask.val_,
+                                          _mm512_castsi512_si256(idx.val_),
+                                          mem, sizeof(double));
+    __m512d hi = _mm512_mask_i32gather_pd(src.hi_, get_bvec_hi(mask.val_),
+         _mm512_castsi512_si256(get_ivec_hi(idx.val_)), mem, sizeof(double));
     return avec16pd(lo, hi);
   }
   VEC_INLINE static void mask_i32loscatter(
@@ -678,10 +680,12 @@ public:
       const avec16pd &a, const int scale
   ) {
     assert(scale == sizeof(double));
-    _mm512_mask_i32loscatter_pd(mem, mask.val_, idx.val_, a.lo_,
-                                sizeof(double));
-    _mm512_mask_i32loscatter_pd(mem, get_bvec_hi(mask.val_),
-                                get_ivec_hi(idx.val_), a.hi_, sizeof(double));
+    _mm512_mask_i32scatter_pd(mem, mask.val_,
+                              _mm512_castsi512_si256(idx.val_), a.lo_,
+                              sizeof(double));
+    _mm512_mask_i32scatter_pd(mem, get_bvec_hi(mask.val_),
+                              _mm512_castsi512_si256(get_ivec_hi(idx.val_)),
+                              a.hi_, sizeof(double));
   }
 
   #define AVEC2_BINOP(the_sym, the_name)                                    \

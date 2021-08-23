@@ -104,7 +104,7 @@ internal energy and extrapolated velocity are also updated.
    they effect any computation of per-particle forces or torques. If the
    keyword *reinit* is set to *yes* (the default), the rigid body data
    structures will be recreated at the beginning of each *run* command;
-   if the keyword *reinit* is set to *no*\ , the rigid body data structures
+   if the keyword *reinit* is set to *no*, the rigid body data structures
    will be built only at the very first *run* command and maintained for
    as long as the rigid fix is defined. For example, you might think you
    could displace the particles in a body or add a large velocity to each particle
@@ -126,7 +126,7 @@ defined via several options.
 For bodystyle *single* the entire fix group of particles is treated as
 one rigid body.
 
-For bodystyle *molecule*\ , particles are grouped into rigid bodies by their
+For bodystyle *molecule*, particles are grouped into rigid bodies by their
 respective molecule IDs: each set of particles in the fix group with the
 same molecule ID is treated as a different rigid body.  Note that particles
 with a molecule ID = 0 will be treated as a single rigid body. For a
@@ -141,13 +141,13 @@ of particles that form rigid bodies.  An integer vector defined by the
 :doc:`fix property/atom <fix_property_atom>` command can be used.  Or an
 :doc:`atom-style or atomfile-style variable <variable>` can be used; the
 floating-point value produced by the variable is rounded to an
-integer.  As with bodystyle *molecule*\ , each set of particles in the fix
+integer.  As with bodystyle *molecule*, each set of particles in the fix
 groups with the same integer value is treated as a different rigid
 body.  Since fix property/atom vectors and atom-style variables
 produce values for all particles, you should be careful to use a fix group
 that only includes particles you want to be part of rigid bodies.
 
-For bodystyle *group*\ , each of the listed groups is treated as a
+For bodystyle *group*, each of the listed groups is treated as a
 separate rigid body.  Only particles that are also in the fix group are
 included in each rigid body.
 
@@ -346,7 +346,7 @@ Restrictions
 
 This fix is part of the DPD-SMOOTH package and also depends on the RIGID
 package.  It is only enabled if LAMMPS was built with both packages. See
-the :doc:`Build package <Build_package>` doc page for more info.
+the :doc:`Build package <Build_package>` page for more info.
 
 This fix requires that atoms store density and internal energy as
 defined by the :doc:`atom_style sph <atom_style>` command.

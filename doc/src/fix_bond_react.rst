@@ -424,7 +424,7 @@ The constraint of type 'angle' has the following syntax:
 
    angle *ID1* *ID2* *ID3* *amin* *amax*
 
-where 'angle' is the required keyword, *ID1*\ , *ID2* and *ID3* are
+where 'angle' is the required keyword, *ID1*, *ID2* and *ID3* are
 pre-reaction atom IDs (or molecule-fragment IDs, see below), and these
 three atoms must form an angle between *amin* and *amax* for the
 reaction to occur (where *ID2* is the central atom). Angles must be
@@ -437,7 +437,7 @@ The constraint of type 'dihedral' has the following syntax:
 
    dihedral *ID1* *ID2* *ID3* *ID4* *amin* *amax* *amin2* *amax2*
 
-where 'dihedral' is the required keyword, and *ID1*\ , *ID2*\ , *ID3*
+where 'dihedral' is the required keyword, and *ID1*, *ID2*, *ID3*
 and *ID4* are pre-reaction atom IDs (or molecule-fragment IDs, see
 below). Dihedral angles are calculated in the interval (-180,180].
 Refer to the :doc:`dihedral style <dihedral_style>` documentation for
@@ -669,7 +669,7 @@ Restrictions
 
 This fix is part of the REACTION package.  It is only enabled if
 LAMMPS was built with that package.  See the
-:doc:`Build package <Build_package>` doc page for more info.
+:doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

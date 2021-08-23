@@ -700,20 +700,17 @@ int FixATC::size_restart(int /* nlocal */) {
 
 void FixATC::write_restart(FILE * /* fp */) {
 
-  char ** args = new char*[2];
-  args[0] = new char[50];
-  args[1] = new char[50];
-  sprintf(args[0],"write_restart");
-  sprintf(args[1],"ATC.restart");
+  char *args[2];
+  args[0] = utils::strdup("write_restart");
+  args[1] = utils::strdup("ATC.restart");
 
   // Then call all objects I own to write their data
   if (comm->me == 0) {
     atc_->modify(2,args);
   }
 
-  delete [] args[0];
-  delete [] args[1];
-  delete [] args;
+  delete[] args[0];
+  delete[] args[1];
 }
 
 /* ----------------------------------------------------------------------
@@ -722,20 +719,17 @@ void FixATC::write_restart(FILE * /* fp */) {
 
 void FixATC::restart(char * /* buf */) {
 
-  char ** args = new char*[2];
-  args[0] = new char[50];
-  args[1] = new char[50];
-  sprintf(args[0],"read_restart");
-  sprintf(args[1],"ATC.restart");
+  char *args[2];
+  args[0] = utils::strdup("read_restart");
+  args[1] = utils::strdup("ATC.restart");
 
   // Then call all objects I own to write their data
   if (comm->me == 0) {
     atc_->modify(2,args);
   }
 
-  delete [] args[0];
-  delete [] args[1];
-  delete [] args;
+  delete[] args[0];
+  delete[] args[1];
 }
 
 /* ----------------------------------------------------------------------

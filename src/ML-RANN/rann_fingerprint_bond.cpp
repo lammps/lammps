@@ -40,35 +40,35 @@ Fingerprint_bond::Fingerprint_bond(PairRANN *_pair) : Fingerprint(_pair)
   dr = 0;
   re = 0;
   rc = 0;
-  alpha_k = new double [1];
+  alpha_k = new double[1];
   alpha_k[0] = -1;
   kmax = 0;
   mlength = 0;
   id = -1;
   style = "bond";
-  atomtypes = new int [n_body_type];
+  atomtypes = new int[n_body_type];
   empty = true;
   _pair->allscreen = false;
 }
 
 Fingerprint_bond::~Fingerprint_bond() {
-  delete [] alpha_k;
-  delete [] atomtypes;
-  delete [] expcuttable;
-  delete [] dfctable;
+  delete[] alpha_k;
+  delete[] atomtypes;
+  delete[] expcuttable;
+  delete[] dfctable;
   for (int i=0;i<(mlength*(mlength+1))>>1;i++) {
-    delete [] coeff[i];
-    delete [] coeffx[i];
-    delete [] coeffy[i];
-    delete [] coeffz[i];
-    delete [] Mf[i];
+    delete[] coeff[i];
+    delete[] coeffx[i];
+    delete[] coeffy[i];
+    delete[] coeffz[i];
+    delete[] Mf[i];
   }
-  delete [] coeff;
-  delete [] coeffx;
-  delete [] coeffy;
-  delete [] coeffz;
-  delete [] Mf;
-  delete [] rinvsqrttable;
+  delete[] coeff;
+  delete[] coeffx;
+  delete[] coeffy;
+  delete[] coeffz;
+  delete[] Mf;
+  delete[] rinvsqrttable;
 }
 
 bool Fingerprint_bond::parse_values(std::string constant,std::vector<std::string> line1) {
@@ -81,8 +81,8 @@ bool Fingerprint_bond::parse_values(std::string constant,std::vector<std::string
     rc = strtod(line1[0].c_str(),NULL);
   }
   else if (constant.compare("alphak")==0) {
-    delete [] alpha_k;
-    alpha_k = new double [nwords];
+    delete[] alpha_k;
+    alpha_k = new double[nwords];
     for (l=0;l<nwords;l++) {
       alpha_k[l]=strtod(line1[l].c_str(),NULL);
     }
@@ -156,7 +156,8 @@ void Fingerprint_bond::init(int *i,int _id) {
   rc = 0;
   mlength = 0;
   kmax = 0;
-  alpha_k = new double [1];
+  delete[] alpha_k;
+  alpha_k = new double[1];
   alpha_k[0]=-1;
   empty = false;
   id = _id;
@@ -180,8 +181,8 @@ void Fingerprint_bond::generate_exp_cut_table() {
   int buf = 5;
   int res = pair->res;
   double cutmax = pair->cutmax;
-  expcuttable = new double [(res+buf)*(kmax)];
-  dfctable = new double [res+buf];
+  expcuttable = new double[(res+buf)*(kmax)];
+  dfctable = new double[res+buf];
   for (m=0;m<(res+buf);m++) {
     r1 = cutmax*cutmax*(double)(m)/(double)(res);
     for (n=0;n<(kmax);n++) {
@@ -282,6 +283,7 @@ void Fingerprint_bond::generate_coefficients() {      //calculates multinomial c
       coeff[p1][p] = pair->factorial(p)/pair->factorial(coeffx[p1][p])/pair->factorial(coeffy[p1][p])/pair->factorial(coeffz[p1][p]);
     }
   }
+  delete[] M;
 }
 
 
@@ -589,8 +591,8 @@ void Fingerprint_bond::do3bodyfeatureset_doubleneighborloop(double * features,do
     delz = zn[jj];
     rsq = delx*delx + dely*dely + delz*delz;
     if (rsq>rc*rc) {
-    	expr[jj][0]=0;
-    	continue;
+        expr[jj][0]=0;
+        continue;
     }
     double r1 = (rsq*((double)res)*cutinv2);
     int m1 = (int)r1;
@@ -601,7 +603,7 @@ void Fingerprint_bond::do3bodyfeatureset_doubleneighborloop(double * features,do
     double *p2 = &expcuttable[(m1+1)*kmax];
     double *p3 = &expcuttable[(m1+2)*kmax];
     for (kk=0;kk<kmax;kk++) {
-    	expr[jj][kk] = p1[kk]+0.5*r1*(p2[kk]-p0[kk]+r1*(2.0*p0[kk]-5.0*p1[kk]+4.0*p2[kk]-p3[kk]+r1*(3.0*(p1[kk]-p2[kk])+p3[kk]-p0[kk])));
+        expr[jj][kk] = p1[kk]+0.5*r1*(p2[kk]-p0[kk]+r1*(2.0*p0[kk]-5.0*p1[kk]+4.0*p2[kk]-p3[kk]+r1*(3.0*(p1[kk]-p2[kk])+p3[kk]-p0[kk])));
     }
     double* q = &dfctable[m1-1];
     double* r2 = &rinvsqrttable[m1-1];

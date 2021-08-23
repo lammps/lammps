@@ -91,8 +91,9 @@ void PairTersoffIntel::compute(int eflag, int vflag,
   ev_init(eflag,vflag);
   if (vflag_atom)
     error->all(FLERR,"INTEL package does not support per-atom stress");
-  if (vflag && !vflag_fdotr)
-    error->all(FLERR,"INTEL package does not support pair_modify nofdotr");
+  if (vflag && !vflag_fdotr && force->newton_pair)
+    error->all(FLERR,"INTEL package does not support pair_modify nofdotr "
+               "with newton on");
 
   const int inum = list->inum;
   const int nthreads = comm->nthreads;
@@ -549,6 +550,7 @@ template <class flt_t>
 void PairTersoffIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
                                                            Memory *memory,
                                                            const int cop) {
+  if (memory != nullptr) _memory = memory;
   if ((ntypes != _ntypes)) {
     if (_ntypes > 0) {
       #ifdef _LMP_INTEL_OFFLOAD
@@ -580,13 +582,13 @@ void PairTersoffIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
       _cop = cop;
       size_t VL = 512 / 8 / sizeof(flt_t);
       int ntypes_pad = ntypes + VL - ntypes % VL;
-      memory->create(c_first_loop,ntypes,ntypes,"fc.c_first_loop");
-      memory->create(c_second_loop,ntypes,ntypes,"fc.c_second_loop");
-      memory->create(c_cutoff_outer,ntypes,ntypes,"fc.c_cutoff_outer");
-      memory->create(c_inner_loop,ntypes,ntypes,ntypes,"fc.c_inner_loop");
-      memory->create(c_cutoff_inner,ntypes,ntypes,ntypes_pad,"fc.c_cutoff_inner");
-      memory->create(c_inner,ntypes,ntypes,ntypes,"fc.c_inner");
-      memory->create(c_outer,ntypes,ntypes,"fc.c_outer");
+      _memory->create(c_first_loop,ntypes,ntypes,"fc.c_first_loop");
+      _memory->create(c_second_loop,ntypes,ntypes,"fc.c_second_loop");
+      _memory->create(c_cutoff_outer,ntypes,ntypes,"fc.c_cutoff_outer");
+      _memory->create(c_inner_loop,ntypes,ntypes,ntypes,"fc.c_inner_loop");
+      _memory->create(c_cutoff_inner,ntypes,ntypes,ntypes_pad,"fc.c_cutoff_inner");
+      _memory->create(c_inner,ntypes,ntypes,ntypes,"fc.c_inner");
+      _memory->create(c_outer,ntypes,ntypes,"fc.c_outer");
       #ifdef _LMP_INTEL_OFFLOAD
       c_first_loop_t * oc_first_loop = c_first_loop[0];
       c_second_loop_t * oc_second_loop = c_second_loop[0];
@@ -613,7 +615,6 @@ void PairTersoffIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
     }
   }
   _ntypes=ntypes;
-  _memory=memory;
 }
 
 #ifdef _LMP_INTEL_OFFLOAD

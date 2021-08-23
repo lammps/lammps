@@ -24,7 +24,7 @@ Syntax
 
   .. parsed-literal::
 
-     keyword = *mol*\ , *region*\ , *maxangle*\ , *pressure*\ , *fugacity_coeff*, *full_energy*, *charge*\ , *group*\ , *grouptype*\ , *intra_energy*, *tfac_insert*, or *overlap_cutoff*
+     keyword = *mol*, *region*, *maxangle*, *pressure*, *fugacity_coeff*, *full_energy*, *charge*, *group*, *grouptype*, *intra_energy*, *tfac_insert*, or *overlap_cutoff*
        *mol* value = template-ID
          template-ID = ID of molecule template specified in a separate :doc:`molecule <molecule>` command
        *mcmoves* values = Patomtrans Pmoltrans Pmolrotate
@@ -208,8 +208,8 @@ their bonds or angles constrained via SHAKE, use the *shake* keyword,
 specifying as its value the ID of a separate :doc:`fix shake <fix_shake>` command which also appears in your input script.
 
 Optionally, users may specify the relative amounts of different MC
-moves using the *mcmoves* keyword. The values *Patomtrans*\ ,
-*Pmoltrans*\ , *Pmolrotate* specify the average proportion of
+moves using the *mcmoves* keyword. The values *Patomtrans*,
+*Pmoltrans*, *Pmolrotate* specify the average proportion of
 atom translations, molecule translations, and molecule rotations,
 respectively. The values must be non-negative integers or real
 numbers, with at least one non-zero value. For example, (10,30,0)
@@ -272,7 +272,7 @@ styles except *lj* it is defined as the thermal de Broglie wavelength
    \Lambda = \sqrt{ \frac{h^2}{2 \pi m k T}}
 
 where *h* is Planck's constant, and *m* is the mass of the exchanged atom
-or molecule.  For unit style *lj*\ , :math:`\Lambda` is simply set to
+or molecule.  For unit style *lj*, :math:`\Lambda` is simply set to
 unity. Note that prior to March 2017, :math:`\Lambda` for unit style *lj*
 was calculated using the above formula with *h* set to the rather specific
 value of 0.18292026.  Chemical potential under the old definition can
@@ -374,7 +374,7 @@ in the context of NVT dynamics.
    has been reached.
 
 With some pair_styles, such as :doc:`Buckingham <pair_buck>`,
-:doc:`Born-Mayer-Huggins <pair_born>` and :doc:`ReaxFF <pair_reaxc>`, two
+:doc:`Born-Mayer-Huggins <pair_born>` and :doc:`ReaxFF <pair_reaxff>`, two
 atoms placed close to each other may have an arbitrary large, negative
 potential energy due to the functional form of the potential.  While
 these unphysical configurations are inaccessible to typical dynamical

@@ -40,7 +40,7 @@ atom *i* is expressed as a weighted sum over bispectrum components.
 
    E^i_{SNAP}(B_1^i,...,B_K^i) = \beta^{\mu_i}_0 + \sum_{k=1}^K \beta_k^{\mu_i} B_k^i
 
-where :math:`B_k^i` is the *k*\ -th bispectrum component of atom *i*\ ,
+where :math:`B_k^i` is the *k*\ -th bispectrum component of atom *i*,
 and :math:`\beta_k^{\mu_i}` is the corresponding linear coefficient that
 depends on :math:`\mu_i`, the SNAP element of atom *i*\ . The number of
 bispectrum components used and their definitions depend on the value of
@@ -90,7 +90,7 @@ elements not in the pair_coeff command, except when using *chemflag*
 (see below).  The name of the SNAP parameter file usually ends in the
 ".snapparam" extension. It contains a small number of parameters that
 define the overall form of the SNAP potential.  See the :doc:`pair_coeff
-<pair_coeff>` doc page for alternate ways to specify the path for these
+<pair_coeff>` page for alternate ways to specify the path for these
 files.
 
 SNAP potentials are quite commonly combined with one or more other
@@ -133,9 +133,9 @@ This line is followed by *ncoeff* coefficients, one per line.
 The SNAP parameter file can contain blank and comment lines (start
 with #) anywhere. Each non-blank non-comment line must contain one
 keyword/value pair. The required keywords are *rcutfac* and
-*twojmax*\ . Optional keywords are *rfac0*\ , *rmin0*\ ,
-*switchflag*\ , *bzeroflag*\ , *quadraticflag*\ , *chemflag*\ ,
-*bnormflag*\ , *wselfallflag*\ , and *chunksize*\ .
+*twojmax*\ . Optional keywords are *rfac0*, *rmin0*,
+*switchflag*, *bzeroflag*, *quadraticflag*, *chemflag*,
+*bnormflag*, *wselfallflag*, and *chunksize*\ .
 
 The default values for these keywords are
 
@@ -225,7 +225,7 @@ that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 ----------
 
@@ -238,7 +238,7 @@ Restrictions
 
 This style is part of the ML-SNAP package.  It is only enabled if LAMMPS
 was built with that package.  See the :doc:`Build package
-<Build_package>` doc page for more info.
+<Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

@@ -798,7 +798,7 @@ void LAMMPS::create()
   else neighbor = new Neighbor(this);
 
   if (kokkos) domain = new DomainKokkos(this);
-#ifdef LMP_USER_OMP
+#ifdef LMP_OPENMP
   else domain = new DomainOMP(this);
 #else
   else domain = new Domain(this);

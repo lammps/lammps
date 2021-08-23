@@ -80,7 +80,7 @@ that will be used in the colvars module.
 
 The *unwrap* keyword controls whether wrapped or unwrapped coordinates
 are passed to the colvars library for calculation of the collective
-variables and the resulting forces. The default is *yes*\ , i.e. to use
+variables and the resulting forces. The default is *yes*, i.e. to use
 the image flags to reconstruct the absolute atom positions.
 Setting this to *no* will use the current local coordinates that are
 wrapped back into the simulation cell at each re-neighboring instead.
@@ -124,7 +124,7 @@ Restrictions
 
 This fix is part of the COLVARS package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package
-<Build_package>` doc page for more info.
+<Build_package>` page for more info.
 
 There can only be one colvars fix active at a time. Since the interface
 communicates only the minimum amount of information and colvars module

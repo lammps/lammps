@@ -120,6 +120,44 @@ TEST(Utils, split_words_simple)
     ASSERT_THAT(list[2], StrEq("three"));
 }
 
+TEST(Utils, split_words_leading_whitespace)
+{
+    auto list = utils::split_words("  one two three");
+    ASSERT_EQ(list.size(), 3);
+    ASSERT_THAT(list[0], StrEq("one"));
+    ASSERT_THAT(list[1], StrEq("two"));
+    ASSERT_THAT(list[2], StrEq("three"));
+}
+
+TEST(Utils, split_words_trailing_whitespace)
+{
+    auto list = utils::split_words("one two three  ");
+    ASSERT_EQ(list.size(), 3);
+    ASSERT_THAT(list[0], StrEq("one"));
+    ASSERT_THAT(list[1], StrEq("two"));
+    ASSERT_THAT(list[2], StrEq("three"));
+}
+
+TEST(Utils, split_words_heredoc)
+{
+    auto list = utils::split_words("one two three \"\"\"");
+    ASSERT_EQ(list.size(), 4);
+    ASSERT_THAT(list[0], StrEq("one"));
+    ASSERT_THAT(list[1], StrEq("two"));
+    ASSERT_THAT(list[2], StrEq("three"));
+    ASSERT_THAT(list[3], StrEq("\"\"\""));
+}
+
+TEST(Utils, split_words_heredoc_whitespace)
+{
+    auto list = utils::split_words("one two three \"\"\"   ");
+    ASSERT_EQ(list.size(), 4);
+    ASSERT_THAT(list[0], StrEq("one"));
+    ASSERT_THAT(list[1], StrEq("two"));
+    ASSERT_THAT(list[2], StrEq("three"));
+    ASSERT_THAT(list[3], StrEq("\"\"\""));
+}
+
 TEST(Utils, split_words_quoted)
 {
     auto list = utils::split_words("one 'two' \"three\"");
@@ -440,6 +478,17 @@ TEST(Utils, strmatch_opt_char)
 {
     ASSERT_TRUE(utils::strmatch("rigid", "^r?igid"));
     ASSERT_TRUE(utils::strmatch("igid", "^r?igid"));
+    ASSERT_TRUE(utils::strmatch("c_name","^[cfvid]2?_name"));
+    ASSERT_TRUE(utils::strmatch("f_name","^[cfvid]2?_name"));
+    ASSERT_TRUE(utils::strmatch("v_name","^[cfvid]2?_name"));
+    ASSERT_TRUE(utils::strmatch("i_name","^[cfvid]2?_name"));
+    ASSERT_TRUE(utils::strmatch("d_name","^[cfvid]2?_name"));
+    ASSERT_TRUE(utils::strmatch("i2_name","^[cfvid]2?_name"));
+    ASSERT_TRUE(utils::strmatch("d2_name","^[cfvid]2?_name"));
+    ASSERT_FALSE(utils::strmatch("d2name","^[cfvid]2?_name"));
+    ASSERT_FALSE(utils::strmatch("i1_name","^[cfvid]2?_name"));
+    ASSERT_FALSE(utils::strmatch("V_name","^[cfvid]2?_name"));
+    ASSERT_FALSE(utils::strmatch("x_name","^[cfvid]2?_name"));
 }
 
 TEST(Utils, strmatch_dot)

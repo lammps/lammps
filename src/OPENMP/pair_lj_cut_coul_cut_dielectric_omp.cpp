@@ -104,11 +104,11 @@ void PairLJCutCoulCutDielectricOMP::compute(int eflag, int vflag)
 template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
 void PairLJCutCoulCutDielectricOMP::eval(int iifrom, int iito, ThrData *const thr)
 {
-  int i, j, ii, jj, jnum, itype, jtype, itable;
-  double qtmp, etmp, xtmp, ytmp, ztmp, delx, dely, delz, evdwl, ecoul, fpair;
+  int i, j, ii, jj, jnum, itype, jtype;
+  double qtmp, etmp, xtmp, ytmp, ztmp, delx, dely, delz, evdwl, ecoul;
   double fpair_i, fpair_j;
-  double r, rsq, r2inv, r6inv, forcecoul, forcelj, factor_coul, factor_lj;
-  double grij, expm2, prefactor, t, erfc, prefactorE, efield_i, epot_i;
+  double rsq, r2inv, r6inv, forcecoul, forcelj, factor_coul, factor_lj;
+  double efield_i, epot_i;
   int *ilist, *jlist, *numneigh, **firstneigh;
 
   evdwl = ecoul = 0.0;
@@ -221,7 +221,7 @@ void PairLJCutCoulCutDielectricOMP::eval(int iifrom, int iito, ThrData *const th
         }
 
         if (EVFLAG)
-          ev_tally_thr(this, i, j, nlocal, NEWTON_PAIR, evdwl, ecoul, fpair, delx, dely, delz, thr);
+          ev_tally_thr(this, i, j, nlocal, NEWTON_PAIR, evdwl, ecoul, fpair_i, delx, dely, delz, thr);
       }
     }
     f[i].x += fxtmp;

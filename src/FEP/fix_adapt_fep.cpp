@@ -216,10 +216,8 @@ void FixAdaptFEP::post_constructor()
   id_fix_chg = nullptr;
 
   if (diamflag) {
-    auto cmd = fmt::format("{}_FIX_STORE_DIAM {} STORE peratom 1 1",
-                           group->names[igroup]);
-    modify->add_fix(cmd);
-    fix_diam = (FixStore *) modify->fix[modify->nfix-1];
+    auto cmd = fmt::format("{}_FIX_STORE_DIAM {} STORE peratom 1 1", group->names[igroup]);
+    fix_diam = (FixStore *) modify->add_fix(cmd);
 
     if (fix_diam->restart_reset) fix_diam->restart_reset = 0;
     else {
@@ -236,10 +234,8 @@ void FixAdaptFEP::post_constructor()
   }
 
   if (chgflag) {
-    auto cmd = fmt::format("{}_FIX_STORE_CHG {} STORE peratom 1 1",
-                           group->names[igroup]);
-    modify->add_fix(cmd);
-    fix_chg = (FixStore *) modify->fix[modify->nfix-1];
+    auto cmd = fmt::format("{}_FIX_STORE_CHG {} STORE peratom 1 1", group->names[igroup]);
+    fix_chg = (FixStore *) modify->add_fix(cmd);
 
     if (fix_chg->restart_reset) fix_chg->restart_reset = 0;
     else {

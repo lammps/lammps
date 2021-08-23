@@ -22,42 +22,42 @@ src/MESSAGE/*         @sjplimp
 src/MLIAP/*           @athomps
 src/SNAP/*            @athomps
 src/SPIN/*            @julient31
-src/BROWNIAN/*   @samueljmcameron
-src/CG-DNA/*      @ohenrich
-src/CG-SDK/*      @akohlmey
-src/COLVARS/*    @giacomofiorin
-src/DIELECTRIC/* @ndtrung81
-src/FEP/*        @agiliopadua
-src/ML-HDNNP/*      @singraber
-src/INTEL/*      @wmbrownintel
-src/MANIFOLD/*   @Pakketeretet2
-src/MDI/*        @taylor-a-barnes
-src/MEAM/*      @martok
-src/MESONT/*     @iafoss
-src/MOFFF/*      @hheenen
-src/MOLFILE/*    @akohlmey
-src/NETCDF/*     @pastewka
-src/ML-PACE/*       @yury-lysogorskiy
-src/PLUMED/*     @gtribello
-src/PHONON/*     @lingtikong
-src/PTM/*        @pmla
-src/OPENMP/*        @akohlmey
-src/QMMM/*       @akohlmey
-src/REAXFF/*      @hasanmetin
-src/REACTION/*   @jrgissing
-src/SCAFACOS/*   @rhalver
-src/TALLY/*      @akohlmey
-src/UEF/*        @danicholson
-src/VTK/*        @rbberger
-
+src/BROWNIAN/*        @samueljmcameron
+src/CG-DNA/*          @ohenrich
+src/CG-SDK/*          @akohlmey
+src/COLVARS/*         @giacomofiorin
+src/DIELECTRIC/*      @ndtrung81
+src/FEP/*             @agiliopadua
+src/ML-HDNNP/*        @singraber
+src/INTEL/*           @wmbrownintel
+src/MANIFOLD/*        @Pakketeretet2
+src/MDI/*             @taylor-a-barnes
+src/MEAM/*            @martok
+src/MESONT/*          @iafoss
+src/MOFFF/*           @hheenen
+src/MOLFILE/*         @akohlmey
+src/NETCDF/*          @pastewka
+src/ML-PACE/*         @yury-lysogorskiy
+src/PLUMED/*          @gtribello
+src/PHONON/*          @lingtikong
+src/PTM/*             @pmla
+src/OPENMP/*          @akohlmey
+src/QMMM/*            @akohlmey
+src/REAXFF/*          @hasanmetin @stanmoore1
+src/REACTION/*        @jrgissing
+src/SCAFACOS/*        @rhalver
+src/TALLY/*           @akohlmey
+src/UEF/*             @danicholson
+src/VTK/*             @rbberger
 
 # individual files in packages
 src/GPU/pair_vashishta_gpu.*        @andeplane
 src/KOKKOS/pair_vashishta_kokkos.*  @andeplane
 src/MANYBODY/pair_vashishta_table.* @andeplane
 src/MANYBODY/pair_atm.*             @sergeylishchuk
-src/USER-MISC/*_grem.*              @dstelter92
-src/USER-MISC/compute_stress_mop*.* @RomainVermorel
+src/REPLICA/*_grem.*                @dstelter92
+src/EXTRA-COMPUTE/compute_stress_mop*.* @RomainVermorel
+src/MISC/*_tracker.*                @jtclemm
 
 # core LAMMPS classes
 src/lammps.*              @sjplimp
@@ -81,6 +81,7 @@ src/kspace.*              @sjplimp
 src/lmptyp.h              @sjplimp
 src/library.*             @sjplimp
 src/main.cpp              @sjplimp
+src/min_*.*               @sjplimp
 src/memory.*              @sjplimp
 src/modify.*              @sjplimp
 src/molecule.*            @sjplimp
@@ -109,7 +110,6 @@ src/thermo.*              @sjplimp
 src/universe.*            @sjplimp
 src/update.*              @sjplimp
 src/variable.*            @sjplimp
-src/verlet.*              @sjplimp
 src/velocity.*            @sjplimp
 src/write_data.*          @sjplimp
 src/write_restart.*       @sjplimp
@@ -122,6 +122,7 @@ src/info.*                @akohlmey @rbberger
 src/timer.*               @akohlmey
 src/min*                  @sjplimp @stanmoore1
 src/utils.*               @akohlmey @rbberger
+src/verlet.*              @sjplimp @stanmoore1
 src/math_eigen_impl.h     @jewettaij
 
 # tools

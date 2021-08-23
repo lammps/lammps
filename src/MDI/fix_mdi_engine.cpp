@@ -554,7 +554,7 @@ void FixMDIEngine::send_charges(Error *error)
 void FixMDIEngine::send_energy(Error *error)
 {
   // get conversion factor to atomic units
-  double energy_conv;
+  double energy_conv = 1.0;
   if (lmpunits == REAL) {
     double kelvin_to_hartree;
     MDI_Conversion_factor("kelvin_energy", "hartree", &kelvin_to_hartree);
@@ -884,10 +884,9 @@ void FixMDIEngine::receive_cell(Error *error)
 
   // ensure that the new cell vector is orthogonal
   double small = std::numeric_limits<double>::min();
-  if (abs(celldata[1]) > small or abs(celldata[2]) > small or abs(celldata[3]) > small or
-      abs(celldata[5]) > small or abs(celldata[6]) > small or abs(celldata[7]) > small) {
-    error->all(FLERR,
-               "MDI: LAMMPS currently only supports the >CELL command for orthogonal cell vectors");
+  if (fabs(celldata[1]) > small or fabs(celldata[2]) > small or fabs(celldata[3]) > small or
+      fabs(celldata[5]) > small or fabs(celldata[6]) > small or fabs(celldata[7]) > small) {
+    error->all(FLERR, "MDI: LAMMPS currently only supports the >CELL command for orthogonal cell vectors");
   }
 
   // set the new LAMMPS cell dimensions

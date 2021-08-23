@@ -161,7 +161,7 @@ Output info
 This compute calculates a global vector that includes the n properties
 requested as arguments to the command (the potential energy, pressure and/or heat
 capacity).  The elements of the vector can be accessed by indices 1-n by any
-command that uses global vector values as input.  See the :doc:`Howto output <Howto_output>` doc page for an overview of LAMMPS output options.
+command that uses global vector values as input.  See the :doc:`Howto output <Howto_output>` page for an overview of LAMMPS output options.
 
 The vector values calculated by this compute are "extensive".  The
 scalar value will be in energy :doc:`units <units>`.
@@ -169,8 +169,8 @@ scalar value will be in energy :doc:`units <units>`.
 Restrictions
 """"""""""""
 
-This compute is part of the USER-MISC package.  It is enabled only
-if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+This compute is part of the EXTRA-COMPUTE package.  It is enabled only
+if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Usage restricted to canonical (NVT) ensemble simulation only.
 
@@ -192,5 +192,5 @@ none
 
 .. _hma-Moustafa:
 
-**(Moustafa)** Sabry G. Moustafa, Andrew J. Schultz, and David A. Kofke, *Very fast averaging of thermal properties of crystals by molecular simulation*\ ,
+**(Moustafa)** Sabry G. Moustafa, Andrew J. Schultz, and David A. Kofke, *Very fast averaging of thermal properties of crystals by molecular simulation*,
 `Phys. Rev. E [92], 043303 (2015) <https://link.aps.org/doi/10.1103/PhysRevE.92.043303>`_

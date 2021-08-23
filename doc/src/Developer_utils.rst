@@ -334,10 +334,11 @@ arguments of commands in LAMMPS are parsed and to make abstractions of
 repetitive tasks.
 
 The :cpp:class:`LAMMPS_NS::ArgInfo` class provides an abstraction
-for parsing references to compute or fix styles or variables. These
-would start with a "c\_", "f\_", "v\_" followed by the ID or name of
-than instance and may be postfixed with one or two array indices
-"[<number>]" with numbers > 0.
+for parsing references to compute or fix styles, variables or custom
+integer or double properties handled by :doc:`fix property/atom <fix_property_atom>`.
+These would start with a "c\_", "f\_", "v\_", "d\_", "d2\_", "i\_", or "i2\_"
+followed by the ID or name of than instance and may be postfixed with
+one or two array indices "[<number>]" with numbers > 0.
 
 A typical code segment would look like this:
 

@@ -284,13 +284,13 @@ concentration profiles of the two chemical species as
 Mixing, shift, table, tail correction, restart, rRESPA info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-The styles *edpd*\ , *mdpd*\ , *mdpd/rhosum* and *tdpd* do not support
+The styles *edpd*, *mdpd*, *mdpd/rhosum* and *tdpd* do not support
 mixing. Thus, coefficients for all I,J pairs must be specified explicitly.
 
-The styles *edpd*\ , *mdpd*\ , *mdpd/rhosum* and *tdpd* do not support
+The styles *edpd*, *mdpd*, *mdpd/rhosum* and *tdpd* do not support
 the :doc:`pair_modify <pair_modify>` shift, table, and tail options.
 
-The styles *edpd*\ , *mdpd*\ , *mdpd/rhosum* and *tdpd* do not write
+The styles *edpd*, *mdpd*, *mdpd/rhosum* and *tdpd* do not write
 information to :doc:`binary restart files <restart>`. Thus, you need
 to re-specify the pair_style and pair_coeff commands in an input script
 that reads a restart file.
@@ -298,9 +298,9 @@ that reads a restart file.
 Restrictions
 """"""""""""
 
-The pair styles *edpd*\ , *mdpd*\ , *mdpd/rhosum* and *tdpd* are part of
+The pair styles *edpd*, *mdpd*, *mdpd/rhosum* and *tdpd* are part of
 the DPD-MESO package. It is only enabled if LAMMPS was built with
-that package.  See the :doc:`Build package <Build_package>` doc page for
+that package.  See the :doc:`Build package <Build_package>` page for
 more info.
 
 Related commands

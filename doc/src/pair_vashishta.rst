@@ -93,7 +93,7 @@ where N is the number of LAMMPS atom types:
 * filename
 * N element names = mapping of Vashishta elements to atom types
 
-See the :doc:`pair_coeff <pair_coeff>` doc page for alternate ways
+See the :doc:`pair_coeff <pair_coeff>` page for alternate ways
 to specify the path for the potential file.
 
 As an example, imagine a file SiC.vashishta has parameters for
@@ -156,13 +156,13 @@ unambiguous, general, and simple to code, LAMMPS uses a slightly
 confusing method for specifying parameters.  All parameters are
 divided into two classes: two-body and three-body.  Two-body and
 three-body parameters are handled differently, as described below.
-The two-body parameters are *H*\ , :math:`\eta`, :math:`\lambda_1`,
-*D*\ , :math:`\lambda_4`, *W*, :math:`r_c`, :math:`\gamma`,
+The two-body parameters are *H*, :math:`\eta`, :math:`\lambda_1`,
+*D*, :math:`\lambda_4`, *W*, :math:`r_c`, :math:`\gamma`,
 and :math:`r_0`.  They appear in the above formulae with two subscripts.
 The parameters :math:`Z_i` and :math:`Z_j` are also classified
 as two-body parameters, even
-though they only have 1 subscript.  The three-body parameters are *B*\ ,
-*C*\ , :math:`\cos\theta_0`.  They appear in the above formulae with
+though they only have 1 subscript.  The three-body parameters are *B*,
+*C*, :math:`\cos\theta_0`.  They appear in the above formulae with
 three subscripts.  Two-body and three-body parameters are handled
 differently, as described below.
 
@@ -210,7 +210,7 @@ script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 ----------
 
@@ -218,7 +218,7 @@ Restrictions
 """"""""""""
 
 These pair styles are part of the MANYBODY package.  They are only
-enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 These pair styles requires the :doc:`newton <newton>` setting to be "on"
 for pair interactions.

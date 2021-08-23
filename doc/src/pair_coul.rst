@@ -10,6 +10,7 @@
 .. index:: pair_style coul/dsf/gpu
 .. index:: pair_style coul/dsf/kk
 .. index:: pair_style coul/dsf/omp
+.. index:: pair_style coul/exclude
 .. index:: pair_style coul/cut/global
 .. index:: pair_style coul/cut/global/omp
 .. index:: pair_style coul/long
@@ -41,6 +42,9 @@ pair_style coul/dsf command
 ===========================
 
 Accelerator Variants: *coul/dsf/gpu*, *coul/dsf/kk*, *coul/dsf/omp*
+
+pair_style coul/exclude command
+===============================
 
 pair_style coul/cut/global command
 ==================================
@@ -83,6 +87,7 @@ Syntax
    pair_style coul/cut cutoff
    pair_style coul/debye kappa cutoff
    pair_style coul/dsf alpha cutoff
+   pair_style coul/exclude cutoff
    pair_style coul/cut/global cutoff
    pair_style coul/long cutoff
    pair_style coul/wolf alpha cutoff
@@ -109,6 +114,9 @@ Examples
 
    pair_style coul/dsf 0.05 10.0
    pair_coeff * *
+
+   pair_style hybrid/overlay coul/exclude 10.0 ...
+   pair_coeff * * coul/exclude
 
    pair_style coul/long 10.0
    pair_coeff * *
@@ -257,6 +265,19 @@ as style *coul/cut* except that it allows only a single global cutoff
 and thus makes it compatible for use in combination with long-range
 coulomb styles in :doc:`hybrid pair styles <pair_hybrid>`.
 
+Pair style *coul/exclude* computes Coulombic interactions like *coul/cut*
+but **only** applies them to excluded pairs using a scaling factor
+of :math:`\gamma - 1.0` with :math:`\gamma` being the factor assigned
+to that excluded pair via the :doc:`special_bonds coul <special_bonds>`
+setting. With this it is possible to treat Coulomb interactions for
+molecular systems with :doc:`kspace style scafacos <kspace_style>`,
+which always computes the *full* Coulomb interactions without exclusions.
+Pair style *coul/exclude* will then *subtract* the excluded interactions
+accordingly. So to achieve the same forces as with ``pair_style lj/cut/coul/long 12.0``
+with ``kspace_style pppm 1.0e-6``, one would use
+``pair_style hybrid/overlay lj/cut 12.0 coul/exclude 12.0`` with
+``kspace_style scafacos p3m 1.0e-6``.
+
 Styles *coul/long* and *coul/msm* compute the same Coulombic
 interactions as style *coul/cut* except that an additional damping
 factor is applied so it can be used in conjunction with the
@@ -283,7 +304,7 @@ Coulombic solver (Ewald or PPPM).
    atom.  For example, if the atom ID of an O atom in a TIP4P water
    molecule is 500, then its 2 H atoms must have IDs 501 and 502.
 
-See the :doc:`Howto tip4p <Howto_tip4p>` doc page for more information
+See the :doc:`Howto tip4p <Howto_tip4p>` page for more information
 on how to use the TIP4P pair styles and lists of parameters to set.
 Note that the neighbor list cutoff for Coulomb interactions is
 effectively extended by a distance 2\*qdist when using the TIP4P pair
@@ -311,14 +332,14 @@ commands, or by mixing as described below:
 
 * cutoff (distance units)
 
-For *coul/cut* and *coul/debye*\ , the cutoff coefficient is optional.
+For *coul/cut* and *coul/debye* the cutoff coefficient is optional.
 If it is not used (as in some of the examples above), the default
 global value specified in the pair_style command is used.
 
-For *coul/long* and *coul/msm* no cutoff can be specified for an
-individual I,J type pair via the pair_coeff command.  All type pairs
-use the same global Coulomb cutoff specified in the pair_style
-command.
+For *coul/cut/global*, *coul/long* and *coul/msm* no cutoff can be
+specified for an individual I,J type pair via the pair_coeff command.
+All type pairs use the same global Coulomb cutoff specified in the
+pair_style command.
 
 ----------
 
@@ -349,17 +370,17 @@ to be specified in an input script that reads a restart file.
 
 These pair styles can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  They do not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 ----------
 
 Restrictions
 """"""""""""
 
-The *coul/long*\ , *coul/msm* and *tip4p/long* styles are part of the
-KSPACE package.  They are only enabled if LAMMPS was built with that
-package.  See the :doc:`Build package <Build_package>` doc page for more
-info.
+The *coul/cut/global*, *coul/long*, *coul/msm*, *coul/streitz*, and *tip4p/long* styles
+are part of the KSPACE package.  They are only enabled if LAMMPS was built
+with that package.  See the :doc:`Build package <Build_package>` doc page
+for more info.
 
 Related commands
 """"""""""""""""

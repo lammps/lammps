@@ -22,7 +22,7 @@ Syntax
 
   .. parsed-literal::
 
-       For *hooke*\ , *hooke/history*\ , and *hertz/history*\ , *fstyle_params* are:
+       For *hooke*, *hooke/history*, and *hertz/history*, *fstyle_params* are:
              Kn = elastic constant for normal particle repulsion (force/distance units or pressure units - see discussion below)
              Kt = elastic constant for tangential contact (force/distance units or pressure units - see discussion below)
              gamma_n = damping coefficient for collisions in normal direction (1/time units or 1/time-distance units - see discussion below)
@@ -32,7 +32,7 @@ Syntax
 
   .. parsed-literal::
 
-       For *granular*\ , *fstyle_params* are set using the same syntax as for the *pair_coeff* command of :doc:`pair_style granular <pair_granular>`
+       For *granular*, *fstyle_params* are set using the same syntax as for the *pair_coeff* command of :doc:`pair_style granular <pair_granular>`
 
 * wallstyle = region (see :doc:`fix wall/gran <fix_wall_gran>` for options for other kinds of walls)
 * region-ID = region whose boundary will act as wall
@@ -106,7 +106,7 @@ or combinations of primitive shapes specified via the *union* or
 construct particle containers with complex shapes.
 
 Regions can also move dynamically via the :doc:`region <region>` command
-keywords (move) and *rotate*\ , or change their shape by use of variables
+keywords (move) and *rotate*, or change their shape by use of variables
 as inputs to the :doc:`region <region>` command.  If such a region is used
 with this fix, then the region surface will move in time in the
 corresponding manner.
@@ -163,7 +163,7 @@ The nature of the wall/particle interactions are determined by the
 *fstyle* setting.  It can be any of the styles defined by the
 :doc:`pair_style gran/\* <pair_gran>` or the more general
 :doc:`pair_style granular <pair_granular>` commands.  Currently the
-options are *hooke*\ , *hooke/history*\ , or *hertz/history* for the
+options are *hooke*, *hooke/history*, or *hertz/history* for the
 former, and *granular* with all the possible options of the associated
 *pair_coeff* command for the latter.  The equation for the force
 between the wall and particles touching it is the same as the
@@ -181,12 +181,12 @@ radius - r = overlap of particle with wall, m_eff = mass of particle,
 and the effective radius of contact is just the radius of the
 particle.
 
-The parameters *Kn*\ , *Kt*\ , *gamma_n*, *gamma_t*, *xmu*, *dampflag*,
+The parameters *Kn*, *Kt*, *gamma_n*, *gamma_t*, *xmu*, *dampflag*,
 and the optional keyword *limit_damping*
 have the same meaning and units as those specified with the
 :doc:`pair_style gran/\* <pair_gran>` commands.  This means a NULL can be
 used for either *Kt* or *gamma_t* as described on that page.  If a
-NULL is used for *Kt*\ , then a default value is used where *Kt* = 2/7
+NULL is used for *Kt*, then a default value is used where *Kt* = 2/7
 *Kn*\ .  If a NULL is used for *gamma_t*, then a default value is used
 where *gamma_t* = 1/2 *gamma_n*.
 
@@ -265,7 +265,7 @@ Restrictions
 """"""""""""
 
 This fix is part of the GRANULAR package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

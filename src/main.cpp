@@ -31,7 +31,7 @@
 #endif
 
 // import MolSSI Driver Interface library
-#if defined(LMP_USER_MDI)
+#if defined(LMP_MDI)
 #include <mdi.h>
 #endif
 
@@ -47,7 +47,7 @@ int main(int argc, char **argv)
 
   MPI_Comm lammps_comm = MPI_COMM_WORLD;
 
-#if defined(LMP_USER_MDI)
+#if defined(LMP_MDI)
   // initialize MDI interface, if compiled in
 
   int mdi_flag;

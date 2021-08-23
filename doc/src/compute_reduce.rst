@@ -74,7 +74,7 @@ or *max* options find the minimum or maximum value across all vector
 values.  The *ave* setting adds the vector values into a global total,
 then divides by the number of values in the vector.  The *sumsq*
 option sums the square of the values in the vector into a global
-total.  The *avesq* setting does the same as *sumsq*\ , then divides the
+total.  The *avesq* setting does the same as *sumsq*, then divides the
 sum of squares by the number of values.  The last two options can be
 useful for calculating the variance of some quantity, e.g. variance =
 sumsq - ave\^2.
@@ -126,7 +126,7 @@ an input value from that compute.
 If a value begins with "c\_", a compute ID must follow which has been
 previously defined in the input script.  Computes can generate
 per-atom or local quantities.  See the individual
-:doc:`compute <compute>` doc page for details.  If no bracketed integer
+:doc:`compute <compute>` page for details.  If no bracketed integer
 is appended, the vector calculated by the compute is used.  If a
 bracketed integer is appended, the Ith column of the array calculated
 by the compute is used.  Users can also write code for their own
@@ -136,7 +136,7 @@ to effectively specify multiple values.
 
 If a value begins with "f\_", a fix ID must follow which has been
 previously defined in the input script.  Fixes can generate per-atom
-or local quantities.  See the individual :doc:`fix <fix>` doc page for
+or local quantities.  See the individual :doc:`fix <fix>` page for
 details.  Note that some fixes only produce their values on certain
 timesteps, which must be compatible with when compute reduce
 references the values, else an error results.  If no bracketed integer

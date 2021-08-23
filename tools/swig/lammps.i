@@ -91,6 +91,7 @@ extern void   lammps_gather_atoms_concat(void *, char *, int, int, void *);
 extern void   lammps_gather_atoms_subset(void *, char *, int, int, int, int *, void *);
 extern void   lammps_scatter_atoms(void *, char *, int, int, void *);
 extern void   lammps_scatter_atoms_subset(void *, char *, int, int, int, int *, void *);
+extern void   lammps_gather_bonds(void *handle, void *data);
 extern void   lammps_gather(void *, char *, int, int, void *);
 extern void   lammps_gather_concat(void *, char *, int, int, void *);
 extern void   lammps_gather_subset(void *, char *, int, int, int, int *, void *);
@@ -128,16 +129,27 @@ extern int    lammps_id_name(void *, const char *, int, char *buffer, int buf_si
 extern int    lammps_plugin_count();
 extern int    lammps_plugin_name(int, char *, char *, int);
 /*
-extern int lammps_encode_image_flags(int ix, int iy, int iz);
-extern void lammps_decode_image_flags(int image, int *flags);
-extern int64_t lammps_encode_image_flags(int ix, int iy, int iz);
-extern void lammps_decode_image_flags(int64_t image, int *flags);
-extern void lammps_set_fix_external_callback(void *, char *, FixExternalFnPtr, void*);
-extern void lammps_set_fix_external_callback(void *, char *, FixExternalFnPtr, void*);
-extern void lammps_set_fix_external_callback(void *, char *, FixExternalFnPtr, void*);
-extern void lammps_fix_external_set_energy_global(void *, char *, double);
-extern void lammps_fix_external_set_virial_global(void *, char *, double *);
+ * Have not found a good way to map these functions in a general way.
+ * So some individual customization for the specific use case and compilation is needed.
+ *
+  extern int lammps_encode_image_flags(int ix, int iy, int iz);
+  extern void lammps_decode_image_flags(int image, int *flags);
+  extern int64_t lammps_encode_image_flags(int ix, int iy, int iz);
+  extern void lammps_decode_image_flags(int64_t image, int *flags);
+
+ * Supporting the fix external callback mechanism will require extra code specific to the application.
+  typedef void (*FixExternalFnPtr)(void *, int64_t, int, int64_t *, double **, double **);
+  extern  void lammps_set_fix_external_callback(void *handle, const char *id, FixExternalFnPtr funcptr, void *ptr);
+ * these two functions can only be used from the callback, so we don't support them either
+  extern  void lammps_fix_external_set_energy_peratom(void *handle, const char *id, double *eng);
+  extern void lammps_fix_external_set_virial_peratom(void *handle, const char *id, double **virial);
 */
+extern double **lammps_fix_external_get_force(void *handle, const char *id);
+extern void   lammps_fix_external_set_energy_global(void *handle, const char *id, double eng);
+extern void   lammps_fix_external_set_virial_global(void *handle, const char *id, double *virial);
+extern void   lammps_fix_external_set_vector_length(void *handle, const char *id, int len);
+extern void   lammps_fix_external_set_vector(void *handle, const char *id, int idx, double val);
+
 extern void   lammps_free(void *ptr);
 extern int    lammps_is_running(void *handle);
 extern void   lammps_force_timeout(void *handle);
@@ -214,6 +226,7 @@ extern void   lammps_gather_atoms_concat(void *, char *, int, int, void *);
 extern void   lammps_gather_atoms_subset(void *, char *, int, int, int, int *, void *);
 extern void   lammps_scatter_atoms(void *, char *, int, int, void *);
 extern void   lammps_scatter_atoms_subset(void *, char *, int, int, int, int *, void *);
+extern void   lammps_gather_bonds(void *handle, void *data);
 extern void   lammps_gather(void *, char *, int, int, void *);
 extern void   lammps_gather_concat(void *, char *, int, int, void *);
 extern void   lammps_gather_subset(void *, char *, int, int, int, int *, void *);
@@ -255,16 +268,21 @@ extern int lammps_encode_image_flags(int ix, int iy, int iz);
 extern void lammps_decode_image_flags(int image, int *flags);
 extern int64_t lammps_encode_image_flags(int ix, int iy, int iz);
 extern void lammps_decode_image_flags(int64_t image, int *flags);
-extern void lammps_set_fix_external_callback(void *, char *, FixExternalFnPtr, void*);
-extern void lammps_set_fix_external_callback(void *, char *, FixExternalFnPtr, void*);
-extern void lammps_set_fix_external_callback(void *, char *, FixExternalFnPtr, void*);
-extern void lammps_fix_external_set_energy_global(void *, char *, double);
-extern void lammps_fix_external_set_virial_global(void *, char *, double *);
+typedef void (*FixExternalFnPtr)(void *, int64_t, int, int64_t *, double **, double **);
+extern  void lammps_set_fix_external_callback(void *handle, const char *id, FixExternalFnPtr funcptr, void *ptr);
+extern  void lammps_fix_external_set_energy_peratom(void *handle, const char *id, double *eng);
+extern void lammps_fix_external_set_virial_peratom(void *handle, const char *id, double **virial);
 */
+extern double **lammps_fix_external_get_force(void *handle, const char *id);
+extern void   lammps_fix_external_set_energy_global(void *handle, const char *id, double eng);
+extern void   lammps_fix_external_set_virial_global(void *handle, const char *id, double *virial);
+extern void   lammps_fix_external_set_vector_length(void *handle, const char *id, int len);
+extern void   lammps_fix_external_set_vector(void *handle, const char *id, int idx, double val);
+
 extern void   lammps_free(void *ptr);
 extern int    lammps_is_running(void *handle);
 extern void   lammps_force_timeout(void *handle);
 extern int    lammps_has_error(void *handle);
 extern int    lammps_get_last_error_message(void *handle, char *buffer, int buf_size);
 
-/* last revised for LAMMPS 8 April 2021 */
+/* last revised on 21 July 2021 */

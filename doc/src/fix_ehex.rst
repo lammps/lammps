@@ -92,7 +92,7 @@ The thermostatting force is given by
 where :math:`m_i` is the mass and :math:`k(\mathbf r_i)` maps the particle
 position to the respective reservoir. The quantity
 :math:`F_{\Gamma_{k(\mathbf r_i)}}` corresponds to the input parameter
-*F*\ , which is the energy flux into the reservoir. Furthermore,
+*F*, which is the energy flux into the reservoir. Furthermore,
 :math:`K_{\Gamma_{k(\mathbf r_i)}}` and :math:`v_{\Gamma_{k(\mathbf r_i)}}`
 denote the non-translational kinetic energy and the center of mass
 velocity of that reservoir. The thermostatting force does not affect
@@ -176,7 +176,7 @@ Restrictions
 """"""""""""
 
 This fix is part of the RIGID package.  It is only enabled if LAMMPS
-was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

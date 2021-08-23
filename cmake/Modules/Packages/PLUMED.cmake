@@ -54,8 +54,8 @@ if(DOWNLOAD_PLUMED)
     set(PLUMED_BUILD_BYPRODUCTS "<INSTALL_DIR>/lib/libplumedWrapper.a")
   endif()
 
-  set(PLUMED_URL "https://github.com/plumed/plumed2/releases/download/v2.7.1/plumed-src-2.7.1.tgz" CACHE STRING "URL for PLUMED tarball")
-  set(PLUMED_MD5 "4eac6a462ec84dfe0cec96c82421b8e8" CACHE STRING "MD5 checksum of PLUMED tarball")
+  set(PLUMED_URL "https://github.com/plumed/plumed2/releases/download/v2.7.2/plumed-src-2.7.2.tgz" CACHE STRING "URL for PLUMED tarball")
+  set(PLUMED_MD5 "cfa0b4dd90a81c25d3302e8d97bfeaea" CACHE STRING "MD5 checksum of PLUMED tarball")
 
   mark_as_advanced(PLUMED_URL)
   mark_as_advanced(PLUMED_MD5)
@@ -72,7 +72,6 @@ if(DOWNLOAD_PLUMED)
                                              ${PLUMED_CONFIG_OMP}
                                              CXX=${PLUMED_CONFIG_CXX}
                                              CC=${PLUMED_CONFIG_CC}
-    PATCH_COMMAND sed -i "/^#include <algorithm>/a #include <limits>" <SOURCE_DIR>/src/lepton/Operation.h
     BUILD_BYPRODUCTS ${PLUMED_BUILD_BYPRODUCTS}
   )
   ExternalProject_get_property(plumed_build INSTALL_DIR)

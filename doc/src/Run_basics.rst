@@ -42,7 +42,7 @@ single processor.  In theory you should get identical answers on any
 number of processors and on any machine.  In practice, numerical
 round-off due to using floating-point math can cause slight differences
 and an eventual divergence of molecular dynamics trajectories.  See the
-:doc:`Errors common <Errors_common>` doc page for discussion of this.
+:doc:`Errors common <Errors_common>` page for discussion of this.
 
 LAMMPS can run as large a problem as will fit in the physical memory of
 one or more processors.  If you run out of memory, you must run on more

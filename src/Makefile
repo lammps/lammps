@@ -55,7 +55,7 @@ PACKAGE = \
 	body \
 	brownian \
 	cg-dna \
-	cg-sdk\
+	cg-sdk \
 	class2 \
 	colloid \
 	colvars \
@@ -69,11 +69,17 @@ PACKAGE = \
 	dpd-smooth \
 	drude \
 	eff \
+	extra-compute \
+	extra-dump \
+	extra-fix \
+	extra-molecule \
+	extra-pair \
 	fep \
 	gpu \
 	granular \
 	h5md \
 	intel \
+	interlayer \
 	kim \
 	kokkos \
 	kspace \
@@ -102,6 +108,7 @@ PACKAGE = \
 	netcdf \
 	openmp \
 	opt \
+	orient \
 	peri \
 	plugin \
 	plumed \
@@ -123,7 +130,6 @@ PACKAGE = \
 	srd \
 	tally \
 	uef \
-	user-misc \
 	voronoi \
 	vtk \
 	yaff \
@@ -155,8 +161,14 @@ PACKMOST = \
 	dpd-smooth \
 	drude \
 	eff \
+	extra-compute \
+	extra-dump \
+	extra-fix \
+	extra-molecule \
+	extra-pair \
 	fep \
 	granular \
+	interlayer \
 	kspace \
 	manybody \
 	mc \
@@ -167,6 +179,7 @@ PACKMOST = \
 	molecule \
 	openmp \
 	opt \
+	orient \
 	peri \
 	plugin \
 	poems \
@@ -180,13 +193,12 @@ PACKMOST = \
 	spin \
 	srd \
 	uef \
-	user-misc \
 	yaff \
 	dielectric \
 	ml-iap \
 	phonon
 
-# NOTE: the last three packages must remain at the end since
+# NOTE ^^^^^: the last three packages must remain at the end since
 # they depend on other packages to be installed first.
 
 PACKLIB = \
@@ -427,6 +439,7 @@ clean:
 
 clean-all:
 	rm -rf Obj_*
+	rm style_*.h packages_*.h lmpgitversion.h lmpinstalledpkgs.h
 
 clean-%:
 	@if [ $@ = "clean-serial" ]; \

@@ -210,7 +210,7 @@ By default,
 :math:`\frac{\tau}{dt} = \frac{3\eta dt}{\rho dx^2}` is approximately equal to 1.
 However, the user has the option of specifying their own values for
 :math:`dm_{LB}`, and :math:`dx_{LB}`, by using
-the optional keywords *dm*\ , and *dx* respectively.
+the optional keywords *dm*, and *dx* respectively.
 
 .. note::
 
@@ -224,7 +224,7 @@ the optional keywords *dm*\ , and *dx* respectively.
    :math:`dx_{LB}` is used, this will automatically be satisfied.
 
 Physical parameters describing the fluid are specified through
-*viscosity*\ , *density*\ , and *a0*\ . If the force coupling constant is
+*viscosity*, *density*, and *a0*\ . If the force coupling constant is
 set the default way, the surface area associated with the MD particles
 is specified using the *setArea* keyword.  If the user chooses to
 specify a value for the force coupling constant, this is set using the
@@ -342,7 +342,7 @@ Restrictions
 """"""""""""
 
 This fix is part of the LATBOLTZ package.  It is only enabled if LAMMPS
-was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 This fix can only be used with an orthogonal simulation domain.
 

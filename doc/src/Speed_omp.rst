@@ -18,7 +18,7 @@ launched by each MPI task on the local node (using shared memory).
 Building LAMMPS with the OPENMP package
 """""""""""""""""""""""""""""""""""""""""
 
-See the :ref:`Build extras <openmp>` doc page for
+See the :ref:`Build extras <openmp>` page for
 instructions.
 
 Run with the OPENMP package from the command line
@@ -50,7 +50,7 @@ threads per MPI task via the OMP_NUM_THREADS environment variable.
 
 You can also use the "-pk omp Nt" :doc:`command-line switch <Run_options>`, to explicitly set Nt = # of OpenMP threads
 per MPI task to use, as well as additional options.  Its syntax is the
-same as the :doc:`package omp <package>` command whose doc page gives
+same as the :doc:`package omp <package>` command whose page gives
 details, including the default values used if it is not specified.  It
 also gives more details on how to set the number of threads via the
 OMP_NUM_THREADS environment variable.
@@ -70,7 +70,7 @@ Use the :doc:`suffix omp <suffix>` command, or you can explicitly add an
 
 You must also use the :doc:`package omp <package>` command to enable the
 OPENMP package.  When you do this you also specify how many threads
-per MPI task to use.  The command doc page explains other options and
+per MPI task to use.  The command page explains other options and
 how to set the number of threads via the OMP_NUM_THREADS environment
 variable.
 

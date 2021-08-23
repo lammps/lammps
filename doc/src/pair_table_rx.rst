@@ -14,7 +14,7 @@ Syntax
    pair_style table style N ...
 
 * style = *lookup* or *linear* or *spline* or *bitmap* = method of interpolation
-* N = use N values in *lookup*\ , *linear*\ , *spline* tables
+* N = use N values in *lookup*, *linear*, *spline* tables
 * weighting = fractional or molecular (optional)
 
 Examples
@@ -47,7 +47,7 @@ The interpolation tables are created by fitting cubic splines to the
 file values and interpolating energy and force values at each of *N*
 distances.  During a simulation, these tables are used to interpolate
 energy and force values as needed.  The interpolation is done in one
-of 4 styles: *lookup*\ , *linear*\ , *spline*\ , or *bitmap*\ .
+of 4 styles: *lookup*, *linear*, *spline*, or *bitmap*\ .
 
 For the *lookup* style, the distance between 2 atoms is used to find
 the nearest table entry, which is the energy or force.
@@ -221,7 +221,7 @@ commands do need to be specified in the restart input script.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 ----------
 
@@ -233,7 +233,7 @@ Restrictions
 """"""""""""
 
 This command is part of the DPD-REACT package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

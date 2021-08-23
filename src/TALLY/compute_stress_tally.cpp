@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -15,27 +14,25 @@
 #include "compute_stress_tally.h"
 
 #include "atom.h"
-#include "group.h"
-#include "pair.h"
-#include "update.h"
-#include "memory.h"
-#include "error.h"
-#include "force.h"
 #include "comm.h"
 #include "domain.h"
+#include "error.h"
+#include "force.h"
+#include "group.h"
+#include "memory.h"
+#include "pair.h"
+#include "update.h"
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ComputeStressTally::ComputeStressTally(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+ComputeStressTally::ComputeStressTally(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, narg, arg)
 {
-  if (narg < 4) error->all(FLERR,"Illegal compute stress/tally command");
+  if (narg < 4) error->all(FLERR, "Illegal compute stress/tally command");
 
   igroup2 = group->find(arg[3]);
-  if (igroup2 == -1)
-    error->all(FLERR,"Could not find compute stress/tally second group ID");
+  if (igroup2 == -1) error->all(FLERR, "Could not find compute stress/tally second group ID");
   groupbit2 = group->bitmask[igroup2];
 
   scalar_flag = 1;
@@ -46,7 +43,7 @@ ComputeStressTally::ComputeStressTally(LAMMPS *lmp, int narg, char **arg) :
 
   comm_reverse = size_peratom_cols = 6;
   extscalar = 0;
-  peflag = 1;                   // we need Pair::ev_tally() to be run
+  peflag = 1;    // we need Pair::ev_tally() to be run
 
   did_setup = invoked_peratom = invoked_scalar = -1;
   nmax = -1;
@@ -70,17 +67,16 @@ ComputeStressTally::~ComputeStressTally()
 void ComputeStressTally::init()
 {
   if (force->pair == nullptr)
-    error->all(FLERR,"Trying to use compute stress/tally without pair style");
+    error->all(FLERR, "Trying to use compute stress/tally without pair style");
   else
     force->pair->add_tally_callback(this);
 
   if (comm->me == 0) {
     if (force->pair->single_enable == 0 || force->pair->manybody_flag)
-      error->warning(FLERR,"Compute stress/tally used with incompatible pair style");
+      error->warning(FLERR, "Compute stress/tally used with incompatible pair style");
 
-    if (force->bond || force->angle || force->dihedral
-                    || force->improper || force->kspace)
-      error->warning(FLERR,"Compute stress/tally only called from pair style");
+    if (force->bond || force->angle || force->dihedral || force->improper || force->kspace)
+      error->warning(FLERR, "Compute stress/tally only called from pair style");
   }
   did_setup = -1;
 }
@@ -101,55 +97,64 @@ void ComputeStressTally::pair_setup_callback(int, int)
   if (atom->nmax > nmax) {
     memory->destroy(stress);
     nmax = atom->nmax;
-    memory->create(stress,nmax,size_peratom_cols,"stress/tally:stress");
+    memory->create(stress, nmax, size_peratom_cols, "stress/tally:stress");
     array_atom = stress;
   }
 
   // clear storage
 
-  for (int i=0; i < ntotal; ++i)
-    for (int j=0; j < size_peratom_cols; ++j)
-      stress[i][j] = 0.0;
+  for (int i = 0; i < ntotal; ++i)
+    for (int j = 0; j < size_peratom_cols; ++j) stress[i][j] = 0.0;
 
-  for (int i=0; i < size_peratom_cols; ++i)
-    vector[i] = virial[i] = 0.0;
+  for (int i = 0; i < size_peratom_cols; ++i) vector[i] = virial[i] = 0.0;
 
   did_setup = update->ntimestep;
 }
 
 /* ---------------------------------------------------------------------- */
-void ComputeStressTally::pair_tally_callback(int i, int j, int nlocal, int newton,
-                                             double, double, double fpair,
-                                             double dx, double dy, double dz)
+void ComputeStressTally::pair_tally_callback(int i, int j, int nlocal, int newton, double, double,
+                                             double fpair, double dx, double dy, double dz)
 {
-  const int * const mask = atom->mask;
+  const int *const mask = atom->mask;
 
-  if ( ((mask[i] & groupbit) && (mask[j] & groupbit2))
-       || ((mask[i] & groupbit2) && (mask[j] & groupbit))) {
+  if (((mask[i] & groupbit) && (mask[j] & groupbit2)) ||
+      ((mask[i] & groupbit2) && (mask[j] & groupbit))) {
 
     fpair *= 0.5;
-    const double v0 = dx*dx*fpair;
-    const double v1 = dy*dy*fpair;
-    const double v2 = dz*dz*fpair;
-    const double v3 = dx*dy*fpair;
-    const double v4 = dx*dz*fpair;
-    const double v5 = dy*dz*fpair;
+    const double v0 = dx * dx * fpair;
+    const double v1 = dy * dy * fpair;
+    const double v2 = dz * dz * fpair;
+    const double v3 = dx * dy * fpair;
+    const double v4 = dx * dz * fpair;
+    const double v5 = dy * dz * fpair;
 
     if (newton || i < nlocal) {
-      virial[0] += v0; stress[i][0] += v0;
-      virial[1] += v1; stress[i][1] += v1;
-      virial[2] += v2; stress[i][2] += v2;
-      virial[3] += v3; stress[i][3] += v3;
-      virial[4] += v4; stress[i][4] += v4;
-      virial[5] += v5; stress[i][5] += v5;
+      virial[0] += v0;
+      stress[i][0] += v0;
+      virial[1] += v1;
+      stress[i][1] += v1;
+      virial[2] += v2;
+      stress[i][2] += v2;
+      virial[3] += v3;
+      stress[i][3] += v3;
+      virial[4] += v4;
+      stress[i][4] += v4;
+      virial[5] += v5;
+      stress[i][5] += v5;
     }
     if (newton || j < nlocal) {
-      virial[0] += v0; stress[j][0] += v0;
-      virial[1] += v1; stress[j][1] += v1;
-      virial[2] += v2; stress[j][2] += v2;
-      virial[3] += v3; stress[j][3] += v3;
-      virial[4] += v4; stress[j][4] += v4;
-      virial[5] += v5; stress[j][5] += v5;
+      virial[0] += v0;
+      stress[j][0] += v0;
+      virial[1] += v1;
+      stress[j][1] += v1;
+      virial[2] += v2;
+      stress[j][2] += v2;
+      virial[3] += v3;
+      stress[j][3] += v3;
+      virial[4] += v4;
+      stress[j][4] += v4;
+      virial[5] += v5;
+      stress[j][5] += v5;
     }
   }
 }
@@ -158,7 +163,7 @@ void ComputeStressTally::pair_tally_callback(int i, int j, int nlocal, int newto
 
 int ComputeStressTally::pack_reverse_comm(int n, int first, double *buf)
 {
-  int i,m,last;
+  int i, m, last;
 
   m = 0;
   last = first + n;
@@ -177,7 +182,7 @@ int ComputeStressTally::pack_reverse_comm(int n, int first, double *buf)
 
 void ComputeStressTally::unpack_reverse_comm(int n, int *list, double *buf)
 {
-  int i,j,m;
+  int i, j, m;
 
   m = 0;
   for (i = 0; i < n; i++) {
@@ -196,18 +201,17 @@ void ComputeStressTally::unpack_reverse_comm(int n, int *list, double *buf)
 double ComputeStressTally::compute_scalar()
 {
   invoked_scalar = update->ntimestep;
-  if ((did_setup != invoked_scalar)
-      || (update->eflag_global != invoked_scalar))
-    error->all(FLERR,"Energy was not tallied on needed timestep");
+  if ((did_setup != invoked_scalar) || (update->eflag_global != invoked_scalar))
+    error->all(FLERR, "Energy was not tallied on needed timestep");
 
   // sum accumulated forces across procs
 
-  MPI_Allreduce(virial,vector,size_peratom_cols,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(virial, vector, size_peratom_cols, MPI_DOUBLE, MPI_SUM, world);
 
   if (domain->dimension == 3)
-    scalar = (vector[0]+vector[1]+vector[2])/3.0;
+    scalar = (vector[0] + vector[1] + vector[2]) / 3.0;
   else
-    scalar = (vector[0]+vector[1])/2.0;
+    scalar = (vector[0] + vector[1]) / 2.0;
 
   return scalar;
 }
@@ -217,9 +221,8 @@ double ComputeStressTally::compute_scalar()
 void ComputeStressTally::compute_peratom()
 {
   invoked_peratom = update->ntimestep;
-  if ((did_setup != invoked_peratom)
-      || (update->eflag_global != invoked_peratom))
-    error->all(FLERR,"Energy was not tallied on needed timestep");
+  if ((did_setup != invoked_peratom) || (update->eflag_global != invoked_peratom))
+    error->all(FLERR, "Energy was not tallied on needed timestep");
 
   // collect contributions from ghost atoms
 
@@ -228,8 +231,7 @@ void ComputeStressTally::compute_peratom()
 
     const int nall = atom->nlocal + atom->nghost;
     for (int i = atom->nlocal; i < nall; ++i)
-      for (int j = 0; j < size_peratom_cols; ++j)
-        stress[i][j] = 0.0;
+      for (int j = 0; j < size_peratom_cols; ++j) stress[i][j] = 0.0;
   }
 
   // convert to stress*volume units = -pressure*volume
@@ -251,7 +253,6 @@ void ComputeStressTally::compute_peratom()
 
 double ComputeStressTally::memory_usage()
 {
-  double bytes = (nmax < 0) ? 0 : nmax*size_peratom_cols * sizeof(double);
+  double bytes = (nmax < 0) ? 0 : nmax * (double)size_peratom_cols * sizeof(double);
   return bytes;
 }
-

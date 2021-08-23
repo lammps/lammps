@@ -29,7 +29,7 @@ OPT.
    * :doc:`hybrid/scaled <pair_hybrid>`
    * :doc:`kim <pair_kim>`
    * :doc:`list <pair_list>`
-   *
+   * :doc:`tracker <pair_tracker>`
    *
    *
    *
@@ -75,6 +75,7 @@ OPT.
    * :doc:`coul/debye (gko) <pair_coul>`
    * :doc:`coul/diel (o) <pair_coul_diel>`
    * :doc:`coul/dsf (gko) <pair_coul>`
+   * :doc:`coul/exclude <pair_coul>`
    * :doc:`coul/long (gko) <pair_coul>`
    * :doc:`coul/long/cs (g) <pair_cs>`
    * :doc:`coul/long/dielectric <pair_dielectric>`
@@ -235,7 +236,7 @@ OPT.
    * :doc:`python <pair_python>`
    * :doc:`quip <pair_quip>`
    * :doc:`rann <pair_rann>`
-   * :doc:`reax/c (ko) <pair_reaxc>`
+   * :doc:`reaxff (ko) <pair_reaxff>`
    * :doc:`rebo (io) <pair_airebo>`
    * :doc:`resquared (go) <pair_resquared>`
    * :doc:`sdpd/taitwater/isothermal <pair_sdpd_taitwater_isothermal>`
@@ -273,7 +274,6 @@ OPT.
    * :doc:`tip4p/cut (o) <pair_coul>`
    * :doc:`tip4p/long (o) <pair_coul>`
    * :doc:`tip4p/long/soft (o) <pair_fep_soft>`
-   * :doc:`tracker <pair_tracker>`
    * :doc:`tri/lj <pair_tri_lj>`
    * :doc:`ufm (got) <pair_ufm>`
    * :doc:`vashishta (gko) <pair_vashishta>`

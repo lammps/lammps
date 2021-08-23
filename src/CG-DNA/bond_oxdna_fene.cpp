@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -17,7 +16,6 @@
 
 #include "bond_oxdna_fene.h"
 
-#include <cmath>
 #include "atom.h"
 #include "neighbor.h"
 #include "comm.h"
@@ -29,26 +27,19 @@
 #include "atom_vec_ellipsoid.h"
 #include "math_extra.h"
 
+#include <cmath>
+
 using namespace LAMMPS_NS;
-
-/* ---------------------------------------------------------------------- */
-
-BondOxdnaFene::BondOxdnaFene(LAMMPS *lmp) : Bond(lmp)
-{
-
-}
 
 /* ---------------------------------------------------------------------- */
 
 BondOxdnaFene::~BondOxdnaFene()
 {
   if (allocated) {
-
     memory->destroy(setflag);
     memory->destroy(k);
     memory->destroy(Delta);
     memory->destroy(r0);
-
   }
 }
 
@@ -57,14 +48,13 @@ BondOxdnaFene::~BondOxdnaFene()
     compute vector COM-sugar-phosphate backbone interaction site in oxDNA
 ------------------------------------------------------------------------- */
 void BondOxdnaFene::compute_interaction_sites(double e1[3], double /*e2*/[3],
-  double /*e3*/[3], double r[3])
+  double /*e3*/[3], double r[3]) const
 {
-  double d_cs=-0.4;
+  constexpr double d_cs=-0.4;
 
   r[0] = d_cs*e1[0];
   r[1] = d_cs*e1[1];
   r[2] = d_cs*e1[2];
-
 }
 
 /* ----------------------------------------------------------------------
@@ -218,11 +208,8 @@ void BondOxdnaFene::compute(int eflag, int vflag)
     // if r > 2*Delta something serious is wrong, abort
 
     if (rlogarg < 0.1) {
-      char str[128];
-      sprintf(str,"FENE bond too long: " BIGINT_FORMAT " "
-              TAGINT_FORMAT " " TAGINT_FORMAT " %g",
-              update->ntimestep,atom->tag[a],atom->tag[b],r);
-      error->warning(FLERR,str);
+      error->warning(FLERR,"FENE bond too long: {} {} {} {}",
+                     update->ntimestep,atom->tag[a],atom->tag[b],r);
       rlogarg = 0.1;
     }
 
@@ -398,10 +385,8 @@ double BondOxdnaFene::single(int type, double rsq, int /*i*/, int /*j*/,
   // if r > 2*Delta something serious is wrong, abort
 
   if (rlogarg < 0.1) {
-    char str[128];
-    sprintf(str,"FENE bond too long: " BIGINT_FORMAT " %g",
-            update->ntimestep,sqrt(rsq));
-    error->warning(FLERR,str);
+    error->warning(FLERR,"FENE bond too long: {} {:.8}",
+                   update->ntimestep,sqrt(rsq));
     rlogarg = 0.1;
   }
 

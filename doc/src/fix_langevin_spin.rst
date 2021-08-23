@@ -85,7 +85,7 @@ Restrictions
 """"""""""""
 
 The *langevin/spin* fix is part of the SPIN package.  This style is
-only enabled if LAMMPS was built with this package.  See the :doc:`Build package <Build_package>` doc page for more info.
+only enabled if LAMMPS was built with this package.  See the :doc:`Build package <Build_package>` page for more info.
 
 The numerical integration has to be performed with *fix nve/spin*
 when *fix langevin/spin* is enabled.

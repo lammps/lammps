@@ -938,8 +938,7 @@ TEST(FixTimestep, omp)
     // rigid fixes need work to test properly with r-RESPA,
     // also, torque is not supported by respa/omp
     ifix = lmp->modify->find_fix("test");
-    if (!utils::strmatch(lmp->modify->fix[ifix]->style, "^rigid")
-        && !lmp->atom->torque) {
+    if (!utils::strmatch(lmp->modify->fix[ifix]->style, "^rigid") && !lmp->atom->torque) {
 
         if (!verbose) ::testing::internal::CaptureStdout();
         cleanup_lammps(lmp, test_config);

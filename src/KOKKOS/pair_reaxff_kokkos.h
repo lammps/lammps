@@ -37,8 +37,6 @@ PairStyle(reax/c/kk/host,PairReaxFFKokkos<LMPHostType>);
 #define HB_THRESHOLD   1e-2  // 0.01
 #define MAX_BONDS      30
 
-#define SQR(x)        ((x)*(x))
-
 #include "reaxff_inline.h"
 
 namespace LAMMPS_NS {

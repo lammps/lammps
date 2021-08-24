@@ -485,8 +485,8 @@ double FixPropertyAtom::memory_usage()
     else if (style[m] == RMASS) bytes = atom->nmax * sizeof(double);
     else if (style[m] == IVEC) bytes = atom->nmax * sizeof(int);
     else if (style[m] == DVEC) bytes = atom->nmax * sizeof(double);
-    else if (style[m] == IARRAY) bytes = atom->nmax * cols[m] * sizeof(int);
-    else if (style[m] == DARRAY) bytes = atom->nmax * cols[m] * sizeof(double);
+    else if (style[m] == IARRAY) bytes = (size_t) atom->nmax * cols[m] * sizeof(int);
+    else if (style[m] == DARRAY) bytes = (size_t) atom->nmax * cols[m] * sizeof(double);
   }
   return bytes;
 }
@@ -523,11 +523,11 @@ void FixPropertyAtom::grow_arrays(int nmax)
       memset(&atom->dvector[index[nv]][nmax_old],0,nbytes);
     } else if (style[nv] == IARRAY) {
       memory->grow(atom->iarray[index[nv]],nmax,cols[nv],"atom:iarray");
-      size_t nbytes = (nmax-nmax_old) * cols[nv] * sizeof(int);
+      size_t nbytes = (size_t) (nmax-nmax_old) * cols[nv] * sizeof(int);
       if (nbytes) memset(&atom->iarray[index[nv]][nmax_old][0],0,nbytes);
     } else if (style[nv] == DARRAY) {
       memory->grow(atom->darray[index[nv]],nmax,cols[nv],"atom:darray");
-      size_t nbytes = (nmax-nmax_old) * cols[nv] * sizeof(double);
+      size_t nbytes = (size_t) (nmax-nmax_old) * cols[nv] * sizeof(double);
       if (nbytes) memset(&atom->darray[index[nv]][nmax_old][0],0,nbytes);
     }
   }

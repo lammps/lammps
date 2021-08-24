@@ -479,7 +479,7 @@ The following options are available.
 
 These should help to replace all TAB characters with blanks and remove
 any trailing whitespace.  Also all LAMMPS homepage URL references can be
-updated to the location change from lammps.sandia.gov to www.lammps.org.
+updated to the location change from Sandia to the lammps.org domain.
 And the permission check can remove executable permissions from non-executable
 files (like source code).
 

@@ -65,7 +65,7 @@ The second use case is a collection of polymer chains with some
 fraction of their sites identified as "sticker" sites.  Initially each
 polymer chain is isolated from the others in a topological sense, and
 there is an intra-chain bond between every pair of sticker sites on
-the same chain.  Over time, bonds swap so that inter-moleculer sticker
+the same chain.  Over time, bonds swap so that inter-molecular sticker
 bonds are created.  This models a vitrification-style process whereby
 the polymer chains all become interconnected.  For this use case, if
 angles are defined they should not include bonds between sticker
@@ -97,7 +97,7 @@ means that bond pairs which straddle processor boundaries are not
 eligible for swapping on this step.
 
 (3) The distances between 4 pairs of atoms -- (A1,A2), (B1,B2),
-(A1,B2), (B1,A2) -- must all be less thann the specified *cutoff*\ .
+(A1,B2), (B1,A2) -- must all be less than the specified *cutoff*\ .
 
 (4) The molecule IDs of A1 and B1 must be the same (see below).
 
@@ -116,7 +116,7 @@ Boltzmann constant, and T is the current temperature of the system.
 
    IMPORTANT: Whether the swap is accepted or rejected, no other swaps
    are attempted by this processor on this timestep.  No other
-   eliglble 4-tuples of atoms are considered.  This means that each
+   eligible 4-tuples of atoms are considered.  This means that each
    processor will perform either a single swap or none on timesteps
    this fix is invoked.
 

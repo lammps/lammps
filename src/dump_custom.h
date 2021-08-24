@@ -70,29 +70,30 @@ class DumpCustom : public Dump {
   int nfield;       // # of keywords listed by user
   int ioptional;    // index of start of optional args
 
-  int *field2index;    // which compute,fix,variable calcs this field
-  int *argindex;       // index into compute,fix scalar_atom,vector_atom
-                       // 0 for scalar_atom, 1-N for vector_atom values
+  int *field2index;     // which compute,fix,variable,custom calcs this field
+  int *argindex;        // index into compute,fix,custom per-atom data
+                        // 0 for per-atom vector, 1-N for cols of per-atom array
 
-  int ncompute;               // # of Compute objects used by dump
-  char **id_compute;          // their IDs
-  class Compute **compute;    // list of ptrs to the Compute objects
+  int ncompute;              // # of Computes accessed by dump
+  char **id_compute;         // their IDs
+  class Compute **compute;   // list of ptrs to the Computes
 
-  int nfix;           // # of Fix objects used by dump
-  char **id_fix;      // their IDs
-  class Fix **fix;    // list of ptrs to the Fix objects
+  int nfix;                  // # of Fixes used by dump
+  char **id_fix;             // their IDs
+  class Fix **fix;           // list of ptrs to the Fixes
 
-  int nvariable;         // # of Variables used by dump
-  char **id_variable;    // their names
-  int *variable;         // list of indices for the Variables
-  double **vbuf;         // local storage for variable evaluation
+  int nvariable;             // # of Variables used by dump
+  char **id_variable;        // their names
+  int *variable;             // list of Variable indices in Variable class
+  double **vbuf;             // local storage for variable evaluation
 
-  int ncustom;         // # of custom atom properties
-  char **id_custom;    // their names
-  int *flag_custom;    // their data type
+  int ncustom;               // # of Custom atom properties used by dump
+  char **id_custom;          // their names
+  int *custom;               // list of Custom indices in Atom class
+  int *custom_flag;          // list of IVEC,DVEC,IARRAY,DARRAY styles
 
-  int ntypes;          // # of atom types
-  char **typenames;    // array of element names for each type
+  int ntypes;                // # of atom types
+  char **typenames;          // array of element names for each type
 
   // private methods
 

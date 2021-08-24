@@ -14,6 +14,7 @@
 
 #include "set.h"
 
+#include "arg_info.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "atom_vec_body.h"
@@ -44,12 +45,12 @@ using namespace MathConst;
 enum{ATOM_SELECT,MOL_SELECT,TYPE_SELECT,GROUP_SELECT,REGION_SELECT};
 
 enum{TYPE,TYPE_FRACTION,TYPE_RATIO,TYPE_SUBSET,
-     MOLECULE,X,Y,Z,CHARGE,MASS,SHAPE,LENGTH,TRI,
+     MOLECULE,X,Y,Z,VX,VY,VZ,CHARGE,MASS,SHAPE,LENGTH,TRI,
      DIPOLE,DIPOLE_RANDOM,SPIN,SPIN_RANDOM,QUAT,QUAT_RANDOM,
      THETA,THETA_RANDOM,ANGMOM,OMEGA,
      DIAMETER,DENSITY,VOLUME,IMAGE,BOND,ANGLE,DIHEDRAL,IMPROPER,
      SPH_E,SPH_CV,SPH_RHO,EDPD_TEMP,EDPD_CV,CC,SMD_MASS_DENSITY,
-     SMD_CONTACT_RADIUS,DPDTHETA,INAME,DNAME,VX,VY,VZ};
+     SMD_CONTACT_RADIUS,DPDTHETA,IVEC,DVEC,IARRAY,DARRAY};
 
 #define BIG INT_MAX
 
@@ -570,29 +571,64 @@ void Set::command(int narg, char **arg)
       set(DPDTHETA);
       iarg += 2;
 
-    } else if (utils::strmatch(arg[iarg],"^i_")) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal set command");
-      if (utils::strmatch(arg[iarg+1],"^v_")) varparse(arg[iarg+1],1);
-      else ivalue = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
-      int flag;
-      index_custom = atom->find_custom(&arg[iarg][2],flag);
-      if (index_custom < 0 || flag != 0)
-        error->all(FLERR,"Set command integer vector does not exist");
-      set(INAME);
-      iarg += 2;
+    } else {
 
-    } else if (utils::strmatch(arg[iarg],"^d_")) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal set command");
-      if (utils::strmatch(arg[iarg+1],"^v_")) varparse(arg[iarg+1],1);
-      else dvalue = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-      int flag;
-      index_custom = atom->find_custom(&arg[iarg][2],flag);
-      if (index_custom < 0 || flag != 1)
-        error->all(FLERR,"Set command floating point vector does not exist");
-      set(DNAME);
-      iarg += 2;
+      // set custom per-atom vector or array or error out
 
-    } else error->all(FLERR,"Illegal set command");
+      int flag,cols;
+      ArgInfo argi(arg[iarg],ArgInfo::DNAME|ArgInfo::INAME);
+      const char *pname = argi.get_name();
+      if (iarg+2 > narg) error->all(FLERR,"Illegal set command");
+      index_custom = atom->find_custom(argi.get_name(),flag,cols);
+      if (index_custom < 0) error->all(FLERR,"Custom property {} does not exist",pname);
+
+      switch (argi.get_type()) {
+
+      case ArgInfo::INAME:
+        if (utils::strmatch(arg[iarg+1],"^v_")) varparse(arg[iarg+1],1);
+        else ivalue = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+        if (flag != 0) error->all(FLERR,"Custom property {} is not integer",pname);
+
+        if (argi.get_dim() == 0) {
+          if (cols > 0)
+            error->all(FLERR,"Set command custom integer property {} is not a vector",pname);
+          set(IVEC);
+        } else if (argi.get_dim() == 1) {
+          if (cols == 0)
+            error->all(FLERR,"Set command custom integer property {} is not an array",pname);
+          icol_custom = argi.get_index1();
+          if (icol_custom <= 0 || icol_custom > cols)
+            error->all(FLERR,"Set command per-atom custom integer array {} is accessed "
+                       "out-of-range",pname);
+          set(IARRAY);
+        } else error->all(FLERR,"Illegal set command");
+        break;
+
+      case ArgInfo::DNAME:
+        if (utils::strmatch(arg[iarg+1],"^v_")) varparse(arg[iarg+1],1);
+        else dvalue = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+        if (flag != 1) error->all(FLERR,"Custom property {} is not floating-point",argi.get_name());
+
+        if (argi.get_dim() == 0) {
+          if (cols > 0)
+            error->all(FLERR,"Set command custom floating-point property is not a vector");
+          set(DVEC);
+        } else if (argi.get_dim() == 1) {
+          if (cols == 0)
+            error->all(FLERR,"Set command custom floating-point property is not an array");
+          icol_custom = argi.get_index1();
+          if (icol_custom <= 0 || icol_custom > cols)
+            error->all(FLERR,"Set command per-atom custom integer array is accessed out-of-range");
+          set(DARRAY);
+        } else error->all(FLERR,"Illegal set command");
+        break;
+
+      default:
+        error->all(FLERR,"Illegal set command");
+        break;
+      }
+      iarg += 2;
+    }
 
     // statistics
     // for CC option, include species index
@@ -967,20 +1003,29 @@ void Set::set(int keyword)
         (((imageint) (zbox + IMGMAX) & IMGMASK) << IMG2BITS);
     }
 
-    // set value for custom integer or double vector
+    // set value for custom property vector or array
 
-    else if (keyword == INAME) {
+    else if (keyword == IVEC) {
       atom->ivector[index_custom][i] = ivalue;
     }
 
-    else if (keyword == DNAME) {
+    else if (keyword == DVEC) {
       atom->dvector[index_custom][i] = dvalue;
+    }
+
+    else if (keyword == IARRAY) {
+      atom->iarray[index_custom][i][icol_custom-1] = ivalue;
+    }
+
+    else if (keyword == DARRAY) {
+      atom->darray[index_custom][i][icol_custom-1] = dvalue;
     }
 
     count++;
   }
 
   // update bonus data numbers
+
   if (keyword == SHAPE) {
     bigint nlocal_bonus = avec_ellipsoid->nlocal_bonus;
     MPI_Allreduce(&nlocal_bonus,&atom->nellipsoids,1,

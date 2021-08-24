@@ -80,7 +80,8 @@ Syntax
                                q, mux, muy, muz, mu,
                                radius, diameter, omegax, omegay, omegaz,
                                angmomx, angmomy, angmomz, tqx, tqy, tqz,
-                               c_ID, c_ID[N], f_ID, f_ID[N], v_name
+                               c_ID, c_ID[I], f_ID, f_ID[I], v_name,
+                               i_name, d_name, i2_name[I], d2_name[I]
 
   .. parsed-literal::
 
@@ -110,8 +111,10 @@ Syntax
            f_ID = per-atom vector calculated by a fix with ID
            f_ID[I] = Ith column of per-atom array calculated by a fix with ID, I can include wildcard (see below)
            v_name = per-atom vector calculated by an atom-style variable with name
-           d_name = per-atom floating point vector with name, managed by fix property/atom
-           i_name = per-atom integer vector with name, managed by fix property/atom
+           i_name = custom integer vector with name
+           d_name = custom floating point vector with name
+           i2_name[I] = Ith column of custom integer array with name, I can include wildcard (see below)
+           d2_name[I] = Ith column of custom floating point vector with name, I can include wildcard (see below)
 
 * *local* or *local/gz* or *local/zstd* args = list of local attributes
 
@@ -474,16 +477,15 @@ styles.
 ----------
 
 Note that in the discussion which follows, for styles which can
-reference values from a compute or fix, like the *custom*, *cfg*, or
-*local* styles, the bracketed index I can be specified using a
-wildcard asterisk with the index to effectively specify multiple
-values.  This takes the form "\*" or "\*n" or "n\*" or "m\*n".  If N = the
-size of the vector (for *mode* = scalar) or the number of columns in
-the array (for *mode* = vector), then an asterisk with no numeric
-values means all indices from 1 to N.  A leading asterisk means all
-indices from 1 to n (inclusive).  A trailing asterisk means all
-indices from n to N (inclusive).  A middle asterisk means all indices
-from m to n (inclusive).
+reference values from a compute or fix or custom atom property, like
+the *custom*\ , *cfg*\ , or *local* styles, the bracketed index I can
+be specified using a wildcard asterisk with the index to effectively
+specify multiple values.  This takes the form "\*" or "\*n" or "n\*"
+or "m\*n".  If N = the number of columns in the array, then an
+asterisk with no numeric values means all column indices from 1 to N.
+A leading asterisk means all indices from 1 to n (inclusive).  A
+trailing asterisk means all indices from n to N (inclusive).  A middle
+asterisk means all indices from m to n (inclusive).
 
 Using a wildcard is the same as if the individual columns of the array
 had been listed one by one.  E.g. these 2 dump commands are
@@ -521,8 +523,9 @@ bonds and angles.
 
 Note that computes which calculate global or per-atom quantities, as
 opposed to local quantities, cannot be output in a dump local command.
-Instead, global quantities can be output by the :doc:`thermo_style custom <thermo_style>` command, and per-atom quantities can be
-output by the dump custom command.
+Instead, global quantities can be output by the :doc:`thermo_style
+custom <thermo_style>` command, and per-atom quantities can be output
+by the dump custom command.
 
 If *c_ID* is used as a attribute, then the local vector calculated by
 the compute is printed.  If *c_ID[I]* is used, then I must be in the
@@ -566,10 +569,11 @@ Nprocs-1) that currently owns the atom.  *Procp1* is the proc ID+1,
 which can be convenient in place of a *type* attribute (1 to Ntypes)
 for coloring atoms in a visualization program.  *Type* is the atom
 type (1 to Ntypes).  *Element* is typically the chemical name of an
-element, which you must assign to each type via the :doc:`dump_modify element <dump_modify>` command.  More generally, it can be any
-string you wish to associated with an atom type.  *Mass* is the atom
-mass.  *Vx*, *vy*, *vz*, *fx*, *fy*, *fz*, and *q* are components of
-atom velocity and force and atomic charge.
+element, which you must assign to each type via the :doc:`dump_modify
+element <dump_modify>` command.  More generally, it can be any string
+you wish to associated with an atom type.  *Mass* is the atom mass.
+*Vx*, *vy*, *vz*, *fx*, *fy*, *fz*, and *q* are components of atom
+velocity and force and atomic charge.
 
 There are several options for outputting atom coordinates.  The *x*,
 *y*, *z* attributes write atom coordinates "unscaled", in the
@@ -643,11 +647,12 @@ above for how I can be specified with a wildcard asterisk to
 effectively specify multiple values.
 
 The *f_ID* and *f_ID[I]* attributes allow vector or array per-atom
-quantities calculated by a :doc:`fix <fix>` to be output.  The ID in the
-attribute should be replaced by the actual ID of the fix that has been
-defined previously in the input script.  The :doc:`fix ave/atom <fix_ave_atom>` command is one that calculates per-atom
-quantities.  Since it can time-average per-atom quantities produced by
-any :doc:`compute <compute>`, :doc:`fix <fix>`, or atom-style
+quantities calculated by a :doc:`fix <fix>` to be output.  The ID in
+the attribute should be replaced by the actual ID of the fix that has
+been defined previously in the input script.  The :doc:`fix ave/atom
+<fix_ave_atom>` command is one that calculates per-atom quantities.
+Since it can time-average per-atom quantities produced by any
+:doc:`compute <compute>`, :doc:`fix <fix>`, or atom-style
 :doc:`variable <variable>`, this allows those time-averaged results to
 be written to a dump file.
 
@@ -664,14 +669,21 @@ should be replaced by the actual name of the variable that has been
 defined previously in the input script.  Only an atom-style variable
 can be referenced, since it is the only style that generates per-atom
 values.  Variables of style *atom* can reference individual atom
-attributes, per-atom attributes, thermodynamic keywords, or
-invoke other computes, fixes, or variables when they are evaluated, so
-this is a very general means of creating quantities to output to a
-dump file.
+attributes, per-atom attributes, thermodynamic keywords, or invoke
+other computes, fixes, or variables when they are evaluated, so this
+is a very general means of creating quantities to output to a dump
+file.
 
-The *d_name* and *i_name* attributes allow to output custom per atom
-floating point or integer properties that are managed by
-:doc:`fix property/atom <fix_property_atom>`.
+The *i_name*, *d_name*, *i2_name*, *d2_name* attributes refer to
+per-atom integer and floating-point vectors or arrays that have been
+added via the :doc:`fix property/atom <fix_property_atom>` command.
+When that command is used specific names are given to each attribute
+which are the "name" portion of these keywords.  For arrays *i2_name*
+and *d2_name*, the column of the array must also be included following
+the name in brackets: e.g. d2_xyz[I], i2_mySpin[I], where I is in the
+range from 1-M, where M is the number of columns in the custom array.
+See the discussion above for how I can be specified with a wildcard
+asterisk to effectively specify multiple values.
 
 See the :doc:`Modify <Modify>` page for information on how to add
 new compute and fix styles to LAMMPS to calculate per-atom quantities

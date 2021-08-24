@@ -369,7 +369,7 @@ void FixEOStableRX::read_file(char *file)
     while ((words[nwords++] = strtok(nullptr," \t\n\r\f"))) continue;
 
     for (ispecies = 0; ispecies < nspecies; ispecies++)
-      if (strcmp(words[0],&atom->dname[ispecies][0]) == 0) break;
+      if (strcmp(words[0],&atom->dvname[ispecies][0]) == 0) break;
 
     if (ispecies < nspecies) {
       dHf[ispecies] = atof(words[1]);
@@ -583,7 +583,7 @@ void FixEOStableRX::param_extract(Table *tb, char *line)
   if (rx_flag) {
     while (word) {
       for (ispecies = 0; ispecies < nspecies; ispecies++)
-        if (strcmp(word,&atom->dname[ispecies][0]) == 0) {
+        if (strcmp(word,&atom->dvname[ispecies][0]) == 0) {
           eosSpecies[ncolumn] =  ispecies;
           ncolumn++;
           break;

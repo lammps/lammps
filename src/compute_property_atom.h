@@ -35,7 +35,7 @@ class ComputePropertyAtom : public Compute {
  private:
   int nvalues;
   int nmax;
-  int *index;
+  int *index,*colindex;
   double *buf;
   class AtomVecEllipsoid *avec_ellipsoid;
   class AtomVecLine *avec_line;
@@ -81,10 +81,6 @@ class ComputePropertyAtom : public Compute {
   void pack_muy(int);
   void pack_muz(int);
   void pack_mu(int);
-  void pack_radius(int);
-  void pack_diameter(int);
-
-  // pack magnetic variables
 
   void pack_spx(int);
   void pack_spy(int);
@@ -94,12 +90,15 @@ class ComputePropertyAtom : public Compute {
   void pack_fmy(int);
   void pack_fmz(int);
 
+  void pack_radius(int);
+  void pack_diameter(int);
   void pack_omegax(int);
   void pack_omegay(int);
   void pack_omegaz(int);
   void pack_angmomx(int);
   void pack_angmomy(int);
   void pack_angmomz(int);
+
   void pack_shapex(int);
   void pack_shapey(int);
   void pack_shapez(int);
@@ -110,12 +109,14 @@ class ComputePropertyAtom : public Compute {
   void pack_tqx(int);
   void pack_tqy(int);
   void pack_tqz(int);
+
   void pack_end1x(int);
   void pack_end1y(int);
   void pack_end1z(int);
   void pack_end2x(int);
   void pack_end2y(int);
   void pack_end2z(int);
+
   void pack_corner1x(int);
   void pack_corner1y(int);
   void pack_corner1z(int);
@@ -125,14 +126,15 @@ class ComputePropertyAtom : public Compute {
   void pack_corner3x(int);
   void pack_corner3y(int);
   void pack_corner3z(int);
-  void pack_buckling(int);
 
   void pack_nbonds(int);
 
   void pack_iname(int);
   void pack_dname(int);
+  void pack_i2name(int);
+  void pack_d2name(int);
 
-  void pack_property_atom(int);
+  void pack_atom_style(int);
 };
 
 }    // namespace LAMMPS_NS

@@ -112,15 +112,14 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
       // determine whether atom-style variable or atom property is used
 
       if (utils::strmatch(arg[4],"^i_")) {
-        int is_double=0;
-        int custom_index = atom->find_custom(arg[4]+2,is_double);
+        int is_double,cols;
+        int custom_index = atom->find_custom(arg[4]+2,is_double,cols);
         if (custom_index == -1)
           error->all(FLERR,"Fix rigid/small custom requires "
                      "previously defined property/atom");
-        else if (is_double)
+        else if (is_double || cols)
           error->all(FLERR,"Fix rigid/small custom requires "
-                     "integer-valued property/atom");
-
+                     "integer-valued property/atom vector");
         int minval = INT_MAX;
         int *value = atom->ivector[custom_index];
         for (i = 0; i < nlocal; i++)

@@ -92,12 +92,12 @@ void NStencilHalfMulti2d::create()
             if (j > 0 || (j == 0 && i > 0)) {
               if (bin_distance_multi(i,j,0,bin_collection) < cutsq)
                   stencil_multi[icollection][jcollection][ns++] = j*mbinx + i;
-	        }
+                }
       } else {
           for (j = -sy; j <= sy; j++)
             for (i = -sx; i <= sx; i++)
               if (bin_distance_multi(i,j,0,bin_collection) < cutsq)
-	            stencil_multi[icollection][jcollection][ns++] = j*mbinx + i;
+                    stencil_multi[icollection][jcollection][ns++] = j*mbinx + i;
       }
 
       nstencil_multi[icollection][jcollection] = ns;

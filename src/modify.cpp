@@ -223,16 +223,11 @@ void Modify::init()
   list_init_energy_global(n_energy_global,list_energy_global);
   list_init_energy_atom(n_energy_atom,list_energy_atom);
 
-  list_init(INITIAL_INTEGRATE_RESPA,
-            n_initial_integrate_respa,list_initial_integrate_respa);
-  list_init(POST_INTEGRATE_RESPA,
-            n_post_integrate_respa,list_post_integrate_respa);
-  list_init(POST_FORCE_RESPA,
-            n_post_force_respa,list_post_force_respa);
-  list_init(PRE_FORCE_RESPA,
-            n_pre_force_respa,list_pre_force_respa);
-  list_init(FINAL_INTEGRATE_RESPA,
-            n_final_integrate_respa,list_final_integrate_respa);
+  list_init(INITIAL_INTEGRATE_RESPA,n_initial_integrate_respa,list_initial_integrate_respa);
+  list_init(POST_INTEGRATE_RESPA,n_post_integrate_respa,list_post_integrate_respa);
+  list_init(POST_FORCE_RESPA,n_post_force_respa,list_post_force_respa);
+  list_init(PRE_FORCE_RESPA,n_pre_force_respa,list_pre_force_respa);
+  list_init(FINAL_INTEGRATE_RESPA,n_final_integrate_respa,list_final_integrate_respa);
 
   list_init(MIN_PRE_EXCHANGE,n_min_pre_exchange,list_min_pre_exchange);
   list_init(MIN_PRE_NEIGHBOR,n_min_pre_neighbor,list_min_pre_neighbor);

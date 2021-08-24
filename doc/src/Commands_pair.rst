@@ -75,6 +75,7 @@ OPT.
    * :doc:`coul/debye (gko) <pair_coul>`
    * :doc:`coul/diel (o) <pair_coul_diel>`
    * :doc:`coul/dsf (gko) <pair_coul>`
+   * :doc:`coul/exclude <pair_coul>`
    * :doc:`coul/long (gko) <pair_coul>`
    * :doc:`coul/long/cs (g) <pair_cs>`
    * :doc:`coul/long/dielectric <pair_dielectric>`

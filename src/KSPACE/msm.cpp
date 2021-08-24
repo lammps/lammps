@@ -643,6 +643,7 @@ void MSM::allocate()
     if (active_flag[n]) {
       delete gc[n];
       int **procneigh = procneigh_levels[n];
+
       gc[n] = new GridComm(lmp,world_levels[n],2,nx_msm[n],ny_msm[n],nz_msm[n],
                            nxlo_in[n],nxhi_in[n],nylo_in[n],nyhi_in[n],
                            nzlo_in[n],nzhi_in[n],
@@ -1194,20 +1195,13 @@ void MSM::set_grid_local()
 
   for (int n=0; n<levels; n++) {
 
-    // global indices of MSM grid range from 0 to N-1
-    // nlo_in,nhi_in = lower/upper limits of the 3d sub-brick of
-    //   global MSM grid that I own without ghost cells
+    // partition global grid across procs
+    // n xyz lo/hi in[] = lower/upper bounds of global grid this proc owns
+    // indices range from 0 to N-1 inclusive in each dim
 
-    nxlo_in[n] = static_cast<int> (comm->xsplit[comm->myloc[0]] * nx_msm[n]);
-    nxhi_in[n] = static_cast<int> (comm->xsplit[comm->myloc[0]+1] * nx_msm[n]) - 1;
-
-    nylo_in[n] = static_cast<int> (comm->ysplit[comm->myloc[1]] * ny_msm[n]);
-    nyhi_in[n] = static_cast<int> (comm->ysplit[comm->myloc[1]+1] * ny_msm[n]) - 1;
-
-    nzlo_in[n] = static_cast<int> (comm->zsplit[comm->myloc[2]] * nz_msm[n]);
-    nzhi_in[n] = static_cast<int> (comm->zsplit[comm->myloc[2]+1] * nz_msm[n]) - 1;
-
-    // nlower,nupper = stencil size for mapping (interpolating) particles to MSM grid
+    comm->partition_grid(nx_msm[n],ny_msm[n],nz_msm[n],0.0,
+                         nxlo_in[n],nxhi_in[n],nylo_in[n],nyhi_in[n],
+                         nzlo_in[n],nzhi_in[n]);
 
     nlower = -(order-1)/2;
     nupper = order/2;
@@ -1287,49 +1281,38 @@ void MSM::set_grid_local()
     nzhi_out[n] = nhi + MAX(order,nzhi_direct);
 
     // add extra grid points for non-periodic boundary conditions
+    // skip reset of lo/hi for procs who do not own any grid cells
 
     if (domain->nonperiodic) {
 
-      if (!domain->xperiodic) {
-        if (nxlo_in[n] == 0)
-          nxlo_in[n] = alpha[n];
+      if (!domain->xperiodic && nxlo_in[n] <= nxhi_in[n]) {
+        if (nxlo_in[n] == 0) nxlo_in[n] = alpha[n];
         nxlo_out[n] = MAX(nxlo_out[n],alpha[n]);
         if (n == 0) nxlo_out_all = MAX(nxlo_out_all,alpha[0]);
 
-        if (nxhi_in[n] == nx_msm[n] - 1)
-          nxhi_in[n] = betax[n];
+        if (nxhi_in[n] == nx_msm[n] - 1) nxhi_in[n] = betax[n];
         nxhi_out[n] = MIN(nxhi_out[n],betax[n]);
         if (n == 0) nxhi_out_all = MIN(nxhi_out_all,betax[0]);
-        if (nxhi_in[n] < 0)
-          nxhi_in[n] = alpha[n] - 1;
       }
 
-      if (!domain->yperiodic) {
-        if (nylo_in[n] == 0)
-          nylo_in[n] = alpha[n];
+      if (!domain->yperiodic && nylo_in[n] <= nyhi_in[n]) {
+        if (nylo_in[n] == 0) nylo_in[n] = alpha[n];
         nylo_out[n] = MAX(nylo_out[n],alpha[n]);
         if (n == 0) nylo_out_all = MAX(nylo_out_all,alpha[0]);
 
-        if (nyhi_in[n] == ny_msm[n] - 1)
-          nyhi_in[n] = betay[n];
+        if (nyhi_in[n] == ny_msm[n] - 1) nyhi_in[n] = betay[n];
         nyhi_out[n] = MIN(nyhi_out[n],betay[n]);
         if (n == 0) nyhi_out_all = MIN(nyhi_out_all,betay[0]);
-        if (nyhi_in[n] < 0)
-          nyhi_in[n] = alpha[n] - 1;
       }
 
-      if (!domain->zperiodic) {
-        if (nzlo_in[n] == 0)
-          nzlo_in[n] = alpha[n];
+      if (!domain->zperiodic && nzlo_in[n] <= nzhi_in[n]) {
+        if (nzlo_in[n] == 0) nzlo_in[n] = alpha[n];
         nzlo_out[n] = MAX(nzlo_out[n],alpha[n]);
         if (n == 0) nzlo_out_all = MAX(nzlo_out_all,alpha[0]);
 
-        if (nzhi_in[n] == nz_msm[n] - 1)
-          nzhi_in[n] = betaz[n];
+        if (nzhi_in[n] == nz_msm[n] - 1) nzhi_in[n] = betaz[n];
         nzhi_out[n] = MIN(nzhi_out[n],betaz[n]);
         if (n == 0) nzhi_out_all = MIN(nzhi_out_all,betaz[0]);
-        if (nzhi_in[n] < 0)
-          nzhi_in[n] = alpha[n] - 1;
       }
     }
 

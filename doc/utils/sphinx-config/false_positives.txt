@@ -1689,6 +1689,7 @@ Lett
 Leuven
 Leven
 Lewy
+LGPL
 lgvdw
 Liang
 libatc

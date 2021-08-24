@@ -6,7 +6,10 @@ from __future__ import print_function
 import sys
 
 if sys.version_info.major < 3:
-    sys.exit('This script must be run with Python 3.x')
+    sys.exit('This script must be run with Python 3.5 or later')
+
+if sys.version_info.minor < 5:
+    sys.exit('This script must be run with Python 3.5 or later')
 
 import os
 import glob

@@ -1,4 +1,3 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale AtomicKokkos/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories

@@ -20,6 +20,7 @@ ImproperStyle(harmonic/kk/host,ImproperHarmonicKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_IMPROPER_HARMONIC_KOKKOS_H
 #define LMP_IMPROPER_HARMONIC_KOKKOS_H
 

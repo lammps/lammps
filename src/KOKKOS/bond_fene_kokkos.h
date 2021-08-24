@@ -20,6 +20,7 @@ BondStyle(fene/kk/host,BondFENEKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_BOND_FENE_KOKKOS_H
 #define LMP_BOND_FENE_KOKKOS_H
 

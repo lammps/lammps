@@ -20,6 +20,7 @@ FixStyle(langevin/kk/host,FixLangevinKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_FIX_LANGEVIN_KOKKOS_H
 #define LMP_FIX_LANGEVIN_KOKKOS_H
 

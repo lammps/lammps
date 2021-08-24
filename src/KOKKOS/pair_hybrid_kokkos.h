@@ -18,6 +18,7 @@ PairStyle(hybrid/kk,PairHybridKokkos);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_HYBRID_KOKKOS_H
 #define LMP_PAIR_HYBRID_KOKKOS_H
 

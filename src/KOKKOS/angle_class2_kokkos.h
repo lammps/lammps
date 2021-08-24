@@ -20,6 +20,7 @@ AngleStyle(class2/kk/host,AngleClass2Kokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_ANGLE_CLASS2_KOKKOS_H
 #define LMP_ANGLE_CLASS2_KOKKOS_H
 

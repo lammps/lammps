@@ -20,6 +20,7 @@ RegionStyle(block/kk/host,RegBlockKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_REGION_BLOCK_KOKKOS_H
 #define LMP_REGION_BLOCK_KOKKOS_H
 

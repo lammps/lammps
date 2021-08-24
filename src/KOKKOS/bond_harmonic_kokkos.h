@@ -20,6 +20,7 @@ BondStyle(harmonic/kk/host,BondHarmonicKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_BOND_HARMONIC_KOKKOS_H
 #define LMP_BOND_HARMONIC_KOKKOS_H
 

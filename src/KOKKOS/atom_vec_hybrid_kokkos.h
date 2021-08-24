@@ -18,6 +18,7 @@ AtomStyle(hybrid/kk,AtomVecHybridKokkos);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_ATOM_VEC_HYBRID_KOKKOS_H
 #define LMP_ATOM_VEC_HYBRID_KOKKOS_H
 

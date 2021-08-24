@@ -20,6 +20,7 @@ PairStyle(morse/kk/host,PairMorseKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_MORSE_KOKKOS_H
 #define LMP_PAIR_MORSE_KOKKOS_H
 

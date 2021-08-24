@@ -20,6 +20,7 @@ ImproperStyle(class2/kk/host,ImproperClass2Kokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_IMPROPER_CLASS2_KOKKOS_H
 #define LMP_IMPROPER_CLASS2_KOKKOS_H
 

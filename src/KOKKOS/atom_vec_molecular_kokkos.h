@@ -20,6 +20,7 @@ AtomStyle(molecular/kk/host,AtomVecMolecularKokkos);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_ATOM_VEC_MOLECULAR_KOKKOS_H
 #define LMP_ATOM_VEC_MOLECULAR_KOKKOS_H
 

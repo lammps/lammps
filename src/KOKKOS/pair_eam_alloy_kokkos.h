@@ -21,6 +21,7 @@ PairStyle(eam/alloy/kk/host,PairEAMAlloyKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_EAM_ALLOY_KOKKOS_H
 #define LMP_PAIR_EAM_ALLOY_KOKKOS_H
 

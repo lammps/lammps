@@ -20,6 +20,7 @@ PairStyle(lj/cut/coul/cut/kk/host,PairLJCutCoulCutKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_LJ_CUT_COUL_CUT_KOKKOS_H
 #define LMP_PAIR_LJ_CUT_COUL_CUT_KOKKOS_H
 

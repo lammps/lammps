@@ -21,6 +21,7 @@ FixStyle(nvt/kk/host,FixNVTKokkos<LMPHostType>);
 #else
 
 
+// clang-format off
 #ifndef LMP_FIX_NVT_KOKKOS_H
 #define LMP_FIX_NVT_KOKKOS_H
 

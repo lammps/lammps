@@ -20,6 +20,7 @@ FixStyle(rx/kk/host,FixRxKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_FIX_RX_KOKKOS_H
 #define LMP_FIX_RX_KOKKOS_H
 

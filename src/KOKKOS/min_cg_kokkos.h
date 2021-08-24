@@ -20,6 +20,7 @@ MinimizeStyle(cg/kk/host,MinCGKokkos);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_MIN_CG_KOKKOS_H
 #define LMP_MIN_CG_KOKKOS_H
 

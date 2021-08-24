@@ -20,6 +20,7 @@ PairStyle(table/rx/kk/host,PairTableRXKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_TABLE_RX_KOKKOS_H
 #define LMP_PAIR_TABLE_RX_KOKKOS_H
 

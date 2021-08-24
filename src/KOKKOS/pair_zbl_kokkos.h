@@ -20,6 +20,7 @@ PairStyle(zbl/kk/host,PairZBLKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_ZBL_KOKKOS_H
 #define LMP_PAIR_ZBL_KOKKOS_H
 

@@ -20,6 +20,7 @@ FixStyle(nph/kk/host,FixNPHKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_FIX_NPH_KOKKOS_H
 #define LMP_FIX_NPH_KOKKOS_H
 

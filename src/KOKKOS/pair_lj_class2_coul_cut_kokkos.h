@@ -20,6 +20,7 @@ PairStyle(lj/class2/coul/cut/kk/host,PairLJClass2CoulCutKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_LJ_CLASS2_COUL_CUT_KOKKOS_H
 #define LMP_PAIR_LJ_CLASS2_COUL_CUT_KOKKOS_H
 

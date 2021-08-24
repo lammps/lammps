@@ -20,6 +20,7 @@ FixStyle(wall/reflect/kk/host,FixWallReflectKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_FIX_WALL_REFLECT_KOKKOS_H
 #define LMP_FIX_WALL_REFLECT_KOKKOS_H
 

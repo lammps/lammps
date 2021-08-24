@@ -20,6 +20,7 @@ PairStyle(coul/dsf/kk/host,PairCoulDSFKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_COUL_DSF_KOKKOS_H
 #define LMP_PAIR_COUL_DSF_KOKKOS_H
 

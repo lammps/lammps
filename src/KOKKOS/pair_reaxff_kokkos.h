@@ -24,6 +24,7 @@ PairStyle(reax/c/kk/host,PairReaxFFKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_REAXC_KOKKOS_H
 #define LMP_PAIR_REAXC_KOKKOS_H
 

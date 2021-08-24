@@ -24,6 +24,7 @@ NBinStyle(kk/device,
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_NBIN_KOKKOS_H
 #define LMP_NBIN_KOKKOS_H
 

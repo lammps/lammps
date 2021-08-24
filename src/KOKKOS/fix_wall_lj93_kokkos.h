@@ -20,6 +20,7 @@ FixStyle(wall/lj93/kk/host,FixWallLJ93Kokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_FIX_WALL_LJ93_KOKKOS_H
 #define LMP_FIX_WALL_LJ93_KOKKOS_H
 

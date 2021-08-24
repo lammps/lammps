@@ -20,6 +20,7 @@ FixStyle(NEIGH_HISTORY/KK/HOST,FixNeighHistoryKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_FIX_NEIGH_HISTORY_KOKKOS_H
 #define LMP_FIX_NEIGH_HISTORY_KOKKOS_H
 

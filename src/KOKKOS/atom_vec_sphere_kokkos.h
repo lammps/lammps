@@ -20,6 +20,7 @@ AtomStyle(sphere/kk/host,AtomVecSphereKokkos);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_ATOM_VEC_SPHERE_KOKKOS_H
 #define LMP_ATOM_VEC_SPHERE_KOKKOS_H
 

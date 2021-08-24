@@ -20,6 +20,7 @@ PairStyle(sw/kk/host,PairSWKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_SW_KOKKOS_H
 #define LMP_PAIR_SW_KOKKOS_H
 

@@ -20,6 +20,7 @@ PairStyle(lj/class2/kk/host,PairLJClass2Kokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_LJ_CLASS2_KOKKOS_H
 #define LMP_PAIR_LJ_CLASS2_KOKKOS_H
 

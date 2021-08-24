@@ -20,6 +20,7 @@ PairStyle(coul/debye/kk/host,PairCoulDebyeKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_COUL_DEBYE_KOKKOS_H
 #define LMP_PAIR_COUL_DEBYE_KOKKOS_H
 

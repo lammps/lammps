@@ -20,6 +20,7 @@ PairStyle(lj/charmm/coul/long/kk/host,PairLJCharmmCoulLongKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_LJ_CHARMM_COUL_LONG_KOKKOS_H
 #define LMP_PAIR_LJ_CHARMM_COUL_LONG_KOKKOS_H
 

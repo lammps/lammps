@@ -24,6 +24,7 @@ NPairStyle(copy/kk/host,
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_NPAIR_COPY_KOKKOS_H
 #define LMP_NPAIR_COPY_KOKKOS_H
 

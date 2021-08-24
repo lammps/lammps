@@ -20,6 +20,7 @@ AtomStyle(bond/kk/host,AtomVecBondKokkos);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_ATOM_VEC_BOND_KOKKOS_H
 #define LMP_ATOM_VEC_BOND_KOKKOS_H
 

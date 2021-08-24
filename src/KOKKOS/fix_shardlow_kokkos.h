@@ -20,6 +20,7 @@ FixStyle(shardlow/kk/host,FixShardlowKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_FIX_SHARDLOW_KOKKOS_H
 #define LMP_FIX_SHARDLOW_KOKKOS_H
 

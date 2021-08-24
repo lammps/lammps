@@ -20,6 +20,7 @@ FixStyle(setforce/kk/host,FixSetForceKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_FIX_SET_FORCE_KOKKOS_H
 #define LMP_FIX_SET_FORCE_KOKKOS_H
 

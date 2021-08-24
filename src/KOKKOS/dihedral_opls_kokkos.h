@@ -20,6 +20,7 @@ DihedralStyle(opls/kk/host,DihedralOPLSKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_DIHEDRAL_OPLS_KOKKOS_H
 #define LMP_DIHEDRAL_OPLS_KOKKOS_H
 

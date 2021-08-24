@@ -21,6 +21,7 @@ PairStyle(eam/fs/kk/host,PairEAMFSKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_EAM_FS_KOKKOS_H
 #define LMP_PAIR_EAM_FS_KOKKOS_H
 

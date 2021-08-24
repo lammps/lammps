@@ -24,6 +24,7 @@ PairStyle(snap/kk/host,PairSNAPKokkosDevice<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_SNAP_KOKKOS_H
 #define LMP_PAIR_SNAP_KOKKOS_H
 

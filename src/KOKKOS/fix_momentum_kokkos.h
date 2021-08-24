@@ -20,6 +20,7 @@ FixStyle(momentum/kk/host,FixMomentumKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_FIX_MOMENTUM_KOKKOS_H
 #define LMP_FIX_MOMENTUM_KOKKOS_H
 

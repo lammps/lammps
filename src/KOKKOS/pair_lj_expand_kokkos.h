@@ -20,6 +20,7 @@ PairStyle(lj/expand/kk/host,PairLJExpandKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_LJ_EXPAND_KOKKOS_H
 #define LMP_PAIR_LJ_EXPAND_KOKKOS_H
 

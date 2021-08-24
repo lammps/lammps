@@ -23,6 +23,7 @@ FixStyle(reax/c/bonds/kk/host,FixReaxFFBondsKokkos);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_FIX_REAXFF_BONDS_KOKKOS_H
 #define LMP_FIX_REAXFF_BONDS_KOKKOS_H
 

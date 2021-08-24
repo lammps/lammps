@@ -20,6 +20,7 @@ AngleStyle(cosine/kk/host,AngleCosineKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_ANGLE_COSINE_KOKKOS_H
 #define LMP_ANGLE_COSINE_KOKKOS_H
 

@@ -20,6 +20,7 @@ AngleStyle(harmonic/kk/host,AngleHarmonicKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_ANGLE_HARMONIC_KOKKOS_H
 #define LMP_ANGLE_HARMONIC_KOKKOS_H
 

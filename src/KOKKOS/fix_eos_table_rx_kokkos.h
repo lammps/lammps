@@ -20,6 +20,7 @@ FixStyle(eos/table/rx/kk/host,FixEOStableRXKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_FIX_EOS_TABLE_RX_KOKKOS_H
 #define LMP_FIX_EOS_TABLE_RX_KOKKOS_H
 

@@ -20,6 +20,7 @@ ComputeStyle(coord/atom/kk/host,ComputeCoordAtomKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_COMPUTE_COORD_ATOM_KOKKOS_H
 #define LMP_COMPUTE_COORD_ATOM_KOKKOS_H
 

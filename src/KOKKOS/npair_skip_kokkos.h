@@ -44,6 +44,7 @@ NPairStyle(skip/ghost/kk/host,
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_NPAIR_SKIP_KOKKOS_H
 #define LMP_NPAIR_SKIP_KOKKOS_H
 

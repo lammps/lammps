@@ -20,6 +20,7 @@ PairStyle(buck/kk/host,PairBuckKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_BUCK_KOKKOS_H
 #define LMP_PAIR_BUCK_KOKKOS_H
 

@@ -20,6 +20,7 @@ BondStyle(class2/kk/host,BondClass2Kokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_BOND_CLASS2_KOKKOS_H
 #define LMP_BOND_CLASS2_KOKKOS_H
 

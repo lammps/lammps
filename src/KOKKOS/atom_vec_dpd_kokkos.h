@@ -20,6 +20,7 @@ AtomStyle(dpd/kk/host,AtomVecDPDKokkos);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_ATOM_VEC_DPD_KOKKOS_H
 #define LMP_ATOM_VEC_DPD_KOKKOS_H
 

@@ -20,6 +20,7 @@ PairStyle(lj/gromacs/kk/host,PairLJGromacsKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_LJ_GROMACS_KOKKOS_H
 #define LMP_PAIR_LJ_GROMACS_KOKKOS_H
 

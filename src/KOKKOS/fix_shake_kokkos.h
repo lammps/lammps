@@ -20,6 +20,7 @@ FixStyle(shake/kk/host,FixShakeKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_FIX_SHAKE_KOKKOS_H
 #define LMP_FIX_SHAKE_KOKKOS_H
 

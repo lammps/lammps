@@ -20,6 +20,7 @@ IntegrateStyle(verlet/kk/host,VerletKokkos);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_VERLET_KOKKOS_H
 #define LMP_VERLET_KOKKOS_H
 

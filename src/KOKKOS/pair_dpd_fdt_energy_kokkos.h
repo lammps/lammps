@@ -20,6 +20,7 @@ PairStyle(dpd/fdt/energy/kk/host,PairDPDfdtEnergyKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_DPD_FDT_ENERGY_KOKKOS_H
 #define LMP_PAIR_DPD_FDT_ENERGY_KOKKOS_H
 

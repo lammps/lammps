@@ -20,6 +20,7 @@ ComputeStyle(orientorder/atom/kk/host,ComputeOrientOrderAtomKokkos<LMPHostType>)
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_COMPUTE_ORIENTORDER_ATOM_KOKKOS_H
 #define LMP_COMPUTE_ORIENTORDER_ATOM_KOKKOS_H
 

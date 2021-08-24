@@ -20,6 +20,7 @@ ComputeStyle(temp/kk/host,ComputeTempKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_COMPUTE_TEMP_KOKKOS_H
 #define LMP_COMPUTE_TEMP_KOKKOS_H
 

@@ -20,6 +20,7 @@ DihedralStyle(charmm/kk/host,DihedralCharmmKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_DIHEDRAL_CHARMM_KOKKOS_H
 #define LMP_DIHEDRAL_CHARMM_KOKKOS_H
 

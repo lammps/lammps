@@ -20,6 +20,7 @@ PairStyle(exp6/rx/kk/host,PairExp6rxKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_EXP6_RX_KOKKOS_H
 #define LMP_PAIR_EXP6_RX_KOKKOS_H
 

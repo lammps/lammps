@@ -23,6 +23,7 @@ FixStyle(reax/c/species/kk/host,FixReaxFFSpeciesKokkos);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_FIX_REAXFF_SPECIES_KOKKOS_H
 #define LMP_FIX_REAXFF_SPECIES_KOKKOS_H
 

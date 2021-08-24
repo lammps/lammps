@@ -24,8 +24,8 @@ NPairStyle(full/bin/intel,
 #ifndef LMP_NPAIR_FULL_BIN_INTEL_H
 #define LMP_NPAIR_FULL_BIN_INTEL_H
 
-#include "npair_intel.h"
 #include "fix_intel.h"
+#include "npair_intel.h"
 
 namespace LAMMPS_NS {
 
@@ -36,11 +36,10 @@ class NPairFullBinIntel : public NPairIntel {
   void build(class NeighList *);
 
  private:
-  template <class flt_t, class acc_t>
-  void fbi(NeighList *, IntelBuffers<flt_t,acc_t> *);
+  template <class flt_t, class acc_t> void fbi(NeighList *, IntelBuffers<flt_t, acc_t> *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

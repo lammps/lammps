@@ -538,7 +538,8 @@ int FixPolarizeFunctional::unpack_exchange(int nlocal, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-int FixPolarizeFunctional::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int * /*pbc*/)
+int FixPolarizeFunctional::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/,
+                                             int * /*pbc*/)
 {
   int m;
   for (m = 0; m < n; m++) buf[m] = atom->q[list[m]];
@@ -591,21 +592,21 @@ void FixPolarizeFunctional::set_arrays(int i)
 double FixPolarizeFunctional::memory_usage()
 {
   double bytes = 0;
-  bytes += square(num_induced_charges) * sizeof(double);            // inverse_matrix
-  bytes += square(num_induced_charges) * sizeof(double);            // Rww
-  bytes += square(num_induced_charges) * sizeof(double);            // G1ww
-  bytes += square(num_induced_charges) * sizeof(double);            // ndotGww
-  bytes += square(num_induced_charges) * sizeof(double);            // G2ww
-  bytes += square(num_induced_charges) * sizeof(double);            // G3ww
-  bytes += num_induced_charges * sizeof(double);                    // qiRqwVector
-  bytes += num_induced_charges * sizeof(double);                    // sum2G2wq
-  bytes += num_induced_charges * sizeof(double);                    // sum1G2qw
-  bytes += num_induced_charges * sizeof(double);                    // sum1G1qw_epsilon
-  bytes += num_induced_charges * sizeof(double);                    // sum2ndotGwq_epsilon
-  bytes += (double)num_ions * num_induced_charges * sizeof(double); // G1qw_real
-  bytes += nmax * sizeof(int);                                      // induced_charge_idx
-  bytes += nmax * sizeof(int);                                      // ion_idx
-  bytes += num_induced_charges * sizeof(double);                    // induced_charges
+  bytes += square(num_induced_charges) * sizeof(double);                // inverse_matrix
+  bytes += square(num_induced_charges) * sizeof(double);                // Rww
+  bytes += square(num_induced_charges) * sizeof(double);                // G1ww
+  bytes += square(num_induced_charges) * sizeof(double);                // ndotGww
+  bytes += square(num_induced_charges) * sizeof(double);                // G2ww
+  bytes += square(num_induced_charges) * sizeof(double);                // G3ww
+  bytes += num_induced_charges * sizeof(double);                        // qiRqwVector
+  bytes += num_induced_charges * sizeof(double);                        // sum2G2wq
+  bytes += num_induced_charges * sizeof(double);                        // sum1G2qw
+  bytes += num_induced_charges * sizeof(double);                        // sum1G1qw_epsilon
+  bytes += num_induced_charges * sizeof(double);                        // sum2ndotGwq_epsilon
+  bytes += (double) num_ions * num_induced_charges * sizeof(double);    // G1qw_real
+  bytes += nmax * sizeof(int);                                          // induced_charge_idx
+  bytes += nmax * sizeof(int);                                          // ion_idx
+  bytes += num_induced_charges * sizeof(double);                        // induced_charges
   return bytes;
 }
 

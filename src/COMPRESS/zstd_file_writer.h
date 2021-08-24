@@ -29,7 +29,6 @@
 #error must have at least zstd version 1.4 to compile with -DLAMMPS_ZSTD
 #endif
 
-
 namespace LAMMPS_NS {
 
 class ZstdFileWriter : public FileWriter {

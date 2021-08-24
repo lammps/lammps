@@ -37,16 +37,16 @@ class NPairFullBinGhostIntel : public NPairIntel {
   NPairFullBinGhostIntel(class LAMMPS *);
   ~NPairFullBinGhostIntel() {}
   void build(class NeighList *);
+
  private:
-  template<class flt_t, class acc_t>
-  void fbi(NeighList * list, IntelBuffers<flt_t,acc_t> * buffers);
-  template<class flt_t, class acc_t, int need_ic>
-  void fbi(const int offload, NeighList * list,
-           IntelBuffers<flt_t,acc_t> * buffers,
+  template <class flt_t, class acc_t>
+  void fbi(NeighList *list, IntelBuffers<flt_t, acc_t> *buffers);
+  template <class flt_t, class acc_t, int need_ic>
+  void fbi(const int offload, NeighList *list, IntelBuffers<flt_t, acc_t> *buffers,
            const int astart, const int aend);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

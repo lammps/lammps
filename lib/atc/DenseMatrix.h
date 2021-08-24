@@ -8,8 +8,8 @@
 namespace ATC_matrix {
 
   /**
-   *  @class  DenseMatrix 
-   *  @brief  Class for storing data in a "dense" matrix form 
+   *  @class  DenseMatrix
+   *  @brief  Class for storing data in a "dense" matrix form
    */
 
 template <typename T>
@@ -36,7 +36,7 @@ public:
   DenseMatrix<T> mult_by_element(const DenseMatrix<T>& B) const;
   /** returns by element multiply A_ij = this_ij / B_ij */
   DenseMatrix<T> div_by_element(const DenseMatrix<T>& B) const;
-  
+
   /** overloaded virtual functions */
   //T& operator()(INDEX i, INDEX j)       { MICK(i,j) return DATA(i,j); }
   T& operator()(INDEX i, INDEX j)       { MICK(i,j) return DATA(i,j); }
@@ -50,7 +50,7 @@ public:
   void from_file(std::string & name);
   void set_all_elements_to(const T &v);
   DiagonalMatrix<T> diag()    const;
- 
+
   DenseMatrix<T>& operator=(const T &v);
   DenseMatrix<T>& operator=(const Matrix<T> &c);
   DenseMatrix<T>& operator=(const DenseMatrix<T> &c);
@@ -120,8 +120,8 @@ void DenseMatrix<T>::resize(INDEX rows, INDEX cols, bool copy)
   _delete();
   _create(rows, cols);
   int szi = this->nRows();
-  int szj = this->nCols(); 
-  for (INDEX i = 0; i < szi; i++) 
+  int szj = this->nCols();
+  for (INDEX i = 0; i < szi; i++)
     for (INDEX j = 0; j < szj; j++)
       (*this)(i,j) = temp.in_range(i,j) ? temp(i,j) : T(0);
 }
@@ -153,22 +153,22 @@ DenseMatrix<T> DenseMatrix<T>::mult_by_element(const DenseMatrix<T>& B)   const
   DenseMatrix C;
   C.reset(_nRows,_nCols);
   if (B.nCols() == _nCols) {
-    int szi = this->nRows(); 
-    int szj = this->nCols(); 
-    for (INDEX i = 0; i < szi; i++) 
-      for (INDEX j = 0; j < szj; j++) 
+    int szi = this->nRows();
+    int szj = this->nCols();
+    for (INDEX i = 0; i < szi; i++)
+      for (INDEX j = 0; j < szj; j++)
         C(i,j) = (*this)(i,j)*B(i,j);
   }
   else if (B.nCols() == 1) {
     std::cout << "MULTIPLYING\n";
-    int szi = this->nRows(); 
-    int szj = this->nCols(); 
-    for (INDEX i = 0; i < szi; i++) 
-      for (INDEX j = 0; j < szj; j++) 
+    int szi = this->nRows();
+    int szj = this->nCols();
+    for (INDEX i = 0; i < szi; i++)
+      for (INDEX j = 0; j < szj; j++)
         C(i,j) = (*this)(i,j)*B(i,0);
   }
-  else { 
-    SSCK(B, *this, "DenseMatrix::mult_by_element"); 
+  else {
+    SSCK(B, *this, "DenseMatrix::mult_by_element");
   }
   return C;
 }
@@ -182,21 +182,21 @@ DenseMatrix<T> DenseMatrix<T>::div_by_element(const DenseMatrix<T>& B)   const
   C.reset(_nRows,_nCols);
 
   if (B.nCols() == _nCols) {
-    int szi = this->nRows(); 
-    int szj = this->nCols(); 
-    for (INDEX i = 0; i < szi; i++) 
-      for (INDEX j = 0; j < szj; j++) 
+    int szi = this->nRows();
+    int szj = this->nCols();
+    for (INDEX i = 0; i < szi; i++)
+      for (INDEX j = 0; j < szj; j++)
         C(i,j) = (*this)(i,j)/B(i,j);
   }
   else if (B.nCols() == 1) {
-    int szi = this->nRows(); 
-    int szj = this->nCols(); 
-    for (INDEX i = 0; i < szi; i++) 
-      for (INDEX j = 0; j < szj; j++) 
+    int szi = this->nRows();
+    int szj = this->nCols();
+    for (INDEX i = 0; i < szi; i++)
+      for (INDEX j = 0; j < szj; j++)
         C(i,j) = (*this)(i,j)/B(i,0);
   }
-  else { 
-    SSCK(B, *this, "DenseMatrix::div_by_element"); 
+  else {
+    SSCK(B, *this, "DenseMatrix::div_by_element");
   }
   return C;
 }
@@ -214,7 +214,7 @@ void DenseMatrix<T>::write_restart(FILE *f)                               const
 // reads matrix from text file (matrix needs to be sized)
 //----------------------------------------------------------------------------
 template <typename T>
-void DenseMatrix<T>::from_file(std::string & name)       
+void DenseMatrix<T>::from_file(std::string & name)
 {
   GCHK(_nRows == 0,"from_file needs nRows > 0");
   GCHK(_nCols == 0,"from_file needs nCols > 0");
@@ -223,10 +223,10 @@ void DenseMatrix<T>::from_file(std::string & name)
   char line[lineSize];
   if (! in.good()) gerror(name+" is not available");
   in.getline(line,lineSize); // header
-  int szi = this->nRows(); 
-  int szj = this->nCols(); 
-  for (INDEX i = 0; i < szi; i++) 
-    for (INDEX j = 0; j < szj; j++) 
+  int szi = this->nRows();
+  int szj = this->nCols();
+  for (INDEX i = 0; i < szi; i++)
+    for (INDEX j = 0; j < szj; j++)
       in >> (*this)(i,j);
 }
 //----------------------------------------------------------------------------
@@ -239,15 +239,15 @@ inline void DenseMatrix<T>::set_all_elements_to(const T &v)
   for (INDEX i = 0; i < sz; i++) _data[i] = v;
 }
 //-----------------------------------------------------------------------------
-// Return a diagonal matrix containing the diagonal entries of this matrix 
+// Return a diagonal matrix containing the diagonal entries of this matrix
 //-----------------------------------------------------------------------------
 template<typename T>
-DiagonalMatrix<T> DenseMatrix<T>::diag() const 
+DiagonalMatrix<T> DenseMatrix<T>::diag() const
 {
   DiagonalMatrix<T> D(nRows(), true); // initialized to zero
   INDEX i;
   for (i=0; i<nRows(); i++)
-  { 
+  {
     D(i,i) = DATA(i,i);
   }
   return D;
@@ -259,7 +259,7 @@ template <typename T>
 void DenseMatrix<T>::_delete()
 {
   _nRows = _nCols = 0;
-  if (_data){ 
+  if (_data){
     delete [] _data;
     _data = nullptr;
   }
@@ -271,7 +271,7 @@ template <typename T>
 void DenseMatrix<T>::_create(INDEX rows, INDEX cols, bool zero)
 {
 
-  _nRows=rows; 
+  _nRows=rows;
   _nCols=cols;
   _data = (this->size() ? new T [_nCols*_nRows] : nullptr);
   if (zero) this->zero();
@@ -280,14 +280,14 @@ void DenseMatrix<T>::_create(INDEX rows, INDEX cols, bool zero)
 // creates a deep memory copy from a general matrix
 //----------------------------------------------------------------------------
 template <typename T>
-void DenseMatrix<T>::_copy(const Matrix<T> &c) 
+void DenseMatrix<T>::_copy(const Matrix<T> &c)
 {
   if (!_data || this->size()!=c.size())
   {
-    _delete(); 
+    _delete();
     _create(c.nRows(), c.nCols());
   }
-  else 
+  else
   {
     _nRows = c.nRows();
     _nCols = c.nCols();
@@ -295,7 +295,7 @@ void DenseMatrix<T>::_copy(const Matrix<T> &c)
   memcpy(_data, c.ptr(), c.size()*sizeof(T));
 }
 //----------------------------------------------------------------------------
-// sets all elements to a constant 
+// sets all elements to a constant
 //----------------------------------------------------------------------------
 template <typename T>
 DenseMatrix<T>& DenseMatrix<T>::operator=(const T &v)
@@ -355,9 +355,9 @@ void DenseMatrix<T>::_set_equal(const Matrix<T> &r)
   }
 }
 //* Returns the transpose of the cofactor matrix of A.
-//* see http://en.wikipedia.org/wiki/Adjugate_matrix 
-//* symmetric flag only affects cases N>3 
-template<typename T> 
+//* see http://en.wikipedia.org/wiki/Adjugate_matrix
+//* symmetric flag only affects cases N>3
+template<typename T>
 DenseMatrix<T> adjugate(const Matrix<T> &A, bool symmetric)
 {
   if (!A.is_square()) gerror("adjugate can only be computed for square matrices.");
@@ -365,7 +365,7 @@ DenseMatrix<T> adjugate(const Matrix<T> &A, bool symmetric)
   switch (A.nRows()) {
     case 1:
       gerror("adjugate must be computed for matrixes of size greater than 1");
-    case 2:   
+    case 2:
       C(0,0) = A(1,1);  C(0,1) =-A(0,1);
       C(1,0) =-A(1,0);  C(1,1) = A(0,0);
       break;
@@ -377,18 +377,18 @@ DenseMatrix<T> adjugate(const Matrix<T> &A, bool symmetric)
       C(1,1) = A(0,0)*A(2,2)-A(0,2)*A(2,0);
       C(2,1) =-A(0,0)*A(2,1)+A(0,1)*A(2,0);   // i+j is odd
       C(0,2) = A(0,1)*A(1,2)-A(0,2)*A(1,1);
-      C(1,2) =-A(0,0)*A(1,2)+A(0,2)*A(1,0);   // i+j is odd 
+      C(1,2) =-A(0,0)*A(1,2)+A(0,2)*A(1,0);   // i+j is odd
       C(2,2) = A(0,0)*A(1,1)-A(0,1)*A(1,0);
       break;
-    default:  
-      
+    default:
+
       // this feature is neither tested nor optimal - use at your own risk!!!
       DenseMatrix<T> m(A.nRows()-1, A.nRows()-1);
       double sign[] = {1.0, -1.0};
       for (INDEX j=0; j<A.nCols(); j++) {
         for (INDEX i=0; i<A.nRows(); i++) {
           for (INDEX mj=0; mj<m.nCols(); mj++) {
-            for (INDEX mi=0; mi<m.nRows(); mi++) { 
+            for (INDEX mi=0; mi<m.nRows(); mi++) {
               m(mi, mj) = A(mi+(mi>=i), mj+(mj>=j));  // skip row i and col j
             }
           }

@@ -886,7 +886,8 @@ void FixMDIEngine::receive_cell(Error *error)
   double small = std::numeric_limits<double>::min();
   if (fabs(celldata[1]) > small or fabs(celldata[2]) > small or fabs(celldata[3]) > small or
       fabs(celldata[5]) > small or fabs(celldata[6]) > small or fabs(celldata[7]) > small) {
-    error->all(FLERR, "MDI: LAMMPS currently only supports the >CELL command for orthogonal cell vectors");
+    error->all(FLERR,
+               "MDI: LAMMPS currently only supports the >CELL command for orthogonal cell vectors");
   }
 
   // set the new LAMMPS cell dimensions

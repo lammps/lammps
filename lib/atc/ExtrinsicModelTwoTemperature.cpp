@@ -28,7 +28,7 @@ namespace ATC {
     electronTimeIntegration_(TimeIntegrator::IMPLICIT),
     temperatureIntegrator_(nullptr),
     nsubcycle_(1),
-    exchangeFlag_(true), 
+    exchangeFlag_(true),
     baseSize_(0)
   {
      physicsModel_ = new PhysicsModelTwoTemperature(matFileName);
@@ -39,7 +39,7 @@ namespace ATC {
      rhsMaskIntrinsic_(TEMPERATURE,SOURCE) = true;
      atc_->fieldMask_(TEMPERATURE,EXTRINSIC_SOURCE) = true;
   }
-  
+
   //--------------------------------------------------------
   //  Destructor
   //--------------------------------------------------------
@@ -49,7 +49,7 @@ namespace ATC {
   }
 
   //--------------------------------------------------------
-  // modify 
+  // modify
   //--------------------------------------------------------
   bool ExtrinsicModelTwoTemperature::modify(int narg, char **arg)
   {
@@ -174,12 +174,12 @@ namespace ATC {
     else if (electronTimeIntegration_ == TimeIntegrator::IMPLICIT) {
       double alpha = 1; // backwards Euler
       temperatureIntegrator_ = new FieldImplicitEulerIntegrator(
-        ELECTRON_TEMPERATURE, physicsModel_, atc_->feEngine_, atc_, 
+        ELECTRON_TEMPERATURE, physicsModel_, atc_->feEngine_, atc_,
         rhsMask, alpha);
     }
     else if (electronTimeIntegration_ == TimeIntegrator::EXPLICIT) {
       temperatureIntegrator_ = new FieldExplicitEulerIntegrator(
-        ELECTRON_TEMPERATURE, physicsModel_, atc_->feEngine_, atc_, 
+        ELECTRON_TEMPERATURE, physicsModel_, atc_->feEngine_, atc_,
         rhsMask);
     }
     double dt = atc_->lammpsInterface_->dt();
@@ -267,18 +267,18 @@ namespace ATC {
     // output[1] = total electron energy
     // output[2] = average electron temperature
 
-    if (n == baseSize_) { 
+    if (n == baseSize_) {
       Array<FieldName> mask(1);
       FIELD_MATS energy;
       mask(0) = ELECTRON_TEMPERATURE;
-      
-      (atc_->feEngine_)->compute_energy(mask, 
+
+      (atc_->feEngine_)->compute_energy(mask,
                                           atc_->fields(),
                                           physicsModel_,
                                           atc_->elementToMaterialMap_,
                                           energy);
       // convert to lammps energy units
-      double mvv2e = (atc_->lammps_interface())->mvv2e(); 
+      double mvv2e = (atc_->lammps_interface())->mvv2e();
       double electronEnergy = mvv2e * energy[ELECTRON_TEMPERATURE].col_sum();
       value = electronEnergy;
       return true;
@@ -288,7 +288,7 @@ namespace ATC {
       value = electronTemperature;
       return true;
     }
-    
+
     return false;
   }
 

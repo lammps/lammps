@@ -1340,13 +1340,17 @@ void FixSRD::collisions_single()
               std::string mesg;
               if (type != WALL)
                 mesg = fmt::format("SRD particle {} started inside big particle {} on step {} "
-                                   " bounce {}", tag[i], tag[j], update->ntimestep, ibounce + 1);
+                                   " bounce {}",
+                                   tag[i], tag[j], update->ntimestep, ibounce + 1);
               else
                 mesg = fmt::format("SRD particle {} started inside wall {} on step {} "
-                                   "bounce {}", tag[i], j, update->ntimestep, ibounce + 1);
+                                   "bounce {}",
+                                   tag[i], j, update->ntimestep, ibounce + 1);
 
-              if (insideflag == INSIDE_ERROR) error->one(FLERR, mesg);
-              else error->warning(FLERR, mesg);
+              if (insideflag == INSIDE_ERROR)
+                error->one(FLERR, mesg);
+              else
+                error->warning(FLERR, mesg);
             }
             break;
           }
@@ -1490,10 +1494,12 @@ void FixSRD::collisions_multi()
               std::string mesg;
               if (type != WALL)
                 mesg = fmt::format("SRD particle {} started inside big particle {} on step {} "
-                                   "bounce {}", tag[i], tag[j], update->ntimestep, ibounce + 1);
+                                   "bounce {}",
+                                   tag[i], tag[j], update->ntimestep, ibounce + 1);
               else
                 mesg = fmt::format("SRD particle {} started inside wall {} on step {} "
-                                   "bounce {}", tag[i], j, update->ntimestep, ibounce + 1);
+                                   "bounce {}",
+                                   tag[i], j, update->ntimestep, ibounce + 1);
 
               if (insideflag == INSIDE_ERROR) error->one(FLERR, mesg);
               error->warning(FLERR, mesg);

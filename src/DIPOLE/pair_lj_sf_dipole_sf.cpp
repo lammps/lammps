@@ -19,8 +19,6 @@
 
 #include "pair_lj_sf_dipole_sf.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
 #include "neighbor.h"
 #include "neigh_list.h"
@@ -28,8 +26,10 @@
 #include "force.h"
 #include "memory.h"
 #include "error.h"
-
 #include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -303,9 +303,13 @@ void PairLJSFDipoleSF::allocate()
   int n = atom->ntypes;
 
   memory->create(setflag,n+1,n+1,"pair:setflag");
-  for (int i = 1; i <= n; i++)
-    for (int j = i; j <= n; j++)
+  memory->create(scale,n+1,n+1,"pair:scale");
+  for (int i = 1; i <= n; i++) {
+    for (int j = i; j <= n; j++) {
       setflag[i][j] = 0;
+      scale[i][j] = 1.0;
+    }
+  }
 
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
 
@@ -319,7 +323,6 @@ void PairLJSFDipoleSF::allocate()
   memory->create(lj2,n+1,n+1,"pair:lj2");
   memory->create(lj3,n+1,n+1,"pair:lj3");
   memory->create(lj4,n+1,n+1,"pair:lj4");
-  memory->create(scale,n+1,n+1,"pair:scale");
 }
 
 /* ----------------------------------------------------------------------
@@ -639,5 +642,6 @@ void *PairLJSFDipoleSF::extract(const char *str, int &dim)
   if (strcmp(str,"epsilon") == 0) return (void *) epsilon;
   if (strcmp(str,"sigma") == 0) return (void *) sigma;
   if (strcmp(str,"scale") == 0) return (void *) scale;
+  if (strcmp(str,"cut_coul") == 0) return (void *) cut_coul;
   return nullptr;
 }

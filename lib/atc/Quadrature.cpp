@@ -36,7 +36,7 @@ Quadrature::Quadrature()
 }
 
 // -----------------------------------------------------------------
-// line quadrature: positions & weights 
+// line quadrature: positions & weights
 // -----------------------------------------------------------------
 /** domain of integration is -1 to 1 */
 void Quadrature::set_line_quadrature(const int ng, double* xg, double* wg)
@@ -74,7 +74,7 @@ void Quadrature::set_line_quadrature(const int ng, double* xg, double* wg)
     xg[9] =  0.97390653; wg[9] = 0.06667134;
   }
   else {
-    throw ATC_Error("Invalid choice of number of quadrature points"); 
+    throw ATC_Error("Invalid choice of number of quadrature points");
   }
 }
 

@@ -52,7 +52,7 @@ class CSlib {
   void unpack_parallel(int, int, int *, int, void *);
 
   int extract(int);
-  
+
  private:
   uint64_t myworld;    // really MPI_Comm, but avoids use of mpi.h in this file
                        // so apps can include this file w/ no MPI on system

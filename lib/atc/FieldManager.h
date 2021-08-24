@@ -17,7 +17,7 @@ namespace ATC {
                       PROLONGED_VELOCITY};
   typedef PerAtomQuantity<double> PAQ;
   /**
-   *  @class  FieldManager 
+   *  @class  FieldManager
    *  @brief  Manager for constructing fields from atomic data
    */
   class FieldManager{
@@ -26,7 +26,7 @@ namespace ATC {
     FieldManager(ATC_Method * atc);
     virtual ~FieldManager(void){};
     /** this function returns a (density) field derived from atomic data */
-    DENS_MAN * nodal_atomic_field(FieldName fieldName, 
+    DENS_MAN * nodal_atomic_field(FieldName fieldName,
                                   std::string name = "default") {
       switch (fieldName) {
       case CHARGE_DENSITY:        return charge_density(name);
@@ -51,17 +51,17 @@ namespace ATC {
       }
     }
     CanonicalName string_to_canonical_name(std::string name){
-       if      (name == "AtomicTwiceFluctuatingKineticEnergy") 
+       if      (name == "AtomicTwiceFluctuatingKineticEnergy")
          return ATOMIC_TWICE_FLUCTUATING_KINETIC_ENERGY;
-       else if (name == "AtomicTwiceKineticEnergy") 
+       else if (name == "AtomicTwiceKineticEnergy")
          return ATOMIC_TWICE_KINETIC_ENERGY;
-       else if (name == "AtomicTwiceKineticEnergy") 
+       else if (name == "AtomicTwiceKineticEnergy")
          return ATOMIC_TWICE_KINETIC_ENERGY;
-       else if (name == "AtomicFluctuatingVelocity") 
+       else if (name == "AtomicFluctuatingVelocity")
          return ATOMIC_FLUCTUATING_VELOCITY;
        else if (name == "AtomicChargeVelocity") // ionic current
          return ATOMIC_CHARGE_VELOCITY;
-       else if (name == "AtomicSpeciesVelocity") // per species momentum 
+       else if (name == "AtomicSpeciesVelocity") // per species momentum
          return ATOMIC_SPECIES_VELOCITY;
        else if (name == field_to_prolongation_name(VELOCITY))
          return PROLONGED_VELOCITY;
@@ -70,11 +70,11 @@ namespace ATC {
     }
     PAQ * per_atom_quantity(std::string name) {
       switch (string_to_canonical_name(name)) {
-      case ATOMIC_TWICE_FLUCTUATING_KINETIC_ENERGY: 
+      case ATOMIC_TWICE_FLUCTUATING_KINETIC_ENERGY:
         return atomic_twice_fluctuating_kinetic_energy();
-      case ATOMIC_TWICE_KINETIC_ENERGY: 
+      case ATOMIC_TWICE_KINETIC_ENERGY:
         return atomic_twice_kinetic_energy();
-      case ATOMIC_FLUCTUATING_VELOCITY: 
+      case ATOMIC_FLUCTUATING_VELOCITY:
         return atomic_fluctuating_velocity();
       case ATOMIC_CHARGE_VELOCITY:
         return atomic_charge_velocity();
@@ -82,7 +82,7 @@ namespace ATC {
         return atomic_species_velocity();
       case PROLONGED_VELOCITY:
         return prolonged_field(VELOCITY);
-      default: 
+      default:
         throw ATC_Error("FieldManager:: unknown PAQ"); return nullptr;
       }
     }

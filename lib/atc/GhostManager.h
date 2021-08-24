@@ -26,7 +26,7 @@ namespace ATC {
     /** types of ghost boundary conditions in momentum */
     enum BoundaryDynamicsType {
       NO_BOUNDARY_DYNAMICS=0,
-      VERLET,  // performs velocity-verlet 
+      VERLET,  // performs velocity-verlet
       PRESCRIBED,  // forces ghost locations to conform to interpolated finite element locations
       DAMPED_HARMONIC, // turns ghost atoms into spring-mass-dashpot systems
       DAMPED_LAYERS, // oer layer DAMPED_HARMONIC
@@ -113,7 +113,7 @@ namespace ATC {
    */
 
   class GhostModifier {
-  
+
   public:
 
     // constructor
@@ -171,7 +171,7 @@ namespace ATC {
    */
 
   class GhostModifierPrescribed : public GhostModifier {
-  
+
   public:
 
     // constructor
@@ -210,7 +210,7 @@ namespace ATC {
    */
 
   class GhostModifierDampedHarmonic : public GhostModifierPrescribed {
-  
+
   public:
 
     // constructor
@@ -276,7 +276,7 @@ namespace ATC {
    */
 
   class GhostModifierDampedHarmonicLayers : public GhostModifierDampedHarmonic {
-  
+
   public:
 
     // constructor
@@ -308,7 +308,7 @@ namespace ATC {
     // data
     /** distance from all ghost atoms to boundary, i.e. boundary face of containing element */
     PerAtomQuantity<double> * ghostToBoundaryDistance_;
-    
+
     /** layer id for ghost atoms */
     PerAtomQuantity<int> * layerId_;
 
@@ -327,7 +327,7 @@ namespace ATC {
    */
 
   class GhostIntegratorSwap : public GhostModifier {
-  
+
   public:
 
     // constructor
@@ -355,7 +355,7 @@ namespace ATC {
 
     /** internal to element map */
     PerAtomQuantity<int> * atomElement_;
-    
+
     /** ghost to element map */
     PerAtomQuantity<int> * atomGhostElement_;
 

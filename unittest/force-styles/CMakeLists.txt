@@ -53,7 +53,7 @@ if(FFT_SINGLE)
   target_compile_definitions(test_pair_style PRIVATE -DFFT_SINGLE)
 endif()
 
-# tests for a molecular systems and related pair styles
+# tests for molecular systems and related pair styles
 file(GLOB MOL_PAIR_TESTS LIST_DIRECTORIES false ${TEST_INPUT_FOLDER}/mol-pair-*.yaml)
 # cannot test MSM with single precision data
 if(FFT_SINGLE)

@@ -50,7 +50,7 @@ void makespline(int ntab,int stride,double tab[],double C[][4]);
   The computational cost of this routine is O(1).
 */
 void evalspline(int n,double x0,double x1,double C[][4],
-		double x,double *y,double *dy,double *d2y);
+                double x,double *y,double *dy,double *d2y);
 
 
 /* Evaluate cubic polynomial represented by p in point x.

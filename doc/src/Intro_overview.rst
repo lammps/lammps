@@ -19,8 +19,8 @@ supercomputers.
 .. _lws: https://www.lammps.org
 
 LAMMPS is written in C++ and requires a compiler that is at least
-compatible with the C++-11 standard.
-Earlier versions were written in F77 and F90.  See the `History page
+compatible with the C++-11 standard.  Earlier versions were written in
+F77, F90, and C++-98.  See the `History page
 <https://www.lammps.org/history.html>`_ of the website for details.  All
 versions can be downloaded from the `LAMMPS website <lws_>`_.
 

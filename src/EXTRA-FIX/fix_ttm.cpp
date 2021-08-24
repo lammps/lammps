@@ -38,11 +38,15 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 
 #define MAXLINE 1024
-//#define OFFSET 16384    // to avoid outside-of-box atoms being rounded incorrectly
-//#define SHIFT 0.5       // 0.5 for nearest grid point, 0.0 for lower-left grid point
 
-#define OFFSET 0    // to avoid outside-of-box atoms being rounded incorrectly
-#define SHIFT 0.0       // 0.5 for nearest grid point, 0.0 for lower-left grid point
+// OFFSET avoids outside-of-box atoms being rounded to grid pts incorrectly
+// SHIFT = 0.0 assigns atoms to lower-left grid pt
+// SHIFT = 0.5 assigns atoms to nearest grid pt
+// use SHIFT = 0.0 for now since it allows fix ave/chunk 
+//   to spatially average consistent with the TTM grid
+
+#define OFFSET 0      // change to 16384 when done debugging vs ttm/old
+#define SHIFT 0.0
 
 /* ---------------------------------------------------------------------- */
 
@@ -108,11 +112,11 @@ FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
   if (gamma_s < 0.0) error->all(FLERR,"Fix ttm gamma_s must be >= 0.0");
   if (v_0 < 0.0) error->all(FLERR,"Fix ttm v_0 must be >= 0.0");
   if (nxgrid <= 0 || nygrid <= 0 || nzgrid <= 0)
-    error->all(FLERR,"Fix ttm number of nodes must be > 0");
+    error->all(FLERR,"Fix ttm grid sizes must be > 0");
 
   v_0_sq = v_0*v_0;
 
-  // OFFSET to make
+  // grid OFFSET to perform
   // SHIFT to map atom to nearest or lower-left grid point
 
   shift = OFFSET + SHIFT;
@@ -126,7 +130,7 @@ FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
   gfactor1 = new double[atom->ntypes+1];
   gfactor2 = new double[atom->ntypes+1];
 
-  // check for allowed maxium number of total grid nodes
+  // check for allowed maximum number of total grid points
 
   bigint totalgrid = (bigint) nxgrid * nygrid * nzgrid;
   if (totalgrid > MAXSMALLINT)
@@ -216,6 +220,14 @@ void FixTTM::init()
   if (domain->triclinic)
     error->all(FLERR,"Cannot use fix ttm with triclinic box");
 
+  // to allow this, would have to reset grid bounds dynamically
+  // for RCB balancing would have to reassign grid pts to procs
+  //   and create a new GridComm, and pass old GC data to new GC
+
+  if (domain->box_change)
+    error->all(FLERR,"Cannot use fix ttm with "
+               "changing box shape, size, or sub-domains");
+
   // set force prefactors
 
   for (int i = 1; i <= atom->ntypes; i++) {
@@ -293,7 +305,7 @@ void FixTTM::post_force(int /*vflag*/)
       if (iz >= nzgrid) iz -= nzgrid;
 
       if (T_electron[iz][iy][ix] < 0)
-        error->all(FLERR,"Electronic temperature dropped below zero");
+        error->one(FLERR,"Electronic temperature dropped below zero");
 
       double tsqrt = sqrt(T_electron[iz][iy][ix]);
 
@@ -402,47 +414,46 @@ void FixTTM::end_of_step()
     for (iz = 0; iz < nzgrid; iz++)
       for (iy = 0; iy < nygrid; iy++)
         for (ix = 0; ix < nxgrid; ix++)
-          T_electron_old[iz][iy][ix] =
-            T_electron[iz][iy][ix];
+          T_electron_old[iz][iy][ix] = T_electron[iz][iy][ix];
 
     // compute new electron T profile
 
     for (iz = 0; iz < nzgrid; iz++)
       for (iy = 0; iy < nygrid; iy++)
         for (ix = 0; ix < nxgrid; ix++) {
-          int right_xnode = ix + 1;
-          int right_ynode = iy + 1;
-          int right_znode = iz + 1;
-          if (right_xnode == nxgrid) right_xnode = 0;
-          if (right_ynode == nygrid) right_ynode = 0;
-          if (right_znode == nzgrid) right_znode = 0;
-          int left_xnode = ix - 1;
-          int left_ynode = iy - 1;
-          int left_znode = iz - 1;
-          if (left_xnode == -1) left_xnode = nxgrid - 1;
-          if (left_ynode == -1) left_ynode = nygrid - 1;
-          if (left_znode == -1) left_znode = nzgrid - 1;
+          int xright = ix + 1;
+          int yright = iy + 1;
+          int zright = iz + 1;
+          if (xright == nxgrid) xright = 0;
+          if (yright == nygrid) yright = 0;
+          if (zright == nzgrid) zright = 0;
+          int xleft = ix - 1;
+          int yleft = iy - 1;
+          int zleft = iz - 1;
+          if (xleft == -1) xleft = nxgrid - 1;
+          if (yleft == -1) yleft = nygrid - 1;
+          if (zleft == -1) zleft = nzgrid - 1;
 
           T_electron[iz][iy][ix] =
             T_electron_old[iz][iy][ix] +
             inner_dt/(electronic_specific_heat*electronic_density) *
             (electronic_thermal_conductivity *
 
-             ((T_electron_old[iz][iy][right_xnode] +
-               T_electron_old[iz][iy][left_xnode] -
+             ((T_electron_old[iz][iy][xright] +
+               T_electron_old[iz][iy][xleft] -
                2*T_electron_old[iz][iy][ix])/dx/dx +
-              (T_electron_old[iz][right_ynode][ix] +
-               T_electron_old[iz][left_ynode][ix] -
+              (T_electron_old[iz][yright][ix] +
+               T_electron_old[iz][yleft][ix] -
                2*T_electron_old[iz][iy][ix])/dy/dy +
-              (T_electron_old[right_znode][iy][ix] +
-               T_electron_old[left_znode][iy][ix] -
+              (T_electron_old[zright][iy][ix] +
+               T_electron_old[zleft][iy][ix] -
                2*T_electron_old[iz][iy][ix])/dz/dz) -
              
              (net_energy_transfer_all[iz][iy][ix])/del_vol);
         }
   }
 
-  // output of grid temperatures to file
+  // output of grid electron temperatures to file
 
   if (outfile && (update->ntimestep % outevery == 0)) {
     char *newfile = new char[strlen(outfile) + 16];
@@ -490,7 +501,7 @@ void FixTTM::read_electron_temperatures(const char *filename)
     if ((ix < 0) || (ix >= nxgrid)
         || (iy < 0) || (iy >= nygrid)
         || (iz < 0) || (iz >= nzgrid))
-      error->one(FLERR,"Fix ttm invalide node index in fix ttm input");
+      error->one(FLERR,"Fix ttm invalid grid index in fix ttm input");
 
     if (T_tmp < 0.0)
       error->one(FLERR,"Fix ttm electron temperatures must be > 0.0");
@@ -706,14 +717,14 @@ double FixTTM::compute_vector(int n)
 }
 
 /* ----------------------------------------------------------------------
-   memory usage for flangevin and 3d grid
+   memory usage for flangevin and 3d grids
 ------------------------------------------------------------------------- */
 
 double FixTTM::memory_usage()
 {
   double bytes = 0.0;
-  bytes += (double)atom->nmax * 3 * sizeof(double);
-  bytes += (double)4*ngridtotal * sizeof(int);
+  bytes += (double) atom->nmax * 3 * sizeof(double);
+  bytes += (double) 4*ngridtotal * sizeof(int);
   return bytes;
 }
 

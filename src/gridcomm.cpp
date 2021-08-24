@@ -1126,9 +1126,10 @@ reverse_comm_tiled(T *ptr, int nper, int nbyte, int which,
 }
 
 /* ----------------------------------------------------------------------
-   gather global grid values to proc 0
-   proc 0 pings each proc for its contribution
+   gather global grid values to proc 0, one grid chunk at a time
+   proc 0 pings each proc for its grid chunk
    pack/unpack operations are performed by caller via callbacks
+   caller can decide whether to store chunks, output them, etc
 ------------------------------------------------------------------------- */
 
 void GridComm::gather(int caller, void *ptr, int nper, int nbyte, int which,

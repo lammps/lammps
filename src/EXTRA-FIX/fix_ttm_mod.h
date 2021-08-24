@@ -53,23 +53,31 @@ class FixTTMMod : public Fix {
   double compute_vector(int);
 
  private:
-  int nfileevery;
   int nlevels_respa;
   int seed;
+  int outevery;
+  double shift;
+  char *infile,*outfile;
+
   class RanMars *random;
   FILE *fp;
+
   int nxnodes, nynodes, nznodes;
+  int ngridtotal;
   bigint total_nnodes;
+
   int ***nsum, ***nsum_all;
   double *gfactor1, *gfactor2, *ratio, **flangevin;
   double ***T_electron, ***T_electron_old, ***T_electron_first;
   double ***sum_vsq, ***sum_mass_vsq;
   double ***sum_vsq_all, ***sum_mass_vsq_all;
   double ***net_energy_transfer, ***net_energy_transfer_all;
+
   double gamma_p, gamma_s, v_0, v_0_sq;
   int skin_layer, surface_l, surface_r, t_surface_l, t_surface_r;
   int movsur;
-  double esheat_0, esheat_1, esheat_2, esheat_3, esheat_4, C_limit, electronic_density;
+  double esheat_0, esheat_1, esheat_2, esheat_3, esheat_4, 
+    C_limit, electronic_density;
   double el_th_diff, T_damp;
   double intensity, width, duration, surface_double;
   double mult_factor, ttm_dt;
@@ -77,8 +85,10 @@ class FixTTMMod : public Fix {
   double electron_temperature_min;
   el_heat_capacity_thermal_conductivity el_properties(double);
   double el_sp_heat_integral(double);
+
   void read_parameters(const char *);
-  void read_initial_electron_temperatures(const char *);
+  void read_electron_temperatures(const char *);
+  void write_electron_temperatures(const char *);
 };
 
 }    // namespace LAMMPS_NS

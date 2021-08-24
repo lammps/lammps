@@ -132,6 +132,9 @@ void FixTTMGrid::post_force(int /*vflag*/)
         continue;
       }
 
+      if (T_electron[iz][iy][ix] < 0)
+        error->one(FLERR,"Electronic temperature dropped below zero");
+
       double tsqrt = sqrt(T_electron[iz][iy][ix]);
 
       gamma1 = gfactor1[type[i]];
@@ -235,20 +238,6 @@ void FixTTMGrid::end_of_step()
         }
   }
 
-  // check that all temperatures are >= 0.0
-
-  int flag = 0;
-
-  for (iz = nzlo_in; iz <= nzhi_in; iz++)
-    for (iy = nylo_in; iy <= nyhi_in; iy++)
-      for (ix = nxlo_in; ix <= nxhi_in; ix++)
-        if (T_electron[iz][iy][ix] < 0.0) flag = 1;
-
-  int flagall;
-  MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
-  if (flagall) 
-    error->all(FLERR,"Fix ttm electron temperature became negative");
-
   // communicate new T_electron values to ghost grid points
 
   gc->forward_comm(GridComm::FIX,this,1,sizeof(double),0,
@@ -333,7 +322,7 @@ void FixTTMGrid::read_electron_temperatures(const char *filename)
 
       if (ix < 0 || ix >= nxgrid || iy < 0 || iy >= nygrid ||
           iz < 0 || iz >= nzgrid)
-        error->all(FLERR,"Fix ttm/grid invalid node index in input");
+        error->all(FLERR,"Fix ttm/grid invalid grid index in input");
       
       if (ix >= nxlo_in && ix <= nxhi_in &&
           iy >= nylo_in && iy <= nyhi_in &&

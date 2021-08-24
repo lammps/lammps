@@ -21,6 +21,7 @@
 
 #include <cmath>
 #include <cstring>
+#include <cstdio>
 #include "atom.h"
 #include "force.h"
 #include "update.h"
@@ -52,7 +53,7 @@ FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
   T_electron(nullptr), T_electron_old(nullptr), 
   net_energy_transfer(nullptr), net_energy_transfer_all(nullptr)
 {
-  if (narg != 14) error->all(FLERR,"Illegal fix ttm command");
+  if (narg < 13) error->all(FLERR,"Illegal fix ttm command");
 
   vector_flag = 1;
   size_vector = 2;
@@ -73,9 +74,25 @@ FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
   nygrid = utils::inumeric(FLERR,arg[11],false,lmp);
   nzgrid = utils::inumeric(FLERR,arg[12],false,lmp);
 
-  int n = strlen(arg[13]) + 1;
-  infile = new char[n];
-  strcpy(infile,arg[13]);
+  infile = outfile = NULL;
+
+  int iarg = 13;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"infile") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix ttm command");
+      int n = strlen(arg[iarg+1]) + 1;
+      infile = new char[n];
+      strcpy(infile,arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"outfile") == 0) {
+      if (iarg+3 > narg) error->all(FLERR,"Illegal fix ttm command");
+      outevery = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      int n = strlen(arg[iarg+2]) + 1;
+      outfile = new char[n];
+      strcpy(outfile,arg[iarg+2]);
+      iarg += 3;
+    } else error->all(FLERR,"Illegal fix ttm command");
+  }
 
   // error check
 
@@ -162,6 +179,10 @@ void FixTTM::post_constructor()
 
   allocate_grid();
 
+  // zero electron temperatures (default)
+
+  memset(&T_electron[0][0][0],0,ngridtotal*sizeof(double));
+
   // zero net_energy_transfer
   // in case compute_vector accesses it on timestep 0
 
@@ -170,7 +191,7 @@ void FixTTM::post_constructor()
 
   // set initial electron temperatures from user input file
 
-  read_electron_temperatures(infile);
+  if (infile) read_electron_temperatures(infile);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -413,18 +434,28 @@ void FixTTM::end_of_step()
               (T_electron_old[iz][right_ynode][ix] +
                T_electron_old[iz][left_ynode][ix] -
                2*T_electron_old[iz][iy][ix])/dy/dy +
-              (T_electron_old[right_znode][iy][iz] +
+              (T_electron_old[right_znode][iy][ix] +
                T_electron_old[left_znode][iy][ix] -
                2*T_electron_old[iz][iy][ix])/dz/dz) -
              
              (net_energy_transfer_all[iz][iy][ix])/del_vol);
         }
   }
+
+  // output of grid temperatures to file
+
+  if (outfile && (update->ntimestep % outevery == 0)) {
+    char *newfile = new char[strlen(outfile) + 16];
+    strcpy(newfile,outfile);
+    sprintf(newfile,"%s.%ld",outfile,update->ntimestep);
+
+    write_electron_temperatures((const char *) newfile);
+  }
 }
 
 /* ----------------------------------------------------------------------
    read in initial electron temperatures from a user-specified file
-   only called by proc 0
+   only read by proc 0, grid values are Bcast to other procs
 ------------------------------------------------------------------------- */
 
 void FixTTM::read_electron_temperatures(const char *filename)
@@ -476,11 +507,33 @@ void FixTTM::read_electron_temperatures(const char *filename)
     for (int iy = 0; iy < nygrid; iy++)
       for (int ix = 0; ix < nxgrid; ix++)
         if (T_initial_set[iz][iy][ix] == 0)
-          error->one(FLERR,"Initial temperatures not all set in fix ttm");
+          error->all(FLERR,"Fix ttm infile did not set all temperatures");
 
   memory->destroy(T_initial_set);
 
   MPI_Bcast(&T_electron[0][0][0],ngridtotal,MPI_DOUBLE,0,world);
+}
+
+/* ----------------------------------------------------------------------
+   write out current electron temperatures to user-specified file
+   only written by proc 0
+------------------------------------------------------------------------- */
+
+void FixTTM::write_electron_temperatures(const char *filename)
+{
+  if (comm->me) return;
+ 
+  FILE *fp = fopen(filename,"w");
+  if (!fp) error->one(FLERR,"Fix ttm could not open output file");
+
+  int ix,iy,iz;
+
+  for (iz = 0; iz < nzgrid; iz++)
+    for (iy = 0; iy < nygrid; iy++)
+      for (ix = 0; ix < nxgrid; ix++)
+        fprintf(fp,"%d %d %d %20.16g\n",ix,iy,iz,T_electron[iz][iy][ix]);
+
+  fclose(fp);
 }
 
 /* ---------------------------------------------------------------------- */

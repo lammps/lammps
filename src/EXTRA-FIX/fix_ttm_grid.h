@@ -48,11 +48,12 @@ class FixTTMGrid : public FixTTM {
   double memory_usage();
 
  private:
-  int ngridout;
+  int ngridmine,ngridout;
   int nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in;
   int nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out;
   double delxinv,delyinv,delzinv;
   double skin_original;
+  FILE *FPout;
 
   class GridComm *gc;
   int ngc_buf1,ngc_buf2;
@@ -61,6 +62,7 @@ class FixTTMGrid : public FixTTM {
   void allocate_grid();
   void deallocate_grid();
   void read_electron_temperatures(const char *);
+  void write_electron_temperatures(const char *);
 };
 
 }    // namespace LAMMPS_NS

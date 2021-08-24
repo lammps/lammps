@@ -54,22 +54,24 @@ class FixTTM : public Fix {
   int nxgrid, nygrid, nzgrid;     // size of global grid
   int ngridtotal;                 // total size of global grid
   int deallocate_flag;
-  int outflag;
+  int outflag,outevery;
   double shift;
   double e_energy,transfer_energy;
+  char *infile,*outfile;
 
   class RanMars *random;
-  char *infile;
-  double *gfactor1, *gfactor2, *ratio, **flangevin;
-  double ***T_electron, ***T_electron_old;
-  double ***net_energy_transfer, ***net_energy_transfer_all;
   double electronic_specific_heat, electronic_density;
   double electronic_thermal_conductivity;
   double gamma_p, gamma_s, v_0, v_0_sq;
 
+  double *gfactor1, *gfactor2, *ratio, **flangevin;
+  double ***T_electron, ***T_electron_old;
+  double ***net_energy_transfer, ***net_energy_transfer_all;
+
   virtual void allocate_grid();
   virtual void deallocate_grid();
   virtual void read_electron_temperatures(const char *);
+  virtual void write_electron_temperatures(const char *);
 };
 
 }    // namespace LAMMPS_NS

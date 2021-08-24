@@ -38,7 +38,9 @@ using namespace FixConst;
 static constexpr int MAXLINE = 256;
 static constexpr int CHUNK = 1024;
 
-#define OFFSET 16384
+//#define OFFSET 16384
+
+#define OFFSET 0
 
 /* ---------------------------------------------------------------------- */
 
@@ -65,6 +67,10 @@ void FixTTMGrid::post_constructor()
 
   allocate_grid();
 
+  // zero electron temperatures (default)
+
+  memset(&T_electron[nzlo_out][nylo_out][nxlo_out],0,ngridout*sizeof(double));
+  
   // zero net_energy_transfer
   // in case compute_vector accesses it on timestep 0
 
@@ -74,7 +80,7 @@ void FixTTMGrid::post_constructor()
 
   // set initial electron temperatures from user input file
 
-  read_electron_temperatures(infile);
+  if (infile) read_electron_temperatures(infile);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -247,6 +253,16 @@ void FixTTMGrid::end_of_step()
 
   gc->forward_comm(GridComm::FIX,this,1,sizeof(double),0,
                    gc_buf1,gc_buf2,MPI_DOUBLE);
+
+  // output of grid temperatures to file
+
+  if (outfile && (update->ntimestep % outevery == 0)) {
+    char *newfile = new char[strlen(outfile) + 16];
+    strcpy(newfile,outfile);
+    sprintf(newfile,"%s.%ld",outfile,update->ntimestep);
+
+    write_electron_temperatures((const char *) newfile);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -261,9 +277,10 @@ void FixTTMGrid::read_electron_temperatures(const char *filename)
 
   int me = comm->me;
 
-  // initialize my own+ghost grid values to zero
-
-  memset(&T_electron[nzlo_out][nylo_out][nxlo_out],0,ngridout*sizeof(double));
+  int ***T_initial_set;
+  memory->create3d_offset(T_initial_set,nzlo_in,nzhi_in,nylo_in,nyhi_in,
+                          nxlo_in,nxhi_in,"ttm/grid:T_initial_set");
+  memset(&T_initial_set[nzlo_in][nylo_in][nxlo_in],0,ngridmine*sizeof(int));
 
   // proc 0 opens file
 
@@ -320,9 +337,11 @@ void FixTTMGrid::read_electron_temperatures(const char *filename)
       
       if (ix >= nxlo_in && ix <= nxhi_in &&
           iy >= nylo_in && iy <= nyhi_in &&
-          iz >= nzlo_in && iz <= nzhi_in)
+          iz >= nzlo_in && iz <= nzhi_in) {
         T_electron[iz][iy][ix] = utils::numeric(FLERR,values[3],true,lmp);
-      
+        T_initial_set[iz][iy][ix] = 1;
+      }
+
       buf = next + 1;
     }
 
@@ -338,25 +357,46 @@ void FixTTMGrid::read_electron_temperatures(const char *filename)
   delete [] values;
   delete [] buffer;
 
-  // check that all owned temperature values are > 0.0
+  // check completeness of input data
 
   int flag = 0;
 
   for (iz = nzlo_in; iz <= nzhi_in; iz++)
     for (iy = nylo_in; iy <= nyhi_in; iy++)
       for (ix = nxlo_in; ix <= nxhi_in; ix++)
-        if (T_electron[iz][iy][ix] <= 0.0) flag = 1;
+        if (T_initial_set[iz][iy][ix] == 0) {
+          flag = 1;
+          printf("UNSET %d %d %d\n",ix,iy,iz);
+        }
 
   int flagall;
   MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
   if (flagall) 
-    error->all(FLERR,
-               "Fix ttm infile did not set all temperatures or some are <= 0.0");
+    error->all(FLERR,"Fix ttm/grid infile did not set all temperatures");
+
+  memory->destroy3d_offset(T_initial_set,nzlo_in,nylo_in,nxlo_in);
 
   // communicate new T_electron values to ghost grid points
 
   gc->forward_comm(GridComm::FIX,this,1,sizeof(double),0,
                    gc_buf1,gc_buf2,MPI_DOUBLE);
+}
+
+/* ----------------------------------------------------------------------
+   write out current electron temperatures to user-specified file
+   only written by proc 0
+------------------------------------------------------------------------- */
+
+void FixTTMGrid::write_electron_temperatures(const char *filename)
+{
+  if (comm->me == 0) {
+    FPout = fopen(filename,"w");
+    if (!FPout) error->one(FLERR,"Fix ttm/grid could not open output file");
+  }
+
+  gc->gather(GridComm::FIX,this,1,sizeof(double),1,NULL,MPI_DOUBLE);
+  
+  if (comm->me == 0) fclose(FPout);
 }
 
 /* ----------------------------------------------------------------------
@@ -417,6 +457,14 @@ void FixTTMGrid::unpack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
 
 void FixTTMGrid::allocate_grid()
 {
+  // partition global grid across procs
+  // n xyz lo/hi in = lower/upper bounds of global grid this proc owns
+  // indices range from 0 to N-1 inclusive in each dim
+
+  comm->partition_grid(nxgrid,nygrid,nzgrid,0.0,
+                       nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in);
+
+  /*
   // global indices of grid range from 0 to N-1
   // nlo_in,nhi_in = lower/upper limits of the 3d sub-brick of
   //   global grid that I own without ghost cells
@@ -442,6 +490,7 @@ void FixTTMGrid::allocate_grid()
     nzlo_in = static_cast<int> (comm->mysplit[1][0] * nzgrid);
     nzhi_in = static_cast<int> (comm->mysplit[1][1] * nzgrid) - 1;
   }
+  */
 
   // nlo,nhi = min/max index of global grid pt my owned atoms can be mapped to
   // finite difference stencil requires extra grid pt around my owned grid pts
@@ -479,6 +528,10 @@ void FixTTMGrid::allocate_grid()
   if (totalmine > MAXSMALLINT)
     error->one(FLERR,"Too many owned+ghost grid points in fix ttm");
   ngridout = totalmine;
+
+  totalmine = (bigint) (nxhi_in-nxlo_in+1) * (nyhi_in-nylo_in+1) * 
+    (nzhi_in-nzlo_in+1);
+  ngridmine = totalmine;
 
   gc = new GridComm(lmp,world,nxgrid,nygrid,nzgrid,
                     nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
@@ -520,8 +573,9 @@ void FixTTMGrid::write_restart(FILE *fp)
 {
   int ix,iy,iz;
 
+  int rsize = nxgrid*nygrid*nzgrid + 4;
   double *rlist;
-  memory->create(rlist,nxgrid*nygrid*nzgrid+4,"ttm/grid:rlist");
+  memory->create(rlist,rsize,"ttm/grid:rlist");
 
   int n = 0;
   rlist[n++] = nxgrid;
@@ -533,15 +587,10 @@ void FixTTMGrid::write_restart(FILE *fp)
 
   gc->gather(GridComm::FIX,this,1,sizeof(double),0,&rlist[4],MPI_DOUBLE);
 
-  for (iz = nzlo_in; iz <= nzhi_in; iz++)
-    for (iy = nylo_in; iy <= nyhi_in; iy++)
-      for (ix = nxlo_in; ix <= nxhi_in; ix++)
-        rlist[n++] =  T_electron[iz][iy][ix];
-
   if (comm->me == 0) {
-    int size = n * sizeof(double);
+    int size = rsize * sizeof(double);
     fwrite(&size,sizeof(int),1,fp);
-    fwrite(rlist,sizeof(double),n,fp);
+    fwrite(rlist,sizeof(double),rsize,fp);
   }
 
   memory->destroy(rlist);
@@ -588,6 +637,7 @@ void FixTTMGrid::restart(char *buf)
 
 /* ----------------------------------------------------------------------
    pack values from local grid into buf
+   used by which = 0 and 1
 ------------------------------------------------------------------------- */
 
 void FixTTMGrid::pack_gather_grid(int which, void *vbuf)
@@ -604,7 +654,8 @@ void FixTTMGrid::pack_gather_grid(int which, void *vbuf)
 }
 
 /* ----------------------------------------------------------------------
-   unpack values from buf into global gbuf based on their indices
+   which = 0: unpack values from buf into global gbuf based on their indices
+   which = 1: print values from buf to FPout file
 ------------------------------------------------------------------------- */
 
 void FixTTMGrid::unpack_gather_grid(int which, void *vbuf, void *vgbuf,
@@ -616,15 +667,28 @@ void FixTTMGrid::unpack_gather_grid(int which, void *vbuf, void *vgbuf,
   double *buf = (double *) vbuf;
   double *gbuf = (double *) vgbuf;
 
-  int iglobal;
-  int ilocal = 0;
+  if (which == 0) {
+    int iglobal;
+    int ilocal = 0;
 
-  for (iz = zlo; iz <= zhi; iz++)
-    for (iy = ylo; iy <= yhi; iy++)
-      for (ix = xlo; ix <= xhi; ix++) {
-        iglobal = nygrid*nxgrid*iz + nxgrid*iy + ix;
-        gbuf[iglobal] = buf[ilocal++];
-      }
+    for (iz = zlo; iz <= zhi; iz++)
+      for (iy = ylo; iy <= yhi; iy++)
+        for (ix = xlo; ix <= xhi; ix++) {
+          iglobal = nygrid*nxgrid*iz + nxgrid*iy + ix;
+          gbuf[iglobal] = buf[ilocal++];
+        }
+
+  } else if (which == 1) {
+    int ilocal = 0;
+    double value;
+
+    for (iz = zlo; iz <= zhi; iz++)
+      for (iy = ylo; iy <= yhi; iy++)
+        for (ix = xlo; ix <= xhi; ix++) {
+          value = buf[ilocal++];
+          fprintf(FPout,"%d %d %d %20.16g\n",ix,iy,iz,value);
+        }
+  }
 }
 
 /* ----------------------------------------------------------------------

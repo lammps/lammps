@@ -43,7 +43,7 @@ elif (test $mode = 0) then
   fi
 fi
 
-# list of files with optional dependcies
+# list of files with optional dependencies
 
 action angle_charmm_kokkos.cpp angle_charmm.cpp
 action angle_charmm_kokkos.h angle_charmm.h
@@ -94,6 +94,8 @@ action compute_orientorder_atom_kokkos.cpp
 action compute_orientorder_atom_kokkos.h
 action compute_temp_kokkos.cpp
 action compute_temp_kokkos.h
+action compute_temp_deform_kokkos.cpp
+action compute_temp_deform_kokkos.h
 action dihedral_charmm_kokkos.cpp dihedral_charmm.cpp
 action dihedral_charmm_kokkos.h dihedral_charmm.h
 action dihedral_class2_kokkos.cpp dihedral_class2.cpp
@@ -135,6 +137,8 @@ action fix_nve_sphere_kokkos.cpp
 action fix_nve_sphere_kokkos.h
 action fix_nvt_kokkos.cpp
 action fix_nvt_kokkos.h
+action fix_nvt_sllod_kokkos.cpp
+action fix_nvt_sllod_kokkos.h
 action fix_property_atom_kokkos.cpp
 action fix_property_atom_kokkos.h
 action fix_qeq_reaxff_kokkos.cpp fix_qeq_reaxff.cpp

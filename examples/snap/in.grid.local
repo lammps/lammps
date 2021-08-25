@@ -71,3 +71,7 @@ dump mydump_bgridlocal all local 1000 dump_bgridlocal index c_mygridlocal[*]
 
 run 0
 
+run 0
+
+run 0
+

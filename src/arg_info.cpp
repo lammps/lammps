@@ -30,8 +30,8 @@ using namespace LAMMPS_NS;
 
 ArgInfo::ArgInfo(const std::string &arg, int allowed) : type(NONE), dim(0), index1(-1), index2(-1)
 {
-  if (((arg.size() > 3) && (arg[1] == '2') && (arg[2] == '_'))
-      || ((arg.size() > 2) && (arg[1] == '_'))) {
+  if (((arg.size() > 3) && (arg[1] == '2') && (arg[2] == '_')) ||
+      ((arg.size() > 2) && (arg[1] == '_'))) {
     if ((arg[0] == 'c') && (allowed & COMPUTE))
       type = COMPUTE;
     else if ((arg[0] == 'f') && (allowed & FIX))

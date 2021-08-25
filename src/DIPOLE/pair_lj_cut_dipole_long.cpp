@@ -540,18 +540,18 @@ void PairLJCutDipoleLong::read_restart_settings(FILE *fp)
 
 void *PairLJCutDipoleLong::extract(const char *str, int &dim)
 {
-  if (strcmp(str,"cut_coul") == 0) {
-    dim = 0;
-    return (void *) &cut_coul;
-  } else if (strcmp(str,"ewald_order") == 0) {
+  dim = 0;
+  if (strcmp(str,"cut_coul") == 0) return (void *) &cut_coul;
+  else if (strcmp(str,"ewald_order") == 0) {
     ewald_order = 0;
     ewald_order |= 1<<1;
     ewald_order |= 1<<3;
-    dim = 0;
     return (void *) &ewald_order;
-  } else if (strcmp(str,"ewald_mix") == 0) {
-    dim = 0;
-    return (void *) &mix_flag;
-  }
+  } else if (strcmp(str,"ewald_mix") == 0) return (void *) &mix_flag;
+
+  dim = 2;
+  if (strcmp(str,"epsilon") == 0) return (void *) epsilon;
+  else if (strcmp(str,"sigma") == 0) return (void *) sigma;
+
   return nullptr;
 }

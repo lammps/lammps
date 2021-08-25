@@ -111,8 +111,8 @@ class AtomKokkos : public Atom {
   void sync_overlapping_device(const ExecutionSpace space, unsigned int mask);
   virtual void sort();
   virtual void grow(unsigned int mask);
-  int add_custom(const char *, int);
-  void remove_custom(int, int);
+  int add_custom(const char *, int, int);
+  void remove_custom(int, int, int);
   virtual void deallocate_topology();
   void sync_modify(ExecutionSpace, unsigned int, unsigned int);
  private:

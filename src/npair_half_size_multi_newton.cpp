@@ -78,7 +78,7 @@ void NPairHalfSizeMultiNewton::build(NeighList *list)
 
       // if same collection use own bin
       if (icollection == jcollection) jbin = ibin;
-	  else jbin = coord2bin(x[i], jcollection);
+          else jbin = coord2bin(x[i], jcollection);
 
       // if same size: uses half stencil so check central bin
       if (cutcollectionsq[icollection][icollection] == cutcollectionsq[jcollection][jcollection]){
@@ -94,33 +94,33 @@ void NPairHalfSizeMultiNewton::build(NeighList *list)
         //   if j is owned atom, store it if j > i
         //   if j is ghost, only store if j coords are "above and to the right" of i
 
-	    for (j = js; j >= 0; j = bins[j]) {
+            for (j = js; j >= 0; j = bins[j]) {
           if ((icollection != jcollection) && (j < i)) continue;
 
-	      if (j >= nlocal) {
-	        if (x[j][2] < ztmp) continue;
-	        if (x[j][2] == ztmp) {
-	          if (x[j][1] < ytmp) continue;
-	          if (x[j][1] == ytmp && x[j][0] < xtmp) continue;
-	        }
-	      }
+              if (j >= nlocal) {
+                if (x[j][2] < ztmp) continue;
+                if (x[j][2] == ztmp) {
+                  if (x[j][1] < ytmp) continue;
+                  if (x[j][1] == ytmp && x[j][0] < xtmp) continue;
+                }
+              }
 
           jtype = type[j];
           if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
 
-	      delx = xtmp - x[j][0];
-	      dely = ytmp - x[j][1];
-	      delz = ztmp - x[j][2];
-	      rsq = delx*delx + dely*dely + delz*delz;
-	      radsum = radi + radius[j];
-	      cutdistsq = (radsum+skin) * (radsum+skin);
+              delx = xtmp - x[j][0];
+              dely = ytmp - x[j][1];
+              delz = ztmp - x[j][2];
+              rsq = delx*delx + dely*dely + delz*delz;
+              radsum = radi + radius[j];
+              cutdistsq = (radsum+skin) * (radsum+skin);
 
-	      if (rsq <= cutdistsq) {
-	        if (history && rsq < radsum*radsum)
-	          neighptr[n++] = j ^ mask_history;
-	        else
-	          neighptr[n++] = j;
-	      }
+              if (rsq <= cutdistsq) {
+                if (history && rsq < radsum*radsum)
+                  neighptr[n++] = j ^ mask_history;
+                else
+                  neighptr[n++] = j;
+              }
         }
       }
 
@@ -129,30 +129,30 @@ void NPairHalfSizeMultiNewton::build(NeighList *list)
       // stencil is half if i same size as j
       // stencil is full if i smaller than j
 
-	  s = stencil_multi[icollection][jcollection];
-	  ns = nstencil_multi[icollection][jcollection];
+          s = stencil_multi[icollection][jcollection];
+          ns = nstencil_multi[icollection][jcollection];
 
-	  for (k = 0; k < ns; k++) {
-	    js = binhead_multi[jcollection][jbin + s[k]];
-	    for (j = js; j >= 0; j = bins[j]) {
+          for (k = 0; k < ns; k++) {
+            js = binhead_multi[jcollection][jbin + s[k]];
+            for (j = js; j >= 0; j = bins[j]) {
 
           jtype = type[j];
           if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
 
           delx = xtmp - x[j][0];
-	      dely = ytmp - x[j][1];
-	      delz = ztmp - x[j][2];
-	      rsq = delx*delx + dely*dely + delz*delz;
-	      radsum = radi + radius[j];
-	      cutdistsq = (radsum+skin) * (radsum+skin);
+              dely = ytmp - x[j][1];
+              delz = ztmp - x[j][2];
+              rsq = delx*delx + dely*dely + delz*delz;
+              radsum = radi + radius[j];
+              cutdistsq = (radsum+skin) * (radsum+skin);
 
-	      if (rsq <= cutdistsq) {
-	        if (history && rsq < radsum*radsum)
-	    	    neighptr[n++] = j ^ mask_history;
-	        else
-	    	    neighptr[n++] = j;
-	      }
-	    }
+              if (rsq <= cutdistsq) {
+                if (history && rsq < radsum*radsum)
+                    neighptr[n++] = j ^ mask_history;
+                else
+                    neighptr[n++] = j;
+              }
+            }
       }
     }
 

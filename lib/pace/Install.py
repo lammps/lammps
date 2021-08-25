@@ -19,8 +19,8 @@ version = 'v.2021.4.9'
 
 # known checksums for different PACE versions. used to validate the download.
 checksums = { \
-        'v.2021.2.3.upd2' : '8fd1162724d349b930e474927197f20d', 
-        'v.2021.4.9'      : '4db54962fbd6adcf8c18d46e1798ceb5',          
+        'v.2021.2.3.upd2' : '8fd1162724d349b930e474927197f20d',
+        'v.2021.4.9'      : '4db54962fbd6adcf8c18d46e1798ceb5',
         }
 
 
@@ -33,8 +33,8 @@ parser = ArgumentParser(prog='Install.py',
 HELP = """
 Syntax from src dir: make lib-pace args="-b"
                  or: make lib-pace args="-b -v version"
-Syntax from lib dir: python Install.py -b 
-                 or: python Install.py -b -v version 
+Syntax from lib dir: python Install.py -b
+                 or: python Install.py -b -v version
 
 Examples:
 

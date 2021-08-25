@@ -56,7 +56,7 @@ class FixReaxFFBonds : public Fix {
   class PairReaxFF *reaxff;
   class NeighList *list;
 };
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -81,7 +81,7 @@ class FixReaxFFSpecies : public Fix {
   class FixAveAtom *f_SPECBOND;
   class PairReaxFF *reaxff;
 };
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

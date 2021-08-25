@@ -24,24 +24,24 @@ namespace ATC
         B  (4.0*eps*pow(sig,  6)),
         rcut(cutoff_radius)
     { }
-    
+
     //! Returns the cutoff readius of the LJ potential.
     double cutoff_radius() const { return rcut; }
     //! Returns the LJ energy between two interacting atoms (6,12).
-    double phi(const double &r) const 
+    double phi(const double &r) const
     {
       const double r6i = 1.0/((r*r*r)*(r*r*r));
       return r6i*(A*r6i - B);
     }
     //! Returns the first derivative of the LJ energy (7,13).
-    double phi_r(const double &r) const 
+    double phi_r(const double &r) const
     {
       const double ri  = 1.0/r;
       const double r6i = (ri*ri*ri)*(ri*ri*ri);
       return r6i*ri*(6.0*B - 12.0*A*r6i);
     }
     //! Returns the second derivative of the LJ energy (8,14).
-    double phi_rr(const double &r) const 
+    double phi_rr(const double &r) const
     {
       const double r2i = 1.0/(r*r);
       const double r6i = r2i*r2i*r2i;

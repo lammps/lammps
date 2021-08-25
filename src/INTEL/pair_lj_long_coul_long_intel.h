@@ -25,16 +25,15 @@ PairStyle(lj/long/coul/long/intel,PairLJLongCoulLongIntel);
 #ifndef LMP_PAIR_LJ_LONG_COUL_LONG_INTEL_H
 #define LMP_PAIR_LJ_LONG_COUL_LONG_INTEL_H
 
-#include "pair_lj_long_coul_long.h"
 #include "fix_intel.h"
+#include "pair_lj_long_coul_long.h"
 
 namespace LAMMPS_NS {
-  class PairLJLongCoulLongIntel : public PairLJLongCoulLong {
-  public:
-    PairLJLongCoulLongIntel(class LAMMPS *);
-    virtual ~PairLJLongCoulLongIntel();
-
-  };
-}
+class PairLJLongCoulLongIntel : public PairLJLongCoulLong {
+ public:
+  PairLJLongCoulLongIntel(class LAMMPS *);
+  virtual ~PairLJLongCoulLongIntel();
+};
+}    // namespace LAMMPS_NS
 #endif
 #endif

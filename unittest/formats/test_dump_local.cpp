@@ -39,7 +39,8 @@ public:
         END_HIDE_OUTPUT();
     }
 
-    void generate_dump(std::string dump_file, std::string dump_options, std::string dump_modify_options, int ntimesteps)
+    void generate_dump(std::string dump_file, std::string dump_options,
+                       std::string dump_modify_options, int ntimesteps)
     {
         BEGIN_HIDE_OUTPUT();
         command(fmt::format("dump id all {} 1 {} {}", dump_style, dump_file, dump_options));
@@ -59,7 +60,8 @@ public:
         END_HIDE_OUTPUT();
     }
 
-    void SetUp() override {
+    void SetUp() override
+    {
         MeltTest::SetUp();
 
         BEGIN_HIDE_OUTPUT();

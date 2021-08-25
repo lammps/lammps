@@ -1,0 +1,103 @@
+# test of HIPPO water dimer system
+
+# default cmd-line variable settings
+
+variable      a index ""
+variable      diff index 0
+
+units           real
+atom_style      full
+boundary        s s s
+
+atom_style amoeba
+special_bonds   lj/coul 0.5 0.5 0.5 one/five yes
+
+bond_style      harmonic
+angle_style     harmonic
+
+# per-atom properties required by AMOEBA or HIPPO
+
+fix             amtype all property/atom i_amtype ghost yes
+fix             extra all property/atom &
+                i_amgroup i_ired i_xaxis i_yaxis i_zaxis d_pval ghost yes
+fix             extra2 all property/atom i_polaxe
+
+read_data       data.${struc} fix amtype NULL "Tinker Types"
+#read_data       data.watersmall fix amtype NULL "Tinker Types"
+#read_data       data.water_hexamer fix amtype NULL "Tinker Types"
+
+# insure all 1-2,1-3,1-4 are in Tinker neigh list
+
+special_bonds   lj/coul 0.5 0.5 0.5
+
+# force field terms
+# depends on 2 command-line variables
+# ff = amoeba or hippo, a = args for pair_style
+
+if "${ff} == amoeba" then &
+"pair_style      amoeba $a" &
+"pair_coeff      * * amoeba.prm amoeba.key"
+
+if "${ff} == hippo" then &
+"pair_style      hippo $a" &
+"pair_coeff      * * hippo.prm hippo.key"
+
+if "${ff} == amoeba_direct" then &
+"pair_style      amoeba $a" &
+"pair_coeff      * * amoeba_direct.prm amoeba_direct.key"
+
+if "${ff} == hippo_direct" then &
+"pair_style      hippo $a" &
+"pair_coeff      * * hippo_direct.prm hippo_direct.key"
+
+if "${ff} == amoeba_opt" then &
+"pair_style      amoeba $a" &
+"pair_coeff      * * amoeba.prm amoeba_opt.key"
+
+if "${ff} == hippo_opt" then &
+"pair_style      hippo $a" &
+"pair_coeff      * * hippo.prm hippo_opt.key"
+
+
+# turn off bond/angle interactions for now
+
+bond_style      none
+angle_style     none
+
+# numeric difference of forces
+
+#compute       nd all pe
+#fix                nd all numdiff ${diff} 1.0e-5 nd
+#variable        dx atom abs(fx+f_nd[1])
+#variable        dy atom abs(fy+f_nd[2])
+#variable        dz atom abs(fz+f_nd[3])
+#compute       rd all reduce max v_dx v_dy v_dz
+
+# setup force components this way so can dump them
+
+fix             fhal all store/state 0 fx fy fz
+fix             frepulse all store/state 0 fx fy fz
+fix             fdisp all store/state 0 fx fy fz
+fix             fpolar all store/state 0 fx fy fz
+fix             fmpole all store/state 0 fx fy fz
+fix             fqxfer all store/state 0 fx fy fz
+
+dump       1 all custom 1 ${dumpfile} id type x y z fx fy fz &
+#                f_fhal[1] f_fhal[2] f_fhal[3] &
+#                f_fdisp[1] f_fdisp[2] f_fdisp[3] &
+#                f_frepulse[1] f_frepulse[2] f_frepulse[3] &
+#                f_fpolar[1] f_fpolar[2] f_fpolar[3] &
+#                f_fmpole[1] f_fmpole[2] f_fmpole[3] &
+#                f_fqxfer[1] f_fqxfer[2] f_fqxfer[3] &
+#                f_nd[1] f_nd[2] f_nd[3]
+
+dump_modify     1 format float "%15.10g" sort id
+
+# thermo output
+
+thermo_style    custom step temp epair emol etotal press #c_rd[*]
+thermo_modify   format float "%15.10g"
+
+# 0-step run
+
+run             0

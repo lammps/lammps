@@ -104,16 +104,12 @@ void ComputeGridLocal::allocate()
 
   if (gridlocal_allocated) {
     gridlocal_allocated = 0;
-    // MEMORY LEAK!!
-    // can't seem to free this memory without seg-fault
-    // printf("Before allocate destroy4d, proc %d %p\n",comm->me,gridlocal);
-    // memory->destroy4d_offset(gridlocal,nzlo,nylo,nxlo);
-    // printf("After allocate destroy4d, proc %d %p\n",comm->me,gridlocal);
+    memory->destroy4d_offset(gridlocal,nzlo,nylo,nxlo);
   }
 
   if (nxlo <= nxhi && nylo <= nyhi && nzlo <= nzhi) {
     gridlocal_allocated = 1;
-    memory->create4d_offset(gridlocal,size_array_cols,nzlo,nzhi,nylo,nyhi,
+    memory->create4d_offset(gridlocal,size_local_cols,nzlo,nzhi,nylo,nyhi,
 			    nxlo,nxhi,"grid:gridlocal");
   }
 }
@@ -248,6 +244,6 @@ void ComputeGridLocal::copy_gridlocal_to_local_array()
 
 double ComputeGridLocal::memory_usage()
 {
-  int nbytes = size_array_cols*ngridlocal*sizeof(double); // gridlocal
+  int nbytes = size_local_cols*ngridlocal*sizeof(double); // gridlocal
   return nbytes;
 }

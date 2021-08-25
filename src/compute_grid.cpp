@@ -207,11 +207,7 @@ void ComputeGrid::allocate()
   memory->destroy(local_flags);
   if (gridlocal_allocated) {
     gridlocal_allocated = 0;
-    // MEMORY LEAK!!
-    // can't seem to free this memory without seg-fault
-    // printf("Before allocate destroy4d, proc %d %p\n",comm->me,gridlocal);
-    // memory->destroy4d_offset(gridlocal,nzlo,nylo,nxlo);
-    // printf("After allocate destroy4d, proc %d %p\n",comm->me,gridlocal);
+    memory->destroy4d_offset(gridlocal,nzlo,nylo,nxlo);
   }
 
   memory->create(grid,size_array_rows,size_array_cols,"grid:grid");

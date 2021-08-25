@@ -272,17 +272,20 @@ void ComputeSNAGridLocal::compute_local()
 	// linear contributions
 
 	for (int icoeff = 0; icoeff < ncoeff; icoeff++)
-	  gridlocal[size_local_cols_base+icoeff][iz][iy][ix] = snaptr->blist[icoeff];
-	
+	  gridlocal[size_local_cols_base+icoeff][iz][iy][ix] = 
+	    snaptr->blist[icoeff];
+
 	// quadratic contributions
 
 	if (quadraticflag) {
 	  int ncount = ncoeff;
 	  for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
 	    double bveci = snaptr->blist[icoeff];
-	    gridlocal[size_local_cols_base+ncount++][iz][iy][ix] = 0.5*bveci*bveci;
+	    gridlocal[size_local_cols_base+ncount++][iz][iy][ix] = 
+	      0.5*bveci*bveci;
 	    for (int jcoeff = icoeff+1; jcoeff < ncoeff; jcoeff++)
-	      gridlocal[size_local_cols_base+ncount++][iz][iy][ix] = bveci*snaptr->blist[jcoeff];
+	      gridlocal[size_local_cols_base+ncount++][iz][iy][ix] = 
+		bveci*snaptr->blist[jcoeff];
 	  }
 	}
       }

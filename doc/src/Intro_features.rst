@@ -27,19 +27,19 @@ General features
 * distributed memory message-passing parallelism (MPI)
 * shared memory multi-threading parallelism (OpenMP)
 * spatial decomposition of simulation domain for MPI parallelism
-* particle decomposition inside of spatial decomposition for OpenMP parallelism
+* particle decomposition inside of spatial decomposition for OpenMP and GPU parallelism
 * GPLv2 licensed open-source distribution
 * highly portable C++-11
 * modular code with most functionality in optional packages
-* only depends on MPI library for basic parallel functionality
+* only depends on MPI library for basic parallel functionality, MPI stub for serial compilation
 * other libraries are optional and only required for specific packages
-* GPU (CUDA and OpenCL), Intel Xeon Phi, and OpenMP support for many code features
+* GPU (CUDA, OpenCL, HIP, SYCL), Intel Xeon Phi, and OpenMP support for many code features
 * easy to extend with new features and functionality
 * runs from an input script
 * syntax for defining and using variables and formulas
 * syntax for looping over runs and breaking out of loops
 * run one or multiple simulations simultaneously (in parallel) from one script
-* build as library, invoke LAMMPS through library interface or provided Python wrapper
+* build as library, invoke LAMMPS through library interface or provided Python wrapper or SWIG based wrappers
 * couple with other codes: LAMMPS calls other code, other code calls LAMMPS, umbrella code calls both
 
 .. _particle:
@@ -57,8 +57,9 @@ Particle and model types
 * granular materials
 * coarse-grained mesoscale models
 * finite-size spherical and ellipsoidal particles
-* finite-size  line segment (2d) and triangle (3d) particles
+* finite-size line segment (2d) and triangle (3d) particles
 * point dipole particles
+* particles with magnetic spin
 * rigid collections of particles
 * hybrid combinations of these
 
@@ -74,24 +75,26 @@ commands)
 
 * pairwise potentials: Lennard-Jones, Buckingham, Morse, Born-Mayer-Huggins, Yukawa, soft, class 2 (COMPASS), hydrogen bond, tabulated
 * charged pairwise potentials: Coulombic, point-dipole
-* many-body potentials: EAM, Finnis/Sinclair EAM, modified EAM (MEAM), embedded ion method (EIM), EDIP, ADP, Stillinger-Weber, Tersoff, REBO, AIREBO, ReaxFF, COMB, SNAP, Streitz-Mintmire, 3-body polymorphic
-* long-range interactions for charge, point-dipoles, and LJ dispersion:     Ewald, Wolf, PPPM (similar to particle-mesh Ewald)
+* many-body potentials: EAM, Finnis/Sinclair EAM, modified EAM (MEAM), embedded ion method (EIM), EDIP, ADP, Stillinger-Weber, Tersoff, REBO, AIREBO, ReaxFF, COMB, Streitz-Mintmire, 3-body polymorphic, BOP, Vashishta
+* machine learning potentials: SNAP, GAP, ACE, N2P2, RANN, AGNI
+* long-range interactions for charge, point-dipoles, and LJ dispersion:  Ewald, Wolf, PPPM (similar to particle-mesh Ewald), MSM
 * polarization models: :doc:`QEq <fix_qeq>`,     :doc:`core/shell model <Howto_coreshell>`,     :doc:`Drude dipole model <Howto_drude>`
 * charge equilibration (QEq via dynamic, point, shielded, Slater methods)
 * coarse-grained potentials: DPD, GayBerne, REsquared, colloidal, DLVO
 * mesoscopic potentials: granular, Peridynamics, SPH
 * electron force field (eFF, AWPMD)
-* bond potentials: harmonic, FENE, Morse, nonlinear, class 2,     quartic (breakable)
-* angle potentials: harmonic, CHARMM, cosine, cosine/squared, cosine/periodic,     class 2 (COMPASS)
-* dihedral potentials: harmonic, CHARMM, multi-harmonic, helix,     class 2 (COMPASS), OPLS
-* improper potentials: harmonic, cvff, umbrella, class 2 (COMPASS)
+* bond potentials: harmonic, FENE, Morse, nonlinear, class 2, quartic (breakable), tabulated
+* angle potentials: harmonic, CHARMM, cosine, cosine/squared, cosine/periodic, class 2 (COMPASS), tabulated
+* dihedral potentials: harmonic, CHARMM, multi-harmonic, helix, class 2 (COMPASS), OPLS, tabulated
+* improper potentials: harmonic, cvff, umbrella, class 2 (COMPASS), tabulated
 * polymer potentials: all-atom, united-atom, bead-spring, breakable
 * water potentials: TIP3P, TIP4P, SPC
+* interlayer potentials for graphene and analogues
 * implicit solvent potentials: hydrodynamic lubrication, Debye
-* force-field compatibility with common CHARMM, AMBER, DREIDING,     OPLS, GROMACS, COMPASS options
+* force-field compatibility with common CHARMM, AMBER, DREIDING, OPLS, GROMACS, COMPASS options
 * access to the `OpenKIM Repository <http://openkim.org>`_ of potentials via     :doc:`kim command <kim_commands>`
-* hybrid potentials: multiple pair, bond, angle, dihedral, improper     potentials can be used in one simulation
-* overlaid potentials: superposition of multiple pair potentials
+* hybrid potentials: multiple pair, bond, angle, dihedral, improper potentials can be used in one simulation
+* overlaid potentials: superposition of multiple pair potentials (including many-body), optional with selectable scale factor
 
 .. _create:
 

@@ -47,6 +47,7 @@ using namespace InterLayer;
 #define PGDELTA 1
 
 static const char cite_kc[] =
+    "kolmogorov/crespi/full potential doi:10.1021/acs.nanolett.8b02848\n"
     "@Article{Ouyang2018\n"
     " author = {W. Ouyang, D. Mandelli, M. Urbakh, and O. Hod},\n"
     " title = {Nanoserpents: Graphene Nanoribbon Motion on Two-Dimensional Hexagonal Materials},\n"

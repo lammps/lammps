@@ -287,16 +287,18 @@ void FixTTM::post_force(int /*vflag*/)
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
+  double *boxlo = domain->boxlo;
+  double dxinv = nxgrid/domain->xprd;
+  double dyinv = nygrid/domain->yprd;
+  double dzinv = nzgrid/domain->zprd;
+
   // apply damping and thermostat to all atoms in fix group
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
-      xscale = (x[i][0] - domain->boxlo[0])/domain->xprd;
-      yscale = (x[i][1] - domain->boxlo[1])/domain->yprd;
-      zscale = (x[i][2] - domain->boxlo[2])/domain->zprd;
-      ix = static_cast<int>(xscale*nxgrid + shift) - OFFSET;
-      iy = static_cast<int>(yscale*nygrid + shift) - OFFSET;
-      iz = static_cast<int>(zscale*nzgrid + shift) - OFFSET;
+      ix = static_cast<int> ((x[i][0]-boxlo[0])*dxinv + shift) - OFFSET;
+      iy = static_cast<int> ((x[i][1]-boxlo[1])*dyinv + shift) - OFFSET;
+      iz = static_cast<int> ((x[i][2]-boxlo[2])*dzinv + shift) - OFFSET;
       if (ix < 0) ix += nxgrid;
       if (iy < 0) iy += nygrid;
       if (iz < 0) iz += nzgrid;
@@ -354,6 +356,11 @@ void FixTTM::end_of_step()
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
+  double *boxlo = domain->boxlo;
+  double dxinv = nxgrid/domain->xprd;
+  double dyinv = nygrid/domain->yprd;
+  double dzinv = nzgrid/domain->zprd;
+
   for (iz = 0; iz < nzgrid; iz++)
     for (iy = 0; iy < nygrid; iy++)
       for (ix = 0; ix < nxgrid; ix++)
@@ -361,25 +368,19 @@ void FixTTM::end_of_step()
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      xscale = (x[i][0] - domain->boxlo[0])/domain->xprd;
-      yscale = (x[i][1] - domain->boxlo[1])/domain->yprd;
-      zscale = (x[i][2] - domain->boxlo[2])/domain->zprd;
-      ix = static_cast<int>(xscale*nxgrid + shift) - OFFSET;
-      iy = static_cast<int>(yscale*nygrid + shift) - OFFSET;
-      iz = static_cast<int>(zscale*nzgrid + shift) - OFFSET;
+      ix = static_cast<int> ((x[i][0]-boxlo[0])*dxinv + shift) - OFFSET;
+      iy = static_cast<int> ((x[i][1]-boxlo[1])*dyinv + shift) - OFFSET;
+      iz = static_cast<int> ((x[i][2]-boxlo[2])*dzinv + shift) - OFFSET;
       if (ix < 0) ix += nxgrid;
       if (iy < 0) iy += nygrid;
       if (iz < 0) iz += nzgrid;
       if (ix >= nxgrid) ix -= nxgrid;
       if (iy >= nygrid) iy -= nygrid;
       if (iz >= nzgrid) iz -= nzgrid;
+
       net_energy_transfer[iz][iy][ix] +=
         (flangevin[i][0]*v[i][0] + flangevin[i][1]*v[i][1] +
          flangevin[i][2]*v[i][2]);
-      //printf("FLANG i %d xyz %g %g %g\n",i,
-      //       flangevin[i][0],
-      //       flangevin[i][1],
-      //       flangevin[i][2]);
     }
 
   outflag = 0;
@@ -443,15 +444,12 @@ void FixTTM::end_of_step()
             inner_dt/(electronic_specific_heat*electronic_density) *
             (electronic_thermal_conductivity *
 
-             ((T_electron_old[iz][iy][xright] +
-               T_electron_old[iz][iy][xleft] -
-               2*T_electron_old[iz][iy][ix])/dx/dx +
-              (T_electron_old[iz][yright][ix] +
-               T_electron_old[iz][yleft][ix] -
-               2*T_electron_old[iz][iy][ix])/dy/dy +
-              (T_electron_old[zright][iy][ix] +
-               T_electron_old[zleft][iy][ix] -
-               2*T_electron_old[iz][iy][ix])/dz/dz) -
+             ((T_electron_old[iz][iy][xright] + T_electron_old[iz][iy][xleft] -
+               2.0*T_electron_old[iz][iy][ix])/dx/dx +
+              (T_electron_old[iz][yright][ix] + T_electron_old[iz][yleft][ix] -
+               2.0*T_electron_old[iz][iy][ix])/dy/dy +
+              (T_electron_old[zright][iy][ix] + T_electron_old[zleft][iy][ix] -
+               2.0*T_electron_old[iz][iy][ix])/dz/dz) -
              
              (net_energy_transfer_all[iz][iy][ix])/del_vol);
         }

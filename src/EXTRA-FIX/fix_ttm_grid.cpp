@@ -79,8 +79,13 @@ void FixTTMGrid::post_constructor()
          ngridout*sizeof(double));
 
   // set initial electron temperatures from user input file
+  // communicate new T_electron values to ghost grid points
 
-  if (infile) read_electron_temperatures(infile);
+  if (infile) {
+    read_electron_temperatures(infile);
+    gc->forward_comm(GridComm::FIX,this,1,sizeof(double),0,
+                     gc_buf1,gc_buf2,MPI_DOUBLE);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -118,7 +123,6 @@ void FixTTMGrid::post_force(int /*vflag*/)
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
-
       ix = static_cast<int> ((x[i][0]-boxlo[0])*dxinv + shift) - OFFSET;
       iy = static_cast<int> ((x[i][1]-boxlo[1])*dyinv + shift) - OFFSET;
       iz = static_cast<int> ((x[i][2]-boxlo[2])*dzinv + shift) - OFFSET;
@@ -183,6 +187,7 @@ void FixTTMGrid::end_of_step()
       ix = static_cast<int> ((x[i][0]-boxlo[0])*dxinv + shift) - OFFSET;
       iy = static_cast<int> ((x[i][1]-boxlo[1])*dyinv + shift) - OFFSET;
       iz = static_cast<int> ((x[i][2]-boxlo[2])*dzinv + shift) - OFFSET;
+
       net_energy_transfer[iz][iy][ix] +=
         (flangevin[i][0]*v[i][0] + flangevin[i][1]*v[i][1] +
          flangevin[i][2]*v[i][2]);
@@ -228,20 +233,20 @@ void FixTTMGrid::end_of_step()
             (electronic_thermal_conductivity *
 
              ((T_electron_old[iz][iy][ix-1] + T_electron_old[iz][iy][ix+1] -
-               2*T_electron_old[iz][iy][ix])*dxinv*dxinv +
+               2.0*T_electron_old[iz][iy][ix])*dxinv*dxinv +
               (T_electron_old[iz][iy-1][ix] + T_electron_old[iz][iy+1][ix] -
-               2*T_electron_old[iz][iy][ix])*dyinv*dyinv +
+               2.0*T_electron_old[iz][iy][ix])*dyinv*dyinv +
               (T_electron_old[iz-1][iy][ix] + T_electron_old[iz+1][iy][ix] -
-               2*T_electron_old[iz][iy][ix])*dzinv*dzinv) -
+               2.0*T_electron_old[iz][iy][ix])*dzinv*dzinv) -
              
              net_energy_transfer[iz][iy][ix]/volgrid);
         }
+
+    // communicate new T_electron values to ghost grid points
+
+    gc->forward_comm(GridComm::FIX,this,1,sizeof(double),0,
+                     gc_buf1,gc_buf2,MPI_DOUBLE);
   }
-
-  // communicate new T_electron values to ghost grid points
-
-  gc->forward_comm(GridComm::FIX,this,1,sizeof(double),0,
-                   gc_buf1,gc_buf2,MPI_DOUBLE);
 
   // output of grid temperatures to file
 
@@ -364,11 +369,6 @@ void FixTTMGrid::read_electron_temperatures(const char *filename)
     error->all(FLERR,"Fix ttm/grid infile did not set all temperatures");
 
   memory->destroy3d_offset(T_initial_set,nzlo_in,nylo_in,nxlo_in);
-
-  // communicate new T_electron values to ghost grid points
-
-  gc->forward_comm(GridComm::FIX,this,1,sizeof(double),0,
-                   gc_buf1,gc_buf2,MPI_DOUBLE);
 }
 
 /* ----------------------------------------------------------------------
@@ -593,6 +593,9 @@ void FixTTMGrid::restart(char *buf)
       for (ix = nxlo_in; ix <= nxhi_in; ix++) {
         iglobal = nygrid*nxgrid*iz + nxgrid*iy + ix;
         T_electron[iz][iy][ix] = rlist[n+iglobal];
+        if (ix == 0 && iy == 0 & iz == 0)
+          printf("READRESTART 000 n+iglobal %d %d value %g\n",n,iglobal,
+                 T_electron[ix][iy][iz]);
       }
 }
 

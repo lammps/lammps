@@ -187,11 +187,11 @@ void FixTTM::post_constructor()
 
   memset(&T_electron[0][0][0],0,ngridtotal*sizeof(double));
 
-  // zero net_energy_transfer
+  // zero net_energy_transfer_all
   // in case compute_vector accesses it on timestep 0
 
   outflag = 0;
-  memset(&net_energy_transfer[0][0][0],0,ngridtotal*sizeof(double));
+  memset(&net_energy_transfer_all[0][0][0],0,ngridtotal*sizeof(double));
 
   // set initial electron temperatures from user input file
 
@@ -354,11 +354,10 @@ void FixTTM::end_of_step()
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  outflag = 0;
   for (iz = 0; iz < nzgrid; iz++)
     for (iy = 0; iy < nygrid; iy++)
       for (ix = 0; ix < nxgrid; ix++)
-        net_energy_transfer[iz][iy][ix] = 0;
+        net_energy_transfer[iz][iy][ix] = 0.0;
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
@@ -377,8 +376,13 @@ void FixTTM::end_of_step()
       net_energy_transfer[iz][iy][ix] +=
         (flangevin[i][0]*v[i][0] + flangevin[i][1]*v[i][1] +
          flangevin[i][2]*v[i][2]);
+      //printf("FLANG i %d xyz %g %g %g\n",i,
+      //       flangevin[i][0],
+      //       flangevin[i][1],
+      //       flangevin[i][2]);
     }
 
+  outflag = 0;
   MPI_Allreduce(&net_energy_transfer[0][0][0],
                 &net_energy_transfer_all[0][0][0],
                 ngridtotal,MPI_DOUBLE,MPI_SUM,world);
@@ -706,7 +710,10 @@ double FixTTM::compute_vector(int n)
             electronic_density*del_vol;
           transfer_energy +=
             net_energy_transfer_all[iz][iy][ix]*update->dt;
+          //printf("TRANSFER %d %d %d %g\n",ix,iy,iz,transfer_energy);
         }
+
+    //printf("TRANSFER %g\n",transfer_energy);
 
     outflag = 1;
   }

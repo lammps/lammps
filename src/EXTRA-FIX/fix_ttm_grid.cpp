@@ -453,34 +453,6 @@ void FixTTMGrid::allocate_grid()
   comm->partition_grid(nxgrid,nygrid,nzgrid,0.0,
                        nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in);
 
-  /*
-  // global indices of grid range from 0 to N-1
-  // nlo_in,nhi_in = lower/upper limits of the 3d sub-brick of
-  //   global grid that I own without ghost cells
-  // both non-tiled and tiled proc layouts use 0-1 fractional subdomain info
-
-  if (comm->layout != Comm::LAYOUT_TILED) {
-    nxlo_in = static_cast<int> (comm->xsplit[comm->myloc[0]] * nxgrid);
-    nxhi_in = static_cast<int> (comm->xsplit[comm->myloc[0]+1] * nxgrid) - 1;
-
-    nylo_in = static_cast<int> (comm->ysplit[comm->myloc[1]] * nygrid);
-    nyhi_in = static_cast<int> (comm->ysplit[comm->myloc[1]+1] * nygrid) - 1;
-
-    nzlo_in = static_cast<int> (comm->zsplit[comm->myloc[2]] * nzgrid);
-    nzhi_in = static_cast<int> (comm->zsplit[comm->myloc[2]+1] * nzgrid) - 1;
-
-  } else {
-    nxlo_in = static_cast<int> (comm->mysplit[0][0] * nxgrid);
-    nxhi_in = static_cast<int> (comm->mysplit[0][1] * nxgrid) - 1;
-
-    nylo_in = static_cast<int> (comm->mysplit[1][0] * nygrid);
-    nyhi_in = static_cast<int> (comm->mysplit[1][1] * nygrid) - 1;
-
-    nzlo_in = static_cast<int> (comm->mysplit[1][0] * nzgrid);
-    nzhi_in = static_cast<int> (comm->mysplit[1][1] * nzgrid) - 1;
-  }
-  */
-
   // nlo,nhi = min/max index of global grid pt my owned atoms can be mapped to
   // finite difference stencil requires extra grid pt around my owned grid pts
   // max of these 2 quantities is the ghost cells needed in each dim

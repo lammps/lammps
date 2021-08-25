@@ -640,7 +640,8 @@ void FixTTMOld::restart(char *buf)
 
   // the seed must be changed from the initial seed
 
-  seed = static_cast<int> (0.5*rlist[n++]);
+  seed = static_cast<int> (rlist[n++]) + 1;
+  //seed = static_cast<int> (0.5*rlist[n++]);
 
   for (int ixnode = 0; ixnode < nxnodes; ixnode++)
     for (int iynode = 0; iynode < nynodes; iynode++)

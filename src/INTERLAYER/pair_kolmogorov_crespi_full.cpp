@@ -478,7 +478,7 @@ void PairKolmogorovCrespiFull::calc_FRep(int eflag, int /* vflag */)
   double dprodnorm1[3] = {0.0, 0.0, 0.0};
   double fp1[3] = {0.0, 0.0, 0.0};
   double fprod1[3] = {0.0, 0.0, 0.0};
-  double delkj[3] = {0.0, 0.0, 0.0};
+  double delki[3] = {0.0, 0.0, 0.0};
   double fk[3] = {0.0, 0.0, 0.0};
 
   inum = list->inum;
@@ -585,12 +585,12 @@ void PairKolmogorovCrespiFull::calc_FRep(int eflag, int /* vflag */)
           f[k][0] += fk[0];
           f[k][1] += fk[1];
           f[k][2] += fk[2];
-          delkj[0] = x[k][0] - x[j][0];
-          delkj[1] = x[k][1] - x[j][1];
-          delkj[2] = x[k][2] - x[j][2];
+          delki[0] = x[k][0] - x[i][0];
+          delki[1] = x[k][1] - x[i][1];
+          delki[2] = x[k][2] - x[i][2];
           if (evflag)
-            ev_tally_xyz(k, j, nlocal, newton_pair, 0.0, 0.0, fk[0], fk[1], fk[2], delkj[0],
-                         delkj[1], delkj[2]);
+            ev_tally_xyz(k, j, nlocal, newton_pair, 0.0, 0.0, fk[0], fk[1], fk[2], delki[0],
+                         delki[1], delki[2]);
         }
 
         if (eflag) {

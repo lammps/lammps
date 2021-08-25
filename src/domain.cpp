@@ -175,7 +175,7 @@ void Domain::init()
 
   deform_flag = deform_vremap = deform_groupbit = 0;
   for (int i = 0; i < modify->nfix; i++)
-    if (strcmp(modify->fix[i]->style,"deform") == 0) {
+    if (utils::strmatch(modify->fix[i]->style,"^deform")) {
       deform_flag = 1;
       if (((FixDeform *) modify->fix[i])->remapflag == Domain::V_REMAP) {
         deform_vremap = 1;

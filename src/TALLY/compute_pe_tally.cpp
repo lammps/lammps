@@ -203,6 +203,6 @@ void ComputePETally::compute_peratom()
 
 double ComputePETally::memory_usage()
 {
-  double bytes = (nmax < 0) ? 0 : nmax * (double)size_peratom_cols * sizeof(double);
+  double bytes = (nmax < 0) ? 0 : nmax * (double) size_peratom_cols * sizeof(double);
   return bytes;
 }

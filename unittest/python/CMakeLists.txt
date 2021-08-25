@@ -46,7 +46,7 @@ if(Python_EXECUTABLE)
     find_package_handle_standard_args(COVERAGE DEFAULT_MSG COVERAGE_BINARY)
 
     if(COVERAGE_FOUND)
-        set(PYTHON_TEST_RUNNER ${Python_EXECUTABLE} -u ${COVERAGE_BINARY} run --parallel-mode --include=${LAMMPS_PYTHON_DIR}/lammps/*.py --omit=${LAMMPS_PYTHON_DIR}/install.py)
+        set(PYTHON_TEST_RUNNER ${Python_EXECUTABLE} -u ${COVERAGE_BINARY} run --rcfile=${CMAKE_BINARY_DIR}/.coveragerc)
     else()
         set(PYTHON_TEST_RUNNER ${Python_EXECUTABLE} -u)
     endif()

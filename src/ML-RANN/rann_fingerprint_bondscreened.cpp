@@ -627,16 +627,16 @@ void Fingerprint_bondscreened::do3bodyfeatureset_doubleneighborloop(double * fea
     if (Bij[jj]==false) {continue;}
     jtype = tn[jj];
     if (jtypes != nelements && jtypes != jtype && ktypes != nelements && ktypes != jtype) {
-    	expr[jj][0]=0;
-    	continue;
+        expr[jj][0]=0;
+        continue;
     }
     delx = xn[jj];
     dely = yn[jj];
     delz = zn[jj];
     rsq = delx*delx + dely*dely + delz*delz;
     if (rsq>rc*rc) {
-    	expr[jj][0]=0;
-    	continue;
+        expr[jj][0]=0;
+        continue;
     }
     double r1 = (rsq*((double)res)*cutinv2);
     int m1 = (int)r1;
@@ -647,8 +647,8 @@ void Fingerprint_bondscreened::do3bodyfeatureset_doubleneighborloop(double * fea
     double *p2 = &expcuttable[(m1+1)*kmax];
     double *p3 = &expcuttable[(m1+2)*kmax];
     for (kk=0;kk<kmax;kk++) {
-    	expr[jj][kk] = p1[kk]+0.5*r1*(p2[kk]-p0[kk]+r1*(2.0*p0[kk]-5.0*p1[kk]+4.0*p2[kk]-p3[kk]+r1*(3.0*(p1[kk]-p2[kk])+p3[kk]-p0[kk])));
-    	expr[jj][kk] *= Sik[jj];
+        expr[jj][kk] = p1[kk]+0.5*r1*(p2[kk]-p0[kk]+r1*(2.0*p0[kk]-5.0*p1[kk]+4.0*p2[kk]-p3[kk]+r1*(3.0*(p1[kk]-p2[kk])+p3[kk]-p0[kk])));
+        expr[jj][kk] *= Sik[jj];
     }
     double* q = &dfctable[m1-1];
     double* r2 = &rinvsqrttable[m1-1];

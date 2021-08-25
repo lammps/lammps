@@ -221,7 +221,8 @@ void PairLJCutCoulCutDielectricOMP::eval(int iifrom, int iito, ThrData *const th
         }
 
         if (EVFLAG)
-          ev_tally_thr(this, i, j, nlocal, NEWTON_PAIR, evdwl, ecoul, fpair_i, delx, dely, delz, thr);
+          ev_tally_thr(this, i, j, nlocal, NEWTON_PAIR, evdwl, ecoul, fpair_i, delx, dely, delz,
+                       thr);
       }
     }
     f[i].x += fxtmp;

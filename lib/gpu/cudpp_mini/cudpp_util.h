@@ -3,11 +3,11 @@
 // -------------------------------------------------------------
 // $Revision: 5289 $
 // $Date: 2010-11-23 13:04:43 -0700 (Tue, 23 Nov 2010) $
-// ------------------------------------------------------------- 
+// -------------------------------------------------------------
 // This source code is distributed under the terms of license.txt in
 // the root directory of this source distribution.
-// ------------------------------------------------------------- 
- 
+// -------------------------------------------------------------
+
 /**
  * @file
  * cudpp_util.h
@@ -40,7 +40,7 @@
   * @param n Value to be checked to see if it is a power of two
   * @returns True if \a n is a power of two, false otherwise
   */
-inline bool 
+inline bool
 isPowerOfTwo(int n)
 {
     return ((n&(n-1))==0) ;
@@ -64,8 +64,8 @@ isMultiple(int n, int f)
   * @param n Input value
   * @returns The smallest power f two larger than \a n
   */
-inline int 
-ceilPow2(int n) 
+inline int
+ceilPow2(int n)
 {
         double log2n = log2((double)n);
         if (isPowerOfTwo(n))
@@ -78,7 +78,7 @@ ceilPow2(int n)
   * @param n Input value
   * @returns The largest power of two smaller than \a n.
   */
-inline int 
+inline int
 floorPow2(int n)
 {
 #ifdef WIN32
@@ -93,16 +93,16 @@ floorPow2(int n)
 }
 
 /** @brief Returns the maximum value for type \a T.
-  * 
+  *
   * Implemented using template specialization on \a T.
   */
-template <class T> 
+template <class T>
 __host__ __device__ inline T getMax() { return 0; }
 /** @brief Returns the minimum value for type \a T.
-* 
+*
 * Implemented using template specialization on \a T.
 */
-template <class T> 
+template <class T>
 __host__ __device__ inline T getMin() { return 0; }
 // type specializations for the above
 // getMax
@@ -118,22 +118,22 @@ template <> __host__ __device__ inline float getMin() { return -FLT_MAX; }
 template <> __host__ __device__ inline char getMin() { return (char)INT_MIN; }
 template <> __host__ __device__ inline unsigned char getMin() { return (unsigned char)0; }
 
-/** @brief Returns the maximum of three values. 
-  * @param a First value. 
-  * @param b Second value. 
-  * @param c Third value. 
+/** @brief Returns the maximum of three values.
+  * @param a First value.
+  * @param b Second value.
+  * @param c Third value.
   * @returns The maximum of \a a, \a b and \a c.
   */
 template<class T>
 inline int max3(T a, T b, T c)
-{       
+{
     return (a > b) ? ((a > c)? a : c) : ((b > c) ? b : c);
 }
 
 /** @brief Utility template struct for generating small vector types from scalar types
   *
-  * Given a base scalar type (\c int, \c float, etc.) and a vector length (1 through 4) as 
-  * template parameters, this struct defines a vector type (\c float3, \c int4, etc.) of the 
+  * Given a base scalar type (\c int, \c float, etc.) and a vector length (1 through 4) as
+  * template parameters, this struct defines a vector type (\c float3, \c int4, etc.) of the
   * specified length and base type.  For example:
   * \code
   * template <class T>
@@ -145,8 +145,8 @@ inline int max3(T a, T b, T c)
   * \endcode
   *
   * This functionality is implemented using template specialization.  Currently specializations
-  * for int, float, and unsigned int vectors of lengths 2-4 are defined.  Note that this results 
-  * in types being generated at compile time -- there is no runtime cost.  typeToVector is used by 
+  * for int, float, and unsigned int vectors of lengths 2-4 are defined.  Note that this results
+  * in types being generated at compile time -- there is no runtime cost.  typeToVector is used by
   * the optimized scan \c __device__ functions in scan_cta.cu.
   */
 template <typename T, int N>
@@ -202,15 +202,15 @@ struct typeToVector<float, 2>
 };
 
 /** @brief Templatized operator class used by scan and segmented scan
-  * 
-  * This Operator class is used to allow generic support of binary 
-  * associative operators in scan.  It defines two member functions, 
-  * op() and identity(), that are used in place of + and 0 (for 
-  * example) in the scan and  segmented scan code. Because this is 
-  * template code, all decisions in the code are made at compile 
-  * time, resulting in optimal operator code. Currently the operators 
-  * CUDPP_ADD, CUDPP_MULTIPLY, CUDPP_MIN, and CUDPP_MAX are supported. 
-  * Operator is implemented using template specialization for the 
+  *
+  * This Operator class is used to allow generic support of binary
+  * associative operators in scan.  It defines two member functions,
+  * op() and identity(), that are used in place of + and 0 (for
+  * example) in the scan and  segmented scan code. Because this is
+  * template code, all decisions in the code are made at compile
+  * time, resulting in optimal operator code. Currently the operators
+  * CUDPP_ADD, CUDPP_MULTIPLY, CUDPP_MIN, and CUDPP_MAX are supported.
+  * Operator is implemented using template specialization for the
   * types \c int, \c unsigned int, and \c float.
   */
 template <typename T, CUDPPOperator oper>
@@ -226,15 +226,15 @@ public:
     {
         switch (oper)
         {
-        case CUDPP_ADD: 
+        case CUDPP_ADD:
             return a + b;
         case CUDPP_MULTIPLY:
             return a * b;
         case CUDPP_MIN:
             return min(a, b);
-        case CUDPP_MAX: 
+        case CUDPP_MAX:
             return max(a, b);
-        }         
+        }
     }
 
     /** Returns the identity element defined for type \a T */
@@ -251,15 +251,15 @@ public:
         switch (oper)
         {
         default:
-        case CUDPP_ADD: 
+        case CUDPP_ADD:
             return a + b;
         case CUDPP_MULTIPLY:
             return a * b;
         case CUDPP_MIN:
             return min(a, b);
-        case CUDPP_MAX: 
+        case CUDPP_MAX:
             return max(a, b);
-        }         
+        }
     }
 
     static __device__ int identity()
@@ -288,15 +288,15 @@ public:
         switch (oper)
         {
         default:
-        case CUDPP_ADD: 
+        case CUDPP_ADD:
             return a + b;
         case CUDPP_MULTIPLY:
             return a * b;
         case CUDPP_MIN:
             return min(a, b);
-        case CUDPP_MAX: 
+        case CUDPP_MAX:
             return max(a, b);
-        }         
+        }
     }
 
     static __device__ unsigned int identity()
@@ -326,15 +326,15 @@ public:
         switch (oper)
         {
         default:
-        case CUDPP_ADD: 
+        case CUDPP_ADD:
             return a + b;
         case CUDPP_MULTIPLY:
             return a * b;
         case CUDPP_MIN:
             return min(a, b);
-        case CUDPP_MAX: 
+        case CUDPP_MAX:
             return max(a, b);
-        }         
+        }
     }
 
     static __device__ float identity()

@@ -29,7 +29,7 @@ void WeakEquationElectronContinuity::M_integrand(
 {
   FIELD_MATS::const_iterator nField = fields.find(ELECTRON_DENSITY);
   const DENS_MAT &  n = nField->second;
-  density.resize(n.nRows(),n.nCols()); 
+  density.resize(n.nRows(),n.nCols());
   density = 1;
 }
 
@@ -77,7 +77,7 @@ void WeakEquationElectronEquilibrium::M_integrand(
 {
   FIELD_MATS::const_iterator nField = fields.find(ELECTRON_DENSITY);
   const DENS_MAT &  n = nField->second;
-  density.reset(n.nRows(),n.nCols()); 
+  density.reset(n.nRows(),n.nCols());
   density = 1;
 }
 

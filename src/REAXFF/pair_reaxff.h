@@ -35,9 +35,9 @@ PairStyle(reax/c,PairReaxFF);
 #include "pair.h"
 
 namespace ReaxFF {
-  struct API;
-  struct far_neighbor_data;
-}
+struct API;
+struct far_neighbor_data;
+}    // namespace ReaxFF
 
 namespace LAMMPS_NS {
 
@@ -53,17 +53,17 @@ class PairReaxFF : public Pair {
   void *extract(const char *, int &);
   int fixbond_flag, fixspecies_flag;
   int **tmpid;
-  double **tmpbo,**tmpr;
+  double **tmpbo, **tmpr;
 
   ReaxFF::API *api;
   typedef double rvec[3];
 
-protected:
+ protected:
   char *fix_id;
   double cutmax;
   class FixReaxFF *fix_reaxff;
 
-  double *chi,*eta,*gamma;
+  double *chi, *eta, *gamma;
   int qeqflag;
   int setup_flag;
   int firstwarn;
@@ -84,7 +84,7 @@ protected:
   double memory_usage();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

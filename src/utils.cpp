@@ -13,6 +13,7 @@
 
 #include "utils.h"
 
+#include "atom.h"
 #include "comm.h"
 #include "compute.h"
 #include "error.h"
@@ -213,7 +214,7 @@ char *utils::fgets_trunc(char *buf, int size, FILE *fp)
 void utils::sfgets(const char *srcname, int srcline, char *s, int size, FILE *fp,
                    const char *filename, Error *error)
 {
-  constexpr int MAXPATHLENBUF=1024;
+  constexpr int MAXPATHLENBUF = 1024;
   char *rv = fgets(s, size, fp);
   if (rv == nullptr) {    // something went wrong
     char buf[MAXPATHLENBUF];
@@ -242,7 +243,7 @@ void utils::sfgets(const char *srcname, int srcline, char *s, int size, FILE *fp
 void utils::sfread(const char *srcname, int srcline, void *s, size_t size, size_t num, FILE *fp,
                    const char *filename, Error *error)
 {
-  constexpr int MAXPATHLENBUF=1024;
+  constexpr int MAXPATHLENBUF = 1024;
   size_t rv = fread(s, size, num, fp);
   if (rv != num) {    // something went wrong
     char buf[MAXPATHLENBUF];
@@ -542,17 +543,25 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
     std::string word(arg[iarg]);
     expandflag = 0;
 
-    // only match compute/fix reference with a '*' wildcard
+    // match compute, fix, or custom property array reference with a '*' wildcard
     // number range in the first pair of square brackets
 
-    if (strmatch(word, "^[cf]_\\w+\\[\\d*\\*\\d*\\]")) {
+    if (strmatch(word, "^[cf]_\\w+\\[\\d*\\*\\d*\\]") ||
+        strmatch(word, "^[id]2_\\w+\\[\\d*\\*\\d*\\]")) {
 
-      // split off the compute/fix ID, the wildcard and trailing text
+      // split off the compute/fix/property ID, the wildcard and trailing text
+
       size_t first = word.find("[");
       size_t second = word.find("]", first + 1);
-      id = word.substr(2, first - 2);
+      if (word[1] == '2')
+        id = word.substr(3, first - 3);
+      else
+        id = word.substr(2, first - 2);
+
       wc = word.substr(first + 1, second - first - 1);
       tail = word.substr(second + 1);
+
+      // compute
 
       if (word[0] == 'c') {
         int icompute = lmp->modify->find_compute(id);
@@ -575,6 +584,9 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
             expandflag = 1;
           }
         }
+
+        // fix
+
       } else if (word[0] == 'f') {
         int ifix = lmp->modify->find_fix(id);
 
@@ -597,8 +609,27 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
             expandflag = 1;
           }
         }
+
+        // only match custom array reference with a '*' wildcard
+        // number range in the first pair of square brackets
+
+      } else if ((word[0] == 'i') || (word[0] == 'd')) {
+        int flag, cols;
+        int icustom = lmp->atom->find_custom(id.c_str(), flag, cols);
+
+        if ((icustom >= 0) && (mode == 1) && (cols > 0)) {
+
+          // check for custom per-atom array
+
+          if (((word[0] == 'i') && (flag == 0)) || ((word[0] == 'd') && (flag == 1))) {
+            nmax = cols;
+            expandflag = 1;
+          }
+        }
       }
     }
+
+    // expansion will take place
 
     if (expandflag) {
 
@@ -611,11 +642,9 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
       }
 
       for (int index = nlo; index <= nhi; index++) {
-        // assemble and duplicate expanded string
-        earg[newarg] = utils::strdup(fmt::format("{}_{}[{}]{}", word[0], id, index, tail));
+        earg[newarg] = utils::strdup(fmt::format("{}2_{}[{}]{}", word[0], id, index, tail));
         newarg++;
       }
-
     } else {
       // no expansion: duplicate original string
       if (newarg == maxarg) {

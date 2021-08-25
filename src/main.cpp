@@ -13,8 +13,8 @@
 
 #include "lammps.h"
 
-#include "input.h"
 #include "accelerator_kokkos.h"
+#include "input.h"
 #if defined(LAMMPS_EXCEPTIONS)
 #include "exceptions.h"
 #endif

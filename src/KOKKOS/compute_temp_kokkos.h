@@ -18,13 +18,14 @@ ComputeStyle(temp/kk/device,ComputeTempKokkos<LMPDeviceType>);
 ComputeStyle(temp/kk/host,ComputeTempKokkos<LMPHostType>);
 // clang-format on
 #else
+
+// clang-format off
 #ifndef LMP_COMPUTE_TEMP_KOKKOS_H
 #define LMP_COMPUTE_TEMP_KOKKOS_H
 
 #include "compute_temp.h"
 #include "kokkos_type.h"
 
-// clang-format off
 namespace LAMMPS_NS {
 
 template<int RMASS>

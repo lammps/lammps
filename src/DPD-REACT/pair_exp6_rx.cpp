@@ -599,7 +599,7 @@ void PairExp6rx::coeff(int narg, char **arg)
 
   int ispecies;
   for (ispecies = 0; ispecies < nspecies; ispecies++) {
-    if (strcmp(site1,&atom->dname[ispecies][0]) == 0) break;
+    if (strcmp(site1,&atom->dvname[ispecies][0]) == 0) break;
   }
   if (ispecies == nspecies && strcmp(site1,"1fluid") != 0)
     error->all(FLERR,"Site1 name not recognized in pair coefficients");
@@ -607,7 +607,7 @@ void PairExp6rx::coeff(int narg, char **arg)
   site2 = utils::strdup(arg[4]);
 
   for (ispecies = 0; ispecies < nspecies; ispecies++) {
-    if (strcmp(site2,&atom->dname[ispecies][0]) == 0) break;
+    if (strcmp(site2,&atom->dvname[ispecies][0]) == 0) break;
   }
   if (ispecies == nspecies && strcmp(site2,"1fluid") != 0)
     error->all(FLERR,"Site2 name not recognized in pair coefficients");
@@ -620,7 +620,7 @@ void PairExp6rx::coeff(int narg, char **arg)
     else {
         int isp;
         for (isp = 0; isp < nspecies; isp++)
-          if (strcmp(site1, &atom->dname[isp][0]) == 0) break;
+          if (strcmp(site1, &atom->dvname[isp][0]) == 0) break;
 
         if (isp == nspecies)
           error->all(FLERR,"Site1 name not recognized in pair coefficients");
@@ -633,7 +633,7 @@ void PairExp6rx::coeff(int narg, char **arg)
     else {
         int isp;
         for (isp = 0; isp < nspecies; isp++)
-        if (strcmp(site2, &atom->dname[isp][0]) == 0) break;
+        if (strcmp(site2, &atom->dvname[isp][0]) == 0) break;
 
         if (isp == nspecies)
           error->all(FLERR,"Site2 name not recognized in pair coefficients");
@@ -779,7 +779,7 @@ void PairExp6rx::read_file(char *file)
     while ((words[nwords++] = strtok(nullptr," \t\n\r\f"))) continue;
 
     for (ispecies = 0; ispecies < nspecies; ispecies++)
-      if (strcmp(words[0],&atom->dname[ispecies][0]) == 0) break;
+      if (strcmp(words[0],&atom->dvname[ispecies][0]) == 0) break;
     if (ispecies == nspecies) continue;
 
     // load up parameter settings and error check their values
@@ -797,7 +797,7 @@ void PairExp6rx::read_file(char *file)
 
     params[nparams].ispecies = ispecies;
 
-    params[nparams].name = utils::strdup(&atom->dname[ispecies][0]);
+    params[nparams].name = utils::strdup(&atom->dvname[ispecies][0]);
     params[nparams].potential = utils::strdup(words[1]);
     if (strcmp(params[nparams].potential,"exp6") == 0) {
       params[nparams].alpha = utils::numeric(FLERR,words[2],false,lmp);

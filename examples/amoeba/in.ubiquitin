@@ -1,19 +1,12 @@
-# default cmd-line variable settings
-
-variable      a index ""
-variable      diff index 0
+# solvated ubiquitin molecule with AMOEBA force field
 
 units           real
 boundary        p p p
-atom_modify  sort 0 0.0
-comm_modify  cutoff 5.0
 
 atom_style amoeba
-special_bonds   lj/coul 0.5 0.5 0.5 one/five yes
 
 bond_style      class2
 angle_style     amoeba
-#dihedral_style  nharmonic
 dihedral_style  none
 
 # per-atom properties required by AMOEBA or HIPPO
@@ -23,82 +16,19 @@ fix             extra all property/atom &
                 i_amgroup i_ired i_xaxis i_yaxis i_zaxis d_pval ghost yes
 fix             extra2 all property/atom i_polaxe
 
-read_data       data.${struc}.angles fix amtype NULL "Tinker Types"
-#read_data       data.watersmall fix amtype NULL "Tinker Types"
-#read_data       data.water_hexamer fix amtype NULL "Tinker Types"
+read_data       data.ubiquitin fix amtype NULL "Tinker Types"
 
-# insure all 1-2,1-3,1-4,1-5 are in Tinker neigh list
+pair_style      amoeba
+pair_coeff      * * amoeba_ubiquitin.prm amoeba_ubiquitin.key
 
 special_bonds   lj/coul 0.5 0.5 0.5 one/five yes
 
-# force field terms
-# depends on 2 command-line variables
-# ff = amoeba or hippo, a = args for pair_style
-
-if "${ff} == amoeba" then &
-"pair_style      amoeba $a" &
-"pair_coeff      * * amoeba.prm amoeba.key"
-
-if "${ff} == hippo" then &
-"pair_style      hippo $a" &
-"pair_coeff      * * hippo.prm hippo.key"
-
-if "${ff} == amoeba_direct" then &
-"pair_style      amoeba $a" &
-"pair_coeff      * * amoeba_direct.prm amoeba_direct.key"
-
-if "${ff} == hippo_direct" then &
-"pair_style      hippo $a" &
-"pair_coeff      * * hippo_direct.prm hippo_direct.key"
-
-if "${ff} == amoeba_opt" then &
-"pair_style      amoeba $a" &
-"pair_coeff      * * amoeba.prm amoeba_opt.key"
-
-if "${ff} == hippo_opt" then &
-"pair_style      hippo $a" &
-"pair_coeff      * * hippo.prm hippo_opt.key"
-
-# optional turn off angle and dihedral
-
-#angle_style     none
-dihedral_style  none
-
-# numeric difference of forces
-
-#compute       nd all pe
-#fix                nd all numdiff ${diff} 1.0e-5 nd
-#variable        dx atom abs(fx+f_nd[1])
-#variable        dy atom abs(fy+f_nd[2])
-#variable        dz atom abs(fz+f_nd[3])
-#compute       rd all reduce max v_dx v_dy v_dz
-
-# setup force components this way so can dump them
-
-fix             fhal all store/state 0 fx fy fz
-fix             frepulse all store/state 0 fx fy fz
-fix             fdisp all store/state 0 fx fy fz
-fix             fpolar all store/state 0 fx fy fz
-fix             fmpole all store/state 0 fx fy fz
-fix             fqxfer all store/state 0 fx fy fz
-
-dump       1 all custom 1 ${dumpfile} id type x y z fx fy fz &
-#                f_fhal[1] f_fhal[2] f_fhal[3] &
-#                f_fdisp[1] f_fdisp[2] f_fdisp[3] &
-#                f_frepulse[1] f_frepulse[2] f_frepulse[3] &
-#                f_fpolar[1] f_fpolar[2] f_fpolar[3] &
-#                f_fmpole[1] f_fmpole[2] f_fmpole[3] &
-#                f_fqxfer[1] f_fqxfer[2] f_fqxfer[3] 
-#                f_nd[1] f_nd[2] f_nd[3]
-
-dump_modify     1 format float "%20.16g" sort id
+# thermo output
 
 compute virial all pressure NULL virial
 
-# thermo output
-
-thermo_style    custom step temp epair ebond eangle edihed eimp emol etotal press c_virial[*] #c_rd[*]
-thermo_modify   format float "%20.16g"
+thermo_style    custom step temp epair ebond eangle edihed eimp &
+                emol etotal press c_virial[*]
 
 # 0-step run
 

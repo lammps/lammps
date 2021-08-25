@@ -94,7 +94,7 @@ commands)
 * force-field compatibility with common CHARMM, AMBER, DREIDING, OPLS, GROMACS, COMPASS options
 * access to the `OpenKIM Repository <http://openkim.org>`_ of potentials via     :doc:`kim command <kim_commands>`
 * hybrid potentials: multiple pair, bond, angle, dihedral, improper potentials can be used in one simulation
-* overlaid potentials: superposition of multiple pair potentials (including many-body), optional with selectable scale factor
+* overlaid potentials: superposition of multiple pair potentials (including many-body) with optional scale factor
 
 .. _create:
 

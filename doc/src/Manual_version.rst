@@ -13,7 +13,7 @@ tests, we release it in the next *patch* release, which are made every
 few weeks.  Info on patch releases are on `this website page
 <https://www.lammps.org/bug.html>`_.
 
-Once or twice a year, only bugfixes and small, non-intrusive changes are
+Once or twice a year, only bug fixes and small, non-intrusive changes are
 included for a period of time, and the code is subjected to more detailed
 and thorough testing than the default automated testing.  The latest
 patch release after such a period is then labeled as a *stable* version.

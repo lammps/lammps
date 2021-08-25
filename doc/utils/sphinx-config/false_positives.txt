@@ -1174,6 +1174,7 @@ googletest
 Gordan
 Goudeau
 GPa
+GPL
 gpu
 gpuID
 gpus

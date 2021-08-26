@@ -45,7 +45,7 @@ using namespace FixConst;
 // use SHIFT = 0.0 for now since it allows fix ave/chunk 
 //   to spatially average consistent with the TTM grid
 
-#define OFFSET 0      // change to 16384 when done debugging vs ttm/old
+#define OFFSET 16384
 #define SHIFT 0.0
 
 /* ---------------------------------------------------------------------- */

@@ -38,9 +38,7 @@ using namespace FixConst;
 static constexpr int MAXLINE = 256;
 static constexpr int CHUNK = 1024;
 
-//#define OFFSET 16384
-
-#define OFFSET 0
+#define OFFSET 16384
 
 /* ---------------------------------------------------------------------- */
 

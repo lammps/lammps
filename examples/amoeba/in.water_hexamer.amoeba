@@ -1,10 +1,9 @@
-# solvated ubiquitin molecule with AMOEBA force field
+# water hexamer with AMOEBA or HIPPO
 
 units           real
-boundary        p p p
+boundary        s s s
 
-atom_style amoeba
-
+atom_style      amoeba
 bond_style      class2
 angle_style     amoeba
 dihedral_style  none
@@ -16,25 +15,18 @@ fix             extra all property/atom &
                 i_amgroup i_ired i_xaxis i_yaxis i_zaxis d_pval ghost yes
 fix             extra2 all property/atom i_polaxe
 
-read_data       data.ubiquitin fix amtype NULL "Tinker Types"
+# read data file
+
+read_data       data.water_hexamer.amoeba fix amtype NULL "Tinker Types"
+
+# force field
 
 pair_style      amoeba
-pair_coeff      * * amoeba_ubiquitin.prm amoeba_ubiquitin.key
-
-special_bonds   lj/coul 0.5 0.5 0.5 one/five yes
-
-# setup force components this way so can dump them (AMOEBA or HIPPO also needs them for now)
-
-fix             fhal all store/state 0 fx fy fz
-fix             frepulse all store/state 0 fx fy fz
-fix             fdisp all store/state 0 fx fy fz
-fix             fpolar all store/state 0 fx fy fz
-fix             fmpole all store/state 0 fx fy fz
-fix             fqxfer all store/state 0 fx fy fz
+pair_coeff      * * amoeba_water.prm amoeba_water.key
 
 # thermo output
 
-compute virial all pressure NULL virial
+compute         virial all pressure NULL virial
 
 thermo_style    custom step temp epair ebond eangle edihed eimp &
                 emol etotal press c_virial[*]

@@ -194,7 +194,9 @@ class PRMfile:
     if iline < 0: return params
     iline += 3
     while iline < self.nlines:
-      words = self.lines[iline].split()
+      line = self.lines[iline]
+      line = line[:line.find("!!")]
+      words = line.split()
       if len(words):
         if words[0].startswith("###########"): break
         if words[0] == "angle" or words[0] == "anglep":

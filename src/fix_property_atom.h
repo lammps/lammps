@@ -53,7 +53,7 @@ class FixPropertyAtom : public Fix {
  protected:
   int nvalue, border;
   int molecule_flag, q_flag, rmass_flag;    // flags for specific fields
-  int *style;                               // style of each value, see enum
+  int *styles;                              // style of each value, see enum
   int *index;                               // indices into atom custom data structs
   int *cols;                                // columns per value, for arrays
   char *astyle;                             // atom style at instantiation

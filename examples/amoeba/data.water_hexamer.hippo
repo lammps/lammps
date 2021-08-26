@@ -1,4 +1,4 @@
-LAMMPS data file created from Tinker water_hexamer.xyz and water19.prm files
+LAMMPS data file created from Tinker water_hexamer.xyz and hippo.prm files
 
 18 atoms
 12 bonds
@@ -62,29 +62,29 @@ Angles
 
 Bond Coeffs
 
-1 556.85 0.9572
+1 0.9572 556.85 -1419.9675 2112.20165625
 
 Angle Coeffs
 
-1 48.70 107.70
+1 0 107.7 48.7 -39.064262472 8.95286947775 -6.41202044508 11.5462823034
 
 Tinker Types
 
-1 1 1
-2 2 1
-3 2 1
-4 1 2
-5 2 2
-6 2 2
-7 1 3
-8 2 3
-9 2 3
-10 1 4
-11 2 4
-12 2 4
-13 1 5
-14 2 5
-15 2 5
-16 1 6
-17 2 6
-18 2 6
+1 1
+2 2
+3 2
+4 1
+5 2
+6 2
+7 1
+8 2
+9 2
+10 1
+11 2
+12 2
+13 1
+14 2
+15 2
+16 1
+17 2
+18 2

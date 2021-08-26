@@ -223,7 +223,7 @@ FixPropertyAtom::~FixPropertyAtom()
     }
   }
 
-  delete [] style;
+  delete [] styles;
   delete [] cols;
   delete [] index;
   delete [] astyle;

@@ -1,4 +1,4 @@
-LAMMPS data file created from Tinker water_dimer.xyz and water03.prm files
+LAMMPS data file created from Tinker ../TINKER_TESTS/water_dimer/water_dimer.xyz and ../TINKER_TESTS/water_dimer/amoeba.prm files
 
 6 atoms
 4 bonds
@@ -38,17 +38,17 @@ Angles
 
 Bond Coeffs
 
-1 556.85 0.9572
+1 0.9572 556.85 -1419.9675 2112.20165625
 
 Angle Coeffs
 
-1 48.70 108.50
+1 0 108.5 48.7 -39.064262472 8.95286947775 -6.41202044508 11.5462823034
 
 Tinker Types
 
-1 1 1
-2 2 1
-3 2 1
-4 1 2
-5 2 2
-6 2 2
+1 1
+2 2
+3 2
+4 1
+5 2
+6 2

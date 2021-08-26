@@ -34,7 +34,7 @@ reduce the storage requirements. Here are some suggestions:
 
 - The folders containing the documentation tree (doc), the examples (examples) are not needed to build and
   run LAMMPS and can be safely deleted.  Some files in the potentials folder are large and may be deleted,
-  if not needed.  The largest of those files (occupying about 120 Mbyte combined) will only be downloaded on
+  if not needed.  The largest of those files (occupying about 120 MBytes combined) will only be downloaded on
   demand, when the corresponding package is installed.
 
 - When using the CMake build procedure, the compilation can be done on a (local) scratch storage that will not

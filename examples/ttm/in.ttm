@@ -20,7 +20,8 @@ create_atoms 	1 region atom_box
 
 mass            1 55.845
 
-include		pot_iron.mod
+pair_style      eam/fs
+pair_coeff      * * FeVoter-ChenRecheck.fs Fe
 
 neighbor        2.0 bin
 neigh_modify    every 5 delay 0 check yes

@@ -34,6 +34,7 @@ exclude:
     - lib/hdnnp
     - lib/kim
     - lib/kokkos
+    - lib/latte
     - lib/machdyn
     - lib/mdi
     - lib/mscg
@@ -41,6 +42,7 @@ exclude:
     - lib/plumed
     - lib/quip
     - lib/scafacos
+    - lib/voronoi
     - src/Make.sh
 patterns:
     - "*.c"

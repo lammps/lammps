@@ -83,7 +83,7 @@ commands)
 * charge equilibration (QEq via dynamic, point, shielded, Slater methods)
 * coarse-grained potentials: DPD, GayBerne, REsquared, colloidal, DLVO
 * mesoscopic potentials: granular, Peridynamics, SPH, mesoscopic tubular potential (MESONT)
-* semi-empirical potentials: multi-ion generalized pseudopotential theory (MGPT), second moment tight binding + QEq (SMTB-Q), density functional tight-binding (LATTE) 
+* semi-empirical potentials: multi-ion generalized pseudopotential theory (MGPT), second moment tight binding + QEq (SMTB-Q), density functional tight-binding (LATTE)
 * electron force field (eFF, AWPMD)
 * bond potentials: harmonic, FENE, Morse, nonlinear, class 2, quartic (breakable), tabulated
 * angle potentials: harmonic, CHARMM, cosine, cosine/squared, cosine/periodic, class 2 (COMPASS), tabulated

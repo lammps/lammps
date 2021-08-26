@@ -56,12 +56,12 @@ PROGRAM chain
   INTEGER, ALLOCATABLE :: ntype(:),nbondtype(:)
   INTEGER, ALLOCATABLE :: atomtype(:),molecule(:)
   INTEGER, ALLOCATABLE :: imagex(:),imagey(:),imagez(:)
-  REAL(kind=8), ALLOCATABLE :: x(:),y(:),z(:)
-  REAL(kind=8), ALLOCATABLE :: bondlength(:),restrict(:)
+  REAL(KIND=8), ALLOCATABLE :: x(:),y(:),z(:)
+  REAL(KIND=8), ALLOCATABLE :: bondlength(:),restrict(:)
   INTEGER :: i, n, m, nmolecule, natoms, ntypes, nbonds, nbondtypes
   INTEGER :: swaptype, iseed, nsets, iset, ichain, imonomer
-  REAL(kind=8) :: r, rhostar, volume, rsq, xinner, yinner, zinner, xsurf, ysurf, zsurf
-  REAL(kind=8) :: x0, y0, z0, x1, y1, z1, x2, y2, z2, dx, dy, dz
+  REAL(KIND=8) :: r, rhostar, volume, rsq, xinner, yinner, zinner, xsurf, ysurf, zsurf
+  REAL(KIND=8) :: x0, y0, z0, x1, y1, z1, x2, y2, z2, dx, dy, dz
 
   LOGICAL :: again
 
@@ -299,7 +299,7 @@ PROGRAM chain
   ENDDO
 
   WRITE (6,*)
-  WRITE (6,*) 'Atoms'
+  WRITE (6,*) 'Atoms # molecular'
   WRITE (6,*)
 
   DO i = 1,natoms

@@ -72,7 +72,7 @@ implicit none
 !---------------------------------------------------------------------------------------------------
         
         integer(c_int)                               :: TPMStartMode = 1
-        character*512                                :: TPMFile      = 'MESONT-TABTP.xrs'
+        character(len=512)                           :: TPMFile      = 'MESONT-TABTP.xrs'
         integer(c_int)                               :: TPMUnitID    ! Unit for the tabulated potential file
         
         integer(c_int)                               :: TPMNZ        = TPMNZMAX
@@ -1643,7 +1643,7 @@ contains !**********************************************************************
         subroutine TPMInit ( ChiIndM, ChiIndN ) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         integer(c_int), intent(in)      :: ChiIndM, ChiIndN
         real(c_double)                  :: RT, DX
-        character*512                   :: PDate
+        character(len=512)              :: PDate
         !-------------------------------------------------------------------------------------------
                 TPPotType = TP_POT_MONO_R
         

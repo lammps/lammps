@@ -37,6 +37,9 @@ typedef struct { double x,y,z; } dbl3_t;
 
 void DomainOMP::pbc()
 {
+  const int nlocal = atom->nlocal;
+  if (!nlocal) return;
+
   dbl3_t * _noalias const x = (dbl3_t *)&atom->x[0][0];
   dbl3_t * _noalias const v = (dbl3_t *)&atom->v[0][0];
   const double * _noalias const lo     = (triclinic == 0) ? boxlo : boxlo_lamda;
@@ -44,7 +47,6 @@ void DomainOMP::pbc()
   const double * _noalias const period = (triclinic == 0) ? prd   : prd_lamda;
   const int * _noalias const mask  = atom->mask;
   imageint    * _noalias const image = atom->image;
-  const int nlocal = atom->nlocal;
 
 #if defined(_OPENMP)
 #pragma omp parallel for LMP_DEFAULT_NONE schedule(static)
@@ -141,8 +143,9 @@ void DomainOMP::pbc()
 
 void DomainOMP::lamda2x(int n)
 {
-  dbl3_t * _noalias const x = (dbl3_t *)&atom->x[0][0];
   const int num = n;
+  if (!n) return;
+  dbl3_t * _noalias const x = (dbl3_t *)&atom->x[0][0];
 
 #if defined(_OPENMP)
 #pragma omp parallel for LMP_DEFAULT_NONE schedule(static)
@@ -161,8 +164,9 @@ void DomainOMP::lamda2x(int n)
 
 void DomainOMP::x2lamda(int n)
 {
-  dbl3_t * _noalias const x = (dbl3_t *)&atom->x[0][0];
   const int num = n;
+  if (!n) return;
+  dbl3_t * _noalias const x = (dbl3_t *)&atom->x[0][0];
 
 #if defined(_OPENMP)
 #pragma omp parallel for LMP_DEFAULT_NONE schedule(static)

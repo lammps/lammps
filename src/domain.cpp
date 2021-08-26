@@ -528,10 +528,11 @@ void Domain::reset_box()
 
 void Domain::pbc()
 {
+  int nlocal = atom->nlocal;
+  if (!nlocal) return;
   int i;
   imageint idim,otherdims;
   double *lo,*hi,*period;
-  int nlocal = atom->nlocal;
   double **x = atom->x;
   double **v = atom->v;
   int *mask = atom->mask;

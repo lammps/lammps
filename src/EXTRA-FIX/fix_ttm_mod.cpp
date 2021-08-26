@@ -100,11 +100,18 @@ FixTTMMod::FixTTMMod(LAMMPS *lmp, int narg, char **arg) :
   nynodes = utils::inumeric(FLERR,arg[6],false,lmp);
   nznodes = utils::inumeric(FLERR,arg[7],false,lmp);
 
+  double tinit = 0.0;
   infile = outfile = NULL;
 
   int iarg = 8;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"infile") == 0) {
+    if (strcmp(arg[iarg],"set") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix ttm/mod command");
+      tinit = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      if (tinit <= 0.0) 
+        error->all(FLERR,"Fix ttm/mod initial temperature must be > 0.0");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"infile") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ttm/mod command");
       int n = strlen(arg[iarg+1]) + 1;
       infile = new char[n];
@@ -198,10 +205,16 @@ FixTTMMod::FixTTMMod(LAMMPS *lmp, int narg, char **arg) :
   atom->add_callback(Atom::GROW);
   atom->add_callback(Atom::RESTART);
 
-  // zero electron temperatures (default)
+  // initialize electron temperatures on grid
+
+  int ix,iy,iz;
+  for (ix = 0; ix < nxnodes; ix++)
+    for (iy = 0; iy < nynodes; iy++)
+      for (iz = 0; iz < nznodes; iz++)
+        T_electron[ix][iy][iz] = tinit;
+
   // if specified, read initial electron temperatures from file
 
-  memset(&T_electron[0][0][0],0,ngridtotal*sizeof(double));
   if (infile) {
     if (comm->me == 0) read_electron_temperatures(infile);
     MPI_Bcast(&T_electron[0][0][0],ngridtotal,MPI_DOUBLE,0,world);

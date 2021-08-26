@@ -65,9 +65,13 @@ void FixTTMGrid::post_constructor()
 
   allocate_grid();
 
-  // zero electron temperatures (default)
+  // initialize electron temperatures on grid
 
-  memset(&T_electron[nzlo_out][nylo_out][nxlo_out],0,ngridout*sizeof(double));
+  int ix,iy,iz;
+  for (iz = nzlo_out; iz <= nzhi_out; iz++)
+    for (iy = nylo_out; iy <= nyhi_out; iy++)
+      for (ix = nxlo_out; ix <= nxhi_out; ix++)
+        T_electron[iz][iy][ix] = tinit;
   
   // zero net_energy_transfer
   // in case compute_vector accesses it on timestep 0

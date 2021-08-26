@@ -55,7 +55,7 @@ class FixTTM : public Fix {
   int ngridtotal;                 // total size of global grid
   int deallocate_flag;
   int outflag,outevery;
-  double shift;
+  double shift,tinit;
   double e_energy,transfer_energy;
   char *infile,*outfile;
 

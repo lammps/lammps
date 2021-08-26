@@ -77,12 +77,19 @@ FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
   nxgrid = utils::inumeric(FLERR,arg[10],false,lmp);
   nygrid = utils::inumeric(FLERR,arg[11],false,lmp);
   nzgrid = utils::inumeric(FLERR,arg[12],false,lmp);
-
+  
+  tinit = 0.0;
   infile = outfile = NULL;
-
+  
   int iarg = 13;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"infile") == 0) {
+    if (strcmp(arg[iarg],"set") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix ttm command");
+      tinit = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      if (tinit <= 0.0) 
+        error->all(FLERR,"Fix ttm initial temperature must be > 0.0");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"infile") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ttm command");
       int n = strlen(arg[iarg+1]) + 1;
       infile = new char[n];
@@ -183,9 +190,13 @@ void FixTTM::post_constructor()
 
   allocate_grid();
 
-  // zero electron temperatures (default)
+  // initialize electron temperatures on grid
 
-  memset(&T_electron[0][0][0],0,ngridtotal*sizeof(double));
+  int ix,iy,iz;
+  for (iz = 0; iz < nzgrid; iz++)
+    for (iy = 0; iy < nygrid; iy++)
+      for (ix = 0; ix < nxgrid; ix++)
+        T_electron[iz][iy][ix] = tinit;
 
   // zero net_energy_transfer_all
   // in case compute_vector accesses it on timestep 0

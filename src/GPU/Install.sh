@@ -41,6 +41,8 @@ action fix_npt_gpu.cpp
 action fix_nve_asphere_gpu.h fix_nve_asphere.h
 action fix_nve_asphere_gpu.cpp fix_nve_asphere.cpp
 action gpu_extra.h
+action pair_amoeba_gpu.cpp pair_amoeba.cpp
+action pair_amoeba_gpu.h pair_amoeba.h
 action pair_beck_gpu.cpp pair_beck.cpp
 action pair_beck_gpu.h pair_beck.h
 action pair_born_coul_long_gpu.cpp pair_born_coul_long.cpp

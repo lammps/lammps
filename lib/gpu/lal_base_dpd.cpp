@@ -72,7 +72,10 @@ int BaseDPDT::init_atomic(const int nlocal, const int nall,
 
   _threads_per_atom=device->threads_per_atom();
 
-  int success=device->init(*ans,false,false,nlocal,nall,maxspecial,true);
+  bool charge = false;
+  bool rot = false;
+  bool vel = true;
+  int success=device->init(*ans,charge,rot,nlocal,nall,maxspecial,vel);
   if (success!=0)
     return success;
 

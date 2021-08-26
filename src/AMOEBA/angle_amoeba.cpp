@@ -290,12 +290,14 @@ void AngleAmoeba::anglep(int i1, int i2, int i3, int type, int eflag)
   if (eflag) eangle = k2[type]*dtheta2 + k3[type]*dtheta3 + 
                k4[type]*dtheta4 + k5[type]*dtheta5 + k6[type]*dtheta6;
 
+  /*
   printf("ANGLEP: %d %d %d %d: eng %g\n",
          atom->tag[i1],
          atom->tag[i2],
          atom->tag[i3],
          atom->tag[i4],
          eangle);
+  */
 
   // chain rule terms for first derivative components
 

@@ -58,9 +58,10 @@ Particle and model types
 * coarse-grained mesoscale models
 * finite-size spherical and ellipsoidal particles
 * finite-size line segment (2d) and triangle (3d) particles
+* finite-size rounded polygons (2d) and polyhedra (3d) particles
 * point dipole particles
 * particles with magnetic spin
-* rigid collections of particles
+* rigid collections of n particles
 * hybrid combinations of these
 
 .. _ff:
@@ -81,15 +82,17 @@ commands)
 * polarization models: :doc:`QEq <fix_qeq>`,     :doc:`core/shell model <Howto_coreshell>`,     :doc:`Drude dipole model <Howto_drude>`
 * charge equilibration (QEq via dynamic, point, shielded, Slater methods)
 * coarse-grained potentials: DPD, GayBerne, REsquared, colloidal, DLVO
-* mesoscopic potentials: granular, Peridynamics, SPH
+* mesoscopic potentials: granular, Peridynamics, SPH, mesoscopic tubular potential (MESONT)
+* semi-empirical potentials: multi-ion generalized pseudopotential theory (MGPT), second moment tight binding + QEq (SMTB-Q), density functional tight-binding (LATTE) 
 * electron force field (eFF, AWPMD)
 * bond potentials: harmonic, FENE, Morse, nonlinear, class 2, quartic (breakable), tabulated
 * angle potentials: harmonic, CHARMM, cosine, cosine/squared, cosine/periodic, class 2 (COMPASS), tabulated
 * dihedral potentials: harmonic, CHARMM, multi-harmonic, helix, class 2 (COMPASS), OPLS, tabulated
 * improper potentials: harmonic, cvff, umbrella, class 2 (COMPASS), tabulated
 * polymer potentials: all-atom, united-atom, bead-spring, breakable
-* water potentials: TIP3P, TIP4P, SPC
+* water potentials: TIP3P, TIP4P, SPC, SPC/E and variants
 * interlayer potentials for graphene and analogues
+* metal-organic framework potentials (QuickFF, MO-FF)
 * implicit solvent potentials: hydrodynamic lubrication, Debye
 * force-field compatibility with common CHARMM, AMBER, DREIDING, OPLS, GROMACS, COMPASS options
 * access to the `OpenKIM Repository <http://openkim.org>`_ of potentials via     :doc:`kim command <kim_commands>`
@@ -127,9 +130,10 @@ Ensembles, constraints, and boundary conditions
 * harmonic (umbrella) constraint forces
 * rigid body constraints
 * SHAKE bond and angle constraints
-* Monte Carlo bond breaking, formation, swapping
+* motion constraints to manifold surfaces
+* Monte Carlo bond breaking, formation, swapping, template based reaction modeling
 * atom/molecule insertion and deletion
-* walls of various kinds
+* walls of various kinds, static and moving
 * non-equilibrium molecular dynamics (NEMD)
 * variety of additional boundary conditions and constraints
 
@@ -153,6 +157,7 @@ Diagnostics
 ^^^^^^^^^^^
 
 * see various flavors of the :doc:`fix <fix>` and :doc:`compute <compute>` commands
+* introspection command for system, simulation, and compile time settings and configurations
 
 .. _output:
 
@@ -167,8 +172,9 @@ Output
 * parallel I/O of dump and restart files
 * per-atom quantities (energy, stress, centro-symmetry parameter, CNA, etc)
 * user-defined system-wide (log file) or per-atom (dump file) calculations
-* spatial and time averaging of per-atom quantities
-* time averaging of system-wide quantities
+* custom partitioning (chunks) for binning, and static or dynamic grouping of atoms for analysis
+* spatial, time, and per-chunk averaging of per-atom quantities
+* time averaging and histogramming of system-wide quantities
 * atom snapshots in native, XYZ, XTC, DCD, CFG formats
 
 .. _replica1:
@@ -181,7 +187,7 @@ Multi-replica models
 * :doc:`parallel replica dynamics <prd>`
 * :doc:`temperature accelerated dynamics <tad>`
 * :doc:`parallel tempering <temper>`
-* :doc:`path-integral MD <fix_pimd>`
+* path-integral MD: `first variant <fix_pimd>`, `second variant <fix_ipi>`
 * multi-walker collective variables with :doc:`Colvars <fix_colvars>` and :doc:`Plumed <fix_plumed>`
 
 .. _prepost:
@@ -213,11 +219,12 @@ page for details.
 These are LAMMPS capabilities which you may not think of as typical
 classical MD options:
 
-* :doc:`static <balance>` and :doc:`dynamic load-balancing <fix_balance>`
+* :doc:`static <balance>` and :doc:`dynamic load-balancing <fix_balance>`, optional with recursive bisectioning decomposition
 * :doc:`generalized aspherical particles <Howto_body>`
 * :doc:`stochastic rotation dynamics (SRD) <fix_srd>`
-* :doc:`real-time visualization and interactive MD <fix_imd>`
+* :doc:`real-time visualization and interactive MD <fix_imd>`, :doc:`built-in renderer for images and movies <dump_image>`
 * calculate :doc:`virtual diffraction patterns <compute_xrd>`
+* calculate :doc:`finite temperature phonon dispersion <fix_phonon>` and the :doc:`dynamical matrix of minimized structures <dynamical_matrix>`
 * :doc:`atom-to-continuum coupling <fix_atc>` with finite elements
 * coupled rigid body integration via the :doc:`POEMS <fix_poems>` library
 * :doc:`QM/MM coupling <fix_qmmm>`

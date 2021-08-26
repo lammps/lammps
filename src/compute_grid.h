@@ -49,7 +49,8 @@ class ComputeGrid : public Compute {
   int *local_flags;                    // local flag for each grid point
   int gridlocal_allocated;             // shows if gridlocal allocated
 
-  void allocate();
+  void allocate();                     // create arrays
+  void deallocate();                   // free arrays
   void grid2x(int, double*);           // convert grid point to coord
   void grid2ix(int, int&, int&, int&); // convert grid point to ix, iy, iz
   void assign_coords();                // assign coords for grid

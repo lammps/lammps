@@ -59,11 +59,7 @@ ComputeGridLocal::ComputeGridLocal(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeGridLocal::~ComputeGridLocal()
 {
-  if (gridlocal_allocated) {
-    gridlocal_allocated = 0;
-    memory->destroy4d_offset(gridlocal,nzlo,nylo,nxlo);
-  }
-  memory->destroy(alocal);
+  deallocate();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -76,9 +72,11 @@ void ComputeGridLocal::init()
 
 void ComputeGridLocal::setup()
 {
+  deallocate();
   set_grid_global();
   set_grid_local();
   allocate();
+  assign_coords();
 }
 
 /* ----------------------------------------------------------------------
@@ -95,23 +93,32 @@ void ComputeGridLocal::grid2x(int ix, int iy, int iz, double *x)
 }
 
 /* ----------------------------------------------------------------------
-   free and reallocate arrays
+   create arrays
 ------------------------------------------------------------------------- */
 
 void ComputeGridLocal::allocate()
 {
-  // allocate local array
-
-  if (gridlocal_allocated) {
-    gridlocal_allocated = 0;
-    memory->destroy4d_offset(gridlocal,nzlo,nylo,nxlo);
-  }
-
   if (nxlo <= nxhi && nylo <= nyhi && nzlo <= nzhi) {
     gridlocal_allocated = 1;
     memory->create4d_offset(gridlocal,size_local_cols,nzlo,nzhi,nylo,nyhi,
 			    nxlo,nxhi,"grid:gridlocal");
+    memory->create(alocal, size_local_rows, size_local_cols, "compute/grid/local:alocal");
+    array_local = alocal;
   }
+}
+
+/* ----------------------------------------------------------------------
+   free arrays
+------------------------------------------------------------------------- */
+
+void ComputeGridLocal::deallocate()
+{
+  if (gridlocal_allocated) {
+    gridlocal_allocated = 0;
+    memory->destroy4d_offset(gridlocal,nzlo,nylo,nxlo);
+    memory->destroy(alocal);
+  }
+  array_local = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -201,11 +208,14 @@ void ComputeGridLocal::set_grid_local()
 
   ngridlocal = (nxhi - nxlo + 1) * (nyhi - nylo + 1) * (nzhi - nzlo + 1);
   size_local_rows = ngridlocal;
+}
 
-  memory->destroy(alocal);
-  memory->create(alocal, size_local_rows, size_local_cols, "compute/grid/local:alocal");
-  array_local = alocal;
+/* ----------------------------------------------------------------------
+   copy coords to local array
+------------------------------------------------------------------------- */
 
+void ComputeGridLocal::assign_coords()
+{
   int igrid = 0;
   for (int iz = nzlo; iz <= nzhi; iz++)
     for (int iy = nylo; iy <= nyhi; iy++)

@@ -60,13 +60,7 @@ ComputeGrid::ComputeGrid(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeGrid::~ComputeGrid()
 {
-  memory->destroy(grid);
-  memory->destroy(gridall);
-  memory->destroy(local_flags);
-  if (gridlocal_allocated) {
-    gridlocal_allocated = 0;
-    memory->destroy4d_offset(gridlocal,nzlo,nylo,nxlo);
-  }
+  deallocate();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -79,6 +73,7 @@ void ComputeGrid::init()
 
 void ComputeGrid::setup()
 {
+  deallocate();
   set_grid_global();
   set_grid_local();
   allocate();
@@ -195,20 +190,12 @@ void ComputeGrid::assign_local_flags()
 }
 
 /* ----------------------------------------------------------------------
-   free and reallocate arrays
+   create arrays
 ------------------------------------------------------------------------- */
 
 void ComputeGrid::allocate()
 {
   // allocate arrays
-
-  memory->destroy(grid);
-  memory->destroy(gridall);
-  memory->destroy(local_flags);
-  if (gridlocal_allocated) {
-    gridlocal_allocated = 0;
-    memory->destroy4d_offset(gridlocal,nzlo,nylo,nxlo);
-  }
 
   memory->create(grid,size_array_rows,size_array_cols,"grid:grid");
   memory->create(gridall,size_array_rows,size_array_cols,"grid:gridall");
@@ -219,6 +206,23 @@ void ComputeGrid::allocate()
 			    nxlo,nxhi,"grid:gridlocal");
   }
   array = gridall;
+}
+
+
+/* ----------------------------------------------------------------------
+   free arrays
+------------------------------------------------------------------------- */
+
+void ComputeGrid::deallocate()
+{
+  memory->destroy(grid);
+  memory->destroy(gridall);
+  memory->destroy(local_flags);
+  if (gridlocal_allocated) {
+    gridlocal_allocated = 0;
+    memory->destroy4d_offset(gridlocal,nzlo,nylo,nxlo);
+  }
+  array = nullptr;
 }
 
 

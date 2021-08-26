@@ -76,7 +76,7 @@ class Atom {
     *        gpu_nbor 2 if binning on host and neighboring on device **/
   bool init(const int nall, const bool charge, const bool rot,
             UCL_Device &dev, const int gpu_nbor=0, const bool bonds=false,
-            const bool vel=false);
+            const bool vel=false, const int extra_fields=0);
 
   /// Check if we have enough device storage and realloc if not
   /** Returns true if resized with any call during this timestep **/
@@ -96,7 +96,7 @@ class Atom {
     *        gpu_nbor 1 if neighboring will be performed on device
     *        gpu_nbor 2 if binning on host and neighboring on device **/
   bool add_fields(const bool charge, const bool rot, const int gpu_nbor,
-                  const bool bonds, const bool vel=false);
+                  const bool bonds, const bool vel=false, const int extra_fields=0);
 
   /// Returns true if GPU is using charges
   bool charge() { return _charge; }
@@ -106,6 +106,9 @@ class Atom {
 
   /// Returns true if GPU is using velocities
   bool velocity() { return _vel; }
+
+  /// Returns true if GPU is using extra fields
+  bool using_extra() { return _extra_fields; }
 
   /// Only free matrices of length inum or nall for resizing
   void clear_resize();
@@ -450,6 +453,38 @@ class Atom {
     add_v_data(host_ptr,host_tag);
   }
 
+ // Cast extras to write buffer
+  template<class cpytyp>
+  inline void cast_extra_data(cpytyp *host_ptr) {
+    if (_extra_avail==false) {
+      double t=MPI_Wtime();
+      if (_host_view) {
+        extra.host.view((numtyp*)host_ptr,_nall*_extra_fields,*dev);
+        extra.device.view(extra.host);
+      } else if (sizeof(numtyp)==sizeof(double))
+        memcpy(extra.host.begin(),host_ptr,_nall*_extra_fields*sizeof(numtyp));
+      else
+        #if (LAL_USE_OMP == 1) && (LAL_USE_OMP_SIMD == 1)
+        #pragma omp parallel for simd schedule(static)
+        #elif (LAL_USE_OMP_SIMD == 1)
+        #pragma omp simd
+        #endif
+        for (int i=0; i<_nall*_extra_fields; i++) extra[i]=host_ptr[i];
+      _time_cast+=MPI_Wtime()-t;
+    }
+  }
+
+  // Copy extras to device
+  /** Copies nall()*_extra elements **/
+  inline void add_extra_data() {
+    time_extra.start();
+    if (_extra_avail==false) {
+      extra.update_device(_nall*_extra_fields,true);
+      _extra_avail=true;
+    }
+    time_extra.stop();
+  }
+
   /// Add in casting time from additional data (seconds)
   inline void add_cast_time(double t) { _time_cast+=t; }
 
@@ -473,6 +508,8 @@ class Atom {
   UCL_Vector<numtyp,numtyp> quat;
   /// Velocities
   UCL_Vector<numtyp,numtyp> v;
+  /// Extras
+  UCL_Vector<numtyp,numtyp> extra;
 
   #ifdef GPU_CAST
   UCL_Vector<double,double> x_cast;
@@ -493,7 +530,7 @@ class Atom {
   UCL_H_Vec<int> host_particle_id;
 
   /// Device timers
-  UCL_Timer time_pos, time_q, time_quat, time_vel;
+  UCL_Timer time_pos, time_q, time_quat, time_vel, time_extra;
 
   /// Geryon device
   UCL_Device *dev;
@@ -508,11 +545,12 @@ class Atom {
   bool _compiled;
 
   // True if data has been copied to device already
-  bool _x_avail, _q_avail, _quat_avail, _v_avail, _resized;
+  bool _x_avail, _q_avail, _quat_avail, _v_avail, _extra_avail, _resized;
 
   bool alloc(const int nall);
 
   bool _allocated, _rot, _charge, _bonds, _vel, _other;
+  int _extra_fields;
   int _max_atoms, _nall, _gpu_nbor;
   bool _host_view;
   double _time_cast, _time_transfer;

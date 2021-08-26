@@ -25,12 +25,12 @@ special_bonds   lj/coul 0.5 0.5 0.5 one/five yes
 
 # setup force components this way so can dump them (AMOEBA or HIPPO also needs them for now)
 
-#fix             fhal all store/state 0 fx fy fz
-#fix             frepulse all store/state 0 fx fy fz
-#fix             fdisp all store/state 0 fx fy fz
-#fix             fpolar all store/state 0 fx fy fz
-#fix             fmpole all store/state 0 fx fy fz
-#fix             fqxfer all store/state 0 fx fy fz
+fix             fhal all store/state 0 fx fy fz
+fix             frepulse all store/state 0 fx fy fz
+fix             fdisp all store/state 0 fx fy fz
+fix             fpolar all store/state 0 fx fy fz
+fix             fmpole all store/state 0 fx fy fz
+fix             fqxfer all store/state 0 fx fy fz
 
 # thermo output
 

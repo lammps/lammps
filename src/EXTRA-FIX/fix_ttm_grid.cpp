@@ -593,10 +593,12 @@ void FixTTMGrid::restart(char *buf)
       for (ix = nxlo_in; ix <= nxhi_in; ix++) {
         iglobal = nygrid*nxgrid*iz + nxgrid*iy + ix;
         T_electron[iz][iy][ix] = rlist[n+iglobal];
-        if (ix == 0 && iy == 0 & iz == 0)
-          printf("READRESTART 000 n+iglobal %d %d value %g\n",n,iglobal,
-                 T_electron[ix][iy][iz]);
       }
+
+  // communicate new T_electron values to ghost grid points
+
+  gc->forward_comm(GridComm::FIX,this,1,sizeof(double),0,
+                   gc_buf1,gc_buf2,MPI_DOUBLE);
 }
 
 /* ----------------------------------------------------------------------

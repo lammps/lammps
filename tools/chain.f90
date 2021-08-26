@@ -5,7 +5,7 @@
 !   data.file is output file that will be input for LAMMPS
 ! includes image flags in data file so chains can be unraveled later
 
-MODULE box
+MODULE boxchain
   IMPLICIT NONE
   PUBLIC
   REAL(KIND=8) :: xprd,yprd,zprd,xboundlo,xboundhi,yboundlo,yboundhi,zboundlo,zboundhi
@@ -25,9 +25,9 @@ CONTAINS
     IF (z >= zboundhi) z = z - zprd
 
   END SUBROUTINE pbc
-END MODULE box
+END MODULE boxchain
 
-MODULE rng
+MODULE rngchain
   IMPLICIT NONE
 
 CONTAINS
@@ -45,11 +45,11 @@ CONTAINS
     random = sseed/mm
     iseed = INT(sseed)
   END FUNCTION random
-END MODULE rng
+END MODULE rngchain
 
 PROGRAM chain
-  USE box
-  USE rng
+  USE boxchain
+  USE rngchain
   IMPLICIT NONE
 
   INTEGER, ALLOCATABLE :: nchain(:),nmonomer(:)

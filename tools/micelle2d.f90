@@ -9,7 +9,7 @@
 ! micelle heads = type 2
 ! micelle tails = type 3,4,5,etc.
 
-MODULE box
+MODULE boxmicelle
   IMPLICIT NONE
   PUBLIC
   REAL(KIND=8) :: xprd,yprd,zprd,xboundlo,xboundhi,yboundlo,yboundhi,zboundlo,zboundhi
@@ -27,9 +27,9 @@ CONTAINS
     IF (y >= yboundhi) y = y - yprd
 
   END SUBROUTINE pbc
-END MODULE box
+END MODULE boxmicelle
 
-MODULE rng
+MODULE rngmicelle
   IMPLICIT NONE
 
 CONTAINS
@@ -47,11 +47,11 @@ CONTAINS
     random = sseed/mm
     iseed = INT(sseed)
   END FUNCTION random
-END MODULE rng
+END MODULE rngmicelle
 
 PROGRAM micelle2d
-  USE box
-  USE rng
+  USE boxmicelle
+  USE rngmicelle
   IMPLICIT NONE
 
   REAL(kind=8), ALLOCATABLE :: x(:,:)

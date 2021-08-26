@@ -165,13 +165,13 @@ GridComm::~GridComm()
 
 void GridComm::initialize(MPI_Comm gcomm,
                           int gnx, int gny, int gnz,
-                          int ixlo, int ixhi, int iylo, int iyhi, 
+                          int ixlo, int ixhi, int iylo, int iyhi,
                           int izlo, int izhi,
-                          int oxlo, int oxhi, int oylo, int oyhi, 
+                          int oxlo, int oxhi, int oylo, int oyhi,
                           int ozlo, int ozhi,
-                          int fxlo, int fxhi, int fylo, int fyhi, 
+                          int fxlo, int fxhi, int fylo, int fyhi,
                           int fzlo, int fzhi,
-                          int pxlo, int pxhi, int pylo, int pyhi, 
+                          int pxlo, int pxhi, int pylo, int pyhi,
                           int pzlo, int pzhi)
 {
   gridcomm = gcomm;
@@ -955,7 +955,7 @@ void GridComm::forward_comm(int caller, void *ptr, int nper, int nbyte, int whic
    forward comm on regular grid of procs via list of swaps with 6 neighbor procs
 ------------------------------------------------------------------------- */
 
-template < class T > 
+template < class T >
 void GridComm::
 forward_comm_regular(T *ptr, int nper, int /*nbyte*/, int which,
                      void *buf1, void *buf2, MPI_Datatype datatype)
@@ -985,7 +985,7 @@ forward_comm_regular(T *ptr, int nper, int /*nbyte*/, int which,
    forward comm on tiled grid decomp via Send/Recv lists of each neighbor proc
 ------------------------------------------------------------------------- */
 
-template < class T > 
+template < class T >
 void GridComm::
 forward_comm_tiled(T *ptr, int nper, int nbyte, int which,
                    void *buf1, void *vbuf2, MPI_Datatype datatype)
@@ -1054,7 +1054,7 @@ void GridComm::reverse_comm(int caller, void *ptr, int nper, int nbyte, int whic
    reverse comm on regular grid of procs via list of swaps with 6 neighbor procs
 ------------------------------------------------------------------------- */
 
-template < class T > 
+template < class T >
 void GridComm::
 reverse_comm_regular(T *ptr, int nper, int /*nbyte*/, int which,
                      void *buf1, void *buf2, MPI_Datatype datatype)
@@ -1084,7 +1084,7 @@ reverse_comm_regular(T *ptr, int nper, int /*nbyte*/, int which,
    reverse comm on tiled grid decomp via Send/Recv lists of each neighbor proc
 ------------------------------------------------------------------------- */
 
-template < class T > 
+template < class T >
 void GridComm::
 reverse_comm_tiled(T *ptr, int nper, int nbyte, int which,
                    void *buf1, void *vbuf2, MPI_Datatype datatype)

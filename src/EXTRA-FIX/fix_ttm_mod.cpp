@@ -45,7 +45,7 @@ using namespace MathConst;
 // OFFSET avoids outside-of-box atoms being rounded to grid pts incorrectly
 // SHIFT = 0.0 assigns atoms to lower-left grid pt
 // SHIFT = 0.5 assigns atoms to nearest grid pt
-// use SHIFT = 0.0 for now since it allows fix ave/chunk 
+// use SHIFT = 0.0 for now since it allows fix ave/chunk
 //   to spatially average consistent with the TTM grid
 
 #define OFFSET 16384
@@ -108,7 +108,7 @@ FixTTMMod::FixTTMMod(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[iarg],"set") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ttm/mod command");
       tinit = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-      if (tinit <= 0.0) 
+      if (tinit <= 0.0)
         error->all(FLERR,"Fix ttm/mod initial temperature must be > 0.0");
       iarg += 2;
     } else if (strcmp(arg[iarg],"infile") == 0) {
@@ -135,7 +135,7 @@ FixTTMMod::FixTTMMod(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Fix ttm/mod grid sizes must be > 0");
 
   // check for allowed maximum number of total grid points
-  
+
   bigint total_nnodes = (bigint) nxnodes * nynodes * nznodes;
   if (total_nnodes > MAXSMALLINT)
     error->all(FLERR,"Too many grid points in fix ttm/mod");
@@ -653,7 +653,7 @@ void FixTTMMod::read_electron_temperatures(const char *filename)
 void FixTTMMod::write_electron_temperatures(const char *filename)
 {
   if (comm->me) return;
- 
+
   FILE *fp = fopen(filename,"w");
   if (!fp) error->one(FLERR,"Fix ttm/mod could not open output file");
 
@@ -662,7 +662,7 @@ void FixTTMMod::write_electron_temperatures(const char *filename)
   for (ix = 0; ix < nxnodes; ix++)
     for (iy = 0; iy < nynodes; iy++)
       for (iz = 0; iz < nznodes; iz++) {
-        if (movsur == 1 && T_electron[ix][iy][iz] == 0.0) 
+        if (movsur == 1 && T_electron[ix][iy][iz] == 0.0)
           T_electron[ix][iy][iz] = electron_temperature_min;
         fprintf(fp,"%d %d %d %20.16g\n",ix,iy,iz,T_electron[ix][iy][iz]);
       }

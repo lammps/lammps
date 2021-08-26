@@ -210,7 +210,7 @@ class Fix : protected Pointers {
   virtual void pack_reverse_grid(int, void *, int, int *) {};
   virtual void unpack_reverse_grid(int, void *, int, int *) {};
   virtual void pack_gather_grid(int, void *) {};
-  virtual void unpack_gather_grid(int, void *, void *, 
+  virtual void unpack_gather_grid(int, void *, void *,
                                   int, int, int, int, int, int) {};
 
   virtual double compute_scalar() { return 0.0; }

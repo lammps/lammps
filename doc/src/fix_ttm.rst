@@ -15,7 +15,7 @@ Syntax
 
 .. parsed-literal::
 
-   fix ID group-ID ttm seed C_e rho_e kappa_e gamma_p gamma_s v_0 Nx Ny Nz keyword value ... 
+   fix ID group-ID ttm seed C_e rho_e kappa_e gamma_p gamma_s v_0 Nx Ny Nz keyword value ...
    fix ID group-ID ttm/mod seed init_file Nx Ny Nz keyword value ...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
@@ -103,7 +103,7 @@ are given below.
 
 Heat transfer between the electronic and atomic subsystems is carried
 out via an inhomogeneous Langevin thermostat.  Only atoms in the fix
-group contribute to and are affected by this heat transfer.  
+group contribute to and are affected by this heat transfer.
 
 This thermostatting differs from the regular Langevin thermostat
 (:doc:`fix langevin <fix_langevin>`) in three important ways.  First,

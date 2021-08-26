@@ -42,7 +42,7 @@ static constexpr int CHUNK = 1024;
 
 /* ---------------------------------------------------------------------- */
 
-FixTTMGrid::FixTTMGrid(LAMMPS *lmp, int narg, char **arg) : 
+FixTTMGrid::FixTTMGrid(LAMMPS *lmp, int narg, char **arg) :
   FixTTM(lmp, narg, arg)
 {
   skin_original = neighbor->skin;
@@ -72,7 +72,7 @@ void FixTTMGrid::post_constructor()
     for (iy = nylo_out; iy <= nyhi_out; iy++)
       for (ix = nxlo_out; ix <= nxhi_out; ix++)
         T_electron[iz][iy][ix] = tinit;
-  
+
   // zero net_energy_transfer
   // in case compute_vector accesses it on timestep 0
 
@@ -131,7 +131,7 @@ void FixTTMGrid::post_force(int /*vflag*/)
 
       // flag if ix,iy,iz is not within my ghost cell range
 
-      if (ix < nxlo_out || ix > nxhi_out || 
+      if (ix < nxlo_out || ix > nxhi_out ||
           iy < nylo_out || iy > nyhi_out ||
           iz < nzlo_out || iz > nzhi_out) {
         flag = 1;
@@ -225,7 +225,7 @@ void FixTTMGrid::end_of_step()
            &T_electron[nzlo_out][nylo_out][nxlo_out],ngridout*sizeof(double));
 
     // compute new electron T profile
- 
+
     for (iz = nzlo_in; iz <= nzhi_in; iz++)
       for (iy = nylo_in; iy <= nyhi_in; iy++)
         for (ix = nxlo_in; ix <= nxhi_in; ix++) {
@@ -240,7 +240,7 @@ void FixTTMGrid::end_of_step()
                2.0*T_electron_old[iz][iy][ix])*dyinv*dyinv +
               (T_electron_old[iz-1][iy][ix] + T_electron_old[iz+1][iy][ix] -
                2.0*T_electron_old[iz][iy][ix])*dzinv*dzinv) -
-             
+
              net_energy_transfer[iz][iy][ix]/volgrid);
         }
 
@@ -289,7 +289,7 @@ void FixTTMGrid::read_electron_temperatures(const char *filename)
   }
 
   // read electron temperature values from file, one chunk at a time
- 
+
   char **values = new char*[4];
   char *buffer = new char[CHUNK*MAXLINE];
   bigint ntotal = (bigint) nxgrid * nygrid * nzgrid;
@@ -308,21 +308,21 @@ void FixTTMGrid::read_electron_temperatures(const char *filename)
     *next = '\n';
 
     if (nwords != 4) error->all(FLERR,"Incorrect format in fix ttm data file");
-    
+
     // loop over lines of grid point values
     // tokenize the line into ix,iy,iz grid index plus temperature value
     // if I own grid point, store the value
-    
+
     for (i = 0; i < nchunk; i++) {
       next = strchr(buf,'\n');
-      
+
       for (j = 0; j < nwords; j++) {
         buf += strspn(buf," \t\n\r\f");
         buf[strcspn(buf," \t\n\r\f")] = '\0';
         values[j] = buf;
         buf += strlen(buf)+1;
       }
-    
+
       ix = utils::inumeric(FLERR,values[0],false,lmp);
       iy = utils::inumeric(FLERR,values[1],false,lmp);
       iz = utils::inumeric(FLERR,values[2],false,lmp);
@@ -330,7 +330,7 @@ void FixTTMGrid::read_electron_temperatures(const char *filename)
       if (ix < 0 || ix >= nxgrid || iy < 0 || iy >= nygrid ||
           iz < 0 || iz >= nzgrid)
         error->all(FLERR,"Fix ttm/grid invalid grid index in input");
-      
+
       if (ix >= nxlo_in && ix <= nxhi_in &&
           iy >= nylo_in && iy <= nyhi_in &&
           iz >= nzlo_in && iz <= nzhi_in) {
@@ -367,7 +367,7 @@ void FixTTMGrid::read_electron_temperatures(const char *filename)
 
   int flagall;
   MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
-  if (flagall) 
+  if (flagall)
     error->all(FLERR,"Fix ttm/grid infile did not set all temperatures");
 
   memory->destroy3d_offset(T_initial_set,nzlo_in,nylo_in,nxlo_in);
@@ -386,7 +386,7 @@ void FixTTMGrid::write_electron_temperatures(const char *filename)
   }
 
   gc->gather(GridComm::FIX,this,1,sizeof(double),1,NULL,MPI_DOUBLE);
-  
+
   if (comm->me == 0) fclose(FPout);
 }
 
@@ -424,7 +424,7 @@ void FixTTMGrid::pack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
 {
   double *buf = (double *) vbuf;
   double *src = &net_energy_transfer[nzlo_out][nylo_out][nxlo_out];
-  
+
   for (int i = 0; i < nlist; i++)
     buf[i] = src[list[i]];
 }
@@ -486,13 +486,13 @@ void FixTTMGrid::allocate_grid()
   nzhi_out = MAX(nhi,nzhi_in+1);
 
   bigint totalmine;
-  totalmine = (bigint) (nxhi_out-nxlo_out+1) * (nyhi_out-nylo_out+1) * 
+  totalmine = (bigint) (nxhi_out-nxlo_out+1) * (nyhi_out-nylo_out+1) *
     (nzhi_out-nzlo_out+1);
   if (totalmine > MAXSMALLINT)
     error->one(FLERR,"Too many owned+ghost grid points in fix ttm");
   ngridout = totalmine;
 
-  totalmine = (bigint) (nxhi_in-nxlo_in+1) * (nyhi_in-nylo_in+1) * 
+  totalmine = (bigint) (nxhi_in-nxlo_in+1) * (nyhi_in-nylo_in+1) *
     (nzhi_in-nzlo_in+1);
   ngridmine = totalmine;
 
@@ -627,7 +627,7 @@ void FixTTMGrid::pack_gather_grid(int which, void *vbuf)
 ------------------------------------------------------------------------- */
 
 void FixTTMGrid::unpack_gather_grid(int which, void *vbuf, void *vgbuf,
-                                    int xlo, int xhi, int ylo, int yhi, 
+                                    int xlo, int xhi, int ylo, int yhi,
                                     int zlo, int zhi)
 {
   int ix,iy,iz;
@@ -660,7 +660,7 @@ void FixTTMGrid::unpack_gather_grid(int which, void *vbuf, void *vgbuf,
 }
 
 /* ----------------------------------------------------------------------
-   return the energy of the electronic subsystem 
+   return the energy of the electronic subsystem
    or the net_energy transfer between the subsystems
 ------------------------------------------------------------------------- */
 

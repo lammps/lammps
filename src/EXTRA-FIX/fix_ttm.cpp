@@ -42,7 +42,7 @@ using namespace FixConst;
 // OFFSET avoids outside-of-box atoms being rounded to grid pts incorrectly
 // SHIFT = 0.0 assigns atoms to lower-left grid pt
 // SHIFT = 0.5 assigns atoms to nearest grid pt
-// use SHIFT = 0.0 for now since it allows fix ave/chunk 
+// use SHIFT = 0.0 for now since it allows fix ave/chunk
 //   to spatially average consistent with the TTM grid
 
 #define OFFSET 16384
@@ -52,9 +52,9 @@ using namespace FixConst;
 
 FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  random(nullptr), 
+  random(nullptr),
   gfactor1(nullptr), gfactor2(nullptr), ratio(nullptr), flangevin(nullptr),
-  T_electron(nullptr), T_electron_old(nullptr), 
+  T_electron(nullptr), T_electron_old(nullptr),
   net_energy_transfer(nullptr), net_energy_transfer_all(nullptr)
 {
   if (narg < 13) error->all(FLERR,"Illegal fix ttm command");
@@ -77,16 +77,16 @@ FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
   nxgrid = utils::inumeric(FLERR,arg[10],false,lmp);
   nygrid = utils::inumeric(FLERR,arg[11],false,lmp);
   nzgrid = utils::inumeric(FLERR,arg[12],false,lmp);
-  
+
   tinit = 0.0;
   infile = outfile = NULL;
-  
+
   int iarg = 13;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"set") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ttm command");
       tinit = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-      if (tinit <= 0.0) 
+      if (tinit <= 0.0)
         error->all(FLERR,"Fix ttm initial temperature must be > 0.0");
       iarg += 2;
     } else if (strcmp(arg[iarg],"infile") == 0) {
@@ -426,7 +426,7 @@ void FixTTM::end_of_step()
   // finite difference iterations to update T_electron
 
   for (int istep = 0; istep < num_inner_timesteps; istep++) {
-    
+
     for (iz = 0; iz < nzgrid; iz++)
       for (iy = 0; iy < nygrid; iy++)
         for (ix = 0; ix < nxgrid; ix++)
@@ -461,7 +461,7 @@ void FixTTM::end_of_step()
                2.0*T_electron_old[iz][iy][ix])/dy/dy +
               (T_electron_old[zright][iy][ix] + T_electron_old[zleft][iy][ix] -
                2.0*T_electron_old[iz][iy][ix])/dz/dz) -
-             
+
              (net_energy_transfer_all[iz][iy][ix])/del_vol);
         }
   }
@@ -546,7 +546,7 @@ void FixTTM::read_electron_temperatures(const char *filename)
 void FixTTM::write_electron_temperatures(const char *filename)
 {
   if (comm->me) return;
- 
+
   FILE *fp = fopen(filename,"w");
   if (!fp) error->one(FLERR,"Fix ttm could not open output file");
 

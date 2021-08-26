@@ -76,7 +76,7 @@ class FixTTMMod : public Fix {
   double gamma_p, gamma_s, v_0, v_0_sq;
   int skin_layer, surface_l, surface_r, t_surface_l, t_surface_r;
   int movsur;
-  double esheat_0, esheat_1, esheat_2, esheat_3, esheat_4, 
+  double esheat_0, esheat_1, esheat_2, esheat_3, esheat_4,
     C_limit, electronic_density;
   double el_th_diff, T_damp;
   double intensity, width, duration, surface_double;

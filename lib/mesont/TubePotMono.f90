@@ -1674,8 +1674,7 @@ contains !**********************************************************************
                         read ( unit = TPMUnitID, fmt = '()' )
                 else
                         TPMUnitID = OpenFile ( TPMFile, 'wt', '' )
-                        call fdate( PDate )
-                        write ( unit = TPMUnitID, fmt = '(a,a)' ) 'DATE ', PDate
+                        write ( unit = TPMUnitID, fmt = '(a,a)' ) 'DATE (unknown)'
                         write ( unit = TPMUnitID, fmt = '(a,i3,a,i3,a)' ) &
                               'Tabulated data of the tubular potential for (', ChiIndM, ',', ChiIndN, ') CNTs'
                         write ( unit = TPMUnitID, fmt = '(a)' ) &

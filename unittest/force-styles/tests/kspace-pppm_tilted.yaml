@@ -1,7 +1,7 @@
 ---
 lammps_version: 30 Jul 2021
 date_generated: Tue Aug 24 15:57:51 2021
-epsilon: 8.5e-14
+epsilon: 1e-13
 skip_tests: gpu
 prerequisites: ! |
   atom full

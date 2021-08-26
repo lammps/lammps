@@ -20,7 +20,7 @@ namespace ATC {
   };
 
   /**
-   *  @class  DependencyManager 
+   *  @class  DependencyManager
    *  @brief  Base class for defining objects that manage the dependencies of various objects
    */
 
@@ -30,13 +30,13 @@ namespace ATC {
 
     // used as a friend so it can perform a depth-first search to have safe deletions of managed dependencies
     friend class InterscaleManager;
-    
+
     // constructor
     DependencyManager() : needReset_(true), isFixed_(false), memoryType_(TEMPORARY), dfsFound_(false) {};
-    
+
     // destructor
     virtual ~DependencyManager() {};
-    
+
     /** registration by other PerAtomQuantity objects */
     void register_dependence(DependencyManager * dependentQuantity)
     {dependentQuantities_.insert(dependentQuantity);};
@@ -47,7 +47,7 @@ namespace ATC {
 
     /** check if a reset is required */
     bool need_reset() const {return needReset_ && !isFixed_;};
-    
+
     /** propagate need to reset to to dependencies */
     void propagate_reset()
     {
@@ -91,10 +91,10 @@ namespace ATC {
 
 
   protected:
-    
+
     /** list of dependent atomic quantities */
     std::set<DependencyManager * > dependentQuantities_;
-    
+
     /** flag for needing a recent */
     // mutable is applied because there can be internal updates because we update when needed rather than when pushed
     mutable bool needReset_;
@@ -107,9 +107,9 @@ namespace ATC {
 
     /** flag for if the node has been found in depth-first search */
     bool dfsFound_;
-    
+
   };
-  
+
   /**
    *  @class  MatrixDependencyManager
    *  @brief  Class for defining objects that manage the dependencies of matrices
@@ -127,7 +127,7 @@ namespace ATC {
 
     /** returns a non-const version for manipulations and changes, resets dependent quantities */
     virtual T<U> & set_quantity() {propagate_reset(); return get_quantity();};
-    
+
     /** access to a constant dense matrix of the quantity, indexed by AtC atom counts */
     virtual const T<U> & quantity() const {return get_quantity();};
 
@@ -210,12 +210,12 @@ namespace ATC {
   {
   public:
 
-    MatrixDependencyManager(MPI_Comm comm) : 
+    MatrixDependencyManager(MPI_Comm comm) :
       MatrixDependencyManager<SparseMatrix, T>(), quantity_(comm) {};
-    
+
     MatrixDependencyManager(MPI_Comm comm, int nRows, int nCols) :
       MatrixDependencyManager<SparseMatrix, T>(), quantity_(comm, nRows, nCols) {};
-    
+
     virtual ~MatrixDependencyManager() {};
 
   protected:
@@ -238,12 +238,12 @@ namespace ATC {
   {
   public:
 
-    MatrixDependencyManager(MPI_Comm comm) : 
+    MatrixDependencyManager(MPI_Comm comm) :
       MatrixDependencyManager<DiagonalMatrix, T>(), quantity_(comm) {};
-    
+
     MatrixDependencyManager(MPI_Comm comm, int nRows, int nCols) :
       MatrixDependencyManager<DiagonalMatrix, T>(), quantity_(comm, nRows, nCols) {};
-    
+
     virtual ~MatrixDependencyManager() {};
 
   protected:
@@ -267,13 +267,13 @@ namespace ATC {
     // constructor
     SetDependencyManager() :
       DependencyManager(), quantity_() {};
-    
+
     // destructor
     virtual ~SetDependencyManager() {};
 
     /** returns a non-const version for manipulations and changes, resets dependent quantities */
     virtual std::set<T> & set_quantity() {propagate_reset(); return quantity_;};
-    
+
     /** access to a constant dense matrix of the quantity, indexed by AtC atom counts */
     virtual const std::set<T> & quantity() const {return quantity_;};
 
@@ -300,13 +300,13 @@ namespace ATC {
     // constructor
     VectorDependencyManager() :
       DependencyManager(), quantity_() {};
-    
+
     // destructor
     virtual ~VectorDependencyManager() {};
 
     /** returns a non-const version for manipulations and changes, resets dependent quantities */
     virtual std::vector<T> & set_quantity() {propagate_reset(); return quantity_;};
-    
+
     /** access to a constant dense matrix of the quantity, indexed by AtC atom counts */
     virtual const std::vector<T> & quantity() const {return quantity_;};
 

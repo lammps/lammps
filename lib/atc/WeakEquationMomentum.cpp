@@ -49,7 +49,7 @@ bool WeakEquationMomentum::N_integrand(
   const Material * material,
   DENS_MAT &flux) const
 {
-  return material->body_force(fields, flux); 
+  return material->body_force(fields, flux);
 }
 
 //--------------------------------------------------------------
@@ -73,7 +73,7 @@ WeakEquationMomentumElectrostatic::WeakEquationMomentumElectrostatic()
 {
   // convert charge * electric field --> force
   qE2f_ = (ATC::LammpsInterface::instance()->qe2f());
-  _E_.assign(3, DENS_MAT()); 
+  _E_.assign(3, DENS_MAT());
 }
 
 //--------------------------------------------------------------
@@ -81,21 +81,21 @@ bool WeakEquationMomentumElectrostatic::N_integrand(
   const FIELD_MATS &fields,
   const GRAD_FIELD_MATS &grad_fields,
   const Material * material,
-  DENS_MAT &flux) const 
+  DENS_MAT &flux) const
 {
   material->electric_field(fields, grad_fields, _E_);
   // "conversion" of grad scalar to vector field
   int nsd = _E_.size();
-  flux.resize(_E_[0].nRows(),nsd); 
+  flux.resize(_E_[0].nRows(),nsd);
 
   FIELD_MATS::const_iterator nField = fields.find(ELECTRON_DENSITY);
   const DENS_MAT &  n = nField->second;
   for (int i=0; i < nsd; i++) {
     CLON_VEC fi = column(flux,i);
     fi = _E_[i];
-    fi *= -qE2f_*n; 
+    fi *= -qE2f_*n;
   }
-  return true; 
+  return true;
 }
 //==============================================================
 //  Class WeakEquationMomentumDiffusion
@@ -152,6 +152,6 @@ bool WeakEquationMomentumDiffusion::N_integrand(
   const Material * material,
   DENS_MAT &flux) const
 {
-  return material->body_force(fields, flux); 
+  return material->body_force(fields, flux);
 }
 }; // END namespace

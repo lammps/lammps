@@ -11,6 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "../testing/core.h"
 #include "atom.h"
 #include "info.h"
 #include "input.h"
@@ -19,7 +20,6 @@
 #include "utils.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-#include "../testing/core.h"
 
 #include <cstdio>
 #include <mpi.h>
@@ -34,8 +34,7 @@ using utils::split_words;
 
 #define test_name test_info_->name()
 
-
-static void create_molecule_files(const std::string & h2o_filename, const std::string & co2_filename)
+static void create_molecule_files(const std::string &h2o_filename, const std::string &co2_filename)
 {
     // create molecule files
     const char h2o_file[] = "# Water molecule. SPC/E model.\n\n3 atoms\n2 bonds\n1 angles\n\n"
@@ -77,11 +76,10 @@ bool verbose = false;
 
 class MoleculeFileTest : public LAMMPSTest {
 protected:
-    static void SetUpTestSuite() {
-        create_molecule_files("moltest.h2o.mol", "moltest.co2.mol");
-    }
+    static void SetUpTestSuite() { create_molecule_files("moltest.h2o.mol", "moltest.co2.mol"); }
 
-    static void TearDownTestSuite() {
+    static void TearDownTestSuite()
+    {
         remove("moltest.h2o.mol");
         remove("moltest.co2.mol");
     }
@@ -93,10 +91,7 @@ protected:
         ASSERT_NE(lmp, nullptr);
     }
 
-    void TearDown() override
-    {
-        LAMMPSTest::TearDown();
-    }
+    void TearDown() override { LAMMPSTest::TearDown(); }
 
     void run_mol_cmd(const std::string &name, const std::string &args, const std::string &content)
     {

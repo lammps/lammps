@@ -31,7 +31,7 @@ namespace ATC {
 
     /** constructor */
     FE_Mesh();
-  
+
     /** destructor */
     virtual ~FE_Mesh();
 
@@ -65,41 +65,41 @@ namespace ATC {
 
     /** evaluate shape function at real coordinates */
     void position(const int elem,
-                  const VECTOR &xi, 
+                  const VECTOR &xi,
                         DENS_VEC &x) const;
 
     /** evaluate shape function at real coordinates */
-    void shape_functions(const VECTOR &x, 
+    void shape_functions(const VECTOR &x,
                          DENS_VEC &N,
                          Array<int> &nodeList) const;
 
     /** evaluate shape function at real coordinates */
-    void shape_functions(const VECTOR &x, 
+    void shape_functions(const VECTOR &x,
                                  DENS_VEC &N,
                                  Array<int> &nodeList,
                                  const Array<bool> &) const;
 
     /** evaluate shape function at real coordinates */
-    void shape_functions(const DENS_VEC &x, 
+    void shape_functions(const DENS_VEC &x,
                          DENS_VEC &N,
                          DENS_MAT &dNdx,
                          Array<int> &nodeList) const;
 
     /** evaluate shape function at real coordinates */
-    void shape_functions(const VECTOR &x, 
+    void shape_functions(const VECTOR &x,
                          const int eltID,
                          DENS_VEC &N,
                          Array<int> &nodeList) const;
 
     /** evaluate shape function at real coordinates */
-    void shape_functions(const DENS_VEC &x, 
+    void shape_functions(const DENS_VEC &x,
                          const int eltID,
                          DENS_VEC &N,
                          DENS_MAT &dNdx,
                          Array<int> &nodeList) const;
 
     /** evaluate shape function at real coordinates */
-    void shape_function_derivatives(const DENS_VEC &x, 
+    void shape_function_derivatives(const DENS_VEC &x,
                          const int eltID,
                          DENS_MAT &dNdx,
                          Array<int> &nodeList) const;
@@ -176,7 +176,7 @@ namespace ATC {
       }
     }
 
-    /** 
+    /**
      *  return spatial coordinates for element nodes on eltID,
      *  indexed xCoords(isd,inode)
      */
@@ -199,21 +199,21 @@ namespace ATC {
     virtual int map_to_element(const DENS_VEC &x) const = 0;
 
     /** map global node numbering to unique node numbering */
-    int map_global_to_unique(const int global_id) const 
+    int map_global_to_unique(const int global_id) const
     {
       return globalToUniqueMap_(global_id);
     }
-    inline const Array<int>& global_to_unique_map(void) const 
+    inline const Array<int>& global_to_unique_map(void) const
     {
       return globalToUniqueMap_;
     }
 
     /** map unique node numbering a global node numbering */
-    int map_unique_to_global(const int unique_id) 
+    int map_unique_to_global(const int unique_id)
     {
       return uniqueToGlobalMap_(unique_id);
     }
-    inline const Array<int>& unique_to_global_map(void) const 
+    inline const Array<int>& unique_to_global_map(void) const
     {
       return uniqueToGlobalMap_;
     }
@@ -248,43 +248,43 @@ namespace ATC {
 
 
     /** get the minimal element set from a nodeset by name */
-    void nodeset_to_minimal_elementset(const std::string &name, 
+    void nodeset_to_minimal_elementset(const std::string &name,
                                        std::set<int> &elemSet) const;
     /** get the minimal element set from a set of nodes */
-    void nodeset_to_minimal_elementset(const std::set<int> &nodeSet, 
+    void nodeset_to_minimal_elementset(const std::set<int> &nodeSet,
                                        std::set<int> &elemSet) const;
     /** get the maximal element set from a nodeset by name */
-    void nodeset_to_maximal_elementset(const std::string &name, 
+    void nodeset_to_maximal_elementset(const std::string &name,
                                        std::set<int> &elemSet) const;
     /** get the maximal element set from a set of nodes */
-    void nodeset_to_maximal_elementset(const std::set<int> &nodeSet, 
+    void nodeset_to_maximal_elementset(const std::set<int> &nodeSet,
                                        std::set<int> &elemSet) const;
 
     /** get complement of element set by name */
-    void elementset_complement(const std::string &name, 
+    void elementset_complement(const std::string &name,
                                std::set<int> &elemSet) const;
-    void elementset_complement(const std::set<int> &elemSet, 
+    void elementset_complement(const std::set<int> &elemSet,
                                std::set<int> &elemSetComplement) const;
 
     /** get the node set from an element set by name */
-    void elementset_to_minimal_nodeset(const std::string &name, 
+    void elementset_to_minimal_nodeset(const std::string &name,
                                        std::set<int> &nodeSet) const;
 
-    void elementset_to_nodeset(const std::string &name, 
+    void elementset_to_nodeset(const std::string &name,
                                std::set<int> nodeSet) const;
-    void elementset_to_nodeset(const std::set<int> &elemSet, 
+    void elementset_to_nodeset(const std::set<int> &elemSet,
                                std::set<int> nodeSet) const;
     std::set<int> elementset_to_nodeset(const std::string &name) const;
 
     /** convert faceset to nodeset in _unique_ node numbering */
-    void faceset_to_nodeset(const std::string &name, 
+    void faceset_to_nodeset(const std::string &name,
                             std::set<int> &nodeSet) const;
-    void faceset_to_nodeset(const std::set<PAIR> &faceSet, 
+    void faceset_to_nodeset(const std::set<PAIR> &faceSet,
                             std::set<int> &nodeSet) const;
 
-    void faceset_to_nodeset_global(const std::string &name, 
+    void faceset_to_nodeset_global(const std::string &name,
                                    std::set<int> &nodeSet) const;
-    void faceset_to_nodeset_global(const std::set<PAIR> &faceSet, 
+    void faceset_to_nodeset_global(const std::set<PAIR> &faceSet,
                                    std::set<int> &nodeSet) const;
 
     /** get face set from the string name assigned to the set */
@@ -294,7 +294,7 @@ namespace ATC {
     void create_faceset(const std::string & name,
                         double xmin, double xmax,
                         double ymin, double ymax,
-                        double zmin, double zmax, 
+                        double zmin, double zmax,
                         bool outward);
     /** create face set with tag "name" from faces aligned with plane */
     void create_faceset(const std::string & name, double x, int idir, int isgn,
@@ -303,7 +303,7 @@ namespace ATC {
 
     /** cut mesh */
     virtual void cut_mesh(const std::set<PAIR> & faceSet, const std::set<int> & nodeSet) = 0;
-    
+
     /** delete elements */
     virtual void delete_elements(const std::set<int> & elementList) = 0;
 
@@ -330,10 +330,10 @@ namespace ATC {
 
     /** return number of faces per element */
     int num_faces_per_element() const;
-  
+
     /** return number of nodes per face */
     int num_nodes_per_face() const;
-  
+
     /** return number of integration points per face */
     int num_ips_per_face() const;
 
@@ -341,7 +341,7 @@ namespace ATC {
         when mesh is not partitioned. */
     Array2D<int> * connectivity(void) { return &connectivity_; }
     /** return a pointer to the connectivity */
-    DENS_MAT * coordinates(void) { return &nodalCoords_;} 
+    DENS_MAT * coordinates(void) { return &nodalCoords_;}
     /** Engine nodeMap stuff  */
     Array<int> *node_map(void) { return &globalToUniqueMap_;}
 
@@ -353,19 +353,19 @@ namespace ATC {
 
     /** local face connectivity */
     const Array2D<int> & local_face_connectivity() const;
- 
-    /** element size in each direction */
-    virtual void bounding_box(const int ielem, 
-                              DENS_VEC & xmin, DENS_VEC & xmax); 
 
     /** element size in each direction */
-    virtual void element_size(const int ielem, 
-                              double & hx, double & hy, double & hz); 
+    virtual void bounding_box(const int ielem,
+                              DENS_VEC & xmin, DENS_VEC & xmax);
 
     /** element size in each direction */
-    virtual double min_element_size(void) const {return 0.0 ;} 
+    virtual void element_size(const int ielem,
+                              double & hx, double & hy, double & hz);
 
-    /** get nodal coordinates for a given element */ 
+    /** element size in each direction */
+    virtual double min_element_size(void) const {return 0.0 ;}
+
+    /** get nodal coordinates for a given element */
     void element_field(const int eltIdx, const DENS_MAT f,
                        DENS_MAT &local_field)
     {
@@ -387,25 +387,25 @@ namespace ATC {
    virtual double coordinate_tolerance(void) const {return 1.e-8;}
 
     /** element type */
-    std::string element_type(void) const ; 
+    std::string element_type(void) const ;
 
     /** output mesh subsets */
-    void output(std::string prefix) const; 
-  
+    void output(std::string prefix) const;
+
     /* Parallelization data members */
- 
+
     /** return element vector for this processor */
     const std::vector<int> & owned_elts() const { return myElts_; }
-    const std::vector<int> & owned_and_ghost_elts() const { 
+    const std::vector<int> & owned_and_ghost_elts() const {
       return (decomposition_) ? myAndGhostElts_: myElts_; }
     bool is_owned_elt(int elt) const;
-    
+
   protected:
 
-    void parse_plane(int & argIdx, int narg, char ** arg,  
+    void parse_plane(int & argIdx, int narg, char ** arg,
       int & ndir, int * idir, int & isgn, double xlimits[][2]);
 
-    void parse_units(int & argIdx, int narg, char ** arg,  
+    void parse_units(int & argIdx, int narg, char ** arg,
       double & xmin, double & xmax, double & ymin, double & ymax, double & zmin, double & zmax);
 
     /** will this mesh use data decomposition? */
@@ -488,9 +488,9 @@ namespace ATC {
 
     /** maps between my IDs and the total IDs */
     std::map<int,int> elemToMyElemMap_;
-   
+
     /** Lists of ghost nodes/neighbor ghost nodes */
-    std::vector<int> ghostNodesL_; 
+    std::vector<int> ghostNodesL_;
     std::vector<int> ghostNodesR_;
     std::vector<int> shareNodesL_;
     std::vector<int> shareNodesR_;
@@ -509,11 +509,11 @@ namespace ATC {
   class FE_3DMesh : public FE_Mesh {
   public:
     /** constructor */
-    FE_3DMesh(){}; 
+    FE_3DMesh(){};
 
     /** constructor for read-in mesh **/
     // can later be extended to take nodesets, elementsets, etc.
-    FE_3DMesh(const std::string elementType, 
+    FE_3DMesh(const std::string elementType,
               const int nNodes,
               const int nElements,
               const Array2D<int> *connectivity,
@@ -532,34 +532,34 @@ namespace ATC {
 
     /** Removes duplicate elements that appear in more than one vector
          within procEltLists. **/
-    void prune_duplicate_elements(std::vector<std::vector<int> > &procEltLists, 
+    void prune_duplicate_elements(std::vector<std::vector<int> > &procEltLists,
                                   int *eltToOwners);
-    
+
     /** Takes procEltLists, and if there are more than nProcs of them
         it takes the extra elements and distributes them to other vectors
         in procEltLists. */
-          
+
           //       processors if during pruning processors end up
           //       elementless. This is slightly complicated because of
           //       ghost nodes.
     void redistribute_extra_proclists(std::vector<std::vector<int> > &procEltLists,
                                       int *eltToOwners, int nProcs);
-                                        
+
     /** This takes in a dense matrix and a list of elements
         and fills in a standard adjacency list (within the matrix)
         for those elements. **/
-          
+
           //       the set intersection, which does redundant computations
           //       right now, and filling in the adjacencies for both elements
           //       simultaneously when two elements share a face.
-    void compute_face_adjacencies(const std::list<int> &elts, 
+    void compute_face_adjacencies(const std::list<int> &elts,
                                   DENS_MAT &faceAdjacencies);
 
     /** Counts the number of nonempty vectors in a vector of vectors. **/
     int numNonempty(std::vector<std::vector<int> > &v);
-      
-    /**  In the partitioning, we want to sort vectors of integers by size, 
-          and furthermore we want empty vectors to count as the "largest" 
+
+    /**  In the partitioning, we want to sort vectors of integers by size,
+          and furthermore we want empty vectors to count as the "largest"
           possible vector because they dont want to count in the minimum. **/
     struct vectorComparer {
         bool operator() (std::vector<int> l, std::vector<int> r) {
@@ -578,12 +578,12 @@ namespace ATC {
     }
     virtual void cut_mesh(const std::set<PAIR> &faceSet,
                           const std::set<int> &nodeSet);
-    
+
     virtual void delete_elements(const std::set<int> &elementSet);
 
     /** map spatial location to element */
     virtual int map_to_element(const DENS_VEC &x) const;
-    
+
     /** sends out data to processors during partitioning */
     void distribute_mesh_data();
   protected:
@@ -610,18 +610,18 @@ namespace ATC {
 
   /**
    *  @class  FE_Rectangular3DMesh
-   *  @brief  Derived class for a structured mesh with 
-   *          variable element sizes in x, y, and z directions 
+   *  @brief  Derived class for a structured mesh with
+   *          variable element sizes in x, y, and z directions
    */
   class FE_Rectangular3DMesh : public FE_3DMesh {
   public:
     /** constructor */
-    FE_Rectangular3DMesh(){}; 
+    FE_Rectangular3DMesh(){};
     FE_Rectangular3DMesh(
               const Array<double> & hx,
               const Array<double> & hy,
               const Array<double> & hz,
-              const double xmin, const double xmax, 
+              const double xmin, const double xmax,
               const double ymin, const double ymax,
               const double zmin, const double zmax,
               const Array<bool> periodicity,
@@ -631,13 +631,13 @@ namespace ATC {
 
     /** destructor */
     virtual ~FE_Rectangular3DMesh() {};
-    
+
     void partition_mesh(void);
 
     void departition_mesh(void);
 
     /** map spatial location to element */
-    virtual int map_to_element(const DENS_VEC &x) const; 
+    virtual int map_to_element(const DENS_VEC &x) const;
 
   protected:
 
@@ -650,7 +650,7 @@ namespace ATC {
     /** Region size in each direction */
     double L_[3];
 
-    
+
 
     /** create global-to-unique node mapping */
     virtual void setup_periodicity(); // note no "tol"
@@ -665,11 +665,11 @@ namespace ATC {
 
   /**
    *  @class  FE_Uniform3DMesh
-   *  @brief  Derived class for a uniform structured mesh with 
-   *          fixed element sizes in x, y, and z directions 
+   *  @brief  Derived class for a uniform structured mesh with
+   *          fixed element sizes in x, y, and z directions
    */
   class FE_Uniform3DMesh : public FE_Rectangular3DMesh {
-  
+
   public:
 
     /** constructor */
@@ -690,8 +690,8 @@ namespace ATC {
     void partition_mesh(void);
 
     void departition_mesh(void);
-    
-    virtual void element_size(const int /* ielem */, 
+
+    virtual void element_size(const int /* ielem */,
                               double &hx, double &hy, double &hz)
     { hx = L_[0]/n_[0]; hy = L_[1]/n_[1]; hz = L_[2]/n_[2]; }
 
@@ -699,7 +699,7 @@ namespace ATC {
     { return std::min(L_[0]/n_[0], std::min(L_[1]/n_[1], L_[2]/n_[2])); }
 
     /** map spatial location to element */
-    virtual int map_to_element(const DENS_VEC &x) const; 
+    virtual int map_to_element(const DENS_VEC &x) const;
 
   private: // only used by this class
     /** Element size in each direction */

@@ -40,7 +40,7 @@ class FixReaxFF : public Fix {
   friend class PairReaxFFOMP;
 
  public:
-  FixReaxFF(class LAMMPS *,int, char **);
+  FixReaxFF(class LAMMPS *, int, char **);
   ~FixReaxFF();
   int setmask();
 
@@ -53,14 +53,14 @@ class FixReaxFF : public Fix {
   void unpack_forward_comm(int, int, double *);
 
  private:
-  int maxbonds;              // max # of bonds for any atom
-  int maxhbonds;             // max # of Hbonds for any atom
-  int *num_bonds;            // # of bonds for each atom
-  int *num_hbonds;           // # of Hbonds for each atom
-  int oldnmax;               // arrays' size before growing
+  int maxbonds;       // max # of bonds for any atom
+  int maxhbonds;      // max # of Hbonds for any atom
+  int *num_bonds;     // # of bonds for each atom
+  int *num_hbonds;    // # of Hbonds for each atom
+  int oldnmax;        // arrays' size before growing
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -12,19 +12,19 @@ namespace ATC{
    *  @class  WeakEquationDiffusion
    *  @brief  species diffusion
    *  c q,t = div q  -->
-   *  int M c q,t = int B q 
+   *  int M c q,t = int B q
    */
 
 class WeakEquationDiffusion : public WeakEquation {
 
   public:
-  
-  // constructor 
+
+  // constructor
   WeakEquationDiffusion();
 
   // destructor
   virtual ~WeakEquationDiffusion();
-  
+
   /** density that used to form the mass matrix */
   virtual bool has_M_integrand(void) const {return true;}
   virtual void M_integrand(const FIELD_MATS &fields,
@@ -43,7 +43,7 @@ class WeakEquationDiffusion : public WeakEquation {
   {
     std::set<std::string> needs;
     return needs;
-  } 
+  }
 };
 
 };

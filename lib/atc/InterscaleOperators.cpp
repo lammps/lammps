@@ -41,7 +41,7 @@ namespace ATC{
   {
     prefix_ = (atc_->lammps_interface())->fix_id() + prefix_;
   }
-        
+
   //--------------------------------------------------------
   //  Destructor
   //--------------------------------------------------------
@@ -155,7 +155,7 @@ namespace ATC{
     int myIndex = index;
     set<DependencyManager * >::iterator it;
     bool isTemporary = (quantity->memory_type()==TEMPORARY);
-    
+
     for (it = (quantity->dependentQuantities_).begin(); it != (quantity->dependentQuantities_).end(); it++) {
       // make sure that if quantity isn't persistent, none of it's dependencies are
       if ((*it)->memory_type()==PERSISTENT && isTemporary) {
@@ -454,7 +454,7 @@ namespace ATC{
   {
     // REFACTOR add check for duplicate entries
     DependencyManager * quantity = nullptr;
-    
+
     quantity = find_in_list(perAtomQuantities_,tag);
     if (quantity) return quantity;
     quantity = find_in_list(perAtomIntQuantities_,tag);
@@ -613,7 +613,7 @@ namespace ATC{
   //--------------------------------------------------------
   //  pack_comm
   //--------------------------------------------------------
-  int InterscaleManager::pack_comm(int index, double *buf, 
+  int InterscaleManager::pack_comm(int index, double *buf,
                                    int pbc_flag, int *pbc)
   {
     int size = 0;

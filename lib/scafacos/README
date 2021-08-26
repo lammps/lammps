@@ -36,7 +36,7 @@ Instructions:
     command in the scafacos base-folder.
 
 3.) If you downloaded the library as a tarball, please extract the file
-    to somewhere in your file system, or if you finished running 
+    to somewhere in your file system, or if you finished running
     './bootstrap', please run './configure' in the base folder.
     Important flags for './configure' are:
       --prefix=<install_dir>:       sets the directory the compiled files will

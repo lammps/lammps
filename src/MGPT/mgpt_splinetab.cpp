@@ -92,7 +92,7 @@ void evalcubic(double p[4],double x,double *y,double *dy,double *d2y) {
 }
 
 void evalspline(int n,double x0,double x1,double C[][4],
-		  double x,double *y,double *dy,double *d2y) {
+                  double x,double *y,double *dy,double *d2y) {
   double xhat,t1,t2,t3;
   double *p;
   int idx;

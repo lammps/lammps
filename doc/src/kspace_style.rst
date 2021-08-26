@@ -2,6 +2,7 @@
 .. index:: kspace_style ewald/dipole
 .. index:: kspace_style ewald/dipole/spin
 .. index:: kspace_style ewald/disp
+.. index:: kspace_style ewald/disp/dipole
 .. index:: kspace_style ewald/omp
 .. index:: kspace_style pppm
 .. index:: kspace_style pppm/kk
@@ -39,7 +40,7 @@ Syntax
 
    kspace_style style value
 
-* style = *none* or *ewald* or *ewald/dipole* or *ewald/dipole/spin* or *ewald/disp* or *ewald/omp* or *pppm* or *pppm/cg* or *pppm/disp* or *pppm/tip4p* or *pppm/stagger* or *pppm/disp/tip4p* or *pppm/gpu* or *pppm/intel* or *pppm/disp/intel* or *pppm/kk* or *pppm/omp* or *pppm/cg/omp* or *pppm/disp/tip4p/omp* or *pppm/tip4p/omp* or *pppm/dielectic* or *pppm/disp/dielectric* or *msm* or *msm/cg* or *msm/omp* or *msm/cg/omp* or *msm/dielectric* or *scafacos*
+* style = *none* or *ewald* or *ewald/dipole* or *ewald/dipole/spin* or *ewald/disp* or *ewald/disp/dipole* or *ewald/omp* or *pppm* or *pppm/cg* or *pppm/disp* or *pppm/tip4p* or *pppm/stagger* or *pppm/disp/tip4p* or *pppm/gpu* or *pppm/intel* or *pppm/disp/intel* or *pppm/kk* or *pppm/omp* or *pppm/cg/omp* or *pppm/disp/tip4p/omp* or *pppm/tip4p/omp* or *pppm/dielectic* or *pppm/disp/dielectric* or *msm* or *msm/cg* or *msm/omp* or *msm/cg/omp* or *msm/dielectric* or *scafacos*
 
   .. parsed-literal::
 
@@ -51,6 +52,8 @@ Syntax
        *ewald/dipole/spin* value = accuracy
          accuracy = desired relative error in forces
        *ewald/disp* value = accuracy
+         accuracy = desired relative error in forces
+       *ewald/disp/dipole* value = accuracy
          accuracy = desired relative error in forces
        *ewald/omp* value = accuracy
          accuracy = desired relative error in forces
@@ -156,6 +159,8 @@ matching keyword to the name of the KSpace style, as in this table:
 +----------------------+-----------------------+
 | tip4p/long           | tip4p                 |
 +----------------------+-----------------------+
+| dipole/long          | dipole                |
++----------------------+-----------------------+
 
 ----------
 
@@ -168,7 +173,8 @@ The *ewald/disp* style adds a long-range dispersion sum option for
 but in a more efficient manner than the *ewald* style.  The :math:`1/r^6`
 capability means that Lennard-Jones or Buckingham potentials can be
 used without a cutoff, i.e. they become full long-range potentials.
-The *ewald/disp* style can also be used with point-dipoles, see
+
+The *ewald/disp/dipole* style can also be used with point-dipoles, see
 :ref:`(Toukmaji) <Toukmaji>`.
 
 The *ewald/dipole* style adds long-range standard Ewald summations

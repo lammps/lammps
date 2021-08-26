@@ -12,7 +12,7 @@ namespace ATC {
 
   /**
    * @class ViscousStress
-   * @brief Base class that defines interface for a constitutive law 
+   * @brief Base class that defines interface for a constitutive law
    * @brief that computes viscous stresses given all field and gradient information.
    */
   class ViscousStress
@@ -27,12 +27,12 @@ namespace ATC {
       //* Units: mvv/L^3 (i.e. for units Real: g/(mol ps^2 A^2) )
       virtual void viscous_stress(const FIELD_MATS &fields,
                                   const GRAD_FIELD_MATS &gradFields,
-                                  DENS_MAT_VEC &stress)=0; 
+                                  DENS_MAT_VEC &stress)=0;
       virtual void viscosity(const FIELD_MATS & /* fields */,
                              DENS_MAT & /* coefs */) const
         {throw ATC_Error("ViscousStress::viscosity: unimplemented function");}
       //* Returns the derivative of the stress tensor for a given strain-rate tensor.
-      virtual void tangent(const MATRIX & /* F */, MATRIX & /* C */) const 
+      virtual void tangent(const MATRIX & /* F */, MATRIX & /* C */) const
         {throw ATC_Error("ViscousStress::tangent: unimplemented function");}
   };
 
@@ -41,7 +41,7 @@ namespace ATC {
    *  @class  ViscousStressConstant
    *  @brief  Class for computing stress for a constant viscosity material
    *          assuming divergence-free flow
-   */ 
+   */
 
   class ViscousStressConstant : public ViscousStress
   {
@@ -61,4 +61,4 @@ namespace ATC {
   };
 
 }
-#endif 
+#endif

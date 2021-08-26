@@ -26,7 +26,7 @@ To use the h5md dump style in lammps, execute
 make -f Makefile.h5cc
 in this directory then
 make yes-h5md
-in the src directory of LAMMPS to rebuild LAMMPS. 
+in the src directory of LAMMPS to rebuild LAMMPS.
 
 Note that you must have the h5cc compiler installed to use
 Makefile.h5cc.  It should be part

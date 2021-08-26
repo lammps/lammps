@@ -129,7 +129,7 @@ src/math_eigen_impl.h     @jewettaij
 tools/msi2lmp/*       @akohlmey
 tools/emacs/*         @HaoZeke
 tools/singularity/*   @akohlmey @rbberger
-tools/code_standard/* @rbberger
+tools/coding_standard/* @rbberger
 tools/valgrind/*      @akohlmey
 tools/swig/*          @akohlmey
 tools/offline/*       @rbberger

@@ -77,7 +77,7 @@ idregion(nullptr), idvar(nullptr), idprop(nullptr)
       iprop = atom->find_custom(arg[iarg+1],flag,cols);
       if (iprop < 0 || cols)
         error->all(FLERR,"Custom per-atom vector for group dynamic "
-		   "does not exist");
+                   "does not exist");
       propflag = 1;
       delete [] idprop;
       idprop = utils::strdup(arg[iarg+1]);
@@ -246,8 +246,8 @@ void FixGroup::set_group()
       if (regionflag && !region->match(x[i][0],x[i][1],x[i][2])) inflag = 0;
       if (varflag && var[i] == 0.0) inflag = 0;
       if (propflag) {
-	if (!proptype && ivector[i] == 0) inflag = 0;
-	if (proptype && dvector[i] == 0.0) inflag = 0;
+        if (!proptype && ivector[i] == 0) inflag = 0;
+        if (proptype && dvector[i] == 0.0) inflag = 0;
       }
     } else inflag = 0;
 

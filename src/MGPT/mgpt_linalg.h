@@ -41,13 +41,13 @@
 #define const
 #endif
 typedef void (*trmul_fun) (const double * restrict A,
-			   const double * restrict B,
-			   double * restrict C);
+                           const double * restrict B,
+                           double * restrict C);
 
 typedef void (*trtrace3_fun) (const double * restrict A,
-			      const double * restrict B1,double * restrict t1,
-			      const double * restrict B2,double * restrict t2,
-			      const double * restrict B3,double * restrict t3);
+                              const double * restrict B1,double * restrict t1,
+                              const double * restrict B2,double * restrict t2,
+                              const double * restrict B3,double * restrict t3);
 #if defined(IBM_BG_SIMD) || defined(IBM_BGQ_SIMD)
 #undef const
 #endif

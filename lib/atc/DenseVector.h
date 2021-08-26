@@ -9,7 +9,7 @@ template<typename T>
 
   /**
    *  @class  DenseVector
-   *  @brief  Class for storing data in a "dense" vector form         
+   *  @brief  Class for storing data in a "dense" vector form
    */
 
 class DenseVector : public Vector<T>
@@ -20,7 +20,7 @@ public:
   DenseVector(const Vector<T> &c)      : Vector<T>(), _data(nullptr) { _copy(c); }
   DenseVector(const T * ptr, INDEX nrows) : Vector<T>(), _data(nullptr) { copy(ptr,nrows); }
   virtual ~DenseVector()               { _delete();    }
-  
+
   //* resizes the Vector, ignores nCols, optionally copys what fits
   void resize(INDEX rows, INDEX cols=1, bool copy=false);
   //* resizes the Vector, ignores nCols, optionally zeros it out
@@ -35,7 +35,7 @@ public:
   T& operator()(INDEX i, INDEX /* j */)       { VICK(i) return _data[i]; }
   T  operator()(INDEX i) const { VICK(i) return _data[i]; }
   T& operator()(INDEX i)       { VICK(i) return _data[i]; }
-  void set_all_elements_to(const T &v)    { 
+  void set_all_elements_to(const T &v)    {
                                             int sz = this->size();
                                             for (INDEX i = 0; i < sz; i++) _data[i] = v;
                                           }
@@ -129,8 +129,8 @@ inline void DenseVector<T>::_create(INDEX n, bool zero)
 ///////////////////////////////////////////////////////////////////////////////
 //* creates a deep memory copy from a general matrix
 template <typename T>
-inline void DenseVector<T>::_copy(const Vector<T> &c) 
-{ 
+inline void DenseVector<T>::_copy(const Vector<T> &c)
+{
   if (!_data || _size!=c.size())
   {
     _delete();

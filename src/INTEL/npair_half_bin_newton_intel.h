@@ -23,8 +23,8 @@ NPairStyle(half/bin/newton/intel,
 #ifndef LMP_NPAIR_HALF_BIN_NEWTON_INTEL_H
 #define LMP_NPAIR_HALF_BIN_NEWTON_INTEL_H
 
-#include "npair_intel.h"
 #include "fix_intel.h"
+#include "npair_intel.h"
 
 namespace LAMMPS_NS {
 
@@ -35,11 +35,10 @@ class NPairHalfBinNewtonIntel : public NPairIntel {
   void build(class NeighList *);
 
  private:
-  template <class flt_t, class acc_t>
-  void hbni(NeighList *, IntelBuffers<flt_t,acc_t> *);
+  template <class flt_t, class acc_t> void hbni(NeighList *, IntelBuffers<flt_t, acc_t> *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

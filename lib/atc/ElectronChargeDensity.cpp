@@ -14,7 +14,7 @@ using std::vector;
 
 namespace ATC {
 ElectronChargeDensityInterpolation::ElectronChargeDensityInterpolation(
-  fstream &fileId, map<string,double> & /* parameters */) 
+  fstream &fileId, map<string,double> & /* parameters */)
   : ElectronChargeDensity(), n_()
 {
   if (!fileId.is_open()) throw ATC_Error("cannot open material file");
@@ -23,7 +23,7 @@ ElectronChargeDensityInterpolation::ElectronChargeDensityInterpolation(
   double coef = 1.;
   while(fileId.good()) {
     command_line(fileId, line);
-    if (line.size() == 0) continue; 
+    if (line.size() == 0) continue;
     if (line[0] == "end") return;
     else if (line[0] == "scale") coef = str2dbl(line[1]);
     else if (line[0] == "number_of_points") {
@@ -34,14 +34,14 @@ ElectronChargeDensityInterpolation::ElectronChargeDensityInterpolation(
 }
 
 ElectronChargeDensityLinear::ElectronChargeDensityLinear(
-  fstream &fileId, map<string,double> & parameters) 
+  fstream &fileId, map<string,double> & parameters)
   : ElectronChargeDensity()
 {
   if (!fileId.is_open()) throw ATC_Error("cannot open material file");
   vector<string> line;
   while(fileId.good()) {
     command_line(fileId, line);
-    if (line.size() == 0) continue; 
+    if (line.size() == 0) continue;
     if (line[0] == "end") return;
     double value = str2dbl(line[1]);
     if (line[0] == "coefficient") {
@@ -52,7 +52,7 @@ ElectronChargeDensityLinear::ElectronChargeDensityLinear(
 }
 
 ElectronChargeDensityExponential::ElectronChargeDensityExponential(
-  fstream &fileId, map<string,double> & parameters) 
+  fstream &fileId, map<string,double> & parameters)
   : ElectronChargeDensity(),
   intrinsicConcentration_(0),
   intrinsicEnergy_(0),
@@ -62,7 +62,7 @@ ElectronChargeDensityExponential::ElectronChargeDensityExponential(
   vector<string> line;
   while(fileId.good()) {
     command_line(fileId, line);
-    if (line.size() == 0) continue; 
+    if (line.size() == 0) continue;
     if (line[0] == "end") return;
     double value = str2dbl(line[1]);
     if (line[0] == "intrinsic_concentration") {
@@ -84,7 +84,7 @@ ElectronChargeDensityExponential::ElectronChargeDensityExponential(
 }
 
 ElectronChargeDensityFermiDirac::ElectronChargeDensityFermiDirac(
-  fstream &fileId, map<string,double> & parameters) 
+  fstream &fileId, map<string,double> & parameters)
   : ElectronChargeDensity(),
   Ef_(0),
     referenceTemperature_(0),
@@ -96,7 +96,7 @@ ElectronChargeDensityFermiDirac::ElectronChargeDensityFermiDirac(
   vector<string> line;
   while(fileId.good()) {
     command_line(fileId, line);
-    if (line.size() == 0) continue; 
+    if (line.size() == 0) continue;
     if (line[0] == "end") return;
     double value = str2dbl(line[1]);
     if (line[0] == "fermi_energy") {
@@ -120,7 +120,7 @@ ElectronChargeDensityFermiDirac::ElectronChargeDensityFermiDirac(
     else if (line[0] == "donor_concentration") {
       donorIonization_ = true;
       Nd_ = value;
-      parameters["donor_concentration"] = Nd_; 
+      parameters["donor_concentration"] = Nd_;
     }
     else {
       throw ATC_Error( "unrecognized material function "+line[0]);

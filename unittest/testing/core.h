@@ -13,38 +13,37 @@
 #ifndef TESTING_CORE__H
 #define TESTING_CORE__H
 
+#include "exceptions.h"
 #include "info.h"
 #include "input.h"
 #include "lammps.h"
 #include "variable.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-#include "exceptions.h"
 
 #include <functional>
-#include <vector>
 #include <string>
+#include <vector>
 
 using namespace LAMMPS_NS;
 
 using ::testing::MatchesRegex;
 
-#define TEST_FAILURE(errmsg, ...)                                 \
-    if (Info::has_exceptions()) {                                 \
-        ::testing::internal::CaptureStdout();                     \
-        ASSERT_ANY_THROW({__VA_ARGS__});                          \
-        auto mesg = ::testing::internal::GetCapturedStdout();     \
-        ASSERT_THAT(mesg, MatchesRegex(errmsg));                  \
-    } else {                                                      \
-        if (Info::get_mpi_vendor() != "Open MPI") {               \
-            ::testing::internal::CaptureStdout();                 \
-            ASSERT_DEATH({__VA_ARGS__}, "");                      \
-            auto mesg = ::testing::internal::GetCapturedStdout(); \
-            ASSERT_THAT(mesg, MatchesRegex(errmsg));              \
-        }                                                         \
-        else { \
-           std::cerr << "[          ] [ INFO ] Skipping death test (no exception support) \n";   \
-        } \
+#define TEST_FAILURE(errmsg, ...)                                                               \
+    if (Info::has_exceptions()) {                                                               \
+        ::testing::internal::CaptureStdout();                                                   \
+        ASSERT_ANY_THROW({__VA_ARGS__});                                                        \
+        auto mesg = ::testing::internal::GetCapturedStdout();                                   \
+        ASSERT_THAT(mesg, MatchesRegex(errmsg));                                                \
+    } else {                                                                                    \
+        if (Info::get_mpi_vendor() != "Open MPI") {                                             \
+            ::testing::internal::CaptureStdout();                                               \
+            ASSERT_DEATH({__VA_ARGS__}, "");                                                    \
+            auto mesg = ::testing::internal::GetCapturedStdout();                               \
+            ASSERT_THAT(mesg, MatchesRegex(errmsg));                                            \
+        } else {                                                                                \
+            std::cerr << "[          ] [ INFO ] Skipping death test (no exception support) \n"; \
+        }                                                                                       \
     }
 
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
@@ -54,40 +53,43 @@ class LAMMPSTest : public ::testing::Test {
 public:
     void command(const std::string &line) { lmp->input->one(line.c_str()); }
 
-    void BEGIN_HIDE_OUTPUT() {
+    void BEGIN_HIDE_OUTPUT()
+    {
         if (!verbose) ::testing::internal::CaptureStdout();
     }
 
-    void END_HIDE_OUTPUT() {
+    void END_HIDE_OUTPUT()
+    {
         if (!verbose) ::testing::internal::GetCapturedStdout();
     }
 
-    void BEGIN_CAPTURE_OUTPUT() {
-        ::testing::internal::CaptureStdout();
-    }
+    void BEGIN_CAPTURE_OUTPUT() { ::testing::internal::CaptureStdout(); }
 
-    std::string END_CAPTURE_OUTPUT() {
+    std::string END_CAPTURE_OUTPUT()
+    {
         auto output = ::testing::internal::GetCapturedStdout();
         if (verbose) std::cout << output;
         return output;
     }
 
-    void HIDE_OUTPUT(std::function<void()> f) {
+    void HIDE_OUTPUT(std::function<void()> f)
+    {
         if (!verbose) ::testing::internal::CaptureStdout();
         try {
             f();
-        } catch(LAMMPSException & e) {
+        } catch (LAMMPSException &e) {
             if (!verbose) std::cout << ::testing::internal::GetCapturedStdout();
             throw e;
         }
         if (!verbose) ::testing::internal::GetCapturedStdout();
     }
 
-    std::string CAPTURE_OUTPUT(std::function<void()> f) {
+    std::string CAPTURE_OUTPUT(std::function<void()> f)
+    {
         ::testing::internal::CaptureStdout();
         try {
             f();
-        } catch(LAMMPSException & e) {
+        } catch (LAMMPSException &e) {
             if (verbose) std::cout << ::testing::internal::GetCapturedStdout();
             throw e;
         }
@@ -96,43 +98,45 @@ public:
         return output;
     }
 
-    double get_variable_value(const std::string & name) {
-        char * str = utils::strdup(fmt::format("v_{}", name));
+    double get_variable_value(const std::string &name)
+    {
+        char *str    = utils::strdup(fmt::format("v_{}", name));
         double value = lmp->input->variable->compute_equal(str);
-        delete [] str;
+        delete[] str;
         return value;
     }
 
-    std::string get_variable_string(const std::string & name) {
+    std::string get_variable_string(const std::string &name)
+    {
         return lmp->input->variable->retrieve(name.c_str());
     }
 
 protected:
-    std::string testbinary = "LAMMPSTest";
+    std::string testbinary        = "LAMMPSTest";
     std::vector<std::string> args = {"-log", "none", "-echo", "screen", "-nocite"};
     LAMMPS *lmp;
     Info *info;
 
     void SetUp() override
     {
-        int argc = args.size() + 1;
-        char ** argv = new char*[argc];
-        argv[0] = utils::strdup(testbinary);
-        for(int i = 1; i < argc; i++) {
-            argv[i] = utils::strdup(args[i-1]);
+        int argc    = args.size() + 1;
+        char **argv = new char *[argc];
+        argv[0]     = utils::strdup(testbinary);
+        for (int i = 1; i < argc; i++) {
+            argv[i] = utils::strdup(args[i - 1]);
         }
 
         HIDE_OUTPUT([&] {
-            lmp = new LAMMPS(argc, argv, MPI_COMM_WORLD);
+            lmp  = new LAMMPS(argc, argv, MPI_COMM_WORLD);
             info = new Info(lmp);
         });
         InitSystem();
 
-        for(int i = 0; i < argc; i++) {
-            delete [] argv[i];
+        for (int i = 0; i < argc; i++) {
+            delete[] argv[i];
             argv[i] = nullptr;
         }
-        delete [] argv;
+        delete[] argv;
     }
 
     virtual void InitSystem() {}
@@ -143,7 +147,7 @@ protected:
             delete info;
             delete lmp;
             info = nullptr;
-            lmp = nullptr;
+            lmp  = nullptr;
         });
         std::cout.flush();
     }

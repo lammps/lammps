@@ -23,8 +23,7 @@ extern bool verbose;
 extern std::string INPUT_FOLDER;
 
 // convenience method to write out common entries
-void write_yaml_header(class YamlWriter *writer, TestConfig *cfg,
-                       const char *version);
+void write_yaml_header(class YamlWriter *writer, TestConfig *cfg, const char *version);
 
 #define EXPECT_FP_LE_WITH_EPS(val1, val2, eps)                \
     do {                                                      \
@@ -42,4 +41,3 @@ static const char PATH_SEP = '/';
 #endif
 
 #endif
-

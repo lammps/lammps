@@ -23,10 +23,10 @@
 #include "utils.h"
 #include "variable.h"
 
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
 #include "../testing/core.h"
 #include "../testing/utils.h"
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
 
 #include <cstdio>
 #include <cstring>
@@ -36,7 +36,6 @@
 
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
 bool verbose = false;
-
 
 using LAMMPS_NS::utils::split_words;
 
@@ -205,7 +204,8 @@ TEST_F(SimpleCommandsTest, Processors)
     ASSERT_EQ(lmp->comm->user_procgrid[2], 0);
 
     TEST_FAILURE(".*ERROR: Illegal processors command .*", command("processors -1 0 0"););
-    TEST_FAILURE(".*ERROR: Specified processors != physical processors.*", command("processors 100 100 100"););
+    TEST_FAILURE(".*ERROR: Specified processors != physical processors.*",
+                 command("processors 100 100 100"););
 }
 
 TEST_F(SimpleCommandsTest, Quit)

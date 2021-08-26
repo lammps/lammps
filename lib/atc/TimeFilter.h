@@ -1,4 +1,4 @@
-// The type of filter used should be determined by the 
+// The type of filter used should be determined by the
 // integrator since filtering much match the time integration scheme
 
 
@@ -29,7 +29,7 @@ namespace ATC {
   //--------------------------------------------------------
 
   class TimeFilterManager {
-  
+
   public:
 
     /** enumeration for the functional form underlying the filter */
@@ -49,13 +49,13 @@ namespace ATC {
       IMPLICIT,
       IMPLICIT_UPDATE
     };
-  
+
     // constructor
     TimeFilterManager(ATC_Method * atc);
-    
+
     // destructor
     ~TimeFilterManager();
-        
+
     /** parser/modifier */
     bool modify(int narg, char **arg);
 
@@ -64,10 +64,10 @@ namespace ATC {
 
     /** get filter base function */
     TimeFilterType filter_type() const {return filterType_;};
-        
+
     /** return filtering time scale */
     double filter_scale() const {return filterScale_;};
-        
+
     /** check if dynamics should be filtering */
     bool filter_dynamics() const {return useFilter_;};
 
@@ -85,26 +85,26 @@ namespace ATC {
 
     /** construct the appropriate time filter */
     TimeFilter * construct(const FilterIntegrationType type = CRANK_NICHOLSON);
-  
+
   protected:
 
     TimeFilterManager(){};
-  
+
     /** pointer to access ATC methods */
     ATC_Method * atc_;
 
     /** description of underlying function form of filter */
     TimeFilterType filterType_;
-  
+
     /** filtering time scale */
     double filterScale_;
-        
+
     /** flag to see if filtering is active */
     bool useFilter_;
 
     /** flag to see if we are equilibrating the filtered variables */
     bool equilibrateFilter_;
-        
+
     /** flag to reset data */
     bool needReset_;
 
@@ -113,7 +113,7 @@ namespace ATC {
 
     /** set to store all time filters for later deletion */
     std::set<TimeFilter * > timeFilterSet_;
-  
+
   };
 
   /**
@@ -130,12 +130,12 @@ namespace ATC {
 
 
   class TimeFilter {
-  
+
   public:
-  
+
     // constructor
     TimeFilter(TimeFilterManager & timeFilterManager);
-    
+
     // destructor
     virtual ~TimeFilter(){};
 
@@ -144,67 +144,67 @@ namespace ATC {
 
     /** pre time integration with a target for an initial condition */
     virtual void initialize(const MATRIX & /* target */){initialize();};
-        
+
     /** Step 1:
         apply first step in a time filter update in the pre integration phase */
     virtual void apply_pre_step1(MATRIX & /* filteredQuantity */,
                                  const MATRIX & unFilteredQuantity,
                                  double /* dt */)
       { TimeFilter::unFilteredQuantityOld_ = unFilteredQuantity;}
-        
+
     /** Step 2:
          apply second step in a time filter update in pre integration phase */
     virtual void apply_pre_step2(MATRIX & /* filteredQuantity */,
                                  const MATRIX & /* unFilteredQuantity */,
                                  double /* dt */) {};
-        
+
     /** Step 3:
         apply first step in a time filter update in post integration phase */
     virtual void apply_post_step1(MATRIX & filteredQuantity,
                                   const MATRIX & unFilteredQuantity,
-                                  double /* dt */) 
+                                  double /* dt */)
       { filteredQuantity = unFilteredQuantity;};
-        
+
     /** Step 4:
         apply second step in a time filter update in post integration phase */
     virtual void apply_post_step2(MATRIX & filteredQuantity,
                                   const MATRIX & unFilteredQuantity,
                                   double /* dt */)
       { filteredQuantity = unFilteredQuantity;}
-                                                  
+
     /** coefficient multipling unfiltered terms in apply_pre_step1 method */
     virtual double unfiltered_coefficient_pre_s1(double /* dt */){return 0.;};
 
     /** coefficient multipling old filtered terms in apply_pre_step1 method */
     virtual double filtered_coefficient_pre_s1(double /* dt */){return 0.;};
-        
+
     /** coefficient multipling unfiltered terms in apply_post_step1 method */
     virtual double unfiltered_coefficient_post_s1(double /* dt */){return 0.;};
 
     /** coefficient multipling old filtered terms in apply_post_step1 method */
     virtual double filtered_coefficient_post_s1(double /* dt */){return 0.;};
-        
+
     /** coefficient multipling unfiltered terms in apply_pre_step2 method */
     virtual double unfiltered_coefficient_pre_s2(double /* dt */){return 0.;};
 
     /** coefficient multipling old filtered terms in apply_pre_step2 method */
     virtual double filtered_coefficient_pre_s2(double /* dt */){return 0.;};
-        
+
     /** coefficient multipling unfiltered terms in apply_post_step2 method */
     virtual double unfiltered_coefficient_post_s2(double /* dt */){return 0.;};
 
     /** coefficient multipling old filtered terms in apply_post_step2 method */
     virtual double filtered_coefficient_post_s2(double /* dt */){return 0.;};
-  
+
     /** rate of filtered quantity to be called in post integration phase */
     virtual void rate(MATRIX & rate,
                       const MATRIX & /* filteredQuantity */,
                       const MATRIX & unFilteredQuantity,
                       double dt = 0.0)
-      { rate = 1/dt*(unFilteredQuantity - TimeFilter::unFilteredQuantityOld_);}; 
+      { rate = 1/dt*(unFilteredQuantity - TimeFilter::unFilteredQuantityOld_);};
 
   protected:
-  
+
     TimeFilter(){};
 
     /** pointer to access ATC methods */
@@ -218,7 +218,7 @@ namespace ATC {
 
     /** member data to track old unfiltered values */
     DENS_MAT unFilteredQuantityOld_;
-  
+
   };
 
   /**
@@ -234,29 +234,29 @@ namespace ATC {
   //--------------------------------------------------------
 
   class TimeFilterExponential : public TimeFilter {
-  
+
   public:
-  
+
     // constructor
     TimeFilterExponential(TimeFilterManager & timeFilterManager);
-    
+
     // destructor
     virtual ~TimeFilterExponential(){};
     /** apply first step in a time filter update in the pre integration phase */
     virtual void apply_pre_step1(MATRIX & /* filteredQuantity */,
                                  const MATRIX & /* unFilteredQuantity */,
                                  double /* dt */) {};
-        
+
     /** apply second step in a time filter update in pre integration phase */
     virtual void apply_pre_step2(MATRIX & /* filteredQuantity */,
                                  const MATRIX & /* unFilteredQuantity */,
                                  double /* dt */) {};
-        
+
     /** apply first step in a time filter update in post integration phase */
     virtual void apply_post_step1(MATRIX & /* filteredQuantity */,
                                   const MATRIX & /* unFilteredQuantity */,
                                   double /* dt */) {};
-        
+
     /** apply second step in a time filter update in post integration phase */
     virtual void apply_post_step2(MATRIX & /* filteredQuantity */,
                                   const MATRIX & /* unFilteredQuantity */,
@@ -279,14 +279,14 @@ namespace ATC {
   protected:
 
     TimeFilterExponential(){};
-  
+
     //--------------------------------------------------------
     //--------------------------------------------------------
     //  filter integration functions not associated
     //  with any particular class
     //--------------------------------------------------------
     //--------------------------------------------------------
-  
+
     void update_filter(MATRIX & filteredQuantity,
                        const MATRIX & unfilteredQuantity,
                        MATRIX & unfilteredQuantityOld,
@@ -313,12 +313,12 @@ namespace ATC {
 
     double filtered_coef(double tau, double dt)
     { return 1./(1./dt+1./(2.*tau))*( 1./dt-1./(2*tau) ); };
-  
+
     void update_filter_implicit(MATRIX & filteredQuantity,
                                 const MATRIX & unfilteredQuantity,
                                 double tau,
                                 double dt)
-    { 
+    {
       filteredQuantity /= 1.0 + dt/tau;
       filteredQuantity +=  (dt)/(tau+dt)*unfilteredQuantity;
     }
@@ -328,13 +328,13 @@ namespace ATC {
                                 double tau,
                                 double dt)
     { filteredQuantity += (1./(1.+dt/tau))*(dt/tau)*unfilteredQuantity; };
-  
+
     double unfiltered_coef_implicit(double tau, double dt)
     { return (1./(1.+dt/tau))*(dt/tau); };
 
     double filtered_coef_implicit(double tau, double dt)
     { return (1./(1.+dt/tau)); };
-  
+
     void update_filter_explicit(MATRIX & filteredQuantity,
                                 const MATRIX & unfilteredQuantity,
                                 double tau,
@@ -343,13 +343,13 @@ namespace ATC {
       filteredQuantity *= (1.-(dt/tau));
       filteredQuantity += (dt/tau)*unfilteredQuantity;
     }
-  
+
     void add_to_filter_explicit(MATRIX & filteredQuantity,
                                 const MATRIX & unfilteredQuantity,
                                 double tau,
                                 double dt)
     { filteredQuantity += (dt/tau)*unfilteredQuantity; };
-  
+
     double unfiltered_coef_explicit(double tau, double dt)
     { return (dt/tau); };
 
@@ -362,28 +362,28 @@ namespace ATC {
    *  @class  TimeFilterCrankNicolson
    *  @brief  Time Filter using Crank-Nicolson advancement of filtered quantity ODE's
    */
-  
+
   //--------------------------------------------------------
   //--------------------------------------------------------
   //  Class TimeFilterCrankNicolson
   //--------------------------------------------------------
   //--------------------------------------------------------
   class TimeFilterCrankNicolson : public TimeFilterExponential {
-  
+
   public:
-  
+
     // constructor
     TimeFilterCrankNicolson(TimeFilterManager & timeFilterManager);
-        
+
     // destructor
     virtual ~TimeFilterCrankNicolson(){};
 
     /** pre time integration */
     virtual void initialize(){throw ATC_Error("TimeFilterCrankNicolson::initialize() an initial condition is required for this time filter");};
-        
+
     /** pre time integration with an initial condition */
     virtual void initialize(const MATRIX & target);
-        
+
     /** applies first step in a time filter update in the pre integration phase */
     virtual void apply_pre_step1(MATRIX & filteredQuantity,
                                  MATRIX const & unFilteredQuantity,
@@ -395,31 +395,31 @@ namespace ATC {
                                   MATRIX const & unFilteredQuantity,
                                   double dt)
     { add_to_filter(filteredQuantity,unFilteredQuantity,unFilteredQuantityOld_,TimeFilter::filterScale_,dt); };
-        
+
     /** applies second step in a time filter update in the post integration phase */
     virtual void apply_post_step2(MATRIX & filteredQuantity,
                                   MATRIX const & unFilteredQuantity,
                                   double dt)
     { update_filter(filteredQuantity,unFilteredQuantity,unFilteredQuantityOld_,TimeFilter::filterScale_,dt); };
-        
+
     /** return coefficient multipling unfiltered terms in the apply_pre_step1 method */
     virtual double unfiltered_coefficient_pre_s1(double dt){return unfiltered_coef(TimeFilter::filterScale_,dt);};
 
     /** return coefficient multipling old filtered terms in the apply_pre_step1 method */
     virtual double filtered_coefficient_pre_s1(double dt){return filtered_coef(TimeFilter::filterScale_,dt);};
-        
+
     /** return coefficient multipling unfiltered terms in the apply_post_step2 method */
     virtual double unfiltered_coefficient_post_s2(double dt){return unfiltered_coef(TimeFilter::filterScale_,dt);};
 
     /** return coefficient multipling old filtered terms in the apply_post_step2 method */
     virtual double filtered_coefficient_post_s2(double dt){return filtered_coef(TimeFilter::filterScale_,dt);};
-        
+
   protected:
-  
+
     TimeFilterCrankNicolson();
-  
+
   };
-  
+
   /**
    *  @class  TimeFilterExplicit
    *  @brief  Time Filter using explicit advancement of filtered quantity ODE's
@@ -431,15 +431,15 @@ namespace ATC {
   //--------------------------------------------------------
   //--------------------------------------------------------
   class TimeFilterExplicit : public TimeFilterExponential {
-  
+
   public:
-  
+
     // constructor
     TimeFilterExplicit(TimeFilterManager & timeFilterManager);
-        
+
     // destructor
     virtual ~TimeFilterExplicit(){};
-        
+
     /** applies first step in a time filter update in the pre integration phase */
     virtual void apply_pre_step1(MATRIX & filteredQuantity,
                                  MATRIX const & unFilteredQuantity,
@@ -451,31 +451,31 @@ namespace ATC {
                                  MATRIX const & unFilteredQuantity,
                                  double dt)
     { add_to_filter_explicit(filteredQuantity,unFilteredQuantity,TimeFilter::filterScale_,dt); };
-        
+
     /** applies second step in a time filter update in the post integration phase */
     virtual void apply_post_step2(MATRIX & filteredQuantity,
                                   MATRIX const & unFilteredQuantity,
                                   double dt)
     { update_filter_explicit(filteredQuantity,unFilteredQuantity,TimeFilter::filterScale_,dt); };
-        
+
     /** return coefficient multipling unfiltered terms in the apply_pre_step1 method */
     virtual double unfiltered_coefficient_pre_s1(double dt){return unfiltered_coef_explicit(TimeFilter::filterScale_,dt);};
 
     /** return coefficient multipling old filtered terms in the apply_pre_step1 method */
     virtual double filtered_coefficient_pre_s1(double dt){return filtered_coef_explicit(TimeFilter::filterScale_,dt);};
-        
+
     /** return coefficient multipling unfiltered terms in the apply_post_step2 method */
     virtual double unfiltered_coefficient_post_s2(double dt){return unfiltered_coef_explicit(TimeFilter::filterScale_,dt);};
 
     /** return coefficient multipling old filtered terms in the apply_post_step2 method */
     virtual double filtered_coefficient_post_s2(double dt){return filtered_coef_explicit(TimeFilter::filterScale_,dt);};
-        
+
   protected:
-  
+
     TimeFilterExplicit();
-        
+
   };
-  
+
   /**
    *  @class  TimeFilterImplicit
    *  @brief  Time Filter using implicit advancement of filtered quantity ODE's
@@ -487,21 +487,21 @@ namespace ATC {
   //--------------------------------------------------------
   //--------------------------------------------------------
   class TimeFilterImplicit : public TimeFilterExponential {
-  
+
   public:
-  
+
     // constructor
     TimeFilterImplicit(TimeFilterManager & timeFilterManager);
-        
+
     // destructor
     virtual ~TimeFilterImplicit(){};
-        
+
     /** applies first step in a time filter update in the pre integration phase */
     virtual void apply_pre_step1(MATRIX & filteredQuantity,
                                  MATRIX const & unFilteredQuantity,
                                  double dt)
     { update_filter_implicit(filteredQuantity,unFilteredQuantity,TimeFilter::filterScale_,dt); };
-        
+
     /** applies second step in a time filter update in the post integration phase */
     virtual void apply_post_step2(MATRIX & filteredQuantity,
                                   MATRIX const & unFilteredQuantity,
@@ -513,19 +513,19 @@ namespace ATC {
 
     /** return coefficient multipling old filtered terms in the apply_pre_step1 method */
     virtual double filtered_coefficient_pre_s1(double dt){return filtered_coef_implicit(TimeFilter::filterScale_,dt);};
-        
+
     /** return coefficient multipling unfiltered terms in the apply_post_step2 method */
     virtual double unfiltered_coefficient_post_s2(double dt){return unfiltered_coef_implicit(TimeFilter::filterScale_,dt);};
 
     /** return coefficient multipling old filtered terms in the apply_post_step2 method */
     virtual double filtered_coefficient_post_s2(double dt){return filtered_coef_implicit(TimeFilter::filterScale_,dt);};
-        
+
   protected:
-  
+
     TimeFilterImplicit();
-  
+
   };
-  
+
   /**
    *  @class  TimeFilterImplicitExplicit
    *  @brief  Time Filter using two-step implicit/explicit advancement of filtered quantity ODE's
@@ -537,43 +537,43 @@ namespace ATC {
   //--------------------------------------------------------
   //--------------------------------------------------------
   class TimeFilterImplicitExplicit : public TimeFilterExponential {
-  
+
   public:
-  
+
     // constructor
     TimeFilterImplicitExplicit(TimeFilterManager & timeFilterManager);
-        
+
     // destructor
     virtual ~TimeFilterImplicitExplicit(){};
-        
+
     /** applies first step in a time filter update in the pre integration phase */
     virtual void apply_pre_step1(MATRIX & filteredQuantity,
                                  MATRIX const & unFilteredQuantity,
                                  double dt)
     { update_filter_implicit(filteredQuantity,unFilteredQuantity,TimeFilter::filterScale_,0.5*dt); };
-        
+
     /** applies second step in a time filter update in the post integration phase */
     virtual void apply_post_step2(MATRIX & filteredQuantity,
                                   MATRIX const & unFilteredQuantity,
                                   double dt)
     { update_filter_explicit(filteredQuantity,unFilteredQuantity,TimeFilter::filterScale_,0.5*dt); };
-        
+
     /** return coefficient multipling unfiltered terms in the apply_pre_step1 method */
     virtual double unfiltered_coefficient_pre_s1(double dt){return unfiltered_coef_implicit(TimeFilter::filterScale_,0.5*dt);};
 
     /** return coefficient multipling old filtered terms in the apply_pre_step1 method */
     virtual double filtered_coefficient_pre_s1(double dt){return filtered_coef_implicit(TimeFilter::filterScale_,0.5*dt);};
-        
+
     /** return coefficient multipling unfiltered terms in the apply_post_step2 method */
     virtual double unfiltered_coefficient_post_s2(double dt){return unfiltered_coef_explicit(TimeFilter::filterScale_,0.5*dt);};
 
     /** return coefficient multipling old filtered terms in the apply_post_step2 method */
     virtual double filtered_coefficient_post_s2(double dt){return filtered_coef_explicit(TimeFilter::filterScale_,0.5*dt);};
-        
+
   protected:
-  
+
     TimeFilterImplicitExplicit();
-  
+
   };
 
     /**
@@ -587,15 +587,15 @@ namespace ATC {
   //--------------------------------------------------------
   //--------------------------------------------------------
   class TimeFilterExplicitImplicit : public TimeFilterExponential {
-  
+
   public:
-  
+
     // constructor
     TimeFilterExplicitImplicit(TimeFilterManager & timeFilterManager);
-        
+
     // destructor
     virtual ~TimeFilterExplicitImplicit(){};
-        
+
     /** applies first step in a time filter update in the pre integration phase */
     virtual void apply_pre_step1(MATRIX & filteredQuantity,
                                  MATRIX const & unFilteredQuantity,
@@ -619,13 +619,13 @@ namespace ATC {
                                   MATRIX const & unFilteredQuantity,
                                   double dt)
     { add_to_filter_implicit(filteredQuantity,unFilteredQuantity,TimeFilter::filterScale_,0.5*dt); };
-        
+
     /** return coefficient multipling unfiltered terms in the apply_pre_step1 method */
     virtual double unfiltered_coefficient_pre_s1(double dt){return unfiltered_coef_explicit(TimeFilter::filterScale_,0.5*dt);};
 
     /** return coefficient multipling old filtered terms in the apply_pre_step1 method */
     virtual double filtered_coefficient_pre_s1(double dt){return filtered_coef_explicit(TimeFilter::filterScale_,0.5*dt);};
-        
+
     /** return coefficient multipling unfiltered terms in the apply_post_step2 method */
     virtual double unfiltered_coefficient_post_s1(double dt){return unfiltered_coef_implicit(TimeFilter::filterScale_,0.5*dt);};
 
@@ -633,61 +633,61 @@ namespace ATC {
     virtual double filtered_coefficient_post_s1(double dt){return filtered_coef_implicit(TimeFilter::filterScale_,0.5*dt);};
 
   protected:
-  
+
     TimeFilterExplicitImplicit();
-  
+
   };
 
   /**
    *  @class  TimeFilterImplicitUpdate
    *  @brief  Time Filter using implicit advancement of filtered quantity ODE's but adds on contribution at the end of the second step
    */
-  
+
   //--------------------------------------------------------
   //--------------------------------------------------------
   //  Class TimeFilterImplicitUpdate
   //--------------------------------------------------------
   //--------------------------------------------------------
   class TimeFilterImplicitUpdate : public TimeFilterExponential {
-  
+
   public:
-  
+
     // constructor
     TimeFilterImplicitUpdate(TimeFilterManager & timeFilterManager);
-        
+
     // destructor
     virtual ~TimeFilterImplicitUpdate(){};
-        
+
     /** applies first step in a time filter update in the pre integration phase */
     virtual void apply_pre_step1(MATRIX & filteredQuantity,
                                  MATRIX const & unFilteredQuantity,
                                  double dt)
     { update_filter_implicit(filteredQuantity,unFilteredQuantity,TimeFilter::filterScale_,dt); };
-        
+
     /** applies second step in a time filter update in the post integration phase */
     virtual void apply_post_step1(MATRIX & filteredQuantity,
                                   MATRIX const & unFilteredQuantity,
                                   double dt)
     { add_to_filter_implicit(filteredQuantity,unFilteredQuantity,TimeFilter::filterScale_,dt); };
-        
+
     /** return coefficient multipling unfiltered terms in the apply_pre_step1 method */
     virtual double unfiltered_coefficient_pre_s1(double dt){return unfiltered_coef_implicit(TimeFilter::filterScale_,dt);};
 
     /** return coefficient multipling old filtered terms in the apply_pre_step1 method */
     virtual double filtered_coefficient_pre_s1(double dt){return filtered_coef_implicit(TimeFilter::filterScale_,dt);};
-        
+
     /** return coefficient multipling unfiltered terms in the apply_post_step2 method */
     virtual double unfiltered_coefficient_post_s1(double dt){return unfiltered_coef_implicit(TimeFilter::filterScale_,dt);};
 
     /** return coefficient multipling old filtered terms in the apply_post_step2 method */
     virtual double filtered_coefficient_post_s1(double dt){return filtered_coef_implicit(TimeFilter::filterScale_,dt);};
-        
+
   protected:
-  
+
     TimeFilterImplicitUpdate();
-  
+
   };
-  
+
   //--------------------------------------------------------
   //--------------------------------------------------------
   //  Class TimeFilterStep
@@ -695,12 +695,12 @@ namespace ATC {
   //--------------------------------------------------------
 
   class TimeFilterStep : public TimeFilter {
-  
+
   public:
-  
+
     // constructor
     TimeFilterStep(TimeFilterManager & timeFilterManager);
-    
+
     // destructor
     virtual ~TimeFilterStep(){};
 
@@ -711,23 +711,23 @@ namespace ATC {
     virtual void apply_pre_step1(MATRIX & /* filteredQuantity */,
                                  const MATRIX & /* unFilteredQuantity */,
                                  double /* dt */) {};
-        
+
     /** apply second step in a time filter update in pre integration phase */
     virtual void apply_pre_step2(MATRIX & /* filteredQuantity */,
                                  const MATRIX & /* unFilteredQuantity */,
                                  double /* dt */) {};
-        
+
     /** apply first step in a time filter update in post integration phase */
     virtual void apply_post_step1(MATRIX & /* filteredQuantity */,
                                   const MATRIX & /* unFilteredQuantity */,
                                   double /* dt */) {};
-        
+
     /** apply second step in a time filter update in post integration phase */
     virtual void apply_post_step2(MATRIX & filteredQuantity,
                                   const MATRIX & unFilteredQuantity,
-                                  double dt) 
+                                  double dt)
       { update_filter(filteredQuantity, unFilteredQuantity,
-           TimeFilter::unFilteredQuantityOld_, TimeFilter::filterScale_, dt); 
+           TimeFilter::unFilteredQuantityOld_, TimeFilter::filterScale_, dt);
       }
 
     /** time rate of filtered quantity */
@@ -745,9 +745,9 @@ namespace ATC {
   protected:
 
     TimeFilterStep(){};
-   
+
     double elapsedTime_;
-  
+
     void update_filter(MATRIX & filteredQuantity,
                        const MATRIX & unfilteredQuantity,
                        MATRIX & unfilteredQuantitySum,
@@ -764,10 +764,10 @@ namespace ATC {
       else { // a running average
         elapsedTime_ += dt;
         unfilteredQuantitySum += unfilteredQuantity*dt;
-        filteredQuantity = unfilteredQuantitySum; 
+        filteredQuantity = unfilteredQuantitySum;
         filteredQuantity /= elapsedTime_;
       }
-      if (elapsedTime_ >= tau && tau > 0) { 
+      if (elapsedTime_ >= tau && tau > 0) {
         elapsedTime_ = 0.0;
       }
     };

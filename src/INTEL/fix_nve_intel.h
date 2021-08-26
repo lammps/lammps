@@ -44,7 +44,7 @@ class FixNVEIntel : public FixNVE {
   int _nlocal3, _nlocal_max;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

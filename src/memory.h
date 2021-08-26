@@ -524,6 +524,8 @@ class Memory : protected Pointers {
   TYPE ****create4d_offset(TYPE ****&array, int n1, int n2lo, int n2hi, int n3lo, int n3hi,
                            int n4lo, int n4hi, const char *name)
   {
+    if (n1 <= 0 || n2lo > n2hi || n3lo > n3hi || n4lo > n4hi) return nullptr;
+
     int n2 = n2hi - n2lo + 1;
     int n3 = n3hi - n3lo + 1;
     int n4 = n4hi - n4lo + 1;
@@ -573,6 +575,8 @@ class Memory : protected Pointers {
 				int n2lo, int n2hi, int n3lo, int n3hi, int n4,
 				const char *name)
   {
+    if (n1lo > n1hi || n2lo > n2hi || n3lo > n3hi || n4 <= 0) return nullptr;
+
     int n1 = n1hi - n1lo + 1;
     int n2 = n2hi - n2lo + 1;
     int n3 = n3hi - n3lo + 1;

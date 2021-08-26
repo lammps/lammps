@@ -148,7 +148,7 @@ OPT.
    * :doc:`nvt/body <fix_nvt_body>`
    * :doc:`nvt/eff <fix_nh_eff>`
    * :doc:`nvt/manifold/rattle <fix_nvt_manifold_rattle>`
-   * :doc:`nvt/sllod (io) <fix_nvt_sllod>`
+   * :doc:`nvt/sllod (iko) <fix_nvt_sllod>`
    * :doc:`nvt/sllod/eff <fix_nvt_sllod_eff>`
    * :doc:`nvt/sphere (o) <fix_nvt_sphere>`
    * :doc:`nvt/uef <fix_nh_uef>`

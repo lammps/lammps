@@ -1,0 +1,9 @@
+This branch contains the following examples:
+
+in.grid        # simple example of grid
+in.grid.local  # simple example of grid/local
+in.grid.python # used by grid.py
+in.grid.test   # stress test of grid and grid/local
+in.grid.tri    #  grid with triclinic cell
+
+grid.py # access data from Python library interface

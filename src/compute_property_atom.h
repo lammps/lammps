@@ -35,7 +35,7 @@ class ComputePropertyAtom : public Compute {
  private:
   int nvalues;
   int nmax;
-  int *index,*colindex;
+  int *index, *colindex;
   double *buf;
   class AtomVecEllipsoid *avec_ellipsoid;
   class AtomVecLine *avec_line;

@@ -31,7 +31,7 @@ using namespace CSLIB_NS;
 
 // ----------------------------------------------------------------------
 
-void cslib_open(int csflag, const char *mode, const void *ptr, 
+void cslib_open(int csflag, const char *mode, const void *ptr,
                 const void *pcomm, void **csptr)
 {
   CSlib *cs = new CSlib(csflag,mode,ptr,pcomm);
@@ -40,7 +40,7 @@ void cslib_open(int csflag, const char *mode, const void *ptr,
 
 // ----------------------------------------------------------------------
 
-void cslib_open_fortran(int csflag, const char *mode, const char *str, 
+void cslib_open_fortran(int csflag, const char *mode, const char *str,
                         const void *pcomm, void **csptr)
 {
   MPI_Comm ccomm;
@@ -48,7 +48,7 @@ void cslib_open_fortran(int csflag, const char *mode, const char *str,
 
   if (pcomm) {
     MPI_Fint *fcomm = (MPI_Fint *) pcomm;
-    ccomm = MPI_Comm_f2c(*fcomm); 
+    ccomm = MPI_Comm_f2c(*fcomm);
     pccomm = &ccomm;
   }
 
@@ -58,7 +58,7 @@ void cslib_open_fortran(int csflag, const char *mode, const char *str,
 
 // ----------------------------------------------------------------------
 
-void cslib_open_fortran_mpi_one(int csflag, const char *mode, 
+void cslib_open_fortran_mpi_one(int csflag, const char *mode,
                                 const void *pboth, const void *pcomm,
                                 void **csptr)
 {
@@ -66,11 +66,11 @@ void cslib_open_fortran_mpi_one(int csflag, const char *mode,
   void *pccomm,*pcboth;
 
   MPI_Fint *fcomm = (MPI_Fint *) pcomm;
-  ccomm = MPI_Comm_f2c(*fcomm); 
+  ccomm = MPI_Comm_f2c(*fcomm);
   pccomm = &ccomm;
 
   MPI_Fint *fboth = (MPI_Fint *) pboth;
-  cboth = MPI_Comm_f2c(*fboth); 
+  cboth = MPI_Comm_f2c(*fboth);
   pcboth = &cboth;
 
   CSlib *cs = new CSlib(csflag,mode,pcboth,pccomm);
@@ -152,8 +152,8 @@ void cslib_pack_parallel(void *ptr, int id, int ftype,
 
 // ----------------------------------------------------------------------
 
-int cslib_recv(void *ptr, int *nfield_caller, 
-	       int **fieldID_caller, int **fieldtype_caller, 
+int cslib_recv(void *ptr, int *nfield_caller,
+	       int **fieldID_caller, int **fieldtype_caller,
 	       int **fieldlen_caller)
 {
   CSlib *cs = (CSlib *) ptr;
@@ -227,7 +227,7 @@ void cslib_unpack_data(void *ptr, int id, void *data)
 
 // ----------------------------------------------------------------------
 
-void cslib_unpack_parallel(void *ptr, int id, int nlocal, int *ids, 
+void cslib_unpack_parallel(void *ptr, int id, int nlocal, int *ids,
 			   int nper, void *data)
 {
   CSlib *cs = (CSlib *) ptr;

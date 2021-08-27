@@ -41,7 +41,7 @@ class FixNVTSllodIntel : public FixNHIntel {
   void nh_v_temp();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
@@ -70,4 +70,3 @@ E: Using fix nvt/sllod with no fix deform defined
 Self-explanatory.
 
 */
-

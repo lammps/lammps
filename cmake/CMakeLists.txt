@@ -770,6 +770,13 @@ endif()
 include(Testing)
 include(CodeCoverage)
 include(CodingStandard)
+find_package(ClangFormat 8.0)
+
+if(ClangFormat_FOUND)
+  add_custom_target(format-src
+    COMMAND ${ClangFormat_EXECUTABLE} --verbose -i -style=file *.cpp *.h */*.cpp */*.h
+    WORKING_DIRECTORY ${LAMMPS_SOURCE_DIR})
+endif()
 
 get_target_property(DEFINES lammps COMPILE_DEFINITIONS)
 include(FeatureSummary)

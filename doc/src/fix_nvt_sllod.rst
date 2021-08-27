@@ -1,11 +1,12 @@
 .. index:: fix nvt/sllod
 .. index:: fix nvt/sllod/intel
 .. index:: fix nvt/sllod/omp
+.. index:: fix nvt/sllod/kk
 
 fix nvt/sllod command
 =====================
 
-Accelerator Variants: *nvt/sllod/intel*, *nvt/sllod/omp*
+Accelerator Variants: *nvt/sllod/intel*, *nvt/sllod/omp*, *nvt/sllod/kk*
 
 Syntax
 """"""

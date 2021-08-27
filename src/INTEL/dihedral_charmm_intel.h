@@ -42,31 +42,32 @@ class DihedralCharmmIntel : public DihedralCharmm {
 
   template <class flt_t> class ForceConst;
   template <class flt_t, class acc_t>
-  void compute(int eflag, int vflag, IntelBuffers<flt_t,acc_t> *buffers,
+  void compute(int eflag, int vflag, IntelBuffers<flt_t, acc_t> *buffers,
                const ForceConst<flt_t> &fc);
   template <int EVFLAG, int EFLAG, int NEWTON_BOND, class flt_t, class acc_t>
-  void eval(const int vflag, IntelBuffers<flt_t,acc_t> * buffers,
-            const ForceConst<flt_t> &fc);
+  void eval(const int vflag, IntelBuffers<flt_t, acc_t> *buffers, const ForceConst<flt_t> &fc);
   template <class flt_t, class acc_t>
-  void pack_force_const(ForceConst<flt_t> &fc,
-                        IntelBuffers<flt_t, acc_t> *buffers);
+  void pack_force_const(ForceConst<flt_t> &fc, IntelBuffers<flt_t, acc_t> *buffers);
 
-  #ifdef _LMP_INTEL_OFFLOAD
+#ifdef _LMP_INTEL_OFFLOAD
   int _use_base;
-  #endif
+#endif
 
-  template <class flt_t>
-  class ForceConst {
+  template <class flt_t> class ForceConst {
    public:
-    typedef struct { flt_t lj1, lj2, lj3, lj4; } fc_packed1;
-    typedef struct { flt_t cos_shift, sin_shift, k;
-                     int multiplicity; } fc_packed3;
+    typedef struct {
+      flt_t lj1, lj2, lj3, lj4;
+    } fc_packed1;
+    typedef struct {
+      flt_t cos_shift, sin_shift, k;
+      int multiplicity;
+    } fc_packed3;
 
     fc_packed1 **ljp;
     fc_packed3 *bp;
     flt_t *weight;
 
-    ForceConst() : _npairtypes(0), _nbondtypes(0)  {}
+    ForceConst() : _npairtypes(0), _nbondtypes(0) {}
     ~ForceConst() { set_ntypes(0, 0, nullptr); }
 
     void set_ntypes(const int npairtypes, const int nbondtypes, Memory *memory);
@@ -79,7 +80,7 @@ class DihedralCharmmIntel : public DihedralCharmm {
   ForceConst<double> force_const_double;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

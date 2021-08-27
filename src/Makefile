@@ -476,6 +476,31 @@ tar:
 	@cd STUBS; $(MAKE)
 	@echo "Created $(ROOT)_src.tar.gz"
 
+check-whitespace:
+	$(PYTHON) ../tools/coding_standard/whitespace.py ..
+
+fix-whitespace:
+	$(PYTHON) ../tools/coding_standard/whitespace.py .. -f
+
+check-permissions:
+	$(PYTHON) ../tools/coding_standard/permissions.py ..
+
+fix-permissions:
+	$(PYTHON) ../tools/coding_standard/permissions.py .. -f
+
+check-homepage:
+	$(PYTHON) ../tools/coding_standard/homepage.py ..
+
+fix-homepage:
+	$(PYTHON) ../tools/coding_standard/homepage.py .. -f
+
+format-src:
+	clang-format -i --verbose --style=file *.cpp *.h */*.cpp */*.h
+
+format-tests:
+	clang-format -i --verbose --style=file ../unittest/*/*.cpp ../unittest/*/*.h
+
+
 # Package management
 
 package:

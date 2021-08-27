@@ -3,7 +3,7 @@ LAMMPS, if particular packages are included in the LAMMPS build.
 
 Most of these directories contain code for the library; some contain
 a Makefile.lammps file that points to where the library is installed
-elsewhere on your system.  
+elsewhere on your system.
 
 In either case, the library itself must be installed and/or built
 first, so that the appropriate library files exist for LAMMPS to link

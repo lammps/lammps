@@ -23,7 +23,7 @@ Instructions:
    or tarball, unpack the tarball either in this /lib/latte
    directory or somewhere else on your system.
 
-2. Modify the makefile.CHOICES according to your system architecture 
+2. Modify the makefile.CHOICES according to your system architecture
    and compilers.  Check that the MAKELIB flag is ON in makefile.CHOICES
    and finally, build the code via the make command
    % make

@@ -17,7 +17,7 @@ namespace ATC {
 
   class ChargeRegulatorMethod;
   class ChargeRegulator : public AtomicRegulator {
-  
+
   public:
 
     /** charge regulator types */
@@ -43,21 +43,21 @@ namespace ATC {
         permittivity(0),
         surfaceType(INSULATOR) { };
       ChargeRegulatorType method;
-      double value; 
+      double value;
       int groupBit;
       std::string groupTag;
       double depth;
-      double permittivity; 
+      double permittivity;
       ChargedSurfaceType surfaceType;
-      FSET faceset; 
+      FSET faceset;
     };
 
     /** constructor */
     ChargeRegulator(ATC_Coupling *atc);
-        
+
     /** destructor */
     ~ChargeRegulator();
-        
+
     /** parser/modifier */
     virtual bool modify(int narg, char **arg);
     virtual void construct_methods();
@@ -67,8 +67,8 @@ namespace ATC {
     virtual void output(OUTPUT_LIST & outputData) const;
     virtual double compute_vector(int /* n */) const {return 0;} // TODO
 
-    void assign_poisson_solver(PoissonSolver * solver) { poissonSolver_ = solver;}  
-    PoissonSolver * poisson_solver(void) { return poissonSolver_;} 
+    void assign_poisson_solver(PoissonSolver * solver) { poissonSolver_ = solver;}
+    PoissonSolver * poisson_solver(void) { return poissonSolver_;}
 
   protected:
 
@@ -86,19 +86,19 @@ namespace ATC {
 
   /**
    *  @class  ChargeRegulatorMethod
-   *  @brief  Base class for implementation of ChargeRegulator algorithms 
+   *  @brief  Base class for implementation of ChargeRegulator algorithms
    */
 
   class ChargeRegulatorMethod : public RegulatorShapeFunction {
-  
+
   public:
     ChargeRegulatorMethod(ChargeRegulator *chargeRegulator,
       ChargeRegulator::ChargeRegulatorParameters & parameters);
     ~ChargeRegulatorMethod(){};
-    virtual void initialize(void); 
+    virtual void initialize(void);
     void set_greens_functions();
-    virtual void apply_pre_force(double /* dt */){}; 
-    virtual void apply_post_force(double /* dt */){}; 
+    virtual void apply_pre_force(double /* dt */){};
+    virtual void apply_post_force(double /* dt */){};
     virtual void set_weights() {};
     const DENS_VEC & total_influence() const { return sum_;}
     virtual void output(OUTPUT_LIST & outputData);
@@ -120,13 +120,13 @@ namespace ATC {
     /** conversion constants */
     double qV2e_, qqrd2e_;
     /** member data */
-    XT_Function * targetValue_; 
-    double targetPhi_; 
-    // controlling 
+    XT_Function * targetValue_;
+    double targetPhi_;
+    // controlling
     FSET surface_;
     NSET nodes_;
     int atomGroupBit_;
-    bool boundary_; // atoms on boundary 
+    bool boundary_; // atoms on boundary
     DENS_VEC point_;
     DENS_VEC normal_;
     double depth_;
@@ -147,13 +147,13 @@ namespace ATC {
    */
 
   class ChargeRegulatorMethodFeedback : public ChargeRegulatorMethod {
-  
+
   public:
-  
+
     /** constructor */
     ChargeRegulatorMethodFeedback(ChargeRegulator *chargeRegulator,
       ChargeRegulator::ChargeRegulatorParameters & parameters);
-        
+
     /** destructor */
     ~ChargeRegulatorMethodFeedback(){};
 
@@ -161,30 +161,30 @@ namespace ATC {
     virtual void construct_transfers();
 
     /** initialize */
-    virtual void initialize(void); 
+    virtual void initialize(void);
 
-    /** set influence nodes and atoms */  
+    /** set influence nodes and atoms */
     void set_influence();
 
-    void set_influence_matrix(void); 
+    void set_influence_matrix(void);
 
     /** post first verlet step */
-    virtual void apply_pre_force(double dt); 
+    virtual void apply_pre_force(double dt);
 
     void apply_feedback_charges();
 
   protected:
 
-    int nControlNodes_; 
+    int nControlNodes_;
     NSET & controlNodes_;
     // measurement/controlled
     int influenceGroupBit_;
     int nInfluenceAtoms_;
-    NSET influenceAtoms_, influenceAtomsIds_; 
+    NSET influenceAtoms_, influenceAtomsIds_;
     int nInfluenceNodes_;
     NSET influenceNodes_;
-    
-    
+
+
     DENS_MAT invG_;
     DENS_MAT invNNT_;
     DENS_MAT NT_;
@@ -200,26 +200,26 @@ namespace ATC {
    */
 
   class ChargeRegulatorMethodImageCharge : public ChargeRegulatorMethod {
-  
+
   public:
-  
+
     /** constructor */
     ChargeRegulatorMethodImageCharge(ChargeRegulator *chargeRegulator,
       ChargeRegulator::ChargeRegulatorParameters & parameters);
-        
+
     /** destructor */
     ~ChargeRegulatorMethodImageCharge(){};
 
     /** initialize */
-    virtual void initialize(void); 
+    virtual void initialize(void);
 
     /** post first verlet step */
-    virtual void apply_post_force(double dt); 
+    virtual void apply_post_force(double dt);
 
   protected:
-    double reflect(DENS_VEC & x) const { 
+    double reflect(DENS_VEC & x) const {
       double dn = (x-point_).dot(normal_);
-      x -= 2*dn*normal_; 
+      x -= 2*dn*normal_;
       return dn;
     }
     // internal functions
@@ -229,8 +229,8 @@ namespace ATC {
 
     double layerDepth_;
     double permittivityRatio_;
-    NSET & imageNodes_; 
-    DENS_MAT imageTransferOp_; 
+    NSET & imageNodes_;
+    DENS_MAT imageTransferOp_;
 
   private:
     ChargeRegulatorMethodImageCharge(); // DO NOT define this
@@ -244,21 +244,21 @@ namespace ATC {
   class ChargeRegulatorMethodEffectiveCharge : public ChargeRegulatorMethod {
 
   typedef std::map<int,std::pair<DENS_VEC,double> > NODE_TO_XF_MAP;
-  
+
   public:
-  
+
     /** constructor */
     ChargeRegulatorMethodEffectiveCharge(ChargeRegulator *chargeRegulator,
       ChargeRegulator::ChargeRegulatorParameters & parameters);
-        
+
     /** destructor */
     ~ChargeRegulatorMethodEffectiveCharge(){};
 
     /** initialize */
-    virtual void initialize(void); 
+    virtual void initialize(void);
 
     /** post first verlet step */
-    virtual void apply_post_force(double dt); 
+    virtual void apply_post_force(double dt);
 
   protected:
     // internal functions
@@ -268,7 +268,7 @@ namespace ATC {
     double chargeDensity_;
     std::map<int,double> nodalChargePotential_;
 
-    NODE_TO_XF_MAP nodeXFMap_;  
+    NODE_TO_XF_MAP nodeXFMap_;
 
     bool useSlab_;
 
@@ -276,7 +276,7 @@ namespace ATC {
   private:
     ChargeRegulatorMethodEffectiveCharge(); // DO NOT define this
   };
-  
+
 };
 
 #endif

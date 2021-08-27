@@ -267,7 +267,8 @@ void PairLJLongCoulLongDielectric::compute(int eflag, int vflag)
             if (eflag) evdwl = f * (rn * (rn * lj3i[jtype] - lj4i[jtype]) - offseti[jtype]);
           }
         }
-      } else force_lj = evdwl = 0.0;
+      } else
+        force_lj = evdwl = 0.0;
 
       fpair_i = (force_coul * etmp + force_lj) * r2inv;
       f[i][0] += delx * fpair_i;

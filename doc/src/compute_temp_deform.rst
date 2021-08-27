@@ -1,7 +1,10 @@
 .. index:: compute temp/deform
+.. index:: compute temp/deform/kk
 
 compute temp/deform command
 ===========================
+
+Accelerator Variants: *temp/deform/kk*
 
 Syntax
 """"""

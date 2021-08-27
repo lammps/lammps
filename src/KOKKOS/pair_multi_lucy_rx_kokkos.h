@@ -1,4 +1,3 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -20,6 +19,7 @@ PairStyle(multi/lucy/rx/kk/host,PairMultiLucyRXKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_MULTI_LUCY_RX_KOKKOS_H
 #define LMP_PAIR_MULTI_LUCY_RX_KOKKOS_H
 

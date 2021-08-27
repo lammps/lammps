@@ -2124,7 +2124,7 @@ void FixBondReact::customvarnames()
           pos2 = varstr.find("(",pos1);
           pos3 = varstr.find(")",pos2);
           if (pos2 == std::string::npos || pos3 == std::string::npos)
-            error->one(FLERR,"Bond/react: Illegal rxn function syntax\n");
+            error->all(FLERR,"Bond/react: Illegal rxn function syntax\n");
           prev3 = pos3;
           argstr = varstr.substr(pos2+1,pos3-pos2-1);
           argstr.erase(remove_if(argstr.begin(), argstr.end(), isspace), argstr.end()); // remove whitespace
@@ -2170,15 +2170,15 @@ void FixBondReact::get_customvars()
   }
   for (int i = 0; i < ncustomvars; i++) {
     varid = customvarstrs[i];
-    if (varid.substr(0,2) != "v_") error->one(FLERR,"Bond/react: Reaction special function variable "
+    if (varid.substr(0,2) != "v_") error->all(FLERR,"Bond/react: Reaction special function variable "
                                      "name should begin with 'v_'");
     varid = varid.substr(2);
     int ivar = input->variable->find(varid.c_str());
     if (ivar < 0)
-      error->one(FLERR,"Bond/react: Reaction special function variable "
+      error->all(FLERR,"Bond/react: Reaction special function variable "
                                    "name does not exist");
     if (!input->variable->atomstyle(ivar))
-      error->one(FLERR,"Bond/react: Reaction special function must "
+      error->all(FLERR,"Bond/react: Reaction special function must "
                                    "reference an atom-style variable");
 
     input->variable->compute_atom(ivar,igroup,tempvvec,1,0);

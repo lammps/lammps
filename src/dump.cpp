@@ -100,7 +100,7 @@ Dump::Dump(LAMMPS *lmp, int /*narg*/, char **arg) : Pointers(lmp)
   maxsbuf = 0;
   sbuf = nullptr;
 
-  maxpbc = 0;
+  maxpbc = -1;
   xpbc = vpbc = nullptr;
   imagepbc = nullptr;
 

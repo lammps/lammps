@@ -136,7 +136,7 @@ typedef int tagint;
 #define OCL_INT_TYPE "-DLAMMPS_SMALLBIG"
 #endif
 #ifdef LAMMPS_BIGBIG
-#include "inttypes.h"
+#include "stdint.h"
 typedef int64_t tagint;
 #define OCL_INT_TYPE "-DLAMMPS_BIGBIG"
 #endif

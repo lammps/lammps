@@ -2712,7 +2712,7 @@ Below is a brief C code demonstrating accessing this collected bond information.
 
    #include <stdio.h>
    #include <stdlib.h>
-   #include <inttypes.h>
+   #include <stdint.h>
    #include "library.h"
 
    int main(int argc, char **argv)

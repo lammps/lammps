@@ -53,6 +53,7 @@ patterns:
     - "*.py"
     - "*.rst"
     - "*.sh"
+    - "*.f90"
     - ".gitignore"
     - "README"
     - "requirements.txt"

@@ -1,7 +1,7 @@
 ---
 lammps_version: 27 May 2021
 date_generated: Sun Jun 13 17:44:07 2021
-epsilon: 5e-13
+epsilon: 2.5e-11
 skip_tests:
 prerequisites: ! |
   pair mliap

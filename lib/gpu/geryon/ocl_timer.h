@@ -139,7 +139,6 @@ class UCL_Timer {
   cl_event start_event, stop_event;
   cl_command_queue _cq;
   double _total_time;
-  double t_factor;
   bool _initialized;
   bool has_measured_time;
 };

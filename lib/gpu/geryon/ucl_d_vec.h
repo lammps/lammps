@@ -39,7 +39,7 @@ class UCL_D_Vec : public UCL_BaseMat {
   };
   typedef numtyp data_type;
 
- UCL_D_Vec() : _cols(0), _row_bytes(0) {}
+ UCL_D_Vec() : _row_bytes(0), _cols(0) {}
   ~UCL_D_Vec() { _device_free(*this); }
 
   /// Construct with n columns

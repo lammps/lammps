@@ -508,8 +508,6 @@ void SNAKokkos<DeviceType, real_type, vector_length>::compute_ui_small(const typ
   // parallelism over this loop instead
   //for (int j_bend = 0; j_bend <= twojmax; j_bend++) {
   evaluate_ui_jbend(ulist_wrapper, a, b, sfac, jelem, iatom_mod, j_bend, iatom_div);
-  //} // end of "reference" loop over j_bend
-
 }
 
 // Version of the code that loops over all `j_bend` values which reduces integer arithmetic

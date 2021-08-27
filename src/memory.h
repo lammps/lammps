@@ -42,7 +42,8 @@ class Memory : protected Pointers {
 
   template <typename TYPE> TYPE *create(TYPE *&array, int n, const char *name)
   {
-    if (n <= 0) return nullptr;
+    // POSSIBLE future change
+    //if (n <= 0) return nullptr;
 
     bigint nbytes = ((bigint) sizeof(TYPE)) * n;
     array = (TYPE *) smalloc(nbytes, name);
@@ -61,10 +62,11 @@ class Memory : protected Pointers {
 
   template <typename TYPE> TYPE *grow(TYPE *&array, int n, const char *name)
   {
-    if (n <= 0) {
-      destroy(array);
-      return nullptr;
-    }
+    // POSSIBLE future change
+    //if (n <= 0) {
+    //  destroy(array);
+    //  return nullptr;
+    // }
 
     if (array == nullptr) return create(array, n, name);
 
@@ -96,7 +98,8 @@ class Memory : protected Pointers {
 
   template <typename TYPE> TYPE *create1d_offset(TYPE *&array, int nlo, int nhi, const char *name)
   {
-    if (nlo > nhi) return nullptr;
+    // POSSIBLE future change
+    // if (nlo > nhi) return nullptr;
 
     bigint nbytes = ((bigint) sizeof(TYPE)) * (nhi - nlo + 1);
     array = (TYPE *) smalloc(nbytes, name);
@@ -127,7 +130,8 @@ class Memory : protected Pointers {
 
   template <typename TYPE> TYPE **create(TYPE **&array, int n1, int n2, const char *name)
   {
-    if (n1 <= 0 || n2 <= 0) return nullptr;
+    // POSSIBLE future change
+    //if (n1 <= 0 || n2 <= 0) return nullptr;
 
     bigint nbytes = ((bigint) sizeof(TYPE)) * n1 * n2;
     TYPE *data = (TYPE *) smalloc(nbytes, name);
@@ -156,10 +160,11 @@ class Memory : protected Pointers {
 
   template <typename TYPE> TYPE **grow(TYPE **&array, int n1, int n2, const char *name)
   {
-    if (n1 <= 0 || n2 <= 0) {
-      destroy(array);
-      return nullptr;
-    }
+    // POSSIBLE future change
+    //if (n1 <= 0 || n2 <= 0) {
+    //  destroy(array);
+    //  return nullptr;
+    // }
 
     if (array == nullptr) return create(array, n1, n2, name);
 
@@ -201,7 +206,8 @@ class Memory : protected Pointers {
 
   template <typename TYPE> TYPE **create_ragged(TYPE **&array, int n1, int *n2, const char *name)
   {
-    if (n1 <= 0) return nullptr;
+    // POSSIBLE future change
+    //if (n1 <= 0) return nullptr;
 
     bigint n2sum = 0;
     for (int i = 0; i < n1; i++) n2sum += n2[i];
@@ -234,7 +240,8 @@ class Memory : protected Pointers {
   template <typename TYPE>
   TYPE **create2d_offset(TYPE **&array, int n1, int n2lo, int n2hi, const char *name)
   {
-    if (n1 <= 0 || n2lo > n2hi) return nullptr;
+    // POSSIBLE future change
+    //if (n1 <= 0 || n2lo > n2hi) return nullptr;
 
     int n2 = n2hi - n2lo + 1;
     create(array, n1, n2, name);
@@ -268,7 +275,8 @@ class Memory : protected Pointers {
 
   template <typename TYPE> TYPE ***create(TYPE ***&array, int n1, int n2, int n3, const char *name)
   {
-    if (n1 <= 0 || n2 <= 0 || n3 <= 0) return nullptr;
+    // POSSIBLE future change
+    //if (n1 <= 0 || n2 <= 0 || n3 <= 0) return nullptr;
 
     bigint nbytes = ((bigint) sizeof(TYPE)) * n1 * n2 * n3;
     TYPE *data = (TYPE *) smalloc(nbytes, name);
@@ -305,10 +313,11 @@ class Memory : protected Pointers {
 
   template <typename TYPE> TYPE ***grow(TYPE ***&array, int n1, int n2, int n3, const char *name)
   {
-    if (n1 <= 0 || n2 <= 0 || n3 <= 0) {
-      destroy(array);
-      return nullptr;
-    };
+    // POSSIBLE future change
+    //if (n1 <= 0 || n2 <= 0 || n3 <= 0) {
+    //  destroy(array);
+    //  return nullptr;
+    //};
 
     if (array == nullptr) return create(array, n1, n2, n3, name);
 
@@ -445,7 +454,8 @@ class Memory : protected Pointers {
   template <typename TYPE>
   TYPE ****create(TYPE ****&array, int n1, int n2, int n3, int n4, const char *name)
   {
-    if (n1 <= 0 || n2 <= 0 || n3 <= 0 || n4 <= 0) return nullptr;
+    // POSSIBLE future change
+    //if (n1 <= 0 || n2 <= 0 || n3 <= 0 || n4 <= 0) return nullptr;
 
     bigint nbytes = ((bigint) sizeof(TYPE)) * n1 * n2 * n3 * n4;
     TYPE *data = (TYPE *) smalloc(nbytes, name);
@@ -492,10 +502,11 @@ class Memory : protected Pointers {
   template <typename TYPE>
   TYPE ****grow(TYPE ****&array, int n1, int n2, int n3, int n4, const char *name)
   {
-    if (n1 <= 0 || n2 <= 0 || n3 <= 0 || n4 <= 0) {
-      destroy(array);
-      return nullptr;
-    }
+    // POSSIBLE future change
+    //if (n1 <= 0 || n2 <= 0 || n3 <= 0 || n4 <= 0) {
+    //  destroy(array);
+    //  return nullptr;
+    // }
 
     if (array == nullptr) return create(array, n1, n2, n3, n4, name);
 
@@ -607,7 +618,8 @@ class Memory : protected Pointers {
   template <typename TYPE>
   TYPE *****create(TYPE *****&array, int n1, int n2, int n3, int n4, int n5, const char *name)
   {
-    if (n1 <= 0 || n2 <= 0 || n3 <= 0 || n4 <= 0 || n5 <= 0) return nullptr;
+    // POSSIBLE future change
+    //if (n1 <= 0 || n2 <= 0 || n3 <= 0 || n4 <= 0 || n5 <= 0) return nullptr;
 
     bigint nbytes = ((bigint) sizeof(TYPE)) * n1 * n2 * n3 * n4 * n5;
     TYPE *data = (TYPE *) smalloc(nbytes, name);

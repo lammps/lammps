@@ -1990,7 +1990,10 @@ int FixBondReact::check_constraints()
       *ptr = satisfied[i] ? '1' : '0';
     }
     double verdict = input->variable->evaluate_boolean(evalstr);
-    if (verdict == 0.0) return 0;
+    if (verdict == 0.0) {
+      memory->destroy(satisfied);
+      return 0;
+    }
   }
 
   // let's also check chirality within 'check_constraint'
@@ -2012,7 +2015,10 @@ int FixBondReact::check_constraints()
           }
         }
       }
-      if (get_chirality(my4coords) != chiral_atoms[i][1][rxnID]) return 0;
+      if (get_chirality(my4coords) != chiral_atoms[i][1][rxnID]) {
+        memory->destroy(satisfied);
+        return 0;
+      }
     }
   }
 

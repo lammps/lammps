@@ -201,7 +201,7 @@ The *parallelthresh* keyword controls
 a crossover threshold for performing extra parallelism. For
 small systems, exposing additional parallism can be beneficial when
 there is not enough work to fully saturate the GPU threads otherwise.
-However, the extra parallelism also leads to more thread divergence
+However, the extra parallelism also leads to more divergence
 and can hurt performance when the system is already large enough to
 saturate the GPU threads.
 

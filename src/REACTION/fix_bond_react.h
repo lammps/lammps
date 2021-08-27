@@ -139,8 +139,6 @@ class FixBondReact : public Fix {
   int **delete_atoms;        // atoms in pre-reacted templates to delete
   int **create_atoms;        // atoms in post-reacted templates to create
   int ***chiral_atoms;    // pre-react chiral atoms. 1) flag 2) orientation 3-4) ordered atom types
-  int nvvec;
-  double *vvec;    // per-atom vector to store variable constraint atom-style variable values
 
   int **nxspecial, **onemol_nxspecial, **twomol_nxspecial;    // full number of 1-4 neighbors
   tagint **xspecial, **onemol_xspecial, **twomol_xspecial;    // full 1-4 neighbor list
@@ -178,8 +176,10 @@ class FixBondReact : public Fix {
   int check_constraints();
   void get_IDcoords(int, int, double *);
   double get_temperature(tagint **, int, int);
-  double custom_constraint(std::string);
-  double rxnfunction(std::string, std::string, std::string);
+  void customvarnames();   // get per-atom variables names used by custom constraint
+  void get_customvars();   // evaluate local values for variables names used by custom constraint
+  double custom_constraint(std::string);   // evaulate expression for custom constraint
+  double rxnfunction(std::string, std::string, std::string);   // eval rxn_sum and rxn_ave
   int get_chirality(double[12]);    // get handedness given an ordered set of coordinates
 
   void open(char *);
@@ -214,6 +214,10 @@ class FixBondReact : public Fix {
     double par[MAXCONPAR];
     std::string str;
   };
+  int ncustomvars;
+  std::vector<std::string> customvarstrs;
+  int nvvec;
+  double **vvec;    // per-atom vector to store variable constraint atom-style variable values
   std::vector<std::vector<Constraint>> constraints;
 
   // DEBUG

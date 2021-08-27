@@ -140,6 +140,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   rxnfunclist[0] = "rxnsum";
   rxnfunclist[1] = "rxnave";
   nvvec = 0;
+  ncustomvars = 0;
   vvec = nullptr;
 
   nxspecial = nullptr;
@@ -486,6 +487,9 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     find_landlocked_atoms(i);
     if (custom_charges_fragid[i] >= 0) CustomCharges(custom_charges_fragid[i],i);
   }
+
+  // get the names of per-atom variables needed by 'rxn' functions of custom constraint
+  customvarnames();
 
   // initialize Marsaglia RNG with processor-unique seed (Arrhenius prob)
 
@@ -1017,6 +1021,11 @@ void FixBondReact::post_integrate()
     unlimit_bond();
     return;
   }
+
+  // evaluate custom constraint variable values here and forward_comm
+  get_customvars();
+  commflag = 1;
+  comm->forward_comm_fix(this,ncustomvars);
 
   // run through the superimpose algorithm
   // this checks if simulation topology matches unreacted mol template
@@ -2085,6 +2094,100 @@ double FixBondReact::get_temperature(tagint **myglove, int row_offset, int col)
 }
 
 /* ----------------------------------------------------------------------
+get per-atom variable names used by  custom constraint
+------------------------------------------------------------------------- */
+
+void FixBondReact::customvarnames()
+{
+  int pos,pos1,pos2,pos3,prev3;
+  std::string varstr,argstr,varid;
+
+  // search all constraints' varstr for special 'rxn' functions
+  //   add variable names to customvarstrs
+  //   add values to customvars
+
+  for (rxnID = 0; rxnID < nreacts; rxnID++) {
+    for (int i = 0; i < nconstraints[rxnID]; i++) {
+      if (constraints[i][rxnID].type == CUSTOM) {
+        varstr = constraints[i][rxnID].str;
+        prev3 = -1;
+        while (true) {
+          // find next reaction special function occurrence
+          pos1 = INT_MAX;
+          for (int i = 0; i < nrxnfunction; i++) {
+            pos = varstr.find(rxnfunclist[i],prev3+1);
+            if (pos == std::string::npos) continue;
+            if (pos < pos1) pos1 = pos;
+          }
+          if (pos1 == INT_MAX) break;
+
+          pos2 = varstr.find("(",pos1);
+          pos3 = varstr.find(")",pos2);
+          if (pos2 == std::string::npos || pos3 == std::string::npos)
+            error->one(FLERR,"Bond/react: Illegal rxn function syntax\n");
+          prev3 = pos3;
+          argstr = varstr.substr(pos2+1,pos3-pos2-1);
+          argstr.erase(remove_if(argstr.begin(), argstr.end(), isspace), argstr.end()); // remove whitespace
+          pos2 = argstr.find(",");
+          if (pos2 != std::string::npos) varid = argstr.substr(0,pos2);
+          else varid = argstr;
+          // check if we already know about this variable
+          int varidflag = 0;
+          for (int j = 0; j < ncustomvars; j++) {
+            if (customvarstrs[j] == varid) {
+              varidflag = 1;
+              break;
+            }
+          }
+          if (!varidflag) {
+            customvarstrs.resize(ncustomvars+1);
+            customvarstrs[ncustomvars++] = varid;
+          }
+        }
+      }
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+evaluate per-atom variables needed for custom constraint
+------------------------------------------------------------------------- */
+
+void FixBondReact::get_customvars()
+{
+  double *tempvvec;
+  std::string varid;
+  int nall = atom->nlocal + atom->nghost;
+
+  memory->create(tempvvec,nall,"bond/react:tempvvec");
+  if (vvec == nullptr) {
+    memory->create(vvec,nall,ncustomvars,"bond/react:vvec");
+    nvvec = nall;
+  }
+  if (nvvec < nall) {
+    memory->grow(vvec,nall,ncustomvars,"bond/react:vvec");
+    nvvec = nall;
+  }
+  for (int i = 0; i < ncustomvars; i++) {
+    varid = customvarstrs[i];
+    if (varid.substr(0,2) != "v_") error->one(FLERR,"Bond/react: Reaction special function variable "
+                                     "name should begin with 'v_'");
+    varid = varid.substr(2);
+    int ivar = input->variable->find(varid.c_str());
+    if (ivar < 0)
+      error->one(FLERR,"Bond/react: Reaction special function variable "
+                                   "name does not exist");
+    if (!input->variable->atomstyle(ivar))
+      error->one(FLERR,"Bond/react: Reaction special function must "
+                                   "reference an atom-style variable");
+
+    input->variable->compute_atom(ivar,igroup,tempvvec,1,0);
+    for (int j = 0; j < nall; j++) vvec[j][i] = tempvvec[j];
+  }
+  memory->destroy(tempvvec);
+}
+
+/* ----------------------------------------------------------------------
 evaulate expression for variable constraint
 ------------------------------------------------------------------------- */
 
@@ -2144,25 +2247,19 @@ currently two 'rxn' functions: rxnsum and rxnave
 double FixBondReact::rxnfunction(std::string rxnfunc, std::string varid,
                                  std::string fragid)
 {
-  if (varid.substr(0,2) != "v_") error->one(FLERR,"Bond/react: Reaction special function variable "
-                                   "name should begin with 'v_'");
-  varid = varid.substr(2);
-  int ivar = input->variable->find(varid.c_str());
+  int ivar = -1;
+  for (int i = 0; i < ncustomvars; i++) {
+    if (varid == customvarstrs[i]) {
+      ivar = i;
+      break;
+    }
+  }
+  // variable name should always be found, at this point
+  // however, let's double check for completeness
   if (ivar < 0)
     error->one(FLERR,"Bond/react: Reaction special function variable "
                                  "name does not exist");
-  if (!input->variable->atomstyle(ivar))
-    error->one(FLERR,"Bond/react: Reaction special function must "
-                                 "reference an atom-style variable");
-  if (vvec == nullptr) {
-    memory->create(vvec,atom->nlocal,"bond/react:vvec");
-    nvvec = atom->nlocal;
-  }
-  if (nvvec < atom->nlocal) {
-    memory->grow(vvec,atom->nlocal,"bond/react:vvec");
-    nvvec = atom->nlocal;
-  }
-  input->variable->compute_atom(ivar,igroup,vvec,1,0);
+
   int ifrag = -1;
   if (fragid != "all") {
     ifrag = onemol->findfragment(fragid.c_str());
@@ -2177,14 +2274,14 @@ double FixBondReact::rxnfunction(std::string rxnfunc, std::string varid,
     if (fragid == "all") {
       for (int i = 0; i < onemol->natoms; i++) {
         iatom = atom->map(glove[i][1]);
-        sumvvec += vvec[iatom];
+        sumvvec += vvec[iatom][ivar];
       }
       nsum = onemol->natoms;
     } else {
       for (int i = 0; i < onemol->natoms; i++) {
         if (onemol->fragmentmask[ifrag][i]) {
           iatom = atom->map(glove[i][1]);
-          sumvvec += vvec[iatom];
+          sumvvec += vvec[iatom][ivar];
           nsum++;
         }
       }
@@ -4040,6 +4137,15 @@ int FixBondReact::pack_forward_comm(int n, int *list, double *buf,
 
   m = 0;
 
+  if (commflag == 1) {
+    for (i = 0; i < n; i++) {
+      j = list[i];
+      for (k = 0; k < ncustomvars; k++)
+        buf[m++] = vvec[j][k];
+    }
+    return m;
+  }
+
   if (commflag == 2) {
     for (i = 0; i < n; i++) {
       j = list[i];
@@ -4064,12 +4170,16 @@ int FixBondReact::pack_forward_comm(int n, int *list, double *buf,
 
 void FixBondReact::unpack_forward_comm(int n, int first, double *buf)
 {
-  int i,j,m,ns,last;
+  int i,j,k,m,ns,last;
 
   m = 0;
   last = first + n;
 
-  if (commflag == 2) {
+  if (commflag == 1) {
+    for (i = first; i < last; i++)
+      for (k = 0; k < ncustomvars; k++)
+        vvec[i][k] = buf[m++];
+  } else if (commflag == 2) {
     for (i = first; i < last; i++)
       partner[i] = (tagint) ubuf(buf[m++]).i;
   } else {

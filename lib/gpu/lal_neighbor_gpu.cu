@@ -21,8 +21,12 @@
 #define tagint int
 #endif
 #ifdef LAMMPS_BIGBIG
-#include "inttypes.h"
+#ifdef USE_OPENCL
+#define tagint long
+#else
+#include "stdint.h"
 #define tagint int64_t
+#endif
 #endif
 #ifdef LAMMPS_SMALLSMALL
 #define tagint int

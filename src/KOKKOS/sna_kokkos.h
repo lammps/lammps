@@ -45,12 +45,12 @@ struct WignerWrapper {
   { ; }
 
   KOKKOS_INLINE_FUNCTION
-  complex get(const int& ma) {
+  complex get(const int& ma) const {
     return complex(buffer[offset + 2 * vector_length * ma], buffer[offset + vector_length + 2 * vector_length * ma]);
   }
 
   KOKKOS_INLINE_FUNCTION
-  void set(const int& ma, const complex& store) {
+  void set(const int& ma, const complex& store) const {
     buffer[offset + 2 * vector_length * ma] = store.re;
     buffer[offset + vector_length + 2 * vector_length * ma] = store.im;
   }
@@ -122,8 +122,14 @@ inline
   void compute_cayley_klein(const int&, const int&, const int&);
   KOKKOS_INLINE_FUNCTION
   void pre_ui(const int&, const int&, const int&, const int&); // ForceSNAP
+
+  // version of the code with parallelism over j_bend
   KOKKOS_INLINE_FUNCTION
-  void compute_ui(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, const int, const int, const int, const int); // ForceSNAP
+  void compute_ui_small(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, const int, const int, const int, const int); // ForceSNAP
+  // version of the code without parallelism over j_bend
+  KOKKOS_INLINE_FUNCTION
+  void compute_ui_large(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, const int, const int, const int); // ForceSNAP
+
   KOKKOS_INLINE_FUNCTION
   void compute_zi(const int&, const int&, const int&);    // ForceSNAP
   KOKKOS_INLINE_FUNCTION
@@ -134,6 +140,35 @@ inline
    const Kokkos::View<real_type***, Kokkos::LayoutLeft, DeviceType> &beta_pack); // ForceSNAP
   KOKKOS_INLINE_FUNCTION
   void compute_bi(const int&, const int&, const int&);    // ForceSNAP
+
+  // functions for derivatives, GPU only
+  // version of the code with parallelism over j_bend
+  template<int dir>
+  KOKKOS_INLINE_FUNCTION
+  void compute_fused_deidrj_small(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, const int, const int, const int, const int); //ForceSNAP
+  // version of the code without parallelism over j_bend
+  template<int dir>
+  KOKKOS_INLINE_FUNCTION
+  void compute_fused_deidrj_large(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, const int, const int, const int); //ForceSNAP
+
+  // core "evaluation" functions that get plugged into "compute" functions
+  // plugged into compute_ui_small, compute_ui_large
+  KOKKOS_FORCEINLINE_FUNCTION
+  void evaluate_ui_jbend(const WignerWrapper<real_type, vector_length>&, const complex&, const complex&, const real_type&, const int&,
+                        const int&, const int&, const int&);
+  // plugged into compute_zi, compute_yi
+  KOKKOS_FORCEINLINE_FUNCTION
+  complex evaluate_zi(const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&,
+                        const int&, const int&, const int&, const int&, const real_type*);
+  // plugged into compute_yi, compute_yi_with_zlist
+  KOKKOS_FORCEINLINE_FUNCTION
+  real_type evaluate_beta_scaled(const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&,
+                        const Kokkos::View<real_type***, Kokkos::LayoutLeft, DeviceType> &);
+  // plugged into compute_fused_deidrj_small, compute_fused_deidrj_large
+  KOKKOS_FORCEINLINE_FUNCTION
+  real_type evaluate_duidrj_jbend(const WignerWrapper<real_type, vector_length>&, const complex&, const complex&, const real_type&, 
+                        const WignerWrapper<real_type, vector_length>&, const complex&, const complex&, const real_type&,
+                        const int&, const int&, const int&, const int&);
 
   // functions for bispectrum coefficients, CPU only
   KOKKOS_INLINE_FUNCTION
@@ -147,11 +182,6 @@ inline
    const Kokkos::View<real_type**, DeviceType> &beta); // ForceSNAP
     KOKKOS_INLINE_FUNCTION
   void compute_bi_cpu(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int);    // ForceSNAP
-
-  // functions for derivatives, GPU only
-  template<int dir>
-  KOKKOS_INLINE_FUNCTION
-  void compute_fused_deidrj(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, const int, const int, const int, const int); //ForceSNAP
 
   // functions for derivatives, CPU only
   KOKKOS_INLINE_FUNCTION
@@ -167,23 +197,6 @@ inline
 
   KOKKOS_INLINE_FUNCTION
   void compute_s_dsfac(const real_type, const real_type, real_type&, real_type&); // compute_cayley_klein
-
-  static KOKKOS_FORCEINLINE_FUNCTION
-  void sincos_wrapper(double x, double* sin_, double *cos_) {
-#ifdef __SYCL_DEVICE_ONLY__
-    *sin_ = sycl::sincos(x, cos_);
-#else
-    sincos(x, sin_, cos_);
-#endif
-  }
-  static KOKKOS_FORCEINLINE_FUNCTION
-  void sincos_wrapper(float x, float* sin_, float *cos_) {
-#ifdef __SYCL_DEVICE_ONLY__
-    *sin_ = sycl::sincos(x, cos_);
-#else
-    sincosf(x, sin_, cos_);
-#endif
-  }
 
 #ifdef TIMING_INFO
   double* timers;
@@ -207,7 +220,7 @@ inline
 
   int twojmax, diagonalstyle;
 
-  t_sna_3d_ll blist;
+  t_sna_3d blist;
   t_sna_3c_ll ulisttot;
   t_sna_3c_ll ulisttot_full; // un-folded ulisttot, cpu only
   t_sna_3c_ll zlist;

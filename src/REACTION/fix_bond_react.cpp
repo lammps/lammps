@@ -2118,6 +2118,7 @@ double FixBondReact::custom_constraint(std::string varstr)
     evlstr.push_back(varstr.substr(prev3+1,pos1-(prev3+1)));
     prev3 = pos3;
     argstr = varstr.substr(pos2+1,pos3-pos2-1);
+    argstr.erase(remove_if(argstr.begin(), argstr.end(), isspace), argstr.end()); // remove whitespace
     pos2 = argstr.find(",");
     if (pos2 != std::string::npos) {
       varid = argstr.substr(0,pos2);

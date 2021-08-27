@@ -345,7 +345,7 @@ void PairSNAPKokkos<DeviceType, real_type, vector_length>::compute(int eflag_in,
         const int tile_size = vector_length * (twojmax + 1);
         const int scratch_size = scratch_size_helper<complex>(team_size_compute_ui * tile_size);
 
-        if (chunk_size < 16384)
+        if (chunk_size < parallel_thresh)
         {
           // Version with parallelism over j_bend
 
@@ -426,7 +426,7 @@ void PairSNAPKokkos<DeviceType, real_type, vector_length>::compute(int eflag_in,
         const int tile_size = vector_length * (twojmax + 1);
         const int scratch_size = scratch_size_helper<complex>(2 * team_size_compute_fused_deidrj * tile_size);
 
-        if (chunk_size < 16384)
+        if (chunk_size < parallel_thresh)
         {
           // Version with parallelism over j_bend
 

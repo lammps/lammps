@@ -32,6 +32,7 @@ OPT.
    *
    *
    *
+   * :doc:`bpm/rotational <bond_bpm_rotational>`
    * :doc:`class2 (ko) <bond_class2>`
    * :doc:`fene (iko) <bond_fene>`
    * :doc:`fene/expand (o) <bond_fene_expand>`

@@ -56,10 +56,12 @@
 namespace LAMMPS_NS {
 
 // reserve 2 hi bits in molecular system neigh list for special bonds flag
-// max local + ghost atoms per processor = 2^30 - 1
+// reserve 3rd last bit in neigh list for fix neigh/history flag
+// max local + ghost atoms per processor = 2^29 - 1
 
 #define SBBITS 30
-#define NEIGHMASK 0x3FFFFFFF
+#define HISTBITS 29
+#define NEIGHMASK 0x1FFFFFFF
 
 // default to 32-bit smallint and other ints, 64-bit bigint
 

@@ -550,18 +550,24 @@ void FixPropertyAtom::copy_arrays(int i, int j, int /*delflag*/)
       atom->q[j] = atom->q[i];
     else if (style[nv] == RMASS)
       atom->rmass[j] = atom->rmass[i];
-    else if (style[nv] == IVEC)
+    else if (style[nv] == IVEC) {
       atom->ivector[index[nv]][j] = atom->ivector[index[nv]][i];
-    else if (style[nv] == DVEC)
+      atom->ivector[index[nv]][i] = 0;
+    } else if (style[nv] == DVEC) {
       atom->dvector[index[nv]][j] = atom->dvector[index[nv]][i];
-    else if (style[nv] == IARRAY) {
+      atom->dvector[index[nv]][i] = 0.0;
+    } else if (style[nv] == IARRAY) {
       ncol = cols[nv];
-      for (k = 0; k < ncol; k++)
-	atom->iarray[index[nv]][j][k] = atom->iarray[index[nv]][i][k];
+      for (k = 0; k < ncol; k++) {
+	    atom->iarray[index[nv]][j][k] = atom->iarray[index[nv]][i][k];
+        atom->iarray[index[nv]][i][k] = 0;
+      }
     } else if (style[nv] == DARRAY) {
       ncol = cols[nv];
-      for (k = 0; k < ncol; k++)
-	atom->darray[index[nv]][j][k] = atom->darray[index[nv]][i][k];
+      for (k = 0; k < ncol; k++) {
+	    atom->darray[index[nv]][j][k] = atom->darray[index[nv]][i][k];
+        atom->darray[index[nv]][i][k] = 0.0;
+      }
     }
   }
 }
@@ -696,16 +702,24 @@ int FixPropertyAtom::pack_exchange(int i, double *buf)
     if (style[nv] == MOLECULE) buf[m++] = ubuf(atom->molecule[i]).d;
     else if (style[nv] == CHARGE) buf[m++] = atom->q[i];
     else if (style[nv] == RMASS) buf[m++] = atom->rmass[i];
-    else if (style[nv] == IVEC) buf[m++] = ubuf(atom->ivector[index[nv]][i]).d;
-    else if (style[nv] == DVEC) buf[m++] = atom->dvector[index[nv]][i];
-    else if (style[nv] == IARRAY) {
+    else if (style[nv] == IVEC) {
+      buf[m++] = ubuf(atom->ivector[index[nv]][i]).d;
+      atom->ivector[index[nv]][i] = 0;
+    } else if (style[nv] == DVEC) {
+      buf[m++] = atom->dvector[index[nv]][i];
+      atom->dvector[index[nv]][i] = 0;
+    } else if (style[nv] == IARRAY) {
       ncol = cols[nv];
-      for (k = 0; k < ncol; k++)
-	buf[m++] = ubuf(atom->iarray[index[nv]][i][k]).d;
+      for (k = 0; k < ncol; k++) {
+	    buf[m++] = ubuf(atom->iarray[index[nv]][i][k]).d;
+        atom->iarray[index[nv]][i][k] = 0;
+      }
     } else if (style[nv] == DARRAY) {
       ncol = cols[nv];
-      for (k = 0; k < ncol; k++)
-	buf[m++] = atom->darray[index[nv]][i][k];
+      for (k = 0; k < ncol; k++) {
+	    buf[m++] = atom->darray[index[nv]][i][k];
+        atom->darray[index[nv]][i][k] = 0.0;
+      }
     }
   }
 

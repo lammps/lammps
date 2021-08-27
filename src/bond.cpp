@@ -42,8 +42,11 @@ Bond::Bond(LAMMPS *lmp) : Pointers(lmp)
   virial[0] = virial[1] = virial[2] = virial[3] = virial[4] = virial[5] = 0.0;
   writedata = 1;
 
+  comm_forward = comm_reverse = comm_reverse_off = 0;
+
   allocated = 0;
   suffix_flag = Suffix::NONE;
+  partial_flag = 0;
 
   maxeatom = maxvatom = 0;
   eatom = nullptr;

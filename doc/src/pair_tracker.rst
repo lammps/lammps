@@ -8,29 +8,51 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   pair_style tracker keyword
+   pair_style tracker fix_ID keyword values attribute1 attribute2 ...
 
-* zero or more keyword/arg pairs may be appended
-* keyword = *finite*
+* fix_ID = ID of associated fix store/local
+* zero or more keywords may be appended
+* keyword = *finite* or *time/min* or *type/include*
 
   .. parsed-literal::
 
       *finite* value = none
          pair style uses atomic diameters to identify contacts
+      *time/min* value = T
+         T = minimum interaction time
+      *type/include* value = arg1 arg2
+         arg = separate lists of types (see below)
+
+* one or more attributes may be appended
+
+  .. parsed-literal::
+
+       possible attributes = id1 id2 time/created time/broken time/total
+                             r/min r/ave x y z
+
+  .. parsed-literal::
+
+          id1, id2 = IDs of the 2 atoms in each pair interaction
+          time/created = the time that the 2 atoms began interacting
+          time/broken = the time that the 2 atoms stopped interacting
+          time/total = the total time the 2 atoms interacted
+          r/min = the minimum radial distance between the 2 atoms during the interaction
+          r/ave = the average radial distance between the 2 atoms during the interaction
+          x, y, z = the center of mass position of the 2 atoms when they stopped interacting
 
 Examples
 """"""""
 
 .. code-block:: LAMMPS
 
-   pair_style hybrid/overlay tracker ...
+   pair_style hybrid/overlay tracker myfix id1 id2 type/include 1 * type/include 2 3,4
    pair_coeff 1 1 tracker 2.0
 
-   pair_style hybrid/overlay tracker finite ...
+   pair_style hybrid/overlay tracker myfix finite x y z time/min 100
    pair_coeff * * tracker
 
-   fix 1 all pair/tracker 1000 time/created time/broken
-   dump 1 all local 1000 dump.local f_1[1] f_1[2]
+   fix myfix all store/local 1000 3
+   dump 1 all local 1000 dump.local f_myfix[1] f_myfix[2] f_myfix[3]
    dump_modify 1 write_header no
 
 Description
@@ -40,8 +62,11 @@ Style *tracker* monitors information about pairwise interactions.
 It does not calculate any forces on atoms.
 :doc:`Pair hybrid/overlay <pair_hybrid>` can be used to combine this pair
 style with another pair style. Style *tracker*  must be used in conjunction
-with about :doc:`fix pair_tracker <fix_pair_tracker>` which contains
-information on what data can be output.
+with :doc:`fix store/local <fix_store_local>` which contains
+information on outputting data. Whenever two neighboring atoms move beyond 
+the interaction cutoffPairwise data is processed and transferred to the associated 
+instance of :doc:`fix store/local <fix_store_local>`. Additional filters can
+be applied using the *time/min* or *type/include* keywords described below.
 
 If the *finite* keyword is not defined, the following coefficients must be
 defined for each pair of atom types via the :doc:`pair_coeff <pair_coeff>`
@@ -55,6 +80,24 @@ If the *finite* keyword is defined, no coefficients may be defined.
 Interaction cutoffs are alternatively calculated based on the
 diameter of finite particles.
 
+.. note::
+
+   For extremely long-lived interactions, the calculation of *r/ave* may not be
+   correct due to double overflow.
+
+The *time/min* keyword sets a minimum amount of time that an interaction must
+persist to be included. This setting can be used to censor short-lived interactions.
+The *type/include* keyword filters interactions based on the types of the two atoms.
+Data is only saved for interactions between atoms with types in the two lists.
+Each list consists of a series of type
+ranges separated by commas. The range can be specified as a
+single numeric value, or a wildcard asterisk can be used to specify a range
+of values.  This takes the form "\*" or "\*n" or "n\*" or "m\*n".  For
+example, if M = the number of atom types, then an asterisk with no numeric
+values means all types from 1 to M.  A leading asterisk means all types
+from 1 to n (inclusive).  A trailing asterisk means all types from n to M
+(inclusive).  A middle asterisk means all types from m to n (inclusive).
+Multiple *type/include* keywords may be added.
 
 Mixing, shift, table, tail correction, restart, rRESPA info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""

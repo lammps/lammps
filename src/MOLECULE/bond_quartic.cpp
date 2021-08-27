@@ -34,6 +34,7 @@ using namespace LAMMPS_NS;
 
 BondQuartic::BondQuartic(LAMMPS *lmp) : Bond(lmp)
 {
+  partial_flag = 1;
   TWO_1_3 = pow(2.0,(1.0/3.0));
 }
 

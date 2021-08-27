@@ -93,7 +93,8 @@ class FixNeighHistory : public Fix {
   virtual void pre_exchange_no_newton();
   void allocate_pages();
 
-  inline int sbmask(int j) const { return j >> SBBITS & 3; }
+  // Shift by HISTBITS and check the first bit
+  inline int histmask(int j) const { return j >> HISTBITS & 1; }
 };
 
 }    // namespace LAMMPS_NS

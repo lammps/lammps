@@ -58,6 +58,11 @@ whether an extra library is needed to build and use the package:
      - :doc:`Howto body <Howto_body>`
      - body
      - no
+   * - :ref:`BPM <PKG-BPM>`
+     - bonded particle models
+     - :doc:`Howto bpm <Howto_bpm>`
+     - bpm
+     - no
    * - :ref:`BROWNIAN <PKG-BROWNIAN>`
      - Brownian dynamics, self-propelled particles
      - :doc:`fix brownian <fix_brownian>`, :doc:`fix propel/self <fix_propel_self>`

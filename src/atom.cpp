@@ -122,6 +122,7 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   omega = angmom = torque = nullptr;
   radius = rmass = nullptr;
   ellipsoid = line = tri = body = nullptr;
+  quat = nullptr;
 
   // molecular systems
 
@@ -419,6 +420,8 @@ void Atom::peratom_create()
   add_peratom("tri",&tri,INT,0);
   add_peratom("body",&body,INT,0);
 
+  add_peratom("quat",&quat,DOUBLE,4);
+
   // MOLECULE package
 
   add_peratom("molecule",&molecule,tagintsize,0);
@@ -639,6 +642,7 @@ void Atom::set_atomflag_defaults()
   // identical list as 2nd customization in atom.h
 
   sphere_flag = ellipsoid_flag = line_flag = tri_flag = body_flag = 0;
+  quat_flag = 0;
   peri_flag = electron_flag = 0;
   wavepacket_flag = sph_flag = 0;
   molecule_flag = molindex_flag = molatom_flag = 0;
@@ -2660,6 +2664,10 @@ length of the data area, and a short description.
      - int
      - 1
      - 1 if the particle is a body particle, 0 if not
+  * - quat
+     - double
+     - 4
+     - four quaternion components of the particles
    * - i_name
      - int
      - 1
@@ -2715,6 +2723,7 @@ void *Atom::extract(const char *name)
   if (strcmp(name,"line") == 0) return (void *) line;
   if (strcmp(name,"tri") == 0) return (void *) tri;
   if (strcmp(name,"body") == 0) return (void *) body;
+  if (strcmp(name,"quat") == 0) return (void *) quat;
 
   if (strcmp(name,"vfrac") == 0) return (void *) vfrac;
   if (strcmp(name,"s0") == 0) return (void *) s0;
@@ -2837,6 +2846,7 @@ int Atom::extract_datatype(const char *name)
   if (strcmp(name,"line") == 0) return LAMMPS_INT;
   if (strcmp(name,"tri") == 0) return LAMMPS_INT;
   if (strcmp(name,"body") == 0) return LAMMPS_INT;
+  if (strcmp(name,"quat") == 0) return LAMMPS_DOUBLE_2D;
 
   if (strcmp(name,"vfrac") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"s0") == 0) return LAMMPS_DOUBLE;

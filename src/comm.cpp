@@ -217,6 +217,9 @@ void Comm::init()
   if (force->pair) maxforward = MAX(maxforward,force->pair->comm_forward);
   if (force->pair) maxreverse = MAX(maxreverse,force->pair->comm_reverse);
 
+  if (force->bond) maxforward = MAX(maxforward,force->bond->comm_forward);
+  if (force->bond) maxreverse = MAX(maxreverse,force->bond->comm_reverse);
+
   for (int i = 0; i < modify->nfix; i++) {
     maxforward = MAX(maxforward,modify->fix[i]->comm_forward);
     maxreverse = MAX(maxreverse,modify->fix[i]->comm_reverse);
@@ -234,6 +237,7 @@ void Comm::init()
 
   if (force->newton == 0) maxreverse = 0;
   if (force->pair) maxreverse = MAX(maxreverse,force->pair->comm_reverse_off);
+  if (force->bond) maxreverse = MAX(maxreverse,force->bond->comm_reverse_off);
 
   // maxexchange_atom = size of an exchanged atom, set by AtomVec
   //   only needs to be set if size > BUFEXTRA

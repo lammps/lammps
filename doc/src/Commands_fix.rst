@@ -140,6 +140,7 @@ OPT.
    * :doc:`nve/manifold/rattle <fix_nve_manifold_rattle>`
    * :doc:`nve/noforce <fix_nve_noforce>`
    * :doc:`nve/sphere (ko) <fix_nve_sphere>`
+   * :doc:`nve/sphere/bpm <fix_nve_sphere_bpm>`
    * :doc:`nve/spin <fix_nve_spin>`
    * :doc:`nve/tri <fix_nve_tri>`
    * :doc:`nvk <fix_nvk>`
@@ -221,6 +222,7 @@ OPT.
    * :doc:`spring/rg <fix_spring_rg>`
    * :doc:`spring/self <fix_spring_self>`
    * :doc:`srd <fix_srd>`
+   * :doc:`store/local <fix_store_local>`
    * :doc:`store/force <fix_store_force>`
    * :doc:`store/state <fix_store_state>`
    * :doc:`tdpd/source <fix_dpd_source>`
@@ -238,6 +240,7 @@ OPT.
    * :doc:`ttm <fix_ttm>`
    * :doc:`ttm/mod <fix_ttm>`
    * :doc:`tune/kspace <fix_tune_kspace>`
+   * :doc:`update/special/bonds <fix_update_special_bonds>`
    * :doc:`vector <fix_vector>`
    * :doc:`viscosity <fix_viscosity>`
    * :doc:`viscous <fix_viscous>`

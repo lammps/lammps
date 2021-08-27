@@ -234,6 +234,7 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`msd <compute_msd>` - mean-squared displacement of group of atoms
 * :doc:`msd/chunk <compute_msd_chunk>` - mean-squared displacement for each chunk
 * :doc:`msd/nongauss <compute_msd_nongauss>` - MSD and non-Gaussian parameter of group of atoms
+* :doc:`nbond/atom <compute_nbond_atom>` - calculates number of bonds per atom
 * :doc:`omega/chunk <compute_omega_chunk>` - angular velocity for each chunk
 * :doc:`orientorder/atom <compute_orientorder_atom>` - Steinhardt bond orientational order parameters Ql
 * :doc:`pair <compute_pair>` - values computed by a pair style

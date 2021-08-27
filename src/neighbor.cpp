@@ -21,6 +21,7 @@
 
 #include "atom.h"
 #include "atom_vec.h"
+#include "bond.h"
 #include "citeme.h"
 #include "comm.h"
 #include "compute.h"
@@ -1444,7 +1445,7 @@ void Neighbor::init_topology()
   // bonds,etc can only be broken for atom->molecular = Atom::MOLECULAR, not Atom::TEMPLATE
   // SHAKE sets bonds and angles negative
   // gcmc sets all bonds, angles, etc negative
-  // bond_quartic sets bonds to 0
+  // partial_flag sets bonds to 0
   // delete_bonds sets all interactions negative
 
   int bond_off = 0;
@@ -1453,7 +1454,9 @@ void Neighbor::init_topology()
     if (utils::strmatch(modify->fix[i]->style,"^shake")
         || utils::strmatch(modify->fix[i]->style,"^rattle"))
       bond_off = angle_off = 1;
-  if (force->bond && force->bond_match("quartic")) bond_off = 1;
+  if (force->bond)
+    if (force->bond->partial_flag)
+      bond_off = 1;
 
   if (atom->avec->bonds_allow && atom->molecular == Atom::MOLECULAR) {
     for (i = 0; i < atom->nlocal; i++) {

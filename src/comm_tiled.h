@@ -33,6 +33,8 @@ class CommTiled : public Comm {
 
   virtual void forward_comm_pair(class Pair *);    // forward comm from a Pair
   virtual void reverse_comm_pair(class Pair *);    // reverse comm from a Pair
+  virtual void forward_comm_bond(class Bond *);    // forward comm from a Bond
+  virtual void reverse_comm_bond(class Bond *);    // reverse comm from a Bond
   virtual void forward_comm_fix(class Fix *, int size = 0);
   // forward comm from a Fix
   virtual void reverse_comm_fix(class Fix *, int size = 0);

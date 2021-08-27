@@ -150,7 +150,7 @@ void PairGranular::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,fx,fy,fz,nx,ny,nz;
-  double radi,radj,radsum,rsq,r,rinv;
+  double radi,radj,radsum,rsq,r,rinv,factor_lj;
   double Reff, delta, dR, dR2, dist_to_contact;
 
   double vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
@@ -249,7 +249,10 @@ void PairGranular::compute(int eflag, int vflag)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
+      factor_lj = special_lj[sbmask(j)];
       j &= NEIGHMASK;
+
+      if (factor_lj == 0) continue;
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
@@ -651,6 +654,9 @@ void PairGranular::compute(int eflag, int vflag)
         fx = nx*Fntot + fs1;
         fy = ny*Fntot + fs2;
         fz = nz*Fntot + fs3;
+        fx *= factor_lj;
+        fy *= factor_lj;
+        fz *= factor_lj;
 
         f[i][0] += fx;
         f[i][1] += fy;
@@ -659,6 +665,9 @@ void PairGranular::compute(int eflag, int vflag)
         tor1 = ny*fs3 - nz*fs2;
         tor2 = nz*fs1 - nx*fs3;
         tor3 = nx*fs2 - ny*fs1;
+        tor1 *= factor_lj;
+        tor2 *= factor_lj;
+        tor3 *= factor_lj;
 
         dist_to_contact = radi-0.5*delta;
         torque[i][0] -= dist_to_contact*tor1;
@@ -666,9 +675,9 @@ void PairGranular::compute(int eflag, int vflag)
         torque[i][2] -= dist_to_contact*tor3;
 
         if (twist_model[itype][jtype] != TWIST_NONE) {
-          tortwist1 = magtortwist * nx;
-          tortwist2 = magtortwist * ny;
-          tortwist3 = magtortwist * nz;
+          tortwist1 = magtortwist * nx * factor_lj;
+          tortwist2 = magtortwist * ny * factor_lj;
+          tortwist3 = magtortwist * nz * factor_lj;
 
           torque[i][0] += tortwist1;
           torque[i][1] += tortwist2;
@@ -676,9 +685,9 @@ void PairGranular::compute(int eflag, int vflag)
         }
 
         if (roll_model[itype][jtype] != ROLL_NONE) {
-          torroll1 = Reff*(ny*fr3 - nz*fr2); // n cross fr
-          torroll2 = Reff*(nz*fr1 - nx*fr3);
-          torroll3 = Reff*(nx*fr2 - ny*fr1);
+          torroll1 = Reff*(ny*fr3 - nz*fr2) * factor_lj; // n cross fr
+          torroll2 = Reff*(nz*fr1 - nx*fr3) * factor_lj;
+          torroll3 = Reff*(nx*fr2 - ny*fr1) * factor_lj;
 
           torque[i][0] += torroll1;
           torque[i][1] += torroll2;

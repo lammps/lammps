@@ -627,7 +627,7 @@ void FixNeighHistory::post_neighbor()
       j = jlist[jj];
 
       if (use_bit_flag) {
-        rflag = sbmask(j) | pair->beyond_contact;
+        rflag = histmask(j) | pair->beyond_contact;
         j &= NEIGHMASK;
         jlist[jj] = j;
       } else {

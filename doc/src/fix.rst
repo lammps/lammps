@@ -283,6 +283,7 @@ accelerated styles exist.
 * :doc:`nve/manifold/rattle <fix_nve_manifold_rattle>` -
 * :doc:`nve/noforce <fix_nve_noforce>` - NVE without forces (v only)
 * :doc:`nve/sphere <fix_nve_sphere>` - NVE for spherical particles
+* :doc:`nve/sphere/bpm <fix_nve_sphere_bpm>` - NVE for spherical particles used in bonded particle models
 * :doc:`nve/spin <fix_nve_spin>` - NVE for a spin or spin-lattice system
 * :doc:`nve/tri <fix_nve_tri>` - NVE for triangles
 * :doc:`nvk <fix_nvk>` - constant kinetic energy time integration
@@ -300,7 +301,6 @@ accelerated styles exist.
 * :doc:`orient/fcc <fix_orient>` - add grain boundary migration force for FCC
 * :doc:`orient/eco <fix_orient_eco>` - add generalized grain boundary migration force
 * :doc:`pafi <fix_pafi>` - constrained force averages on hyper-planes to compute free energies (PAFI)
-* :doc:`pair/tracker <fix_pair_tracker>` - track properties of pairwise interactions
 * :doc:`phonon <fix_phonon>` - calculate dynamical matrix from MD simulations
 * :doc:`pimd <fix_pimd>` - Feynman path integral molecular dynamics
 * :doc:`planeforce <fix_planeforce>` - constrain atoms to move in a plane
@@ -364,6 +364,7 @@ accelerated styles exist.
 * :doc:`spring/rg <fix_spring_rg>` - spring on radius of gyration of group of atoms
 * :doc:`spring/self <fix_spring_self>` - spring from each atom to its origin
 * :doc:`srd <fix_srd>` - stochastic rotation dynamics (SRD)
+* :doc:`store/local <fix_store_local>` - store local data for output
 * :doc:`store/force <fix_store_force>` - store force on each atom
 * :doc:`store/state <fix_store_state>` - store attributes for each atom
 * :doc:`tdpd/source <fix_dpd_source>` -
@@ -381,6 +382,7 @@ accelerated styles exist.
 * :doc:`ttm <fix_ttm>` - two-temperature model for electronic/atomic coupling
 * :doc:`ttm/mod <fix_ttm>` - enhanced two-temperature model with additional options
 * :doc:`tune/kspace <fix_tune_kspace>` - auto-tune KSpace parameters
+* :doc:`update/special/bonds <fix_update_special_bonds>` - update special bond lists for BPM bond styles that allow for bond breakage
 * :doc:`vector <fix_vector>` - accumulate a global vector every N timesteps
 * :doc:`viscosity <fix_viscosity>` - Muller-Plathe momentum exchange for viscosity calculation
 * :doc:`viscous <fix_viscous>` - viscous damping for granular simulations

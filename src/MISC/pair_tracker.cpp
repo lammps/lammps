@@ -19,20 +19,23 @@
 #include "fix.h"
 #include "fix_dummy.h"
 #include "fix_neigh_history.h"
-#include "fix_pair_tracker.h"
+#include "fix_store_local.h"
 #include "force.h"
 #include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "neighbor.h"
+#include "tokenizer.h"
+#include "utils.h"
 #include "update.h"
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairTracker::PairTracker(LAMMPS *lmp) : Pair(lmp)
+PairTracker::PairTracker(LAMMPS *lmp) :
+    Pair(lmp), pack_choice(NULL)
 {
   single_enable = 1;
   no_virial_fdotr_compute = 1;
@@ -43,6 +46,7 @@ PairTracker::PairTracker(LAMMPS *lmp) : Pair(lmp)
   nondefault_history_transfer = 1;
 
   finitecutflag = 0;
+  tmin = -1;
 
   // create dummy fix as placeholder for FixNeighHistory
   // this is so final order of Modify:fix will conform to input script
@@ -50,6 +54,12 @@ PairTracker::PairTracker(LAMMPS *lmp) : Pair(lmp)
   fix_history = nullptr;
   modify->add_fix("NEIGH_HISTORY_TRACK_DUMMY all DUMMY");
   fix_dummy = (FixDummy *) modify->fix[modify->nfix - 1];
+
+  fix_store_local = nullptr;
+
+  output_data = nullptr;
+  pack_choice = nullptr;
+  type_filter = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -71,6 +81,12 @@ PairTracker::~PairTracker()
     delete[] maxrad_dynamic;
     delete[] maxrad_frozen;
   }
+
+  delete[] pack_choice;
+
+  delete [] id_fix_store_local;
+  memory->destroy(output_data);
+  memory->destroy(type_filter);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -130,8 +146,9 @@ void PairTracker::compute(int eflag, int vflag)
 
           data = &alldata[size_history * jj];
           if (touch[jj] == 1) {
-            fix_pair_tracker->lost_contact(i, j, data[0], data[1], data[2], data[3]);
+            process_data(i, j, data);
           }
+
           touch[jj] = 0;
           data[0] = 0.0;    // initial time
           data[1] = 0.0;    // initial timestep
@@ -159,7 +176,7 @@ void PairTracker::compute(int eflag, int vflag)
 
           data = &alldata[size_history * jj];
           if (touch[jj] == 1) {
-            fix_pair_tracker->lost_contact(i, j, data[0], data[1], data[2], data[3]);
+            process_data(i, j, data);
           }
 
           touch[jj] = 0;
@@ -216,14 +233,98 @@ void PairTracker::allocate()
 
 void PairTracker::settings(int narg, char **arg)
 {
-  if (narg != 0 && narg != 1) error->all(FLERR, "Illegal pair_style command");
+  if (narg < 1) error->all(FLERR, "Illegal pair_style command");
 
-  if (narg == 1) {
-    if (strcmp(arg[0], "finite") == 0)
+  id_fix_store_local = utils::strdup(arg[0]);
+
+  // If optional arguments included, this will be oversized
+  pack_choice = new FnPtrPack[narg - 1];
+
+  nvalues = 0;
+  int iarg = 1;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg], "finite") == 0) {
       finitecutflag = 1;
-    else
+    } else if (strcmp(arg[iarg], "id1") == 0) {
+      pack_choice[nvalues++] = &PairTracker::pack_id1;
+    } else if (strcmp(arg[iarg], "id2") == 0) {
+      pack_choice[nvalues++] = &PairTracker::pack_id2;
+    } else if (strcmp(arg[iarg], "time/created") == 0) {
+      pack_choice[nvalues++] = &PairTracker::pack_time_created;
+    } else if (strcmp(arg[iarg], "time/broken") == 0) {
+      pack_choice[nvalues++] = &PairTracker::pack_time_broken;
+    } else if (strcmp(arg[iarg], "time/total") == 0) {
+      pack_choice[nvalues++] = &PairTracker::pack_time_total;
+    } else if (strcmp(arg[iarg], "x") == 0) {
+      pack_choice[nvalues++] = &PairTracker::pack_x;
+    } else if (strcmp(arg[iarg], "y") == 0) {
+      pack_choice[nvalues++] = &PairTracker::pack_y;
+    } else if (strcmp(arg[iarg], "z") == 0) {
+      pack_choice[nvalues++] = &PairTracker::pack_z;
+    } else if (strcmp(arg[iarg], "r/min") == 0) {
+      pack_choice[nvalues++] = &PairTracker::pack_rmin;
+    } else if (strcmp(arg[iarg], "r/ave") == 0) {
+      pack_choice[nvalues++] = &PairTracker::pack_rave;
+    } else if (strcmp(arg[iarg], "time/min") == 0) {
+      if (iarg + 1 >= narg) error->all(FLERR, "Invalid keyword in pair tracker command");
+      tmin = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
+      iarg++;
+
+    } else if (strcmp(arg[iarg], "type/include") == 0) {
+      if (iarg + 1 >= narg) error->all(FLERR, "Invalid keyword in pair tracker command");
+      int ntypes = atom->ntypes;
+
+      int i, j, itype, jtype, in, jn, infield, jnfield;
+      int inlo, inhi, jnlo, jnhi;
+      char *istr, *jstr;
+      if (!type_filter) {
+        memory->create(type_filter, ntypes + 1, ntypes + 1, "pair/tracker:type_filter");
+
+        for (i = 0; i <= ntypes; i++) {
+          for (j = 0; j <= ntypes; j++) type_filter[i][j] = 0;
+        }
+      }
+
+      in = strlen(arg[iarg + 1]) + 1;
+      istr = new char[in];
+      strcpy(istr, arg[iarg + 1]);
+      std::vector<std::string> iwords = Tokenizer(istr, ",").as_vector();
+      infield = iwords.size();
+
+      jn = strlen(arg[iarg + 2]) + 1;
+      jstr = new char[jn];
+      strcpy(jstr, arg[iarg + 2]);
+      std::vector<std::string> jwords = Tokenizer(jstr, ",").as_vector();
+      jnfield = jwords.size();
+
+      for (i = 0; i < infield; i++) {
+        const char *ifield = iwords[i].c_str();
+        utils::bounds(FLERR, ifield, 1, ntypes, inlo, inhi, error);
+
+        for (j = 0; j < jnfield; j++) {
+          const char *jfield = jwords[j].c_str();
+          utils::bounds(FLERR, jfield, 1, ntypes, jnlo, jnhi, error);
+
+          for (itype = inlo; itype <= inhi; itype++) {
+            for (jtype = jnlo; jtype <= jnhi; jtype++) {
+              type_filter[itype][jtype] = 1;
+              type_filter[jtype][itype] = 1;
+            }
+          }
+        }
+      }
+      delete[] istr;
+      delete[] jstr;
+      iarg += 2;
+
+    } else {
       error->all(FLERR, "Illegal pair_style command");
+    }
+    iarg ++;
   }
+
+  if (nvalues == 0) error->all(FLERR, "Must request at least one value to output");
+  memory->create(output_data, nvalues, "pair/tracker:output_data");
 }
 
 /* ----------------------------------------------------------------------
@@ -262,7 +363,6 @@ void PairTracker::coeff(int narg, char **arg)
 void PairTracker::init_style()
 {
   int i;
-
   // error and warning checks
 
   if (!atom->radius_flag && finitecutflag)
@@ -275,7 +375,7 @@ void PairTracker::init_style()
     neighbor->requests[irequest]->size = 1;
     neighbor->requests[irequest]->history = 1;
     // history flag won't affect results, but match granular pairstyles
-    // so neighborlist can be copied to reduce overhead
+    // to copy neighbor list and reduce overhead
   }
 
   // if history is stored and first init, create Fix to store history
@@ -284,7 +384,7 @@ void PairTracker::init_style()
 
   if (fix_history == nullptr) {
     modify->replace_fix("NEIGH_HISTORY_TRACK_DUMMY",
-                        fmt::format("NEIGH_HISTORY_TRACK all NEIGH_HISTORY {}", size_history), 1);
+        fmt::format("NEIGH_HISTORY_TRACK all NEIGH_HISTORY {}", size_history), 1);
     int ifix = modify->find_fix("NEIGH_HISTORY_TRACK");
     fix_history = (FixNeighHistory *) modify->fix[ifix];
     fix_history->pair = this;
@@ -295,9 +395,14 @@ void PairTracker::init_style()
 
     if (force->pair->beyond_contact)
       error->all(FLERR,
-                 "Pair tracker incompatible with granular pairstyles that extend beyond contact");
-    // check for FixPour and FixDeposit so can extract particle radii
+        "Pair tracker incompatible with granular pairstyles that extend beyond contact");
 
+    // check for FixFreeze and set freeze_group_bit
+    int ifix = modify->find_fix_by_style("^freeze");
+    if (ifix < 0) freeze_group_bit = 0;
+    else freeze_group_bit = modify->fix[ifix]->groupbit;
+
+    // check for FixPour and FixDeposit so can extract particle radii
     int ipour;
     for (ipour = 0; ipour < modify->nfix; ipour++)
       if (strcmp(modify->fix[ipour]->style, "pour") == 0) break;
@@ -310,7 +415,6 @@ void PairTracker::init_style()
 
     // set maxrad_dynamic and maxrad_frozen for each type
     // include future FixPour and FixDeposit particles as dynamic
-
     int itype;
     for (i = 1; i <= atom->ntypes; i++) {
       onerad_dynamic[i] = onerad_frozen[i] = 0.0;
@@ -343,9 +447,13 @@ void PairTracker::init_style()
   if (ifix < 0) error->all(FLERR, "Could not find pair fix neigh history ID");
   fix_history = (FixNeighHistory *) modify->fix[ifix];
 
-  ifix = modify->find_fix_by_style("pair/tracker");
-  if (ifix < 0) error->all(FLERR, "Cannot use pair tracker without fix pair/tracker");
-  fix_pair_tracker = (FixPairTracker *) modify->fix[ifix];
+  ifix = modify->find_fix(id_fix_store_local);
+  if (ifix < 0) error->all(FLERR, "Cannot find fix store/local");
+  if (strcmp(modify->fix[ifix]->style, "store/local") != 0)
+      error->all(FLERR, "Incorrect fix style matched, not store/local");
+  fix_store_local = (FixStoreLocal *) modify->fix[ifix];
+  if (fix_store_local->nvalues != nvalues)
+    error->all(FLERR, "Inconsistent number of output variables in fix store/local");
 }
 
 /* ----------------------------------------------------------------------
@@ -357,7 +465,6 @@ double PairTracker::init_one(int i, int j)
   if (!allocated) allocate();
 
   // always mix prefactors geometrically
-
   if (setflag[i][j] == 0) { cut[i][j] = mix_distance(cut[i][i], cut[j][j]); }
 
   cut[j][i] = cut[i][j];
@@ -468,4 +575,106 @@ double PairTracker::radii2cut(double r1, double r2)
 {
   double cut = r1 + r2;
   return cut;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairTracker::process_data(int i, int j, double * input_data)
+{
+  double time = update->atime + (update->ntimestep - update->atimestep) * update->dt;
+  int time_initial = (int) input_data[0];
+  if ((time - time_initial) < tmin) return;
+
+  if (type_filter) {
+    int *type = atom->type;
+    if (type_filter[type[i]][type[j]] == 0) return;
+  }
+
+  for (int k = 0; k < nvalues; k++) (this->*pack_choice[k])(k, i, j, input_data);
+  fix_store_local->add_data(output_data, i, j);
+}
+
+/* ----------------------------------------------------------------------
+   one method for every keyword fix pair/tracker can output
+   the atom property is packed into a local vector or array
+------------------------------------------------------------------------- */
+
+void PairTracker::pack_time_created(int n, int i, int j, double * data)
+{
+  double time_initial = data[0];
+  output_data[n] = time_initial;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairTracker::pack_time_broken(int n, int i, int j, double * data)
+{
+  double time = update->atime + (update->ntimestep - update->atimestep) * update->dt;
+  output_data[n] = time;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairTracker::pack_time_total(int n, int i, int j, double * data)
+{
+  double time = update->atime + (update->ntimestep - update->atimestep) * update->dt;
+  double time_initial = data[0];  
+  output_data[n] = time - time_initial;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairTracker::pack_id1(int n, int i, int j, double * data)
+{
+  tagint *tag = atom->tag;
+  output_data[n] = tag[i];
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairTracker::pack_id2(int n, int i, int j, double * data)
+{
+  tagint *tag = atom->tag;
+  output_data[n] = tag[j];
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairTracker::pack_x(int n, int i, int j, double * data)
+{
+  double **x = atom->x;
+  output_data[n] = (x[i][0] + x[j][0])*0.5;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairTracker::pack_y(int n, int i, int j, double * data)
+{
+  double **x = atom->x;
+  output_data[n] = (x[i][1] + x[j][1])*0.5;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairTracker::pack_z(int n, int i, int j, double * data)
+{
+  double **x = atom->x;
+  output_data[n] = (x[i][2] + x[j][2])*0.5;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairTracker::pack_rmin(int n, int i, int j, double * data)
+{
+  double rmin = data[3];
+  output_data[n] = rmin;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairTracker::pack_rave(int n, int i, int j, double * data)
+{
+  double rsum = data[2];
+  double nstep_initial = data[1];
+  output_data[n] = rsum / (update->ntimestep - nstep_initial);
 }

@@ -166,7 +166,7 @@ inline
                         const Kokkos::View<real_type***, Kokkos::LayoutLeft, DeviceType> &);
   // plugged into compute_fused_deidrj_small, compute_fused_deidrj_large
   KOKKOS_FORCEINLINE_FUNCTION
-  real_type evaluate_duidrj_jbend(const WignerWrapper<real_type, vector_length>&, const complex&, const complex&, const real_type&, 
+  real_type evaluate_duidrj_jbend(const WignerWrapper<real_type, vector_length>&, const complex&, const complex&, const real_type&,
                         const WignerWrapper<real_type, vector_length>&, const complex&, const complex&, const real_type&,
                         const int&, const int&, const int&, const int&);
 

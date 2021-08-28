@@ -361,10 +361,9 @@ void FixTTMGrid::write_electron_temperatures(const std::string &filename)
     FPout = fopen(filename.c_str(), "w");
     if (!FPout) error->one(FLERR, "Fix ttm/grid could not open output file");
 
-    fmt::print(FPout,
-               "# DATE: {:%Y-%m-%d} UNITS: {} COMMENT: Electron temperature grid "
-               "at step {}. Created by fix {}\n",
-               current_date, update->unit_style, update->ntimestep, style);
+    fmt::print(FPout,"# DATE: {:%Y-%m-%d} UNITS: {} COMMENT: Electron temperature "
+               "{}x{}x{} grid at step {}. Created by fix {}\n", current_date,
+               update->unit_style, nxgrid, nygrid, nzgrid, update->ntimestep, style);
   }
 
   gc->gather(GridComm::FIX, this, 1, sizeof(double), 1, NULL, MPI_DOUBLE);

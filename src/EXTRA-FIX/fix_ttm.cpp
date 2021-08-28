@@ -33,14 +33,10 @@
 #include "fmt/chrono.h"
 
 #include <cmath>
-#include <cstdio>
 #include <cstring>
-#include <ctime>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
-
-#define MAXLINE 1024
 
 // OFFSET avoids outside-of-box atoms being rounded to grid pts incorrectly
 // SHIFT = 0.0 assigns atoms to lower-left grid pt
@@ -235,8 +231,7 @@ void FixTTM::init()
   //   and create a new GridComm, and pass old GC data to new GC
 
   if (domain->box_change)
-    error->all(FLERR,"Cannot use fix ttm with "
-               "changing box shape, size, or sub-domains");
+    error->all(FLERR,"Cannot use fix ttm with changing box shape, size, or sub-domains");
 
   // set force prefactors
 
@@ -497,7 +492,7 @@ void FixTTM::read_electron_temperatures(const std::string &filename)
         // check correctness of input data
 
         if ((ix < 0) || (ix >= nxgrid) || (iy < 0) || (iy >= nygrid) || (iz < 0) || (iz >= nzgrid))
-          throw parser_error("Fix ttm invalid grid index in fix ttm input");
+          throw parser_error("Fix ttm invalid grid index in fix ttm grid file");
 
         if (T_tmp < 0.0)
           throw parser_error("Fix ttm electron temperatures must be > 0.0");
@@ -538,9 +533,9 @@ void FixTTM::write_electron_temperatures(const std::string &filename)
   FILE *fp = fopen(filename.c_str(),"w");
   if (!fp) error->one(FLERR,"Fix ttm could not open output file {}: {}",
                       filename,utils::getsyserror());
-  fmt::print(fp,"# DATE: {:%Y-%m-%d} UNITS: {} COMMENT: Electron temperature grid "
-             "at step {}. Created by fix {}\n",
-             current_date, update->unit_style, update->ntimestep, style);
+  fmt::print(fp,"# DATE: {:%Y-%m-%d} UNITS: {} COMMENT: Electron temperature "
+             "{}x{}x{} grid at step {}. Created by fix {}\n", current_date,
+             update->unit_style, nxgrid, nygrid, nzgrid, update->ntimestep, style);
 
   int ix,iy,iz;
 

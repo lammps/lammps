@@ -1,5 +1,5 @@
- My transcription of Voter Chen 
- from the potential file from Tim Germann 
+ UNITS: metal DATE: 2016-04-04
+ My transcription of Voter Chen from the potential file from Tim Germann
  4/4/2016 (Fembed, rhoatomic, phipair)
 1   Fe
 3000  2.7915816152066654e-6   10000  0.0004524   4.524

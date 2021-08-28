@@ -74,8 +74,8 @@ class FixTTM : public Fix {
 
   virtual void allocate_grid();
   virtual void deallocate_grid();
-  virtual void read_electron_temperatures(const char *);
-  virtual void write_electron_temperatures(const char *);
+  virtual void read_electron_temperatures(const std::string &);
+  virtual void write_electron_temperatures(const std::string &);
 };
 
 }    // namespace LAMMPS_NS

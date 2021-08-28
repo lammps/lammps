@@ -463,13 +463,8 @@ void FixTTM::end_of_step()
 
   // output of grid electron temperatures to file
 
-  if (outfile && (update->ntimestep % outevery == 0)) {
-    char *newfile = new char[strlen(outfile) + 16];
-    strcpy(newfile,outfile);
-    sprintf(newfile,"%s.%ld",outfile,update->ntimestep);
-
-    write_electron_temperatures((const char *) newfile);
-  }
+  if (outfile && (update->ntimestep % outevery == 0))
+    write_electron_temperatures(fmt::format("{}.{}",outfile,update->ntimestep));
 }
 
 /* ----------------------------------------------------------------------
@@ -477,7 +472,7 @@ void FixTTM::end_of_step()
    only read by proc 0, grid values are Bcast to other procs
 ------------------------------------------------------------------------- */
 
-void FixTTM::read_electron_temperatures(const char *filename)
+void FixTTM::read_electron_temperatures(const std::string &filename)
 {
   int ***T_initial_set;
   memory->create(T_initial_set,nxgrid,nygrid,nzgrid,"ttm:T_initial_set");
@@ -534,11 +529,11 @@ void FixTTM::read_electron_temperatures(const char *filename)
    only written by proc 0
 ------------------------------------------------------------------------- */
 
-void FixTTM::write_electron_temperatures(const char *filename)
+void FixTTM::write_electron_temperatures(const std::string &filename)
 {
   if (comm->me) return;
 
-  FILE *fp = fopen(filename,"w");
+  FILE *fp = fopen(filename.c_str(),"w");
   if (!fp) error->one(FLERR,"Fix ttm could not open output file");
 
   int ix,iy,iz;

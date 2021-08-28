@@ -196,6 +196,8 @@ void FixTTMGrid::end_of_step()
   gc->reverse_comm(GridComm::FIX,this,1,sizeof(double),0,
                    gc_buf1,gc_buf2,MPI_DOUBLE);
 
+  // clang-format off
+
   // num_inner_timesteps = # of inner steps (thermal solves)
   // required this MD step to maintain a stable explicit solve
 
@@ -244,19 +246,15 @@ void FixTTMGrid::end_of_step()
 
     // communicate new T_electron values to ghost grid points
 
-    gc->forward_comm(GridComm::FIX,this,1,sizeof(double),0,
-                     gc_buf1,gc_buf2,MPI_DOUBLE);
+    gc->forward_comm(GridComm::FIX,this,1,sizeof(double),0,gc_buf1,gc_buf2,MPI_DOUBLE);
   }
+
+  // clang-format on
 
   // output of grid temperatures to file
 
-  if (outfile && (update->ntimestep % outevery == 0)) {
-    char *newfile = new char[strlen(outfile) + 16];
-    strcpy(newfile,outfile);
-    sprintf(newfile,"%s.%ld",outfile,update->ntimestep);
-
-    write_electron_temperatures((const char *) newfile);
-  }
+  if (outfile && (update->ntimestep % outevery == 0))
+    write_electron_temperatures(fmt::format("{}.{}",outfile,update->ntimestep));
 }
 
 /* ----------------------------------------------------------------------
@@ -265,7 +263,7 @@ void FixTTMGrid::end_of_step()
    each proc stores values for grid points it owns
 ------------------------------------------------------------------------- */
 
-void FixTTMGrid::read_electron_temperatures(const char *filename)
+void FixTTMGrid::read_electron_temperatures(const std::string &filename)
 {
   int i,j,ix,iy,iz,nchunk,eof;
 
@@ -282,7 +280,8 @@ void FixTTMGrid::read_electron_temperatures(const char *filename)
 
   if (me == 0) {
     std::string name = utils::get_potential_file_path(filename);
-    if (name.empty()) error->one(FLERR,"Cannot open input file: {}",filename);
+    if (name.empty()) error->one(FLERR,"Cannot open input file: {}: {}",
+                                 filename, utils::getsyserror());
     fp = fopen(name.c_str(),"r");
   }
 
@@ -376,10 +375,10 @@ void FixTTMGrid::read_electron_temperatures(const char *filename)
    only written by proc 0
 ------------------------------------------------------------------------- */
 
-void FixTTMGrid::write_electron_temperatures(const char *filename)
+void FixTTMGrid::write_electron_temperatures(const std::string &filename)
 {
   if (comm->me == 0) {
-    FPout = fopen(filename,"w");
+    FPout = fopen(filename.c_str(),"w");
     if (!FPout) error->one(FLERR,"Fix ttm/grid could not open output file");
   }
 
@@ -595,8 +594,7 @@ void FixTTMGrid::restart(char *buf)
 
   // communicate new T_electron values to ghost grid points
 
-  gc->forward_comm(GridComm::FIX,this,1,sizeof(double),0,
-                   gc_buf1,gc_buf2,MPI_DOUBLE);
+  gc->forward_comm(GridComm::FIX,this,1,sizeof(double),0,gc_buf1,gc_buf2,MPI_DOUBLE);
 }
 
 /* ----------------------------------------------------------------------
@@ -676,16 +674,13 @@ double FixTTMGrid::compute_vector(int n)
     for (iz = nzlo_in; iz <= nzhi_in; iz++)
       for (iy = nylo_in; iy <= nyhi_in; iy++)
         for (ix = nxlo_in; ix <= nxhi_in; ix++) {
-          e_energy_me +=
-            T_electron[iz][iy][ix]*electronic_specific_heat*
-            electronic_density*volgrid;
-          transfer_energy_me +=
-            net_energy_transfer[iz][iy][ix]*update->dt;
+          e_energy_me += T_electron[iz][iy][ix]*electronic_specific_heat
+            *electronic_density*volgrid;
+          transfer_energy_me += net_energy_transfer[iz][iy][ix]*update->dt;
         }
 
     MPI_Allreduce(&e_energy_me,&e_energy,1,MPI_DOUBLE,MPI_SUM,world);
-    MPI_Allreduce(&transfer_energy_me,&transfer_energy,1,MPI_DOUBLE,
-                  MPI_SUM,world);
+    MPI_Allreduce(&transfer_energy_me,&transfer_energy,1,MPI_DOUBLE,MPI_SUM,world);
     outflag = 1;
   }
 

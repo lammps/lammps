@@ -272,11 +272,9 @@ void FixTTMGrid::read_electron_temperatures(const std::string &filename)
                           "ttm/grid:T_initial_set");
   memset(&T_initial_set[nzlo_in][nylo_in][nxlo_in], 0, ngridmine * sizeof(int));
 
-  int i, j, ix, iy, iz, nchunk, eof;
-  FILE *fp = nullptr;
-
   // proc 0 opens file
 
+  FILE *fp = nullptr;
   if (comm->me == 0) {
     fp = utils::open_potential(filename, lmp, nullptr);
     if (!fp) error->one(FLERR, "Cannot open grid file: {}: {}", filename, utils::getsyserror());
@@ -284,36 +282,30 @@ void FixTTMGrid::read_electron_temperatures(const std::string &filename)
 
   // read electron temperature values from file, one chunk at a time
 
-  char **values = new char *[4];
   char *buffer = new char[CHUNK * MAXLINE];
   bigint ntotal = (bigint) nxgrid * nygrid * nzgrid;
   bigint nread = 0;
-  char *buf, *next;
 
   while (nread < ntotal) {
-    nchunk = MIN(ntotal - nread, CHUNK);
-    eof = utils::read_lines_from_file(fp, nchunk, MAXLINE, buffer, comm->me, world);
+    int nchunk = MIN(ntotal - nread, CHUNK);
+    int eof = utils::read_lines_from_file(fp, nchunk, MAXLINE, buffer, comm->me, world);
     if (eof) error->all(FLERR, "Unexpected end of data file");
 
     // loop over lines of grid point values
     // tokenize the line into ix,iy,iz grid index plus temperature value
     // if I own grid point, store the value
 
-    buf = buffer;
-    for (i = 0; i < nchunk; i++) {
-      next = strchr(buf, '\n');
-      *next = '\0';
-
+    for (const auto &line : utils::split_lines(buffer)) {
       try {
-        ValueTokenizer values(utils::trim_comment(buf));
+        ValueTokenizer values(utils::trim_comment(line));
         if (values.count() == 0) {
-          // ignore comment only lines
-          --nread;
+          ; // ignore comment only lines
         } else if (values.count() == 4) {
+          ++nread;
 
-          ix = values.next_int();
-          iy = values.next_int();
-          iz = values.next_int();
+          int ix = values.next_int();
+          int iy = values.next_int();
+          int iz = values.next_int();
 
           if (ix < 0 || ix >= nxgrid || iy < 0 || iy >= nygrid || iz < 0 || iz >= nzgrid)
             throw parser_error("Fix ttm/grid invalid grid index in input");
@@ -329,9 +321,7 @@ void FixTTMGrid::read_electron_temperatures(const std::string &filename)
       } catch (std::exception &e) {
         error->one(FLERR,e.what());
       }
-      buf = next + 1;
     }
-    nread += nchunk;
   }
 
   // close file
@@ -340,16 +330,14 @@ void FixTTMGrid::read_electron_temperatures(const std::string &filename)
 
   // clean up
 
-  delete[] values;
   delete[] buffer;
 
   // check completeness of input data
 
   int flag = 0;
-
-  for (iz = nzlo_in; iz <= nzhi_in; iz++)
-    for (iy = nylo_in; iy <= nyhi_in; iy++)
-      for (ix = nxlo_in; ix <= nxhi_in; ix++)
+  for (int iz = nzlo_in; iz <= nzhi_in; iz++)
+    for (int iy = nylo_in; iy <= nyhi_in; iy++)
+      for (int ix = nxlo_in; ix <= nxhi_in; ix++)
         if (T_initial_set[iz][iy][ix] == 0) flag = 1;
 
   int flagall;

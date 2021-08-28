@@ -27,7 +27,7 @@
 #include "memory.h"
 #include "random_mars.h"
 #include "respa.h"
-#include "text_file_reader.h"
+#include "potential_file_reader.h"
 #include "tokenizer.h"
 #include "update.h"
 #include "fmt/chrono.h"
@@ -389,8 +389,7 @@ void FixTTM::end_of_step()
     }
 
   outflag = 0;
-  MPI_Allreduce(&net_energy_transfer[0][0][0],
-                &net_energy_transfer_all[0][0][0],
+  MPI_Allreduce(&net_energy_transfer[0][0][0],&net_energy_transfer_all[0][0][0],
                 ngridtotal,MPI_DOUBLE,MPI_SUM,world);
 
   double dx = domain->xprd/nxgrid;
@@ -480,24 +479,20 @@ void FixTTM::read_electron_temperatures(const std::string &filename)
     memset(&T_initial_set[0][0][0],0,ngridtotal*sizeof(int));
 
     // read initial electron temperature values from file
+    bigint nread = 0;
 
     try {
-      int ix,iy,iz;
-      double T_tmp;
-      const char *line;
-      TextFileReader reader(filename, "electron temperature grid");
+      PotentialFileReader reader(lmp, filename, "electron temperature grid");
 
-      while (1) {
-        line = reader.next_line();
-        if (!line) break;
+      while (nread < ngridtotal) {
+        // reader will skip over comment-only lines
+        auto values = reader.next_values(4);
+        ++nread;
 
-        ValueTokenizer values(line);
-        if (values.count() != 4)
-          throw parser_error("Incorrect format in fix ttm electron grid file");
-        ix = values.next_int();
-        iy = values.next_int();
-        iz = values.next_int();
-        T_tmp  = values.next_double();
+        int ix = values.next_int();
+        int iy = values.next_int();
+        int iz = values.next_int();
+        double T_tmp  = values.next_double();
 
         // check correctness of input data
 

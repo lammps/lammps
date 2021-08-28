@@ -251,7 +251,7 @@ void PPPMIntel::compute_first(int eflag, int vflag)
   else
     gc->forward_comm(GridComm::KSPACE,this,3,sizeof(FFT_SCALAR),FORWARD_IK,
                      gc_buf1,gc_buf2,MPI_FFT_SCALAR);
-  
+
   // extra per-atom energy/virial communication
 
   if (evflag_atom) {

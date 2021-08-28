@@ -61,7 +61,6 @@ class FixTTMMod : public Fix {
   char *infile, *outfile;
 
   class RanMars *random;
-  FILE *fp;
 
   int nxgrid, nygrid, nzgrid;
   int ngridtotal;

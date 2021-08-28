@@ -68,6 +68,7 @@ static const char cite_fix_ttm_mod[] =
   "pages = {129--139},\n"
   "year = {2013}\n"
   "}\n\n";
+
 static constexpr int OFFSET = 16384;
 static constexpr double SHIFT = 0.0;
 
@@ -75,7 +76,7 @@ static constexpr double SHIFT = 0.0;
 
 FixTTMMod::FixTTMMod(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  random(nullptr), fp(nullptr), nsum(nullptr), nsum_all(nullptr),
+  random(nullptr), nsum(nullptr), nsum_all(nullptr),
   gfactor1(nullptr), gfactor2(nullptr), ratio(nullptr), flangevin(nullptr),
   T_electron(nullptr), T_electron_old(nullptr), sum_vsq(nullptr), sum_mass_vsq(nullptr),
   sum_vsq_all(nullptr), sum_mass_vsq_all(nullptr), net_energy_transfer(nullptr),
@@ -217,11 +218,9 @@ FixTTMMod::FixTTMMod(LAMMPS *lmp, int narg, char **arg) :
 
 FixTTMMod::~FixTTMMod()
 {
-  if (fp) fclose(fp);
   delete random;
-
-  delete [] gfactor1;
-  delete [] gfactor2;
+  delete[] gfactor1;
+  delete[] gfactor2;
 
   memory->destroy(nsum);
   memory->destroy(nsum_all);
@@ -855,13 +854,8 @@ void FixTTMMod::end_of_step()
 
   // output of grid electron temperatures to file
 
-  if (outfile && (update->ntimestep % outevery == 0)) {
-    char *newfile = new char[strlen(outfile) + 16];
-    strcpy(newfile,outfile);
-    sprintf(newfile,"%s.%ld",outfile,update->ntimestep);
-
-    write_electron_temperatures((const char *) newfile);
-  }
+  if (outfile && (update->ntimestep % outevery == 0))
+    write_electron_temperatures(fmt::format("{}.{}", outfile, update->ntimestep));
 }
 
 /* ----------------------------------------------------------------------

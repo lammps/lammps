@@ -172,7 +172,7 @@ Chris Lorenz (chris.lorenz at kcl.ac.uk), King's College London.
 chain tool
 ----------------------
 
-The file chain.f creates a LAMMPS data file containing bead-spring
+The file chain.f90 creates a LAMMPS data file containing bead-spring
 polymer chains and/or monomer solvent atoms.  It uses a text file
 containing chain definition parameters as an input.  The created
 chains and solvent atoms can strongly overlap, so LAMMPS needs to run

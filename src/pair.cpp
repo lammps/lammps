@@ -77,8 +77,7 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   setflag = nullptr;
   cutsq = nullptr;
 
-  ewaldflag = pppmflag = msmflag = dispersionflag =
-    tip4pflag = dipoleflag = spinflag = 0;
+  ewaldflag = pppmflag = msmflag = dispersionflag = tip4pflag = dipoleflag = spinflag = 0;
   reinitflag = 1;
   centroidstressflag = CENTROID_SAME;
 

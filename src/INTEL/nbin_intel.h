@@ -23,9 +23,9 @@ NBinStyle(intel,
 #ifndef LMP_NBIN_INTEL_H
 #define LMP_NBIN_INTEL_H
 
-#include "nbin_standard.h"
 #include "fix_intel.h"
 #include "memory.h"
+#include "nbin_standard.h"
 
 namespace LAMMPS_NS {
 
@@ -35,7 +35,7 @@ class NBinIntel : public NBinStandard {
   ~NBinIntel();
   void bin_atoms_setup(int);
   void bin_atoms();
-  int * get_binpacked() { return _binpacked; }
+  int *get_binpacked() { return _binpacked; }
 
  private:
   FixIntel *_fix;
@@ -43,15 +43,14 @@ class NBinIntel : public NBinStandard {
   int _precision_mode;
   double memory_usage();
 
-  template <class flt_t, class acc_t>
-  void bin_atoms(IntelBuffers<flt_t,acc_t> *);
+  template <class flt_t, class acc_t> void bin_atoms(IntelBuffers<flt_t, acc_t> *);
 
-  #ifdef _LMP_INTEL_OFFLOAD
+#ifdef _LMP_INTEL_OFFLOAD
   int _cop, _offload_alloc;
-  #endif
+#endif
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

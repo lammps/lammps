@@ -114,7 +114,7 @@ void DumpAtomMPIIO::openfile()
 
     mpifo = 0;
 
-    MPI_File_set_size(mpifh, (MPI_Offset)(headerSize + sumFileSize));
+    MPI_File_set_size(mpifh, (MPI_Offset) (headerSize + sumFileSize));
     currentFileSize = (headerSize + sumFileSize);
   }
 }

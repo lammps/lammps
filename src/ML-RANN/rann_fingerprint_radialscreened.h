@@ -34,29 +34,30 @@ DISTRIBUTION A. Approved for public release; distribution unlimited. OPSEC#4918
 #include "rann_fingerprint.h"
 
 namespace LAMMPS_NS {
-  namespace RANN {
-    class Fingerprint_radialscreened : public Fingerprint {
-     public:
-      Fingerprint_radialscreened(PairRANN *);
-      ~Fingerprint_radialscreened();
-      bool parse_values(std::string,std::vector<std::string>);
-      void write_values(FILE *);
-      void init(int*,int);
-      void allocate();
-      void compute_fingerprint(double*,double*,double*,double*,double*,double*,double*,double*,double*,double*,double*,bool*,int,int,double*,double*,double*,int*,int,int*);
-      int get_length();
+namespace RANN {
+  class Fingerprint_radialscreened : public Fingerprint {
+   public:
+    Fingerprint_radialscreened(PairRANN *);
+    ~Fingerprint_radialscreened();
+    bool parse_values(std::string, std::vector<std::string>);
+    void write_values(FILE *);
+    void init(int *, int);
+    void allocate();
+    void compute_fingerprint(double *, double *, double *, double *, double *, double *, double *,
+                             double *, double *, double *, double *, bool *, int, int, double *,
+                             double *, double *, int *, int, int *);
+    int get_length();
 
-      double *radialtable;
-      double *dfctable;
-      double dr;
-      double *alpha;
-      double re;
-      int nmax;//highest term
-      int omin;//lowest term
+    double *radialtable;
+    double *dfctable;
+    double dr;
+    double *alpha;
+    double re;
+    int nmax;    //highest term
+    int omin;    //lowest term
+  };
+}    // namespace RANN
 
-    };
-}
-
-}
+}    // namespace LAMMPS_NS
 
 #endif /* FINGERPRINT_RADIALSCREENED_H_ */

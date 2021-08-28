@@ -340,6 +340,6 @@ char *MDIEngine::mdi_optg()
 
   if (strcmp(command, "@DEFAULT") == 0 || strcmp(command, "EXIT") == 0) return command;
 
-  error->all(FLERR,"MDI reached end of OPTG simulation with invalid command: {}", command);
+  error->all(FLERR, "MDI reached end of OPTG simulation with invalid command: {}", command);
   return nullptr;
 }

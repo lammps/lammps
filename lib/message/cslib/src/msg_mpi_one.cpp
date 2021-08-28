@@ -29,7 +29,7 @@ using namespace CSLIB_NS;
 
 /* ---------------------------------------------------------------------- */
 
-MsgMPIOne::MsgMPIOne(int csflag, const void *ptr, MPI_Comm cworld) : 
+MsgMPIOne::MsgMPIOne(int csflag, const void *ptr, MPI_Comm cworld) :
   Msg(csflag, ptr, cworld)
 {
   // NOTE: ideally would skip this call if mpi/two

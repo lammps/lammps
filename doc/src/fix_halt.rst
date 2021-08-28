@@ -19,7 +19,7 @@ Syntax
 
        bondmax = length of longest bond in the system (in length units)
        tlimit = elapsed CPU time (in seconds)
-       diskfree = free disk space (in megabytes)
+       diskfree = free disk space (in MBytes)
        v_name = name of :doc:`equal-style variable <variable>`
 
 * operator = "<" or "<=" or ">" or ">=" or "==" or "!=" or "\|\^"
@@ -81,7 +81,7 @@ the timer frequently across a large number of processors may be
 non-negligible.
 
 The *diskfree* attribute will check for available disk space (in
-megabytes) on supported operating systems. By default it will
+MBytes) on supported operating systems. By default it will
 check the file system of the current working directory.  This
 can be changed with the optional *path* keyword, which will take
 the path to a file or folder on the file system to be checked

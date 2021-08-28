@@ -4751,10 +4751,10 @@ TEST_F(AtomStyleTest, property_atom)
     expected.has_mass_setflag = true;
     expected.has_sametag      = true;
     expected.has_extra        = true;
-    expected.has_ivname         = true;
-    expected.has_dvname         = true;
-    expected.has_ianame         = true;
-    expected.has_daname         = true;
+    expected.has_ivname       = true;
+    expected.has_dvname       = true;
+    expected.has_ianame       = true;
+    expected.has_daname       = true;
     expected.nextra_store     = 12;
 
     ASSERT_ATOM_STATE_EQ(lmp->atom, expected);

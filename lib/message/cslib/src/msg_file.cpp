@@ -32,7 +32,7 @@ using namespace CSLIB_NS;
 
 /* ---------------------------------------------------------------------- */
 
-MsgFile::MsgFile(int csflag, const void *ptr, MPI_Comm cworld) : 
+MsgFile::MsgFile(int csflag, const void *ptr, MPI_Comm cworld) :
   Msg(csflag, ptr, cworld)
 {
   char *filename = (char *) ptr;
@@ -68,14 +68,14 @@ void MsgFile::init(char *filename)
 void MsgFile::send(int nheader, int *header, int nbuf, char *buf)
 {
   char filename[MAXLINE];
-  
+
   lengths[0] = nheader;
   lengths[1] = nbuf;
-  
+
   if (me == 0) {
     if (client) sprintf(filename,"%s.%s",fileroot,"client");
     else if (server) sprintf(filename,"%s.%s",fileroot,"server");
-    
+
     fp = fopen(filename,"wb");
     if (!fp) error_one("send(): Could not open send message file");
     fwrite(lengths,sizeof(int),2,fp);
@@ -83,7 +83,7 @@ void MsgFile::send(int nheader, int *header, int nbuf, char *buf)
     fwrite(buf,1,nbuf,fp);
     fclose(fp);
   }
-  
+
   // create empty signal file
 
   if (me == 0) {
@@ -113,7 +113,7 @@ void MsgFile::recv(int &maxheader, int *&header, int &maxbuf, char *&buf)
       usleep(delay);
     }
     fclose(fp);
-  
+
     if (client) sprintf(filename,"%s.%s",fileroot,"server");
     else if (server) sprintf(filename,"%s.%s",fileroot,"client");
     fp = fopen(filename,"rb");
@@ -121,14 +121,14 @@ void MsgFile::recv(int &maxheader, int *&header, int &maxbuf, char *&buf)
   }
 
   // read and broadcast data
-  
+
   if (me == 0) fread(lengths,sizeof(int),2,fp);
   if (nprocs > 1) MPI_Bcast(lengths,2,MPI_INT,0,world);
 
   int nheader = lengths[0];
   int nbuf = lengths[1];
   allocate(nheader,maxheader,header,nbuf,maxbuf,buf);
-  
+
   if (me == 0) fread(header,sizeof(int),nheader,fp);
   if (nprocs > 1) MPI_Bcast(header,nheader,MPI_INT,0,world);
 

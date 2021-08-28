@@ -592,4 +592,3 @@ double ComputeFabric::compute_scalar()
   scalar = nc;
   return nc;
 }
-

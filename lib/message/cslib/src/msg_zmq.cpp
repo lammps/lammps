@@ -65,7 +65,7 @@ void MsgZMQ::init(char *port)
     char *socket_name = new char[n];
     strcpy(socket_name,"tcp://");
     strcat(socket_name,port);
-  
+
     if (client) {
       context = zmq_ctx_new();
       socket = zmq_socket(context,ZMQ_REQ);

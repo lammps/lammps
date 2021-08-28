@@ -184,19 +184,21 @@ subsystem.
 The *set* keyword specifies a *Tinit* temperature value to initialize
 the value stored on all grid points.
 
-The *infile* keyword specifies an input file of electronic
-temperatures for each grid point to be read in to initialize the grid.
-By default the temperatures are all zero when the grid is created.
-The input file is a text file with no header.  Each line contains four
-numeric columns: ix,iy,iz,Temperature.  The number of lines must be
-equal to the number of user-specified grid points (Nx by Ny by Nz).
-The ix,iy,iz are grid point indices ranging from 0 to nxnodes-1
-inclusive in each dimension.  The lines can appear in any order.  For
-example, the initial electronic temperatures on a 1 by 2 by 3 grid
-could be specified in the file as follows:
+The *infile* keyword specifies an input file of electronic temperatures
+for each grid point to be read in to initialize the grid.  By default
+the temperatures are all zero when the grid is created.  The input file
+is a text file which may have comments starting with the '#' character.
+Each line contains four numeric columns: ix,iy,iz,Temperature.  Empty
+or comment-only lines will be ignored. The
+number of lines must be equal to the number of user-specified grid
+points (Nx by Ny by Nz).  The ix,iy,iz are grid point indices ranging
+from 0 to nxnodes-1 inclusive in each dimension.  The lines can appear
+in any order.  For example, the initial electronic temperatures on a 1
+by 2 by 3 grid could be specified in the file as follows:
 
 .. parsed-literal::
 
+   # UNITS: metal COMMENT: initial electron temperature
    0 0 0 1.0
    0 0 1 1.0
    0 0 2 1.0
@@ -207,7 +209,9 @@ could be specified in the file as follows:
 where the electronic temperatures along the y=0 plane have been set to
 1.0, and the electronic temperatures along the y=1 plane have been set
 to 2.0.  If all the grid point values are not specified, LAMMPS will
-generate an error.
+generate an error. LAMMPS will check if a "UNITS:" tag is in the first
+line and stop with an error, if there is a mismatch with the current
+units used.
 
 ..note::
 
@@ -220,7 +224,9 @@ The *outfile* keyword has 2 values.  The first value *Nout* triggers
 output of the electronic temperatures for each grid point every Nout
 timesteps.  The second value is the filename for output which will
 be suffixed by the timestep.  The format of each output file is exactly
-the same as the input temperature file.
+the same as the input temperature file. It will contain a comment in
+the first line reporting the date the file was created, the LAMMPS
+units setting in use, grid size and the current timestep.
 
 Note that the atomic temperature for atoms in each grid cell can also
 be computed and output by the :doc:`fix ave/chunk <fix_ave_chunk>`

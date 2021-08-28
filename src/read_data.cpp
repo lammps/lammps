@@ -2052,6 +2052,7 @@ void ReadData::typelabels(std::vector<std::string> &mytypelabel, int myntypes, i
   int eof = utils::read_lines_from_file(fp,myntypes,MAXLINE,buf,me,world);
   if (eof) error->all(FLERR,"Unexpected end of data file");
 
+  char *original = buf;
   char *typelabel = new char[MAXLINE];
   for (int i = 0; i < myntypes; i++) {
     next = strchr(buf,'\n');
@@ -2062,6 +2063,7 @@ void ReadData::typelabels(std::vector<std::string> &mytypelabel, int myntypes, i
     mytypelabel[i] = typelabel;
     buf = next + 1;
   }
+  delete [] original;
   delete [] typelabel;
 
   // merge this read_data label map to atom class

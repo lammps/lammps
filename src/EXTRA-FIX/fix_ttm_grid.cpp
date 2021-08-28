@@ -28,10 +28,13 @@
 #include "memory.h"
 #include "neighbor.h"
 #include "random_mars.h"
+#include "tokenizer.h"
 #include "update.h"
+#include "fmt/chrono.h"
 
 #include <cmath>
 #include <cstring>
+#include <ctime>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -85,8 +88,7 @@ void FixTTMGrid::post_constructor()
 
   if (infile) {
     read_electron_temperatures(infile);
-    gc->forward_comm(GridComm::FIX,this,1,sizeof(double),0,
-                     gc_buf1,gc_buf2,MPI_DOUBLE);
+    gc->forward_comm(GridComm::FIX,this,1,sizeof(double),0,gc_buf1,gc_buf2,MPI_DOUBLE);
   }
 }
 
@@ -254,7 +256,7 @@ void FixTTMGrid::end_of_step()
   // output of grid temperatures to file
 
   if (outfile && (update->ntimestep % outevery == 0))
-    write_electron_temperatures(fmt::format("{}.{}",outfile,update->ntimestep));
+    write_electron_temperatures(fmt::format("{}.{}", outfile, update->ntimestep));
 }
 
 /* ----------------------------------------------------------------------
@@ -265,90 +267,81 @@ void FixTTMGrid::end_of_step()
 
 void FixTTMGrid::read_electron_temperatures(const std::string &filename)
 {
-  int i,j,ix,iy,iz,nchunk,eof;
-
-  int me = comm->me;
-
   int ***T_initial_set;
-  memory->create3d_offset(T_initial_set,nzlo_in,nzhi_in,nylo_in,nyhi_in,
-                          nxlo_in,nxhi_in,"ttm/grid:T_initial_set");
-  memset(&T_initial_set[nzlo_in][nylo_in][nxlo_in],0,ngridmine*sizeof(int));
+  memory->create3d_offset(T_initial_set, nzlo_in, nzhi_in, nylo_in, nyhi_in, nxlo_in, nxhi_in,
+                          "ttm/grid:T_initial_set");
+  memset(&T_initial_set[nzlo_in][nylo_in][nxlo_in], 0, ngridmine * sizeof(int));
+
+  int i, j, ix, iy, iz, nchunk, eof;
+  FILE *fp = nullptr;
 
   // proc 0 opens file
 
-  FILE *fp = nullptr;
-
-  if (me == 0) {
-    std::string name = utils::get_potential_file_path(filename);
-    if (name.empty()) error->one(FLERR,"Cannot open input file: {}: {}",
-                                 filename, utils::getsyserror());
-    fp = fopen(name.c_str(),"r");
+  if (comm->me == 0) {
+    fp = utils::open_potential(filename, lmp, nullptr);
+    if (!fp) error->one(FLERR, "Cannot open grid file: {}: {}", filename, utils::getsyserror());
   }
 
   // read electron temperature values from file, one chunk at a time
 
-  char **values = new char*[4];
-  char *buffer = new char[CHUNK*MAXLINE];
+  char **values = new char *[4];
+  char *buffer = new char[CHUNK * MAXLINE];
   bigint ntotal = (bigint) nxgrid * nygrid * nzgrid;
   bigint nread = 0;
-  char *buf,*next;
+  char *buf, *next;
 
   while (nread < ntotal) {
-    nchunk = MIN(ntotal-nread,CHUNK);
-    eof = utils::read_lines_from_file(fp,nchunk,MAXLINE,buffer,me,world);
-    if (eof) error->all(FLERR,"Unexpected end of data file");
-
-    buf = buffer;
-    next = strchr(buf,'\n');
-    *next = '\0';
-    int nwords = utils::trim_and_count_words(buf);
-    *next = '\n';
-
-    if (nwords != 4) error->all(FLERR,"Incorrect format in fix ttm data file");
+    nchunk = MIN(ntotal - nread, CHUNK);
+    eof = utils::read_lines_from_file(fp, nchunk, MAXLINE, buffer, comm->me, world);
+    if (eof) error->all(FLERR, "Unexpected end of data file");
 
     // loop over lines of grid point values
     // tokenize the line into ix,iy,iz grid index plus temperature value
     // if I own grid point, store the value
 
+    buf = buffer;
     for (i = 0; i < nchunk; i++) {
-      next = strchr(buf,'\n');
+      next = strchr(buf, '\n');
+      *next = '\0';
 
-      for (j = 0; j < nwords; j++) {
-        buf += strspn(buf," \t\n\r\f");
-        buf[strcspn(buf," \t\n\r\f")] = '\0';
-        values[j] = buf;
-        buf += strlen(buf)+1;
+      try {
+        ValueTokenizer values(utils::trim_comment(buf));
+        if (values.count() == 0) {
+          // ignore comment only lines
+          --nread;
+        } else if (values.count() == 4) {
+
+          ix = values.next_int();
+          iy = values.next_int();
+          iz = values.next_int();
+
+          if (ix < 0 || ix >= nxgrid || iy < 0 || iy >= nygrid || iz < 0 || iz >= nzgrid)
+            throw parser_error("Fix ttm/grid invalid grid index in input");
+
+          if (ix >= nxlo_in && ix <= nxhi_in && iy >= nylo_in && iy <= nyhi_in
+              && iz >= nzlo_in && iz <= nzhi_in) {
+            T_electron[iz][iy][ix] = values.next_double();
+            T_initial_set[iz][iy][ix] = 1;
+          }
+        } else {
+          throw parser_error("Incorrect format in fix ttm electron grid file");
+        }
+      } catch (std::exception &e) {
+        error->one(FLERR,e.what());
       }
-
-      ix = utils::inumeric(FLERR,values[0],false,lmp);
-      iy = utils::inumeric(FLERR,values[1],false,lmp);
-      iz = utils::inumeric(FLERR,values[2],false,lmp);
-
-      if (ix < 0 || ix >= nxgrid || iy < 0 || iy >= nygrid ||
-          iz < 0 || iz >= nzgrid)
-        error->all(FLERR,"Fix ttm/grid invalid grid index in input");
-
-      if (ix >= nxlo_in && ix <= nxhi_in &&
-          iy >= nylo_in && iy <= nyhi_in &&
-          iz >= nzlo_in && iz <= nzhi_in) {
-        T_electron[iz][iy][ix] = utils::numeric(FLERR,values[3],true,lmp);
-        T_initial_set[iz][iy][ix] = 1;
-      }
-
       buf = next + 1;
     }
-
     nread += nchunk;
   }
 
   // close file
 
-  if (me == 0) fclose(fp);
+  if (comm->me == 0) fclose(fp);
 
   // clean up
 
-  delete [] values;
-  delete [] buffer;
+  delete[] values;
+  delete[] buffer;
 
   // check completeness of input data
 
@@ -357,17 +350,13 @@ void FixTTMGrid::read_electron_temperatures(const std::string &filename)
   for (iz = nzlo_in; iz <= nzhi_in; iz++)
     for (iy = nylo_in; iy <= nyhi_in; iy++)
       for (ix = nxlo_in; ix <= nxhi_in; ix++)
-        if (T_initial_set[iz][iy][ix] == 0) {
-          flag = 1;
-          printf("UNSET %d %d %d\n",ix,iy,iz);
-        }
+        if (T_initial_set[iz][iy][ix] == 0) flag = 1;
 
   int flagall;
-  MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
-  if (flagall)
-    error->all(FLERR,"Fix ttm/grid infile did not set all temperatures");
+  MPI_Allreduce(&flag, &flagall, 1, MPI_INT, MPI_SUM, world);
+  if (flagall) error->all(FLERR, "Fix ttm/grid infile did not set all temperatures");
 
-  memory->destroy3d_offset(T_initial_set,nzlo_in,nylo_in,nxlo_in);
+  memory->destroy3d_offset(T_initial_set, nzlo_in, nylo_in, nxlo_in);
 }
 
 /* ----------------------------------------------------------------------
@@ -378,11 +367,19 @@ void FixTTMGrid::read_electron_temperatures(const std::string &filename)
 void FixTTMGrid::write_electron_temperatures(const std::string &filename)
 {
   if (comm->me == 0) {
-    FPout = fopen(filename.c_str(),"w");
-    if (!FPout) error->one(FLERR,"Fix ttm/grid could not open output file");
+    time_t tv = time(nullptr);
+    std::tm current_date = fmt::localtime(tv);
+
+    FPout = fopen(filename.c_str(), "w");
+    if (!FPout) error->one(FLERR, "Fix ttm/grid could not open output file");
+
+    fmt::print(FPout,
+               "# DATE: {:%Y-%m-%d} UNITS: {} COMMENT: Electron temperature grid "
+               "at step {}. Created by fix {}\n",
+               current_date, update->unit_style, update->ntimestep, style);
   }
 
-  gc->gather(GridComm::FIX,this,1,sizeof(double),1,NULL,MPI_DOUBLE);
+  gc->gather(GridComm::FIX, this, 1, sizeof(double), 1, NULL, MPI_DOUBLE);
 
   if (comm->me == 0) fclose(FPout);
 }
@@ -396,8 +393,7 @@ void FixTTMGrid::pack_forward_grid(int /*flag*/, void *vbuf, int nlist, int *lis
   double *buf = (double *) vbuf;
   double *src = &T_electron[nzlo_out][nylo_out][nxlo_out];
 
-  for (int i = 0; i < nlist; i++)
-    buf[i] = src[list[i]];
+  for (int i = 0; i < nlist; i++) buf[i] = src[list[i]];
 }
 
 /* ----------------------------------------------------------------------
@@ -409,8 +405,7 @@ void FixTTMGrid::unpack_forward_grid(int /*flag*/, void *vbuf, int nlist, int *l
   double *buf = (double *) vbuf;
   double *dest = &T_electron[nzlo_out][nylo_out][nxlo_out];
 
-  for (int i = 0; i < nlist; i++)
-    dest[list[i]] = buf[i];
+  for (int i = 0; i < nlist; i++) dest[list[i]] = buf[i];
 }
 
 /* ----------------------------------------------------------------------
@@ -422,8 +417,7 @@ void FixTTMGrid::pack_reverse_grid(int /*flag*/, void *vbuf, int nlist, int *lis
   double *buf = (double *) vbuf;
   double *src = &net_energy_transfer[nzlo_out][nylo_out][nxlo_out];
 
-  for (int i = 0; i < nlist; i++)
-    buf[i] = src[list[i]];
+  for (int i = 0; i < nlist; i++) buf[i] = src[list[i]];
 }
 
 /* ----------------------------------------------------------------------
@@ -435,8 +429,7 @@ void FixTTMGrid::unpack_reverse_grid(int /*flag*/, void *vbuf, int nlist, int *l
   double *buf = (double *) vbuf;
   double *dest = &net_energy_transfer[nzlo_out][nylo_out][nxlo_out];
 
-  for (int i = 0; i < nlist; i++)
-    dest[list[i]] += buf[i];
+  for (int i = 0; i < nlist; i++) dest[list[i]] += buf[i];
 }
 
 /* ----------------------------------------------------------------------
@@ -449,8 +442,8 @@ void FixTTMGrid::allocate_grid()
   // n xyz lo/hi in = lower/upper bounds of global grid this proc owns
   // indices range from 0 to N-1 inclusive in each dim
 
-  comm->partition_grid(nxgrid,nygrid,nzgrid,0.0,
-                       nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in);
+  comm->partition_grid(nxgrid, nygrid, nzgrid, 0.0, nxlo_in, nxhi_in, nylo_in, nyhi_in, nzlo_in,
+                       nzhi_in);
 
   // nlo,nhi = min/max index of global grid pt my owned atoms can be mapped to
   // finite difference stencil requires extra grid pt around my owned grid pts
@@ -460,54 +453,51 @@ void FixTTMGrid::allocate_grid()
   double *boxlo = domain->boxlo;
   double *sublo = domain->sublo;
   double *subhi = domain->subhi;
-  double dxinv = nxgrid/domain->xprd;
-  double dyinv = nxgrid/domain->yprd;
-  double dzinv = nxgrid/domain->zprd;
+  double dxinv = nxgrid / domain->xprd;
+  double dyinv = nxgrid / domain->yprd;
+  double dzinv = nxgrid / domain->zprd;
 
-  int nlo,nhi;
-  double cuthalf = 0.5*neighbor->skin;
+  int nlo, nhi;
+  double cuthalf = 0.5 * neighbor->skin;
 
-  nlo = static_cast<int> ((sublo[0]-cuthalf-boxlo[0])*dxinv + shift) - OFFSET;
-  nhi = static_cast<int> ((subhi[0]+cuthalf-boxlo[0])*dxinv + shift) - OFFSET;
-  nxlo_out = MIN(nlo,nxlo_in-1);
-  nxhi_out = MAX(nhi,nxhi_in+1);
+  nlo = static_cast<int>((sublo[0] - cuthalf - boxlo[0]) * dxinv + shift) - OFFSET;
+  nhi = static_cast<int>((subhi[0] + cuthalf - boxlo[0]) * dxinv + shift) - OFFSET;
+  nxlo_out = MIN(nlo, nxlo_in - 1);
+  nxhi_out = MAX(nhi, nxhi_in + 1);
 
-  nlo = static_cast<int> ((sublo[1]-cuthalf-boxlo[1])*dyinv + shift) - OFFSET;
-  nhi = static_cast<int> ((subhi[1]+cuthalf-boxlo[1])*dyinv + shift) - OFFSET;
-  nylo_out = MIN(nlo,nylo_in-1);
-  nyhi_out = MAX(nhi,nyhi_in+1);
+  nlo = static_cast<int>((sublo[1] - cuthalf - boxlo[1]) * dyinv + shift) - OFFSET;
+  nhi = static_cast<int>((subhi[1] + cuthalf - boxlo[1]) * dyinv + shift) - OFFSET;
+  nylo_out = MIN(nlo, nylo_in - 1);
+  nyhi_out = MAX(nhi, nyhi_in + 1);
 
-  nlo = static_cast<int> ((sublo[2]-cuthalf-boxlo[2])*dzinv + shift) - OFFSET;
-  nhi = static_cast<int> ((subhi[2]+cuthalf-boxlo[2])*dzinv + shift) - OFFSET;
-  nzlo_out = MIN(nlo,nzlo_in-1);
-  nzhi_out = MAX(nhi,nzhi_in+1);
+  nlo = static_cast<int>((sublo[2] - cuthalf - boxlo[2]) * dzinv + shift) - OFFSET;
+  nhi = static_cast<int>((subhi[2] + cuthalf - boxlo[2]) * dzinv + shift) - OFFSET;
+  nzlo_out = MIN(nlo, nzlo_in - 1);
+  nzhi_out = MAX(nhi, nzhi_in + 1);
 
   bigint totalmine;
-  totalmine = (bigint) (nxhi_out-nxlo_out+1) * (nyhi_out-nylo_out+1) *
-    (nzhi_out-nzlo_out+1);
-  if (totalmine > MAXSMALLINT)
-    error->one(FLERR,"Too many owned+ghost grid points in fix ttm");
+  totalmine =
+      (bigint) (nxhi_out - nxlo_out + 1) * (nyhi_out - nylo_out + 1) * (nzhi_out - nzlo_out + 1);
+  if (totalmine > MAXSMALLINT) error->one(FLERR, "Too many owned+ghost grid points in fix ttm");
   ngridout = totalmine;
 
-  totalmine = (bigint) (nxhi_in-nxlo_in+1) * (nyhi_in-nylo_in+1) *
-    (nzhi_in-nzlo_in+1);
+  totalmine = (bigint) (nxhi_in - nxlo_in + 1) * (nyhi_in - nylo_in + 1) * (nzhi_in - nzlo_in + 1);
   ngridmine = totalmine;
 
-  gc = new GridComm(lmp,world,nxgrid,nygrid,nzgrid,
-                    nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
-                    nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
+  gc = new GridComm(lmp, world, nxgrid, nygrid, nzgrid, nxlo_in, nxhi_in, nylo_in, nyhi_in, nzlo_in,
+                    nzhi_in, nxlo_out, nxhi_out, nylo_out, nyhi_out, nzlo_out, nzhi_out);
 
-  gc->setup(ngc_buf1,ngc_buf2);
+  gc->setup(ngc_buf1, ngc_buf2);
 
-  memory->create(gc_buf1,ngc_buf1,"ttm/grid:gc_buf1");
-  memory->create(gc_buf2,ngc_buf2,"ttm/grid:gc_buf2");
+  memory->create(gc_buf1, ngc_buf1, "ttm/grid:gc_buf1");
+  memory->create(gc_buf2, ngc_buf2, "ttm/grid:gc_buf2");
 
-  memory->create3d_offset(T_electron_old,nzlo_out,nzhi_out,nylo_out,nyhi_out,
-                          nxlo_out,nxhi_out,"ttm/grid:T_electron_old");
-  memory->create3d_offset(T_electron,nzlo_out,nzhi_out,nylo_out,nyhi_out,
-                          nxlo_out,nxhi_out,"ttm/grid:T_electron");
-  memory->create3d_offset(net_energy_transfer,nzlo_out,nzhi_out,nylo_out,nyhi_out,
-                          nxlo_out,nxhi_out,"ttm/grid:net_energy_transfer");
+  memory->create3d_offset(T_electron_old, nzlo_out, nzhi_out, nylo_out, nyhi_out, nxlo_out,
+                          nxhi_out, "ttm/grid:T_electron_old");
+  memory->create3d_offset(T_electron, nzlo_out, nzhi_out, nylo_out, nyhi_out, nxlo_out, nxhi_out,
+                          "ttm/grid:T_electron");
+  memory->create3d_offset(net_energy_transfer, nzlo_out, nzhi_out, nylo_out, nyhi_out, nxlo_out,
+                          nxhi_out, "ttm/grid:net_energy_transfer");
 }
 
 /* ----------------------------------------------------------------------
@@ -520,9 +510,9 @@ void FixTTMGrid::deallocate_grid()
   memory->destroy(gc_buf1);
   memory->destroy(gc_buf2);
 
-  memory->destroy3d_offset(T_electron_old,nzlo_out,nylo_out,nxlo_out);
-  memory->destroy3d_offset(T_electron,nzlo_out,nylo_out,nxlo_out);
-  memory->destroy3d_offset(net_energy_transfer,nzlo_out,nylo_out,nxlo_out);
+  memory->destroy3d_offset(T_electron_old, nzlo_out, nylo_out, nxlo_out);
+  memory->destroy3d_offset(T_electron, nzlo_out, nylo_out, nxlo_out);
+  memory->destroy3d_offset(net_energy_transfer, nzlo_out, nylo_out, nxlo_out);
 }
 
 /* ----------------------------------------------------------------------
@@ -531,9 +521,9 @@ void FixTTMGrid::deallocate_grid()
 
 void FixTTMGrid::write_restart(FILE *fp)
 {
-  int rsize = nxgrid*nygrid*nzgrid + 4;
+  int rsize = nxgrid * nygrid * nzgrid + 4;
   double *rlist;
-  memory->create(rlist,rsize,"ttm/grid:rlist");
+  memory->create(rlist, rsize, "ttm/grid:rlist");
 
   int n = 0;
   rlist[n++] = nxgrid;
@@ -543,12 +533,12 @@ void FixTTMGrid::write_restart(FILE *fp)
 
   // gather rest of rlist on proc 0 as global grid values
 
-  gc->gather(GridComm::FIX,this,1,sizeof(double),0,&rlist[4],MPI_DOUBLE);
+  gc->gather(GridComm::FIX, this, 1, sizeof(double), 0, &rlist[4], MPI_DOUBLE);
 
   if (comm->me == 0) {
     int size = rsize * sizeof(double);
-    fwrite(&size,sizeof(int),1,fp);
-    fwrite(rlist,sizeof(double),rsize,fp);
+    fwrite(&size, sizeof(int), 1, fp);
+    fwrite(rlist, sizeof(double), rsize, fp);
   }
 
   memory->destroy(rlist);
@@ -560,26 +550,26 @@ void FixTTMGrid::write_restart(FILE *fp)
 
 void FixTTMGrid::restart(char *buf)
 {
-  int ix,iy,iz;
+  int ix, iy, iz;
 
   int n = 0;
   double *rlist = (double *) buf;
 
   // check that restart grid size is same as current grid size
 
-  int nxgrid_old = static_cast<int> (rlist[n++]);
-  int nygrid_old = static_cast<int> (rlist[n++]);
-  int nzgrid_old = static_cast<int> (rlist[n++]);
+  int nxgrid_old = static_cast<int>(rlist[n++]);
+  int nygrid_old = static_cast<int>(rlist[n++]);
+  int nzgrid_old = static_cast<int>(rlist[n++]);
 
   if (nxgrid_old != nxgrid || nygrid_old != nygrid || nzgrid_old != nzgrid)
-    error->all(FLERR,"Must restart fix ttm/grid with same grid size");
+    error->all(FLERR, "Must restart fix ttm/grid with same grid size");
 
   // change RN seed from initial seed, to avoid same Langevin factors
   // just increment by 1, since for RanMars that is a new RN stream
 
-  seed = static_cast<int> (rlist[n++]) + 1;
+  seed = static_cast<int>(rlist[n++]) + 1;
   delete random;
-  random = new RanMars(lmp,seed+comm->me);
+  random = new RanMars(lmp, seed + comm->me);
 
   // extract this proc's local grid values from global grid in rlist
 
@@ -588,13 +578,13 @@ void FixTTMGrid::restart(char *buf)
   for (iz = nzlo_in; iz <= nzhi_in; iz++)
     for (iy = nylo_in; iy <= nyhi_in; iy++)
       for (ix = nxlo_in; ix <= nxhi_in; ix++) {
-        iglobal = nygrid*nxgrid*iz + nxgrid*iy + ix;
-        T_electron[iz][iy][ix] = rlist[n+iglobal];
+        iglobal = nygrid * nxgrid * iz + nxgrid * iy + ix;
+        T_electron[iz][iy][ix] = rlist[n + iglobal];
       }
 
   // communicate new T_electron values to ghost grid points
 
-  gc->forward_comm(GridComm::FIX,this,1,sizeof(double),0,gc_buf1,gc_buf2,MPI_DOUBLE);
+  gc->forward_comm(GridComm::FIX, this, 1, sizeof(double), 0, gc_buf1, gc_buf2, MPI_DOUBLE);
 }
 
 /* ----------------------------------------------------------------------
@@ -604,15 +594,14 @@ void FixTTMGrid::restart(char *buf)
 
 void FixTTMGrid::pack_gather_grid(int /*which*/, void *vbuf)
 {
-  int ix,iy,iz;
+  int ix, iy, iz;
 
   double *buf = (double *) vbuf;
 
   int m = 0;
   for (iz = nzlo_in; iz <= nzhi_in; iz++)
     for (iy = nylo_in; iy <= nyhi_in; iy++)
-      for (ix = nxlo_in; ix <= nxhi_in; ix++)
-        buf[m++] = T_electron[iz][iy][ix];
+      for (ix = nxlo_in; ix <= nxhi_in; ix++) buf[m++] = T_electron[iz][iy][ix];
 }
 
 /* ----------------------------------------------------------------------
@@ -620,11 +609,10 @@ void FixTTMGrid::pack_gather_grid(int /*which*/, void *vbuf)
    which = 1: print values from buf to FPout file
 ------------------------------------------------------------------------- */
 
-void FixTTMGrid::unpack_gather_grid(int which, void *vbuf, void *vgbuf,
-                                    int xlo, int xhi, int ylo, int yhi,
-                                    int zlo, int zhi)
+void FixTTMGrid::unpack_gather_grid(int which, void *vbuf, void *vgbuf, int xlo, int xhi, int ylo,
+                                    int yhi, int zlo, int zhi)
 {
-  int ix,iy,iz;
+  int ix, iy, iz;
 
   double *buf = (double *) vbuf;
   double *gbuf = (double *) vgbuf;
@@ -636,7 +624,7 @@ void FixTTMGrid::unpack_gather_grid(int which, void *vbuf, void *vgbuf,
     for (iz = zlo; iz <= zhi; iz++)
       for (iy = ylo; iy <= yhi; iy++)
         for (ix = xlo; ix <= xhi; ix++) {
-          iglobal = nygrid*nxgrid*iz + nxgrid*iy + ix;
+          iglobal = nygrid * nxgrid * iz + nxgrid * iy + ix;
           gbuf[iglobal] = buf[ilocal++];
         }
 
@@ -648,7 +636,7 @@ void FixTTMGrid::unpack_gather_grid(int which, void *vbuf, void *vgbuf,
       for (iy = ylo; iy <= yhi; iy++)
         for (ix = xlo; ix <= xhi; ix++) {
           value = buf[ilocal++];
-          fprintf(FPout,"%d %d %d %20.16g\n",ix,iy,iz,value);
+          fprintf(FPout, "%d %d %d %20.16g\n", ix, iy, iz, value);
         }
   }
 }
@@ -660,13 +648,13 @@ void FixTTMGrid::unpack_gather_grid(int which, void *vbuf, void *vgbuf,
 
 double FixTTMGrid::compute_vector(int n)
 {
-  int ix,iy,iz;
+  int ix, iy, iz;
 
   if (outflag == 0) {
-    double dx = domain->xprd/nxgrid;
-    double dy = domain->yprd/nygrid;
-    double dz = domain->zprd/nzgrid;
-    double volgrid = dx*dy*dz;
+    double dx = domain->xprd / nxgrid;
+    double dy = domain->yprd / nygrid;
+    double dz = domain->zprd / nzgrid;
+    double volgrid = dx * dy * dz;
 
     double e_energy_me = 0.0;
     double transfer_energy_me = 0.0;
@@ -674,13 +662,13 @@ double FixTTMGrid::compute_vector(int n)
     for (iz = nzlo_in; iz <= nzhi_in; iz++)
       for (iy = nylo_in; iy <= nyhi_in; iy++)
         for (ix = nxlo_in; ix <= nxhi_in; ix++) {
-          e_energy_me += T_electron[iz][iy][ix]*electronic_specific_heat
-            *electronic_density*volgrid;
-          transfer_energy_me += net_energy_transfer[iz][iy][ix]*update->dt;
+          e_energy_me +=
+              T_electron[iz][iy][ix] * electronic_specific_heat * electronic_density * volgrid;
+          transfer_energy_me += net_energy_transfer[iz][iy][ix] * update->dt;
         }
 
-    MPI_Allreduce(&e_energy_me,&e_energy,1,MPI_DOUBLE,MPI_SUM,world);
-    MPI_Allreduce(&transfer_energy_me,&transfer_energy,1,MPI_DOUBLE,MPI_SUM,world);
+    MPI_Allreduce(&e_energy_me, &e_energy, 1, MPI_DOUBLE, MPI_SUM, world);
+    MPI_Allreduce(&transfer_energy_me, &transfer_energy, 1, MPI_DOUBLE, MPI_SUM, world);
     outflag = 1;
   }
 
@@ -696,7 +684,7 @@ double FixTTMGrid::compute_vector(int n)
 double FixTTMGrid::memory_usage()
 {
   double bytes = 0.0;
-  bytes += (double)3*atom->nmax * sizeof(double);
-  bytes += (double)3*ngridout * sizeof(double);
+  bytes += (double) 3 * atom->nmax * sizeof(double);
+  bytes += (double) 3 * ngridout * sizeof(double);
   return bytes;
 }

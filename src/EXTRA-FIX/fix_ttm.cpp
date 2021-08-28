@@ -27,12 +27,15 @@
 #include "memory.h"
 #include "random_mars.h"
 #include "respa.h"
+#include "text_file_reader.h"
 #include "tokenizer.h"
 #include "update.h"
+#include "fmt/chrono.h"
 
 #include <cmath>
 #include <cstdio>
 #include <cstring>
+#include <ctime>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -91,16 +94,12 @@ FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"infile") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ttm command");
-      int n = strlen(arg[iarg+1]) + 1;
-      infile = new char[n];
-      strcpy(infile,arg[iarg+1]);
+      infile = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"outfile") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix ttm command");
       outevery = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
-      int n = strlen(arg[iarg+2]) + 1;
-      outfile = new char[n];
-      strcpy(outfile,arg[iarg+2]);
+      outfile = utils::strdup(arg[iarg+2]);
       iarg += 3;
     } else error->all(FLERR,"Illegal fix ttm command");
   }
@@ -474,52 +473,57 @@ void FixTTM::end_of_step()
 
 void FixTTM::read_electron_temperatures(const std::string &filename)
 {
-  int ***T_initial_set;
-  memory->create(T_initial_set,nxgrid,nygrid,nzgrid,"ttm:T_initial_set");
-  memset(&T_initial_set[0][0][0],0,ngridtotal*sizeof(int));
+  if (comm->me == 0) {
 
-  std::string name = utils::get_potential_file_path(filename);
-  if (name.empty())
-    error->one(FLERR,"Cannot open input file: {}",filename);
-  FILE *fp = fopen(name.c_str(),"r");
+    int ***T_initial_set;
+    memory->create(T_initial_set,nxgrid,nygrid,nzgrid,"ttm:T_initial_set");
+    memset(&T_initial_set[0][0][0],0,ngridtotal*sizeof(int));
 
-  // read initial electron temperature values from file
+    // read initial electron temperature values from file
 
-  char line[MAXLINE];
-  int ix,iy,iz;
-  double T_tmp;
+    try {
+      int ix,iy,iz;
+      double T_tmp;
+      const char *line;
+      TextFileReader reader(filename, "electron temperature grid");
 
-  while (1) {
-    if (fgets(line,MAXLINE,fp) == nullptr) break;
-    ValueTokenizer values(line);
-    if (values.has_next()) ix = values.next_int();
-    if (values.has_next()) iy = values.next_int();
-    if (values.has_next()) iz = values.next_int();
-    if (values.has_next()) T_tmp  = values.next_double();
-    else error->one(FLERR,"Incorrect format in fix ttm input file");
+      while (1) {
+        line = reader.next_line();
+        if (!line) break;
 
-    // check correctness of input data
+        ValueTokenizer values(line);
+        if (values.count() != 4)
+          throw parser_error("Incorrect format in fix ttm electron grid file");
+        ix = values.next_int();
+        iy = values.next_int();
+        iz = values.next_int();
+        T_tmp  = values.next_double();
 
-    if ((ix < 0) || (ix >= nxgrid) || (iy < 0) || (iy >= nygrid) || (iz < 0) || (iz >= nzgrid))
-      error->one(FLERR,"Fix ttm invalid grid index in fix ttm input");
+        // check correctness of input data
 
-    if (T_tmp < 0.0) error->one(FLERR,"Fix ttm electron temperatures must be > 0.0");
+        if ((ix < 0) || (ix >= nxgrid) || (iy < 0) || (iy >= nygrid) || (iz < 0) || (iz >= nzgrid))
+          throw parser_error("Fix ttm invalid grid index in fix ttm input");
 
-    T_electron[iz][iy][ix] = T_tmp;
-    T_initial_set[iz][iy][ix] = 1;
+        if (T_tmp < 0.0)
+          throw parser_error("Fix ttm electron temperatures must be > 0.0");
+
+        T_electron[iz][iy][ix] = T_tmp;
+        T_initial_set[iz][iy][ix] = 1;
+      }
+    } catch (std::exception &e) {
+      error->one(FLERR, e.what());
+    }
+
+    // check completeness of input data
+
+    for (int iz = 0; iz < nzgrid; iz++)
+      for (int iy = 0; iy < nygrid; iy++)
+        for (int ix = 0; ix < nxgrid; ix++)
+          if (T_initial_set[iz][iy][ix] == 0)
+            error->all(FLERR,"Fix ttm infile did not set all temperatures");
+
+    memory->destroy(T_initial_set);
   }
-
-  fclose(fp);
-
-  // check completeness of input data
-
-  for (int iz = 0; iz < nzgrid; iz++)
-    for (int iy = 0; iy < nygrid; iy++)
-      for (int ix = 0; ix < nxgrid; ix++)
-        if (T_initial_set[iz][iy][ix] == 0)
-          error->all(FLERR,"Fix ttm infile did not set all temperatures");
-
-  memory->destroy(T_initial_set);
 
   MPI_Bcast(&T_electron[0][0][0],ngridtotal,MPI_DOUBLE,0,world);
 }
@@ -533,8 +537,15 @@ void FixTTM::write_electron_temperatures(const std::string &filename)
 {
   if (comm->me) return;
 
+  time_t tv = time(nullptr);
+  std::tm current_date = fmt::localtime(tv);
+
   FILE *fp = fopen(filename.c_str(),"w");
-  if (!fp) error->one(FLERR,"Fix ttm could not open output file");
+  if (!fp) error->one(FLERR,"Fix ttm could not open output file {}: {}",
+                      filename,utils::getsyserror());
+  fmt::print(fp,"# DATE: {:%Y-%m-%d} UNITS: {} COMMENT: Electron temperature grid "
+             "at step {}. Created by fix {}\n",
+             current_date, update->unit_style, update->ntimestep, style);
 
   int ix,iy,iz;
 

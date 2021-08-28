@@ -21,6 +21,7 @@ FixStyle(ttm,FixTTM);
 #define LMP_FIX_TTM_H
 
 #include "fix.h"
+#include <exception>
 
 namespace LAMMPS_NS {
 
@@ -51,13 +52,13 @@ class FixTTM : public Fix {
  protected:
   int nlevels_respa;
   int seed;
-  int nxgrid, nygrid, nzgrid;     // size of global grid
-  int ngridtotal;                 // total size of global grid
+  int nxgrid, nygrid, nzgrid;    // size of global grid
+  int ngridtotal;                // total size of global grid
   int deallocate_flag;
-  int outflag,outevery;
-  double shift,tinit;
-  double e_energy,transfer_energy;
-  char *infile,*outfile;
+  int outflag, outevery;
+  double shift, tinit;
+  double e_energy, transfer_energy;
+  char *infile, *outfile;
 
   class RanMars *random;
   double electronic_specific_heat, electronic_density;
@@ -76,6 +77,14 @@ class FixTTM : public Fix {
   virtual void deallocate_grid();
   virtual void read_electron_temperatures(const std::string &);
   virtual void write_electron_temperatures(const std::string &);
+
+  class parser_error : public std::exception {
+    std::string message;
+
+   public:
+    parser_error(const std::string &mesg) { message = mesg; }
+    const char *what() const noexcept { return message.c_str(); }
+  };
 };
 
 }    // namespace LAMMPS_NS

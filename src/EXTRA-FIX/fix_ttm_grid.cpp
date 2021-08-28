@@ -19,26 +19,26 @@
 
 #include "fix_ttm_grid.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
-#include "force.h"
-#include "update.h"
-#include "domain.h"
 #include "comm.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
 #include "gridcomm.h"
+#include "memory.h"
 #include "neighbor.h"
 #include "random_mars.h"
-#include "memory.h"
-#include "error.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
 static constexpr int MAXLINE = 256;
 static constexpr int CHUNK = 1024;
-
-#define OFFSET 16384
+static constexpr int OFFSET = 16384;
 
 /* ---------------------------------------------------------------------- */
 
@@ -169,8 +169,6 @@ void FixTTMGrid::end_of_step()
 
   double **x = atom->x;
   double **v = atom->v;
-  double *mass = atom->mass;
-  int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
@@ -394,7 +392,7 @@ void FixTTMGrid::write_electron_temperatures(const char *filename)
    pack own values to buf to send to another proc
 ------------------------------------------------------------------------- */
 
-void FixTTMGrid::pack_forward_grid(int flag, void *vbuf, int nlist, int *list)
+void FixTTMGrid::pack_forward_grid(int /*flag*/, void *vbuf, int nlist, int *list)
 {
   double *buf = (double *) vbuf;
   double *src = &T_electron[nzlo_out][nylo_out][nxlo_out];
@@ -407,7 +405,7 @@ void FixTTMGrid::pack_forward_grid(int flag, void *vbuf, int nlist, int *list)
    unpack another proc's own values from buf and set own ghost values
 ------------------------------------------------------------------------- */
 
-void FixTTMGrid::unpack_forward_grid(int flag, void *vbuf, int nlist, int *list)
+void FixTTMGrid::unpack_forward_grid(int /*flag*/, void *vbuf, int nlist, int *list)
 {
   double *buf = (double *) vbuf;
   double *dest = &T_electron[nzlo_out][nylo_out][nxlo_out];
@@ -420,7 +418,7 @@ void FixTTMGrid::unpack_forward_grid(int flag, void *vbuf, int nlist, int *list)
    pack ghost values into buf to send to another proc
 ------------------------------------------------------------------------- */
 
-void FixTTMGrid::pack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
+void FixTTMGrid::pack_reverse_grid(int /*flag*/, void *vbuf, int nlist, int *list)
 {
   double *buf = (double *) vbuf;
   double *src = &net_energy_transfer[nzlo_out][nylo_out][nxlo_out];
@@ -433,7 +431,7 @@ void FixTTMGrid::pack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
    unpack another proc's ghost values from buf and add to own values
 ------------------------------------------------------------------------- */
 
-void FixTTMGrid::unpack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
+void FixTTMGrid::unpack_reverse_grid(int /*flag*/, void *vbuf, int nlist, int *list)
 {
   double *buf = (double *) vbuf;
   double *dest = &net_energy_transfer[nzlo_out][nylo_out][nxlo_out];
@@ -534,8 +532,6 @@ void FixTTMGrid::deallocate_grid()
 
 void FixTTMGrid::write_restart(FILE *fp)
 {
-  int ix,iy,iz;
-
   int rsize = nxgrid*nygrid*nzgrid + 4;
   double *rlist;
   memory->create(rlist,rsize,"ttm/grid:rlist");
@@ -608,7 +604,7 @@ void FixTTMGrid::restart(char *buf)
    used by which = 0 and 1
 ------------------------------------------------------------------------- */
 
-void FixTTMGrid::pack_gather_grid(int which, void *vbuf)
+void FixTTMGrid::pack_gather_grid(int /*which*/, void *vbuf)
 {
   int ix,iy,iz;
 

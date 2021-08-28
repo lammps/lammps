@@ -1132,8 +1132,8 @@ reverse_comm_tiled(T *ptr, int nper, int nbyte, int which,
    caller can decide whether to store chunks, output them, etc
 ------------------------------------------------------------------------- */
 
-void GridComm::gather(int caller, void *ptr, int nper, int nbyte, int which,
-                      void *buf, MPI_Datatype datatype)
+void GridComm::gather(int /*caller*/, void *ptr, int nper, int nbyte,
+                      int which, void *buf, MPI_Datatype datatype)
 {
   int me = comm->me;
   Fix *fptr = (Fix *) ptr;
@@ -1212,8 +1212,7 @@ void GridComm::gather(int caller, void *ptr, int nper, int nbyte, int which,
 void GridComm::grow_swap()
 {
   maxswap += DELTA;
-  swap = (Swap *)
-    memory->srealloc(swap,maxswap*sizeof(Swap),"GridComm:swap");
+  swap = (Swap *) memory->srealloc(swap,maxswap*sizeof(Swap),"GridComm:swap");
 }
 
 /* ----------------------------------------------------------------------

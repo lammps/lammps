@@ -19,20 +19,20 @@
 
 #include "fix_ttm.h"
 
-#include <cmath>
-#include <cstring>
-#include <cstdio>
 #include "atom.h"
-#include "force.h"
-#include "update.h"
-#include "domain.h"
-#include "respa.h"
 #include "comm.h"
-#include "random_mars.h"
-#include "memory.h"
+#include "domain.h"
 #include "error.h"
-
+#include "force.h"
+#include "memory.h"
+#include "random_mars.h"
+#include "respa.h"
 #include "tokenizer.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstdio>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -45,8 +45,8 @@ using namespace FixConst;
 // use SHIFT = 0.0 for now since it allows fix ave/chunk
 //   to spatially average consistent with the TTM grid
 
-#define OFFSET 16384
-#define SHIFT 0.0
+static constexpr int OFFSET = 16384;
+static constexpr double SHIFT = 0.0;
 
 /* ---------------------------------------------------------------------- */
 
@@ -288,7 +288,6 @@ void FixTTM::post_force_setup(int /*vflag*/)
 void FixTTM::post_force(int /*vflag*/)
 {
   int ix,iy,iz;
-  double xscale,yscale,zscale;
   double gamma1,gamma2;
 
   double **x = atom->x;
@@ -357,13 +356,9 @@ void FixTTM::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 void FixTTM::end_of_step()
 {
   int ix,iy,iz;
-  double xscale,yscale,zscale;
 
   double **x = atom->x;
   double **v = atom->v;
-  double *mass = atom->mass;
-  double *rmass = atom->rmass;
-  int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
@@ -490,8 +485,7 @@ void FixTTM::read_electron_temperatures(const char *filename)
 
   std::string name = utils::get_potential_file_path(filename);
   if (name.empty())
-    error->one(FLERR,"Cannot open input file: {}",
-                                 filename);
+    error->one(FLERR,"Cannot open input file: {}",filename);
   FILE *fp = fopen(name.c_str(),"r");
 
   // read initial electron temperature values from file
@@ -511,13 +505,10 @@ void FixTTM::read_electron_temperatures(const char *filename)
 
     // check correctness of input data
 
-    if ((ix < 0) || (ix >= nxgrid)
-        || (iy < 0) || (iy >= nygrid)
-        || (iz < 0) || (iz >= nzgrid))
+    if ((ix < 0) || (ix >= nxgrid) || (iy < 0) || (iy >= nygrid) || (iz < 0) || (iz >= nzgrid))
       error->one(FLERR,"Fix ttm invalid grid index in fix ttm input");
 
-    if (T_tmp < 0.0)
-      error->one(FLERR,"Fix ttm electron temperatures must be > 0.0");
+    if (T_tmp < 0.0) error->one(FLERR,"Fix ttm electron temperatures must be > 0.0");
 
     T_electron[iz][iy][ix] = T_tmp;
     T_initial_set[iz][iy][ix] = 1;

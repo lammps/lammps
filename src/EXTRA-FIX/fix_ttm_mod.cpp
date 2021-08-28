@@ -702,9 +702,6 @@ void FixTTMMod::end_of_step()
 {
   double **x = atom->x;
   double **v = atom->v;
-  double *mass = atom->mass;
-  double *rmass = atom->rmass;
-  int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 

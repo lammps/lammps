@@ -421,6 +421,16 @@ int DeviceT::set_ocl_params(std::string s_config, std::string extra_args) {
 }
 
 template <class numtyp, class acctyp>
+std::string DeviceT::compile_string_nofast() {
+  std::string no_fast = _ocl_compile_string;
+  size_t p = no_fast.find("-cl-fast-relaxed-math ");
+  if (p != std::string::npos) no_fast.erase(p,22);
+  p = no_fast.find("-DFAST_MATH=");
+  if (p != std::string::npos) no_fast[p + 12]='0';
+  return no_fast;
+}
+
+template <class numtyp, class acctyp>
 int DeviceT::init(Answer<numtyp,acctyp> &ans, const bool charge,
                   const bool rot, const int nlocal,
                   const int nall, const int maxspecial,

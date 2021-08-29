@@ -312,6 +312,7 @@ class Device {
   }
 
   inline std::string compile_string() { return _ocl_compile_string; }
+  std::string compile_string_nofast();
   inline std::string ocl_config_name() { return _ocl_config_name; }
 
   template <class t>

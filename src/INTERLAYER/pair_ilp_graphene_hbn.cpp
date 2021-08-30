@@ -47,6 +47,7 @@ using namespace InterLayer;
 #define PGDELTA 1
 
 static const char cite_ilp[] =
+    "ilp/graphene/hbn potential doi:10.1021/acs.nanolett.8b02848\n"
     "@Article{Ouyang2018\n"
     " author = {W. Ouyang, D. Mandelli, M. Urbakh, and O. Hod},\n"
     " title = {Nanoserpents: Graphene Nanoribbon Motion on Two-Dimensional Hexagonal Materials},\n"
@@ -482,7 +483,7 @@ void PairILPGrapheneHBN::calc_FRep(int eflag, int /* vflag */)
   double dprodnorm1[3] = {0.0, 0.0, 0.0};
   double fp1[3] = {0.0, 0.0, 0.0};
   double fprod1[3] = {0.0, 0.0, 0.0};
-  double delkj[3] = {0.0, 0.0, 0.0};
+  double delki[3] = {0.0, 0.0, 0.0};
   double fk[3] = {0.0, 0.0, 0.0};
 
   inum = list->inum;
@@ -588,12 +589,12 @@ void PairILPGrapheneHBN::calc_FRep(int eflag, int /* vflag */)
           f[k][0] += fk[0];
           f[k][1] += fk[1];
           f[k][2] += fk[2];
-          delkj[0] = x[k][0] - x[j][0];
-          delkj[1] = x[k][1] - x[j][1];
-          delkj[2] = x[k][2] - x[j][2];
+          delki[0] = x[k][0] - x[i][0];
+          delki[1] = x[k][1] - x[i][1];
+          delki[2] = x[k][2] - x[i][2];
           if (evflag)
-            ev_tally_xyz(k, j, nlocal, newton_pair, 0.0, 0.0, fk[0], fk[1], fk[2], delkj[0],
-                         delkj[1], delkj[2]);
+            ev_tally_xyz(k, i, nlocal, newton_pair, 0.0, 0.0, fk[0], fk[1], fk[2], delki[0],
+                         delki[1], delki[2]);
         }
 
         if (eflag) pvector[1] += evdwl = Tap * Vilp;

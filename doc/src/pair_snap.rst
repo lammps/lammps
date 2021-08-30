@@ -193,17 +193,17 @@ The keywords *chunksize* and *parallelthresh* are only applicable when
 using the pair style *snap* with the KOKKOS package on GPUs and are
 ignored otherwise.  The *chunksize* keyword controls the number of atoms
 in each pass used to compute the bispectrum components and is used to
-avoid running out of memory. For example if there are 8192 atoms in the
+avoid running out of memory.  For example if there are 8192 atoms in the
 simulation and the *chunksize* is set to 4096, the bispectrum
 calculation will be broken up into two passes (running on a single GPU).
 The *parallelthresh* keyword controls a crossover threshold for
-performing extra parallelism. For small systems, exposing additional
+performing extra parallelism.  For small systems, exposing additional
 parallelism can be beneficial when there is not enough work to fully
 saturate the GPU threads otherwise.  However, the extra parallelism also
 leads to more divergence and can hurt performance when the system is
-already large enough to saturate the GPU threads. Extra parallelism will
-be performed if the *chunksize* (or total number of atoms per GPU) is
-smaller than *parallelthresh*.
+already large enough to saturate the GPU threads.  Extra parallelism
+will be performed if the *chunksize* (or total number of atoms per GPU)
+is smaller than *parallelthresh*.
 
 Detailed definitions for all the other keywords
 are given on the :doc:`compute sna/atom <compute_sna_atom>` doc page.

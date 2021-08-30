@@ -65,8 +65,6 @@ void FixNVTSllodKokkos<DeviceType>::init()
 {
   FixNHKokkos<DeviceType>::init();
 
-  vdelu = typename ArrayTypes<DeviceType>::t_v_array("nvt/sllod/kk:vdelu", atomKK->nlocal);
-
   if (!this->temperature->tempbias)
     this->error->all(FLERR,"Temperature for fix nvt/sllod does not have a bias");
 
@@ -100,7 +98,7 @@ void FixNVTSllodKokkos<DeviceType>::nh_v_temp()
   //   calculate temperature since some computes require temp
   //   computed on current nlocal atoms to remove bias
 
-  if (nondeformbias){
+  if (nondeformbias) {
     atomKK->sync(this->temperature->execution_space,this->temperature->datamask_read);
     this->temperature->compute_scalar();
     atomKK->modified(this->temperature->execution_space,this->temperature->datamask_modify);
@@ -114,6 +112,9 @@ void FixNVTSllodKokkos<DeviceType>::nh_v_temp()
   MathExtra::multiply_shape_shape(this->domain->h_rate,this->domain->h_inv,h_two);
 
   d_h_two = Few<double, 6>(h_two);
+
+  if (vdelu.extent(0) < atomKK->nmax)
+    vdelu = typename AT::t_v_array(Kokkos::NoInit("nvt/sllod/kk:vdelu"), atomKK->nmax);
 
   this->copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixNVTSllod_temp1>(0,nlocal),*this);

@@ -13,25 +13,26 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_gpu.h"
-#include <cstring>
 
 #include "atom.h"
+#include "citeme.h"
 #include "comm.h"
+#include "domain.h"
+#include "error.h"
 #include "force.h"
+#include "gpu_extra.h"
+#include "input.h"
+#include "modify.h"
+#include "neighbor.h"
 #include "pair.h"
 #include "pair_hybrid.h"
 #include "pair_hybrid_overlay.h"
 #include "respa.h"
-#include "input.h"
 #include "timer.h"
-#include "modify.h"
-#include "update.h"
-#include "domain.h"
 #include "universe.h"
-#include "gpu_extra.h"
-#include "neighbor.h"
-#include "citeme.h"
-#include "error.h"
+#include "update.h"
+
+#include <cstring>
 
 #if (LAL_USE_OMP == 1)
 #include <omp.h>
@@ -275,12 +276,15 @@ void FixGPU::init()
     error->warning(FLERR,"Using package gpu without any pair style defined");
 
   // make sure fdotr virial is not accumulated multiple times
+  // also disallow GPU neighbor lists for hybrid styles
 
   if (force->pair_match("^hybrid",0) != nullptr) {
     PairHybrid *hybrid = (PairHybrid *) force->pair;
     for (int i = 0; i < hybrid->nstyles; i++)
       if (!utils::strmatch(hybrid->keywords[i],"/gpu$"))
         force->pair->no_virial_fdotr_compute = 1;
+    if (_gpu_mode != GPU_FORCE)
+      error->all(FLERR, "Must not use GPU neighbor lists with hybrid pair style");
   }
 
   // rRESPA support
@@ -295,8 +299,7 @@ void FixGPU::setup(int vflag)
 {
   if (_gpu_mode == GPU_NEIGH || _gpu_mode == GPU_HYB_NEIGH)
     if (neighbor->exclude_setting() != 0)
-      error->all(FLERR,
-                 "Cannot use neigh_modify exclude with GPU neighbor builds");
+      error->all(FLERR, "Cannot use neigh_modify exclude with GPU neighbor builds");
 
   if (utils::strmatch(update->integrate_style,"^verlet")) post_force(vflag);
   else {

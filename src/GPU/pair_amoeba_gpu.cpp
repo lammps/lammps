@@ -230,13 +230,6 @@ void PairAmoebaGPU::init_style()
 {
   PairAmoeba::init_style();
 
-  if (gpu_mode == GPU_FORCE) {
-    if (comm->me == 0)
-      error->warning(FLERR,"Pair style amoeba/gpu does not support neigh no "
-        "for now, automatically switching to neigh yes");
-    gpu_mode = GPU_NEIGH;
-  } 
-
   // Repeat cutsq calculation because done after call to init_style
 
   double maxcut = -1.0;
@@ -283,6 +276,9 @@ void PairAmoebaGPU::init_style()
                                 aewald, felec, off2, polar_dscale, polar_uscale,
                                 tep_size);
   GPU_EXTRA::check_flag(success,error,world);
+
+  if (gpu_mode == GPU_FORCE)
+    error->all(FLERR,"Pair style amoeba/gpu does not support neigh no for now");
 
   if (tep_size == sizeof(double))
     tep_single = false;

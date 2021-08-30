@@ -1224,10 +1224,10 @@ bool Dump::is_writing()
    Checks whether computes should be prepared at a given time
 ------------------------------------------------------------------------- */
 
-int Dump::is_consuming_computes()
+bool Dump::is_consuming_computes()
 {
   if (vtime <= 0)
-    return clearstep;
+    return clearstep == 1;
   if (clearstep && (update->atime+update->dt > next_time))
     return true;
   return false;

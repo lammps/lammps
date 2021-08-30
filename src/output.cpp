@@ -288,7 +288,7 @@ void Output::write(bigint ntimestep)
   // next_dump does not force output on last step of run
   // wrap dumps that invoke computes or eval of variable with clear/add
 
-  int prepare_computes;
+  bool prepare_computes;
   bool clear_computes;
   bool trigger_output;
 

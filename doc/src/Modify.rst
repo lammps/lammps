@@ -16,6 +16,7 @@ after reading :doc:`this page <Modify_contribute>`.
 
    Modify_overview
    Modify_contribute
+   Modify_style
 
 .. toctree::
    :maxdepth: 1

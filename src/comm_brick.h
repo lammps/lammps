@@ -44,7 +44,7 @@ class CommBrick : public Comm {
   virtual void forward_comm_dump(class Dump *);          // forward comm from a Dump
   virtual void reverse_comm_dump(class Dump *);          // reverse comm from a Dump
 
-  void forward_comm_array(int, double **);            // forward comm of array
+  virtual void forward_comm_array(int, double **);            // forward comm of array
   int exchange_variable(int, double *, double *&);    // exchange on neigh stencil
   void *extract(const char *, int &);
   virtual double memory_usage();

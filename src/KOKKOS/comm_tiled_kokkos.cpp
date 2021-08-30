@@ -238,6 +238,7 @@ void CommTiledKokkos::reverse_comm_dump(Dump *dump)
 
 void CommTiledKokkos::forward_comm_array(int nsize, double **array)
 {
+  k_sendlist.sync<LMPHostType>();
   CommTiled::forward_comm_array(nsize,array);
 }
 

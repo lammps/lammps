@@ -45,23 +45,23 @@ FixPropertyAtomKokkos::FixPropertyAtomKokkos(LAMMPS *lmp, int narg, char **arg) 
 void FixPropertyAtomKokkos::grow_arrays(int nmax)
 {
   for (int m = 0; m < nvalue; m++) {
-    if (style[m] == MOLECULE) {
+    if (styles[m] == MOLECULE) {
       memory->grow(atom->molecule,nmax,"atom:molecule");
       size_t nbytes = (nmax-nmax_old) * sizeof(tagint);
       memset(&atom->molecule[nmax_old],0,nbytes);
-    } else if (style[m] == CHARGE) {
+    } else if (styles[m] == CHARGE) {
       memory->grow(atom->q,nmax,"atom:q");
       size_t nbytes = (nmax-nmax_old) * sizeof(double);
       memset(&atom->q[nmax_old],0,nbytes);
-    } else if (style[m] == RMASS) {
+    } else if (styles[m] == RMASS) {
       memory->grow(atom->rmass,nmax,"atom:rmass");
       size_t nbytes = (nmax-nmax_old) * sizeof(double);
       memset(&atom->rmass[nmax_old],0,nbytes);
-    } else if (style[m] == INTEGER) {
+    } else if (styles[m] == INTEGER) {
       memory->grow(atom->ivector[index[m]],nmax,"atom:ivector");
       size_t nbytes = (nmax-nmax_old) * sizeof(int);
       memset(&atom->ivector[index[m]][nmax_old],0,nbytes);
-    } else if (style[m] == DOUBLE) {
+    } else if (styles[m] == DOUBLE) {
       atomKK->sync(Device,DVECTOR_MASK);
       memoryKK->grow_kokkos(atomKK->k_dvector,atomKK->dvector,atomKK->k_dvector.extent(0),nmax,
                           "atom:dvector");

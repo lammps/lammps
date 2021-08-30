@@ -35,6 +35,9 @@ struct TagFixNVTSllod_temp2{};
 template<class DeviceType>
 class FixNVTSllodKokkos : public FixNHKokkos<DeviceType> {
  public:
+  typedef DeviceType device_type;
+  typedef ArrayTypes<DeviceType> AT;
+
   FixNVTSllodKokkos(class LAMMPS *, int, char **);
   ~FixNVTSllodKokkos() {}
   void init();
@@ -51,14 +54,14 @@ class FixNVTSllodKokkos : public FixNHKokkos<DeviceType> {
   void nh_v_temp();
 
  protected:
-  typename ArrayTypes<DeviceType>::t_x_array x;
-  typename ArrayTypes<DeviceType>::t_v_array v;
-  typename ArrayTypes<DeviceType>::t_v_array vdelu;
-  typename ArrayTypes<DeviceType>::t_f_array_const f;
-  typename ArrayTypes<DeviceType>::t_float_1d rmass;
-  typename ArrayTypes<DeviceType>::t_float_1d mass;
-  typename ArrayTypes<DeviceType>::t_int_1d type;
-  typename ArrayTypes<DeviceType>::t_int_1d mask;
+  typename AT::t_x_array x;
+  typename AT::t_v_array v;
+  typename AT::t_v_array vdelu;
+  typename AT::t_f_array_const f;
+  typename AT::t_float_1d rmass;
+  typename AT::t_float_1d mass;
+  typename AT::t_int_1d type;
+  typename AT::t_int_1d mask;
 
   Few<double, 6> d_h_two;
 

@@ -35,7 +35,7 @@ Output info
 
 This compute calculates a per-particle vector, which can be accessed
 by any command that uses per-particle values from a compute as input.
-See the :doc:`Howto output <Howto_output>` doc page for an overview of
+See the :doc:`Howto output <Howto_output>` page for an overview of
 LAMMPS output options.
 
 The per-particle values are dimensionless. See :doc:`units <units>`.
@@ -44,7 +44,7 @@ Restrictions
 """"""""""""
 
 This compute is part of the MACHDYN package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 This quantity will be computed only for particles which interact with
 the Total-Lagrangian pair style.

@@ -112,7 +112,7 @@ This compute calculates a global array where the number of rows = the
 number of chunks *Nchunk* as calculated by the specified :doc:`compute chunk/atom <compute_chunk_atom>` command.  The number of columns =
 4 for dx,dy,dz and the total displacement.  These values can be
 accessed by any command that uses global array values from a compute
-as input.  See the :doc:`Howto output <Howto_output>` doc page for an
+as input.  See the :doc:`Howto output <Howto_output>` page for an
 overview of LAMMPS output options.
 
 The array values are "intensive".  The array values will be in

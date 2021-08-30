@@ -42,7 +42,7 @@ of the energy is not formed directly, but approximated in each
 conjugate search direction by a finite difference directional
 derivative.  When close to an energy minimum, the algorithm behaves
 like a Newton method and exhibits a quadratic convergence rate to high
-accuracy.  In most cases the behavior of *hftn* is similar to *cg*\ ,
+accuracy.  In most cases the behavior of *hftn* is similar to *cg*,
 but it offers an alternative if *cg* seems to perform poorly.  This
 style is not affected by the :doc:`min_modify <min_modify>` command.
 
@@ -88,14 +88,14 @@ Style *spin/lbfgs* uses an orthogonal spin optimization (OSO) combined
 to a limited-memory Broyden-Fletcher-Goldfarb-Shanno (LBFGS) approach
 to minimize spin configurations.
 
-See the :doc:`min/spin <min_spin>` doc page for more information about
-the *spin*\ , *spin/cg* and *spin/lbfgs* styles.
+See the :doc:`min/spin <min_spin>` page for more information about
+the *spin*, *spin/cg* and *spin/lbfgs* styles.
 
-Either the *quickmin*\ , *fire* and *fire/old* styles are useful in the
+Either the *quickmin*, *fire* and *fire/old* styles are useful in the
 context of nudged elastic band (NEB) calculations via the :doc:`neb
 <neb>` command.
 
-Either the *spin*\ , *spin/cg* and *spin/lbfgs* styles are useful in
+Either the *spin*, *spin/cg* and *spin/lbfgs* styles are useful in
 the context of magnetic geodesic nudged elastic band (GNEB)
 calculations via the :doc:`neb/spin <neb_spin>` command.
 
@@ -110,7 +110,7 @@ calculations via the :doc:`neb/spin <neb_spin>` command.
 
 .. note::
 
-   The *quickmin*\ , *fire*\ , *fire/old*\ , *hftn*\ , and *cg/kk* styles do not yet
+   The *quickmin*, *fire*, *fire/old*, *hftn*, and *cg/kk* styles do not yet
    support the use of the :doc:`fix box/relax <fix_box_relax>` command
    or minimizations involving the electron radius in :doc:`eFF
    <pair_eff>` models.

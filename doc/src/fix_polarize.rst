@@ -29,9 +29,17 @@ Examples
 
 .. code-block:: LAMMPS
 
-   fix 2 all polarize/bem/gmres 5 0.0001
+   fix 2 interface polarize/bem/gmres 5 0.0001
    fix 1 interface polarize/bem/icc 1 0.0001
-   fix 3 all polarize/functional 1 0.001
+   fix 3 interface polarize/functional 1 0.001
+
+
+Used in input scripts:
+
+   .. parsed-literal::
+
+      examples/PACKAGES/dielectric/in.confined
+      examples/PACKAGES/dielectric/in.nopbc
 
 Description
 """""""""""
@@ -80,7 +88,7 @@ Restrictions
 These fixes are part of the DIELECTRIC package.  It is only enabled
 if LAMMPS was built with that package, which requires that also the
 KSPACE package is installed.  See the :doc:`Build package
-<Build_package>` doc page for more info.
+<Build_package>` page for more info.
 
 
 Related commands

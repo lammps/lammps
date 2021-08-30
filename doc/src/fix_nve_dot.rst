@@ -47,7 +47,7 @@ Restrictions
 
 These pair styles can only be used if LAMMPS was built with the
 :ref:`CG-DNA <PKG-CG-DNA>` package and the MOLECULE and ASPHERE package.
-See the :doc:`Build package <Build_package>` doc page for more info.
+See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

@@ -41,14 +41,14 @@ fix group and within the specified region are counted.  M of these are
 chosen at random and deleted.  If there are less than M eligible
 particles, then all of them are deleted.
 
-If the setting for the *molecule* keyword is *no*\ , then only single
+If the setting for the *molecule* keyword is *no*, then only single
 atoms are deleted.  In this case, you should insure you do not delete
 only a portion of a molecule (only some of its atoms), or LAMMPS will
 soon generate an error when it tries to find those atoms.  LAMMPS will
 warn you if any of the atoms eligible for deletion have a non-zero
 molecule ID, but does not check for this at the time of deletion.
 
-If the setting for the *molecule* keyword is *yes*\ , then when an atom
+If the setting for the *molecule* keyword is *yes*, then when an atom
 is chosen for deletion, the entire molecule it is part of is deleted.
 The count of deleted atoms is incremented by the number of atoms in
 the molecule, which may make it exceed *M*\ .  If the molecule ID of the
@@ -89,8 +89,7 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 Restrictions
 """"""""""""
 
-This fix is part of the MISC package.  It is only enabled if LAMMPS
-was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+None
 
 Related commands
 """"""""""""""""

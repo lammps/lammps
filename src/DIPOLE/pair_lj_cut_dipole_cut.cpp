@@ -485,3 +485,14 @@ void PairLJCutDipoleCut::read_restart_settings(FILE *fp)
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
 }
+
+/* ---------------------------------------------------------------------- */
+
+void *PairLJCutDipoleCut::extract(const char *str, int &dim)
+{
+  dim = 2;
+  if (strcmp(str,"cut_coul") == 0) return (void *) cut_coul;
+  if (strcmp(str,"epsilon") == 0) return (void *) epsilon;
+  if (strcmp(str,"sigma") == 0) return (void *) sigma;
+  return nullptr;
+}

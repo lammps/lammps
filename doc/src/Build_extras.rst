@@ -31,36 +31,36 @@ This is the list of packages that may require additional steps.
 .. table_from_list::
    :columns: 6
 
-   * :ref:`COMPRESS <compress>`
-   * :ref:`GPU <gpu>`
-   * :ref:`KIM <kim>`
-   * :ref:`KOKKOS <kokkos>`
-   * :ref:`LATTE <latte>`
-   * :ref:`MESSAGE <message>`
-   * :ref:`ML-IAP <mliap>`
-   * :ref:`MSCG <mscg>`
-   * :ref:`OPT <opt>`
-   * :ref:`POEMS <poems>`
-   * :ref:`PYTHON <python>`
-   * :ref:`VORONOI <voronoi>`
    * :ref:`ADIOS <adios>`
    * :ref:`ATC <atc>`
    * :ref:`AWPMD <awpmd>`
    * :ref:`COLVARS <colvars>`
+   * :ref:`COMPRESS <compress>`
+   * :ref:`GPU <gpu>`
    * :ref:`H5MD <h5md>`
-   * :ref:`ML-HDNNP <ml-hdnnp>`
    * :ref:`INTEL <intel>`
+   * :ref:`KIM <kim>`
+   * :ref:`KOKKOS <kokkos>`
+   * :ref:`LATTE <latte>`
+   * :ref:`MACHDYN <machdyn>`
    * :ref:`MDI <mdi>`
    * :ref:`MESONT <mesont>`
-   * :ref:`MOLFILE <molfile>`
-   * :ref:`NETCDF <netcdf>`
+   * :ref:`MESSAGE <message>`
+   * :ref:`ML-HDNNP <ml-hdnnp>`
+   * :ref:`ML-IAP <mliap>`
    * :ref:`ML-PACE <ml-pace>`
-   * :ref:`PLUMED <plumed>`
-   * :ref:`OPENMP <openmp>`
-   * :ref:`QMMM <qmmm>`
    * :ref:`ML-QUIP <ml-quip>`
+   * :ref:`MOLFILE <molfile>`
+   * :ref:`MSCG <mscg>`
+   * :ref:`NETCDF <netcdf>`
+   * :ref:`OPENMP <openmp>`
+   * :ref:`OPT <opt>`
+   * :ref:`PLUMED <plumed>`
+   * :ref:`POEMS <poems>`
+   * :ref:`PYTHON <python>`
+   * :ref:`QMMM <qmmm>`
    * :ref:`SCAFACOS <scafacos>`
-   * :ref:`MACHDYN <machdyn>`
+   * :ref:`VORONOI <voronoi>`
    * :ref:`VTK <vtk>`
 
 ----------
@@ -74,7 +74,8 @@ To build with this package you must have the `zlib compression library
 <https://zlib.net>`_ available on your system to build dump styles with
 a '/gz' suffix.  There are also styles using the
 `Zstandard <https://facebook.github.io/zstd/>`_ library which have a
-'/zstd' suffix.
+'/zstd' suffix.  The zstd library version must be at least 1.4.  Older
+versions use an incompatible API and thus LAMMPS will fail to compile.
 
 .. tabs::
 
@@ -1856,8 +1857,8 @@ ML-QUIP package
 To build with this package, you must download and build the QUIP
 library.  It can be obtained from GitHub.  For support of GAP
 potentials, additional files with specific licensing conditions need
-to be downloaded and configured.  See step 1 and step 1.1 in the
-``lib/quip/README`` file for details on how to do this.
+to be downloaded and configured.  The automatic download will from
+within CMake will download the non-commercial use version.
 
 .. tabs::
 
@@ -1865,11 +1866,14 @@ to be downloaded and configured.  See step 1 and step 1.1 in the
 
       .. code-block:: bash
 
+         -D DOWNLOAD_QUIP=value   # download OpenKIM API v2 for build, value = no (default) or yes
          -D QUIP_LIBRARY=path     # path to libquip.a (only needed if a custom location)
 
-      CMake will **not** download and build the QUIP library.  But once you have
-      done that, a CMake build of LAMMPS with ``-D PKG_ML-QUIP=yes`` should
-      work.  Set the ``QUIP_LIBRARY`` variable if CMake cannot find the QUIP library.
+      CMake will try to download and build the QUIP library from GitHub, if it is not
+      found on the local machine. This requires to have git installed. It will use the same compilers
+      and flags as used for compiling LAMMPS.  Currently this is only supported for the GNU and the
+      Intel compilers. Set the ``QUIP_LIBRARY`` variable if you want to use a previously compiled
+      and installed QUIP library and CMake cannot find it.
 
    .. tab:: Traditional make
 

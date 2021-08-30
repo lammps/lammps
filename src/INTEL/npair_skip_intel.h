@@ -31,13 +31,12 @@ NPairStyle(skip/ghost/intel,
 #ifndef LMP_NPAIR_SKIP_INTEL_H
 #define LMP_NPAIR_SKIP_INTEL_H
 
-#include "npair.h"
 #include "fix_intel.h"
+#include "npair.h"
 
 #if defined(_OPENMP)
 #include <omp.h>
 #endif
-
 
 namespace LAMMPS_NS {
 
@@ -52,11 +51,11 @@ class NPairSkipIntel : public NPair {
   FixIntel *_fix;
   int *_inum_starts, *_inum_counts, *_full_props;
 
-  template<class flt_t, int THREE>
+  template <class flt_t, int THREE>
   void build_t(NeighList *, int *numhalf, int *cnumneigh, int *numhalf_skip);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

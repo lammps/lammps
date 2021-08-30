@@ -105,7 +105,7 @@ command, where N is the number of LAMMPS atom types:
 * EIM potential file
 * N element names = mapping of EIM elements to atom types
 
-See the :doc:`pair_coeff <pair_coeff>` doc page for alternate ways
+See the :doc:`pair_coeff <pair_coeff>` page for alternate ways
 to specify the path for the potential file.
 
 As an example like one of those above, suppose you want to model a

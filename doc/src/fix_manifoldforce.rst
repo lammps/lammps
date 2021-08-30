@@ -49,7 +49,7 @@ Restrictions
 """"""""""""
 
 This fix is part of the MANIFOLD package. It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Only use this with *min_style hftn* or *min_style quickmin*. If not,
 the constraints will not be satisfied very well at all. A warning is

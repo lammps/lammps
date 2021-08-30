@@ -85,12 +85,12 @@ the *morse* and *morse/smooth/linear* styles.
 
 ----------
 
-A version of the *morse* style with a soft core, *morse/soft*\ ,
+A version of the *morse* style with a soft core, *morse/soft*,
 suitable for use in free energy calculations, is part of the FEP
 package and is documented with the :doc:`pair_style */soft
 <pair_fep_soft>` styles. The version with soft core is only available if
 LAMMPS was built with that package. See the :doc:`Build package
-<Build_package>` doc page for more info.
+<Build_package>` page for more info.
 
 ----------
 
@@ -119,7 +119,7 @@ to be specified in an input script that reads a restart file.
 
 These pair styles can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  They do not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 ----------
 
@@ -127,7 +127,8 @@ Restrictions
 """"""""""""
 
 The *morse/smooth/linear* pair style is only enabled if LAMMPS was
-built with the USER-MISC package.  See the :doc:`Build package <Build_package>` doc page for more info.
+built with the EXTRA-PAIR package.
+See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

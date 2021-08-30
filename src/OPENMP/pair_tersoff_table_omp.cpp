@@ -53,7 +53,7 @@ PairTersoffTableOMP::PairTersoffTableOMP(LAMMPS *lmp) :
 PairTersoffTableOMP::~PairTersoffTableOMP()
 {
   if (allocated) {
-    deallocatePreLoops();
+    PairTersoffTableOMP::deallocatePreLoops();
   }
 }
 
@@ -80,7 +80,7 @@ void PairTersoffTableOMP::compute(int eflag, int vflag)
     ev_setup_thr(eflag, vflag, nall, eatom, vatom, nullptr, thr);
 
     if (evflag)
-      if (vflag_atom) eval<1,1>(ifrom, ito, thr);
+      if (vflag_either) eval<1,1>(ifrom, ito, thr);
       else eval<1,0>(ifrom, ito, thr);
     else eval<0,0>(ifrom, ito, thr);
 
@@ -89,7 +89,7 @@ void PairTersoffTableOMP::compute(int eflag, int vflag)
   } // end of omp parallel region
 }
 
-template <int EVFLAG, int VFLAG_ATOM>
+template <int EVFLAG, int VFLAG_EITHER>
 void PairTersoffTableOMP::eval(int iifrom, int iito, ThrData * const thr)
 {
   int i,j,k,ii,jnum;
@@ -427,7 +427,7 @@ void PairTersoffTableOMP::eval(int iifrom, int iito, ThrData * const thr)
         fytmp += f_ij[1] + f_ik[1];
         fztmp += f_ij[2] + f_ik[2];
 
-        if (VFLAG_ATOM) v_tally3_thr(i,j,k,f_ij,f_ik,dr_ij,dr_ik,thr);
+        if (VFLAG_EITHER) v_tally3_thr(this,i,j,k,f_ij,f_ik,dr_ij,dr_ik,thr);
       }
 
       // second loop over neighbors of atom i except j, forces and virial only - part 2/2
@@ -493,8 +493,7 @@ void PairTersoffTableOMP::eval(int iifrom, int iito, ThrData * const thr)
         fytmp += f_ij[1] + f_ik[1];
         fztmp += f_ij[2] + f_ik[2];
 
-        if (VFLAG_ATOM) v_tally3_thr(i,j,k,f_ij,f_ik,dr_ij,dr_ik,thr);
-
+        if (VFLAG_EITHER) v_tally3_thr(this,i,j,k,f_ij,f_ik,dr_ij,dr_ik,thr);
       }
     } // loop on J
     f[i].x += fxtmp;

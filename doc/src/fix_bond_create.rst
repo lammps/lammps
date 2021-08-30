@@ -64,7 +64,7 @@ context, a bond means an interaction between a pair of atoms computed
 by the :doc:`bond_style <bond_style>` command.  Once the bond is created
 it will be permanently in place.  Optionally, the creation of a bond
 can also create angle, dihedral, and improper interactions that bond
-is part of.  See the discussion of the *atype*\ , *dtype*\ , and *itype*
+is part of.  See the discussion of the *atype*, *dtype*, and *itype*
 keywords below.
 
 This is different than a :doc:`pairwise <pair_style>` bond-order
@@ -75,7 +75,7 @@ interactions from timestep to timestep as atoms move.
 
 A check for possible new bonds is performed every *Nevery* timesteps.
 If two atoms I,J are within a distance *Rmin* of each other, if I is
-of atom type *itype*\ , if J is of atom type *jtype*\ , if both I and J
+of atom type *itype*, if J is of atom type *jtype*, if both I and J
 are in the specified fix group, if a bond does not already exist
 between I and J, and if both I and J meet their respective *maxbond*
 requirement (explained below), then I,J is labeled as a "possible"
@@ -133,7 +133,7 @@ When a bond is created, data structures within LAMMPS that store bond
 topology are updated to reflect the creation.  If the bond is part of
 new 3-body (angle) or 4-body (dihedral, improper) interactions, you
 can choose to create new angles, dihedrals, impropers as well, using
-the *atype*\ , *dtype*\ , and *itype* keywords.  All of these changes
+the *atype*, *dtype*, and *itype* keywords.  All of these changes
 typically affect pairwise interactions between atoms that are now part
 of new bonds, angles, etc.
 
@@ -147,7 +147,7 @@ of new bonds, angles, etc.
 If the *atype* keyword is used and if an angle potential is defined
 via the :doc:`angle_style <angle_style>` command, then any new 3-body
 interactions inferred by the creation of a bond will create new angles
-of type *angletype*\ , with parameters assigned by the corresponding
+of type *angletype*, with parameters assigned by the corresponding
 :doc:`angle_coeff <angle_coeff>` command.  Likewise, the *dtype* and
 *itype* keywords will create new dihedrals and impropers of type
 *dihedraltype* and *impropertype*\ .
@@ -183,7 +183,7 @@ of type *angletype*\ , with parameters assigned by the corresponding
 
 .. note::
 
-   Even if you do not use the *atype*\ , *dtype*\ , or *itype*
+   Even if you do not use the *atype*, *dtype*, or *itype*
    keywords, the list of topological neighbors is updated for atoms
    affected by the new bond.  This in turn affects which neighbors are
    considered for pairwise interactions, using the weighting rules set by

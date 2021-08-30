@@ -21,6 +21,13 @@ Examples
    compute 1 all efield/atom
    compute 1 all efield/atom pair yes kspace no
 
+Used in input scripts:
+
+   .. parsed-literal::
+
+      examples/PACKAGES/dielectric/in.confined
+      examples/PACKAGES/dielectric/in.nopbc
+
 Description
 """""""""""
 
@@ -45,7 +52,7 @@ Output info
 
 This compute calculates a per-atom vector, which can be accessed by
 any command that uses per-atom values from a compute as input.  See
-the :doc:`Howto output <Howto_output>` doc page for an overview of
+the :doc:`Howto output <Howto_output>` page for an overview of
 LAMMPS output options.
 
 The per-atom vector values will be in electric field :doc:`units <units>`.

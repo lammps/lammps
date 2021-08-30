@@ -1,4 +1,4 @@
-Sphinx
+Sphinx==4.0.3
 sphinxcontrib-spelling
 git+git://github.com/akohlmey/sphinx-fortran@parallel-read
 sphinx_tabs

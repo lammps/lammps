@@ -16,25 +16,25 @@
    Contributing author: Rodrigo Canales (RWTH Aachen University)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-
-#include <cstring>
 #include "pair_buck_coul_cut_intel.h"
+
 #include "atom.h"
 #include "comm.h"
+#include "error.h"
+#include "force.h"
 #include "force.h"
 #include "group.h"
 #include "kspace.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
-#include "suffix.h"
-#include "force.h"
 #include "modify.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "suffix.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -77,6 +77,9 @@ void PairBuckCoulCutIntel::compute(int eflag, int vflag,
   ev_init(eflag,vflag);
   if (vflag_atom)
     error->all(FLERR,"INTEL package does not support per-atom stress");
+  if (vflag && !vflag_fdotr && force->newton_pair)
+    error->all(FLERR,"INTEL package does not support pair_modify nofdotr "
+               "with newton on");
 
   const int inum = list->inum;
   const int nthreads = comm->nthreads;
@@ -246,12 +249,18 @@ void PairBuckCoulCutIntel::eval(const int offload, const int vflag,
         fxtmp = fytmp = fztmp = (acc_t)0;
         if (EFLAG) fwtmp = sevdwl = secoul = (acc_t)0;
         if (NEWTON_PAIR == 0)
-          if (vflag == VIRIAL_PAIR) sv0 = sv1 = sv2 = sv3 = sv4 = sv5 = (acc_t)0;
+          if (vflag == VIRIAL_PAIR)
+            sv0 = sv1 = sv2 = sv3 = sv4 = sv5 = (acc_t)0;
 
         #if defined(LMP_SIMD_COMPILER)
-        #pragma vector aligned
+#if defined(USE_OMP_SIMD)
+        #pragma omp simd reduction(+:fxtmp, fytmp, fztmp, fwtmp, sevdwl, \
+                                   sv0, sv1, sv2, sv3, sv4, sv5)
+#else
         #pragma simd reduction(+:fxtmp, fytmp, fztmp, fwtmp, sevdwl, \
                                sv0, sv1, sv2, sv3, sv4, sv5)
+#endif
+        #pragma vector aligned
         #endif
         for (int jj = 0; jj < jnum; jj++) {
           flt_t forcecoul, forcebuck, evdwl, ecoul;
@@ -403,11 +412,12 @@ void PairBuckCoulCutIntel::eval(const int offload, const int vflag,
 void PairBuckCoulCutIntel::init_style()
 {
   PairBuckCoulCut::init_style();
+  auto request = neighbor->find_request(this);
   if (force->newton_pair == 0) {
-    neighbor->requests[neighbor->nrequest-1]->half = 0;
-    neighbor->requests[neighbor->nrequest-1]->full = 1;
+    request->half = 0;
+    request->full = 1;
   }
-  neighbor->requests[neighbor->nrequest-1]->intel = 1;
+  request->intel = 1;
 
   int ifix = modify->find_fix("package_intel");
   if (ifix < 0)
@@ -494,7 +504,8 @@ void PairBuckCoulCutIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
                                                            const int ntable,
                                                            Memory *memory,
                                                            const int cop) {
-  if ((ntypes != _ntypes || ntable != _ntable)) {
+  if (memory != nullptr) _memory = memory;
+  if ((ntypes != _ntypes) || (ntable != _ntable)) {
     if (_ntypes > 0) {
       #ifdef _LMP_INTEL_OFFLOAD
       flt_t * ospecial_lj = special_lj;
@@ -516,13 +527,12 @@ void PairBuckCoulCutIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
       _memory->destroy(c_force);
       _memory->destroy(c_energy);
       _memory->destroy(c_cut);
-
     }
     if (ntypes > 0) {
       _cop = cop;
-      memory->create(c_force,ntypes,ntypes,"fc.c_force");
-      memory->create(c_energy,ntypes,ntypes,"fc.c_energy");
-      memory->create(c_cut,ntypes,ntypes,"fc.c_cut");
+      _memory->create(c_force,ntypes,ntypes,"fc.c_force");
+      _memory->create(c_energy,ntypes,ntypes,"fc.c_energy");
+      _memory->create(c_cut,ntypes,ntypes,"fc.c_cut");
 
 
       #ifdef _LMP_INTEL_OFFLOAD
@@ -548,5 +558,4 @@ void PairBuckCoulCutIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
   }
   _ntypes=ntypes;
   _ntable=ntable;
-  _memory=memory;
 }

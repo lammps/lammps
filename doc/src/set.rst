@@ -13,16 +13,17 @@ Syntax
 * style = *atom* or *type* or *mol* or *group* or *region*
 * ID = atom ID range or type range or mol ID range or group ID or region ID
 * one or more keyword/value pairs may be appended
-* keyword = *type* or *type/fraction* or *type/ratio* or *type/subset* or *mol*
-  or *x* or *y* or *z* or *vx* or *vy* or *vz*
-  or *charge* or *dipole* or *dipole/random* or *spin* or *spin/random*
-  or *quat* *quat/random* or *diameter* or *shape* or *length* or *tri*
-  or *theta* or *theta/random* or *angmom* or *omega* or *mass*
-  or *density* or *density/disc* or *volume* or *image*
-  or *bond* or *angle* or *dihedral* or *improper*
-  or *sph/e* or *sph/cv* or *sph/rho* or *smd/contact/radius* or *smd/mass/density*
-  or *dpd/theta* or *edpd/temp* or *edpd/cv* or *cc*
-  or *i_name* or *d_name*
+* keyword = *type* or *type/fraction* or *type/ratio* or *type/subset*
+  or *mol* or *x* or *y* or *z* or *charge* or *dipole* or
+  *dipole/random* or *quat* or *spin* or *spin/random* or
+  *quat* or *quat/random* or *diameter* or *shape* or
+  *length* or *tri* or *theta* or *theta/random* or *angmom* or
+  *omega* or *mass* or *density* or *density/disc* or
+  *volume* or *image* or *bond* or *angle* or *dihedral* or
+  *improper* or *sph/e* or *sph/cv* or *sph/rho* or
+  *smd/contact/radius* or *smd/mass/density* or *dpd/theta* or
+  *edpd/temp* or *edpd/cv* or *cc* or
+  *i_name* or *d_name* or *i2_name* or *d2_name*
 
   .. parsed-literal::
 
@@ -42,9 +43,9 @@ Syntax
          seed = random # seed (positive integer)
        *mol* value = molecule ID
          value can be an atom-style variable (see below)
-       *x*\ ,\ *y*\ ,\ *z* value = atom coordinate (distance units)
+       *x*,\ *y*,\ *z* value = atom coordinate (distance units)
          value can be an atom-style variable (see below)
-       *vx*\ ,\ *vy*\ ,\ *vz* value = atom velocity (velocity units)
+       *vx*,\ *vy*,\ *vz* value = atom velocity (velocity units)
          value can be an atom-style variable (see below)
        *charge* value = atomic charge (charge units)
          value can be an atom-style variable (see below)
@@ -123,8 +124,12 @@ Syntax
        *cc* values = index cc
          index = index of a chemical species (1 to Nspecies)
          cc = chemical concentration of tDPD particles for a species (mole/volume units)
-       *i_name* value = value for custom integer vector with name
-       *d_name* value = value for custom floating-point vector with name
+       *i_name* value = custom integer vector with name
+       *d_name* value = custom floating-point vector with name
+       *i2_name* value = column of a custom integer array with name
+                         column specified as i2_name[N] where N is 1 to Ncol
+       *d2_name* value = column of a custom floating-point array with name
+                         column specified as d2_name[N] where N is 1 to Ncol
 
 Examples
 """"""""
@@ -141,6 +146,8 @@ Examples
    set atom 100*200 x 0.5 y 1.0
    set atom 100 vx 0.0 vy 0.0 vz -1.0
    set atom 1492 type 3
+   set atom * i_myVal 5
+   set atom * d2_Sxyz[1] 6.4
 
 Description
 """""""""""
@@ -175,12 +182,12 @@ style *type* selects all the atoms in a range of types.  The style
 In each of the range cases, the range can be specified as a single
 numeric value, or a wildcard asterisk can be used to specify a range
 of values.  This takes the form "\*" or "\*n" or "n\*" or "m\*n".  For
-example, for the style *type*\ , if N = the number of atom types, then
+example, for the style *type*, if N = the number of atom types, then
 an asterisk with no numeric values means all types from 1 to N.  A
 leading asterisk means all types from 1 to n (inclusive).  A trailing
 asterisk means all types from n to N (inclusive).  A middle asterisk
 means all types from m to n (inclusive).  For all the styles except
-*mol*\ , the lowest value for the wildcard is 1; for *mol* it is 0.
+*mol*, the lowest value for the wildcard is 1; for *mol* it is 0.
 
 The style *group* selects all the atoms in the specified group.  The
 style *region* selects all the atoms in the specified geometric
@@ -250,10 +257,10 @@ Keyword *mol* sets the molecule ID for all selected atoms.  The
 :doc:`atom style <atom_style>` being used must support the use of
 molecule IDs.
 
-Keywords *x*\ , *y*\ , *z*\ , and *charge* set the coordinates or
-charge of all selected atoms.  For *charge*\ , the :doc:`atom style
+Keywords *x*, *y*, *z*, and *charge* set the coordinates or
+charge of all selected atoms.  For *charge*, the :doc:`atom style
 <atom_style>` being used must support the use of atomic
-charge. Keywords *vx*\ , *vy*\ , and *vz* set the velocities of all
+charge. Keywords *vx*, *vy*, and *vz* set the velocities of all
 selected atoms.
 
 Keyword *dipole* uses the specified x,y,z values as components of a
@@ -303,7 +310,7 @@ the :doc:`atom_style <atom_style>` command.  Random numbers are used in
 such a way that the orientation of a particular atom is the same,
 regardless of how many processors are being used.  For 2d systems,
 only orientations in the xy plane are generated.  As with keyword
-*quat*\ , for ellipsoidal particles, the 3 shape values must be non-zero
+*quat*, for ellipsoidal particles, the 3 shape values must be non-zero
 for each particle set by this command.  This keyword does not allow
 use of an atom-style variable.
 
@@ -316,7 +323,7 @@ a density, e.g. via the :doc:`read_data <read_data>` command.
 
 Keyword *shape* sets the size and shape of the selected atoms.  The
 particles must be ellipsoids as defined by the :doc:`atom_style
-ellipsoid <atom_style>` command.  The *Sx*\ , *Sy*\ , *Sz* settings
+ellipsoid <atom_style>` command.  The *Sx*, *Sy*, *Sz* settings
 are the 3 diameters of the ellipsoid in each direction.  All 3 can be
 set to the same value, which means the ellipsoid is effectively a
 sphere.  They can also all be set to 0.0 which means the particle will
@@ -430,18 +437,18 @@ up analysis of the trajectories if a LAMMPS diagnostic or your own
 analysis relies on the image flags to unwrap a molecule which
 straddles the periodic box.
 
-Keywords *bond*\ , *angle*\ , *dihedral*\ , and *improper*\ , set the bond
+Keywords *bond*, *angle*, *dihedral*, and *improper*, set the bond
 type (angle type, etc) of all bonds (angles, etc) of selected atoms to
 the specified value from 1 to nbondtypes (nangletypes, etc).  All
 atoms in a particular bond (angle, etc) must be selected atoms in
 order for the change to be made.  The value of nbondtype (nangletypes,
-etc) was set by the *bond types* (\ *angle types*\ , etc) field in the
+etc) was set by the *bond types* (\ *angle types*, etc) field in the
 header of the data file read by the :doc:`read_data <read_data>`
 command.  These keywords do not allow use of an atom-style variable.
 
-Keywords *sph/e*\ , *sph/cv*\ , and *sph/rho* set the energy, heat
+Keywords *sph/e*, *sph/cv*, and *sph/rho* set the energy, heat
 capacity, and density of smoothed particle hydrodynamics (SPH)
-particles.  See `this PDF guide <USER/sph/SPH_LAMMPS_userguide.pdf>`_
+particles.  See `this PDF guide <PDF/SPH_LAMMPS_userguide.pdf>`_
 to using SPH in LAMMPS.
 
 Keyword *smd/mass/density* sets the mass of all selected particles,
@@ -482,11 +489,13 @@ attribute. An integer for "index" selects a chemical species (1 to
 Nspecies) where Nspecies is set by the atom_style command. The value
 for the chemical concentration must be >= 0.0.
 
-Keywords *i_name* and *d_name* refer to custom integer and
-floating-point properties that have been added to each atom via the
-:doc:`fix property/atom <fix_property_atom>` command.  When that command
-is used specific names are given to each attribute which are what is
-specified as the "name" portion of *i_name* or *d_name*.
+Keywords *i_name*, *d_name*, *i2_name*, *d2_name* refer to custom
+per-atom integer and floating-point vectors or arrays that have been
+added via the :doc:`fix property/atom <fix_property_atom>` command.
+When that command is used specific names are given to each attribute
+which are the "name" portion of these keywords.  For arrays *i2_name*
+and *d2_name*, the column of the array must also be included following
+the name in brackets: e.g. d2_xyz[2], i2_mySpin[3].
 
 Restrictions
 """"""""""""

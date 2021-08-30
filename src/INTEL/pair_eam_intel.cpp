@@ -82,6 +82,9 @@ void PairEAMIntel::compute(int eflag, int vflag,
   ev_init(eflag, vflag);
   if (vflag_atom)
     error->all(FLERR,"INTEL package does not support per-atom stress");
+  if (vflag && !vflag_fdotr && force->newton_pair)
+    error->all(FLERR,"INTEL package does not support pair_modify nofdotr "
+               "with newton on");
 
   const int inum = list->inum;
   const int nthreads = comm->nthreads;
@@ -306,7 +309,7 @@ void PairEAMIntel::eval(const int offload, const int vflag,
         acc_t rhoi = (acc_t)0.0;
         int ej = 0;
         #if defined(LMP_SIMD_COMPILER)
-        #pragma vector aligned nog2s
+        #pragma vector aligned
         #pragma ivdep
         #endif
         for (int jj = 0; jj < jnum; jj++) {
@@ -325,8 +328,12 @@ void PairEAMIntel::eval(const int offload, const int vflag,
         }
 
         #if defined(LMP_SIMD_COMPILER)
-        #pragma vector aligned nog2s
+#if defined(USE_OMP_SIMD)
+        #pragma omp simd reduction(+:rhoi)
+#else
         #pragma simd reduction(+:rhoi)
+#endif
+        #pragma vector aligned
         #endif
         for (int jj = 0; jj < ej; jj++) {
           int jtype;
@@ -367,23 +374,35 @@ void PairEAMIntel::eval(const int offload, const int vflag,
           const int rcount = nall;
           if (nthreads == 2) {
             double *trho2 = rho + nmax;
-            #pragma vector aligned
+#if defined(USE_OMP_SIMD)
+            #pragma omp simd
+#else
             #pragma simd
+#endif
+            #pragma vector aligned
             for (int n = 0; n < rcount; n++)
               rho[n] += trho2[n];
           } else if (nthreads == 4) {
             double *trho2 = rho + nmax;
             double *trho3 = trho2 + nmax;
             double *trho4 = trho3 + nmax;
-            #pragma vector aligned
+#if defined(USE_OMP_SIMD)
+            #pragma omp simd
+#else
             #pragma simd
+#endif
+            #pragma vector aligned
             for (int n = 0; n < rcount; n++)
               rho[n] += trho2[n] + trho3[n] + trho4[n];
           } else {
             double *trhon = rho + nmax;
             for (int t = 1; t < nthreads; t++) {
-              #pragma vector aligned
+#if defined(USE_OMP_SIMD)
+              #pragma omp simd
+#else
               #pragma simd
+#endif
+              #pragma vector aligned
               for (int n = 0; n < rcount; n++)
                 rho[n] += trhon[n];
               trhon += nmax;
@@ -412,8 +431,12 @@ void PairEAMIntel::eval(const int offload, const int vflag,
       if (EFLAG) tevdwl = (acc_t)0.0;
 
       #if defined(LMP_SIMD_COMPILER)
-      #pragma vector aligned nog2s
+#if defined(USE_OMP_SIMD)
+      #pragma omp simd reduction(+:tevdwl)
+#else
       #pragma simd reduction(+:tevdwl)
+#endif
+      #pragma vector aligned
       #endif
       for (int ii = iifrom; ii < iito; ++ii) {
         const int i = ilist[ii];
@@ -486,7 +509,7 @@ void PairEAMIntel::eval(const int offload, const int vflag,
 
         int ej = 0;
         #if defined(LMP_SIMD_COMPILER)
-        #pragma vector aligned nog2s
+        #pragma vector aligned
         #pragma ivdep
         #endif
         for (int jj = 0; jj < jnum; jj++) {
@@ -508,9 +531,14 @@ void PairEAMIntel::eval(const int offload, const int vflag,
         }
 
         #if defined(LMP_SIMD_COMPILER)
-        #pragma vector aligned nog2s
+#if defined(USE_OMP_SIMD)
+        #pragma omp simd reduction(+:fxtmp, fytmp, fztmp, fwtmp, sevdwl, \
+                                   sv0, sv1, sv2, sv3, sv4, sv5)
+#else
         #pragma simd reduction(+:fxtmp, fytmp, fztmp, fwtmp, sevdwl, \
-                                 sv0, sv1, sv2, sv3, sv4, sv5)
+                               sv0, sv1, sv2, sv3, sv4, sv5)
+#endif
+        #pragma vector aligned
         #endif
         for (int jj = 0; jj < ej; jj++) {
           int jtype;
@@ -638,11 +666,13 @@ void PairEAMIntel::eval(const int offload, const int vflag,
 void PairEAMIntel::init_style()
 {
   PairEAM::init_style();
+  auto request = neighbor->find_request(this);
+
   if (force->newton_pair == 0) {
-    neighbor->requests[neighbor->nrequest-1]->half = 0;
-    neighbor->requests[neighbor->nrequest-1]->full = 1;
+    request->half = 0;
+    request->full = 1;
   }
-  neighbor->requests[neighbor->nrequest-1]->intel = 1;
+  request->intel = 1;
 
   int ifix = modify->find_fix("package_intel");
   if (ifix < 0)
@@ -751,7 +781,8 @@ void PairEAMIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
                                                  const int nr, const int nrho,
                                                  Memory *memory,
                                                  const int cop) {
-  if (ntypes != _ntypes || nr + 1 > _nr || nrho + 1 > _nrho) {
+  if (memory != nullptr) _memory = memory;
+  if ((ntypes != _ntypes) || (nr + 1 > _nr) || (nrho + 1 > _nrho)) {
     if (_ntypes > 0) {
       _memory->destroy(rhor_spline_f);
       _memory->destroy(rhor_spline_e);
@@ -764,18 +795,17 @@ void PairEAMIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
       _cop = cop;
       _nr = nr + 1;
       IP_PRE_edge_align(_nr, sizeof(flt_t));
-      memory->create(rhor_spline_f,ntypes*ntypes*_nr,"fc.rhor_spline_f");
-      memory->create(rhor_spline_e,ntypes*ntypes*_nr,"fc.rhor_spline_e");
-      memory->create(z2r_spline_t,ntypes*ntypes*_nr,"fc.z2r_spline_t");
+      _memory->create(rhor_spline_f,ntypes*ntypes*_nr,"fc.rhor_spline_f");
+      _memory->create(rhor_spline_e,ntypes*ntypes*_nr,"fc.rhor_spline_e");
+      _memory->create(z2r_spline_t,ntypes*ntypes*_nr,"fc.z2r_spline_t");
       _nrho = nrho + 1;
       IP_PRE_edge_align(_nrho, sizeof(flt_t));
-      memory->create(frho_spline_f,ntypes*_nrho,"fc.frho_spline_f");
-      memory->create(frho_spline_e,ntypes*_nrho,"fc.frho_spline_e");
-      memory->create(scale_f,ntypes,ntypes,"fc.scale_f");
+      _memory->create(frho_spline_f,ntypes*_nrho,"fc.frho_spline_f");
+      _memory->create(frho_spline_e,ntypes*_nrho,"fc.frho_spline_e");
+      _memory->create(scale_f,ntypes,ntypes,"fc.scale_f");
     }
   }
   _ntypes = ntypes;
-  _memory = memory;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -5,7 +5,7 @@
                        ${OPENMP_SOURCES_DIR}/fix_nh_omp.cpp
                        ${OPENMP_SOURCES_DIR}/fix_nh_sphere_omp.cpp
                        ${OPENMP_SOURCES_DIR}/domain_omp.cpp)
-  target_compile_definitions(lammps PRIVATE -DLMP_USER_OMP)
+  target_compile_definitions(lammps PRIVATE -DLMP_OPENMP)
   set_property(GLOBAL PROPERTY "OMP_SOURCES" "${OPENMP_SOURCES}")
 
   # detects styles which have OPENMP version
@@ -25,15 +25,15 @@
   endif()
 
   if(PKG_REAXFF)
-    list(APPEND OPENMP_SOURCES ${OPENMP_SOURCES_DIR}/reaxc_bond_orders_omp.cpp
-                                 ${OPENMP_SOURCES_DIR}/reaxc_hydrogen_bonds_omp.cpp
-                                 ${OPENMP_SOURCES_DIR}/reaxc_nonbonded_omp.cpp
-                                 ${OPENMP_SOURCES_DIR}/reaxc_bonds_omp.cpp
-                                 ${OPENMP_SOURCES_DIR}/reaxc_init_md_omp.cpp
-                                 ${OPENMP_SOURCES_DIR}/reaxc_torsion_angles_omp.cpp
-                                 ${OPENMP_SOURCES_DIR}/reaxc_forces_omp.cpp
-                                 ${OPENMP_SOURCES_DIR}/reaxc_multi_body_omp.cpp
-                                 ${OPENMP_SOURCES_DIR}/reaxc_valence_angles_omp.cpp)
+    list(APPEND OPENMP_SOURCES ${OPENMP_SOURCES_DIR}/reaxff_bond_orders_omp.cpp
+                                 ${OPENMP_SOURCES_DIR}/reaxff_hydrogen_bonds_omp.cpp
+                                 ${OPENMP_SOURCES_DIR}/reaxff_nonbonded_omp.cpp
+                                 ${OPENMP_SOURCES_DIR}/reaxff_bonds_omp.cpp
+                                 ${OPENMP_SOURCES_DIR}/reaxff_init_md_omp.cpp
+                                 ${OPENMP_SOURCES_DIR}/reaxff_torsion_angles_omp.cpp
+                                 ${OPENMP_SOURCES_DIR}/reaxff_forces_omp.cpp
+                                 ${OPENMP_SOURCES_DIR}/reaxff_multi_body_omp.cpp
+                                 ${OPENMP_SOURCES_DIR}/reaxff_valence_angles_omp.cpp)
   endif()
 
   target_sources(lammps PRIVATE ${OPENMP_SOURCES})

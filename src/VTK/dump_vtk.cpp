@@ -752,23 +752,41 @@ int DumpVTK::count()
         ptr = vbuf[field2index[i]];
         nstride = 1;
 
-      } else if (thresh_array[ithresh] == DNAME) {
-        int iwhich,tmp;
+      } else if (thresh_array[ithresh] == IVEC) {
+        int iwhich,flag,cols
         i = ATTRIBUTES + nfield + ithresh;
-        iwhich = atom->find_custom(id_custom[field2index[i]],tmp);
-        ptr = atom->dvector[iwhich];
-        nstride = 1;
-
-      } else if (thresh_array[ithresh] == INAME) {
-        int iwhich,tmp;
-        i = ATTRIBUTES + nfield + ithresh;
-        iwhich = atom->find_custom(id_custom[field2index[i]],tmp);
-
+        iwhich = atom->find_custom(id_custom[field2index[i]],flag,cols);
         int *ivector = atom->ivector[iwhich];
         for (i = 0; i < nlocal; i++)
           dchoose[i] = ivector[i];
         ptr = dchoose;
         nstride = 1;
+
+      } else if (thresh_array[ithresh] == DVEC) {
+        int iwhich,flag,cols;
+        i = ATTRIBUTES + nfield + ithresh;
+        iwhich = atom->find_custom(id_custom[field2index[i]],flag,cols);
+        ptr = atom->dvector[iwhich];
+        nstride = 1;
+
+      } else if (thresh_array[ithresh] == IARRAY) {
+        int iwhich,flag,cols;
+        i = ATTRIBUTES + nfield + ithresh;
+        iwhich = atom->find_custom(id_custom[field2index[i]],flag,cols);
+        int **iarray = atom->iarray[iwhich];
+        int icol = argindex[i] - 1;
+        for (i = 0; i < nlocal; i++)
+          dchoose[i] = iarray[i][icol];
+        ptr = dchoose;
+        nstride = 1;
+
+      } else if (thresh_array[ithresh] == DARRAY) {
+        int iwhich,flag,cols;
+        i = ATTRIBUTES + nfield + ithresh;
+        iwhich = atom->find_custom(id_custom[field2index[i]],flag,cols)
+        double **darray = atom->darray[iwhich];
+        ptr = &darray[0][argindex[i]-1];
+        nstride = atom->dcols[iwhich];
       }
 
       // unselect atoms that don't meet threshold criterion
@@ -1738,7 +1756,7 @@ int DumpVTK::parse_fields(int narg, char **arg)
 
       int n,tmp;
       ArgInfo argi(arg[iarg],ArgInfo::COMPUTE|ArgInfo::FIX|ArgInfo::VARIABLE
-                   |ArgInfo::DNAME|ArgInfo::INAME);
+                   |ArgInfo::DVEC|ArgInfo::IVEC);
       argindex[ATTRIBUTES+i] = argi.get_index1();
 
       switch (argi.get_type()) {
@@ -1747,8 +1765,8 @@ int DumpVTK::parse_fields(int narg, char **arg)
         error->all(FLERR,"Invalid attribute in dump vtk command");
         break;
 
-        // compute value = c_ID
-        // if no trailing [], then arg is set to 0, else arg is int between []
+      // compute value = c_ID
+      // if no trailing [], then arg is set to 0, else arg is int between []
 
       case ArgInfo::COMPUTE:
         pack_choice[ATTRIBUTES+i] = &DumpVTK::pack_compute;
@@ -1772,8 +1790,8 @@ int DumpVTK::parse_fields(int narg, char **arg)
         name[ATTRIBUTES+i] = arg[iarg];
         break;
 
-        // fix value = f_ID
-        // if no trailing [], then arg is set to 0, else arg is between []
+      // fix value = f_ID
+      // if no trailing [], then arg is set to 0, else arg is between []
 
       case ArgInfo::FIX:
         pack_choice[ATTRIBUTES+i] = &DumpVTK::pack_fix;
@@ -1795,7 +1813,7 @@ int DumpVTK::parse_fields(int narg, char **arg)
         name[ATTRIBUTES+i] = arg[iarg];
         break;
 
-        // variable value = v_name
+      // variable value = v_name
 
       case ArgInfo::VARIABLE:
         pack_choice[ATTRIBUTES+i] = &DumpVTK::pack_variable;
@@ -1810,7 +1828,25 @@ int DumpVTK::parse_fields(int narg, char **arg)
         name[ATTRIBUTES+i] = arg[iarg];
         break;
 
-        // custom per-atom floating point value = d_ID
+      // custom per-atom integer vector = i_ID
+
+      case ArgInfo::INAME:
+        pack_choice[ATTRIBUTES+i] = &DumpVTK::pack_custom;
+        vtype[ATTRIBUTES+i] = Dump::INT;
+
+        tmp = -1;
+        n = atom->find_custom(argi.get_name(),tmp);
+        if (n < 0)
+          error->all(FLERR,"Could not find custom per-atom property ID");
+
+        if (tmp != 0)
+          error->all(FLERR,"Custom per-atom property ID is not integer");
+
+        field2index[ATTRIBUTES+i] = add_custom(argi.get_name(),0);
+        name[ATTRIBUTES+i] = arg[iarg];
+        break;
+
+      // custom per-atom floating point vector = d_ID
 
       case ArgInfo::DNAME:
         pack_choice[ATTRIBUTES+i] = &DumpVTK::pack_custom;
@@ -1828,23 +1864,16 @@ int DumpVTK::parse_fields(int narg, char **arg)
         name[ATTRIBUTES+i] = arg[iarg];
         break;
 
-        // custom per-atom integer value = i_ID
+      // NEWSTYLE
+      // custom per-atom integer array = i2_ID
 
-      case ArgInfo::INAME:
-        pack_choice[ATTRIBUTES+i] = &DumpVTK::pack_custom;
-        vtype[ATTRIBUTES+i] = Dump::INT;
+      case ArgInfo::IARRAY:
+        return iarg;
 
-        tmp = -1;
-        n = atom->find_custom(argi.get_name(),tmp);
-        if (n < 0)
-          error->all(FLERR,"Could not find custom per-atom property ID");
+      // custom per-atom floating point array = d2_ID
 
-        if (tmp != 0)
-          error->all(FLERR,"Custom per-atom property ID is not integer");
-
-        field2index[ATTRIBUTES+i] = add_custom(argi.get_name(),0);
-        name[ATTRIBUTES+i] = arg[iarg];
-        break;
+      case ArgInfo::DARRAY:
+        return iarg;
 
       default:
         return iarg;

@@ -63,13 +63,28 @@ if (test $1 = "COLLOID") then
   depend OPENMP
 fi
 
+if (test $1 = "DIELECTRIC") then
+  depend OPENMP
+fi
+
 if (test $1 = "DIPOLE") then
-  depend USER-MISC
   depend OPENMP
 fi
 
 if (test $1 = "DPD-BASIC") then
   depend GPU
+  depend OPENMP
+  depend INTEL
+fi
+
+if (test $1 = "EXTRA-MOLECULE") then
+  depend GPU
+  depend OPENMP
+fi
+
+if (test $1 = "EXTRA-PAIR") then
+  depend GPU
+  depend OPENMP
 fi
 
 if (test $1 = "GRANULAR") then
@@ -78,6 +93,7 @@ if (test $1 = "GRANULAR") then
 fi
 
 if (test $1 = "KSPACE") then
+  depend CG-SDK
   depend CORESHELL
   depend DIELECTRIC
   depend GPU
@@ -95,14 +111,13 @@ if (test $1 = "MANYBODY") then
   depend KOKKOS
   depend OPT
   depend QEQ
-  depend USER-MISC
   depend OPENMP
 fi
 
 if (test $1 = "MOLECULE") then
+  depend EXTRA-MOLECULE
   depend GPU
   depend KOKKOS
-  depend USER-MISC
   depend FEP
   depend OPENMP
   depend INTEL
@@ -143,12 +158,6 @@ fi
 
 if (test $1 = "FEP") then
   depend OPENMP
-fi
-
-if (test $1 = "USER-MISC") then
-  depend GPU
-  depend OPENMP
-  depend INTEL
 fi
 
 if (test $1 = "REAXFF") then

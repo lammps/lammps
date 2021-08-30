@@ -21,7 +21,7 @@ More specifically, this command causes LAMMPS to begin using the `MDI
 Library <https://molssi-mdi.github.io/MDI_Library/html/index.html>`_
 to run as an MDI engine (server), responding to commands made by an
 external MDI driver code (client).  See the :doc:`Howto mdi
-<Howto_mdi>` doc page for more information about how LAMMPS can work
+<Howto_mdi>` page for more information about how LAMMPS can work
 as both an MDI driver or engine.
 
 General information about launching codes that communicate using the
@@ -75,7 +75,7 @@ Restrictions
 
 This command is part of the MDI package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package
-<Build_package>` doc page for more info.
+<Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

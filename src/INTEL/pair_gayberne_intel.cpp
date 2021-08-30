@@ -25,16 +25,16 @@
 #endif
 
 #include "atom.h"
-#include "comm.h"
 #include "atom_vec_ellipsoid.h"
+#include "comm.h"
 #include "force.h"
 #include "memory.h"
 #include "modify.h"
-#include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-
+#include "neighbor.h"
 #include "suffix.h"
+
 using namespace LAMMPS_NS;
 
 #define FC_PACKED1_T typename ForceConst<flt_t>::fc_packed1
@@ -76,6 +76,9 @@ void PairGayBerneIntel::compute(int eflag, int vflag,
   ev_init(eflag, vflag);
   if (vflag_atom)
     error->all(FLERR,"INTEL package does not support per-atom stress");
+  if (vflag && !vflag_fdotr && force->newton_pair)
+    error->all(FLERR,"INTEL package does not support pair_modify nofdotr "
+               "with newton on");
 
   const int inum = list->inum;
   const int nall = atom->nlocal + atom->nghost;
@@ -447,9 +450,14 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
         __assume(packed_j % INTEL_MIC_VECTOR_WIDTH == 0);
         #endif
         #if defined(LMP_SIMD_COMPILER)
+#if defined(USE_OMP_SIMD)
+        #pragma omp simd reduction(+:fxtmp,fytmp,fztmp,fwtmp,t1tmp,t2tmp, \
+                                   t3tmp,sevdwl,sv0,sv1,sv2,sv3,sv4,sv5)
+#else
+        #pragma simd reduction(+:fxtmp,fytmp,fztmp,fwtmp,t1tmp,t2tmp, \
+                               t3tmp,sevdwl,sv0,sv1,sv2,sv3,sv4,sv5)
+#endif
         #pragma vector aligned
-        #pragma simd reduction(+:fxtmp,fytmp,fztmp,fwtmp,t1tmp,t2tmp,t3tmp, \
-                                 sevdwl,sv0,sv1,sv2,sv3,sv4,sv5)
         #endif
         for (int jj = 0; jj < packed_j; jj++) {
           flt_t a2_0, a2_1, a2_2, a2_3, a2_4, a2_5, a2_6, a2_7, a2_8;
@@ -804,8 +812,12 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
         acc_t *f_scalar2 = f_scalar + fst4;
         for (int t = 1; t < nthreads; t++) {
           #if defined(LMP_SIMD_COMPILER)
-          #pragma vector aligned
+#if defined(USE_OMP_SIMD)
+          #pragma omp simd
+#else
           #pragma simd
+#endif
+          #pragma vector aligned
           #endif
           for (int n = iifrom * 8; n < sto; n++)
             f_scalar[n] += f_scalar2[n];
@@ -874,11 +886,13 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
 void PairGayBerneIntel::init_style()
 {
   PairGayBerne::init_style();
+  auto request = neighbor->find_request(this);
+
   if (force->newton_pair == 0) {
-    neighbor->requests[neighbor->nrequest-1]->half = 0;
-    neighbor->requests[neighbor->nrequest-1]->full = 1;
+    request->half = 0;
+    request->full = 1;
   }
-  neighbor->requests[neighbor->nrequest-1]->intel = 1;
+  request->intel = 1;
 
   int ifix = modify->find_fix("package_intel");
   if (ifix < 0)
@@ -976,6 +990,7 @@ void PairGayBerneIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
                                                       const int nthreads,
                                                       Memory *memory,
                                                       const int cop) {
+  if (memory != nullptr) _memory = memory;
   if (ntypes != _ntypes) {
     if (_ntypes > 0) {
       fc_packed3 *oic = ic;
@@ -1015,15 +1030,15 @@ void PairGayBerneIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
 
     if (ntypes > 0) {
       _cop = cop;
-      memory->create(ijc, ntypes, ntypes, "fc.ijc");
-      memory->create(lj34, ntypes, ntypes, "fc.lj34");
-      memory->create(ic, ntypes, "fc.ic");
-      memory->create(rsq_form, nthreads, one_length, "rsq_form");
-      memory->create(delx_form, nthreads, one_length, "delx_form");
-      memory->create(dely_form, nthreads, one_length, "dely_form");
-      memory->create(delz_form, nthreads, one_length, "delz_form");
-      memory->create(jtype_form, nthreads, one_length, "jtype_form");
-      memory->create(jlist_form, nthreads, one_length, "jlist_form");
+      _memory->create(ijc, ntypes, ntypes, "fc.ijc");
+      _memory->create(lj34, ntypes, ntypes, "fc.lj34");
+      _memory->create(ic, ntypes, "fc.ic");
+      _memory->create(rsq_form, nthreads, one_length, "rsq_form");
+      _memory->create(delx_form, nthreads, one_length, "delx_form");
+      _memory->create(dely_form, nthreads, one_length, "dely_form");
+      _memory->create(delz_form, nthreads, one_length, "delz_form");
+      _memory->create(jtype_form, nthreads, one_length, "jtype_form");
+      _memory->create(jlist_form, nthreads, one_length, "jlist_form");
 
       for (int zn = 0; zn < nthreads; zn++)
         for (int zo = 0; zo < one_length; zo++) {
@@ -1068,5 +1083,4 @@ void PairGayBerneIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
     }
   }
   _ntypes = ntypes;
-  _memory = memory;
 }

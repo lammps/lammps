@@ -107,7 +107,7 @@ non-polarizable atoms are also subject to these weighting factors. The
 Drude particles inherit the 1-2, 1-3 and 1-4 neighbor relations from
 their respective cores.
 
-For pair_style *thole*\ , the following coefficients must be defined for
+For pair_style *thole*, the following coefficients must be defined for
 each pair of atoms types via the :doc:`pair_coeff <pair_coeff>` command
 as in the example above.
 
@@ -120,7 +120,7 @@ Thole damping parameter or global cutoff specified in the pair_style
 command are used. In order to specify a cutoff (third argument) a damp
 parameter (second argument) must also be specified.
 
-For pair style *lj/cut/thole/long*\ , the following coefficients must be
+For pair style *lj/cut/thole/long*, the following coefficients must be
 defined for each pair of atoms types via the :doc:`pair_coeff <pair_coeff>`
 command.
 
@@ -156,7 +156,7 @@ Restrictions
 """"""""""""
 
 These pair styles are part of the DRUDE package. They are only
-enabled if LAMMPS was built with that package. See the :doc:`Build package <Build_package>` doc page for more info.
+enabled if LAMMPS was built with that package. See the :doc:`Build package <Build_package>` page for more info.
 
 This pair_style should currently not be used with the :doc:`charmm dihedral style <dihedral_charmm>` if the latter has non-zero 1-4 weighting
 factors. This is because the *thole* pair style does not know which

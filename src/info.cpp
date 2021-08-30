@@ -1222,7 +1222,7 @@ bool Info::has_accelerator_feature(const std::string &package,
     return lmp_gpu_config(category,setting);
   }
 #endif
-#if defined(LMP_USER_OMP)
+#if defined(LMP_OPENMP)
   if (package == "OPENMP") {
     if (category == "precision") {
       if (setting == "double") return true;
@@ -1238,7 +1238,7 @@ bool Info::has_accelerator_feature(const std::string &package,
     }
   }
 #endif
-#if defined(LMP_USER_INTEL)
+#if defined(LMP_INTEL)
   if (package == "INTEL") {
     if (category == "precision") {
       if (setting == "double") return true;
@@ -1356,8 +1356,10 @@ std::string Info::get_openmp_info()
 // Supported OpenMP version corresponds to the release date of the
 // specifications as posted at https://www.openmp.org/specifications/
 
-#if _OPENMP > 201811
-  return "OpenMP newer than version 5.0";
+#if _OPENMP > 202011
+  return "OpenMP newer than version 5.1";
+#elif _OPENMP == 202011
+  return "OpenMP 5.1";
 #elif _OPENMP == 201811
   return "OpenMP 5.0";
 #elif _OPENMP == 201611

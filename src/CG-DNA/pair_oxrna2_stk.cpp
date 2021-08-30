@@ -19,6 +19,7 @@
 
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
+#include "atom_vec_oxdna.h"
 #include "comm.h"
 #include "error.h"
 #include "force.h"
@@ -44,26 +45,26 @@ PairOxrna2Stk::PairOxrna2Stk(LAMMPS *lmp) : Pair(lmp)
   writedata = 1;
 
   // sequence-specific stacking strength
-  // A:0 C:1 G:2 U:3, 5'- [i][j] -3'
+  // A:0 C:1 G:2 U:3, 3'- [i][j] -5'
 
   eta_st[0][0] = 0.93851;
-  eta_st[0][1] = 1.12901;
-  eta_st[0][2] = 1.15626;
-  eta_st[0][3] = 0.88850;
+  eta_st[1][0] = 1.12901;
+  eta_st[2][0] = 1.15626;
+  eta_st[3][0] = 0.88850;
 
-  eta_st[1][0] = 0.86331;
+  eta_st[0][1] = 0.86331;
   eta_st[1][1] = 1.05060;
-  eta_st[1][2] = 0.90982;
-  eta_st[1][3] = 0.83252;
+  eta_st[2][1] = 0.90982;
+  eta_st[3][1] = 0.83252;
 
-  eta_st[2][0] = 0.99407;
-  eta_st[2][1] = 1.14333;
+  eta_st[0][2] = 0.99407;
+  eta_st[1][2] = 1.14333;
   eta_st[2][2] = 1.06573;
-  eta_st[2][3] = 0.91705;
+  eta_st[3][2] = 0.91705;
 
-  eta_st[3][0] = 0.98804;
-  eta_st[3][1] = 1.04949;
-  eta_st[3][2] = 1.12063;
+  eta_st[0][3] = 0.98804;
+  eta_st[1][3] = 1.04949;
+  eta_st[2][3] = 1.12063;
   eta_st[3][3] = 0.83818;
 
 }
@@ -261,15 +262,16 @@ void PairOxrna2Stk::compute(int eflag, int vflag)
   int **bondlist = neighbor->bondlist;
   int nbondlist = neighbor->nbondlist;
 
+  tagint *id5p = atom->id5p;
+
   AtomVecEllipsoid *avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
   AtomVecEllipsoid::Bonus *bonus = avec->bonus;
   int *ellipsoid = atom->ellipsoid;
 
-  int a,b,in,atype,btype;
+  int a,b,btemp,in,atype,btype;
 
   double f1,f4t5,f4t6,f4t9,f4t10,f5c1,f5c2;
   double df1,df4t5,df4t6,df4t9,df4t10,df5c1,df5c2;
-  double tptofp;
 
   evdwl = 0.0;
   ev_init(eflag,vflag);
@@ -278,61 +280,42 @@ void PairOxrna2Stk::compute(int eflag, int vflag)
 
   for (in = 0; in < nbondlist; in++) {
 
-    a = bondlist[in][1];
-    b = bondlist[in][0];
+    a = bondlist[in][0];
+    b = bondlist[in][1];
+
+    // directionality test: a -> b is 3' -> 5'
+    if(atom->tag[b] != id5p[a]) {
+
+      btemp = b;
+      b = a;
+      a = btemp;
+
+    }
+
+   // a now in 3' direction, b in 5' direction
 
     qa=bonus[ellipsoid[a]].quat;
     MathExtra::q_to_exyz(qa,ax,ay,az);
     qb=bonus[ellipsoid[b]].quat;
     MathExtra::q_to_exyz(qb,bx,by,bz);
 
-    // vector COM a - 3'-stacking site a
-    ra_cst[0] = d_cst_x_3p*ax[0] + d_cst_y_3p*ay[0];
-    ra_cst[1] = d_cst_x_3p*ax[1] + d_cst_y_3p*ay[1];
-    ra_cst[2] = d_cst_x_3p*ax[2] + d_cst_y_3p*ay[2];
+    // vector COM a - 5'-stacking site a
+    ra_cst[0] = d_cst_x_5p*ax[0] + d_cst_y_5p*ay[0];
+    ra_cst[1] = d_cst_x_5p*ax[1] + d_cst_y_5p*ay[1];
+    ra_cst[2] = d_cst_x_5p*ax[2] + d_cst_y_5p*ay[2];
 
-    // vector COM b - 5'-stacking site b
-    rb_cst[0] = d_cst_x_5p*bx[0] + d_cst_y_5p*by[0];
-    rb_cst[1] = d_cst_x_5p*bx[1] + d_cst_y_5p*by[1];
-    rb_cst[2] = d_cst_x_5p*bx[2] + d_cst_y_5p*by[2];
+    // vector COM b - 3'-stacking site b
+    rb_cst[0] = d_cst_x_3p*bx[0] + d_cst_y_3p*by[0];
+    rb_cst[1] = d_cst_x_3p*bx[1] + d_cst_y_3p*by[1];
+    rb_cst[2] = d_cst_x_3p*bx[2] + d_cst_y_3p*by[2];
 
-    // vector 5'-stacking site b to 3'-stacking site a
-    delr_st[0] = x[a][0] + ra_cst[0] - x[b][0] - rb_cst[0];
-    delr_st[1] = x[a][1] + ra_cst[1] - x[b][1] - rb_cst[1];
-    delr_st[2] = x[a][2] + ra_cst[2] - x[b][2] - rb_cst[2];
+    // vector 5'-stacking site a to 3'-stacking site b
+    delr_st[0] = x[b][0] + rb_cst[0] - x[a][0] - ra_cst[0];
+    delr_st[1] = x[b][1] + rb_cst[1] - x[a][1] - ra_cst[1];
+    delr_st[2] = x[b][2] + rb_cst[2] - x[a][2] - ra_cst[2];
 
-    // test for directionality of vector b to a
-    tptofp = MFOxdna::is_3pto5p(delr_st,bz);
-
-    // if b to a is 5' to 3' we need to swap roles of a and b
-    if (tptofp == -1) {
-
-      std::swap(a,b);
-      std::swap(ax,bx);
-      std::swap(ay,by);
-      std::swap(az,bz);
-
-    }
-
-    // a now in 5' direction, b in 3' direction
     atype = type[a];
     btype = type[b];
-
-    // calculate again
-    // vector COM a - 3'-stacking site a
-    ra_cst[0] = d_cst_x_3p*ax[0] + d_cst_y_3p*ay[0];
-    ra_cst[1] = d_cst_x_3p*ax[1] + d_cst_y_3p*ay[1];
-    ra_cst[2] = d_cst_x_3p*ax[2] + d_cst_y_3p*ay[2];
-
-    // vector COM b - 5'-stacking site b
-    rb_cst[0] = d_cst_x_5p*bx[0] + d_cst_y_5p*by[0];
-    rb_cst[1] = d_cst_x_5p*bx[1] + d_cst_y_5p*by[1];
-    rb_cst[2] = d_cst_x_5p*bx[2] + d_cst_y_5p*by[2];
-
-    // vector 5'-stacking site b to 3'-stacking site a
-    delr_st[0] = x[a][0] + ra_cst[0] - x[b][0] - rb_cst[0];
-    delr_st[1] = x[a][1] + ra_cst[1] - x[b][1] - rb_cst[1];
-    delr_st[2] = x[a][2] + ra_cst[2] - x[b][2] - rb_cst[2];
 
     rsq_st = delr_st[0]*delr_st[0] + delr_st[1]*delr_st[1] + delr_st[2]*delr_st[2];
     r_st = sqrt(rsq_st);
@@ -352,10 +335,10 @@ void PairOxrna2Stk::compute(int eflag, int vflag)
     rb_cs[1] = d_cs_x*bx[1] + d_cs_z*bz[1];
     rb_cs[2] = d_cs_x*bx[2] + d_cs_z*bz[2];
 
-    // vector backbone site b to a
-    delr_ss[0] = (x[a][0] + ra_cs[0] - x[b][0] - rb_cs[0]);
-    delr_ss[1] = (x[a][1] + ra_cs[1] - x[b][1] - rb_cs[1]);
-    delr_ss[2] = (x[a][2] + ra_cs[2] - x[b][2] - rb_cs[2]);
+    // vector backbone site a to b
+    delr_ss[0] = (x[b][0] + rb_cs[0] - x[a][0] - ra_cs[0]);
+    delr_ss[1] = (x[b][1] + rb_cs[1] - x[a][1] - ra_cs[1]);
+    delr_ss[2] = (x[b][2] + rb_cs[2] - x[a][2] - ra_cs[2]);
 
     rsq_ss = delr_ss[0]*delr_ss[0] + delr_ss[1]*delr_ss[1] + delr_ss[2]*delr_ss[2];
     r_ss = sqrt(rsq_ss);
@@ -373,7 +356,7 @@ void PairOxrna2Stk::compute(int eflag, int vflag)
     if (f1) {
 
     // theta5 angle and correction
-    cost5p  = MathExtra::dot3(delr_st_norm,az);
+    cost5p  = MathExtra::dot3(delr_st_norm,bz);
     if (cost5p >  1.0) cost5p =  1.0;
     if (cost5p < -1.0) cost5p = -1.0;
     theta5p = acos(cost5p);
@@ -384,18 +367,18 @@ void PairOxrna2Stk::compute(int eflag, int vflag)
     // early rejection criterium
     if (f4t5) {
 
-    cost6p = MathExtra::dot3(delr_st_norm,bz);
+    cost6p = MathExtra::dot3(delr_st_norm,az);
     if (cost6p >  1.0) cost6p =  1.0;
     if (cost6p < -1.0) cost6p = -1.0;
     theta6p = acos(cost6p);
 
-    aux3p[0] = d3p_x * ax[0] + d3p_y * ay[0] + d3p_z * az[0];
-    aux3p[1] = d3p_x * ax[1] + d3p_y * ay[1] + d3p_z * az[1];
-    aux3p[2] = d3p_x * ax[2] + d3p_y * ay[2] + d3p_z * az[2];
+    aux5p[0] = d5p_x * ax[0] + d5p_y * ay[0] + d5p_z * az[0];
+    aux5p[1] = d5p_x * ax[1] + d5p_y * ay[1] + d5p_z * az[1];
+    aux5p[2] = d5p_x * ax[2] + d5p_y * ay[2] + d5p_z * az[2];
 
-    aux5p[0] = d5p_x * bx[0] + d5p_y * by[0] + d5p_z * bz[0];
-    aux5p[1] = d5p_x * bx[1] + d5p_y * by[1] + d5p_z * bz[1];
-    aux5p[2] = d5p_x * bx[2] + d5p_y * by[2] + d5p_z * bz[2];
+    aux3p[0] = d3p_x * bx[0] + d3p_y * by[0] + d3p_z * bz[0];
+    aux3p[1] = d3p_x * bx[1] + d3p_y * by[1] + d3p_z * bz[1];
+    aux3p[2] = d3p_x * bx[2] + d3p_y * by[2] + d3p_z * bz[2];
 
     cost9 = MathExtra::dot3(delr_ss_norm,aux3p);
     if (cost9 >  1.0) cost9 =  1.0;
@@ -407,11 +390,11 @@ void PairOxrna2Stk::compute(int eflag, int vflag)
     if (cost10 < -1.0) cost10 = -1.0;
     theta10 = acos(cost10);
 
-    cosphi1 = MathExtra::dot3(delr_ss_norm,ay);
+    cosphi1 = MathExtra::dot3(delr_ss_norm,by);
     if (cosphi1 >  1.0) cosphi1 =  1.0;
     if (cosphi1 < -1.0) cosphi1 = -1.0;
 
-    cosphi2 = MathExtra::dot3(delr_ss_norm,by);
+    cosphi2 = MathExtra::dot3(delr_ss_norm,ay);
     if (cosphi2 >  1.0) cosphi2 =  1.0;
     if (cosphi2 < -1.0) cosphi2 = -1.0;
 
@@ -425,10 +408,10 @@ void PairOxrna2Stk::compute(int eflag, int vflag)
         b_st10[atype][btype], dtheta_st10_c[atype][btype]);
 
     f5c1 = F5(-cosphi1, a_st1[atype][btype], -cosphi_st1_ast[atype][btype], b_st1[atype][btype],
-        cosphi_st1_c[atype][btype]);
+        -cosphi_st1_c[atype][btype]);
 
     f5c2 = F5(-cosphi2, a_st2[atype][btype], -cosphi_st2_ast[atype][btype], b_st2[atype][btype],
-        cosphi_st2_c[atype][btype]);
+        -cosphi_st2_c[atype][btype]);
 
 
     evdwl = f1 * f4t5 * f4t6 * f4t9 * f4t10 * f5c1 * f5c2;
@@ -453,10 +436,10 @@ void PairOxrna2Stk::compute(int eflag, int vflag)
         b_st10[atype][btype], dtheta_st10_c[atype][btype])/sin(theta10);
 
     df5c1 = DF5(-cosphi1, a_st1[atype][btype], -cosphi_st1_ast[atype][btype], b_st1[atype][btype],
-        cosphi_st1_c[atype][btype]);
+        -cosphi_st1_c[atype][btype]);
 
     df5c2 = DF5(-cosphi2, a_st2[atype][btype], -cosphi_st2_ast[atype][btype], b_st2[atype][btype],
-        cosphi_st2_c[atype][btype]);
+        -cosphi_st2_c[atype][btype]);
 
 
     // force, torque and virial contribution for forces between stacking sites
@@ -489,9 +472,9 @@ void PairOxrna2Stk::compute(int eflag, int vflag)
       finc   = -f1 * df4t5 * f4t6 * f4t9 * f4t10 * f5c1 * f5c2 * rinv_st;
       fpair += finc;
 
-      delf[0] += (delr_st_norm[0]*cost5p - az[0]) * finc;
-      delf[1] += (delr_st_norm[1]*cost5p - az[1]) * finc;
-      delf[2] += (delr_st_norm[2]*cost5p - az[2]) * finc;
+      delf[0] += (delr_st_norm[0]*cost5p - bz[0]) * finc;
+      delf[1] += (delr_st_norm[1]*cost5p - bz[1]) * finc;
+      delf[2] += (delr_st_norm[2]*cost5p - bz[2]) * finc;
 
     }
 
@@ -501,28 +484,27 @@ void PairOxrna2Stk::compute(int eflag, int vflag)
       finc   = -f1 * f4t5 * df4t6 * f4t9 * f4t10 * f5c1 * f5c2 * rinv_st;
       fpair += finc;
 
-      delf[0] += (delr_st_norm[0]*cost6p - bz[0]) * finc;
-      delf[1] += (delr_st_norm[1]*cost6p - bz[1]) * finc;
-      delf[2] += (delr_st_norm[2]*cost6p - bz[2]) * finc;
+      delf[0] += (delr_st_norm[0]*cost6p - az[0]) * finc;
+      delf[1] += (delr_st_norm[1]*cost6p - az[1]) * finc;
+      delf[2] += (delr_st_norm[2]*cost6p - az[2]) * finc;
 
     }
 
     // increment forces and torques
-
     if (newton_bond || a < nlocal) {
 
-      f[a][0] += delf[0];
-      f[a][1] += delf[1];
-      f[a][2] += delf[2];
+      f[a][0] -= delf[0];
+      f[a][1] -= delf[1];
+      f[a][2] -= delf[2];
 
       MathExtra::cross3(ra_cst,delf,delta);
 
     }
     if (newton_bond || b < nlocal) {
 
-      f[b][0] -= delf[0];
-      f[b][1] -= delf[1];
-      f[b][2] -= delf[2];
+      f[b][0] += delf[0];
+      f[b][1] += delf[1];
+      f[b][2] += delf[2];
 
       MathExtra::cross3(rb_cst,delf,deltb);
 
@@ -530,16 +512,16 @@ void PairOxrna2Stk::compute(int eflag, int vflag)
 
     if (newton_bond || a < nlocal) {
 
-      torque[a][0] += delta[0];
-      torque[a][1] += delta[1];
-      torque[a][2] += delta[2];
+      torque[a][0] -= delta[0];
+      torque[a][1] -= delta[1];
+      torque[a][2] -= delta[2];
 
     }
     if (newton_bond || b < nlocal) {
 
-      torque[b][0] -= deltb[0];
-      torque[b][1] -= deltb[1];
-      torque[b][2] -= deltb[2];
+      torque[b][0] += deltb[0];
+      torque[b][1] += deltb[1];
+      torque[b][2] += deltb[2];
 
     }
 
@@ -547,8 +529,8 @@ void PairOxrna2Stk::compute(int eflag, int vflag)
     // NOTE: The virial is calculated on the 'molecular' basis.
     // (see G. Ciccotti and J.P. Ryckaert, Comp. Phys. Rep. 4, 345-392 (1986))
 
-    if (evflag) ev_tally_xyz(a,b,nlocal,newton_bond,evdwl,
-        delf[0],delf[1],delf[2],x[a][0]-x[b][0],x[a][1]-x[b][1],x[a][2]-x[b][2]);
+    if (evflag) ev_tally_xyz(b,a,nlocal,newton_bond,evdwl,
+        delf[0],delf[1],delf[2],x[b][0]-x[a][0],x[b][1]-x[a][1],x[b][2]-x[a][2]);
 
     // force, torque and virial contribution for forces between backbone sites
 
@@ -596,9 +578,9 @@ void PairOxrna2Stk::compute(int eflag, int vflag)
       finc   = -f1 * f4t5 * f4t6 * f4t9 * f4t10 * df5c1 * f5c2 * rinv_ss;
       fpair += finc;
 
-      delf[0] += (delr_ss_norm[0]*cosphi1 - ay[0]) * finc;
-      delf[1] += (delr_ss_norm[1]*cosphi1 - ay[1]) * finc;
-      delf[2] += (delr_ss_norm[2]*cosphi1 - ay[2]) * finc;
+      delf[0] += (delr_ss_norm[0]*cosphi1 - by[0]) * finc;
+      delf[1] += (delr_ss_norm[1]*cosphi1 - by[1]) * finc;
+      delf[2] += (delr_ss_norm[2]*cosphi1 - by[2]) * finc;
 
     }
 
@@ -608,28 +590,27 @@ void PairOxrna2Stk::compute(int eflag, int vflag)
       finc   = -f1 * f4t5 * f4t6 * f4t9 * f4t10 * f5c1 * df5c2 * rinv_ss;
       fpair += finc;
 
-      delf[0] += (delr_ss_norm[0]*cosphi2 - by[0]) * finc;
-      delf[1] += (delr_ss_norm[1]*cosphi2 - by[1]) * finc;
-      delf[2] += (delr_ss_norm[2]*cosphi2 - by[2]) * finc;
+      delf[0] += (delr_ss_norm[0]*cosphi2 - ay[0]) * finc;
+      delf[1] += (delr_ss_norm[1]*cosphi2 - ay[1]) * finc;
+      delf[2] += (delr_ss_norm[2]*cosphi2 - ay[2]) * finc;
 
     }
 
     // increment forces and torques
-
     if (newton_bond || a < nlocal) {
 
-      f[a][0] += delf[0];
-      f[a][1] += delf[1];
-      f[a][2] += delf[2];
+      f[a][0] -= delf[0];
+      f[a][1] -= delf[1];
+      f[a][2] -= delf[2];
 
       MathExtra::cross3(ra_cs,delf,delta);
 
     }
     if (newton_bond || b < nlocal) {
 
-      f[b][0] -= delf[0];
-      f[b][1] -= delf[1];
-      f[b][2] -= delf[2];
+      f[b][0] += delf[0];
+      f[b][1] += delf[1];
+      f[b][2] += delf[2];
 
       MathExtra::cross3(rb_cs,delf,deltb);
 
@@ -637,22 +618,22 @@ void PairOxrna2Stk::compute(int eflag, int vflag)
 
     if (newton_bond || a < nlocal) {
 
-      torque[a][0] += delta[0];
-      torque[a][1] += delta[1];
-      torque[a][2] += delta[2];
+      torque[a][0] -= delta[0];
+      torque[a][1] -= delta[1];
+      torque[a][2] -= delta[2];
 
     }
     if (newton_bond || b < nlocal) {
 
-      torque[b][0] -= deltb[0];
-      torque[b][1] -= deltb[1];
-      torque[b][2] -= deltb[2];
+      torque[b][0] += deltb[0];
+      torque[b][1] += deltb[1];
+      torque[b][2] += deltb[2];
 
     }
 
     // increment virial only
-    if (evflag) ev_tally_xyz(a,b,nlocal,newton_bond,0.0,
-        delf[0],delf[1],delf[2],x[a][0]-x[b][0],x[a][1]-x[b][1],x[a][2]-x[b][2]);
+    if (evflag) ev_tally_xyz(b,a,nlocal,newton_bond,0.0,
+        delf[0],delf[1],delf[2],x[b][0]-x[a][0],x[b][1]-x[a][1],x[b][2]-x[a][2]);
 
     // pure torques not expressible as r x f
 
@@ -667,11 +648,11 @@ void PairOxrna2Stk::compute(int eflag, int vflag)
     if (theta5p) {
 
       tpair = -f1 * df4t5 * f4t6 * f4t9 * f4t10 * f5c1 * f5c2;
-      MathExtra::cross3(delr_st_norm,az,t5pdir);
+      MathExtra::cross3(delr_st_norm,bz,t5pdir);
 
-      delta[0] += t5pdir[0] * tpair;
-      delta[1] += t5pdir[1] * tpair;
-      delta[2] += t5pdir[2] * tpair;
+      deltb[0] += t5pdir[0] * tpair;
+      deltb[1] += t5pdir[1] * tpair;
+      deltb[2] += t5pdir[2] * tpair;
 
     }
 
@@ -679,11 +660,11 @@ void PairOxrna2Stk::compute(int eflag, int vflag)
     if (theta6p) {
 
       tpair = -f1 * f4t5 * df4t6 * f4t9 * f4t10 * f5c1 * f5c2;
-      MathExtra::cross3(delr_st_norm,bz,t6pdir);
+      MathExtra::cross3(delr_st_norm,az,t6pdir);
 
-      deltb[0] -= t6pdir[0] * tpair;
-      deltb[1] -= t6pdir[1] * tpair;
-      deltb[2] -= t6pdir[2] * tpair;
+      delta[0] -= t6pdir[0] * tpair;
+      delta[1] -= t6pdir[1] * tpair;
+      delta[2] -= t6pdir[2] * tpair;
 
     }
 
@@ -693,9 +674,9 @@ void PairOxrna2Stk::compute(int eflag, int vflag)
       tpair = -f1 * f4t5 * f4t6 * df4t9 * f4t10 * f5c1 * f5c2;
       MathExtra::cross3(delr_ss_norm,aux3p,t9dir);
 
-      delta[0] += t9dir[0] * tpair;
-      delta[1] += t9dir[1] * tpair;
-      delta[2] += t9dir[2] * tpair;
+      deltb[0] += t9dir[0] * tpair;
+      deltb[1] += t9dir[1] * tpair;
+      deltb[2] += t9dir[2] * tpair;
 
     }
 
@@ -705,9 +686,9 @@ void PairOxrna2Stk::compute(int eflag, int vflag)
       tpair = -f1 * f4t5 * f4t6 * f4t9 * df4t10 * f5c1 * f5c2;
       MathExtra::cross3(delr_ss_norm,aux5p,t10dir);
 
-      deltb[0] -= t10dir[0] * tpair;
-      deltb[1] -= t10dir[1] * tpair;
-      deltb[2] -= t10dir[2] * tpair;
+      delta[0] -= t10dir[0] * tpair;
+      delta[1] -= t10dir[1] * tpair;
+      delta[2] -= t10dir[2] * tpair;
 
     }
 
@@ -715,11 +696,11 @@ void PairOxrna2Stk::compute(int eflag, int vflag)
     if (cosphi1) {
 
       tpair   = -f1 * f4t5 * f4t6 * f4t9 * f4t10 * df5c1 * f5c2;
-      MathExtra::cross3(delr_ss_norm,ay,cosphi1dir);
+      MathExtra::cross3(delr_ss_norm,by,cosphi1dir);
 
-      delta[0] += cosphi1dir[0] * tpair;
-      delta[1] += cosphi1dir[1] * tpair;
-      delta[2] += cosphi1dir[2] * tpair;
+      deltb[0] += cosphi1dir[0] * tpair;
+      deltb[1] += cosphi1dir[1] * tpair;
+      deltb[2] += cosphi1dir[2] * tpair;
 
     }
 
@@ -727,27 +708,27 @@ void PairOxrna2Stk::compute(int eflag, int vflag)
     if (cosphi2) {
 
       tpair   = -f1 * f4t5 * f4t6 * f4t9 * f4t10 * f5c1 * df5c2;
-      MathExtra::cross3(delr_ss_norm,by,cosphi2dir);
+      MathExtra::cross3(delr_ss_norm,ay,cosphi2dir);
 
-      deltb[0] -= cosphi2dir[0] * tpair;
-      deltb[1] -= cosphi2dir[1] * tpair;
-      deltb[2] -= cosphi2dir[2] * tpair;
+      delta[0] -= cosphi2dir[0] * tpair;
+      delta[1] -= cosphi2dir[1] * tpair;
+      delta[2] -= cosphi2dir[2] * tpair;
 
     }
 
     // increment torques
     if (newton_bond || a < nlocal) {
 
-      torque[a][0] += delta[0];
-      torque[a][1] += delta[1];
-      torque[a][2] += delta[2];
+      torque[a][0] -= delta[0];
+      torque[a][1] -= delta[1];
+      torque[a][2] -= delta[2];
 
     }
     if (newton_bond || b < nlocal) {
 
-      torque[b][0] -= deltb[0];
-      torque[b][1] -= deltb[1];
-      torque[b][2] -= deltb[2];
+      torque[b][0] += deltb[0];
+      torque[b][1] += deltb[1];
+      torque[b][2] += deltb[2];
 
     }
 
@@ -1025,6 +1006,17 @@ void PairOxrna2Stk::coeff(int narg, char **arg)
 
   if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients in oxrna2/stk");
 
+}
+
+/* ----------------------------------------------------------------------
+   atom_style hybrid bond ellipsoid oxdna required
+------------------------------------------------------------------------- */
+
+void PairOxrna2Stk::init_style()
+{
+  if (!atom->style_match("oxdna")) {
+    error->all(FLERR,"Must use 'atom_style hybrid bond ellipsoid oxdna' with pair style oxdna/stk, oxdna2/stk or oxrna2/stk");
+  }
 }
 
 /* ----------------------------------------------------------------------

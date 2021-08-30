@@ -15,7 +15,7 @@ using std::vector;
 namespace ATC {
 
 ElectronHeatCapacityConstant::ElectronHeatCapacityConstant(
-  fstream &fileId, map<string,double> & parameters) 
+  fstream &fileId, map<string,double> & parameters)
   : ElectronHeatCapacity(),
   electronHeatCapacity_(0)
 {
@@ -36,7 +36,7 @@ ElectronHeatCapacityConstant::ElectronHeatCapacityConstant(
 }
 
 ElectronHeatCapacityLinear::ElectronHeatCapacityLinear(
-  fstream &fileId, map<string,double> & parameters) 
+  fstream &fileId, map<string,double> & parameters)
   : ElectronHeatCapacity(),
   electronHeatCapacity_(0)
 {
@@ -58,7 +58,7 @@ ElectronHeatCapacityLinear::ElectronHeatCapacityLinear(
 
 ElectronHeatCapacityConstantAddDensity::ElectronHeatCapacityConstantAddDensity(fstream &fileId,
                                                                                map<string,double> & parameters,
-                                                                               Material * material) 
+                                                                               Material * material)
   : ElectronHeatCapacityConstant(fileId, parameters),
     material_(material)
 {
@@ -67,7 +67,7 @@ ElectronHeatCapacityConstantAddDensity::ElectronHeatCapacityConstantAddDensity(f
 
 ElectronHeatCapacityLinearAddDensity::ElectronHeatCapacityLinearAddDensity(fstream &fileId,
                                                                            map<string,double> & parameters,
-                                                                           Material * material) 
+                                                                           Material * material)
   : ElectronHeatCapacityLinear(fileId, parameters),
     material_(material)
 {

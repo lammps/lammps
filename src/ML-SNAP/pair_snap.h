@@ -34,6 +34,7 @@ class PairSNAP : public Pair {
   virtual void init_style();
   virtual double init_one(int, int);
   virtual double memory_usage();
+  virtual void *extract(const char *, int &);
 
   double rcutfac, quadraticflag;    // declared public to workaround gcc 4.9
   int ncoeff;                       //  compiler bug, manifest in KOKKOS package
@@ -55,9 +56,10 @@ class PairSNAP : public Pair {
   double **coeffelem;     // element bispectrum coefficients
   double **beta;          // betas for all atoms in list
   double **bispectrum;    // bispectrum components for all atoms in list
+  double **scale;         // for thermodynamic integration
   int twojmax, switchflag, bzeroflag, bnormflag;
   int chemflag, wselfallflag;
-  int chunksize;
+  int chunksize,parallel_thresh;
   double rfac0, rmin0, wj1, wj2;
   int rcutfacflag, twojmaxflag;    // flags for required parameters
   int beta_max;                    // length of beta

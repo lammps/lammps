@@ -365,7 +365,7 @@ to insure that a specific Kspace processor (in the second partition) is
 matched up with a specific set of processors in the first partition.
 See the :doc:`General tips <Speed_tips>` page for more details.
 
-If the keyword *nth* is used with a setting *N*\ , then it means every
+If the keyword *nth* is used with a setting *N*, then it means every
 Nth processor will be moved to the end of the ranking.  This is useful
 when using the :doc:`run_style verlet/split <run_style>` command with 2
 partitions via the -partition command-line switch.  The first set of
@@ -397,7 +397,7 @@ so that the processors in each partition will be
 See the "processors" command for how to insure processors from each
 partition could then be grouped optimally for quad-core nodes.
 
-If the keyword is *custom*\ , then a file that specifies a permutation
+If the keyword is *custom*, then a file that specifies a permutation
 of the processor ranks is also specified.  The format of the reorder
 file is as follows.  Any number of initial blank or comment lines
 (starting with a "#" character) can be present.  These should be
@@ -464,7 +464,7 @@ The syntax following restartfile (or remap), namely
    datafile keyword value ...
 
 is identical to the arguments of the :doc:`write_data <write_data>`
-command.  See its doc page for details.  This includes its
+command.  See its page for details.  This includes its
 optional keyword/value settings.
 
 ----------
@@ -505,11 +505,11 @@ The syntax following restartfile (or remap), namely
    group-ID dumpstyle dumpfile arg1 arg2 ...
 
 is identical to the arguments of the :doc:`write_dump <write_dump>`
-command.  See its doc page for details.  This includes what per-atom
+command.  See its page for details.  This includes what per-atom
 fields are written to the dump file and optional dump_modify settings,
 including ones that affect how parallel dump files are written, e.g.
 the *nfile* and *fileper* keywords.  See the
-:doc:`dump_modify <dump_modify>` doc page for details.
+:doc:`dump_modify <dump_modify>` page for details.
 
 ----------
 
@@ -537,7 +537,7 @@ partition screen files file.N.
 **-suffix style args**
 
 Use variants of various styles if they exist.  The specified style can
-be *gpu*\ , *intel*\ , *kk*\ , *omp*\ , *opt*\ , or *hybrid*\ .  These
+be *gpu*, *intel*, *kk*, *omp*, *opt*, or *hybrid*\ .  These
 refer to optional packages that LAMMPS can be built with, as described
 in :doc:`Accelerate performance <Speed>`.  The "gpu" style corresponds to the
 GPU package, the "intel" style to the INTEL package, the "kk"

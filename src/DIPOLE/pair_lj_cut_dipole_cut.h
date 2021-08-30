@@ -37,6 +37,7 @@ class PairLJCutDipoleCut : public Pair {
   void read_restart(FILE *);
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
+  void *extract(const char *, int &);
 
  protected:
   double cut_lj_global, cut_coul_global;

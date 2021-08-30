@@ -13,24 +13,25 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_rx_kokkos.h"
-#include <cstring>
-#include "atom_masks.h"
+
 #include "atom_kokkos.h"
-#include "force.h"
-#include "memory_kokkos.h"
-#include "update.h"
-#include "modify.h"
-#include "neighbor.h"
-#include "neigh_list_kokkos.h"
-#include "neigh_request.h"
-#include "error.h"
-#include "math_special_kokkos.h"
+#include "atom_masks.h"
 #include "comm.h"
 #include "domain.h"
+#include "error.h"
+#include "fix_property_atom.h"
+#include "force.h"
 #include "kokkos.h"
-
+#include "math_special_kokkos.h"
+#include "memory_kokkos.h"
+#include "modify.h"
+#include "neigh_list_kokkos.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "update.h"
 
 #include <cfloat> // DBL_EPSILON
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -104,7 +105,7 @@ void FixRxKokkos<DeviceType>::post_constructor()
   FixRX::post_constructor();
 
   // Need a copy of this
-  this->my_restartFlag = modify->fix[modify->nfix-1]->restart_reset;
+  this->my_restartFlag = fix_species->restart_reset;
 }
 
 /* ---------------------------------------------------------------------- */

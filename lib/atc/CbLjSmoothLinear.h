@@ -23,20 +23,20 @@ namespace ATC
         A  (4.0*eps*pow(sig, 12)),
         B  (4.0*eps*pow(sig,  6)),
         rcut(cutoff_radius)
-    { 
+    {
       ricut = 1.0/rcut;
-      r6icut = (ricut*ricut*ricut)*(ricut*ricut*ricut); 
+      r6icut = (ricut*ricut*ricut)*(ricut*ricut*ricut);
       phicut = r6icut*(A*r6icut - B);
-      dphicut = r6icut*ricut*(6.0*B - 12.0*A*r6icut); 
+      dphicut = r6icut*ricut*(6.0*B - 12.0*A*r6icut);
     }
-    
+
     //! Returns the cutoff readius of the LJ potential.
     double cutoff_radius() const { return rcut; }
     //! Returns the LJ energy between two interacting atoms (6,12).
-    double phi(const double &r) const 
+    double phi(const double &r) const
     {
       const double r6i = 1.0/((r*r*r)*(r*r*r));
-      if (r < rcut) { 
+      if (r < rcut) {
         return (r6i*(A*r6i - B) - phicut - (r-rcut)*dphicut);
       }
       else {
@@ -44,11 +44,11 @@ namespace ATC
       }
     }
     //! Returns the first derivative of the LJ energy (7,13).
-    double phi_r(const double &r) const 
+    double phi_r(const double &r) const
     {
       const double ri  = 1.0/r;
       const double r6i = (ri*ri*ri)*(ri*ri*ri);
-      if (r < rcut) { 
+      if (r < rcut) {
         return (r6i*ri*(6.0*B - 12.0*A*r6i) - dphicut);
       }
       else {
@@ -56,7 +56,7 @@ namespace ATC
       }
     }
     //! Returns the second derivative of the LJ energy (8,14).
-    double phi_rr(const double &r) const 
+    double phi_rr(const double &r) const
     {
       const double r2i = 1.0/(r*r);
       const double r6i = r2i*r2i*r2i;

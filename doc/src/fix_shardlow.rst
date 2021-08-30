@@ -42,9 +42,9 @@ necessary).
 
 Note that numerous variants of DPD can be specified by choosing an
 appropriate combination of the integrator and :doc:`pair_style dpd/fdt <pair_style>` command.  DPD under isothermal conditions can
-be specified by using fix *shardlow*\ , fix *nve* and pair_style
+be specified by using fix *shardlow*, fix *nve* and pair_style
 *dpd/fdt*\ .  DPD under isoenergetic conditions can be specified by
-using fix *shardlow*\ , fix *nve* and pair_style *dpd/fdt/energy*\ .  DPD
+using fix *shardlow*, fix *nve* and pair_style *dpd/fdt/energy*\ .  DPD
 under isobaric conditions can be specified by using fix shardlow, fix
 *nph* and pair_style *dpd/fdt*\ .  DPD under isoenthalpic conditions can
 be specified by using fix shardlow, fix *nph* and pair_style
@@ -61,7 +61,7 @@ Restrictions
 """"""""""""
 
 This command is part of the DPD-REACT package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 This fix is currently limited to orthogonal simulation cell
 geometries.

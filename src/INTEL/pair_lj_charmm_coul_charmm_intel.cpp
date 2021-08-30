@@ -73,6 +73,9 @@ void PairLJCharmmCoulCharmmIntel::compute(int eflag, int vflag,
   ev_init(eflag,vflag);
   if (vflag_atom)
     error->all(FLERR,"INTEL package does not support per-atom stress");
+  if (vflag && !vflag_fdotr && force->newton_pair)
+    error->all(FLERR,"INTEL package does not support pair_modify nofdotr "
+               "with newton on");
 
   const int inum = list->inum;
   const int nthreads = comm->nthreads;
@@ -292,9 +295,14 @@ void PairLJCharmmCoulCharmmIntel::eval(const int offload, const int vflag,
         }
 
         #if defined(LMP_SIMD_COMPILER)
+#if defined(USE_OMP_SIMD)
+        #pragma omp simd reduction(+:fxtmp, fytmp, fztmp, fwtmp, sevdwl, \
+                                   secoul, sv0, sv1, sv2, sv3, sv4, sv5)
+#else
+        #pragma simd reduction(+:fxtmp, fytmp, fztmp, fwtmp, sevdwl, \
+                               secoul, sv0, sv1, sv2, sv3, sv4, sv5)
+#endif
         #pragma vector aligned
-        #pragma simd reduction(+:fxtmp, fytmp, fztmp, fwtmp, sevdwl, secoul, \
-                               sv0, sv1, sv2, sv3, sv4, sv5)
         #endif
         for (int jj = 0; jj < ej; jj++) {
           flt_t forcecoul, forcelj, evdwl;
@@ -448,11 +456,13 @@ void PairLJCharmmCoulCharmmIntel::eval(const int offload, const int vflag,
 void PairLJCharmmCoulCharmmIntel::init_style()
 {
   PairLJCharmmCoulCharmm::init_style();
+  auto request = neighbor->find_request(this);
+
   if (force->newton_pair == 0) {
-    neighbor->requests[neighbor->nrequest-1]->half = 0;
-    neighbor->requests[neighbor->nrequest-1]->full = 1;
+    request->half = 0;
+    request->full = 1;
   }
-  neighbor->requests[neighbor->nrequest-1]->intel = 1;
+  request->intel = 1;
 
   int ifix = modify->find_fix("package_intel");
   if (ifix < 0)
@@ -549,6 +559,7 @@ void PairLJCharmmCoulCharmmIntel::pack_force_const(ForceConst<flt_t> &fc,
 template <class flt_t>
 void PairLJCharmmCoulCharmmIntel::ForceConst<flt_t>::set_ntypes(
   const int ntypes, Memory *memory, const int cop) {
+  if (memory != nullptr) _memory = memory;
   if (ntypes != _ntypes) {
     if (_ntypes > 0) {
       #ifdef _LMP_INTEL_OFFLOAD
@@ -569,8 +580,8 @@ void PairLJCharmmCoulCharmmIntel::ForceConst<flt_t>::set_ntypes(
     }
     if (ntypes > 0) {
       _cop = cop;
-      memory->create(cutsq,ntypes,ntypes,"fc.cutsq");
-      memory->create(lj,ntypes,ntypes,"fc.lj");
+      _memory->create(cutsq,ntypes,ntypes,"fc.cutsq");
+      _memory->create(lj,ntypes,ntypes,"fc.lj");
 
       #ifdef _LMP_INTEL_OFFLOAD
       flt_t * ospecial_lj = special_lj;
@@ -589,5 +600,4 @@ void PairLJCharmmCoulCharmmIntel::ForceConst<flt_t>::set_ntypes(
     }
   }
   _ntypes=ntypes;
-  _memory=memory;
 }

@@ -93,7 +93,7 @@ Restrictions
 """"""""""""
 
 The *molfile* dump style is part of the MOLFILE package.  It is
-only enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+only enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Molfile plugins provide a consistent programming interface to read and
 write file formats commonly used in molecular simulations. The

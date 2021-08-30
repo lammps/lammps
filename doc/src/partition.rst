@@ -42,7 +42,7 @@ script operate differently on different partitions.  It is basically a
 prefix on any LAMMPS command.  The command will only be invoked on
 the partition(s) specified by the *style* and *N* arguments.
 
-If the *style* is *yes*\ , the command will be invoked on any partition
+If the *style* is *yes*, the command will be invoked on any partition
 which matches the *N* argument.  If the *style* is *no* the command
 will be invoked on all the partitions which do not match the Np
 argument.

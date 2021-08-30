@@ -1,4 +1,3 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -86,6 +85,7 @@ NPairStyle(half/size/bin/kk/device,
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_NPAIR_KOKKOS_H
 #define LMP_NPAIR_KOKKOS_H
 

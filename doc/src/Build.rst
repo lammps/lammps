@@ -22,4 +22,5 @@ page.
    Build_extras
    Build_manual
    Build_windows
+   Build_diskspace
    Build_development

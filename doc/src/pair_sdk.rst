@@ -141,7 +141,7 @@ All of the lj/sdk pair styles write their information to :doc:`binary restart fi
 not need to be specified in an input script that reads a restart file.
 
 The lj/sdk and lj/cut/coul/long pair styles do not support
-the use of the *inner*\ , *middle*\ , and *outer* keywords of the :doc:`run_style respa <run_style>` command.
+the use of the *inner*, *middle*, and *outer* keywords of the :doc:`run_style respa <run_style>` command.
 
 ----------
 

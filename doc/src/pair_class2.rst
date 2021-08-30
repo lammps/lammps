@@ -100,7 +100,7 @@ class 2 and Coulombic cutoffs are used.  If only one cutoff is
 specified, it is used as the cutoff for both class 2 and Coulombic
 interactions for this type pair.  If both coefficients are specified,
 they are used as the class 2 and Coulombic cutoffs for this type pair.
-You cannot specify 2 cutoffs for style *lj/class2*\ , since it has no
+You cannot specify 2 cutoffs for style *lj/class2*, since it has no
 Coulombic terms.
 
 For *lj/class2/coul/long* only the class 2 cutoff can be specified
@@ -120,10 +120,10 @@ for mixing the cutoff distance.
 
 ----------
 
-A version of these styles with a soft core, *lj/cut/soft*\ , suitable for use in
+A version of these styles with a soft core, *lj/cut/soft*, suitable for use in
 free energy calculations, is part of the FEP package and is documented with
 the :doc:`pair_style */soft <pair_fep_soft>` styles. The version with soft core is
-only available if LAMMPS was built with that package. See the :doc:`Build package <Build_package>` doc page for more info.
+only available if LAMMPS was built with that package. See the :doc:`Build package <Build_package>` page for more info.
 
 ----------
 
@@ -158,7 +158,7 @@ All of the lj/class2 pair styles write their information to :doc:`binary restart
 not need to be specified in an input script that reads a restart file.
 
 Only the *lj/class2* and *lj/class2/coul/long* pair styles support the use of the
-*inner*\ , *middle*\ , and *outer* keywords of the :doc:`run_style respa <run_style>` command, meaning the pairwise forces can be
+*inner*, *middle*, and *outer* keywords of the :doc:`run_style respa <run_style>` command, meaning the pairwise forces can be
 partitioned by distance at different levels of the rRESPA hierarchy.
 The other styles only support the *pair* keyword of run_style respa.
 See the :doc:`run_style <run_style>` command for details.
@@ -167,7 +167,7 @@ Restrictions
 """"""""""""
 
 These styles are part of the CLASS2 package.  They are only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

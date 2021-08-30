@@ -14,17 +14,20 @@
                         Shun Xu (Computer Network Information Center, CAS)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
 #include "pair_dpd_intel.h"
+
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
 #include "memory.h"
 #include "modify.h"
-#include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
+#include "neighbor.h"
 #include "suffix.h"
+
+#include <cmath>
+
 using namespace LAMMPS_NS;
 
 #define LMP_MKL_RNG VSL_BRNG_MT19937
@@ -86,6 +89,9 @@ void PairDPDIntel::compute(int eflag, int vflag,
   ev_init(eflag, vflag);
   if (vflag_atom)
     error->all(FLERR,"INTEL package does not support per-atom stress");
+  if (vflag && !vflag_fdotr && force->newton_pair)
+    error->all(FLERR,"INTEL package does not support pair_modify nofdotr "
+               "with newton on");
 
   const int inum = list->inum;
   const int nthreads = comm->nthreads;
@@ -284,9 +290,14 @@ void PairDPDIntel::eval(const int offload, const int vflag,
         }
 
         #if defined(LMP_SIMD_COMPILER)
-        #pragma vector aligned nog2s
+#if defined(USE_OMP_SIMD)
+        #pragma omp simd reduction(+:fxtmp, fytmp, fztmp, fwtmp, sevdwl, \
+                                   sv0, sv1, sv2, sv3, sv4, sv5)
+#else
         #pragma simd reduction(+:fxtmp, fytmp, fztmp, fwtmp, sevdwl, \
-                                 sv0, sv1, sv2, sv3, sv4, sv5)
+                               sv0, sv1, sv2, sv3, sv4, sv5)
+#endif
+        #pragma vector aligned
         #endif
         for (int jj = 0; jj < jnum; jj++) {
           flt_t forcelj, evdwl;
@@ -469,11 +480,13 @@ void PairDPDIntel::settings(int narg, char **arg) {
 void PairDPDIntel::init_style()
 {
   PairDPD::init_style();
+  auto request = neighbor->find_request(this);
+
   if (force->newton_pair == 0) {
-    neighbor->requests[neighbor->nrequest-1]->half = 0;
-    neighbor->requests[neighbor->nrequest-1]->full = 1;
+    request->half = 0;
+    request->full = 1;
   }
-  neighbor->requests[neighbor->nrequest-1]->intel = 1;
+  request->intel = 1;
 
   int ifix = modify->find_fix("package_intel");
   if (ifix < 0)
@@ -545,6 +558,7 @@ void PairDPDIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
                                                  const int max_nbors,
                                                  Memory *memory,
                                                  const int cop) {
+  if (memory != nullptr) _memory = memory;
   if (ntypes != _ntypes) {
     if (_ntypes > 0) {
       _memory->destroy(param);
@@ -553,15 +567,14 @@ void PairDPDIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
     }
     if (ntypes > 0) {
       _cop = cop;
-      memory->create(param,ntypes,ntypes,"fc.param");
-      memory->create(rand_buffer_thread, nthreads, max_nbors,
+      _memory->create(param,ntypes,ntypes,"fc.param");
+      _memory->create(rand_buffer_thread, nthreads, max_nbors,
                      "fc.rand_buffer_thread");
-      memory->create(rngi,nthreads,"fc.param");
+      _memory->create(rngi,nthreads,"fc.param");
       for (int i = 0; i < nthreads; i++) rngi[i] = max_nbors;
     }
   }
   _ntypes = ntypes;
-  _memory = memory;
 }
 
 /* ----------------------------------------------------------------------

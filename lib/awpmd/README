@@ -5,7 +5,7 @@ valuev at physik.hu-berlin.de
 June 2011
 
 This is version 0.9 of the AWPMD library taken from JIHT GridMD project.
-It contains interface to calculate electronic and electron-ion Hamiltonian, 
+It contains interface to calculate electronic and electron-ion Hamiltonian,
 norm matrix and forces for AWPMD method.
 
 AWPMD is an open source program distributed under the terms

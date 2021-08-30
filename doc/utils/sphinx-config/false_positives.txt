@@ -448,6 +448,7 @@ clo
 Clovertown
 cmake
 CMake
+CMakeLists
 cmap
 Cmax
 cmd
@@ -530,6 +531,7 @@ covalently
 covariance
 cpp
 cpu
+cradius
 createatoms
 createAtoms
 CreateIDs
@@ -1132,6 +1134,7 @@ Germano
 gerolf
 Gerolf
 Gershgorin
+getter
 gettimeofday
 gewald
 Gezelter
@@ -1171,6 +1174,7 @@ googletest
 Gordan
 Goudeau
 GPa
+GPL
 gpu
 gpuID
 gpus
@@ -1596,6 +1600,7 @@ Kosovan
 Koster
 Kosztin
 Kp
+kradius
 Kraker
 Kraus
 Kremer
@@ -1685,6 +1690,7 @@ Lett
 Leuven
 Leven
 Lewy
+LGPL
 lgvdw
 Liang
 libatc
@@ -1885,7 +1891,6 @@ maxX
 Mayergoyz
 Mayoral
 mbt
-Mbytes
 MBytes
 mc
 McLachlan
@@ -1991,6 +1996,7 @@ Mj
 mK
 mkdir
 mkv
+mlength
 mliap
 mliappy
 mlparks
@@ -2047,6 +2053,7 @@ mpiio
 mpirun
 mplayer
 mps
+mradius
 Mrovec
 Mryglod
 mscg
@@ -2105,6 +2112,7 @@ myIndex
 mylammps
 MyPool
 mysocket
+mySpin
 myTemp
 myVec
 na
@@ -2315,6 +2323,7 @@ nsub
 Nswap
 Nt
 Ntable
+nt
 ntheta
 nthreads
 ntimestep
@@ -2323,6 +2332,7 @@ Ntriples
 Ntype
 ntypes
 Ntypes
+nucleotide
 nucleotides
 nullptr
 num
@@ -2407,6 +2417,7 @@ orthorhombic
 Ortner
 oso
 Otype
+Ouadfel
 Ouldridge
 outfile
 outmost
@@ -2680,7 +2691,6 @@ qoverride
 qqr
 qqrd
 qtb
-Quadfel
 quadratically
 quadrupolar
 Quant
@@ -2742,6 +2752,7 @@ reamin
 reax
 REAXFF
 ReaxFF
+reaxff
 rebo
 recursing
 Ree
@@ -3155,6 +3166,7 @@ Suter
 Sutmann
 Suzen
 svn
+Svoboda
 sw
 Swegat
 swiggle

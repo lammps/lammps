@@ -18,13 +18,13 @@ namespace ATC{
 class WeakEquationPoisson : public WeakEquation {
 
   public:
-  
-  // constructor 
+
+  // constructor
   WeakEquationPoisson();
 
   // destructor
   virtual ~WeakEquationPoisson(){};
-  
+
   /** flux that is integrated with B = Grad N as its weight */
   virtual bool has_B_integrand(void) const {return true;}
   virtual void B_integrand(const FIELD_MATS &fields,
@@ -74,19 +74,19 @@ class WeakEquationPoisson : public WeakEquation {
 class WeakEquationPoissonConstantRHS : public WeakEquationPoisson {
 
   public:
-  
-  // constructor 
+
+  // constructor
   WeakEquationPoissonConstantRHS();
 
   // destructor
   virtual ~WeakEquationPoissonConstantRHS(){};
-  
+
   /** flux that is integrated with B = Grad N as its weight */
   virtual bool has_B_integrand(void) const {return true;}
   virtual void B_integrand(const FIELD_MATS &fields,
                            const GRAD_FIELD_MATS &grad_fields,
                            const Material * material,
-                           DENS_MAT_VEC &flux) const 
+                           DENS_MAT_VEC &flux) const
   { WeakEquationPoisson::B_integrand(fields, grad_fields, material, flux) ; }
 
   /** flux that is integrated with N as its weight */

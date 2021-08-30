@@ -150,6 +150,8 @@ Lowercase directories
 +-------------+------------------------------------------------------------------+
 | threebody   | regression test input for a variety of manybody potentials       |
 +-------------+------------------------------------------------------------------+
+| tracker     | track interactions in LJ melt                                    |
++-------------+------------------------------------------------------------------+
 | vashishta   | use of the Vashishta potential                                   |
 +-------------+------------------------------------------------------------------+
 | voronoi     | Voronoi tesselation via compute voronoi/atom command             |
@@ -172,10 +174,10 @@ web site.
 If you uncomment the :doc:`dump image <dump_image>` line(s) in the input
 script a series of JPG images will be produced by the run (assuming
 you built LAMMPS with JPG support; see the
-:doc:`Build_settings <Build_settings>` doc page for details).  These can
+:doc:`Build_settings <Build_settings>` page for details).  These can
 be viewed individually or turned into a movie or animated by tools
 like ImageMagick or QuickTime or various Windows-based tools.  See the
-:doc:`dump image <dump_image>` doc page for more details.  E.g. this
+:doc:`dump image <dump_image>` page for more details.  E.g. this
 Imagemagick command would create a GIF file suitable for viewing in a
 browser.
 
@@ -205,13 +207,11 @@ Uppercase directories
 +------------+--------------------------------------------------------------------------------------------------+
 | MC         | using LAMMPS in a Monte Carlo mode to relax the energy of a system                               |
 +------------+--------------------------------------------------------------------------------------------------+
-| PACKAGES   | examples for specific packages and contributed commands in USER-MISC                             |
+| PACKAGES   | examples for specific packages and contributed commands                                          |
 +------------+--------------------------------------------------------------------------------------------------+
 | SPIN       | examples for features of the SPIN package                                                        |
 +------------+--------------------------------------------------------------------------------------------------+
 | UNITS      | examples that run the same simulation in lj, real, metal units                                   |
-+------------+--------------------------------------------------------------------------------------------------+
-| USER-MISC  | examples for commands in the USER-MISC packages                                                  |
 +------------+--------------------------------------------------------------------------------------------------+
 | VISCOSITY  | compute viscosity via several methods                                                            |
 +------------+--------------------------------------------------------------------------------------------------+
@@ -225,8 +225,5 @@ illustrate how to use the command(s) provided in those packages.  Many
 of the sub-directories have their own README files which give further
 instructions.  See the :doc:`Packages_details <Packages_details>` doc
 page for more info on specific packages.
-
-Similarly the USER-MISC directory has sub-directories for examples
-corresponding to individual commands or styles in the USER-MISC package.
 
 .. _openkim: https://openkim.org

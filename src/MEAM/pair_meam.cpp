@@ -154,17 +154,16 @@ void PairMEAM::compute(int eflag, int vflag)
   // vptr is first value in vatom if it will be used by meam_force()
   // else vatom may not exist, so pass dummy ptr
 
-  double **vptr;
+  double **vptr = nullptr;
   if (vflag_atom) vptr = vatom;
-  else vptr = nullptr;
 
   for (ii = 0; ii < inum_half; ii++) {
     i = ilist_half[ii];
-    meam_inst->meam_force(i,eflag_either,eflag_global,eflag_atom,
-                vflag_atom,&eng_vdwl,eatom,ntype,type,map,scale,x,
-                numneigh_half[i],firstneigh_half[i],
-                numneigh_full[i],firstneigh_full[i],
-                offset,f,vptr);
+    meam_inst->meam_force(i,eflag_global,eflag_atom,vflag_global,
+                          vflag_atom,&eng_vdwl,eatom,ntype,type,map,scale,x,
+                          numneigh_half[i],firstneigh_half[i],
+                          numneigh_full[i],firstneigh_full[i],
+                          offset,f,vptr,virial);
     offset += numneigh_half[i];
   }
 

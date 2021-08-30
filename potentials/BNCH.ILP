@@ -1,6 +1,6 @@
+# DATE: 2020-01-16 UNITS: metal CONTRIBUTOR: Wengen Ouyang w.g.ouyang@gmail.com CITATION: Ouyang, Mandelli, Urbakh, Hod, Nano Letters 18, 6009-6016 (2018).
 # Interlayer Potential (ILP) for bilayer graphene/graphene, graphene/hBN and hBN/hBN junctions
 # The parameters below are fitted against the HSE + MBD DFT reference data from 2.5 A to 15 A.
-# Cite as W. Ouyang, D. Mandelli, M. Urbakh and O. Hod, Nano Letters 18, 6009-6016 (2018).
 #
 # ----------------- Repulsion Potential ------------------++++++++++++++ Vdw Potential ++++++++++++++++************  
 #    beta(A)    alpha    delta(A)  epsilon(meV)  C(meV)        d         sR      reff(A)   C6(meV*A^6)    S    rcut

@@ -1294,7 +1294,7 @@ void PairComb3::compute(int eflag, int vflag)
 
         if (evflag)
           ev_tally(i,j,nlocal,newton_pair,ep6p_ij,0.0,0.0,0.0,0.0,0.0);
-        if (vflag_atom)
+        if (vflag_either)
           v_tally3(i,j,k,fj,fk,delrj,delrk);
 
       } // k-loop
@@ -1387,7 +1387,7 @@ void PairComb3::compute(int eflag, int vflag)
             }
         }
 
-        if (vflag_atom)
+        if (vflag_either)
           v_tally3(j,i,l,fi,fl,delrl,delrk);
       }
     }

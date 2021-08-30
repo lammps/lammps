@@ -180,12 +180,10 @@ PairAIREBOIntel::~PairAIREBOIntel()
 void PairAIREBOIntel::init_style()
 {
   PairAIREBO::init_style();
-  neighbor->requests[neighbor->nrequest-1]->intel = 1;
+  neighbor->find_request(this)->intel = 1;
 
-  const int nrequest = neighbor->nrequest;
-  for (int i = 0; i < nrequest; ++i)
-    if (neighbor->requests[i]->skip)
-      error->all(FLERR, "Cannot yet use airebo/intel with hybrid.");
+  if (utils::strmatch(force->pair_style,"^hybrid"))
+    error->all(FLERR, "Cannot yet use airebo/intel with hybrid.");
 
   int ifix = modify->find_fix("package_intel");
   if (ifix < 0)
@@ -294,6 +292,9 @@ void PairAIREBOIntel::compute(
   ev_init(eflag,vflag);
   if (vflag_atom)
     error->all(FLERR,"INTEL package does not support per-atom stress");
+  if (vflag && !vflag_fdotr && force->newton_pair)
+    error->all(FLERR,"INTEL package does not support pair_modify nofdotr "
+               "with newton on");
 
   pvector[0] = pvector[1] = pvector[2] = 0.0;
 
@@ -2332,7 +2333,7 @@ static void aut_rebo_neigh(KernelArgsAIREBOT<flt_t,acc_t> * ka) {
     int n_skin = 0;
 
     int lowest_idx;
-    #pragma unroll(4)
+    //#pragma unroll(4)
     for (lowest_idx = 0; lowest_idx < jnum; lowest_idx += fvec::VL) {
       bvec j_mask = bvec::full();
       if (lowest_idx + fvec::VL > jnum) j_mask = bvec::only(jnum - lowest_idx);

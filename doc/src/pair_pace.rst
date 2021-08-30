@@ -64,7 +64,7 @@ The pair_style *pace* command may be followed by an optional keyword
 is used for the calculation of basis functions and derivatives.
 The default is *recursive*.
 
-See the :doc:`pair_coeff <pair_coeff>` doc page for alternate ways
+See the :doc:`pair_coeff <pair_coeff>` page for alternate ways
 to specify the path for the ACE coefficient file.
 
 Mixing, shift, table, tail correction, restart, rRESPA info
@@ -84,7 +84,7 @@ script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 ----------
 
@@ -93,7 +93,7 @@ Restrictions
 
 This pair style is part of the ML-PACE package.  It is only enabled if LAMMPS
 was built with that package.
-See the :doc:`Build package <Build_package>` doc page for more info.
+See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

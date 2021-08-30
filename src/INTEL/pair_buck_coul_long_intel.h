@@ -25,8 +25,8 @@ PairStyle(buck/coul/long/intel,PairBuckCoulLongIntel);
 #ifndef LMP_PAIR_BUCK_COUL_LONG_INTEL_H
 #define LMP_PAIR_BUCK_COUL_LONG_INTEL_H
 
-#include "pair_buck_coul_long.h"
 #include "fix_intel.h"
+#include "pair_buck_coul_long.h"
 
 namespace LAMMPS_NS {
 
@@ -37,7 +37,10 @@ class PairBuckCoulLongIntel : public PairBuckCoulLong {
   virtual ~PairBuckCoulLongIntel();
   virtual void compute(int, int);
   void init_style();
-  typedef struct { float x, y, z; int w; } sng4_t;
+  typedef struct {
+    float x, y, z;
+    int w;
+  } sng4_t;
 
  private:
   FixIntel *fix;
@@ -46,26 +49,29 @@ class PairBuckCoulLongIntel : public PairBuckCoulLong {
   template <class flt_t> class ForceConst;
 
   template <class flt_t, class acc_t>
-  void compute(int eflag, int vflag, IntelBuffers<flt_t,acc_t> * buffers,
+  void compute(int eflag, int vflag, IntelBuffers<flt_t, acc_t> *buffers,
                const ForceConst<flt_t> &fc);
 
   template <int EFLAG, int NEWTON_PAIR, class flt_t, class acc_t>
-  void eval(const int offload, const int vflag,
-            IntelBuffers<flt_t,acc_t> * buffers,
+  void eval(const int offload, const int vflag, IntelBuffers<flt_t, acc_t> *buffers,
             const ForceConst<flt_t> &fc, const int astart, const int aend);
 
   template <class flt_t, class acc_t>
-  void pack_force_const(ForceConst<flt_t> &fc,
-                        IntelBuffers<flt_t, acc_t> *buffers);
+  void pack_force_const(ForceConst<flt_t> &fc, IntelBuffers<flt_t, acc_t> *buffers);
 
-  template <class flt_t>
-  class ForceConst {
+  template <class flt_t> class ForceConst {
    public:
-    typedef struct { flt_t cutsq, cut_ljsq, buck1, buck2; } c_force_t;
-    typedef struct { flt_t a, c, offset, pad; } c_energy_t;
-    typedef struct { flt_t r, dr, f, df; } table_t;
-    _alignvar(flt_t special_coul[4],64);
-    _alignvar(flt_t special_lj[4],64);
+    typedef struct {
+      flt_t cutsq, cut_ljsq, buck1, buck2;
+    } c_force_t;
+    typedef struct {
+      flt_t a, c, offset, pad;
+    } c_energy_t;
+    typedef struct {
+      flt_t r, dr, f, df;
+    } table_t;
+    _alignvar(flt_t special_coul[4], 64);
+    _alignvar(flt_t special_lj[4], 64);
     flt_t g_ewald, tabinnersq;
     c_force_t **c_force;
     c_energy_t **c_energy;
@@ -74,10 +80,9 @@ class PairBuckCoulLongIntel : public PairBuckCoulLong {
     flt_t *etable, *detable, *ctable, *dctable;
 
     ForceConst() : _ntypes(0), _ntable(0) {}
-    ~ForceConst() { set_ntypes(0,0,nullptr,_cop); }
+    ~ForceConst() { set_ntypes(0, 0, nullptr, _cop); }
 
-    void set_ntypes(const int ntypes, const int ntable, Memory *memory,
-                    const int cop);
+    void set_ntypes(const int ntypes, const int ntable, Memory *memory, const int cop);
 
    private:
     int _ntypes, _ntable, _cop;
@@ -87,7 +92,7 @@ class PairBuckCoulLongIntel : public PairBuckCoulLong {
   ForceConst<double> force_const_double;
 };
 
-}
+}    // namespace LAMMPS_NS
 
-#endif // LMP_PAIR_BUCK_COUL_LONG_INTEL_H
+#endif    // LMP_PAIR_BUCK_COUL_LONG_INTEL_H
 #endif

@@ -528,6 +528,7 @@ void Neighbor::init()
       for (int isub=0; isub < ph->nstyles; ++isub) {
         if (force->pair_match("coul/wolf",0,isub)
             || force->pair_match("coul/dsf",0,isub)
+            || force->pair_match("coul/exclude",0)
             || force->pair_match("thole",0,isub))
           ++flag;
       }
@@ -536,6 +537,7 @@ void Neighbor::init()
     } else {
       if (force->pair_match("coul/wolf",0)
           || force->pair_match("coul/dsf",0)
+          || force->pair_match("coul/exclude",0)
           || force->pair_match("thole",0))
         special_flag[1] = special_flag[2] = special_flag[3] = 2;
     }

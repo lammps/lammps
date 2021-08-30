@@ -70,6 +70,9 @@ void PairBuckIntel::compute(int eflag, int vflag,
   ev_init(eflag,vflag);
   if (vflag_atom)
     error->all(FLERR,"INTEL package does not support per-atom stress");
+  if (vflag && !vflag_fdotr && force->newton_pair)
+    error->all(FLERR,"INTEL package does not support pair_modify nofdotr "
+               "with newton on");
 
   const int inum = list->inum;
   const int nthreads = comm->nthreads;
@@ -228,12 +231,18 @@ void PairBuckIntel::eval(const int offload, const int vflag,
         fxtmp = fytmp = fztmp = (acc_t)0;
         if (EFLAG) fwtmp = sevdwl =  (acc_t)0;
         if (NEWTON_PAIR == 0)
-          if (vflag == VIRIAL_PAIR) sv0 = sv1 = sv2 = sv3 = sv4 = sv5 = (acc_t)0;
+          if (vflag == VIRIAL_PAIR)
+            sv0 = sv1 = sv2 = sv3 = sv4 = sv5 = (acc_t)0;
 
         #if defined(LMP_SIMD_COMPILER)
-        #pragma vector aligned
+#if defined(USE_OMP_SIMD)
+        #pragma omp simd reduction(+:fxtmp, fytmp, fztmp, fwtmp, sevdwl, \
+                                   sv0, sv1, sv2, sv3, sv4, sv5)
+#else
         #pragma simd reduction(+:fxtmp, fytmp, fztmp, fwtmp, sevdwl, \
                                sv0, sv1, sv2, sv3, sv4, sv5)
+#endif
+        #pragma vector aligned
         #endif
         for (int jj = 0; jj < jnum; jj++) {
 
@@ -363,11 +372,14 @@ void PairBuckIntel::eval(const int offload, const int vflag,
 void PairBuckIntel::init_style()
 {
   PairBuck::init_style();
+
+  // augment neighbor list request
+  auto request = neighbor->find_request(this);
   if (force->newton_pair == 0) {
-    neighbor->requests[neighbor->nrequest-1]->half = 0;
-    neighbor->requests[neighbor->nrequest-1]->full = 1;
+    request->half = 0;
+    request->full = 1;
   }
-  neighbor->requests[neighbor->nrequest-1]->intel = 1;
+  request->intel = 1;
 
   int ifix = modify->find_fix("package_intel");
   if (ifix < 0)
@@ -443,6 +455,7 @@ template <class flt_t>
 void PairBuckIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
                                                   Memory *memory,
                                                   const int cop) {
+  if (memory != nullptr) _memory = memory;
   if ((ntypes != _ntypes )) {
     if (_ntypes > 0) {
       #ifdef _LMP_INTEL_OFFLOAD
@@ -465,9 +478,8 @@ void PairBuckIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
     }
     if (ntypes > 0) {
       _cop = cop;
-      memory->create(c_force,ntypes,ntypes,"fc.c_force");
-      memory->create(c_energy,ntypes,ntypes,"fc.c_energy");
-
+      _memory->create(c_force,ntypes,ntypes,"fc.c_force");
+      _memory->create(c_energy,ntypes,ntypes,"fc.c_energy");
 
       #ifdef _LMP_INTEL_OFFLOAD
       flt_t * ospecial_lj = special_lj;
@@ -487,7 +499,6 @@ void PairBuckIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
     }
   }
   _ntypes=ntypes;
-  _memory=memory;
 }
 
 

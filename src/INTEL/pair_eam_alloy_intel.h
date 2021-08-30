@@ -38,7 +38,7 @@ class PairEAMAlloyIntel : virtual public PairEAMIntel {
   void file2array();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -125,7 +125,7 @@ notation as
 
 where *X0* = (x0,y0,z0) is their position at the time the fix is
 specified, *A* is the specified amplitude vector with components
-(Ax,Ay,Az), *omega* is 2 PI / *period*\ , and *delta* is the time
+(Ax,Ay,Az), *omega* is 2 PI / *period*, and *delta* is the time
 elapsed since the fix was specified.  This style also sets the
 velocity of each particle to the time derivative of this expression.
 If any of the amplitude components is specified as NULL, then the
@@ -150,7 +150,7 @@ The *rotate* style rotates particles around a rotation axis *R* =
 (Rx,Ry,Rz) that goes through a point *P* = (Px,Py,Pz).  The *period* of
 the rotation is also specified.  The direction of rotation for the
 particles around the rotation axis is consistent with the right-hand
-rule: if your right-hand thumb points along *R*\ , then your fingers wrap
+rule: if your right-hand thumb points along *R*, then your fingers wrap
 around the axis in the direction of rotation.
 
 This style also sets the velocity of each particle to (omega cross
@@ -240,7 +240,7 @@ Restrictions
 
 This fix is part of the DPD-SMOOTH package.  It is only enabled if
 LAMMPS was built with that package. See the :doc:`Build package
-<Build_package>` doc page for more info.
+<Build_package>` page for more info.
 
 This fix requires that atoms store density and internal energy as
 defined by the :doc:`atom_style sph <atom_style>` command.

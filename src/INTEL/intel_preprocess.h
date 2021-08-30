@@ -16,6 +16,16 @@
    Contributing author: W. Michael Brown (Intel)
 ------------------------------------------------------------------------- */
 
+#ifdef __INTEL_LLVM_COMPILER
+#define USE_OMP_SIMD
+#define __INTEL_COMPILER __INTEL_LLVM_COMPILER
+#define __INTEL_COMPILER_BUILD_DATE __INTEL_LLVM_COMPILER
+#define _MM_SCALE_1 1
+#define _MM_SCALE_2 2
+#define _MM_SCALE_4 4
+#define _MM_SCALE_8 8
+#endif
+
 #ifdef __INTEL_COMPILER
 #define LMP_SIMD_COMPILER
 #if (__INTEL_COMPILER_BUILD_DATE > 20160720)
@@ -40,7 +50,7 @@
 #ifndef LMP_INTEL_PREPROCESS_H
 #define LMP_INTEL_PREPROCESS_H
 
-// LAMMPS_MEMALIGN is set to 64 by default for -DLMP_USER_INTEL
+// LAMMPS_MEMALIGN is set to 64 by default for -DLMP_INTEL
 // so we only need to error out in case of a different alignment
 #if LAMMPS_MEMALIGN && (LAMMPS_MEMALIGN != 64)
 #error Please set -DLAMMPS_MEMALIGN=64 in CCFLAGS of your LAMMPS makefile for INTEL package
@@ -327,6 +337,9 @@ enum {TIME_PACK, TIME_HOST_NEIGHBOR, TIME_HOST_PAIR, TIME_OFFLOAD_NEIGHBOR,
 
 #endif
 
+// TO BE DEPRECATED
+#ifndef USE_OMP_SIMD
+
 #define IP_PRE_fdotr_acc_force_l5(lf, lt, minlocal, nthreads, f_start,  \
                                   f_stride, pos, ov0, ov1, ov2,         \
                                   ov3, ov4, ov5)                        \
@@ -520,6 +533,198 @@ enum {TIME_PACK, TIME_HOST_NEIGHBOR, TIME_HOST_PAIR, TIME_OFFLOAD_NEIGHBOR,
                               ov5);                                     \
   }                                                                     \
 }
+
+#else
+
+#define IP_PRE_fdotr_acc_force_l5(lf, lt, minlocal, nthreads, f_start,  \
+                                  f_stride, pos, ov0, ov1, ov2,         \
+                                  ov3, ov4, ov5)                        \
+{                                                                       \
+  acc_t *f_scalar = &f_start[0].x;                                      \
+  flt_t *x_scalar = &pos[minlocal].x;                                   \
+  int f_stride4 = f_stride * 4;                                         \
+  _alignvar(acc_t ovv[16],64);                                          \
+  int vwidth;                                                           \
+  if (sizeof(acc_t) == sizeof(double))                                  \
+    vwidth = INTEL_COMPILE_WIDTH/2;                                     \
+  else                                                                  \
+    vwidth = INTEL_COMPILE_WIDTH;                                       \
+  if (vwidth < 4) vwidth = 4;                                           \
+  _use_simd_pragma("omp simd aligned(ovv:64)")                          \
+  for (int v = 0; v < vwidth; v++) ovv[v] = (acc_t)0.0;                 \
+  int remainder = lt % vwidth;                                          \
+  if (lf > lt) remainder = 0;                                           \
+  const int v_range = lt - remainder;                                   \
+  if (nthreads == 2) {                                                  \
+    acc_t *f_scalar2 = f_scalar + f_stride4;                            \
+    for (int n = lf; n < v_range; n += vwidth) {                        \
+      _use_simd_pragma("omp simd aligned(f_scalar,f_scalar2,ovv,x_scalar:64)")\
+      for (int v = 0; v < vwidth; v++) {                                \
+        f_scalar[n+v] += f_scalar2[n+v];                                \
+        ovv[v] += f_scalar[n+v] * x_scalar[n+v];                        \
+      }                                                                 \
+      ov3 += f_scalar[n+1] * x_scalar[n+0];                             \
+      ov4 += f_scalar[n+2] * x_scalar[n+0];                             \
+      ov5 += f_scalar[n+2] * x_scalar[n+1];                             \
+      if (vwidth > 4) {                                                 \
+        ov3 += f_scalar[n+5] * x_scalar[n+4];                           \
+        ov4 += f_scalar[n+6] * x_scalar[n+4];                           \
+        ov5 += f_scalar[n+6] * x_scalar[n+5];                           \
+      }                                                                 \
+      if (vwidth > 8) {                                                 \
+        ov3 += f_scalar[n+9] * x_scalar[n+8];                           \
+        ov3 += f_scalar[n+13] * x_scalar[n+12];                         \
+        ov4 += f_scalar[n+10] * x_scalar[n+8];                          \
+        ov4 += f_scalar[n+14] * x_scalar[n+12];                         \
+        ov5 += f_scalar[n+10] * x_scalar[n+9];                          \
+        ov5 += f_scalar[n+14] * x_scalar[n+13];                         \
+      }                                                                 \
+    }                                                                   \
+    _use_simd_pragma("vector aligned")                                  \
+    _use_simd_pragma("ivdep")                                           \
+    _use_simd_pragma("loop_count min(4) max(INTEL_COMPILE_WIDTH)")      \
+    for (int n = v_range; n < lt; n++)                                  \
+      f_scalar[n] += f_scalar2[n];                                      \
+  } else if (nthreads==4) {                                             \
+    acc_t *f_scalar2 = f_scalar + f_stride4;                            \
+    acc_t *f_scalar3 = f_scalar2 + f_stride4;                           \
+    acc_t *f_scalar4 = f_scalar3 + f_stride4;                           \
+    for (int n = lf; n < v_range; n += vwidth) {                        \
+      _use_simd_pragma("omp simd aligned(f_scalar,f_scalar2,f_scalar3,f_scalar4,ovv:64)") \
+      for (int v = 0; v < vwidth; v++) {                                \
+        f_scalar[n+v] += f_scalar2[n+v] + f_scalar3[n+v] +              \
+          f_scalar4[n+v];                                               \
+        ovv[v] += f_scalar[n+v] * x_scalar[n+v];                        \
+      }                                                                 \
+      ov3 += f_scalar[n+1] * x_scalar[n+0];                             \
+      ov4 += f_scalar[n+2] * x_scalar[n+0];                             \
+      ov5 += f_scalar[n+2] * x_scalar[n+1];                             \
+      if (vwidth > 4) {                                                 \
+        ov3 += f_scalar[n+5] * x_scalar[n+4];                           \
+        ov4 += f_scalar[n+6] * x_scalar[n+4];                           \
+        ov5 += f_scalar[n+6] * x_scalar[n+5];                           \
+      }                                                                 \
+      if (vwidth > 8) {                                                 \
+        ov3 += f_scalar[n+9] * x_scalar[n+8];                           \
+        ov3 += f_scalar[n+13] * x_scalar[n+12];                         \
+        ov4 += f_scalar[n+10] * x_scalar[n+8];                          \
+        ov4 += f_scalar[n+14] * x_scalar[n+12];                         \
+        ov5 += f_scalar[n+10] * x_scalar[n+9];                          \
+        ov5 += f_scalar[n+14] * x_scalar[n+13];                         \
+      }                                                                 \
+    }                                                                   \
+    _use_simd_pragma("vector aligned")                                  \
+    _use_simd_pragma("ivdep")                                           \
+    _use_simd_pragma("loop_count min(4) max(INTEL_COMPILE_WIDTH)")      \
+    for (int n = v_range; n < lt; n++)                                  \
+      f_scalar[n] += f_scalar2[n] + f_scalar3[n] + f_scalar4[n];        \
+  } else if (nthreads==1) {                                             \
+    for (int n = lf; n < v_range; n += vwidth) {                        \
+      _use_simd_pragma("omp simd aligned(ovv,f_scalar,x_scalar:64)")    \
+      for (int v = 0; v < vwidth; v++)                                  \
+        ovv[v] += f_scalar[n+v] * x_scalar[n+v];                        \
+      ov3 += f_scalar[n+1] * x_scalar[n+0];                             \
+      ov4 += f_scalar[n+2] * x_scalar[n+0];                             \
+      ov5 += f_scalar[n+2] * x_scalar[n+1];                             \
+      if (vwidth > 4) {                                                 \
+        ov3 += f_scalar[n+5] * x_scalar[n+4];                           \
+        ov4 += f_scalar[n+6] * x_scalar[n+4];                           \
+        ov5 += f_scalar[n+6] * x_scalar[n+5];                           \
+      }                                                                 \
+      if (vwidth > 8) {                                                 \
+        ov3 += f_scalar[n+9] * x_scalar[n+8];                           \
+        ov3 += f_scalar[n+13] * x_scalar[n+12];                         \
+        ov4 += f_scalar[n+10] * x_scalar[n+8];                          \
+        ov4 += f_scalar[n+14] * x_scalar[n+12];                         \
+        ov5 += f_scalar[n+10] * x_scalar[n+9];                          \
+        ov5 += f_scalar[n+14] * x_scalar[n+13];                         \
+      }                                                                 \
+    }                                                                   \
+  } else if (nthreads==3) {                                             \
+    acc_t *f_scalar2 = f_scalar + f_stride4;                            \
+    acc_t *f_scalar3 = f_scalar2 + f_stride4;                           \
+    for (int n = lf; n < v_range; n += vwidth) {                        \
+      _use_simd_pragma("omp simd aligned(f_scalar,f_scalar2,f_scalar3,ovv,x_scalar:64)") \
+      for (int v = 0; v < vwidth; v++) {                                \
+        f_scalar[n+v] += f_scalar2[n+v] + f_scalar3[n+v];               \
+        ovv[v] += f_scalar[n+v] * x_scalar[n+v];                        \
+      }                                                                 \
+      ov3 += f_scalar[n+1] * x_scalar[n+0];                             \
+      ov4 += f_scalar[n+2] * x_scalar[n+0];                             \
+      ov5 += f_scalar[n+2] * x_scalar[n+1];                             \
+      if (vwidth > 4) {                                                 \
+        ov3 += f_scalar[n+5] * x_scalar[n+4];                           \
+        ov4 += f_scalar[n+6] * x_scalar[n+4];                           \
+        ov5 += f_scalar[n+6] * x_scalar[n+5];                           \
+      }                                                                 \
+      if (vwidth > 8) {                                                 \
+        ov3 += f_scalar[n+9] * x_scalar[n+8];                           \
+        ov3 += f_scalar[n+13] * x_scalar[n+12];                         \
+        ov4 += f_scalar[n+10] * x_scalar[n+8];                          \
+        ov4 += f_scalar[n+14] * x_scalar[n+12];                         \
+        ov5 += f_scalar[n+10] * x_scalar[n+9];                          \
+        ov5 += f_scalar[n+14] * x_scalar[n+13];                         \
+      }                                                                 \
+    }                                                                   \
+    _use_simd_pragma("vector aligned")                                  \
+    _use_simd_pragma("ivdep")                                           \
+    _use_simd_pragma("loop_count min(4) max(INTEL_COMPILE_WIDTH)")      \
+    for (int n = v_range; n < lt; n++)                                  \
+      f_scalar[n] += f_scalar2[n] + f_scalar3[n];                       \
+  }                                                                     \
+  for (int n = v_range; n < lt; n += 4) {                               \
+    _use_simd_pragma("vector aligned")                                  \
+    _use_simd_pragma("ivdep")                                           \
+    for (int v = 0; v < 4; v++)                                         \
+      ovv[v] += f_scalar[n+v] * x_scalar[n+v];                          \
+    ov3 += f_scalar[n+1] * x_scalar[n+0];                               \
+    ov4 += f_scalar[n+2] * x_scalar[n+0];                               \
+    ov5 += f_scalar[n+2] * x_scalar[n+1];                               \
+  }                                                                     \
+  ov0 += ovv[0];                                                        \
+  ov1 += ovv[1];                                                        \
+  ov2 += ovv[2];                                                        \
+  if (vwidth > 4) {                                                     \
+    ov0 += ovv[4];                                                      \
+    ov1 += ovv[5];                                                      \
+    ov2 += ovv[6];                                                      \
+  }                                                                     \
+  if (vwidth > 8) {                                                     \
+    ov0 += ovv[8] + ovv[12];                                            \
+    ov1 += ovv[9] + ovv[13];                                            \
+    ov2 += ovv[10] + ovv[14];                                           \
+  }                                                                     \
+}
+
+#define IP_PRE_fdotr_acc_force(nall, minlocal, nthreads, f_start,       \
+                               f_stride, pos, offload, vflag, ov0, ov1, \
+                               ov2, ov3, ov4, ov5)                      \
+{                                                                       \
+  int o_range = (nall - minlocal) * 4;                                  \
+  IP_PRE_omp_range_id_align(iifrom, iito, tid, o_range, nthreads,       \
+                            sizeof(acc_t));                             \
+                                                                        \
+  acc_t *f_scalar = &f_start[0].x;                                      \
+  int f_stride4 = f_stride * 4;                                         \
+  int t;                                                                \
+  if (vflag == VIRIAL_FDOTR) t = 4; else t = 1;                         \
+  acc_t *f_scalar2 = f_scalar + f_stride4 * t;                          \
+  for ( ; t < nthreads; t++) {                                          \
+    _use_simd_pragma("omp simd aligned(f_scalar,f_scalar2:64)")         \
+    for (int n = iifrom; n < iito; n++)                                 \
+      f_scalar[n] += f_scalar2[n];                                      \
+    f_scalar2 += f_stride4;                                             \
+  }                                                                     \
+                                                                        \
+  if (vflag == VIRIAL_FDOTR) {                                          \
+    int nt_min = MIN(4,nthreads);                                       \
+    IP_PRE_fdotr_acc_force_l5(iifrom, iito, minlocal, nt_min, f_start,  \
+                              f_stride, pos, ov0, ov1, ov2, ov3, ov4,   \
+                              ov5);                                     \
+  }                                                                     \
+}
+
+#endif
 
 #ifdef _LMP_INTEL_OFFLOAD
 #include <sys/time.h>

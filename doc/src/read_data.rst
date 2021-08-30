@@ -66,11 +66,11 @@ simulation.  The file can be ASCII text or a gzipped text file
 (detected by a .gz suffix).  This is one of 3 ways to specify initial
 atom coordinates; see the :doc:`read_restart <read_restart>` and
 :doc:`create_atoms <create_atoms>` commands for alternative methods.
-Also see the explanation of the :doc:`-restart command-line switch <Run_options>` which can convert a restart file to a data
-file.
+Also see the explanation of the :doc:`-restart command-line switch
+<Run_options>` which can convert a restart file to a data file.
 
 This command can be used multiple times to add new atoms and their
-properties to an existing system by using the *add*\ , *offset*\ , and
+properties to an existing system by using the *add*, *offset*, and
 *shift* keywords.  See more details below, which includes the use case
 for the *extra* keywords.
 
@@ -105,7 +105,7 @@ other side of the fluid.  The third set of atoms could be rotated to
 an opposing direction using the :doc:`displace_atoms <displace_atoms>`
 command, after the third read_data command is used.
 
-The *add*\ , *offset*\ , *shift*\ , *extra*\ , and *group* keywords are
+The *add*, *offset*, *shift*, *extra*, and *group* keywords are
 useful in this context.
 
 If a simulation box does not yet exist, the *add* keyword cannot be
@@ -246,22 +246,22 @@ appear in any order, with a few exceptions as noted below.
 
 The keyword *fix* can be used one or more times.  Each usage specifies
 a fix that will be used to process a specific portion of the data
-file.  Any header line containing *header-string* and any section with
-a name containing *section-string* will be passed to the specified
+file.  Any header line containing *header-string* and any section that
+is an exact match to *section-string* will be passed to the specified
 fix.  See the :doc:`fix property/atom <fix_property_atom>` command for
 an example of a fix that operates in this manner.  The doc page for
-the fix defines the syntax of the header line(s) and section(s) that
-it reads from the data file.  Note that the *header-string* can be
+the fix defines the syntax of the header line(s) and section that it
+reads from the data file.  Note that the *header-string* can be
 specified as NULL, in which case no header lines are passed to the
-fix.  This means that it can infer the length of its Section from
+fix.  This means the fix can infer the length of its Section from
 standard header settings, such as the number of atoms.
 
 The formatting of individual lines in the data file (indentation,
 spacing between words and numbers) is not important except that header
 and section keywords (e.g. atoms, xlo xhi, Masses, Bond Coeffs) must
-be capitalized as shown and can't have extra white-space between their
-words - e.g. two spaces or a tab between the 2 words in "xlo xhi" or
-the 2 words in "Bond Coeffs", is not valid.
+be capitalized as shown and cannot have extra white-space between
+their words - e.g. two spaces or a tab between the 2 words in "xlo
+xhi" or the 2 words in "Bond Coeffs", is not valid.
 
 ----------
 
@@ -332,7 +332,7 @@ example), then configurations with tilt = ..., -15, -5, 5, 15, 25,
 with tilt factors that exceed these limits, you can use the :doc:`box tilt <box>` command, with a setting of *large*\ ; a setting of
 *small* is the default.
 
-See the :doc:`Howto triclinic <Howto_triclinic>` doc page for a
+See the :doc:`Howto triclinic <Howto_triclinic>` page for a
 geometric description of triclinic boxes, as defined by LAMMPS, and
 how to transform these parameters to and from other commonly used
 triclinic representations.
@@ -460,9 +460,9 @@ are point particles.  See the discussion of ellipsoidflag and the
    For :doc:`atom_style template <atom_style>`, the molecular
    topology (bonds,angles,etc) is contained in the molecule templates
    read-in by the :doc:`molecule <molecule>` command.  This means you
-   cannot set the *bonds*\ , *angles*\ , etc header keywords in the data
-   file, nor can you define *Bonds*\ , *Angles*\ , etc sections as discussed
-   below.  You can set the *bond types*\ , *angle types*\ , etc header
+   cannot set the *bonds*, *angles*, etc header keywords in the data
+   file, nor can you define *Bonds*, *Angles*, etc sections as discussed
+   below.  You can set the *bond types*, *angle types*, etc header
    keywords, though it is not necessary.  If specified, they must match
    the maximum values defined in any of the template molecules.
 
@@ -491,7 +491,7 @@ For example, these lines:
    Pair Coeffs # lj/cut
 
 will check if the currently-defined :doc:`atom_style <atom_style>` is
-*sphere*\ , and the current :doc:`pair_style <pair_style>` is *lj/cut*\ .
+*sphere*, and the current :doc:`pair_style <pair_style>` is *lj/cut*\ .
 If not, LAMMPS will issue a warning to indicate that the data file
 section likely does not contain the correct number or type of
 parameters expected for the currently-defined style.
@@ -636,12 +636,14 @@ of analysis.
      - atom-ID molecule-ID atom-type lineflag density x y z
    * - mdpd
      - atom-ID atom-type rho x y z
+   * - mesont
+     - atom-ID molecule-ID atom-type bond_nt mass mradius mlength buckling x y z
    * - molecular
      - atom-ID molecule-ID atom-type x y z
    * - peri
      - atom-ID atom-type volume density x y z
    * - smd
-     - atom-ID atom-type molecule volume mass kernel-radius contact-radius x0 y0 z0 x y z
+     - atom-ID atom-type molecule volume mass kradius cradius x0 y0 z0 x y z
    * - sph
      - atom-ID atom-type rho esph cv x y z
    * - sphere
@@ -664,8 +666,10 @@ The per-atom values have these meanings and units, listed alphabetically:
 * atom-ID = integer ID of atom
 * atom-type = type of atom (1-Ntype)
 * bodyflag = 1 for body particles, 0 for point particles
+* bond_nt = bond NT factor for MESONT particles (?? units)
+* buckling = buckling factor for MESONT particles (?? units)
 * ccN = chemical concentration for tDPD particles for each species (mole/volume units)
-* contact-radius = ??? (distance units)
+* cradius = contact radius for SMD particles (distance units)
 * cs_re,cs_im = real/imaginary parts of wave packet coefficients
 * cv = heat capacity (need units) for SPH particles
 * density = density of particle (mass/distance\^3 or mass/distance\^2 or mass/distance units, depending on dimensionality of particle)
@@ -676,10 +680,12 @@ The per-atom values have these meanings and units, listed alphabetically:
 * ellipsoidflag = 1 for ellipsoidal particles, 0 for point particles
 * eradius = electron radius (or fixed-core radius)
 * etag = integer ID of electron that each wave packet belongs to
-* kernel-radius = ??? (distance units)
+* kradius = kernel radius for SMD particles (distance units)
 * lineflag = 1 for line segment particles, 0 for point or spherical particles
 * mass = mass of particle (mass units)
+* mlength = ?? length for MESONT particles (distance units)
 * molecule-ID = integer ID of molecule the atom belongs to
+* mradius = ?? radius for MESONT particles (distance units)
 * mux,muy,muz = components of dipole moment of atom (dipole units)
 * q = charge on atom (charge units)
 * rho = density (need units) for SPH particles
@@ -722,8 +728,8 @@ The ellipsoidflag, lineflag, triangleflag, and bodyflag determine
 whether the particle is a finite-size ellipsoid or line or triangle or
 body of finite size, or whether the particle is a point particle.
 Additional attributes must be defined for each ellipsoid, line,
-triangle, or body in the corresponding *Ellipsoids*\ , *Lines*\ ,
-*Triangles*\ , or *Bodies* section.
+triangle, or body in the corresponding *Ellipsoids*, *Lines*,
+*Triangles*, or *Bodies* section.
 
 The *template-index* and *template-atom* are only defined used by
 :doc:`atom_style template <atom_style>`.  In this case the
@@ -1051,7 +1057,7 @@ The 3 shape values specify the 3 diameters or aspect ratios of a
 finite-size ellipsoidal particle, when it is oriented along the 3
 coordinate axes.  They must all be non-zero values.
 
-The values *quatw*\ , *quati*\ , *quatj*\ , and *quatk* set the orientation
+The values *quatw*, *quati*, *quatj*, and *quatk* set the orientation
 of the atom as a quaternion (4-vector).  Note that the shape
 attributes specify the aspect ratios of an ellipsoidal particle, which
 is oriented by default with its x-axis along the simulation box's

@@ -26,9 +26,9 @@ namespace LAMMPS_NS {
 
 class BondOxdnaFene : public Bond {
  public:
-  BondOxdnaFene(class LAMMPS *);
+  BondOxdnaFene(class LAMMPS *lmp) : Bond(lmp) {}
   virtual ~BondOxdnaFene();
-  virtual void compute_interaction_sites(double *, double *, double *, double *);
+  virtual void compute_interaction_sites(double *, double *, double *, double *) const;
   virtual void compute(int, int);
   void coeff(int, char **);
   void init_style();

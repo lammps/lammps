@@ -26,8 +26,25 @@ action () {
   fi
 }
 
+# the CG-DNA package cannot be used without
+# the MOLECULE and ASPHERE packages installed.
+
+if (test $1 = 1) then
+  if (test ! -e ../bond_harmonic.cpp) then
+    echo "Must install MOLECULE package with CG-DNA"
+    exit 1
+  fi
+  if (test ! -e ../fix_nve_asphere.cpp) then
+    echo "Must install ASPHERE package with CG-DNA"
+    exit 1
+  fi
+fi
+
+
 # list of files with dependcies
 
+action  atom_vec_oxdna.cpp
+action  atom_vec_oxdna.h
 action  bond_oxdna_fene.cpp bond_fene.h
 action  bond_oxdna2_fene.cpp bond_fene.h
 action  bond_oxrna2_fene.cpp bond_fene.h

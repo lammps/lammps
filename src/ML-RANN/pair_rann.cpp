@@ -32,6 +32,7 @@ DISTRIBUTION A. Approved for public release; distribution unlimited. OPSEC#4918
 #include "pair_rann.h"
 
 #include "atom.h"
+#include "citeme.h"
 #include "comm.h"
 #include "error.h"
 #include "force.h"
@@ -61,7 +62,7 @@ DISTRIBUTION A. Approved for public release; distribution unlimited. OPSEC#4918
 
 using namespace LAMMPS_NS;
 
-static const char cite_user_rann_package[] =
+static const char cite_ml_rann_package[] =
   "ML-RANN package:\n\n"
   "@Article{Nitol2021,\n"
   " author = {Nitol, Mashroor S and Dickel, Doyl E and Barrett, Christopher D},\n"
@@ -75,62 +76,133 @@ static const char cite_user_rann_package[] =
 
 PairRANN::PairRANN(LAMMPS *lmp) : Pair(lmp)
 {
+  if (lmp->citeme) lmp->citeme->add(cite_ml_rann_package);
+
+  //initialize ints and bools
   single_enable = 0;
   restartinfo = 0;
   one_coeff = 1;
   manybody_flag = 1;
   allocated = 0;
   nelements = -1;
-  elements = NULL;
-  mass = NULL;
-
-  // set comm size needed by this Pair
-  // comm unused for now.
-
-  comm_forward = 38;
-  comm_reverse = 30;
+  nelementsp = -1;
+  comm_forward = 0;
+  comm_reverse = 0;
   res = 10000;
   cutmax = 0;
-  //at least one of the following will change during fingerprint definition:
+  dospin = false;
+  memguess = 0;
+  nmax1 = 0;
+  nmax2 = 0;
+  fmax = 0;
+  fnmax = 0;
+  //at least one of the following two flags will change during fingerprint definition:
   doscreen = false;
   allscreen = true;
-  dospin = false;
+
+  //null init for arrays with sizes not yet determined.
+  elements = nullptr;
+  mass = nullptr;
+  elementsp = nullptr;
+  map  = nullptr;
+  fingerprintcount = nullptr;
+  fingerprintlength = nullptr;
+  fingerprintperelement = nullptr;
+  screening_min = nullptr;
+  screening_max = nullptr;
+  weightdefined = nullptr;
+  biasdefined = nullptr;
+  xn = nullptr;
+  yn = nullptr;
+  zn = nullptr;
+  Sik = nullptr;
+  dSikx = nullptr;
+  dSiky = nullptr;
+  dSikz = nullptr;
+  dSijkx = nullptr;
+  dSijky = nullptr;
+  dSijkz = nullptr;
+  sx = nullptr;
+  sy = nullptr;
+  sz = nullptr;
+  dSijkxc = nullptr;
+  dSijkyc = nullptr;
+  dSijkzc = nullptr;
+  dfeaturesx = nullptr;
+  dfeaturesy = nullptr;
+  dfeaturesz = nullptr;
+  features = nullptr;
+  layer = nullptr;
+  sum = nullptr;
+  sum1 = nullptr;
+  dlayerx = nullptr;
+  dlayery = nullptr;
+  dlayerz = nullptr;
+  dlayersumx = nullptr;
+  dlayersumy = nullptr;
+  dlayersumz = nullptr;
+  dsx = nullptr;
+  dsy = nullptr;
+  dsz = nullptr;
+  dssumx = nullptr;
+  dssumy = nullptr;
+  dssumz = nullptr;
+  tn = nullptr;
+  jl = nullptr;
+  Bij = nullptr;
+  sims = nullptr;
+  net = nullptr;
+  activation = nullptr;
+  fingerprints = nullptr;
 }
 
 PairRANN::~PairRANN()
 {
+  deallocate();
+}
+
+void PairRANN::deallocate()
+{
   //clear memory
-  delete [] mass;
+  delete[] mass;
   for (int i=0;i<nelements;i++) {delete [] elements[i];}
-  delete [] elements;
+  delete[] elements;
   for (int i=0;i<nelementsp;i++) {delete [] elementsp[i];}
-  delete [] elementsp;
+  delete[] elementsp;
   for (int i=0;i<=nelements;i++) {
     if (net[i].layers>0) {
       for (int j=0;j<net[i].layers-1;j++) {
-        delete [] net[i].Weights[j];
-        delete [] net[i].Biases[j];
+        delete[] net[i].Weights[j];
+        delete[] net[i].Biases[j];
+        delete activation[i][j];
       }
-      delete [] net[i].dimensions;
-      delete [] net[i].Weights;
-      delete [] net[i].Biases;
+      delete[] activation[i];
+      delete[] net[i].Weights;
+      delete[] net[i].Biases;
+      delete[] weightdefined[i];
+      delete[] biasdefined[i];
     }
+    delete[] net[i].dimensions;
   }
-  delete [] net;
-  delete [] map;
+  delete[] net;
+  delete[] map;
   for (int i=0;i<nelementsp;i++) {
     if (fingerprintlength[i]>0) {
-      delete [] fingerprints[i];
-      delete [] activation[i];
+      for (int j=0;j<fingerprintperelement[i];j++) {
+        delete fingerprints[i][j];
+      }
+      delete[] fingerprints[i];
     }
   }
-  delete [] fingerprints;
-  delete [] activation;
-  delete [] fingerprintcount;
-  delete [] fingerprintperelement;
-  delete [] fingerprintlength;
-  delete [] screening_min;
-  delete [] screening_max;
+  delete[] fingerprints;
+  delete[] activation;
+  delete[] weightdefined;
+  delete[] biasdefined;
+  delete[] fingerprintcount;
+  delete[] fingerprintperelement;
+  delete[] fingerprintlength;
+  delete[] screening_min;
+  delete[] screening_max;
   memory->destroy(xn);
   memory->destroy(yn);
   memory->destroy(zn);
@@ -149,30 +221,28 @@ PairRANN::~PairRANN()
   memory->destroy(dlayersumx);
   memory->destroy(dlayersumy);
   memory->destroy(dlayersumz);
-  if (doscreen) {
-    memory->destroy(Sik);
-    memory->destroy(Bij);
-    memory->destroy(dSikx);
-    memory->destroy(dSiky);
-    memory->destroy(dSikz);
-    memory->destroy(dSijkx);
-    memory->destroy(dSijky);
-    memory->destroy(dSijkz);
-    memory->destroy(dSijkxc);
-    memory->destroy(dSijkyc);
-    memory->destroy(dSijkzc);
-  }
-  if (dospin) {
-    memory->destroy(sx);
-    memory->destroy(sy);
-    memory->destroy(sz);
-    memory->destroy(dsx);
-    memory->destroy(dsy);
-    memory->destroy(dsz);
-    memory->destroy(dssumx);
-    memory->destroy(dssumy);
-    memory->destroy(dssumz);
-  }
+  memory->destroy(Sik);
+  memory->destroy(Bij);
+  memory->destroy(dSikx);
+  memory->destroy(dSiky);
+  memory->destroy(dSikz);
+  memory->destroy(dSijkx);
+  memory->destroy(dSijky);
+  memory->destroy(dSijkz);
+  memory->destroy(dSijkxc);
+  memory->destroy(dSijkyc);
+  memory->destroy(dSijkzc);
+  memory->destroy(sx);
+  memory->destroy(sy);
+  memory->destroy(sz);
+  memory->destroy(dsx);
+  memory->destroy(dsy);
+  memory->destroy(dsz);
+  memory->destroy(dssumx);
+  memory->destroy(dssumy);
+  memory->destroy(dssumz);
+  memory->destroy(setflag);
+  memory->destroy(cutsq);
 }
 
 void PairRANN::allocate(const std::vector<std::string> &elementwords)
@@ -197,10 +267,10 @@ void PairRANN::allocate(const std::vector<std::string> &elementwords)
   activation = new RANN::Activation**[nelementsp];
   fingerprints = new RANN::Fingerprint**[nelementsp];
   fingerprintlength = new int[nelementsp];
-  fingerprintperelement = new int [nelementsp];
+  fingerprintperelement = new int[nelementsp];
   fingerprintcount = new int[nelementsp];
-  screening_min = new double [nelements*nelements*nelements];
-  screening_max = new double [nelements*nelements*nelements];
+  screening_min = new double[nelements*nelements*nelements];
+  screening_max = new double[nelements*nelements*nelements];
   for (i=0;i<nelements;i++) {
     for (int j =0;j<nelements;j++) {
       for (int k=0;k<nelements;k++) {
@@ -233,7 +303,8 @@ void PairRANN::settings(int narg, char ** /*arg*/)
 void PairRANN::coeff(int narg, char **arg)
 {
   int i,j;
-  map = new int [atom->ntypes+1];
+  deallocate();//clear allocation from any previous coeff
+  map = new int[atom->ntypes+1];
   if (narg != 3 + atom->ntypes) error->one(FLERR,"Incorrect args for pair coefficients");
   if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0) error->one(FLERR,"Incorrect args for pair coefficients");
   nelements = -1;
@@ -284,8 +355,8 @@ void PairRANN::read_file(char *filename)
   FILE *fp;
   int eof = 0;
   std::string line,line1;
-  int longline = 4096;
-  int linenum;
+  const int longline = 4096;
+  int linenum=0;
   char linetemp[longline];
   std::string strtemp;
   char *ptr;
@@ -304,7 +375,8 @@ void PairRANN::read_file(char *filename)
   while (eof == 0) {
     ptr=fgets(linetemp,longline,fp);
     linenum++;
-    if (ptr == NULL) {
+    if (ptr == nullptr) {
+      fclose(fp);
       if (check_potential()) {
         error->one(FLERR,"Invalid syntax in potential file, values are inconsistent or missing");
       }
@@ -345,7 +417,7 @@ void PairRANN::read_file(char *filename)
         strtemp=utils::trim_comment(linetemp);
         linenum++;
     }
-    if (ptr == NULL) {
+    if (ptr == nullptr) {
       if (check_potential()) {
         error->one(FLERR,"Invalid syntax in potential file, values are inconsistent or missing");
       }
@@ -394,12 +466,12 @@ void PairRANN::read_fpe(std::vector<std::string> line,std::vector<std::string> l
 }
 
 void PairRANN::read_fingerprints(std::vector<std::string> line,std::vector<std::string> line1,char *filename,int linenum) {
-  int nwords1,nwords,i,j,k,i1;
+  int nwords1,nwords,i,j,k,i1,*atomtypes;
   bool found;
   nwords1 = line1.size();
   nwords = line.size();
   if (nelements == -1)error->one(filename,linenum-1,"atom types must be defined before fingerprints in potential file.");
-  int atomtypes[nwords-1];
+  atomtypes = new int[nwords-1];
   for (i=1;i<nwords;i++) {
     found = false;
     for (j=0;j<nelementsp;j++) {
@@ -424,15 +496,16 @@ void PairRANN::read_fingerprints(std::vector<std::string> line,std::vector<std::
     fingerprints[i][i1]->init(atomtypes,utils::inumeric(filename,linenum,line1[k++].c_str(),1,lmp));
     fingerprintcount[i]++;
   }
+  delete[] atomtypes;
 }
 
 void PairRANN::read_fingerprint_constants(std::vector<std::string> line,std::vector<std::string> line1,char *filename,int linenum) {
-  int i,j,k,i1;
+  int i,j,k,i1,*atomtypes;
   bool found;
   int nwords = line.size();
   if (nelements == -1)error->one(filename,linenum-1,"atom types must be defined before fingerprints in potential file.");
   int n_body_type = nwords-4;
-  int atomtypes[n_body_type];
+  atomtypes = new int[n_body_type];
   for (i=1;i<=n_body_type;i++) {
     found = false;
     for (j=0;j<nelementsp;j++) {
@@ -463,6 +536,7 @@ void PairRANN::read_fingerprint_constants(std::vector<std::string> line,std::vec
   }
   if (!found) {error->one(filename,linenum-1,"cannot define constants for unknown fingerprint");}
   fingerprints[i][i1]->fullydefined=fingerprints[i][i1]->parse_values(line[nwords-1],line1);
+  delete[] atomtypes;
 }
 
 void PairRANN::read_network_layers(std::vector<std::string> line,std::vector<std::string> line1,char *filename,int linenum) {
@@ -472,16 +546,14 @@ void PairRANN::read_network_layers(std::vector<std::string> line,std::vector<std
     if (line[1].compare(elements[i])==0) {
       net[i].layers = utils::inumeric(filename,linenum,line1[0].c_str(),1,lmp);
       if (net[i].layers < 1)error->one(filename,linenum,"invalid number of network layers");
-      delete [] net[i].dimensions;
+      delete[] net[i].dimensions;
       weightdefined[i] = new bool [net[i].layers];
       biasdefined[i] = new bool [net[i].layers];
-      net[i].dimensions = new int [net[i].layers];
+      net[i].dimensions = new int[net[i].layers];
       net[i].Weights = new double * [net[i].layers-1];
       net[i].Biases = new double * [net[i].layers-1];
-      net[i].activations = new int [net[i].layers-1];
       for (j=0;j<net[i].layers;j++) {
         net[i].dimensions[j]=0;
-        if (j<net[i].layers-1)net[i].activations[j]=-1;
         weightdefined[i][j] = false;
         biasdefined[i][j] = false;
       }
@@ -512,7 +584,7 @@ void PairRANN::read_layer_size(std::vector<std::string> line,std::vector<std::st
 void PairRANN::read_weight(std::vector<std::string> line,std::vector<std::string> line1,FILE* fp,char *filename,int *linenum) {
   int i,j,k,l,nwords;
   char *ptr;
-  int longline = 4096;
+  const int longline = 4096;
   char linetemp [longline];
   for (l=0;l<nelements;l++) {
     if (line[1].compare(elements[l])==0) {
@@ -520,7 +592,7 @@ void PairRANN::read_weight(std::vector<std::string> line,std::vector<std::string
       i=utils::inumeric(filename,*linenum,line[2].c_str(),1,lmp);
       if (i>=net[l].layers || i<0)error->one(filename,*linenum-1,"invalid weight layer");
       if (net[l].dimensions[i]==0 || net[l].dimensions[i+1]==0) error->one(filename,*linenum-1,"network layer sizes must be defined before corresponding weight");
-      net[l].Weights[i] = new double [net[l].dimensions[i]*net[l].dimensions[i+1]];
+      net[l].Weights[i] = new double[net[l].dimensions[i]*net[l].dimensions[i+1]];
       weightdefined[l][i] = true;
       nwords = line1.size();
       if (nwords != net[l].dimensions[i])error->one(filename,*linenum,"invalid weights per line");
@@ -532,7 +604,7 @@ void PairRANN::read_weight(std::vector<std::string> line,std::vector<std::string
         (*linenum)++;
         Tokenizer values1 = Tokenizer(linetemp,": ,\t_\n");
         line1 = values1.as_vector();
-        if (ptr==NULL)error->one(filename,*linenum,"unexpected end of potential file!");
+        if (ptr==nullptr)error->one(filename,*linenum,"unexpected end of potential file!");
         nwords = line1.size();
         if (nwords != net[l].dimensions[i])error->one(filename,*linenum,"invalid weights per line");
         for (k=0;k<net[l].dimensions[i];k++) {
@@ -547,7 +619,7 @@ void PairRANN::read_weight(std::vector<std::string> line,std::vector<std::string
 
 void PairRANN::read_bias(std::vector<std::string> line,std::vector<std::string> line1,FILE* fp,char *filename,int *linenum) {
   int i,j,l;
-  char linetemp[MAXLINE];
+  char linetemp[MAXLINE],*ptr;
   for (l=0;l<nelements;l++) {
     if (line[1].compare(elements[l])==0) {
       if (net[l].layers==0)error->one(filename,*linenum-1,"networklayers must be defined before biases.");
@@ -555,10 +627,11 @@ void PairRANN::read_bias(std::vector<std::string> line,std::vector<std::string> 
       if (i>=net[l].layers || i<0)error->one(filename,*linenum-1,"invalid bias layer");
       if (net[l].dimensions[i]==0) error->one(filename,*linenum-1,"network layer sizes must be defined before corresponding bias");
       biasdefined[l][i] = true;
-      net[l].Biases[i] = new double [net[l].dimensions[i+1]];
+      net[l].Biases[i] = new double[net[l].dimensions[i+1]];
       net[l].Biases[i][0] = utils::numeric(filename,*linenum,line1[0].c_str(),1,lmp);
       for (j=1;j<net[l].dimensions[i+1];j++) {
-        fgets(linetemp,MAXLINE,fp);
+        ptr=fgets(linetemp,MAXLINE,fp);
+        if (ptr==nullptr)error->one(filename,*linenum,"unexpected end of potential file!");
         (*linenum)++;
         Tokenizer values1 = Tokenizer(linetemp,": ,\t_\n");
         line1 = values1.as_vector();
@@ -575,7 +648,7 @@ void PairRANN::read_activation_functions(std::vector<std::string> line,std::vect
   for (l=0;l<nelements;l++) {
     if (line[1].compare(elements[l])==0) {
       if (net[l].layers==0)error->one(filename,linenum-1,"networklayers must be defined before activation functions.");
-      i = strtol(line[2].c_str(),NULL,10);
+      i = strtol(line[2].c_str(),nullptr,10);
       if (i>=net[l].layers || i<0)error->one(filename,linenum-1,"invalid activation layer");
       delete activation[l][i];
       activation[l][i]=create_activation(line1[0].c_str());
@@ -586,13 +659,13 @@ void PairRANN::read_activation_functions(std::vector<std::string> line,std::vect
 }
 
 void PairRANN::read_screening(std::vector<std::string> line,std::vector<std::string> line1,char *filename,int linenum) {
-  int i,j,k;
+  int i,j,k,*atomtypes;
   bool found;
   int nwords = line.size();
   if (nelements == -1)error->one(filename,linenum-1,"atom types must be defined before fingerprints in potential file.");
   if (nwords!=5)error->one(filename,linenum-1,"invalid screening command");
   int n_body_type = 3;
-  int atomtypes[n_body_type];
+  atomtypes = new int[n_body_type];
   for (i=1;i<=n_body_type;i++) {
     found = false;
     for (j=0;j<nelementsp;j++) {
@@ -615,6 +688,7 @@ void PairRANN::read_screening(std::vector<std::string> line,std::vector<std::str
     screening_max[index] = utils::numeric(filename,linenum,line1[0].c_str(),1,lmp);
   }
   else error->one(filename,linenum-1,"unrecognized screening keyword");
+  delete[] atomtypes;
 }
 
 //Called after finishing reading the potential file to make sure it is complete. True is bad.
@@ -701,15 +775,22 @@ bool PairRANN::check_potential() {
 
 void PairRANN::compute(int eflag, int vflag)
 {
-    //perform force/energy computation_
+  //perform force/energy computation_
   if (dospin) {
     if (strcmp(update->unit_style,"metal") != 0)
       error->one(FLERR,"Spin pair styles require metal units");
     if (!atom->sp_flag)
         error->one(FLERR,"Spin pair styles requires atom/spin style");
   }
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = vflag_atom = 0;
+  ev_init(eflag,vflag);
+
+  // only global virial via fdotr is supported by this pair style
+
+  if (vflag_atom)
+    error->all(FLERR,"Pair style rann does not support computing per-atom stress");
+  if (vflag && !vflag_fdotr)
+    error->all(FLERR,"Pair style rann does not support 'pair_modify nofdotr'");
+
   int ii,i,j;
   int nn = 0;
   sims = new Simulation[1];
@@ -724,13 +805,11 @@ void PairRANN::compute(int eflag, int vflag)
     sims->s = atom->sp;
   }
   int itype,f,jnum,len;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = eflag_global = eflag_atom = 0;
   if (eflag_global) {eng_vdwl=0;eng_coul=0;}
   double energy=0;
   double **force = atom->f;
   double **fm = atom->fm;
-  double **virial = vatom;
+
   //loop over atoms
   for (ii=0;ii<sims->inum;ii++) {
       i = sims->ilist[ii];
@@ -800,12 +879,8 @@ void PairRANN::compute(int eflag, int vflag)
           sx[j]=sy[j]=sz[j]=0;
         }
       }
-      if (doscreen) {
-        screen(ii,0,jnum-1);
-      }
-      if (allscreen) {
-        screen_neighbor_list(&jnum);
-      }
+      if (doscreen) screening(ii,0,jnum-1);
+      if (allscreen) screen_neighbor_list(&jnum);
       //do fingerprints for atom type
       len = fingerprintperelement[itype];
       for (j=0;j<len;j++) {
@@ -825,13 +900,13 @@ void PairRANN::compute(int eflag, int vflag)
       }
       //run fingerprints through network
       if (dospin) {
-        propagateforwardspin(&energy,force,fm,virial,ii,jnum);
-      }
-      else {
-        propagateforward(&energy,force,virial,ii,jnum);
+        propagateforwardspin(&energy,force,fm,ii,jnum);
+      } else {
+        propagateforward(&energy,force,ii,jnum);
       }
   }
   if (vflag_fdotr) virial_fdotr_compute();
+  delete[] sims;
 }
 
 void PairRANN::cull_neighbor_list(int* jnum,int i,int sn) {
@@ -905,7 +980,7 @@ void PairRANN::screen_neighbor_list(int *jnum) {
 }
 
 
-void PairRANN::screen(int ii,int sid,int jnum)
+void PairRANN::screening(int ii,int sid,int jnum)
 {
   //see Baskes, Materials Chemistry and Physics 50 (1997) 152-1.58
   int i,jj,kk,itype,jtype,ktype;
@@ -999,7 +1074,7 @@ void PairRANN::screen(int ii,int sid,int jnum)
 
 
 //Called by getproperties. Propagate features and dfeatures through network. Updates force and energy
-void PairRANN::propagateforward(double * energy,double **force,double ** /*virial*/, int ii,int jnum) {
+void PairRANN::propagateforward(double *energy,double **force,int ii,int jnum) {
   int i,j,k,jj,j1,itype,i1;
   int *ilist;
   ilist = listfull->ilist;
@@ -1026,8 +1101,8 @@ void PairRANN::propagateforward(double * energy,double **force,double ** /*viria
       sum[j] = activation[itype][i]->activation_function(sum[j]);
       if (i==L-1) {
         energy[j] = sum[j];
-        if (eflag_atom)eatom[i1]=sum[j];
-        if (eflag_global) {eng_vdwl +=sum[j];}
+        if (eflag_atom) eatom[i1]=sum[j];
+        if (eflag_global) eng_vdwl +=sum[j];
       }
       //force propagation
       for (jj=0;jj<jnum;jj++) {
@@ -1076,7 +1151,7 @@ void PairRANN::propagateforward(double * energy,double **force,double ** /*viria
 }
 
 //Called by getproperties. Propagate features and dfeatures through network. Updates force and energy
-void PairRANN::propagateforwardspin(double * energy,double **force,double **fm,double ** /*virial*/, int ii,int jnum) {
+void PairRANN::propagateforwardspin(double * energy,double **force,double **fm,int ii,int jnum) {
   int i,j,k,jj,j1,itype,i1;
   int *ilist;
   ilist = listfull->ilist;
@@ -1103,8 +1178,8 @@ void PairRANN::propagateforwardspin(double * energy,double **force,double **fm,d
       sum[j] = activation[itype][i]->activation_function(sum[j]);
       if (i==L-1) {
         energy[j] = sum[j];
-        if (eflag_atom)eatom[i1]=sum[j];
-        if (eflag_global) {eng_vdwl +=sum[j];}
+        if (eflag_atom) eatom[i1]=sum[j];
+        if (eflag_global) eng_vdwl +=sum[j];
       }
       //force propagation
       for (jj=0;jj<jnum;jj++) {
@@ -1173,12 +1248,10 @@ void PairRANN::propagateforwardspin(double * energy,double **force,double **fm,d
   }
 }
 
-
 void PairRANN::init_list(int /*which*/, NeighList *ptr)
 {
   listfull = ptr;
 }
-
 
 void PairRANN::init_style()
 {
@@ -1232,10 +1305,8 @@ RANN::Fingerprint *PairRANN::create_fingerprint(const char *style)
   else if (strcmp(style,"bondspin")==0) {
           return new RANN::Fingerprint_bondspin(this);
   }
-  char str[128];
-  sprintf(str,"Unknown fingerprint style %s",style);
-  error->one(FLERR,str);
-  return NULL;
+  error->one(FLERR,"Unknown fingerprint style {}",style);
+  return nullptr;
 }
 
 
@@ -1247,9 +1318,7 @@ RANN::Activation *PairRANN::create_activation(const char *style)
   else if (strcmp(style,"sigI")==0) {
           return new RANN::Activation_sigI(this);
   }
-  char str[128];
-  sprintf(str,"Unknown activation style %s",style);
-  error->one(FLERR,str);
-  return NULL;
+  error->one(FLERR,"Unknown activation style {}",style);
+  return nullptr;
 }
 

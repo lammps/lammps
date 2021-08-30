@@ -32,7 +32,7 @@ This command allows you to use variants of various styles if they
 exist.  In that respect it operates the same as the :doc:`-suffix command-line switch <Run_options>`.  It also has options to turn
 off or back on any suffix setting made via the command line.
 
-The specified style can be *gpu*\ , *intel*\ , *kk*\ , *omp*\ , *opt* or
+The specified style can be *gpu*, *intel*, *kk*, *omp*, *opt* or
 *hybrid*\ . These refer to optional packages that LAMMPS can be built
 with, as described on the :doc:`Build package <Build_package>` doc page.
 The "gpu" style corresponds to the GPU package, the "intel" style to
@@ -78,9 +78,9 @@ example, "hybrid intel omp" will use styles from the INTEL package
 as a first choice and styles from the OPENMP package as a second choice
 if no INTEL variant is available.
 
-If the specified style is *off*\ , then any previously specified suffix
+If the specified style is *off*, then any previously specified suffix
 is temporarily disabled, whether it was specified by a command-line
-switch or a previous suffix command.  If the specified style is *on*\ ,
+switch or a previous suffix command.  If the specified style is *on*,
 a disabled suffix is turned back on.  The use of these 2 commands lets
 your input script use a standard LAMMPS style (i.e. a non-accelerated
 variant), which can be useful for testing or benchmarking purposes.

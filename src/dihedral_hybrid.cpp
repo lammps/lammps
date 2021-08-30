@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -14,18 +13,17 @@
 
 #include "dihedral_hybrid.h"
 
-#include <cstring>
-#include <cctype>
 #include "atom.h"
-#include "neighbor.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "memory.h"
-#include "error.h"
+#include "neighbor.h"
 
+#include <cctype>
+#include <cstring>
 
 using namespace LAMMPS_NS;
-
 
 #define EXTRA 1000
 
@@ -33,7 +31,11 @@ using namespace LAMMPS_NS;
 
 DihedralHybrid::DihedralHybrid(LAMMPS *lmp) : Dihedral(lmp)
 {
+  writedata = 0;
   nstyles = 0;
+  ndihedrallist = nullptr;
+  dihedrallist = nullptr;
+  maxdihedral = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -42,19 +44,18 @@ DihedralHybrid::~DihedralHybrid()
 {
   if (nstyles) {
     for (int i = 0; i < nstyles; i++) delete styles[i];
-    delete [] styles;
-    for (int i = 0; i < nstyles; i++) delete [] keywords[i];
-    delete [] keywords;
+    delete[] styles;
+    for (int i = 0; i < nstyles; i++) delete[] keywords[i];
+    delete[] keywords;
   }
 
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(map);
-    delete [] ndihedrallist;
-    delete [] maxdihedral;
-    for (int i = 0; i < nstyles; i++)
-      memory->destroy(dihedrallist[i]);
-    delete [] dihedrallist;
+    delete[] ndihedrallist;
+    delete[] maxdihedral;
+    for (int i = 0; i < nstyles; i++) memory->destroy(dihedrallist[i]);
+    delete[] dihedrallist;
   }
 }
 
@@ -62,7 +63,7 @@ DihedralHybrid::~DihedralHybrid()
 
 void DihedralHybrid::compute(int eflag, int vflag)
 {
-  int i,j,m,n;
+  int i, j, m, n;
 
   // save ptrs to original dihedrallist
 
@@ -84,8 +85,7 @@ void DihedralHybrid::compute(int eflag, int vflag)
       if (ndihedrallist[m] > maxdihedral[m]) {
         memory->destroy(dihedrallist[m]);
         maxdihedral[m] = ndihedrallist[m] + EXTRA;
-        memory->create(dihedrallist[m],maxdihedral[m],5,
-                       "dihedral_hybrid:dihedrallist");
+        memory->create(dihedrallist[m], maxdihedral[m], 5, "dihedral_hybrid:dihedrallist");
       }
       ndihedrallist[m] = 0;
     }
@@ -106,13 +106,23 @@ void DihedralHybrid::compute(int eflag, int vflag)
   // set neighbor->dihedrallist to sub-style dihedrallist before call
   // accumulate sub-style global/peratom energy/virial in hybrid
 
-  ev_init(eflag,vflag);
+  ev_init(eflag, vflag);
+
+  // need to clear per-thread storage here, when using multiple threads
+  // with thread-enabled substyles to avoid uninitlialized data access.
+
+  const int nthreads = comm->nthreads;
+  if (comm->nthreads > 1) {
+    const bigint nall = atom->nlocal + atom->nghost;
+    if (eflag_atom) memset(&eatom[0], 0, nall * nthreads * sizeof(double));
+    if (vflag_atom) memset(&vatom[0][0], 0, 6 * nall * nthreads * sizeof(double));
+  }
 
   for (m = 0; m < nstyles; m++) {
     neighbor->ndihedrallist = ndihedrallist[m];
     neighbor->dihedrallist = dihedrallist[m];
 
-    styles[m]->compute(eflag,vflag);
+    styles[m]->compute(eflag, vflag);
 
     if (eflag_global) energy += styles[m]->energy;
     if (vflag_global)
@@ -128,16 +138,14 @@ void DihedralHybrid::compute(int eflag, int vflag)
       if (force->newton_bond) n += atom->nghost;
       double **vatom_substyle = styles[m]->vatom;
       for (i = 0; i < n; i++)
-        for (j = 0; j < 6; j++)
-          vatom[i][j] += vatom_substyle[i][j];
+        for (j = 0; j < 6; j++) vatom[i][j] += vatom_substyle[i][j];
     }
     if (cvflag_atom) {
       n = atom->nlocal;
       if (force->newton_bond) n += atom->nghost;
       double **cvatom_substyle = styles[m]->cvatom;
       for (i = 0; i < n; i++)
-        for (j = 0; j < 9; j++)
-          cvatom[i][j] += cvatom_substyle[i][j];
+        for (j = 0; j < 9; j++) cvatom[i][j] += cvatom_substyle[i][j];
     }
   }
 
@@ -154,13 +162,13 @@ void DihedralHybrid::allocate()
   allocated = 1;
   int n = atom->ndihedraltypes;
 
-  memory->create(map,n+1,"dihedral:map");
-  memory->create(setflag,n+1,"dihedral:setflag");
+  memory->create(map, n + 1, "dihedral:map");
+  memory->create(setflag, n + 1, "dihedral:setflag");
   for (int i = 1; i <= n; i++) setflag[i] = 0;
 
   ndihedrallist = new int[nstyles];
   maxdihedral = new int[nstyles];
-  dihedrallist = new int**[nstyles];
+  dihedrallist = new int **[nstyles];
   for (int m = 0; m < nstyles; m++) maxdihedral[m] = 0;
   for (int m = 0; m < nstyles; m++) dihedrallist[m] = nullptr;
 }
@@ -171,27 +179,26 @@ void DihedralHybrid::allocate()
 
 void DihedralHybrid::settings(int narg, char **arg)
 {
-  int i,m,istyle;
+  int i, m, istyle;
 
-  if (narg < 1) error->all(FLERR,"Illegal dihedral_style command");
+  if (narg < 1) error->all(FLERR, "Illegal dihedral_style command");
 
   // delete old lists, since cannot just change settings
 
   if (nstyles) {
     for (i = 0; i < nstyles; i++) delete styles[i];
-    delete [] styles;
-    for (i = 0; i < nstyles; i++) delete [] keywords[i];
-    delete [] keywords;
+    delete[] styles;
+    for (i = 0; i < nstyles; i++) delete[] keywords[i];
+    delete[] keywords;
   }
 
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(map);
-    delete [] ndihedrallist;
-    delete [] maxdihedral;
-    for (i = 0; i < nstyles; i++)
-      memory->destroy(dihedrallist[i]);
-    delete [] dihedrallist;
+    delete[] ndihedrallist;
+    delete[] maxdihedral;
+    for (i = 0; i < nstyles; i++) memory->destroy(dihedrallist[i]);
+    delete[] dihedrallist;
   }
   allocated = 0;
 
@@ -202,7 +209,7 @@ void DihedralHybrid::settings(int narg, char **arg)
   nstyles = 0;
   i = 0;
   while (i < narg) {
-    if (strcmp(arg[i],"table") == 0) i++;
+    if (strcmp(arg[i], "table") == 0) i++;
     i++;
     while (i < narg && !isalpha(arg[i][0])) i++;
     nstyles++;
@@ -210,8 +217,8 @@ void DihedralHybrid::settings(int narg, char **arg)
 
   // allocate list of sub-styles
 
-  styles = new Dihedral*[nstyles];
-  keywords = new char*[nstyles];
+  styles = new Dihedral *[nstyles];
+  keywords = new char *[nstyles];
 
   // allocate each sub-style and call its settings() with subset of args
   // allocate uses suffix, but don't store suffix version in keywords,
@@ -226,23 +233,21 @@ void DihedralHybrid::settings(int narg, char **arg)
 
   while (i < narg) {
     for (m = 0; m < nstyles; m++)
-      if (strcmp(arg[i],keywords[m]) == 0)
-        error->all(FLERR,"Dihedral style hybrid cannot use "
-                   "same dihedral style twice");
-    if (strcmp(arg[i],"hybrid") == 0)
-      error->all(FLERR,
-                 "Dihedral style hybrid cannot have hybrid as an argument");
-    if (strcmp(arg[i],"none") == 0)
-      error->all(FLERR,"Dihedral style hybrid cannot have none as an argument");
+      if (strcmp(arg[i], keywords[m]) == 0)
+        error->all(FLERR, "Dihedral style hybrid cannot use same dihedral style twice");
+    if (strcmp(arg[i], "hybrid") == 0)
+      error->all(FLERR, "Dihedral style hybrid cannot have hybrid as an argument");
+    if (strcmp(arg[i], "none") == 0)
+      error->all(FLERR, "Dihedral style hybrid cannot have none as an argument");
 
-    styles[nstyles] = force->new_dihedral(arg[i],1,dummy);
-    force->store_style(keywords[nstyles],arg[i],0);
+    styles[nstyles] = force->new_dihedral(arg[i], 1, dummy);
+    force->store_style(keywords[nstyles], arg[i], 0);
 
     istyle = i;
-    if (strcmp(arg[i],"table") == 0) i++;
+    if (strcmp(arg[i], "table") == 0) i++;
     i++;
     while (i < narg && !isalpha(arg[i][0])) i++;
-    styles[nstyles]->settings(i-istyle-1,&arg[istyle+1]);
+    styles[nstyles]->settings(i - istyle - 1, &arg[istyle + 1]);
     nstyles++;
   }
 }
@@ -255,22 +260,35 @@ void DihedralHybrid::coeff(int narg, char **arg)
 {
   if (!allocated) allocate();
 
-  int ilo,ihi;
-  utils::bounds(FLERR,arg[0],1,atom->ndihedraltypes,ilo,ihi,error);
+  int ilo, ihi;
+  utils::bounds(FLERR, arg[0], 1, atom->ndihedraltypes, ilo, ihi, error);
 
   // 2nd arg = dihedral sub-style name
   // allow for "none" or "skip" as valid sub-style name
 
   int m;
   for (m = 0; m < nstyles; m++)
-    if (strcmp(arg[1],keywords[m]) == 0) break;
+    if (strcmp(arg[1], keywords[m]) == 0) break;
 
   int none = 0;
   int skip = 0;
   if (m == nstyles) {
-    if (strcmp(arg[1],"none") == 0) none = 1;
-    else if (strcmp(arg[1],"skip") == 0) none = skip = 1;
-    else error->all(FLERR,"Dihedral coeff for hybrid has invalid style");
+    if (strcmp(arg[1], "none") == 0)
+      none = 1;
+    else if (strcmp(arg[1], "skip") == 0)
+      none = skip = 1;
+    else if (strcmp(arg[1], "mbt") == 0)
+      error->all(FLERR, "MiddleBondTorsion coeff for hybrid dihedral has invalid format");
+    else if (strcmp(arg[1], "ebt") == 0)
+      error->all(FLERR, "EndBondTorsion coeff for hybrid dihedral has invalid format");
+    else if (strcmp(arg[1], "at") == 0)
+      error->all(FLERR, "AngleTorsion coeff for hybrid dihedral has invalid format");
+    else if (strcmp(arg[1], "aat") == 0)
+      error->all(FLERR, "AngleAngleTorsion coeff for hybrid dihedral has invalid format");
+    else if (strcmp(arg[1], "bb13") == 0)
+      error->all(FLERR, "BondBond13 coeff for hybrid dihedral has invalid format");
+    else
+      error->all(FLERR, "Dihedral coeff for hybrid has invalid style");
   }
 
   // move 1st arg to 2nd arg
@@ -280,14 +298,15 @@ void DihedralHybrid::coeff(int narg, char **arg)
 
   // invoke sub-style coeff() starting with 1st arg
 
-  if (!none) styles[m]->coeff(narg-1,&arg[1]);
+  if (!none) styles[m]->coeff(narg - 1, &arg[1]);
 
   // set setflag and which type maps to which sub-style
   // if sub-style is skip: auxiliary class2 setting in data file so ignore
   // if sub-style is none and not skip: set hybrid setflag, wipe out map
 
   for (int i = ilo; i <= ihi; i++) {
-    if (skip) continue;
+    if (skip)
+      continue;
     else if (none) {
       setflag[i] = 1;
       map[i] = -1;
@@ -298,7 +317,9 @@ void DihedralHybrid::coeff(int narg, char **arg)
   }
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   run dihedral style specific initialization
+------------------------------------------------------------------------- */
 
 void DihedralHybrid::init_style()
 {
@@ -312,13 +333,13 @@ void DihedralHybrid::init_style()
 
 void DihedralHybrid::write_restart(FILE *fp)
 {
-  fwrite(&nstyles,sizeof(int),1,fp);
+  fwrite(&nstyles, sizeof(int), 1, fp);
 
   int n;
   for (int m = 0; m < nstyles; m++) {
     n = strlen(keywords[m]) + 1;
-    fwrite(&n,sizeof(int),1,fp);
-    fwrite(keywords[m],sizeof(char),n,fp);
+    fwrite(&n, sizeof(int), 1, fp);
+    fwrite(keywords[m], sizeof(char), n, fp);
     styles[m]->write_restart_settings(fp);
   }
 }
@@ -330,21 +351,21 @@ void DihedralHybrid::write_restart(FILE *fp)
 void DihedralHybrid::read_restart(FILE *fp)
 {
   int me = comm->me;
-  if (me == 0) utils::sfread(FLERR,&nstyles,sizeof(int),1,fp,nullptr,error);
-  MPI_Bcast(&nstyles,1,MPI_INT,0,world);
-  styles = new Dihedral*[nstyles];
-  keywords = new char*[nstyles];
+  if (me == 0) utils::sfread(FLERR, &nstyles, sizeof(int), 1, fp, nullptr, error);
+  MPI_Bcast(&nstyles, 1, MPI_INT, 0, world);
+  styles = new Dihedral *[nstyles];
+  keywords = new char *[nstyles];
 
   allocate();
 
-  int n,dummy;
+  int n, dummy;
   for (int m = 0; m < nstyles; m++) {
-    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,nullptr,error);
-    MPI_Bcast(&n,1,MPI_INT,0,world);
+    if (me == 0) utils::sfread(FLERR, &n, sizeof(int), 1, fp, nullptr, error);
+    MPI_Bcast(&n, 1, MPI_INT, 0, world);
     keywords[m] = new char[n];
-    if (me == 0) utils::sfread(FLERR,keywords[m],sizeof(char),n,fp,nullptr,error);
-    MPI_Bcast(keywords[m],n,MPI_CHAR,0,world);
-    styles[m] = force->new_dihedral(keywords[m],0,dummy);
+    if (me == 0) utils::sfread(FLERR, keywords[m], sizeof(char), n, fp, nullptr, error);
+    MPI_Bcast(keywords[m], n, MPI_CHAR, 0, world);
+    styles[m] = force->new_dihedral(keywords[m], 0, dummy);
     styles[m]->read_restart_settings(fp);
   }
 }
@@ -355,10 +376,10 @@ void DihedralHybrid::read_restart(FILE *fp)
 
 double DihedralHybrid::memory_usage()
 {
-  double bytes = (double)maxeatom * sizeof(double);
-  bytes += (double)maxvatom*6 * sizeof(double);
-  bytes += (double)maxcvatom*9 * sizeof(double);
-  for (int m = 0; m < nstyles; m++) bytes += (double)maxdihedral[m]*5 * sizeof(int);
+  double bytes = (double) maxeatom * sizeof(double);
+  bytes += (double) maxvatom * 6 * sizeof(double);
+  bytes += (double) maxcvatom * 9 * sizeof(double);
+  for (int m = 0; m < nstyles; m++) bytes += (double) maxdihedral[m] * 5 * sizeof(int);
   for (int m = 0; m < nstyles; m++)
     if (styles[m]) bytes += styles[m]->memory_usage();
   return bytes;

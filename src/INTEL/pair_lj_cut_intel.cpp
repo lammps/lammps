@@ -13,18 +13,20 @@
    Contributing author: W. Michael Brown (Intel)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
 #include "pair_lj_cut_intel.h"
+
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
 #include "memory.h"
 #include "modify.h"
-#include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-
+#include "neighbor.h"
 #include "suffix.h"
+
+#include <cmath>
+
 using namespace LAMMPS_NS;
 
 #define FC_PACKED1_T typename ForceConst<flt_t>::fc_packed1
@@ -66,6 +68,9 @@ void PairLJCutIntel::compute(int eflag, int vflag,
   ev_init(eflag, vflag);
   if (vflag_atom)
     error->all(FLERR,"INTEL package does not support per-atom stress");
+  if (vflag && !vflag_fdotr && force->newton_pair)
+    error->all(FLERR,"INTEL package does not support pair_modify nofdotr "
+               "with newton on");
 
   const int inum = list->inum;
   const int nthreads = comm->nthreads;
@@ -237,9 +242,15 @@ void PairLJCutIntel::eval(const int offload, const int vflag,
           if (vflag == VIRIAL_PAIR) sv0 = sv1 = sv2 = sv3 = sv4 = sv5 = (acc_t)0;
 
         #if defined(LMP_SIMD_COMPILER)
-        #pragma vector aligned nog2s
+#if defined(USE_OMP_SIMD)
+        #pragma omp simd reduction(+:fxtmp, fytmp, fztmp, fwtmp, sevdwl, \
+                                   sv0, sv1, sv2, sv3, sv4, sv5)         \
+          aligned(jlist,x,ljc12oi,special_lj,f,lj34i:64)
+#else
         #pragma simd reduction(+:fxtmp, fytmp, fztmp, fwtmp, sevdwl, \
                                sv0, sv1, sv2, sv3, sv4, sv5)
+        #pragma vector aligned
+#endif
         #endif
         for (int jj = 0; jj < jnum; jj++) {
           flt_t forcelj, evdwl;
@@ -380,11 +391,13 @@ void PairLJCutIntel::eval(const int offload, const int vflag,
 void PairLJCutIntel::init_style()
 {
   PairLJCut::init_style();
+  auto request = neighbor->find_request(this);
+
   if (force->newton_pair == 0) {
-    neighbor->requests[neighbor->nrequest-1]->half = 0;
-    neighbor->requests[neighbor->nrequest-1]->full = 1;
+    request->half = 0;
+    request->full = 1;
   }
-  neighbor->requests[neighbor->nrequest-1]->intel = 1;
+  request->intel = 1;
 
   int ifix = modify->find_fix("package_intel");
   if (ifix < 0)
@@ -458,6 +471,7 @@ template <class flt_t>
 void PairLJCutIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
                                                    Memory *memory,
                                                    const int cop) {
+  if (memory != nullptr) _memory = memory;
   if (ntypes != _ntypes) {
     if (_ntypes > 0) {
       _memory->destroy(ljc12o);
@@ -465,10 +479,9 @@ void PairLJCutIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
     }
     if (ntypes > 0) {
       _cop = cop;
-      memory->create(ljc12o,ntypes,ntypes,"fc.c12o");
-      memory->create(lj34,ntypes,ntypes,"fc.lj34");
+      _memory->create(ljc12o,ntypes,ntypes,"fc.c12o");
+      _memory->create(lj34,ntypes,ntypes,"fc.lj34");
     }
   }
   _ntypes = ntypes;
-  _memory = memory;
 }

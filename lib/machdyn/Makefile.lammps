@@ -1,5 +1,5 @@
 # Settings that the LAMMPS build will import when this package library is used
 
-machdyn_SYSINC = -I../../lib/includelink/eigen3
-machdyn_SYSLIB = 
-machdyn_SYSPATH = 
+machdyn_SYSINC =
+machdyn_SYSLIB =
+machdyn_SYSPATH =

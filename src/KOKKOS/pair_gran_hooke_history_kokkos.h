@@ -1,4 +1,3 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -20,6 +19,7 @@ PairStyle(gran/hooke/history/kk/host,PairGranHookeHistoryKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_GRAN_HOOKE_HISTORY_KOKKOS_H
 #define LMP_PAIR_GRAN_HOOKE_HISTORY_KOKKOS_H
 

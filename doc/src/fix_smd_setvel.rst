@@ -42,8 +42,8 @@ alter the velocity component in that dimension.
 This fix is indented to be used together with a time integration fix.
 
 Any of the 3 quantities defining the velocity components can be specified
-as an equal-style or atom-style :doc:`variable <variable>`, namely *vx*\ ,
-*vy*\ , *vz*\ .  If the value is a variable, it should be specified as
+as an equal-style or atom-style :doc:`variable <variable>`, namely *vx*,
+*vy*, *vz*\ .  If the value is a variable, it should be specified as
 v_name, where name is the variable name.  In this case, the variable
 will be evaluated each timestep, and its value used to determine the
 force component.
@@ -82,7 +82,7 @@ Restrictions
 """"""""""""
 
 This fix is part of the MACHDYN package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

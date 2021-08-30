@@ -75,10 +75,10 @@ class ComputeSpecAtom : public Compute {
   void pack_abo23(int);
   void pack_abo24(int);
 
-  class PairReaxC *reaxc;
+  class PairReaxFF *reaxff;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

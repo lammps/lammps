@@ -335,7 +335,7 @@ void NStencil::create_setup()
       for (i = 0; i < n; ++i) {
         stencil_multi[i] = new int*[n]();
         for (j = 0; j < n; ++j) {
-	      maxstencil_multi[i][j] = 0;
+              maxstencil_multi[i][j] = 0;
           nstencil_multi[i][j] = 0;
           stencil_multi[i][j] = nullptr;
         }
@@ -390,7 +390,7 @@ void NStencil::create_setup()
           if(stencil_multi[i][j])
             memory->destroy(stencil_multi[i][j]);
           memory->create(stencil_multi[i][j], smax,
-	  	                 "neighstencil::stencil_multi");
+                                 "neighstencil::stencil_multi");
         }
       }
     }

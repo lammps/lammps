@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -13,32 +12,34 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_property_local.h"
-#include <cstring>
+
 #include "atom.h"
 #include "atom_vec.h"
-#include "update.h"
-#include "force.h"
-#include "pair.h"
-#include "neighbor.h"
-#include "neigh_request.h"
-#include "neigh_list.h"
-#include "memory.h"
 #include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "pair.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
-enum{NONE,NEIGH,PAIR,BOND,ANGLE,DIHEDRAL,IMPROPER};
-enum{TYPE,RADIUS};
+enum { NONE, NEIGH, PAIR, BOND, ANGLE, DIHEDRAL, IMPROPER };
+enum { TYPE, RADIUS };
 
 #define DELTA 10000
 
 /* ---------------------------------------------------------------------- */
 
 ComputePropertyLocal::ComputePropertyLocal(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg),
-  vlocal(NULL), alocal(NULL), indices(NULL), pack_choice(NULL)
+    Compute(lmp, narg, arg), vlocal(nullptr), alocal(nullptr), indices(nullptr),
+    pack_choice(nullptr)
 {
-  if (narg < 4) error->all(FLERR,"Illegal compute property/local command");
+  if (narg < 4) error->all(FLERR, "Illegal compute property/local command");
 
   local_flag = 1;
   nvalues = narg - 3;
@@ -50,220 +51,198 @@ ComputePropertyLocal::ComputePropertyLocal(LAMMPS *lmp, int narg, char **arg) :
   nvalues = 0;
   int iarg = 3;
   while (iarg < narg) {
-    i = iarg-3;
+    i = iarg - 3;
 
-    if (strcmp(arg[iarg],"natom1") == 0) {
+    if (strcmp(arg[iarg], "natom1") == 0) {
       pack_choice[i] = &ComputePropertyLocal::pack_patom1;
       if (kindflag != NONE && kindflag != NEIGH)
-        error->all(FLERR,
-                   "Compute property/local cannot use these inputs together");
+        error->all(FLERR, "Compute property/local cannot use these inputs together");
       kindflag = NEIGH;
-    } else if (strcmp(arg[iarg],"natom2") == 0) {
+    } else if (strcmp(arg[iarg], "natom2") == 0) {
       pack_choice[i] = &ComputePropertyLocal::pack_patom2;
       if (kindflag != NONE && kindflag != NEIGH)
-        error->all(FLERR,
-                   "Compute property/local cannot use these inputs together");
+        error->all(FLERR, "Compute property/local cannot use these inputs together");
       kindflag = NEIGH;
-    } else if (strcmp(arg[iarg],"ntype1") == 0) {
+    } else if (strcmp(arg[iarg], "ntype1") == 0) {
       pack_choice[i] = &ComputePropertyLocal::pack_ptype1;
       if (kindflag != NONE && kindflag != NEIGH)
-        error->all(FLERR,
-                   "Compute property/local cannot use these inputs together");
+        error->all(FLERR, "Compute property/local cannot use these inputs together");
       kindflag = NEIGH;
-    } else if (strcmp(arg[iarg],"ntype2") == 0) {
+    } else if (strcmp(arg[iarg], "ntype2") == 0) {
       pack_choice[i] = &ComputePropertyLocal::pack_ptype2;
       if (kindflag != NONE && kindflag != NEIGH)
-        error->all(FLERR,
-                   "Compute property/local cannot use these inputs together");
+        error->all(FLERR, "Compute property/local cannot use these inputs together");
       kindflag = NEIGH;
 
-    } else if (strcmp(arg[iarg],"patom1") == 0) {
+    } else if (strcmp(arg[iarg], "patom1") == 0) {
       pack_choice[i] = &ComputePropertyLocal::pack_patom1;
       if (kindflag != NONE && kindflag != PAIR)
-        error->all(FLERR,
-                   "Compute property/local cannot use these inputs together");
+        error->all(FLERR, "Compute property/local cannot use these inputs together");
       kindflag = PAIR;
-    } else if (strcmp(arg[iarg],"patom2") == 0) {
+    } else if (strcmp(arg[iarg], "patom2") == 0) {
       pack_choice[i] = &ComputePropertyLocal::pack_patom2;
       if (kindflag != NONE && kindflag != PAIR)
-        error->all(FLERR,
-                   "Compute property/local cannot use these inputs together");
+        error->all(FLERR, "Compute property/local cannot use these inputs together");
       kindflag = PAIR;
-    } else if (strcmp(arg[iarg],"ptype1") == 0) {
+    } else if (strcmp(arg[iarg], "ptype1") == 0) {
       pack_choice[i] = &ComputePropertyLocal::pack_ptype1;
       if (kindflag != NONE && kindflag != PAIR)
-        error->all(FLERR,
-                   "Compute property/local cannot use these inputs together");
+        error->all(FLERR, "Compute property/local cannot use these inputs together");
       kindflag = PAIR;
-    } else if (strcmp(arg[iarg],"ptype2") == 0) {
+    } else if (strcmp(arg[iarg], "ptype2") == 0) {
       pack_choice[i] = &ComputePropertyLocal::pack_ptype2;
       if (kindflag != NONE && kindflag != PAIR)
-        error->all(FLERR,
-                   "Compute property/local cannot use these inputs together");
+        error->all(FLERR, "Compute property/local cannot use these inputs together");
       kindflag = PAIR;
 
-    } else if (strcmp(arg[iarg],"batom1") == 0) {
+    } else if (strcmp(arg[iarg], "batom1") == 0) {
       pack_choice[i] = &ComputePropertyLocal::pack_batom1;
       if (kindflag != NONE && kindflag != BOND)
-        error->all(FLERR,
-                   "Compute property/local cannot use these inputs together");
+        error->all(FLERR, "Compute property/local cannot use these inputs together");
       kindflag = BOND;
-    } else if (strcmp(arg[iarg],"batom2") == 0) {
+    } else if (strcmp(arg[iarg], "batom2") == 0) {
       pack_choice[i] = &ComputePropertyLocal::pack_batom2;
       if (kindflag != NONE && kindflag != BOND)
-        error->all(FLERR,
-                   "Compute property/local cannot use these inputs together");
+        error->all(FLERR, "Compute property/local cannot use these inputs together");
       kindflag = BOND;
-    } else if (strcmp(arg[iarg],"btype") == 0) {
+    } else if (strcmp(arg[iarg], "btype") == 0) {
       pack_choice[i] = &ComputePropertyLocal::pack_btype;
       if (kindflag != NONE && kindflag != BOND)
-        error->all(FLERR,
-                   "Compute property/local cannot use these inputs together");
+        error->all(FLERR, "Compute property/local cannot use these inputs together");
       kindflag = BOND;
 
-    } else if (strcmp(arg[iarg],"aatom1") == 0) {
+    } else if (strcmp(arg[iarg], "aatom1") == 0) {
       pack_choice[i] = &ComputePropertyLocal::pack_aatom1;
       if (kindflag != NONE && kindflag != ANGLE)
-        error->all(FLERR,
-                   "Compute property/local cannot use these inputs together");
+        error->all(FLERR, "Compute property/local cannot use these inputs together");
       kindflag = ANGLE;
-    } else if (strcmp(arg[iarg],"aatom2") == 0) {
+    } else if (strcmp(arg[iarg], "aatom2") == 0) {
       pack_choice[i] = &ComputePropertyLocal::pack_aatom2;
       if (kindflag != NONE && kindflag != ANGLE)
-        error->all(FLERR,
-                   "Compute property/local cannot use these inputs together");
+        error->all(FLERR, "Compute property/local cannot use these inputs together");
       kindflag = ANGLE;
-    } else if (strcmp(arg[iarg],"aatom3") == 0) {
+    } else if (strcmp(arg[iarg], "aatom3") == 0) {
       pack_choice[i] = &ComputePropertyLocal::pack_aatom3;
       if (kindflag != NONE && kindflag != ANGLE)
-        error->all(FLERR,
-                   "Compute property/local cannot use these inputs together");
+        error->all(FLERR, "Compute property/local cannot use these inputs together");
       kindflag = ANGLE;
-    } else if (strcmp(arg[iarg],"atype") == 0) {
+    } else if (strcmp(arg[iarg], "atype") == 0) {
       pack_choice[i] = &ComputePropertyLocal::pack_atype;
       if (kindflag != NONE && kindflag != ANGLE)
-        error->all(FLERR,
-                   "Compute property/local cannot use these inputs together");
+        error->all(FLERR, "Compute property/local cannot use these inputs together");
       kindflag = ANGLE;
 
-    } else if (strcmp(arg[iarg],"datom1") == 0) {
+    } else if (strcmp(arg[iarg], "datom1") == 0) {
       pack_choice[i] = &ComputePropertyLocal::pack_datom1;
       if (kindflag != NONE && kindflag != DIHEDRAL)
-        error->all(FLERR,
-                   "Compute property/local cannot use these inputs together");
+        error->all(FLERR, "Compute property/local cannot use these inputs together");
       kindflag = DIHEDRAL;
-    } else if (strcmp(arg[iarg],"datom2") == 0) {
+    } else if (strcmp(arg[iarg], "datom2") == 0) {
       pack_choice[i] = &ComputePropertyLocal::pack_datom2;
       if (kindflag != NONE && kindflag != DIHEDRAL)
-        error->all(FLERR,
-                   "Compute property/local cannot use these inputs together");
+        error->all(FLERR, "Compute property/local cannot use these inputs together");
       kindflag = DIHEDRAL;
-    } else if (strcmp(arg[iarg],"datom3") == 0) {
+    } else if (strcmp(arg[iarg], "datom3") == 0) {
       pack_choice[i] = &ComputePropertyLocal::pack_datom3;
       if (kindflag != NONE && kindflag != DIHEDRAL)
-        error->all(FLERR,
-                   "Compute property/local cannot use these inputs together");
+        error->all(FLERR, "Compute property/local cannot use these inputs together");
       kindflag = DIHEDRAL;
-    } else if (strcmp(arg[iarg],"datom4") == 0) {
+    } else if (strcmp(arg[iarg], "datom4") == 0) {
       pack_choice[i] = &ComputePropertyLocal::pack_datom4;
       if (kindflag != NONE && kindflag != DIHEDRAL)
-        error->all(FLERR,
-                   "Compute property/local cannot use these inputs together");
+        error->all(FLERR, "Compute property/local cannot use these inputs together");
       kindflag = DIHEDRAL;
-    } else if (strcmp(arg[iarg],"dtype") == 0) {
+    } else if (strcmp(arg[iarg], "dtype") == 0) {
       pack_choice[i] = &ComputePropertyLocal::pack_dtype;
       if (kindflag != NONE && kindflag != DIHEDRAL)
-        error->all(FLERR,
-                   "Compute property/local cannot use these inputs together");
+        error->all(FLERR, "Compute property/local cannot use these inputs together");
       kindflag = DIHEDRAL;
 
-    } else if (strcmp(arg[iarg],"iatom1") == 0) {
+    } else if (strcmp(arg[iarg], "iatom1") == 0) {
       pack_choice[i] = &ComputePropertyLocal::pack_iatom1;
       if (kindflag != NONE && kindflag != IMPROPER)
-        error->all(FLERR,
-                   "Compute property/local cannot use these inputs together");
+        error->all(FLERR, "Compute property/local cannot use these inputs together");
       kindflag = IMPROPER;
-    } else if (strcmp(arg[iarg],"iatom2") == 0) {
+    } else if (strcmp(arg[iarg], "iatom2") == 0) {
       pack_choice[i] = &ComputePropertyLocal::pack_iatom2;
       if (kindflag != NONE && kindflag != IMPROPER)
-        error->all(FLERR,
-                   "Compute property/local cannot use these inputs together");
+        error->all(FLERR, "Compute property/local cannot use these inputs together");
       kindflag = IMPROPER;
-    } else if (strcmp(arg[iarg],"iatom3") == 0) {
+    } else if (strcmp(arg[iarg], "iatom3") == 0) {
       pack_choice[i] = &ComputePropertyLocal::pack_iatom3;
       if (kindflag != NONE && kindflag != IMPROPER)
-        error->all(FLERR,
-                   "Compute property/local cannot use these inputs together");
+        error->all(FLERR, "Compute property/local cannot use these inputs together");
       kindflag = IMPROPER;
-    } else if (strcmp(arg[iarg],"iatom4") == 0) {
+    } else if (strcmp(arg[iarg], "iatom4") == 0) {
       pack_choice[i] = &ComputePropertyLocal::pack_iatom4;
       if (kindflag != NONE && kindflag != IMPROPER)
-        error->all(FLERR,
-                   "Compute property/local cannot use these inputs together");
+        error->all(FLERR, "Compute property/local cannot use these inputs together");
       kindflag = IMPROPER;
-    } else if (strcmp(arg[iarg],"itype") == 0) {
+    } else if (strcmp(arg[iarg], "itype") == 0) {
       pack_choice[i] = &ComputePropertyLocal::pack_itype;
       if (kindflag != NONE && kindflag != IMPROPER)
-        error->all(FLERR,
-                   "Compute property/local cannot use these inputs together");
+        error->all(FLERR, "Compute property/local cannot use these inputs together");
       kindflag = IMPROPER;
 
-    } else break;
+    } else
+      break;
 
     nvalues++;
     iarg++;
   }
 
-  if (nvalues == 1) size_local_cols = 0;
-  else size_local_cols = nvalues;
+  if (nvalues == 1)
+    size_local_cols = 0;
+  else
+    size_local_cols = nvalues;
 
   // optional args
 
   cutstyle = TYPE;
 
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"cutoff") == 0) {
-      if (iarg+2 > narg)
-        error->all(FLERR,"Illegal compute property/local command");
-      if (strcmp(arg[iarg+1],"type") == 0) cutstyle = TYPE;
-      else if (strcmp(arg[iarg+1],"radius") == 0) cutstyle = RADIUS;
-      else error->all(FLERR,"Illegal compute property/local command");
+    if (strcmp(arg[iarg], "cutoff") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute property/local command");
+      if (strcmp(arg[iarg + 1], "type") == 0)
+        cutstyle = TYPE;
+      else if (strcmp(arg[iarg + 1], "radius") == 0)
+        cutstyle = RADIUS;
+      else
+        error->all(FLERR, "Illegal compute property/local command");
       iarg += 2;
-    } else error->all(FLERR,"Illegal compute property/local command");
+    } else
+      error->all(FLERR, "Illegal compute property/local command");
   }
 
   // error check
 
-  if (atom->molecular == 2 && (kindflag == BOND || kindflag == ANGLE ||
-                               kindflag == DIHEDRAL || kindflag == IMPROPER))
-    error->all(FLERR,"Compute property/local does not (yet) work "
+  if (atom->molecular == 2 &&
+      (kindflag == BOND || kindflag == ANGLE || kindflag == DIHEDRAL || kindflag == IMPROPER))
+    error->all(FLERR,
+               "Compute property/local does not (yet) work "
                "with atom_style template");
 
   if (kindflag == BOND && atom->avec->bonds_allow == 0)
-    error->all(FLERR,
-               "Compute property/local for property that isn't allocated");
+    error->all(FLERR, "Compute property/local for property that isn't allocated");
   if (kindflag == ANGLE && atom->avec->angles_allow == 0)
-    error->all(FLERR,
-               "Compute property/local for property that isn't allocated");
+    error->all(FLERR, "Compute property/local for property that isn't allocated");
   if (kindflag == DIHEDRAL && atom->avec->dihedrals_allow == 0)
-    error->all(FLERR,
-               "Compute property/local for property that isn't allocated");
+    error->all(FLERR, "Compute property/local for property that isn't allocated");
   if (kindflag == IMPROPER && atom->avec->impropers_allow == 0)
-    error->all(FLERR,
-               "Compute property/local for property that isn't allocated");
+    error->all(FLERR, "Compute property/local for property that isn't allocated");
   if (cutstyle == RADIUS && !atom->radius_flag)
-    error->all(FLERR,"Compute property/local requires atom attribute radius");
+    error->all(FLERR, "Compute property/local requires atom attribute radius");
 
   nmax = 0;
-  vlocal = NULL;
-  alocal = NULL;
+  vlocal = nullptr;
+  alocal = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
 
 ComputePropertyLocal::~ComputePropertyLocal()
 {
-  delete [] pack_choice;
+  delete[] pack_choice;
   memory->destroy(vlocal);
   memory->destroy(alocal);
   memory->destroy(indices);
@@ -274,10 +253,10 @@ ComputePropertyLocal::~ComputePropertyLocal()
 void ComputePropertyLocal::init()
 {
   if (kindflag == NEIGH || kindflag == PAIR) {
-    if (force->pair == NULL)
-      error->all(FLERR,"No pair style is defined for compute property/local");
+    if (force->pair == nullptr)
+      error->all(FLERR, "No pair style is defined for compute property/local");
     if (force->pair->single_enable == 0)
-      error->all(FLERR,"Pair style does not support compute property/local");
+      error->all(FLERR, "Pair style does not support compute property/local");
   }
 
   // for NEIGH/PAIR need an occasional half neighbor list
@@ -285,7 +264,7 @@ void ComputePropertyLocal::init()
   // this should enable it to always be a copy list  (e.g. for granular pstyle)
 
   if (kindflag == NEIGH || kindflag == PAIR) {
-    int irequest = neighbor->request(this,instance_me);
+    int irequest = neighbor->request(this, instance_me);
     neighbor->requests[irequest]->pair = 0;
     neighbor->requests[irequest]->compute = 1;
     neighbor->requests[irequest]->occasional = 1;
@@ -296,12 +275,18 @@ void ComputePropertyLocal::init()
   // do initial memory allocation so that memory_usage() is correct
   // cannot be done yet for NEIGH/PAIR, since neigh list does not exist
 
-  if (kindflag == NEIGH) ncount = 0;
-  else if (kindflag == PAIR) ncount = 0;
-  else if (kindflag == BOND) ncount = count_bonds(0);
-  else if (kindflag == ANGLE) ncount = count_angles(0);
-  else if (kindflag == DIHEDRAL) ncount = count_dihedrals(0);
-  else if (kindflag == IMPROPER) ncount = count_impropers(0);
+  if (kindflag == NEIGH)
+    ncount = 0;
+  else if (kindflag == PAIR)
+    ncount = 0;
+  else if (kindflag == BOND)
+    ncount = count_bonds(0);
+  else if (kindflag == ANGLE)
+    ncount = count_angles(0);
+  else if (kindflag == DIHEDRAL)
+    ncount = count_dihedrals(0);
+  else if (kindflag == IMPROPER)
+    ncount = count_impropers(0);
 
   if (ncount > nmax) reallocate(ncount);
   size_local_rows = ncount;
@@ -322,22 +307,34 @@ void ComputePropertyLocal::compute_local()
 
   // count local entries and generate list of indices
 
-  if (kindflag == NEIGH) ncount = count_pairs(0,0);
-  else if (kindflag == PAIR) ncount = count_pairs(0,1);
-  else if (kindflag == BOND) ncount = count_bonds(0);
-  else if (kindflag == ANGLE) ncount = count_angles(0);
-  else if (kindflag == DIHEDRAL) ncount = count_dihedrals(0);
-  else if (kindflag == IMPROPER) ncount = count_impropers(0);
+  if (kindflag == NEIGH)
+    ncount = count_pairs(0, 0);
+  else if (kindflag == PAIR)
+    ncount = count_pairs(0, 1);
+  else if (kindflag == BOND)
+    ncount = count_bonds(0);
+  else if (kindflag == ANGLE)
+    ncount = count_angles(0);
+  else if (kindflag == DIHEDRAL)
+    ncount = count_dihedrals(0);
+  else if (kindflag == IMPROPER)
+    ncount = count_impropers(0);
 
   if (ncount > nmax) reallocate(ncount);
   size_local_rows = ncount;
 
-  if (kindflag == NEIGH) ncount = count_pairs(1,0);
-  else if (kindflag == PAIR) ncount = count_pairs(1,1);
-  else if (kindflag == BOND) ncount = count_bonds(1);
-  else if (kindflag == ANGLE) ncount = count_angles(1);
-  else if (kindflag == DIHEDRAL) ncount = count_dihedrals(1);
-  else if (kindflag == IMPROPER) ncount = count_impropers(1);
+  if (kindflag == NEIGH)
+    ncount = count_pairs(1, 0);
+  else if (kindflag == PAIR)
+    ncount = count_pairs(1, 1);
+  else if (kindflag == BOND)
+    ncount = count_bonds(1);
+  else if (kindflag == ANGLE)
+    ncount = count_angles(1);
+  else if (kindflag == DIHEDRAL)
+    ncount = count_dihedrals(1);
+  else if (kindflag == IMPROPER)
+    ncount = count_impropers(1);
 
   // fill vector or array with local values
 
@@ -346,8 +343,7 @@ void ComputePropertyLocal::compute_local()
     (this->*pack_choice[0])(0);
   } else {
     if (alocal) buf = &alocal[0][0];
-    for (int n = 0; n < nvalues; n++)
-      (this->*pack_choice[n])(n);
+    for (int n = 0; n < nvalues; n++) (this->*pack_choice[n])(n);
   }
 }
 
@@ -361,10 +357,10 @@ void ComputePropertyLocal::compute_local()
 
 int ComputePropertyLocal::count_pairs(int allflag, int forceflag)
 {
-  int i,j,m,ii,jj,inum,jnum,itype,jtype;
-  tagint itag,jtag;
-  double xtmp,ytmp,ztmp,delx,dely,delz,rsq,radsum;
-  int *ilist,*jlist,*numneigh,**firstneigh;
+  int i, j, m, ii, jj, inum, jnum, itype, jtype;
+  tagint itag, jtag;
+  double xtmp, ytmp, ztmp, delx, dely, delz, rsq, radsum;
+  int *ilist, *jlist, *numneigh, **firstneigh;
 
   double **x = atom->x;
   double *radius = atom->radius;
@@ -415,9 +411,9 @@ int ComputePropertyLocal::count_pairs(int allflag, int forceflag)
       if (newton_pair == 0 && j >= nlocal) {
         jtag = tag[j];
         if (itag > jtag) {
-          if ((itag+jtag) % 2 == 0) continue;
+          if ((itag + jtag) % 2 == 0) continue;
         } else if (itag < jtag) {
-          if ((itag+jtag) % 2 == 1) continue;
+          if ((itag + jtag) % 2 == 1) continue;
         } else {
           if (x[j][2] < ztmp) continue;
           if (x[j][2] == ztmp) {
@@ -430,14 +426,14 @@ int ComputePropertyLocal::count_pairs(int allflag, int forceflag)
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
-      rsq = delx*delx + dely*dely + delz*delz;
+      rsq = delx * delx + dely * dely + delz * delz;
       jtype = type[j];
       if (forceflag) {
         if (cutstyle == TYPE) {
           if (rsq >= cutsq[itype][jtype]) continue;
         } else {
           radsum = radius[i] + radius[j];
-          if (rsq >= radsum*radsum) continue;
+          if (rsq >= radsum * radsum) continue;
         }
       }
 
@@ -463,7 +459,7 @@ int ComputePropertyLocal::count_pairs(int allflag, int forceflag)
 
 int ComputePropertyLocal::count_bonds(int flag)
 {
-  int i,atom1,atom2;
+  int i, atom1, atom2;
 
   int *num_bond = atom->num_bond;
   tagint **bond_atom = atom->bond_atom;
@@ -504,7 +500,7 @@ int ComputePropertyLocal::count_bonds(int flag)
 
 int ComputePropertyLocal::count_angles(int flag)
 {
-  int i,atom1,atom2,atom3;
+  int i, atom1, atom2, atom3;
 
   int *num_angle = atom->num_angle;
   tagint **angle_atom1 = atom->angle_atom1;
@@ -546,7 +542,7 @@ int ComputePropertyLocal::count_angles(int flag)
 
 int ComputePropertyLocal::count_dihedrals(int flag)
 {
-  int i,atom1,atom2,atom3,atom4;
+  int i, atom1, atom2, atom3, atom4;
 
   int *num_dihedral = atom->num_dihedral;
   tagint **dihedral_atom1 = atom->dihedral_atom1;
@@ -589,7 +585,7 @@ int ComputePropertyLocal::count_dihedrals(int flag)
 
 int ComputePropertyLocal::count_impropers(int flag)
 {
-  int i,atom1,atom2,atom3,atom4;
+  int i, atom1, atom2, atom3, atom4;
 
   int *num_improper = atom->num_improper;
   tagint **improper_atom1 = atom->improper_atom1;
@@ -633,16 +629,16 @@ void ComputePropertyLocal::reallocate(int n)
 
   if (nvalues == 1) {
     memory->destroy(vlocal);
-    memory->create(vlocal,nmax,"property/local:vector_local");
+    memory->create(vlocal, nmax, "property/local:vector_local");
     vector_local = vlocal;
   } else {
     memory->destroy(alocal);
-    memory->create(alocal,nmax,nvalues,"property/local:array_local");
+    memory->create(alocal, nmax, nvalues, "property/local:array_local");
     array_local = alocal;
   }
 
   memory->destroy(indices);
-  memory->create(indices,nmax,2,"property/local:indices");
+  memory->create(indices, nmax, 2, "property/local:indices");
 }
 
 /* ----------------------------------------------------------------------
@@ -651,8 +647,8 @@ void ComputePropertyLocal::reallocate(int n)
 
 double ComputePropertyLocal::memory_usage()
 {
-  double bytes = (double)nmax*nvalues * sizeof(double);
-  bytes += (double)nmax*2 * sizeof(int);
+  double bytes = (double) nmax * nvalues * sizeof(double);
+  bytes += (double) nmax * 2 * sizeof(int);
   return bytes;
 }
 
@@ -736,7 +732,7 @@ void ComputePropertyLocal::pack_batom1(int n)
 
 void ComputePropertyLocal::pack_batom2(int n)
 {
-  int i,j;
+  int i, j;
   tagint **bond_atom = atom->bond_atom;
 
   for (int m = 0; m < ncount; m++) {
@@ -751,7 +747,7 @@ void ComputePropertyLocal::pack_batom2(int n)
 
 void ComputePropertyLocal::pack_btype(int n)
 {
-  int i,j;
+  int i, j;
   int **bond_type = atom->bond_type;
 
   for (int m = 0; m < ncount; m++) {
@@ -766,7 +762,7 @@ void ComputePropertyLocal::pack_btype(int n)
 
 void ComputePropertyLocal::pack_aatom1(int n)
 {
-  int i,j;
+  int i, j;
   tagint **angle_atom1 = atom->angle_atom1;
 
   for (int m = 0; m < ncount; m++) {
@@ -781,7 +777,7 @@ void ComputePropertyLocal::pack_aatom1(int n)
 
 void ComputePropertyLocal::pack_aatom2(int n)
 {
-  int i,j;
+  int i, j;
   tagint **angle_atom2 = atom->angle_atom2;
 
   for (int m = 0; m < ncount; m++) {
@@ -796,7 +792,7 @@ void ComputePropertyLocal::pack_aatom2(int n)
 
 void ComputePropertyLocal::pack_aatom3(int n)
 {
-  int i,j;
+  int i, j;
   tagint **angle_atom3 = atom->angle_atom3;
 
   for (int m = 0; m < ncount; m++) {
@@ -811,7 +807,7 @@ void ComputePropertyLocal::pack_aatom3(int n)
 
 void ComputePropertyLocal::pack_atype(int n)
 {
-  int i,j;
+  int i, j;
   int **angle_type = atom->angle_type;
 
   for (int m = 0; m < ncount; m++) {
@@ -826,7 +822,7 @@ void ComputePropertyLocal::pack_atype(int n)
 
 void ComputePropertyLocal::pack_datom1(int n)
 {
-  int i,j;
+  int i, j;
   tagint **dihedral_atom1 = atom->dihedral_atom1;
 
   for (int m = 0; m < ncount; m++) {
@@ -841,7 +837,7 @@ void ComputePropertyLocal::pack_datom1(int n)
 
 void ComputePropertyLocal::pack_datom2(int n)
 {
-  int i,j;
+  int i, j;
   tagint **dihedral_atom2 = atom->dihedral_atom2;
 
   for (int m = 0; m < ncount; m++) {
@@ -856,7 +852,7 @@ void ComputePropertyLocal::pack_datom2(int n)
 
 void ComputePropertyLocal::pack_datom3(int n)
 {
-  int i,j;
+  int i, j;
   tagint **dihedral_atom3 = atom->dihedral_atom3;
 
   for (int m = 0; m < ncount; m++) {
@@ -871,7 +867,7 @@ void ComputePropertyLocal::pack_datom3(int n)
 
 void ComputePropertyLocal::pack_datom4(int n)
 {
-  int i,j;
+  int i, j;
   tagint **dihedral_atom4 = atom->dihedral_atom4;
 
   for (int m = 0; m < ncount; m++) {
@@ -886,7 +882,7 @@ void ComputePropertyLocal::pack_datom4(int n)
 
 void ComputePropertyLocal::pack_dtype(int n)
 {
-  int i,j;
+  int i, j;
   int **dihedral_type = atom->dihedral_type;
 
   for (int m = 0; m < ncount; m++) {
@@ -901,7 +897,7 @@ void ComputePropertyLocal::pack_dtype(int n)
 
 void ComputePropertyLocal::pack_iatom1(int n)
 {
-  int i,j;
+  int i, j;
   tagint **improper_atom1 = atom->improper_atom1;
 
   for (int m = 0; m < ncount; m++) {
@@ -916,7 +912,7 @@ void ComputePropertyLocal::pack_iatom1(int n)
 
 void ComputePropertyLocal::pack_iatom2(int n)
 {
-  int i,j;
+  int i, j;
   tagint **improper_atom2 = atom->improper_atom2;
 
   for (int m = 0; m < ncount; m++) {
@@ -931,7 +927,7 @@ void ComputePropertyLocal::pack_iatom2(int n)
 
 void ComputePropertyLocal::pack_iatom3(int n)
 {
-  int i,j;
+  int i, j;
   tagint **improper_atom3 = atom->improper_atom3;
 
   for (int m = 0; m < ncount; m++) {
@@ -946,7 +942,7 @@ void ComputePropertyLocal::pack_iatom3(int n)
 
 void ComputePropertyLocal::pack_iatom4(int n)
 {
-  int i,j;
+  int i, j;
   tagint **improper_atom4 = atom->improper_atom4;
 
   for (int m = 0; m < ncount; m++) {
@@ -961,7 +957,7 @@ void ComputePropertyLocal::pack_iatom4(int n)
 
 void ComputePropertyLocal::pack_itype(int n)
 {
-  int i,j;
+  int i, j;
   int **improper_type = atom->improper_type;
 
   for (int m = 0; m < ncount; m++) {

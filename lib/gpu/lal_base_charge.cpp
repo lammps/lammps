@@ -56,7 +56,7 @@ int BaseChargeT::init_atomic(const int nlocal, const int nall,
                              const int max_nbors, const int maxspecial,
                              const double cell_size, const double gpu_split,
                              FILE *_screen, const void *pair_program,
-                             const char *k_name) {
+                             const char *k_name, const int disable_fast_math) {
   screen=_screen;
 
   int gpu_nbor=0;
@@ -83,7 +83,7 @@ int BaseChargeT::init_atomic(const int nlocal, const int nall,
 
   _block_size=device->pair_block_size();
   _block_bio_size=device->block_bio_pair();
-  compile_kernels(*ucl_device,pair_program,k_name);
+  compile_kernels(*ucl_device,pair_program,k_name,disable_fast_math);
 
   if (_threads_per_atom>1 && gpu_nbor==0) {
     nbor->packing(true);
@@ -321,14 +321,20 @@ double BaseChargeT::host_memory_usage_atomic() const {
 
 template <class numtyp, class acctyp>
 void BaseChargeT::compile_kernels(UCL_Device &dev, const void *pair_str,
-                                  const char *kname) {
+                                  const char *kname,
+                                  const int disable_fast_math) {
   if (_compiled)
     return;
 
   std::string s_fast=std::string(kname)+"_fast";
   if (pair_program) delete pair_program;
   pair_program=new UCL_Program(dev);
-  std::string oclstring = device->compile_string()+" -DEVFLAG=1";
+  std::string device_compile_string;
+  if (disable_fast_math)
+    device_compile_string = device->compile_string_nofast();
+  else
+    device_compile_string = device->compile_string();
+  std::string oclstring = device_compile_string+" -DEVFLAG=1";
   pair_program->load_string(pair_str,oclstring.c_str(),nullptr,screen);
   k_pair_fast.set_function(*pair_program,s_fast.c_str());
   k_pair.set_function(*pair_program,kname);
@@ -336,7 +342,7 @@ void BaseChargeT::compile_kernels(UCL_Device &dev, const void *pair_str,
   q_tex.get_texture(*pair_program,"q_tex");
 
   #if defined(LAL_OCL_EV_JIT)
-  oclstring = device->compile_string()+" -DEVFLAG=0";
+  oclstring = device_compile_string+" -DEVFLAG=0";
   if (pair_program_noev) delete pair_program_noev;
   pair_program_noev=new UCL_Program(dev);
   pair_program_noev->load_string(pair_str,oclstring.c_str(),nullptr,screen);

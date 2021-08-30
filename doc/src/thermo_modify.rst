@@ -59,8 +59,8 @@ simulation box :doc:`boundary <boundary>` or if it moves more than a box
 length outside the simulation domain (or more than a processor
 sub-domain length) before reneighboring occurs.  The latter case is
 typically due to bad dynamics, e.g. too large a timestep or huge
-forces and velocities.  If the value is *ignore*\ , LAMMPS does not
-check for lost atoms.  If the value is *error* or *warn*\ , LAMMPS
+forces and velocities.  If the value is *ignore*, LAMMPS does not
+check for lost atoms.  If the value is *error* or *warn*, LAMMPS
 checks and either issues an error or warning.  The code will exit with
 an error and continue with a warning.  A warning will only be issued
 once, the first time an atom is lost.  This can be a useful debugging
@@ -117,15 +117,15 @@ The *norm* keyword determines whether various thermodynamic output
 values are normalized by the number of atoms or not, depending on
 whether it is set to *yes* or *no*\ .  Different unit styles have
 different defaults for this setting (see below).  Even if *norm* is
-set to *yes*\ , a value is only normalized if it is an "extensive"
+set to *yes*, a value is only normalized if it is an "extensive"
 quantity, meaning that it scales with the number of atoms in the
-system.  For the thermo keywords described by the doc page for the
+system.  For the thermo keywords described by the page for the
 :doc:`thermo_style <thermo_style>` command, all energy-related keywords
 are extensive, such as *pe* or *ebond* or *enthalpy*\ .  Other keywords
 such as *temp* or *press* are "intensive" meaning their value is
 independent (in a statistical sense) of the number of atoms in the
 system and thus are never normalized.  For thermodynamic output values
-extracted from fixes and computes in a :doc:`thermo_style custom <thermo_style>` command, the doc page for the individual
+extracted from fixes and computes in a :doc:`thermo_style custom <thermo_style>` command, the page for the individual
 :doc:`fix <fix>` or :doc:`compute <compute>` lists whether the value is
 "extensive" or "intensive" and thus whether it is normalized.
 Thermodynamic output values calculated by a variable formula are
@@ -174,7 +174,7 @@ settings, reverting all values to their default format.
    a "%d"-style format identifier in the format string and LAMMPS will
    convert this to the corresponding 8-byte form when it is applied to
    those keywords.  However, when specifying the *line* option or *format
-   M string* option for *step* and *natoms*\ , you should specify a format
+   M string* option for *step* and *natoms*, you should specify a format
    string appropriate for an 8-byte signed integer, e.g. one with "%ld".
 
 The *temp* keyword is used to determine how thermodynamic temperature
@@ -222,7 +222,7 @@ Default
 """""""
 
 The option defaults are lost = error, warn = 100, norm = yes for unit
-style of *lj*\ , norm = no for unit style of *real* and *metal*\ ,
+style of *lj*, norm = no for unit style of *real* and *metal*,
 flush = no, and temp/press = compute IDs defined by thermo_style.
 
 The defaults for the line and format options depend on the thermo

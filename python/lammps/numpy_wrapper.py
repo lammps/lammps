@@ -17,7 +17,7 @@
 ################################################################################
 
 import warnings
-from ctypes import POINTER, c_double, c_int, c_int32, c_int64, cast
+from ctypes import POINTER, c_void_p, c_char_p, c_double, c_int, c_int32, c_int64, cast
 
 
 from .constants import *                # lgtm [py/polluting-import]
@@ -246,7 +246,109 @@ class numpy_wrapper:
       return np.ctypeslib.as_array(value)
     return value
 
-  # -------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
+
+  def gather_bonds(self):
+    """Retrieve global list of bonds as NumPy array
+
+    This is a wrapper around :py:meth:`lammps.gather_bonds() <lammps.lammps.gather_bonds()>`
+    It behaves the same as the original method, but returns a NumPy array instead
+    of a ``ctypes`` list.
+
+    .. versionadded:: 28Jul2021
+
+    :return: the requested data as a 2d-integer numpy array
+    :rtype: numpy.array(nbonds,3)
+    """
+    import numpy as np
+    nbonds, value = self.lmp.gather_bonds()
+    return np.ctypeslib.as_array(value).reshape(nbonds,3)
+
+    # -------------------------------------------------------------------------
+
+  def fix_external_get_force(self, fix_id):
+    """Get access to the array with per-atom forces of a fix external instance with a given fix ID.
+
+    This function is a wrapper around the
+    :py:meth:`lammps.fix_external_get_force() <lammps.lammps.fix_external_get_force()>`
+    method.  It behaves the same as the original method, but returns a NumPy array instead
+    of a ``ctypes`` pointer.
+
+    .. versionchanged:: 28Jul2021
+
+    :param fix_id:  Fix-ID of a fix external instance
+    :type: string
+    :return: requested data
+    :rtype: numpy.array
+    """
+    import numpy as np
+    nlocal = self.lmp.extract_setting('nlocal')
+    value = self.lmp.fix_external_get_force(fix_id)
+    return self.darray(value,nlocal,3)
+
+    # -------------------------------------------------------------------------
+
+  def fix_external_set_energy_peratom(self, fix_id, eatom):
+    """Set the per-atom energy contribution for a fix external instance with the given ID.
+
+    This function is an alternative to
+    :py:meth:`lammps.fix_external_set_energy_peratom() <lammps.lammps.fix_external_set_energy_peratom()>`
+    method.  It behaves the same as the original method, but accepts a NumPy array
+    instead of a list as argument.
+
+    .. versionadded:: 28Jul2021
+
+    :param fix_id:  Fix-ID of a fix external instance
+    :type: string
+    :param eatom:   per-atom potential energy
+    :type: numpy.array
+    """
+    import numpy as np
+    nlocal = self.lmp.extract_setting('nlocal')
+    if len(eatom) < nlocal:
+      raise Exception('per-atom energy dimension must be at least nlocal')
+
+    c_double_p = POINTER(c_double)
+    value = eatom.astype(np.double)
+    return self.lmp.lib.lammps_fix_external_set_energy_peratom(self.lmp.lmp, fix_id.encode(),
+                                                               value.ctypes.data_as(c_double_p))
+
+    # -------------------------------------------------------------------------
+
+  def fix_external_set_virial_peratom(self, fix_id, vatom):
+    """Set the per-atom virial contribution for a fix external instance with the given ID.
+
+    This function is an alternative to
+    :py:meth:`lammps.fix_external_set_virial_peratom() <lammps.lammps.fix_external_set_virial_peratom()>`
+    method.  It behaves the same as the original method, but accepts a NumPy array
+    instead of a list as argument.
+
+    .. versionadded:: 28Jul2021
+
+    :param fix_id:  Fix-ID of a fix external instance
+    :type: string
+    :param eatom:   per-atom potential energy
+    :type: numpy.array
+    """
+    import numpy as np
+    nlocal = self.lmp.extract_setting('nlocal')
+    if len(vatom) < nlocal:
+      raise Exception('per-atom virial first dimension must be at least nlocal')
+    if len(vatom[0]) != 6:
+      raise Exception('per-atom virial second dimension must be 6')
+
+    c_double_pp = np.ctypeslib.ndpointer(dtype=np.uintp, ndim=1, flags='C')
+
+    # recast numpy array to be compatible with library interface
+    value = (vatom.__array_interface__['data'][0]
+                   + np.arange(vatom.shape[0])*vatom.strides[0]).astype(np.uintp)
+
+    # change prototype to our custom type
+    self.lmp.lib.lammps_fix_external_set_virial_peratom.argtypes = [ c_void_p, c_char_p, c_double_pp ]
+
+    self.lmp.lib.lammps_fix_external_set_virial_peratom(self.lmp.lmp, fix_id.encode(), value)
+
+    # -------------------------------------------------------------------------
 
   def get_neighlist(self, idx):
     """Returns an instance of :class:`NumPyNeighList` which wraps access to the neighbor list with the given index

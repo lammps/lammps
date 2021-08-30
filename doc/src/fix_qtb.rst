@@ -128,7 +128,7 @@ spectrum while consumes more memory.  With fixed *f_max* and
 :math:`\gamma`, *N_f* should be big enough to converge the classical
 temperature :math:`T^{cl}` as a function of target quantum bath
 temperature. Memory usage per processor could be from 10 to 100
-Mbytes.
+MBytes.
 
 .. note::
 
@@ -161,9 +161,9 @@ This fix is not invoked during :doc:`energy minimization <minimize>`.
 Restrictions
 """"""""""""
 
-This fix style is part of the USER-QTB package.  It is only enabled if
+This fix style is part of the QTB package.  It is only enabled if
 LAMMPS was built with that package. See the :doc:`Build package
-<Build_package>` doc page for more info.
+<Build_package>` page for more info.
 
 ----------
 

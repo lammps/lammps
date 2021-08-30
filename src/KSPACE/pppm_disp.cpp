@@ -2700,22 +2700,12 @@ void PPPMDisp::set_fft_parameters(int& nx_p, int& ny_p, int& nz_p,
                                   int& ng, int& nf, int& nfb,
                                   double& sft, double& sftone, int& ord)
 {
-  // global indices of PPPM grid range from 0 to N-1
-  // nlo_in,nhi_in = lower/upper limits of the 3d sub-brick of
-  //   global PPPM grid that I own without ghost cells
-  // for slab PPPM, assign z grid as if it were not extended
+  // partition global grid across procs
+  // n xyz lo/hi i = lower/upper bounds of global grid this proc owns
+  // indices range from 0 to N-1 inclusive in each dim
 
-  nxlo_i = static_cast<int> (comm->xsplit[comm->myloc[0]] * nx_p);
-  nxhi_i = static_cast<int> (comm->xsplit[comm->myloc[0]+1] * nx_p) - 1;
-
-  nylo_i = static_cast<int> (comm->ysplit[comm->myloc[1]] * ny_p);
-  nyhi_i = static_cast<int> (comm->ysplit[comm->myloc[1]+1] * ny_p) - 1;
-
-  nzlo_i = static_cast<int>
-      (comm->zsplit[comm->myloc[2]] * nz_p/slab_volfactor);
-  nzhi_i = static_cast<int>
-      (comm->zsplit[comm->myloc[2]+1] * nz_p/slab_volfactor) - 1;
-
+  comm->partition_grid(nx_p,ny_p,nz_p,slab_volfactor,
+                       nxlo_i,nxhi_i,nylo_i,nyhi_i,nzlo_i,nzhi_i);
 
   // nlow,nupp = stencil size for mapping particles to PPPM grid
 

@@ -94,7 +94,8 @@ TEST(Tokenizer, copy_constructor)
 
 TEST(Tokenizer, move_constructor)
 {
-    Tokenizer u = std::move(Tokenizer("test new word   ", " "));
+    Tokenizer t("test new word   ", " ");
+    Tokenizer u = std::move(t);
     ASSERT_THAT(u.next(), Eq("test"));
     ASSERT_THAT(u.next(), Eq("new"));
     ASSERT_THAT(u.next(), Eq("word"));
@@ -109,7 +110,7 @@ TEST(Tokenizer, copy_assignment)
     ASSERT_THAT(t.next(), Eq("word"));
     ASSERT_EQ(t.count(), 2);
     Tokenizer v = u;
-    u = t;
+    u           = t;
     ASSERT_THAT(u.next(), Eq("test"));
     ASSERT_THAT(u.next(), Eq("word"));
     ASSERT_EQ(u.count(), 2);
@@ -248,7 +249,8 @@ TEST(ValueTokenizer, copy_constructor)
 
 TEST(ValueTokenizer, move_constructor)
 {
-    ValueTokenizer u = std::move(ValueTokenizer("  test new word   ", " "));
+    ValueTokenizer t("  test new word   ", " ");
+    ValueTokenizer u = std::move(t);
     ASSERT_THAT(u.next_string(), Eq("test"));
     ASSERT_THAT(u.next_string(), Eq("new"));
     ASSERT_THAT(u.next_string(), Eq("word"));
@@ -263,7 +265,7 @@ TEST(ValueTokenizer, copy_assignment)
     ASSERT_THAT(t.next_string(), Eq("word"));
     ASSERT_EQ(t.count(), 2);
     ValueTokenizer v = u;
-    u = t;
+    u                = t;
     ASSERT_THAT(u.next_string(), Eq("test"));
     ASSERT_THAT(u.next_string(), Eq("word"));
     ASSERT_EQ(u.count(), 2);

@@ -86,7 +86,7 @@ This fix is not invoked during energy minimization.
 Restrictions
 """"""""""""
 
-This command is only available when LAMMPS was built with the USER-MISC package.
+This command is only available when LAMMPS was built with the MISC package.
 Since this fix depends on the z-coordinate of atoms, it cannot be used in 2d simulations.
 
 Related commands

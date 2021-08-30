@@ -73,7 +73,7 @@ from 1 to N.  A leading asterisk means all types from 1 to n
 (inclusive).
 
 The *orientorder* cstyle calculates the number of "connected" neighbor
-atoms J around each central atom I.  For this *cstyle*\ , connected is
+atoms J around each central atom I.  For this *cstyle*, connected is
 defined by the orientational order parameter calculated by the
 :doc:`compute orientorder/atom <compute_orientorder_atom>` command.
 This *cstyle* thus allows one to apply the ten Wolde's criterion to
@@ -85,7 +85,7 @@ calculate components of the *Ybar_lm* vector for each atoms, as
 described in its documentation.  Note that orientorder/atom compute
 defines its own criteria for identifying neighboring atoms.  If the
 scalar product (*Ybar_lm(i)*,*Ybar_lm(j)*), calculated by the
-orientorder/atom compute is larger than the specified *threshold*\ ,
+orientorder/atom compute is larger than the specified *threshold*,
 then I and J are connected, and the coordination value of I is
 incremented by one.
 

@@ -268,7 +268,7 @@ Computes that generate values to output
 Every :doc:`compute <compute>` in LAMMPS produces either global or
 per-atom or local values.  The values can be scalars or vectors or
 arrays of data.  These values can be output using the other commands
-described in this section.  The doc page for each compute command
+described in this section.  The page for each compute command
 describes what it produces.  Computes that produce per-atom or local
 values have the word "atom" or "local" in their style name.  Computes
 without the word "atom" or "local" produce global values.
@@ -281,7 +281,7 @@ Fixes that generate values to output
 Some :doc:`fixes <fix>` in LAMMPS produces either global or per-atom or
 local values which can be accessed by other commands.  The values can
 be scalars or vectors or arrays of data.  These values can be output
-using the other commands described in this section.  The doc page for
+using the other commands described in this section.  The page for
 each fix command tells whether it produces any output quantities and
 describes them.
 

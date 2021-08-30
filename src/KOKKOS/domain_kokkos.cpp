@@ -27,14 +27,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-DomainKokkos::DomainKokkos(LAMMPS *lmp) : Domain(lmp) {}
-
-/* ---------------------------------------------------------------------- */
-
-void DomainKokkos::init()
-{
+DomainKokkos::DomainKokkos(LAMMPS *lmp) : Domain(lmp) {
   atomKK = (AtomKokkos *) atom;
-  Domain::init();
 }
 
 /* ----------------------------------------------------------------------

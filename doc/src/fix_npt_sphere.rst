@@ -61,8 +61,8 @@ The only difference between discs and spheres in this context is their
 moment of inertia, as used in the time integration.
 
 Additional parameters affecting the thermostat and barostat are
-specified by keywords and values documented with the :doc:`fix npt <fix_nh>` command.  See, for example, discussion of the *temp*\ ,
-*iso*\ , *aniso*\ , and *dilate* keywords.
+specified by keywords and values documented with the :doc:`fix npt <fix_nh>` command.  See, for example, discussion of the *temp*,
+*iso*, *aniso*, and *dilate* keywords.
 
 The particles in the fix group are the only ones whose velocities and
 positions are updated by the velocity/position update portion of the
@@ -71,7 +71,7 @@ NPT integration.
 Regardless of what particles are in the fix group, a global pressure is
 computed for all particles.  Similarly, when the size of the simulation
 box is changed, all particles are re-scaled to new positions, unless the
-keyword *dilate* is specified with a value of *partial*\ , in which case
+keyword *dilate* is specified with a value of *partial*, in which case
 only the particles in the fix group are re-scaled.  The latter can be
 useful for leaving the coordinates of particles in a solid substrate
 unchanged and controlling the pressure of a surrounding fluid.

@@ -111,7 +111,7 @@ Bond styles can only be set for atom styles that allow bonds to be
 defined.
 
 Most bond styles are part of the MOLECULE package.  They are only
-enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.  The doc pages for
+enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.  The doc pages for
 individual bond potentials tell if it is part of a package.
 
 Related commands

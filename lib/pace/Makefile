@@ -2,8 +2,8 @@ SHELL = /bin/sh
 
 # ------ FILES ------
 
-SRC_FILES = $(wildcard src/USER-PACE/*.cpp)
-SRC = $(filter-out src/USER-PACE/pair_pace.cpp, $(SRC_FILES))
+SRC_FILES = $(wildcard src/ML-PACE/*.cpp)
+SRC = $(filter-out src/ML-PACE/pair_pace.cpp, $(SRC_FILES))
 
 # ------ DEFINITIONS ------
 
@@ -12,7 +12,7 @@ OBJ =   $(SRC:.cpp=.o)
 
 
 # ------ SETTINGS ------
-CXXFLAGS = -O3 -fPIC -Isrc/USER-PACE
+CXXFLAGS = -O3 -fPIC -Isrc/ML-PACE
 
 ARCHIVE =	ar
 ARCHFLAG =	-rc

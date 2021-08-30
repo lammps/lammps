@@ -41,15 +41,13 @@ bool read_yaml_file(const char *infile, TestConfig &config)
 }
 
 // write out common header items for yaml files
-void write_yaml_header(YamlWriter *writer,
-                       TestConfig *cfg,
-                       const char *version)
+void write_yaml_header(YamlWriter *writer, TestConfig *cfg, const char *version)
 {
     // lammps_version
     writer->emit("lammps_version", version);
 
     // date_generated
-    std::time_t now = time(NULL);
+    std::time_t now   = time(NULL);
     std::string block = trim(ctime(&now));
     writer->emit("date_generated", block);
 
@@ -59,8 +57,10 @@ void write_yaml_header(YamlWriter *writer,
     // skip tests
     block.clear();
     for (auto &skip : cfg->skip_tests) {
-        if (block.empty()) block = skip;
-        else block += " " + skip;
+        if (block.empty())
+            block = skip;
+        else
+            block += " " + skip;
     }
     writer->emit("skip_tests", block);
 

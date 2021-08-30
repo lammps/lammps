@@ -11,7 +11,7 @@ Syntax
    balance thresh style args ... keyword args ...
 
 * thresh = imbalance threshold that must be exceeded to perform a re-balance
-* one style/arg pair can be used (or multiple for *x*\ ,\ *y*\ ,\ *z*\ )
+* one style/arg pair can be used (or multiple for *x*,\ *y*,\ *z*\ )
 * style = *x* or *y* or *z* or *shift* or *rcb*
 
   .. parsed-literal::
@@ -170,10 +170,10 @@ fractions of the box length) are also printed.
 ----------
 
 The method used to perform a load balance is specified by one of the
-listed styles (or more in the case of *x*\ ,\ *y*\ ,\ *z*\ ), which are
+listed styles (or more in the case of *x*,\ *y*,\ *z*\ ), which are
 described in detail below.  There are 2 kinds of styles.
 
-The *x*\ , *y*\ , *z*\ , and *shift* styles are "grid" methods which
+The *x*, *y*, *z*, and *shift* styles are "grid" methods which
 produce a logical 3d grid of processors.  They operate by changing the
 cutting planes (or lines) between processors in 3d (or 2d), to adjust
 the volume (area in 2d) assigned to each processor, as in the
@@ -222,7 +222,7 @@ from scratch.
 
 ----------
 
-The *x*\ , *y*\ , and *z* styles invoke a "grid" method for balancing, as
+The *x*, *y*, and *z* styles invoke a "grid" method for balancing, as
 described above.  Note that any or all of these 3 styles can be
 specified together, one after the other, but they cannot be used with
 any other style.  This style adjusts the position of cutting planes
@@ -263,7 +263,7 @@ once.  You should normally only list dimensions where you expect there
 to be a density variation in the particles.
 
 Balancing proceeds by adjusting the cutting planes in each of the
-dimensions listed in *dimstr*\ , one dimension at a time.  For a single
+dimensions listed in *dimstr*, one dimension at a time.  For a single
 dimension, the balancing operation (described below) is iterated on up
 to *Niter* times.  After each dimension finishes, the imbalance factor
 is re-computed, and the balancing operation halts if the *stopthresh*
@@ -428,8 +428,8 @@ weights.  It assigns the same weight to each particle owned by a
 processor based on the total computational time spent by that
 processor.  See details below on what time window is used.  It uses
 the same timing information as is used for the :doc:`MPI task timing
-breakdown <Run_output>`, namely, for sections *Pair*\ , *Bond*\ ,
-*Kspace*\ , and *Neigh*\ .  The time spent in those portions of the
+breakdown <Run_output>`, namely, for sections *Pair*, *Bond*,
+*Kspace*, and *Neigh*\ .  The time spent in those portions of the
 timestep are measured for each MPI rank, summed, then divided by the
 number of particles owned by that processor.  I.e. the weight is an
 effective CPU time/particle averaged over the particles on that
@@ -455,7 +455,7 @@ are for the entire previous run.  For the *fix balance* command the
 timing data is for only the timesteps since the last balancing
 operation was performed.  If timing information for the required
 sections is not available, e.g. at the beginning of a run, or when the
-:doc:`timer <timer>` command is set to either *loop* or *off*\ , a warning
+:doc:`timer <timer>` command is set to either *loop* or *off*, a warning
 is issued.  In this case no weights are computed.
 
 .. note::
@@ -477,12 +477,18 @@ atom-style variables can reference the position of a particle, its
 velocity, the volume of its Voronoi cell, etc.
 
 The *store* weight style does not compute a weight factor.  Instead it
-stores the current accumulated weights in a custom per-atom property
-specified by *name*\ .  This must be a property defined as *d_name* via
-the :doc:`fix property/atom <fix_property_atom>` command.  Note that
-these custom per-atom properties can be output in a :doc:`dump <dump>`
-file, so this is a way to examine, debug, or visualize the
-per-particle weights computed during the load-balancing operation.
+stores the current accumulated weights in a custom per-atom vector
+specified by *name*\ .  This must be a vector defined as *d_name* via
+the :doc:`fix property/atom <fix_property_atom>` command.  This means
+the values in the vector can be read as part of a data file with the
+:doc:`read_data <read_data>` command or specified with the :doc:`set
+<set>` command.  These weights can also be output in a :doc:`dump
+<dump>` file, so this is a way to examine, debug, or visualize the
+per-particle weights used during the load-balancing operation.
+
+Note that the name of the custom per-atom vector is specified just
+as *name*, not as *d_name* as it is for other commands that use
+different kinds of custom atom vectors or arrays as arguments.
 
 ----------
 
@@ -558,7 +564,7 @@ Related commands
 :doc:`group <group>`, :doc:`processors <processors>`,
 :doc:`fix balance <fix_balance>`, :doc:`comm_style <comm_style>`
 
-.. _pizza: https://pizza.sandia.gov
+.. _pizza: https://lammps.github.io/pizza
 
 Default
 """""""

@@ -102,7 +102,7 @@ a file.
 In LAMMPS, chunks are collections of atoms defined by a :doc:`compute chunk/atom <compute_chunk_atom>` command, which assigns each atom
 to a single chunk (or no chunk).  The ID for this command is specified
 as chunkID.  For example, a single chunk could be the atoms in a
-molecule or atoms in a spatial bin.  See the :doc:`compute chunk/atom <compute_chunk_atom>` doc page and the :doc:`Howto chunk <Howto_chunk>` doc page for details of how chunks can be
+molecule or atoms in a spatial bin.  See the :doc:`compute chunk/atom <compute_chunk_atom>` page and the :doc:`Howto chunk <Howto_chunk>` page for details of how chunks can be
 defined and examples of how they can be used to measure properties of
 a system.
 
@@ -168,7 +168,7 @@ case, a per-atom array with 3 columns:
 
 ----------
 
-The *Nevery*\ , *Nrepeat*\ , and *Nfreq* arguments specify on what
+The *Nevery*, *Nrepeat*, and *Nfreq* arguments specify on what
 timesteps the input values will be accessed and contribute to the
 average.  The final averaged quantities are generated on timesteps
 that are a multiples of *Nfreq*\ .  The average is over *Nrepeat*
@@ -199,14 +199,14 @@ discussed below.
    remain constant for the duration of the simulation.  This fix forces
    the chunk/atom compute specified by chunkID to hold *Nchunk* constant
    for the appropriate time windows, by not allowing it to re-calculate
-   *Nchunk*\ , which can also affect how it assigns chunk IDs to atoms.
+   *Nchunk*, which can also affect how it assigns chunk IDs to atoms.
    This is particularly important to understand if the chunks defined by
    the :doc:`compute chunk/atom <compute_chunk_atom>` command are spatial
-   bins.  If its *units* keyword is set to *box* or *lattice*\ , then the
+   bins.  If its *units* keyword is set to *box* or *lattice*, then the
    number of bins *Nchunk* and size of each bin will be fixed over the
    *Nfreq* time window, which can affect which atoms are discarded if the
    simulation box size changes.  If its *units* keyword is set to
-   *reduced*\ , then the number of bins *Nchunk* will still be fixed, but
+   *reduced*, then the number of bins *Nchunk* will still be fixed, but
    the size of each bin can vary at each timestep if the simulation box
    size changes, e.g. for an NPT simulation.
 
@@ -221,7 +221,7 @@ The *density/number* value means the number density is computed for
 each chunk, i.e. number/volume.  The *density/mass* value means the
 mass density is computed for each chunk, i.e. total-mass/volume.  The
 output values are in units of 1/volume or density (mass/volume).  See
-the :doc:`units <units>` command doc page for the definition of density
+the :doc:`units <units>` command page for the definition of density
 for each choice of units, e.g. gram/cm\^3.  If the chunks defined by
 the :doc:`compute chunk/atom <compute_chunk_atom>` command are spatial
 bins, the volume is the bin volume.  Otherwise it is the volume of the
@@ -280,7 +280,7 @@ appended, the per-atom vector calculated by the fix is used.  If a
 bracketed integer is appended, the Ith column of the per-atom array
 calculated by the fix is used.  Note that some fixes only produce
 their values on certain timesteps, which must be compatible with
-*Nevery*\ , else an error results.  Users can also write code for their
+*Nevery*, else an error results.  Users can also write code for their
 own fix styles and :doc:`add them to LAMMPS <Modify>`.  See the
 discussion above for how I can be specified with a wildcard asterisk
 to effectively specify multiple values.
@@ -300,7 +300,7 @@ and its outputs.
 The *norm* keyword affects how averaging is done for the per-chunk
 values that are output every *Nfreq* timesteps.
 
-It the *norm* setting is *all*\ , which is the default, a chunk value is
+It the *norm* setting is *all*, which is the default, a chunk value is
 summed over all atoms in all *Nrepeat* samples, as is the count of
 atoms in the chunk.  The averaged output value for the chunk on the
 *Nfreq* timesteps is Total-sum / Total-count.  In other words it is an
@@ -311,7 +311,7 @@ the final *Nfreq* timestep. For the *temp* values, degrees of freedom and
 kinetic energy are summed separately across the entire *Nfreq* timescale, and
 the output value is calculated by dividing those two sums.
 
-If the *norm* setting is *sample*\ , the chunk value is summed over
+If the *norm* setting is *sample*, the chunk value is summed over
 atoms for each sample, as is the count, and an "average sample value"
 is computed for each sample, i.e. Sample-sum / Sample-count.  The
 output value for the chunk on the *Nfreq* timesteps is the average of
@@ -322,7 +322,7 @@ values, the volume (bin volume or system volume) used in the
 per-sample normalization will be the current volume at each sampling
 step.
 
-If the *norm* setting is *none*\ , a similar computation as for the
+If the *norm* setting is *none*, a similar computation as for the
 *sample* setting is done, except the individual "average sample
 values" are "summed sample values".  A summed sample value is simply
 the chunk value summed over atoms in the sample, without dividing by
@@ -335,15 +335,15 @@ normalization will be the current volume at each sampling step.
 
 The *ave* keyword determines how the per-chunk values produced every
 *Nfreq* steps are averaged with values produced on previous steps that
-were multiples of *Nfreq*\ , before they are accessed by another output
+were multiples of *Nfreq*, before they are accessed by another output
 command or written to a file.
 
-If the *ave* setting is *one*\ , which is the default, then the chunk
+If the *ave* setting is *one*, which is the default, then the chunk
 values produced on timesteps that are multiples of *Nfreq* are
 independent of each other; they are output as-is without further
 averaging.
 
-If the *ave* setting is *running*\ , then the chunk values produced on
+If the *ave* setting is *running*, then the chunk values produced on
 timesteps that are multiples of *Nfreq* are summed and averaged in a
 cumulative sense before being output.  Each output chunk value is thus
 the average of the chunk value produced on that timestep with all
@@ -352,7 +352,7 @@ the fix is defined; it can only be restarted by deleting the fix via
 the :doc:`unfix <unfix>` command, or re-defining the fix by
 re-specifying it.
 
-If the *ave* setting is *window*\ , then the chunk values produced on
+If the *ave* setting is *window*, then the chunk values produced on
 timesteps that are multiples of *Nfreq* are summed and averaged within
 a moving "window" of time, so that the last M values for the same
 chunk are used to produce the output.  E.g. if M = 3 and Nfreq = 1000,
@@ -440,18 +440,18 @@ chunk ID of 3 may correspond to an original chunk ID or molecule ID of
 415.  The OrigID column will list 415 for the third chunk.
 
 The CoordN columns only appear if a *binning* style was used in the
-:doc:`compute chunk/atom <compute_chunk_atom>` command.  For *bin/1d*\ ,
-*bin/2d*\ , and *bin/3d* styles the column values are the center point
+:doc:`compute chunk/atom <compute_chunk_atom>` command.  For *bin/1d*,
+*bin/2d*, and *bin/3d* styles the column values are the center point
 of the bin in the corresponding dimension.  Just Coord1 is used for
-*bin/1d*\ , Coord2 is added for *bin/2d*\ , Coord3 is added for *bin/3d*\ .
-For *bin/sphere*\ , just Coord1 is used, and it is the radial
-coordinate.  For *bin/cylinder*\ , Coord1 and Coord2 are used.  Coord1
+*bin/1d*, Coord2 is added for *bin/2d*, Coord3 is added for *bin/3d*\ .
+For *bin/sphere*, just Coord1 is used, and it is the radial
+coordinate.  For *bin/cylinder*, Coord1 and Coord2 are used.  Coord1
 is the radial coordinate (away from the cylinder axis), and coord2 is
 the coordinate along the cylinder axis.
 
-Note that if the value of the *units* keyword used in the :doc:`compute chunk/atom command <compute_chunk_atom>` is *box* or *lattice*\ , the
+Note that if the value of the *units* keyword used in the :doc:`compute chunk/atom command <compute_chunk_atom>` is *box* or *lattice*, the
 coordinate values will be in distance :doc:`units <units>`.  If the
-value of the *units* keyword is *reduced*\ , the coordinate values will
+value of the *units* keyword is *reduced*, the coordinate values will
 be in unitless reduced units (0-1).  This is not true for the Coord1 value
 of style *bin/sphere* or *bin/cylinder* which both represent radial
 dimensions.  Those values are always in distance :doc:`units <units>`.

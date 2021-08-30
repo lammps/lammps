@@ -1,6 +1,4 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
-
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -21,6 +19,7 @@ PairStyle(tersoff/mod/kk/host,PairTersoffMODKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_TERSOFF_MOD_KOKKOS_H
 #define LMP_PAIR_TERSOFF_MOD_KOKKOS_H
 

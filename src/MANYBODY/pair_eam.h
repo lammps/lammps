@@ -28,7 +28,7 @@ class PairEAM : public Pair {
  public:
   friend class FixSemiGrandCanonicalMC;    // Alex Stukowski option
 
-  // public variables so USER-ATC package can access them
+  // public variables so ATC package can access them
 
   double cutmax;
 

@@ -1049,14 +1049,13 @@ double FixWidom::energy_full()
   // unlike Verlet, not performing a reverse_comm() or forces here
   // b/c Widom does not care about forces
   // don't think it will mess up energy due to any post_force() fixes
-  // but Modify::pre_reverse() is needed for USER-INTEL
+  // but Modify::pre_reverse() is needed for INTEL
 
   if (modify->n_pre_reverse) modify->pre_reverse(eflag,vflag);
   if (modify->n_pre_force) modify->pre_force(vflag);
-  if (modify->n_end_of_step) modify->end_of_step();
 
   // NOTE: all fixes with energy_global_flag set and which
-  //   operate at pre_force() or post_force() or end_of_step()
+  //   operate at pre_force() or post_force()
   //   and which user has enabled via fix_modify energy yes,
   //   will contribute to total MC energy via pe->compute_scalar()
 

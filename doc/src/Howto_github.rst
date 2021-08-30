@@ -140,8 +140,8 @@ After everything is done, add the files to the branch and commit them:
    flag) will automatically include **all** modified **and** new files
    and that is rarely the behavior you want.  It can easily lead to
    accidentally adding unrelated and unwanted changes into the
-   repository.  Instead it is preferable to explicitly use *git add*\ ,
-   *git rm*\ , *git mv* for adding, removing, renaming individual files,
+   repository.  Instead it is preferable to explicitly use *git add*,
+   *git rm*, *git mv* for adding, removing, renaming individual files,
    respectively, and then *git commit* to finalize the commit.
    Carefully check all pending changes with *git status* before
    committing them.  If you find doing this on the command line too

@@ -77,7 +77,7 @@ check_for_autogen_files(${LAMMPS_SOURCE_DIR})
 include(CheckIncludeFileCXX)
 
 # set required compiler flags and compiler/CPU arch specific optimizations
-if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
+if((CMAKE_CXX_COMPILER_ID STREQUAL "Intel") OR (CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM"))
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -restrict")
   if(CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 17.3 OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 17.4)
     set(CMAKE_TUNE_DEFAULT "-xCOMMON-AVX512")
@@ -138,17 +138,92 @@ install(TARGETS lmp EXPORT LAMMPS_Targets DESTINATION ${CMAKE_INSTALL_BINDIR})
 
 option(CMAKE_VERBOSE_MAKEFILE "Generate verbose Makefiles" OFF)
 
-set(STANDARD_PACKAGES ASPHERE BODY CLASS2 COLLOID COMPRESS DIPOLE
-  GRANULAR KSPACE LATTE MANYBODY MC MESSAGE MISC MLIAP MOLECULE PERI POEMS
-  PLUGIN QEQ REPLICA RIGID SHOCK SPIN SNAP SRD KIM PYTHON MSCG MPIIO VORONOI
-  USER-ADIOS USER-ATC USER-AWPMD USER-BOCS USER-CGDNA USER-MESODPD USER-CGSDK
-  USER-COLVARS USER-DIELECTRIC USER-DIFFRACTION USER-DPD USER-DRUDE USER-EFF USER-FEP
-  USER-H5MD USER-HDNNP USER-LB USER-MANIFOLD USER-MDI USER-MEAMC USER-MESONT USER-MGPT
-  USER-MISC USER-MOFFF USER-MOLFILE USER-NETCDF USER-PHONON USER-PLUMED USER-PTM USER-QTB
-  USER-RANN USER-REACTION USER-REAXC USER-SCAFACOS USER-SDPD USER-SMD USER-SMTBQ USER-SPH
-  USER-TALLY USER-UEF USER-VTK USER-QUIP USER-QMMM USER-YAFF USER-PACE USER-BROWNIAN)
+set(STANDARD_PACKAGES
+  ADIOS
+  ASPHERE
+  ATC
+  AWPMD
+  BOCS
+  BODY
+  BROWNIAN
+  CG-DNA
+  CG-SDK
+  CLASS2
+  COLLOID
+  COLVARS
+  COMPRESS
+  DIELECTRIC
+  DIFFRACTION
+  DIPOLE
+  DPD-BASIC
+  DPD-MESO
+  DPD-REACT
+  DPD-SMOOTH
+  DRUDE
+  EFF
+  EXTRA-COMPUTE
+  EXTRA-DUMP
+  EXTRA-FIX
+  EXTRA-MOLECULE
+  EXTRA-PAIR
+  FEP
+  GRANULAR
+  H5MD
+  INTERLAYER
+  KIM
+  KSPACE
+  LATBOLTZ
+  LATTE
+  MACHDYN
+  MANIFOLD
+  MANYBODY
+  MC
+  MDI
+  MEAM
+  MESONT
+  MESSAGE
+  MGPT
+  MISC
+  ML-HDNNP
+  ML-IAP
+  ML-PACE
+  ML-QUIP
+  ML-RANN
+  ML-SNAP
+  MOFFF
+  MOLECULE
+  MOLFILE
+  MPIIO
+  MSCG
+  NETCDF
+  ORIENT
+  PERI
+  PHONON
+  PLUGIN
+  PLUMED
+  POEMS
+  PTM
+  PYTHON
+  QEQ
+  QMMM
+  QTB
+  REACTION
+  REAXFF
+  REPLICA
+  RIGID
+  SCAFACOS
+  SHOCK
+  SMTBQ
+  SPH
+  SPIN
+  SRD
+  TALLY
+  UEF
+  VORONOI
+  VTK
+  YAFF)
 
-set(SUFFIX_PACKAGES CORESHELL GPU KOKKOS OPT USER-INTEL USER-OMP)
+set(SUFFIX_PACKAGES CORESHELL GPU KOKKOS OPT INTEL OPENMP)
 
 foreach(PKG ${STANDARD_PACKAGES} ${SUFFIX_PACKAGES})
   option(PKG_${PKG} "Build ${PKG} Package" OFF)
@@ -159,7 +234,7 @@ endforeach()
 ######################################################
 target_include_directories(lammps PUBLIC $<BUILD_INTERFACE:${LAMMPS_SOURCE_DIR}>)
 
-if(PKG_USER-ADIOS)
+if(PKG_ADIOS)
   # The search for ADIOS2 must come before MPI because
   # it includes its own MPI search with the latest FindMPI.cmake
   # script that defines the MPI::MPI_C target
@@ -169,15 +244,16 @@ if(PKG_USER-ADIOS)
 endif()
 
 if(NOT CMAKE_CROSSCOMPILING)
-  set(MPI_CXX_SKIP_MPICXX TRUE)
   find_package(MPI QUIET)
   option(BUILD_MPI "Build MPI version" ${MPI_FOUND})
 else()
-  set(MPI_CXX_SKIP_MPICXX TRUE)
   option(BUILD_MPI "Build MPI version" OFF)
 endif()
 
 if(BUILD_MPI)
+  # do not include the (obsolete) MPI C++ bindings which makes
+  # for leaner object files and avoids namespace conflicts
+  set(MPI_CXX_SKIP_MPICXX TRUE)
   # We use a non-standard procedure to cross-compile with MPI on Windows
   if((CMAKE_SYSTEM_NAME STREQUAL "Windows") AND CMAKE_CROSSCOMPILING)
     include(MPI4WIN)
@@ -229,13 +305,16 @@ endif()
 
 # "hard" dependencies between packages resulting
 # in an error instead of skipping over files
-pkg_depends(MLIAP SNAP)
+pkg_depends(ML-IAP ML-SNAP)
 pkg_depends(MPIIO MPI)
-pkg_depends(USER-ATC MANYBODY)
-pkg_depends(USER-LB MPI)
-pkg_depends(USER-PHONON KSPACE)
-pkg_depends(USER-SCAFACOS MPI)
-pkg_depends(USER-DIELECTRIC KSPACE)
+pkg_depends(ATC MANYBODY)
+pkg_depends(LATBOLTZ MPI)
+pkg_depends(PHONON KSPACE)
+pkg_depends(SCAFACOS MPI)
+pkg_depends(DIELECTRIC KSPACE)
+pkg_depends(DIELECTRIC EXTRA-PAIR)
+pkg_depends(CG-DNA MOLECULE)
+pkg_depends(CG-DNA ASPHERE)
 
 # detect if we may enable OpenMP support by default
 set(BUILD_OMP_DEFAULT OFF)
@@ -257,7 +336,8 @@ if(BUILD_OMP)
   endif()
 
   if(((CMAKE_CXX_COMPILER_ID STREQUAL "GNU") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 9.0)) OR
-      (CMAKE_CXX_COMPILER_ID STREQUAL "PGI") OR
+      (CMAKE_CXX_COMPILER_ID STREQUAL "PGI") OR (CMAKE_CXX_COMPILER_ID STREQUAL "NVHPC") OR
+      (CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM") OR (CMAKE_CXX_COMPILER_ID STREQUAL "XLClang") OR
       ((CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 10.0)) OR
       ((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 10.0)) OR
       ((CMAKE_CXX_COMPILER_ID STREQUAL "Intel") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 19.0)))
@@ -270,7 +350,7 @@ if(BUILD_OMP)
   target_link_libraries(lammps PRIVATE OpenMP::OpenMP_CXX)
 endif()
 
-if(PKG_MSCG OR PKG_USER-ATC OR PKG_USER-AWPMD OR PKG_USER-QUIP OR PKG_LATTE)
+if(PKG_MSCG OR PKG_ATC OR PKG_AWPMD OR PKG_ML-QUIP OR PKG_LATTE)
   enable_language(C)
   find_package(LAPACK)
   find_package(BLAS)
@@ -290,6 +370,8 @@ if(PKG_MSCG OR PKG_USER-ATC OR PKG_USER-AWPMD OR PKG_USER-QUIP OR PKG_LATTE)
   endif()
 endif()
 
+# tweak jpeg library names to avoid linker errors with MinGW cross-compilation
+set(JPEG_NAMES libjpeg libjpeg-62)
 find_package(JPEG QUIET)
 option(WITH_JPEG "Enable JPEG support" ${JPEG_FOUND})
 if(WITH_JPEG)
@@ -349,8 +431,8 @@ else()
   set(CUDA_REQUEST_PIC)
 endif()
 
-foreach(PKG_WITH_INCL KSPACE PYTHON MLIAP VORONOI USER-COLVARS USER-HDNNP USER-MDI USER-MOLFILE USER-NETCDF
-        USER-PLUMED USER-QMMM USER-QUIP USER-SCAFACOS USER-SMD USER-VTK KIM LATTE MESSAGE MSCG COMPRESS USER-PACE)
+foreach(PKG_WITH_INCL KSPACE PYTHON ML-IAP VORONOI COLVARS ML-HDNNP MDI MOLFILE NETCDF
+        PLUMED QMMM ML-QUIP SCAFACOS MACHDYN VTK KIM LATTE MESSAGE MSCG COMPRESS ML-PACE)
   if(PKG_${PKG_WITH_INCL})
     include(Packages/${PKG_WITH_INCL})
   endif()
@@ -443,9 +525,8 @@ endforeach()
 ##############################################
 # add lib sources of (simple) enabled packages
 ############################################
-foreach(SIMPLE_LIB POEMS USER-ATC USER-AWPMD USER-H5MD USER-MESONT)
-  if(PKG_${SIMPLE_LIB})
-    string(REGEX REPLACE "^USER-" "" PKG_LIB "${SIMPLE_LIB}")
+foreach(PKG_LIB POEMS ATC AWPMD H5MD MESONT)
+  if(PKG_${PKG_LIB})
     string(TOLOWER "${PKG_LIB}" PKG_LIB)
     if(PKG_LIB STREQUAL "mesont")
       enable_language(Fortran)
@@ -469,13 +550,13 @@ foreach(SIMPLE_LIB POEMS USER-ATC USER-AWPMD USER-H5MD USER-MESONT)
   endif()
 endforeach()
 
-if(PKG_USER-AWPMD)
+if(PKG_AWPMD)
   target_link_libraries(awpmd PRIVATE ${LAPACK_LIBRARIES})
 endif()
 
-if(PKG_USER-ATC)
+if(PKG_ATC)
   if(LAMMPS_SIZES STREQUAL "BIGBIG")
-    message(FATAL_ERROR "The USER-ATC Package is not compatible with -DLAMMPS_BIGBIG")
+    message(FATAL_ERROR "The ATC Package is not compatible with -DLAMMPS_BIGBIG")
   endif()
   target_link_libraries(atc PRIVATE ${LAPACK_LIBRARIES})
   if(BUILD_MPI)
@@ -487,15 +568,15 @@ if(PKG_USER-ATC)
   target_compile_definitions(atc PRIVATE -DLAMMPS_${LAMMPS_SIZES})
 endif()
 
-if(PKG_USER-H5MD)
-  include(Packages/USER-H5MD)
+if(PKG_H5MD)
+  include(Packages/H5MD)
 endif()
 
 ######################################################################
 # packages which selectively include variants based on enabled styles
 # e.g. accelerator packages
 ######################################################################
-foreach(PKG_WITH_INCL CORESHELL QEQ USER-OMP USER-SDPD KOKKOS OPT USER-INTEL GPU)
+foreach(PKG_WITH_INCL CORESHELL QEQ OPENMP DPD-SMOOTH KOKKOS OPT INTEL GPU)
   if(PKG_${PKG_WITH_INCL})
     include(Packages/${PKG_WITH_INCL})
   endif()
@@ -688,6 +769,13 @@ endif()
 include(Testing)
 include(CodeCoverage)
 include(CodingStandard)
+find_package(ClangFormat 8.0)
+
+if(ClangFormat_FOUND)
+  add_custom_target(format-src
+    COMMAND ${ClangFormat_EXECUTABLE} --verbose -i -style=file *.cpp *.h */*.cpp */*.h
+    WORKING_DIRECTORY ${LAMMPS_SOURCE_DIR})
+endif()
 
 get_target_property(DEFINES lammps COMPILE_DEFINITIONS)
 include(FeatureSummary)

@@ -124,6 +124,7 @@ Indices and tables
 
 .. _webbrowser:
 .. admonition:: Web Browser Compatibility
+   :class: note
 
    The HTML version of the manual makes use of advanced features present
    in "modern" web browsers.  This can lead to incompatibilities with older

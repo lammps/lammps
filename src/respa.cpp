@@ -302,9 +302,8 @@ void Respa::init()
   // if supported, we also store torques on a per-level basis
 
   std::string cmd = fmt::format("RESPA all RESPA {}",nlevels);
-  if (atom->torque_flag) modify->add_fix(cmd + " torque");
-  else modify->add_fix(cmd);
-  fix_respa = (FixRespa *) modify->fix[modify->nfix-1];
+  if (atom->torque_flag) cmd += " torque";
+  fix_respa = (FixRespa *) modify->add_fix(cmd);
 
   // insure respa inner/middle/outer is using Pair class that supports it
 

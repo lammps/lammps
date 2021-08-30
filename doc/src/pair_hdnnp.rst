@@ -182,13 +182,13 @@ Thus, you need to re-specify the pair_style and pair_coeff commands in an input
 script that reads a restart file.
 
 This style can only be used via the *pair* keyword of the :doc:`run_style respa
-<run_style>` command.  It does not support the *inner*\ , *middle*\ , *outer*
+<run_style>` command.  It does not support the *inner*, *middle*, *outer*
 keywords.
 
 Restrictions
 """"""""""""
 
-This pair style is part of the USER-HDNNP package.  It is only enabled if LAMMPS
+This pair style is part of the ML-HDNNP package.  It is only enabled if LAMMPS
 was built with that package.  See the :doc:`Build package <Build_package>` doc
 page for more info.
 

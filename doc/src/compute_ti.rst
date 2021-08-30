@@ -42,7 +42,7 @@ Description
 """""""""""
 
 Define a computation that calculates the derivative of the interaction
-potential with respect to *lambda*\ , the coupling parameter used in a
+potential with respect to *lambda*, the coupling parameter used in a
 thermodynamic integration.  This derivative can be used to infer a
 free energy difference resulting from an alchemical simulation, as
 described in :ref:`Eike <Eike>`.
@@ -128,8 +128,8 @@ The scalar value will be in energy :doc:`units <units>`.
 Restrictions
 """"""""""""
 
-This compute is part of the MISC package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+This compute is part of the EXTRA-COMPUTE package.  It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

@@ -421,67 +421,69 @@ TEST(FixTimestep, plain)
             std::cerr << "global_data, restart, verlet: " << stats << std::endl;
     }
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    restart_lammps(lmp, test_config, true, false);
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    if (lmp->atom->rmass == nullptr) {
+        if (!verbose) ::testing::internal::CaptureStdout();
+        restart_lammps(lmp, test_config, true, false);
+        if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    x   = lmp->atom->x;
-    tag = lmp->atom->tag;
-    stats.reset();
-    ASSERT_EQ(nlocal + 1, x_ref.size());
-    for (int i = 0; i < nlocal; ++i) {
-        EXPECT_FP_LE_WITH_EPS(x[i][0], x_ref[tag[i]].x, epsilon);
-        EXPECT_FP_LE_WITH_EPS(x[i][1], x_ref[tag[i]].y, epsilon);
-        EXPECT_FP_LE_WITH_EPS(x[i][2], x_ref[tag[i]].z, epsilon);
-    }
-    if (print_stats) std::cerr << "run_pos, rmass, verlet: " << stats << std::endl;
-
-    v = lmp->atom->v;
-    stats.reset();
-    ASSERT_EQ(nlocal + 1, v_ref.size());
-    for (int i = 0; i < nlocal; ++i) {
-        EXPECT_FP_LE_WITH_EPS(v[i][0], v_ref[tag[i]].x, epsilon);
-        EXPECT_FP_LE_WITH_EPS(v[i][1], v_ref[tag[i]].y, epsilon);
-        EXPECT_FP_LE_WITH_EPS(v[i][2], v_ref[tag[i]].z, epsilon);
-    }
-    if (print_stats) std::cerr << "run_vel, rmass, verlet: " << stats << std::endl;
-
-    ifix = lmp->modify->find_fix("test");
-    if (ifix < 0) {
-        FAIL() << "ERROR: no fix defined with fix ID 'test'\n";
-    } else {
-        Fix *fix = lmp->modify->fix[ifix];
-        if (fix->thermo_virial) {
-            stats.reset();
-            auto stress = fix->virial;
-            EXPECT_FP_LE_WITH_EPS(stress[0], test_config.run_stress.xx, epsilon);
-            EXPECT_FP_LE_WITH_EPS(stress[1], test_config.run_stress.yy, epsilon);
-            EXPECT_FP_LE_WITH_EPS(stress[2], test_config.run_stress.zz, epsilon);
-            EXPECT_FP_LE_WITH_EPS(stress[3], test_config.run_stress.xy, epsilon);
-            EXPECT_FP_LE_WITH_EPS(stress[4], test_config.run_stress.xz, epsilon);
-            EXPECT_FP_LE_WITH_EPS(stress[5], test_config.run_stress.yz, epsilon);
-            if (print_stats) std::cerr << "run_stress rmass, verlet: " << stats << std::endl;
-        }
-
+        x   = lmp->atom->x;
+        tag = lmp->atom->tag;
         stats.reset();
-
-        // global scalar
-        if (fix->scalar_flag) {
-            double value = fix->compute_scalar();
-            EXPECT_FP_LE_WITH_EPS(test_config.global_scalar, value, epsilon);
+        ASSERT_EQ(nlocal + 1, x_ref.size());
+        for (int i = 0; i < nlocal; ++i) {
+            EXPECT_FP_LE_WITH_EPS(x[i][0], x_ref[tag[i]].x, epsilon);
+            EXPECT_FP_LE_WITH_EPS(x[i][1], x_ref[tag[i]].y, epsilon);
+            EXPECT_FP_LE_WITH_EPS(x[i][2], x_ref[tag[i]].z, epsilon);
         }
+        if (print_stats) std::cerr << "run_pos, rmass, verlet: " << stats << std::endl;
 
-        // global vector
-        if (fix->vector_flag) {
-            int num = fix->size_vector;
-            EXPECT_EQ(num, test_config.global_vector.size());
-
-            for (int i = 0; i < num; ++i)
-                EXPECT_FP_LE_WITH_EPS(test_config.global_vector[i], fix->compute_vector(i),
-                                      epsilon);
+        v = lmp->atom->v;
+        stats.reset();
+        ASSERT_EQ(nlocal + 1, v_ref.size());
+        for (int i = 0; i < nlocal; ++i) {
+            EXPECT_FP_LE_WITH_EPS(v[i][0], v_ref[tag[i]].x, epsilon);
+            EXPECT_FP_LE_WITH_EPS(v[i][1], v_ref[tag[i]].y, epsilon);
+            EXPECT_FP_LE_WITH_EPS(v[i][2], v_ref[tag[i]].z, epsilon);
         }
-        if (print_stats && stats.has_data())
-            std::cerr << "global_data, rmass, verlet: " << stats << std::endl;
+        if (print_stats) std::cerr << "run_vel, rmass, verlet: " << stats << std::endl;
+
+        ifix = lmp->modify->find_fix("test");
+        if (ifix < 0) {
+            FAIL() << "ERROR: no fix defined with fix ID 'test'\n";
+        } else {
+            Fix *fix = lmp->modify->fix[ifix];
+            if (fix->thermo_virial) {
+                stats.reset();
+                auto stress = fix->virial;
+                EXPECT_FP_LE_WITH_EPS(stress[0], test_config.run_stress.xx, epsilon);
+                EXPECT_FP_LE_WITH_EPS(stress[1], test_config.run_stress.yy, epsilon);
+                EXPECT_FP_LE_WITH_EPS(stress[2], test_config.run_stress.zz, epsilon);
+                EXPECT_FP_LE_WITH_EPS(stress[3], test_config.run_stress.xy, epsilon);
+                EXPECT_FP_LE_WITH_EPS(stress[4], test_config.run_stress.xz, epsilon);
+                EXPECT_FP_LE_WITH_EPS(stress[5], test_config.run_stress.yz, epsilon);
+                if (print_stats) std::cerr << "run_stress rmass, verlet: " << stats << std::endl;
+            }
+
+            stats.reset();
+
+            // global scalar
+            if (fix->scalar_flag) {
+                double value = fix->compute_scalar();
+                EXPECT_FP_LE_WITH_EPS(test_config.global_scalar, value, epsilon);
+            }
+
+            // global vector
+            if (fix->vector_flag) {
+                int num = fix->size_vector;
+                EXPECT_EQ(num, test_config.global_vector.size());
+
+                for (int i = 0; i < num; ++i)
+                    EXPECT_FP_LE_WITH_EPS(test_config.global_vector[i], fix->compute_vector(i),
+                                          epsilon);
+            }
+            if (print_stats && stats.has_data())
+                std::cerr << "global_data, rmass, verlet: " << stats << std::endl;
+        }
     }
 
     // rigid fixes need work to test properly with r-RESPA.
@@ -625,67 +627,69 @@ TEST(FixTimestep, plain)
                 std::cerr << "global_data, restart, respa: " << stats << std::endl;
         }
 
-        if (!verbose) ::testing::internal::CaptureStdout();
-        restart_lammps(lmp, test_config, true, true);
-        if (!verbose) ::testing::internal::GetCapturedStdout();
+        if (lmp->atom->rmass == nullptr) {
+            if (!verbose) ::testing::internal::CaptureStdout();
+            restart_lammps(lmp, test_config, true, true);
+            if (!verbose) ::testing::internal::GetCapturedStdout();
 
-        x   = lmp->atom->x;
-        tag = lmp->atom->tag;
-        stats.reset();
-        ASSERT_EQ(nlocal + 1, x_ref.size());
-        for (int i = 0; i < nlocal; ++i) {
-            EXPECT_FP_LE_WITH_EPS(x[i][0], x_ref[tag[i]].x, epsilon);
-            EXPECT_FP_LE_WITH_EPS(x[i][1], x_ref[tag[i]].y, epsilon);
-            EXPECT_FP_LE_WITH_EPS(x[i][2], x_ref[tag[i]].z, epsilon);
-        }
-        if (print_stats) std::cerr << "run_pos, rmass, respa: " << stats << std::endl;
-
-        v = lmp->atom->v;
-        stats.reset();
-        ASSERT_EQ(nlocal + 1, v_ref.size());
-        for (int i = 0; i < nlocal; ++i) {
-            EXPECT_FP_LE_WITH_EPS(v[i][0], v_ref[tag[i]].x, epsilon);
-            EXPECT_FP_LE_WITH_EPS(v[i][1], v_ref[tag[i]].y, epsilon);
-            EXPECT_FP_LE_WITH_EPS(v[i][2], v_ref[tag[i]].z, epsilon);
-        }
-        if (print_stats) std::cerr << "run_vel, rmass, respa: " << stats << std::endl;
-
-        ifix = lmp->modify->find_fix("test");
-        if (ifix < 0) {
-            FAIL() << "ERROR: no fix defined with fix ID 'test'\n";
-        } else {
-            Fix *fix = lmp->modify->fix[ifix];
-            if (fix->thermo_virial) {
-                stats.reset();
-                auto stress = fix->virial;
-                EXPECT_FP_LE_WITH_EPS(stress[0], test_config.run_stress.xx, 1000 * epsilon);
-                EXPECT_FP_LE_WITH_EPS(stress[1], test_config.run_stress.yy, 1000 * epsilon);
-                EXPECT_FP_LE_WITH_EPS(stress[2], test_config.run_stress.zz, 1000 * epsilon);
-                EXPECT_FP_LE_WITH_EPS(stress[3], test_config.run_stress.xy, 1000 * epsilon);
-                EXPECT_FP_LE_WITH_EPS(stress[4], test_config.run_stress.xz, 1000 * epsilon);
-                EXPECT_FP_LE_WITH_EPS(stress[5], test_config.run_stress.yz, 1000 * epsilon);
-                if (print_stats) std::cerr << "run_stress rmass, respa: " << stats << std::endl;
-            }
-
+            x   = lmp->atom->x;
+            tag = lmp->atom->tag;
             stats.reset();
-
-            // global scalar
-            if (fix->scalar_flag) {
-                double value = fix->compute_scalar();
-                EXPECT_FP_LE_WITH_EPS(test_config.global_scalar, value, 10 * epsilon);
+            ASSERT_EQ(nlocal + 1, x_ref.size());
+            for (int i = 0; i < nlocal; ++i) {
+                EXPECT_FP_LE_WITH_EPS(x[i][0], x_ref[tag[i]].x, epsilon);
+                EXPECT_FP_LE_WITH_EPS(x[i][1], x_ref[tag[i]].y, epsilon);
+                EXPECT_FP_LE_WITH_EPS(x[i][2], x_ref[tag[i]].z, epsilon);
             }
+            if (print_stats) std::cerr << "run_pos, rmass, respa: " << stats << std::endl;
 
-            // global vector
-            if (fix->vector_flag) {
-                int num = fix->size_vector;
-                EXPECT_EQ(num, test_config.global_vector.size());
-
-                for (int i = 0; i < num; ++i)
-                    EXPECT_FP_LE_WITH_EPS(test_config.global_vector[i], fix->compute_vector(i),
-                                          10 * epsilon);
+            v = lmp->atom->v;
+            stats.reset();
+            ASSERT_EQ(nlocal + 1, v_ref.size());
+            for (int i = 0; i < nlocal; ++i) {
+                EXPECT_FP_LE_WITH_EPS(v[i][0], v_ref[tag[i]].x, epsilon);
+                EXPECT_FP_LE_WITH_EPS(v[i][1], v_ref[tag[i]].y, epsilon);
+                EXPECT_FP_LE_WITH_EPS(v[i][2], v_ref[tag[i]].z, epsilon);
             }
-            if (print_stats && stats.has_data())
-                std::cerr << "global_data, rmass, respa: " << stats << std::endl;
+            if (print_stats) std::cerr << "run_vel, rmass, respa: " << stats << std::endl;
+
+            ifix = lmp->modify->find_fix("test");
+            if (ifix < 0) {
+                FAIL() << "ERROR: no fix defined with fix ID 'test'\n";
+            } else {
+                Fix *fix = lmp->modify->fix[ifix];
+                if (fix->thermo_virial) {
+                    stats.reset();
+                    auto stress = fix->virial;
+                    EXPECT_FP_LE_WITH_EPS(stress[0], test_config.run_stress.xx, 1000 * epsilon);
+                    EXPECT_FP_LE_WITH_EPS(stress[1], test_config.run_stress.yy, 1000 * epsilon);
+                    EXPECT_FP_LE_WITH_EPS(stress[2], test_config.run_stress.zz, 1000 * epsilon);
+                    EXPECT_FP_LE_WITH_EPS(stress[3], test_config.run_stress.xy, 1000 * epsilon);
+                    EXPECT_FP_LE_WITH_EPS(stress[4], test_config.run_stress.xz, 1000 * epsilon);
+                    EXPECT_FP_LE_WITH_EPS(stress[5], test_config.run_stress.yz, 1000 * epsilon);
+                    if (print_stats) std::cerr << "run_stress rmass, respa: " << stats << std::endl;
+                }
+
+                stats.reset();
+
+                // global scalar
+                if (fix->scalar_flag) {
+                    double value = fix->compute_scalar();
+                    EXPECT_FP_LE_WITH_EPS(test_config.global_scalar, value, 10 * epsilon);
+                }
+
+                // global vector
+                if (fix->vector_flag) {
+                    int num = fix->size_vector;
+                    EXPECT_EQ(num, test_config.global_vector.size());
+
+                    for (int i = 0; i < num; ++i)
+                        EXPECT_FP_LE_WITH_EPS(test_config.global_vector[i], fix->compute_vector(i),
+                                              10 * epsilon);
+                }
+                if (print_stats && stats.has_data())
+                    std::cerr << "global_data, rmass, respa: " << stats << std::endl;
+            }
         }
     }
 
@@ -696,7 +700,7 @@ TEST(FixTimestep, plain)
 
 TEST(FixTimestep, omp)
 {
-    if (!LAMMPS::is_installed_pkg("USER-OMP")) GTEST_SKIP();
+    if (!LAMMPS::is_installed_pkg("OPENMP")) GTEST_SKIP();
     if (!LAMMPS::is_installed_pkg("MOLECULE")) GTEST_SKIP();
     if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
 
@@ -866,72 +870,75 @@ TEST(FixTimestep, omp)
             std::cerr << "global_data, restart, verlet: " << stats << std::endl;
     }
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    restart_lammps(lmp, test_config, true, false);
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    if (lmp->atom->rmass == nullptr) {
+        if (!verbose) ::testing::internal::CaptureStdout();
+        restart_lammps(lmp, test_config, true, false);
+        if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    x   = lmp->atom->x;
-    tag = lmp->atom->tag;
-    stats.reset();
-    ASSERT_EQ(nlocal + 1, x_ref.size());
-    for (int i = 0; i < nlocal; ++i) {
-        EXPECT_FP_LE_WITH_EPS(x[i][0], x_ref[tag[i]].x, epsilon);
-        EXPECT_FP_LE_WITH_EPS(x[i][1], x_ref[tag[i]].y, epsilon);
-        EXPECT_FP_LE_WITH_EPS(x[i][2], x_ref[tag[i]].z, epsilon);
-    }
-    if (print_stats) std::cerr << "run_pos, rmass, verlet: " << stats << std::endl;
-
-    v = lmp->atom->v;
-    stats.reset();
-    ASSERT_EQ(nlocal + 1, v_ref.size());
-    for (int i = 0; i < nlocal; ++i) {
-        EXPECT_FP_LE_WITH_EPS(v[i][0], v_ref[tag[i]].x, epsilon);
-        EXPECT_FP_LE_WITH_EPS(v[i][1], v_ref[tag[i]].y, epsilon);
-        EXPECT_FP_LE_WITH_EPS(v[i][2], v_ref[tag[i]].z, epsilon);
-    }
-    if (print_stats) std::cerr << "run_vel, rmass, verlet: " << stats << std::endl;
-
-    ifix = lmp->modify->find_fix("test");
-    if (ifix < 0) {
-        FAIL() << "ERROR: no fix defined with fix ID 'test'\n";
-    } else {
-        Fix *fix = lmp->modify->fix[ifix];
-        if (fix->thermo_virial) {
-            stats.reset();
-            auto stress = fix->virial;
-            EXPECT_FP_LE_WITH_EPS(stress[0], test_config.run_stress.xx, epsilon);
-            EXPECT_FP_LE_WITH_EPS(stress[1], test_config.run_stress.yy, epsilon);
-            EXPECT_FP_LE_WITH_EPS(stress[2], test_config.run_stress.zz, epsilon);
-            EXPECT_FP_LE_WITH_EPS(stress[3], test_config.run_stress.xy, epsilon);
-            EXPECT_FP_LE_WITH_EPS(stress[4], test_config.run_stress.xz, epsilon);
-            EXPECT_FP_LE_WITH_EPS(stress[5], test_config.run_stress.yz, epsilon);
-            if (print_stats) std::cerr << "run_stress rmass, verlet: " << stats << std::endl;
-        }
-
+        x   = lmp->atom->x;
+        tag = lmp->atom->tag;
         stats.reset();
-
-        // global scalar
-        if (fix->scalar_flag) {
-            double value = fix->compute_scalar();
-            EXPECT_FP_LE_WITH_EPS(test_config.global_scalar, value, epsilon);
+        ASSERT_EQ(nlocal + 1, x_ref.size());
+        for (int i = 0; i < nlocal; ++i) {
+            EXPECT_FP_LE_WITH_EPS(x[i][0], x_ref[tag[i]].x, epsilon);
+            EXPECT_FP_LE_WITH_EPS(x[i][1], x_ref[tag[i]].y, epsilon);
+            EXPECT_FP_LE_WITH_EPS(x[i][2], x_ref[tag[i]].z, epsilon);
         }
+        if (print_stats) std::cerr << "run_pos, rmass, verlet: " << stats << std::endl;
 
-        // global vector
-        if (fix->vector_flag) {
-            int num = fix->size_vector;
-            EXPECT_EQ(num, test_config.global_vector.size());
-
-            for (int i = 0; i < num; ++i)
-                EXPECT_FP_LE_WITH_EPS(test_config.global_vector[i], fix->compute_vector(i),
-                                      epsilon);
+        v = lmp->atom->v;
+        stats.reset();
+        ASSERT_EQ(nlocal + 1, v_ref.size());
+        for (int i = 0; i < nlocal; ++i) {
+            EXPECT_FP_LE_WITH_EPS(v[i][0], v_ref[tag[i]].x, epsilon);
+            EXPECT_FP_LE_WITH_EPS(v[i][1], v_ref[tag[i]].y, epsilon);
+            EXPECT_FP_LE_WITH_EPS(v[i][2], v_ref[tag[i]].z, epsilon);
         }
-        if (print_stats && stats.has_data())
-            std::cerr << "global_data, rmass, verlet: " << stats << std::endl;
+        if (print_stats) std::cerr << "run_vel, rmass, verlet: " << stats << std::endl;
+
+        ifix = lmp->modify->find_fix("test");
+        if (ifix < 0) {
+            FAIL() << "ERROR: no fix defined with fix ID 'test'\n";
+        } else {
+            Fix *fix = lmp->modify->fix[ifix];
+            if (fix->thermo_virial) {
+                stats.reset();
+                auto stress = fix->virial;
+                EXPECT_FP_LE_WITH_EPS(stress[0], test_config.run_stress.xx, epsilon);
+                EXPECT_FP_LE_WITH_EPS(stress[1], test_config.run_stress.yy, epsilon);
+                EXPECT_FP_LE_WITH_EPS(stress[2], test_config.run_stress.zz, epsilon);
+                EXPECT_FP_LE_WITH_EPS(stress[3], test_config.run_stress.xy, epsilon);
+                EXPECT_FP_LE_WITH_EPS(stress[4], test_config.run_stress.xz, epsilon);
+                EXPECT_FP_LE_WITH_EPS(stress[5], test_config.run_stress.yz, epsilon);
+                if (print_stats) std::cerr << "run_stress rmass, verlet: " << stats << std::endl;
+            }
+
+            stats.reset();
+
+            // global scalar
+            if (fix->scalar_flag) {
+                double value = fix->compute_scalar();
+                EXPECT_FP_LE_WITH_EPS(test_config.global_scalar, value, epsilon);
+            }
+
+            // global vector
+            if (fix->vector_flag) {
+                int num = fix->size_vector;
+                EXPECT_EQ(num, test_config.global_vector.size());
+
+                for (int i = 0; i < num; ++i)
+                    EXPECT_FP_LE_WITH_EPS(test_config.global_vector[i], fix->compute_vector(i),
+                                          epsilon);
+            }
+            if (print_stats && stats.has_data())
+                std::cerr << "global_data, rmass, verlet: " << stats << std::endl;
+        }
     }
 
-    // rigid fixes need work to test properly with r-RESPA
+    // rigid fixes need work to test properly with r-RESPA,
+    // also, torque is not supported by respa/omp
     ifix = lmp->modify->find_fix("test");
-    if (!utils::strmatch(lmp->modify->fix[ifix]->style, "^rigid")) {
+    if (!utils::strmatch(lmp->modify->fix[ifix]->style, "^rigid") && !lmp->atom->torque) {
 
         if (!verbose) ::testing::internal::CaptureStdout();
         cleanup_lammps(lmp, test_config);
@@ -956,6 +963,7 @@ TEST(FixTimestep, omp)
             EXPECT_FP_LE_WITH_EPS(x[i][2], x_ref[tag[i]].z, epsilon);
         }
         if (print_stats) std::cerr << "run_pos, normal run, respa: " << stats << std::endl;
+        printf("x1\n");
 
         stats.reset();
         ASSERT_EQ(nlocal + 1, v_ref.size());
@@ -1068,67 +1076,69 @@ TEST(FixTimestep, omp)
                 std::cerr << "global_data, restart, respa: " << stats << std::endl;
         }
 
-        if (!verbose) ::testing::internal::CaptureStdout();
-        restart_lammps(lmp, test_config, true, true);
-        if (!verbose) ::testing::internal::GetCapturedStdout();
+        if (lmp->atom->rmass == nullptr) {
+            if (!verbose) ::testing::internal::CaptureStdout();
+            restart_lammps(lmp, test_config, true, true);
+            if (!verbose) ::testing::internal::GetCapturedStdout();
 
-        x   = lmp->atom->x;
-        tag = lmp->atom->tag;
-        stats.reset();
-        ASSERT_EQ(nlocal + 1, x_ref.size());
-        for (int i = 0; i < nlocal; ++i) {
-            EXPECT_FP_LE_WITH_EPS(x[i][0], x_ref[tag[i]].x, epsilon);
-            EXPECT_FP_LE_WITH_EPS(x[i][1], x_ref[tag[i]].y, epsilon);
-            EXPECT_FP_LE_WITH_EPS(x[i][2], x_ref[tag[i]].z, epsilon);
-        }
-        if (print_stats) std::cerr << "run_pos, rmass, respa: " << stats << std::endl;
-
-        v = lmp->atom->v;
-        stats.reset();
-        ASSERT_EQ(nlocal + 1, v_ref.size());
-        for (int i = 0; i < nlocal; ++i) {
-            EXPECT_FP_LE_WITH_EPS(v[i][0], v_ref[tag[i]].x, epsilon);
-            EXPECT_FP_LE_WITH_EPS(v[i][1], v_ref[tag[i]].y, epsilon);
-            EXPECT_FP_LE_WITH_EPS(v[i][2], v_ref[tag[i]].z, epsilon);
-        }
-        if (print_stats) std::cerr << "run_vel, rmass, respa: " << stats << std::endl;
-
-        ifix = lmp->modify->find_fix("test");
-        if (ifix < 0) {
-            FAIL() << "ERROR: no fix defined with fix ID 'test'\n";
-        } else {
-            Fix *fix = lmp->modify->fix[ifix];
-            if (fix->thermo_virial) {
-                stats.reset();
-                auto stress = fix->virial;
-                EXPECT_FP_LE_WITH_EPS(stress[0], test_config.run_stress.xx, 1000 * epsilon);
-                EXPECT_FP_LE_WITH_EPS(stress[1], test_config.run_stress.yy, 1000 * epsilon);
-                EXPECT_FP_LE_WITH_EPS(stress[2], test_config.run_stress.zz, 1000 * epsilon);
-                EXPECT_FP_LE_WITH_EPS(stress[3], test_config.run_stress.xy, 1000 * epsilon);
-                EXPECT_FP_LE_WITH_EPS(stress[4], test_config.run_stress.xz, 1000 * epsilon);
-                EXPECT_FP_LE_WITH_EPS(stress[5], test_config.run_stress.yz, 1000 * epsilon);
-                if (print_stats) std::cerr << "run_stress rmass, respa: " << stats << std::endl;
-            }
-
+            x   = lmp->atom->x;
+            tag = lmp->atom->tag;
             stats.reset();
-
-            // global scalar
-            if (fix->scalar_flag) {
-                double value = fix->compute_scalar();
-                EXPECT_FP_LE_WITH_EPS(test_config.global_scalar, value, 10 * epsilon);
+            ASSERT_EQ(nlocal + 1, x_ref.size());
+            for (int i = 0; i < nlocal; ++i) {
+                EXPECT_FP_LE_WITH_EPS(x[i][0], x_ref[tag[i]].x, epsilon);
+                EXPECT_FP_LE_WITH_EPS(x[i][1], x_ref[tag[i]].y, epsilon);
+                EXPECT_FP_LE_WITH_EPS(x[i][2], x_ref[tag[i]].z, epsilon);
             }
+            if (print_stats) std::cerr << "run_pos, rmass, respa: " << stats << std::endl;
 
-            // global vector
-            if (fix->vector_flag) {
-                int num = fix->size_vector;
-                EXPECT_EQ(num, test_config.global_vector.size());
-
-                for (int i = 0; i < num; ++i)
-                    EXPECT_FP_LE_WITH_EPS(test_config.global_vector[i], fix->compute_vector(i),
-                                          10 * epsilon);
+            v = lmp->atom->v;
+            stats.reset();
+            ASSERT_EQ(nlocal + 1, v_ref.size());
+            for (int i = 0; i < nlocal; ++i) {
+                EXPECT_FP_LE_WITH_EPS(v[i][0], v_ref[tag[i]].x, epsilon);
+                EXPECT_FP_LE_WITH_EPS(v[i][1], v_ref[tag[i]].y, epsilon);
+                EXPECT_FP_LE_WITH_EPS(v[i][2], v_ref[tag[i]].z, epsilon);
             }
-            if (print_stats && stats.has_data())
-                std::cerr << "global_data, rmass, respa: " << stats << std::endl;
+            if (print_stats) std::cerr << "run_vel, rmass, respa: " << stats << std::endl;
+
+            ifix = lmp->modify->find_fix("test");
+            if (ifix < 0) {
+                FAIL() << "ERROR: no fix defined with fix ID 'test'\n";
+            } else {
+                Fix *fix = lmp->modify->fix[ifix];
+                if (fix->thermo_virial) {
+                    stats.reset();
+                    auto stress = fix->virial;
+                    EXPECT_FP_LE_WITH_EPS(stress[0], test_config.run_stress.xx, 1000 * epsilon);
+                    EXPECT_FP_LE_WITH_EPS(stress[1], test_config.run_stress.yy, 1000 * epsilon);
+                    EXPECT_FP_LE_WITH_EPS(stress[2], test_config.run_stress.zz, 1000 * epsilon);
+                    EXPECT_FP_LE_WITH_EPS(stress[3], test_config.run_stress.xy, 1000 * epsilon);
+                    EXPECT_FP_LE_WITH_EPS(stress[4], test_config.run_stress.xz, 1000 * epsilon);
+                    EXPECT_FP_LE_WITH_EPS(stress[5], test_config.run_stress.yz, 1000 * epsilon);
+                    if (print_stats) std::cerr << "run_stress rmass, respa: " << stats << std::endl;
+                }
+
+                stats.reset();
+
+                // global scalar
+                if (fix->scalar_flag) {
+                    double value = fix->compute_scalar();
+                    EXPECT_FP_LE_WITH_EPS(test_config.global_scalar, value, 10 * epsilon);
+                }
+
+                // global vector
+                if (fix->vector_flag) {
+                    int num = fix->size_vector;
+                    EXPECT_EQ(num, test_config.global_vector.size());
+
+                    for (int i = 0; i < num; ++i)
+                        EXPECT_FP_LE_WITH_EPS(test_config.global_vector[i], fix->compute_vector(i),
+                                              10 * epsilon);
+                }
+                if (print_stats && stats.has_data())
+                    std::cerr << "global_data, rmass, respa: " << stats << std::endl;
+            }
         }
     }
 

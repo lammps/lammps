@@ -1,7 +1,7 @@
 # Preset that turns on packages with automatic downloads of sources or potentials.
 # Compilation of libraries like Plumed or ScaFaCoS can take a considerable amount of time.
 
-set(ALL_PACKAGES KIM LATTE MSCG VORONOI USER-PLUMED USER-SCAFACOS USER-SMD USER-MESONT USER-MDI USER-PACE)
+set(ALL_PACKAGES KIM LATTE MSCG VORONOI PLUMED SCAFACOS MACHDYN MESONT MDI ML-PACE)
 
 foreach(PKG ${ALL_PACKAGES})
   set(PKG_${PKG} ON CACHE BOOL "" FORCE)

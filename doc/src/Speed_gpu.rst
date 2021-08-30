@@ -71,7 +71,7 @@ by AMD.
 
 **Building LAMMPS with the GPU package:**
 
-See the :ref:`Build extras <gpu>` doc page for
+See the :ref:`Build extras <gpu>` page for
 instructions.
 
 **Run with the GPU package from the command line:**
@@ -118,7 +118,7 @@ automatic selection of the number of GPUs to use.
 Using the "-pk" switch explicitly allows for setting of the number of
 GPUs/node to use and additional options.  Its syntax is the same as
 the "package gpu" command.  See the :doc:`package <package>`
-command doc page for details, including the default values used for
+command page for details, including the default values used for
 all its options if it is not specified.
 
 Note that the default for the :doc:`package gpu <package>` command is to
@@ -150,7 +150,7 @@ hardware, which pair style is used, the number of atoms/GPU, and the
 precision used on the GPU (double, single, mixed). Using the GPU package
 in OpenCL mode on CPUs (which uses vectorization and multithreading) is
 usually resulting in inferior performance compared to using LAMMPS' native
-threading and vectorization support in the USER-OMP and USER-INTEL packages.
+threading and vectorization support in the OPENMP and INTEL packages.
 
 See the `Benchmark page <https://www.lammps.org/bench.html>`_ of the
 LAMMPS web site for performance of the GPU package on various
@@ -182,7 +182,7 @@ deterministic results.
   calculations can be dynamically balanced across the CPU cores and
   GPUs.  GPU-specific settings can be made which can be optimized
   for different hardware.  See the :doc:`package <package>` command
-  doc page for details.
+  page for details.
 * As described by the :doc:`package gpu <package>` command, GPU
   accelerated pair styles can perform computations asynchronously with
   CPU computations. The "Pair" time reported by LAMMPS will be the

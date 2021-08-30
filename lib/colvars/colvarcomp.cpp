@@ -51,7 +51,7 @@ int colvar::cvc::init(std::string const &conf)
   std::string const old_name(name);
 
   if (name.size() > 0) {
-    cvm::log("Updating configuration for component \""+name+"\"");
+    cvm::log("Updating configuration for component \""+name+"\"\n");
   }
 
   if (get_keyval(conf, "name", name, name)) {
@@ -112,7 +112,7 @@ int colvar::cvc::init_total_force_params(std::string const &conf)
   }
   if (get_keyval_feature(this, conf, "oneSiteTotalForce",
                          f_cvc_one_site_total_force, is_enabled(f_cvc_one_site_total_force))) {
-    cvm::log("Computing total force on group 1 only");
+    cvm::log("Computing total force on group 1 only\n");
   }
 
   if (! is_enabled(f_cvc_one_site_total_force)) {
@@ -426,7 +426,7 @@ void colvar::cvc::collect_gradients(std::vector<int> const &atom_ids, std::vecto
 
     // If necessary, apply inverse rotation to get atomic
     // gradient in the laboratory frame
-    if (ag.b_rotate) {
+    if (ag.is_enabled(f_ag_rotate)) {
       cvm::rotation const rot_inv = ag.rot.inverse();
 
       for (size_t k = 0; k < ag.size(); k++) {
@@ -505,7 +505,7 @@ void colvar::cvc::debug_gradients()
     cvm::atom_pos fit_gradient_sum, gradient_sum;
 
     // print the values of the fit gradients
-    if (group->b_rotate || group->b_center) {
+    if (group->is_enabled(f_ag_center) || group->is_enabled(f_ag_rotate)) {
       if (group->is_enabled(f_ag_fit_gradients)) {
         size_t j;
 
@@ -514,7 +514,7 @@ void colvar::cvc::debug_gradients()
         for (j = 0; j < group_for_fit->fit_gradients.size(); j++) {
           cvm::log((group->fitting_group ? std::string("refPosGroup") : group->key) +
                   "[" + cvm::to_str(j) + "] = " +
-                  (group->b_rotate ?
+                  (group->is_enabled(f_ag_rotate) ?
                     cvm::to_str(rot_0.rotate(group_for_fit->fit_gradients[j])) :
                     cvm::to_str(group_for_fit->fit_gradients[j])));
         }
@@ -525,7 +525,7 @@ void colvar::cvc::debug_gradients()
     for (size_t ia = 0; ia < group->size(); ia++) {
 
       // tests are best conducted in the unrotated (simulation) frame
-      cvm::rvector const atom_grad = (group->b_rotate ?
+      cvm::rvector const atom_grad = (group->is_enabled(f_ag_rotate) ?
                                       rot_inv.rotate((*group)[ia].grad) :
                                       (*group)[ia].grad);
       gradient_sum += atom_grad;

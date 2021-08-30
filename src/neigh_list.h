@@ -95,7 +95,7 @@ class NeighList : protected Pointers {
   int kokkos;    // 1 if list stores Kokkos data
   ExecutionSpace execution_space;
 
-  // USER-DPD package and Shardlow Splitting Algorithm (SSA) support
+  // DPD-REACT package and Shardlow Splitting Algorithm (SSA) support
 
   class NPair *np;    // ptr to NPair instance I depend on
 

@@ -208,7 +208,7 @@ Presets are a way to specify a collection of CMake options using a file.
 
 .. code-block:: bash
 
-   cmake ../cmake/presets/minimal.cmake ../cmake
+   cmake ../cmake/presets/basic.cmake ../cmake
 
 This command configures the build and generates the necessary Makefiles. To compile the binary, run the make command.
 

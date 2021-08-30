@@ -1,14 +1,14 @@
 // unit tests for checking LAMMPS MPI load balancing
 
 #define LAMMPS_LIB_MPI 1
-#include "lammps.h"
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
-#include "neighbor.h"
-#include "input.h"
-#include "timer.h"
 #include "info.h"
+#include "input.h"
+#include "lammps.h"
+#include "neighbor.h"
+#include "timer.h"
 #include <string>
 
 #include "gmock/gmock.h"
@@ -21,8 +21,7 @@ using ::testing::HasSubstr;
 using ::testing::StartsWith;
 using ::testing::StrEq;
 
-namespace LAMMPS_NS
-{
+namespace LAMMPS_NS {
 
 class MPILoadBalanceTest : public ::testing::Test {
 public:
@@ -54,7 +53,6 @@ protected:
         command("create_box      1 box");
         command("mass            1 1.0");
 
-
         command("pair_style      lj/cut 2.5");
         command("pair_coeff      1 1 1.0 1.0 2.5");
 
@@ -85,55 +83,55 @@ TEST_F(MPILoadBalanceTest, grid_yz)
     ASSERT_EQ(lmp->comm->nprocs, 4);
 
     // initial state
-    switch(lmp->comm->me) {
-      case 0:
-        ASSERT_EQ(lmp->atom->nlocal, 8);
-        break;
-      case 1:
-        ASSERT_EQ(lmp->atom->nlocal, 0);
-        break;
-      case 2:
-        ASSERT_EQ(lmp->atom->nlocal, 0);
-        break;
-      case 3:
-        ASSERT_EQ(lmp->atom->nlocal, 0);
-        break;
+    switch (lmp->comm->me) {
+        case 0:
+            ASSERT_EQ(lmp->atom->nlocal, 8);
+            break;
+        case 1:
+            ASSERT_EQ(lmp->atom->nlocal, 0);
+            break;
+        case 2:
+            ASSERT_EQ(lmp->atom->nlocal, 0);
+            break;
+        case 3:
+            ASSERT_EQ(lmp->atom->nlocal, 0);
+            break;
     }
 
     command("balance 1 x uniform y 0.125 z uniform");
 
     // state after balance command
-    switch(lmp->comm->me) {
-      case 0:
-        ASSERT_EQ(lmp->atom->nlocal, 4);
-        break;
-      case 1:
-        ASSERT_EQ(lmp->atom->nlocal, 0);
-        break;
-      case 2:
-        ASSERT_EQ(lmp->atom->nlocal, 4);
-        break;
-      case 3:
-        ASSERT_EQ(lmp->atom->nlocal, 0);
-        break;
+    switch (lmp->comm->me) {
+        case 0:
+            ASSERT_EQ(lmp->atom->nlocal, 4);
+            break;
+        case 1:
+            ASSERT_EQ(lmp->atom->nlocal, 0);
+            break;
+        case 2:
+            ASSERT_EQ(lmp->atom->nlocal, 4);
+            break;
+        case 3:
+            ASSERT_EQ(lmp->atom->nlocal, 0);
+            break;
     }
 
     command("balance 1 x uniform y 0.125 z 0.125");
 
     // state after second balance command
-    switch(lmp->comm->me) {
-      case 0:
-        ASSERT_EQ(lmp->atom->nlocal, 2);
-        break;
-      case 1:
-        ASSERT_EQ(lmp->atom->nlocal, 2);
-        break;
-      case 2:
-        ASSERT_EQ(lmp->atom->nlocal, 2);
-        break;
-      case 3:
-        ASSERT_EQ(lmp->atom->nlocal, 2);
-        break;
+    switch (lmp->comm->me) {
+        case 0:
+            ASSERT_EQ(lmp->atom->nlocal, 2);
+            break;
+        case 1:
+            ASSERT_EQ(lmp->atom->nlocal, 2);
+            break;
+        case 2:
+            ASSERT_EQ(lmp->atom->nlocal, 2);
+            break;
+        case 3:
+            ASSERT_EQ(lmp->atom->nlocal, 2);
+            break;
     }
 }
 
@@ -150,37 +148,37 @@ TEST_F(MPILoadBalanceTest, rcb)
     command("create_atoms 1 single 5 5 5");
 
     // initial state
-    switch(lmp->comm->me) {
-      case 0:
-        ASSERT_EQ(lmp->atom->nlocal, 8);
-        break;
-      case 1:
-        ASSERT_EQ(lmp->atom->nlocal, 0);
-        break;
-      case 2:
-        ASSERT_EQ(lmp->atom->nlocal, 0);
-        break;
-      case 3:
-        ASSERT_EQ(lmp->atom->nlocal, 0);
-        break;
+    switch (lmp->comm->me) {
+        case 0:
+            ASSERT_EQ(lmp->atom->nlocal, 8);
+            break;
+        case 1:
+            ASSERT_EQ(lmp->atom->nlocal, 0);
+            break;
+        case 2:
+            ASSERT_EQ(lmp->atom->nlocal, 0);
+            break;
+        case 3:
+            ASSERT_EQ(lmp->atom->nlocal, 0);
+            break;
     }
 
     command("balance 1 rcb");
 
     // state after balance command
-    switch(lmp->comm->me) {
-      case 0:
-        ASSERT_EQ(lmp->atom->nlocal, 2);
-        break;
-      case 1:
-        ASSERT_EQ(lmp->atom->nlocal, 2);
-        break;
-      case 2:
-        ASSERT_EQ(lmp->atom->nlocal, 2);
-        break;
-      case 3:
-        ASSERT_EQ(lmp->atom->nlocal, 2);
-        break;
+    switch (lmp->comm->me) {
+        case 0:
+            ASSERT_EQ(lmp->atom->nlocal, 2);
+            break;
+        case 1:
+            ASSERT_EQ(lmp->atom->nlocal, 2);
+            break;
+        case 2:
+            ASSERT_EQ(lmp->atom->nlocal, 2);
+            break;
+        case 3:
+            ASSERT_EQ(lmp->atom->nlocal, 2);
+            break;
     }
 
     // box dimensions should have minimal size
@@ -209,19 +207,19 @@ TEST_F(MPILoadBalanceTest, rcb_min_size)
     command("create_atoms 1 single 0.25 0.25 0.25");
 
     // initial state
-    switch(lmp->comm->me) {
-      case 0:
-        ASSERT_EQ(lmp->atom->nlocal, 8);
-        break;
-      case 1:
-        ASSERT_EQ(lmp->atom->nlocal, 0);
-        break;
-      case 2:
-        ASSERT_EQ(lmp->atom->nlocal, 0);
-        break;
-      case 3:
-        ASSERT_EQ(lmp->atom->nlocal, 0);
-        break;
+    switch (lmp->comm->me) {
+        case 0:
+            ASSERT_EQ(lmp->atom->nlocal, 8);
+            break;
+        case 1:
+            ASSERT_EQ(lmp->atom->nlocal, 0);
+            break;
+        case 2:
+            ASSERT_EQ(lmp->atom->nlocal, 0);
+            break;
+        case 3:
+            ASSERT_EQ(lmp->atom->nlocal, 0);
+            break;
     }
 
     // this should fail and not change the boxes
@@ -229,19 +227,19 @@ TEST_F(MPILoadBalanceTest, rcb_min_size)
     command("balance 1 rcb");
 
     // state after balance command
-    switch(lmp->comm->me) {
-      case 0:
-        ASSERT_EQ(lmp->atom->nlocal, 8);
-        break;
-      case 1:
-        ASSERT_EQ(lmp->atom->nlocal, 0);
-        break;
-      case 2:
-        ASSERT_EQ(lmp->atom->nlocal, 0);
-        break;
-      case 3:
-        ASSERT_EQ(lmp->atom->nlocal, 0);
-        break;
+    switch (lmp->comm->me) {
+        case 0:
+            ASSERT_EQ(lmp->atom->nlocal, 8);
+            break;
+        case 1:
+            ASSERT_EQ(lmp->atom->nlocal, 0);
+            break;
+        case 2:
+            ASSERT_EQ(lmp->atom->nlocal, 0);
+            break;
+        case 3:
+            ASSERT_EQ(lmp->atom->nlocal, 0);
+            break;
     }
 
     // box dimensions should have minimal size
@@ -254,4 +252,4 @@ TEST_F(MPILoadBalanceTest, rcb_min_size)
     ASSERT_GT(dz, lmp->neighbor->skin);
 }
 
-}
+} // namespace LAMMPS_NS

@@ -22,7 +22,7 @@ Syntax
 
   .. parsed-literal::
 
-       For *hooke*\ , *hooke/history*\ , and *hertz/history*\ , *fstyle_params* are:
+       For *hooke*, *hooke/history*, and *hertz/history*, *fstyle_params* are:
              Kn = elastic constant for normal particle repulsion (force/distance units or pressure units - see discussion below)
              Kt = elastic constant for tangential contact (force/distance units or pressure units - see discussion below)
              gamma_n = damping coefficient for collisions in normal direction (1/time units or 1/time-distance units - see discussion below)
@@ -33,7 +33,7 @@ Syntax
 
   .. parsed-literal::
 
-       For *granular*\ , *fstyle_params* are set using the same syntax as for the *pair_coeff* command of :doc:`pair_style granular <pair_granular>`
+       For *granular*, *fstyle_params* are set using the same syntax as for the *pair_coeff* command of :doc:`pair_style granular <pair_granular>`
 
 * wallstyle = *xplane* or *yplane* or *zplane* or *zcylinder*
 * args = list of arguments for a particular style
@@ -85,7 +85,7 @@ The nature of the wall/particle interactions are determined by the
 *fstyle* setting.  It can be any of the styles defined by the
 :doc:`pair_style gran/\* <pair_gran>` or the more general
 :doc:`pair_style granular <pair_granular>` commands.  Currently the
-options are *hooke*\ , *hooke/history*\ , or *hertz/history* for the
+options are *hooke*, *hooke/history*, or *hertz/history* for the
 former, and *granular* with all the possible options of the associated
 *pair_coeff* command for the latter.  The equation for the force
 between the wall and particles touching it is the same as the
@@ -96,12 +96,12 @@ Specifically, delta = radius - r = overlap of particle with wall, m_eff
 = mass of particle, and the effective radius of contact = RiRj/Ri+Rj is
 set to the radius of the particle.
 
-The parameters *Kn*\ , *Kt*\ , *gamma_n*, *gamma_t*, *xmu*, *dampflag*,
+The parameters *Kn*, *Kt*, *gamma_n*, *gamma_t*, *xmu*, *dampflag*,
 and the optional keyword *limit_damping*
 have the same meaning and units as those specified with the
 :doc:`pair_style gran/\* <pair_gran>` commands.  This means a NULL can be
 used for either *Kt* or *gamma_t* as described on that page.  If a
-NULL is used for *Kt*\ , then a default value is used where *Kt* = 2/7
+NULL is used for *Kt*, then a default value is used where *Kt* = 2/7
 *Kn*\ .  If a NULL is used for *gamma_t*, then a default value is used
 where *gamma_t* = 1/2 *gamma_n*.
 
@@ -117,7 +117,7 @@ material.
 
 .. note::
 
-   As discussed on the doc page for :doc:`pair_style gran/\* <pair_gran>`,
+   As discussed on the page for :doc:`pair_style gran/\* <pair_gran>`,
    versions of LAMMPS before 9Jan09 used a
    different equation for Hertzian interactions.  This means Hertizian
    wall/particle interactions have also changed.  They now include a
@@ -131,7 +131,7 @@ material.
    Kt, gamma_n, and gamma_s should be set sqrt(2.0) larger than they were
    previously.
 
-The effective mass *m_eff* in the formulas listed on the :doc:`pair_style granular <pair_gran>` doc page is the mass of the particle for
+The effective mass *m_eff* in the formulas listed on the :doc:`pair_style granular <pair_gran>` page is the mass of the particle for
 particle/wall interactions (mass of wall is infinite).  If the
 particle is part of a rigid body, its mass is replaced by the mass of
 the rigid body in those formulas.  This is determined by searching for
@@ -163,13 +163,13 @@ is set according to this equation:
    position = coord + A - A cos (omega \* delta)
 
 where *coord* is the specified initial position of the wall, *A* is
-the *amplitude*\ , *omega* is 2 PI / *period*\ , and *delta* is the time
+the *amplitude*, *omega* is 2 PI / *period*, and *delta* is the time
 elapsed since the fix was specified.  The velocity of the wall is set
 to the derivative of this expression.
 
 For the *shear* keyword, the wall moves continuously in the specified
 dimension with velocity *vshear*\ .  The dimension must be tangential to
-walls with a planar *wallstyle*\ , e.g. in the *y* or *z* directions for
+walls with a planar *wallstyle*, e.g. in the *y* or *z* directions for
 an *xplane* wall.  For *zcylinder* walls, a dimension of *z* means the
 cylinder is moving in the z-direction along it's axis.  A dimension of
 *x* or *y* means the cylinder is spinning around the z-axis, either in
@@ -225,7 +225,7 @@ Restrictions
 """"""""""""
 
 This fix is part of the GRANULAR package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Any dimension (xyz) that has a granular wall must be non-periodic.
 

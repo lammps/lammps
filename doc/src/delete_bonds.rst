@@ -52,7 +52,7 @@ For all styles, by default, an interaction is only turned off (or on)
 if all the atoms involved are in the specified group.  See the *any*
 keyword to change the behavior.
 
-Several of the styles (\ *atom*\ , *bond*\ , *angle*\ , *dihedral*\ ,
+Several of the styles (\ *atom*, *bond*, *angle*, *dihedral*,
 *improper*\ ) take a *type* as an argument.  The specified *type* should
 be an integer from 0 to N, where N is the number of relevant types
 (atom types, bond types, etc).  A value of 0 is only relevant for
@@ -73,11 +73,11 @@ Style *atom* is the same as style *multi* except that in addition, one
 or more of the atoms involved in the bond, angle, dihedral, or
 improper interaction must also be of the specified atom type.
 
-For style *bond*\ , only bonds are candidates for turn-off, and the bond
-must also be of the specified type.  Styles *angle*\ , *dihedral*\ , and
+For style *bond*, only bonds are candidates for turn-off, and the bond
+must also be of the specified type.  Styles *angle*, *dihedral*, and
 *improper* are treated similarly.
 
-For style *bond*\ , you can set the type to 0 to delete bonds that have
+For style *bond*, you can set the type to 0 to delete bonds that have
 been previously broken by a bond-breaking potential (which sets the
 bond type to 0 when a bond is broken); e.g. see the :doc:`bond_style quartic <bond_style>` command.
 
@@ -108,7 +108,7 @@ keyword is used).
 The *undo* keyword inverts the delete_bonds command so that the
 specified bonds, angles, etc are turned on if they are currently
 turned off.  This means a negative value is toggled to positive.  For
-example, for style *angle*\ , if *type* is specified as 2, then all
+example, for style *angle*, if *type* is specified as 2, then all
 angles with current type = -2, are reset to type = 2.  Note that the
 :doc:`fix shake <fix_shake>` command also sets bond and angle types
 negative, so this option should not be used on those interactions.

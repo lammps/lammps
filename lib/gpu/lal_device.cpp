@@ -787,28 +787,30 @@ void DeviceT::output_times(UCL_Timer &time_pair, Answer<numtyp,acctyp> &ans,
 
   #ifdef USE_OPENCL
   // Workaround for timing issue on Intel OpenCL
+  if (times[0] > 80e6) times[0]=0.0;
   if (times[3] > 80e6) times[3]=0.0;
   if (times[5] > 80e6) times[5]=0.0;
   #endif
 
   if (replica_me()==0)
-    if (screen && times[6]>0.0) {
+    if (screen && (times[6] > 0.0)) {
       fprintf(screen,"\n\n-------------------------------------");
       fprintf(screen,"--------------------------------\n");
       fprintf(screen,"      Device Time Info (average): ");
       fprintf(screen,"\n-------------------------------------");
       fprintf(screen,"--------------------------------\n");
 
-      if (time_device() && times[3]>0) {
-        fprintf(screen,"Data Transfer:   %.4f s.\n",times[0]/_replica_size);
+      if (time_device() && (times[3] > 0.0)) {
+        if (times[0] > 0.0)
+          fprintf(screen,"Data Transfer:   %.4f s.\n",times[0]/_replica_size);
         fprintf(screen,"Neighbor copy:   %.4f s.\n",times[1]/_replica_size);
-        if (nbor.gpu_nbor()>0)
+        if (nbor.gpu_nbor() > 0.0)
           fprintf(screen,"Neighbor build:  %.4f s.\n",times[2]/_replica_size);
         else
           fprintf(screen,"Neighbor unpack: %.4f s.\n",times[2]/_replica_size);
         fprintf(screen,"Force calc:      %.4f s.\n",times[3]/_replica_size);
       }
-      if (times[5]>0)
+      if (times[5] > 0.0)
         fprintf(screen,"Device Overhead: %.4f s.\n",times[5]/_replica_size);
       fprintf(screen,"Average split:   %.4f.\n",avg_split);
       fprintf(screen,"Lanes / atom:    %d.\n",threads_per_atom);

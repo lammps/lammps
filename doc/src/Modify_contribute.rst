@@ -56,27 +56,27 @@ files to LAMMPS or as part of a :doc:`package <Packages_list>`.  All
 packages are listed and described on the :doc:`Packages details
 <Packages_details>` doc page.
 
-Note that by providing us files to release, you are agreeing to make
-them open-source, i.e. we can release them under the terms of the GPL
-(version 2), used as a license for the rest of LAMMPS.  And as part of
-a LGPL (version 2.1) distribution that we make available to developers
-on request only and with files that are authorized for that kind of
-distribution removed (e.g. interface to FFTW).  See the
+Note that by providing us files to release, you agree to make them
+open-source, i.e. we can release them under the terms of the GPL
+(version 2) with the rest of LAMMPS.  And similarly as part of a LGPL
+(version 2.1) distribution of LAMMPS that we make available to
+developers on request only and with files that are not authorized for
+that kind of distribution removed (e.g. interface to FFTW).  See the
 :doc:`LAMMPS license <Intro_opensource>` page for details.
 
 .. note::
 
-   If you prefer to actively develop and support your add-on feature
-   yourself, then you may wish to make it available for download from
-   your own website, as a user package that LAMMPS users can add to
-   their copy of LAMMPS.  See the `Offsite LAMMPS packages and tools
-   <https://www.lammps.org/offsite.html>`_ page of the LAMMPS web site
-   for examples of groups that do this.  We are happy to advertise your
-   package and web site from that page.  Simply email the `developers
-   <https://www.lammps.org/authors.html>`_ with info about your package
-   and we will post it there.  We recommend to name external packages
-   USER-\<name\> so they can be easily distinguished from bundled packages
-   that do not have the USER- prefix.
+   If you prefer so, you can also develop and support your add-on
+   feature without having it included in the LAMMPS distribution, for
+   example as a download from a website of your own.  See the `Offsite
+   LAMMPS packages and tools <https://www.lammps.org/offsite.html>`_
+   page of the LAMMPS website for examples of groups that do this.  We
+   are happy to advertise your package and website from that page.
+   Simply email the `developers <https://www.lammps.org/authors.html>`_
+   with info about your package and we will post it there.  We recommend
+   to name external packages USER-\<name\> so they can be easily
+   distinguished from bundled packages that do not have the USER-
+   prefix.
 
 .. _lws: https://www.lammps.org
 

@@ -41,8 +41,7 @@ namespace LAMMPS_AL {
 
 class Neighbor {
  public:
-  Neighbor() : _allocated(false), _use_packing(false), _ncells(0),
-    _old_max_nbors(0) {}
+  Neighbor() : _allocated(false), _use_packing(false), _old_max_nbors(0), _ncells(0) {}
   ~Neighbor() { clear(); }
 
   /// Determine whether neighbor unpacking should be used
@@ -124,7 +123,7 @@ class Neighbor {
     }
   }
 
-  inline void acc_timers(FILE *screen) {
+  inline void acc_timers(FILE *) {
     if (_nbor_time_avail) {
       if (_time_device) {
         time_nbor.add_to_total();

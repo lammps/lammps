@@ -44,7 +44,7 @@ JSON
 
 .. code-block:: JSON
    :caption: current_state.json
-  
+
    {
      "timestep": 250,
      "pe": -4.7774327356321810711,
@@ -74,23 +74,23 @@ YAML
    - timestep: 0
      pe: -6.77336805325924729
      ke: 4.4988750000000026219
-   
+
    - timestep: 50
      pe: -4.8082494418323200591
      ke: 2.5257981827119797558
-   
+
    - timestep: 100
      pe: -4.7875608875581505686
      ke: 2.5062598821985102582
-   
+
    - timestep: 150
      pe: -4.7471033686005483787
      ke: 2.466095925545450207
-   
+
    - timestep: 200
      pe: -4.7509052858544134068
      ke: 2.4701136792591693592
-   
+
    - timestep: 250
      pe: -4.7774327356321810711
      ke: 2.4962152903997174569
@@ -115,7 +115,7 @@ data files and obtain a list of dictionaries.
 Line Delimited JSON (LD-JSON)
 -----------------------------
 
-The JSON format itself is very strict when it comes to delimiters. For continous
+The JSON format itself is very strict when it comes to delimiters. For continuous
 output/streaming data it is beneficial use the *line delimited JSON* format.
 Each line represents one JSON object.
 

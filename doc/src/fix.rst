@@ -378,7 +378,8 @@ accelerated styles exist.
 * :doc:`thermal/conductivity <fix_thermal_conductivity>` - Muller-Plathe kinetic energy exchange for thermal conductivity calculation
 * :doc:`ti/spring <fix_ti_spring>` -
 * :doc:`tmd <fix_tmd>` - guide a group of atoms to a new configuration
-* :doc:`ttm <fix_ttm>` - two-temperature model for electronic/atomic coupling
+* :doc:`ttm <fix_ttm>` - two-temperature model for electronic/atomic coupling (replicated grid)
+* :doc:`ttm/grid <fix_ttm>` - two-temperature model for electronic/atomic coupling (distributed grid)
 * :doc:`ttm/mod <fix_ttm>` - enhanced two-temperature model with additional options
 * :doc:`tune/kspace <fix_tune_kspace>` - auto-tune KSpace parameters
 * :doc:`vector <fix_vector>` - accumulate a global vector every N timesteps

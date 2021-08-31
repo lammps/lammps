@@ -37,3 +37,4 @@ OPT.
    * :doc:`pppm/stagger <kspace_style>`
    * :doc:`pppm/tip4p (o) <kspace_style>`
    * :doc:`scafacos <kspace_style>`
+   * :doc:`tild <kspace_style>`

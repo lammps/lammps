@@ -115,7 +115,7 @@ data files and obtain a list of dictionaries.
 Line Delimited JSON (LD-JSON)
 -----------------------------
 
-The JSON format itself is very strict when it comes to delimiters. For continous
+The JSON format itself is very strict when it comes to delimiters. For continuous
 output/streaming data it is beneficial use the *line delimited JSON* format.
 Each line represents one JSON object.
 

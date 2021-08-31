@@ -30,7 +30,7 @@ class FixFreeze : public Fix {
   int setmask();
   void init();
   void setup(int);
-  void post_force(int);
+  virtual void post_force(int);
   void post_force_respa(int, int, int);
   double compute_vector(int);
 

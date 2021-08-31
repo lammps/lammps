@@ -13,78 +13,56 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(ttm,FixTTM);
+FixStyle(ttm/grid,FixTTMGrid);
 // clang-format on
 #else
 
-#ifndef LMP_FIX_TTM_H
-#define LMP_FIX_TTM_H
+#ifndef LMP_FIX_TTM_GRID_H
+#define LMP_FIX_TTM_GRID_H
 
-#include "fix.h"
-#include <exception>
+#include "fix_ttm.h"
 
 namespace LAMMPS_NS {
 
-class FixTTM : public Fix {
+class FixTTMGrid : public FixTTM {
  public:
-  FixTTM(class LAMMPS *, int, char **);
-  virtual ~FixTTM();
-  virtual void post_constructor();
-  int setmask();
-  virtual void init();
-  void setup(int);
-  void post_force_setup(int);
-  virtual void post_force(int);
-  void post_force_respa_setup(int, int, int);
-  void post_force_respa(int, int, int);
-  virtual void end_of_step();
-  void reset_dt();
-  void grow_arrays(int);
-  virtual void write_restart(FILE *);
-  virtual void restart(char *);
-  int pack_restart(int, double *);
-  void unpack_restart(int, int);
-  int size_restart(int);
-  int maxsize_restart();
-  virtual double compute_vector(int);
-  virtual double memory_usage();
+  FixTTMGrid(class LAMMPS *, int, char **);
+  ~FixTTMGrid();
+  void post_constructor();
+  void init();
+  void post_force(int);
+  void end_of_step();
 
- protected:
-  int nlevels_respa;
-  int seed;
-  int nxgrid, nygrid, nzgrid;    // size of global grid
-  int ngridtotal;                // total size of global grid
-  int deallocate_flag;
-  int outflag, outevery;
-  double shift, tinit;
-  double e_energy, transfer_energy;
-  char *infile, *outfile;
+  // grid communication
 
-  class RanMars *random;
-  double electronic_specific_heat, electronic_density;
-  double electronic_thermal_conductivity;
-  double gamma_p, gamma_s, v_0, v_0_sq;
+  void pack_forward_grid(int, void *, int, int *);
+  void unpack_forward_grid(int, void *, int, int *);
+  void pack_reverse_grid(int, void *, int, int *);
+  void unpack_reverse_grid(int, void *, int, int *);
+  void pack_gather_grid(int, void *);
+  void unpack_gather_grid(int, void *, void *, int, int, int, int, int, int);
 
-  double *gfactor1, *gfactor2, *ratio, **flangevin;
-  double ***T_electron, ***T_electron_old;
-  double ***net_energy_transfer, ***net_energy_transfer_all;
-  double ***T_atomic;
-  int ***nsum, ***nsum_all;
-  double ***sum_vsq, ***sum_vsq_all;
-  double ***sum_mass_vsq, ***sum_mass_vsq_all;
+  void write_restart(FILE *);
+  void restart(char *);
+  double compute_vector(int);
+  double memory_usage();
 
-  virtual void allocate_grid();
-  virtual void deallocate_grid();
-  virtual void read_electron_temperatures(const std::string &);
-  virtual void write_electron_temperatures(const std::string &);
+ private:
+  int ngridmine,ngridout;
+  int nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in;
+  int nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out;
+  double delxinv,delyinv,delzinv;
+  double skin_original;
+  FILE *FPout;
 
-  class parser_error : public std::exception {
-    std::string message;
+  class GridComm *gc;
+  int ngc_buf1,ngc_buf2;
+  double *gc_buf1,*gc_buf2;
 
-   public:
-    parser_error(const std::string &mesg) { message = mesg; }
-    const char *what() const noexcept { return message.c_str(); }
-  };
+  void allocate_grid();
+  void deallocate_grid();
+  void read_electron_temperatures(const std::string &);
+  void write_electron_temperatures(const std::string &);
 };
 
 }    // namespace LAMMPS_NS

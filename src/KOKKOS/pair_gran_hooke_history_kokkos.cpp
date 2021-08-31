@@ -165,8 +165,11 @@ void PairGranHookeHistoryKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       d_neighbors.extent(1) != d_neighbors_touch.extent(1))
     d_neighbors_touch = typename AT::t_neighbors_2d("pair:neighbors_touch",d_neighbors.extent(0),d_neighbors.extent(1));
 
-  d_firsttouch = fix_historyKK->d_firstflag;
-  d_firstshear = fix_historyKK->d_firstvalue;
+  fix_historyKK->k_firstflag.template sync<DeviceType>();
+  fix_historyKK->k_firstvalue.template sync<DeviceType>();
+
+  d_firsttouch = fix_historyKK->k_firstflag.template view<DeviceType>();
+  d_firstshear = fix_historyKK->k_firstvalue.template view<DeviceType>();
 
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryReduce>(0,inum),*this);
 
@@ -256,6 +259,11 @@ void PairGranHookeHistoryKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
         }
       }
     }
+  }
+
+  if (eflag_atom) {
+    k_eatom.template modify<DeviceType>();
+    k_eatom.template sync<LMPHostType>();
   }
 
   if (vflag_global) {

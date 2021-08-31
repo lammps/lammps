@@ -18,6 +18,7 @@
 #include "error.h"
 #include "irregular.h"
 #include "kspace.h"
+#include "fix.h"
 #include "memory.h"
 
 using namespace LAMMPS_NS;
@@ -164,10 +165,14 @@ GridComm::~GridComm()
 
 void GridComm::initialize(MPI_Comm gcomm,
                           int gnx, int gny, int gnz,
-                          int ixlo, int ixhi, int iylo, int iyhi, int izlo, int izhi,
-                          int oxlo, int oxhi, int oylo, int oyhi, int ozlo, int ozhi,
-                          int fxlo, int fxhi, int fylo, int fyhi, int fzlo, int fzhi,
-                          int pxlo, int pxhi, int pylo, int pyhi, int pzlo, int pzhi)
+                          int ixlo, int ixhi, int iylo, int iyhi,
+                          int izlo, int izhi,
+                          int oxlo, int oxhi, int oylo, int oyhi,
+                          int ozlo, int ozhi,
+                          int fxlo, int fxhi, int fylo, int fyhi,
+                          int fzlo, int fzhi,
+                          int pxlo, int pxhi, int pylo, int pyhi,
+                          int pzlo, int pzhi)
 {
   gridcomm = gcomm;
   MPI_Comm_rank(gridcomm,&me);
@@ -926,31 +931,43 @@ int GridComm::ghost_adjacent_tiled()
    forward comm of my owned cells to other's ghost cells
 ------------------------------------------------------------------------- */
 
-void GridComm::forward_comm_kspace(KSpace *kspace, int nper, int nbyte, int which,
-                                   void *buf1, void *buf2, MPI_Datatype datatype)
+void GridComm::forward_comm(int caller, void *ptr, int nper, int nbyte, int which,
+                            void *buf1, void *buf2, MPI_Datatype datatype)
 {
-  if (layout == REGULAR)
-    forward_comm_kspace_regular(kspace,nper,nbyte,which,buf1,buf2,datatype);
-  else
-    forward_comm_kspace_tiled(kspace,nper,nbyte,which,buf1,buf2,datatype);
+  if (layout == REGULAR) {
+    if (caller == KSPACE)
+      forward_comm_regular<KSpace>((KSpace *) ptr,nper,nbyte,which,
+                                   buf1,buf2,datatype);
+    else if (caller == FIX)
+      forward_comm_regular<Fix>((Fix *) ptr,nper,nbyte,which,
+                                buf1,buf2,datatype);
+  } else {
+    if (caller == KSPACE)
+      forward_comm_tiled<KSpace>((KSpace *) ptr,nper,nbyte,which,
+                                 buf1,buf2,datatype);
+    else if (caller == FIX)
+      forward_comm_tiled<Fix>((Fix *) ptr,nper,nbyte,
+                              which,buf1,buf2,datatype);
+  }
 }
 
 /* ----------------------------------------------------------------------
    forward comm on regular grid of procs via list of swaps with 6 neighbor procs
 ------------------------------------------------------------------------- */
 
+template < class T >
 void GridComm::
-forward_comm_kspace_regular(KSpace *kspace, int nper, int /*nbyte*/, int which,
-                            void *buf1, void *buf2, MPI_Datatype datatype)
+forward_comm_regular(T *ptr, int nper, int /*nbyte*/, int which,
+                     void *buf1, void *buf2, MPI_Datatype datatype)
 {
   int m;
   MPI_Request request;
 
   for (m = 0; m < nswap; m++) {
     if (swap[m].sendproc == me)
-      kspace->pack_forward_grid(which,buf2,swap[m].npack,swap[m].packlist);
+      ptr->pack_forward_grid(which,buf2,swap[m].npack,swap[m].packlist);
     else
-      kspace->pack_forward_grid(which,buf1,swap[m].npack,swap[m].packlist);
+      ptr->pack_forward_grid(which,buf1,swap[m].npack,swap[m].packlist);
 
     if (swap[m].sendproc != me) {
       if (swap[m].nunpack) MPI_Irecv(buf2,nper*swap[m].nunpack,datatype,
@@ -960,7 +977,7 @@ forward_comm_kspace_regular(KSpace *kspace, int nper, int /*nbyte*/, int which,
       if (swap[m].nunpack) MPI_Wait(&request,MPI_STATUS_IGNORE);
     }
 
-    kspace->unpack_forward_grid(which,buf2,swap[m].nunpack,swap[m].unpacklist);
+    ptr->unpack_forward_grid(which,buf2,swap[m].nunpack,swap[m].unpacklist);
   }
 }
 
@@ -968,9 +985,10 @@ forward_comm_kspace_regular(KSpace *kspace, int nper, int /*nbyte*/, int which,
    forward comm on tiled grid decomp via Send/Recv lists of each neighbor proc
 ------------------------------------------------------------------------- */
 
+template < class T >
 void GridComm::
-forward_comm_kspace_tiled(KSpace *kspace, int nper, int nbyte, int which,
-                          void *buf1, void *vbuf2, MPI_Datatype datatype)
+forward_comm_tiled(T *ptr, int nper, int nbyte, int which,
+                   void *buf1, void *vbuf2, MPI_Datatype datatype)
 {
   int i,m,offset;
 
@@ -987,15 +1005,15 @@ forward_comm_kspace_tiled(KSpace *kspace, int nper, int nbyte, int which,
   // perform all sends to other procs
 
   for (m = 0; m < nsend; m++) {
-    kspace->pack_forward_grid(which,buf1,send[m].npack,send[m].packlist);
+    ptr->pack_forward_grid(which,buf1,send[m].npack,send[m].packlist);
     MPI_Send(buf1,nper*send[m].npack,datatype,send[m].proc,0,gridcomm);
   }
 
   // perform all copies to self
 
   for (m = 0; m < ncopy; m++) {
-    kspace->pack_forward_grid(which,buf1,copy[m].npack,copy[m].packlist);
-    kspace->unpack_forward_grid(which,buf1,copy[m].nunpack,copy[m].unpacklist);
+    ptr->pack_forward_grid(which,buf1,copy[m].npack,copy[m].packlist);
+    ptr->unpack_forward_grid(which,buf1,copy[m].nunpack,copy[m].unpacklist);
   }
 
   // unpack all received data
@@ -1003,8 +1021,8 @@ forward_comm_kspace_tiled(KSpace *kspace, int nper, int nbyte, int which,
   for (i = 0; i < nrecv; i++) {
     MPI_Waitany(nrecv,requests,&m,MPI_STATUS_IGNORE);
     offset = nper * recv[m].offset * nbyte;
-    kspace->unpack_forward_grid(which,(void *) &buf2[offset],
-                                recv[m].nunpack,recv[m].unpacklist);
+    ptr->unpack_forward_grid(which,(void *) &buf2[offset],
+                             recv[m].nunpack,recv[m].unpacklist);
   }
 }
 
@@ -1012,31 +1030,43 @@ forward_comm_kspace_tiled(KSpace *kspace, int nper, int nbyte, int which,
    reverse comm of my ghost cells to sum to owner cells
 ------------------------------------------------------------------------- */
 
-void GridComm::reverse_comm_kspace(KSpace *kspace, int nper, int nbyte, int which,
-                                    void *buf1, void *buf2, MPI_Datatype datatype)
+void GridComm::reverse_comm(int caller, void *ptr, int nper, int nbyte, int which,
+                            void *buf1, void *buf2, MPI_Datatype datatype)
 {
-  if (layout == REGULAR)
-    reverse_comm_kspace_regular(kspace,nper,nbyte,which,buf1,buf2,datatype);
-  else
-    reverse_comm_kspace_tiled(kspace,nper,nbyte,which,buf1,buf2,datatype);
+  if (layout == REGULAR) {
+    if (caller == KSPACE)
+      reverse_comm_regular<KSpace>((KSpace *) ptr,nper,nbyte,which,
+                                   buf1,buf2,datatype);
+    else if (caller == FIX)
+      reverse_comm_regular<Fix>((Fix *) ptr,nper,nbyte,which,
+                                buf1,buf2,datatype);
+  } else {
+    if (caller == KSPACE)
+      reverse_comm_tiled<KSpace>((KSpace *) ptr,nper,nbyte,which,
+                                 buf1,buf2,datatype);
+    else if (caller == FIX)
+      reverse_comm_tiled<Fix>((Fix *) ptr,nper,nbyte,which,
+                              buf1,buf2,datatype);
+  }
 }
 
 /* ----------------------------------------------------------------------
    reverse comm on regular grid of procs via list of swaps with 6 neighbor procs
 ------------------------------------------------------------------------- */
 
+template < class T >
 void GridComm::
-reverse_comm_kspace_regular(KSpace *kspace, int nper, int /*nbyte*/, int which,
-                            void *buf1, void *buf2, MPI_Datatype datatype)
+reverse_comm_regular(T *ptr, int nper, int /*nbyte*/, int which,
+                     void *buf1, void *buf2, MPI_Datatype datatype)
 {
   int m;
   MPI_Request request;
 
   for (m = nswap-1; m >= 0; m--) {
     if (swap[m].recvproc == me)
-      kspace->pack_reverse_grid(which,buf2,swap[m].nunpack,swap[m].unpacklist);
+      ptr->pack_reverse_grid(which,buf2,swap[m].nunpack,swap[m].unpacklist);
     else
-      kspace->pack_reverse_grid(which,buf1,swap[m].nunpack,swap[m].unpacklist);
+      ptr->pack_reverse_grid(which,buf1,swap[m].nunpack,swap[m].unpacklist);
 
     if (swap[m].recvproc != me) {
       if (swap[m].npack) MPI_Irecv(buf2,nper*swap[m].npack,datatype,
@@ -1046,7 +1076,7 @@ reverse_comm_kspace_regular(KSpace *kspace, int nper, int /*nbyte*/, int which,
       if (swap[m].npack) MPI_Wait(&request,MPI_STATUS_IGNORE);
     }
 
-    kspace->unpack_reverse_grid(which,buf2,swap[m].npack,swap[m].packlist);
+    ptr->unpack_reverse_grid(which,buf2,swap[m].npack,swap[m].packlist);
   }
 }
 
@@ -1054,9 +1084,10 @@ reverse_comm_kspace_regular(KSpace *kspace, int nper, int /*nbyte*/, int which,
    reverse comm on tiled grid decomp via Send/Recv lists of each neighbor proc
 ------------------------------------------------------------------------- */
 
+template < class T >
 void GridComm::
-reverse_comm_kspace_tiled(KSpace *kspace, int nper, int nbyte, int which,
-                          void *buf1, void *vbuf2, MPI_Datatype datatype)
+reverse_comm_tiled(T *ptr, int nper, int nbyte, int which,
+                   void *buf1, void *vbuf2, MPI_Datatype datatype)
 {
   int i,m,offset;
 
@@ -1073,15 +1104,15 @@ reverse_comm_kspace_tiled(KSpace *kspace, int nper, int nbyte, int which,
   // perform all sends to other procs
 
   for (m = 0; m < nrecv; m++) {
-    kspace->pack_reverse_grid(which,buf1,recv[m].nunpack,recv[m].unpacklist);
+    ptr->pack_reverse_grid(which,buf1,recv[m].nunpack,recv[m].unpacklist);
     MPI_Send(buf1,nper*recv[m].nunpack,datatype,recv[m].proc,0,gridcomm);
   }
 
   // perform all copies to self
 
   for (m = 0; m < ncopy; m++) {
-    kspace->pack_reverse_grid(which,buf1,copy[m].nunpack,copy[m].unpacklist);
-    kspace->unpack_reverse_grid(which,buf1,copy[m].npack,copy[m].packlist);
+    ptr->pack_reverse_grid(which,buf1,copy[m].nunpack,copy[m].unpacklist);
+    ptr->unpack_reverse_grid(which,buf1,copy[m].npack,copy[m].packlist);
   }
 
   // unpack all received data
@@ -1089,9 +1120,85 @@ reverse_comm_kspace_tiled(KSpace *kspace, int nper, int nbyte, int which,
   for (i = 0; i < nsend; i++) {
     MPI_Waitany(nsend,requests,&m,MPI_STATUS_IGNORE);
     offset = nper * send[m].offset * nbyte;
-    kspace->unpack_reverse_grid(which,(void *) &buf2[offset],
-                                send[m].npack,send[m].packlist);
+    ptr->unpack_reverse_grid(which,(void *) &buf2[offset],
+                             send[m].npack,send[m].packlist);
   }
+}
+
+/* ----------------------------------------------------------------------
+   gather global grid values to proc 0, one grid chunk at a time
+   proc 0 pings each proc for its grid chunk
+   pack/unpack operations are performed by caller via callbacks
+   caller can decide whether to store chunks, output them, etc
+------------------------------------------------------------------------- */
+
+void GridComm::gather(int /*caller*/, void *ptr, int nper, int nbyte,
+                      int which, void *buf, MPI_Datatype datatype)
+{
+  int me = comm->me;
+  Fix *fptr = (Fix *) ptr;
+
+  // maxsize = max grid data owned by any proc
+
+  int mysize = (inxhi-inxlo+1) * (inyhi-inylo+1) * (inzhi-inzlo+1);
+  mysize *= nper;
+  int maxsize;
+  MPI_Allreduce(&mysize,&maxsize,1,MPI_INT,MPI_MAX,world);
+
+  // pack my data via callback to caller
+
+  char *mybuf;
+  if (me == 0) memory->create(mybuf,maxsize*nbyte,"GridComm:mybuf");
+  else memory->create(mybuf,mysize*nbyte,"GridComm:mybuf");
+  fptr->pack_gather_grid(which,mybuf);
+
+  // ping each proc for its data
+  // unpack into full buffer via callback to caller
+
+  int xlo,xhi,ylo,yhi,zlo,zhi,tmp;
+  int bounds[6];
+
+  if (me == 0) {
+    MPI_Status status;
+    MPI_Request request;
+
+    for (int iproc = 0; iproc < nprocs; iproc++) {
+      if (iproc) {
+        MPI_Irecv(mybuf,maxsize,datatype,iproc,0,world,&request);
+        MPI_Send(&tmp,0,MPI_INT,iproc,0,world);
+        MPI_Wait(&request,&status);
+        MPI_Recv(bounds,6,MPI_INT,iproc,0,world,&status);
+        xlo = bounds[0];
+        xhi = bounds[1];
+        ylo = bounds[2];
+        yhi = bounds[3];
+        zlo = bounds[4];
+        zhi = bounds[5];
+      } else {
+        xlo = inxlo;
+        xhi = inxhi;
+        ylo = inylo;
+        yhi = inyhi;
+        zlo = inzlo;
+        zhi = inzhi;
+      }
+
+      fptr->unpack_gather_grid(which,mybuf,buf,xlo,xhi,ylo,yhi,zlo,zhi);
+    }
+
+  } else {
+    MPI_Recv(&tmp,0,MPI_INT,0,0,world,MPI_STATUS_IGNORE);
+    MPI_Rsend(mybuf,mysize,datatype,0,0,world);
+    bounds[0] = inxlo;
+    bounds[1] = inxhi;
+    bounds[2] = inylo;
+    bounds[3] = inyhi;
+    bounds[4] = inzlo;
+    bounds[5] = inzhi;
+    MPI_Send(bounds,6,MPI_INT,0,0,world);
+  }
+
+  memory->destroy(mybuf);
 }
 
 /* ----------------------------------------------------------------------
@@ -1105,8 +1212,7 @@ reverse_comm_kspace_tiled(KSpace *kspace, int nper, int nbyte, int which,
 void GridComm::grow_swap()
 {
   maxswap += DELTA;
-  swap = (Swap *)
-    memory->srealloc(swap,maxswap*sizeof(Swap),"GridComm:swap");
+  swap = (Swap *) memory->srealloc(swap,maxswap*sizeof(Swap),"GridComm:swap");
 }
 
 /* ----------------------------------------------------------------------

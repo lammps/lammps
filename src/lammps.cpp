@@ -1356,7 +1356,9 @@ void LAMMPS::print_config(FILE *fp)
 
   fmt::print(fp,"Accelerator configuration:\n\n{}\n",
              Info::get_accelerator_info());
+#if defined(LMP_GPU)
   fmt::print(fp,"GPU present: {}\n\n",Info::has_gpu_device() ? "yes" : "no");
+#endif
 
   fputs("Active compile time flags:\n\n",fp);
   if (Info::has_gzip_support()) fputs("-DLAMMPS_GZIP\n",fp);

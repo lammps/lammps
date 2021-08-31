@@ -20,6 +20,8 @@ namespace LAMMPS_NS {
 
 class GridComm : protected Pointers {
  public:
+  enum { KSPACE = 0, FIX = 1 };    // calling classes
+
   GridComm(class LAMMPS *, MPI_Comm, int, int, int, int, int, int, int, int, int, int, int, int,
            int, int, int);
   GridComm(class LAMMPS *, MPI_Comm, int, int, int, int, int, int, int, int, int, int, int, int,
@@ -27,8 +29,9 @@ class GridComm : protected Pointers {
   virtual ~GridComm();
   void setup(int &, int &);
   int ghost_adjacent();
-  void forward_comm_kspace(class KSpace *, int, int, int, void *, void *, MPI_Datatype);
-  void reverse_comm_kspace(class KSpace *, int, int, int, void *, void *, MPI_Datatype);
+  void forward_comm(int, void *, int, int, int, void *, void *, MPI_Datatype);
+  void reverse_comm(int, void *, int, int, int, void *, void *, MPI_Datatype);
+  void gather(int, void *, int, int, int, void *, MPI_Datatype);
 
  protected:
   int me, nprocs;
@@ -181,10 +184,10 @@ class GridComm : protected Pointers {
   int ghost_adjacent_regular();
   int ghost_adjacent_tiled();
 
-  void forward_comm_kspace_regular(class KSpace *, int, int, int, void *, void *, MPI_Datatype);
-  void forward_comm_kspace_tiled(class KSpace *, int, int, int, void *, void *, MPI_Datatype);
-  void reverse_comm_kspace_regular(class KSpace *, int, int, int, void *, void *, MPI_Datatype);
-  void reverse_comm_kspace_tiled(class KSpace *, int, int, int, void *, void *, MPI_Datatype);
+  template <class T> void forward_comm_regular(T *, int, int, int, void *, void *, MPI_Datatype);
+  template <class T> void forward_comm_tiled(T *, int, int, int, void *, void *, MPI_Datatype);
+  template <class T> void reverse_comm_regular(T *, int, int, int, void *, void *, MPI_Datatype);
+  template <class T> void reverse_comm_tiled(T *, int, int, int, void *, void *, MPI_Datatype);
 
   virtual void grow_swap();
   void grow_overlap();

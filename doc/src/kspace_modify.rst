@@ -54,6 +54,15 @@ Syntax
          *nozforce* turns off kspace forces in the z direction
        *splittol* value = tol
          tol = relative size of two eigenvalues (see discussion below)
+       *tild/shape* 
+       *tild/prefactor* itype jtype prefactor
+       *tild/cross-interaction* itype jtype interaction_shape parameters* 
+       *tild/set_rho0*
+       *tild/subtract_rho0*
+       *tild/normalize_by_rho0*
+       *tild/write_grid_data*
+       *tild/ave/grid*
+       
 
 Examples
 """"""""
@@ -63,6 +72,12 @@ Examples
    kspace_modify mesh 24 24 30 order 6
    kspace_modify slab 3.0
    kspace_modify scafacos tolerance energy
+   kspace_modify tild/coeff 1 1 gaussian ${a}
+   kspace_modify tild/coeff 2 2 erfc ${RP} ${xi}
+   kspace_modify tild/coeff 3 3 none
+   kspace_modify tild/chi * * kappa
+   kspace_modify tild/set_rho0 *rho*
+   kspace_modify tild/cross-interaction * * gaussian ${a}
 
 Description
 """""""""""
@@ -493,3 +508,19 @@ Chem Theory Comput, 9, 5412 (2013).
 
 **(Wennberg)** Wennberg, Murtola, Hess, Lindahl, J Chem Theory Comput,
 9, 3527 (2013).
+
+.. _Chao:
+
+**(Chao)** Chao, H., Koski, J. & Riggleman, R. (2017)
+"Solvent vapor annealing in block copolymer nanocomposite films: 
+a dynamic mean field approach" Soft Matter, 13(1) 239-249.
+
+.. _Fredrickson:
+
+**(Fredrickson)** Fredrickson, G. H. and Orland, H.  (2017)
+"Dynamics of polymers: A mean-field theory" The Journal of Chemical Physics 
+140, 084902 (2014) https://doi.org/10.1063/1.4865911
+
+.. _Grzetic:
+
+**(Grzetic)** Grzetic, D. J., Wickman, R. A., and Shi, A.-C., "Statistical dynamics of classical systems: A self-consistent field approach", The Journal of Chemical Physics 140, 244907 (2014) https://doi.org/10.1063/1.4884825

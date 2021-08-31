@@ -1315,3 +1315,13 @@ void CommKokkos::grow_swap(int n)
   memory->grow(maxsendlist,n,"comm:maxsendlist");
   for (int i=0;i<maxswap;i++) maxsendlist[i]=size;
 }
+
+/* ----------------------------------------------------------------------
+   forward communication of N values in per-atom array
+------------------------------------------------------------------------- */
+
+void CommKokkos::forward_comm_array(int nsize, double **array)
+{
+  k_sendlist.sync<LMPHostType>();
+  CommBrick::forward_comm_array(nsize,array);
+}

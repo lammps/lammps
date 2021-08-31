@@ -5,7 +5,7 @@ fix ttm command
 ===============
 
 fix ttm/grid command
-===============
+====================
 
 fix ttm/mod command
 ===================
@@ -45,7 +45,7 @@ Syntax
        Nz = number of thermal solve grid points in the z-direction (positive integer)
 
 * zero or more keyword/value(s) pairs may be appended
-* keyword = *set* or *infile" or *outfile"
+* keyword = *set* or *infile* or *outfile*
 
   .. parsed-literal::
 

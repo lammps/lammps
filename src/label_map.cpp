@@ -35,14 +35,6 @@ LabelMap::LabelMap(LAMMPS *lmp) : Pointers(lmp)
 
 LabelMap::~LabelMap()
 {
-  // delete type labels
-
-  typelabel.clear();
-  btypelabel.clear();
-  atypelabel.clear();
-  dtypelabel.clear();
-  itypelabel.clear();
-
   delete[] lmap2lmap.atom;
   delete[] lmap2lmap.bond;
   delete[] lmap2lmap.angle;

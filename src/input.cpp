@@ -1359,7 +1359,7 @@ void Input::angle_coeff()
     error->all(FLERR,"Angle_coeff command when no angles allowed");
   int newflag = readtype(arg[0],Atom::ANGLE);
   force->angle->coeff(narg,arg);
-  if (newflag) delete [] arg[0];
+  if (newflag) delete[] arg[0];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1402,7 +1402,7 @@ void Input::bond_coeff()
     error->all(FLERR,"Bond_coeff command when no bonds allowed");
   int newflag = readtype(arg[0],Atom::BOND);
   force->bond->coeff(narg,arg);
-  if (newflag) delete [] arg[0];
+  if (newflag) delete[] arg[0];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1507,7 +1507,7 @@ void Input::dihedral_coeff()
     error->all(FLERR,"Dihedral_coeff command when no dihedrals allowed");
   int newflag = readtype(arg[0],Atom::DIHEDRAL);
   force->dihedral->coeff(narg,arg);
-  if (newflag) delete [] arg[0];
+  if (newflag) delete[] arg[0];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1586,7 +1586,7 @@ void Input::improper_coeff()
     error->all(FLERR,"Improper_coeff command when no impropers allowed");
   int newflag = readtype(arg[0],Atom::IMPROPER);
   force->improper->coeff(narg,arg);
-  if (newflag) delete [] arg[0];
+  if (newflag) delete[] arg[0];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1804,8 +1804,8 @@ void Input::pair_coeff()
   }
 
   force->pair->coeff(narg,arg);
-  if (newflag0) delete [] arg[0];
-  if (newflag1) delete [] arg[1];
+  if (newflag0) delete[] arg[0];
+  if (newflag1) delete[] arg[1];
 }
 
 /* ---------------------------------------------------------------------- */

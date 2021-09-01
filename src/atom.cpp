@@ -2054,7 +2054,7 @@ void Atom::add_molecule_atom(Molecule *onemol, int iatom,
    allocate space for type label map
 ------------------------------------------------------------------------- */
 
-int Atom::add_label_map(std::string mapID)
+int Atom::add_label_map(const std::string &mapID)
 {
   labelmapflag = 1;
   lmaps = (LabelMap **)
@@ -2077,7 +2077,7 @@ int Atom::add_label_map(std::string mapID)
    return -1 if does not exist
 ------------------------------------------------------------------------- */
 
-int Atom::find_label(std::string label, int mode)
+int Atom::find_label(const std::string &label, int mode)
 {
   int ilmap = 0;
 
@@ -2087,7 +2087,8 @@ int Atom::find_label(std::string label, int mode)
   if (pos != std::string::npos) {
     ilmap = find_labelmap(label.substr(0,pos));
     if (ilmap == -1) return -1;
-    label = label.substr(pos+2);
+    auto slabel = label.substr(pos+2);
+    return lmaps[ilmap]->find(slabel,mode);
   }
 
   return lmaps[ilmap]->find(label,mode);
@@ -2098,10 +2099,9 @@ int Atom::find_label(std::string label, int mode)
    return -1 if does not exist
 ------------------------------------------------------------------------- */
 
-int Atom::find_labelmap(std::string id)
+int Atom::find_labelmap(const std::string &id)
 {
-  int ilmap;
-  for (ilmap = 0; ilmap < nlmap; ilmap++)
+  for (int ilmap = 0; ilmap < nlmap; ilmap++)
     if (id == lmaps[ilmap]->id) return ilmap;
   return -1;
 }

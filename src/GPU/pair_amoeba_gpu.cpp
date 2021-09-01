@@ -104,6 +104,12 @@ PairAmoebaGPU::~PairAmoebaGPU()
 
 void PairAmoebaGPU::polar_real()
 {
+  bool gpu_polar_real_ready = true;
+  if (!gpu_polar_real_ready) {
+    PairAmoeba::polar_real();
+    return;
+  }
+
   int eflag=1, vflag=1;
   int nall = atom->nlocal + atom->nghost;
   int inum, host_start;
@@ -292,6 +298,12 @@ void PairAmoebaGPU::init_style()
 
 void PairAmoebaGPU::udirect2b(double **field, double **fieldp)
 {
+  bool gpu_udirect2b_ready = false;
+  if (!gpu_udirect2b_ready) {
+    PairAmoeba::udirect2b(field, fieldp);
+    return;
+  }
+   
   int eflag=1, vflag=1;
   int nall = atom->nlocal + atom->nghost;
   int inum, host_start;
@@ -353,10 +365,6 @@ void PairAmoebaGPU::udirect2b_cpu()
 
   int inum,jnum;
   int *ilist,*jlist,*numneigh,**firstneigh;
-
-  // launching the kernel to compute field and fieldp
-
-  // amoeba_gpu_compute_field(...);
 
   double **x = atom->x;
 

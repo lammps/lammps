@@ -689,15 +689,14 @@ int Input::readtype(char *&str, int mode)
   if (!atom->labelmapflag) error->all(FLERR,fmt::format("Invalid type {}",str));
 
   int type,max,max2;
-  std::string labelstr;
   char typechar[256];
+  std::string labelstr(str);
 
-  labelstr = str;
   type = atom->find_label(labelstr,mode);
   if (type == -1) error->all(FLERR,fmt::format("Invalid type {}",str));
   sprintf(typechar,"%d",type);
 
-  max = strlen(str) + 1;
+  max = n + 1;
   max2 = strlen(typechar) + 1;
   if (max2 > max) {
     str = new char[max2];

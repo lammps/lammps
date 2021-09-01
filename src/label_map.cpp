@@ -43,11 +43,11 @@ LabelMap::~LabelMap()
   dtypelabel.clear();
   itypelabel.clear();
 
-  delete [] lmap2lmap.atom;
-  delete [] lmap2lmap.bond;
-  delete [] lmap2lmap.angle;
-  delete [] lmap2lmap.dihedral;
-  delete [] lmap2lmap.improper;
+  delete[] lmap2lmap.atom;
+  delete[] lmap2lmap.bond;
+  delete[] lmap2lmap.angle;
+  delete[] lmap2lmap.dihedral;
+  delete[] lmap2lmap.improper;
 }
 
 /* ----------------------------------------------------------------------
@@ -314,31 +314,31 @@ void LabelMap::read_restart(FILE *fp)
   for (int i = 0; i < natomtypes; i++) {
     charlabel = read_string(fp);
     typelabel[i] = charlabel;
-    delete [] charlabel;
+    delete[] charlabel;
   }
 
   for (int i = 0; i < nbondtypes; i++) {
     charlabel = read_string(fp);
     btypelabel[i] = charlabel;
-    delete [] charlabel;
+    delete[] charlabel;
   }
 
   for (int i = 0; i < nangletypes; i++) {
     charlabel = read_string(fp);
     atypelabel[i] = charlabel;
-    delete [] charlabel;
+    delete[] charlabel;
   }
 
   for (int i = 0; i < ndihedraltypes; i++) {
     charlabel = read_string(fp);
     dtypelabel[i] = charlabel;
-    delete [] charlabel;
+    delete[] charlabel;
   }
 
   for (int i = 0; i < nimpropertypes; i++) {
     charlabel = read_string(fp);
     itypelabel[i] = charlabel;
-    delete [] charlabel;
+    delete[] charlabel;
   }
 }
 

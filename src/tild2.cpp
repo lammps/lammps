@@ -537,6 +537,10 @@ void TILD::setup_grid()
   setup();
 }
 
+/* ----------------------------------------------------------------------
+   precompute the fft of the gridded densities
+------------------------------------------------------------------------- */
+
 void TILD::precompute_density_hat_fft() {
   int n = 0;
   double scale_inv = 1.0 / (nx_pppm * ny_pppm * nz_pppm);
@@ -569,6 +573,10 @@ void TILD::precompute_density_hat_fft() {
 */
   }
 }
+
+/* ----------------------------------------------------------------------
+   compute the forces and energies of the system
+------------------------------------------------------------------------- */
 
 void TILD::compute(int eflag, int vflag){
   
@@ -1034,6 +1042,7 @@ void TILD::allocate_peratom()
 /* ----------------------------------------------------------------------
    deallocate per-atom memory that depends on # of K-vectors and order
 ------------------------------------------------------------------------- */
+
 void TILD::deallocate_peratom()
 {
   peratom_allocate_flag = 0;
@@ -1395,6 +1404,10 @@ int TILD::factorable(int n)
 
   return 1;
 }
+
+/* ----------------------------------------------------------------------
+   Get the kspace version of the inputted function/potential
+------------------------------------------------------------------------- */
 
 void TILD::get_k_alias(FFT_SCALAR* wk1, FFT_SCALAR **out){
   int Dim = domain->dimension; 
@@ -2701,6 +2714,10 @@ bigint TILD::nextvalid()
   if (nvalid < update->ntimestep) nvalid += peratom_freq;
   return nvalid;
 }
+
+/* ----------------------------------------------------------------------
+   write out the average gridded density if it is cime to do so
+------------------------------------------------------------------------- */
 
 void TILD::ave_grid()
 {
